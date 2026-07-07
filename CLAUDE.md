@@ -5,10 +5,9 @@
 ## 스택
 Python 3.12 · **FastAPI** 모듈러 모놀리스 1서비스 + 배치 워커(같은 코드, 프로세스만 분리) · **uv** · Supabase(Auth+Postgres+pgvector) · Anthropic Claude(Sonnet=대화·개인일기 / Haiku=self-check·기억통합) · mem0 OSS(장기기억).
 
-## 문서 (단일 소스 = `docs/`, 충돌 시 API_SPEC 우선)
-- `docs/API_SPEC.md` — 앱↔서버 계약·가격 정책
-- `docs/ERD.md` — DB 스키마·enum·RLS (짝 파일 `ERD.dbml`)
-- `docs/ARCHITECTURE.md` — 백엔드 구조
+## 문서 (단일 소스 = 팀 노션. 로컬 `docs/`는 gitignore된 작업 사본, 노션 링크 TBD)
+- API_SPEC(앱↔서버 계약·가격) · ERD(DB 스키마·enum·RLS, 짝 `ERD.dbml`) · ARCHITECTURE(구조). 충돌 시 노션(API_SPEC) 우선.
+- 현황판 `docs/DEV_STATUS.md`(노션 공유용): 엔드포인트 구현 상태·규약·실행법
 
 ## 핵심 원칙
 - 서버가 진실(재화·토큰·구독·가격). **클라 DB 직접 쓰기 전면 금지 — 모든 쓰기 API 경유**(RLS는 읽기+심층방어).

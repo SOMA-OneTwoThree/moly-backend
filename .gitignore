@@ -25,3 +25,7 @@ venv/
 .claude/
 .omc/
 AGENTS.md
+
+# 문서 — 노션에서 관리/공유 (레포에 올리지 않음)
+docs/
+DEV_STATUS.md

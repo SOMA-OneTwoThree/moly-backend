@@ -3,7 +3,11 @@ from fastapi import FastAPI
 from app.api.account import router as account_router
 from app.api.chat import router as chat_router
 from app.api.diary import router as diary_router
+from app.api.economy import router as economy_router
 from app.api.health import router as health_router
+from app.api.review import router as review_router
+from app.api.routine import router as routine_router
+from app.api.shop import router as shop_router
 from app.config import settings
 from app.core.errors import register_error_handlers
 
@@ -25,6 +29,10 @@ def create_app() -> FastAPI:
     app.include_router(account_router)
     app.include_router(chat_router)
     app.include_router(diary_router)
+    app.include_router(economy_router)
+    app.include_router(routine_router)
+    app.include_router(shop_router)
+    app.include_router(review_router)
     return app
 
 

@@ -1,0 +1,16 @@
+.git/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+.mem0/
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.omc/
+.claude/
+tests/
+docs/

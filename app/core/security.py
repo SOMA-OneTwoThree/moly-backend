@@ -1,44 +1,70 @@
-"""Supabase 액세스 토큰 검증 — 유저 컨텍스트 확보.
+"""Supabase JWT 검증 — 로컬 JWKS(비대칭 서명) 검증.
 
-⚠️ 검증 방식(로컬 JWKS vs remote getUser)은 **auth 모듈 설계 단계에서 확정**.
-현재는 moly-voice 검증본을 이관한 remote getUser 폴백(검증됨 — 만료/폐기 토큰까지 잡힘).
-ARCHITECTURE §8은 JWKS 로컬 검증을 지향(요청당 네트워크 제거) → 설계 확정 시 교체.
-전 엔드포인트가 Bearer 필요(API_SPEC 1장, 웹훅·GET /app-config 제외).
+요청당 네트워크 호출 없이 JWKS 공개키로 서명을 로컬 검증(ARCHITECTURE §8).
+키는 최초 1회 페치 후 캐시(PyJWKClient). 전 엔드포인트 Bearer 필요
+(API_SPEC 1장, 웹훅·GET /app-config 제외). 검증 실패 = 401.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 
-import httpx
+import jwt
 from fastapi import Header, HTTPException
+from jwt import PyJWKClient
 
 from app.config import settings
 
 _log = logging.getLogger("moly-backend")
 
+# Supabase JWT: aud="authenticated", 비대칭 알고리즘(ES256/RS256).
+_ALGORITHMS = ["ES256", "RS256"]
+_AUDIENCE = "authenticated"
 
-async def verify_supabase_token(token: str) -> str | None:
-    """Supabase access token → user_id. 무효/오류/미설정이면 None."""
-    if not (settings.supabase_url and settings.supabase_anon_key):
-        _log.warning("SUPABASE_URL/ANON_KEY 미설정 — 토큰 검증 불가")
+_jwks_client: PyJWKClient | None = None
+
+
+def _jwks_url() -> str:
+    if settings.supabase_jwks_url:
+        return settings.supabase_jwks_url
+    if settings.supabase_url:
+        return f"{settings.supabase_url}/auth/v1/.well-known/jwks.json"
+    return ""
+
+
+def _get_client() -> PyJWKClient | None:
+    global _jwks_client
+    if _jwks_client is None:
+        url = _jwks_url()
+        if not url:
+            return None
+        _jwks_client = PyJWKClient(url, cache_keys=True)
+    return _jwks_client
+
+
+def _verify_sync(token: str) -> str | None:
+    client = _get_client()
+    if client is None:
+        _log.warning("SUPABASE_JWKS_URL/URL 미설정 — 토큰 검증 불가")
         return None
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            r = await client.get(
-                f"{settings.supabase_url}/auth/v1/user",
-                headers={
-                    "apikey": settings.supabase_anon_key,
-                    "Authorization": f"Bearer {token}",
-                },
-            )
-    except Exception as e:  # noqa: BLE001  # 네트워크/DNS/타임아웃 — 거절
-        _log.warning("토큰 검증 오류: %r", e)
+        signing_key = client.get_signing_key_from_jwt(token)
+        claims = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=_ALGORITHMS,
+            audience=_AUDIENCE,
+            options={"require": ["sub", "exp"]},
+        )
+    except Exception as e:  # noqa: BLE001  # 서명/만료/형식 오류 — 모두 거절
+        _log.info("토큰 검증 실패: %r", e)
         return None
-    if r.status_code != 200:  # 401=무효/만료, 그 외=Supabase 오류 — 모두 거절
-        _log.info("토큰 검증 실패: HTTP %s", r.status_code)
-        return None
-    uid = (r.json() or {}).get("id")
-    return uid or None
+    return claims.get("sub")
+
+
+async def verify_supabase_token(token: str) -> str | None:
+    """access token → user_id(sub). 무효/오류/미설정이면 None. (동기 검증을 스레드로 오프로드)"""
+    return await asyncio.to_thread(_verify_sync, token)
 
 
 async def get_current_user(authorization: str | None = Header(default=None)) -> str:

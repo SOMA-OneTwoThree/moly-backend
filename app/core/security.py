@@ -10,10 +10,11 @@ import asyncio
 import logging
 
 import jwt
-from fastapi import Header, HTTPException
+from fastapi import Header
 from jwt import PyJWKClient
 
 from app.config import settings
+from app.core.errors import unauthorized
 
 _log = logging.getLogger("moly-backend")
 
@@ -70,9 +71,9 @@ async def verify_supabase_token(token: str) -> str | None:
 async def get_current_user(authorization: str | None = Header(default=None)) -> str:
     """FastAPI 의존성 — Bearer 토큰 검증 후 user_id 반환. 실패 = 401."""
     if not authorization or not authorization.lower().startswith("bearer "):
-        raise HTTPException(status_code=401, detail="missing bearer token")
+        raise unauthorized()
     token = authorization.split(" ", 1)[1].strip()
     uid = await verify_supabase_token(token)
     if not uid:
-        raise HTTPException(status_code=401, detail="invalid token")
+        raise unauthorized()
     return uid

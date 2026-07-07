@@ -6,9 +6,9 @@ from datetime import datetime, timedelta, timezone
 import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
-from fastapi import HTTPException
 
 from app.core import security
+from app.core.errors import AppError
 
 
 class _FakeSigningKey:
@@ -65,9 +65,10 @@ async def test_missing_jwks_config_returns_none(monkeypatch):
 
 
 async def test_get_current_user_requires_bearer(monkeypatch):
-    with pytest.raises(HTTPException) as e:
+    with pytest.raises(AppError) as e:
         await security.get_current_user(authorization=None)
-    assert e.value.status_code == 401
+    assert e.value.code == "UNAUTHORIZED"
+    assert e.value.http_status == 401
 
 
 async def test_get_current_user_returns_uid(monkeypatch):

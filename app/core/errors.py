@@ -6,12 +6,28 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+_log = logging.getLogger("moly-backend")
+
+# HTTPException(status) → 표준 에러 코드. 목록 밖은 HTTP_<status>.
+_STATUS_TO_CODE = {
+    400: "BAD_REQUEST",
+    401: "UNAUTHORIZED",
+    403: "FORBIDDEN",
+    404: "NOT_FOUND",
+    405: "METHOD_NOT_ALLOWED",
+    409: "CONFLICT",
+    422: "VALIDATION",
+    429: "RATE_LIMITED",
+}
 
 
 class AppError(Exception):
@@ -53,12 +69,39 @@ async def _validation_error_handler(
     )
 
 
+async def _http_exception_handler(
+    request: Request, exc: StarletteHTTPException
+) -> JSONResponse:
+    """FastAPI/Starlette가 던지는 HTTPException(401·404 등)도 표준 형식으로 통일."""
+    code = _STATUS_TO_CODE.get(exc.status_code, f"HTTP_{exc.status_code}")
+    message = exc.detail if isinstance(exc.detail, str) else "요청을 처리할 수 없어요."
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=jsonable_encoder(_body(code, message, {})),
+    )
+
+
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """미처리 예외 → 500 INTERNAL(내부 상세 미노출). 서버 로그엔 스택 남김."""
+    _log.exception("unhandled error: %r", exc)
+    return JSONResponse(
+        status_code=500,
+        content=_body("INTERNAL", "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.", {}),
+    )
+
+
 def register_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(AppError, _app_error_handler)
     app.add_exception_handler(RequestValidationError, _validation_error_handler)
+    app.add_exception_handler(StarletteHTTPException, _http_exception_handler)
+    app.add_exception_handler(Exception, _unhandled_exception_handler)
 
 
 # --- 부록 B 비즈니스 에러 팩토리 (모듈에서 raise 해서 사용) ---
+def unauthorized(message: str = "다시 로그인해 주세요.") -> AppError:
+    return AppError("UNAUTHORIZED", 401, message)
+
+
 def daily_limit_reached() -> AppError:
     return AppError("DAILY_LIMIT_REACHED", 403, "오늘의 대화 한도를 모두 사용했어요.")
 

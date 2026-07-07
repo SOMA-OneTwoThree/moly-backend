@@ -29,11 +29,14 @@ class LLMResult:
 
 
 async def generate(
-    system: str, convo: list[dict], *, max_tokens: int | None = None
+    system: str, convo: list[dict], *, max_tokens: int | None = None, model: str | None = None
 ) -> LLMResult:
-    """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰."""
+    """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
+
+    model 미지정 = 대화 모델(Sonnet). 일기 self-check·기억통합은 utility(Haiku) 지정.
+    """
     resp = await _get_client().messages.create(
-        model=settings.anthropic_model_chat,
+        model=model or settings.anthropic_model_chat,
         max_tokens=max_tokens or settings.llm_max_tokens,
         system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
         messages=convo,

@@ -18,3 +18,24 @@ class PatchMeRequest(BaseModel):
     nickname: str | None = Field(default=None, min_length=1, max_length=10)
     language: str | None = Field(default=None, min_length=2, max_length=8)
     timezone: str | None = Field(default=None, min_length=1)
+
+
+class NotificationsPatchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # 둘 다 선택 — 보낸 것만 반영. 알림 2종 고정(morning_diary·evening_chat).
+    morning_diary: bool | None = None
+    evening_chat: bool | None = None
+
+
+class PushTokenRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    token: str = Field(min_length=1)
+    platform: str = Field(default="ios", min_length=1, max_length=16)
+
+
+class LogoutRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    push_token: str = Field(min_length=1)

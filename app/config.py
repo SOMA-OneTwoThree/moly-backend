@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # --- 대화 컨텍스트 ---
     chat_recent_messages: int = 30  # 프롬프트에 넣을 최근 메시지 수
 
+    # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
+    fcm_project_id: str = ""
+    fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)
+
     # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
     openai_api_key: str = ""
     embedder_model: str = "text-embedding-3-small"

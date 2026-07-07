@@ -18,9 +18,9 @@ _KEYS_URL = "https://www.gstatic.com/admob/reward/verifier-keys.json"
 _keys_cache: dict[str, str] | None = None
 
 
-async def _get_keys() -> dict[str, str]:
+async def _get_keys(*, force: bool = False) -> dict[str, str]:
     global _keys_cache
-    if _keys_cache is None:
+    if _keys_cache is None or force:
         async with httpx.AsyncClient(timeout=10.0) as client:
             data = (await client.get(_KEYS_URL)).json()
         _keys_cache = {str(k["keyId"]): k["pem"] for k in data.get("keys", [])}
@@ -39,6 +39,8 @@ async def verify(raw_query: str, key_id: str, signature_b64: str) -> bool:
         return False
     try:
         pem = (await _get_keys()).get(str(key_id))
+        if not pem:  # 캐시에 없는 key_id → Google 키 로테이션 대응 재조회
+            pem = (await _get_keys(force=True)).get(str(key_id))
         if not pem:
             return False
         public_key = load_pem_public_key(pem.encode())

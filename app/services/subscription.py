@@ -84,28 +84,35 @@ async def _grant_exists(session: AsyncSession, uid, plan: str) -> bool:
     return row.scalars().first() is not None
 
 
-async def verify(session: AsyncSession, user_id: str, signed_transaction: str) -> dict[str, Any]:
-    uid = _uid(user_id)
-    payload = app_store.decode(signed_transaction)
+async def _upsert_sub(session: AsyncSession, uid, payload: dict) -> str:
+    """JWS payload로 Subscription 생성/갱신 → plan 반환. 다른 계정 소유면 409. verify·restore 공용."""
     plan = _PLAN_BY_PRODUCT.get(payload.get("productId"))
     if plan is None:
         raise errors.receipt_invalid()
     original_tx = str(payload.get("originalTransactionId") or payload.get("transactionId"))
     expires = _ms_to_dt(payload.get("expiresDate"))
-
     sub = await _by_original_tx(session, original_tx)
     if sub is not None and sub.user_id != uid:
-        raise errors.restore_conflict()  # 다른 계정에 연결된 구독
+        raise errors.restore_conflict()
     if sub is None:
-        sub = Subscription(
-            user_id=uid, plan=plan, status="active", original_transaction_id=original_tx,
-            latest_transaction_id=str(payload.get("transactionId")), expires_at=expires,
-            auto_renew_enabled=True, environment=payload.get("environment"),
+        session.add(
+            Subscription(
+                user_id=uid, plan=plan, status="active", original_transaction_id=original_tx,
+                latest_transaction_id=str(payload.get("transactionId")), expires_at=expires,
+                auto_renew_enabled=True, environment=payload.get("environment"),
+            )
         )
-        session.add(sub)
     else:
         sub.plan, sub.status, sub.expires_at = plan, "active", expires
         sub.latest_transaction_id = str(payload.get("transactionId"))
+    return plan
+
+
+async def verify(session: AsyncSession, user_id: str, signed_transaction: str) -> dict[str, Any]:
+    uid = _uid(user_id)
+    payload = app_store.decode(signed_transaction)
+    plan = await _upsert_sub(session, uid, payload)
+    expires = _ms_to_dt(payload.get("expiresDate"))
 
     # 증정 = (user, plan) 최초 1회
     granted = 0
@@ -125,12 +132,9 @@ async def verify(session: AsyncSession, user_id: str, signed_transaction: str) -
 
 async def restore(session: AsyncSession, user_id: str, signed_transactions: list[str]) -> dict[str, Any]:
     uid = _uid(user_id)
-    for jws in signed_transactions:  # 복원 충돌 검사(다른 계정 소유면 거부)
-        payload = app_store.decode(jws)
-        original_tx = str(payload.get("originalTransactionId") or payload.get("transactionId"))
-        other = await _by_original_tx(session, original_tx)
-        if other is not None and other.user_id != uid:
-            raise errors.restore_conflict()
+    for jws in signed_transactions:  # 각 거래로 구독 재활성(웹훅 유실 대비) + 충돌 검사
+        await _upsert_sub(session, uid, app_store.decode(jws))
+    await session.commit()
     return await get_subscription(session, user_id)
 
 

@@ -14,6 +14,7 @@ dependencies = [
     "mem0ai>=2.0.7",
     "sqlalchemy[asyncio]>=2.0.51",
     "asyncpg>=0.30",
+    "google-auth>=2.0",
 ]
 
 [dependency-groups]

@@ -1,7 +1,4 @@
-"""배치 틱 — 매시 크론이 호출(멱등). 로컬 04:00 창을 넘긴 유저의 전일 일기 생성.
-
-09:00 발행·아침 푸시, 21:00 저녁 푸시는 후속(APNs 인프라 필요).
-"""
+"""배치 틱 — 매시 크론이 호출(멱등). 로컬 04:00 일기 생성 / 09:00 아침·21:00 저녁 푸시."""
 from __future__ import annotations
 
 import logging
@@ -13,17 +10,19 @@ from sqlalchemy import select
 from app.core.db import get_sessionmaker
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
-from app.services import diary_generation
+from app.services import diary_generation, notify
 from app.services.limits import effective_token_config
 
 _log = logging.getLogger("moly-worker")
-DIARY_HOUR = 4  # 로컬 04:00 창(매시 틱 = 시 단위 판별)
+DIARY_HOUR = 4  # 로컬 04:00 일기 생성
+MORNING_HOUR = 9  # 09:00 아침 일기 푸시
+EVENING_HOUR = 21  # 21:00 저녁 안부 푸시
 
 
-async def run_tick(now: datetime | None = None) -> int:
-    """이번 틱에 일기 생성한 유저 수 반환."""
+async def run_tick(now: datetime | None = None) -> dict[str, int]:
+    """이번 틱 처리 건수(일기·아침·저녁)."""
     now = now or datetime.now(timezone.utc)
-    processed = 0
+    counts = {"diaries": 0, "morning": 0, "evening": 0}
     async with get_sessionmaker()() as session:
         cfg = await effective_token_config(session)
         profiles = list(
@@ -32,12 +31,18 @@ async def run_tick(now: datetime | None = None) -> int:
             ).scalars().all()
         )
         for p in profiles:
-            if now.astimezone(ZoneInfo(p.timezone)).hour != DIARY_HOUR:
-                continue
-            target_date = activity_date_for(now, p.timezone) - timedelta(days=1)
+            hour = now.astimezone(ZoneInfo(p.timezone)).hour
             try:
-                await diary_generation.generate_for_user(session, p, target_date, cfg)
-                processed += 1
+                if hour == DIARY_HOUR:
+                    target = activity_date_for(now, p.timezone) - timedelta(days=1)
+                    await diary_generation.generate_for_user(session, p, target, cfg)
+                    counts["diaries"] += 1
+                elif hour == MORNING_HOUR:
+                    if await notify.notify_morning(session, p):
+                        counts["morning"] += 1
+                elif hour == EVENING_HOUR:
+                    if await notify.notify_evening(session, p):
+                        counts["evening"] += 1
             except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
-                _log.exception("일기 생성 실패(user=%s): %r", p.id, e)
-    return processed
+                _log.exception("틱 처리 실패(user=%s hour=%s): %r", p.id, hour, e)
+    return counts

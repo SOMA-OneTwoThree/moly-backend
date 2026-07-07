@@ -123,6 +123,41 @@ async def test_verify_second_time_no_grant(monkeypatch):
     assert out["hay_granted"] == 0 and out["balance_after"] == 500
 
 
+async def test_restore_reactivates_subscription(monkeypatch):
+    _patch_decode(monkeypatch, {"productId": "app.moly.sub.monthly", "transactionId": "t",
+                                "originalTransactionId": "o1", "expiresDate": 1_800_000_000_000})
+
+    async def _by(session, otx):
+        return None  # 우리 DB에 기록 없음(웹훅 유실) → 재활성
+
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, trial_ends_at=None)
+
+    async def _latest(session, uid):
+        return SimpleNamespace(status="active", plan="monthly", auto_renew_enabled=True, expires_at=None)
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    monkeypatch.setattr(subscription, "_latest_sub", _latest)
+    session = FakeSession()
+    out = await subscription.restore(session, UID, ["jws"])
+    assert out["status"] == "active" and out["plan"] == "monthly"
+    assert session.added  # 구독 레코드 생성됨(단순 상태반환 아님)
+
+
+async def test_restore_conflict_other_user(monkeypatch):
+    _patch_decode(monkeypatch, {"productId": "app.moly.sub.monthly", "transactionId": "t",
+                                "originalTransactionId": "o1"})
+
+    async def _by(session, otx):
+        return SimpleNamespace(user_id=uuid.uuid4())  # 다른 계정 소유
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    with pytest.raises(AppError) as e:
+        await subscription.restore(FakeSession(), UID, ["jws"])
+    assert e.value.code == "RESTORE_CONFLICT"
+
+
 async def test_webhook_refund_revokes_and_clawback(monkeypatch):
     _patch_decode(monkeypatch, {
         "notificationType": "REFUND",
@@ -211,3 +246,19 @@ def test_plans_is_public():
     r = TestClient(app).get("/subscription/plans")
     assert r.status_code == 200
     assert "plans" in r.json()
+
+
+# --- C1: StoreKit fail-closed 게이트(보안) ---
+def test_app_store_fail_closed_in_production(monkeypatch):
+    monkeypatch.setattr(app_store.settings, "environment", "production")
+    with pytest.raises(AppError) as e:
+        app_store.decode("anything")  # 서명검증 미구현 → 프로덕션 거부
+    assert e.value.code == "RECEIPT_INVALID"
+
+
+def test_app_store_decodes_in_local(monkeypatch):
+    import jwt as _jwt
+
+    monkeypatch.setattr(app_store.settings, "environment", "local")
+    token = _jwt.encode({"productId": "x"}, "secret", algorithm="HS256")
+    assert app_store.decode(token)["productId"] == "x"

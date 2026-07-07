@@ -31,7 +31,7 @@ async def record_ssv(session: AsyncSession, user_id: str, ssv_transaction_id: st
 
 async def claim(session: AsyncSession, user_id: str, ssv_transaction_id: str) -> dict[str, Any]:
     uid = _uid(user_id)
-    rec = await session.get(AdReward, ssv_transaction_id)
+    rec = await session.get(AdReward, ssv_transaction_id, with_for_update=True)  # 동시 클레임 이중지급 방지
     if rec is None or rec.user_id != uid:
         raise errors.ad_verify_failed()  # 422 — 확정 레코드 없음
     if rec.granted:

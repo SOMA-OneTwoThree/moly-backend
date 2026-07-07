@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
 from app.api.account import router as account_router
-from app.api.app_config import router as app_config_router
 from app.api.chat import router as chat_router
 from app.api.health import router as health_router
 from app.config import settings
@@ -19,9 +18,8 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if _local else None,
     )
     register_error_handlers(app)
-    # 공개(인증 불필요): 헬스체크 · 부팅 설정
+    # 공개(인증 불필요): 헬스체크만. (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)
     app.include_router(health_router)
-    app.include_router(app_config_router)
     # 인증 필요: 각 엔드포인트가 get_current_user 의존
     app.include_router(account_router)
     app.include_router(chat_router)

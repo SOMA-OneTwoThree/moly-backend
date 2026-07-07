@@ -23,11 +23,16 @@ def ec_keys():
 
 
 def _make_token(priv, **claim_overrides) -> str:
+    from app.config import settings
+
     claims = {
         "sub": "user-123",
         "aud": "authenticated",
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),
     }
+    # iss는 코드가 supabase_url 설정 시 검증 → .env 유무와 무관하게 통과하도록 맞춰줌
+    if settings.supabase_url:
+        claims["iss"] = f"{settings.supabase_url}/auth/v1"
     claims.update(claim_overrides)
     return jwt.encode(claims, priv, algorithm="ES256")
 

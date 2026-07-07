@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import String, text
+from sqlalchemy import DateTime, String, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,5 +20,5 @@ class AppConfig(Base):
     value: Mapped[dict] = mapped_column(JSONB)
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     updated_at: Mapped[datetime | None] = mapped_column(
-        server_default=text("now()"), nullable=True
+        DateTime(timezone=True), server_default=text("now()"), nullable=True
     )

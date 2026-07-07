@@ -48,6 +48,8 @@ def _verify_sync(token: str) -> str | None:
     if client is None:
         _log.warning("SUPABASE_JWKS_URL/URL 미설정 — 토큰 검증 불가")
         return None
+    # iss 검증(심층방어) — 설정된 경우에만. Supabase iss = "<url>/auth/v1".
+    issuer = f"{settings.supabase_url}/auth/v1" if settings.supabase_url else None
     try:
         signing_key = client.get_signing_key_from_jwt(token)
         claims = jwt.decode(
@@ -55,6 +57,7 @@ def _verify_sync(token: str) -> str | None:
             signing_key.key,
             algorithms=_ALGORITHMS,
             audience=_AUDIENCE,
+            issuer=issuer,
             options={"require": ["sub", "exp"]},
         )
     except Exception as e:  # noqa: BLE001  # 서명/만료/형식 오류 — 모두 거절

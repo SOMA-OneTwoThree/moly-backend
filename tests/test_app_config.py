@@ -1,27 +1,8 @@
-"""GET /app-config 라우팅(의존성 오버라이드로 DB 없이) + 에러 응답 형식 검증."""
+"""에러 응답 형식(AppError) 검증. (GET /app-config 엔드포인트는 제거 — Firebase 이관)"""
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.core.errors import AppError, insufficient_hay, register_error_handlers
-from app.main import app
-from app.services.app_config import get_public_app_config
-
-
-def test_app_config_returns_override():
-    async def _fake_cfg():
-        return {
-            "min_supported_version": "1.2.0",
-            "maintenance": {"active": False, "message": None},
-            "day_night_schedule": None,
-        }
-
-    app.dependency_overrides[get_public_app_config] = _fake_cfg
-    try:
-        r = TestClient(app).get("/app-config")
-    finally:
-        app.dependency_overrides.clear()
-    assert r.status_code == 200
-    assert r.json()["min_supported_version"] == "1.2.0"
 
 
 def test_app_error_format():

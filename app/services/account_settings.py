@@ -94,10 +94,14 @@ async def _delete_supabase_user(user_id: str) -> None:
 async def _delete_memories(user_id: str) -> None:
     """mem0 장기기억 삭제(FK 밖이라 CASCADE 안 됨, ERD §7).
 
-    TODO(mem0 모듈): mem0.delete_all(user_id) 호출로 교체. 현재 mem0 미연동이라 데이터 없음.
-    실패해도 탈퇴는 완료 처리(최종적 정리 — 백그라운드 재시도 대상).
+    실패해도 탈퇴는 완료 처리(204는 Supabase 삭제 기준, mem0는 최종적 정리 — 재시도 대상).
     """
-    _log.info("mem0 cleanup pending(모듈 미연동): user=%s", user_id)
+    from app.services import memory
+
+    try:
+        await memory.delete_all(user_id)
+    except Exception as e:  # noqa: BLE001  # mem0 삭제 실패가 탈퇴를 막지 않게
+        _log.warning("mem0 삭제 실패(백그라운드 재시도 대상): user=%s err=%r", user_id, e)
 
 
 async def delete_account(session: AsyncSession, user_id: str) -> None:

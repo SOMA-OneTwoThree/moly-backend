@@ -45,4 +45,5 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                         counts["evening"] += 1
             except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
                 _log.exception("틱 처리 실패(user=%s hour=%s): %r", p.id, hour, e)
+                await session.rollback()  # 세션 무효화 방지 — 다음 유저 계속
     return counts

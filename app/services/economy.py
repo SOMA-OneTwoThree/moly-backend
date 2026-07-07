@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
@@ -56,19 +57,20 @@ async def list_transactions(
 
 
 async def _daily(session: AsyncSession, uid: uuid.UUID, activity_date) -> UserDailyStats:
-    """user_daily_stats 행 get-or-create(행 잠금)."""
-    row = (
+    """user_daily_stats 행 get-or-create(행 잠금). 당일 첫 동시요청 레이스 방지:
+    먼저 upsert(없으면 삽입, 있으면 무시)로 행을 보장한 뒤 FOR UPDATE로 잠금 조회."""
+    await session.execute(
+        pg_insert(UserDailyStats)
+        .values(user_id=uid, activity_date=activity_date)
+        .on_conflict_do_nothing(index_elements=["user_id", "activity_date"])
+    )
+    return (
         await session.execute(
             select(UserDailyStats)
             .where(UserDailyStats.user_id == uid, UserDailyStats.activity_date == activity_date)
             .with_for_update()
         )
     ).scalars().first()
-    if row is None:
-        row = UserDailyStats(user_id=uid, activity_date=activity_date)
-        session.add(row)
-        await session.flush()
-    return row
 
 
 async def _routine_completions_today(session: AsyncSession, uid: uuid.UUID, activity_date) -> int:

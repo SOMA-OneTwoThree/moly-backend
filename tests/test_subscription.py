@@ -211,3 +211,19 @@ def test_plans_is_public():
     r = TestClient(app).get("/subscription/plans")
     assert r.status_code == 200
     assert "plans" in r.json()
+
+
+# --- C1: StoreKit fail-closed 게이트(보안) ---
+def test_app_store_fail_closed_in_production(monkeypatch):
+    monkeypatch.setattr(app_store.settings, "environment", "production")
+    with pytest.raises(AppError) as e:
+        app_store.decode("anything")  # 서명검증 미구현 → 프로덕션 거부
+    assert e.value.code == "RECEIPT_INVALID"
+
+
+def test_app_store_decodes_in_local(monkeypatch):
+    import jwt as _jwt
+
+    monkeypatch.setattr(app_store.settings, "environment", "local")
+    token = _jwt.encode({"productId": "x"}, "secret", algorithm="HS256")
+    assert app_store.decode(token)["productId"] == "x"

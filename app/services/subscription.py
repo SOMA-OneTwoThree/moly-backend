@@ -7,12 +7,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.models.shop import ShopItem
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
+from app.models.user_equipment import UserEquipment
 from app.services import app_store, hay_ledger
 from app.services.account import _load_profile, _uid
 
@@ -152,11 +154,24 @@ async def handle_webhook(session: AsyncSession, signed_payload: str) -> None:
         sub.expires_at = _ms_to_dt(tx.get("expiresDate"))
     elif ntype in ("EXPIRED", "DID_FAIL_TO_RENEW"):
         sub.status = "expired"
+        await _unequip_subscriber_only(session, sub.user_id)  # 구독 만료 → 전용 장착 해제
     elif ntype == "REFUND":
         sub.status = "revoked"
+        await _unequip_subscriber_only(session, sub.user_id)  # 환불 → 전용 장착 해제(ERD §4.9)
         # 증정 건초 회수(회수액 = min(증정량, 잔액), 잔액 하한 0)
         profile = await _load_profile(session, str(sub.user_id))
         clawback = min(HAY_GRANT.get(sub.plan, 0), profile.hay_balance)
         if clawback > 0:
             await hay_ledger.apply(session, sub.user_id, "refund_revoke", -clawback)
     await session.commit()
+
+
+async def _unequip_subscriber_only(session: AsyncSession, user_id) -> None:
+    """구독 전용 아이템 장착 행 삭제 → 기본 복귀(ERD §4.9). 만료/환불 시."""
+    subscriber_items = select(ShopItem.id).where(ShopItem.is_subscriber_only.is_(True))
+    await session.execute(
+        delete(UserEquipment).where(
+            UserEquipment.user_id == user_id,
+            UserEquipment.shop_item_id.in_(subscriber_items),
+        )
+    )

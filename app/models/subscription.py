@@ -16,7 +16,9 @@ _TZ = DateTime(timezone=True)  # ERD timestamptz — aware datetime 강제
 class Subscription(Base):
     __tablename__ = "subscriptions"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     plan: Mapped[str] = mapped_column(String)  # monthly | yearly
     status: Mapped[str] = mapped_column(String)  # active | grace_period | expired | revoked

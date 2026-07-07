@@ -102,6 +102,10 @@ def unauthorized(message: str = "다시 로그인해 주세요.") -> AppError:
     return AppError("UNAUTHORIZED", 401, message)
 
 
+def already_onboarded() -> AppError:
+    return AppError("ALREADY_ONBOARDED", 409, "이미 온보딩을 완료했어요.")
+
+
 def daily_limit_reached() -> AppError:
     return AppError("DAILY_LIMIT_REACHED", 403, "오늘의 대화 한도를 모두 사용했어요.")
 

@@ -137,3 +137,15 @@ def test_uid_invalid_raises_unauthorized():
         _uid("not-a-uuid")
     assert e.value.code == "UNAUTHORIZED"
     assert e.value.http_status == 401
+
+
+async def test_onboarding_blocks_when_already_onboarded(monkeypatch):
+    async def _fake_load(session, user_id):
+        return SimpleNamespace(nickname="이미", timezone="Asia/Seoul", language="ko")
+
+    monkeypatch.setattr(account_service, "_load_profile", _fake_load)
+    req = SimpleNamespace(nickname="새이름", timezone="Asia/Seoul", language="ko")
+    with pytest.raises(AppError) as e:
+        await account_service.onboarding(session=None, user_id="u", req=req)
+    assert e.value.code == "ALREADY_ONBOARDED"
+    assert e.value.http_status == 409

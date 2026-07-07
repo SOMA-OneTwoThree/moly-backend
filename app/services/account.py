@@ -124,6 +124,9 @@ async def get_me(session: AsyncSession, user_id: str) -> dict[str, Any]:
 async def onboarding(session: AsyncSession, user_id: str, req) -> dict[str, Any]:
     _validate_timezone(req.timezone)
     profile = await _load_profile(session, user_id)
+    # 온보딩은 1회만 — 이미 완료(nickname 존재)면 거부(재시도·중복탭·위조 방어).
+    if profile.nickname is not None:
+        raise errors.already_onboarded()
     profile.nickname = req.nickname
     profile.timezone = req.timezone
     profile.language = req.language

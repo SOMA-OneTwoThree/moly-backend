@@ -15,10 +15,8 @@ from app.models.profile import Profile
 from app.models.subscription import Subscription
 from app.models.user_daily_stats import UserDailyStats
 from app.models.user_equipment import UserEquipment
-from app.services.config_store import get_config_values
 from app.services.entitlement import derive_entitlement
-
-_CONFIG_KEYS = ["daily_token_limit", "diary_llm_min_tokens"]
+from app.services.limits import effective_token_config
 
 
 def _validate_timezone(tz_name: str) -> None:
@@ -83,7 +81,8 @@ async def _build_entitlement(
     activity_date = activity_date_for(now, profile.timezone)
     sub = await _load_active_subscription(session, str(profile.id), now)
     tokens_used = await _load_tokens_used(session, str(profile.id), activity_date)
-    config = await get_config_values(session, _CONFIG_KEYS)
+    # app_config 값 우선, 없으면 임의 기본값(settings) — /me와 /chat 한도 일관.
+    config = await effective_token_config(session)
     return derive_entitlement(profile, sub, tokens_used, config, now)
 
 

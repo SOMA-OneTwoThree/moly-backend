@@ -8,6 +8,7 @@ from app.api.health import router as health_router
 from app.api.review import router as review_router
 from app.api.routine import router as routine_router
 from app.api.shop import router as shop_router
+from app.api.subscription import router as subscription_router
 from app.config import settings
 from app.core.errors import register_error_handlers
 
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
     app.include_router(routine_router)
     app.include_router(shop_router)
     app.include_router(review_router)
+    app.include_router(subscription_router)
     return app
 
 

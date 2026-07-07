@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -28,8 +28,16 @@ def _validate_timezone(tz_name: str) -> None:
         raise errors.validation("유효하지 않은 타임존이에요.", {"timezone": tz_name}) from e
 
 
+def _uid(user_id: str) -> uuid.UUID:
+    """JWT sub → UUID. 형식 오류면 500이 아니라 401(비정상 토큰)."""
+    try:
+        return uuid.UUID(user_id)
+    except ValueError as e:
+        raise errors.unauthorized() from e
+
+
 async def _load_profile(session: AsyncSession, user_id: str) -> Profile:
-    profile = await session.get(Profile, uuid.UUID(user_id))
+    profile = await session.get(Profile, _uid(user_id))
     if profile is None:
         raise errors.AppError("NOT_FOUND", 404, "프로필을 찾을 수 없어요.")
     return profile
@@ -41,7 +49,7 @@ async def _load_active_subscription(
     rows = await session.execute(
         select(Subscription)
         .where(
-            Subscription.user_id == uuid.UUID(user_id),
+            Subscription.user_id == _uid(user_id),
             Subscription.status.in_(["active", "grace_period"]),
             Subscription.expires_at > now,
         )
@@ -51,10 +59,10 @@ async def _load_active_subscription(
     return rows.scalars().first()
 
 
-async def _load_tokens_used(session: AsyncSession, user_id: str, activity_date) -> int:
+async def _load_tokens_used(session: AsyncSession, user_id: str, activity_date: date) -> int:
     rows = await session.execute(
         select(UserDailyStats.tokens_used).where(
-            UserDailyStats.user_id == uuid.UUID(user_id),
+            UserDailyStats.user_id == _uid(user_id),
             UserDailyStats.activity_date == activity_date,
         )
     )
@@ -64,7 +72,7 @@ async def _load_tokens_used(session: AsyncSession, user_id: str, activity_date) 
 
 async def _load_equipment(session: AsyncSession, user_id: str) -> dict[str, str]:
     rows = await session.execute(
-        select(UserEquipment).where(UserEquipment.user_id == uuid.UUID(user_id))
+        select(UserEquipment).where(UserEquipment.user_id == _uid(user_id))
     )
     return {row.slot: str(row.shop_item_id) for row in rows.scalars()}
 

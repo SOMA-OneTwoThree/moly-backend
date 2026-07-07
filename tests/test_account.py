@@ -5,10 +5,11 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.core.db import get_session
+from app.core.errors import AppError
 from app.core.security import get_current_user
 from app.main import app
 from app.services import account as account_service
-from app.services.account import assemble_me
+from app.services.account import _uid, assemble_me
 
 
 def test_assemble_me_shape():
@@ -91,3 +92,48 @@ def test_me_requires_auth_returns_401():
         app.dependency_overrides.clear()
     assert r.status_code == 401
     assert r.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_patch_me_wired(client, monkeypatch):
+    async def _fake_patch(session, user_id, req):
+        return {"profile": {"nickname": req.nickname, "language": req.language}}
+
+    monkeypatch.setattr(account_service, "patch_me", _fake_patch)
+    r = client.patch("/me", json={"nickname": "민수"})
+    assert r.status_code == 200
+    assert r.json()["profile"]["nickname"] == "민수"
+
+
+def test_patch_me_invalid_timezone_returns_422(client):
+    # 서비스 미모킹 → 실제 patch_me의 _validate_timezone이 먼저 실행(DB 접근 전 422)
+    r = client.patch("/me", json={"timezone": "Not/AZone"})
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "VALIDATION"
+
+
+def test_patch_me_nickname_too_long_returns_422(client):
+    r = client.patch("/me", json={"nickname": "12345678901"})
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "VALIDATION"
+
+
+def test_onboarding_rejects_unknown_field(client):
+    # extra="forbid" — 서버 전용 필드 주입 시도 차단
+    r = client.post(
+        "/onboarding",
+        json={
+            "nickname": "지우",
+            "timezone": "Asia/Seoul",
+            "language": "ko",
+            "hay_balance": 999999,
+        },
+    )
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "VALIDATION"
+
+
+def test_uid_invalid_raises_unauthorized():
+    with pytest.raises(AppError) as e:
+        _uid("not-a-uuid")
+    assert e.value.code == "UNAUTHORIZED"
+    assert e.value.http_status == 401

@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, text
+from sqlalchemy import DateTime, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,4 +18,6 @@ class UserEquipment(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     slot: Mapped[str] = mapped_column(String, primary_key=True)  # background | head | neck | body
     shop_item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
-    equipped_at: Mapped[datetime | None] = mapped_column(server_default=text("now()"), nullable=True)
+    equipped_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()"), nullable=True
+    )

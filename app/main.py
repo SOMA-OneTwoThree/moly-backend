@@ -9,7 +9,14 @@ from app.core.errors import register_error_handlers
 
 def create_app() -> FastAPI:
     """API 앱 팩토리. 모듈 라우터는 여기서 등록(chat·diary… 는 구현 시 추가)."""
-    app = FastAPI(title=settings.app_name)
+    # OpenAPI 문서는 로컬에서만 노출(프로덕션 무인증 스키마 열람 차단).
+    _local = settings.environment == "local"
+    app = FastAPI(
+        title=settings.app_name,
+        docs_url="/docs" if _local else None,
+        redoc_url="/redoc" if _local else None,
+        openapi_url="/openapi.json" if _local else None,
+    )
     register_error_handlers(app)
     # 공개(인증 불필요): 헬스체크 · 부팅 설정
     app.include_router(health_router)

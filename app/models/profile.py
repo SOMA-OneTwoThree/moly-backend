@@ -4,11 +4,13 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Integer, String, text
+from sqlalchemy import DateTime, Integer, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
+
+_TZ = DateTime(timezone=True)  # ERD는 timestamptz — aware datetime 강제(naive 비교 크래시 방지)
 
 
 class Profile(Base):
@@ -19,7 +21,7 @@ class Profile(Base):
     language: Mapped[str] = mapped_column(String, server_default=text("'ko'"))
     timezone: Mapped[str] = mapped_column(String, server_default=text("'Asia/Seoul'"))
     hay_balance: Mapped[int] = mapped_column(Integer, server_default=text("0"))
-    trial_ends_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    review_prompted_at: Mapped[datetime | None] = mapped_column(nullable=True)
-    created_at: Mapped[datetime | None] = mapped_column(server_default=text("now()"), nullable=True)
-    updated_at: Mapped[datetime | None] = mapped_column(server_default=text("now()"), nullable=True)
+    trial_ends_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    review_prompted_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
+    updated_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)

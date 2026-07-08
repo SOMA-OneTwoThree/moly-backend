@@ -114,9 +114,11 @@ async def _recent_convo(session: AsyncSession, uid: uuid.UUID) -> list[dict[str,
     return convo
 
 
-async def _build_system(user_id: str, language: str) -> str:
+async def _build_system(user_id: str, language: str, nickname: str | None = None) -> str:
     mem = await memory.load_for_context(user_id)
     system = system_prompt(language)
+    if nickname:
+        system += f"\n\n[상대]\n지금 얘기하는 사람 이름은 '{nickname}'야."
     if mem:
         system += f"\n\n[기억]\n{mem}"
     return system
@@ -195,7 +197,7 @@ async def post_message(
     await session.flush()
 
     # 4) 컨텍스트(최근 N + 장기기억)
-    system = await _build_system(user_id, g.profile.language)
+    system = await _build_system(user_id, g.profile.language, g.profile.nickname)
     convo = await _recent_convo(session, uid)
 
     # 5) Claude 호출(완성본 + 실측 토큰)

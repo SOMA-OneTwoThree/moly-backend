@@ -1,7 +1,14 @@
 """FCM(Firebase Cloud Messaging) 발송 — 클라가 FCM SDK로 받은 토큰으로 푸시.
 
 APNs .p8는 Firebase 콘솔에 업로드됨 → Firebase가 APNs로 릴레이. 백엔드는 FCM HTTP v1로 발송.
-자격증명(service account) 미설정 시 no-op(로그만) — 팀원 제공 후 실발송.
+
+인증: **다운로드 키 파일 없이도 동작**(Google 권장 — 키 유출 위험 회피).
+- `FCM_SERVICE_ACCOUNT_FILE` 지정 시: 그 키 파일 사용(레거시/명시 오버라이드).
+- 미지정 시: **ADC**(google.auth.default) 자동 발견 —
+  · GCP 배포(Cloud Run/GCE): 컴퓨트에 붙인 서비스 계정
+  · 비-GCP 배포: Workload Identity Federation 설정(GOOGLE_APPLICATION_CREDENTIALS=config)
+  · 로컬: `gcloud auth application-default login`
+- 아무 자격증명도 없으면 no-op(로그만).
 """
 from __future__ import annotations
 
@@ -16,14 +23,25 @@ _SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
 
 
 def _access_token() -> str | None:
-    if not (settings.fcm_service_account_file and settings.fcm_project_id):
+    if not settings.fcm_project_id:
         return None
     from google.auth.transport.requests import Request
-    from google.oauth2 import service_account
 
-    creds = service_account.Credentials.from_service_account_file(
-        settings.fcm_service_account_file, scopes=[_SCOPE]
-    )
+    if settings.fcm_service_account_file:
+        from google.oauth2 import service_account
+
+        creds = service_account.Credentials.from_service_account_file(
+            settings.fcm_service_account_file, scopes=[_SCOPE]
+        )
+    else:
+        # 키리스: 배포 환경의 ADC(연결 SA / WIF / 로컬 gcloud) 자동 발견.
+        import google.auth
+        from google.auth.exceptions import DefaultCredentialsError
+
+        try:
+            creds, _ = google.auth.default(scopes=[_SCOPE])
+        except DefaultCredentialsError:
+            return None
     creds.refresh(Request())
     return creds.token
 

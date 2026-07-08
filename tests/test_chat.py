@@ -70,7 +70,7 @@ class FakeSession:
 
 def _gating(**over):
     base = dict(
-        profile=SimpleNamespace(language="ko", review_prompted_at=None, id=UID),
+        profile=SimpleNamespace(language="ko", nickname="지훈", review_prompted_at=None, id=UID),
         activity_date=date(2026, 7, 7),
         entitlement={
             "plan": "trial",

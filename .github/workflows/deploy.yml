@@ -1,0 +1,153 @@
+name: Build and Deploy (moly-backend)
+
+# main에 push되면: 이미지 빌드 → ECR push → SSM으로 EC2에서 deploy.sh 실행
+on:
+  push:
+    branches: [main]
+
+# OIDC로 AWS에 인증하려면 id-token: write 가 필수
+permissions:
+  id-token: write
+  contents: read
+
+# 연속 push 시 이전 실행을 취소하고 최신만 배포 (배포 레이스 방지)
+concurrency:
+  group: deploy-moly-backend
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: 676972757138.dkr.ecr.ap-northeast-2.amazonaws.com
+  IMAGE_NAME: moly-backend
+  EC2_INSTANCE_ID: i-0b2154ed899e3b85d
+  ROLE_ARN: arn:aws:iam::676972757138:role/moly-github-actions-role
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. AWS OIDC 인증 (액세스 키 없음 — 역할을 그때그때 assume)
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 3. ECR 로그인
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4. Docker Buildx (gha 캐시로 빌드 가속)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 5. 이미지 빌드 & ECR push (latest + git sha 두 태그)
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 6. SSM으로 EC2에서 배포 실행 → 완료까지 폴링 → 로그 출력 → 실패 시 워크플로 실패
+      #    주의: SSM은 sh로 실행하므로 deploy.sh는 반드시 `bash deploy.sh`로 명시 실행
+      #    (과거 `./deploy.sh` 실행 시 set -o pipefail "Illegal option" 에러)
+      - name: Deploy on EC2 via SSM
+        run: |
+          set -euo pipefail
+
+          echo "==> SSM SendCommand 발사"
+          COMMAND_ID="$(aws ssm send-command \
+            --region "$AWS_REGION" \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy moly-backend ${GITHUB_SHA::7}" \
+            --parameters 'commands=["cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh"]' \
+            --query "Command.CommandId" \
+            --output text)"
+          echo "CommandId: $COMMAND_ID"
+
+          echo "==> 명령 완료 대기 (10초 간격, 최대 약 10분)"
+          # aws ssm wait는 기본 타임아웃이 짧을 수 있어 직접 폴링한다.
+          # 핵심: get-command-invocation 실패를 '|| echo Pending'으로 삼키지 않는다.
+          #  - SendCommand 직후엔 invocation이 아직 등록 안 돼 InvocationDoesNotExist가
+          #    날 수 있고 이건 정상이므로, 최초 GRACE_POLLS(약 30초)까진 Pending으로
+          #    간주하고 계속 폴링한다.
+          #  - 그 외 조회 실패(AccessDenied/네트워크 등)는 stderr를 그대로 로그에 출력하고,
+          #    연속 MAX_QUERY_FAILS회 누적되면 즉시 워크플로를 실패시킨다 (조용히 위장 금지).
+          STATUS="Pending"
+          GRACE_POLLS=3          # 최초 3회(약 30초)까진 InvocationDoesNotExist 허용
+          MAX_QUERY_FAILS=3      # 연속 조회 실패 3회면 실패 처리
+          query_fails=0
+          finished=0
+          for i in $(seq 1 60); do
+            sleep 10
+            # stderr는 파일로 분리 캡처해 에러 유형을 구분한다 (성공 시 STATUS만 stdout으로 들어옴)
+            err_file="$(mktemp)"
+            if STATUS="$(aws ssm get-command-invocation \
+                  --region "$AWS_REGION" \
+                  --command-id "$COMMAND_ID" \
+                  --instance-id "$EC2_INSTANCE_ID" \
+                  --query "Status" \
+                  --output text 2>"$err_file")"; then
+              query_fails=0
+              echo "  [$i] status=$STATUS"
+              case "$STATUS" in
+                Success|Failed|Cancelled|TimedOut) rm -f "$err_file"; finished=1; break ;;
+              esac
+            else
+              err_msg="$(cat "$err_file")"
+              if [ "$i" -le "$GRACE_POLLS" ] && printf '%s' "$err_msg" | grep -q "InvocationDoesNotExist"; then
+                # SendCommand 직후 invocation 등록 지연 — 정상. 계속 폴링한다.
+                echo "  [$i] status=Pending (invocation 등록 대기 중)"
+                STATUS="Pending"
+              else
+                # 권한/네트워크 등 진짜 조회 실패 — 숨기지 말고 stderr를 그대로 드러낸다.
+                query_fails=$((query_fails + 1))
+                echo "  [$i] get-command-invocation 조회 실패 (${query_fails}/${MAX_QUERY_FAILS}):" >&2
+                printf '%s\n' "$err_msg" >&2
+                if [ "$query_fails" -ge "$MAX_QUERY_FAILS" ]; then
+                  rm -f "$err_file"
+                  echo "==> get-command-invocation 연속 ${MAX_QUERY_FAILS}회 실패 — 배포 상태 확인 불가, 즉시 실패 처리" >&2
+                  exit 1
+                fi
+              fi
+            fi
+            rm -f "$err_file"
+          done
+
+          echo "==> EC2 배포 표준출력 ----------------------------------------"
+          aws ssm get-command-invocation \
+            --region "$AWS_REGION" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID" \
+            --query "StandardOutputContent" \
+            --output text || true
+
+          echo "==> EC2 배포 표준에러 ----------------------------------------"
+          aws ssm get-command-invocation \
+            --region "$AWS_REGION" \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID" \
+            --query "StandardErrorContent" \
+            --output text || true
+
+          echo "==> 최종 상태: $STATUS"
+          if [ "$finished" -ne 1 ]; then
+            echo "배포 실패: 타임아웃 (약 10분 내에 명령이 종료 상태에 도달하지 못함, 마지막 status=$STATUS)" >&2
+            exit 1
+          fi
+          if [ "$STATUS" != "Success" ]; then
+            echo "배포 실패 (status=$STATUS) — 위 표준에러 로그에서 원인 확인" >&2
+            exit 1
+          fi
+          echo "==> 배포 성공"

@@ -57,6 +57,22 @@ async def test_expired_token_rejected(monkeypatch, ec_keys):
     assert await security.verify_supabase_token(token) is None
 
 
+async def test_future_iat_within_leeway_accepted(monkeypatch, ec_keys):
+    """클럭 스큐 방어 — 갓 발급돼 iat가 살짝 미래인 토큰도 leeway 내면 통과."""
+    priv, pub = ec_keys
+    _patch_client(monkeypatch, pub)
+    token = _make_token(priv, iat=datetime.now(timezone.utc) + timedelta(seconds=10))
+    assert await security.verify_supabase_token(token) == "user-123"
+
+
+async def test_far_future_iat_beyond_leeway_rejected(monkeypatch, ec_keys):
+    """leeway를 넘는 미래 iat는 거부(과도한 허용 방지)."""
+    priv, pub = ec_keys
+    _patch_client(monkeypatch, pub)
+    token = _make_token(priv, iat=datetime.now(timezone.utc) + timedelta(seconds=600))
+    assert await security.verify_supabase_token(token) is None
+
+
 async def test_wrong_audience_rejected(monkeypatch, ec_keys):
     priv, pub = ec_keys
     _patch_client(monkeypatch, pub)
@@ -70,14 +86,17 @@ async def test_missing_jwks_config_returns_none(monkeypatch):
 
 async def test_get_current_user_requires_bearer(monkeypatch):
     with pytest.raises(AppError) as e:
-        await security.get_current_user(authorization=None)
+        await security.get_current_user(cred=None)
     assert e.value.code == "UNAUTHORIZED"
     assert e.value.http_status == 401
 
 
 async def test_get_current_user_returns_uid(monkeypatch):
+    from fastapi.security import HTTPAuthorizationCredentials
+
     async def _fake_verify(token: str):
         return "user-xyz"
 
     monkeypatch.setattr(security, "verify_supabase_token", _fake_verify)
-    assert await security.get_current_user(authorization="Bearer abc.def.ghi") == "user-xyz"
+    cred = HTTPAuthorizationCredentials(scheme="Bearer", credentials="abc.def.ghi")
+    assert await security.get_current_user(cred=cred) == "user-xyz"

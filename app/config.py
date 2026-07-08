@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     app_store_environment: str = "Sandbox"  # Sandbox | Production
     app_store_app_apple_id: int | None = None  # 프로덕션 알림 검증 시 필요(앱 숫자 ID)
 
+    # --- RevenueCat 웹훅 --- 대시보드 Integrations→Webhooks의 Authorization 헤더 값(공유 시크릿).
+    # 이 값이 요청 Authorization 헤더와 일치해야 처리(미설정 시 fail-closed 전량 거부).
+    revenuecat_webhook_auth: str = ""
+
     # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
     openai_api_key: str = ""
     embedder_model: str = "text-embedding-3-small"

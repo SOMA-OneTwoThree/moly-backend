@@ -4,6 +4,8 @@
 """
 from __future__ import annotations
 
+import logging
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -19,6 +21,8 @@ from app.models.subscription_hay_grant import SubscriptionHayGrant
 from app.models.user_equipment import UserEquipment
 from app.services import app_store, hay_ledger
 from app.services.account import _load_profile, _uid
+
+_log = logging.getLogger("moly-backend")
 
 _PLAN_BY_PRODUCT = {"app.moly.sub.monthly": "monthly", "app.moly.sub.yearly": "yearly"}
 HAY_GRANT = {"monthly": 1000, "yearly": 4000}
@@ -222,3 +226,101 @@ async def _unequip_subscriber_only(session: AsyncSession, user_id) -> None:
             UserEquipment.shop_item_id.in_(subscriber_items),
         )
     )
+
+
+# RevenueCat을 구독 진실 소스로 쓸 때 상태를 active로 갱신하는 이벤트(문서 기준).
+_RC_ACTIVE = frozenset(
+    {"INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION", "PRODUCT_CHANGE",
+     "SUBSCRIPTION_EXTENDED", "REFUND_REVERSED"}
+)
+
+
+async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
+    """RevenueCat 웹훅 이벤트 → 구독 상태·혜택 동기(서버 권위). 엔드포인트가 인증 후 호출.
+
+    매핑(RC 공식 이벤트 기준):
+    - 활성계열(구매·갱신·해지취소·상품변경·연장·환불복구) → active + 만료 갱신, 최초1회 증정
+    - CANCELLATION: cancel_reason=CUSTOMER_SUPPORT(환불) → revoked+장착해제+증정 회수 /
+                    그 외(UNSUBSCRIBE 등) → 자동갱신만 off(만료 전까지 혜택 유지)
+    - EXPIRATION → expired+장착해제 / BILLING_ISSUE → grace_period
+    멱등: original_transaction_id 행잠금 + (user,plan) 증정 UNIQUE + clawback ref_id 원장.
+    ⚠️ app_user_id = 우리 Supabase user_id 전제(클라가 RC logIn을 우리 uid로 해야 함).
+    """
+    etype = event.get("type")
+    try:
+        uid = uuid.UUID(str(event.get("app_user_id")))
+    except (ValueError, TypeError):
+        _log.warning("RC 웹훅: app_user_id 매핑 불가(%r) — 스킵", event.get("app_user_id"))
+        return
+
+    product_id = event.get("product_id")
+    plan = _PLAN_BY_PRODUCT.get(product_id)
+    original_tx = str(event.get("original_transaction_id") or event.get("transaction_id") or "")
+    expires = _ms_to_dt(event.get("expiration_at_ms"))
+
+    if etype in _RC_ACTIVE:
+        if plan is None or not original_tx:
+            _log.info("RC 웹훅: 미지원 상품/거래 없음(%s, %s) — 스킵", etype, product_id)
+            return
+        sub = await _by_original_tx(session, original_tx, lock=True)
+        if sub is not None and sub.user_id != uid:
+            _log.warning("RC 웹훅: 다른 계정 소유 구독(%s) — 스킵", original_tx)
+            return
+        if sub is not None and sub.status == "revoked":
+            return  # 환불/취소는 종단 — 되살리지 않음
+        if sub is None:
+            sub = Subscription(
+                user_id=uid, plan=plan, status="active", original_transaction_id=original_tx,
+                latest_transaction_id=str(event.get("transaction_id")), expires_at=expires,
+                auto_renew_enabled=True, environment=event.get("environment"),
+            )
+            session.add(sub)
+        else:
+            sub.plan, sub.status, sub.expires_at = plan, "active", expires
+            sub.auto_renew_enabled = True
+            sub.latest_transaction_id = str(event.get("transaction_id"))
+        # 증정 = (user, plan) 최초 1회
+        if not await _grant_exists(session, uid, plan):
+            await hay_ledger.apply(session, uid, "subscription_grant", HAY_GRANT[plan])
+            session.add(SubscriptionHayGrant(user_id=uid, plan=plan))
+
+    elif etype == "CANCELLATION":
+        sub = await _by_original_tx(session, original_tx, lock=True)
+        if sub is None:
+            return
+        if event.get("cancel_reason") == "CUSTOMER_SUPPORT":  # 환불
+            if sub.status != "revoked":
+                sub.status = "revoked"
+                await _unequip_subscriber_only(session, sub.user_id)
+            if not await _clawback_done(session, sub.user_id, original_tx):
+                refunded_plan = _PLAN_BY_PRODUCT.get(product_id, sub.plan)
+                profile = await _load_profile(session, str(sub.user_id))
+                clawback = min(HAY_GRANT.get(refunded_plan, 0), profile.hay_balance)
+                await hay_ledger.apply(
+                    session, sub.user_id, "refund_revoke", -clawback, ref_id=original_tx
+                )
+        else:  # 자동갱신 해제 — 만료 전까지 혜택 유지
+            sub.auto_renew_enabled = False
+
+    elif etype == "EXPIRATION":
+        sub = await _by_original_tx(session, original_tx, lock=True)
+        if sub is not None and sub.status != "revoked":
+            sub.status = "expired"
+            await _unequip_subscriber_only(session, sub.user_id)
+
+    elif etype == "BILLING_ISSUE":
+        sub = await _by_original_tx(session, original_tx, lock=True)
+        if sub is not None and sub.status != "revoked":
+            sub.status = "grace_period"  # 유예 — 혜택 유지
+
+    else:
+        # SUBSCRIPTION_PAUSED(만료 시 처리)·TRANSFER·NON_RENEWING_PURCHASE(건초 IAP는 별도)·
+        # TEST·paywall 이벤트 등은 구독 상태에 영향 없음 → 무시.
+        _log.info("RC 웹훅: 미처리 이벤트 %s", etype)
+        return
+
+    try:
+        await session.commit()
+    except IntegrityError:
+        # 동시 증정 UNIQUE 충돌 등 — 롤백(멱등, 이미 처리됨).
+        await session.rollback()

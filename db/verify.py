@@ -1,6 +1,9 @@
 """모델 ↔ 실 스키마 교차검증. 각 모델 컬럼이 DB에 있고 nullable/타입이 호환되는지."""
-import asyncio, asyncpg, re, importlib, pkgutil, inspect
-from sqlalchemy import inspect as sqla_inspect
+import asyncio
+import asyncpg
+import re
+import importlib
+import pkgutil
 import app.models as models_pkg
 from app.core.db import Base
 
@@ -26,7 +29,8 @@ async def main():
     for table in Base.metadata.sorted_tables:
         tn = table.name
         if tn not in db_cols:
-            problems.append(f"[테이블 없음] {tn}"); continue
+            problems.append(f"[테이블 없음] {tn}")
+            continue
         for col in table.columns:
             if col.name not in db_cols[tn]:
                 problems.append(f"[컬럼 없음] {tn}.{col.name}")
@@ -40,7 +44,8 @@ async def main():
     print(f"모델 테이블 {len(Base.metadata.tables)}개 검증.")
     if problems:
         print("문제 발견:")
-        for p in problems: print("  -", p)
+        for p in problems:
+            print("  -", p)
     else:
         print("✅ 전 모델 컬럼이 DB에 존재. nullable 위험 없음.")
     await c.close()

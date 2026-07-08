@@ -1,7 +1,7 @@
 """일기 생성 배치 로직 — 워커가 04:00 틱에 전일 일기를 만든다.
 
 분기(ERD §5.3): 전일 누적토큰 ≥ 임계 → 개인(llm, Sonnet 생성 + Haiku self-check)
-              / 미달·미접속 → 몰리(preset, 멘트 풀). 멱등: unique(user, diary_date).
+              / 미달·미접속 → 바라(preset, 멘트 풀). 멱등: unique(user, diary_date).
 """
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ async def _tokens_used(session: AsyncSession, user_id, target_date: date) -> int
 
 def _transcript(messages: list[Message]) -> str:
     return "\n".join(
-        f"{'몰리' if m.sender == 'moly' else '사용자'}: {m.content}" for m in messages
+        f"{'바라' if m.sender == 'moly' else '사용자'}: {m.content}" for m in messages
     )
 
 

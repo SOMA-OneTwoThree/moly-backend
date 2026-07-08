@@ -15,18 +15,11 @@ from app.models.greeting import Greeting
 from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
-from app.services import gating, llm, memory
+from app.services import gating, greetings, llm, memory
 from app.services.account import _uid
 from app.services.prompts import system_prompt
 
-_GREETING_CONTEXTS = {"onboarding", "home_enter", "morning", "evening", "comeback"}
-_CONTEXT_HINT = {
-    "onboarding": "방금 처음 만난 참이야",
-    "home_enter": "유저가 화면에 막 들어왔어",
-    "morning": "아침이야",
-    "evening": "저녁이야",
-    "comeback": "유저가 오랜만에 돌아왔어",
-}
+_GREETING_CONTEXTS = greetings.CONTEXTS
 
 
 def _iso(dt: datetime | None) -> str | None:
@@ -125,7 +118,7 @@ async def _build_system(user_id: str, language: str) -> str:
     mem = await memory.load_for_context(user_id)
     system = system_prompt(language)
     if mem:
-        system += f"\n\n[유저에 대해 기억하는 것]\n{mem}"
+        system += f"\n\n[기억]\n{mem}"
     return system
 
 
@@ -208,7 +201,7 @@ async def post_message(
     # 5) Claude 호출(완성본 + 실측 토큰)
     result = await llm.generate(system, convo)
 
-    # 6) 몰리 응답 저장
+    # 6) 바라 응답 저장
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal", content=result.text,
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
@@ -268,12 +261,10 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
     if existing is not None:
         return {"greeting_id": str(existing.id), "content": existing.content}
 
-    system = await _build_system(user_id, profile.language)
-    seed = f"({_CONTEXT_HINT[context]}) 네가 먼저 한두 마디 말 걸어."
-    result = await llm.generate(system, [{"role": "user", "content": seed}])
+    content = greetings.pick(context, profile.nickname)
 
-    row = Greeting(user_id=uid, context=context, content=result.text, activity_date=ad)
+    row = Greeting(user_id=uid, context=context, content=content, activity_date=ad)
     session.add(row)
     await session.commit()
     await session.refresh(row)
-    return {"greeting_id": str(row.id), "content": result.text}
+    return {"greeting_id": str(row.id), "content": content}

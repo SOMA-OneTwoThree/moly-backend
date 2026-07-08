@@ -16,7 +16,7 @@ from app.services.account import _uid
 
 async def purchase(session: AsyncSession, user_id: str, signed_transaction: str) -> dict[str, Any]:
     uid = _uid(user_id)
-    payload = app_store.decode(signed_transaction)
+    payload = app_store.decode_transaction(signed_transaction)
     product_id = payload.get("productId")
     transaction_id = str(payload.get("transactionId"))
 

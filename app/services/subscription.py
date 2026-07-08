@@ -110,7 +110,7 @@ async def _upsert_sub(session: AsyncSession, uid, payload: dict) -> str:
 
 async def verify(session: AsyncSession, user_id: str, signed_transaction: str) -> dict[str, Any]:
     uid = _uid(user_id)
-    payload = app_store.decode(signed_transaction)
+    payload = app_store.decode_transaction(signed_transaction)
     plan = await _upsert_sub(session, uid, payload)
     expires = _ms_to_dt(payload.get("expiresDate"))
 
@@ -133,22 +133,23 @@ async def verify(session: AsyncSession, user_id: str, signed_transaction: str) -
 async def restore(session: AsyncSession, user_id: str, signed_transactions: list[str]) -> dict[str, Any]:
     uid = _uid(user_id)
     for jws in signed_transactions:  # 각 거래로 구독 재활성(웹훅 유실 대비) + 충돌 검사
-        await _upsert_sub(session, uid, app_store.decode(jws))
+        await _upsert_sub(session, uid, app_store.decode_transaction(jws))
     await session.commit()
     return await get_subscription(session, user_id)
 
 
 async def handle_webhook(session: AsyncSession, signed_payload: str) -> None:
-    """ASSN v2 — 갱신·해지·환불 상태 동기. MVP: 상태 갱신 + 환불 시 증정 회수.
+    """ASSN v2 — 갱신·해지·환불 상태 동기. 상태 갱신 + 환불 시 증정 회수.
 
-    TODO: 서명검증 + signedRenewalInfo 등 전 필드 처리. 지금은 signedTransactionInfo 기반.
+    서명검증 = app_store.decode_notification/decode_transaction(x5c). signedTransactionInfo 기반
+    (signedRenewalInfo 세부 필드는 필요 시 확장).
     """
-    payload = app_store.decode(signed_payload)
+    payload = app_store.decode_notification(signed_payload)
     ntype = payload.get("notificationType")
     tx_info = payload.get("data", {}).get("signedTransactionInfo")
     if not tx_info:
         return
-    tx = app_store.decode(tx_info)
+    tx = app_store.decode_transaction(tx_info)
     original_tx = str(tx.get("originalTransactionId") or tx.get("transactionId"))
     sub = await _by_original_tx(session, original_tx)
     if sub is None:

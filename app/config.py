@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     fcm_project_id: str = ""
     fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)
 
+    # --- App Store(StoreKit) — JWS x5c 서명검증(구독/IAP/ASSN 웹훅) ---
+    # 우리 설계는 App Store Server API 조회 없음 → .p8/Key ID/Issuer ID 불필요.
+    # 검증에 필요한 것: Bundle ID (+ 프로덕션은 App Apple ID). 루트 CA는 코드 내장.
+    app_store_bundle_id: str = ""
+    app_store_environment: str = "Sandbox"  # Sandbox | Production
+    app_store_app_apple_id: int | None = None  # 프로덕션 알림 검증 시 필요(앱 숫자 ID)
+
     # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
     openai_api_key: str = ""
     embedder_model: str = "text-embedding-3-small"

@@ -47,7 +47,7 @@ class FakeSession:
 
 
 def _patch_decode(monkeypatch, payload):
-    monkeypatch.setattr(app_store, "decode", lambda s: payload)
+    monkeypatch.setattr(app_store, "decode_transaction", lambda s: payload)
 
 
 # --- 구독 검증 ---
@@ -159,16 +159,14 @@ async def test_restore_conflict_other_user(monkeypatch):
 
 
 async def test_webhook_refund_revokes_and_clawback(monkeypatch):
-    _patch_decode(monkeypatch, {
+    # 알림(decode_notification)과 내부 거래(decode_transaction)를 각각 패치
+    monkeypatch.setattr(app_store, "decode_notification", lambda s: {
         "notificationType": "REFUND",
         "data": {"signedTransactionInfo": "inner"},
     })
-    # 두 번째 decode(inner tx) 처리 위해 순차 반환
-    payloads = iter([
-        {"notificationType": "REFUND", "data": {"signedTransactionInfo": "inner"}},
-        {"originalTransactionId": "o1", "transactionId": "t1"},
-    ])
-    monkeypatch.setattr(app_store, "decode", lambda s: next(payloads))
+    monkeypatch.setattr(app_store, "decode_transaction", lambda s: {
+        "originalTransactionId": "o1", "transactionId": "t1",
+    })
     sub = SimpleNamespace(user_id=UID_UUID, plan="monthly", status="active", expires_at=None)
 
     async def _by(session, otx):
@@ -248,17 +246,36 @@ def test_plans_is_public():
     assert "plans" in r.json()
 
 
-# --- C1: StoreKit fail-closed 게이트(보안) ---
+# --- C1: StoreKit 검증 게이트(보안) ---
 def test_app_store_fail_closed_in_production(monkeypatch):
+    # 검증기 미설정(bundle_id 없음) + 비로컬 → fail-closed
+    monkeypatch.setattr(app_store.settings, "app_store_bundle_id", "")
+    app_store._verifier.cache_clear()
     monkeypatch.setattr(app_store.settings, "environment", "production")
     with pytest.raises(AppError) as e:
-        app_store.decode("anything")  # 서명검증 미구현 → 프로덕션 거부
+        app_store.decode_transaction("anything")
     assert e.value.code == "RECEIPT_INVALID"
 
 
 def test_app_store_decodes_in_local(monkeypatch):
     import jwt as _jwt
 
+    monkeypatch.setattr(app_store.settings, "app_store_bundle_id", "")
+    app_store._verifier.cache_clear()
     monkeypatch.setattr(app_store.settings, "environment", "local")
     token = _jwt.encode({"productId": "x"}, "secret", algorithm="HS256")
-    assert app_store.decode(token)["productId"] == "x"
+    assert app_store.decode_transaction(token)["productId"] == "x"
+
+
+def test_app_store_rejects_bad_signature_when_configured(monkeypatch):
+    # bundle_id 설정 → 실제 x5c 검증기 가동. 위조/HS256 토큰은 서명검증 실패로 거부.
+    monkeypatch.setattr(app_store.settings, "app_store_bundle_id", "com.geniusjun.moly")
+    monkeypatch.setattr(app_store.settings, "app_store_environment", "Sandbox")
+    app_store._verifier.cache_clear()
+    import jwt as _jwt
+
+    bogus = _jwt.encode({"productId": "x"}, "secret", algorithm="HS256")
+    with pytest.raises(AppError) as e:
+        app_store.decode_transaction(bogus)
+    assert e.value.code == "RECEIPT_INVALID"
+    app_store._verifier.cache_clear()  # 다른 테스트 오염 방지

@@ -1,55 +1,46 @@
-"""건초 현금구매(IAP consumable) — StoreKit JWS 검증 → 건초 지급. transaction_id 멱등."""
+"""건초 현금구매(IAP consumable) — RevenueCat NON_RENEWING_PURCHASE 이벤트로 지급.
+
+RC가 영수증 검증 대행 → 우리는 event.product_id/transaction_id만 신뢰(웹훅 인증이 신뢰경계).
+transaction_id로 멱등. 커밋은 호출측(RC 웹훅 핸들러)이 한다.
+"""
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
-from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import errors
 from app.models.hay_pack import HayPack
 from app.models.iap_purchase import IapPurchase
-from app.services import app_store, hay_ledger
-from app.services.account import _uid
+from app.services import hay_ledger
+
+_log = logging.getLogger("moly-backend")
 
 
-async def purchase(session: AsyncSession, user_id: str, signed_transaction: str) -> dict[str, Any]:
-    uid = _uid(user_id)
-    payload = app_store.decode_transaction(signed_transaction)
-    product_id = payload.get("productId")
-    transaction_id = str(payload.get("transactionId"))
-
+async def grant_pack(session: AsyncSession, uid, product_id: str, transaction_id: str) -> None:
+    """건초팩 지급(멱등: transaction_id). 미상 상품/중복/누락은 조용히 스킵. 커밋 안 함."""
+    if not (product_id and transaction_id):
+        return
     existing = (
         await session.execute(
             select(IapPurchase).where(IapPurchase.transaction_id == transaction_id)
         )
     ).scalars().first()
     if existing is not None:
-        raise errors.already_processed()  # 409 — 영수증 중복
-
+        return  # 멱등 — 이미 지급된 거래
     pack = (
         await session.execute(
             select(HayPack).where(HayPack.app_store_product_id == product_id)
         )
     ).scalars().first()
     if pack is None:
-        raise errors.receipt_invalid()  # 422 — 미상 상품
-
-    balance = await hay_ledger.apply(
-        session, uid, "iap_purchase", pack.hay_amount, ref_id=transaction_id
-    )
+        _log.warning("RC IAP: 미상 상품 %s — 스킵", product_id)
+        return
+    await hay_ledger.apply(session, uid, "iap_purchase", pack.hay_amount, ref_id=transaction_id)
     session.add(
         IapPurchase(
             user_id=uid, hay_pack_id=pack.id, transaction_id=transaction_id,
             status="verified", purchased_at=datetime.now(timezone.utc),
         )
     )
-    try:
-        await session.commit()
-    except IntegrityError as e:
-        # 동시 요청 레이스 — transaction_id UNIQUE 충돌. 잔액 롤백 후 멱등 409.
-        await session.rollback()
-        raise errors.already_processed() from e
-    return {"amount": pack.hay_amount, "balance_after": balance}

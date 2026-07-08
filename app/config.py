@@ -39,13 +39,8 @@ class Settings(BaseSettings):
 
     # --- App Store(StoreKit) — JWS x5c 서명검증(구독/IAP/ASSN 웹훅) ---
     # 우리 설계는 App Store Server API 조회 없음 → .p8/Key ID/Issuer ID 불필요.
-    # 검증에 필요한 것: Bundle ID (+ 프로덕션은 App Apple ID). 루트 CA는 코드 내장.
-    app_store_bundle_id: str = ""
-    app_store_environment: str = "Sandbox"  # Sandbox | Production
-    app_store_app_apple_id: int | None = None  # 프로덕션 알림 검증 시 필요(앱 숫자 ID)
-
-    # --- RevenueCat 웹훅 --- 대시보드 Integrations→Webhooks의 Authorization 헤더 값(공유 시크릿).
-    # 이 값이 요청 Authorization 헤더와 일치해야 처리(미설정 시 fail-closed 전량 거부).
+    # --- RevenueCat --- 구독·IAP 진실 소스. 대시보드 Integrations→Webhooks의 Authorization
+    # 헤더 값(공유 시크릿). 요청 Authorization 헤더와 일치해야 처리(미설정 시 fail-closed 거부).
     revenuecat_webhook_auth: str = ""
 
     # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
@@ -73,24 +68,16 @@ class Settings(BaseSettings):
     )
 
     def require_production_ready(self) -> None:
-        """비-local 부팅 시 StoreKit 결제/웹훅 설정을 강제(fail-closed).
+        """비-local 부팅 시 결제 웹훅 인증 설정을 강제(fail-closed).
 
-        기본값(environment=local·bundle_id 빈값·Sandbox)이 프로덕션에 그대로 실리면
-        서명검증 우회(무서명 영수증) 또는 무료 Sandbox 영수증 통과가 발생한다.
-        오배포를 부팅 실패로 차단.
+        revenuecat_webhook_auth가 비면 RC 웹훅이 전량 401이라 구독/결제 동기가 멈춘다.
+        오배포(빈 시크릿)를 부팅 실패로 차단.
         """
         if self.environment == "local":
             return
-        missing = []
-        if not self.app_store_bundle_id:
-            missing.append("APP_STORE_BUNDLE_ID")
-        if self.app_store_environment.lower() != "production":
-            missing.append("APP_STORE_ENVIRONMENT=Production")
-        if self.app_store_app_apple_id is None:
-            missing.append("APP_STORE_APP_APPLE_ID")
-        if missing:
+        if not self.revenuecat_webhook_auth:
             raise RuntimeError(
-                "프로덕션 StoreKit 설정 누락(fail-closed): " + ", ".join(missing)
+                "프로덕션 결제 설정 누락(fail-closed): REVENUECAT_WEBHOOK_AUTH"
             )
 
 

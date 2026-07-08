@@ -1,4 +1,8 @@
-"""구독·IAP API. 조회/검증은 인증, ASSN 웹훅은 공개(서명이 인증)."""
+"""구독 API — RevenueCat 기반. 조회는 인증, RC 웹훅은 Authorization 헤더 값으로 인증.
+
+구독·건초 IAP 검증은 RevenueCat이 대행 → 클라는 RC SDK 사용, 백엔드는 RC 웹훅으로만 동기.
+(직접 StoreKit verify/restore·ASSN·wallet 경로는 RC 전환으로 제거됨.)
+"""
 from __future__ import annotations
 
 import hmac
@@ -11,8 +15,7 @@ from app.config import settings
 from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.subscription import IapPurchaseRequest, RestoreRequest, VerifyRequest
-from app.services import iap, subscription
+from app.services import subscription
 
 router = APIRouter(tags=["subscription"])
 
@@ -28,36 +31,6 @@ async def get_subscription(
 @router.get("/subscription/plans")
 async def get_plans() -> dict[str, Any]:
     return subscription.get_plans()
-
-
-@router.post("/subscription/verify")
-async def verify(
-    req: VerifyRequest,
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    return await subscription.verify(session, user_id, req.signed_transaction)
-
-
-@router.post("/subscription/restore")
-async def restore(
-    req: RestoreRequest,
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    return await subscription.restore(session, user_id, req.signed_transactions)
-
-
-@router.post("/webhooks/appstore")
-async def appstore_webhook(
-    payload: dict = Body(...),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, str]:
-    """Apple ASSN v2(서버-서버). 본문 {signedPayload}. 인증 없음 — 서명이 인증."""
-    signed = payload.get("signedPayload")
-    if signed:
-        await subscription.handle_webhook(session, signed)
-    return {"status": "ok"}
 
 
 @router.post("/webhooks/revenuecat")
@@ -77,12 +50,3 @@ async def revenuecat_webhook(
     if isinstance(event, dict):
         await subscription.handle_revenuecat_event(session, event)
     return {"status": "ok"}
-
-
-@router.post("/wallet/purchases")
-async def wallet_purchase(
-    req: IapPurchaseRequest,
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    return await iap.purchase(session, user_id, req.signed_transaction)

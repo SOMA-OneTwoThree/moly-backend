@@ -45,7 +45,11 @@ async def list_diaries(
     limit = max(1, min(limit, 100))
     q = select(Diary).where(Diary.user_id == _uid(user_id), Diary.published_at <= now)
     if cursor:
-        q = q.where(Diary.diary_date < date.fromisoformat(cursor))
+        try:
+            cursor_date = date.fromisoformat(cursor)
+        except ValueError as e:
+            raise errors.validation("잘못된 커서 형식이에요.") from e
+        q = q.where(Diary.diary_date < cursor_date)
     q = q.order_by(Diary.diary_date.desc()).limit(limit + 1)  # +1로 다음 페이지 유무 판별
     rows = list((await session.execute(q)).scalars().all())
     has_more = len(rows) > limit

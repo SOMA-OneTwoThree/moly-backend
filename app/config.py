@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = ""
     # JWT 검증(JWKS 로컬 검증) — 미설정 시 remote getUser 폴백(auth 설계 단계에서 확정)
     supabase_jwks_url: str = ""
+    # 익명 로그인 토큰 허용 여부 — 제품은 소셜 전용이라 기본 거부(is_anonymous 토큰 401).
+    # 통합 테스트만 True로 오버라이드(익명 sign-in으로 토큰 발급).
+    allow_anonymous_auth: bool = False
     # API 서버 전용 DB 쓰기(서비스 롤). 클라 직접 쓰기 없음(ERD §8)
     supabase_db_connection_string: str = ""
 
@@ -33,6 +36,13 @@ class Settings(BaseSettings):
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""
     fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)
+
+    # --- App Store(StoreKit) — JWS x5c 서명검증(구독/IAP/ASSN 웹훅) ---
+    # 우리 설계는 App Store Server API 조회 없음 → .p8/Key ID/Issuer ID 불필요.
+    # 검증에 필요한 것: Bundle ID (+ 프로덕션은 App Apple ID). 루트 CA는 코드 내장.
+    app_store_bundle_id: str = ""
+    app_store_environment: str = "Sandbox"  # Sandbox | Production
+    app_store_app_apple_id: int | None = None  # 프로덕션 알림 검증 시 필요(앱 숫자 ID)
 
     # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
     openai_api_key: str = ""
@@ -57,6 +67,27 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
         extra="ignore",
     )
+
+    def require_production_ready(self) -> None:
+        """비-local 부팅 시 StoreKit 결제/웹훅 설정을 강제(fail-closed).
+
+        기본값(environment=local·bundle_id 빈값·Sandbox)이 프로덕션에 그대로 실리면
+        서명검증 우회(무서명 영수증) 또는 무료 Sandbox 영수증 통과가 발생한다.
+        오배포를 부팅 실패로 차단.
+        """
+        if self.environment == "local":
+            return
+        missing = []
+        if not self.app_store_bundle_id:
+            missing.append("APP_STORE_BUNDLE_ID")
+        if self.app_store_environment.lower() != "production":
+            missing.append("APP_STORE_ENVIRONMENT=Production")
+        if self.app_store_app_apple_id is None:
+            missing.append("APP_STORE_APP_APPLE_ID")
+        if missing:
+            raise RuntimeError(
+                "프로덕션 StoreKit 설정 누락(fail-closed): " + ", ".join(missing)
+            )
 
 
 @lru_cache

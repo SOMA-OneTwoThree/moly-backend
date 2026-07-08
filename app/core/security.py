@@ -63,6 +63,10 @@ def _verify_sync(token: str) -> str | None:
     except Exception as e:  # noqa: BLE001  # 서명/만료/형식 오류 — 모두 거절
         _log.info("토큰 검증 실패: %r", e)
         return None
+    # 익명 로그인 거부(소셜 전용) — is_anonymous 토큰 차단. 어뷰징(무한 계정·건초 파밍) 방지.
+    if claims.get("is_anonymous") is True and not settings.allow_anonymous_auth:
+        _log.info("익명 유저 토큰 거부(소셜 로그인 전용)")
+        return None
     return claims.get("sub")
 
 

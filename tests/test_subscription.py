@@ -47,7 +47,7 @@ class FakeSession:
 
 
 def _patch_decode(monkeypatch, payload):
-    monkeypatch.setattr(app_store, "decode", lambda s: payload)
+    monkeypatch.setattr(app_store, "decode_transaction", lambda s: payload)
 
 
 # --- 구독 검증 ---
@@ -123,6 +123,54 @@ async def test_verify_second_time_no_grant(monkeypatch):
     assert out["hay_granted"] == 0 and out["balance_after"] == 500
 
 
+async def test_verify_expired_receipt_no_grant(monkeypatch):
+    # 만료된 영수증(expiresDate 과거)으로 verify 시 증정 미지급 + status expired (#4)
+    _patch_decode(monkeypatch, {"productId": "app.moly.sub.monthly", "transactionId": "t1",
+                                "originalTransactionId": "o1", "expiresDate": 1_000_000_000_000})
+
+    async def _by(session, otx, lock=False):
+        return None
+
+    async def _grant(session, uid, plan):
+        return False
+
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, hay_balance=100)
+
+    async def _apply(session, uid, t, amt, **kw):
+        raise AssertionError("만료 영수증엔 증정 지급 금지")
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_grant_exists", _grant)
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    out = await subscription.verify(FakeSession(), UID, "jws")
+    assert out["status"] == "expired" and out["hay_granted"] == 0 and out["balance_after"] == 100
+
+
+async def test_verify_does_not_resurrect_revoked(monkeypatch):
+    # 환불(revoked)된 구독은 유효 서명거래 재전송으로도 되살아나지 않음 (#1)
+    _patch_decode(monkeypatch, {"productId": "app.moly.sub.monthly", "transactionId": "t9",
+                                "originalTransactionId": "o1", "expiresDate": 1_800_000_000_000})
+    sub = SimpleNamespace(user_id=UID_UUID, plan="monthly", status="revoked", expires_at=None)
+
+    async def _by(session, otx, lock=False):
+        return sub
+
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, hay_balance=0)
+
+    async def _apply(session, uid, t, amt, **kw):
+        raise AssertionError("revoked 구독엔 증정 지급 금지")
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    out = await subscription.verify(FakeSession(), UID, "jws")
+    assert sub.status == "revoked"  # 상태 유지(active로 덮이지 않음)
+    assert out["status"] == "revoked" and out["hay_granted"] == 0
+
+
 async def test_restore_reactivates_subscription(monkeypatch):
     _patch_decode(monkeypatch, {"productId": "app.moly.sub.monthly", "transactionId": "t",
                                 "originalTransactionId": "o1", "expiresDate": 1_800_000_000_000})
@@ -159,19 +207,17 @@ async def test_restore_conflict_other_user(monkeypatch):
 
 
 async def test_webhook_refund_revokes_and_clawback(monkeypatch):
-    _patch_decode(monkeypatch, {
+    # 알림(decode_notification)과 내부 거래(decode_transaction)를 각각 패치
+    monkeypatch.setattr(app_store, "decode_notification", lambda s: {
         "notificationType": "REFUND",
         "data": {"signedTransactionInfo": "inner"},
     })
-    # 두 번째 decode(inner tx) 처리 위해 순차 반환
-    payloads = iter([
-        {"notificationType": "REFUND", "data": {"signedTransactionInfo": "inner"}},
-        {"originalTransactionId": "o1", "transactionId": "t1"},
-    ])
-    monkeypatch.setattr(app_store, "decode", lambda s: next(payloads))
+    monkeypatch.setattr(app_store, "decode_transaction", lambda s: {
+        "originalTransactionId": "o1", "transactionId": "t1",
+    })
     sub = SimpleNamespace(user_id=UID_UUID, plan="monthly", status="active", expires_at=None)
 
-    async def _by(session, otx):
+    async def _by(session, otx, lock=False):
         return sub
 
     async def _lp(session, user_id):
@@ -189,6 +235,31 @@ async def test_webhook_refund_revokes_and_clawback(monkeypatch):
     await subscription.handle_webhook(FakeSession(), "outer")
     assert sub.status == "revoked"
     assert clawed["amt"] == -1000  # min(증정 1000, 잔액 1500) 회수
+
+
+async def test_webhook_refund_idempotent_no_double_clawback(monkeypatch):
+    # 이미 회수 원장이 있으면(재생·재시도·REVOKE→REFUND) 재회수하지 않음 (#3)
+    monkeypatch.setattr(app_store, "decode_notification", lambda s: {
+        "notificationType": "REFUND",
+        "data": {"signedTransactionInfo": "inner"},
+    })
+    monkeypatch.setattr(app_store, "decode_transaction", lambda s: {
+        "originalTransactionId": "o1", "transactionId": "t1",
+    })
+    sub = SimpleNamespace(user_id=UID_UUID, plan="monthly", status="active", expires_at=None)
+
+    async def _by(session, otx, lock=False):
+        return sub
+
+    async def _apply(session, uid, t, amt, **kw):
+        raise AssertionError("이미 회수됨 — 재회수 금지")
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    # exec_results: [unequip delete, _clawback_done select→기존 원장 있음]
+    session = FakeSession(exec_results=[[], [SimpleNamespace(id=1)]])
+    await subscription.handle_webhook(session, "outer")
+    assert sub.status == "revoked"  # 상태는 반영, 회수는 스킵
 
 
 # --- IAP 건초구매 ---
@@ -248,17 +319,36 @@ def test_plans_is_public():
     assert "plans" in r.json()
 
 
-# --- C1: StoreKit fail-closed 게이트(보안) ---
+# --- C1: StoreKit 검증 게이트(보안) ---
 def test_app_store_fail_closed_in_production(monkeypatch):
+    # 검증기 미설정(bundle_id 없음) + 비로컬 → fail-closed
+    monkeypatch.setattr(app_store.settings, "app_store_bundle_id", "")
+    app_store._verifier.cache_clear()
     monkeypatch.setattr(app_store.settings, "environment", "production")
     with pytest.raises(AppError) as e:
-        app_store.decode("anything")  # 서명검증 미구현 → 프로덕션 거부
+        app_store.decode_transaction("anything")
     assert e.value.code == "RECEIPT_INVALID"
 
 
 def test_app_store_decodes_in_local(monkeypatch):
     import jwt as _jwt
 
+    monkeypatch.setattr(app_store.settings, "app_store_bundle_id", "")
+    app_store._verifier.cache_clear()
     monkeypatch.setattr(app_store.settings, "environment", "local")
     token = _jwt.encode({"productId": "x"}, "secret", algorithm="HS256")
-    assert app_store.decode(token)["productId"] == "x"
+    assert app_store.decode_transaction(token)["productId"] == "x"
+
+
+def test_app_store_rejects_bad_signature_when_configured(monkeypatch):
+    # bundle_id 설정 → 실제 x5c 검증기 가동. 위조/HS256 토큰은 서명검증 실패로 거부.
+    monkeypatch.setattr(app_store.settings, "app_store_bundle_id", "com.geniusjun.moly")
+    monkeypatch.setattr(app_store.settings, "app_store_environment", "Sandbox")
+    app_store._verifier.cache_clear()
+    import jwt as _jwt
+
+    bogus = _jwt.encode({"productId": "x"}, "secret", algorithm="HS256")
+    with pytest.raises(AppError) as e:
+        app_store.decode_transaction(bogus)
+    assert e.value.code == "RECEIPT_INVALID"
+    app_store._verifier.cache_clear()  # 다른 테스트 오염 방지

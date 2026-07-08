@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
@@ -16,7 +17,7 @@ from app.services.account import _uid
 
 async def purchase(session: AsyncSession, user_id: str, signed_transaction: str) -> dict[str, Any]:
     uid = _uid(user_id)
-    payload = app_store.decode(signed_transaction)
+    payload = app_store.decode_transaction(signed_transaction)
     product_id = payload.get("productId")
     transaction_id = str(payload.get("transactionId"))
 
@@ -45,5 +46,10 @@ async def purchase(session: AsyncSession, user_id: str, signed_transaction: str)
             status="verified", purchased_at=datetime.now(timezone.utc),
         )
     )
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError as e:
+        # 동시 요청 레이스 — transaction_id UNIQUE 충돌. 잔액 롤백 후 멱등 409.
+        await session.rollback()
+        raise errors.already_processed() from e
     return {"amount": pack.hay_amount, "balance_after": balance}

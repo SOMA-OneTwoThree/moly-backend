@@ -16,6 +16,8 @@ from app.core.errors import register_error_handlers
 
 def create_app() -> FastAPI:
     """API 앱 팩토리. 모듈 라우터는 여기서 등록(chat·diary… 는 구현 시 추가)."""
+    # 비-local이면 StoreKit 결제/웹훅 설정 강제(누락 시 부팅 실패, 서명검증 우회 방지).
+    settings.require_production_ready()
     # OpenAPI 문서는 로컬에서만 노출(프로덕션 무인증 스키마 열람 차단).
     _local = settings.environment == "local"
     app = FastAPI(

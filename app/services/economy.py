@@ -41,7 +41,11 @@ async def list_transactions(
     limit = max(1, min(limit, 100))
     q = select(HayTransaction).where(HayTransaction.user_id == uid)
     if cursor:
-        q = q.where(HayTransaction.id < int(cursor))
+        try:
+            cursor_id = int(cursor)
+        except ValueError as e:
+            raise errors.validation("잘못된 커서 형식이에요.") from e
+        q = q.where(HayTransaction.id < cursor_id)
     q = q.order_by(HayTransaction.id.desc()).limit(limit + 1)
     rows = list((await session.execute(q)).scalars().all())
     has_more = len(rows) > limit

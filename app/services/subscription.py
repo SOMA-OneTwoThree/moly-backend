@@ -8,9 +8,11 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.models.hay_transaction import HayTransaction
 from app.models.shop import ShopItem
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
@@ -67,12 +69,25 @@ async def get_subscription(session: AsyncSession, user_id: str) -> dict[str, Any
     }
 
 
-async def _by_original_tx(session: AsyncSession, original_tx: str) -> Subscription | None:
-    return (
-        await session.execute(
-            select(Subscription).where(Subscription.original_transaction_id == original_tx)
+async def _by_original_tx(
+    session: AsyncSession, original_tx: str, *, lock: bool = False
+) -> Subscription | None:
+    q = select(Subscription).where(Subscription.original_transaction_id == original_tx)
+    if lock:  # 웹훅 동시처리 직렬화(REFUND 중복 clawback 레이스 방지)
+        q = q.with_for_update()
+    return (await session.execute(q)).scalars().first()
+
+
+async def _clawback_done(session: AsyncSession, uid, original_tx: str) -> bool:
+    """이 구독(original_tx)에 대한 회수 원장이 이미 있으면 True — 재생/재시도·REVOKE→REFUND 멱등."""
+    row = await session.execute(
+        select(HayTransaction.id).where(
+            HayTransaction.user_id == uid,
+            HayTransaction.type == "refund_revoke",
+            HayTransaction.ref_id == original_tx,
         )
-    ).scalars().first()
+    )
+    return row.scalars().first() is not None
 
 
 async def _grant_exists(session: AsyncSession, uid, plan: str) -> bool:
@@ -84,48 +99,57 @@ async def _grant_exists(session: AsyncSession, uid, plan: str) -> bool:
     return row.scalars().first() is not None
 
 
-async def _upsert_sub(session: AsyncSession, uid, payload: dict) -> str:
-    """JWS payload로 Subscription 생성/갱신 → plan 반환. 다른 계정 소유면 409. verify·restore 공용."""
+async def _upsert_sub(session: AsyncSession, uid, payload: dict) -> Subscription:
+    """JWS payload로 Subscription 생성/갱신 → 해당 행 반환. 다른 계정 소유면 409. verify·restore 공용."""
     plan = _PLAN_BY_PRODUCT.get(payload.get("productId"))
     if plan is None:
         raise errors.receipt_invalid()
     original_tx = str(payload.get("originalTransactionId") or payload.get("transactionId"))
     expires = _ms_to_dt(payload.get("expiresDate"))
+    # 만료 거래 JWS(restore에 섞여올 수 있음)가 만료 구독을 active로 되살리지 않게 — 만료시각 기준 판정.
+    status = "expired" if (expires is not None and expires <= datetime.now(timezone.utc)) else "active"
     sub = await _by_original_tx(session, original_tx)
     if sub is not None and sub.user_id != uid:
         raise errors.restore_conflict()
+    # 환불/취소(revoked)는 종단 상태 — 아직 만료 안 된 서명거래 재전송으로 되살리지 못하게(무료혜택 방지).
+    if sub is not None and sub.status == "revoked":
+        return sub
     if sub is None:
-        session.add(
-            Subscription(
-                user_id=uid, plan=plan, status="active", original_transaction_id=original_tx,
-                latest_transaction_id=str(payload.get("transactionId")), expires_at=expires,
-                auto_renew_enabled=True, environment=payload.get("environment"),
-            )
+        sub = Subscription(
+            user_id=uid, plan=plan, status=status, original_transaction_id=original_tx,
+            latest_transaction_id=str(payload.get("transactionId")), expires_at=expires,
+            auto_renew_enabled=True, environment=payload.get("environment"),
         )
+        session.add(sub)
     else:
-        sub.plan, sub.status, sub.expires_at = plan, "active", expires
+        sub.plan, sub.status, sub.expires_at = plan, status, expires
         sub.latest_transaction_id = str(payload.get("transactionId"))
-    return plan
+    return sub
 
 
 async def verify(session: AsyncSession, user_id: str, signed_transaction: str) -> dict[str, Any]:
     uid = _uid(user_id)
     payload = app_store.decode_transaction(signed_transaction)
-    plan = await _upsert_sub(session, uid, payload)
-    expires = _ms_to_dt(payload.get("expiresDate"))
+    sub = await _upsert_sub(session, uid, payload)
+    plan, expires = sub.plan, sub.expires_at
+    is_active = sub.status == "active"  # 만료 영수증=expired, revoked=종단 → 증정·응답에서 제외
 
-    # 증정 = (user, plan) 최초 1회
+    # 증정 = (user, plan) 최초 1회 — 활성 구독일 때만(만료·환불 영수증엔 미지급).
     granted = 0
     profile = await _load_profile(session, user_id)
-    if not await _grant_exists(session, uid, plan):
+    balance = profile.hay_balance
+    if is_active and not await _grant_exists(session, uid, plan):
         granted = HAY_GRANT[plan]
         balance = await hay_ledger.apply(session, uid, "subscription_grant", granted)
         session.add(SubscriptionHayGrant(user_id=uid, plan=plan))
-    else:
-        balance = profile.hay_balance
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError as e:
+        # 동시 verify 레이스 — (user, plan) 증정 UNIQUE 충돌. 롤백 후 멱등 409(이중 증정 차단).
+        await session.rollback()
+        raise errors.already_processed() from e
     return {
-        "status": "active", "plan": plan, "expires_at": _iso(expires),
+        "status": sub.status, "plan": plan, "expires_at": _iso(expires),
         "hay_granted": granted, "balance_after": balance,
     }
 
@@ -134,7 +158,11 @@ async def restore(session: AsyncSession, user_id: str, signed_transactions: list
     uid = _uid(user_id)
     for jws in signed_transactions:  # 각 거래로 구독 재활성(웹훅 유실 대비) + 충돌 검사
         await _upsert_sub(session, uid, app_store.decode_transaction(jws))
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        # 동시 restore/verify 또는 배열 내 중복 JWS로 original_tx UNIQUE 충돌 — 롤백 후 현재 상태 반환(멱등).
+        await session.rollback()
     return await get_subscription(session, user_id)
 
 
@@ -146,28 +174,42 @@ async def handle_webhook(session: AsyncSession, signed_payload: str) -> None:
     """
     payload = app_store.decode_notification(signed_payload)
     ntype = payload.get("notificationType")
+    subtype = payload.get("subtype")
     tx_info = payload.get("data", {}).get("signedTransactionInfo")
     if not tx_info:
         return
     tx = app_store.decode_transaction(tx_info)
     original_tx = str(tx.get("originalTransactionId") or tx.get("transactionId"))
-    sub = await _by_original_tx(session, original_tx)
+    sub = await _by_original_tx(session, original_tx, lock=True)  # 동시/중복 알림 직렬화
     if sub is None:
         return
     if ntype == "DID_RENEW":
         sub.status = "active"
         sub.expires_at = _ms_to_dt(tx.get("expiresDate"))
-    elif ntype in ("EXPIRED", "DID_FAIL_TO_RENEW"):
+    elif ntype == "DID_FAIL_TO_RENEW" and subtype == "GRACE_PERIOD":
+        sub.status = "grace_period"  # 유예 기간 — 혜택 유지(장착 해제 안 함)
+    elif ntype in ("EXPIRED", "DID_FAIL_TO_RENEW", "GRACE_PERIOD_EXPIRED"):
         sub.status = "expired"
-        await _unequip_subscriber_only(session, sub.user_id)  # 구독 만료 → 전용 장착 해제
+        await _unequip_subscriber_only(session, sub.user_id)  # 만료 → 전용 장착 해제
+    elif ntype == "DID_CHANGE_RENEWAL_STATUS":
+        sub.auto_renew_enabled = subtype == "AUTO_RENEW_ENABLED"  # 자동갱신 on/off만 반영
+    elif ntype == "REVOKE":
+        # 가족 공유 취소 — 혜택 회수(증정 건초는 유지, 환불 아님)
+        sub.status = "revoked"
+        await _unequip_subscriber_only(session, sub.user_id)
     elif ntype == "REFUND":
         sub.status = "revoked"
         await _unequip_subscriber_only(session, sub.user_id)  # 환불 → 전용 장착 해제(ERD §4.9)
-        # 증정 건초 회수(회수액 = min(증정량, 잔액), 잔액 하한 0)
-        profile = await _load_profile(session, str(sub.user_id))
-        clawback = min(HAY_GRANT.get(sub.plan, 0), profile.hay_balance)
-        if clawback > 0:
-            await hay_ledger.apply(session, sub.user_id, "refund_revoke", -clawback)
+        # 증정 건초 회수 — 원장(ref_id=original_tx)로 멱등: 재생·재시도·REVOKE→REFUND 모두 1회만.
+        # 회수액은 환불된 거래의 플랜 기준(current sub.plan 아님 — 업/다운그레이드 후 오회수 방지).
+        if not await _clawback_done(session, sub.user_id, original_tx):
+            refunded_plan = _PLAN_BY_PRODUCT.get(tx.get("productId"), sub.plan)
+            profile = await _load_profile(session, str(sub.user_id))
+            clawback = min(HAY_GRANT.get(refunded_plan, 0), profile.hay_balance)  # 잔액 하한 0
+            # 금액 0이어도 기록 — 이 원장 행이 멱등 마커(잔액 소진 후 재생 시 재회수 방지).
+            await hay_ledger.apply(
+                session, sub.user_id, "refund_revoke", -clawback, ref_id=original_tx
+            )
     await session.commit()
 
 

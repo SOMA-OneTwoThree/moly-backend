@@ -9,14 +9,17 @@ class OnboardingRequest(BaseModel):
 
     nickname: str = Field(min_length=1, max_length=10)
     timezone: str = Field(min_length=1)  # IANA
-    language: str = Field(min_length=2, max_length=8)  # ISO 639-1
+    # ISO 639-1(+선택 지역). 문자·하이픈만 — 시스템 프롬프트에 삽입되므로 주입 문자 차단.
+    language: str = Field(min_length=2, max_length=8, pattern=r"^[a-zA-Z]{2}(-[a-zA-Z]{2,4})?$")
 
 
 class PatchMeRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     nickname: str | None = Field(default=None, min_length=1, max_length=10)
-    language: str | None = Field(default=None, min_length=2, max_length=8)
+    language: str | None = Field(
+        default=None, min_length=2, max_length=8, pattern=r"^[a-zA-Z]{2}(-[a-zA-Z]{2,4})?$"
+    )
     timezone: str | None = Field(default=None, min_length=1)
 
 

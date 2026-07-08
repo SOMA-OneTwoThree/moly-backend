@@ -20,12 +20,13 @@ import httpx
 # ── env ──────────────────────────────────────────────────────────────
 def _env() -> dict[str, str]:
     out = {}
-    for line in open(".env"):
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, v = line.split("=", 1)
-        out[k.strip()] = v.strip().strip('"').strip("'")
+    with open(".env") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            out[k.strip()] = v.strip().strip('"').strip("'")
     return out
 
 ENV = _env()
@@ -71,6 +72,10 @@ async def delete_user(hc: httpx.AsyncClient, uid: str):
 
 # ── 메인 ─────────────────────────────────────────────────────────────
 async def main():
+    from app.config import settings
+    # 제품은 소셜 전용이라 서버가 익명 토큰을 거부(security.py). 통합 테스트는 익명 sign-in으로
+    # 토큰을 얻으므로 이 프로세스 한정으로 허용 오버라이드.
+    settings.allow_anonymous_auth = True
     from app.main import create_app
     app = create_app()
 

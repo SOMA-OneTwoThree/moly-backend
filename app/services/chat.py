@@ -5,7 +5,7 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -61,6 +61,14 @@ def _msg_dto(m: Message) -> dict[str, Any]:
     }
 
 
+def _cursor_id(cursor: str) -> int:
+    """숫자 커서 파싱 — 잘못된 값은 422(미가드 시 int() ValueError → 500)."""
+    try:
+        return int(cursor)
+    except ValueError as e:
+        raise errors.validation("잘못된 커서 형식이에요.") from e
+
+
 async def get_messages(
     session: AsyncSession,
     user_id: str,
@@ -79,12 +87,12 @@ async def get_messages(
         q = base.where(Message.activity_date >= anchor_date).order_by(Message.id.asc()).limit(limit)
         rows = list((await session.execute(q)).scalars().all())
     elif direction == "newer" and cursor:
-        q = base.where(Message.id > int(cursor)).order_by(Message.id.asc()).limit(limit)
+        q = base.where(Message.id > _cursor_id(cursor)).order_by(Message.id.asc()).limit(limit)
         rows = list((await session.execute(q)).scalars().all())
     else:  # older (기본): 최신부터 과거로, 반환은 오래된→최신
         q = base
         if cursor:
-            q = q.where(Message.id < int(cursor))
+            q = q.where(Message.id < _cursor_id(cursor))
         q = q.order_by(Message.id.desc()).limit(limit)
         rows = list(reversed((await session.execute(q)).scalars().all()))
 
@@ -121,6 +129,14 @@ async def _build_system(user_id: str, language: str) -> str:
     return system
 
 
+# --- 유저 단위 직렬화(토큰 한도 TOCTOU 방지) ---
+async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
+    """트랜잭션 범위 advisory lock — 같은 유저의 동시 요청을 직렬화. 커밋/롤백 시 자동 해제.
+    게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다.
+    uid는 검증된 UUID라 리터럴 삽입 안전(bind 파라미터 없이 단일 execute)."""
+    await session.execute(text(f"SELECT pg_advisory_xact_lock(hashtextextended('{uid}', 0))"))
+
+
 # --- 토큰 누적(멱등 트랜잭션 내) ---
 async def _accumulate_tokens(
     session: AsyncSession, uid: uuid.UUID, activity_date: date, consumed: int
@@ -140,25 +156,31 @@ async def post_message(
     session: AsyncSession, user_id: str, req, idempotency_key: str
 ) -> dict[str, Any]:
     uid = _uid(user_id)
+    now = datetime.now(timezone.utc)
 
     # 0) 멱등 — 같은 (유저,키) 재요청은 저장된 응답 그대로(이중 차감 방지, 유저 스코프)
     cached = await session.get(IdempotencyKey, (uid, idempotency_key))
     if cached is not None:
         return cached.response
 
-    # 1) 사전 게이팅
+    # 1) 유저 직렬화 → 게이팅. 잠근 뒤 tokens_used를 읽어야 동시요청이 한도를 우회 못 함(TOCTOU).
+    await _lock_user(session, uid)
+
     g = await gating.resolve(session, user_id)
     remaining = g.entitlement["tokens_remaining"]
     if remaining is not None and remaining <= 0:
         raise errors.daily_limit_reached()
 
     ad = g.activity_date
-    now = datetime.now(timezone.utc)
 
     # 2) 선발화 커밋(있으면)
     greeting_dto = None
     if getattr(req, "greeting_id", None):
-        gr = await session.get(Greeting, uuid.UUID(req.greeting_id))
+        try:
+            gid = uuid.UUID(req.greeting_id)
+        except ValueError as e:
+            raise errors.validation("잘못된 greeting_id예요.") from e
+        gr = await session.get(Greeting, gid)
         if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
             gmsg = Message(
                 user_id=uid, sender="moly", kind="greeting", content=gr.content,

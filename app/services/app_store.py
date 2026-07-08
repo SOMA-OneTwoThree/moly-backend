@@ -72,11 +72,19 @@ def decode_transaction(signed_transaction: str) -> dict:
         return _fallback_or_reject(signed_transaction)
     from appstoreserverlibrary.signed_data_verifier import VerificationException
     try:
-        v.verify_and_decode_signed_transaction(signed_transaction)  # 신뢰판단(실패 시 raise)
+        verified = v.verify_and_decode_signed_transaction(signed_transaction)  # 신뢰판단(실패 시 raise)
     except VerificationException as e:
         _log.warning("StoreKit 거래 서명검증 실패: %r", e)
         raise errors.receipt_invalid() from e
-    return _raw_payload(signed_transaction)
+    raw = _raw_payload(signed_transaction)
+    # parser-differential 방어: 검증된 객체와 재디코드 dict의 핵심 식별자(돈 필드) 일치 강제.
+    # 두 파서(app-store-server-library ↔ pyjwt) 해석차로 다른 productId/transactionId를 쓰는 우회 차단.
+    if str(raw.get("transactionId")) != str(verified.transactionId) or str(
+        raw.get("productId")
+    ) != str(verified.productId):
+        _log.error("StoreKit parser differential 감지 — 거래 거부")
+        raise errors.receipt_invalid()
+    return raw
 
 
 def decode_notification(signed_payload: str) -> dict:

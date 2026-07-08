@@ -61,10 +61,15 @@ async def _app_error_handler(request: Request, exc: AppError) -> JSONResponse:
 async def _validation_error_handler(
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
+    # 제출값(input)·ctx는 응답에 반향하지 않음 — loc/type/msg만(민감입력 유출·반향 방지).
+    safe = [
+        {"loc": e.get("loc"), "type": e.get("type"), "msg": e.get("msg")}
+        for e in exc.errors()
+    ]
     return JSONResponse(
         status_code=422,
         content=jsonable_encoder(
-            _body("VALIDATION", "요청 형식이 올바르지 않습니다.", {"errors": exc.errors()})
+            _body("VALIDATION", "요청 형식이 올바르지 않습니다.", {"errors": safe})
         ),
     )
 

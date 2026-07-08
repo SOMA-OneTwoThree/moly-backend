@@ -13,7 +13,8 @@ class VerifyRequest(BaseModel):
 class RestoreRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    signed_transactions: list[str] = Field(min_length=1)
+    # 상한 = x5c 검증 CPU 고갈 DoS 방지. StoreKit currentEntitlements는 소수(활성 구독 1~2).
+    signed_transactions: list[str] = Field(min_length=1, max_length=20)
 
 
 class IapPurchaseRequest(BaseModel):

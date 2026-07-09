@@ -20,10 +20,17 @@ def _dto(r: Routine, completed_today: bool) -> dict[str, Any]:
         "id": str(r.id),
         "name": r.name,
         "frequency_per_week": r.frequency_per_week,
+        "days_of_week": r.days_of_week,  # 요일별이면 [1,3,5], 주 N회면 null
         "reminder_enabled": r.reminder_enabled,
         "reminder_time": r.reminder_time.strftime("%H:%M") if r.reminder_time else None,
         "completed_today": completed_today,
     }
+
+
+def _week_bounds(ad):
+    """ad(로컬 activity_date)가 속한 주의 월~일 경계(ISO, 월요일 시작)."""
+    monday = ad - timedelta(days=ad.isoweekday() - 1)
+    return monday, monday + timedelta(days=6)
 
 
 async def _today(session: AsyncSession, user_id: str):
@@ -67,8 +74,10 @@ async def list_routines(session: AsyncSession, user_id: str) -> dict[str, Any]:
 
 async def create_routine(session: AsyncSession, user_id: str, req) -> dict[str, Any]:
     uid = _uid(user_id)
+    # 요일별이면 frequency = 요일 수로 파생(NOT NULL 유지), 아니면 주 N회 값 사용.
+    freq = len(req.days_of_week) if req.days_of_week else req.frequency_per_week
     r = Routine(
-        user_id=uid, name=req.name, frequency_per_week=req.frequency_per_week,
+        user_id=uid, name=req.name, frequency_per_week=freq, days_of_week=req.days_of_week,
         reminder_enabled=req.reminder_enabled, reminder_time=req.reminder_time,
     )
     session.add(r)
@@ -82,12 +91,22 @@ async def update_routine(session: AsyncSession, user_id: str, routine_id: str, r
     r = await _load_owned(session, uid, routine_id)
     if req.name is not None:
         r.name = req.name
-    if req.frequency_per_week is not None:
-        r.frequency_per_week = req.frequency_per_week
     if req.reminder_enabled is not None:
         r.reminder_enabled = req.reminder_enabled
     if req.reminder_time is not None:
         r.reminder_time = req.reminder_time
+    # 스케줄: days_of_week 필드가 온 경우만 모드 전환/변경
+    if "days_of_week" in req.model_fields_set:
+        if req.days_of_week:  # 요일별로 전환/변경 → frequency 파생
+            r.days_of_week = req.days_of_week
+            r.frequency_per_week = len(req.days_of_week)
+        else:  # [] → 주 N회 모드로 전환(frequency 동반 시 반영, 없으면 기존 유지)
+            r.days_of_week = None
+            if req.frequency_per_week is not None:
+                r.frequency_per_week = req.frequency_per_week
+    elif req.frequency_per_week is not None and r.days_of_week is None:
+        # 요일 미변경 + 주 N회 루틴이면 frequency 수정 반영(요일별 루틴은 days가 진실이라 무시)
+        r.frequency_per_week = req.frequency_per_week
     await session.commit()
 
 
@@ -139,18 +158,33 @@ async def statistics(session: AsyncSession, user_id: str, routine_id: str) -> di
         ).scalars().all()
     )
     date_set = set(dates)
-    # streak: 오늘부터 뒤로 연속 완료 일수
+    # streak: 오늘부터 뒤로 연속 완료 일수(지정 요일 무관, 단순 달력일 연속)
     streak = 0
     cursor = ad
     while cursor in date_set:
         streak += 1
         cursor = cursor - timedelta(days=1)
+    # 이번 주(월~일): 요일별 완료 여부 + 수행 횟수
+    wk_start, wk_end = _week_bounds(ad)
+    by_weekday = {str(i): False for i in range(1, 8)}
+    week_count = 0
+    for d in dates:
+        if wk_start <= d <= wk_end:
+            by_weekday[str(d.isoweekday())] = True
+            week_count += 1
     last_30 = [d.isoformat() for d in dates if (ad - d).days < 30]
-    # 완료율: 최근 4주 완료수 / (주 N회 × 4), 상한 1.0
+    # 완료율: 최근 4주 완료수 / (목표 × 4), 상한 1.0
     recent = sum(1 for d in dates if (ad - d).days < 28)
     target = max(1, r.frequency_per_week * 4)
     return {
         "streak": streak,
+        "completed_today": ad in date_set,   # 완료 여부 = 오늘
+        "target_count": r.frequency_per_week,  # 설정한 횟수(요일별=요일 수)
+        "days_of_week": r.days_of_week,        # 요일별이면 [1,3,5], 아니면 null
+        "this_week": {
+            "completed_count": week_count,     # 이번 주 수행 횟수
+            "by_weekday": by_weekday,          # 이번 주 요일별 완료 여부(월~일)
+        },
         "last_30_days": last_30,
         "completion_rate": round(min(1.0, recent / target), 2),
     }

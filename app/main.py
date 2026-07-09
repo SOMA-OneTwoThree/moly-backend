@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 
-from app.api.account import router as account_router
 from app.api.ads import router as ads_router
 from app.api.chat import router as chat_router
 from app.api.diary import router as diary_router
@@ -30,7 +29,7 @@ def create_app() -> FastAPI:
     # 공개(인증 불필요): 헬스체크만. (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)
     app.include_router(health_router)
     # 인증 필요: 각 엔드포인트가 get_current_user 의존
-    app.include_router(account_router)
+    # (계정 API — /me·/onboarding·알림·푸시토큰·로그아웃·탈퇴 — 는 moly-auth 서버 소유)
     app.include_router(chat_router)
     app.include_router(diary_router)
     app.include_router(economy_router)

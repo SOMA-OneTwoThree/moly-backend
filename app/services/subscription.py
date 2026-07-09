@@ -21,6 +21,8 @@ from app.models.subscription_hay_grant import SubscriptionHayGrant
 from app.models.user_equipment import UserEquipment
 from app.services import hay_ledger, iap
 from app.services.account import _load_profile
+from app.services.entitlement import _parse_dt
+from app.services.limits import effective_token_config
 
 _log = logging.getLogger("moly-backend")
 
@@ -31,6 +33,7 @@ _PLANS = [
     {"product_id": "app.moly.sub.yearly", "period": "yearly", "hay_grant": 4000},
 ]
 _BENEFITS = ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "구독 전용 배경", "건초 증정"]
+_ACTIVE = ("active", "grace_period")  # 혜택 유지되는 구독 상태
 
 
 def _ms_to_dt(ms) -> datetime | None:
@@ -59,16 +62,25 @@ async def get_subscription(session: AsyncSession, user_id: str) -> dict[str, Any
     profile = await _load_profile(session, user_id)
     sub = await _latest_sub(session, profile.id)
     now = datetime.now(timezone.utc)
-    in_trial = profile.trial_ends_at is not None and now < profile.trial_ends_at
+    # 무료 체험 표시(entitlement와 일관): 활성 구독자=체험 아님 / 런칭 기간=런칭 종료까지 / 아니면 실제 2일.
+    active = sub is not None and sub.status in _ACTIVE and sub.expires_at is not None and sub.expires_at > now
+    launch_until = _parse_dt((await effective_token_config(session)).get("free_launch_until"))
+    if active:
+        in_trial, trial_ends = False, None
+    elif launch_until is not None and now < launch_until:
+        in_trial, trial_ends = True, launch_until
+    elif profile.trial_ends_at is not None and now < profile.trial_ends_at:
+        in_trial, trial_ends = True, profile.trial_ends_at
+    else:
+        in_trial, trial_ends = False, None
     if sub is None:
         return {
             "status": "none", "plan": None, "auto_renew_enabled": False, "expires_at": None,
-            "in_trial": in_trial, "trial_ends_at": _iso(profile.trial_ends_at) if in_trial else None,
+            "in_trial": in_trial, "trial_ends_at": _iso(trial_ends),
         }
     return {
         "status": sub.status, "plan": sub.plan, "auto_renew_enabled": sub.auto_renew_enabled,
-        "expires_at": _iso(sub.expires_at), "in_trial": in_trial,
-        "trial_ends_at": _iso(profile.trial_ends_at) if in_trial else None,
+        "expires_at": _iso(sub.expires_at), "in_trial": in_trial, "trial_ends_at": _iso(trial_ends),
     }
 
 

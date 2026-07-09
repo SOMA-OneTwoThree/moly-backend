@@ -232,3 +232,39 @@ def test_rc_webhook_auth_ok_calls_handler(monkeypatch):
         assert r.status_code == 200 and called["event"] == {"type": "TEST"}
     finally:
         app.dependency_overrides.clear()
+
+
+# --- 런칭 무료 기간이 get_subscription에 일관 반영 ---
+async def test_get_subscription_reflects_launch_period(monkeypatch):
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, trial_ends_at=None)
+
+    async def _latest(session, uid):
+        return None
+
+    async def _cfg(session):
+        return {"free_launch_until": "2999-01-01T00:00:00+00:00"}  # 먼 미래 = 런칭 중
+
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    monkeypatch.setattr(subscription, "_latest_sub", _latest)
+    monkeypatch.setattr(subscription, "effective_token_config", _cfg)
+    out = await subscription.get_subscription(FakeSession(), UID)
+    assert out["status"] == "none" and out["in_trial"] is True
+    assert out["trial_ends_at"].startswith("2999")  # 런칭 종료일로 표시
+
+
+async def test_get_subscription_after_launch_no_trial(monkeypatch):
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, trial_ends_at=None)
+
+    async def _latest(session, uid):
+        return None
+
+    async def _cfg(session):
+        return {"free_launch_until": "2000-01-01T00:00:00+00:00"}  # 과거 = 런칭 종료
+
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    monkeypatch.setattr(subscription, "_latest_sub", _latest)
+    monkeypatch.setattr(subscription, "effective_token_config", _cfg)
+    out = await subscription.get_subscription(FakeSession(), UID)
+    assert out["in_trial"] is False and out["trial_ends_at"] is None

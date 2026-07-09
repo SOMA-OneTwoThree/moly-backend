@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     review_prompt_min_tokens: int = 50_000  # 당일 누적 이 이상 생애 최초 → 리뷰 노출
     diary_llm_min_tokens: int = 2_000  # 당일 누적 이 이상 → 개인(관찰) 일기
 
+    # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
+    # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).
+    free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
+    free_launch_token_limit: int = 50_000  # 런칭 기간 일 토큰 한도(구독 100k와 독립)
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

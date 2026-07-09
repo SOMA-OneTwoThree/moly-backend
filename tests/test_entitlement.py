@@ -58,3 +58,37 @@ def test_missing_config_yields_nulls():
     assert e["daily_token_limit"] is None
     assert e["tokens_remaining"] is None
     assert e["personal_diary_token_threshold"] is None
+
+
+# --- 런칭 무료 기간 ---
+_LAUNCH_CFG = {**CONFIG, "free_launch_until": "2026-09-01T04:00:00+09:00",
+               "free_launch_token_limit": 50_000}
+
+
+def test_launch_free_period_active():
+    # 종료일 이전 + 구독/트라이얼 없음 → 런칭 무료(구독급 표시 + 런칭 토큰 한도)
+    e = derive_entitlement(_profile(None), None, 10_000, _LAUNCH_CFG, NOW)
+    assert e["plan"] == "trial" and e["is_subscriber"] is False
+    assert e["daily_token_limit"] == 50_000  # 런칭 한도(trial 5000 아님)
+    assert e["tokens_remaining"] == 40_000
+    assert e["trial_ends_at"].isoformat() == "2026-09-01T04:00:00+09:00"
+
+
+def test_launch_subscriber_takes_precedence():
+    # 런칭 중이어도 실제 구독자는 subscriber 우선(증정 등 정상)
+    e = derive_entitlement(_profile(None), SimpleNamespace(plan="monthly"), 0, _LAUNCH_CFG, NOW)
+    assert e["plan"] == "monthly" and e["is_subscriber"] is True
+    assert e["daily_token_limit"] == 5000  # 구독 한도(런칭 한도 아님)
+
+
+def test_launch_ended_falls_back_to_normal():
+    after = datetime(2026, 9, 2, 0, 0, tzinfo=timezone.utc)  # 종료일 지남
+    e = derive_entitlement(_profile(None), None, 300, _LAUNCH_CFG, after)
+    assert e["plan"] == "free" and e["daily_token_limit"] == 1000  # 정상 free 복귀
+
+
+def test_launch_bad_config_is_off_failsafe():
+    # 파싱 불가한 날짜 → 런칭 OFF(정상 등급). '영구 무료'로 새지 않음.
+    cfg = {**CONFIG, "free_launch_until": "not-a-date", "free_launch_token_limit": 50_000}
+    e = derive_entitlement(_profile(None), None, 300, cfg, NOW)
+    assert e["plan"] == "free" and e["daily_token_limit"] == 1000

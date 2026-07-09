@@ -16,6 +16,8 @@ _KEYS = [
     "diary_llm_min_tokens",
     "review_prompt_min_tokens",
     "token_warning_threshold",
+    "free_launch_until",
+    "free_launch_token_limit",
 ]
 
 
@@ -36,5 +38,9 @@ async def effective_token_config(session: AsyncSession) -> dict[str, Any]:
         ),
         "token_warning_threshold": cfg.get(
             "token_warning_threshold", settings.token_warning_threshold
+        ),
+        "free_launch_until": cfg.get("free_launch_until", settings.free_launch_until),
+        "free_launch_token_limit": cfg.get(
+            "free_launch_token_limit", settings.free_launch_token_limit
         ),
     }

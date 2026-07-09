@@ -15,7 +15,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -31,7 +31,9 @@ class Routine(Base):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     name: Mapped[str] = mapped_column(String)
-    frequency_per_week: Mapped[int] = mapped_column(SmallInteger)  # 주 N회
+    frequency_per_week: Mapped[int] = mapped_column(SmallInteger)  # 주 N회(목표 횟수). 요일별이면 len(days_of_week)
+    # 요일별 루틴이면 지정 요일(ISO 1=월…7=일). null이면 주 N회(횟수) 모드.
+    days_of_week: Mapped[list[int] | None] = mapped_column(ARRAY(SmallInteger), nullable=True)
     reminder_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
     reminder_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)  # soft delete

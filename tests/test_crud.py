@@ -140,7 +140,7 @@ async def test_routine_statistics_streak(monkeypatch):
         return UID_UUID, ad
 
     async def _owned(session, uid, rid):
-        return SimpleNamespace(id=uuid.uuid4(), frequency_per_week=3)
+        return SimpleNamespace(id=uuid.uuid4(), frequency_per_week=3, days_of_week=None)
 
     monkeypatch.setattr(routine, "_today", _today)
     monkeypatch.setattr(routine, "_load_owned", _owned)
@@ -148,7 +148,47 @@ async def test_routine_statistics_streak(monkeypatch):
     dates = [ad, ad - timedelta(days=1), ad - timedelta(days=2), ad - timedelta(days=10)]
     out = await routine.statistics(FakeSession(exec_results=[dates]), UID, str(uuid.uuid4()))
     assert out["streak"] == 3
+    assert out["completed_today"] is True and out["target_count"] == 3 and out["days_of_week"] is None
     assert 0.0 <= out["completion_rate"] <= 1.0
+    # 이번 주(월~일) 요일별 완료 여부·수행 횟수 — 실제 요일 기준으로 검증
+    wk_start = ad - timedelta(days=ad.isoweekday() - 1)
+    in_week = [d for d in dates if wk_start <= d <= wk_start + timedelta(days=6)]
+    tw = out["this_week"]
+    assert tw["completed_count"] == len(in_week)
+    for d in in_week:
+        assert tw["by_weekday"][str(d.isoweekday())] is True
+
+
+async def test_routine_create_weekday_mode():
+    s = FakeSession()
+    req = SimpleNamespace(name="운동", frequency_per_week=None, days_of_week=[1, 3, 5],
+                          reminder_enabled=False, reminder_time=None)
+    out = await routine.create_routine(s, UID, req)
+    assert out["days_of_week"] == [1, 3, 5]
+    assert out["frequency_per_week"] == 3  # 요일 수로 파생
+    assert s.added[0].days_of_week == [1, 3, 5] and s.added[0].frequency_per_week == 3
+
+
+async def test_routine_update_mode_switch(monkeypatch):
+    r = SimpleNamespace(name="x", frequency_per_week=2, days_of_week=None,
+                        reminder_enabled=False, reminder_time=None)
+
+    async def _owned(session, uid, rid):
+        return r
+
+    monkeypatch.setattr(routine, "_load_owned", _owned)
+    # 주N회 → 요일별 전환: frequency 파생
+    req = SimpleNamespace(name=None, frequency_per_week=None, days_of_week=[2, 4, 6, 7],
+                          reminder_enabled=None, reminder_time=None)
+    req.model_fields_set = {"days_of_week"}
+    await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req)
+    assert r.days_of_week == [2, 4, 6, 7] and r.frequency_per_week == 4
+    # 요일별 → 주N회 전환([] + frequency 동반)
+    req2 = SimpleNamespace(name=None, frequency_per_week=3, days_of_week=[],
+                           reminder_enabled=None, reminder_time=None)
+    req2.model_fields_set = {"days_of_week", "frequency_per_week"}
+    await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req2)
+    assert r.days_of_week is None and r.frequency_per_week == 3
 
 
 # --- 상점 구매 ---

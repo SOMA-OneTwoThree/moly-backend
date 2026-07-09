@@ -1,7 +1,9 @@
 """실 DB 통합 테스트 — 실제 Supabase Auth 토큰 + ASGI in-process 앱 + 실 Postgres.
 
-흐름: service_role로 테스트 유저 생성(email_confirm) → password grant로 ES256 토큰 →
-httpx ASGITransport로 앱 구동 → 전 엔드포인트 호출 + DB 부수효과 검증 → 유저 삭제(CASCADE).
+흐름: 익명 sign-in으로 실 토큰 확보 → httpx ASGITransport로 앱 구동 →
+도메인 엔드포인트 호출 + DB 부수효과 검증 → admin API로 유저 삭제(CASCADE).
+계정 API(/me·/onboarding·알림·푸시토큰·로그아웃·탈퇴)는 moly-auth 소유(2026-07-09 이관) —
+여기서는 다루지 않고, 온보딩 완료 상태만 DB로 직접 셋업한다.
 
 LLM/StoreKit 등 유료·외부서명 의존 경로는 WARN으로 분리(DB 통합 판정과 무관).
 실행: PYTHONPATH=. .venv/bin/python tests/integration/run_integration.py
@@ -118,41 +120,20 @@ async def run_flow(c, ext, db, uid, token):
 
     # ── 인증 게이트 ──
     print("\n[인증]")
-    r = await c.get("/me", headers={"Authorization": "Bearer bad.token"})
+    r = await c.get("/chat/state", headers={"Authorization": "Bearer bad.token"})
     check("무효 토큰 → 401", r.status_code == 401, f"got {r.status_code}")
     r = await c.get("/health", headers={"Authorization": ""})
     check("health 무인증 200", r.status_code == 200)
 
-    # ── 계정 ──
-    print("\n[계정]")
-    r = await c.get("/me")
-    j = r.json()
-    check("GET /me 200", r.status_code == 200, str(r.status_code))
-    check("온보딩 전 onboarded=false", j.get("profile", {}).get("onboarded") is False)
-    check("초기 wallet.balance=0", j.get("wallet", {}).get("balance") == 0)
-    check("entitlement 존재(trial 판정)", "entitlement" in j, str(j.get("entitlement", {}).get("plan")))
-
-    r = await c.post("/onboarding", json={"nickname": "몰리테스트", "timezone": "Asia/Seoul", "language": "ko"})
-    check("POST /onboarding 200", r.status_code == 200, str(r.status_code))
-    r = await c.post("/onboarding", json={"nickname": "재시도", "timezone": "Asia/Seoul", "language": "ko"})
-    check("온보딩 재호출 → 409 ALREADY_ONBOARDED",
-          r.status_code == 409 and r.json().get("error", {}).get("code") == "ALREADY_ONBOARDED", str(r.status_code))
-
-    r = await c.patch("/me", json={"nickname": "수정됨"})
-    check("PATCH /me 200", r.status_code == 200)
-    check("닉네임 반영", (await db.fetchval("select nickname from profiles where id=$1", uidU)) == "수정됨")
-
-    r = await c.get("/me/notifications")
-    j = r.json()
-    check("GET /me/notifications 기본 on", r.status_code == 200 and j.get("morning_diary") is True and j.get("evening_chat") is True, str(j))
-    r = await c.patch("/me/notifications", json={"morning_diary": False})
-    check("PATCH notifications 200", r.status_code == 200)
-    j = (await c.get("/me/notifications")).json()
-    check("morning_diary off 반영", j.get("morning_diary") is False)
-
-    r = await c.post("/me/push-token", json={"token": f"tok_{uid[:8]}", "platform": "ios"})
-    check("POST /me/push-token 2xx", r.status_code in (200, 204), str(r.status_code))
-    check("user_devices 행 생성", (await db.fetchval("select count(*) from user_devices where user_id=$1", uidU)) == 1)
+    # ── 온보딩 상태 셋업 ──
+    # 계정 API(/me·/onboarding·알림·푸시토큰·로그아웃·탈퇴)는 moly-auth로 이관됨(2026-07-09).
+    # 이 테스트는 도메인 API만 검증 — 온보딩 완료 상태를 DB로 직접 만든다(트리거 생성 행 갱신).
+    print("\n[셋업] 온보딩 상태(직접 DB)")
+    await db.execute(
+        "update profiles set nickname='몰리테스트', timezone='Asia/Seoul', language='ko' where id=$1",
+        uidU,
+    )
+    check("온보딩 상태 반영", (await db.fetchval("select nickname from profiles where id=$1", uidU)) == "몰리테스트")
 
     # ── 경제/충전소 ──
     print("\n[경제·충전소]")
@@ -254,12 +235,7 @@ async def run_flow(c, ext, db, uid, token):
     except Exception as e:
         warn("POST /chat/messages 예외(LLM/mem0)", repr(e)[:120])
 
-    # ── 탈퇴(DELETE /me) — 마지막 ──
-    print("\n[탈퇴]")
-    r = await c.post("/auth/logout", json={"push_token": f"tok_{uid[:8]}"})
-    check("POST /auth/logout 200", r.status_code in (200, 204), str(r.status_code))
-    r = await c.delete("/me")
-    check("DELETE /me 200", r.status_code in (200, 204), str(r.status_code))
+    # (탈퇴/로그아웃은 moly-auth 소유 — 유저 정리는 main()의 finally에서 admin API로 수행)
 
 
 if __name__ == "__main__":

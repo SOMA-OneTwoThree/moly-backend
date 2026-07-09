@@ -60,7 +60,8 @@ def derive_entitlement(
         "plan": plan,
         "is_subscriber": is_subscriber,
         "trial_ends_at": trial_ends_at,
-        "ads_removed": plan != "free",  # free만 배너 노출
+        # 배너 광고 미출시 결정(2026-07-09) — 항상 True. 도입 시 plan != "free"로 복원.
+        "ads_removed": True,
         "subscriber_theme_unlocked": subscriber_theme_unlocked,  # 구독만(체험 제외)
         "daily_token_limit": limit,
         "tokens_used": tokens_used,

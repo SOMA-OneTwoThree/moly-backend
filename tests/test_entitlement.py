@@ -41,7 +41,7 @@ def test_trial():
 def test_free_when_trial_expired():
     e = derive_entitlement(_profile(NOW - timedelta(days=1)), None, 500, CONFIG, NOW)
     assert e["plan"] == "free"
-    assert e["ads_removed"] is False  # free만 배너 노출
+    assert e["ads_removed"] is True  # 배너 광고 미출시 — 전 등급 항상 True(2026-07-09)
     assert e["subscriber_theme_unlocked"] is False
     assert e["daily_token_limit"] == 1000
     assert e["tokens_remaining"] == 500

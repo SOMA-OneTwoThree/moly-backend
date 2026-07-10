@@ -270,14 +270,15 @@ CREATE INDEX user_devices_user_idx ON public.user_devices (user_id);
 -- ─────────────────────────────────────────────────────────────
 -- 9. 광고 SSV · 멱등키 (ERD 밖, 백엔드 신규)
 -- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.ad_rewards (
-  ssv_transaction_id text PRIMARY KEY,
+CREATE TABLE public.reward_ad_sessions (
+  session_id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id            uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   activity_date      date NOT NULL,
+  ssv_transaction_id text UNIQUE,           -- SSV 도착 시 기록(재전송 멱등)
   granted            boolean NOT NULL DEFAULT false,
   created_at         timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX ad_rewards_user_idx ON public.ad_rewards (user_id);
+CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions (user_id);
 
 CREATE TABLE public.idempotency_keys (
   user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -300,7 +301,7 @@ BEGIN
     'messages','greetings','hay_transactions','user_daily_stats',
     'subscriptions','subscription_hay_grants','iap_purchases',
     'user_items','user_equipment','diaries','routines','routine_completions',
-    'user_notification_settings','user_devices','ad_rewards','idempotency_keys'
+    'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;

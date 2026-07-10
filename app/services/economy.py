@@ -111,11 +111,15 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
     )
     return {
         "activity_date": ad.isoformat(),
-        "attendance": {"claimable": not attendance_claimed, "reward": HAY_ATTENDANCE},
+        "attendance": {
+            "claimable": not attendance_claimed, "claimed": attendance_claimed,
+            "reward": HAY_ATTENDANCE,
+        },
         "ad": {"views_used": ad_used, "views_limit": AD_DAILY_LIMIT, "reward_per_view": HAY_AD},
         "routine_pair": {
             "completed_today": done, "required": ROUTINE_PAIR_REQUIRED,
             "claimable": done >= ROUTINE_PAIR_REQUIRED and not routine_claimed,
+            "claimed": routine_claimed,  # 당일 수령 여부 — 체크 해제해도 재수령 막음
             "reward": HAY_ROUTINE_REWARD,
         },
         "hay_packs": [

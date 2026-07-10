@@ -1,4 +1,4 @@
-"""광고 — AdMob SSV 서명검증(실 ECDSA) + 보상 수령 흐름/에러 + 인증."""
+"""광고 — AdMob SSV 서명검증(실 ECDSA) + 세션 발급/자동 지급 흐름 + 인증."""
 import base64
 import uuid
 from datetime import date
@@ -10,15 +10,16 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
 
 from app.core.db import get_session
-from app.core.errors import AppError
 from app.main import app
 from app.services import ads, ads_ssv, economy, hay_ledger
 
 UID = "11111111-1111-1111-1111-111111111111"
 UID_UUID = uuid.UUID(UID)
-CONTENT = "ad_network=x&transaction_id=t1&custom_data=" + UID + "&reward_amount=1&timestamp=123"
+SID = str(uuid.uuid4())
+CONTENT = "ad_network=x&transaction_id=t1&custom_data=" + SID + "&reward_amount=1&timestamp=123"
 
 
+# --- SSV 서명검증 ---
 @pytest.fixture
 def signed():
     priv = ec.generate_private_key(ec.SECP256R1())
@@ -31,51 +32,57 @@ def signed():
     return SimpleNamespace(sig_b64=sig_b64, pem=pem, raw_query=raw_query)
 
 
-async def test_ssv_verify_valid(monkeypatch, signed):
-    async def _keys():
-        return {"1234": signed.pem}
+def _keys(d):
+    async def f(**kw):
+        return d
+    return f
 
-    monkeypatch.setattr(ads_ssv, "_get_keys", _keys)
+
+async def test_ssv_verify_valid(monkeypatch, signed):
+    monkeypatch.setattr(ads_ssv, "_get_keys", _keys({"1234": signed.pem}))
     assert await ads_ssv.verify(signed.raw_query, "1234", signed.sig_b64) is True
 
 
-async def test_ssv_verify_tampered_content(monkeypatch, signed):
-    async def _keys():
-        return {"1234": signed.pem}
-
-    monkeypatch.setattr(ads_ssv, "_get_keys", _keys)
+async def test_ssv_verify_tampered(monkeypatch, signed):
+    monkeypatch.setattr(ads_ssv, "_get_keys", _keys({"1234": signed.pem}))
     tampered = signed.raw_query.replace("reward_amount=1", "reward_amount=999")
     assert await ads_ssv.verify(tampered, "1234", signed.sig_b64) is False
 
 
 async def test_ssv_verify_unknown_key(monkeypatch, signed):
-    async def _keys():
-        return {}
-
-    monkeypatch.setattr(ads_ssv, "_get_keys", _keys)
+    monkeypatch.setattr(ads_ssv, "_get_keys", _keys({}))
     assert await ads_ssv.verify(signed.raw_query, "1234", signed.sig_b64) is False
 
 
-# --- 보상 수령 ---
+# --- 세션 발급 / 자동 지급 ---
 class FakeSession:
     def __init__(self, get_obj=None):
         self.get_obj = get_obj
+        self.added = []
         self.committed = False
 
     async def get(self, model, key, **kw):
         return self.get_obj
 
+    def add(self, obj):
+        self.added.append(obj)
+
     async def commit(self):
         self.committed = True
 
+    async def refresh(self, obj):
+        if getattr(obj, "session_id", None) is None:
+            obj.session_id = uuid.uuid4()
 
-def _rec(**over):
-    base = dict(user_id=UID_UUID, granted=False, activity_date=date(2026, 7, 5))
+
+def _sess_row(**over):
+    base = dict(session_id=uuid.UUID(SID), user_id=UID_UUID, activity_date=date(2026, 7, 5),
+                granted=False, ssv_transaction_id=None)
     base.update(over)
     return SimpleNamespace(**base)
 
 
-def _patch_claim(monkeypatch, ad_count=3, balance=650):
+def _patch(monkeypatch, ad_count=3, balance=660):
     async def _daily(session, uid, ad):
         return SimpleNamespace(ad_reward_count=ad_count)
 
@@ -86,31 +93,75 @@ def _patch_claim(monkeypatch, ad_count=3, balance=650):
     monkeypatch.setattr(hay_ledger, "apply", _apply)
 
 
-async def test_claim_success(monkeypatch):
-    _patch_claim(monkeypatch, ad_count=3)
-    rec = _rec()
-    out = await ads.claim(FakeSession(get_obj=rec), UID, "t1")
-    assert out["granted"] == 10 and out["views_used"] == 4
-    assert rec.granted is True
+async def test_create_session_success(monkeypatch):
+    _patch(monkeypatch, ad_count=3)
+
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, timezone="Asia/Seoul")
+
+    monkeypatch.setattr(ads, "_load_profile", _lp)
+    out = await ads.create_session(FakeSession(), UID)
+    assert out["admob_user_id"] == UID
+    assert out["views_used"] == 3 and out["views_limit"] == 10
+    assert out["reward_session_id"]  # 발급됨
 
 
-async def test_claim_no_record_422(monkeypatch):
+async def test_create_session_limit_429(monkeypatch):
+    _patch(monkeypatch, ad_count=10)
+
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, timezone="Asia/Seoul")
+
+    monkeypatch.setattr(ads, "_load_profile", _lp)
+    from app.core.errors import AppError
     with pytest.raises(AppError) as e:
-        await ads.claim(FakeSession(get_obj=None), UID, "t1")
-    assert e.value.code == "AD_VERIFY_FAILED"
-
-
-async def test_claim_already_processed_409(monkeypatch):
-    with pytest.raises(AppError) as e:
-        await ads.claim(FakeSession(get_obj=_rec(granted=True)), UID, "t1")
-    assert e.value.code == "ALREADY_PROCESSED"
-
-
-async def test_claim_limit_reached_429(monkeypatch):
-    _patch_claim(monkeypatch, ad_count=10)  # 이미 10회
-    with pytest.raises(AppError) as e:
-        await ads.claim(FakeSession(get_obj=_rec()), UID, "t1")
+        await ads.create_session(FakeSession(), UID)
     assert e.value.code == "AD_LIMIT_REACHED"
+
+
+async def test_grant_success(monkeypatch):
+    _patch(monkeypatch, ad_count=3)
+    row = _sess_row()
+    s = FakeSession(get_obj=row)
+    await ads.grant_from_ssv(s, SID, "t1")
+    assert row.granted is True and row.ssv_transaction_id == "t1" and s.committed
+
+
+async def test_grant_already_granted_skip(monkeypatch):
+    async def _apply(*a, **k):
+        raise AssertionError("이미 지급된 세션 재지급 금지")
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    row = _sess_row(granted=True)
+    s = FakeSession(get_obj=row)
+    await ads.grant_from_ssv(s, SID, "t2")  # 재전송 — 무시
+    assert s.committed is False
+
+
+async def test_grant_limit_no_pay(monkeypatch):
+    async def _apply(*a, **k):
+        raise AssertionError("한도 초과 시 지급 금지")
+
+    async def _daily(session, uid, ad):
+        return SimpleNamespace(ad_reward_count=10)
+
+    monkeypatch.setattr(economy, "_daily", _daily)
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    row = _sess_row()
+    await ads.grant_from_ssv(FakeSession(get_obj=row), SID, "t1")
+    assert row.granted is False  # 미지급
+
+
+async def test_grant_session_not_found_skip():
+    s = FakeSession(get_obj=None)
+    await ads.grant_from_ssv(s, SID, "t1")  # 세션 없음 — 무시, 에러 없음
+    assert s.committed is False
+
+
+async def test_grant_bad_session_id_skip():
+    s = FakeSession()
+    await ads.grant_from_ssv(s, "not-a-uuid", "t1")  # 형식 오류 — 무시
+    assert s.committed is False
 
 
 # --- 엔드포인트 ---
@@ -119,16 +170,14 @@ async def _dummy_session():
 
 
 def test_ssv_webhook_missing_params():
-    r = TestClient(app).get("/webhooks/ad-ssv?key_id=1")  # signature 등 누락
-    assert r.status_code == 422
-    assert r.json()["error"]["code"] == "VALIDATION"
+    r = TestClient(app).get("/webhooks/ad-ssv?key_id=1")
+    assert r.status_code == 422 and r.json()["error"]["code"] == "VALIDATION"
 
 
-def test_ads_reward_requires_auth():
+def test_reward_ad_session_requires_auth():
     app.dependency_overrides[get_session] = _dummy_session
     try:
-        r = TestClient(app).post("/ads/reward", json={"ssv_transaction_id": "t1"})
+        r = TestClient(app).post("/reward-ad-sessions")
     finally:
         app.dependency_overrides.clear()
-    assert r.status_code == 401
-    assert r.json()["error"]["code"] == "UNAUTHORIZED"
+    assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"

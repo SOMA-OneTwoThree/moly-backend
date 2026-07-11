@@ -1,6 +1,6 @@
-"""diaries — 바라의 일기(ERD §5.3). 매일 1건, 절대 비지 않음. 열람은 등급무관 무료.
+"""diaries — 캐피의 일기(ERD §5.3). 매일 1건, 절대 비지 않음. 열람은 등급무관 무료.
 
-source=llm(개인·대화기반) / preset(바라 자기일기). content는 스냅샷(풀 수정이 과거 일기 안 바꿈).
+source=llm(개인·대화기반) / preset(캐피 자기일기). content는 스냅샷(풀 수정이 과거 일기 안 바꿈).
 """
 from __future__ import annotations
 

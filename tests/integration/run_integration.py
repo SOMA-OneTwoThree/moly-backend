@@ -225,7 +225,7 @@ async def run_flow(c, ext, db, uid, token):
     try:
         r = await c.post("/chat/messages",
                          headers={"Idempotency-Key": f"idem_{uuid.uuid4().hex}"},
-                         json={"text": "안녕 몰리, 오늘 기분 어때?"})
+                         json={"text": "안녕 캐피, 오늘 기분 어때?"})
         if r.status_code == 200:
             ok("POST /chat/messages 200(LLM 응답)", str(r.json())[:60])
             cnt = await db.fetchval("select count(*) from messages where user_id=$1", uidU)

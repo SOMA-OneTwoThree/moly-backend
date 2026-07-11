@@ -8,8 +8,8 @@ from app.models.user_device import UserDevice
 from app.models.user_notification_settings import UserNotificationSettings
 from app.services import push
 
-_MORNING = ("바라", "바라가 어젯밤 일기를 남겼어. 훔쳐볼래?")
-_EVENING = ("바라", "오늘 하루 어땠어? 얘기나 좀 하자.")
+_MORNING = ("캐피", "캐피가 어젯밤 일기를 남겼어. 훔쳐볼래?")
+_EVENING = ("캐피", "오늘 하루 어땠어? 얘기나 좀 하자.")
 
 
 async def _enabled(session: AsyncSession, uid, type_: str) -> bool:

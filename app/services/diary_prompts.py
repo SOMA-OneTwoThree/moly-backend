@@ -3,7 +3,7 @@ from __future__ import annotations
 
 _WEATHERS = ("sunny", "cloudy", "rainy", "windy")
 
-_DIARY_PERSONA = """너는 바라야. 오늘 하루 창 너머 사용자와 나눈 대화를 떠올리며 네 시점에서 짧은 일기를 써.
+_DIARY_PERSONA = """너는 캐피야. 오늘 하루 창 너머 사용자와 나눈 대화를 떠올리며 네 시점에서 짧은 일기를 써.
 - 사용자를 지켜본 것·느낀 것을 담아. **대화에 없던 사실은 절대 지어내지 마.**
 - 나긋하고 담백한 톤. 감정을 과장하지 말고. 3~6문장.
 

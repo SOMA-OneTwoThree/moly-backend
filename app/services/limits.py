@@ -14,6 +14,7 @@ from app.services.config_store import get_config_values
 _KEYS = [
     "daily_token_limit",
     "diary_llm_min_tokens",
+    "diary_min_user_chars",
     "review_prompt_min_tokens",
     "token_warning_threshold",
     "free_launch_until",
@@ -33,6 +34,7 @@ async def effective_token_config(session: AsyncSession) -> dict[str, Any]:
     return {
         "daily_token_limit": limits,
         "diary_llm_min_tokens": cfg.get("diary_llm_min_tokens", settings.diary_llm_min_tokens),
+        "diary_min_user_chars": cfg.get("diary_min_user_chars", settings.diary_min_user_chars),
         "review_prompt_min_tokens": cfg.get(
             "review_prompt_min_tokens", settings.review_prompt_min_tokens
         ),

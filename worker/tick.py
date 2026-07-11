@@ -10,7 +10,7 @@ from sqlalchemy import select
 from app.core.db import get_sessionmaker
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
-from app.services import diary_generation, notify
+from app.services import diary_generation, memory, notify
 from app.services.limits import effective_token_config
 
 _log = logging.getLogger("moly-worker")
@@ -46,4 +46,12 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
             except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
                 _log.exception("틱 처리 실패(user=%s hour=%s): %r", p.id, hour, e)
                 await session.rollback()  # 세션 무효화 방지 — 다음 유저 계속
+
+        # 탈퇴 고아 기억 청소(하루 1회, UTC 04시 틱) — vecs는 FK 밖이라 CASCADE 안 닿음(백스톱)
+        if now.hour == DIARY_HOUR:
+            try:
+                counts["swept"] = await memory.sweep_orphans(session)
+            except Exception as e:  # noqa: BLE001
+                _log.warning("고아 기억 스위프 실패: %r", e)
+                await session.rollback()
     return counts

@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     memory_collection: str = "memories"
     memory_load_top_k: int = 200  # 로드 상한(recency 로컬 랭킹)
     memory_max_render_items: int = 20  # 프롬프트에 넣을 최대 기억 수
+    # 기억 스냅샷(chat_contexts.memory_text) — 핫패스 mem0 제거 + system[1] 안정(캐시 유지).
+    memory_snapshot_refresh_hours: int = 6   # 이보다 오래면 갱신(mem0 재로드)
+    memory_snapshot_stale_hours: int = 48    # 장애 시 이보다 오래된 스냅샷은 폐기("")
+    memory_orphan_grace_hours: int = 24      # 탈퇴 고아 기억 스위퍼 유예(온보딩 레이스 방어)
 
     # --- 토큰 한도(임의 기본값, TBD) — app_config에 값이 오면 그게 우선 ---
     # 집계 = LLM 입력+출력 합산(kind='normal'만). 04:00 리셋.

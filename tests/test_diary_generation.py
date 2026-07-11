@@ -11,7 +11,7 @@ from app.services import memory as memory_module
 from app.services.diary_prompts import parse
 from app.services.llm import LLMResult
 
-CFG = {"diary_llm_min_tokens": 2000}
+CFG = {"diary_min_user_chars": 5}  # 개인일기 게이트 = 당일 유저 메시지 문자수
 PROFILE = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="ko")
 
 
@@ -22,6 +22,9 @@ class FakeSession:
 
     def add(self, obj):
         self.added.append(obj)
+
+    async def execute(self, stmt, params=None):  # 스냅샷 무효화 UPDATE
+        return None
 
     async def commit(self):
         self.committed = True
@@ -94,7 +97,8 @@ async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
 
 async def test_fallback_to_preset_when_self_check_fails(monkeypatch):
     ment = SimpleNamespace(id=uuid.uuid4(), content="몰리는 오늘 뒹굴거렸다.", weather="rainy")
-    _patch_common(monkeypatch, messages=[_msg("user", "hi")], tokens=5000, ment=ment)
+    # 문자수 게이트 통과(≥5) → 개인일기 시도 → self-check NO → preset 폴백
+    _patch_common(monkeypatch, messages=[_msg("user", "오늘 진짜 힘들었어")], tokens=5000, ment=ment)
 
     async def _gen(system, convo, *, max_tokens=None, model=None):
         if model == settings.anthropic_model_utility:

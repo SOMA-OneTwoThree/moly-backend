@@ -121,3 +121,25 @@ async def add_conversation(user_id: str, messages: list[dict]) -> None:
 async def delete_all(user_id: str) -> None:
     """탈퇴용 — mem0 기억 전량 삭제(FK 밖이라 CASCADE 안 됨, ERD §7)."""
     await _get_memory().delete_all(user_id=user_id)
+
+
+async def sweep_orphans(session) -> int:
+    """탈퇴 고아 기억 청소(백스톱). vecs.memories는 FK 밖이라 profiles CASCADE가 안 닿는다.
+
+    created_at·user_id는 top-level 컬럼이 아니라 metadata jsonb 안(실 스키마 확인).
+    NOT EXISTS(NOT IN NULL 트랩 회피) + profiles.id::text 캐스트. 유예로 온보딩 레이스 방어.
+    즉시 삭제(탈퇴)는 moly-auth 계약(별건) — 이건 늦게라도 지우는 안전망.
+    """
+    from sqlalchemy import text as _text
+
+    coll = settings.memory_collection.replace('"', "")
+    grace = int(settings.memory_orphan_grace_hours)
+    sql = _text(
+        f'DELETE FROM vecs."{coll}" m '  # noqa: S608 (coll=config 상수, 따옴표 제거)
+        "WHERE (m.metadata->>'created_at')::timestamptz < now() - make_interval(hours => :g) "
+        "AND NOT EXISTS (SELECT 1 FROM public.profiles p "
+        "                WHERE p.id::text = m.metadata->>'user_id')"
+    )
+    res = await session.execute(sql, {"g": grace})
+    await session.commit()
+    return res.rowcount or 0

@@ -10,7 +10,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -106,10 +106,11 @@ async def generate_for_user(
         return
 
     messages = await _day_messages(session, profile.id, target_date)
-    tokens_used = await _tokens_used(session, profile.id, target_date)
+    # 개인일기 게이트 = 당일 유저 메시지 문자수(토큰 카운터와 분리 → 회계/캐싱 변경에 불변).
+    user_chars = sum(len(m.content or "") for m in messages if m.sender == "user")
 
     source, weather, content, preset_id = "preset", "cloudy", None, None
-    if messages and tokens_used >= cfg["diary_llm_min_tokens"]:
+    if messages and user_chars >= cfg["diary_min_user_chars"]:
         personal = await _personal(profile, messages)
         if personal is not None:
             content, weather = personal
@@ -141,5 +142,11 @@ async def generate_for_user(
                     for m in messages
                 ],
             )
+            # 새 기억 반영 → 채팅 기억 스냅샷 무효화(다음 대화가 당일 기억을 lazy 재로드)
+            await session.execute(
+                text("UPDATE chat_contexts SET memory_refreshed_at = NULL WHERE user_id = :u"),
+                {"u": str(profile.id)},
+            )
+            await session.commit()
         except Exception as e:  # noqa: BLE001
             _log.warning("기억 통합 실패(user=%s): %r", profile.id, e)

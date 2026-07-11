@@ -152,11 +152,6 @@ async def _context(
     return convo, new_anchor
 
 
-async def _load_anchor(session: AsyncSession, uid: uuid.UUID) -> int:
-    row = await session.get(ChatContext, uid)
-    return row.anchor_message_id if row is not None else 0
-
-
 async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
     stmt = pg_insert(ChatContext).values(user_id=uid, anchor_message_id=anchor)
     # GREATEST: 앵커는 단조 전진만(역행 시 요약·세그먼트 중복 방지). 컬럼만 갱신(전체행 upsert 금지).
@@ -170,14 +165,48 @@ async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> No
     await session.execute(stmt)
 
 
-async def _build_system(
-    user_id: str, language: str, nickname: str | None = None
-) -> list[str]:
-    """system을 [페르소나(불변), 닉네임+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존."""
+async def _save_memory(session: AsyncSession, uid: uuid.UUID, text_: str, now: datetime) -> None:
+    """기억 스냅샷 갱신 — memory 컬럼만(앵커 클로버 금지)."""
+    stmt = pg_insert(ChatContext).values(
+        user_id=uid, memory_text=text_, memory_refreshed_at=now
+    )
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["user_id"],
+        set_={"memory_text": text_, "memory_refreshed_at": now, "updated_at": func.now()},
+    )
+    await session.execute(stmt)
+
+
+async def _resolve_memory(
+    session: AsyncSession, uid: uuid.UUID, ctx: ChatContext | None, now: datetime
+) -> str:
+    """기억 텍스트 해결 — 신선한 스냅샷이면 그대로(핫패스 mem0 없음 + system[1] 안정→캐시 유지).
+
+    오래됐으면 mem0 1회 재로드(6h당 1회 수준). 장애면 스냅샷 재사용(48h), 초과면 "".
+    성공-빈결과가 기존 non-empty 스냅샷을 단발로 덮지 않게 함(전이 위장 방어).
+    """
+    refreshed = ctx.memory_refreshed_at if ctx is not None else None
+    prev = ctx.memory_text if ctx is not None else None
+    if refreshed is not None:
+        age_h = (now - refreshed).total_seconds() / 3600
+        if age_h < settings.memory_snapshot_refresh_hours:
+            return prev or ""  # 신선 → 그대로
     try:
-        mem = await memory.load_for_context(user_id)
+        fresh = await memory.load_for_context(str(uid))
     except memory.MemoryUnavailable:
-        mem = ""  # mem0 장애가 채팅 500으로 번지지 않게 (P2: 스냅샷 폴백)
+        if prev and refreshed is not None:
+            age_h = (now - refreshed).total_seconds() / 3600
+            if age_h < settings.memory_snapshot_stale_hours:
+                return prev  # 장애 — 최근 스냅샷 재사용
+        return ""  # 장애 + 스냅샷 없음/너무 오래됨
+    if not fresh and prev:
+        return prev  # 빈 성공이 좋은 스냅샷을 덮지 않게(다음 턴 재시도) — 갱신 스킵
+    await _save_memory(session, uid, fresh, now)
+    return fresh
+
+
+def _build_system(language: str, nickname: str | None, mem: str) -> list[str]:
+    """system을 [페르소나(불변), 닉네임+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존."""
     parts: list[str] = []
     if nickname:
         parts.append(f"[상대]\n지금 얘기하는 사람 이름은 '{nickname}'야.")
@@ -274,12 +303,14 @@ async def post_message(
     session.add(umsg)
     await session.flush()
 
-    # 4) 컨텍스트(앵커 append-only) + 시스템(페르소나/기억 블록)
-    anchor = await _load_anchor(session, uid)
+    # 4) 컨텍스트(앵커 append-only) + 기억 스냅샷 + 시스템(페르소나/기억 블록)
+    ctx = await session.get(ChatContext, uid)  # 앵커+스냅샷 1회 로드
+    anchor = ctx.anchor_message_id if ctx is not None else 0
     convo, new_anchor = await _context(session, uid, anchor)
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — 같은 트랜잭션(원자)
-    system = await _build_system(user_id, g.profile.language, g.profile.nickname)
+    mem = await _resolve_memory(session, uid, ctx, now)
+    system = _build_system(g.profile.language, g.profile.nickname, mem)
 
     # 5) Claude 호출(프롬프트 캐싱 + 실측 토큰)
     cache_on = settings.chat_prompt_cache_enabled

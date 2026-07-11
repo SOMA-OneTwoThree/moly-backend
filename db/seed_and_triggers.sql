@@ -41,3 +41,46 @@ ON CONFLICT (app_store_product_id) DO UPDATE
       price_krw  = EXCLUDED.price_krw,
       is_active  = EXCLUDED.is_active,
       sort_order = EXCLUDED.sort_order;
+
+-- ─────────────────────────────────────────────────────────────
+-- 3. shop_items — 상점 상품 6종: 배경 2 · 머리 2 · 목 2 (2026-07-12)
+--    자연키가 없어 id를 고정 uuid로 박아 멱등(재실행 = 갱신).
+--    이미지: Storage `shop-assets` 버킷 public URL(시크릿 아님 — API 응답으로 클라 전송).
+--    배경 낮/밤·썸네일은 에셋 미확정으로 당분간 동일 이미지 —
+--    확정 시 새 파일(_v2) 업로드 후 assets URL만 UPDATE(캐시 무효화 겸용).
+-- ─────────────────────────────────────────────────────────────
+INSERT INTO public.shop_items (id, slot, name, price_hay, is_subscriber_only, assets, is_active, sort_order) VALUES
+  ('00000000-0000-4000-8000-000000000101', 'background', '집', 4000, false,
+   '{"day":       "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/background/home_v1.png",
+     "night":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/background/home_v1.png",
+     "thumbnail": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/background/home_v1.png"}',
+   true, 1),
+  ('00000000-0000-4000-8000-000000000102', 'background', '운동', 4000, false,
+   '{"day":       "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/background/gym_v1.png",
+     "night":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/background/gym_v1.png",
+     "thumbnail": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/background/gym_v1.png"}',
+   true, 2),
+  ('00000000-0000-4000-8000-000000000201', 'head', '선글라스', 1000, false,
+   '{"head_layer": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head/sunglasses_v1.png",
+     "thumbnail":  "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head/sunglasses_v1.png"}',
+   true, 1),
+  ('00000000-0000-4000-8000-000000000202', 'head', '귤', 1000, false,
+   '{"head_layer": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head/mandarin_v1.png",
+     "thumbnail":  "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head/mandarin_v1.png"}',
+   true, 2),
+  ('00000000-0000-4000-8000-000000000301', 'neck', '사원증', 1000, false,
+   '{"neck_layer": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck/card_v1.png",
+     "thumbnail":  "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck/card_v1.png"}',
+   true, 1),
+  ('00000000-0000-4000-8000-000000000302', 'neck', '목도리', 1000, false,
+   '{"neck_layer": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck/muffler_v1.png",
+     "thumbnail":  "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck/muffler_v1.png"}',
+   true, 2)
+ON CONFLICT (id) DO UPDATE
+  SET slot               = EXCLUDED.slot,
+      name               = EXCLUDED.name,
+      price_hay          = EXCLUDED.price_hay,
+      is_subscriber_only = EXCLUDED.is_subscriber_only,
+      assets             = EXCLUDED.assets,
+      is_active          = EXCLUDED.is_active,
+      sort_order         = EXCLUDED.sort_order;

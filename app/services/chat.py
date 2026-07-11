@@ -324,9 +324,17 @@ async def post_message(
         ttl_system=settings.cache_ttl_system,
         ttl_messages=settings.cache_ttl_messages,
     )
-    if cache_on and result.cache_read_tokens == 0 and result.cache_write_tokens == 0:
-        # 캐시 완전 미작동(페르소나가 최소 임계 밑으로 편집됨 등) — 무음 실패 방지 알람
-        _log.warning("프롬프트 캐시 미작동(read=write=0) user=%s", user_id)
+    if (
+        cache_on
+        and result.cache_read_tokens == 0
+        and result.cache_write_tokens == 0
+        # 프리픽스가 모델 최소 임계 밑이면 캐시가 안 걸리는 게 정상(대화 초반). 그 위인데도
+        # 0이면 진짜 고장(무음 실패)이다. read=write=0이므로 input_tokens = 프리픽스 전체.
+        and result.input_tokens >= settings.chat_cache_min_prefix_tokens
+    ):
+        _log.warning(
+            "프롬프트 캐시 미작동(read=write=0, input=%d) user=%s", result.input_tokens, user_id
+        )
 
     # 6) 바라 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
     consumed = _billable(result)

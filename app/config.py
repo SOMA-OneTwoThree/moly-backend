@@ -25,10 +25,16 @@ class Settings(BaseSettings):
     supabase_db_connection_string: str = ""
 
     # --- Anthropic Claude (대화·개인일기=Sonnet / self-check·기억통합=Haiku) ---
+    # 대화·일기 모델은 분리한다. 일기는 핵심 훅(열람율)이라 대화 모델 A/B에 딸려 내려가면 안 된다.
+    # 대화 Haiku A/B는 코드 변경 없이 ANTHROPIC_MODEL_CHAT 환경변수(SSM)로만 전환한다.
     anthropic_api_key: str = ""
     anthropic_model_chat: str = "claude-sonnet-5"
+    anthropic_model_diary: str = "claude-sonnet-5"
     anthropic_model_utility: str = "claude-haiku-4-5-20251001"
     llm_max_tokens: int = 1024  # 컴패니언 응답은 짧음(1~3문장)
+    # 캐시 최소 프리픽스(모델별). 이 밑이면 캐시가 조용히 안 걸린다 — 오경보 억제용 기준.
+    # Haiku 4.5·Opus=4096 / Sonnet 4.6·Fable=2048 / Sonnet 4.5 이하=1024.
+    chat_cache_min_prefix_tokens: int = 4096
 
     # --- 대화 컨텍스트(앵커 append-only + 프롬프트 캐싱) ---
     chat_recent_messages: int = 30  # 앵커 미존재/폴백 시 최근 N

@@ -83,7 +83,9 @@ async def _self_check(body: str, transcript: str) -> bool:
 async def _personal(profile, messages: list[Message]) -> tuple[str, str] | None:
     transcript = _transcript(messages)
     result = await llm.generate(
-        diary_prompt(profile.language), [{"role": "user", "content": transcript}]
+        diary_prompt(profile.language),
+        [{"role": "user", "content": transcript}],
+        model=settings.anthropic_model_diary,  # 대화 모델 A/B와 분리(일기 품질 고정)
     )
     weather, body = parse(result.text)
     if not body or not await _self_check(body, transcript):

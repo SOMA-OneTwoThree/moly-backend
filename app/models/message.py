@@ -21,6 +21,10 @@ class Message(Base):
     content: Mapped[str] = mapped_column(String)
     input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # 캐시 텔레메트리(실원가·히트율 집계용) + 청구 스냅샷(가중치 변경 후 재감사).
+    cache_read_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cache_write_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    billable_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     activity_date: Mapped[date] = mapped_column(Date)
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=True

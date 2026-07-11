@@ -92,6 +92,9 @@ CREATE TABLE public.messages (
   content       text   NOT NULL,
   input_tokens  integer,
   output_tokens integer,
+  cache_read_tokens  integer,   -- 프롬프트 캐시 텔레메트리(실원가·히트율)
+  cache_write_tokens integer,
+  billable_tokens    integer,   -- 원가 가중 청구 스냅샷(가중치 변경 후 재감사)
   activity_date date   NOT NULL,
   created_at    timestamptz NOT NULL DEFAULT now()
 );
@@ -280,6 +283,16 @@ CREATE TABLE public.reward_ad_sessions (
 );
 CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions (user_id);
 
+-- 대화 컨텍스트 상태(앵커 append-only + 기억 스냅샷). 기억 평문 사본 → 민감(RLS + REVOKE 아래).
+CREATE TABLE public.chat_contexts (
+  user_id             uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  anchor_message_id   bigint NOT NULL DEFAULT 0 CHECK (anchor_message_id >= 0),
+  memory_text         text,
+  memory_refreshed_at timestamptz,
+  updated_at          timestamptz NOT NULL DEFAULT now()
+);
+REVOKE ALL ON public.chat_contexts FROM anon, authenticated;
+
 CREATE TABLE public.idempotency_keys (
   user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   key        text NOT NULL,
@@ -301,7 +314,8 @@ BEGIN
     'messages','greetings','hay_transactions','user_daily_stats',
     'subscriptions','subscription_hay_grants','iap_purchases',
     'user_items','user_equipment','diaries','routines','routine_completions',
-    'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys'
+    'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
+    'chat_contexts'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;

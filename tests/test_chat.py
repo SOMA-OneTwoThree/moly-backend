@@ -58,7 +58,7 @@ class FakeSession:
             if isinstance(o, Message) and o.id is None:
                 o.id = i
 
-    async def execute(self, stmt):
+    async def execute(self, stmt, params=None):
         return _Result(self.execute_items)
 
     async def commit(self):
@@ -91,7 +91,7 @@ def patched(monkeypatch):
     async def _fake_mem(user_id):
         return ""
 
-    async def _fake_llm(system, convo, *, max_tokens=None):
+    async def _fake_llm(system, convo, **kw):
         return LLMResult(text="그냥 그랬어.", input_tokens=10, output_tokens=20)
 
     monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
@@ -107,8 +107,9 @@ async def test_post_message_flow(monkeypatch, patched):
     req = SimpleNamespace(text="오늘 어땠어?", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "idem-1")
     assert out["reply"]["content"] == "그냥 그랬어."
-    assert out["tokens_used"] == 1030  # 1000 + (10+20)
-    assert out["tokens_remaining"] == 98_970  # 100000 - 1030
+    # billable = ceil(10 + 5*20 + 0.1*(0+0)) = 110 (원가 가중: 출력 5×, 캐시 0.1×)
+    assert out["tokens_used"] == 1110  # 1000 + 110
+    assert out["tokens_remaining"] == 98_890  # 100000 - 1110
     assert out["review_prompt"] is False
     assert session.committed is True
 
@@ -136,6 +137,43 @@ async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patche
     req = SimpleNamespace(text="ㅎㅇ", greeting_id=None)
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-3")
     assert out["review_prompt"] is True
+
+
+async def test_post_message_survives_mem0_outage(monkeypatch):
+    # mem0 장애(MemoryUnavailable)가 채팅을 500으로 막지 않아야 함
+    async def _boom(user_id):
+        raise memory_module.MemoryUnavailable("pgvector down")
+
+    async def _fake_llm(system, convo, **kw):
+        return LLMResult(text="응 그래.", input_tokens=10, output_tokens=20)
+
+    async def _res(session, user_id):
+        return _gating()
+
+    monkeypatch.setattr(memory_module, "load_for_context", _boom)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    req = SimpleNamespace(text="안녕", greeting_id=None)
+    out = await chat_service.post_message(FakeSession(), UID, req, "idem-mem")
+    assert out["reply"]["content"] == "응 그래."
+
+
+async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patched):
+    # daily_token_limit 미해석(None) → 무제한 아님, free 한도로 차단 판정
+    async def _res(session, user_id):
+        return _gating(
+            tokens_used=20_000,  # free 20k 소진
+            entitlement={
+                "plan": "free", "tokens_remaining": None, "daily_token_limit": None,
+                "personal_diary_token_threshold": 2000,
+            },
+        )
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    req = SimpleNamespace(text="더", greeting_id=None)
+    with pytest.raises(AppError) as e:
+        await chat_service.post_message(FakeSession(), UID, req, "idem-fc")
+    assert e.value.code == "DAILY_LIMIT_REACHED"
 
 
 async def test_post_message_idempotent_returns_cached(monkeypatch, patched):
@@ -171,7 +209,7 @@ async def test_greeting_cache_hit(monkeypatch, patched):
     )
     called = {"llm": False}
 
-    async def _fake_llm(system, convo, *, max_tokens=None):
+    async def _fake_llm(system, convo, **kw):
         called["llm"] = True
         return LLMResult("새 인사", 1, 1)
 

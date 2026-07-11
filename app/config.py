@@ -43,9 +43,10 @@ class Settings(BaseSettings):
     chat_prompt_cache_enabled: bool = True  # 킬스위치. OFF=메시지 breakpoint 제거(히스토리 청구 스케일↑ 유의)
     cache_ttl_system: str = "5m"            # "5m" | "1h"(write 2×, 워밍률 측정 후 결정)
     cache_ttl_messages: str = "5m"
-    # 회계: 원가 가중(단가÷입력단가). 컨텍스트는 read/write 무관 0.1×로 균일(캐시 냉각이 유저에 벌점 안 됨).
-    bill_weight_output: float = 5.0
-    bill_weight_cache: float = 0.1
+    # 회계: 실비용 가중(단가÷입력단가) → billable × 입력단가 = 실제 청구액(정확). 한도=달러예산 직결.
+    bill_weight_output: float = 5.0        # 출력 $15 / 입력 $3
+    bill_weight_cache_read: float = 0.1    # 캐시 읽기 $0.30 / 입력 $3
+    bill_weight_cache_write: float = 1.25  # 캐시 쓰기(5m) $3.75 / 입력 $3
 
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""
@@ -84,7 +85,7 @@ class Settings(BaseSettings):
     # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
     # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).
     free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
-    free_launch_token_limit: int = 50_000  # 런칭 기간 일 토큰 한도(구독 100k와 독립)
+    free_launch_token_limit: int = 30_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준, $3/월 목표)
 
     model_config = SettingsConfigDict(
         env_file=".env",

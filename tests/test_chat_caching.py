@@ -17,13 +17,14 @@ def _msg(i, sender, content="안녕"):
     return SimpleNamespace(id=i, sender=sender, content=content)
 
 
-# --- billable: 캐시상태 무관(cold=warm), 출력 5× ---
-def test_billable_cold_equals_warm():
+# --- billable: 실비용 가중(write 1.25× > read 0.1×), 출력 5× ---
+def test_billable_matches_real_cost_weights():
     cold = LLMResult("t", input_tokens=25, output_tokens=90, cache_read_tokens=0, cache_write_tokens=3000)
     warm = LLMResult("t", input_tokens=25, output_tokens=90, cache_read_tokens=3000, cache_write_tokens=0)
-    # 컨텍스트가 read든 write든 0.1× 균일 → 유저는 캐시 냉각에 벌점 없음
-    assert c._billable(cold) == c._billable(warm)
-    assert c._billable(cold) == 25 + 5 * 90 + round(0.1 * 3000)  # 25+450+300
+    # write는 1.25×(실제 더 비쌈), read는 0.1× → billable × 입력단가 = 실제 청구액
+    assert c._billable(cold) == 25 + 5 * 90 + round(1.25 * 3000)   # 25+450+3750 = 4225
+    assert c._billable(warm) == 25 + 5 * 90 + round(0.1 * 3000)    # 25+450+300  = 775
+    assert c._billable(cold) > c._billable(warm)  # cold(write)가 더 비쌈 = 실비용 반영
 
 
 def test_billable_output_weighted_5x():

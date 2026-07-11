@@ -58,7 +58,7 @@ class FakeSession:
             if isinstance(o, Message) and o.id is None:
                 o.id = i
 
-    async def execute(self, stmt):
+    async def execute(self, stmt, params=None):
         return _Result(self.execute_items)
 
     async def commit(self):
@@ -136,6 +136,43 @@ async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patche
     req = SimpleNamespace(text="ㅎㅇ", greeting_id=None)
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-3")
     assert out["review_prompt"] is True
+
+
+async def test_post_message_survives_mem0_outage(monkeypatch):
+    # mem0 장애(MemoryUnavailable)가 채팅을 500으로 막지 않아야 함
+    async def _boom(user_id):
+        raise memory_module.MemoryUnavailable("pgvector down")
+
+    async def _fake_llm(system, convo, *, max_tokens=None):
+        return LLMResult(text="응 그래.", input_tokens=10, output_tokens=20)
+
+    async def _res(session, user_id):
+        return _gating()
+
+    monkeypatch.setattr(memory_module, "load_for_context", _boom)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    req = SimpleNamespace(text="안녕", greeting_id=None)
+    out = await chat_service.post_message(FakeSession(), UID, req, "idem-mem")
+    assert out["reply"]["content"] == "응 그래."
+
+
+async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patched):
+    # daily_token_limit 미해석(None) → 무제한 아님, free 한도로 차단 판정
+    async def _res(session, user_id):
+        return _gating(
+            tokens_used=20_000,  # free 20k 소진
+            entitlement={
+                "plan": "free", "tokens_remaining": None, "daily_token_limit": None,
+                "personal_diary_token_threshold": 2000,
+            },
+        )
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    req = SimpleNamespace(text="더", greeting_id=None)
+    with pytest.raises(AppError) as e:
+        await chat_service.post_message(FakeSession(), UID, req, "idem-fc")
+    assert e.value.code == "DAILY_LIMIT_REACHED"
 
 
 async def test_post_message_idempotent_returns_cached(monkeypatch, patched):

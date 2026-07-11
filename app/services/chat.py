@@ -1,6 +1,7 @@
 """chat 서비스 — 상태·이력·전송·선발화. 대화는 HTTP 완성본(스트리밍 없음)."""
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import date, datetime, timezone
 from typing import Any
@@ -20,6 +21,7 @@ from app.services.account import _uid
 from app.services.prompts import system_prompt
 
 _GREETING_CONTEXTS = greetings.CONTEXTS
+_log = logging.getLogger("moly-backend")
 
 
 def _iso(dt: datetime | None) -> str | None:
@@ -115,7 +117,11 @@ async def _recent_convo(session: AsyncSession, uid: uuid.UUID) -> list[dict[str,
 
 
 async def _build_system(user_id: str, language: str, nickname: str | None = None) -> str:
-    mem = await memory.load_for_context(user_id)
+    try:
+        mem = await memory.load_for_context(user_id)
+    except memory.MemoryUnavailable:
+        # mem0 장애가 채팅을 500으로 막지 않게. (P2: 스냅샷 폴백으로 대체 예정)
+        mem = ""
     system = system_prompt(language)
     if nickname:
         system += f"\n\n[상대]\n지금 얘기하는 사람 이름은 '{nickname}'야."
@@ -127,9 +133,10 @@ async def _build_system(user_id: str, language: str, nickname: str | None = None
 # --- 유저 단위 직렬화(토큰 한도 TOCTOU 방지) ---
 async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
     """트랜잭션 범위 advisory lock — 같은 유저의 동시 요청을 직렬화. 커밋/롤백 시 자동 해제.
-    게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다.
-    uid는 검증된 UUID라 리터럴 삽입 안전(bind 파라미터 없이 단일 execute)."""
-    await session.execute(text(f"SELECT pg_advisory_xact_lock(hashtextextended('{uid}', 0))"))
+    게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다."""
+    await session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:u, 0))"), {"u": str(uid)}
+    )
 
 
 # --- 토큰 누적(멱등 트랜잭션 내) ---
@@ -163,7 +170,11 @@ async def post_message(
 
     g = await gating.resolve(session, user_id)
     remaining = g.entitlement["tokens_remaining"]
-    if remaining is not None and remaining <= 0:
+    if remaining is None:
+        # 한도 미해석(app_config의 daily_token_limit dict 부분/불량) → 무제한으로 새지 않게 free 폴백.
+        _log.warning("daily_token_limit 미해석 → free 한도로 fail-closed(user=%s)", user_id)
+        remaining = max(0, settings.daily_token_limit_free - g.tokens_used)
+    if remaining <= 0:
         raise errors.daily_limit_reached()
 
     ad = g.activity_date
@@ -218,7 +229,9 @@ async def post_message(
 
     new_used = g.tokens_used + consumed
     limit = g.entitlement["daily_token_limit"]
-    remaining_after = max(0, limit - new_used) if isinstance(limit, int) else None
+    if not isinstance(limit, int):  # fail-closed(위 게이트와 동일 근거)
+        limit = settings.daily_token_limit_free
+    remaining_after = max(0, limit - new_used)
 
     # 8) 리뷰 노출 판정(당일 누적이 임계 생애 최초 초과 & 미노출)
     review = g.profile.review_prompted_at is None and new_used >= g.review_min_tokens

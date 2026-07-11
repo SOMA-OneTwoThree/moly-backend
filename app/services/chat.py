@@ -217,11 +217,15 @@ def _build_system(language: str, nickname: str | None, mem: str) -> list[str]:
 
 
 def _billable(r: llm.LLMResult) -> int:
-    """원가 가중 청구 토큰. 컨텍스트(read/write)는 캐시상태 무관 0.1× 균일 → cold가 유저에 벌점 안 됨."""
+    """실비용 가중 청구 토큰 = billable × 입력단가 = 실제 청구액(정확). 한도가 달러예산에 직결.
+
+    write는 1.25×(read 0.1×) — cold 턴이 실제 더 비싸니 그만큼 더 셈. 30k 한도 = ~$3/월(표준가).
+    """
     raw = (
         r.input_tokens
         + settings.bill_weight_output * r.output_tokens
-        + settings.bill_weight_cache * (r.cache_read_tokens + r.cache_write_tokens)
+        + settings.bill_weight_cache_read * r.cache_read_tokens
+        + settings.bill_weight_cache_write * r.cache_write_tokens
     )
     return ceil(raw)
 

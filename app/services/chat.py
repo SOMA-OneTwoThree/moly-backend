@@ -336,7 +336,7 @@ async def post_message(
             "프롬프트 캐시 미작동(read=write=0, input=%d) user=%s", result.input_tokens, user_id
         )
 
-    # 6) 바라 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
+    # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
     consumed = _billable(result)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal", content=result.text,

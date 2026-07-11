@@ -87,7 +87,7 @@ async def test_get_diary_personal_has_conversation_ref():
 
 
 async def test_get_diary_moly_has_no_conversation_ref():
-    d = _diary(source="preset", content="몰리는 오늘도 뒹굴거렸다.")
+    d = _diary(source="preset", content="캐피는 오늘도 뒹굴거렸다.")
     out = await diary_service.get_diary(FakeSession(get_obj=d), UID, str(d.id))
     assert out["type"] == "moly"
     assert out["conversation_ref"] is None

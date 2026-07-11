@@ -1,6 +1,6 @@
--- moly_life_ments 시드 — 바라 자기일기 풀(임계 미달·미접속 날 일기 소스).
+-- moly_life_ments 시드 — 캐피 자기일기 풀(임계 미달·미접속 날 일기 소스).
 -- ⚠️ 임시 플레이스홀더 10건. 실제 카피는 팀이 교체 예정.
--- 제약: 유저 내용 반영 X(미접속 유저에게도 나감) — 바라 자기 삶(집·소파·턴테이블·날씨)만.
+-- 제약: 유저 내용 반영 X(미접속 유저에게도 나감) — 캐피 자기 삶(집·소파·턴테이블·날씨)만.
 -- 실행: psql "$SUPABASE_DB_CONNECTION_STRING" -f db/seed_moly_life_ments.sql (1회성)
 
 INSERT INTO public.moly_life_ments (content, weather) VALUES

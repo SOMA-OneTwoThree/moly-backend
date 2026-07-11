@@ -1,4 +1,4 @@
-"""일기 생성 배치 — 개인/몰리 분기·self-check 폴백·멱등·발행시각(DB·LLM mock)."""
+"""일기 생성 배치 — 개인/캐피 분기·self-check 폴백·멱등·발행시각(DB·LLM mock)."""
 import uuid
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
@@ -96,7 +96,7 @@ async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
 
 
 async def test_fallback_to_preset_when_self_check_fails(monkeypatch):
-    ment = SimpleNamespace(id=uuid.uuid4(), content="몰리는 오늘 뒹굴거렸다.", weather="rainy")
+    ment = SimpleNamespace(id=uuid.uuid4(), content="캐피는 오늘 뒹굴거렸다.", weather="rainy")
     # 문자수 게이트 통과(≥5) → 개인일기 시도 → self-check NO → preset 폴백
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 진짜 힘들었어")], tokens=5000, ment=ment)
 
@@ -110,7 +110,7 @@ async def test_fallback_to_preset_when_self_check_fails(monkeypatch):
     await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
     d = session.added[0]
     assert d.source == "preset"
-    assert d.content == "몰리는 오늘 뒹굴거렸다."
+    assert d.content == "캐피는 오늘 뒹굴거렸다."
     assert d.preset_ment_id == ment.id
 
 

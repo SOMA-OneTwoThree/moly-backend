@@ -4,14 +4,16 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import date, datetime, timezone
+from math import ceil
 from typing import Any
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core import errors
+from app.models.chat_context import ChatContext
 from app.models.greeting import Greeting
 from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
@@ -98,36 +100,101 @@ async def get_messages(
     }
 
 
-# --- 프롬프트용 최근 대화 ---
-async def _recent_convo(session: AsyncSession, uid: uuid.UUID) -> list[dict[str, str]]:
+# --- 프롬프트용 컨텍스트(앵커 append-only) ---
+def _keep_window(rows: list[Message]) -> list[Message]:
+    """리셋 시 유지할 최근 창 — KEEP 개수/문자 상한, user 메시지로 시작하게. KEEP ≪ RESET(헤드룸)."""
+    kept: list[Message] = []
+    chars = 0
+    for m in reversed(rows):
+        if len(kept) >= settings.context_keep_messages or chars >= settings.context_keep_chars:
+            break
+        kept.append(m)
+        chars += len(m.content or "")
+    kept.reverse()
+    while kept and kept[0].sender == "moly":  # 첫 메시지 user 보장(Anthropic)
+        kept.pop(0)
+    return kept or rows[-1:]  # 최소 1개(최신 = 방금 flush된 user 메시지)
+
+
+async def _context(
+    session: AsyncSession, uid: uuid.UUID, anchor: int
+) -> tuple[list[dict[str, str]], int | None]:
+    """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
+
+    프리픽스는 리셋 때만 1회 바뀌고 그 사이엔 append-only → 캐시 히트 유지.
+    """
     q = (
         select(Message)
-        .where(Message.user_id == uid)
+        .where(Message.user_id == uid, Message.id >= anchor)
         .order_by(Message.id.desc())
-        .limit(settings.chat_recent_messages)
+        .limit(settings.context_hard_msg_cap)  # 안전 상한(정상 시 리셋 트리거가 먼저 걸림)
     )
     rows = list(reversed((await session.execute(q)).scalars().all()))
+
+    new_anchor: int | None = None
+    over_msgs = len(rows) >= settings.context_reset_messages
+    over_chars = sum(len(m.content or "") for m in rows) >= settings.context_reset_chars
+    if over_msgs or over_chars:
+        rows = _keep_window(rows)
+        new_anchor = rows[0].id  # 앵커 전진(1회 프리픽스 변경)
+
     convo = [
         {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
         for m in rows
     ]
     while convo and convo[0]["role"] != "user":  # Anthropic: 첫 메시지 user 보장
         convo.pop(0)
-    return convo
+    if not convo:  # 빈 배열=400. 최신 user 메시지 1개 폴백(방금 flush된 umsg가 보장)
+        for m in reversed(rows):
+            if m.sender != "moly":
+                convo = [{"role": "user", "content": m.content}]
+                break
+    return convo, new_anchor
 
 
-async def _build_system(user_id: str, language: str, nickname: str | None = None) -> str:
+async def _load_anchor(session: AsyncSession, uid: uuid.UUID) -> int:
+    row = await session.get(ChatContext, uid)
+    return row.anchor_message_id if row is not None else 0
+
+
+async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
+    stmt = pg_insert(ChatContext).values(user_id=uid, anchor_message_id=anchor)
+    # GREATEST: 앵커는 단조 전진만(역행 시 요약·세그먼트 중복 방지). 컬럼만 갱신(전체행 upsert 금지).
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["user_id"],
+        set_={
+            "anchor_message_id": func.greatest(ChatContext.anchor_message_id, anchor),
+            "updated_at": func.now(),
+        },
+    )
+    await session.execute(stmt)
+
+
+async def _build_system(
+    user_id: str, language: str, nickname: str | None = None
+) -> list[str]:
+    """system을 [페르소나(불변), 닉네임+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존."""
     try:
         mem = await memory.load_for_context(user_id)
     except memory.MemoryUnavailable:
-        # mem0 장애가 채팅을 500으로 막지 않게. (P2: 스냅샷 폴백으로 대체 예정)
-        mem = ""
-    system = system_prompt(language)
+        mem = ""  # mem0 장애가 채팅 500으로 번지지 않게 (P2: 스냅샷 폴백)
+    parts: list[str] = []
     if nickname:
-        system += f"\n\n[상대]\n지금 얘기하는 사람 이름은 '{nickname}'야."
+        parts.append(f"[상대]\n지금 얘기하는 사람 이름은 '{nickname}'야.")
     if mem:
-        system += f"\n\n[기억]\n{mem}"
-    return system
+        parts.append(f"[기억]\n{mem}")
+    dyn = "\n\n".join(parts)
+    return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
+
+
+def _billable(r: llm.LLMResult) -> int:
+    """원가 가중 청구 토큰. 컨텍스트(read/write)는 캐시상태 무관 0.1× 균일 → cold가 유저에 벌점 안 됨."""
+    raw = (
+        r.input_tokens
+        + settings.bill_weight_output * r.output_tokens
+        + settings.bill_weight_cache * (r.cache_read_tokens + r.cache_write_tokens)
+    )
+    return ceil(raw)
 
 
 # --- 유저 단위 직렬화(토큰 한도 TOCTOU 방지) ---
@@ -207,24 +274,38 @@ async def post_message(
     session.add(umsg)
     await session.flush()
 
-    # 4) 컨텍스트(최근 N + 장기기억)
+    # 4) 컨텍스트(앵커 append-only) + 시스템(페르소나/기억 블록)
+    anchor = await _load_anchor(session, uid)
+    convo, new_anchor = await _context(session, uid, anchor)
+    if new_anchor is not None:
+        await _save_anchor(session, uid, new_anchor)  # 리셋 — 같은 트랜잭션(원자)
     system = await _build_system(user_id, g.profile.language, g.profile.nickname)
-    convo = await _recent_convo(session, uid)
 
-    # 5) Claude 호출(완성본 + 실측 토큰)
-    result = await llm.generate(system, convo)
+    # 5) Claude 호출(프롬프트 캐싱 + 실측 토큰)
+    cache_on = settings.chat_prompt_cache_enabled
+    result = await llm.generate(
+        system, convo,
+        cache_messages=cache_on,
+        ttl_system=settings.cache_ttl_system,
+        ttl_messages=settings.cache_ttl_messages,
+    )
+    if cache_on and result.cache_read_tokens == 0 and result.cache_write_tokens == 0:
+        # 캐시 완전 미작동(페르소나가 최소 임계 밑으로 편집됨 등) — 무음 실패 방지 알람
+        _log.warning("프롬프트 캐시 미작동(read=write=0) user=%s", user_id)
 
-    # 6) 바라 응답 저장
+    # 6) 바라 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
+    consumed = _billable(result)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal", content=result.text,
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
+        cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
+        billable_tokens=consumed,
         activity_date=ad, created_at=now,
     )
     session.add(rmsg)
     await session.flush()
 
-    # 7) 토큰 집계(normal만) — 사후 누적
-    consumed = result.input_tokens + result.output_tokens
+    # 7) 토큰 집계(원가 가중 billable, normal만) — 사후 누적
     await _accumulate_tokens(session, uid, ad, consumed)
 
     new_used = g.tokens_used + consumed

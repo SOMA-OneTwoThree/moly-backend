@@ -91,7 +91,7 @@ def patched(monkeypatch):
     async def _fake_mem(user_id):
         return ""
 
-    async def _fake_llm(system, convo, *, max_tokens=None):
+    async def _fake_llm(system, convo, **kw):
         return LLMResult(text="그냥 그랬어.", input_tokens=10, output_tokens=20)
 
     monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
@@ -107,8 +107,9 @@ async def test_post_message_flow(monkeypatch, patched):
     req = SimpleNamespace(text="오늘 어땠어?", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "idem-1")
     assert out["reply"]["content"] == "그냥 그랬어."
-    assert out["tokens_used"] == 1030  # 1000 + (10+20)
-    assert out["tokens_remaining"] == 98_970  # 100000 - 1030
+    # billable = ceil(10 + 5*20 + 0.1*(0+0)) = 110 (원가 가중: 출력 5×, 캐시 0.1×)
+    assert out["tokens_used"] == 1110  # 1000 + 110
+    assert out["tokens_remaining"] == 98_890  # 100000 - 1110
     assert out["review_prompt"] is False
     assert session.committed is True
 
@@ -143,7 +144,7 @@ async def test_post_message_survives_mem0_outage(monkeypatch):
     async def _boom(user_id):
         raise memory_module.MemoryUnavailable("pgvector down")
 
-    async def _fake_llm(system, convo, *, max_tokens=None):
+    async def _fake_llm(system, convo, **kw):
         return LLMResult(text="응 그래.", input_tokens=10, output_tokens=20)
 
     async def _res(session, user_id):
@@ -208,7 +209,7 @@ async def test_greeting_cache_hit(monkeypatch, patched):
     )
     called = {"llm": False}
 
-    async def _fake_llm(system, convo, *, max_tokens=None):
+    async def _fake_llm(system, convo, **kw):
         called["llm"] = True
         return LLMResult("새 인사", 1, 1)
 

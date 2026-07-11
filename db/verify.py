@@ -41,12 +41,25 @@ async def main():
             db_nullable = (db_null == 'YES')
             if not model_nullable and db_nullable and not col.primary_key:
                 problems.append(f"[nullable 불일치] {tn}.{col.name}: 모델 NOT NULL / DB NULL")
+    # RLS 게이트: public 전 테이블 RLS ON + 민감 테이블(chat_contexts) anon/authenticated 권한 0.
+    # (손으로 관리하는 RLS 배열이 새는 걸 방지 — EXP-7. 마이그레이션 적용 후 실행.)
+    no_rls = await c.fetch("""select c.relname from pg_class c
+        join pg_namespace n on n.oid=c.relnamespace
+        where n.nspname='public' and c.relkind='r' and not c.relrowsecurity""")
+    for r in no_rls:
+        problems.append(f"[RLS OFF] {r['relname']}")
+    grants = await c.fetch("""select grantee from information_schema.role_table_grants
+        where table_schema='public' and table_name='chat_contexts'
+          and grantee in ('anon','authenticated')""")
+    for r in grants:
+        problems.append(f"[민감 테이블 권한 노출] chat_contexts → {r['grantee']}")
+
     print(f"모델 테이블 {len(Base.metadata.tables)}개 검증.")
     if problems:
         print("문제 발견:")
         for p in problems:
             print("  -", p)
     else:
-        print("✅ 전 모델 컬럼이 DB에 존재. nullable 위험 없음.")
+        print("✅ 전 모델 컬럼이 DB에 존재. nullable/RLS/grant 위험 없음.")
     await c.close()
 asyncio.run(main())

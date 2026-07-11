@@ -30,8 +30,22 @@ class Settings(BaseSettings):
     anthropic_model_utility: str = "claude-haiku-4-5-20251001"
     llm_max_tokens: int = 1024  # 컴패니언 응답은 짧음(1~3문장)
 
-    # --- 대화 컨텍스트 ---
-    chat_recent_messages: int = 30  # 프롬프트에 넣을 최근 메시지 수
+    # --- 대화 컨텍스트(앵커 append-only + 프롬프트 캐싱) ---
+    chat_recent_messages: int = 30  # 앵커 미존재/폴백 시 최근 N
+    # 앵커 리셋 트리거: 세그먼트가 이만큼 커지면 최근 KEEP만 남기고 앵커를 앞당김(1회 프리픽스 변경 후 append-only).
+    # 트리거(RESET) ≫ 유지(KEEP) 여야 헤드룸이 생겨 리셋 사이 여러 턴이 캐시 히트(매턴 슬라이드 방지).
+    context_reset_messages: int = 40       # 트리거: 세그먼트 메시지 수
+    context_reset_chars: int = 30_000      # 트리거: 세그먼트 문자 수(긴 메시지 폭발 방어)
+    context_keep_messages: int = 20        # 리셋 후 유지 메시지 수 (KEEP ≪ RESET)
+    context_keep_chars: int = 12_000       # 리셋 후 유지 문자 상한
+    context_hard_msg_cap: int = 120        # 쿼리 안전 상한(정상 시 트리거가 먼저 걸려 안 닿음)
+    # 프롬프트 캐싱: system(페르소나/기억) + 마지막 메시지에 cache_control. 기본 5m(단일 TTL).
+    chat_prompt_cache_enabled: bool = True  # 킬스위치. OFF=메시지 breakpoint 제거(히스토리 청구 스케일↑ 유의)
+    cache_ttl_system: str = "5m"            # "5m" | "1h"(write 2×, 워밍률 측정 후 결정)
+    cache_ttl_messages: str = "5m"
+    # 회계: 원가 가중(단가÷입력단가). 컨텍스트는 read/write 무관 0.1×로 균일(캐시 냉각이 유저에 벌점 안 됨).
+    bill_weight_output: float = 5.0
+    bill_weight_cache: float = 0.1
 
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""
@@ -58,7 +72,10 @@ class Settings(BaseSettings):
     daily_token_limit_subscriber: int = 100_000
     token_warning_threshold: int = 3_000  # 남은 토큰 이 값 이하면 소진 경고
     review_prompt_min_tokens: int = 50_000  # 당일 누적 이 이상 생애 최초 → 리뷰 노출
-    diary_llm_min_tokens: int = 2_000  # 당일 누적 이 이상 → 개인(관찰) 일기
+    diary_llm_min_tokens: int = 2_000  # (레거시) 토큰 기반 개인일기 임계 — diary_min_user_chars로 대체
+    # 개인(관찰) 일기 게이트 = 당일 유저 메시지 문자수(토큰 카운터와 분리 → 회계 변경에 불변).
+    # 낮게 시작(오늘의 ~2메시지 선택성 재현). 실 트랜스크립트로 보정 전까지 낮은 쪽 편향(얇으면 preset 폴백 있음).
+    diary_min_user_chars: int = 60
 
     # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
     # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).

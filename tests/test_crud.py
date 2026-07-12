@@ -67,15 +67,15 @@ class FakeSession:
 async def test_ledger_grant():
     p = SimpleNamespace(hay_balance=100)
     s = FakeSession(get_obj=p)
-    bal = await hay_ledger.apply(s, UID_UUID, "attendance", 10)
-    assert bal == 110 and p.hay_balance == 110
+    tx = await hay_ledger.apply(s, UID_UUID, "attendance", 10)
+    assert tx.balance_after == 110 and p.hay_balance == 110
     assert s.added[0].amount == 10 and s.added[0].balance_after == 110
 
 
 async def test_ledger_deduct():
     p = SimpleNamespace(hay_balance=1000)
-    bal = await hay_ledger.apply(FakeSession(get_obj=p), UID_UUID, "shop_purchase", -400)
-    assert bal == 600
+    tx = await hay_ledger.apply(FakeSession(get_obj=p), UID_UUID, "shop_purchase", -400)
+    assert tx.balance_after == 600
 
 
 async def test_ledger_insufficient():
@@ -100,7 +100,7 @@ async def test_attendance_success(monkeypatch):
         return SimpleNamespace(attendance_claimed_at=None)
 
     async def _apply(session, uid, t, amt, **kw):
-        return 650
+        return SimpleNamespace(id=1, balance_after=650)
 
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
@@ -236,7 +236,7 @@ async def test_purchase_success(monkeypatch):
 
     async def _apply(session, uid, t, amt, **kw):
         assert amt == -1000
-        return 640
+        return SimpleNamespace(id=1, balance_after=640)
 
     monkeypatch.setattr(shop, "_load_item", _load)
     monkeypatch.setattr(shop, "_owned_ids", _owned)
@@ -244,6 +244,7 @@ async def test_purchase_success(monkeypatch):
     session = FakeSession()
     out = await shop.purchase(session, UID, "x")
     assert out["price_hay"] == 1000 and out["balance_after"] == 640
+    assert session.added[0].hay_transaction_id == 1  # 차감 원장 연결
     assert session.committed is True
 
 

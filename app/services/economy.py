@@ -137,9 +137,9 @@ async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int
     if stats.attendance_claimed_at is not None:
         raise errors.already_claimed()
     stats.attendance_claimed_at = datetime.now(timezone.utc)
-    balance = await hay_ledger.apply(session, uid, "attendance", HAY_ATTENDANCE)
+    tx = await hay_ledger.apply(session, uid, "attendance", HAY_ATTENDANCE)
     await session.commit()
-    return {"granted": HAY_ATTENDANCE, "balance_after": balance}
+    return {"granted": HAY_ATTENDANCE, "balance_after": tx.balance_after}
 
 
 async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str, int]:
@@ -152,6 +152,6 @@ async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str,
     if stats.routine_reward_claimed_at is not None:
         raise errors.already_claimed()
     stats.routine_reward_claimed_at = datetime.now(timezone.utc)
-    balance = await hay_ledger.apply(session, uid, "routine_reward", HAY_ROUTINE_REWARD)
+    tx = await hay_ledger.apply(session, uid, "routine_reward", HAY_ROUTINE_REWARD)
     await session.commit()
-    return {"granted": HAY_ROUTINE_REWARD, "balance_after": balance}
+    return {"granted": HAY_ROUTINE_REWARD, "balance_after": tx.balance_after}

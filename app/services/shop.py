@@ -79,15 +79,15 @@ async def purchase(session: AsyncSession, user_id: str, product_id: str) -> dict
         raise errors.subscriber_only()  # 구독 전용 = 구매 대상 아님(잠금해제식)
     if it.id in await _owned_ids(session, uid):
         raise errors.already_owned()
-    balance = await hay_ledger.apply(session, uid, "shop_purchase", -it.price_hay, ref_id=str(it.id))
-    session.add(UserItem(user_id=uid, shop_item_id=it.id))
+    tx = await hay_ledger.apply(session, uid, "shop_purchase", -it.price_hay, ref_id=str(it.id))
+    session.add(UserItem(user_id=uid, shop_item_id=it.id, hay_transaction_id=tx.id))
     try:
         await session.commit()
     except IntegrityError as e:
         # 동시 구매 레이스 — (user, item) UNIQUE 충돌. 차감 롤백 후 멱등 409(이중 차감 없음).
         await session.rollback()
         raise errors.already_owned() from e
-    return {"product_id": str(it.id), "price_hay": it.price_hay, "balance_after": balance}
+    return {"product_id": str(it.id), "price_hay": it.price_hay, "balance_after": tx.balance_after}
 
 
 async def get_inventory(session: AsyncSession, user_id: str) -> dict[str, Any]:

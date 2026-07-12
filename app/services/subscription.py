@@ -179,8 +179,8 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
             sub.latest_transaction_id = str(event.get("transaction_id"))
         # 증정 = (user, plan) 최초 1회
         if not await _grant_exists(session, uid, plan):
-            await hay_ledger.apply(session, uid, "subscription_grant", HAY_GRANT[plan])
-            session.add(SubscriptionHayGrant(user_id=uid, plan=plan))
+            tx = await hay_ledger.apply(session, uid, "subscription_grant", HAY_GRANT[plan])
+            session.add(SubscriptionHayGrant(user_id=uid, plan=plan, hay_transaction_id=tx.id))
 
     elif etype == "CANCELLATION":
         sub = await _by_original_tx(session, original_tx, lock=True)

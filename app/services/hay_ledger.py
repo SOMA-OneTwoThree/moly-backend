@@ -20,8 +20,11 @@ async def apply(
     amount: int,
     *,
     ref_id: str | None = None,
-) -> int:
-    """건초 이동. amount>0 지급 / <0 차감. 차감이 잔액 초과면 402. balance_after 반환."""
+) -> HayTransaction:
+    """건초 이동. amount>0 지급 / <0 차감. 차감이 잔액 초과면 402.
+
+    원장 행을 반환(flush 완료, id 사용 가능) — 구매 기록의 hay_transaction_id 연결용.
+    """
     profile = await session.get(Profile, user_id, with_for_update=True)
     if profile is None:
         raise errors.AppError("NOT_FOUND", 404, "프로필을 찾을 수 없어요.")
@@ -29,10 +32,10 @@ async def apply(
     if new_balance < 0:
         raise errors.insufficient_hay(required=-amount, balance=profile.hay_balance)
     profile.hay_balance = new_balance
-    session.add(
-        HayTransaction(
-            user_id=user_id, type=tx_type, amount=amount,
-            balance_after=new_balance, ref_id=ref_id,
-        )
+    tx = HayTransaction(
+        user_id=user_id, type=tx_type, amount=amount,
+        balance_after=new_balance, ref_id=ref_id,
     )
-    return new_balance
+    session.add(tx)
+    await session.flush()
+    return tx

@@ -76,7 +76,7 @@ async def test_rc_initial_purchase_creates_and_grants(monkeypatch):
 
     async def _apply(session, uid, t, amt, **kw):
         granted["amt"] = amt
-        return 1000
+        return SimpleNamespace(id=1, balance_after=1000)
 
     monkeypatch.setattr(subscription, "_by_original_tx", _by)
     monkeypatch.setattr(subscription, "_grant_exists", _grant)
@@ -85,6 +85,7 @@ async def test_rc_initial_purchase_creates_and_grants(monkeypatch):
     await subscription.handle_revenuecat_event(s, _rc_event())
     assert any(getattr(o, "status", None) == "active" for o in s.added)  # 구독 생성
     assert granted["amt"] == 1000 and s.committed
+    assert any(getattr(o, "hay_transaction_id", None) == 1 for o in s.added)  # 증정 원장 연결
 
 
 async def test_rc_second_time_no_grant(monkeypatch):

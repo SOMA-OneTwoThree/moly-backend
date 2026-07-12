@@ -37,10 +37,13 @@ async def grant_pack(session: AsyncSession, uid, product_id: str, transaction_id
     if pack is None:
         _log.warning("RC IAP: 미상 상품 %s — 스킵", product_id)
         return
-    await hay_ledger.apply(session, uid, "iap_purchase", pack.hay_amount, ref_id=transaction_id)
+    tx = await hay_ledger.apply(
+        session, uid, "iap_purchase", pack.hay_amount, ref_id=transaction_id
+    )
     session.add(
         IapPurchase(
             user_id=uid, hay_pack_id=pack.id, transaction_id=transaction_id,
-            status="verified", purchased_at=datetime.now(timezone.utc),
+            status="verified", hay_transaction_id=tx.id,
+            purchased_at=datetime.now(timezone.utc),
         )
     )

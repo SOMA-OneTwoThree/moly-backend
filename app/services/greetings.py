@@ -31,6 +31,19 @@ def quote_ira(name: str) -> str:
     return name + "라고"
 
 
+def copula(name: str) -> str:
+    """서술격 조사 — 받침 있으면 '이야', 없으면 '야'. ("이름은 '지훈'이야" / "'지호'야")
+
+    프롬프트에 이름을 박을 때 쓴다. 지시문 자체가 조사를 틀리면 캐피도 따라 틀린다.
+    """
+    if not name:
+        return ""
+    last = name[-1]
+    if "가" <= last <= "힣":
+        return name + ("이야" if (ord(last) - 0xAC00) % 28 else "야")
+    return name + "야"
+
+
 # {ira}=이름 되받기, {voc}=이름 호격. 온보딩(첫 만남)만 이름을 부른다.
 _ONBOARDING = [
     "{ira}? 난 캐피야, 이 집에 살아. 잘 왔어, {voc}. 낯설면 천천히 둘러봐도 돼. 얘기하고 싶으면 편하게 걸어.",

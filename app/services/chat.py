@@ -209,7 +209,8 @@ def _build_system(language: str, nickname: str | None, mem: str) -> list[str]:
     """system을 [페르소나(불변), 닉네임+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존."""
     parts: list[str] = []
     if nickname:
-        parts.append(f"[상대]\n지금 얘기하는 사람 이름은 '{nickname}'야.")
+        # 조사는 받침에 맞춰(승민이야 / 지호야) — 지시문이 틀리면 캐피도 따라 틀린다.
+        parts.append(f"[상대]\n지금 얘기하는 사람 이름은 {greetings.copula(nickname)}.")
     if mem:
         parts.append(f"[기억]\n{mem}")
     dyn = "\n\n".join(parts)

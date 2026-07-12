@@ -38,6 +38,12 @@ def create_app() -> FastAPI:
     app.include_router(review_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
+    # 로컬 전용: 워커 배치(일기 생성)를 Swagger에서 손으로 돌리는 개발 라우터.
+    # 프로덕션엔 라우트 자체가 등록되지 않는다.
+    if _local:
+        from app.api.dev import router as dev_router
+
+        app.include_router(dev_router)
     return app
 
 

@@ -110,13 +110,29 @@ def cmd_cleanup(c: httpx.Client, url: str, sr: str) -> None:
     print(f"[cleanup] 삭제 {len(deleted)}건(CASCADE): {deleted}")
 
 
-def cmd_token(c: httpx.Client, url: str, sr: str, anon: str) -> None:
+def set_nickname(c: httpx.Client, url: str, sr: str, uid: str, nickname: str) -> bool:
+    """profiles.nickname 세팅 — 온보딩(moly-auth 소유)을 로컬에서 대신한다.
+
+    닉네임이 없으면 캐피가 채팅에서 이름을 못 부르고(chat._build_system이 [상대] 블록을 생략),
+    일기도 이름 없이 '그 사람'으로 써진다. 실제 앱 경험과 달라지므로 발급 시 함께 넣는다.
+    """
+    r = c.patch(
+        f"{url}/rest/v1/profiles?id=eq.{uid}",
+        headers={**admin_headers(sr), "Prefer": "return=representation"},
+        json={"nickname": nickname},
+    )
+    return r.status_code in (200, 204)
+
+
+def cmd_token(c: httpx.Client, url: str, sr: str, anon: str, nickname: str) -> None:
     uid = ensure_user(c, url, sr, DEV_EMAIL)
+    ok = set_nickname(c, url, sr, uid, nickname)
     tok = mint_token(c, url, sr, anon, DEV_EMAIL)
     at = tok["access_token"]
     print("=" * 60)
     print(f"user_id : {uid}")
     print(f"email   : {DEV_EMAIL}")
+    print(f"nickname: {nickname}" + ("" if ok else "  ⚠️ 세팅 실패 — 캐피가 이름을 못 부릅니다"))
     print(f"expires : {tok.get('expires_in')}s")
     print("-" * 60)
     print("access_token (아래 한 줄을 복사):")
@@ -131,6 +147,11 @@ def cmd_token(c: httpx.Client, url: str, sr: str, anon: str) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="로컬 Swagger 테스트용 실 토큰 발급/정리")
     ap.add_argument("--cleanup", action="store_true", help="이 스크립트가 만든 테스트 유저 삭제")
+    ap.add_argument(
+        "--nickname",
+        default="승민",
+        help="테스트 유저 닉네임(온보딩 대신). 캐피가 이 이름으로 부르고 일기에도 이 이름을 쓴다.",
+    )
     args = ap.parse_args()
 
     url, sr, anon = config(load_env())
@@ -138,7 +159,7 @@ def main() -> None:
         if args.cleanup:
             cmd_cleanup(c, url, sr)
         else:
-            cmd_token(c, url, sr, anon)
+            cmd_token(c, url, sr, anon, args.nickname)
 
 
 if __name__ == "__main__":

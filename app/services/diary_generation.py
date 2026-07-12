@@ -59,38 +59,59 @@ async def _tokens_used(session: AsyncSession, user_id, target_date: date) -> int
     return rows.scalars().first() or 0
 
 
-def _transcript(messages: list[Message]) -> str:
+def _transcript(messages: list[Message], nickname: str | None = None) -> str:
+    """대화록. 유저 화자 라벨 = 닉네임(없으면 '그 사람'). '사용자'는 일기 본문으로 새어 나온다."""
+    user_label = nickname or "그 사람"
     return "\n".join(
-        f"{'캐피' if m.sender == 'moly' else '사용자'}: {m.content}" for m in messages
+        f"{'캐피' if m.sender == 'moly' else user_label}: {m.content}" for m in messages
     )
 
 
-async def _self_check(body: str, transcript: str) -> bool:
-    """Haiku 환각 검사 — 'OK'면 통과. 오류/모호 시 통과(과잉 거부 방지)."""
+async def _self_check(body: str, transcript: str, user_id=None) -> bool:
+    """Haiku 환각 검사 — 첫 토큰이 'NO'면 탈락. 오류/모호 시 통과(과잉 거부 방지).
+
+    판정은 앞부분으로만 한다. 'NO' 포함 여부로 보면 설명문에 섞인 'NO'에 오판한다.
+    """
     try:
         result = await llm.generate(
             self_check_prompt(),
             [{"role": "user", "content": f"[대화]\n{transcript}\n\n[일기]\n{body}"}],
             model=settings.anthropic_model_utility,
-            max_tokens=8,
+            max_tokens=16,
         )
     except Exception as e:  # noqa: BLE001
         _log.warning("self-check 오류(통과 처리): %r", e)
         return True
-    return "NO" not in result.text.strip().upper()
+    verdict = result.text.strip()
+    passed = not verdict.upper().lstrip("*_# ").startswith("NO")
+    if not passed:
+        # 탈락 = 개인일기를 통째로 버리고 preset으로 폴백. 무음이면 재보정이 불가능하다.
+        _log.warning(
+            "self-check 탈락 → 개인일기 폐기(preset 폴백) user=%s 판정=%r 일기=%r",
+            user_id, verdict[:40], body[:80],
+        )
+    return passed
 
 
-async def _personal(profile, messages: list[Message]) -> tuple[str, str] | None:
-    transcript = _transcript(messages)
+async def _personal(
+    profile, messages: list[Message]
+) -> tuple[tuple[str, str] | None, dict[str, Any]]:
+    """(본문, 날씨) 또는 None + 진단정보. None이면 호출측이 preset 폴백."""
+    nickname = getattr(profile, "nickname", None)
+    transcript = _transcript(messages, nickname)
     result = await llm.generate(
-        diary_prompt(profile.language),
+        diary_prompt(profile.language, nickname),
         [{"role": "user", "content": transcript}],
         model=settings.anthropic_model_diary,  # 대화 모델 A/B와 분리(일기 품질 고정)
     )
     weather, body = parse(result.text)
-    if not body or not await _self_check(body, transcript):
-        return None  # self-check 실패 → 호출측이 preset 폴백
-    return body, weather
+    if not body:
+        _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))
+        return None, {"empty_body": True, "self_check_passed": None}
+    passed = await _self_check(body, transcript, user_id=getattr(profile, "id", None))
+    if not passed:
+        return None, {"empty_body": False, "self_check_passed": False}
+    return (body, weather), {"empty_body": False, "self_check_passed": True}
 
 
 async def _pick_ment(session: AsyncSession) -> MolyLifeMent | None:
@@ -102,18 +123,30 @@ async def _pick_ment(session: AsyncSession) -> MolyLifeMent | None:
 
 async def generate_for_user(
     session: AsyncSession, profile, target_date: date, cfg: dict[str, Any]
-) -> None:
-    """전일 일기 1건 생성(멱등). profile = Profile(또는 동형: id·timezone·language)."""
+) -> dict[str, Any]:
+    """전일 일기 1건 생성(멱등). profile = Profile(또는 동형: id·timezone·language).
+
+    반환 = 진단정보(dev 엔드포인트·로깅용). 생성 자체의 성패는 예외로만 알린다.
+    """
+    gate = cfg["diary_min_user_chars"]
     if await _diary_exists(session, profile.id, target_date):
-        return
+        return {"created": False, "skipped": True, "reason": "already_exists"}
 
     messages = await _day_messages(session, profile.id, target_date)
     # 개인일기 게이트 = 당일 유저 메시지 문자수(토큰 카운터와 분리 → 회계/캐싱 변경에 불변).
     user_chars = sum(len(m.content or "") for m in messages if m.sender == "user")
 
     source, weather, content, preset_id = "preset", "cloudy", None, None
-    if messages and user_chars >= cfg["diary_min_user_chars"]:
-        personal = await _personal(profile, messages)
+    diag: dict[str, Any] = {"empty_body": None, "self_check_passed": None}
+    gate_passed = bool(messages) and user_chars >= gate
+    if gate_passed:
+        personal, diag = await _personal(profile, messages)
+        # self-check 탈락률이 낮지 않다(실측 ~40%). 한 번 더 뽑으면 폐기율이 제곱으로 준다.
+        # 개인일기가 preset으로 새는 건 핵심 훅(일기 열람율) 직격이라 재생성 1회가 남는 장사다.
+        if personal is None:
+            _log.info("개인일기 재생성 1회 시도(user=%s)", getattr(profile, "id", None))
+            personal, retry_diag = await _personal(profile, messages)
+            diag = {**retry_diag, "retried": True}
         if personal is not None:
             content, weather = personal
             source = "llm"
@@ -125,13 +158,12 @@ async def generate_for_user(
         else:
             content = "오늘도 그냥저냥 하루가 갔다."  # 풀 비었을 때 안전 기본
 
-    session.add(
-        Diary(
-            user_id=profile.id, diary_date=target_date, source=source,
-            preset_ment_id=preset_id, content=content, weather=weather,
-            published_at=publish_at(target_date, profile.timezone),
-        )
+    diary = Diary(
+        user_id=profile.id, diary_date=target_date, source=source,
+        preset_ment_id=preset_id, content=content, weather=weather,
+        published_at=publish_at(target_date, profile.timezone),
     )
+    session.add(diary)
     await session.commit()
 
     # 기억 통합(mem0) — 실패해도 일기 생성은 유지(best-effort)
@@ -152,3 +184,16 @@ async def generate_for_user(
             await session.commit()
         except Exception as e:  # noqa: BLE001
             _log.warning("기억 통합 실패(user=%s): %r", profile.id, e)
+
+    return {
+        "created": True,
+        "skipped": False,
+        "source": source,  # llm = 개인일기 / preset = 캐피 자기일기
+        "user_chars": user_chars,
+        "gate": gate,
+        "gate_passed": gate_passed,
+        "personal_attempted": gate_passed,
+        "empty_body": diag.get("empty_body"),
+        "self_check_passed": diag.get("self_check_passed"),
+        "diary_id": str(diary.id) if diary.id else None,
+    }

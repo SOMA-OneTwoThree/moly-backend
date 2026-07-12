@@ -25,11 +25,9 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     counts = {"diaries": 0, "morning": 0, "evening": 0}
     async with get_sessionmaker()() as session:
         cfg = await effective_token_config(session)
-        profiles = list(
-            (
-                await session.execute(select(Profile).where(Profile.nickname.is_not(None)))
-            ).scalars().all()
-        )
+        # 전 프로필 대상(닉네임 유무 무관). 온보딩 전에도 채팅이 되므로 닉네임으로 거르면
+        # 대화한 유저가 일기를 영영 못 받는다. timezone은 NOT NULL(기본 Asia/Seoul)이라 안전.
+        profiles = list((await session.execute(select(Profile))).scalars().all())
         for p in profiles:
             hour = now.astimezone(ZoneInfo(p.timezone)).hour
             try:

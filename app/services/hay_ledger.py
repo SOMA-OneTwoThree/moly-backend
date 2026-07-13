@@ -19,11 +19,12 @@ async def apply(
     tx_type: str,
     amount: int,
     *,
-    ref_id: str | None = None,
+    order_id: uuid.UUID | None = None,
 ) -> HayTransaction:
     """건초 이동. amount>0 지급 / <0 차감. 차감이 잔액 초과면 402.
 
     원장 행을 반환(flush 완료, id 사용 가능) — 구매 기록의 hay_transaction_id 연결용.
+    order_id = 구매 관련 원장(iap_purchase·shop_purchase)의 주문 연결.
     """
     profile = await session.get(Profile, user_id, with_for_update=True)
     if profile is None:
@@ -34,7 +35,7 @@ async def apply(
     profile.hay_balance = new_balance
     tx = HayTransaction(
         user_id=user_id, type=tx_type, amount=amount,
-        balance_after=new_balance, ref_id=ref_id,
+        balance_after=new_balance, order_id=order_id,
     )
     session.add(tx)
     await session.flush()

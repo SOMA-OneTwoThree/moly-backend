@@ -42,6 +42,7 @@ class FakeSession:
         self.get_obj = get_obj
         self.exec_results = list(exec_results or [])
         self.added = []
+        self.deleted = []
         self.committed = False
 
     async def get(self, model, key, **kw):
@@ -61,6 +62,9 @@ class FakeSession:
 
     async def refresh(self, obj):
         pass
+
+    async def delete(self, obj):
+        self.deleted.append(obj)
 
 
 # --- 건초 원장 ---
@@ -227,6 +231,7 @@ async def test_purchase_already_owned(monkeypatch):
 
 async def test_purchase_success(monkeypatch):
     it = _item(price_hay=1000)
+    applied = {}
 
     async def _load(session, pid):
         return it
@@ -236,6 +241,7 @@ async def test_purchase_success(monkeypatch):
 
     async def _apply(session, uid, t, amt, **kw):
         assert amt == -1000
+        applied["order_id"] = kw.get("order_id")
         return SimpleNamespace(id=1, balance_after=640)
 
     monkeypatch.setattr(shop, "_load_item", _load)
@@ -244,8 +250,115 @@ async def test_purchase_success(monkeypatch):
     session = FakeSession()
     out = await shop.purchase(session, UID, "x")
     assert out["price_hay"] == 1000 and out["balance_after"] == 640
-    assert session.added[0].hay_transaction_id == 1  # 차감 원장 연결
+    # 주문 생성(HAY·paid) + 가격 스냅샷 + 원장·인벤토리가 주문으로 연결(DB_REFACTOR §B.2)
+    order, order_item, user_item = session.added
+    assert order.currency == "HAY" and order.status == "paid" and order.total_amount == 1000
+    assert order_item.order_id == order.id and order_item.product_id == it.id
+    assert order_item.unit_price == 1000  # 구매 시점 가격 스냅샷
+    assert user_item.source == "purchase" and user_item.order_id == order.id
+    assert user_item.product_id == it.id
+    assert applied["order_id"] == order.id  # 차감 원장 → 주문 연결
+    assert out["order_id"] == str(order.id)
     assert session.committed is True
+
+
+# --- 장착(user_items 통합 — DB_REFACTOR §B.4) ---
+def _gating(monkeypatch, unlocked=False):
+    async def _resolve(session, user_id):
+        return SimpleNamespace(
+            profile=SimpleNamespace(id=UID_UUID),
+            entitlement={"subscriber_theme_unlocked": unlocked},
+        )
+
+    monkeypatch.setattr(shop.gating, "resolve", _resolve)
+
+
+def _row(product_id, source="purchase", equipped_slot=None):
+    return SimpleNamespace(product_id=product_id, source=source,
+                           equipped_slot=equipped_slot, equipped_at=None)
+
+
+async def test_put_equipment_replace_unequips_previous(monkeypatch):
+    """같은 슬롯 교체 = 기존 자동 해제(equipped_slot NULL) + 새 아이템 장착."""
+    a, b = _item(slot="head"), _item(slot="head")
+    row_a, row_b = _row(a.id), _row(b.id, equipped_slot="head")
+    _gating(monkeypatch)
+
+    async def _load(session, pid):
+        return a
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(exec_results=[[row_a, row_b], [row_a, row_b]])
+    req = SimpleNamespace(background_id=None, head_id=str(a.id), neck_id=None, body_id=None)
+    out = await shop.put_equipment(s, UID, req)
+    assert row_b.equipped_slot is None  # 기존 장착 자동 해제(보유는 유지)
+    assert row_a.equipped_slot == "head" and row_a.equipped_at is not None
+    assert out["head_id"] == str(a.id) and s.committed is True
+
+
+async def test_put_equipment_subscriber_only_creates_subscription_row(monkeypatch):
+    """구독 전용 장착 = 소유 행 없이 source=subscription 행 생성(인벤토리 미노출)."""
+    bg = _item(slot="background", is_subscriber_only=True, price_hay=None)
+    _gating(monkeypatch, unlocked=True)
+
+    async def _load(session, pid):
+        return bg
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(exec_results=[[], []])
+    req = SimpleNamespace(background_id=str(bg.id), head_id=None, neck_id=None, body_id=None)
+    await shop.put_equipment(s, UID, req)
+    added = s.added[0]
+    assert added.source == "subscription" and added.equipped_slot == "background"
+
+
+async def test_put_equipment_unequip_deletes_subscription_row(monkeypatch):
+    """구독 전용 해제 = 행 삭제(존재 이유가 장착뿐)."""
+    bg = _item(slot="background", is_subscriber_only=True, price_hay=None)
+    sub_row = _row(bg.id, source="subscription", equipped_slot="background")
+    _gating(monkeypatch, unlocked=True)
+    s = FakeSession(exec_results=[[sub_row], [sub_row]])
+    req = SimpleNamespace(background_id=None, head_id=None, neck_id=None, body_id=None)
+    await shop.put_equipment(s, UID, req)
+    assert s.deleted == [sub_row]
+
+
+async def test_put_equipment_not_owned_rejected(monkeypatch):
+    it = _item(slot="head")
+    _gating(monkeypatch)
+
+    async def _load(session, pid):
+        return it
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(exec_results=[[]])
+    req = SimpleNamespace(background_id=None, head_id=str(it.id), neck_id=None, body_id=None)
+    with pytest.raises(AppError) as e:
+        await shop.put_equipment(s, UID, req)
+    assert e.value.code == "NOT_OWNED"
+
+
+async def test_put_equipment_slot_mismatch_rejected(monkeypatch):
+    it = _item(slot="head")  # head 상품을 background 슬롯에
+    _gating(monkeypatch)
+
+    async def _load(session, pid):
+        return it
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(exec_results=[[]])
+    req = SimpleNamespace(background_id=str(it.id), head_id=None, neck_id=None, body_id=None)
+    with pytest.raises(AppError) as e:
+        await shop.put_equipment(s, UID, req)
+    assert e.value.code == "VALIDATION"
+
+
+async def test_inventory_excludes_subscription_rows(monkeypatch):
+    """인벤토리 = 구매·무상지급만 — 구독 전용 장착용 행은 소유가 아님(기존 응답 의미 불변)."""
+    owned_id, sub_id = uuid.uuid4(), uuid.uuid4()
+    rows = [_row(owned_id), _row(sub_id, source="subscription", equipped_slot="background")]
+    out = await shop.get_inventory(FakeSession(exec_results=[rows]), UID)
+    assert out["data"] == [str(owned_id)]
 
 
 # --- 리뷰 ---

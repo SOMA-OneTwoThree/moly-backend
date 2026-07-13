@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
 from app.core.time_utils import activity_date_for
-from app.models.hay_pack import HayPack
 from app.models.hay_transaction import HayTransaction
+from app.models.product import Product
 from app.models.routine import RoutineCompletion
 from app.models.user_daily_stats import UserDailyStats
 from app.services import hay_ledger
@@ -105,7 +105,9 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
     packs = list(
         (
             await session.execute(
-                select(HayPack).where(HayPack.is_active.is_(True)).order_by(HayPack.sort_order)
+                select(Product)
+                .where(Product.product_type == "hay_pack", Product.is_active.is_(True))
+                .order_by(Product.sort_order)
             )
         ).scalars().all()
     )
@@ -122,7 +124,7 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
             "claimed": routine_claimed,  # 당일 수령 여부 — 체크 해제해도 재수령 막음
             "reward": HAY_ROUTINE_REWARD,
         },
-        "hay_packs": [
+        "hay_products": [
             {"product_id": p.app_store_product_id, "amount": p.hay_amount} for p in packs
         ],
         "balance": profile.hay_balance,

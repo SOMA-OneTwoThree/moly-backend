@@ -10,16 +10,16 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.hay_transaction import HayTransaction
-from app.models.shop import ShopItem
+from app.models.payment import Payment
+from app.models.product import Product
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
-from app.models.user_equipment import UserEquipment
-from app.services import hay_ledger, iap
+from app.models.user_item import UserItem
+from app.services import hay_ledger, payment
 from app.services.account import _load_profile
 from app.services.entitlement import _parse_dt
 from app.services.limits import effective_token_config
@@ -93,18 +93,6 @@ async def _by_original_tx(
     return (await session.execute(q)).scalars().first()
 
 
-async def _clawback_done(session: AsyncSession, uid, original_tx: str) -> bool:
-    """이 구독(original_tx)에 대한 회수 원장이 이미 있으면 True — 재시도·중복 알림 멱등."""
-    row = await session.execute(
-        select(HayTransaction.id).where(
-            HayTransaction.user_id == uid,
-            HayTransaction.type == "refund_revoke",
-            HayTransaction.ref_id == original_tx,
-        )
-    )
-    return row.scalars().first() is not None
-
-
 async def _grant_exists(session: AsyncSession, uid, plan: str) -> bool:
     row = await session.execute(
         select(SubscriptionHayGrant).where(
@@ -114,14 +102,72 @@ async def _grant_exists(session: AsyncSession, uid, plan: str) -> bool:
     return row.scalars().first() is not None
 
 
-async def _unequip_subscriber_only(session: AsyncSession, user_id) -> None:
-    """구독 전용 아이템 장착 행 삭제 → 기본 복귀(ERD §4.9). 만료/환불 시."""
-    subscriber_items = select(ShopItem.id).where(ShopItem.is_subscriber_only.is_(True))
-    await session.execute(
-        delete(UserEquipment).where(
-            UserEquipment.user_id == user_id,
-            UserEquipment.shop_item_id.in_(subscriber_items),
+async def _revoke_grant_with_clawback(session: AsyncSession, sub, refunded_plan: str) -> None:
+    """환불 시 증정 건초 회수 — 멱등 = grants.revoked_at(회수 완료 표식).
+
+    증정 이력이 없으면 회수할 것도 없음(받은 적 없는 건초를 뺏지 않는다).
+    회수액 = min(증정량, 현재 잔액) — 잔액 하한 0. 0이면 원장 기록 없이 표식만.
+    """
+    grant = (
+        await session.execute(
+            select(SubscriptionHayGrant)
+            .where(
+                SubscriptionHayGrant.user_id == sub.user_id,
+                SubscriptionHayGrant.plan == refunded_plan,
+            )
+            .with_for_update()
         )
+    ).scalars().first()
+    if grant is None or grant.revoked_at is not None:
+        return  # 증정 없음 또는 이미 회수 — 멱등
+    profile = await _load_profile(session, str(sub.user_id))
+    clawback = min(HAY_GRANT.get(refunded_plan, 0), profile.hay_balance)
+    tx = None
+    if clawback > 0:
+        tx = await hay_ledger.apply(session, sub.user_id, "refund_revoke", -clawback)
+    grant.revoked_at = datetime.now(timezone.utc)
+    grant.clawback_hay_transaction_id = tx.id if tx is not None else None
+
+
+async def _record_subscription_payment(session: AsyncSession, sub, event: dict) -> None:
+    """구독 결제(구매·갱신) payments 기록 — 매출 단일 소스(DB_REFACTOR §B.3). transaction_id 멱등."""
+    tx_id = str(event.get("transaction_id") or "")
+    if not tx_id or await payment.payment_exists(session, tx_id):
+        return
+    price = event.get("price_in_purchased_currency")
+    try:
+        amount = int(round(float(price))) if price is not None else None
+    except (TypeError, ValueError):
+        amount = None
+    session.add(
+        Payment(
+            user_id=sub.user_id, subscription_id=sub.id, store_transaction_id=tx_id,
+            amount=amount, currency=str(event.get("currency") or "KRW"), status="paid",
+            paid_at=_ms_to_dt(event.get("purchased_at_ms")) or datetime.now(timezone.utc),
+        )
+    )
+
+
+async def _unequip_subscriber_only(session: AsyncSession, user_id) -> None:
+    """구독 전용 장착 해제 → 기본 복귀(ERD §4.9 승계). 만료/환불 시.
+
+    source=subscription 행은 존재 이유가 장착뿐 → 삭제. (엣지) 무상 지급 등으로
+    소유한 구독 전용 상품이 장착 중이면 장착만 해제(소유 유지).
+    """
+    await session.execute(
+        delete(UserItem).where(
+            UserItem.user_id == user_id, UserItem.source == "subscription"
+        )
+    )
+    subscriber_products = select(Product.id).where(Product.is_subscriber_only.is_(True))
+    await session.execute(
+        update(UserItem)
+        .where(
+            UserItem.user_id == user_id,
+            UserItem.equipped_slot.is_not(None),
+            UserItem.product_id.in_(subscriber_products),
+        )
+        .values(equipped_slot=None, equipped_at=None)
     )
 
 
@@ -141,7 +187,8 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
                     그 외(UNSUBSCRIBE 등) → 자동갱신만 off(만료 전까지 혜택 유지)
     - EXPIRATION → expired+장착해제 / BILLING_ISSUE → grace_period
     - NON_RENEWING_PURCHASE → 건초 IAP 지급(transaction_id 멱등)
-    멱등: original_transaction_id 행잠금 + (user,plan) 증정 UNIQUE + clawback ref_id 원장.
+    멱등: original_transaction_id 행잠금 + (user,plan) 증정 UNIQUE + clawback은 grants.revoked_at
+    + 결제 기록은 payments.store_transaction_id UNIQUE.
     ⚠️ app_user_id = 우리 Supabase user_id 전제(클라가 RC logIn을 우리 uid로 해야 함).
     """
     etype = event.get("type")
@@ -167,7 +214,9 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
         if sub is not None and sub.status == "revoked":
             return  # 환불/취소는 종단 — 되살리지 않음
         if sub is None:
+            # id 명시 생성 — payments.subscription_id가 flush 전에 참조(컬럼 default는 flush 시점)
             sub = Subscription(
+                id=uuid.uuid4(),
                 user_id=uid, plan=plan, status="active", original_transaction_id=original_tx,
                 latest_transaction_id=str(event.get("transaction_id")), expires_at=expires,
                 auto_renew_enabled=True, environment=event.get("environment"),
@@ -177,6 +226,8 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
             sub.plan, sub.status, sub.expires_at = plan, "active", expires
             sub.auto_renew_enabled = True
             sub.latest_transaction_id = str(event.get("transaction_id"))
+        # 결제 기록(구매·갱신) — 매출은 payments 단일 소스
+        await _record_subscription_payment(session, sub, event)
         # 증정 = (user, plan) 최초 1회
         if not await _grant_exists(session, uid, plan):
             tx = await hay_ledger.apply(session, uid, "subscription_grant", HAY_GRANT[plan])
@@ -190,13 +241,8 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
             if sub.status != "revoked":
                 sub.status = "revoked"
                 await _unequip_subscriber_only(session, sub.user_id)
-            if not await _clawback_done(session, sub.user_id, original_tx):
-                refunded_plan = _PLAN_BY_PRODUCT.get(product_id, sub.plan)
-                profile = await _load_profile(session, str(sub.user_id))
-                clawback = min(HAY_GRANT.get(refunded_plan, 0), profile.hay_balance)
-                await hay_ledger.apply(
-                    session, sub.user_id, "refund_revoke", -clawback, ref_id=original_tx
-                )
+            refunded_plan = _PLAN_BY_PRODUCT.get(product_id, sub.plan)
+            await _revoke_grant_with_clawback(session, sub, refunded_plan)
         else:  # 자동갱신 해제 — 만료 전까지 혜택 유지
             sub.auto_renew_enabled = False
 
@@ -212,7 +258,7 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
             sub.status = "grace_period"  # 유예 — 혜택 유지
 
     elif etype == "NON_RENEWING_PURCHASE":  # 건초 IAP(소비성)
-        await iap.grant_pack(session, uid, product_id, str(event.get("transaction_id") or ""))
+        await payment.grant_pack(session, uid, product_id, str(event.get("transaction_id") or ""))
 
     else:
         # SUBSCRIPTION_PAUSED(만료 시 처리)·TRANSFER·TEST·paywall 등은 무시.

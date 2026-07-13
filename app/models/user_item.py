@@ -1,6 +1,6 @@
 """user_items — 보유 + 장착 상태(ERD §4.8).
 
-equipped_slot NULL = 미장착. 슬롯당 1개 장착은 부분 UNIQUE, 슬롯 일치는 복합 FK가 DB 강제.
+equipped_slot NULL = 선택 슬롯 미장착. theme은 항상 1개이며 슬롯당 1개는 부분 UNIQUE가 강제.
 source: purchase(주문 구매) | subscription(구독 전용 장착용 — 소유 아님, 인벤토리 미노출)
       | admin_grant(운영 무상 지급).
 """
@@ -30,6 +30,6 @@ class UserItem(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     source: Mapped[str] = mapped_column(String, default="purchase", server_default=text("'purchase'"))
     order_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    equipped_slot: Mapped[str | None] = mapped_column(String, nullable=True)  # NULL = 미장착
+    equipped_slot: Mapped[str | None] = mapped_column(String, nullable=True)  # theme|head|neck|body
     equipped_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     acquired_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)

@@ -10,15 +10,13 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.payment import Payment
-from app.models.product import Product
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
-from app.models.user_item import UserItem
 from app.services import hay_ledger, payment
 from app.services.account import _load_profile
 from app.services.entitlement import _parse_dt
@@ -32,7 +30,7 @@ _PLANS = [
     {"product_id": "app.moly.sub.monthly", "period": "monthly", "hay_grant": 1000},
     {"product_id": "app.moly.sub.yearly", "period": "yearly", "hay_grant": 4000},
 ]
-_BENEFITS = ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "구독 전용 배경", "건초 증정"]
+_BENEFITS = ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "건초 증정"]
 _ACTIVE = ("active", "grace_period")  # 혜택 유지되는 구독 상태
 
 
@@ -148,29 +146,6 @@ async def _record_subscription_payment(session: AsyncSession, sub, event: dict) 
     )
 
 
-async def _unequip_subscriber_only(session: AsyncSession, user_id) -> None:
-    """구독 전용 장착 해제 → 기본 복귀(ERD §4.9 승계). 만료/환불 시.
-
-    source=subscription 행은 존재 이유가 장착뿐 → 삭제. (엣지) 무상 지급 등으로
-    소유한 구독 전용 상품이 장착 중이면 장착만 해제(소유 유지).
-    """
-    await session.execute(
-        delete(UserItem).where(
-            UserItem.user_id == user_id, UserItem.source == "subscription"
-        )
-    )
-    subscriber_products = select(Product.id).where(Product.is_subscriber_only.is_(True))
-    await session.execute(
-        update(UserItem)
-        .where(
-            UserItem.user_id == user_id,
-            UserItem.equipped_slot.is_not(None),
-            UserItem.product_id.in_(subscriber_products),
-        )
-        .values(equipped_slot=None, equipped_at=None)
-    )
-
-
 # RevenueCat을 구독 진실 소스로 쓸 때 상태를 active로 갱신하는 이벤트(문서 기준).
 _RC_ACTIVE = frozenset(
     {"INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION", "PRODUCT_CHANGE",
@@ -183,9 +158,9 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
 
     매핑(RC 공식 이벤트 기준):
     - 활성계열(구매·갱신·해지취소·상품변경·연장·환불복구) → active + 만료 갱신, 최초1회 증정
-    - CANCELLATION: cancel_reason=CUSTOMER_SUPPORT(환불) → revoked+장착해제+증정 회수 /
+    - CANCELLATION: cancel_reason=CUSTOMER_SUPPORT(환불) → revoked+증정 회수 /
                     그 외(UNSUBSCRIBE 등) → 자동갱신만 off(만료 전까지 혜택 유지)
-    - EXPIRATION → expired+장착해제 / BILLING_ISSUE → grace_period
+    - EXPIRATION → expired / BILLING_ISSUE → grace_period
     - NON_RENEWING_PURCHASE → 건초 IAP 지급(transaction_id 멱등)
     멱등: original_transaction_id 행잠금 + (user,plan) 증정 UNIQUE + clawback은 grants.revoked_at
     + 결제 기록은 payments.store_transaction_id UNIQUE.
@@ -240,7 +215,6 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
         if event.get("cancel_reason") == "CUSTOMER_SUPPORT":  # 환불
             if sub.status != "revoked":
                 sub.status = "revoked"
-                await _unequip_subscriber_only(session, sub.user_id)
             refunded_plan = _PLAN_BY_PRODUCT.get(product_id, sub.plan)
             await _revoke_grant_with_clawback(session, sub, refunded_plan)
         else:  # 자동갱신 해제 — 만료 전까지 혜택 유지
@@ -250,7 +224,6 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
         sub = await _by_original_tx(session, original_tx, lock=True)
         if sub is not None and sub.status != "revoked":
             sub.status = "expired"
-            await _unequip_subscriber_only(session, sub.user_id)
 
     elif etype == "BILLING_ISSUE":
         sub = await _by_original_tx(session, original_tx, lock=True)

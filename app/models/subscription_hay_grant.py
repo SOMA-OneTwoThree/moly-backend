@@ -24,3 +24,6 @@ class SubscriptionHayGrant(Base):
     granted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=True
     )
+    # 환불 회수 멱등 표식 — revoked_at NOT NULL = 회수 완료(웹훅 재수신에도 이중 회수 불가).
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    clawback_hay_transaction_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)

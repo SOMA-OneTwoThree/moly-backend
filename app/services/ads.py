@@ -67,7 +67,8 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
     stats.ad_reward_count += 1
     row.granted = True
     row.ssv_transaction_id = transaction_id
-    await hay_ledger.apply(session, row.user_id, "ad_reward", AD_REWARD, ref_id=transaction_id)
+    # 원장 연결 불필요 — SSV 멱등·추적은 reward_ad_sessions(ssv_transaction_id UNIQUE)가 담당
+    await hay_ledger.apply(session, row.user_id, "ad_reward", AD_REWARD)
     try:
         await session.commit()
     except IntegrityError:

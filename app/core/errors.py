@@ -115,10 +115,6 @@ def daily_limit_reached() -> AppError:
     return AppError("DAILY_LIMIT_REACHED", 403, "오늘의 대화 한도를 모두 사용했어요.")
 
 
-def subscriber_only() -> AppError:
-    return AppError("SUBSCRIBER_ONLY", 403, "구독 전용 기능이에요.")
-
-
 def insufficient_hay(required: int, balance: int) -> AppError:
     return AppError(
         "INSUFFICIENT_HAY", 402, "건초가 부족합니다.", {"required": required, "balance": balance}

@@ -41,9 +41,11 @@ CREATE TABLE public.products (
   name                 text    NOT NULL,
   description          text,
   -- cosmetic 전용
-  slot                 text    CHECK (slot IN ('background','head','neck','body')),
-  price_hay            integer,                 -- NULL = 비매품(구독 전용)
+  public_id            text    UNIQUE,           -- API 노출용 안정 문자열 ID
+  slot                 text    CHECK (slot IN ('theme','head','neck','body')),
+  price_hay            integer,                 -- NULL = 구매 불가(기본 지급 등)
   is_subscriber_only   boolean NOT NULL DEFAULT false,
+  asset_version        integer,
   assets               jsonb,
   -- hay_pack 전용
   hay_amount           integer,
@@ -55,16 +57,22 @@ CREATE TABLE public.products (
   CONSTRAINT products_hay_pack_ck CHECK (
     product_type <> 'hay_pack' OR (
       hay_amount IS NOT NULL AND app_store_product_id IS NOT NULL
-      AND slot IS NULL AND price_hay IS NULL AND assets IS NULL
+      AND public_id IS NULL AND slot IS NULL AND price_hay IS NULL
+      AND asset_version IS NULL AND assets IS NULL
       AND is_subscriber_only = false
     )
   ),
   CONSTRAINT products_cosmetic_ck CHECK (
     product_type <> 'cosmetic' OR (
-      slot IS NOT NULL AND assets IS NOT NULL
+      public_id IS NOT NULL AND slot IS NOT NULL
       AND hay_amount IS NULL AND app_store_product_id IS NULL AND price_krw IS NULL
-      -- ERD §4.7 승계: 구독 전용 ↔ 비매품(price NULL) 상호 강제
-      AND is_subscriber_only = (price_hay IS NULL)
+      -- 구독 전용 꾸미기는 폐지 — 카탈로그에 노출되면서 구매만 막히는 상품을 만들 수 없다.
+      AND is_subscriber_only = false
+      -- 최종 에셋이 없는 상품은 inactive로만 준비할 수 있다.
+      AND (
+        is_active = false
+        OR (asset_version IS NOT NULL AND asset_version >= 1 AND assets IS NOT NULL)
+      )
     )
   ),
   -- user_items 복합 FK (product_id, equipped_slot) → (id, slot) 대상
@@ -223,7 +231,7 @@ CREATE INDEX payments_subscription_idx ON public.payments (subscription_id);
 
 -- ─────────────────────────────────────────────────────────────
 -- 5. 인벤토리 + 장착 — user_items (보유 + 장착 상태 통합)
---    equipped_slot NULL = 미장착. source='subscription' = 구독 전용 장착용 행(소유 아님, 인벤토리 API 미노출).
+--    equipped_slot NULL = 미장착. theme은 사용자마다 항상 1개 장착한다.
 -- ─────────────────────────────────────────────────────────────
 CREATE TABLE public.user_items (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -231,7 +239,7 @@ CREATE TABLE public.user_items (
   product_id    uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   source        text NOT NULL DEFAULT 'purchase' CHECK (source IN ('purchase','subscription','admin_grant')),
   order_id      uuid REFERENCES public.orders(id) ON DELETE SET NULL,
-  equipped_slot text CHECK (equipped_slot IN ('background','head','neck','body')),
+  equipped_slot text CHECK (equipped_slot IN ('theme','head','neck','body')),
   equipped_at   timestamptz,
   acquired_at   timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT user_items_user_product_uq UNIQUE (user_id, product_id),

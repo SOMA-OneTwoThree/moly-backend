@@ -92,6 +92,17 @@ async def main():
         check("가입 트리거로 profiles 자동 생성",
               await db.fetchval("select count(*) from profiles where id=$1", uuid.UUID(uid)) == 1,
               f"uid={uid[:8]}")
+        defaults = await db.fetch("""
+            select p.public_id, ui.equipped_slot
+            from user_items ui join products p on p.id=ui.product_id
+            where ui.user_id=$1 order by p.public_id
+        """, uuid.UUID(uid))
+        check("가입 트리거 기본 꾸미기 3종 지급",
+              {r["public_id"] for r in defaults} ==
+              {"theme_default", "theme_workout", "head_sunglasses"})
+        check("가입 트리거 theme_default만 초기 장착",
+              [(r["public_id"], r["equipped_slot"]) for r in defaults if r["equipped_slot"]] ==
+              [("theme_default", "theme")])
 
         transport = httpx.ASGITransport(app=app)
         c = httpx.AsyncClient(transport=transport, base_url="http://itest",
@@ -181,17 +192,63 @@ async def run_flow(c, ext, db, uid, token):
     check("soft delete — deleted_at 세팅",
           (await db.fetchval("select deleted_at from routines where id=$1", uuid.UUID(rid[1]))) is not None)
 
-    # ── 상점(카탈로그 비어있음) ──
+    # ── 상점·인벤토리 appearance v2 ──
     print("\n[상점·인벤토리]")
     r = await c.get("/shop/products")
-    check("GET /shop/products 200(빈 카탈로그)", r.status_code == 200)
+    catalog = r.json()
+    check("GET /shop/products themes/items", r.status_code == 200 and
+          set(catalog) == {"themes", "items"} and "backgrounds" not in catalog)
+    catalog_products = catalog.get("themes", []) + catalog.get("items", [])
+    by_id = {p["id"]: p for p in catalog_products}
+    check("기본 지급 3종 owned",
+          all(by_id.get(pid, {}).get("owned") is True for pid in
+              ("theme_default", "theme_workout", "head_sunglasses")))
+    check("theme_default만 초기 equipped",
+          by_id.get("theme_default", {}).get("equipped") is True and
+          by_id.get("theme_workout", {}).get("equipped") is False and
+          by_id.get("head_sunglasses", {}).get("equipped") is False)
     r = await c.get("/inventory")
-    check("GET /inventory 200(빈)", r.status_code == 200)
+    inventory = r.json().get("data", [])
+    check("GET /inventory 기본 지급 전체 DTO", r.status_code == 200 and
+          {p.get("id") for p in inventory} ==
+          {"theme_default", "theme_workout", "head_sunglasses"} and
+          all(p.get("owned") is True and "assets" in p for p in inventory))
     r = await c.get("/inventory/equipment")
-    check("GET /inventory/equipment 200(4슬롯 null)", r.status_code == 200)
-    r = await c.post("/shop/purchases", json={"product_id": str(uuid.uuid4())})
-    check("없는 상품 구매 → 4xx",
-          r.status_code >= 400 and r.status_code < 500, str(r.status_code))
+    check("GET /inventory/equipment non-null theme", r.status_code == 200 and r.json() == {
+        "theme_id": "theme_default", "head_id": None, "neck_id": None, "body_id": None,
+    })
+    r = await c.put("/inventory/equipment", json={
+        "theme_id": "theme_workout", "head_id": "head_sunglasses",
+        "neck_id": None, "body_id": None,
+    })
+    expected_equipment = {
+        "theme_id": "theme_workout", "head_id": "head_sunglasses",
+        "neck_id": None, "body_id": None,
+    }
+    check("PUT equipment 전체 교체", r.status_code == 200 and r.json() == expected_equipment)
+    r = await c.get("/shop/products")
+    equipped = {
+        p["id"] for p in r.json().get("themes", []) + r.json().get("items", [])
+        if p.get("equipped")
+    }
+    check("카탈로그 equipped와 equipment 일치",
+          equipped == {"theme_workout", "head_sunglasses"})
+    r = await c.post("/shop/purchases", json={"product_id": "theme_default"})
+    check("기본 지급 재구매 → 409 ALREADY_OWNED",
+          r.status_code == 409 and r.json().get("error", {}).get("code") == "ALREADY_OWNED")
+
+    # 미보유 상품 구매는 order_id를 남기고 현재 장착 상태를 바꾸지 않는다.
+    await db.execute("update profiles set hay_balance=2000 where id=$1", uidU)
+    r = await c.post("/shop/purchases", json={"product_id": "head_mandarin"})
+    purchase = r.json()
+    check("꾸미기 구매 order_id 반환", r.status_code == 200 and
+          purchase.get("product_id") == "head_mandarin" and purchase.get("order_id"))
+    if purchase.get("order_id"):
+        check("order_id 서버 주문 기록 연결",
+              await db.fetchval("select count(*) from orders where id=$1 and user_id=$2",
+                                uuid.UUID(purchase["order_id"]), uidU) == 1)
+    r = await c.get("/inventory/equipment")
+    check("구매 후 자동 장착하지 않음", r.status_code == 200 and r.json() == expected_equipment)
 
     # ── 일기(비어있음) ──
     print("\n[일기]")

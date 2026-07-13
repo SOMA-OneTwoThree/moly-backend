@@ -1,28 +1,25 @@
-"""상점·꾸미기 — 상품·구매(건초 차감)·인벤토리·4슬롯 장착. 서버 권위.
-
-- 카탈로그 = products(cosmetic), 보유+장착 상태 = user_items.
-- 구매: Order(HAY,paid) + OrderItem(가격 스냅샷) + 원장(order_id) + UserItem(source=purchase)
-- 장착: equipped_slot 갱신(해제=NULL). 구독 전용은 source=subscription 행으로 장착(소유 아님).
-- 인벤토리: source!=subscription 행만(구매·무상지급).
-"""
+"""상점·꾸미기 — 문자열 공개 ID, 보유 기반 장착, 서버 권위 카탈로그."""
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
 from app.models.product import Product
+from app.models.profile import Profile
 from app.models.user_item import UserItem
-from app.services import gating, hay_ledger
+from app.schemas.shop import EquipmentResponse, ShopProduct
+from app.services import hay_ledger
 from app.services import order as order_service
 from app.services.account import _uid
 
-_SLOTS = ("background", "head", "neck", "body")
+_SLOTS = ("theme", "head", "neck", "body")
 
 
 async def _user_rows(session: AsyncSession, uid: uuid.UUID) -> list[UserItem]:
@@ -34,94 +31,178 @@ async def _user_rows(session: AsyncSession, uid: uuid.UUID) -> list[UserItem]:
 
 
 async def _owned_ids(session: AsyncSession, uid: uuid.UUID) -> set[uuid.UUID]:
-    """보유(구매·무상지급) 상품 id. source=subscription(구독 전용 장착용 행)은 소유가 아님."""
+    """구매·무상 지급 소유권. 구형 subscription 행은 소유권으로 인정하지 않는다."""
     return {r.product_id for r in await _user_rows(session, uid) if r.source != "subscription"}
 
 
-async def _equipped_map(session: AsyncSession, uid: uuid.UUID) -> dict[str, uuid.UUID]:
-    rows = await _user_rows(session, uid)
-    return {r.equipped_slot: r.product_id for r in rows if r.equipped_slot is not None}
+async def _products_by_ids(
+    session: AsyncSession, product_ids: set[uuid.UUID]
+) -> dict[uuid.UUID, Product]:
+    if not product_ids:
+        return {}
+    products = list(
+        (
+            await session.execute(
+                select(Product).where(
+                    Product.id.in_(product_ids),
+                    Product.product_type == "cosmetic",
+                    Product.is_active.is_(True),
+                )
+            )
+        ).scalars().all()
+    )
+    return {product.id: product for product in products}
+
+
+def _product_dto(product: Product, *, owned: bool, equipped: bool) -> dict[str, Any]:
+    """DB JSONB를 엄격한 공개 계약으로 검증한 뒤 JSON 직렬화한다."""
+    try:
+        dto = ShopProduct(
+            id=product.public_id,
+            name=product.name,
+            slot=product.slot,
+            price_hay=product.price_hay,
+            owned=owned,
+            equipped=equipped,
+            asset_version=product.asset_version,
+            assets=product.assets,
+        )
+    except ValidationError as exc:
+        raise errors.AppError(
+            "INTERNAL",
+            500,
+            "상품 에셋 구성이 올바르지 않습니다.",
+            {"product_id": product.public_id},
+        ) from exc
+    return dto.model_dump(mode="json")
 
 
 async def get_products(session: AsyncSession, user_id: str) -> dict[str, Any]:
-    g = await gating.resolve(session, user_id)
-    unlocked = g.entitlement["subscriber_theme_unlocked"]
-    uid = g.profile.id
-    items = list(
+    uid = _uid(user_id)
+    products = list(
         (
             await session.execute(
                 select(Product)
                 .where(Product.product_type == "cosmetic", Product.is_active.is_(True))
-                .order_by(Product.sort_order)
+                .order_by(Product.sort_order, Product.public_id)
             )
         ).scalars().all()
     )
     rows = await _user_rows(session, uid)
-    owned = {r.product_id for r in rows if r.source != "subscription"}
-    equipped = {r.product_id for r in rows if r.equipped_slot is not None}
-    backgrounds, other = [], []
-    for it in items:
-        dto: dict[str, Any] = {
-            "id": str(it.id), "name": it.name, "slot": it.slot,
-            "price_hay": it.price_hay, "is_subscriber_only": it.is_subscriber_only,
-            "equipped": it.id in equipped, "assets": it.assets,
-        }
-        if it.is_subscriber_only:
-            dto["unlocked"] = unlocked
-        else:
-            dto["owned"] = it.id in owned
-        (backgrounds if it.slot == "background" else other).append(dto)
-    return {"backgrounds": backgrounds, "items": other}
+    owned = {row.product_id for row in rows if row.source != "subscription"}
+    equipped = {row.product_id for row in rows if row.equipped_slot is not None}
+    themes: list[dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
+    for product in products:
+        dto = _product_dto(product, owned=product.id in owned, equipped=product.id in equipped)
+        (themes if product.slot == "theme" else items).append(dto)
+    return {"themes": themes, "items": items}
 
 
-async def _load_item(session: AsyncSession, item_id: str) -> Product:
-    try:
-        iid = uuid.UUID(item_id)
-    except ValueError as e:
-        raise errors.AppError("NOT_FOUND", 404, "상품을 찾을 수 없어요.") from e
-    it = await session.get(Product, iid)
-    if it is None or not it.is_active or it.product_type != "cosmetic":
+async def _load_item(session: AsyncSession, public_id: str) -> Product:
+    product = (
+        await session.execute(
+            select(Product).where(
+                Product.public_id == public_id,
+                Product.product_type == "cosmetic",
+                Product.is_active.is_(True),
+            )
+        )
+    ).scalars().first()
+    if product is None:
         raise errors.AppError("NOT_FOUND", 404, "상품을 찾을 수 없어요.")
-    return it
+    return product
+
+
+async def _load_equipment_item(session: AsyncSession, public_id: str) -> Product:
+    try:
+        return await _load_item(session, public_id)
+    except errors.AppError as exc:
+        if exc.code == "NOT_FOUND":
+            raise errors.validation(
+                "존재하지 않는 상품이에요.", {"product_id": public_id}
+            ) from exc
+        raise
 
 
 async def purchase(session: AsyncSession, user_id: str, product_id: str) -> dict[str, Any]:
     uid = _uid(user_id)
-    it = await _load_item(session, product_id)
-    if it.is_subscriber_only or it.price_hay is None:
-        raise errors.subscriber_only()  # 구독 전용 = 구매 대상 아님(잠금해제식)
-    if it.id in await _owned_ids(session, uid):
+    product = await _load_item(session, product_id)
+    # 기본 지급 비매품도 재구매는 계약상 ALREADY_OWNED가 우선이다.
+    if product.id in await _owned_ids(session, uid):
         raise errors.already_owned()
-    ord_ = order_service.create_paid_order(
-        session, uid, currency="HAY", product=it, unit_price=it.price_hay
+    if product.price_hay is None:
+        raise errors.validation("구매할 수 없는 상품이에요.", {"product_id": product.public_id})
+    order = order_service.create_paid_order(
+        session, uid, currency="HAY", product=product, unit_price=product.price_hay
     )
-    tx = await hay_ledger.apply(session, uid, "shop_purchase", -it.price_hay, order_id=ord_.id)
-    session.add(UserItem(user_id=uid, product_id=it.id, source="purchase", order_id=ord_.id))
+    tx = await hay_ledger.apply(
+        session, uid, "shop_purchase", -product.price_hay, order_id=order.id
+    )
+    session.add(
+        UserItem(user_id=uid, product_id=product.id, source="purchase", order_id=order.id)
+    )
     try:
         await session.commit()
-    except IntegrityError as e:
-        # 동시 구매 레이스 — (user, product) UNIQUE 충돌. 차감 롤백 후 멱등 409(이중 차감 없음).
+    except IntegrityError as exc:
         await session.rollback()
-        raise errors.already_owned() from e
+        raise errors.already_owned() from exc
     return {
-        "product_id": str(it.id), "order_id": str(ord_.id),
-        "price_hay": it.price_hay, "balance_after": tx.balance_after,
+        "product_id": product.public_id,
+        "order_id": str(order.id),
+        "price_hay": product.price_hay,
+        "balance_after": tx.balance_after,
     }
 
 
 async def get_inventory(session: AsyncSession, user_id: str) -> dict[str, Any]:
     uid = _uid(user_id)
-    return {"data": [str(i) for i in await _owned_ids(session, uid)]}
+    rows = await _user_rows(session, uid)
+    owned_rows = [row for row in rows if row.source != "subscription"]
+    products = await _products_by_ids(session, {row.product_id for row in owned_rows})
+    equipped = {row.product_id for row in rows if row.equipped_slot is not None}
+    ordered = sorted(products.values(), key=lambda product: (product.sort_order, product.public_id))
+    return {
+        "data": [
+            _product_dto(product, owned=True, equipped=product.id in equipped)
+            for product in ordered
+        ]
+    }
+
+
+def _equipment_dto(rows: list[UserItem], products: dict[uuid.UUID, Product]) -> dict[str, Any]:
+    by_slot: dict[str, str] = {}
+    for row in rows:
+        if row.equipped_slot is None:
+            continue
+        product = products.get(row.product_id)
+        if product is None or product.public_id is None:
+            raise errors.AppError("INTERNAL", 500, "장착 상품이 활성 카탈로그에 없습니다.")
+        by_slot[row.equipped_slot] = product.public_id
+    if "theme" not in by_slot:
+        raise errors.AppError("INTERNAL", 500, "기본 테마 장착 상태가 없습니다.")
+    return EquipmentResponse(
+        theme_id=by_slot["theme"],
+        head_id=by_slot.get("head"),
+        neck_id=by_slot.get("neck"),
+        body_id=by_slot.get("body"),
+    ).model_dump(mode="json")
 
 
 async def get_equipment(session: AsyncSession, user_id: str) -> dict[str, Any]:
     uid = _uid(user_id)
-    eq = await _equipped_map(session, uid)
-    return {f"{slot}_id": (str(eq[slot]) if slot in eq else None) for slot in _SLOTS}
+    rows = await _user_rows(session, uid)
+    equipped_ids = {row.product_id for row in rows if row.equipped_slot is not None}
+    return _equipment_dto(rows, await _products_by_ids(session, equipped_ids))
+
+
+async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
+    profile = await session.get(Profile, uid, with_for_update=True)
+    if profile is None:
+        raise errors.AppError("NOT_FOUND", 404, "프로필을 찾을 수 없어요.")
 
 
 async def _unequip_row(session: AsyncSession, row: UserItem) -> None:
-    """장착 해제. 구독 전용 장착용 행(source=subscription)은 존재 이유가 장착뿐 → 행 삭제."""
     if row.source == "subscription":
         await session.delete(row)
     else:
@@ -130,50 +211,46 @@ async def _unequip_row(session: AsyncSession, row: UserItem) -> None:
 
 
 async def put_equipment(session: AsyncSession, user_id: str, req) -> dict[str, Any]:
-    g = await gating.resolve(session, user_id)
-    uid = g.profile.id
-    unlocked = g.entitlement["subscriber_theme_unlocked"]
+    uid = _uid(user_id)
+    await _lock_user(session, uid)  # 사용자별 PUT 직렬화
     rows = await _user_rows(session, uid)
-    by_product = {r.product_id: r for r in rows}
-    by_slot = {r.equipped_slot: r for r in rows if r.equipped_slot is not None}
+    by_product = {row.product_id: row for row in rows}
+    by_slot = {row.equipped_slot: row for row in rows if row.equipped_slot is not None}
     now = datetime.now(timezone.utc)
-    # 검증 선행 — 하나라도 실패하면 아무 변경 없이 에러(전체 교체 원자성)
+
     targets: list[tuple[str, Product | None]] = []
     for slot in _SLOTS:
-        item_id = getattr(req, f"{slot}_id")
-        if item_id is None:
+        public_id = getattr(req, f"{slot}_id")
+        if public_id is None:
             targets.append((slot, None))
             continue
-        it = await _load_item(session, item_id)
-        if it.slot != slot:
+        product = await _load_equipment_item(session, public_id)
+        if product.slot != slot:
             raise errors.validation("슬롯이 맞지 않아요.", {"slot": slot})
-        row = by_product.get(it.id)
-        owned = row is not None and row.source != "subscription"
-        if not (owned or (it.is_subscriber_only and unlocked)):
+        row = by_product.get(product.id)
+        if row is None or row.source == "subscription":
             raise errors.not_owned()
-        targets.append((slot, it))
-    # 1차 해제 → flush → 2차 장착. 슬롯당 1장착 부분 UNIQUE는 statement 단위 평가라
-    # "해제·장착"이 한 flush에 섞이면 순서에 따라 위반 — 슬롯을 먼저 비워서 DB에 반영한다.
+        targets.append((slot, product))
+
     to_equip: list[tuple[str, Product]] = []
-    for slot, it in targets:
+    for slot, product in targets:
         current = by_slot.get(slot)
-        if it is not None and current is not None and current.product_id == it.id:
-            continue  # 이미 그 슬롯에 장착 중 — no-op
+        if product is not None and current is not None and current.product_id == product.id:
+            continue
         if current is not None:
-            await _unequip_row(session, current)  # 해제 요청 또는 같은 슬롯 교체(기존 자동 해제)
-        if it is not None:
-            to_equip.append((slot, it))
+            await _unequip_row(session, current)
+        if product is not None:
+            to_equip.append((slot, product))
     await session.flush()
-    for slot, it in to_equip:
-        row = by_product.get(it.id)
-        if row is not None:
-            row.equipped_slot, row.equipped_at = slot, now
-        else:  # 구독 전용(소유 행 없음) — 장착용 행 생성
-            session.add(
-                UserItem(
-                    user_id=uid, product_id=it.id, source="subscription",
-                    equipped_slot=slot, equipped_at=now,
-                )
-            )
+    for slot, product in to_equip:
+        row = by_product[product.id]
+        row.equipped_slot = slot
+        row.equipped_at = now
     await session.commit()
-    return await get_equipment(session, user_id)
+
+    return EquipmentResponse(
+        theme_id=req.theme_id,
+        head_id=req.head_id,
+        neck_id=req.neck_id,
+        body_id=req.body_id,
+    ).model_dump(mode="json")

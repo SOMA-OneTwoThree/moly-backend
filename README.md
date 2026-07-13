@@ -44,6 +44,16 @@ uv run pytest                             # 테스트
 uv run ruff check .                       # 린트
 ```
 
+꾸미기 v2 최종 에셋은 운영 반영 전에 별도 검증한다. 실제 매니페스트는 API 상품 필드
+(`id/name/slot/price_hay/asset_version/assets`)의 `products` 배열이며 저장소에 임시 URL을
+커밋하지 않는다.
+
+```bash
+uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
+```
+
+DB 전환 순서와 중단 조건은 `db/migrations/README.md`를 따른다.
+
 `.env` 필수값: `SUPABASE_URL`·`SUPABASE_ANON_KEY`·`SUPABASE_SERVICE_ROLE_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`(mem0). 선택: `FCM_*`(푸시 — 키 없이 ADC/WIF 지원), `APP_STORE_*`(구독·IAP 실검증). 값이 없으면 해당 기능은 안전하게 비활성(no-op/거부)된다.
 
 ### API 손으로 테스트 (Swagger)

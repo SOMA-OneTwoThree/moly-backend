@@ -120,16 +120,12 @@ async def test_rc_cancellation_refund_clawback(monkeypatch):
     async def _lp(session, user_id):
         return SimpleNamespace(id=UID_UUID, hay_balance=1000)
 
-    async def _uneq(session, user_id):
-        pass
-
     async def _apply(session, uid, t, amt, **kw):
         clawed["amt"] = amt
         return SimpleNamespace(id=7)
 
     monkeypatch.setattr(subscription, "_by_original_tx", _by)
     monkeypatch.setattr(subscription, "_load_profile", _lp)
-    monkeypatch.setattr(subscription, "_unequip_subscriber_only", _uneq)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     # exec 1회차 = 증정 이력(grant) 조회 — revoked_at NULL(미회수)
     await subscription.handle_revenuecat_event(
@@ -168,14 +164,10 @@ async def test_rc_refund_no_grant_no_clawback(monkeypatch):
     async def _by(session, otx, lock=False):
         return sub
 
-    async def _uneq(session, user_id):
-        pass
-
     async def _apply(*a, **k):
         raise AssertionError("증정 없이 회수하면 안 됨")
 
     monkeypatch.setattr(subscription, "_by_original_tx", _by)
-    monkeypatch.setattr(subscription, "_unequip_subscriber_only", _uneq)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     await subscription.handle_revenuecat_event(
         FakeSession(exec_results=[[]]),  # grant 조회 결과 없음
@@ -195,15 +187,11 @@ async def test_rc_refund_zero_balance_marks_revoked_without_ledger(monkeypatch):
     async def _lp(session, user_id):
         return SimpleNamespace(id=UID_UUID, hay_balance=0)
 
-    async def _uneq(session, user_id):
-        pass
-
     async def _apply(*a, **k):
         raise AssertionError("잔액 0인데 원장 기록하면 안 됨")
 
     monkeypatch.setattr(subscription, "_by_original_tx", _by)
     monkeypatch.setattr(subscription, "_load_profile", _lp)
-    monkeypatch.setattr(subscription, "_unequip_subscriber_only", _uneq)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     await subscription.handle_revenuecat_event(
         FakeSession(exec_results=[[grant]]),
@@ -225,20 +213,15 @@ async def test_rc_cancellation_unsubscribe_only_autorenew_off(monkeypatch):
     assert sub.auto_renew_enabled is False and sub.status == "active"  # 만료 전까지 혜택 유지
 
 
-async def test_rc_expiration_unequips(monkeypatch):
+async def test_rc_expiration_does_not_mutate_owned_appearance(monkeypatch):
     sub = SimpleNamespace(user_id=UID_UUID, plan="monthly", status="active")
-    unequipped = {}
 
     async def _by(session, otx, lock=False):
         return sub
 
-    async def _uneq(session, user_id):
-        unequipped["done"] = True
-
     monkeypatch.setattr(subscription, "_by_original_tx", _by)
-    monkeypatch.setattr(subscription, "_unequip_subscriber_only", _uneq)
     await subscription.handle_revenuecat_event(FakeSession(), _rc_event(type="EXPIRATION"))
-    assert sub.status == "expired" and unequipped.get("done")
+    assert sub.status == "expired"
 
 
 async def test_rc_billing_issue_grace(monkeypatch):

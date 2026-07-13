@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from app.core.db import get_session
 from app.core.errors import AppError
 from app.main import app
+from app.schemas.shop import EquipmentPutRequest, ShopProduct
 from app.services import economy, hay_ledger, review, routine, shop
 
 UID = "11111111-1111-1111-1111-111111111111"
@@ -44,8 +45,10 @@ class FakeSession:
         self.added = []
         self.deleted = []
         self.committed = False
+        self.get_calls = []
 
     async def get(self, model, key, **kw):
+        self.get_calls.append((model, key, kw))
         return self.get_obj
 
     async def execute(self, stmt):
@@ -197,24 +200,62 @@ async def test_routine_update_mode_switch(monkeypatch):
 
 # --- 상점 구매 ---
 def _item(**over):
-    base = dict(id=uuid.uuid4(), slot="head", name="모자", price_hay=1000,
-               is_subscriber_only=False, is_active=True, assets={})
+    public_id = over.pop("public_id", f"head_{uuid.uuid4().hex[:8]}")
+    base = dict(
+        id=uuid.uuid4(), public_id=public_id, slot="head", name="모자", price_hay=1000,
+        is_subscriber_only=False, is_active=True, asset_version=1, sort_order=1,
+        assets={
+            "thumbnail_url": f"https://cdn.example.com/{public_id}/v1/thumb.png",
+            "detail_url": f"https://cdn.example.com/{public_id}/v1/detail.png",
+            "upright_layer_url": f"https://cdn.example.com/{public_id}/v1/upright.png",
+        },
+    )
     base.update(over)
     return SimpleNamespace(**base)
 
 
-async def test_purchase_subscriber_only_rejected(monkeypatch):
+def _theme(**over):
+    public_id = over.pop("public_id", "theme_default")
+    base = dict(
+        id=uuid.uuid4(), public_id=public_id, slot="theme", name="집", price_hay=None,
+        is_subscriber_only=False, is_active=True, asset_version=1, sort_order=1,
+        assets={
+            "thumbnail_url": f"https://cdn.example.com/{public_id}/v1/thumb.png",
+            "detail_url": f"https://cdn.example.com/{public_id}/v1/detail.png",
+            "scene": {
+                "canvas": {"width": 393, "height": 852},
+                "character_frame": {"x": 51, "y": 338.8, "width": 171, "height": 85.2},
+                "character_url": f"https://cdn.example.com/{public_id}/v1/character.png",
+                "layers": [{
+                    "id": "background",
+                    "frame": {"x": 0, "y": 0, "width": 393, "height": 852},
+                    "z_index": 0,
+                    "day_url": f"https://cdn.example.com/{public_id}/v1/background.png",
+                }],
+            },
+        },
+    )
+    base.update(over)
+    return SimpleNamespace(**base)
+
+
+async def test_purchase_non_purchasable_rejected(monkeypatch):
+    """price_hay NULL = 비매품(기본 지급). 미보유 상태에서도 구매 대상이 아니다."""
     async def _load(session, pid):
-        return _item(is_subscriber_only=True, price_hay=None)
+        return _item(price_hay=None)
+
+    async def _owned(session, uid):
+        return set()
 
     monkeypatch.setattr(shop, "_load_item", _load)
+    monkeypatch.setattr(shop, "_owned_ids", _owned)
     with pytest.raises(AppError) as e:
         await shop.purchase(FakeSession(), UID, "x")
-    assert e.value.code == "SUBSCRIBER_ONLY"
+    assert e.value.code == "VALIDATION"
 
 
 async def test_purchase_already_owned(monkeypatch):
-    it = _item()
+    it = _theme()
 
     async def _load(session, pid):
         return it
@@ -249,6 +290,7 @@ async def test_purchase_success(monkeypatch):
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     session = FakeSession()
     out = await shop.purchase(session, UID, "x")
+    assert out["product_id"] == it.public_id
     assert out["price_hay"] == 1000 and out["balance_after"] == 640
     # 주문 생성(HAY·paid) + 가격 스냅샷 + 원장·인벤토리가 주문으로 연결(DB_REFACTOR §B.2)
     order, order_item, user_item = session.added
@@ -263,16 +305,6 @@ async def test_purchase_success(monkeypatch):
 
 
 # --- 장착(user_items 통합 — DB_REFACTOR §B.4) ---
-def _gating(monkeypatch, unlocked=False):
-    async def _resolve(session, user_id):
-        return SimpleNamespace(
-            profile=SimpleNamespace(id=UID_UUID),
-            entitlement={"subscriber_theme_unlocked": unlocked},
-        )
-
-    monkeypatch.setattr(shop.gating, "resolve", _resolve)
-
-
 def _row(product_id, source="purchase", equipped_slot=None):
     return SimpleNamespace(product_id=product_id, source=source,
                            equipped_slot=equipped_slot, equipped_at=None)
@@ -280,85 +312,128 @@ def _row(product_id, source="purchase", equipped_slot=None):
 
 async def test_put_equipment_replace_unequips_previous(monkeypatch):
     """같은 슬롯 교체 = 기존 자동 해제(equipped_slot NULL) + 새 아이템 장착."""
-    a, b = _item(slot="head"), _item(slot="head")
+    theme, a, b = _theme(), _item(slot="head"), _item(slot="head")
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
     row_a, row_b = _row(a.id), _row(b.id, equipped_slot="head")
-    _gating(monkeypatch)
+    products = {product.public_id: product for product in (theme, a, b)}
 
     async def _load(session, pid):
-        return a
+        return products[pid]
 
     monkeypatch.setattr(shop, "_load_item", _load)
-    s = FakeSession(exec_results=[[row_a, row_b], [row_a, row_b]])
-    req = SimpleNamespace(background_id=None, head_id=str(a.id), neck_id=None, body_id=None)
+    s = FakeSession(get_obj=SimpleNamespace(id=UID_UUID), exec_results=[[theme_row, row_a, row_b]])
+    req = EquipmentPutRequest(
+        theme_id=theme.public_id, head_id=a.public_id, neck_id=None, body_id=None
+    )
     out = await shop.put_equipment(s, UID, req)
     assert row_b.equipped_slot is None  # 기존 장착 자동 해제(보유는 유지)
     assert row_a.equipped_slot == "head" and row_a.equipped_at is not None
-    assert out["head_id"] == str(a.id) and s.committed is True
-
-
-async def test_put_equipment_subscriber_only_creates_subscription_row(monkeypatch):
-    """구독 전용 장착 = 소유 행 없이 source=subscription 행 생성(인벤토리 미노출)."""
-    bg = _item(slot="background", is_subscriber_only=True, price_hay=None)
-    _gating(monkeypatch, unlocked=True)
-
-    async def _load(session, pid):
-        return bg
-
-    monkeypatch.setattr(shop, "_load_item", _load)
-    s = FakeSession(exec_results=[[], []])
-    req = SimpleNamespace(background_id=str(bg.id), head_id=None, neck_id=None, body_id=None)
-    await shop.put_equipment(s, UID, req)
-    added = s.added[0]
-    assert added.source == "subscription" and added.equipped_slot == "background"
-
-
-async def test_put_equipment_unequip_deletes_subscription_row(monkeypatch):
-    """구독 전용 해제 = 행 삭제(존재 이유가 장착뿐)."""
-    bg = _item(slot="background", is_subscriber_only=True, price_hay=None)
-    sub_row = _row(bg.id, source="subscription", equipped_slot="background")
-    _gating(monkeypatch, unlocked=True)
-    s = FakeSession(exec_results=[[sub_row], [sub_row]])
-    req = SimpleNamespace(background_id=None, head_id=None, neck_id=None, body_id=None)
-    await shop.put_equipment(s, UID, req)
-    assert s.deleted == [sub_row]
+    assert out["theme_id"] == "theme_default"
+    assert out["head_id"] == a.public_id and s.committed is True
+    assert s.get_calls[0][2] == {"with_for_update": True}
 
 
 async def test_put_equipment_not_owned_rejected(monkeypatch):
-    it = _item(slot="head")
-    _gating(monkeypatch)
+    theme, it = _theme(), _item(slot="head")
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
+    products = {product.public_id: product for product in (theme, it)}
 
     async def _load(session, pid):
-        return it
+        return products[pid]
 
     monkeypatch.setattr(shop, "_load_item", _load)
-    s = FakeSession(exec_results=[[]])
-    req = SimpleNamespace(background_id=None, head_id=str(it.id), neck_id=None, body_id=None)
+    s = FakeSession(get_obj=SimpleNamespace(id=UID_UUID), exec_results=[[theme_row]])
+    req = EquipmentPutRequest(
+        theme_id=theme.public_id, head_id=it.public_id, neck_id=None, body_id=None
+    )
     with pytest.raises(AppError) as e:
         await shop.put_equipment(s, UID, req)
     assert e.value.code == "NOT_OWNED"
 
 
 async def test_put_equipment_slot_mismatch_rejected(monkeypatch):
-    it = _item(slot="head")  # head 상품을 background 슬롯에
-    _gating(monkeypatch)
+    it = _item(slot="head")  # head 상품을 theme 슬롯에
 
     async def _load(session, pid):
         return it
 
     monkeypatch.setattr(shop, "_load_item", _load)
-    s = FakeSession(exec_results=[[]])
-    req = SimpleNamespace(background_id=str(it.id), head_id=None, neck_id=None, body_id=None)
+    s = FakeSession(get_obj=SimpleNamespace(id=UID_UUID), exec_results=[[_row(it.id)]])
+    req = EquipmentPutRequest(theme_id=it.public_id, head_id=None, neck_id=None, body_id=None)
     with pytest.raises(AppError) as e:
         await shop.put_equipment(s, UID, req)
     assert e.value.code == "VALIDATION"
 
 
 async def test_inventory_excludes_subscription_rows(monkeypatch):
-    """인벤토리 = 구매·무상지급만 — 구독 전용 장착용 행은 소유가 아님(기존 응답 의미 불변)."""
-    owned_id, sub_id = uuid.uuid4(), uuid.uuid4()
-    rows = [_row(owned_id), _row(sub_id, source="subscription", equipped_slot="background")]
-    out = await shop.get_inventory(FakeSession(exec_results=[rows]), UID)
-    assert out["data"] == [str(owned_id)]
+    """인벤토리는 구독 장착 행을 제외하고 카탈로그와 같은 전체 DTO를 반환한다."""
+    owned, subscription = _item(), _item()
+    rows = [_row(owned.id), _row(subscription.id, source="subscription", equipped_slot="head")]
+    out = await shop.get_inventory(FakeSession(exec_results=[rows, [owned]]), UID)
+    assert [item["id"] for item in out["data"]] == [owned.public_id]
+    assert out["data"][0]["owned"] is True
+    assert "upright_layer_url" in out["data"][0]["assets"]
+
+
+async def test_catalog_partitions_themes_and_items_with_consistent_flags():
+    theme, head = _theme(), _item()
+    rows = [
+        _row(theme.id, source="admin_grant", equipped_slot="theme"),
+        _row(head.id, source="admin_grant"),
+    ]
+    out = await shop.get_products(FakeSession(exec_results=[[theme, head], rows]), UID)
+    assert [item["id"] for item in out["themes"]] == ["theme_default"]
+    assert out["themes"][0]["owned"] is True and out["themes"][0]["equipped"] is True
+    assert out["items"][0]["owned"] is True and out["items"][0]["equipped"] is False
+    assert "backgrounds" not in out
+
+
+async def test_get_equipment_uses_public_ids_and_requires_theme():
+    theme, head = _theme(), _item(public_id="head_sunglasses")
+    rows = [
+        _row(theme.id, source="admin_grant", equipped_slot="theme"),
+        _row(head.id, source="admin_grant", equipped_slot="head"),
+    ]
+    out = await shop.get_equipment(FakeSession(exec_results=[rows, [theme, head]]), UID)
+    assert out == {
+        "theme_id": "theme_default",
+        "head_id": "head_sunglasses",
+        "neck_id": None,
+        "body_id": None,
+    }
+
+    with pytest.raises(AppError) as exc:
+        await shop.get_equipment(FakeSession(exec_results=[[], []]), UID)
+    assert exc.value.code == "INTERNAL"
+
+
+def test_equipment_request_requires_non_null_theme_and_all_keys():
+    with pytest.raises(ValueError):
+        EquipmentPutRequest.model_validate(
+            {"theme_id": None, "head_id": None, "neck_id": None, "body_id": None}
+        )
+    with pytest.raises(ValueError):
+        EquipmentPutRequest.model_validate(
+            {"theme_id": "theme_default", "head_id": None, "neck_id": None}
+        )
+
+
+def test_theme_scene_rejects_duplicate_layer_ids():
+    theme = _theme()
+    duplicate = dict(theme.assets)
+    duplicate["scene"] = dict(duplicate["scene"])
+    duplicate["scene"]["layers"] = duplicate["scene"]["layers"] * 2
+    with pytest.raises(ValueError):
+        ShopProduct(
+            id=theme.public_id,
+            name=theme.name,
+            slot=theme.slot,
+            price_hay=theme.price_hay,
+            owned=True,
+            equipped=True,
+            asset_version=theme.asset_version,
+            assets=duplicate,
+        )
 
 
 # --- 리뷰 ---

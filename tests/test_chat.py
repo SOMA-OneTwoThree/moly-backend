@@ -201,12 +201,44 @@ async def test_get_state_shape(monkeypatch):
     assert out["limit_reached"] is False
 
 
-async def test_greeting_cache_hit(monkeypatch, patched):
-    existing = SimpleNamespace(id="g-1", content="왔네.")
-    session = FakeSession(
-        get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko", id=UID)},
-        execute_items=[existing],
+class SeqSession(FakeSession):
+    """execute 호출마다 다른 결과를 돌려주는 세션 — get_greeting은 락·발화·발급 3번 조회한다."""
+
+    def __init__(self, get_map=None, sequences=None):
+        super().__init__(get_map=get_map)
+        self._seq = list(sequences or [])
+
+    async def execute(self, stmt, params=None):
+        return _Result(self._seq.pop(0) if self._seq else [])
+
+
+def _greeting_session(*, spoke, issued):
+    return SeqSession(
+        get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko",
+                                            nickname="지훈", id=UID)},
+        sequences=[[], [1] if spoke else [], ["g-1"] if issued else []],  # 락 · 오늘 발화 · 오늘 발급
     )
+
+
+async def test_greeting_none_when_user_already_spoke_today():
+    """오늘 한 마디라도 했으면 선발화 없음 — 대화 중 난입 방지(하루 1회의 핵심)."""
+    session = _greeting_session(spoke=True, issued=False)
+    assert await chat_service.get_greeting(session, UID, "home_enter") == {
+        "greeting_id": None, "content": None
+    }
+    assert session.added == []  # 새 인사 발급 안 함
+
+
+async def test_greeting_none_when_already_issued_today():
+    """이미 낸 인사는 다시 안 내준다 — 재진입마다 같은 인사가 또 뜨던 버그."""
+    session = _greeting_session(spoke=False, issued=True)
+    assert await chat_service.get_greeting(session, UID, "home_enter") == {
+        "greeting_id": None, "content": None
+    }
+    assert session.added == []
+
+
+async def test_greeting_issued_when_nothing_yet_today(monkeypatch):
     called = {"llm": False}
 
     async def _fake_llm(system, convo, **kw):
@@ -214,9 +246,11 @@ async def test_greeting_cache_hit(monkeypatch, patched):
         return LLMResult("새 인사", 1, 1)
 
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    session = _greeting_session(spoke=False, issued=False)
     out = await chat_service.get_greeting(session, UID, "home_enter")
-    assert out == {"greeting_id": "g-1", "content": "왔네."}
-    assert called["llm"] is False  # 캐시 → LLM 미호출
+    assert out["content"]                       # 프리셋에서 하나 발급
+    assert len(session.added) == 1              # greetings 1건 저장
+    assert called["llm"] is False               # 선발화는 코드 프리셋 — LLM 미호출
 
 
 # --- 엔드포인트 ---

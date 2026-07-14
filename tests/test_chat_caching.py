@@ -32,6 +32,19 @@ def test_billable_output_weighted_5x():
     assert c._billable(r) == 500
 
 
+# --- 대사 정제(페르소나만으론 안 잡히는 것들을 코드로 확정) ---
+def test_clean_reply_strips_linebreaks_and_ellipsis():
+    assert c._clean_reply("음... 딱히 없어.\n\n생각해봐도 안 떠올라.") == "음 딱히 없어. 생각해봐도 안 떠올라."
+    assert c._clean_reply("그렇구나…") == "그렇구나"
+    assert c._clean_reply("정말...?") == "정말?"          # 부호 앞 공백이 남지 않는다
+    assert c._clean_reply("  왔네.  ") == "왔네."
+
+
+def test_clean_reply_keeps_normal_punctuation():
+    kept = "왔어? 오늘은 좀 어땠어. 나는 그냥, 늘어져 있었어."
+    assert c._clean_reply(kept) == kept  # 물음표·마침표·쉼표는 건드리지 않는다
+
+
 # --- 앵커 유지 창 ---
 def test_keep_window_bounds_and_user_first():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 51)]  # 50개
@@ -44,7 +57,7 @@ def test_keep_window_bounds_and_user_first():
 async def test_context_reset_triggers_on_message_count():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 46)]  # 45 > 40 트리거
     session = FakeSession(execute_items=rows)
-    convo, new_anchor = await c._context(session, UID, 0)
+    convo, new_anchor, _lead = await c._context(session, UID, 0)
     assert new_anchor is not None                 # 리셋 발생
     assert convo[0]["role"] == "user"
     assert len(convo) <= c.settings.context_keep_messages
@@ -53,9 +66,40 @@ async def test_context_reset_triggers_on_message_count():
 async def test_context_no_reset_when_small():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 11)]  # 10 < 40
     session = FakeSession(execute_items=rows)
-    convo, new_anchor = await c._context(session, UID, 0)
+    convo, new_anchor, _lead = await c._context(session, UID, 0)
     assert new_anchor is None                     # append-only 유지
     assert convo[0]["role"] == "user"
+
+
+# --- 선발화가 대화 배열에서 밀려나도 컨텍스트에서 사라지지 않는다 ---
+# 쿼리는 id DESC로 뽑고 _context가 뒤집는다 → fake도 DESC(최신 먼저)로 넣는다.
+async def test_context_returns_leading_greeting_instead_of_dropping_it():
+    """맨 앞 캐피 메시지(=선발화)는 배열에서 빠지되 lead로 회수된다. 버리면 또 인사한다."""
+    desc = [_msg(2, "user", "그냥 그랬어"), _msg(1, "moly", "왔네. 오늘은 좀 어땠어?")]
+    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    assert convo[0]["role"] == "user"                     # Anthropic 제약 유지
+    assert [m["content"] for m in convo] == ["그냥 그랬어"]
+    assert [m.content for m in lead] == ["왔네. 오늘은 좀 어땠어?"]  # 버려지지 않음
+
+
+async def test_context_keeps_mid_conversation_moly_messages_in_array():
+    """중간의 캐피 메시지는 그대로 대화 배열에 남는다(lead는 맨 앞만)."""
+    desc = [_msg(3, "user", "뭐해"), _msg(2, "moly", "왔네"), _msg(1, "user", "안녕")]
+    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    assert [m["role"] for m in convo] == ["user", "assistant", "user"]
+    assert lead == []
+
+
+def test_build_system_carries_greeting_into_mutable_block():
+    lead = [_msg(1, "moly", "왔네. 오늘은 좀 어땠어?")]
+    blocks = c._build_system("ko", "승민", "", lead)
+    assert len(blocks) == 2
+    assert "[먼저 건넨 말]" in blocks[1] and "왔네. 오늘은 좀 어땠어?" in blocks[1]
+    assert "[먼저 건넨 말]" not in blocks[0]  # 페르소나 블록은 불변 → 캐시 생존
+
+
+def test_build_system_without_greeting_has_no_block():
+    assert "[먼저 건넨 말]" not in "".join(c._build_system("ko", "승민", "", []))
 
 
 # --- llm 블록 조립 ---

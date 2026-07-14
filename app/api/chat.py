@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.chat import PostMessageRequest
+from app.schemas.chat import GreetingResponse, PostMessageRequest
 from app.services import chat as chat_service
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -50,7 +50,7 @@ async def post_message(
     return await chat_service.post_message(session, user_id, req, idempotency_key)
 
 
-@router.get("/greeting")
+@router.get("/greeting", response_model=GreetingResponse)
 async def get_greeting(
     context: str = Query(...),
     user_id: str = Depends(get_current_user),

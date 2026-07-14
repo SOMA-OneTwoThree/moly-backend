@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from datetime import date, datetime, timezone
 from math import ceil
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -118,10 +120,14 @@ def _keep_window(rows: list[Message]) -> list[Message]:
 
 async def _context(
     session: AsyncSession, uid: uuid.UUID, anchor: int
-) -> tuple[list[dict[str, str]], int | None]:
+) -> tuple[list[dict[str, str]], int | None, list[Message]]:
     """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
 
     프리픽스는 리셋 때만 1회 바뀌고 그 사이엔 append-only → 캐시 히트 유지.
+
+    셋째 반환값 = 대화 배열 맨 앞에서 밀려난 캐피 메시지(=커밋된 선발화).
+    Anthropic이 messages[0]를 user로 강제해서 배열엔 못 넣지만, 버리면 캐피가 방금 건넨
+    인사를 모른 채 또 인사한다. 호출측이 system 가변 블록으로 넘긴다.
     """
     q = (
         select(Message)
@@ -142,14 +148,17 @@ async def _context(
         {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
         for m in rows
     ]
+    lead: list[Message] = []
     while convo and convo[0]["role"] != "user":  # Anthropic: 첫 메시지 user 보장
+        lead.append(rows[len(lead)])  # 버리지 않고 회수 — system으로 넘긴다
         convo.pop(0)
     if not convo:  # 빈 배열=400. 최신 user 메시지 1개 폴백(방금 flush된 umsg가 보장)
+        lead = []
         for m in reversed(rows):
             if m.sender != "moly":
                 convo = [{"role": "user", "content": m.content}]
                 break
-    return convo, new_anchor
+    return convo, new_anchor, lead
 
 
 async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
@@ -205,16 +214,45 @@ async def _resolve_memory(
     return fresh
 
 
-def _build_system(language: str, nickname: str | None, mem: str) -> list[str]:
-    """system을 [페르소나(불변), 닉네임+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존."""
+def _build_system(
+    language: str, nickname: str | None, mem: str, lead: list[Message] | None = None
+) -> list[str]:
+    """system을 [페르소나(불변), 닉네임+선발화+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존.
+
+    lead = 대화 배열에 못 넣은 선발화(_context 참조). 앵커가 전진하기 전까지 매 턴 같은 값이라
+    가변 블록도 그대로 유지된다 — 캐시가 추가로 깨지지 않는다.
+    """
     parts: list[str] = []
     if nickname:
         # 조사는 받침에 맞춰(승민이야 / 지호야) — 지시문이 틀리면 캐피도 따라 틀린다.
         parts.append(f"[상대]\n지금 얘기하는 사람 이름은 {greetings.copula(nickname)}.")
+    if lead:
+        said = "\n".join(m.content for m in lead if m.content)
+        parts.append(
+            "[먼저 건넨 말]\n"
+            "이 대화 직전에 네가 먼저 말을 걸었어. 상대는 그걸 보고 답한 거야. "
+            "같은 인사를 또 하지 마.\n"
+            f"{said}"
+        )
     if mem:
         parts.append(f"[기억]\n{mem}")
     dyn = "\n\n".join(parts)
     return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
+
+
+_ELLIPSIS = re.compile(r"\.{2,}|…+")  # ".." "..." / "…" (한 글자여도 말줄임표)
+_WS = re.compile(r"\s+")
+_SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
+
+
+def _clean_reply(text: str) -> str:
+    """캐피 대사 정제 — 줄바꿈·말줄임표 제거.
+
+    페르소나로 막아도 새서(실측 3/5) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
+    말끝 흐리기는 캐피 톤이 아니다. 물음표·마침표·쉼표는 그대로 둔다.
+    """
+    out = _WS.sub(" ", _ELLIPSIS.sub(" ", text))
+    return _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
 
 
 def _billable(r: llm.LLMResult) -> int:
@@ -311,11 +349,11 @@ async def post_message(
     # 4) 컨텍스트(앵커 append-only) + 기억 스냅샷 + 시스템(페르소나/기억 블록)
     ctx = await session.get(ChatContext, uid)  # 앵커+스냅샷 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
-    convo, new_anchor = await _context(session, uid, anchor)
+    convo, new_anchor, lead = await _context(session, uid, anchor)
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — 같은 트랜잭션(원자)
     mem = await _resolve_memory(session, uid, ctx, now)
-    system = _build_system(g.profile.language, g.profile.nickname, mem)
+    system = _build_system(g.profile.language, g.profile.nickname, mem, lead)
 
     # 5) Claude 호출(프롬프트 캐싱 + 실측 토큰)
     cache_on = settings.chat_prompt_cache_enabled
@@ -340,7 +378,7 @@ async def post_message(
     # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
     consumed = _billable(result)
     rmsg = Message(
-        user_id=uid, sender="moly", kind="normal", content=result.text,
+        user_id=uid, sender="moly", kind="normal", content=_clean_reply(result.text),
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
         cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
         billable_tokens=consumed,
@@ -364,7 +402,8 @@ async def post_message(
     response = {
         "greeting": greeting_dto,
         "user_message": {"message_id": str(umsg.id), "created_at": _iso(now)},
-        "reply": {"message_id": str(rmsg.id), "content": result.text, "created_at": _iso(now)},
+        # 저장본과 같은 값(정제 후) — 화면과 이력이 어긋나면 안 된다.
+        "reply": {"message_id": str(rmsg.id), "content": rmsg.content, "created_at": _iso(now)},
         "tokens_used": new_used,
         "tokens_remaining": remaining_after,
         "review_prompt": review,
@@ -377,31 +416,54 @@ async def post_message(
 
 
 # --- GET /chat/greeting ---
+_NO_GREETING: dict[str, Any] = {"greeting_id": None, "content": None}
+
+
 async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dict[str, Any]:
+    """선발화 = 하루(activity_date) 1회, context 무관. 없으면 빈 응답.
+
+    캐피가 먼저 말을 거는 건 하루 한 번뿐이다. 유저가 그날 한 마디라도 했으면 더는 걸지 않는다
+    (대화 중 난입 방지). 이미 낸 인사도 다시 내주지 않는다 — 재진입마다 같은 인사가
+    새 말풍선으로 다시 뜨던 버그의 원인이었다. 미커밋 선발화는 원래 이력에 안 남으므로
+    화면에서 사라지는 게 기존 설계와도 일관된다.
+    """
     if context not in _GREETING_CONTEXTS:
         raise errors.validation("알 수 없는 context예요.", {"context": context})
+    from app.core.time_utils import current_activity_date
     from app.services.account import _load_profile
 
     profile = await _load_profile(session, user_id)
-    from app.core.time_utils import current_activity_date
-
     ad = current_activity_date(profile.timezone)
     uid = _uid(user_id)
 
-    # 캐시: 같은 context·activity_date면 동일 건 반환(LLM 재호출 없음, 미차감)
-    existing = (
+    # 동시 진입(콜드스타트+푸시탭 등)이 각각 발급해 하루 2건이 되는 걸 막는다.
+    await _lock_user(session, uid)
+
+    spoke = (
         await session.execute(
-            select(Greeting).where(
-                Greeting.user_id == uid,
-                Greeting.context == context,
-                Greeting.activity_date == ad,
-            )
+            select(Message.id)
+            .where(Message.user_id == uid, Message.activity_date == ad, Message.sender == "user")
+            .limit(1)
         )
     ).scalars().first()
-    if existing is not None:
-        return {"greeting_id": str(existing.id), "content": existing.content}
+    if spoke is not None:
+        await session.commit()  # 락 해제
+        return dict(_NO_GREETING)
 
-    content = greetings.pick(context, profile.nickname)
+    issued = (
+        await session.execute(
+            select(Greeting.id)
+            .where(Greeting.user_id == uid, Greeting.activity_date == ad)
+            .limit(1)
+        )
+    ).scalars().first()
+    if issued is not None:
+        await session.commit()  # 락 해제
+        return dict(_NO_GREETING)
+
+    # 그날 처음 만난 시각으로 인사 톤을 고른다(home_enter만 시간대별 풀).
+    hour = datetime.now(ZoneInfo(profile.timezone)).hour
+    content = greetings.pick(context, profile.nickname, hour)
 
     row = Greeting(user_id=uid, context=context, content=content, activity_date=ad)
     session.add(row)

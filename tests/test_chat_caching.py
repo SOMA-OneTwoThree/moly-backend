@@ -13,8 +13,12 @@ UID_UUID = uuid.UUID(UID)
 NOW = datetime(2026, 7, 11, 12, 0, tzinfo=timezone.utc)
 
 
-def _msg(i, sender, content="안녕"):
-    return SimpleNamespace(id=i, sender=sender, content=content)
+def _msg(i, sender, content="안녕", activity_date=None):
+    from datetime import date
+    return SimpleNamespace(
+        id=i, sender=sender, content=content,
+        activity_date=activity_date or date(2026, 7, 15),
+    )
 
 
 # --- billable: 실비용 가중(write 1.25× > read 0.1×), 출력 5× ---
@@ -30,6 +34,44 @@ def test_billable_matches_real_cost_weights():
 def test_billable_output_weighted_5x():
     r = LLMResult("t", input_tokens=0, output_tokens=100, cache_read_tokens=0, cache_write_tokens=0)
     assert c._billable(r) == 500
+
+
+# --- 날짜 표식(캐피가 날짜 경계·경과를 인지) ---
+def test_date_marker_on_day_change():
+    """날짜 그룹 첫 메시지에만 표식. 절대 날짜라 캐시 프리픽스가 안정적이다."""
+    from datetime import date
+    d14, d15 = date(2026, 7, 14), date(2026, 7, 15)
+    convo = [
+        {"role": "user", "content": "어제 얘기"},
+        {"role": "assistant", "content": "그래"},
+        {"role": "user", "content": "오늘 얘기"},
+    ]
+    msgs = [_msg(1, "user", activity_date=d14), _msg(2, "moly", activity_date=d14),
+            _msg(3, "user", activity_date=d15)]
+    c._mark_dates(convo, msgs)
+    assert convo[0]["content"].startswith("[7월 14일 화요일]\n")  # 그룹 첫 메시지
+    assert convo[1]["content"] == "그래"                          # 같은 날 → 표식 없음
+    assert convo[2]["content"].startswith("[7월 15일 수요일]\n")  # 날 바뀜 → 새 표식
+
+
+def test_date_marker_single_day_labels_first_only():
+    from datetime import date
+    convo = [{"role": "user", "content": "안녕"}, {"role": "assistant", "content": "왔네"}]
+    msgs = [_msg(1, "user", activity_date=date(2026, 7, 15)),
+            _msg(2, "moly", activity_date=date(2026, 7, 15))]
+    c._mark_dates(convo, msgs)
+    assert convo[0]["content"].startswith("[7월 15일")  # 오늘 며칠인지 항상 보이게
+    assert "[7월" not in convo[1]["content"]
+
+
+async def test_context_marks_first_surviving_message_after_greeting_pop():
+    """선발화(moly)가 맨 앞에서 pop돼도, 남은 첫 메시지가 그 날 표식을 이어받는다."""
+    from datetime import date
+    d = date(2026, 7, 15)
+    desc = [_msg(2, "user", "답", activity_date=d), _msg(1, "moly", "인사", activity_date=d)]
+    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    assert [m.content for m in lead] == ["인사"]           # 선발화는 system으로
+    assert convo[0]["content"].startswith("[7월 15일")     # 남은 첫 메시지에 표식
 
 
 # --- 대사 정제(페르소나만으론 안 잡히는 것들을 코드로 확정) ---
@@ -78,7 +120,7 @@ async def test_context_returns_leading_greeting_instead_of_dropping_it():
     desc = [_msg(2, "user", "그냥 그랬어"), _msg(1, "moly", "왔네. 오늘은 좀 어땠어?")]
     convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
     assert convo[0]["role"] == "user"                     # Anthropic 제약 유지
-    assert [m["content"] for m in convo] == ["그냥 그랬어"]
+    assert len(convo) == 1 and convo[0]["content"].endswith("그냥 그랬어")  # 날짜 표식 뒤 본문
     assert [m.content for m in lead] == ["왔네. 오늘은 좀 어땠어?"]  # 버려지지 않음
 
 

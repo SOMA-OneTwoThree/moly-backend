@@ -103,6 +103,26 @@ async def get_messages(
 
 
 # --- 프롬프트용 컨텍스트(앵커 append-only) ---
+_WEEKDAYS = ("월", "화", "수", "목", "금", "토", "일")
+
+
+def _date_label(d: date) -> str:
+    return f"[{d.month}월 {d.day}일 {_WEEKDAYS[d.weekday()]}요일]"
+
+
+def _mark_dates(convo: list[dict[str, str]], msgs: list[Message]) -> None:
+    """날짜 그룹 첫 메시지에 절대 날짜 표식을 붙인다 — 캐피가 날짜 경계·경과를 인지하도록.
+
+    절대 날짜(상대 '어제/오늘' 아님)라 옛 메시지의 표식이 날이 바뀌어도 안 변한다 → 캐시 프리픽스
+    안정. 가장 최근 표식이 곧 오늘(이번 턴 유저 메시지가 항상 배열 끝). 페르소나가 그렇게 읽는다.
+    """
+    prev: date | None = None
+    for slot, m in zip(convo, msgs):
+        if m.activity_date != prev:
+            slot["content"] = f"{_date_label(m.activity_date)}\n{slot['content']}"
+            prev = m.activity_date
+
+
 def _keep_window(rows: list[Message]) -> list[Message]:
     """리셋 시 유지할 최근 창 — KEEP 개수/문자 상한, user 메시지로 시작하게. KEEP ≪ RESET(헤드룸)."""
     kept: list[Message] = []
@@ -152,12 +172,14 @@ async def _context(
     while convo and convo[0]["role"] != "user":  # Anthropic: 첫 메시지 user 보장
         lead.append(rows[len(lead)])  # 버리지 않고 회수 — system으로 넘긴다
         convo.pop(0)
+    kept = rows[len(lead):]  # convo와 정렬(같은 길이·순서) — 날짜 표식용
     if not convo:  # 빈 배열=400. 최신 user 메시지 1개 폴백(방금 flush된 umsg가 보장)
         lead = []
         for m in reversed(rows):
             if m.sender != "moly":
-                convo = [{"role": "user", "content": m.content}]
+                convo, kept = [{"role": "user", "content": m.content}], [m]
                 break
+    _mark_dates(convo, kept)
     return convo, new_anchor, lead
 
 

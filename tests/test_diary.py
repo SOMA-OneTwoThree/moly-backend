@@ -63,6 +63,36 @@ def test_type_mapping():
     assert diary_service._type("preset") == "moly"
 
 
+# --- 웰컴 일기 ---
+def test_welcome_content_title_josa_and_nickname_swap():
+    # 받침 있음 → 과, 없음 → 와. 닉네임이 제목·본문 모두 교체.
+    seungmin = diary_service._welcome_content("승민")
+    assert seungmin.startswith("승민과의 만남\n\n")
+    assert "이름은 승민." in seungmin
+    assert diary_service._welcome_content("지호").startswith("지호와의 만남")
+    assert "사용자" not in seungmin  # 화자 라벨 누출 없음
+
+
+def test_welcome_date_is_signup_local_minus_one():
+    # 가입일(로컬)-1 — 가입일 슬롯을 비워 워커의 첫날 개인일기와 안 겹치게.
+    created = datetime(2026, 7, 15, 2, 0, tzinfo=timezone.utc)  # = KST 7/15 11:00 → 로컬 가입일 7/15
+    assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 14)
+
+
+async def test_ensure_welcome_skips_without_nickname():
+    profile = SimpleNamespace(nickname=None, created_at=PAST, timezone="Asia/Seoul")
+    session = FakeSession(get_obj=profile)
+    await diary_service.ensure_welcome(session, UID)
+    assert session.committed is False  # 닉네임 없으면 생성 안 함(온보딩 후 다음 조회에서)
+
+
+async def test_ensure_welcome_inserts_when_onboarded():
+    profile = SimpleNamespace(nickname="승민", created_at=PAST, timezone="Asia/Seoul")
+    session = FakeSession(get_obj=profile)
+    await diary_service.ensure_welcome(session, UID)
+    assert session.committed is True  # 삽입 시도 + 커밋(멱등은 DB ON CONFLICT가 담당)
+
+
 async def test_list_diaries_shape_and_cursor():
     rows = [_diary(diary_date=date(2026, 7, d)) for d in (7, 6, 5)]  # 3건
     out = await diary_service.list_diaries(FakeSession(rows=rows), UID, limit=2)

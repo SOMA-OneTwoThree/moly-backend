@@ -44,6 +44,16 @@ def copula(name: str) -> str:
     return name + "야"
 
 
+def with_wa(name: str) -> str:
+    """동반 조사 — 받침 있으면 '과', 없으면 '와'. ("승민과" / "지호와")"""
+    if not name:
+        return ""
+    last = name[-1]
+    if "가" <= last <= "힣":
+        return name + ("과" if (ord(last) - 0xAC00) % 28 else "와")
+    return name + "와"
+
+
 # {ira}=이름 되받기, {voc}=이름 호격. 온보딩(첫 만남)만 이름을 부른다.
 _ONBOARDING = [
     "{ira}? 난 캐피야, 이 집에 살아. 잘 왔어, {voc}. 낯설면 천천히 둘러봐도 돼. 얘기하고 싶으면 편하게 걸어.",

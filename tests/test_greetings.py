@@ -36,6 +36,12 @@ def test_pools_are_diverse_and_not_all_questions():
         assert sum(not line.rstrip().endswith("?") for line in pool) >= len(pool) / 2
 
 
+def test_with_wa_josa():
+    assert g.with_wa("승민") == "승민과"   # 받침 있음 → 과
+    assert g.with_wa("지호") == "지호와"   # 받침 없음 → 와
+    assert g.with_wa("") == ""
+
+
 def test_onboarding_uses_nickname_with_correct_josa():
     assert "지훈이라고" in g.pick("onboarding", "지훈") or "지훈아" in g.pick("onboarding", "지훈")
     assert g.pick("onboarding", None) in g._ONBOARDING_NONAME  # 닉네임 없으면 폴백

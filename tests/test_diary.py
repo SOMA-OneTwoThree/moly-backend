@@ -93,6 +93,28 @@ async def test_ensure_welcome_inserts_when_onboarded():
     assert session.committed is True  # 삽입 시도 + 커밋(멱등은 DB ON CONFLICT가 담당)
 
 
+def test_list_item_welcome_exposes_title_and_strips_body():
+    d = _diary(source="welcome", content="승민과의 만남\n\n오늘은 새 친구를 만났다.")
+    item = diary_service._list_item(d)
+    assert item["title"] == "승민과의 만남"
+    assert item["type"] == "moly"
+    assert item["preview"] == "오늘은 새 친구를 만났다."  # 제목 줄은 프리뷰에서 분리
+
+
+def test_list_item_non_welcome_has_null_title():
+    item = diary_service._list_item(_diary(source="llm"))
+    assert item["title"] is None
+    assert item["preview"].startswith("오늘 지우")  # 본문 그대로
+
+
+async def test_get_diary_welcome_exposes_title_and_strips_body():
+    d = _diary(source="welcome", content="승민과의 만남\n\n오늘은 새 친구를 만났다.")
+    out = await diary_service.get_diary(FakeSession(get_obj=d), UID, str(d.id))
+    assert out["title"] == "승민과의 만남"
+    assert out["body"] == "오늘은 새 친구를 만났다."
+    assert out["conversation_ref"] is None  # 웰컴은 개인일기 아님
+
+
 async def test_list_diaries_shape_and_cursor():
     rows = [_diary(diary_date=date(2026, 7, d)) for d in (7, 6, 5)]  # 3건
     out = await diary_service.list_diaries(FakeSession(rows=rows), UID, limit=2)

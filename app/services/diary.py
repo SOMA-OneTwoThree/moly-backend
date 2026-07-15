@@ -21,8 +21,8 @@ from app.services.account import _uid
 
 _PREVIEW_LEN = 60
 
-# 웰컴 일기 — 온보딩 후 첫 일기. 제목은 본문 첫 줄(제목 컬럼이 없어 스키마 무변경).
-# 닉네임만 교체. source=preset(→ type=moly, 대화링크 없음). 자세한 배치는 ensure_welcome 참조.
+# 웰컴 일기 — 온보딩 후 첫 일기. content = '제목\n\n본문'(제목 컬럼 없어 스키마 무변경).
+# 닉네임만 교체. source=welcome(→ type=moly, title 필드로 분리 노출). 자세한 배치는 ensure_welcome 참조.
 _WELCOME_BODY = (
     "오늘은 뒹굴거리다가 새 친구를 만났다. 이름은 {name}.\n"
     "말하는 카피바라라니 신기하다고 했다. 나는 그 말이 조금 웃겼다. 나한테는 그 친구가 더 신기한데.\n"
@@ -55,7 +55,7 @@ async def ensure_welcome(session: AsyncSession, user_id: str) -> None:
         .values(
             user_id=uid,
             diary_date=_welcome_date(profile.created_at, profile.timezone),
-            source="preset",
+            source="welcome",
             preset_ment_id=None,
             content=_welcome_content(profile.nickname),
             weather="sunny",
@@ -75,13 +75,24 @@ def _iso(dt: datetime | None) -> str | None:
     return dt.isoformat() if dt else None
 
 
+def _title_body(d: Diary) -> tuple[str | None, str]:
+    """(특별 제목, 본문). 웰컴 일기만 content='제목\\n\\n본문'을 분리, 그 외엔 (None, content)."""
+    content = d.content or ""
+    if d.source != "welcome":
+        return None, content
+    title, _, body = content.partition("\n\n")
+    return title, body
+
+
 def _list_item(d: Diary) -> dict[str, Any]:
+    title, body = _title_body(d)
     return {
         "id": str(d.id),
         "diary_date": d.diary_date.isoformat(),
         "type": _type(d.source),
+        "title": title,
         "weather": d.weather,
-        "preview": (d.content or "")[:_PREVIEW_LEN],
+        "preview": body[:_PREVIEW_LEN],
         "published_at": _iso(d.published_at),
         "read": d.first_read_at is not None,
     }
@@ -128,12 +139,14 @@ async def _load_published(session: AsyncSession, user_id: str, diary_id: str) ->
 async def get_diary(session: AsyncSession, user_id: str, diary_id: str) -> dict[str, Any]:
     d = await _load_published(session, user_id, diary_id)
     is_personal = _type(d.source) == "personal"
+    title, body = _title_body(d)
     return {
         "id": str(d.id),
         "diary_date": d.diary_date.isoformat(),
         "type": _type(d.source),
+        "title": title,
         "weather": d.weather,
-        "body": d.content,
+        "body": body,
         "conversation_ref": {"anchor_date": d.diary_date.isoformat()} if is_personal else None,
         "published_at": _iso(d.published_at),
         "first_read_at": _iso(d.first_read_at),

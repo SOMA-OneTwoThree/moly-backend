@@ -73,7 +73,7 @@ uv run python scripts/dev_token.py --cleanup    # 3) 끝나면 테스트 유저 
 
 - **인증**: 전 엔드포인트 `Authorization: Bearer <Supabase JWT>` (웹훅·`/health` 제외). 서버가 JWKS(ES256)로 로컬 검증
 - **에러**: `{ "error": { "code", "message", "details" } }` 통일. 프론트는 `code`로 화면 분기 (코드 목록 = `docs/DEV_STATUS.md`)
-- **하루 경계**: `activity_date` = 유저 로컬 **04:00** (토큰 리셋·출석·일기 귀속의 공통 키)
+- **하루 경계**: 토큰 리셋·일기 귀속 = `activity_date`(유저 로컬 **04:00**) / 출석·루틴·광고 보상 = `reward_date`(유저 로컬 **00:00**)
 - **멱등**: `POST /chat/messages`는 `Idempotency-Key` 필수, 결제/광고는 트랜잭션ID로 자연 멱등
 
 ## 배치 워커

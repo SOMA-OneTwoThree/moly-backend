@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
-from app.core.time_utils import activity_date_for
+from app.core.time_utils import current_reward_date
 from app.models.routine import Routine, RoutineCompletion
 from app.services.account import _load_profile, _uid
 
@@ -35,7 +35,7 @@ def _week_bounds(ad):
 
 async def _today(session: AsyncSession, user_id: str):
     profile = await _load_profile(session, user_id)
-    return profile.id, activity_date_for(datetime.now(timezone.utc), profile.timezone)
+    return profile.id, current_reward_date(profile.timezone)
 
 
 async def _load_owned(session: AsyncSession, uid: uuid.UUID, routine_id: str) -> Routine:

@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
-from app.core.time_utils import activity_date_for
+from app.core.time_utils import current_reward_date
 from app.models.hay_transaction import HayTransaction
 from app.models.product import Product
 from app.models.routine import RoutineCompletion
@@ -90,7 +90,7 @@ async def _routine_completions_today(session: AsyncSession, uid: uuid.UUID, acti
 async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
-    ad = activity_date_for(datetime.now(timezone.utc), profile.timezone)
+    ad = current_reward_date(profile.timezone)
     stats = (
         await session.execute(
             select(UserDailyStats).where(
@@ -134,7 +134,7 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
 async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
-    ad = activity_date_for(datetime.now(timezone.utc), profile.timezone)
+    ad = current_reward_date(profile.timezone)
     stats = await _daily(session, uid, ad)
     if stats.attendance_claimed_at is not None:
         raise errors.already_claimed()
@@ -147,7 +147,7 @@ async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int
 async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str, int]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
-    ad = activity_date_for(datetime.now(timezone.utc), profile.timezone)
+    ad = current_reward_date(profile.timezone)
     if await _routine_completions_today(session, uid, ad) < ROUTINE_PAIR_REQUIRED:
         raise errors.routine_goal_not_met()
     stats = await _daily(session, uid, ad)

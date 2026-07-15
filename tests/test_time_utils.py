@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from app.core.time_utils import activity_date_for
+from app.core.time_utils import activity_date_for, reward_date_for
 
 
 def test_before_4am_belongs_to_previous_day():
@@ -21,3 +21,15 @@ def test_timezone_matters():
     utc = activity_date_for(now_utc, "UTC")  # 19:30 → 07-06
     assert seoul.isoformat() == "2026-07-07"
     assert utc.isoformat() == "2026-07-06"
+
+
+def test_reward_boundary_is_midnight():
+    # 서울 2026-07-07 03:59 → 보상 경계 00:00 기준 → 기준일 07-07 (하루 경계와 달라짐)
+    now_utc = datetime(2026, 7, 6, 18, 59, tzinfo=timezone.utc)  # KST 03:59
+    assert reward_date_for(now_utc, "Asia/Seoul").isoformat() == "2026-07-07"
+
+
+def test_reward_just_after_midnight():
+    # 서울 2026-07-07 00:01 → 07-07
+    now_utc = datetime(2026, 7, 6, 15, 1, tzinfo=timezone.utc)  # KST 00:01
+    assert reward_date_for(now_utc, "Asia/Seoul").isoformat() == "2026-07-07"

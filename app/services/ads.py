@@ -6,14 +6,13 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
-from app.core.time_utils import activity_date_for
+from app.core.time_utils import current_reward_date
 from app.models.reward_ad_session import RewardAdSession
 from app.services import economy, hay_ledger
 from app.services.account import _load_profile
@@ -26,7 +25,7 @@ AD_DAILY_LIMIT = economy.AD_DAILY_LIMIT
 async def create_session(session: AsyncSession, user_id: str) -> dict[str, Any]:
     """광고 시청 전 세션 발급. 오늘 한도 초과면 429. 반환 = 클라가 SSV에 실을 값 + 잔여."""
     profile = await _load_profile(session, user_id)
-    ad = activity_date_for(datetime.now(timezone.utc), profile.timezone)
+    ad = current_reward_date(profile.timezone)
     stats = await economy._daily(session, profile.id, ad)
     if stats.ad_reward_count >= AD_DAILY_LIMIT:
         raise errors.ad_limit_reached()  # 429

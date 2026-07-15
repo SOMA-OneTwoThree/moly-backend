@@ -83,8 +83,37 @@ def test_clean_reply_strips_linebreaks_and_ellipsis():
 
 
 def test_clean_reply_keeps_normal_punctuation():
-    kept = "왔어? 오늘은 좀 어땠어. 나는 그냥, 늘어져 있었어."
-    assert c._clean_reply(kept) == kept  # 물음표·마침표·쉼표는 건드리지 않는다
+    kept = "왔어? 나는 그냥, 늘어져 있었어. 오늘은 비가 오네."
+    assert c._clean_reply(kept) == kept  # 물음표·마침표·쉼표는 건드리지 않는다(의문사 없는 평서문)
+
+
+# --- 되묻기 물음표 백스톱 ---
+def test_fix_qmarks_restores_soft_questions():
+    assert c._clean_reply("무슨 일인데.") == "무슨 일인데?"
+    assert c._clean_reply("무슨 일이야.") == "무슨 일이야?"
+    assert c._clean_reply("왜 그런데.") == "왜 그런데?"
+    assert c._clean_reply("무슨 고민이야") == "무슨 고민이야?"          # 부호 없이 흘린 것도
+
+
+def test_fix_qmarks_strips_trailing_vocative_before_check():
+    # 끝이 호명이면 벗겨서 어미를 노출('무슨 일이야, 승민아' → 물음표는 문장 끝에)
+    assert c._clean_reply("승민아, 무슨 일이야.", "승민") == "승민아, 무슨 일이야?"
+    assert c._clean_reply("무슨 일인데, 지호야.", "지호") == "무슨 일인데, 지호야?"
+
+
+def test_fix_qmarks_no_false_positive_on_statements():
+    for stmt in (
+        "나는 캐피야.",                  # 의문 어미(야)지만 의문사 없음
+        "소파에 늘어져 있었어.",         # 어미(어), 의문사 없음
+        "무슨 일이 있어도 괜찮아.",       # 의문사가 앞 종속절(끝에서 멂) + 어미 아님
+        "나른하지 뭐.",                  # '~지 뭐' 종결 particle
+    ):
+        assert c._clean_reply(stmt) == stmt
+
+
+def test_fix_qmarks_leaves_existing_marks():
+    assert c._clean_reply("뭐 먹었어?") == "뭐 먹었어?"
+    assert c._clean_reply("무슨 일이야!") == "무슨 일이야!"
 
 
 # --- 앵커 유지 창 ---

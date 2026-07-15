@@ -265,16 +265,51 @@ def _build_system(
 _ELLIPSIS = re.compile(r"\.{2,}|…+")  # ".." "..." / "…" (한 글자여도 말줄임표)
 _WS = re.compile(r"\s+")
 _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
+_SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
+# 되묻기 물음표 백스톱 — 의문사가 문장 끝 8자 이내 + 의문 가능 어미일 때만 교정(위양성 0 실측).
+_WH = re.compile(r"무슨|왜|어디|언제|누구|얼마|어때|어땠|어떻|어떤|뭔데|뭐야")
+# 의문 가능 어미. '데'는 통째로(그런데/인데/는데 다 포함) — WH 근접 조건이 평서문 오삽입을 막는다.
+_Q_END = re.compile(r"(데|야|어|지|까|래)$")
 
 
-def _clean_reply(text: str) -> str:
-    """캐피 대사 정제 — 줄바꿈·말줄임표 제거.
+def _fix_qmarks(text: str, nickname: str | None) -> str:
+    """부드러운 되묻기('무슨 일인데.', '무슨 일이야, 승민아.')에 빠진 물음표를 결정적으로 복원.
 
-    페르소나로 막아도 새서(실측 3/5) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
-    말끝 흐리기는 캐피 톤이 아니다. 물음표·마침표·쉼표는 그대로 둔다.
+    모델은 이런 소프트 어미를 반쯤 평서문으로 처리해 마침표를 찍는다(실측 누락 ~17%).
+    프롬프트만으론 천장이라 코드로 확정한다. 의문사가 끝 8자 이내 + 의문 어미일 때만 교체해
+    평서문 오삽입을 막고('무슨 일이 있어도 괜찮아'는 의문사가 멀어 미교정), 끝의 호명은
+    벗겨 검사하며('무슨 일이야, 승민아'), '~지 뭐'의 종결 particle은 제외한다.
+    """
+    voc = greetings.vocative(nickname) if nickname else None
+    out: list[str] = []
+    for s in _SENT_SPLIT.split(text):
+        if not s or s.endswith(("?", "!")):
+            out.append(s)
+            continue
+        core = s[:-1] if s.endswith(".") else s
+        check = core
+        if voc and core.endswith(voc):  # 끝의 호명(', 승민아')을 벗겨 어미 노출
+            stripped = core[: -len(voc)].rstrip(" ,")
+            if stripped:
+                check = stripped
+        if check.endswith("뭐"):  # '~지 뭐' — 여기 '뭐'는 의문사가 아니다
+            out.append(s)
+            continue
+        m = list(_WH.finditer(check))
+        near = bool(m) and len(check) - m[-1].end() <= 8
+        out.append(core + "?" if (near and _Q_END.search(check)) else s)
+    return " ".join(out)
+
+
+def _clean_reply(text: str, nickname: str | None = None) -> str:
+    """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
+
+    페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
+    말끝 흐리기는 캐피 톤이 아니다. 마침표·쉼표는 그대로 둔다.
     """
     out = _WS.sub(" ", _ELLIPSIS.sub(" ", text))
-    return _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
+    out = _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
+    return _fix_qmarks(out, nickname)
 
 
 def _billable(r: llm.LLMResult) -> int:
@@ -400,7 +435,8 @@ async def post_message(
     # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
     consumed = _billable(result)
     rmsg = Message(
-        user_id=uid, sender="moly", kind="normal", content=_clean_reply(result.text),
+        user_id=uid, sender="moly", kind="normal",
+        content=_clean_reply(result.text, g.profile.nickname),
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
         cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
         billable_tokens=consumed,

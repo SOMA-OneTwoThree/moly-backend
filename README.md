@@ -38,7 +38,7 @@ docs/                계약·스키마·현황 (노션 동기화 사본)
 ```bash
 uv sync                                   # 의존성 설치(.venv)
 cp .env.example .env                      # 시크릿 채우기(커밋 금지 · gitignore)
-uv run uvicorn app.main:app --reload      # API 서버 → http://localhost:8000/docs
+uv run uvicorn app.main:app --reload      # API 서버 → http://localhost:8000
 uv run python -m worker                   # 배치 워커 1틱 (외부 크론이 매시 실행)
 uv run pytest                             # 테스트
 uv run ruff check .                       # 린트
@@ -56,15 +56,15 @@ DB 전환 순서와 중단 조건은 `db/migrations/README.md`를 따른다.
 
 `.env` 필수값: `SUPABASE_URL`·`SUPABASE_ANON_KEY`·`SUPABASE_SERVICE_ROLE_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`(mem0). 선택: `FCM_*`(푸시 — 키 없이 ADC/WIF 지원), `APP_STORE_*`(구독·IAP 실검증). 값이 없으면 해당 기능은 안전하게 비활성(no-op/거부)된다.
 
-### API 손으로 테스트 (Swagger)
+### API 손으로 테스트 (curl)
 
-서버를 띄우면 `http://localhost:8000/docs`에 Swagger UI가 뜬다(로컬 전용). 전 엔드포인트가 Bearer 토큰을 요구하므로:
+전 엔드포인트가 Bearer 토큰을 요구하므로:
 
 ```bash
-uv run uvicorn app.main:app --reload            # 1) 서버 → /docs
+uv run uvicorn app.main:app --reload            # 1) 서버 기동
 uv run python scripts/dev_token.py              # 2) 실 access token 발급 → 출력
-#    → /docs 우측 상단 Authorize 🔒 에 붙여넣기 → 아무 API나 Try it out
-uv run python scripts/dev_token.py --cleanup    # 3) 끝나면 테스트 유저 삭제(CASCADE)
+curl -H "Authorization: Bearer <토큰>" http://localhost:8000/chat/state   # 3) 원하는 API 호출
+uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 삭제(CASCADE)
 ```
 
 > 소셜 로그인 전용(이메일·익명 비활성)이라, 스크립트가 `service_role`로 테스트 유저를 만들고 magiclink로 실 토큰을 발급한다. 시크릿은 코드에 없고 `.env`에서 읽는다(앱 런타임 엔드포인트 아님).
@@ -92,7 +92,7 @@ uv run python scripts/dev_token.py --cleanup    # 3) 끝나면 테스트 유저 
 - ✅ API 전 기능 + 배치 워커 구현. 유닛 테스트 116개 + 실 Supabase 통합 테스트(전 엔드포인트 E2E, 50 체크)
 - ✅ **실 DB 스키마 적용 완료** — 21테이블 + 가입 트리거 + `hay_packs` 시드 (`db/`, 3관점 보안 리뷰 반영)
 - ✅ **StoreKit x5c 인증서체인 서명검증 완료**(Apple Root CA G3 내장) · **FCM 키리스 인증**(ADC/WIF, 키 다운로드 불필요)
-- ✅ Swagger Authorize + 로컬 토큰 스크립트로 브라우저 수동 테스트 지원
+- ✅ 로컬 토큰 스크립트(dev_token.py) + curl로 수동 테스트 지원
 - ⏳ 남은 시딩(0행, 코드 기본값 폴백): `shop_items`·`moly_life_ments`·`app_config` — 카피·수치 확정 필요
 - ⏳ 배포/매시 크론(SOMA-151) · FCM 서비스계정 · 프로덕션 전 실 sandbox 결제 E2E
 - 계약/스키마 상세 = 팀 노션(API_SPEC · ERD · ARCHITECTURE)

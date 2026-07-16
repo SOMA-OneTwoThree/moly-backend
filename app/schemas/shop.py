@@ -99,11 +99,15 @@ class ShopProduct(BaseModel):
 
 
 class ProductsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     themes: list[ShopProduct]
     items: list[ShopProduct]
 
 
 class InventoryResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     data: list[ShopProduct]
 
 

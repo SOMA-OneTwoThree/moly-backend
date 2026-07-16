@@ -15,12 +15,14 @@ from app.config import settings
 from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
+from app.schemas.common import StatusResponse
+from app.schemas.subscription import SubscriptionPlansResponse, SubscriptionResponse
 from app.services import subscription
 
 router = APIRouter(tags=["subscription"])
 
 
-@router.get("/subscription")
+@router.get("/subscription", response_model=SubscriptionResponse)
 async def get_subscription(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -28,12 +30,12 @@ async def get_subscription(
     return await subscription.get_subscription(session, user_id)
 
 
-@router.get("/subscription/plans")
+@router.get("/subscription/plans", response_model=SubscriptionPlansResponse)
 async def get_plans() -> dict[str, Any]:
     return subscription.get_plans()
 
 
-@router.post("/webhooks/revenuecat")
+@router.post("/webhooks/revenuecat", response_model=StatusResponse)
 async def revenuecat_webhook(
     payload: dict = Body(...),
     authorization: str | None = Header(default=None),

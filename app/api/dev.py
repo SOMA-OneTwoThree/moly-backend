@@ -20,7 +20,7 @@ from app.core.security import get_current_user
 from app.core.time_utils import activity_date_for
 from app.models.diary import Diary
 from app.models.profile import Profile
-from app.schemas.dev import DiaryGenerateRequest
+from app.schemas.dev import DiaryGenerateRequest, DiaryGenerateResponse
 from app.services import diary_generation
 from app.services.account import _uid
 from app.services.limits import effective_token_config
@@ -28,7 +28,7 @@ from app.services.limits import effective_token_config
 router = APIRouter(tags=["dev"], prefix="/dev")
 
 
-@router.post("/diaries/generate")
+@router.post("/diaries/generate", response_model=DiaryGenerateResponse)
 async def generate_diary(
     req: DiaryGenerateRequest,
     user_id: str = Depends(get_current_user),

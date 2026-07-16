@@ -1,6 +1,6 @@
 """economy·routine·shop·review 핵심 로직 + 인증(DB·의존 mock)."""
 import uuid
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 from types import SimpleNamespace
 
 import pytest
@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from app.core.db import get_session
 from app.core.errors import AppError
 from app.main import app
+from app.schemas.routine import PatchRoutineRequest
 from app.schemas.shop import EquipmentPutRequest, ShopProduct
 from app.services import economy, hay_ledger, review, routine, shop
 
@@ -186,15 +187,35 @@ async def test_routine_update_days(monkeypatch):
 
     monkeypatch.setattr(routine, "_load_owned", _owned)
     # 요일 변경: frequency 파생
-    req = SimpleNamespace(name=None, days_of_week=[2, 4, 6, 7],
-                          reminder_enabled=None, reminder_time=None)
+    req = PatchRoutineRequest(days_of_week=[2, 4, 6, 7])
     await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req)
     assert r.days_of_week == [2, 4, 6, 7] and r.frequency_per_week == 4
     # days_of_week 생략 시 스케줄 불변
-    req2 = SimpleNamespace(name="이름만", days_of_week=None,
-                           reminder_enabled=None, reminder_time=None)
+    req2 = PatchRoutineRequest(name="이름만")
     await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req2)
     assert r.name == "이름만" and r.days_of_week == [2, 4, 6, 7] and r.frequency_per_week == 4
+
+
+async def test_routine_update_reminder_time_null_clears(monkeypatch):
+    r = SimpleNamespace(name="x", frequency_per_week=3, days_of_week=[1, 3, 5],
+                        reminder_enabled=True, reminder_time=time(9, 0))
+
+    async def _owned(session, uid, rid):
+        return r
+
+    monkeypatch.setattr(routine, "_load_owned", _owned)
+    # 필드 생략 → 기존 시간 유지
+    await routine.update_routine(
+        FakeSession(), UID, str(uuid.uuid4()),
+        PatchRoutineRequest.model_validate({"reminder_enabled": False}),
+    )
+    assert r.reminder_enabled is False and r.reminder_time == time(9, 0)
+    # 명시적 null → 제거
+    await routine.update_routine(
+        FakeSession(), UID, str(uuid.uuid4()),
+        PatchRoutineRequest.model_validate({"reminder_time": None}),
+    )
+    assert r.reminder_time is None
 
 
 def test_routine_request_weekday_only():
@@ -265,6 +286,21 @@ async def test_purchase_non_purchasable_rejected(monkeypatch):
     """price_hay NULL = 비매품(기본 지급). 미보유 상태에서도 구매 대상이 아니다."""
     async def _load(session, pid):
         return _item(price_hay=None)
+
+    async def _owned(session, uid):
+        return set()
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    monkeypatch.setattr(shop, "_owned_ids", _owned)
+    with pytest.raises(AppError) as e:
+        await shop.purchase(FakeSession(), UID, "x")
+    assert e.value.code == "VALIDATION"
+
+
+async def test_purchase_zero_price_rejected(monkeypatch):
+    """price_hay 0은 원장 CHECK(amount<>0) 위반 전에 422로 차단된다."""
+    async def _load(session, pid):
+        return _item(price_hay=0)
 
     async def _owned(session, uid):
         return set()

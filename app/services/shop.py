@@ -131,7 +131,8 @@ async def purchase(session: AsyncSession, user_id: str, product_id: str) -> dict
     # 기본 지급 비매품도 재구매는 계약상 ALREADY_OWNED가 우선이다.
     if product.id in await _owned_ids(session, uid):
         raise errors.already_owned()
-    if product.price_hay is None:
+    # None=비매품. 0은 원장 CHECK(amount<>0) 위반으로 500이 되므로 여기서 422로 차단.
+    if not product.price_hay:
         raise errors.validation("구매할 수 없는 상품이에요.", {"product_id": product.public_id})
     order = order_service.create_paid_order(
         session, uid, currency="HAY", product=product, unit_price=product.price_hay

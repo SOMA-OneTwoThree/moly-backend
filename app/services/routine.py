@@ -92,7 +92,7 @@ async def update_routine(session: AsyncSession, user_id: str, routine_id: str, r
         r.name = req.name
     if req.reminder_enabled is not None:
         r.reminder_enabled = req.reminder_enabled
-    if req.reminder_time is not None:
+    if "reminder_time" in req.model_fields_set:  # null 명시=제거, 생략=변경 없음
         r.reminder_time = req.reminder_time
     if req.days_of_week is not None:  # 생략=변경 없음(빈 배열은 스키마에서 422)
         r.days_of_week = req.days_of_week

@@ -69,8 +69,9 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
     row.granted = True
     row.ssv_transaction_id = transaction_id
     # 원장 연결 불필요 — SSV 멱등·추적은 reward_ad_sessions(ssv_transaction_id UNIQUE)가 담당
-    await hay_ledger.apply(session, row.user_id, "ad_reward", AD_REWARD)
     try:
+        # apply 내부 flush 시점에 ssv_transaction_id UNIQUE 충돌이 먼저 터질 수 있다
+        await hay_ledger.apply(session, row.user_id, "ad_reward", AD_REWARD)
         await session.commit()
     except IntegrityError:
         # 같은 transaction_id가 다른 세션으로 이미 지급됨(UNIQUE 충돌) — 롤백, 멱등.

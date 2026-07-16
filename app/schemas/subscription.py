@@ -22,7 +22,7 @@ class RevenueCatEvent(BaseModel):
 class RevenueCatWebhook(BaseModel):
     model_config = ConfigDict(extra="allow")
 
-    api_version: str | None = None
+    api_version: str = Field(min_length=1)  # RC 공식 문서상 모든 웹훅에 존재(non-nullable)
     event: RevenueCatEvent
 
 

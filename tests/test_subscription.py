@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from fastapi.testclient import TestClient
 
 from app.core.db import get_session
+from app.core.security import get_current_user
 from app.main import app
 from app.services import hay_ledger, payment, subscription
 
@@ -48,6 +49,29 @@ def test_plans_static():
     p = subscription.get_plans()
     assert {x["period"] for x in p["plans"]} == {"monthly", "yearly"}
     assert p["plans"][0]["hay_grant"] in (1000, 4000)
+
+
+def test_plans_require_auth():
+    async def _sess():
+        yield None
+
+    app.dependency_overrides[get_session] = _sess
+    try:
+        response = TestClient(app).get("/subscription/plans")
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_plans_authenticated():
+    app.dependency_overrides[get_current_user] = lambda: UID
+    try:
+        response = TestClient(app).get("/subscription/plans")
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 200
+    assert {plan["period"] for plan in response.json()["plans"]} == {"monthly", "yearly"}
 
 
 # --- RevenueCat 웹훅 이벤트 매핑 ---

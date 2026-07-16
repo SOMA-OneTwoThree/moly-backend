@@ -31,7 +31,9 @@ async def get_subscription(
 
 
 @router.get("/subscription/plans", response_model=SubscriptionPlansResponse)
-async def get_plans() -> dict[str, Any]:
+async def get_plans(
+    _user_id: str = Depends(get_current_user),
+) -> dict[str, Any]:
     return subscription.get_plans()
 
 

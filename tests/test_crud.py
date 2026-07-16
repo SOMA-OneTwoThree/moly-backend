@@ -147,7 +147,7 @@ async def test_routine_statistics_streak(monkeypatch):
         return UID_UUID, ad
 
     async def _owned(session, uid, rid):
-        return SimpleNamespace(id=uuid.uuid4(), frequency_per_week=3, days_of_week=None)
+        return SimpleNamespace(id=uuid.uuid4(), frequency_per_week=3, days_of_week=[1, 3, 5])
 
     monkeypatch.setattr(routine, "_today", _today)
     monkeypatch.setattr(routine, "_load_owned", _owned)
@@ -155,7 +155,8 @@ async def test_routine_statistics_streak(monkeypatch):
     dates = [ad, ad - timedelta(days=1), ad - timedelta(days=2), ad - timedelta(days=10)]
     out = await routine.statistics(FakeSession(exec_results=[dates]), UID, str(uuid.uuid4()))
     assert out["streak"] == 3
-    assert out["completed_today"] is True and out["target_count"] == 3 and out["days_of_week"] is None
+    assert out["completed_today"] is True and out["target_count"] == 3
+    assert out["days_of_week"] == [1, 3, 5]
     assert 0.0 <= out["completion_rate"] <= 1.0
     # 이번 주(월~일) 요일별 완료 여부·수행 횟수 — 실제 요일 기준으로 검증
     wk_start = ad - timedelta(days=ad.isoweekday() - 1)
@@ -168,7 +169,7 @@ async def test_routine_statistics_streak(monkeypatch):
 
 async def test_routine_create_weekday_mode():
     s = FakeSession()
-    req = SimpleNamespace(name="운동", frequency_per_week=None, days_of_week=[1, 3, 5],
+    req = SimpleNamespace(name="운동", days_of_week=[1, 3, 5],
                           reminder_enabled=False, reminder_time=None)
     out = await routine.create_routine(s, UID, req)
     assert out["days_of_week"] == [1, 3, 5]
@@ -176,26 +177,47 @@ async def test_routine_create_weekday_mode():
     assert s.added[0].days_of_week == [1, 3, 5] and s.added[0].frequency_per_week == 3
 
 
-async def test_routine_update_mode_switch(monkeypatch):
-    r = SimpleNamespace(name="x", frequency_per_week=2, days_of_week=None,
+async def test_routine_update_days(monkeypatch):
+    r = SimpleNamespace(name="x", frequency_per_week=3, days_of_week=[1, 3, 5],
                         reminder_enabled=False, reminder_time=None)
 
     async def _owned(session, uid, rid):
         return r
 
     monkeypatch.setattr(routine, "_load_owned", _owned)
-    # 주N회 → 요일별 전환: frequency 파생
-    req = SimpleNamespace(name=None, frequency_per_week=None, days_of_week=[2, 4, 6, 7],
+    # 요일 변경: frequency 파생
+    req = SimpleNamespace(name=None, days_of_week=[2, 4, 6, 7],
                           reminder_enabled=None, reminder_time=None)
-    req.model_fields_set = {"days_of_week"}
     await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req)
     assert r.days_of_week == [2, 4, 6, 7] and r.frequency_per_week == 4
-    # 요일별 → 주N회 전환([] + frequency 동반)
-    req2 = SimpleNamespace(name=None, frequency_per_week=3, days_of_week=[],
+    # days_of_week 생략 시 스케줄 불변
+    req2 = SimpleNamespace(name="이름만", days_of_week=None,
                            reminder_enabled=None, reminder_time=None)
-    req2.model_fields_set = {"days_of_week", "frequency_per_week"}
     await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req2)
-    assert r.days_of_week is None and r.frequency_per_week == 3
+    assert r.name == "이름만" and r.days_of_week == [2, 4, 6, 7] and r.frequency_per_week == 4
+
+
+def test_routine_request_weekday_only():
+    from pydantic import ValidationError
+
+    from app.schemas.routine import CreateRoutineRequest, PatchRoutineRequest
+
+    # days_of_week 필수
+    with pytest.raises(ValidationError):
+        CreateRoutineRequest(name="운동")
+    # frequency_per_week는 더 이상 받지 않음(extra forbid)
+    with pytest.raises(ValidationError):
+        CreateRoutineRequest(name="운동", days_of_week=[1], frequency_per_week=5)
+    with pytest.raises(ValidationError):
+        PatchRoutineRequest(frequency_per_week=5)
+    # 빈 배열(구 주N회 전환 신호)은 거부
+    with pytest.raises(ValidationError):
+        PatchRoutineRequest(days_of_week=[])
+    # 중복은 거부, 정상 입력은 정렬
+    with pytest.raises(ValidationError):
+        CreateRoutineRequest(name="운동", days_of_week=[5, 1, 1])
+    assert CreateRoutineRequest(name="운동", days_of_week=[5, 1]).days_of_week == [1, 5]
+    assert PatchRoutineRequest(days_of_week=[7, 2]).days_of_week == [2, 7]
 
 
 # --- 상점 구매 ---

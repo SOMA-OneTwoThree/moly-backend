@@ -168,10 +168,13 @@ async def run_flow(c, ext, db, uid, token):
     print("\n[루틴]")
     rid = []
     for nm in ("아침 물 마시기", "산책하기"):
-        r = await c.post("/routines", json={"name": nm, "frequency_per_week": 5})
+        r = await c.post("/routines", json={"name": nm, "days_of_week": [1, 2, 3, 4, 5]})
         if r.status_code in (200, 201):
+            check(f"루틴 응답 frequency=요일 수 ({nm})", r.json().get("frequency_per_week") == 5)
             rid.append(r.json().get("id"))
     check("루틴 2개 생성", len(rid) == 2, f"ids={len(rid)}")
+    r = await c.post("/routines", json={"name": "주N회 거부", "frequency_per_week": 5})
+    check("주 N회 생성 → 422", r.status_code == 422, str(r.status_code))
     r = await c.get("/routines")
     check("GET /routines 2건", r.status_code == 200 and len(r.json().get("data", [])) >= 2)
     for i in rid:
@@ -187,6 +190,8 @@ async def run_flow(c, ext, db, uid, token):
     check("루틴보상 재수령 → 409", r.status_code == 409, str(r.status_code))
     r = await c.patch(f"/routines/{rid[0]}", json={"name": "이름변경"})
     check("PATCH 루틴 2xx", r.status_code in (200, 204), str(r.status_code))
+    r = await c.patch(f"/routines/{rid[0]}", json={"days_of_week": []})
+    check("PATCH 빈 요일 배열 → 422", r.status_code == 422, str(r.status_code))
     r = await c.delete(f"/routines/{rid[1]}")
     check("DELETE 루틴(soft) 200", r.status_code in (200, 204), str(r.status_code))
     check("soft delete — deleted_at 세팅",

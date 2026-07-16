@@ -63,9 +63,9 @@ BEGIN
     );
 
   IF v_profile_created = 1 THEN
-    INSERT INTO public.routines (user_id, name, frequency_per_week, reminder_enabled)
-    VALUES (p_user_id, '이불 정리하기', 7, false),
-           (p_user_id, '물 마시기', 7, false);
+    INSERT INTO public.routines (user_id, name, frequency_per_week, days_of_week, reminder_enabled)
+    VALUES (p_user_id, '이불 정리하기', 7, '{1,2,3,4,5,6,7}', false),
+           (p_user_id, '물 마시기', 7, '{1,2,3,4,5,6,7}', false);
   END IF;
 END;
 $$;

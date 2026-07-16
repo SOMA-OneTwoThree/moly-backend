@@ -1,4 +1,4 @@
-"""routines / routine_completions — 루틴(ERD §5.5). 주기 = 주 N회. 삭제 = soft delete."""
+"""routines / routine_completions — 루틴(ERD §5.5). 주기 = 요일별. 삭제 = soft delete."""
 from __future__ import annotations
 
 import uuid
@@ -31,9 +31,8 @@ class Routine(Base):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     name: Mapped[str] = mapped_column(String)
-    frequency_per_week: Mapped[int] = mapped_column(SmallInteger)  # 주 N회(목표 횟수). 요일별이면 len(days_of_week)
-    # 요일별 루틴이면 지정 요일(ISO 1=월…7=일). null이면 주 N회(횟수) 모드.
-    days_of_week: Mapped[list[int] | None] = mapped_column(ARRAY(SmallInteger), nullable=True)
+    frequency_per_week: Mapped[int] = mapped_column(SmallInteger)  # 항상 len(days_of_week). 응답 하위호환용
+    days_of_week: Mapped[list[int]] = mapped_column(ARRAY(SmallInteger))  # 지정 요일(ISO 1=월…7=일)
     reminder_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
     reminder_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)  # soft delete

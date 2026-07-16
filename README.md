@@ -56,6 +56,15 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 
 DB 전환 순서와 중단 조건은 `db/migrations/README.md`를 따른다.
 
+채팅 응답 계약을 변경해 배포할 때는 진행 중인 개발자 요청을 멈춘 뒤 기존 멱등 JSONB를
+먼저 읽기 전용으로 검사한다. 비호환 행이 있을 때만 두 번째 명령으로 선택 삭제하고,
+배포 후 개발자 앱을 재시작해 이전 요청 키를 폐기한다.
+
+```bash
+uv run python scripts/verify_idempotency_responses.py
+uv run python scripts/verify_idempotency_responses.py --delete-invalid  # 명시할 때만 DB 삭제
+```
+
 `.env` 필수값: `SUPABASE_URL`·`SUPABASE_ANON_KEY`·`SUPABASE_SERVICE_ROLE_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`(mem0). 선택: `FCM_*`(푸시 — 키 없이 ADC/WIF 지원), `APP_STORE_*`(구독·IAP 실검증). 값이 없으면 해당 기능은 안전하게 비활성(no-op/거부)된다.
 
 ### API 손으로 테스트 (Swagger)

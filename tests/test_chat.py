@@ -45,6 +45,7 @@ class FakeSession:
         self.get_map = get_map or {}
         self.execute_items = execute_items or []
         self.added = []
+        self.deleted = []
         self.committed = False
 
     async def get(self, model, key):
@@ -52,6 +53,9 @@ class FakeSession:
 
     def add(self, obj):
         self.added.append(obj)
+
+    async def delete(self, obj):
+        self.deleted.append(obj)
 
     async def flush(self):
         for i, o in enumerate(self.added, start=1):
@@ -106,11 +110,11 @@ async def test_post_message_flow(monkeypatch, patched):
     session = FakeSession()
     req = SimpleNamespace(text="오늘 어땠어?", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "idem-1")
-    assert out["reply"]["content"] == "그냥 그랬어."
+    assert out.reply.content == "그냥 그랬어."
     # billable = ceil(10 + 5*20 + 0.1*(0+0)) = 110 (원가 가중: 출력 5×, 캐시 0.1×)
-    assert out["tokens_used"] == 1110  # 1000 + 110
-    assert out["tokens_remaining"] == 98_890  # 100000 - 1110
-    assert out["review_prompt"] is False
+    assert out.tokens_used == 1110  # 1000 + 110
+    assert out.tokens_remaining == 98_890  # 100000 - 1110
+    assert out.review_prompt is False
     assert session.committed is True
 
 
@@ -136,7 +140,7 @@ async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patche
     monkeypatch.setattr(gating_module, "resolve", _res)
     req = SimpleNamespace(text="ㅎㅇ", greeting_id=None)
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-3")
-    assert out["review_prompt"] is True
+    assert out.review_prompt is True
 
 
 async def test_post_message_survives_mem0_outage(monkeypatch):
@@ -155,7 +159,7 @@ async def test_post_message_survives_mem0_outage(monkeypatch):
     monkeypatch.setattr(gating_module, "resolve", _res)
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-mem")
-    assert out["reply"]["content"] == "응 그래."
+    assert out.reply.content == "응 그래."
 
 
 async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patched):
@@ -181,12 +185,52 @@ async def test_post_message_idempotent_returns_cached(monkeypatch, patched):
         return _gating()
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    cached = SimpleNamespace(response={"reply": {"content": "이전 응답"}})
+    cached_response = {
+        "greeting": None,
+        "user_message": {"message_id": "1", "created_at": "2026-07-07T00:00:00+00:00"},
+        "reply": {
+            "message_id": "2",
+            "content": "이전 응답",
+            "created_at": "2026-07-07T00:00:00+00:00",
+        },
+        "tokens_used": 100,
+        "tokens_remaining": 19_900,
+        "review_prompt": False,
+    }
+    cached = SimpleNamespace(response=cached_response)
     session = FakeSession(get_map={"IdempotencyKey": cached})
     req = SimpleNamespace(text="재시도", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "same-key")
-    assert out == {"reply": {"content": "이전 응답"}}
+    # 와이어 포맷 보존: 저장본과 json 직렬화 결과가 동일해야 한다(+00:00 유지 포함).
+    assert out.model_dump(mode="json") == cached_response
     assert session.committed is False  # LLM·저장 안 탐
+
+
+async def test_post_message_incompatible_cache_fails_closed(monkeypatch):
+    async def _must_not_run(*args, **kwargs):
+        raise AssertionError("비호환 캐시를 새 채팅으로 재실행하면 안 됨")
+
+    monkeypatch.setattr(gating_module, "resolve", _must_not_run)
+    monkeypatch.setattr(llm_module, "generate", _must_not_run)
+    cached = SimpleNamespace(response={"reply": {"content": "구형 응답"}})
+    session = FakeSession(get_map={"IdempotencyKey": cached})
+
+    # 재시도해도 행은 보존된 채 매번 500 — 지우면 다음 재시도가 새 요청으로 실행되어
+    # 메시지·토큰이 중복된다. 정리는 운영 스크립트(--delete-invalid) 전용(api-inventory.md).
+    for _ in range(2):
+        with pytest.raises(AppError) as exc:
+            await chat_service.post_message(
+                session,
+                UID,
+                SimpleNamespace(text="재시도", greeting_id=None),
+                "legacy-key",
+            )
+        assert exc.value.code == "INTERNAL"
+        assert exc.value.http_status == 500
+
+    assert session.added == []
+    assert session.deleted == []
+    assert session.committed is False
 
 
 async def test_get_state_shape(monkeypatch):

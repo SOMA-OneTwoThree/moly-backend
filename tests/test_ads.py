@@ -184,6 +184,30 @@ async def test_grant_transaction_conflict_rollback(monkeypatch):
     assert s.rolled_back is True
 
 
+async def test_grant_transaction_conflict_at_flush(monkeypatch):
+    """UNIQUE 충돌은 원장 apply 내부 flush에서도 터진다 — commit 전이라도 500이 아니라 멱등."""
+    from sqlalchemy.exc import IntegrityError
+
+    async def _daily(session, uid, ad):
+        return SimpleNamespace(ad_reward_count=3)
+
+    async def _apply(*a, **k):
+        raise IntegrityError("stmt", {}, Exception("duplicate key"))
+
+    monkeypatch.setattr(economy, "_daily", _daily)
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+
+    class RollbackSession(FakeSession):
+        rolled_back = False
+
+        async def rollback(self):
+            self.rolled_back = True
+
+    s = RollbackSession(get_obj=_sess_row())
+    assert await ads.grant_from_ssv(s, SID, "t1") == "transaction_conflict"
+    assert s.rolled_back is True and s.committed is False
+
+
 # --- 엔드포인트 ---
 async def _dummy_session():
     yield None

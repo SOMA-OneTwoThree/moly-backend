@@ -299,11 +299,13 @@ def test_rc_webhook_auth_required(monkeypatch):
 
 
 @pytest.mark.parametrize("body", [
-    {},                            # event 없음
-    {"event": "not-an-object"},    # event 비-object
-    {"event": {}},                 # event.type 없음
-    {"event": {"type": ""}},       # type 빈 문자열
-    [1, 2],                        # object가 아닌 JSON
+    {},                                          # 전부 없음
+    {"event": {"type": "TEST"}},                 # api_version 없음(RC는 항상 포함)
+    {"api_version": "1.0"},                      # event 없음
+    {"api_version": "1.0", "event": "not-an-object"},
+    {"api_version": "1.0", "event": {}},         # event.type 없음
+    {"api_version": "1.0", "event": {"type": ""}},
+    [1, 2],                                      # object가 아닌 JSON
 ])
 def test_rc_webhook_malformed_body_422(monkeypatch, body):
     """인증 통과 후 top-level 형태 위반은 422 — RC가 실패로 기록·재시도해 가시화."""
@@ -373,7 +375,8 @@ def test_rc_webhook_auth_ok_calls_handler(monkeypatch):
     monkeypatch.setattr(subscription, "handle_revenuecat_event", _spy)
     app.dependency_overrides[get_session] = _sess
     try:
-        r = TestClient(app).post("/webhooks/revenuecat", json={"event": {"type": "TEST"}},
+        r = TestClient(app).post("/webhooks/revenuecat",
+                                 json={"api_version": "1.0", "event": {"type": "TEST"}},
                                  headers={"Authorization": "sekret"})
         assert r.status_code == 200 and called["event"] == {"type": "TEST"}
     finally:

@@ -76,7 +76,8 @@ class ShopProduct(BaseModel):
     id: PublicID
     name: str = Field(min_length=1)
     slot: Literal["theme", "head", "neck", "body"]
-    price_hay: int | None = Field(ge=0)
+    # NULL=비매품. 0원은 원장 CHECK(amount<>0)와 충돌하므로 계약에서 금지.
+    price_hay: int | None = Field(ge=1)
     owned: bool
     equipped: bool
     asset_version: int = Field(ge=1)
@@ -125,7 +126,7 @@ class PurchaseResponse(BaseModel):
 
     product_id: PublicID
     order_id: str
-    price_hay: int = Field(ge=0)
+    price_hay: int = Field(ge=1)
     balance_after: int = Field(ge=0)
 
 

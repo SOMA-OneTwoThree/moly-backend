@@ -43,7 +43,8 @@ CREATE TABLE public.products (
   -- cosmetic 전용
   public_id            text    UNIQUE,           -- API 노출용 안정 문자열 ID
   slot                 text    CHECK (slot IN ('theme','head','neck','body')),
-  price_hay            integer,                 -- NULL = 구매 불가(기본 지급 등)
+  -- NULL = 구매 불가(기본 지급 등). 0원은 구매 시 원장 CHECK(amount<>0)와 충돌하므로 금지.
+  price_hay            integer CONSTRAINT products_price_hay_positive_ck CHECK (price_hay >= 1),
   is_subscriber_only   boolean NOT NULL DEFAULT false,
   asset_version        integer,
   assets               jsonb,

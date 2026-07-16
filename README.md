@@ -30,8 +30,10 @@ worker/              배치 워커 (매시 크론 1틱)
 db/                  실 스키마(schema.sql)·적용(apply.py)·검증(verify.py)·시드/가입트리거
 scripts/             개발 도우미 (dev_token.py — 로컬 토큰 발급)
 tests/               pytest — mock 유닛 + 실 Supabase 통합(tests/integration)
-docs/                계약·스키마·현황 (노션 동기화 사본)
 ```
+
+현재 저장소 계약의 기준은 `app/api` 라우트, `app/schemas` 요청·응답 모델,
+`app/services` 동작과 `db/`의 canonical DDL이다.
 
 ## 로컬 개발
 
@@ -54,6 +56,15 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 
 DB 전환 순서와 중단 조건은 `db/migrations/README.md`를 따른다.
 
+채팅 응답 계약을 변경해 배포할 때는 진행 중인 개발자 요청을 멈춘 뒤 기존 멱등 JSONB를
+먼저 읽기 전용으로 검사한다. 비호환 행이 있을 때만 두 번째 명령으로 선택 삭제하고,
+배포 후 개발자 앱을 재시작해 이전 요청 키를 폐기한다.
+
+```bash
+uv run python scripts/verify_idempotency_responses.py
+uv run python scripts/verify_idempotency_responses.py --delete-invalid  # 명시할 때만 DB 삭제
+```
+
 `.env` 필수값: `SUPABASE_URL`·`SUPABASE_ANON_KEY`·`SUPABASE_SERVICE_ROLE_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`(mem0). 선택: `FCM_*`(푸시 — 키 없이 ADC/WIF 지원), `APP_STORE_*`(구독·IAP 실검증). 값이 없으면 해당 기능은 안전하게 비활성(no-op/거부)된다.
 
 ### API 손으로 테스트 (Swagger)
@@ -72,8 +83,9 @@ uv run python scripts/dev_token.py --cleanup    # 3) 끝나면 테스트 유저 
 ## 규약
 
 - **인증**: 전 엔드포인트 `Authorization: Bearer <Supabase JWT>` (웹훅·`/health` 제외). 서버가 JWKS(ES256)로 로컬 검증
-- **에러**: `{ "error": { "code", "message", "details" } }` 통일. 프론트는 `code`로 화면 분기 (코드 목록 = `docs/DEV_STATUS.md`)
+- **에러**: `{ "error": { "code", "message", "details" } }` 통일. 프론트는 `code`로 화면 분기
 - **하루 경계**: 토큰 리셋·일기 귀속 = `activity_date`(유저 로컬 **04:00**) / 출석·루틴·광고 보상 = `reward_date`(유저 로컬 **00:00**)
+- **클라이언트 주의**: 로컬 00:00~03:59에는 두 기준일이 서로 다를 수 있다. 하나의 “오늘”로 합치지 말고 각 도메인의 기준일을 사용한다. `/charging-station`의 `activity_date` 필드도 값의 의미는 00:00 경계 `reward_date`다.
 - **멱등**: `POST /chat/messages`는 `Idempotency-Key` 필수, 결제/광고는 트랜잭션ID로 자연 멱등
 
 ## 배치 워커
@@ -85,7 +97,7 @@ uv run python scripts/dev_token.py --cleanup    # 3) 끝나면 테스트 유저 
 ## 배포 · 웹훅
 
 - 컨테이너 1이미지 → API/워커 2프로세스(entrypoint만 분리). 매니지드 플랫폼 + 매시 크론
-- 공개 웹훅(배포 후 URL을 각 콘솔에 등록): `POST /webhooks/appstore`(Apple ASSN) · `GET /webhooks/ad-ssv`(AdMob SSV) — 서명이 인증
+- 공개 웹훅(배포 후 URL을 각 콘솔에 등록): `POST /webhooks/revenuecat`은 대시보드에 설정한 Authorization 값과 서버 secret을 정확히 비교하고, `GET /webhooks/ad-ssv`는 AdMob SSV 서명을 검증한다.
 
 ## 상태 (2026-07-08)
 

@@ -10,13 +10,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.chat import GreetingResponse, PostMessageRequest
+from app.schemas.chat import (
+    ChatStateResponse,
+    GreetingResponse,
+    MessagesResponse,
+    PostMessageRequest,
+    PostMessageResponse,
+)
 from app.services import chat as chat_service
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
-@router.get("/state")
+@router.get("/state", response_model=ChatStateResponse)
 async def get_state(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -24,7 +30,7 @@ async def get_state(
     return await chat_service.get_state(session, user_id)
 
 
-@router.get("/messages")
+@router.get("/messages", response_model=MessagesResponse)
 async def get_messages(
     limit: int = Query(30, ge=1, le=100),
     cursor: str | None = Query(None),
@@ -38,13 +44,13 @@ async def get_messages(
     )
 
 
-@router.post("/messages")
+@router.post("/messages", response_model=PostMessageResponse)
 async def post_message(
     req: PostMessageRequest,
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
-) -> dict[str, Any]:
+) -> PostMessageResponse:
     if not idempotency_key:
         raise errors.validation("Idempotency-Key 헤더가 필요해요.")
     return await chat_service.post_message(session, user_id, req, idempotency_key)

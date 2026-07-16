@@ -8,13 +8,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.routine import CreateRoutineRequest, PatchRoutineRequest
+from app.schemas.routine import (
+    CreateRoutineRequest,
+    PatchRoutineRequest,
+    RoutineCompleteResponse,
+    RoutineListResponse,
+    RoutineResponse,
+    RoutineStatisticsResponse,
+)
 from app.services import routine
 
 router = APIRouter(prefix="/routines", tags=["routine"])
 
 
-@router.get("")
+@router.get("", response_model=RoutineListResponse)
 async def list_routines(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -22,7 +29,7 @@ async def list_routines(
     return await routine.list_routines(session, user_id)
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=RoutineResponse)
 async def create_routine(
     req: CreateRoutineRequest,
     user_id: str = Depends(get_current_user),
@@ -50,7 +57,7 @@ async def delete_routine(
     await routine.delete_routine(session, user_id, routine_id)
 
 
-@router.post("/{routine_id}/complete")
+@router.post("/{routine_id}/complete", response_model=RoutineCompleteResponse)
 async def complete(
     routine_id: str,
     user_id: str = Depends(get_current_user),
@@ -68,7 +75,7 @@ async def uncomplete(
     await routine.uncomplete(session, user_id, routine_id)
 
 
-@router.get("/{routine_id}/statistics")
+@router.get("/{routine_id}/statistics", response_model=RoutineStatisticsResponse)
 async def statistics(
     routine_id: str,
     user_id: str = Depends(get_current_user),

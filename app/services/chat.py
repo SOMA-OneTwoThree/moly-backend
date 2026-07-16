@@ -9,6 +9,7 @@ from math import ceil
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from pydantic import ValidationError
 from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,12 +21,40 @@ from app.models.greeting import Greeting
 from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
+from app.schemas.chat import PostMessageResponse
 from app.services import gating, greetings, llm, memory
 from app.services.account import _uid
 from app.services.prompts import system_prompt
 
 _GREETING_CONTEXTS = greetings.CONTEXTS
 _log = logging.getLogger("moly-backend")
+
+
+def validate_post_message_response(
+    payload: Any, *, user_id: str | None = None, idempotency_key: str | None = None
+) -> PostMessageResponse:
+    """현재 채팅 응답 계약을 저장·재사용 양쪽에서 검증한다.
+
+    비호환 캐시를 새 요청으로 재실행하면 메시지와 토큰이 중복될 수 있으므로 반드시
+    fail-closed 하고 행도 보존한다 — 삭제는 요청 경로가 아니라 운영 절차
+    (scripts/verify_idempotency_responses.py --delete-invalid)에서만 한다(api-inventory.md).
+    응답 본문은 민감할 수 있어 로그에 남기지 않는다. 반환한 모델 인스턴스를 라우트까지
+    그대로 넘기면 response_model이 재검증하지 않아 요청당 검증이 1회로 끝난다.
+    """
+    try:
+        return PostMessageResponse.model_validate(payload)
+    except ValidationError as exc:
+        _log.error(
+            "채팅 멱등 응답 스키마 불일치(user=%s key=%s) — "
+            "scripts/verify_idempotency_responses.py --delete-invalid로 정리 필요",
+            user_id,
+            idempotency_key,
+        )
+        raise errors.AppError(
+            "INTERNAL",
+            500,
+            "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
+        ) from exc
 
 
 def _iso(dt: datetime | None) -> str | None:
@@ -352,14 +381,18 @@ async def _accumulate_tokens(
 # --- POST /chat/messages ---
 async def post_message(
     session: AsyncSession, user_id: str, req, idempotency_key: str
-) -> dict[str, Any]:
+) -> PostMessageResponse:
     uid = _uid(user_id)
     now = datetime.now(timezone.utc)
 
     # 0) 멱등 — 같은 (유저,키) 재요청은 저장된 응답 그대로(이중 차감 방지, 유저 스코프)
     cached = await session.get(IdempotencyKey, (uid, idempotency_key))
     if cached is not None:
-        return cached.response
+        # 비호환 행도 보존한 채 500 — 지우면 다음 재시도가 새 요청으로 실행되어
+        # 메시지·토큰이 중복된다. 정리는 운영 스크립트(--delete-invalid)에서만.
+        return validate_post_message_response(
+            cached.response, user_id=user_id, idempotency_key=idempotency_key
+        )
 
     # 1) 유저 직렬화 → 게이팅. 잠근 뒤 tokens_used를 읽어야 동시요청이 한도를 우회 못 함(TOCTOU).
     await _lock_user(session, uid)
@@ -467,10 +500,14 @@ async def post_message(
         "review_prompt": review,
     }
 
-    # 멱등 저장 + 커밋(원자)
+    validated = validate_post_message_response(
+        response, user_id=user_id, idempotency_key=idempotency_key
+    )
+
+    # 멱등 저장 + 커밋(원자) — JSONB에는 검증 통과한 원본 dict를 저장
     session.add(IdempotencyKey(user_id=uid, key=idempotency_key, response=response))
     await session.commit()
-    return response
+    return validated
 
 
 # --- GET /chat/greeting ---

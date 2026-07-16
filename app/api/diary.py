@@ -8,12 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.security import get_current_user
+from app.schemas.diary import DiaryDetailResponse, DiaryListResponse
 from app.services import diary as diary_service
 
 router = APIRouter(tags=["diary"])
 
 
-@router.get("/diaries")
+@router.get("/diaries", response_model=DiaryListResponse)
 async def list_diaries(
     limit: int = Query(30, ge=1, le=100),
     cursor: str | None = Query(None),
@@ -23,7 +24,7 @@ async def list_diaries(
     return await diary_service.list_diaries(session, user_id, limit=limit, cursor=cursor)
 
 
-@router.get("/diaries/{diary_id}")
+@router.get("/diaries/{diary_id}", response_model=DiaryDetailResponse)
 async def get_diary(
     diary_id: str,
     user_id: str = Depends(get_current_user),

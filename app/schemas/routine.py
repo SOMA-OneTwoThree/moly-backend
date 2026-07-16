@@ -1,9 +1,16 @@
 """루틴 요청 스키마. 스케줄 = 요일별(days_of_week) 또는 주 N회(frequency_per_week)."""
 from __future__ import annotations
 
-from datetime import time
+from datetime import date, time
+from typing import Annotated, Literal
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+
+from app.schemas.common import StrictResponse
+
+DayOfWeek = Literal[1, 2, 3, 4, 5, 6, 7]
+ReminderTime = Annotated[str, StringConstraints(pattern=r"^\d{2}:\d{2}$")]
 
 
 def _valid_days(days: list[int]) -> list[int]:
@@ -45,3 +52,47 @@ class PatchRoutineRequest(BaseModel):
         if self.days_of_week:  # 비어있지 않은 리스트만 값 검증(빈 배열=모드 전환 신호)
             self.days_of_week = _valid_days(self.days_of_week)
         return self
+
+
+class RoutineResponse(StrictResponse):
+    id: UUID
+    name: str = Field(min_length=1, max_length=50)
+    frequency_per_week: int = Field(ge=1, le=7)
+    days_of_week: list[DayOfWeek] | None
+    reminder_enabled: bool
+    reminder_time: ReminderTime | None
+    completed_today: bool
+
+
+class RoutineListResponse(StrictResponse):
+    data: list[RoutineResponse]
+
+
+class RoutineCompleteResponse(StrictResponse):
+    completed_today: Literal[True]
+    completed_count_today: int = Field(ge=0)
+
+
+class WeekdayCompletion(StrictResponse):
+    day_1: bool = Field(alias="1")
+    day_2: bool = Field(alias="2")
+    day_3: bool = Field(alias="3")
+    day_4: bool = Field(alias="4")
+    day_5: bool = Field(alias="5")
+    day_6: bool = Field(alias="6")
+    day_7: bool = Field(alias="7")
+
+
+class ThisWeekStatistics(StrictResponse):
+    completed_count: int = Field(ge=0)
+    by_weekday: WeekdayCompletion
+
+
+class RoutineStatisticsResponse(StrictResponse):
+    streak: int = Field(ge=0)
+    completed_today: bool
+    target_count: int = Field(ge=1, le=7)
+    days_of_week: list[DayOfWeek] | None
+    this_week: ThisWeekStatistics
+    last_30_days: list[date]
+    completion_rate: float = Field(ge=0, le=1)

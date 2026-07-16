@@ -41,9 +41,11 @@ async def create_session(session: AsyncSession, user_id: str) -> dict[str, Any]:
     }
 
 
-async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id: str) -> None:
-    """SSV 콜백(서명검증 후) → 세션 조회 후 +10 지급.
+async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id: str) -> str:
+    """SSV 콜백(서명검증 후) → 세션 조회 후 +10 지급. 반환 = 처리 결과(콜백 응답 body에 노출).
 
+    결과: granted / invalid_session / session_not_found / duplicate / daily_limit
+    / transaction_conflict. Google은 body를 보지 않으므로 HTTP는 항상 200 — 구분은 운영용.
     멱등 = 세션당 1회(`granted` 행잠금) + `ssv_transaction_id` UNIQUE(재전송/다른세션 방어).
     일 한도는 지급 시 원자 카운트 체크 — 세션 남발해도 10회 초과 지급 안 됨.
     custom_data = reward_session_id(서명검증된 값) → 세션 소유자에게만 지급.
@@ -52,17 +54,17 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
         sid = uuid.UUID(session_id)
     except (ValueError, TypeError):
         _log.warning("SSV: reward_session_id 형식 오류(%r) — 스킵", session_id)
-        return
+        return "invalid_session"
     row = await session.get(RewardAdSession, sid, with_for_update=True)  # 동시/재전송 직렬화
     if row is None:
         _log.warning("SSV: 세션 없음(%s) — 스킵", session_id)
-        return
+        return "session_not_found"
     if row.granted:
-        return  # 이미 지급 — 재전송/중복 콜백 멱등
+        return "duplicate"  # 이미 지급 — 재전송/중복 콜백 멱등
     stats = await economy._daily(session, row.user_id, row.activity_date)
     if stats.ad_reward_count >= AD_DAILY_LIMIT:
         _log.info("SSV: 일 한도 초과(user=%s) — 미지급", row.user_id)
-        return  # 세션은 발급됐어도 실제 지급은 한도로 차단(당일 초과분 미지급)
+        return "daily_limit"  # 세션은 발급됐어도 실제 지급은 한도로 차단(당일 초과분 미지급)
     stats.ad_reward_count += 1
     row.granted = True
     row.ssv_transaction_id = transaction_id
@@ -73,3 +75,5 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
     except IntegrityError:
         # 같은 transaction_id가 다른 세션으로 이미 지급됨(UNIQUE 충돌) — 롤백, 멱등.
         await session.rollback()
+        return "transaction_conflict"
+    return "granted"

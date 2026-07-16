@@ -9,8 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.ads import RewardAdSessionResponse
-from app.schemas.common import StatusResponse
+from app.schemas.ads import AdSsvResponse, RewardAdSessionResponse
 from app.services import ads, ads_ssv
 
 router = APIRouter(tags=["ads"])
@@ -25,12 +24,16 @@ async def create_reward_ad_session(
     return await ads.create_session(session, user_id)
 
 
-@router.get("/webhooks/ad-ssv", response_model=StatusResponse)
+@router.get("/webhooks/ad-ssv", response_model=AdSsvResponse)
 async def ad_ssv(
     request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
-    """AdMob 리워드 SSV 콜백(서버-서버). 인증 = 서명. 검증 후 세션으로 자동 +10 지급."""
+    """AdMob 리워드 SSV 콜백(서버-서버). 인증 = 서명. 검증 후 세션으로 자동 +10 지급.
+
+    서명 통과 후에는 항상 200 — 비-200이면 Google이 1초 간격 5회 재전송하는데 중복·한도 등
+    영구 조건엔 무의미. 처리 결과는 body `result`로 구분(운영·테스트용, Google은 무시).
+    """
     p = request.query_params
     key_id, signature = p.get("key_id"), p.get("signature")
     reward_session_id, transaction_id = p.get("custom_data"), p.get("transaction_id")
@@ -38,5 +41,5 @@ async def ad_ssv(
         raise errors.validation("SSV 파라미터가 누락됐어요.")
     if not await ads_ssv.verify(request.url.query, key_id, signature):
         raise errors.ad_verify_failed()
-    await ads.grant_from_ssv(session, reward_session_id, transaction_id)
-    return {"status": "ok"}
+    result = await ads.grant_from_ssv(session, reward_session_id, transaction_id)
+    return {"status": "ok", "result": result}

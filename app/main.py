@@ -17,13 +17,12 @@ def create_app() -> FastAPI:
     """API 앱 팩토리. 모듈 라우터는 여기서 등록(chat·diary… 는 구현 시 추가)."""
     # 비-local이면 StoreKit 결제/웹훅 설정 강제(누락 시 부팅 실패, 서명검증 우회 방지).
     settings.require_production_ready()
-    # OpenAPI 문서는 로컬에서만 노출(프로덕션 무인증 스키마 열람 차단).
     _local = settings.environment == "local"
     app = FastAPI(
         title=settings.app_name,
-        docs_url="/docs" if _local else None,
-        redoc_url="/redoc" if _local else None,
-        openapi_url="/openapi.json" if _local else None,
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
     )
     register_error_handlers(app)
     # 공개(인증 불필요): 헬스체크만. (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)
@@ -38,7 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(review_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
-    # 로컬 전용: 워커 배치(일기 생성)를 Swagger에서 손으로 돌리는 개발 라우터.
+    # 로컬 전용: 워커 배치(일기 생성)를 curl로 손으로 돌리는 개발 라우터.
     # 프로덕션엔 라우트 자체가 등록되지 않는다.
     if _local:
         from app.api.dev import router as dev_router

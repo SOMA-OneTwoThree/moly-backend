@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""로컬 개발용 — Swagger에서 개별 API를 손으로 테스트하기 위한 실 토큰 발급 스크립트.
+"""로컬 개발용 — curl 등으로 개별 API를 손으로 테스트하기 위한 실 토큰 발급 스크립트.
 
 이 앱은 소셜 전용(이메일·익명 로그인 비활성)이라 브라우저만으로는 토큰을 못 얻는다.
 이 스크립트가 service_role로 테스트 유저를 만들고 magiclink를 admin 발급→verify 해서
-실제 Supabase access token(ES256)을 출력한다. 그 토큰을 Swagger "Authorize 🔒"에 넣으면
-전 엔드포인트를 실 DB에 대고 눌러볼 수 있다.
+실제 Supabase access token(ES256)을 출력한다. 그 토큰을 `Authorization: Bearer` 헤더에
+넣으면 전 엔드포인트를 실 DB에 대고 눌러볼 수 있다.
 
 ⚠️ 앱 런타임과 무관한 **로컬 전용 CLI**다(엔드포인트 아님, 배포 안 됨, 네트워크로 안 닿음).
    시크릿은 코드에 없다 — 전부 .env에서 읽는다(.env는 gitignore). 키 없으면 동작하지 않는다.
@@ -138,14 +138,14 @@ def cmd_token(c: httpx.Client, url: str, sr: str, anon: str, nickname: str) -> N
     print("access_token (아래 한 줄을 복사):")
     print(at)
     print("-" * 60)
-    print("1) http://localhost:8000/docs → 우측 상단 Authorize 🔒 → 위 토큰 붙여넣기")
-    print("2) 아무 API나 Try it out 으로 실 DB에 대고 테스트")
+    print('1) curl -H "Authorization: Bearer <위 토큰>" http://localhost:8000/chat/state')
+    print("2) 같은 헤더로 아무 API나 실 DB에 대고 테스트")
     print("3) 끝나면:  uv run python scripts/dev_token.py --cleanup")
     print("=" * 60)
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="로컬 Swagger 테스트용 실 토큰 발급/정리")
+    ap = argparse.ArgumentParser(description="로컬 API 수동 테스트용 실 토큰 발급/정리")
     ap.add_argument("--cleanup", action="store_true", help="이 스크립트가 만든 테스트 유저 삭제")
     ap.add_argument(
         "--nickname",

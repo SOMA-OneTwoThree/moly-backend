@@ -280,8 +280,8 @@ CREATE TABLE public.routines (
   id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id            uuid     NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   name               text     NOT NULL,
-  frequency_per_week smallint NOT NULL,            -- 목표 횟수(요일별이면 요일 수)
-  days_of_week       smallint[],                   -- 요일별(ISO 1=월…7=일). null=주 N회 모드
+  frequency_per_week smallint NOT NULL,            -- 항상 요일 수(응답 하위호환용)
+  days_of_week       smallint[] NOT NULL,          -- 지정 요일(ISO 1=월…7=일)
   reminder_enabled   boolean  NOT NULL DEFAULT false,
   reminder_time      time,
   deleted_at         timestamptz,

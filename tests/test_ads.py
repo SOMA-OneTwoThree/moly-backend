@@ -123,7 +123,7 @@ async def test_grant_success(monkeypatch):
     _patch(monkeypatch, ad_count=3)
     row = _sess_row()
     s = FakeSession(get_obj=row)
-    await ads.grant_from_ssv(s, SID, "t1")
+    assert await ads.grant_from_ssv(s, SID, "t1") == "granted"
     assert row.granted is True and row.ssv_transaction_id == "t1" and s.committed
 
 
@@ -134,7 +134,7 @@ async def test_grant_already_granted_skip(monkeypatch):
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     row = _sess_row(granted=True)
     s = FakeSession(get_obj=row)
-    await ads.grant_from_ssv(s, SID, "t2")  # 재전송 — 무시
+    assert await ads.grant_from_ssv(s, SID, "t2") == "duplicate"  # 재전송 — 무시
     assert s.committed is False
 
 
@@ -148,20 +148,40 @@ async def test_grant_limit_no_pay(monkeypatch):
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     row = _sess_row()
-    await ads.grant_from_ssv(FakeSession(get_obj=row), SID, "t1")
+    assert await ads.grant_from_ssv(FakeSession(get_obj=row), SID, "t1") == "daily_limit"
     assert row.granted is False  # 미지급
 
 
 async def test_grant_session_not_found_skip():
     s = FakeSession(get_obj=None)
-    await ads.grant_from_ssv(s, SID, "t1")  # 세션 없음 — 무시, 에러 없음
+    assert await ads.grant_from_ssv(s, SID, "t1") == "session_not_found"  # 무시, 에러 없음
     assert s.committed is False
 
 
 async def test_grant_bad_session_id_skip():
     s = FakeSession()
-    await ads.grant_from_ssv(s, "not-a-uuid", "t1")  # 형식 오류 — 무시
+    assert await ads.grant_from_ssv(s, "not-a-uuid", "t1") == "invalid_session"  # 형식 오류
     assert s.committed is False
+
+
+async def test_grant_transaction_conflict_rollback(monkeypatch):
+    """같은 transaction_id가 다른 세션으로 이미 지급 — UNIQUE 충돌 롤백, 멱등."""
+    from sqlalchemy.exc import IntegrityError
+
+    _patch(monkeypatch, ad_count=3)
+
+    class ConflictSession(FakeSession):
+        rolled_back = False
+
+        async def commit(self):
+            raise IntegrityError("stmt", {}, Exception("duplicate key"))
+
+        async def rollback(self):
+            self.rolled_back = True
+
+    s = ConflictSession(get_obj=_sess_row())
+    assert await ads.grant_from_ssv(s, SID, "t1") == "transaction_conflict"
+    assert s.rolled_back is True
 
 
 # --- 엔드포인트 ---
@@ -172,6 +192,27 @@ async def _dummy_session():
 def test_ssv_webhook_missing_params():
     r = TestClient(app).get("/webhooks/ad-ssv?key_id=1")
     assert r.status_code == 422 and r.json()["error"]["code"] == "VALIDATION"
+
+
+@pytest.mark.parametrize("outcome", ["granted", "session_not_found"])
+def test_ssv_webhook_result_in_body(monkeypatch, outcome):
+    """서명 통과 후 처리 결과는 HTTP 200 유지 + body result로 구분."""
+    async def _verify(*a, **k):
+        return True
+
+    async def _grant(session, sid, tx):
+        return outcome
+
+    monkeypatch.setattr(ads_ssv, "verify", _verify)
+    monkeypatch.setattr(ads, "grant_from_ssv", _grant)
+    app.dependency_overrides[get_session] = _dummy_session
+    try:
+        r = TestClient(app).get(
+            f"/webhooks/ad-ssv?custom_data={SID}&transaction_id=t1&signature=s&key_id=1"
+        )
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 200 and r.json() == {"status": "ok", "result": outcome}
 
 
 def test_reward_ad_session_requires_auth():

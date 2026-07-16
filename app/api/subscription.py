@@ -6,9 +6,11 @@
 from __future__ import annotations
 
 import hmac
+import logging
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, Header
+from fastapi import APIRouter, Depends, Header, Request
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -16,8 +18,14 @@ from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
 from app.schemas.common import StatusResponse
-from app.schemas.subscription import SubscriptionPlansResponse, SubscriptionResponse
+from app.schemas.subscription import (
+    RevenueCatWebhook,
+    SubscriptionPlansResponse,
+    SubscriptionResponse,
+)
 from app.services import subscription
+
+_log = logging.getLogger("moly-backend")
 
 router = APIRouter(tags=["subscription"])
 
@@ -39,18 +47,24 @@ async def get_plans(
 
 @router.post("/webhooks/revenuecat", response_model=StatusResponse)
 async def revenuecat_webhook(
-    payload: dict = Body(...),
+    request: Request,
     authorization: str | None = Header(default=None),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
     """RevenueCat 웹훅. 인증 = 대시보드에 설정한 Authorization 헤더 값 일치(상수시간 비교).
 
-    본문 {api_version, event:{...}}. 미설정/불일치 = 401(fail-closed).
+    미설정/불일치 = 401(fail-closed) — body는 인증 후에만 파싱한다(깨진 JSON도 미인증이면
+    401). 본문 {api_version, event:{type,...}} 형태 위반 = 422(RC가 실패로 기록·재시도).
+    event 내부는 RC가 field를 수시 추가하므로 type 외 강제하지 않는다.
     """
     expected = settings.revenuecat_webhook_auth
     if not expected or not authorization or not hmac.compare_digest(authorization, expected):
         raise errors.unauthorized("웹훅 인증에 실패했어요.")
-    event = payload.get("event")
-    if isinstance(event, dict):
-        await subscription.handle_revenuecat_event(session, event)
+    try:
+        body = RevenueCatWebhook.model_validate(await request.json())
+    except (ValueError, ValidationError):
+        raise errors.validation("RevenueCat 웹훅 본문 형식이 올바르지 않습니다.")
+    if body.api_version != "1.0":
+        _log.warning("RC 웹훅: 예상 밖 api_version(%r) — 계약 확인 필요", body.api_version)
+    await subscription.handle_revenuecat_event(session, body.event.model_dump())
     return {"status": "ok"}

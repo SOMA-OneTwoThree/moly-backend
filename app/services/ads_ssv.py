@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 import logging
+import time
 
 import httpx
 from cryptography.hazmat.primitives import hashes
@@ -15,15 +16,19 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 _log = logging.getLogger("moly-backend")
 _KEYS_URL = "https://www.gstatic.com/admob/reward/verifier-keys.json"
+_KEYS_TTL_SECONDS = 24 * 60 * 60  # Google 정책: 공개키 24시간 이상 캐시 금지(수시 로테이션)
 _keys_cache: dict[str, str] | None = None
+_keys_fetched_at: float = 0.0
 
 
 async def _get_keys(*, force: bool = False) -> dict[str, str]:
-    global _keys_cache
-    if _keys_cache is None or force:
+    global _keys_cache, _keys_fetched_at
+    expired = time.monotonic() - _keys_fetched_at >= _KEYS_TTL_SECONDS
+    if _keys_cache is None or expired or force:
         async with httpx.AsyncClient(timeout=10.0) as client:
             data = (await client.get(_KEYS_URL)).json()
         _keys_cache = {str(k["keyId"]): k["pem"] for k in data.get("keys", [])}
+        _keys_fetched_at = time.monotonic()
     return _keys_cache
 
 

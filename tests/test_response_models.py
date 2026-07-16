@@ -6,7 +6,7 @@ from pydantic import BaseModel, ValidationError
 import pytest
 
 from app.main import app
-from app.schemas.ads import RewardAdSessionResponse
+from app.schemas.ads import AdSsvResponse, RewardAdSessionResponse
 from app.schemas.chat import ChatStateResponse, MessagesResponse, PostMessageResponse
 from app.schemas.common import HealthResponse, StatusResponse
 from app.schemas.dev import DiaryGenerateResponse
@@ -150,6 +150,7 @@ ROUTINE = {
                 "views_limit": 10,
             },
         ),
+        (AdSsvResponse, {"status": "ok", "result": "granted"}),
         (
             DiaryGenerateResponse,
             {

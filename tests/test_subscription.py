@@ -2,6 +2,7 @@
 import uuid
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.core.db import get_session
@@ -295,6 +296,67 @@ def test_rc_webhook_auth_required(monkeypatch):
                       headers={"Authorization": "wrong"}).status_code == 401  # 불일치
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.mark.parametrize("body", [
+    {},                            # event 없음
+    {"event": "not-an-object"},    # event 비-object
+    {"event": {}},                 # event.type 없음
+    {"event": {"type": ""}},       # type 빈 문자열
+    [1, 2],                        # object가 아닌 JSON
+])
+def test_rc_webhook_malformed_body_422(monkeypatch, body):
+    """인증 통과 후 top-level 형태 위반은 422 — RC가 실패로 기록·재시도해 가시화."""
+    from app.config import settings as cfg
+    monkeypatch.setattr(cfg, "revenuecat_webhook_auth", "sekret")
+
+    async def _sess():
+        yield None
+
+    app.dependency_overrides[get_session] = _sess
+    try:
+        r = TestClient(app).post("/webhooks/revenuecat", json=body,
+                                 headers={"Authorization": "sekret"})
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 422 and r.json()["error"]["code"] == "VALIDATION"
+
+
+def test_rc_webhook_broken_json_after_auth_422(monkeypatch):
+    from app.config import settings as cfg
+    monkeypatch.setattr(cfg, "revenuecat_webhook_auth", "sekret")
+
+    async def _sess():
+        yield None
+
+    app.dependency_overrides[get_session] = _sess
+    try:
+        r = TestClient(app).post(
+            "/webhooks/revenuecat", content=b"not-json",
+            headers={"Authorization": "sekret", "Content-Type": "application/json"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 422 and r.json()["error"]["code"] == "VALIDATION"
+
+
+def test_rc_webhook_auth_precedes_body_parsing(monkeypatch):
+    """깨진 JSON이라도 미인증이면 401 — body는 인증 후에만 파싱(fail-closed)."""
+    from app.config import settings as cfg
+    monkeypatch.setattr(cfg, "revenuecat_webhook_auth", "sekret")
+
+    async def _sess():
+        yield None
+
+    app.dependency_overrides[get_session] = _sess
+    try:
+        r = TestClient(app).post(
+            "/webhooks/revenuecat", content=b"not-json",
+            headers={"Authorization": "wrong", "Content-Type": "application/json"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
 
 
 def test_rc_webhook_auth_ok_calls_handler(monkeypatch):

@@ -1,0 +1,206 @@
+schemas:
+  HealthResponse:
+    properties:
+      status:
+        type: string
+        const: ok
+        title: Status
+        description: 고정값 ok.
+      app:
+        type: string
+        title: App
+        description: settings.app_name runtime 값.
+      env:
+        type: string
+        title: Env
+        description: settings.environment runtime 값.
+    additionalProperties: false
+    type: object
+    required:
+    - status
+    - app
+    - env
+    title: HealthResponse
+  JsonValue: {}
+  StatusResponse:
+    properties:
+      status:
+        type: string
+        const: ok
+        title: Status
+    additionalProperties: false
+    type: object
+    required:
+    - status
+    title: StatusResponse
+  ValidationIssue:
+    type: object
+    required:
+    - loc
+    - type
+    - msg
+    properties:
+      loc:
+        type: array
+        items:
+          anyOf:
+          - type: string
+          - type: integer
+        description: body/query/path/header와 field path를 포함한 오류 위치.
+      type:
+        type: string
+      msg:
+        type: string
+    additionalProperties: false
+  ErrorDetails:
+    type: object
+    additionalProperties: true
+    description: 오류별 부가 정보. 일반 오류는 빈 object다. 요청 model 검증은 errors, 잔액 부족은 required/balance, 일부 validation은
+      context/product_id/slot 등을 담는다.
+    properties:
+      errors:
+        type: array
+        items:
+          $ref: '#/schemas/ValidationIssue'
+      required:
+        type: integer
+      balance:
+        type: integer
+      context: {}
+      product_id:
+        anyOf:
+        - type: string
+        - type: 'null'
+      slot:
+        type: string
+        enum:
+        - theme
+        - head
+        - neck
+        - body
+  ErrorBody:
+    type: object
+    required:
+    - code
+    - message
+    - details
+    properties:
+      code:
+        type: string
+        minLength: 1
+        description: client 분기용 code. 기타 Starlette status는 HTTP_<status>일 수 있다.
+      message:
+        type: string
+      details:
+        $ref: '#/schemas/ErrorDetails'
+    additionalProperties: false
+  ErrorEnvelope:
+    type: object
+    required:
+    - error
+    properties:
+      error:
+        $ref: '#/schemas/ErrorBody'
+    additionalProperties: false
+securitySchemes:
+  SupabaseBearer:
+    type: http
+    scheme: bearer
+    bearerFormat: Supabase access token JWT
+    description: JWKS로 ES256/RS256 서명, aud=authenticated, sub/exp 필수, leeway=60초를 검증한다. SUPABASE_URL이
+      있으면 issuer=<SUPABASE_URL>/auth/v1도 검증한다. is_anonymous=true token은 ALLOW_ANONYMOUS_AUTH 설정(기본
+      꺼짐)이 켜진 환경에서만 허용하고 그 외에는 거부한다.
+  RevenueCatAuthorization:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: RevenueCat dashboard의 전체 Authorization 문자열과 server secret을 상수시간 exact compare한다. Bearer
+      prefix 규칙은 없고 설정이 비어도 fail-closed 401이다.
+  AdMobSsvSignature:
+    type: apiKey
+    in: query
+    name: signature
+    description: URL-safe base64 Google AdMob SSV ECDSA P-256/SHA-256 signature. key_id로 공개키를 선택하고
+      signature 앞의 percent-encoded 원본 query를 검증한다.
+    x-verification:
+      algorithm: ECDSA P-256 SHA-256
+      signed_material: signature parameter 앞의 percent-encoded raw query
+      public_key_selector: key_id
+responses:
+  AssetInternal:
+    description: 상품 asset schema 위반 또는 기타 내부 오류
+    content:
+      application/json:
+        schema:
+          $ref: '#/schemas/ErrorEnvelope'
+        examples:
+          asset:
+            summary: 상품 asset 오류
+            value:
+              error:
+                code: INTERNAL
+                message: 상품 에셋 구성이 올바르지 않습니다.
+                details:
+                  product_id: example
+  Unauthorized:
+    description: Bearer token 누락, 형식 오류, 검증 실패 또는 허용되지 않은 anonymous token
+    content:
+      application/json:
+        schema:
+          $ref: '#/schemas/ErrorEnvelope'
+        examples:
+          unauthorized:
+            summary: 인증 실패
+            value:
+              error:
+                code: UNAUTHORIZED
+                message: 다시 로그인해 주세요.
+                details: {}
+  Validation:
+    description: 요청 형식 또는 endpoint validation 실패
+    content:
+      application/json:
+        schema:
+          $ref: '#/schemas/ErrorEnvelope'
+        examples:
+          requestValidation:
+            summary: 요청 검증
+            value:
+              error:
+                code: VALIDATION
+                message: 요청 형식이 올바르지 않습니다.
+                details:
+                  errors:
+                  - loc:
+                    - body
+                    - field
+                    type: missing
+                    msg: Field required
+  Internal:
+    description: DB, 외부 API, 응답 직렬화 등을 포함한 미처리 또는 명시적 내부 오류
+    content:
+      application/json:
+        schema:
+          $ref: '#/schemas/ErrorEnvelope'
+        examples:
+          internal:
+            summary: 내부 오류
+            value:
+              error:
+                code: INTERNAL
+                message: 일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.
+                details: {}
+  ProfileNotFound:
+    description: 인증 user의 profile이 없음
+    content:
+      application/json:
+        schema:
+          $ref: '#/schemas/ErrorEnvelope'
+        examples:
+          notFound:
+            summary: 프로필 없음
+            value:
+              error:
+                code: NOT_FOUND
+                message: 프로필을 찾을 수 없어요.
+                details: {}

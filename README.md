@@ -35,6 +35,14 @@ tests/               pytest — mock 유닛 + 실 Supabase 통합(tests/integrat
 현재 저장소 계약의 기준은 `app/api` 라우트, `app/schemas` 요청·응답 모델,
 `app/services` 동작과 `db/`의 canonical DDL이다.
 
+확정 OpenAPI 원본은 `openapi/openapi.yaml`과 분할 YAML이다. 단일 파일 bundle은 직접
+수정하지 않고 아래 명령으로 생성·검증한다.
+
+```bash
+uv run python scripts/openapi_contract.py --write
+uv run python scripts/openapi_contract.py --check
+```
+
 ## 로컬 개발
 
 ```bash

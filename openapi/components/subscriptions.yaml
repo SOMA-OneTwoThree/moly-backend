@@ -1,0 +1,151 @@
+schemas:
+  SubscriptionPlan:
+    properties:
+      product_id:
+        type: string
+        title: Product Id
+      period:
+        type: string
+        enum:
+        - monthly
+        - yearly
+        title: Period
+      hay_grant:
+        type: integer
+        minimum: 0
+        title: Hay Grant
+    additionalProperties: false
+    type: object
+    required:
+    - product_id
+    - period
+    - hay_grant
+    title: SubscriptionPlan
+  SubscriptionPlansResponse:
+    properties:
+      plans:
+        items:
+          $ref: '#/schemas/SubscriptionPlan'
+        type: array
+        title: Plans
+        minItems: 2
+        maxItems: 2
+        description: code에 고정된 monthly/yearly 2개 plan.
+      benefits:
+        items:
+          type: string
+        type: array
+        title: Benefits
+        description: 구독 혜택 표시 문구 목록.
+    additionalProperties: false
+    type: object
+    required:
+    - plans
+    - benefits
+    title: SubscriptionPlansResponse
+  SubscriptionResponse:
+    properties:
+      status:
+        type: string
+        enum:
+        - none
+        - active
+        - grace_period
+        - expired
+        - revoked
+        title: Status
+        description: 최신 subscription row status 또는 row가 없으면 none.
+      plan:
+        anyOf:
+        - type: string
+          enum:
+          - monthly
+          - yearly
+        - type: 'null'
+        title: Plan
+        description: monthly/yearly 또는 row가 없으면 null.
+      auto_renew_enabled:
+        type: boolean
+        title: Auto Renew Enabled
+        description: 자동 갱신 여부.
+      expires_at:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        title: Expires At
+        description: 구독 만료 시각 또는 null.
+      in_trial:
+        type: boolean
+        title: In Trial
+        description: 활성 구독이 없고 launch/profile trial이 유효한지 여부.
+      trial_ends_at:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        title: Trial Ends At
+        description: 적용 trial 종료 시각 또는 null.
+    additionalProperties: false
+    type: object
+    required:
+    - status
+    - plan
+    - auto_renew_enabled
+    - expires_at
+    - in_trial
+    - trial_ends_at
+    title: SubscriptionResponse
+    allOf:
+    - if:
+        properties:
+          in_trial:
+            const: true
+        required:
+        - in_trial
+      then:
+        properties:
+          trial_ends_at:
+            type: string
+            format: date-time
+      else:
+        properties:
+          trial_ends_at:
+            type: 'null'
+  RevenueCatEvent:
+    type: object
+    required:
+    - type
+    properties:
+      type:
+        type: string
+        minLength: 1
+        description: RevenueCat event type. 미지원/신규 type도 200으로 무시될 수 있다.
+    additionalProperties: true
+    description: event 내부는 RevenueCat 신규 type/field 추가를 허용하기 위해 type 외에는 강제하지 않는다. service가 선택적으로 읽는 field는
+      x-consumed-fields에 열거한다.
+    x-consumed-fields:
+    - type
+    - app_user_id
+    - product_id
+    - original_transaction_id
+    - transaction_id
+    - expiration_at_ms
+    - purchased_at_ms
+    - price_in_purchased_currency
+    - currency
+    - cancel_reason
+    - environment
+  RevenueCatWebhook:
+    type: object
+    required:
+    - api_version
+    - event
+    properties:
+      api_version:
+        type: string
+        minLength: 1
+        description: 1.0이 아니어도 warning만 남기고 처리한다.
+      event:
+        $ref: '#/schemas/RevenueCatEvent'
+    additionalProperties: true

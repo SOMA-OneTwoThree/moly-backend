@@ -1,0 +1,296 @@
+schemas:
+  CreateRoutineRequest:
+    properties:
+      name:
+        type: string
+        maxLength: 50
+        minLength: 1
+        title: Name
+      days_of_week:
+        items:
+          $ref: '#/schemas/DayOfWeek'
+        type: array
+        title: Days Of Week
+        minItems: 1
+        maxItems: 7
+        uniqueItems: true
+        description: ISO weekday 1=Mon…7=Sun, 중복 없이 1개 이상. 입력 후 정렬.
+      reminder_enabled:
+        type: boolean
+        title: Reminder Enabled
+        default: false
+      reminder_time:
+        anyOf:
+        - type: string
+          format: time
+        - type: 'null'
+        title: Reminder Time
+        description: ISO time 문자열 또는 null.
+    additionalProperties: false
+    type: object
+    required:
+    - name
+    - days_of_week
+    title: CreateRoutineRequest
+  DayOfWeek:
+    type: integer
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    title: DayOfWeek
+    description: ISO weekday. 1=월 … 7=일.
+  PatchRoutineRequest:
+    properties:
+      name:
+        anyOf:
+        - type: string
+          maxLength: 50
+          minLength: 1
+        - type: 'null'
+        title: Name
+      days_of_week:
+        anyOf:
+        - items:
+            $ref: '#/schemas/DayOfWeek'
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+        - type: 'null'
+        title: Days Of Week
+        description: 생략/null은 변경 없음. 배열이면 중복 없이 1개 이상이고 정렬.
+      reminder_enabled:
+        anyOf:
+        - type: boolean
+        - type: 'null'
+        title: Reminder Enabled
+        description: false를 보내면 client local reminder를 비활성화한다. 생략/null은 변경 없음.
+      reminder_time:
+        anyOf:
+        - type: string
+          format: time
+        - type: 'null'
+        title: Reminder Time
+        description: ISO time 문자열. 생략은 변경 없음, null은 기존 시간 제거.
+    additionalProperties: false
+    type: object
+    title: PatchRoutineRequest
+  RoutineCompleteResponse:
+    properties:
+      completed_today:
+        type: boolean
+        const: true
+        title: Completed Today
+      completed_count_today:
+        type: integer
+        minimum: 0
+        title: Completed Count Today
+    additionalProperties: false
+    type: object
+    required:
+    - completed_today
+    - completed_count_today
+    title: RoutineCompleteResponse
+  RoutineListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/schemas/RoutineResponse'
+        type: array
+        title: Data
+    additionalProperties: false
+    type: object
+    required:
+    - data
+    title: RoutineListResponse
+  RoutinePairStatus:
+    properties:
+      completed_today:
+        type: integer
+        minimum: 0
+        title: Completed Today
+      required:
+        type: integer
+        minimum: 0
+        title: Required
+        const: 2
+        description: 필요 완료 수 2.
+      claimable:
+        type: boolean
+        title: Claimable
+      claimed:
+        type: boolean
+        title: Claimed
+      reward:
+        type: integer
+        minimum: 0
+        title: Reward
+        const: 10
+        description: 고정 routine 보상 10.
+    additionalProperties: false
+    type: object
+    required:
+    - completed_today
+    - required
+    - claimable
+    - claimed
+    - reward
+    title: RoutinePairStatus
+  RoutineResponse:
+    properties:
+      id:
+        type: string
+        format: uuid
+        title: Id
+        description: Routine UUID.
+      name:
+        type: string
+        maxLength: 50
+        minLength: 1
+        title: Name
+        description: Routine 이름.
+      frequency_per_week:
+        type: integer
+        maximum: 7
+        minimum: 1
+        title: Frequency Per Week
+        description: 항상 days_of_week 길이인 compatibility field.
+      days_of_week:
+        type: array
+        minItems: 1
+        maxItems: 7
+        uniqueItems: true
+        items:
+          $ref: '#/schemas/DayOfWeek'
+        description: ISO weekday 1=Mon…7=Sun, 중복 없이 1개 이상.
+      reminder_enabled:
+        type: boolean
+        title: Reminder Enabled
+        description: client local reminder 활성 여부.
+      reminder_time:
+        anyOf:
+        - type: string
+          pattern: ^\d{2}:\d{2}$
+        - type: 'null'
+        title: Reminder Time
+        description: HH:MM response string 또는 null.
+      completed_today:
+        type: boolean
+        title: Completed Today
+        description: local reward date 완료 여부.
+    additionalProperties: false
+    type: object
+    required:
+    - id
+    - name
+    - frequency_per_week
+    - days_of_week
+    - reminder_enabled
+    - reminder_time
+    - completed_today
+    title: RoutineResponse
+  RoutineStatisticsResponse:
+    properties:
+      streak:
+        type: integer
+        minimum: 0
+        title: Streak
+        description: 오늘부터 역방향 연속 calendar day 완료 수.
+      completed_today:
+        type: boolean
+        title: Completed Today
+        description: 오늘 완료 여부.
+      target_count:
+        type: integer
+        maximum: 7
+        minimum: 1
+        title: Target Count
+        description: 항상 days_of_week 길이.
+      days_of_week:
+        type: array
+        minItems: 1
+        maxItems: 7
+        uniqueItems: true
+        items:
+          $ref: '#/schemas/DayOfWeek'
+        description: ISO weekday 배열.
+      this_week:
+        $ref: '#/schemas/ThisWeekStatistics'
+        description: 월요일 시작 현재 주 완료 통계.
+      last_30_days:
+        items:
+          type: string
+          format: date
+        type: array
+        title: Last 30 Days
+        description: (today-date).days<30인 완료 date를 오름차순 반환.
+      completion_rate:
+        type: number
+        maximum: 1
+        minimum: 0
+        title: Completion Rate
+        description: 최근 28일 완료 수/(요일 수×4), 최대 1, 소수 둘째 자리 반올림. 부동소수점 표현 때문에 0.01 배수 검증은 하지 않는다.
+    additionalProperties: false
+    type: object
+    required:
+    - streak
+    - completed_today
+    - target_count
+    - days_of_week
+    - this_week
+    - last_30_days
+    - completion_rate
+    title: RoutineStatisticsResponse
+  ThisWeekStatistics:
+    properties:
+      completed_count:
+        type: integer
+        minimum: 0
+        title: Completed Count
+      by_weekday:
+        $ref: '#/schemas/WeekdayCompletion'
+    additionalProperties: false
+    type: object
+    required:
+    - completed_count
+    - by_weekday
+    title: ThisWeekStatistics
+  WeekdayCompletion:
+    properties:
+      '1':
+        type: boolean
+        title: '1'
+      '2':
+        type: boolean
+        title: '2'
+      '3':
+        type: boolean
+        title: '3'
+      '4':
+        type: boolean
+        title: '4'
+      '5':
+        type: boolean
+        title: '5'
+      '6':
+        type: boolean
+        title: '6'
+      '7':
+        type: boolean
+        title: '7'
+    additionalProperties: false
+    type: object
+    required:
+    - '1'
+    - '2'
+    - '3'
+    - '4'
+    - '5'
+    - '6'
+    - '7'
+    title: WeekdayCompletion

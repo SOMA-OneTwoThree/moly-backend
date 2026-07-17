@@ -1,0 +1,276 @@
+/routines:
+  get:
+    tags:
+    - routine
+    summary: 루틴 목록 조회
+    operationId: listRoutines
+    responses:
+      '200':
+        description: 루틴 목록
+        content:
+          application/json:
+            schema:
+              $ref: ../components/routines.yaml#/schemas/RoutineListResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - SupabaseBearer: []
+    description: soft-delete되지 않은 본인 routine을 created_at 오름차순으로 모두 반환한다. pagination은 없다.
+  post:
+    tags:
+    - routine
+    summary: 루틴 생성
+    operationId: createRoutine
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ../components/routines.yaml#/schemas/CreateRoutineRequest
+      required: true
+    responses:
+      '201':
+        description: 생성된 루틴
+        content:
+          application/json:
+            schema:
+              $ref: ../components/routines.yaml#/schemas/RoutineResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+    security:
+    - SupabaseBearer: []
+    description: days_of_week는 ISO 월=1…일=7 중복 없는 1개 이상이며 저장 전에 정렬된다. frequency_per_week는 배열 길이로 파생된다.
+/routines/{routine_id}:
+  patch:
+    tags:
+    - routine
+    summary: 루틴 수정
+    operationId: updateRoutine
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: routine_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Routine Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/routines.yaml#/schemas/PatchRoutineRequest
+    responses:
+      '204':
+        description: 수정 완료; body 없음
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '404':
+        description: UUID 형식 오류, 없음, 타인 소유 또는 soft-delete
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              notFound:
+                summary: resource 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 루틴을 찾을 수 없어요.
+                    details: {}
+    description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week의 null은 변경 없음. reminder_time은
+      생략하면 변경 없고 명시적 null이면 제거한다. days_of_week를 바꾸면 frequency_per_week도 길이로 갱신한다.
+  delete:
+    tags:
+    - routine
+    summary: 루틴 삭제
+    operationId: deleteRoutine
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: routine_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Routine Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    responses:
+      '204':
+        description: 삭제 완료; body 없음
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: UUID 형식 오류, 없음, 타인 소유 또는 soft-delete
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              notFound:
+                summary: resource 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 루틴을 찾을 수 없어요.
+                    details: {}
+    description: deleted_at을 기록하는 soft delete다.
+/routines/{routine_id}/complete:
+  post:
+    tags:
+    - routine
+    summary: 오늘 루틴 완료
+    operationId: completeRoutine
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: routine_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Routine Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    responses:
+      '200':
+        description: 완료 상태와 오늘 전체 완료 수
+        content:
+          application/json:
+            schema:
+              $ref: ../components/routines.yaml#/schemas/RoutineCompleteResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              profile:
+                summary: 프로필 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 프로필을 찾을 수 없어요.
+                    details: {}
+              routine:
+                summary: 루틴 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 루틴을 찾을 수 없어요.
+                    details: {}
+    description: local 00:00 reward date 기준 완료를 insert하며 unique conflict를 무시하므로 멱등이다.
+  delete:
+    tags:
+    - routine
+    summary: 오늘 루틴 완료 취소
+    operationId: uncompleteRoutine
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: routine_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Routine Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    responses:
+      '204':
+        description: 완료 취소; body 없음
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              profile:
+                summary: 프로필 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 프로필을 찾을 수 없어요.
+                    details: {}
+              routine:
+                summary: 루틴 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 루틴을 찾을 수 없어요.
+                    details: {}
+    description: 해당 reward date 완료 행이 없어도 204다.
+/routines/{routine_id}/statistics:
+  get:
+    tags:
+    - routine
+    summary: 루틴 통계 조회
+    operationId: getRoutineStatistics
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: routine_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Routine Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    responses:
+      '200':
+        description: 루틴 통계
+        content:
+          application/json:
+            schema:
+              $ref: ../components/routines.yaml#/schemas/RoutineStatisticsResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              profile:
+                summary: 프로필 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 프로필을 찾을 수 없어요.
+                    details: {}
+              routine:
+                summary: 루틴 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 루틴을 찾을 수 없어요.
+                    details: {}
+    description: streak는 지정 요일이 아니라 오늘부터 역방향 연속 calendar day 수다. completion_rate는 최근 28일 완료 수/(요일 수×4),
+      상한 1.0, 소수 둘째 자리 반올림이다.

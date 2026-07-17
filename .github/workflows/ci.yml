@@ -1,0 +1,35 @@
+# PR 검증 — lint + 전체 유닛 테스트(OpenAPI 계약 테스트 포함).
+# main ruleset의 required status check("test")로 지정되어 실패하면 머지가 차단된다.
+name: CI
+
+on:
+  pull_request:
+
+# 같은 PR에 연속 push 시 이전 실행을 취소하고 최신만 검증
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 엔진 생성용 자리표시자 — 유닛 테스트는 실제 DB에 접속하지 않는다
+  SUPABASE_DB_CONNECTION_STRING: postgresql+asyncpg://placeholder:placeholder@localhost:5432/placeholder
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check app scripts tests
+
+      - name: Test (통합 테스트 제외 — 실 Supabase 필요)
+        run: uv run pytest -q --ignore=tests/integration

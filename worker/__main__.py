@@ -1,6 +1,6 @@
 """배치 워커 엔트리포인트 — API와 같은 코드베이스, 프로세스만 분리(ARCHITECTURE §3.3).
 
-외부 매시 크론이 `python -m worker` 1틱 실행(멱등). 04:00 일기 생성·기억통합 / 09:00·21:00 푸시.
+외부 매시 크론이 `python -m worker` 1틱 실행(멱등). 04:00 일기 생성·기억통합 / 09:00·20:00 푸시.
 """
 from __future__ import annotations
 

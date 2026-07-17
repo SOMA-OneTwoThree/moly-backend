@@ -1,4 +1,4 @@
-"""알림 발송 조립 — 설정(기본 on) 확인 → 기기 토큰 로드 → FCM 발송. 워커가 09:00/21:00 호출."""
+"""알림 발송 조립 — 설정(기본 on) 확인 → 기기 토큰 로드 → FCM 발송. 워커가 09:00/20:00 호출."""
 from __future__ import annotations
 
 from sqlalchemy import select

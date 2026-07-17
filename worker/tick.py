@@ -1,4 +1,4 @@
-"""배치 틱 — 매시 크론이 호출(멱등). 로컬 04:00 일기 생성 / 09:00 아침·21:00 저녁 푸시."""
+"""배치 틱 — 매시 크론이 호출(멱등). 로컬 04:00 일기 생성 / 09:00 아침·20:00 저녁 푸시."""
 from __future__ import annotations
 
 import logging
@@ -16,7 +16,7 @@ from app.services.limits import effective_token_config
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
 MORNING_HOUR = 9  # 09:00 아침 일기 푸시
-EVENING_HOUR = 21  # 21:00 저녁 안부 푸시
+EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
 
 
 async def run_tick(now: datetime | None = None) -> dict[str, int]:

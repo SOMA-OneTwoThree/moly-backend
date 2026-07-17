@@ -71,7 +71,7 @@ async def main(commit: bool, path: str) -> None:
     await tx.start()
     try:
         await c.executemany(_UPSERT, rows)
-        print(f"업서트 {len(rows)}건: {', '.join(d for *_, d in rows)}")
+        print(f"업서트 {len(rows)}건: {', '.join(d.isoformat() for *_, d in rows)}")
         if commit:
             await tx.commit()
             print(">>> COMMIT 완료 — 실 DB 반영됨.")

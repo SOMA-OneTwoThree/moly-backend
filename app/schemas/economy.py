@@ -30,7 +30,7 @@ class HayTransactionResponse(StrictResponse):
     amount: int
     # DB에 balance_after >= 0 CHECK가 없다 — 레거시 음수 행이 조회를 500으로 막으면 안 된다.
     balance_after: int
-    created_at: UtcDatetime | None
+    created_at: UtcDatetime
 
     @model_validator(mode="after")
     def amount_must_be_nonzero(self) -> "HayTransactionResponse":
@@ -65,8 +65,8 @@ class RoutinePairStatus(StrictResponse):
 
 
 class HayProduct(StrictResponse):
-    product_id: str | None
-    amount: int | None
+    product_id: str
+    amount: int
 
 
 class ChargingStationResponse(StrictResponse):

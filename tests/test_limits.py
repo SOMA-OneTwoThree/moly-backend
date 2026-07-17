@@ -1,6 +1,8 @@
 """토큰 한도 해석 — app_config 값 우선, 없으면 settings 임의 기본값(엔드포인트 제거와 무관하게 동작)."""
 from types import SimpleNamespace
 
+import pytest
+
 from app.config import settings
 from app.services.limits import effective_token_config
 
@@ -47,3 +49,20 @@ async def test_app_config_overrides_defaults():
     assert cfg["diary_llm_min_tokens"] == 99
     # 안 온 키는 여전히 기본값
     assert cfg["token_warning_threshold"] == settings.token_warning_threshold
+
+
+@pytest.mark.parametrize("value", ["3000", True, -1, None])
+async def test_invalid_warning_threshold_uses_default(value):
+    rows = [SimpleNamespace(key="token_warning_threshold", value=value)]
+
+    cfg = await effective_token_config(FakeSession(rows))
+
+    assert cfg["token_warning_threshold"] == settings.token_warning_threshold
+
+
+async def test_nonnegative_warning_threshold_override_is_preserved():
+    rows = [SimpleNamespace(key="token_warning_threshold", value=0)]
+
+    cfg = await effective_token_config(FakeSession(rows))
+
+    assert cfg["token_warning_threshold"] == 0

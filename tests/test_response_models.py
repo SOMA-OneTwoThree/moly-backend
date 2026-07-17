@@ -97,7 +97,9 @@ ROUTINE = {
                     "claimed": False,
                     "reward": 10,
                 },
-                "hay_products": [{"product_id": None, "amount": None}],
+                "hay_products": [
+                    {"product_id": "com.geniusjun.moly.hay.300", "amount": 300}
+                ],
                 "balance": 100,
             },
         ),
@@ -188,15 +190,18 @@ def test_utc_datetime_keeps_offset_wire_format():
 
 def test_all_json_success_routes_use_concrete_base_models():
     missing = []
-    for route in app.routes:
-        if not isinstance(route, APIRoute) or route.status_code == 204:
-            continue
-        response_model = route.response_model
-        if not (
-            isinstance(response_model, type)
-            and issubclass(response_model, BaseModel)
-        ):
-            missing.append(f"{','.join(sorted(route.methods or []))} {route.path}")
+    for included in app.routes:
+        router = getattr(included, "original_router", None)
+        routes = router.routes if router is not None else [included]
+        for route in routes:
+            if not isinstance(route, APIRoute) or route.status_code == 204:
+                continue
+            response_model = route.response_model
+            if not (
+                isinstance(response_model, type)
+                and issubclass(response_model, BaseModel)
+            ):
+                missing.append(f"{','.join(sorted(route.methods or []))} {route.path}")
     assert missing == []
 
 
@@ -218,3 +223,65 @@ def test_response_models_reject_unknown_fields_and_invalid_enums():
         )
     with pytest.raises(ValidationError):
         PostMessageResponse.model_validate({"reply": {"content": "필드 누락"}})
+    with pytest.raises(ValidationError):
+        RoutineResponse.model_validate({**ROUTINE, "days_of_week": None})
+    with pytest.raises(ValidationError):
+        ChatStateResponse.model_validate(
+            {
+                "activity_date": "2026-07-16",
+                "plan": "free",
+                "tokens_used": 0,
+                "daily_token_limit": 30_000,
+                "tokens_remaining": 30_000,
+                "warning_threshold": "3000",
+                "personal_diary_eligible": False,
+                "limit_reached": False,
+            }
+        )
+    with pytest.raises(ValidationError):
+        MessagesResponse.model_validate(
+            {
+                "data": [
+                    {
+                        "id": "1",
+                        "sender": "moly",
+                        "content": "안녕",
+                        "created_at": None,
+                    }
+                ],
+                "older_cursor": None,
+                "newer_cursor": None,
+            }
+        )
+    with pytest.raises(ValidationError):
+        TransactionsResponse.model_validate(
+            {
+                "data": [
+                    {
+                        "id": "1",
+                        "type": "attendance",
+                        "amount": 10,
+                        "balance_after": 10,
+                        "created_at": None,
+                    }
+                ],
+                "next_cursor": None,
+            }
+        )
+    with pytest.raises(ValidationError):
+        ChargingStationResponse.model_validate(
+            {
+                "activity_date": "2026-07-16",
+                "attendance": {"claimable": True, "claimed": False, "reward": 10},
+                "ad": {"views_used": 0, "views_limit": 10, "reward_per_view": 10},
+                "routine_pair": {
+                    "completed_today": 0,
+                    "required": 2,
+                    "claimable": False,
+                    "claimed": False,
+                    "reward": 10,
+                },
+                "hay_products": [{"product_id": None, "amount": None}],
+                "balance": 100,
+            }
+        )

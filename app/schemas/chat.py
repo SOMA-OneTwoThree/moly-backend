@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.common import StrictResponse, UtcDatetime
 
@@ -22,8 +22,7 @@ class ChatStateResponse(StrictResponse):
     tokens_used: int = Field(ge=0)
     daily_token_limit: int | None = Field(default=None, ge=0)
     tokens_remaining: int | None = Field(default=None, ge=0)
-    # app_config 값은 현재 JSONB이며 별도 타입 검증 없이 전달되는 기존 계약을 유지한다.
-    warning_threshold: JsonValue
+    warning_threshold: int = Field(ge=0, strict=True)
     personal_diary_eligible: bool
     limit_reached: bool
 
@@ -32,7 +31,7 @@ class ChatMessage(StrictResponse):
     id: str = Field(pattern=r"^\d+$")
     sender: Literal["user", "moly"]
     content: str
-    created_at: UtcDatetime | None
+    created_at: UtcDatetime
 
 
 class MessagesResponse(StrictResponse):
@@ -44,12 +43,12 @@ class MessagesResponse(StrictResponse):
 class CommittedGreeting(StrictResponse):
     message_id: str = Field(pattern=r"^\d+$")
     content: str
-    created_at: UtcDatetime | None
+    created_at: UtcDatetime
 
 
 class CreatedMessage(StrictResponse):
     message_id: str = Field(pattern=r"^\d+$")
-    created_at: UtcDatetime | None
+    created_at: UtcDatetime
 
 
 class ReplyMessage(CreatedMessage):

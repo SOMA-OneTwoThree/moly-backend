@@ -114,9 +114,22 @@ async def _personal(
     return (body, weather), {"empty_body": False, "self_check_passed": True}
 
 
-async def _pick_ment(session: AsyncSession) -> MolyLifeMent | None:
+async def _pick_ment(session: AsyncSession, target_date: date) -> MolyLifeMent | None:
+    """캐피 자기일기 소스 선택 — 그날 지정본 우선, 없으면 날짜 없는 풀에서 랜덤."""
+    dated = await session.execute(
+        select(MolyLifeMent)
+        .where(MolyLifeMent.is_active.is_(True), MolyLifeMent.diary_date == target_date)
+        .limit(1)
+    )
+    ment = dated.scalars().first()
+    if ment is not None:
+        return ment
+    # 폴백: 날짜 없는(diary_date IS NULL) 행만 랜덤 — 지정본이 다른 날 재사용되지 않게.
     rows = await session.execute(
-        select(MolyLifeMent).where(MolyLifeMent.is_active.is_(True)).order_by(func.random()).limit(1)
+        select(MolyLifeMent)
+        .where(MolyLifeMent.is_active.is_(True), MolyLifeMent.diary_date.is_(None))
+        .order_by(func.random())
+        .limit(1)
     )
     return rows.scalars().first()
 
@@ -152,7 +165,7 @@ async def generate_for_user(
             source = "llm"
 
     if source == "preset":
-        ment = await _pick_ment(session)
+        ment = await _pick_ment(session, target_date)
         if ment is not None:
             content, weather, preset_id = ment.content, ment.weather, ment.id
         else:

@@ -5,9 +5,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, DateTime, String, text
+from sqlalchemy import Boolean, Date, DateTime, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,6 +23,8 @@ class MolyLifeMent(Base):
     content: Mapped[str] = mapped_column(String)
     weather: Mapped[str] = mapped_column(String)  # sunny | cloudy | rainy | windy
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+    # 날짜 지정본이면 그 날짜. NULL이면 랜덤 폴백 풀.
+    diary_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=True
     )

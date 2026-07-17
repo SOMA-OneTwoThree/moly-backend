@@ -2,6 +2,8 @@
 -- ⚠️ 임시 플레이스홀더 10건. 실제 카피는 팀이 교체 예정.
 -- 제약: 유저 내용 반영 X(미접속 유저에게도 나감) — 캐피 자기 삶(집·소파·턴테이블·날씨)만.
 -- 실행: psql "$SUPABASE_DB_CONNECTION_STRING" -f db/seed_moly_life_ments.sql (1회성)
+-- NOTE: 여기 행들은 diary_date 없이 들어가 랜덤 폴백 풀이 된다. 날짜 지정본은
+--       db/capi_diaries.csv + scripts/seed_capi_diaries.py로 넣는다(diary_date 채워짐).
 
 INSERT INTO public.moly_life_ments (content, weather) VALUES
   ('볕이 좋아서 소파를 창가 쪽으로 조금 옮겼다. 판 한 장 걸어두고 반나절을 그냥 흘려보냈다. 이런 날은 아무것도 안 해도 아깝지 않다.', 'sunny'),

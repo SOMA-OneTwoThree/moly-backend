@@ -40,7 +40,7 @@ def _patch_common(monkeypatch, *, exists=False, messages=None, tokens=5000, ment
     async def _toks(session, uid, td):
         return tokens
 
-    async def _pick(session):
+    async def _pick(session, target_date):
         return ment
 
     async def _mem(user_id, msgs):
@@ -147,3 +147,52 @@ async def test_empty_pool_uses_safe_default(monkeypatch):
     assert d.source == "preset"
     assert d.content  # 비어있지 않음(절대 비지 않음)
     assert d.preset_ment_id is None
+
+
+# --- _pick_ment 2단 우선순위(날짜 지정본 → 랜덤 폴백) ---
+class _PickResult:
+    def __init__(self, obj):
+        self._obj = obj
+
+    def scalars(self):
+        return self
+
+    def first(self):
+        return self._obj
+
+
+class _PickSession:
+    """execute 1번째 호출 = 날짜 지정본 조회, 2번째 = 랜덤 폴백 조회."""
+
+    def __init__(self, dated=None, pool=None):
+        self._returns = [dated, pool]
+        self.calls = 0
+
+    async def execute(self, stmt, params=None):
+        obj = self._returns[self.calls] if self.calls < len(self._returns) else None
+        self.calls += 1
+        return _PickResult(obj)
+
+
+async def test_pick_ment_prefers_dated():
+    dated = SimpleNamespace(id=uuid.uuid4(), content="7월 5일 지정 일기.", weather="rainy")
+    pool = SimpleNamespace(id=uuid.uuid4(), content="랜덤 풀.", weather="sunny")
+    session = _PickSession(dated=dated, pool=pool)
+    got = await dg._pick_ment(session, date(2026, 7, 5))
+    assert got is dated
+    assert session.calls == 1  # 지정본 있으면 폴백 쿼리 안 함(단락)
+
+
+async def test_pick_ment_falls_back_to_pool_when_no_dated():
+    pool = SimpleNamespace(id=uuid.uuid4(), content="랜덤 풀.", weather="sunny")
+    session = _PickSession(dated=None, pool=pool)
+    got = await dg._pick_ment(session, date(2026, 7, 5))
+    assert got is pool
+    assert session.calls == 2  # 지정본 없음 → 폴백 쿼리까지
+
+
+async def test_pick_ment_none_when_both_empty():
+    session = _PickSession(dated=None, pool=None)
+    got = await dg._pick_ment(session, date(2026, 7, 5))
+    assert got is None
+    assert session.calls == 2

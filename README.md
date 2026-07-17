@@ -102,6 +102,27 @@ uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 
 - **04:00** — 전일 일기 생성(개인/캐피) + mem0 기억 통합
 - **09:00** — 아침 일기 FCM 푸시 · **20:00** — 저녁 안부 푸시
 
+### 캐피 자기일기 — 날짜별 지정
+
+임계 미달·미접속 날 나가는 캐피 자기일기(`source=preset`)는 **날짜별로 직접 지정**할 수 있다.
+생성 틱이 그날 `diary_date` 지정본을 우선 쓰고, 없으면 `moly_life_ments`의 랜덤 폴백 풀(`diary_date IS NULL`)로 떨어진다.
+
+- `diary_date` = 그 일기가 **담는 날짜**(= `diaries.diary_date`). 예) `2026-07-17` 행 = **7/17 일기 → 7/18 아침 발행**.
+- 지정본은 그날 **04:00 생성 틱 전까지** 들어가 있어야 반영된다(하루이틀 미리 채워두기). 빈 날은 랜덤 풀이 대신 나가 일기는 절대 비지 않는다.
+
+```bash
+# 1) 템플릿 생성(오늘부터 30일치 — diary_date·weather 채움, content만 빈칸)
+uv run python scripts/make_capi_diary_template.py --start 2026-07-17 --days 30 --out db/capi_diaries.csv
+
+# 2) db/capi_diaries.csv 의 content 칸에 일기를 써넣는다(weather는 기본 sunny, 손 안 대도 됨)
+
+# 3) DB 반영 — content 채운 행만 업서트(멱등). 먼저 dry-run으로 확인
+uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv            # dry-run(ROLLBACK)
+uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv --commit   # 실제 반영
+```
+
+> ⚠️ 최초 1회 마이그레이션 선행 필요: `python db/apply.py db/migrations/20260717_capi_dated_diary.sql --commit` (`moly_life_ments.diary_date` 컬럼 추가). Supabase 대시보드에서 행을 직접 추가해도 동일하게 동작한다.
+
 ## 배포 · 웹훅
 
 - 컨테이너 1이미지 → API/워커 2프로세스(entrypoint만 분리). 매니지드 플랫폼 + 매시 크론

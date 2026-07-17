@@ -85,8 +85,13 @@ CREATE TABLE public.moly_life_ments (
   content    text    NOT NULL,
   weather    text    NOT NULL CHECK (weather IN ('sunny','cloudy','rainy','windy')),
   is_active  boolean NOT NULL DEFAULT true,
+  -- 날짜 지정본(직접 작성) = 그날 우선 선택. NULL = 랜덤 폴백 풀.
+  diary_date date,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+-- 한 날짜당 지정본 1건만(부분 유니크). NULL 풀 행은 제약 밖.
+CREATE UNIQUE INDEX moly_life_ments_diary_date_uq
+  ON public.moly_life_ments (diary_date) WHERE diary_date IS NOT NULL;
 
 CREATE TABLE public.app_config (
   key         text PRIMARY KEY,

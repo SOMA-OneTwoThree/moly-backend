@@ -1,0 +1,265 @@
+/shop/products:
+  get:
+    tags:
+    - shop
+    summary: 꾸미기 상품 catalog 조회
+    operationId: listShopProducts
+    responses:
+      '200':
+        description: theme 및 wearable 상품 catalog
+        content:
+          application/json:
+            schema:
+              $ref: ../components/shop.yaml#/schemas/ProductsResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/AssetInternal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+    security:
+    - SupabaseBearer: []
+    description: active cosmetic을 sort_order, public_id 순으로 정렬하고 theme과 나머지 item으로 나눈다. pagination은 없다.
+/shop/purchases:
+  post:
+    tags:
+    - shop
+    summary: 꾸미기 상품 구매
+    operationId: purchaseShopProduct
+    parameters:
+    - name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        minLength: 1
+      description: 선택. 같은 user/key로 재시도하면 최초 성공 응답을 재사용한다.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ../components/shop.yaml#/schemas/PurchaseRequest
+      required: true
+    responses:
+      '200':
+        description: 구매 상품, order, 가격과 잔액
+        content:
+          application/json:
+            schema:
+              $ref: ../components/shop.yaml#/schemas/PurchaseResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        description: request schema 위반 또는 price_hay가 null/0인 비매품
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              validation:
+                summary: 요청 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - body
+                        - product_id
+                        type: missing
+                        msg: Field required
+              unavailable:
+                summary: 구매 불가
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 구매할 수 없는 상품이에요.
+                    details:
+                      product_id: theme_default
+      '404':
+        description: 상품이 없거나 inactive/non-cosmetic이거나 profile이 없음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              product:
+                summary: 상품 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 상품을 찾을 수 없어요.
+                    details: {}
+              profile:
+                summary: 프로필 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 프로필을 찾을 수 없어요.
+                    details: {}
+      '402':
+        description: 구매 가능한 hay balance 부족
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              hay:
+                summary: 건초 부족
+                value:
+                  error:
+                    code: INSUFFICIENT_HAY
+                    message: 건초가 부족합니다.
+                    details:
+                      required: 100
+                      balance: 40
+      '409':
+        description: 이미 소유하거나 동시 unique conflict
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              owned:
+                summary: 이미 보유
+                value:
+                  error:
+                    code: ALREADY_OWNED
+                    message: 이미 보유 중이에요.
+                    details: {}
+    security:
+    - SupabaseBearer: []
+    description: 건초 원장 차감, order 생성, 소유권·멱등 응답 저장을 한 transaction으로 처리한다. product_id는 양끝 whitespace가
+      제거된다.
+/inventory:
+  get:
+    tags:
+    - shop
+    summary: 보유 꾸미기 상품 조회
+    operationId: getInventory
+    responses:
+      '200':
+        description: 보유 상품 목록
+        content:
+          application/json:
+            schema:
+              $ref: ../components/shop.yaml#/schemas/InventoryResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/AssetInternal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+    security:
+    - SupabaseBearer: []
+    description: source!=subscription인 본인 소유 active cosmetic의 전체 DTO를 sort_order, public_id 순으로 반환한다.
+      pagination은 없다.
+/inventory/equipment:
+  get:
+    tags:
+    - shop
+    summary: 현재 장착 상태 조회
+    operationId: getEquipment
+    responses:
+      '200':
+        description: 현재 4-slot 장착 상태
+        content:
+          application/json:
+            schema:
+              $ref: ../components/shop.yaml#/schemas/EquipmentResponse
+      '500':
+        description: 장착 상품이 active catalog에 없거나 기본 theme 장착이 없거나 기타 내부 오류
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              inactive:
+                summary: 장착 상품 오류
+                value:
+                  error:
+                    code: INTERNAL
+                    message: 장착 상품이 활성 카탈로그에 없습니다.
+                    details: {}
+              theme:
+                summary: 기본 theme 없음
+                value:
+                  error:
+                    code: INTERNAL
+                    message: 기본 테마 장착 상태가 없습니다.
+                    details: {}
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+    security:
+    - SupabaseBearer: []
+    description: theme은 항상 필요하며 wearable head/neck/body는 nullable이다.
+  put:
+    tags:
+    - shop
+    summary: 장착 상태 전체 교체
+    operationId: replaceEquipment
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ../components/shop.yaml#/schemas/EquipmentPutRequest
+      required: true
+    responses:
+      '200':
+        description: 교체된 4-slot 장착 상태
+        content:
+          application/json:
+            schema:
+              $ref: ../components/shop.yaml#/schemas/EquipmentResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        description: request schema 위반, 상품 없음/inactive/non-cosmetic, slot 불일치 또는 미보유
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              validation:
+                summary: 요청 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - body
+                        - theme_id
+                        type: missing
+                        msg: Field required
+              missingProduct:
+                summary: 상품 없음
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 존재하지 않는 상품이에요.
+                    details:
+                      product_id: missing
+              slot:
+                summary: slot 불일치
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 슬롯이 맞지 않아요.
+                    details:
+                      slot: head
+              notOwned:
+                summary: 미보유
+                value:
+                  error:
+                    code: NOT_OWNED
+                    message: 보유하지 않은 아이템이에요.
+                    details: {}
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - SupabaseBearer: []
+    description: 4 slot을 하나의 transaction으로 전체 교체한다. 네 field 모두 필수이고 theme은 null 불가다. wearable null은 해제다.
+      active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.

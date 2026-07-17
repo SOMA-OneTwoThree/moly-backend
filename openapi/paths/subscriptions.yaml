@@ -1,0 +1,117 @@
+/subscription:
+  get:
+    tags:
+    - subscription
+    summary: 구독 상태 조회
+    operationId: getSubscription
+    responses:
+      '200':
+        description: 구독과 trial 상태
+        content:
+          application/json:
+            schema:
+              $ref: ../components/subscriptions.yaml#/schemas/SubscriptionResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - SupabaseBearer: []
+    description: expires_at 내림차순 최신 구독을 반환하며 만료/취소 행도 현재 status와 plan을 보존한다. in_trial은 활성 구독, launch free
+      period, profile trial 순으로 계산한다.
+/subscription/plans:
+  get:
+    tags:
+    - subscription
+    summary: 구독 플랜 조회
+    operationId: listSubscriptionPlans
+    responses:
+      '200':
+        description: 고정 플랜과 혜택
+        content:
+          application/json:
+            schema:
+              $ref: ../components/subscriptions.yaml#/schemas/SubscriptionPlansResponse
+            example:
+              plans:
+              - product_id: app.moly.sub.monthly
+                period: monthly
+                hay_grant: 1000
+              - product_id: app.moly.sub.yearly
+                period: yearly
+                hay_grant: 4000
+              benefits:
+              - 대화 한도 확장
+              - 개인 일기 발행
+              - 배너 광고 제거
+              - 건초 증정
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+    security:
+    - SupabaseBearer: []
+    description: DB 조회 없이 코드에 고정된 monthly/yearly plan과 benefits를 반환한다.
+/webhooks/revenuecat:
+  post:
+    tags:
+    - subscription
+    summary: RevenueCat webhook 처리
+    description: Authorization exact compare를 body parsing보다 먼저 한다. top-level schema 위반은 422다. 지원 event는
+      구독/결제/건초를 동기화한다. 미지원 type, 매핑 불가 uid, 미지원 상품, 중복 등은 log 후 200으로 무시될 수 있으며, 지원 event의
+      profile이 없으면 404다.
+    operationId: handleRevenueCatWebhook
+    responses:
+      '200':
+        description: 처리, 무시 또는 멱등 완료
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/StatusResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        description: secret 미설정, Authorization 누락 또는 exact compare 불일치. body보다 먼저 검사한다.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              auth:
+                summary: webhook 인증 실패
+                value:
+                  error:
+                    code: UNAUTHORIZED
+                    message: 웹훅 인증에 실패했어요.
+                    details: {}
+      '422':
+        description: 인증 후 깨진/non-object JSON 또는 RevenueCatWebhook top-level schema 위반
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              body:
+                summary: 본문 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: RevenueCat 웹훅 본문 형식이 올바르지 않습니다.
+                    details: {}
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - RevenueCatAuthorization: []
+    requestBody:
+      required: true
+      description: 인증 성공 후 JSON parsing 및 RevenueCatWebhook validation.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/subscriptions.yaml#/schemas/RevenueCatWebhook
+          example:
+            api_version: '1.0'
+            event:
+              type: TEST

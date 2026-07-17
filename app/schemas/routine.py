@@ -52,7 +52,7 @@ class RoutineResponse(StrictResponse):
     id: UUID
     name: str = Field(min_length=1, max_length=50)
     frequency_per_week: int = Field(ge=1, le=7)
-    days_of_week: list[DayOfWeek] | None
+    days_of_week: list[DayOfWeek]
     reminder_enabled: bool
     reminder_time: ReminderTime | None
     completed_today: bool
@@ -86,7 +86,7 @@ class RoutineStatisticsResponse(StrictResponse):
     streak: int = Field(ge=0)
     completed_today: bool
     target_count: int = Field(ge=1, le=7)
-    days_of_week: list[DayOfWeek] | None
+    days_of_week: list[DayOfWeek]
     this_week: ThisWeekStatistics
     last_30_days: list[date]
     completion_rate: float = Field(ge=0, le=1)

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
+from app.models.idempotency_key import RESERVED_KEY_PREFIXES
 from app.schemas.chat import (
     ChatStateResponse,
     GreetingResponse,
@@ -53,6 +54,9 @@ async def post_message(
 ) -> PostMessageResponse:
     if not idempotency_key:
         raise errors.validation("Idempotency-Key 헤더가 필요해요.")
+    # raw key 저장소를 다른 endpoint와 공유하므로 예약 prefix 위장을 차단한다.
+    if idempotency_key.startswith(RESERVED_KEY_PREFIXES):
+        raise errors.validation("사용할 수 없는 Idempotency-Key 형식이에요.")
     return await chat_service.post_message(session, user_id, req, idempotency_key)
 
 

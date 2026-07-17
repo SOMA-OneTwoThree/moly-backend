@@ -1,0 +1,3218 @@
+openapi: 3.1.0
+info:
+  title: moly-backend API
+  version: 1.0.0
+  summary: Moly 앱 백엔드 API 계약
+  description: '이 문서는 moly-backend 공개 HTTP API의 확정 계약이다. 호환성에 영향을 주는 변경은 Semantic Versioning으로 관리한다. 보호
+    API는 Supabase access token Bearer 인증을 사용한다. 서버 자체 문서 URL(`/openapi.json`, `/docs`, `/redoc`)은 비활성화되어
+    있다.
+
+
+    애플리케이션 오류, 요청 검증 오류, 등록되지 않은 path의 404, 등록된 path의 미지원 method 405, 미처리 예외 500은 모두 `ErrorEnvelope`로
+    반환된다. 깨진 JSON과 비객체 body를 포함한 요청 검증 실패는 400이 아니라 422다.
+
+
+    날짜 경계는 도메인마다 다르다. 채팅 token과 일기 귀속의 `activity_date`는 사용자 local 04:00, 출석·루틴·광고 보상의 기준일은 사용자 local 00:00이다.
+    `/charging-station.activity_date` 필드명은 레거시이며 실제 의미는 00:00 경계 reward date다.
+
+
+    local 환경 전용 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
+paths:
+  /health:
+    get:
+      tags:
+      - system
+      summary: 헬스체크
+      description: 인증 없는 load balancer/deploy probe. app/env는 runtime settings 값이다.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: 현재 process 상태와 설정 식별자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                app: moly-backend
+                env: local
+        '500':
+          $ref: '#/components/responses/Internal'
+      security: []
+  /chat/state:
+    get:
+      tags:
+      - chat
+      summary: 채팅 사용량과 gating 상태 조회
+      operationId: getChatState
+      responses:
+        '200':
+          description: 현재 채팅 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatStateResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: 사용자 local 04:00 경계 activity date, entitlement, 당일 token 사용량과 개인 일기 자격을 계산한다.
+  /chat/messages:
+    get:
+      tags:
+      - chat
+      summary: 채팅 메시지 조회
+      operationId: listChatMessages
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Limit
+        description: 최대 반환 개수.
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+          title: Cursor
+        description: decimal message id cursor. anchor_date 사용 시 무시된다.
+      - name: direction
+        in: query
+        required: false
+        schema:
+          type: string
+          default: older
+          title: Direction
+          enum:
+          - older
+          - newer
+        description: cursor 기준 조회 방향. anchor_date가 있으면 무시된다.
+      - name: anchor_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+          title: Anchor Date
+        description: 이 activity date 이상 message를 오래된 순으로 조회하며 cursor/direction을 무시한다.
+      responses:
+        '200':
+          description: 채팅 메시지와 양방향 cursor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: FastAPI query constraint 또는 실제 사용되는 cursor가 decimal integer가 아님
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                query:
+                  summary: query 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - query
+                          - limit
+                          type: greater_than_equal
+                          msg: Input should be greater than or equal to 1
+                cursor:
+                  summary: cursor 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 잘못된 커서 형식이에요.
+                      details: {}
+      description: anchor_date가 있으면 cursor/direction을 무시하고 해당 activity date 이상을 id 오름차순으로 반환한다. 그 외 direction=newer와
+        cursor 조합은 id>cursor 오름차순, 기본 older는 id<cursor를 최신순 조회 후 오래된 순으로 뒤집는다. cursor 없는 direction=newer는
+        direction이 무시되어 기본 older와 같이 최신 page를 반환한다. 결과가 있으면 추가 page 존재 여부와 무관하게 첫/마지막 id를 cursor로 반환한다.
+    post:
+      tags:
+      - chat
+      summary: 채팅 메시지 전송
+      operationId: postChatMessage
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: user 범위 멱등 key. route signature는 optional이지만 endpoint logic에서 누락/빈 문자열을 422로 거부한다.
+          길이/형식 상한은 없다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostMessageRequest'
+      responses:
+        '200':
+          description: 커밋된 user message, Moly reply, 사용량과 review prompt 여부
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostMessageResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: request body 위반, Idempotency-Key 누락/empty 또는 greeting_id가 UUID가 아님
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                body:
+                  summary: body 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          - text
+                          type: missing
+                          msg: Field required
+                idempotency:
+                  summary: 멱등 key 누락
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: Idempotency-Key 헤더가 필요해요.
+                      details: {}
+                greeting:
+                  summary: greeting UUID 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 잘못된 greeting_id예요.
+                      details: {}
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '403':
+          description: 당일 대화 token 한도 소진
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                limit:
+                  summary: 일일 한도
+                  value:
+                    error:
+                      code: DAILY_LIMIT_REACHED
+                      message: 오늘의 대화 한도를 모두 사용했어요.
+                      details: {}
+      description: Idempotency-Key는 endpoint logic상 필수다. 저장이 완료된 같은 user/key의 재요청은 저장 응답을 재사용하고 LLM 호출과
+        token 차감을 반복하지 않는다. 같은 key에는 같은 논리 요청만 재사용해야 한다. 비호환 cache는 새 채팅으로 재실행하지 않고 500 fail-closed 한다.
+        greeting_id가 유효한 본인 미커밋 greeting이면 함께 commit하며, UUID지만 없거나 타인 소유/이미 commit이면 오류 없이 무시한다.
+  /chat/greeting:
+    get:
+      tags:
+      - chat
+      summary: 선발화 조회
+      operationId: getChatGreeting
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: context
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Context
+          enum:
+          - onboarding
+          - home_enter
+          - morning
+          - evening
+          - comeback
+        description: 선발화 진입 context.
+      responses:
+        '200':
+          description: 선발화 또는 null pair
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GreetingResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: context가 지원 enum이 아니거나 query validation 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                context:
+                  summary: context 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 알 수 없는 context예요.
+                      details:
+                        context: unknown
+                query:
+                  summary: query 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - query
+                          - context
+                          type: missing
+                          msg: Field required
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      description: 당일 user message가 이미 있거나 greeting을 이미 발급했으면 greeting_id와 content를 모두 null로 반환한다.
+  /diaries:
+    get:
+      tags:
+      - diary
+      summary: 발행된 일기 목록 조회
+      operationId: listDiaries
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Limit
+        description: 최대 반환 개수.
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+          title: Cursor
+        description: 이 diary date보다 과거를 조회하는 ISO date(YYYY-MM-DD) cursor.
+      responses:
+        '200':
+          description: 일기 목록과 다음 cursor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryListResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: query constraint 또는 cursor date parsing 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                cursor:
+                  summary: cursor 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 잘못된 커서 형식이에요.
+                      details: {}
+                query:
+                  summary: query 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - query
+                          - limit
+                          type: greater_than_equal
+                          msg: Input should be greater than or equal to 1
+      description: published_at<=현재만 diary_date 내림차순으로 반환한다. cursor가 있으면 diary_date<cursor다. 다음 page가
+        실제로 있을 때만 next_cursor를 반환한다. 첫 조회에서 profile nickname/created_at이 있으면 welcome diary를 lazy upsert한다.
+  /diaries/{diary_id}:
+    get:
+      tags:
+      - diary
+      summary: 일기 상세 조회
+      operationId: getDiary
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: diary_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Diary Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      responses:
+        '200':
+          description: 일기 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryDetailResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: UUID 형식 오류, 없음, 타인 소유, 미발행 또는 미래 발행
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                notFound:
+                  summary: resource 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 일기를 찾을 수 없어요.
+                      details: {}
+      description: 본인의 발행된 일기만 조회한다. UUID 형식 오류도 resource 존재를 노출하지 않고 404다.
+  /diaries/{diary_id}/read:
+    post:
+      tags:
+      - diary
+      summary: 일기 읽음 처리
+      operationId: markDiaryRead
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: diary_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Diary Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      responses:
+        '204':
+          description: 읽음 처리 완료; body 없음
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: UUID 형식 오류, 없음, 타인 소유, 미발행 또는 미래 발행
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                notFound:
+                  summary: resource 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 일기를 찾을 수 없어요.
+                      details: {}
+      description: first_read_at은 최초 한 번만 기록되며 이후 호출도 멱등 204다.
+  /wallet:
+    get:
+      tags:
+      - economy
+      summary: 건초 잔액 조회
+      operationId: getWallet
+      responses:
+        '200':
+          description: 현재 잔액
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: 서버 권위 profile의 hay balance를 반환한다.
+  /wallet/transactions:
+    get:
+      tags:
+      - economy
+      summary: 건초 원장 조회
+      operationId: listWalletTransactions
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 30
+          title: Limit
+        description: 최대 반환 개수.
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+          title: Cursor
+        description: 이 id보다 작은 거래를 조회하는 transaction id cursor. 십진 숫자([0-9]+)만 허용한다.
+      responses:
+        '200':
+          description: 원장 거래 목록과 다음 cursor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: query constraint 또는 cursor가 decimal integer가 아님
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                cursor:
+                  summary: cursor 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 잘못된 커서 형식이에요.
+                      details: {}
+                query:
+                  summary: query 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - query
+                          - limit
+                          type: greater_than_equal
+                          msg: Input should be greater than or equal to 1
+      description: id 내림차순 cursor pagination. 다음 page가 실제로 있을 때만 next_cursor를 반환한다.
+  /charging-station:
+    get:
+      tags:
+      - economy
+      summary: 충전소 상태 조회
+      operationId: getChargingStation
+      responses:
+        '200':
+          description: 충전소 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargingStationResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: 출석, 광고, 루틴 2개 보상의 local 00:00 reward date 상태와 활성 hay pack, 잔액을 반환한다. activity_date
+        field명은 legacy다.
+  /charging-station/attendance:
+    post:
+      tags:
+      - economy
+      summary: 출석 보상 수령
+      operationId: claimAttendanceReward
+      responses:
+        '200':
+          description: 지급량과 지급 후 잔액
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '409':
+          description: 같은 reward date에 이미 출석 보상을 수령함
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                claimed:
+                  summary: 이미 수령
+                  value:
+                    error:
+                      code: ALREADY_CLAIMED
+                      message: 이미 수령했어요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+      description: 사용자 local 00:00 reward date마다 한 번 +10 건초를 원장과 함께 지급한다.
+  /charging-station/routine-reward:
+    post:
+      tags:
+      - economy
+      summary: 루틴 2개 완료 보상 수령
+      operationId: claimRoutineReward
+      responses:
+        '200':
+          description: 지급량과 지급 후 잔액
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '422':
+          description: 같은 reward date의 routine 완료가 2개 미만
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                goal:
+                  summary: 목표 미달
+                  value:
+                    error:
+                      code: ROUTINE_GOAL_NOT_MET
+                      message: 루틴 2개를 아직 다 완료하지 않았어요.
+                      details: {}
+        '409':
+          description: 같은 reward date에 이미 routine 보상을 수령함
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                claimed:
+                  summary: 이미 수령
+                  value:
+                    error:
+                      code: ALREADY_CLAIMED
+                      message: 이미 수령했어요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+      description: 같은 local reward date에 routine 완료가 2개 이상이면 한 번 +10 건초를 지급한다.
+  /routines:
+    get:
+      tags:
+      - routine
+      summary: 루틴 목록 조회
+      operationId: listRoutines
+      responses:
+        '200':
+          description: 루틴 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineListResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: soft-delete되지 않은 본인 routine을 created_at 오름차순으로 모두 반환한다. pagination은 없다.
+    post:
+      tags:
+      - routine
+      summary: 루틴 생성
+      operationId: createRoutine
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoutineRequest'
+        required: true
+      responses:
+        '201':
+          description: 생성된 루틴
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
+      description: days_of_week는 ISO 월=1…일=7 중복 없는 1개 이상이며 저장 전에 정렬된다. frequency_per_week는 배열 길이로 파생된다.
+  /routines/{routine_id}:
+    patch:
+      tags:
+      - routine
+      summary: 루틴 수정
+      operationId: updateRoutine
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: routine_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Routine Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchRoutineRequest'
+      responses:
+        '204':
+          description: 수정 완료; body 없음
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '404':
+          description: UUID 형식 오류, 없음, 타인 소유 또는 soft-delete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                notFound:
+                  summary: resource 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 루틴을 찾을 수 없어요.
+                      details: {}
+      description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week의 null은 변경 없음. reminder_time은
+        생략하면 변경 없고 명시적 null이면 제거한다. days_of_week를 바꾸면 frequency_per_week도 길이로 갱신한다.
+    delete:
+      tags:
+      - routine
+      summary: 루틴 삭제
+      operationId: deleteRoutine
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: routine_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Routine Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      responses:
+        '204':
+          description: 삭제 완료; body 없음
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: UUID 형식 오류, 없음, 타인 소유 또는 soft-delete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                notFound:
+                  summary: resource 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 루틴을 찾을 수 없어요.
+                      details: {}
+      description: deleted_at을 기록하는 soft delete다.
+  /routines/{routine_id}/complete:
+    post:
+      tags:
+      - routine
+      summary: 오늘 루틴 완료
+      operationId: completeRoutine
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: routine_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Routine Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      responses:
+        '200':
+          description: 완료 상태와 오늘 전체 완료 수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineCompleteResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profile:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+                routine:
+                  summary: 루틴 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 루틴을 찾을 수 없어요.
+                      details: {}
+      description: local 00:00 reward date 기준 완료를 insert하며 unique conflict를 무시하므로 멱등이다.
+    delete:
+      tags:
+      - routine
+      summary: 오늘 루틴 완료 취소
+      operationId: uncompleteRoutine
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: routine_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Routine Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      responses:
+        '204':
+          description: 완료 취소; body 없음
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profile:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+                routine:
+                  summary: 루틴 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 루틴을 찾을 수 없어요.
+                      details: {}
+      description: 해당 reward date 완료 행이 없어도 204다.
+  /routines/{routine_id}/statistics:
+    get:
+      tags:
+      - routine
+      summary: 루틴 통계 조회
+      operationId: getRoutineStatistics
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: routine_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Routine Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      responses:
+        '200':
+          description: 루틴 통계
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineStatisticsResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profile:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+                routine:
+                  summary: 루틴 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 루틴을 찾을 수 없어요.
+                      details: {}
+      description: streak는 지정 요일이 아니라 오늘부터 역방향 연속 calendar day 수다. completion_rate는 최근 28일 완료 수/(요일 수×4),
+        상한 1.0, 소수 둘째 자리 반올림이다.
+  /shop/products:
+    get:
+      tags:
+      - shop
+      summary: 꾸미기 상품 catalog 조회
+      operationId: listShopProducts
+      responses:
+        '200':
+          description: theme 및 wearable 상품 catalog
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsResponse'
+        '500':
+          $ref: '#/components/responses/AssetInternal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - SupabaseBearer: []
+      description: active cosmetic을 sort_order, public_id 순으로 정렬하고 theme과 나머지 item으로 나눈다. pagination은
+        없다.
+  /shop/purchases:
+    post:
+      tags:
+      - shop
+      summary: 꾸미기 상품 구매
+      operationId: purchaseShopProduct
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
+          minLength: 1
+        description: 선택. 같은 user/key로 재시도하면 최초 성공 응답을 재사용한다.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseRequest'
+        required: true
+      responses:
+        '200':
+          description: 구매 상품, order, 가격과 잔액
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: request schema 위반 또는 price_hay가 null/0인 비매품
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          - product_id
+                          type: missing
+                          msg: Field required
+                unavailable:
+                  summary: 구매 불가
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 구매할 수 없는 상품이에요.
+                      details:
+                        product_id: theme_default
+        '404':
+          description: 상품이 없거나 inactive/non-cosmetic이거나 profile이 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                product:
+                  summary: 상품 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 상품을 찾을 수 없어요.
+                      details: {}
+                profile:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '402':
+          description: 구매 가능한 hay balance 부족
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                hay:
+                  summary: 건초 부족
+                  value:
+                    error:
+                      code: INSUFFICIENT_HAY
+                      message: 건초가 부족합니다.
+                      details:
+                        required: 100
+                        balance: 40
+        '409':
+          description: 이미 소유하거나 동시 unique conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                owned:
+                  summary: 이미 보유
+                  value:
+                    error:
+                      code: ALREADY_OWNED
+                      message: 이미 보유 중이에요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+      description: 건초 원장 차감, order 생성, 소유권·멱등 응답 저장을 한 transaction으로 처리한다. product_id는 양끝 whitespace가
+        제거된다.
+  /inventory:
+    get:
+      tags:
+      - shop
+      summary: 보유 꾸미기 상품 조회
+      operationId: getInventory
+      responses:
+        '200':
+          description: 보유 상품 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryResponse'
+        '500':
+          $ref: '#/components/responses/AssetInternal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - SupabaseBearer: []
+      description: source!=subscription인 본인 소유 active cosmetic의 전체 DTO를 sort_order, public_id 순으로 반환한다.
+        pagination은 없다.
+  /inventory/equipment:
+    get:
+      tags:
+      - shop
+      summary: 현재 장착 상태 조회
+      operationId: getEquipment
+      responses:
+        '200':
+          description: 현재 4-slot 장착 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipmentResponse'
+        '500':
+          description: 장착 상품이 active catalog에 없거나 기본 theme 장착이 없거나 기타 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                inactive:
+                  summary: 장착 상품 오류
+                  value:
+                    error:
+                      code: INTERNAL
+                      message: 장착 상품이 활성 카탈로그에 없습니다.
+                      details: {}
+                theme:
+                  summary: 기본 theme 없음
+                  value:
+                    error:
+                      code: INTERNAL
+                      message: 기본 테마 장착 상태가 없습니다.
+                      details: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - SupabaseBearer: []
+      description: theme은 항상 필요하며 wearable head/neck/body는 nullable이다.
+    put:
+      tags:
+      - shop
+      summary: 장착 상태 전체 교체
+      operationId: replaceEquipment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentPutRequest'
+        required: true
+      responses:
+        '200':
+          description: 교체된 4-slot 장착 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipmentResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: request schema 위반, 상품 없음/inactive/non-cosmetic, slot 불일치 또는 미보유
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          - theme_id
+                          type: missing
+                          msg: Field required
+                missingProduct:
+                  summary: 상품 없음
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 존재하지 않는 상품이에요.
+                      details:
+                        product_id: missing
+                slot:
+                  summary: slot 불일치
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 슬롯이 맞지 않아요.
+                      details:
+                        slot: head
+                notOwned:
+                  summary: 미보유
+                  value:
+                    error:
+                      code: NOT_OWNED
+                      message: 보유하지 않은 아이템이에요.
+                      details: {}
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: 4 slot을 하나의 transaction으로 전체 교체한다. 네 field 모두 필수이고 theme은 null 불가다. wearable null은
+        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+  /review/prompted:
+    post:
+      tags:
+      - review
+      summary: 리뷰 prompt 노출 기록
+      operationId: markReviewPrompted
+      responses:
+        '204':
+          description: 기록 완료; body 없음
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: 최초 한 번만 timestamp를 기록하며 이후 호출도 204다.
+  /subscription:
+    get:
+      tags:
+      - subscription
+      summary: 구독 상태 조회
+      operationId: getSubscription
+      responses:
+        '200':
+          description: 구독과 trial 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: expires_at 내림차순 최신 구독을 반환하며 만료/취소 행도 현재 status와 plan을 보존한다. in_trial은 활성 구독, launch
+        free period, profile trial 순으로 계산한다.
+  /subscription/plans:
+    get:
+      tags:
+      - subscription
+      summary: 구독 플랜 조회
+      operationId: listSubscriptionPlans
+      responses:
+        '200':
+          description: 고정 플랜과 혜택
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionPlansResponse'
+              example:
+                plans:
+                - product_id: app.moly.sub.monthly
+                  period: monthly
+                  hay_grant: 1000
+                - product_id: app.moly.sub.yearly
+                  period: yearly
+                  hay_grant: 4000
+                benefits:
+                - 대화 한도 확장
+                - 개인 일기 발행
+                - 배너 광고 제거
+                - 건초 증정
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - SupabaseBearer: []
+      description: DB 조회 없이 코드에 고정된 monthly/yearly plan과 benefits를 반환한다.
+  /webhooks/revenuecat:
+    post:
+      tags:
+      - subscription
+      summary: RevenueCat webhook 처리
+      description: Authorization exact compare를 body parsing보다 먼저 한다. top-level schema 위반은 422다. 지원 event는
+        구독/결제/건초를 동기화한다. 미지원 type, 매핑 불가 uid, 미지원 상품, 중복 등은 log 후 200으로 무시될 수 있으며, 지원 event의 profile이
+        없으면 404다.
+      operationId: handleRevenueCatWebhook
+      responses:
+        '200':
+          description: 처리, 무시 또는 멱등 완료
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          description: secret 미설정, Authorization 누락 또는 exact compare 불일치. body보다 먼저 검사한다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                auth:
+                  summary: webhook 인증 실패
+                  value:
+                    error:
+                      code: UNAUTHORIZED
+                      message: 웹훅 인증에 실패했어요.
+                      details: {}
+        '422':
+          description: 인증 후 깨진/non-object JSON 또는 RevenueCatWebhook top-level schema 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                body:
+                  summary: 본문 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: RevenueCat 웹훅 본문 형식이 올바르지 않습니다.
+                      details: {}
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - RevenueCatAuthorization: []
+      requestBody:
+        required: true
+        description: 인증 성공 후 JSON parsing 및 RevenueCatWebhook validation.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevenueCatWebhook'
+            example:
+              api_version: '1.0'
+              event:
+                type: TEST
+  /reward-ad-sessions:
+    post:
+      tags:
+      - ads
+      summary: 리워드 광고 session 발급
+      description: 광고 시청 전에 local reward date 일 10회 한도를 확인하고 SSV custom_data와 userIdentifier 값을 발급한다.
+      operationId: createRewardAdSession
+      responses:
+        '200':
+          description: SSV용 session과 현재 사용량
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardAdSessionResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '429':
+          description: 같은 reward date 광고 보상 사용량이 10회 이상
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                limit:
+                  summary: 광고 한도
+                  value:
+                    error:
+                      code: AD_LIMIT_REACHED
+                      message: 오늘 광고 시청 한도에 도달했어요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /webhooks/ad-ssv:
+    get:
+      tags:
+      - ads
+      summary: AdMob server-side verification callback
+      description: 공개 HTTP endpoint지만 Google ECDSA signature가 권한 경계다. signature 통과 후 영구 실패/중복도 Google
+        재시도를 피하기 위해 항상 200이고 result로 구분한다. verifier key timeout은 10초, cache TTL은 24시간이다. 추가 query는 허용되며
+        signature 앞 원본 query에 있으면 서명 대상에 포함된다.
+      operationId: handleAdMobSsv
+      responses:
+        '200':
+          description: SSV 처리 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdSsvResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '422':
+          description: 필수 query 누락/empty 또는 Google SSV signature/key 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                missing:
+                  summary: parameter 누락
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: SSV 파라미터가 누락됐어요.
+                      details: {}
+                signature:
+                  summary: signature 실패
+                  value:
+                    error:
+                      code: AD_VERIFY_FAILED
+                      message: 광고 시청 확인에 실패했어요.
+                      details: {}
+      security:
+      - AdMobSsvSignature: []
+      parameters:
+      - name: key_id
+        in: query
+        required: true
+        description: Google verifier 공개키 식별자. non-empty string만 검사한다.
+        schema:
+          type: string
+          minLength: 1
+      - name: custom_data
+        in: query
+        required: true
+        description: 발급된 reward_session_id. UUID가 아니면 signature 통과 후 200 result=invalid_session.
+        schema:
+          type: string
+          minLength: 1
+      - name: transaction_id
+        in: query
+        required: true
+        description: AdMob SSV transaction id. unique 멱등 key.
+        schema:
+          type: string
+          minLength: 1
+components:
+  schemas:
+    AdSsvResponse:
+      properties:
+        status:
+          type: string
+          const: ok
+          title: Status
+          description: 고정값 ok.
+        result:
+          type: string
+          enum:
+          - granted
+          - invalid_session
+          - session_not_found
+          - duplicate
+          - daily_limit
+          - transaction_conflict
+          title: Result
+          description: 지급/무시/멱등 결과. signature 통과 후 실패 result도 HTTP 200.
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      - result
+      title: AdSsvResponse
+      description: SSV 콜백 응답 — HTTP는 항상 200(Google 재시도 정책), 처리 결과는 result로 구분.
+    AdStatus:
+      properties:
+        views_used:
+          type: integer
+          minimum: 0
+          title: Views Used
+        views_limit:
+          type: integer
+          minimum: 0
+          title: Views Limit
+          const: 10
+          description: 고정 일 한도 10.
+        reward_per_view:
+          type: integer
+          minimum: 0
+          title: Reward Per View
+          const: 10
+          description: 회당 고정 보상 10.
+      additionalProperties: false
+      type: object
+      required:
+      - views_used
+      - views_limit
+      - reward_per_view
+      title: AdStatus
+    AttendanceStatus:
+      properties:
+        claimable:
+          type: boolean
+          title: Claimable
+        claimed:
+          type: boolean
+          title: Claimed
+        reward:
+          type: integer
+          minimum: 0
+          title: Reward
+          const: 10
+          description: 고정 출석 보상 10.
+      additionalProperties: false
+      type: object
+      required:
+      - claimable
+      - claimed
+      - reward
+      title: AttendanceStatus
+    Canvas:
+      properties:
+        width:
+          type: integer
+          const: 393
+          title: Width
+        height:
+          type: integer
+          const: 852
+          title: Height
+      additionalProperties: false
+      type: object
+      required:
+      - width
+      - height
+      title: Canvas
+    ChargingStationResponse:
+      properties:
+        activity_date:
+          type: string
+          format: date
+          title: Activity Date
+          description: legacy field명이며 실제 값은 사용자 local 00:00 reward date.
+        attendance:
+          $ref: '#/components/schemas/AttendanceStatus'
+          description: 출석 보상 상태.
+        ad:
+          $ref: '#/components/schemas/AdStatus'
+          description: 리워드 광고 사용량과 보상.
+        routine_pair:
+          $ref: '#/components/schemas/RoutinePairStatus'
+          description: routine 2개 보상 상태.
+        hay_products:
+          items:
+            $ref: '#/components/schemas/HayProduct'
+          type: array
+          title: Hay Products
+          description: active hay_pack을 sort_order 순으로 반환.
+        balance:
+          type: integer
+          minimum: 0
+          title: Balance
+          description: 현재 hay balance.
+      additionalProperties: false
+      type: object
+      required:
+      - activity_date
+      - attendance
+      - ad
+      - routine_pair
+      - hay_products
+      - balance
+      title: ChargingStationResponse
+    ChatMessage:
+      properties:
+        id:
+          type: string
+          pattern: ^\d+$
+          title: Id
+          description: decimal DB message id string.
+        sender:
+          type: string
+          enum:
+          - user
+          - moly
+          title: Sender
+          description: 발신자.
+        content:
+          type: string
+          title: Content
+          description: 완성된 message 본문.
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 저장 시각 isoformat.
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - sender
+      - content
+      - created_at
+      title: ChatMessage
+    ChatStateResponse:
+      properties:
+        activity_date:
+          type: string
+          format: date
+          title: Activity Date
+          description: 사용자 local 04:00 경계 chat/diary 기준일.
+        plan:
+          type: string
+          enum:
+          - free
+          - trial
+          - monthly
+          - yearly
+          title: Plan
+          description: 현재 entitlement plan.
+        tokens_used:
+          type: integer
+          minimum: 0
+          title: Tokens Used
+          description: 해당 activity date 누적 billable token 사용량.
+        daily_token_limit:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+          title: Daily Token Limit
+          description: 현재 plan 일 한도. null은 무제한이 아니라 한도 미구성 상태이며, 이때 메시지 전송은 free plan 한도로 fail-closed
+            동작한다.
+        tokens_remaining:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+          title: Tokens Remaining
+          description: 남은 token. daily_token_limit이 null(한도 미구성)이면 함께 null.
+        warning_threshold:
+          type: integer
+          minimum: 0
+          title: Warning Threshold
+          description: 토큰 소진 경고 기준. app_config 값이 0 이상 정수가 아니면 서버 기본값을 사용한다.
+        personal_diary_eligible:
+          type: boolean
+          title: Personal Diary Eligible
+          description: 개인 일기 threshold가 있고 사용량이 도달했는지 여부.
+        limit_reached:
+          type: boolean
+          title: Limit Reached
+          description: tokens_remaining이 정확히 0인지 여부.
+      additionalProperties: false
+      type: object
+      required:
+      - activity_date
+      - plan
+      - tokens_used
+      - daily_token_limit
+      - tokens_remaining
+      - warning_threshold
+      - personal_diary_eligible
+      - limit_reached
+      title: ChatStateResponse
+    CommittedGreeting:
+      properties:
+        message_id:
+          type: string
+          pattern: ^\d+$
+          title: Message Id
+          description: commit된 greeting message decimal id.
+        content:
+          type: string
+          title: Content
+          description: greeting 본문.
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 저장 시각.
+      additionalProperties: false
+      type: object
+      required:
+      - message_id
+      - content
+      - created_at
+      title: CommittedGreeting
+    ConversationRef:
+      properties:
+        anchor_date:
+          type: string
+          format: date
+          title: Anchor Date
+          description: 같은 activity date chat으로 이동할 anchor.
+      additionalProperties: false
+      type: object
+      required:
+      - anchor_date
+      title: ConversationRef
+    CreateRoutineRequest:
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Name
+        days_of_week:
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+          type: array
+          title: Days Of Week
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          description: ISO weekday 1=Mon…7=Sun, 중복 없이 1개 이상. 입력 후 정렬.
+        reminder_enabled:
+          type: boolean
+          title: Reminder Enabled
+          default: false
+        reminder_time:
+          anyOf:
+          - type: string
+            format: time
+          - type: 'null'
+          title: Reminder Time
+          description: ISO time 문자열 또는 null.
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - days_of_week
+      title: CreateRoutineRequest
+    CreatedMessage:
+      properties:
+        message_id:
+          type: string
+          pattern: ^\d+$
+          title: Message Id
+          description: 저장된 user message decimal id.
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 저장 시각.
+      additionalProperties: false
+      type: object
+      required:
+      - message_id
+      - created_at
+      title: CreatedMessage
+    DayOfWeek:
+      type: integer
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      title: DayOfWeek
+      description: ISO weekday. 1=월 … 7=일.
+    DiaryDetailResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Diary UUID.
+        diary_date:
+          type: string
+          format: date
+          title: Diary Date
+          description: 일기 귀속 date.
+        type:
+          type: string
+          enum:
+          - personal
+          - moly
+          title: Type
+          description: personal 또는 moly.
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: welcome diary만 title, 그 외 null.
+        weather:
+          type: string
+          enum:
+          - sunny
+          - cloudy
+          - rainy
+          - windy
+          title: Weather
+          description: 표시용 weather.
+        body:
+          type: string
+          title: Body
+          description: title을 제외한 전체 본문.
+        conversation_ref:
+          anyOf:
+          - $ref: '#/components/schemas/ConversationRef'
+          - type: 'null'
+          description: personal diary만 non-null.
+        published_at:
+          type: string
+          title: Published At
+          format: date-time
+          description: 발행 시각.
+        first_read_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: First Read At
+          description: 최초 읽음 시각, 미열람이면 null.
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - diary_date
+      - type
+      - title
+      - weather
+      - body
+      - conversation_ref
+      - published_at
+      - first_read_at
+      title: DiaryDetailResponse
+    DiaryListItem:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Diary UUID.
+        diary_date:
+          type: string
+          format: date
+          title: Diary Date
+          description: 일기 귀속 date.
+        type:
+          type: string
+          enum:
+          - personal
+          - moly
+          title: Type
+          description: source=llm이면 personal, preset/welcome이면 moly.
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+          description: welcome diary만 title, 그 외 null.
+        weather:
+          type: string
+          enum:
+          - sunny
+          - cloudy
+          - rainy
+          - windy
+          title: Weather
+          description: 표시용 weather enum.
+        preview:
+          type: string
+          maxLength: 60
+          title: Preview
+          description: body 앞 60자 preview.
+        published_at:
+          type: string
+          title: Published At
+          format: date-time
+          description: 발행 시각.
+        read:
+          type: boolean
+          title: Read
+          description: first_read_at 존재 여부.
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - diary_date
+      - type
+      - title
+      - weather
+      - preview
+      - published_at
+      - read
+      title: DiaryListItem
+    DiaryListResponse:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/DiaryListItem'
+          type: array
+          title: Data
+          description: diary_date 내림차순 발행 diary.
+        next_cursor:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Next Cursor
+          description: 실제 다음 page가 있을 때 마지막 반환 diary_date, 아니면 null.
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      - next_cursor
+      title: DiaryListResponse
+    EquipmentPutRequest:
+      properties:
+        theme_id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Theme Id
+          description: 필수 theme public_id.
+        head_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Head Id
+          description: head public_id 또는 slot 해제 null. field 자체는 필수.
+        neck_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Neck Id
+          description: neck public_id 또는 slot 해제 null. field 자체는 필수.
+        body_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Body Id
+          description: body public_id 또는 slot 해제 null. field 자체는 필수.
+      additionalProperties: false
+      type: object
+      required:
+      - theme_id
+      - head_id
+      - neck_id
+      - body_id
+      title: EquipmentPutRequest
+    EquipmentResponse:
+      properties:
+        theme_id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Theme Id
+          description: 필수 장착 theme public_id.
+        head_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Head Id
+          description: head public_id 또는 해제 null.
+        neck_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Neck Id
+          description: neck public_id 또는 해제 null.
+        body_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Body Id
+          description: body public_id 또는 해제 null.
+      additionalProperties: false
+      type: object
+      required:
+      - theme_id
+      - head_id
+      - neck_id
+      - body_id
+      title: EquipmentResponse
+    Frame:
+      properties:
+        x:
+          type: number
+          title: X
+        y:
+          type: number
+          title: Y
+        width:
+          type: number
+          title: Width
+        height:
+          type: number
+          title: Height
+      additionalProperties: false
+      type: object
+      required:
+      - x
+      - y
+      - width
+      - height
+      title: Frame
+    GreetingResponse:
+      properties:
+        greeting_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Greeting Id
+          description: 발급된 미커밋 greeting UUID. greeting이 없으면 content와 함께 null.
+        content:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Content
+          description: greeting 본문. 없으면 greeting_id와 함께 null.
+      additionalProperties: false
+      type: object
+      required:
+      - greeting_id
+      - content
+      title: GreetingResponse
+      description: 선발화 = 하루 1회. 이미 냈거나 오늘 유저가 말했으면 두 필드 모두 null(인사 없음).
+    HayProduct:
+      properties:
+        product_id:
+          type: string
+          title: Product Id
+          description: active hay_pack App Store product id.
+        amount:
+          type: integer
+          title: Amount
+          description: hay pack 지급량.
+      additionalProperties: false
+      type: object
+      required:
+      - product_id
+      - amount
+      title: HayProduct
+    HayTransactionResponse:
+      properties:
+        id:
+          type: string
+          pattern: ^\d+$
+          title: Id
+          description: decimal transaction id string.
+        type:
+          type: string
+          enum:
+          - attendance
+          - ad_reward
+          - routine_reward
+          - iap_purchase
+          - subscription_grant
+          - shop_purchase
+          - refund_revoke
+          - admin_adjustment
+          title: Type
+          description: 원장 거래 type.
+        amount:
+          type: integer
+          title: Amount
+          not:
+            const: 0
+          description: 증가는 양수, 차감은 음수이며 0 금지.
+        balance_after:
+          type: integer
+          title: Balance After
+          description: 거래 후 기록 balance. 음수일 수 있다.
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 거래 생성 시각.
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - type
+      - amount
+      - balance_after
+      - created_at
+      title: HayTransactionResponse
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          const: ok
+          title: Status
+          description: 고정값 ok.
+        app:
+          type: string
+          title: App
+          description: settings.app_name runtime 값.
+        env:
+          type: string
+          title: Env
+          description: settings.environment runtime 값.
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      - app
+      - env
+      title: HealthResponse
+    HttpUrl:
+      type: string
+      format: uri
+      minLength: 1
+      pattern: ^[Hh][Tt][Tt][Pp][Ss]?://
+      description: 절대 HTTP 또는 HTTPS URL.
+    InventoryResponse:
+      properties:
+        data:
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ShopProduct'
+            - properties:
+                owned:
+                  const: true
+              required:
+              - owned
+          type: array
+          title: Data
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      title: InventoryResponse
+    JsonValue: {}
+    MessagesResponse:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          type: array
+          title: Data
+          description: 항상 오래된 것에서 최신 순서의 message 목록.
+        older_cursor:
+          anyOf:
+          - type: string
+            pattern: ^\d+$
+          - type: 'null'
+          title: Older Cursor
+          description: 결과 첫 message id. 빈 결과면 null.
+        newer_cursor:
+          anyOf:
+          - type: string
+            pattern: ^\d+$
+          - type: 'null'
+          title: Newer Cursor
+          description: 결과 마지막 message id. 빈 결과면 null.
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      - older_cursor
+      - newer_cursor
+      title: MessagesResponse
+    PatchRoutineRequest:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 50
+            minLength: 1
+          - type: 'null'
+          title: Name
+        days_of_week:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/DayOfWeek'
+            type: array
+            minItems: 1
+            maxItems: 7
+            uniqueItems: true
+          - type: 'null'
+          title: Days Of Week
+          description: 생략/null은 변경 없음. 배열이면 중복 없이 1개 이상이고 정렬.
+        reminder_enabled:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Reminder Enabled
+          description: false를 보내면 client local reminder를 비활성화한다. 생략/null은 변경 없음.
+        reminder_time:
+          anyOf:
+          - type: string
+            format: time
+          - type: 'null'
+          title: Reminder Time
+          description: ISO time 문자열. 생략은 변경 없음, null은 기존 시간 제거.
+      additionalProperties: false
+      type: object
+      title: PatchRoutineRequest
+    PostMessageRequest:
+      properties:
+        text:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Text
+          description: User message, 1~2000 characters.
+        greeting_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Greeting Id
+          description: 화면에 있던 미커밋 greeting UUID 또는 null.
+      additionalProperties: false
+      type: object
+      required:
+      - text
+      title: PostMessageRequest
+    PostMessageResponse:
+      properties:
+        greeting:
+          anyOf:
+          - $ref: '#/components/schemas/CommittedGreeting'
+          - type: 'null'
+          description: 이번 요청에서 함께 commit한 greeting. 없으면 null.
+        user_message:
+          $ref: '#/components/schemas/CreatedMessage'
+          description: 저장된 user message.
+        reply:
+          $ref: '#/components/schemas/ReplyMessage'
+          description: 저장된 Moly reply.
+        tokens_used:
+          type: integer
+          minimum: 0
+          title: Tokens Used
+          description: 해당 activity date 누적 사용량.
+        tokens_remaining:
+          type: integer
+          minimum: 0
+          title: Tokens Remaining
+          description: 응답 후 남은 token.
+        review_prompt:
+          type: boolean
+          title: Review Prompt
+          description: client가 review prompt를 노출할지 여부.
+      additionalProperties: false
+      type: object
+      required:
+      - greeting
+      - user_message
+      - reply
+      - tokens_used
+      - tokens_remaining
+      - review_prompt
+      title: PostMessageResponse
+    ProductAssets:
+      properties:
+        thumbnail_url:
+          $ref: '#/components/schemas/HttpUrl'
+          title: Thumbnail Url
+          description: HTTP(S) thumbnail URL.
+        detail_url:
+          $ref: '#/components/schemas/HttpUrl'
+          title: Detail Url
+          description: HTTP(S) detail URL.
+        scene:
+          anyOf:
+          - $ref: '#/components/schemas/ThemeScene'
+          - type: 'null'
+          description: theme이면 필수, wearable이면 null.
+        upright_layer_url:
+          anyOf:
+          - $ref: '#/components/schemas/HttpUrl'
+          - type: 'null'
+          title: Upright Layer Url
+          description: wearable이면 필수 HTTP(S), theme이면 null.
+      additionalProperties: false
+      type: object
+      required:
+      - thumbnail_url
+      - detail_url
+      - scene
+      - upright_layer_url
+      oneOf:
+      - description: theme 상품 asset — scene 필수, upright_layer_url 없음.
+        properties:
+          scene:
+            $ref: '#/components/schemas/ThemeScene'
+          upright_layer_url:
+            type: 'null'
+      - description: wearable 상품 asset — upright_layer_url 필수, scene 없음.
+        properties:
+          scene:
+            type: 'null'
+          upright_layer_url:
+            $ref: '#/components/schemas/HttpUrl'
+      title: ProductAssets
+    ProductsResponse:
+      properties:
+        themes:
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ShopProduct'
+            - properties:
+                slot:
+                  const: theme
+              required:
+              - slot
+          type: array
+          title: Themes
+        items:
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ShopProduct'
+            - properties:
+                slot:
+                  enum:
+                  - head
+                  - neck
+                  - body
+              required:
+              - slot
+          type: array
+          title: Items
+      additionalProperties: false
+      type: object
+      required:
+      - themes
+      - items
+      title: ProductsResponse
+    PurchaseRequest:
+      properties:
+        product_id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Product Id
+          description: 양끝 whitespace trim 후 non-empty public_id.
+      additionalProperties: false
+      type: object
+      required:
+      - product_id
+      title: PurchaseRequest
+    PurchaseResponse:
+      properties:
+        product_id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Product Id
+          description: 구매한 public_id.
+        order_id:
+          type: string
+          title: Order Id
+          format: uuid
+          description: 생성된 order UUID.
+        price_hay:
+          type: integer
+          minimum: 1
+          title: Price Hay
+          description: 차감한 가격.
+        balance_after:
+          type: integer
+          minimum: 0
+          title: Balance After
+          description: 구매 후 balance.
+      additionalProperties: false
+      type: object
+      required:
+      - product_id
+      - order_id
+      - price_hay
+      - balance_after
+      title: PurchaseResponse
+    ReplyMessage:
+      properties:
+        message_id:
+          type: string
+          pattern: ^\d+$
+          title: Message Id
+          description: 저장된 Moly reply decimal id.
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 저장 시각.
+        content:
+          type: string
+          title: Content
+          description: Moly reply 본문.
+      additionalProperties: false
+      type: object
+      required:
+      - message_id
+      - created_at
+      - content
+      title: ReplyMessage
+    RewardAdSessionResponse:
+      properties:
+        reward_session_id:
+          type: string
+          format: uuid
+          title: Reward Session Id
+          description: AdMob SSV custom_data에 넣는 UUID.
+        admob_user_id:
+          type: string
+          format: uuid
+          title: Admob User Id
+          description: AdMob userIdentifier에 넣는 profile UUID.
+        views_used:
+          type: integer
+          minimum: 0
+          title: Views Used
+          description: session 발급 전 해당 reward date 지급 사용량. 성공 응답에서는 항상 views_limit 미만.
+        views_limit:
+          type: integer
+          minimum: 0
+          title: Views Limit
+          const: 10
+          description: 고정 일 한도 10.
+      additionalProperties: false
+      type: object
+      required:
+      - reward_session_id
+      - admob_user_id
+      - views_used
+      - views_limit
+      title: RewardAdSessionResponse
+    RewardResponse:
+      properties:
+        granted:
+          type: integer
+          minimum: 0
+          title: Granted
+          const: 10
+          description: 현재 두 보상 endpoint의 고정 지급량 10.
+        balance_after:
+          type: integer
+          minimum: 0
+          title: Balance After
+      additionalProperties: false
+      type: object
+      required:
+      - granted
+      - balance_after
+      title: RewardResponse
+    RoutineCompleteResponse:
+      properties:
+        completed_today:
+          type: boolean
+          const: true
+          title: Completed Today
+        completed_count_today:
+          type: integer
+          minimum: 0
+          title: Completed Count Today
+      additionalProperties: false
+      type: object
+      required:
+      - completed_today
+      - completed_count_today
+      title: RoutineCompleteResponse
+    RoutineListResponse:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/RoutineResponse'
+          type: array
+          title: Data
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      title: RoutineListResponse
+    RoutinePairStatus:
+      properties:
+        completed_today:
+          type: integer
+          minimum: 0
+          title: Completed Today
+        required:
+          type: integer
+          minimum: 0
+          title: Required
+          const: 2
+          description: 필요 완료 수 2.
+        claimable:
+          type: boolean
+          title: Claimable
+        claimed:
+          type: boolean
+          title: Claimed
+        reward:
+          type: integer
+          minimum: 0
+          title: Reward
+          const: 10
+          description: 고정 routine 보상 10.
+      additionalProperties: false
+      type: object
+      required:
+      - completed_today
+      - required
+      - claimable
+      - claimed
+      - reward
+      title: RoutinePairStatus
+    RoutineResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Routine UUID.
+        name:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Name
+          description: Routine 이름.
+        frequency_per_week:
+          type: integer
+          maximum: 7
+          minimum: 1
+          title: Frequency Per Week
+          description: 항상 days_of_week 길이인 compatibility field.
+        days_of_week:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+          description: ISO weekday 1=Mon…7=Sun, 중복 없이 1개 이상.
+        reminder_enabled:
+          type: boolean
+          title: Reminder Enabled
+          description: client local reminder 활성 여부.
+        reminder_time:
+          anyOf:
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+          - type: 'null'
+          title: Reminder Time
+          description: HH:MM response string 또는 null.
+        completed_today:
+          type: boolean
+          title: Completed Today
+          description: local reward date 완료 여부.
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name
+      - frequency_per_week
+      - days_of_week
+      - reminder_enabled
+      - reminder_time
+      - completed_today
+      title: RoutineResponse
+    RoutineStatisticsResponse:
+      properties:
+        streak:
+          type: integer
+          minimum: 0
+          title: Streak
+          description: 오늘부터 역방향 연속 calendar day 완료 수.
+        completed_today:
+          type: boolean
+          title: Completed Today
+          description: 오늘 완료 여부.
+        target_count:
+          type: integer
+          maximum: 7
+          minimum: 1
+          title: Target Count
+          description: 항상 days_of_week 길이.
+        days_of_week:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+          description: ISO weekday 배열.
+        this_week:
+          $ref: '#/components/schemas/ThisWeekStatistics'
+          description: 월요일 시작 현재 주 완료 통계.
+        last_30_days:
+          items:
+            type: string
+            format: date
+          type: array
+          title: Last 30 Days
+          description: (today-date).days<30인 완료 date를 오름차순 반환.
+        completion_rate:
+          type: number
+          maximum: 1
+          minimum: 0
+          title: Completion Rate
+          description: 최근 28일 완료 수/(요일 수×4), 최대 1, 소수 둘째 자리 반올림. 부동소수점 표현 때문에 0.01 배수 검증은 하지 않는다.
+      additionalProperties: false
+      type: object
+      required:
+      - streak
+      - completed_today
+      - target_count
+      - days_of_week
+      - this_week
+      - last_30_days
+      - completion_rate
+      title: RoutineStatisticsResponse
+    ShopProduct:
+      properties:
+        id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Id
+          description: trim된 non-empty stable public_id.
+        name:
+          type: string
+          minLength: 1
+          title: Name
+          description: 상품 표시 이름.
+        slot:
+          type: string
+          enum:
+          - theme
+          - head
+          - neck
+          - body
+          title: Slot
+          description: theme 또는 wearable slot.
+        price_hay:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          title: Price Hay
+          description: null이면 구매 불가. 구매 가능 가격은 1 이상.
+        owned:
+          type: boolean
+          title: Owned
+          description: subscription source를 제외한 소유 여부.
+        equipped:
+          type: boolean
+          title: Equipped
+          description: 현재 장착 row 여부. legacy subscription row는 owned=false/equipped=true일 수 있다.
+        asset_version:
+          type: integer
+          minimum: 1
+          title: Asset Version
+          description: asset cache-busting version, 1 이상.
+        assets:
+          $ref: '#/components/schemas/ProductAssets'
+          description: slot별 asset payload.
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name
+      - slot
+      - price_hay
+      - owned
+      - equipped
+      - asset_version
+      - assets
+      title: ShopProduct
+      description: theme 상품은 assets.scene non-null/upright_layer_url null, wearable은 scene null/upright_layer_url
+        non-null이어야 한다. response model validator가 위반 시 500으로 차단한다.
+      oneOf:
+      - title: Theme product
+        properties:
+          slot:
+            const: theme
+          assets:
+            allOf:
+            - $ref: '#/components/schemas/ProductAssets'
+            - properties:
+                scene:
+                  $ref: '#/components/schemas/ThemeScene'
+                upright_layer_url:
+                  type: 'null'
+              required:
+              - scene
+              - upright_layer_url
+        required:
+        - slot
+        - assets
+      - title: Wearable product
+        properties:
+          slot:
+            enum:
+            - head
+            - neck
+            - body
+          assets:
+            allOf:
+            - $ref: '#/components/schemas/ProductAssets'
+            - properties:
+                scene:
+                  type: 'null'
+                upright_layer_url:
+                  $ref: '#/components/schemas/HttpUrl'
+              required:
+              - scene
+              - upright_layer_url
+        required:
+        - slot
+        - assets
+    StatusResponse:
+      properties:
+        status:
+          type: string
+          const: ok
+          title: Status
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      title: StatusResponse
+    SubscriptionPlan:
+      properties:
+        product_id:
+          type: string
+          title: Product Id
+        period:
+          type: string
+          enum:
+          - monthly
+          - yearly
+          title: Period
+        hay_grant:
+          type: integer
+          minimum: 0
+          title: Hay Grant
+      additionalProperties: false
+      type: object
+      required:
+      - product_id
+      - period
+      - hay_grant
+      title: SubscriptionPlan
+    SubscriptionPlansResponse:
+      properties:
+        plans:
+          items:
+            $ref: '#/components/schemas/SubscriptionPlan'
+          type: array
+          title: Plans
+          minItems: 2
+          maxItems: 2
+          description: code에 고정된 monthly/yearly 2개 plan.
+        benefits:
+          items:
+            type: string
+          type: array
+          title: Benefits
+          description: 구독 혜택 표시 문구 목록.
+      additionalProperties: false
+      type: object
+      required:
+      - plans
+      - benefits
+      title: SubscriptionPlansResponse
+    SubscriptionResponse:
+      properties:
+        status:
+          type: string
+          enum:
+          - none
+          - active
+          - grace_period
+          - expired
+          - revoked
+          title: Status
+          description: 최신 subscription row status 또는 row가 없으면 none.
+        plan:
+          anyOf:
+          - type: string
+            enum:
+            - monthly
+            - yearly
+          - type: 'null'
+          title: Plan
+          description: monthly/yearly 또는 row가 없으면 null.
+        auto_renew_enabled:
+          type: boolean
+          title: Auto Renew Enabled
+          description: 자동 갱신 여부.
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+          description: 구독 만료 시각 또는 null.
+        in_trial:
+          type: boolean
+          title: In Trial
+          description: 활성 구독이 없고 launch/profile trial이 유효한지 여부.
+        trial_ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Trial Ends At
+          description: 적용 trial 종료 시각 또는 null.
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      - plan
+      - auto_renew_enabled
+      - expires_at
+      - in_trial
+      - trial_ends_at
+      title: SubscriptionResponse
+      allOf:
+      - if:
+          properties:
+            in_trial:
+              const: true
+          required:
+          - in_trial
+        then:
+          properties:
+            trial_ends_at:
+              type: string
+              format: date-time
+        else:
+          properties:
+            trial_ends_at:
+              type: 'null'
+    ThemeScene:
+      properties:
+        canvas:
+          $ref: '#/components/schemas/Canvas'
+        character_frame:
+          $ref: '#/components/schemas/Frame'
+        character_url:
+          $ref: '#/components/schemas/HttpUrl'
+          title: Character Url
+        layers:
+          items:
+            $ref: '#/components/schemas/ThemeSceneLayer'
+          type: array
+          minItems: 1
+          title: Layers
+      additionalProperties: false
+      type: object
+      required:
+      - canvas
+      - character_frame
+      - character_url
+      - layers
+      title: ThemeScene
+      description: layers는 1개 이상이며 같은 scene 안에서 layer.id가 고유해야 한다.
+    ThemeSceneLayer:
+      properties:
+        id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Id
+        frame:
+          $ref: '#/components/schemas/Frame'
+        z_index:
+          type: integer
+          title: Z Index
+        day_url:
+          $ref: '#/components/schemas/HttpUrl'
+          title: Day Url
+        night_url:
+          anyOf:
+          - $ref: '#/components/schemas/HttpUrl'
+          - type: 'null'
+          title: Night Url
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - frame
+      - z_index
+      - day_url
+      - night_url
+      title: ThemeSceneLayer
+    ThisWeekStatistics:
+      properties:
+        completed_count:
+          type: integer
+          minimum: 0
+          title: Completed Count
+        by_weekday:
+          $ref: '#/components/schemas/WeekdayCompletion'
+      additionalProperties: false
+      type: object
+      required:
+      - completed_count
+      - by_weekday
+      title: ThisWeekStatistics
+    TransactionsResponse:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/HayTransactionResponse'
+          type: array
+          title: Data
+          description: id 내림차순 거래 목록.
+        next_cursor:
+          anyOf:
+          - type: string
+            pattern: ^\d+$
+          - type: 'null'
+          title: Next Cursor
+          description: 실제 다음 page가 있을 때 마지막 반환 id, 아니면 null.
+      additionalProperties: false
+      type: object
+      required:
+      - data
+      - next_cursor
+      title: TransactionsResponse
+    WalletResponse:
+      properties:
+        balance:
+          type: integer
+          minimum: 0
+          title: Balance
+          description: 현재 server-authoritative hay balance, 0 이상.
+      additionalProperties: false
+      type: object
+      required:
+      - balance
+      title: WalletResponse
+    WeekdayCompletion:
+      properties:
+        '1':
+          type: boolean
+          title: '1'
+        '2':
+          type: boolean
+          title: '2'
+        '3':
+          type: boolean
+          title: '3'
+        '4':
+          type: boolean
+          title: '4'
+        '5':
+          type: boolean
+          title: '5'
+        '6':
+          type: boolean
+          title: '6'
+        '7':
+          type: boolean
+          title: '7'
+      additionalProperties: false
+      type: object
+      required:
+      - '1'
+      - '2'
+      - '3'
+      - '4'
+      - '5'
+      - '6'
+      - '7'
+      title: WeekdayCompletion
+    RevenueCatEvent:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          minLength: 1
+          description: RevenueCat event type. 미지원/신규 type도 200으로 무시될 수 있다.
+      additionalProperties: true
+      description: event 내부는 RevenueCat 신규 type/field 추가를 허용하기 위해 type 외에는 강제하지 않는다. service가 선택적으로 읽는
+        field는 x-consumed-fields에 열거한다.
+      x-consumed-fields:
+      - type
+      - app_user_id
+      - product_id
+      - original_transaction_id
+      - transaction_id
+      - expiration_at_ms
+      - purchased_at_ms
+      - price_in_purchased_currency
+      - currency
+      - cancel_reason
+      - environment
+    RevenueCatWebhook:
+      type: object
+      required:
+      - api_version
+      - event
+      properties:
+        api_version:
+          type: string
+          minLength: 1
+          description: 1.0이 아니어도 warning만 남기고 처리한다.
+        event:
+          $ref: '#/components/schemas/RevenueCatEvent'
+      additionalProperties: true
+    ValidationIssue:
+      type: object
+      required:
+      - loc
+      - type
+      - msg
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          description: body/query/path/header와 field path를 포함한 오류 위치.
+        type:
+          type: string
+        msg:
+          type: string
+      additionalProperties: false
+    ErrorDetails:
+      type: object
+      additionalProperties: true
+      description: 오류별 부가 정보. 일반 오류는 빈 object다. 요청 model 검증은 errors, 잔액 부족은 required/balance, 일부 validation은
+        context/product_id/slot 등을 담는다.
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssue'
+        required:
+          type: integer
+        balance:
+          type: integer
+        context: {}
+        product_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        slot:
+          type: string
+          enum:
+          - theme
+          - head
+          - neck
+          - body
+    ErrorBody:
+      type: object
+      required:
+      - code
+      - message
+      - details
+      properties:
+        code:
+          type: string
+          minLength: 1
+          description: client 분기용 code. 기타 Starlette status는 HTTP_<status>일 수 있다.
+        message:
+          type: string
+        details:
+          $ref: '#/components/schemas/ErrorDetails'
+      additionalProperties: false
+    ErrorEnvelope:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+      additionalProperties: false
+  securitySchemes:
+    SupabaseBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Supabase access token JWT
+      description: JWKS로 ES256/RS256 서명, aud=authenticated, sub/exp 필수, leeway=60초를 검증한다. SUPABASE_URL이
+        있으면 issuer=<SUPABASE_URL>/auth/v1도 검증한다. is_anonymous=true token은 ALLOW_ANONYMOUS_AUTH 설정(기본 꺼짐)이
+        켜진 환경에서만 허용하고 그 외에는 거부한다.
+    RevenueCatAuthorization:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: RevenueCat dashboard의 전체 Authorization 문자열과 server secret을 상수시간 exact compare한다. Bearer
+        prefix 규칙은 없고 설정이 비어도 fail-closed 401이다.
+    AdMobSsvSignature:
+      type: apiKey
+      in: query
+      name: signature
+      description: URL-safe base64 Google AdMob SSV ECDSA P-256/SHA-256 signature. key_id로 공개키를 선택하고 signature
+        앞의 percent-encoded 원본 query를 검증한다.
+      x-verification:
+        algorithm: ECDSA P-256 SHA-256
+        signed_material: signature parameter 앞의 percent-encoded raw query
+        public_key_selector: key_id
+  responses:
+    AssetInternal:
+      description: 상품 asset schema 위반 또는 기타 내부 오류
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            asset:
+              summary: 상품 asset 오류
+              value:
+                error:
+                  code: INTERNAL
+                  message: 상품 에셋 구성이 올바르지 않습니다.
+                  details:
+                    product_id: example
+    Unauthorized:
+      description: Bearer token 누락, 형식 오류, 검증 실패 또는 허용되지 않은 anonymous token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            unauthorized:
+              summary: 인증 실패
+              value:
+                error:
+                  code: UNAUTHORIZED
+                  message: 다시 로그인해 주세요.
+                  details: {}
+    Validation:
+      description: 요청 형식 또는 endpoint validation 실패
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            requestValidation:
+              summary: 요청 검증
+              value:
+                error:
+                  code: VALIDATION
+                  message: 요청 형식이 올바르지 않습니다.
+                  details:
+                    errors:
+                    - loc:
+                      - body
+                      - field
+                      type: missing
+                      msg: Field required
+    Internal:
+      description: DB, 외부 API, 응답 직렬화 등을 포함한 미처리 또는 명시적 내부 오류
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            internal:
+              summary: 내부 오류
+              value:
+                error:
+                  code: INTERNAL
+                  message: 일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.
+                  details: {}
+    ProfileNotFound:
+      description: 인증 user의 profile이 없음
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            notFound:
+              summary: 프로필 없음
+              value:
+                error:
+                  code: NOT_FOUND
+                  message: 프로필을 찾을 수 없어요.
+                  details: {}
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+x-contract-status: stable
+x-contract-versioning:
+  policy: Semantic Versioning 2.0.0
+  current: 1.0.0
+  compatibility: 별도 URL version 없이 관련 backend와 client를 함께 전환한다. breaking change는 info.version major를 올린다.
+servers:
+- url: https://voice.moly.asia
+  description: 운영 API 서버
+- url: http://localhost:8000
+  description: 로컬 개발 서버
+tags:
+- name: system
+  description: 공개 상태 확인
+- name: chat
+  description: 채팅 상태, 이력, 메시지 전송, 선발화
+- name: diary
+  description: 발행된 일기 목록, 상세, 읽음 처리
+- name: economy
+  description: 건초 지갑, 원장, 충전소 보상
+- name: routine
+  description: 요일 기반 루틴 CRUD, 완료, 통계
+- name: shop
+  description: 꾸미기 카탈로그, 구매, 인벤토리, 장착
+- name: review
+  description: 앱 리뷰 prompt 노출 기록
+- name: subscription
+  description: 구독 조회, 고정 플랜, RevenueCat webhook
+- name: ads
+  description: 리워드 광고 session과 AdMob SSV
+x-source-of-truth:
+  contract: openapi/openapi.yaml
+  generated_bundle: openapi/openapi.bundle.yaml
+  conformance_targets:
+  - app/main.py
+  - app/api/*.py
+  - app/schemas/*.py
+  - app/services/*.py
+  - app/core/security.py
+  - app/core/errors.py
+  - db/schema.sql
+x-global-error-behavior:
+  not_found:
+    status: 404
+    code: NOT_FOUND
+    message: Not Found
+    condition: 등록되지 않은 path
+  method_not_allowed:
+    status: 405
+    code: METHOD_NOT_ALLOWED
+    message: Method Not Allowed
+    condition: 등록된 path의 미지원 HTTP method
+  unhandled:
+    status: 500
+    code: INTERNAL
+    message: 일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.
+    condition: DB, 외부 API, 응답 직렬화 등을 포함한 미처리 예외
+x-generated-by: scripts/openapi_contract.py; do not edit directly

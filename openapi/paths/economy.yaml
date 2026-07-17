@@ -1,0 +1,296 @@
+/wallet:
+  get:
+    tags:
+    - economy
+    summary: 건초 잔액 조회
+    operationId: getWallet
+    responses:
+      '200':
+        description: 현재 잔액
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/WalletResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - SupabaseBearer: []
+    description: 서버 권위 profile의 hay balance를 반환한다.
+/wallet/transactions:
+  get:
+    tags:
+    - economy
+    summary: 건초 원장 조회
+    operationId: listWalletTransactions
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        maximum: 100
+        minimum: 1
+        default: 30
+        title: Limit
+      description: 최대 반환 개수.
+    - name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+        pattern: ^[0-9]+$
+        title: Cursor
+      description: 이 id보다 작은 거래를 조회하는 transaction id cursor. 십진 숫자([0-9]+)만 허용한다.
+    responses:
+      '200':
+        description: 원장 거래 목록과 다음 cursor
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/TransactionsResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        description: query constraint 또는 cursor가 decimal integer가 아님
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              cursor:
+                summary: cursor 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 잘못된 커서 형식이에요.
+                    details: {}
+              query:
+                summary: query 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - query
+                        - limit
+                        type: greater_than_equal
+                        msg: Input should be greater than or equal to 1
+    description: id 내림차순 cursor pagination. 다음 page가 실제로 있을 때만 next_cursor를 반환한다.
+/charging-station:
+  get:
+    tags:
+    - economy
+    summary: 충전소 상태 조회
+    operationId: getChargingStation
+    responses:
+      '200':
+        description: 충전소 상태
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/ChargingStationResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - SupabaseBearer: []
+    description: 출석, 광고, 루틴 2개 보상의 local 00:00 reward date 상태와 활성 hay pack, 잔액을 반환한다. activity_date field명은
+      legacy다.
+/charging-station/attendance:
+  post:
+    tags:
+    - economy
+    summary: 출석 보상 수령
+    operationId: claimAttendanceReward
+    responses:
+      '200':
+        description: 지급량과 지급 후 잔액
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/RewardResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '409':
+        description: 같은 reward date에 이미 출석 보상을 수령함
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              claimed:
+                summary: 이미 수령
+                value:
+                  error:
+                    code: ALREADY_CLAIMED
+                    message: 이미 수령했어요.
+                    details: {}
+    security:
+    - SupabaseBearer: []
+    description: 사용자 local 00:00 reward date마다 한 번 +10 건초를 원장과 함께 지급한다.
+/charging-station/routine-reward:
+  post:
+    tags:
+    - economy
+    summary: 루틴 2개 완료 보상 수령
+    operationId: claimRoutineReward
+    responses:
+      '200':
+        description: 지급량과 지급 후 잔액
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/RewardResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '422':
+        description: 같은 reward date의 routine 완료가 2개 미만
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              goal:
+                summary: 목표 미달
+                value:
+                  error:
+                    code: ROUTINE_GOAL_NOT_MET
+                    message: 루틴 2개를 아직 다 완료하지 않았어요.
+                    details: {}
+      '409':
+        description: 같은 reward date에 이미 routine 보상을 수령함
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              claimed:
+                summary: 이미 수령
+                value:
+                  error:
+                    code: ALREADY_CLAIMED
+                    message: 이미 수령했어요.
+                    details: {}
+    security:
+    - SupabaseBearer: []
+    description: 같은 local reward date에 routine 완료가 2개 이상이면 한 번 +10 건초를 지급한다.
+/reward-ad-sessions:
+  post:
+    tags:
+    - ads
+    summary: 리워드 광고 session 발급
+    description: 광고 시청 전에 local reward date 일 10회 한도를 확인하고 SSV custom_data와 userIdentifier 값을 발급한다.
+    operationId: createRewardAdSession
+    responses:
+      '200':
+        description: SSV용 session과 현재 사용량
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/RewardAdSessionResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '429':
+        description: 같은 reward date 광고 보상 사용량이 10회 이상
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              limit:
+                summary: 광고 한도
+                value:
+                  error:
+                    code: AD_LIMIT_REACHED
+                    message: 오늘 광고 시청 한도에 도달했어요.
+                    details: {}
+    security:
+    - SupabaseBearer: []
+/webhooks/ad-ssv:
+  get:
+    tags:
+    - ads
+    summary: AdMob server-side verification callback
+    description: 공개 HTTP endpoint지만 Google ECDSA signature가 권한 경계다. signature 통과 후 영구 실패/중복도 Google 재시도를
+      피하기 위해 항상 200이고 result로 구분한다. verifier key timeout은 10초, cache TTL은 24시간이다. 추가 query는 허용되며 signature
+      앞 원본 query에 있으면 서명 대상에 포함된다.
+    operationId: handleAdMobSsv
+    responses:
+      '200':
+        description: SSV 처리 결과
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/AdSsvResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '422':
+        description: 필수 query 누락/empty 또는 Google SSV signature/key 검증 실패
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              missing:
+                summary: parameter 누락
+                value:
+                  error:
+                    code: VALIDATION
+                    message: SSV 파라미터가 누락됐어요.
+                    details: {}
+              signature:
+                summary: signature 실패
+                value:
+                  error:
+                    code: AD_VERIFY_FAILED
+                    message: 광고 시청 확인에 실패했어요.
+                    details: {}
+    security:
+    - AdMobSsvSignature: []
+    parameters:
+    - name: key_id
+      in: query
+      required: true
+      description: Google verifier 공개키 식별자. non-empty string만 검사한다.
+      schema:
+        type: string
+        minLength: 1
+    - name: custom_data
+      in: query
+      required: true
+      description: 발급된 reward_session_id. UUID가 아니면 signature 통과 후 200 result=invalid_session.
+      schema:
+        type: string
+        minLength: 1
+    - name: transaction_id
+      in: query
+      required: true
+      description: AdMob SSV transaction id. unique 멱등 key.
+      schema:
+        type: string
+        minLength: 1

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
@@ -34,8 +34,13 @@ async def purchase(
     req: PurchaseRequest,
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
+    idempotency_key: str | None = Header(
+        default=None, alias="Idempotency-Key", min_length=1
+    ),
 ) -> dict[str, Any]:
-    return await shop.purchase(session, user_id, req.product_id)
+    return await shop.purchase(
+        session, user_id, req.product_id, idempotency_key=idempotency_key
+    )
 
 
 @router.get("/inventory", response_model=InventoryResponse)

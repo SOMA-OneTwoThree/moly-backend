@@ -1,0 +1,251 @@
+schemas:
+  AdSsvResponse:
+    properties:
+      status:
+        type: string
+        const: ok
+        title: Status
+        description: 고정값 ok.
+      result:
+        type: string
+        enum:
+        - granted
+        - invalid_session
+        - session_not_found
+        - duplicate
+        - daily_limit
+        - transaction_conflict
+        title: Result
+        description: 지급/무시/멱등 결과. signature 통과 후 실패 result도 HTTP 200.
+    additionalProperties: false
+    type: object
+    required:
+    - status
+    - result
+    title: AdSsvResponse
+    description: SSV 콜백 응답 — HTTP는 항상 200(Google 재시도 정책), 처리 결과는 result로 구분.
+  AdStatus:
+    properties:
+      views_used:
+        type: integer
+        minimum: 0
+        title: Views Used
+      views_limit:
+        type: integer
+        minimum: 0
+        title: Views Limit
+        const: 10
+        description: 고정 일 한도 10.
+      reward_per_view:
+        type: integer
+        minimum: 0
+        title: Reward Per View
+        const: 10
+        description: 회당 고정 보상 10.
+    additionalProperties: false
+    type: object
+    required:
+    - views_used
+    - views_limit
+    - reward_per_view
+    title: AdStatus
+  AttendanceStatus:
+    properties:
+      claimable:
+        type: boolean
+        title: Claimable
+      claimed:
+        type: boolean
+        title: Claimed
+      reward:
+        type: integer
+        minimum: 0
+        title: Reward
+        const: 10
+        description: 고정 출석 보상 10.
+    additionalProperties: false
+    type: object
+    required:
+    - claimable
+    - claimed
+    - reward
+    title: AttendanceStatus
+  ChargingStationResponse:
+    properties:
+      activity_date:
+        type: string
+        format: date
+        title: Activity Date
+        description: legacy field명이며 실제 값은 사용자 local 00:00 reward date.
+      attendance:
+        $ref: '#/schemas/AttendanceStatus'
+        description: 출석 보상 상태.
+      ad:
+        $ref: '#/schemas/AdStatus'
+        description: 리워드 광고 사용량과 보상.
+      routine_pair:
+        $ref: ./routines.yaml#/schemas/RoutinePairStatus
+        description: routine 2개 보상 상태.
+      hay_products:
+        items:
+          $ref: '#/schemas/HayProduct'
+        type: array
+        title: Hay Products
+        description: active hay_pack을 sort_order 순으로 반환.
+      balance:
+        type: integer
+        minimum: 0
+        title: Balance
+        description: 현재 hay balance.
+    additionalProperties: false
+    type: object
+    required:
+    - activity_date
+    - attendance
+    - ad
+    - routine_pair
+    - hay_products
+    - balance
+    title: ChargingStationResponse
+  HayProduct:
+    properties:
+      product_id:
+        type: string
+        title: Product Id
+        description: active hay_pack App Store product id.
+      amount:
+        type: integer
+        title: Amount
+        description: hay pack 지급량.
+    additionalProperties: false
+    type: object
+    required:
+    - product_id
+    - amount
+    title: HayProduct
+  HayTransactionResponse:
+    properties:
+      id:
+        type: string
+        pattern: ^\d+$
+        title: Id
+        description: decimal transaction id string.
+      type:
+        type: string
+        enum:
+        - attendance
+        - ad_reward
+        - routine_reward
+        - iap_purchase
+        - subscription_grant
+        - shop_purchase
+        - refund_revoke
+        - admin_adjustment
+        title: Type
+        description: 원장 거래 type.
+      amount:
+        type: integer
+        title: Amount
+        not:
+          const: 0
+        description: 증가는 양수, 차감은 음수이며 0 금지.
+      balance_after:
+        type: integer
+        title: Balance After
+        description: 거래 후 기록 balance. 음수일 수 있다.
+      created_at:
+        type: string
+        format: date-time
+        title: Created At
+        description: 거래 생성 시각.
+    additionalProperties: false
+    type: object
+    required:
+    - id
+    - type
+    - amount
+    - balance_after
+    - created_at
+    title: HayTransactionResponse
+  RewardAdSessionResponse:
+    properties:
+      reward_session_id:
+        type: string
+        format: uuid
+        title: Reward Session Id
+        description: AdMob SSV custom_data에 넣는 UUID.
+      admob_user_id:
+        type: string
+        format: uuid
+        title: Admob User Id
+        description: AdMob userIdentifier에 넣는 profile UUID.
+      views_used:
+        type: integer
+        minimum: 0
+        title: Views Used
+        description: session 발급 전 해당 reward date 지급 사용량. 성공 응답에서는 항상 views_limit 미만.
+      views_limit:
+        type: integer
+        minimum: 0
+        title: Views Limit
+        const: 10
+        description: 고정 일 한도 10.
+    additionalProperties: false
+    type: object
+    required:
+    - reward_session_id
+    - admob_user_id
+    - views_used
+    - views_limit
+    title: RewardAdSessionResponse
+  RewardResponse:
+    properties:
+      granted:
+        type: integer
+        minimum: 0
+        title: Granted
+        const: 10
+        description: 현재 두 보상 endpoint의 고정 지급량 10.
+      balance_after:
+        type: integer
+        minimum: 0
+        title: Balance After
+    additionalProperties: false
+    type: object
+    required:
+    - granted
+    - balance_after
+    title: RewardResponse
+  TransactionsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/schemas/HayTransactionResponse'
+        type: array
+        title: Data
+        description: id 내림차순 거래 목록.
+      next_cursor:
+        anyOf:
+        - type: string
+          pattern: ^\d+$
+        - type: 'null'
+        title: Next Cursor
+        description: 실제 다음 page가 있을 때 마지막 반환 id, 아니면 null.
+    additionalProperties: false
+    type: object
+    required:
+    - data
+    - next_cursor
+    title: TransactionsResponse
+  WalletResponse:
+    properties:
+      balance:
+        type: integer
+        minimum: 0
+        title: Balance
+        description: 현재 server-authoritative hay balance, 0 이상.
+    additionalProperties: false
+    type: object
+    required:
+    - balance
+    title: WalletResponse

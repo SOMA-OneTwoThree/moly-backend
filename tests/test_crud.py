@@ -346,12 +346,17 @@ async def test_purchase_success(monkeypatch):
     monkeypatch.setattr(shop, "_load_item", _load)
     monkeypatch.setattr(shop, "_owned_ids", _owned)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
+
+    async def _lock(session, uid):
+        pass
+
+    monkeypatch.setattr(shop, "_lock_user", _lock)
     session = FakeSession()
-    out = await shop.purchase(session, UID, "x")
+    out = await shop.purchase(session, UID, "x", idempotency_key="purchase-key")
     assert out["product_id"] == it.public_id
     assert out["price_hay"] == 1000 and out["balance_after"] == 640
     # 주문 생성(HAY·paid) + 가격 스냅샷 + 원장·인벤토리가 주문으로 연결(DB_REFACTOR §B.2)
-    order, order_item, user_item = session.added
+    order, order_item, user_item, idempotency = session.added
     assert order.currency == "HAY" and order.status == "paid" and order.total_amount == 1000
     assert order_item.order_id == order.id and order_item.product_id == it.id
     assert order_item.unit_price == 1000  # 구매 시점 가격 스냅샷
@@ -359,7 +364,50 @@ async def test_purchase_success(monkeypatch):
     assert user_item.product_id == it.id
     assert applied["order_id"] == order.id  # 차감 원장 → 주문 연결
     assert out["order_id"] == str(order.id)
+    assert idempotency.key == "shop-purchase:purchase-key"
+    assert idempotency.response == out
     assert session.committed is True
+
+
+async def test_purchase_replays_cached_response(monkeypatch):
+    cached_response = {
+        "product_id": "head_cap",
+        "order_id": "11111111-1111-1111-1111-111111111111",
+        "price_hay": 1000,
+        "balance_after": 640,
+    }
+    session = FakeSession(get_obj=SimpleNamespace(response=cached_response))
+
+    async def _must_not_load(session, product_id):
+        raise AssertionError("cached purchase must not run again")
+
+    monkeypatch.setattr(shop, "_load_item", _must_not_load)
+
+    out = await shop.purchase(session, UID, "different-product", idempotency_key="same-key")
+
+    assert out == cached_response
+    assert session.get_calls[0][1] == (UID_UUID, "shop-purchase:same-key")
+    assert session.committed is False
+
+
+async def test_purchase_incompatible_cache_fails_closed(monkeypatch):
+    async def _must_not_load(session, product_id):
+        raise AssertionError("비호환 캐시를 새 구매로 재실행하면 안 됨")
+
+    monkeypatch.setattr(shop, "_load_item", _must_not_load)
+    session = FakeSession(get_obj=SimpleNamespace(response={"reply": {"content": "채팅 응답"}}))
+
+    # 재시도해도 행은 보존된 채 매번 500 — 지우면 다음 재시도가 새 구매로 실행되어
+    # 차감·지급이 중복된다. 정리는 운영 스크립트(--delete-invalid) 전용(api-inventory.md).
+    for _ in range(2):
+        with pytest.raises(AppError) as exc:
+            await shop.purchase(session, UID, "x", idempotency_key="legacy-key")
+        assert exc.value.code == "INTERNAL"
+        assert exc.value.http_status == 500
+
+    assert session.added == []
+    assert session.deleted == []
+    assert session.committed is False
 
 
 # --- 장착(user_items 통합 — DB_REFACTOR §B.4) ---

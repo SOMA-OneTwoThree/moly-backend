@@ -1,0 +1,39 @@
+/health:
+  get:
+    tags:
+    - system
+    summary: 헬스체크
+    description: 인증 없는 load balancer/deploy probe. app/env는 runtime settings 값이다.
+    operationId: healthCheck
+    responses:
+      '200':
+        description: 현재 process 상태와 설정 식별자
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/HealthResponse
+            example:
+              status: ok
+              app: moly-backend
+              env: local
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+    security: []
+/review/prompted:
+  post:
+    tags:
+    - review
+    summary: 리뷰 prompt 노출 기록
+    operationId: markReviewPrompted
+    responses:
+      '204':
+        description: 기록 완료; body 없음
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - SupabaseBearer: []
+    description: 최초 한 번만 timestamp를 기록하며 이후 호출도 204다.

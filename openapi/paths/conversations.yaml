@@ -1,0 +1,408 @@
+/chat/state:
+  get:
+    tags:
+    - chat
+    summary: 채팅 사용량과 gating 상태 조회
+    operationId: getChatState
+    responses:
+      '200':
+        description: 현재 채팅 상태
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/ChatStateResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    security:
+    - SupabaseBearer: []
+    description: 사용자 local 04:00 경계 activity date, entitlement, 당일 token 사용량과 개인 일기 자격을 계산한다.
+/chat/messages:
+  get:
+    tags:
+    - chat
+    summary: 채팅 메시지 조회
+    operationId: listChatMessages
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        maximum: 100
+        minimum: 1
+        default: 30
+        title: Limit
+      description: 최대 반환 개수.
+    - name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+        pattern: ^[0-9]+$
+        title: Cursor
+      description: decimal message id cursor. anchor_date 사용 시 무시된다.
+    - name: direction
+      in: query
+      required: false
+      schema:
+        type: string
+        default: older
+        title: Direction
+        enum:
+        - older
+        - newer
+      description: cursor 기준 조회 방향. anchor_date가 있으면 무시된다.
+    - name: anchor_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        title: Anchor Date
+      description: 이 activity date 이상 message를 오래된 순으로 조회하며 cursor/direction을 무시한다.
+    responses:
+      '200':
+        description: 채팅 메시지와 양방향 cursor
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/MessagesResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        description: FastAPI query constraint 또는 실제 사용되는 cursor가 decimal integer가 아님
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              query:
+                summary: query 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - query
+                        - limit
+                        type: greater_than_equal
+                        msg: Input should be greater than or equal to 1
+              cursor:
+                summary: cursor 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 잘못된 커서 형식이에요.
+                    details: {}
+    description: anchor_date가 있으면 cursor/direction을 무시하고 해당 activity date 이상을 id 오름차순으로 반환한다. 그 외 direction=newer와
+      cursor 조합은 id>cursor 오름차순, 기본 older는 id<cursor를 최신순 조회 후 오래된 순으로 뒤집는다. cursor 없는 direction=newer는
+      direction이 무시되어 기본 older와 같이 최신 page를 반환한다. 결과가 있으면 추가 page 존재 여부와 무관하게
+      첫/마지막 id를 cursor로 반환한다.
+  post:
+    tags:
+    - chat
+    summary: 채팅 메시지 전송
+    operationId: postChatMessage
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: user 범위 멱등 key. route signature는 optional이지만 endpoint logic에서 누락/빈 문자열을 422로 거부한다.
+        길이/형식 상한은 없다.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/conversations.yaml#/schemas/PostMessageRequest
+    responses:
+      '200':
+        description: 커밋된 user message, Moly reply, 사용량과 review prompt 여부
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/PostMessageResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        description: request body 위반, Idempotency-Key 누락/empty 또는 greeting_id가 UUID가 아님
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              body:
+                summary: body 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - body
+                        - text
+                        type: missing
+                        msg: Field required
+              idempotency:
+                summary: 멱등 key 누락
+                value:
+                  error:
+                    code: VALIDATION
+                    message: Idempotency-Key 헤더가 필요해요.
+                    details: {}
+              greeting:
+                summary: greeting UUID 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 잘못된 greeting_id예요.
+                    details: {}
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '403':
+        description: 당일 대화 token 한도 소진
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              limit:
+                summary: 일일 한도
+                value:
+                  error:
+                    code: DAILY_LIMIT_REACHED
+                    message: 오늘의 대화 한도를 모두 사용했어요.
+                    details: {}
+    description: Idempotency-Key는 endpoint logic상 필수다. 저장이 완료된 같은 user/key의 재요청은 저장 응답을 재사용하고 LLM 호출과
+      token 차감을 반복하지 않는다. 같은 key에는 같은 논리 요청만 재사용해야 한다. 비호환 cache는 새 채팅으로 재실행하지 않고 500
+      fail-closed 한다. greeting_id가 유효한 본인 미커밋 greeting이면 함께 commit하며, UUID지만 없거나 타인 소유/이미 commit이면
+      오류 없이 무시한다.
+/chat/greeting:
+  get:
+    tags:
+    - chat
+    summary: 선발화 조회
+    operationId: getChatGreeting
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: context
+      in: query
+      required: true
+      schema:
+        type: string
+        title: Context
+        enum:
+        - onboarding
+        - home_enter
+        - morning
+        - evening
+        - comeback
+      description: 선발화 진입 context.
+    responses:
+      '200':
+        description: 선발화 또는 null pair
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/GreetingResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        description: context가 지원 enum이 아니거나 query validation 실패
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              context:
+                summary: context 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 알 수 없는 context예요.
+                    details:
+                      context: unknown
+              query:
+                summary: query 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - query
+                        - context
+                        type: missing
+                        msg: Field required
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+    description: 당일 user message가 이미 있거나 greeting을 이미 발급했으면 greeting_id와 content를 모두 null로 반환한다.
+/diaries:
+  get:
+    tags:
+    - diary
+    summary: 발행된 일기 목록 조회
+    operationId: listDiaries
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        maximum: 100
+        minimum: 1
+        default: 30
+        title: Limit
+      description: 최대 반환 개수.
+    - name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        title: Cursor
+      description: 이 diary date보다 과거를 조회하는 ISO date(YYYY-MM-DD) cursor.
+    responses:
+      '200':
+        description: 일기 목록과 다음 cursor
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/DiaryListResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        description: query constraint 또는 cursor date parsing 실패
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              cursor:
+                summary: cursor 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 잘못된 커서 형식이에요.
+                    details: {}
+              query:
+                summary: query 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - query
+                        - limit
+                        type: greater_than_equal
+                        msg: Input should be greater than or equal to 1
+    description: published_at<=현재만 diary_date 내림차순으로 반환한다. cursor가 있으면 diary_date<cursor다. 다음 page가 실제로
+      있을 때만 next_cursor를 반환한다. 첫 조회에서 profile nickname/created_at이 있으면 welcome diary를 lazy upsert한다.
+/diaries/{diary_id}:
+  get:
+    tags:
+    - diary
+    summary: 일기 상세 조회
+    operationId: getDiary
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: diary_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Diary Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    responses:
+      '200':
+        description: 일기 상세
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/DiaryDetailResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: UUID 형식 오류, 없음, 타인 소유, 미발행 또는 미래 발행
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              notFound:
+                summary: resource 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 일기를 찾을 수 없어요.
+                    details: {}
+    description: 본인의 발행된 일기만 조회한다. UUID 형식 오류도 resource 존재를 노출하지 않고 404다.
+/diaries/{diary_id}/read:
+  post:
+    tags:
+    - diary
+    summary: 일기 읽음 처리
+    operationId: markDiaryRead
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: diary_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Diary Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    responses:
+      '204':
+        description: 읽음 처리 완료; body 없음
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: UUID 형식 오류, 없음, 타인 소유, 미발행 또는 미래 발행
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              notFound:
+                summary: resource 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 일기를 찾을 수 없어요.
+                    details: {}
+    description: first_read_at은 최초 한 번만 기록되며 이후 호출도 멱등 204다.

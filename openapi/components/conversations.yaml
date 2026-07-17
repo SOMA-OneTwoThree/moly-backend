@@ -1,0 +1,425 @@
+schemas:
+  ChatMessage:
+    properties:
+      id:
+        type: string
+        pattern: ^\d+$
+        title: Id
+        description: decimal DB message id string.
+      sender:
+        type: string
+        enum:
+        - user
+        - moly
+        title: Sender
+        description: 발신자.
+      content:
+        type: string
+        title: Content
+        description: 완성된 message 본문.
+      created_at:
+        type: string
+        format: date-time
+        title: Created At
+        description: 저장 시각 isoformat.
+    additionalProperties: false
+    type: object
+    required:
+    - id
+    - sender
+    - content
+    - created_at
+    title: ChatMessage
+  ChatStateResponse:
+    properties:
+      activity_date:
+        type: string
+        format: date
+        title: Activity Date
+        description: 사용자 local 04:00 경계 chat/diary 기준일.
+      plan:
+        type: string
+        enum:
+        - free
+        - trial
+        - monthly
+        - yearly
+        title: Plan
+        description: 현재 entitlement plan.
+      tokens_used:
+        type: integer
+        minimum: 0
+        title: Tokens Used
+        description: 해당 activity date 누적 billable token 사용량.
+      daily_token_limit:
+        anyOf:
+        - type: integer
+          minimum: 0
+        - type: 'null'
+        title: Daily Token Limit
+        description: 현재 plan 일 한도. null은 무제한이 아니라 한도 미구성 상태이며, 이때 메시지 전송은 free plan 한도로 fail-closed 동작한다.
+      tokens_remaining:
+        anyOf:
+        - type: integer
+          minimum: 0
+        - type: 'null'
+        title: Tokens Remaining
+        description: 남은 token. daily_token_limit이 null(한도 미구성)이면 함께 null.
+      warning_threshold:
+        type: integer
+        minimum: 0
+        title: Warning Threshold
+        description: 토큰 소진 경고 기준. app_config 값이 0 이상 정수가 아니면 서버 기본값을 사용한다.
+      personal_diary_eligible:
+        type: boolean
+        title: Personal Diary Eligible
+        description: 개인 일기 threshold가 있고 사용량이 도달했는지 여부.
+      limit_reached:
+        type: boolean
+        title: Limit Reached
+        description: tokens_remaining이 정확히 0인지 여부.
+    additionalProperties: false
+    type: object
+    required:
+    - activity_date
+    - plan
+    - tokens_used
+    - daily_token_limit
+    - tokens_remaining
+    - warning_threshold
+    - personal_diary_eligible
+    - limit_reached
+    title: ChatStateResponse
+  CommittedGreeting:
+    properties:
+      message_id:
+        type: string
+        pattern: ^\d+$
+        title: Message Id
+        description: commit된 greeting message decimal id.
+      content:
+        type: string
+        title: Content
+        description: greeting 본문.
+      created_at:
+        type: string
+        format: date-time
+        title: Created At
+        description: 저장 시각.
+    additionalProperties: false
+    type: object
+    required:
+    - message_id
+    - content
+    - created_at
+    title: CommittedGreeting
+  ConversationRef:
+    properties:
+      anchor_date:
+        type: string
+        format: date
+        title: Anchor Date
+        description: 같은 activity date chat으로 이동할 anchor.
+    additionalProperties: false
+    type: object
+    required:
+    - anchor_date
+    title: ConversationRef
+  CreatedMessage:
+    properties:
+      message_id:
+        type: string
+        pattern: ^\d+$
+        title: Message Id
+        description: 저장된 user message decimal id.
+      created_at:
+        type: string
+        format: date-time
+        title: Created At
+        description: 저장 시각.
+    additionalProperties: false
+    type: object
+    required:
+    - message_id
+    - created_at
+    title: CreatedMessage
+  DiaryDetailResponse:
+    properties:
+      id:
+        type: string
+        format: uuid
+        title: Id
+        description: Diary UUID.
+      diary_date:
+        type: string
+        format: date
+        title: Diary Date
+        description: 일기 귀속 date.
+      type:
+        type: string
+        enum:
+        - personal
+        - moly
+        title: Type
+        description: personal 또는 moly.
+      title:
+        anyOf:
+        - type: string
+        - type: 'null'
+        title: Title
+        description: welcome diary만 title, 그 외 null.
+      weather:
+        type: string
+        enum:
+        - sunny
+        - cloudy
+        - rainy
+        - windy
+        title: Weather
+        description: 표시용 weather.
+      body:
+        type: string
+        title: Body
+        description: title을 제외한 전체 본문.
+      conversation_ref:
+        anyOf:
+        - $ref: '#/schemas/ConversationRef'
+        - type: 'null'
+        description: personal diary만 non-null.
+      published_at:
+        type: string
+        title: Published At
+        format: date-time
+        description: 발행 시각.
+      first_read_at:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        title: First Read At
+        description: 최초 읽음 시각, 미열람이면 null.
+    additionalProperties: false
+    type: object
+    required:
+    - id
+    - diary_date
+    - type
+    - title
+    - weather
+    - body
+    - conversation_ref
+    - published_at
+    - first_read_at
+    title: DiaryDetailResponse
+  DiaryListItem:
+    properties:
+      id:
+        type: string
+        format: uuid
+        title: Id
+        description: Diary UUID.
+      diary_date:
+        type: string
+        format: date
+        title: Diary Date
+        description: 일기 귀속 date.
+      type:
+        type: string
+        enum:
+        - personal
+        - moly
+        title: Type
+        description: source=llm이면 personal, preset/welcome이면 moly.
+      title:
+        anyOf:
+        - type: string
+        - type: 'null'
+        title: Title
+        description: welcome diary만 title, 그 외 null.
+      weather:
+        type: string
+        enum:
+        - sunny
+        - cloudy
+        - rainy
+        - windy
+        title: Weather
+        description: 표시용 weather enum.
+      preview:
+        type: string
+        maxLength: 60
+        title: Preview
+        description: body 앞 60자 preview.
+      published_at:
+        type: string
+        title: Published At
+        format: date-time
+        description: 발행 시각.
+      read:
+        type: boolean
+        title: Read
+        description: first_read_at 존재 여부.
+    additionalProperties: false
+    type: object
+    required:
+    - id
+    - diary_date
+    - type
+    - title
+    - weather
+    - preview
+    - published_at
+    - read
+    title: DiaryListItem
+  DiaryListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/schemas/DiaryListItem'
+        type: array
+        title: Data
+        description: diary_date 내림차순 발행 diary.
+      next_cursor:
+        anyOf:
+        - type: string
+          format: date
+        - type: 'null'
+        title: Next Cursor
+        description: 실제 다음 page가 있을 때 마지막 반환 diary_date, 아니면 null.
+    additionalProperties: false
+    type: object
+    required:
+    - data
+    - next_cursor
+    title: DiaryListResponse
+  GreetingResponse:
+    properties:
+      greeting_id:
+        anyOf:
+        - type: string
+          format: uuid
+        - type: 'null'
+        title: Greeting Id
+        description: 발급된 미커밋 greeting UUID. greeting이 없으면 content와 함께 null.
+      content:
+        anyOf:
+        - type: string
+        - type: 'null'
+        title: Content
+        description: greeting 본문. 없으면 greeting_id와 함께 null.
+    additionalProperties: false
+    type: object
+    required:
+    - greeting_id
+    - content
+    title: GreetingResponse
+    description: 선발화 = 하루 1회. 이미 냈거나 오늘 유저가 말했으면 두 필드 모두 null(인사 없음).
+  MessagesResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/schemas/ChatMessage'
+        type: array
+        title: Data
+        description: 항상 오래된 것에서 최신 순서의 message 목록.
+      older_cursor:
+        anyOf:
+        - type: string
+          pattern: ^\d+$
+        - type: 'null'
+        title: Older Cursor
+        description: 결과 첫 message id. 빈 결과면 null.
+      newer_cursor:
+        anyOf:
+        - type: string
+          pattern: ^\d+$
+        - type: 'null'
+        title: Newer Cursor
+        description: 결과 마지막 message id. 빈 결과면 null.
+    additionalProperties: false
+    type: object
+    required:
+    - data
+    - older_cursor
+    - newer_cursor
+    title: MessagesResponse
+  PostMessageRequest:
+    properties:
+      text:
+        type: string
+        maxLength: 2000
+        minLength: 1
+        title: Text
+        description: User message, 1~2000 characters.
+      greeting_id:
+        anyOf:
+        - type: string
+          format: uuid
+        - type: 'null'
+        title: Greeting Id
+        description: 화면에 있던 미커밋 greeting UUID 또는 null.
+    additionalProperties: false
+    type: object
+    required:
+    - text
+    title: PostMessageRequest
+  PostMessageResponse:
+    properties:
+      greeting:
+        anyOf:
+        - $ref: '#/schemas/CommittedGreeting'
+        - type: 'null'
+        description: 이번 요청에서 함께 commit한 greeting. 없으면 null.
+      user_message:
+        $ref: '#/schemas/CreatedMessage'
+        description: 저장된 user message.
+      reply:
+        $ref: '#/schemas/ReplyMessage'
+        description: 저장된 Moly reply.
+      tokens_used:
+        type: integer
+        minimum: 0
+        title: Tokens Used
+        description: 해당 activity date 누적 사용량.
+      tokens_remaining:
+        type: integer
+        minimum: 0
+        title: Tokens Remaining
+        description: 응답 후 남은 token.
+      review_prompt:
+        type: boolean
+        title: Review Prompt
+        description: client가 review prompt를 노출할지 여부.
+    additionalProperties: false
+    type: object
+    required:
+    - greeting
+    - user_message
+    - reply
+    - tokens_used
+    - tokens_remaining
+    - review_prompt
+    title: PostMessageResponse
+  ReplyMessage:
+    properties:
+      message_id:
+        type: string
+        pattern: ^\d+$
+        title: Message Id
+        description: 저장된 Moly reply decimal id.
+      created_at:
+        type: string
+        format: date-time
+        title: Created At
+        description: 저장 시각.
+      content:
+        type: string
+        title: Content
+        description: Moly reply 본문.
+    additionalProperties: false
+    type: object
+    required:
+    - message_id
+    - created_at
+    - content
+    title: ReplyMessage

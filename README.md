@@ -35,6 +35,14 @@ tests/               pytest — mock 유닛 + 실 Supabase 통합(tests/integrat
 현재 저장소 계약의 기준은 `app/api` 라우트, `app/schemas` 요청·응답 모델,
 `app/services` 동작과 `db/`의 canonical DDL이다.
 
+확정 OpenAPI 원본은 `openapi/openapi.yaml`과 분할 YAML이다. 단일 파일 bundle은 직접
+수정하지 않고 아래 명령으로 생성·검증한다.
+
+```bash
+uv run python scripts/openapi_contract.py --write
+uv run python scripts/openapi_contract.py --check
+```
+
 ## 로컬 개발
 
 ```bash
@@ -56,7 +64,7 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 
 DB 전환 순서와 중단 조건은 `db/migrations/README.md`를 따른다.
 
-채팅 응답 계약을 변경해 배포할 때는 진행 중인 개발자 요청을 멈춘 뒤 기존 멱등 JSONB를
+채팅·상점 구매 응답 계약을 변경해 배포할 때는 진행 중인 개발자 요청을 멈춘 뒤 기존 멱등 JSONB를
 먼저 읽기 전용으로 검사한다. 비호환 행이 있을 때만 두 번째 명령으로 선택 삭제하고,
 배포 후 개발자 앱을 재시작해 이전 요청 키를 폐기한다.
 

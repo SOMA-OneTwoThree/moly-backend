@@ -1,0 +1,414 @@
+schemas:
+  Canvas:
+    properties:
+      width:
+        type: integer
+        const: 393
+        title: Width
+      height:
+        type: integer
+        const: 852
+        title: Height
+    additionalProperties: false
+    type: object
+    required:
+    - width
+    - height
+    title: Canvas
+  EquipmentPutRequest:
+    properties:
+      theme_id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Theme Id
+        description: 필수 theme public_id.
+      head_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Head Id
+        description: head public_id 또는 slot 해제 null. field 자체는 필수.
+      neck_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Neck Id
+        description: neck public_id 또는 slot 해제 null. field 자체는 필수.
+      body_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Body Id
+        description: body public_id 또는 slot 해제 null. field 자체는 필수.
+    additionalProperties: false
+    type: object
+    required:
+    - theme_id
+    - head_id
+    - neck_id
+    - body_id
+    title: EquipmentPutRequest
+  EquipmentResponse:
+    properties:
+      theme_id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Theme Id
+        description: 필수 장착 theme public_id.
+      head_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Head Id
+        description: head public_id 또는 해제 null.
+      neck_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Neck Id
+        description: neck public_id 또는 해제 null.
+      body_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Body Id
+        description: body public_id 또는 해제 null.
+    additionalProperties: false
+    type: object
+    required:
+    - theme_id
+    - head_id
+    - neck_id
+    - body_id
+    title: EquipmentResponse
+  Frame:
+    properties:
+      x:
+        type: number
+        title: X
+      y:
+        type: number
+        title: Y
+      width:
+        type: number
+        title: Width
+      height:
+        type: number
+        title: Height
+    additionalProperties: false
+    type: object
+    required:
+    - x
+    - y
+    - width
+    - height
+    title: Frame
+  HttpUrl:
+    type: string
+    format: uri
+    minLength: 1
+    pattern: ^[Hh][Tt][Tt][Pp][Ss]?://
+    description: 절대 HTTP 또는 HTTPS URL.
+  InventoryResponse:
+    properties:
+      data:
+        items:
+          allOf:
+          - $ref: '#/schemas/ShopProduct'
+          - properties:
+              owned:
+                const: true
+            required:
+            - owned
+        type: array
+        title: Data
+    additionalProperties: false
+    type: object
+    required:
+    - data
+    title: InventoryResponse
+  ProductAssets:
+    properties:
+      thumbnail_url:
+        $ref: '#/schemas/HttpUrl'
+        title: Thumbnail Url
+        description: HTTP(S) thumbnail URL.
+      detail_url:
+        $ref: '#/schemas/HttpUrl'
+        title: Detail Url
+        description: HTTP(S) detail URL.
+      scene:
+        anyOf:
+        - $ref: '#/schemas/ThemeScene'
+        - type: 'null'
+        description: theme이면 필수, wearable이면 null.
+      upright_layer_url:
+        anyOf:
+        - $ref: '#/schemas/HttpUrl'
+        - type: 'null'
+        title: Upright Layer Url
+        description: wearable이면 필수 HTTP(S), theme이면 null.
+    additionalProperties: false
+    type: object
+    required:
+    - thumbnail_url
+    - detail_url
+    - scene
+    - upright_layer_url
+    oneOf:
+    - description: theme 상품 asset — scene 필수, upright_layer_url 없음.
+      properties:
+        scene:
+          $ref: '#/schemas/ThemeScene'
+        upright_layer_url:
+          type: 'null'
+    - description: wearable 상품 asset — upright_layer_url 필수, scene 없음.
+      properties:
+        scene:
+          type: 'null'
+        upright_layer_url:
+          $ref: '#/schemas/HttpUrl'
+    title: ProductAssets
+  ProductsResponse:
+    properties:
+      themes:
+        items:
+          allOf:
+          - $ref: '#/schemas/ShopProduct'
+          - properties:
+              slot:
+                const: theme
+            required:
+            - slot
+        type: array
+        title: Themes
+      items:
+        items:
+          allOf:
+          - $ref: '#/schemas/ShopProduct'
+          - properties:
+              slot:
+                enum:
+                - head
+                - neck
+                - body
+            required:
+            - slot
+        type: array
+        title: Items
+    additionalProperties: false
+    type: object
+    required:
+    - themes
+    - items
+    title: ProductsResponse
+  PurchaseRequest:
+    properties:
+      product_id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Product Id
+        description: 양끝 whitespace trim 후 non-empty public_id.
+    additionalProperties: false
+    type: object
+    required:
+    - product_id
+    title: PurchaseRequest
+  PurchaseResponse:
+    properties:
+      product_id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Product Id
+        description: 구매한 public_id.
+      order_id:
+        type: string
+        title: Order Id
+        format: uuid
+        description: 생성된 order UUID.
+      price_hay:
+        type: integer
+        minimum: 1
+        title: Price Hay
+        description: 차감한 가격.
+      balance_after:
+        type: integer
+        minimum: 0
+        title: Balance After
+        description: 구매 후 balance.
+    additionalProperties: false
+    type: object
+    required:
+    - product_id
+    - order_id
+    - price_hay
+    - balance_after
+    title: PurchaseResponse
+  ShopProduct:
+    properties:
+      id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Id
+        description: trim된 non-empty stable public_id.
+      name:
+        type: string
+        minLength: 1
+        title: Name
+        description: 상품 표시 이름.
+      slot:
+        type: string
+        enum:
+        - theme
+        - head
+        - neck
+        - body
+        title: Slot
+        description: theme 또는 wearable slot.
+      price_hay:
+        anyOf:
+        - type: integer
+          minimum: 1
+        - type: 'null'
+        title: Price Hay
+        description: null이면 구매 불가. 구매 가능 가격은 1 이상.
+      owned:
+        type: boolean
+        title: Owned
+        description: subscription source를 제외한 소유 여부.
+      equipped:
+        type: boolean
+        title: Equipped
+        description: 현재 장착 row 여부. legacy subscription row는 owned=false/equipped=true일 수 있다.
+      asset_version:
+        type: integer
+        minimum: 1
+        title: Asset Version
+        description: asset cache-busting version, 1 이상.
+      assets:
+        $ref: '#/schemas/ProductAssets'
+        description: slot별 asset payload.
+    additionalProperties: false
+    type: object
+    required:
+    - id
+    - name
+    - slot
+    - price_hay
+    - owned
+    - equipped
+    - asset_version
+    - assets
+    title: ShopProduct
+    description: theme 상품은 assets.scene non-null/upright_layer_url null, wearable은 scene null/upright_layer_url
+      non-null이어야 한다. response model validator가 위반 시 500으로 차단한다.
+    oneOf:
+    - title: Theme product
+      properties:
+        slot:
+          const: theme
+        assets:
+          allOf:
+          - $ref: '#/schemas/ProductAssets'
+          - properties:
+              scene:
+                $ref: '#/schemas/ThemeScene'
+              upright_layer_url:
+                type: 'null'
+            required:
+            - scene
+            - upright_layer_url
+      required:
+      - slot
+      - assets
+    - title: Wearable product
+      properties:
+        slot:
+          enum:
+          - head
+          - neck
+          - body
+        assets:
+          allOf:
+          - $ref: '#/schemas/ProductAssets'
+          - properties:
+              scene:
+                type: 'null'
+              upright_layer_url:
+                $ref: '#/schemas/HttpUrl'
+            required:
+            - scene
+            - upright_layer_url
+      required:
+      - slot
+      - assets
+  ThemeScene:
+    properties:
+      canvas:
+        $ref: '#/schemas/Canvas'
+      character_frame:
+        $ref: '#/schemas/Frame'
+      character_url:
+        $ref: '#/schemas/HttpUrl'
+        title: Character Url
+      layers:
+        items:
+          $ref: '#/schemas/ThemeSceneLayer'
+        type: array
+        minItems: 1
+        title: Layers
+    additionalProperties: false
+    type: object
+    required:
+    - canvas
+    - character_frame
+    - character_url
+    - layers
+    title: ThemeScene
+    description: layers는 1개 이상이며 같은 scene 안에서 layer.id가 고유해야 한다.
+  ThemeSceneLayer:
+    properties:
+      id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Id
+      frame:
+        $ref: '#/schemas/Frame'
+      z_index:
+        type: integer
+        title: Z Index
+      day_url:
+        $ref: '#/schemas/HttpUrl'
+        title: Day Url
+      night_url:
+        anyOf:
+        - $ref: '#/schemas/HttpUrl'
+        - type: 'null'
+        title: Night Url
+    additionalProperties: false
+    type: object
+    required:
+    - id
+    - frame
+    - z_index
+    - day_url
+    - night_url
+    title: ThemeSceneLayer

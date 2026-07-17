@@ -1,6 +1,7 @@
 """상점·꾸미기 — 문자열 공개 ID, 보유 기반 장착, 서버 권위 카탈로그."""
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -11,15 +12,18 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.models.idempotency_key import IdempotencyKey, SHOP_PURCHASE_KEY_PREFIX
 from app.models.product import Product
 from app.models.profile import Profile
 from app.models.user_item import UserItem
-from app.schemas.shop import EquipmentResponse, ShopProduct
+from app.schemas.shop import EquipmentResponse, PurchaseResponse, ShopProduct
 from app.services import hay_ledger
 from app.services import order as order_service
 from app.services.account import _uid
 
 _SLOTS = ("theme", "head", "neck", "body")
+
+_log = logging.getLogger("moly-backend")
 
 
 async def _user_rows(session: AsyncSession, uid: uuid.UUID) -> list[UserItem]:
@@ -125,8 +129,56 @@ async def _load_equipment_item(session: AsyncSession, public_id: str) -> Product
         raise
 
 
-async def purchase(session: AsyncSession, user_id: str, product_id: str) -> dict[str, Any]:
+def _purchase_response(
+    payload: dict[str, Any], *, user_id: str, idempotency_key: str | None
+) -> dict[str, Any]:
+    """현재 구매 응답 계약을 저장·재사용 양쪽에서 검증한다.
+
+    비호환 캐시를 새 구매로 재실행하면 차감·지급이 중복될 수 있으므로 반드시
+    fail-closed 하고 행도 보존한다 — 삭제는 요청 경로가 아니라 운영 절차
+    (scripts/verify_idempotency_responses.py --delete-invalid)에서만 한다(api-inventory.md).
+    응답 본문은 로그에 남기지 않는다.
+    """
+    try:
+        return PurchaseResponse.model_validate(payload).model_dump(mode="json")
+    except ValidationError as exc:
+        _log.error(
+            "구매 멱등 응답 스키마 불일치(user=%s key=%s) — "
+            "scripts/verify_idempotency_responses.py --delete-invalid로 정리 필요",
+            user_id,
+            idempotency_key,
+        )
+        raise errors.AppError(
+            "INTERNAL",
+            500,
+            "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
+        ) from exc
+
+
+async def purchase(
+    session: AsyncSession,
+    user_id: str,
+    product_id: str,
+    *,
+    idempotency_key: str | None = None,
+) -> dict[str, Any]:
     uid = _uid(user_id)
+    stored_key = (
+        f"{SHOP_PURCHASE_KEY_PREFIX}{idempotency_key}" if idempotency_key else None
+    )
+    if stored_key is not None:
+        cached = await session.get(IdempotencyKey, (uid, stored_key))
+        if cached is not None:
+            return _purchase_response(
+                cached.response, user_id=user_id, idempotency_key=stored_key
+            )
+        await _lock_user(session, uid)
+        cached = await session.get(IdempotencyKey, (uid, stored_key))
+        if cached is not None:
+            return _purchase_response(
+                cached.response, user_id=user_id, idempotency_key=stored_key
+            )
+
     product = await _load_item(session, product_id)
     # 기본 지급 비매품도 재구매는 계약상 ALREADY_OWNED가 우선이다.
     if product.id in await _owned_ids(session, uid):
@@ -143,17 +195,30 @@ async def purchase(session: AsyncSession, user_id: str, product_id: str) -> dict
     session.add(
         UserItem(user_id=uid, product_id=product.id, source="purchase", order_id=order.id)
     )
+    response = _purchase_response(
+        {
+            "product_id": product.public_id,
+            "order_id": str(order.id),
+            "price_hay": product.price_hay,
+            "balance_after": tx.balance_after,
+        },
+        user_id=user_id,
+        idempotency_key=stored_key,
+    )
+    if stored_key is not None:
+        session.add(IdempotencyKey(user_id=uid, key=stored_key, response=response))
     try:
         await session.commit()
     except IntegrityError as exc:
         await session.rollback()
+        if stored_key is not None:
+            cached = await session.get(IdempotencyKey, (uid, stored_key))
+            if cached is not None:
+                return _purchase_response(
+                    cached.response, user_id=user_id, idempotency_key=stored_key
+                )
         raise errors.already_owned() from exc
-    return {
-        "product_id": product.public_id,
-        "order_id": str(order.id),
-        "price_hay": product.price_hay,
-        "balance_after": tx.balance_after,
-    }
+    return response
 
 
 async def get_inventory(session: AsyncSession, user_id: str) -> dict[str, Any]:

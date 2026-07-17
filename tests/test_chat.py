@@ -313,6 +313,22 @@ def test_send_requires_idempotency_key():
     assert r.json()["error"]["code"] == "VALIDATION"
 
 
+def test_send_rejects_reserved_prefix_key():
+    """raw key 저장소를 공유하는 채팅이 상점 네임스페이스를 위장하면 안 된다."""
+    app.dependency_overrides[get_current_user] = lambda: UID
+    app.dependency_overrides[get_session] = _dummy_session
+    try:
+        r = TestClient(app).post(
+            "/chat/messages",
+            json={"text": "안녕"},
+            headers={"Idempotency-Key": "shop-purchase:key"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "VALIDATION"
+
+
 def test_chat_requires_auth():
     app.dependency_overrides[get_session] = _dummy_session
     try:

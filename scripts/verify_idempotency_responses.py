@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""채팅 멱등 JSONB를 현재 응답 모델로 검사하고 비호환 행만 선택 정리한다.
+"""멱등 JSONB를 endpoint 응답 모델로 검사하고 비호환 행만 선택 정리한다.
 
 기본 실행은 읽기 전용이다. ``--delete-invalid``를 명시한 경우에만 검사에서 실패한
 행을 같은 트랜잭션에서 삭제한다. 응답 본문과 원본 idempotency key는 출력하지 않는다.
@@ -23,7 +23,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.config import settings  # noqa: E402
+from app.models.idempotency_key import SHOP_PURCHASE_KEY_PREFIX  # noqa: E402
 from app.schemas.chat import PostMessageResponse  # noqa: E402
+from app.schemas.shop import PurchaseResponse  # noqa: E402
 
 
 def _connection_string() -> str:
@@ -33,14 +35,15 @@ def _connection_string() -> str:
     return re.sub(r"^postgresql\+asyncpg://", "postgresql://", value)
 
 
-def is_compatible_response(payload: Any) -> bool:
+def is_compatible_response(payload: Any, *, key: str = "") -> bool:
     if isinstance(payload, str):  # asyncpg 기본 JSON/JSONB codec는 문자열을 반환한다.
         try:
             payload = json.loads(payload)
         except json.JSONDecodeError:
             return False
     try:
-        PostMessageResponse.model_validate(payload)
+        model = PurchaseResponse if key.startswith(SHOP_PURCHASE_KEY_PREFIX) else PostMessageResponse
+        model.model_validate(payload)
     except ValidationError:
         return False
     return True
@@ -62,7 +65,7 @@ async def run(*, delete_invalid: bool) -> int:
                 "SELECT user_id::text AS user_id, key, response FROM public.idempotency_keys"
             ):
                 total += 1
-                if not is_compatible_response(row["response"]):
+                if not is_compatible_response(row["response"], key=str(row["key"])):
                     invalid.append((str(row["user_id"]), str(row["key"])))
 
             print(f"검사 {total}건: 호환 {total - len(invalid)}건, 비호환 {len(invalid)}건")
@@ -87,7 +90,7 @@ async def run(*, delete_invalid: bool) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="채팅 멱등 응답 JSONB 계약 검사")
+    parser = argparse.ArgumentParser(description="멱등 응답 JSONB 계약 검사")
     parser.add_argument(
         "--delete-invalid",
         action="store_true",

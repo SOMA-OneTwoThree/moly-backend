@@ -56,7 +56,7 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 
 DB 전환 순서와 중단 조건은 `db/migrations/README.md`를 따른다.
 
-채팅 응답 계약을 변경해 배포할 때는 진행 중인 개발자 요청을 멈춘 뒤 기존 멱등 JSONB를
+채팅·상점 구매 응답 계약을 변경해 배포할 때는 진행 중인 개발자 요청을 멈춘 뒤 기존 멱등 JSONB를
 먼저 읽기 전용으로 검사한다. 비호환 행이 있을 때만 두 번째 명령으로 선택 삭제하고,
 배포 후 개발자 앱을 재시작해 이전 요청 키를 폐기한다.
 

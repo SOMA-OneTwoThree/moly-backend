@@ -16,12 +16,21 @@ VALID = {
     "tokens_remaining": 29_990,
     "review_prompt": False,
 }
+PURCHASE_VALID = {
+    "product_id": "head_cap",
+    "order_id": "11111111-1111-1111-1111-111111111111",
+    "price_hay": 1000,
+    "balance_after": 640,
+}
 
 
 def test_verifier_classifies_current_and_legacy_payloads():
     assert is_compatible_response(VALID) is True
     assert is_compatible_response(json.dumps(VALID)) is True  # asyncpg JSONB 기본 반환형
     assert is_compatible_response({"reply": {"content": "legacy"}}) is False
+    assert (
+        is_compatible_response(PURCHASE_VALID, key="shop-purchase:purchase-key") is True
+    )
 
 
 class FakeTransaction:
@@ -50,6 +59,11 @@ class FakeConnection:
     def __init__(self):
         self.rows = [
             {"user_id": "u1", "key": "valid-key", "response": VALID},
+            {
+                "user_id": "u1",
+                "key": "shop-purchase:purchase-key",
+                "response": PURCHASE_VALID,
+            },
             {"user_id": "u2", "key": "legacy-key", "response": {"reply": {}}},
         ]
         self.deleted = None

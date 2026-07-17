@@ -1,7 +1,7 @@
-"""idempotency_keys — POST /chat/messages 멱등(API_SPEC §1).
+"""idempotency_keys — 재시도에 최초 성공 응답을 재사용하는 유저 범위 저장소.
 
-⚠️ ERD 밖(백엔드 신규 도입). 재시도 시 저장된 응답을 그대로 반환해 이중 전송·이중 차감 방지.
-**팀원 DB 스키마에 추가 필요** — 테이블: key(pk)·user_id·response(jsonb)·created_at.
+채팅은 기존 raw key를 유지하고, 상점 구매는 endpoint prefix로 응답 형식을 격리한다.
+raw key를 쓰는 라우트는 예약 prefix 키를 거부해 네임스페이스 위장을 차단해야 한다.
 """
 from __future__ import annotations
 
@@ -13,6 +13,11 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
+
+
+SHOP_PURCHASE_KEY_PREFIX = "shop-purchase:"
+
+RESERVED_KEY_PREFIXES: tuple[str, ...] = (SHOP_PURCHASE_KEY_PREFIX,)
 
 
 class IdempotencyKey(Base):

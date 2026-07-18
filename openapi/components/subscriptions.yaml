@@ -14,7 +14,6 @@ schemas:
         type: integer
         minimum: 0
         title: Hay Grant
-    additionalProperties: false
     type: object
     required:
     - product_id
@@ -37,7 +36,6 @@ schemas:
         type: array
         title: Benefits
         description: 구독 혜택 표시 문구 목록.
-    additionalProperties: false
     type: object
     required:
     - plans
@@ -86,7 +84,6 @@ schemas:
         - type: 'null'
         title: Trial Ends At
         description: 적용 trial 종료 시각 또는 null.
-    additionalProperties: false
     type: object
     required:
     - status

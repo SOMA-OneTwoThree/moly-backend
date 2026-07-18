@@ -9,7 +9,6 @@ schemas:
         type: integer
         const: 852
         title: Height
-    additionalProperties: false
     type: object
     required:
     - width
@@ -87,7 +86,6 @@ schemas:
         - type: 'null'
         title: Body Id
         description: body public_id 또는 해제 null.
-    additionalProperties: false
     type: object
     required:
     - theme_id
@@ -109,7 +107,6 @@ schemas:
       height:
         type: number
         title: Height
-    additionalProperties: false
     type: object
     required:
     - x
@@ -136,7 +133,6 @@ schemas:
             - owned
         type: array
         title: Data
-    additionalProperties: false
     type: object
     required:
     - data
@@ -162,7 +158,6 @@ schemas:
         - type: 'null'
         title: Upright Layer Url
         description: wearable이면 필수 HTTP(S), theme이면 null.
-    additionalProperties: false
     type: object
     required:
     - thumbnail_url
@@ -210,7 +205,6 @@ schemas:
             - slot
         type: array
         title: Items
-    additionalProperties: false
     type: object
     required:
     - themes
@@ -252,7 +246,6 @@ schemas:
         minimum: 0
         title: Balance After
         description: 구매 후 balance.
-    additionalProperties: false
     type: object
     required:
     - product_id
@@ -305,7 +298,6 @@ schemas:
       assets:
         $ref: '#/schemas/ProductAssets'
         description: slot별 asset payload.
-    additionalProperties: false
     type: object
     required:
     - id
@@ -374,7 +366,6 @@ schemas:
         type: array
         minItems: 1
         title: Layers
-    additionalProperties: false
     type: object
     required:
     - canvas
@@ -403,7 +394,6 @@ schemas:
         - $ref: '#/schemas/HttpUrl'
         - type: 'null'
         title: Night Url
-    additionalProperties: false
     type: object
     required:
     - id

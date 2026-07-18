@@ -22,7 +22,6 @@ schemas:
         format: date-time
         title: Created At
         description: 저장 시각 isoformat.
-    additionalProperties: false
     type: object
     required:
     - id
@@ -78,7 +77,6 @@ schemas:
         type: boolean
         title: Limit Reached
         description: tokens_remaining이 정확히 0인지 여부.
-    additionalProperties: false
     type: object
     required:
     - activity_date
@@ -106,7 +104,6 @@ schemas:
         format: date-time
         title: Created At
         description: 저장 시각.
-    additionalProperties: false
     type: object
     required:
     - message_id
@@ -120,7 +117,6 @@ schemas:
         format: date
         title: Anchor Date
         description: 같은 activity date chat으로 이동할 anchor.
-    additionalProperties: false
     type: object
     required:
     - anchor_date
@@ -137,7 +133,6 @@ schemas:
         format: date-time
         title: Created At
         description: 저장 시각.
-    additionalProperties: false
     type: object
     required:
     - message_id
@@ -198,7 +193,6 @@ schemas:
         - type: 'null'
         title: First Read At
         description: 최초 읽음 시각, 미열람이면 null.
-    additionalProperties: false
     type: object
     required:
     - id
@@ -259,7 +253,6 @@ schemas:
         type: boolean
         title: Read
         description: first_read_at 존재 여부.
-    additionalProperties: false
     type: object
     required:
     - id
@@ -286,7 +279,6 @@ schemas:
         - type: 'null'
         title: Next Cursor
         description: 실제 다음 page가 있을 때 마지막 반환 diary_date, 아니면 null.
-    additionalProperties: false
     type: object
     required:
     - data
@@ -307,7 +299,6 @@ schemas:
         - type: 'null'
         title: Content
         description: greeting 본문. 없으면 greeting_id와 함께 null.
-    additionalProperties: false
     type: object
     required:
     - greeting_id
@@ -336,7 +327,6 @@ schemas:
         - type: 'null'
         title: Newer Cursor
         description: 결과 마지막 message id. 빈 결과면 null.
-    additionalProperties: false
     type: object
     required:
     - data
@@ -390,7 +380,6 @@ schemas:
         type: boolean
         title: Review Prompt
         description: client가 review prompt를 노출할지 여부.
-    additionalProperties: false
     type: object
     required:
     - greeting
@@ -416,7 +405,6 @@ schemas:
         type: string
         title: Content
         description: Moly reply 본문.
-    additionalProperties: false
     type: object
     required:
     - message_id

@@ -14,7 +14,6 @@ schemas:
         type: string
         title: Env
         description: settings.environment runtime 값.
-    additionalProperties: false
     type: object
     required:
     - status
@@ -28,7 +27,6 @@ schemas:
         type: string
         const: ok
         title: Status
-    additionalProperties: false
     type: object
     required:
     - status
@@ -51,7 +49,6 @@ schemas:
         type: string
       msg:
         type: string
-    additionalProperties: false
   ErrorDetails:
     type: object
     additionalProperties: true
@@ -93,7 +90,6 @@ schemas:
         type: string
       details:
         $ref: '#/schemas/ErrorDetails'
-    additionalProperties: false
   ErrorEnvelope:
     type: object
     required:
@@ -101,7 +97,6 @@ schemas:
     properties:
       error:
         $ref: '#/schemas/ErrorBody'
-    additionalProperties: false
 securitySchemes:
   SupabaseBearer:
     type: http

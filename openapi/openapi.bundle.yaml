@@ -1438,7 +1438,6 @@ components:
           - transaction_conflict
           title: Result
           description: 지급/무시/멱등 결과. signature 통과 후 실패 result도 HTTP 200.
-      additionalProperties: false
       type: object
       required:
       - status
@@ -1455,15 +1454,12 @@ components:
           type: integer
           minimum: 0
           title: Views Limit
-          const: 10
-          description: 고정 일 한도 10.
+          description: 현재 일 한도 10.
         reward_per_view:
           type: integer
           minimum: 0
           title: Reward Per View
-          const: 10
-          description: 회당 고정 보상 10.
-      additionalProperties: false
+          description: 현재 회당 보상 10.
       type: object
       required:
       - views_used
@@ -1482,9 +1478,7 @@ components:
           type: integer
           minimum: 0
           title: Reward
-          const: 10
-          description: 고정 출석 보상 10.
-      additionalProperties: false
+          description: 현재 출석 보상 10.
       type: object
       required:
       - claimable
@@ -1501,7 +1495,6 @@ components:
           type: integer
           const: 852
           title: Height
-      additionalProperties: false
       type: object
       required:
       - width
@@ -1534,7 +1527,6 @@ components:
           minimum: 0
           title: Balance
           description: 현재 hay balance.
-      additionalProperties: false
       type: object
       required:
       - activity_date
@@ -1567,7 +1559,6 @@ components:
           format: date-time
           title: Created At
           description: 저장 시각 isoformat.
-      additionalProperties: false
       type: object
       required:
       - id
@@ -1624,7 +1615,6 @@ components:
           type: boolean
           title: Limit Reached
           description: tokens_remaining이 정확히 0인지 여부.
-      additionalProperties: false
       type: object
       required:
       - activity_date
@@ -1652,7 +1642,6 @@ components:
           format: date-time
           title: Created At
           description: 저장 시각.
-      additionalProperties: false
       type: object
       required:
       - message_id
@@ -1666,7 +1655,6 @@ components:
           format: date
           title: Anchor Date
           description: 같은 activity date chat으로 이동할 anchor.
-      additionalProperties: false
       type: object
       required:
       - anchor_date
@@ -1716,7 +1704,6 @@ components:
           format: date-time
           title: Created At
           description: 저장 시각.
-      additionalProperties: false
       type: object
       required:
       - message_id
@@ -1789,7 +1776,6 @@ components:
           - type: 'null'
           title: First Read At
           description: 최초 읽음 시각, 미열람이면 null.
-      additionalProperties: false
       type: object
       required:
       - id
@@ -1850,7 +1836,6 @@ components:
           type: boolean
           title: Read
           description: first_read_at 존재 여부.
-      additionalProperties: false
       type: object
       required:
       - id
@@ -1877,7 +1862,6 @@ components:
           - type: 'null'
           title: Next Cursor
           description: 실제 다음 page가 있을 때 마지막 반환 diary_date, 아니면 null.
-      additionalProperties: false
       type: object
       required:
       - data
@@ -1955,7 +1939,6 @@ components:
           - type: 'null'
           title: Body Id
           description: body public_id 또는 해제 null.
-      additionalProperties: false
       type: object
       required:
       - theme_id
@@ -1977,7 +1960,6 @@ components:
         height:
           type: number
           title: Height
-      additionalProperties: false
       type: object
       required:
       - x
@@ -2000,7 +1982,6 @@ components:
           - type: 'null'
           title: Content
           description: greeting 본문. 없으면 greeting_id와 함께 null.
-      additionalProperties: false
       type: object
       required:
       - greeting_id
@@ -2017,7 +1998,6 @@ components:
           type: integer
           title: Amount
           description: hay pack 지급량.
-      additionalProperties: false
       type: object
       required:
       - product_id
@@ -2058,7 +2038,6 @@ components:
           format: date-time
           title: Created At
           description: 거래 생성 시각.
-      additionalProperties: false
       type: object
       required:
       - id
@@ -2082,7 +2061,6 @@ components:
           type: string
           title: Env
           description: settings.environment runtime 값.
-      additionalProperties: false
       type: object
       required:
       - status
@@ -2108,7 +2086,6 @@ components:
               - owned
           type: array
           title: Data
-      additionalProperties: false
       type: object
       required:
       - data
@@ -2136,7 +2113,6 @@ components:
           - type: 'null'
           title: Newer Cursor
           description: 결과 마지막 message id. 빈 결과면 null.
-      additionalProperties: false
       type: object
       required:
       - data
@@ -2226,7 +2202,6 @@ components:
           type: boolean
           title: Review Prompt
           description: client가 review prompt를 노출할지 여부.
-      additionalProperties: false
       type: object
       required:
       - greeting
@@ -2257,7 +2232,6 @@ components:
           - type: 'null'
           title: Upright Layer Url
           description: wearable이면 필수 HTTP(S), theme이면 null.
-      additionalProperties: false
       type: object
       required:
       - thumbnail_url
@@ -2305,7 +2279,6 @@ components:
               - slot
           type: array
           title: Items
-      additionalProperties: false
       type: object
       required:
       - themes
@@ -2347,7 +2320,6 @@ components:
           minimum: 0
           title: Balance After
           description: 구매 후 balance.
-      additionalProperties: false
       type: object
       required:
       - product_id
@@ -2371,7 +2343,6 @@ components:
           type: string
           title: Content
           description: Moly reply 본문.
-      additionalProperties: false
       type: object
       required:
       - message_id
@@ -2399,9 +2370,7 @@ components:
           type: integer
           minimum: 0
           title: Views Limit
-          const: 10
-          description: 고정 일 한도 10.
-      additionalProperties: false
+          description: 현재 일 한도 10.
       type: object
       required:
       - reward_session_id
@@ -2415,13 +2384,11 @@ components:
           type: integer
           minimum: 0
           title: Granted
-          const: 10
-          description: 현재 두 보상 endpoint의 고정 지급량 10.
+          description: 현재 두 보상 endpoint의 지급량 10.
         balance_after:
           type: integer
           minimum: 0
           title: Balance After
-      additionalProperties: false
       type: object
       required:
       - granted
@@ -2437,7 +2404,6 @@ components:
           type: integer
           minimum: 0
           title: Completed Count Today
-      additionalProperties: false
       type: object
       required:
       - completed_today
@@ -2450,7 +2416,6 @@ components:
             $ref: '#/components/schemas/RoutineResponse'
           type: array
           title: Data
-      additionalProperties: false
       type: object
       required:
       - data
@@ -2465,8 +2430,7 @@ components:
           type: integer
           minimum: 0
           title: Required
-          const: 2
-          description: 필요 완료 수 2.
+          description: 현재 필요 완료 수 2.
         claimable:
           type: boolean
           title: Claimable
@@ -2477,9 +2441,7 @@ components:
           type: integer
           minimum: 0
           title: Reward
-          const: 10
-          description: 고정 routine 보상 10.
-      additionalProperties: false
+          description: 현재 routine 보상 10.
       type: object
       required:
       - completed_today
@@ -2530,7 +2492,6 @@ components:
           type: boolean
           title: Completed Today
           description: local reward date 완료 여부.
-      additionalProperties: false
       type: object
       required:
       - id
@@ -2582,7 +2543,6 @@ components:
           minimum: 0
           title: Completion Rate
           description: 최근 28일 완료 수/(요일 수×4), 최대 1, 소수 둘째 자리 반올림. 부동소수점 표현 때문에 0.01 배수 검증은 하지 않는다.
-      additionalProperties: false
       type: object
       required:
       - streak
@@ -2638,7 +2598,6 @@ components:
         assets:
           $ref: '#/components/schemas/ProductAssets'
           description: slot별 asset payload.
-      additionalProperties: false
       type: object
       required:
       - id
@@ -2698,7 +2657,6 @@ components:
           type: string
           const: ok
           title: Status
-      additionalProperties: false
       type: object
       required:
       - status
@@ -2718,7 +2676,6 @@ components:
           type: integer
           minimum: 0
           title: Hay Grant
-      additionalProperties: false
       type: object
       required:
       - product_id
@@ -2741,7 +2698,6 @@ components:
           type: array
           title: Benefits
           description: 구독 혜택 표시 문구 목록.
-      additionalProperties: false
       type: object
       required:
       - plans
@@ -2790,7 +2746,6 @@ components:
           - type: 'null'
           title: Trial Ends At
           description: 적용 trial 종료 시각 또는 null.
-      additionalProperties: false
       type: object
       required:
       - status
@@ -2831,7 +2786,6 @@ components:
           type: array
           minItems: 1
           title: Layers
-      additionalProperties: false
       type: object
       required:
       - canvas
@@ -2860,7 +2814,6 @@ components:
           - $ref: '#/components/schemas/HttpUrl'
           - type: 'null'
           title: Night Url
-      additionalProperties: false
       type: object
       required:
       - id
@@ -2877,7 +2830,6 @@ components:
           title: Completed Count
         by_weekday:
           $ref: '#/components/schemas/WeekdayCompletion'
-      additionalProperties: false
       type: object
       required:
       - completed_count
@@ -2898,7 +2850,6 @@ components:
           - type: 'null'
           title: Next Cursor
           description: 실제 다음 page가 있을 때 마지막 반환 id, 아니면 null.
-      additionalProperties: false
       type: object
       required:
       - data
@@ -2911,7 +2862,6 @@ components:
           minimum: 0
           title: Balance
           description: 현재 server-authoritative hay balance, 0 이상.
-      additionalProperties: false
       type: object
       required:
       - balance
@@ -2939,7 +2889,6 @@ components:
         '7':
           type: boolean
           title: '7'
-      additionalProperties: false
       type: object
       required:
       - '1'
@@ -3005,7 +2954,6 @@ components:
           type: string
         msg:
           type: string
-      additionalProperties: false
     ErrorDetails:
       type: object
       additionalProperties: true
@@ -3047,7 +2995,6 @@ components:
           type: string
         details:
           $ref: '#/components/schemas/ErrorDetails'
-      additionalProperties: false
     ErrorEnvelope:
       type: object
       required:
@@ -3055,7 +3002,6 @@ components:
       properties:
         error:
           $ref: '#/components/schemas/ErrorBody'
-      additionalProperties: false
   securitySchemes:
     SupabaseBearer:
       type: http

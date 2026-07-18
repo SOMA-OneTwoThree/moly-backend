@@ -90,7 +90,6 @@ schemas:
         type: integer
         minimum: 0
         title: Completed Count Today
-    additionalProperties: false
     type: object
     required:
     - completed_today
@@ -103,7 +102,6 @@ schemas:
           $ref: '#/schemas/RoutineResponse'
         type: array
         title: Data
-    additionalProperties: false
     type: object
     required:
     - data
@@ -118,8 +116,7 @@ schemas:
         type: integer
         minimum: 0
         title: Required
-        const: 2
-        description: 필요 완료 수 2.
+        description: 현재 필요 완료 수 2.
       claimable:
         type: boolean
         title: Claimable
@@ -130,9 +127,7 @@ schemas:
         type: integer
         minimum: 0
         title: Reward
-        const: 10
-        description: 고정 routine 보상 10.
-    additionalProperties: false
+        description: 현재 routine 보상 10.
     type: object
     required:
     - completed_today
@@ -183,7 +178,6 @@ schemas:
         type: boolean
         title: Completed Today
         description: local reward date 완료 여부.
-    additionalProperties: false
     type: object
     required:
     - id
@@ -235,7 +229,6 @@ schemas:
         minimum: 0
         title: Completion Rate
         description: 최근 28일 완료 수/(요일 수×4), 최대 1, 소수 둘째 자리 반올림. 부동소수점 표현 때문에 0.01 배수 검증은 하지 않는다.
-    additionalProperties: false
     type: object
     required:
     - streak
@@ -254,7 +247,6 @@ schemas:
         title: Completed Count
       by_weekday:
         $ref: '#/schemas/WeekdayCompletion'
-    additionalProperties: false
     type: object
     required:
     - completed_count
@@ -283,7 +275,6 @@ schemas:
       '7':
         type: boolean
         title: '7'
-    additionalProperties: false
     type: object
     required:
     - '1'

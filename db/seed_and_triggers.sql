@@ -108,7 +108,7 @@ ON CONFLICT (app_store_product_id) DO UPDATE
       sort_order = EXCLUDED.sort_order;
 
 -- ─────────────────────────────────────────────────────────────
--- 3. products (cosmetic) — appearance v2 꾸미기 6종: 테마 2 · 머리 2 · 목 2
+-- 3. products (cosmetic) — appearance v2 꾸미기 9종: 테마 2 · 머리 3 · 목 3 · 몸 1
 --    자연키가 없어 id를 고정 uuid로 박아 멱등(재실행 = 갱신).
 --    에셋: Storage `shop-assets` 버킷 public URL. 경로 규칙은 {public_id}/v{asset_version}/…
 --    — 파일 내용이 바뀌면 asset_version과 URL을 함께 올린다(iOS는 URL 전체를 캐시 키로 씀).
@@ -170,26 +170,41 @@ INSERT INTO public.products (
        ]
      }}',
    true, 2),
-  ('00000000-0000-4000-8000-000000000201', 'cosmetic', 'head_sunglasses', 'head', '선글라스', 1000, false, 1,
-   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v1/thumb.png",
-     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v1/detail.png",
-     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v1/upright.png"}',
+  ('00000000-0000-4000-8000-000000000201', 'cosmetic', 'head_sunglasses', 'head', '선글라스', 1000, false, 2,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v2/thumb.png",
+     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v2/detail.png",
+     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v2/upright.png"}',
    true, 1),
-  ('00000000-0000-4000-8000-000000000202', 'cosmetic', 'head_mandarin', 'head', '귤', 1000, false, 1,
-   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v1/thumb.png",
-     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v1/detail.png",
-     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v1/upright.png"}',
+  ('00000000-0000-4000-8000-000000000202', 'cosmetic', 'head_mandarin', 'head', '귤', 1000, false, 2,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v2/thumb.png",
+     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v2/detail.png",
+     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v2/upright.png"}',
    true, 2),
-  ('00000000-0000-4000-8000-000000000301', 'cosmetic', 'neck_employee_badge', 'neck', '사원증', 1000, false, 1,
-   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_employee_badge/v1/thumb.png",
-     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_employee_badge/v1/detail.png",
-     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_employee_badge/v1/upright.png"}',
+  ('00000000-0000-4000-8000-000000000301', 'cosmetic', 'neck_employee_badge', 'neck', '사원증', 1000, false, 2,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_employee_badge/v2/thumb.png",
+     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_employee_badge/v2/detail.png",
+     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_employee_badge/v2/upright.png"}',
    true, 1),
-  ('00000000-0000-4000-8000-000000000302', 'cosmetic', 'neck_muffler', 'neck', '목도리', 1000, false, 1,
-   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_muffler/v1/thumb.png",
-     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_muffler/v1/detail.png",
-     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_muffler/v1/upright.png"}',
-   true, 2)
+  ('00000000-0000-4000-8000-000000000302', 'cosmetic', 'neck_muffler', 'neck', '목도리', 1000, false, 2,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_muffler/v2/thumb.png",
+     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_muffler/v2/detail.png",
+     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_muffler/v2/upright.png"}',
+   true, 2),
+  ('00000000-0000-4000-8000-000000000203', 'cosmetic', 'head_suncream', 'head', '선크림', 1000, false, 1,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_suncream/v1/thumb.png",
+     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_suncream/v1/detail.png",
+     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_suncream/v1/upright.png"}',
+   true, 3),
+  ('00000000-0000-4000-8000-000000000303', 'cosmetic', 'neck_shell', 'neck', '조개 목걸이', 1000, false, 1,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_shell/v1/thumb.png",
+     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_shell/v1/detail.png",
+     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_shell/v1/upright.png"}',
+   true, 3),
+  ('00000000-0000-4000-8000-000000000401', 'cosmetic', 'clothes_hawaiianpants', 'body', '하와이안 바지', 1000, false, 1,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/clothes_hawaiianpants/v1/thumb.png",
+     "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/clothes_hawaiianpants/v1/detail.png",
+     "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/clothes_hawaiianpants/v1/upright.png"}',
+   true, 1)
 ON CONFLICT (id) DO UPDATE
   SET product_type       = EXCLUDED.product_type,
       public_id          = EXCLUDED.public_id,

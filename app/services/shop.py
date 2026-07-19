@@ -47,7 +47,7 @@ def rightside_asset_view(assets: dict[str, Any]) -> dict[str, Any]:
     rightside = assets.get("rightside") or {}
     return {
         "thumbnail_url": assets["thumbnail_url"],
-        "upright_layer_url": rightside.get("upright_layer_url") or assets.get("upright_layer_url"),
+        "upright_layer_url": rightside.get("upright_layer_url"),
     }
 
 

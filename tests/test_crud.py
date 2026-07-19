@@ -668,6 +668,24 @@ async def test_v2_catalog_projects_rightside_upright():
     assert assets["detail_url"] is None and assets["scene"] is None
 
 
+async def test_v2_catalog_rejects_missing_rightside_without_legacy_fallback():
+    glasses = _item(public_id="head_sunglasses", slot="glasses")
+    glasses.assets = dict(glasses.assets)
+    del glasses.assets["rightside"]
+
+    legacy = await shop.get_products(
+        FakeSession(exec_results=[[glasses], []]), UID
+    )
+    assert legacy["items"][0]["assets"]["upright_layer_url"].endswith("/v1/upright.png")
+
+    with pytest.raises(AppError) as exc:
+        await shop.get_products(
+            FakeSession(exec_results=[[glasses], []]), UID, v2=True
+        )
+    assert exc.value.code == "INTERNAL"
+    assert exc.value.details == {"product_id": "head_sunglasses"}
+
+
 async def test_v2_catalog_theme_keeps_scene_and_detail():
     theme = _theme()
     out = await shop.get_products(FakeSession(exec_results=[[theme], []]), UID, v2=True)

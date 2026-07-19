@@ -55,6 +55,7 @@ URL만 바꾸면 iOS 캐시가 갱신되지 않는다.
 5. `20260719_hat_glasses_rightside.sql`을 dry-run한 뒤 적용 — head → hat/glasses 슬롯 전환,
    장착 행 이전, `rightside` 자산 패치, bootstrap_user 갱신. `asset_version`은 올리지 않아 구 자세 URL은
    불변이라 구버전 앱 캐시가 유지된다.
-6. `moly-backend` 새 버전을 배포한다.
-7. 레거시 `/shop/products`·`/inventory`·두 equipment 조회에 hat/glasses·`rightside`가 노출되지 않는지,
-   `/v2/*` 4종이 새 슬롯과 rightside upright를 반환하는지 스모크 테스트한다.
+6. `moly-backend`와 `moly-auth` 새 버전을 함께 배포한다. `moly-auth`의 레거시 `/me`는
+   hat/glasses를 단일 `head_id`로 투영해야 한다.
+7. 레거시 `/me`·`/shop/products`·`/inventory`·두 equipment 조회에 hat/glasses·`rightside`가
+   노출되지 않는지, `/v2/*` 4종이 새 슬롯과 rightside upright를 반환하는지 스모크 테스트한다.

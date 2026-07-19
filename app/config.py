@@ -82,7 +82,7 @@ class Settings(BaseSettings):
     daily_token_limit_trial: int = 100_000
     daily_token_limit_subscriber: int = 100_000
     token_warning_threshold: int = 3_000  # 남은 토큰 이 값 이하면 소진 경고
-    review_prompt_min_tokens: int = 50_000  # 당일 누적 이 이상 생애 최초 → 리뷰 노출
+    review_prompt_min_tokens: int = 15_000  # 당일 누적 이 이상 생애 최초 → 리뷰 노출
     diary_llm_min_tokens: int = 2_000  # (레거시) 토큰 기반 개인일기 임계 — diary_min_user_chars로 대체
     # 개인(관찰) 일기 게이트 = 당일 유저 메시지 문자수(토큰 카운터와 분리 → 회계 변경에 불변).
     # 낮게 시작(오늘의 ~2메시지 선택성 재현). 실 트랜스크립트로 보정 전까지 낮은 쪽 편향(얇으면 preset 폴백 있음).

@@ -1184,6 +1184,158 @@ paths:
       - SupabaseBearer: []
       description: 4 slot을 하나의 transaction으로 전체 교체한다. 네 field 모두 필수이고 theme은 null 불가다. wearable null은
         해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+  /v2/shop/products:
+    get:
+      tags:
+      - shop
+      summary: 꾸미기 상품 catalog 조회 (v2)
+      operationId: listShopProductsV2
+      responses:
+        '200':
+          description: theme 및 wearable 상품 catalog. head 슬롯은 hat/glasses로 분리된다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsResponseV2'
+        '500':
+          $ref: '#/components/responses/AssetInternal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - SupabaseBearer: []
+      description: v1과 동일한 정렬·분할이나 slot이 hat/glasses로 분리되고 착용 아이템 asset은 rightside 자세 upright 레이어를 쓴다.
+        구버전 클라이언트는 /shop/products를 계속 사용한다.
+  /v2/inventory:
+    get:
+      tags:
+      - shop
+      summary: 보유 꾸미기 상품 조회 (v2)
+      operationId: getInventoryV2
+      responses:
+        '200':
+          description: 보유 상품 목록. slot은 hat/glasses로 분리된다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryResponseV2'
+        '500':
+          $ref: '#/components/responses/AssetInternal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - SupabaseBearer: []
+      description: source!=subscription인 본인 소유 active cosmetic의 v2 DTO를 sort_order, public_id 순으로 반환한다.
+        pagination은 없다.
+  /v2/inventory/equipment:
+    get:
+      tags:
+      - shop
+      summary: 현재 장착 상태 조회 (v2)
+      operationId: getEquipmentV2
+      responses:
+        '200':
+          description: 현재 5-slot 장착 상태(theme·hat·glasses·neck·body)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipmentResponseV2'
+        '500':
+          description: 장착 상품이 active catalog에 없거나 기본 theme 장착이 없거나 기타 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                inactive:
+                  summary: 장착 상품 오류
+                  value:
+                    error:
+                      code: INTERNAL
+                      message: 장착 상품이 활성 카탈로그에 없습니다.
+                      details: {}
+                theme:
+                  summary: 기본 theme 없음
+                  value:
+                    error:
+                      code: INTERNAL
+                      message: 기본 테마 장착 상태가 없습니다.
+                      details: {}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - SupabaseBearer: []
+      description: theme은 항상 필요하며 wearable hat/glasses/neck/body는 nullable이다.
+    put:
+      tags:
+      - shop
+      summary: 장착 상태 전체 교체 (v2)
+      operationId: replaceEquipmentV2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentPutRequestV2'
+        required: true
+      responses:
+        '200':
+          description: 교체된 5-slot 장착 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquipmentResponseV2'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: request schema 위반, 상품 없음/inactive/non-cosmetic, slot 불일치 또는 미보유
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          - theme_id
+                          type: missing
+                          msg: Field required
+                missingProduct:
+                  summary: 상품 없음
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 존재하지 않는 상품이에요.
+                      details:
+                        product_id: missing
+                slot:
+                  summary: slot 불일치
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 슬롯이 맞지 않아요.
+                      details:
+                        slot: hat
+                notOwned:
+                  summary: 미보유
+                  value:
+                    error:
+                      code: NOT_OWNED
+                      message: 보유하지 않은 아이템이에요.
+                      details: {}
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+      security:
+      - SupabaseBearer: []
+      description: 5 slot을 하나의 transaction으로 전체 교체한다. 다섯 field 모두 필수이고 theme은 null 불가다. wearable null은
+        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
   /review/prompted:
     post:
       tags:
@@ -1907,6 +2059,55 @@ components:
       - neck_id
       - body_id
       title: EquipmentPutRequest
+    EquipmentPutRequestV2:
+      properties:
+        theme_id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Theme Id
+          description: 필수 theme public_id.
+        hat_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Hat Id
+          description: hat public_id 또는 slot 해제 null. field 자체는 필수.
+        glasses_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Glasses Id
+          description: glasses public_id 또는 slot 해제 null. field 자체는 필수.
+        neck_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Neck Id
+          description: neck public_id 또는 slot 해제 null. field 자체는 필수.
+        body_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Body Id
+          description: body public_id 또는 slot 해제 null. field 자체는 필수.
+      additionalProperties: false
+      type: object
+      required:
+      - theme_id
+      - hat_id
+      - glasses_id
+      - neck_id
+      - body_id
+      title: EquipmentPutRequestV2
     EquipmentResponse:
       properties:
         theme_id:
@@ -1946,6 +2147,54 @@ components:
       - neck_id
       - body_id
       title: EquipmentResponse
+    EquipmentResponseV2:
+      properties:
+        theme_id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Theme Id
+          description: 필수 장착 theme public_id.
+        hat_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Hat Id
+          description: hat public_id 또는 해제 null.
+        glasses_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Glasses Id
+          description: glasses public_id 또는 해제 null.
+        neck_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Neck Id
+          description: neck public_id 또는 해제 null.
+        body_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            pattern: \S
+          - type: 'null'
+          title: Body Id
+          description: body public_id 또는 해제 null.
+      type: object
+      required:
+      - theme_id
+      - hat_id
+      - glasses_id
+      - neck_id
+      - body_id
+      title: EquipmentResponseV2
     Frame:
       properties:
         x:
@@ -2090,6 +2339,23 @@ components:
       required:
       - data
       title: InventoryResponse
+    InventoryResponseV2:
+      properties:
+        data:
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ShopProductV2'
+            - properties:
+                owned:
+                  const: true
+              required:
+              - owned
+          type: array
+          title: Data
+      type: object
+      required:
+      - data
+      title: InventoryResponseV2
     JsonValue: {}
     MessagesResponse:
       properties:
@@ -2252,6 +2518,55 @@ components:
           upright_layer_url:
             $ref: '#/components/schemas/HttpUrl'
       title: ProductAssets
+    ProductAssetsV2:
+      properties:
+        thumbnail_url:
+          $ref: '#/components/schemas/HttpUrl'
+          title: Thumbnail Url
+          description: HTTP(S) thumbnail URL.
+        detail_url:
+          anyOf:
+          - $ref: '#/components/schemas/HttpUrl'
+          - type: 'null'
+          title: Detail Url
+          description: theme이면 필수 HTTP(S), wearable이면 null. 신버전 아이템은 detail을 쓰지 않는다.
+        scene:
+          anyOf:
+          - $ref: '#/components/schemas/ThemeScene'
+          - type: 'null'
+          description: theme이면 필수, wearable이면 null.
+        upright_layer_url:
+          anyOf:
+          - $ref: '#/components/schemas/HttpUrl'
+          - type: 'null'
+          title: Upright Layer Url
+          description: wearable이면 필수 HTTP(S)(rightside 자세), theme이면 null.
+      type: object
+      required:
+      - thumbnail_url
+      oneOf:
+      - description: theme 상품 asset — scene·detail_url 필수, upright_layer_url 없음.
+        properties:
+          detail_url:
+            $ref: '#/components/schemas/HttpUrl'
+          scene:
+            $ref: '#/components/schemas/ThemeScene'
+          upright_layer_url:
+            type: 'null'
+        required:
+        - detail_url
+        - scene
+      - description: wearable 상품 asset — upright_layer_url 필수, detail_url·scene 없음.
+        properties:
+          detail_url:
+            type: 'null'
+          scene:
+            type: 'null'
+          upright_layer_url:
+            $ref: '#/components/schemas/HttpUrl'
+        required:
+        - upright_layer_url
+      title: ProductAssetsV2
     ProductsResponse:
       properties:
         themes:
@@ -2284,6 +2599,39 @@ components:
       - themes
       - items
       title: ProductsResponse
+    ProductsResponseV2:
+      properties:
+        themes:
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ShopProductV2'
+            - properties:
+                slot:
+                  const: theme
+              required:
+              - slot
+          type: array
+          title: Themes
+        items:
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ShopProductV2'
+            - properties:
+                slot:
+                  enum:
+                  - hat
+                  - glasses
+                  - neck
+                  - body
+              required:
+              - slot
+          type: array
+          title: Items
+      type: object
+      required:
+      - themes
+      - items
+      title: ProductsResponseV2
     PurchaseRequest:
       properties:
         product_id:
@@ -2646,6 +2994,112 @@ components:
                 upright_layer_url:
                   $ref: '#/components/schemas/HttpUrl'
               required:
+              - scene
+              - upright_layer_url
+        required:
+        - slot
+        - assets
+    ShopProductV2:
+      properties:
+        id:
+          type: string
+          minLength: 1
+          pattern: \S
+          title: Id
+          description: trim된 non-empty stable public_id.
+        name:
+          type: string
+          minLength: 1
+          title: Name
+          description: 상품 표시 이름.
+        slot:
+          type: string
+          enum:
+          - theme
+          - hat
+          - glasses
+          - neck
+          - body
+          title: Slot
+          description: theme 또는 wearable slot(hat/glasses/neck/body).
+        price_hay:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          title: Price Hay
+          description: null이면 구매 불가. 구매 가능 가격은 1 이상.
+        owned:
+          type: boolean
+          title: Owned
+          description: subscription source를 제외한 소유 여부.
+        equipped:
+          type: boolean
+          title: Equipped
+          description: 현재 장착 row 여부.
+        asset_version:
+          type: integer
+          minimum: 1
+          title: Asset Version
+          description: asset cache-busting version, 1 이상.
+        assets:
+          $ref: '#/components/schemas/ProductAssetsV2'
+          description: slot별 asset payload.
+      type: object
+      required:
+      - id
+      - name
+      - slot
+      - price_hay
+      - owned
+      - equipped
+      - asset_version
+      - assets
+      title: ShopProductV2
+      description: theme 상품은 assets.scene·detail_url non-null/upright_layer_url null, wearable은 upright_layer_url
+        non-null/scene·detail_url null이어야 한다. response model validator가 위반 시 500으로 차단한다.
+      oneOf:
+      - title: Theme product
+        properties:
+          slot:
+            const: theme
+          assets:
+            allOf:
+            - $ref: '#/components/schemas/ProductAssetsV2'
+            - properties:
+                detail_url:
+                  $ref: '#/components/schemas/HttpUrl'
+                scene:
+                  $ref: '#/components/schemas/ThemeScene'
+                upright_layer_url:
+                  type: 'null'
+              required:
+              - detail_url
+              - scene
+              - upright_layer_url
+        required:
+        - slot
+        - assets
+      - title: Wearable product
+        properties:
+          slot:
+            enum:
+            - hat
+            - glasses
+            - neck
+            - body
+          assets:
+            allOf:
+            - $ref: '#/components/schemas/ProductAssetsV2'
+            - properties:
+                detail_url:
+                  type: 'null'
+                scene:
+                  type: 'null'
+                upright_layer_url:
+                  $ref: '#/components/schemas/HttpUrl'
+              required:
+              - detail_url
               - scene
               - upright_layer_url
         required:

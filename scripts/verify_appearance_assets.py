@@ -1,4 +1,8 @@
-"""최종 appearance v2 매니페스트와 원격 이미지 규격을 배포 전에 검증한다."""
+"""최종 appearance 매니페스트와 원격 이미지 규격을 배포 전에 검증한다.
+
+매니페스트는 DB 진실(slot=hat/glasses/…, 착용 assets에 rightside 포함)을 담는다.
+각 상품을 v2 계약과 레거시(구버전) 투영 양쪽으로 검증해 구버전 앱 보호를 배포 전에 강제한다.
+"""
 from __future__ import annotations
 
 import argparse
@@ -7,52 +11,81 @@ import io
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 import httpx
 from PIL import Image
 from pydantic import ValidationError
 
-from app.schemas.shop import ShopProduct
+from app.schemas.shop import ShopProduct, ShopProductV2
+from app.services.shop import legacy_asset_view, rightside_asset_view
 
 REQUIRED_DEFAULTS = {"theme_default", "theme_workout", "head_sunglasses"}
 
 # 착용 레이어는 번들 캐릭터(cappy.imageset)와 픽셀 단위로 같아야 겹쳐 그렸을 때 정렬된다.
+# rightside 자세도 같은 캔버스를 쓴다 — 새 자세 캔버스 규격이 달라지면 이 값을 갱신한다.
 UPRIGHT_LAYER_SIZE = (800, 1100)
 
 
-def load_products(path: Path) -> list[ShopProduct]:
+def _legacy_slot(slot: str) -> str:
+    return "head" if slot in ("hat", "glasses") else slot
+
+
+def load_products(path: Path) -> list[ShopProductV2]:
     raw = json.loads(path.read_text())
     entries = raw.get("products") if isinstance(raw, dict) else None
     if not isinstance(entries, list):
         raise ValueError("manifest root must contain a products array")
-    products = [ShopProduct.model_validate({**entry, "owned": False, "equipped": False}) for entry in entries]
+    products: list[ShopProductV2] = []
+    for entry in entries:
+        assets = entry["assets"]
+        product = ShopProductV2.model_validate(
+            {**entry, "assets": rightside_asset_view(assets), "owned": False, "equipped": False}
+        )
+        # 레거시 투영도 반드시 유효해야 한다 — 구버전 앱이 이 응답 형태를 계속 받는다.
+        ShopProduct.model_validate(
+            {
+                **entry,
+                "slot": _legacy_slot(entry["slot"]),
+                "assets": legacy_asset_view(assets),
+                "owned": False,
+                "equipped": False,
+            }
+        )
+        # 착용 아이템은 rightside 자세 레이어를 반드시 제공해야 한다(런타임 폴백에 기대지 않는다).
+        if entry["slot"] != "theme" and not (assets.get("rightside") or {}).get("upright_layer_url"):
+            raise ValueError(f"{entry['id']}: wearable is missing rightside.upright_layer_url")
+        products.append(product)
     ids = [product.id for product in products]
     if len(ids) != len(set(ids)):
         raise ValueError("product ids must be globally unique")
     missing = REQUIRED_DEFAULTS - set(ids)
     if missing:
         raise ValueError(f"required products missing: {sorted(missing)}")
-    for product in products:
+    for entry, product in zip(entries, products):
         version_token = re.compile(rf"(?:^|[/_.-])v{product.asset_version}(?:$|[/_.-])")
-        for url in urls_for(product):
-            if version_token.search(str(url)) is None:
+        for url in urls_for(entry["assets"]):
+            if version_token.search(url) is None:
                 raise ValueError(f"{product.id}: URL does not contain v{product.asset_version}: {url}")
     return products
 
 
-def urls_for(product: ShopProduct) -> list[str]:
-    assets = product.assets
-    urls = [str(assets.thumbnail_url), str(assets.detail_url)]
-    if product.slot == "theme":
-        assert assets.scene is not None
-        urls.append(str(assets.scene.character_url))
-        for layer in assets.scene.layers:
-            urls.append(str(layer.day_url))
-            if layer.night_url is not None:
-                urls.append(str(layer.night_url))
-    else:
-        assert assets.upright_layer_url is not None
-        urls.append(str(assets.upright_layer_url))
+def urls_for(assets: dict[str, Any]) -> list[str]:
+    """DB assets(구 자세 + rightside)의 모든 이미지 URL을 모은다."""
+    urls: list[str] = []
+    for key in ("thumbnail_url", "detail_url", "upright_layer_url"):
+        if assets.get(key):
+            urls.append(assets[key])
+    rightside = assets.get("rightside") or {}
+    if rightside.get("upright_layer_url"):
+        urls.append(rightside["upright_layer_url"])
+    scene = assets.get("scene")
+    if scene:
+        urls.append(scene["character_url"])
+        for layer in scene["layers"]:
+            urls.append(layer["day_url"])
+            if layer.get("night_url"):
+                urls.append(layer["night_url"])
     return urls
 
 
@@ -79,14 +112,21 @@ def require_transparent_png(image: Image.Image, size: tuple[int, int], label: st
         raise ValueError(f"{label}: PNG has no transparent pixels")
 
 
-async def verify_remote(products: list[ShopProduct]) -> None:
+async def verify_remote(entries: list[dict[str, Any]]) -> None:
     async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-        for product in products:
-            for url in urls_for(product):
+        for entry in entries:
+            assets = entry["assets"]
+            for url in urls_for(assets):
                 await fetch_image(client, url)
-            if product.slot != "theme":
-                upright = await fetch_image(client, str(product.assets.upright_layer_url))
-                require_transparent_png(upright, UPRIGHT_LAYER_SIZE, f"{product.id}.upright")
+            if entry["slot"] != "theme":
+                # 구 자세와 rightside 자세 둘 다 번들 캐릭터와 정렬되는 투명 PNG여야 한다.
+                poses = {
+                    "upright": assets["upright_layer_url"],
+                    "rightside": assets["rightside"]["upright_layer_url"],
+                }
+                for label, url in poses.items():
+                    image = await fetch_image(client, url)
+                    require_transparent_png(image, UPRIGHT_LAYER_SIZE, f"{entry['id']}.{label}")
 
 
 def main() -> None:
@@ -97,7 +137,8 @@ def main() -> None:
     try:
         products = load_products(args.manifest)
         if not args.skip_fetch:
-            asyncio.run(verify_remote(products))
+            entries = json.loads(args.manifest.read_text())["products"]
+            asyncio.run(verify_remote(entries))
     except (OSError, ValueError, ValidationError, httpx.HTTPError) as exc:
         raise SystemExit(f"appearance asset verification failed: {exc}") from exc
     print(f"appearance asset verification passed: {len(products)} products")

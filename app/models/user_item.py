@@ -30,6 +30,6 @@ class UserItem(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
     source: Mapped[str] = mapped_column(String, default="purchase", server_default=text("'purchase'"))
     order_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    equipped_slot: Mapped[str | None] = mapped_column(String, nullable=True)  # theme|head|neck|body
+    equipped_slot: Mapped[str | None] = mapped_column(String, nullable=True)  # theme|hat|glasses|neck|body
     equipped_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     acquired_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)

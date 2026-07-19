@@ -144,3 +144,80 @@ class EquipmentPutRequest(BaseModel):
     head_id: PublicID | None
     neck_id: PublicID | None
     body_id: PublicID | None
+
+
+# ── v2: head 슬롯을 hat/glasses로 분리, 착용 아이템은 새 자세(rightside) 레이어를 쓴다.
+#    구버전 클라이언트는 위 레거시 모델을, 신버전은 아래 v2 모델을 계약으로 삼는다.
+class ProductAssetsV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    thumbnail_url: AnyHttpUrl
+    detail_url: AnyHttpUrl | None = None  # 테마 전용. 신버전 아이템은 detail을 쓰지 않는다.
+    scene: ThemeScene | None = None
+    upright_layer_url: AnyHttpUrl | None = None
+
+
+class ShopProductV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: PublicID
+    name: str = Field(min_length=1)
+    slot: Literal["theme", "hat", "glasses", "neck", "body"]
+    price_hay: int | None = Field(ge=1)
+    owned: bool
+    equipped: bool
+    asset_version: int = Field(ge=1)
+    assets: ProductAssetsV2
+
+    @model_validator(mode="after")
+    def validate_assets_for_slot(self) -> "ShopProductV2":
+        assets = self.assets
+        if self.slot == "theme":
+            if assets.scene is None:
+                raise ValueError("테마 상품에는 scene이 필요합니다.")
+            if assets.detail_url is None:
+                raise ValueError("테마 상품에는 detail_url이 필요합니다.")
+            if assets.upright_layer_url is not None:
+                raise ValueError("테마 상품에는 착용 레이어 URL을 보낼 수 없습니다.")
+        else:
+            if assets.scene is not None:
+                raise ValueError("착용 상품에는 scene을 보낼 수 없습니다.")
+            if assets.detail_url is not None:
+                raise ValueError("착용 상품에는 detail_url을 보낼 수 없습니다.")
+            if assets.upright_layer_url is None:
+                raise ValueError("착용 상품에는 upright 레이어 URL이 필요합니다.")
+        return self
+
+
+class ProductsResponseV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    themes: list[ShopProductV2]
+    items: list[ShopProductV2]
+
+
+class InventoryResponseV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    data: list[ShopProductV2]
+
+
+class EquipmentResponseV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    theme_id: PublicID
+    hat_id: PublicID | None
+    glasses_id: PublicID | None
+    neck_id: PublicID | None
+    body_id: PublicID | None
+
+
+class EquipmentPutRequestV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # 5슬롯 모두 필수(전체 교체). 테마는 해제할 수 없다.
+    theme_id: PublicID
+    hat_id: PublicID | None
+    glasses_id: PublicID | None
+    neck_id: PublicID | None
+    body_id: PublicID | None

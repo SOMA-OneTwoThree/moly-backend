@@ -10,7 +10,7 @@ from app.core.db import get_session
 from app.core.errors import AppError
 from app.main import app
 from app.schemas.routine import PatchRoutineRequest
-from app.schemas.shop import EquipmentPutRequest, ShopProduct
+from app.schemas.shop import EquipmentPutRequest, EquipmentPutRequestV2, ShopProduct
 from app.services import economy, hay_ledger, review, routine, shop
 
 UID = "11111111-1111-1111-1111-111111111111"
@@ -243,14 +243,17 @@ def test_routine_request_weekday_only():
 
 # --- 상점 구매 ---
 def _item(**over):
-    public_id = over.pop("public_id", f"head_{uuid.uuid4().hex[:8]}")
+    public_id = over.pop("public_id", f"glasses_{uuid.uuid4().hex[:8]}")
+    root = f"https://cdn.example.com/{public_id}/v1"
     base = dict(
-        id=uuid.uuid4(), public_id=public_id, slot="head", name="모자", price_hay=1000,
+        id=uuid.uuid4(), public_id=public_id, slot="glasses", name="안경", price_hay=1000,
         is_subscriber_only=False, is_active=True, asset_version=1, sort_order=1,
+        # rightside를 기본 포함 — 레거시 경로가 이 키를 벗겨내지 못하면 extra=forbid로 즉시 실패한다.
         assets={
-            "thumbnail_url": f"https://cdn.example.com/{public_id}/v1/thumb.png",
-            "detail_url": f"https://cdn.example.com/{public_id}/v1/detail.png",
-            "upright_layer_url": f"https://cdn.example.com/{public_id}/v1/upright.png",
+            "thumbnail_url": f"{root}/thumb.png",
+            "detail_url": f"{root}/detail.png",
+            "upright_layer_url": f"{root}/upright.png",
+            "rightside": {"upright_layer_url": f"{root}/rightside/upright.png"},
         },
     )
     base.update(over)
@@ -418,9 +421,9 @@ def _row(product_id, source="purchase", equipped_slot=None):
 
 async def test_put_equipment_replace_unequips_previous(monkeypatch):
     """같은 슬롯 교체 = 기존 자동 해제(equipped_slot NULL) + 새 아이템 장착."""
-    theme, a, b = _theme(), _item(slot="head"), _item(slot="head")
+    theme, a, b = _theme(), _item(slot="glasses"), _item(slot="glasses")
     theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
-    row_a, row_b = _row(a.id), _row(b.id, equipped_slot="head")
+    row_a, row_b = _row(a.id), _row(b.id, equipped_slot="glasses")
     products = {product.public_id: product for product in (theme, a, b)}
 
     async def _load(session, pid):
@@ -433,14 +436,14 @@ async def test_put_equipment_replace_unequips_previous(monkeypatch):
     )
     out = await shop.put_equipment(s, UID, req)
     assert row_b.equipped_slot is None  # 기존 장착 자동 해제(보유는 유지)
-    assert row_a.equipped_slot == "head" and row_a.equipped_at is not None
+    assert row_a.equipped_slot == "glasses" and row_a.equipped_at is not None
     assert out["theme_id"] == "theme_default"
     assert out["head_id"] == a.public_id and s.committed is True
     assert s.get_calls[0][2] == {"with_for_update": True}
 
 
 async def test_put_equipment_not_owned_rejected(monkeypatch):
-    theme, it = _theme(), _item(slot="head")
+    theme, it = _theme(), _item(slot="glasses")
     theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
     products = {product.public_id: product for product in (theme, it)}
 
@@ -458,7 +461,7 @@ async def test_put_equipment_not_owned_rejected(monkeypatch):
 
 
 async def test_put_equipment_slot_mismatch_rejected(monkeypatch):
-    it = _item(slot="head")  # head 상품을 theme 슬롯에
+    it = _item(slot="glasses")  # 착용 상품을 theme 슬롯에
 
     async def _load(session, pid):
         return it
@@ -471,14 +474,96 @@ async def test_put_equipment_slot_mismatch_rejected(monkeypatch):
     assert e.value.code == "VALIDATION"
 
 
+async def test_legacy_put_head_swaps_hat_and_glasses(monkeypatch):
+    """레거시 head_id는 실제 hat|glasses 슬롯으로 해석하고, 다른 head 슬롯은 해제한다."""
+    theme = _theme()
+    hat, glasses = _item(slot="hat", public_id="head_mandarin"), _item(
+        slot="glasses", public_id="head_sunglasses"
+    )
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
+    hat_row = _row(hat.id, equipped_slot="hat")
+    glasses_row = _row(glasses.id)
+    products = {p.public_id: p for p in (theme, hat, glasses)}
+
+    async def _load(session, pid):
+        return products[pid]
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(
+        get_obj=SimpleNamespace(id=UID_UUID),
+        exec_results=[[theme_row, hat_row, glasses_row]],
+    )
+    req = EquipmentPutRequest(
+        theme_id=theme.public_id, head_id=glasses.public_id, neck_id=None, body_id=None
+    )
+    out = await shop.put_equipment(s, UID, req)
+    assert hat_row.equipped_slot is None  # 기존 hat 해제
+    assert glasses_row.equipped_slot == "glasses"  # 실제 슬롯에 장착
+    assert out["head_id"] == glasses.public_id
+
+
+async def test_legacy_put_head_wrong_slot_rejected(monkeypatch):
+    """head_id가 hat/glasses가 아닌 상품이면 slot=head 오류."""
+    theme, neck = _theme(), _item(slot="neck")
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
+    products = {p.public_id: p for p in (theme, neck)}
+
+    async def _load(session, pid):
+        return products[pid]
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(get_obj=SimpleNamespace(id=UID_UUID), exec_results=[[theme_row, _row(neck.id)]])
+    req = EquipmentPutRequest(
+        theme_id=theme.public_id, head_id=neck.public_id, neck_id=None, body_id=None
+    )
+    with pytest.raises(AppError) as e:
+        await shop.put_equipment(s, UID, req)
+    assert e.value.code == "VALIDATION" and e.value.details == {"slot": "head"}
+
+
+async def test_v2_put_equips_hat_and_glasses_together(monkeypatch):
+    theme = _theme()
+    hat, glasses = _item(slot="hat", public_id="head_mandarin"), _item(
+        slot="glasses", public_id="head_sunglasses"
+    )
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
+    hat_row, glasses_row = _row(hat.id), _row(glasses.id)
+    products = {p.public_id: p for p in (theme, hat, glasses)}
+
+    async def _load(session, pid):
+        return products[pid]
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(
+        get_obj=SimpleNamespace(id=UID_UUID),
+        exec_results=[[theme_row, hat_row, glasses_row]],
+    )
+    req = EquipmentPutRequestV2(
+        theme_id=theme.public_id, hat_id=hat.public_id, glasses_id=glasses.public_id,
+        neck_id=None, body_id=None,
+    )
+    out = await shop.put_equipment_v2(s, UID, req)
+    assert hat_row.equipped_slot == "hat" and glasses_row.equipped_slot == "glasses"
+    assert out == {
+        "theme_id": "theme_default",
+        "hat_id": "head_mandarin",
+        "glasses_id": "head_sunglasses",
+        "neck_id": None,
+        "body_id": None,
+    }
+
+
 async def test_inventory_excludes_subscription_rows(monkeypatch):
     """인벤토리는 구독 장착 행을 제외하고 카탈로그와 같은 전체 DTO를 반환한다."""
     owned, subscription = _item(), _item()
-    rows = [_row(owned.id), _row(subscription.id, source="subscription", equipped_slot="head")]
+    rows = [_row(owned.id), _row(subscription.id, source="subscription", equipped_slot="glasses")]
     out = await shop.get_inventory(FakeSession(exec_results=[rows, [owned]]), UID)
     assert [item["id"] for item in out["data"]] == [owned.public_id]
     assert out["data"][0]["owned"] is True
-    assert "upright_layer_url" in out["data"][0]["assets"]
+    # 레거시 응답: slot은 head로 투영, assets에서 rightside는 감춰지고 upright는 구 자세 URL.
+    assert out["data"][0]["slot"] == "head"
+    assert "rightside" not in out["data"][0]["assets"]
+    assert out["data"][0]["assets"]["upright_layer_url"].endswith("/v1/upright.png")
 
 
 async def test_catalog_partitions_themes_and_items_with_consistent_flags():
@@ -495,15 +580,15 @@ async def test_catalog_partitions_themes_and_items_with_consistent_flags():
 
 
 async def test_get_equipment_uses_public_ids_and_requires_theme():
-    theme, head = _theme(), _item(public_id="head_sunglasses")
+    theme, glasses = _theme(), _item(public_id="head_sunglasses", slot="glasses")
     rows = [
         _row(theme.id, source="admin_grant", equipped_slot="theme"),
-        _row(head.id, source="admin_grant", equipped_slot="head"),
+        _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
-    out = await shop.get_equipment(FakeSession(exec_results=[rows, [theme, head]]), UID)
+    out = await shop.get_equipment(FakeSession(exec_results=[rows, [theme, glasses]]), UID)
     assert out == {
         "theme_id": "theme_default",
-        "head_id": "head_sunglasses",
+        "head_id": "head_sunglasses",  # 레거시: glasses가 단일 head 슬롯으로 투영
         "neck_id": None,
         "body_id": None,
     }
@@ -511,6 +596,84 @@ async def test_get_equipment_uses_public_ids_and_requires_theme():
     with pytest.raises(AppError) as exc:
         await shop.get_equipment(FakeSession(exec_results=[[], []]), UID)
     assert exc.value.code == "INTERNAL"
+
+
+async def test_legacy_get_equipment_hat_wins_over_glasses():
+    """hat·glasses 동시 장착 시 레거시 head_id는 hat 우선, 응답 키는 정확히 4개."""
+    theme = _theme()
+    hat = _item(public_id="head_mandarin", slot="hat")
+    glasses = _item(public_id="head_sunglasses", slot="glasses")
+    rows = [
+        _row(theme.id, source="admin_grant", equipped_slot="theme"),
+        _row(hat.id, source="admin_grant", equipped_slot="hat"),
+        _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
+    ]
+    out = await shop.get_equipment(
+        FakeSession(exec_results=[rows, [theme, hat, glasses]]), UID
+    )
+    assert out == {
+        "theme_id": "theme_default",
+        "head_id": "head_mandarin",
+        "neck_id": None,
+        "body_id": None,
+    }
+
+
+async def test_v2_get_equipment_exposes_hat_and_glasses():
+    theme = _theme()
+    hat = _item(public_id="head_mandarin", slot="hat")
+    glasses = _item(public_id="head_sunglasses", slot="glasses")
+    rows = [
+        _row(theme.id, source="admin_grant", equipped_slot="theme"),
+        _row(hat.id, source="admin_grant", equipped_slot="hat"),
+        _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
+    ]
+    out = await shop.get_equipment(
+        FakeSession(exec_results=[rows, [theme, hat, glasses]]), UID, v2=True
+    )
+    assert out == {
+        "theme_id": "theme_default",
+        "hat_id": "head_mandarin",
+        "glasses_id": "head_sunglasses",
+        "neck_id": None,
+        "body_id": None,
+    }
+
+
+async def test_legacy_catalog_hides_second_head_item_as_unequipped():
+    """hat·glasses 동시 장착이어도 레거시 카탈로그에선 head 슬롯 하나만 equipped=true."""
+    hat = _item(public_id="head_mandarin", slot="hat")
+    glasses = _item(public_id="head_sunglasses", slot="glasses")
+    rows = [
+        _row(hat.id, source="admin_grant", equipped_slot="hat"),
+        _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
+    ]
+    out = await shop.get_products(FakeSession(exec_results=[[hat, glasses], rows]), UID)
+    by_id = {item["id"]: item for item in out["items"]}
+    assert by_id["head_mandarin"]["slot"] == "head" and by_id["head_mandarin"]["equipped"] is True
+    assert by_id["head_sunglasses"]["equipped"] is False  # 탈락한 두 번째 head 아이템
+
+
+async def test_v2_catalog_projects_rightside_upright():
+    glasses = _item(public_id="head_sunglasses", slot="glasses")
+    out = await shop.get_products(
+        FakeSession(exec_results=[[glasses], []]), UID, v2=True
+    )
+    item = out["items"][0]
+    assert item["slot"] == "glasses"
+    assets = item["assets"]
+    # 신버전 아이템은 rightside upright와 thumbnail만 값이 있고 detail·scene은 null이다.
+    assert assets["upright_layer_url"].endswith("/v1/rightside/upright.png")
+    assert assets["thumbnail_url"].endswith("/v1/thumb.png")
+    assert assets["detail_url"] is None and assets["scene"] is None
+
+
+async def test_v2_catalog_theme_keeps_scene_and_detail():
+    theme = _theme()
+    out = await shop.get_products(FakeSession(exec_results=[[theme], []]), UID, v2=True)
+    assets = out["themes"][0]["assets"]
+    assert assets["scene"] is not None and "detail_url" in assets
+    assert "rightside" not in assets
 
 
 def test_equipment_request_requires_non_null_theme_and_all_keys():
@@ -521,6 +684,18 @@ def test_equipment_request_requires_non_null_theme_and_all_keys():
     with pytest.raises(ValueError):
         EquipmentPutRequest.model_validate(
             {"theme_id": "theme_default", "head_id": None, "neck_id": None}
+        )
+
+
+def test_equipment_v2_request_requires_all_five_slots():
+    with pytest.raises(ValueError):
+        EquipmentPutRequestV2.model_validate(
+            {"theme_id": None, "hat_id": None, "glasses_id": None,
+             "neck_id": None, "body_id": None}
+        )
+    with pytest.raises(ValueError):  # glasses_id 누락
+        EquipmentPutRequestV2.model_validate(
+            {"theme_id": "theme_default", "hat_id": None, "neck_id": None, "body_id": None}
         )
 
 
@@ -577,6 +752,7 @@ async def _dummy_session():
     ("get", "/charging-station"),
     ("get", "/routines"),
     ("get", "/shop/products"),
+    ("get", "/v2/shop/products"),
     ("post", "/review/prompted"),
 ])
 def test_crud_endpoints_require_auth(method, path):

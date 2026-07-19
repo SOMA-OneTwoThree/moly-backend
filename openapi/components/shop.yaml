@@ -402,3 +402,307 @@ schemas:
     - day_url
     - night_url
     title: ThemeSceneLayer
+  # ── v2: head 슬롯을 hat/glasses로 분리, 착용 아이템은 rightside 자세 레이어를 쓴다.
+  ProductAssetsV2:
+    properties:
+      thumbnail_url:
+        $ref: '#/schemas/HttpUrl'
+        title: Thumbnail Url
+        description: HTTP(S) thumbnail URL.
+      detail_url:
+        anyOf:
+        - $ref: '#/schemas/HttpUrl'
+        - type: 'null'
+        title: Detail Url
+        description: theme이면 필수 HTTP(S), wearable이면 null. 신버전 아이템은 detail을 쓰지 않는다.
+      scene:
+        anyOf:
+        - $ref: '#/schemas/ThemeScene'
+        - type: 'null'
+        description: theme이면 필수, wearable이면 null.
+      upright_layer_url:
+        anyOf:
+        - $ref: '#/schemas/HttpUrl'
+        - type: 'null'
+        title: Upright Layer Url
+        description: wearable이면 필수 HTTP(S)(rightside 자세), theme이면 null.
+    type: object
+    required:
+    - thumbnail_url
+    oneOf:
+    - description: theme 상품 asset — scene·detail_url 필수, upright_layer_url 없음.
+      properties:
+        detail_url:
+          $ref: '#/schemas/HttpUrl'
+        scene:
+          $ref: '#/schemas/ThemeScene'
+        upright_layer_url:
+          type: 'null'
+      required:
+      - detail_url
+      - scene
+    - description: wearable 상품 asset — upright_layer_url 필수, detail_url·scene 없음.
+      properties:
+        detail_url:
+          type: 'null'
+        scene:
+          type: 'null'
+        upright_layer_url:
+          $ref: '#/schemas/HttpUrl'
+      required:
+      - upright_layer_url
+    title: ProductAssetsV2
+  ShopProductV2:
+    properties:
+      id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Id
+        description: trim된 non-empty stable public_id.
+      name:
+        type: string
+        minLength: 1
+        title: Name
+        description: 상품 표시 이름.
+      slot:
+        type: string
+        enum:
+        - theme
+        - hat
+        - glasses
+        - neck
+        - body
+        title: Slot
+        description: theme 또는 wearable slot(hat/glasses/neck/body).
+      price_hay:
+        anyOf:
+        - type: integer
+          minimum: 1
+        - type: 'null'
+        title: Price Hay
+        description: null이면 구매 불가. 구매 가능 가격은 1 이상.
+      owned:
+        type: boolean
+        title: Owned
+        description: subscription source를 제외한 소유 여부.
+      equipped:
+        type: boolean
+        title: Equipped
+        description: 현재 장착 row 여부.
+      asset_version:
+        type: integer
+        minimum: 1
+        title: Asset Version
+        description: asset cache-busting version, 1 이상.
+      assets:
+        $ref: '#/schemas/ProductAssetsV2'
+        description: slot별 asset payload.
+    type: object
+    required:
+    - id
+    - name
+    - slot
+    - price_hay
+    - owned
+    - equipped
+    - asset_version
+    - assets
+    title: ShopProductV2
+    description: theme 상품은 assets.scene·detail_url non-null/upright_layer_url null, wearable은
+      upright_layer_url non-null/scene·detail_url null이어야 한다. response model validator가 위반 시 500으로
+      차단한다.
+    oneOf:
+    - title: Theme product
+      properties:
+        slot:
+          const: theme
+        assets:
+          allOf:
+          - $ref: '#/schemas/ProductAssetsV2'
+          - properties:
+              detail_url:
+                $ref: '#/schemas/HttpUrl'
+              scene:
+                $ref: '#/schemas/ThemeScene'
+              upright_layer_url:
+                type: 'null'
+            required:
+            - detail_url
+            - scene
+            - upright_layer_url
+      required:
+      - slot
+      - assets
+    - title: Wearable product
+      properties:
+        slot:
+          enum:
+          - hat
+          - glasses
+          - neck
+          - body
+        assets:
+          allOf:
+          - $ref: '#/schemas/ProductAssetsV2'
+          - properties:
+              detail_url:
+                type: 'null'
+              scene:
+                type: 'null'
+              upright_layer_url:
+                $ref: '#/schemas/HttpUrl'
+            required:
+            - detail_url
+            - scene
+            - upright_layer_url
+      required:
+      - slot
+      - assets
+  ProductsResponseV2:
+    properties:
+      themes:
+        items:
+          allOf:
+          - $ref: '#/schemas/ShopProductV2'
+          - properties:
+              slot:
+                const: theme
+            required:
+            - slot
+        type: array
+        title: Themes
+      items:
+        items:
+          allOf:
+          - $ref: '#/schemas/ShopProductV2'
+          - properties:
+              slot:
+                enum:
+                - hat
+                - glasses
+                - neck
+                - body
+            required:
+            - slot
+        type: array
+        title: Items
+    type: object
+    required:
+    - themes
+    - items
+    title: ProductsResponseV2
+  InventoryResponseV2:
+    properties:
+      data:
+        items:
+          allOf:
+          - $ref: '#/schemas/ShopProductV2'
+          - properties:
+              owned:
+                const: true
+            required:
+            - owned
+        type: array
+        title: Data
+    type: object
+    required:
+    - data
+    title: InventoryResponseV2
+  EquipmentResponseV2:
+    properties:
+      theme_id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Theme Id
+        description: 필수 장착 theme public_id.
+      hat_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Hat Id
+        description: hat public_id 또는 해제 null.
+      glasses_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Glasses Id
+        description: glasses public_id 또는 해제 null.
+      neck_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Neck Id
+        description: neck public_id 또는 해제 null.
+      body_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Body Id
+        description: body public_id 또는 해제 null.
+    type: object
+    required:
+    - theme_id
+    - hat_id
+    - glasses_id
+    - neck_id
+    - body_id
+    title: EquipmentResponseV2
+  EquipmentPutRequestV2:
+    properties:
+      theme_id:
+        type: string
+        minLength: 1
+        pattern: \S
+        title: Theme Id
+        description: 필수 theme public_id.
+      hat_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Hat Id
+        description: hat public_id 또는 slot 해제 null. field 자체는 필수.
+      glasses_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Glasses Id
+        description: glasses public_id 또는 slot 해제 null. field 자체는 필수.
+      neck_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Neck Id
+        description: neck public_id 또는 slot 해제 null. field 자체는 필수.
+      body_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          pattern: \S
+        - type: 'null'
+        title: Body Id
+        description: body public_id 또는 slot 해제 null. field 자체는 필수.
+    additionalProperties: false
+    type: object
+    required:
+    - theme_id
+    - hat_id
+    - glasses_id
+    - neck_id
+    - body_id
+    title: EquipmentPutRequestV2

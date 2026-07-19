@@ -58,6 +58,12 @@ paths:
     $ref: ./paths/shop.yaml#/~1inventory
   /inventory/equipment:
     $ref: ./paths/shop.yaml#/~1inventory~1equipment
+  /v2/shop/products:
+    $ref: ./paths/shop.yaml#/~1v2~1shop~1products
+  /v2/inventory:
+    $ref: ./paths/shop.yaml#/~1v2~1inventory
+  /v2/inventory/equipment:
+    $ref: ./paths/shop.yaml#/~1v2~1inventory~1equipment
   /review/prompted:
     $ref: ./paths/core.yaml#/~1review~1prompted
   /subscription:
@@ -104,8 +110,12 @@ components:
       $ref: ./components/conversations.yaml#/schemas/DiaryListResponse
     EquipmentPutRequest:
       $ref: ./components/shop.yaml#/schemas/EquipmentPutRequest
+    EquipmentPutRequestV2:
+      $ref: ./components/shop.yaml#/schemas/EquipmentPutRequestV2
     EquipmentResponse:
       $ref: ./components/shop.yaml#/schemas/EquipmentResponse
+    EquipmentResponseV2:
+      $ref: ./components/shop.yaml#/schemas/EquipmentResponseV2
     Frame:
       $ref: ./components/shop.yaml#/schemas/Frame
     GreetingResponse:
@@ -120,6 +130,8 @@ components:
       $ref: ./components/shop.yaml#/schemas/HttpUrl
     InventoryResponse:
       $ref: ./components/shop.yaml#/schemas/InventoryResponse
+    InventoryResponseV2:
+      $ref: ./components/shop.yaml#/schemas/InventoryResponseV2
     JsonValue:
       $ref: ./components/common.yaml#/schemas/JsonValue
     MessagesResponse:
@@ -132,8 +144,12 @@ components:
       $ref: ./components/conversations.yaml#/schemas/PostMessageResponse
     ProductAssets:
       $ref: ./components/shop.yaml#/schemas/ProductAssets
+    ProductAssetsV2:
+      $ref: ./components/shop.yaml#/schemas/ProductAssetsV2
     ProductsResponse:
       $ref: ./components/shop.yaml#/schemas/ProductsResponse
+    ProductsResponseV2:
+      $ref: ./components/shop.yaml#/schemas/ProductsResponseV2
     PurchaseRequest:
       $ref: ./components/shop.yaml#/schemas/PurchaseRequest
     PurchaseResponse:
@@ -156,6 +172,8 @@ components:
       $ref: ./components/routines.yaml#/schemas/RoutineStatisticsResponse
     ShopProduct:
       $ref: ./components/shop.yaml#/schemas/ShopProduct
+    ShopProductV2:
+      $ref: ./components/shop.yaml#/schemas/ShopProductV2
     StatusResponse:
       $ref: ./components/common.yaml#/schemas/StatusResponse
     SubscriptionPlan:

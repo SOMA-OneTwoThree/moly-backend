@@ -10,9 +10,13 @@ from app.core.db import get_session
 from app.core.security import get_current_user
 from app.schemas.shop import (
     EquipmentPutRequest,
+    EquipmentPutRequestV2,
     EquipmentResponse,
+    EquipmentResponseV2,
     InventoryResponse,
+    InventoryResponseV2,
     ProductsResponse,
+    ProductsResponseV2,
     PurchaseRequest,
     PurchaseResponse,
 )
@@ -66,3 +70,37 @@ async def put_equipment(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await shop.put_equipment(session, user_id, req)
+
+
+# ── v2: head 슬롯을 hat/glasses로 분리한 신버전 계약. 구버전 앱은 위 레거시 경로를 계속 쓴다.
+@router.get("/v2/shop/products", response_model=ProductsResponseV2)
+async def products_v2(
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await shop.get_products(session, user_id, v2=True)
+
+
+@router.get("/v2/inventory", response_model=InventoryResponseV2)
+async def inventory_v2(
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await shop.get_inventory(session, user_id, v2=True)
+
+
+@router.get("/v2/inventory/equipment", response_model=EquipmentResponseV2)
+async def get_equipment_v2(
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await shop.get_equipment(session, user_id, v2=True)
+
+
+@router.put("/v2/inventory/equipment", response_model=EquipmentResponseV2)
+async def put_equipment_v2(
+    req: EquipmentPutRequestV2,
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await shop.put_equipment_v2(session, user_id, req)

@@ -42,7 +42,7 @@ CREATE TABLE public.products (
   description          text,
   -- cosmetic 전용
   public_id            text    UNIQUE,           -- API 노출용 안정 문자열 ID
-  slot                 text    CHECK (slot IN ('theme','head','neck','body')),
+  slot                 text    CHECK (slot IN ('theme','hat','glasses','neck','body')),
   -- NULL = 구매 불가(기본 지급 등). 0원은 구매 시 원장 CHECK(amount<>0)와 충돌하므로 금지.
   price_hay            integer CONSTRAINT products_price_hay_positive_ck CHECK (price_hay >= 1),
   is_subscriber_only   boolean NOT NULL DEFAULT false,
@@ -245,7 +245,7 @@ CREATE TABLE public.user_items (
   product_id    uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   source        text NOT NULL DEFAULT 'purchase' CHECK (source IN ('purchase','subscription','admin_grant')),
   order_id      uuid REFERENCES public.orders(id) ON DELETE SET NULL,
-  equipped_slot text CHECK (equipped_slot IN ('theme','head','neck','body')),
+  equipped_slot text CHECK (equipped_slot IN ('theme','hat','glasses','neck','body')),
   equipped_at   timestamptz,
   acquired_at   timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT user_items_user_product_uq UNIQUE (user_id, product_id),

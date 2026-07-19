@@ -4,6 +4,7 @@ from app.api.ads import router as ads_router
 from app.api.chat import router as chat_router
 from app.api.diary import router as diary_router
 from app.api.economy import router as economy_router
+from app.api.feedback import router as feedback_router
 from app.api.health import router as health_router
 from app.api.review import router as review_router
 from app.api.routine import router as routine_router
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(routine_router)
     app.include_router(shop_router)
     app.include_router(review_router)
+    app.include_router(feedback_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
     # 로컬 전용: 워커 배치(일기 생성)를 curl로 손으로 돌리는 개발 라우터.

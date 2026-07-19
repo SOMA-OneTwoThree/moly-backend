@@ -1354,6 +1354,30 @@ paths:
       security:
       - SupabaseBearer: []
       description: 최초 한 번만 timestamp를 기록하며 이후 호출도 204다.
+  /feedback:
+    post:
+      tags:
+      - feedback
+      summary: 문의 등록
+      operationId: createFeedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeedbackRequest'
+        required: true
+      responses:
+        '204':
+          description: 등록 완료; body 없음
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
+      description: 인앱 문의 폼 제출을 저장한다. contact(연락처)는 선택이며 이벤트 안내에만 쓰인다. 계정당 다건 등록을 허용한다.
   /subscription:
     get:
       tags:
@@ -1811,6 +1835,25 @@ components:
       required:
       - anchor_date
       title: ConversationRef
+    CreateFeedbackRequest:
+      properties:
+        message:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Message
+        contact:
+          anyOf:
+          - type: string
+            maxLength: 200
+          - type: 'null'
+          title: Contact
+          description: 이메일·전화·인스타 등 자유 입력. 기프티콘 이벤트 안내용 선택 값.
+      additionalProperties: false
+      type: object
+      required:
+      - message
+      title: CreateFeedbackRequest
     CreateRoutineRequest:
       properties:
         name:
@@ -3584,6 +3627,8 @@ tags:
   description: 꾸미기 카탈로그, 구매, 인벤토리, 장착
 - name: review
   description: 앱 리뷰 prompt 노출 기록
+- name: feedback
+  description: 인앱 문의 등록
 - name: subscription
   description: 구독 조회, 고정 플랜, RevenueCat webhook
 - name: ads

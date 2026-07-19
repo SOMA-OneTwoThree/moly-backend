@@ -360,6 +360,16 @@ CREATE TABLE public.idempotency_keys (
   PRIMARY KEY (user_id, key)
 );
 
+-- 인앱 문의(자유 텍스트). contact = 기프티콘 이벤트용 선택 연락처(이메일·전화·인스타 등).
+CREATE TABLE public.feedback (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  message    text NOT NULL,
+  contact    text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX feedback_user_idx ON public.feedback (user_id);
+
 -- ─────────────────────────────────────────────────────────────
 -- 10. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
 --     클라 데이터 경로는 전부 서버 API → anon/authenticated 직접 접근 차단.
@@ -374,7 +384,7 @@ BEGIN
     'subscriptions','subscription_hay_grants','payments',
     'user_items','diaries','routines','routine_completions',
     'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
-    'chat_contexts'
+    'chat_contexts','feedback'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;

@@ -39,6 +39,10 @@ def load_products(path: Path) -> list[ShopProductV2]:
     products: list[ShopProductV2] = []
     for entry in entries:
         assets = entry["assets"]
+        if entry["slot"] != "theme" and not (assets.get("rightside") or {}).get(
+            "upright_layer_url"
+        ):
+            raise ValueError(f"{entry['id']}: wearable is missing rightside.upright_layer_url")
         product = ShopProductV2.model_validate(
             {**entry, "assets": rightside_asset_view(assets), "owned": False, "equipped": False}
         )
@@ -52,9 +56,6 @@ def load_products(path: Path) -> list[ShopProductV2]:
                 "equipped": False,
             }
         )
-        # 착용 아이템은 rightside 자세 레이어를 반드시 제공해야 한다(런타임 폴백에 기대지 않는다).
-        if entry["slot"] != "theme" and not (assets.get("rightside") or {}).get("upright_layer_url"):
-            raise ValueError(f"{entry['id']}: wearable is missing rightside.upright_layer_url")
         products.append(product)
     ids = [product.id for product in products]
     if len(ids) != len(set(ids)):

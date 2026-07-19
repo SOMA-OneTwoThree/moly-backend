@@ -116,6 +116,26 @@ def test_fix_qmarks_leaves_existing_marks():
     assert c._clean_reply("무슨 일이야!") == "무슨 일이야!"
 
 
+# --- 마크다운 강조·대시·물결 제거(_STRAY) ---
+def test_clean_reply_strips_markdown_and_dashes():
+    assert c._clean_reply("**진짜** 좋았어.") == "진짜 좋았어."
+    assert c._clean_reply("그러니까 — 별 거 아닌데.") == "그러니까 별 거 아닌데."
+    assert c._clean_reply("_이거_ 맞아?") == "이거 맞아?"
+    assert c._clean_reply("괜찮아~ 다 잘될 거야.") == "괜찮아 다 잘될 거야."
+
+
+# --- 선택의문문 물음표(아니면) ---
+def test_fix_qmarks_choice_question():
+    assert c._clean_reply("치킨이야 아니면 피자야.") == "치킨이야 아니면 피자야?"
+    assert c._clean_reply("같이 갈래 아니면 혼자 갈래.") == "같이 갈래 아니면 혼자 갈래?"
+
+
+def test_fix_qmarks_choice_no_false_positive():
+    # '아니면'이 A절 의문어미 없이 앞에 오면(명령·제안 평서문) 물음표 안 붙인다
+    assert c._clean_reply("아니면 그냥 쉬어.") == "아니면 그냥 쉬어."
+    assert c._clean_reply("그러지 말고 아니면 이렇게 해.") == "그러지 말고 아니면 이렇게 해."
+
+
 # --- 앵커 유지 창 ---
 def test_keep_window_bounds_and_user_first():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 51)]  # 50개

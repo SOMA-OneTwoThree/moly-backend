@@ -292,6 +292,7 @@ def _build_system(
 
 
 _ELLIPSIS = re.compile(r"\.{2,}|…+")  # ".." "..." / "…" (한 글자여도 말줄임표)
+_STRAY = re.compile(r"[*_`~#—–\-]+")  # 마크다운 강조(**,_,`)·대시(—,–,-)·물결 — 부호 화이트리스트 밖
 _WS = re.compile(r"\s+")
 _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
@@ -326,7 +327,10 @@ def _fix_qmarks(text: str, nickname: str | None) -> str:
             continue
         m = list(_WH.finditer(check))
         near = bool(m) and len(check) - m[-1].end() <= 8
-        out.append(core + "?" if (near and _Q_END.search(check)) else s)
+        # 선택의문문('A야 아니면 B야.') — A절이 의문 어미로 끝나고 '아니면'이 이어질 때만.
+        # '아니면'만 보면 명령·제안 평서문("아니면 그냥 쉬어.")에 오삽입돼서 A절 어미를 요구한다.
+        choice = bool(re.search(r"[야래까어지]\s*아니면", check))
+        out.append(core + "?" if ((near or choice) and _Q_END.search(check)) else s)
     return " ".join(out)
 
 
@@ -334,9 +338,12 @@ def _clean_reply(text: str, nickname: str | None = None) -> str:
     """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
 
     페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
-    말끝 흐리기는 캐피 톤이 아니다. 마침표·쉼표는 그대로 둔다.
+    말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·쉼표·물음표·느낌표)만 남기고
+    말줄임표·마크다운 강조(**,_)·대시(—)는 지운다.
     """
-    out = _WS.sub(" ", _ELLIPSIS.sub(" ", text))
+    out = _ELLIPSIS.sub(" ", text)
+    out = _STRAY.sub(" ", out)  # **강조**·— 등 비허용 기호 제거(공백으로 → 아래서 병합)
+    out = _WS.sub(" ", out)
     out = _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
     return _fix_qmarks(out, nickname)
 

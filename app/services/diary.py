@@ -7,13 +7,13 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.time_utils import activity_date_for
 from app.models.diary import Diary
 from app.models.profile import Profile
 from app.services import greetings
@@ -35,8 +35,14 @@ def _welcome_content(nickname: str) -> str:
 
 
 def _welcome_date(created_at: datetime, tz: str) -> date:
-    """웰컴 일기 날짜 = 가입일(로컬)-1. 가입일은 비워 워커의 첫날 개인일기와 안 겹치게 한다."""
-    return created_at.astimezone(ZoneInfo(tz)).date() - timedelta(days=1)
+    """웰컴 일기 날짜 = 가입 activity_date - 1일.
+
+    반드시 activity_date 경계(로컬 -4h)로 계산한다. 달력 로컬일(.date())로 잡으면
+    00~04시 가입자는 첫 대화의 activity_date(=가입 activity_date)와 웰컴 슬롯이 겹쳐
+    UNIQUE(user, diary_date) 충돌로 첫날 개인일기가 스킵된다(SOMA-287). 가입 activity_date
+    슬롯은 비워 둬야 워커가 그 날 개인일기(또는 preset)를 정상 생성한다.
+    """
+    return activity_date_for(created_at, tz) - timedelta(days=1)
 
 
 async def ensure_welcome(session: AsyncSession, user_id: str) -> None:

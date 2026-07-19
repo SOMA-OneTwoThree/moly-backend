@@ -73,10 +73,20 @@ def test_welcome_content_title_josa_and_nickname_swap():
     assert "사용자" not in seungmin  # 화자 라벨 누출 없음
 
 
-def test_welcome_date_is_signup_local_minus_one():
-    # 가입일(로컬)-1 — 가입일 슬롯을 비워 워커의 첫날 개인일기와 안 겹치게.
-    created = datetime(2026, 7, 15, 2, 0, tzinfo=timezone.utc)  # = KST 7/15 11:00 → 로컬 가입일 7/15
+def test_welcome_date_is_signup_activity_date_minus_one():
+    # 웰컴 = 가입 activity_date - 1. 주간 가입(로컬 04시 이후)은 activity_date=가입 로컬일.
+    created = datetime(2026, 7, 15, 2, 0, tzinfo=timezone.utc)  # = KST 7/15 11:00 → activity_date 7/15
     assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 14)
+
+
+def test_welcome_date_uses_activity_boundary_for_early_morning_signup():
+    # SOMA-287 회귀: 00~04시(로컬) 가입은 activity_date가 전날 → 웰컴은 그보다 하루 앞.
+    # 첫 대화 activity_date(=7/14)와 웰컴 슬롯(7/13)이 겹치지 않아야 개인일기가 안 스킵된다.
+    created = datetime(2026, 7, 14, 17, 0, tzinfo=timezone.utc)  # = KST 7/15 02:00 → activity_date 7/14
+    assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 13)
+    # 음수 오프셋 타임존(PDT, UTC-7)도 동일: 로컬 02:00 → activity_date 7/14 → 웰컴 7/13.
+    la = datetime(2026, 7, 15, 9, 0, tzinfo=timezone.utc)  # = LA 7/15 02:00
+    assert diary_service._welcome_date(la, "America/Los_Angeles") == date(2026, 7, 13)
 
 
 async def test_ensure_welcome_skips_without_nickname():

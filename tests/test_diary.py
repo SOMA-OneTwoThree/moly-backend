@@ -33,13 +33,19 @@ class _Result:
 
 
 class FakeSession:
-    def __init__(self, rows=None, get_obj=None):
+    def __init__(self, rows=None, get_obj=None, welcome_id=None):
         self.rows = rows or []
         self.get_obj = get_obj
+        self.welcome_id = welcome_id
         self.committed = False
+        self.executed = False
 
     async def execute(self, stmt):
+        self.executed = True
         return _Result(self.rows)
+
+    async def scalar(self, stmt):
+        return self.welcome_id
 
     async def get(self, model, key):
         return self.get_obj
@@ -101,6 +107,16 @@ async def test_ensure_welcome_inserts_when_onboarded():
     session = FakeSession(get_obj=profile)
     await diary_service.ensure_welcome(session, UID)
     assert session.committed is True  # 삽입 시도 + 커밋(멱등은 DB ON CONFLICT가 담당)
+
+
+async def test_ensure_welcome_skips_when_welcome_already_exists():
+    # SOMA-287 후속: _welcome_date가 옮겨져도(배포 전엔 가입일, 후엔 가입일-1) 웰컴은 유저당 1건.
+    # 이미 웰컴이 있으면 새 diary_date로 두 번째를 삽입하지 않는다.
+    profile = SimpleNamespace(nickname="승민", created_at=PAST, timezone="Asia/Seoul")
+    session = FakeSession(get_obj=profile, welcome_id=uuid.uuid4())
+    await diary_service.ensure_welcome(session, UID)
+    assert session.executed is False  # 삽입 자체를 시도하지 않음
+    assert session.committed is False
 
 
 def test_list_item_welcome_exposes_title_and_strips_body():

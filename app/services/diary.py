@@ -49,12 +49,18 @@ async def ensure_welcome(session: AsyncSession, user_id: str) -> None:
     """웰컴 일기 1회 삽입 — 가입일-1(가장 오래된 일기)에 고정.
 
     가입일 슬롯은 비워 둔다. 그래야 다음날 워커가 '가입일' 개인일기를 정상 생성한다(웰컴과 별개).
-    diary_date가 고정이라 UNIQUE(user, date)+ON CONFLICT로 멱등 — 몇 번 조회해도 한 번만 생긴다.
+    유저당 웰컴 1건 — 이미 있으면 건너뛴다. UNIQUE(user, date)+ON CONFLICT는 같은 날짜만 막으므로,
+    _welcome_date가 옮겨져도(로직 변경·재계산) 중복이 생기지 않게 source로 존재 여부를 먼저 본다.
     닉네임/가입시각이 없으면(온보딩 전) 건너뛰고, 온보딩 후 다음 조회에서 만든다.
     """
     uid = _uid(user_id)
     profile = await session.get(Profile, uid)
     if profile is None or not profile.nickname or profile.created_at is None:
+        return
+    already = await session.scalar(
+        select(Diary.id).where(Diary.user_id == uid, Diary.source == "welcome").limit(1)
+    )
+    if already is not None:
         return
     stmt = (
         pg_insert(Diary)

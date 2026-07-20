@@ -18,7 +18,7 @@ from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import llm, memory, naming
+from app.services import llm, memory, text_clean, naming
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -89,9 +89,9 @@ async def _self_check(body: str, transcript: str, user_id=None) -> bool:
     verdict = result.text.strip()
     passed = not verdict.upper().lstrip("*_# ").startswith("NO")
     if not passed:
-        # 탈락 = 개인일기를 통째로 버리고 preset으로 폴백. 무음이면 재보정이 불가능하다.
+        # 비차단 모니터링 — 발행은 하되 리젝률 추적용 로그(과거엔 preset 폴백 → 열람율 누수였음).
         _log.warning(
-            "self-check 탈락 → 개인일기 폐기(preset 폴백) user=%s 판정=%r 일기=%r",
+            "self-check 리젝(비차단, 발행됨) user=%s 판정=%r 일기=%r",
             user_id, verdict[:40], body[:80],
         )
     return passed
@@ -109,13 +109,13 @@ async def _personal(
         model=settings.anthropic_model_diary,  # 대화 모델 A/B와 분리(일기 품질 고정)
     )
     weather, body = parse(result.text)
+    body = text_clean.strip_symbols(body)  # 마크다운(**,-)·말줄임표 제거 (이름 마스킹 전이라 토큰 무영향)
     if not body:
         _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))
         return None, {"empty_body": True, "self_check_passed": None}
+    # self-check는 비차단 — 게이트 통과 유저는 리젝돼도 개인일기 발행(preset 누수 차단). 로그만 남긴다.
     passed = await _self_check(body, transcript, user_id=getattr(profile, "id", None))
-    if not passed:
-        return None, {"empty_body": False, "self_check_passed": False}
-    return (body, weather), {"empty_body": False, "self_check_passed": True}
+    return (body, weather), {"empty_body": False, "self_check_passed": passed}
 
 
 async def _pick_ment(session: AsyncSession, target_date: date) -> MolyLifeMent | None:
@@ -158,10 +158,10 @@ async def generate_for_user(
     gate_passed = bool(messages) and user_chars >= gate
     if gate_passed:
         personal, diag = await _personal(profile, messages)
-        # self-check 탈락률이 낮지 않다(실측 ~40%). 한 번 더 뽑으면 폐기율이 제곱으로 준다.
-        # 개인일기가 preset으로 새는 건 핵심 훅(일기 열람율) 직격이라 재생성 1회가 남는 장사다.
+        # personal is None = 빈 본문(드묾). self-check는 이제 비차단이라 리젝으론 None이 안 된다.
+        # 빈 본문일 때만 1회 재생성(폐기율 제곱으로↓). 그래도 비면 preset.
         if personal is None:
-            _log.info("개인일기 재생성 1회 시도(user=%s)", getattr(profile, "id", None))
+            _log.info("개인일기 빈 본문 재생성 1회 시도(user=%s)", getattr(profile, "id", None))
             personal, retry_diag = await _personal(profile, messages)
             diag = {**retry_diag, "retried": True}
         if personal is not None:

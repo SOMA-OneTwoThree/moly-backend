@@ -95,23 +95,42 @@ async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
     assert session.committed is True
 
 
-async def test_fallback_to_preset_when_self_check_fails(monkeypatch):
+async def test_publishes_personal_even_when_self_check_fails(monkeypatch):
+    # self-check 비차단: 게이트 통과 유저는 리젝돼도 개인일기 발행(preset 누수 차단).
     ment = SimpleNamespace(id=uuid.uuid4(), content="캐피는 오늘 뒹굴거렸다.", weather="rainy")
-    # 문자수 게이트 통과(≥5) → 개인일기 시도 → self-check NO → preset 폴백
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 진짜 힘들었어")], tokens=5000, ment=ment)
 
     async def _gen(system, convo, *, max_tokens=None, model=None):
         if model == settings.anthropic_model_utility:
-            return LLMResult("NO", 1, 1)  # self-check 실패 → preset 폴백
-        return LLMResult("날씨: sunny\n지어낸 이야기", 10, 20)
+            return LLMResult("NO", 1, 1)  # self-check 리젝 — 이제 비차단(로그만)
+        return LLMResult("날씨: sunny\n오늘 그 마음이 오래 남았다", 10, 20)
 
     monkeypatch.setattr(llm_module, "generate", _gen)
     session = FakeSession()
     await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
     d = session.added[0]
-    assert d.source == "preset"
-    assert d.content == "캐피는 오늘 뒹굴거렸다."
-    assert d.preset_ment_id == ment.id
+    assert d.source == "llm"  # 리젝에도 개인일기 발행(preset 아님)
+    assert d.weather == "sunny"
+    assert d.preset_ment_id is None
+    assert "오래 남았다" in d.content
+
+
+async def test_diary_body_strips_markdown_and_ellipsis(monkeypatch):
+    # 일기 본문의 마크다운(**,-)·말줄임표(...)는 저장 전 제거.
+    _patch_common(monkeypatch, messages=[_msg("user", "오늘 힘들었어")], tokens=5000)
+
+    async def _gen(system, convo, *, max_tokens=None, model=None):
+        if model == settings.anthropic_model_utility:
+            return LLMResult("OK", 1, 1)
+        return LLMResult("날씨: sunny\n**오늘** 마음이 - 무거웠다... 그래도 괜찮아", 10, 20)
+
+    monkeypatch.setattr(llm_module, "generate", _gen)
+    session = FakeSession()
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    d = session.added[0]
+    assert d.source == "llm"
+    assert "**" not in d.content and "..." not in d.content and "…" not in d.content
+    assert "오늘 마음이 무거웠다 그래도 괜찮아" in d.content
 
 
 async def test_moly_diary_when_below_threshold(monkeypatch):

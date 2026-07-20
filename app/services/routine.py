@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import func, select
@@ -13,6 +13,21 @@ from app.core import errors
 from app.core.time_utils import current_reward_date
 from app.models.routine import Routine, RoutineCompletion
 from app.services.account import _load_profile, _uid
+
+
+def _streak(ad: date, done: set[date]) -> int:
+    """오늘(미완료면 어제)부터 뒤로 연속 완료 일수(지정 요일 무관, 단순 달력일 연속).
+
+    오늘이 아직 미완료여도 어제까지의 연속은 유지한다 — 하루가 안 끝났으므로. 오늘부터 역산하면
+    오늘 미완료 시 0이 되어, 완료→취소가 streak을 0으로 떨구던 버그(SOMA-312)가 났다.
+    진짜로 끊기는 건 어제도 비어 있을 때뿐.
+    """
+    cursor = ad if ad in done else ad - timedelta(days=1)
+    n = 0
+    while cursor in done:
+        n += 1
+        cursor -= timedelta(days=1)
+    return n
 
 
 def _dto(r: Routine, completed_today: bool) -> dict[str, Any]:
@@ -148,12 +163,7 @@ async def statistics(session: AsyncSession, user_id: str, routine_id: str) -> di
         ).scalars().all()
     )
     date_set = set(dates)
-    # streak: 오늘부터 뒤로 연속 완료 일수(지정 요일 무관, 단순 달력일 연속)
-    streak = 0
-    cursor = ad
-    while cursor in date_set:
-        streak += 1
-        cursor = cursor - timedelta(days=1)
+    streak = _streak(ad, date_set)
     # 이번 주(월~일): 요일별 완료 여부 + 수행 횟수
     wk_start, wk_end = _week_bounds(ad)
     by_weekday = {str(i): False for i in range(1, 8)}

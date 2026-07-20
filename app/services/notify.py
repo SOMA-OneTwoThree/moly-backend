@@ -41,4 +41,12 @@ async def notify_morning(session: AsyncSession, profile) -> int:
 async def notify_evening(session: AsyncSession, profile) -> int:
     if not await _enabled(session, profile.id, "evening_chat"):
         return 0
+    # 하루 대화량을 모두 소진한 유저는 저녁 안부(대화 유도)를 받지 않는다 (SOMA-291).
+    # tokens_remaining=None = 무제한 tier → 계속 발송. <=0 = 소진 → 스킵.
+    from app.services import gating
+
+    g = await gating.resolve(session, str(profile.id))
+    remaining = g.entitlement.get("tokens_remaining")
+    if remaining is not None and remaining <= 0:
+        return 0
     return await push.send(await _tokens(session, profile.id), *_EVENING)

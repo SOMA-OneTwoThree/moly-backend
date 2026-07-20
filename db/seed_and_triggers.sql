@@ -108,7 +108,7 @@ ON CONFLICT (app_store_product_id) DO UPDATE
       sort_order = EXCLUDED.sort_order;
 
 -- ─────────────────────────────────────────────────────────────
--- 3. products (cosmetic) — 꾸미기 9종: 테마 2 · 모자 1 · 안경 2 · 목 3 · 몸 1
+-- 3. products (cosmetic) — 꾸미기 10종: 테마 2 · 모자 1 · 안경 3 · 목 3 · 몸 1
 --    자연키가 없어 id를 고정 uuid로 박아 멱등(재실행 = 갱신).
 --    에셋: Storage `shop-assets` 버킷 public URL. 경로 규칙은 {public_id}/v{asset_version}/…
 --    — 파일 내용이 바뀌면 asset_version과 URL을 함께 올린다(iOS는 URL 전체를 캐시 키로 씀).
@@ -179,7 +179,7 @@ INSERT INTO public.products (
      "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v2/upright.png",
      "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_sunglasses/v2/rightside/upright.png"}}',
    true, 1),
-  ('00000000-0000-4000-8000-000000000202', 'cosmetic', 'head_mandarin', 'hat', '귤', 1000, false, 2,
+  ('00000000-0000-4000-8000-000000000202', 'cosmetic', 'head_mandarin', 'hat', '머리 위에 귤', 1000, false, 2,
    '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v2/thumb.png",
      "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v2/detail.png",
      "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_mandarin/v2/upright.png",
@@ -203,6 +203,10 @@ INSERT INTO public.products (
      "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_suncream/v1/upright.png",
      "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_suncream/v1/rightside/upright.png"}}',
    true, 3),
+  ('00000000-0000-4000-8000-000000000204', 'cosmetic', 'head_glasses', 'glasses', '동글이 안경', 1000, false, 1,
+   '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_glasses/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_glasses/v1/rightside/upright.png"}}',
+   true, 4),
   ('00000000-0000-4000-8000-000000000303', 'cosmetic', 'neck_shell', 'neck', '조개 목걸이', 1000, false, 1,
    '{"thumbnail_url":     "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_shell/v1/thumb.png",
      "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/neck_shell/v1/detail.png",
@@ -231,3 +235,6 @@ ON CONFLICT (id) DO UPDATE
         THEN EXCLUDED.assets
         ELSE public.products.assets
       END;
+
+-- head_glasses는 v2(rightside) 계약에만 노출 — 레거시엔 detail_url이 없어 카탈로그/인벤토리에서 제외한다.
+UPDATE public.products SET is_v2_only = true WHERE public_id = 'head_glasses';

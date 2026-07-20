@@ -247,7 +247,7 @@ def _item(**over):
     root = f"https://cdn.example.com/{public_id}/v1"
     base = dict(
         id=uuid.uuid4(), public_id=public_id, slot="glasses", name="안경", price_hay=1000,
-        is_subscriber_only=False, is_active=True, asset_version=1, sort_order=1,
+        is_subscriber_only=False, is_active=True, is_v2_only=False, asset_version=1, sort_order=1,
         # rightside를 기본 포함 — 레거시 경로가 이 키를 벗겨내지 못하면 extra=forbid로 즉시 실패한다.
         assets={
             "thumbnail_url": f"{root}/thumb.png",
@@ -264,7 +264,7 @@ def _theme(**over):
     public_id = over.pop("public_id", "theme_default")
     base = dict(
         id=uuid.uuid4(), public_id=public_id, slot="theme", name="집", price_hay=None,
-        is_subscriber_only=False, is_active=True, asset_version=1, sort_order=1,
+        is_subscriber_only=False, is_active=True, is_v2_only=False, asset_version=1, sort_order=1,
         assets={
             "thumbnail_url": f"https://cdn.example.com/{public_id}/v1/thumb.png",
             "detail_url": f"https://cdn.example.com/{public_id}/v1/detail.png",
@@ -577,6 +577,37 @@ async def test_catalog_partitions_themes_and_items_with_consistent_flags():
     assert out["themes"][0]["owned"] is True and out["themes"][0]["equipped"] is True
     assert out["items"][0]["owned"] is True and out["items"][0]["equipped"] is False
     assert "backgrounds" not in out
+
+
+def _v2_only_glasses():
+    """레거시 계약에 없는 신규 아이템 — rightside/thumbnail만 있고 detail_url이 없다."""
+    root = "https://cdn.example.com/head_glasses/v1"
+    return _item(
+        public_id="head_glasses",
+        is_v2_only=True,
+        assets={
+            "thumbnail_url": f"{root}/thumb.png",
+            "rightside": {"upright_layer_url": f"{root}/rightside/upright.png"},
+        },
+    )
+
+
+async def test_legacy_catalog_hides_v2_only_item_shown_in_v2():
+    catalog = [_theme(), _item(public_id="head_sunglasses"), _v2_only_glasses()]
+    legacy = await shop.get_products(FakeSession(exec_results=[catalog, []]), UID)
+    legacy_ids = {item["id"] for item in legacy["items"]}
+    assert "head_sunglasses" in legacy_ids and "head_glasses" not in legacy_ids
+    v2 = await shop.get_products(FakeSession(exec_results=[catalog, []]), UID, v2=True)
+    assert {"head_sunglasses", "head_glasses"} <= {item["id"] for item in v2["items"]}
+
+
+async def test_legacy_inventory_hides_v2_only_owned_item_shown_in_v2():
+    v2only = _v2_only_glasses()
+    rows = [_row(v2only.id)]
+    legacy = await shop.get_inventory(FakeSession(exec_results=[rows, [v2only]]), UID)
+    assert legacy["data"] == []  # 제외하지 않으면 detail_url 부재로 500
+    v2 = await shop.get_inventory(FakeSession(exec_results=[rows, [v2only]]), UID, v2=True)
+    assert [item["id"] for item in v2["data"]] == ["head_glasses"]
 
 
 async def test_get_equipment_uses_public_ids_and_requires_theme():

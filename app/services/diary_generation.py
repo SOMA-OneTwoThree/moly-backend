@@ -186,6 +186,7 @@ async def generate_for_user(
     await session.commit()
 
     # 기억 통합(mem0) — 실패해도 일기 생성은 유지(best-effort)
+    mem_ok, mem_failed = 0, 0
     if messages:
         try:
             # M2: mem0 투입 전 현재 이름 렌더(추출 품질). mem0 custom_instructions가 이름을
@@ -207,8 +208,10 @@ async def generate_for_user(
                 {"u": str(profile.id)},
             )
             await session.commit()
+            mem_ok = 1
         except Exception as e:  # noqa: BLE001
             _log.warning("기억 통합 실패(user=%s): %r", profile.id, e)
+            mem_failed = 1
 
     return {
         "created": True,
@@ -221,4 +224,6 @@ async def generate_for_user(
         "empty_body": diag.get("empty_body"),
         "self_check_passed": diag.get("self_check_passed"),
         "diary_id": str(diary.id) if diary.id else None,
+        "memory_ok": mem_ok,
+        "memory_failed": mem_failed,
     }

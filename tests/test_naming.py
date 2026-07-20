@@ -134,3 +134,65 @@ def test_non_hangul_name_roundtrip():
 def test_bare_before_punctuation_matched():
     out = naming.to_placeholder("주인공은 승민. 끝.", "승민")
     assert out == "주인공은 {name}. 끝."
+
+
+# --- 받침 무관 조사(도·만·의·에게…) — 실명 리터럴 무잔존 + 라운드트립 ---
+@pytest.mark.parametrize(
+    "particle",
+    ["도", "만", "의", "에게", "한테", "께", "처럼", "보다", "까지",
+     "부터", "마다", "조차", "마저", "밖에", "만큼", "에게서", "한테서"],
+)
+@pytest.mark.parametrize("name", ["승민", "지호"])
+def test_batchim_free_particle_no_literal_residue_and_roundtrip(name, particle):
+    original = f"{name}{particle} 얘기했어."
+    ph = naming.to_placeholder(original, name)
+    assert name not in ph              # 실명 리터럴 무잔존(불변식)
+    assert "{name}" in ph              # placeholder로 치환됨
+    assert naming.render(ph, name) == original  # 라운드트립 항등
+
+
+@pytest.mark.parametrize("particle", ["도", "만", "의", "에게", "처럼"])
+def test_batchim_free_particle_survives_rename(particle):
+    # 받침 무관이라 개명해도 조사 그대로 — 실명만 새 이름으로.
+    ph = naming.to_placeholder(f"승민{particle} 그랬어.", "승민")
+    assert naming.render(ph, "지우") == f"지우{particle} 그랬어."
+
+
+# --- 받침 의존 추가 조사(이랑/랑·이나/나·이라도/라도) — 타입 토큰 역변환 정확 ---
+@pytest.mark.parametrize(
+    "batchim_surface, open_surface, token",
+    [
+        ("승민이랑", "지호랑", "{name:rang}"),
+        ("승민이나", "지호나", "{name:ina}"),
+        ("승민이라도", "지호라도", "{name:irado}"),
+    ],
+)
+def test_batchim_dependent_new_josa_roundtrip(batchim_surface, open_surface, token):
+    ph_b = naming.to_placeholder(f"{batchim_surface} 그래.", "승민")
+    assert ph_b == f"{token} 그래." and "승민" not in ph_b
+    assert naming.render(ph_b, "승민") == f"{batchim_surface} 그래."
+    ph_o = naming.to_placeholder(f"{open_surface} 그래.", "지호")
+    assert ph_o == f"{token} 그래." and "지호" not in ph_o
+    assert naming.render(ph_o, "지호") == f"{open_surface} 그래."
+
+
+def test_batchim_dependent_new_josa_rename_recomputes_josa():
+    # 승민이랑(받침) → 지우랑(무받침): 조사가 받침에 맞춰 재계산돼야 한다.
+    ph = naming.to_placeholder("승민이랑 놀았어.", "승민")
+    assert naming.render(ph, "지우") == "지우랑 놀았어."
+    assert naming.render(ph, "지훈") == "지훈이랑 놀았어."
+
+
+# --- 받침 무관 조사 과치환 반례(단어 조각) ---
+@pytest.mark.parametrize(
+    "name, text",
+    [
+        ("승민", "승민도서관에서 봤어."),   # 도서관 — '도' 앵커여도 뒤 한글 경계로 미매칭
+        ("승민", "승민만두 먹었어."),        # 만두
+        ("승민", "승민이야기 들었어."),      # 이야기
+        ("수", "수도 서울 갔어."),           # 1음절 이름 — 받침무관 조사 표면형 제외(수도=단어)
+        ("수", "이번 주 수요일에 봐."),      # 수요일
+    ],
+)
+def test_batchim_free_no_oversubstitution(name, text):
+    assert naming.to_placeholder(text, name) == text

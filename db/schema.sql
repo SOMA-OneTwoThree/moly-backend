@@ -364,8 +364,8 @@ CREATE TABLE public.idempotency_keys (
 CREATE TABLE public.feedback (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  message    text NOT NULL,
-  contact    text,
+  message    text NOT NULL CHECK (char_length(message) <= 2000),
+  contact    text CHECK (char_length(contact) <= 200),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX feedback_user_idx ON public.feedback (user_id);

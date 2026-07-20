@@ -152,6 +152,8 @@ async def get_products(
     themes: list[dict[str, Any]] = []
     items: list[dict[str, Any]] = []
     for product in products:
+        if not v2 and product.is_v2_only:
+            continue  # 레거시 계약에 없는 상품 — 노출 시 detail_url 부재로 500
         dto = _product_dto(
             product, owned=product.id in owned, equipped=product.id in equipped, v2=v2
         )
@@ -290,6 +292,7 @@ async def get_inventory(
         "data": [
             _product_dto(product, owned=True, equipped=product.id in equipped, v2=v2)
             for product in ordered
+            if v2 or not product.is_v2_only  # 레거시 계약에 없는 상품 제외(detail_url 부재)
         ]
     }
 

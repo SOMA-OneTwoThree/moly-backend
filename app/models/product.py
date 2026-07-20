@@ -36,4 +36,6 @@ class Product(Base):
     price_krw: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 표시 참고용(결제가는 StoreKit)
     app_store_product_id: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+    # 신버전(rightside 자세) 계약에만 노출 — 레거시 카탈로그/인벤토리에서 제외.
+    is_v2_only: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
     sort_order: Mapped[int] = mapped_column(Integer, server_default=text("0"))

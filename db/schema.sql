@@ -53,6 +53,8 @@ CREATE TABLE public.products (
   price_krw            integer,                 -- 표시 참고용(결제가는 StoreKit)
   app_store_product_id text    UNIQUE,
   is_active            boolean NOT NULL DEFAULT true,
+  -- 신버전(rightside 자세) 계약에만 노출 — 레거시 카탈로그/인벤토리에서 제외.
+  is_v2_only           boolean NOT NULL DEFAULT false,
   sort_order           integer NOT NULL DEFAULT 0,
   -- 타입별 컬럼 상호 강제
   CONSTRAINT products_hay_pack_ck CHECK (

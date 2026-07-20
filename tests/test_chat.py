@@ -140,8 +140,8 @@ async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
     stored = [m for m in session.added if isinstance(m, Message)]
     user_msg = next(m for m in stored if m.sender == "user")
     capi_msg = next(m for m in stored if m.sender == "moly")
-    assert "지훈" not in user_msg.content and "{name" in user_msg.content
-    assert "지훈" not in capi_msg.content and "{name" in capi_msg.content
+    assert "지훈" not in user_msg.content and "{유저이름}" in user_msg.content
+    assert "지훈" not in capi_msg.content and "{유저이름}" in capi_msg.content
 
 
 async def test_post_message_daily_limit(monkeypatch, patched):

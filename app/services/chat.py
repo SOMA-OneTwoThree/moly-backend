@@ -22,7 +22,7 @@ from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
-from app.services import gating, greetings, llm, memory, naming
+from app.services import gating, greetings, llm, memory, naming, text_clean
 from app.services.account import _uid
 from app.services.prompts import system_prompt
 
@@ -296,10 +296,7 @@ def _build_system(
     return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
 
 
-_ELLIPSIS = re.compile(r"\.{2,}|…+")  # ".." "..." / "…" (한 글자여도 말줄임표)
-_STRAY = re.compile(r"[*_`~#—–\-]+")  # 마크다운 강조(**,_,`)·대시(—,–,-)·물결 — 부호 화이트리스트 밖
-_WS = re.compile(r"\s+")
-_SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
+# 부호 정제 정규식은 text_clean으로 이관(chat·일기 공용). 여기선 되묻기 물음표 백스톱만.
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 # 되묻기 물음표 백스톱 — 의문사가 문장 끝 8자 이내 + 의문 가능 어미일 때만 교정(위양성 0 실측).
 _WH = re.compile(r"무슨|왜|어디|언제|누구|얼마|어때|어땠|어떻|어떤|뭔데|뭐야")
@@ -346,10 +343,7 @@ def _clean_reply(text: str, nickname: str | None = None) -> str:
     말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·쉼표·물음표·느낌표)만 남기고
     말줄임표·마크다운 강조(**,_)·대시(—)는 지운다.
     """
-    out = _ELLIPSIS.sub(" ", text)
-    out = _STRAY.sub(" ", out)  # **강조**·— 등 비허용 기호 제거(공백으로 → 아래서 병합)
-    out = _WS.sub(" ", out)
-    out = _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
+    out = text_clean.strip_symbols(text)  # 말줄임표·마크다운·대시 제거 + 공백 정규화(공용)
     return _fix_qmarks(out, nickname)
 
 

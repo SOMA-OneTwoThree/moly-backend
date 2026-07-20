@@ -5,9 +5,16 @@ mem0 형식은 이 모듈에만 가둔다. user 연결 = metadata.user_id(FK 아
 from __future__ import annotations
 
 import logging
+import os
 import unicodedata
 
 from app.config import settings
+
+# mem0는 ~/.mem0에 히스토리 SQLite·telemetry를 쓴다. 컨테이너 홈이 비쓰기면 PermissionError(13)로
+# add가 매번 터져 기억이 조용히 전멸한다(2026-07 프로덕션 사고). 쓰기 가능 경로 강제 + telemetry off.
+os.environ.setdefault("MEM0_DIR", "/tmp/mem0")
+os.environ.setdefault("MEM0_TELEMETRY", "False")
+_MEM0_DIR = os.environ["MEM0_DIR"]
 
 _log = logging.getLogger("moly-backend")
 _memory = None
@@ -41,11 +48,20 @@ def _sanitize(text: str) -> str:
     return text.translate(_STRIP).translate(_BRACKETS).strip()
 
 
+# mem0 fact 추출 지시(최우선 규칙). 한국어 고정 + 이름/호칭 미저장(개명 드리프트·프라이버시 방어).
+_MEMORY_INSTRUCTIONS = (
+    "- 모든 기억은 반드시 한국어로 간결하게 작성한다.\n"
+    "- 사용자를 지칭할 때 실제 이름·닉네임·호칭을 쓰지 말고 '사용자'로만 표현한다. 이름 자체는 저장하지 않는다.\n"
+    "- 감정·관계·고민·취향·상황 등 사람을 이해하는 데 중요한 사실 위주로 뽑는다."
+)
+
+
 def _get_memory():
     global _memory
     if _memory is None:
         from mem0 import AsyncMemory
 
+        os.makedirs(_MEM0_DIR, exist_ok=True)
         _memory = AsyncMemory.from_config(
             {
                 "vector_store": {
@@ -72,6 +88,8 @@ def _get_memory():
                         "model": settings.embedder_model,
                     },
                 },
+                "custom_instructions": _MEMORY_INSTRUCTIONS,
+                "history_db_path": os.path.join(_MEM0_DIR, "history.db"),
             }
         )
     return _memory

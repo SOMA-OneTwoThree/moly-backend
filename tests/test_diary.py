@@ -10,6 +10,7 @@ from app.core.db import get_session
 from app.core.errors import AppError
 from app.main import app
 from app.services import diary as diary_service
+from app.services import naming
 
 UID = "11111111-1111-1111-1111-111111111111"
 UID_UUID = uuid.UUID(UID)
@@ -59,6 +60,8 @@ def _diary(**over):
         id=uuid.uuid4(), user_id=UID_UUID, diary_date=date(2026, 7, 5), source="llm",
         weather="cloudy", content="오늘 지우는 회의 얘기를 한참 했다. " * 5,
         published_at=PAST, first_read_at=None,
+        # get_diary가 같은 FakeSession.get으로 Profile도 읽으므로 nickname 속성을 함께 제공.
+        nickname="승민",
     )
     base.update(over)
     return SimpleNamespace(**base)
@@ -70,12 +73,14 @@ def test_type_mapping():
 
 
 # --- 웰컴 일기 ---
-def test_welcome_content_title_josa_and_nickname_swap():
-    # 받침 있음 → 과, 없음 → 와. 닉네임이 제목·본문 모두 교체.
-    seungmin = diary_service._welcome_content("승민")
-    assert seungmin.startswith("승민과의 만남\n\n")
+def test_welcome_content_is_placeholder_and_renders_with_josa():
+    # 저장분은 placeholder(이름 표면 0), 렌더 시 받침에 맞는 조사(과/와)로 이름 교체.
+    tpl = diary_service._WELCOME_CONTENT
+    assert naming.TOKEN in tpl and "승민" not in tpl  # 저장은 토큰만
+    seungmin = naming.render(tpl, "승민")
+    assert seungmin.startswith("승민, 첫 만남\n\n")
     assert "이름은 승민." in seungmin
-    assert diary_service._welcome_content("지호").startswith("지호와의 만남")
+    assert naming.render(tpl, "지호").startswith("지호, 첫 만남")
     assert "사용자" not in seungmin  # 화자 라벨 누출 없음
 
 
@@ -120,23 +125,25 @@ async def test_ensure_welcome_skips_when_welcome_already_exists():
 
 
 def test_list_item_welcome_exposes_title_and_strips_body():
-    d = _diary(source="welcome", content="승민과의 만남\n\n오늘은 새 친구를 만났다.")
-    item = diary_service._list_item(d)
-    assert item["title"] == "승민과의 만남"
+    # placeholder 저장분을 현재 닉네임으로 렌더 → 제목/프리뷰에 이름 반영.
+    d = _diary(source="welcome", content=f"{naming.TOKEN}, 첫 만남\n\n오늘은 새 친구를 만났다.")
+    item = diary_service._list_item(d, "승민")
+    assert item["title"] == "승민, 첫 만남"
     assert item["type"] == "moly"
     assert item["preview"] == "오늘은 새 친구를 만났다."  # 제목 줄은 프리뷰에서 분리
 
 
 def test_list_item_non_welcome_has_null_title():
-    item = diary_service._list_item(_diary(source="llm"))
+    item = diary_service._list_item(_diary(source="llm"), "승민")
     assert item["title"] is None
     assert item["preview"].startswith("오늘 지우")  # 본문 그대로
 
 
 async def test_get_diary_welcome_exposes_title_and_strips_body():
-    d = _diary(source="welcome", content="승민과의 만남\n\n오늘은 새 친구를 만났다.")
+    # placeholder 저장분 → egress에서 현재 닉네임(승민)으로 렌더.
+    d = _diary(source="welcome", content=f"{naming.TOKEN}, 첫 만남\n\n오늘은 새 친구를 만났다.")
     out = await diary_service.get_diary(FakeSession(get_obj=d), UID, str(d.id))
-    assert out["title"] == "승민과의 만남"
+    assert out["title"] == "승민, 첫 만남"
     assert out["body"] == "오늘은 새 친구를 만났다."
     assert out["conversation_ref"] is None  # 웰컴은 개인일기 아님
 

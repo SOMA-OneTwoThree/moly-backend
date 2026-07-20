@@ -18,7 +18,7 @@ from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import llm, memory
+from app.services import llm, memory, naming
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -60,10 +60,14 @@ async def _tokens_used(session: AsyncSession, user_id, target_date: date) -> int
 
 
 def _transcript(messages: list[Message], nickname: str | None = None) -> str:
-    """대화록. 유저 화자 라벨 = 닉네임(없으면 '그 사람'). '사용자'는 일기 본문으로 새어 나온다."""
+    """대화록. 유저 화자 라벨 = 닉네임(없으면 '그 사람'). '사용자'는 일기 본문으로 새어 나온다.
+
+    저장 본문은 placeholder이므로 LLM 투입 전 현재 이름으로 렌더한다(유창성·추출 품질).
+    """
     user_label = nickname or "그 사람"
     return "\n".join(
-        f"{'캐피' if m.sender == 'moly' else user_label}: {m.content}" for m in messages
+        f"{'캐피' if m.sender == 'moly' else user_label}: {naming.render(m.content, nickname)}"
+        for m in messages
     )
 
 
@@ -162,6 +166,8 @@ async def generate_for_user(
             diag = {**retry_diag, "retried": True}
         if personal is not None:
             content, weather = personal
+            # 개인일기 본문의 이름 → placeholder(egress에서 현재 이름 렌더). self-check 이후라 검사엔 무영향.
+            content = naming.to_placeholder(content, getattr(profile, "nickname", None))
             source = "llm"
 
     if source == "preset":
@@ -180,12 +186,19 @@ async def generate_for_user(
     await session.commit()
 
     # 기억 통합(mem0) — 실패해도 일기 생성은 유지(best-effort)
+    mem_ok, mem_failed = 0, 0
     if messages:
         try:
+            # M2: mem0 투입 전 현재 이름 렌더(추출 품질). mem0 custom_instructions가 이름을
+            # 저장하지 않으므로 렌더된 텍스트를 줘도 장기기억에 이름은 안 남는다.
+            nickname = getattr(profile, "nickname", None)
             await memory.add_conversation(
                 str(profile.id),
                 [
-                    {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
+                    {
+                        "role": "assistant" if m.sender == "moly" else "user",
+                        "content": naming.render(m.content, nickname),
+                    }
                     for m in messages
                 ],
             )
@@ -195,8 +208,10 @@ async def generate_for_user(
                 {"u": str(profile.id)},
             )
             await session.commit()
+            mem_ok = 1
         except Exception as e:  # noqa: BLE001
             _log.warning("기억 통합 실패(user=%s): %r", profile.id, e)
+            mem_failed = 1
 
     return {
         "created": True,
@@ -209,4 +224,6 @@ async def generate_for_user(
         "empty_body": diag.get("empty_body"),
         "self_check_passed": diag.get("self_check_passed"),
         "diary_id": str(diary.id) if diary.id else None,
+        "memory_ok": mem_ok,
+        "memory_failed": mem_failed,
     }

@@ -22,7 +22,7 @@ from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
-from app.services import gating, greetings, llm, memory
+from app.services import gating, greetings, llm, memory, naming
 from app.services.account import _uid
 from app.services.prompts import system_prompt
 
@@ -80,11 +80,11 @@ async def get_state(session: AsyncSession, user_id: str) -> dict[str, Any]:
 
 
 # --- GET /chat/messages ---
-def _msg_dto(m: Message) -> dict[str, Any]:
+def _msg_dto(m: Message, nickname: str | None) -> dict[str, Any]:
     return {
         "id": str(m.id),
         "sender": m.sender,
-        "content": m.content,
+        "content": naming.render(m.content, nickname),  # placeholder → 현재 이름
         "created_at": _iso(m.created_at),
     }
 
@@ -108,6 +108,10 @@ async def get_messages(
 ) -> dict[str, Any]:
     uid = _uid(user_id)
     limit = max(1, min(limit, 100))
+    from app.models.profile import Profile
+
+    profile = await session.get(Profile, uid)
+    nickname = profile.nickname if profile is not None else None
     base = select(Message).where(Message.user_id == uid)
 
     if anchor_date is not None:
@@ -125,7 +129,7 @@ async def get_messages(
         rows = list(reversed((await session.execute(q)).scalars().all()))
 
     return {
-        "data": [_msg_dto(m) for m in rows],
+        "data": [_msg_dto(m, nickname) for m in rows],
         "older_cursor": str(rows[0].id) if rows else None,
         "newer_cursor": str(rows[-1].id) if rows else None,
     }
@@ -278,7 +282,8 @@ def _build_system(
         # 조사는 받침에 맞춰(승민이야 / 지호야) — 지시문이 틀리면 캐피도 따라 틀린다.
         parts.append(f"[상대]\n지금 얘기하는 사람 이름은 {greetings.copula(nickname)}.")
     if lead:
-        said = "\n".join(m.content for m in lead if m.content)
+        # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(유창성 유지).
+        said = "\n".join(naming.render(m.content, nickname) for m in lead if m.content)
         parts.append(
             "[먼저 건넨 말]\n"
             "이 대화 직전에 네가 먼저 말을 걸었어. 상대는 그걸 보고 답한 거야. "
@@ -286,7 +291,7 @@ def _build_system(
             f"{said}"
         )
     if mem:
-        parts.append(f"[기억]\n{mem}")
+        parts.append(f"[기억]\n{naming.render(mem, nickname)}")
     dyn = "\n\n".join(parts)
     return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
 
@@ -414,6 +419,7 @@ async def post_message(
         raise errors.daily_limit_reached()
 
     ad = g.activity_date
+    nick = g.profile.nickname  # 저장=placeholder / egress·LLM 투입=render 전 공용
 
     # 2) 선발화 커밋(있으면)
     greeting_dto = None
@@ -431,13 +437,17 @@ async def post_message(
             session.add(gmsg)
             await session.flush()
             gr.committed_message_id = gmsg.id
+            # gr.content는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
             greeting_dto = {
-                "message_id": str(gmsg.id), "content": gr.content, "created_at": _iso(now)
+                "message_id": str(gmsg.id),
+                "content": naming.render(gr.content, nick),
+                "created_at": _iso(now),
             }
 
-    # 3) 유저 메시지 저장
+    # 3) 유저 메시지 저장 — 유저가 자기 현재 이름을 말했으면 placeholder로(저장 표면 이름 0)
     umsg = Message(
-        user_id=uid, sender="user", kind="normal", content=req.text,
+        user_id=uid, sender="user", kind="normal",
+        content=naming.to_placeholder(req.text, nick),
         activity_date=ad, created_at=now,
     )
     session.add(umsg)
@@ -449,8 +459,11 @@ async def post_message(
     convo, new_anchor, lead = await _context(session, uid, anchor)
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — 같은 트랜잭션(원자)
+    # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(히스토리에서도 최신 이름만 보임).
+    for c in convo:
+        c["content"] = naming.render(c["content"], nick)
     mem = await _resolve_memory(session, uid, ctx, now)
-    system = _build_system(g.profile.language, g.profile.nickname, mem, lead)
+    system = _build_system(g.profile.language, nick, mem, lead)
 
     # 5) Claude 호출(프롬프트 캐싱 + 실측 토큰)
     cache_on = settings.chat_prompt_cache_enabled
@@ -473,10 +486,11 @@ async def post_message(
         )
 
     # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
+    # 정제(_clean_reply: 실이름 대상 부호처리) → 그 다음 placeholder 치환(마지막 단계).
     consumed = _billable(result)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal",
-        content=_clean_reply(result.text, g.profile.nickname),
+        content=naming.to_placeholder(_clean_reply(result.text, nick), nick),
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
         cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
         billable_tokens=consumed,
@@ -500,8 +514,13 @@ async def post_message(
     response = {
         "greeting": greeting_dto,
         "user_message": {"message_id": str(umsg.id), "created_at": _iso(now)},
-        # 저장본과 같은 값(정제 후) — 화면과 이력이 어긋나면 안 된다.
-        "reply": {"message_id": str(rmsg.id), "content": rmsg.content, "created_at": _iso(now)},
+        # 저장은 placeholder, 클라엔 현재 이름 렌더 — GET /messages도 같은 render라 화면·이력 일치.
+        # M1: 렌더값을 idempotency 응답에 저장 → 멱등 리플레이도 추가 render 없이 같은 값을 돌려준다.
+        "reply": {
+            "message_id": str(rmsg.id),
+            "content": naming.render(rmsg.content, nick),
+            "created_at": _iso(now),
+        },
         "tokens_used": new_used,
         "tokens_remaining": remaining_after,
         "review_prompt": review,
@@ -567,8 +586,10 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
     hour = datetime.now(ZoneInfo(profile.timezone)).hour
     content = greetings.pick(context, profile.nickname, hour)
 
-    row = Greeting(user_id=uid, context=context, content=content, activity_date=ad)
+    # 저장은 placeholder(이름 표면 0), 클라 응답엔 현재 이름 렌더.
+    stored = naming.to_placeholder(content, profile.nickname)
+    row = Greeting(user_id=uid, context=context, content=stored, activity_date=ad)
     session.add(row)
     await session.commit()
     await session.refresh(row)
-    return {"greeting_id": str(row.id), "content": content}
+    return {"greeting_id": str(row.id), "content": naming.render(stored, profile.nickname)}

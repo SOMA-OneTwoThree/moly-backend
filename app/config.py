@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     # 헤더 값(공유 시크릿). 요청 Authorization 헤더와 일치해야 처리(미설정 시 fail-closed 거부).
     revenuecat_webhook_auth: str = ""
 
+    # --- Slack (운영 알림) — 워커 일일 요약 ---
+    # Incoming Webhook URL(/moly/prod/slack-webhook → SLACK_WEBHOOK_URL 환경변수). 비면 no-op.
+    slack_webhook_url: str = ""
+
     # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
     openai_api_key: str = ""
     embedder_model: str = "text-embedding-3-small"

@@ -59,3 +59,28 @@ URL만 바꾸면 iOS 캐시가 갱신되지 않는다.
    hat/glasses를 단일 `head_id`로 투영해야 한다.
 7. 레거시 `/me`·`/shop/products`·`/inventory`·두 equipment 조회에 hat/glasses·`rightside`가
    노출되지 않는지, `/v2/*` 4종이 새 슬롯과 rightside upright를 반환하는지 스모크 테스트한다.
+
+## mem0 탈퇴 산출물 정리 (`20260720_memory_artifact_cleanup.sql`)
+
+`vecs.memories`와 `vecs.memories_entities`를 한 트랜잭션에서 전량 삭제하는
+`delete_memory_artifacts` RPC를 추가한다. mem0가 아직 컬렉션을 만들지 않은 DB에도 적용 가능하며,
+RPC는 `service_role`만 호출할 수 있다. 이 마이그레이션을 먼저 적용한 뒤 새 `moly-auth`를 배포한다.
+
+## mem0 기억 추출 상태 (`20260720_memory_ingestion_states*.sql`)
+
+일기 생성과 분리된 일별 watermark·재시도 상태를 추가한다. 구 worker와 신 worker가 같은 날짜를
+각각 mem0에 쓰지 않도록 먼저 매시 cron을 중지하고 실행 중인 tick을 drain한다. 그 다음
+`20260720_memory_ingestion_states.sql`, `20260720_memory_ingestion_states_seed.sql`,
+`20260720_memory_artifact_cleanup.sql` 순서로 적용한다. seed는 같은 날짜에 기존 `llm`/`preset`
+일기가 있는 과거 활동일만 완료로 보고, 일기가 없거나 `welcome`뿐인 확정 누락일과 진행 중인
+활동일은 pending으로 둔다.
+
+backend는 `MEMORY_INGESTION_ENABLED=false`, `MEMORY_RECALL_MODE=legacy`,
+`MEMORY_RECALL_ROLLOUT_PERCENT=0`으로 먼저 배포한다. 새 worker만 실행되는 것을 확인한 뒤 ingestion을
+켜고 cron을 재개한다. 최대 재시도에 도달한 행은 자동 호출을 멈추며 원인 해결 후
+`attempt_count=0, last_attempted_at=NULL`로 명시적으로 requeue한다.
+
+`scripts/evaluate_memory_recall.py`는 실제 mem0 랭킹이나 최종 답변을 재현하지 않는 오프라인
+휴리스틱이다. 이 검사와 production shadow의 provider 비용, cache-read 비율, 응답 p95, 오탐·누락
+표본을 모두 통과한 경우에만 5% shadow → 5% semantic → 25% semantic → 100% 순으로 올린다.
+기준을 벗어나면 recall mode를 `legacy`로, 쓰기 장애나 비용 급증이면 ingestion도 끈다.

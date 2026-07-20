@@ -1,5 +1,5 @@
 """chat 서비스 — 전송 흐름·토큰집계·게이팅·멱등·상태·선발화 캐시(DB·LLM mock)."""
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
 
 import pytest
@@ -160,6 +160,135 @@ async def test_post_message_survives_mem0_outage(monkeypatch):
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-mem")
     assert out.reply.content == "응 그래."
+
+
+async def test_post_message_semantic_recall_keeps_public_response_and_uses_rag(
+    monkeypatch,
+):
+    captured = {}
+
+    async def _res(session, user_id):
+        return _gating()
+
+    async def _search(user_id, query):
+        assert user_id == UID
+        assert "애완동물" in query
+        return [memory_module.RecalledMemory("m1", "고양이를 키움", 0.91, "2026-01-02")]
+
+    async def _legacy_must_not_run(user_id):
+        raise AssertionError("semantic 선택 유저는 legacy snapshot을 불러오지 않음")
+
+    async def _fake_llm(system, convo, **kwargs):
+        captured.update(system=system, convo=convo, kwargs=kwargs)
+        return LLMResult(text="응, 고양이 얘기했었지.", input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(chat_service.settings, "memory_recall_mode", "semantic")
+    monkeypatch.setattr(chat_service.settings, "memory_recall_rollout_percent", 100)
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(memory_module, "search_for_context", _search)
+    monkeypatch.setattr(memory_module, "load_for_context", _legacy_must_not_run)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    row = SimpleNamespace(
+        id=10,
+        sender="user",
+        content="내 애완동물 기억해?",
+        activity_date=date(2026, 7, 7),
+    )
+
+    out = await chat_service.post_message(
+        FakeSession(execute_items=[row]),
+        UID,
+        SimpleNamespace(text=row.content, greeting_id=None),
+        "idem-semantic",
+    )
+
+    assert out.reply.content == "응, 고양이 얘기했었지."
+    assert "고양이를 키움" not in "\n".join(captured["system"])
+    assert captured["convo"][-1]["content"][0]["type"] == "search_result"
+    assert captured["kwargs"]["cache_before_last"] is True
+
+
+async def test_post_message_semantic_outage_reuses_recent_snapshot(monkeypatch):
+    captured = {}
+
+    async def _res(session, user_id):
+        return _gating()
+
+    async def _search(user_id, query):
+        raise memory_module.MemoryUnavailable("warming")
+
+    async def _fake_llm(system, convo, **kwargs):
+        captured.update(system=system, convo=convo, kwargs=kwargs)
+        return LLMResult(text="응, 기억하고 있어.", input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(chat_service.settings, "memory_recall_mode", "semantic")
+    monkeypatch.setattr(chat_service.settings, "memory_recall_rollout_percent", 100)
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(memory_module, "search_for_context", _search)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    row = SimpleNamespace(
+        id=10,
+        sender="user",
+        content="내 고양이 기억해?",
+        activity_date=date(2026, 7, 7),
+    )
+    ctx = SimpleNamespace(
+        anchor_message_id=0,
+        memory_text="- 고양이를 키움",
+        memory_refreshed_at=datetime.now(timezone.utc) - timedelta(hours=1),
+    )
+
+    await chat_service.post_message(
+        FakeSession(get_map={"ChatContext": ctx}, execute_items=[row]),
+        UID,
+        SimpleNamespace(text=row.content, greeting_id=None),
+        "idem-semantic-fallback",
+    )
+
+    assert "고양이를 키움" in "\n".join(captured["system"])
+    assert isinstance(captured["convo"][-1]["content"], str)
+    assert captured["kwargs"]["cache_before_last"] is False
+
+
+async def test_post_message_semantic_empty_result_does_not_revive_snapshot(monkeypatch):
+    captured = {}
+
+    async def _res(session, user_id):
+        return _gating()
+
+    async def _search(user_id, query):
+        return []
+
+    async def _fake_llm(system, convo, **kwargs):
+        captured.update(system=system, convo=convo, kwargs=kwargs)
+        return LLMResult(text="그 얘기는 기억나지 않아.", input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(chat_service.settings, "memory_recall_mode", "semantic")
+    monkeypatch.setattr(chat_service.settings, "memory_recall_rollout_percent", 100)
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(memory_module, "search_for_context", _search)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    row = SimpleNamespace(
+        id=10,
+        sender="user",
+        content="내 고양이 기억해?",
+        activity_date=date(2026, 7, 7),
+    )
+    ctx = SimpleNamespace(
+        anchor_message_id=0,
+        memory_text="- 삭제 전 기억",
+        memory_refreshed_at=datetime.now(timezone.utc) - timedelta(hours=1),
+    )
+
+    await chat_service.post_message(
+        FakeSession(get_map={"ChatContext": ctx}, execute_items=[row]),
+        UID,
+        SimpleNamespace(text=row.content, greeting_id=None),
+        "idem-semantic-empty",
+    )
+
+    assert "삭제 전 기억" not in "\n".join(captured["system"])
+    assert captured["kwargs"]["cache_before_last"] is False
 
 
 async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patched):

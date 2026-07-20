@@ -1,8 +1,10 @@
 """chat 서비스 — 상태·이력·전송·선발화. 대화는 HTTP 완성본(스트리밍 없음)."""
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
+import time
 import uuid
 from datetime import date, datetime, timezone
 from math import ceil
@@ -237,13 +239,20 @@ async def _save_memory(session: AsyncSession, uid: uuid.UUID, text_: str, now: d
     await session.execute(stmt)
 
 
+def _recent_memory_snapshot(ctx: ChatContext | None, now: datetime) -> str:
+    if ctx is None or not ctx.memory_text or ctx.memory_refreshed_at is None:
+        return ""
+    age_h = (now - ctx.memory_refreshed_at).total_seconds() / 3600
+    return ctx.memory_text if age_h < settings.memory_snapshot_stale_hours else ""
+
+
 async def _resolve_memory(
     session: AsyncSession, uid: uuid.UUID, ctx: ChatContext | None, now: datetime
 ) -> str:
     """기억 텍스트 해결 — 신선한 스냅샷이면 그대로(핫패스 mem0 없음 + system[1] 안정→캐시 유지).
 
     오래됐으면 mem0 1회 재로드(6h당 1회 수준). 장애면 스냅샷 재사용(48h), 초과면 "".
-    성공-빈결과가 기존 non-empty 스냅샷을 단발로 덮지 않게 함(전이 위장 방어).
+    성공한 빈 결과는 삭제된 기억을 부활시키지 않도록 권위 있는 스냅샷으로 저장한다.
     """
     refreshed = ctx.memory_refreshed_at if ctx is not None else None
     prev = ctx.memory_text if ctx is not None else None
@@ -254,21 +263,169 @@ async def _resolve_memory(
     try:
         fresh = await memory.load_for_context(str(uid))
     except memory.MemoryUnavailable:
-        if prev and refreshed is not None:
-            age_h = (now - refreshed).total_seconds() / 3600
-            if age_h < settings.memory_snapshot_stale_hours:
-                return prev  # 장애 — 최근 스냅샷 재사용
-        return ""  # 장애 + 스냅샷 없음/너무 오래됨
-    if not fresh and prev:
-        return prev  # 빈 성공이 좋은 스냅샷을 덮지 않게(다음 턴 재시도) — 갱신 스킵
+        return _recent_memory_snapshot(ctx, now)
     await _save_memory(session, uid, fresh, now)
     return fresh
+
+
+def _memory_recall_mode(uid: uuid.UUID) -> str:
+    configured = settings.memory_recall_mode.strip().lower()
+    if configured not in {"legacy", "shadow", "semantic"}:
+        _log.warning("알 수 없는 MEMORY_RECALL_MODE=%r → legacy", configured)
+        return "legacy"
+    if configured == "legacy":
+        return configured
+    percent = max(0, min(100, settings.memory_recall_rollout_percent))
+    bucket = int.from_bytes(hashlib.sha256(uid.bytes).digest()[:4], "big") % 100
+    return configured if bucket < percent else "legacy"
+
+
+def _content_text(content: Any) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(
+            str(block.get("text") or "")
+            for block in content
+            if isinstance(block, dict) and block.get("type") == "text"
+        )
+    return str(content or "")
+
+
+def _head_tail(text: str, limit: int) -> str:
+    if limit <= 0:
+        return ""
+    if len(text) <= limit:
+        return text
+    if limit == 1:
+        return text[-1:]
+    remaining = limit - 1
+    head = (remaining + 1) // 2
+    tail = remaining - head
+    return text[:head] + "…" + (text[-tail:] if tail else "")
+
+
+def _build_memory_query(
+    convo: list[dict], lead: list[Message] | None = None
+) -> str:
+    """현재 user 발화와 직전 user/assistant 발화로 결정적 검색문을 만든다."""
+    limit = max(0, settings.memory_recall_query_max_chars)
+    if limit == 0:
+        return ""
+    current_index = next(
+        (i for i in range(len(convo) - 1, -1, -1) if convo[i].get("role") == "user"),
+        None,
+    )
+    if current_index is None:
+        return ""
+    current = _content_text(convo[current_index].get("content"))
+    previous: dict[str, str] = {}
+    for message in reversed(convo[:current_index]):
+        role = message.get("role")
+        if role in {"user", "assistant"} and role not in previous:
+            previous[role] = _content_text(message.get("content"))
+        if len(previous) == 2:
+            break
+    if "assistant" not in previous and lead:
+        previous["assistant"] = "\n".join(message.content for message in lead if message.content)
+
+    previous_pieces: list[tuple[str, str]] = []
+    if previous.get("user"):
+        previous_pieces.append(("직전 사용자", previous["user"]))
+    if previous.get("assistant"):
+        previous_pieces.append(("직전 캐피", previous["assistant"]))
+    labels = ["현재 사용자", *(label for label, _ in previous_pieces)]
+    overhead = sum(len(label) + 2 for label in labels) + max(0, len(labels) - 1)
+    available = max(0, limit - overhead)
+    if available == 0:
+        return _head_tail(current, limit)
+
+    previous_count = len(previous_pieces)
+    if previous_count:
+        if len(current) < available:
+            previous_cap = min(200, (available - len(current)) // previous_count)
+        else:
+            previous_cap = min(200, available // (4 * previous_count))
+    else:
+        previous_cap = 0
+    previous_budgets = [
+        min(len(value), previous_cap) for _, value in previous_pieces
+    ]
+    current_budget = available - sum(previous_budgets)
+    pieces = [("현재 사용자", _head_tail(current, current_budget))]
+    pieces.extend(
+        (label, _head_tail(value, budget))
+        for (label, value), budget in zip(previous_pieces, previous_budgets)
+    )
+    return "\n".join(f"{label}: {value}" for label, value in pieces)[:limit]
+
+
+def _attach_recalled_memory(
+    convo: list[dict], recalled: list[memory.RecalledMemory]
+) -> list[dict]:
+    if not recalled:
+        return convo
+    out = [dict(message) for message in convo]
+    current_index = next(
+        (i for i in range(len(out) - 1, -1, -1) if out[i].get("role") == "user"),
+        None,
+    )
+    if current_index is None:
+        return out
+    blocks: list[dict] = []
+    for item in recalled:
+        title = "과거 대화의 장기기억"
+        if item.observed_at:
+            title += f" (관찰일 {item.observed_at[:10]})"
+        blocks.append(
+            {
+                "type": "search_result",
+                "source": "conversation-memory",
+                "title": title,
+                "content": [{"type": "text", "text": item.text}],
+                "citations": {"enabled": False},
+            }
+        )
+    blocks.append({"type": "text", "text": _content_text(out[current_index].get("content"))})
+    out[current_index]["content"] = blocks
+    return out
+
+
+async def _semantic_recall(
+    uid: uuid.UUID,
+    convo: list[dict],
+    mode: str,
+    lead: list[Message] | None = None,
+) -> list[memory.RecalledMemory] | None:
+    query = _build_memory_query(convo, lead)
+    started = time.monotonic()
+    try:
+        recalled = await memory.search_for_context(str(uid), query)
+    except memory.MemoryUnavailable as exc:
+        latency_ms = round((time.monotonic() - started) * 1000)
+        _log.warning(
+            "기억 의미 회상 mode=%s status=error latency_ms=%d error=%s",
+            mode,
+            latency_ms,
+            type(exc.__cause__ or exc).__name__,
+        )
+        return None
+    latency_ms = round((time.monotonic() - started) * 1000)
+    top_score = max((item.score for item in recalled), default=0.0)
+    _log.info(
+        "기억 의미 회상 mode=%s status=ok count=%d top_score=%.3f latency_ms=%d",
+        mode,
+        len(recalled),
+        top_score,
+        latency_ms,
+    )
+    return recalled if mode == "semantic" else []
 
 
 def _build_system(
     language: str, nickname: str | None, mem: str, lead: list[Message] | None = None
 ) -> list[str]:
-    """system을 [페르소나(불변), 닉네임+선발화+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존.
+    """system을 [페르소나(불변), 닉네임+선발화+legacy 기억(가변)] 블록으로.
 
     lead = 대화 배열에 못 넣은 선발화(_context 참조). 앵커가 전진하기 전까지 매 턴 같은 값이라
     가변 블록도 그대로 유지된다 — 캐시가 추가로 깨지지 않는다.
@@ -404,6 +561,14 @@ async def post_message(
     # 1) 유저 직렬화 → 게이팅. 잠근 뒤 tokens_used를 읽어야 동시요청이 한도를 우회 못 함(TOCTOU).
     await _lock_user(session, uid)
 
+    # 같은 키의 두 요청이 최초 조회를 함께 통과할 수 있다. 두 번째 요청은 잠금을
+    # 기다리는 동안 첫 요청이 저장한 응답을 다시 읽어 LLM 호출과 토큰 차감을 피한다.
+    cached = await session.get(IdempotencyKey, (uid, idempotency_key))
+    if cached is not None:
+        return validate_post_message_response(
+            cached.response, user_id=user_id, idempotency_key=idempotency_key
+        )
+
     g = await gating.resolve(session, user_id)
     remaining = g.entitlement["tokens_remaining"]
     if remaining is None:
@@ -443,20 +608,35 @@ async def post_message(
     session.add(umsg)
     await session.flush()
 
-    # 4) 컨텍스트(앵커 append-only) + 기억 스냅샷 + 시스템(페르소나/기억 블록)
+    # 4) 컨텍스트(앵커 append-only) + rollout 모드별 장기기억
     ctx = await session.get(ChatContext, uid)  # 앵커+스냅샷 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
     convo, new_anchor, lead = await _context(session, uid, anchor)
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — 같은 트랜잭션(원자)
-    mem = await _resolve_memory(session, uid, ctx, now)
-    system = _build_system(g.profile.language, g.profile.nickname, mem, lead)
+    recall_mode = _memory_recall_mode(uid)
+    legacy_memory = ""
+    recalled: list[memory.RecalledMemory] = []
+    if recall_mode in {"legacy", "shadow"}:
+        legacy_memory = await _resolve_memory(session, uid, ctx, now)
+    if recall_mode in {"shadow", "semantic"}:
+        recall_result = await _semantic_recall(uid, convo, recall_mode, lead)
+        if recall_result is None:
+            if recall_mode == "semantic":
+                legacy_memory = _recent_memory_snapshot(ctx, now)
+        else:
+            recalled = recall_result
+            if recall_mode == "semantic":
+                convo = _attach_recalled_memory(convo, recalled)
+    system = _build_system(g.profile.language, g.profile.nickname, legacy_memory, lead)
 
     # 5) Claude 호출(프롬프트 캐싱 + 실측 토큰)
     cache_on = settings.chat_prompt_cache_enabled
     result = await llm.generate(
-        system, convo,
+        system,
+        convo,
         cache_messages=cache_on,
+        cache_before_last=bool(recalled),
         ttl_system=settings.cache_ttl_system,
         ttl_messages=settings.cache_ttl_messages,
     )

@@ -54,6 +54,10 @@ uv run pytest                             # 테스트
 uv run ruff check .                       # 린트
 ```
 
+장기기억 회상의 오프라인 임베딩 휴리스틱은 `OPENAI_API_KEY`를 설정한 뒤
+`uv run python scripts/evaluate_memory_recall.py`로 확인한다(DB 쓰기 없음). 실제 mem0 랭킹·최종 답변
+품질을 재현하지 않으므로 이 결과만으로 semantic rollout을 승인하지 않는다.
+
 꾸미기 v2 최종 에셋은 운영 반영 전에 별도 검증한다. 실제 매니페스트는 API 상품 필드
 (`id/name/slot/price_hay/asset_version/assets`)의 `products` 배열이며 저장소에 임시 URL을
 커밋하지 않는다.
@@ -99,7 +103,9 @@ uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 
 ## 배치 워커
 
 외부 **매시 크론**이 `python -m worker`를 1틱 실행(멱등). 유저 로컬시각 기준:
-- **04:00** — 전일 일기 생성(개인/캐피) + mem0 기억 통합
+- **매 틱** — `MEMORY_INGESTION_ENABLED=true`일 때 완료된 활동일의 mem0 기억 추출
+  (실패 시 1시간 후 재시도, 설정된 최대 횟수에서 중단)
+- **04:00** — 전일 일기 생성(개인/캐피)
 - **09:00** — 아침 일기 FCM 푸시 · **20:00** — 저녁 안부 푸시
 
 ### 캐피 자기일기 — 날짜별 지정

@@ -10,7 +10,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -18,7 +18,7 @@ from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import llm, memory
+from app.services import llm
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -178,25 +178,6 @@ async def generate_for_user(
     )
     session.add(diary)
     await session.commit()
-
-    # 기억 통합(mem0) — 실패해도 일기 생성은 유지(best-effort)
-    if messages:
-        try:
-            await memory.add_conversation(
-                str(profile.id),
-                [
-                    {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
-                    for m in messages
-                ],
-            )
-            # 새 기억 반영 → 채팅 기억 스냅샷 무효화(다음 대화가 당일 기억을 lazy 재로드)
-            await session.execute(
-                text("UPDATE chat_contexts SET memory_refreshed_at = NULL WHERE user_id = :u"),
-                {"u": str(profile.id)},
-            )
-            await session.commit()
-        except Exception as e:  # noqa: BLE001
-            _log.warning("기억 통합 실패(user=%s): %r", profile.id, e)
 
     return {
         "created": True,

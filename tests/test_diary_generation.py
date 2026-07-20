@@ -7,7 +7,6 @@ from types import SimpleNamespace
 from app.config import settings
 from app.services import diary_generation as dg
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services.diary_prompts import parse
 from app.services.llm import LLMResult
 
@@ -43,14 +42,10 @@ def _patch_common(monkeypatch, *, exists=False, messages=None, tokens=5000, ment
     async def _pick(session, target_date):
         return ment
 
-    async def _mem(user_id, msgs):
-        return None
-
     monkeypatch.setattr(dg, "_diary_exists", _exists)
     monkeypatch.setattr(dg, "_day_messages", _msgs)
     monkeypatch.setattr(dg, "_tokens_used", _toks)
     monkeypatch.setattr(dg, "_pick_ment", _pick)
-    monkeypatch.setattr(memory_module, "add_conversation", _mem)
 
 
 def _msg(sender, content):

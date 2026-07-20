@@ -15,6 +15,39 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- mem0 vecs 컬렉션은 public FK 밖에 있으므로 회원탈퇴 시 서비스 롤 RPC로 함께 정리한다.
+-- mem0가 컬렉션을 lazy 생성하므로 빈 DB에서도 함수를 설치할 수 있게 존재 여부를 확인한다.
+CREATE OR REPLACE FUNCTION public.delete_memory_artifacts(p_user_id uuid)
+RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $$
+DECLARE
+  v_deleted bigint := 0;
+  v_rows bigint;
+BEGIN
+  IF to_regclass('vecs.memories') IS NOT NULL THEN
+    DELETE FROM vecs.memories
+    WHERE metadata @> jsonb_build_object('user_id', p_user_id::text);
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+    v_deleted := v_deleted + v_rows;
+  END IF;
+
+  IF to_regclass('vecs.memories_entities') IS NOT NULL THEN
+    DELETE FROM vecs.memories_entities
+    WHERE metadata @> jsonb_build_object('user_id', p_user_id::text);
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+    v_deleted := v_deleted + v_rows;
+  END IF;
+
+  RETURN v_deleted;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.delete_memory_artifacts(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_memory_artifacts(uuid) TO service_role;
+
 -- ─────────────────────────────────────────────────────────────
 -- 1. 계정·프로필
 -- ─────────────────────────────────────────────────────────────
@@ -352,6 +385,43 @@ CREATE TABLE public.chat_contexts (
 );
 REVOKE ALL ON public.chat_contexts FROM anon, authenticated;
 
+-- 장기기억 일별 추출 watermark. normal 응답 커밋이 해당 활동일을 pending으로 만든다.
+CREATE TABLE public.memory_ingestion_states (
+  user_id            uuid   NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  activity_date      date   NOT NULL,
+  through_message_id bigint NOT NULL DEFAULT 0 CHECK (through_message_id >= 0),
+  attempt_count      integer NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+  last_attempted_at  timestamptz,
+  completed_at       timestamptz,
+  PRIMARY KEY (user_id, activity_date)
+);
+CREATE INDEX memory_ingestion_pending_idx
+  ON public.memory_ingestion_states
+    (last_attempted_at ASC NULLS FIRST, activity_date, user_id)
+  WHERE completed_at IS NULL;
+REVOKE ALL ON public.memory_ingestion_states FROM anon, authenticated;
+
+CREATE FUNCTION public.mark_memory_ingestion_pending()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = pg_catalog
+AS $$
+BEGIN
+  INSERT INTO public.memory_ingestion_states (user_id, activity_date)
+  VALUES (NEW.user_id, NEW.activity_date)
+  ON CONFLICT (user_id, activity_date) DO UPDATE
+  SET completed_at = NULL,
+      last_attempted_at = NULL,
+      attempt_count = 0;
+  RETURN NEW;
+END;
+$$;
+CREATE TRIGGER messages_mark_memory_ingestion_pending
+  AFTER INSERT ON public.messages
+  FOR EACH ROW
+  WHEN (NEW.kind = 'normal' AND NEW.sender = 'moly')
+  EXECUTE FUNCTION public.mark_memory_ingestion_pending();
+
 CREATE TABLE public.idempotency_keys (
   user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   key        text NOT NULL,
@@ -374,7 +444,7 @@ BEGIN
     'subscriptions','subscription_hay_grants','payments',
     'user_items','diaries','routines','routine_completions',
     'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
-    'chat_contexts'
+    'chat_contexts','memory_ingestion_states'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;

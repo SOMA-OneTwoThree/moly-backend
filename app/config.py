@@ -1,5 +1,8 @@
 import os
 from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field
 
 # mem0 텔레메트리(phone-home) 비활성 — mem0 import 전에 꺼야 적용(telemetry가 import 시 1회 읽음).
 # 과거 moly-llm에서 세션시작 로드 지연(ReadTimeout)의 주원인. infra 명시값 우선(setdefault).
@@ -24,7 +27,7 @@ class Settings(BaseSettings):
     # API 서버 전용 DB 쓰기(서비스 롤). 클라 직접 쓰기 없음(ERD §8)
     supabase_db_connection_string: str = ""
 
-    # --- Anthropic Claude (대화·개인일기=Sonnet / self-check·기억통합=Haiku) ---
+    # --- Anthropic Claude (대화·개인일기=Sonnet / self-check=Haiku) ---
     # 대화·일기 모델은 분리한다. 일기는 핵심 훅(열람율)이라 대화 모델 A/B에 딸려 내려가면 안 된다.
     # 대화 Haiku A/B는 코드 변경 없이 ANTHROPIC_MODEL_CHAT 환경변수(SSM)로만 전환한다.
     anthropic_api_key: str = ""
@@ -45,7 +48,7 @@ class Settings(BaseSettings):
     context_keep_messages: int = 20        # 리셋 후 유지 메시지 수 (KEEP ≪ RESET)
     context_keep_chars: int = 12_000       # 리셋 후 유지 문자 상한
     context_hard_msg_cap: int = 120        # 쿼리 안전 상한(정상 시 트리거가 먼저 걸려 안 닿음)
-    # 프롬프트 캐싱: system(페르소나/기억) + 마지막 메시지에 cache_control. 기본 5m(단일 TTL).
+    # 프롬프트 캐싱: 안정된 system/대화 prefix에 cache_control. 기본 5m(단일 TTL).
     chat_prompt_cache_enabled: bool = True  # 킬스위치. OFF=메시지 breakpoint 제거(히스토리 청구 스케일↑ 유의)
     cache_ttl_system: str = "5m"            # "5m" | "1h"(write 2×, 워밍률 측정 후 결정)
     cache_ttl_messages: str = "5m"
@@ -71,10 +74,25 @@ class Settings(BaseSettings):
     memory_collection: str = "memories"
     memory_load_top_k: int = 200  # 로드 상한(recency 로컬 랭킹)
     memory_max_render_items: int = 20  # 프롬프트에 넣을 최대 기억 수
-    # 기억 스냅샷(chat_contexts.memory_text) — 핫패스 mem0 제거 + system[1] 안정(캐시 유지).
+    memory_recall_mode: Literal["legacy", "shadow", "semantic"] = "legacy"
+    memory_recall_rollout_percent: int = Field(default=0, ge=0, le=100)
+    memory_recall_search_top_k: int = Field(default=12, ge=1, le=100)
+    memory_recall_search_threshold: float = Field(default=0.25, ge=0.0, le=1.0)
+    memory_recall_timeout_ms: int = Field(default=800, ge=1)
+    memory_recall_query_max_chars: int = Field(default=1_200, ge=0)
+    memory_recall_max_items: int = Field(default=4, ge=0)
+    memory_recall_max_chars: int = Field(default=800, ge=0)
+    memory_recall_backoff_failures: int = Field(default=3, ge=1)
+    memory_recall_backoff_seconds: int = Field(default=60, ge=0)
+    memory_provider_timeout_seconds: float = Field(default=15.0, gt=0)
+    memory_provider_max_retries: int = Field(default=0, ge=0, le=5)
+    # legacy 기억 스냅샷(chat_contexts.memory_text) — rollback 경로로 유지.
     memory_snapshot_refresh_hours: int = 6   # 이보다 오래면 갱신(mem0 재로드)
     memory_snapshot_stale_hours: int = 48    # 장애 시 이보다 오래된 스냅샷은 폐기("")
-    memory_orphan_grace_hours: int = 24      # 탈퇴 고아 기억 스위퍼 유예(온보딩 레이스 방어)
+    memory_ingestion_enabled: bool = False
+    memory_ingestion_batch_size: int = Field(default=50, ge=1, le=1_000)
+    memory_ingestion_max_attempts: int = Field(default=8, ge=1, le=100)
+    memory_ingestion_timeout_seconds: float = Field(default=90.0, gt=0)
 
     # --- 토큰 한도(임의 기본값, TBD) — app_config에 값이 오면 그게 우선 ---
     # 집계 = LLM 입력+출력 합산(kind='normal'만). 04:00 리셋.
@@ -101,16 +119,31 @@ class Settings(BaseSettings):
     )
 
     def require_production_ready(self) -> None:
-        """비-local 부팅 시 결제 웹훅 인증 설정을 강제(fail-closed).
+        """비-local 부팅 시 결제·장기기억 설정을 강제(fail-closed).
 
         revenuecat_webhook_auth가 비면 RC 웹훅이 전량 401이라 구독/결제 동기가 멈춘다.
-        오배포(빈 시크릿)를 부팅 실패로 차단.
+        장기기억 provider 설정 누락도 기억 없는 성공으로 숨기지 않는다.
         """
         if self.environment == "local":
             return
         if not self.revenuecat_webhook_auth:
             raise RuntimeError(
                 "프로덕션 결제 설정 누락(fail-closed): REVENUECAT_WEBHOOK_AUTH"
+            )
+        self.require_memory_provider_ready()
+
+    def require_memory_provider_ready(self) -> None:
+        missing = [
+            name
+            for name, value in (
+                ("SUPABASE_DB_CONNECTION_STRING", self.supabase_db_connection_string),
+                ("OPENAI_API_KEY", self.openai_api_key),
+            )
+            if not value
+        ]
+        if missing:
+            raise RuntimeError(
+                "장기기억 설정 누락(fail-closed): " + ", ".join(missing)
             )
 
 

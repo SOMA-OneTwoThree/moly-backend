@@ -1,7 +1,7 @@
 """Anthropic Claude 래퍼 — 비스트리밍(완성본 반환) + 토큰 usage.
 
 대화는 HTTP 요청-응답 완성본(ARCHITECTURE). 스트리밍 없음.
-토큰 집계 = 모델 실측 usage(input+output). system prefix(페르소나+기억) 캐싱.
+토큰 집계 = 모델 실측 usage(input+output). 안정된 system/대화 prefix 캐싱.
 """
 from __future__ import annotations
 
@@ -56,6 +56,24 @@ def _cache_last(convo: list[dict], ttl: str) -> list[dict]:
     return out
 
 
+def _cache_before_last(convo: list[dict], ttl: str) -> list[dict]:
+    """마지막 user 메시지의 변동 블록 직전에 cache breakpoint를 둔다."""
+    if len(convo) < 2:
+        return convo
+    out = [dict(m) for m in convo]
+    previous = out[-2]
+    content = previous["content"]
+    if isinstance(content, str):
+        previous["content"] = [
+            {"type": "text", "text": content, "cache_control": _cc(ttl)}
+        ]
+    else:
+        blocks = [dict(block) for block in content]
+        blocks[-1] = {**blocks[-1], "cache_control": _cc(ttl)}
+        previous["content"] = blocks
+    return out
+
+
 async def generate(
     system: str | list[str],
     convo: list[dict],
@@ -63,15 +81,20 @@ async def generate(
     max_tokens: int | None = None,
     model: str | None = None,
     cache_messages: bool = False,
+    cache_before_last: bool = False,
     ttl_system: str = "5m",
     ttl_messages: str = "5m",
 ) -> LLMResult:
-    """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
+    """system + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
 
-    system이 리스트면 블록별 breakpoint. cache_messages=True면 마지막 메시지도 캐싱(대화 경로).
-    model 미지정 = 대화 모델(Sonnet). 일기 self-check·기억통합은 utility(Haiku) 지정.
+    system이 리스트면 블록별 breakpoint. cache_messages=True면 대화도 캐싱한다.
+    cache_before_last=True면 변동하는 마지막 user 메시지 직전까지만 캐싱한다.
+    model 미지정 = 대화 모델(Sonnet). 일기 self-check는 utility(Haiku) 지정.
     """
-    messages = _cache_last(convo, ttl_messages) if cache_messages else convo
+    if cache_messages and cache_before_last:
+        messages = _cache_before_last(convo, ttl_messages)
+    else:
+        messages = _cache_last(convo, ttl_messages) if cache_messages else convo
     resp = await _get_client().messages.create(
         model=model or settings.anthropic_model_chat,
         max_tokens=max_tokens or settings.llm_max_tokens,

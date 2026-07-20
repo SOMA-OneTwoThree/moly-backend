@@ -11,12 +11,19 @@ from app.api.shop import router as shop_router
 from app.api.subscription import router as subscription_router
 from app.config import settings
 from app.core.errors import register_error_handlers
+from app.services import memory
 
 
 def create_app() -> FastAPI:
     """API 앱 팩토리. 모듈 라우터는 여기서 등록(chat·diary… 는 구현 시 추가)."""
     # 비-local이면 StoreKit 결제/웹훅 설정 강제(누락 시 부팅 실패, 서명검증 우회 방지).
     settings.require_production_ready()
+    # 운영 legacy도 오래된 스냅샷 갱신에 mem0를 쓴다. 요청과 경합하지 않게 미리 준비한다.
+    if settings.environment != "local" or (
+        settings.memory_recall_mode in {"shadow", "semantic"}
+        and settings.memory_recall_rollout_percent > 0
+    ):
+        memory.start_memory_prewarm()
     _local = settings.environment == "local"
     app = FastAPI(
         title=settings.app_name,

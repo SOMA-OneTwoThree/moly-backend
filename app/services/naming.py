@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 
 from app.services import greetings
 
@@ -68,14 +69,20 @@ def to_placeholder(text: str | None, nickname: str | None) -> str | None:
     """
     if not text or not nickname:
         return text
-    return re.sub(rf"(?<![가-힣A-Za-z0-9]){re.escape(nickname)}", TOKEN, text)
+    # NFC 통일 — 유저 입력이 분해형(NFD, iOS/macOS)이면 프로필(NFC)과 안 맞아 실명이 안 잡힌다.
+    text = unicodedata.normalize("NFC", text)
+    nick = unicodedata.normalize("NFC", nickname)
+    return re.sub(rf"(?<![가-힣A-Za-z0-9]){re.escape(nick)}", TOKEN, text)
 
 
 def render(text: str | None, nickname: str | None) -> str | None:
     """`{유저이름}`(+조사) → 현재 이름(+받침 맞춘 조사). 토큰 없으면 그대로(옛 리터럴 텍스트 통과)."""
-    if not text or TOKEN not in text:
+    if not text:
         return text
-    n = nickname or "너"
+    text = unicodedata.normalize("NFC", text)
+    if TOKEN not in text:
+        return text
+    n = unicodedata.normalize("NFC", nickname) if nickname else "너"
 
     def _repl(m: re.Match) -> str:
         j = m.group(1)

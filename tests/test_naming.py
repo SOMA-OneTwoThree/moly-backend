@@ -1,4 +1,6 @@
-"""닉네임 스템 마스킹 — 마스킹·라운드트립·개명 조사교정·단어경계·과치환·리터럴통과·폴백."""
+"""닉네임 스템 마스킹 — 마스킹·라운드트립·개명 조사교정·단어경계·과치환·리터럴통과·폴백·NFC."""
+import unicodedata
+
 import pytest
 
 from app.services import naming
@@ -115,3 +117,12 @@ def test_non_korean_name():
     stored = naming.to_placeholder("Alex 안녕", "Alex")
     assert stored == f"{T} 안녕"
     assert naming.render(stored, "Alex") == "Alex 안녕"
+
+
+def test_nfd_input_is_masked():
+    # 유저가 분해형(NFD, iOS/macOS)으로 자기 이름을 쳐도 마스킹된다(프로필=NFC 가정).
+    nfd = unicodedata.normalize("NFD", "승민아 안녕")
+    out = naming.to_placeholder(nfd, "승민")
+    assert naming.TOKEN in out
+    assert "승민" not in unicodedata.normalize("NFC", out)  # 실명 스템 잔존 없음
+    assert naming.render(out, "지호") == "지호야 안녕"

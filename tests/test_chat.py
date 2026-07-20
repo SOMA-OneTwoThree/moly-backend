@@ -118,6 +118,32 @@ async def test_post_message_flow(monkeypatch, patched):
     assert session.committed is True
 
 
+async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
+    # 불변식: 저장(messages.content)엔 실이름 0·placeholder만, 클라 응답엔 현재 이름 렌더.
+    async def _res(session, user_id):
+        return _gating()
+
+    async def _fake_mem(user_id):
+        return ""
+
+    async def _fake_llm(system, convo, **kw):
+        return LLMResult(text="지훈아 반가워.", input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    session = FakeSession()
+    req = SimpleNamespace(text="나는 지훈이야", greeting_id=None)
+    out = await chat_service.post_message(session, UID, req, "idem-ph")
+
+    assert out.reply.content == "지훈아 반가워."  # egress 렌더
+    stored = [m for m in session.added if isinstance(m, Message)]
+    user_msg = next(m for m in stored if m.sender == "user")
+    capi_msg = next(m for m in stored if m.sender == "moly")
+    assert "지훈" not in user_msg.content and "{name" in user_msg.content
+    assert "지훈" not in capi_msg.content and "{name" in capi_msg.content
+
+
 async def test_post_message_daily_limit(monkeypatch, patched):
     async def _res(session, user_id):
         return _gating(entitlement={
@@ -293,6 +319,7 @@ async def test_greeting_issued_when_nothing_yet_today(monkeypatch):
     session = _greeting_session(spoke=False, issued=False)
     out = await chat_service.get_greeting(session, UID, "home_enter")
     assert out["content"]                       # 프리셋에서 하나 발급
+    assert "지훈" not in session.added[0].content  # 저장은 placeholder만(이름 표면 0)
     assert len(session.added) == 1              # greetings 1건 저장
     assert called["llm"] is False               # 선발화는 코드 프리셋 — LLM 미호출
 

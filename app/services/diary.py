@@ -16,22 +16,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import errors
 from app.models.diary import Diary
 from app.models.profile import Profile
-from app.services import greetings
+from app.services import naming
 from app.services.account import _uid
 
 _PREVIEW_LEN = 60
 
 # 웰컴 일기 — 온보딩 후 첫 일기. content = '제목\n\n본문'(제목 컬럼 없어 스키마 무변경).
-# 닉네임만 교체. source=welcome(→ type=moly, title 필드로 분리 노출). 자세한 배치는 ensure_welcome 참조.
-_WELCOME_BODY = (
+# 이름은 placeholder 토큰으로만 저장하고 egress에서 현재 닉네임으로 렌더한다(개명 드리프트 방지).
+# source=welcome(→ type=moly, title 필드로 분리 노출). 자세한 배치는 ensure_welcome 참조.
+_WELCOME_CONTENT = (
+    "{name:wa}의 만남\n\n"
     "오늘은 뒹굴거리다가 새 친구를 만났다. 이름은 {name}.\n"
     "말하는 카피바라라니 신기하다고 했다. 나는 그 말이 조금 웃겼다. 나한테는 그 친구가 더 신기한데.\n"
     "우리 집도 보여줬다. 낮잠 자는 자리랑, 음악 듣는 자리랑. 어떤 친구일까? 또 대화해보고 싶다."
 )
-
-
-def _welcome_content(nickname: str) -> str:
-    return f"{greetings.with_wa(nickname)}의 만남\n\n{_WELCOME_BODY.format(name=nickname)}"
 
 
 def _welcome_date(created_at: datetime, tz: str) -> date:
@@ -57,7 +55,7 @@ async def ensure_welcome(session: AsyncSession, user_id: str) -> None:
             diary_date=_welcome_date(profile.created_at, profile.timezone),
             source="welcome",
             preset_ment_id=None,
-            content=_welcome_content(profile.nickname),
+            content=_WELCOME_CONTENT,  # placeholder 저장 — egress에서 렌더
             weather="sunny",
             published_at=datetime.now(timezone.utc),  # 즉시 노출
         )
@@ -75,17 +73,17 @@ def _iso(dt: datetime | None) -> str | None:
     return dt.isoformat() if dt else None
 
 
-def _title_body(d: Diary) -> tuple[str | None, str]:
-    """(특별 제목, 본문). 웰컴 일기만 content='제목\\n\\n본문'을 분리, 그 외엔 (None, content)."""
-    content = d.content or ""
+def _title_body(d: Diary, nickname: str | None) -> tuple[str | None, str]:
+    """(특별 제목, 본문). placeholder → 현재 닉네임 렌더. 웰컴만 content='제목\\n\\n본문' 분리."""
+    content = naming.render(d.content or "", nickname)
     if d.source != "welcome":
         return None, content
     title, _, body = content.partition("\n\n")
     return title, body
 
 
-def _list_item(d: Diary) -> dict[str, Any]:
-    title, body = _title_body(d)
+def _list_item(d: Diary, nickname: str | None) -> dict[str, Any]:
+    title, body = _title_body(d, nickname)
     return {
         "id": str(d.id),
         "diary_date": d.diary_date.isoformat(),
@@ -104,6 +102,8 @@ async def list_diaries(
     await ensure_welcome(session, user_id)  # 첫 조회 때 웰컴 일기 lazy 생성(멱등)
     now = datetime.now(timezone.utc)
     limit = max(1, min(limit, 100))
+    profile = await session.get(Profile, _uid(user_id))
+    nickname = profile.nickname if profile is not None else None
     q = select(Diary).where(Diary.user_id == _uid(user_id), Diary.published_at <= now)
     if cursor:
         try:
@@ -116,7 +116,7 @@ async def list_diaries(
     has_more = len(rows) > limit
     rows = rows[:limit]
     next_cursor = rows[-1].diary_date.isoformat() if (has_more and rows) else None
-    return {"data": [_list_item(d) for d in rows], "next_cursor": next_cursor}
+    return {"data": [_list_item(d, nickname) for d in rows], "next_cursor": next_cursor}
 
 
 async def _load_published(session: AsyncSession, user_id: str, diary_id: str) -> Diary:
@@ -138,8 +138,10 @@ async def _load_published(session: AsyncSession, user_id: str, diary_id: str) ->
 
 async def get_diary(session: AsyncSession, user_id: str, diary_id: str) -> dict[str, Any]:
     d = await _load_published(session, user_id, diary_id)
+    profile = await session.get(Profile, _uid(user_id))
+    nickname = profile.nickname if profile is not None else None
     is_personal = _type(d.source) == "personal"
-    title, body = _title_body(d)
+    title, body = _title_body(d, nickname)
     return {
         "id": str(d.id),
         "diary_date": d.diary_date.isoformat(),

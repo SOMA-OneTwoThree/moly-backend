@@ -2,7 +2,6 @@
 from datetime import datetime, timezone
 
 import httpx
-import pytest
 
 from app.services import slack_notify
 from worker.tick import _build_summary

@@ -1,0 +1,24 @@
+/feedback:
+  post:
+    tags:
+    - feedback
+    summary: 문의 등록
+    operationId: createFeedback
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ../components/feedback.yaml#/schemas/CreateFeedbackRequest
+      required: true
+    responses:
+      '204':
+        description: 등록 완료; body 없음
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+    security:
+    - SupabaseBearer: []
+    description: 인앱 문의 폼 제출을 저장한다. contact(연락처)는 선택이며 이벤트 안내에만 쓰인다. 계정당 다건 등록을 허용한다.

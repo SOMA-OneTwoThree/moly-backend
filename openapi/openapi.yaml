@@ -66,6 +66,8 @@ paths:
     $ref: ./paths/shop.yaml#/~1v2~1inventory~1equipment
   /review/prompted:
     $ref: ./paths/core.yaml#/~1review~1prompted
+  /feedback:
+    $ref: ./paths/feedback.yaml#/~1feedback
   /subscription:
     $ref: ./paths/subscriptions.yaml#/~1subscription
   /subscription/plans:
@@ -96,6 +98,8 @@ components:
       $ref: ./components/conversations.yaml#/schemas/CommittedGreeting
     ConversationRef:
       $ref: ./components/conversations.yaml#/schemas/ConversationRef
+    CreateFeedbackRequest:
+      $ref: ./components/feedback.yaml#/schemas/CreateFeedbackRequest
     CreateRoutineRequest:
       $ref: ./components/routines.yaml#/schemas/CreateRoutineRequest
     CreatedMessage:
@@ -250,6 +254,8 @@ tags:
   description: 꾸미기 카탈로그, 구매, 인벤토리, 장착
 - name: review
   description: 앱 리뷰 prompt 노출 기록
+- name: feedback
+  description: 인앱 문의 등록
 - name: subscription
   description: 구독 조회, 고정 플랜, RevenueCat webhook
 - name: ads

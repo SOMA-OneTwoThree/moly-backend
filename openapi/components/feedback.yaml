@@ -1,0 +1,20 @@
+schemas:
+  CreateFeedbackRequest:
+    properties:
+      message:
+        type: string
+        maxLength: 2000
+        minLength: 1
+        title: Message
+      contact:
+        anyOf:
+        - type: string
+          maxLength: 200
+        - type: 'null'
+        title: Contact
+        description: 이메일·전화·인스타 등 자유 입력. 기프티콘 이벤트 안내용 선택 값.
+    additionalProperties: false
+    type: object
+    required:
+    - message
+    title: CreateFeedbackRequest

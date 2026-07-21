@@ -89,17 +89,33 @@ _NOW = datetime(2026, 7, 20, 4, 0, tzinfo=timezone.utc)
 
 
 def test_build_summary_no_failures():
-    """실패 없으면 ⚠️ 없이 깔끔한 요약."""
+    """실패 없으면 ⚠️ 없이 깔끔한 요약. 시각은 KST 우선 + UTC 병기."""
     msg = _build_summary(_NOW, _COUNTS_OK, elapsed=45.3)
     assert msg.startswith("[워커 요약]")
     assert "⚠️" not in msg
-    assert "2026-07-20 04:00 UTC" in msg
+    assert "2026-07-20 13:00 KST" in msg   # 04:00 UTC = 13:00 KST
+    assert "(04:00 UTC)" in msg
     assert "개인 30" in msg
     assert "프리셋 12" in msg
     assert "성공 30" in msg
     assert "아침 38건" in msg
     assert "전체 유저 50명" in msg
     assert "45.3s" in msg
+
+
+def test_build_summary_shows_target_timezone():
+    """active_tzs 주면 '대상 타임존' 라인에 나라·현지시간·오프셋 표기."""
+    msg = _build_summary(_NOW, _COUNTS_OK, elapsed=1.0, active_tzs={"Europe/Prague"})
+    assert "대상 타임존:" in msg
+    assert "체코(Europe/Prague)" in msg
+    assert "현지 06:00" in msg   # 04:00 UTC = 06:00 프라하(CEST, UTC+2)
+    assert "UTC+2" in msg
+
+
+def test_build_summary_no_timezone_line_when_empty():
+    """active_tzs 없으면 대상 타임존 라인 생략(하위호환)."""
+    msg = _build_summary(_NOW, _COUNTS_OK, elapsed=1.0)
+    assert "대상 타임존" not in msg
 
 
 def test_build_summary_with_failures():

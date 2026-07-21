@@ -140,7 +140,7 @@ def test_fix_qmarks_choice_no_false_positive():
 async def test_repair_foreign_ko_fixes_via_llm(monkeypatch):
     """Haiku가 한국어로 고쳐 반환 → 그대로 반환(재검사 클린)."""
     async def fake_gen(system, convo, **kw):
-        return SimpleNamespace(text="나도 내 생각엔")
+        return LLMResult("나도 내 생각엔", 12, 6)
     monkeypatch.setattr(c.llm, "generate", fake_gen)
     assert await c._repair_foreign_ko("나도 我 생각엔") == "나도 내 생각엔"
 
@@ -148,7 +148,7 @@ async def test_repair_foreign_ko_fixes_via_llm(monkeypatch):
 async def test_repair_foreign_ko_last_resort_strip(monkeypatch):
     """2회 재작성 후에도 한자 잔존 → 최후수단 제거."""
     async def fake_gen(system, convo, **kw):
-        return SimpleNamespace(text="나도 我 생각엔")  # 계속 한자
+        return LLMResult("나도 我 생각엔", 12, 6)  # 계속 한자
     monkeypatch.setattr(c.llm, "generate", fake_gen)
     out = await c._repair_foreign_ko("나도 我 생각엔")
     assert "我" not in out and out == "나도 생각엔"

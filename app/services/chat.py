@@ -340,8 +340,9 @@ def _clean_reply(text: str, nickname: str | None = None) -> str:
     """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
 
     페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
-    말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·쉼표·물음표·느낌표)만 남기고
-    말줄임표·마크다운 강조(**,_)·대시(—)는 지운다.
+    말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·물음표·느낌표)만 남기고
+    말줄임표·마크다운 강조(**,_)·대시(—)는 지운다. 쉼표는 코드로 지우지 않고 프롬프트에
+    맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
     """
     out = text_clean.strip_symbols(text)  # 말줄임표·마크다운·대시 제거 + 공백 정규화(공용)
     return _fix_qmarks(out, nickname)
@@ -370,13 +371,16 @@ async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
                 _FOREIGN_REPAIR_SYS,
                 [{"role": "user", "content": text}],
                 model=settings.anthropic_model_utility,
-                max_tokens=settings.llm_max_tokens,
+                max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
             _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
             return reply
         text = r.text.strip()
         if not text_clean.has_foreign_ko(text):
+            _log.info(  # 관측용 — 드문 이벤트라 발동 사실·토큰만 남긴다(청구엔 미포함)
+                "한자 복원 완료 user=%s in=%d out=%d", user_id, r.input_tokens, r.output_tokens
+            )
             return text
     _log.warning("한자 복원 2회 후에도 잔존 — 최후수단 제거 user=%s", user_id)
     return text_clean.strip_foreign_ko(text)

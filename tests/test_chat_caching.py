@@ -136,6 +136,32 @@ def test_fix_qmarks_choice_no_false_positive():
     assert c._clean_reply("그러지 말고 아니면 이렇게 해.") == "그러지 말고 아니면 이렇게 해."
 
 
+# --- 한자·가나 백스톱(_repair_foreign_ko) ---
+async def test_repair_foreign_ko_fixes_via_llm(monkeypatch):
+    """Haiku가 한국어로 고쳐 반환 → 그대로 반환(재검사 클린)."""
+    async def fake_gen(system, convo, **kw):
+        return SimpleNamespace(text="나도 내 생각엔")
+    monkeypatch.setattr(c.llm, "generate", fake_gen)
+    assert await c._repair_foreign_ko("나도 我 생각엔") == "나도 내 생각엔"
+
+
+async def test_repair_foreign_ko_last_resort_strip(monkeypatch):
+    """2회 재작성 후에도 한자 잔존 → 최후수단 제거."""
+    async def fake_gen(system, convo, **kw):
+        return SimpleNamespace(text="나도 我 생각엔")  # 계속 한자
+    monkeypatch.setattr(c.llm, "generate", fake_gen)
+    out = await c._repair_foreign_ko("나도 我 생각엔")
+    assert "我" not in out and out == "나도 생각엔"
+
+
+async def test_repair_foreign_ko_error_keeps_original(monkeypatch):
+    """복원 호출 실패 시 원문 유지(응답을 막지 않음)."""
+    async def boom(system, convo, **kw):
+        raise RuntimeError("boom")
+    monkeypatch.setattr(c.llm, "generate", boom)
+    assert await c._repair_foreign_ko("나도 我 생각엔") == "나도 我 생각엔"
+
+
 # --- 앵커 유지 창 ---
 def test_keep_window_bounds_and_user_first():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 51)]  # 50개

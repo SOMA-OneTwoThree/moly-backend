@@ -30,3 +30,25 @@ def test_preserves_name_token():
 def test_none_and_empty():
     assert text_clean.strip_symbols("") == ""
     assert text_clean.strip_symbols(None) is None
+
+
+# --- 외래문자(한자·가나) 탐지/제거 — 한국어 응답 백스톱 ---
+def test_has_foreign_ko_detects_hanzi_and_kana():
+    assert text_clean.has_foreign_ko("나도 中 생각엔") is True       # 단일 한자
+    assert text_clean.has_foreign_ko("오늘 天气 좋더라") is True     # 한자 단어
+    assert text_clean.has_foreign_ko("완전 かわいい다") is True       # 가나
+    assert text_clean.has_foreign_ko("𠀀 희귀자") is True            # CJK 확장 B(astral)
+
+
+def test_has_foreign_ko_no_false_positive():
+    assert text_clean.has_foreign_ko("오늘 좀 어땠어 힘들었어?") is False
+    assert text_clean.has_foreign_ko("아이폰 3시에 iPhone 봤어") is False  # 라틴·숫자
+    assert text_clean.has_foreign_ko("{유저이름}아 안녕") is False          # placeholder 안전
+    assert text_clean.has_foreign_ko("") is False
+    assert text_clean.has_foreign_ko(None) is False
+
+
+def test_strip_foreign_ko_removes_and_normalizes():
+    assert text_clean.strip_foreign_ko("나도 中 생각엔") == "나도 생각엔"
+    assert text_clean.strip_foreign_ko("완전 かわいい다") == "완전 다"
+    assert text_clean.strip_foreign_ko("") == ""

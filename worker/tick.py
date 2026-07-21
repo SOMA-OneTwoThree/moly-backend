@@ -20,20 +20,54 @@ MORNING_HOUR = 9  # 09:00 아침 일기 푸시
 EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
 
 
-def _build_summary(now: datetime, counts: dict, elapsed: float) -> str:
-    """워커 틱 슬랙 요약 메시지 조립."""
+_KST = ZoneInfo("Asia/Seoul")
+# 자주 보는 타임존의 한국어 나라 라벨(가독성용). 없으면 IANA 이름 그대로.
+_TZ_KO = {
+    "Asia/Seoul": "한국",
+    "Europe/Prague": "체코",
+    "Asia/Tokyo": "일본",
+    "America/New_York": "미국(동부)",
+    "America/Los_Angeles": "미국(서부)",
+    "Europe/London": "영국",
+}
+
+
+def _zone_line(tz: str, now: datetime) -> str:
+    """'한국(Asia/Seoul) 현지 04:00 · UTC+9' 형태. tz 이상 시 이름만."""
+    try:
+        local = now.astimezone(ZoneInfo(tz))
+        off = local.utcoffset()
+        offh = round(off.total_seconds() / 3600) if off else 0
+        label = _TZ_KO.get(tz, tz)
+        return f"{label}({tz}) 현지 {local:%H:%M} · UTC{offh:+d}"
+    except Exception:  # noqa: BLE001  (잘못된 tz라도 요약은 나가야 함)
+        return tz
+
+
+def _build_summary(
+    now: datetime, counts: dict, elapsed: float, active_tzs: set[str] | None = None
+) -> str:
+    """워커 틱 슬랙 요약 메시지 조립. 시각은 한국시간(KST) 우선 + UTC 병기.
+
+    active_tzs = 이 틱에서 일기·아침·저녁을 실제로 처리한 유저들의 타임존(어느 나라 기준인지).
+    """
     has_warn = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
     prefix = "⚠️ " if has_warn else ""
-    ts = now.strftime("%Y-%m-%d %H:%M UTC")
+    ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
+    ts_utc = now.strftime("%H:%M UTC")
     diary_fail = f", 실패 ⚠️ {counts['diary_failed']}건" if counts["diary_failed"] else ""
     mem_fail = f" ⚠️ {counts['memory_failed']}" if counts["memory_failed"] else f" {counts['memory_failed']}"
-    return "\n".join([
-        f"{prefix}[워커 요약] {ts}",
+    lines = [f"{prefix}[워커 요약] {ts_kst} ({ts_utc})"]
+    if active_tzs:
+        zones = " / ".join(_zone_line(tz, now) for tz in sorted(active_tzs))
+        lines.append(f"대상 타임존: {zones}")
+    lines += [
         f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}){diary_fail}",
         f"기억(mem0): 성공 {counts['memory_ok']} / 실패{mem_fail}",
         f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
-    ])
+    ]
+    return "\n".join(lines)
 
 
 async def run_tick(now: datetime | None = None) -> dict[str, int]:
@@ -46,6 +80,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "users": 0,
     }
+    active_tzs: set[str] = set()  # 이 틱에서 일기·아침·저녁을 처리한 유저 타임존(요약 표기용)
     start = time.monotonic()
     async with get_sessionmaker()() as session:
         cfg = await effective_token_config(session)
@@ -58,6 +93,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
             try:
                 if hour == DIARY_HOUR:
                     counts["diary_attempted"] += 1
+                    active_tzs.add(p.timezone)
                     target = activity_date_for(now, p.timezone) - timedelta(days=1)
                     result = await diary_generation.generate_for_user(session, p, target, cfg)
                     if result.get("created"):
@@ -69,9 +105,11 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                     counts["memory_ok"] += result.get("memory_ok", 0)
                     counts["memory_failed"] += result.get("memory_failed", 0)
                 elif hour == MORNING_HOUR:
+                    active_tzs.add(p.timezone)
                     if await notify.notify_morning(session, p):
                         counts["morning"] += 1
                 elif hour == EVENING_HOUR:
+                    active_tzs.add(p.timezone)
                     if await notify.notify_evening(session, p):
                         counts["evening"] += 1
             except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
@@ -92,7 +130,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
 
     # 슬랙 요약: 일기 틱(DIARY_HOUR에 진입한 유저 있음) 또는 푸시 발송 있을 때만 전송(빈 틱 스팸 방지)
     if counts["diary_attempted"] + counts["morning"] + counts["evening"] > 0:
-        summary = _build_summary(now, counts, elapsed)
+        summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)
 
     return counts

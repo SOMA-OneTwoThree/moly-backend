@@ -12,11 +12,11 @@ import re
 # \t\n\r는 제외 — 공백 정규화(_WS)가 처리한다. NBSP 등 유니코드 공백도 _WS(\s)가 단일 공백으로.
 JUNK = re.compile(
     "["
-    "�"                      # U+FFFD 치환문자(깨짐)
-    "​-‏"               # 제로폭(ZWSP/ZWNJ/ZWJ) + 방향표시(LRM/RLM)
-    "‪-‮"               # bidi embedding/override
-    "⁠⁦-⁩"         # word-joiner + bidi isolate
-    "﻿"                      # BOM
+    "\ufffd"                      # U+FFFD 치환문자(깨짐)
+    "\u200b-\u200f"              # 제로폭(ZWSP/ZWNJ/ZWJ) + 방향표시(LRM/RLM)
+    "\u202a-\u202e"              # bidi embedding/override
+    "\u2060\u2066-\u2069"       # word-joiner + bidi isolate
+    "\ufeff"                      # BOM
     "\x00-\x08\x0b\x0c\x0e-\x1f"  # C0 제어문자(\t\n\r 제외)
     "]"
 )

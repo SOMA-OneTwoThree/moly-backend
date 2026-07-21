@@ -261,3 +261,20 @@ async def test_surgical_repair_error_falls_back(monkeypatch):
         raise RuntimeError("boom")
     monkeypatch.setattr(dg.llm, "generate", boom)
     assert await dg._surgical_repair(body) == dg._fallback_clean(body)
+
+
+async def test_surgical_repair_succeeds_on_second_attempt(monkeypatch):
+    """1차는 과편집(거부)·2차는 정상 부분수정 → 2차 결과 채택(폴백 아님)."""
+    body = "산책하다 수박주스를 마셨다. 天气가 좋아서 기분이 들떴다."
+    fixed = "산책하다 수박주스를 마셨다. 날씨가 좋아서 기분이 들떴다."
+    calls = {"n": 0}
+
+    async def fake(system, convo, **kw):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return LLMResult("전혀 다른 문장 통째 재작성이라 원문과 안 겹침.", 20, 20)  # 과편집→거부
+        return LLMResult(fixed, 20, 20)  # 정상 부분수정
+
+    monkeypatch.setattr(dg.llm, "generate", fake)
+    assert await dg._surgical_repair(body) == fixed
+    assert calls["n"] == 2  # 2차까지 시도

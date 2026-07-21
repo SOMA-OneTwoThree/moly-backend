@@ -340,11 +340,50 @@ def _clean_reply(text: str, nickname: str | None = None) -> str:
     """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
 
     페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
-    말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·쉼표·물음표·느낌표)만 남기고
-    말줄임표·마크다운 강조(**,_)·대시(—)는 지운다.
+    말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·물음표·느낌표)만 남기고
+    말줄임표·마크다운 강조(**,_)·대시(—)는 지운다. 쉼표는 코드로 지우지 않고 프롬프트에
+    맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
     """
     out = text_clean.strip_symbols(text)  # 말줄임표·마크다운·대시 제거 + 공백 정규화(공용)
     return _fix_qmarks(out, nickname)
+
+
+# 한국어 응답에 드물게 섞이는 한자·가나(LLM 디코딩 아티팩트) 복원 지시. 프롬프트로 빈도는 낮췄지만
+# 0은 아니라(확률적 토큰 슬립) 코드 백스톱으로 확정한다. 삭제는 단어를 깨므로 재작성으로 복원.
+_FOREIGN_REPAIR_SYS = (
+    "다음 한국어 문장에 중국어 한자나 일본어 문자가 섞여 있다. "
+    "그 글자만 문맥에 맞는 자연스러운 한국어로 바꿔라. "
+    "나머지 표현 말투 문장부호는 절대 바꾸지 말고 그대로 둬라. "
+    "설명 없이 고친 문장만 출력해라."
+)
+
+
+async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
+    """한국어 응답에 섞인 한자·가나를 Haiku로 재작성 복원. 호출측에서 language=='ko' 게이팅.
+
+    최대 2회 시도 후에도 남으면 최후수단으로 제거(단어 깨질 수 있어 최후). 호출 실패는
+    원문 유지(응답을 막지 않음). 실발동은 드문 이벤트라 지연·비용 영향은 무시 수준.
+    """
+    text = reply
+    for _ in range(2):
+        try:
+            r = await llm.generate(
+                _FOREIGN_REPAIR_SYS,
+                [{"role": "user", "content": text}],
+                model=settings.anthropic_model_utility,
+                max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
+            )
+        except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
+            _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
+            return reply
+        text = r.text.strip()
+        if not text_clean.has_foreign_ko(text):
+            _log.info(  # 관측용 — 드문 이벤트라 발동 사실·토큰만 남긴다(청구엔 미포함)
+                "한자 복원 완료 user=%s in=%d out=%d", user_id, r.input_tokens, r.output_tokens
+            )
+            return text
+    _log.warning("한자 복원 2회 후에도 잔존 — 최후수단 제거 user=%s", user_id)
+    return text_clean.strip_foreign_ko(text)
 
 
 def _billable(r: llm.LLMResult) -> int:
@@ -480,11 +519,14 @@ async def post_message(
         )
 
     # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
-    # 정제(_clean_reply: 실이름 대상 부호처리) → 그 다음 placeholder 치환(마지막 단계).
+    # 한자 백스톱(ko만): 드물게 섞인 한자·가나를 재작성 복원 → 정제(_clean_reply) → placeholder 치환.
     consumed = _billable(result)
+    reply_text = result.text
+    if g.profile.language == "ko" and text_clean.has_foreign_ko(reply_text):
+        reply_text = await _repair_foreign_ko(reply_text, user_id=user_id)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal",
-        content=naming.to_placeholder(_clean_reply(result.text, nick), nick),
+        content=naming.to_placeholder(_clean_reply(reply_text, nick), nick),
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
         cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
         billable_tokens=consumed,

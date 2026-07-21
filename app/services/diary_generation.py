@@ -5,7 +5,9 @@
 """
 from __future__ import annotations
 
+import difflib
 import logging
+import re
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -97,6 +99,51 @@ async def _self_check(body: str, transcript: str, user_id=None) -> bool:
     return passed
 
 
+# 개인일기 서지컬 복원 — 깨진문자(�)로 단어 잘림·한자/가나 섞임을 '그 부분만' 고친다.
+# 결정적 삭제는 잘린 단어를 못 살리므로(메� → 메) LLM이 문맥으로 부분수정. 개인일기(LLM 생성)만
+# 대상 — 프리셋은 시드 검증된 사람 글이라 strip_symbols로 충분. 배치라 지연 여유.
+# NOTE: 한자/가나 정규식은 챗(text_clean.has_foreign_ko)과 중복 — #64·#65 병합 후 공용화(DRY) 예정.
+_FOREIGN = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\U00020000-\U0002fa1f]")
+_MIN_EDIT_RATIO = 0.80  # 원문 대비 유사도 하한 — 이보다 크게 바뀌면 '부분수정' 아님 → 결정적 폴백
+_SURGICAL_SYS = (
+    "다음 한국어 일기에 깨진 문자(�)나 한자 또는 일본어 문자가 섞여 있다. "
+    "문제가 된 그 글자만 문맥에 맞는 자연스러운 한국어로 고쳐라. "
+    "나머지 표현 말투 내용 사실관계(이름 숫자 날짜)는 한 글자도 바꾸지 마라. "
+    "깨진 문자로 단어가 잘린 경우 문맥상 가장 자연스러운 한국어로 최소한으로만 복원하고 "
+    "확신이 없으면 억지로 지어내지 마라. 설명 없이 고친 일기만 출력해라."
+)
+
+
+def _needs_repair(body: str) -> bool:
+    """깨진문자·한자/가나가 있으면 서지컬 복원 대상(없으면 LLM 안 탐)."""
+    return bool(body) and ("�" in body or _FOREIGN.search(body) is not None)
+
+
+def _fallback_clean(body: str) -> str:
+    """복원 실패·과편집 시 결정적 폴백 — 외래문자·깨짐 제거(단어 깨질 수 있으나 마지막 안전망)."""
+    return text_clean.strip_symbols(_FOREIGN.sub("", body.replace("�", "")))
+
+
+async def _surgical_repair(body: str, *, user_id=None) -> str:
+    """깨진 부분만 Haiku로 부분수정. 최소편집 가드(유사도)·재검사·재시도 후 안 되면 결정적 폴백."""
+    for _ in range(2):
+        try:
+            r = await llm.generate(
+                _SURGICAL_SYS, [{"role": "user", "content": body}],
+                model=settings.anthropic_model_utility, max_tokens=min(len(body) * 2 + 64, 512),
+            )
+        except Exception as e:  # noqa: BLE001  # 복원 실패가 일기 발행을 막지 않게
+            _log.warning("일기 서지컬 복원 호출 실패(폴백) user=%s: %r", user_id, e)
+            return _fallback_clean(body)
+        cand = r.text.strip()
+        ratio = difflib.SequenceMatcher(None, body, cand).ratio()
+        if not _needs_repair(cand) and ratio >= _MIN_EDIT_RATIO:
+            _log.info("일기 서지컬 복원 user=%s ratio=%.2f", user_id, ratio)
+            return cand
+    _log.warning("일기 서지컬 복원 실패(과편집/미해결) 폴백 user=%s", user_id)
+    return _fallback_clean(body)
+
+
 async def _personal(
     profile, messages: list[Message]
 ) -> tuple[tuple[str, str] | None, dict[str, Any]]:
@@ -109,6 +156,9 @@ async def _personal(
         model=settings.anthropic_model_diary,  # 대화 모델 A/B와 분리(일기 품질 고정)
     )
     weather, body = parse(result.text)
+    # 깨진문자(�)·한자/가나 → 서지컬 복원(그 부분만) 후 노이즈 정제. 없으면 LLM 안 탐.
+    if _needs_repair(body):
+        body = await _surgical_repair(body, user_id=getattr(profile, "id", None))
     body = text_clean.strip_symbols(body)  # 마크다운(**,-)·말줄임표 제거 (이름 마스킹 전이라 토큰 무영향)
     if not body:
         _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))
@@ -173,7 +223,8 @@ async def generate_for_user(
     if source == "preset":
         ment = await _pick_ment(session, target_date)
         if ment is not None:
-            content, weather, preset_id = ment.content, ment.weather, ment.id
+            # 프리셋도 정제 통과(개인일기와 동일) — CSV/시드에 깨짐·부호 섞여도 저장 전 걸러낸다.
+            content, weather, preset_id = text_clean.strip_symbols(ment.content), ment.weather, ment.id
         else:
             content = "오늘도 그냥저냥 하루가 갔다."  # 풀 비었을 때 안전 기본
 

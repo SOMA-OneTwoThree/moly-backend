@@ -215,3 +215,66 @@ async def test_pick_ment_none_when_both_empty():
     got = await dg._pick_ment(session, date(2026, 7, 5))
     assert got is None
     assert session.calls == 2
+
+
+# --- 개인일기 서지컬 복원(깨진문자·한자 부분수정) ---
+def test_needs_repair_detects_broken_and_foreign():
+    assert dg._needs_repair("저녁 메�뉴 얘기") is True   # 깨짐
+    assert dg._needs_repair("天气가 좋다") is True         # 한자
+    assert dg._needs_repair("완전 かわいい다") is True     # 가나
+    assert dg._needs_repair("깨끗한 일기였다.") is False
+    assert dg._needs_repair("") is False
+
+
+def test_fallback_clean_deterministic():
+    assert dg._fallback_clean("저녁 메�뉴 얘기") == "저녁 메뉴 얘기"  # � 제거·재결합
+    assert dg._fallback_clean("天气 좋다") == "좋다"                    # 한자 제거 + 정제
+
+
+async def test_surgical_repair_minimal_fix(monkeypatch):
+    """Haiku가 그 부분만 고쳐 반환(유사도 높음·클린) → 그대로 채택."""
+    body = "산책하다 수박주스를 마셨다. 天气가 좋아서 기분이 들떴다."
+    fixed = "산책하다 수박주스를 마셨다. 날씨가 좋아서 기분이 들떴다."
+
+    async def fake(system, convo, **kw):
+        return LLMResult(fixed, 20, 20)
+    monkeypatch.setattr(dg.llm, "generate", fake)
+    assert await dg._surgical_repair(body) == fixed
+
+
+async def test_surgical_repair_rejects_over_edit(monkeypatch):
+    """원문과 크게 달라진(과편집) 결과는 최소편집 가드가 거부 → 결정적 폴백."""
+    body = "산책하다 수박주스를 마셨다. 天气가 좋아서 기분이 들떴다."
+    overwrite = "전혀 다른 문장이야 이건 완전히 새로 쓴 거라 원문이랑 안 겹쳐."  # 클린이지만 통째 재작성
+
+    async def fake(system, convo, **kw):
+        return LLMResult(overwrite, 20, 20)
+    monkeypatch.setattr(dg.llm, "generate", fake)
+    assert await dg._surgical_repair(body) == dg._fallback_clean(body)
+
+
+async def test_surgical_repair_error_falls_back(monkeypatch):
+    """복원 호출 실패 시 결정적 폴백(일기 발행을 막지 않음)."""
+    body = "저녁 메�뉴 얘기부터 성격까지 소소했다."
+
+    async def boom(system, convo, **kw):
+        raise RuntimeError("boom")
+    monkeypatch.setattr(dg.llm, "generate", boom)
+    assert await dg._surgical_repair(body) == dg._fallback_clean(body)
+
+
+async def test_surgical_repair_succeeds_on_second_attempt(monkeypatch):
+    """1차는 과편집(거부)·2차는 정상 부분수정 → 2차 결과 채택(폴백 아님)."""
+    body = "산책하다 수박주스를 마셨다. 天气가 좋아서 기분이 들떴다."
+    fixed = "산책하다 수박주스를 마셨다. 날씨가 좋아서 기분이 들떴다."
+    calls = {"n": 0}
+
+    async def fake(system, convo, **kw):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return LLMResult("전혀 다른 문장 통째 재작성이라 원문과 안 겹침.", 20, 20)  # 과편집→거부
+        return LLMResult(fixed, 20, 20)  # 정상 부분수정
+
+    monkeypatch.setattr(dg.llm, "generate", fake)
+    assert await dg._surgical_repair(body) == fixed
+    assert calls["n"] == 2  # 2차까지 시도

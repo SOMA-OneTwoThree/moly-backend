@@ -49,6 +49,8 @@ def load_rows(path: str) -> list[tuple[str, str, date]]:
             content = (r.get("content") or "").strip()
             if not content:
                 continue  # 아직 안 쓴 날 — 스킵
+            if "�" in content:  # 깨진 문자(U+FFFD �) = CSV 인코딩 사고 — 문 앞에서 막는다
+                raise SystemExit(f"{i}행: 깨진 문자(U+FFFD �) 포함 — CSV 인코딩(UTF-8) 확인 필요")
             raw = (r.get("diary_date") or "").strip()
             try:
                 d = datetime.strptime(raw, "%Y-%m-%d").date()  # ISO 형식 검증 + date 변환

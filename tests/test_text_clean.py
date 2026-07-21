@@ -32,6 +32,14 @@ def test_none_and_empty():
     assert text_clean.strip_symbols(None) is None
 
 
+def test_strip_symbols_removes_junk_chars():
+    # 깨진 문자(U+FFFD)는 앞뒤 글자를 재결합하며 제거 (메�뉴 → 메뉴)
+    assert text_clean.strip_symbols("저녁 메�뉴 얘기부터") == "저녁 메뉴 얘기부터"
+    assert text_clean.strip_symbols("오늘​은 좋았다") == "오늘은 좋았다"   # 제로폭 ZWSP
+    assert text_clean.strip_symbols("﻿오늘 좋았다") == "오늘 좋았다"        # BOM
+    assert text_clean.strip_symbols("오늘‏ 좋았다") == "오늘 좋았다"        # bidi RLM
+    assert text_clean.strip_symbols("제어\x07문자") == "제어문자"               # C0 제어
+    assert text_clean.strip_symbols("오늘 좋았다") == "오늘 좋았다"         # NBSP → 공백
 # --- 외래문자(한자·가나) 탐지/제거 — 한국어 응답 백스톱 ---
 def test_has_foreign_ko_detects_hanzi_and_kana():
     assert text_clean.has_foreign_ko("나도 中 생각엔") is True       # 단일 한자

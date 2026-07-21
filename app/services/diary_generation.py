@@ -173,7 +173,8 @@ async def generate_for_user(
     if source == "preset":
         ment = await _pick_ment(session, target_date)
         if ment is not None:
-            content, weather, preset_id = ment.content, ment.weather, ment.id
+            # 프리셋도 정제 통과(개인일기와 동일) — CSV/시드에 깨짐·부호 섞여도 저장 전 걸러낸다.
+            content, weather, preset_id = text_clean.strip_symbols(ment.content), ment.weather, ment.id
         else:
             content = "오늘도 그냥저냥 하루가 갔다."  # 풀 비었을 때 안전 기본
 

@@ -82,7 +82,7 @@ async def _self_check(body: str, transcript: str, user_id=None) -> bool:
         result = await llm.generate(
             self_check_prompt(),
             [{"role": "user", "content": f"[대화]\n{transcript}\n\n[일기]\n{body}"}],
-            model=settings.anthropic_model_utility,
+            model=settings.model_utility,
             max_tokens=16,
         )
     except Exception as e:  # noqa: BLE001
@@ -130,7 +130,7 @@ async def _surgical_repair(body: str, *, user_id=None) -> str:
         try:
             r = await llm.generate(
                 _SURGICAL_SYS, [{"role": "user", "content": body}],
-                model=settings.anthropic_model_utility, max_tokens=min(len(body) * 2 + 64, 512),
+                model=settings.model_utility, max_tokens=min(len(body) * 2 + 64, 512),
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 일기 발행을 막지 않게
             _log.warning("일기 서지컬 복원 호출 실패(폴백) user=%s: %r", user_id, e)
@@ -153,7 +153,7 @@ async def _personal(
     result = await llm.generate(
         diary_prompt(profile.language, nickname),
         [{"role": "user", "content": transcript}],
-        model=settings.anthropic_model_diary,  # 대화 모델 A/B와 분리(일기 품질 고정)
+        model=settings.model_diary,  # 대화 모델과 분리(일기 품질 고정) — provider는 prefix 라우팅
     )
     weather, body = parse(result.text)
     # 깨진문자(�)·한자/가나 → 서지컬 복원(그 부분만) 후 노이즈 정제. 없으면 LLM 안 탐.

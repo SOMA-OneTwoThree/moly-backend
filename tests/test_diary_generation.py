@@ -81,7 +81,7 @@ async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")], tokens=5000)
 
     async def _gen(system, convo, *, max_tokens=None, model=None):
-        if model == settings.anthropic_model_utility:
+        if model == settings.model_utility:
             return LLMResult("OK", 1, 1)  # self-check 통과
         return LLMResult("날씨: sunny\n지우는 오늘 발표를 무사히 마쳤다.", 10, 20)
 
@@ -101,7 +101,7 @@ async def test_publishes_personal_even_when_self_check_fails(monkeypatch):
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 진짜 힘들었어")], tokens=5000, ment=ment)
 
     async def _gen(system, convo, *, max_tokens=None, model=None):
-        if model == settings.anthropic_model_utility:
+        if model == settings.model_utility:
             return LLMResult("NO", 1, 1)  # self-check 리젝 — 이제 비차단(로그만)
         return LLMResult("날씨: sunny\n오늘 그 마음이 오래 남았다", 10, 20)
 
@@ -120,7 +120,7 @@ async def test_diary_body_strips_markdown_and_ellipsis(monkeypatch):
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 힘들었어")], tokens=5000)
 
     async def _gen(system, convo, *, max_tokens=None, model=None):
-        if model == settings.anthropic_model_utility:
+        if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("날씨: sunny\n**오늘** 마음이 - 무거웠다... 그래도 괜찮아", 10, 20)
 

@@ -30,6 +30,17 @@ _WELCOME_CONTENT = (
     "말하는 카피바라라니 신기하다고 했다. 나는 그 말이 조금 웃겼다. 나한테는 그 친구가 더 신기한데.\n"
     "우리 집도 보여줬다. 낮잠 자는 자리랑, 음악 듣는 자리랑. 어떤 친구일까? 또 대화해보고 싶다."
 )
+# 비한국어 유저용 웰컴 일기. {유저이름} placeholder 유지(egress에서 현재 닉네임 렌더).
+_WELCOME_CONTENT_EN = (
+    "{유저이름}, our first meeting\n\n"
+    "Today I was lounging around and met a new friend. Their name is {유저이름}.\n"
+    "They said a talking capybara is strange. That made me chuckle a little. To me they're the stranger one.\n"
+    "I showed them around my place. Where I nap. Where I listen to music. What kind of friend are they? I'd like to talk again."
+)
+
+
+def _welcome_content(language: str | None) -> str:
+    return _WELCOME_CONTENT if (language or "ko") == "ko" else _WELCOME_CONTENT_EN
 
 
 def _welcome_date(created_at: datetime, tz: str) -> date:
@@ -67,7 +78,7 @@ async def ensure_welcome(session: AsyncSession, user_id: str) -> None:
             diary_date=_welcome_date(profile.created_at, profile.timezone),
             source="welcome",
             preset_ment_id=None,
-            content=_WELCOME_CONTENT,  # placeholder 저장 — egress에서 렌더
+            content=_welcome_content(getattr(profile, "language", None)),  # 언어별. placeholder→egress 렌더
             weather="sunny",
             published_at=datetime.now(timezone.utc),  # 즉시 노출
         )

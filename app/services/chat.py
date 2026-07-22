@@ -643,7 +643,7 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
 
     # 그날 처음 만난 시각으로 인사 톤을 고른다(home_enter만 시간대별 풀).
     hour = datetime.now(ZoneInfo(profile.timezone)).hour
-    content = greetings.pick(context, profile.nickname, hour)
+    content = greetings.pick(context, profile.nickname, hour, profile.language)
 
     # 저장은 placeholder(이름 표면 0), 클라 응답엔 현재 이름 렌더.
     stored = naming.to_placeholder(content, profile.nickname)

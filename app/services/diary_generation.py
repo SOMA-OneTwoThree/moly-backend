@@ -251,8 +251,11 @@ async def generate_for_user(
             plang = getattr(profile, "language", None)
             if plang and plang != "ko":
                 content = await _translate_preset(content, plang, user_id=getattr(profile, "id", None))
+                content = text_clean.strip_symbols(content)  # 번역이 부호를 재도입할 수 있어 재정제
         else:
-            content = "오늘도 그냥저냥 하루가 갔다."  # 풀 비었을 때 안전 기본
+            # 풀 비었을 때 안전 기본 — 언어별.
+            _pl = getattr(profile, "language", None)
+            content = "Another ordinary day went by." if _pl and _pl != "ko" else "오늘도 그냥저냥 하루가 갔다."
 
     diary = Diary(
         user_id=profile.id, diary_date=target_date, source=source,

@@ -149,11 +149,84 @@ def _personalize(tpl: str, nickname: str | None) -> str:
     return tpl.format(subj=subject(nickname) or "너", voc=vocative(n), name=n)
 
 
-def pick(context: str, nickname: str | None = None, hour: int | None = None) -> str:
+# 영어 유저용 선발화(profile.language != 'ko') — 한글 조사 무관, 이름은 {name} 그대로.
+_ONBOARDING_EN = [
+    "So you're {name}? I'm Capi. I live here. Glad you came. Look around if it feels new. Talk to me whenever you like.",
+    "Oh hey {name}. Nice to meet you. I'm Capi and this is my place. No rush. Just settle in.",
+]
+_HOME_BY_TIME_EN = {
+    "dawn": [
+        "Up at this hour? Can't sleep?",
+        "Still awake I see. I just opened my eyes too.",
+        "It's so early. Got anything fun to tell me?",
+    ],
+    "morning": [
+        "Sleep okay? I'm a little hungry. What should I have for breakfast?",
+        "Morning. It's bright outside.",
+        "You're up. I just stretched too.",
+        "Morning already. How's the weather out there?",
+    ],
+    "day": [
+        "Oh hey. I was sprawled on the sofa.",
+        "It's midday. How's it out there?",
+        "Just woke from a nap. Glad you came.",
+        "Hi. I was watching out the window.",
+    ],
+    "evening": [
+        "Evening already. How was your day?",
+        "You're here. I just ate and took a little walk.",
+        "You worked hard today. How did it go?",
+    ],
+    "night": [
+        "It's late, still up? Want to tell me about your day before bed?",
+        "You came late. Tired? How was today?",
+        "The night is quiet. Want to talk a little before you sleep?",
+    ],
+}
+_POOLS_EN = {
+    "morning": [
+        "Sleep okay? What are you up to today?",
+        "Morning. Did you eat?",
+        "You're up. How are you feeling?",
+        "It's morning. I was still under the covers.",
+    ],
+    "evening": [
+        "Evening already. How was your day?",
+        "You're here. What did you get up to today?",
+        "You worked hard today. Anything happen?",
+        "The day's over. I had the window open.",
+    ],
+    "comeback": [
+        "It's been a while. How have you been? I've got a lot to catch up on.",
+        "You're finally here. Missed you. Tell me what I missed.",
+        "Long time. What have you been up to?",
+    ],
+}
+
+
+def _pick_other(context: str, nickname: str | None, hour: int | None) -> str:
+    """비한국어 선발화 — 영어 풀. 조사 없이 이름 그대로 치환."""
+    if context == "onboarding":
+        if not nickname:
+            return "I'm Capi. I live here. Talk to me whenever you like."
+        return random.choice(_ONBOARDING_EN).format(name=nickname)
+    if context == "home_enter":
+        pool = _HOME_BY_TIME_EN[time_bucket(hour if hour is not None else 12)]
+    else:
+        pool = _POOLS_EN[context]
+    tpl = random.choice(pool)
+    return tpl.format(name=nickname or "you") if "{" in tpl else tpl
+
+
+def pick(
+    context: str, nickname: str | None = None, hour: int | None = None, language: str | None = None
+) -> str:
     """context별 프리셋에서 하나 선택. home_enter만 시각에 따라 풀이 갈린다(hour 없으면 낮).
 
-    이름 자리가 있는 문구(예: '{subj} 왔어?')는 닉네임으로 치환한다.
+    language != 'ko'면 영어 풀에서 픽(조사 무관). 이름 자리는 닉네임으로 치환한다.
     """
+    if (language or "ko") != "ko":
+        return _pick_other(context, nickname, hour)
     if context == "onboarding":
         if not nickname:  # 온보딩은 닉네임 확정 후라 정상 경로엔 안 오지만, 안전 폴백.
             return "난 캐피야, 이 집에 살아. 편하게 얘기 걸어."

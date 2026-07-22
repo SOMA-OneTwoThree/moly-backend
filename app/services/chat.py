@@ -336,7 +336,7 @@ def _fix_qmarks(text: str, nickname: str | None) -> str:
     return " ".join(out)
 
 
-def _clean_reply(text: str, nickname: str | None = None) -> str:
+def _clean_reply(text: str, nickname: str | None = None, language: str | None = None) -> str:
     """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
 
     페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
@@ -344,8 +344,9 @@ def _clean_reply(text: str, nickname: str | None = None) -> str:
     말줄임표·마크다운 강조(**,_)·대시(—)는 지운다. 쉼표는 코드로 지우지 않고 프롬프트에
     맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
     """
-    out = text_clean.strip_symbols(text)  # 말줄임표·마크다운·대시 제거 + 공백 정규화(공용)
-    return _fix_qmarks(out, nickname)
+    keep_hy = (language or "ko") != "ko"  # en 등: 하이픈 유지 + 한국어 되묻기 물음표 복원 불필요
+    out = text_clean.strip_symbols(text, keep_hyphen=keep_hy)  # 말줄임표·마크다운·대시 제거 + 공백 정규화
+    return out if keep_hy else _fix_qmarks(out, nickname)
 
 
 # 한국어 응답에 드물게 섞이는 한자·가나(LLM 디코딩 아티팩트) 복원 지시. 프롬프트로 빈도는 낮췄지만
@@ -549,7 +550,7 @@ async def post_message(
         reply_text = await _repair_foreign_ko(reply_text, user_id=user_id)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal",
-        content=naming.to_placeholder(_clean_reply(reply_text, nick), nick),
+        content=naming.to_placeholder(_clean_reply(reply_text, nick, g.profile.language), nick),
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
         cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
         billable_tokens=consumed,

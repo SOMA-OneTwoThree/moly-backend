@@ -61,12 +61,14 @@ async def _tokens_used(session: AsyncSession, user_id, target_date: date) -> int
     return rows.scalars().first() or 0
 
 
-def _transcript(messages: list[Message], nickname: str | None = None) -> str:
-    """대화록. 유저 화자 라벨 = 닉네임(없으면 '그 사람'). '사용자'는 일기 본문으로 새어 나온다.
+def _transcript(
+    messages: list[Message], nickname: str | None = None, language: str | None = None
+) -> str:
+    """대화록. 유저 화자 라벨 = 닉네임(없으면 언어별 기본). '사용자'는 일기 본문으로 새어 나온다.
 
     저장 본문은 placeholder이므로 LLM 투입 전 현재 이름으로 렌더한다(유창성·추출 품질).
     """
-    user_label = nickname or "그 사람"
+    user_label = nickname or ("그 사람" if (language or "ko") == "ko" else "that person")
     return "\n".join(
         f"{'캐피' if m.sender == 'moly' else user_label}: {naming.render(m.content, nickname)}"
         for m in messages
@@ -119,9 +121,11 @@ def _needs_repair(body: str) -> bool:
     return bool(body) and ("�" in body or _FOREIGN.search(body) is not None)
 
 
-def _fallback_clean(body: str) -> str:
+def _fallback_clean(body: str, *, keep_hyphen: bool = False) -> str:
     """복원 실패·과편집 시 결정적 폴백 — 외래문자·깨짐 제거(단어 깨질 수 있으나 마지막 안전망)."""
-    return text_clean.strip_symbols(_FOREIGN.sub("", body.replace("�", "")))
+    return text_clean.strip_symbols(
+        _FOREIGN.sub("", body.replace("�", "")), keep_hyphen=keep_hyphen
+    )
 
 
 async def _surgical_repair(body: str, *, user_id=None) -> str:
@@ -149,9 +153,11 @@ async def _personal(
 ) -> tuple[tuple[str, str] | None, dict[str, Any]]:
     """(본문, 날씨) 또는 None + 진단정보. None이면 호출측이 preset 폴백."""
     nickname = getattr(profile, "nickname", None)
-    transcript = _transcript(messages, nickname)
+    lang = getattr(profile, "language", None)
+    keep_hy = bool(lang) and lang != "ko"  # 영어 등은 하이픈 유지(laid-back), 서지컬 복원 우회
+    transcript = _transcript(messages, nickname, lang)
     result = await llm.generate(
-        diary_prompt(profile.language, nickname),
+        diary_prompt(lang, nickname),
         [{"role": "user", "content": transcript}],
         model=settings.model_diary,  # 대화 모델과 분리(일기 품질 고정) — provider는 prefix 라우팅
     )
@@ -160,12 +166,11 @@ async def _personal(
     if _needs_repair(body):
         # 비한국어 일기는 한국어 서지컬 복원(_SURGICAL_SYS가 '한국어로 고쳐라')이 본문을 훼손할 수 있어
         # 결정적 정제(_fallback_clean)로 처리. ko는 기존 서지컬 복원 유지.
-        plang = getattr(profile, "language", None)
-        if plang and plang != "ko":
-            body = _fallback_clean(body)
+        if keep_hy:
+            body = _fallback_clean(body, keep_hyphen=True)
         else:
             body = await _surgical_repair(body, user_id=getattr(profile, "id", None))
-    body = text_clean.strip_symbols(body)  # 마크다운(**,-)·말줄임표 제거 (이름 마스킹 전이라 토큰 무영향)
+    body = text_clean.strip_symbols(body, keep_hyphen=keep_hy)  # 마크다운·말줄임표 제거(en 하이픈 유지)
     if not body:
         _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))
         return None, {"empty_body": True, "self_check_passed": None}
@@ -257,7 +262,7 @@ async def generate_for_user(
             plang = getattr(profile, "language", None)
             if plang and plang != "ko":
                 content = await _translate_preset(content, plang, user_id=getattr(profile, "id", None))
-                content = text_clean.strip_symbols(content)  # 번역이 부호를 재도입할 수 있어 재정제
+                content = text_clean.strip_symbols(content, keep_hyphen=True)  # 번역 부호 재정제(en 하이픈 유지)
         else:
             # 풀 비었을 때 안전 기본 — 언어별.
             _pl = getattr(profile, "language", None)

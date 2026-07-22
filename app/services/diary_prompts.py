@@ -47,7 +47,9 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
     else:
         lang_rule = (
             f"Write the diary entirely and naturally in {lang}. "
-            f"Don't mix in Korean, Chinese characters, or any other script."
+            f"Don't mix in Korean, Chinese characters, or any other script. "
+            f"The first line must be exactly 'Weather: <sunny|cloudy|rainy|windy>', "
+            f"and the diary body follows from the second line."
         )
     return f"{_DIARY_PERSONA}\n\n{who}\n'사용자'라는 말은 절대 쓰지 마.\n\n{lang_rule}"
 

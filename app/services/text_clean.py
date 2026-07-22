@@ -22,6 +22,7 @@ JUNK = re.compile(
 )
 ELLIPSIS = re.compile(r"\.{2,}|…+")            # ".." "..." / "…" (한 글자여도 말줄임표)
 STRAY = re.compile(r"[*_`~#—–\-]+")            # 마크다운(**,_,`)·대시·물결·해시 — 부호 화이트리스트 밖
+_STRAY_KEEP_HYPHEN = re.compile(r"[*_`~#—–]+")  # ASCII 하이픈(-) 유지 — 영어 자연 부호(laid-back)
 _WS = re.compile(r"\s+")
 _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
 
@@ -33,13 +34,16 @@ _FOREIGN_KO = re.compile(
 )
 
 
-def strip_symbols(text: str) -> str:
-    """깨진/투명/제어문자 + 말줄임표·마크다운·대시류 제거 + 공백 정규화. 채팅·일기 공용."""
+def strip_symbols(text: str, *, keep_hyphen: bool = False) -> str:
+    """깨진/투명/제어문자 + 말줄임표·마크다운·대시류 제거 + 공백 정규화. 채팅·일기 공용.
+
+    keep_hyphen=True면 ASCII 하이픈(-)을 남긴다(영어 응답의 자연 부호 laid-back 보존). 기본(ko)은 제거.
+    """
     if not text:
         return text
     out = JUNK.sub("", text)      # 깨짐(�)·제로폭·BOM·제어 제거(재결합 위해 "")
     out = ELLIPSIS.sub(" ", out)
-    out = STRAY.sub(" ", out)
+    out = (_STRAY_KEEP_HYPHEN if keep_hyphen else STRAY).sub(" ", out)
     out = _WS.sub(" ", out)
     return _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
 

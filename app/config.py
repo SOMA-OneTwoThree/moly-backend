@@ -111,7 +111,7 @@ class Settings(BaseSettings):
     # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
     # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).
     free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
-    free_launch_token_limit: int = 120_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 기준 ~월 $3.6/인·하루 ~70턴.
+    free_launch_token_limit: int = 150_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 기준 ~월 $4.5/인. 헤비유저 ~42턴.
 
     model_config = SettingsConfigDict(
         env_file=".env",

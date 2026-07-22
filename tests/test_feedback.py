@@ -84,3 +84,36 @@ def test_create_feedback_returns_204():
         app.dependency_overrides.clear()
     assert r.status_code == 204
     assert fake.committed is True and fake.added[0].contact == "a@b.com"
+
+
+# --- 슬랙 알림 (SOMA-337) ---
+def test_feedback_text_format():
+    from app.services import slack_notify
+
+    t = slack_notify.feedback_text("uid-1", "버그가 있어요", "contact@x")
+    assert "버그가 있어요" in t and "contact@x" in t and "uid-1" in t
+    assert "없음" in slack_notify.feedback_text("uid-2", "의견", None)  # 연락처 없음 표기
+
+
+def test_create_feedback_triggers_slack(monkeypatch):
+    fake = FakeSession()
+    calls: list[str] = []
+
+    async def _spy(text):
+        calls.append(text)
+
+    monkeypatch.setattr("app.services.slack_notify.send_summary", _spy)
+
+    async def _session():
+        yield fake
+
+    app.dependency_overrides[get_current_user] = lambda: UID
+    app.dependency_overrides[get_session] = _session
+    try:
+        r = TestClient(app).post("/feedback", json={"message": "버그요", "contact": "@x"})
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 204
+    # BackgroundTasks가 응답 후 슬랙 전송 1건 실행 — 내용·연락처·유저 포함
+    assert len(calls) == 1
+    assert "버그요" in calls[0] and "@x" in calls[0] and UID in calls[0]

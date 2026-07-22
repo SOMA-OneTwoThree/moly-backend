@@ -74,6 +74,8 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     embedder_model: str = "text-embedding-3-small"
     memory_llm_model: str = "gpt-4.1-mini"
+    # 대화 모델 A/B 테스트(dev 전용, /dev/chat-eval). OpenAI는 위 키 재사용, Gemini만 별도 키.
+    gemini_api_key: str = ""
     memory_collection: str = "memories"
     memory_load_top_k: int = 200  # 로드 상한(recency 로컬 랭킹)
     memory_max_render_items: int = 20  # 프롬프트에 넣을 최대 기억 수

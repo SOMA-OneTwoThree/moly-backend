@@ -16,6 +16,7 @@ dependencies = [
     "asyncpg>=0.30",
     "google-auth>=2.0",
     "vecs>=0.4.5",
+    "openai>=2.44.0",
 ]
 
 [dependency-groups]
@@ -25,6 +26,7 @@ dev = [
     "pillow>=11.0.0",
     "pyyaml>=6.0.3",
     "ruff>=0.8.0",
+    "google-genai>=2.12.1",
 ]
 
 # 애플리케이션(배포 단위)이라 프로젝트 자체는 빌드/설치하지 않음 — 의존성만 동기.

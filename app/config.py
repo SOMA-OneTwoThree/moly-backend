@@ -26,9 +26,9 @@ class Settings(BaseSettings):
 
     # --- 대화·일기·utility LLM 모델 ---
     # provider는 model-id 프리픽스로 라우팅(llm.py): gpt-* → OpenAI, claude-* → Anthropic.
-    # 활성 = OpenAI GPT-5.6(2026-07 전환): chat·diary=terra / utility(self-check·한자복원·서지컬)=luna.
+    # 활성 = OpenAI GPT-5.6(2026-07 전환): chat=luna(가성비, 품질 terra급) / diary=terra(품질 고정) / utility=luna.
     # 대화·일기 모델은 분리한다(일기는 핵심 훅=열람율이라 대화 모델에 딸려 내려가면 안 됨).
-    model_chat: str = "gpt-5.6-terra"
+    model_chat: str = "gpt-5.6-luna"
     model_diary: str = "gpt-5.6-terra"
     model_utility: str = "gpt-5.6-luna"
     # dormant(Anthropic 복귀·재사용용) — model_* 를 claude-* 로 되돌리면 prefix 라우팅이
@@ -111,7 +111,7 @@ class Settings(BaseSettings):
     # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
     # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).
     free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
-    free_launch_token_limit: int = 50_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준). 현행 활성 한도.
+    free_launch_token_limit: int = 120_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 기준 ~월 $3.6/인·하루 ~70턴.
 
     model_config = SettingsConfigDict(
         env_file=".env",

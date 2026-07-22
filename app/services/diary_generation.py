@@ -158,7 +158,13 @@ async def _personal(
     weather, body = parse(result.text)
     # 깨진문자(�)·한자/가나 → 서지컬 복원(그 부분만) 후 노이즈 정제. 없으면 LLM 안 탐.
     if _needs_repair(body):
-        body = await _surgical_repair(body, user_id=getattr(profile, "id", None))
+        # 비한국어 일기는 한국어 서지컬 복원(_SURGICAL_SYS가 '한국어로 고쳐라')이 본문을 훼손할 수 있어
+        # 결정적 정제(_fallback_clean)로 처리. ko는 기존 서지컬 복원 유지.
+        plang = getattr(profile, "language", None)
+        if plang and plang != "ko":
+            body = _fallback_clean(body)
+        else:
+            body = await _surgical_repair(body, user_id=getattr(profile, "id", None))
     body = text_clean.strip_symbols(body)  # 마크다운(**,-)·말줄임표 제거 (이름 마스킹 전이라 토큰 무영향)
     if not body:
         _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))

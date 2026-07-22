@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""
     fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)
+    # 아침 일기 푸시 킬스위치(SOMA-338). 현재 차단 → 저녁 안부만 발송. 코드는 유지, True로 되돌리면 재개.
+    morning_push_enabled: bool = False
 
     # --- App Store(StoreKit) — JWS x5c 서명검증(구독/IAP/ASSN 웹훅) ---
     # 우리 설계는 App Store Server API 조회 없음 → .p8/Key ID/Issuer ID 불필요.

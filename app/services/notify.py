@@ -4,6 +4,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.user_device import UserDevice
 from app.models.user_notification_settings import UserNotificationSettings
 from app.services import push
@@ -33,6 +34,9 @@ async def _tokens(session: AsyncSession, uid) -> list[str]:
 
 
 async def notify_morning(session: AsyncSession, profile) -> int:
+    # 전역 킬스위치(SOMA-338): 아침 일기 푸시 차단 → 저녁 안부만 발송. 코드·문구는 유지, 플래그로만 막는다.
+    if not settings.morning_push_enabled:
+        return 0
     if not await _enabled(session, profile.id, "morning_diary"):
         return 0
     return await push.send(await _tokens(session, profile.id), *_MORNING)

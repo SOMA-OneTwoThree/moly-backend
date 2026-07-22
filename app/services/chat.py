@@ -370,7 +370,7 @@ async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
             r = await llm.generate(
                 _FOREIGN_REPAIR_SYS,
                 [{"role": "user", "content": text}],
-                model=settings.anthropic_model_utility,
+                model=settings.model_utility,
                 max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
@@ -389,13 +389,22 @@ async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
 def _billable(r: llm.LLMResult) -> int:
     """실비용 가중 청구 토큰 = billable × 입력단가 = 실제 청구액(정확). 한도가 달러예산에 직결.
 
-    write는 1.25×(read 0.1×) — cold 턴이 실제 더 비싸니 그만큼 더 셈. 30k 한도 = ~$3/월(표준가).
+    provider마다 단가비율이 달라 가중치를 model prefix로 선택한다(OpenAI out 6.0·read 0.5·write 0 /
+    Anthropic out 5.0·read 0.1·write 1.25). Anthropic write는 cold 턴이 실제 더 비싸니 그만큼 더 셈.
     """
+    if llm.provider_for(r.model) == "openai":
+        w_out = settings.bill_weight_output_openai
+        w_read = settings.bill_weight_cache_read_openai
+        w_write = settings.bill_weight_cache_write_openai
+    else:
+        w_out = settings.bill_weight_output
+        w_read = settings.bill_weight_cache_read
+        w_write = settings.bill_weight_cache_write
     raw = (
         r.input_tokens
-        + settings.bill_weight_output * r.output_tokens
-        + settings.bill_weight_cache_read * r.cache_read_tokens
-        + settings.bill_weight_cache_write * r.cache_write_tokens
+        + w_out * r.output_tokens
+        + w_read * r.cache_read_tokens
+        + w_write * r.cache_write_tokens
     )
     return ceil(raw)
 
@@ -508,6 +517,8 @@ async def post_message(
     )
     if (
         cache_on
+        # OpenAI는 자동캐시라 cache_write가 항상 0 → 이 경보는 Anthropic 전용(허위 WARN 방지).
+        and llm.provider_for(result.model) == "anthropic"
         and result.cache_read_tokens == 0
         and result.cache_write_tokens == 0
         # 프리픽스가 모델 최소 임계 밑이면 캐시가 안 걸리는 게 정상(대화 초반). 그 위인데도

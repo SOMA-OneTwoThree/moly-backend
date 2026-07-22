@@ -19,9 +19,9 @@ async def create_feedback(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> None:
-    await feedback.create_feedback(session, user_id, req)
+    nickname = await feedback.create_feedback(session, user_id, req)
     # 저장 성공 후 슬랙 알림 — 백그라운드(응답 204를 지연 안 시킴) + best-effort(URL 없거나 실패해도 무영향).
     background_tasks.add_task(
         slack_notify.send_summary,
-        slack_notify.feedback_text(user_id, req.message, req.contact),
+        slack_notify.feedback_text(user_id, nickname, req.message, req.contact),
     )

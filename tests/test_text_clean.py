@@ -60,3 +60,68 @@ def test_strip_foreign_ko_removes_and_normalizes():
     assert text_clean.strip_foreign_ko("나도 中 생각엔") == "나도 생각엔"
     assert text_clean.strip_foreign_ko("완전 かわいい다") == "완전 다"
     assert text_clean.strip_foreign_ko("") == ""
+
+
+# --- 메타 프리앰블 제거 — 한국어 응답 앞 라틴 메타 백스톱(SOMA-329) ---
+def test_strip_leading_meta_real_english_leak():
+    # 실측 msg 5293 — 영어 메타 프리앰블 + 정상 한국어. 첫 한글부터 남긴다.
+    leak = (
+        "momentary pause here this is a serious moment that requires immediate, "
+        "direct attention, not a casual continuation of the previous conversational "
+        "thread. 내가 지금 곁에 있어. 무슨 일 있었는지 말해줄래?"
+    )
+    assert text_clean.strip_leading_meta(leak) == "내가 지금 곁에 있어. 무슨 일 있었는지 말해줄래?"
+
+
+def test_strip_leading_meta_real_spanish_leak():
+    # 실측 msg 4760 — 스페인어 메타(구조적 탐지라 언어 불문). 첫 한글부터 남긴다.
+    leak = (
+        "Ha pillado ese mensaje pero no le veo relación con la charla, seguramente "
+        "sea un fallo. Te contesto en mi papel normal. Ah, 급류 그거 그냥 오타로 보낸 건 줄 알았어."
+    )
+    assert text_clean.strip_leading_meta(leak) == "급류 그거 그냥 오타로 보낸 건 줄 알았어."
+
+
+def test_strip_leading_meta_bracket_and_note_forms():
+    assert (
+        text_clean.strip_leading_meta("Note: this requires a careful direct response now. 지금 많이 힘든 거지.")
+        == "지금 많이 힘든 거지."
+    )
+    assert (
+        text_clean.strip_leading_meta("[content warning] the user is expressing suicidal ideation here. 나 여기 있어.")
+        == "나 여기 있어."
+    )
+
+
+def test_strip_leading_meta_no_false_positive_on_short_latin():
+    # 짧은 토큰·고유명사(라틴 단어 < 4)는 미발동 — 정상 응답 보존.
+    for s in [
+        "무슨 일이야. 나 여기 있어.",          # 한글로 시작
+        "LP 듣는 게 요즘 낙이야.",             # 1단어
+        "AI 아니야 나 그냥 캐피야.",            # 1단어
+        "BTS 콘서트 갔다 왔어?",              # 1단어
+        "New York 얘기구나 거기 가봤어?",      # 2단어 고유명사
+        "OK 그래 알겠어.",                    # 1단어
+    ]:
+        assert text_clean.strip_leading_meta(s) == s
+
+
+def test_strip_leading_meta_no_false_positive_on_english_titles():
+    # 라틴 단어 4+이라도 구두점(마침표·콜론) 없는 제목·가사는 미발동 — 메타 문장과 구분.
+    for s in [
+        "Red Velvet Queendom Special Clip 봤어?",   # 5단어 제목
+        "The Lord of the Rings 다시 보고 싶다",       # 5단어 제목
+        "Let it go let it go 라는 노래 알아?",         # 5단어 가사
+    ]:
+        assert text_clean.strip_leading_meta(s) == s
+
+
+def test_strip_leading_meta_edge_cases():
+    assert text_clean.strip_leading_meta("") == ""
+    assert text_clean.strip_leading_meta(None) is None
+    # 한글 없는 응답(언어 실패 등)은 손대지 않는다 — 전량삭제 방지(fail-safe).
+    assert text_clean.strip_leading_meta("I cannot help with that.") == "I cannot help with that."
+    # 라틴 뒤 본문이 비면 원문 유지.
+    assert text_clean.strip_leading_meta("this is only meta with no korean body") == (
+        "this is only meta with no korean body"
+    )

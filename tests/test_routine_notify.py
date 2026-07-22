@@ -94,7 +94,7 @@ async def test_evening_skipped_when_exhausted(monkeypatch):
 async def test_evening_sent_when_tokens_remain(monkeypatch):
     sent = _patch(monkeypatch, remaining=5000)
     n = await notify.notify_evening(None, _Profile())
-    assert n == 1 and sent == [notify._EVENING[1]]
+    assert n == 1 and sent == [notify._EVENING["ko"][1]]
 
 
 async def test_evening_sent_when_unlimited(monkeypatch):

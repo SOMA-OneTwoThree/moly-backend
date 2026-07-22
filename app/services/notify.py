@@ -4,12 +4,24 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.user_device import UserDevice
 from app.models.user_notification_settings import UserNotificationSettings
 from app.services import push
 
-_MORNING = ("캐피", "캐피가 어젯밤 일기를 남겼어요. 몰래 보러가볼까요?")
-_EVENING = ("캐피", "오늘 하루는 어땠어? 나랑 같이 얘기하면서 놀자.")
+# 푸시 문구 — 유저 언어별(profile.language). 없거나 미지원 언어면 ko 폴백.
+_MORNING = {
+    "ko": ("캐피", "캐피가 어젯밤 일기를 남겼어요. 몰래 보러가볼까요?"),
+    "en": ("Capi", "Capi left a diary last night. Want to sneak a peek?"),
+}
+_EVENING = {
+    "ko": ("캐피", "오늘 하루는 어땠어? 나랑 같이 얘기하면서 놀자."),
+    "en": ("Capi", "How was your day? Come talk and hang out with me."),
+}
+
+
+def _push_text(table: dict, language: str | None) -> tuple[str, str]:
+    return table.get(language or "ko", table["ko"])
 
 
 async def _enabled(session: AsyncSession, uid, type_: str) -> bool:
@@ -33,9 +45,13 @@ async def _tokens(session: AsyncSession, uid) -> list[str]:
 
 
 async def notify_morning(session: AsyncSession, profile) -> int:
+    # 전역 킬스위치(SOMA-338): 아침 일기 푸시 차단 → 저녁 안부만 발송. 코드·문구는 유지, 플래그로만 막는다.
+    if not settings.morning_push_enabled:
+        return 0
     if not await _enabled(session, profile.id, "morning_diary"):
         return 0
-    return await push.send(await _tokens(session, profile.id), *_MORNING)
+    title, body = _push_text(_MORNING, getattr(profile, "language", None))
+    return await push.send(await _tokens(session, profile.id), title, body)
 
 
 async def notify_evening(session: AsyncSession, profile) -> int:
@@ -49,4 +65,5 @@ async def notify_evening(session: AsyncSession, profile) -> int:
     remaining = g.entitlement.get("tokens_remaining")
     if remaining is not None and remaining <= 0:
         return 0
-    return await push.send(await _tokens(session, profile.id), *_EVENING)
+    title, body = _push_text(_EVENING, getattr(profile, "language", None))
+    return await push.send(await _tokens(session, profile.id), title, body)

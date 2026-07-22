@@ -14,16 +14,26 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import asyncio
+
 from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
 from app.core.time_utils import activity_date_for
 from app.models.diary import Diary
 from app.models.profile import Profile
-from app.schemas.dev import DiaryGenerateRequest, DiaryGenerateResponse
-from app.services import diary_generation
+from app.schemas.dev import (
+    ChatCompareRequest,
+    ChatCompareResponse,
+    ChatEvalRequest,
+    DiaryGenerateRequest,
+    DiaryGenerateResponse,
+    EvalResultOut,
+)
+from app.services import diary_generation, model_eval
 from app.services.account import _uid
 from app.services.limits import effective_token_config
+from app.services.prompts import system_prompt
 
 router = APIRouter(tags=["dev"], prefix="/dev")
 
@@ -79,6 +89,49 @@ async def generate_diary(
             "published_at": diary.published_at.isoformat() if diary.published_at else None,
         },
     }
+
+
+# --- 대화 모델 A/B 평가(dev 전용) — 운영 chat 경로와 분리, 품질·속도·비용 실측 ---
+def _system_for(req) -> str:  # noqa: ANN001
+    return system_prompt(req.language) if req.use_persona else ""
+
+
+def _messages(req) -> list[dict]:  # noqa: ANN001
+    return [{"role": m.role, "content": m.content} for m in req.messages]
+
+
+@router.post("/chat-eval", response_model=EvalResultOut)
+async def chat_eval(
+    req: ChatEvalRequest,
+    _user_id: str = Depends(get_current_user),  # dev도 인증 요구(기존 dev 엔드포인트와 일관·2차 방어)
+) -> dict[str, Any]:
+    """한 모델에 대화를 1회 투입 — 응답 텍스트 + 지연(ms) + 토큰 + 추정비용."""
+    r = await model_eval.run_eval(
+        req.provider, req.model, _system_for(req), _messages(req), max_tokens=req.max_tokens
+    )
+    return r.__dict__
+
+
+@router.post("/chat-eval/compare", response_model=ChatCompareResponse)
+async def chat_eval_compare(
+    req: ChatCompareRequest,
+    _user_id: str = Depends(get_current_user),
+) -> dict[str, Any]:
+    """같은 대화를 여러 모델에 동시 투입 — 나란히 비교(A/B). models 생략 시 기본 셋."""
+    system = _system_for(req)
+    msgs = _messages(req)
+    targets = (
+        [(m.provider, m.model) for m in req.models]
+        if req.models
+        else [(d["provider"], d["model"]) for d in model_eval.DEFAULT_MODELS]
+    )
+    results = await asyncio.gather(
+        *(
+            model_eval.run_eval(p, m, system, msgs, max_tokens=req.max_tokens)
+            for p, m in targets
+        )
+    )
+    return {"results": [r.__dict__ for r in results]}
 
 
 def _hint(diag: dict[str, Any]) -> str:

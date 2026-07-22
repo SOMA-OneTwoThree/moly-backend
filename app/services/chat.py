@@ -336,7 +336,7 @@ def _fix_qmarks(text: str, nickname: str | None) -> str:
     return " ".join(out)
 
 
-def _clean_reply(text: str, nickname: str | None = None) -> str:
+def _clean_reply(text: str, nickname: str | None = None, language: str | None = None) -> str:
     """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
 
     페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
@@ -344,8 +344,9 @@ def _clean_reply(text: str, nickname: str | None = None) -> str:
     말줄임표·마크다운 강조(**,_)·대시(—)는 지운다. 쉼표는 코드로 지우지 않고 프롬프트에
     맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
     """
-    out = text_clean.strip_symbols(text)  # 말줄임표·마크다운·대시 제거 + 공백 정규화(공용)
-    return _fix_qmarks(out, nickname)
+    keep_hy = (language or "ko") != "ko"  # en 등: 하이픈 유지 + 한국어 되묻기 물음표 복원 불필요
+    out = text_clean.strip_symbols(text, keep_hyphen=keep_hy)  # 말줄임표·마크다운·대시 제거 + 공백 정규화
+    return out if keep_hy else _fix_qmarks(out, nickname)
 
 
 # 한국어 응답에 드물게 섞이는 한자·가나(LLM 디코딩 아티팩트) 복원 지시. 프롬프트로 빈도는 낮췄지만
@@ -370,7 +371,7 @@ async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
             r = await llm.generate(
                 _FOREIGN_REPAIR_SYS,
                 [{"role": "user", "content": text}],
-                model=settings.anthropic_model_utility,
+                model=settings.model_utility,
                 max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
@@ -389,13 +390,22 @@ async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
 def _billable(r: llm.LLMResult) -> int:
     """실비용 가중 청구 토큰 = billable × 입력단가 = 실제 청구액(정확). 한도가 달러예산에 직결.
 
-    write는 1.25×(read 0.1×) — cold 턴이 실제 더 비싸니 그만큼 더 셈. 30k 한도 = ~$3/월(표준가).
+    provider마다 단가비율이 달라 가중치를 model prefix로 선택한다(OpenAI out 6.0·read 0.5·write 0 /
+    Anthropic out 5.0·read 0.1·write 1.25). Anthropic write는 cold 턴이 실제 더 비싸니 그만큼 더 셈.
     """
+    if llm.provider_for(r.model) == "openai":
+        w_out = settings.bill_weight_output_openai
+        w_read = settings.bill_weight_cache_read_openai
+        w_write = settings.bill_weight_cache_write_openai
+    else:
+        w_out = settings.bill_weight_output
+        w_read = settings.bill_weight_cache_read
+        w_write = settings.bill_weight_cache_write
     raw = (
         r.input_tokens
-        + settings.bill_weight_output * r.output_tokens
-        + settings.bill_weight_cache_read * r.cache_read_tokens
-        + settings.bill_weight_cache_write * r.cache_write_tokens
+        + w_out * r.output_tokens
+        + w_read * r.cache_read_tokens
+        + w_write * r.cache_write_tokens
     )
     return ceil(raw)
 
@@ -508,6 +518,8 @@ async def post_message(
     )
     if (
         cache_on
+        # OpenAI는 자동캐시라 cache_write가 항상 0 → 이 경보는 Anthropic 전용(허위 WARN 방지).
+        and llm.provider_for(result.model) == "anthropic"
         and result.cache_read_tokens == 0
         and result.cache_write_tokens == 0
         # 프리픽스가 모델 최소 임계 밑이면 캐시가 안 걸리는 게 정상(대화 초반). 그 위인데도
@@ -519,14 +531,26 @@ async def post_message(
         )
 
     # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
-    # 한자 백스톱(ko만): 드물게 섞인 한자·가나를 재작성 복원 → 정제(_clean_reply) → placeholder 치환.
+    # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제(_clean_reply) → placeholder 치환.
     consumed = _billable(result)
     reply_text = result.text
+    if g.profile.language == "ko":
+        # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.
+        # 발동은 드문 이벤트라(3071건 중 2건) 제거한 접두부만 로그로 남겨 감사 가능하게 한다.
+        # stripped는 reply_text의 접미부라 앞부분 = 제거된 메타(한국어 본문은 로그에 안 남김).
+        stripped = text_clean.strip_leading_meta(reply_text)
+        if stripped != reply_text:
+            removed = reply_text[: len(reply_text) - len(stripped)]
+            _log.warning(
+                "메타 프리앰블 제거(egress) user=%s removed_len=%d prefix=%r",
+                user_id, len(removed), removed[:120],
+            )
+            reply_text = stripped
     if g.profile.language == "ko" and text_clean.has_foreign_ko(reply_text):
         reply_text = await _repair_foreign_ko(reply_text, user_id=user_id)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal",
-        content=naming.to_placeholder(_clean_reply(reply_text, nick), nick),
+        content=naming.to_placeholder(_clean_reply(reply_text, nick, g.profile.language), nick),
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
         cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
         billable_tokens=consumed,
@@ -620,7 +644,7 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
 
     # 그날 처음 만난 시각으로 인사 톤을 고른다(home_enter만 시간대별 풀).
     hour = datetime.now(ZoneInfo(profile.timezone)).hour
-    content = greetings.pick(context, profile.nickname, hour)
+    content = greetings.pick(context, profile.nickname, hour, profile.language)
 
     # 저장은 placeholder(이름 표면 0), 클라 응답엔 현재 이름 렌더.
     stored = naming.to_placeholder(content, profile.nickname)

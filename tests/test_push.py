@@ -51,12 +51,29 @@ async def test_notify_morning_sends_when_enabled(monkeypatch):
         captured["title"] = title
         return len(tokens)
 
+    monkeypatch.setattr(notify.settings, "morning_push_enabled", True)  # 킬스위치 해제
     monkeypatch.setattr(push, "send", _fake_send)
     # 설정 행 없음(=기본 on), 토큰 2개
     session = FakeSession([[], ["tok1", "tok2"]])
     n = await notify.notify_morning(session, SimpleNamespace(id=UID_UUID))
     assert n == 2
     assert captured["tokens"] == ["tok1", "tok2"]
+
+
+async def test_notify_morning_blocked_by_kill_switch(monkeypatch):
+    # SOMA-338: morning_push_enabled=False(기본)면 유저 설정·토큰과 무관하게 발송 안 함(저녁만).
+    called = {"sent": False}
+
+    async def _fake_send(tokens, title, body):
+        called["sent"] = True
+        return len(tokens)
+
+    monkeypatch.setattr(notify.settings, "morning_push_enabled", False)
+    monkeypatch.setattr(push, "send", _fake_send)
+    session = FakeSession([[], ["tok1", "tok2"]])  # 유저 설정 on·토큰 있어도
+    n = await notify.notify_morning(session, SimpleNamespace(id=UID_UUID))
+    assert n == 0
+    assert called["sent"] is False  # 킬스위치 → 조회·발송 자체를 안 탐
 
 
 async def test_notify_evening_skipped_when_disabled(monkeypatch):

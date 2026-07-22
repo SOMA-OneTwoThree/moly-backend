@@ -188,6 +188,28 @@ async def _pick_ment(session: AsyncSession, target_date: date) -> MolyLifeMent |
     return rows.scalars().first()
 
 
+_TRANSLATE_SYS = (
+    "You translate a short Korean first-person diary into natural {lang}. "
+    "Keep the gentle, understated diary tone and the first-person voice. "
+    "Output only the translated diary — nothing else, no notes, no Korean or other script."
+)
+
+
+async def _translate_preset(content: str, language: str, *, user_id=None) -> str:
+    """preset(캐피 자기일기) 한국어 카피를 유저 언어로 번역. 실패 시 원문 유지(발행은 막지 않음)."""
+    try:
+        r = await llm.generate(
+            _TRANSLATE_SYS.format(lang=language),
+            [{"role": "user", "content": content}],
+            model=settings.model_utility,
+            max_tokens=512,
+        )
+    except Exception as e:  # noqa: BLE001  # 번역 실패가 일기 발행을 막지 않게
+        _log.warning("preset 번역 실패(원문 유지) user=%s lang=%s: %r", user_id, language, e)
+        return content
+    return r.text.strip() or content
+
+
 async def generate_for_user(
     session: AsyncSession, profile, target_date: date, cfg: dict[str, Any]
 ) -> dict[str, Any]:
@@ -225,6 +247,10 @@ async def generate_for_user(
         if ment is not None:
             # 프리셋도 정제 통과(개인일기와 동일) — CSV/시드에 깨짐·부호 섞여도 저장 전 걸러낸다.
             content, weather, preset_id = text_clean.strip_symbols(ment.content), ment.weather, ment.id
+            # 비한국어 유저는 preset(한국어 카피)을 유저 언어로 번역해 발행(우리가 넣는 일기도 언어 대응).
+            plang = getattr(profile, "language", None)
+            if plang and plang != "ko":
+                content = await _translate_preset(content, plang, user_id=getattr(profile, "id", None))
         else:
             content = "오늘도 그냥저냥 하루가 갔다."  # 풀 비었을 때 안전 기본
 

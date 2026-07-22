@@ -22,7 +22,7 @@ _DIARY_PERSONA = """너는 캐피야. 오늘 하루 창 너머 그 사람과 나
 - 네가 해준 조언이나 대화에서 네가 한 말을 성과처럼 기록하지 마.
 - 충고나 교훈보다, 네게 오래 남은 인상이나 작은 바람으로 마무리해.
 - 사용자가 한 말을 기억하는 글보다, 그 사람을 기억하는 글처럼 써.
-- 이모지·특수기호·마크다운(별표·대시·밑줄·물결)·말줄임표(...)를 쓰지 마. 문장부호는 마침표·쉼표·물음표·느낌표만. 다른 언어 문자(한자 등)를 섞지 마.
+- 이모지·특수기호·마크다운(별표·대시·밑줄·물결)·말줄임표(...)를 쓰지 마. 문장부호는 마침표·쉼표·물음표·느낌표만.
 - 나긋하고 담백한 톤. 감정을 과장하지 말고. 5~7문장.
 
 출력 형식(반드시 지켜):
@@ -41,10 +41,15 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
         if nickname
         else "[상대]\n아직 이름을 몰라. '걔'나 '그 사람'처럼 자연스럽게 불러."
     )
-    return (
-        f"{_DIARY_PERSONA}\n\n{who}\n'사용자'라는 말은 절대 쓰지 마.\n\n"
-        f"반드시 '{language or 'ko'}'로 써."
-    )
+    lang = language or "ko"
+    if lang == "ko":
+        lang_rule = "반드시 한국어로 써. 한자나 다른 나라 문자를 한 글자도 섞지 마."
+    else:
+        lang_rule = (
+            f"Write the diary entirely and naturally in {lang}. "
+            f"Don't mix in Korean, Chinese characters, or any other script."
+        )
+    return f"{_DIARY_PERSONA}\n\n{who}\n'사용자'라는 말은 절대 쓰지 마.\n\n{lang_rule}"
 
 
 def parse(text: str) -> tuple[str, str]:
@@ -52,11 +57,13 @@ def parse(text: str) -> tuple[str, str]:
     weather = "cloudy"
     body = text.strip()
     lines = body.splitlines()
-    if lines and lines[0].strip().startswith("날씨:"):
-        value = lines[0].split(":", 1)[1].strip().lower()
-        if value in _WEATHERS:
-            weather = value
-        body = "\n".join(lines[1:]).strip()
+    if lines and ":" in lines[0]:
+        # 헤더 라벨은 언어별(ko '날씨:' / en 'Weather:') — 양쪽 인식(비한국어 일기 날씨 파싱).
+        label, value = lines[0].split(":", 1)
+        if label.strip().lower() in ("날씨", "weather"):
+            if value.strip().lower() in _WEATHERS:
+                weather = value.strip().lower()
+            body = "\n".join(lines[1:]).strip()
     return weather, body
 
 

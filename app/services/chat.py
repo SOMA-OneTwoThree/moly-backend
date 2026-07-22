@@ -519,9 +519,21 @@ async def post_message(
         )
 
     # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
-    # 한자 백스톱(ko만): 드물게 섞인 한자·가나를 재작성 복원 → 정제(_clean_reply) → placeholder 치환.
+    # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제(_clean_reply) → placeholder 치환.
     consumed = _billable(result)
     reply_text = result.text
+    if g.profile.language == "ko":
+        # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.
+        # 발동은 드문 이벤트라(3071건 중 2건) 제거한 접두부만 로그로 남겨 감사 가능하게 한다.
+        # stripped는 reply_text의 접미부라 앞부분 = 제거된 메타(한국어 본문은 로그에 안 남김).
+        stripped = text_clean.strip_leading_meta(reply_text)
+        if stripped != reply_text:
+            removed = reply_text[: len(reply_text) - len(stripped)]
+            _log.warning(
+                "메타 프리앰블 제거(egress) user=%s removed_len=%d prefix=%r",
+                user_id, len(removed), removed[:120],
+            )
+            reply_text = stripped
     if g.profile.language == "ko" and text_clean.has_foreign_ko(reply_text):
         reply_text = await _repair_foreign_ko(reply_text, user_id=user_id)
     rmsg = Message(

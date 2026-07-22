@@ -14,15 +14,19 @@ UID_UUID = uuid.UUID(UID)
 
 
 class FakeSession:
-    def __init__(self):
+    def __init__(self, profile=None):
         self.added = []
         self.committed = False
+        self._profile = profile
 
     def add(self, obj):
         self.added.append(obj)
 
     async def commit(self):
         self.committed = True
+
+    async def get(self, model, pk):
+        return self._profile
 
 
 # --- 서비스 ---
@@ -88,15 +92,23 @@ def test_create_feedback_returns_204():
 
 # --- 슬랙 알림 (SOMA-337) ---
 def test_feedback_text_format():
+    from datetime import datetime
+
     from app.services import slack_notify
 
-    t = slack_notify.feedback_text("uid-1", "버그가 있어요", "contact@x")
-    assert "버그가 있어요" in t and "contact@x" in t and "uid-1" in t
-    assert "없음" in slack_notify.feedback_text("uid-2", "의견", None)  # 연락처 없음 표기
+    when = datetime(2026, 7, 23, 1, 30)
+    t = slack_notify.feedback_text("uid-1", "지아", "버그가 있어요", "contact@x", when=when)
+    assert "버그가 있어요" in t and "contact@x" in t and "지아" in t and "uid-1" in t
+    assert "2026-07-23 01:30" in t  # 한국 시각(라벨 없이)
+    # 연락처 없으면 그 줄 생략, 닉네임 없으면 표기
+    t2 = slack_notify.feedback_text("uid-2", None, "의견만 남겨요", None, when=when)
+    assert "연락처" not in t2 and "(닉네임 없음)" in t2 and "의견만 남겨요" in t2
 
 
 def test_create_feedback_triggers_slack(monkeypatch):
-    fake = FakeSession()
+    from types import SimpleNamespace
+
+    fake = FakeSession(profile=SimpleNamespace(nickname="지아"))
     calls: list[str] = []
 
     async def _spy(text):
@@ -114,6 +126,6 @@ def test_create_feedback_triggers_slack(monkeypatch):
     finally:
         app.dependency_overrides.clear()
     assert r.status_code == 204
-    # BackgroundTasks가 응답 후 슬랙 전송 1건 실행 — 내용·연락처·유저 포함
+    # BackgroundTasks가 응답 후 슬랙 전송 1건 실행 — 내용·연락처·닉네임·유저id 포함
     assert len(calls) == 1
-    assert "버그요" in calls[0] and "@x" in calls[0] and UID in calls[0]
+    assert "버그요" in calls[0] and "@x" in calls[0] and "지아" in calls[0] and UID in calls[0]

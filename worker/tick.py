@@ -156,7 +156,11 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         await slack_notify.send_summary(summary)
 
     # --- 데드맨 핑 + 결과이상/비용 경보(네트워크 — 세션 밖) ---
-    await _emit_worker_health(now, counts)
+    # 최후 방어: 모니터링은 무슨 일이 있어도 배치 틱을 깨면 안 된다(일기·푸시는 이미 커밋됨).
+    try:
+        await _emit_worker_health(now, counts)
+    except Exception as e:  # noqa: BLE001
+        _log.warning("워커 헬스 emit 실패(무시): %r", e)
 
     return counts
 

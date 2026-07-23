@@ -6,18 +6,22 @@ import time
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+import httpx
+from sqlalchemy import func, select
 
+from app.config import settings
 from app.core.db import get_sessionmaker
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
-from app.services import diary_generation, memory, notify, slack_notify
+from app.models.user_daily_stats import UserDailyStats
+from app.services import config_store, diary_generation, memory, notify, slack_notify
 from app.services.limits import effective_token_config
 
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
 MORNING_HOUR = 9  # 09:00 아침 일기 푸시
 EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
+_WORKER_LAST_SUCCESS_KEY = "monitoring:worker_last_success"  # app_config 데드맨 상태 키(health.py와 공유)
 
 
 _KST = ZoneInfo("Asia/Seoul")
@@ -75,6 +79,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     now = now or datetime.now(timezone.utc)
     counts = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_failed": 0,
+        "diary_skipped": 0,  # 이미 생성돼 스킵(멱등 재실행) — 실패와 구분(오탐 방지)
         "memory_ok": 0, "memory_failed": 0,
         "morning": 0, "evening": 0,
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
@@ -102,6 +107,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                             counts["diary_llm"] += 1
                         else:
                             counts["diary_preset"] += 1
+                    elif result.get("skipped"):
+                        counts["diary_skipped"] += 1
                     counts["memory_ok"] += result.get("memory_ok", 0)
                     counts["memory_failed"] += result.get("memory_failed", 0)
                 elif hour == MORNING_HOUR:
@@ -126,6 +133,21 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 _log.warning("고아 기억 스위프 실패: %r", e)
                 await session.rollback()
 
+        # --- 모니터링 상태 기록(반드시 세션 with 블록 안 — 밖은 세션이 닫혀 있음) ---
+        # 워커가 끝까지 돌았음을 기록. 데드맨 핑은 '결과 정상' 여부로 별도(_emit_worker_health).
+        try:
+            await config_store.set_config_value(session, _WORKER_LAST_SUCCESS_KEY, now.isoformat())
+        except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
+            _log.warning("워커 상태 기록 실패: %r", e)
+            await session.rollback()
+        # 비용 이상치 계산(전일 완결분, 하루 1회 DIARY_HOUR UTC 틱에서만)
+        if now.hour == DIARY_HOUR and settings.daily_billable_alert_threshold > 0:
+            try:
+                counts["billable_yesterday"] = await _sum_billable_yesterday(session, now)
+            except Exception as e:  # noqa: BLE001
+                _log.warning("전일 billable 합산 실패: %r", e)
+                await session.rollback()
+
     elapsed = time.monotonic() - start
 
     # 슬랙 요약: 일기 틱(DIARY_HOUR에 진입한 유저 있음) 또는 푸시 발송 있을 때만 전송(빈 틱 스팸 방지)
@@ -133,4 +155,54 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)
 
+    # --- 데드맨 핑 + 결과이상/비용 경보(네트워크 — 세션 밖) ---
+    # 최후 방어: 모니터링은 무슨 일이 있어도 배치 틱을 깨면 안 된다(일기·푸시는 이미 커밋됨).
+    try:
+        await _emit_worker_health(now, counts)
+    except Exception as e:  # noqa: BLE001
+        _log.warning("워커 헬스 emit 실패(무시): %r", e)
+
     return counts
+
+
+async def _sum_billable_yesterday(session, now: datetime) -> int:
+    """전일(어제 KST) 완결분 billable 합산. user_daily_stats.tokens_used = 실비용가중 billable 누적.
+
+    messages 풀스캔 대신 작은 집계 테이블 사용. activity_date는 유저별 로컬경계라 근사(비용가드용).
+    """
+    yday = (now.astimezone(_KST) - timedelta(days=1)).date()
+    total = (
+        await session.execute(
+            select(func.coalesce(func.sum(UserDailyStats.tokens_used), 0)).where(
+                UserDailyStats.activity_date == yday
+            )
+        )
+    ).scalar_one()
+    return int(total)
+
+
+async def _emit_worker_health(now: datetime, counts: dict) -> None:
+    """데드맨 핑(결과 반영) + 결과이상·비용 경보. 전부 best-effort(실패해도 워커 미중단).
+
+    anomaly = 실패 카운트만으로 판정 — 멱등 재실행의 전원 스킵(diary_skipped)은 정상이라 제외(오탐 방지).
+    dedup은 프로세스 내 한정 → 워커는 틱마다 새 프로세스라 지속장애 시 틱당 재알림 감수(스톰은 아님).
+    """
+    anomaly = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
+    if settings.worker_ping_url:
+        url = settings.worker_ping_url + ("/fail" if anomaly else "")
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                await client.get(url)
+        except Exception as e:  # noqa: BLE001
+            _log.warning("워커 데드맨 핑 실패: %r", e)
+    if anomaly:
+        await slack_notify.alert(
+            f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']} / 기억실패 {counts['memory_failed']}",
+            dedup_key="worker_anomaly",
+        )
+    total = counts.get("billable_yesterday")
+    thr = settings.daily_billable_alert_threshold
+    if total is not None and thr > 0 and total > thr:
+        await slack_notify.alert(
+            f"💸 전일 billable {total:,} 이 임계 {thr:,} 초과 — 비용 확인 필요", dedup_key="cost_spike"
+        )

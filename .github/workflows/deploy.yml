@@ -55,6 +55,8 @@ jobs:
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -151,3 +153,52 @@ jobs:
             exit 1
           fi
           echo "==> 배포 성공"
+
+      # 7. 배포후 헬스 스모크 — 배포 성공 시에만 실행(앞 스텝 실패면 건너뜀).
+      #    /health/ready 폴링(앱 재기동 대기) + /health/synthetic(의존성 능동점검) → Slack 알림.
+      #    보수적: 자동 롤백 안 함. 실패 시 워크플로만 red + Slack으로 사람이 판단.
+      #    필요 secret: HEALTH_TOKEN, SLACK_STATUS_WEBHOOK_URL (레포 Settings→Secrets 등록).
+      - name: Post-deploy health smoke
+        env:
+          # 시크릿은 env로 주입(셸 인라인 치환 회피 — 특수문자 인젝션 방지).
+          HEALTH_TOKEN: ${{ secrets.HEALTH_TOKEN }}
+          SLACK_STATUS_WEBHOOK_URL: ${{ secrets.SLACK_STATUS_WEBHOOK_URL }}
+        run: |
+          set -uo pipefail
+          BASE="https://voice.moly.asia"
+          SHA7="${GITHUB_SHA::7}"
+
+          # /health/ready 200 될 때까지 폴링(최대 10회 × 6s = 배포 재기동 대기)
+          ready_ok=0
+          for i in $(seq 1 10); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$BASE/health/ready" || echo 000)"
+            echo "  [$i] /health/ready → $code"
+            if [ "$code" = "200" ]; then ready_ok=1; break; fi
+            sleep 6
+          done
+
+          # 배포된 버전 sha 반영 확인(/health version)
+          ver="$(curl -s --max-time 10 "$BASE/health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p' || true)"
+          # 의존성 능동점검(DB·LLM) 1회
+          syn="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+            -H "X-Health-Token: ${HEALTH_TOKEN}" "$BASE/health/synthetic" || echo 000)"
+
+          if [ "$ready_ok" = "1" ] && [ "$syn" = "200" ]; then
+            msg="✅ 배포 ${SHA7} 헬스 정상 (version=${ver:-?}, synthetic=200)"
+            fail=0
+          else
+            msg="❌ 배포 ${SHA7} 헬스 실패 (ready_ok=${ready_ok}, synthetic=${syn}, version=${ver:-?}) — 롤백 검토: 이전 ECR 이미지 태그로 재배포"
+            fail=1
+          fi
+          echo "$msg"
+
+          # Slack status 채널 알림(미설정 시 스킵)
+          hook="${SLACK_STATUS_WEBHOOK_URL}"
+          if [ -n "$hook" ]; then
+            curl -s -X POST -H 'Content-type: application/json' \
+              --data "$(printf '{"text":%s}' "$(printf '%s' "$msg" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')")" \
+              "$hook" || true
+          fi
+
+          # 헬스 실패면 워크플로 red(신호용, 자동복구는 안 함)
+          [ "$fail" = "0" ]

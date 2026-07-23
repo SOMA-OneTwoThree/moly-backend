@@ -41,7 +41,7 @@ ROUTINE = {
 @pytest.mark.parametrize(
     ("model", "payload"),
     [
-        (HealthResponse, {"status": "ok", "app": "moly-backend", "env": "local"}),
+        (HealthResponse, {"status": "ok", "app": "moly-backend", "env": "local", "version": "abc1234"}),
         (
             ChatStateResponse,
             {
@@ -195,6 +195,10 @@ def test_all_json_success_routes_use_concrete_base_models():
         routes = router.routes if router is not None else [included]
         for route in routes:
             if not isinstance(route, APIRoute) or route.status_code == 204:
+                continue
+            # 운영 엔드포인트(/health/ready·deep·synthetic 등 include_in_schema=False)는
+            # 클라 계약이 아니라 동적 상태를 반환 → concrete 응답모델 강제 대상에서 제외.
+            if not route.include_in_schema:
                 continue
             response_model = route.response_model
             if not (

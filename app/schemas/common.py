@@ -25,3 +25,4 @@ class StatusResponse(StrictResponse):
 class HealthResponse(StatusResponse):
     app: str
     env: str
+    version: str  # 배포 커밋 sha(git_sha) — 배포 반영 확인용

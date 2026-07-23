@@ -1,0 +1,49 @@
+name: Synthetic monitor (moly-backend)
+
+# 15분마다 /health/synthetic(DB·LLM 의존성 능동 점검)을 찔러 비200이면 Slack alert.
+# - ready(공개)는 Betterstack이 1분 감시. 이건 ready가 못 잡는 LLM/DB 부분장애 감지용.
+# - GH Actions cron 타이밍은 느슨(수분 지연 가능) — 15분 폴링엔 허용. 대안: Betterstack로 이 URL 감시.
+# - 스케줄 워크플로는 default 브랜치(main)에서만 동작 → 머지 후 활성화.
+# 필요 secret: HEALTH_TOKEN, SLACK_ALERT_WEBHOOK_URL (레포 Settings→Secrets 등록).
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: synthetic-monitor
+  cancel-in-progress: true
+
+jobs:
+  synthetic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe /health/synthetic
+        env:
+          # 시크릿은 env로 주입(셸 인라인 치환 회피).
+          HEALTH_TOKEN: ${{ secrets.HEALTH_TOKEN }}
+          SLACK_ALERT_WEBHOOK_URL: ${{ secrets.SLACK_ALERT_WEBHOOK_URL }}
+        run: |
+          set -uo pipefail
+          BASE="https://voice.moly.asia"
+          body="$(curl -s -w '\n%{http_code}' --max-time 40 \
+            -H "X-Health-Token: ${HEALTH_TOKEN}" "$BASE/health/synthetic" || printf '\n000')"
+          code="$(printf '%s' "$body" | tail -n1)"
+          payload="$(printf '%s' "$body" | sed '$d')"
+          echo "synthetic → ${code} : ${payload}"
+          if [ "$code" = "200" ]; then
+            echo "정상"
+            exit 0
+          fi
+          msg="🔴 합성 모니터 실패 — /health/synthetic → ${code}. 응답: ${payload}"
+          hook="${SLACK_ALERT_WEBHOOK_URL}"
+          if [ -n "$hook" ]; then
+            curl -s -X POST -H 'Content-type: application/json' \
+              --data "$(printf '{"text":%s}' "$(printf '%s' "$msg" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')")" \
+              "$hook" || true
+          fi
+          exit 1

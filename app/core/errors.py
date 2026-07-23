@@ -107,6 +107,10 @@ def unauthorized(message: str = "다시 로그인해 주세요.") -> AppError:
     return AppError("UNAUTHORIZED", 401, message)
 
 
+def forbidden(message: str = "접근 권한이 없어요.") -> AppError:
+    return AppError("FORBIDDEN", 403, message)
+
+
 def already_onboarded() -> AppError:
     return AppError("ALREADY_ONBOARDED", 409, "이미 온보딩을 완료했어요.")
 

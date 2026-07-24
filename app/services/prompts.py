@@ -78,6 +78,7 @@ def system_prompt(language: str) -> str:
     ko = 한글 강제 + 한국어 출력 체크. 그 외(en 등) = 해당 언어로 쓰되 한글·한자·타 스크립트 배제.
     페르소나 본문은 한국어 지시문이지만, 응답 언어·문자 규칙만 언어별로 갈아끼워 다국어 대응한다.
     """
+    # raw BCP47 유지: LLM엔 유저 실제 언어로 지시해야 하므로 resolver 버킷(ko/en)이 아님(zh 유저=중국어 응답).
     lang = language or "ko"
     if i18n.is_korean(language):
         lang_rule = (

@@ -41,7 +41,9 @@ def _batchim(s: str) -> bool:
 
 
 def _apply_josa(nick: str, j: str) -> str:
-    """현재 이름 + 받침 맞춘 조사."""
+    """현재 이름 + 받침 맞춘 조사. 비한글 이름은 조사 미부착(greetings 계열과 일관, SOMA-347)."""
+    if not nick or not ("가" <= nick[-1] <= "힣"):
+        return nick  # 라틴 등 비한글: 'Alex는'·'Alex가' 방지 — 인라인 조사도 일괄 차단
     if j in ("아", "야"):
         return greetings.vocative(nick)
     if j == "이야":

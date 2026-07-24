@@ -224,7 +224,11 @@ def _store_of(event: dict) -> str:
     if not raw:
         _log.warning("RC 웹훅: store 누락 — 스토어 미상 기록(tx=%r)", event.get("transaction_id"))
         return "unknown"
-    return _RC_STORE_MAP.get(raw, raw.lower())
+    mapped = _RC_STORE_MAP.get(raw)
+    if mapped is None:  # RC가 새 store 유형 추가 시 감지(소문자 원값으로 기록하되 관측)
+        _log.info("RC 웹훅: 미등록 store(%r) — 소문자 원값 기록", raw)
+        return raw.lower()
+    return mapped
 
 
 async def _mark_payment_refunded(session: AsyncSession, event: dict) -> None:

@@ -12,7 +12,7 @@ from typing import TypeVar
 _log = logging.getLogger("moly-backend")
 
 # 콘텐츠가 실제로 존재하는 언어(그 외는 폴백). 새 언어 카피가 준비되면 여기에 추가.
-SUPPORTED = ("ko", "en")
+SUPPORTED = frozenset(("ko", "en"))
 FALLBACK = "en"  # 지원 밖 언어(zh·ja 등)에 적용할 폴백 — ko 앱이지만 미지원은 영어가 무난.
 _DEFAULT = "ko"  # 언어 미설정(None) = 한국어(기본 프로필).
 

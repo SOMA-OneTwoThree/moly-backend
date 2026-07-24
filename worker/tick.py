@@ -22,7 +22,6 @@ _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
 MORNING_HOUR = 9  # 09:00 아침 일기 푸시
 EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
-_WORKER_LAST_SUCCESS_KEY = "monitoring:worker_last_success"  # app_config 데드맨 상태 키(health.py와 공유)
 
 
 _KST = ZoneInfo("Asia/Seoul")
@@ -198,7 +197,9 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 await smon.rollback()
             # 워커가 끝까지 돌았음을 기록(데드맨 핑은 결과 정상 여부로 별도, _emit_worker_health)
             try:
-                await config_store.set_config_value(smon, _WORKER_LAST_SUCCESS_KEY, now.isoformat())
+                await config_store.set_config_value(
+                    smon, config_store.WORKER_LAST_SUCCESS_KEY, now.isoformat()
+                )
             except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
                 _log.warning("워커 상태 기록 실패: %r", e)
                 await smon.rollback()

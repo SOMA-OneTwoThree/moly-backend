@@ -60,6 +60,7 @@ async def grant_pack(
     if product is None:
         _log.warning("RC IAP: 미상 상품 %s (store=%s) — 스킵", product_id, store)
         return
+    # Order = 국내 카탈로그 스냅샷(KRW 표시가). 실결제 통화/금액은 아래 Payment가 권위(매출 단일 소스).
     ord_ = order_service.create_paid_order(
         session, uid, currency="KRW", product=product, unit_price=product.price_krw or 0
     )

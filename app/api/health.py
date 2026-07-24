@@ -30,7 +30,6 @@ from app.services import config_store, llm, slack_notify  # noqa: F401 (slack_no
 router = APIRouter(tags=["system"])
 
 _KST = ZoneInfo("Asia/Seoul")
-_WORKER_LAST_SUCCESS_KEY = "monitoring:worker_last_success"
 _WORKER_STALE_SEC = 2 * 3600  # 워커 마지막 성공이 이보다 오래면 stale(매시 틱이라 2h면 여러 틱 누락)
 
 
@@ -91,8 +90,8 @@ async def health_deep(
     # 워커 마지막 성공(app_config 기록) → stale 판정
     worker: dict[str, Any] = {"last_success": None, "stale": True, "age_sec": None}
     try:
-        vals = await config_store.get_config_values(session, [_WORKER_LAST_SUCCESS_KEY])
-        raw = vals.get(_WORKER_LAST_SUCCESS_KEY)
+        vals = await config_store.get_config_values(session, [config_store.WORKER_LAST_SUCCESS_KEY])
+        raw = vals.get(config_store.WORKER_LAST_SUCCESS_KEY)
         if isinstance(raw, str):
             last = datetime.fromisoformat(raw)
             age = (now - last).total_seconds()

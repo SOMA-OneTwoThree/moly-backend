@@ -38,16 +38,17 @@ async def grant_pack(
         return
     if await payment_exists(session, transaction_id):
         return  # 멱등 — 이미 지급된 거래
+    # 스토어에 맞는 상품ID 컬럼으로 조회(Google Play는 play_store_product_id).
+    id_col = (
+        Product.play_store_product_id if store == "play_store" else Product.app_store_product_id
+    )
     product = (
         await session.execute(
-            select(Product).where(
-                Product.app_store_product_id == product_id,
-                Product.product_type == "hay_pack",
-            )
+            select(Product).where(id_col == product_id, Product.product_type == "hay_pack")
         )
     ).scalars().first()
     if product is None:
-        _log.warning("RC IAP: 미상 상품 %s — 스킵", product_id)
+        _log.warning("RC IAP: 미상 상품 %s (store=%s) — 스킵", product_id, store)
         return
     ord_ = order_service.create_paid_order(
         session, uid, currency="KRW", product=product, unit_price=product.price_krw or 0

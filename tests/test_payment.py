@@ -51,7 +51,7 @@ async def test_grant_pack_creates_order_payment_ledger(monkeypatch):
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     # exec 1회차 = 결제 멱등 조회(없음), 2회차 = 상품 조회
     s = FakeSession(exec_results=[[], [pack]])
-    await payment.grant_pack(s, UID_UUID, pack.app_store_product_id, "tx-1", store="play_store")
+    await payment.grant_pack(s, UID_UUID, pack.app_store_product_id, "tx-1", store="app_store")
     order, order_item, pay = s.added
     assert order.currency == "KRW" and order.status == "paid" and order.total_amount == 1500
     assert order_item.order_id == order.id and order_item.unit_price == 1500
@@ -59,7 +59,46 @@ async def test_grant_pack_creates_order_payment_ledger(monkeypatch):
     assert applied == {"type": "iap_purchase", "amount": 300, "order_id": order.id}
     assert pay.order_id == order.id and pay.store_transaction_id == "tx-1"
     assert pay.amount == 1500 and pay.status == "paid"
-    assert pay.store == "play_store"  # 실제 스토어 기록(SOMA-343)
+    assert pay.store == "app_store"  # 실제 스토어 기록(SOMA-343): 인자로 받은 store 그대로
+
+
+class _WhereCaptureSession(FakeSession):
+    """상품 조회 WHERE 절을 기록 — select(Product)는 SELECT에 전 컬럼을 렌더하므로 WHERE만 검사."""
+    def __init__(self, exec_results=None):
+        super().__init__(exec_results)
+        self.wheres = []
+
+    async def execute(self, stmt):
+        self.wheres.append(str(getattr(stmt, "whereclause", "")))
+        return await super().execute(stmt)
+
+
+async def test_grant_pack_play_store_looks_up_play_column(monkeypatch):
+    """store=play_store면 play_store_product_id 컬럼으로 상품을 조회한다(SOMA-342)."""
+    pack = _pack()
+
+    async def _apply(session, uid, t, amt, **kw):
+        return SimpleNamespace(id=1, balance_after=300)
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    s = _WhereCaptureSession(exec_results=[[], [pack]])  # [0] 멱등 조회, [1] 상품 조회
+    await payment.grant_pack(s, UID_UUID, "moly_hay_300", "tx-9", store="play_store")
+    assert "play_store_product_id" in s.wheres[1]  # 상품 조회 WHERE가 play 컬럼 사용
+    assert s.added  # 정상 지급
+
+
+async def test_grant_pack_app_store_looks_up_app_column(monkeypatch):
+    """store=app_store(기본)면 app_store_product_id 컬럼으로 조회 — 기존 Apple 경로 무변경."""
+    pack = _pack()
+
+    async def _apply(session, uid, t, amt, **kw):
+        return SimpleNamespace(id=1, balance_after=300)
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    s = _WhereCaptureSession(exec_results=[[], [pack]])
+    await payment.grant_pack(s, UID_UUID, pack.app_store_product_id, "tx-10", store="app_store")
+    assert "play_store_product_id" not in s.wheres[1]  # play 컬럼 미사용
+    assert "app_store_product_id" in s.wheres[1]
 
 
 async def test_grant_pack_idempotent_on_duplicate_transaction(monkeypatch):

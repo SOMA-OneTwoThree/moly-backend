@@ -52,6 +52,7 @@ CREATE TABLE public.products (
   hay_amount           integer,
   price_krw            integer,                 -- 표시 참고용(결제가는 StoreKit)
   app_store_product_id text    UNIQUE,
+  play_store_product_id text   UNIQUE,          -- Google Play 상품ID(Play Console 확정 후 주입, NULL 허용)
   is_active            boolean NOT NULL DEFAULT true,
   -- 신버전(rightside 자세) 계약에만 노출 — 레거시 카탈로그/인벤토리에서 제외.
   is_v2_only           boolean NOT NULL DEFAULT false,
@@ -69,6 +70,7 @@ CREATE TABLE public.products (
     product_type <> 'cosmetic' OR (
       public_id IS NOT NULL AND slot IS NOT NULL
       AND hay_amount IS NULL AND app_store_product_id IS NULL AND price_krw IS NULL
+      AND play_store_product_id IS NULL
       -- 구독 전용 꾸미기는 폐지 — 카탈로그에 노출되면서 구매만 막히는 상품을 만들 수 없다.
       AND is_subscriber_only = false
       -- 최종 에셋이 없는 상품은 inactive로만 준비할 수 있다.

@@ -51,7 +51,7 @@ async def test_grant_pack_creates_order_payment_ledger(monkeypatch):
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     # exec 1회차 = 결제 멱등 조회(없음), 2회차 = 상품 조회
     s = FakeSession(exec_results=[[], [pack]])
-    await payment.grant_pack(s, UID_UUID, pack.app_store_product_id, "tx-1")
+    await payment.grant_pack(s, UID_UUID, pack.app_store_product_id, "tx-1", store="play_store")
     order, order_item, pay = s.added
     assert order.currency == "KRW" and order.status == "paid" and order.total_amount == 1500
     assert order_item.order_id == order.id and order_item.unit_price == 1500
@@ -59,6 +59,7 @@ async def test_grant_pack_creates_order_payment_ledger(monkeypatch):
     assert applied == {"type": "iap_purchase", "amount": 300, "order_id": order.id}
     assert pay.order_id == order.id and pay.store_transaction_id == "tx-1"
     assert pay.amount == 1500 and pay.status == "paid"
+    assert pay.store == "play_store"  # 실제 스토어 기록(SOMA-343)
 
 
 async def test_grant_pack_idempotent_on_duplicate_transaction(monkeypatch):
@@ -67,7 +68,7 @@ async def test_grant_pack_idempotent_on_duplicate_transaction(monkeypatch):
 
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     s = FakeSession(exec_results=[[SimpleNamespace(id=uuid.uuid4())]])  # 결제 이미 존재
-    await payment.grant_pack(s, UID_UUID, "com.geniusjun.moly.hay.300", "tx-1")
+    await payment.grant_pack(s, UID_UUID, "com.geniusjun.moly.hay.300", "tx-1", store="app_store")
     assert s.added == []
 
 
@@ -77,11 +78,11 @@ async def test_grant_pack_unknown_product_skips(monkeypatch):
 
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     s = FakeSession(exec_results=[[], []])  # 결제 없음, 상품 없음
-    await payment.grant_pack(s, UID_UUID, "com.unknown", "tx-1")
+    await payment.grant_pack(s, UID_UUID, "com.unknown", "tx-1", store="app_store")
     assert s.added == []
 
 
 async def test_grant_pack_missing_ids_skips():
     s = FakeSession()
-    await payment.grant_pack(s, UID_UUID, "", "")
+    await payment.grant_pack(s, UID_UUID, "", "", store="app_store")
     assert s.added == []

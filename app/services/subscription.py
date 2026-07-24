@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from sqlalchemy import select
@@ -173,22 +174,58 @@ async def _revoke_grant_with_clawback(session: AsyncSession, sub, refunded_plan:
 
 
 async def _record_subscription_payment(session: AsyncSession, sub, event: dict) -> None:
-    """구독 결제(구매·갱신) payments 기록 — 매출 단일 소스(DB_REFACTOR §B.3). transaction_id 멱등."""
+    """구독 결제(구매·갱신) payments 기록 — 매출 단일 소스(DB_REFACTOR §B.3). transaction_id 멱등.
+
+    금액은 원통화 무손실(numeric), 통화는 RC 값 그대로(미확인=NULL, KRW 날조 금지),
+    store는 RC가 알려준 실제 스토어를 기록.
+    """
     tx_id = str(event.get("transaction_id") or "")
     if not tx_id or await payment.payment_exists(session, tx_id):
         return
     price = event.get("price_in_purchased_currency")
     try:
-        amount = int(round(float(price))) if price is not None else None
-    except (TypeError, ValueError):
+        amount = Decimal(str(price)) if price is not None else None  # 무손실(4.99→5 반올림 금지)
+    except (TypeError, ValueError, InvalidOperation):
         amount = None
+    currency = event.get("currency")
     session.add(
         Payment(
             user_id=sub.user_id, subscription_id=sub.id, store_transaction_id=tx_id,
-            amount=amount, currency=str(event.get("currency") or "KRW"), status="paid",
+            store=_store_of(event), amount=amount,
+            currency=str(currency) if currency else None, status="paid",
             paid_at=_ms_to_dt(event.get("purchased_at_ms")) or datetime.now(timezone.utc),
         )
     )
+
+
+# RevenueCat store 값 → payments.store 정규화. 미확인 스토어는 소문자 원값, 누락은 경고.
+_RC_STORE_MAP = {
+    "APP_STORE": "app_store", "MAC_APP_STORE": "app_store",
+    "PLAY_STORE": "play_store", "AMAZON": "amazon",
+    "STRIPE": "stripe", "PROMOTIONAL": "promotional",
+}
+
+
+def _store_of(event: dict) -> str:
+    raw = str(event.get("store") or "").upper()
+    if not raw:
+        _log.warning("RC 웹훅: store 누락 — 스토어 미상 기록(tx=%r)", event.get("transaction_id"))
+        return "unknown"
+    return _RC_STORE_MAP.get(raw, raw.lower())
+
+
+async def _mark_payment_refunded(session: AsyncSession, event: dict) -> None:
+    """환불된 거래의 payments.status를 refunded로 — 회수 상태와 매출 원장 일치. 멱등."""
+    tx = str(event.get("transaction_id") or event.get("original_transaction_id") or "")
+    if not tx:
+        return
+    pay = (
+        await session.execute(
+            select(Payment).where(Payment.store_transaction_id == tx).with_for_update()
+        )
+    ).scalars().first()
+    if pay is not None and pay.status != "refunded":
+        pay.status = "refunded"
 
 
 # RevenueCat을 구독 진실 소스로 쓸 때 상태를 active로 갱신하는 이벤트(문서 기준).
@@ -264,6 +301,8 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
                 sub.status = "revoked"
             # 회수는 실제 부여된 요금제(sub.plan) 기준 — config 재해석 금지(변경돼도 정확 회수).
             await _revoke_grant_with_clawback(session, sub, sub.plan)
+            # 결제 원장도 refunded로 — 회수 상태와 매출 원장 일치(SOMA-343).
+            await _mark_payment_refunded(session, event)
         else:  # 자동갱신 해제 — 만료 전까지 혜택 유지
             sub.auto_renew_enabled = False
 
@@ -279,7 +318,8 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
 
     elif etype == "NON_RENEWING_PURCHASE":  # 건초 IAP(소비성)
         await payment.grant_pack(
-            session, uid, str(event.get("product_id") or ""), str(event.get("transaction_id") or "")
+            session, uid, str(event.get("product_id") or ""),
+            str(event.get("transaction_id") or ""), store=_store_of(event),
         )
 
     else:

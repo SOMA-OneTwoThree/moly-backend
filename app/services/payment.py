@@ -27,8 +27,13 @@ async def payment_exists(session: AsyncSession, store_transaction_id: str) -> bo
     return row.scalars().first() is not None
 
 
-async def grant_pack(session: AsyncSession, uid, product_id: str, transaction_id: str) -> None:
-    """건초팩 지급(멱등: store_transaction_id). 미상 상품/중복/누락은 조용히 스킵. 커밋 안 함."""
+async def grant_pack(
+    session: AsyncSession, uid, product_id: str, transaction_id: str, *, store: str
+) -> None:
+    """건초팩 지급(멱등: store_transaction_id). 미상 상품/중복/누락은 조용히 스킵. 커밋 안 함.
+
+    store = RC가 알려준 실제 스토어(app_store|play_store|…) — 매출 원장에 그대로 기록.
+    """
     if not (product_id and transaction_id):
         return
     if await payment_exists(session, transaction_id):
@@ -50,7 +55,7 @@ async def grant_pack(session: AsyncSession, uid, product_id: str, transaction_id
     await hay_ledger.apply(session, uid, "iap_purchase", product.hay_amount, order_id=ord_.id)
     session.add(
         Payment(
-            user_id=uid, order_id=ord_.id, store_transaction_id=transaction_id,
+            user_id=uid, order_id=ord_.id, store=store, store_transaction_id=transaction_id,
             amount=product.price_krw, currency="KRW", status="paid",
             paid_at=datetime.now(timezone.utc),
         )

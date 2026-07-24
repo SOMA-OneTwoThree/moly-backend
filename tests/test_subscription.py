@@ -1,5 +1,6 @@
 """구독 — RevenueCat 웹훅 이벤트 매핑(증정·환불회수·만료·유예·건초IAP)·인증. DB mock."""
 import uuid
+from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
@@ -88,6 +89,7 @@ def _rc_event(**over):
         "transaction_id": "t-rc-1",
         "expiration_at_ms": 1_900_000_000_000,
         "environment": "PRODUCTION",
+        "store": "APP_STORE",
     }
     e.update(over)
     return e
@@ -266,16 +268,17 @@ async def test_rc_billing_issue_grace(monkeypatch):
 async def test_rc_non_renewing_grants_hay(monkeypatch):
     called = {}
 
-    async def _grant(session, uid, product_id, transaction_id):
-        called["pid"], called["tx"] = product_id, transaction_id
+    async def _grant(session, uid, product_id, transaction_id, *, store):
+        called["pid"], called["tx"], called["store"] = product_id, transaction_id, store
 
     monkeypatch.setattr(payment, "grant_pack", _grant)
     await subscription.handle_revenuecat_event(
         FakeSession(),
-        _rc_event(type="NON_RENEWING_PURCHASE",
+        _rc_event(type="NON_RENEWING_PURCHASE", store="PLAY_STORE",
                   product_id="com.geniusjun.moly.hay.300", transaction_id="tx-hay-1"),
     )
     assert called["pid"] == "com.geniusjun.moly.hay.300" and called["tx"] == "tx-hay-1"
+    assert called["store"] == "play_store"  # 실제 스토어 전달(SOMA-343)
 
 
 # --- Google Play 구독 매핑(SOMA-341) ---
@@ -364,6 +367,88 @@ async def test_rc_invalid_config_plan_value_no_activation(monkeypatch):
     s = FakeSession(exec_results=[_cfg_row({"moly_sub_monthly": "montly"})])  # 오타값
     await subscription.handle_revenuecat_event(s, _rc_event(product_id="moly_sub_monthly"))
     assert s.added == [] and s.committed is False
+
+
+# --- 결제 원장 스토어·통화·금액·환불 정합성(SOMA-343) ---
+async def test_rc_payment_records_store_currency_lossless(monkeypatch):
+    """Google Play 구독: 실제 store·원통화·소수점 금액이 손실 없이 기록된다."""
+    async def _by(session, otx, lock=False):
+        return None
+
+    async def _grant(session, uid, plan):
+        return True
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_grant_exists", _grant)
+    s = FakeSession(exec_results=[_cfg_row({"moly_sub_monthly": "monthly"}), []])
+    await subscription.handle_revenuecat_event(
+        s, _rc_event(product_id="moly_sub_monthly", store="PLAY_STORE",
+                     price_in_purchased_currency=4.99, currency="USD"),
+    )
+    pay = next(o for o in s.added if getattr(o, "store_transaction_id", None) == "t-rc-1")
+    assert pay.store == "play_store" and pay.currency == "USD"
+    assert pay.amount == Decimal("4.99")  # 4.99 → 5 반올림 안 됨(무손실)
+
+
+async def test_rc_payment_missing_currency_stored_null(monkeypatch):
+    """통화 정보가 없으면 KRW로 확정하지 않고 NULL로 저장한다."""
+    async def _by(session, otx, lock=False):
+        return None
+
+    async def _grant(session, uid, plan):
+        return True
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_grant_exists", _grant)
+    s = FakeSession(exec_results=[[]])  # Apple 상품(config 미조회), payment_exists
+    ev = _rc_event(price_in_purchased_currency=4990)
+    ev.pop("currency", None)
+    await subscription.handle_revenuecat_event(s, ev)
+    pay = next(o for o in s.added if getattr(o, "store_transaction_id", None) == "t-rc-1")
+    assert pay.currency is None and pay.store == "app_store"
+
+
+async def test_rc_refund_marks_payment_refunded(monkeypatch):
+    """환불 시 원거래 payments.status가 refunded로 갱신 — 회수 상태와 매출 원장 일치."""
+    sub = SimpleNamespace(user_id=UID_UUID, plan="monthly", status="active")
+    grant = SimpleNamespace(revoked_at=None, clawback_hay_transaction_id=None)
+    pay = SimpleNamespace(store_transaction_id="t-rc-1", status="paid")
+
+    async def _by(session, otx, lock=False):
+        return sub
+
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, hay_balance=1000)
+
+    async def _apply(session, uid, t, amt, **kw):
+        return SimpleNamespace(id=7)
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    # exec: [0] clawback grant 조회, [1] 환불 대상 payment 조회
+    s = FakeSession(exec_results=[[grant], [pay]])
+    await subscription.handle_revenuecat_event(
+        s, _rc_event(type="CANCELLATION", cancel_reason="CUSTOMER_SUPPORT"),
+    )
+    assert sub.status == "revoked" and pay.status == "refunded"
+
+
+async def test_rc_refund_payment_already_refunded_idempotent(monkeypatch):
+    """이미 refunded면 그대로 유지 — 환불 웹훅 재수신에도 멱등."""
+    sub = SimpleNamespace(user_id=UID_UUID, plan="monthly", status="revoked")
+    grant = SimpleNamespace(revoked_at="2026-07-01T00:00:00Z", clawback_hay_transaction_id=7)
+    pay = SimpleNamespace(store_transaction_id="t-rc-1", status="refunded")
+
+    async def _by(session, otx, lock=False):
+        return sub
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    s = FakeSession(exec_results=[[grant], [pay]])
+    await subscription.handle_revenuecat_event(
+        s, _rc_event(type="CANCELLATION", cancel_reason="CUSTOMER_SUPPORT"),
+    )
+    assert pay.status == "refunded"  # 변화 없음
 
 
 async def test_rc_bad_app_user_id_skips():

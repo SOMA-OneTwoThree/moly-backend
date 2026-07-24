@@ -122,6 +122,23 @@ class Settings(BaseSettings):
     free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
     free_launch_token_limit: int = 150_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 기준 ~월 $4.5/인. 헤비유저 ~42턴.
 
+    # --- 모니터링·알림 (observability, SOMA-301) ---
+    # 배포 이미지 커밋 sha — deploy가 GIT_SHA env로 주입. /health 버전 노출·배포 반영 확인용.
+    git_sha: str = "unknown"
+    # Slack severity 라우팅: 크리티컬(alerts)/상태·요약(status) 분리. 미설정 시 slack_webhook_url 폴백.
+    slack_alert_webhook_url: str = ""   # 즉시 크리티컬(#moly-alerts) — down·배치실패·비용급증
+    slack_status_webhook_url: str = ""  # 상태·요약·배포(#moly-status) — 조용한 채널
+    alert_dedup_window_sec: int = 300   # 같은 알림키 억제 창(상관 스톰·flapping 스팸 방지)
+    # 심층/합성 헬스 엔드포인트 인증(헤더 X-Health-Token 상수시간 비교). 비-local에서 비면 403(fail-closed).
+    health_token: str = ""
+    # 워커 데드맨(Healthchecks.io ping URL). 비면 no-op. **결과 정상일 때만** 핑(프로세스 생존 아님).
+    worker_ping_url: str = ""
+    # LLM 비용 이상치 경보 — 당일 누적 billable 합계가 이 값 초과 시 Slack(하루 1회). 0=비활성.
+    # 기본값은 실트래픽 후 재보정(현행 헤비 유저 다수 × 150k 상한 여유).
+    daily_billable_alert_threshold: int = 5_000_000
+    # 합성 대화 모니터가 실제 LLM을 호출할지(비용 발생). False면 DB·설정 도달성만 확인.
+    synthetic_check_llm: bool = True
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import random
 
+from app.services import i18n
+
 CONTEXTS = {"onboarding", "home_enter", "morning", "evening", "comeback"}
 
 
@@ -226,7 +228,7 @@ def pick(
 
     language != 'ko'면 영어 풀에서 픽(조사 무관). 이름 자리는 닉네임으로 치환한다.
     """
-    if (language or "ko") != "ko":
+    if not i18n.is_korean(language):
         return _pick_other(context, nickname, hour)
     if context == "onboarding":
         if not nickname:  # 온보딩은 닉네임 확정 후라 정상 경로엔 안 오지만, 안전 폴백.

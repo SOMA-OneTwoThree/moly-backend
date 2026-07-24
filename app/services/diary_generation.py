@@ -19,7 +19,7 @@ from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import llm, memory, text_clean, naming
+from app.services import i18n, llm, memory, naming, text_clean
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -67,7 +67,7 @@ def _transcript(
 
     저장 본문은 placeholder이므로 LLM 투입 전 현재 이름으로 렌더한다(유창성·추출 품질).
     """
-    user_label = nickname or ("그 사람" if (language or "ko") == "ko" else "that person")
+    user_label = nickname or ("그 사람" if i18n.is_korean(language) else "that person")
     return "\n".join(
         f"{'캐피' if m.sender == 'moly' else user_label}: {naming.render(m.content, nickname)}"
         for m in messages
@@ -154,7 +154,7 @@ async def _personal(
     """(본문, 날씨) 또는 None + 진단정보. None이면 호출측이 preset 폴백."""
     nickname = getattr(profile, "nickname", None)
     lang = getattr(profile, "language", None)
-    is_ko = (lang or "ko") == "ko"  # 미설정=한국어. 비ko(en/ja/zh)는 하이픈 유지 + 외래문자 복원 우회
+    is_ko = i18n.is_korean(lang)  # 미설정=한국어. 비ko(en/ja/zh)는 하이픈 유지 + 외래문자 복원 우회
     transcript = _transcript(messages, nickname, lang)
     result = await llm.generate(
         diary_prompt(lang, nickname),
@@ -256,13 +256,13 @@ async def generate_for_user(
             content, weather, preset_id = text_clean.strip_symbols(ment.content), ment.weather, ment.id
             # 비한국어 유저는 preset(한국어 카피)을 유저 언어로 번역해 발행(우리가 넣는 일기도 언어 대응).
             plang = getattr(profile, "language", None)
-            if plang and plang != "ko":
+            if not i18n.is_korean(plang):
                 content = await _translate_preset(content, plang, user_id=getattr(profile, "id", None))
                 content = text_clean.strip_symbols(content, keep_hyphen=True)  # 번역 부호 재정제(en 하이픈 유지)
         else:
             # 풀 비었을 때 안전 기본 — 언어별.
             _pl = getattr(profile, "language", None)
-            content = "Another ordinary day went by." if _pl and _pl != "ko" else "오늘도 그냥저냥 하루가 갔다."
+            content = "오늘도 그냥저냥 하루가 갔다." if i18n.is_korean(_pl) else "Another ordinary day went by."
 
     diary = Diary(
         user_id=profile.id, diary_date=target_date, source=source,

@@ -50,10 +50,25 @@ class FakeSession:
         self.committed = True
 
 
-def test_plans_static():
-    p = subscription.get_plans()
+async def test_plans_static(monkeypatch):
+    async def _lp(session, uid):
+        return SimpleNamespace(language="ko")
+
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    p = await subscription.get_plans(FakeSession(), UID)
     assert {x["period"] for x in p["plans"]} == {"monthly", "yearly"}
     assert p["plans"][0]["hay_grant"] in (1000, 4000)
+    assert "대화 한도 확장" in p["benefits"]  # ko 기본
+
+
+async def test_plans_benefits_localized(monkeypatch):
+    """구독 혜택 문구가 유저 언어로 반환(BCP47 en-US→en 정규화) — SOMA-346."""
+    async def _lp(session, uid):
+        return SimpleNamespace(language="en-US")
+
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    p = await subscription.get_plans(FakeSession(), UID)
+    assert "Extended chat limit" in p["benefits"] and "대화 한도 확장" not in p["benefits"]
 
 
 def test_plans_require_auth():
@@ -69,8 +84,17 @@ def test_plans_require_auth():
     assert response.json()["error"]["code"] == "UNAUTHORIZED"
 
 
-def test_plans_authenticated():
+def test_plans_authenticated(monkeypatch):
     app.dependency_overrides[get_current_user] = lambda: UID
+
+    async def _sess():
+        yield None
+
+    async def _lp(session, uid):
+        return SimpleNamespace(language="ko")
+
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    app.dependency_overrides[get_session] = _sess
     try:
         response = TestClient(app).get("/subscription/plans")
     finally:

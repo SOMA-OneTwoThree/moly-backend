@@ -1,6 +1,7 @@
 """일기 생성 프롬프트 — 코드가 단일 소스(초기 설계본, 이후 직접 다듬을 예정)."""
 from __future__ import annotations
 
+from app.services import i18n
 from app.services.greetings import copula
 
 _WEATHERS = ("sunny", "cloudy", "rainy", "windy")
@@ -42,7 +43,7 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
         else "[상대]\n아직 이름을 몰라. '걔'나 '그 사람'처럼 자연스럽게 불러."
     )
     lang = language or "ko"
-    if lang == "ko":
+    if i18n.is_korean(language):
         lang_rule = "반드시 한국어로 써. 한자나 다른 나라 문자를 한 글자도 섞지 마."
     else:
         lang_rule = (

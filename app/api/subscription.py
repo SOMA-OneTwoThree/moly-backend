@@ -40,9 +40,10 @@ async def get_subscription(
 
 @router.get("/subscription/plans", response_model=SubscriptionPlansResponse)
 async def get_plans(
-    _user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
-    return subscription.get_plans()
+    return await subscription.get_plans(session, user_id)
 
 
 @router.post("/webhooks/revenuecat", response_model=StatusResponse)

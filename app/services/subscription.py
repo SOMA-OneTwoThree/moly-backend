@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.payment import Payment
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
-from app.services import hay_ledger, payment
+from app.services import hay_ledger, i18n, payment
 from app.services.account import _load_profile
 from app.services.config_store import get_config_values
 from app.services.entitlement import _parse_dt
@@ -39,7 +39,10 @@ _APPLE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS}
 # 형식: {"<구독ID>[:<basePlanId>]": "monthly"|"yearly"}. 미설정 시 Google 구독 이벤트는
 # "미등록 상품"으로 관측(혜택 미지급). SOMA-341.
 _GOOGLE_PRODUCTS_KEY = "google_play_subscription_products"
-_BENEFITS = ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "건초 증정"]
+_BENEFITS = {
+    "ko": ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "건초 증정"],
+    "en": ["Extended chat limit", "Personal diary", "No banner ads", "Hay gift"],
+}
 _ACTIVE = ("active", "grace_period")  # 혜택 유지되는 구독 상태
 
 
@@ -51,8 +54,10 @@ def _iso(dt: datetime | None) -> str | None:
     return dt.isoformat() if dt else None
 
 
-def get_plans() -> dict[str, Any]:
-    return {"plans": _PLANS, "benefits": _BENEFITS}
+async def get_plans(session: AsyncSession, user_id: str) -> dict[str, Any]:
+    """요금제 목록 + 유저 언어의 혜택 문구(구독 안내는 사용자 언어로, SOMA-346)."""
+    profile = await _load_profile(session, user_id)
+    return {"plans": _PLANS, "benefits": i18n.pick(_BENEFITS, profile.language)}
 
 
 async def _google_products(session: AsyncSession) -> dict[str, str]:

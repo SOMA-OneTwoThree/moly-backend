@@ -32,3 +32,6 @@ class UserDailyStats(Base):
     ad_reward_count: Mapped[int] = mapped_column(SmallInteger, server_default=text("0"))
     attendance_claimed_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     routine_reward_claimed_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    # 알림 발송 멱등 마커(유저×활동일 1회) — 재실행·15분 케이던스 중복 푸시 방지. SOMA-348.
+    morning_notified_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    evening_notified_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)

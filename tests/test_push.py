@@ -51,8 +51,12 @@ async def test_notify_morning_sends_when_enabled(monkeypatch):
         captured["title"] = title
         return len(tokens)
 
+    async def _claim(session, profile, col):
+        return True  # 멱등 선점은 test_notify.py가 검증 — 여기선 발송 경로만
+
     monkeypatch.setattr(notify.settings, "morning_push_enabled", True)  # 킬스위치 해제
     monkeypatch.setattr(push, "send", _fake_send)
+    monkeypatch.setattr(notify, "_claim_send_slot", _claim)
     # 설정 행 없음(=기본 on), 토큰 2개
     session = FakeSession([[], ["tok1", "tok2"]])
     n = await notify.notify_morning(session, SimpleNamespace(id=UID_UUID))

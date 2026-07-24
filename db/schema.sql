@@ -182,6 +182,8 @@ CREATE TABLE public.user_daily_stats (
   ad_reward_count           smallint NOT NULL DEFAULT 0,
   attendance_claimed_at     timestamptz,
   routine_reward_claimed_at timestamptz,
+  morning_notified_at       timestamptz,   -- 아침 푸시 발송 멱등 마커(유저×활동일 1회)
+  evening_notified_at       timestamptz,   -- 저녁 푸시 발송 멱등 마커
   CONSTRAINT user_daily_stats_user_date_uq UNIQUE (user_id, activity_date)
 );
 

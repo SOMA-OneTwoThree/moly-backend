@@ -76,11 +76,15 @@ def _patch(monkeypatch, remaining):
     async def _resolve(session, uid, now=None):
         return _G(remaining)
 
+    async def _claim(session, profile, col):
+        return True  # 멱등 선점은 test_notify.py가 검증 — 여기선 발송 결정 로직만
+
     from app.services import gating
 
     monkeypatch.setattr(notify, "_enabled", _enabled)
     monkeypatch.setattr(notify, "_tokens", _tokens)
     monkeypatch.setattr(notify.push, "send", _send)
+    monkeypatch.setattr(notify, "_claim_send_slot", _claim)
     monkeypatch.setattr(gating, "resolve", _resolve)
     return sent
 

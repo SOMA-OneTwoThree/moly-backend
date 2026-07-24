@@ -89,7 +89,13 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         profiles = list((await session.execute(select(Profile))).scalars().all())
         counts["users"] = len(profiles)
         for p in profiles:
-            hour = now.astimezone(ZoneInfo(p.timezone)).hour
+            # tz 해석은 try 밖의 크래시 벡터였다 — 잘못된 timezone 하나가 배치 전체를 무너뜨렸다.
+            # 여기서 방어해 해당 유저만 스킵하고 나머지 유저 처리를 계속한다(SOMA-348).
+            try:
+                hour = now.astimezone(ZoneInfo(p.timezone)).hour
+            except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
+                _log.warning("틱: 잘못된 timezone %r (user=%s) — 스킵: %r", p.timezone, p.id, e)
+                continue
             try:
                 if hour == DIARY_HOUR:
                     counts["diary_attempted"] += 1

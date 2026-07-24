@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,11 +29,20 @@ async def payment_exists(session: AsyncSession, store_transaction_id: str) -> bo
 
 
 async def grant_pack(
-    session: AsyncSession, uid, product_id: str, transaction_id: str, *, store: str
+    session: AsyncSession,
+    uid,
+    product_id: str,
+    transaction_id: str,
+    *,
+    store: str,
+    amount: Decimal | None = None,
+    currency: str | None = None,
 ) -> None:
     """건초팩 지급(멱등: store_transaction_id). 미상 상품/중복/누락은 조용히 스킵. 커밋 안 함.
 
-    store = RC가 알려준 실제 스토어(app_store|play_store|…) — 매출 원장에 그대로 기록.
+    store = RC가 알려준 실제 스토어(app_store|play_store|…).
+    amount/currency = RC가 알려준 실제 결제 금액·통화(해외 결제 대응). 이벤트에 없으면
+    국내 카탈로그가(price_krw·KRW)로 폴백. payments는 매출 단일 소스라 실통화가 남아야 한다.
     """
     if not (product_id and transaction_id):
         return
@@ -57,7 +67,8 @@ async def grant_pack(
     session.add(
         Payment(
             user_id=uid, order_id=ord_.id, store=store, store_transaction_id=transaction_id,
-            amount=product.price_krw, currency="KRW", status="paid",
-            paid_at=datetime.now(timezone.utc),
+            amount=amount if amount is not None else product.price_krw,
+            currency=currency if currency is not None else "KRW",
+            status="paid", paid_at=datetime.now(timezone.utc),
         )
     )

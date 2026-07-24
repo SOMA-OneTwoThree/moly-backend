@@ -73,6 +73,29 @@ class _WhereCaptureSession(FakeSession):
         return await super().execute(stmt)
 
 
+async def test_grant_pack_records_foreign_currency(monkeypatch):
+    """해외 결제: RC가 준 실제 통화/금액을 payments에 기록(무손실). 이벤트에 없으면 KRW 폴백."""
+    from decimal import Decimal
+
+    async def _apply(session, uid, t, amt, **kw):
+        return SimpleNamespace(id=1, balance_after=300)
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    s = FakeSession(exec_results=[[], [_pack()]])
+    await payment.grant_pack(
+        s, UID_UUID, "com.geniusjun.moly.hay.300", "tx-usd", store="play_store",
+        amount=Decimal("1.09"), currency="USD",
+    )
+    pay = next(o for o in s.added if getattr(o, "store_transaction_id", None) == "tx-usd")
+    assert pay.amount == Decimal("1.09") and pay.currency == "USD"
+
+    # 이벤트에 통화 없으면 국내 카탈로그가(price_krw)·KRW로 폴백
+    s2 = FakeSession(exec_results=[[], [_pack()]])
+    await payment.grant_pack(s2, UID_UUID, "com.geniusjun.moly.hay.300", "tx-krw", store="app_store")
+    pay2 = next(o for o in s2.added if getattr(o, "store_transaction_id", None) == "tx-krw")
+    assert pay2.amount == 1500 and pay2.currency == "KRW"
+
+
 async def test_grant_pack_play_store_looks_up_play_column(monkeypatch):
     """store=play_store면 play_store_product_id 컬럼으로 상품을 조회한다(SOMA-342)."""
     pack = _pack()

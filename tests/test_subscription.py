@@ -268,17 +268,20 @@ async def test_rc_billing_issue_grace(monkeypatch):
 async def test_rc_non_renewing_grants_hay(monkeypatch):
     called = {}
 
-    async def _grant(session, uid, product_id, transaction_id, *, store):
-        called["pid"], called["tx"], called["store"] = product_id, transaction_id, store
+    async def _grant(session, uid, product_id, transaction_id, *, store, amount=None, currency=None):
+        called.update(pid=product_id, tx=transaction_id, store=store, amount=amount, cur=currency)
 
     monkeypatch.setattr(payment, "grant_pack", _grant)
     await subscription.handle_revenuecat_event(
         FakeSession(),
         _rc_event(type="NON_RENEWING_PURCHASE", store="PLAY_STORE",
-                  product_id="com.geniusjun.moly.hay.300", transaction_id="tx-hay-1"),
+                  product_id="com.geniusjun.moly.hay.300", transaction_id="tx-hay-1",
+                  price_in_purchased_currency=1.09, currency="USD"),
     )
     assert called["pid"] == "com.geniusjun.moly.hay.300" and called["tx"] == "tx-hay-1"
     assert called["store"] == "play_store"  # 실제 스토어 전달(SOMA-343)
+    # 해외 결제 실제 통화/금액 전달 — 무손실
+    assert called["amount"] == Decimal("1.09") and called["cur"] == "USD"
 
 
 # --- Google Play 구독 매핑(SOMA-341) ---

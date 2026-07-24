@@ -173,6 +173,20 @@ async def _revoke_grant_with_clawback(session: AsyncSession, sub, refunded_plan:
     grant.clawback_hay_transaction_id = tx.id if tx is not None else None
 
 
+def _event_money(event: dict) -> tuple[Decimal | None, str | None]:
+    """RC 이벤트의 실제 결제 금액(원통화 무손실 Decimal)·통화(미확인=None). 구독·IAP 매출 원장 공용.
+
+    금액은 4.99→5 같은 반올림 손실 없이, 통화는 RC 값 그대로(미확인이면 KRW로 날조하지 않는다).
+    """
+    price = event.get("price_in_purchased_currency")
+    try:
+        amount = Decimal(str(price)) if price is not None else None
+    except (TypeError, ValueError, InvalidOperation):
+        amount = None
+    currency = event.get("currency")
+    return amount, (str(currency) if currency else None)
+
+
 async def _record_subscription_payment(session: AsyncSession, sub, event: dict) -> None:
     """구독 결제(구매·갱신) payments 기록 — 매출 단일 소스(DB_REFACTOR §B.3). transaction_id 멱등.
 
@@ -182,17 +196,11 @@ async def _record_subscription_payment(session: AsyncSession, sub, event: dict) 
     tx_id = str(event.get("transaction_id") or "")
     if not tx_id or await payment.payment_exists(session, tx_id):
         return
-    price = event.get("price_in_purchased_currency")
-    try:
-        amount = Decimal(str(price)) if price is not None else None  # 무손실(4.99→5 반올림 금지)
-    except (TypeError, ValueError, InvalidOperation):
-        amount = None
-    currency = event.get("currency")
+    amount, currency = _event_money(event)
     session.add(
         Payment(
             user_id=sub.user_id, subscription_id=sub.id, store_transaction_id=tx_id,
-            store=_store_of(event), amount=amount,
-            currency=str(currency) if currency else None, status="paid",
+            store=_store_of(event), amount=amount, currency=currency, status="paid",
             paid_at=_ms_to_dt(event.get("purchased_at_ms")) or datetime.now(timezone.utc),
         )
     )
@@ -317,9 +325,11 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
             sub.status = "grace_period"  # 유예 — 혜택 유지
 
     elif etype == "NON_RENEWING_PURCHASE":  # 건초 IAP(소비성)
+        amount, currency = _event_money(event)  # 해외 결제 실제 통화/금액 기록(구독과 동일)
         await payment.grant_pack(
             session, uid, str(event.get("product_id") or ""),
-            str(event.get("transaction_id") or ""), store=_store_of(event),
+            str(event.get("transaction_id") or ""),
+            store=_store_of(event), amount=amount, currency=currency,
         )
 
     else:

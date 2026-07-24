@@ -1,4 +1,4 @@
-"""user_devices — APNs 푸시 토큰(ERD §6.4). push_token UNIQUE로 중복 제거."""
+"""user_devices — FCM 푸시 토큰(iOS는 APNs 릴레이·Android 네이티브, ERD §6.4). push_token UNIQUE로 중복 제거."""
 from __future__ import annotations
 
 import uuid
@@ -20,7 +20,7 @@ class UserDevice(Base):
         UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
     )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
-    platform: Mapped[str] = mapped_column(String)  # ios
+    platform: Mapped[str] = mapped_column(String)  # ios | android
     push_token: Mapped[str] = mapped_column(String, unique=True)
     last_active_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)

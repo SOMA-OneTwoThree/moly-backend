@@ -329,7 +329,7 @@ CREATE TABLE public.user_notification_settings (
 CREATE TABLE public.user_devices (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id        uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  platform       text NOT NULL CHECK (platform IN ('ios')),
+  platform       text NOT NULL CHECK (platform IN ('ios', 'android')),
   push_token     text NOT NULL UNIQUE,
   last_active_at timestamptz,
   created_at     timestamptz NOT NULL DEFAULT now()

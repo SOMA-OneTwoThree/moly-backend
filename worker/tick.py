@@ -1,6 +1,7 @@
 """배치 틱 — 매시 크론이 호출(멱등). 로컬 04:00 일기 생성 / 09:00 아침·20:00 저녁 푸시."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import datetime, timedelta, timezone
@@ -8,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
+from app.config import settings
 from app.core.db import get_sessionmaker
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
@@ -67,70 +69,124 @@ def _build_summary(
         f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
+    if counts.get("timed_out"):
+        lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
     return "\n".join(lines)
 
 
+async def _process_user(now: datetime, pid, cfg: dict) -> dict:
+    """유저 1명 처리 — 자기 세션(격리). 반환 = 이 유저 partial counts(+active_tz).
+
+    유저별 독립 세션이라 한 유저의 롤백/실패가 다른 유저를 오염시키지 않는다(SOMA-349).
+    """
+    out = {
+        "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_failed": 0,
+        "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
+        "diary_attempted": 0, "active_tz": None,
+    }
+    async with get_sessionmaker()() as session:
+        p = await session.get(Profile, pid)
+        if p is None:
+            return out  # 틱 도중 탈퇴 — 스킵
+        # tz 해석 방어 — 잘못된 timezone 하나가 배치를 무너뜨리지 않게(SOMA-348).
+        try:
+            hour = now.astimezone(ZoneInfo(p.timezone)).hour
+        except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
+            _log.warning("틱: 잘못된 timezone %r (user=%s) — 스킵: %r", p.timezone, pid, e)
+            return out
+        try:
+            if hour == DIARY_HOUR:
+                out["diary_attempted"] = 1
+                out["active_tz"] = p.timezone
+                target = activity_date_for(now, p.timezone) - timedelta(days=1)
+                result = await diary_generation.generate_for_user(session, p, target, cfg)
+                if result.get("created"):
+                    out["diaries"] = 1
+                    out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
+                out["memory_ok"] = result.get("memory_ok", 0)
+                out["memory_failed"] = result.get("memory_failed", 0)
+            elif hour == MORNING_HOUR:
+                out["active_tz"] = p.timezone
+                if await notify.notify_morning(session, p):
+                    out["morning"] = 1
+            elif hour == EVENING_HOUR:
+                out["active_tz"] = p.timezone
+                if await notify.notify_evening(session, p):
+                    out["evening"] = 1
+        except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
+            _log.exception("틱 처리 실패(user=%s hour=%s): %r", pid, hour, e)
+            await session.rollback()
+            if hour == DIARY_HOUR:
+                out["diary_failed"] = 1
+    return out
+
+
+async def _profile_id_batches(batch_size: int):
+    """프로필 id를 키셋 페이지네이션으로 배치 단위 yield — 전량 메모리 적재를 피한다(SOMA-349)."""
+    last = None
+    while True:
+        async with get_sessionmaker()() as s:
+            q = select(Profile.id).order_by(Profile.id).limit(batch_size)
+            if last is not None:
+                q = q.where(Profile.id > last)
+            pids = list((await s.execute(q)).scalars().all())
+        if not pids:
+            return
+        yield pids
+        if len(pids) < batch_size:
+            return
+        last = pids[-1]
+
+
 async def run_tick(now: datetime | None = None) -> dict[str, int]:
-    """이번 틱 처리 건수(일기·아침·저녁)."""
+    """이번 틱 처리 건수(일기·아침·저녁).
+
+    유저별 독립 세션 + 배치 페이지네이션 + 유저별 타임아웃 + 상한 동시성(SOMA-349).
+    한 유저의 지연·실패가 배치 전체를 막지 않는다. 동시성 상한은 config(기본 1=실질 순차).
+    """
     now = now or datetime.now(timezone.utc)
     counts = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_failed": 0,
         "memory_ok": 0, "memory_failed": 0,
         "morning": 0, "evening": 0,
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
+        "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
+        "swept": 0,            # 고아 기억 청소 건수(UTC 04시 틱)
         "users": 0,
     }
     active_tzs: set[str] = set()  # 이 틱에서 일기·아침·저녁을 처리한 유저 타임존(요약 표기용)
     start = time.monotonic()
-    async with get_sessionmaker()() as session:
-        cfg = await effective_token_config(session)
-        # 전 프로필 대상(닉네임 유무 무관). 온보딩 전에도 채팅이 되므로 닉네임으로 거르면
-        # 대화한 유저가 일기를 영영 못 받는다. timezone은 NOT NULL(기본 Asia/Seoul)이라 안전.
-        profiles = list((await session.execute(select(Profile))).scalars().all())
-        counts["users"] = len(profiles)
-        for p in profiles:
-            # tz 해석은 try 밖의 크래시 벡터였다 — 잘못된 timezone 하나가 배치 전체를 무너뜨렸다.
-            # 여기서 방어해 해당 유저만 스킵하고 나머지 유저 처리를 계속한다(SOMA-348).
-            try:
-                hour = now.astimezone(ZoneInfo(p.timezone)).hour
-            except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
-                _log.warning("틱: 잘못된 timezone %r (user=%s) — 스킵: %r", p.timezone, p.id, e)
-                continue
-            try:
-                if hour == DIARY_HOUR:
-                    counts["diary_attempted"] += 1
-                    active_tzs.add(p.timezone)
-                    target = activity_date_for(now, p.timezone) - timedelta(days=1)
-                    result = await diary_generation.generate_for_user(session, p, target, cfg)
-                    if result.get("created"):
-                        counts["diaries"] += 1
-                        if result.get("source") == "llm":
-                            counts["diary_llm"] += 1
-                        else:
-                            counts["diary_preset"] += 1
-                    counts["memory_ok"] += result.get("memory_ok", 0)
-                    counts["memory_failed"] += result.get("memory_failed", 0)
-                elif hour == MORNING_HOUR:
-                    active_tzs.add(p.timezone)
-                    if await notify.notify_morning(session, p):
-                        counts["morning"] += 1
-                elif hour == EVENING_HOUR:
-                    active_tzs.add(p.timezone)
-                    if await notify.notify_evening(session, p):
-                        counts["evening"] += 1
-            except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
-                _log.exception("틱 처리 실패(user=%s hour=%s): %r", p.id, hour, e)
-                await session.rollback()  # 세션 무효화 방지 — 다음 유저 계속
-                if hour == DIARY_HOUR:
-                    counts["diary_failed"] += 1
+    sem = asyncio.Semaphore(max(1, settings.worker_max_concurrency))
+    timeout = settings.worker_user_timeout_s
 
-        # 탈퇴 고아 기억 청소(하루 1회, UTC 04시 틱) — vecs는 FK 밖이라 CASCADE 안 닿음(백스톱)
-        if now.hour == DIARY_HOUR:
+    async with get_sessionmaker()() as s0:
+        cfg = await effective_token_config(s0)
+
+    async def _guarded(pid) -> dict:
+        async with sem:  # 동시 실행 유저 수 상한
             try:
-                counts["swept"] = await memory.sweep_orphans(session)
-            except Exception as e:  # noqa: BLE001
-                _log.warning("고아 기억 스위프 실패: %r", e)
-                await session.rollback()
+                return await asyncio.wait_for(_process_user(now, pid, cfg), timeout=timeout)
+            except (asyncio.TimeoutError, TimeoutError):
+                _log.warning("틱: 유저 처리 타임아웃(user=%s, %.0fs) — 스킵", pid, timeout)
+                return {"timed_out": 1}
+
+    async for pids in _profile_id_batches(settings.worker_batch_size):
+        counts["users"] += len(pids)
+        for r in await asyncio.gather(*(_guarded(pid) for pid in pids)):
+            for k, v in r.items():
+                if k == "active_tz":
+                    if v:
+                        active_tzs.add(v)
+                elif k in counts:
+                    counts[k] += v
+
+    # 탈퇴 고아 기억 청소(하루 1회, UTC 04시 틱) — vecs는 FK 밖이라 CASCADE 안 닿음(백스톱)
+    if now.hour == DIARY_HOUR:
+        try:
+            async with get_sessionmaker()() as ssweep:
+                counts["swept"] = await memory.sweep_orphans(ssweep)
+        except Exception as e:  # noqa: BLE001
+            _log.warning("고아 기억 스위프 실패: %r", e)
 
     elapsed = time.monotonic() - start
 

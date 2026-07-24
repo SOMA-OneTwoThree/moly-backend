@@ -119,6 +119,16 @@ def test_non_korean_name():
     assert naming.render(stored, "Alex") == "Alex 안녕"
 
 
+def test_latin_name_word_boundary_no_overmask():
+    # 라틴계 이름은 단어 중간을 마스킹하지 않는다(SOMA-347).
+    assert naming.to_placeholder("Anniversary party", "Ann") == "Anniversary party"  # Ann≠Anniversary
+    assert naming.to_placeholder("Maybe later", "May") == "Maybe later"              # May≠Maybe
+    assert naming.to_placeholder("Hi Ann!", "Ann") == f"Hi {T}!"                     # 독립 언급은 마스킹
+    assert naming.to_placeholder("Ann's book", "Ann") == f"{T}'s book"               # 소유격 경계
+    # 한글 이름은 뒤 경계 없이 조사 바로 뒤까지 마스킹(기존 동작 유지).
+    assert naming.to_placeholder("승민아 안녕", "승민") == f"{T}아 안녕"
+
+
 def test_nfd_input_is_masked():
     # 유저가 분해형(NFD, iOS/macOS)으로 자기 이름을 쳐도 마스킹된다(프로필=NFC 가정).
     nfd = unicodedata.normalize("NFD", "승민아 안녕")

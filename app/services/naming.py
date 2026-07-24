@@ -23,6 +23,10 @@ from app.services import greetings
 TOKEN = "{유저이름}"
 _TOK_RE = re.escape(TOKEN)
 
+# 라틴계 글자·숫자(ASCII + 라틴 확장 악센트) — 단어 경계 판정용. 한글은 조사가 붙으므로 제외.
+_LATIN = r"A-Za-z0-9À-ɏ"
+_LATIN_RE = re.compile(rf"[{_LATIN}]")
+
 # 받침 의존 조사(파티클). longest-first(이라고>라고, 이야>이, 이가>이/가, 이랑>랑, 이나>나).
 _JOSA_ALT = "이라고|라고|이야|이가|이랑|이나|아|야|이|가|은|는|을|를|과|와|랑|나"
 _RENDER_RE = re.compile(_TOK_RE + r"(" + _JOSA_ALT + r")?")
@@ -63,8 +67,12 @@ def _apply_josa(nick: str, j: str) -> str:
 
 
 def to_placeholder(text: str | None, nickname: str | None) -> str | None:
-    """이름 스템 → `{유저이름}` 마스킹. 앞이 한글/영숫자면 미매칭(국'민' 오염 방지), 뒤는 조사라 무제한.
+    """이름 스템 → `{유저이름}` 마스킹. 앞이 한글/라틴계면 미매칭(국'민' 오염 방지).
 
+    뒤 경계는 이름 스크립트에 따라 다르다:
+    - 한글로 끝나는 이름: 조사(아/야·이가…)가 바로 붙으므로 뒤 경계 없음('승민아'→'{}아').
+    - 라틴계로 끝나는 이름: 단어 중간 매칭을 막아 오염 방지('Ann'이 'Anniversary'를, 'May'가
+      'Maybe'를 마스킹하지 않음). SOMA-347.
     자연 멱등: 재실행 시 이미 이름이 토큰으로 바뀌어 있어 매칭될 실명이 없다(no-op).
     """
     if not text or not nickname:
@@ -72,7 +80,8 @@ def to_placeholder(text: str | None, nickname: str | None) -> str | None:
     # NFC 통일 — 유저 입력이 분해형(NFD, iOS/macOS)이면 프로필(NFC)과 안 맞아 실명이 안 잡힌다.
     text = unicodedata.normalize("NFC", text)
     nick = unicodedata.normalize("NFC", nickname)
-    return re.sub(rf"(?<![가-힣A-Za-z0-9]){re.escape(nick)}", TOKEN, text)
+    trailing = rf"(?![{_LATIN}])" if _LATIN_RE.match(nick[-1]) else ""
+    return re.sub(rf"(?<![가-힣{_LATIN}]){re.escape(nick)}{trailing}", TOKEN, text)
 
 
 def render(text: str | None, nickname: str | None) -> str | None:

@@ -21,6 +21,9 @@ class _Scalars:
     def first(self):
         return self._items[0] if self._items else None
 
+    def __iter__(self):  # get_config_values 등 scalars() 순회 대응
+        return iter(self._items)
+
 
 class _Result:
     def __init__(self, items):
@@ -273,6 +276,94 @@ async def test_rc_non_renewing_grants_hay(monkeypatch):
                   product_id="com.geniusjun.moly.hay.300", transaction_id="tx-hay-1"),
     )
     assert called["pid"] == "com.geniusjun.moly.hay.300" and called["tx"] == "tx-hay-1"
+
+
+# --- Google Play 구독 매핑(SOMA-341) ---
+def _cfg_row(mapping):
+    """app_config google_play_subscription_products 조회 결과 행."""
+    return [SimpleNamespace(key="google_play_subscription_products", value=mapping)]
+
+
+async def test_rc_google_subscription_maps_plan(monkeypatch):
+    """app_config에 Google 상품 매핑이 있으면 Google 구독 최초구매가 올바른 plan을 활성화."""
+    async def _by(session, otx, lock=False):
+        return None
+
+    async def _grant(session, uid, plan):
+        return True  # 증정 생략(이 테스트는 plan 매핑만 검증)
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_grant_exists", _grant)
+    # exec 순서: [0] config 조회(Apple 미스로 트리거), [1] payment_exists
+    s = FakeSession(exec_results=[_cfg_row({"moly_sub_yearly:yearly": "yearly"}), []])
+    await subscription.handle_revenuecat_event(s, _rc_event(product_id="moly_sub_yearly:yearly"))
+    sub_added = next(o for o in s.added if getattr(o, "status", None) == "active")
+    assert sub_added.plan == "yearly" and s.committed
+
+
+async def test_rc_google_base_plan_suffix_normalized(monkeypatch):
+    """config엔 구독ID만 등록돼 있어도 '구독ID:basePlanId' 이벤트를 정상 인식."""
+    async def _by(session, otx, lock=False):
+        return None
+
+    async def _grant(session, uid, plan):
+        return True
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_grant_exists", _grant)
+    s = FakeSession(exec_results=[_cfg_row({"moly_sub_monthly": "monthly"}), []])
+    await subscription.handle_revenuecat_event(
+        s, _rc_event(product_id="moly_sub_monthly:monthly-autorenew")
+    )
+    assert next(o for o in s.added if getattr(o, "status", None) == "active").plan == "monthly"
+
+
+async def test_rc_product_change_uses_new_product_id(monkeypatch):
+    """월→연 상품변경은 기존 product_id가 아니라 new_product_id 기준으로 요금제 갱신."""
+    sub = SimpleNamespace(
+        id=uuid.uuid4(), user_id=UID_UUID, plan="monthly", status="active",
+        expires_at=None, auto_renew_enabled=True, latest_transaction_id=None,
+    )
+
+    async def _by(session, otx, lock=False):
+        return sub
+
+    async def _grant(session, uid, plan):
+        return True
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription, "_grant_exists", _grant)
+    s = FakeSession(exec_results=[[]])  # Apple 상품이라 config 조회 없음, [0]=payment_exists
+    await subscription.handle_revenuecat_event(
+        s, _rc_event(type="PRODUCT_CHANGE", product_id="app.moly.sub.monthly",
+                     new_product_id="app.moly.sub.yearly"),
+    )
+    assert sub.plan == "yearly"  # 변경 후 상품 반영
+
+
+async def test_rc_unmapped_product_no_activation(monkeypatch):
+    """매핑에 없는 상품은 구독 생성·증정 없이 스킵(관측만) — App Store 경로엔 영향 없음."""
+    called = {}
+
+    async def _by(session, otx, lock=False):
+        called["by"] = True
+        return None
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    s = FakeSession(exec_results=[_cfg_row({})])  # 빈 매핑 → 미등록
+    await subscription.handle_revenuecat_event(s, _rc_event(product_id="unknown.product.x"))
+    assert s.added == [] and s.committed is False and "by" not in called
+
+
+async def test_rc_invalid_config_plan_value_no_activation(monkeypatch):
+    """config에 유효하지 않은 plan 값(오타 등)이면 혜택 미지급 — HAY_GRANT KeyError로 웹훅 크래시 방지."""
+    async def _by(session, otx, lock=False):
+        raise AssertionError("미등록 처리로 걸러져야 함 — 여기 오면 안 됨")
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    s = FakeSession(exec_results=[_cfg_row({"moly_sub_monthly": "montly"})])  # 오타값
+    await subscription.handle_revenuecat_event(s, _rc_event(product_id="moly_sub_monthly"))
+    assert s.added == [] and s.committed is False
 
 
 async def test_rc_bad_app_user_id_skips():

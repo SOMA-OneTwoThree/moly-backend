@@ -70,6 +70,23 @@ def test_parse_fallback_when_no_header():
     assert body == "그냥 본문만 있음"
 
 
+def test_parse_english_weather_header():
+    weather, body = parse("Weather: rainy\nToday was calm.")
+    assert weather == "rainy" and body == "Today was calm."
+
+
+def test_parse_localized_weather_header_kept_out_of_body():
+    # 모델이 라벨을 현지화(일본어 '天気:')해도 값이 enum이면 헤더로 인식·본문에서 제거(SOMA-345).
+    weather, body = parse("天気: sunny\n今日は楽しかった。")
+    assert weather == "sunny" and body == "今日は楽しかった。"
+
+
+def test_parse_known_label_invalid_value_strips_header():
+    # 라벨은 알지만 값이 enum 밖 → 헤더 줄만 제거(본문 오염 방지), 날씨는 기본 cloudy.
+    weather, body = parse("날씨: 알수없음\n본문이다.")
+    assert weather == "cloudy" and body == "본문이다."
+
+
 def test_publish_at_is_next_day_9am_local():
     # 2026-07-05 일기 → 07-06 09:00 KST = 07-06 00:00 UTC
     got = dg.publish_at(date(2026, 7, 5), "Asia/Seoul")
@@ -93,6 +110,68 @@ async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
     assert d.weather == "sunny"
     assert "발표를 무사히" in d.content
     assert session.committed is True
+
+
+async def test_personal_non_korean_preserves_cjk(monkeypatch):
+    """비한국어(일본어) 일기의 정상 CJK가 삭제·재작성되지 않는다 — 서지컬 복원 미발동(SOMA-345)."""
+    _patch_common(monkeypatch, messages=[_msg("user", "今日は発表した")], tokens=5000)
+
+    async def _gen(system, convo, *, max_tokens=None, model=None):
+        if model == settings.model_utility:
+            return LLMResult("OK", 1, 1)
+        return LLMResult("Weather: sunny\n今日は発表を無事に終えた。漢字も残る。", 10, 20)
+
+    async def _no_surgical(*a, **k):
+        raise AssertionError("비한국어 일기에 서지컬 복원이 호출되면 안 됨")
+
+    monkeypatch.setattr(llm_module, "generate", _gen)
+    monkeypatch.setattr(dg, "_surgical_repair", _no_surgical)
+    profile = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="ja")
+    session = FakeSession()
+    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG)
+    d = session.added[0]
+    assert d.source == "llm" and d.weather == "sunny"
+    assert "漢字も残る" in d.content and "今日" in d.content  # CJK 보존
+
+
+async def test_personal_english_preserves_punctuation(monkeypatch):
+    """영어 일기의 하이픈·아포스트로피 등 자연 문장부호가 보존된다(SOMA-345)."""
+    _patch_common(monkeypatch, messages=[_msg("user", "I nailed the talk")], tokens=5000)
+
+    async def _gen(system, convo, *, max_tokens=None, model=None):
+        if model == settings.model_utility:
+            return LLMResult("OK", 1, 1)
+        return LLMResult("Weather: sunny\nToday felt laid-back and I'm glad.", 10, 20)
+
+    monkeypatch.setattr(llm_module, "generate", _gen)
+    profile = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="en")
+    session = FakeSession()
+    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG)
+    d = session.added[0]
+    assert "laid-back" in d.content and "I'm" in d.content  # 하이픈·아포스트로피 보존
+
+
+async def test_personal_korean_repairs_foreign_chars(monkeypatch):
+    """한국어 일기에 섞인 한자·가나는 여전히 서지컬 복원된다(기존 보호 유지)."""
+    _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")], tokens=5000)
+    calls = {}
+
+    async def _gen(system, convo, *, max_tokens=None, model=None):
+        if model == settings.model_utility:
+            return LLMResult("OK", 1, 1)
+        return LLMResult("날씨: sunny\n오늘 発表를 무사히 마쳤다.", 10, 20)  # 한자 섞임
+
+    async def _repair(body, *, user_id=None):
+        calls["repaired"] = body
+        return "오늘 발표를 무사히 마쳤다."
+
+    monkeypatch.setattr(llm_module, "generate", _gen)
+    monkeypatch.setattr(dg, "_surgical_repair", _repair)
+    session = FakeSession()
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    d = session.added[0]
+    assert "repaired" in calls  # ko는 서지컬 복원 발동
+    assert d.content == "오늘 발표를 무사히 마쳤다."
 
 
 async def test_publishes_personal_even_when_self_check_fails(monkeypatch):

@@ -55,16 +55,22 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
 
 
 def parse(text: str) -> tuple[str, str]:
-    """'날씨: x' 헤더 + 본문 파싱. 실패 시 (cloudy, 원문)."""
+    """'날씨: x' 헤더 + 본문 파싱. 실패 시 (cloudy, 원문).
+
+    라벨은 언어별로 달라질 수 있어(ko '날씨:' / en 'Weather:' / 모델이 현지화한 '天気:' 등)
+    값 기준으로 판정한다 — 첫 줄 값이 날씨 enum이면 라벨 언어 불문 헤더로 보고 본문에서 제거.
+    알려진 라벨(날씨/weather)이면 값이 이상해도 헤더 줄은 제거해 본문 오염을 막는다(SOMA-345).
+    """
     weather = "cloudy"
     body = text.strip()
     lines = body.splitlines()
     if lines and ":" in lines[0]:
-        # 헤더 라벨은 언어별(ko '날씨:' / en 'Weather:') — 양쪽 인식(비한국어 일기 날씨 파싱).
         label, value = lines[0].split(":", 1)
-        if label.strip().lower() in ("날씨", "weather"):
-            if value.strip().lower() in _WEATHERS:
-                weather = value.strip().lower()
+        v = value.strip().lower()
+        if v in _WEATHERS:  # 값이 날씨 enum → 현지화 라벨이어도 헤더로 인식
+            weather = v
+            body = "\n".join(lines[1:]).strip()
+        elif label.strip().lower() in ("날씨", "weather"):  # 알려진 라벨 → 헤더 줄 제거(cloudy 유지)
             body = "\n".join(lines[1:]).strip()
     return weather, body
 

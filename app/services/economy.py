@@ -125,7 +125,12 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
             "reward": HAY_ROUTINE_REWARD,
         },
         "hay_products": [
-            {"product_id": p.app_store_product_id, "amount": p.hay_amount} for p in packs
+            {
+                "product_id": p.app_store_product_id,
+                "play_store_product_id": p.play_store_product_id,
+                "amount": p.hay_amount,
+            }
+            for p in packs
         ],
         "balance": profile.hay_balance,
     }

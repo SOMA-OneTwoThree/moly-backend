@@ -1,6 +1,7 @@
 """일기 생성 프롬프트 — 코드가 단일 소스(초기 설계본, 이후 직접 다듬을 예정)."""
 from __future__ import annotations
 
+from app.services import i18n
 from app.services.greetings import copula
 
 _WEATHERS = ("sunny", "cloudy", "rainy", "windy")
@@ -41,8 +42,9 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
         if nickname
         else "[상대]\n아직 이름을 몰라. '걔'나 '그 사람'처럼 자연스럽게 불러."
     )
+    # raw BCP47 유지: 일기도 유저 실제 언어로 지시(resolver 버킷 아님 — zh 유저=중국어 일기).
     lang = language or "ko"
-    if lang == "ko":
+    if i18n.is_korean(language):
         lang_rule = "반드시 한국어로 써. 한자나 다른 나라 문자를 한 글자도 섞지 마."
     else:
         lang_rule = (
@@ -55,16 +57,22 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
 
 
 def parse(text: str) -> tuple[str, str]:
-    """'날씨: x' 헤더 + 본문 파싱. 실패 시 (cloudy, 원문)."""
+    """'날씨: x' 헤더 + 본문 파싱. 실패 시 (cloudy, 원문).
+
+    라벨은 언어별로 달라질 수 있어(ko '날씨:' / en 'Weather:' / 모델이 현지화한 '天気:' 등)
+    값 기준으로 판정한다 — 첫 줄 값이 날씨 enum이면 라벨 언어 불문 헤더로 보고 본문에서 제거.
+    알려진 라벨(날씨/weather)이면 값이 이상해도 헤더 줄은 제거해 본문 오염을 막는다(SOMA-345).
+    """
     weather = "cloudy"
     body = text.strip()
     lines = body.splitlines()
     if lines and ":" in lines[0]:
-        # 헤더 라벨은 언어별(ko '날씨:' / en 'Weather:') — 양쪽 인식(비한국어 일기 날씨 파싱).
         label, value = lines[0].split(":", 1)
-        if label.strip().lower() in ("날씨", "weather"):
-            if value.strip().lower() in _WEATHERS:
-                weather = value.strip().lower()
+        v = value.strip().lower()
+        if v in _WEATHERS:  # 값이 날씨 enum → 현지화 라벨이어도 헤더로 인식
+            weather = v
+            body = "\n".join(lines[1:]).strip()
+        elif label.strip().lower() in ("날씨", "weather"):  # 알려진 라벨 → 헤더 줄 제거(cloudy 유지)
             body = "\n".join(lines[1:]).strip()
     return weather, body
 

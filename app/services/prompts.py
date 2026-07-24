@@ -1,6 +1,8 @@
 """캐피 페르소나 — 코드가 단일 소스(외부 오버라이드 금지, 과거 오염 사고)."""
 from __future__ import annotations
 
+from app.services import i18n
+
 # 도심 속 자기 집에 사는 안정적인 카피바라 '캐피'. 채팅 전용.
 # 화면 너머로 연결된 인간과 천천히 친구가 된다. 대화를 바탕으로 몰래 일기를 쓴다.
 # OpenAI(gpt-5.6-terra) 전환에 맞춰 축약(약 3.4k자/~2.2k tok) — terra가 포맷 규칙(쉼표·한자·이모지·
@@ -76,8 +78,9 @@ def system_prompt(language: str) -> str:
     ko = 한글 강제 + 한국어 출력 체크. 그 외(en 등) = 해당 언어로 쓰되 한글·한자·타 스크립트 배제.
     페르소나 본문은 한국어 지시문이지만, 응답 언어·문자 규칙만 언어별로 갈아끼워 다국어 대응한다.
     """
+    # raw BCP47 유지: LLM엔 유저 실제 언어로 지시해야 하므로 resolver 버킷(ko/en)이 아님(zh 유저=중국어 응답).
     lang = language or "ko"
-    if lang == "ko":
+    if i18n.is_korean(language):
         lang_rule = (
             "[언어] 무슨 언어로 물어보든 반드시 한국어로만 답한다. "
             "전부 한글로만 써. 한자나 다른 나라 문자를 한 글자도 섞지 마."

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import difflib
 import logging
-import re
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -20,7 +19,7 @@ from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import llm, memory, text_clean, naming
+from app.services import i18n, llm, memory, naming, text_clean
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -68,7 +67,7 @@ def _transcript(
 
     저장 본문은 placeholder이므로 LLM 투입 전 현재 이름으로 렌더한다(유창성·추출 품질).
     """
-    user_label = nickname or ("그 사람" if (language or "ko") == "ko" else "that person")
+    user_label = nickname or ("그 사람" if i18n.is_korean(language) else "that person")
     return "\n".join(
         f"{'캐피' if m.sender == 'moly' else user_label}: {naming.render(m.content, nickname)}"
         for m in messages
@@ -104,8 +103,9 @@ async def _self_check(body: str, transcript: str, user_id=None) -> bool:
 # 개인일기 서지컬 복원 — 깨진문자(�)로 단어 잘림·한자/가나 섞임을 '그 부분만' 고친다.
 # 결정적 삭제는 잘린 단어를 못 살리므로(메� → 메) LLM이 문맥으로 부분수정. 개인일기(LLM 생성)만
 # 대상 — 프리셋은 시드 검증된 사람 글이라 strip_symbols로 충분. 배치라 지연 여유.
-# NOTE: 한자/가나 정규식은 챗(text_clean.has_foreign_ko)과 중복 — #64·#65 병합 후 공용화(DRY) 예정.
-_FOREIGN = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\U00020000-\U0002fa1f]")
+# 한자/가나 판정·제거는 챗과 공용(text_clean.has_foreign_ko / strip_foreign_ko) — 단일 소스(SOMA-345).
+# ⚠️ 이 복원은 '한국어 일기'에만 적용한다(호출측 _personal의 is_ko 게이팅). 비한국어(ja/zh)는
+# CJK가 정상 본문이라 여기서 지우면 안 된다.
 _MIN_EDIT_RATIO = 0.80  # 원문 대비 유사도 하한 — 이보다 크게 바뀌면 '부분수정' 아님 → 결정적 폴백
 _SURGICAL_SYS = (
     "다음 한국어 일기에 깨진 문자(�)나 한자 또는 일본어 문자가 섞여 있다. "
@@ -118,13 +118,13 @@ _SURGICAL_SYS = (
 
 def _needs_repair(body: str) -> bool:
     """깨진문자·한자/가나가 있으면 서지컬 복원 대상(없으면 LLM 안 탐)."""
-    return bool(body) and ("�" in body or _FOREIGN.search(body) is not None)
+    return bool(body) and ("�" in body or text_clean.has_foreign_ko(body))
 
 
 def _fallback_clean(body: str, *, keep_hyphen: bool = False) -> str:
     """복원 실패·과편집 시 결정적 폴백 — 외래문자·깨짐 제거(단어 깨질 수 있으나 마지막 안전망)."""
     return text_clean.strip_symbols(
-        _FOREIGN.sub("", body.replace("�", "")), keep_hyphen=keep_hyphen
+        text_clean.strip_foreign_ko(body.replace("�", "")), keep_hyphen=keep_hyphen
     )
 
 
@@ -154,7 +154,7 @@ async def _personal(
     """(본문, 날씨) 또는 None + 진단정보. None이면 호출측이 preset 폴백."""
     nickname = getattr(profile, "nickname", None)
     lang = getattr(profile, "language", None)
-    keep_hy = bool(lang) and lang != "ko"  # 영어 등은 하이픈 유지(laid-back), 서지컬 복원 우회
+    is_ko = i18n.is_korean(lang)  # 미설정=한국어. 비ko(en/ja/zh)는 하이픈 유지 + 외래문자 복원 우회
     transcript = _transcript(messages, nickname, lang)
     result = await llm.generate(
         diary_prompt(lang, nickname),
@@ -162,15 +162,11 @@ async def _personal(
         model=settings.model_diary,  # 대화 모델과 분리(일기 품질 고정) — provider는 prefix 라우팅
     )
     weather, body = parse(result.text)
-    # 깨진문자(�)·한자/가나 → 서지컬 복원(그 부분만) 후 노이즈 정제. 없으면 LLM 안 탐.
-    if _needs_repair(body):
-        # 비한국어 일기는 한국어 서지컬 복원(_SURGICAL_SYS가 '한국어로 고쳐라')이 본문을 훼손할 수 있어
-        # 결정적 정제(_fallback_clean)로 처리. ko는 기존 서지컬 복원 유지.
-        if keep_hy:
-            body = _fallback_clean(body, keep_hyphen=True)
-        else:
-            body = await _surgical_repair(body, user_id=getattr(profile, "id", None))
-    body = text_clean.strip_symbols(body, keep_hyphen=keep_hy)  # 마크다운·말줄임표 제거(en 하이픈 유지)
+    # 외래문자(한자·가나) 서지컬 복원은 '한국어 일기'에만. 비한국어(ja/zh)는 CJK가 정상 본문이라
+    # 지우면 안 됨(AC). 깨진문자(�)는 아래 strip_symbols(JUNK)가 언어 불문 제거한다.
+    if is_ko and _needs_repair(body):
+        body = await _surgical_repair(body, user_id=getattr(profile, "id", None))
+    body = text_clean.strip_symbols(body, keep_hyphen=not is_ko)  # 마크다운·말줄임표 제거(비ko 하이픈 유지)
     if not body:
         _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))
         return None, {"empty_body": True, "self_check_passed": None}
@@ -260,13 +256,13 @@ async def generate_for_user(
             content, weather, preset_id = text_clean.strip_symbols(ment.content), ment.weather, ment.id
             # 비한국어 유저는 preset(한국어 카피)을 유저 언어로 번역해 발행(우리가 넣는 일기도 언어 대응).
             plang = getattr(profile, "language", None)
-            if plang and plang != "ko":
+            if not i18n.is_korean(plang):
                 content = await _translate_preset(content, plang, user_id=getattr(profile, "id", None))
                 content = text_clean.strip_symbols(content, keep_hyphen=True)  # 번역 부호 재정제(en 하이픈 유지)
         else:
             # 풀 비었을 때 안전 기본 — 언어별.
             _pl = getattr(profile, "language", None)
-            content = "Another ordinary day went by." if _pl and _pl != "ko" else "오늘도 그냥저냥 하루가 갔다."
+            content = "오늘도 그냥저냥 하루가 갔다." if i18n.is_korean(_pl) else "Another ordinary day went by."
 
     diary = Diary(
         user_id=profile.id, diary_date=target_date, source=source,

@@ -2286,6 +2286,12 @@ components:
           type: string
           title: Product Id
           description: active hay_pack App Store product id.
+        play_store_product_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Play Store Product Id
+          description: active hay_pack Google Play product id (미확정 시 null).
         amount:
           type: integer
           title: Amount

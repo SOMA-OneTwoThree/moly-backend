@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from sqlalchemy import select
@@ -17,20 +18,31 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.payment import Payment
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
-from app.services import hay_ledger, payment
+from app.services import hay_ledger, i18n, payment
 from app.services.account import _load_profile
+from app.services.config_store import get_config_values
 from app.services.entitlement import _parse_dt
 from app.services.limits import effective_token_config
 
 _log = logging.getLogger("moly-backend")
 
-_PLAN_BY_PRODUCT = {"app.moly.sub.monthly": "monthly", "app.moly.sub.yearly": "yearly"}
 HAY_GRANT = {"monthly": 1000, "yearly": 4000}
+_VALID_PLANS = frozenset(HAY_GRANT)  # 내부 요금제 화이트리스트(config 오값 방어)
+# 구독 상품 카탈로그(클라 노출·매핑 단일 소스). Apple 상품ID는 확정(코드 소스).
 _PLANS = [
     {"product_id": "app.moly.sub.monthly", "period": "monthly", "hay_grant": 1000},
     {"product_id": "app.moly.sub.yearly", "period": "yearly", "hay_grant": 4000},
 ]
-_BENEFITS = ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "건초 증정"]
+# Apple 상품ID → 내부 요금제. _PLANS에서 파생(단일 소스).
+_APPLE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS}
+# Google Play 상품ID → 내부 요금제. Play Console 확정 후 app_config로 주입(코드 재배포 없이).
+# 형식: {"<구독ID>[:<basePlanId>]": "monthly"|"yearly"}. 미설정 시 Google 구독 이벤트는
+# "미등록 상품"으로 관측(혜택 미지급). SOMA-341.
+_GOOGLE_PRODUCTS_KEY = "google_play_subscription_products"
+_BENEFITS = {
+    "ko": ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "건초 증정"],
+    "en": ["Extended chat limit", "Personal diary", "No banner ads", "Hay gift"],
+}
 _ACTIVE = ("active", "grace_period")  # 혜택 유지되는 구독 상태
 
 
@@ -42,8 +54,47 @@ def _iso(dt: datetime | None) -> str | None:
     return dt.isoformat() if dt else None
 
 
-def get_plans() -> dict[str, Any]:
-    return {"plans": _PLANS, "benefits": _BENEFITS}
+async def get_plans(session: AsyncSession, user_id: str) -> dict[str, Any]:
+    """요금제 목록 + 유저 언어의 혜택 문구(구독 안내는 사용자 언어로, SOMA-346)."""
+    profile = await _load_profile(session, user_id)
+    return {"plans": _PLANS, "benefits": i18n.pick(_BENEFITS, profile.language)}
+
+
+async def _google_products(session: AsyncSession) -> dict[str, str]:
+    """app_config의 Google Play 구독 상품 매핑({상품ID: plan}). 미설정 시 빈 dict."""
+    cfg = await get_config_values(session, [_GOOGLE_PRODUCTS_KEY])
+    m = cfg.get(_GOOGLE_PRODUCTS_KEY)
+    return m if isinstance(m, dict) else {}
+
+
+async def _resolve_plan(
+    session: AsyncSession, etype: str | None, event: dict
+) -> tuple[str | None, str | None]:
+    """RC 이벤트 상품ID → 내부 요금제(스토어 무관). 반환 = (plan, 유효 상품ID).
+
+    - PRODUCT_CHANGE는 변경 후 상품(new_product_id)을 기준으로 요금제 결정.
+    - Apple(코드 소스) 우선 조회 → 없으면 Google(app_config) 조회. Apple 상품이면
+      config 조회 없이 반환(핫패스·기존 동작 보존).
+    - Google Play 구독은 '구독ID:basePlanId' 형태로 올 수 있어, 전체 일치 실패 시
+      ':' 앞 구독ID로 재시도.
+    """
+    pid = event.get("product_id")
+    if etype == "PRODUCT_CHANGE":
+        pid = event.get("new_product_id") or pid
+    if not pid:
+        return None, pid
+    plan = _APPLE_PRODUCTS.get(pid)
+    if plan is not None:
+        return plan, pid
+    google = await _google_products(session)
+    plan = google.get(pid)
+    if plan is None and ":" in pid:  # Google base plan 접미사 정규화
+        base = pid.split(":", 1)[0]
+        plan = _APPLE_PRODUCTS.get(base) or google.get(base)
+    if plan is not None and plan not in _VALID_PLANS:  # config 오타·비정상 값 방어
+        _log.warning("RC 웹훅: 유효하지 않은 plan 매핑값(%r) — product=%r", plan, pid)
+        plan = None
+    return plan, pid
 
 
 async def _latest_sub(session: AsyncSession, uid) -> Subscription | None:
@@ -127,23 +178,71 @@ async def _revoke_grant_with_clawback(session: AsyncSession, sub, refunded_plan:
     grant.clawback_hay_transaction_id = tx.id if tx is not None else None
 
 
+def _event_money(event: dict) -> tuple[Decimal | None, str | None]:
+    """RC 이벤트의 실제 결제 금액(원통화 무손실 Decimal)·통화(미확인=None). 구독·IAP 매출 원장 공용.
+
+    금액은 4.99→5 같은 반올림 손실 없이, 통화는 RC 값 그대로(미확인이면 KRW로 날조하지 않는다).
+    """
+    price = event.get("price_in_purchased_currency")
+    try:
+        amount = Decimal(str(price)) if price is not None else None
+    except (TypeError, ValueError, InvalidOperation):
+        amount = None
+    currency = event.get("currency")
+    return amount, (str(currency) if currency else None)
+
+
 async def _record_subscription_payment(session: AsyncSession, sub, event: dict) -> None:
-    """구독 결제(구매·갱신) payments 기록 — 매출 단일 소스(DB_REFACTOR §B.3). transaction_id 멱등."""
+    """구독 결제(구매·갱신) payments 기록 — 매출 단일 소스(DB_REFACTOR §B.3). transaction_id 멱등.
+
+    금액은 원통화 무손실(numeric), 통화는 RC 값 그대로(미확인=NULL, KRW 날조 금지),
+    store는 RC가 알려준 실제 스토어를 기록.
+    """
     tx_id = str(event.get("transaction_id") or "")
     if not tx_id or await payment.payment_exists(session, tx_id):
         return
-    price = event.get("price_in_purchased_currency")
-    try:
-        amount = int(round(float(price))) if price is not None else None
-    except (TypeError, ValueError):
-        amount = None
+    amount, currency = _event_money(event)
     session.add(
         Payment(
             user_id=sub.user_id, subscription_id=sub.id, store_transaction_id=tx_id,
-            amount=amount, currency=str(event.get("currency") or "KRW"), status="paid",
+            store=_store_of(event), amount=amount, currency=currency, status="paid",
             paid_at=_ms_to_dt(event.get("purchased_at_ms")) or datetime.now(timezone.utc),
         )
     )
+
+
+# RevenueCat store 값 → payments.store 정규화. 미확인 스토어는 소문자 원값, 누락은 경고.
+_RC_STORE_MAP = {
+    "APP_STORE": "app_store", "MAC_APP_STORE": "app_store",
+    "PLAY_STORE": "play_store", "AMAZON": "amazon",
+    "STRIPE": "stripe", "PROMOTIONAL": "promotional",
+}
+
+
+def _store_of(event: dict) -> str:
+    raw = str(event.get("store") or "").upper()
+    if not raw:
+        _log.warning("RC 웹훅: store 누락 — 스토어 미상 기록(tx=%r)", event.get("transaction_id"))
+        return "unknown"
+    mapped = _RC_STORE_MAP.get(raw)
+    if mapped is None:  # RC가 새 store 유형 추가 시 감지(소문자 원값으로 기록하되 관측)
+        _log.info("RC 웹훅: 미등록 store(%r) — 소문자 원값 기록", raw)
+        return raw.lower()
+    return mapped
+
+
+async def _mark_payment_refunded(session: AsyncSession, event: dict) -> None:
+    """환불된 거래의 payments.status를 refunded로 — 회수 상태와 매출 원장 일치. 멱등."""
+    tx = str(event.get("transaction_id") or event.get("original_transaction_id") or "")
+    if not tx:
+        return
+    pay = (
+        await session.execute(
+            select(Payment).where(Payment.store_transaction_id == tx).with_for_update()
+        )
+    ).scalars().first()
+    if pay is not None and pay.status != "refunded":
+        pay.status = "refunded"
 
 
 # RevenueCat을 구독 진실 소스로 쓸 때 상태를 active로 갱신하는 이벤트(문서 기준).
@@ -173,14 +272,16 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
         _log.warning("RC 웹훅: app_user_id 매핑 불가(%r) — 스킵", event.get("app_user_id"))
         return
 
-    product_id = event.get("product_id")
-    plan = _PLAN_BY_PRODUCT.get(product_id)
     original_tx = str(event.get("original_transaction_id") or event.get("transaction_id") or "")
     expires = _ms_to_dt(event.get("expiration_at_ms"))
 
     if etype in _RC_ACTIVE:
-        if plan is None or not original_tx:
-            _log.info("RC 웹훅: 미지원 상품/거래 없음(%s, %s) — 스킵", etype, product_id)
+        plan, eff_pid = await _resolve_plan(session, etype, event)
+        if plan is None:
+            _log.warning("RC 웹훅: 미등록 구독 상품 — 혜택 미지급(type=%s, product=%r)", etype, eff_pid)
+            return
+        if not original_tx:
+            _log.warning("RC 웹훅: 거래 ID 없음 — 스킵(type=%s, product=%r)", etype, eff_pid)
             return
         sub = await _by_original_tx(session, original_tx, lock=True)
         if sub is not None and sub.user_id != uid:
@@ -215,8 +316,10 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
         if event.get("cancel_reason") == "CUSTOMER_SUPPORT":  # 환불
             if sub.status != "revoked":
                 sub.status = "revoked"
-            refunded_plan = _PLAN_BY_PRODUCT.get(product_id, sub.plan)
-            await _revoke_grant_with_clawback(session, sub, refunded_plan)
+            # 회수는 실제 부여된 요금제(sub.plan) 기준 — config 재해석 금지(변경돼도 정확 회수).
+            await _revoke_grant_with_clawback(session, sub, sub.plan)
+            # 결제 원장도 refunded로 — 회수 상태와 매출 원장 일치(SOMA-343).
+            await _mark_payment_refunded(session, event)
         else:  # 자동갱신 해제 — 만료 전까지 혜택 유지
             sub.auto_renew_enabled = False
 
@@ -231,7 +334,12 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> None:
             sub.status = "grace_period"  # 유예 — 혜택 유지
 
     elif etype == "NON_RENEWING_PURCHASE":  # 건초 IAP(소비성)
-        await payment.grant_pack(session, uid, product_id, str(event.get("transaction_id") or ""))
+        amount, currency = _event_money(event)  # 해외 결제 실제 통화/금액 기록(구독과 동일)
+        await payment.grant_pack(
+            session, uid, str(event.get("product_id") or ""),
+            str(event.get("transaction_id") or ""),
+            store=_store_of(event), amount=amount, currency=currency,
+        )
 
     else:
         # SUBSCRIPTION_PAUSED(만료 시 처리)·TRANSFER·TEST·paywall 등은 무시.

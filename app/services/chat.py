@@ -22,7 +22,7 @@ from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
-from app.services import gating, greetings, llm, memory, naming, text_clean
+from app.services import gating, greetings, i18n, llm, memory, naming, text_clean
 from app.services.account import _uid
 from app.services.prompts import system_prompt
 
@@ -344,7 +344,7 @@ def _clean_reply(text: str, nickname: str | None = None, language: str | None = 
     말줄임표·마크다운 강조(**,_)·대시(—)는 지운다. 쉼표는 코드로 지우지 않고 프롬프트에
     맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
     """
-    keep_hy = (language or "ko") != "ko"  # en 등: 하이픈 유지 + 한국어 되묻기 물음표 복원 불필요
+    keep_hy = not i18n.is_korean(language)  # en 등: 하이픈 유지 + 한국어 되묻기 물음표 복원 불필요
     out = text_clean.strip_symbols(text, keep_hyphen=keep_hy)  # 말줄임표·마크다운·대시 제거 + 공백 정규화
     return out if keep_hy else _fix_qmarks(out, nickname)
 
@@ -534,7 +534,8 @@ async def post_message(
     # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제(_clean_reply) → placeholder 치환.
     consumed = _billable(result)
     reply_text = result.text
-    if g.profile.language == "ko":
+    is_ko = i18n.is_korean(g.profile.language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
+    if is_ko:
         # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.
         # 발동은 드문 이벤트라(3071건 중 2건) 제거한 접두부만 로그로 남겨 감사 가능하게 한다.
         # stripped는 reply_text의 접미부라 앞부분 = 제거된 메타(한국어 본문은 로그에 안 남김).
@@ -546,7 +547,7 @@ async def post_message(
                 user_id, len(removed), removed[:120],
             )
             reply_text = stripped
-    if g.profile.language == "ko" and text_clean.has_foreign_ko(reply_text):
+    if is_ko and text_clean.has_foreign_ko(reply_text):
         reply_text = await _repair_foreign_ko(reply_text, user_id=user_id)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal",

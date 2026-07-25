@@ -119,6 +119,27 @@ def test_non_korean_name():
     assert naming.render(stored, "Alex") == "Alex 안녕"
 
 
+def test_apply_josa_non_korean_no_particle():
+    # 비한글 이름은 인라인 조사(은/는·이가·를 등)도 미부착 — greetings 계열과 일관(SOMA-347 정리).
+    assert naming._apply_josa("Alex", "은") == "Alex"
+    assert naming._apply_josa("Alex", "이가") == "Alex"
+    assert naming._apply_josa("Alex", "를") == "Alex"
+    # 한글 이름은 받침 맞춰 조사 유지(회귀 없음).
+    assert naming._apply_josa("승민", "은") == "승민은" and naming._apply_josa("지호", "를") == "지호를"
+    # render 경로: 개명(한글→라틴) 시 저장된 조사가 어색하게 붙지 않음.
+    assert naming.render(f"{T}은 어때", "Alex") == "Alex 어때"
+
+
+def test_latin_name_word_boundary_no_overmask():
+    # 라틴계 이름은 단어 중간을 마스킹하지 않는다(SOMA-347).
+    assert naming.to_placeholder("Anniversary party", "Ann") == "Anniversary party"  # Ann≠Anniversary
+    assert naming.to_placeholder("Maybe later", "May") == "Maybe later"              # May≠Maybe
+    assert naming.to_placeholder("Hi Ann!", "Ann") == f"Hi {T}!"                     # 독립 언급은 마스킹
+    assert naming.to_placeholder("Ann's book", "Ann") == f"{T}'s book"               # 소유격 경계
+    # 한글 이름은 뒤 경계 없이 조사 바로 뒤까지 마스킹(기존 동작 유지).
+    assert naming.to_placeholder("승민아 안녕", "승민") == f"{T}아 안녕"
+
+
 def test_nfd_input_is_masked():
     # 유저가 분해형(NFD, iOS/macOS)으로 자기 이름을 쳐도 마스킹된다(프로필=NFC 가정).
     nfd = unicodedata.normalize("NFD", "승민아 안녕")

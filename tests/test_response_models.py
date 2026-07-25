@@ -98,7 +98,8 @@ ROUTINE = {
                     "reward": 10,
                 },
                 "hay_products": [
-                    {"product_id": "com.geniusjun.moly.hay.300", "amount": 300}
+                    {"product_id": "com.geniusjun.moly.hay.300",
+                     "play_store_product_id": "moly_hay_300", "amount": 300}
                 ],
                 "balance": 100,
             },

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import random
 
+from app.services import i18n
+
 CONTEXTS = {"onboarding", "home_enter", "morning", "evening", "comeback"}
 
 
@@ -22,36 +24,37 @@ def vocative(name: str) -> str:
 
 
 def quote_ira(name: str) -> str:
-    """이름 되받기 — 받침 있으면 '이라고', 없으면 '라고'. 비한글은 '라고'."""
+    """이름 되받기 — 받침 있으면 '이라고', 없으면 '라고'. 비한글은 이름 그대로(조사 미부착)."""
     if not name:
         return ""
     last = name[-1]
     if "가" <= last <= "힣":
         return name + ("이라고" if (ord(last) - 0xAC00) % 28 else "라고")
-    return name + "라고"
+    return name
 
 
 def copula(name: str) -> str:
     """서술격 조사 — 받침 있으면 '이야', 없으면 '야'. ("이름은 '지훈'이야" / "'지호'야")
 
     프롬프트에 이름을 박을 때 쓴다. 지시문 자체가 조사를 틀리면 캐피도 따라 틀린다.
+    비한글 이름(Alex 등)엔 한국어 조사를 붙이지 않는다 — 'Alex야' 같은 어색한 결합 방지(SOMA-347).
     """
     if not name:
         return ""
     last = name[-1]
     if "가" <= last <= "힣":
         return name + ("이야" if (ord(last) - 0xAC00) % 28 else "야")
-    return name + "야"
+    return name
 
 
 def with_wa(name: str) -> str:
-    """동반 조사 — 받침 있으면 '과', 없으면 '와'. ("승민과" / "지호와")"""
+    """동반 조사 — 받침 있으면 '과', 없으면 '와'. ("승민과" / "지호와"). 비한글은 이름 그대로."""
     if not name:
         return ""
     last = name[-1]
     if "가" <= last <= "힣":
         return name + ("과" if (ord(last) - 0xAC00) % 28 else "와")
-    return name + "와"
+    return name
 
 
 def subject(name: str) -> str:
@@ -225,7 +228,7 @@ def pick(
 
     language != 'ko'면 영어 풀에서 픽(조사 무관). 이름 자리는 닉네임으로 치환한다.
     """
-    if (language or "ko") != "ko":
+    if not i18n.is_korean(language):
         return _pick_other(context, nickname, hour)
     if context == "onboarding":
         if not nickname:  # 온보딩은 닉네임 확정 후라 정상 경로엔 안 오지만, 안전 폴백.

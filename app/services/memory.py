@@ -4,11 +4,17 @@ mem0 형식은 이 모듈에만 가둔다. user 연결 = metadata.user_id(FK 아
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import unicodedata
 
 from app.config import settings
+
+# mem0 쓰기 직렬화 — mem0 히스토리는 SQLite 파일이라 동시 쓰기 시 'database is locked'가 난다.
+# 워커 동시성을 올려도(SOMA-349 Phase 2) mem0 add만은 한 번에 하나씩 흘려보낸다. best-effort라
+# 이 병목은 허용 범위(일기 생성이 진짜 병목). 동시성=1이면 사실상 무비용.
+_WRITE_LOCK = asyncio.Semaphore(1)
 
 # mem0는 ~/.mem0에 히스토리 SQLite·telemetry를 쓴다. 컨테이너 홈이 비쓰기면 PermissionError(13)로
 # add가 매번 터져 기억이 조용히 전멸한다(2026-07 프로덕션 사고). 쓰기 가능 경로 강제 + telemetry off.
@@ -131,9 +137,10 @@ async def load_for_context(user_id: str) -> str:
 
 
 async def add_conversation(user_id: str, messages: list[dict]) -> None:
-    """워커 배치용 — 그날 대화를 mem0에 추출·저장(chat 경로 아님)."""
+    """워커 배치용 — 그날 대화를 mem0에 추출·저장(chat 경로 아님). SQLite 히스토리 락 회피 위해 직렬."""
     if messages:
-        await _get_memory().add(messages, user_id=user_id)
+        async with _WRITE_LOCK:
+            await _get_memory().add(messages, user_id=user_id)
 
 
 async def delete_all(user_id: str) -> None:

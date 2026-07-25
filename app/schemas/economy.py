@@ -65,7 +65,8 @@ class RoutinePairStatus(StrictResponse):
 
 
 class HayProduct(StrictResponse):
-    product_id: str
+    product_id: str  # App Store 상품ID(RC SDK 구매에 사용)
+    play_store_product_id: str | None = None  # Google Play 상품ID(미확정 시 null)
     amount: int
 
 

@@ -66,6 +66,15 @@ class Settings(BaseSettings):
     bill_weight_cache_read_openai: float = 0.5    # 캐시 읽기 = 입력 단가의 50%
     bill_weight_cache_write_openai: float = 0.0   # OpenAI 자동캐시는 쓰기 과금 없음(cache_write=0)
 
+    # --- 워커 배치 스케일링(SOMA-349) ---
+    # 프로필을 키셋 페이지네이션으로 배치 처리(전량 메모리 적재 회피).
+    worker_batch_size: int = 200
+    # 배치 내 동시 처리 유저 수 상한(세마포어). 기본 1 = 실질 순차(유저별 독립 세션·타임아웃만).
+    # >1로 올리려면 Phase 2 확인 필요(DB 풀 사이즈·pgbouncer 상한·mem0 직렬 이미 반영).
+    worker_max_concurrency: int = 1
+    # 유저 1명 처리 상한(초). 외부 API 지연이 배치를 장시간 막지 않게. 초과 시 스킵(다음 틱 재시도).
+    worker_user_timeout_s: float = 120.0
+
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""
     fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)

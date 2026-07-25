@@ -52,6 +52,7 @@ CREATE TABLE public.products (
   hay_amount           integer,
   price_krw            integer,                 -- 표시 참고용(결제가는 StoreKit)
   app_store_product_id text    UNIQUE,
+  play_store_product_id text   UNIQUE,          -- Google Play 상품ID(Play Console 확정 후 주입, NULL 허용)
   is_active            boolean NOT NULL DEFAULT true,
   -- 신버전(rightside 자세) 계약에만 노출 — 레거시 카탈로그/인벤토리에서 제외.
   is_v2_only           boolean NOT NULL DEFAULT false,
@@ -69,6 +70,7 @@ CREATE TABLE public.products (
     product_type <> 'cosmetic' OR (
       public_id IS NOT NULL AND slot IS NOT NULL
       AND hay_amount IS NULL AND app_store_product_id IS NULL AND price_krw IS NULL
+      AND play_store_product_id IS NULL
       -- 구독 전용 꾸미기는 폐지 — 카탈로그에 노출되면서 구매만 막히는 상품을 만들 수 없다.
       AND is_subscriber_only = false
       -- 최종 에셋이 없는 상품은 inactive로만 준비할 수 있다.
@@ -180,6 +182,8 @@ CREATE TABLE public.user_daily_stats (
   ad_reward_count           smallint NOT NULL DEFAULT 0,
   attendance_claimed_at     timestamptz,
   routine_reward_claimed_at timestamptz,
+  morning_notified_at       timestamptz,   -- 아침 푸시 발송 멱등 마커(유저×활동일 1회)
+  evening_notified_at       timestamptz,   -- 저녁 푸시 발송 멱등 마커
   CONSTRAINT user_daily_stats_user_date_uq UNIQUE (user_id, activity_date)
 );
 
@@ -224,10 +228,10 @@ CREATE TABLE public.payments (
   -- CASCADE 사유: order/subscription 삭제는 회원탈퇴 CASCADE 경로뿐 — SET NULL이면 탈퇴 중 target_ck 위반
   order_id             uuid REFERENCES public.orders(id) ON DELETE CASCADE,          -- IAP 건초 주문과 1:1
   subscription_id      uuid REFERENCES public.subscriptions(id) ON DELETE CASCADE,   -- 구독 결제(구매·갱신)
-  store                text NOT NULL DEFAULT 'app_store',
+  store                text NOT NULL,               -- 실제 스토어(app_store|play_store|…). 코드가 항상 명시
   store_transaction_id text NOT NULL UNIQUE,   -- 멱등 키(영수증 중복 지급 방지)
-  amount               integer,                -- 결제금액(KRW). 이벤트에 없으면 NULL
-  currency             text NOT NULL DEFAULT 'KRW',
+  amount               numeric(14,4),          -- 결제금액(원통화·무손실). 이벤트에 없으면 NULL
+  currency             text,                   -- 구매 통화(ISO 4217). 미확인이면 NULL(KRW로 확정 금지)
   status               text NOT NULL CHECK (status IN ('paid','refunded')),
   paid_at              timestamptz,
   created_at           timestamptz NOT NULL DEFAULT now(),
@@ -236,6 +240,7 @@ CREATE TABLE public.payments (
 CREATE INDEX payments_user_idx         ON public.payments (user_id);
 CREATE INDEX payments_order_idx        ON public.payments (order_id);
 CREATE INDEX payments_subscription_idx ON public.payments (subscription_id);
+CREATE INDEX payments_store_idx        ON public.payments (store);
 
 -- ─────────────────────────────────────────────────────────────
 -- 5. 인벤토리 + 장착 — user_items (보유 + 장착 상태 통합)
@@ -324,7 +329,7 @@ CREATE TABLE public.user_notification_settings (
 CREATE TABLE public.user_devices (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id        uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  platform       text NOT NULL CHECK (platform IN ('ios')),
+  platform       text NOT NULL CHECK (platform IN ('ios', 'android')),
   push_token     text NOT NULL UNIQUE,
   last_active_at timestamptz,
   created_at     timestamptz NOT NULL DEFAULT now()

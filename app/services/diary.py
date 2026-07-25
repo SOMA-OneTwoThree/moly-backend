@@ -16,7 +16,7 @@ from app.core import errors
 from app.core.time_utils import activity_date_for
 from app.models.diary import Diary
 from app.models.profile import Profile
-from app.services import naming
+from app.services import i18n, naming
 from app.services.account import _uid
 
 _PREVIEW_LEN = 60
@@ -40,7 +40,7 @@ _WELCOME_CONTENT_EN = (
 
 
 def _welcome_content(language: str | None) -> str:
-    return _WELCOME_CONTENT if (language or "ko") == "ko" else _WELCOME_CONTENT_EN
+    return _WELCOME_CONTENT if i18n.is_korean(language) else _WELCOME_CONTENT_EN
 
 
 def _welcome_date(created_at: datetime, tz: str) -> date:

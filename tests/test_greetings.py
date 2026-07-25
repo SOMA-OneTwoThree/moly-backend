@@ -52,6 +52,16 @@ def test_with_wa_and_subject_josa():
     assert g.subject("승민") == "승민이" and g.subject("지호") == "지호가"
 
 
+def test_non_korean_name_no_josa():
+    # 비한글 이름엔 한국어 조사를 붙이지 않는다 — 'Alex야' 방지(SOMA-347).
+    assert g.copula("Alex") == "Alex"
+    assert g.quote_ira("Alex") == "Alex"
+    assert g.with_wa("Alex") == "Alex"
+    assert g.vocative("Alex") == "Alex" and g.subject("Alex") == "Alex"
+    # 한글 이름은 조사 유지(회귀 없음).
+    assert g.copula("지훈") == "지훈이야" and g.copula("지호") == "지호야"
+
+
 def test_onboarding_uses_nickname_with_correct_josa():
     assert "지훈이라고" in g.pick("onboarding", "지훈") or "지훈아" in g.pick("onboarding", "지훈")
     assert g.pick("onboarding", None) == "난 캐피야, 이 집에 살아. 편하게 얘기 걸어."  # 안전 폴백

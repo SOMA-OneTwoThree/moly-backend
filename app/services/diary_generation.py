@@ -60,6 +60,15 @@ async def _tokens_used(session: AsyncSession, user_id, target_date: date) -> int
     return rows.scalars().first() or 0
 
 
+_USER_LABEL = {"ko": "그 사람", "en": "that person", "ja": "その人"}
+# 프리셋 풀이 비었을 때 안전 기본 일기(언어별).
+_EMPTY_POOL_FALLBACK = {
+    "ko": "오늘도 그냥저냥 하루가 갔다.",
+    "en": "Another ordinary day went by.",
+    "ja": "今日もなんとなく一日が過ぎた。",
+}
+
+
 def _transcript(
     messages: list[Message], nickname: str | None = None, language: str | None = None
 ) -> str:
@@ -67,7 +76,7 @@ def _transcript(
 
     저장 본문은 placeholder이므로 LLM 투입 전 현재 이름으로 렌더한다(유창성·추출 품질).
     """
-    user_label = nickname or ("그 사람" if i18n.is_korean(language) else "that person")
+    user_label = nickname or i18n.pick(_USER_LABEL, language)
     return "\n".join(
         f"{'캐피' if m.sender == 'moly' else user_label}: {naming.render(m.content, nickname)}"
         for m in messages
@@ -262,7 +271,7 @@ async def generate_for_user(
         else:
             # 풀 비었을 때 안전 기본 — 언어별.
             _pl = getattr(profile, "language", None)
-            content = "오늘도 그냥저냥 하루가 갔다." if i18n.is_korean(_pl) else "Another ordinary day went by."
+            content = i18n.pick(_EMPTY_POOL_FALLBACK, _pl)
 
     diary = Diary(
         user_id=profile.id, diary_date=target_date, source=source,
@@ -288,6 +297,7 @@ async def generate_for_user(
                     }
                     for m in messages
                 ],
+                language=getattr(profile, "language", None),
             )
             # 새 기억 반영 → 채팅 기억 스냅샷 무효화(다음 대화가 당일 기억을 lazy 재로드)
             await session.execute(

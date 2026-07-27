@@ -51,3 +51,56 @@ async def test_load_empty_success_returns_empty_not_raise(monkeypatch):
 
     monkeypatch.setattr(m, "_get_memory", lambda: _Empty())
     assert await m.load_for_context("u") == ""  # 진짜 빈 성공 = "" (raise 아님)
+
+
+def test_instructions_for_language():
+    # mem0 추출 지시가 유저 언어로 분기된다(SOMA-365) — en/ja 기억이 한국어로 번역 저장되던 문제 방지.
+    ja, en, ko = m._instructions_for("ja"), m._instructions_for("en"), m._instructions_for(None)
+    assert "日本語" in ja and "ユーザー" in ja
+    assert "English" in en and "the user" in en
+    assert "한국어" in ko and "사용자" in ko
+    assert m._instructions_for("zh") == en      # 미지원 → en 폴백
+    assert m._instructions_for("en-US") == en    # BCP47 정규화
+
+
+def _batch_len(batch):
+    return sum(len(x["content"]) + m._MSG_OVERHEAD_CHARS for x in batch)
+
+
+def test_chunk_messages_batches_under_limit_and_lossless():
+    # 대화가 상한을 넘으면 배치로 나뉘고, 각 배치는 상한 이하이며, 내용은 무손실·순서보존(SOMA-385).
+    msgs = [{"role": "user", "content": f"메시지{i} " + "가" * 200} for i in range(20)]
+    batches = m._chunk_messages(msgs)
+    assert len(batches) > 1
+    for b in batches:
+        assert _batch_len(b) <= m._EMBED_MAX_CHARS
+    flat = [x for b in batches for x in b]
+    assert [x["content"] for x in flat] == [x["content"] for x in msgs]  # 순서·내용 보존
+
+
+def test_chunk_oversized_single_message_is_split_losslessly():
+    big = "가" * 6000  # 단일 메시지가 상한 초과
+    batches = m._chunk_messages([{"role": "user", "content": big}])
+    assert len(batches) >= 3
+    for b in batches:
+        assert _batch_len(b) <= m._EMBED_MAX_CHARS
+    assert "".join(x["content"] for b in batches for x in b) == big  # 무손실
+
+
+async def test_add_conversation_chunks_and_per_batch_best_effort(monkeypatch):
+    """배치로 나눠 저장하고, 한 배치 실패해도 나머지 진행 후 마지막에 raise(SOMA-385)."""
+    calls = {"n": 0}
+
+    class _Mem:
+        async def add(self, batch, *, user_id, prompt=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("batch 1 fail")  # 첫 배치 실패해도 나머지 계속
+
+    monkeypatch.setattr(m, "_get_memory", lambda: _Mem())
+    msgs = [{"role": "user", "content": "가" * 1200} for _ in range(4)]  # ≥2 배치
+    n_batches = len(m._chunk_messages(msgs))
+    assert n_batches >= 2
+    with pytest.raises(RuntimeError):
+        await m.add_conversation("u", msgs, "ko")
+    assert calls["n"] == n_batches  # 실패 배치 후에도 전 배치 시도(best-effort)

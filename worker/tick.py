@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import httpx
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from app.config import settings
 from app.core.db import get_sessionmaker
@@ -101,14 +101,45 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                 out["diary_attempted"] = 1
                 out["active_tz"] = p.timezone
                 target = activity_date_for(now, p.timezone) - timedelta(days=1)
-                result = await diary_generation.generate_for_user(session, p, target, cfg)
-                if result.get("created"):
-                    out["diaries"] = 1
-                    out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
-                elif result.get("skipped"):
-                    out["diary_skipped"] = 1  # 멱등 재실행 스킵(실패와 구분, SOMA-301)
-                out["memory_ok"] = result.get("memory_ok", 0)
-                out["memory_failed"] = result.get("memory_failed", 0)
+                # 워커 틱 중첩(15분 케이던스·재시도) 시 같은 (유저,날짜) 일기를 두 프로세스가 동시에
+                # LLM 생성하지 않도록 커밋된 클레임 행으로 상호배제(SOMA-373). 세션 advisory lock은
+                # SQLAlchemy 커넥션 풀 반환·pgbouncer 트랜잭션 풀링과 안 맞아(내부 커밋 시 락이 다른
+                # 커넥션으로 새거나 미지원) 클레임 방식을 쓴다. claimed_at 30분 만료로 크래시된 클레임은 회수.
+                # 불변식: 만료(30분) ≫ worker_user_timeout_s(120s) — 살아있는 프로세스는 타임아웃돼
+                # finally에서 자기 클레임을 먼저 지우므로, 만료 회수는 하드킬(죽은 프로세스)만 대상이다.
+                claimed = (
+                    await session.execute(
+                        text(
+                            "INSERT INTO diary_gen_claims (user_id, target_date) VALUES (:u, :d) "
+                            "ON CONFLICT (user_id, target_date) DO UPDATE SET claimed_at = now() "
+                            "WHERE diary_gen_claims.claimed_at < now() - interval '30 minutes' "
+                            "RETURNING 1"
+                        ),
+                        {"u": pid, "d": target},
+                    )
+                ).scalar()
+                await session.commit()  # 클레임 커밋 — 겹친 틱이 볼 수 있게(가시성)
+                if claimed is None:
+                    out["diary_skipped"] = 1  # 다른 프로세스가 신선한 클레임 보유 — 중복 LLM 방지
+                else:
+                    try:
+                        result = await diary_generation.generate_for_user(session, p, target, cfg)
+                        if result.get("created"):
+                            out["diaries"] = 1
+                            out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
+                        elif result.get("skipped"):
+                            out["diary_skipped"] = 1  # 멱등 재실행 스킵(실패와 구분, SOMA-301)
+                        out["memory_ok"] = result.get("memory_ok", 0)
+                        out["memory_failed"] = result.get("memory_failed", 0)
+                    finally:
+                        # 클레임 해제 — 성공 시 diary 행이 멱등 마커라 삭제 안전, 실패 시 다음 틱 재시도.
+                        # generate는 내부 커밋 완료(별도 tx)라 rollback으로 aborted 상태 정리 후 삭제.
+                        await session.rollback()
+                        await session.execute(
+                            text("DELETE FROM diary_gen_claims WHERE user_id = :u AND target_date = :d"),
+                            {"u": pid, "d": target},
+                        )
+                        await session.commit()
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
                 if await notify.notify_morning(session, p):

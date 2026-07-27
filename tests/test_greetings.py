@@ -65,3 +65,30 @@ def test_non_korean_name_no_josa():
 def test_onboarding_uses_nickname_with_correct_josa():
     assert "지훈이라고" in g.pick("onboarding", "지훈") or "지훈아" in g.pick("onboarding", "지훈")
     assert g.pick("onboarding", None) == "난 캐피야, 이 집에 살아. 편하게 얘기 걸어."  # 안전 폴백
+
+
+def test_ja_pools_integrity():
+    # ja 풀이 ko/en과 같은 버킷·컨텍스트를 모두 덮는다(KeyError 방지, SOMA-361).
+    assert set(g._HOME_BY_TIME_JA) == set(g._HOME_BY_TIME)
+    assert set(g._POOLS_JA) == set(g._POOLS)
+    for pool in (*g._HOME_BY_TIME_JA.values(), *g._POOLS_JA.values(), g._ONBOARDING_JA):
+        assert pool and len(set(pool)) == len(pool)  # 빈 풀·내부 중복 없음
+
+
+def test_ja_greeting_picks_from_ja_pool_without_josa():
+    # ja 유저는 ja 풀에서 나오고, 이름은 조사 없이 그대로 치환된다.
+    picks = {g.pick("evening", "Ken", language="ja") for _ in range(60)}
+    assert picks <= set(g._POOLS_JA["evening"])
+    ob = g.pick("onboarding", "Ken", language="ja")
+    assert "Ken" in ob and ob in {t.format(name="Ken") for t in g._ONBOARDING_JA}
+
+
+def test_ja_every_context_has_a_pool():
+    for ctx in g.CONTEXTS:
+        assert g.pick(ctx, "Ken", 12, language="ja")  # KeyError·빈 풀 없이 문구가 나온다
+
+
+def test_unsupported_language_falls_back_to_english_pool():
+    # zh 등 미지원 → en 버킷 폴백(한국어·일본어로 새지 않음).
+    picks = {g.pick("evening", "Sam", language="zh") for _ in range(40)}
+    assert picks <= set(g._POOLS_EN["evening"])

@@ -15,6 +15,9 @@ from app.services import economy, hay_ledger, review, routine, shop
 
 UID = "11111111-1111-1111-1111-111111111111"
 UID_UUID = uuid.UUID(UID)
+# 카탈로그 조회(get_products/get_inventory)는 이제 profile.language를 로드한다(SOMA-346) →
+# FakeSession.get(Profile)이 언어를 가진 프로필을 돌려줘야 한다.
+_CATALOG_PROFILE = SimpleNamespace(id=UID_UUID, language="ko")
 
 
 class _Scalars:
@@ -246,7 +249,7 @@ def _item(**over):
     public_id = over.pop("public_id", f"glasses_{uuid.uuid4().hex[:8]}")
     root = f"https://cdn.example.com/{public_id}/v1"
     base = dict(
-        id=uuid.uuid4(), public_id=public_id, slot="glasses", name="안경", price_hay=1000,
+        id=uuid.uuid4(), public_id=public_id, slot="glasses", name="안경", name_i18n=None, price_hay=1000,
         is_subscriber_only=False, is_active=True, is_v2_only=False, asset_version=1, sort_order=1,
         # rightside를 기본 포함 — 레거시 경로가 이 키를 벗겨내지 못하면 extra=forbid로 즉시 실패한다.
         assets={
@@ -263,7 +266,7 @@ def _item(**over):
 def _theme(**over):
     public_id = over.pop("public_id", "theme_default")
     base = dict(
-        id=uuid.uuid4(), public_id=public_id, slot="theme", name="집", price_hay=None,
+        id=uuid.uuid4(), public_id=public_id, slot="theme", name="집", name_i18n=None, price_hay=None,
         is_subscriber_only=False, is_active=True, is_v2_only=False, asset_version=1, sort_order=1,
         assets={
             "thumbnail_url": f"https://cdn.example.com/{public_id}/v1/thumb.png",
@@ -557,7 +560,7 @@ async def test_inventory_excludes_subscription_rows(monkeypatch):
     """인벤토리는 구독 장착 행을 제외하고 카탈로그와 같은 전체 DTO를 반환한다."""
     owned, subscription = _item(), _item()
     rows = [_row(owned.id), _row(subscription.id, source="subscription", equipped_slot="glasses")]
-    out = await shop.get_inventory(FakeSession(exec_results=[rows, [owned]]), UID)
+    out = await shop.get_inventory(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [owned]]), UID)
     assert [item["id"] for item in out["data"]] == [owned.public_id]
     assert out["data"][0]["owned"] is True
     # 레거시 응답: slot은 head로 투영, assets에서 rightside는 감춰지고 upright는 구 자세 URL.
@@ -572,7 +575,7 @@ async def test_catalog_partitions_themes_and_items_with_consistent_flags():
         _row(theme.id, source="admin_grant", equipped_slot="theme"),
         _row(head.id, source="admin_grant"),
     ]
-    out = await shop.get_products(FakeSession(exec_results=[[theme, head], rows]), UID)
+    out = await shop.get_products(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[theme, head], rows]), UID)
     assert [item["id"] for item in out["themes"]] == ["theme_default"]
     assert out["themes"][0]["owned"] is True and out["themes"][0]["equipped"] is True
     assert out["items"][0]["owned"] is True and out["items"][0]["equipped"] is False
@@ -594,19 +597,19 @@ def _v2_only_glasses():
 
 async def test_legacy_catalog_hides_v2_only_item_shown_in_v2():
     catalog = [_theme(), _item(public_id="head_sunglasses"), _v2_only_glasses()]
-    legacy = await shop.get_products(FakeSession(exec_results=[catalog, []]), UID)
+    legacy = await shop.get_products(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[catalog, []]), UID)
     legacy_ids = {item["id"] for item in legacy["items"]}
     assert "head_sunglasses" in legacy_ids and "head_glasses" not in legacy_ids
-    v2 = await shop.get_products(FakeSession(exec_results=[catalog, []]), UID, v2=True)
+    v2 = await shop.get_products(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[catalog, []]), UID, v2=True)
     assert {"head_sunglasses", "head_glasses"} <= {item["id"] for item in v2["items"]}
 
 
 async def test_legacy_inventory_hides_v2_only_owned_item_shown_in_v2():
     v2only = _v2_only_glasses()
     rows = [_row(v2only.id)]
-    legacy = await shop.get_inventory(FakeSession(exec_results=[rows, [v2only]]), UID)
+    legacy = await shop.get_inventory(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [v2only]]), UID)
     assert legacy["data"] == []  # 제외하지 않으면 detail_url 부재로 500
-    v2 = await shop.get_inventory(FakeSession(exec_results=[rows, [v2only]]), UID, v2=True)
+    v2 = await shop.get_inventory(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [v2only]]), UID, v2=True)
     assert [item["id"] for item in v2["data"]] == ["head_glasses"]
 
 
@@ -679,7 +682,7 @@ async def test_legacy_catalog_hides_second_head_item_as_unequipped():
         _row(hat.id, source="admin_grant", equipped_slot="hat"),
         _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
-    out = await shop.get_products(FakeSession(exec_results=[[hat, glasses], rows]), UID)
+    out = await shop.get_products(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[hat, glasses], rows]), UID)
     by_id = {item["id"]: item for item in out["items"]}
     assert by_id["head_mandarin"]["slot"] == "head" and by_id["head_mandarin"]["equipped"] is True
     assert by_id["head_sunglasses"]["equipped"] is False  # 탈락한 두 번째 head 아이템
@@ -688,7 +691,7 @@ async def test_legacy_catalog_hides_second_head_item_as_unequipped():
 async def test_v2_catalog_projects_rightside_upright():
     glasses = _item(public_id="head_sunglasses", slot="glasses")
     out = await shop.get_products(
-        FakeSession(exec_results=[[glasses], []]), UID, v2=True
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[glasses], []]), UID, v2=True
     )
     item = out["items"][0]
     assert item["slot"] == "glasses"
@@ -705,13 +708,13 @@ async def test_v2_catalog_rejects_missing_rightside_without_legacy_fallback():
     del glasses.assets["rightside"]
 
     legacy = await shop.get_products(
-        FakeSession(exec_results=[[glasses], []]), UID
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[glasses], []]), UID
     )
     assert legacy["items"][0]["assets"]["upright_layer_url"].endswith("/v1/upright.png")
 
     with pytest.raises(AppError) as exc:
         await shop.get_products(
-            FakeSession(exec_results=[[glasses], []]), UID, v2=True
+            FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[glasses], []]), UID, v2=True
         )
     assert exc.value.code == "INTERNAL"
     assert exc.value.details == {"product_id": "head_sunglasses"}
@@ -719,7 +722,7 @@ async def test_v2_catalog_rejects_missing_rightside_without_legacy_fallback():
 
 async def test_v2_catalog_theme_keeps_scene_and_detail():
     theme = _theme()
-    out = await shop.get_products(FakeSession(exec_results=[[theme], []]), UID, v2=True)
+    out = await shop.get_products(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[theme], []]), UID, v2=True)
     assets = out["themes"][0]["assets"]
     assert assets["scene"] is not None and "detail_url" in assets
     assert "rightside" not in assets

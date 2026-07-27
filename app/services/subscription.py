@@ -42,6 +42,7 @@ _GOOGLE_PRODUCTS_KEY = "google_play_subscription_products"
 _BENEFITS = {
     "ko": ["대화 한도 확장", "개인 일기 발행", "배너 광고 제거", "건초 증정"],
     "en": ["Extended chat limit", "Personal diary", "No banner ads", "Hay gift"],
+    "ja": ["会話の上限アップ", "あなただけの日記", "バナー広告なし", "干し草プレゼント"],
 }
 _ACTIVE = ("active", "grace_period")  # 혜택 유지되는 구독 상태
 

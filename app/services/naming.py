@@ -23,9 +23,15 @@ from app.services import greetings
 TOKEN = "{유저이름}"
 _TOK_RE = re.escape(TOKEN)
 
-# 라틴계 글자·숫자(ASCII + 라틴 확장 악센트) — 단어 경계 판정용. 한글은 조사가 붙으므로 제외.
-_LATIN = r"A-Za-z0-9À-ɏ"
+# 라틴계 글자·숫자 — 단어 경계 판정용. 한글은 조사가 붙으므로 제외.
+# À-ɏ=U+00C0–024F(악센트·라틴 확장 A/B), Ḁ-ỿ=U+1E00–1EFF(베트남 등 확장 추가, Tuệ의 ệ=U+1EC7 등). SOMA-365.
+# ⚠️ CJK(한자·가나)는 의도적으로 제외 — 일본어·중국어는 띄어쓰기가 없어 substring 마스킹이
+#   과치환(愛⊂恋愛)하거나 조사 붙은 실명을 놓친다(양자택일 불가). 관계형 표면 마스킹은 개명
+#   드리프트 방지용 미용 기능이고 기밀 방어선은 RLS+mem0 이름미저장이라, CJK는 마스킹하지 않는다(D2).
+_LATIN = r"A-Za-z0-9À-ɏḀ-ỿ"
 _LATIN_RE = re.compile(rf"[{_LATIN}]")
+# CJK(가나·한자·CJK 통합/확장A/호환) — 이 스크립트를 포함하는 닉네임은 마스킹하지 않는다(D2, 위 주석).
+_CJK_RE = re.compile("[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9d\U00020000-\U0002fa1f]")
 
 # 받침 의존 조사(파티클). longest-first(이라고>라고, 이야>이, 이가>이/가, 이랑>랑, 이나>나).
 _JOSA_ALT = "이라고|라고|이야|이가|이랑|이나|아|야|이|가|은|는|을|를|과|와|랑|나"
@@ -82,6 +88,10 @@ def to_placeholder(text: str | None, nickname: str | None) -> str | None:
     # NFC 통일 — 유저 입력이 분해형(NFD, iOS/macOS)이면 프로필(NFC)과 안 맞아 실명이 안 잡힌다.
     text = unicodedata.normalize("NFC", text)
     nick = unicodedata.normalize("NFC", nickname)
+    # CJK(한자·가나) 이름은 마스킹하지 않는다(D2) — 띄어쓰기가 없어 substring 마스킹이 과치환
+    # (예: '愛'가 '恋愛' 속을)하거나 조사 붙은 실명을 놓친다. 프라이버시는 RLS+mem0 이름미저장이 담당.
+    if _CJK_RE.search(nick):
+        return text
     trailing = rf"(?![{_LATIN}])" if _LATIN_RE.match(nick[-1]) else ""
     return re.sub(rf"(?<![가-힣{_LATIN}]){re.escape(nick)}{trailing}", TOKEN, text)
 

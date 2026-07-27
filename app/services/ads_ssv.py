@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import base64
 import logging
 import time
@@ -17,14 +18,30 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 _log = logging.getLogger("moly-backend")
 _KEYS_URL = "https://www.gstatic.com/admob/reward/verifier-keys.json"
 _KEYS_TTL_SECONDS = 24 * 60 * 60  # Google 정책: 공개키 24시간 이상 캐시 금지(수시 로테이션)
+_FORCE_MIN_INTERVAL = 60.0  # 미등록 key_id 강제 재조회 최소 간격(초) — 서명 없는 refetch 폭주(DoS) 차단
 _keys_cache: dict[str, str] | None = None
 _keys_fetched_at: float = 0.0
+_last_force_at: float = 0.0
+_keys_lock = asyncio.Lock()
 
 
 async def _get_keys(*, force: bool = False) -> dict[str, str]:
-    global _keys_cache, _keys_fetched_at
-    expired = time.monotonic() - _keys_fetched_at >= _KEYS_TTL_SECONDS
-    if _keys_cache is None or expired or force:
+    """Google verifier 공개키 캐시(TTL 24h). force = 미등록 key_id 재조회이나 최소간격 스로틀·락으로
+    동시 콜드스타트와 refetch 폭주를 막는다 — 공개 SSV 엔드포인트 DoS 방어(SOMA-376)."""
+    global _keys_cache, _keys_fetched_at, _last_force_at
+    now = time.monotonic()
+    if _keys_cache is not None and now - _keys_fetched_at < _KEYS_TTL_SECONDS and not force:
+        return _keys_cache  # 빠른 경로: 정상 캐시 히트(락 없음)
+    async with _keys_lock:  # 동시 갱신 직렬화(중복 외부요청 방지)
+        now = time.monotonic()
+        expired = now - _keys_fetched_at >= _KEYS_TTL_SECONDS
+        do_force = force and (now - _last_force_at >= _FORCE_MIN_INTERVAL)  # 강제 재조회 스로틀
+        if _keys_cache is not None and not expired and not do_force:
+            return _keys_cache  # 락 대기 중 갱신됐거나, 강제 스로틀에 걸림
+        if do_force:
+            # 시도 시각을 fetch 전에 기록 — Google 키서버 장애(timeout/5xx)로 실패해도 스로틀이
+            # 걸리게 한다(성공에만 기록하면 장애 중 미등록 key_id마다 10초 외부호출 폭주).
+            _last_force_at = now
         async with httpx.AsyncClient(timeout=10.0) as client:
             data = (await client.get(_KEYS_URL)).json()
         _keys_cache = {str(k["keyId"]): k["pem"] for k in data.get("keys", [])}

@@ -23,9 +23,9 @@ from app.schemas.shop import (
     ShopProduct,
     ShopProductV2,
 )
-from app.services import hay_ledger
+from app.services import hay_ledger, i18n
 from app.services import order as order_service
-from app.services.account import _uid
+from app.services.account import _load_profile, _uid
 
 _SLOTS_V2 = ("theme", "hat", "glasses", "neck", "body")
 
@@ -101,9 +101,9 @@ async def _products_by_ids(
 
 
 def _product_dto(
-    product: Product, *, owned: bool, equipped: bool, v2: bool = False
+    product: Product, *, owned: bool, equipped: bool, v2: bool = False, language: str | None = None
 ) -> dict[str, Any]:
-    """DB JSONB를 엄격한 공개 계약으로 검증한 뒤 JSON 직렬화한다."""
+    """DB JSONB를 엄격한 공개 계약으로 검증한 뒤 JSON 직렬화한다. 이름은 유저 언어로(SOMA-346)."""
     if v2:
         model: type[ShopProduct | ShopProductV2] = ShopProductV2
         slot = product.slot
@@ -115,7 +115,9 @@ def _product_dto(
     try:
         dto = model(
             id=product.public_id,
-            name=product.name,
+            name=i18n.localized_name(
+                product.name_i18n, language, product.name, kind="product", key=product.public_id or ""
+            ),
             slot=slot,
             price_hay=product.price_hay,
             owned=owned,
@@ -136,7 +138,8 @@ def _product_dto(
 async def get_products(
     session: AsyncSession, user_id: str, *, v2: bool = False
 ) -> dict[str, Any]:
-    uid = _uid(user_id)
+    profile = await _load_profile(session, user_id)
+    uid = profile.id
     products = list(
         (
             await session.execute(
@@ -155,7 +158,8 @@ async def get_products(
         if not v2 and product.is_v2_only:
             continue  # 레거시 계약에 없는 상품 — 노출 시 detail_url 부재로 500
         dto = _product_dto(
-            product, owned=product.id in owned, equipped=product.id in equipped, v2=v2
+            product, owned=product.id in owned, equipped=product.id in equipped, v2=v2,
+            language=profile.language,
         )
         (themes if product.slot == "theme" else items).append(dto)
     return {"themes": themes, "items": items}
@@ -282,7 +286,8 @@ async def purchase(
 async def get_inventory(
     session: AsyncSession, user_id: str, *, v2: bool = False
 ) -> dict[str, Any]:
-    uid = _uid(user_id)
+    profile = await _load_profile(session, user_id)
+    uid = profile.id
     rows = await _user_rows(session, uid)
     owned_rows = [row for row in rows if row.source != "subscription"]
     products = await _products_by_ids(session, {row.product_id for row in owned_rows})
@@ -290,7 +295,8 @@ async def get_inventory(
     ordered = sorted(products.values(), key=lambda product: (product.sort_order, product.public_id))
     return {
         "data": [
-            _product_dto(product, owned=True, equipped=product.id in equipped, v2=v2)
+            _product_dto(product, owned=True, equipped=product.id in equipped, v2=v2,
+                         language=profile.language)
             for product in ordered
             if v2 or not product.is_v2_only  # 레거시 계약에 없는 상품 제외(detail_url 부재)
         ]

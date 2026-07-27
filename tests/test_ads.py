@@ -246,3 +246,36 @@ def test_reward_ad_session_requires_auth():
     finally:
         app.dependency_overrides.clear()
     assert r.status_code == 401 and r.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+async def test_ssv_key_force_refetch_is_throttled(monkeypatch):
+    """미등록 key_id 강제 재조회는 최소 간격 스로틀 — 서명 없는 refetch 폭주(DoS) 방지(SOMA-376)."""
+    calls = {"n": 0}
+
+    class _Resp:
+        def json(self):
+            return {"keys": []}
+
+    class _Client:
+        def __init__(self, **kw):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def get(self, url):
+            calls["n"] += 1
+            return _Resp()
+
+    monkeypatch.setattr(ads_ssv.httpx, "AsyncClient", _Client)
+    monkeypatch.setattr(ads_ssv, "_keys_cache", None)
+    monkeypatch.setattr(ads_ssv, "_keys_fetched_at", 0.0)
+    monkeypatch.setattr(ads_ssv, "_last_force_at", 0.0)
+    # 첫 조회(캐시 없음)만 실제 fetch, 이후 강제 재조회는 스로틀로 재fetch 안 함.
+    await ads_ssv._get_keys(force=True)
+    await ads_ssv._get_keys(force=True)
+    await ads_ssv._get_keys(force=True)
+    assert calls["n"] == 1

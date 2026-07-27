@@ -16,10 +16,12 @@ from app.services import i18n, push
 _MORNING = {
     "ko": ("캐피", "캐피가 어젯밤 일기를 남겼어요. 몰래 보러가볼까요?"),
     "en": ("Capi", "Capi left a diary last night. Want to sneak a peek?"),
+    "ja": ("カピ", "カピが昨夜、日記を残したよ。こっそり見に行かない？"),
 }
 _EVENING = {
     "ko": ("캐피", "오늘 하루는 어땠어? 나랑 같이 얘기하면서 놀자."),
     "en": ("Capi", "How was your day? Come talk and hang out with me."),
+    "ja": ("カピ", "今日はどんな一日だった？わたしと一緒におしゃべりしよう。"),
 }
 
 

@@ -147,3 +147,35 @@ def test_nfd_input_is_masked():
     assert naming.TOKEN in out
     assert "승민" not in unicodedata.normalize("NFC", out)  # 실명 스템 잔존 없음
     assert naming.render(out, "지호") == "지호야 안녕"
+
+
+def test_vietnamese_extended_latin_boundary():
+    # 베트남 확장라틴(U+1E00~)·악센트 이름도 라틴 단어경계가 적용된다(SOMA-365).
+    assert naming.to_placeholder("Tuệ went home", "Tuệ") == f"{T} went home"
+    assert naming.to_placeholder("Tuệt", "Tuệ") == "Tuệt"          # 더 긴 라틴 단어 속 과치환 방지
+    assert naming.to_placeholder("José는 왔어", "José") == f"{T}는 왔어"  # 악센트 라틴 + 한글 조사 뒤
+
+
+def test_cjk_name_not_masked():
+    # CJK(한자·가나) 이름은 마스킹하지 않는다(D2) — 과치환(愛⊂恋愛)·잔존 딜레마 회피.
+    assert naming.to_placeholder("恋愛について話した", "愛") == "恋愛について話した"
+    assert naming.to_placeholder("さくらんぼ", "さくら") == "さくらんぼ"
+    assert naming.to_placeholder("愛と話した", "愛") == "愛と話した"
+    # 라틴/한글 이름은 계속 마스킹(회귀 없음).
+    assert naming.TOKEN in naming.to_placeholder("Alex came", "Alex")
+    assert naming.TOKEN in naming.to_placeholder("승민이 왔어", "승민")
+
+
+def test_cjk_regex_excludes_hangul():
+    # 하이픈 트랩 방지 회귀 — _CJK_RE가 한글을 절대 삼키지 않는다(리터럴 豈/U+F900 혼동 방어).
+    for ch in "가힣나람각":
+        assert not naming._CJK_RE.search(ch)
+    # BMP 한자·가나 + 보조평면(Ext B 𠮷)·반각 가타카나(ｻ)·가타카나 음성확장(ㇰ)까지 커버.
+    for ch in "愛張アさ\U00020bb7ｻㇰ":
+        assert naming._CJK_RE.search(ch)
+
+
+def test_cjk_supplementary_and_halfwidth_not_masked():
+    # 보조평면 한자·반각 가나 이름도 마스킹 스킵(D2) — substring 과치환 방지(SOMA-365, sol #3).
+    assert naming.to_placeholder("\U00020bb7野で話した", "\U00020bb7") == "\U00020bb7野で話した"
+    assert naming.to_placeholder("ｻﾄｼ", "ｻ") == "ｻﾄｼ"

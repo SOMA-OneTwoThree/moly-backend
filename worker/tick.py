@@ -244,8 +244,10 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
 
     elapsed = time.monotonic() - start
 
-    # 슬랙 요약: 일기 틱(DIARY_HOUR에 진입한 유저 있음) 또는 푸시 발송 있을 때만 전송(빈 틱 스팸 방지)
-    if counts["diary_attempted"] + counts["morning"] + counts["evening"] > 0:
+    # 슬랙 요약: 실제 작업(일기 생성/실패 또는 푸시 발송)이 있을 때만 전송(빈 틱 스팸 방지).
+    # diary_attempted 기준이면 15분 케이던스에서 DIARY_HOUR 시간대마다 요약이 4번 나가고
+    # 그중 3번은 _diary_exists skip이라 "일기 0건" — 감시 채널이 오탐으로 도배된다(SOMA-348 후속).
+    if counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"] > 0:
         summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)
 

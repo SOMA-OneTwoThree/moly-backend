@@ -30,7 +30,7 @@ from app.services import config_store, llm, slack_notify  # noqa: F401 (slack_no
 router = APIRouter(tags=["system"])
 
 _KST = ZoneInfo("Asia/Seoul")
-_WORKER_STALE_SEC = 2 * 3600  # 워커 마지막 성공이 이보다 오래면 stale(매시 틱이라 2h면 여러 틱 누락)
+_WORKER_STALE_SEC = 2 * 3600  # 워커 마지막 성공이 이보다 오래면 stale(15분 틱 기준 8회 연속 누락)
 
 
 def require_health_token(

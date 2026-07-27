@@ -216,7 +216,18 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 elif k in counts:
                     counts[k] += v
 
-    # 하루 1회(UTC 04시 틱): 고아 기억 청소 + 모니터링 상태·비용 기록. 한 세션(smon)으로 처리.
+    # 워커가 끝까지 돌았음을 매 틱 기록 — /health/deep의 stale(2h) 판정 근거.
+    # DIARY_HOUR 블록 안에 있으면 하루 1회만 갱신돼 나머지 22시간이 오탐 stale이 된다.
+    # (데드맨 핑은 결과 정상 여부로 별도, _emit_worker_health)
+    try:
+        async with get_sessionmaker()() as s_hb:
+            await config_store.set_config_value(
+                s_hb, config_store.WORKER_LAST_SUCCESS_KEY, now.isoformat()
+            )
+    except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
+        _log.warning("워커 상태 기록 실패: %r", e)
+
+    # 하루 1회(UTC 04시 틱): 고아 기억 청소 + 비용 기록. 한 세션(smon)으로 처리.
     # (SOMA-349에서 유저별 세션으로 바뀌어 공유 session이 없으므로 전용 세션을 연다.)
     if now.hour == DIARY_HOUR:
         async with get_sessionmaker()() as smon:
@@ -225,14 +236,6 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 counts["swept"] = await memory.sweep_orphans(smon)
             except Exception as e:  # noqa: BLE001
                 _log.warning("고아 기억 스위프 실패: %r", e)
-                await smon.rollback()
-            # 워커가 끝까지 돌았음을 기록(데드맨 핑은 결과 정상 여부로 별도, _emit_worker_health)
-            try:
-                await config_store.set_config_value(
-                    smon, config_store.WORKER_LAST_SUCCESS_KEY, now.isoformat()
-                )
-            except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
-                _log.warning("워커 상태 기록 실패: %r", e)
                 await smon.rollback()
             # 전일 완결분 billable 합산(임계 비교·경보는 _emit_worker_health)
             if settings.daily_billable_alert_threshold > 0:

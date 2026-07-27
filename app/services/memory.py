@@ -10,6 +10,7 @@ import os
 import unicodedata
 
 from app.config import settings
+from app.services import i18n
 
 # mem0 쓰기 직렬화 — mem0 히스토리는 SQLite 파일이라 동시 쓰기 시 'database is locked'가 난다.
 # 워커 동시성을 올려도(SOMA-349 Phase 2) mem0 add만은 한 번에 하나씩 흘려보낸다. best-effort라
@@ -54,12 +55,32 @@ def _sanitize(text: str) -> str:
     return text.translate(_STRIP).translate(_BRACKETS).strip()
 
 
-# mem0 fact 추출 지시(최우선 규칙). 한국어 고정 + 이름/호칭 미저장(개명 드리프트·프라이버시 방어).
-_MEMORY_INSTRUCTIONS = (
-    "- 모든 기억은 반드시 한국어로 간결하게 작성한다.\n"
-    "- 사용자를 지칭할 때 실제 이름·닉네임·호칭을 쓰지 말고 '사용자'로만 표현한다. 이름 자체는 저장하지 않는다.\n"
-    "- 감정·관계·고민·취향·상황 등 사람을 이해하는 데 중요한 사실 위주로 뽑는다."
-)
+# mem0 fact 추출 지시(최우선 규칙) — 유저 언어로 저장 + 이름/호칭 미저장(개명 드리프트·프라이버시 방어).
+# en/ja 유저에게 한국어 지시를 주면 (1)외국어 원문을 한국어로 번역·왜곡 저장(언어 불일치)
+# (2)지시(한국어) vs 데이터(외국어) 충돌로 이름미저장 준수율 저하 → 언어별로 분기한다(SOMA-365).
+_MEMORY_INSTRUCTIONS = {
+    "ko": (
+        "- 모든 기억은 반드시 한국어로 간결하게 작성한다.\n"
+        "- 사용자를 지칭할 때 실제 이름·닉네임·호칭을 쓰지 말고 '사용자'로만 표현한다. 이름 자체는 저장하지 않는다.\n"
+        "- 감정·관계·고민·취향·상황 등 사람을 이해하는 데 중요한 사실 위주로 뽑는다."
+    ),
+    "en": (
+        "- Write every memory concisely in English.\n"
+        "- Never store the user's real name, nickname, or honorific; refer to them only as 'the user'. "
+        "Do not save the name itself.\n"
+        "- Focus on facts that help understand the person: emotions, relationships, worries, tastes, situations."
+    ),
+    "ja": (
+        "- すべての記憶は必ず日本語で簡潔に書く。\n"
+        "- ユーザーを指すときは実名・ニックネーム・呼称を使わず「ユーザー」とだけ表現する。名前自体は保存しない。\n"
+        "- 感情・関係・悩み・好み・状況など、その人を理解するのに重要な事実を中心に抽出する。"
+    ),
+}
+
+
+def _instructions_for(language: str | None) -> str:
+    """유저 언어 버킷의 mem0 추출 지시. 미지원 언어는 en(i18n.resolve 폴백)."""
+    return _MEMORY_INSTRUCTIONS[i18n.resolve(language)]
 
 
 def _get_memory():
@@ -94,7 +115,7 @@ def _get_memory():
                         "model": settings.embedder_model,
                     },
                 },
-                "custom_instructions": _MEMORY_INSTRUCTIONS,
+                "custom_instructions": _MEMORY_INSTRUCTIONS["ko"],  # 기본값(add마다 prompt로 언어별 오버라이드)
                 "history_db_path": os.path.join(_MEM0_DIR, "history.db"),
             }
         )
@@ -136,11 +157,15 @@ async def load_for_context(user_id: str) -> str:
     return _render(items or [])
 
 
-async def add_conversation(user_id: str, messages: list[dict]) -> None:
-    """워커 배치용 — 그날 대화를 mem0에 추출·저장(chat 경로 아님). SQLite 히스토리 락 회피 위해 직렬."""
+async def add_conversation(user_id: str, messages: list[dict], language: str | None = None) -> None:
+    """워커 배치용 — 그날 대화를 mem0에 추출·저장(chat 경로 아님). SQLite 히스토리 락 회피 위해 직렬.
+
+    유저 언어로 추출한다(SOMA-365) — 전역 싱글턴은 유지하고 add마다 prompt로 언어 지시를 오버라이드
+    (mem0 add의 prompt 인자가 custom_instructions보다 우선). en/ja 기억이 한국어로 번역 저장되던 문제 방지.
+    """
     if messages:
         async with _WRITE_LOCK:
-            await _get_memory().add(messages, user_id=user_id)
+            await _get_memory().add(messages, user_id=user_id, prompt=_instructions_for(language))
 
 
 async def delete_all(user_id: str) -> None:

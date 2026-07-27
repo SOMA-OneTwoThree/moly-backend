@@ -51,3 +51,13 @@ async def test_load_empty_success_returns_empty_not_raise(monkeypatch):
 
     monkeypatch.setattr(m, "_get_memory", lambda: _Empty())
     assert await m.load_for_context("u") == ""  # 진짜 빈 성공 = "" (raise 아님)
+
+
+def test_instructions_for_language():
+    # mem0 추출 지시가 유저 언어로 분기된다(SOMA-365) — en/ja 기억이 한국어로 번역 저장되던 문제 방지.
+    ja, en, ko = m._instructions_for("ja"), m._instructions_for("en"), m._instructions_for(None)
+    assert "日本語" in ja and "ユーザー" in ja
+    assert "English" in en and "the user" in en
+    assert "한국어" in ko and "사용자" in ko
+    assert m._instructions_for("zh") == en      # 미지원 → en 폴백
+    assert m._instructions_for("en-US") == en    # BCP47 정규화

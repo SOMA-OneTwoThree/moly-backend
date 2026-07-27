@@ -297,6 +297,7 @@ async def generate_for_user(
                     }
                     for m in messages
                 ],
+                language=getattr(profile, "language", None),
             )
             # 새 기억 반영 → 채팅 기억 스냅샷 무효화(다음 대화가 당일 기억을 lazy 재로드)
             await session.execute(

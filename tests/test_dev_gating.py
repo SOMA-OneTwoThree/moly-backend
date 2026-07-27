@@ -30,6 +30,13 @@ def test_dev_router_registered_when_explicitly_enabled(monkeypatch):
     assert _dev_registered(create_app())
 
 
+def test_dev_router_never_in_nonlocal_env(monkeypatch):
+    # local이 아닌 임의 환경(staging·prod 등)에선 플래그가 켜져도 미등록(sol #4).
+    monkeypatch.setattr(settings, "enable_dev_routes", True)
+    monkeypatch.setattr(settings, "environment", "staging")
+    assert not _dev_registered(create_app())
+
+
 def test_dev_router_never_in_production(monkeypatch):
     # 프로덕션에선 플래그가 켜져 있어도 /dev를 등록하지 않는다(이중 방어).
     monkeypatch.setattr(settings, "enable_dev_routes", True)

@@ -170,5 +170,12 @@ def test_cjk_regex_excludes_hangul():
     # 하이픈 트랩 방지 회귀 — _CJK_RE가 한글을 절대 삼키지 않는다(리터럴 豈/U+F900 혼동 방어).
     for ch in "가힣나람각":
         assert not naming._CJK_RE.search(ch)
-    for ch in "愛張アさ":
+    # BMP 한자·가나 + 보조평면(Ext B 𠮷)·반각 가타카나(ｻ)·가타카나 음성확장(ㇰ)까지 커버.
+    for ch in "愛張アさ\U00020bb7ｻㇰ":
         assert naming._CJK_RE.search(ch)
+
+
+def test_cjk_supplementary_and_halfwidth_not_masked():
+    # 보조평면 한자·반각 가나 이름도 마스킹 스킵(D2) — substring 과치환 방지(SOMA-365, sol #3).
+    assert naming.to_placeholder("\U00020bb7野で話した", "\U00020bb7") == "\U00020bb7野で話した"
+    assert naming.to_placeholder("ｻﾄｼ", "ｻ") == "ｻﾄｼ"

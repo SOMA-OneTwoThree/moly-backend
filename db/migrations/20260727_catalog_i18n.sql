@@ -10,6 +10,18 @@ BEGIN;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS name_i18n jsonb;
 ALTER TABLE public.routines ADD COLUMN IF NOT EXISTS name_i18n jsonb;
 
+-- name_i18n은 object만 허용 — scalar(문자열·숫자)가 들어오면 렌더 시 .get 500(코드 isinstance와 이중 방어).
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'products_name_i18n_obj_ck') THEN
+    ALTER TABLE public.products ADD CONSTRAINT products_name_i18n_obj_ck
+      CHECK (name_i18n IS NULL OR jsonb_typeof(name_i18n) = 'object');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'routines_name_i18n_obj_ck') THEN
+    ALTER TABLE public.routines ADD CONSTRAINT routines_name_i18n_obj_ck
+      CHECK (name_i18n IS NULL OR jsonb_typeof(name_i18n) = 'object');
+  END IF;
+END $$;
+
 -- cosmetic 상품 번역(일본어는 한국어 기준 번역, 고유명사 유지). 원문 name 미변경.
 UPDATE public.products AS p SET name_i18n = m.i18n
 FROM (VALUES

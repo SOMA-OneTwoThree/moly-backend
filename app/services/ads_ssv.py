@@ -38,12 +38,14 @@ async def _get_keys(*, force: bool = False) -> dict[str, str]:
         do_force = force and (now - _last_force_at >= _FORCE_MIN_INTERVAL)  # 강제 재조회 스로틀
         if _keys_cache is not None and not expired and not do_force:
             return _keys_cache  # 락 대기 중 갱신됐거나, 강제 스로틀에 걸림
+        if do_force:
+            # 시도 시각을 fetch 전에 기록 — Google 키서버 장애(timeout/5xx)로 실패해도 스로틀이
+            # 걸리게 한다(성공에만 기록하면 장애 중 미등록 key_id마다 10초 외부호출 폭주).
+            _last_force_at = now
         async with httpx.AsyncClient(timeout=10.0) as client:
             data = (await client.get(_KEYS_URL)).json()
         _keys_cache = {str(k["keyId"]): k["pem"] for k in data.get("keys", [])}
         _keys_fetched_at = time.monotonic()
-        if do_force:
-            _last_force_at = _keys_fetched_at
     return _keys_cache
 
 

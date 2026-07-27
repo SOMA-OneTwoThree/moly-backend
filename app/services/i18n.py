@@ -49,7 +49,8 @@ def localized_name(
     번역 누락은 (kind,key,lang) 단위 1회만 로그로 관측한다(스팸 방지, AC 운영 확인용).
     """
     resolved = resolve(language)
-    loc = name_i18n or {}
+    # JSONB에 object가 아닌 scalar(문자열·숫자)가 들어와도 .get 500이 나지 않게 방어(DB CHECK와 이중).
+    loc = name_i18n if isinstance(name_i18n, dict) else {}
     val = loc.get(resolved) or loc.get(FALLBACK) or loc.get(_DEFAULT)
     if val:
         return val

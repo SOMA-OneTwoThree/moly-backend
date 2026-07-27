@@ -31,7 +31,7 @@ _TOK_RE = re.escape(TOKEN)
 _LATIN = r"A-Za-z0-9À-ɏḀ-ỿ"
 _LATIN_RE = re.compile(rf"[{_LATIN}]")
 # CJK(가나·한자·CJK 통합/확장A/호환) — 이 스크립트를 포함하는 닉네임은 마스킹하지 않는다(D2, 위 주석).
-_CJK_RE = re.compile("[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+_CJK_RE = re.compile("[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9d\U00020000-\U0002fa1f]")
 
 # 받침 의존 조사(파티클). longest-first(이라고>라고, 이야>이, 이가>이/가, 이랑>랑, 이나>나).
 _JOSA_ALT = "이라고|라고|이야|이가|이랑|이나|아|야|이|가|은|는|을|를|과|와|랑|나"

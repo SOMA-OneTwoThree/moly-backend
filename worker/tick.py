@@ -105,6 +105,8 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                 # LLM 생성하지 않도록 커밋된 클레임 행으로 상호배제(SOMA-373). 세션 advisory lock은
                 # SQLAlchemy 커넥션 풀 반환·pgbouncer 트랜잭션 풀링과 안 맞아(내부 커밋 시 락이 다른
                 # 커넥션으로 새거나 미지원) 클레임 방식을 쓴다. claimed_at 30분 만료로 크래시된 클레임은 회수.
+                # 불변식: 만료(30분) ≫ worker_user_timeout_s(120s) — 살아있는 프로세스는 타임아웃돼
+                # finally에서 자기 클레임을 먼저 지우므로, 만료 회수는 하드킬(죽은 프로세스)만 대상이다.
                 claimed = (
                     await session.execute(
                         text(

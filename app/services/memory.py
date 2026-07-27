@@ -79,7 +79,7 @@ _MEMORY_INSTRUCTIONS = {
 
 
 def _instructions_for(language: str | None) -> str:
-    """유저 언어 버킷의 mem0 추출 지시. 미지원 언어는 en(i18n.resolve 폴백)."""
+    """유저 언어 버킷의 mem0 추출 지시. 미설정(None)=ko, 지원 밖 코드(zh 등)=en(i18n.resolve)."""
     return _MEMORY_INSTRUCTIONS[i18n.resolve(language)]
 
 

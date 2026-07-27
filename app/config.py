@@ -11,6 +11,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "moly-backend"
     environment: str = "local"
+    # /dev 라우트(일기 강제삭제·유료 모델 평가 등 위험)는 명시 opt-in만 등록(기본 off). environment
+    # 추정과 분리 — ENVIRONMENT 누락으로 local로 새어도 /dev가 노출되지 않게 한다(fail-closed, SOMA-376).
+    enable_dev_routes: bool = False
 
     # --- Supabase (Auth + Postgres + pgvector) ---
     supabase_url: str = ""

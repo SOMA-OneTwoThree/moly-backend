@@ -42,7 +42,8 @@ def create_app() -> FastAPI:
     app.include_router(ads_router)
     # 로컬 전용: 워커 배치(일기 생성)를 curl로 손으로 돌리는 개발 라우터.
     # 프로덕션엔 라우트 자체가 등록되지 않는다.
-    if _local:
+    # /dev는 명시 플래그(ENABLE_DEV_ROUTES)로만 등록 — 프로덕션엔 절대 노출 안 함(SOMA-376).
+    if settings.enable_dev_routes and settings.environment != "production":
         from app.api.dev import router as dev_router
 
         app.include_router(dev_router)

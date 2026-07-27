@@ -88,3 +88,27 @@ async def test_run_tick_user_timeout_isolated(monkeypatch):
     now = datetime(2026, 7, 6, 6, 0, tzinfo=timezone.utc)
     counts = await tick.run_tick(now)
     assert counts["timed_out"] == 1 and counts["users"] == 1
+
+
+async def test_run_tick_records_heartbeat_every_tick(monkeypatch):
+    """하트비트(worker_last_success)는 DIARY_HOUR가 아닌 틱에서도 기록된다.
+
+    회귀 방지: SOMA-349 머지 충돌 해소에서 기록이 DIARY_HOUR 블록 안으로 들어가
+    하루 1회만 갱신 → /health/deep이 하루 22시간 오탐 stale(503)이 됐던 버그.
+    """
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    recorded: list[str] = []
+
+    async def _cfg(session):
+        return {}
+
+    async def _spy(session, key, value):
+        recorded.append(key)
+
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    monkeypatch.setattr(tick, "effective_token_config", _cfg)
+    monkeypatch.setattr(tick.config_store, "set_config_value", _spy)
+    # UTC 06:00 → DIARY_HOUR(04) 아님 — 그래도 하트비트는 기록돼야 한다
+    now = datetime(2026, 7, 6, 6, 0, tzinfo=timezone.utc)
+    await tick.run_tick(now)
+    assert tick.config_store.WORKER_LAST_SUCCESS_KEY in recorded

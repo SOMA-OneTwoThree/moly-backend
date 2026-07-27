@@ -12,4 +12,8 @@ CREATE TABLE IF NOT EXISTS public.diary_gen_claims (
   PRIMARY KEY (user_id, target_date)
 );
 
+-- RLS deny-default(다른 테이블과 동일 불변식) — 서버는 owner 롤이라 우회, 클라(anon/authenticated)
+-- 직접 접근 차단. 없으면 악의적 클라가 임의 유저 claim을 INSERT해 워커 일기 생성을 스킵시킬 수 있다.
+ALTER TABLE public.diary_gen_claims ENABLE ROW LEVEL SECURITY;
+
 COMMIT;

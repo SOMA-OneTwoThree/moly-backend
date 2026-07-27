@@ -402,7 +402,7 @@ BEGIN
     'subscriptions','subscription_hay_grants','payments',
     'user_items','diaries','routines','routine_completions',
     'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
-    'chat_contexts','feedback'
+    'chat_contexts','feedback','diary_gen_claims'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;

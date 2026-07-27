@@ -71,6 +71,16 @@ async def test_plans_benefits_localized(monkeypatch):
     assert "Extended chat limit" in p["benefits"] and "대화 한도 확장" not in p["benefits"]
 
 
+async def test_plans_benefits_ja(monkeypatch):
+    """구독 혜택이 일본어로 반환(SOMA-361)."""
+    async def _lp(session, uid):
+        return SimpleNamespace(language="ja")
+
+    monkeypatch.setattr(subscription, "_load_profile", _lp)
+    p = await subscription.get_plans(FakeSession(), UID)
+    assert "会話の上限アップ" in p["benefits"] and "대화 한도 확장" not in p["benefits"]
+
+
 def test_plans_require_auth():
     async def _sess():
         yield None

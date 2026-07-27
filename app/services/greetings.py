@@ -207,18 +207,95 @@ _POOLS_EN = {
 }
 
 
-def _pick_other(context: str, nickname: str | None, hour: int | None) -> str:
-    """비한국어 선발화 — 영어 풀. 조사 없이 이름 그대로 치환."""
+# 일본어 선발화 풀 — 한글 받침 조사가 필요 없어 영어와 같은 {name} 치환 방식(SOMA-361).
+_ONBOARDING_JA = [
+    "{name}？わたしはカピ、この家に住んでるんだ。よく来たね、{name}。慣れないならゆっくり見て回っていいよ。話したくなったら気軽に声をかけて。",
+    "あ、{name}。会えてうれしいよ。わたしはカピっていうんだ。ここはわたしの家。急がなくていいから、ゆっくりしてって。",
+]
+_HOME_BY_TIME_JA = {
+    "dawn": [
+        "こんな時間に起きてるんだね。眠れない？",
+        "まだ寝てなかったんだ。わたしも今起きたところ。",
+        "早朝なのに起きてるの？なにか面白い話ある？",
+    ],
+    "morning": [
+        "よく眠れた？おなかすいたな…朝ごはん何食べようか。",
+        "おはよう。外が明るいね。",
+        "起きたんだね。わたしも今のびをしたところ。",
+        "もう朝だね、今日の天気はどう？",
+        "{name}、来たの？朝ごはんは？",
+    ],
+    "day": [
+        "お、来たね。わたしはソファでのんびりしてたよ。",
+        "真っ昼間だね。外はどんな感じ？",
+        "ちょうどお昼寝から覚めたところ。よく来たね。",
+        "やあ。わたしは窓の外を眺めてたよ。",
+        "この時間に来るのは久しぶりだね。",
+    ],
+    "evening": [
+        "もう夕方だね。今日はどんな一日だった？",
+        "来たの？わたしはさっきごはんを食べて、少し歩いてきたよ。",
+        "今日もおつかれさま。今日はどうだった？",
+        "今日もおつかれさま。変わったことなかった？",
+    ],
+    "night": [
+        "遅いのにまだ起きてるの？寝る前に今日あったこと話してくれる？",
+        "遅くに来たね。疲れてない？今日はどうだった？",
+        "夜は静かだね。わたしと少し話してから寝る？",
+        "今日一日でいちばん良かったことは何？",
+        "今日は月を見た？一緒に窓の外を見ながら話そう。",
+    ],
+}
+_POOLS_JA = {
+    "morning": [
+        "よく眠れた？今日は何をするの？",
+        "おはよう。朝ごはんは食べた？",
+        "起きたんだね。今日の気分はどう？",
+        "朝だよ。わたしはまだ布団の中だった。",
+        "来たね。今日も一日、ゆっくりいこう。",
+    ],
+    "evening": [
+        "もう夕方だね。今日はどんな一日だった？",
+        "来たの？今日は何して過ごした？",
+        "今日もおつかれさま。変わったことなかった？",
+        "今日もおつかれさま。今日はどうだった？",
+        "一日終わったね。わたしは窓を開けて過ごしてた。",
+        "夕方だね。わたしはさっきごはんを食べてきたよ。",
+    ],
+    "comeback": [
+        "久しぶりだね。元気にしてた？話したいことがたくさんあるんだ。",
+        "やっと来てくれた。うれしいよ。積もる話を聞かせて。気になることがいっぱい。",
+        "久しぶり。しばらく何してたの？",
+        "しばらく見かけなくて心配してたよ。でも久しぶりに顔が見られてうれしい。変わったことなかった？",
+    ],
+}
+
+# 비한국어 버킷 → (온보딩, 시간대별, 일반풀, 온보딩 무명 폴백, 이름 없을 때 대명사).
+_NONKO_POOLS = {
+    "en": (
+        _ONBOARDING_EN, _HOME_BY_TIME_EN, _POOLS_EN,
+        "I'm Capi. I live here. Talk to me whenever you like.", "you",
+    ),
+    "ja": (
+        _ONBOARDING_JA, _HOME_BY_TIME_JA, _POOLS_JA,
+        "わたしはカピ。この家に住んでるんだ。話したくなったら気軽に声をかけて。", "あなた",
+    ),
+}
+
+
+def _pick_nonko(bucket: str, context: str, nickname: str | None, hour: int | None) -> str:
+    """비한국어 선발화 — 버킷(en·ja) 풀에서 픽. 조사 없이 이름 그대로 치환."""
+    onboarding, by_time, pools, noname, you = _NONKO_POOLS[bucket]
     if context == "onboarding":
         if not nickname:
-            return "I'm Capi. I live here. Talk to me whenever you like."
-        return random.choice(_ONBOARDING_EN).format(name=nickname)
+            return noname
+        return random.choice(onboarding).format(name=nickname)
     if context == "home_enter":
-        pool = _HOME_BY_TIME_EN[time_bucket(hour if hour is not None else 12)]
+        pool = by_time[time_bucket(hour if hour is not None else 12)]
     else:
-        pool = _POOLS_EN[context]
+        pool = pools[context]
     tpl = random.choice(pool)
-    return tpl.format(name=nickname or "you") if "{" in tpl else tpl
+    return tpl.format(name=nickname or you) if "{" in tpl else tpl
 
 
 def pick(
@@ -226,10 +303,12 @@ def pick(
 ) -> str:
     """context별 프리셋에서 하나 선택. home_enter만 시각에 따라 풀이 갈린다(hour 없으면 낮).
 
-    language != 'ko'면 영어 풀에서 픽(조사 무관). 이름 자리는 닉네임으로 치환한다.
+    언어 버킷별로 갈린다: ko=받침 조사 경로, 그 외(en·ja)=이름 그대로 치환. 지원 밖 언어는
+    en 버킷으로 폴백(i18n.resolve).
     """
-    if not i18n.is_korean(language):
-        return _pick_other(context, nickname, hour)
+    bucket = i18n.resolve(language)
+    if bucket != "ko":
+        return _pick_nonko(bucket if bucket in _NONKO_POOLS else "en", context, nickname, hour)
     if context == "onboarding":
         if not nickname:  # 온보딩은 닉네임 확정 후라 정상 경로엔 안 오지만, 안전 폴백.
             return "난 캐피야, 이 집에 살아. 편하게 얘기 걸어."

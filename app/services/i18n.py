@@ -12,8 +12,8 @@ from typing import TypeVar
 _log = logging.getLogger("moly-backend")
 
 # 콘텐츠가 실제로 존재하는 언어(그 외는 폴백). 새 언어 카피가 준비되면 여기에 추가.
-SUPPORTED = frozenset(("ko", "en"))
-FALLBACK = "en"  # 지원 밖 언어(zh·ja 등)에 적용할 폴백 — ko 앱이지만 미지원은 영어가 무난.
+SUPPORTED = frozenset(("ko", "en", "ja"))
+FALLBACK = "en"  # 지원 밖 언어(zh 등)에 적용할 폴백 — ko 앱이지만 미지원은 영어가 무난.
 _DEFAULT = "ko"  # 언어 미설정(None) = 한국어(기본 프로필).
 
 _V = TypeVar("_V")
@@ -37,5 +37,15 @@ def is_korean(language: str | None) -> bool:
 
 
 def pick(table: dict[str, _V], language: str | None) -> _V:
-    """{"ko": ..., "en": ...} 표에서 언어에 맞는 값. 버킷에 없으면 ko(원문) 폴백."""
-    return table.get(resolve(language), table["ko"])
+    """{"ko": ..., "en": ..., "ja": ...} 표에서 언어에 맞는 값.
+
+    버킷 키가 없으면 en(FALLBACK) → ko(원문) 순 폴백. 정확일치를 우선하므로 빈 문자열·빈
+    리스트 같은 falsey 값도 키가 존재하면 그대로 반환한다(SOMA-361: ja 키 누락 시 한국어로
+    뒤집히던 문제 방지 — 미지원 버킷은 영어가 무난).
+    """
+    resolved = resolve(language)
+    if resolved in table:
+        return table[resolved]
+    if FALLBACK in table:
+        return table[FALLBACK]
+    return table["ko"]

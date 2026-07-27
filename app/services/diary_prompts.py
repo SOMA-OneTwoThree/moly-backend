@@ -46,6 +46,15 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
     lang = language or "ko"
     if i18n.is_korean(language):
         lang_rule = "반드시 한국어로 써. 한자나 다른 나라 문자를 한 글자도 섞지 마."
+    elif i18n.resolve(language) == "ja":
+        # 일본어는 한자·가나가 정상 — CJK를 막지 않고 한글·타 스크립트 혼입만 금지(SOMA-361).
+        # 날씨 헤더는 영어 그대로 유지해야 parse()가 값(enum)으로 인식한다.
+        lang_rule = (
+            "日記はすべて自然な日本語で書く。漢字・ひらがな・カタカナを使い、"
+            "ハングルや他の言語の文字は混ぜない。"
+            "最初の行は必ず 'Weather: <sunny|cloudy|rainy|windy>' の形式（英語のまま）にし、"
+            "二行目から日本語で本文を書く。"
+        )
     else:
         lang_rule = (
             f"Write the diary entirely and naturally in {lang}. "

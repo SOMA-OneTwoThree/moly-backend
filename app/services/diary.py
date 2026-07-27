@@ -39,8 +39,22 @@ _WELCOME_CONTENT_EN = (
 )
 
 
+# 일본어 유저용 웰컴 일기. {유저이름} placeholder 유지(egress에서 현재 닉네임 렌더).
+_WELCOME_CONTENT_JA = (
+    "{유저이름}、はじめての出会い\n\n"
+    "今日はごろごろしていたら、新しい友だちに会った。名前は{유저이름}。\n"
+    "しゃべるカピバラなんて不思議だと言われた。わたしはその言葉が少しおかしかった。わたしからすれば、その子のほうがもっと不思議なのに。\n"
+    "うちの中も見せてあげた。お昼寝する場所と、音楽を聴く場所と。どんな友だちなんだろう。またおしゃべりしたいな。"
+)
+
+
 def _welcome_content(language: str | None) -> str:
-    return _WELCOME_CONTENT if i18n.is_korean(language) else _WELCOME_CONTENT_EN
+    bucket = i18n.resolve(language)
+    if bucket == "ko":
+        return _WELCOME_CONTENT
+    if bucket == "ja":
+        return _WELCOME_CONTENT_JA
+    return _WELCOME_CONTENT_EN
 
 
 def _welcome_date(created_at: datetime, tz: str) -> date:

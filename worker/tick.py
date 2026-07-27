@@ -102,16 +102,23 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                 out["active_tz"] = p.timezone
                 target = activity_date_for(now, p.timezone) - timedelta(days=1)
                 # 워커 틱 중첩(15분 케이던스·재시도) 시 같은 (유저,날짜) 일기를 두 프로세스가 동시에
-                # LLM 생성하지 않도록 세션 advisory lock으로 소유권 확보(SOMA-373). 세션 락은 내부 커밋을
-                # 넘어 유지되고, 프로세스 종료/크래시 시 연결 종료로 자동 해제된다(스테일 락 없음).
-                lock_key = f"diary:{pid}:{target}"
-                got = (
+                # LLM 생성하지 않도록 커밋된 클레임 행으로 상호배제(SOMA-373). 세션 advisory lock은
+                # SQLAlchemy 커넥션 풀 반환·pgbouncer 트랜잭션 풀링과 안 맞아(내부 커밋 시 락이 다른
+                # 커넥션으로 새거나 미지원) 클레임 방식을 쓴다. claimed_at 30분 만료로 크래시된 클레임은 회수.
+                claimed = (
                     await session.execute(
-                        text("SELECT pg_try_advisory_lock(hashtextextended(:k, 0))"), {"k": lock_key}
+                        text(
+                            "INSERT INTO diary_gen_claims (user_id, target_date) VALUES (:u, :d) "
+                            "ON CONFLICT (user_id, target_date) DO UPDATE SET claimed_at = now() "
+                            "WHERE diary_gen_claims.claimed_at < now() - interval '30 minutes' "
+                            "RETURNING 1"
+                        ),
+                        {"u": pid, "d": target},
                     )
                 ).scalar()
-                if not got:
-                    out["diary_skipped"] = 1  # 다른 프로세스가 처리 중 — 중복 LLM 방지
+                await session.commit()  # 클레임 커밋 — 겹친 틱이 볼 수 있게(가시성)
+                if claimed is None:
+                    out["diary_skipped"] = 1  # 다른 프로세스가 신선한 클레임 보유 — 중복 LLM 방지
                 else:
                     try:
                         result = await diary_generation.generate_for_user(session, p, target, cfg)
@@ -123,11 +130,14 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                         out["memory_ok"] = result.get("memory_ok", 0)
                         out["memory_failed"] = result.get("memory_failed", 0)
                     finally:
-                        # 락 해제 SELECT가 실행되도록 tx 정리(성공 시 no-op, 실패 시 aborted tx 클리어).
+                        # 클레임 해제 — 성공 시 diary 행이 멱등 마커라 삭제 안전, 실패 시 다음 틱 재시도.
+                        # generate는 내부 커밋 완료(별도 tx)라 rollback으로 aborted 상태 정리 후 삭제.
                         await session.rollback()
                         await session.execute(
-                            text("SELECT pg_advisory_unlock(hashtextextended(:k, 0))"), {"k": lock_key}
+                            text("DELETE FROM diary_gen_claims WHERE user_id = :u AND target_date = :d"),
+                            {"u": pid, "d": target},
                         )
+                        await session.commit()
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
                 if await notify.notify_morning(session, p):

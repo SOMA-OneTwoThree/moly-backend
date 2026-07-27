@@ -35,4 +35,5 @@ def test_dev_router_never_in_production(monkeypatch):
     monkeypatch.setattr(settings, "enable_dev_routes", True)
     monkeypatch.setattr(settings, "environment", "production")
     monkeypatch.setattr(settings, "revenuecat_webhook_auth", "x")  # require_production_ready 통과용
+    monkeypatch.setattr(settings, "openai_api_key", "x")  # 프로덕션 모델 키 가드 통과(앰비언트 비의존)
     assert not _dev_registered(create_app())

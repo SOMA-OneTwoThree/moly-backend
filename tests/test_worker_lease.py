@@ -1,4 +1,4 @@
-"""SOMA-373: 워커 틱 중첩 시 (유저,날짜) advisory lock으로 일기 중복 LLM 생성 방지."""
+"""SOMA-373: 워커 틱 중첩 시 (유저,날짜) 클레임 행으로 일기 중복 LLM 생성 방지."""
 import uuid
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -35,7 +35,9 @@ class _LeaseSession:
     async def execute(self, stmt, params=None):
         s = str(stmt)
         self.executed.append(s)
-        return _ScalarRes(self._granted if "try_advisory" in s else None)
+        if "INSERT INTO diary_gen_claims" in s:  # 클레임 획득 시도
+            return _ScalarRes(1 if self._granted else None)
+        return _ScalarRes(None)
 
     async def rollback(self):
         pass
@@ -49,7 +51,7 @@ def _patch_session(monkeypatch, sess):
 
 
 async def test_diary_lease_skips_when_lock_not_acquired(monkeypatch):
-    """다른 프로세스가 락을 쥐고 있으면(pg_try_advisory_lock=False) 생성하지 않고 스킵한다."""
+    """다른 프로세스가 신선한 클레임을 쥐고 있으면(claim INSERT 미획득) 생성하지 않고 스킵한다."""
     called = {"gen": False}
 
     async def _gen(*a, **k):
@@ -76,4 +78,4 @@ async def test_diary_lease_proceeds_and_unlocks_when_acquired(monkeypatch):
     _patch_session(monkeypatch, sess)
     out = await tick._process_user(_NOW, PID, _CFG)
     assert called["gen"] is True and out["diaries"] == 1
-    assert any("advisory_unlock" in s for s in sess.executed)  # 락 해제됨
+    assert any("DELETE FROM diary_gen_claims" in s for s in sess.executed)  # 클레임 해제됨

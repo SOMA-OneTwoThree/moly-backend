@@ -1,6 +1,7 @@
 name: Build and Deploy (moly-backend)
 
-# main에 push되면: 이미지 빌드 → ECR push → SSM으로 EC2에서 deploy.sh 실행
+# main에 push되면: 이미지 빌드 → ECR push → 인스턴스별 순차 롤링 배포
+# (deregister → drain → SSM deploy.sh <sha> → register → healthy 대기)
 on:
   push:
     branches: [main]
@@ -10,17 +11,22 @@ permissions:
   id-token: write
   contents: read
 
-# 연속 push 시 이전 실행을 취소하고 최신만 배포 (배포 레이스 방지)
+# 롤링 배포 도중 취소되면 한 대가 deregister된 채 방치(조용한 50% 장애)되므로
+# 취소하지 않고 순서대로 완주한다. 연속 push는 큐잉됨.
 concurrency:
   group: deploy-moly-backend
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   AWS_REGION: ap-northeast-2
   ECR_REGISTRY: 676972757138.dkr.ecr.ap-northeast-2.amazonaws.com
   IMAGE_NAME: moly-backend
-  EC2_INSTANCE_ID: i-0b2154ed899e3b85d
   ROLE_ARN: arn:aws:iam::676972757138:role/moly-github-actions-role
+  TG_ARN: arn:aws:elasticloadbalancing:ap-northeast-2:676972757138:targetgroup/moly-backend-tg/5d725ff95a85e070
+  # 배포 대상은 tag:Role=moly-backend로 발견한다(하드코딩 인스턴스 ID 없음).
+  # 단, 발견 수가 EXPECTED_INSTANCES와 다르면 즉시 중단 — 태그 누락/인스턴스 중지 시
+  # 1대만 롤링하면 TG가 비어 전면 503, 0대면 아무것도 배포 안 된 채 초록불이 된다.
+  EXPECTED_INSTANCES: "2"
 
 jobs:
   build-and-deploy:
@@ -45,7 +51,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 5. 이미지 빌드 & ECR push (latest + git sha 두 태그)
+      # 5. 이미지 빌드 & ECR push (latest + git sha 두 태그 — 배포는 sha 태그만 소비)
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -60,102 +66,154 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 6. SSM으로 EC2에서 배포 실행 → 완료까지 폴링 → 로그 출력 → 실패 시 워크플로 실패
+      # 6. 인스턴스별 순차 롤링 배포.
+      #    ALB 헬스체크 감지(10s×2)만으로는 컨테이너 재시작 갭(10~30s)을 못 가리므로
+      #    명시적 deregister로 트래픽을 뺀 뒤 배포한다. 첫 인스턴스가 실패하면 워크플로가
+      #    중단되고 나머지는 구버전으로 계속 서비스한다(자동 부분 롤백). 실패한 인스턴스는
+      #    deregister 상태로 남으므로 원인 확인 후 이전 sha로 재배포 + register가 수동 조치다.
       #    주의: SSM은 sh로 실행하므로 deploy.sh는 반드시 `bash deploy.sh`로 명시 실행
-      #    (과거 `./deploy.sh` 실행 시 set -o pipefail "Illegal option" 에러)
-      - name: Deploy on EC2 via SSM
+      - name: Rolling deploy via SSM
         run: |
           set -euo pipefail
 
-          echo "==> SSM SendCommand 발사"
-          COMMAND_ID="$(aws ssm send-command \
-            --region "$AWS_REGION" \
-            --instance-ids "$EC2_INSTANCE_ID" \
-            --document-name "AWS-RunShellScript" \
-            --comment "Deploy moly-backend ${GITHUB_SHA::7}" \
-            --parameters 'commands=["cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh"]' \
-            --query "Command.CommandId" \
-            --output text)"
-          echo "CommandId: $COMMAND_ID"
-
-          echo "==> 명령 완료 대기 (10초 간격, 최대 약 10분)"
-          # aws ssm wait는 기본 타임아웃이 짧을 수 있어 직접 폴링한다.
-          # 핵심: get-command-invocation 실패를 '|| echo Pending'으로 삼키지 않는다.
-          #  - SendCommand 직후엔 invocation이 아직 등록 안 돼 InvocationDoesNotExist가
-          #    날 수 있고 이건 정상이므로, 최초 GRACE_POLLS(약 30초)까진 Pending으로
-          #    간주하고 계속 폴링한다.
-          #  - 그 외 조회 실패(AccessDenied/네트워크 등)는 stderr를 그대로 로그에 출력하고,
-          #    연속 MAX_QUERY_FAILS회 누적되면 즉시 워크플로를 실패시킨다 (조용히 위장 금지).
-          STATUS="Pending"
-          GRACE_POLLS=3          # 최초 3회(약 30초)까진 InvocationDoesNotExist 허용
-          MAX_QUERY_FAILS=3      # 연속 조회 실패 3회면 실패 처리
-          query_fails=0
-          finished=0
-          for i in $(seq 1 60); do
-            sleep 10
-            # stderr는 파일로 분리 캡처해 에러 유형을 구분한다 (성공 시 STATUS만 stdout으로 들어옴)
-            err_file="$(mktemp)"
-            if STATUS="$(aws ssm get-command-invocation \
-                  --region "$AWS_REGION" \
-                  --command-id "$COMMAND_ID" \
-                  --instance-id "$EC2_INSTANCE_ID" \
-                  --query "Status" \
-                  --output text 2>"$err_file")"; then
-              query_fails=0
-              echo "  [$i] status=$STATUS"
-              case "$STATUS" in
-                Success|Failed|Cancelled|TimedOut) rm -f "$err_file"; finished=1; break ;;
-              esac
-            else
-              err_msg="$(cat "$err_file")"
-              if [ "$i" -le "$GRACE_POLLS" ] && printf '%s' "$err_msg" | grep -q "InvocationDoesNotExist"; then
-                # SendCommand 직후 invocation 등록 지연 — 정상. 계속 폴링한다.
-                echo "  [$i] status=Pending (invocation 등록 대기 중)"
-                STATUS="Pending"
+          # --- SSM 명령 폴링(검증된 기존 로직의 함수화) ---
+          #  - SendCommand 직후 InvocationDoesNotExist는 최초 3회(약 30초)까지 정상으로 간주
+          #  - 그 외 조회 실패는 stderr를 드러내고 연속 3회면 즉시 실패 (조용히 위장 금지)
+          poll_ssm() {
+            local cmd_id="$1" instance_id="$2"
+            local STATUS="Pending" GRACE_POLLS=3 MAX_QUERY_FAILS=3
+            local query_fails=0 finished=0 i err_file err_msg
+            for i in $(seq 1 60); do
+              sleep 10
+              err_file="$(mktemp)"
+              if STATUS="$(aws ssm get-command-invocation \
+                    --region "$AWS_REGION" \
+                    --command-id "$cmd_id" \
+                    --instance-id "$instance_id" \
+                    --query "Status" \
+                    --output text 2>"$err_file")"; then
+                query_fails=0
+                echo "  [$i] $instance_id status=$STATUS"
+                case "$STATUS" in
+                  Success|Failed|Cancelled|TimedOut) rm -f "$err_file"; finished=1; break ;;
+                esac
               else
-                # 권한/네트워크 등 진짜 조회 실패 — 숨기지 말고 stderr를 그대로 드러낸다.
-                query_fails=$((query_fails + 1))
-                echo "  [$i] get-command-invocation 조회 실패 (${query_fails}/${MAX_QUERY_FAILS}):" >&2
-                printf '%s\n' "$err_msg" >&2
-                if [ "$query_fails" -ge "$MAX_QUERY_FAILS" ]; then
-                  rm -f "$err_file"
-                  echo "==> get-command-invocation 연속 ${MAX_QUERY_FAILS}회 실패 — 배포 상태 확인 불가, 즉시 실패 처리" >&2
-                  exit 1
+                err_msg="$(cat "$err_file")"
+                if [ "$i" -le "$GRACE_POLLS" ] && printf '%s' "$err_msg" | grep -q "InvocationDoesNotExist"; then
+                  echo "  [$i] status=Pending (invocation 등록 대기 중)"
+                else
+                  query_fails=$((query_fails + 1))
+                  echo "  [$i] get-command-invocation 조회 실패 (${query_fails}/${MAX_QUERY_FAILS}):" >&2
+                  printf '%s\n' "$err_msg" >&2
+                  if [ "$query_fails" -ge "$MAX_QUERY_FAILS" ]; then
+                    rm -f "$err_file"
+                    echo "==> 조회 연속 ${MAX_QUERY_FAILS}회 실패 — 배포 상태 확인 불가, 실패 처리" >&2
+                    return 1
+                  fi
                 fi
               fi
+              rm -f "$err_file"
+            done
+
+            echo "==> [$instance_id] 배포 표준출력 ----------------------------"
+            aws ssm get-command-invocation --region "$AWS_REGION" \
+              --command-id "$cmd_id" --instance-id "$instance_id" \
+              --query "StandardOutputContent" --output text || true
+            echo "==> [$instance_id] 배포 표준에러 ----------------------------"
+            aws ssm get-command-invocation --region "$AWS_REGION" \
+              --command-id "$cmd_id" --instance-id "$instance_id" \
+              --query "StandardErrorContent" --output text || true
+
+            if [ "$finished" -ne 1 ]; then
+              echo "[$instance_id] 배포 실패: 타임아웃 (마지막 status=$STATUS)" >&2
+              return 1
             fi
-            rm -f "$err_file"
+            if [ "$STATUS" != "Success" ]; then
+              echo "[$instance_id] 배포 실패 (status=$STATUS)" >&2
+              return 1
+            fi
+          }
+
+          echo "==> 대상 인스턴스 발견 (tag:Role=moly-backend, running)"
+          INSTANCE_IDS="$(aws ec2 describe-instances \
+            --region "$AWS_REGION" \
+            --filters "Name=tag:Role,Values=moly-backend" "Name=instance-state-name,Values=running" \
+            --query 'Reservations[].Instances[].InstanceId' \
+            --output text)"
+          COUNT="$(echo $INSTANCE_IDS | wc -w)"
+          echo "발견 ${COUNT}대: $INSTANCE_IDS"
+          if [ "$COUNT" -ne "$EXPECTED_INSTANCES" ]; then
+            echo "ERROR: 예상 ${EXPECTED_INSTANCES}대, 실제 ${COUNT}대 — 태그/인스턴스 상태 확인 후 재실행" >&2
+            exit 1
+          fi
+
+          for ID in $INSTANCE_IDS; do
+            echo "==> [$ID] deregister + drain 대기 (deregistration_delay 60s)"
+            aws elbv2 deregister-targets --region "$AWS_REGION" \
+              --target-group-arn "$TG_ARN" --targets Id="$ID"
+            aws elbv2 wait target-deregistered --region "$AWS_REGION" \
+              --target-group-arn "$TG_ARN" --targets Id="$ID"
+
+            echo "==> [$ID] deploy.sh ${GITHUB_SHA::7} 실행"
+            CMD_ID="$(aws ssm send-command \
+              --region "$AWS_REGION" \
+              --instance-ids "$ID" \
+              --document-name "AWS-RunShellScript" \
+              --comment "Deploy moly-backend ${GITHUB_SHA::7}" \
+              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${GITHUB_SHA}\"]" \
+              --query "Command.CommandId" \
+              --output text)"
+            echo "CommandId: $CMD_ID"
+            if ! poll_ssm "$CMD_ID" "$ID"; then
+              echo "ERROR: [$ID] 배포 실패 — deregister 상태로 남음. 남은 인스턴스는 구버전으로 서비스 중." >&2
+              echo "수동 조치: 원인 해결 후 'sudo bash deploy.sh <이전sha>' + register-targets" >&2
+              exit 1
+            fi
+
+            echo "==> [$ID] register + healthy 대기"
+            aws elbv2 register-targets --region "$AWS_REGION" \
+              --target-group-arn "$TG_ARN" --targets Id="$ID"
+            aws elbv2 wait target-in-service --region "$AWS_REGION" \
+              --target-group-arn "$TG_ARN" --targets Id="$ID"
+            echo "==> [$ID] 롤링 완료"
           done
 
-          echo "==> EC2 배포 표준출력 ----------------------------------------"
-          aws ssm get-command-invocation \
-            --region "$AWS_REGION" \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$EC2_INSTANCE_ID" \
-            --query "StandardOutputContent" \
-            --output text || true
-
-          echo "==> EC2 배포 표준에러 ----------------------------------------"
-          aws ssm get-command-invocation \
-            --region "$AWS_REGION" \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$EC2_INSTANCE_ID" \
-            --query "StandardErrorContent" \
-            --output text || true
-
-          echo "==> 최종 상태: $STATUS"
-          if [ "$finished" -ne 1 ]; then
-            echo "배포 실패: 타임아웃 (약 10분 내에 명령이 종료 상태에 도달하지 못함, 마지막 status=$STATUS)" >&2
+          echo "==> 정합성 검증 1: 발견 인스턴스 수 == TG 등록 타깃 수"
+          REGISTERED="$(aws elbv2 describe-target-health --region "$AWS_REGION" \
+            --target-group-arn "$TG_ARN" \
+            --query 'length(TargetHealthDescriptions)' --output text)"
+          if [ "$COUNT" -ne "$REGISTERED" ]; then
+            echo "ERROR: 발견 ${COUNT}대 vs TG 등록 ${REGISTERED}대 — 미배포 인스턴스가 구버전으로 서비스 중일 수 있음" >&2
             exit 1
           fi
-          if [ "$STATUS" != "Success" ]; then
-            echo "배포 실패 (status=$STATUS) — 위 표준에러 로그에서 원인 확인" >&2
+
+          echo "==> 정합성 검증 2: 워커 타이머 active가 정확히 1대"
+          # 마커 유실(일기/푸시 무음 정지)과 이중 실행(LLM 비용 2배) 둘 다 여기서 빨간 빌드가 된다
+          ACTIVE=0
+          for ID in $INSTANCE_IDS; do
+            CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
+              --instance-ids "$ID" --document-name "AWS-RunShellScript" \
+              --parameters 'commands=["systemctl is-active moly-worker.timer || true"]' \
+              --query "Command.CommandId" --output text)"
+            sleep 8
+            OUT="$(aws ssm get-command-invocation --region "$AWS_REGION" \
+              --command-id "$CMD_ID" --instance-id "$ID" \
+              --query "StandardOutputContent" --output text 2>/dev/null | tr -d '[:space:]')"
+            echo "  $ID moly-worker.timer=$OUT"
+            if [ "$OUT" = "active" ]; then
+              ACTIVE=$((ACTIVE + 1))
+            fi
+          done
+          if [ "$ACTIVE" -ne 1 ]; then
+            echo "ERROR: 워커 타이머 active ${ACTIVE}대 (기대 1대) — 0대면 일기/푸시 무음 정지, 2대면 매시 틱 2회(LLM 비용 2배)" >&2
+            echo "확인: /etc/moly-worker-host 마커 (워커 호스트 1대에만 존재해야 함)" >&2
             exit 1
           fi
-          echo "==> 배포 성공"
+          echo "==> 배포 성공 (${COUNT}대 롤링 + 정합성 검증 통과)"
 
       # 7. 배포후 헬스 스모크 — 배포 성공 시에만 실행(앞 스텝 실패면 건너뜀).
-      #    /health/ready 폴링(앱 재기동 대기) + /health/synthetic(의존성 능동점검) → Slack 알림.
+      #    version 검증은 연속 10회 전부 새 sha여야 통과 — ALB 뒤에서 한 대만 갱신된 채
+      #    초록불이 되는 것 방지. /health/synthetic(의존성 능동점검) → Slack 알림.
       #    보수적: 자동 롤백 안 함. 실패 시 워크플로만 red + Slack으로 사람이 판단.
       #    필요 secret: HEALTH_TOKEN, SLACK_STATUS_WEBHOOK_URL (레포 Settings→Secrets 등록).
       - name: Post-deploy health smoke
@@ -177,17 +235,29 @@ jobs:
             sleep 6
           done
 
-          # 배포된 버전 sha 반영 확인(/health version)
-          ver="$(curl -s --max-time 10 "$BASE/health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p' || true)"
+          # 배포 버전 반영 확인 — 연속 10회 전부 새 sha (ALB 분산 대비)
+          ver_ok=1
+          last_ver=""
+          for i in $(seq 1 10); do
+            last_ver="$(curl -s --max-time 10 "$BASE/health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p' || true)"
+            if [ "$last_ver" = "$GITHUB_SHA" ]; then
+              echo "  [$i] version OK"
+            else
+              echo "  [$i] version 불일치: ${last_ver:-?}"
+              ver_ok=0
+            fi
+            sleep 1
+          done
+
           # 의존성 능동점검(DB·LLM) 1회
           syn="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
             -H "X-Health-Token: ${HEALTH_TOKEN}" "$BASE/health/synthetic" || echo 000)"
 
-          if [ "$ready_ok" = "1" ] && [ "$syn" = "200" ]; then
-            msg="✅ 배포 ${SHA7} 헬스 정상 (version=${ver:-?}, synthetic=200)"
+          if [ "$ready_ok" = "1" ] && [ "$ver_ok" = "1" ] && [ "$syn" = "200" ]; then
+            msg="✅ 배포 ${SHA7} 헬스 정상 (version 10/10 일치, synthetic=200)"
             fail=0
           else
-            msg="❌ 배포 ${SHA7} 헬스 실패 (ready_ok=${ready_ok}, synthetic=${syn}, version=${ver:-?}) — 롤백 검토: 이전 ECR 이미지 태그로 재배포"
+            msg="❌ 배포 ${SHA7} 헬스 실패 (ready_ok=${ready_ok}, ver_ok=${ver_ok}, last_ver=${last_ver:-?}, synthetic=${syn}) — 롤백 검토: 이전 sha로 재배포"
             fail=1
           fi
           echo "$msg"

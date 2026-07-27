@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import httpx
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from app.config import settings
 from app.core.db import get_sessionmaker
@@ -101,14 +101,33 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                 out["diary_attempted"] = 1
                 out["active_tz"] = p.timezone
                 target = activity_date_for(now, p.timezone) - timedelta(days=1)
-                result = await diary_generation.generate_for_user(session, p, target, cfg)
-                if result.get("created"):
-                    out["diaries"] = 1
-                    out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
-                elif result.get("skipped"):
-                    out["diary_skipped"] = 1  # 멱등 재실행 스킵(실패와 구분, SOMA-301)
-                out["memory_ok"] = result.get("memory_ok", 0)
-                out["memory_failed"] = result.get("memory_failed", 0)
+                # 워커 틱 중첩(15분 케이던스·재시도) 시 같은 (유저,날짜) 일기를 두 프로세스가 동시에
+                # LLM 생성하지 않도록 세션 advisory lock으로 소유권 확보(SOMA-373). 세션 락은 내부 커밋을
+                # 넘어 유지되고, 프로세스 종료/크래시 시 연결 종료로 자동 해제된다(스테일 락 없음).
+                lock_key = f"diary:{pid}:{target}"
+                got = (
+                    await session.execute(
+                        text("SELECT pg_try_advisory_lock(hashtextextended(:k, 0))"), {"k": lock_key}
+                    )
+                ).scalar()
+                if not got:
+                    out["diary_skipped"] = 1  # 다른 프로세스가 처리 중 — 중복 LLM 방지
+                else:
+                    try:
+                        result = await diary_generation.generate_for_user(session, p, target, cfg)
+                        if result.get("created"):
+                            out["diaries"] = 1
+                            out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
+                        elif result.get("skipped"):
+                            out["diary_skipped"] = 1  # 멱등 재실행 스킵(실패와 구분, SOMA-301)
+                        out["memory_ok"] = result.get("memory_ok", 0)
+                        out["memory_failed"] = result.get("memory_failed", 0)
+                    finally:
+                        # 락 해제 SELECT가 실행되도록 tx 정리(성공 시 no-op, 실패 시 aborted tx 클리어).
+                        await session.rollback()
+                        await session.execute(
+                            text("SELECT pg_advisory_unlock(hashtextextended(:k, 0))"), {"k": lock_key}
+                        )
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
                 if await notify.notify_morning(session, p):

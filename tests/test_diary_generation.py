@@ -43,7 +43,7 @@ def _patch_common(monkeypatch, *, exists=False, messages=None, tokens=5000, ment
     async def _pick(session, target_date):
         return ment
 
-    async def _mem(user_id, msgs):
+    async def _mem(user_id, msgs, language=None):
         return None
 
     monkeypatch.setattr(dg, "_diary_exists", _exists)

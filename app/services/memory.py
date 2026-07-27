@@ -17,6 +17,41 @@ from app.services import i18n
 # 이 병목은 허용 범위(일기 생성이 진짜 병목). 동시성=1이면 사실상 무비용.
 _WRITE_LOCK = asyncio.Semaphore(1)
 
+# mem0 add는 대화 전체(role 프리픽스 포함 직렬화)를 하나의 임베딩 입력으로 OpenAI에 보낸다.
+# text-embedding-3-small 입력 상한 = 8191 토큰. 헤비 유저(수다쟁이) 대화가 이를 넘으면 400으로
+# add 전체가 실패해 그날 기억이 유실된다(SOMA-385). → 배치로 나눠 여러 번 add한다.
+# 상한은 '문자수'로 잡는다(tiktoken 미의존 — 봉인 컨테이너 다운로드 실패 회피). 한국어 최악
+# ~3토큰/char 가정해도 2500자면 ~7500토큰 < 8191(안전마진). mem0가 배치 간 사실을 의미기반
+# dedup·링크하므로(additive 파이프라인) 나눠 넣어도 최종 기억은 온전하다.
+_EMBED_MAX_CHARS = 2500
+_MSG_OVERHEAD_CHARS = 12  # "assistant: "(11) + 개행 상한(직렬화 형태로 카운트, "user: "는 과대추정=안전)
+
+
+def _chunk_messages(messages: list[dict]) -> list[list[dict]]:
+    """메시지를 임베딩 상한 이하 배치로 청킹(메시지 경계). 단일 초장문 메시지는 내용을 무손실 분할."""
+    batches: list[list[dict]] = []
+    cur: list[dict] = []
+    cur_len = 0
+    for m in messages:
+        content = m.get("content") or ""
+        mlen = len(content) + _MSG_OVERHEAD_CHARS
+        if mlen > _EMBED_MAX_CHARS:  # 단일 메시지가 상한 초과 → 내용을 조각내 각자 배치로(무손실)
+            if cur:
+                batches.append(cur)
+                cur, cur_len = [], 0
+            step = _EMBED_MAX_CHARS - _MSG_OVERHEAD_CHARS
+            for i in range(0, len(content), step):
+                batches.append([{**m, "content": content[i : i + step]}])
+            continue
+        if cur and cur_len + mlen > _EMBED_MAX_CHARS:
+            batches.append(cur)
+            cur, cur_len = [], 0
+        cur.append(m)
+        cur_len += mlen
+    if cur:
+        batches.append(cur)
+    return batches
+
 # mem0는 ~/.mem0에 히스토리 SQLite·telemetry를 쓴다. 컨테이너 홈이 비쓰기면 PermissionError(13)로
 # add가 매번 터져 기억이 조용히 전멸한다(2026-07 프로덕션 사고). 쓰기 가능 경로 강제 + telemetry off.
 os.environ.setdefault("MEM0_DIR", "/tmp/mem0")
@@ -162,10 +197,27 @@ async def add_conversation(user_id: str, messages: list[dict], language: str | N
 
     유저 언어로 추출한다(SOMA-365) — 전역 싱글턴은 유지하고 add마다 prompt로 언어 지시를 오버라이드
     (mem0 add의 prompt 인자가 custom_instructions보다 우선). en/ja 기억이 한국어로 번역 저장되던 문제 방지.
+
+    임베딩 8192토큰 상한을 넘지 않도록 배치로 청킹해 저장한다(SOMA-385). 배치별 best-effort —
+    한 배치가 실패해도 나머지는 계속 저장하고, 하나라도 실패하면 마지막에 raise(호출측이 memory_failed로
+    관측). _WRITE_LOCK은 전 배치에 걸쳐 유지(배치 간 dedup search 일관성). 헤비 유저는 추출 LLM
+    호출이 배치 수만큼(2~3배) 늘고 직렬 구간도 그만큼 길어진다.
     """
-    if messages:
-        async with _WRITE_LOCK:
-            await _get_memory().add(messages, user_id=user_id, prompt=_instructions_for(language))
+    if not messages:
+        return
+    batches = _chunk_messages(messages)
+    instr = _instructions_for(language)
+    mem = _get_memory()
+    last_err: Exception | None = None
+    async with _WRITE_LOCK:
+        for idx, batch in enumerate(batches):
+            try:
+                await mem.add(batch, user_id=user_id, prompt=instr)
+            except Exception as e:  # noqa: BLE001  # 배치별 best-effort — 실패해도 나머지 진행
+                last_err = e
+                _log.warning("mem0 add 배치 %d/%d 실패(계속): %r", idx + 1, len(batches), e)
+    if last_err is not None:
+        raise last_err
 
 
 async def delete_all(user_id: str) -> None:

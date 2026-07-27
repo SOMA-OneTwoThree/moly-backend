@@ -34,6 +34,9 @@ def test_dev_router_never_in_nonlocal_env(monkeypatch):
     # local이 아닌 임의 환경(staging·prod 등)에선 플래그가 켜져도 미등록(sol #4).
     monkeypatch.setattr(settings, "enable_dev_routes", True)
     monkeypatch.setattr(settings, "environment", "staging")
+    # 비-local이라 require_production_ready가 시크릿을 강제 — CI(시크릿 없음)에서도 통과하도록 주입.
+    monkeypatch.setattr(settings, "revenuecat_webhook_auth", "x")
+    monkeypatch.setattr(settings, "openai_api_key", "x")
     assert not _dev_registered(create_app())
 
 

@@ -38,8 +38,9 @@ CREATE TRIGGER profiles_set_updated_at BEFORE UPDATE ON public.profiles
 CREATE TABLE public.products (
   id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   product_type         text    NOT NULL CHECK (product_type IN ('hay_pack','cosmetic')),
-  name                 text    NOT NULL,
+  name                 text    NOT NULL,           -- 원문(ko). 다국어는 name_i18n
   description          text,
+  name_i18n            jsonb,                       -- 유저 언어별 이름({ko,en,ja}), 없으면 name 폴백(SOMA-346)
   -- cosmetic 전용
   public_id            text    UNIQUE,           -- API 노출용 안정 문자열 ID
   slot                 text    CHECK (slot IN ('theme','hat','glasses','neck','body')),
@@ -293,6 +294,7 @@ CREATE TABLE public.routines (
   id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id            uuid     NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   name               text     NOT NULL,
+  name_i18n          jsonb,                         -- 기본 루틴 다국어({ko,en,ja}), 편집 시 NULL(SOMA-346)
   frequency_per_week smallint NOT NULL,            -- 항상 요일 수(응답 하위호환용)
   days_of_week       smallint[] NOT NULL,          -- 지정 요일(ISO 1=월…7=일)
   reminder_enabled   boolean  NOT NULL DEFAULT false,

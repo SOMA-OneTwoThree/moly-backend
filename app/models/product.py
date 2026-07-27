@@ -22,8 +22,10 @@ class Product(Base):
         server_default=text("gen_random_uuid()"),
     )
     product_type: Mapped[str] = mapped_column(String)  # hay_pack | cosmetic
-    name: Mapped[str] = mapped_column(String)
+    name: Mapped[str] = mapped_column(String)  # 원문(ko). 다국어는 name_i18n.
     description: Mapped[str | None] = mapped_column(String, nullable=True)
+    # 유저 언어별 이름({"ko":..,"en":..,"ja":..}). NULL·부분키 허용, 없으면 name 폴백(SOMA-346).
+    name_i18n: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     # cosmetic 전용. id는 내부 FK용 UUID, public_id는 API에 노출하는 안정 식별자다.
     public_id: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     slot: Mapped[str | None] = mapped_column(String, nullable=True)  # theme | hat | glasses | neck | body

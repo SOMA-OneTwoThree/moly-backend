@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import errors
 from app.core.time_utils import current_reward_date
 from app.models.routine import Routine, RoutineCompletion
+from app.services import i18n
 from app.services.account import _load_profile, _uid
 
 
@@ -30,10 +31,10 @@ def _streak(ad: date, done: set[date]) -> int:
     return n
 
 
-def _dto(r: Routine, completed_today: bool) -> dict[str, Any]:
+def _dto(r: Routine, completed_today: bool, language: str | None = None) -> dict[str, Any]:
     return {
         "id": str(r.id),
-        "name": r.name,
+        "name": i18n.localized_name(r.name_i18n, language, r.name, kind="routine", key=str(r.id)),
         "frequency_per_week": len(r.days_of_week),  # 하위호환 필드 — 항상 요일 수
         "days_of_week": r.days_of_week,
         "reminder_enabled": r.reminder_enabled,
@@ -65,7 +66,8 @@ async def _load_owned(session: AsyncSession, uid: uuid.UUID, routine_id: str) ->
 
 
 async def list_routines(session: AsyncSession, user_id: str) -> dict[str, Any]:
-    uid, ad = await _today(session, user_id)
+    profile = await _load_profile(session, user_id)
+    uid, ad = profile.id, current_reward_date(profile.timezone)
     rows = list(
         (
             await session.execute(
@@ -84,7 +86,7 @@ async def list_routines(session: AsyncSession, user_id: str) -> dict[str, Any]:
             )
         ).scalars().all()
     )
-    return {"data": [_dto(r, r.id in done) for r in rows]}
+    return {"data": [_dto(r, r.id in done, profile.language) for r in rows]}
 
 
 async def create_routine(session: AsyncSession, user_id: str, req) -> dict[str, Any]:
@@ -105,6 +107,7 @@ async def update_routine(session: AsyncSession, user_id: str, routine_id: str, r
     r = await _load_owned(session, uid, routine_id)
     if req.name is not None:
         r.name = req.name
+        r.name_i18n = None  # 유저가 이름을 직접 바꾸면 기본 다국어는 무효(SOMA-346)
     if req.reminder_enabled is not None:
         r.reminder_enabled = req.reminder_enabled
     if "reminder_time" in req.model_fields_set:  # null 명시=제거, 생략=변경 없음

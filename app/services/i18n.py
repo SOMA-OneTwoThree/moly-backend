@@ -1,6 +1,6 @@
 """서버 문구 다국어 — 저장된 BCP 47 언어 태그 → 콘텐츠 언어 버킷(SOMA-346).
 
-콘텐츠는 ko·en만 존재(그 외 언어는 en 폴백). BCP 47 태그(ko-KR·en-US·zh-Hant-TW 등, SOMA-344)를
+콘텐츠는 ko·en·ja 지원(그 외 언어는 en 폴백). BCP 47 태그(ko-KR·en-US·zh-Hant-TW 등, SOMA-344)를
 base 언어로 정규화해 버킷을 고른다. 이전엔 코드 곳곳이 `== "ko"` 정확일치라 `ko-KR`이 영어로 새는
 버그가 있었다(SOMA-344 부작용) — 이 모듈이 단일 소스로 그걸 막는다.
 """
@@ -20,9 +20,9 @@ _V = TypeVar("_V")
 
 
 def resolve(language: str | None) -> str:
-    """BCP 47 태그 → 콘텐츠 언어 버킷(ko|en). 미설정=ko, 지원 밖=en 폴백.
+    """BCP 47 태그 → 콘텐츠 언어 버킷(ko|en|ja). 미설정=ko, 지원 밖=en 폴백.
 
-    예: None→ko, "ko"→ko, "ko-KR"→ko, "en-US"→en, "zh-Hant-TW"→en(폴백).
+    예: None→ko, "ko-KR"→ko, "en-US"→en, "ja-JP"→ja, "zh-Hant-TW"→en(폴백).
     """
     base = (language or _DEFAULT).split("-", 1)[0].lower()
     if base in SUPPORTED:
@@ -34,6 +34,31 @@ def resolve(language: str | None) -> str:
 def is_korean(language: str | None) -> bool:
     """콘텐츠 기준 한국어 여부. `resolve(x) == 'ko'`의 가독 별칭(문자/말투 게이팅용)."""
     return resolve(language) == "ko"
+
+
+_missing_i18n_seen: set[tuple[str, str, str]] = set()
+
+
+def localized_name(
+    name_i18n: dict | None, language: str | None, default: str, *, kind: str = "catalog", key: str = ""
+) -> str:
+    """DB 카탈로그 다국어 이름 — resolve(lang)→en→ko 순으로 값이 있는 첫 키, 없으면 default(원문).
+
+    pick()과 달리 유저 편집·부분 키가 가능한 DB 컬럼용이라 빈 문자열은 '누락'으로 보고 다음
+    폴백으로 넘어간다(빈 이름 노출·min_length 위반 방지). NULL·부분키 모두 안전(SOMA-346).
+    번역 누락은 (kind,key,lang) 단위 1회만 로그로 관측한다(스팸 방지, AC 운영 확인용).
+    """
+    resolved = resolve(language)
+    loc = name_i18n or {}
+    val = loc.get(resolved) or loc.get(FALLBACK) or loc.get(_DEFAULT)
+    if val:
+        return val
+    if resolved != _DEFAULT:  # ko는 원문이 곧 정답이라 누락 아님
+        sig = (kind, key, resolved)
+        if sig not in _missing_i18n_seen:
+            _missing_i18n_seen.add(sig)
+            _log.info("i18n 카탈로그 번역 누락: %s %r → %s (원문 폴백)", kind, key, resolved)
+    return default
 
 
 def pick(table: dict[str, _V], language: str | None) -> _V:

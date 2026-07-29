@@ -1,7 +1,7 @@
 """배치 워커 틱 — 유저별 세션 격리·불량 tz 스킵·유저 타임아웃(SOMA-348/349)."""
 import asyncio
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
 from worker import tick
@@ -112,3 +112,106 @@ async def test_run_tick_records_heartbeat_every_tick(monkeypatch):
     now = datetime(2026, 7, 6, 6, 0, tzinfo=timezone.utc)
     await tick.run_tick(now)
     assert tick.config_store.WORKER_LAST_SUCCESS_KEY in recorded
+
+
+def test_rc_inbox_drain_priority_ordering():
+    """우선순위 후보 정렬(SOMA-372): 신규(last_error NULL)→예외재시도(attempts>0)→received_at.
+
+    실제 발행되는 select의 ORDER BY를 컴파일해 세 우선순위가 이 순서로 존재함을 검증한다.
+    """
+    sql = str(tick._priority_drain_stmt().compile(compile_kwargs={"literal_binds": True})).lower()
+    order = sql[sql.index("order by"):]
+    i_new = order.index("last_error is null")     # 1) 신규 우선
+    i_retry = order.index("attempts > 0")          # 2) 예외 재시도
+    i_recv = order.index("received_at")            # 3) received_at(오래된 dependency 순)
+    assert i_new < i_retry < i_recv
+    assert "desc" in order[i_new:i_retry]          # 신규(NULL)가 앞서도록 DESC
+    assert "desc" in order[i_retry:i_recv]         # 예외재시도(attempts>0)가 앞서도록 DESC
+
+
+class _InboxSim:
+    """RC inbox 드레인 공정성 시뮬레이터 — _select_pending_ids의 두 쿼리를 실 SQL 의미대로 답한다.
+
+    call 1 = dependency_quota_stmt(오래된 dependency 예약분).
+    call 2 = priority_drain_stmt(신규 우선 → 남으면 dependency, 배치 상한).
+    """
+    def __init__(self, dep_pool, new_pool):
+        self.dep_pool = list(dep_pool)   # 오래된 순
+        self.new_pool = list(new_pool)   # 신규(우선순위 상위)
+        self._call = 0
+
+    async def execute(self, stmt):
+        self._call += 1
+        if self._call == 1:  # dependency_quota_stmt → 예약분
+            return _Res(self.dep_pool[:tick._RC_DEP_RESERVED])
+        # priority_drain_stmt → 신규 먼저(배치 가득) → 남으면 dependency
+        return _Res((self.new_pool + self.dep_pool)[:tick._RC_INBOX_BATCH])
+
+
+async def test_select_pending_ids_reserves_dependency_quota():
+    """신규 다수 + dependency 소수: 신규가 배치를 가득 채워도 오래된 dependency가 예약 슬롯만큼 선택된다."""
+    deps = [f"dep-{i}" for i in range(5)]                       # 소수 dependency
+    news = [f"new-{i}" for i in range(tick._RC_INBOX_BATCH)]    # 신규가 배치를 초과 점유
+    selected = await tick._select_pending_ids(_InboxSim(deps, news))
+    assert set(deps) <= set(selected)               # dependency 전부 포함(굶지 않음)
+    assert any(s.startswith("new-") for s in selected)  # 신규도 굶지 않음
+    assert len(selected) <= tick._RC_INBOX_BATCH     # 배치 상한 준수
+
+
+async def test_select_pending_ids_drains_dependency_despite_new_flood():
+    """신규가 매 틱 배치를 초과 유입해도 여러 틱 내 모든 dependency가 처리된다(strict priority였다면 굶음)."""
+    deps = [f"dep-{i}" for i in range(tick._RC_DEP_RESERVED + 30)]  # 예약분보다 많은 dependency
+    remaining = list(deps)
+    processed: set[str] = set()
+    for t in range(20):  # 여러 틱
+        news = [f"new-{t}-{i}" for i in range(tick._RC_INBOX_BATCH)]  # 매 틱 배치 초과 유입
+        selected = await tick._select_pending_ids(_InboxSim(remaining, news))
+        assert any(s.startswith("new-") for s in selected)  # 신규도 굶지 않음
+        for d in [x for x in selected if x.startswith("dep-")]:  # 선택된 dependency는 처리됨
+            processed.add(d)
+            if d in remaining:
+                remaining.remove(d)
+        if not remaining:
+            break
+    assert not remaining and set(deps) == processed  # 모든 dependency가 결국 처리됨
+
+
+class _RotationSim:
+    """dependency 내부 rotation 시뮬레이터 — next_attempt_at 순서·(<= now) 필터를 실 SQL 의미대로 답한다.
+
+    call 1 = dependency_quota_stmt(예약분), call 2 = priority_drain_stmt(배치). 둘 다 next_attempt_at 이른 순.
+    선택 즉시 제거가 아니라, 재-pending 시 next_attempt_at를 뒤로 미는 것으로 rotation을 재현한다.
+    """
+    def __init__(self, next_at: dict, now: datetime):
+        self.next_at = next_at
+        self.now = now
+        self._call = 0
+
+    async def execute(self, stmt):
+        self._call += 1
+        eligible = sorted(
+            (d for d, t in self.next_at.items() if t <= self.now),
+            key=lambda d: (self.next_at[d], d),   # next_attempt_at 이른 순(동률 안정)
+        )
+        limit = tick._RC_DEP_RESERVED if self._call == 1 else tick._RC_INBOX_BATCH
+        return _Res(eligible[:limit])
+
+
+async def test_dependency_internal_rotation_via_next_attempt_at():
+    """dependency 집합이 배치를 초과해도 재-pending 시 next_attempt_at가 밀려(backoff) 여러 틱에 걸쳐
+    전부 최소 1회 선택된다(SOMA-372 집합 내부 rotation). received_at 고정 정렬이면 초과분은 영구 미선택."""
+    base = datetime(2026, 7, 28, 0, 0, tzinfo=timezone.utc)
+    backoff = timedelta(minutes=5)
+    n = tick._RC_INBOX_BATCH + 50                       # 배치를 초과하는 dependency
+    next_at = {f"dep-{i}": base for i in range(n)}      # 전부 동일 도착시각(next_attempt=received 근사)
+    selected_ever: set[str] = set()
+    for k in range(10):                                 # 여러 틱(15분 케이던스)
+        cur = base + timedelta(minutes=15 * k)
+        selected = await tick._select_pending_ids(_RotationSim(next_at, cur))
+        assert selected                                 # 매 틱 무언가 선택
+        selected_ever.update(selected)
+        for d in selected:                              # 재-pending: next_attempt_at 뒤로 밀림
+            next_at[d] = cur + backoff
+        if len(selected_ever) == n:
+            break
+    assert selected_ever == set(next_at)                # 모든 dependency가 결국 선택(굶지 않음)

@@ -29,6 +29,9 @@ _log = logging.getLogger("moly-backend")
 
 router = APIRouter(tags=["subscription"])
 
+_MAX_WEBHOOK_BYTES = 256 * 1024  # RC 웹훅 본문 상한(과대 payload 거부 — inbox JSONB 내구 보호)
+_MAX_EVENT_ID_LEN = 255          # event.id는 inbox PK(B-tree) — 과대 id는 INSERT 전 거절
+
 
 @router.get("/subscription", response_model=SubscriptionResponse)
 async def get_subscription(
@@ -61,11 +64,22 @@ async def revenuecat_webhook(
     expected = settings.revenuecat_webhook_auth
     if not expected or not authorization or not hmac.compare_digest(authorization, expected):
         raise errors.unauthorized("웹훅 인증에 실패했어요.")
+    # 본문은 인증 후에만 읽는다(fail-closed 유지). 과대 payload는 파싱 전 거부(inbox JSONB 내구 보호).
+    raw = await request.body()
+    if len(raw) > _MAX_WEBHOOK_BYTES:
+        raise errors.validation("RevenueCat 웹훅 본문이 너무 큽니다.")
     try:
-        body = RevenueCatWebhook.model_validate(await request.json())
+        body = RevenueCatWebhook.model_validate_json(raw)
     except (ValueError, ValidationError):
         raise errors.validation("RevenueCat 웹훅 본문 형식이 올바르지 않습니다.")
     if body.api_version != "1.0":
         _log.warning("RC 웹훅: 예상 밖 api_version(%r) — 계약 확인 필요", body.api_version)
-    await subscription.handle_revenuecat_event(session, body.event.model_dump())
+    event = body.event.model_dump()
+    # event.id = RC 전역 유일 식별자(공식). inbox PK로 중복 웹훅 멱등·durable 영속(SOMA-372).
+    # PK B-tree라 과대 id는 INSERT 시 인덱스 실패로 내구가 깨진다 — 저장 전 길이 검증(RC id는 UUID 수준).
+    event_id = str(event.get("id") or "")
+    if not event_id or len(event_id) > _MAX_EVENT_ID_LEN:
+        raise errors.validation("RevenueCat 이벤트 id가 없거나 너무 깁니다.")
+    # raw를 inbox에 커밋 후 동기 소비 — 처리 성패와 무관히 항상 200(재처리는 워커·재요약).
+    await subscription.ingest_event(session, event_id, event)
     return {"status": "ok"}

@@ -27,6 +27,8 @@ class Subscription(Base):
     latest_transaction_id: Mapped[str | None] = mapped_column(String, nullable=True)
     purchased_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    # 상태 단조 기준(SOMA-372) — event_ts > last_event_at 일 때만 상태 적용(옛 이벤트 역행 차단).
+    last_event_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     auto_renew_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
     environment: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)

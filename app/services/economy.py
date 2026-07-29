@@ -31,7 +31,8 @@ def _iso(dt: datetime | None) -> str | None:
 
 async def get_wallet(session: AsyncSession, user_id: str) -> dict[str, int]:
     profile = await _load_profile(session, user_id)
-    return {"balance": profile.hay_balance}
+    # 잔액 음수(부채)는 서버 회계 진실이나 클라 계약은 0 하한(음수 노출 안 함, SOMA-372).
+    return {"balance": max(0, profile.hay_balance)}
 
 
 async def list_transactions(
@@ -53,7 +54,7 @@ async def list_transactions(
     data = [
         {
             "id": str(t.id), "type": t.type, "amount": t.amount,
-            "balance_after": t.balance_after, "created_at": _iso(t.created_at),
+            "balance_after": max(0, t.balance_after), "created_at": _iso(t.created_at),
         }
         for t in rows
     ]
@@ -132,7 +133,7 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
             }
             for p in packs
         ],
-        "balance": profile.hay_balance,
+        "balance": max(0, profile.hay_balance),  # 부채(음수)는 0 하한 노출(SOMA-372)
     }
 
 
@@ -146,7 +147,7 @@ async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int
     stats.attendance_claimed_at = datetime.now(timezone.utc)
     tx = await hay_ledger.apply(session, uid, "attendance", HAY_ATTENDANCE)
     await session.commit()
-    return {"granted": HAY_ATTENDANCE, "balance_after": tx.balance_after}
+    return {"granted": HAY_ATTENDANCE, "balance_after": max(0, tx.balance_after)}
 
 
 async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str, int]:
@@ -161,4 +162,4 @@ async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str,
     stats.routine_reward_claimed_at = datetime.now(timezone.utc)
     tx = await hay_ledger.apply(session, uid, "routine_reward", HAY_ROUTINE_REWARD)
     await session.commit()
-    return {"granted": HAY_ROUTINE_REWARD, "balance_after": tx.balance_after}
+    return {"granted": HAY_ROUTINE_REWARD, "balance_after": max(0, tx.balance_after)}

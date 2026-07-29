@@ -23,7 +23,9 @@ CREATE TABLE public.profiles (
   nickname           text        CHECK (char_length(nickname) <= 10),
   language           text        NOT NULL DEFAULT 'ko',
   timezone           text        NOT NULL DEFAULT 'Asia/Seoul',
-  hay_balance        integer     NOT NULL DEFAULT 0 CHECK (hay_balance >= 0),
+  -- 음수 허용 = 부채(환불 회수 시 증정 소비분을 음수로 내려 이후 획득이 자연 상계 → 완전 회수, SOMA-372).
+  -- 소비 경로의 <0 게이트는 코드가 유지(hay_ledger.apply allow_negative=False 기본).
+  hay_balance        integer     NOT NULL DEFAULT 0,
   trial_ends_at      timestamptz,
   review_prompted_at timestamptz,
   created_at         timestamptz NOT NULL DEFAULT now(),
@@ -202,6 +204,8 @@ CREATE TABLE public.subscriptions (
   expires_at              timestamptz,
   auto_renew_enabled      boolean NOT NULL DEFAULT true,
   environment             text,
+  -- 상태 단조 기준(SOMA-372) — 이 시각 이하의 옛 상태 이벤트는 활성 구독을 되돌리지 않는다.
+  last_event_at           timestamptz,
   created_at              timestamptz NOT NULL DEFAULT now(),
   updated_at              timestamptz NOT NULL DEFAULT now()
 );
@@ -378,6 +382,24 @@ CREATE TABLE public.idempotency_keys (
   PRIMARY KEY (user_id, key)
 );
 
+-- RC 웹훅 내구 inbox(SOMA-372) — 엔드포인트가 event.id를 PK로 raw 커밋(중복 웹훅 멱등) 후
+-- process_event가 소비. DB 오류 삼킴에 의한 구독·결제·건초 영구 유실 차단. 미결 pending·미해결
+-- failed는 워커가 매 틱 관측(은폐 없음). FK 없음(RC 소유 식별자·유저 매핑은 payload 안).
+CREATE TABLE public.revenuecat_events (
+  event_id     text        PRIMARY KEY,               -- RC event.id(전역 유일)
+  payload      jsonb       NOT NULL,                  -- 이벤트 원문(운영 수동 처리·재처리 근거)
+  status       text        NOT NULL DEFAULT 'pending'
+                 CHECK (status IN ('pending','processed','failed')),
+  attempts     integer     NOT NULL DEFAULT 0,        -- 예상 밖 예외 재시도 횟수(≥5 → failed)
+  received_at  timestamptz NOT NULL DEFAULT now(),
+  next_attempt_at timestamptz NOT NULL DEFAULT now(), -- 다음 재시도 예약(backoff) — 드레인 후보·정렬 기준(rotation)
+  processed_at timestamptz,                           -- processed/failed 확정 시각
+  last_error   text                                   -- 실패 사유 또는 no-op durable reason
+);
+CREATE INDEX revenuecat_events_status_idx ON public.revenuecat_events (status, received_at);
+-- 드레인 후보 인덱스 — pending 중 next_attempt_at <= now() 스캔·정렬(집합 내부 rotation, SOMA-372).
+CREATE INDEX revenuecat_events_status_next_attempt_idx ON public.revenuecat_events (status, next_attempt_at);
+
 -- 인앱 문의(자유 텍스트). contact = 기프티콘 이벤트용 선택 연락처(이메일·전화·인스타 등).
 CREATE TABLE public.feedback (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -402,7 +424,7 @@ BEGIN
     'subscriptions','subscription_hay_grants','payments',
     'user_items','diaries','routines','routine_completions',
     'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
-    'chat_contexts','feedback','diary_gen_claims'
+    'chat_contexts','feedback','diary_gen_claims','revenuecat_events'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;

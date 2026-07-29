@@ -97,9 +97,9 @@ async def main():
             from user_items ui join products p on p.id=ui.product_id
             where ui.user_id=$1 order by p.public_id
         """, uuid.UUID(uid))
-        check("가입 트리거 기본 꾸미기 3종 지급",
+        check("가입 트리거 기본 꾸미기 2종 지급",
               {r["public_id"] for r in defaults} ==
-              {"theme_default", "theme_workout", "head_sunglasses"})
+              {"theme_default", "head_sunglasses"})
         check("가입 트리거 theme_default만 초기 장착",
               [(r["public_id"], r["equipped_slot"]) for r in defaults if r["equipped_slot"]] ==
               [("theme_default", "theme")])
@@ -205,29 +205,29 @@ async def run_flow(c, ext, db, uid, token):
           set(catalog) == {"themes", "items"} and "backgrounds" not in catalog)
     catalog_products = catalog.get("themes", []) + catalog.get("items", [])
     by_id = {p["id"]: p for p in catalog_products}
-    check("기본 지급 3종 owned",
+    check("기본 지급 2종 owned",
           all(by_id.get(pid, {}).get("owned") is True for pid in
-              ("theme_default", "theme_workout", "head_sunglasses")))
+              ("theme_default", "head_sunglasses")))
     check("theme_default만 초기 equipped",
           by_id.get("theme_default", {}).get("equipped") is True and
-          by_id.get("theme_workout", {}).get("equipped") is False and
           by_id.get("head_sunglasses", {}).get("equipped") is False)
     r = await c.get("/inventory")
     inventory = r.json().get("data", [])
     check("GET /inventory 기본 지급 전체 DTO", r.status_code == 200 and
           {p.get("id") for p in inventory} ==
-          {"theme_default", "theme_workout", "head_sunglasses"} and
+          {"theme_default", "head_sunglasses"} and
           all(p.get("owned") is True and "assets" in p for p in inventory))
     r = await c.get("/inventory/equipment")
     check("GET /inventory/equipment non-null theme", r.status_code == 200 and r.json() == {
         "theme_id": "theme_default", "head_id": None, "neck_id": None, "body_id": None,
     })
+    # 운동 테마 폐지(SOMA-390) 후 테마는 theme_default 하나 — PUT은 이걸로 검증.
     r = await c.put("/inventory/equipment", json={
-        "theme_id": "theme_workout", "head_id": "head_sunglasses",
+        "theme_id": "theme_default", "head_id": "head_sunglasses",
         "neck_id": None, "body_id": None,
     })
     expected_equipment = {
-        "theme_id": "theme_workout", "head_id": "head_sunglasses",
+        "theme_id": "theme_default", "head_id": "head_sunglasses",
         "neck_id": None, "body_id": None,
     }
     check("PUT equipment 전체 교체", r.status_code == 200 and r.json() == expected_equipment)
@@ -237,7 +237,7 @@ async def run_flow(c, ext, db, uid, token):
         if p.get("equipped")
     }
     check("카탈로그 equipped와 equipment 일치",
-          equipped == {"theme_workout", "head_sunglasses"})
+          equipped == {"theme_default", "head_sunglasses"})
     r = await c.post("/shop/purchases", json={"product_id": "theme_default"})
     check("기본 지급 재구매 → 409 ALREADY_OWNED",
           r.status_code == 409 and r.json().get("error", {}).get("code") == "ALREADY_OWNED")

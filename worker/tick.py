@@ -1,4 +1,5 @@
-"""배치 틱 — 매시 크론이 호출(멱등). 로컬 04:00 일기 생성 / 09:00 아침·20:00 저녁 푸시."""
+"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 아침·20:00 저녁 푸시
++ RC 웹훅 inbox 드레인(pending 처리·미해결 failed 재요약, SOMA-372)."""
 from __future__ import annotations
 
 import asyncio
@@ -14,9 +15,21 @@ from app.config import settings
 from app.core.db import get_sessionmaker
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
+from app.models.revenuecat_event import RevenuecatEvent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import config_store, diary_generation, memory, notify, slack_notify
+from app.services import (
+    config_store,
+    diary_generation,
+    memory,
+    notify,
+    slack_notify,
+    subscription,
+)
 from app.services.limits import effective_token_config
+
+_RC_INBOX_BATCH = 200            # 틱당 처리할 pending 상한
+_RC_DEP_RESERVED = _RC_INBOX_BATCH // 4  # dependency 예약 슬롯(=50) — 신규·재시도 다발에도 굶지 않게
+_RC_PENDING_STALE_MIN = 60       # 이보다 오래 pending이면 관측 대상(선행 결제 미도착 등)
 
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
@@ -156,6 +169,151 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
     return out
 
 
+def _priority_drain_stmt():
+    """우선순위 후보 select — 공정 정렬(신규→예외재시도→dependency_missing→received_at).
+
+    분류 기준(스키마 추가 없이): 신규=last_error NULL. 예외 재시도=attempts>0(_record_retry가 증가).
+    dependency_missing=attempts=0이면서 last_error 기록(_record_terminal은 attempts 불변). 이 순서로
+    LIMIT을 채워 신규·예외재시도가 dependency 다발에 굶지 않게 보장한다(SOMA-372 §11.4).
+    """
+    return (
+        select(RevenuecatEvent.event_id)
+        .where(
+            RevenuecatEvent.status == "pending",
+            RevenuecatEvent.next_attempt_at <= func.now(),  # backoff 미도래 행 제외(rotation)
+        )
+        .order_by(
+            RevenuecatEvent.last_error.is_(None).desc(),  # 1) 신규(오류 미기록)
+            (RevenuecatEvent.attempts > 0).desc(),         # 2) 예외 재시도(attempts>0)
+            RevenuecatEvent.next_attempt_at,               # 3) 재시도 예약 이른 순(rotation)
+            RevenuecatEvent.received_at,                    # 4) 동률이면 오래된 순
+        )
+        .limit(_RC_INBOX_BATCH)
+    )
+
+
+def _dependency_quota_stmt():
+    """dependency_missing 예약분 — 가장 오래된 순(aging). 신규·재시도가 매 틱 배치를 가득 채워도
+    이 예약 슬롯(_RC_DEP_RESERVED)만큼은 항상 오래된 dependency가 선택돼 무기한 굶지 않는다.
+
+    dependency_missing = attempts=0(재시도 아님) AND last_error 기록(신규 아님).
+    """
+    return (
+        select(RevenuecatEvent.event_id)
+        .where(
+            RevenuecatEvent.status == "pending",
+            RevenuecatEvent.attempts == 0,
+            RevenuecatEvent.last_error.isnot(None),
+            RevenuecatEvent.next_attempt_at <= func.now(),  # backoff 미도래 행 제외(rotation)
+        )
+        # 재시도 예약 이른 순 → 재-pending으로 밀린 행은 후순위, 미선택 dependency가 먼저(aging·rotation)
+        .order_by(RevenuecatEvent.next_attempt_at, RevenuecatEvent.received_at)
+        .limit(_RC_DEP_RESERVED)
+    )
+
+
+async def _select_pending_ids(session) -> list[str]:
+    """이번 틱 처리 대상 event_id — 공정 선택(SOMA-372 §11.4).
+
+    dependency 예약 슬롯을 먼저 확보(가장 오래된 dependency)한 뒤 나머지를 우선순위(신규→재시도→
+    dependency)로 채운다. 신규·재시도가 배치를 초과해도 dependency는 예약분만큼 처리되고, dependency
+    다발이 와도 나머지 슬롯이 신규·재시도로 채워져 어느 쪽도 굶지 않는다. 전체는 _RC_INBOX_BATCH 이하.
+    """
+    dep_ids = list((await session.execute(_dependency_quota_stmt())).scalars().all())
+    prio_ids = list((await session.execute(_priority_drain_stmt())).scalars().all())
+    dep_set = set(dep_ids)
+    remaining = _RC_INBOX_BATCH - len(dep_ids)
+    merged = dep_ids + [e for e in prio_ids if e not in dep_set][:remaining]
+    return merged
+
+
+async def _drain_rc_inbox(now: datetime) -> dict:
+    """RC 웹훅 inbox 드레인 — pending 각각 독립 트랜잭션으로 process_event(이벤트별 격리).
+
+    + 미해결 failed·장기 pending을 매 틱 Slack 재요약(1회성 알림 유실 방지 — slack_notify가
+    URL 미설정·전송실패를 삼키므로 매 틱 재요약해 은폐 없이 관측한다, SOMA-372 §11.4).
+    """
+    out = {"rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0}
+    # 1) pending 후보 처리 — 한 행씩 claim(FOR UPDATE SKIP LOCKED는 process_event 내부).
+    # 공정 선택으로 양방향 starvation 방지: dependency 예약 슬롯(_RC_DEP_RESERVED)을 먼저 확보한 뒤
+    # 나머지를 우선순위(신규→예외재시도→dependency)로 채운다. 신규·재시도가 배치를 초과해도 오래된
+    # dependency가 예약분만큼 처리되고, dependency 다발이 와도 신규·재시도가 굶지 않는다(SOMA-372 §11.4).
+    async with get_sessionmaker()() as s:
+        ids = await _select_pending_ids(s)
+    for eid in ids:
+        async with get_sessionmaker()() as s:  # 이벤트별 독립 트랜잭션
+            try:
+                res = await subscription.process_event(s, eid)
+                if res in ("handled", "no_op"):
+                    out["rc_processed"] += 1
+                elif res in ("permanent_failure", "transfer"):
+                    out["rc_failed"] += 1
+                elif res == "exception":
+                    out["rc_exception"] += 1
+                else:  # dependency_missing / skipped
+                    out["rc_pending"] += 1
+            except Exception as e:  # noqa: BLE001  # 한 이벤트 실패가 드레인을 멈추지 않게
+                _log.exception("RC inbox 드레인 실패(event=%s): %r", eid, e)
+                await s.rollback()
+    # 2) 미해결 failed·장기 pending 재요약(dedup 창 < 틱 간격이라 매 틱 발송).
+    # failed는 전체 건수를 count로 집계(표본만 세면 20+ 미해결이 "20건"으로 축소돼 은폐되므로),
+    # 최신 표본만 본문에 첨부한다(SOMA-372 §11.4 — 은폐 없이 관측).
+    async with get_sessionmaker()() as s:
+        failed_total = (
+            await s.execute(
+                select(func.count())
+                .select_from(RevenuecatEvent)
+                .where(RevenuecatEvent.status == "failed")
+            )
+        ).scalar() or 0
+        failed_sample = list(
+            (
+                await s.execute(
+                    select(RevenuecatEvent)
+                    .where(RevenuecatEvent.status == "failed")
+                    .order_by(RevenuecatEvent.received_at.desc())  # 최신 표본
+                    .limit(10)
+                )
+            ).scalars().all()
+        )
+        stale_pending = (
+            await s.execute(
+                select(func.count())
+                .select_from(RevenuecatEvent)
+                .where(
+                    RevenuecatEvent.status == "pending",
+                    RevenuecatEvent.received_at
+                    < now - timedelta(minutes=_RC_PENDING_STALE_MIN),
+                )
+            )
+        ).scalar() or 0
+    if failed_total or stale_pending:
+        await slack_notify.alert(
+            _rc_inbox_summary(failed_sample, int(failed_total), int(stale_pending), now),
+            dedup_key="rc_inbox_unresolved",
+        )
+    return out
+
+
+def _rc_inbox_summary(
+    failed_sample: list, failed_total: int, stale_pending: int, now: datetime
+) -> str:
+    """미해결 RC 웹훅 요약 — 전체 failed 건수 + 최신 표본(event_id·app_user_id·type·last_error)."""
+    ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
+    lines = [
+        f"⚠️ [RC 웹훅 inbox 미해결] {ts_kst}",
+        f"failed {failed_total}건 / 장기 pending(>{_RC_PENDING_STALE_MIN}m) {stale_pending}건",
+    ]
+    for ev in failed_sample[:10]:
+        payload = ev.payload or {}
+        lines.append(
+            f"· {ev.event_id} type={payload.get('type')} "
+            f"app_user_id={payload.get('app_user_id')} err={(ev.last_error or '')[:120]}"
+        )
+    lines.append("→ 운영 수동 처리 필요(TRANSFER·미등록 상품·거래ID 누락 등).")
+    return "\n".join(lines)
+
+
 async def _profile_id_batches(batch_size: int):
     """프로필 id를 키셋 페이지네이션으로 배치 단위 yield — 전량 메모리 적재를 피한다(SOMA-349)."""
     last = None
@@ -189,6 +347,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
         "swept": 0,            # 고아 기억 청소 건수(UTC 04시 틱)
         "users": 0,
+        "rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0,  # RC inbox 드레인
     }
     active_tzs: set[str] = set()  # 이 틱에서 일기·아침·저녁을 처리한 유저 타임존(요약 표기용)
     start = time.monotonic()
@@ -215,6 +374,13 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                         active_tzs.add(v)
                 elif k in counts:
                     counts[k] += v
+
+    # RC 웹훅 inbox 드레인 — 매 틱(15분). 유저 처리와 독립(전용 세션·이벤트별 트랜잭션).
+    try:
+        for k, v in (await _drain_rc_inbox(now)).items():
+            counts[k] = counts.get(k, 0) + v
+    except Exception as e:  # noqa: BLE001  # 드레인 실패가 배치 전체를 막으면 안 됨
+        _log.exception("RC inbox 드레인 틱 실패(무시): %r", e)
 
     # 워커가 끝까지 돌았음을 매 틱 기록 — /health/deep의 stale(2h) 판정 근거.
     # DIARY_HOUR 블록 안에 있으면 하루 1회만 갱신돼 나머지 22시간이 오탐 stale이 된다.

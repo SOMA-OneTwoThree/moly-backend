@@ -26,7 +26,7 @@ app/
   services/          도메인 로직 (account·chat·diary·economy·routine·shop·subscription·ads·review + hay_ledger·gating·llm·memory 등)
   schemas/           요청 스키마 (pydantic)
   api/               라우터 (엔드포인트)
-worker/              배치 워커 (매시 크론 1틱)
+worker/              배치 워커 (15분 크론 1틱, SOMA-348)
 db/                  실 스키마(schema.sql)·적용(apply.py)·검증(verify.py)·시드/가입트리거
 scripts/             개발 도우미 (dev_token.py — 로컬 토큰 발급)
 tests/               pytest — mock 유닛 + 실 Supabase 통합(tests/integration)
@@ -49,7 +49,7 @@ uv run python scripts/openapi_contract.py --check
 uv sync                                   # 의존성 설치(.venv)
 cp .env.example .env                      # 시크릿 채우기(커밋 금지 · gitignore)
 uv run uvicorn app.main:app --reload      # API 서버 → http://localhost:8000
-uv run python -m worker                   # 배치 워커 1틱 (외부 크론이 매시 실행)
+uv run python -m worker                   # 배치 워커 1틱 (외부 크론이 15분마다 실행)
 uv run pytest                             # 테스트
 uv run ruff check .                       # 린트
 ```
@@ -98,9 +98,10 @@ uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 
 
 ## 배치 워커
 
-외부 **매시 크론**이 `python -m worker`를 1틱 실행(멱등). 유저 로컬시각 기준:
+외부 **15분 크론**(SOMA-348)이 `python -m worker`를 1틱 실행(멱등). 유저 로컬시각 기준:
 - **04:00** — 전일 일기 생성(개인/캐피) + mem0 기억 통합
 - **09:00** — 아침 일기 FCM 푸시 · **20:00** — 저녁 안부 푸시
+- **매 틱** — RC 웹훅 inbox 드레인(pending 처리 + 미해결 failed·장기 pending Slack 재요약, SOMA-372)
 
 ### 캐피 자기일기 — 날짜별 지정
 
@@ -125,7 +126,9 @@ uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv --commit   # 실�
 
 ## 배포 · 웹훅
 
-- 컨테이너 1이미지 → API/워커 2프로세스(entrypoint만 분리). 매니지드 플랫폼 + 매시 크론
+- 컨테이너 1이미지 → API/워커 2프로세스(entrypoint만 분리). 매니지드 플랫폼 + 15분 크론
+- ⚠️ RC 웹훅 배포 = **no-mixed-webhook**(SOMA-372): 구버전 pod는 inbox 미저장이라, 배포 중
+  웹훅 유입을 일시중단하거나 신버전 전용 라우팅으로 전환한 뒤 배포한다(배포 런북).
 - 공개 웹훅(배포 후 URL을 각 콘솔에 등록): `POST /webhooks/revenuecat`은 대시보드에 설정한 Authorization 값과 서버 secret을 정확히 비교하고, `GET /webhooks/ad-ssv`는 AdMob SSV 서명을 검증한다.
 
 ## 상태 (2026-07-08)

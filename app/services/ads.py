@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.pg import unique_violation
 from app.core.time_utils import current_reward_date
 from app.models.reward_ad_session import RewardAdSession
 from app.services import economy, hay_ledger
@@ -73,8 +74,10 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
         # apply 내부 flush 시점에 ssv_transaction_id UNIQUE 충돌이 먼저 터질 수 있다
         await hay_ledger.apply(session, row.user_id, "ad_reward", AD_REWARD)
         await session.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         # 같은 transaction_id가 다른 세션으로 이미 지급됨(UNIQUE 충돌) — 롤백, 멱등.
         await session.rollback()
-        return "transaction_conflict"
+        if unique_violation(exc, "reward_ad_sessions_ssv_transaction_id_key"):
+            return "transaction_conflict"
+        raise  # 예상 밖 IntegrityError(NULL/FK 등) → 전파(500, 은폐 금지)
     return "granted"

@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.pg import unique_violation
 from app.models.idempotency_key import IdempotencyKey, SHOP_PURCHASE_KEY_PREFIX
 from app.models.product import Product
 from app.models.profile import Profile
@@ -273,6 +274,9 @@ async def purchase(
         await session.commit()
     except IntegrityError as exc:
         await session.rollback()
+        # 예상 밖 IntegrityError(NULL/FK 등)는 already_owned로 위장하지 않고 전파(500, 은폐 금지).
+        if not unique_violation(exc, "user_items_user_product_uq", "idempotency_keys_pkey"):
+            raise
         if stored_key is not None:
             cached = await session.get(IdempotencyKey, (uid, stored_key))
             if cached is not None:

@@ -124,14 +124,75 @@ async def test_grant_pack_app_store_looks_up_app_column(monkeypatch):
     assert "app_store_product_id" in s.wheres[1]
 
 
+async def test_grant_pack_returns_true_on_grant(monkeypatch):
+    """정상 지급이면 True 반환(§11.3 — 상위가 HANDLED로 관측)."""
+    async def _apply(session, uid, t, amt, **kw):
+        return SimpleNamespace(id=1, balance_after=300)
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    s = FakeSession(exec_results=[[], [_pack()]])
+    ok = await payment.grant_pack(s, UID_UUID, "com.geniusjun.moly.hay.300", "tx-1",
+                                  store="app_store")
+    assert ok is True
+
+
 async def test_grant_pack_idempotent_on_duplicate_transaction(monkeypatch):
     async def _apply(*a, **k):
         raise AssertionError("중복 거래에 재지급하면 안 됨")
 
     monkeypatch.setattr(hay_ledger, "apply", _apply)
-    s = FakeSession(exec_results=[[SimpleNamespace(id=uuid.uuid4())]])  # 결제 이미 존재
-    await payment.grant_pack(s, UID_UUID, "com.geniusjun.moly.hay.300", "tx-1", store="app_store")
-    assert s.added == []
+    pack = _pack()
+    # 같은 유저의 팩 결제(order_id 있고 subscription_id 없음)가 이미 존재 → 멱등
+    existing = SimpleNamespace(user_id=UID_UUID, order_id=uuid.uuid4(), subscription_id=None)
+    # exec: [0] 결제 조회→기존, [1] 상품 조회→pack, [2] 주문 항목 상품→pack.id(일치)
+    s = FakeSession(exec_results=[[existing], [pack], [pack.id]])
+    ok = await payment.grant_pack(s, UID_UUID, pack.app_store_product_id, "tx-1",
+                                  store="app_store")
+    assert s.added == [] and ok is True  # 멱등 중복은 정상(True)
+
+
+async def test_grant_pack_tx_reuse_different_product_returns_false(monkeypatch):
+    """같은 유저·팩 결제라도 기존 주문 상품이 이번 RC 상품과 다르면 지급 거부 — 거래ID 상품 오용(§6)."""
+    async def _apply(*a, **k):
+        raise AssertionError("상품 불일치면 지급하면 안 됨")
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    pack = _pack()
+    existing = SimpleNamespace(user_id=UID_UUID, order_id=uuid.uuid4(), subscription_id=None)
+    # exec: [0] 결제→기존, [1] 상품→pack, [2] 주문 항목 상품→다른 상품 id(불일치)
+    s = FakeSession(exec_results=[[existing], [pack], [uuid.uuid4()]])
+    ok = await payment.grant_pack(s, UID_UUID, pack.app_store_product_id, "tx-1",
+                                  store="app_store")
+    assert s.added == [] and ok is False  # 상품 불일치 → False(상위 permanent_failure)
+
+
+async def test_grant_pack_tx_reuse_different_user_returns_false(monkeypatch):
+    """다른 유저가 같은 transaction_id를 재사용 → 지급 없이 False(상위 permanent_failure).
+
+    payment_exists 조기반환이 우회하던 경로 — 이제 거래ID 오용이 건초 지급 없이 묻히지 않는다(§6).
+    """
+    async def _apply(*a, **k):
+        raise AssertionError("거래ID 오용이면 지급하면 안 됨")
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    other = SimpleNamespace(user_id=uuid.uuid4(), order_id=uuid.uuid4(), subscription_id=None)
+    s = FakeSession(exec_results=[[other]])  # 다른 유저 결제가 이미 tx를 점유
+    ok = await payment.grant_pack(s, UID_UUID, "com.geniusjun.moly.hay.300", "tx-1",
+                                  store="app_store")
+    assert s.added == [] and ok is False
+
+
+async def test_grant_pack_tx_reuse_by_subscription_returns_false(monkeypatch):
+    """같은 유저라도 그 tx가 구독 결제(subscription_id 설정)면 팩 지급 거부 — 거래ID 오용."""
+    async def _apply(*a, **k):
+        raise AssertionError("구독 결제 tx면 팩 지급하면 안 됨")
+
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    sub_pay = SimpleNamespace(user_id=UID_UUID, order_id=None, subscription_id=uuid.uuid4())
+    s = FakeSession(exec_results=[[sub_pay]])
+    ok = await payment.grant_pack(s, UID_UUID, "com.geniusjun.moly.hay.300", "tx-1",
+                                  store="app_store")
+    assert s.added == [] and ok is False
 
 
 async def test_grant_pack_unknown_product_skips(monkeypatch):
@@ -140,11 +201,11 @@ async def test_grant_pack_unknown_product_skips(monkeypatch):
 
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     s = FakeSession(exec_results=[[], []])  # 결제 없음, 상품 없음
-    await payment.grant_pack(s, UID_UUID, "com.unknown", "tx-1", store="app_store")
-    assert s.added == []
+    ok = await payment.grant_pack(s, UID_UUID, "com.unknown", "tx-1", store="app_store")
+    assert s.added == [] and ok is False  # 미등록 상품 → False(상위 permanent_failure)
 
 
 async def test_grant_pack_missing_ids_skips():
     s = FakeSession()
-    await payment.grant_pack(s, UID_UUID, "", "", store="app_store")
-    assert s.added == []
+    ok = await payment.grant_pack(s, UID_UUID, "", "", store="app_store")
+    assert s.added == [] and ok is False  # 식별자 누락 → False

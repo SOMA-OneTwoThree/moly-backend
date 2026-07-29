@@ -164,17 +164,27 @@ async def test_grant_bad_session_id_skip():
     assert s.committed is False
 
 
+class _FakeOrig(Exception):
+    """asyncpg UniqueViolation 흉내 — pg.unique_violation이 판별하는 sqlstate·constraint_name."""
+    def __init__(self, sqlstate="23505", constraint_name=None):
+        self.sqlstate = sqlstate
+        self.constraint_name = constraint_name
+
+
+def _unique_exc(constraint):
+    from sqlalchemy.exc import IntegrityError
+    return IntegrityError("stmt", {}, _FakeOrig(constraint_name=constraint))
+
+
 async def test_grant_transaction_conflict_rollback(monkeypatch):
     """같은 transaction_id가 다른 세션으로 이미 지급 — UNIQUE 충돌 롤백, 멱등."""
-    from sqlalchemy.exc import IntegrityError
-
     _patch(monkeypatch, ad_count=3)
 
     class ConflictSession(FakeSession):
         rolled_back = False
 
         async def commit(self):
-            raise IntegrityError("stmt", {}, Exception("duplicate key"))
+            raise _unique_exc("reward_ad_sessions_ssv_transaction_id_key")
 
         async def rollback(self):
             self.rolled_back = True
@@ -186,13 +196,11 @@ async def test_grant_transaction_conflict_rollback(monkeypatch):
 
 async def test_grant_transaction_conflict_at_flush(monkeypatch):
     """UNIQUE 충돌은 원장 apply 내부 flush에서도 터진다 — commit 전이라도 500이 아니라 멱등."""
-    from sqlalchemy.exc import IntegrityError
-
     async def _daily(session, uid, ad):
         return SimpleNamespace(ad_reward_count=3)
 
     async def _apply(*a, **k):
-        raise IntegrityError("stmt", {}, Exception("duplicate key"))
+        raise _unique_exc("reward_ad_sessions_ssv_transaction_id_key")
 
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
@@ -206,6 +214,23 @@ async def test_grant_transaction_conflict_at_flush(monkeypatch):
     s = RollbackSession(get_obj=_sess_row())
     assert await ads.grant_from_ssv(s, SID, "t1") == "transaction_conflict"
     assert s.rolled_back is True and s.committed is False
+
+
+async def test_grant_unexpected_integrity_error_reraises(monkeypatch):
+    """예상 밖 IntegrityError(다른 제약·NULL/FK)는 transaction_conflict로 위장하지 않고 전파(은폐 금지)."""
+    from sqlalchemy.exc import IntegrityError
+
+    _patch(monkeypatch, ad_count=3)
+
+    class ConflictSession(FakeSession):
+        async def commit(self):
+            raise IntegrityError("stmt", {}, _FakeOrig(sqlstate="23502"))  # not_null_violation
+
+        async def rollback(self):
+            pass
+
+    with pytest.raises(IntegrityError):
+        await ads.grant_from_ssv(ConflictSession(get_obj=_sess_row()), SID, "t1")
 
 
 # --- 엔드포인트 ---

@@ -280,7 +280,7 @@ CREATE TABLE public.diaries (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id        uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   diary_date     date NOT NULL,
-  source         text NOT NULL CHECK (source IN ('llm','preset','welcome')),
+  source         text NOT NULL CHECK (source IN ('llm','preset','welcome','none')),
   preset_ment_id uuid REFERENCES public.moly_life_ments(id) ON DELETE SET NULL,
   content        text NOT NULL,
   weather        text NOT NULL CHECK (weather IN ('sunny','cloudy','rainy','windy')),

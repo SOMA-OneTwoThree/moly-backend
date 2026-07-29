@@ -79,7 +79,8 @@ def _build_summary(
         zones = " / ".join(_zone_line(tz, now) for tz in sorted(active_tzs))
         lines.append(f"대상 타임존: {zones}")
     lines += [
-        f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}){diary_fail}",
+        f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}"
+        f" / 미발행 {counts['diary_none']}){diary_fail}",
         f"기억(mem0): 성공 {counts['memory_ok']} / 실패{mem_fail}",
         f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
@@ -95,7 +96,7 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
     유저별 독립 세션이라 한 유저의 롤백/실패가 다른 유저를 오염시키지 않는다(SOMA-349).
     """
     out = {
-        "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_failed": 0,
+        "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
         "diary_attempted": 0, "active_tz": None,
     }
@@ -137,9 +138,11 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                 else:
                     try:
                         result = await diary_generation.generate_for_user(session, p, target, cfg)
-                        if result.get("created"):
+                        if result.get("created") and result.get("source") != "none":
                             out["diaries"] = 1
                             out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
+                        elif result.get("created"):  # tombstone(사용자 노출 X, SOMA-389) — 발행 아님
+                            out["diary_none"] = 1
                         elif result.get("skipped"):
                             out["diary_skipped"] = 1  # 멱등 재실행 스킵(실패와 구분, SOMA-301)
                         out["memory_ok"] = result.get("memory_ok", 0)
@@ -339,7 +342,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     """
     now = now or datetime.now(timezone.utc)
     counts = {
-        "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_failed": 0,
+        "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0,  # 이미 생성돼 스킵(멱등 재실행) — 실패와 구분(오탐 방지)
         "memory_ok": 0, "memory_failed": 0,
         "morning": 0, "evening": 0,
@@ -416,6 +419,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     # 슬랙 요약: 실제 작업(일기 생성/실패 또는 푸시 발송)이 있을 때만 전송(빈 틱 스팸 방지).
     # diary_attempted 기준이면 15분 케이던스에서 DIARY_HOUR 시간대마다 요약이 4번 나가고
     # 그중 3번은 _diary_exists skip이라 "일기 0건" — 감시 채널이 오탐으로 도배된다(SOMA-348 후속).
+    # diary_none(tombstone)은 사용자 노출 0이라 요약 트리거에서 제외 — 지정본 없는 조용한 날에
+    # 매 틱 요약이 나가 채널이 도배되는 걸 막는다(SOMA-389, 위 오탐 방지 취지 유지).
     if counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"] > 0:
         summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)

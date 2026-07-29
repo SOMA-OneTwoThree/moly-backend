@@ -68,8 +68,8 @@ async def generate_diary(
         )
     ).scalars().first()
 
-    if diary is not None and req.publish_now:
-        diary.published_at = now
+    if diary is not None and req.publish_now and diary.source != "none":
+        diary.published_at = now  # tombstone(source='none')은 노출 대상 아님 — 강제 발행 금지
         await session.commit()
 
     return {

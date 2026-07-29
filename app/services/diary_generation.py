@@ -11,7 +11,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, select, text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -61,12 +61,6 @@ async def _tokens_used(session: AsyncSession, user_id, target_date: date) -> int
 
 
 _USER_LABEL = {"ko": "그 사람", "en": "that person", "ja": "その人"}
-# 프리셋 풀이 비었을 때 안전 기본 일기(언어별).
-_EMPTY_POOL_FALLBACK = {
-    "ko": "오늘도 그냥저냥 하루가 갔다.",
-    "en": "Another ordinary day went by.",
-    "ja": "今日もなんとなく一日が過ぎた。",
-}
 
 
 def _transcript(
@@ -185,23 +179,14 @@ async def _personal(
 
 
 async def _pick_ment(session: AsyncSession, target_date: date) -> MolyLifeMent | None:
-    """캐피 자기일기 소스 선택 — 그날 지정본 우선, 없으면 날짜 없는 풀에서 랜덤."""
+    """캐피 자기일기 소스 선택 — 그날 **지정본만**(SOMA-389). 매일 랜덤 폴백 폐지: 우리가 날짜
+    지정으로 넣은 날에만 캐피 일기를 발행하고, 없으면 그날은 일기 없음(tombstone)."""
     dated = await session.execute(
         select(MolyLifeMent)
         .where(MolyLifeMent.is_active.is_(True), MolyLifeMent.diary_date == target_date)
         .limit(1)
     )
-    ment = dated.scalars().first()
-    if ment is not None:
-        return ment
-    # 폴백: 날짜 없는(diary_date IS NULL) 행만 랜덤 — 지정본이 다른 날 재사용되지 않게.
-    rows = await session.execute(
-        select(MolyLifeMent)
-        .where(MolyLifeMent.is_active.is_(True), MolyLifeMent.diary_date.is_(None))
-        .order_by(func.random())
-        .limit(1)
-    )
-    return rows.scalars().first()
+    return dated.scalars().first()
 
 
 _TRANSLATE_SYS = (
@@ -258,6 +243,7 @@ async def generate_for_user(
             content = naming.to_placeholder(content, getattr(profile, "nickname", None))
             source = "llm"
 
+    published: datetime | None = publish_at(target_date, profile.timezone)
     if source == "preset":
         ment = await _pick_ment(session, target_date)
         if ment is not None:
@@ -269,14 +255,15 @@ async def generate_for_user(
                 content = await _translate_preset(content, plang, user_id=getattr(profile, "id", None))
                 content = text_clean.strip_symbols(content, keep_hyphen=True)  # 번역 부호 재정제(en 하이픈 유지)
         else:
-            # 풀 비었을 때 안전 기본 — 언어별.
-            _pl = getattr(profile, "language", None)
-            content = i18n.pick(_EMPTY_POOL_FALLBACK, _pl)
+            # SOMA-389: 지정본 없는 날은 캐피 일기 미발행(랜덤 폴백 폐지) → 사용자에겐 일기 없음.
+            # 단, "그날 처리완료" 멱등 마커(+임계 미달 대화자 기억통합 재실행 방지)로 tombstone 행을
+            # 남긴다. published_at=NULL이라 list_diaries(published_at<=now)·get_diary에서 자동 제외.
+            source, content, published = "none", "", None
 
     diary = Diary(
         user_id=profile.id, diary_date=target_date, source=source,
         preset_ment_id=preset_id, content=content, weather=weather,
-        published_at=publish_at(target_date, profile.timezone),
+        published_at=published,
     )
     session.add(diary)
     await session.commit()

@@ -1,6 +1,12 @@
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
-from app.core.time_utils import activity_date_for, reward_date_for
+from app.core.time_utils import (
+    activity_date_for,
+    is_valid_iana_timezone,
+    reward_date_for,
+    safe_zone,
+)
 
 
 def test_before_4am_belongs_to_previous_day():
@@ -70,3 +76,31 @@ def test_three_quarter_hour_offset_nepal():
     assert activity_date_for(
         datetime(2026, 6, 30, 22, 14, tzinfo=timezone.utc), "Asia/Kathmandu"
     ).isoformat() == "2026-06-30"
+
+
+# --- SOMA-375: IANA 타임존 방어 ---
+def test_is_valid_iana_timezone():
+    assert is_valid_iana_timezone("Asia/Seoul") is True
+    assert is_valid_iana_timezone("America/New_York") is True
+    assert is_valid_iana_timezone("Not/AZone") is False
+    assert is_valid_iana_timezone("") is False
+    assert is_valid_iana_timezone("../etc/passwd") is False  # ValueError 경로
+    assert is_valid_iana_timezone(None) is False  # TypeError
+
+
+def test_safe_zone_valid_passthrough():
+    assert safe_zone("America/New_York") == ZoneInfo("America/New_York")
+
+
+def test_safe_zone_bad_value_falls_back_to_seoul(caplog):
+    import logging
+    with caplog.at_level(logging.WARNING, logger="moly-backend"):
+        assert safe_zone("Not/AZone") == ZoneInfo("Asia/Seoul")
+        assert safe_zone("../etc/passwd") == ZoneInfo("Asia/Seoul")  # ValueError도 폴백
+    assert any("폴백" in r.message for r in caplog.records)
+
+
+def test_activity_date_for_bad_tz_no_500():
+    # 손상된 저장 tz라도 예외 없이 KST 폴백으로 날짜 계산(500 방지)
+    now_utc = datetime(2026, 7, 6, 19, 1, tzinfo=timezone.utc)  # KST 04:01 → 07-07
+    assert activity_date_for(now_utc, "Not/AZone").isoformat() == "2026-07-07"

@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     anthropic_model_diary: str = "claude-sonnet-5"
     anthropic_model_utility: str = "claude-haiku-4-5-20251001"
     llm_max_tokens: int = 1024  # 컴패니언 응답은 짧음(1~3문장). OpenAI엔 max_completion_tokens로 전달.
+    # LLM 호출 per-request 타임아웃(초). SDK 기본(수 분)은 너무 길어 요청이 무한 대기할 수 있다.
+    # 챗은 커넥션을 쥐지 않고(SOMA-374 2단계) 부르지만, 무응답 요청을 유한 시간에 끊어 재시도로 넘긴다.
+    llm_timeout_s: float = 60.0
     # 캐시 최소 프리픽스(Anthropic 오경보 억제 기준. OpenAI는 자동캐시라 이 경보를 provider로 skip).
     # Haiku 4.5·Opus=4096 / Sonnet 5·Sonnet 4.6·Fable=2048 / Sonnet 4.5 이하=1024.
     chat_cache_min_prefix_tokens: int = 2048

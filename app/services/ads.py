@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.advisory_lock import advisory_xact_lock
 from app.core.pg import unique_violation
 from app.core.time_utils import current_reward_date
 from app.models.reward_ad_session import RewardAdSession
@@ -26,7 +27,12 @@ AD_DAILY_LIMIT = economy.AD_DAILY_LIMIT
 async def create_session(session: AsyncSession, user_id: str) -> dict[str, Any]:
     """광고 시청 전 세션 발급. 오늘 한도 초과면 429. 반환 = 클라가 SSV에 실을 값 + 잔여."""
     profile = await _load_profile(session, user_id)
+    # 순서 불변식: lock → 커서 assert → _daily(SOMA-375). tz 역행으로 과거 날짜 세션을 선발급해
+    # 나중에 SSV로 수령하는 우회를 발급 시점에 1차 차단(2차는 grant_from_ssv).
+    await advisory_xact_lock(session, profile.id)
     ad = current_reward_date(profile.timezone)
+    if await economy._reward_window_regressed(session, profile.id, ad):
+        raise errors.already_claimed()  # 409 — tz 역행(과거 날짜)
     stats = await economy._daily(session, profile.id, ad)
     if stats.ad_reward_count >= AD_DAILY_LIMIT:
         raise errors.ad_limit_reached()  # 429
@@ -46,22 +52,39 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
     """SSV 콜백(서명검증 후) → 세션 조회 후 +10 지급. 반환 = 처리 결과(콜백 응답 body에 노출).
 
     결과: granted / invalid_session / session_not_found / duplicate / daily_limit
-    / transaction_conflict. Google은 body를 보지 않으므로 HTTP는 항상 200 — 구분은 운영용.
+    / stale_reward_window / transaction_conflict. Google은 body를 보지 않으므로 HTTP는 항상 200
+    — 비-200은 Google 재전송을 유발하므로 tz 역행도 예외(409) 아닌 결과값으로 200 유지.
     멱등 = 세션당 1회(`granted` 행잠금) + `ssv_transaction_id` UNIQUE(재전송/다른세션 방어).
     일 한도는 지급 시 원자 카운트 체크 — 세션 남발해도 10회 초과 지급 안 됨.
     custom_data = reward_session_id(서명검증된 값) → 세션 소유자에게만 지급.
+
+    락 순서: 세션을 무잠금 조회해 소유자 uid 확보 → user advisory lock(보상 공통 도메인) →
+    세션을 FOR UPDATE + populate_existing으로 재조회. populate_existing이 없으면 무잠금 조회가
+    identity map에 남긴 stale granted=False를 재조회가 갱신 못 해, 대기 중 다른 SSV가 지급했어도
+    이중 지급될 수 있다(SOMA-375 C11).
     """
     try:
         sid = uuid.UUID(session_id)
     except (ValueError, TypeError):
         _log.warning("SSV: reward_session_id 형식 오류(%r) — 스킵", session_id)
         return "invalid_session"
-    row = await session.get(RewardAdSession, sid, with_for_update=True)  # 동시/재전송 직렬화
-    if row is None:
+    pre = await session.get(RewardAdSession, sid)  # 무잠금 — 소유자 uid만 확보(락 순서: user락 먼저)
+    if pre is None:
         _log.warning("SSV: 세션 없음(%s) — 스킵", session_id)
+        return "session_not_found"
+    await advisory_xact_lock(session, pre.user_id)  # 보상 경로 공통 직렬화(커서 조회~지급 원자화)
+    # 락 하에서 강제 fresh-load 재조회 — stale granted 이중지급 창 차단(populate_existing 필수)
+    row = await session.get(
+        RewardAdSession, sid, with_for_update=True, populate_existing=True
+    )
+    if row is None:
         return "session_not_found"
     if row.granted:
         return "duplicate"  # 이미 지급 — 재전송/중복 콜백 멱등
+    # 선발급된 과거 세션(현재 커서보다 뒤)은 지급 거부 — 200 유지(예외 던지지 않음)
+    if await economy._reward_window_regressed(session, row.user_id, row.activity_date):
+        _log.info("SSV: 보상 윈도우 역행(user=%s date=%s) — 미지급", row.user_id, row.activity_date)
+        return "stale_reward_window"
     stats = await economy._daily(session, row.user_id, row.activity_date)
     if stats.ad_reward_count >= AD_DAILY_LIMIT:
         _log.info("SSV: 일 한도 초과(user=%s) — 미지급", row.user_id)

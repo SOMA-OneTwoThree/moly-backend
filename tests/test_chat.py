@@ -39,6 +39,9 @@ class _Result:
     def scalars(self):
         return _Scalars(self._items)
 
+    def scalar(self):
+        return self._items[0] if self._items else None
+
 
 class FakeSession:
     def __init__(self, get_map=None, execute_items=None):
@@ -48,7 +51,7 @@ class FakeSession:
         self.deleted = []
         self.committed = False
 
-    async def get(self, model, key):
+    async def get(self, model, key, **kwargs):
         return self.get_map.get(model.__name__)
 
     def add(self, obj):
@@ -67,6 +70,9 @@ class FakeSession:
 
     async def commit(self):
         self.committed = True
+
+    async def rollback(self):
+        pass
 
     async def refresh(self, obj):
         pass
@@ -230,6 +236,83 @@ async def test_post_message_idempotent_returns_cached(monkeypatch, patched):
     # 와이어 포맷 보존: 저장본과 json 직렬화 결과가 동일해야 한다(+00:00 유지 포함).
     assert out.model_dump(mode="json") == cached_response
     assert session.committed is False  # LLM·저장 안 탐
+
+
+async def test_post_message_llm_failure_persists_nothing(monkeypatch):
+    # SOMA-374: phase-1은 read-only라 LLM 실패 시 유저 메시지·토큰·멱등키가 저장되지 않는다(클린 재시도).
+    from app.models.idempotency_key import IdempotencyKey
+
+    async def _res(session, user_id):
+        return _gating()
+
+    async def _fake_mem(user_id):
+        return ""
+
+    async def _boom(*a, **k):
+        raise RuntimeError("LLM down")
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
+    monkeypatch.setattr(llm_module, "generate", _boom)
+    session = FakeSession()
+    req = SimpleNamespace(text="안녕", greeting_id=None)
+    with pytest.raises(RuntimeError):
+        await chat_service.post_message(session, UID, req, "idem-llmfail")
+    assert [m for m in session.added if isinstance(m, Message)] == []
+    assert [o for o in session.added if isinstance(o, IdempotencyKey)] == []
+
+
+async def test_post_message_passes_llm_timeout(monkeypatch, patched):
+    # SOMA-374: LLM 호출에 per-request timeout이 전달된다(무한 대기 방지).
+    captured: dict = {}
+
+    async def _res(session, user_id):
+        return _gating()
+
+    async def _capture(system, convo, **kw):
+        captured.update(kw)
+        return LLMResult(text="응.", input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(llm_module, "generate", _capture)
+    req = SimpleNamespace(text="hi", greeting_id=None)
+    await chat_service.post_message(FakeSession(), UID, req, "idem-to")
+    assert captured.get("timeout") is not None
+
+
+async def test_post_message_phase2_dup_returns_cached(monkeypatch, patched):
+    # SOMA-374: LLM 도중 동시 중복이 먼저 확정하면, phase-2 멱등 재조회에서 발견해 저장응답을 반환하고
+    # 이중 저장하지 않는다(phase-0엔 없었지만 phase-2엔 존재).
+    async def _res(session, user_id):
+        return _gating()
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    cached_response = {
+        "greeting": None,
+        "user_message": {"message_id": "1", "created_at": "2026-07-07T00:00:00+00:00"},
+        "reply": {"message_id": "2", "content": "동시본", "created_at": "2026-07-07T00:00:00+00:00"},
+        "tokens_used": 100,
+        "tokens_remaining": 19_900,
+        "review_prompt": False,
+    }
+
+    class DupSession(FakeSession):
+        def __init__(self):
+            super().__init__()
+            self._idem_calls = 0
+
+        async def get(self, model, key, **kwargs):
+            if model.__name__ == "IdempotencyKey":
+                self._idem_calls += 1
+                # phase-0(1회차)=None → 진행 / phase-2(2회차)=cached → 재조회 히트
+                return None if self._idem_calls == 1 else SimpleNamespace(response=cached_response)
+            return self.get_map.get(model.__name__)
+
+    session = DupSession()
+    req = SimpleNamespace(text="hi", greeting_id=None)
+    out = await chat_service.post_message(session, UID, req, "dup-key")
+    assert out.reply.content == "동시본"
+    assert [m for m in session.added if isinstance(m, Message)] == []  # 이중 저장 없음
 
 
 async def test_post_message_incompatible_cache_fails_closed(monkeypatch):

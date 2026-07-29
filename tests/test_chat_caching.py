@@ -208,7 +208,7 @@ async def test_context_keeps_mid_conversation_moly_messages_in_array():
 
 
 def test_build_system_carries_greeting_into_mutable_block():
-    lead = [_msg(1, "moly", "왔네. 오늘은 좀 어땠어?")]
+    lead = ["왔네. 오늘은 좀 어땠어?"]  # lead는 이제 placeholder 저장 문자열 리스트(list[str])
     blocks = c._build_system("ko", "승민", "", lead)
     assert len(blocks) == 2
     assert "[먼저 건넨 말]" in blocks[1] and "왔네. 오늘은 좀 어땠어?" in blocks[1]

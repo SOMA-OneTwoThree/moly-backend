@@ -237,17 +237,20 @@ async def test_idempotent_skips_when_exists(monkeypatch):
     assert session.committed is False
 
 
-async def test_empty_pool_uses_safe_default(monkeypatch):
-    _patch_common(monkeypatch, messages=[], tokens=0, ment=None)  # 미접속 + 풀 없음
+async def test_no_ment_creates_hidden_tombstone(monkeypatch):
+    # SOMA-389: 임계 미달 + 지정본 없음 → 사용자 노출 일기 없음. 처리완료 멱등 마커로
+    # tombstone(source='none', content='', published_at=NULL) 행만 — 목록/상세 API 자동 제외.
+    _patch_common(monkeypatch, messages=[], tokens=0, ment=None)
     session = FakeSession()
     await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
     d = session.added[0]
-    assert d.source == "preset"
-    assert d.content  # 비어있지 않음(절대 비지 않음)
+    assert d.source == "none"
+    assert d.content == ""
+    assert d.published_at is None
     assert d.preset_ment_id is None
 
 
-# --- _pick_ment 2단 우선순위(날짜 지정본 → 랜덤 폴백) ---
+# --- _pick_ment: 그날 지정본만(랜덤 폴백 폐지, SOMA-389) ---
 class _PickResult:
     def __init__(self, obj):
         self._obj = obj
@@ -260,7 +263,7 @@ class _PickResult:
 
 
 class _PickSession:
-    """execute 1번째 호출 = 날짜 지정본 조회, 2번째 = 랜덤 폴백 조회."""
+    """execute 1번째 호출 = 날짜 지정본 조회(랜덤 폴백 폐지 — 조회는 1번뿐)."""
 
     def __init__(self, dated=None, pool=None):
         self._returns = [dated, pool]
@@ -281,19 +284,12 @@ async def test_pick_ment_prefers_dated():
     assert session.calls == 1  # 지정본 있으면 폴백 쿼리 안 함(단락)
 
 
-async def test_pick_ment_falls_back_to_pool_when_no_dated():
-    pool = SimpleNamespace(id=uuid.uuid4(), content="랜덤 풀.", weather="sunny")
-    session = _PickSession(dated=None, pool=pool)
-    got = await dg._pick_ment(session, date(2026, 7, 5))
-    assert got is pool
-    assert session.calls == 2  # 지정본 없음 → 폴백 쿼리까지
-
-
-async def test_pick_ment_none_when_both_empty():
-    session = _PickSession(dated=None, pool=None)
+async def test_pick_ment_none_when_no_dated():
+    # SOMA-389: 지정본 없으면 None(랜덤 폴백 폐지) — 폴백 쿼리를 아예 안 한다(1회 조회).
+    session = _PickSession(dated=None, pool=SimpleNamespace(content="랜덤 풀"))
     got = await dg._pick_ment(session, date(2026, 7, 5))
     assert got is None
-    assert session.calls == 2
+    assert session.calls == 1
 
 
 # --- 개인일기 서지컬 복원(깨진문자·한자 부분수정) ---

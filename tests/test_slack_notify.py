@@ -8,7 +8,7 @@ from worker.tick import _build_summary
 
 _URL = "https://hooks.slack.com/services/test"
 _COUNTS_OK = {
-    "diaries": 42, "diary_llm": 30, "diary_preset": 12, "diary_failed": 0,
+    "diaries": 42, "diary_llm": 30, "diary_preset": 12, "diary_none": 5, "diary_failed": 0,
     "memory_ok": 30, "memory_failed": 0,
     "morning": 38, "evening": 0,
     "diary_attempted": 42, "users": 50,
@@ -97,6 +97,7 @@ def test_build_summary_no_failures():
     assert "(04:00 UTC)" in msg
     assert "개인 30" in msg
     assert "프리셋 12" in msg
+    assert "미발행 5" in msg   # tombstone(사용자 노출 X, SOMA-389)
     assert "성공 30" in msg
     assert "아침 38건" in msg
     assert "전체 유저 50명" in msg

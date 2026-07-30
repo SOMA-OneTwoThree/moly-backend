@@ -32,7 +32,8 @@ class Routine(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     name: Mapped[str] = mapped_column(String)  # 유저 편집 이름. 기본 루틴은 name_i18n로 다국어.
     # 기본 루틴 다국어({"ko":..,"en":..,"ja":..}). 유저가 이름 편집 시 NULL로 클리어(SOMA-346).
-    name_i18n: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # none_as_null: None 대입이 jsonb 'null'로 저장되면 obj_ck CHECK 위반(SOMA-앱 500).
+    name_i18n: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True), nullable=True)
     frequency_per_week: Mapped[int] = mapped_column(SmallInteger)  # 항상 len(days_of_week). 응답 하위호환용
     days_of_week: Mapped[list[int]] = mapped_column(ARRAY(SmallInteger))  # 지정 요일(ISO 1=월…7=일)
     reminder_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))

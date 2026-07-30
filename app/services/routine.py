@@ -106,8 +106,14 @@ async def update_routine(session: AsyncSession, user_id: str, routine_id: str, r
     uid = _uid(user_id)
     r = await _load_owned(session, uid, routine_id)
     if req.name is not None:
-        r.name = req.name
-        r.name_i18n = None  # 유저가 이름을 직접 바꾸면 기본 다국어는 무효(SOMA-346)
+        # 클라는 로컬라이즈된 표시 이름을 그대로 되돌려 보낸다 — 원본·번역값과 같으면 rename 아님.
+        i18n_values = (
+            {v for v in r.name_i18n.values() if isinstance(v, str)}
+            if isinstance(r.name_i18n, dict) else set()
+        )
+        if req.name != r.name and req.name not in i18n_values:
+            r.name = req.name
+            r.name_i18n = None  # 유저가 이름을 직접 바꾸면 기본 다국어는 무효(SOMA-346)
     if req.reminder_enabled is not None:
         r.reminder_enabled = req.reminder_enabled
     if "reminder_time" in req.model_fields_set:  # null 명시=제거, 생략=변경 없음

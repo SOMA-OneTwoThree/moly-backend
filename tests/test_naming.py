@@ -157,13 +157,37 @@ def test_vietnamese_extended_latin_boundary():
 
 
 def test_cjk_name_not_masked():
-    # CJK(한자·가나) 이름은 마스킹하지 않는다(D2) — 과치환(愛⊂恋愛)·잔존 딜레마 회피.
-    assert naming.to_placeholder("恋愛について話した", "愛") == "恋愛について話した"
-    assert naming.to_placeholder("さくらんぼ", "さくら") == "さくらんぼ"
-    assert naming.to_placeholder("愛と話した", "愛") == "愛と話した"
+    # CJK 마스킹은 과치환 안전장치가 있다(SOMA-365 후속): 1글자·단어연속(뒤가 조사가 아닌 일반 가나/한자)은
+    # 미매칭 → 愛⊂恋愛·さくら⊂さくらんぼ·健太⊂健太郎 과치환 회피.
+    assert naming.to_placeholder("恋愛について話した", "愛") == "恋愛について話した"   # 1글자 스킵
+    assert naming.to_placeholder("さくらんぼ", "さくら") == "さくらんぼ"              # 뒤 'ん'=조사 아님
+    assert naming.to_placeholder("愛と話した", "愛") == "愛と話した"                  # 1글자 스킵
+    assert naming.to_placeholder("健太郎が来た", "健太") == "健太郎が来た"            # 뒤 '郎'=한자 연속
+    assert naming.to_placeholder("ゆうかいされた", "ゆう") == "ゆうかいされた"        # 뒤 'か'=제외 조사(誘拐 안전)
     # 라틴/한글 이름은 계속 마스킹(회귀 없음).
     assert naming.TOKEN in naming.to_placeholder("Alex came", "Alex")
     assert naming.TOKEN in naming.to_placeholder("승민이 왔어", "승민")
+
+
+def test_cjk_name_masked_with_boundary():
+    # 2글자+ CJK 이름이 안전 조사(は が を に へ と も の)·경칭·문장부호·경계와 함께면 마스킹
+    # (SOMA-365 후속 — 일본어 이름 평문저장 방지). 실측서 캐피가 'まおの…'처럼 이름+조사로 부름.
+    T = naming.TOKEN
+    assert naming.to_placeholder("まおはね", "まお") == f"{T}はね"          # 조사 は
+    assert naming.to_placeholder("まおのこと", "まお") == f"{T}のこと"      # 조사 の
+    assert naming.to_placeholder("まおちゃん", "まお") == f"{T}ちゃん"      # 경칭
+    assert naming.to_placeholder("おはようまお。", "まお") == f"おはよう{T}。"      # 문장부호(문장 중간)
+    assert naming.to_placeholder("今日はまおと話した", "まお") == f"今日は{T}と話した"  # 조사 と(문장 중간)
+    assert naming.to_placeholder("健太が来た", "健太") == f"{T}が来た"      # 한자 이름 + 조사
+
+
+def test_cjk_name_roundtrip():
+    # 저장→렌더 라운드트립 보존(동일 이름). 조사·경칭·부호는 리터럴 유지.
+    for text, nick in [("まおはね", "まお"), ("まおのこと", "まお"),
+                       ("まおちゃん", "まお"), ("健太が来た", "健太"),
+                       ("さくらんぼ", "さくら"),      # 미매칭도 라운드트립 동일
+                       ("ゆうとが来た", "ゆう")]:      # 접두 과매칭(ゆう⊂ゆうと)도 동일이름이면 무손상
+        assert naming.render(naming.to_placeholder(text, nick), nick) == text
 
 
 def test_cjk_regex_excludes_hangul():
@@ -176,6 +200,6 @@ def test_cjk_regex_excludes_hangul():
 
 
 def test_cjk_supplementary_and_halfwidth_not_masked():
-    # 보조평면 한자·반각 가나 이름도 마스킹 스킵(D2) — substring 과치환 방지(SOMA-365, sol #3).
+    # 1글자 CJK 이름(보조평면 한자·반각 가나)은 과치환 위험 커 마스킹 스킵(SOMA-365).
     assert naming.to_placeholder("\U00020bb7野で話した", "\U00020bb7") == "\U00020bb7野で話した"
     assert naming.to_placeholder("ｻﾄｼ", "ｻ") == "ｻﾄｼ"

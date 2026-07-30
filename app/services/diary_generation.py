@@ -9,12 +9,12 @@ import difflib
 import logging
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.time_utils import safe_zone
 from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
@@ -27,7 +27,7 @@ _log = logging.getLogger("moly-worker")
 
 def publish_at(target_date: date, tz_name: str) -> datetime:
     """전일(target_date) 일기 발행 = 익일 로컬 09:00 → UTC."""
-    local = datetime.combine(target_date + timedelta(days=1), time(9, 0), tzinfo=ZoneInfo(tz_name))
+    local = datetime.combine(target_date + timedelta(days=1), time(9, 0), tzinfo=safe_zone(tz_name))
     return local.astimezone(timezone.utc)
 
 

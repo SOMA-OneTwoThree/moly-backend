@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
 
 from app.core.db import get_session
+from app.core.errors import AppError
 from app.main import app
 from app.services import ads, ads_ssv, economy, hay_ledger
 
@@ -55,17 +56,36 @@ async def test_ssv_verify_unknown_key(monkeypatch, signed):
 
 
 # --- 세션 발급 / 자동 지급 ---
+class _AdResult:
+    """execute 결과 mock — scalar()만 유의미(보상 커서 func.max)."""
+
+    def __init__(self, value):
+        self._value = value
+
+    def scalar(self):
+        return self._value
+
+
 class FakeSession:
-    def __init__(self, get_obj=None):
+    def __init__(self, get_obj=None, cursor=None):
         self.get_obj = get_obj
+        self.cursor = cursor  # _reward_cursor(func.max) 반환값. None=보상 이력 없음
         self.added = []
         self.committed = False
+        self.rolled_back = False
 
     async def get(self, model, key, **kw):
         return self.get_obj
 
+    async def execute(self, stmt, params=None):
+        # advisory lock(SELECT)·_reward_cursor(func.max) 등 — 커서만 유의미하게 돌려준다.
+        return _AdResult(self.cursor)
+
     def add(self, obj):
         self.added.append(obj)
+
+    async def rollback(self):
+        self.rolled_back = True
 
     async def commit(self):
         self.committed = True
@@ -304,3 +324,29 @@ async def test_ssv_key_force_refetch_is_throttled(monkeypatch):
     await ads_ssv._get_keys(force=True)
     await ads_ssv._get_keys(force=True)
     assert calls["n"] == 1
+
+
+# --- SOMA-375: tz 역행 재수령 차단 ---
+async def test_create_session_rejects_tz_regression(monkeypatch):
+    # 미래 커서 → 현재 reward_date는 과거 → 세션 발급 거부(409 ALREADY_CLAIMED)
+    _patch(monkeypatch, ad_count=0)
+
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, timezone="Asia/Seoul")
+
+    monkeypatch.setattr(ads, "_load_profile", _lp)
+    session = FakeSession(cursor=date(2999, 1, 1))
+    with pytest.raises(AppError) as e:
+        await ads.create_session(session, UID)
+    assert e.value.code == "ALREADY_CLAIMED"
+    assert session.added == [] and session.committed is False  # 세션 미발급
+
+
+async def test_grant_ssv_stale_reward_window_no_pay(monkeypatch):
+    # 선발급된 과거 세션(현재 커서보다 뒤)의 SSV → 200 유지(예외 아님), 미지급
+    _patch(monkeypatch, ad_count=0)
+    row = _sess_row(activity_date=date(2026, 7, 5))
+    session = FakeSession(get_obj=row, cursor=date(2999, 1, 1))
+    out = await ads.grant_from_ssv(session, SID, "t-stale")
+    assert out == "stale_reward_window"
+    assert session.committed is False and row.granted is False  # 미지급·미커밋

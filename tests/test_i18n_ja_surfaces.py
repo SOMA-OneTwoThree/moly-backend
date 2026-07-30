@@ -25,6 +25,25 @@ def test_chat_system_prompt_ja_allows_kanji_forbids_hangul():
     assert "한국어" in prompts.system_prompt("ko")               # ko 회귀 없음
 
 
+def test_chat_system_prompt_ja_uses_native_persona():
+    # 일본 출시: ja는 한국어 번역이 아니라 네이티브 페르소나(이름 キャピー·1인칭 ぼく·タメ口, 정유환 지정).
+    sp = prompts.system_prompt("ja")
+    assert "キャピー" in sp and "ぼく" in sp          # 지정 이름·1인칭
+    assert "[물음표" not in sp                        # 한국어 물음표 강제 미포함(일본어는 か/の가 처리)
+    assert "写真" in sp                               # 없는 기능(사진 등) 언급 금지 규칙 포함(SOMA-351)
+    # 네이티브 = 페르소나 본문에 한글 0(한국어 페르소나 미사용).
+    assert not any("가" <= c <= "힣" for c in prompts.CAPI_PERSONA_JA)
+    assert "[물음표" in prompts.system_prompt("ko")   # ko는 물음표 강제 유지(회귀 없음)
+
+
+def test_chat_system_prompt_forbids_absent_features_both_langs():
+    # SOMA-351: 사진·음성 등 없는 기능 언급 금지 규칙이 한/일 페르소나 모두에.
+    ko = prompts.system_prompt("ko")
+    assert "사진" in ko and "영상" in ko
+    ja = prompts.system_prompt("ja")
+    assert "写真" in ja and "動画" in ja
+
+
 def test_diary_prompt_ja_allows_kanji_keeps_weather_header():
     dp = diary_prompts.diary_prompt("ja", "Ken")
     assert "Chinese characters" not in dp

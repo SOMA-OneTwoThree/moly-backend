@@ -76,6 +76,11 @@ def _cache_last(convo: list[dict], ttl: str) -> list[dict]:
     return out
 
 
+def _timeout(timeout: float | None) -> float:
+    """per-request 타임아웃(초). None이면 config 기본. SDK 기본(수 분)을 유한값으로 대체."""
+    return settings.llm_timeout_s if timeout is None else timeout
+
+
 async def generate(
     system: str | list[str],
     convo: list[dict],
@@ -85,18 +90,23 @@ async def generate(
     cache_messages: bool = False,
     ttl_system: str = "5m",
     ttl_messages: str = "5m",
+    timeout: float | None = None,
 ) -> LLMResult:
     """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
 
     model 미지정 = 대화 모델(settings.model_chat). 일기 self-check·기억통합은 utility 지정.
     provider는 model 프리픽스로 자동 분기. cache_messages/ttl_* 는 Anthropic 전용(OpenAI 자동캐시).
+    timeout 미지정 = settings.llm_timeout_s. 초과 시 SDK가 APITimeoutError를 던진다(호출측이 처리).
     """
     model = model or settings.model_chat
     if provider_for(model) == "openai":
-        return await _generate_openai(system, convo, model=model, max_tokens=max_tokens)
+        return await _generate_openai(
+            system, convo, model=model, max_tokens=max_tokens, timeout=timeout
+        )
     return await _generate_anthropic(
         system, convo, model=model, max_tokens=max_tokens,
         cache_messages=cache_messages, ttl_system=ttl_system, ttl_messages=ttl_messages,
+        timeout=timeout,
     )
 
 
@@ -109,6 +119,7 @@ async def _generate_anthropic(
     cache_messages: bool = False,
     ttl_system: str = "5m",
     ttl_messages: str = "5m",
+    timeout: float | None = None,
 ) -> LLMResult:
     """Anthropic 경로(보존). system 리스트면 블록별 breakpoint. cache_messages=True면 마지막 메시지도 캐싱."""
     messages = _cache_last(convo, ttl_messages) if cache_messages else convo
@@ -117,6 +128,7 @@ async def _generate_anthropic(
         max_tokens=max_tokens or settings.llm_max_tokens,
         system=_system_blocks(system, ttl_system),
         messages=messages,
+        timeout=_timeout(timeout),
     )
     text = "".join(block.text for block in resp.content if block.type == "text")
     u = resp.usage
@@ -137,6 +149,7 @@ async def _generate_openai(
     *,
     model: str,
     max_tokens: int | None = None,
+    timeout: float | None = None,
 ) -> LLMResult:
     """OpenAI 경로(신설). system(str|list) → messages[0] system 합침(평문, cache_control 미부착).
 
@@ -151,6 +164,7 @@ async def _generate_openai(
         model=model,
         messages=messages,
         max_completion_tokens=max_tokens or settings.llm_max_tokens,
+        timeout=_timeout(timeout),
     )
     choices = getattr(resp, "choices", None) or []
     text = (choices[0].message.content or "") if choices else ""

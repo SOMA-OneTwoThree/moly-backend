@@ -1,23 +1,27 @@
 """건초·충전소 — 지갑 조회·원장 내역·출석/루틴 보상(서버 권위·멱등)."""
 from __future__ import annotations
 
+import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.advisory_lock import advisory_xact_lock
 from app.core.time_utils import current_reward_date
 from app.models.hay_transaction import HayTransaction
 from app.models.product import Product
+from app.models.reward_ad_session import RewardAdSession
 from app.models.routine import RoutineCompletion
 from app.models.user_daily_stats import UserDailyStats
 from app.services import hay_ledger
 from app.services.account import _load_profile, _uid
 
+_log = logging.getLogger("moly-backend")
 HAY_ATTENDANCE = 10
 HAY_ROUTINE_REWARD = 10
 HAY_AD = 10
@@ -137,10 +141,63 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
     }
 
 
+# --- 단조 보상 윈도우(SOMA-375: tz 변경 재수령 차단) ---
+async def _reward_cursor(session: AsyncSession, uid: uuid.UUID) -> date | None:
+    """유저가 실제로 보상을 받은 최대 reward_date(없으면 None). tz 역행 재수령 차단용 단조 커서.
+
+    세 보상 종류 통합(union): user_daily_stats(출석·루틴·광고카운트) ∪ reward_ad_sessions(granted).
+    per-type가 아니라 union이라야 공격자가 날짜를 되돌리며 보상 종류를 번갈아 받는 걸 막는다.
+    광고는 granted 시 ad_reward_count도 오르지만, 과거 데이터 불일치 대비 세션 날짜도 보수적으로 포함.
+    """
+    stats_max = (
+        await session.execute(
+            select(func.max(UserDailyStats.activity_date)).where(
+                UserDailyStats.user_id == uid,
+                or_(
+                    UserDailyStats.attendance_claimed_at.isnot(None),
+                    UserDailyStats.routine_reward_claimed_at.isnot(None),
+                    UserDailyStats.ad_reward_count > 0,
+                ),
+            )
+        )
+    ).scalar()
+    ad_max = (
+        await session.execute(
+            select(func.max(RewardAdSession.activity_date)).where(
+                RewardAdSession.user_id == uid, RewardAdSession.granted.is_(True)
+            )
+        )
+    ).scalar()
+    cands = [d for d in (stats_max, ad_max) if d is not None]
+    return max(cands) if cands else None
+
+
+async def _reward_window_regressed(
+    session: AsyncSession, uid: uuid.UUID, reward_date: date
+) -> bool:
+    """reward_date가 유저 단조 커서보다 과거면 True(tz 역행 재수령 시도). ==는 허용(당일 다종 보상).
+
+    호출측은 반드시 이 조회 **전에** advisory_xact_lock을 쥐고 커밋까지 유지해야 한다 — 그래야
+    서로 다른 reward_date 동시요청이 같은 옛 커서를 읽고 각자 통과하는 레이스를 막는다.
+    """
+    cursor = await _reward_cursor(session, uid)
+    if cursor is not None and reward_date < cursor:
+        _log.warning(
+            "보상 윈도우 역행(tz 악용 의심) user=%s reward_date=%s < cursor=%s",
+            uid, reward_date, cursor,
+        )
+        return True
+    return False
+
+
 async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
+    # 순서 불변식: lock → 커서 assert → _daily → mutation → commit(SOMA-375 동시성).
+    await advisory_xact_lock(session, uid)
     ad = current_reward_date(profile.timezone)
+    if await _reward_window_regressed(session, uid, ad):
+        raise errors.already_claimed()  # tz 역행 — 과거 날짜 재수령 차단
     stats = await _daily(session, uid, ad)
     if stats.attendance_claimed_at is not None:
         raise errors.already_claimed()
@@ -153,7 +210,10 @@ async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int
 async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str, int]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
+    await advisory_xact_lock(session, uid)  # lock → 커서 assert → _daily → mutation
     ad = current_reward_date(profile.timezone)
+    if await _reward_window_regressed(session, uid, ad):
+        raise errors.already_claimed()  # tz 역행 차단
     if await _routine_completions_today(session, uid, ad) < ROUTINE_PAIR_REQUIRED:
         raise errors.routine_goal_not_met()
     stats = await _daily(session, uid, ad)

@@ -21,5 +21,5 @@ class AdSsvResponse(StatusResponse):
 
     result: Literal[
         "granted", "invalid_session", "session_not_found",
-        "duplicate", "daily_limit", "transaction_conflict",
+        "duplicate", "daily_limit", "stale_reward_window", "transaction_conflict",
     ]

@@ -7,15 +7,16 @@ import uuid
 from datetime import date, datetime, timezone
 from math import ceil
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from pydantic import ValidationError
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core import errors
+from app.core.advisory_lock import advisory_xact_lock
+from app.core.time_utils import safe_zone
 from app.models.chat_context import ChatContext
 from app.models.greeting import Greeting
 from app.models.idempotency_key import IdempotencyKey
@@ -172,7 +173,12 @@ def _keep_window(rows: list[Message]) -> list[Message]:
 
 
 async def _context(
-    session: AsyncSession, uid: uuid.UUID, anchor: int
+    session: AsyncSession,
+    uid: uuid.UUID,
+    anchor: int,
+    *,
+    current_text: str | None = None,
+    current_date: date | None = None,
 ) -> tuple[list[dict[str, str]], int | None, list[Message]]:
     """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
 
@@ -181,6 +187,10 @@ async def _context(
     셋째 반환값 = 대화 배열 맨 앞에서 밀려난 캐피 메시지(=커밋된 선발화).
     Anthropic이 messages[0]를 user로 강제해서 배열엔 못 넣지만, 버리면 캐피가 방금 건넨
     인사를 모른 채 또 인사한다. 호출측이 system 가변 블록으로 넘긴다.
+
+    current_text가 주어지면(SOMA-374 read-only phase) 이번 턴 유저 메시지가 아직 DB에
+    없으므로, 과거 메시지로 조립한 뒤 현재 턴을 배열 끝에 in-memory로 붙인다(날짜 표식 포함).
+    리셋 카운트에도 현재 턴을 포함한다. current_text 없으면(단위 테스트) 기존 동작 그대로.
     """
     q = (
         select(Message)
@@ -190,9 +200,13 @@ async def _context(
     )
     rows = list(reversed((await session.execute(q)).scalars().all()))
 
+    extra_msgs = 1 if current_text is not None else 0
+    extra_chars = len(current_text or "")
     new_anchor: int | None = None
-    over_msgs = len(rows) >= settings.context_reset_messages
-    over_chars = sum(len(m.content or "") for m in rows) >= settings.context_reset_chars
+    over_msgs = len(rows) + extra_msgs >= settings.context_reset_messages
+    over_chars = (
+        sum(len(m.content or "") for m in rows) + extra_chars >= settings.context_reset_chars
+    )
     if over_msgs or over_chars:
         rows = _keep_window(rows)
         new_anchor = rows[0].id  # 앵커 전진(1회 프리픽스 변경)
@@ -206,13 +220,19 @@ async def _context(
         lead.append(rows[len(lead)])  # 버리지 않고 회수 — system으로 넘긴다
         convo.pop(0)
     kept = rows[len(lead):]  # convo와 정렬(같은 길이·순서) — 날짜 표식용
-    if not convo:  # 빈 배열=400. 최신 user 메시지 1개 폴백(방금 flush된 umsg가 보장)
+    if not convo and current_text is None:  # 빈 배열=400. 폴백은 현재 턴이 없을 때만(그땐 append가 채움)
         lead = []
         for m in reversed(rows):
             if m.sender != "moly":
                 convo, kept = [{"role": "user", "content": m.content}], [m]
                 break
     _mark_dates(convo, kept)
+    if current_text is not None:  # 현재 턴을 배열 끝에 붙임 — 직전 kept와 날짜가 다르면 표식 부착
+        content = current_text
+        prev_date = kept[-1].activity_date if kept else None
+        if current_date is not None and current_date != prev_date:
+            content = f"{_date_label(current_date)}\n{current_text}"
+        convo.append({"role": "user", "content": content})
     return convo, new_anchor, lead
 
 
@@ -241,6 +261,39 @@ async def _save_memory(session: AsyncSession, uid: uuid.UUID, text_: str, now: d
     await session.execute(stmt)
 
 
+def _snapshot_state(refreshed_at: datetime | None, now: datetime) -> tuple[bool, float | None]:
+    """기억 스냅샷 판정(순수) → (need_refresh, age_h). age_h는 refreshed_at 없으면 None.
+
+    need_refresh = 스냅샷 없음 or 6h 초과. 외부 mem0 호출 없이 판정만 한다(락/커넥션 구간에서
+    안전하게 쓰려고 분리). 실제 재로드·장애 폴백은 호출측이 커밋 밖에서 수행한다.
+    """
+    if refreshed_at is None:
+        return True, None
+    age_h = (now - refreshed_at).total_seconds() / 3600
+    return age_h >= settings.memory_snapshot_refresh_hours, age_h
+
+
+async def _reload_memory(
+    uid: uuid.UUID, prev: str | None, age_h: float | None
+) -> tuple[str, str | None]:
+    """mem0 재로드 + 4분기 판정 → (mem, new_snapshot). new_snapshot=None이면 저장 스킵.
+
+    외부 호출(mem0)만 하고 DB는 안 건드린다 — 커밋 밖(락/커넥션 미보유 구간)에서 호출한다.
+    _resolve_memory와 post_message가 공유하는 단일 로직(4분기 drift 방지):
+    - 장애+최근스냅샷 → prev 재사용(미저장) / 장애+없음·초과 → "" / 빈성공+prev → prev 유지(미저장) /
+      그 외(비어있지 않은 성공, 또는 빈성공+prev없음) → fresh 저장.
+    """
+    try:
+        fresh = await memory.load_for_context(str(uid))
+    except memory.MemoryUnavailable:
+        if prev and age_h is not None and age_h < settings.memory_snapshot_stale_hours:
+            return prev, None  # 장애 — 최근 스냅샷 재사용
+        return "", None  # 장애 + 스냅샷 없음/너무 오래됨
+    if not fresh and prev:
+        return prev, None  # 빈 성공이 좋은 스냅샷을 덮지 않게(다음 턴 재시도) — 갱신 스킵
+    return fresh, fresh  # 저장 대상(빈 성공+prev없음이면 "")
+
+
 async def _resolve_memory(
     session: AsyncSession, uid: uuid.UUID, ctx: ChatContext | None, now: datetime
 ) -> str:
@@ -248,34 +301,28 @@ async def _resolve_memory(
 
     오래됐으면 mem0 1회 재로드(6h당 1회 수준). 장애면 스냅샷 재사용(48h), 초과면 "".
     성공-빈결과가 기존 non-empty 스냅샷을 단발로 덮지 않게 함(전이 위장 방어).
+
+    (post_message는 락/커넥션을 쥐지 않으려고 _snapshot_state + _reload_memory로 커밋 밖에서
+    분리 수행한다. 이 함수는 동일 로직을 트랜잭션 안에서 쓰는 단일 진입점 — 재로드분을 즉시 저장한다.)
     """
     refreshed = ctx.memory_refreshed_at if ctx is not None else None
     prev = ctx.memory_text if ctx is not None else None
-    if refreshed is not None:
-        age_h = (now - refreshed).total_seconds() / 3600
-        if age_h < settings.memory_snapshot_refresh_hours:
-            return prev or ""  # 신선 → 그대로
-    try:
-        fresh = await memory.load_for_context(str(uid))
-    except memory.MemoryUnavailable:
-        if prev and refreshed is not None:
-            age_h = (now - refreshed).total_seconds() / 3600
-            if age_h < settings.memory_snapshot_stale_hours:
-                return prev  # 장애 — 최근 스냅샷 재사용
-        return ""  # 장애 + 스냅샷 없음/너무 오래됨
-    if not fresh and prev:
-        return prev  # 빈 성공이 좋은 스냅샷을 덮지 않게(다음 턴 재시도) — 갱신 스킵
-    await _save_memory(session, uid, fresh, now)
-    return fresh
+    need_refresh, age_h = _snapshot_state(refreshed, now)
+    if not need_refresh:
+        return prev or ""  # 신선 → 그대로
+    mem, new_snapshot = await _reload_memory(uid, prev, age_h)
+    if new_snapshot is not None:
+        await _save_memory(session, uid, new_snapshot, now)
+    return mem
 
 
 def _build_system(
-    language: str, nickname: str | None, mem: str, lead: list[Message] | None = None
+    language: str, nickname: str | None, mem: str, lead: list[str] | None = None
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존.
 
-    lead = 대화 배열에 못 넣은 선발화(_context 참조). 앵커가 전진하기 전까지 매 턴 같은 값이라
-    가변 블록도 그대로 유지된다 — 캐시가 추가로 깨지지 않는다.
+    lead = 대화 배열에 못 넣은 선발화 내용(placeholder 저장 문자열 리스트, _context 참조).
+    앵커가 전진하기 전까지 매 턴 같은 값이라 가변 블록도 그대로 유지된다 — 캐시가 추가로 깨지지 않는다.
     """
     parts: list[str] = []
     if nickname:
@@ -283,7 +330,7 @@ def _build_system(
         parts.append(f"[상대]\n지금 얘기하는 사람 이름은 {greetings.copula(nickname)}.")
     if lead:
         # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(유창성 유지).
-        said = "\n".join(naming.render(m.content, nickname) for m in lead if m.content)
+        said = "\n".join(naming.render(t, nickname) for t in lead if t)
         parts.append(
             "[먼저 건넨 말]\n"
             "이 대화 직전에 네가 먼저 말을 걸었어. 상대는 그걸 보고 답한 거야. "
@@ -373,6 +420,7 @@ async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
                 [{"role": "user", "content": text}],
                 model=settings.model_utility,
                 max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
+                timeout=settings.llm_timeout_s,
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
             _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
@@ -413,30 +461,42 @@ def _billable(r: llm.LLMResult) -> int:
 # --- 유저 단위 직렬화(토큰 한도 TOCTOU 방지) ---
 async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
     """트랜잭션 범위 advisory lock — 같은 유저의 동시 요청을 직렬화. 커밋/롤백 시 자동 해제.
-    게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다."""
-    await session.execute(
-        text("SELECT pg_advisory_xact_lock(hashtextextended(:u, 0))"), {"u": str(uid)}
-    )
+    게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다.
+    보상(economy·ads)과 **같은 직렬화 도메인**을 쓰도록 키 표현은 core.advisory_lock 단일 구현."""
+    await advisory_xact_lock(session, uid)
 
 
 # --- 토큰 누적(멱등 트랜잭션 내) ---
 async def _accumulate_tokens(
     session: AsyncSession, uid: uuid.UUID, activity_date: date, consumed: int
-) -> None:
-    stmt = pg_insert(UserDailyStats).values(
-        user_id=uid, activity_date=activity_date, tokens_used=consumed
+) -> int | None:
+    """원가 가중 billable 토큰을 당일 누적(원자 증분). 증분 후 총량을 RETURNING으로 돌려준다 —
+    동시 distinct 요청 하에서도 응답의 tokens_used/remaining/review 판정이 실제 누적치와 일치하도록."""
+    stmt = (
+        pg_insert(UserDailyStats)
+        .values(user_id=uid, activity_date=activity_date, tokens_used=consumed)
+        .on_conflict_do_update(
+            index_elements=["user_id", "activity_date"],
+            set_={"tokens_used": UserDailyStats.tokens_used + consumed},
+        )
+        .returning(UserDailyStats.tokens_used)
     )
-    stmt = stmt.on_conflict_do_update(
-        index_elements=["user_id", "activity_date"],
-        set_={"tokens_used": UserDailyStats.tokens_used + consumed},
-    )
-    await session.execute(stmt)
+    return (await session.execute(stmt)).scalar()
 
 
 # --- POST /chat/messages ---
 async def post_message(
     session: AsyncSession, user_id: str, req, idempotency_key: str
 ) -> PostMessageResponse:
+    """2단계 상태머신(SOMA-374) — LLM 호출 구간에 DB 트랜잭션/유저 락을 쥐지 않는다.
+
+    Phase 1(짧은 txn+유저락, **DB 쓰기 없음**): 멱등 확인 → 게이팅 → 컨텍스트/기억 스냅샷 읽기 →
+    프롬프트 조립 → 커밋(락·커넥션 해제). Phase 사이(커넥션 없음): mem0 재로드(필요 시)·LLM·백스톱.
+    Phase 2(짧은 txn+유저락 재획득): 선발화·유저메시지·응답 커밋 + 토큰 누적 + 멱등응답 저장.
+
+    Phase 1이 read-only라 LLM 실패/타임아웃 시 저장된 게 없어 클린 재시도된다(예약 누수·고아 없음).
+    SQLAlchemy는 commit() 시 커넥션을 풀에 반납하므로 LLM await 동안 커넥션 점유가 0이다.
+    """
     uid = _uid(user_id)
     now = datetime.now(timezone.utc)
 
@@ -449,7 +509,8 @@ async def post_message(
             cached.response, user_id=user_id, idempotency_key=idempotency_key
         )
 
-    # 1) 유저 직렬화 → 게이팅. 잠근 뒤 tokens_used를 읽어야 동시요청이 한도를 우회 못 함(TOCTOU).
+    # ===== Phase 1: 조립(read-only, 짧은 txn + 유저락). DB 쓰기 없음. =====
+    # 유저 직렬화 → 게이팅. 잠근 뒤 tokens_used를 읽어야 동시요청이 한도를 우회 못 함(TOCTOU).
     await _lock_user(session, uid)
 
     g = await gating.resolve(session, user_id)
@@ -461,11 +522,31 @@ async def post_message(
     if remaining <= 0:
         raise errors.daily_limit_reached()
 
+    # 커밋 전 스칼라 전량 캡처 — 커밋 후엔 ORM/세션 미접근(async MissingGreenlet 방지).
     ad = g.activity_date
     nick = g.profile.nickname  # 저장=placeholder / egress·LLM 투입=render 전 공용
+    language = g.profile.language
+    review_prompted_at = g.profile.review_prompted_at
+    review_min = g.review_min_tokens
+    tokens_used_pre = g.tokens_used
+    limit = g.entitlement["daily_token_limit"]
+    if not isinstance(limit, int):  # fail-closed(위 게이트와 동일 근거)
+        limit = settings.daily_token_limit_free
 
-    # 2) 선발화 커밋(있으면)
-    greeting_dto = None
+    ctx = await session.get(ChatContext, uid)  # 앵커+스냅샷 1회 로드
+    anchor = ctx.anchor_message_id if ctx is not None else 0
+    prev_snapshot = ctx.memory_text if ctx is not None else None
+    refreshed_at = ctx.memory_refreshed_at if ctx is not None else None
+
+    # 컨텍스트 조립 — 현재 유저 메시지는 아직 미저장. _context가 현재 턴을 in-memory로 붙인다.
+    convo, new_anchor, lead = await _context(
+        session, uid, anchor, current_text=req.text, current_date=ad
+    )
+    lead_texts = [m.content for m in lead]  # placeholder 저장분(문자열) — 커밋 후 ORM 미접근
+
+    # 현재 턴 선발화(있으면) — 이번 턴 system[먼저 건넨 말]에 넣으려 읽기만. insert는 phase 2.
+    greeting_content: str | None = None
+    greeting_gid: uuid.UUID | None = None
     if getattr(req, "greeting_id", None):
         try:
             gid = uuid.UUID(req.greeting_id)
@@ -473,48 +554,36 @@ async def post_message(
             raise errors.validation("잘못된 greeting_id예요.") from e
         gr = await session.get(Greeting, gid)
         if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
-            gmsg = Message(
-                user_id=uid, sender="moly", kind="greeting", content=gr.content,
-                activity_date=ad, created_at=now,
-            )
-            session.add(gmsg)
-            await session.flush()
-            gr.committed_message_id = gmsg.id
-            # gr.content는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
-            greeting_dto = {
-                "message_id": str(gmsg.id),
-                "content": naming.render(gr.content, nick),
-                "created_at": _iso(now),
-            }
+            greeting_content = gr.content  # placeholder 저장분
+            greeting_gid = gid
 
-    # 3) 유저 메시지 저장 — 유저가 자기 현재 이름을 말했으면 placeholder로(저장 표면 이름 0)
-    umsg = Message(
-        user_id=uid, sender="user", kind="normal",
-        content=naming.to_placeholder(req.text, nick),
-        activity_date=ad, created_at=now,
-    )
-    session.add(umsg)
-    await session.flush()
-
-    # 4) 컨텍스트(앵커 append-only) + 기억 스냅샷 + 시스템(페르소나/기억 블록)
-    ctx = await session.get(ChatContext, uid)  # 앵커+스냅샷 1회 로드
-    anchor = ctx.anchor_message_id if ctx is not None else 0
-    convo, new_anchor, lead = await _context(session, uid, anchor)
-    if new_anchor is not None:
-        await _save_anchor(session, uid, new_anchor)  # 리셋 — 같은 트랜잭션(원자)
     # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(히스토리에서도 최신 이름만 보임).
+    # 현재 턴(raw)엔 placeholder가 없어 render는 무영향.
     for c in convo:
         c["content"] = naming.render(c["content"], nick)
-    mem = await _resolve_memory(session, uid, ctx, now)
-    system = _build_system(g.profile.language, nick, mem, lead)
 
-    # 5) Claude 호출(프롬프트 캐싱 + 실측 토큰)
+    need_refresh, age_h = _snapshot_state(refreshed_at, now)  # 외부 호출 없이 판정만
+
+    await session.commit()  # 락·커넥션 해제 — 이후 LLM 구간엔 커넥션 점유 0
+
+    # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — 기억 재로드 + LLM + 백스톱 =====
+    # 기억 스냅샷 재해결(_resolve_memory와 공유하는 _reload_memory, 커밋 밖에서). None이면 미저장.
+    mem = prev_snapshot or ""
+    new_snapshot: str | None = None
+    if need_refresh:
+        mem, new_snapshot = await _reload_memory(uid, prev_snapshot, age_h)
+
+    lead_all = lead_texts + ([greeting_content] if greeting_content else [])
+    system = _build_system(language, nick, mem, lead_all)
+
+    # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
     result = await llm.generate(
         system, convo,
         cache_messages=cache_on,
         ttl_system=settings.cache_ttl_system,
         ttl_messages=settings.cache_ttl_messages,
+        timeout=settings.llm_timeout_s,
     )
     if (
         cache_on
@@ -530,11 +599,10 @@ async def post_message(
             "프롬프트 캐시 미작동(read=write=0, input=%d) user=%s", result.input_tokens, user_id
         )
 
-    # 6) 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
-    # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제(_clean_reply) → placeholder 치환.
+    # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제 → placeholder.
     consumed = _billable(result)
     reply_text = result.text
-    is_ko = i18n.is_korean(g.profile.language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
+    is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
     if is_ko:
         # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.
         # 발동은 드문 이벤트라(3071건 중 2건) 제거한 접두부만 로그로 남겨 감사 가능하게 한다.
@@ -549,9 +617,61 @@ async def post_message(
             reply_text = stripped
     if is_ko and text_clean.has_foreign_ko(reply_text):
         reply_text = await _repair_foreign_ko(reply_text, user_id=user_id)
+    reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
+
+    # ===== Phase 2: 확정(짧은 txn + 유저락 재획득) =====
+    await _lock_user(session, uid)
+    # 동시 중복이 먼저 확정했으면 그 응답 반환(이중 LLM은 낭비지만 이중 저장 방지 — 유저락으로 직렬).
+    dup = await session.get(IdempotencyKey, (uid, idempotency_key))
+    if dup is not None:
+        # rollback()은 identity map 객체를 expire한다(expire_on_commit=False와 무관) → 이후 dup.response
+        # 접근이 async 암시적 재로드를 유발해 MissingGreenlet. 반드시 rollback 전에 값을 뽑는다.
+        dup_response = dup.response
+        await session.rollback()
+        return validate_post_message_response(
+            dup_response, user_id=user_id, idempotency_key=idempotency_key
+        )
+
+    # 선발화 커밋(재조회 — 여전히 유효하면). id 순서 위해 유저 메시지보다 먼저 insert.
+    greeting_dto = None
+    if greeting_gid is not None:
+        # populate_existing=True — phase-1에서 로드한 gr가 identity map + expire_on_commit=False로
+        # 남아 있어, 강제 재조회 없으면 phase-1의 stale(committed_message_id=None) 상태를 본다.
+        # 동일 greeting_id 동시요청이 각각 인사를 이중 커밋하는 걸 막으려면 락 하에서 fresh read 필요.
+        gr = await session.get(Greeting, greeting_gid, populate_existing=True)
+        if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
+            gmsg = Message(
+                user_id=uid, sender="moly", kind="greeting", content=gr.content,
+                activity_date=ad, created_at=now,
+            )
+            session.add(gmsg)
+            await session.flush()
+            gr.committed_message_id = gmsg.id
+            # gr.content는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
+            greeting_dto = {
+                "message_id": str(gmsg.id),
+                "content": naming.render(gr.content, nick),
+                "created_at": _iso(now),
+            }
+
+    # 유저 메시지 저장 — 유저가 자기 현재 이름을 말했으면 placeholder로(저장 표면 이름 0)
+    umsg = Message(
+        user_id=uid, sender="user", kind="normal",
+        content=naming.to_placeholder(req.text, nick),
+        activity_date=ad, created_at=now,
+    )
+    session.add(umsg)
+    await session.flush()
+
+    if new_anchor is not None:
+        await _save_anchor(session, uid, new_anchor)  # 리셋 — phase 2 원자
+    if new_snapshot is not None:
+        await _save_memory(session, uid, new_snapshot, now)  # 재로드분 저장(원본 now)
+
+    # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal",
-        content=naming.to_placeholder(_clean_reply(reply_text, nick, g.profile.language), nick),
+        content=reply_stored,
         input_tokens=result.input_tokens, output_tokens=result.output_tokens,
         cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
         billable_tokens=consumed,
@@ -560,17 +680,14 @@ async def post_message(
     session.add(rmsg)
     await session.flush()
 
-    # 7) 토큰 집계(원가 가중 billable, normal만) — 사후 누적
-    await _accumulate_tokens(session, uid, ad, consumed)
-
-    new_used = g.tokens_used + consumed
-    limit = g.entitlement["daily_token_limit"]
-    if not isinstance(limit, int):  # fail-closed(위 게이트와 동일 근거)
-        limit = settings.daily_token_limit_free
+    # 토큰 집계(원가 가중 billable, normal만) — 사후 누적(원자 증분). 증분 후 총량을 응답 기준으로.
+    new_total = await _accumulate_tokens(session, uid, ad, consumed)
+    # 원자 증분 결과가 진실. mock 등으로 None이면 phase-1 스냅샷+consumed 폴백.
+    new_used = new_total if new_total is not None else tokens_used_pre + consumed
     remaining_after = max(0, limit - new_used)
 
-    # 8) 리뷰 노출 판정(당일 누적이 임계 생애 최초 초과 & 미노출)
-    review = g.profile.review_prompted_at is None and new_used >= g.review_min_tokens
+    # 리뷰 노출 판정(당일 누적이 임계 생애 최초 초과 & 미노출)
+    review = review_prompted_at is None and new_used >= review_min
 
     response = {
         "greeting": greeting_dto,
@@ -644,7 +761,7 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
         return dict(_NO_GREETING)
 
     # 그날 처음 만난 시각으로 인사 톤을 고른다(home_enter만 시간대별 풀).
-    hour = datetime.now(ZoneInfo(profile.timezone)).hour
+    hour = datetime.now(safe_zone(profile.timezone)).hour
     content = greetings.pick(context, profile.nickname, hour, profile.language)
 
     # 저장은 placeholder(이름 표면 0), 클라 응답엔 현재 이름 렌더.

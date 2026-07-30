@@ -39,7 +39,8 @@ class _Result:
         return _Scalars(self._items)
 
     def scalar(self):
-        return self._items[0] if self._items else 0
+        # 빈 결과 = None(예: _reward_cursor의 func.max → 보상 이력 없음). 카운트류는 호출측 `or 0`로 가드.
+        return self._items[0] if self._items else None
 
 
 class FakeSession:
@@ -55,7 +56,7 @@ class FakeSession:
         self.get_calls.append((model, key, kw))
         return self.get_obj
 
-    async def execute(self, stmt):
+    async def execute(self, stmt, params=None):
         return _Result(self.exec_results.pop(0) if self.exec_results else [])
 
     def add(self, obj):
@@ -815,3 +816,48 @@ def test_crud_endpoints_require_auth(method, path):
         app.dependency_overrides.clear()
     assert r.status_code == 401
     assert r.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+# --- SOMA-375: 단조 보상 윈도우 (tz 변경 재수령 차단) ---
+def _profile(monkeypatch):
+    async def _lp(session, user_id):
+        return SimpleNamespace(id=UID_UUID, timezone="Asia/Seoul")
+    monkeypatch.setattr(economy, "_load_profile", _lp)
+
+
+async def test_reward_window_regressed_logic(monkeypatch):
+    # cursor보다 과거=True, ==·미래=False, 신규유저(None)=False. 실제 비교 로직 검증.
+    for cur, rd, exp in [
+        (date(2026, 7, 10), date(2026, 7, 9), True),   # 뒤 홉 → 차단
+        (date(2026, 7, 10), date(2026, 7, 10), False),  # 당일 다종 보상 허용
+        (date(2026, 7, 10), date(2026, 7, 11), False),  # 앞 홉 허용
+        (None, date(2026, 7, 1), False),                # 신규유저 최초 허용
+    ]:
+        async def _cursor(session, uid, _c=cur):
+            return _c
+        monkeypatch.setattr(economy, "_reward_cursor", _cursor)
+        assert await economy._reward_window_regressed(FakeSession(), UID_UUID, rd) is exp
+
+
+async def test_claim_attendance_rejects_tz_regression(monkeypatch):
+    _profile(monkeypatch)
+    async def _cursor(session, uid):
+        return date(2999, 1, 1)  # 미래 커서 → 현재 reward_date는 과거 → 역행
+    monkeypatch.setattr(economy, "_reward_cursor", _cursor)
+    session = FakeSession()
+    with pytest.raises(AppError) as e:
+        await economy.claim_attendance(session, UID)
+    assert e.value.code == "ALREADY_CLAIMED"
+    assert session.committed is False  # 지급 mutation 전에 차단
+
+
+async def test_claim_routine_rejects_tz_regression(monkeypatch):
+    _profile(monkeypatch)
+    async def _cursor(session, uid):
+        return date(2999, 1, 1)
+    monkeypatch.setattr(economy, "_reward_cursor", _cursor)
+    session = FakeSession()
+    with pytest.raises(AppError) as e:
+        await economy.claim_routine_reward(session, UID)
+    assert e.value.code == "ALREADY_CLAIMED"
+    assert session.committed is False

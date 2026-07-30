@@ -25,14 +25,16 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String)  # 원문(ko). 다국어는 name_i18n.
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     # 유저 언어별 이름({"ko":..,"en":..,"ja":..}). NULL·부분키 허용, 없으면 name 폴백(SOMA-346).
-    name_i18n: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # none_as_null: None 대입이 jsonb 'null'로 저장되면 obj_ck CHECK 위반.
+    name_i18n: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True), nullable=True)
     # cosmetic 전용. id는 내부 FK용 UUID, public_id는 API에 노출하는 안정 식별자다.
     public_id: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     slot: Mapped[str | None] = mapped_column(String, nullable=True)  # theme | hat | glasses | neck | body
     price_hay: Mapped[int | None] = mapped_column(Integer, nullable=True)  # NULL = 구매 불가
     is_subscriber_only: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
     asset_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    assets: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # none_as_null: None 대입이 jsonb 'null'이 되면 hay_pack_ck의 `assets IS NULL`이 false가 됨.
+    assets: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True), nullable=True)
     # hay_pack 전용
     hay_amount: Mapped[int | None] = mapped_column(Integer, nullable=True)
     price_krw: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 표시 참고용(결제가는 StoreKit)

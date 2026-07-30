@@ -183,7 +183,7 @@ async def test_routine_create_weekday_mode():
 
 
 async def test_routine_update_days(monkeypatch):
-    r = SimpleNamespace(name="x", frequency_per_week=3, days_of_week=[1, 3, 5],
+    r = SimpleNamespace(name="x", name_i18n=None, frequency_per_week=3, days_of_week=[1, 3, 5],
                         reminder_enabled=False, reminder_time=None)
 
     async def _owned(session, uid, rid):
@@ -201,7 +201,7 @@ async def test_routine_update_days(monkeypatch):
 
 
 async def test_routine_update_reminder_time_null_clears(monkeypatch):
-    r = SimpleNamespace(name="x", frequency_per_week=3, days_of_week=[1, 3, 5],
+    r = SimpleNamespace(name="x", name_i18n=None, frequency_per_week=3, days_of_week=[1, 3, 5],
                         reminder_enabled=True, reminder_time=time(9, 0))
 
     async def _owned(session, uid, rid):
@@ -220,6 +220,56 @@ async def test_routine_update_reminder_time_null_clears(monkeypatch):
         PatchRoutineRequest.model_validate({"reminder_time": None}),
     )
     assert r.reminder_time is None
+
+
+async def test_routine_update_localized_name_echo_keeps_i18n(monkeypatch):
+    """클라가 표시 이름(번역값)을 그대로 되보내면 rename 아님 — ja 유저 PATCH 500 회귀(obj_ck)."""
+    r = SimpleNamespace(name="근력 운동", name_i18n={"ko": "근력 운동", "en": "Strength", "ja": "筋トレ"},
+                        frequency_per_week=7, days_of_week=[1, 2, 3, 4, 5, 6, 7],
+                        reminder_enabled=False, reminder_time=None)
+
+    async def _owned(session, uid, rid):
+        return r
+
+    monkeypatch.setattr(routine, "_load_owned", _owned)
+    # 번역값 echo + 알림만 변경 → name_i18n 유지, 알림만 반영
+    await routine.update_routine(
+        FakeSession(), UID, str(uuid.uuid4()),
+        PatchRoutineRequest.model_validate(
+            {"name": "筋トレ", "reminder_enabled": True, "reminder_time": "08:00:00"}
+        ),
+    )
+    assert r.name == "근력 운동" and r.name_i18n is not None
+    assert r.reminder_enabled is True and r.reminder_time == time(8, 0)
+    # 원본 이름 echo도 rename 아님
+    await routine.update_routine(
+        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="근력 운동")
+    )
+    assert r.name_i18n is not None
+    # 진짜 rename → name 변경 + 다국어 무효(SOMA-346)
+    await routine.update_routine(
+        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="아침 운동")
+    )
+    assert r.name == "아침 운동" and r.name_i18n is None
+    # name_i18n이 dict가 아닌 오염 데이터여도 500 없이 rename 처리(i18n.py:53과 같은 방어)
+    r.name_i18n = "집"
+    await routine.update_routine(
+        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="저녁 운동")
+    )
+    assert r.name == "저녁 운동" and r.name_i18n is None
+
+
+def test_jsonb_none_binds_sql_null():
+    """None 대입이 jsonb 'null'로 바인딩되면 obj_ck/hay_pack_ck CHECK 위반 — 실제 바인딩을 검증."""
+    from sqlalchemy.dialects import postgresql
+
+    from app.models.product import Product
+    from app.models.routine import Routine
+
+    d = postgresql.dialect()
+    cols = (Routine.__table__.c.name_i18n, Product.__table__.c.name_i18n, Product.__table__.c.assets)
+    for c in cols:
+        assert c.type.dialect_impl(d).bind_processor(d)(None) is None, c
 
 
 def test_routine_request_weekday_only():

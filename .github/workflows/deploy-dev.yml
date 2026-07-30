@@ -1,0 +1,189 @@
+name: Deploy dev (moly-backend)
+
+# dev 브랜치 push → dev 이미지 빌드(별도 ECR: moly-backend-dev) → dev EC2 1대에 중단배포.
+#
+# prod 롤링배포(deploy.yml)와 완전 분리 — 상호작용 지점 0:
+#   - 별도 IAM 역할 moly-github-actions-dev-role: trust가 dev 브랜치 sub만 허용,
+#     SendCommand는 tag:Role=moly-backend-dev 인스턴스만, ELB 권한 없음
+#     (dev 워크플로가 prod TG를 조작하는 것이 IAM 레벨에서 불가능)
+#   - 별도 ECR 레포(보관 5개) — prod 레포의 롤백 풀(30개)을 잠식하지 않음
+#   - 대상 발견 태그가 달라(deploy.yml=moly-backend) 서로의 인스턴스를 볼 수 없음
+#
+# 중단배포: deregister/drain 없음 — 배포 중 몇십 초 끊김은 dev에서 허용.
+# dev 서버가 꺼져 있으면 발견 0대로 명확히 실패 — 서버 켠 뒤 Actions에서 Re-run.
+#
+# workflow_dispatch: image_tag에 기존 dev-<sha>를 주면 빌드 없이 그 이미지로 재배포(롤백).
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "배포할 이미지 태그(dev-<sha> 전체). 비우면 현재 커밋을 빌드해서 배포"
+        required: false
+        default: ""
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-moly-backend-dev
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: 676972757138.dkr.ecr.ap-northeast-2.amazonaws.com
+  IMAGE_NAME: moly-backend-dev
+  ROLE_ARN: arn:aws:iam::676972757138:role/moly-github-actions-dev-role
+  # dev- 접두사: prod sha 태그와 네임스페이스를 시각적으로도 구분
+  DEPLOY_TAG: ${{ inputs.image_tag || format('dev-{0}', github.sha) }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # dispatch로 기존 태그를 지정한 경우 빌드 스킵 — 롤백은 빌드가 아니라 재배포다
+      - name: Build and push image
+        if: ${{ inputs.image_tag == '' || github.event_name == 'push' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEPLOY_TAG }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+          # scope=dev: 레포 공용 10GB 캐시에서 prod 빌드 캐시를 LRU 축출하지 않도록 분리
+          cache-from: type=gha,scope=dev
+          cache-to: type=gha,mode=max,scope=dev
+
+      - name: Deploy via SSM (single dev instance)
+        run: |
+          set -euo pipefail
+
+          echo "==> 배포 태그 존재 확인 (dispatch 오타로 pull 실패하는 사고 방지)"
+          aws ecr describe-images --region "$AWS_REGION" \
+            --repository-name "$IMAGE_NAME" \
+            --image-ids imageTag="$DEPLOY_TAG" >/dev/null
+
+          echo "==> dev 인스턴스 발견 (tag:Role=moly-backend-dev, running만)"
+          IDS="$(aws ec2 describe-instances --region "$AWS_REGION" \
+            --filters "Name=tag:Role,Values=moly-backend-dev" \
+                      "Name=instance-state-name,Values=running" \
+            --query 'Reservations[].Instances[].InstanceId' --output text)"
+          COUNT="$(echo "$IDS" | wc -w | tr -d ' ')"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "ERROR: 실행 중인 dev 인스턴스가 없습니다 — 서버가 꺼져 있으면 켠 뒤 Re-run 하세요." >&2
+            exit 1
+          fi
+          if [ "$COUNT" -ne 1 ]; then
+            echo "ERROR: dev 인스턴스가 ${COUNT}대 발견됨 (기대: 1) — 태그 중복 확인: $IDS" >&2
+            exit 1
+          fi
+          ID="$IDS"
+          echo "    대상: $ID"
+
+          # --- SSM 명령 폴링 — prod deploy.yml의 검증된 poll_ssm()을 그대로 사용 ---
+          #  - SendCommand 직후 InvocationDoesNotExist는 최초 3회(약 30초)까지 정상으로 간주
+          #  - 그 외 조회 실패는 stderr를 드러내고 연속 3회면 즉시 실패 (조용히 위장 금지)
+          poll_ssm() {
+            local cmd_id="$1" instance_id="$2"
+            local STATUS="Pending" GRACE_POLLS=3 MAX_QUERY_FAILS=3
+            local query_fails=0 finished=0 i err_file err_msg
+            for i in $(seq 1 60); do
+              sleep 10
+              err_file="$(mktemp)"
+              if STATUS="$(aws ssm get-command-invocation \
+                    --region "$AWS_REGION" \
+                    --command-id "$cmd_id" \
+                    --instance-id "$instance_id" \
+                    --query "Status" \
+                    --output text 2>"$err_file")"; then
+                query_fails=0
+                echo "  [$i] $instance_id status=$STATUS"
+                case "$STATUS" in
+                  Success|Failed|Cancelled|TimedOut) rm -f "$err_file"; finished=1; break ;;
+                esac
+              else
+                err_msg="$(cat "$err_file")"
+                if [ "$i" -le "$GRACE_POLLS" ] && printf '%s' "$err_msg" | grep -q "InvocationDoesNotExist"; then
+                  echo "  [$i] status=Pending (invocation 등록 대기 중)"
+                else
+                  query_fails=$((query_fails + 1))
+                  echo "  [$i] get-command-invocation 조회 실패 (${query_fails}/${MAX_QUERY_FAILS}):" >&2
+                  printf '%s\n' "$err_msg" >&2
+                  if [ "$query_fails" -ge "$MAX_QUERY_FAILS" ]; then
+                    rm -f "$err_file"
+                    echo "==> 조회 연속 ${MAX_QUERY_FAILS}회 실패 — 배포 상태 확인 불가, 실패 처리" >&2
+                    return 1
+                  fi
+                fi
+              fi
+              rm -f "$err_file"
+            done
+
+            echo "==> [$instance_id] 배포 표준출력 ----------------------------"
+            aws ssm get-command-invocation --region "$AWS_REGION" \
+              --command-id "$cmd_id" --instance-id "$instance_id" \
+              --query "StandardOutputContent" --output text || true
+            echo "==> [$instance_id] 배포 표준에러 ----------------------------"
+            aws ssm get-command-invocation --region "$AWS_REGION" \
+              --command-id "$cmd_id" --instance-id "$instance_id" \
+              --query "StandardErrorContent" --output text || true
+
+            if [ "$finished" -ne 1 ]; then
+              echo "[$instance_id] 배포 실패: 타임아웃 (마지막 status=$STATUS)" >&2
+              return 1
+            fi
+            if [ "$STATUS" != "Success" ]; then
+              echo "[$instance_id] 배포 실패 (status=$STATUS)" >&2
+              return 1
+            fi
+          }
+
+          echo "==> [$ID] deploy.sh $DEPLOY_TAG (SSM RunCommand, 중단배포)"
+          # executionTimeout 600 = 폴링 상한(60회×10s)과 일치 — 서버는 도는데 워크플로만
+          # 빨간불인 창을 없앤다 (실측 deploy.sh 2~3분).
+          CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
+            --instance-ids "$ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG}\"],executionTimeout=[\"600\"]" \
+            --query 'Command.CommandId' --output text)"
+
+          poll_ssm "$CMD_ID" "$ID"
+
+      - name: Verify via public endpoint
+        run: |
+          set -euo pipefail
+          EXPECTED="${DEPLOY_TAG#dev-}"
+          BODY=""
+          for i in $(seq 1 6); do
+            BODY="$(curl -sf --max-time 10 https://dev.moly.asia/health || true)"
+            # version 필드 정확 비교 — 부분 문자열 매칭은 짧은 dispatch 태그가
+            # "status":"ok" 등에 우연 매칭돼 false-green이 될 수 있다
+            ver="$(printf '%s' "$BODY" | sed -n 's/.*\"version\":\"\([^\"]*\)\".*/\1/p')"
+            if [ "$ver" = "$EXPECTED" ]; then
+              echo "OK: dev.moly.asia가 $EXPECTED 서빙 중"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "ERROR: /health 버전이 기대($EXPECTED)와 다름 — 마지막 응답: $BODY" >&2
+          exit 1

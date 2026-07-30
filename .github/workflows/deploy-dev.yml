@@ -70,8 +70,9 @@ jobs:
             ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEPLOY_TAG }}
           build-args: |
             GIT_SHA=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # scope=dev: 레포 공용 10GB 캐시에서 prod 빌드 캐시를 LRU 축출하지 않도록 분리
+          cache-from: type=gha,scope=dev
+          cache-to: type=gha,mode=max,scope=dev
 
       - name: Deploy via SSM (single dev instance)
         run: |
@@ -99,52 +100,89 @@ jobs:
           ID="$IDS"
           echo "    대상: $ID"
 
+          # --- SSM 명령 폴링 — prod deploy.yml의 검증된 poll_ssm()을 그대로 사용 ---
+          #  - SendCommand 직후 InvocationDoesNotExist는 최초 3회(약 30초)까지 정상으로 간주
+          #  - 그 외 조회 실패는 stderr를 드러내고 연속 3회면 즉시 실패 (조용히 위장 금지)
+          poll_ssm() {
+            local cmd_id="$1" instance_id="$2"
+            local STATUS="Pending" GRACE_POLLS=3 MAX_QUERY_FAILS=3
+            local query_fails=0 finished=0 i err_file err_msg
+            for i in $(seq 1 60); do
+              sleep 10
+              err_file="$(mktemp)"
+              if STATUS="$(aws ssm get-command-invocation \
+                    --region "$AWS_REGION" \
+                    --command-id "$cmd_id" \
+                    --instance-id "$instance_id" \
+                    --query "Status" \
+                    --output text 2>"$err_file")"; then
+                query_fails=0
+                echo "  [$i] $instance_id status=$STATUS"
+                case "$STATUS" in
+                  Success|Failed|Cancelled|TimedOut) rm -f "$err_file"; finished=1; break ;;
+                esac
+              else
+                err_msg="$(cat "$err_file")"
+                if [ "$i" -le "$GRACE_POLLS" ] && printf '%s' "$err_msg" | grep -q "InvocationDoesNotExist"; then
+                  echo "  [$i] status=Pending (invocation 등록 대기 중)"
+                else
+                  query_fails=$((query_fails + 1))
+                  echo "  [$i] get-command-invocation 조회 실패 (${query_fails}/${MAX_QUERY_FAILS}):" >&2
+                  printf '%s\n' "$err_msg" >&2
+                  if [ "$query_fails" -ge "$MAX_QUERY_FAILS" ]; then
+                    rm -f "$err_file"
+                    echo "==> 조회 연속 ${MAX_QUERY_FAILS}회 실패 — 배포 상태 확인 불가, 실패 처리" >&2
+                    return 1
+                  fi
+                fi
+              fi
+              rm -f "$err_file"
+            done
+
+            echo "==> [$instance_id] 배포 표준출력 ----------------------------"
+            aws ssm get-command-invocation --region "$AWS_REGION" \
+              --command-id "$cmd_id" --instance-id "$instance_id" \
+              --query "StandardOutputContent" --output text || true
+            echo "==> [$instance_id] 배포 표준에러 ----------------------------"
+            aws ssm get-command-invocation --region "$AWS_REGION" \
+              --command-id "$cmd_id" --instance-id "$instance_id" \
+              --query "StandardErrorContent" --output text || true
+
+            if [ "$finished" -ne 1 ]; then
+              echo "[$instance_id] 배포 실패: 타임아웃 (마지막 status=$STATUS)" >&2
+              return 1
+            fi
+            if [ "$STATUS" != "Success" ]; then
+              echo "[$instance_id] 배포 실패 (status=$STATUS)" >&2
+              return 1
+            fi
+          }
+
           echo "==> [$ID] deploy.sh $DEPLOY_TAG (SSM RunCommand, 중단배포)"
+          # executionTimeout 600 = 폴링 상한(60회×10s)과 일치 — 서버는 도는데 워크플로만
+          # 빨간불인 창을 없앤다 (실측 deploy.sh 2~3분).
           CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
             --instance-ids "$ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG}\"],executionTimeout=[\"900\"]" \
+            --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG}\"],executionTimeout=[\"600\"]" \
             --query 'Command.CommandId' --output text)"
 
-          # SendCommand 직후 InvocationDoesNotExist는 최초 3회(약 30초)까지 정상(전파 지연)
-          STATUS="Pending"
-          for i in $(seq 1 60); do
-            sleep 10
-            if STATUS="$(aws ssm get-command-invocation --region "$AWS_REGION" \
-                --command-id "$CMD_ID" --instance-id "$ID" \
-                --query 'Status' --output text 2>/dev/null)"; then
-              case "$STATUS" in
-                Success|Failed|Cancelled|TimedOut) break ;;
-              esac
-            elif [ "$i" -gt 3 ]; then
-              echo "ERROR: invocation 조회 실패가 지속됨" >&2
-              exit 1
-            fi
-          done
-
-          echo "==> [$ID] 배포 표준출력 ----------------------------"
-          aws ssm get-command-invocation --region "$AWS_REGION" \
-            --command-id "$CMD_ID" --instance-id "$ID" \
-            --query "StandardOutputContent" --output text || true
-          echo "==> [$ID] 배포 표준에러 ----------------------------"
-          aws ssm get-command-invocation --region "$AWS_REGION" \
-            --command-id "$CMD_ID" --instance-id "$ID" \
-            --query "StandardErrorContent" --output text || true
-
-          if [ "$STATUS" != "Success" ]; then
-            echo "ERROR: 배포 실패 (status=$STATUS)" >&2
-            exit 1
-          fi
+          poll_ssm "$CMD_ID" "$ID"
 
       - name: Verify via public endpoint
         run: |
           set -euo pipefail
           EXPECTED="${DEPLOY_TAG#dev-}"
+          BODY=""
           for i in $(seq 1 6); do
             BODY="$(curl -sf --max-time 10 https://dev.moly.asia/health || true)"
-            case "$BODY" in
-              *"$EXPECTED"*) echo "OK: dev.moly.asia가 $EXPECTED 서빙 중"; exit 0 ;;
-            esac
+            # version 필드 정확 비교 — 부분 문자열 매칭은 짧은 dispatch 태그가
+            # "status":"ok" 등에 우연 매칭돼 false-green이 될 수 있다
+            ver="$(printf '%s' "$BODY" | sed -n 's/.*\"version\":\"\([^\"]*\)\".*/\1/p')"
+            if [ "$ver" = "$EXPECTED" ]; then
+              echo "OK: dev.moly.asia가 $EXPECTED 서빙 중"
+              exit 0
+            fi
             sleep 5
           done
           echo "ERROR: /health 버전이 기대($EXPECTED)와 다름 — 마지막 응답: $BODY" >&2

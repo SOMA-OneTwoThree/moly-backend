@@ -114,10 +114,12 @@ async def test_morning_skips_when_already_notified(monkeypatch):
 
 
 def test_push_text_localized():
-    # 푸시 제목·본문이 유저 언어로(SOMA-361). 캐피=カピ 고유명사 유지.
-    assert notify._push_text(notify._MORNING, "ja")[0] == "カピ"
-    assert notify._push_text(notify._EVENING, "ja")[0] == "カピ"
-    assert notify._push_text(notify._MORNING, "en")[0] == "Capi"
+    # 푸시 제목·본문이 유저 언어로(SOMA-361). 캐릭터명 = ko 캐피 / en Cappy / ja キャピー(1인칭 ぼく).
+    assert notify._push_text(notify._MORNING, "ja")[0] == "キャピー"
+    assert notify._push_text(notify._EVENING, "ja")[0] == "キャピー"
+    assert notify._push_text(notify._MORNING, "en")[0] == "Cappy"
     assert notify._push_text(notify._MORNING, "ko")[0] == "캐피"
+    # ja 1인칭 = ぼく(わたし 잔존 없음), 저녁 본문에 ぼく 포함
+    assert "ぼく" in notify._push_text(notify._EVENING, "ja")[1]
     # ja 본문에 한글(가-힣) 없음
     assert not any("가" <= c <= "힣" for c in notify._push_text(notify._MORNING, "ja")[1])

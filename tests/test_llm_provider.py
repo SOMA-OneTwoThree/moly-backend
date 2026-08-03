@@ -51,6 +51,7 @@ def _resp(text, usage):
 
 
 async def test_openai_usage_normalization(monkeypatch):
+    # prompt 1000 < 1024(자동캐시 최소 프리픽스) → 미적중분 전량이 일반 입력, 쓰기 없음.
     resp = _resp("안녕", _usage(1000, 50, 800))
     monkeypatch.setattr(llm_module, "_get_openai_client", lambda: _FakeClient(resp))
     r = await llm_module.generate(
@@ -60,11 +61,48 @@ async def test_openai_usage_normalization(monkeypatch):
     assert r.input_tokens == 200      # 1000 - 800(cached), 이중계상 방지
     assert r.output_tokens == 50
     assert r.cache_read_tokens == 800
-    assert r.cache_write_tokens == 0  # OpenAI 자동캐시는 write 과금 없음
+    assert r.cache_write_tokens == 0
     assert r.model == "gpt-5.6-terra"
     kw = resp._kw
     assert kw["messages"][0] == {"role": "system", "content": "페르소나"}  # system 합침·순서 보존
     assert kw["max_completion_tokens"] == 1024  # max_tokens 아님(GPT-5.x)
+
+
+# --- 캐시 쓰기 3버킷 배타 추정(W1-2) — SDK가 쓰기 토큰을 안 줘서 prompt/cached로 추정 ---
+async def test_openai_cache_write_estimated_above_min_prefix(monkeypatch):
+    """1024 이상 = 캐시 대상 → 미적중분은 캐시 쓰기로 계상되고 일반 입력은 0(배타)."""
+    resp = _resp("응", _usage(5000, 100, 4000))
+    monkeypatch.setattr(llm_module, "_get_openai_client", lambda: _FakeClient(resp))
+    r = await llm_module.generate("p", [{"role": "user", "content": "hi"}], model="gpt-5.6-luna")
+    assert r.cache_read_tokens == 4000
+    assert r.cache_write_tokens == 1000   # 5000 - 4000
+    assert r.input_tokens == 0            # 3버킷 배타(이중계상 방지)
+    # 합계는 언제나 prompt_tokens와 일치한다(버킷 배분이므로 총량 보존)
+    assert r.input_tokens + r.cache_read_tokens + r.cache_write_tokens == 5000
+
+
+async def test_openai_cache_write_zero_below_min_prefix(monkeypatch):
+    """1024 미만 = 캐시 자체가 안 걸림 → 전량 일반 입력, 쓰기 0."""
+    resp = _resp("응", _usage(1023, 10, 0))
+    monkeypatch.setattr(llm_module, "_get_openai_client", lambda: _FakeClient(resp))
+    r = await llm_module.generate("p", [{"role": "user", "content": "hi"}], model="gpt-5.6-luna")
+    assert (r.input_tokens, r.cache_read_tokens, r.cache_write_tokens) == (1023, 0, 0)
+
+
+async def test_openai_cache_write_boundary_at_1024(monkeypatch):
+    """경계값 정확히 1024 = 캐시 대상(>=) → 쓰기로 계상."""
+    resp = _resp("응", _usage(1024, 10, 0))
+    monkeypatch.setattr(llm_module, "_get_openai_client", lambda: _FakeClient(resp))
+    r = await llm_module.generate("p", [{"role": "user", "content": "hi"}], model="gpt-5.6-luna")
+    assert (r.input_tokens, r.cache_read_tokens, r.cache_write_tokens) == (0, 0, 1024)
+
+
+async def test_openai_full_cache_hit_has_no_write(monkeypatch):
+    """전량 캐시 적중(uncached=0) → 쓰기 0. 추정식이 없는 쓰기를 만들어내지 않는다."""
+    resp = _resp("응", _usage(4000, 20, 4000))
+    monkeypatch.setattr(llm_module, "_get_openai_client", lambda: _FakeClient(resp))
+    r = await llm_module.generate("p", [{"role": "user", "content": "hi"}], model="gpt-5.6-luna")
+    assert (r.input_tokens, r.cache_read_tokens, r.cache_write_tokens) == (0, 4000, 0)
 
 
 async def test_openai_system_list_joined_and_empty_dropped(monkeypatch):
@@ -118,12 +156,36 @@ async def test_generate_routes_by_model_prefix(monkeypatch):
 
 # --- billable: provider별 가중치 ---
 def test_billable_openai_weights():
-    # OpenAI: input + 6.0*out + 0.5*read + 0*write = 200 + 300 + 400 + 0 = 900
+    # OpenAI: input + 6.0*out + 0.1*read + 1.25*write = 200 + 300 + 80 + 0 = 580
     r = LLMResult(
         "t", input_tokens=200, output_tokens=50,
         cache_read_tokens=800, cache_write_tokens=0, model="gpt-5.6-terra",
     )
-    assert c._billable(r) == 900
+    assert c._billable(r) == 580
+
+
+def test_billable_openai_cache_read_is_tenth_of_input():
+    """캐시 읽기 가중치 = 0.1(90% 할인). 0.5는 실비용 5배 과대 계상이었다."""
+    r = LLMResult("t", input_tokens=0, output_tokens=0, cache_read_tokens=10_000,
+                  cache_write_tokens=0, model="gpt-5.6-luna")
+    assert c._billable(r) == 1_000
+
+
+def test_billable_openai_cache_write_is_charged():
+    """캐시 쓰기는 무료가 아니다(입력 단가의 125%) — 0.0이면 쓰기분이 통째로 샌다."""
+    r = LLMResult("t", input_tokens=0, output_tokens=0, cache_read_tokens=0,
+                  cache_write_tokens=1_000, model="gpt-5.6-luna")
+    assert c._billable(r) == 1_250
+
+
+def test_billable_openai_cold_turn_costs_more_than_warm():
+    """같은 prompt 크기라도 캐시 미스(전량 write)가 적중(read)보다 비싸다 = 실비용 방향 일치."""
+    cold = LLMResult("t", input_tokens=0, output_tokens=100, cache_read_tokens=0,
+                     cache_write_tokens=5_000, model="gpt-5.6-luna")
+    warm = LLMResult("t", input_tokens=0, output_tokens=100, cache_read_tokens=5_000,
+                     cache_write_tokens=0, model="gpt-5.6-luna")
+    assert c._billable(cold) == 600 + 6_250
+    assert c._billable(warm) == 600 + 500
 
 
 def test_billable_anthropic_weights_preserved():

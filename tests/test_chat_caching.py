@@ -138,28 +138,47 @@ def test_fix_qmarks_choice_no_false_positive():
 
 # --- 한자·가나 백스톱(_repair_foreign_ko) ---
 async def test_repair_foreign_ko_fixes_via_llm(monkeypatch):
-    """Haiku가 한국어로 고쳐 반환 → 그대로 반환(재검사 클린)."""
+    """utility 모델이 한국어로 고쳐 반환 → 그대로 반환(재검사 클린) + 그 호출을 usage로 회수."""
     async def fake_gen(system, convo, **kw):
         return LLMResult("나도 내 생각엔", 12, 6)
     monkeypatch.setattr(c.llm, "generate", fake_gen)
-    assert await c._repair_foreign_ko("나도 我 생각엔") == "나도 내 생각엔"
+    text, calls = await c._repair_foreign_ko("나도 我 생각엔")
+    assert text == "나도 내 생각엔"
+    assert [(x.purpose, x.billable) for x in calls] == [("foreign_repair", 12 + 5 * 6)]
 
 
 async def test_repair_foreign_ko_last_resort_strip(monkeypatch):
-    """2회 재작성 후에도 한자 잔존 → 최후수단 제거."""
+    """2회 재작성 후에도 한자 잔존 → 최후수단 제거. 2회분 모두 청구 대상."""
     async def fake_gen(system, convo, **kw):
         return LLMResult("나도 我 생각엔", 12, 6)  # 계속 한자
     monkeypatch.setattr(c.llm, "generate", fake_gen)
-    out = await c._repair_foreign_ko("나도 我 생각엔")
+    out, calls = await c._repair_foreign_ko("나도 我 생각엔")
     assert "我" not in out and out == "나도 생각엔"
+    assert len(calls) == 2
 
 
 async def test_repair_foreign_ko_error_keeps_original(monkeypatch):
-    """복원 호출 실패 시 원문 유지(응답을 막지 않음)."""
+    """복원 호출 실패 시 원문 유지(응답을 막지 않음). 호출 자체가 실패했으니 청구분 없음."""
     async def boom(system, convo, **kw):
         raise RuntimeError("boom")
     monkeypatch.setattr(c.llm, "generate", boom)
-    assert await c._repair_foreign_ko("나도 我 생각엔") == "나도 我 생각엔"
+    assert await c._repair_foreign_ko("나도 我 생각엔") == ("나도 我 생각엔", [])
+
+
+async def test_repair_foreign_ko_keeps_usage_of_failed_second_attempt(monkeypatch):
+    """1회차 성공(과금됨) + 2회차 실패 → 원문 복귀해도 1회차분은 청구에서 사라지지 않는다."""
+    calls_made = {"n": 0}
+
+    async def flaky(system, convo, **kw):
+        calls_made["n"] += 1
+        if calls_made["n"] == 1:
+            return LLMResult("여전히 我 남음", 12, 6)  # 한자 잔존 → 2회차 진행
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(c.llm, "generate", flaky)
+    text, calls = await c._repair_foreign_ko("나도 我 생각엔")
+    assert text == "나도 我 생각엔"  # 원문 유지
+    assert len(calls) == 1 and calls[0].billable == 12 + 5 * 6
 
 
 # --- 앵커 유지 창 ---

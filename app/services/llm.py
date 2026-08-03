@@ -46,8 +46,30 @@ class LLMResult:
     input_tokens: int
     output_tokens: int
     cache_read_tokens: int = 0   # 캐시에서 읽음(0.1× 실원가) — 기본 0이라 기존 positional 생성 호환
-    cache_write_tokens: int = 0  # 캐시에 씀(5m 1.25× / 1h 2× 실원가). OpenAI는 항상 0(자동캐시)
+    cache_write_tokens: int = 0  # 캐시에 씀(1.25× 실원가). Anthropic=실측 / OpenAI=추정(_generate_openai)
     model: str = ""              # 실제 호출 모델 — _billable이 이 prefix로 provider별 가중치 선택
+
+
+@dataclass
+class LlmCall:
+    """턴 내 LLM 호출 1건의 회계 단위 — 호출별 usage + 그 호출 단독 billable.
+
+    한 턴이 LLM을 여러 번 부른다(주 chat + 한자 복원, 이후 도구 루프). 청구는 호출별로
+    계산해 합산해야 provider·model이 섞여도(주=chat 모델, 복원=utility 모델) 가중치가 맞는다.
+    billable 계산은 회계 소유자인 chat._billable이 하고 여기엔 결과만 담는다(순환 import 회피).
+    """
+    provider: str          # "openai" | "anthropic"
+    model: str
+    purpose: str           # "chat" | "tool_decide" | "tool_final" | "foreign_repair"
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+    cache_write_tokens: int
+    billable: int
+
+
+# OpenAI 자동 프리픽스 캐시가 걸리는 최소 프롬프트 길이. 이 밑이면 캐시 자체가 없다(전량 일반 입력).
+_OPENAI_CACHE_MIN_PREFIX_TOKENS = 1024
 
 
 def _cc(ttl: str) -> dict:
@@ -154,7 +176,7 @@ async def _generate_openai(
     """OpenAI 경로(신설). system(str|list) → messages[0] system 합침(평문, cache_control 미부착).
 
     OpenAI는 프리픽스 자동캐시라 cache_control/ttl 불필요. usage 정규화(이중계상 방지):
-    input=prompt-cached / cache_read=cached / cache_write=0 / output=completion.
+    prompt_tokens를 캐시읽기/캐시쓰기/일반입력 3버킷에 **배타** 배분 / output=completion.
     방어: usage None·choices 빈·content None 에도 500 없이 빈 결과로 폴백(응답을 막지 않음).
     """
     sys = system if isinstance(system, str) else "\n\n".join(b for b in system if b)
@@ -175,11 +197,19 @@ async def _generate_openai(
     details = getattr(u, "prompt_tokens_details", None)
     cached = (getattr(details, "cached_tokens", None) or 0) if details is not None else 0
     completion = getattr(u, "completion_tokens", None) or 0
+    # 캐시 쓰기 토큰 **추정**(실 인보이스 대조 전까지 확정 아님). SDK 2.44.0의 PromptTokensDetails는
+    # ['audio_tokens', 'cached_tokens']뿐이라 쓰기 토큰을 보고하지 않는다(확인함). 요금 모델상
+    # prompt_tokens는 읽기/쓰기/일반입력 3버킷에 배타적으로 속하므로, 캐시가 걸리는 길이(1024+)면
+    # 미적중분은 캐시에 기록된 것으로 보고 쓰기로, 그 미만이면 캐시 자체가 없어 전량 일반 입력으로 센다.
+    # 오차: 정상(캐시 적중) 턴은 턴당 ~1%, 캐시 미스 턴은 최대 25% **과대** 계상(보수적 방향).
+    # 배포 후 1주 실 인보이스와 대조해 5% 초과 괴리면 재조정. SDK가 쓰기 필드를 노출하면 실측으로 교체.
+    uncached = max(0, prompt_tokens - cached)  # 캐시분 분리(이중계상 방지)
+    cacheable = prompt_tokens >= _OPENAI_CACHE_MIN_PREFIX_TOKENS
     return LLMResult(
         text=text,
-        input_tokens=max(0, prompt_tokens - cached),  # 캐시분 분리(이중계상 방지)
+        input_tokens=0 if cacheable else uncached,
         output_tokens=completion,
         cache_read_tokens=cached,
-        cache_write_tokens=0,
+        cache_write_tokens=uncached if cacheable else 0,
         model=model,
     )

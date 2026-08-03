@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import re
 import uuid
+from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from math import ceil
 from typing import Any
@@ -406,13 +407,20 @@ _FOREIGN_REPAIR_SYS = (
 )
 
 
-async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
-    """한국어 응답에 섞인 한자·가나를 Haiku로 재작성 복원. 호출측에서 language=='ko' 게이팅.
+async def _repair_foreign_ko(
+    reply: str, *, user_id: str | None = None
+) -> tuple[str, list[llm.LlmCall]]:
+    """한국어 응답에 섞인 한자·가나를 utility 모델로 재작성 복원. 호출측에서 language=='ko' 게이팅.
 
     최대 2회 시도 후에도 남으면 최후수단으로 제거(단어 깨질 수 있어 최후). 호출 실패는
     원문 유지(응답을 막지 않음). 실발동은 드문 이벤트라 지연·비용 영향은 무시 수준.
+
+    반환 = (복원문, 이 함수가 실제로 소비한 LLM 호출 목록). 호출자가 턴 합계에 넣어 청구한다 —
+    예전엔 이 호출들이 청구에서 통째로 누락됐다(실비용 ↔ 한도 불변식 깨짐).
+    실패로 원문을 되돌리는 경우에도 그 전 시도는 이미 과금됐으므로 calls는 버리지 않는다.
     """
     text = reply
+    calls: list[llm.LlmCall] = []
     for _ in range(2):
         try:
             r = await llm.generate(
@@ -424,22 +432,23 @@ async def _repair_foreign_ko(reply: str, *, user_id: str | None = None) -> str:
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
             _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
-            return reply
+            return reply, calls
+        calls.append(_llm_call(r, "foreign_repair"))
         text = r.text.strip()
         if not text_clean.has_foreign_ko(text):
-            _log.info(  # 관측용 — 드문 이벤트라 발동 사실·토큰만 남긴다(청구엔 미포함)
+            _log.info(  # 관측용 — 드문 이벤트라 발동 사실·토큰만 남긴다(청구엔 포함됨)
                 "한자 복원 완료 user=%s in=%d out=%d", user_id, r.input_tokens, r.output_tokens
             )
-            return text
+            return text, calls
     _log.warning("한자 복원 2회 후에도 잔존 — 최후수단 제거 user=%s", user_id)
-    return text_clean.strip_foreign_ko(text)
+    return text_clean.strip_foreign_ko(text), calls
 
 
 def _billable(r: llm.LLMResult) -> int:
     """실비용 가중 청구 토큰 = billable × 입력단가 = 실제 청구액(정확). 한도가 달러예산에 직결.
 
-    provider마다 단가비율이 달라 가중치를 model prefix로 선택한다(OpenAI out 6.0·read 0.5·write 0 /
-    Anthropic out 5.0·read 0.1·write 1.25). Anthropic write는 cold 턴이 실제 더 비싸니 그만큼 더 셈.
+    provider마다 단가비율이 달라 가중치를 model prefix로 선택한다(OpenAI out 6.0·read 0.1·write 1.25 /
+    Anthropic out 5.0·read 0.1·write 1.25). write는 cold 턴이 실제 더 비싸니 그만큼 더 셈.
     """
     if llm.provider_for(r.model) == "openai":
         w_out = settings.bill_weight_output_openai
@@ -456,6 +465,42 @@ def _billable(r: llm.LLMResult) -> int:
         + w_write * r.cache_write_tokens
     )
     return ceil(raw)
+
+
+def _llm_call(r: llm.LLMResult, purpose: str) -> llm.LlmCall:
+    """LLMResult → 회계 단위 LlmCall. billable은 **호출별로** 계산한다(모델·provider가 섞여도 정확)."""
+    return llm.LlmCall(
+        provider=llm.provider_for(r.model),
+        model=r.model,
+        purpose=purpose,
+        input_tokens=r.input_tokens,
+        output_tokens=r.output_tokens,
+        cache_read_tokens=r.cache_read_tokens,
+        cache_write_tokens=r.cache_write_tokens,
+        billable=_billable(r),
+    )
+
+
+@dataclass
+class TurnUsage:
+    """한 턴의 LLM 호출 전부를 모아 합산 — 차감·저장의 단일 기준.
+
+    한 턴은 LLM을 여러 번 부른다(주 chat + 한자 복원, 이후 도구 루프). 예전엔 주 호출만 세서
+    복원분이 청구에서 샜다. messages 행에는 여기 합계를 저장한다(컬럼·스키마 변경 없음).
+    """
+    calls: list[llm.LlmCall] = field(default_factory=list)
+
+    @property
+    def total_billable(self) -> int:
+        return sum(c.billable for c in self.calls)
+
+    @property
+    def totals(self) -> dict[str, int]:
+        """messages 컬럼과 같은 키로 4종 토큰 합계."""
+        return {
+            k: sum(getattr(c, k) for c in self.calls)
+            for k in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens")
+        }
 
 
 # --- 유저 단위 직렬화(토큰 한도 TOCTOU 방지) ---
@@ -587,7 +632,7 @@ async def post_message(
     )
     if (
         cache_on
-        # OpenAI는 자동캐시라 cache_write가 항상 0 → 이 경보는 Anthropic 전용(허위 WARN 방지).
+        # OpenAI는 자동캐시라 write가 실측이 아닌 추정값 → 이 경보는 Anthropic 전용(허위 WARN 방지).
         and llm.provider_for(result.model) == "anthropic"
         and result.cache_read_tokens == 0
         and result.cache_write_tokens == 0
@@ -600,7 +645,7 @@ async def post_message(
         )
 
     # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제 → placeholder.
-    consumed = _billable(result)
+    usage = TurnUsage([_llm_call(result, "chat")])  # 복원 호출이 붙을 수 있어 차감은 백스톱 뒤에
     reply_text = result.text
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
     if is_ko:
@@ -616,8 +661,20 @@ async def post_message(
             )
             reply_text = stripped
     if is_ko and text_clean.has_foreign_ko(reply_text):
-        reply_text = await _repair_foreign_ko(reply_text, user_id=user_id)
+        reply_text, repair_calls = await _repair_foreign_ko(reply_text, user_id=user_id)
+        usage.calls.extend(repair_calls)
     reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
+
+    # 회계 대상 — v2 off(롤백)면 주 chat 호출만 차감하고 나머지는 계측·로그로만 남긴다.
+    billed = usage if settings.turn_usage_v2_enabled else TurnUsage(usage.calls[:1])
+    consumed = billed.total_billable
+    totals = billed.totals
+    if len(usage.calls) > 1:  # 다중 호출 턴만 로그(정상 턴 소음 방지) — 호출별 purpose·model·billable
+        _log.info(
+            "턴 LLM 호출 %d건 user=%s v2=%s billable=%d detail=%s",
+            len(usage.calls), user_id, settings.turn_usage_v2_enabled, consumed,
+            [(c.purpose, c.model, c.billable) for c in usage.calls],
+        )
 
     # ===== Phase 2: 확정(짧은 txn + 유저락 재획득) =====
     await _lock_user(session, uid)
@@ -668,12 +725,13 @@ async def post_message(
     if new_snapshot is not None:
         await _save_memory(session, uid, new_snapshot, now)  # 재로드분 저장(원본 now)
 
-    # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷)
+    # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷) — 턴 내 모든 호출의 합계를 남긴다.
     rmsg = Message(
         user_id=uid, sender="moly", kind="normal",
         content=reply_stored,
-        input_tokens=result.input_tokens, output_tokens=result.output_tokens,
-        cache_read_tokens=result.cache_read_tokens, cache_write_tokens=result.cache_write_tokens,
+        input_tokens=totals["input_tokens"], output_tokens=totals["output_tokens"],
+        cache_read_tokens=totals["cache_read_tokens"],
+        cache_write_tokens=totals["cache_write_tokens"],
         billable_tokens=consumed,
         activity_date=ad, created_at=now,
     )

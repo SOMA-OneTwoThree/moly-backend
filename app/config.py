@@ -67,10 +67,15 @@ class Settings(BaseSettings):
     bill_weight_output: float = 5.0        # 출력 $15 / 입력 $3
     bill_weight_cache_read: float = 0.1    # 캐시 읽기 $0.30 / 입력 $3
     bill_weight_cache_write: float = 1.25  # 캐시 쓰기(5m) $3.75 / 입력 $3
-    # OpenAI(GPT-5.6 전 tier 출력=입력×6, 캐시 읽기 0.5×, 캐시 쓰기 별도과금 없음).
-    bill_weight_output_openai: float = 6.0        # 출력 $15 / 입력 $2.5 (terra), 전 tier 동일 비율
-    bill_weight_cache_read_openai: float = 0.5    # 캐시 읽기 = 입력 단가의 50%
-    bill_weight_cache_write_openai: float = 0.0   # OpenAI 자동캐시는 쓰기 과금 없음(cache_write=0)
+    # OpenAI(GPT-5.6 공식 요금표 2026-08-03, Standard·short context). 전 tier 입력 대비 비율 동일 —
+    # 출력 6.0 / 캐시 읽기 0.1 / 캐시 쓰기 1.25. 예: luna $0.20·$0.02·$0.25·$1.20, terra는 ×10.
+    # (캐시 쓰기는 무료가 아니다. 다만 API가 쓰기 토큰을 안 주므로 llm.py가 추정한다 — 그 주석 참조.)
+    bill_weight_output_openai: float = 6.0        # 출력 $1.20 / 입력 $0.20 (luna), 전 tier 동일 비율
+    bill_weight_cache_read_openai: float = 0.1    # 캐시 읽기 = 입력 단가의 10%(90% 할인)
+    bill_weight_cache_write_openai: float = 1.25  # 캐시 쓰기 = 입력 단가의 125%
+    # 턴 회계 v2 킬스위치 — True면 턴 내 모든 LLM 호출(주 chat + 한자 복원 등)을 합산해 차감한다.
+    # False면 기존 동작(주 chat 호출만 차감, 나머지는 계측·로그만) — 롤백 경로. 스키마는 동일.
+    turn_usage_v2_enabled: bool = True
 
     # --- 워커 배치 스케일링(SOMA-349) ---
     # 프로필을 키셋 페이지네이션으로 배치 처리(전량 메모리 적재 회피).
@@ -126,7 +131,8 @@ class Settings(BaseSettings):
     # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
     # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).
     free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
-    free_launch_token_limit: int = 150_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 기준 ~월 $4.5/인. 헤비유저 ~42턴.
+    # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 입력 $0.20/M 기준 ~월 $0.90/인 상한.
+    free_launch_token_limit: int = 150_000
 
     # --- 모니터링·알림 (observability, SOMA-301) ---
     # 배포 이미지 커밋 sha — deploy가 GIT_SHA env로 주입. /health 버전 노출·배포 반영 확인용.

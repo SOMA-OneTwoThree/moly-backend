@@ -34,8 +34,9 @@ class _Intent:
 
 
 class _Res:
-    def __init__(self, rows: list) -> None:
+    def __init__(self, rows: list, rowcount: int | None = None) -> None:
         self._rows = rows
+        self.rowcount = len(rows) if rowcount is None else rowcount
 
     def first(self):
         return self._rows[0] if self._rows else None
@@ -72,6 +73,8 @@ class _FakeSession:
         self.forgotten = canned.get("forgotten", [(_FACT,)])
         self.insights = canned.get("insights", [(_INSIGHT,)])
         self.profiles = canned.get("profiles", [(_PROFILE,)])
+        self.checkpoints = canned.get("checkpoints", 2)  # 지워질 대화 요약 수
+        self.deleted_checkpoints = 0
 
     @property
     def statements(self) -> list[str]:
@@ -111,6 +114,9 @@ class _FakeSession:
             return _Res([(uuid.uuid4(),)])
         if s in (str(forget._INSERT_CLOSURE_SQL), str(forget._INSERT_MARKER_SQL)):
             return _Res([])
+        if s == str(forget._DELETE_CHECKPOINTS_SQL):
+            self.deleted_checkpoints += 1
+            return _Res([], rowcount=self.checkpoints)
         raise AssertionError(f"시뮬레이터가 모르는 문장: {s[:80]}")
 
 
@@ -363,3 +369,34 @@ def test_no_revival_path_in_module():
 
 def test_bump_is_scoped_to_normalized_users():
     assert "memory_mode='normalized'" in str(forget._BUMP_SQL)
+
+
+# --- 파생 기억 부활 차단 (적대검증 지적) ---
+async def test_forget_also_deletes_conversation_checkpoints(enabled):
+    """잊은 사실이 대화 요약으로 되살아나면 안 된다.
+
+    forget이 fact·insight·profile만 무효화하고 conversation_checkpoints를 두면, 다음 턴에
+    최신 요약이 그대로 로드돼 프롬프트의 [지난 이야기]로 주입된다 — 캐피가 잊어달라고 한 걸
+    계속 안다. 요약은 산문이라 어느 요약에 그 사실이 들었는지 고를 수 없으므로 전부 지운다.
+    """
+    session = _FakeSession(checkpoints=3)
+
+    result = await forget.apply(
+        session, user_id=_UID, request=forget.ForgetRequest(scope="fact", fact_ids=(_FACT,))
+    )
+
+    assert result.status == forget.RESULT_APPLIED
+    assert session.deleted_checkpoints == 1      # DELETE가 실제로 실행됐다
+    assert result.deleted_checkpoints == 3       # 지운 수가 결과에 남는다
+
+
+async def test_forget_does_not_touch_checkpoints_when_flag_is_off():
+    """플래그 off면 요약도 건드리지 않는다 — 분류만 하고 아무 쓰기도 없다."""
+    session = _FakeSession(checkpoints=3)
+
+    result = await forget.apply(
+        session, user_id=_UID, request=forget.ForgetRequest(scope="fact", fact_ids=(_FACT,))
+    )
+
+    assert result.status == forget.RESULT_CLASSIFIED_ONLY
+    assert session.deleted_checkpoints == 0

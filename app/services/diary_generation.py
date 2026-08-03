@@ -77,7 +77,7 @@ def _transcript(
     )
 
 
-async def _self_check(body: str, transcript: str, user_id=None) -> bool:
+async def _self_check(body: str, transcript: str, user_id=None, nickname: str | None = None) -> bool:
     """Haiku 환각 검사 — 첫 토큰이 'NO'면 탈락. 오류/모호 시 통과(과잉 거부 방지).
 
     판정은 앞부분으로만 한다. 'NO' 포함 여부로 보면 설명문에 섞인 'NO'에 오판한다.
@@ -96,9 +96,11 @@ async def _self_check(body: str, transcript: str, user_id=None) -> bool:
     passed = not verdict.upper().lstrip("*_# ").startswith("NO")
     if not passed:
         # 비차단 모니터링 — 발행은 하되 리젝률 추적용 로그(과거엔 preset 폴백 → 열람율 누수였음).
+        # ⚠️ body는 LLM 생성 원문이라 **닉네임 실명이 들어 있다**. 저장 경로는 나중에
+        # to_placeholder를 타지만 이 로그는 그 전이라, 여기서 먼저 토큰으로 바꾼다.
         _log.warning(
             "self-check 리젝(비차단, 발행됨) user=%s 판정=%r 일기=%r",
-            user_id, verdict[:40], body[:80],
+            user_id, verdict[:40], naming.to_placeholder(body[:80], nickname),
         )
     return passed
 
@@ -174,7 +176,9 @@ async def _personal(
         _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))
         return None, {"empty_body": True, "self_check_passed": None}
     # self-check는 비차단 — 게이트 통과 유저는 리젝돼도 개인일기 발행(preset 누수 차단). 로그만 남긴다.
-    passed = await _self_check(body, transcript, user_id=getattr(profile, "id", None))
+    passed = await _self_check(
+        body, transcript, user_id=getattr(profile, "id", None), nickname=nickname
+    )
     return (body, weather), {"empty_body": False, "self_check_passed": passed}
 
 

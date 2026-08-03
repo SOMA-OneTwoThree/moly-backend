@@ -89,6 +89,7 @@ class ForgetResult:
     forgotten_facts: tuple[uuid.UUID, ...] = field(default=())
     invalidated_insights: tuple[uuid.UUID, ...] = field(default=())
     invalidated_profiles: tuple[uuid.UUID, ...] = field(default=())
+    deleted_checkpoints: int = 0  # 지운 대화 요약 수(파생 기억)
 
     @property
     def wrote_anything(self) -> bool:
@@ -205,6 +206,18 @@ RETURNING id
 """)
 
 # 근거가 사라진 통찰은 근거 없는 파생이 된다 → invalidated(terminal).
+# 대화 요약(W11)도 파생 기억이다. 요약은 산문이라 **어느 요약에 그 사실이 들었는지 알 수 없으므로**
+# 그 유저 것을 전부 지운다 — 남기고 고르는 건 불가능하고, 남기면 잊어달라고 한 내용이 다음 턴
+# 프롬프트의 [지난 이야기]로 되살아난다. 요약은 다음 리셋에 다시 만들어지며, 그때는 지금 구간부터
+# 시작하므로 잊은 내용이 체인에 복귀하지 않는다.
+#
+# 원본 messages와 발행된 일기는 지우지 않는다 — 유저가 자기 화면에서 그대로 볼 수 있는 기록이고,
+# forget의 대상은 캐피가 "알고 있는 것"(파생 기억)이지 유저의 대화·일기 자체가 아니다.
+# 이 경계는 제품 결정 사항(§5 게이트 #5)이며 확정되면 여기 범위도 함께 정해야 한다.
+_DELETE_CHECKPOINTS_SQL = text("""
+DELETE FROM conversation_checkpoints WHERE user_id = :user_id
+""")
+
 _INVALIDATE_INSIGHTS_SQL = text("""
 UPDATE memory_insights i
 SET status='invalidated', valid_to=now()
@@ -318,6 +331,11 @@ async def apply(
         session, user_id=user_id, request=request, fact_ids=forgotten, insight_ids=insights
     )
 
+    # 6-b) 대화 요약도 파생 기억이라 함께 지운다(위 _DELETE_CHECKPOINTS_SQL 주석 참조).
+    checkpoints = (
+        await session.execute(_DELETE_CHECKPOINTS_SQL, {"user_id": user_id})
+    ).rowcount or 0
+
     # 7) 파생 재생성 + 외부 벡터 삭제를 같은 트랜잭션에서 건다(같은 Postgres 안의 파생 무효화).
     await memory_repo.enqueue_profile_refresh(
         session, user_id=user_id, memory_generation=generation, input_revision=revision
@@ -332,8 +350,9 @@ async def apply(
     )
 
     _log.info(
-        "forget 적용 — user=%s scope=%s gen=%d rev=%d facts=%d insights=%d profiles=%d",
-        user_id, request.scope, generation, revision, len(forgotten), len(insights), len(profiles),
+        "forget 적용 — user=%s scope=%s gen=%d rev=%d facts=%d insights=%d profiles=%d ckpt=%d",
+        user_id, request.scope, generation, revision,
+        len(forgotten), len(insights), len(profiles), checkpoints,
     )
     return ForgetResult(
         status=RESULT_APPLIED,
@@ -346,6 +365,7 @@ async def apply(
         forgotten_facts=forgotten,
         invalidated_insights=insights,
         invalidated_profiles=profiles,
+        deleted_checkpoints=checkpoints,
     )
 
 

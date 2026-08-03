@@ -25,6 +25,25 @@ class ChatContext(Base):
     memory_refreshed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # 정규화 기억(W8) — 유저별 모드/세대/소스 워터마크/프로필 입력 리비전.
+    # 'legacy'(mem0 자유문) | 'normalized'(memory_facts). W8은 스키마·저장소만 놓고 유저를 옮기지
+    # 않는다(전환=W10 cutover). memory_text/memory_refreshed_at은 legacy 전용이다.
+    memory_mode: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'legacy'")
+    )
+    # forget/cutover마다 +1 → 늦게 돌아온 잡의 stale 결과를 버리는 기준.
+    memory_generation: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("0")
+    )
+    # 대화 turn 커밋마다 +1로 배정(memory_source_turns의 watermark).
+    memory_source_watermark: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("0")
+    )
+    # fact/insight의 **실제** 내용·source·상태가 바뀐 트랜잭션에서만 정확히 +1.
+    # no-op/retry/임베딩 재색인은 증가시키지 않는다(프로필 재생성 폭주 방지).
+    relationship_profile_input_revision: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("0")
+    )
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=True
     )

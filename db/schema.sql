@@ -365,11 +365,19 @@ CREATE TABLE public.reward_ad_sessions (
 CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions (user_id);
 
 -- 대화 컨텍스트 상태(앵커 append-only + 기억 스냅샷). 기억 평문 사본 → 민감(RLS + REVOKE 아래).
+-- memory_* 4종(W8) = 유저별 기억 모드/세대/소스 워터마크/프로필 입력 리비전. memory_text·
+-- memory_refreshed_at은 legacy(mem0) 전용이며 normalized 유저는 W10 cutover가 NULL로 만든다.
 CREATE TABLE public.chat_contexts (
   user_id             uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
   anchor_message_id   bigint NOT NULL DEFAULT 0 CHECK (anchor_message_id >= 0),
   memory_text         text,
   memory_refreshed_at timestamptz,
+  -- 'legacy'(mem0 자유문) | 'normalized'(memory_facts 구조화). 전환은 유저 단위·W10 소관.
+  memory_mode         text   NOT NULL DEFAULT 'legacy' CHECK (memory_mode IN ('legacy','normalized')),
+  memory_generation   bigint NOT NULL DEFAULT 0,       -- forget/cutover마다 +1 → stale 잡 결과 폐기
+  memory_source_watermark bigint NOT NULL DEFAULT 0,   -- 대화 turn당 +1(memory_source_turns 배정)
+  -- fact/insight의 실제 내용·source·상태 변경 트랜잭션에서만 정확히 +1(no-op·retry·재색인은 제외)
+  relationship_profile_input_revision bigint NOT NULL DEFAULT 0,
   updated_at          timestamptz NOT NULL DEFAULT now()
 );
 REVOKE ALL ON public.chat_contexts FROM anon, authenticated;
@@ -453,7 +461,152 @@ CREATE INDEX async_jobs_reclaim_idx
 CREATE INDEX async_jobs_state_queue_idx ON public.async_jobs (state, queue);
 
 -- ─────────────────────────────────────────────────────────────
--- 10. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
+-- 10. 메모리 정규화(W8) — 자유문 기억(mem0)을 대체할 턴 단위 구조화 사실.
+--     판정(ADD/REINFORCE/SUPERSEDE/KEEP_BOTH/IGNORE)은 LLM이 아니라 코드가 한다.
+--     · fact의 (normalization_version, content_hash)와 marker의 (normalization_version,
+--       normalized_hash)는 **같은 산출물**이다(공용 해시 함수 1개). forget은 fact 값을 그대로 복사.
+--     · fact의 forgotten/superseded, insight의 invalidated/superseded는 terminal(되살리지 않는다).
+--     · watermark는 대화 turn당 하나, message는 정확히 한 watermark에만 속한다.
+--     · v1 추출 소스는 conversation_turn만(일기·루틴은 자체 watermark/closure 계약 전까지 제외).
+--     상세 = docs/agentic-chat-IMPLEMENTATION.md §W8.
+-- ─────────────────────────────────────────────────────────────
+-- fact 임베딩용(무차원 vector — 차원 고정은 embedder 마이그레이션에서 별도 검증).
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE public.memory_facts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  kind text NOT NULL,                       -- profile|preference|relationship|event|emotion (코드 registry)
+  canonical_text text NOT NULL,             -- 자연어 표면 — 저장 직전 naming.to_placeholder + 살균 강제
+  subject text NULL,
+  predicate text NULL,                      -- 코드 registry의 canonical key(cardinality single|multi)
+  object_json jsonb NULL,                   -- predicate와 함께 있거나 함께 없다(스키마 검증)
+  event_time timestamptz NULL,
+  valid_from timestamptz NOT NULL DEFAULT now(),
+  valid_to timestamptz NULL,
+  status text NOT NULL DEFAULT 'active'
+    CHECK (status IN ('active','superseded','forgotten')),
+  importance double precision NOT NULL,
+  confidence double precision NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+  content_hash text NOT NULL,               -- = marker.normalized_hash와 같은 산출물
+  normalization_version text NOT NULL,      -- 제자리 재해시 금지(구 normalizer는 registry에 영구 보관)
+  superseded_by uuid NULL,
+  embedding vector NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, id),                     -- 아래 복합 FK들이 user_id를 함께 태우기 위한 대상 키
+  FOREIGN KEY (user_id, superseded_by) REFERENCES public.memory_facts(user_id, id) ON DELETE RESTRICT,
+  CHECK ((status='active' AND valid_to IS NULL) OR status<>'active')
+);
+CREATE INDEX memory_facts_active_user_idx
+  ON public.memory_facts(user_id, predicate, event_time) WHERE status='active';
+CREATE INDEX memory_facts_hash_idx
+  ON public.memory_facts(user_id, normalization_version, content_hash);
+
+-- 근거. FK가 user_id를 태우지 않으므로(messages PK=(id)) **코드가 트랜잭션 안에서
+-- messages.user_id = fact.user_id를 반드시 검증한다** — DB 제약만으로는 타 유저 메시지를 못 막는다.
+CREATE TABLE public.memory_evidence (
+  fact_id uuid NOT NULL REFERENCES public.memory_facts(id) ON DELETE RESTRICT,
+  source_type text NOT NULL CHECK (source_type='conversation_turn'),  -- v1은 이 값만
+  source_id bigint NOT NULL REFERENCES public.messages(id) ON DELETE RESTRICT,
+  source_excerpt_hash text NOT NULL,
+  observed_at timestamptz NOT NULL,
+  PRIMARY KEY (fact_id, source_type, source_id)
+);
+
+CREATE TABLE public.memory_insights (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  text text NOT NULL,
+  confidence double precision NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
+  status text NOT NULL DEFAULT 'active'
+    CHECK (status IN ('active','invalidated','superseded')),
+  valid_from timestamptz NOT NULL DEFAULT now(),
+  valid_to timestamptz NULL,
+  derivation_version text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, id),
+  CHECK ((status='active' AND valid_to IS NULL) OR status<>'active')
+);
+
+CREATE TABLE public.memory_insight_sources (
+  user_id uuid NOT NULL,
+  insight_id uuid NOT NULL,
+  fact_id uuid NOT NULL,
+  PRIMARY KEY (user_id, insight_id, fact_id),
+  -- 복합 FK(user_id 동반) — 타 유저 fact를 근거로 다는 경로를 스키마가 막는다.
+  FOREIGN KEY (user_id, insight_id) REFERENCES public.memory_insights(user_id, id) ON DELETE RESTRICT,
+  FOREIGN KEY (user_id, fact_id) REFERENCES public.memory_facts(user_id, id) ON DELETE RESTRICT
+);
+
+-- 망각 마커 = "잊어달라"의 영속 deny key. 검색·추출 hard filter가 모든 LLM 제안보다 먼저 본다.
+-- expires_at은 항상 NULL(CHECK) — 잊은 사실이 만료로 되살아나지 않는다. fact_id FK는 DEFERRABLE
+-- INITIALLY DEFERRED라 retention 삭제 시 marker를 마지막 statement로 지울 수 있다.
+CREATE TABLE public.memory_forget_markers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  scope text NOT NULL CHECK (scope IN ('fact','predicate','all')),
+  fact_id uuid NULL,
+  normalized_hash text NULL,                -- = memory_facts.content_hash 복사본
+  normalization_version text NULL,          -- = memory_facts.normalization_version 복사본
+  predicate text NULL,
+  memory_generation bigint NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz NULL,
+  FOREIGN KEY (user_id, fact_id) REFERENCES public.memory_facts(user_id, id)
+    ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED,
+  CHECK (
+    (scope='fact' AND fact_id IS NOT NULL AND normalized_hash IS NOT NULL
+                  AND normalization_version IS NOT NULL AND predicate IS NULL)
+    OR (scope='predicate' AND fact_id IS NULL AND normalized_hash IS NULL
+                          AND normalization_version IS NULL AND predicate IS NOT NULL)
+    OR (scope='all' AND fact_id IS NULL AND normalized_hash IS NULL
+                    AND normalization_version IS NULL AND predicate IS NULL)
+  ),
+  CHECK (expires_at IS NULL)
+);
+CREATE INDEX memory_forget_markers_match_idx
+  ON public.memory_forget_markers(user_id, scope, normalization_version, normalized_hash, predicate);
+
+-- 소스 watermark — 대화 turn당 정확히 하나. representative_message_id는 그 turn을 시작한
+-- inbound user message다. 이 메시지가 없는 turn(선발화만 등)은 추출 소스로 enqueue하지 않는다.
+CREATE TABLE public.memory_source_turns (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  source_watermark bigint NOT NULL CHECK (source_watermark > 0),
+  representative_message_id bigint NOT NULL REFERENCES public.messages(id) ON DELETE RESTRICT,
+  committed_at timestamptz NOT NULL,
+  PRIMARY KEY (user_id, source_watermark),
+  UNIQUE (user_id, representative_message_id)
+);
+
+CREATE TABLE public.memory_source_turn_messages (
+  user_id uuid NOT NULL,
+  source_watermark bigint NOT NULL,
+  message_id bigint NOT NULL REFERENCES public.messages(id) ON DELETE RESTRICT,
+  PRIMARY KEY (user_id, source_watermark, message_id),
+  UNIQUE (user_id, message_id),             -- 한 message는 정확히 한 watermark에만 속한다
+  FOREIGN KEY (user_id, source_watermark)
+    REFERENCES public.memory_source_turns(user_id, source_watermark) ON DELETE RESTRICT
+);
+
+-- forget이 닫은 소스 구간. 추출 배치의 중간 watermark가 하나라도 겹치면 **부분 publish 금지** —
+-- 전체를 source_range_closed로 끝내고 열린 source만 새 generation job으로 다시 묶는다.
+CREATE TABLE public.memory_source_closures (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  source_kind text NOT NULL CHECK (source_kind='conversation_turn'),
+  from_watermark bigint NOT NULL,
+  through_watermark bigint NOT NULL,
+  forget_operation_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (from_watermark <= through_watermark),
+  UNIQUE (user_id, forget_operation_id, source_kind, from_watermark, through_watermark)
+);
+CREATE INDEX memory_source_closures_overlap_idx
+  ON public.memory_source_closures(user_id, source_kind, from_watermark, through_watermark);
+
+-- ─────────────────────────────────────────────────────────────
+-- 11. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
 --     클라 데이터 경로는 전부 서버 API → anon/authenticated 직접 접근 차단.
 --     (클라 직접 읽기가 필요해지면 여기에 own-row SELECT 정책 추가)
 -- ─────────────────────────────────────────────────────────────
@@ -469,6 +622,15 @@ BEGIN
     'chat_contexts','feedback','diary_gen_claims','revenuecat_events','async_jobs'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
+  END LOOP;
+  -- 기억 테이블(W8)은 유저 대화에서 뽑은 PII라 RLS에 더해 클라 롤 권한도 회수한다(chat_contexts와 동일).
+  FOREACH t IN ARRAY ARRAY[
+    'memory_facts','memory_evidence','memory_insights','memory_insight_sources',
+    'memory_forget_markers','memory_source_turns','memory_source_turn_messages',
+    'memory_source_closures'
+  ] LOOP
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
+    EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated;', t);
   END LOOP;
 END $$;
 

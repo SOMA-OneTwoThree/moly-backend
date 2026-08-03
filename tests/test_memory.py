@@ -1,4 +1,4 @@
-"""장기기억 렌더 살균 + 로드 실패/빈결과 구분."""
+"""장기기억 렌더 살균 + 로드 실패/빈결과 구분 + legacy/normalized 모드 분기(W8)."""
 import pytest
 
 from app.services import memory as m
@@ -104,3 +104,58 @@ async def test_add_conversation_chunks_and_per_batch_best_effort(monkeypatch):
     with pytest.raises(RuntimeError):
         await m.add_conversation("u", msgs, "ko")
     assert calls["n"] == n_batches  # 실패 배치 후에도 전 배치 시도(best-effort)
+
+
+# ─────────────────────────────────────────────────────────────
+# 모드 분기(W8) — legacy는 회귀 0, normalized는 mem0를 아예 건드리지 않는다.
+# ─────────────────────────────────────────────────────────────
+class _Recorder:
+    def __init__(self, items=()):
+        self.get_all_calls = 0
+        self.add_calls = 0
+        self._items = list(items)
+
+    async def get_all(self, **kw):
+        self.get_all_calls += 1
+        return {"results": self._items}
+
+    async def add(self, batch, *, user_id, prompt=None):
+        self.add_calls += 1
+
+
+@pytest.fixture
+def mem0(monkeypatch):
+    monkeypatch.setattr(m.settings, "supabase_db_connection_string", "x")
+    monkeypatch.setattr(m.settings, "openai_api_key", "x")
+    rec = _Recorder([{"memory": "고양이 키움", "created_at": "2026-01-01"}])
+    monkeypatch.setattr(m, "_get_memory", lambda: rec)
+    return rec
+
+
+async def test_legacy_is_the_default_and_unchanged(mem0):
+    """mode를 안 넘기는 기존 호출부는 지금까지와 똑같이 mem0를 읽고 쓴다."""
+    assert await m.load_for_context("u") == "- 고양이 키움"
+    await m.add_conversation("u", [{"role": "user", "content": "안녕"}])
+    assert mem0.get_all_calls == 1 and mem0.add_calls == 1
+    # 명시적 legacy도 같다.
+    assert await m.load_for_context("u", mode=m.MODE_LEGACY) == "- 고양이 키움"
+
+
+async def test_normalized_user_never_touches_mem0(mem0):
+    """정규화 유저는 mem0로 폴백하지 않는다 — 폴백하면 forget으로 지운 내용이 되살아난다."""
+    assert await m.load_for_context("u", mode=m.MODE_NORMALIZED) == ""
+    await m.add_conversation("u", [{"role": "user", "content": "안녕"}], mode=m.MODE_NORMALIZED)
+    assert mem0.get_all_calls == 0 and mem0.add_calls == 0
+
+
+async def test_delete_all_runs_regardless_of_mode(monkeypatch):
+    """전환한 유저도 전환 이전의 mem0 잔여분을 갖고 있으므로 탈퇴 시 반드시 지운다."""
+    deleted = []
+
+    class _Del(_Recorder):
+        async def delete_all(self, *, user_id):
+            deleted.append(user_id)
+
+    monkeypatch.setattr(m, "_get_memory", lambda: _Del())
+    await m.delete_all("u")
+    assert deleted == ["u"]

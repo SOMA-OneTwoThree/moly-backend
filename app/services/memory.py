@@ -1,6 +1,16 @@
-"""장기기억(mem0) — 같은 Supabase pgvector. chat은 READ(주입)만, 쓰기는 워커 배치(04:00).
+"""장기기억 **façade** — legacy(mem0)와 normalized(memory_facts, W8)를 한 인터페이스 뒤에 둔다.
 
 mem0 형식은 이 모듈에만 가둔다. user 연결 = metadata.user_id(FK 아님) → 탈퇴 시 delete_all 병행.
+chat은 READ(주입)만, mem0 쓰기는 워커 배치(04:00).
+
+**mode 분기**(W8): 유저별 기억 방식은 `chat_contexts.memory_mode`가 가른다.
+- `legacy` — 지금까지의 mem0 경로. 기본값이고 **동작이 하나도 바뀌지 않는다**.
+- `normalized` — 구조화 사실(`memory_facts`) 경로. 주입은 W9 관계 프로필이, 실제 전환(cutover)은
+  W10이 한다. 그래서 여기서는 **mem0를 쓰지도 읽지도 않는 것**까지만 보장한다: 빈 기억으로
+  fail-open하고 legacy 문자열로 폴백하지 않는다(폴백하면 잊은 내용이 되살아난다).
+
+`mode` 인자는 기본값이 `legacy`라 기존 호출부는 그대로 동작한다. cutover 때 호출부가
+`chat_contexts.memory_mode`를 읽어 넘긴다(`memory_repo.resolve_mode`).
 """
 from __future__ import annotations
 
@@ -90,6 +100,15 @@ def _sanitize(text: str) -> str:
     return text.translate(_STRIP).translate(_BRACKETS).strip()
 
 
+# 정규화 기억(W8)이 승계하는 같은 살균 규칙. 프롬프트에 들어가는 기억 문자열은 legacy든
+# normalized든 같은 방어선을 통과해야 하므로 규칙을 복제하지 않고 이 이름으로 공유한다.
+sanitize_text = _sanitize
+
+# chat_contexts.memory_mode 값(= DB CHECK 값). 문자열 리터럴을 여기저기 흩지 않는다.
+MODE_LEGACY = "legacy"
+MODE_NORMALIZED = "normalized"
+
+
 # mem0 fact 추출 지시(최우선 규칙) — 유저 언어로 저장 + 이름/호칭 미저장(개명 드리프트·프라이버시 방어).
 # en/ja 유저에게 한국어 지시를 주면 (1)외국어 원문을 한국어로 번역·왜곡 저장(언어 불일치)
 # (2)지시(한국어) vs 데이터(외국어) 충돌로 이름미저장 준수율 저하 → 언어별로 분기한다(SOMA-365).
@@ -173,12 +192,17 @@ def _render(items: list) -> str:
     return "\n".join(lines)
 
 
-async def load_for_context(user_id: str) -> str:
+async def load_for_context(user_id: str, *, mode: str = MODE_LEGACY) -> str:
     """유저 장기기억을 로드·랭킹·렌더.
 
     미설정 = "" (기능 OFF, 대화 계속). 성공(빈 결과 포함) = 렌더값("" 가능).
     전이 장애 = MemoryUnavailable raise(빈 성공과 구분 — 호출측이 스냅샷 폴백 판단).
+
+    `normalized` 유저는 mem0를 **읽지 않는다**. 정규화 기억의 주입 경로는 관계 프로필(W9)이고,
+    그게 없다고 mem0로 폴백하면 forget으로 지운 내용이 되살아난다 → 빈 기억으로 fail-open.
     """
+    if mode == MODE_NORMALIZED:
+        return ""
     if not (settings.supabase_db_connection_string and settings.openai_api_key):
         return ""
     try:
@@ -192,8 +216,13 @@ async def load_for_context(user_id: str) -> str:
     return _render(items or [])
 
 
-async def add_conversation(user_id: str, messages: list[dict], language: str | None = None) -> None:
+async def add_conversation(
+    user_id: str, messages: list[dict], language: str | None = None, *, mode: str = MODE_LEGACY
+) -> None:
     """워커 배치용 — 그날 대화를 mem0에 추출·저장(chat 경로 아님). SQLite 히스토리 락 회피 위해 직렬.
+
+    `normalized` 유저는 no-op이다. 추출은 턴 단위 잡(`memory_extract`)이 이미 하고 있으므로,
+    여기서 mem0에 또 쓰면 두 벌의 기억이 갈라진다.
 
     유저 언어로 추출한다(SOMA-365) — 전역 싱글턴은 유지하고 add마다 prompt로 언어 지시를 오버라이드
     (mem0 add의 prompt 인자가 custom_instructions보다 우선). en/ja 기억이 한국어로 번역 저장되던 문제 방지.
@@ -203,7 +232,7 @@ async def add_conversation(user_id: str, messages: list[dict], language: str | N
     관측). _WRITE_LOCK은 전 배치에 걸쳐 유지(배치 간 dedup search 일관성). 헤비 유저는 추출 LLM
     호출이 배치 수만큼(2~3배) 늘고 직렬 구간도 그만큼 길어진다.
     """
-    if not messages:
+    if mode == MODE_NORMALIZED or not messages:
         return
     batches = _chunk_messages(messages)
     instr = _instructions_for(language)
@@ -221,7 +250,11 @@ async def add_conversation(user_id: str, messages: list[dict], language: str | N
 
 
 async def delete_all(user_id: str) -> None:
-    """탈퇴용 — mem0 기억 전량 삭제(FK 밖이라 CASCADE 안 됨, ERD §7)."""
+    """탈퇴용 — mem0 기억 전량 삭제(FK 밖이라 CASCADE 안 됨, ERD §7).
+
+    mode로 분기하지 않는다: normalized로 옮긴 유저도 전환 이전의 mem0 잔여분을 갖고 있으므로
+    지우지 않으면 탈퇴 후에도 남는다(정규화 테이블 쪽은 profiles CASCADE가 처리한다).
+    """
     await _get_memory().delete_all(user_id=user_id)
 
 

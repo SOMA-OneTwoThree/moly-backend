@@ -293,6 +293,10 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         # 🔴 여기서 하는 도메인 쓰기는 checkpoint 1행뿐이다. 요약에서 기억 추출 잡을 만들지 않는다.
         # forget과 같은 행을 잠근 채로 검사하고 INSERT까지 간다. 잠그지 않으면 검사 통과 뒤
         # INSERT 전에 forget이 끼어들어(세대 증가 + 요약 삭제) 세 검사를 전부 피한다.
+        #
+        # 잠금은 NOWAIT다(checkpoint_repo 주석 참조) — 챗과 락 순서가 반대라 기다리면 교착이
+        # 난다. 못 잡으면 여기서 예외가 올라가 확정이 통째로 롤백되고, 잡은 lease 만료 후
+        # reaper가 다시 넣는다. 요약이 한 주기 늦을 뿐이고 **챗은 절대 희생되지 않는다.**
         ok, _ = await _still_applicable(session, req, lock=True)
         if ok and await checkpoint_repo.has_closed_messages(
             session, req.user_id, list(req.source_message_ids)

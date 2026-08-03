@@ -40,8 +40,13 @@ _GENERATION_SQL = text(
 # finalize 전용 — forget이 잠그는 것과 **같은 행**을 잠근다(`memory_forget._LOCK_CONTEXT_SQL`).
 # 안 잠그면 세대를 읽은 뒤 INSERT하기 전에 forget이 끼어들어 세대 증가·요약 삭제를 마치고,
 # finalize는 세대·closure·삭제 셋을 전부 피해 옛 요약을 되살린다(check-then-act 경합).
+# `NOWAIT`인 이유: 챗 Phase 2와 락 순서가 반대다(챗은 chat_contexts를 잡고 async_jobs에 잡을
+# 걸고, 확정은 async_jobs를 fencing으로 잡은 뒤 chat_contexts를 잡는다). 그냥 기다리면 교착이
+# 나고 Postgres가 둘 중 하나를 죽이는데, **챗이 희생되면 유저에게 오류가 간다.**
+# 배경 작업인 요약이 양보한다 — 못 잡으면 즉시 실패하고 재시도한다(요약은 늦어도 된다).
 _LOCK_GENERATION_SQL = text(
-    "SELECT COALESCE(memory_generation, 0) FROM chat_contexts WHERE user_id = :user_id FOR UPDATE"
+    "SELECT COALESCE(memory_generation, 0) FROM chat_contexts "
+    "WHERE user_id = :user_id FOR UPDATE NOWAIT"
 )
 
 # 잊어줘가 닫은 구간이 하나라도 있는가. 재검증은 `(0, through]` 원본 전체를 다시 읽으므로

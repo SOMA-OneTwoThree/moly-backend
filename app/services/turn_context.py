@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,6 +37,129 @@ class CurrentTurnContext:
     routines_planned: int | None = None
     routines_done: int | None = None
     last_active_bucket: str | None = None  # "just_now"|"today"|"recent"|"long"
+
+
+async def build_context(
+    session: AsyncSession,
+    profile: Profile,
+    *,
+    is_first_today: bool,
+    now_utc: datetime,
+) -> CurrentTurnContext:
+    """DB 조회로 채운 CurrentTurnContext(chat.py 배선 단계가 호출 → render()에 전달).
+
+    조회 3개(장착 아이템·루틴 집계·마지막 활동)는 각각 `session.begin_nested()` savepoint로
+    감싼다 — 이 블록은 항목별 fail-open이어야 한다(한 조회가 죽어도 나머지 문구는 살려야
+    프롬프트에 빈 블록만 빠지고 캐피 발화 전체가 죽지 않는다). 단일 배치 SQL로 묶으면
+    subquery 하나의 실패가 전체를 무효화해 이 fail-open을 못 만든다.
+    ⚠️ 이 레포에서 begin_nested는 지금까지 subscription.py 3곳뿐이고 전부 "동시 INSERT 충돌
+    멱등 수렴" 용도다. 여기서는 "조회 실패 격리"라는 새 용도로 쓴다 — 실패해도 재시도할 동시성
+    문제가 아니라, 그냥 그 필드를 비우고 넘어가기 위해 SAVEPOINT로 트랜잭션을 오염시키지 않는다.
+    각 savepoint 실패 시 그 블록만 롤백하고 해당 필드는 None(리스트는 빈 리스트)으로 둔다.
+    """
+    uid = profile.id
+
+    equipped_names: list[str] = []
+    theme_name: str | None = None
+    try:
+        async with session.begin_nested():
+            rows = await shop._user_rows(session, uid)
+            equipped_rows = [r for r in rows if r.equipped_slot is not None]
+            products = await shop._products_by_ids(
+                session, {r.product_id for r in equipped_rows}
+            )
+            names: list[str] = []
+            theme: str | None = None
+            for row in equipped_rows:
+                product = products.get(row.product_id)
+                if product is None:
+                    continue  # 비활성화·삭제된 상품 — 조용히 생략(이미 착용 목록엔 안 남아야 정상)
+                name = i18n.localized_name(
+                    product.name_i18n, profile.language, product.name,
+                    kind="product", key=str(product.id),
+                )
+                if row.equipped_slot == "theme":
+                    theme = name
+                else:
+                    names.append(name)
+            equipped_names, theme_name = names, theme
+    except Exception:
+        _log.warning("build_context: 장착 아이템 조회 실패 — 해당 필드 생략", exc_info=True)
+        equipped_names, theme_name = [], None
+
+    routines_planned: int | None = None
+    routines_done: int | None = None
+    try:
+        async with session.begin_nested():
+            # 루틴의 "오늘" = current_reward_date(로컬 00:00 경계). 대화의 activity_date(04:00)와
+            # 다르다 — 팀장 결정이자 기존 루틴 도메인의 진실(routine.py:13,54가 이 기준을 쓴다).
+            # 유저가 앱에서 보는 루틴 완료 상태와 캐피 발화가 어긋나면 안 되기 때문.
+            ad = current_reward_date(profile.timezone)
+            weekday = ad.isoweekday()  # ISO 1=월 ~ 7=일
+            all_routines = list(
+                (
+                    await session.execute(
+                        select(Routine).where(
+                            Routine.user_id == uid, Routine.deleted_at.is_(None)
+                        )
+                    )
+                ).scalars().all()
+            )
+            planned_ids = {r.id for r in all_routines if weekday in r.days_of_week}
+            done_ids = set(
+                (
+                    await session.execute(
+                        select(RoutineCompletion.routine_id).where(
+                            RoutineCompletion.user_id == uid,
+                            RoutineCompletion.activity_date == ad,
+                        )
+                    )
+                ).scalars().all()
+            )
+            routines_planned = len(planned_ids)
+            routines_done = len(done_ids & planned_ids)
+    except Exception:
+        _log.warning("build_context: 루틴 집계 조회 실패 — 해당 필드 생략", exc_info=True)
+        routines_planned, routines_done = None, None
+
+    last_active_bucket_value: str | None = None
+    if settings.current_context_last_active_enabled:
+        try:
+            async with session.begin_nested():
+                last_active_at = (
+                    await session.execute(
+                        select(func.max(UserDevice.last_active_at)).where(
+                            UserDevice.user_id == uid
+                        )
+                    )
+                ).scalar()
+                if last_active_at is not None:
+                    delta = (now_utc - last_active_at).total_seconds()
+                    last_active_bucket_value = last_active_bucket(delta)
+        except Exception:
+            _log.warning("build_context: 마지막 활동 조회 실패 — 해당 필드 생략", exc_info=True)
+            last_active_bucket_value = None
+
+    # 로컬 날짜끼리 빼야 한다 — UTC 날짜로 빼면 유저 로컬 자정~09시(KST) 가입처럼 UTC 전날로
+    # 넘어가는 경우 하루가 더 늘어난다("함께한 지 N일"이 유저 체감보다 1 크게 보임).
+    zone = safe_zone(profile.timezone)
+    local_hour = now_utc.astimezone(zone).hour
+    days_together = (
+        (now_utc.astimezone(zone).date() - profile.created_at.astimezone(zone).date()).days
+        if profile.created_at is not None
+        else None
+    )
+
+    return CurrentTurnContext(
+        time_bucket=time_bucket(local_hour),
+        is_first_today=is_first_today,
+        days_together=days_together,
+        equipped_names=equipped_names,
+        theme_name=theme_name,
+        routines_planned=routines_planned,
+        routines_done=routines_done,
+        last_active_bucket=last_active_bucket_value,
+    )
 
 
 def time_bucket(hour: int) -> str:

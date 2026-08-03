@@ -119,9 +119,15 @@ def _chain_matches(previous: checkpoint.Checkpoint | None, req: _Request) -> boo
     return (str(previous.id) if previous is not None else None) == req.previous_id
 
 
-async def _generation_matches(session: AsyncSession, req: _Request) -> bool:
-    """잡을 만든 시점과 지금의 기억 세대가 같은가. 다르면 그 사이에 forget이 있었다."""
-    current = await checkpoint_repo.read_memory_generation(session, req.user_id)
+async def _generation_matches(
+    session: AsyncSession, req: _Request, *, lock: bool = False
+) -> bool:
+    """잡을 만든 시점과 지금의 기억 세대가 같은가. 다르면 그 사이에 forget이 있었다.
+
+    `lock=True`면 forget과 같은 행을 잠근다 — **확정 트랜잭션에서는 반드시 켠다**(안 그러면
+    읽은 뒤 INSERT 전에 forget이 끼어들어 세 검사를 전부 피한다).
+    """
+    current = await checkpoint_repo.read_memory_generation(session, req.user_id, lock=lock)
     if current == req.memory_generation:
         return True
     _log.info(
@@ -132,7 +138,7 @@ async def _generation_matches(session: AsyncSession, req: _Request) -> bool:
 
 
 async def _still_applicable(
-    session: AsyncSession, req: _Request
+    session: AsyncSession, req: _Request, *, lock: bool = False
 ) -> tuple[bool, checkpoint.Checkpoint | None]:
     """fenced finalize 트랜잭션 안에서 하는 마지막 확인(최신 checkpoint를 fresh read).
 
@@ -141,7 +147,7 @@ async def _still_applicable(
     """
     # 세대부터 본다. LLM 구간(DB 커넥션 0)에서 forget이 끼면 checkpoint가 전량 지워져
     # previous=None이 되는데, 그 상태가 "첫 요약"과 구분이 안 돼 체인 검사만으로는 통과한다.
-    if not await _generation_matches(session, req):
+    if not await _generation_matches(session, req, lock=lock):
         return False, None
     previous = await checkpoint_repo.load_latest(session, req.user_id)
     if previous is not None and previous.through_message_id >= req.through_message_id:
@@ -285,7 +291,13 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
 
     async def _apply(session: AsyncSession) -> None:
         # 🔴 여기서 하는 도메인 쓰기는 checkpoint 1행뿐이다. 요약에서 기억 추출 잡을 만들지 않는다.
-        ok, _ = await _still_applicable(session, req)
+        # forget과 같은 행을 잠근 채로 검사하고 INSERT까지 간다. 잠그지 않으면 검사 통과 뒤
+        # INSERT 전에 forget이 끼어들어(세대 증가 + 요약 삭제) 세 검사를 전부 피한다.
+        ok, _ = await _still_applicable(session, req, lock=True)
+        if ok and await checkpoint_repo.has_closed_messages(
+            session, req.user_id, list(req.source_message_ids)
+        ):
+            ok = False  # 잠금 획득 사이에 closure가 생겼다
         if not ok:
             _log.warning(
                 "요약 확정 직전 상태 변화로 저장 생략 — user=%s through=%s", req.user_id,

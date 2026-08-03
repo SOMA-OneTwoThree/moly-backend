@@ -87,6 +87,7 @@ def store(monkeypatch) -> dict:
         "inserts": [],          # 호출 시점의 (세션, 커밋 수)
         "forget_closures": False,   # 잊어줘로 닫힌 구간 존재 여부
         "closed_message_ids": set(),  # 그중 실제로 닫힌 메시지 id
+        "generation_locked": 0,       # FOR UPDATE로 읽은 횟수(확정 트랜잭션에서 1회 이상이어야 한다)
         "memory_generation": 0,     # 현재 기억 세대(forget이 +1 한다)
     }
 
@@ -120,7 +121,8 @@ def store(monkeypatch) -> dict:
     async def _has_closures(session, user_id):
         return state["forget_closures"]
 
-    async def _generation(session, user_id):
+    async def _generation(session, user_id, *, lock=False):
+        state["generation_locked"] = state.get("generation_locked", 0) + (1 if lock else 0)
         return state["memory_generation"]
 
     monkeypatch.setattr(checkpoint_repo, "insert", _insert)
@@ -575,3 +577,42 @@ async def test_normal_checkpoint_proceeds_when_nothing_was_closed(db, store, llm
 
     assert row["result_code"] == checkpoint_jobs.RESULT_OK
     assert len(store["rows"]) == 1
+
+
+async def test_finalize_locks_the_row_it_checks(db, store, llm_calls):
+    """확정 트랜잭션은 forget과 같은 행을 잠근 채로 검사하고 INSERT한다.
+
+    잠그지 않으면 세대를 읽은 뒤 INSERT 전에 forget이 끼어들어(세대 증가 + 요약 삭제)
+    세대·closure·삭제 세 검사를 **전부 피하고** 옛 요약이 되살아난다.
+    """
+    await _run(db, _enqueue_job(db, _payload()))
+
+    assert store["generation_locked"] >= 1  # 확정 구간에서 FOR UPDATE로 읽었다
+
+
+async def test_unmapped_messages_count_as_closed_when_the_user_has_forgotten(monkeypatch):
+    """워터마크 매핑이 없는 메시지는 닫힌 것으로 센다(잊기 이력이 있을 때).
+
+    매핑 조회는 memory_source_turn_messages에서 출발하는 join이라 매핑 없는 메시지는
+    join에 안 걸려 "안전"으로 보인다. 그런 메시지는 실제로 생긴다(Phase 1이 legacy를 읽은 뒤
+    cutover되고 Phase 2가 도는 턴). 정체를 모르는 걸 안전으로 넘기면 잊은 내용이 요약에 들어간다.
+    """
+    calls: list[str] = []
+
+    class _S:
+        async def execute(self, stmt, params=None):
+            s = str(stmt)
+            calls.append(s)
+            if "memory_source_closures" in s and "memory_source_turn_messages" not in s:
+                return _Rows([(1,)])          # 잊기 이력 있음
+            if "JOIN memory_source_closures" in s:
+                return _Rows([])              # 닫힌 구간에 직접 걸린 건 없음
+            return _Rows([])                  # 매핑도 없음 ← 여기가 핵심
+
+    class _Rows:
+        def __init__(self, rows): self._rows = rows
+        def first(self): return self._rows[0] if self._rows else None
+        def scalars(self): return self
+        def all(self): return [r[0] for r in self._rows]
+
+    assert await checkpoint_repo.has_closed_messages(_S(), uuid.uuid4(), [11, 12]) is True

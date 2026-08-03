@@ -37,6 +37,13 @@ _GENERATION_SQL = text(
     "SELECT COALESCE(memory_generation, 0) FROM chat_contexts WHERE user_id = :user_id"
 )
 
+# finalize 전용 — forget이 잠그는 것과 **같은 행**을 잠근다(`memory_forget._LOCK_CONTEXT_SQL`).
+# 안 잠그면 세대를 읽은 뒤 INSERT하기 전에 forget이 끼어들어 세대 증가·요약 삭제를 마치고,
+# finalize는 세대·closure·삭제 셋을 전부 피해 옛 요약을 되살린다(check-then-act 경합).
+_LOCK_GENERATION_SQL = text(
+    "SELECT COALESCE(memory_generation, 0) FROM chat_contexts WHERE user_id = :user_id FOR UPDATE"
+)
+
 # 잊어줘가 닫은 구간이 하나라도 있는가. 재검증은 `(0, through]` 원본 전체를 다시 읽으므로
 # 닫힌 구간을 **필연적으로** 포함한다 — 있으면 재검증을 건너뛰고 체인 요약으로 간다.
 _HAS_CLOSURE_SQL = text(
@@ -54,6 +61,12 @@ JOIN memory_source_closures c
  AND tm.source_watermark BETWEEN c.from_watermark AND c.through_watermark
 WHERE tm.user_id = :user_id AND tm.message_id IN :ids
 LIMIT 1
+""").bindparams(bindparam("ids", expanding=True))
+
+# 위 fail-closed 판정용 — 이 메시지들 중 watermark 매핑이 있는 것.
+_MAPPED_MESSAGES_SQL = text("""
+SELECT message_id FROM memory_source_turn_messages
+WHERE user_id = :user_id AND message_id IN :ids
 """).bindparams(bindparam("ids", expanding=True))
 
 # 요약 대상 구간. after_id는 이전 checkpoint의 through(없으면 0) — 열린 하한, 닫힌 상한이다.
@@ -76,9 +89,16 @@ RETURNING id
 _USER_STATE_SQL = text("SELECT nickname, language FROM profiles WHERE id = :user_id")
 
 
-async def read_memory_generation(session: AsyncSession, user_id: uuid.UUID | str) -> int:
-    """그 유저의 현재 기억 세대. 행이 없으면 0(아직 대화 컨텍스트가 없는 유저)."""
-    row = (await session.execute(_GENERATION_SQL, {"user_id": user_id})).first()
+async def read_memory_generation(
+    session: AsyncSession, user_id: uuid.UUID | str, *, lock: bool = False
+) -> int:
+    """그 유저의 현재 기억 세대. 행이 없으면 0(아직 대화 컨텍스트가 없는 유저).
+
+    `lock=True`면 forget과 같은 행을 `FOR UPDATE`로 잠근다 — **확정 트랜잭션에서는 반드시 켠다.**
+    잠그지 않으면 읽은 뒤 쓰기 전에 forget이 끼어들 수 있다.
+    """
+    sql = _LOCK_GENERATION_SQL if lock else _GENERATION_SQL
+    row = (await session.execute(sql, {"user_id": user_id})).first()
     return int(row[0]) if row is not None else 0
 
 
@@ -90,13 +110,26 @@ async def has_forget_closures(session: AsyncSession, user_id: uuid.UUID | str) -
 async def has_closed_messages(
     session: AsyncSession, user_id: uuid.UUID | str, message_ids: Sequence[int]
 ) -> bool:
-    """이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가. 하나라도 있으면 요약하지 않는다."""
-    if not message_ids:
+    """이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가. 하나라도 있으면 요약하지 않는다.
+
+    ⚠️ **매핑이 없는 메시지도 닫힌 것으로 본다**(그 유저에게 closure가 하나라도 있을 때).
+    이 조회는 `memory_source_turn_messages`에서 출발하는 join이라, watermark 매핑이 없는
+    메시지는 join에 안 걸려 "안전"으로 보인다 — 그런 메시지는 실제로 생긴다(Phase 1이 legacy를
+    읽은 뒤 cutover되고 Phase 2가 도는 턴). 잊기를 한 유저에게 정체를 모르는 메시지를
+    "안전"으로 넘기면 잊은 내용이 요약으로 들어간다. 모르면 닫힌 쪽으로 센다.
+    """
+    ids = list(dict.fromkeys(message_ids))
+    if not ids:
         return False
-    rows = await session.execute(
-        _CLOSED_MESSAGES_SQL, {"user_id": user_id, "ids": list(dict.fromkeys(message_ids))}
-    )
-    return rows.first() is not None
+    if not await has_forget_closures(session, user_id):
+        return False  # 잊기 이력이 없으면 닫힌 것도 없다 — 매핑 유무를 따질 필요가 없다
+    rows = await session.execute(_CLOSED_MESSAGES_SQL, {"user_id": user_id, "ids": ids})
+    if rows.first() is not None:
+        return True
+    mapped = (
+        await session.execute(_MAPPED_MESSAGES_SQL, {"user_id": user_id, "ids": ids})
+    ).scalars().all()
+    return len(set(mapped)) != len(ids)  # 하나라도 매핑이 없으면 닫힌 것으로 본다
 
 
 async def load_latest(

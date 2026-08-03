@@ -260,6 +260,34 @@ RETURNING id
 """)
 
 
+def assert_ready_to_apply() -> None:
+    """플래그를 켜기 전에 갖춰져야 하는 것들. 하나라도 없으면 열지 않는다.
+
+    forget은 "지웠다"고 유저에게 말하는 기능이라 **부분 삭제가 가장 나쁘다.** 아래가 안 갖춰진
+    채로 플래그만 켜면 지운 척만 하고 실제로는 남는다.
+
+    1. **외부 벡터 삭제 핸들러.** `apply`가 `memory_vector_delete` 잡을 걸지만 핸들러가 등록돼
+       있지 않으면 그 잡은 `unknown_job_type`으로 죽고 mem0 사본이 물리적으로 남는다.
+       (지금은 normalized 유저가 mem0를 읽지도 쓰지도 않아 노출 경로는 아니지만, 삭제 요청에
+        대해 데이터가 남는 것 자체가 문제다.)
+
+    ⚠️ 코드로 못 막지만 **플래그를 켜기 전 반드시 정해야 하는 제품 결정**(명세 §5 게이트 #5):
+    - 확인 UX와 삭제 범위
+    - **발행된 일기를 어떻게 할지.** 일기는 유저가 읽는 기록이지만 동시에 `get_diary` 도구로
+      **캐피의 읽기 표면**이기도 하다. 지금 구조에서는 사실을 잊어도 캐피가 일기에서 다시 읽어
+      말할 수 있다. 일기를 보존하려면 forget 이후 그 구간에 대한 도구 접근을 막든, 명시적
+      열람 요청에만 허용하든 정책이 필요하다.
+    - 원본 대화(`messages`)를 지울지 — 현재는 지우지 않는다.
+    """
+    from worker import consumer  # 순환 import 회피 — 이 게이트에서만 필요하다
+
+    if JOB_MEMORY_VECTOR_DELETE not in consumer.registered_types():
+        raise ForgetError(
+            f"{JOB_MEMORY_VECTOR_DELETE} 핸들러가 등록되지 않았다 — 지금 forget을 켜면 외부 벡터 "
+            "사본이 남은 채로 '지웠다'고 응답하게 된다. 핸들러를 등록한 뒤 연다"
+        )
+
+
 # ─────────────────────────────────────────────────────────────
 # 실행 — 플래그 뒤. off면 세션을 건드리지 않는다.
 # ─────────────────────────────────────────────────────────────
@@ -275,7 +303,12 @@ async def apply(
 
     `settings.memory_forget_enabled`가 False면 **한 문장도 실행하지 않고** `classified_only`로
     끝난다. 제품 결정(확인 UX·범위) 전까지의 기본 동작이다.
+
+    플래그가 켜져 있으면 `assert_ready_to_apply()`가 선행 조건을 확인한다 — 갖춰지지 않았으면
+    지운 척하지 않고 실패시킨다(부분 삭제가 가장 나쁘다).
     """
+    if settings.memory_forget_enabled:
+        assert_ready_to_apply()
     if not settings.memory_forget_enabled:
         _log.info(
             "forget 분류만(플래그 off) — user=%s scope=%s facts=%d predicate=%s",

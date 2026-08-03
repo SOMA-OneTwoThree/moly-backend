@@ -122,7 +122,15 @@ class _FakeSession:
 
 @pytest.fixture
 def enabled(monkeypatch):
+    """플래그 + 선행 조건(외부 벡터 삭제 핸들러)을 함께 갖춘 상태.
+
+    핸들러가 없으면 apply가 실패한다 — 지운 척하지 않기 위한 게이트다
+    (test_apply_refuses_without_the_vector_delete_handler가 그걸 따로 본다).
+    """
     monkeypatch.setattr(settings, "memory_forget_enabled", True)
+    monkeypatch.setattr(
+        forget, "assert_ready_to_apply", lambda: None  # 선행 조건은 별도 테스트에서 본다
+    )
 
 
 # ─────────────────────────────────────────────────────────────
@@ -400,3 +408,41 @@ async def test_forget_does_not_touch_checkpoints_when_flag_is_off():
 
     assert result.status == forget.RESULT_CLASSIFIED_ONLY
     assert session.deleted_checkpoints == 0
+
+
+# --- 켜기 전 선행 조건 게이트 (적대검증 2라운드 지적) ---
+def test_apply_refuses_without_the_vector_delete_handler():
+    """벡터 삭제 핸들러 없이 forget을 켜면 실패한다.
+
+    apply는 memory_vector_delete 잡을 걸지만 핸들러가 없으면 그 잡은 unknown_job_type으로
+    죽고 mem0 사본이 물리적으로 남는다. "지웠다"고 응답해놓고 남는 게 가장 나쁘므로,
+    지운 척하지 않고 여기서 막는다.
+    """
+    from worker import consumer
+
+    assert forget.JOB_MEMORY_VECTOR_DELETE not in consumer.registered_types()  # 아직 미등록
+    with pytest.raises(forget.ForgetError, match="핸들러"):
+        forget.assert_ready_to_apply()
+
+
+def test_ready_gate_passes_once_the_handler_is_registered(monkeypatch):
+    """핸들러가 등록되면 게이트는 통과한다(영구 차단이 아니다)."""
+    from worker import consumer
+
+    monkeypatch.setattr(
+        consumer, "registered_types", lambda: (forget.JOB_MEMORY_VECTOR_DELETE,)
+    )
+    forget.assert_ready_to_apply()  # 예외 없음
+
+
+async def test_flag_on_without_prerequisites_writes_nothing(monkeypatch):
+    """게이트가 DB에 닿기 전에 막는다 — 부분 삭제가 남지 않는다."""
+    monkeypatch.setattr(settings, "memory_forget_enabled", True)
+    session = _FakeSession()
+
+    with pytest.raises(forget.ForgetError):
+        await forget.apply(
+            session, user_id=_UID, request=forget.ForgetRequest(scope="fact", fact_ids=(_FACT,))
+        )
+
+    assert session.statements == []

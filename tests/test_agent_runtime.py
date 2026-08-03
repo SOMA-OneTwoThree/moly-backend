@@ -163,7 +163,10 @@ def _factory():
 @pytest.fixture(autouse=True)
 def _reset_tool_session():
     _FakeToolSession.opened = _FakeToolSession.closed = _FakeToolSession.rolled_back = 0
-    agent_runtime.set_registry(None)
+    # W6부터는 registry override가 None이면 **실제** registry(도구 2종)가 붙는다. 이 파일의 관심사는
+    # 루프 자체라 도구 구성에 흔들리면 안 되므로, 빈 registry를 꽂아 "도구 없음"을 명시적으로 만든다
+    # (registry를 인자로 넘기는 테스트는 그 값이 우선한다).
+    agent_runtime.set_registry(_FakeRegistry())
     agent_runtime.SAFETY_CLASSIFIER = None
     yield
     agent_runtime.set_registry(None)

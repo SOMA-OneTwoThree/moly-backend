@@ -112,6 +112,10 @@ class _FakeJobsDB:
             return self._reap_terminal_ready(p)
         if s == str(jobs._STATS_SQL):
             return self._stats()
+        # checkpoint producer가 읽는 기억 세대(잊어줘 stale 판정 기준). 잡 테이블 밖이지만
+        # 같은 세션으로 오므로 여기서 받아 준다 — 기본 0(= forget 이력 없음).
+        if "memory_generation" in s:
+            return _Res([(getattr(self, "memory_generation", 0),)])
         raise AssertionError(f"시뮬레이터가 모르는 문장: {s[:80]}")
 
     def _enqueue(self, p) -> _Res:

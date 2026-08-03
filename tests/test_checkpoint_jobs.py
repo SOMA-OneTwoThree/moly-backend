@@ -85,6 +85,8 @@ def store(monkeypatch) -> dict:
         "user_exists": True,
         "rows": [],             # insert된 checkpoint 행
         "inserts": [],          # 호출 시점의 (세션, 커밋 수)
+        "forget_closures": False,   # 잊어줘로 닫힌 구간 존재 여부
+        "memory_generation": 0,     # 현재 기억 세대(forget이 +1 한다)
     }
 
     async def _latest(session, user_id):
@@ -114,7 +116,15 @@ def store(monkeypatch) -> dict:
     monkeypatch.setattr(checkpoint_repo, "count", _count)
     monkeypatch.setattr(checkpoint_repo, "load_user_state", _user_state)
     monkeypatch.setattr(checkpoint_repo, "load_range", _range)
+    async def _has_closures(session, user_id):
+        return state["forget_closures"]
+
+    async def _generation(session, user_id):
+        return state["memory_generation"]
+
     monkeypatch.setattr(checkpoint_repo, "insert", _insert)
+    monkeypatch.setattr(checkpoint_repo, "has_forget_closures", _has_closures)
+    monkeypatch.setattr(checkpoint_repo, "read_memory_generation", _generation)
     return state
 
 
@@ -500,3 +510,39 @@ async def test_reverify_every_one_does_not_brick_the_first_checkpoint(db, store,
 
     print("STATE", row["state"], "CODE", row["result_code"], "ERR", row.get("last_error_code"))
     assert row["state"] == "succeeded"
+
+
+# --- 잊어줘 이후 부활 차단 (적대검증 2라운드 지적) ---
+async def test_stale_job_after_forget_writes_nothing(db, store, llm_calls):
+    """잊어줘 전에 큐에 들어간 잡이 뒤늦게 실행돼도 요약을 만들지 않는다.
+
+    forget은 checkpoint를 전량 지우고 세대를 +1 한다. 세대 검사가 없으면 지운 직후라
+    previous=None이 되어 체인 검사만으로는 "첫 요약"으로 보이고 그냥 통과한다 —
+    잊어달라고 한 대화가 요약으로 되살아난다.
+    """
+    jid = _enqueue_job(db, _payload())      # 잡을 먼저 건다(payload 세대 = 0)
+    store["memory_generation"] = 1          # 그 뒤 forget 실행
+    store["latest"] = None                  # forget이 checkpoint를 전량 삭제
+
+    row = await _run(db, jid)
+
+    assert row["result_code"] == checkpoint_jobs.RESULT_STALE_GENERATION
+    assert store["rows"] == []              # 아무것도 안 썼다
+    assert llm_calls == []                  # LLM도 안 불렀다
+
+
+async def test_reverification_is_skipped_when_forget_closed_a_range(db, store, llm_calls):
+    """잊어줘가 닫은 구간이 있으면 재검증하지 않는다.
+
+    재검증은 `(0, through]` 원본 **전체**를 다시 읽는다. 원본 messages에는 잊은 내용이 그대로
+    남아 있으므로, 그대로 두면 새 요약으로 재유입된다. 체인 요약으로 폴백한다.
+    """
+    store["count"] = settings.context_checkpoint_reverify_every - 1  # 이번이 N번째
+    store["forget_closures"] = True
+
+    row = await _run(db, _enqueue_job(db, _payload()))
+
+    assert _json(row["result_detail"])["reverified"] is False
+    body = llm_calls[0]["convo"][0]["content"]
+    assert "앵커 이전 1" not in body        # 원본 전체를 읽지 않았다
+    assert _PREVIOUS.summary in body        # 체인 요약으로 갔다

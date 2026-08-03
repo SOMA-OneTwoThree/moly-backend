@@ -34,7 +34,8 @@ _log = logging.getLogger("moly-backend")
 # 잡·payload·요약기 계약 버전. payload 구조가 바뀌면 SCHEMA를, 프롬프트/출력 규약이 바뀌면
 # SUMMARIZER를 올린다(SUMMARIZER는 잡 dedup key의 일부라 올리는 순간 같은 구간이 다시 요약된다).
 JOB_CONVERSATION_CHECKPOINT = "conversation_checkpoint"
-SCHEMA_VERSION = "conversation-checkpoint-payload-v1"
+# v2 = payload에 `memory_generation`이 들어간다(잊어줘 이후 늦게 도착한 잡을 stale로 끊는 세대 검사).
+SCHEMA_VERSION = "conversation-checkpoint-payload-v2"
 SUMMARIZER_VERSION = "conversation-checkpoint-summary-v1"
 
 # W1 회계의 호출 목적 라벨(LlmCall.purpose). 대화 턴 밖(워커)에서 도는 호출이라 chat 턴 사용량과
@@ -87,6 +88,9 @@ class CheckpointPlan:
     previous_id: uuid.UUID | None
     previous_through_message_id: int | None
     version: str = SUMMARIZER_VERSION
+    # 잡을 만든 시점의 `chat_contexts.memory_generation`. forget이 이 값을 +1 하므로, 늦게 실행된
+    # 잡은 핸들러에서 세대 불일치로 끊긴다(잊어달라고 한 대화가 요약으로 되살아나지 못한다).
+    memory_generation: int = 0
 
     def dedup_key(self, user_id: uuid.UUID | str) -> str:
         return dedup_key(
@@ -105,6 +109,7 @@ class CheckpointPlan:
             "summarizer_version": self.version,
             "previous_checkpoint_id": str(self.previous_id) if self.previous_id else None,
             "previous_through_message_id": self.previous_through_message_id,
+            "memory_generation": self.memory_generation,
         }
 
 
@@ -197,6 +202,7 @@ def plan(
     *,
     previous: Checkpoint | None,
     keep_from_message_id: int | None = None,
+    memory_generation: int = 0,
 ) -> CheckpointPlan | None:
     """이번 세그먼트로 만들 checkpoint 계획. 만들 게 없으면 None.
 
@@ -212,6 +218,10 @@ def plan(
 
     값이 없으면(워커·단위 테스트) `keep_tail`로 자체 계산한다 — 그쪽엔 pop 규칙이 없으므로 배선
     경로와 경계가 한 칸 다를 수 있고, 그래서 챗은 항상 앵커를 넘긴다.
+
+    `memory_generation`은 잡을 만드는 시점의 `chat_contexts.memory_generation`이다(§forget 계약).
+    **producer(`checkpoint_repo.maybe_enqueue`)가 반드시 실제 값을 넘긴다** — 기본값 0은 순수 계획
+    로직만 보는 호출(단위 테스트)용이다.
     """
     ordered = normalize_messages(messages)
     if not should_checkpoint(ordered):
@@ -234,6 +244,7 @@ def plan(
         previous_through_message_id=(
             previous.through_message_id if previous is not None else None
         ),
+        memory_generation=memory_generation,
     )
 
 

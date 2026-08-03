@@ -35,6 +35,8 @@ RESULT_OK = "ok"
 RESULT_DISABLED = "checkpoint_disabled"
 RESULT_ALREADY_CHECKPOINTED = "already_checkpointed"
 RESULT_SOURCE_CHANGED = "source_changed"
+# 잡을 만든 뒤 "잊어줘"가 실행됐다 — 그 대화를 다시 요약해 넣으면 안 된다(재시도해도 영원히 stale).
+RESULT_STALE_GENERATION = "stale_generation"
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,11 +50,20 @@ class _Request:
     version: str
     previous_id: str | None
     previous_through_message_id: int | None
+    memory_generation: int
 
 
 def _int_field(payload: dict, key: str) -> int:
     value = payload.get(key)
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise JobFatal("invalid_payload")
+    return value
+
+
+def _generation_field(payload: dict) -> int:
+    """payload의 memory_generation. **0이 정상값**이라 _int_field(양수 강제)를 쓸 수 없다."""
+    value = payload.get("memory_generation")
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise JobFatal("invalid_payload")
     return value
 
@@ -94,6 +105,7 @@ def _parse(job: ClaimedJob) -> _Request:
         version=version,
         previous_id=prev_id,
         previous_through_message_id=prev_through,
+        memory_generation=_generation_field(payload),
     )
 
 
@@ -103,6 +115,18 @@ def _chain_matches(previous: checkpoint.Checkpoint | None, req: _Request) -> boo
     다르면(그 사이 다른 checkpoint가 들어왔다) 이 잡의 `source_hash`는 더 이상 성립하지 않는다.
     """
     return (str(previous.id) if previous is not None else None) == req.previous_id
+
+
+async def _generation_matches(session: AsyncSession, req: _Request) -> bool:
+    """잡을 만든 시점과 지금의 기억 세대가 같은가. 다르면 그 사이에 forget이 있었다."""
+    current = await checkpoint_repo.read_memory_generation(session, req.user_id)
+    if current == req.memory_generation:
+        return True
+    _log.info(
+        "요약 잡 stale — user=%s payload_gen=%d current_gen=%d(그 사이 forget)",
+        req.user_id, req.memory_generation, current,
+    )
+    return False
 
 
 async def _still_applicable(
@@ -165,6 +189,12 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             raise JobCancelled("user_deleted")
         nickname, language = state
 
+        # 세대부터 본다. 잡을 만든 뒤 forget이 실행됐으면 그 대화는 다시 요약하면 안 된다.
+        # forget이 checkpoint를 전량 지운 직후라 previous=None이 되어, 체인 검사만으로는
+        # "첫 요약"으로 보이고 그냥 통과한다 — 잊어달라고 한 대화가 요약으로 되살아난다.
+        if not await _generation_matches(session, req):
+            return JobResult(result_code=RESULT_STALE_GENERATION)
+
         applicable, previous = await _still_applicable(session, req)
         if not applicable:
             return JobResult(
@@ -197,6 +227,13 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         # (기본값 10에선 index%10==0과 previous=None이 양립 불가라 안 드러나지만,
         #  reverify_every=1로 두는 순간 첫 요약부터 막힌다).
         reverify = index % every == 0 and previous is not None
+        # 잊어줘가 닫은 구간이 있으면 재검증하지 않는다. 재검증은 `(0, through]` 원본 **전체**를
+        # 다시 읽으므로 닫힌 구간을 필연적으로 포함하고, 원본 messages에는 잊은 내용이 그대로
+        # 남아 있어 새 요약으로 재유입된다. 부분 필터링 대신 통째로 건너뛰고 체인 요약으로 간다 —
+        # 재검증은 누적 왜곡을 재는 품질 장치지 정확성 장치가 아니라, 없어도 요약은 성립한다.
+        if reverify and await checkpoint_repo.has_forget_closures(session, req.user_id):
+            _log.info("요약 재검증 생략(잊어줘로 닫힌 구간 존재) — 체인 요약으로 진행")
+            reverify = False
         originals: list[checkpoint.SourceMessage] = []
         if reverify:
             cap = int(settings.context_checkpoint_reverify_max_messages)

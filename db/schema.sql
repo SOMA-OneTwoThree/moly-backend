@@ -701,11 +701,18 @@ CREATE TABLE public.conversation_checkpoints (
   summary text NOT NULL,                    -- 저장 표면(실명 금지 — {유저이름} placeholder)
   version text NOT NULL,                    -- 요약기 계약 버전
   source_hash text NOT NULL,                -- 결정적 입력 지문
+  -- 만들 때의 chat_contexts.memory_generation. 잊어줘가 세대를 올리므로, 조회는 **현재 세대와
+  -- 같은 행만** 돌려준다. 잊어줘의 DELETE와 요약 INSERT가 겹치면 한쪽이 다른 쪽의 미커밋 행을
+  -- 못 봐(READ COMMITTED) 삭제를 피한 행이 남는데, 잠금으로 막으면 챗과 락 순서가 반대라
+  -- 교착이 난다. 지우는 대신 읽을 때 걸러 프롬프트에 안 실리게 한다.
+  memory_generation bigint NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (user_id, through_message_id, source_hash)
 );
 CREATE INDEX conversation_checkpoints_latest_idx
   ON public.conversation_checkpoints(user_id, through_message_id DESC);
+CREATE INDEX conversation_checkpoints_live_idx
+  ON public.conversation_checkpoints(user_id, memory_generation, through_message_id DESC);
 
 -- ─────────────────────────────────────────────────────────────
 -- 13. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.

@@ -315,3 +315,33 @@ def test_insert_has_no_row_lock():
 
     for name in ("_INSERT_SQL", "_GENERATION_SQL"):
         assert "FORUPDATE" not in _norm(getattr(checkpoint_repo, name)), name
+
+
+def test_latest_query_filters_by_current_generation():
+    """조회가 **현재 세대의 요약만** 돌려준다.
+
+    잊어줘는 요약을 전량 지우지만, 지우는 트랜잭션과 쓰는 트랜잭션이 겹치면 한쪽이 다른 쪽의
+    미커밋 행을 못 본다(READ COMMITTED) — 그 틈으로 들어온 요약은 삭제를 피한다. 실제로
+    dev DB에서 재현되며 행이 남는다. 잠금으로 막으려 하면 챗과 락 순서가 반대라 교착이 나므로,
+    **지우는 대신 읽을 때 거른다.** 남아 있어도 프롬프트에 실리지 않으면 된다.
+    """
+    from app.services import checkpoint_repo
+
+    sql = _norm(checkpoint_repo._LATEST_SQL)
+    assert "JOINchat_contexts" in sql, "조회가 세대를 안 본다"
+    assert "memory_generation,0)=c.memory_generation" in sql
+
+
+def test_count_query_also_filters_by_generation():
+    """재검증 주기 판정도 현재 세대 기준이어야 한다 — 끼어든 행이 주기를 밀면 안 된다."""
+    from app.services import checkpoint_repo
+
+    assert "JOINchat_contexts" in _norm(checkpoint_repo._COUNT_SQL)
+
+
+def test_insert_records_the_generation():
+    """저장이 세대를 남겨야 조회가 거를 수 있다."""
+    from app.services import checkpoint_repo
+
+    sql = _norm(checkpoint_repo._INSERT_SQL)
+    assert "memory_generation)" in sql and ":expected_generation" in sql

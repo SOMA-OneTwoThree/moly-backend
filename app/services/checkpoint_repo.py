@@ -21,15 +21,29 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.services import checkpoint, jobs
 
+# 🔴 **현재 세대의 요약만 돌려준다.** 잊어줘는 요약을 전량 지우지만, 지우는 트랜잭션과 쓰는
+# 트랜잭션이 겹치면 한쪽이 다른 쪽의 미커밋 행을 못 본다(READ COMMITTED) — 그 틈으로 들어온
+# 요약은 삭제를 피한다. 잠금으로 막으면 챗 Phase 2와 락 순서가 반대라 교착이 나므로,
+# **지우는 대신 읽을 때 거른다.** 끼어든 행은 남아 있어도 프롬프트에 실리지 않는다.
 _LATEST_SQL = text("""
-SELECT id, through_message_id, summary, version, source_hash
-FROM conversation_checkpoints
-WHERE user_id = :user_id
-ORDER BY through_message_id DESC
+SELECT c.id, c.through_message_id, c.summary, c.version, c.source_hash
+FROM conversation_checkpoints c
+JOIN chat_contexts cc
+  ON cc.user_id = c.user_id
+ AND COALESCE(cc.memory_generation, 0) = c.memory_generation
+WHERE c.user_id = :user_id
+ORDER BY c.through_message_id DESC
 LIMIT 1
 """)
 
-_COUNT_SQL = text("SELECT count(*) FROM conversation_checkpoints WHERE user_id = :user_id")
+_COUNT_SQL = text("""
+SELECT count(*)
+FROM conversation_checkpoints c
+JOIN chat_contexts cc
+  ON cc.user_id = c.user_id
+ AND COALESCE(cc.memory_generation, 0) = c.memory_generation
+WHERE c.user_id = :user_id
+""")
 
 # 요약 잡의 stale 판정 기준. forget이 이 값을 +1 하므로(memory_forget._BUMP_SQL), 잡을 만든
 # 시점의 값과 실행 시점의 값이 다르면 그 사이에 "잊어줘"가 있었다는 뜻이다.
@@ -79,8 +93,8 @@ LIMIT :max_rows
 # 쪼개지 않는 게 근본 해법이다.
 _INSERT_SQL = text("""
 INSERT INTO conversation_checkpoints
-  (user_id, through_message_id, summary, version, source_hash)
-SELECT :user_id, :through_message_id, :summary, :version, :source_hash
+  (user_id, through_message_id, summary, version, source_hash, memory_generation)
+SELECT :user_id, :through_message_id, :summary, :version, :source_hash, :expected_generation
 WHERE EXISTS (
   SELECT 1 FROM chat_contexts
   WHERE user_id = :user_id AND COALESCE(memory_generation, 0) = :expected_generation

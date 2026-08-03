@@ -59,12 +59,13 @@ def load_rows(path: str) -> list[tuple[str, str, date]]:
 
 
 async def main(commit: bool, path: str, env: str | None = None) -> None:
+    # 대상 표시는 조기 반환보다 먼저 — "어디에 쏘려던 것인지"가 항상 남아야 한다.
+    dsn = load_conn(env)
+    announce(env, dsn, commit=commit)
     rows = load_rows(path)
     if not rows:
         print("반영할 행 없음(content 채운 행이 하나도 없음).")
         return
-    dsn = load_conn(env)
-    announce(env, dsn, commit=commit)
     if commit and is_prod(env):
         print(">>> PROD 실반영을 시작합니다.", file=sys.stderr)
     c = await asyncpg.connect(dsn, statement_cache_size=0)

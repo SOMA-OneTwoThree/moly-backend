@@ -89,6 +89,26 @@ def assert_release_inventory(confirmed: bool) -> None:
         )
 
 
+def assert_profile_block_wired() -> None:
+    """관계 프로필이 실제로 대화에 실리는가.
+
+    normalized 유저는 mem0로 되돌아가지 않는다(그게 이 전환의 요지다). 그래서 관계 프로필이
+    프롬프트에 안 들어가면 **기억이 영구히 빈 채로 남는다** — 유저 입장에선 캐피가 자기를
+    통째로 잊은 것이다. 되돌릴 수도 없다(downgrade 금지).
+
+    프로필 블록은 아직 배선 전이라 플래그가 꺼져 있다(`prompts.RELATIONSHIP_PROFILE_BLOCK_ENABLED`).
+    배선이 끝나 플래그가 켜지기 전에는 cutover를 열지 않는다.
+    """
+    from app.services import prompts  # 순환 import 회피 — 이 게이트에서만 필요하다
+
+    if not prompts.RELATIONSHIP_PROFILE_BLOCK_ENABLED:
+        raise CutoverBlocked(
+            "관계 프로필이 대화에 배선되지 않았다 — 지금 cutover하면 normalized 유저의 기억이 "
+            "영구히 빈 채로 남는다(mem0 폴백 금지 + downgrade 금지). "
+            "prompts.RELATIONSHIP_PROFILE_BLOCK_ENABLED가 켜진 뒤에 연다"
+        )
+
+
 # ─────────────────────────────────────────────────────────────
 # 전제 검사 SQL — 전부 유저 스코프.
 # ─────────────────────────────────────────────────────────────
@@ -221,6 +241,7 @@ async def cutover_user(
     올리면 진행 중인 잡이 통째로 stale이 된다).
     """
     assert_release_inventory(release_inventory_confirmed)
+    assert_profile_block_wired()
 
     decision = await evaluate(session, user_id=user_id, locale=locale, lock=True)
     if decision.memory_mode == memory.MODE_NORMALIZED:

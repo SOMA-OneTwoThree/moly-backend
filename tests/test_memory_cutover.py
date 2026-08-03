@@ -12,7 +12,16 @@ import uuid
 import pytest
 
 from app.services import memory_cutover as cut
-from app.services import memory_repo
+from app.services import memory_repo, prompts
+
+@pytest.fixture
+def profile_wired(monkeypatch):
+    """관계 프로필 배선 게이트를 연다 — 전환 메커니즘 자체를 보는 테스트용.
+
+    게이트가 막는지는 test_cutover_is_blocked_until_the_profile_block_is_wired가 따로 본다.
+    """
+    monkeypatch.setattr(prompts, "RELATIONSHIP_PROFILE_BLOCK_ENABLED", True)
+
 
 _UID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -172,7 +181,7 @@ async def test_each_precondition_blocks(canned, reason):
     assert not decision.eligible and reason in decision.reasons
 
 
-async def test_blocked_user_stays_legacy():
+async def test_blocked_user_stays_legacy(profile_wired):
     session = _FakeSession(published=False)
     result = await cut.cutover_user(
         session, user_id=_UID, release_inventory_confirmed=True
@@ -201,7 +210,7 @@ async def test_inventory_gate_is_closed_by_default():
 # ─────────────────────────────────────────────────────────────
 # 5) 전환 문장 — 한 UPDATE로 확정, 재전환 없음, downgrade 없음.
 # ─────────────────────────────────────────────────────────────
-async def test_cutover_locks_then_updates_in_one_statement():
+async def test_cutover_locks_then_updates_in_one_statement(profile_wired):
     session = _FakeSession()
     result = await cut.cutover_user(session, user_id=_UID, release_inventory_confirmed=True)
     assert result.status == cut.RESULT_CUTOVER and result.memory_generation == 3
@@ -219,14 +228,14 @@ async def test_cutover_locks_then_updates_in_one_statement():
         assert fragment in sql
 
 
-async def test_already_normalized_user_is_left_alone():
+async def test_already_normalized_user_is_left_alone(profile_wired):
     session = _FakeSession(mode="normalized")
     result = await cut.cutover_user(session, user_id=_UID, release_inventory_confirmed=True)
     assert result.status == cut.RESULT_ALREADY_NORMALIZED
     assert not session.ran(cut._CUTOVER_SQL)  # generation을 다시 올리지 않는다
 
 
-async def test_update_zero_rows_keeps_user_legacy():
+async def test_update_zero_rows_keeps_user_legacy(profile_wired):
     session = _FakeSession(cutover_hits=False)
     result = await cut.cutover_user(session, user_id=_UID, release_inventory_confirmed=True)
     assert result.status == cut.RESULT_BLOCKED
@@ -255,3 +264,26 @@ def test_no_downgrade_path_anywhere_in_the_repo():
         for clause in _set_clauses(src):
             assert not assign.search(clause), path
         assert ":=" not in src or not re.search(r"memory_mode\s*:=\s*'legacy'", src), path
+
+
+# --- 배선 게이트 (통합 검증 지적) ---
+async def test_cutover_is_blocked_until_the_profile_block_is_wired():
+    """관계 프로필이 대화에 안 실리는 동안은 전환을 열지 않는다.
+
+    normalized 유저는 mem0로 되돌아가지 않는다(그게 전환의 요지다). 프로필이 프롬프트에
+    안 들어가면 기억이 영구히 빈 채로 남고, downgrade도 막혀 있어 되돌릴 수 없다 —
+    유저 입장에선 캐피가 자기를 통째로 잊은 것이다.
+    """
+    assert prompts.RELATIONSHIP_PROFILE_BLOCK_ENABLED is False  # 아직 배선 전
+
+    session = _FakeSession()
+    with pytest.raises(cut.CutoverBlocked, match="배선"):
+        await cut.cutover_user(session, user_id=_UID, release_inventory_confirmed=True)
+
+    assert session.statements == []  # 게이트가 DB에 닿기 전에 막는다
+
+
+def test_profile_gate_passes_once_wired(monkeypatch):
+    """플래그가 켜지면 게이트는 통과한다(게이트가 영구 차단이 아니다)."""
+    monkeypatch.setattr(prompts, "RELATIONSHIP_PROFILE_BLOCK_ENABLED", True)
+    cut.assert_profile_block_wired()  # 예외 없음

@@ -1,7 +1,10 @@
-"""현재 턴 컨텍스트 — 챗 프롬프트에 삽입할 "지금 상황" 블록(DTO·버킷·렌더, DB 접근 없음).
+"""현재 턴 컨텍스트 — 챗 프롬프트에 삽입할 "지금 상황" 블록(수집·버킷·렌더).
 
-DB 조회(프로필·장착 아이템·루틴 집계)는 이 모듈의 책임이 아니다 — 호출측(chat.py 배선 단계)이
-값을 채운 CurrentTurnContext를 만들어 render()에 넘긴다. 여기는 순수 함수만 둔다(테스트 용이성).
+구성은 세 층이다. `CurrentTurnContext`(DTO) / `build_context`(DB 조회로 DTO를 채운다) /
+`render`·`time_bucket`·`last_active_bucket`(DTO만 받는 순수 함수). 조회와 렌더를 나눠 둔 덕에
+문구·경계 테스트는 DB 없이 DTO만 만들어 돌릴 수 있다.
+
+호출은 chat.py의 Phase 1 안에서만 한다 — LLM 구간엔 DB 커넥션이 0이어야 하기 때문(SOMA-374).
 
 주의: time_bucket()은 이 모듈 전용 4버킷(morning/day/evening/night)이다.
 `app/services/greetings.py:time_bucket`은 동명이지만 선발화 전용 5버킷(dawn 분리)이라
@@ -52,10 +55,9 @@ async def build_context(
     감싼다 — 이 블록은 항목별 fail-open이어야 한다(한 조회가 죽어도 나머지 문구는 살려야
     프롬프트에 빈 블록만 빠지고 캐피 발화 전체가 죽지 않는다). 단일 배치 SQL로 묶으면
     subquery 하나의 실패가 전체를 무효화해 이 fail-open을 못 만든다.
-    ⚠️ 이 레포에서 begin_nested는 지금까지 subscription.py 3곳뿐이고 전부 "동시 INSERT 충돌
-    멱등 수렴" 용도다. 여기서는 "조회 실패 격리"라는 새 용도로 쓴다 — 실패해도 재시도할 동시성
-    문제가 아니라, 그냥 그 필드를 비우고 넘어가기 위해 SAVEPOINT로 트랜잭션을 오염시키지 않는다.
-    각 savepoint 실패 시 그 블록만 롤백하고 해당 필드는 None(리스트는 빈 리스트)으로 둔다.
+    ⚠️ 이 레포의 다른 begin_nested는 전부 "동시 INSERT 충돌을 멱등하게 수렴"시키려는 것이지만
+    여기는 "조회 실패 격리"라는 다른 용도다 — 재시도할 동시성 문제가 아니라, 그 필드만 비우고
+    넘어가려고 SAVEPOINT로 트랜잭션 오염을 막는다. 실패 시 해당 필드는 None(리스트는 빈 리스트).
     """
     uid = profile.id
 
@@ -154,9 +156,9 @@ async def build_context(
     # 로컬 날짜끼리 빼야 한다 — UTC 날짜로 빼면 유저 로컬 자정~09시(KST) 가입처럼 UTC 전날로
     # 넘어가는 경우 하루가 더 늘어난다("함께한 지 N일"이 유저 체감보다 1 크게 보임).
     zone = safe_zone(profile.timezone)
-    local_hour = now_utc.astimezone(zone).hour
+    local_now = now_utc.astimezone(zone)
     days_together = (
-        (now_utc.astimezone(zone).date() - profile.created_at.astimezone(zone).date()).days
+        (local_now.date() - profile.created_at.astimezone(zone).date()).days
         if profile.created_at is not None
         else None
     )
@@ -167,7 +169,7 @@ async def build_context(
         days_together = 0
 
     return CurrentTurnContext(
-        time_bucket=time_bucket(local_hour),
+        time_bucket=time_bucket(local_now.hour),
         is_first_today=is_first_today,
         days_together=days_together,
         equipped_names=equipped_names,

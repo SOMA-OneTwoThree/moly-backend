@@ -25,6 +25,9 @@ class _Scalars:
     def __init__(self, items):
         self._items = items
 
+    def __iter__(self):  # 실제 ScalarResult는 iterable — config_store.get_config_values가 그렇게 쓴다
+        return iter(self._items)
+
     def all(self):
         return list(self._items)
 

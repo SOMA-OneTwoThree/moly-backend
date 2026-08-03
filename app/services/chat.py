@@ -28,6 +28,8 @@ from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
 from app.services import gating, greetings, i18n, llm, memory, naming, text_clean, turn_context
 from app.services.account import _uid
+from app.services.agent import config as agent_config
+from app.services.agent import runtime as agent_runtime
 from app.services.prompts import system_prompt
 
 _GREETING_CONTEXTS = greetings.CONTEXTS
@@ -621,6 +623,11 @@ async def post_message(
     prev_snapshot = ctx.memory_text if ctx is not None else None
     refreshed_at = ctx.memory_refreshed_at if ctx is not None else None
 
+    # 도구 루프 설정(W5) — read-only 구간에서 **1회** 조회해 frozen snapshot으로 들고 나간다.
+    # agent phase는 DB도 settings도 다시 읽지 않는다(TTL 캐시 없음 = 두 EC2 캐시 불일치 없음).
+    # 조회 실패는 잡지 않는다 — 설정 장애를 숨기지 않고 기존 Phase 1 DB 오류로 전파시킨다.
+    agent_cfg = await agent_config.effective_agent_config(session)
+
     # 현재 턴 컨텍스트("지금 상황" 블록, W3) — 킬스위치 off면 조회 자체를 안 한다(기존과 완전 동일).
     # Phase 1(락+커넥션 보유) 안에서 끝내야 한다 — 커밋 뒤 LLM 구간엔 DB 커넥션 0(SOMA-374 불변식).
     # 실패해도 대화가 죽으면 안 되므로 fail-open(빈 블록)하고 경고만 남긴다.
@@ -689,16 +696,28 @@ async def post_message(
     # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
     t_llm0 = time.monotonic()
-    result = await llm.generate(
-        system, convo,
-        cache_messages=cache_on,
-        ttl_system=settings.cache_ttl_system,
-        ttl_messages=settings.cache_ttl_messages,
-        timeout=settings.llm_timeout_s,
+    # 도구 루프(W5)는 킬스위치·카나리를 모두 통과했을 때만 탄다. 아니면 아래 단발 호출 그대로다.
+    agent_turn = (
+        await agent_runtime.run_turn(
+            system, convo,
+            config=agent_cfg, user_id=uid, language=language, activity_date=ad,
+            user_text=req.text,
+        )
+        if agent_runtime.should_run(agent_cfg, uid)
+        else None
     )
+    if agent_turn is None:
+        result = await llm.generate(
+            system, convo,
+            cache_messages=cache_on,
+            ttl_system=settings.cache_ttl_system,
+            ttl_messages=settings.cache_ttl_messages,
+            timeout=settings.llm_timeout_s,
+        )
     llm_ms = _ms(t_llm0, time.monotonic())
     if (
-        cache_on
+        agent_turn is None
+        and cache_on
         # OpenAI는 자동캐시라 write가 실측이 아닌 추정값 → 이 경보는 Anthropic 전용(허위 WARN 방지).
         and llm.provider_for(result.model) == "anthropic"
         and result.cache_read_tokens == 0
@@ -714,8 +733,11 @@ async def post_message(
     # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제 → placeholder.
     t_egress0 = time.monotonic()
     repair_ms = 0.0
-    usage = TurnUsage([_llm_call(result, "chat")])  # 복원 호출이 붙을 수 있어 차감은 백스톱 뒤에
-    reply_text = result.text
+    # 복원 호출이 붙을 수 있어 차감은 백스톱 뒤에. 도구 턴은 step1·step2가 이미 LlmCall로 온다.
+    usage = TurnUsage(
+        list(agent_turn.calls) if agent_turn is not None else [_llm_call(result, "chat")]
+    )
+    reply_text = agent_turn.text if agent_turn is not None else result.text
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
     if is_ko:
         # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.

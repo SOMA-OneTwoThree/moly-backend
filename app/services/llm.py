@@ -6,12 +6,25 @@ model 을 claude-* 로 되돌리면 _generate_anthropic 경로로 즉시 복귀(
 
 대화는 HTTP 요청-응답 완성본(ARCHITECTURE). 스트리밍 없음.
 토큰 집계 = 모델 실측 usage. Anthropic은 system prefix(페르소나+기억) 캐싱, OpenAI는 자동캐시.
+
+계약은 둘이다: 텍스트 in/텍스트 out인 generate()(워커·일기·한자복원)와, 도구 호출을 표현하는
+generate_step()(파일 하단 W4 절, OpenAI 전용). 후자를 추가해도 전자는 무변경이다.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+import logging
+import uuid
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field
+from math import ceil
+from typing import Literal
+
+from pydantic import BaseModel, ValidationError
 
 from app.config import settings
+
+_log = logging.getLogger(__name__)
 
 _client = None
 _openai_client = None
@@ -70,6 +83,28 @@ class LlmCall:
 
 # OpenAI 자동 프리픽스 캐시가 걸리는 최소 프롬프트 길이. 이 밑이면 캐시 자체가 없다(전량 일반 입력).
 _OPENAI_CACHE_MIN_PREFIX_TOKENS = 1024
+
+
+def billable_tokens(r: LLMResult) -> int:
+    """실비용 가중 청구 토큰. chat._billable과 **같은 식**이며 등가는 테스트로 고정한다.
+
+    회계 소유자는 chat이지만(순환 import 회피) generate_step은 LlmCall.billable을 채워 반환해야 해서
+    여기에도 같은 계산이 필요하다. 가중치가 갈라지면 tests/test_llm_step.py의 등가 테스트가 깨진다.
+    """
+    if provider_for(r.model) == "openai":
+        w_out = settings.bill_weight_output_openai
+        w_read = settings.bill_weight_cache_read_openai
+        w_write = settings.bill_weight_cache_write_openai
+    else:
+        w_out = settings.bill_weight_output
+        w_read = settings.bill_weight_cache_read
+        w_write = settings.bill_weight_cache_write
+    return ceil(
+        r.input_tokens
+        + w_out * r.output_tokens
+        + w_read * r.cache_read_tokens
+        + w_write * r.cache_write_tokens
+    )
 
 
 def _cc(ttl: str) -> dict:
@@ -212,4 +247,421 @@ async def _generate_openai(
         cache_read_tokens=cached,
         cache_write_tokens=uncached if cacheable else 0,
         model=model,
+    )
+
+
+# =====================================================================================
+# W4 — 툴콜 계약(generate_step). 위의 generate() 경로는 **무변경**(워커·일기·복원이 계속 쓴다).
+#
+# generate()는 텍스트 in/텍스트 out이라 도구 호출을 표현할 수 없고, _generate_openai는
+# `choices[0].message.content`를 문자열로 가정한다 — 툴콜 응답은 content가 None이라 빈 답변으로
+# 오인된다. 아래 계약은 typed transcript로 그 구멍을 닫는다: content=None은 "텍스트 없음"이지
+# "빈 답변"이 아니다(text가 None으로 그대로 나간다).
+# =====================================================================================
+
+
+@dataclass(frozen=True)
+class UserText:
+    text: str
+
+
+@dataclass(frozen=True)
+class AssistantText:
+    text: str
+
+
+@dataclass
+class ToolCall:
+    """모델이 요청한 도구 호출 1건.
+
+    arguments는 validation_error가 None일 때만 검증 완료 값이다. 인자 JSON 파싱 실패·미지 도구명·
+    스키마 불일치는 여기서 validation_error로 표시만 하고 **실행하지 않는다** — 호출측이
+    unavailable_result()로 형식만 닫는다.
+    """
+    call_id: str
+    tool_name: str
+    arguments: dict
+    validation_error: str | None = None  # malformed_json|unknown_tool|schema_mismatch|malformed_call
+
+
+@dataclass(frozen=True)
+class AssistantToolCalls:
+    calls: tuple[ToolCall, ...]
+
+
+@dataclass(frozen=True)
+class ControlIntent:
+    """모델이 표명한 기억 제어 의도. **shadow 전용** — durable write에 연결하지 않는다.
+
+    자유문 정규식으로 보충하지 않는다(control_tools로 넘긴 도구명만 인식). kind는 "pin"|"forget"뿐이고
+    그 밖은 validation error로 버린다.
+    """
+    kind: str
+    target_fact_ids: tuple[uuid.UUID, ...] = ()
+    value: str | None = None
+
+
+CONTROL_INTENT_KINDS = ("pin", "forget")
+
+
+@dataclass(frozen=True)
+class ToolResult:
+    """도구 실행 결과 1건. 불변식: unavailable → data=None + 비어있지 않은 error_code / ok → error_code=None."""
+    call_id: str
+    tool_name: str
+    status: Literal["ok", "unavailable"]
+    data: dict | list | None
+    schema_version: Literal[1] = 1
+    error_code: str | None = None  # timeout|cancelled|invalid_arguments|tool_call_limit|dependency_error|internal
+    truncated: bool = False
+    duration_ms: int = 0  # trace 전용 — 모델 wire에 넣지 않는다
+
+
+TranscriptItem = UserText | AssistantText | AssistantToolCalls | ToolResult
+
+
+@dataclass
+class StepResult:
+    text: str | None  # None = 텍스트 블록 없음(툴콜만). 빈 답변("")과 구분해야 한다
+    tool_calls: list[ToolCall]
+    finish_reason: str
+    usage: LlmCall
+    control_intents: list[ControlIntent] = field(default_factory=list)
+
+
+class ToolContractError(ValueError):
+    """typed transcript가 계약을 어겨 모델 호출을 만들 수 없음(호출 전에 터진다)."""
+
+
+class UnsupportedProviderError(NotImplementedError):
+    """툴콜 미지원 provider(Anthropic dormant)."""
+
+
+def unavailable_result(
+    call: ToolCall, *, error_code: str = "invalid_arguments", duration_ms: int = 0
+) -> ToolResult:
+    """실행하지 않은 호출을 형식만 닫는 ToolResult. 불변식(data=None + error_code)을 강제한다."""
+    if not error_code:
+        raise ToolContractError("unavailable 결과에는 error_code가 필요하다")
+    return ToolResult(
+        call_id=call.call_id,
+        tool_name=call.tool_name,
+        status="unavailable",
+        data=None,
+        error_code=error_code,
+        duration_ms=duration_ms,
+    )
+
+
+def _check_result(r: ToolResult) -> None:
+    if r.status == "unavailable":
+        if r.data is not None:
+            raise ToolContractError(f"unavailable 결과에 data가 있다 call_id={r.call_id}")
+        if not r.error_code:
+            raise ToolContractError(f"unavailable 결과에 error_code가 없다 call_id={r.call_id}")
+    elif r.error_code is not None:
+        raise ToolContractError(f"ok 결과에 error_code가 있다 call_id={r.call_id}")
+
+
+def _dump_args(arguments: dict) -> str:
+    """wire용 인자 직렬화 — 결정적(sort_keys)이라 같은 인자면 같은 문자열 = 프리픽스 캐시가 산다."""
+    return json.dumps(arguments, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+
+
+def _dump_result(r: ToolResult) -> str:
+    """모델이 읽는 도구 결과 JSON. duration_ms는 trace 전용이라 넣지 않는다."""
+    return json.dumps(
+        {
+            "schema_version": r.schema_version,
+            "tool": r.tool_name,
+            "status": r.status,
+            "data": r.data,
+            "error_code": r.error_code,
+            "truncated": r.truncated,
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+
+
+def to_openai_messages(
+    system: str | list[str], transcript: Sequence[TranscriptItem]
+) -> list[dict]:
+    """typed transcript → OpenAI wire 메시지.
+
+    형식 완결성을 여기서 강제한다: assistant tool call 메시지 뒤에는 **원래 순서대로** 모든 call_id의
+    tool message가 정확히 하나씩 와야 하고, 하나라도 비면 다음 호출을 만들지 않고 예외를 던진다
+    (미완결 transcript를 그대로 보내면 OpenAI 400이거나 더 나쁘게는 무응답 턴이 된다).
+    """
+    sys = system if isinstance(system, str) else "\n\n".join(b for b in system if b)
+    messages: list[dict] = [{"role": "system", "content": sys}] if sys else []
+    pending: list[ToolCall] = []  # 아직 결과가 안 붙은 호출(원래 순서)
+
+    def _require_closed(item: object) -> None:
+        if pending:
+            missing = ", ".join(c.call_id for c in pending)
+            raise ToolContractError(
+                f"결과가 없는 tool call이 남아 있다: {missing} (다음 항목={type(item).__name__})"
+            )
+
+    for item in transcript:
+        if isinstance(item, UserText):
+            _require_closed(item)
+            messages.append({"role": "user", "content": item.text})
+        elif isinstance(item, AssistantText):
+            _require_closed(item)
+            messages.append({"role": "assistant", "content": item.text})
+        elif isinstance(item, AssistantToolCalls):
+            _require_closed(item)
+            if not item.calls:
+                raise ToolContractError("빈 AssistantToolCalls")
+            ids = [c.call_id for c in item.calls]
+            if len(set(ids)) != len(ids):
+                raise ToolContractError(f"call_id 중복: {ids}")
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [
+                        {
+                            "id": c.call_id,
+                            "type": "function",
+                            "function": {
+                                "name": c.tool_name,
+                                "arguments": _dump_args(c.arguments),
+                            },
+                        }
+                        for c in item.calls
+                    ],
+                }
+            )
+            pending = list(item.calls)
+        elif isinstance(item, ToolResult):
+            if not pending:
+                raise ToolContractError(f"짝 없는 tool 결과 call_id={item.call_id}")
+            expected = pending.pop(0)
+            if expected.call_id != item.call_id:
+                raise ToolContractError(
+                    f"tool 결과 순서 불일치: {expected.call_id} 자리에 {item.call_id}"
+                )
+            if expected.tool_name != item.tool_name:
+                raise ToolContractError(
+                    f"tool 결과 도구명 불일치 call_id={item.call_id}: "
+                    f"{expected.tool_name} != {item.tool_name}"
+                )
+            _check_result(item)
+            messages.append(
+                {"role": "tool", "tool_call_id": item.call_id, "content": _dump_result(item)}
+            )
+        else:  # pragma: no cover - 타입 계약 위반
+            raise ToolContractError(f"알 수 없는 transcript 항목: {type(item).__name__}")
+    _require_closed(None)
+    return messages
+
+
+def from_openai_messages(messages: Sequence[dict]) -> tuple[str, list[TranscriptItem]]:
+    """wire → typed 역변환(같은 필드로 대칭). 왕복 대칭성 테스트와 replay 디버깅용."""
+    system = ""
+    items: list[TranscriptItem] = []
+    by_id: dict[str, str] = {}  # call_id → tool_name(결과 복원에 필요)
+    for m in messages:
+        role = m.get("role")
+        if role == "system":
+            system = m.get("content") or ""
+        elif role == "user":
+            items.append(UserText(text=m.get("content") or ""))
+        elif role == "assistant":
+            raw = m.get("tool_calls") or []
+            if not raw:
+                items.append(AssistantText(text=m.get("content") or ""))
+                continue
+            calls = []
+            for c in raw:
+                fn = c["function"]
+                calls.append(
+                    ToolCall(
+                        call_id=c["id"],
+                        tool_name=fn["name"],
+                        arguments=json.loads(fn["arguments"]),
+                    )
+                )
+                by_id[c["id"]] = fn["name"]
+            items.append(AssistantToolCalls(calls=tuple(calls)))
+        elif role == "tool":
+            payload = json.loads(m["content"])
+            call_id = m["tool_call_id"]
+            items.append(
+                ToolResult(
+                    call_id=call_id,
+                    tool_name=payload.get("tool") or by_id.get(call_id, ""),
+                    status=payload["status"],
+                    data=payload.get("data"),
+                    schema_version=payload.get("schema_version", 1),
+                    error_code=payload.get("error_code"),
+                    truncated=payload.get("truncated", False),
+                )
+            )
+        else:  # pragma: no cover - wire 계약 위반
+            raise ToolContractError(f"알 수 없는 wire role: {role!r}")
+    return system, items
+
+
+def _tool_names(tools: list[dict] | None) -> set[str]:
+    """wire 도구 스키마에서 도구명 집합. 미지 도구명 판정에 쓴다."""
+    names = set()
+    for t in tools or []:
+        fn = t.get("function") if isinstance(t, dict) else None
+        name = (fn or {}).get("name") if isinstance(fn, dict) else t.get("name")
+        if name:
+            names.add(name)
+    return names
+
+
+def _parse_call(
+    raw: object,
+    index: int,
+    *,
+    known: set[str],
+    input_models: Mapping[str, type[BaseModel]] | None,
+) -> ToolCall:
+    """wire tool_call 1건 → ToolCall. 검증 실패는 예외가 아니라 validation_error로 표시한다."""
+    fn = getattr(raw, "function", None)
+    call_id = getattr(raw, "id", None) or f"_missing_{index}"
+    name = (getattr(fn, "name", None) or "") if fn is not None else ""
+    raw_args = (getattr(fn, "arguments", None) or "") if fn is not None else ""
+    if not getattr(raw, "id", None) or not name:
+        return ToolCall(call_id, name, {}, validation_error="malformed_call")
+    try:
+        args = json.loads(raw_args) if raw_args else {}
+    except (ValueError, TypeError):
+        return ToolCall(call_id, name, {}, validation_error="malformed_json")
+    if not isinstance(args, dict):
+        return ToolCall(call_id, name, {}, validation_error="malformed_json")
+    if known and name not in known:
+        return ToolCall(call_id, name, {}, validation_error="unknown_tool")
+    model_cls = (input_models or {}).get(name)
+    if model_cls is not None:
+        try:
+            args = model_cls.model_validate(args).model_dump(mode="json")
+        except ValidationError:
+            return ToolCall(call_id, name, {}, validation_error="schema_mismatch")
+    return ToolCall(call_id, name, args)
+
+
+def _control_intent(call: ToolCall, kind: str) -> ControlIntent | None:
+    """control 도구 호출 → ControlIntent. 부적합하면 None(계측만, 실행·저장 없음)."""
+    if kind not in CONTROL_INTENT_KINDS or call.validation_error:
+        return None
+    raw_ids = call.arguments.get("target_fact_ids") or ()
+    if isinstance(raw_ids, str) or not isinstance(raw_ids, (list, tuple)):
+        return None
+    try:
+        ids = tuple(uuid.UUID(str(x)) for x in raw_ids)
+    except (ValueError, AttributeError, TypeError):
+        return None
+    value = call.arguments.get("value")
+    if value is not None and not isinstance(value, str):
+        return None
+    return ControlIntent(kind=kind, target_fact_ids=ids, value=value)
+
+
+def _step_usage(u: object, model: str, purpose: str) -> LlmCall:
+    """OpenAI usage → 회계 단위 LlmCall. 버킷 배분 규칙은 _generate_openai과 동일(등가 테스트로 고정)."""
+    prompt_tokens = (getattr(u, "prompt_tokens", None) or 0) if u is not None else 0
+    details = getattr(u, "prompt_tokens_details", None) if u is not None else None
+    cached = (getattr(details, "cached_tokens", None) or 0) if details is not None else 0
+    completion = (getattr(u, "completion_tokens", None) or 0) if u is not None else 0
+    uncached = max(0, prompt_tokens - cached)
+    cacheable = prompt_tokens >= _OPENAI_CACHE_MIN_PREFIX_TOKENS
+    r = LLMResult(
+        text="",
+        input_tokens=0 if cacheable else uncached,
+        output_tokens=completion,
+        cache_read_tokens=cached,
+        cache_write_tokens=uncached if cacheable else 0,
+        model=model,
+    )
+    return LlmCall(
+        provider="openai",
+        model=model,
+        purpose=purpose,
+        input_tokens=r.input_tokens,
+        output_tokens=r.output_tokens,
+        cache_read_tokens=r.cache_read_tokens,
+        cache_write_tokens=r.cache_write_tokens,
+        billable=billable_tokens(r),
+    )
+
+
+async def generate_step(
+    system: str | list[str],
+    transcript: Sequence[TranscriptItem],
+    *,
+    tools: list[dict] | None,
+    tool_choice: str,
+    model: str,
+    max_tokens: int,
+    timeout: float,
+    purpose: str = "tool_decide",
+    input_models: Mapping[str, type[BaseModel]] | None = None,
+    control_tools: Mapping[str, str] | None = None,
+) -> StepResult:
+    """도구 호출을 표현할 수 있는 1 step 호출. OpenAI 경로만(Anthropic은 dormant → 명시적 오류).
+
+    - `content=None`은 빈 답변이 아니라 "텍스트 없음"이다(text=None으로 그대로 반환).
+    - `tool_choice="none"`이면 도구를 강제로 못 쓰게 한다 — wire에 그대로 넘기고, 그래도 모델이
+      호출을 뱉으면 버린다(최종 step이 다시 루프를 돌지 않게 하는 백스톱).
+    - usage는 W1의 LlmCall로 반환해 TurnUsage에 그대로 누적한다.
+    - control_intents는 control_tools로 넘긴 도구명만 인식하는 **shadow** 산출물이다.
+      durable write에 연결하지 않고, 자유문 정규식으로 보충하지 않는다.
+    """
+    if provider_for(model) != "openai":
+        raise UnsupportedProviderError(
+            f"generate_step은 OpenAI 경로만 지원한다(Anthropic 툴콜 미구현·dormant): model={model!r}"
+        )
+    messages = to_openai_messages(system, transcript)  # 미완결 transcript면 여기서 중단(호출 안 함)
+    kwargs: dict = {
+        "model": model,
+        "messages": messages,
+        "max_completion_tokens": max_tokens,
+        "timeout": _timeout(timeout),
+    }
+    if tools:
+        kwargs["tools"] = tools
+        kwargs["tool_choice"] = tool_choice
+    resp = await _get_openai_client().chat.completions.create(**kwargs)
+
+    choices = getattr(resp, "choices", None) or []
+    usage = _step_usage(getattr(resp, "usage", None), model, purpose)
+    if not choices:  # content_filter 등 — 응답을 막지 않고 빈 step으로 닫는다
+        return StepResult(text=None, tool_calls=[], finish_reason="", usage=usage, control_intents=[])
+    choice = choices[0]
+    message = getattr(choice, "message", None)
+    text = getattr(message, "content", None) if message is not None else None
+    raw_calls = (getattr(message, "tool_calls", None) or []) if message is not None else []
+
+    # control 도구는 tools 스키마에 있든 없든 미지 도구가 아니다(실행은 안 하지만 의도는 읽는다).
+    known = _tool_names(tools) | set(control_tools or {})
+    calls: list[ToolCall] = []
+    intents: list[ControlIntent] = []
+    for i, raw in enumerate(raw_calls):
+        call = _parse_call(raw, i, known=known, input_models=input_models)
+        kind = (control_tools or {}).get(call.tool_name)
+        if kind is not None:  # control 도구는 실행 대상이 아니다(shadow만)
+            intent = _control_intent(call, kind)
+            if intent is None:
+                _log.info("control intent 폐기 tool=%s reason=validation", call.tool_name)
+            else:
+                intents.append(intent)
+            continue
+        calls.append(call)
+    if tool_choice == "none" and calls:
+        _log.warning("tool_choice=none인데 모델이 도구를 호출해 버린다 n=%d", len(calls))
+        calls = []
+    return StepResult(
+        text=text,
+        tool_calls=calls,
+        finish_reason=getattr(choice, "finish_reason", "") or "",
+        usage=usage,
+        control_intents=intents,
     )

@@ -151,6 +151,12 @@ class Settings(BaseSettings):
     # 합성 대화 모니터가 실제 LLM을 호출할지(비용 발생). False면 DB·설정 도달성만 확인.
     synthetic_check_llm: bool = True
 
+    # --- 현재 턴 컨텍스트(프롬프트 삽입, SOMA-미정) — 킬스위치, 기본 off ---
+    # 챗 프롬프트에 "지금 시각·오늘 첫 대화·함께한 일수·장착 아이템·루틴 진행" 블록 삽입 여부.
+    current_turn_context_enabled: bool = False
+    # last_active_bucket(최근 접속 후 경과) 렌더 여부 — 별도 스위치(단계적 롤아웃 대비).
+    current_context_last_active_enabled: bool = False
+
     model_config = SettingsConfigDict(
         # 로컬 기본 = .env(dev). 프로덕션을 로컬에서 띄우려면 MOLY_ENV_FILE=.env.prod 로 명시한다.
         # 서버(EC2)는 docker compose가 backend.env를 실제 환경변수로 주입하고, 환경변수가

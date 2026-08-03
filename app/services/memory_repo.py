@@ -280,6 +280,17 @@ async def _load_messages(
     return found
 
 
+async def load_turn_messages(
+    session: AsyncSession, user_id: uuid.UUID | str, message_ids: Sequence[int]
+) -> dict[int, tuple[str, str]]:
+    """turn 메시지 `{id: (sender, content)}` 적재 — **cross-user 검증 포함**(불변식 1).
+
+    추출 잡이 프롬프트를 만들 때 쓴다. 같은 검증을 잡 쪽에 다시 구현하면 방어선이 갈라지므로
+    조회 경로를 여기 하나로 둔다.
+    """
+    return await _load_messages(session, user_id, message_ids)
+
+
 async def allocate_source_turn(
     session: AsyncSession,
     *,
@@ -379,20 +390,29 @@ async def enqueue_reconcile(
     from_watermark: int,
     through_watermark: int,
     message_ids: Sequence[int],
+    candidate_payload: dict | None = None,
 ) -> uuid.UUID | None:
-    """extract 성공의 **fenced finalize와 같은 트랜잭션**에서 건다(끊기면 후속이 유실된다)."""
+    """extract 성공의 **fenced finalize와 같은 트랜잭션**에서 건다(끊기면 후속이 유실된다).
+
+    `candidate_payload`(= `memory-candidate-v1`)는 extract가 뽑아 **마스킹까지 끝낸** 후보다.
+    후보를 담아둘 테이블은 없고 잡 payload가 유일한 durable 채널이라 여기에 싣는다. reconcile은
+    이 값을 `memory_candidates.parse_candidates`로 **다시 검증**하므로 스키마는 한 곳에만 있다.
+    """
+    payload = _source_payload(
+        memory_generation=memory_generation,
+        from_watermark=from_watermark,
+        through_watermark=through_watermark,
+        message_ids=message_ids,
+    )
+    if candidate_payload is not None:
+        payload["candidate_payload"] = candidate_payload
     return await jobs.enqueue(
         session,
         queue=jobs.QUEUE_CONTENT,
         job_type=JOB_MEMORY_RECONCILE,
         user_id=user_id,
         dedup_key=f"{user_id}:{memory_generation}:{from_watermark}:{through_watermark}",
-        payload=_source_payload(
-            memory_generation=memory_generation,
-            from_watermark=from_watermark,
-            through_watermark=through_watermark,
-            message_ids=message_ids,
-        ),
+        payload=payload,
     )
 
 

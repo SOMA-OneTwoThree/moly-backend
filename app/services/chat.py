@@ -26,7 +26,17 @@ from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
-from app.services import gating, greetings, i18n, llm, memory, naming, text_clean, turn_context
+from app.services import (
+    gating,
+    greetings,
+    i18n,
+    llm,
+    memory,
+    memory_repo,
+    naming,
+    text_clean,
+    turn_context,
+)
 from app.services.account import _uid
 from app.services.agent import config as agent_config
 from app.services.agent import runtime as agent_runtime
@@ -541,6 +551,55 @@ async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
     await advisory_xact_lock(session, uid)
 
 
+# --- 정규화 기억 소스(W8, Phase 2 트랜잭션 안) ---
+async def _record_memory_source(
+    session: AsyncSession,
+    uid: uuid.UUID,
+    *,
+    memory_mode: str,
+    representative_message_id: int,
+    message_ids: list[int],
+    now: datetime,
+) -> None:
+    """이 턴의 watermark를 배정하고 추출 잡을 건다 — **legacy 유저는 진입 자체가 no-op**이다.
+
+    호출 위치가 계약이다: 유저·캐피 메시지를 insert한 **같은 Phase 2 트랜잭션·같은 유저락 안**,
+    커밋 전. 그래야 `memory_source_turns`/`memory_source_turn_messages`/`async_jobs` 행이 메시지와
+    원자적으로 생기고, watermark가 유저별로 빈틈 없이 하나씩 올라간다(§W8).
+
+    실패 정책:
+    - 대표가 inbound user message가 아니면(`NoInboundUserMessageError`) watermark를 쓰지 않고
+      조용히 건너뛴다. 선발화만 있는 턴은 v1 추출 소스가 아니다 — 대화는 정상 응답한다.
+    - 그 밖의 저장소 불변식 위반(`MemoryRepoError`)도 **쓰기 전에** 나므로 같은 방식으로 넘긴다
+      (기억 배선 버그가 대화를 죽이지 않게).
+    - DB 오류는 잡지 않고 올린다. 같은 트랜잭션이라 이미 abort된 상태이므로 fail-open이 성립하지
+      않는다 — 삼키면 watermark만 오르고 추출 잡이 없는 턴이 조용히 생기거나, 뒤이은 커밋이
+      알 수 없는 곳에서 실패한다. 올리면 이번 턴 전체가 롤백되고(저장 0) 클라가 같은 멱등키로
+      깨끗이 재시도한다.
+    """
+    if memory_mode != memory.MODE_NORMALIZED:
+        return
+    try:
+        turn = await memory_repo.allocate_source_turn(
+            session,
+            user_id=uid,
+            representative_message_id=representative_message_id,
+            message_ids=message_ids,
+            committed_at=now,
+        )
+    except memory_repo.MemoryRepoError as e:  # 쓰기 이전 단계에서만 발생 — 트랜잭션은 멀쩡하다
+        _log.info("기억 소스 배정 건너뜀(user=%s): %s", uid, e)
+        return
+    await memory_repo.enqueue_extraction(
+        session,
+        user_id=uid,
+        memory_generation=turn.memory_generation,
+        from_watermark=turn.watermark,
+        through_watermark=turn.watermark,
+        message_ids=turn.message_ids,
+    )
+
+
 # --- 토큰 누적(멱등 트랜잭션 내) ---
 async def _accumulate_tokens(
     session: AsyncSession, uid: uuid.UUID, activity_date: date, consumed: int
@@ -622,6 +681,10 @@ async def post_message(
     anchor = ctx.anchor_message_id if ctx is not None else 0
     prev_snapshot = ctx.memory_text if ctx is not None else None
     refreshed_at = ctx.memory_refreshed_at if ctx is not None else None
+    # 정규화 기억(W8) 게이트 — 이미 읽은 행에서 꺼낸다(추가 조회 0). 기본값 legacy라 현재 전 유저는
+    # Phase 2에서 아무 일도 일어나지 않는다. Phase 1↔2 사이에 cutover가 끼면 그 한 턴만 watermark를
+    # 못 받는데(다음 턴부터 정상), 반대로 여기서 다시 읽어도 커밋 시점 값을 보장하진 못한다.
+    memory_mode = ctx.memory_mode if ctx is not None else memory.MODE_LEGACY
 
     # 도구 루프 설정(W5) — read-only 구간에서 **1회** 조회해 frozen snapshot으로 들고 나간다.
     # agent phase는 DB도 settings도 다시 읽지 않는다(TTL 캐시 없음 = 두 EC2 캐시 불일치 없음).
@@ -809,6 +872,7 @@ async def post_message(
 
     # 선발화 커밋(재조회 — 여전히 유효하면). id 순서 위해 유저 메시지보다 먼저 insert.
     greeting_dto = None
+    greeting_message_id: int | None = None  # 이 턴에 커밋된 선발화(기억 소스 turn에 함께 묶는다)
     if greeting_gid is not None:
         # populate_existing=True — phase-1에서 로드한 gr가 identity map + expire_on_commit=False로
         # 남아 있어, 강제 재조회 없으면 phase-1의 stale(committed_message_id=None) 상태를 본다.
@@ -822,6 +886,7 @@ async def post_message(
             session.add(gmsg)
             await session.flush()
             gr.committed_message_id = gmsg.id
+            greeting_message_id = gmsg.id
             # gr.content는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
             greeting_dto = {
                 "message_id": str(gmsg.id),
@@ -855,6 +920,16 @@ async def post_message(
     )
     session.add(rmsg)
     await session.flush()
+
+    # 정규화 기억(W8) — 이 턴의 소스 turn 배정 + 추출 잡. legacy 유저는 no-op(현재 전 유저).
+    # 이 턴에 커밋된 선발화도 같은 watermark에 묶는다(그 인사도 이 대화의 근거다).
+    await _record_memory_source(
+        session, uid,
+        memory_mode=memory_mode,
+        representative_message_id=umsg.id,
+        message_ids=[i for i in (greeting_message_id, umsg.id, rmsg.id) if i is not None],
+        now=now,
+    )
 
     # 토큰 집계(원가 가중 billable, normal만) — 사후 누적(원자 증분). 증분 후 총량을 응답 기준으로.
     new_total = await _accumulate_tokens(session, uid, ad, consumed)

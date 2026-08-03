@@ -19,9 +19,9 @@ from tests.test_chat_metrics import _turn_metrics_payload
 UID = "11111111-1111-1111-1111-111111111111"
 
 
-async def _post(session, monkeypatch, *, reply="응.", capture: dict | None = None):
+async def _post(session, monkeypatch, *, reply="응.", capture: dict | None = None, tokens_used=1000):
     async def _res(s, user_id):
-        return _gating()
+        return _gating(tokens_used=tokens_used)
 
     async def _fake_mem(user_id):
         return ""
@@ -140,3 +140,36 @@ async def test_context_ms_measured_when_enabled(monkeypatch, caplog):
     await _post(FakeSession(), monkeypatch)
     payload = _turn_metrics_payload(caplog)
     assert payload["context_ms"] is not None and payload["context_ms"] >= 0
+
+
+# 6) is_first_today 배선 — Message 존재확인 쿼리를 재조회하지 않고 Phase 1에서 이미 읽은
+#    tokens_used_pre로 판정한다. 오늘 누적 토큰 0 ⟺ 오늘 유저 메시지 없음(817행 저장·843행
+#    누적이 같은 Phase 2 트랜잭션이라 등가) — build_context에 실제로 전달되는 값을 스파이로 캡처.
+async def test_is_first_today_true_when_tokens_used_pre_zero(monkeypatch):
+    monkeypatch.setattr(chat_service.settings, "current_turn_context_enabled", True)
+
+    captured_kwargs: dict = {}
+
+    async def _spy_build_context(session, profile, **kw):
+        captured_kwargs.update(kw)
+        return turn_context_module.CurrentTurnContext()
+
+    monkeypatch.setattr(turn_context_module, "build_context", _spy_build_context)
+    await _post(FakeSession(), monkeypatch, tokens_used=0)
+
+    assert captured_kwargs["is_first_today"] is True
+
+
+async def test_is_first_today_false_when_tokens_used_pre_nonzero(monkeypatch):
+    monkeypatch.setattr(chat_service.settings, "current_turn_context_enabled", True)
+
+    captured_kwargs: dict = {}
+
+    async def _spy_build_context(session, profile, **kw):
+        captured_kwargs.update(kw)
+        return turn_context_module.CurrentTurnContext()
+
+    monkeypatch.setattr(turn_context_module, "build_context", _spy_build_context)
+    await _post(FakeSession(), monkeypatch, tokens_used=1000)
+
+    assert captured_kwargs["is_first_today"] is False

@@ -628,15 +628,9 @@ async def post_message(
     if settings.current_turn_context_enabled:
         t_context0 = time.monotonic()
         try:
-            # is_first_today = 오늘(activity_date) 유저 메시지가 아직 하나도 없음. 이번 턴 유저
-            # 메시지는 Phase 2에서야 저장되므로, get_greeting(위)과 같은 존재확인 쿼리를 재사용한다.
-            is_first_today = (
-                await session.execute(
-                    select(Message.id)
-                    .where(Message.user_id == uid, Message.activity_date == ad, Message.sender == "user")
-                    .limit(1)
-                )
-            ).scalars().first() is None
+            # 오늘 첫 대화 = 오늘 누적 토큰 0. 유저 메시지 저장(817행)과 토큰 누적(843행)이
+            # 같은 Phase 2 트랜잭션이라 등가다. 명세 §W3-1 "이미 읽은 값은 재조회하지 않는다".
+            is_first_today = tokens_used_pre == 0
             turn_ctx = await turn_context.build_context(
                 session, g.profile, is_first_today=is_first_today, now_utc=now
             )

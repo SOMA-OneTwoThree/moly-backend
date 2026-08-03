@@ -25,7 +25,9 @@ from app.models.profile import Profile
 from app.models.routine import Routine, RoutineCompletion
 from app.models.user_device import UserDevice
 from app.services import i18n, shop
-from app.services.memory import _sanitize  # 렌더 경로 프롬프트 인젝션 방어(대괄호·제어문자 살균) 재사용
+# 대괄호·제어문자 제거. 상품명은 우리 카탈로그 값이지만 기억 렌더와 같은 살균을 통과시킨다.
+# ⚠️ 이건 표현 정리이지 보안 경계가 아니다 — 이걸 믿고 신뢰할 수 없는 입력을 넣지 마라.
+from app.services.memory import _sanitize
 
 _log = logging.getLogger("moly-backend")
 

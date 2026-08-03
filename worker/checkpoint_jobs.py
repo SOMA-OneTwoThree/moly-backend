@@ -119,15 +119,13 @@ def _chain_matches(previous: checkpoint.Checkpoint | None, req: _Request) -> boo
     return (str(previous.id) if previous is not None else None) == req.previous_id
 
 
-async def _generation_matches(
-    session: AsyncSession, req: _Request, *, lock: bool = False
-) -> bool:
+async def _generation_matches(session: AsyncSession, req: _Request) -> bool:
     """잡을 만든 시점과 지금의 기억 세대가 같은가. 다르면 그 사이에 forget이 있었다.
 
-    `lock=True`면 forget과 같은 행을 잠근다 — **확정 트랜잭션에서는 반드시 켠다**(안 그러면
-    읽은 뒤 INSERT 전에 forget이 끼어들어 세 검사를 전부 피한다).
+    **이른 종료용이다** — LLM을 괜히 부르지 않으려는 것이고, 최종 방어는 `checkpoint_repo.insert`가
+    같은 문장 안에서 하는 세대 검사다(읽고 나서 쓰는 사이의 경합을 잠금 없이 없앤다).
     """
-    current = await checkpoint_repo.read_memory_generation(session, req.user_id, lock=lock)
+    current = await checkpoint_repo.read_memory_generation(session, req.user_id)
     if current == req.memory_generation:
         return True
     _log.info(
@@ -138,7 +136,7 @@ async def _generation_matches(
 
 
 async def _still_applicable(
-    session: AsyncSession, req: _Request, *, lock: bool = False
+    session: AsyncSession, req: _Request
 ) -> tuple[bool, checkpoint.Checkpoint | None]:
     """fenced finalize 트랜잭션 안에서 하는 마지막 확인(최신 checkpoint를 fresh read).
 
@@ -147,7 +145,7 @@ async def _still_applicable(
     """
     # 세대부터 본다. LLM 구간(DB 커넥션 0)에서 forget이 끼면 checkpoint가 전량 지워져
     # previous=None이 되는데, 그 상태가 "첫 요약"과 구분이 안 돼 체인 검사만으로는 통과한다.
-    if not await _generation_matches(session, req, lock=lock):
+    if not await _generation_matches(session, req):
         return False, None
     previous = await checkpoint_repo.load_latest(session, req.user_id)
     if previous is not None and previous.through_message_id >= req.through_message_id:
@@ -291,13 +289,11 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
 
     async def _apply(session: AsyncSession) -> None:
         # 🔴 여기서 하는 도메인 쓰기는 checkpoint 1행뿐이다. 요약에서 기억 추출 잡을 만들지 않는다.
-        # forget과 같은 행을 잠근 채로 검사하고 INSERT까지 간다. 잠그지 않으면 검사 통과 뒤
-        # INSERT 전에 forget이 끼어들어(세대 증가 + 요약 삭제) 세 검사를 전부 피한다.
-        #
-        # 잠금은 NOWAIT다(checkpoint_repo 주석 참조) — 챗과 락 순서가 반대라 기다리면 교착이
-        # 난다. 못 잡으면 여기서 예외가 올라가 확정이 통째로 롤백되고, 잡은 lease 만료 후
-        # reaper가 다시 넣는다. 요약이 한 주기 늦을 뿐이고 **챗은 절대 희생되지 않는다.**
-        ok, _ = await _still_applicable(session, req, lock=True)
+        # 여기 검사들은 **이른 종료용**이다. 잊어줘와의 경합에 대한 최종 방어는
+        # `checkpoint_repo.insert`가 같은 문장 안에서 하는 세대 검사다 — 읽고 나서 쓰는
+        # 사이를 잠금으로 막으려 하면 챗과 락 순서가 반대라 교착이 나고, 그걸 NOWAIT로
+        # 피하면 재시도 횟수를 갉아먹어 요약이 영구 유실된다.
+        ok, _ = await _still_applicable(session, req)
         if ok and await checkpoint_repo.has_closed_messages(
             session, req.user_id, list(req.source_message_ids)
         ):
@@ -314,6 +310,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             through_message_id=req.through_message_id,
             summary=summary,
             source_hash=req.source_hash,
+            expected_generation=req.memory_generation,
             version=req.version,
         )
 

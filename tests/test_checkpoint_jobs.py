@@ -87,7 +87,6 @@ def store(monkeypatch) -> dict:
         "inserts": [],          # 호출 시점의 (세션, 커밋 수)
         "forget_closures": False,   # 잊어줘로 닫힌 구간 존재 여부
         "closed_message_ids": set(),  # 그중 실제로 닫힌 메시지 id
-        "generation_locked": 0,       # FOR UPDATE로 읽은 횟수(확정 트랜잭션에서 1회 이상이어야 한다)
         "memory_generation": 0,     # 현재 기억 세대(forget이 +1 한다)
     }
 
@@ -105,8 +104,17 @@ def store(monkeypatch) -> dict:
         picked = [m for m in state["messages"] if (after_id or 0) < m.id <= through_id]
         return picked[: max_rows] if max_rows is not None else picked
 
-    async def _insert(session, *, user_id, through_message_id, summary, source_hash, version):
-        state["inserts"].append({"session": session, "commits": session.commits})
+    async def _insert(
+        session, *, user_id, through_message_id, summary, source_hash,
+        expected_generation, version,
+    ):
+        state["inserts"].append({
+            "session": session, "commits": session.commits,
+            "expected_generation": expected_generation,
+        })
+        # 실제 SQL은 WHERE EXISTS(세대 일치)라 세대가 어긋나면 **아무것도 안 쓴다**.
+        if expected_generation != state["memory_generation"]:
+            return None
         key = (str(user_id), through_message_id, source_hash)
         if any(r["key"] == key for r in state["rows"]):  # UNIQUE(user, through, source_hash)
             return None
@@ -121,8 +129,7 @@ def store(monkeypatch) -> dict:
     async def _has_closures(session, user_id):
         return state["forget_closures"]
 
-    async def _generation(session, user_id, *, lock=False):
-        state["generation_locked"] = state.get("generation_locked", 0) + (1 if lock else 0)
+    async def _generation(session, user_id):
         return state["memory_generation"]
 
     monkeypatch.setattr(checkpoint_repo, "insert", _insert)
@@ -579,15 +586,35 @@ async def test_normal_checkpoint_proceeds_when_nothing_was_closed(db, store, llm
     assert len(store["rows"]) == 1
 
 
-async def test_finalize_locks_the_row_it_checks(db, store, llm_calls):
-    """확정 트랜잭션은 forget과 같은 행을 잠근 채로 검사하고 INSERT한다.
-
-    잠그지 않으면 세대를 읽은 뒤 INSERT 전에 forget이 끼어들어(세대 증가 + 요약 삭제)
-    세대·closure·삭제 세 검사를 **전부 피하고** 옛 요약이 되살아난다.
-    """
+async def test_insert_carries_the_expected_generation(db, store, llm_calls):
+    """저장이 세대를 **같은 문장 안에서** 검사한다(읽고 나서 쓰는 경합을 잠금 없이 없앤다)."""
     await _run(db, _enqueue_job(db, _payload()))
 
-    assert store["generation_locked"] >= 1  # 확정 구간에서 FOR UPDATE로 읽었다
+    assert store["inserts"], "저장이 시도돼야 한다"
+    assert store["inserts"][-1]["expected_generation"] == 0  # payload 세대를 그대로 넘긴다
+
+
+async def test_forget_between_check_and_insert_writes_nothing(db, store, llm_calls):
+    """검사를 통과한 뒤 저장 직전에 잊어줘가 끼어도 아무것도 안 쓴다.
+
+    세대 검사가 저장과 **한 문장**이라 그 사이가 없다. 따로 읽고 나서 쓰면 그 틈에
+    잊어줘가 세대 증가·요약 삭제를 마치고, 저장은 검사를 전부 피해 지운 요약을 되살린다.
+    """
+    jid = _enqueue_job(db, _payload())          # payload 세대 = 0
+
+    async def _slip(*a, **kw):
+        store["memory_generation"] = 1          # 검사 통과 후, 저장 직전에 잊어줘 발생
+        return []
+
+    import worker.checkpoint_jobs as cj
+    orig = cj.checkpoint_repo.has_closed_messages
+    cj.checkpoint_repo.has_closed_messages = _slip
+    try:
+        await _run(db, jid)
+    finally:
+        cj.checkpoint_repo.has_closed_messages = orig
+
+    assert store["rows"] == []                  # 저장 0
 
 
 async def test_unmapped_messages_count_as_closed_when_the_user_has_forgotten(monkeypatch):

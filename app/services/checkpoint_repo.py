@@ -37,18 +37,6 @@ _GENERATION_SQL = text(
     "SELECT COALESCE(memory_generation, 0) FROM chat_contexts WHERE user_id = :user_id"
 )
 
-# finalize 전용 — forget이 잠그는 것과 **같은 행**을 잠근다(`memory_forget._LOCK_CONTEXT_SQL`).
-# 안 잠그면 세대를 읽은 뒤 INSERT하기 전에 forget이 끼어들어 세대 증가·요약 삭제를 마치고,
-# finalize는 세대·closure·삭제 셋을 전부 피해 옛 요약을 되살린다(check-then-act 경합).
-# `NOWAIT`인 이유: 챗 Phase 2와 락 순서가 반대다(챗은 chat_contexts를 잡고 async_jobs에 잡을
-# 걸고, 확정은 async_jobs를 fencing으로 잡은 뒤 chat_contexts를 잡는다). 그냥 기다리면 교착이
-# 나고 Postgres가 둘 중 하나를 죽이는데, **챗이 희생되면 유저에게 오류가 간다.**
-# 배경 작업인 요약이 양보한다 — 못 잡으면 즉시 실패하고 재시도한다(요약은 늦어도 된다).
-_LOCK_GENERATION_SQL = text(
-    "SELECT COALESCE(memory_generation, 0) FROM chat_contexts "
-    "WHERE user_id = :user_id FOR UPDATE NOWAIT"
-)
-
 # 잊어줘가 닫은 구간이 하나라도 있는가. 재검증은 `(0, through]` 원본 전체를 다시 읽으므로
 # 닫힌 구간을 **필연적으로** 포함한다 — 있으면 재검증을 건너뛰고 체인 요약으로 간다.
 _HAS_CLOSURE_SQL = text(
@@ -83,10 +71,20 @@ ORDER BY id
 LIMIT :max_rows
 """)
 
+# 세대 검사를 **저장과 같은 문장 안에** 둔다. 따로 읽고 나서 쓰면 그 사이에 잊어줘가 끼어들어
+# 세대 증가·요약 삭제를 마치고, 저장은 검사를 전부 피해 지운 요약을 되살린다(check-then-act).
+#
+# 한 문장이면 잠금이 필요 없다 — 잠그려 하면 챗 Phase 2와 락 순서가 반대라 교착이 나고,
+# 그걸 NOWAIT로 피하면 이번엔 재시도 횟수를 갉아먹어 요약이 영구 유실된다. 검사와 행동을
+# 쪼개지 않는 게 근본 해법이다.
 _INSERT_SQL = text("""
 INSERT INTO conversation_checkpoints
   (user_id, through_message_id, summary, version, source_hash)
-VALUES (:user_id, :through_message_id, :summary, :version, :source_hash)
+SELECT :user_id, :through_message_id, :summary, :version, :source_hash
+WHERE EXISTS (
+  SELECT 1 FROM chat_contexts
+  WHERE user_id = :user_id AND COALESCE(memory_generation, 0) = :expected_generation
+)
 ON CONFLICT (user_id, through_message_id, source_hash) DO NOTHING
 RETURNING id
 """)
@@ -94,16 +92,13 @@ RETURNING id
 _USER_STATE_SQL = text("SELECT nickname, language FROM profiles WHERE id = :user_id")
 
 
-async def read_memory_generation(
-    session: AsyncSession, user_id: uuid.UUID | str, *, lock: bool = False
-) -> int:
+async def read_memory_generation(session: AsyncSession, user_id: uuid.UUID | str) -> int:
     """그 유저의 현재 기억 세대. 행이 없으면 0(아직 대화 컨텍스트가 없는 유저).
 
-    `lock=True`면 forget과 같은 행을 `FOR UPDATE`로 잠근다 — **확정 트랜잭션에서는 반드시 켠다.**
-    잠그지 않으면 읽은 뒤 쓰기 전에 forget이 끼어들 수 있다.
+    이 값은 **이른 종료용 힌트**다. 최종 방어는 `insert`가 같은 문장 안에서 하는 세대 검사이며,
+    여기서 읽은 값이 낡아도 저장은 안전하다.
     """
-    sql = _LOCK_GENERATION_SQL if lock else _GENERATION_SQL
-    row = (await session.execute(sql, {"user_id": user_id})).first()
+    row = (await session.execute(_GENERATION_SQL, {"user_id": user_id})).first()
     return int(row[0]) if row is not None else 0
 
 
@@ -205,9 +200,14 @@ async def insert(
     through_message_id: int,
     summary: str,
     source_hash: str,
+    expected_generation: int,
     version: str = checkpoint.SUMMARIZER_VERSION,
 ) -> uuid.UUID | None:
-    """checkpoint 1행. 이미 같은 `(user, through, source_hash)`가 있으면 None(멱등)."""
+    """checkpoint 1행. 이미 같은 `(user, through, source_hash)`가 있으면 None(멱등).
+
+    `expected_generation`이 지금 값과 다르면 **아무것도 쓰지 않고** None을 돌려준다 —
+    그 사이에 잊어줘가 있었다는 뜻이고, 그 대화를 다시 요약해 넣으면 안 된다.
+    """
     row = (
         await session.execute(
             _INSERT_SQL,
@@ -217,6 +217,7 @@ async def insert(
                 "summary": summary,
                 "version": version,
                 "source_hash": source_hash,
+                "expected_generation": expected_generation,
             },
         )
     ).first()

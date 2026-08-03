@@ -283,3 +283,35 @@ async def test_summarize_rejects_a_leaked_real_name(monkeypatch):
         messages=_msgs(2), previous_summary=None, language="ko", nickname="지훈"
     )
     assert "지훈" not in summary  # 마스킹이 걷어낸다
+
+
+# --- SQL 구조 불변식 (시뮬레이터가 가려줄 수 없는 자리) ---
+def _norm(sql) -> str:
+    """공백을 지운 SQL — 서식 변경에 흔들리지 않게(test_jobs.py와 같은 방식)."""
+    return "".join(str(sql).split())
+
+
+def test_insert_checks_the_generation_in_the_same_statement():
+    """세대 검사가 저장과 **한 문장** 안에 있어야 한다.
+
+    따로 읽고 나서 쓰면 그 사이에 잊어줘가 세대 증가·요약 삭제를 마치고, 저장은 검사를
+    전부 피해 지운 요약을 되살린다. 잠금으로 막으려 하면 챗과 락 순서가 반대라 교착이 나고,
+    NOWAIT로 피하면 재시도 횟수를 갉아먹어 요약이 영구 유실된다 — 한 문장이 근본 해법이다.
+
+    테스트 시뮬레이터는 이 검사를 파이썬으로 흉내내므로 SQL을 지워도 통과한다.
+    그래서 문장 구조를 여기서 따로 못 박는다.
+    """
+    from app.services import checkpoint_repo
+
+    sql = _norm(checkpoint_repo._INSERT_SQL)
+    assert "WHEREEXISTS(" in sql, "세대 검사가 저장 문장에서 사라졌다"
+    assert "memory_generation,0)=:expected_generation" in sql
+    assert "FROMchat_contexts" in sql
+
+
+def test_insert_has_no_row_lock():
+    """저장 경로가 chat_contexts를 잠그지 않는다 — 잠그면 챗과 교착한다."""
+    from app.services import checkpoint_repo
+
+    for name in ("_INSERT_SQL", "_GENERATION_SQL"):
+        assert "FORUPDATE" not in _norm(getattr(checkpoint_repo, name)), name

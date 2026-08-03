@@ -410,6 +410,48 @@ CREATE TABLE public.feedback (
 );
 CREATE INDEX feedback_user_idx ON public.feedback (user_id);
 
+-- 잡 플랫폼(W7) — 대화 후속 처리(기억 추출 등)의 내구 큐. 큐 5종은 스키마가 아니라 queue 컬럼 값이며
+-- 소비자 내부 슬롯으로만 분리한다. attempt는 **claim 시점**에 증가해(크래시로 finalize 못 한 잡도
+-- 재클레임마다 카운트) 반드시 dead에 도달한다(poison job 무한루프 방지). finalize/heartbeat은
+-- (id, state='running', lease_owner, lease_token) fencing으로만 쓴다 — lease 잃은 늦은 소비자가
+-- 잘못 확정 못 함. terminal(succeeded/dead/cancelled)에서 같은 행을 ready로 되살리지 않고,
+-- 운영 replay는 dedup_key='replay:{old_job_id}:{operation_id}'인 새 행으로만. dead 자동 삭제 없음.
+CREATE TABLE public.async_jobs (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  queue         text NOT NULL,                       -- critical|interactive_async|content|notification|maintenance
+  job_type      text NOT NULL,
+  user_id       uuid NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  dedup_key     text NOT NULL,
+  payload       jsonb NOT NULL,
+  state         text NOT NULL DEFAULT 'ready'
+    CHECK (state IN ('ready','running','succeeded','dead','cancelled')),
+  priority      integer NOT NULL DEFAULT 100,        -- 작을수록 먼저
+  available_at  timestamptz NOT NULL DEFAULT now(),  -- 재시도 backoff 예약 시각
+  expires_at    timestamptz NULL,                    -- 경과 시 cancelled(처리 의미 없어진 잡)
+  attempt       integer NOT NULL DEFAULT 0 CHECK (attempt >= 0),
+  max_attempts  integer NOT NULL CHECK (max_attempts > 0),
+  lease_owner   text NULL,
+  lease_token   uuid NULL,
+  lease_until   timestamptz NULL,
+  result_code   text NULL,
+  result_detail jsonb NULL,
+  last_error_code text NULL,
+  last_error_at timestamptz NULL,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  finished_at   timestamptz NULL,
+  UNIQUE (job_type, dedup_key),                      -- 멱등 키(구·신 producer 겹침 구간 합류점)
+  CHECK (                                            -- lease 3종은 running일 때만 존재
+    (state = 'running' AND lease_owner IS NOT NULL AND lease_token IS NOT NULL AND lease_until IS NOT NULL)
+    OR (state <> 'running' AND lease_owner IS NULL AND lease_token IS NULL AND lease_until IS NULL)
+  )
+);
+CREATE INDEX async_jobs_claim_idx
+  ON public.async_jobs (queue, priority, available_at, created_at) WHERE state='ready';
+CREATE INDEX async_jobs_reclaim_idx
+  ON public.async_jobs (queue, lease_until) WHERE state='running';
+-- /health/queues 큐별 집계·oldest dead age(이관 게이트). dead 미삭제로 단조 증가하는 테이블의 풀스캔 방지.
+CREATE INDEX async_jobs_state_queue_idx ON public.async_jobs (state, queue);
+
 -- ─────────────────────────────────────────────────────────────
 -- 10. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
 --     클라 데이터 경로는 전부 서버 API → anon/authenticated 직접 접근 차단.
@@ -424,7 +466,7 @@ BEGIN
     'subscriptions','subscription_hay_grants','payments',
     'user_items','diaries','routines','routine_completions',
     'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
-    'chat_contexts','feedback','diary_gen_claims','revenuecat_events'
+    'chat_contexts','feedback','diary_gen_claims','revenuecat_events','async_jobs'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;

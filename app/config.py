@@ -86,6 +86,44 @@ class Settings(BaseSettings):
     # 유저 1명 처리 상한(초). 외부 API 지연이 배치를 장시간 막지 않게. 초과 시 스킵(다음 틱 재시도).
     worker_user_timeout_s: float = 120.0
 
+    # --- 잡 플랫폼(async_jobs, W7) ---
+    # ⚠️ 이 블록은 전부 **env 전용**이다. `app_config` hot override 대상에 넣지 않는다(명세 §W7):
+    # 소비자 동시성·lease는 프로세스 기동값이라 런타임에 바뀌면 이미 잡힌 lease와 어긋난다.
+    # ⚠️ 아래 수치는 전부 **보수적 초기값**이고 처리량 근거가 아직 없다 —
+    #    DB pool wait p95 · queue oldest age · lease 만료율 · provider p95를 본 뒤 **측정 후 조정 필요**.
+    job_backoff_base_s: float = 2.0     # equal-jitter 지수 backoff 기준(0초 연속 재시도 방지)
+    job_backoff_cap_s: float = 60.0     # backoff 상한(긴 장애에서 무한정 대기 방지)
+    job_reaper_interval_s: float = 10.0  # 최단 lease(20s)보다 짧게 — 회수 지연을 한 lease 안으로 제한
+    job_reaper_batch_size: int = 50     # statement당 상한(무제한 UPDATE 방지)
+    job_idle_sleep_s: float = 1.0       # claim 0건일 때 폴링 간격(빈 큐 스핀 방지)
+    # 큐별 소비자 실행값(consumer 1개당, 두 EC2 각각 동일). content가 밀려도 critical/notification
+    # 슬롯을 빌려 쓰지 않는다 — 큐 A 적체가 큐 B를 막지 않게 슬롯을 고정 분리한다.
+    job_critical_concurrency: int = 2           # 결제 — 분리된 예약 슬롯, 짧은 DB/provider 처리
+    job_critical_claim_batch: int = 2
+    job_critical_timeout_s: float = 10.0
+    job_critical_lease_s: float = 30.0
+    job_critical_max_attempts: int = 3
+    job_interactive_async_concurrency: int = 2  # 대화 후속 — 지연을 content와 격리
+    job_interactive_async_claim_batch: int = 2
+    job_interactive_async_timeout_s: float = 30.0
+    job_interactive_async_lease_s: float = 45.0
+    job_interactive_async_max_attempts: int = 3
+    job_content_concurrency: int = 1            # 일기·요약·반추 — 현행 worker_user_timeout_s=120 준용
+    job_content_claim_batch: int = 1
+    job_content_timeout_s: float = 120.0
+    job_content_lease_s: float = 150.0
+    job_content_max_attempts: int = 3
+    job_notification_concurrency: int = 1       # 저녁 푸시 — marker 선점 전 장애만 bounded retry
+    job_notification_claim_batch: int = 1
+    job_notification_timeout_s: float = 10.0
+    job_notification_lease_s: float = 20.0
+    job_notification_max_attempts: int = 3
+    job_maintenance_concurrency: int = 1        # 유저 경로보다 낮은 우선순위
+    job_maintenance_claim_batch: int = 1
+    job_maintenance_timeout_s: float = 60.0
+    job_maintenance_lease_s: float = 90.0
+    job_maintenance_max_attempts: int = 3
+
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""
     fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)
@@ -156,6 +194,22 @@ class Settings(BaseSettings):
     current_turn_context_enabled: bool = False
     # last_active_bucket(최근 접속 후 경과) 렌더 여부 — 별도 스위치(단계적 롤아웃 대비).
     current_context_last_active_enabled: bool = False
+
+    # --- 도구 루프(agent, W5) — 환경/배포 기본값. 전 키가 `app_config` override 대상이다 ---
+    # 해석·검증은 app/services/agent/config.py(별도 계약, limits.py의 토큰 키와 섞지 않는다).
+    # 여기 값은 DB override가 없거나 불량일 때의 fallback일 뿐이다.
+    agent_enabled: bool = False                 # 킬스위치. False면 기존 단발 경로 그대로
+    agent_turn_deadline_s: float = 5.0          # §0.1 하드 제약(응답 5초)
+    agent_final_reserve_s: float = 2.5          # 최종 호출용 선예약(**측정 필요**)
+    agent_max_tool_rounds: int = 1              # 라운드 상한(1 고정)
+    agent_max_tool_calls_per_turn: int = 3      # 한 라운드 fan-out 상한
+    # 아래 두 값은 임의 설정이 아니라 비용 부등식 `7.25D + 1.25T <= 2307`의 해다(§3.1.3).
+    # **단독으로 바꾸지 말 것** — agent/config.py가 조합을 다시 검증해 위반이면 기본값으로 되돌린다.
+    agent_decide_max_tokens: int = 192          # step 1 출력 상한(도구 결정)
+    agent_tool_result_budget_tokens: int = 600  # 한 턴 도구 결과 **합계** 예산
+    agent_tool_timeout_ms: int = 800            # 도구별 상한
+    agent_tool_inflight: int = 8                # 프로세스 전체 동시 도구 수(**측정 필요**)
+    agent_canary_pct: float = 0.0               # 카나리 비율(0.01% 단위, 비용 캡이 아니다)
 
     model_config = SettingsConfigDict(
         # 로컬 기본 = .env(dev). 프로덕션을 로컬에서 띄우려면 MOLY_ENV_FILE=.env.prod 로 명시한다.

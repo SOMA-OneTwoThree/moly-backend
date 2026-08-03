@@ -1,8 +1,10 @@
 """chat 서비스 — 상태·이력·전송·선발화. 대화는 HTTP 완성본(스트리밍 없음)."""
 from __future__ import annotations
 
+import json
 import logging
 import re
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
@@ -503,6 +505,23 @@ class TurnUsage:
         }
 
 
+# --- W2: 턴 계측(§0.1 응답시간·턴수 제약 판정 근거) ---
+def _emit_turn_metrics(**fields: Any) -> None:
+    """턴 계측을 구조화 로그 1줄로 배출. 유저 id·메시지 본문은 절대 넣지 않는다(길이·hash만 허용,
+
+    여기선 아예 안 씀). 로그 배출 자체가 실패해도(직렬화 불가·핸들러 오류 등) 유저 응답을
+    막으면 안 되므로 반드시 예외를 삼킨다 — 계측 실패가 응답 실패로 번지는 게 최악이다.
+    """
+    try:
+        _log.info("chat_turn_metrics %s", json.dumps(fields, default=str, ensure_ascii=False))
+    except Exception:  # noqa: BLE001 — 계측 배출 실패는 절대 응답을 막지 않는다
+        _log.warning("chat_turn_metrics 로그 배출 실패", exc_info=True)
+
+
+def _ms(t0: float, t1: float) -> float:
+    return (t1 - t0) * 1000
+
+
 # --- 유저 단위 직렬화(토큰 한도 TOCTOU 방지) ---
 async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
     """트랜잭션 범위 advisory lock — 같은 유저의 동시 요청을 직렬화. 커밋/롤백 시 자동 해제.
@@ -544,15 +563,25 @@ async def post_message(
     """
     uid = _uid(user_id)
     now = datetime.now(timezone.utc)
+    t0 = time.monotonic()
 
     # 0) 멱등 — 같은 (유저,키) 재요청은 저장된 응답 그대로(이중 차감 방지, 유저 스코프)
     cached = await session.get(IdempotencyKey, (uid, idempotency_key))
     if cached is not None:
         # 비호환 행도 보존한 채 500 — 지우면 다음 재시도가 새 요청으로 실행되어
         # 메시지·토큰이 중복된다. 정리는 운영 스크립트(--delete-invalid)에서만.
-        return validate_post_message_response(
+        validated_cached = validate_post_message_response(
             cached.response, user_id=user_id, idempotency_key=idempotency_key
         )
+        # LLM을 안 태운 순수 replay라 나머지 구간 지표는 없음(집계 오염 방지 — replay=True로 분리).
+        _emit_turn_metrics(
+            replay=True, total_ms=_ms(t0, time.monotonic()),
+            phase1_ms=None, memory_reload_ms=None, llm_ms=None, repair_ms=None,
+            egress_ms=None, phase2_ms=None, prompt_tokens=None, cache_read_tokens=None,
+            cache_write_tokens=None, cache_read_ratio=None, billable=None, lang=None,
+            used_tools=None,
+        )
+        return validated_cached
 
     # ===== Phase 1: 조립(read-only, 짧은 txn + 유저락). DB 쓰기 없음. =====
     # 유저 직렬화 → 게이팅. 잠근 뒤 tokens_used를 읽어야 동시요청이 한도를 우회 못 함(TOCTOU).
@@ -610,19 +639,25 @@ async def post_message(
     need_refresh, age_h = _snapshot_state(refreshed_at, now)  # 외부 호출 없이 판정만
 
     await session.commit()  # 락·커넥션 해제 — 이후 LLM 구간엔 커넥션 점유 0
+    t_phase1 = time.monotonic()
+    phase1_ms = _ms(t0, t_phase1)
 
     # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — 기억 재로드 + LLM + 백스톱 =====
     # 기억 스냅샷 재해결(_resolve_memory와 공유하는 _reload_memory, 커밋 밖에서). None이면 미저장.
     mem = prev_snapshot or ""
     new_snapshot: str | None = None
+    memory_reload_ms = 0.0
     if need_refresh:
+        t_mem0 = time.monotonic()
         mem, new_snapshot = await _reload_memory(uid, prev_snapshot, age_h)
+        memory_reload_ms = _ms(t_mem0, time.monotonic())
 
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
     system = _build_system(language, nick, mem, lead_all)
 
     # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
+    t_llm0 = time.monotonic()
     result = await llm.generate(
         system, convo,
         cache_messages=cache_on,
@@ -630,6 +665,7 @@ async def post_message(
         ttl_messages=settings.cache_ttl_messages,
         timeout=settings.llm_timeout_s,
     )
+    llm_ms = _ms(t_llm0, time.monotonic())
     if (
         cache_on
         # OpenAI는 자동캐시라 write가 실측이 아닌 추정값 → 이 경보는 Anthropic 전용(허위 WARN 방지).
@@ -645,6 +681,8 @@ async def post_message(
         )
 
     # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제 → placeholder.
+    t_egress0 = time.monotonic()
+    repair_ms = 0.0
     usage = TurnUsage([_llm_call(result, "chat")])  # 복원 호출이 붙을 수 있어 차감은 백스톱 뒤에
     reply_text = result.text
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
@@ -661,9 +699,12 @@ async def post_message(
             )
             reply_text = stripped
     if is_ko and text_clean.has_foreign_ko(reply_text):
+        t_repair0 = time.monotonic()
         reply_text, repair_calls = await _repair_foreign_ko(reply_text, user_id=user_id)
+        repair_ms = _ms(t_repair0, time.monotonic())
         usage.calls.extend(repair_calls)
     reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
+    egress_ms = _ms(t_egress0, time.monotonic())
 
     # 회계 대상 — v2 off(롤백)면 주 chat 호출만 차감하고 나머지는 계측·로그로만 남긴다.
     billed = usage if settings.turn_usage_v2_enabled else TurnUsage(usage.calls[:1])
@@ -677,7 +718,19 @@ async def post_message(
         )
 
     # ===== Phase 2: 확정(짧은 txn + 유저락 재획득) =====
+    t_phase2_0 = time.monotonic()
     await _lock_user(session, uid)
+    lang_bucket = i18n.resolve(language)
+    used_tools = any(c.purpose in ("tool_decide", "tool_final") for c in usage.calls)
+    usage_totals = usage.totals  # W2 계측 — billed(v2 킬스위치 영향)와 별개로 실제 턴 합계
+    prompt_tokens = (
+        usage_totals["input_tokens"]
+        + usage_totals["cache_read_tokens"]
+        + usage_totals["cache_write_tokens"]
+    )
+    cache_read_ratio = (
+        usage_totals["cache_read_tokens"] / prompt_tokens if prompt_tokens else None
+    )
     # 동시 중복이 먼저 확정했으면 그 응답 반환(이중 LLM은 낭비지만 이중 저장 방지 — 유저락으로 직렬).
     dup = await session.get(IdempotencyKey, (uid, idempotency_key))
     if dup is not None:
@@ -685,9 +738,20 @@ async def post_message(
         # 접근이 async 암시적 재로드를 유발해 MissingGreenlet. 반드시 rollback 전에 값을 뽑는다.
         dup_response = dup.response
         await session.rollback()
-        return validate_post_message_response(
+        validated_dup = validate_post_message_response(
             dup_response, user_id=user_id, idempotency_key=idempotency_key
         )
+        # 이 요청 자체는 LLM을 실제로 태웠지만 저장은 동시 중복본에 밀렸다 — replay=True로 분리해
+        # 정상 턴 집계를 오염시키지 않되, 실비용(usage)은 관측용으로 남긴다.
+        _emit_turn_metrics(
+            replay=True, total_ms=_ms(t0, time.monotonic()),
+            phase1_ms=phase1_ms, memory_reload_ms=memory_reload_ms, llm_ms=llm_ms,
+            repair_ms=repair_ms, egress_ms=egress_ms, phase2_ms=_ms(t_phase2_0, time.monotonic()),
+            prompt_tokens=prompt_tokens, cache_read_tokens=usage_totals["cache_read_tokens"],
+            cache_write_tokens=usage_totals["cache_write_tokens"], cache_read_ratio=cache_read_ratio,
+            billable=usage.total_billable, lang=lang_bucket, used_tools=used_tools,
+        )
+        return validated_dup
 
     # 선발화 커밋(재조회 — 여전히 유효하면). id 순서 위해 유저 메시지보다 먼저 insert.
     greeting_dto = None
@@ -769,6 +833,15 @@ async def post_message(
     # 멱등 저장 + 커밋(원자) — JSONB에는 검증 통과한 원본 dict를 저장
     session.add(IdempotencyKey(user_id=uid, key=idempotency_key, response=response))
     await session.commit()
+    t_end = time.monotonic()
+    _emit_turn_metrics(
+        replay=False, total_ms=_ms(t0, t_end),
+        phase1_ms=phase1_ms, memory_reload_ms=memory_reload_ms, llm_ms=llm_ms,
+        repair_ms=repair_ms, egress_ms=egress_ms, phase2_ms=_ms(t_phase2_0, t_end),
+        prompt_tokens=prompt_tokens, cache_read_tokens=usage_totals["cache_read_tokens"],
+        cache_write_tokens=usage_totals["cache_write_tokens"], cache_read_ratio=cache_read_ratio,
+        billable=usage.total_billable, lang=lang_bucket, used_tools=used_tools,
+    )
     return validated
 
 

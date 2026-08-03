@@ -606,7 +606,63 @@ CREATE INDEX memory_source_closures_overlap_idx
   ON public.memory_source_closures(user_id, source_kind, from_watermark, through_watermark);
 
 -- ─────────────────────────────────────────────────────────────
--- 11. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
+-- 11. 관계 프로필(W9) — 정규화 기억에서 파생한 **칸 고정** 프롬프트 투영.
+--     stance / known_facts(≤5) / recent_threads(≤3) / inferred_tendencies(≤2), 렌더 ≤400토큰.
+--     · locale당 published는 정확히 1개(부분 유니크 인덱스가 동시성까지 강제).
+--     · invalidated/superseded는 terminal(되돌리는 UPDATE 경로 없음).
+--     · source FK는 복합키(user_id 동반) — 타 유저 근거를 다는 경로를 스키마가 막는다.
+--     상세 = docs/agentic-chat-IMPLEMENTATION.md §W9.
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE public.relationship_profiles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  version bigint NOT NULL CHECK (version > 0),
+  locale text NOT NULL,                     -- i18n 버킷(ko|en|ja). 언어를 바꾸면 새 locale 행이 생긴다
+  memory_generation bigint NOT NULL,
+  relationship_profile_input_revision bigint NOT NULL,
+  document_json jsonb NOT NULL,             -- 칸별 항목 + item_key + source_refs(edge와 양방향 일치)
+  rendered_text text NOT NULL,              -- 프롬프트에 실리는 문자열(실명 금지 — {유저이름} placeholder)
+  render_hash text NOT NULL,                -- 같은 값이면 새 version을 만들지 않는다
+  status text NOT NULL DEFAULT 'draft'
+    CHECK (status IN ('draft','published','invalidated','superseded')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  published_at timestamptz NULL,
+  UNIQUE (user_id, id),                     -- 아래 복합 FK가 user_id를 함께 태우기 위한 대상 키
+  UNIQUE (user_id, locale, version),
+  CHECK ((status='published' AND published_at IS NOT NULL) OR status<>'published')
+);
+CREATE UNIQUE INDEX relationship_profiles_one_published_idx
+  ON public.relationship_profiles(user_id, locale) WHERE status='published';
+
+-- 근거 간선 — document_json의 source_refs와 type/id/item_key까지 양방향으로 정확히 같아야
+-- publish한다. 렌더 시점에도 근거의 active/marker 상태를 다시 대조한다.
+CREATE TABLE public.relationship_profile_sources (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  relationship_profile_id uuid NOT NULL,
+  item_key text NOT NULL,                   -- 문서 항목의 불변 키(칸 안에서 항목을 식별)
+  fact_id uuid NULL,
+  insight_id uuid NULL,
+  CHECK (num_nonnulls(fact_id, insight_id)=1),
+  FOREIGN KEY (user_id, relationship_profile_id)
+    REFERENCES public.relationship_profiles(user_id, id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id, fact_id) REFERENCES public.memory_facts(user_id, id) ON DELETE RESTRICT,
+  FOREIGN KEY (user_id, insight_id) REFERENCES public.memory_insights(user_id, id) ON DELETE RESTRICT
+);
+CREATE UNIQUE INDEX relationship_profile_sources_fact_uq
+  ON public.relationship_profile_sources(user_id, relationship_profile_id, item_key, fact_id)
+  WHERE fact_id IS NOT NULL;
+CREATE UNIQUE INDEX relationship_profile_sources_insight_uq
+  ON public.relationship_profile_sources(user_id, relationship_profile_id, item_key, insight_id)
+  WHERE insight_id IS NOT NULL;
+-- RESTRICT 검사(근거 삭제 시 참조 탐색)와 역추적용 — 위 유니크 인덱스는 근거 id 단독 조회를 못 받는다.
+CREATE INDEX relationship_profile_sources_fact_idx
+  ON public.relationship_profile_sources(user_id, fact_id) WHERE fact_id IS NOT NULL;
+CREATE INDEX relationship_profile_sources_insight_idx
+  ON public.relationship_profile_sources(user_id, insight_id) WHERE insight_id IS NOT NULL;
+
+-- ─────────────────────────────────────────────────────────────
+-- 12. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
 --     클라 데이터 경로는 전부 서버 API → anon/authenticated 직접 접근 차단.
 --     (클라 직접 읽기가 필요해지면 여기에 own-row SELECT 정책 추가)
 -- ─────────────────────────────────────────────────────────────
@@ -623,11 +679,13 @@ BEGIN
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;
-  -- 기억 테이블(W8)은 유저 대화에서 뽑은 PII라 RLS에 더해 클라 롤 권한도 회수한다(chat_contexts와 동일).
+  -- 기억 테이블(W8)·관계 프로필(W9)은 유저 대화에서 뽑은 PII(와 그 파생)라 RLS에 더해 클라 롤
+  -- 권한도 회수한다(chat_contexts와 동일).
   FOREACH t IN ARRAY ARRAY[
     'memory_facts','memory_evidence','memory_insights','memory_insight_sources',
     'memory_forget_markers','memory_source_turns','memory_source_turn_messages',
-    'memory_source_closures'
+    'memory_source_closures',
+    'relationship_profiles','relationship_profile_sources'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
     EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated;', t);

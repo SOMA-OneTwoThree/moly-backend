@@ -139,6 +139,56 @@ _OUTPUT_CHECK_JA = (
 )
 
 
+# ─────────────────────────────────────────────────────────────
+# 관계 프로필 블록(W9) — **기본 off**. 지금 그 자리는 `[기억]`(chat_contexts.memory_text)이 쓰고
+# 있고, 교체는 W10 cutover 소관이다. 여기서는 자리와 문구만 만들어 둔다.
+#
+# 본문(칸별 항목)은 `app/services/relationship_profile.render`가 만든다 — 이 함수는 헤더와
+# "나열하지 말라"는 규칙만 붙인다. 프로필은 하루 몇 번만 바뀌므로 페르소나 쪽(안정 프리픽스)에
+# 붙여야 캐시가 산다. 매 턴 바뀌는 블록과 같은 자리에 두면 캐시가 통째로 깨진다.
+# ─────────────────────────────────────────────────────────────
+RELATIONSHIP_PROFILE_BLOCK_ENABLED = False
+
+# 헤더는 **페르소나 본문이 가리키는 섹션명과 같아야** 한다 — 프로필은 [기억] 자리를 대신할 것이고
+# (W10), 페르소나의 기억 규칙(지어내지 마·꺼내 보이는 티 내지 마)이 그대로 걸려야 한다. ko/en
+# 페르소나는 한국어 본문이라 `[기억]`, ja 페르소나만 `[記憶]`이다. 새 섹션명을 만들면 페르소나의
+# `[관계]`(처음 온 사람 vs 자주 오는 사람) 섹션과 이름이 겹쳐 모델이 두 지시를 섞는다.
+_PROFILE_LABEL = {"ko": "기억", "en": "기억", "ja": "記憶"}
+
+_PROFILE_RULE = {
+    "ko": (
+        "아래는 너와 상대가 쌓아온 시간을 칸으로 정리한 거야. 항목을 그대로 읊거나 나열하지 말고 "
+        "말투와 태도에 배어나게 해. 여기 없는 일은 지어내지 마. 확실하지 않다고 표시된 칸은 "
+        "단정하지 말고 조심스럽게 다뤄."
+    ),
+    "en": (
+        "Below is what you and they have built up, sorted into slots. Don't recite or list the "
+        "entries; let them show in how you speak. Don't invent anything that isn't here. Treat the "
+        "slot marked uncertain as a guess, not a fact."
+    ),
+    "ja": (
+        "下は、きみと相手が重ねてきた時間を項目ごとに整理したもの。そのまま読み上げたり並べたり "
+        "せず、話し方や態度ににじませて。ここにないことは作らない。確かではないと書かれた項目は "
+        "断定せず、慎重に扱って。"
+    ),
+}
+
+
+def relationship_profile_block(
+    rendered_text: str | None, language: str | None, *, enabled: bool | None = None
+) -> str:
+    """관계 프로필을 감싼 system 블록. 꺼져 있거나 내용이 없으면 빈 문자열이다.
+
+    `enabled`를 주면 그 값이 우선한다(cutover 롤아웃이 유저 단위로 켤 자리). 기본은 모듈 플래그.
+    """
+    if not (RELATIONSHIP_PROFILE_BLOCK_ENABLED if enabled is None else enabled):
+        return ""
+    body = (rendered_text or "").strip()
+    if not body:
+        return ""
+    return f"[{i18n.pick(_PROFILE_LABEL, language)}]\n{i18n.pick(_PROFILE_RULE, language)}\n{body}"
+
+
 def system_prompt(language: str) -> str:
     """페르소나 + 응답 언어 고정(profile.language로 생성). 언어별로 문자 규칙·출력 체크를 분기한다.
 

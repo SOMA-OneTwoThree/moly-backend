@@ -26,7 +26,7 @@ from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
-from app.services import gating, greetings, i18n, llm, memory, naming, text_clean
+from app.services import gating, greetings, i18n, llm, memory, naming, text_clean, turn_context
 from app.services.account import _uid
 from app.services.prompts import system_prompt
 
@@ -182,6 +182,7 @@ async def _context(
     *,
     current_text: str | None = None,
     current_date: date | None = None,
+    resident_block: str = "",
 ) -> tuple[list[dict[str, str]], int | None, list[Message]]:
     """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
 
@@ -194,6 +195,11 @@ async def _context(
     current_text가 주어지면(SOMA-374 read-only phase) 이번 턴 유저 메시지가 아직 DB에
     없으므로, 과거 메시지로 조립한 뒤 현재 턴을 배열 끝에 in-memory로 붙인다(날짜 표식 포함).
     리셋 카운트에도 현재 턴을 포함한다. current_text 없으면(단위 테스트) 기존 동작 그대로.
+
+    resident_block(현재 턴 컨텍스트 — turn_context.render 결과)이 있으면 current_text와
+    같은 마지막 user 메시지 안에 개행 2개로 이어붙인다. 별도 role로 추가하면 안 된다 —
+    그러면 마지막 두 항목이 모두 user가 되어 위 Anthropic 첫 메시지 user 보장 계약과
+    충돌한다. current_text가 None인 경로(단위테스트·폴백)엔 삽입 지점이 없어 무시한다.
     """
     q = (
         select(Message)
@@ -235,6 +241,8 @@ async def _context(
         prev_date = kept[-1].activity_date if kept else None
         if current_date is not None and current_date != prev_date:
             content = f"{_date_label(current_date)}\n{current_text}"
+        if resident_block:  # 같은 user 항목 안에 합침(별도 role 추가 금지 — 위 docstring 참조)
+            content = f"{content}\n\n{resident_block}"
         convo.append({"role": "user", "content": content})
     return convo, new_anchor, lead
 
@@ -579,7 +587,7 @@ async def post_message(
             phase1_ms=None, memory_reload_ms=None, llm_ms=None, repair_ms=None,
             egress_ms=None, phase2_ms=None, prompt_tokens=None, cache_read_tokens=None,
             cache_write_tokens=None, cache_read_ratio=None, billable=None, lang=None,
-            used_tools=None,
+            used_tools=None, context_ms=None,
         )
         return validated_cached
 
@@ -612,9 +620,37 @@ async def post_message(
     prev_snapshot = ctx.memory_text if ctx is not None else None
     refreshed_at = ctx.memory_refreshed_at if ctx is not None else None
 
+    # 현재 턴 컨텍스트("지금 상황" 블록, W3) — 킬스위치 off면 조회 자체를 안 한다(기존과 완전 동일).
+    # Phase 1(락+커넥션 보유) 안에서 끝내야 한다 — 커밋 뒤 LLM 구간엔 DB 커넥션 0(SOMA-374 불변식).
+    # 실패해도 대화가 죽으면 안 되므로 fail-open(빈 블록)하고 경고만 남긴다.
+    resident_block = ""
+    context_ms = 0.0
+    if settings.current_turn_context_enabled:
+        t_context0 = time.monotonic()
+        try:
+            # is_first_today = 오늘(activity_date) 유저 메시지가 아직 하나도 없음. 이번 턴 유저
+            # 메시지는 Phase 2에서야 저장되므로, get_greeting(위)과 같은 존재확인 쿼리를 재사용한다.
+            is_first_today = (
+                await session.execute(
+                    select(Message.id)
+                    .where(Message.user_id == uid, Message.activity_date == ad, Message.sender == "user")
+                    .limit(1)
+                )
+            ).scalars().first() is None
+            turn_ctx = await turn_context.build_context(
+                session, g.profile, is_first_today=is_first_today, now_utc=now
+            )
+            resident_block = turn_context.render(turn_ctx, language)
+        except Exception:  # noqa: BLE001 — 실패해도 응답을 막지 않는다(빈 블록으로 진행)
+            _log.warning(
+                "현재 턴 컨텍스트 조회 실패(user=%s) — 빈 블록으로 진행", user_id, exc_info=True
+            )
+            resident_block = ""
+        context_ms = _ms(t_context0, time.monotonic())
+
     # 컨텍스트 조립 — 현재 유저 메시지는 아직 미저장. _context가 현재 턴을 in-memory로 붙인다.
     convo, new_anchor, lead = await _context(
-        session, uid, anchor, current_text=req.text, current_date=ad
+        session, uid, anchor, current_text=req.text, current_date=ad, resident_block=resident_block
     )
     lead_texts = [m.content for m in lead]  # placeholder 저장분(문자열) — 커밋 후 ORM 미접근
 
@@ -750,6 +786,7 @@ async def post_message(
             prompt_tokens=prompt_tokens, cache_read_tokens=usage_totals["cache_read_tokens"],
             cache_write_tokens=usage_totals["cache_write_tokens"], cache_read_ratio=cache_read_ratio,
             billable=usage.total_billable, lang=lang_bucket, used_tools=used_tools,
+            context_ms=context_ms,
         )
         return validated_dup
 
@@ -841,6 +878,7 @@ async def post_message(
         prompt_tokens=prompt_tokens, cache_read_tokens=usage_totals["cache_read_tokens"],
         cache_write_tokens=usage_totals["cache_write_tokens"], cache_read_ratio=cache_read_ratio,
         billable=usage.total_billable, lang=lang_bucket, used_tools=used_tools,
+        context_ms=context_ms,
     )
     return validated
 

@@ -15,7 +15,7 @@ UID = "11111111-1111-1111-1111-111111111111"
 _REQUIRED_FIELDS = (
     "replay", "total_ms", "phase1_ms", "memory_reload_ms", "llm_ms", "repair_ms",
     "egress_ms", "phase2_ms", "prompt_tokens", "cache_read_tokens", "cache_write_tokens",
-    "cache_read_ratio", "billable", "lang", "used_tools",
+    "cache_read_ratio", "billable", "lang", "used_tools", "context_ms",
 )
 
 

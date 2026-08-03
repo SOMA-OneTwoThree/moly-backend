@@ -265,6 +265,69 @@ async def test_build_context_days_together_none_without_created_at():
     assert ctx.days_together is None
 
 
+async def test_build_context_routine_ad_uses_now_utc_param_not_wall_clock(monkeypatch):
+    """회귀 방지 — 루틴 집계가 now_utc를 무시하고 실제 벽시계를 쓰면 이 테스트가 즉시 잡는다.
+
+    reward_date_for(now_utc, tz)를 spy로 감싸 실제 호출 인자를 검사한다. 예전 버그(current_reward_date
+    가 내부에서 datetime.now()를 부름)로 되돌아가면 이 spy 자체가 호출되지 않아 captured가 비고,
+    assert가 KeyError로 실패한다.
+    """
+    real_reward_date_for = tc.reward_date_for
+    captured: dict = {}
+
+    def _spy(now_utc_arg, tz_name):
+        captured["now_utc"] = now_utc_arg
+        captured["tz"] = tz_name
+        return real_reward_date_for(now_utc_arg, tz_name)
+
+    monkeypatch.setattr(tc, "reward_date_for", _spy)
+    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    await tc.build_context(
+        session, _profile(timezone="Asia/Seoul"), is_first_today=False, now_utc=NOW
+    )
+    assert captured["now_utc"] == NOW
+    assert captured["tz"] == "Asia/Seoul"
+
+
+async def test_build_context_equipped_names_order_is_deterministic_by_slot():
+    # shop._user_rows에 ORDER BY가 없어 DB 반환 순서가 들쭉날쭉할 수 있다 — 일부러 역순으로 먹여도
+    # shop._SLOTS_V2(theme→hat→glasses→neck→body) 순서로 정렬돼 나와야 한다.
+    body_id, hat_id, neck_id = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    session = FakeSession(
+        [
+            _Result(
+                [
+                    _user_item(body_id, "body"),
+                    _user_item(hat_id, "hat"),
+                    _user_item(neck_id, "neck"),
+                ]
+            ),
+            _Result(
+                [
+                    _product(body_id, name="바디"),
+                    _product(hat_id, name="모자"),
+                    _product(neck_id, name="목걸이"),
+                ]
+            ),
+            _Result([]),
+            _Result([]),
+        ]
+    )
+    ctx = await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
+    assert ctx.equipped_names == ["모자", "목걸이", "바디"]  # hat → neck → body 순
+
+
+async def test_build_context_days_together_clamps_negative_future_created_at(caplog):
+    # 시계 오차 등으로 created_at이 미래면 last_active_bucket처럼 0으로 clamp + 경고 로그.
+    future = NOW + timedelta(days=3)
+    profile = _profile(created_at=future, timezone="UTC")
+    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    with caplog.at_level(logging.WARNING):
+        ctx = await tc.build_context(session, profile, is_first_today=False, now_utc=NOW)
+    assert ctx.days_together == 0
+    assert any("days_together" in r.message for r in caplog.records)
+
+
 async def test_build_context_days_together_uses_local_date_not_utc_date():
     # KST 유저가 로컬 오전(UTC로는 전날)에 가입 — UTC 날짜끼리 빼면 하루가 더 늘어나는 회귀 방지.
     # 가입 2026-01-01 08:00 KST(=2025-12-31 23:00 UTC), 지금 2026-08-04 09:00 KST(=2026-08-04 00:00 UTC).

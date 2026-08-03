@@ -17,7 +17,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.time_utils import current_reward_date, safe_zone
+from app.core.time_utils import reward_date_for, safe_zone
 from app.models.profile import Profile
 from app.models.routine import Routine, RoutineCompletion
 from app.models.user_device import UserDevice
@@ -65,6 +65,15 @@ async def build_context(
         async with session.begin_nested():
             rows = await shop._user_rows(session, uid)
             equipped_rows = [r for r in rows if r.equipped_slot is not None]
+            # _user_rows에 ORDER BY가 없어 DB 반환 순서가 실행마다 달라질 수 있다 — 프롬프트에
+            # 박히는 문자열이라 재현성이 필요하므로 shop._SLOTS_V2 표준 슬롯 순서로 고정 정렬한다.
+            equipped_rows.sort(
+                key=lambda r: (
+                    shop._SLOTS_V2.index(r.equipped_slot)
+                    if r.equipped_slot in shop._SLOTS_V2
+                    else len(shop._SLOTS_V2)
+                )
+            )
             products = await shop._products_by_ids(
                 session, {r.product_id for r in equipped_rows}
             )
@@ -91,10 +100,12 @@ async def build_context(
     routines_done: int | None = None
     try:
         async with session.begin_nested():
-            # 루틴의 "오늘" = current_reward_date(로컬 00:00 경계). 대화의 activity_date(04:00)와
-            # 다르다 — 팀장 결정이자 기존 루틴 도메인의 진실(routine.py:13,54가 이 기준을 쓴다).
-            # 유저가 앱에서 보는 루틴 완료 상태와 캐피 발화가 어긋나면 안 되기 때문.
-            ad = current_reward_date(profile.timezone)
+            # 루틴의 "오늘" = 00:00 경계(대화의 activity_date 04:00과 다르다) — 팀장 결정이자
+            # 기존 루틴 도메인의 진실(routine.py:13,54가 이 기준을 쓴다). 유저가 앱에서 보는 루틴
+            # 완료 상태와 캐피 발화가 어긋나면 안 되기 때문. now_utc를 넘겨야 한다(현재 시각을
+            # 내부에서 부르는 current_reward_date를 쓰면 time_bucket·days_together는 now_utc를
+            # 따르는데 루틴만 실제 벽시계를 따라 비일관·시간의존 테스트가 된다).
+            ad = reward_date_for(now_utc, profile.timezone)
             weekday = ad.isoweekday()  # ISO 1=월 ~ 7=일
             all_routines = list(
                 (
@@ -149,6 +160,11 @@ async def build_context(
         if profile.created_at is not None
         else None
     )
+    if days_together is not None and days_together < 0:
+        # 미래 created_at(시계 오차 등)이면 음수가 나올 수 있다 — last_active_bucket과 동일하게
+        # 0으로 clamp하고 경고(음수 "함께한 지 -1일"을 그대로 렌더하지 않는다).
+        _log.warning("build_context: 미래 created_at → days_together=%r을 0으로 clamp", days_together)
+        days_together = 0
 
     return CurrentTurnContext(
         time_bucket=time_bucket(local_hour),

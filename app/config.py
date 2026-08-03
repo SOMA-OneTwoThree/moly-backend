@@ -146,7 +146,10 @@ class Settings(BaseSettings):
     synthetic_check_llm: bool = True
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # 로컬 기본 = .env(dev). 프로덕션을 로컬에서 띄우려면 MOLY_ENV_FILE=.env.prod 로 명시한다.
+        # 서버(EC2)는 docker compose가 backend.env를 실제 환경변수로 주입하고, 환경변수가
+        # dotenv보다 우선하므로 이 값은 서버 동작에 영향이 없다.
+        env_file=os.getenv("MOLY_ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
         extra="ignore",

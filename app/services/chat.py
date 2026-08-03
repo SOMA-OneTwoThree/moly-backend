@@ -27,6 +27,8 @@ from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
 from app.services import (
+    checkpoint,
+    checkpoint_repo,
     gating,
     greetings,
     i18n,
@@ -273,15 +275,13 @@ async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> No
 
 
 async def _save_memory(session: AsyncSession, uid: uuid.UUID, text_: str, now: datetime) -> None:
-    """기억 스냅샷 갱신 — memory 컬럼만(앵커 클로버 금지)."""
-    stmt = pg_insert(ChatContext).values(
-        user_id=uid, memory_text=text_, memory_refreshed_at=now
-    )
-    stmt = stmt.on_conflict_do_update(
-        index_elements=["user_id"],
-        set_={"memory_text": text_, "memory_refreshed_at": now, "updated_at": func.now()},
-    )
-    await session.execute(stmt)
+    """기억 스냅샷 갱신 — **legacy 유저만**, memory 컬럼만(앵커 클로버 금지).
+
+    mode 분기는 저장소의 SQL(`WHERE memory_mode='legacy'`)이 한다. 여기서 mode를 먼저 읽어
+    분기하면 그 사이 cutover가 끼어든다(read-then-write 레이스). 마지막 방어선은
+    `chat_contexts_normalized_snapshot_guard` 트리거다 — 구버전 코드는 mode를 아예 모른다.
+    """
+    await memory_repo.save_legacy_snapshot(session, uid, memory_text=text_, refreshed_at=now)
 
 
 def _snapshot_state(refreshed_at: datetime | None, now: datetime) -> tuple[bool, float | None]:
@@ -297,7 +297,7 @@ def _snapshot_state(refreshed_at: datetime | None, now: datetime) -> tuple[bool,
 
 
 async def _reload_memory(
-    uid: uuid.UUID, prev: str | None, age_h: float | None
+    uid: uuid.UUID, prev: str | None, age_h: float | None, *, mode: str = memory.MODE_LEGACY
 ) -> tuple[str, str | None]:
     """mem0 재로드 + 4분기 판정 → (mem, new_snapshot). new_snapshot=None이면 저장 스킵.
 
@@ -305,8 +305,17 @@ async def _reload_memory(
     _resolve_memory와 post_message가 공유하는 단일 로직(4분기 drift 방지):
     - 장애+최근스냅샷 → prev 재사용(미저장) / 장애+없음·초과 → "" / 빈성공+prev → prev 유지(미저장) /
       그 외(비어있지 않은 성공, 또는 빈성공+prev없음) → fresh 저장.
+
+    **위 4분기는 legacy 전용이다.** `normalized` 유저는 mem0를 호출조차 하지 않고 ("", None)이다 —
+    빈 결과는 빈 기억이고 legacy 문자열로 폴백하지 않는다(명세 §W10 step 6). 폴백하면 "장애+최근
+    스냅샷 재사용"·"빈 성공+prev 유지" 두 분기가 곧 mem0 사본 부활 경로가 된다(forget으로 지운
+    내용이 프롬프트로 되돌아온다). 호출측도 mode로 이 함수를 건너뛰지만, 방어선을 여기 한 번 더 둔다.
     """
+    if mode == memory.MODE_NORMALIZED:
+        return "", None
     try:
+        # mode를 넘기지 않는다 — 두 줄 위 가드가 normalized를 이미 걸러 이 호출은 legacy에서만
+        # 도달한다. load_for_context 자체의 mode 게이트는 다른 호출자(워커)를 위한 것이다.
         fresh = await memory.load_for_context(str(uid))
     except memory.MemoryUnavailable:
         if prev and age_h is not None and age_h < settings.memory_snapshot_stale_hours:
@@ -318,7 +327,12 @@ async def _reload_memory(
 
 
 async def _resolve_memory(
-    session: AsyncSession, uid: uuid.UUID, ctx: ChatContext | None, now: datetime
+    session: AsyncSession,
+    uid: uuid.UUID,
+    ctx: ChatContext | None,
+    now: datetime,
+    *,
+    mode: str = memory.MODE_LEGACY,
 ) -> str:
     """기억 텍스트 해결 — 신선한 스냅샷이면 그대로(핫패스 mem0 없음 + system[1] 안정→캐시 유지).
 
@@ -327,25 +341,43 @@ async def _resolve_memory(
 
     (post_message는 락/커넥션을 쥐지 않으려고 _snapshot_state + _reload_memory로 커밋 밖에서
     분리 수행한다. 이 함수는 동일 로직을 트랜잭션 안에서 쓰는 단일 진입점 — 재로드분을 즉시 저장한다.)
+
+    `normalized` 유저는 mem0도 스냅샷도 읽지 않고 항상 ""다(§W10 step 6, 폴백 금지).
     """
+    if mode == memory.MODE_NORMALIZED:
+        return ""
     refreshed = ctx.memory_refreshed_at if ctx is not None else None
     prev = ctx.memory_text if ctx is not None else None
     need_refresh, age_h = _snapshot_state(refreshed, now)
     if not need_refresh:
         return prev or ""  # 신선 → 그대로
-    mem, new_snapshot = await _reload_memory(uid, prev, age_h)
+    mem, new_snapshot = await _reload_memory(uid, prev, age_h, mode=mode)
     if new_snapshot is not None:
         await _save_memory(session, uid, new_snapshot, now)
     return mem
 
 
 def _build_system(
-    language: str, nickname: str | None, mem: str, lead: list[str] | None = None
+    language: str,
+    nickname: str | None,
+    mem: str,
+    lead: list[str] | None = None,
+    *,
+    summary: str = "",
 ) -> list[str]:
-    """system을 [페르소나(불변), 닉네임+선발화+기억(가변)] 블록으로. 뒤 블록이 바뀌어도 페르소나 캐시 생존.
+    """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
+    뒤 블록이 바뀌어도 페르소나 캐시 생존.
 
     lead = 대화 배열에 못 넣은 선발화 내용(placeholder 저장 문자열 리스트, _context 참조).
     앵커가 전진하기 전까지 매 턴 같은 값이라 가변 블록도 그대로 유지된다 — 캐시가 추가로 깨지지 않는다.
+
+    summary = 최신 대화 요약 checkpoint(W11). 여기(안정 프리픽스)에 두는 이유는 이 값이 **checkpoint
+    행이 생길 때만** 바뀌기 때문이다. 매 턴 바뀌는 자리(마지막 user 메시지 등)에 넣으면 그 자리부터
+    캐시가 매 턴 깨진다.
+
+    다만 리셋 사이클당 프리픽스는 **두 번** 바뀐다 — 리셋 턴에 한 번, 요약 잡이 비동기라 도착한
+    턴에 또 한 번. 동기 주입은 5초 제약상 불가하므로 이건 설계상 감수하는 비용이다(리셋 주기가
+    40턴이라 턴당으로는 무시할 수준).
     """
     parts: list[str] = []
     if nickname:
@@ -362,6 +394,14 @@ def _build_system(
         )
     if mem:
         parts.append(f"[기억]\n{naming.render(mem, nickname)}")
+    if summary:
+        # 대화 배열에는 앵커 이후만 남는다 — 그 앞 이야기는 이 요약이 대신한다(placeholder 저장분이라
+        # 투입 전 현재 이름 렌더). 기억([기억])은 오래 남는 사실, 여기는 최근 대화의 줄거리다.
+        parts.append(
+            "[지난 이야기]\n"
+            "아래 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
+            f"{naming.render(summary, nickname)}"
+        )
     dyn = "\n\n".join(parts)
     return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
 
@@ -600,6 +640,53 @@ async def _record_memory_source(
     )
 
 
+# --- 대화 요약 checkpoint(W11, Phase 2 트랜잭션 안) ---
+async def _enqueue_checkpoint(
+    session: AsyncSession, uid: uuid.UUID, *, anchor: int, keep_from: int
+) -> None:
+    """앵커 리셋으로 **버려질 구간**을 요약 잡으로 남긴다 — 킬스위치 off면 조회조차 하지 않는다.
+
+    호출 위치가 계약이다: 이 턴의 메시지를 insert한 **같은 Phase 2 트랜잭션·유저락 안**, 커밋 전.
+    그래야 요약 잡이 그 메시지들과 원자적으로 생긴다(§W11-1).
+
+    - `anchor` = 이번 턴 **시작 시점의** 앵커. 세그먼트 전체(= 리셋 판정이 본 범위)를 그대로 넘겨야
+      트리거 판정이 성립한다(head만 넘기면 영영 트리거에 못 닿는다).
+    - `keep_from` = 리셋이 정한 **새 앵커**. 요약은 `keep_from - 1`까지 덮고 프롬프트에는 `keep_from`
+      이후가 남아 겹침도 빈틈도 없다.
+    - 리셋이 없는 턴은 부르지 않는다. checkpoint는 "버려지는 구간"에 대응하는 것이고, 리셋 없이
+      만들면 어느 앵커와도 맞물리지 않는 경계가 생긴다.
+
+    실패 정책은 `_record_memory_source`와 같다 — 쓰기 전에 나는 계약 위반(`CheckpointError`)은
+    로그만 남기고 넘기고(요약 배선 버그가 대화를 죽이지 않게), DB 오류는 올려서 턴 전체를 롤백한다.
+    """
+    if not settings.context_checkpoint_enabled:
+        return
+    q = (
+        select(Message)
+        .where(Message.user_id == uid, Message.id >= anchor)
+        .order_by(Message.id)
+        .limit(settings.context_hard_msg_cap)  # _context와 같은 안전 상한
+    )
+    rows = (await session.execute(q)).scalars().all()
+    if not rows:
+        return
+    try:
+        await checkpoint_repo.maybe_enqueue(
+            session,
+            user_id=uid,
+            messages=[
+                # 저장 표면(placeholder) 그대로 — 요약에 실명이 들어가면 안 된다(§W11-4).
+                checkpoint.SourceMessage(
+                    id=m.id, sender=m.sender, kind=m.kind, content=m.content or ""
+                )
+                for m in rows
+            ],
+            keep_from_message_id=keep_from,
+        )
+    except checkpoint.CheckpointError as e:  # 쓰기 이전 단계에서만 발생 — 트랜잭션은 멀쩡하다
+        _log.info("대화 요약 잡 건너뜀(user=%s): %s", uid, e)
+
+
 # --- 토큰 누적(멱등 트랜잭션 내) ---
 async def _accumulate_tokens(
     session: AsyncSession, uid: uuid.UUID, activity_date: date, consumed: int
@@ -686,6 +773,14 @@ async def post_message(
     # 못 받는데(다음 턴부터 정상), 반대로 여기서 다시 읽어도 커밋 시점 값을 보장하진 못한다.
     memory_mode = ctx.memory_mode if ctx is not None else memory.MODE_LEGACY
 
+    # 대화 요약 checkpoint(W11) — 앵커 앞 구간을 대신하는 줄거리. 킬스위치 off면 조회 자체를 안 한다
+    # (기존과 완전 동일). 앵커는 항상 `through + 1`이라(리셋이 요약 경계를 정한다) 여기서 읽은
+    # 요약과 아래 대화 배열은 겹치지 않고 이어진다.
+    checkpoint_summary = ""
+    if settings.context_checkpoint_enabled:
+        latest_checkpoint = await checkpoint_repo.load_latest(session, uid)
+        checkpoint_summary = latest_checkpoint.summary if latest_checkpoint is not None else ""
+
     # 도구 루프 설정(W5) — read-only 구간에서 **1회** 조회해 frozen snapshot으로 들고 나간다.
     # agent phase는 DB도 settings도 다시 읽지 않는다(TTL 캐시 없음 = 두 EC2 캐시 불일치 없음).
     # 조회 실패는 잡지 않는다 — 설정 장애를 숨기지 않고 기존 Phase 1 DB 오류로 전파시킨다.
@@ -745,16 +840,24 @@ async def post_message(
 
     # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — 기억 재로드 + LLM + 백스톱 =====
     # 기억 스냅샷 재해결(_resolve_memory와 공유하는 _reload_memory, 커밋 밖에서). None이면 미저장.
-    mem = prev_snapshot or ""
+    #
+    # normalized 유저(W10 cutover 완료)는 **mem0를 읽지도 주입하지도 않는다**. 스냅샷 컬럼은
+    # 트리거가 NULL로 강제하므로 need_refresh가 매 턴 참이 되는데, 그때 재로드하면 그게 곧
+    # legacy 문자열 폴백이다(명세 §W10 step 6에서 금지 — 장애·빈 성공·프로필 미생성 어느 경우도
+    # mem0/legacy로 내려가지 않는다). 빈 기억으로 fail-open한다. 정규화 기억의 주입 경로는 관계
+    # 프로필(W9)이고 아직 배선 전이라 지금 normalized 유저의 기억 블록은 빈 문자열이 정상이다 —
+    # 잊어달라고 한 내용을 mem0 사본에서 되살리느니 비는 편이 맞다.
+    normalized_memory = memory_mode == memory.MODE_NORMALIZED
+    mem = "" if normalized_memory else (prev_snapshot or "")
     new_snapshot: str | None = None
     memory_reload_ms = 0.0
-    if need_refresh:
+    if need_refresh and not normalized_memory:
         t_mem0 = time.monotonic()
-        mem, new_snapshot = await _reload_memory(uid, prev_snapshot, age_h)
+        mem, new_snapshot = await _reload_memory(uid, prev_snapshot, age_h, mode=memory_mode)
         memory_reload_ms = _ms(t_mem0, time.monotonic())
 
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
-    system = _build_system(language, nick, mem, lead_all)
+    system = _build_system(language, nick, mem, lead_all, summary=checkpoint_summary)
 
     # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
@@ -930,6 +1033,11 @@ async def post_message(
         message_ids=[i for i in (greeting_message_id, umsg.id, rmsg.id) if i is not None],
         now=now,
     )
+
+    # 대화 요약 checkpoint(W11) — 리셋이 일어난 턴에만, 앵커 저장과 같은 트랜잭션에서 잡을 건다.
+    # 킬스위치 off면 no-op(현재 전 유저).
+    if new_anchor is not None:
+        await _enqueue_checkpoint(session, uid, anchor=anchor, keep_from=new_anchor)
 
     # 토큰 집계(원가 가중 billable, normal만) — 사후 누적(원자 증분). 증분 후 총량을 응답 기준으로.
     new_total = await _accumulate_tokens(session, uid, ad, consumed)

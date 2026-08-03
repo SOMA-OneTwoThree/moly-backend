@@ -45,6 +45,9 @@ class _Result:
     def scalar(self):
         return self._items[0] if self._items else None
 
+    def first(self):  # 실제 Result.first()와 같게 — RETURNING 0행이면 None
+        return self._items[0] if self._items else None
+
 
 class FakeSession:
     def __init__(self, get_map=None, execute_items=None):

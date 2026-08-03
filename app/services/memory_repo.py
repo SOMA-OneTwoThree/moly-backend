@@ -339,6 +339,45 @@ async def allocate_source_turn(
 
 
 # ─────────────────────────────────────────────────────────────
+# legacy 기억 스냅샷 — cutover guard(W10). mode 분기를 **SQL의 WHERE로** 건다.
+# ─────────────────────────────────────────────────────────────
+# 호출 전에 mode를 읽어 분기하면 그 사이 cutover가 끼어들 수 있다(read-then-write 레이스).
+# 같은 문장 안에서 조건을 걸어야 normalized 유저의 스냅샷을 legacy 경로가 덮어쓰지 못한다.
+# 마지막 방어선은 트리거(20260804_memory_cutover_guard.sql)이고 이건 두 번째 방어선이다.
+_SAVE_LEGACY_SNAPSHOT_SQL = text("""
+INSERT INTO chat_contexts (user_id, memory_text, memory_refreshed_at)
+VALUES (:user_id, :memory_text, :memory_refreshed_at)
+ON CONFLICT (user_id) DO UPDATE
+  SET memory_text = EXCLUDED.memory_text,
+      memory_refreshed_at = EXCLUDED.memory_refreshed_at,
+      updated_at = now()
+  WHERE chat_contexts.memory_mode = 'legacy'
+RETURNING user_id
+""")
+
+
+async def save_legacy_snapshot(
+    session: AsyncSession,
+    user_id: uuid.UUID | str,
+    *,
+    memory_text: str,
+    refreshed_at: datetime,
+) -> bool:
+    """mem0 스냅샷 갱신(legacy 유저만). 저장했으면 True, normalized라 건너뛰었으면 False.
+
+    스냅샷 컬럼만 건드린다(앵커·세대·워터마크 클로버 금지). 커밋하지 않는다 — 호출측 경계에 합류.
+    normalized 유저에게 False가 나는 것은 정상 경로다(그 유저의 기억 주입은 관계 프로필이 한다).
+    """
+    row = (
+        await session.execute(
+            _SAVE_LEGACY_SNAPSHOT_SQL,
+            {"user_id": user_id, "memory_text": memory_text, "memory_refreshed_at": refreshed_at},
+        )
+    ).first()
+    return row is not None
+
+
+# ─────────────────────────────────────────────────────────────
 # 잡 연동 — W7 enqueue API만 쓴다(jobs.py는 고치지 않는다). 전부 호출측 트랜잭션에 합류한다.
 # ─────────────────────────────────────────────────────────────
 def _source_payload(

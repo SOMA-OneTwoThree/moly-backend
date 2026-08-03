@@ -66,8 +66,11 @@ _log = logging.getLogger("moly-backend")
 # 반환 True = 이번 발화는 명확한 위기 → 도구를 제안하지 않고 한 번에 답한다.
 SAFETY_CLASSIFIER: Callable[[str], bool] | None = None
 
-# control 도구(기억 pin/forget 의도) 이름 → kind. **W10이 채운다** — 지금은 비어 있다.
-# 의도는 shadow 산출물이고 durable write에 연결하지 않는다(제품 정책 미결, §5 게이트 #5).
+# control 도구(기억 pin/forget 의도) 이름 → kind. **W10 이후로도 의도적으로 비어 있다** —
+# forget이 fail-closed이기 때문이다(`memory_forget.apply`는 플래그 뒤에서 분류만 하고 아무것도
+# 쓰지 않는다). 여기에 도구를 꽂는 순간 의도 유입 경로가 열리므로 "기억해줘/잊어줘" 확인 UX와
+# 범위가 정해진 뒤(§5 게이트 #5) 채운다. 그때까지 의도는 shadow 산출물이고 durable write에
+# 연결하지 않는다.
 CONTROL_TOOLS: Mapping[str, str] = {}
 
 # 프로세스 전역 도구 동시성. 요청 하나의 fan-out(≤3)보다 크고 DB pool을 지키는 보수적 상한이다.

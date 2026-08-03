@@ -57,6 +57,16 @@ class Settings(BaseSettings):
     context_keep_messages: int = 20        # 리셋 후 유지 메시지 수 (KEEP ≪ RESET)
     context_keep_chars: int = 12_000       # 리셋 후 유지 문자 상한
     context_hard_msg_cap: int = 120        # 쿼리 안전 상한(정상 시 트리거가 먼저 걸려 안 닿음)
+    # --- 대화 요약 checkpoint(W11) --- 리셋으로 버려질 구간을 요약해 남기고, 다음 턴은
+    # 최신 checkpoint 하나 + 그 이후 메시지만 쓴다. 트리거(context_reset_*)·보존 tail
+    # (context_keep_*)은 위 값을 그대로 쓴다 — 여기서 새 수치를 만들지 않는다.
+    context_checkpoint_enabled: bool = False  # 킬스위치. False면 잡을 걸지도 저장하지도 않는다
+    # 매 N번째 checkpoint는 이전 요약 대신 **원본**으로 다시 요약해 누적 왜곡을 계측한다.
+    # ⚠️ 10은 품질 근거가 없는 운영 초기값이다 — 재검증본과 체인본의 차이를 재고 **측정 후 조정 필요**.
+    context_checkpoint_reverify_every: int = 10
+    # 재검증 1회가 읽을 원본 메시지 상한. 넘으면 재검증을 건너뛰고 체인 요약으로 진행한다
+    # (부분 이력을 전체인 양 요약하지 않기 위함). ⚠️ 잠정값 — 실제 이력 길이 보고 **측정 후 조정 필요**.
+    context_checkpoint_reverify_max_messages: int = 400
     # 프롬프트 캐싱: system(페르소나/기억) + 마지막 메시지에 cache_control. 기본 5m(단일 TTL).
     chat_prompt_cache_enabled: bool = True  # 킬스위치. OFF=메시지 breakpoint 제거(히스토리 청구 스케일↑ 유의)
     cache_ttl_system: str = "5m"            # "5m" | "1h"(write 2×, 워밍률 측정 후 결정)
@@ -153,6 +163,10 @@ class Settings(BaseSettings):
     memory_snapshot_refresh_hours: int = 6   # 이보다 오래면 갱신(mem0 재로드)
     memory_snapshot_stale_hours: int = 48    # 장애 시 이보다 오래된 스냅샷은 폐기("")
     memory_orphan_grace_hours: int = 24      # 탈퇴 고아 기억 스위퍼 유예(온보딩 레이스 방어)
+    # "잊어줘" 실행 킬스위치(W10). **기본 off** — 확인 UX·범위가 제품 미결이라(명세 §5 게이트 #5)
+    # 그전까지는 분류만 하고 아무것도 쓰지도 지우지도 않는다. 정책이 정해지면 켜기만 하면 된다.
+    # 켠 뒤에도 normalized 유저에게만 실행된다(legacy 유저에게 성공을 가장하지 않는다).
+    memory_forget_enabled: bool = False
 
     # --- 토큰 한도(임의 기본값, TBD) — app_config에 값이 오면 그게 우선 ---
     # 집계 = LLM 입력+출력 합산(kind='normal'만). 04:00 리셋.

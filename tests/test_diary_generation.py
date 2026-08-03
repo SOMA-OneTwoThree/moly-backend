@@ -15,15 +15,29 @@ CFG = {"diary_min_user_chars": 5}  # 개인일기 게이트 = 당일 유저 메�
 PROFILE = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="ko")
 
 
+class _ModeRow:
+    """resolve_mode가 읽는 (memory_mode,) 한 행."""
+
+    def __init__(self, mode):
+        self._mode = mode
+
+    def first(self):
+        return None if self._mode is None else (self._mode,)
+
+
 class FakeSession:
-    def __init__(self):
+    def __init__(self, memory_mode="legacy"):
         self.added = []
         self.committed = False
+        self.memory_mode = memory_mode
 
     def add(self, obj):
         self.added.append(obj)
 
-    async def execute(self, stmt, params=None):  # 스냅샷 무효화 UPDATE
+    async def execute(self, stmt, params=None):
+        # resolve_mode(SELECT memory_mode …)와 스냅샷 무효화 UPDATE 두 가지가 온다.
+        if "memory_mode" in str(stmt):
+            return _ModeRow(self.memory_mode)
         return None
 
     async def commit(self):
@@ -43,7 +57,10 @@ def _patch_common(monkeypatch, *, exists=False, messages=None, tokens=5000, ment
     async def _pick(session, target_date):
         return ment
 
-    async def _mem(user_id, msgs, language=None):
+    async def _mem(user_id, msgs, language=None, *, mode="legacy"):
+        # mode를 받아야 한다 — 안 받으면 프로덕션이 mode=를 넘기는 순간 TypeError가 나고,
+        # 그게 호출측 except에 잡혀 legacy 테스트들이 조용히 memory_failed 경로로 빠진다
+        # (단언이 없어 suite는 녹색인 채로 mem0 경로가 검증에서 사라진다).
         return None
 
     monkeypatch.setattr(dg, "_diary_exists", _exists)
@@ -353,3 +370,45 @@ async def test_surgical_repair_succeeds_on_second_attempt(monkeypatch):
     monkeypatch.setattr(dg.llm, "generate", fake)
     assert await dg._surgical_repair(body) == fixed
     assert calls["n"] == 2  # 2차까지 시도
+
+
+# --- 기억 모드 분기(W10) ---
+async def _mem_spy(monkeypatch):
+    """add_conversation 호출을 잡는 스파이로 갈아끼운다."""
+    calls: list[dict] = []
+
+    async def _mem(user_id, msgs, language=None, *, mode="legacy"):
+        calls.append({"user_id": user_id, "mode": mode})
+
+    monkeypatch.setattr(memory_module, "add_conversation", _mem)
+    return calls
+
+
+async def test_legacy_user_still_feeds_mem0(monkeypatch):
+    """지금 전 유저가 legacy다 — 일기 배치의 기억 통합이 종전 그대로여야 한다(회귀 0)."""
+    ment = SimpleNamespace(id=uuid.uuid4(), content="한가한 하루.", weather="cloudy")
+    _patch_common(monkeypatch, messages=[_msg("user", "hi")], tokens=100, ment=ment)
+    calls = await _mem_spy(monkeypatch)
+
+    r = await dg.generate_for_user(FakeSession(memory_mode="legacy"), PROFILE, date(2026, 7, 5), CFG)
+
+    assert len(calls) == 1 and calls[0]["mode"] == "legacy"
+    # 성공 카운트까지 본다 — 이게 없으면 스텁 시그니처가 어긋나 TypeError가 나도 호출측 except가
+    # 삼켜서 suite는 녹색인 채로 mem0 경로가 검증에서 조용히 사라진다(실제로 한 번 그랬다).
+    assert r["memory_ok"] == 1 and r["memory_failed"] == 0
+
+
+async def test_normalized_user_is_never_fed_back_into_mem0(monkeypatch):
+    """전환된 유저는 일기 배치가 mem0에 손대지 않는다.
+
+    추출은 이미 턴 단위 잡이 한다. 여기서 또 쓰면 두 벌의 기억이 갈라지고, 무엇보다 유저가
+    잊어달라고 한 내용이 그날 밤 mem0 사본으로 되살아난다. add_conversation 자체에도 가드가
+    있지만 호출자가 mode를 안 넘기면 무용지물이라(기본값이 legacy) 호출 자체가 없어야 한다.
+    """
+    ment = SimpleNamespace(id=uuid.uuid4(), content="한가한 하루.", weather="cloudy")
+    _patch_common(monkeypatch, messages=[_msg("user", "hi")], tokens=100, ment=ment)
+    calls = await _mem_spy(monkeypatch)
+
+    await dg.generate_for_user(FakeSession(memory_mode="normalized"), PROFILE, date(2026, 7, 5), CFG)
+
+    assert calls == []  # 추출 LLM 호출도, mem0 쓰기도 0

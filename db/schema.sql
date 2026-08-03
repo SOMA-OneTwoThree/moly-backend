@@ -382,6 +382,29 @@ CREATE TABLE public.chat_contexts (
 );
 REVOKE ALL ON public.chat_contexts FROM anon, authenticated;
 
+-- legacy write 차단(W10 cutover guard). normalized 유저의 스냅샷 컬럼은 항상 NULL이고,
+-- normalized → legacy downgrade는 통하지 않는다. 애플리케이션 mode 분기
+-- (memory_repo.save_legacy_snapshot)는 두 번째 방어선일 뿐 — 구버전 코드는 mode를 모른다.
+-- 컬럼을 실제로 떨어뜨리는 contract 마이그레이션 전까지 이 트리거를 유지한다.
+CREATE OR REPLACE FUNCTION public.guard_normalized_memory_snapshot()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP='INSERT' AND NEW.memory_mode='normalized' THEN
+    NEW.memory_text := NULL;
+    NEW.memory_refreshed_at := NULL;
+  ELSIF TG_OP='UPDATE' AND OLD.memory_mode='normalized' THEN
+    NEW.memory_mode := 'normalized';   -- downgrade 차단
+    NEW.memory_text := NULL;
+    NEW.memory_refreshed_at := NULL;
+  END IF;
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS chat_contexts_normalized_snapshot_guard ON public.chat_contexts;
+CREATE TRIGGER chat_contexts_normalized_snapshot_guard
+BEFORE INSERT OR UPDATE ON public.chat_contexts
+FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot();
+
 CREATE TABLE public.idempotency_keys (
   user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   key        text NOT NULL,
@@ -662,7 +685,30 @@ CREATE INDEX relationship_profile_sources_insight_idx
   ON public.relationship_profile_sources(user_id, insight_id) WHERE insight_id IS NOT NULL;
 
 -- ─────────────────────────────────────────────────────────────
--- 12. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
+-- 12. 대화 요약 checkpoint(W11) — 길어진 대화의 오래된 구간을 요약해 남긴다.
+--     다음 턴은 **가장 앞선 checkpoint 하나 + 그 이후 메시지**만 쓴다(앵커 리셋이 옛 구간을
+--     통째로 버리던 문제).
+--     · source_hash = (이전 checkpoint id·source_hash) + 이번 원본 메시지의 정렬된
+--       (id, sender, kind, placeholder content)를 길이-prefix 직렬화한 SHA-256.
+--     · UNIQUE(user_id, through_message_id, source_hash) + 잡 dedup key로 같은 입력은 한 번만 요약.
+--     · through_message_id는 RESTRICT — 요약 경계가 되는 메시지는 사라질 수 없다.
+--     상세 = docs/agentic-chat-IMPLEMENTATION.md §W11.
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE public.conversation_checkpoints (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  through_message_id bigint NOT NULL REFERENCES public.messages(id) ON DELETE RESTRICT,
+  summary text NOT NULL,                    -- 저장 표면(실명 금지 — {유저이름} placeholder)
+  version text NOT NULL,                    -- 요약기 계약 버전
+  source_hash text NOT NULL,                -- 결정적 입력 지문
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, through_message_id, source_hash)
+);
+CREATE INDEX conversation_checkpoints_latest_idx
+  ON public.conversation_checkpoints(user_id, through_message_id DESC);
+
+-- ─────────────────────────────────────────────────────────────
+-- 13. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
 --     클라 데이터 경로는 전부 서버 API → anon/authenticated 직접 접근 차단.
 --     (클라 직접 읽기가 필요해지면 여기에 own-row SELECT 정책 추가)
 -- ─────────────────────────────────────────────────────────────
@@ -679,13 +725,14 @@ BEGIN
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;
-  -- 기억 테이블(W8)·관계 프로필(W9)은 유저 대화에서 뽑은 PII(와 그 파생)라 RLS에 더해 클라 롤
-  -- 권한도 회수한다(chat_contexts와 동일).
+  -- 기억 테이블(W8)·관계 프로필(W9)·대화 요약(W11)은 유저 대화에서 뽑은 PII(와 그 파생)라
+  -- RLS에 더해 클라 롤 권한도 회수한다(chat_contexts와 동일).
   FOREACH t IN ARRAY ARRAY[
     'memory_facts','memory_evidence','memory_insights','memory_insight_sources',
     'memory_forget_markers','memory_source_turns','memory_source_turn_messages',
     'memory_source_closures',
-    'relationship_profiles','relationship_profile_sources'
+    'relationship_profiles','relationship_profile_sources',
+    'conversation_checkpoints'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
     EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated;', t);

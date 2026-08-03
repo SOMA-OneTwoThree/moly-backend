@@ -19,7 +19,7 @@ from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import i18n, llm, memory, naming, text_clean
+from app.services import i18n, llm, memory, memory_repo, naming, text_clean
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -269,8 +269,15 @@ async def generate_for_user(
     await session.commit()
 
     # 기억 통합(mem0) — 실패해도 일기 생성은 유지(best-effort)
+    #
+    # normalized 유저는 통째로 건너뛴다. 추출은 이미 턴 단위 잡(memory_extract)이 하고 있어서
+    # 여기서 또 쓰면 두 벌의 기억이 갈라지고, 무엇보다 **잊어달라고 한 내용이 그날 밤 mem0 사본으로
+    # 되살아난다**. add_conversation 자체에도 mode 가드가 있지만 호출자가 안 넘기면 무용지물이라
+    # (mode 기본값이 legacy다) 여기서 읽어 넘긴다. 읽기 경로는 이미 막혀 있어 프롬프트 노출은
+    # 없지만, 저장 자체와 추출 LLM 낭비가 남는다.
     mem_ok, mem_failed = 0, 0
-    if messages:
+    memory_mode = await memory_repo.resolve_mode(session, profile.id)
+    if messages and memory_mode != memory.MODE_NORMALIZED:
         try:
             # M2: mem0 투입 전 현재 이름 렌더(추출 품질). mem0 custom_instructions가 이름을
             # 저장하지 않으므로 렌더된 텍스트를 줘도 장기기억에 이름은 안 남는다.
@@ -285,6 +292,7 @@ async def generate_for_user(
                     for m in messages
                 ],
                 language=getattr(profile, "language", None),
+                mode=memory_mode,  # 위 가드와 이중 방어 — 한쪽이 빠져도 normalized엔 안 쓴다
             )
             # 새 기억 반영 → 채팅 기억 스냅샷 무효화(다음 대화가 당일 기억을 lazy 재로드)
             await session.execute(

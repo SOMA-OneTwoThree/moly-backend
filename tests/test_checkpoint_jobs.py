@@ -86,6 +86,7 @@ def store(monkeypatch) -> dict:
         "rows": [],             # insert된 checkpoint 행
         "inserts": [],          # 호출 시점의 (세션, 커밋 수)
         "forget_closures": False,   # 잊어줘로 닫힌 구간 존재 여부
+        "closed_message_ids": set(),  # 그중 실제로 닫힌 메시지 id
         "memory_generation": 0,     # 현재 기억 세대(forget이 +1 한다)
     }
 
@@ -123,7 +124,11 @@ def store(monkeypatch) -> dict:
         return state["memory_generation"]
 
     monkeypatch.setattr(checkpoint_repo, "insert", _insert)
+    async def _closed_messages(session, user_id, message_ids):
+        return state["closed_message_ids"] & set(message_ids)
+
     monkeypatch.setattr(checkpoint_repo, "has_forget_closures", _has_closures)
+    monkeypatch.setattr(checkpoint_repo, "has_closed_messages", _closed_messages)
     monkeypatch.setattr(checkpoint_repo, "read_memory_generation", _generation)
     return state
 
@@ -546,3 +551,27 @@ async def test_reverification_is_skipped_when_forget_closed_a_range(db, store, l
     body = llm_calls[0]["convo"][0]["content"]
     assert "앵커 이전 1" not in body        # 원본 전체를 읽지 않았다
     assert _PREVIOUS.summary in body        # 체인 요약으로 갔다
+
+
+async def test_normal_checkpoint_skips_when_sources_were_closed_by_forget(db, store, llm_calls):
+    """잊어줘 이후 만들어진 **일반 요약**도 닫힌 메시지를 담으면 안 된다.
+
+    forget은 앵커를 전진시키지 않는다. 그래서 잊기 이후에 만들어진 잡은 세대가 최신이라
+    세대 검사를 통과하고, closure 가드가 재검증에만 걸려 있으면 그대로 통과한다 —
+    현재 앵커 이후 구간에 남아 있는 잊기 이전 메시지가 요약으로 되살아난다.
+    """
+    store["closed_message_ids"] = {12}  # 세그먼트 중 하나가 잊어줘로 닫혔다
+
+    row = await _run(db, _enqueue_job(db, _payload()))
+
+    assert row["result_code"] == checkpoint_jobs.RESULT_SOURCE_CLOSED
+    assert store["rows"] == []   # 저장 0
+    assert llm_calls == []       # LLM도 안 불렀다
+
+
+async def test_normal_checkpoint_proceeds_when_nothing_was_closed(db, store, llm_calls):
+    """닫힌 게 없으면 종전대로 요약한다(회귀 0)."""
+    row = await _run(db, _enqueue_job(db, _payload()))
+
+    assert row["result_code"] == checkpoint_jobs.RESULT_OK
+    assert len(store["rows"]) == 1

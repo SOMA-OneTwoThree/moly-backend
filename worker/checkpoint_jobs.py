@@ -37,6 +37,8 @@ RESULT_ALREADY_CHECKPOINTED = "already_checkpointed"
 RESULT_SOURCE_CHANGED = "source_changed"
 # 잡을 만든 뒤 "잊어줘"가 실행됐다 — 그 대화를 다시 요약해 넣으면 안 된다(재시도해도 영원히 stale).
 RESULT_STALE_GENERATION = "stale_generation"
+# 요약 대상 구간에 잊어줘가 닫은 메시지가 섞여 있다 — 요약하면 지운 내용이 되살아난다.
+RESULT_SOURCE_CLOSED = "source_range_closed"
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,6 +139,10 @@ async def _still_applicable(
     어긋나면 조용히 건너뛴다 — 여기서 예외를 던지면 finalize가 통째로 롤백돼 lease 만료까지 잡이
     running으로 남는다(memory_jobs와 같은 규칙).
     """
+    # 세대부터 본다. LLM 구간(DB 커넥션 0)에서 forget이 끼면 checkpoint가 전량 지워져
+    # previous=None이 되는데, 그 상태가 "첫 요약"과 구분이 안 돼 체인 검사만으로는 통과한다.
+    if not await _generation_matches(session, req):
+        return False, None
     previous = await checkpoint_repo.load_latest(session, req.user_id)
     if previous is not None and previous.through_message_id >= req.through_message_id:
         return False, previous
@@ -212,6 +218,15 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         if checkpoint.source_hash(previous=previous, messages=messages) != req.source_hash:
             # 같은 id 목록이라도 본문이 바뀌었다 = 이 요약의 전제가 깨졌다.
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
+
+        # 잊어줘가 닫은 메시지가 섞였으면 요약하지 않는다. forget은 **앵커를 전진시키지 않으므로**
+        # 잊기 이후 만들어지는 일반 요약도 잊기 이전 메시지를 그대로 담는다 — 재검증만 막아서는
+        # 구멍이 남는다(세대 검사도 못 잡는다. 이 잡은 잊기 *이후*에 만들어져 세대가 최신이다).
+        if await checkpoint_repo.has_closed_messages(
+            session, req.user_id, [m.id for m in messages]
+        ):
+            _log.info("요약 생략(잊어줘로 닫힌 메시지 포함) — user=%s", req.user_id)
+            return JobResult(result_code=RESULT_SOURCE_CLOSED)
 
         # 몇 번째 checkpoint인가 — 매 N번째는 이전 요약 대신 원본으로 다시 요약해 누적 왜곡을 잰다.
         #

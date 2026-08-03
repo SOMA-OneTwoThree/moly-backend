@@ -266,10 +266,13 @@ def assert_ready_to_apply() -> None:
     forget은 "지웠다"고 유저에게 말하는 기능이라 **부분 삭제가 가장 나쁘다.** 아래가 안 갖춰진
     채로 플래그만 켜면 지운 척만 하고 실제로는 남는다.
 
-    1. **외부 벡터 삭제 핸들러.** `apply`가 `memory_vector_delete` 잡을 걸지만 핸들러가 등록돼
-       있지 않으면 그 잡은 `unknown_job_type`으로 죽고 mem0 사본이 물리적으로 남는다.
-       (지금은 normalized 유저가 mem0를 읽지도 쓰지도 않아 노출 경로는 아니지만, 삭제 요청에
-        대해 데이터가 남는 것 자체가 문제다.)
+    1. **외부 벡터(mem0) 삭제 핸들러가 워커에 실제로 배포됐는가.** `apply`가
+       `memory_vector_delete` 잡을 걸지만 핸들러가 없으면 그 잡은 `unknown_job_type`으로 죽고
+       mem0 사본이 물리적으로 남는다.
+       ⚠️ 이건 **코드가 판단할 수 없다.** API와 consumer가 다른 프로세스라 API 쪽 핸들러
+       레지스트리를 봐도 consumer의 등록 상태를 알 수 없다(반대로 API에 모듈만 import해
+       통과시키면 아무것도 보장하지 못한다). 그래서 cutover의 `release_inventory_confirmed`와
+       같이 **운영자가 확인한 결과**를 설정값으로 받는다.
 
     ⚠️ 코드로 못 막지만 **플래그를 켜기 전 반드시 정해야 하는 제품 결정**(명세 §5 게이트 #5):
     - 확인 UX와 삭제 범위
@@ -279,12 +282,11 @@ def assert_ready_to_apply() -> None:
       열람 요청에만 허용하든 정책이 필요하다.
     - 원본 대화(`messages`)를 지울지 — 현재는 지우지 않는다.
     """
-    from worker import consumer  # 순환 import 회피 — 이 게이트에서만 필요하다
-
-    if JOB_MEMORY_VECTOR_DELETE not in consumer.registered_types():
+    if not settings.memory_forget_vector_delete_ready:
         raise ForgetError(
-            f"{JOB_MEMORY_VECTOR_DELETE} 핸들러가 등록되지 않았다 — 지금 forget을 켜면 외부 벡터 "
-            "사본이 남은 채로 '지웠다'고 응답하게 된다. 핸들러를 등록한 뒤 연다"
+            "외부 벡터 삭제 핸들러 배포가 확인되지 않았다 — 지금 forget을 켜면 mem0 사본이 남은 "
+            "채로 '지웠다'고 응답하게 된다. 워커에 핸들러를 배포하고 확인한 뒤 "
+            "memory_forget_vector_delete_ready=true로 연다"
         )
 
 

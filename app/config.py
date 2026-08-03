@@ -168,6 +168,13 @@ class Settings(BaseSettings):
     # 켠 뒤에도 normalized 유저에게만 실행된다(legacy 유저에게 성공을 가장하지 않는다).
     memory_forget_enabled: bool = False
 
+    # 외부 벡터(mem0) 삭제 핸들러가 **워커에 실제로 등록·배포됐는가**를 운영자가 확인한 값.
+    # forget은 삭제 잡을 걸지만 핸들러가 없으면 그 잡은 죽고 mem0 사본이 물리적으로 남는다 —
+    # "지웠다"고 응답해놓고 남는 게 가장 나쁘다. 코드로는 판단할 수 없다(API와 consumer가 다른
+    # 프로세스라 API의 핸들러 레지스트리를 봐도 consumer 상태를 알 수 없다). cutover의
+    # release_inventory_confirmed와 같은 성격의 운영 확인값이다.
+    memory_forget_vector_delete_ready: bool = False
+
     # --- 토큰 한도(임의 기본값, TBD) — app_config에 값이 오면 그게 우선 ---
     # 집계 = LLM 입력+출력 합산(kind='normal'만). 04:00 리셋.
     daily_token_limit_free: int = 20_000

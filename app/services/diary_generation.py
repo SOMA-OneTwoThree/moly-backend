@@ -100,11 +100,13 @@ async def _self_check(body: str, transcript: str, user_id=None, nickname: str | 
         # verdict는 실명이 렌더된 대화·일기를 입력으로 받은 모델의 응답이라 "NO: 승민이 언급은
         # 근거 없음"처럼 이름을 되뱉는다. 저장 경로는 나중에 to_placeholder를 타지만 로그는
         # 그 전이므로 여기서 둘 다 토큰으로 바꾼다.
+        # ⚠️ **자르기 전에 마스킹한다.** 순서가 반대면 절단 경계가 이름 중간을 지날 때
+        # ("승민" → "승") 마스킹이 그 조각을 못 찾아 평문으로 남는다.
         _log.warning(
             "self-check 리젝(비차단, 발행됨) user=%s 판정=%r 일기=%r",
             user_id,
-            naming.to_placeholder(verdict[:40], nickname),
-            naming.to_placeholder(body[:80], nickname),
+            (naming.to_placeholder(verdict, nickname) or "")[:60],
+            (naming.to_placeholder(body, nickname) or "")[:100],
         )
     return passed
 

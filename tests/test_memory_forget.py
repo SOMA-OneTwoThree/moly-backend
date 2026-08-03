@@ -411,27 +411,23 @@ async def test_forget_does_not_touch_checkpoints_when_flag_is_off():
 
 
 # --- 켜기 전 선행 조건 게이트 (적대검증 2라운드 지적) ---
-def test_apply_refuses_without_the_vector_delete_handler():
-    """벡터 삭제 핸들러 없이 forget을 켜면 실패한다.
+def test_apply_refuses_until_vector_delete_deploy_is_confirmed():
+    """벡터 삭제 핸들러 배포가 확인되기 전에는 forget을 켤 수 없다.
 
-    apply는 memory_vector_delete 잡을 걸지만 핸들러가 없으면 그 잡은 unknown_job_type으로
-    죽고 mem0 사본이 물리적으로 남는다. "지웠다"고 응답해놓고 남는 게 가장 나쁘므로,
-    지운 척하지 않고 여기서 막는다.
+    apply는 memory_vector_delete 잡을 걸지만 핸들러가 워커에 없으면 그 잡은 죽고 mem0 사본이
+    물리적으로 남는다. "지웠다"고 응답해놓고 남는 게 가장 나쁘므로 지운 척하지 않고 막는다.
+
+    ⚠️ 이건 **코드가 판단할 수 없다** — API와 consumer가 다른 프로세스라 API 쪽 핸들러
+    레지스트리를 봐도 consumer 상태를 알 수 없다. 그래서 운영 확인값을 받는다.
     """
-    from worker import consumer
-
-    assert forget.JOB_MEMORY_VECTOR_DELETE not in consumer.registered_types()  # 아직 미등록
-    with pytest.raises(forget.ForgetError, match="핸들러"):
+    assert settings.memory_forget_vector_delete_ready is False  # 기본 미확인
+    with pytest.raises(forget.ForgetError, match="확인되지 않았다"):
         forget.assert_ready_to_apply()
 
 
-def test_ready_gate_passes_once_the_handler_is_registered(monkeypatch):
-    """핸들러가 등록되면 게이트는 통과한다(영구 차단이 아니다)."""
-    from worker import consumer
-
-    monkeypatch.setattr(
-        consumer, "registered_types", lambda: (forget.JOB_MEMORY_VECTOR_DELETE,)
-    )
+def test_ready_gate_passes_once_the_deploy_is_confirmed(monkeypatch):
+    """운영자가 확인하면 게이트는 통과한다(영구 차단이 아니다)."""
+    monkeypatch.setattr(settings, "memory_forget_vector_delete_ready", True)
     forget.assert_ready_to_apply()  # 예외 없음
 
 

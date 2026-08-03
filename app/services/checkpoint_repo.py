@@ -15,7 +15,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Sequence
 
-from sqlalchemy import text
+from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -42,6 +42,19 @@ _GENERATION_SQL = text(
 _HAS_CLOSURE_SQL = text(
     "SELECT 1 FROM memory_source_closures WHERE user_id = :user_id LIMIT 1"
 )
+
+# 이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가.
+# forget은 **앵커를 전진시키지 않는다.** 그래서 잊기 이후 만들어지는 **일반 요약**도 잊기 이전
+# 메시지를 그대로 담는다 — 재검증만 막아서는 안 되고 모든 요약이 이 검사를 통과해야 한다.
+_CLOSED_MESSAGES_SQL = text("""
+SELECT 1
+FROM memory_source_turn_messages tm
+JOIN memory_source_closures c
+  ON c.user_id = tm.user_id
+ AND tm.source_watermark BETWEEN c.from_watermark AND c.through_watermark
+WHERE tm.user_id = :user_id AND tm.message_id IN :ids
+LIMIT 1
+""").bindparams(bindparam("ids", expanding=True))
 
 # 요약 대상 구간. after_id는 이전 checkpoint의 through(없으면 0) — 열린 하한, 닫힌 상한이다.
 _RANGE_SQL = text("""
@@ -72,6 +85,18 @@ async def read_memory_generation(session: AsyncSession, user_id: uuid.UUID | str
 async def has_forget_closures(session: AsyncSession, user_id: uuid.UUID | str) -> bool:
     """이 유저에게 잊어줘로 닫힌 소스 구간이 있는가."""
     return (await session.execute(_HAS_CLOSURE_SQL, {"user_id": user_id})).first() is not None
+
+
+async def has_closed_messages(
+    session: AsyncSession, user_id: uuid.UUID | str, message_ids: Sequence[int]
+) -> bool:
+    """이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가. 하나라도 있으면 요약하지 않는다."""
+    if not message_ids:
+        return False
+    rows = await session.execute(
+        _CLOSED_MESSAGES_SQL, {"user_id": user_id, "ids": list(dict.fromkeys(message_ids))}
+    )
+    return rows.first() is not None
 
 
 async def load_latest(

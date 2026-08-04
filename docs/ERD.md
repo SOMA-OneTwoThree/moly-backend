@@ -560,9 +560,11 @@ checkpoint는 Fact가 아니고 장기기억 추출 source도 아니다. 망각 
 자연어 대화용 읽기 표면은 다음 projection을 사용한다.
 
 - `memory_episodic_messages`: user 원문의 hash·watermark·embedding만 저장한다. 원문은 `messages`에서
-  소유권·sender·hash·suppression을 재검증한 뒤 읽는다.
+  소유권·sender·hash·suppression을 재검증한 뒤 읽는다. `embedding_model`, `index_version`,
+  `suppression_generation`이 stale write를 막고 `embedding_repair_attempts(0..3)`가 terminal job 이후 복구를 제한한다.
 - `diary_claim_sources` / `diary_recall_documents`: 일기의 user-message provenance와 재생성 가능한
-  lexical/vector 문서를 분리한다. 근거 메시지가 suppress되면 모델 recall 후보에서 제외한다.
+  lexical/vector 문서를 분리한다. 문서 hash는 SHA-256이며 model/index/generation을 함께 fence한다.
+  근거는 일기 생성 시각까지의 실제 입력 message에만 수렴하고, 하나라도 suppress되면 모델 recall 후보에서 제외한다.
 - `memory_suppression_operations` / `memory_recall_suppressions`: marker/closure와 별개인 message/span 노출 차단면.
 - `chat_response_references`: capability가 있는 응답의 diary 원문 카드 위치를 보존한다. 삭제/망각 시
   `unavailable`로 redaction하며 본문 사본을 두지 않는다.

@@ -201,7 +201,8 @@ def test_consumer_startup_imports_the_checkpoint_handler():
     import 줄을 지워도 통과한다(워커는 핸들러 없이 뜨는데 테스트는 초록). 그래서 등록이 실제로
     걸리는 지점을 직접 본다.
     """
-    assert "checkpoint_jobs" in inspect.getsource(consumer.run_consumer)
+    assert "_register_handlers()" in inspect.getsource(consumer.run_consumer)
+    assert "checkpoint_jobs" in inspect.getsource(consumer._register_handlers)
 
 
 # ─────────────────────────────────────────────────────────────

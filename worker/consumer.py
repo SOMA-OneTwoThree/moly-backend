@@ -18,6 +18,7 @@ import logging
 import os
 import signal
 import socket
+import sys
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -229,8 +230,7 @@ async def run_consumer(
     stop: asyncio.Event | None = None,
 ) -> None:
     """큐 루프 + reaper 루프를 함께 돈다. stop이 set되면 드레인 후 반환."""
-    # import 시 핸들러 등록(순환 import 회피) — 기억 잡 3종(W8) + 대화 요약(W11).
-    from worker import checkpoint_jobs, memory_jobs  # noqa: F401
+    _register_handlers()
 
     stop = stop or asyncio.Event()
     wid = worker_id or default_worker_id()
@@ -253,8 +253,26 @@ async def _main_async() -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    if os.getenv("MOLY_CONSUMER_STARTUP_CHECK_ONLY") == "1":
+        _register_handlers()
+        if not _REGISTRY:
+            raise RuntimeError("consumer handler registry가 비어 있다")
+        print(",".join(registered_types()))
+        return
     asyncio.run(_main_async())
 
 
+def _register_handlers() -> None:
+    """순환 import를 피해 시작 시 한 번 핸들러를 등록한다."""
+    from worker import checkpoint_jobs, memory_jobs  # noqa: F401
+
+    if not _REGISTRY:
+        raise RuntimeError("consumer handler registry가 비어 있다")
+
+
 if __name__ == "__main__":
+    # `python -m worker.consumer`는 현재 파일을 `__main__`으로 실행한다. 이 alias가 없으면
+    # memory_jobs의 `from worker import consumer`가 파일을 두 번째 모듈로 다시 로드해, 핸들러는
+    # 두 번째 registry에 등록되고 실제 루프는 빈 registry로 모든 잡을 unknown 처리한다.
+    sys.modules["worker.consumer"] = sys.modules[__name__]
     main()

@@ -1,7 +1,6 @@
 """정규화 기억(W8)의 **어휘 registry** — kind 5종 + predicate 13종의 cardinality.
 
-이건 mem0 이관이 아니라 **신설**이다. 현행 mem0는 자유문 기억만 만들어 구조화 vocabulary가 아예
-없었다. 여기 값이 곧 계약이라 추출 스키마 검증(`memory_candidates`)과 판정(`memory_reconcile`)이
+여기 값이 곧 계약이라 추출 스키마 검증(`memory_candidates`)과 판정(`memory_reconcile`)이
 같은 표를 본다.
 
 확장 규칙(중요):

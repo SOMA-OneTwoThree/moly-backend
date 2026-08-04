@@ -291,7 +291,7 @@ class AssistantToolCalls:
 
 @dataclass(frozen=True)
 class ControlIntent:
-    """모델이 표명한 기억 제어 의도. **shadow 전용** — durable write에 연결하지 않는다.
+    """모델이 표명한 기억 제어 의도. 호출측 Phase 2만 이를 durable 변경으로 적용한다.
 
     자유문 정규식으로 보충하지 않는다(control_tools로 넘긴 도구명만 인식). kind는 "pin"|"forget"뿐이고
     그 밖은 validation error로 버린다.
@@ -612,8 +612,8 @@ async def generate_step(
     - `tool_choice="none"`이면 도구를 강제로 못 쓰게 한다 — wire에 그대로 넘기고, 그래도 모델이
       호출을 뱉으면 버린다(최종 step이 다시 루프를 돌지 않게 하는 백스톱).
     - usage는 W1의 LlmCall로 반환해 TurnUsage에 그대로 누적한다.
-    - control_intents는 control_tools로 넘긴 도구명만 인식하는 **shadow** 산출물이다.
-      durable write에 연결하지 않고, 자유문 정규식으로 보충하지 않는다.
+    - control_intents는 control_tools로 넘긴 도구명만 인식하며 호출측이 별도 트랜잭션에서 적용한다.
+      이 계층은 직접 쓰지 않고 자유문 정규식으로 보충하지 않는다.
     """
     if provider_for(model) != "openai":
         raise UnsupportedProviderError(

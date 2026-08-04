@@ -16,14 +16,14 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.time_utils import reward_date_for, safe_zone
 from app.models.profile import Profile
 from app.models.routine import Routine, RoutineCompletion
-from app.models.user_device import UserDevice
+from app.models.chat_context import ChatContext
 from app.services import i18n, shop
 # 대괄호·제어문자 제거. 상품명은 우리 카탈로그 값이지만 기억 렌더와 같은 살균을 통과시킨다.
 # ⚠️ 이건 표현 정리이지 보안 경계가 아니다 — 이걸 믿고 신뢰할 수 없는 입력을 넣지 마라.
@@ -143,9 +143,7 @@ async def build_context(
             async with session.begin_nested():
                 last_active_at = (
                     await session.execute(
-                        select(func.max(UserDevice.last_active_at)).where(
-                            UserDevice.user_id == uid
-                        )
+                        select(ChatContext.last_active_at).where(ChatContext.user_id == uid)
                     )
                 ).scalar()
                 if last_active_at is not None:

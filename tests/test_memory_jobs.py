@@ -13,12 +13,14 @@ import copy
 import json
 import uuid
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
 
 from app.services import llm as llm_module
 from app.services import (
     memory_candidates,
+    memory_embeddings,
     memory_extract,
     memory_norm,
     memory_reconcile,
@@ -218,10 +220,11 @@ def _rows(db, job_type: str) -> list[dict]:
 # ─────────────────────────────────────────────────────────────
 # 0. 등록
 # ─────────────────────────────────────────────────────────────
-def test_three_handlers_are_registered():
+def test_four_handlers_are_registered():
     for job_type in (
         memory_repo.JOB_MEMORY_EXTRACT,
         memory_repo.JOB_MEMORY_RECONCILE,
+        memory_repo.JOB_MEMORY_EMBED,
         memory_repo.JOB_PROFILE_REFRESH,
     ):
         assert job_type in consumer.registered_types()
@@ -370,6 +373,8 @@ async def test_reconcile_applies_and_enqueues_profile_refresh_in_one_transaction
     assert len(refresh) == 1
     assert refresh[0]["dedup_key"] == f"{_UID}:3:9"           # (generation, revision)
     assert _json(refresh[0]["payload"])["relationship_profile_input_revision"] == 9
+    embeds = _rows(db, memory_repo.JOB_MEMORY_EMBED)
+    assert len(embeds) == 1 and embeds[0]["dedup_key"] == f"{_UID}:3:9"
 
 
 async def test_reconcile_without_change_does_not_enqueue_profile_refresh(db, monkeypatch):
@@ -465,9 +470,102 @@ async def test_reconcile_rejects_candidate_payload_from_another_range(db, alerts
 
 
 # ─────────────────────────────────────────────────────────────
-# 3. profile refresh 스텁(W9 소관)
+# 3. embedding
 # ─────────────────────────────────────────────────────────────
-async def test_profile_refresh_is_a_noop_stub(db):
+async def test_embed_chunks_every_missing_fact_and_writes_in_fenced_finalize(
+    db, monkeypatch
+):
+    sources = [memory_repo.EmbeddingSource(uuid.uuid4(), f"fact-{i}") for i in range(5)]
+    batches: list[list[str]] = []
+    writes: list[tuple[int, list]] = []
+
+    async def coords(session, user_id):
+        return (3, 9)
+
+    async def missing(session, user_id):
+        return sources
+
+    async def embed(texts):
+        batches.append(list(texts))
+        return [[float(i)] * 3 for i, _ in enumerate(texts)]
+
+    async def write(session, user_id, items):
+        writes.append((session.commits, list(items)))
+        return len(items)
+
+    monkeypatch.setattr(memory_jobs.relationship_profile_repo, "input_coordinates", coords)
+    monkeypatch.setattr(memory_repo, "load_missing_embeddings", missing)
+    monkeypatch.setattr(memory_embeddings, "embed_texts", embed)
+    monkeypatch.setattr(memory_repo, "write_embeddings", write)
+    monkeypatch.setattr(memory_jobs.settings, "memory_embedding_batch_size", 2)
+    jid = _enqueue_job(
+        db,
+        memory_repo.JOB_MEMORY_EMBED,
+        {"schema_version": memory_repo.SOURCE_PAYLOAD_SCHEMA_VERSION,
+         "memory_generation": 3, "relationship_profile_input_revision": 9},
+    )
+
+    row = await _run(db, jid)
+
+    assert row["state"] == "succeeded"
+    assert _json(row["result_detail"]) == {"embedded": 5}
+    assert [len(batch) for batch in batches] == [2, 2, 1]
+    assert len(writes) == 1 and writes[0][0] == 0 and len(writes[0][1]) == 5
+
+
+async def test_embed_discards_stale_coordinates_before_provider_call(db, monkeypatch):
+    called = []
+
+    async def coords(session, user_id):
+        return (4, 9)
+
+    async def embed(texts):
+        called.append(texts)
+        return []
+
+    monkeypatch.setattr(memory_jobs.relationship_profile_repo, "input_coordinates", coords)
+    monkeypatch.setattr(memory_embeddings, "embed_texts", embed)
+    jid = _enqueue_job(
+        db,
+        memory_repo.JOB_MEMORY_EMBED,
+        {"schema_version": memory_repo.SOURCE_PAYLOAD_SCHEMA_VERSION,
+         "memory_generation": 3, "relationship_profile_input_revision": 9},
+    )
+
+    row = await _run(db, jid)
+
+    assert row["result_code"] == memory_jobs.RESULT_STALE_GENERATION
+    assert called == []
+
+
+# ─────────────────────────────────────────────────────────────
+# 4. profile refresh publish
+# ─────────────────────────────────────────────────────────────
+async def test_profile_refresh_publishes_inside_fenced_finalize(db, monkeypatch):
+    calls = []
+
+    async def coords(session, user_id):
+        return (3, 9)
+
+    async def sources(session, user_id):
+        return [
+            memory_repo.ProfileSource(
+                id=uuid.uuid4(), source_type="fact", kind="profile", text="서울에 산다",
+                importance=0.8, confidence=0.9, event_time=None,
+            )
+        ]
+
+    async def draft(session, **kwargs):
+        calls.append(("draft", session.commits, kwargs["document"]))
+        return SimpleNamespace(status="draft", profile_id=uuid.uuid4())
+
+    async def publish(session, **kwargs):
+        calls.append(("publish", session.commits, kwargs["profile_id"]))
+
+    monkeypatch.setattr(memory_jobs.relationship_profile_repo, "input_coordinates", coords)
+    monkeypatch.setattr(memory_repo, "load_profile_sources", sources)
+    monkeypatch.setattr(memory_jobs.relationship_profile_repo, "create_draft", draft)
+    monkeypatch.setattr(memory_jobs.relationship_profile_repo, "publish", publish)
     jid = _enqueue_job(
         db, memory_repo.JOB_PROFILE_REFRESH,
         {"schema_version": memory_repo.SOURCE_PAYLOAD_SCHEMA_VERSION,
@@ -477,12 +575,13 @@ async def test_profile_refresh_is_a_noop_stub(db):
     row = await _run(db, jid)
 
     assert row["state"] == "succeeded"
-    assert row["result_code"] == memory_jobs.RESULT_PROFILE_REFRESH_PENDING
-    assert len(db.rows) == 1  # 아무 것도 만들지 않는다
+    assert row["result_code"] == memory_jobs.RESULT_OK
+    assert [c[0] for c in calls] == ["draft", "publish"]
+    assert all(c[1] == 0 for c in calls)
 
 
 # ─────────────────────────────────────────────────────────────
-# 4. 추출 payload 왕복 — 저장되는 후보는 항상 마스킹·검증을 통과한 값이다.
+# 5. 추출 payload 왕복 — 저장되는 후보는 항상 마스킹·검증을 통과한 값이다.
 # ─────────────────────────────────────────────────────────────
 def test_to_payload_roundtrips_through_the_same_parser():
     candidates = memory_candidates.parse_candidates(

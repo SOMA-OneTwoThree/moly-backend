@@ -1,0 +1,70 @@
+schemas:
+  MemoryFactResponse:
+    type: object
+    required: [id, kind, text]
+    properties:
+      id: {type: string, format: uuid}
+      kind: {type: string}
+      text: {type: string}
+      predicate:
+        anyOf: [{type: string}, {type: 'null'}]
+      event_time:
+        anyOf: [{type: string, format: date-time}, {type: 'null'}]
+  MemoryListResponse:
+    type: object
+    required: [items]
+    properties:
+      items:
+        type: array
+        items: {$ref: '#/schemas/MemoryFactResponse'}
+  MemorySearchRequest:
+    type: object
+    required: [query]
+    properties:
+      query: {type: string, minLength: 1, maxLength: 200}
+      from_date:
+        anyOf: [{type: string, format: date}, {type: 'null'}]
+      to_date:
+        anyOf: [{type: string, format: date}, {type: 'null'}]
+  MemorySearchItem:
+    type: object
+    required: [id, kind, text, similarity]
+    properties:
+      id: {type: string, format: uuid}
+      kind: {type: string, enum: [fact, insight]}
+      text: {type: string}
+      observed_at:
+        anyOf: [{type: string, format: date-time}, {type: 'null'}]
+      similarity: {type: number}
+  MemorySearchResponse:
+    type: object
+    required: [items]
+    properties:
+      items:
+        type: array
+        items: {$ref: '#/schemas/MemorySearchItem'}
+  MemoryForgetRequest:
+    type: object
+    required: [scope, confirm]
+    properties:
+      scope: {type: string, enum: [fact, predicate, all]}
+      fact_ids:
+        type: array
+        maxItems: 100
+        items: {type: string, format: uuid}
+      predicate:
+        anyOf: [{type: string, maxLength: 100}, {type: 'null'}]
+      confirm: {type: boolean}
+  MemoryForgetResponse:
+    type: object
+    required: [status, forgotten_fact_ids, invalidated_insight_ids]
+    properties:
+      status: {type: string}
+      forgotten_fact_ids:
+        type: array
+        items: {type: string, format: uuid}
+      invalidated_insight_ids:
+        type: array
+        items: {type: string, format: uuid}
+      memory_generation:
+        anyOf: [{type: integer}, {type: 'null'}]

@@ -1,15 +1,9 @@
-"""잊어줘(forget) — W10. **기본 off**. 켜기 전까지는 분류만 하고 아무것도 쓰지 않는다.
-
-명세 §5 게이트 #5("기억해줘/잊어줘 확인 UX와 범위")가 **제품 미결**이라, 실제 삭제 경로는
-`settings.memory_forget_enabled`(기본 False) 뒤에 둔다. 플래그가 off면 `apply`는 세션을 **한 번도
-건드리지 않고** 분류 결과만 로그로 남긴다(shadow trace). 정책이 정해지면 플래그만 켜면 된다.
+"""잊어줘(forget) — 정규화 기억의 영속 삭제·재유입 차단.
 
 지키는 것(어기면 조용히 깨진다):
 
-1. **legacy 유저에게 성공을 가장하지 않는다.** normalized로 cutover된 유저에게만 실행한다
-   (명세 1313행). legacy 유저는 `not_normalized`로 끝나고 아무것도 쓰지 않는다.
-2. **순서가 계약이다.** 한 트랜잭션 안에서 `chat_contexts` 행을 `FOR UPDATE`로 잠근 뒤
-   closure → generation/revision +1 → marker → fact → insight → profile → enqueue(명세 1317-1328행).
+1. **순서가 계약이다.** 한 트랜잭션 안에서 `chat_contexts` 행을 `FOR UPDATE`로 잠근 뒤
+   closure → generation/revision +1 → marker → fact → insight → profile → enqueue 순으로 처리한다.
    closure를 먼저 영속화해야 retention 후 replay로 같은 구간이 되살아나지 못한다.
 3. **terminal 불가역.** 상태 변경 UPDATE는 전부 출발 상태를 WHERE에 못 박고(active/published)
    반대 방향으로 가는 문장이 이 모듈에 **하나도 없다**. marker를 지우는 문장도 없다
@@ -33,23 +27,14 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.services import jobs, memory, memory_registry, memory_repo
+from app.services import memory_registry, memory_repo
 from app.services.memory_reconcile import SCOPE_ALL, SCOPE_FACT, SCOPE_PREDICATE
 
 _log = logging.getLogger("moly-backend")
 
 # 결과 코드(계약) — 로그·trace·호출측 응답 분기가 이 값을 본다.
-RESULT_CLASSIFIED_ONLY = "classified_only"   # 플래그 off — 아무것도 쓰지 않았다
 RESULT_APPLIED = "applied"
-RESULT_NOT_NORMALIZED = "not_normalized"     # legacy 유저 — 성공으로 가장하지 않는다
 RESULT_NOTHING_MATCHED = "nothing_matched"   # 대상이 없다(타 유저 id 포함) — 아무것도 쓰지 않았다
-
-# 외부 벡터 삭제 잡(같은 Postgres 밖의 사본). Postgres는 active+marker hard filter로 **즉시**
-# 비노출되므로 이 잡은 지연돼도 노출 위험이 없다(명세 1335-1336행). 핸들러는 플래그를 켤 때
-# 등록한다 — 지금은 off라 enqueue 자체가 일어나지 않는다.
-JOB_MEMORY_VECTOR_DELETE = "memory_vector_delete"
-FORGET_PAYLOAD_SCHEMA_VERSION = "memory-forget-v1"
 
 CONTROL_INTENT_FORGET = "forget"
 
@@ -97,7 +82,7 @@ class ForgetResult:
 
 
 # ─────────────────────────────────────────────────────────────
-# 분류 — 플래그와 무관하게 항상 돈다(순수 함수, DB 접근 없음).
+# 분류 — 순수 함수, DB 접근 없음.
 # ─────────────────────────────────────────────────────────────
 def classify(intent: Any) -> ForgetRequest | None:
     """`ControlIntent` 1건 → 실행 가능한 요청. 해석 못 하면 None(실행하지 않는다).
@@ -106,7 +91,7 @@ def classify(intent: Any) -> ForgetRequest | None:
     - `target_fact_ids`가 있으면 fact scope.
     - 없고 `value`가 registry의 predicate면 predicate scope.
     - 그 밖(자유문 value 등)은 None이다. **scope='all'은 모델 intent에서 추론하지 않는다** —
-      "다 잊어줘"의 범위·확인 UX가 제품 미결이라 모델 한마디로 전량 삭제가 열리면 안 된다.
+      전량 삭제는 명시적 API의 `confirm=true` 경로에서만 허용한다.
     """
     if getattr(intent, "kind", None) != CONTROL_INTENT_FORGET:
         return None
@@ -132,8 +117,7 @@ def classify_all(intents: Sequence[Any]) -> list[ForgetRequest]:
 # SQL — 상태 변경은 전부 출발 상태를 WHERE에 못 박는다(terminal 불가역).
 # ─────────────────────────────────────────────────────────────
 _LOCK_CONTEXT_SQL = text("""
-SELECT memory_mode, memory_generation, memory_source_watermark,
-       relationship_profile_input_revision
+SELECT memory_generation, memory_source_watermark, relationship_profile_input_revision
 FROM chat_contexts WHERE user_id=:user_id FOR UPDATE
 """)
 
@@ -162,14 +146,13 @@ ON CONFLICT (user_id, forget_operation_id, source_kind, from_watermark, through_
 DO NOTHING
 """)
 
-# generation·revision을 **같은 문장에서** 올린다. normalized 유저만 대상(legacy는 위에서 걸러지지만
-# 문장 자체에도 조건을 남긴다 — 조건을 코드 흐름에만 두면 나중에 호출부가 늘 때 새어나간다).
+# generation·revision을 **같은 문장에서** 올려 진행 중인 파생 잡을 모두 stale로 만든다.
 _BUMP_SQL = text("""
 UPDATE chat_contexts
 SET memory_generation = memory_generation + 1,
     relationship_profile_input_revision = relationship_profile_input_revision + 1,
     updated_at = now()
-WHERE user_id=:user_id AND memory_mode='normalized'
+WHERE user_id=:user_id
 RETURNING memory_generation, relationship_profile_input_revision
 """)
 
@@ -184,7 +167,7 @@ VALUES
 # marker를 우회해 프로필에 다시 실린다.
 _FORGET_FACT_SQL = text("""
 UPDATE memory_facts
-SET status='forgotten', valid_to=now(), updated_at=now()
+SET status='forgotten', valid_to=now(), embedding=NULL, updated_at=now()
 WHERE user_id=:user_id AND status='active'
   AND (id=:fact_id
        OR (normalization_version=:normalization_version AND content_hash=:normalized_hash))
@@ -193,14 +176,14 @@ RETURNING id
 
 _FORGET_PREDICATE_SQL = text("""
 UPDATE memory_facts
-SET status='forgotten', valid_to=now(), updated_at=now()
+SET status='forgotten', valid_to=now(), embedding=NULL, updated_at=now()
 WHERE user_id=:user_id AND status='active' AND predicate=:predicate
 RETURNING id
 """)
 
 _FORGET_ALL_FACTS_SQL = text("""
 UPDATE memory_facts
-SET status='forgotten', valid_to=now(), updated_at=now()
+SET status='forgotten', valid_to=now(), embedding=NULL, updated_at=now()
 WHERE user_id=:user_id AND status='active'
 RETURNING id
 """)
@@ -260,38 +243,8 @@ RETURNING id
 """)
 
 
-def assert_ready_to_apply() -> None:
-    """플래그를 켜기 전에 갖춰져야 하는 것들. 하나라도 없으면 열지 않는다.
-
-    forget은 "지웠다"고 유저에게 말하는 기능이라 **부분 삭제가 가장 나쁘다.** 아래가 안 갖춰진
-    채로 플래그만 켜면 지운 척만 하고 실제로는 남는다.
-
-    1. **외부 벡터(mem0) 삭제 핸들러가 워커에 실제로 배포됐는가.** `apply`가
-       `memory_vector_delete` 잡을 걸지만 핸들러가 없으면 그 잡은 `unknown_job_type`으로 죽고
-       mem0 사본이 물리적으로 남는다.
-       ⚠️ 이건 **코드가 판단할 수 없다.** API와 consumer가 다른 프로세스라 API 쪽 핸들러
-       레지스트리를 봐도 consumer의 등록 상태를 알 수 없다(반대로 API에 모듈만 import해
-       통과시키면 아무것도 보장하지 못한다). 그래서 cutover의 `release_inventory_confirmed`와
-       같이 **운영자가 확인한 결과**를 설정값으로 받는다.
-
-    ⚠️ 코드로 못 막지만 **플래그를 켜기 전 반드시 정해야 하는 제품 결정**(명세 §5 게이트 #5):
-    - 확인 UX와 삭제 범위
-    - **발행된 일기를 어떻게 할지.** 일기는 유저가 읽는 기록이지만 동시에 `get_diary` 도구로
-      **캐피의 읽기 표면**이기도 하다. 지금 구조에서는 사실을 잊어도 캐피가 일기에서 다시 읽어
-      말할 수 있다. 일기를 보존하려면 forget 이후 그 구간에 대한 도구 접근을 막든, 명시적
-      열람 요청에만 허용하든 정책이 필요하다.
-    - 원본 대화(`messages`)를 지울지 — 현재는 지우지 않는다.
-    """
-    if not settings.memory_forget_vector_delete_ready:
-        raise ForgetError(
-            "외부 벡터 삭제 핸들러 배포가 확인되지 않았다 — 지금 forget을 켜면 mem0 사본이 남은 "
-            "채로 '지웠다'고 응답하게 된다. 워커에 핸들러를 배포하고 확인한 뒤 "
-            "memory_forget_vector_delete_ready=true로 연다"
-        )
-
-
 # ─────────────────────────────────────────────────────────────
-# 실행 — 플래그 뒤. off면 세션을 건드리지 않는다.
+# 실행
 # ─────────────────────────────────────────────────────────────
 async def apply(
     session: AsyncSession,
@@ -301,32 +254,14 @@ async def apply(
     operation_id: uuid.UUID | None = None,
     now: datetime | None = None,
 ) -> ForgetResult:
-    """forget 7단계(명세 1317-1328행). 커밋하지 않는다 — 호출측 트랜잭션에 합류한다.
-
-    `settings.memory_forget_enabled`가 False면 **한 문장도 실행하지 않고** `classified_only`로
-    끝난다. 제품 결정(확인 UX·범위) 전까지의 기본 동작이다.
-
-    플래그가 켜져 있으면 `assert_ready_to_apply()`가 선행 조건을 확인한다 — 갖춰지지 않았으면
-    지운 척하지 않고 실패시킨다(부분 삭제가 가장 나쁘다).
-    """
-    if settings.memory_forget_enabled:
-        assert_ready_to_apply()
-    if not settings.memory_forget_enabled:
-        _log.info(
-            "forget 분류만(플래그 off) — user=%s scope=%s facts=%d predicate=%s",
-            user_id, request.scope, len(request.fact_ids), request.predicate,
-        )
-        return ForgetResult(status=RESULT_CLASSIFIED_ONLY, request=request)
-
+    """forget을 원자 적용한다. 커밋하지 않는다 — 호출측 트랜잭션에 합류한다."""
     op_id = operation_id or uuid.uuid4()
 
     # 0) 유저 행을 잠근다. 이 뒤의 모든 판단은 잠근 값 기준이다.
     row = (await session.execute(_LOCK_CONTEXT_SQL, {"user_id": user_id})).first()
-    if row is None or row[0] != memory.MODE_NORMALIZED:
-        # legacy(또는 컨텍스트 없음) — 성공으로 가장하지 않는다(명세 1313행).
-        _log.info("forget 대상 아님(normalized 아님) — user=%s", user_id)
-        return ForgetResult(status=RESULT_NOT_NORMALIZED, request=request)
-    source_watermark = int(row[2])
+    if row is None:
+        return ForgetResult(status=RESULT_NOTHING_MATCHED, request=request)
+    source_watermark = int(row[1])
 
     # 1) 닫을 소스 구간과 marker 재료를 확정한다.
     targets = await _resolve_targets(session, user_id=user_id, request=request)
@@ -348,8 +283,8 @@ async def apply(
 
     # 2) generation·revision +1 — 진행 중인 잡의 결과를 전부 stale로 만든다.
     bumped = (await session.execute(_BUMP_SQL, {"user_id": user_id})).first()
-    if bumped is None:  # 잠근 채로 읽었는데 normalized가 아니게 됐다 = 불변식 붕괴
-        raise ForgetError(f"normalized 유저의 generation을 올리지 못했다: user={user_id}")
+    if bumped is None:
+        raise ForgetError(f"기억 generation을 올리지 못했다: user={user_id}")
     generation, revision = int(bumped[0]), int(bumped[1])
 
     # 3) marker — 영속 deny key. hash/version은 fact 행에서 **복사**한다(재계산 금지).
@@ -371,17 +306,9 @@ async def apply(
         await session.execute(_DELETE_CHECKPOINTS_SQL, {"user_id": user_id})
     ).rowcount or 0
 
-    # 7) 파생 재생성 + 외부 벡터 삭제를 같은 트랜잭션에서 건다(같은 Postgres 안의 파생 무효화).
+    # 7) 파생 프로필 재생성을 같은 트랜잭션에서 건다. 벡터는 fact UPDATE에서 즉시 NULL 처리됐다.
     await memory_repo.enqueue_profile_refresh(
         session, user_id=user_id, memory_generation=generation, input_revision=revision
-    )
-    await _enqueue_vector_delete(
-        session,
-        user_id=user_id,
-        operation_id=op_id,
-        generation=generation,
-        fact_ids=forgotten,
-        request=request,
     )
 
     _log.info(
@@ -584,32 +511,3 @@ async def _invalidate_profiles(
         )
     ).all()
     return tuple(r[0] for r in rows)
-
-
-async def _enqueue_vector_delete(
-    session: AsyncSession,
-    *,
-    user_id: uuid.UUID | str,
-    operation_id: uuid.UUID,
-    generation: int,
-    fact_ids: Sequence[uuid.UUID],
-    request: ForgetRequest,
-) -> uuid.UUID | None:
-    """외부 벡터 사본 삭제 잡. 실패해도 노출되지 않는다(검색은 Postgres hard filter가 먼저다).
-
-    dedup key = operation_id라 같은 forget이 두 번 걸리지 않는다.
-    """
-    return await jobs.enqueue(
-        session,
-        queue=jobs.QUEUE_MAINTENANCE,
-        job_type=JOB_MEMORY_VECTOR_DELETE,
-        user_id=user_id,
-        dedup_key=f"{user_id}:{operation_id}",
-        payload={
-            "schema_version": FORGET_PAYLOAD_SCHEMA_VERSION,
-            "memory_generation": generation,
-            "scope": request.scope,
-            "predicate": request.predicate,
-            "fact_ids": [str(i) for i in fact_ids],
-        },
-    )

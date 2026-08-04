@@ -444,7 +444,7 @@ async def prompt_text(
     """published 프로필 → 프롬프트 문자열. 무효 근거를 가진 항목은 빼고 다시 렌더한다.
 
     저장된 `rendered_text`를 그대로 쓰지 않는다 — 재생성이 밀린 동안 forget/supersede된 근거가
-    그 문자열에 남아 있을 수 있다. 근거가 전부 무효면 빈 문자열이다(legacy 기억으로 폴백하지 않는다).
+    그 문자열에 남아 있을 수 있다. 근거가 전부 무효면 빈 문자열이며 다른 저장소로 폴백하지 않는다.
     문자열은 저장 형태(`{유저이름}` placeholder) 그대로다. 현재 이름 치환은 주입 직전에 한다.
     """
     locale = i18n.resolve(language)

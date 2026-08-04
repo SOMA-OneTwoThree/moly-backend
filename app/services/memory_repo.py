@@ -22,12 +22,12 @@ import json
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services import jobs, memory, memory_norm
+from app.services import jobs, memory_norm
 from app.services.memory_candidates import (
     ACTION_ADD,
     ACTION_IGNORE,
@@ -44,6 +44,7 @@ SOURCE_KIND_CONVERSATION_TURN = "conversation_turn"
 # 잡 계약 — W7 `async_jobs`의 content 큐 위에서 돈다.
 JOB_MEMORY_EXTRACT = "memory_extract"
 JOB_MEMORY_RECONCILE = "memory_reconcile"
+JOB_MEMORY_EMBED = "memory_embed"
 JOB_PROFILE_REFRESH = "relationship_profile_refresh"
 SOURCE_PAYLOAD_SCHEMA_VERSION = "memory-source-v1"
 
@@ -70,7 +71,6 @@ class SourceTurn:
 
     watermark: int
     memory_generation: int
-    memory_mode: str
     message_ids: tuple[int, ...]
 
 
@@ -86,11 +86,37 @@ class ApplyResult:
     ignored: int = 0
 
 
+@dataclass(frozen=True, slots=True)
+class ProfileSource:
+    """관계 프로필 투영에 사용할, hard-filter를 통과한 기억 한 건."""
+
+    id: uuid.UUID
+    source_type: str
+    kind: str
+    text: str
+    importance: float
+    confidence: float
+    event_time: datetime | None
+
+
+@dataclass(frozen=True, slots=True)
+class EmbeddingSource:
+    id: uuid.UUID
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
+class SearchHit:
+    id: uuid.UUID
+    kind: str
+    text: str
+    observed_at: datetime | None
+    similarity: float
+
+
 # ─────────────────────────────────────────────────────────────
 # 읽기
 # ─────────────────────────────────────────────────────────────
-_MODE_SQL = text("SELECT memory_mode FROM chat_contexts WHERE user_id=:user_id")
-
 _MESSAGES_SQL = text(
     "SELECT id, sender, content FROM messages WHERE user_id=:user_id AND id IN :ids"
 ).bindparams(bindparam("ids", expanding=True))
@@ -130,11 +156,141 @@ SELECT message_id FROM memory_source_turn_messages
 WHERE user_id = :user_id AND source_watermark BETWEEN :from_watermark AND :through_watermark
 """)
 
+_PROFILE_FACTS_SQL = text("""
+SELECT f.id, 'fact' AS source_type, f.kind, f.canonical_text AS text,
+       f.importance, f.confidence, f.event_time
+FROM memory_facts f
+WHERE f.user_id=:user_id AND f.status='active'
+  AND NOT EXISTS (
+    SELECT 1 FROM memory_forget_markers m
+    WHERE m.user_id=f.user_id AND (
+      m.scope='all'
+      OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
+      OR (m.scope='fact' AND m.normalization_version=f.normalization_version
+                         AND m.normalized_hash=f.content_hash)
+    )
+  )
+ORDER BY f.importance DESC, f.confidence DESC,
+         COALESCE(f.event_time, f.updated_at) DESC, f.id
+""")
 
-async def resolve_mode(session: AsyncSession, user_id: uuid.UUID | str) -> str:
-    """유저의 기억 모드. 행이 없으면 legacy(= 아직 대화 컨텍스트가 없는 유저)."""
-    row = (await session.execute(_MODE_SQL, {"user_id": user_id})).first()
-    return row[0] if row is not None else memory.MODE_LEGACY
+_PROFILE_INSIGHTS_SQL = text("""
+SELECT i.id, 'insight' AS source_type, 'insight' AS kind, i.text,
+       i.confidence AS importance, i.confidence, i.valid_from AS event_time
+FROM memory_insights i
+WHERE i.user_id=:user_id AND i.status='active'
+  AND EXISTS (
+    SELECT 1 FROM memory_insight_sources own
+    WHERE own.user_id=i.user_id AND own.insight_id=i.id
+  )
+  AND NOT EXISTS (
+    SELECT 1 FROM memory_insight_sources s
+    JOIN memory_facts f ON f.user_id=s.user_id AND f.id=s.fact_id
+    WHERE s.user_id=i.user_id AND s.insight_id=i.id AND (
+      f.status<>'active' OR EXISTS (
+        SELECT 1 FROM memory_forget_markers m
+        WHERE m.user_id=f.user_id AND (
+          m.scope='all'
+          OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
+          OR (m.scope='fact' AND m.normalization_version=f.normalization_version
+                             AND m.normalized_hash=f.content_hash)
+        )
+      )
+    )
+  )
+ORDER BY i.confidence DESC, i.valid_from DESC, i.id
+""")
+
+_MISSING_EMBEDDINGS_SQL = text("""
+SELECT f.id, f.canonical_text
+FROM memory_facts f
+WHERE f.user_id=:user_id AND f.status='active' AND f.embedding IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM memory_forget_markers m
+    WHERE m.user_id=f.user_id AND (
+      m.scope='all'
+      OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
+      OR (m.scope='fact' AND m.normalization_version=f.normalization_version
+                         AND m.normalized_hash=f.content_hash)
+    )
+  )
+ORDER BY f.importance DESC, f.updated_at DESC, f.id
+""")
+
+_WRITE_EMBEDDING_SQL = text("""
+UPDATE memory_facts f SET embedding=CAST(:embedding AS vector), updated_at=now()
+WHERE f.user_id=:user_id AND f.id=:fact_id AND f.status='active'
+  AND NOT EXISTS (
+    SELECT 1 FROM memory_forget_markers m
+    WHERE m.user_id=f.user_id AND (
+      m.scope='all'
+      OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
+      OR (m.scope='fact' AND m.normalization_version=f.normalization_version
+                         AND m.normalized_hash=f.content_hash)
+    )
+  )
+RETURNING f.id
+""")
+
+_SEARCH_MEMORY_SQL = text("""
+WITH q AS (SELECT CAST(:embedding AS vector(1536)) AS embedding),
+facts AS (
+  SELECT f.id, 'fact'::text AS kind, f.canonical_text AS text,
+         COALESCE(f.event_time, max(e.observed_at), f.valid_from) AS observed_at,
+         1 - (f.embedding <=> q.embedding) AS similarity,
+         f.importance, f.confidence
+  FROM memory_facts f
+  CROSS JOIN q
+  LEFT JOIN memory_evidence e ON e.fact_id=f.id
+  WHERE f.user_id=:user_id AND f.status='active' AND f.embedding IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM memory_forget_markers m
+      WHERE m.user_id=f.user_id AND (
+        m.scope='all'
+        OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
+        OR (m.scope='fact' AND m.normalization_version=f.normalization_version
+                           AND m.normalized_hash=f.content_hash)
+      )
+    )
+  GROUP BY f.id, q.embedding
+),
+insights AS (
+  SELECT i.id, 'insight'::text AS kind, i.text,
+         i.valid_from AS observed_at,
+         max(1 - (f.embedding <=> q.embedding)) AS similarity,
+         i.confidence AS importance, i.confidence
+  FROM memory_insights i
+  JOIN memory_insight_sources s ON s.user_id=i.user_id AND s.insight_id=i.id
+  JOIN memory_facts f ON f.user_id=s.user_id AND f.id=s.fact_id
+  CROSS JOIN q
+  WHERE i.user_id=:user_id AND i.status='active'
+    AND f.status='active' AND f.embedding IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM memory_insight_sources sx
+      JOIN memory_facts fx ON fx.user_id=sx.user_id AND fx.id=sx.fact_id
+      WHERE sx.user_id=i.user_id AND sx.insight_id=i.id AND (
+        fx.status<>'active' OR fx.embedding IS NULL OR EXISTS (
+          SELECT 1 FROM memory_forget_markers m
+          WHERE m.user_id=fx.user_id AND (
+            m.scope='all'
+            OR (m.scope='predicate' AND fx.predicate IS NOT NULL AND m.predicate=fx.predicate)
+            OR (m.scope='fact' AND m.normalization_version=fx.normalization_version
+                               AND m.normalized_hash=fx.content_hash)
+          )
+        )
+      )
+    )
+  GROUP BY i.id
+),
+hits AS (SELECT * FROM facts UNION ALL SELECT * FROM insights)
+SELECT id, kind, text, observed_at, similarity
+FROM hits
+WHERE similarity >= :min_similarity
+  AND (:from_date IS NULL OR observed_at::date >= :from_date)
+  AND (:to_date IS NULL OR observed_at::date <= :to_date)
+ORDER BY similarity DESC, importance DESC, confidence DESC, observed_at DESC, id
+LIMIT :limit
+""")
 
 
 async def load_active_facts(
@@ -196,6 +352,92 @@ async def load_closures(
             for r in rows]
 
 
+async def load_profile_sources(
+    session: AsyncSession, user_id: uuid.UUID | str
+) -> list[ProfileSource]:
+    """프로필 생성용 active fact/insight. forget marker를 SQL hard filter로 먼저 적용한다."""
+    fact_rows = (await session.execute(_PROFILE_FACTS_SQL, {"user_id": user_id})).mappings().all()
+    insight_rows = (
+        await session.execute(_PROFILE_INSIGHTS_SQL, {"user_id": user_id})
+    ).mappings().all()
+    return [
+        ProfileSource(
+            id=r["id"],
+            source_type=r["source_type"],
+            kind=r["kind"],
+            text=r["text"],
+            importance=float(r["importance"]),
+            confidence=float(r["confidence"]),
+            event_time=r["event_time"],
+        )
+        for r in (*fact_rows, *insight_rows)
+    ]
+
+
+async def load_missing_embeddings(
+    session: AsyncSession, user_id: uuid.UUID | str
+) -> list[EmbeddingSource]:
+    rows = (
+        await session.execute(_MISSING_EMBEDDINGS_SQL, {"user_id": user_id})
+    ).mappings().all()
+    return [EmbeddingSource(id=r["id"], text=r["canonical_text"]) for r in rows]
+
+
+async def write_embeddings(
+    session: AsyncSession,
+    user_id: uuid.UUID | str,
+    items: Sequence[tuple[uuid.UUID, Sequence[float]]],
+) -> int:
+    """현재도 active·비망각인 fact에만 파생 벡터를 쓴다. 늦은 잡은 0행으로 폐기된다."""
+    written = 0
+    for fact_id, vector in items:
+        literal = "[" + ",".join(format(float(v), ".9g") for v in vector) + "]"
+        row = (
+            await session.execute(
+                _WRITE_EMBEDDING_SQL,
+                {"user_id": user_id, "fact_id": fact_id, "embedding": literal},
+            )
+        ).first()
+        written += row is not None
+    return written
+
+
+async def search_memory(
+    session: AsyncSession,
+    user_id: uuid.UUID | str,
+    *,
+    embedding: Sequence[float],
+    from_date: date | None,
+    to_date: date | None,
+    limit: int,
+    min_similarity: float,
+) -> list[SearchHit]:
+    literal = "[" + ",".join(format(float(v), ".9g") for v in embedding) + "]"
+    rows = (
+        await session.execute(
+            _SEARCH_MEMORY_SQL,
+            {
+                "user_id": user_id,
+                "embedding": literal,
+                "from_date": from_date,
+                "to_date": to_date,
+                "limit": limit,
+                "min_similarity": min_similarity,
+            },
+        )
+    ).mappings().all()
+    return [
+        SearchHit(
+            id=r["id"],
+            kind=r["kind"],
+            text=r["text"],
+            observed_at=r["observed_at"],
+            similarity=float(r["similarity"]),
+        )
+        for r in rows
+    ]
+
+
 async def watermarks_for_messages(
     session: AsyncSession, user_id: uuid.UUID | str, message_ids: Sequence[int]
 ) -> dict[int, int]:
@@ -250,7 +492,7 @@ INSERT INTO chat_contexts (user_id, memory_source_watermark)
 VALUES (:user_id, 1)
 ON CONFLICT (user_id) DO UPDATE
   SET memory_source_watermark = chat_contexts.memory_source_watermark + 1
-RETURNING memory_source_watermark, memory_generation, memory_mode
+RETURNING memory_source_watermark, memory_generation
 """)
 
 _INSERT_TURN_SQL = text("""
@@ -316,7 +558,7 @@ async def allocate_source_turn(
         )
 
     row = (await session.execute(_ALLOC_SQL, {"user_id": user_id})).first()
-    watermark, generation, mode = int(row[0]), int(row[1]), row[2]
+    watermark, generation = int(row[0]), int(row[1])
     await session.execute(
         _INSERT_TURN_SQL,
         {
@@ -333,48 +575,8 @@ async def allocate_source_turn(
     return SourceTurn(
         watermark=watermark,
         memory_generation=generation,
-        memory_mode=mode,
         message_ids=tuple(ids),
     )
-
-
-# ─────────────────────────────────────────────────────────────
-# legacy 기억 스냅샷 — cutover guard(W10). mode 분기를 **SQL의 WHERE로** 건다.
-# ─────────────────────────────────────────────────────────────
-# 호출 전에 mode를 읽어 분기하면 그 사이 cutover가 끼어들 수 있다(read-then-write 레이스).
-# 같은 문장 안에서 조건을 걸어야 normalized 유저의 스냅샷을 legacy 경로가 덮어쓰지 못한다.
-# 마지막 방어선은 트리거(20260804_memory_cutover_guard.sql)이고 이건 두 번째 방어선이다.
-_SAVE_LEGACY_SNAPSHOT_SQL = text("""
-INSERT INTO chat_contexts (user_id, memory_text, memory_refreshed_at)
-VALUES (:user_id, :memory_text, :memory_refreshed_at)
-ON CONFLICT (user_id) DO UPDATE
-  SET memory_text = EXCLUDED.memory_text,
-      memory_refreshed_at = EXCLUDED.memory_refreshed_at,
-      updated_at = now()
-  WHERE chat_contexts.memory_mode = 'legacy'
-RETURNING user_id
-""")
-
-
-async def save_legacy_snapshot(
-    session: AsyncSession,
-    user_id: uuid.UUID | str,
-    *,
-    memory_text: str,
-    refreshed_at: datetime,
-) -> bool:
-    """mem0 스냅샷 갱신(legacy 유저만). 저장했으면 True, normalized라 건너뛰었으면 False.
-
-    스냅샷 컬럼만 건드린다(앵커·세대·워터마크 클로버 금지). 커밋하지 않는다 — 호출측 경계에 합류.
-    normalized 유저에게 False가 나는 것은 정상 경로다(그 유저의 기억 주입은 관계 프로필이 한다).
-    """
-    row = (
-        await session.execute(
-            _SAVE_LEGACY_SNAPSHOT_SQL,
-            {"user_id": user_id, "memory_text": memory_text, "memory_refreshed_at": refreshed_at},
-        )
-    ).first()
-    return row is not None
 
 
 # ─────────────────────────────────────────────────────────────
@@ -467,6 +669,27 @@ async def enqueue_profile_refresh(
         session,
         queue=jobs.QUEUE_CONTENT,
         job_type=JOB_PROFILE_REFRESH,
+        user_id=user_id,
+        dedup_key=f"{user_id}:{memory_generation}:{input_revision}",
+        payload={
+            "schema_version": SOURCE_PAYLOAD_SCHEMA_VERSION,
+            "memory_generation": memory_generation,
+            "relationship_profile_input_revision": input_revision,
+        },
+    )
+
+
+async def enqueue_embedding(
+    session: AsyncSession,
+    *,
+    user_id: uuid.UUID | str,
+    memory_generation: int,
+    input_revision: int,
+) -> uuid.UUID | None:
+    return await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_CONTENT,
+        job_type=JOB_MEMORY_EMBED,
         user_id=user_id,
         dedup_key=f"{user_id}:{memory_generation}:{input_revision}",
         payload={

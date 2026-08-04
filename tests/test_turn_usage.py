@@ -9,7 +9,6 @@ from app.models.message import Message
 from app.services import chat as c
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services.gating import Gating
 from app.services.llm import LlmCall, LLMResult
 from tests.test_chat import FakeSession
@@ -78,16 +77,12 @@ def _patch_repair_turn(monkeypatch):
     async def _res(session, user_id):
         return _gating()
 
-    async def _mem(user_id):
-        return ""
-
     async def _gen(system, convo, **kw):
         if kw.get("model") == c.settings.model_utility:      # 복원 호출
             return LLMResult("나도 내 생각엔.", 12, 6, model=MODEL)
         return LLMResult("나도 我 생각엔.", 10, 20, model=MODEL)  # 주 chat 호출(한자 포함)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _mem)
     monkeypatch.setattr(llm_module, "generate", _gen)
     return 10 + 6 * 20, 12 + 6 * 6  # 130, 48
 
@@ -112,14 +107,10 @@ async def test_no_repair_turn_bills_chat_only(monkeypatch):
     async def _res(session, user_id):
         return _gating()
 
-    async def _mem(user_id):
-        return ""
-
     async def _gen(system, convo, **kw):
         return LLMResult("그냥 그랬어.", 10, 20, model=MODEL)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _mem)
     monkeypatch.setattr(llm_module, "generate", _gen)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)

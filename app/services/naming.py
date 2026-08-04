@@ -11,7 +11,7 @@
   이름 받침에 맞게 재계산한다. 뒤에 한글이 이어지면(예: '승민아파트') 단어로 보고 리터럴 유지.
 
 불변식: 저장 표면(messages/greetings/diaries.content)에 실제 이름 스템이 남지 않는다.
-(mem0·chat_contexts.memory_text는 별도 best-effort — mem0 custom_instructions가 이름 미저장.)
+정규화 기억도 저장 직전 같은 변환을 다시 적용한다.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ _TOK_RE = re.escape(TOKEN)
 # À-ɏ=U+00C0–024F(악센트·라틴 확장 A/B), Ḁ-ỿ=U+1E00–1EFF(베트남 등 확장 추가, Tuệ의 ệ=U+1EC7 등). SOMA-365.
 # ⚠️ CJK(한자·가나)는 띄어쓰기가 없어 naive substring 마스킹이 과치환(愛⊂恋愛)한다. 그래서 조건부로만
 #   마스킹한다(2글자+ & 뒤가 안전 조사·경칭·부호·경계) — _CJK_NAME_TAIL·to_placeholder 참조(SOMA-365).
-#   비조사 연속(まお元気)은 미마스킹 잔여이나 기밀 방어선은 RLS+mem0 이름미저장이 담당.
+#   비조사 연속(まお元気)은 미마스킹 잔여이나 기밀 방어선은 RLS+사용자별 SQL 격리가 담당.
 _LATIN = r"A-Za-z0-9À-ɏḀ-ỿ"
 _LATIN_RE = re.compile(rf"[{_LATIN}]")
 # CJK(가나·한자·CJK 통합/확장A/호환) 판정 — 이 스크립트를 포함하는 닉네임은 조건부 마스킹(위 주석·SOMA-365).
@@ -104,7 +104,7 @@ def to_placeholder(text: str | None, nickname: str | None) -> str | None:
     # 조사/부호 리터럴 유지로 보존한다(개명 시 흔치 않은 접두 겹침만 미용 손상).
     if _CJK_RE.search(nick):
         if len(nick) < 2:
-            return text  # 1글자 CJK 이름은 과치환 위험 커 스킵(기밀선=RLS+mem0 이름미저장)
+            return text  # 1글자 CJK 이름은 과치환 위험 커 스킵(기밀선=RLS+사용자별 SQL 격리)
         # 앞 경계는 라틴/한글만 차단(CJK는 허용 — 일본어는 띄어쓰기가 없어 문장 중간 이름이 항상
         # 가나/한자 뒤에 온다. 접두 겹침 과치환은 render 라운드트립으로 무해, 개명 시만 미용 손상).
         return re.sub(rf"(?<![{_LATIN}가-힣]){re.escape(nick)}{_CJK_NAME_TAIL}", TOKEN, text)

@@ -445,6 +445,80 @@ paths:
                       message: 일기를 찾을 수 없어요.
                       details: {}
       description: first_read_at은 최초 한 번만 기록되며 이후 호출도 멱등 204다.
+  /memory:
+    get:
+      tags:
+      - memory
+      summary: 기억 목록 조회
+      operationId: listMemory
+      responses:
+        '200':
+          description: 현재 유효한 정규화 기억
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/Internal'
+      security:
+      - SupabaseBearer: []
+  /memory/search:
+    post:
+      tags:
+      - memory
+      summary: 기억 의미 검색
+      operationId: searchMemory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemorySearchRequest'
+      responses:
+        '200':
+          description: 의미 유사도순 기억 검색 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemorySearchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '500':
+          $ref: '#/components/responses/Internal'
+      security:
+      - SupabaseBearer: []
+  /memory/forget:
+    post:
+      tags:
+      - memory
+      summary: 기억 삭제
+      description: 확인된 요청에 한해 사실, 술어 범위 또는 사용자의 모든 기억을 망각 처리한다.
+      operationId: forgetMemory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryForgetRequest'
+      responses:
+        '200':
+          description: 망각 및 파생 기억 무효화 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryForgetResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '500':
+          $ref: '#/components/responses/Internal'
+      security:
+      - SupabaseBearer: []
   /wallet:
     get:
       tags:
@@ -2434,6 +2508,139 @@ components:
       - older_cursor
       - newer_cursor
       title: MessagesResponse
+    MemoryFactResponse:
+      type: object
+      required:
+      - id
+      - kind
+      - text
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        text:
+          type: string
+        predicate:
+          anyOf:
+          - type: string
+          - type: 'null'
+        event_time:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+    MemoryListResponse:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemoryFactResponse'
+    MemorySearchRequest:
+      type: object
+      required:
+      - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 200
+        from_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+        to_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+    MemorySearchItem:
+      type: object
+      required:
+      - id
+      - kind
+      - text
+      - similarity
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - fact
+          - insight
+        text:
+          type: string
+        observed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        similarity:
+          type: number
+    MemorySearchResponse:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemorySearchItem'
+    MemoryForgetRequest:
+      type: object
+      required:
+      - scope
+      - confirm
+      properties:
+        scope:
+          type: string
+          enum:
+          - fact
+          - predicate
+          - all
+        fact_ids:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+            format: uuid
+        predicate:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+        confirm:
+          type: boolean
+    MemoryForgetResponse:
+      type: object
+      required:
+      - status
+      - forgotten_fact_ids
+      - invalidated_insight_ids
+      properties:
+        status:
+          type: string
+        forgotten_fact_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        invalidated_insight_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        memory_generation:
+          anyOf:
+          - type: integer
+          - type: 'null'
     PatchRoutineRequest:
       properties:
         name:
@@ -3625,6 +3832,8 @@ tags:
   description: 채팅 상태, 이력, 메시지 전송, 선발화
 - name: diary
   description: 발행된 일기 목록, 상세, 읽음 처리
+- name: memory
+  description: 정규화 기억 조회, 의미 검색, 명시적 망각
 - name: economy
   description: 건초 지갑, 원장, 충전소 보상
 - name: routine

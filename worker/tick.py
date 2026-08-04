@@ -20,7 +20,6 @@ from app.models.user_daily_stats import UserDailyStats
 from app.services import (
     config_store,
     diary_generation,
-    memory,
     notify,
     slack_notify,
     subscription,
@@ -68,12 +67,11 @@ def _build_summary(
 
     active_tzs = 이 틱에서 일기·아침·저녁을 실제로 처리한 유저들의 타임존(어느 나라 기준인지).
     """
-    has_warn = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
+    has_warn = counts["diary_failed"] > 0
     prefix = "⚠️ " if has_warn else ""
     ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
     ts_utc = now.strftime("%H:%M UTC")
     diary_fail = f", 실패 ⚠️ {counts['diary_failed']}건" if counts["diary_failed"] else ""
-    mem_fail = f" ⚠️ {counts['memory_failed']}" if counts["memory_failed"] else f" {counts['memory_failed']}"
     lines = [f"{prefix}[워커 요약] {ts_kst} ({ts_utc})"]
     if active_tzs:
         zones = " / ".join(_zone_line(tz, now) for tz in sorted(active_tzs))
@@ -81,7 +79,7 @@ def _build_summary(
     lines += [
         f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}"
         f" / 미발행 {counts['diary_none']}){diary_fail}",
-        f"기억(mem0): 성공 {counts['memory_ok']} / 실패{mem_fail}",
+        "기억: 상주 consumer 정규화 파이프라인",
         f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
@@ -344,11 +342,9 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     counts = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0,  # 이미 생성돼 스킵(멱등 재실행) — 실패와 구분(오탐 방지)
-        "memory_ok": 0, "memory_failed": 0,
         "morning": 0, "evening": 0,
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
-        "swept": 0,            # 고아 기억 청소 건수(UTC 04시 틱)
         "users": 0,
         "rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0,  # RC inbox 드레인
     }
@@ -396,16 +392,10 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
         _log.warning("워커 상태 기록 실패: %r", e)
 
-    # 하루 1회(UTC 04시 틱): 고아 기억 청소 + 비용 기록. 한 세션(smon)으로 처리.
+    # 하루 1회(UTC 04시 틱): 비용 기록.
     # (SOMA-349에서 유저별 세션으로 바뀌어 공유 session이 없으므로 전용 세션을 연다.)
     if now.hour == DIARY_HOUR:
         async with get_sessionmaker()() as smon:
-            # 탈퇴 고아 기억 스위프 — vecs는 FK 밖이라 CASCADE 안 닿음(백스톱)
-            try:
-                counts["swept"] = await memory.sweep_orphans(smon)
-            except Exception as e:  # noqa: BLE001
-                _log.warning("고아 기억 스위프 실패: %r", e)
-                await smon.rollback()
             # 전일 완결분 billable 합산(임계 비교·경보는 _emit_worker_health)
             if settings.daily_billable_alert_threshold > 0:
                 try:

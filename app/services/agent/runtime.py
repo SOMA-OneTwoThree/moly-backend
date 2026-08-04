@@ -8,7 +8,7 @@ turn_deadline = monotonic() + turn_deadline_s      # 기본 5.0
      └─ 있음 ↓
   3. 남은 시간 < final_reserve_s → 도구를 시작하지 않고 step 2로 직행
   4. 도구 병렬 실행(per-tool timeout) — 실패·타임아웃도 ToolResult(unavailable)로 형식 완결
-  5. step 2: generate_step(tool_choice="none")  ← 예약해둔 예산으로 최종 답변
+  5. step 2: 읽기 도구 대신 제어 도구만 노출하고 `tool_choice="auto"`로 최종 답변·의도 수집
 ```
 
 불변식:
@@ -21,7 +21,7 @@ turn_deadline = monotonic() + turn_deadline_s      # 기본 5.0
 - 도구 결과는 Phase 2 저장 대상이 **아니다**(messages 스키마 무변경, 턴 안에서만 산다).
 - `control_intents`는 **final step에서만** 읽는다. `generate_step`은 자기가 몇 번째 홉인지 모르므로
   이 판정은 루프의 책임이다 — 첫 홉엔 `control_tools`를 넘기지 않고, 그래도 control 호출이 오면
-  버린 뒤 계측만 남긴다. 어느 쪽이든 durable write에 연결하지 않는다(shadow trace 전용).
+  버린 뒤 계측만 남긴다. 최종 의도는 호출측 Phase 2가 원자적으로 적용하되 의도 행 자체는 저장하지 않는다.
 - `agent_enabled=False`면 chat이 이 모듈을 아예 부르지 않는다(기존 단발 경로와 동일 동작).
 """
 from __future__ import annotations
@@ -66,11 +66,7 @@ _log = logging.getLogger("moly-backend")
 # 반환 True = 이번 발화는 명확한 위기 → 도구를 제안하지 않고 한 번에 답한다.
 SAFETY_CLASSIFIER: Callable[[str], bool] | None = None
 
-# control 도구(기억 pin/forget 의도) 이름 → kind. **W10 이후로도 의도적으로 비어 있다** —
-# forget이 fail-closed이기 때문이다(`memory_forget.apply`는 플래그 뒤에서 분류만 하고 아무것도
-# 쓰지 않는다). 여기에 도구를 꽂는 순간 의도 유입 경로가 열리므로 "기억해줘/잊어줘" 확인 UX와
-# 범위가 정해진 뒤(§5 게이트 #5) 채운다. 그때까지 의도는 shadow 산출물이고 durable write에
-# 연결하지 않는다.
+# registry가 제어 도구 매핑을 제공하지 않을 때의 안전한 기본값.
 CONTROL_TOOLS: Mapping[str, str] = {}
 
 # 프로세스 전역 도구 동시성. 요청 하나의 fan-out(≤3)보다 크고 DB pool을 지키는 보수적 상한이다.
@@ -111,6 +107,7 @@ class ToolRegistry(Protocol):
     def wire_schemas(self) -> Sequence[dict]: ...
     def input_models(self) -> Mapping[str, type]: ...
     def get(self, name: str) -> Tool | None: ...
+    # 선택 구현: control_wire_schemas() -> final step에만 노출할 schema
     # 선택 구현: control_tools() -> Mapping[name, kind] (W10). 없으면 모듈 상수 CONTROL_TOOLS를 쓴다.
 
 
@@ -123,7 +120,7 @@ class AgentTurn:
     tool_results: tuple[ToolResult, ...] = ()
     skipped: str | None = None  # no_tools | safety | deadline | no_tool_calls
     tool_ms: float = 0.0
-    # final step에서만 읽은 기억 제어 의도. **shadow 전용** — 호출측이 저장하지 않는다.
+    # final step에서만 읽은 기억 제어 의도. 호출측이 적용하지만 intent 자체는 저장하지 않는다.
     control_intents: tuple[ControlIntent, ...] = ()
 
 
@@ -481,6 +478,10 @@ async def run_turn(
     schemas = list(registry.wire_schemas()) if registry is not None else []
     input_models = dict(registry.input_models()) if registry is not None else {}
     control = _control_tools(registry)
+    control_schema_provider = getattr(registry, "control_wire_schemas", None)
+    control_schemas = (
+        list(control_schema_provider()) if callable(control_schema_provider) else []
+    )
 
     skipped: str | None = None
     if not schemas:
@@ -561,8 +562,8 @@ async def run_turn(
     step2 = await llm.generate_step(
         system,
         transcript2,
-        tools=schemas,  # 프리픽스를 step 1과 같게 유지(캐시) — 사용은 tool_choice로 막는다
-        tool_choice="none",
+        tools=control_schemas or None,
+        tool_choice="auto" if control_schemas else "none",
         model=model,
         max_tokens=settings.llm_max_tokens,  # 최종 답변은 현재 단발 경로와 같은 출력 예산
         timeout=_llm_timeout(deadline, floor=config.final_reserve_s, now=now),
@@ -572,11 +573,13 @@ async def run_turn(
     )
     calls.append(step2.usage)
     intents = tuple(step2.control_intents)
+    if step2.tool_calls:
+        # final step에는 control schema만 전달하므로 정상적으로는 전부 intent로 빠져야 한다.
+        _log.warning("final step에 실행 대상 도구가 남았다 n=%d", len(step2.tool_calls))
     if intents:
-        # **shadow trace만** — durable write에 연결하지 않는다(제품 정책 미결, §5 게이트 #5).
-        # 유저 내용은 남기지 않는다: kind와 대상 개수까지만.
+        # 호출측 Phase 2가 적용한다. 로그에는 유저 내용 없이 kind와 대상 개수만 남긴다.
         _log.info(
-            "control_intent_shadow %s",
+            "control_intent_observed %s",
             json.dumps(
                 {
                     "stage": "final",

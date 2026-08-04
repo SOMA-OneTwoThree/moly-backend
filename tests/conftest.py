@@ -4,9 +4,19 @@
 관계 프로필 SQL까지 함께 흉내내면 관심사가 섞이므로 기본은 빈 프로필/no-op producer로 둔다.
 기억 배선 테스트는 각 테스트에서 이 대역을 명시적으로 교체한다.
 """
+import uuid
+
 import pytest
 
-from app.services import chat, relationship_profile_repo
+from app.services import (
+    chat,
+    chat_references,
+    chat_turns,
+    diary,
+    episodic_memory,
+    privacy,
+    relationship_profile_repo,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -17,6 +27,40 @@ def _unified_memory_defaults(monkeypatch, request):
     async def _no_source(*args, **kwargs):
         return None
 
+    async def _acquire(*args, **kwargs):
+        return chat_turns.Lease(token=uuid.uuid4(), turn_seq=1, base_context_revision=0)
+
+    async def _nothing(*args, **kwargs):
+        return None
+
+    async def _revision(*args, **kwargs):
+        return 1
+
+    async def _refs(*args, **kwargs):
+        return []
+
+    async def _focus(*args, **kwargs):
+        return ""
+
+    async def _valid_refs(*args, **kwargs):
+        return True
+
     if request.module.__name__ != "tests.test_relationship_profile_repo":
         monkeypatch.setattr(relationship_profile_repo, "prompt_text", _empty_profile)
     monkeypatch.setattr(chat, "_record_memory_source", _no_source)
+    # 기존 chat 단위 테스트는 새 lease/reference/first-turn 저장소와 관심사를 분리한다.
+    # 해당 계약은 전용 테스트에서 SQL과 상태 전이를 직접 검증한다.
+    if request.module.__name__ != "tests.test_conversational_recall_services":
+        monkeypatch.setattr(chat_turns, "acquire", _acquire)
+        monkeypatch.setattr(chat_turns, "verify_publish", _nothing)
+        monkeypatch.setattr(chat_turns, "finish_publish", _revision)
+    if request.module.__name__ != "tests.test_chat_references":
+        monkeypatch.setattr(chat_references, "persist_selected", _refs)
+        monkeypatch.setattr(chat_references, "load_focus_block", _focus)
+        monkeypatch.setattr(chat_references, "validate_selected", _valid_refs)
+    if request.module.__name__ != "tests.test_privacy":
+        monkeypatch.setattr(privacy, "ensure_subject_active", _nothing)
+    if request.module.__name__ != "tests.test_conversational_recall_services":
+        monkeypatch.setattr(episodic_memory, "enqueue_user_message", _nothing)
+    if request.module.__name__ != "tests.test_diary":
+        monkeypatch.setattr(diary, "ensure_welcome_for_first_committed_turn", _nothing)

@@ -25,6 +25,11 @@ class FakeSession:
     async def execute(self, stmt, params=None):
         return None
 
+    async def flush(self):
+        for obj in self.added:
+            if getattr(obj, "id", None) is None:
+                obj.id = uuid.uuid4()
+
     async def commit(self):
         self.committed = True
 
@@ -42,14 +47,19 @@ def _patch_common(monkeypatch, *, exists=False, messages=None, tokens=5000, ment
     async def _pick(session, target_date):
         return ment
 
+    async def _no_recall(*args, **kwargs):
+        return None
+
     monkeypatch.setattr(dg, "_diary_exists", _exists)
     monkeypatch.setattr(dg, "_day_messages", _msgs)
     monkeypatch.setattr(dg, "_tokens_used", _toks)
     monkeypatch.setattr(dg, "_pick_ment", _pick)
+    monkeypatch.setattr(dg.diary_recall_repo, "record_diary_sources", _no_recall)
+    monkeypatch.setattr(dg.diary_recall_repo, "upsert_diary_recall_document", _no_recall)
 
 
 def _msg(sender, content):
-    return SimpleNamespace(sender=sender, content=content)
+    return SimpleNamespace(id=1, sender=sender, content=content)
 
 
 # --- 순수 파서/발행시각 ---
@@ -232,17 +242,13 @@ async def test_idempotent_skips_when_exists(monkeypatch):
     assert session.committed is False
 
 
-async def test_no_ment_creates_hidden_tombstone(monkeypatch):
-    # SOMA-389: 임계 미달 + 지정본 없음 → 사용자 노출 일기 없음. 처리완료 멱등 마커로
-    # tombstone(source='none', content='', published_at=NULL) 행만 — 목록/상세 API 자동 제외.
+async def test_no_ment_records_processing_without_a_fake_diary(monkeypatch):
     _patch_common(monkeypatch, messages=[], tokens=0, ment=None)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
-    d = session.added[0]
-    assert d.source == "none"
-    assert d.content == ""
-    assert d.published_at is None
-    assert d.preset_ment_id is None
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    assert result["reason"] == "no_scheduled_entry"
+    assert session.added == []
+    assert session.committed is True
 
 
 # --- _pick_ment: 그날 지정본만(랜덤 폴백 폐지, SOMA-389) ---

@@ -4,7 +4,9 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, Query
+import time
+
+from fastapi import APIRouter, Depends, Header, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
@@ -39,25 +41,38 @@ async def get_messages(
     anchor_date: date | None = Query(None),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
 ) -> dict[str, Any]:
     return await chat_service.get_messages(
-        session, user_id, limit=limit, cursor=cursor, direction=direction, anchor_date=anchor_date
+        session, user_id, limit=limit, cursor=cursor, direction=direction, anchor_date=anchor_date,
+        capabilities=capabilities,
     )
 
 
 @router.post("/messages", response_model=PostMessageResponse)
 async def post_message(
     req: PostMessageRequest,
+    request: Request,
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
 ) -> PostMessageResponse:
     if not idempotency_key:
         raise errors.validation("Idempotency-Key 헤더가 필요해요.")
     # raw key 저장소를 다른 endpoint와 공유하므로 예약 prefix 위장을 차단한다.
     if idempotency_key.startswith(RESERVED_KEY_PREFIXES):
         raise errors.validation("사용할 수 없는 Idempotency-Key 형식이에요.")
-    return await chat_service.post_message(session, user_id, req, idempotency_key)
+    started = getattr(request.state, "started_monotonic", time.monotonic())
+    deadline = started + chat_service.settings.agent_turn_deadline_s
+    return await chat_service.post_message(
+        session,
+        user_id,
+        req,
+        idempotency_key,
+        deadline=deadline,
+        capabilities=capabilities,
+    )
 
 
 @router.get("/greeting", response_model=GreetingResponse)

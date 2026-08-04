@@ -20,6 +20,7 @@ finalize가 짧은 트랜잭션에서 fencing UPDATE + 도메인 반영 + 후속
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import random
 import uuid
@@ -141,9 +142,11 @@ def _job_from_row(row: Any) -> ClaimedJob:
 # ─────────────────────────────────────────────────────────────
 _ENQUEUE_SQL = text("""
 INSERT INTO async_jobs
-  (queue, job_type, user_id, dedup_key, payload, priority, available_at, expires_at, max_attempts)
+  (queue, job_type, user_id, dedup_key, payload, payload_hash, payload_schema_version,
+   priority, available_at, expires_at, max_attempts)
 VALUES
-  (:queue, :job_type, :user_id, :dedup_key, CAST(:payload AS jsonb), :priority,
+  (:queue, :job_type, :user_id, :dedup_key, CAST(:payload AS jsonb), :payload_hash,
+   :payload_schema_version, :priority,
    COALESCE(:available_at, now()), :expires_at, :max_attempts)
 ON CONFLICT (job_type, dedup_key) DO NOTHING
 RETURNING id
@@ -169,6 +172,7 @@ async def enqueue(
     (finalize 안에서 후속 잡을 거는 경로가 이 성질에 의존한다).
     """
     cfg = queue_config(queue)
+    payload_wire = json.dumps(payload or {}, sort_keys=True, separators=(",", ":"))
     row = (
         await session.execute(
             _ENQUEUE_SQL,
@@ -177,12 +181,47 @@ async def enqueue(
                 "job_type": job_type,
                 "user_id": user_id,
                 "dedup_key": dedup_key,
-                "payload": json.dumps(payload or {}),
+                "payload": payload_wire,
+                "payload_hash": hashlib.sha256(payload_wire.encode("utf-8")).hexdigest(),
+                "payload_schema_version": str((payload or {}).get("schema_version", "job-payload-v1")),
                 "priority": priority,
                 "available_at": available_at,
                 "expires_at": expires_at,
                 "max_attempts": max_attempts if max_attempts is not None else cfg.max_attempts,
             },
+        )
+    ).first()
+    return row[0] if row is not None else None
+
+
+_REPLAY_DEAD_SQL = text("""
+INSERT INTO async_jobs
+  (queue, job_type, user_id, dedup_key, replay_of, replay_operation_id,
+   payload, payload_hash, payload_schema_version, priority,
+   available_at, expires_at, max_attempts)
+SELECT j.queue, j.job_type, j.user_id,
+       'replay:' || j.id::text || ':' || CAST(:operation_id AS text),
+       j.id, CAST(:operation_id AS uuid), j.payload, j.payload_hash, j.payload_schema_version,
+       j.priority, now(), j.expires_at, j.max_attempts
+FROM async_jobs j
+WHERE j.id=:job_id AND j.state='dead'
+  AND (j.expires_at IS NULL OR j.expires_at > now())
+  AND j.payload_redacted_at IS NULL
+  AND (j.payload_expires_at IS NULL OR j.payload_expires_at > now())
+ON CONFLICT (job_type,dedup_key) DO NOTHING
+RETURNING id
+""")
+
+
+async def replay_dead(
+    session: AsyncSession, *, job_id: uuid.UUID, operation_id: uuid.UUID
+) -> uuid.UUID | None:
+    """dead 원본을 불변으로 보존하고 같은 payload의 새 잡을 만든다. 커밋은 호출측 소유."""
+    row = (
+        await session.execute(
+            # 같은 bind를 dedup 문자열과 uuid 열에 함께 쓰므로 wire는 text로 고정하고 SQL에서
+            # uuid 위치만 명시 cast한다. asyncpg의 한 parameter-one-type 규칙을 따른다.
+            _REPLAY_DEAD_SQL, {"job_id": job_id, "operation_id": str(operation_id)}
         )
     ).first()
     return row[0] if row is not None else None
@@ -244,8 +283,12 @@ _FENCE = "WHERE id=:id AND state='running' AND lease_owner=:worker_id AND lease_
 _SUCCESS_SQL = text(f"""
 UPDATE async_jobs
 SET state='succeeded', result_code=:result_code, result_detail=CAST(:result_detail AS jsonb),
-    finished_at=now(), lease_owner=NULL, lease_token=NULL, lease_until=NULL
+    finished_at=now(), payload_expires_at=COALESCE(payload_expires_at,now()+interval '24 hours'),
+    lease_owner=NULL, lease_token=NULL, lease_until=NULL
 {_FENCE}
+  AND (user_id IS NULL OR NOT EXISTS (
+    SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=async_jobs.user_id
+  ))
 RETURNING id
 """)
 
@@ -274,6 +317,36 @@ UPDATE async_jobs SET lease_until = now() + make_interval(secs => :lease_seconds
 {_FENCE}
 RETURNING lease_until
 """)
+
+_SUBJECT_BLOCKED_SQL = text(
+    "SELECT EXISTS(SELECT 1 FROM privacy_subject_barriers WHERE user_id=:user_id)"
+)
+
+_SCRUB_RETENTION_SQL = text("""
+WITH scrub_jobs AS (
+  UPDATE async_jobs SET payload='{}'::jsonb,result_detail=NULL,payload_redacted_at=now()
+  WHERE state IN ('succeeded','dead','cancelled') AND payload_redacted_at IS NULL
+    AND payload_expires_at IS NOT NULL AND payload_expires_at<=now()
+  RETURNING 1
+), scrub_idempotency AS (
+  UPDATE idempotency_keys SET response=NULL,redacted_at=now()
+  WHERE response IS NOT NULL AND response_expires_at IS NOT NULL AND response_expires_at<=now()
+  RETURNING 1
+)
+SELECT (SELECT count(*) FROM scrub_jobs),(SELECT count(*) FROM scrub_idempotency)
+""")
+
+
+async def subject_blocked(session: AsyncSession, user_id: uuid.UUID | None) -> bool:
+    if user_id is None:
+        return False
+    return bool(await session.scalar(_SUBJECT_BLOCKED_SQL, {"user_id": user_id}))
+
+
+async def scrub_expired_payloads(session: AsyncSession) -> tuple[int, int]:
+    row = (await session.execute(_SCRUB_RETENTION_SQL)).first()
+    await session.commit()
+    return (int(row[0]), int(row[1])) if row is not None else (0, 0)
 
 
 def _fence_params(job: ClaimedJob) -> dict:

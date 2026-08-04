@@ -232,7 +232,8 @@ async def test_post_message_idempotent_returns_cached(monkeypatch, patched):
     req = SimpleNamespace(text="재시도", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "same-key")
     # 와이어 포맷 보존: 저장본과 json 직렬화 결과가 동일해야 한다(+00:00 유지 포함).
-    assert out.model_dump(mode="json") == cached_response
+    expected = {**cached_response, "reply": {**cached_response["reply"], "references": []}}
+    assert out.model_dump(mode="json") == expected
     assert session.committed is False  # LLM·저장 안 탐
 
 
@@ -306,6 +307,7 @@ async def test_post_message_phase2_dup_returns_cached(monkeypatch, patched):
     req = SimpleNamespace(text="hi", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "dup-key")
     assert out.reply.content == "동시본"
+    assert out.reply.references == []
     assert [m for m in session.added if isinstance(m, Message)] == []  # 이중 저장 없음
 
 

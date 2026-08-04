@@ -62,7 +62,7 @@ async def test_apply_closes_source_then_invalidates_derivatives(monkeypatch):
     order = []
 
     async def targets(*args, **kwargs):
-        return (forget._Target(FACT, "hash", "memory-fact-v1", 3, 4),)
+        return (forget._Target(FACT, "hash", "memory-fact-v1", (3, 4)),)
 
     async def markers(*args, **kwargs):
         order.append("marker")
@@ -83,12 +83,16 @@ async def test_apply_closes_source_then_invalidates_derivatives(monkeypatch):
     async def enqueue(*args, **kwargs):
         order.append("refresh")
 
+    async def suppress(*args, **kwargs):
+        return 2
+
     monkeypatch.setattr(forget, "_resolve_targets", targets)
     monkeypatch.setattr(forget, "_write_markers", markers)
     monkeypatch.setattr(forget, "_forget_facts", facts)
     monkeypatch.setattr(forget, "_invalidate_insights", insights)
     monkeypatch.setattr(forget, "_invalidate_profiles", profiles)
     monkeypatch.setattr(memory_repo, "enqueue_profile_refresh", enqueue)
+    monkeypatch.setattr(forget.recall_suppression, "apply", suppress)
 
     session = Session()
     result = await forget.apply(

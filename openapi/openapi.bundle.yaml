@@ -107,6 +107,14 @@ paths:
           format: date
           title: Anchor Date
         description: 이 activity date 이상 message를 오래된 순으로 조회하며 cursor/direction을 무시한다.
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+        description: diary-reference-v1 지원 시 검증된 대화 내 일기 카드를 포함한다.
       responses:
         '200':
           description: 채팅 메시지와 양방향 cursor
@@ -164,6 +172,14 @@ paths:
           minLength: 1
         description: user 범위 멱등 key. route signature는 optional이지만 endpoint logic에서 누락/빈 문자열을 422로 거부한다.
           길이/형식 상한은 없다.
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+        description: diary-reference-v1 지원 시 검증된 대화 내 일기 카드를 포함한다.
       requestBody:
         required: true
         content:
@@ -445,6 +461,67 @@ paths:
                       message: 일기를 찾을 수 없어요.
                       details: {}
       description: first_read_at은 최초 한 번만 기록되며 이후 호출도 멱등 204다.
+  /v2/diaries:
+    get:
+      tags:
+      - diary
+      summary: 종류와 안정 cursor를 포함한 일기 목록
+      operationId: listDiariesV2
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 30
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 256
+          - type: 'null'
+      responses:
+        '200':
+          description: 발행 일기 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryListResponseV2'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /v2/diaries/{diary_id}:
+    get:
+      tags:
+      - diary
+      summary: 종류와 시각 좌표를 포함한 일기 상세
+      operationId: getDiaryV2
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: diary_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 발행 일기 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryDetailResponseV2'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
   /memory:
     get:
       tags:
@@ -1809,6 +1886,11 @@ components:
           format: date-time
           title: Created At
           description: 저장 시각 isoformat.
+        references:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/ChatReference'
       type: object
       required:
       - id
@@ -1816,6 +1898,40 @@ components:
       - content
       - created_at
       title: ChatMessage
+    ChatReference:
+      type: object
+      additionalProperties: false
+      required:
+      - reference_id
+      - state
+      - mode
+      - diary
+      properties:
+        reference_id:
+          type: string
+          format: uuid
+        schema:
+          type: string
+          const: diary-reference-v1
+          default: diary-reference-v1
+        type:
+          type: string
+          const: diary
+          default: diary
+        state:
+          type: string
+          enum:
+          - available
+          - unavailable
+        mode:
+          type: string
+          enum:
+          - full_card
+          - reopen_reference
+        diary:
+          anyOf:
+          - $ref: '#/components/schemas/DiaryReferenceCard'
+          - type: 'null'
     ChatStateResponse:
       properties:
         activity_date:
@@ -2057,6 +2173,106 @@ components:
       - published_at
       - first_read_at
       title: DiaryDetailResponse
+    DiaryDetailResponseV2:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - display_date
+      - kind
+      - title
+      - weather
+      - body
+      - occurred_at
+      - conversation_ref
+      - published_at
+      - first_read_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_date:
+          type: string
+          format: date
+        kind:
+          type: string
+          enum:
+          - welcome
+          - shared_day
+          - capi_day
+        author:
+          type: string
+          const: capi
+          default: capi
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+        weather:
+          type: string
+          enum:
+          - sunny
+          - cloudy
+          - rainy
+          - windy
+        body:
+          type: string
+        occurred_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        conversation_ref:
+          anyOf:
+          - $ref: '#/components/schemas/ConversationRef'
+          - type: 'null'
+        published_at:
+          type: string
+          format: date-time
+        first_read_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+    DiaryReferenceCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - display_date
+      - title
+      - body
+      - published_at
+      - read
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - welcome
+          - shared_day
+          - capi_day
+        author:
+          type: string
+          const: capi
+          default: capi
+        display_date:
+          type: string
+          format: date
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+        body:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        read:
+          type: boolean
     DiaryListItem:
       properties:
         id:
@@ -2136,6 +2352,69 @@ components:
       - data
       - next_cursor
       title: DiaryListResponse
+    DiaryListItemV2:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - display_date
+      - kind
+      - title
+      - weather
+      - preview
+      - published_at
+      - read
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_date:
+          type: string
+          format: date
+        kind:
+          type: string
+          enum:
+          - welcome
+          - shared_day
+          - capi_day
+        author:
+          type: string
+          const: capi
+          default: capi
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+        weather:
+          type: string
+          enum:
+          - sunny
+          - cloudy
+          - rainy
+          - windy
+        preview:
+          type: string
+          maxLength: 60
+        published_at:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+    DiaryListResponseV2:
+      type: object
+      additionalProperties: false
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiaryListItemV2'
+        next_cursor:
+          anyOf:
+          - type: string
+            maxLength: 256
+          - type: 'null'
     EquipmentPutRequest:
       properties:
         theme_id:
@@ -2947,6 +3226,11 @@ components:
           type: string
           title: Content
           description: Moly reply 본문.
+        references:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/ChatReference'
       type: object
       required:
       - message_id

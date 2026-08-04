@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import BigInteger, Date, DateTime, Integer, String, text
+from sqlalchemy import BigInteger, Date, DateTime, Integer, SmallInteger, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,11 +13,19 @@ from app.core.db import Base
 
 class Message(Base):
     __tablename__ = "messages"
+    # 모든 파생/참조 테이블은 user_id를 FK에 함께 태워 tenant 경계를 DB에서도 강제한다.
+    # sender까지 포함한 키는 memory_evidence가 user 발화만 근거로 삼도록 하는 FK 대상이다.
+    __table_args__ = (
+        UniqueConstraint("user_id", "id", name="messages_user_id_id_uq"),
+        UniqueConstraint("user_id", "id", "sender", name="messages_user_id_id_sender_uq"),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     sender: Mapped[str] = mapped_column(String)  # user | moly
     kind: Mapped[str] = mapped_column(String, server_default=text("'normal'"))  # normal | greeting
+    turn_seq: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    turn_position: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     content: Mapped[str] = mapped_column(String)
     input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)

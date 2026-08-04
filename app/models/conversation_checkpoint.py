@@ -29,6 +29,7 @@ class ConversationCheckpoint(Base):
     summary: Mapped[str] = mapped_column(String, nullable=False)  # 실명 금지({유저이름} placeholder)
     version: Mapped[str] = mapped_column(String, nullable=False)  # 요약기 계약 버전
     source_hash: Mapped[str] = mapped_column(String, nullable=False)
+    memory_generation: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )

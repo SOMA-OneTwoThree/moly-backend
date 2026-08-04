@@ -4,10 +4,12 @@ import uuid
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.schemas.common import StrictResponse
 
 
-class MemoryFactResponse(BaseModel):
+class MemoryFactResponse(StrictResponse):
     id: uuid.UUID
     kind: str
     text: str
@@ -15,11 +17,13 @@ class MemoryFactResponse(BaseModel):
     event_time: datetime | None = None
 
 
-class MemoryListResponse(BaseModel):
+class MemoryListResponse(StrictResponse):
     items: list[MemoryFactResponse]
 
 
 class MemorySearchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     query: str = Field(min_length=1, max_length=200)
     from_date: date | None = None
     to_date: date | None = None
@@ -31,22 +35,25 @@ class MemorySearchRequest(BaseModel):
         return self
 
 
-class MemorySearchItem(BaseModel):
+class MemorySearchItem(StrictResponse):
     id: uuid.UUID
     kind: Literal["fact", "insight"]
     text: str
     observed_at: datetime | None = None
-    similarity: float
+    similarity: float = Field(ge=-1.0, le=1.0)
 
 
-class MemorySearchResponse(BaseModel):
+class MemorySearchResponse(StrictResponse):
     items: list[MemorySearchItem]
 
 
 class MemoryForgetRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     scope: Literal["fact", "predicate", "all"]
     fact_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100)
     predicate: str | None = Field(default=None, max_length=100)
+    future_learning: Literal["allow", "block"] = "allow"
     confirm: bool
 
     @model_validator(mode="after")
@@ -62,7 +69,7 @@ class MemoryForgetRequest(BaseModel):
         return self
 
 
-class MemoryForgetResponse(BaseModel):
+class MemoryForgetResponse(StrictResponse):
     status: str
     forgotten_fact_ids: list[uuid.UUID]
     invalidated_insight_ids: list[uuid.UUID]

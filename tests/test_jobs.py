@@ -257,6 +257,13 @@ class _FakeSession:
     async def execute(self, stmt, params=None):
         return self.db.execute(stmt, params or {})
 
+    async def scalar(self, stmt, params=None):
+        if stmt is jobs._SUBJECT_BLOCKED_SQL:
+            return False
+        result = await self.execute(stmt, params)
+        row = result.first()
+        return row[0] if row is not None else None
+
     async def commit(self):
         self.commits += 1
 
@@ -330,6 +337,15 @@ def test_jobs_service_never_deletes_rows():
 
     src = inspect.getsource(jobs).upper()
     assert "DELETE FROM" not in src and "TRUNCATE" not in src
+
+
+def test_dead_replay_inserts_a_new_lineage_row_without_reviving_original():
+    sql = _norm(jobs._REPLAY_DEAD_SQL)
+    assert sql.startswith("INSERTINTOasync_jobs")
+    assert "replay_of" in sql and "j.state='dead'" in sql
+    assert "UPDATE" not in sql.upper() and "DELETE" not in sql.upper()
+    assert "replay:" in sql and ":operation_id" in sql
+    assert "CAST(:operation_idASuuid)" in sql
 
 
 def test_queue_config_matches_spec_table():

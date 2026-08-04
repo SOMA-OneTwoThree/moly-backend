@@ -87,6 +87,8 @@ class ForgetMarker:
     predicate: str | None = None
     normalized_hash: str | None = None
     normalization_version: str | None = None
+    cut_watermark: int = 0
+    future_learning: str = "block"
 
 
 @dataclass(frozen=True, slots=True)
@@ -172,10 +174,16 @@ def _dedup(candidates: Sequence[Candidate]) -> list[Candidate]:
 
 
 def _blocked_by_marker(
-    markers: Sequence[ForgetMarker], predicate: str | None, hashes: Mapping[str, str]
+    markers: Sequence[ForgetMarker],
+    predicate: str | None,
+    hashes: Mapping[str, str],
+    candidate_watermark: int,
 ) -> str | None:
     """hard filter. 걸리면 사유 문자열, 아니면 None."""
     for m in markers:
+        applies_to_new = m.future_learning == "block" or candidate_watermark <= m.cut_watermark
+        if not applies_to_new:
+            continue
         if m.scope == SCOPE_ALL:
             return "forget_all"
         if m.scope == SCOPE_PREDICATE and predicate is not None and m.predicate == predicate:
@@ -215,9 +223,10 @@ def decide(
         # 미지원 version이 하나라도 있으면 여기서 raise된다 → job 실패·경보(무음 우회 차단).
         hashes = memory_norm.hashes_for_versions(fields, versions)
         normalized = memory_norm.normalize(fields)
+        candidate_wm = _candidate_watermark(candidate, watermarks)
 
         # 1. hard filter — 모든 LLM 제안보다 먼저.
-        blocked = _blocked_by_marker(markers, normalized.predicate, hashes)
+        blocked = _blocked_by_marker(markers, normalized.predicate, hashes, candidate_wm)
         if blocked is not None:
             decisions.append(_ignore(candidate, normalized, blocked))
             continue
@@ -268,7 +277,6 @@ def decide(
             )
             continue
 
-        candidate_wm = _candidate_watermark(candidate, watermarks)
         known = [f for f in rivals if f.max_source_watermark is not None]
         if len(known) != len(rivals):
             # 근거 watermark를 모르는 active single fact — 최신성을 정할 수 없으니 실패시킨다.

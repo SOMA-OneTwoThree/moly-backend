@@ -5,7 +5,7 @@ from datetime import date
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
 
 from app.schemas.common import StrictResponse, UtcDatetime
 
@@ -50,6 +50,18 @@ class CreatedDiagnostics(StrictResponse):
     hint: str
 
 
+class NoEntryDiagnostics(StrictResponse):
+    created: Literal[False]
+    skipped: Literal[False]
+    reason: Literal["no_scheduled_entry"]
+    source: Literal["none"]
+    user_chars: int = Field(ge=0)
+    gate: JsonValue
+    gate_passed: bool
+    personal_attempted: bool
+    hint: str
+
+
 class GeneratedDiary(StrictResponse):
     id: UUID
     source: Literal["llm", "preset", "welcome"]
@@ -60,7 +72,7 @@ class GeneratedDiary(StrictResponse):
 
 class DiaryGenerateResponse(StrictResponse):
     target_date: date
-    diagnostics: SkippedDiagnostics | CreatedDiagnostics
+    diagnostics: SkippedDiagnostics | CreatedDiagnostics | NoEntryDiagnostics
     diary: GeneratedDiary | None
 
 
@@ -149,3 +161,113 @@ class EvalResultOut(StrictResponse):
 
 class ChatCompareResponse(StrictResponse):
     results: list[EvalResultOut]
+
+
+# --- 실제 agent recall service 직접 진단(dev 전용) ---
+class RecallMemoryRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "query": "전에 내가 힘들다고 했던 거 기억나?",
+                "need": "summary",
+                "limit": 5,
+            }
+        },
+    )
+
+    query: str = Field(min_length=1, max_length=500)
+    need: Literal["summary", "exact", "quote"] = "summary"
+    from_date: date | None = None
+    to_date: date | None = None
+    limit: int = Field(default=5, ge=1, le=10)
+
+    @model_validator(mode="after")
+    def valid_window(self) -> "RecallMemoryRequest":
+        if self.from_date and self.to_date and self.from_date > self.to_date:
+            raise ValueError("from_date must be on or before to_date")
+        return self
+
+
+class RecallDiariesRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "query": "우리 처음 만났을 때 쓴 일기",
+                "need": "full",
+                "limit": 5,
+            }
+        },
+    )
+
+    query: str | None = Field(default=None, max_length=500)
+    need: Literal["count", "summary", "full", "full_card", "quote"] = "summary"
+    from_date: date | None = None
+    to_date: date | None = None
+    focus_id: UUID | None = None
+    limit: int = Field(default=5, ge=1, le=10)
+
+    @model_validator(mode="after")
+    def valid_request(self) -> "RecallDiariesRequest":
+        if self.from_date and self.to_date and self.from_date > self.to_date:
+            raise ValueError("from_date must be on or before to_date")
+        if not self.query and self.focus_id is None and self.need != "count":
+            raise ValueError("query or focus_id is required for recall/read")
+        return self
+
+
+class RecallEntityRef(StrictResponse):
+    type: Literal["diary", "memory_fact", "memory_episode"]
+    id: str = Field(min_length=1)
+
+
+class DiaryRecallItem(StrictResponse):
+    ref: RecallEntityRef
+    id: str
+    kind: Literal["welcome", "shared_day", "capi_day"]
+    display_date: date
+    title: str | None
+    excerpt: str
+    body: str | None
+    weather: str
+    read: bool
+
+
+class DiaryRecallResult(StrictResponse):
+    status: Literal["ok"]
+    matched_count: int = Field(ge=0)
+    returned_count: int = Field(ge=0)
+    coverage: Literal["complete", "partial"]
+    has_more: bool
+    items: list[DiaryRecallItem]
+
+
+class MemoryRecallItem(StrictResponse):
+    ref: RecallEntityRef
+    id: str
+    type: Literal["fact", "episode"]
+    kind: str
+    text: str
+    observed_at: UtcDatetime | None
+    similarity: float
+    quote_verified: bool | None = None
+
+
+class MemoryRecallResult(StrictResponse):
+    status: Literal["ok"]
+    matched_count: int = Field(ge=0)
+    returned_count: int = Field(ge=0)
+    coverage: Literal["top_k"]
+    has_more: bool
+    items: list[MemoryRecallItem]
+
+
+class MemoryRecallDiagnosticsResponse(StrictResponse):
+    capability: Literal["recall_memory"]
+    result: MemoryRecallResult
+
+
+class DiaryRecallDiagnosticsResponse(StrictResponse):
+    capability: Literal["recall_diaries"]
+    result: DiaryRecallResult

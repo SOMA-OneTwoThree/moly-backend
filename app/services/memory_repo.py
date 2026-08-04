@@ -136,7 +136,7 @@ GROUP BY f.id
 """)
 
 _MARKERS_SQL = text("""
-SELECT scope, predicate, normalized_hash, normalization_version
+SELECT scope, predicate, normalized_hash, normalization_version,cut_watermark,future_learning
 FROM memory_forget_markers WHERE user_id = :user_id
 """)
 
@@ -163,7 +163,9 @@ FROM memory_facts f
 WHERE f.user_id=:user_id AND f.status='active'
   AND NOT EXISTS (
     SELECT 1 FROM memory_forget_markers m
-    WHERE m.user_id=f.user_id AND (
+    WHERE m.user_id=f.user_id
+      AND (m.future_learning='block' OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark)
+      AND (
       m.scope='all'
       OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
       OR (m.scope='fact' AND m.normalization_version=f.normalization_version
@@ -189,7 +191,9 @@ WHERE i.user_id=:user_id AND i.status='active'
     WHERE s.user_id=i.user_id AND s.insight_id=i.id AND (
       f.status<>'active' OR EXISTS (
         SELECT 1 FROM memory_forget_markers m
-        WHERE m.user_id=f.user_id AND (
+        WHERE m.user_id=f.user_id
+          AND (m.future_learning='block' OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark)
+          AND (
           m.scope='all'
           OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
           OR (m.scope='fact' AND m.normalization_version=f.normalization_version
@@ -207,7 +211,9 @@ FROM memory_facts f
 WHERE f.user_id=:user_id AND f.status='active' AND f.embedding IS NULL
   AND NOT EXISTS (
     SELECT 1 FROM memory_forget_markers m
-    WHERE m.user_id=f.user_id AND (
+    WHERE m.user_id=f.user_id
+      AND (m.future_learning='block' OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark)
+      AND (
       m.scope='all'
       OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
       OR (m.scope='fact' AND m.normalization_version=f.normalization_version
@@ -222,7 +228,9 @@ UPDATE memory_facts f SET embedding=CAST(:embedding AS vector), updated_at=now()
 WHERE f.user_id=:user_id AND f.id=:fact_id AND f.status='active'
   AND NOT EXISTS (
     SELECT 1 FROM memory_forget_markers m
-    WHERE m.user_id=f.user_id AND (
+    WHERE m.user_id=f.user_id
+      AND (m.future_learning='block' OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark)
+      AND (
       m.scope='all'
       OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
       OR (m.scope='fact' AND m.normalization_version=f.normalization_version
@@ -245,7 +253,9 @@ facts AS (
   WHERE f.user_id=:user_id AND f.status='active' AND f.embedding IS NOT NULL
     AND NOT EXISTS (
       SELECT 1 FROM memory_forget_markers m
-      WHERE m.user_id=f.user_id AND (
+      WHERE m.user_id=f.user_id
+        AND (m.future_learning='block' OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark)
+        AND (
         m.scope='all'
         OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
         OR (m.scope='fact' AND m.normalization_version=f.normalization_version
@@ -271,7 +281,9 @@ insights AS (
       WHERE sx.user_id=i.user_id AND sx.insight_id=i.id AND (
         fx.status<>'active' OR fx.embedding IS NULL OR EXISTS (
           SELECT 1 FROM memory_forget_markers m
-          WHERE m.user_id=fx.user_id AND (
+          WHERE m.user_id=fx.user_id
+            AND (m.future_learning='block' OR COALESCE(fx.learned_at_watermark,0)<=m.cut_watermark)
+            AND (
             m.scope='all'
             OR (m.scope='predicate' AND fx.predicate IS NOT NULL AND m.predicate=fx.predicate)
             OR (m.scope='fact' AND m.normalization_version=fx.normalization_version
@@ -325,6 +337,8 @@ async def load_forget_markers(
             predicate=r["predicate"],
             normalized_hash=r["normalized_hash"],
             normalization_version=r["normalization_version"],
+            cut_watermark=int(r["cut_watermark"]),
+            future_learning=r["future_learning"],
         )
         for r in rows
     ]
@@ -714,9 +728,22 @@ RETURNING id
 """)
 
 _INSERT_EVIDENCE_SQL = text("""
-INSERT INTO memory_evidence (fact_id, source_type, source_id, source_excerpt_hash, observed_at)
-VALUES (:fact_id, :source_type, :source_id, :source_excerpt_hash, :observed_at)
-ON CONFLICT (fact_id, source_type, source_id) DO NOTHING
+INSERT INTO memory_evidence
+  (user_id,fact_id,source_type,source_id,source_sender,source_excerpt_hash,observed_at)
+VALUES (:user_id,:fact_id,:source_type,:source_id,'user',:source_excerpt_hash,:observed_at)
+ON CONFLICT (user_id,fact_id,source_type,source_id) DO NOTHING
+""")
+
+_UPDATE_LEARNED_WATERMARK_SQL = text("""
+UPDATE memory_facts f SET learned_at_watermark=x.max_wm,updated_at=now()
+FROM (
+  SELECT max(tm.source_watermark) max_wm
+  FROM memory_evidence e
+  JOIN memory_source_turn_messages tm
+    ON tm.user_id=e.user_id AND tm.message_id=e.source_id
+  WHERE e.user_id=:user_id AND e.fact_id=:fact_id
+) x
+WHERE f.user_id=:user_id AND f.id=:fact_id AND f.status='active'
 """)
 
 _REINFORCE_SQL = text("""
@@ -789,15 +816,21 @@ async def add_evidence(
     """
     if not message_ids:
         return 0
+    owned = await _load_messages(session, user_id, message_ids)
+    assistant_ids = [mid for mid, (sender, _) in owned.items() if sender != "user"]
+    if assistant_ids:
+        raise CrossUserEvidenceError(
+            f"assistant message cannot be memory evidence: {assistant_ids}"
+        )
     if contents is None:
-        contents = {mid: body for mid, (_, body) in
-                    (await _load_messages(session, user_id, message_ids)).items()}
+        contents = {mid: body for mid, (_, body) in owned.items()}
     else:
         missing = [i for i in message_ids if i not in contents]
         if missing:
             raise CrossUserEvidenceError(f"검증된 메시지 본문이 없다: {missing}")
     rows = [
         {
+            "user_id": user_id,
             "fact_id": fact_id,
             "source_type": SOURCE_KIND_CONVERSATION_TURN,
             "source_id": mid,
@@ -810,6 +843,9 @@ async def add_evidence(
         for mid in dict.fromkeys(message_ids)
     ]
     await session.execute(_INSERT_EVIDENCE_SQL, rows)
+    await session.execute(
+        _UPDATE_LEARNED_WATERMARK_SQL, {"user_id": user_id, "fact_id": fact_id}
+    )
     return len(rows)
 
 
@@ -835,11 +871,16 @@ async def apply_decisions(
     added = reinforced = superseded = ignored = 0
     evidence_ids = {i for d in decisions for i in d.new_evidence_message_ids}
     # 근거로 쓸 메시지를 **한 번에** 검증·적재한다(모든 evidence insert 이전, 같은 트랜잭션).
-    contents = (
-        {mid: body for mid, (_, body) in (await _load_messages(session, user_id, sorted(evidence_ids))).items()}
-        if evidence_ids
-        else {}
-    )
+    if evidence_ids:
+        loaded = await _load_messages(session, user_id, sorted(evidence_ids))
+        assistant_ids = [mid for mid, (sender, _) in loaded.items() if sender != "user"]
+        if assistant_ids:
+            raise CrossUserEvidenceError(
+                f"assistant message cannot be memory evidence: {assistant_ids}"
+            )
+        contents = {mid: body for mid, (_, body) in loaded.items()}
+    else:
+        contents = {}
 
     for d in decisions:
         if d.action == ACTION_IGNORE:

@@ -27,7 +27,7 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services import memory_registry, memory_repo
+from app.services import memory_registry, memory_repo, recall_suppression
 from app.services.memory_reconcile import SCOPE_ALL, SCOPE_FACT, SCOPE_PREDICATE
 
 _log = logging.getLogger("moly-backend")
@@ -50,6 +50,7 @@ class ForgetRequest:
     scope: str
     fact_ids: tuple[uuid.UUID, ...] = ()
     predicate: str | None = None
+    future_learning: str = "allow"
 
     def __post_init__(self) -> None:
         if self.scope == SCOPE_FACT and not self.fact_ids:
@@ -58,6 +59,8 @@ class ForgetRequest:
             raise ForgetError("predicate scope에는 predicate가 필요하다")
         if self.scope not in (SCOPE_FACT, SCOPE_PREDICATE, SCOPE_ALL):
             raise ForgetError(f"알 수 없는 scope: {self.scope!r}")
+        if self.future_learning not in {"allow", "block"}:
+            raise ForgetError("future_learning must be allow or block")
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,10 +100,18 @@ def classify(intent: Any) -> ForgetRequest | None:
         return None
     fact_ids = tuple(getattr(intent, "target_fact_ids", ()) or ())
     if fact_ids:
-        return ForgetRequest(scope=SCOPE_FACT, fact_ids=fact_ids)
+        return ForgetRequest(
+            scope=SCOPE_FACT,
+            fact_ids=fact_ids,
+            future_learning=getattr(intent, "future_learning", "allow"),
+        )
     value = getattr(intent, "value", None)
     if memory_registry.is_predicate(value):
-        return ForgetRequest(scope=SCOPE_PREDICATE, predicate=value)
+        return ForgetRequest(
+            scope=SCOPE_PREDICATE,
+            predicate=value,
+            future_learning=getattr(intent, "future_learning", "allow"),
+        )
     return None
 
 
@@ -126,8 +137,8 @@ FROM chat_contexts WHERE user_id=:user_id FOR UPDATE
 # watermark를 모르는 근거가 하나라도 있으면 구간을 확정할 수 없다(아래에서 실패시킨다).
 _FACT_TARGETS_SQL = text("""
 SELECT f.id, f.content_hash, f.normalization_version, f.status,
-       min(tm.source_watermark) AS from_wm,
-       max(tm.source_watermark) AS through_wm,
+       COALESCE(array_agg(DISTINCT tm.source_watermark)
+                FILTER (WHERE tm.source_watermark IS NOT NULL),'{}') AS watermarks,
        count(e.source_id) AS evidence_n,
        count(tm.source_watermark) AS mapped_n
 FROM memory_facts f
@@ -158,9 +169,21 @@ RETURNING memory_generation, relationship_profile_input_revision
 
 _INSERT_MARKER_SQL = text("""
 INSERT INTO memory_forget_markers
-  (user_id, scope, fact_id, normalized_hash, normalization_version, predicate, memory_generation)
+  (user_id, scope, fact_id, normalized_hash, normalization_version, predicate,
+   memory_generation,cut_watermark,future_learning)
 VALUES
-  (:user_id, :scope, :fact_id, :normalized_hash, :normalization_version, :predicate, :generation)
+  (:user_id, :scope, :fact_id, :normalized_hash, :normalization_version, :predicate,
+   :generation,:cut_watermark,:future_learning)
+""")
+
+_PREDICATE_WATERMARKS_SQL = text("""
+SELECT DISTINCT tm.source_watermark
+FROM memory_facts f
+JOIN memory_evidence e ON e.user_id=f.user_id AND e.fact_id=f.id
+JOIN memory_source_turn_messages tm
+  ON tm.user_id=e.user_id AND tm.message_id=e.source_id
+WHERE f.user_id=:user_id AND f.predicate=:predicate
+ORDER BY tm.source_watermark
 """)
 
 # fact id로도, 같은 (version, hash)로도 지운다 — 같은 내용이 다른 행으로 남아 있으면
@@ -268,18 +291,40 @@ async def apply(
     if request.scope == SCOPE_FACT and not targets:
         # 타 유저 id이거나 이미 없는 사실 — 아무것도 쓰지 않는다(성공으로 가장하지도 않는다).
         return ForgetResult(status=RESULT_NOTHING_MATCHED, request=request)
-    closure = _closure_range(request, targets, source_watermark)
-    if closure is not None:
+    watermarks = await _closure_watermarks(
+        session,
+        user_id=user_id,
+        request=request,
+        targets=targets,
+        source_watermark=source_watermark,
+    )
+    closure = (min(watermarks), max(watermarks)) if watermarks else None
+    if request.scope == SCOPE_ALL and watermarks:
+        ranges = [(1, source_watermark)]
+    else:
+        ranges = [(watermark, watermark) for watermark in watermarks]
+    for from_watermark, through_watermark in ranges:
         await session.execute(
             _INSERT_CLOSURE_SQL,
             {
                 "user_id": user_id,
                 "source_kind": memory_repo.SOURCE_KIND_CONVERSATION_TURN,
-                "from_watermark": closure[0],
-                "through_watermark": closure[1],
+                "from_watermark": from_watermark,
+                "through_watermark": through_watermark,
                 "operation_id": op_id,
             },
         )
+
+    suppressed = await recall_suppression.apply(
+        session,
+        user_id=uuid.UUID(str(user_id)),
+        operation_id=op_id,
+        scope=request.scope,
+        cut_watermark=source_watermark,
+        future_learning=request.future_learning,
+        fact_ids=request.fact_ids,
+        predicate=request.predicate,
+    )
 
     # 2) generation·revision +1 — 진행 중인 잡의 결과를 전부 stale로 만든다.
     bumped = (await session.execute(_BUMP_SQL, {"user_id": user_id})).first()
@@ -289,7 +334,12 @@ async def apply(
 
     # 3) marker — 영속 deny key. hash/version은 fact 행에서 **복사**한다(재계산 금지).
     markers = await _write_markers(
-        session, user_id=user_id, request=request, targets=targets, generation=generation
+        session,
+        user_id=user_id,
+        request=request,
+        targets=targets,
+        generation=generation,
+        cut_watermark=source_watermark,
     )
 
     # 4~6) fact → insight → profile 순서로 닫는다(파생이 근거보다 먼저 남지 않게).
@@ -312,9 +362,9 @@ async def apply(
     )
 
     _log.info(
-        "forget 적용 — user=%s scope=%s gen=%d rev=%d facts=%d insights=%d profiles=%d ckpt=%d",
+        "forget 적용 — user=%s scope=%s gen=%d rev=%d facts=%d insights=%d profiles=%d ckpt=%d suppressed=%d",
         user_id, request.scope, generation, revision,
-        len(forgotten), len(insights), len(profiles), checkpoints,
+        len(forgotten), len(insights), len(profiles), checkpoints, suppressed,
     )
     return ForgetResult(
         status=RESULT_APPLIED,
@@ -338,8 +388,7 @@ class _Target:
     fact_id: uuid.UUID
     content_hash: str
     normalization_version: str
-    from_watermark: int | None
-    through_watermark: int | None
+    watermarks: tuple[int, ...]
 
 
 async def _resolve_targets(
@@ -366,29 +415,34 @@ async def _resolve_targets(
                 fact_id=r["id"],
                 content_hash=r["content_hash"],
                 normalization_version=r["normalization_version"],
-                from_watermark=r["from_wm"],
-                through_watermark=r["through_wm"],
+                watermarks=tuple(int(value) for value in (r["watermarks"] or ())),
             )
         )
     return tuple(targets)
 
 
-def _closure_range(
-    request: ForgetRequest, targets: Sequence[_Target], source_watermark: int
-) -> tuple[int, int] | None:
-    """닫을 구간. fact scope는 근거의 min~max, predicate/all은 지금까지 전부(cut watermark).
-
-    닫을 turn이 아직 하나도 없으면(watermark 0, 또는 근거 없는 fact) None — 쓸 구간이 없다.
-    """
+async def _closure_watermarks(
+    session: AsyncSession,
+    *,
+    user_id: uuid.UUID | str,
+    request: ForgetRequest,
+    targets: Sequence[_Target],
+    source_watermark: int,
+) -> tuple[int, ...]:
+    """Return exact affected watermarks. Only all-scope intentionally closes 1..cut."""
     if request.scope == SCOPE_FACT:
-        lows = [t.from_watermark for t in targets if t.from_watermark is not None]
-        highs = [t.through_watermark for t in targets if t.through_watermark is not None]
-        if not lows or not highs:
-            return None
-        return (min(lows), max(highs))
+        return tuple(sorted({value for target in targets for value in target.watermarks}))
+    if request.scope == SCOPE_PREDICATE:
+        rows = (
+            await session.execute(
+                _PREDICATE_WATERMARKS_SQL,
+                {"user_id": user_id, "predicate": request.predicate},
+            )
+        ).all()
+        return tuple(int(row[0]) for row in rows)
     if source_watermark < 1:
-        return None
-    return (1, source_watermark)
+        return ()
+    return (1,) if source_watermark == 1 else (1, source_watermark)
 
 
 async def _write_markers(
@@ -398,6 +452,7 @@ async def _write_markers(
     request: ForgetRequest,
     targets: Sequence[_Target],
     generation: int,
+    cut_watermark: int,
 ) -> int:
     """scope별 marker. fact scope는 대상 행마다 hash/version을 **그대로 복사**한다."""
     if request.scope == SCOPE_FACT:
@@ -410,6 +465,8 @@ async def _write_markers(
                 "normalization_version": t.normalization_version,
                 "predicate": None,
                 "generation": generation,
+                "cut_watermark": cut_watermark,
+                "future_learning": request.future_learning,
             }
             for t in targets
         ]
@@ -423,6 +480,8 @@ async def _write_markers(
                 "normalization_version": None,
                 "predicate": request.predicate if request.scope == SCOPE_PREDICATE else None,
                 "generation": generation,
+                "cut_watermark": cut_watermark,
+                "future_learning": request.future_learning,
             }
         ]
     if rows:

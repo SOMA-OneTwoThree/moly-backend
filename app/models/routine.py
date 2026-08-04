@@ -9,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
+    ForeignKeyConstraint,
     SmallInteger,
     String,
     Time,
@@ -25,6 +26,7 @@ _TZ = DateTime(timezone=True)
 
 class Routine(Base):
     __tablename__ = "routines"
+    __table_args__ = (UniqueConstraint("user_id", "id", name="routines_user_id_id_uq"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
@@ -45,7 +47,14 @@ class Routine(Base):
 
 class RoutineCompletion(Base):
     __tablename__ = "routine_completions"
-    __table_args__ = (UniqueConstraint("routine_id", "activity_date"),)
+    __table_args__ = (
+        UniqueConstraint("routine_id", "activity_date"),
+        ForeignKeyConstraint(
+            ["user_id", "routine_id"],
+            ["routines.user_id", "routines.id"],
+            ondelete="CASCADE",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     routine_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)

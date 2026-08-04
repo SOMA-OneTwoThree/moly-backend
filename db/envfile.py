@@ -25,6 +25,10 @@ ALIASES = {
     "production": ".env.prod",
 }
 
+# 이 저장소에서 직접 변경을 허용한 격리 개발 Supabase 프로젝트. 잘못된 .env 교체를 이름이 아니라
+# 실제 DSN ref로 차단한다. 운영 ref는 코드에 둘 필요가 없다(unknown도 fail-closed).
+DEV_PROJECT_REFS = {"wywzjslvxwttxkecbyis"}
+
 
 def resolve(name: str | None) -> str:
     """별칭(dev/prod) 또는 직접 경로 → 실제 파일 경로. None이면 기본(dev)."""
@@ -83,3 +87,13 @@ def announce(env_file: str | None, dsn: str, *, commit: bool = False) -> None:
     tag = "PROD ⚠️  실유저" if is_prod(env_file) else "dev"
     mode = "COMMIT(실반영)" if commit else "dry-run"
     print(f"[대상] {tag} | env={path} | project={project_ref(dsn)} | {mode}", file=sys.stderr)
+
+
+def assert_dev_target(env_file: str | None, dsn: str) -> None:
+    """쓰기 스크립트용 fail-closed 개발 프로젝트 가드."""
+    ref = project_ref(dsn)
+    if is_prod(env_file) or ref not in DEV_PROJECT_REFS:
+        raise SystemExit(
+            f"개발 DB 쓰기 차단: 허용 ref={sorted(DEV_PROJECT_REFS)}, 실제 ref={ref}, "
+            f"env={resolve(env_file)}"
+        )

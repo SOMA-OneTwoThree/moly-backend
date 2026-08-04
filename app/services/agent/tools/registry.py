@@ -5,26 +5,25 @@
 
 | 도구 | 상태 | 사유 |
 |---|---|---|
-| `get_diary` | **등록** | |
-| `get_routines` | **등록** | |
-| `search_diaries` | **등록** | pg_trgm 검색 |
-| `search_memory` | **등록** | 정규화 저장소 + pgvector + 망각 hard filter |
+| `recall_diaries` | **등록** | 존재·개수·목록·전문을 한 번에 완결하는 일기 회상 |
+| `get_routines` | **등록** | 달력 날짜 기준 루틴 상세 |
+| `recall_memory` | **등록** | 정규화 fact + 검증된 user-message episode 회상 |
 | `forget_memory` | **최종 홉만 등록** | 모델 제어 의도를 Phase 2의 원자적 망각 처리로 전달 |
+| `finish_response` | **최종 홉 내부 계약** | 응답 mode·선택 ref·focus를 typed sidecar로 확정 |
 """
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from app.services.agent.tools import forget_memory, get_diary, get_routines, search_diaries, search_memory
+from app.services.agent.tools import final_response, forget_memory, get_routines, recall_diaries, recall_memory
 from app.services.agent.tools.base import BaseTool, wire_schema
 
 # registry에 실제로 올라가는 도구. 순서가 곧 wire 스키마 순서다 —
 # 프리픽스 캐시가 살려면 이 순서가 요청마다 같아야 하므로 tuple로 고정한다.
 _ENABLED: tuple[BaseTool, ...] = (
-    get_diary.TOOL,
+    recall_diaries.TOOL,
     get_routines.TOOL,
-    search_memory.TOOL,
-    search_diaries.TOOL,
+    recall_memory.TOOL,
 )
 
 # 구현은 있으나 켜지 않는 도구(위 표의 사유). 스키마에도 노출하지 않는다.
@@ -84,6 +83,15 @@ class ToolRegistry:
 
     def control_wire_schemas(self) -> Sequence[dict]:
         return _CONTROL_SCHEMAS
+
+    def final_response_name(self) -> str:
+        return final_response.NAME
+
+    def final_response_schema(self) -> dict:
+        return final_response.wire_schema()
+
+    def final_response_model(self) -> type:
+        return final_response.FinishResponseArgs
 
 
 REGISTRY = ToolRegistry(_ENABLED)

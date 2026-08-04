@@ -37,10 +37,15 @@ from app.services import (
     memory_forget,
     naming,
     prompts,
+    privacy,
     relationship_profile,
     relationship_profile_repo,
     text_clean,
     turn_context,
+    chat_references,
+    chat_turns,
+    diary as diary_service,
+    episodic_memory,
 )
 from app.services.account import _uid
 from app.services.agent import config as agent_config
@@ -84,6 +89,7 @@ def _iso(dt: datetime | None) -> str | None:
 
 # --- GET /chat/state ---
 async def get_state(session: AsyncSession, user_id: str) -> dict[str, Any]:
+    await privacy.ensure_subject_active(session, _uid(user_id))
     g = await gating.resolve(session, user_id)
     ent = g.entitlement
     remaining = ent["tokens_remaining"]
@@ -126,8 +132,10 @@ async def get_messages(
     cursor: str | None = None,
     direction: str = "older",
     anchor_date: date | None = None,
+    capabilities: str | None = None,
 ) -> dict[str, Any]:
     uid = _uid(user_id)
+    await privacy.ensure_subject_active(session, uid)
     limit = max(1, min(limit, 100))
     from app.models.profile import Profile
 
@@ -149,8 +157,20 @@ async def get_messages(
         q = q.order_by(Message.id.desc()).limit(limit)
         rows = list(reversed((await session.execute(q)).scalars().all()))
 
+    refs = await chat_references.hydrate_for_messages(
+        session,
+        user_id=uid,
+        message_ids=[m.id for m in rows if m.sender == "moly"],
+        nickname=nickname,
+        capability_enabled="diary-reference-v1" in (capabilities or ""),
+    )
+    data = []
+    for m in rows:
+        item = _msg_dto(m, nickname)
+        item["references"] = refs.get(m.id, [])
+        data.append(item)
     return {
-        "data": [_msg_dto(m, nickname) for m in rows],
+        "data": data,
         "older_cursor": str(rows[0].id) if rows else None,
         "newer_cursor": str(rows[-1].id) if rows else None,
     }
@@ -199,7 +219,6 @@ async def _context(
     *,
     current_text: str | None = None,
     current_date: date | None = None,
-    resident_block: str = "",
 ) -> tuple[list[dict[str, str]], int | None, list[Message]]:
     """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
 
@@ -213,10 +232,9 @@ async def _context(
     없으므로, 과거 메시지로 조립한 뒤 현재 턴을 배열 끝에 in-memory로 붙인다(날짜 표식 포함).
     리셋 카운트에도 현재 턴을 포함한다. current_text 없으면(단위 테스트) 기존 동작 그대로.
 
-    resident_block(현재 턴 컨텍스트 — turn_context.render 결과)이 있으면 current_text와
-    같은 마지막 user 메시지 안에 개행 2개로 이어붙인다. 별도 role로 추가하면 안 된다 —
-    그러면 마지막 두 항목이 모두 user가 되어 위 Anthropic 첫 메시지 user 보장 계약과
-    충돌한다. current_text가 None인 경로(단위테스트·폴백)엔 삽입 지점이 없어 무시한다.
+    현재 상태·focus 같은 서버 사실은 이 함수에 전달하지 않는다. 그 정보는
+    ``_build_system``의 서버 소유 system 블록으로만 넣어 저장 데이터가 user 발화 권위를
+    얻지 못하게 한다.
     """
     q = (
         select(Message)
@@ -258,8 +276,6 @@ async def _context(
         prev_date = kept[-1].activity_date if kept else None
         if current_date is not None and current_date != prev_date:
             content = f"{_date_label(current_date)}\n{current_text}"
-        if resident_block:  # 같은 user 항목 안에 합침(별도 role 추가 금지 — 위 docstring 참조)
-            content = f"{content}\n\n{resident_block}"
         convo.append({"role": "user", "content": content})
     return convo, new_anchor, lead
 
@@ -294,6 +310,7 @@ def _build_system(
     *,
     summary: str = "",
     relationship_text: str = "",
+    current_state: str = "",
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
     뒤 블록이 바뀌어도 페르소나 캐시 생존.
@@ -335,6 +352,12 @@ def _build_system(
             "[지난 이야기]\n"
             "아래 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
             f"{naming.render(summary, nickname)}"
+        )
+    if current_state:
+        parts.append(
+            "[지금 상태 - 서버 사실]\n아래 상태는 상대가 쓴 말이 아니라 지금 네 주변의 사실이야. "
+            "항목을 읊지 말고 대화에 필요한 부분만 자연스럽게 녹여.\n"
+            f"{current_state}"
         )
     dyn = "\n\n".join(parts)
     return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
@@ -533,7 +556,7 @@ async def _record_memory_source(
     representative_message_id: int,
     message_ids: list[int],
     now: datetime,
-) -> None:
+) -> int | None:
     """이 턴의 watermark를 배정하고 정규화 기억 추출 잡을 건다.
 
     호출 위치가 계약이다: 유저·캐피 메시지를 insert한 **같은 Phase 2 트랜잭션·같은 유저락 안**,
@@ -560,7 +583,7 @@ async def _record_memory_source(
         )
     except memory_repo.MemoryRepoError as e:  # 쓰기 이전 단계에서만 발생 — 트랜잭션은 멀쩡하다
         _log.info("기억 소스 배정 건너뜀(user=%s): %s", uid, e)
-        return
+        return None
     await memory_repo.enqueue_extraction(
         session,
         user_id=uid,
@@ -569,6 +592,7 @@ async def _record_memory_source(
         through_watermark=turn.watermark,
         message_ids=turn.message_ids,
     )
+    return turn.watermark
 
 
 # --- 대화 요약 checkpoint(W11, Phase 2 트랜잭션 안) ---
@@ -638,7 +662,13 @@ async def _accumulate_tokens(
 
 # --- POST /chat/messages ---
 async def post_message(
-    session: AsyncSession, user_id: str, req, idempotency_key: str
+    session: AsyncSession,
+    user_id: str,
+    req,
+    idempotency_key: str,
+    *,
+    deadline: float | None = None,
+    capabilities: str | None = None,
 ) -> PostMessageResponse:
     """2단계 상태머신(SOMA-374) — LLM 호출 구간에 DB 트랜잭션/유저 락을 쥐지 않는다.
 
@@ -652,10 +682,37 @@ async def post_message(
     uid = _uid(user_id)
     now = datetime.now(timezone.utc)
     t0 = time.monotonic()
+    absolute_deadline = deadline if deadline is not None else t0 + settings.agent_turn_deadline_s
+    references_enabled = chat_turns.diary_reference_capable(capabilities)
+    request_digest = chat_turns.request_hash(
+        text_value=req.text,
+        greeting_id=getattr(req, "greeting_id", None),
+        diary_references=references_enabled,
+    )
+    await privacy.ensure_subject_active(session, uid)
 
     # 0) 멱등 — 같은 (유저,키) 재요청은 저장된 응답 그대로(이중 차감 방지, 유저 스코프)
     cached = await session.get(IdempotencyKey, (uid, idempotency_key))
     if cached is not None:
+        if getattr(cached, "request_hash", None) is not None and cached.request_hash != request_digest:
+            raise errors.AppError(
+                "IDEMPOTENCY_KEY_REUSED",
+                409,
+                "같은 Idempotency-Key를 다른 요청에 사용할 수 없어요.",
+            )
+        if (
+            cached.response is None
+            or getattr(cached, "terminal_status", "succeeded") != "succeeded"
+            or (
+                getattr(cached, "response_expires_at", None) is not None
+                and cached.response_expires_at <= now
+            )
+        ):
+            raise errors.AppError(
+                "IDEMPOTENCY_REPLAY_UNAVAILABLE",
+                409,
+                "이 요청의 재생 보존 기간이 끝났어요. 새 Idempotency-Key로 보내 주세요.",
+            )
         # 비호환 행도 보존한 채 500 — 지우면 다음 재시도가 새 요청으로 실행되어
         # 메시지·토큰이 중복된다. 정리는 운영 스크립트(--delete-invalid)에서만.
         validated_cached = validate_post_message_response(
@@ -671,9 +728,17 @@ async def post_message(
         )
         return validated_cached
 
-    # ===== Phase 1: 조립(read-only, 짧은 txn + 유저락). DB 쓰기 없음. =====
+    # ===== Phase 1: 조립 + 만료 lease 확보(짧은 txn + 유저락). =====
     # 유저 직렬화 → 게이팅. 잠근 뒤 tokens_used를 읽어야 동시요청이 한도를 우회 못 함(TOCTOU).
     await _lock_user(session, uid)
+
+    lease = await chat_turns.acquire(
+        session,
+        user_id=uid,
+        idempotency_key=idempotency_key,
+        request_digest=request_digest,
+        lease_seconds=max(15.0, settings.agent_turn_deadline_s + 10.0),
+    )
 
     g = await gating.resolve(session, user_id)
     remaining = g.entitlement["tokens_remaining"]
@@ -722,6 +787,10 @@ async def post_message(
     # 조회 실패는 잡지 않는다 — 설정 장애를 숨기지 않고 기존 Phase 1 DB 오류로 전파시킨다.
     agent_cfg = await agent_config.effective_agent_config(session)
 
+    focus_block = await chat_references.load_focus_block(
+        session, user_id=uid, current_turn_seq=lease.turn_seq
+    )
+
     # 현재 턴 컨텍스트("지금 상황" 블록, W3) — 킬스위치 off면 조회 자체를 안 한다(기존과 완전 동일).
     # Phase 1(락+커넥션 보유) 안에서 끝내야 한다 — 커밋 뒤 LLM 구간엔 DB 커넥션 0(SOMA-374 불변식).
     # 실패해도 대화가 죽으면 안 되므로 fail-open(빈 블록)하고 경고만 남긴다.
@@ -746,7 +815,7 @@ async def post_message(
 
     # 컨텍스트 조립 — 현재 유저 메시지는 아직 미저장. _context가 현재 턴을 in-memory로 붙인다.
     convo, new_anchor, lead = await _context(
-        session, uid, anchor, current_text=req.text, current_date=ad, resident_block=resident_block
+        session, uid, anchor, current_text=req.text, current_date=ad
     )
     lead_texts = [m.content for m in lead]  # placeholder 저장분(문자열) — 커밋 후 ORM 미접근
 
@@ -768,7 +837,7 @@ async def post_message(
     for c in convo:
         c["content"] = naming.render(c["content"], nick)
 
-    await session.commit()  # 락·커넥션 해제 — 이후 LLM 구간엔 커넥션 점유 0
+    await session.commit()  # lease만 남기고 락·커넥션 해제 — 이후 LLM 구간엔 점유 0
     t_phase1 = time.monotonic()
     phase1_ms = _ms(t0, t_phase1)
 
@@ -780,29 +849,45 @@ async def post_message(
         lead_all,
         summary=checkpoint_summary,
         relationship_text=relationship_text,
+        current_state=resident_block,
     )
+    if focus_block:
+        system = [*system, focus_block]
 
     # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
     t_llm0 = time.monotonic()
     # 도구 루프(W5)는 킬스위치·카나리를 모두 통과했을 때만 탄다. 아니면 아래 단발 호출 그대로다.
-    agent_turn = (
-        await agent_runtime.run_turn(
-            system, convo,
-            config=agent_cfg, user_id=uid, language=language, activity_date=ad,
-            user_text=req.text,
+    try:
+        if time.monotonic() >= absolute_deadline:
+            raise TimeoutError("chat request deadline exceeded before inference")
+        agent_turn = (
+            await agent_runtime.run_turn(
+                system, convo,
+                config=agent_cfg, user_id=uid, language=language, activity_date=ad,
+                user_text=req.text,
+                deadline=absolute_deadline,
+                local_calendar_date=now.astimezone(
+                    safe_zone(getattr(g.profile, "timezone", "Asia/Seoul"))
+                ).date(),
+            )
+            if agent_runtime.should_run(agent_cfg, uid)
+            else None
         )
-        if agent_runtime.should_run(agent_cfg, uid)
-        else None
-    )
-    if agent_turn is None:
-        result = await llm.generate(
-            system, convo,
-            cache_messages=cache_on,
-            ttl_system=settings.cache_ttl_system,
-            ttl_messages=settings.cache_ttl_messages,
-            timeout=settings.llm_timeout_s,
-        )
+        if agent_turn is None:
+            result = await llm.generate(
+                system, convo,
+                cache_messages=cache_on,
+                ttl_system=settings.cache_ttl_system,
+                ttl_messages=settings.cache_ttl_messages,
+                timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
+            )
+    except BaseException:
+        # 외부 호출 실패는 저장 0인 클린 재시도다. lease도 즉시 회수해 TTL만큼 막히지 않게 한다.
+        await session.rollback()
+        await chat_turns.release(session, user_id=uid, lease=lease)
+        await session.commit()
+        raise
     llm_ms = _ms(t_llm0, time.monotonic())
     if (
         agent_turn is None
@@ -850,10 +935,8 @@ async def post_message(
             )
             reply_text = stripped
     if is_ko and text_clean.has_foreign_ko(reply_text):
-        t_repair0 = time.monotonic()
-        reply_text, repair_calls = await _repair_foreign_ko(reply_text, user_id=user_id)
-        repair_ms = _ms(t_repair0, time.monotonic())
-        usage.calls.extend(repair_calls)
+        # 세 번째 LLM 호출은 하드 데드라인과 최대 2회 호출 계약을 깨므로 결정적으로 제거한다.
+        reply_text = text_clean.strip_foreign_ko(reply_text)
     reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
     egress_ms = _ms(t_egress0, time.monotonic())
 
@@ -871,6 +954,7 @@ async def post_message(
     # ===== Phase 2: 확정(짧은 txn + 유저락 재획득) =====
     t_phase2_0 = time.monotonic()
     await _lock_user(session, uid)
+    await chat_turns.verify_publish(session, user_id=uid, lease=lease)
     lang_bucket = i18n.resolve(language)
     used_tools = any(c.purpose in ("tool_decide", "tool_final") for c in usage.calls)
     usage_totals = usage.totals  # W2 계측 — billed(v2 킬스위치 영향)와 별개로 실제 턴 합계
@@ -885,10 +969,15 @@ async def post_message(
     # 동시 중복이 먼저 확정했으면 그 응답 반환(이중 LLM은 낭비지만 이중 저장 방지 — 유저락으로 직렬).
     dup = await session.get(IdempotencyKey, (uid, idempotency_key))
     if dup is not None:
+        if getattr(dup, "request_hash", None) is not None and dup.request_hash != request_digest:
+            raise errors.AppError(
+                "IDEMPOTENCY_KEY_REUSED", 409, "같은 Idempotency-Key를 다른 요청에 사용할 수 없어요."
+            )
         # rollback()은 identity map 객체를 expire한다(expire_on_commit=False와 무관) → 이후 dup.response
         # 접근이 async 암시적 재로드를 유발해 MissingGreenlet. 반드시 rollback 전에 값을 뽑는다.
         dup_response = dup.response
-        await session.rollback()
+        await chat_turns.release(session, user_id=uid, lease=lease)
+        await session.commit()
         validated_dup = validate_post_message_response(
             dup_response, user_id=user_id, idempotency_key=idempotency_key
         )
@@ -926,6 +1015,32 @@ async def post_message(
             nick,
         )
 
+    selected_refs = agent_turn.selected_refs if agent_turn is not None else ()
+    focus_ref = agent_turn.focus_ref if agent_turn is not None else None
+    response_mode = agent_turn.response_mode if agent_turn is not None else "summary"
+    if selected_refs or focus_ref is not None:
+        grounding_valid = await chat_references.validate_selected(
+            session,
+            user_id=uid,
+            selected_refs=selected_refs,
+            focus_ref=focus_ref,
+        )
+        if not grounding_valid:
+            reply_stored = naming.to_placeholder(
+                i18n.pick(
+                    {
+                        "ko": "그건 지금 확실하게 떠올리지 못했어.",
+                        "en": "I can't recall that clearly right now.",
+                        "ja": "それは今、はっきり思い出せなかった。",
+                    },
+                    language,
+                ),
+                nick,
+            )
+            selected_refs = ()
+            focus_ref = None
+            response_mode = "summary"
+
     # 선발화 커밋(재조회 — 여전히 유효하면). id 순서 위해 유저 메시지보다 먼저 insert.
     greeting_dto = None
     greeting_message_id: int | None = None  # 이 턴에 커밋된 선발화(기억 소스 turn에 함께 묶는다)
@@ -937,7 +1052,7 @@ async def post_message(
         if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
             gmsg = Message(
                 user_id=uid, sender="moly", kind="greeting", content=gr.content,
-                activity_date=ad, created_at=now,
+                activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=0,
             )
             session.add(gmsg)
             await session.flush()
@@ -954,10 +1069,20 @@ async def post_message(
     umsg = Message(
         user_id=uid, sender="user", kind="normal",
         content=naming.to_placeholder(req.text, nick),
-        activity_date=ad, created_at=now,
+        activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=1,
     )
     session.add(umsg)
     await session.flush()
+
+    # 관계 시작과 welcome 프롤로그는 첫 성공 대화의 유저 메시지와 같은 트랜잭션에서 확정한다.
+    if getattr(g.profile, "relationship_started_at", None) is None:
+        g.profile.relationship_started_at = now
+        profile_tz = getattr(g.profile, "timezone", "Asia/Seoul")
+        g.profile.relationship_started_timezone = profile_tz
+        g.profile.relationship_display_date = now.astimezone(safe_zone(profile_tz)).date()
+        await diary_service.ensure_welcome_for_first_committed_turn(
+            session, g.profile, now, source_message_id=umsg.id
+        )
 
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — phase 2 원자
@@ -970,19 +1095,27 @@ async def post_message(
         cache_read_tokens=totals["cache_read_tokens"],
         cache_write_tokens=totals["cache_write_tokens"],
         billable_tokens=consumed,
-        activity_date=ad, created_at=now,
+        activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=2,
     )
     session.add(rmsg)
     await session.flush()
 
     # 정규화 기억 — 이 턴의 소스 turn 배정 + 추출 잡.
     # 이 턴에 커밋된 선발화도 같은 watermark에 묶는다(그 인사도 이 대화의 근거다).
-    await _record_memory_source(
+    source_watermark = await _record_memory_source(
         session, uid,
         representative_message_id=umsg.id,
         message_ids=[i for i in (greeting_message_id, umsg.id, rmsg.id) if i is not None],
         now=now,
     )
+    if source_watermark is not None:
+        await episodic_memory.enqueue_user_message(
+            session,
+            user_id=uid,
+            message_id=umsg.id,
+            source_watermark=source_watermark,
+            content=umsg.content,
+        )
     await _touch_last_active(session, uid, now)
 
     # 대화 요약 checkpoint(W11) — 리셋이 일어난 턴에만, 앵커 저장과 같은 트랜잭션에서 잡을 건다.
@@ -999,6 +1132,20 @@ async def post_message(
     # 리뷰 노출 판정(당일 누적이 임계 생애 최초 초과 & 미노출)
     review = review_prompted_at is None and new_used >= review_min
 
+    new_revision = await chat_turns.finish_publish(session, user_id=uid, lease=lease)
+    references = await chat_references.persist_selected(
+        session,
+        user_id=uid,
+        reply_message_id=rmsg.id,
+        selected_refs=selected_refs,
+        response_mode=response_mode,
+        focus_ref=focus_ref,
+        nickname=nick,
+        context_revision=new_revision,
+        turn_seq=lease.turn_seq,
+        capability_enabled=references_enabled,
+    )
+
     response = {
         "greeting": greeting_dto,
         "user_message": {"message_id": str(umsg.id), "created_at": _iso(now)},
@@ -1008,6 +1155,7 @@ async def post_message(
             "message_id": str(rmsg.id),
             "content": naming.render(rmsg.content, nick),
             "created_at": _iso(now),
+            "references": references,
         },
         "tokens_used": new_used,
         "tokens_remaining": remaining_after,
@@ -1019,7 +1167,21 @@ async def post_message(
     )
 
     # 멱등 저장 + 커밋(원자) — JSONB에는 검증 통과한 원본 dict를 저장
-    session.add(IdempotencyKey(user_id=uid, key=idempotency_key, response=response))
+    from datetime import timedelta
+
+    session.add(
+        IdempotencyKey(
+            user_id=uid,
+            key=idempotency_key,
+            request_hash=request_digest,
+            response_schema_version=2,
+            response=response,
+            reply_message_id=rmsg.id,
+            terminal_status="succeeded",
+            response_expires_at=now + timedelta(hours=24),
+            dedupe_expires_at=now + timedelta(days=30),
+        )
+    )
     await session.commit()
     t_end = time.monotonic()
     _emit_turn_metrics(
@@ -1046,6 +1208,7 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
     새 말풍선으로 다시 뜨던 버그의 원인이었다. 미커밋 선발화는 원래 이력에 안 남으므로
     화면에서 사라지는 게 기존 설계와도 일관된다.
     """
+    await privacy.ensure_subject_active(session, _uid(user_id))
     if context not in _GREETING_CONTEXTS:
         raise errors.validation("알 수 없는 context예요.", {"context": context})
     from app.core.time_utils import current_activity_date

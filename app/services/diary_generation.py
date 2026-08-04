@@ -10,7 +10,7 @@ import logging
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -19,7 +19,7 @@ from app.models.diary import Diary
 from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
-from app.services import i18n, llm, naming, text_clean
+from app.services import diary_recall_repo, i18n, llm, naming, text_clean
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -33,9 +33,23 @@ def publish_at(target_date: date, tz_name: str) -> datetime:
 
 async def _diary_exists(session: AsyncSession, user_id, target_date: date) -> bool:
     row = await session.execute(
-        select(Diary.id).where(Diary.user_id == user_id, Diary.diary_date == target_date)
+        select(Diary.id).where(
+            Diary.user_id == user_id,
+            Diary.activity_date == target_date,
+            Diary.kind.in_(("shared_day", "capi_day")),
+            Diary.deleted_at.is_(None),
+        )
     )
-    return row.scalars().first() is not None
+    if row.scalars().first() is not None:
+        return True
+    processed = await session.scalar(
+        text(
+            "SELECT 1 FROM diary_generation_results "
+            "WHERE user_id=:user_id AND target_date=:target_date AND status='no_entry'"
+        ),
+        {"user_id": user_id, "target_date": target_date},
+    )
+    return processed is not None
 
 
 async def _day_messages(session: AsyncSession, user_id, target_date: date) -> list[Message]:
@@ -265,17 +279,61 @@ async def generate_for_user(
                 content = await _translate_preset(content, plang, user_id=getattr(profile, "id", None))
                 content = text_clean.strip_symbols(content, keep_hyphen=True)  # 번역 부호 재정제(en 하이픈 유지)
         else:
-            # SOMA-389: 지정본 없는 날은 캐피 일기 미발행(랜덤 폴백 폐지) → 사용자에겐 일기 없음.
-            # 단, "그날 처리완료" 멱등 마커(+임계 미달 대화자 기억통합 재실행 방지)로 tombstone 행을
-            # 남긴다. published_at=NULL이라 list_diaries(published_at<=now)·get_diary에서 자동 제외.
-            source, content, published = "none", "", None
+            # 미발행 처리 좌표는 일기 정본에 가짜 빈 행을 넣지 않고 별도 결과 테이블에 둔다.
+            await session.execute(
+                text(
+                    "INSERT INTO diary_generation_results(user_id,target_date,status) "
+                    "VALUES (:user_id,:target_date,'no_entry') ON CONFLICT DO NOTHING"
+                ),
+                {"user_id": profile.id, "target_date": target_date},
+            )
+            await session.commit()
+            return {
+                "created": False,
+                "skipped": False,
+                "reason": "no_scheduled_entry",
+                "source": "none",
+                "user_chars": user_chars,
+                "gate": gate,
+                "gate_passed": gate_passed,
+                "personal_attempted": gate_passed,
+            }
 
+    kind = "shared_day" if source == "llm" else "capi_day"
+    occurred_at = datetime.combine(
+        target_date, time(12, 0), tzinfo=safe_zone(profile.timezone)
+    ).astimezone(timezone.utc)
     diary = Diary(
-        user_id=profile.id, diary_date=target_date, source=source,
-        preset_ment_id=preset_id, content=content, weather=weather,
+        user_id=profile.id,
+        diary_date=target_date,
+        kind=kind,
+        activity_date=target_date,
+        display_date=target_date,
+        title=None,
+        author="capi",
+        occurred_at=occurred_at,
+        occurred_timezone=profile.timezone,
+        occurred_timezone_provenance="profile_snapshot",
+        primary_subject="user" if kind == "shared_day" else "capi",
+        about_tags=["user"] if kind == "shared_day" else ["capi"],
+        source=source,
+        preset_ment_id=preset_id,
+        content=content,
+        weather=weather,
         published_at=published,
     )
     session.add(diary)
+    await session.flush()
+    if kind == "shared_day":
+        await diary_recall_repo.record_diary_sources(
+            session,
+            user_id=profile.id,
+            diary_id=diary.id,
+            message_ids=[m.id for m in messages if m.sender == "user"],
+        )
+    await diary_recall_repo.upsert_diary_recall_document(
+        session, user_id=profile.id, diary_id=diary.id
+    )
     await session.commit()
 
     return {

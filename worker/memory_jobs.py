@@ -205,6 +205,7 @@ async def handle_extract(job: ClaimedJob) -> JobResult:
     messages = [
         memory_extract.SourceMessage(id=mid, sender=sender, content=content)
         for mid, (sender, content) in sorted(loaded.items())
+        if sender == "user"
     ]
     try:
         candidates, _usage = await memory_extract.extract(

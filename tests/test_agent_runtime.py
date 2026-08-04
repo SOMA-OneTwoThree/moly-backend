@@ -271,14 +271,15 @@ async def test_tools_not_started_when_remaining_below_final_reserve(monkeypatch)
     assert len(fake.calls) == 2 and fake.calls[1]["tool_choice"] == "none"
 
 
-async def test_final_call_gets_reserved_window_even_if_deadline_passed(monkeypatch):
-    """앞 단계가 예산을 넘겨도 최종 호출엔 예약분을 준다 — 0초를 주면 빈 응답이 확정된다."""
+async def test_final_call_never_extends_the_absolute_deadline(monkeypatch):
+    """상류가 예약선을 어겼어도 최종 호출을 덧붙여 HTTP 절대 마감을 넘기지 않는다."""
     clock = _Clock()
     fake = _FakeSteps(
         _calls_step(_call(1)), _text_step("응.", purpose="tool_final"), clock=clock, elapse=9.0
     )
-    await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
-    assert fake.calls[1]["timeout"] == 2.5  # final_reserve_s
+    with pytest.raises(TimeoutError):
+        await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
 
 
 # --- 3) 도구 실행 결과의 형식 완결 ---

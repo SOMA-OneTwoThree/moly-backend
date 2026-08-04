@@ -112,8 +112,27 @@ class BaseTool:
     ) -> tuple[BaseModel, bool]:  # pragma: no cover - 추상
         raise NotImplementedError
 
+    async def prepare(self, ctx: ToolContext, args: Mapping[str, Any]) -> Any:
+        """DB session을 열기 전에 끝낼 외부 I/O 준비 단계. 기본 도구는 준비물이 없다."""
+        return None
+
+    async def run_prepared(
+        self,
+        ctx: ToolContext,
+        args: Any,
+        session: AsyncSession,
+        prepared: Any,
+    ) -> tuple[BaseModel, bool]:
+        """prepare 결과가 있는 도구의 실행 지점. 기본은 기존 run과 같다."""
+        return await self.run(ctx, args, session)
+
     async def execute(
-        self, ctx: ToolContext, args: Mapping[str, Any], session: AsyncSession
+        self,
+        ctx: ToolContext,
+        args: Mapping[str, Any],
+        session: AsyncSession,
+        *,
+        prepared: Any = None,
     ) -> ToolResult:
         try:
             parsed = self.input_model.model_validate(dict(args))
@@ -122,7 +141,10 @@ class BaseTool:
             _log.info("도구 인자 스키마 불일치 tool=%s", self.name)
             return unavailable(self.name, "invalid_arguments")
         try:
-            out, truncated = await self.run(ctx, parsed, session)
+            if prepared is None:
+                out, truncated = await self.run(ctx, parsed, session)
+            else:
+                out, truncated = await self.run_prepared(ctx, parsed, session, prepared)
         except InvalidArguments as e:
             _log.info("도구 인자 범위 위반 tool=%s reason=%s", self.name, e)
             return unavailable(self.name, "invalid_arguments")

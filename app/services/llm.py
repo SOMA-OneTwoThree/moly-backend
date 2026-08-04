@@ -299,6 +299,30 @@ class ControlIntent:
     kind: str
     target_fact_ids: tuple[uuid.UUID, ...] = ()
     value: str | None = None
+    future_learning: str = "allow"
+
+
+@dataclass(frozen=True)
+class GroundedRef:
+    """최종 응답이 선택한 서버 후보 식별자.
+
+    모델이 만든 식별자는 아직 신뢰하지 않는다. 런타임이 같은 턴의 원본 도구 결과 allowlist와
+    대조한 뒤에만 Phase B로 넘긴다.
+    """
+
+    ref_type: str
+    ref_id: str
+
+
+@dataclass(frozen=True)
+class FinalResponse:
+    """텍스트와 제어 정보를 분리한 최소 final sidecar."""
+
+    text: str
+    response_mode: str = "summary"
+    selected_refs: tuple[GroundedRef, ...] = ()
+    focus_ref: GroundedRef | None = None
+    control_intents: tuple[ControlIntent, ...] = ()
 
 
 CONTROL_INTENT_KINDS = ("pin", "forget")
@@ -327,6 +351,7 @@ class StepResult:
     finish_reason: str
     usage: LlmCall
     control_intents: list[ControlIntent] = field(default_factory=list)
+    final_response: FinalResponse | None = None
 
 
 class ToolContractError(ValueError):
@@ -562,7 +587,69 @@ def _control_intent(call: ToolCall, kind: str) -> ControlIntent | None:
     value = call.arguments.get("value")
     if value is not None and not isinstance(value, str):
         return None
-    return ControlIntent(kind=kind, target_fact_ids=ids, value=value)
+    future_learning = call.arguments.get("future_learning", "allow")
+    if future_learning not in {"allow", "block"}:
+        return None
+    return ControlIntent(
+        kind=kind,
+        target_fact_ids=ids,
+        value=value,
+        future_learning=future_learning,
+    )
+
+
+def _grounded_ref(raw: object) -> GroundedRef | None:
+    if not isinstance(raw, dict):
+        return None
+    ref_type = raw.get("type")
+    ref_id = raw.get("id")
+    if not isinstance(ref_type, str) or not ref_type or len(ref_type) > 40:
+        return None
+    if not isinstance(ref_id, str) or not ref_id or len(ref_id) > 128:
+        return None
+    return GroundedRef(ref_type=ref_type, ref_id=ref_id)
+
+
+def _final_response(call: ToolCall) -> FinalResponse | None:
+    """검증된 finish_response 호출을 내부 sidecar로 바꾼다.
+
+    Pydantic wire 검증은 `_parse_call`이 먼저 수행한다. 여기서는 런타임 dataclass로 옮기며
+    중복 reference를 순서 보존 제거한다.
+    """
+    if call.validation_error:
+        return None
+    text = call.arguments.get("text")
+    mode = call.arguments.get("response_mode", "summary")
+    if not isinstance(text, str) or not isinstance(mode, str):
+        return None
+    refs: list[GroundedRef] = []
+    seen: set[tuple[str, str]] = set()
+    for raw in call.arguments.get("selected_refs") or ():
+        ref = _grounded_ref(raw)
+        if ref is None or (ref.ref_type, ref.ref_id) in seen:
+            continue
+        refs.append(ref)
+        seen.add((ref.ref_type, ref.ref_id))
+    focus = _grounded_ref(call.arguments.get("focus_ref"))
+    intents: list[ControlIntent] = []
+    for raw in call.arguments.get("control_intents") or ():
+        if not isinstance(raw, dict):
+            continue
+        pseudo = ToolCall(
+            call_id=call.call_id,
+            tool_name="finish_response",
+            arguments=raw,
+        )
+        intent = _control_intent(pseudo, str(raw.get("kind") or ""))
+        if intent is not None:
+            intents.append(intent)
+    return FinalResponse(
+        text=text,
+        response_mode=mode,
+        selected_refs=tuple(refs),
+        focus_ref=focus,
+        control_intents=tuple(intents),
+    )
 
 
 def _step_usage(u: object, model: str, purpose: str) -> LlmCall:
@@ -605,6 +692,7 @@ async def generate_step(
     purpose: str = "tool_decide",
     input_models: Mapping[str, type[BaseModel]] | None = None,
     control_tools: Mapping[str, str] | None = None,
+    response_tools: Mapping[str, type[BaseModel]] | None = None,
 ) -> StepResult:
     """도구 호출을 표현할 수 있는 1 step 호출. OpenAI 경로만(Anthropic은 dormant → 명시적 오류).
 
@@ -645,11 +733,21 @@ async def generate_step(
     raw_calls = (getattr(message, "tool_calls", None) or []) if message is not None else []
 
     # control 도구는 tools 스키마에 있든 없든 미지 도구가 아니다(실행은 안 하지만 의도는 읽는다).
-    known = _tool_names(tools) | set(control_tools or {})
+    known = _tool_names(tools) | set(control_tools or {}) | set(response_tools or {})
     calls: list[ToolCall] = []
     intents: list[ControlIntent] = []
+    final_response: FinalResponse | None = None
     for i, raw in enumerate(raw_calls):
         call = _parse_call(raw, i, known=known, input_models=input_models)
+        if call.tool_name in (response_tools or {}):
+            candidate = _final_response(call)
+            if candidate is None:
+                _log.info("final response 폐기 tool=%s reason=validation", call.tool_name)
+            elif final_response is None:
+                final_response = candidate
+            else:
+                _log.info("중복 final response 폐기 tool=%s", call.tool_name)
+            continue
         kind = (control_tools or {}).get(call.tool_name)
         if kind is not None:  # control 도구는 실행 대상이 아니다(shadow만)
             intent = _control_intent(call, kind)
@@ -668,4 +766,5 @@ async def generate_step(
         finish_reason=getattr(choice, "finish_reason", "") or "",
         usage=usage,
         control_intents=intents,
+        final_response=final_response,
     )

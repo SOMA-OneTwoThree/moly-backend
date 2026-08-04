@@ -5,26 +5,44 @@
 """
 import asyncio
 import asyncpg
+import hashlib
+from pathlib import Path
 import re
 import sys
 
 sys.path.insert(0, __file__.rsplit("/", 2)[0])  # 레포 루트(스크립트 직접 실행 대비)
-from db.envfile import announce, is_prod, load_conn, split_env_arg
+from db.envfile import announce, assert_dev_target, load_conn, split_env_arg
 
 async def main(commit: bool, path: str, env: str | None):
-    sql = open(path).read()
+    sql = Path(path).read_text()
     # 파일 자체 BEGIN/COMMIT 제거 — 우리가 트랜잭션 제어
     sql = re.sub(r'^\s*BEGIN;\s*$', '', sql, flags=re.M)
     sql = re.sub(r'^\s*COMMIT;\s*$', '', sql, flags=re.M)
     dsn = load_conn(env)
     announce(env, dsn, commit=commit)
-    if commit and is_prod(env):  # 프로덕션 실반영은 한 번 더 눈에 띄게
-        print(">>> PROD 실반영을 시작합니다. 의도한 것이 맞는지 확인하세요.", file=sys.stderr)
+    if commit:
+        assert_dev_target(env, dsn)
     c = await asyncpg.connect(dsn, statement_cache_size=0)
     tx = c.transaction()
     await tx.start()
     try:
         await c.execute(sql)
+        checksum = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+        migration_name = Path(path).name
+        ledger = await c.fetchrow(
+            "SELECT checksum_sha256 FROM public.schema_migrations WHERE migration_name=$1",
+            migration_name,
+        )
+        if ledger is not None and ledger["checksum_sha256"] != checksum:
+            raise RuntimeError(
+                f"이미 적용된 migration checksum 불일치: {migration_name}"
+            )
+        if ledger is None:
+            await c.execute(
+                "INSERT INTO public.schema_migrations(migration_name,checksum_sha256) VALUES($1,$2)",
+                migration_name,
+                checksum,
+            )
         # 검증: 생성된 테이블 수
         n = await c.fetchval("select count(*) from information_schema.tables where table_schema='public'")
         print(f"실행 성공. public 테이블 총 {n}개 (레거시 제거 후).")

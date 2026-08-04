@@ -163,6 +163,14 @@ async def test_tools_none_omits_tool_keys(monkeypatch):
     _, client = await _step(monkeypatch, _resp(content="x"), tools=None)
     assert "tools" not in client.completions.kw and "tool_choice" not in client.completions.kw
     assert client.completions.kw["max_completion_tokens"] == 192  # max_tokens 아님(GPT-5.x)
+    assert client.completions.kw["reasoning_effort"] == "none"
+
+
+async def test_function_tools_disable_reasoning_on_chat_completions(monkeypatch):
+    """GPT-5.6 Chat Completions는 function tools+reasoning 조합을 400으로 거부한다."""
+    _, client = await _step(monkeypatch, _resp(content="x"))
+    assert client.completions.kw["tools"] == TOOLS
+    assert client.completions.kw["reasoning_effort"] == "none"
 
 
 # =====================================================================================

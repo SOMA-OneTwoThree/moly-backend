@@ -624,6 +624,10 @@ async def generate_step(
         "model": model,
         "messages": messages,
         "max_completion_tokens": max_tokens,
+        # GPT-5.6 Chat Completions는 함수 도구와 reasoning을 함께 받지 않는다. 이 경로는
+        # 5초 안에 결정+도구+최종 응답을 끝내는 저지연 루프이기도 하므로 명시적으로 끈다.
+        # 생략하면 모델 기본 reasoning이 적용돼 tools가 있는 요청이 API 400으로 실패한다.
+        "reasoning_effort": "none",
         "timeout": _timeout(timeout),
     }
     if tools:

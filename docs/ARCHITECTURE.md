@@ -225,11 +225,12 @@ flowchart LR
 | `memory_facts.embedding` | 검색 파생값 | `canonical_text`에서 다시 만들 수 있는 pgvector 인덱스 |
 | `relationship_profiles` | 프롬프트 파생값 | 매 턴 기본 주입하는 작고 안정적인 관계 요약 |
 | `conversation_checkpoints` | 단기 대화 파생값 | 앵커 밖으로 밀려난 대화의 줄거리. Fact가 아님 |
-| `memory_insights` | 예약된 파생 계층 | source FK·조회·검색·망각 경로는 있으나 현재 자동 생성기는 없음 |
+| `memory_insights` | 비활성 호환 계층 | 자동 producer가 없고 최종 대화 경로의 진실 소스·필수 projection으로 사용하지 않음 |
 
-따라서 현재 자동으로 축적되는 장기기억은 **Fact + Evidence**다. `memory_insights`가 없어도 관계
-프로필과 검색은 정상 동작한다. 나중에 insight 생성기를 추가하려면 fact source와 derivation version을
-반드시 남겨야 하며, 근거 없는 자유 추론을 사실과 섞지 않는다.
+자동으로 축적되는 장기기억은 **Fact + Evidence + user-message Episode**로 확정한다. 별도 insight
+producer를 추가하는 후속 전제는 없다. 여러 fact에서 보이는 경향은 별도 장기기억 행을 만들지 않고,
+fact source ref를 유지한 `relationship_profiles.inferred_tendencies` projection으로만 대화에 주입한다.
+따라서 근거 없는 자유 추론이 검색 가능한 사실로 승격되는 경로가 없다.
 
 #### 5.2.2 쓰기 파이프라인
 
@@ -361,7 +362,7 @@ python -m worker  (외부 크론이 15분(:00/:15/:30/:45) 실행 · 같은 이�
 - enum은 DB에 text + CHECK(asyncpg 바인딩 마찰 회피) — 모델도 String 매핑.
 - 일 단위 로직 키 = `activity_date`(로컬 04:00 경계, `core/time_utils`). 토큰·출석·광고·루틴·일기 귀속 전부 이 키 — 리셋 잡 없음(새 행 생성이 곧 리셋).
 - 조정값 이원화: **서버 판정용** = `app_config` 테이블(코드 기본값 폴백, 클라 미노출 — 실키 목록은 ERD §6.2) / **클라 노출용** = Firebase Remote Config(강제 업데이트·점검·낮밤).
-- 장기기억의 authoritative record는 `messages`·`diaries`·domain event다. public의 `memory_facts`·`memory_evidence`는 현재 자동 생성되는 재생성 가능 projection이고, 망각 정책 원본은 marker/closure다. `memory_insights`는 근거·조회·무효화 계약을 갖춘 파생 확장점이지만 현재 자동 생성기는 없다. `memory_facts.embedding vector(1536)`은 검색용 파생값이며 동일 DB 안에서 재색인한다. 모든 행은 `profiles`에 FK/CASCADE로 연결된다.
+- 장기기억의 authoritative record는 `messages`·`diaries`·domain event다. public의 `memory_facts`·`memory_evidence`는 자동 생성되는 재생성 가능 projection이고, 망각 정책 원본은 marker/closure다. `memory_insights`는 자동 producer가 없는 비활성 호환 계층이며 최종 런타임은 fact/episode와 fact-backed 관계 프로필만 사용한다. `memory_facts.embedding vector(1536)`은 검색용 파생값이며 동일 DB 안에서 재색인한다. 모든 행은 `profiles`에 FK/CASCADE로 연결된다.
 - 대화 회상용 `memory_episodic_messages`와 `diary_recall_documents`는 원문을 복제하지 않는 pgvector
   projection이다. source hash·embedding model·index version·suppression generation을 write fence로 쓰고,
   terminal 잡 뒤 벡터가 비면 consumer reconciliation이 source version당 최대 3개의 새 repair 잡으로 수렴시킨다.

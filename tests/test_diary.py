@@ -55,6 +55,15 @@ class FakeSession:
         self.committed = True
 
 
+class SequentialScalarSession(FakeSession):
+    def __init__(self, values, **kwargs):
+        super().__init__(**kwargs)
+        self.values = iter(values)
+
+    async def scalar(self, stmt):
+        return next(self.values)
+
+
 def _diary(**over):
     base = dict(
         id=uuid.uuid4(), user_id=UID_UUID, diary_date=date(2026, 7, 5), source="llm",
@@ -127,6 +136,58 @@ async def test_first_committed_turn_welcome_joins_the_callers_transaction(monkey
     assert profile.relationship_started_at == PAST
 
 
+async def test_existing_welcome_is_a_true_noop_for_projection_hooks(monkeypatch):
+    diary_id = uuid.uuid4()
+    profile = SimpleNamespace(
+        id=UID_UUID,
+        language="ko",
+        timezone="Asia/Seoul",
+        relationship_started_timezone="America/Los_Angeles",
+        relationship_started_at=PAST,
+    )
+    session = SequentialScalarSession([None, diary_id], get_obj=profile)
+    calls = []
+
+    async def _called(*args, **kwargs):
+        calls.append((args, kwargs))
+
+    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _called)
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _called)
+    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
+        session, profile, PAST, source_message_id=None
+    )
+    assert inserted is None
+    assert calls == []
+
+
+async def test_missing_welcome_for_existing_relationship_uses_first_user_message(monkeypatch):
+    diary_id = uuid.uuid4()
+    profile = SimpleNamespace(
+        id=UID_UUID,
+        language="ko",
+        timezone="Asia/Seoul",
+        relationship_started_timezone="America/Los_Angeles",
+        relationship_started_at=PAST,
+    )
+    session = SequentialScalarSession([diary_id, 7], get_obj=profile)
+    observed = {}
+
+    async def _sources(*args, **kwargs):
+        observed["sources"] = kwargs
+
+    async def _document(*args, **kwargs):
+        observed["document"] = kwargs
+
+    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _sources)
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _document)
+    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
+        session, profile, PAST, source_message_id=None
+    )
+    assert inserted == diary_id
+    assert observed["sources"]["message_ids"] == [7]
+    assert observed["document"]["diary_id"] == diary_id
+
+
 def test_list_item_welcome_exposes_title_and_strips_body():
     # placeholder 저장분을 현재 닉네임으로 렌더 → 제목/프리뷰에 이름 반영.
     d = _diary(source="welcome", content=f"{naming.TOKEN}, 첫 만남\n\n오늘은 새 친구를 만났다.")
@@ -191,6 +252,20 @@ async def test_get_diary_not_owned_404():
 async def test_get_diary_unpublished_404():
     future = datetime.now(timezone.utc) + timedelta(hours=1)
     d = _diary(published_at=future)
+    with pytest.raises(AppError) as e:
+        await diary_service.get_diary(FakeSession(get_obj=d), UID, str(d.id))
+    assert e.value.http_status == 404
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        {"record_status": "deleted", "deleted_at": PAST},
+        {"record_status": "published", "deleted_at": PAST},
+    ],
+)
+async def test_get_diary_never_serves_deleted_records(state):
+    d = _diary(**state)
     with pytest.raises(AppError) as e:
         await diary_service.get_diary(FakeSession(get_obj=d), UID, str(d.id))
     assert e.value.http_status == 404

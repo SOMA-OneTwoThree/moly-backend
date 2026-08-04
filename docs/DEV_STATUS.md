@@ -45,11 +45,12 @@ PR #91에서 `python -m worker.consumer`의 이중 모듈 적재로 실제 regis
 
 ### 남은 Dev 적용 작업
 
-1. `20260804_zzz_conversational_recall.sql`을 격리 Dev DB에 적용하고 제약·RLS를 검사
-2. Dev 서버 설정(`ENABLE_DEV_ROUTES`, operator allowlist, agent/context 플래그) 반영 및 배포
-3. 지정 테스트 사용자로 첫 만남 → 일기 전문/개수 → fact/episode 회상 → 망각 후 비노출 →
+1. `20260804_zzz_conversational_recall.sql` 적용 및 제약·RLS 검사 **완료**
+2. 기존 사용자 welcome·episode/diary projection backfill 적용 및 consumer drain
+3. Dev 서버 설정(`ENABLE_DEV_ROUTES`, operator allowlist, agent/context 플래그) 반영 및 배포 **완료**
+4. 지정 테스트 사용자로 첫 만남 → 일기 전문/개수 → fact/episode 회상 → 망각 후 비노출 →
    루틴/장착 snapshot → 멱등 replay를 Swagger/E2E로 확인
-4. 필요 시 기존 dead 기억 잡을 원본 보존 `replay_of` 자식으로 실행하고 queue drain 검증
+5. 기존 dead 기억 잡 원본 보존 replay 및 queue drain **완료**
 
 production은 이 dev 마무리 작업의 대상이 아니며 변경하지 않는다.
 

@@ -7,7 +7,13 @@ import uuid
 import pytest
 
 from app.core.errors import AppError
-from app.services import chat_turns, episodic_memory, recall_diaries, recall_memory
+from app.services import (
+    chat_turns,
+    diary_recall_repo,
+    episodic_memory,
+    recall_diaries,
+    recall_memory,
+)
 
 
 UID = uuid.UUID("11111111-1111-1111-1111-111111111111")
@@ -95,6 +101,15 @@ def test_episode_projection_never_duplicates_raw_message_text() -> None:
     assert "content_hash" in sql
     assert "m.content" not in sql
     assert "join messages" in str(episodic_memory._LOAD).lower()
+
+
+def test_projection_upserts_preserve_unchanged_vectors() -> None:
+    episode_sql = str(episodic_memory._ENQUEUE_ROW).lower()
+    diary_sql = str(diary_recall_repo._UPSERT_DOCUMENT).lower()
+    assert "then null else memory_episodic_messages.embedding end" in episode_sql
+    assert "embedding_model is distinct from" in episode_sql
+    assert "then null else diary_recall_documents.embedding end" in diary_sql
+    assert "embedding_model is distinct from" in diary_sql
 
 
 def test_recall_queries_apply_suppression_before_ranking() -> None:

@@ -18,6 +18,8 @@
 11. `20260804_zz_memory_contract.sql` — 기존 normalized backfill/replay 완료 뒤 legacy snapshot 제거
 12. `20260804_zzz_conversational_recall.sql` — 턴 CAS, episode/diary recall, exact suppression,
     welcome 프롤로그, reference/focus, privacy/retention 계약
+13. `20260804_zzzz_conversational_recall_backfill.sql` — 기존 사용자 welcome·diary provenance와
+    episode/diary recall projection/job 재구축
 
 각 파일은 먼저 기본 dry-run으로 실행하고, 성공한 동일 파일만 `--commit`으로 적용한다.
 

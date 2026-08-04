@@ -28,7 +28,11 @@ ON CONFLICT (user_id,message_id) DO UPDATE SET
   embedding_model=EXCLUDED.embedding_model,
   index_version=EXCLUDED.index_version,
   suppression_generation=EXCLUDED.suppression_generation,
-  embedding=NULL,
+  embedding=CASE
+    WHEN memory_episodic_messages.content_hash IS DISTINCT FROM EXCLUDED.content_hash
+      OR memory_episodic_messages.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
+      OR memory_episodic_messages.index_version IS DISTINCT FROM EXCLUDED.index_version
+    THEN NULL ELSE memory_episodic_messages.embedding END,
   indexed_at=now()
 RETURNING message_id
 """)
@@ -84,7 +88,9 @@ async def enqueue_user_message(
         session,
         queue="interactive_async",
         job_type=JOB_EPISODE_EMBED,
-        dedup_key=f"{user_id}:{message_id}:{content_hash}",
+        dedup_key=(
+            f"{INDEX_VERSION}:{settings.embedder_model}:{user_id}:{message_id}:{content_hash}"
+        ),
         user_id=user_id,
         payload={"schema_version": INDEX_VERSION, "message_id": message_id},
     )

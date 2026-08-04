@@ -11,6 +11,10 @@ _FINAL_SQL = (
     Path(__file__).resolve().parents[1]
     / "db/migrations/20260804_zzz_conversational_recall.sql"
 ).read_text()
+_BACKFILL_SQL = (
+    Path(__file__).resolve().parents[1]
+    / "db/migrations/20260804_zzzz_conversational_recall_backfill.sql"
+).read_text()
 
 
 def test_contract_blocks_incomplete_backfill_and_jobs():
@@ -38,3 +42,12 @@ def test_final_recall_contract_separates_exact_suppression_from_source_closure()
     assert "source='none'" in _FINAL_SQL and "DELETE FROM public.diaries" in _FINAL_SQL
     assert "chat_active_turns" in _FINAL_SQL
     assert "privacy_subject_barriers" in _FINAL_SQL
+
+
+def test_existing_user_backfill_is_rerunnable_and_id_only_at_job_boundary():
+    assert "ON CONFLICT DO NOTHING" in _BACKFILL_SQL
+    assert "diary-recall-v1:' || d.embedding_model" in _BACKFILL_SQL
+    assert "episode-v1:text-embedding-3-small:" in _BACKFILL_SQL
+    assert "jsonb_build_object('schema_version','diary-recall-v1','diary_id'" in _BACKFILL_SQL
+    assert "jsonb_build_object('schema_version','episode-v1','message_id'" in _BACKFILL_SQL
+    assert "ADD COLUMN IF NOT EXISTS embedding_model" in _BACKFILL_SQL

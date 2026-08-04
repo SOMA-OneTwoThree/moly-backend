@@ -493,9 +493,10 @@ terminal 행을 active로 되돌리는 UPDATE 경로는 없다.
 `memory_insight_sources`는 `(user_id, insight_id, fact_id)` 복합 PK와 user id를 포함한 복합 FK로
 타 사용자의 fact를 근거로 연결하지 못하게 한다.
 
-현재는 source 검증, 관계 프로필 투영, 검색, 망각 시 무효화 경로만 구현돼 있고 **새 insight를 자동
-생성하는 producer는 없다**. 따라서 현재 자동 원본은 §7.2의 fact + evidence이며 insight는 예약된
-파생 계층이다.
+이 테이블은 이전 스키마와의 호환을 위한 비활성 계층이다. **새 insight를 자동 생성하는 producer는
+없으며 추가할 후속 전제도 없다.** 최종 런타임의 반복 경향은 fact source ref를 가진
+`relationship_profiles.inferred_tendencies`로만 투영한다. 검색·기본 주입의 활성 원천은 §7.2 fact/evidence와
+user-message episode이고, 빈 insight 계층에 의존하지 않는다.
 
 ### 7.4 `memory_forget_markers` / `memory_source_closures`
 

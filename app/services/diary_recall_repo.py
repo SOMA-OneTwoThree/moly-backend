@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.services import jobs, memory_embeddings
 
 INDEX_VERSION = "diary-recall-v1"
@@ -25,10 +26,11 @@ ON CONFLICT (user_id,diary_id,message_id) DO UPDATE SET source_hash=EXCLUDED.sou
 
 _UPSERT_DOCUMENT = text("""
 INSERT INTO diary_recall_documents
-  (user_id,diary_id,search_text,source_hash,suppression_generation,index_version,updated_at)
+  (user_id,diary_id,search_text,source_hash,embedding_model,
+   suppression_generation,index_version,updated_at)
 SELECT d.user_id,d.id,
        trim(concat_ws(E'\n',d.title,d.content)),
-       md5(concat_ws(E'\n',d.title,d.content)),
+       md5(concat_ws(E'\n',d.title,d.content)),:embedding_model,
        COALESCE(c.memory_generation,0),:index_version,now()
 FROM diaries d
 LEFT JOIN chat_contexts c ON c.user_id=d.user_id
@@ -37,11 +39,16 @@ WHERE d.user_id=:user_id AND d.id=:diary_id
 ON CONFLICT (user_id,diary_id) DO UPDATE SET
   search_text=EXCLUDED.search_text,
   source_hash=EXCLUDED.source_hash,
+  embedding_model=EXCLUDED.embedding_model,
   suppression_generation=EXCLUDED.suppression_generation,
   index_version=EXCLUDED.index_version,
-  embedding=NULL,
+  embedding=CASE
+    WHEN diary_recall_documents.source_hash IS DISTINCT FROM EXCLUDED.source_hash
+      OR diary_recall_documents.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
+      OR diary_recall_documents.index_version IS DISTINCT FROM EXCLUDED.index_version
+    THEN NULL ELSE diary_recall_documents.embedding END,
   updated_at=now()
-RETURNING source_hash
+RETURNING source_hash,suppression_generation
 """)
 
 _LOAD_DOCUMENT = text("""
@@ -101,7 +108,12 @@ async def upsert_diary_recall_document(
     row = (
         await session.execute(
             _UPSERT_DOCUMENT,
-            {"user_id": user_id, "diary_id": diary_id, "index_version": INDEX_VERSION},
+            {
+                "user_id": user_id,
+                "diary_id": diary_id,
+                "embedding_model": settings.embedder_model,
+                "index_version": INDEX_VERSION,
+            },
         )
     ).first()
     if row is None:
@@ -110,7 +122,9 @@ async def upsert_diary_recall_document(
         session,
         queue="content",
         job_type=JOB_DIARY_RECALL_EMBED,
-        dedup_key=f"{diary_id}:{row[0]}",
+        dedup_key=(
+            f"{INDEX_VERSION}:{settings.embedder_model}:{diary_id}:{row[0]}:{int(row[1])}"
+        ),
         user_id=user_id,
         payload={"schema_version": INDEX_VERSION, "diary_id": str(diary_id)},
     )

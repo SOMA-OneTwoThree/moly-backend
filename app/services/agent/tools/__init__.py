@@ -1,7 +1,4 @@
-"""W6 — 도구 4종. 도구당 파일 1개 + `registry.py`.
-
-registry에 **실제로 등록된 것은 2개**(`get_diary`·`get_routines`)다. 나머지 둘은 파일은 있지만
-등록하지 않는다 — 사유는 `registry.py`의 `DISABLED` 표에 있다.
+"""대화형 조회 도구와 최종 응답/망각 제어 계약. 실제 노출 목록은 `registry.py`가 단독 관리한다.
 
 모든 도구의 공통 계약(`base.py`):
 - 쿼리에는 **항상 `user_id = ctx.user_id`**가 들어간다. `user_id`는 서버가 `ToolContext`로 주입하며

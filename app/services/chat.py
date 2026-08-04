@@ -1075,14 +1075,22 @@ async def post_message(
     await session.flush()
 
     # 관계 시작과 welcome 프롤로그는 첫 성공 대화의 유저 메시지와 같은 트랜잭션에서 확정한다.
-    if getattr(g.profile, "relationship_started_at", None) is None:
+    relationship_started_at = getattr(g.profile, "relationship_started_at", None)
+    relationship_started_now = relationship_started_at is None
+    if relationship_started_at is None:
         g.profile.relationship_started_at = now
         profile_tz = getattr(g.profile, "timezone", "Asia/Seoul")
         g.profile.relationship_started_timezone = profile_tz
         g.profile.relationship_display_date = now.astimezone(safe_zone(profile_tz)).date()
-        await diary_service.ensure_welcome_for_first_committed_turn(
-            session, g.profile, now, source_message_id=umsg.id
-        )
+        relationship_started_at = now
+    # 이미 관계 시작 시각이 있지만 과거 배포 스큐로 welcome만 빠진 사용자도 같은 멱등 경로로
+    # 복구한다. 기존 welcome이면 write/job이 없고, 누락일 때만 최초 user 메시지를 provenance로 쓴다.
+    await diary_service.ensure_welcome_for_first_committed_turn(
+        session,
+        g.profile,
+        relationship_started_at,
+        source_message_id=umsg.id if relationship_started_now else None,
+    )
 
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — phase 2 원자

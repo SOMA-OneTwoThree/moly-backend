@@ -88,7 +88,7 @@ async def ensure_welcome_for_first_committed_turn(
         if started_at.tzinfo is None
         else started_at.astimezone(timezone.utc)
     )
-    tz_name = profile.timezone
+    tz_name = getattr(profile, "relationship_started_timezone", None) or profile.timezone
     display_date = _welcome_date(started_at, tz_name)
     title, body = _welcome_parts(getattr(profile, "language", None))
     stmt = (
@@ -124,11 +124,20 @@ async def ensure_welcome_for_first_committed_turn(
                 Diary.kind == "welcome",
             )
         )
-    if diary_id is not None:
+    if inserted is not None:
         # Import here so expand-reader deployments can load the service before the new projection
         # module is activated. Both hooks join the caller's Phase B transaction.
         from app.services import diary_recall_repo
 
+        if source_message_id is None:
+            from app.models.message import Message
+
+            source_message_id = await session.scalar(
+                select(Message.id)
+                .where(Message.user_id == profile.id, Message.sender == "user")
+                .order_by(Message.id)
+                .limit(1)
+            )
         if source_message_id is not None:
             await diary_recall_repo.record_diary_sources(
                 session,
@@ -215,6 +224,8 @@ async def list_diaries(
     nickname = profile.nickname if profile is not None else None
     q = select(Diary).where(
         Diary.user_id == _uid(user_id),
+        Diary.record_status == "published",
+        Diary.deleted_at.is_(None),
         Diary.published_at <= now,
         Diary.kind.in_(_VISIBLE_KINDS),
     )
@@ -295,6 +306,8 @@ async def list_diaries_v2(
     nickname = profile.nickname if profile is not None else None
     q = select(Diary).where(
         Diary.user_id == uid,
+        Diary.record_status == "published",
+        Diary.deleted_at.is_(None),
         Diary.published_at <= now,
         Diary.kind.in_(_VISIBLE_KINDS),
     )
@@ -329,6 +342,8 @@ async def _load_published(session: AsyncSession, user_id: str, diary_id: str) ->
     if (
         d is None
         or d.user_id != _uid(user_id)
+        or getattr(d, "record_status", "published") != "published"
+        or getattr(d, "deleted_at", None) is not None
         or d.published_at is None
         or d.published_at > now
         or _kind(d) not in _VISIBLE_KINDS

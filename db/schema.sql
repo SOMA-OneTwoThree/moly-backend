@@ -1122,6 +1122,7 @@ CREATE TABLE IF NOT EXISTS public.diary_recall_documents (
   search_text text NOT NULL,
   source_hash text NOT NULL,
   embedding vector(1536),
+  embedding_model text NOT NULL DEFAULT 'text-embedding-3-small',
   suppression_generation bigint NOT NULL,
   index_version text NOT NULL,
   updated_at timestamptz NOT NULL DEFAULT now(),

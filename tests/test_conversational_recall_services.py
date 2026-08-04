@@ -9,8 +9,10 @@ import pytest
 from app.core.errors import AppError
 from app.services import (
     chat_turns,
+    chat_references,
     diary_recall_repo,
     episodic_memory,
+    projection_repair,
     recall_diaries,
     recall_memory,
 )
@@ -110,6 +112,36 @@ def test_projection_upserts_preserve_unchanged_vectors() -> None:
     assert "embedding_model is distinct from" in episode_sql
     assert "then null else diary_recall_documents.embedding end" in diary_sql
     assert "embedding_model is distinct from" in diary_sql
+
+
+def test_projection_writes_are_fenced_by_model_and_index() -> None:
+    episode_sql = str(episodic_memory._WRITE).lower()
+    diary_sql = str(diary_recall_repo._WRITE_EMBEDDING).lower()
+    for sql in (episode_sql, diary_sql):
+        assert "embedding_model=:embedding_model" in sql
+        assert "index_version=:index_version" in sql
+        assert "embedding_repair_attempts=0" in sql
+
+
+def test_missing_vector_repair_is_bounded_and_privacy_safe() -> None:
+    episode_sql = str(projection_repair._EPISODES).lower()
+    diary_sql = str(projection_repair._DIARIES).lower()
+    for sql in (episode_sql, diary_sql):
+        assert "embedding_repair_attempts<:max_attempts" in sql
+        assert "privacy_subject_barriers" in sql
+        assert "state in ('ready','running')" in sql
+        assert "skip locked" in sql
+
+
+def test_history_diary_hydration_revalidates_lifecycle_and_suppression() -> None:
+    # SQLAlchemy join clause is built in the function; source inspection avoids a DB-shaped mock while
+    # fixing the public-history invariant as a contract.
+    import inspect
+
+    source = inspect.getsource(chat_references.hydrate_for_messages)
+    assert "Diary.record_status == \"published\"" in source
+    assert "Diary.deleted_at.is_(None)" in source
+    assert "RecallSuppression.message_id == DiaryClaimSource.message_id" in source
 
 
 def test_recall_queries_apply_suppression_before_ranking() -> None:

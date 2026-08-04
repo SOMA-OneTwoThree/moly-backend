@@ -28,6 +28,11 @@ ON CONFLICT (user_id,message_id) DO UPDATE SET
   embedding_model=EXCLUDED.embedding_model,
   index_version=EXCLUDED.index_version,
   suppression_generation=EXCLUDED.suppression_generation,
+  embedding_repair_attempts=CASE
+    WHEN memory_episodic_messages.content_hash IS DISTINCT FROM EXCLUDED.content_hash
+      OR memory_episodic_messages.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
+      OR memory_episodic_messages.index_version IS DISTINCT FROM EXCLUDED.index_version
+    THEN 0 ELSE memory_episodic_messages.embedding_repair_attempts END,
   embedding=CASE
     WHEN memory_episodic_messages.content_hash IS DISTINCT FROM EXCLUDED.content_hash
       OR memory_episodic_messages.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
@@ -38,7 +43,7 @@ RETURNING message_id
 """)
 
 _LOAD = text("""
-SELECT m.content,e.content_hash
+SELECT m.content,e.content_hash,e.embedding_model,e.index_version
 FROM memory_episodic_messages e
 JOIN messages m ON m.user_id=e.user_id AND m.id=e.message_id AND m.sender='user'
 WHERE e.user_id=:user_id AND e.message_id=:message_id
@@ -50,8 +55,9 @@ WHERE e.user_id=:user_id AND e.message_id=:message_id
 
 _WRITE = text("""
 UPDATE memory_episodic_messages
-SET embedding=CAST(:embedding AS vector(1536)),indexed_at=now()
+SET embedding=CAST(:embedding AS vector(1536)),embedding_repair_attempts=0,indexed_at=now()
 WHERE user_id=:user_id AND message_id=:message_id AND content_hash=:content_hash
+  AND embedding_model=:embedding_model AND index_version=:index_version
   AND NOT EXISTS (
     SELECT 1 FROM memory_recall_suppressions s
     WHERE s.user_id=:user_id AND s.message_id=:message_id
@@ -98,7 +104,7 @@ async def enqueue_user_message(
 
 async def load_for_embedding(
     session: AsyncSession, *, user_id: uuid.UUID, message_id: int
-) -> tuple[str, str] | None:
+) -> tuple[str, str, str, str] | None:
     row = (
         await session.execute(_LOAD, {"user_id": user_id, "message_id": message_id})
     ).first()
@@ -107,7 +113,7 @@ async def load_for_embedding(
     content, expected_hash = str(row[0] or ""), str(row[1])
     if hashlib.sha256(content.encode("utf-8")).hexdigest() != expected_hash:
         return None
-    return content, expected_hash
+    return content, expected_hash, str(row[2]), str(row[3])
 
 
 async def write_embedding(
@@ -116,6 +122,8 @@ async def write_embedding(
     user_id: uuid.UUID,
     message_id: int,
     content_hash: str,
+    embedding_model: str,
+    index_version: str,
     vector: Sequence[float],
 ) -> bool:
     literal = "[" + ",".join(format(float(value), ".9g") for value in vector) + "]"
@@ -126,6 +134,8 @@ async def write_embedding(
                 "user_id": user_id,
                 "message_id": message_id,
                 "content_hash": content_hash,
+                "embedding_model": embedding_model,
+                "index_version": index_version,
                 "embedding": literal,
             },
         )

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import uuid
 
+from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import diary_recall_repo, episodic_memory, memory_embeddings
 from app.services.jobs import ClaimedJob
@@ -27,7 +28,12 @@ async def handle_episode_embed(job: ClaimedJob) -> JobResult:
         )
     if source is None:
         raise JobCancelled("suppressed_or_missing")
-    content, content_hash = source
+    content, content_hash, embedding_model, index_version = source
+    if (
+        embedding_model != settings.embedder_model
+        or index_version != episodic_memory.INDEX_VERSION
+    ):
+        raise JobCancelled("stale_projection_contract")
     try:
         vector = await memory_embeddings.embed_query(content)
     except Exception as exc:  # provider timeout/429/network
@@ -39,6 +45,8 @@ async def handle_episode_embed(job: ClaimedJob) -> JobResult:
             user_id=user_id,
             message_id=message_id,
             content_hash=content_hash,
+            embedding_model=embedding_model,
+            index_version=index_version,
             vector=vector,
         )
 
@@ -57,7 +65,12 @@ async def handle_diary_embed(job: ClaimedJob) -> JobResult:
         )
     if source is None:
         raise JobCancelled("suppressed_or_missing")
-    body, generation, source_hash = source
+    body, generation, source_hash, embedding_model, index_version = source
+    if (
+        embedding_model != settings.embedder_model
+        or index_version != diary_recall_repo.INDEX_VERSION
+    ):
+        raise JobCancelled("stale_projection_contract")
     try:
         vector = await diary_recall_repo.embed_text(body)
     except Exception as exc:
@@ -70,6 +83,8 @@ async def handle_diary_embed(job: ClaimedJob) -> JobResult:
             diary_id=diary_id,
             source_hash=source_hash,
             generation=generation,
+            embedding_model=embedding_model,
+            index_version=index_version,
             vector=vector,
         )
 

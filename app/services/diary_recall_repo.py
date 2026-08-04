@@ -30,18 +30,24 @@ INSERT INTO diary_recall_documents
    suppression_generation,index_version,updated_at)
 SELECT d.user_id,d.id,
        trim(concat_ws(E'\n',d.title,d.content)),
-       md5(concat_ws(E'\n',d.title,d.content)),:embedding_model,
+       encode(digest(concat_ws(E'\n',d.title,d.content),'sha256'),'hex'),:embedding_model,
        COALESCE(c.memory_generation,0),:index_version,now()
 FROM diaries d
 LEFT JOIN chat_contexts c ON c.user_id=d.user_id
 WHERE d.user_id=:user_id AND d.id=:diary_id
   AND d.record_status='published' AND d.deleted_at IS NULL
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=d.user_id)
 ON CONFLICT (user_id,diary_id) DO UPDATE SET
   search_text=EXCLUDED.search_text,
   source_hash=EXCLUDED.source_hash,
   embedding_model=EXCLUDED.embedding_model,
   suppression_generation=EXCLUDED.suppression_generation,
   index_version=EXCLUDED.index_version,
+  embedding_repair_attempts=CASE
+    WHEN diary_recall_documents.source_hash IS DISTINCT FROM EXCLUDED.source_hash
+      OR diary_recall_documents.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
+      OR diary_recall_documents.index_version IS DISTINCT FROM EXCLUDED.index_version
+    THEN 0 ELSE diary_recall_documents.embedding_repair_attempts END,
   embedding=CASE
     WHEN diary_recall_documents.source_hash IS DISTINCT FROM EXCLUDED.source_hash
       OR diary_recall_documents.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
@@ -53,10 +59,17 @@ RETURNING source_hash,suppression_generation
 
 _LOAD_DOCUMENT = text("""
 SELECT rd.search_text,rd.source_hash,rd.suppression_generation,
+       rd.embedding_model,rd.index_version,
        COALESCE(c.memory_generation,0) AS current_generation
 FROM diary_recall_documents rd
+JOIN diaries d ON d.user_id=rd.user_id AND d.id=rd.diary_id
 LEFT JOIN chat_contexts c ON c.user_id=rd.user_id
 WHERE rd.user_id=:user_id AND rd.diary_id=:diary_id
+  AND d.record_status='published' AND d.deleted_at IS NULL
+  AND rd.suppression_generation=COALESCE(c.memory_generation,0)
+  AND NOT EXISTS (
+    SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=rd.user_id
+  )
   AND NOT EXISTS (
     SELECT 1 FROM diary_claim_sources s
     JOIN memory_recall_suppressions x
@@ -67,10 +80,11 @@ WHERE rd.user_id=:user_id AND rd.diary_id=:diary_id
 
 _WRITE_EMBEDDING = text("""
 UPDATE diary_recall_documents
-SET embedding=CAST(:embedding AS vector(1536)),updated_at=now()
+SET embedding=CAST(:embedding AS vector(1536)),embedding_repair_attempts=0,updated_at=now()
 WHERE user_id=:user_id AND diary_id=:diary_id
   AND source_hash=:source_hash
   AND suppression_generation=:generation
+  AND embedding_model=:embedding_model AND index_version=:index_version
 RETURNING diary_id
 """)
 
@@ -132,14 +146,20 @@ async def upsert_diary_recall_document(
 
 async def embed_diary_document(
     session: AsyncSession, *, user_id: uuid.UUID, diary_id: uuid.UUID
-) -> tuple[str, int, str] | None:
+) -> tuple[str, int, str, str, str] | None:
     """Load an eligible document. The caller embeds after closing this session."""
     row = (
         await session.execute(_LOAD_DOCUMENT, {"user_id": user_id, "diary_id": diary_id})
     ).mappings().first()
     if row is None:
         return None
-    return str(row["search_text"]), int(row["suppression_generation"]), str(row["source_hash"])
+    return (
+        str(row["search_text"]),
+        int(row["suppression_generation"]),
+        str(row["source_hash"]),
+        str(row["embedding_model"]),
+        str(row["index_version"]),
+    )
 
 
 async def write_diary_embedding(
@@ -149,6 +169,8 @@ async def write_diary_embedding(
     diary_id: uuid.UUID,
     source_hash: str,
     generation: int,
+    embedding_model: str,
+    index_version: str,
     vector: Sequence[float],
 ) -> bool:
     literal = "[" + ",".join(format(float(value), ".9g") for value in vector) + "]"
@@ -160,6 +182,8 @@ async def write_diary_embedding(
                 "diary_id": diary_id,
                 "source_hash": source_hash,
                 "generation": generation,
+                "embedding_model": embedding_model,
+                "index_version": index_version,
                 "embedding": literal,
             },
         )

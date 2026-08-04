@@ -1097,6 +1097,7 @@ CREATE TABLE IF NOT EXISTS public.memory_episodic_messages (
   embedding_model text NOT NULL,
   index_version text NOT NULL,
   suppression_generation bigint NOT NULL,
+  embedding_repair_attempts smallint NOT NULL DEFAULT 0 CHECK (embedding_repair_attempts BETWEEN 0 AND 3),
   indexed_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id,message_id),
   FOREIGN KEY (user_id,message_id) REFERENCES public.messages(user_id,id) ON DELETE CASCADE
@@ -1104,6 +1105,8 @@ CREATE TABLE IF NOT EXISTS public.memory_episodic_messages (
 CREATE INDEX IF NOT EXISTS memory_episodic_embedding_hnsw_idx
   ON public.memory_episodic_messages USING hnsw (embedding vector_cosine_ops)
   WHERE embedding IS NOT NULL;
+CREATE INDEX IF NOT EXISTS memory_episodic_missing_embedding_idx
+  ON public.memory_episodic_messages(indexed_at) WHERE embedding IS NULL;
 
 -- Diary provenance and suppression-safe recall projection.
 CREATE TABLE IF NOT EXISTS public.diary_claim_sources (
@@ -1125,6 +1128,7 @@ CREATE TABLE IF NOT EXISTS public.diary_recall_documents (
   embedding_model text NOT NULL DEFAULT 'text-embedding-3-small',
   suppression_generation bigint NOT NULL,
   index_version text NOT NULL,
+  embedding_repair_attempts smallint NOT NULL DEFAULT 0 CHECK (embedding_repair_attempts BETWEEN 0 AND 3),
   updated_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id,diary_id),
   FOREIGN KEY (user_id,diary_id) REFERENCES public.diaries(user_id,id) ON DELETE CASCADE
@@ -1134,6 +1138,8 @@ CREATE INDEX IF NOT EXISTS diary_recall_documents_text_trgm_idx
 CREATE INDEX IF NOT EXISTS diary_recall_documents_embedding_hnsw_idx
   ON public.diary_recall_documents USING hnsw (embedding vector_cosine_ops)
   WHERE embedding IS NOT NULL;
+CREATE INDEX IF NOT EXISTS diary_recall_missing_embedding_idx
+  ON public.diary_recall_documents(updated_at) WHERE embedding IS NULL;
 
 -- Persisted public diary cards and short-lived conversational focus.
 CREATE TABLE IF NOT EXISTS public.chat_response_references (

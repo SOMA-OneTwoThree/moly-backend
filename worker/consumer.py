@@ -124,6 +124,11 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
     payload = 즉시 dead / 대상 유저 삭제·expires_at 경과 = cancelled.
     (예외 객체는 except 블록을 벗어나면 사라지므로 오류 코드를 지역 변수로 먼저 꺼내 넘긴다.)
     """
+    if job.user_id is not None:
+        async with get_sessionmaker()() as session:
+            if await jobs.subject_blocked(session, job.user_id):
+                await _finalize_terminal(job, "cancelled", "subject_deleting")
+                return
     handler = _REGISTRY.get(job.job_type)
     if handler is None:
         # 미지원 job_type = 배포 스큐 또는 오타 producer. 재시도해도 같으므로 즉시 dead(경보 남김).
@@ -215,6 +220,11 @@ async def reaper_loop(stop: asyncio.Event, queues: tuple[str, ...] = jobs.QUEUES
                     await jobs.reap_queue(session, queue)
             except Exception as e:  # noqa: BLE001
                 _log.warning("reaper 실패(queue=%s): %r", queue, e)
+        try:
+            async with get_sessionmaker()() as session:
+                await jobs.scrub_expired_payloads(session)
+        except Exception as e:  # noqa: BLE001
+            _log.warning("retention scrub 실패: %r", e)
         await _sleep_or_stop(stop, settings.job_reaper_interval_s)
 
 
@@ -264,7 +274,7 @@ def main() -> None:
 
 def _register_handlers() -> None:
     """순환 import를 피해 시작 시 한 번 핸들러를 등록한다."""
-    from worker import checkpoint_jobs, memory_jobs  # noqa: F401
+    from worker import checkpoint_jobs, memory_jobs, recall_jobs  # noqa: F401
 
     if not _REGISTRY:
         raise RuntimeError("consumer handler registry가 비어 있다")

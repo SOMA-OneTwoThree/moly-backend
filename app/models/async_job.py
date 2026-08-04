@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -28,7 +28,17 @@ class AsyncJob(Base):
     # 유저 삭제 시 CASCADE. 유저 무관 잡(maintenance 등)은 NULL.
     user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     dedup_key: Mapped[str] = mapped_column(String, nullable=False)  # UNIQUE(job_type, dedup_key)
+    replay_of: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("async_jobs.id"), nullable=True
+    )
+    replay_operation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    payload_schema_version: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'job-payload-v1'")
+    )
+    payload_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    payload_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    payload_redacted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     state: Mapped[str] = mapped_column(String, nullable=False, server_default=text("'ready'"))
     priority: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("100"))
     available_at: Mapped[datetime] = mapped_column(

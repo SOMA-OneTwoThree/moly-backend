@@ -83,7 +83,7 @@ class _FakeSession:
             self.revision += 1
             return _Res([(self.revision,)])
         if s in (str(repo._INSERT_TURN_SQL), str(repo._INSERT_TURN_MESSAGE_SQL),
-                 str(repo._INSERT_EVIDENCE_SQL)):
+                 str(repo._INSERT_EVIDENCE_SQL), str(repo._UPDATE_LEARNED_WATERMARK_SQL)):
             return _Res([])
         raise AssertionError(f"시뮬레이터가 모르는 문장: {s[:80]}")
 

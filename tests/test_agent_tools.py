@@ -18,7 +18,14 @@ from app.models.diary import Diary
 from app.models.routine import Routine, RoutineCompletion
 from app.services.agent import runtime as agent_runtime
 from app.services.agent.runtime import ToolContext
-from app.services.agent.tools import get_diary, get_routines, search_diaries, search_memory
+from app.services.agent.tools import (
+    get_diary,
+    get_routines,
+    recall_diaries,
+    recall_memory,
+    search_diaries,
+    search_memory,
+)
 from app.services.agent.tools.registry import REGISTRY
 from tests.fake_db import FakeDbSession
 
@@ -71,18 +78,20 @@ def _completion(routine, *, user_id=None, day=TODAY, seq=0):
 # =====================================================================================
 def test_registry_exposes_all_read_tools():
     names = [s["function"]["name"] for s in REGISTRY.wire_schemas()]
-    assert names == ["get_diary", "get_routines", "search_memory", "search_diaries"]
+    assert names == ["recall_diaries", "get_routines", "recall_memory"]
     assert set(REGISTRY.input_models()) == {
-        "get_diary", "get_routines", "search_memory", "search_diaries", "forget_memory"
+        "recall_diaries", "get_routines", "recall_memory", "forget_memory"
     }
 
 
 def test_search_diaries_is_registered():
-    assert REGISTRY.get("search_diaries") is search_diaries.TOOL
+    assert REGISTRY.get("recall_diaries") is recall_diaries.TOOL
+    assert REGISTRY.get("search_diaries") is None
 
 
 def test_search_memory_is_registered():
-    assert REGISTRY.get("search_memory") is search_memory.TOOL
+    assert REGISTRY.get("recall_memory") is recall_memory.TOOL
+    assert REGISTRY.get("search_memory") is None
 
 
 async def test_search_memory_uses_embedding_and_hard_filtered_repo(monkeypatch):
@@ -500,7 +509,7 @@ async def test_run_turn_executes_the_real_registry_end_to_end(monkeypatch):
         if len(seen) == 1:
             return StepResult(
                 text=None,
-                tool_calls=[ToolCall("c1", "get_diary", {"date": "2026-08-04"})],
+                tool_calls=[ToolCall("c1", "get_routines", {"date": "2026-08-04"})],
                 finish_reason="tool_calls",
                 usage=_usage("tool_decide"),
             )
@@ -523,15 +532,17 @@ async def test_run_turn_executes_the_real_registry_end_to_end(monkeypatch):
 
     assert turn.text == "응, 비 왔었지."
     assert [s["function"]["name"] for s in seen[0]["tools"]] == [
-        "get_diary", "get_routines", "search_memory", "search_diaries",
+        "recall_diaries", "get_routines", "recall_memory", "finish_response",
     ]
     assert set(seen[0]["input_models"]) == {
-        "get_diary", "get_routines", "search_memory", "search_diaries", "forget_memory",
+        "recall_diaries", "get_routines", "recall_memory", "forget_memory",
     }
-    assert [s["function"]["name"] for s in seen[1]["tools"]] == ["forget_memory"]
-    assert seen[1]["tool_choice"] == "auto"
+    assert [s["function"]["name"] for s in seen[1]["tools"]] == ["finish_response"]
+    assert seen[1]["tool_choice"] == {
+        "type": "function", "function": {"name": "finish_response"}
+    }
     assert [(r.call_id, r.status) for r in turn.tool_results] == [("c1", "ok")]
-    assert turn.tool_results[0].data["diary"]["content"] == "비가 왔다"
+    assert turn.tool_results[0].data["items"] == []
     assert session.rolled_back is True  # 도구 세션은 항상 rollback(read-only)
 
 

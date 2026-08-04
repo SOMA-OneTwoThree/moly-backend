@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+import time
+
+from fastapi import FastAPI, Request
 
 from app.api.ads import router as ads_router
 from app.api.chat import router as chat_router
@@ -29,6 +31,12 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if _docs_enabled else None,
     )
     register_error_handlers(app)
+
+    @app.middleware("http")
+    async def request_clock(request: Request, call_next):  # type: ignore[no-untyped-def]
+        # 인증 dependency와 DB 대기까지 포함한 절대 HTTP 예산의 시작점.
+        request.state.started_monotonic = time.monotonic()
+        return await call_next(request)
     # 공개(인증 불필요): 헬스체크만. (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)
     app.include_router(health_router)
     # 인증 필요: 각 엔드포인트가 get_current_user 의존
@@ -43,11 +51,10 @@ def create_app() -> FastAPI:
     app.include_router(feedback_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
-    # 로컬 전용: 워커 배치(일기 생성)를 curl로 손으로 돌리는 개발 라우터.
-    # 프로덕션엔 라우트 자체가 등록되지 않는다.
-    # /dev는 명시 플래그(ENABLE_DEV_ROUTES) + local에서만 등록 — production·staging·prod 등
-    # 비-local 환경엔 플래그가 켜져도 위험 라우트(강제삭제·유료 모델 평가)를 절대 노출 안 함(SOMA-376).
-    if settings.enable_dev_routes and settings.environment == "local":
+    # 로컬/격리 개발 서버 전용: 워커·회상·모델 평가를 Swagger에서 손으로 검증한다.
+    # 명시 플래그와 환경 allowlist를 모두 만족해야 하므로 production·staging·알 수 없는 환경은
+    # 플래그가 잘못 켜져도 라우트 자체가 등록되지 않는다.
+    if settings.enable_dev_routes and settings.environment in {"local", "development"}:
         from app.api.dev import router as dev_router
 
         app.include_router(dev_router)

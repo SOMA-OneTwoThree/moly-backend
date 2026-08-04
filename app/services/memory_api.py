@@ -8,14 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core import errors
 from app.schemas.memory import MemoryForgetRequest, MemorySearchRequest
-from app.services import memory_embeddings, memory_forget, memory_registry, memory_repo
+from app.services import memory_embeddings, memory_forget, memory_registry, memory_repo, privacy
 
 _LIST_SQL = text("""
 SELECT f.id, f.kind, f.canonical_text, f.predicate, f.event_time
 FROM memory_facts f
 WHERE f.user_id=:user_id AND f.status='active'
   AND NOT EXISTS (
-    SELECT 1 FROM memory_forget_markers m WHERE m.user_id=f.user_id AND (
+    SELECT 1 FROM memory_forget_markers m WHERE m.user_id=f.user_id
+      AND (m.future_learning='block' OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark)
+      AND (
       m.scope='all'
       OR (m.scope='predicate' AND f.predicate IS NOT NULL AND m.predicate=f.predicate)
       OR (m.scope='fact' AND m.normalization_version=f.normalization_version
@@ -28,7 +30,9 @@ LIMIT 100
 
 
 async def list_facts(session: AsyncSession, user_id: str) -> dict:
-    rows = (await session.execute(_LIST_SQL, {"user_id": uuid.UUID(user_id)})).mappings().all()
+    uid = uuid.UUID(user_id)
+    await privacy.ensure_subject_active(session, uid)
+    rows = (await session.execute(_LIST_SQL, {"user_id": uid})).mappings().all()
     return {
         "items": [
             {
@@ -44,6 +48,7 @@ async def list_facts(session: AsyncSession, user_id: str) -> dict:
 
 
 async def search(session: AsyncSession, user_id: str, req: MemorySearchRequest) -> dict:
+    await privacy.ensure_subject_active(session, uuid.UUID(user_id))
     embedding = await memory_embeddings.embed_query(req.query)
     rows = await memory_repo.search_memory(
         session,
@@ -69,12 +74,14 @@ async def search(session: AsyncSession, user_id: str, req: MemorySearchRequest) 
 
 
 async def forget(session: AsyncSession, user_id: str, req: MemoryForgetRequest) -> dict:
+    await privacy.ensure_subject_active(session, uuid.UUID(user_id))
     if req.scope == "predicate" and not memory_registry.is_predicate(req.predicate):
         raise errors.validation("지원하지 않는 기억 범위입니다.")
     request = memory_forget.ForgetRequest(
         scope=req.scope,
         fact_ids=tuple(req.fact_ids),
         predicate=req.predicate,
+        future_learning=req.future_learning,
     )
     result = await memory_forget.apply(
         session, user_id=uuid.UUID(user_id), request=request

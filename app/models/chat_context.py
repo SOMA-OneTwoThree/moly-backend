@@ -29,6 +29,16 @@ class ChatContext(Base):
     relationship_profile_input_revision: Mapped[int] = mapped_column(
         BigInteger, nullable=False, server_default=text("0")
     )
+    # 채팅 커밋 CAS와 replay hydration의 좌표. Phase 1 lease가 잡은 revision/turn_seq와
+    # Phase 2 현재값이 다르면 늦은 결과를 publish하지 않는다.
+    context_revision: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
+    last_committed_turn_seq: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("0")
+    )
+    # 기억/프로필/집중 참조가 달라져 안정 프롬프트 prefix를 무효화할 때만 증가한다.
+    prompt_cache_generation: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("0")
+    )
     last_active_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

@@ -73,33 +73,31 @@ def _gating(**over):
 
 
 def _patch_repair_turn(monkeypatch):
-    """주 chat 응답에 한자가 섞여 복원 호출이 1회 발동하는 턴. (chat billable, repair billable)."""
+    """외래문자는 세 번째 모델 호출 없이 결정적으로 제거된다."""
     async def _res(session, user_id):
         return _gating()
 
     async def _gen(system, convo, **kw):
-        if kw.get("model") == c.settings.model_utility:      # 복원 호출
-            return LLMResult("나도 내 생각엔.", 12, 6, model=MODEL)
         return LLMResult("나도 我 생각엔.", 10, 20, model=MODEL)  # 주 chat 호출(한자 포함)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
     monkeypatch.setattr(llm_module, "generate", _gen)
-    return 10 + 6 * 20, 12 + 6 * 6  # 130, 48
+    return 10 + 6 * 20, 0
 
 
-async def test_repair_turn_bills_chat_plus_repair(monkeypatch):
+async def test_foreign_character_backstop_does_not_add_a_third_llm_call(monkeypatch):
     chat_bill, repair_bill = _patch_repair_turn(monkeypatch)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-repair")
 
-    assert out.reply.content == "나도 내 생각엔."           # 복원문이 응답
+    assert out.reply.content == "나도 생각엔."
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")
-    assert reply_msg.billable_tokens == chat_bill + repair_bill      # 178, 복원분 포함
+    assert reply_msg.billable_tokens == chat_bill + repair_bill
     assert out.tokens_used == 1000 + chat_bill + repair_bill
     # 합계 컬럼도 턴 합(스키마 변경 없음)
-    assert reply_msg.input_tokens == 22 and reply_msg.output_tokens == 26
+    assert reply_msg.input_tokens == 10 and reply_msg.output_tokens == 20
 
 
 async def test_no_repair_turn_bills_chat_only(monkeypatch):
@@ -126,7 +124,7 @@ async def test_kill_switch_off_bills_chat_call_only(monkeypatch):
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-ks")
 
-    assert out.reply.content == "나도 내 생각엔."   # 복원 자체는 그대로 동작(회계만 롤백)
+    assert out.reply.content == "나도 생각엔."
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")
     assert reply_msg.billable_tokens == chat_bill   # 130 — 복원분 미포함(기존 동작)

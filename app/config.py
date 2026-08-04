@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     # /dev 라우트(일기 강제삭제·유료 모델 평가 등 위험)는 명시 opt-in만 등록(기본 off). environment
     # 추정과 분리 — ENVIRONMENT 누락으로 local로 새어도 /dev가 노출되지 않게 한다(fail-closed, SOMA-376).
     enable_dev_routes: bool = False
+    # /dev의 유료 모델 실행·강제 생성·embedding recall은 인증만으로 허용하지 않는다.
+    # comma-separated auth user UUID allowlist. 빈 값은 모든 operator 동작을 fail-closed한다.
+    dev_operator_user_ids: str = ""
 
     # --- Supabase (Auth + Postgres + pgvector) ---
     supabase_url: str = ""

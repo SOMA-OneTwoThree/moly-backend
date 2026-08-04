@@ -618,8 +618,8 @@ async def test_forget_between_check_and_insert_writes_nothing(db, store, llm_cal
     assert store["rows"] == []                  # 저장 0
 
 
-async def test_unmapped_messages_count_as_closed_when_the_user_has_forgotten(monkeypatch):
-    """워터마크 매핑이 없는 메시지는 닫힌 것으로 센다(잊기 이력이 있을 때).
+async def test_unmapped_messages_are_not_collaterally_suppressed(monkeypatch):
+    """정확한 suppression 행이 없는 메시지는 다른 망각 이력 때문에 숨기지 않는다.
 
     매핑 조회는 memory_source_turn_messages에서 출발하는 join이라 매핑 없는 메시지는
     join에 안 걸려 "안전"으로 보인다. 그런 메시지는 실제로 생긴다(Phase 1이 legacy를 읽은 뒤
@@ -643,4 +643,4 @@ async def test_unmapped_messages_count_as_closed_when_the_user_has_forgotten(mon
         def scalars(self): return self
         def all(self): return [r[0] for r in self._rows]
 
-    assert await checkpoint_repo.has_closed_messages(_S(), uuid.uuid4(), [11, 12]) is True
+    assert await checkpoint_repo.has_closed_messages(_S(), uuid.uuid4(), [11, 12]) is False

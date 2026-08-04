@@ -18,7 +18,13 @@ BEGIN
   IF EXISTS (
     SELECT 1 FROM public.async_jobs
     WHERE job_type IN ('memory_extract','memory_reconcile','memory_embed','relationship_profile_refresh')
-      AND state IN ('ready','running','dead')
+      AND (
+        state IN ('ready','running')
+        OR (state='dead' AND NOT EXISTS (
+          SELECT 1 FROM public.async_jobs replay
+          WHERE replay.replay_of=async_jobs.id AND replay.state='succeeded'
+        ))
+      )
   ) THEN
     RAISE EXCEPTION 'memory contract blocked: pending/running/dead memory jobs remain';
   END IF;

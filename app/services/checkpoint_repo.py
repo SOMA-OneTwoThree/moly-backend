@@ -54,26 +54,16 @@ _GENERATION_SQL = text(
 # 잊어줘가 닫은 구간이 하나라도 있는가. 재검증은 `(0, through]` 원본 전체를 다시 읽으므로
 # 닫힌 구간을 **필연적으로** 포함한다 — 있으면 재검증을 건너뛰고 체인 요약으로 간다.
 _HAS_CLOSURE_SQL = text(
-    "SELECT 1 FROM memory_source_closures WHERE user_id = :user_id LIMIT 1"
+    "SELECT 1 FROM memory_recall_suppressions WHERE user_id = :user_id LIMIT 1"
 )
 
 # 이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가.
 # forget은 **앵커를 전진시키지 않는다.** 그래서 잊기 이후 만들어지는 **일반 요약**도 잊기 이전
 # 메시지를 그대로 담는다 — 재검증만 막아서는 안 되고 모든 요약이 이 검사를 통과해야 한다.
 _CLOSED_MESSAGES_SQL = text("""
-SELECT 1
-FROM memory_source_turn_messages tm
-JOIN memory_source_closures c
-  ON c.user_id = tm.user_id
- AND tm.source_watermark BETWEEN c.from_watermark AND c.through_watermark
-WHERE tm.user_id = :user_id AND tm.message_id IN :ids
+SELECT 1 FROM memory_recall_suppressions s
+WHERE s.user_id = :user_id AND s.message_id IN :ids
 LIMIT 1
-""").bindparams(bindparam("ids", expanding=True))
-
-# 위 fail-closed 판정용 — 이 메시지들 중 watermark 매핑이 있는 것.
-_MAPPED_MESSAGES_SQL = text("""
-SELECT message_id FROM memory_source_turn_messages
-WHERE user_id = :user_id AND message_id IN :ids
 """).bindparams(bindparam("ids", expanding=True))
 
 # 요약 대상 구간. after_id는 이전 checkpoint의 through(없으면 0) — 열린 하한, 닫힌 상한이다.
@@ -126,11 +116,8 @@ async def has_closed_messages(
 ) -> bool:
     """이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가. 하나라도 있으면 요약하지 않는다.
 
-    ⚠️ **매핑이 없는 메시지도 닫힌 것으로 본다**(그 유저에게 closure가 하나라도 있을 때).
-    이 조회는 `memory_source_turn_messages`에서 출발하는 join이라, watermark 매핑이 없는
-    메시지는 join에 안 걸려 "안전"으로 보인다 — 이관 중 일부만 매핑된 메시지에서 생길 수 있다.
-    잊기를 한 유저에게 정체를 모르는 메시지를
-    "안전"으로 넘기면 잊은 내용이 요약으로 들어간다. 모르면 닫힌 쪽으로 센다.
+    별도 recall suppression을 직접 본다. extraction replay guard인 source closure의 min/max 범위를
+    재사용하지 않으므로 무관한 중간 turn을 collateral forgetting하지 않는다.
     """
     ids = list(dict.fromkeys(message_ids))
     if not ids:
@@ -140,10 +127,7 @@ async def has_closed_messages(
     rows = await session.execute(_CLOSED_MESSAGES_SQL, {"user_id": user_id, "ids": ids})
     if rows.first() is not None:
         return True
-    mapped = (
-        await session.execute(_MAPPED_MESSAGES_SQL, {"user_id": user_id, "ids": ids})
-    ).scalars().all()
-    return len(set(mapped)) != len(ids)  # 하나라도 매핑이 없으면 닫힌 것으로 본다
+    return False
 
 
 async def load_latest(

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 import uuid
 from dataclasses import dataclass
@@ -24,9 +25,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sqlalchemy import select, text
 
 from app.core.db import get_sessionmaker
+from app.config import settings
 from app.models.message import Message
 from app.models.profile import Profile
 from app.services import memory_repo
+from db.envfile import announce, assert_dev_target
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,7 +59,9 @@ SELECT
    AND j.state IN ('ready','running')) AS pending_jobs,
   (SELECT count(*) FROM async_jobs j WHERE j.user_id=:user_id
    AND j.job_type IN ('memory_extract','memory_reconcile','memory_embed','relationship_profile_refresh')
-   AND j.state='dead') AS dead_jobs
+   AND j.state='dead' AND NOT EXISTS (
+     SELECT 1 FROM async_jobs r WHERE r.replay_of=j.id AND r.state='succeeded'
+   )) AS dead_jobs
 """)
 
 
@@ -97,6 +102,10 @@ async def _user_ids(session, user: str | None) -> list[uuid.UUID]:
 
 
 async def run(*, user: str | None, execute: bool, verify: bool) -> None:
+    env_file = os.getenv("MOLY_ENV_FILE", ".env")
+    announce(env_file, settings.supabase_db_connection_string, commit=execute)
+    if execute:
+        assert_dev_target(env_file, settings.supabase_db_connection_string)
     totals = {"users": 0, "turns": 0, "messages": 0}
     failures: list[str] = []
     async with get_sessionmaker()() as session:

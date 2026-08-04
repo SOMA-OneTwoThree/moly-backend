@@ -66,6 +66,14 @@
         format: date
         title: Anchor Date
       description: 이 activity date 이상 message를 오래된 순으로 조회하며 cursor/direction을 무시한다.
+    - name: X-Moly-Capabilities
+      in: header
+      required: false
+      schema:
+        anyOf:
+        - type: string
+        - type: 'null'
+      description: diary-reference-v1 지원 시 검증된 대화 내 일기 카드를 포함한다.
     responses:
       '200':
         description: 채팅 메시지와 양방향 cursor
@@ -124,6 +132,14 @@
         minLength: 1
       description: user 범위 멱등 key. route signature는 optional이지만 endpoint logic에서 누락/빈 문자열을 422로 거부한다.
         길이/형식 상한은 없다.
+    - name: X-Moly-Capabilities
+      in: header
+      required: false
+      schema:
+        anyOf:
+        - type: string
+        - type: 'null'
+      description: diary-reference-v1 지원 시 검증된 대화 내 일기 카드를 포함한다.
     requestBody:
       required: true
       content:
@@ -406,3 +422,56 @@
                     message: 일기를 찾을 수 없어요.
                     details: {}
     description: first_read_at은 최초 한 번만 기록되며 이후 호출도 멱등 204다.
+/v2/diaries:
+  get:
+    tags: [diary]
+    summary: 종류와 안정 cursor를 포함한 일기 목록
+    operationId: listDiariesV2
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: limit
+      in: query
+      required: false
+      schema: {type: integer, minimum: 1, maximum: 100, default: 30}
+    - name: cursor
+      in: query
+      required: false
+      schema:
+        anyOf:
+        - {type: string, maxLength: 256}
+        - {type: 'null'}
+    responses:
+      '200':
+        description: 발행 일기 목록
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/DiaryListResponseV2
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+/v2/diaries/{diary_id}:
+  get:
+    tags: [diary]
+    summary: 종류와 시각 좌표를 포함한 일기 상세
+    operationId: getDiaryV2
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: diary_id
+      in: path
+      required: true
+      schema: {type: string}
+    responses:
+      '200':
+        description: 발행 일기 상세
+        content:
+          application/json:
+            schema:
+              $ref: ../components/conversations.yaml#/schemas/DiaryDetailResponseV2
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation

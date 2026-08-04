@@ -59,8 +59,9 @@ class GetRoutinesTool(BaseTool):
     async def run(
         self, ctx: ToolContext, args: GetRoutinesArgs, session: AsyncSession
     ) -> tuple[GetRoutinesOut, bool]:
-        target = args.date or ctx.activity_date
-        if abs((target - ctx.activity_date).days) > MAX_DATE_OFFSET_DAYS:
+        today = ctx.local_calendar_date or ctx.activity_date
+        target = args.date or today
+        if abs((target - today).days) > MAX_DATE_OFFSET_DAYS:
             raise InvalidArguments("date_out_of_range")
 
         rows = list(

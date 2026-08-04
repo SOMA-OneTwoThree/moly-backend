@@ -22,6 +22,11 @@ schemas:
         format: date-time
         title: Created At
         description: 저장 시각 isoformat.
+      references:
+        type: array
+        maxItems: 3
+        items:
+          $ref: '#/schemas/ChatReference'
     type: object
     required:
     - id
@@ -405,9 +410,90 @@ schemas:
         type: string
         title: Content
         description: Moly reply 본문.
+      references:
+        type: array
+        maxItems: 3
+        items:
+          $ref: '#/schemas/ChatReference'
     type: object
     required:
     - message_id
     - created_at
     - content
     title: ReplyMessage
+  DiaryReferenceCard:
+    type: object
+    additionalProperties: false
+    required: [id, kind, display_date, title, body, published_at, read]
+    properties:
+      id: {type: string, format: uuid}
+      kind: {type: string, enum: [welcome, shared_day, capi_day]}
+      author: {type: string, const: capi, default: capi}
+      display_date: {type: string, format: date}
+      title:
+        anyOf: [{type: string}, {type: 'null'}]
+      body: {type: string}
+      published_at: {type: string, format: date-time}
+      read: {type: boolean}
+  ChatReference:
+    type: object
+    additionalProperties: false
+    required: [reference_id, state, mode, diary]
+    properties:
+      reference_id: {type: string, format: uuid}
+      schema: {type: string, const: diary-reference-v1, default: diary-reference-v1}
+      type: {type: string, const: diary, default: diary}
+      state: {type: string, enum: [available, unavailable]}
+      mode: {type: string, enum: [full_card, reopen_reference]}
+      diary:
+        anyOf:
+        - $ref: '#/schemas/DiaryReferenceCard'
+        - {type: 'null'}
+  DiaryListItemV2:
+    type: object
+    additionalProperties: false
+    required: [id, display_date, kind, title, weather, preview, published_at, read]
+    properties:
+      id: {type: string, format: uuid}
+      display_date: {type: string, format: date}
+      kind: {type: string, enum: [welcome, shared_day, capi_day]}
+      author: {type: string, const: capi, default: capi}
+      title:
+        anyOf: [{type: string}, {type: 'null'}]
+      weather: {type: string, enum: [sunny, cloudy, rainy, windy]}
+      preview: {type: string, maxLength: 60}
+      published_at: {type: string, format: date-time}
+      read: {type: boolean}
+  DiaryListResponseV2:
+    type: object
+    additionalProperties: false
+    required: [data]
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/schemas/DiaryListItemV2'
+      next_cursor:
+        anyOf: [{type: string, maxLength: 256}, {type: 'null'}]
+  DiaryDetailResponseV2:
+    type: object
+    additionalProperties: false
+    required: [id, display_date, kind, title, weather, body, occurred_at, conversation_ref, published_at, first_read_at]
+    properties:
+      id: {type: string, format: uuid}
+      display_date: {type: string, format: date}
+      kind: {type: string, enum: [welcome, shared_day, capi_day]}
+      author: {type: string, const: capi, default: capi}
+      title:
+        anyOf: [{type: string}, {type: 'null'}]
+      weather: {type: string, enum: [sunny, cloudy, rainy, windy]}
+      body: {type: string}
+      occurred_at:
+        anyOf: [{type: string, format: date-time}, {type: 'null'}]
+      conversation_ref:
+        anyOf:
+        - $ref: '#/schemas/ConversationRef'
+        - {type: 'null'}
+      published_at: {type: string, format: date-time}
+      first_read_at:
+        anyOf: [{type: string, format: date-time}, {type: 'null'}]

@@ -1,12 +1,54 @@
-# Appearance v2 DB rollout
+# DB migration runbook
 
-## 새 DB (dev·CI)
+## 기억 시스템 전환
+
+기억 런타임 설계는 `docs/ARCHITECTURE.md` §5.2, 데이터 모델과 불변조건은 `docs/ERD.md` §7을
+기준으로 한다. 기존 DB에는 아래 순서로 적용한다.
+
+1. `20260804_async_jobs.sql`
+2. `20260804_memory_normalization.sql`
+3. `20260804_memory_cutover_guard.sql`
+4. `20260804_relationship_profiles.sql`
+5. `20260804_conversation_checkpoints.sql`
+6. `20260804_checkpoint_generation.sql`
+7. `20260804_chat_last_active.sql`
+8. `20260804_diary_search.sql`
+9. `20260804_memory_embeddings.sql`
+10. `20260804_job_replay_lineage.sql`
+11. `20260804_zz_memory_contract.sql` — 기존 normalized backfill/replay 완료 뒤 legacy snapshot 제거
+12. `20260804_zzz_conversational_recall.sql` — 턴 CAS, episode/diary recall, exact suppression,
+    welcome 프롤로그, reference/focus, privacy/retention 계약
+
+각 파일은 먼저 기본 dry-run으로 실행하고, 성공한 동일 파일만 `--commit`으로 적용한다.
+
+```bash
+uv run python db/apply.py db/migrations/<파일명>.sql
+uv run python db/apply.py db/migrations/<파일명>.sql --commit
+```
+
+과거 대화 source backfill과 기억 잡 처리가 모두 끝난 뒤 검증한다.
+
+```bash
+uv run python scripts/backfill_normalized_memory.py --verify
+uv run python scripts/replay_dead_memory_jobs.py
+```
+
+`20260804_zz_memory_contract.sql`은 미연결 user 메시지, 미해결 기억 잡, embedding 없는 active
+fact, published 관계 프로필이 없는 사용자가 하나라도 있으면 전체를 중단한다. 이 게이트를 dry-run과
+`--commit`으로 통과한 뒤에만 이전 `memory_text`, `memory_refreshed_at`, `memory_mode` 컬럼이 제거된다.
+terminal dead 잡은 수정하거나 삭제하지 않고, 성공한 `replay_of` 자식으로 해소됐음을 증명한다.
+
+---
+
+## Appearance v2
+
+### 새 DB (dev·CI)
 
 `db/schema.sql` → `db/seed_and_triggers.sql` 순으로 적용하면 끝이다. 시드가 꾸미기 6종을
 active로 넣으므로 가입·상점·장착이 바로 동작한다. 에셋 파일이 아직 버킷에 없으면 이미지
 URL만 404이고 API 계약 자체는 정상이다.
 
-## 기존 DB (staging·prod)
+### 기존 DB (staging·prod)
 
 `20260713_appearance_v2_expand.sql`은 기존 API와 호환되는 additive 단계다. 먼저 적용해 둔다.
 
@@ -27,13 +69,13 @@ URL만 404이고 API 계약 자체는 정상이다.
 cutover SQL은 최종 에셋이나 필수 기본 상품이 없으면 트랜잭션을 중단한다. 구형 assets를
 새 필드로 임의 변환하거나 빈 카탈로그 상태로 진행하지 않는다.
 
-## 에셋 교체
+### 에셋 교체
 
 시드의 `ON CONFLICT`는 `asset_version`이 올라갈 때만 `assets`를 덮는다. 새 아트를 넣을 때는
 `v{n+1}` 경로로 업로드하고 시드의 URL과 `asset_version`을 함께 올린다. 버전을 올리지 않고
 URL만 바꾸면 iOS 캐시가 갱신되지 않는다.
 
-## head 슬롯 분리 + rightside 자세 (`20260719_hat_glasses_rightside.sql`)
+### head 슬롯 분리 + rightside 자세 (`20260719_hat_glasses_rightside.sql`)
 
 `head` 슬롯을 `hat`/`glasses`로 나눠 모자·안경 동시 착용을 허용하고, 착용 아이템에 새 자세
 (`rightside`) upright 레이어를 더한다. 구버전 앱(서버가 버전을 식별할 수 없음)은 새 슬롯 값을

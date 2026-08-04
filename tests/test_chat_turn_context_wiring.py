@@ -55,8 +55,8 @@ async def test_disabled_by_default_skips_build_context_and_block(monkeypatch):
     assert "[지금]" not in last_content
 
 
-# 2) 활성화 시 상주 블록이 대화 배열의 마지막 user 메시지 안에 들어가고, system(_build_system)엔 없다.
-async def test_enabled_appends_block_into_last_user_message_not_system(monkeypatch):
+# 2) 활성화 시 서버가 만든 상주 블록은 user 입력이 아니라 system 사실로 격리된다.
+async def test_enabled_places_server_state_in_system_not_user_input(monkeypatch):
     monkeypatch.setattr(chat_service.settings, "current_turn_context_enabled", True)
 
     async def _fake_build_context(session, profile, *, is_first_today, now_utc):
@@ -69,15 +69,15 @@ async def test_enabled_appends_block_into_last_user_message_not_system(monkeypat
     last = capture["convo"][-1]
     assert last["role"] == "user"
     assert "오늘 어땠어?" in last["content"]
-    assert "[지금] 밤" in last["content"]
+    assert "[지금] 밤" not in last["content"]
 
     system_parts = capture["system"]
     system_text = "\n".join(system_parts) if isinstance(system_parts, list) else system_parts
-    assert "[지금] 밤" not in system_text  # 페르소나 캐시 프리픽스 보호 — 절대 system엔 안 들어감
+    assert "[지금] 밤" in system_text
+    assert "[지금 상태 - 서버 사실]" in system_text
 
 
-# 3) 별도 배열 항목으로 추가되지 않는다 — 블록이 붙어도 이번 턴 항목 수가 늘지 않고,
-#    마지막 두 항목이 둘 다 user가 되는 일이 없어야 한다(Anthropic 첫 메시지 user 계약과 충돌 방지).
+# 3) 상태 때문에 대화 배열 항목이 늘지 않는다.
 async def test_enabled_does_not_add_separate_array_item(monkeypatch):
     monkeypatch.setattr(chat_service.settings, "current_turn_context_enabled", True)
 
@@ -93,8 +93,10 @@ async def test_enabled_does_not_add_separate_array_item(monkeypatch):
     convo = capture["convo"]
     assert len(convo) == 1
     assert convo[0]["role"] == "user"
-    assert "[지금] 낮" in convo[0]["content"]
+    assert "[지금] 낮" not in convo[0]["content"]
     assert "오늘 어땠어?" in convo[0]["content"]
+    system_text = "\n".join(capture["system"])
+    assert "[지금] 낮" in system_text
 
 
 # 4) build_context가 예외를 던져도 대화는 정상 응답한다(fail-open) + 경고 로그.

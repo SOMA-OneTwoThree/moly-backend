@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, Integer, String, text
+from sqlalchemy import Date, DateTime, Integer, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,5 +23,10 @@ class Profile(Base):
     hay_balance: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     trial_ends_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     review_prompted_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    # 관계 시작은 가입 시각이 아니라 첫 성공 대화의 Phase B에서 확정한다.
+    relationship_started_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    relationship_started_timezone: Mapped[str | None] = mapped_column(String, nullable=True)
+    relationship_display_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    next_diary_due_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
     updated_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)

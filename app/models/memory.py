@@ -15,7 +15,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Float, String, text
+from sqlalchemy import BigInteger, DateTime, Float, ForeignKeyConstraint, Integer, String, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -50,6 +50,8 @@ class MemoryFact(Base):
     content_hash: Mapped[str] = mapped_column(String, nullable=False)
     # 정규화 결과가 달라지는 변경만 새 version을 발급한다. 기존 행을 제자리 재해시하지 않는다.
     normalization_version: Mapped[str] = mapped_column(String, nullable=False)
+    # 이 fact를 만든 후보의 최대 source watermark. forget cut 이전/이후를 판별하는 정본 좌표다.
+    learned_at_watermark: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     superseded_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     # embedding vector 컬럼은 DB에만 둔다 — pgvector 파이썬 패키지가 의존성에 없어 매핑할 타입이
     # 없고, ORM 경로에서 읽고 쓰지도 않는다(검색은 raw SQL). 차원 고정은 embedder 마이그레이션 소관.
@@ -60,16 +62,33 @@ class MemoryFact(Base):
 class MemoryEvidence(Base):
     """fact의 근거 메시지. v1 `source_type`은 `conversation_turn`만이다.
 
-    ⚠️ FK가 user_id를 태우지 않는다(messages PK=(id)). 그래서 insert 전에 **같은 트랜잭션에서**
-    `messages.user_id == fact.user_id`를 코드가 검증한다(`memory_repo.add_evidence`).
+    user_id + sender를 FK에 함께 태워 타 유저/assistant 발화를 DB에서도 거부한다. 코드는 같은
+    검증을 insert 전에 수행해 친절한 오류와 원자성도 보장한다(`memory_repo.add_evidence`).
     """
 
     __tablename__ = "memory_evidence"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "fact_id"], ["memory_facts.user_id", "memory_facts.id"],
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ["user_id", "source_id", "source_sender"],
+            ["messages.user_id", "messages.id", "messages.sender"],
+            ondelete="CASCADE",
+        ),
+    )
 
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     fact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     source_type: Mapped[str] = mapped_column(String, primary_key=True)
     source_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    source_sender: Mapped[str] = mapped_column(String, nullable=False, server_default=text("'user'"))
     source_excerpt_hash: Mapped[str] = mapped_column(String, nullable=False)
+    span_start: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    span_end: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    extractor_version: Mapped[str] = mapped_column(String, server_default=text("'memory-extract-v1'"))
+    prompt_version: Mapped[str] = mapped_column(String, server_default=text("'memory-prompt-v1'"))
     observed_at: Mapped[datetime] = mapped_column(_TZ, nullable=False)
 
 
@@ -120,5 +139,10 @@ class MemoryForgetMarker(Base):
     normalization_version: Mapped[str | None] = mapped_column(String, nullable=True)
     predicate: Mapped[str | None] = mapped_column(String, nullable=True)
     memory_generation: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    cut_watermark: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
+    # allow=과거 근거만 잊고 이후 새 발화에서 다시 학습 가능, block=향후 동일 사실도 차단.
+    future_learning: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'block'")
+    )
     created_at: Mapped[datetime] = mapped_column(_TZ, nullable=False, server_default=text("now()"))
     expires_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)

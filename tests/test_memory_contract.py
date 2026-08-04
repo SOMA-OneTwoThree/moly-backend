@@ -15,6 +15,10 @@ _BACKFILL_SQL = (
     Path(__file__).resolve().parents[1]
     / "db/migrations/20260804_zzzz_conversational_recall_backfill.sql"
 ).read_text()
+_HARDEN_SQL = (
+    Path(__file__).resolve().parents[1]
+    / "db/migrations/20260804_zzzzz_conversational_recall_hardening.sql"
+).read_text()
 
 
 def test_contract_blocks_incomplete_backfill_and_jobs():
@@ -51,3 +55,13 @@ def test_existing_user_backfill_is_rerunnable_and_id_only_at_job_boundary():
     assert "jsonb_build_object('schema_version','diary-recall-v1','diary_id'" in _BACKFILL_SQL
     assert "jsonb_build_object('schema_version','episode-v1','message_id'" in _BACKFILL_SQL
     assert "ADD COLUMN IF NOT EXISTS embedding_model" in _BACKFILL_SQL
+
+
+def test_recall_hardening_converges_provenance_and_excludes_deleting_subjects():
+    assert "privacy_subject_barriers" in _HARDEN_SQL
+    assert "m.created_at<=d.created_at" in _HARDEN_SQL
+    assert "DELETE FROM public.diary_claim_sources" in _HARDEN_SQL
+    assert "DELETE FROM public.diary_recall_documents" in _HARDEN_SQL
+    assert "DELETE FROM public.memory_episodic_messages" in _HARDEN_SQL
+    assert "'sha256'" in _HARDEN_SQL
+    assert "embedding_repair_attempts BETWEEN 0 AND 3" in _HARDEN_SQL

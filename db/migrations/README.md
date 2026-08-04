@@ -20,6 +20,8 @@
     welcome 프롤로그, reference/focus, privacy/retention 계약
 13. `20260804_zzzz_conversational_recall_backfill.sql` — 기존 사용자 welcome·diary provenance와
     episode/diary recall projection/job 재구축
+14. `20260804_zzzzz_conversational_recall_hardening.sql` — 삭제 장벽 제외, provenance 수렴,
+    SHA-256/fenced vector 재색인과 bounded missing-vector repair 상태
 
 각 파일은 먼저 기본 dry-run으로 실행하고, 성공한 동일 파일만 `--commit`으로 적용한다.
 

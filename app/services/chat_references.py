@@ -264,12 +264,31 @@ async def hydrate_for_messages(
 ) -> dict[int, list[dict]]:
     if not capability_enabled or not message_ids:
         return {}
+    now = datetime.now(timezone.utc)
     rows = (
         await session.execute(
             select(ChatResponseReference, Diary)
             .outerjoin(
                 Diary,
-                and_(Diary.user_id == ChatResponseReference.user_id, Diary.id == ChatResponseReference.diary_id),
+                and_(
+                    Diary.user_id == ChatResponseReference.user_id,
+                    Diary.id == ChatResponseReference.diary_id,
+                    Diary.kind.in_(("welcome", "shared_day", "capi_day")),
+                    Diary.record_status == "published",
+                    Diary.deleted_at.is_(None),
+                    Diary.published_at.is_not(None),
+                    Diary.published_at <= now,
+                    ~select(1)
+                    .where(
+                        and_(
+                            DiaryClaimSource.user_id == Diary.user_id,
+                            DiaryClaimSource.diary_id == Diary.id,
+                            RecallSuppression.user_id == DiaryClaimSource.user_id,
+                            RecallSuppression.message_id == DiaryClaimSource.message_id,
+                        )
+                    )
+                    .exists(),
+                ),
             )
             .where(
                 ChatResponseReference.user_id == user_id,

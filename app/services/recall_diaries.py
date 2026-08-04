@@ -5,11 +5,12 @@ import uuid
 from datetime import date, datetime, timezone
 from typing import Any
 
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.profile import Profile
 from app.services.account import _uid
-from app.services import privacy
+from app.services import naming, privacy
 
 MAX_RETURNED = 5
 
@@ -74,6 +75,7 @@ async def recall(
     if focus_id is not None:
         query = None
     effective_limit = max(1, min(limit, MAX_RETURNED))
+    nickname = await session.scalar(select(Profile.nickname).where(Profile.id == uid))
     rows = (
         await session.execute(
             _RECALL,
@@ -94,14 +96,15 @@ async def recall(
     include_body = need in {"full", "full_card", "quote"}
     items = []
     for row in rows:
-        body = str(row["content"] or "")
+        body = naming.render(str(row["content"] or ""), nickname)
+        title = naming.render(str(row["title"]), nickname) if row["title"] else None
         items.append(
             {
                 "ref": {"type": "diary", "id": str(row["id"])},
                 "id": str(row["id"]),
                 "kind": row["kind"],
                 "display_date": row["display_date"].isoformat(),
-                "title": row["title"],
+                "title": title,
                 "excerpt": body if include_body else body[:400],
                 "body": body if include_body else None,
                 "weather": row["weather"],

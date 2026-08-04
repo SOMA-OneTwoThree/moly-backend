@@ -153,6 +153,18 @@ def test_recall_queries_apply_suppression_before_ranking() -> None:
     assert memory_sql.index("memory_recall_suppressions") < memory_sql.index("order by")
 
 
+def test_optional_recall_parameters_have_explicit_postgres_types() -> None:
+    diary_sql = str(recall_diaries._RECALL).lower()
+    assert "cast(:embedding as vector(1536))" in diary_sql
+    assert "cast(:query as text)" in diary_sql
+    assert "cast(:from_date as date)" in diary_sql
+    assert "cast(:focus_id as uuid)" in diary_sql
+    for stmt in (recall_memory._FACTS, recall_memory._EPISODES):
+        sql = str(stmt).lower()
+        assert "cast(:from_date as date)" in sql
+        assert "cast(:to_date as date)" in sql
+
+
 def test_episode_read_revalidates_the_original_sha256_contract() -> None:
     body = "전에 힘들다고 말했어"
     assert hashlib.sha256(body.encode()).hexdigest() != hashlib.sha256((body + "!").encode()).hexdigest()

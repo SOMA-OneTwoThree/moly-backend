@@ -3,6 +3,7 @@
 라우터는 커스텀 _IncludedRouter로 등록돼 app.routes에 path가 안 뜨므로, TestClient로 판정한다
 (미등록=404 / 등록=인증 전 단계에서 401 등 404 아님).
 """
+import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings, settings
@@ -15,6 +16,21 @@ def _dev_registered(app) -> bool:
 
 def test_enable_dev_routes_defaults_false():
     assert Settings().enable_dev_routes is False
+
+
+def test_swagger_is_exposed_on_isolated_development_server(monkeypatch):
+    monkeypatch.setattr(settings, "environment", "development")
+    app = create_app()
+    assert app.docs_url == "/docs"
+    assert app.openapi_url == "/openapi.json"
+
+
+@pytest.mark.parametrize("environment", ["staging", "production", "unexpected"])
+def test_swagger_is_hidden_outside_local_and_development(monkeypatch, environment):
+    monkeypatch.setattr(settings, "environment", environment)
+    app = create_app()
+    assert app.docs_url is None
+    assert app.openapi_url is None
 
 
 def test_dev_router_not_registered_by_default(monkeypatch):

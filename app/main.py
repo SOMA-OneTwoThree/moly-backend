@@ -18,13 +18,14 @@ def create_app() -> FastAPI:
     """API 앱 팩토리. 모듈 라우터는 여기서 등록(chat·diary… 는 구현 시 추가)."""
     # 비-local이면 StoreKit 결제/웹훅 설정 강제(누락 시 부팅 실패, 서명검증 우회 방지).
     settings.require_production_ready()
-    _local = settings.environment == "local"
-    # Swagger/OpenAPI는 로컬 전용(개발 테스트용). 프로덕션은 전부 None으로 노출 안 함.
+    # Swagger/OpenAPI는 로컬과 격리된 개발 서버에서만 노출한다. dev는 실제 인증·DB를 붙인
+    # 수동 대화 검증 표면이고, staging/prod/알 수 없는 환경은 계속 fail-closed다.
+    _docs_enabled = settings.environment in {"local", "development"}
     app = FastAPI(
         title=settings.app_name,
-        docs_url="/docs" if _local else None,
+        docs_url="/docs" if _docs_enabled else None,
         redoc_url=None,
-        openapi_url="/openapi.json" if _local else None,
+        openapi_url="/openapi.json" if _docs_enabled else None,
     )
     register_error_handlers(app)
     # 공개(인증 불필요): 헬스체크만. (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)

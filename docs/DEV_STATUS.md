@@ -3,16 +3,17 @@
 > 2026-08-04: 자연스러운 대화에서 일기·기억·루틴·착용 상태를 회상하는 단일 구조를 구현했다.
 > 규범 설계는 `agentic-chat-ARCHITECTURE.md` §0, 구현 계약은
 > `agentic-chat-IMPLEMENTATION.md` §0.7, 물리 구조는 `ERD.md` §7이 소유한다.
-> 이 문서의 상태는 **로컬 구현·회귀 검증 완료, Dev DB/서버 반영 및 E2E 진행 중, Prod 미적용**이다.
+> 이 문서의 상태는 **로컬 구현·회귀 검증 완료, Dev DB/서버 반영 및 E2E 완료, Prod 미적용**이다.
 
 ---
 
-## 🔵 대화·기억 새 구조 — dev 통합 마무리 중 (2026-08-04)
+## ✅ 대화·기억 새 구조 — Dev 구현·검증 완료 (2026-08-04)
 
 런타임 설계는 `ARCHITECTURE.md` §5.2, 데이터 계약은 `ERD.md` §7, HTTP 계약은 `openapi/openapi.yaml`이다.
 PR #90에서 PostgreSQL 정규화 기억·pgvector·관계 프로필·기억 API·일기 검색을 `dev`에 병합했고,
 PR #91에서 `python -m worker.consumer`의 이중 모듈 적재로 실제 registry가 비던 문제를 수정했다.
-현재 로컬 전체 테스트는 **1,078개 통과**다.
+PR #92~#95에서 대화 중심 회상, 기존 사용자 projection 백필, 독립 감사 하드닝과 nullable SQL bind
+수정을 Dev에 반영했다. 현재 로컬 전체 테스트는 **1,090개 통과**다.
 
 ### 현재 런타임 계약
 
@@ -43,14 +44,25 @@ PR #91에서 `python -m worker.consumer`의 이중 모듈 적재로 실제 regis
 
 기억 추출, 관계 프로필 기본 주입, 명시적 `/memory` API에는 별도 legacy mode나 forget 킬스위치가 없다.
 
-### 남은 Dev 적용 작업
+### Dev 완료 근거
 
 1. `20260804_zzz_conversational_recall.sql` 적용 및 제약·RLS 검사 **완료**
-2. 기존 사용자 welcome·episode/diary projection backfill 적용 및 consumer drain
+2. 기존 사용자 welcome·episode/diary projection backfill 적용 및 consumer drain **완료**
 3. Dev 서버 설정(`ENABLE_DEV_ROUTES`, operator allowlist, agent/context 플래그) 반영 및 배포 **완료**
-4. 지정 테스트 사용자로 첫 만남 → 일기 전문/개수 → fact/episode 회상 → 망각 후 비노출 →
-   루틴/장착 snapshot → 멱등 replay를 Swagger/E2E로 확인
+4. 지정 테스트 사용자로 첫 만남 → 일기 전문/개수 → fact/episode 회상 → 루틴/장착 snapshot →
+   멱등 replay를 Swagger/E2E로 확인 **완료**
 5. 기존 dead 기억 잡 원본 보존 replay 및 queue drain **완료**
+
+Dev DB 최종 E2E 표본은 user message 28건/episode 28건, welcome 1건/diary recall document 1건,
+검증된 대화 diary card 1건이며
+누락 vector·활성 recall job·dead recall job·생성 시각 이후 잘못 연결된 provenance·삭제 barrier projection이
+모두 0이다. 망각 비노출은 fact/episode/diary/focus/history 공통 SQL hard-filter와 contract 테스트로
+검증했으며, 지정 사용자의 실제 기억을 파괴하는 E2E forget은 수행하지 않았다.
+
+실제 HTTPS 검증에서 `/dev/recall/diaries`는 welcome 1건의 렌더된 전문, `/dev/recall/memory`는
+검증된 episode 5건을 반환했다. 자연어 “우리 처음 만난 날 일기 기억나? 전문 그대로 보여줘”는
+`diary-reference-v1` 원문 카드를 만들었고 history 재조회에서도 available card로 재수화됐다.
+동일 `Idempotency-Key` 재전송 응답은 field-equivalent JSON이었고, 루틴 2건과 v2 장착 payload도 확인했다.
 
 production은 이 dev 마무리 작업의 대상이 아니며 변경하지 않는다.
 

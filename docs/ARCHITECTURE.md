@@ -276,10 +276,12 @@ sequenceDiagram
 
 상세 회상은 에이전트 읽기 도구가 담당한다.
 
-- `search_memory`: query embedding과 active fact/insight의 cosine 유사도 검색. SQL에서 user scope,
-  terminal status, forget marker를 먼저 hard filter한다.
-- `get_diary`: 특정 날짜의 발행된 일기 한 건을 직접 읽는다.
-- `search_diaries`: 최대 90일 범위의 발행된 일기를 pg_trgm이 받치는 부분문자열 검색으로 찾는다.
+- `recall_memory`: query embedding으로 active fact와 user-message episode를 함께 찾는다. SQL에서 user scope,
+  terminal status, forget marker, exact suppression을 ranking 전에 hard filter하고 정확 발언은 원본 hash를 재검증한다.
+- `recall_diaries`: 날짜 명령이 없어도 의미·부분문자열로 발행 일기를 찾고 존재·개수·제목·발췌·요청된
+  전문을 한 번에 반환한다. welcome placeholder는 egress에서 현재 닉네임으로 렌더한다.
+- `get_routines`: 사용자 현지 날짜의 루틴 상태를 읽는다. 시간·장착 상태는 별도 조회 도구가 아니라
+  매 턴 서버 소유 snapshot으로 기본 제공한다.
 
 일기는 `diaries`가 원본이고 장기기억 추출 소스가 아니다. checkpoint도 Fact가 아니며 원본 대화의
 연속성을 위한 단기 요약일 뿐이다. 그러므로 “일기에 적혀 있다”, “대화 요약에 있다”, “캐피의
@@ -360,6 +362,9 @@ python -m worker  (외부 크론이 15분(:00/:15/:30/:45) 실행 · 같은 이�
 - 일 단위 로직 키 = `activity_date`(로컬 04:00 경계, `core/time_utils`). 토큰·출석·광고·루틴·일기 귀속 전부 이 키 — 리셋 잡 없음(새 행 생성이 곧 리셋).
 - 조정값 이원화: **서버 판정용** = `app_config` 테이블(코드 기본값 폴백, 클라 미노출 — 실키 목록은 ERD §6.2) / **클라 노출용** = Firebase Remote Config(강제 업데이트·점검·낮밤).
 - 장기기억의 authoritative record는 `messages`·`diaries`·domain event다. public의 `memory_facts`·`memory_evidence`는 현재 자동 생성되는 재생성 가능 projection이고, 망각 정책 원본은 marker/closure다. `memory_insights`는 근거·조회·무효화 계약을 갖춘 파생 확장점이지만 현재 자동 생성기는 없다. `memory_facts.embedding vector(1536)`은 검색용 파생값이며 동일 DB 안에서 재색인한다. 모든 행은 `profiles`에 FK/CASCADE로 연결된다.
+- 대화 회상용 `memory_episodic_messages`와 `diary_recall_documents`는 원문을 복제하지 않는 pgvector
+  projection이다. source hash·embedding model·index version·suppression generation을 write fence로 쓰고,
+  terminal 잡 뒤 벡터가 비면 consumer reconciliation이 source version당 최대 3개의 새 repair 잡으로 수렴시킨다.
 
 ---
 

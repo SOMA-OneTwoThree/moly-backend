@@ -15,19 +15,26 @@ from app.services import naming, privacy
 MAX_RETURNED = 5
 
 _RECALL = text("""
-WITH eligible AS (
+WITH params AS (
+  SELECT CAST(:embedding AS vector(1536)) AS embedding,
+         CAST(:query AS text) AS query,
+         CAST(:from_date AS date) AS from_date,
+         CAST(:to_date AS date) AS to_date,
+         CAST(:focus_id AS uuid) AS focus_id
+), eligible AS (
   SELECT d.id,d.kind,d.display_date,d.title,d.content,d.weather,d.published_at,d.first_read_at,
          rd.search_text,
-         CASE WHEN :embedding IS NULL OR rd.embedding IS NULL THEN NULL
-              ELSE 1-(rd.embedding <=> CAST(:embedding AS vector(1536))) END AS similarity
+         CASE WHEN p.embedding IS NULL OR rd.embedding IS NULL THEN NULL
+              ELSE 1-(rd.embedding <=> p.embedding) END AS similarity
   FROM diaries d
   JOIN diary_recall_documents rd ON rd.user_id=d.user_id AND rd.diary_id=d.id
+  CROSS JOIN params p
   WHERE d.user_id=:user_id AND d.record_status='published' AND d.deleted_at IS NULL
     AND d.published_at IS NOT NULL AND d.published_at<=:now
     AND d.kind IN ('welcome','shared_day','capi_day')
-    AND (:from_date IS NULL OR d.display_date>=:from_date)
-    AND (:to_date IS NULL OR d.display_date<=:to_date)
-    AND (:focus_id IS NULL OR d.id=:focus_id)
+    AND (p.from_date IS NULL OR d.display_date>=p.from_date)
+    AND (p.to_date IS NULL OR d.display_date<=p.to_date)
+    AND (p.focus_id IS NULL OR d.id=p.focus_id)
     AND NOT EXISTS (
       SELECT 1 FROM diary_claim_sources s
       JOIN memory_recall_suppressions x
@@ -36,11 +43,11 @@ WITH eligible AS (
     )
 ), ranked AS (
   SELECT *,
-    CASE WHEN :query IS NULL THEN 1.0
-         WHEN search_text ILIKE ('%' || :query || '%') THEN 1.0
+    CASE WHEN p.query IS NULL THEN 1.0
+         WHEN search_text ILIKE ('%' || p.query || '%') THEN 1.0
          ELSE COALESCE(similarity,0.0) END AS score
-  FROM eligible
-  WHERE :query IS NULL OR search_text ILIKE ('%' || :query || '%')
+  FROM eligible CROSS JOIN params p
+  WHERE p.query IS NULL OR search_text ILIKE ('%' || p.query || '%')
         OR COALESCE(similarity,0.0)>=:min_similarity
 )
 SELECT *, count(*) OVER() AS exact_count

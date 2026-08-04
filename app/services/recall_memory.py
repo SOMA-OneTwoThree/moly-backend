@@ -36,8 +36,8 @@ candidates AS (
 )
 SELECT * FROM candidates
 WHERE similarity>=:min_similarity
-  AND (:from_date IS NULL OR event_time::date>=:from_date)
-  AND (:to_date IS NULL OR event_time::date<=:to_date)
+  AND (CAST(:from_date AS date) IS NULL OR event_time::date>=CAST(:from_date AS date))
+  AND (CAST(:to_date AS date) IS NULL OR event_time::date<=CAST(:to_date AS date))
 ORDER BY similarity DESC,importance DESC,confidence DESC,id
 LIMIT :limit
 """)
@@ -60,8 +60,8 @@ candidates AS (
 )
 SELECT * FROM candidates
 WHERE similarity>=:min_similarity
-  AND (:from_date IS NULL OR created_at::date>=:from_date)
-  AND (:to_date IS NULL OR created_at::date<=:to_date)
+  AND (CAST(:from_date AS date) IS NULL OR created_at::date>=CAST(:from_date AS date))
+  AND (CAST(:to_date AS date) IS NULL OR created_at::date<=CAST(:to_date AS date))
 ORDER BY similarity DESC,created_at DESC,message_id DESC
 LIMIT :limit
 """)

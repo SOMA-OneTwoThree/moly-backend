@@ -466,7 +466,7 @@ def test_billable_tokens_equals_chat_billable(model):
 
 
 # =====================================================================================
-# 9) control_intents — shadow 전용
+# 9) control_intents — 호출측 Phase 2 전달 전용
 # =====================================================================================
 CONTROL = {"pin_fact": "pin", "forget_fact": "forget"}
 
@@ -484,7 +484,7 @@ async def test_control_intent_parsed_and_excluded_from_tool_calls(monkeypatch):
     assert step.control_intents == [
         ControlIntent(kind="pin", target_fact_ids=(uuid.UUID(fid),), value="커피")
     ]
-    assert step.tool_calls == []  # control 도구는 실행 대상이 아니다(durable write 미연결)
+    assert step.tool_calls == []  # 이 계층의 실행 대상이 아니며 호출측 Phase 2가 적용한다
 
 
 async def test_control_intents_empty_without_control_tools(monkeypatch):

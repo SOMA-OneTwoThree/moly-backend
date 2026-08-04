@@ -15,7 +15,6 @@ import pytest
 from app.services import chat as chat_service
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services.agent import config as agent_config
 from app.services.agent import runtime as agent_runtime
 from app.services.agent.config import build_snapshot
@@ -434,7 +433,7 @@ async def test_decide_step_intents_are_discarded_even_if_returned(monkeypatch, c
     assert any("control_intent_shadow" in r.getMessage() for r in caplog.records)
 
 
-async def test_final_step_intents_are_shadow_only(monkeypatch, caplog):
+async def test_final_step_intents_are_returned_for_phase2_application(monkeypatch, caplog):
     caplog.set_level(logging.INFO, logger="moly-backend")
     intent = ControlIntent(kind="forget", target_fact_ids=(uuid.uuid4(), uuid.uuid4()))
     registry = _FakeRegistry(_FakeTool(), control={"forget_memory": "forget"})
@@ -442,8 +441,8 @@ async def test_final_step_intents_are_shadow_only(monkeypatch, caplog):
     turn = await _run(fake, registry=registry, monkeypatch=monkeypatch)
 
     assert turn.text == "알았어."
-    assert turn.control_intents == (intent,)  # 관측용으로만 실려 나온다
-    logged = [r.getMessage() for r in caplog.records if "control_intent_shadow" in r.getMessage()]
+    assert turn.control_intents == (intent,)
+    logged = [r.getMessage() for r in caplog.records if "control_intent_observed" in r.getMessage()]
     assert logged and '"stage": "final"' in logged[-1]
     assert '"kind": "forget"' in logged[-1] and '"n_targets": 2' in logged[-1]
     assert str(intent.target_fact_ids[0]) not in logged[-1]  # 대상 id 원문은 남기지 않는다
@@ -536,9 +535,6 @@ async def _post(session, monkeypatch, *, reply="응.", agent=None, snapshot=None
     async def _res(s, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text=reply, input_tokens=10, output_tokens=20, model="gpt-5.6-luna")
 
@@ -546,7 +542,6 @@ async def _post(session, monkeypatch, *, reply="응.", agent=None, snapshot=None
         return snapshot if snapshot is not None else build_snapshot({})
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     monkeypatch.setattr(agent_config, "effective_agent_config", _fake_cfg)
     if agent is not None:
@@ -637,11 +632,8 @@ async def test_config_db_failure_propagates_and_saves_nothing(monkeypatch):
     assert called == [] and session.added == []  # LLM도 저장도 없다(클린 재시도)
 
 
-async def test_control_intents_are_never_persisted(monkeypatch):
-    """shadow 전용 — Phase 2 저장 표면(session.add)에 어떤 형태로도 들어가지 않는다.
-
-    제품 정책(§5 게이트 #5 "기억해줘/잊어줘" 확인 UX)이 미결이라 저장하면 안 된다.
-    """
+async def test_control_intents_are_applied_without_persisting_internal_rows(monkeypatch):
+    """기억 제어는 적용하되 내부 control intent 자체를 메시지로 저장하지 않는다."""
     from app.models.idempotency_key import IdempotencyKey
     from app.models.message import Message
 
@@ -656,7 +648,7 @@ async def test_control_intents_are_never_persisted(monkeypatch):
     snapshot = build_snapshot({"agent_enabled": True, "agent_canary_pct": 100.0})
     out = await _post(session, monkeypatch, agent=_agent, snapshot=snapshot)
 
-    assert out.reply.content == "알았어."
+    assert out.reply.content == "내가 기억하고 있던 것에서는 찾지 못했어."
     # 저장된 건 유저 메시지·캐피 응답·멱등 응답뿐이다(기억 제어 행 없음).
     assert [type(o) for o in session.added] == [Message, Message, IdempotencyKey]
     assert all("forget" not in (m.content or "") for m in session.added if isinstance(m, Message))

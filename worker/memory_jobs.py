@@ -1,4 +1,4 @@
-"""기억 잡 핸들러(W8 2/2) — `memory_extract` → `memory_reconcile` → `relationship_profile_refresh`.
+"""기억 잡 핸들러 — 추출 → 판정 → 임베딩·관계 프로필 투영.
 
 W7 계약 위에서 지키는 것(어기면 조용히 깨진다):
 
@@ -24,13 +24,17 @@ from datetime import datetime, timezone
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import (
     memory_candidates,
     memory_extract,
+    memory_embeddings,
     memory_norm,
     memory_reconcile,
     memory_repo,
+    relationship_profile,
+    relationship_profile_repo,
 )
 from app.services.jobs import ClaimedJob
 from worker import consumer
@@ -42,7 +46,7 @@ _log = logging.getLogger("moly-worker")
 RESULT_OK = "ok"
 RESULT_STALE_GENERATION = "stale_generation"
 RESULT_NO_CANDIDATES = "no_candidates"
-RESULT_PROFILE_REFRESH_PENDING = "profile_refresh_not_implemented"
+RESULT_PROFILE_UNCHANGED = "profile_unchanged"
 
 # 경보 코드(= alert dedup key의 일부).
 ERROR_UNSUPPORTED_VERSION = "unsupported_normalization_version"
@@ -117,11 +121,15 @@ def _parse_source(job: ClaimedJob) -> _Source:
 # ─────────────────────────────────────────────────────────────
 # 공통 게이트 — closure 겹침이 먼저, 그다음 generation(명세의 검사 순서).
 # ─────────────────────────────────────────────────────────────
-async def _load_state(session: AsyncSession, src: _Source) -> _UserState:
-    row = (await session.execute(_STATE_SQL, {"user_id": src.user_id})).first()
+async def _load_user_state(session: AsyncSession, user_id: uuid.UUID) -> _UserState:
+    row = (await session.execute(_STATE_SQL, {"user_id": user_id})).first()
     if row is None:  # 탈퇴 — 처리 의미가 사라졌다(경보 대상 아님)
         raise JobCancelled("user_deleted")
     return _UserState(nickname=row[0], language=row[1], memory_generation=int(row[2]))
+
+
+async def _load_state(session: AsyncSession, src: _Source) -> _UserState:
+    return await _load_user_state(session, src.user_id)
 
 
 async def _skip_reason(
@@ -321,6 +329,12 @@ async def handle_reconcile(job: ClaimedJob) -> JobResult:
                 memory_generation=src.memory_generation,
                 input_revision=result.revision,
             )
+            await memory_repo.enqueue_embedding(
+                session,
+                user_id=src.user_id,
+                memory_generation=src.memory_generation,
+                input_revision=result.revision,
+            )
 
     return JobResult(
         result_code=RESULT_OK,
@@ -330,16 +344,138 @@ async def handle_reconcile(job: ClaimedJob) -> JobResult:
 
 
 # ─────────────────────────────────────────────────────────────
-# 3) relationship_profile_refresh — W9 소관. 지금은 잡 타입·경로만 살려두는 no-op.
+# 3) memory_embed — active 사실의 pgvector 파생 인덱스.
 # ─────────────────────────────────────────────────────────────
+def _parse_profile_job(job: ClaimedJob) -> tuple[uuid.UUID, int, int]:
+    payload = job.payload if isinstance(job.payload, dict) else {}
+    if payload.get("schema_version") != memory_repo.SOURCE_PAYLOAD_SCHEMA_VERSION:
+        raise JobFatal("unsupported_payload_schema")
+    if job.user_id is None:
+        raise JobFatal("invalid_payload")
+    generation = _int_field(payload, "memory_generation")
+    revision = _int_field(payload, "relationship_profile_input_revision")
+    if generation < 0 or revision < 1:
+        raise JobFatal("invalid_payload")
+    return job.user_id, generation, revision
+
+
+async def handle_embed(job: ClaimedJob) -> JobResult:
+    user_id, generation, revision = _parse_profile_job(job)
+    async with get_sessionmaker()() as session:
+        state = await relationship_profile_repo.input_coordinates(session, user_id)
+        if state != (generation, revision):
+            return JobResult(result_code=RESULT_STALE_GENERATION)
+        sources = await memory_repo.load_missing_embeddings(session, user_id)
+    if not sources:
+        return JobResult(result_code=RESULT_OK, result_detail={"embedded": 0})
+    try:
+        vectors: list[list[float]] = []
+        batch_size = settings.memory_embedding_batch_size
+        for start in range(0, len(sources), batch_size):
+            batch = sources[start:start + batch_size]
+            vectors.extend(await memory_embeddings.embed_texts([s.text for s in batch]))
+    except Exception as e:  # noqa: BLE001 — provider/네트워크는 bounded retry
+        raise JobRetry("embedding_failed") from e
+
+    async def _apply(session: AsyncSession) -> None:
+        if await relationship_profile_repo.input_coordinates(session, user_id) != (
+            generation,
+            revision,
+        ):
+            return
+        await memory_repo.write_embeddings(
+            session, user_id, [(source.id, vector) for source, vector in zip(sources, vectors)]
+        )
+
+    return JobResult(
+        result_code=RESULT_OK,
+        result_detail={"embedded": len(sources)},
+        apply_domain=_apply,
+    )
+
+
+# ─────────────────────────────────────────────────────────────
+# 4) relationship_profile_refresh — active 기억을 안정적인 프롬프트 투영으로 publish.
+# ─────────────────────────────────────────────────────────────
+
+
+def _profile_document(
+    sources: list[memory_repo.ProfileSource], nickname: str | None
+) -> relationship_profile.ProfileDocument:
+    """active 기억을 결정적으로 슬롯에 배치한다. 같은 입력은 같은 render_hash를 만든다."""
+    facts = [s for s in sources if s.source_type == relationship_profile.SOURCE_FACT]
+    insights = [s for s in sources if s.source_type == relationship_profile.SOURCE_INSIGHT]
+    recent_kinds = {"event", "emotion"}
+
+    def _item(s: memory_repo.ProfileSource, prefix: str) -> relationship_profile.ProfileItem:
+        return relationship_profile.build_item(
+            item_key=f"{prefix}:{s.id}",
+            text=s.text,
+            source_refs=[{"type": s.source_type, "id": str(s.id)}],
+            nickname=nickname,
+        )
+
+    known = [_item(s, "known") for s in facts if s.kind not in recent_kinds]
+    recent = sorted(
+        (s for s in facts if s.kind in recent_kinds),
+        key=lambda s: (
+            s.event_time is not None,
+            s.event_time or datetime.min.replace(tzinfo=timezone.utc),
+            s.importance,
+        ),
+        reverse=True,
+    )
+    inferred = [_item(s, "inferred") for s in insights]
+    return relationship_profile.build_document(
+        known_facts=known,
+        recent_threads=[_item(s, "recent") for s in recent],
+        inferred_tendencies=inferred,
+    )
+
+
 async def handle_profile_refresh(job: ClaimedJob) -> JobResult:
-    """프로필 생성은 W9가 채운다. payload를 엄격히 검사하지 않는다 — 계약 주인이 W9다."""
-    _log.info("관계 프로필 refresh 스텁(no-op) — job_id=%s", job.id)
-    return JobResult(result_code=RESULT_PROFILE_REFRESH_PENDING)
+    """현재 generation/revision의 active 기억을 읽고 fenced finalize 안에서 publish한다."""
+    user_id, generation, revision = _parse_profile_job(job)
+    async with get_sessionmaker()() as session:
+        state = await _load_user_state(session, user_id)
+        coords = await relationship_profile_repo.input_coordinates(session, user_id)
+        if coords != (generation, revision):
+            return JobResult(result_code=RESULT_STALE_GENERATION)
+        sources = await memory_repo.load_profile_sources(session, user_id)
+    document = _profile_document(sources, state.nickname)
+
+    async def _apply(session: AsyncSession) -> None:
+        if await relationship_profile_repo.input_coordinates(session, user_id) != (
+            generation,
+            revision,
+        ):
+            return
+        draft = await relationship_profile_repo.create_draft(
+            session,
+            user_id=user_id,
+            language=state.language,
+            document=document,
+            nickname=state.nickname,
+        )
+        if draft.status == relationship_profile_repo.RESULT_UNCHANGED:
+            return
+        await relationship_profile_repo.publish(
+            session,
+            user_id=user_id,
+            profile_id=draft.profile_id,
+            locale=None,
+        )
+
+    return JobResult(
+        result_code=RESULT_PROFILE_UNCHANGED if document.is_empty else RESULT_OK,
+        result_detail={"sources": len(sources), "items": len(document.items)},
+        apply_domain=_apply,
+    )
 
 
 # import 시 1회 등록(모듈 캐시 = 중복 등록 없음). consumer가 이 모듈을 지역 import 하는 이유는
 # 순환 import 회피 — 여기서 consumer의 JobResult/JobRetry 계약을 쓰기 때문이다.
 consumer.register(memory_repo.JOB_MEMORY_EXTRACT, handle_extract)
 consumer.register(memory_repo.JOB_MEMORY_RECONCILE, handle_reconcile)
+consumer.register(memory_repo.JOB_MEMORY_EMBED, handle_embed)
 consumer.register(memory_repo.JOB_PROFILE_REFRESH, handle_profile_refresh)

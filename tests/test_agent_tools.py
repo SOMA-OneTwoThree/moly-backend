@@ -69,27 +69,41 @@ def _completion(routine, *, user_id=None, day=TODAY, seq=0):
 # =====================================================================================
 # registry — 무엇이 켜져 있고 무엇이 아닌지
 # =====================================================================================
-def test_registry_exposes_exactly_two_tools():
+def test_registry_exposes_all_read_tools():
     names = [s["function"]["name"] for s in REGISTRY.wire_schemas()]
-    assert names == ["get_diary", "get_routines"]
-    assert set(REGISTRY.input_models()) == {"get_diary", "get_routines"}
+    assert names == ["get_diary", "get_routines", "search_memory", "search_diaries"]
+    assert set(REGISTRY.input_models()) == {
+        "get_diary", "get_routines", "search_memory", "search_diaries", "forget_memory"
+    }
 
 
-def test_search_diaries_is_not_registered():
-    """색인이 없어 날짜 조회만 구현했다 — 켜면 모델이 전문검색이 되는 줄 안다."""
-    assert REGISTRY.get("search_diaries") is None
-    assert "search_diaries" not in [s["function"]["name"] for s in REGISTRY.wire_schemas()]
+def test_search_diaries_is_registered():
+    assert REGISTRY.get("search_diaries") is search_diaries.TOOL
 
 
-def test_search_memory_is_not_registered_before_w8():
-    """W8의 forget hard filter 전에 켜면 잊어달라던 기억이 되살아난다."""
-    assert REGISTRY.get("search_memory") is None
-    assert "search_memory" not in [s["function"]["name"] for s in REGISTRY.wire_schemas()]
+def test_search_memory_is_registered():
+    assert REGISTRY.get("search_memory") is search_memory.TOOL
 
 
-async def test_search_memory_execute_is_not_implemented():
-    with pytest.raises(NotImplementedError):
-        await search_memory.TOOL.run(_ctx(), None, FakeDbSession())
+async def test_search_memory_uses_embedding_and_hard_filtered_repo(monkeypatch):
+    seen = {}
+
+    async def embed(query):
+        seen["query"] = query
+        return [0.1, 0.2]
+
+    async def search(session, user_id, **kwargs):
+        seen["user_id"] = user_id
+        seen.update(kwargs)
+        return []
+
+    monkeypatch.setattr(search_memory.memory_embeddings, "embed_query", embed)
+    monkeypatch.setattr(search_memory.memory_repo, "search_memory", search)
+    out, truncated = await search_memory.TOOL.run(
+        _ctx(), search_memory.SearchMemoryArgs(query="서울"), FakeDbSession()
+    )
+    assert out.items == [] and truncated is False
+    assert seen["query"] == "서울" and seen["user_id"] == U1
 
 
 def test_runtime_picks_up_the_registry():
@@ -112,7 +126,7 @@ def test_wire_schemas_forbid_extra_arguments_and_never_take_user_id():
         params = schema["function"]["parameters"]
         assert params["additionalProperties"] is False
         props = set(params.get("properties", {}))
-        assert props <= {"date"}
+        assert "user_id" not in props
 
 
 def test_registry_rejects_non_ascii_tools():
@@ -508,8 +522,14 @@ async def test_run_turn_executes_the_real_registry_end_to_end(monkeypatch):
     )
 
     assert turn.text == "응, 비 왔었지."
-    assert [s["function"]["name"] for s in seen[0]["tools"]] == ["get_diary", "get_routines"]
-    assert set(seen[0]["input_models"]) == {"get_diary", "get_routines"}
+    assert [s["function"]["name"] for s in seen[0]["tools"]] == [
+        "get_diary", "get_routines", "search_memory", "search_diaries",
+    ]
+    assert set(seen[0]["input_models"]) == {
+        "get_diary", "get_routines", "search_memory", "search_diaries", "forget_memory",
+    }
+    assert [s["function"]["name"] for s in seen[1]["tools"]] == ["forget_memory"]
+    assert seen[1]["tool_choice"] == "auto"
     assert [(r.call_id, r.status) for r in turn.tool_results] == [("c1", "ok")]
     assert turn.tool_results[0].data["diary"]["content"] == "비가 왔다"
     assert session.rolled_back is True  # 도구 세션은 항상 rollback(read-only)

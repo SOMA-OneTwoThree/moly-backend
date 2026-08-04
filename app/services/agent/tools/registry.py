@@ -7,25 +7,48 @@
 |---|---|---|
 | `get_diary` | **등록** | |
 | `get_routines` | **등록** | |
-| `search_diaries` | 미등록 | `diaries`에 검색 색인 없음(title 컬럼조차 없음). 한국어 FTS 방식(tsvector+GIN vs pgvector)은 측정 후 택1 — 그전까지 날짜 조회만 구현 |
-| `search_memory` | 미등록 | W8의 normalized repository + forget hard filter가 전제. 그전에 켜면 유저가 잊어달라고 한 기억이 되살아난다 |
-
-미등록 도구도 `_DISABLED`에 담아 둔다 — 존재를 잊지 않게 하고, "스키마에 새지 않는다"를
-테스트가 이 목록으로 직접 확인할 수 있다.
+| `search_diaries` | **등록** | pg_trgm 검색 |
+| `search_memory` | **등록** | 정규화 저장소 + pgvector + 망각 hard filter |
+| `forget_memory` | **최종 홉만 등록** | 모델 제어 의도를 Phase 2의 원자적 망각 처리로 전달 |
 """
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from app.services.agent.tools import get_diary, get_routines, search_diaries, search_memory
+from app.services.agent.tools import forget_memory, get_diary, get_routines, search_diaries, search_memory
 from app.services.agent.tools.base import BaseTool, wire_schema
 
 # registry에 실제로 올라가는 도구. 순서가 곧 wire 스키마 순서다 —
 # 프리픽스 캐시가 살려면 이 순서가 요청마다 같아야 하므로 tuple로 고정한다.
-_ENABLED: tuple[BaseTool, ...] = (get_diary.TOOL, get_routines.TOOL)
+_ENABLED: tuple[BaseTool, ...] = (
+    get_diary.TOOL,
+    get_routines.TOOL,
+    search_memory.TOOL,
+    search_diaries.TOOL,
+)
 
 # 구현은 있으나 켜지 않는 도구(위 표의 사유). 스키마에도 노출하지 않는다.
-_DISABLED: tuple[BaseTool, ...] = (search_diaries.TOOL, search_memory.TOOL)
+_DISABLED: tuple[BaseTool, ...] = ()
+
+_CONTROL_TOOLS = {forget_memory.NAME: "forget"}
+
+
+def _control_schema() -> dict:
+    schema = forget_memory.ForgetMemoryArgs.model_json_schema()
+    schema.pop("title", None)
+    for prop in schema.get("properties", {}).values():
+        prop.pop("title", None)
+    return {
+        "type": "function",
+        "function": {
+            "name": forget_memory.NAME,
+            "description": forget_memory.DESCRIPTION,
+            "parameters": schema,
+        },
+    }
+
+
+_CONTROL_SCHEMAS = (_control_schema(),)
 
 
 def _check_ascii(tools: Sequence[BaseTool]) -> None:
@@ -51,10 +74,16 @@ class ToolRegistry:
         return self._schemas
 
     def input_models(self) -> Mapping[str, type]:
-        return self._input_models
+        return {**self._input_models, forget_memory.NAME: forget_memory.ForgetMemoryArgs}
 
     def get(self, name: str) -> BaseTool | None:
         return self._tools.get(name)
+
+    def control_tools(self) -> Mapping[str, str]:
+        return _CONTROL_TOOLS
+
+    def control_wire_schemas(self) -> Sequence[dict]:
+        return _CONTROL_SCHEMAS
 
 
 REGISTRY = ToolRegistry(_ENABLED)

@@ -32,6 +32,12 @@ paths:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D
   /diaries/{diary_id}/read:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D~1read
+  /memory:
+    $ref: ./paths/memory.yaml#/~1memory
+  /memory/search:
+    $ref: ./paths/memory.yaml#/~1memory~1search
+  /memory/forget:
+    $ref: ./paths/memory.yaml#/~1memory~1forget
   /wallet:
     $ref: ./paths/economy.yaml#/~1wallet
   /wallet/transactions:
@@ -140,6 +146,20 @@ components:
       $ref: ./components/common.yaml#/schemas/JsonValue
     MessagesResponse:
       $ref: ./components/conversations.yaml#/schemas/MessagesResponse
+    MemoryFactResponse:
+      $ref: ./components/memory.yaml#/schemas/MemoryFactResponse
+    MemoryListResponse:
+      $ref: ./components/memory.yaml#/schemas/MemoryListResponse
+    MemorySearchRequest:
+      $ref: ./components/memory.yaml#/schemas/MemorySearchRequest
+    MemorySearchItem:
+      $ref: ./components/memory.yaml#/schemas/MemorySearchItem
+    MemorySearchResponse:
+      $ref: ./components/memory.yaml#/schemas/MemorySearchResponse
+    MemoryForgetRequest:
+      $ref: ./components/memory.yaml#/schemas/MemoryForgetRequest
+    MemoryForgetResponse:
+      $ref: ./components/memory.yaml#/schemas/MemoryForgetResponse
     PatchRoutineRequest:
       $ref: ./components/routines.yaml#/schemas/PatchRoutineRequest
     PostMessageRequest:
@@ -246,6 +266,8 @@ tags:
   description: 채팅 상태, 이력, 메시지 전송, 선발화
 - name: diary
   description: 발행된 일기 목록, 상세, 읽음 처리
+- name: memory
+  description: 정규화 기억 조회, 의미 검색, 명시적 망각
 - name: economy
   description: 건초 지갑, 원장, 충전소 보상
 - name: routine

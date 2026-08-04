@@ -245,11 +245,11 @@ def test_document_json_round_trips():
 
 
 # ─────────────────────────────────────────────────────────────
-# 프롬프트 블록 — 기본 off(교체 시점은 W10 cutover).
+# 프롬프트 블록 — 단일 정규화 구조에서 기본 on.
 # ─────────────────────────────────────────────────────────────
-def test_profile_block_is_off_by_default():
-    assert prompts.RELATIONSHIP_PROFILE_BLOCK_ENABLED is False
-    assert prompts.relationship_profile_block("[사이]\n본문", "ko") == ""
+def test_profile_block_is_on_by_default():
+    assert prompts.RELATIONSHIP_PROFILE_BLOCK_ENABLED is True
+    assert prompts.relationship_profile_block("[사이]\n본문", "ko").startswith("[기억]")
 
 
 def test_profile_block_header_matches_the_persona_section():

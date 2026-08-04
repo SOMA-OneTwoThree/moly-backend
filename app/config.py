@@ -1,10 +1,7 @@
 import os
 from functools import lru_cache
 
-# mem0 텔레메트리(phone-home) 비활성 — mem0 import 전에 꺼야 적용(telemetry가 import 시 1회 읽음).
-# 과거 moly-llm에서 세션시작 로드 지연(ReadTimeout)의 주원인. infra 명시값 우선(setdefault).
-os.environ.setdefault("MEM0_TELEMETRY", "False")
-
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -91,7 +88,7 @@ class Settings(BaseSettings):
     # 프로필을 키셋 페이지네이션으로 배치 처리(전량 메모리 적재 회피).
     worker_batch_size: int = 200
     # 배치 내 동시 처리 유저 수 상한(세마포어). 기본 1 = 실질 순차(유저별 독립 세션·타임아웃만).
-    # >1로 올리려면 Phase 2 확인 필요(DB 풀 사이즈·pgbouncer 상한·mem0 직렬 이미 반영).
+    # >1로 올리려면 Phase 2 확인 필요(DB 풀 사이즈·pgbouncer 상한 반영).
     worker_max_concurrency: int = 1
     # 유저 1명 처리 상한(초). 외부 API 지연이 배치를 장시간 막지 않게. 초과 시 스킵(다음 틱 재시도).
     worker_user_timeout_s: float = 120.0
@@ -150,30 +147,14 @@ class Settings(BaseSettings):
     # Incoming Webhook URL(/moly/prod/slack-webhook → SLACK_WEBHOOK_URL 환경변수). 비면 no-op.
     slack_webhook_url: str = ""
 
-    # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
+    # --- 정규화 장기기억(OpenAI embedding + 같은 PostgreSQL의 pgvector) ---
     openai_api_key: str = ""
     embedder_model: str = "text-embedding-3-small"
-    memory_llm_model: str = "gpt-4.1-mini"
+    memory_embedding_dimensions: int = Field(default=1536, ge=1)
+    memory_embedding_batch_size: int = Field(default=100, ge=1, le=2048)
+    memory_search_min_similarity: float = Field(default=0.25, ge=-1.0, le=1.0)
     # 대화 모델 A/B 테스트(dev 전용, /dev/chat-eval). OpenAI는 위 키 재사용, Gemini만 별도 키.
     gemini_api_key: str = ""
-    memory_collection: str = "memories"
-    memory_load_top_k: int = 200  # 로드 상한(recency 로컬 랭킹)
-    memory_max_render_items: int = 20  # 프롬프트에 넣을 최대 기억 수
-    # 기억 스냅샷(chat_contexts.memory_text) — 핫패스 mem0 제거 + system[1] 안정(캐시 유지).
-    memory_snapshot_refresh_hours: int = 6   # 이보다 오래면 갱신(mem0 재로드)
-    memory_snapshot_stale_hours: int = 48    # 장애 시 이보다 오래된 스냅샷은 폐기("")
-    memory_orphan_grace_hours: int = 24      # 탈퇴 고아 기억 스위퍼 유예(온보딩 레이스 방어)
-    # "잊어줘" 실행 킬스위치(W10). **기본 off** — 확인 UX·범위가 제품 미결이라(명세 §5 게이트 #5)
-    # 그전까지는 분류만 하고 아무것도 쓰지도 지우지도 않는다. 정책이 정해지면 켜기만 하면 된다.
-    # 켠 뒤에도 normalized 유저에게만 실행된다(legacy 유저에게 성공을 가장하지 않는다).
-    memory_forget_enabled: bool = False
-
-    # 외부 벡터(mem0) 삭제 핸들러가 **워커에 실제로 등록·배포됐는가**를 운영자가 확인한 값.
-    # forget은 삭제 잡을 걸지만 핸들러가 없으면 그 잡은 죽고 mem0 사본이 물리적으로 남는다 —
-    # "지웠다"고 응답해놓고 남는 게 가장 나쁘다. 코드로는 판단할 수 없다(API와 consumer가 다른
-    # 프로세스라 API의 핸들러 레지스트리를 봐도 consumer 상태를 알 수 없다). cutover의
-    # release_inventory_confirmed와 같은 성격의 운영 확인값이다.
-    memory_forget_vector_delete_ready: bool = False
 
     # --- 토큰 한도(임의 기본값, TBD) — app_config에 값이 오면 그게 우선 ---
     # 집계 = LLM 입력+출력 합산(kind='normal'만). 04:00 리셋.

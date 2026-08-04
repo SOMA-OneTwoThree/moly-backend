@@ -10,7 +10,6 @@ from types import SimpleNamespace
 from app.services import chat as chat_service
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services import turn_context as turn_context_module
 from app.services.llm import LLMResult
 from tests.test_chat import FakeSession, _gating
@@ -23,9 +22,6 @@ async def _post(session, monkeypatch, *, reply="응.", capture: dict | None = No
     async def _res(s, user_id):
         return _gating(tokens_used=tokens_used)
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         if capture is not None:
             capture["system"] = system
@@ -33,7 +29,6 @@ async def _post(session, monkeypatch, *, reply="응.", capture: dict | None = No
         return LLMResult(text=reply, input_tokens=10, output_tokens=20)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     req = SimpleNamespace(text="오늘 어땠어?", greeting_id=None)
     return await chat_service.post_message(session, UID, req, "idem-tc")

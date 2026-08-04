@@ -1,16 +1,10 @@
-"""`search_diaries` — **registry 비활성**(구현은 날짜 기반만).
+"""`search_diaries` — 발행된 일기의 날짜 범위·내용 검색.
 
-`diaries`에는 검색 색인이 없다. title 컬럼조차 없어서 지금 `query`로 매칭하려면 전 행 `ILIKE`
-스캔밖에 없고, 한국어 FTS를 어떤 방식(tsvector+GIN vs pgvector)으로 넣을지는 **측정 후 택1**이다.
-그때까지는 날짜 기반 조회만 구현해 두고 registry에 올리지 않는다(명세 W6).
-
-`query` 인자는 스키마에 남겨두되 매칭에 쓰지 않는다 — 색인이 생기면 이 파일의 `run()` 안쪽만
-바뀌고 인자·반환 계약은 그대로여서, 켜는 시점에 모델이 보는 표면이 흔들리지 않는다.
+한국어 형태소 사전에 의존하지 않는 pg_trgm GIN 인덱스로 부분문자열을 찾는다.
 """
 from __future__ import annotations
 
 import datetime as dt
-import logging
 
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -19,8 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.diary import Diary
 from app.services.agent.runtime import ToolContext
 from app.services.agent.tools.base import BaseTool, InvalidArguments, ToolArgs, clip
-
-_log = logging.getLogger("moly-backend")
 
 MAX_ROWS = 5
 MAX_EXCERPT_CHARS = 400
@@ -64,22 +56,21 @@ class SearchDiariesTool(BaseTool):
             raise InvalidArguments("from_after_to")
         if (to - frm).days + 1 > WINDOW_DAYS:
             raise InvalidArguments("window_too_wide")
-        if args.query:
-            # 색인이 없어 매칭에 쓰지 않는다. 켜기 전이라 경보가 아니라 관측용 로그다.
-            _log.info("search_diaries: query 인자 무시(색인 미도입) len=%d", len(args.query))
-
         now = dt.datetime.now(dt.timezone.utc)
+        filters = [
+            Diary.user_id == ctx.user_id,
+            Diary.published_at.is_not(None),
+            Diary.published_at <= now,
+            Diary.diary_date >= frm,
+            Diary.diary_date <= to,
+        ]
+        if args.query:
+            filters.append(Diary.content.ilike(f"%{args.query}%"))
         rows = list(
             (
                 await session.execute(
                     select(Diary)
-                    .where(
-                        Diary.user_id == ctx.user_id,  # 서버 주입
-                        Diary.published_at.is_not(None),
-                        Diary.published_at <= now,
-                        Diary.diary_date >= frm,
-                        Diary.diary_date <= to,
-                    )
+                    .where(*filters)
                     .order_by(Diary.diary_date.desc(), Diary.id)
                     .limit(MAX_ROWS + 1)
                 )

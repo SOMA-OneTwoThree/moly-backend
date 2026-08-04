@@ -1,6 +1,6 @@
 """memory_facts / memory_evidence / memory_insights / memory_insight_sources / memory_forget_markers.
 
-정규화 기억(W8)의 사실·근거·통찰·망각 마커. 자유문 mem0와 달리 **턴 단위 구조화 사실**이고
+정규화 기억의 사실·근거·통찰·망각 마커. **턴 단위 구조화 사실**이고
 판정(ADD/REINFORCE/SUPERSEDE/KEEP_BOTH/IGNORE)은 LLM이 아니라 코드가 한다
 (`app/services/memory_reconcile.py`). SQL·불변식은 `app/services/memory_repo.py`.
 

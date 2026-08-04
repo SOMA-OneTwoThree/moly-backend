@@ -128,8 +128,8 @@ async def has_closed_messages(
 
     ⚠️ **매핑이 없는 메시지도 닫힌 것으로 본다**(그 유저에게 closure가 하나라도 있을 때).
     이 조회는 `memory_source_turn_messages`에서 출발하는 join이라, watermark 매핑이 없는
-    메시지는 join에 안 걸려 "안전"으로 보인다 — 그런 메시지는 실제로 생긴다(Phase 1이 legacy를
-    읽은 뒤 cutover되고 Phase 2가 도는 턴). 잊기를 한 유저에게 정체를 모르는 메시지를
+    메시지는 join에 안 걸려 "안전"으로 보인다 — 이관 중 일부만 매핑된 메시지에서 생길 수 있다.
+    잊기를 한 유저에게 정체를 모르는 메시지를
     "안전"으로 넘기면 잊은 내용이 요약으로 들어간다. 모르면 닫힌 쪽으로 센다.
     """
     ids = list(dict.fromkeys(message_ids))

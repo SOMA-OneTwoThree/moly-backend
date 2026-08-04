@@ -20,8 +20,8 @@
 - **원문 미로깅**: 대화·일기 원문을 로그에 남기지 않는다 — 테이블·건수만.
 - **per-user 로드**: 전량 적재(OOM) 대신 유저 단위로 조회·커밋한다.
 
-관계형 4표면: messages.content · greetings.content · diaries.content · chat_contexts.memory_text.
-mem0(벡터스토어)는 텍스트 UPDATE가 부적절 → delete_all 후 재추출이 별도(③b). 이 스크립트는 4표면만.
+관계형 3표면: messages.content · greetings.content · diaries.content.
+정규화 기억은 이 원본을 다시 추출하며 저장 직전 placeholder 변환도 재적용한다.
 """
 from __future__ import annotations
 
@@ -33,19 +33,17 @@ from sqlalchemy import inspect as sa_inspect
 from sqlalchemy import select, update
 
 from app.core.db import get_sessionmaker
-from app.models.chat_context import ChatContext
 from app.models.diary import Diary
 from app.models.greeting import Greeting
 from app.models.message import Message
 from app.models.profile import Profile
 from app.services import naming
 
-# (모델, 텍스트 컬럼) — 관계형 4표면. 모두 user_id로 스코프된다.
+# (모델, 텍스트 컬럼) — 관계형 3표면. 모두 user_id로 스코프된다.
 _TARGETS = (
     (Message, "content"),
     (Greeting, "content"),
     (Diary, "content"),
-    (ChatContext, "memory_text"),
 )
 
 
@@ -91,8 +89,6 @@ async def run(user_id: str | None, *, execute: bool) -> None:
         print(f"[{tbl}] {verb} {n}행")
     if execute and raced:
         print(f"⚠️ CAS 실패(백필 중 라이브 변경) {raced}건 — 백필 창에 쓰기 정지 후 재실행 권장")
-    if execute:
-        print("※ mem0(벡터스토어)는 별도 처리 필요 — delete_all 후 재추출(③b, 이 스크립트 범위 밖).")
 
 
 def main() -> None:

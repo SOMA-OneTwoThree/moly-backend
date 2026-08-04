@@ -13,7 +13,7 @@ from app.models.message import Message
 from app.services import chat as chat_service
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import memory as memory_module
+from app.services import relationship_profile, relationship_profile_repo
 from app.services.gating import Gating
 from app.services.llm import LLMResult
 
@@ -104,13 +104,9 @@ def _gating(**over):
 
 @pytest.fixture
 def patched(monkeypatch):
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="그냥 그랬어.", input_tokens=10, output_tokens=20)
 
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
 
 
@@ -135,14 +131,10 @@ async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
     async def _res(session, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="지훈아 반가워.", input_tokens=10, output_tokens=20)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     session = FakeSession()
     req = SimpleNamespace(text="나는 지훈이야", greeting_id=None)
@@ -181,10 +173,10 @@ async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patche
     assert out.review_prompt is True
 
 
-async def test_post_message_survives_mem0_outage(monkeypatch):
-    # mem0 장애(MemoryUnavailable)가 채팅을 500으로 막지 않아야 함
-    async def _boom(user_id):
-        raise memory_module.MemoryUnavailable("pgvector down")
+async def test_post_message_survives_corrupt_relationship_profile(monkeypatch):
+    # 저장된 projection 문서가 손상돼도 과거 사본으로 폴백하지 않고 빈 기억으로 대화한다.
+    async def _boom(session, *, user_id, language):
+        raise relationship_profile.DocumentSchemaError("bad projection")
 
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="응 그래.", input_tokens=10, output_tokens=20)
@@ -192,7 +184,7 @@ async def test_post_message_survives_mem0_outage(monkeypatch):
     async def _res(session, user_id):
         return _gating()
 
-    monkeypatch.setattr(memory_module, "load_for_context", _boom)
+    monkeypatch.setattr(relationship_profile_repo, "prompt_text", _boom)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     monkeypatch.setattr(gating_module, "resolve", _res)
     req = SimpleNamespace(text="안녕", greeting_id=None)
@@ -251,14 +243,10 @@ async def test_post_message_llm_failure_persists_nothing(monkeypatch):
     async def _res(session, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _boom(*a, **k):
         raise RuntimeError("LLM down")
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _boom)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)

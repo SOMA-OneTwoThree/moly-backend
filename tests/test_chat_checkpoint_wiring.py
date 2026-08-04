@@ -21,7 +21,6 @@ from app.services import chat as chat_service
 from app.services import checkpoint, checkpoint_repo
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services.llm import LLMResult
 from tests.test_chat import UID, FakeSession, _gating
 from tests.test_chat import _Result
@@ -95,15 +94,11 @@ async def _post(session, monkeypatch, spy, *, key="idem-w11"):
     async def _res(s, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         spy["systems"].append(system)
         return LLMResult(text="그랬구나.", input_tokens=10, output_tokens=20)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     req = SimpleNamespace(text="오늘 이사했어.", greeting_id=None)
     return await chat_service.post_message(session, UID, req, key)

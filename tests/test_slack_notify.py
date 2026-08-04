@@ -9,11 +9,10 @@ from worker.tick import _build_summary
 _URL = "https://hooks.slack.com/services/test"
 _COUNTS_OK = {
     "diaries": 42, "diary_llm": 30, "diary_preset": 12, "diary_none": 5, "diary_failed": 0,
-    "memory_ok": 30, "memory_failed": 0,
     "morning": 38, "evening": 0,
     "diary_attempted": 42, "users": 50,
 }
-_COUNTS_FAIL = {**_COUNTS_OK, "diary_failed": 2, "memory_failed": 4}
+_COUNTS_FAIL = {**_COUNTS_OK, "diary_failed": 2}
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +97,7 @@ def test_build_summary_no_failures():
     assert "개인 30" in msg
     assert "프리셋 12" in msg
     assert "미발행 5" in msg   # tombstone(사용자 노출 X, SOMA-389)
-    assert "성공 30" in msg
+    assert "상주 consumer" in msg
     assert "아침 38건" in msg
     assert "전체 유저 50명" in msg
     assert "45.3s" in msg
@@ -124,4 +123,3 @@ def test_build_summary_with_failures():
     msg = _build_summary(_NOW, _COUNTS_FAIL, elapsed=10.0)
     assert msg.startswith("⚠️ [워커 요약]")
     assert "실패 ⚠️ 2건" in msg   # diary_failed
-    assert "⚠️ 4" in msg          # memory_failed

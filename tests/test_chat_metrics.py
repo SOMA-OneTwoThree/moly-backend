@@ -6,14 +6,13 @@ from types import SimpleNamespace
 from app.services import chat as chat_service
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services.llm import LLMResult
 from tests.test_chat import FakeSession, _gating
 
 UID = "11111111-1111-1111-1111-111111111111"
 
 _REQUIRED_FIELDS = (
-    "replay", "total_ms", "phase1_ms", "memory_reload_ms", "llm_ms", "repair_ms",
+    "replay", "total_ms", "phase1_ms", "llm_ms", "repair_ms",
     "egress_ms", "phase2_ms", "prompt_tokens", "cache_read_tokens", "cache_write_tokens",
     "cache_read_ratio", "billable", "lang", "used_tools", "context_ms",
 )
@@ -30,14 +29,10 @@ async def test_turn_metrics_logs_all_required_fields(monkeypatch, caplog):
     async def _res(session, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="그냥 그랬어.", input_tokens=10, output_tokens=20, cache_read_tokens=30)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
 
     caplog.set_level(logging.INFO, logger="moly-backend")
@@ -57,7 +52,7 @@ async def test_turn_metrics_logs_all_required_fields(monkeypatch, caplog):
     assert payload["cache_read_tokens"] == 30
     assert payload["cache_read_ratio"] == 30 / 40
     # monotonic 구간 — 전부 음수 아님, total이 각 구간 합보다 작지 않음
-    for k in ("phase1_ms", "memory_reload_ms", "llm_ms", "repair_ms", "egress_ms", "phase2_ms"):
+    for k in ("phase1_ms", "llm_ms", "repair_ms", "egress_ms", "phase2_ms"):
         assert payload[k] is not None and payload[k] >= 0
     assert payload["total_ms"] >= payload["phase1_ms"]
 
@@ -67,14 +62,10 @@ async def test_turn_metrics_cache_read_ratio_null_when_no_prompt_tokens(monkeypa
     async def _res(session, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="응.", input_tokens=0, output_tokens=5, cache_read_tokens=0, cache_write_tokens=0)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
 
     caplog.set_level(logging.INFO, logger="moly-backend")
@@ -112,9 +103,6 @@ async def test_post_message_survives_metrics_log_failure(monkeypatch, caplog):
     async def _res(session, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="응 그래.", input_tokens=10, output_tokens=20)
 
@@ -122,7 +110,6 @@ async def test_post_message_survives_metrics_log_failure(monkeypatch, caplog):
         raise RuntimeError("로그 핸들러 고장")
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     monkeypatch.setattr(chat_service._log, "info", _boom_info)
 

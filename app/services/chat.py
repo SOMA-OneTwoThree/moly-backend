@@ -33,9 +33,12 @@ from app.services import (
     greetings,
     i18n,
     llm,
-    memory,
     memory_repo,
+    memory_forget,
     naming,
+    prompts,
+    relationship_profile,
+    relationship_profile_repo,
     text_clean,
     turn_context,
 )
@@ -274,96 +277,23 @@ async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> No
     await session.execute(stmt)
 
 
-async def _save_memory(session: AsyncSession, uid: uuid.UUID, text_: str, now: datetime) -> None:
-    """기억 스냅샷 갱신 — **legacy 유저만**, memory 컬럼만(앵커 클로버 금지).
-
-    mode 분기는 저장소의 SQL(`WHERE memory_mode='legacy'`)이 한다. 여기서 mode를 먼저 읽어
-    분기하면 그 사이 cutover가 끼어든다(read-then-write 레이스). 마지막 방어선은
-    `chat_contexts_normalized_snapshot_guard` 트리거다 — 구버전 코드는 mode를 아예 모른다.
-    """
-    await memory_repo.save_legacy_snapshot(session, uid, memory_text=text_, refreshed_at=now)
-
-
-def _snapshot_state(refreshed_at: datetime | None, now: datetime) -> tuple[bool, float | None]:
-    """기억 스냅샷 판정(순수) → (need_refresh, age_h). age_h는 refreshed_at 없으면 None.
-
-    need_refresh = 스냅샷 없음 or 6h 초과. 외부 mem0 호출 없이 판정만 한다(락/커넥션 구간에서
-    안전하게 쓰려고 분리). 실제 재로드·장애 폴백은 호출측이 커밋 밖에서 수행한다.
-    """
-    if refreshed_at is None:
-        return True, None
-    age_h = (now - refreshed_at).total_seconds() / 3600
-    return age_h >= settings.memory_snapshot_refresh_hours, age_h
-
-
-async def _reload_memory(
-    uid: uuid.UUID, prev: str | None, age_h: float | None, *, mode: str = memory.MODE_LEGACY
-) -> tuple[str, str | None]:
-    """mem0 재로드 + 4분기 판정 → (mem, new_snapshot). new_snapshot=None이면 저장 스킵.
-
-    외부 호출(mem0)만 하고 DB는 안 건드린다 — 커밋 밖(락/커넥션 미보유 구간)에서 호출한다.
-    _resolve_memory와 post_message가 공유하는 단일 로직(4분기 drift 방지):
-    - 장애+최근스냅샷 → prev 재사용(미저장) / 장애+없음·초과 → "" / 빈성공+prev → prev 유지(미저장) /
-      그 외(비어있지 않은 성공, 또는 빈성공+prev없음) → fresh 저장.
-
-    **위 4분기는 legacy 전용이다.** `normalized` 유저는 mem0를 호출조차 하지 않고 ("", None)이다 —
-    빈 결과는 빈 기억이고 legacy 문자열로 폴백하지 않는다(명세 §W10 step 6). 폴백하면 "장애+최근
-    스냅샷 재사용"·"빈 성공+prev 유지" 두 분기가 곧 mem0 사본 부활 경로가 된다(forget으로 지운
-    내용이 프롬프트로 되돌아온다). 호출측도 mode로 이 함수를 건너뛰지만, 방어선을 여기 한 번 더 둔다.
-    """
-    if mode == memory.MODE_NORMALIZED:
-        return "", None
-    try:
-        # mode를 넘기지 않는다 — 두 줄 위 가드가 normalized를 이미 걸러 이 호출은 legacy에서만
-        # 도달한다. load_for_context 자체의 mode 게이트는 다른 호출자(워커)를 위한 것이다.
-        fresh = await memory.load_for_context(str(uid))
-    except memory.MemoryUnavailable:
-        if prev and age_h is not None and age_h < settings.memory_snapshot_stale_hours:
-            return prev, None  # 장애 — 최근 스냅샷 재사용
-        return "", None  # 장애 + 스냅샷 없음/너무 오래됨
-    if not fresh and prev:
-        return prev, None  # 빈 성공이 좋은 스냅샷을 덮지 않게(다음 턴 재시도) — 갱신 스킵
-    return fresh, fresh  # 저장 대상(빈 성공+prev없음이면 "")
-
-
-async def _resolve_memory(
-    session: AsyncSession,
-    uid: uuid.UUID,
-    ctx: ChatContext | None,
-    now: datetime,
-    *,
-    mode: str = memory.MODE_LEGACY,
-) -> str:
-    """기억 텍스트 해결 — 신선한 스냅샷이면 그대로(핫패스 mem0 없음 + system[1] 안정→캐시 유지).
-
-    오래됐으면 mem0 1회 재로드(6h당 1회 수준). 장애면 스냅샷 재사용(48h), 초과면 "".
-    성공-빈결과가 기존 non-empty 스냅샷을 단발로 덮지 않게 함(전이 위장 방어).
-
-    (post_message는 락/커넥션을 쥐지 않으려고 _snapshot_state + _reload_memory로 커밋 밖에서
-    분리 수행한다. 이 함수는 동일 로직을 트랜잭션 안에서 쓰는 단일 진입점 — 재로드분을 즉시 저장한다.)
-
-    `normalized` 유저는 mem0도 스냅샷도 읽지 않고 항상 ""다(§W10 step 6, 폴백 금지).
-    """
-    if mode == memory.MODE_NORMALIZED:
-        return ""
-    refreshed = ctx.memory_refreshed_at if ctx is not None else None
-    prev = ctx.memory_text if ctx is not None else None
-    need_refresh, age_h = _snapshot_state(refreshed, now)
-    if not need_refresh:
-        return prev or ""  # 신선 → 그대로
-    mem, new_snapshot = await _reload_memory(uid, prev, age_h, mode=mode)
-    if new_snapshot is not None:
-        await _save_memory(session, uid, new_snapshot, now)
-    return mem
+async def _touch_last_active(session: AsyncSession, uid: uuid.UUID, now: datetime) -> None:
+    """이번 턴 확정 시각을 저장한다. Phase 1은 이 쓰기 전 값을 읽으므로 직전 방문을 본다."""
+    stmt = pg_insert(ChatContext).values(user_id=uid, last_active_at=now)
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["user_id"],
+        set_={"last_active_at": now, "updated_at": func.now()},
+    )
+    await session.execute(stmt)
 
 
 def _build_system(
     language: str,
     nickname: str | None,
-    mem: str,
     lead: list[str] | None = None,
     *,
     summary: str = "",
+    relationship_text: str = "",
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
     뒤 블록이 바뀌어도 페르소나 캐시 생존.
@@ -392,8 +322,12 @@ def _build_system(
             "같은 인사를 또 하지 마.\n"
             f"{said}"
         )
-    if mem:
-        parts.append(f"[기억]\n{naming.render(mem, nickname)}")
+    if relationship_text:
+        block = prompts.relationship_profile_block(
+            naming.render(relationship_text, nickname), language, enabled=True
+        )
+        if block:
+            parts.append(block)
     if summary:
         # 대화 배열에는 앵커 이후만 남는다 — 그 앞 이야기는 이 요약이 대신한다(placeholder 저장분이라
         # 투입 전 현재 이름 렌더). 기억([기억])은 오래 남는 사실, 여기는 최근 대화의 줄거리다.
@@ -596,12 +530,11 @@ async def _record_memory_source(
     session: AsyncSession,
     uid: uuid.UUID,
     *,
-    memory_mode: str,
     representative_message_id: int,
     message_ids: list[int],
     now: datetime,
 ) -> None:
-    """이 턴의 watermark를 배정하고 추출 잡을 건다 — **legacy 유저는 진입 자체가 no-op**이다.
+    """이 턴의 watermark를 배정하고 정규화 기억 추출 잡을 건다.
 
     호출 위치가 계약이다: 유저·캐피 메시지를 insert한 **같은 Phase 2 트랜잭션·같은 유저락 안**,
     커밋 전. 그래야 `memory_source_turns`/`memory_source_turn_messages`/`async_jobs` 행이 메시지와
@@ -617,8 +550,6 @@ async def _record_memory_source(
       알 수 없는 곳에서 실패한다. 올리면 이번 턴 전체가 롤백되고(저장 0) 클라가 같은 멱등키로
       깨끗이 재시도한다.
     """
-    if memory_mode != memory.MODE_NORMALIZED:
-        return
     try:
         turn = await memory_repo.allocate_source_turn(
             session,
@@ -712,7 +643,7 @@ async def post_message(
     """2단계 상태머신(SOMA-374) — LLM 호출 구간에 DB 트랜잭션/유저 락을 쥐지 않는다.
 
     Phase 1(짧은 txn+유저락, **DB 쓰기 없음**): 멱등 확인 → 게이팅 → 컨텍스트/기억 스냅샷 읽기 →
-    프롬프트 조립 → 커밋(락·커넥션 해제). Phase 사이(커넥션 없음): mem0 재로드(필요 시)·LLM·백스톱.
+    프롬프트 조립 → 커밋(락·커넥션 해제). Phase 사이(커넥션 없음): LLM·백스톱.
     Phase 2(짧은 txn+유저락 재획득): 선발화·유저메시지·응답 커밋 + 토큰 누적 + 멱등응답 저장.
 
     Phase 1이 read-only라 LLM 실패/타임아웃 시 저장된 게 없어 클린 재시도된다(예약 누수·고아 없음).
@@ -733,7 +664,7 @@ async def post_message(
         # LLM을 안 태운 순수 replay라 나머지 구간 지표는 없음(집계 오염 방지 — replay=True로 분리).
         _emit_turn_metrics(
             replay=True, total_ms=_ms(t0, time.monotonic()),
-            phase1_ms=None, memory_reload_ms=None, llm_ms=None, repair_ms=None,
+            phase1_ms=None, llm_ms=None, repair_ms=None,
             egress_ms=None, phase2_ms=None, prompt_tokens=None, cache_read_tokens=None,
             cache_write_tokens=None, cache_read_ratio=None, billable=None, lang=None,
             used_tools=None, context_ms=None,
@@ -764,14 +695,19 @@ async def post_message(
     if not isinstance(limit, int):  # fail-closed(위 게이트와 동일 근거)
         limit = settings.daily_token_limit_free
 
-    ctx = await session.get(ChatContext, uid)  # 앵커+스냅샷 1회 로드
+    ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
-    prev_snapshot = ctx.memory_text if ctx is not None else None
-    refreshed_at = ctx.memory_refreshed_at if ctx is not None else None
-    # 정규화 기억(W8) 게이트 — 이미 읽은 행에서 꺼낸다(추가 조회 0). 기본값 legacy라 현재 전 유저는
-    # Phase 2에서 아무 일도 일어나지 않는다. Phase 1↔2 사이에 cutover가 끼면 그 한 턴만 watermark를
-    # 못 받는데(다음 턴부터 정상), 반대로 여기서 다시 읽어도 커밋 시점 값을 보장하진 못한다.
-    memory_mode = ctx.memory_mode if ctx is not None else memory.MODE_LEGACY
+
+    # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가
+    # active fact/insight와 forget marker를 매번 재대조한다. 재생성 지연 중에도 잊은 내용이
+    # 프롬프트로 돌아오지 않는다. 손상된 projection은 과거 사본으로 폴백하지 않고 빈 기억으로 간다.
+    relationship_text = ""
+    try:
+        relationship_text = await relationship_profile_repo.prompt_text(
+            session, user_id=uid, language=language
+        )
+    except relationship_profile.ProfileError:
+        _log.warning("관계 프로필 문서 손상(user=%s) — 빈 기억으로 진행", user_id, exc_info=True)
 
     # 대화 요약 checkpoint(W11) — 앵커 앞 구간을 대신하는 줄거리. 킬스위치 off면 조회 자체를 안 한다
     # (기존과 완전 동일). 앵커는 항상 `through + 1`이라(리셋이 요약 경계를 정한다) 여기서 읽은
@@ -832,32 +768,19 @@ async def post_message(
     for c in convo:
         c["content"] = naming.render(c["content"], nick)
 
-    need_refresh, age_h = _snapshot_state(refreshed_at, now)  # 외부 호출 없이 판정만
-
     await session.commit()  # 락·커넥션 해제 — 이후 LLM 구간엔 커넥션 점유 0
     t_phase1 = time.monotonic()
     phase1_ms = _ms(t0, t_phase1)
 
-    # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — 기억 재로드 + LLM + 백스톱 =====
-    # 기억 스냅샷 재해결(_resolve_memory와 공유하는 _reload_memory, 커밋 밖에서). None이면 미저장.
-    #
-    # normalized 유저(W10 cutover 완료)는 **mem0를 읽지도 주입하지도 않는다**. 스냅샷 컬럼은
-    # 트리거가 NULL로 강제하므로 need_refresh가 매 턴 참이 되는데, 그때 재로드하면 그게 곧
-    # legacy 문자열 폴백이다(명세 §W10 step 6에서 금지 — 장애·빈 성공·프로필 미생성 어느 경우도
-    # mem0/legacy로 내려가지 않는다). 빈 기억으로 fail-open한다. 정규화 기억의 주입 경로는 관계
-    # 프로필(W9)이고 아직 배선 전이라 지금 normalized 유저의 기억 블록은 빈 문자열이 정상이다 —
-    # 잊어달라고 한 내용을 mem0 사본에서 되살리느니 비는 편이 맞다.
-    normalized_memory = memory_mode == memory.MODE_NORMALIZED
-    mem = "" if normalized_memory else (prev_snapshot or "")
-    new_snapshot: str | None = None
-    memory_reload_ms = 0.0
-    if need_refresh and not normalized_memory:
-        t_mem0 = time.monotonic()
-        mem, new_snapshot = await _reload_memory(uid, prev_snapshot, age_h, mode=memory_mode)
-        memory_reload_ms = _ms(t_mem0, time.monotonic())
-
+    # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — LLM + 백스톱 =====
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
-    system = _build_system(language, nick, mem, lead_all, summary=checkpoint_summary)
+    system = _build_system(
+        language,
+        nick,
+        lead_all,
+        summary=checkpoint_summary,
+        relationship_text=relationship_text,
+    )
 
     # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
@@ -904,6 +827,15 @@ async def post_message(
         list(agent_turn.calls) if agent_turn is not None else [_llm_call(result, "chat")]
     )
     reply_text = agent_turn.text if agent_turn is not None else result.text
+    if agent_turn is not None and agent_turn.control_intents and not reply_text:
+        reply_text = i18n.pick(
+            {
+                "ko": "알겠어. 내가 기억하고 있던 것에서 지울게.",
+                "en": "Okay. I'll remove that from what I remember.",
+                "ja": "わかった。ぼくが覚えていたことから消すね。",
+            },
+            language,
+        )
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
     if is_ko:
         # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.
@@ -964,7 +896,7 @@ async def post_message(
         # 정상 턴 집계를 오염시키지 않되, 실비용(usage)은 관측용으로 남긴다.
         _emit_turn_metrics(
             replay=True, total_ms=_ms(t0, time.monotonic()),
-            phase1_ms=phase1_ms, memory_reload_ms=memory_reload_ms, llm_ms=llm_ms,
+            phase1_ms=phase1_ms, llm_ms=llm_ms,
             repair_ms=repair_ms, egress_ms=egress_ms, phase2_ms=_ms(t_phase2_0, time.monotonic()),
             prompt_tokens=prompt_tokens, cache_read_tokens=usage_totals["cache_read_tokens"],
             cache_write_tokens=usage_totals["cache_write_tokens"], cache_read_ratio=cache_read_ratio,
@@ -972,6 +904,27 @@ async def post_message(
             context_ms=context_ms,
         )
         return validated_dup
+
+    forget_results = []
+    if agent_turn is not None:
+        for intent in agent_turn.control_intents:
+            request = memory_forget.classify(intent)
+            if request is not None:
+                forget_results.append(
+                    await memory_forget.apply(session, user_id=uid, request=request)
+                )
+    if forget_results and not any(r.wrote_anything for r in forget_results):
+        reply_stored = naming.to_placeholder(
+            i18n.pick(
+                {
+                    "ko": "내가 기억하고 있던 것에서는 찾지 못했어.",
+                    "en": "I couldn't find that in what I remembered.",
+                    "ja": "ぼくが覚えていたことからは見つけられなかった。",
+                },
+                language,
+            ),
+            nick,
+        )
 
     # 선발화 커밋(재조회 — 여전히 유효하면). id 순서 위해 유저 메시지보다 먼저 insert.
     greeting_dto = None
@@ -1008,8 +961,6 @@ async def post_message(
 
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — phase 2 원자
-    if new_snapshot is not None:
-        await _save_memory(session, uid, new_snapshot, now)  # 재로드분 저장(원본 now)
 
     # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷) — 턴 내 모든 호출의 합계를 남긴다.
     rmsg = Message(
@@ -1024,15 +975,15 @@ async def post_message(
     session.add(rmsg)
     await session.flush()
 
-    # 정규화 기억(W8) — 이 턴의 소스 turn 배정 + 추출 잡. legacy 유저는 no-op(현재 전 유저).
+    # 정규화 기억 — 이 턴의 소스 turn 배정 + 추출 잡.
     # 이 턴에 커밋된 선발화도 같은 watermark에 묶는다(그 인사도 이 대화의 근거다).
     await _record_memory_source(
         session, uid,
-        memory_mode=memory_mode,
         representative_message_id=umsg.id,
         message_ids=[i for i in (greeting_message_id, umsg.id, rmsg.id) if i is not None],
         now=now,
     )
+    await _touch_last_active(session, uid, now)
 
     # 대화 요약 checkpoint(W11) — 리셋이 일어난 턴에만, 앵커 저장과 같은 트랜잭션에서 잡을 건다.
     # 킬스위치 off면 no-op(현재 전 유저).
@@ -1073,7 +1024,7 @@ async def post_message(
     t_end = time.monotonic()
     _emit_turn_metrics(
         replay=False, total_ms=_ms(t0, t_end),
-        phase1_ms=phase1_ms, memory_reload_ms=memory_reload_ms, llm_ms=llm_ms,
+        phase1_ms=phase1_ms, llm_ms=llm_ms,
         repair_ms=repair_ms, egress_ms=egress_ms, phase2_ms=_ms(t_phase2_0, t_end),
         prompt_tokens=prompt_tokens, cache_read_tokens=usage_totals["cache_read_tokens"],
         cache_write_tokens=usage_totals["cache_write_tokens"], cache_read_ratio=cache_read_ratio,

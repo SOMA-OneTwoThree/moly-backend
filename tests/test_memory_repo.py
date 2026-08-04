@@ -328,6 +328,20 @@ async def test_stored_natural_language_is_masked_at_write_time():
     assert "승민" not in stored and "{유저이름}" in stored
 
 
+def test_vector_search_is_user_scoped_and_hard_filters_forgotten_sources():
+    sql = _sql(repo._SEARCH_MEMORY_SQL)
+    assert "f.user_id=:user_id" in sql
+    assert "i.user_id=:user_id" in sql
+    assert "memory_forget_markers" in sql
+    assert "f.status='active'" in sql and "i.status='active'" in sql
+
+
+def test_embedding_write_cannot_restore_forgotten_or_marked_fact():
+    sql = _sql(repo._WRITE_EMBEDDING_SQL)
+    assert "f.user_id=:user_id" in sql and "f.status='active'" in sql
+    assert "NOTEXISTS" in sql and "memory_forget_markers" in sql
+
+
 # ─────────────────────────────────────────────────────────────
 # 잡 연동 — W7 enqueue API만 쓴다.
 # ─────────────────────────────────────────────────────────────

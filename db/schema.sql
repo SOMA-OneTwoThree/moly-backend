@@ -7,6 +7,9 @@
 
 BEGIN;
 
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- updated_at 자동 갱신 트리거 함수(기존 존재 시 재사용). 없으면 생성.
 CREATE OR REPLACE FUNCTION public.set_updated_at() RETURNS trigger AS $$
 BEGIN
@@ -290,6 +293,7 @@ CREATE TABLE public.diaries (
   CONSTRAINT diaries_user_date_uq UNIQUE (user_id, diary_date)
 );
 CREATE INDEX diaries_user_published_idx ON public.diaries (user_id, published_at);
+CREATE INDEX diaries_content_trgm_idx ON public.diaries USING gin (content gin_trgm_ops);
 
 -- ─────────────────────────────────────────────────────────────
 -- 7. 루틴
@@ -364,46 +368,18 @@ CREATE TABLE public.reward_ad_sessions (
 );
 CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions (user_id);
 
--- 대화 컨텍스트 상태(앵커 append-only + 기억 스냅샷). 기억 평문 사본 → 민감(RLS + REVOKE 아래).
--- memory_* 4종(W8) = 유저별 기억 모드/세대/소스 워터마크/프로필 입력 리비전. memory_text·
--- memory_refreshed_at은 legacy(mem0) 전용이며 normalized 유저는 W10 cutover가 NULL로 만든다.
+-- 대화 컨텍스트 상태(앵커 append-only + 정규화 기억 처리 좌표).
 CREATE TABLE public.chat_contexts (
   user_id             uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
   anchor_message_id   bigint NOT NULL DEFAULT 0 CHECK (anchor_message_id >= 0),
-  memory_text         text,
-  memory_refreshed_at timestamptz,
-  -- 'legacy'(mem0 자유문) | 'normalized'(memory_facts 구조화). 전환은 유저 단위·W10 소관.
-  memory_mode         text   NOT NULL DEFAULT 'legacy' CHECK (memory_mode IN ('legacy','normalized')),
-  memory_generation   bigint NOT NULL DEFAULT 0,       -- forget/cutover마다 +1 → stale 잡 결과 폐기
+  memory_generation   bigint NOT NULL DEFAULT 0,       -- forget마다 +1 → stale 잡 결과 폐기
   memory_source_watermark bigint NOT NULL DEFAULT 0,   -- 대화 turn당 +1(memory_source_turns 배정)
   -- fact/insight의 실제 내용·source·상태 변경 트랜잭션에서만 정확히 +1(no-op·retry·재색인은 제외)
   relationship_profile_input_revision bigint NOT NULL DEFAULT 0,
+  last_active_at       timestamptz,
   updated_at          timestamptz NOT NULL DEFAULT now()
 );
 REVOKE ALL ON public.chat_contexts FROM anon, authenticated;
-
--- legacy write 차단(W10 cutover guard). normalized 유저의 스냅샷 컬럼은 항상 NULL이고,
--- normalized → legacy downgrade는 통하지 않는다. 애플리케이션 mode 분기
--- (memory_repo.save_legacy_snapshot)는 두 번째 방어선일 뿐 — 구버전 코드는 mode를 모른다.
--- 컬럼을 실제로 떨어뜨리는 contract 마이그레이션 전까지 이 트리거를 유지한다.
-CREATE OR REPLACE FUNCTION public.guard_normalized_memory_snapshot()
-RETURNS trigger LANGUAGE plpgsql AS $$
-BEGIN
-  IF TG_OP='INSERT' AND NEW.memory_mode='normalized' THEN
-    NEW.memory_text := NULL;
-    NEW.memory_refreshed_at := NULL;
-  ELSIF TG_OP='UPDATE' AND OLD.memory_mode='normalized' THEN
-    NEW.memory_mode := 'normalized';   -- downgrade 차단
-    NEW.memory_text := NULL;
-    NEW.memory_refreshed_at := NULL;
-  END IF;
-  RETURN NEW;
-END $$;
-
-DROP TRIGGER IF EXISTS chat_contexts_normalized_snapshot_guard ON public.chat_contexts;
-CREATE TRIGGER chat_contexts_normalized_snapshot_guard
-BEFORE INSERT OR UPDATE ON public.chat_contexts
-FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot();
 
 CREATE TABLE public.idempotency_keys (
   user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -484,7 +460,7 @@ CREATE INDEX async_jobs_reclaim_idx
 CREATE INDEX async_jobs_state_queue_idx ON public.async_jobs (state, queue);
 
 -- ─────────────────────────────────────────────────────────────
--- 10. 메모리 정규화(W8) — 자유문 기억(mem0)을 대체할 턴 단위 구조화 사실.
+-- 10. 정규화 기억 — 턴 단위 구조화 사실과 검색용 pgvector 파생 인덱스.
 --     판정(ADD/REINFORCE/SUPERSEDE/KEEP_BOTH/IGNORE)은 LLM이 아니라 코드가 한다.
 --     · fact의 (normalization_version, content_hash)와 marker의 (normalization_version,
 --       normalized_hash)는 **같은 산출물**이다(공용 해시 함수 1개). forget은 fact 값을 그대로 복사.
@@ -494,8 +470,6 @@ CREATE INDEX async_jobs_state_queue_idx ON public.async_jobs (state, queue);
 --     상세 = docs/agentic-chat-IMPLEMENTATION.md §W8.
 -- ─────────────────────────────────────────────────────────────
 -- fact 임베딩용(무차원 vector — 차원 고정은 embedder 마이그레이션에서 별도 검증).
-CREATE EXTENSION IF NOT EXISTS vector;
-
 CREATE TABLE public.memory_facts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -514,7 +488,7 @@ CREATE TABLE public.memory_facts (
   content_hash text NOT NULL,               -- = marker.normalized_hash와 같은 산출물
   normalization_version text NOT NULL,      -- 제자리 재해시 금지(구 normalizer는 registry에 영구 보관)
   superseded_by uuid NULL,
-  embedding vector NULL,
+  embedding vector(1536) NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (user_id, id),                     -- 아래 복합 FK들이 user_id를 함께 태우기 위한 대상 키
@@ -525,6 +499,9 @@ CREATE INDEX memory_facts_active_user_idx
   ON public.memory_facts(user_id, predicate, event_time) WHERE status='active';
 CREATE INDEX memory_facts_hash_idx
   ON public.memory_facts(user_id, normalization_version, content_hash);
+CREATE INDEX memory_facts_embedding_hnsw_idx
+  ON public.memory_facts USING hnsw (embedding vector_cosine_ops)
+  WHERE status='active' AND embedding IS NOT NULL;
 
 -- 근거. FK가 user_id를 태우지 않으므로(messages PK=(id)) **코드가 트랜잭션 안에서
 -- messages.user_id = fact.user_id를 반드시 검증한다** — DB 제약만으로는 타 유저 메시지를 못 막는다.

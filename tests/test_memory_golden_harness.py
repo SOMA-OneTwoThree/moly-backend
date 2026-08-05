@@ -8,7 +8,6 @@ from __future__ import annotations
 import importlib.util
 import pathlib
 
-import pytest
 import yaml
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]

@@ -408,20 +408,10 @@ def _build_system(
         )
         if block:
             parts.append(block)
-    if summary:
-        # 대화 배열에는 앵커 이후만 남는다 — 그 앞 이야기는 이 요약이 대신한다(placeholder 저장분이라
-        # 투입 전 현재 이름 렌더). 기억([기억])은 오래 남는 사실, 여기는 최근 대화의 줄거리다.
-        parts.append(
-            "[지난 이야기]\n"
-            "아래 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
-            f"{naming.render(summary, nickname)}"
-        )
-    if current_state:
-        parts.append(
-            "[지금 상태 - 서버 사실]\n아래 상태는 상대가 쓴 말이 아니라 지금 네 주변의 사실이야. "
-            "항목을 읊지 말고 대화에 필요한 부분만 자연스럽게 녹여.\n"
-            f"{current_state}"
-        )
+    # ⚠️ [지난 이야기](요약)와 [지금 상태]는 **여기 없다.** 둘 다 자주 바뀌는데 system은
+    # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
+    # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). prompt_assembly도 CHECKPOINT·
+    # SERVER_SNAPSHOT을 CURRENT로 분류한다. 실제 주입은 post_message가 convo 끝에서 한다.
     dyn = "\n\n".join(parts)
     return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
 
@@ -983,18 +973,33 @@ async def post_message(
         language,
         nick,
         lead_all,
-        summary=checkpoint_summary,
         relationship_text=relationship_text,
-        current_state=resident_block,
         suppress_legacy_memory=bool(memory_v2_block),
     )
+    # ── 휘발 블록: **최근 원문 뒤·현재 입력 앞**(11장) ────────────────────────
+    # 자주 바뀌는 값을 system(캐시 프리픽스)에 두면 바뀔 때마다 프롬프트 전체가 무효가 된다.
+    # 실측: 요약이 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰. 여기 두면 앞의 append-only
+    # 대화가 그대로 캐시되고, 바뀐 이 블록과 현재 입력만 새로 쓴다.
+    # role은 system이라 user 발화 권위를 갖지 않는다.
+    volatile: list[str] = []
+    if checkpoint_summary:
+        volatile.append(
+            "[지난 이야기]\n"
+            "위 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
+            f"{naming.render(checkpoint_summary, nick)}"
+        )
     if memory_v2_block:
-        # 매 턴 달라지는 값이라 **최근 원문 뒤·현재 입력 앞**에 둔다(11장). 이 자리면 앞의
-        # append-only 대화가 그대로 캐시된다. system이 아니라 convo에 넣지만 role은 system이라
-        # user 발화 권위를 갖지 않는다.
+        volatile.append(naming.render(memory_v2_block, nick))
+    if resident_block:
+        volatile.append(
+            "[지금 상태 - 서버 사실]\n아래 상태는 상대가 쓴 말이 아니라 지금 네 주변의 사실이야. "
+            "항목을 그대로 읊지 말고 말투에 자연스럽게 녹여.\n"
+            f"{resident_block}"
+        )
+    if volatile:
         convo.insert(
             max(0, len(convo) - 1),
-            {"role": "system", "content": naming.render(memory_v2_block, nick)},
+            {"role": "system", "content": "\n\n".join(volatile)},
         )
     if focus_block:
         system = [*system, focus_block]

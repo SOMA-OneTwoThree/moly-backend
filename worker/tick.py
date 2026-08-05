@@ -127,6 +127,9 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
     }
     # 개인화 컨텍스트 — cfg dict에 실어 시그니처 불변(기존 테스트·모킹 호환). 부재 시 off.
     pctx = cfg.get("_push") or push_personalization.TickContext()
+    # 하위 호출(일기 생성 등)에는 컨텍스트를 뗀 토큰 설정만 전달 — pctx.rows에 전 유저 문구
+    # 스냅샷이 실려 있어, cfg를 그대로 흘리면 로깅·직렬화 한 번에 대화 파생 텍스트가 샌다.
+    token_cfg = {k: v for k, v in cfg.items() if k != "_push"}
     async with get_sessionmaker()() as session:
         p = await session.get(Profile, pid)
         if p is None:
@@ -138,9 +141,10 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
             _log.warning("틱: 잘못된 timezone %r (user=%s) — 스킵: %r", p.timezone, pid, e)
             return out
         hour = local_now.hour
-        row = pctx.rows.get(pid)
-        valid = row is not None and push_personalization.row_valid(row, p, now, pctx.cfg)
         try:
+            # 신규 로직은 전부 이 try 안(유저 격리) — row_valid 포함(계획 §3 규칙).
+            row = pctx.rows.get(pid)
+            valid = row is not None and push_personalization.row_valid(row, p, now, pctx.cfg)
             if hour == DIARY_HOUR:
                 out["diary_attempted"] = 1
                 out["active_tz"] = p.timezone
@@ -167,7 +171,9 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                     out["diary_skipped"] = 1  # 다른 프로세스가 신선한 클레임 보유 — 중복 LLM 방지
                 else:
                     try:
-                        result = await diary_generation.generate_for_user(session, p, target, cfg)
+                        result = await diary_generation.generate_for_user(
+                            session, p, target, token_cfg
+                        )
                         if result.get("created") and result.get("source") != "none":
                             out["diaries"] = 1
                             out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
@@ -199,7 +205,7 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                         out["active_tz"] = p.timezone
                     else:
                         status = await push_personalization.generate_for_user(
-                            session, p, now, pctx.cfg, cfg
+                            session, p, now, pctx.cfg, token_cfg
                         )
                         key = {
                             "ok": "push_gen_ok", "rejected": "push_gen_rejected",
@@ -217,16 +223,10 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                 sent_p = 0
                 if valid and not await push_personalization.chatted_today(session, p, now):
                     if row.send_slot == push_personalization.SLOT_NIGHT:
-                        # 야간 코호트(slot=20:00): 기존 저녁 분기 안에서 인라인 처리 —
-                        # 실패하면 같은 틱에서 즉시 디폴트 폴백(claim 공유라 이중발송 불가:
-                        # 개인화가 claim 후 실패했다면 디폴트 claim이 False로 멱등 스킵).
+                        # 야간 코호트(slot=20:00): 기존 저녁 분기 안에서 인라인 처리.
                         sent_p = await notify.notify_evening_personalized(session, p, row, now)
-                        if not sent_p and await notify.notify_evening(session, p, now):
-                            out["evening"] = 1
                     else:
-                        # slot ≤ 19:45 코호트: 창(slot+60분)이 20시대로 걸치면 여기서도 개인화
-                        # 재시도, 만료(늦어도 20:45 틱)면 디폴트 백스톱 — 4틱 전부 실패해도
-                        # 그날 저녁 푸시가 사라지지 않는다(M10).
+                        # slot ≤ 19:45 코호트: 창(slot+60분)이 20시대로 걸치면 개인화 재시도.
                         slot_dt = datetime.combine(
                             local_now.date(), row.send_slot, tzinfo=local_now.tzinfo
                         )
@@ -234,9 +234,14 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                             sent_p = await notify.notify_evening_personalized(
                                 session, p, row, now
                             )
-                        if not sent_p and local_now >= slot_dt + timedelta(minutes=60):
-                            if await notify.notify_evening(session, p, now):
-                                out["evening"] = 1
+                    # 20시대는 매 틱이 백스톱: 개인화가 못 나갔으면(창 밖·창 안 실패 불문)
+                    # 같은 틱에서 즉시 디폴트 시도. "창 만료(slot+60m)까지 대기" 조건을 걸면
+                    # slot=19:45 코호트의 백스톱이 20:45 틱 1회로 좁아져 그 틱이 밀리면 그날
+                    # 무발송이 된다(리뷰 M2 실측). claim(evening_notified_at) 공유라 이중발송
+                    # 불가 — 개인화가 claim 후 실패한 경우엔 디폴트 claim이 False로 멱등 스킵
+                    # (그날 미발송 수용, 기존 디폴트와 동일 리스크).
+                    if not sent_p and await notify.notify_evening(session, p, now):
+                        out["evening"] = 1
                 elif await notify.notify_evening(session, p, now):
                     # 개인화 무효·오늘 이미 대화 → 기존 디폴트 그대로(rollout off면 항상 여기).
                     out["evening"] = 1
@@ -267,6 +272,10 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
             await session.rollback()
             if hour == DIARY_HOUR:
                 out["diary_failed"] = 1
+            elif hour == push_personalization.GEN_HOUR and pctx.cfg.rollout != "off":
+                # generate_for_user 앞단(조회·클레임)에서 새는 계통 장애도 카운트해야
+                # 요약·anomaly가 무음이 되지 않는다(리뷰 M1 — 05시 전면 실패 무음 방지).
+                out["push_gen_failed"] = 1
     return out
 
 
@@ -542,9 +551,16 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         counts["push_gen_ok"] + counts["push_gen_skipped"] + counts["push_gen_rejected"]
         + counts["push_gen_failed"] + counts["push_gen_deferred"]
     )
+    # KST 20시대 틱만은 개인화 발송도 트리거로 인정 — 전원이 개인화로 나가 디폴트 0건이면
+    # "개인화 발송 누계" 상시 신호(§4)를 실을 요약 자체가 안 나가는 구멍 방지(리뷰 Minor-5).
+    # 그 외 시간대의 슬롯 발송은 트리거 제외 유지(하루 96틱 도배 방지 — 누계 라인이 대신함).
+    kst_evening_personalized = (
+        counts["evening_personalized"]
+        if now.astimezone(_KST).hour == EVENING_HOUR else 0
+    )
     if (
         counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
-        + gen_activity
+        + gen_activity + kst_evening_personalized
     ) > 0:
         # 상시 신호(조용한 전원 디폴트 회귀 감지): 개인화 발송 누계(KST 활동일 근사, best-effort).
         if pctx.cfg.rollout != "off" and (counts["evening"] or counts["evening_personalized"]):
@@ -598,16 +614,15 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
         counts.get("push_gen_ok", 0) + counts.get("push_gen_rejected", 0)
         + counts.get("push_gen_failed", 0)
     )
-    # 개인화 생성 anomaly: 실패가 있거나, 시도(스킵 제외)가 전부 리젝/실패(ok 0) —
+    # 개인화 생성 anomaly: 실패가 있거나, 유의미한 표본(≥3)이 전부 리젝/실패(ok 0) —
     # 모델 은퇴·검수 포맷 변경 등으로 전원이 조용히 디폴트 회귀하는 걸 당일 잡는 신호.
+    # 최소 표본 조건이 없으면 allowlist 카나리(1~2명)에서 정상 동작인 리젝 1건이
+    # 데드맨을 /fail로 뒤집어 신호가 죽는다(리뷰 M4).
     push_gen_anomaly = counts.get("push_gen_failed", 0) > 0 or (
-        gen_attempted > 0 and counts.get("push_gen_ok", 0) == 0
+        gen_attempted >= 3 and counts.get("push_gen_ok", 0) == 0
     )
-    anomaly = (
-        counts["diary_failed"] > 0
-        or counts.get("memory_failed", 0) > 0
-        or push_gen_anomaly
-    )
+    core_anomaly = counts["diary_failed"] > 0 or counts.get("memory_failed", 0) > 0
+    anomaly = core_anomaly or push_gen_anomaly
     if settings.worker_ping_url:
         url = settings.worker_ping_url + ("/fail" if anomaly else "")
         try:
@@ -615,13 +630,18 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
                 await client.get(url)
         except Exception as e:  # noqa: BLE001
             _log.warning("워커 데드맨 핑 실패: %r", e)
-    if anomaly:
+    if core_anomaly:
         await slack_notify.alert(
             f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']}"
-            f" / 기억실패 {counts.get('memory_failed', 0)}"
-            f" / 개인화 생성실패 {counts.get('push_gen_failed', 0)}"
-            f"·리젝 {counts.get('push_gen_rejected', 0)}(성공 {counts.get('push_gen_ok', 0)})",
+            f" / 기억실패 {counts.get('memory_failed', 0)}",
             dedup_key="worker_anomaly",
+        )
+    if push_gen_anomaly:  # 일기 이상과 dedup을 분리 — 서로를 억제하지 않게(계획 §4)
+        await slack_notify.alert(
+            f"⚠️ 개인화 생성 이상 — 실패 {counts.get('push_gen_failed', 0)}"
+            f" / 리젝 {counts.get('push_gen_rejected', 0)}"
+            f" / 성공 {counts.get('push_gen_ok', 0)}",
+            dedup_key="push_personalization_anomaly",
         )
     total = counts.get("billable_yesterday")
     thr = settings.daily_billable_alert_threshold

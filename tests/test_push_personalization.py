@@ -193,9 +193,47 @@ def test_person_reference_heuristic_ko_ja():
     assert not has("승민아 잘 지냈어?", "ko", "승민")              # 본인 이름은 허용(마스킹 대상)
     assert has("田中さんとはどう?", "ja", None)                    # ja 인명+경칭
     assert not has("皆さん元気? 話そう。", "ja", None)             # 경칭 allowlist
-    # 문서화된 잔여 갭: 맨이름+조사(민수랑)는 결정적으로 못 잡는다 — 프롬프트+검수 LLM+
-    # 카나리 DB 전수 열람이 담당(계획 §9). 이 assert는 갭이 '의도된 수용'임을 고정한다.
+    # 문서화된 잔여 갭: 맨이름+조사(민수랑)·기관 축약(서울대)은 결정적으로 못 잡는다 —
+    # 프롬프트+검수 LLM+카나리 DB 전수 열람이 담당(계획 §9). assert로 '의도된 수용'을 고정.
     assert not has("민수랑은 요즘 어때?", "ko", "승민")
+
+
+def test_person_reference_relation_words_not_rejected():
+    """프롬프트가 지시한 관계 표현('친구'·직함)은 과탐하지 않는다 — 프롬프트와 필터가
+    반대 방향이면 리젝률만 오르고 카나리 지표가 오염된다(리뷰 M3)."""
+    has = pp.has_person_reference
+    for ok_body in (
+        "친구야 잘 지냈어? 얘기하자",
+        "기사님 친절했어?",
+        "교수님 얘기는 어떻게 됐어?",
+        "팀장님과의 면담은 잘 끝났어?",
+    ):
+        assert not has(ok_body, "ko", "승민"), ok_body
+    assert not has("おばさんと話した？", "ja", None)
+    assert not has("お疲れさんでした、話そう", "ja", None)
+
+
+def test_person_reference_org_suffix_ko():
+    has = pp.has_person_reference
+    assert has("서울대학교 발표 준비는 잘 돼가?", "ko", "승민")   # 기관명(계획 §2-5 고유명사)
+    assert has("한영고등학교 얘기 어떻게 됐어?", "ko", "승민")
+    assert not has("학교 다녀온 얘기 해줘", "ko", "승민")          # 일반명사는 허용
+
+
+async def test_verify_body_exact_ok_only(monkeypatch):
+    """검수 판정은 'OK' 정확 일치만 — 'OK, but ...' 유보 응답은 리젝(fail-closed)."""
+    answers = {}
+
+    async def _gen(system, convo, **kw):
+        return SimpleNamespace(text=answers["t"])
+
+    monkeypatch.setattr(pp.llm, "generate", _gen)
+    for text_, expected in (
+        ("OK", True), ("ok", True), ("OK.", True),
+        ("OKAY", False), ("OK, but 시간표현 있음", False), ("NO", False), ("", False),
+    ):
+        answers["t"] = text_
+        assert await pp._verify_body("문구", "ko") is expected, text_
 
 
 async def test_rejected_body_content_never_logged(monkeypatch, caplog):

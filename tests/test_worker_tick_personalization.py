@@ -142,15 +142,37 @@ async def test_expired_slot_gets_default_backstop_at_evening(monkeypatch):
 
 
 async def test_late_slot_still_personalized_inside_evening_hour(monkeypatch):
-    """slot 19:45의 창(~20:45)은 20시대로 걸친다 — 20:00 틱은 개인화 재시도, 20:45 틱은
-    만료 백스톱(디폴트)."""
+    """slot 19:45의 창(~20:45)은 20시대로 걸친다 — 20:00 틱은 개인화 우선, 성공 시 디폴트 없음."""
     calls = _spies(monkeypatch)
     monkeypatch.setattr(tick, "get_sessionmaker", _fake_sessionmaker(_profile()))
     await tick._process_user(KST20, UID, {"_push": _ctx(KST20, time(19, 45))})
     assert calls == {"personalized": 1, "default": 0}
     calls2 = _spies(monkeypatch, personalized_result=0)
     await tick._process_user(KST2045, UID, {"_push": _ctx(KST2045, time(19, 45))})
-    assert calls2 == {"personalized": 0, "default": 1}  # 창 만료 → 백스톱
+    assert calls2 == {"personalized": 0, "default": 1}  # 창 만료(20:45) → 백스톱
+
+
+async def test_evening_hour_every_tick_is_backstop(monkeypatch):
+    """20시대는 매 틱이 백스톱(리뷰 M2): slot=19:45 개인화가 20:00 틱에서 실패해도 그
+    틱에서 즉시 디폴트 — '창 만료 대기'로 백스톱이 20:45 단 1회로 좁아지지 않는다."""
+    calls = _spies(monkeypatch, personalized_result=0)
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_sessionmaker(_profile()))
+    out = await tick._process_user(KST20, UID, {"_push": _ctx(KST20, time(19, 45))})
+    assert calls == {"personalized": 1, "default": 1}  # 같은 틱 인라인 폴백
+    assert out["evening"] == 1 and out["evening_personalized"] == 0
+
+
+async def test_gen_hour_exception_counted_as_failed(monkeypatch):
+    """생성 경로 앞단(조회·클레임)의 계통 장애도 push_gen_failed로 잡힌다(리뷰 M1) —
+    아니면 05시 전면 실패가 요약·anomaly 어디에도 안 걸리는 무음이 된다."""
+    async def _boom(session, p, now, cfg, token_cfg):
+        raise RuntimeError("db pool exhausted")
+
+    _spies(monkeypatch)
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_sessionmaker(_profile()))
+    monkeypatch.setattr(tick.push_personalization, "generate_for_user", _boom)
+    out = await tick._process_user(KST05, UID, {"_push": _ctx(KST05, time(14, 30))})
+    assert out["push_gen_failed"] == 1
 
 
 async def test_rollout_off_is_default_path_only(monkeypatch):

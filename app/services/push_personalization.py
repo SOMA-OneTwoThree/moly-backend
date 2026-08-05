@@ -344,11 +344,22 @@ def passes_deterministic_filter(body: str | None, language: str) -> bool:
 # 갭이며 프롬프트 금지 + 검수 LLM + 카나리 DB 전수 열람(§9)이 담당한다 — 갭을 여기 명시해
 # 두는 것이 계획 요구사항(en만 막힌 비대칭 무주석 금지).
 _KO_NAME_SUFFIX_RE = re.compile(r"(?:^|[\s\"'(])([가-힣]{2,3})(씨|님)(?=$|[\s,.!?~…])")
+# 호칭·직함·관계어는 인명이 아니다 — 프롬프트가 "관계로만 불러라"라고 지시하므로, 지시대로
+# 쓴 표현을 필터가 리젝하면 프롬프트와 필터가 반대 방향이 된다(리뷰 M3 과탐).
 _KO_NAME_SUFFIX_ALLOW = frozenset((
     "아저씨", "아가씨", "선생님", "사장님", "부모님", "도련님", "하느님", "하나님",
     "임금님", "스승님", "고객님", "회원님", "왕자님", "공주님", "주인님",
+    "교수님", "팀장님", "기사님", "실장님", "작가님", "대표님", "원장님",
+    "부장님", "과장님", "이모님", "삼촌님", "할머님", "할아버님", "어머님", "아버님",
 ))
 _KO_VOCATIVE_RE = re.compile(r"^([가-힣]{2,3})(아|야)(?=[\s,!~?])")
+_KO_VOCATIVE_ALLOW = frozenset(("친구", "자기", "우리", "얘들", "여러분"))
+# 기관·학교명 접미(계획 §2-5 고유명사 금지) — 붙은 접두 2자 이상만(일반명사 '학교 갔다'는
+# 미매칭). '서울대' 류 축약은 결정적으로 못 잡는 문서화된 잔여 갭(quotative '-대' 오탐 때문에
+# 패턴화 불가) — 검수 LLM + 카나리 열람 담당.
+_KO_ORG_SUFFIX_RE = re.compile(
+    r"[가-힣A-Za-z]{2,}(대학교|고등학교|중학교|초등학교|유치원)"
+)
 _JA_HONORIFIC_RE = re.compile(
     r"([぀-ヿ一-鿿]{1,4})(さん|くん|ちゃん|さま|様)"
 )
@@ -356,6 +367,7 @@ _JA_HONORIFIC_ALLOW = frozenset((
     "皆さん", "みなさん", "お客さん", "母さん", "父さん", "お母さん", "お父さん",
     "兄さん", "お兄さん", "姉さん", "お姉さん", "お子さん", "お疲れさま", "お疲れ様",
     "王様", "神様", "お姫さま",
+    "おばさん", "おじさん", "おばあさん", "おじいさん", "お疲れさん", "娘さん", "息子さん",
 ))
 
 
@@ -369,7 +381,9 @@ def has_person_reference(body: str, language: str, nickname: str | None) -> bool
                 continue  # 본인 이름은 프라이버시 사고가 아님(placeholder가 마스킹)
             return True
         m = _KO_VOCATIVE_RE.match(probe)
-        if m and m.group(1) != (nickname or ""):
+        if m and m.group(1) not in _KO_VOCATIVE_ALLOW and m.group(1) != (nickname or ""):
+            return True
+        if _KO_ORG_SUFFIX_RE.search(probe):
             return True
     if language == "ja":
         for m in _JA_HONORIFIC_RE.finditer(probe):
@@ -489,7 +503,9 @@ async def _verify_body(body: str, language: str) -> bool:
         max_tokens=8,
         timeout=VERIFY_TIMEOUT_S,
     )
-    return result.text.strip().upper().lstrip("*_# ").startswith("OK")
+    # 정확 일치만 통과 — startswith면 "OK, but ..." 같은 유보 응답도 통과한다(fail-closed 극성).
+    verdict = result.text.strip().upper().strip("*_# ").rstrip(".!")
+    return verdict == "OK"
 
 
 async def _delete_row(session: AsyncSession, user_id) -> None:

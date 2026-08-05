@@ -171,8 +171,13 @@ class PrivacySubjectBarrier(Base):
     __tablename__ = "privacy_subject_barriers"
 
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    # active | deleting | deleted. ⚠️ 행 존재가 아니라 이 값으로 판정한다 — 전 사용자에게
+    # active 행이 깔리므로 존재만 보면 전부 차단된다(app/services/privacy.py).
     state: Mapped[str] = mapped_column(String, nullable=False)
-    operation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    # 삭제 사이클 세대. 삭제 시작마다 +1 되어 이전 세대 잡의 fencing 좌표가 된다.
+    epoch: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
+    # active 행에는 없다(진행 중인 삭제 작업이 없으므로). deleting/deleted에는 반드시 있다.
+    operation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     high_watermark: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(_TZ, server_default=text("now()"))
     updated_at: Mapped[datetime] = mapped_column(_TZ, server_default=text("now()"))

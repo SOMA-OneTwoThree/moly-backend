@@ -513,16 +513,28 @@ async def test_control_intent_unknown_kind_dropped(monkeypatch):
 # 10) 기존 generate() 회귀 — 시그니처·동작 무변경
 # =====================================================================================
 def test_generate_signature_unchanged():
+    """기존 인자·기본값은 그대로. 추가는 기본값 있는 keyword-only만 허용한다.
+
+    호출부가 수십 곳(워커·일기·복원·도구)이라 기존 인자가 바뀌면 조용히 깨진다. 반면 계측용
+    `ledger`처럼 기본값이 있는 옵션 추가는 기존 호출을 바꾸지 않으므로 허용한다.
+    """
     sig = inspect.signature(m.generate)
-    assert list(sig.parameters) == [
+    original = [
         "system", "convo", "max_tokens", "model",
         "cache_messages", "ttl_system", "ttl_messages", "timeout",
     ]
+    params = list(sig.parameters)
+    assert params[: len(original)] == original  # 기존 인자는 순서까지 그대로
     defaults = {k: p.default for k, p in sig.parameters.items() if p.default is not p.empty}
-    assert defaults == {
+    for k, v in {
         "max_tokens": None, "model": None, "cache_messages": False,
         "ttl_system": "5m", "ttl_messages": "5m", "timeout": None,
-    }
+    }.items():
+        assert defaults[k] == v
+    # 새로 붙은 인자는 전부 keyword-only + 기본값 보유(= 기존 호출 무영향).
+    for name in params[len(original):]:
+        p = sig.parameters[name]
+        assert p.kind is inspect.Parameter.KEYWORD_ONLY and p.default is not inspect.Parameter.empty
 
 
 async def test_generate_still_returns_llm_result(monkeypatch):

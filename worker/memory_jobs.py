@@ -35,6 +35,7 @@ from app.services import (
     memory_repo,
     relationship_profile,
     relationship_profile_repo,
+    usage_ledger,
 )
 from app.services.jobs import ClaimedJob
 from worker import consumer
@@ -209,7 +210,11 @@ async def handle_extract(job: ClaimedJob) -> JobResult:
     ]
     try:
         candidates, _usage = await memory_extract.extract(
-            messages=messages, language=state.language, nickname=state.nickname
+            messages=messages, language=state.language, nickname=state.nickname,
+            ledger=usage_ledger.LedgerContext(
+                lane=usage_ledger.LANE_BACKGROUND, purpose="memory_extract",
+                user_id=job.user_id, job_id=job.id, attempt=job.attempt,
+            ),
         )
     except memory_candidates.CandidateSchemaError as e:
         # 모델 출력이 계약을 어겼다 — 후보 전량 폐기 후 재시도(다음 샘플은 통과할 수 있다).

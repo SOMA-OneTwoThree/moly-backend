@@ -23,6 +23,35 @@
 14. `20260804_zzzzz_conversational_recall_hardening.sql` — 삭제 장벽 제외, provenance 수렴,
     SHA-256/fenced vector 재색인과 bounded missing-vector repair 상태
 
+## 기억·페르소나·관계 재설계 (docs/capi-memory-ARCHITECTURE.md)
+
+15장 전환 순서를 따른다. 아래는 additive 단계이며 legacy 테이블을 건드리지 않는다.
+
+15. `20260805_ai_usage_ledger.sql` — (1단계) `ai_price_catalog`·`ai_usage_ledger`·`job_attempts`.
+    구조 전환 **전에** 적용해 legacy 비용까지 같은 표면으로 잰다. catalog v1 시드 포함.
+16. `20260805_privacy_epoch.sql` — (2단계 a) 삭제 장벽에 `active` state와 `epoch` 추가.
+    **컬럼만 추가하고 행은 만들지 않는다** — 안전하게 먼저 적용 가능.
+17. `20260805_privacy_active_backfill.sql` — (2단계 c) 🚨 **코드 배포 뒤에만 적용**.
+
+### ⚠️ 삭제 장벽 전환 순서 (다른 마이그레이션과 반대)
+
+구 코드는 `privacy_subject_barriers`에 **행이 있으면 무조건 차단**으로 읽는다. status-aware
+`authorize_job`/`ensure_subject_active`가 배포되기 전에 `active` 행을 깔면 **전 사용자의 대화와
+잡이 즉시 막힌다.** 그래서 이 한 건만 "마이그레이션 먼저" 규칙의 예외다.
+
+```
+1. 20260805_privacy_epoch.sql 적용              (컬럼만 — 안전)
+2. status-aware 코드 dev 배포 + /health 확인     ← 반드시 여기까지 끝난 뒤
+3. 20260805_privacy_active_backfill.sql 적용    (active 행 + 신규 profile 트리거)
+4. 검증 스크립트 연속 2회 통과 → privacy_barrier_mode=enforced
+```
+
+```bash
+PYTHONPATH=. uv run python scripts/verify_privacy_barriers.py
+```
+
+`missing`(장벽 없는 profile)이 0이 아니면 `enforced`로 올리지 않는다 — 그 사용자들이 전부 막힌다.
+
 각 파일은 먼저 기본 dry-run으로 실행하고, 성공한 동일 파일만 `--commit`으로 적용한다.
 
 ```bash

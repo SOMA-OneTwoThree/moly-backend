@@ -42,6 +42,7 @@ from app.services import (
     relationship_profile_repo,
     text_clean,
     turn_context,
+    usage_ledger,
     chat_references,
     chat_turns,
     diary as diary_service,
@@ -427,7 +428,10 @@ _FOREIGN_REPAIR_SYS = (
 
 
 async def _repair_foreign_ko(
-    reply: str, *, user_id: str | None = None
+    reply: str,
+    *,
+    user_id: str | None = None,
+    ledger: usage_ledger.LedgerContext | None = None,
 ) -> tuple[str, list[llm.LlmCall]]:
     """한국어 응답에 섞인 한자·가나를 utility 모델로 재작성 복원. 호출측에서 language=='ko' 게이팅.
 
@@ -448,6 +452,7 @@ async def _repair_foreign_ko(
                 model=settings.model_utility,
                 max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
                 timeout=settings.llm_timeout_s,
+                ledger=ledger,
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
             _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
@@ -857,6 +862,14 @@ async def post_message(
     # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
     t_llm0 = time.monotonic()
+    # 원가 원장 귀속 — 사용자 quota(_billable)와 별개로 provider 단가 기준 USD를 적재한다.
+    ledger_ctx = usage_ledger.LedgerContext(
+        lane=usage_ledger.LANE_FOREGROUND,
+        purpose="chat",
+        user_id=uuid.UUID(uid) if isinstance(uid, str) else uid,
+        turn_seq=lease.turn_seq,
+        activity_date=ad,
+    )
     # 도구 루프(W5)는 킬스위치·카나리를 모두 통과했을 때만 탄다. 아니면 아래 단발 호출 그대로다.
     try:
         if time.monotonic() >= absolute_deadline:
@@ -877,6 +890,7 @@ async def post_message(
         if agent_turn is None:
             result = await llm.generate(
                 system, convo,
+                ledger=ledger_ctx,
                 cache_messages=cache_on,
                 ttl_system=settings.cache_ttl_system,
                 ttl_messages=settings.cache_ttl_messages,

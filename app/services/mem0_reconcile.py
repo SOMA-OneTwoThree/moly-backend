@@ -94,3 +94,34 @@ async def resolve_orphan(
     """
     await session.execute(_MARK_DEAD, {"id": orphan.candidate_id})
     return "deleted_vector" if exists_in_provider else "closed_only"
+
+
+# 판정 대상이 없는 turn 때문에 consolidated 커서가 밀린 경우를 수렴시킨다.
+#
+# 기억 0건 turn은 consolidate 잡이 만들어지지 않는다. 그 turn을 넘기지 못하면 커서가 영원히
+# 걸려 cutover gate(`consolidated == ingest`)를 통과할 수 없다. ingest는 끝났는데 registry에
+# pending이 없는 구간까지 커서를 밀어 준다.
+_CATCH_UP_CONSOLIDATED = text("""
+UPDATE memory_pipeline_states s
+SET consolidated_through_turn_seq = s.ingest_through_turn_seq, updated_at = now()
+WHERE s.mode <> 'legacy'
+  AND s.consolidated_through_turn_seq < s.ingest_through_turn_seq
+  -- 아직 판정 안 끝난 기억이 하나라도 있으면 밀지 않는다.
+  AND NOT EXISTS (
+    SELECT 1 FROM mem0_memory_registry r
+    WHERE r.user_id = s.user_id
+      AND r.semantic_status = 'pending'
+      AND r.source_turn_seq <= s.ingest_through_turn_seq
+  )
+RETURNING s.user_id, s.consolidated_through_turn_seq
+""")
+
+
+async def catch_up_consolidated(session: AsyncSession) -> list[tuple[uuid.UUID, int]]:
+    """판정 잔여가 없는 사용자의 consolidated 커서를 ingest까지 수렴시킨다.
+
+    pending이 하나라도 남아 있으면 그 사용자는 건드리지 않는다 — 판정 안 된 기억을 통과시키면
+    검색에 안 잡히는 구간이 생긴다.
+    """
+    rows = (await session.execute(_CATCH_UP_CONSOLIDATED)).all()
+    return [(r[0], int(r[1])) for r in rows]

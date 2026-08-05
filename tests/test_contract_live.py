@@ -103,3 +103,20 @@ def test_job_is_registered_and_reachable():
 def test_every_kind_maps_to_a_schema_section(kind):
     """빠진 kind가 있으면 저장 시점에 KeyError로 터진다."""
     assert kind in contract_jobs._SECTION
+
+
+def test_compiler_reads_the_latest_messages_not_the_oldest():
+    """대화가 상한을 넘으면 새 발화가 영원히 안 읽힌다.
+
+    실측: normal 메시지 240건인데 잡은 #1~#207만 봤다. 사용자가 "앞으로 반말로 해줘"(#244)
+    라고 해도 계약이 만들어지지 않았고, 결과는 그냥 `no_candidates`라 실패로도 안 보였다.
+
+    ⚠️ shadow checkpoint의 window 조회는 **오래된 것부터가 맞다** — 그건 이어붙이는 체인이라
+    커서 다음부터 순서대로 가야 한다. 여기만 다르다.
+    """
+    from worker import contract_jobs
+
+    sql = str(contract_jobs._MESSAGES)
+    assert "ORDER BY id DESC" in sql, "가장 오래된 것부터 읽는다"
+    # 안쪽에서 최근 것을 고르고 바깥에서 다시 시간순으로 세워야 대화 순서가 유지된다.
+    assert sql.rindex("ORDER BY id") > sql.index("ORDER BY id DESC")

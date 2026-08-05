@@ -44,6 +44,8 @@ from app.services import (
     text_clean,
     turn_context,
     usage_ledger,
+    contract_repo,
+    relationship_projector,
     memory_pipeline,
     chat_references,
     chat_turns,
@@ -368,6 +370,8 @@ def _build_system(
     relationship_text: str = "",
     current_state: str = "",
     suppress_legacy_memory: bool = False,
+    contract_text: str = "",
+    relationship_v2: str = "",
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
     뒤 블록이 바뀌어도 페르소나 캐시 생존.
@@ -396,11 +400,19 @@ def _build_system(
             "같은 인사를 또 하지 마.\n"
             f"{said}"
         )
+    if contract_text:
+        # 계약은 검색 성공 여부와 무관하게 **항상** 지켜야 하는 합의라 회상 경로를 타지 않는다.
+        # 자주 바뀌지 않으므로 안정 프리픽스에 둔다(prompt_assembly도 CONTRACT를 STABLE로 분류).
+        parts.append(contract_text)
+
     # ⚠️ v2 기억은 **여기 넣지 않는다.** 회상 결과는 매 턴 달라지는데 system은 캐시되는
     # 프리픽스라, 여기 두면 그 뒤가 전부 cache miss가 된다(실측: 캐시 쓰기 59토큰 → 4,232토큰).
     # 11장이 정한 자리는 **최근 원문 뒤**이고, prompt_assembly도 MEMORY를 CURRENT로 분류한다.
     # 실제 주입은 post_message가 convo 끝에서 한다.
-    if suppress_legacy_memory:
+    if relationship_v2:
+        # 결정적 state의 투영. legacy 자유 서술과 달리 값이 흘러가지 않는다(7.1절).
+        parts.append(relationship_v2)
+    elif suppress_legacy_memory:
         pass  # v2 사용자는 legacy 관계 프로필을 넣지 않는다(같은 사실이 두 벌이 된다)
     elif relationship_text:
         block = prompts.relationship_profile_block(
@@ -855,6 +867,14 @@ async def post_message(
 
     # v2 읽기 전환 여부. 여기서는 **한 행만 읽는다**.
     pipeline_state = await memory_pipeline.load(session, uid)
+    # published 계약. 없으면 빈 문자열이라 프롬프트가 지금과 같다.
+    contract_text = await contract_repo.published_text(session, user_id=uid, locale=language)
+    # v2 관계 render. 읽기만 한다 — 집계는 projector 잡이 하고 챗은 결과만 쓴다.
+    relationship_v2 = ""
+    if pipeline_state.serves_v2:
+        relationship_v2 = await relationship_projector.prompt_text(
+            session, uid, language=language
+        )
     # greeting_id 형식 검증은 **회상을 띄우기 전에** 끝낸다. 태스크를 만든 뒤에 raise하면
     # 그 태스크가 고아가 되어, 응답은 실패했는데 임베딩 호출과 DB 세션은 그대로 돈다
     # (클라이언트가 잘못된 값을 반복해 보내면 그만큼 낭비된다).
@@ -977,6 +997,8 @@ async def post_message(
         # ⚠️ **mode 기준이다.** 회상 결과(bool(memory_v2_block))로 정하면, 검색이 실패하거나
         # 빈 결과일 때 legacy 기억이 되살아나 같은 사용자가 턴마다 v2/legacy 인격을 오간다.
         suppress_legacy_memory=pipeline_state.serves_v2,
+        contract_text=contract_text,
+        relationship_v2=relationship_v2,
     )
     # ── 휘발 블록: **최근 원문 뒤·현재 입력 앞**(11장) ────────────────────────
     # 자주 바뀌는 값을 system(캐시 프리픽스)에 두면 바뀔 때마다 프롬프트 전체가 무효가 된다.

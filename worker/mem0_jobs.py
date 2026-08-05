@@ -188,6 +188,15 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
 
     async def _advance(session) -> None:
         await memory_pipeline.advance_ingest_cursor(session, uid, turn_seq=turn_seq)
+        # 판정 잡과 다음 turn 잡을 **같은 fenced transaction**에서 만든다. lease를 잃은
+        # 소비자가 후속 잡만 흘리는 일이 없다.
+        if outcome.planned:
+            await memory_pipeline.enqueue_consolidate(
+                session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+            )
+        await memory_pipeline.enqueue_next_ingest(
+            session, uid, cursor=turn_seq, privacy_epoch=state.privacy_epoch
+        )
 
     return JobResult(
         result_code="no_memory" if outcome.no_memory else "ok",

@@ -282,3 +282,67 @@ async def advance_consolidated_cursor(
         await session.execute(_ADVANCE_CONSOLIDATED, {"user_id": user_id, "turn_seq": turn_seq})
     ).first()
     return int(row[0]) if row is not None else None
+
+
+# ─────────────────────────────────────────────────────────────
+# 잡 enqueue — 사용자별로 **한 번에 한 turn만** 흐르게 한다(13.3절).
+#
+# 여러 same-user 잡을 미리 만들어 두면 advisory lock에서 줄서기만 하고, 순서가 뒤집힐 여지도
+# 생긴다. 최초 turn만 만들고 성공 finalize가 다음 turn을 만든다.
+# ─────────────────────────────────────────────────────────────
+JOB_MEM0_INGEST = "mem0_ingest"
+JOB_MEM0_CONSOLIDATE = "mem0_consolidate"
+
+
+def ingest_dedup_key(user_id: uuid.UUID, turn_seq: int, *, schema_version: str = "v1") -> str:
+    """`(job_type, dedup_key)`가 멱등 키다. 같은 turn을 두 번 enqueue해도 한 행이다."""
+    return f"mem0:{user_id}:{turn_seq}:{schema_version}"
+
+
+def consolidate_dedup_key(user_id: uuid.UUID, turn_seq: int, *, schema_version: str = "v1") -> str:
+    return f"mem0c:{user_id}:{turn_seq}:{schema_version}"
+
+
+async def enqueue_ingest(
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
+) -> uuid.UUID | None:
+    """이 turn의 ingest 잡. 이미 있으면 None(멱등)."""
+    from app.services import jobs
+
+    return await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_CONTENT,
+        job_type=JOB_MEM0_INGEST,
+        user_id=user_id,
+        dedup_key=ingest_dedup_key(user_id, turn_seq),
+        payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
+    )
+
+
+async def enqueue_consolidate(
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
+) -> uuid.UUID | None:
+    from app.services import jobs
+
+    return await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_CONTENT,
+        job_type=JOB_MEM0_CONSOLIDATE,
+        user_id=user_id,
+        dedup_key=consolidate_dedup_key(user_id, turn_seq),
+        payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
+    )
+
+
+async def enqueue_next_ingest(
+    session: AsyncSession, user_id: uuid.UUID, *, cursor: int, privacy_epoch: int = 0
+) -> int | None:
+    """cursor 다음 turn의 ingest 잡을 만든다. 없으면 None(따라잡음).
+
+    성공 finalize가 이걸 부른다 — 한 사용자의 잡이 항상 한 개만 대기하게 하는 장치다.
+    """
+    nxt = await next_ingest_turn(session, user_id, cursor=cursor)
+    if nxt is None:
+        return None
+    await enqueue_ingest(session, user_id, turn_seq=nxt, privacy_epoch=privacy_epoch)
+    return nxt

@@ -242,3 +242,67 @@ def test_consolidated_cursor_cannot_outrun_ingest():
 def test_cursor_advances_skip_legacy_users():
     for sql in (mp._ADVANCE_INGEST, mp._ADVANCE_CONSOLIDATED):
         assert "mode <> 'legacy'" in str(sql)
+
+
+# ─────────────────────────────────────────────────────────────
+# 7. enqueue — 사용자당 한 번에 한 turn만 흐른다
+# ─────────────────────────────────────────────────────────────
+def test_dedup_keys_are_deterministic_and_kind_separated():
+    """같은 turn을 두 번 enqueue해도 한 행. ingest와 consolidate는 키 공간이 다르다."""
+    a = mp.ingest_dedup_key(UID, 7)
+    assert a == mp.ingest_dedup_key(UID, 7)
+    assert a != mp.ingest_dedup_key(UID, 8)
+    assert a != mp.consolidate_dedup_key(UID, 7)
+
+
+async def test_next_ingest_enqueues_actual_next_turn_not_plus_one():
+    """turn_seq는 연속이 아닐 수 있다 — 실제 다음 turn을 조회해 건다."""
+    calls = {}
+
+    class _S(_Session):
+        pass
+
+    s = _S(next_ingest=23)
+    import app.services.jobs as jobs_mod
+
+    async def _fake_enqueue(session, **kw):
+        calls.update(kw)
+        return uuid.uuid4()
+
+    original = jobs_mod.enqueue
+    jobs_mod.enqueue = _fake_enqueue
+    try:
+        got = await mp.enqueue_next_ingest(s, UID, cursor=9)
+    finally:
+        jobs_mod.enqueue = original
+    assert got == 23
+    assert calls["dedup_key"] == mp.ingest_dedup_key(UID, 23)
+    assert calls["payload"]["turn_seq"] == 23
+
+
+async def test_next_ingest_returns_none_when_caught_up():
+    """따라잡았으면 잡을 만들지 않는다 — 빈 잡이 큐를 돌지 않게."""
+    assert await mp.enqueue_next_ingest(_Session(next_ingest=None), UID, cursor=9) is None
+
+
+def test_chat_enqueues_only_when_bootstrap_ready_and_caught_up():
+    """collecting 중이거나 이미 밀린 turn이 있으면 새로 걸지 않는다."""
+    import inspect
+
+    from app.services import chat
+
+    src = inspect.getsource(chat._record_memory_v2)
+    assert "state.accepts_live_ingest" in src
+    assert "ingest_through_turn_seq >= state.source_through_turn_seq" in src
+
+
+def test_ingest_success_enqueues_followups_inside_apply_domain():
+    """후속 잡은 fenced transaction 안에서만 생성된다 — lease 잃은 소비자가 흘리지 않게."""
+    import inspect
+
+    from worker import mem0_jobs
+
+    src = inspect.getsource(mem0_jobs.handle_mem0_ingest)
+    advance_block = src.split("async def _advance")[1]
+    assert "enqueue_consolidate" in advance_block
+    assert "enqueue_next_ingest" in advance_block

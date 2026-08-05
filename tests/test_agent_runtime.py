@@ -290,6 +290,23 @@ async def test_decide_timeout_falls_back_to_toolless_answer(monkeypatch):
     assert fake.calls[0]["tools"] and fake.calls[1]["tools"] is None
 
 
+async def test_fallback_turn_total_stays_within_deadline(monkeypatch):
+    """1홉이 예산을 꽉 채우고 timeout → fallback까지 가도 턴 합계가 데드라인을 넘지 않는다.
+
+    fallback은 '한 번 더 부르는' 것이라 예산을 넘길 위험이 가장 큰 경로다. 넘기면 HTTP
+    데드라인 밖에서 응답이 나오고, chat 쪽 lease·멱등 계약이 어긋난다.
+    """
+    cfg = _cfg()
+    clock = _Clock()
+    # 1홉이 제 상한(deadline - reserve)을 정확히 소진하고 죽는다 — 최악의 경우다.
+    fake = _TimeoutThenText(clock=clock, elapse=cfg.turn_deadline_s - cfg.final_reserve_s)
+    turn = await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
+
+    assert turn.skipped == "deadline"
+    total = sum(c["timeout"] for c in fake.calls)
+    assert total <= cfg.turn_deadline_s, f"1홉+fallback 합계 {total}s > {cfg.turn_deadline_s}s"
+
+
 async def test_decide_timeout_raises_when_no_time_left_for_fallback(monkeypatch):
     """남은 시간이 예약분보다 적으면 fallback을 시작하지 않는다 — 데드라인을 넘겨가며 붙잡지 않는다."""
     cfg = _cfg()

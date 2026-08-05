@@ -252,8 +252,10 @@ turn_deadline = monotonic() + agent_turn_deadline_s
   `unavailable(tool_call_limit)`을 붙여 transcript 형식을 닫는다.
 - 도구 결과는 transcript 삽입 전 **턴 합계 600 token 예산으로 절단**한다(호출 순서대로 채우고
   초과분은 truncated 표시). 도구별 글자 상한은 개별 안전장치일 뿐이다.
-- `control_intents`는 final step에서만 받고, 현재 **적용 경로가 없다** — 등록된 제어 도구가
-  없으므로(4.2절) 도착하면 shadow 계측만 남기고 버린다. 1홉에 오면 `control_intent_ignored`.
+- 제어 의도(control intent)는 **스키마에서 제거됐다** — 등록된 제어 도구가 없고(4.2절)
+  적용 경로도 없으므로 모델에 광고하지 않는다(없는 능력을 약속하게 된다,
+  `test_transition_side_effects`로 고정). 런타임에 남은 처리 코드는 예기치 않은 제어 호출을
+  shadow 계측 후 버리는 방어 경로다(1홉 도착 시 `control_intent_ignored`).
 - 설정은 Phase 1에서 `effective_agent_config`가 app_config→Settings 우선순위로 1회 조회해
   frozen snapshot으로 들고 간다(프로세스 TTL 캐시 없음 — 두 EC2 캐시 불일치 없음).
 
@@ -277,8 +279,8 @@ turn_deadline = monotonic() + agent_turn_deadline_s
   이름 100자·전체 2,000자, 현재 activity date ±31일. 이름은 유저 자유 입력이 섞이는 유일한
   필드라 `i18n.localized_name` 해석 후 반드시 살균.
 - `finish_response`(내부 계약) — `text`(≤4,000자), `response_mode`
-  (`summary|short_quote|full_card|reopen_reference`), `selected_refs`(≤3),
-  `focus_ref`, `control_intents`(≤3). ref ID는 런타임 allowlist 검증 전에는 신뢰하지 않는다.
+  (`summary|short_quote|full_card|reopen_reference`), `selected_refs`(≤3), `focus_ref`.
+  ref ID는 런타임 allowlist 검증 전에는 신뢰하지 않는다.
 
 ### 4.3 reference card·focus·연속성
 
@@ -778,8 +780,8 @@ PostgreSQL 큐만 쓴다.
 - **대화형 망각 전체** — `forget_memory` 제어 도구, `/memory/forget` API, forget marker·
   suppression·closure 체계. "잊어줘"를 대화로 처리하는 것은 의미가 없다는 제품 판단
   (2026-08-06). registry의 `_CONTROL_TOOLS`는 비어 있고, 계정 삭제만 완결적으로 지원한다.
-  `finish_response`의 `control_intents(forget|pin)` 필드는 스키마에 남아 있으나 적용 경로가
-  없다(도착 시 shadow 계측 후 폐기).
+  `finish_response`의 `control_intents(forget|pin)` 필드도 스키마에서 함께 제거됐다 —
+  적용 경로 없는 능력을 모델에 광고하지 않는다(테스트로 고정).
 - **legacy 정규화 기억 구조** — `memory_facts/evidence/insights(+sources)`,
   `memory_source_turns(+messages)/closures`, `memory_forget_markers`,
   `memory_recall_suppressions/suppression_operations/episodic_messages`,

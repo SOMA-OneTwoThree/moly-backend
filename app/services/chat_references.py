@@ -34,47 +34,6 @@ WHERE d.user_id=:user_id AND d.id=ANY(CAST(:ids AS uuid[]))
   )
 """)
 
-_VALID_FACTS = text("""
-SELECT count(*)
-FROM memory_facts f
-WHERE f.user_id=:user_id AND f.id=ANY(CAST(:ids AS uuid[])) AND f.status='active'
-  AND NOT EXISTS (
-    SELECT 1 FROM memory_forget_markers m
-    WHERE m.user_id=f.user_id AND (
-      (m.scope='all' AND (m.future_learning='block'
-         OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark))
-      OR (m.scope='predicate' AND m.predicate=f.predicate
-         AND (m.future_learning='block'
-           OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark))
-      OR (m.scope='fact' AND m.normalization_version=f.normalization_version
-          AND m.normalized_hash=f.content_hash
-          AND (m.future_learning='block'
-            OR COALESCE(f.learned_at_watermark,0)<=m.cut_watermark))
-    )
-  )
-  AND EXISTS (
-    SELECT 1 FROM memory_evidence e
-    WHERE e.user_id=f.user_id AND e.fact_id=f.id AND e.source_sender='user'
-      AND NOT EXISTS (
-        SELECT 1 FROM memory_recall_suppressions x
-        WHERE x.user_id=e.user_id AND x.message_id=e.source_id
-      )
-  )
-""")
-
-_VALID_EPISODES = text("""
-SELECT count(*)
-FROM memory_episodic_messages e
-JOIN messages m ON m.user_id=e.user_id AND m.id=e.message_id AND m.sender='user'
-WHERE e.user_id=:user_id AND e.message_id=ANY(CAST(:ids AS bigint[]))
-  AND e.content_hash=encode(digest(COALESCE(m.content,''),'sha256'),'hex')
-  AND NOT EXISTS (
-    SELECT 1 FROM memory_recall_suppressions x
-    WHERE x.user_id=e.user_id AND x.message_id=e.message_id
-  )
-""")
-
-
 async def validate_selected(
     session: AsyncSession,
     *,
@@ -94,29 +53,22 @@ async def validate_selected(
     unique = {(getattr(ref, "ref_type", None), getattr(ref, "ref_id", None)) for ref in refs}
     if not unique:
         return True
-    expected: dict[str, set] = {"diary": set(), "memory_fact": set(), "memory_episode": set()}
+    # 참조는 **일기만** 남았다. 정규화 기억(fact·episode) 참조는 그 저장 구조와 함께
+    # 제거됐다(2026-08-06) — 모르는 종류가 오면 통과시키지 않는다.
+    expected: set[uuid.UUID] = set()
     try:
         for ref_type, ref_id in unique:
-            if ref_type in {"diary", "memory_fact"}:
-                expected[ref_type].add(uuid.UUID(str(ref_id)))
-            elif ref_type == "memory_episode":
-                expected[ref_type].add(int(str(ref_id)))
-            else:
+            if ref_type != "diary":
                 return False
+            expected.add(uuid.UUID(str(ref_id)))
     except (TypeError, ValueError):
         return False
-    checks = (
-        ("diary", _VALID_DIARIES),
-        ("memory_fact", _VALID_FACTS),
-        ("memory_episode", _VALID_EPISODES),
+    if not expected:
+        return True
+    found = int(
+        await session.scalar(_VALID_DIARIES, {"user_id": user_id, "ids": list(expected)}) or 0
     )
-    for ref_type, stmt in checks:
-        ids = expected[ref_type]
-        if ids and int(
-            await session.scalar(stmt, {"user_id": user_id, "ids": list(ids)}) or 0
-        ) != len(ids):
-            return False
-    return True
+    return found == len(expected)
 
 
 def _card(diary: Diary, nickname: str | None) -> dict:

@@ -34,12 +34,8 @@ from app.services import (
     greetings,
     i18n,
     llm,
-    memory_repo,
     naming,
-    prompts,
     privacy,
-    relationship_profile,
-    relationship_profile_repo,
     text_clean,
     turn_context,
     usage_ledger,
@@ -49,7 +45,6 @@ from app.services import (
     chat_references,
     chat_turns,
     diary as diary_service,
-    episodic_memory,
 )
 from app.services.account import _uid
 from app.services.agent import config as agent_config
@@ -366,9 +361,7 @@ def _build_system(
     lead: list[str] | None = None,
     *,
     summary: str = "",
-    relationship_text: str = "",
     current_state: str = "",
-    suppress_legacy_memory: bool = False,
     contract_text: str = "",
     relationship_v2: str = "",
 ) -> list[str]:
@@ -411,16 +404,8 @@ def _build_system(
     # 11장이 정한 자리는 **최근 원문 뒤**이고, prompt_assembly도 MEMORY를 CURRENT로 분류한다.
     # 실제 주입은 post_message가 convo 끝에서 한다.
     if relationship_v2:
-        # 결정적 state의 투영. legacy 자유 서술과 달리 값이 흘러가지 않는다(7.1절).
+        # 결정적 state의 투영. 모델이 쓴 자유 서술과 달리 값이 흘러가지 않는다(7.1절).
         parts.append(relationship_v2)
-    elif suppress_legacy_memory:
-        pass  # v2 사용자는 legacy 관계 프로필을 넣지 않는다(같은 사실이 두 벌이 된다)
-    elif relationship_text:
-        block = prompts.relationship_profile_block(
-            naming.render(relationship_text, nickname), language, enabled=True
-        )
-        if block:
-            parts.append(block)
     # ⚠️ [지난 이야기](요약)와 [지금 상태]는 **여기 없다.** 둘 다 자주 바뀌는데 system은
     # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
     # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). prompt_assembly도 CHECKPOINT·
@@ -652,53 +637,6 @@ async def _record_memory_v2(
 
 
 # --- 정규화 기억 소스(W8, Phase 2 트랜잭션 안) ---
-async def _record_memory_source(
-    session: AsyncSession,
-    uid: uuid.UUID,
-    *,
-    representative_message_id: int,
-    message_ids: list[int],
-    now: datetime,
-) -> int | None:
-    """이 턴의 watermark를 배정하고 정규화 기억 추출 잡을 건다.
-
-    호출 위치가 계약이다: 유저·캐피 메시지를 insert한 **같은 Phase 2 트랜잭션·같은 유저락 안**,
-    커밋 전. 그래야 `memory_source_turns`/`memory_source_turn_messages`/`async_jobs` 행이 메시지와
-    원자적으로 생기고, watermark가 유저별로 빈틈 없이 하나씩 올라간다(§W8).
-
-    실패 정책:
-    - 대표가 inbound user message가 아니면(`NoInboundUserMessageError`) watermark를 쓰지 않고
-      조용히 건너뛴다. 선발화만 있는 턴은 v1 추출 소스가 아니다 — 대화는 정상 응답한다.
-    - 그 밖의 저장소 불변식 위반(`MemoryRepoError`)도 **쓰기 전에** 나므로 같은 방식으로 넘긴다
-      (기억 배선 버그가 대화를 죽이지 않게).
-    - DB 오류는 잡지 않고 올린다. 같은 트랜잭션이라 이미 abort된 상태이므로 fail-open이 성립하지
-      않는다 — 삼키면 watermark만 오르고 추출 잡이 없는 턴이 조용히 생기거나, 뒤이은 커밋이
-      알 수 없는 곳에서 실패한다. 올리면 이번 턴 전체가 롤백되고(저장 0) 클라가 같은 멱등키로
-      깨끗이 재시도한다.
-    """
-    try:
-        turn = await memory_repo.allocate_source_turn(
-            session,
-            user_id=uid,
-            representative_message_id=representative_message_id,
-            message_ids=message_ids,
-            committed_at=now,
-        )
-    except memory_repo.MemoryRepoError as e:  # 쓰기 이전 단계에서만 발생 — 트랜잭션은 멀쩡하다
-        _log.info("기억 소스 배정 건너뜀(user=%s): %s", uid, e)
-        return None
-    await memory_repo.enqueue_extraction(
-        session,
-        user_id=uid,
-        memory_generation=turn.memory_generation,
-        from_watermark=turn.watermark,
-        through_watermark=turn.watermark,
-        message_ids=turn.message_ids,
-    )
-    return turn.watermark
-
-
-# --- 대화 요약 checkpoint(W11, Phase 2 트랜잭션 안) ---
 async def _enqueue_checkpoint(
     session: AsyncSession, uid: uuid.UUID, *, anchor: int, keep_from: int
 ) -> None:
@@ -714,7 +652,7 @@ async def _enqueue_checkpoint(
     - 리셋이 없는 턴은 부르지 않는다. checkpoint는 "버려지는 구간"에 대응하는 것이고, 리셋 없이
       만들면 어느 앵커와도 맞물리지 않는 경계가 생긴다.
 
-    실패 정책은 `_record_memory_source`와 같다 — 쓰기 전에 나는 계약 위반(`CheckpointError`)은
+    쓰기 전에 나는 계약 위반(`CheckpointError`)은
     로그만 남기고 넘기고(요약 배선 버그가 대화를 죽이지 않게), DB 오류는 올려서 턴 전체를 롤백한다.
     """
     if not settings.context_checkpoint_enabled:
@@ -909,19 +847,6 @@ async def post_message(
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가
     # active fact/insight와 forget marker를 매번 재대조한다. 재생성 지연 중에도 잊은 내용이
     # 프롬프트로 돌아오지 않는다. 손상된 projection은 과거 사본으로 폴백하지 않고 빈 기억으로 간다.
-    # v2 사용자는 legacy 관계 프로필을 **조회조차 하지 않는다**. 프롬프트에 안 쓰면서
-    # 읽기만 하면 쿼리 비용만 들고, legacy 테이블 제거를 영영 막는다.
-    relationship_text = ""
-    if not pipeline_state.serves_v2:
-        try:
-            relationship_text = await relationship_profile_repo.prompt_text(
-                session, user_id=uid, language=language
-            )
-        except relationship_profile.ProfileError:
-            _log.warning(
-                "관계 프로필 문서 손상(user=%s) — 빈 기억으로 진행", user_id, exc_info=True
-            )
-
     # 대화 요약 checkpoint(W11) — 앵커 앞 구간을 대신하는 줄거리. 킬스위치 off면 조회 자체를 안 한다
     # (기존과 완전 동일). 앵커는 항상 `through + 1`이라(리셋이 요약 경계를 정한다) 여기서 읽은
     # 요약과 아래 대화 배열은 겹치지 않고 이어진다.
@@ -1007,10 +932,8 @@ async def post_message(
         language,
         nick,
         lead_all,
-        relationship_text=relationship_text,
         # ⚠️ **mode 기준이다.** 회상 결과(bool(memory_v2_block))로 정하면, 검색이 실패하거나
         # 빈 결과일 때 legacy 기억이 되살아나 같은 사용자가 턴마다 v2/legacy 인격을 오간다.
-        suppress_legacy_memory=pipeline_state.serves_v2,
         contract_text=contract_text,
         relationship_v2=relationship_v2,
     )
@@ -1219,7 +1142,6 @@ async def post_message(
 
     # 선발화 커밋(재조회 — 여전히 유효하면). id 순서 위해 유저 메시지보다 먼저 insert.
     greeting_dto = None
-    greeting_message_id: int | None = None  # 이 턴에 커밋된 선발화(기억 소스 turn에 함께 묶는다)
     if greeting_gid is not None:
         # populate_existing=True — phase-1에서 로드한 gr가 identity map + expire_on_commit=False로
         # 남아 있어, 강제 재조회 없으면 phase-1의 stale(committed_message_id=None) 상태를 본다.
@@ -1233,7 +1155,6 @@ async def post_message(
             session.add(gmsg)
             await session.flush()
             gr.committed_message_id = gmsg.id
-            greeting_message_id = gmsg.id
             # gr.content는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
             greeting_dto = {
                 "message_id": str(gmsg.id),
@@ -1284,27 +1205,6 @@ async def post_message(
     session.add(rmsg)
     await session.flush()
 
-    # 정규화 기억 — 이 턴의 소스 turn 배정 + 추출 잡.
-    # 이 턴에 커밋된 선발화도 같은 watermark에 묶는다(그 인사도 이 대화의 근거다).
-    # v2 사용자는 legacy 정규화 기억을 **쓰지 않는다**. 두 벌로 쌓으면 비용이 두 배고,
-    # 어느 쪽이 정본인지 흐려지며, legacy 테이블을 영영 못 지운다.
-    v2_state = await memory_pipeline.load(session, uid)
-    source_watermark = None
-    if not v2_state.serves_v2:
-        source_watermark = await _record_memory_source(
-            session, uid,
-            representative_message_id=umsg.id,
-            message_ids=[i for i in (greeting_message_id, umsg.id, rmsg.id) if i is not None],
-            now=now,
-        )
-    if source_watermark is not None:
-        await episodic_memory.enqueue_user_message(
-            session,
-            user_id=uid,
-            message_id=umsg.id,
-            source_watermark=source_watermark,
-            content=umsg.content,
-        )
     # 기억 v2(15장 5단계) — legacy 사용자는 no-op. shadow/v2만 source 커서와 관계 event를
     # **이 트랜잭션에서** 함께 기록한다. shadow는 기록만 하고 응답에는 쓰지 않는다.
     await _record_memory_v2(session, uid, turn_seq=lease.turn_seq, activity_date=ad, now=now)

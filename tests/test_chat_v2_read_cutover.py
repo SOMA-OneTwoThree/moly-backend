@@ -28,13 +28,6 @@ def _system(**over):
 
 # ── 안 켠 사용자는 그대로 ────────────────────────────────────
 
-def test_prompt_is_unchanged_when_v2_is_off():
-    """v2가 꺼져 있으면 legacy 경로가 그대로 살아 있어야 한다."""
-    before = _system(relationship_text="고양이를 키운다")
-    after = _system(relationship_text="고양이를 키운다", suppress_legacy_memory=False)
-    assert before == after
-
-
 @pytest.mark.parametrize("mode_serves_v2", [False])
 async def test_non_v2_user_gets_empty_block_without_touching_provider(mode_serves_v2):
     """mode가 v2가 아니면 임베딩·벡터 검색을 **아예 부르지 않는다** — 비용과 지연 0."""
@@ -58,12 +51,6 @@ async def test_non_v2_user_gets_empty_block_without_touching_provider(mode_serve
 
 
 # ── 켠 사용자 ────────────────────────────────────────────────
-
-def test_v2_suppresses_the_legacy_block():
-    """둘 다 넣으면 같은 사실이 두 벌로 들어가 캐피가 중복해서 말한다."""
-    out = "\n".join(_system(relationship_text="고양이를 키운다", suppress_legacy_memory=True))
-    assert "고양이를 키운다" not in out
-
 
 def test_v2_memory_is_not_in_the_cached_system_prefix():
     """system은 캐시되는 프리픽스다. 매 턴 달라지는 회상을 여기 두면 그 뒤가 전부 miss다.
@@ -162,28 +149,6 @@ def test_recall_uses_its_own_session():
     assert "get_sessionmaker()" in src
 
 
-def test_rollback_is_a_mode_flip_not_a_code_change():
-    """legacy 경로가 코드에 남아 있어야 mode 한 줄로 되돌릴 수 있다.
-
-    전환이 잘못됐을 때 배포를 되돌려야 한다면 대응이 몇 분에서 몇십 분으로 늘어난다.
-    """
-    src = inspect.getsource(chat._build_system)
-    assert "relationship_text" in src, "legacy 블록 경로가 사라졌다"
-    assert "elif relationship_text" in src, "v2/legacy가 배타 분기가 아니다"
-
-
-def test_v2_user_does_not_get_the_legacy_block():
-    """둘 다 들어가면 같은 사실이 두 벌이 되고 캐시만 늘어난다."""
-    out = "\n".join(_system(relationship_text="레거시 기억", suppress_legacy_memory=True))
-    assert "레거시 기억" not in out
-
-
-def test_legacy_user_still_gets_the_legacy_block():
-    """전환 안 된 사용자는 지금까지와 똑같아야 한다."""
-    out = "\n".join(_system(relationship_text="레거시 기억"))
-    assert "레거시 기억" in out
-
-
 def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
     """태스크를 만든 뒤 raise하면 그 태스크가 고아가 된다.
 
@@ -215,20 +180,3 @@ def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
 
 
 
-def test_legacy_suppression_follows_mode_not_search_result():
-    """회상 결과로 정하면 검색 실패 시 legacy 기억이 되살아난다.
-
-    같은 사용자가 턴마다 v2 인격과 legacy 인격을 오가게 된다 — 사용자에겐 캐피가
-    갑자기 다른 걸 기억하는 것으로 보인다.
-    """
-    src = inspect.getsource(chat.post_message)
-    idx = src.index("suppress_legacy_memory=")
-    arg = src[idx:idx + 80]
-    assert "serves_v2" in arg, "legacy 억제가 mode 기준이 아니다"
-    assert "bool(memory_v2_block)" not in arg
-
-
-def test_v2_user_with_no_recall_still_gets_no_legacy_block():
-    """회상 0건이어도 legacy가 들어오면 안 된다."""
-    out = "\n".join(_system(relationship_text="레거시 기억", suppress_legacy_memory=True))
-    assert "레거시 기억" not in out

@@ -36,10 +36,6 @@ paths:
     $ref: ./paths/conversations.yaml#/~1v2~1diaries
   /v2/diaries/{diary_id}:
     $ref: ./paths/conversations.yaml#/~1v2~1diaries~1%7Bdiary_id%7D
-  /memory:
-    $ref: ./paths/memory.yaml#/~1memory
-  /memory/search:
-    $ref: ./paths/memory.yaml#/~1memory~1search
   /wallet:
     $ref: ./paths/economy.yaml#/~1wallet
   /wallet/transactions:
@@ -158,20 +154,6 @@ components:
       $ref: ./components/common.yaml#/schemas/JsonValue
     MessagesResponse:
       $ref: ./components/conversations.yaml#/schemas/MessagesResponse
-    MemoryFactResponse:
-      $ref: ./components/memory.yaml#/schemas/MemoryFactResponse
-    MemoryListResponse:
-      $ref: ./components/memory.yaml#/schemas/MemoryListResponse
-    MemorySearchRequest:
-      $ref: ./components/memory.yaml#/schemas/MemorySearchRequest
-    MemorySearchItem:
-      $ref: ./components/memory.yaml#/schemas/MemorySearchItem
-    MemorySearchResponse:
-      $ref: ./components/memory.yaml#/schemas/MemorySearchResponse
-    MemoryForgetRequest:
-      $ref: ./components/memory.yaml#/schemas/MemoryForgetRequest
-    MemoryForgetResponse:
-      $ref: ./components/memory.yaml#/schemas/MemoryForgetResponse
     PatchRoutineRequest:
       $ref: ./components/routines.yaml#/schemas/PatchRoutineRequest
     PostMessageRequest:

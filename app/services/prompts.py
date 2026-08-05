@@ -143,7 +143,6 @@ _OUTPUT_CHECK_JA = (
 # ─────────────────────────────────────────────────────────────
 # 관계 프로필 블록(W9) — 정규화 기억의 유일한 기본 주입 경로.
 #
-# 본문(칸별 항목)은 `app/services/relationship_profile.render`가 만든다 — 이 함수는 헤더와
 # "나열하지 말라"는 규칙만 붙인다. 프로필은 하루 몇 번만 바뀌므로 페르소나 쪽(안정 프리픽스)에
 # 붙여야 캐시가 산다. 매 턴 바뀌는 블록과 같은 자리에 두면 캐시가 통째로 깨진다.
 # ─────────────────────────────────────────────────────────────
@@ -172,23 +171,6 @@ _PROFILE_RULE = {
         "断定せず、慎重に扱って。"
     ),
 }
-
-
-def relationship_profile_block(
-    rendered_text: str | None, language: str | None, *, enabled: bool | None = None
-) -> str:
-    """관계 프로필을 감싼 system 블록. 꺼져 있거나 내용이 없으면 빈 문자열이다.
-
-    `enabled`를 주면 그 값이 우선한다(cutover 롤아웃이 유저 단위로 켤 자리). 기본은 모듈 플래그.
-    """
-    if not (RELATIONSHIP_PROFILE_BLOCK_ENABLED if enabled is None else enabled):
-        return ""
-    body = (rendered_text or "").strip()
-    if not body:
-        return ""
-    return f"[{i18n.pick(_PROFILE_LABEL, language)}]\n{i18n.pick(_PROFILE_RULE, language)}\n{body}"
-
-
 def system_prompt(language: str) -> str:
     """페르소나 + 응답 언어 고정(profile.language로 생성). 언어별로 문자 규칙·출력 체크를 분기한다.
 

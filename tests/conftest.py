@@ -9,24 +9,15 @@ import uuid
 import pytest
 
 from app.services import (
-    chat,
     chat_references,
     chat_turns,
     diary,
-    episodic_memory,
     privacy,
-    relationship_profile_repo,
 )
 
 
 @pytest.fixture(autouse=True)
 def _unified_memory_defaults(monkeypatch, request):
-    async def _empty_profile(*args, **kwargs):
-        return ""
-
-    async def _no_source(*args, **kwargs):
-        return None
-
     async def _acquire(*args, **kwargs):
         return chat_turns.Lease(token=uuid.uuid4(), turn_seq=1, base_context_revision=0)
 
@@ -45,9 +36,6 @@ def _unified_memory_defaults(monkeypatch, request):
     async def _valid_refs(*args, **kwargs):
         return True
 
-    if request.module.__name__ != "tests.test_relationship_profile_repo":
-        monkeypatch.setattr(relationship_profile_repo, "prompt_text", _empty_profile)
-    monkeypatch.setattr(chat, "_record_memory_source", _no_source)
     # 기존 chat 단위 테스트는 새 lease/reference/first-turn 저장소와 관심사를 분리한다.
     # 해당 계약은 전용 테스트에서 SQL과 상태 전이를 직접 검증한다.
     if request.module.__name__ != "tests.test_conversational_recall_services":
@@ -60,7 +48,5 @@ def _unified_memory_defaults(monkeypatch, request):
         monkeypatch.setattr(chat_references, "validate_selected", _valid_refs)
     if request.module.__name__ != "tests.test_privacy":
         monkeypatch.setattr(privacy, "ensure_subject_active", _nothing)
-    if request.module.__name__ != "tests.test_conversational_recall_services":
-        monkeypatch.setattr(episodic_memory, "enqueue_user_message", _nothing)
     if request.module.__name__ != "tests.test_diary":
         monkeypatch.setattr(diary, "ensure_welcome_for_first_committed_turn", _nothing)

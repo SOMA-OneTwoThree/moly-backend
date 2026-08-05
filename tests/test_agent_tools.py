@@ -22,9 +22,7 @@ from app.services.agent.tools import (
     get_diary,
     get_routines,
     recall_diaries,
-    recall_memory,
     search_diaries,
-    search_memory,
 )
 from app.services.agent.tools.registry import REGISTRY
 from tests.fake_db import FakeDbSession
@@ -78,41 +76,15 @@ def _completion(routine, *, user_id=None, day=TODAY, seq=0):
 # =====================================================================================
 def test_registry_exposes_all_read_tools():
     names = [s["function"]["name"] for s in REGISTRY.wire_schemas()]
-    assert names == ["recall_diaries", "get_routines", "recall_memory"]
+    assert names == ["recall_diaries", "get_routines"]
     assert set(REGISTRY.input_models()) == {
-        "recall_diaries", "get_routines", "recall_memory"
+        "recall_diaries", "get_routines"
     }
 
 
 def test_search_diaries_is_registered():
     assert REGISTRY.get("recall_diaries") is recall_diaries.TOOL
     assert REGISTRY.get("search_diaries") is None
-
-
-def test_search_memory_is_registered():
-    assert REGISTRY.get("recall_memory") is recall_memory.TOOL
-    assert REGISTRY.get("search_memory") is None
-
-
-async def test_search_memory_uses_embedding_and_hard_filtered_repo(monkeypatch):
-    seen = {}
-
-    async def embed(query):
-        seen["query"] = query
-        return [0.1, 0.2]
-
-    async def search(session, user_id, **kwargs):
-        seen["user_id"] = user_id
-        seen.update(kwargs)
-        return []
-
-    monkeypatch.setattr(search_memory.memory_embeddings, "embed_query", embed)
-    monkeypatch.setattr(search_memory.memory_repo, "search_memory", search)
-    out, truncated = await search_memory.TOOL.run(
-        _ctx(), search_memory.SearchMemoryArgs(query="서울"), FakeDbSession()
-    )
-    assert out.items == [] and truncated is False
-    assert seen["query"] == "서울" and seen["user_id"] == U1
 
 
 def test_runtime_picks_up_the_registry():
@@ -532,10 +504,10 @@ async def test_run_turn_executes_the_real_registry_end_to_end(monkeypatch):
 
     assert turn.text == "응, 비 왔었지."
     assert [s["function"]["name"] for s in seen[0]["tools"]] == [
-        "recall_diaries", "get_routines", "recall_memory", "finish_response",
+        "recall_diaries", "get_routines", "finish_response",
     ]
     assert set(seen[0]["input_models"]) == {
-        "recall_diaries", "get_routines", "recall_memory",
+        "recall_diaries", "get_routines",
     }
     assert [s["function"]["name"] for s in seen[1]["tools"]] == ["finish_response"]
     assert seen[1]["tool_choice"] == {

@@ -63,19 +63,20 @@ def test_chat_reads_the_render_without_aggregating():
     assert "relationship_projector.project(" not in src
 
 
-def test_v2_relationship_replaces_the_legacy_block():
-    """둘 다 넣으면 같은 관계를 두 번 말한다."""
+def test_relationship_block_reaches_the_prompt():
+    """관계 render가 프롬프트에 안 들어가면 만들어도 의미가 없다."""
     out = "\n".join(chat._build_system(
         language="ko", nickname="승민", lead=None,
-        relationship_text="레거시 관계", relationship_v2="[관계]\n함께한 날: 3일",
+        relationship_v2="[관계]\n함께한 날: 3일",
     ))
-    assert "함께한 날" in out and "레거시 관계" not in out
+    assert "함께한 날" in out
 
 
-def test_non_v2_user_is_unaffected():
-    out = "\n".join(chat._build_system(
-        language="ko", nickname="승민", lead=None, relationship_text="레거시 관계"))
-    assert "레거시 관계" in out
+def test_no_relationship_render_means_no_block():
+    """아직 투영이 안 돈 사용자는 관계 블록 없이 대화한다."""
+    # 페르소나 본문에도 '[관계]'라는 말이 있으므로 **블록 내용**으로 확인한다.
+    out = "\n".join(chat._build_system(language="ko", nickname="승민", lead=None))
+    assert "함께한 날" not in out
 
 
 def test_projector_job_is_registered():

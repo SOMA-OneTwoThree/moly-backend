@@ -385,6 +385,58 @@ async def enqueue_provider_delete(
 
 
 JOB_SHADOW_TRACE = "shadow_prompt_trace"
+JOB_SHADOW_CHECKPOINT = "shadow_checkpoint"
+
+# 이 turn과 직전 turn의 활동일. 다르면 하루가 닫힌 것이다.
+_DAY_BOUNDARY = text("""
+SELECT
+  (SELECT activity_date FROM messages
+   WHERE user_id=:user_id AND turn_seq=:turn_seq AND activity_date IS NOT NULL
+   ORDER BY id LIMIT 1) AS today,
+  (SELECT activity_date FROM messages
+   WHERE user_id=:user_id AND turn_seq < :turn_seq AND activity_date IS NOT NULL
+   ORDER BY turn_seq DESC, id DESC LIMIT 1) AS prev
+""")
+
+
+async def enqueue_shadow_checkpoints_on_day_boundary(
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
+) -> str | None:
+    """하루가 닫혔으면 **직전 활동일**의 shadow checkpoint를 건다(15장 8번).
+
+    매 turn 걸면 하루에 수십 번 LLM을 부른다. digest는 "activity date 하나의 독립 요약"이라
+    하루가 닫힌 시점에 한 번이면 충분하다. 반환 = 대상 활동일(없으면 None).
+
+    dedup key에 활동일이 들어가므로 같은 날을 두 번 만들지 않는다.
+    """
+    from app.services import jobs
+
+    row = (await session.execute(
+        _DAY_BOUNDARY, {"user_id": user_id, "turn_seq": turn_seq}
+    )).first()
+    if row is None or row[0] is None or row[1] is None or row[0] == row[1]:
+        return None  # 첫 turn이거나 같은 날 — 아직 닫히지 않았다
+    closed = row[1]
+
+    await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_CONTENT,
+        job_type=JOB_SHADOW_CHECKPOINT,
+        user_id=user_id,
+        dedup_key=f"sckpt:d:{user_id}:{closed.isoformat()}",
+        payload={"kind": "daily_digest", "activity_date": closed.isoformat(),
+                 "privacy_epoch": privacy_epoch},
+    )
+    # 누적 window는 그날까지의 대화를 이어 붙인다. digest와 달리 체인이라 하루에 한 고리다.
+    await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_CONTENT,
+        job_type=JOB_SHADOW_CHECKPOINT,
+        user_id=user_id,
+        dedup_key=f"sckpt:w:{user_id}:{closed.isoformat()}",
+        payload={"kind": "window", "privacy_epoch": privacy_epoch},
+    )
+    return closed.isoformat()
 
 
 async def enqueue_shadow_trace(

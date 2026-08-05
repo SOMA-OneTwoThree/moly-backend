@@ -403,7 +403,9 @@ def _build_system(
     if contract_text:
         # 계약은 검색 성공 여부와 무관하게 **항상** 지켜야 하는 합의라 회상 경로를 타지 않는다.
         # 자주 바뀌지 않으므로 안정 프리픽스에 둔다(prompt_assembly도 CONTRACT를 STABLE로 분류).
-        parts.append(contract_text)
+        # 저장은 placeholder로 하므로 투입 전에 현재 이름으로 렌더한다 — 안 하면 사용자에게
+        # {유저이름}이 그대로 보인다.
+        parts.append(naming.render(contract_text, nickname))
 
     # ⚠️ v2 기억은 **여기 넣지 않는다.** 회상 결과는 매 턴 달라지는데 system은 캐시되는
     # 프리픽스라, 여기 두면 그 뒤가 전부 cache miss가 된다(실측: 캐시 쓰기 59토큰 → 4,232토큰).
@@ -868,7 +870,15 @@ async def post_message(
     # v2 읽기 전환 여부. 여기서는 **한 행만 읽는다**.
     pipeline_state = await memory_pipeline.load(session, uid)
     # published 계약. 없으면 빈 문자열이라 프롬프트가 지금과 같다.
-    contract_text = await contract_repo.published_text(session, user_id=uid, locale=language)
+    # 계약 조회는 대화의 보조다. 여기서 예외가 새면 응답 전체가 실패하므로 마지막 방어선을
+    # 하나 더 둔다 — 실제로 jsonb 파싱 실수 하나가 대화를 통째로 죽였다.
+    try:
+        contract_text = await contract_repo.published_text(
+            session, user_id=uid, locale=language
+        )
+    except Exception:  # noqa: BLE001
+        _log.warning("계약 조회 실패(빈 계약으로 진행) — user=%s", user_id, exc_info=True)
+        contract_text = ""
     # v2 관계 render. 읽기만 한다 — 집계는 projector 잡이 하고 챗은 결과만 쓴다.
     relationship_v2 = ""
     if pipeline_state.serves_v2:

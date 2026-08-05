@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import time
+import asyncio
 import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
@@ -305,6 +306,56 @@ async def _touch_last_active(session: AsyncSession, uid: uuid.UUID, now: datetim
     await session.execute(stmt)
 
 
+_MEM0_RECALL_TIMEOUT_S = 2.5
+_mem0_recall_adapter = None
+
+
+def _recall_adapter():
+    """챗 프로세스의 vector store 어댑터. 프로세스당 하나만 만든다.
+
+    ⚠️ vecs는 동기 SQLAlchemy라 앱의 asyncpg 엔진을 넘기면 MissingGreenlet으로 터진다.
+    워커와 같은 이유로 **전용 동기 엔진**을 쓴다.
+    """
+    global _mem0_recall_adapter
+    if _mem0_recall_adapter is None:
+        from app.services import mem0_adapter
+
+        engine = mem0_adapter.build_sync_engine(settings.supabase_db_connection_string)
+        _mem0_recall_adapter = mem0_adapter.Mem0VectorIndexAdapter(
+            mem0_adapter.build_client(engine), collection_name="moly_memories_v2"
+        )
+    return _mem0_recall_adapter
+
+
+async def _recall_memory_v2(
+    user_id: uuid.UUID, *, query: str, state, language: str
+) -> str:
+    """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
+
+    회상 실패는 대화를 막지 않는다. 여기서 예외가 새면 응답 전체가 실패하므로
+    마지막 방어선을 하나 더 둔다(mem0_recall도 자체적으로 삼킨다).
+    """
+    if not getattr(state, "serves_v2", False):
+        return ""
+    try:
+        from app.services import mem0_recall, memory_embeddings
+
+        from app.core.db import get_sessionmaker
+
+        maker = get_sessionmaker()
+        async with maker() as s2:
+            items = await mem0_recall.recall(
+                s2, user_id, query=query,
+                adapter=_recall_adapter(),
+                embed_query=memory_embeddings.embed_query,
+                timeout=_MEM0_RECALL_TIMEOUT_S,
+            )
+        return mem0_recall.render_block(items, language=language)
+    except Exception:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
+        _log.warning("v2 회상 블록 생성 실패(빈 기억으로 진행) — user=%s", user_id, exc_info=True)
+        return ""
+
+
 def _build_system(
     language: str,
     nickname: str | None,
@@ -313,6 +364,7 @@ def _build_system(
     summary: str = "",
     relationship_text: str = "",
     current_state: str = "",
+    memory_v2_block: str = "",
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
     뒤 블록이 바뀌어도 페르소나 캐시 생존.
@@ -341,7 +393,12 @@ def _build_system(
             "같은 인사를 또 하지 마.\n"
             f"{said}"
         )
-    if relationship_text:
+    if memory_v2_block:
+        # v2 기억. mem0_recall이 registry 상태로 이미 걸렀고, 서버가 만든 블록이라
+        # user 발화 권위를 넘지 않는다. legacy 관계 프로필과 **동시에 넣지 않는다** —
+        # 같은 사실이 두 벌로 들어가면 캐피가 중복해서 말하고 캐시만 늘어난다.
+        parts.append(naming.render(memory_v2_block, nickname))
+    elif relationship_text:
         block = prompts.relationship_profile_block(
             naming.render(relationship_text, nickname), language, enabled=True
         )
@@ -802,6 +859,30 @@ async def post_message(
     ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
 
+    # v2 읽기 전환 여부. 여기서는 **한 행만 읽는다**.
+    pipeline_state = await memory_pipeline.load(session, uid)
+    # greeting_id 형식 검증은 **회상을 띄우기 전에** 끝낸다. 태스크를 만든 뒤에 raise하면
+    # 그 태스크가 고아가 되어, 응답은 실패했는데 임베딩 호출과 DB 세션은 그대로 돈다
+    # (클라이언트가 잘못된 값을 반복해 보내면 그만큼 낭비된다).
+    requested_gid: uuid.UUID | None = None
+    if getattr(req, "greeting_id", None):
+        try:
+            requested_gid = uuid.UUID(req.greeting_id)
+        except ValueError as e:
+            raise errors.validation("잘못된 greeting_id예요.") from e
+
+    # 회상을 **지금 띄워** Phase 1의 남은 DB 작업과 겹쳐 돌린다.
+    #
+    # 회상 자체는 임베딩+벡터검색으로 약 490ms 걸린다(dev 실측). 커밋 뒤에 직렬로 부르면
+    # 그만큼이 통째로 `agent_turn_deadline_s`(5초) 예산에서 빠진다. 미리 띄우면 Phase 1의
+    # DB 작업 시간만큼 숨는다 — 실측 잔여 대기: Phase1 200ms일 때 287ms, 500ms일 때 21ms.
+    #
+    # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
+    # 문자열로 끝난다(임베딩·검색 호출 0).
+    recall_task = asyncio.ensure_future(
+        _recall_memory_v2(uid, query=req.text, state=pipeline_state, language=language)
+    )
+
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가
     # active fact/insight와 forget marker를 매번 재대조한다. 재생성 지연 중에도 잊은 내용이
     # 프롬프트로 돌아오지 않는다. 손상된 projection은 과거 사본으로 폴백하지 않고 빈 기억으로 간다.
@@ -861,11 +942,8 @@ async def post_message(
     # 현재 턴 선발화(있으면) — 이번 턴 system[먼저 건넨 말]에 넣으려 읽기만. insert는 phase 2.
     greeting_content: str | None = None
     greeting_gid: uuid.UUID | None = None
-    if getattr(req, "greeting_id", None):
-        try:
-            gid = uuid.UUID(req.greeting_id)
-        except ValueError as e:
-            raise errors.validation("잘못된 greeting_id예요.") from e
+    if requested_gid is not None:
+        gid = requested_gid
         gr = await session.get(Greeting, gid)
         if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
             greeting_content = gr.content  # placeholder 저장분
@@ -881,6 +959,21 @@ async def post_message(
     phase1_ms = _ms(t0, t_phase1)
 
     # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — LLM + 백스톱 =====
+    # 위에서 띄운 회상을 여기서 거둔다. 이미 끝나 있으면 대기 0이다.
+    #
+    # ⚠️ **여기서 한 번 더 막는다.** 안쪽 타임아웃만 믿으면 안 된다 — `embed_query`는
+    # `settings.llm_timeout_s`(60초)를 쓰고 회상 예산과 무관하다. 임베딩 API가 느려지면
+    # 그냥 `await`은 60초를 기다려 5초 마감을 통째로 날린다. 내부 호출이 각자 예산을
+    # 지키는지에 의존하지 말고 **경계에서 통째로** 자른다.
+    try:
+        memory_v2_block = await asyncio.wait_for(
+            recall_task, timeout=_MEM0_RECALL_TIMEOUT_S
+        )
+    except (TimeoutError, asyncio.CancelledError):
+        recall_task.cancel()  # 끊고 나서도 계속 돌면 비용만 나간다
+        memory_v2_block = ""
+        _log.warning("v2 회상 타임아웃(빈 기억으로 진행) — user=%s", uid)
+
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
     system = _build_system(
         language,
@@ -889,6 +982,7 @@ async def post_message(
         summary=checkpoint_summary,
         relationship_text=relationship_text,
         current_state=resident_block,
+        memory_v2_block=memory_v2_block,
     )
     if focus_block:
         system = [*system, focus_block]

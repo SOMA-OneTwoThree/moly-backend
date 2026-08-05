@@ -142,3 +142,54 @@ URL만 바꾸면 iOS 캐시가 갱신되지 않는다.
    hat/glasses를 단일 `head_id`로 투영해야 한다.
 7. 레거시 `/me`·`/shop/products`·`/inventory`·두 equipment 조회에 hat/glasses·`rightside`가
    노출되지 않는지, `/v2/*` 4종이 새 슬롯과 rightside upright를 반환하는지 스모크 테스트한다.
+
+---
+
+## 프로덕션 적용 — 순서와 위험 (2026-08-05 실측)
+
+**현재 prod에는 이 작업이 하나도 반영돼 있지 않다.** 실측 스키마 차이:
+
+| | 테이블 수 |
+|---|---|
+| prod | 25 |
+| dev | 67 |
+| **dev에만 있음** | **42** |
+| prod에만 있음 | 0 |
+
+prod에서 **사라지는 테이블은 없다**. 전부 추가다.
+
+`schema_migrations`는 dev에만 있고 12건만 기록돼 있다(추적 테이블보다 먼저 적용된 것들은
+기록이 없다). prod에는 추적 테이블 자체가 없으므로 **41개 파일을 순서대로 적용**해야 한다.
+
+### ⚠️ 유저 데이터를 건드리는 구문 (실측 확인 완료)
+
+| 마이그레이션 | 구문 | prod 영향 | 판정 |
+|---|---|---|---|
+| `20260713_appearance_v2_cutover` | `DELETE FROM user_items WHERE source='subscription'` | **0행** | 안전 |
+| `20260804_zzz_conversational_recall` | `DELETE FROM diaries WHERE source='none'` | 2,946행 | 안전 — 같은 transaction에서 `diary_generation_results`로 먼저 옮긴다(표현 변경이지 손실 아님) |
+| `20260804_zz_memory_contract` | `ALTER TABLE chat_contexts DROP COLUMN memory_text …` | **245행에 내용 있음** | 🔴 **위험** |
+
+### 🔴 `chat_contexts.memory_text` DROP — 선행 조건
+
+이 컬럼은 캐피가 그 사용자에 대해 들고 있던 **기억 스냅샷**이다. prod 517명 중 **245명**에
+내용이 있다. 새 기억이 채워지기 **전에** 이 마이그레이션을 돌리면 그 245명은 캐피가
+자기를 잊은 상태가 된다.
+
+적용 순서를 반드시 지킨다:
+
+1. 나머지 마이그레이션을 먼저 적용해 새 기억 테이블을 만든다
+2. **backfill을 돌려 새 구조에 기억을 채운다** (`scripts/backfill_normalized_memory.py` 등)
+3. 채워진 것을 **행 수로 검증**한다 — `memory_text`가 있던 245명이 새 구조에도 있는지
+4. 그 확인이 끝난 뒤에만 `20260804_zz_memory_contract.sql`을 적용한다
+
+3번을 건너뛰면 되돌릴 수 없다. DROP된 컬럼은 복구 대상이 백업뿐이다.
+
+### 적용 명령
+
+```
+python db/apply.py db/migrations/<파일> --env prod            # dry-run (기본)
+python db/apply.py db/migrations/<파일> --env prod --commit   # 실반영
+```
+
+**배포는 머지에 붙어 있으므로 마이그레이션이 항상 먼저다.** 순서가 바뀌면 새 코드가 없는
+테이블을 읽어 프로덕션 대화가 죽는다(과거 사고 있음).

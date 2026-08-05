@@ -568,34 +568,6 @@ paths:
           $ref: '#/components/responses/Internal'
       security:
       - SupabaseBearer: []
-  /memory/forget:
-    post:
-      tags:
-      - memory
-      summary: 기억 삭제
-      description: 확인된 요청에 한해 사실, 술어 범위 또는 사용자의 모든 기억을 망각 처리한다.
-      operationId: forgetMemory
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MemoryForgetRequest'
-      responses:
-        '200':
-          description: 망각 및 파생 기억 무효화 결과
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MemoryForgetResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/Validation'
-        '500':
-          $ref: '#/components/responses/Internal'
-      security:
-      - SupabaseBearer: []
   /wallet:
     get:
       tags:

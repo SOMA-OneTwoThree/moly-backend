@@ -40,8 +40,6 @@ paths:
     $ref: ./paths/memory.yaml#/~1memory
   /memory/search:
     $ref: ./paths/memory.yaml#/~1memory~1search
-  /memory/forget:
-    $ref: ./paths/memory.yaml#/~1memory~1forget
   /wallet:
     $ref: ./paths/economy.yaml#/~1wallet
   /wallet/transactions:

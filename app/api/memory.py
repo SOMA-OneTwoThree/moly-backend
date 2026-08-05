@@ -5,8 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_session
 from app.core.security import get_current_user
 from app.schemas.memory import (
-    MemoryForgetRequest,
-    MemoryForgetResponse,
     MemoryListResponse,
     MemorySearchRequest,
     MemorySearchResponse,
@@ -33,10 +31,3 @@ async def search_memory(
     return await memory_api.search(session, user_id, req)
 
 
-@router.post("/forget", response_model=MemoryForgetResponse)
-async def forget_memory(
-    req: MemoryForgetRequest,
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-):
-    return await memory_api.forget(session, user_id, req)

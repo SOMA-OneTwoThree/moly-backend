@@ -35,7 +35,6 @@ from app.services import (
     i18n,
     llm,
     memory_repo,
-    memory_forget,
     naming,
     prompts,
     privacy,
@@ -1191,27 +1190,6 @@ async def post_message(
             context_ms=context_ms,
         )
         return validated_dup
-
-    forget_results = []
-    if agent_turn is not None:
-        for intent in agent_turn.control_intents:
-            request = memory_forget.classify(intent)
-            if request is not None:
-                forget_results.append(
-                    await memory_forget.apply(session, user_id=uid, request=request)
-                )
-    if forget_results and not any(r.wrote_anything for r in forget_results):
-        reply_stored = naming.to_placeholder(
-            i18n.pick(
-                {
-                    "ko": "내가 기억하고 있던 것에서는 찾지 못했어.",
-                    "en": "I couldn't find that in what I remembered.",
-                    "ja": "ぼくが覚えていたことからは見つけられなかった。",
-                },
-                language,
-            ),
-            nick,
-        )
 
     selected_refs = agent_turn.selected_refs if agent_turn is not None else ()
     focus_ref = agent_turn.focus_ref if agent_turn is not None else None

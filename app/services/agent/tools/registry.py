@@ -8,14 +8,13 @@
 | `recall_diaries` | **등록** | 존재·개수·목록·전문을 한 번에 완결하는 일기 회상 |
 | `get_routines` | **등록** | 달력 날짜 기준 루틴 상세 |
 | `recall_memory` | **등록** | 정규화 fact + 검증된 user-message episode 회상 |
-| `forget_memory` | **최종 홉만 등록** | 모델 제어 의도를 Phase 2의 원자적 망각 처리로 전달 |
 | `finish_response` | **최종 홉 내부 계약** | 응답 mode·선택 ref·focus를 typed sidecar로 확정 |
 """
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from app.services.agent.tools import final_response, forget_memory, get_routines, recall_diaries, recall_memory
+from app.services.agent.tools import final_response, get_routines, recall_diaries, recall_memory
 from app.services.agent.tools.base import BaseTool, wire_schema
 
 # registry에 실제로 올라가는 도구. 순서가 곧 wire 스키마 순서다 —
@@ -29,25 +28,14 @@ _ENABLED: tuple[BaseTool, ...] = (
 # 구현은 있으나 켜지 않는 도구(위 표의 사유). 스키마에도 노출하지 않는다.
 _DISABLED: tuple[BaseTool, ...] = ()
 
-_CONTROL_TOOLS = {forget_memory.NAME: "forget"}
+# 제어 도구 — 모델이 답변 외의 의도를 전달하는 통로.
+#
+# 지금은 비어 있다. `forget_memory`가 유일한 제어 도구였는데, "잊어줘"를 대화로 처리하는
+# 것은 의미가 없다는 제품 판단으로 제거했다(2026-08-06). 2차 호출에는 `final_response`만
+# 노출된다.
+_CONTROL_TOOLS: dict[str, str] = {}
 
-
-def _control_schema() -> dict:
-    schema = forget_memory.ForgetMemoryArgs.model_json_schema()
-    schema.pop("title", None)
-    for prop in schema.get("properties", {}).values():
-        prop.pop("title", None)
-    return {
-        "type": "function",
-        "function": {
-            "name": forget_memory.NAME,
-            "description": forget_memory.DESCRIPTION,
-            "parameters": schema,
-        },
-    }
-
-
-_CONTROL_SCHEMAS = (_control_schema(),)
+_CONTROL_SCHEMAS: tuple[dict, ...] = ()
 
 
 def _check_ascii(tools: Sequence[BaseTool]) -> None:
@@ -73,7 +61,7 @@ class ToolRegistry:
         return self._schemas
 
     def input_models(self) -> Mapping[str, type]:
-        return {**self._input_models, forget_memory.NAME: forget_memory.ForgetMemoryArgs}
+        return dict(self._input_models)
 
     def get(self, name: str) -> BaseTool | None:
         return self._tools.get(name)

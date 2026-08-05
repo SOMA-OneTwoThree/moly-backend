@@ -48,11 +48,12 @@ async def main(env: str | None = None):
         where n.nspname='public' and c.relkind='r' and not c.relrowsecurity""")
     for r in no_rls:
         problems.append(f"[RLS OFF] {r['relname']}")
-    grants = await c.fetch("""select grantee from information_schema.role_table_grants
-        where table_schema='public' and table_name='chat_contexts'
-          and grantee in ('anon','authenticated')""")
+    sensitive = ['chat_contexts', 'push_personalizations']  # 대화 파생 PII — REVOKE 회귀 감지
+    grants = await c.fetch("""select table_name, grantee from information_schema.role_table_grants
+        where table_schema='public' and table_name = any($1::text[])
+          and grantee in ('anon','authenticated')""", sensitive)
     for r in grants:
-        problems.append(f"[민감 테이블 권한 노출] chat_contexts → {r['grantee']}")
+        problems.append(f"[민감 테이블 권한 노출] {r['table_name']} → {r['grantee']}")
 
     print(f"모델 테이블 {len(Base.metadata.tables)}개 검증.")
     if problems:

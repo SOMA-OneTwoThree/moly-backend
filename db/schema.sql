@@ -1247,6 +1247,24 @@ BEGIN
   END LOOP;
 END $$;
 
-
+-- 저녁 푸시 개인화 — 전날 대화 기반 한 줄 문구를 로컬 05시 틱에서 사전 생성, 전날 첫 대화
+-- 시각(15분 격자) 슬롯에 발송. 유저당 1행(사이클마다 덮어씀). body는 placeholder 상태만 저장.
+-- send_slot 20:00 = 야간(20:00~익일 08:00 첫 대화) 코호트 — 기존 20시 저녁 푸시 분기에서
+-- 인라인 처리(실패 시 같은 틱 디폴트 폴백). 재사용 한도(D+3) 정본은 anchor_date 날짜 산술,
+-- sent_count는 통계 전용. (마이그레이션: 20260805_push_personalization.sql)
+CREATE TABLE IF NOT EXISTS public.push_personalizations (
+  user_id     uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  anchor_date date NOT NULL,
+  send_slot   time NOT NULL CHECK (send_slot BETWEEN TIME '08:00' AND TIME '20:00'),
+  body        text NOT NULL,
+  language    text NOT NULL,
+  source_kind text NOT NULL CHECK (source_kind IN ('diary','transcript')),
+  generated_at timestamptz NOT NULL DEFAULT now(),
+  sent_count  int NOT NULL DEFAULT 0,
+  last_sent_on date
+);
+-- body = 유저 대화 파생 PII → RLS + 클라 롤 권한 회수(memory_*와 동일 등급 2).
+ALTER TABLE public.push_personalizations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.push_personalizations FROM anon, authenticated;
 
 COMMIT;

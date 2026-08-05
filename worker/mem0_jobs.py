@@ -70,6 +70,23 @@ UPDATE mem0_ingest_candidates SET status='committed', updated_at=now()
 WHERE user_id=:user_id AND provider_memory_id=:provider_memory_id AND status='planned'
 """)
 
+# 재시도가 앞 시도의 계획을 이어받는다. **extractor를 다시 부르면 안 된다** — LLM이라
+# 결과가 달라지고, 그러면 앞 시도가 남긴 candidate/registry 행을 아무도 닫지 않는다(실측 사고).
+_RESUME_PLAN = text("""
+SELECT provider_memory_id, candidate_hash, candidate_text
+FROM mem0_ingest_candidates
+WHERE user_id = :user_id AND turn_seq = :turn_seq
+  AND schema_version = :schema_version
+  AND status IN ('planned', 'committed')
+ORDER BY candidate_hash
+""")
+
+# 이 turn에 아직 판정 안 된 기억이 남았는가. 커서를 통과시키기 전에 반드시 본다.
+_PENDING_FOR_TURN = text("""
+SELECT count(*) FROM mem0_memory_registry
+WHERE user_id = :user_id AND source_turn_seq = :turn_seq AND semantic_status = 'pending'
+""")
+
 _REGISTER_PENDING = text("""
 INSERT INTO mem0_memory_registry
   (user_id, provider, collection_version, provider_memory_id, source_turn_seq,
@@ -104,6 +121,15 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         profile = (await session.execute(
             text("SELECT nickname, language FROM profiles WHERE id = :u"), {"u": uid}
         )).first()
+        resumed = [
+            mem0_pipeline.PlannedCandidate(
+                provider_memory_id=r[0], candidate_hash=r[1], text=r[2],
+            )
+            for r in (await session.execute(_RESUME_PLAN, {
+                "user_id": uid, "turn_seq": turn_seq,
+                "schema_version": mem0_ingest.SCHEMA_VERSION,
+            })).all()
+        ]
 
     if not rows:
         raise JobCancelled("no_source_messages")
@@ -184,7 +210,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             user_id=uid, turn_seq=turn_seq, collection_version=COLLECTION_VERSION,
             budget=budget, extract=_extract, embed=_embed, upsert=_upsert,
             stage_planned=_stage, register_pending=_register,
-            nickname=nickname,
+            nickname=nickname, existing_plan=resumed or None,
         )
     except JobRetry:
         raise
@@ -200,7 +226,12 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         await memory_pipeline.advance_ingest_cursor(session, uid, turn_seq=turn_seq)
         # 판정 잡과 다음 turn 잡을 **같은 fenced transaction**에서 만든다. lease를 잃은
         # 소비자가 후속 잡만 흘리는 일이 없다.
-        if outcome.planned:
+        # 판정 대상 유무는 **DB 상태로** 본다. 이번 실행의 outcome만 보면, 앞 시도가 남긴
+        # pending을 못 보고 커서를 통과시켜 그 기억이 영원히 판정되지 않는다(실측 사고).
+        pending = int((await session.execute(
+            _PENDING_FOR_TURN, {"user_id": uid, "turn_seq": turn_seq}
+        )).scalar_one() or 0)
+        if pending:
             await memory_pipeline.enqueue_consolidate(
                 session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
             )

@@ -43,7 +43,9 @@ class PlannedCandidate:
     provider_memory_id: uuid.UUID
     candidate_hash: str
     text: str
-    candidate: mi.Candidate
+    # 재시도로 DB에서 되살린 계획에는 없다. 원본 Candidate(근거 span·분류)는 저장하지 않고,
+    # `existing_plan` 경로는 이미 filter를 통과한 계획이라 다시 보지 않는다.
+    candidate: mi.Candidate | None = None
 
 
 @dataclass(slots=True)

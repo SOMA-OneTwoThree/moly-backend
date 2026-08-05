@@ -130,6 +130,15 @@ class Settings(BaseSettings):
     job_notification_timeout_s: float = 10.0
     job_notification_lease_s: float = 20.0
     job_notification_max_attempts: int = 3
+    # 기억 색인 전용 lane. content(일기·요약)와 같은 큐를 쓰면 일기 300건이 도는 동안
+    # 기억이 통째로 밀린다 — content concurrency가 1이라 서로를 막는다(감사 지적).
+    job_memory_concurrency: int = 2
+    job_memory_claim_batch: int = 2
+    job_memory_timeout_s: float = 120.0
+    job_memory_lease_s: float = 180.0
+    job_memory_max_attempts: int = 3
+    job_memory_heartbeat_s: float = 30.0
+
     job_maintenance_concurrency: int = 1        # 유저 경로보다 낮은 우선순위
     job_maintenance_claim_batch: int = 1
     job_maintenance_timeout_s: float = 60.0

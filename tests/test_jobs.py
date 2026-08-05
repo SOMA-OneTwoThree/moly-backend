@@ -359,6 +359,8 @@ def test_queue_config_matches_spec_table():
         "critical": (2, 2, 10.0, 30.0, 3),
         "interactive_async": (2, 2, 30.0, 45.0, 3),
         "content": (1, 1, 120.0, 150.0, 3),
+        # 기억 색인 전용 lane. content와 섞으면 일기 배치가 도는 동안 기억이 밀린다.
+        "memory": (2, 2, 120.0, 180.0, 3),
         "notification": (1, 1, 10.0, 20.0, 3),
         "maintenance": (1, 1, 60.0, 90.0, 3),
     }
@@ -945,3 +947,21 @@ async def test_active_barrier_lets_normal_job_run(db, monkeypatch):
     _patch_sessions(monkeypatch, db)
     await consumer.run_job(await _claim_one(db), jobs.queue_config("content"))
     assert db.rows[jid]["state"] == "succeeded"
+
+
+def test_memory_queue_is_separate_from_content():
+    """같은 큐를 쓰면 일기 300건이 도는 동안 기억 색인이 통째로 밀린다(감사 지적).
+
+    content concurrency가 1이라 둘이 서로를 막는다.
+    """
+    assert jobs.QUEUE_MEMORY != jobs.QUEUE_CONTENT
+    assert jobs.queue_config(jobs.QUEUE_MEMORY).concurrency >= 2
+
+
+def test_mem0_jobs_go_to_the_memory_queue():
+    import inspect
+
+    from app.services import memory_pipeline
+
+    for fn in (memory_pipeline.enqueue_ingest, memory_pipeline.enqueue_consolidate):
+        assert "QUEUE_MEMORY" in inspect.getsource(fn), f"{fn.__name__}이 memory 큐를 안 쓴다"

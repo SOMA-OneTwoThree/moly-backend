@@ -43,10 +43,14 @@ QUEUE_INTERACTIVE_ASYNC = "interactive_async"  # 대화 후속
 QUEUE_CONTENT = "content"                      # 일기·요약·반추
 QUEUE_NOTIFICATION = "notification"            # 저녁 푸시
 QUEUE_MAINTENANCE = "maintenance"
+# 기억 색인 전용. content(일기·요약)와 섞으면 일기 300건이 도는 동안 기억이 통째로 밀린다 —
+# content concurrency가 1이라 둘이 서로를 막는다(감사 지적).
+QUEUE_MEMORY = "memory"
 QUEUES: tuple[str, ...] = (
     QUEUE_CRITICAL,
     QUEUE_INTERACTIVE_ASYNC,
     QUEUE_CONTENT,
+    QUEUE_MEMORY,
     QUEUE_NOTIFICATION,
     QUEUE_MAINTENANCE,
 )

@@ -133,6 +133,19 @@ class Settings(BaseSettings):
     job_maintenance_timeout_s: float = 60.0
     job_maintenance_lease_s: float = 90.0
     job_maintenance_max_attempts: int = 3
+    # 큐별 heartbeat 간격(초). 0이면 heartbeat 없음(짧은 잡: critical·notification).
+    # 불변식(13.2절): heartbeat interval <= min(lease/3, 20s). 이보다 크면 lease를 잃는다.
+    job_critical_heartbeat_s: float = 0.0
+    job_interactive_async_heartbeat_s: float = 15.0
+    job_content_heartbeat_s: float = 20.0
+    job_notification_heartbeat_s: float = 0.0
+    job_maintenance_heartbeat_s: float = 20.0
+    # finalize 전용 DB acquire 상한. handler timeout 뒤 기본 pool 30초를 기다리다 lease를 잃는
+    # 경로를 막는다(13.2절). 이 예산은 handler timeout과 별개로 lease 안에 예약돼 있어야 한다.
+    job_finalize_timeout_s: float = 5.0
+    # 삭제 장벽 전환 모드. compat=행 없으면 허용(backfill 중) / enforced=행 없으면 거부(fail-closed).
+    # active 행 backfill과 count 검증 두 sweep을 통과한 뒤에만 enforced로 올린다(15장 2번 d).
+    privacy_barrier_mode: str = "compat"
 
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""

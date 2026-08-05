@@ -69,6 +69,8 @@ class QueueConfig:
     timeout_s: float
     lease_s: float
     max_attempts: int
+    # 0이면 heartbeat 없음(짧은 잡). 불변식: heartbeat <= min(lease/3, 20s).
+    heartbeat_s: float = 0.0
 
 
 def queue_config(queue: str) -> QueueConfig:
@@ -86,6 +88,7 @@ def queue_config(queue: str) -> QueueConfig:
         timeout_s=float(_v("timeout_s")),
         lease_s=float(_v("lease_s")),
         max_attempts=int(_v("max_attempts")),
+        heartbeat_s=float(_v("heartbeat_s")),
     )
 
 

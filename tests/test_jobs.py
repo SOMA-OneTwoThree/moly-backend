@@ -116,6 +116,11 @@ class _FakeJobsDB:
         # 같은 세션으로 오므로 여기서 받아 준다 — 기본 0(= forget 이력 없음).
         if "memory_generation" in s:
             return _Res([(getattr(self, "memory_generation", 0),)])
+        # 삭제 장벽 조회(privacy.load_barrier). 기본은 행 없음 = compat 모드에서 통과.
+        # 테스트가 `db.barrier_row = ("deleting", 1, op_id)`로 상태를 주입할 수 있다.
+        if "FROM privacy_subject_barriers" in s:
+            row = getattr(self, "barrier_row", None)
+            return _Res([row] if row is not None else [])
         raise AssertionError(f"시뮬레이터가 모르는 문장: {s[:80]}")
 
     def _enqueue(self, p) -> _Res:
@@ -862,3 +867,81 @@ async def test_reaper_loop_stops_on_event(db, monkeypatch):
     stop.set()
     await asyncio.wait_for(task, timeout=2)
     assert set(calls) == set(jobs.QUEUES)  # 모든 큐를 돈다
+
+
+# ─────────────────────────────────────────────────────────────
+# 11. heartbeat·lease 상실·삭제 장벽 상태표 (재설계 15장 2단계)
+# ─────────────────────────────────────────────────────────────
+async def test_heartbeat_extends_lease_during_long_handler(db, monkeypatch):
+    """긴 handler가 도는 동안 lease가 연장된다 — 예전엔 heartbeat를 아무도 부르지 않았다."""
+    jid = db.insert(queue="content", job_type="slow")
+    beats = {"n": 0}
+
+    async def _handler(job):
+        await asyncio.sleep(0.05)
+        return consumer.JobResult()
+
+    real_heartbeat = jobs.heartbeat
+
+    async def _counting(session, job):
+        beats["n"] += 1
+        return await real_heartbeat(session, job)
+
+    monkeypatch.setitem(consumer._REGISTRY, "slow", _handler)
+    monkeypatch.setattr(jobs, "heartbeat", _counting)
+    _patch_sessions(monkeypatch, db)
+    cfg = replace(jobs.queue_config("content"), heartbeat_s=0.01, timeout_s=2.0)
+    await consumer.run_job(await _claim_one(db), cfg)
+    assert beats["n"] >= 1
+    assert db.rows[jid]["state"] == "succeeded"
+
+
+async def test_lease_lost_cancels_handler_and_does_not_finalize(db, monkeypatch):
+    """fencing이 깨지면 확정하지 않는다 — 남의 실행 결과를 덮어쓰면 안 된다."""
+    jid = db.insert(queue="content", job_type="slow")
+    started = asyncio.Event()
+
+    async def _handler(job):
+        started.set()
+        await asyncio.sleep(5)  # heartbeat가 먼저 실패한다
+        return consumer.JobResult()
+
+    async def _dead_heartbeat(session, job):
+        return False  # 다른 소유자가 가져갔다
+
+    monkeypatch.setitem(consumer._REGISTRY, "slow", _handler)
+    monkeypatch.setattr(jobs, "heartbeat", _dead_heartbeat)
+    _patch_sessions(monkeypatch, db)
+    cfg = replace(jobs.queue_config("content"), heartbeat_s=0.01, timeout_s=5.0)
+    await consumer.run_job(await _claim_one(db), cfg)
+    assert started.is_set()
+    # running 그대로 — 확정하지 않았다. reaper가 회수한다.
+    assert db.rows[jid]["state"] == "running"
+
+
+async def test_deleting_barrier_cancels_normal_job(db, monkeypatch):
+    jid = db.insert(queue="content", job_type="noop", user_id=uuid.uuid4())
+    db.barrier_row = ("deleting", 1, uuid.uuid4())
+
+    async def _handler(job):
+        raise AssertionError("삭제 중인 사용자의 일반 잡이 실행되면 안 됨")
+
+    monkeypatch.setitem(consumer._REGISTRY, "noop", _handler)
+    _patch_sessions(monkeypatch, db)
+    await consumer.run_job(await _claim_one(db), jobs.queue_config("content"))
+    assert db.rows[jid]["state"] == "cancelled"
+    assert db.rows[jid]["last_error_code"] == "subject_deleting"
+
+
+async def test_active_barrier_lets_normal_job_run(db, monkeypatch):
+    """`active` 행이 있어도 일반 잡은 돌아야 한다 — 행 존재만으로 막으면 전 사용자가 멈춘다."""
+    jid = db.insert(queue="content", job_type="noop", user_id=uuid.uuid4())
+    db.barrier_row = ("active", 0, None)
+
+    async def _handler(job):
+        return consumer.JobResult()
+
+    monkeypatch.setitem(consumer._REGISTRY, "noop", _handler)
+    _patch_sessions(monkeypatch, db)
+    await consumer.run_job(await _claim_one(db), jobs.queue_config("content"))
+    assert db.rows[jid]["state"] == "succeeded"

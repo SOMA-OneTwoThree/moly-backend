@@ -65,6 +65,11 @@ VALUES (:user_id, :turn_seq, :candidate_hash, :schema_version, :extractor_versio
 ON CONFLICT (user_id, turn_seq, candidate_hash, schema_version, repair_generation) DO NOTHING
 """)
 
+_COMMIT_CANDIDATE = text("""
+UPDATE mem0_ingest_candidates SET status='committed', updated_at=now()
+WHERE user_id=:user_id AND provider_memory_id=:provider_memory_id AND status='planned'
+""")
+
 _REGISTER_PENDING = text("""
 INSERT INTO mem0_memory_registry
   (user_id, provider, collection_version, provider_memory_id, source_turn_seq,
@@ -166,6 +171,11 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                     "provider_memory_id": p.provider_memory_id, "turn_seq": turn_seq,
                     "content_hash": p.candidate_hash,
                     "schema_version": mem0_ingest.SCHEMA_VERSION,
+                })
+                # registry가 생긴 뒤에야 계획을 닫는다(9.2절). 순서가 뒤집히면 crash 복구가
+                # 참조할 planned 행이 사라져 provider에만 남은 벡터를 못 찾는다.
+                await session.execute(_COMMIT_CANDIDATE, {
+                    "user_id": uid, "provider_memory_id": p.provider_memory_id,
                 })
             await session.commit()
 

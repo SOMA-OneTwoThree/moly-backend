@@ -85,8 +85,6 @@ def store(monkeypatch) -> dict:
         "user_exists": True,
         "rows": [],             # insert된 checkpoint 행
         "inserts": [],          # 호출 시점의 (세션, 커밋 수)
-        "forget_closures": False,   # 잊어줘로 닫힌 구간 존재 여부
-        "closed_message_ids": set(),  # 그중 실제로 닫힌 메시지 id
         "memory_generation": 0,     # 현재 기억 세대(forget이 +1 한다)
     }
 
@@ -126,18 +124,10 @@ def store(monkeypatch) -> dict:
     monkeypatch.setattr(checkpoint_repo, "count", _count)
     monkeypatch.setattr(checkpoint_repo, "load_user_state", _user_state)
     monkeypatch.setattr(checkpoint_repo, "load_range", _range)
-    async def _has_closures(session, user_id):
-        return state["forget_closures"]
-
     async def _generation(session, user_id):
         return state["memory_generation"]
 
     monkeypatch.setattr(checkpoint_repo, "insert", _insert)
-    async def _closed_messages(session, user_id, message_ids):
-        return state["closed_message_ids"] & set(message_ids)
-
-    monkeypatch.setattr(checkpoint_repo, "has_forget_closures", _has_closures)
-    monkeypatch.setattr(checkpoint_repo, "has_closed_messages", _closed_messages)
     monkeypatch.setattr(checkpoint_repo, "read_memory_generation", _generation)
     return state
 
@@ -546,39 +536,6 @@ async def test_stale_job_after_forget_writes_nothing(db, store, llm_calls):
     assert llm_calls == []                  # LLM도 안 불렀다
 
 
-async def test_reverification_is_skipped_when_forget_closed_a_range(db, store, llm_calls):
-    """잊어줘가 닫은 구간이 있으면 재검증하지 않는다.
-
-    재검증은 `(0, through]` 원본 **전체**를 다시 읽는다. 원본 messages에는 잊은 내용이 그대로
-    남아 있으므로, 그대로 두면 새 요약으로 재유입된다. 체인 요약으로 폴백한다.
-    """
-    store["count"] = settings.context_checkpoint_reverify_every - 1  # 이번이 N번째
-    store["forget_closures"] = True
-
-    row = await _run(db, _enqueue_job(db, _payload()))
-
-    assert _json(row["result_detail"])["reverified"] is False
-    body = llm_calls[0]["convo"][0]["content"]
-    assert "앵커 이전 1" not in body        # 원본 전체를 읽지 않았다
-    assert _PREVIOUS.summary in body        # 체인 요약으로 갔다
-
-
-async def test_normal_checkpoint_skips_when_sources_were_closed_by_forget(db, store, llm_calls):
-    """잊어줘 이후 만들어진 **일반 요약**도 닫힌 메시지를 담으면 안 된다.
-
-    forget은 앵커를 전진시키지 않는다. 그래서 잊기 이후에 만들어진 잡은 세대가 최신이라
-    세대 검사를 통과하고, closure 가드가 재검증에만 걸려 있으면 그대로 통과한다 —
-    현재 앵커 이후 구간에 남아 있는 잊기 이전 메시지가 요약으로 되살아난다.
-    """
-    store["closed_message_ids"] = {12}  # 세그먼트 중 하나가 잊어줘로 닫혔다
-
-    row = await _run(db, _enqueue_job(db, _payload()))
-
-    assert row["result_code"] == checkpoint_jobs.RESULT_SOURCE_CLOSED
-    assert store["rows"] == []   # 저장 0
-    assert llm_calls == []       # LLM도 안 불렀다
-
-
 async def test_normal_checkpoint_proceeds_when_nothing_was_closed(db, store, llm_calls):
     """닫힌 게 없으면 종전대로 요약한다(회귀 0)."""
     row = await _run(db, _enqueue_job(db, _payload()))
@@ -604,43 +561,17 @@ async def test_forget_between_check_and_insert_writes_nothing(db, store, llm_cal
     jid = _enqueue_job(db, _payload())          # payload 세대 = 0
 
     async def _slip(*a, **kw):
-        store["memory_generation"] = 1          # 검사 통과 후, 저장 직전에 잊어줘 발생
-        return []
+        store["memory_generation"] = 1          # 검사 통과 후, 저장 직전에 세대가 올라간다
+        return 0
 
     import worker.checkpoint_jobs as cj
-    orig = cj.checkpoint_repo.has_closed_messages
-    cj.checkpoint_repo.has_closed_messages = _slip
+    orig = cj.checkpoint_repo.read_memory_generation
+    cj.checkpoint_repo.read_memory_generation = _slip
     try:
         await _run(db, jid)
     finally:
-        cj.checkpoint_repo.has_closed_messages = orig
+        cj.checkpoint_repo.read_memory_generation = orig
 
     assert store["rows"] == []                  # 저장 0
 
 
-async def test_unmapped_messages_are_not_collaterally_suppressed(monkeypatch):
-    """정확한 suppression 행이 없는 메시지는 다른 망각 이력 때문에 숨기지 않는다.
-
-    매핑 조회는 memory_source_turn_messages에서 출발하는 join이라 매핑 없는 메시지는
-    join에 안 걸려 "안전"으로 보인다. 그런 메시지는 실제로 생긴다(Phase 1이 legacy를 읽은 뒤
-    cutover되고 Phase 2가 도는 턴). 정체를 모르는 걸 안전으로 넘기면 잊은 내용이 요약에 들어간다.
-    """
-    calls: list[str] = []
-
-    class _S:
-        async def execute(self, stmt, params=None):
-            s = str(stmt)
-            calls.append(s)
-            if "memory_source_closures" in s and "memory_source_turn_messages" not in s:
-                return _Rows([(1,)])          # 잊기 이력 있음
-            if "JOIN memory_source_closures" in s:
-                return _Rows([])              # 닫힌 구간에 직접 걸린 건 없음
-            return _Rows([])                  # 매핑도 없음 ← 여기가 핵심
-
-    class _Rows:
-        def __init__(self, rows): self._rows = rows
-        def first(self): return self._rows[0] if self._rows else None
-        def scalars(self): return self
-        def all(self): return [r[0] for r in self._rows]
-
-    assert await checkpoint_repo.has_closed_messages(_S(), uuid.uuid4(), [11, 12]) is False

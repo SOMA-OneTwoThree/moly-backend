@@ -223,14 +223,8 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             # 같은 id 목록이라도 본문이 바뀌었다 = 이 요약의 전제가 깨졌다.
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
 
-        # 잊어줘가 닫은 메시지가 섞였으면 요약하지 않는다. forget은 **앵커를 전진시키지 않으므로**
-        # 잊기 이후 만들어지는 일반 요약도 잊기 이전 메시지를 그대로 담는다 — 재검증만 막아서는
-        # 구멍이 남는다(세대 검사도 못 잡는다. 이 잡은 잊기 *이후*에 만들어져 세대가 최신이다).
-        if await checkpoint_repo.has_closed_messages(
-            session, req.user_id, [m.id for m in messages]
-        ):
-            _log.info("요약 생략(잊어줘로 닫힌 메시지 포함) — user=%s", req.user_id)
-            return JobResult(result_code=RESULT_SOURCE_CLOSED)
+        # 잊어줘가 닫은 메시지 검사는 없다 — 대화형 망각이 제거되면서 `memory_recall_suppressions`
+        # 자체가 사라졌다(2026-08-06). 닫히는 구간이 없으므로 이 검사는 항상 통과였다.
 
         # 몇 번째 checkpoint인가 — 매 N번째는 이전 요약 대신 원본으로 다시 요약해 누적 왜곡을 잰다.
         #
@@ -246,13 +240,6 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         # (기본값 10에선 index%10==0과 previous=None이 양립 불가라 안 드러나지만,
         #  reverify_every=1로 두는 순간 첫 요약부터 막힌다).
         reverify = index % every == 0 and previous is not None
-        # 잊어줘가 닫은 구간이 있으면 재검증하지 않는다. 재검증은 `(0, through]` 원본 **전체**를
-        # 다시 읽으므로 닫힌 구간을 필연적으로 포함하고, 원본 messages에는 잊은 내용이 그대로
-        # 남아 있어 새 요약으로 재유입된다. 부분 필터링 대신 통째로 건너뛰고 체인 요약으로 간다 —
-        # 재검증은 누적 왜곡을 재는 품질 장치지 정확성 장치가 아니라, 없어도 요약은 성립한다.
-        if reverify and await checkpoint_repo.has_forget_closures(session, req.user_id):
-            _log.info("요약 재검증 생략(잊어줘로 닫힌 구간 존재) — 체인 요약으로 진행")
-            reverify = False
         originals: list[checkpoint.SourceMessage] = []
         if reverify:
             cap = int(settings.context_checkpoint_reverify_max_messages)
@@ -298,10 +285,6 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         # 사이를 잠금으로 막으려 하면 챗과 락 순서가 반대라 교착이 나고, 그걸 NOWAIT로
         # 피하면 재시도 횟수를 갉아먹어 요약이 영구 유실된다.
         ok, _ = await _still_applicable(session, req)
-        if ok and await checkpoint_repo.has_closed_messages(
-            session, req.user_id, list(req.source_message_ids)
-        ):
-            ok = False  # 잠금 획득 사이에 closure가 생겼다
         if not ok:
             _log.warning(
                 "요약 확정 직전 상태 변화로 저장 생략 — user=%s through=%s", req.user_id,

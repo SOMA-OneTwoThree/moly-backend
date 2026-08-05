@@ -24,13 +24,26 @@ from app.services import i18n, relationship
 RENDERER_VERSION = "relationship-render-v1"
 
 # event를 집계한다. `dedup_key`가 중복 집계를 막으므로 여기서는 세기만 한다.
+#
+# ⚠️ event_type은 반드시 `relationship.EVENT_*` 상수와 같아야 한다. 예전엔 여기서
+# 'successful_turn'/'qualifying_turn'을 셌는데 **그런 값은 기록되지 않는다** —
+# CHECK 제약이 'normal_turn_committed'/'active_day_started'만 허용한다. 그래서 두 카운터가
+# 항상 0으로 나왔고, `compute_stage(0, 0)`이 'new'를 돌려줘 단계가 영원히 오르지 않았다.
+#
+# qualifying은 **하루 :cap개까지만** 센다(불변식 5). 안 그러면 하루에 몰아친 대화만으로
+# 며칠 만에 close에 도달한다. 이 규칙은 `relationship.counters_from_events`와 같아야 한다.
 _AGGREGATE = text("""
-SELECT count(DISTINCT activity_date) AS active_days,
-       count(*) FILTER (WHERE event_type = 'successful_turn') AS successful_turns,
-       count(*) FILTER (WHERE event_type = 'qualifying_turn') AS qualifying_turns,
-       max(occurred_at) AS last_interaction_at
-FROM relationship_events
-WHERE user_id = :user_id
+WITH per_day AS (
+  SELECT activity_date, count(DISTINCT turn_seq) AS turns
+  FROM relationship_events
+  WHERE user_id = :user_id AND event_type = :turn_event
+  GROUP BY activity_date
+)
+SELECT
+  (SELECT count(DISTINCT activity_date) FROM relationship_events WHERE user_id = :user_id),
+  (SELECT COALESCE(sum(turns), 0) FROM per_day),
+  (SELECT COALESCE(sum(LEAST(turns, :cap)), 0) FROM per_day),
+  (SELECT max(occurred_at) FROM relationship_events WHERE user_id = :user_id)
 """)
 
 # ⚠️ 단조 증가로만 갱신한다. event가 늦게 도착하거나 재처리돼도 단계가 **뒤로 가지 않는다** —
@@ -50,7 +63,16 @@ ON CONFLICT (user_id) DO UPDATE SET
   last_interaction_at = GREATEST(
     COALESCE(user_relationship_states.last_interaction_at, EXCLUDED.last_interaction_at),
     EXCLUDED.last_interaction_at),
-  relationship_stage = EXCLUDED.relationship_stage
+  -- stage도 GREATEST여야 한다. 예전엔 EXCLUDED로 무조건 덮어써서, 집계가 0을 내는 동안
+  -- 이미 acquainted였던 사용자가 'new'로 **내려갔다**(dev 실측: qualifying 20인데 stage new).
+  -- 순서는 STAGE_ORDER = new < acquainted < familiar < close다.
+  relationship_stage = CASE
+    WHEN array_position(ARRAY['new','acquainted','familiar','close'],
+                        EXCLUDED.relationship_stage)
+       > array_position(ARRAY['new','acquainted','familiar','close'],
+                        user_relationship_states.relationship_stage)
+    THEN EXCLUDED.relationship_stage
+    ELSE user_relationship_states.relationship_stage END
 RETURNING active_days, qualifying_turns, relationship_stage
 """)
 
@@ -94,6 +116,11 @@ _STAGE_TEXT: dict[str, dict[str, str]] = {
         "en": "You are still getting to know them. Approach gently.",
         "ja": "まだ知り合ったばかり。そっと近づいて。",
     },
+    "acquainted": {
+        "ko": "이제 서로 조금은 아는 사이야. 너무 어색해하지 않아도 돼.",
+        "en": "You know each other a little now. No need to be too formal.",
+        "ja": "少しずつ分かってきた間柄。そんなに気を張らなくていい。",
+    },
     "familiar": {
         "ko": "이제 제법 익숙한 사이야. 편하게 말해도 돼.",
         "en": "You are familiar with each other now. You can speak comfortably.",
@@ -126,7 +153,11 @@ async def project(
     session: AsyncSession, user_id: uuid.UUID, *, language: str | None
 ) -> str:
     """event를 집계해 state를 갱신하고 locale render를 만든다. 반환 = 렌더 문자열."""
-    agg = (await session.execute(_AGGREGATE, {"user_id": user_id})).first()
+    agg = (await session.execute(_AGGREGATE, {
+        "user_id": user_id,
+        "turn_event": relationship.EVENT_NORMAL_TURN,
+        "cap": relationship.MAX_QUALIFYING_TURNS_PER_DAY,
+    })).first()
     if agg is None:
         return ""
     active_days = int(agg[0] or 0)

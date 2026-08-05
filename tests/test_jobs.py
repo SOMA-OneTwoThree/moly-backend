@@ -360,7 +360,10 @@ def test_queue_config_matches_spec_table():
         "interactive_async": (2, 2, 30.0, 45.0, 3),
         "content": (1, 1, 120.0, 150.0, 3),
         # 기억 색인 전용 lane. content와 섞으면 일기 배치가 도는 동안 기억이 밀린다.
-        "memory": (2, 2, 120.0, 180.0, 3),
+        # 재시도 8회는 다른 큐(3)보다 많다 — 여기서 dead가 나면 그 사용자의 기억 체인이
+        # 통째로 멈추기 때문이다(chat은 ingest>=source일 때만 새 잡을 건다). 3이면 backoff
+        # 2·4초라 첫 실패로부터 약 6초면 끝나서 provider 장애를 못 넘긴다.
+        "memory": (2, 2, 120.0, 180.0, 8),
         "notification": (1, 1, 10.0, 20.0, 3),
         "maintenance": (1, 1, 60.0, 90.0, 3),
     }

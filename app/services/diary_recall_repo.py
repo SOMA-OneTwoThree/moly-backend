@@ -72,12 +72,6 @@ WHERE rd.user_id=:user_id AND rd.diary_id=:diary_id
     SELECT 1 FROM privacy_subject_barriers b
     WHERE b.user_id=rd.user_id AND b.state <> 'active'
   )
-  AND NOT EXISTS (
-    SELECT 1 FROM diary_claim_sources s
-    JOIN memory_recall_suppressions x
-      ON x.user_id=s.user_id AND x.message_id=s.message_id
-    WHERE s.user_id=rd.user_id AND s.diary_id=rd.diary_id
-  )
 """)
 
 _WRITE_EMBEDDING = text("""

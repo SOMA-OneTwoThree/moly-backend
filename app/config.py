@@ -140,13 +140,17 @@ class Settings(BaseSettings):
     job_memory_claim_batch: int = 2
     job_memory_timeout_s: float = 120.0
     job_memory_lease_s: float = 180.0
-    job_memory_max_attempts: int = 3
+    # 3이면 backoff 2·4초라 **첫 실패로부터 약 6초**면 dead다(실측). provider 장애는 보통
+    # 그보다 길고, 여기서 dead가 나면 그 사용자의 기억 체인이 통째로 멈춘다(chat은 ingest>=source
+    # 일 때만 새 잡을 건다). cap 60초와 함께 8이면 창이 약 3분으로 늘어 짧은 장애를 넘긴다.
+    job_memory_max_attempts: int = 8
     job_memory_heartbeat_s: float = 30.0
 
     job_maintenance_concurrency: int = 1        # 유저 경로보다 낮은 우선순위
     job_maintenance_claim_batch: int = 1
     job_maintenance_timeout_s: float = 60.0
     job_maintenance_lease_s: float = 90.0
+    memory_sweep_enabled: bool = True   # 멈춘 기억 파이프라인 자동 재개(worker/memory_sweep_jobs.py)
     job_maintenance_max_attempts: int = 3
     # 큐별 heartbeat 간격(초). 0이면 heartbeat 없음(짧은 잡: critical·notification).
     # 불변식(13.2절): heartbeat interval <= min(lease/3, 20s). 이보다 크면 lease를 잃는다.

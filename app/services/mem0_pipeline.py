@@ -43,9 +43,13 @@ class PlannedCandidate:
     provider_memory_id: uuid.UUID
     candidate_hash: str
     text: str
-    # 재시도로 DB에서 되살린 계획에는 없다. 원본 Candidate(근거 span·분류)는 저장하지 않고,
-    # `existing_plan` 경로는 이미 filter를 통과한 계획이라 다시 보지 않는다.
+    # 재시도로 DB에서 되살린 계획에는 없다(evidence는 이미 candidate_sources에 저장돼 있다).
     candidate: mi.Candidate | None = None
+
+    @property
+    def evidence(self) -> tuple:
+        """근거 span. 이게 없으면 '어느 발화에서 나온 기억인지'를 영영 알 수 없다."""
+        return self.candidate.evidence if self.candidate is not None else ()
 
 
 @dataclass(slots=True)

@@ -298,8 +298,10 @@ async def test_fallback_turn_total_stays_within_deadline(monkeypatch):
     """
     cfg = _cfg()
     clock = _Clock()
-    # 1홉이 제 상한(deadline - reserve)을 정확히 소진하고 죽는다 — 최악의 경우다.
-    fake = _TimeoutThenText(clock=clock, elapse=cfg.turn_deadline_s - cfg.final_reserve_s)
+    # 1홉은 제 상한(deadline - reserve)에 timeout이 걸리고, SDK가 반환하기까지 조금 더 쓴다.
+    # 그래서 남은 시간은 **항상 final_reserve보다 조금 적다** — 이게 실제 모양이다.
+    # 예전 문턱(>= final_reserve_s)은 이 지점에서 fallback을 건너뛰어 5xx를 냈다(실측 8.57초).
+    fake = _TimeoutThenText(clock=clock, elapse=cfg.turn_deadline_s - cfg.final_reserve_s + 0.3)
     turn = await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
 
     assert turn.skipped == "deadline"

@@ -291,6 +291,10 @@ _MAX_CHARS = {"ko": 80, "ja": 80, "en": 160}
 # en 고유명사 휴리스틱: 문장 시작이 아닌 대문자 단어 = 인명·지명 가능성 → reject(과탐 수용).
 _EN_PROPER_RE = re.compile(r"[A-Z][a-z]+")
 _EN_PROPER_ALLOW = frozenset(("I", "Cappy", "OK"))
+# en 문구의 비ASCII = 키릴 Ѕ(U+0405) 등 confusable로 고유명사 검사를 우회하는 통로 → reject.
+# 통상적 타이포그래피 부호(스마트쿼트·대시·말줄임)만 예외.
+_EN_TYPOGRAPHIC = str.maketrans("", "", "‘’“”–—…")
+_NON_ASCII_RE = re.compile(r"[^\x00-\x7f]")
 
 
 def _has_proper_noun_en(body: str) -> bool:
@@ -306,20 +310,75 @@ def _has_proper_noun_en(body: str) -> bool:
 
 def passes_deterministic_filter(body: str | None, language: str) -> bool:
     """금칙어·시간표현·길이·형식의 결정적 검사. 저장 전(생성 직후)과 발송 직전(render 후)
-    **양쪽**에서 호출된다 — render로 유입되는 닉네임은 생성 시점 검수를 안 거쳤기 때문."""
+    **양쪽**에서 호출된다 — render로 유입되는 닉네임은 생성 시점 검수를 안 거쳤기 때문.
+
+    내용 검사는 sanitize_text(NFKC + zero-width·bidi·제어문자 제거)를 통과한 살균본에
+    대해 한다 — LLM '출력'은 입력 살균을 거치지 않았으므로 전각(ｄｉｅ)·zero-width 삽입
+    (자​해)으로 원문 검사를 우회할 수 있다(보안 리뷰 실증). 길이·한 줄 검사만 원문 기준.
+    """
     if not body or not body.strip():
         return False
     if "\n" in body.strip():
         return False  # 한 줄 문구
-    if any(b in body for b in _BANNED_SUBSTR) or _BANNED_LATIN_RE.search(body):
-        return False
-    if any(t in body for t in _TIME_SUBSTR) or _TIME_LATIN_RE.search(body):
-        return False
     if len(body) > _MAX_CHARS.get(language, 80):
         return False
-    if language == "en" and _has_proper_noun_en(body):
+    probe = sanitize_text(body)
+    if not probe:
         return False
+    if any(b in probe for b in _BANNED_SUBSTR) or _BANNED_LATIN_RE.search(probe):
+        return False
+    if any(t in probe for t in _TIME_SUBSTR) or _TIME_LATIN_RE.search(probe):
+        return False
+    if language == "en":
+        if _has_proper_noun_en(probe):
+            return False
+        if _NON_ASCII_RE.search(probe.translate(_EN_TYPOGRAPHIC)):
+            return False  # confusable 우회 차단
     return True
+
+
+# ── ko/ja 제3자 인명 결정적 휴리스틱(생성 시점 전용) ──────────────────────
+# render 후 재검사에 쓰면 안 된다 — render가 넣는 유저 닉네임 호출('승민아')이 전부 걸린다.
+# 완전한 NER이 아니라 **강한 시그널만** 결정적으로 막는다: ko 'X씨/X님'·문두 호격 'X아/야',
+# ja 인명+경칭(さん/くん/ちゃん/様). 맨이름+조사(예: '민수랑')는 결정적으로 못 잡는 잔여
+# 갭이며 프롬프트 금지 + 검수 LLM + 카나리 DB 전수 열람(§9)이 담당한다 — 갭을 여기 명시해
+# 두는 것이 계획 요구사항(en만 막힌 비대칭 무주석 금지).
+_KO_NAME_SUFFIX_RE = re.compile(r"(?:^|[\s\"'(])([가-힣]{2,3})(씨|님)(?=$|[\s,.!?~…])")
+_KO_NAME_SUFFIX_ALLOW = frozenset((
+    "아저씨", "아가씨", "선생님", "사장님", "부모님", "도련님", "하느님", "하나님",
+    "임금님", "스승님", "고객님", "회원님", "왕자님", "공주님", "주인님",
+))
+_KO_VOCATIVE_RE = re.compile(r"^([가-힣]{2,3})(아|야)(?=[\s,!~?])")
+_JA_HONORIFIC_RE = re.compile(
+    r"([぀-ヿ一-鿿]{1,4})(さん|くん|ちゃん|さま|様)"
+)
+_JA_HONORIFIC_ALLOW = frozenset((
+    "皆さん", "みなさん", "お客さん", "母さん", "父さん", "お母さん", "お父さん",
+    "兄さん", "お兄さん", "姉さん", "お姉さん", "お子さん", "お疲れさま", "お疲れ様",
+    "王様", "神様", "お姫さま",
+))
+
+
+def has_person_reference(body: str, language: str, nickname: str | None) -> bool:
+    probe = sanitize_text(body)
+    if language == "ko":
+        for m in _KO_NAME_SUFFIX_RE.finditer(probe):
+            if m.group(1) + m.group(2) in _KO_NAME_SUFFIX_ALLOW:
+                continue
+            if nickname and m.group(1) == nickname:
+                continue  # 본인 이름은 프라이버시 사고가 아님(placeholder가 마스킹)
+            return True
+        m = _KO_VOCATIVE_RE.match(probe)
+        if m and m.group(1) != (nickname or ""):
+            return True
+    if language == "ja":
+        for m in _JA_HONORIFIC_RE.finditer(probe):
+            if m.group(0) in _JA_HONORIFIC_ALLOW:
+                continue
+            if nickname and m.group(1) == nickname:
+                continue
+            return True
+    return False
 
 
 # ── 생성 ──────────────────────────────────────────────────────────────────
@@ -398,7 +457,8 @@ def _transcript_for_push(
     """B경로 입력 — 메시지별 render(placeholder→현재 이름) 후 **살균**(제어문자·대괄호 제거,
     '[일기]' 같은 가짜 섹션 헤더로 검수·생성 프롬프트를 위조하는 인젝션 차단, memory.sanitize_text
     관례)."""
-    label = nickname or i18n.pick(_USER_LABEL, language)
+    # 닉네임도 살균 — 내용 검증 없는 자유 문자열이라 개행·대괄호로 화자 라인 위조 가능.
+    label = (sanitize_text(nickname) if nickname else "") or i18n.pick(_USER_LABEL, language)
     lines = [
         f"{'캐피' if m.sender == 'moly' else label}: "
         f"{sanitize_text(naming.render(m.content, nickname) or '')}"
@@ -560,11 +620,21 @@ async def _generate_inner(
         return "skipped"
 
     body = await _generate_body(source_text, language)
-    # 검수: 결정적 필터 AND 검수 LLM — 순서 무관하게 둘 다 통과해야 저장(fail-closed).
-    if not passes_deterministic_filter(body, language) or not await _verify_body(body, language):
+    # 검수: 결정적 필터 AND 인명 휴리스틱 AND 검수 LLM — 전부 통과해야 저장(fail-closed).
+    # 결정적 검사 우선(실패 시 검수 LLM 콜 절약).
+    reason = None
+    if not passes_deterministic_filter(body, language):
+        reason = "filter"
+    elif has_person_reference(body, language, nickname):
+        reason = "person_ref"
+    elif not await _verify_body(body, language):
+        reason = "verify_llm"
+    if reason:
+        # 문구 내용은 로그에 남기지 않는다 — 리젝된 문구는 정의상 가장 민감한 부류이고
+        # journald 사본은 삭제 계약(장벽 즉시 제거)이 닿지 않는다. 사유·길이만 관측.
         _log.info(
-            "push_gen 리젝(user=%s lang=%s): %r",
-            profile.id, language, (naming.to_placeholder(body, nickname) or "")[:80],
+            "push_gen 리젝(user=%s lang=%s source=%s reason=%s len=%d)",
+            profile.id, language, source_kind, reason, len(body),
         )
         await _delete_row(session, profile.id)
         return "rejected"

@@ -175,6 +175,57 @@ def test_filter_length_caps():
     assert not pp.passes_deterministic_filter("a" * 161, "en")
 
 
+def test_filter_unicode_bypass_blocked():
+    """LLM 출력은 입력 살균을 안 거친다 — 필터가 살균본(probe)을 검사해야 우회가 막힌다."""
+    assert not pp.passes_deterministic_filter("자​해 얘기 계속하자 나랑", "ko")  # zero-width
+    assert not pp.passes_deterministic_filter("Do you want to ｄｉｅ with me?", "en")  # 전각
+    assert not pp.passes_deterministic_filter("How was ｙｅｓｔｅｒｄａｙ for you?", "en")
+    assert not pp.passes_deterministic_filter("Did you meet Ѕarah again?", "en")  # 키릴 confusable
+    # 통상 타이포그래피(스마트쿼트)는 en에서 허용 — 과탐으로 정상 문구를 죽이지 않는다.
+    assert pp.passes_deterministic_filter("How’s that project going? Come talk.", "en")
+
+
+def test_person_reference_heuristic_ko_ja():
+    has = pp.has_person_reference
+    assert has("민수씨 요즘 어때? 나랑 얘기하자.", "ko", "승민")   # X씨 = 강한 인명 시그널
+    assert has("지현아 잘 지냈어?", "ko", "승민")                  # 문두 호격
+    assert not has("선생님 얘기 잘 됐어?", "ko", "승민")           # 호칭 allowlist
+    assert not has("승민아 잘 지냈어?", "ko", "승민")              # 본인 이름은 허용(마스킹 대상)
+    assert has("田中さんとはどう?", "ja", None)                    # ja 인명+경칭
+    assert not has("皆さん元気? 話そう。", "ja", None)             # 경칭 allowlist
+    # 문서화된 잔여 갭: 맨이름+조사(민수랑)는 결정적으로 못 잡는다 — 프롬프트+검수 LLM+
+    # 카나리 DB 전수 열람이 담당(계획 §9). 이 assert는 갭이 '의도된 수용'임을 고정한다.
+    assert not has("민수랑은 요즘 어때?", "ko", "승민")
+
+
+async def test_rejected_body_content_never_logged(monkeypatch, caplog):
+    """리젝 로그는 사유·길이만 — 문구 내용은 journald에 남으면 삭제 계약이 닿지 않는다."""
+    import logging
+
+    bad_body = "어제 병원 다녀온 얘기 하자"
+
+    async def _diary(session, uid, target):
+        return SimpleNamespace(content="소재")
+
+    async def _gen(source_text, language):
+        return bad_body
+
+    async def _delete(session, uid):
+        pass
+
+    monkeypatch.setattr(pp, "_personal_diary", _diary)
+    monkeypatch.setattr(pp, "_generate_body", _gen)
+    monkeypatch.setattr(pp, "_delete_row", _delete)
+    with caplog.at_level(logging.INFO, logger="moly-worker"):
+        status = await pp._generate_inner(
+            _GenSession(results=[], scalars=[]), _profile(), date(2026, 8, 3),
+            [_msg()], [_msg()], _cfg(), {},
+        )
+    assert status == "rejected"
+    assert bad_body not in caplog.text and "병원" not in caplog.text
+    assert "reason=filter" in caplog.text
+
+
 # ── 생성 플로우(fail-closed·row 불변식) ────────────────────────────────────
 
 class _Res:

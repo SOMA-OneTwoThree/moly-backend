@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 
 from sqlalchemy import text
 
@@ -22,6 +23,9 @@ from app.core.db import get_sessionmaker
 from app.services import (
     llm,
     mem0_adapter,
+    mem0_classifier,
+    mem0_consolidation,
+    mem0_registry_repo,
     memory_embeddings,
     mem0_extractor,
     mem0_ingest,
@@ -30,7 +34,11 @@ from app.services import (
     usage_ledger,
 )
 from app.services.jobs import ClaimedJob
-from app.services.mem0_budget import memory_ingest_budget
+from app.services.mem0_budget import (
+    BudgetExceeded,
+    memory_consolidation_budget,
+    memory_ingest_budget,
+)
 from worker import consumer
 from worker.consumer import JobCancelled, JobFatal, JobResult, JobRetry
 
@@ -207,3 +215,136 @@ def _adapter():
 _ADAPTER = None
 
 consumer.register(JOB_MEM0_INGEST, handle_mem0_ingest)
+
+
+JOB_MEM0_CONSOLIDATE = "mem0_consolidate"
+
+_CANDIDATE_TEXTS = text("""
+SELECT provider_memory_id, candidate_text
+FROM mem0_ingest_candidates
+WHERE user_id = :user_id AND turn_seq = :turn_seq AND status IN ('planned','committed')
+""")
+
+
+async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
+    """한 turn의 pending 기억을 판정해 registry 활성 상태를 확정한다(9.4절).
+
+    classifier는 **한 번만** 부른다. invalid graph여도 재질의하지 않고 validator가 보수적으로
+    ambiguous로 닫는다 — 재질의는 비용과 비결정성만 늘린다.
+    """
+    payload = job.payload or {}
+    try:
+        turn_seq = int(payload["turn_seq"])
+    except (KeyError, TypeError, ValueError) as e:
+        raise JobFatal("invalid_payload") from e
+    if job.user_id is None:
+        raise JobFatal("missing_user")
+    uid = job.user_id
+
+    async with get_sessionmaker()() as session:
+        state = await memory_pipeline.load(session, uid)
+        if not state.records_v2:
+            raise JobCancelled("not_v2_user")
+        pending = await mem0_registry_repo.load_pending(session, uid, turn_seq=turn_seq)
+        if not pending:
+            # 판정할 게 없다 — 커서만 통과시킨다(정책상 기억 0건인 turn).
+            async def _skip(s):
+                await memory_pipeline.advance_consolidated_cursor(s, uid, turn_seq=turn_seq)
+
+            return JobResult(result_code="no_pending", apply_domain=_skip)
+        pool = await mem0_registry_repo.load_comparison_pool(
+            session, uid, turn_seq=turn_seq, limit=mem0_classifier.MAX_EXISTING_CANDIDATES
+        )
+        texts = dict(
+            (r[0], r[1])
+            for r in (await session.execute(
+                _CANDIDATE_TEXTS, {"user_id": uid, "turn_seq": turn_seq}
+            )).all()
+        )
+        expected_revision = state.revision
+
+    # 기존 기억 본문은 provider payload에서 hydrate한다(registry는 본문 미복제).
+    budget = memory_consolidation_budget(total_s=settings.job_content_timeout_s)
+    existing_pairs: list[tuple[uuid.UUID, str]] = []
+    if pool:
+        try:
+            fetched = await _adapter().get_many(
+                [str(p["provider_memory_id"]) for p in pool],
+                user_id=str(uid),
+                timeout=budget.timeout_for("search"),
+            )
+        except BudgetExceeded:
+            raise JobRetry("budget_search") from None
+        except Exception as e:  # noqa: BLE001
+            raise JobRetry("hydrate_failed") from e
+        by_provider = {r.id: (r.payload or {}).get("text", "") for r in fetched}
+        existing_pairs = [
+            (p["id"], by_provider.get(str(p["provider_memory_id"]), ""))
+            for p in pool
+            if by_provider.get(str(p["provider_memory_id"]))
+        ]
+
+    new_pairs = [
+        (p["id"], texts.get(p["provider_memory_id"], "")) for p in pending
+    ]
+    new_pairs = [(i, t) for i, t in new_pairs if t]
+    if not new_pairs:
+        raise JobRetry("candidate_text_missing")
+
+    known = {i for i, _ in new_pairs} | {i for i, _ in existing_pairs}
+    ledger = usage_ledger.LedgerContext(
+        lane=usage_ledger.LANE_BACKGROUND, purpose="memory_consolidate",
+        user_id=uid, turn_seq=turn_seq, job_id=job.id, attempt=job.attempt,
+    )
+    try:
+        result = await llm.generate(
+            mem0_classifier.build_system(),
+            [{"role": "user", "content": mem0_classifier.render_pairs(new_pairs, existing_pairs)}],
+            model=settings.model_utility,
+            max_tokens=mem0_classifier.MAX_OUTPUT_TOKENS,
+            timeout=budget.timeout_for("classify"),
+            ledger=ledger,
+        )
+        edges = mem0_classifier.parse(result.text, known_ids=known)
+    except BudgetExceeded:
+        raise JobRetry("budget_classify") from None
+    except mem0_classifier.ClassifierSchemaError as e:
+        raise JobRetry("classifier_schema") from e
+    except Exception as e:  # noqa: BLE001
+        raise JobRetry("classify_failed") from e
+
+    refs = [
+        mem0_consolidation.MemoryRef(
+            registry_id=p["id"], source_turn_seq=p["source_turn_seq"],
+            candidate_hash=p["content_hash"], source_occurred_at=p["occurred_at"],
+            is_new=is_new,
+        )
+        for group, is_new in ((pending, True), (pool, False))
+        for p in group
+    ]
+    verdict = mem0_consolidation.consolidate(refs, edges)
+    if verdict.rejected_reasons:
+        _log.warning(
+            "consolidation graph 거부 %s — job=%s (보수적 ambiguous)",
+            verdict.rejected_reasons, job.id,
+        )
+
+    async def _publish(session) -> None:
+        await mem0_registry_repo.apply_transitions(
+            session, uid, verdict.transitions,
+            expected_revision=expected_revision,
+            classification_version=mem0_classifier.CLASSIFIER_VERSION,
+        )
+        await memory_pipeline.advance_consolidated_cursor(session, uid, turn_seq=turn_seq)
+
+    return JobResult(
+        result_code="ok",
+        result_detail={
+            "transitions": len(verdict.transitions),
+            "ambiguous_components": verdict.ambiguous_components,
+        },
+        apply_domain=_publish,
+    )
+
+
+consumer.register(JOB_MEM0_CONSOLIDATE, handle_mem0_consolidate)

@@ -172,3 +172,11 @@ async def test_budget_exhaustion_skips_without_partial_write():
     )
     assert out.skipped_reason is not None and out.skipped_reason.startswith("budget:")
     assert "upsert" not in rec.calls and "register" not in rec.calls
+
+
+async def test_payload_carries_text_for_consolidation_hydration():
+    """registry는 본문을 복제하지 않는다 — 비교 대상 본문은 provider payload에서 가져온다(9.4절)."""
+    rec = _Recorder(candidates=[_cand("커피를 좋아한다")])
+    await _run(rec)
+    _id, _vec, payload = rec.upserted[0]
+    assert payload["text"] == "커피를 좋아한다"

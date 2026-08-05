@@ -159,10 +159,20 @@ async def advance_source(
     return int(row[0]) if row is not None else None
 
 
-# 다음 처리 대상 = source table의 `MIN(turn_seq) > cursor`. 숫자 +1을 가정하지 않는다(불변식 3).
+# 다음 처리 대상 = `MIN(turn_seq) > cursor`. 숫자 +1을 가정하지 않는다(불변식 3).
+#
+# ⚠️ source 좌표는 `messages.turn_seq`다. legacy `memory_source_turns`는 watermark 기반이라
+#    turn_seq 컬럼이 없다 — 거기서 조회하면 런타임에 깨진다(13.3절: 새 좌표는 (user_id, turn_seq)).
+#    historical upper를 넘어선 turn은 shadow 진입 시 고정한 범위 밖이므로 제외한다.
 _NEXT_INGEST = text("""
-SELECT MIN(turn_seq) FROM memory_source_turns
-WHERE user_id=:user_id AND turn_seq > :cursor
+SELECT MIN(m.turn_seq)
+FROM messages m
+JOIN memory_pipeline_states s ON s.user_id = m.user_id
+WHERE m.user_id=:user_id
+  AND m.kind='normal'
+  AND m.turn_seq IS NOT NULL
+  AND m.turn_seq > :cursor
+  AND m.turn_seq <= s.source_through_turn_seq
 """)
 
 

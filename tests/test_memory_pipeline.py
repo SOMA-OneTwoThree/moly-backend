@@ -128,7 +128,16 @@ async def test_next_turn_is_looked_up_not_incremented():
     """turn_seq는 연속이 아닐 수 있다 — +1을 가정하면 gap에서 영원히 멈춘다."""
     s = _Session(next_ingest=17)
     assert await mp.next_ingest_turn(s, UID, cursor=9) == 17
-    assert "MIN(turn_seq)" in str(mp._NEXT_INGEST)
+    assert "MIN(m.turn_seq)" in str(mp._NEXT_INGEST)
+
+
+def test_next_turn_reads_messages_not_legacy_watermark_table():
+    """legacy memory_source_turns에는 turn_seq 컬럼이 없다 — 거기서 조회하면 런타임에 깨진다."""
+    sql = str(mp._NEXT_INGEST)
+    assert "FROM messages m" in sql
+    assert "memory_source_turns" not in sql
+    # 고정한 historical/source 범위를 넘어선 turn은 제외한다.
+    assert "m.turn_seq <= s.source_through_turn_seq" in sql
 
 
 async def test_next_turn_none_when_caught_up():

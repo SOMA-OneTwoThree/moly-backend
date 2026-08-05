@@ -236,3 +236,49 @@ async def record_turn_events(
         if row is not None:
             inserted += 1
     return inserted
+
+
+# ingest 커서 전진 — 이 turn의 모든 provider id가 registry에 기록된 뒤에만 부른다.
+# 되감기지 않는다(GREATEST). fenced finalize와 같은 transaction에서 실행된다.
+_ADVANCE_INGEST = text("""
+UPDATE memory_pipeline_states
+SET ingest_through_turn_seq = GREATEST(ingest_through_turn_seq, :turn_seq),
+    updated_at = now()
+WHERE user_id=:user_id
+  AND mode <> 'legacy'
+  -- source보다 앞설 수 없다. 앞서면 아직 안 만들어진 turn을 처리했다는 뜻이다.
+  AND :turn_seq <= source_through_turn_seq
+RETURNING ingest_through_turn_seq
+""")
+
+
+async def advance_ingest_cursor(
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int
+) -> int | None:
+    """ingest 커서 전진. source를 앞지르면 아무것도 하지 않는다(None)."""
+    row = (
+        await session.execute(_ADVANCE_INGEST, {"user_id": user_id, "turn_seq": turn_seq})
+    ).first()
+    return int(row[0]) if row is not None else None
+
+
+_ADVANCE_CONSOLIDATED = text("""
+UPDATE memory_pipeline_states
+SET consolidated_through_turn_seq = GREATEST(consolidated_through_turn_seq, :turn_seq),
+    updated_at = now()
+WHERE user_id=:user_id
+  AND mode <> 'legacy'
+  -- ingest를 앞지를 수 없다. 판정은 색인된 것에 대해서만 한다.
+  AND :turn_seq <= ingest_through_turn_seq
+RETURNING consolidated_through_turn_seq
+""")
+
+
+async def advance_consolidated_cursor(
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int
+) -> int | None:
+    """consolidation 커서 전진. ingest를 앞지르면 아무것도 하지 않는다."""
+    row = (
+        await session.execute(_ADVANCE_CONSOLIDATED, {"user_id": user_id, "turn_seq": turn_seq})
+    ).first()
+    return int(row[0]) if row is not None else None

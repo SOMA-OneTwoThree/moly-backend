@@ -23,6 +23,13 @@
 14. `20260804_zzzzz_conversational_recall_hardening.sql` — 삭제 장벽 제외, provenance 수렴,
     SHA-256/fenced vector 재색인과 bounded missing-vector repair 상태
 
+## 기억·페르소나·관계 재설계 (docs/capi-memory-ARCHITECTURE.md)
+
+15장 전환 순서를 따른다. 아래는 additive 단계이며 legacy 테이블을 건드리지 않는다.
+
+15. `20260805_ai_usage_ledger.sql` — (1단계) `ai_price_catalog`·`ai_usage_ledger`·`job_attempts`.
+    구조 전환 **전에** 적용해 legacy 비용까지 같은 표면으로 잰다. catalog v1 시드 포함.
+
 각 파일은 먼저 기본 dry-run으로 실행하고, 성공한 동일 파일만 `--commit`으로 적용한다.
 
 ```bash

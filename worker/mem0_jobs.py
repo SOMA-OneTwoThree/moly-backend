@@ -65,6 +65,35 @@ VALUES (:user_id, :turn_seq, :candidate_hash, :schema_version, :extractor_versio
 ON CONFLICT (user_id, turn_seq, candidate_hash, schema_version, repair_generation) DO NOTHING
 """)
 
+# 후보의 근거. **이게 없으면 정정을 기존 기억에 연결할 수 없다** — 사용자가 "산책 안 했어"라고
+# 해도 어느 기억을 닫아야 하는지 특정할 방법이 없다(감사 지적).
+_CANDIDATE_SOURCE = text("""
+INSERT INTO mem0_ingest_candidate_sources
+  (candidate_id, user_id, source_message_id, source_sender, source_content_hash,
+   evidence_start_utf8, evidence_end_utf8, authority, confidence)
+SELECT c.id, :user_id, :message_id, :sender, :content_hash,
+       :start_utf8, :end_utf8, 'explicit_user', NULL
+FROM mem0_ingest_candidates c
+WHERE c.user_id = :user_id AND c.provider_memory_id = :provider_memory_id
+ON CONFLICT DO NOTHING
+""")
+
+# registry 확정 시 같은 근거를 시간 좌표와 함께 옮긴다. timeline 원문 hydration과
+# tombstone 검증이 이 표를 읽는다.
+_MEMORY_SOURCE = text("""
+INSERT INTO mem0_memory_sources
+  (registry_id, user_id, source_turn_seq, source_message_id, source_sender,
+   evidence_start_utf8, evidence_end_utf8, source_content_hash,
+   source_occurred_at, source_activity_date, authority, confidence, extractor_version)
+SELECT r.id, :user_id, :turn_seq, m.id, :sender,
+       :start_utf8, :end_utf8, :content_hash,
+       m.created_at, m.activity_date, 'explicit_user', NULL, :extractor_version
+FROM mem0_memory_registry r
+JOIN messages m ON m.id = :message_id AND m.user_id = :user_id
+WHERE r.user_id = :user_id AND r.provider_memory_id = :provider_memory_id
+ON CONFLICT DO NOTHING
+""")
+
 _COMMIT_CANDIDATE = text("""
 UPDATE mem0_ingest_candidates SET status='committed', updated_at=now()
 WHERE user_id=:user_id AND provider_memory_id=:provider_memory_id AND status='planned'
@@ -187,6 +216,13 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                     "provider_memory_id": p.provider_memory_id,
                     "candidate_text": p.text,
                 })
+                for ev in p.evidence:
+                    await session.execute(_CANDIDATE_SOURCE, {
+                        "user_id": uid, "provider_memory_id": p.provider_memory_id,
+                        "message_id": ev.message_id, "sender": ev.sender,
+                        "content_hash": ev.content_hash,
+                        "start_utf8": ev.start_utf8, "end_utf8": ev.end_utf8,
+                    })
             await session.commit()
 
     async def _register(planned: list[mem0_pipeline.PlannedCandidate]) -> None:
@@ -200,6 +236,14 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                 })
                 # registry가 생긴 뒤에야 계획을 닫는다(9.2절). 순서가 뒤집히면 crash 복구가
                 # 참조할 planned 행이 사라져 provider에만 남은 벡터를 못 찾는다.
+                for ev in p.evidence:
+                    await session.execute(_MEMORY_SOURCE, {
+                        "user_id": uid, "provider_memory_id": p.provider_memory_id,
+                        "turn_seq": turn_seq, "message_id": ev.message_id,
+                        "sender": ev.sender, "content_hash": ev.content_hash,
+                        "start_utf8": ev.start_utf8, "end_utf8": ev.end_utf8,
+                        "extractor_version": mem0_extractor.EXTRACTOR_VERSION,
+                    })
                 await session.execute(_COMMIT_CANDIDATE, {
                     "user_id": uid, "provider_memory_id": p.provider_memory_id,
                 })

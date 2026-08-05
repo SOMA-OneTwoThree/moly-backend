@@ -1038,15 +1038,6 @@ async def post_message(
         list(agent_turn.calls) if agent_turn is not None else [_llm_call(result, "chat")]
     )
     reply_text = agent_turn.text if agent_turn is not None else result.text
-    if agent_turn is not None and agent_turn.control_intents and not reply_text:
-        reply_text = i18n.pick(
-            {
-                "ko": "알겠어. 내가 기억하고 있던 것에서 지울게.",
-                "en": "Okay. I'll remove that from what I remember.",
-                "ja": "わかった。ぼくが覚えていたことから消すね。",
-            },
-            language,
-        )
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
     if is_ko:
         # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.

@@ -13,6 +13,7 @@
 """
 from __future__ import annotations
 
+import json
 import pathlib
 
 import pytest
@@ -50,3 +51,25 @@ def test_closing_memories_also_enqueues_provider_delete(path):
         "닫힌 기억의 벡터가 provider에 영영 남는다 — 증상이 조용해서 찾기 어렵다. "
         "정말 필요 없다면 _EXEMPT에 사유와 함께 적어라."
     )
+
+
+# --- 없는 능력을 모델에 광고하지 않는다 ---
+
+def test_final_response_schema_advertises_no_forget():
+    """모델에 보내는 도구 스키마에 **적용 경로가 없는 기능**이 있으면 안 된다.
+
+    `finish_response`는 오랫동안 `control_intents(kind: forget|pin)`을 스키마로 노출했다.
+    대화형 망각은 제거됐는데(제품 판단) 필드만 남아서, 모델은 지울 수 있다고 믿고 의도를
+    보냈고 서버는 그걸 버렸다. 게다가 chat이 그 의도를 보면 **"지울게"라고 답하는 문구를
+    하드코딩**해 뒀다 — 아무것도 지우지 않으면서 캐피가 거짓말을 했다.
+
+    스키마는 매 요청 프리픽스에 들어가므로 비용도 든다. 능력이 없으면 광고하지 않는다.
+    """
+    from app.services.agent.tools import final_response
+
+    wire = json.dumps(final_response.wire_schema(), ensure_ascii=False)
+    for banned in ("control_intents", "forget", "future_learning", "target_fact_ids"):
+        assert banned not in wire, (
+            f"finish_response 스키마에 {banned!r}이 있다. 적용 경로가 생기기 전에는 "
+            "모델에 노출하지 않는다 — 모델이 없는 능력을 약속하게 된다."
+        )

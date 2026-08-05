@@ -42,10 +42,21 @@ SUMMARIZER_VERSION = "conversation-checkpoint-summary-v1"
 # 섞이지 않게 자체 라벨을 쓴다.
 PURPOSE_CHECKPOINT = "checkpoint_summary"
 
-# 요약 1회 출력 상한. 이 문자열은 다음 턴들의 **안정 프리픽스**에 실리므로 길면 매 턴 캐시 읽기
-# 비용이 된다. ⚠️ 품질 근거가 있는 값이 아니다 — 실제 요약 길이 분포와 회상 품질을 보고
-# **측정 후 조정 필요**.
-SUMMARY_MAX_OUTPUT_TOKENS = 400
+# 요약 1회 **출력 예산**. 저장 길이 상한은 `SUMMARY_MAX_CHARS`가 따로 강제하므로, 이 값은
+# 답변 길이가 아니라 "추론 + 답변"이 함께 들어갈 자리를 뜻한다.
+#
+# ⚠️ 400이면 **긴 구간에서 빈 요약이 나온다**(2026-08-05 dev 실측). 추론 모델이 예산 400을
+#    전부 추론에 쓰고 답변 자리가 0이 되기 때문이다 — 오류가 아니라 빈 문자열로 돌아와서
+#    `mask_summary`가 "요약이 비었다"로 거부하고, 재시도 3회가 전부 같은 이유로 실패한 뒤
+#    잡이 dead가 된다. 즉 **대화가 길어진 사용자만 checkpoint가 영영 안 생긴다.**
+#
+#    실측(원문 74건·4,050자 입력, 같은 system 프롬프트):
+#      max_tokens=400  → output 400, 텍스트 0자   ← 예산을 추론이 다 씀
+#      max_tokens=1000 → output 394, 텍스트 540자
+#      max_tokens=2000 → output 461, 텍스트 491자
+#    실제 사용량은 ~460이라 2000으로 올려도 청구는 거의 그대로다. 오히려 실패 재시도 3회가
+#    사라져 줄어든다.
+SUMMARY_MAX_OUTPUT_TOKENS = 2_000
 SUMMARY_MAX_CHARS = 1_200
 
 
@@ -300,11 +311,15 @@ def mask_summary(text: str, nickname: str | None) -> str:
     바뀌면 첫 통과가 놓친 실명이 남아 있다는 뜻이므로 저장하지 않는다(naming의 경계 규칙과 같은
     방어선을 쓴다 — 여기에 자체 이름 탐지기를 새로 만들면 규칙이 두 벌이 된다).
     """
+    if not (text or "").strip():
+        # provider가 빈 문자열을 준 경우다. 마스킹이 지운 것과 원인이 전혀 다르므로 구분한다 —
+        # 섞어 놓으면 출력 예산 부족(추론이 예산을 다 씀)을 마스킹 문제로 오진하게 된다.
+        raise CheckpointError("provider가 빈 응답을 줬다(출력 예산 부족 의심)")
     masked = memory.sanitize_text(naming.to_placeholder(text, nickname) or "")
     if masked and naming.to_placeholder(masked, nickname) != masked:
         raise NameLeakError("요약에 마스킹되지 않은 실명이 남았다")
     if not masked:
-        raise CheckpointError("요약이 비었다")
+        raise CheckpointError("마스킹·살균 후 요약이 비었다")
     return masked[:SUMMARY_MAX_CHARS]
 
 

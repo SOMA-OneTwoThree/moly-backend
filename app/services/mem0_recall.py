@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -50,6 +51,37 @@ MAX_DISTANCE = 0.90
 #    (2건). 벡터 유사도만으로는 "이 발화에 회상할 대상이 있는가"를 구분할 수 없다.
 #    이건 임계값 조정으로 풀 문제가 아니며, golden set(회상 정답 200건)으로 재보고 정해야 한다.
 RELEVANCE_MARGIN = 0.08
+
+
+# 되짚는 발화의 표지. 이게 있으면 짧아도 회상한다("민승이?" 4글자).
+_LOOKBACK = re.compile(
+    r"[?？]|뭐|무슨|언제|어디|누구|얼마|어떻|어땠|했지|있었|였지|이었|"
+    r"기억|어제|지난|전에|예전|아까|그때|저번"
+)
+# 이 길이 이하에서 표지가 없으면 되짚을 대상이 없다고 본다.
+SHORT_TURN_CHARS = 6
+
+
+def needs_recall(query: str) -> bool:
+    """이 발화에 회상할 대상이 있는가.
+
+    **벡터 거리로는 판정할 수 없다.** 짧거나 내용 없는 입력은 임베딩 공간 중심 근처에 놓여
+    모든 것과 적당히 가깝다. dev 실측:
+
+        '안녕'(2자)              최소 거리 0.697
+        'ㅇㅇ'(2자)              최소 거리 0.667   ← 의미 없는 입력이 더 '가깝다'
+        '내 루틴 뭐있었지?'(10자)   최소 거리 0.623
+
+    거리로 자르면 'ㅇㅇ'이 기억을 더 많이 끌어온다. 실제로 '안녕' 한마디에 '사이가 안 좋다'를
+    포함한 기억 8건이 프롬프트에 들어갔다(감사 지적). 그래서 **발화 자체**를 본다 —
+    되짚는 표지가 있거나 충분히 길면 회상하고, 짧은 인사·호응은 넘긴다.
+    """
+    text = (query or "").strip()
+    if not text:
+        return False
+    if _LOOKBACK.search(text):
+        return True
+    return len(text) > SHORT_TURN_CHARS
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,7 +129,8 @@ async def recall(
     adapter·embed_query를 주입받는다 — 워커와 챗이 같은 코드를 쓰되 각자의 클라이언트를
     들고 있고, 테스트가 provider 없이 돌 수 있어야 한다.
     """
-    if not (query or "").strip():
+    if not needs_recall(query):
+        # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
     try:
         vector = await embed_query(query)

@@ -69,7 +69,7 @@ def _hit(pid, distance=0.5, text="회사에 다닌다"):
 async def test_active_memory_is_returned():
     a = _Adapter([_hit("p1")])
     s = _Session([("p1", "active", None, None)])
-    got = await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed)
+    got = await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed)
     assert [g.text for g in got] == ["회사에 다닌다"]
 
 
@@ -93,7 +93,7 @@ async def test_query_filter_asks_only_for_visible_statuses():
     """SQL에 넘기는 상태 목록이 VISIBLE_STATUSES와 같아야 한다."""
     a = _Adapter([_hit("p1")])
     s = _Session([("p1", "active", None, None)])
-    await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed)
+    await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed)
     assert s.params["statuses"] == list(mr.VISIBLE_STATUSES)
     assert s.params["user_id"] == UID
 
@@ -102,21 +102,21 @@ async def test_hit_without_registry_row_is_dropped():
     """registry에 없는 벡터는 판정되지 않은 것이다 — 보여주면 안 된다."""
     a = _Adapter([_hit("orphan")])
     s = _Session([])          # registry에 아무것도 없다
-    assert await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed) == []
+    assert await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed) == []
 
 
 async def test_registry_row_without_a_hit_is_ignored():
     """검색에 안 걸린 기억을 registry만 보고 끌어오지 않는다."""
     a = _Adapter([_hit("p1")])
     s = _Session([("p1", "active", None, None), ("p2", "active", None, None)])
-    got = await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed)
+    got = await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed)
     assert len(got) == 1
 
 
 async def test_hit_without_text_payload_is_dropped():
     a = _Adapter([_Hit(id="p1", distance=0.5, payload={"user_id": str(UID)})])
     s = _Session([("p1", "active", None, None)])
-    assert await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed) == []
+    assert await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed) == []
 
 
 # ── 실패해도 대화는 살아야 한다 ─────────────────────────────
@@ -125,13 +125,13 @@ async def test_provider_failure_returns_empty_not_raise():
     """회상은 대화의 보조지 전제가 아니다. provider가 죽었다고 대화가 죽으면 안 된다."""
     a = _Adapter([], boom=True)
     s = _Session([])
-    assert await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed) == []
+    assert await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed) == []
 
 
 async def test_registry_failure_returns_empty_not_raise():
     a = _Adapter([_hit("p1")])
     s = _Session([], boom=True)
-    assert await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed) == []
+    assert await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed) == []
 
 
 async def test_embedding_failure_returns_empty_not_raise():
@@ -139,7 +139,7 @@ async def test_embedding_failure_returns_empty_not_raise():
         raise RuntimeError("embed down")
 
     a = _Adapter([_hit("p1")])
-    assert await mr.recall(_Session([]), UID, query="회사", adapter=a, embed_query=_boom) == []
+    assert await mr.recall(_Session([]), UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_boom) == []
 
 
 async def test_empty_query_skips_the_provider_entirely():
@@ -156,7 +156,7 @@ async def test_ambiguous_is_kept_not_discarded():
     a = _Adapter([_hit("p1", text="회사에 다닌다"), _hit("p2", text="회사를 그만뒀다")])
     g = uuid.uuid4()
     s = _Session([("p1", "ambiguous", None, g), ("p2", "ambiguous", None, g)])
-    got = await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed)
+    got = await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed)
     assert len(got) == 2 and all(x.uncertain for x in got)
 
 
@@ -188,7 +188,7 @@ def test_render_separates_sure_from_unsure():
 async def test_results_are_capped_by_limit():
     hits = [_hit(f"p{i}", distance=0.1 + i / 100) for i in range(20)]
     rows = [(f"p{i}", "active", None, None) for i in range(20)]
-    got = await mr.recall(_Session(rows), UID, query="q",
+    got = await mr.recall(_Session(rows), UID, query="그때 무슨 얘기했지?",
                           adapter=_Adapter(hits), embed_query=_embed, limit=5)
     assert len(got) == 5
 
@@ -200,7 +200,7 @@ async def test_closer_distance_comes_first():
     a = _Adapter([_hit("p1", distance=0.80, text="덜 관련"),
                   _hit("p2", distance=0.20, text="더 관련")])
     s = _Session([("p1", "active", None, None), ("p2", "active", None, None)])
-    got = await mr.recall(s, UID, query="q", adapter=a, embed_query=_embed)
+    got = await mr.recall(s, UID, query="그때 무슨 얘기했지?", adapter=a, embed_query=_embed)
     assert got[0].text == "더 관련"
 
 
@@ -208,7 +208,7 @@ async def test_absolute_cap_still_applies():
     """상대 컷을 써도 터무니없이 먼 것은 막는다."""
     a = _Adapter([_hit("p1", distance=0.99, text="무관")])
     s = _Session([("p1", "active", None, None)])
-    assert await mr.recall(s, UID, query="q", adapter=a, embed_query=_embed) == []
+    assert await mr.recall(s, UID, query="그때 무슨 얘기했지?", adapter=a, embed_query=_embed) == []
 
 
 async def test_cut_is_relative_to_the_closest_hit():
@@ -220,7 +220,7 @@ async def test_cut_is_relative_to_the_closest_hit():
     a = _Adapter([_hit("near", distance=0.30, text="가깝다"),
                   _hit("far", distance=0.60, text="멀다")])
     s = _Session([("near", "active", None, None), ("far", "active", None, None)])
-    got = await mr.recall(s, UID, query="q", adapter=a, embed_query=_embed)
+    got = await mr.recall(s, UID, query="그때 무슨 얘기했지?", adapter=a, embed_query=_embed)
     assert [g.text for g in got] == ["가깝다"]
 
 
@@ -228,6 +228,52 @@ async def test_a_diffuse_query_keeps_few_results():
     """결과가 뭉쳐 있으면(=질의가 흐릿하면) 적게 남아야 한다."""
     hits = [_hit(f"p{i}", distance=0.70 + i * 0.03) for i in range(8)]
     rows = [(f"p{i}", "active", None, None) for i in range(8)]
-    got = await mr.recall(_Session(rows), UID, query="q",
+    got = await mr.recall(_Session(rows), UID, query="그때 무슨 얘기했지?",
                           adapter=_Adapter(hits), embed_query=_embed)
     assert len(got) <= 3
+
+
+# ── 회상할 발화인지 판단 ─────────────────────────────────────
+
+@pytest.mark.parametrize("q", ["안녕", "ㅇㅇ", "그렇구나", "ㅋㅋㅋ", "응", "고마워", "ㅎㅎ"])
+def test_greetings_and_backchannel_do_not_recall(q):
+    """'안녕' 한마디에 '사이가 안 좋다'가 딸려오면 캐피가 뜬금없이 그 얘기를 꺼낸다(실측)."""
+    assert not mr.needs_recall(q)
+
+
+@pytest.mark.parametrize("q", [
+    "내 여자친구 이름 뭐였지?",
+    "내 루틴 뭐있었지?",
+    "어제 무슨 얘기했지?",
+    "오늘 진짜 힘들었어",
+    "민승이?",                 # 4글자지만 되짚는 표지가 있다
+    "전에 말한 그거",
+])
+def test_lookback_turns_do_recall(q):
+    """방어가 정상 질문까지 막으면 캐피가 아무것도 기억 못 하게 된다."""
+    assert mr.needs_recall(q)
+
+
+def test_short_turn_with_question_mark_still_recalls():
+    """짧다고 무조건 넘기면 '민승이?' 같은 되묻기를 놓친다."""
+    assert mr.needs_recall("민승이?")
+    assert not mr.needs_recall("민승이")
+
+
+def test_distance_alone_cannot_make_this_decision():
+    """실측: 'ㅇㅇ'(0.667)이 '내 루틴 뭐있었지?'(0.623)보다 더 '가깝다'.
+
+    거리 임계값으로 자르면 의미 없는 입력이 오히려 기억을 더 끌어온다. 그래서 발화 자체를
+    본다 — 이 테스트는 그 결정이 거리와 무관하다는 계약을 고정한다.
+    """
+    import inspect
+
+    src = inspect.getsource(mr.needs_recall)
+    assert "distance" not in src and "MAX_DISTANCE" not in src
+
+
+async def test_skipped_turn_does_not_call_the_provider():
+    """넘길 발화에 임베딩을 부르면 돈과 지연만 쓴다."""
+    a = _Adapter([_hit("p1")])
+    assert await mr.recall(_Session([]), UID, query="안녕", adapter=a, embed_query=_embed) == []
+    assert a.calls == 0

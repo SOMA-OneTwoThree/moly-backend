@@ -20,7 +20,7 @@ UID = uuid.uuid4()
 @dataclass
 class _Hit:
     id: str
-    score: float
+    distance: float
     payload: dict
 
 
@@ -62,8 +62,8 @@ async def _embed(q):
     return [0.1] * 8
 
 
-def _hit(pid, score=0.9, text="회사에 다닌다"):
-    return _Hit(id=pid, score=score, payload={"text": text, "user_id": str(UID)})
+def _hit(pid, distance=0.5, text="회사에 다닌다"):
+    return _Hit(id=pid, distance=distance, payload={"text": text, "user_id": str(UID)})
 
 
 async def test_active_memory_is_returned():
@@ -114,7 +114,7 @@ async def test_registry_row_without_a_hit_is_ignored():
 
 
 async def test_hit_without_text_payload_is_dropped():
-    a = _Adapter([_Hit(id="p1", score=0.9, payload={"user_id": str(UID)})])
+    a = _Adapter([_Hit(id="p1", distance=0.5, payload={"user_id": str(UID)})])
     s = _Session([("p1", "active", None, None)])
     assert await mr.recall(s, UID, query="회사", adapter=a, embed_query=_embed) == []
 
@@ -163,7 +163,7 @@ async def test_ambiguous_is_kept_not_discarded():
 def test_render_tells_capi_not_to_assert_when_uncertain():
     """캐피가 단정해버리면 틀렸을 때 사용자가 정정해야 한다 — 그건 기억이 아니라 사고다."""
     items = [
-        mr.Recalled("회사를 그만뒀다", "ambiguous", 0.9,
+        mr.Recalled("회사를 그만뒀다", "ambiguous", 0.5,
                     datetime(2026, 8, 1, tzinfo=timezone.utc), uuid.uuid4()),
     ]
     out = mr.render_block(items)
@@ -178,23 +178,39 @@ def test_render_is_empty_when_nothing_recalled():
 
 def test_render_separates_sure_from_unsure():
     items = [
-        mr.Recalled("고양이를 키운다", "active", 0.9, None, None),
-        mr.Recalled("회사를 그만뒀다", "ambiguous", 0.8, None, uuid.uuid4()),
+        mr.Recalled("고양이를 키운다", "active", 0.3, None, None),
+        mr.Recalled("회사를 그만뒀다", "ambiguous", 0.4, None, uuid.uuid4()),
     ]
     out = mr.render_block(items)
     assert out.index("고양이를 키운다") < out.index("단정하지")
 
 
 async def test_results_are_capped_by_limit():
-    hits = [_hit(f"p{i}", score=1.0 - i / 100) for i in range(20)]
+    hits = [_hit(f"p{i}", distance=0.1 + i / 100) for i in range(20)]
     rows = [(f"p{i}", "active", None, None) for i in range(20)]
     got = await mr.recall(_Session(rows), UID, query="q",
                           adapter=_Adapter(hits), embed_query=_embed, limit=5)
     assert len(got) == 5
 
 
-async def test_higher_score_comes_first():
-    a = _Adapter([_hit("p1", score=0.2, text="낮음"), _hit("p2", score=0.9, text="높음")])
+async def test_closer_distance_comes_first():
+    """vecs는 **거리**를 준다 — 낮을수록 관련 있다. 내림차순으로 정렬하면 가장 관련 없는
+    기억이 프롬프트에 실린다(실측 사고: '여자친구' 질의에 '물 마시기 루틴'이 1등이었다).
+    """
+    a = _Adapter([_hit("p1", distance=0.80, text="덜 관련"),
+                  _hit("p2", distance=0.20, text="더 관련")])
     s = _Session([("p1", "active", None, None), ("p2", "active", None, None)])
     got = await mr.recall(s, UID, query="q", adapter=a, embed_query=_embed)
-    assert got[0].text == "높음"
+    assert got[0].text == "더 관련"
+
+
+async def test_far_memories_are_cut_off():
+    """자르지 않으면 질의와 무관한 기억이 매번 limit만큼 실린다."""
+    a = _Adapter([_hit("p1", distance=0.99, text="무관")])
+    s = _Session([("p1", "active", None, None)])
+    assert await mr.recall(s, UID, query="q", adapter=a, embed_query=_embed) == []
+
+
+def test_cutoff_sits_between_measured_relevant_and_irrelevant():
+    """dev 실측: 관련 0.69~0.81, 무관 0.86~0.90. 경계가 그 사이에 있어야 한다."""
+    assert 0.81 < mr.MAX_DISTANCE < 0.86

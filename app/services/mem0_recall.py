@@ -32,12 +32,17 @@ VISIBLE_STATUSES = ("active", "ambiguous")
 _PROVIDER_FETCH = 40
 DEFAULT_LIMIT = 8
 
+# 이 거리를 넘으면 질의와 무관한 기억으로 본다. dev 실측: 관련 기억 0.69~0.81,
+# 무관한 기억 0.86~0.90. 경계를 0.84로 두면 무관한 것이 들어오지 않는다.
+# ⚠️ 임베딩 모델을 바꾸면 이 값도 다시 재야 한다.
+MAX_DISTANCE = 0.84
+
 
 @dataclass(frozen=True, slots=True)
 class Recalled:
     text: str
     status: str                      # active | ambiguous
-    score: float
+    distance: float                  # cosine 거리 — **낮을수록 관련 있다**
     occurred_at: datetime | None     # 사건 시각(있으면). ambiguous 판단 근거로 보여준다
     conflict_group_id: uuid.UUID | None
 
@@ -113,13 +118,14 @@ async def recall(
             # 본문은 provider payload가 갖는다. 없으면 보여줄 게 없다.
             continue
         out.append(Recalled(
-            text=str(body), status=str(status), score=float(hit.score or 0.0),
+            text=str(body), status=str(status), distance=float(hit.distance or 0.0),
             occurred_at=occurred_at, conflict_group_id=group,
         ))
 
-    # 유사도 순. 같은 점수면 최근 사건을 앞에 둔다.
-    out.sort(key=lambda r: (-r.score, -(r.occurred_at.timestamp() if r.occurred_at else 0)))
-    return out[:limit]
+    # 거리 **오름차순** — 가까운 것이 먼저다. 같은 거리면 최근 사건을 앞에 둔다.
+    out.sort(key=lambda r: (r.distance, -(r.occurred_at.timestamp() if r.occurred_at else 0)))
+    # 거리가 먼 것은 질의와 무관하다. 자르지 않으면 관련 없는 기억이 매번 limit만큼 실린다.
+    return [r for r in out if r.distance <= MAX_DISTANCE][:limit]
 
 
 def render_block(items: list[Recalled], *, language: str = "ko") -> str:

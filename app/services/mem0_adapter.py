@@ -51,7 +51,10 @@ class VectorRecord:
 @dataclass(frozen=True, slots=True)
 class SearchHit:
     id: str
-    score: float
+    # ⚠️ **거리다. 유사도가 아니다.** vecs는 cosine distance를 주므로 **낮을수록 가깝다**.
+    #    `score`라는 이름으로 두면 큰 값이 좋은 줄 알고 내림차순 정렬하게 되고, 그러면
+    #    가장 관련 없는 기억이 프롬프트에 실린다(실측 사고). 이름으로 못 박는다.
+    distance: float
     payload: dict[str, Any]
 
 
@@ -205,7 +208,7 @@ class Mem0VectorIndexAdapter:
             if (payload or {}).get("user_id") != user_id:
                 _log.error("mem0 search에 타 사용자 결과가 섞였다 — id=%s (폐기)", rid)
                 continue
-            hits.append(SearchHit(id=str(rid), score=float(score or 0.0), payload=payload or {}))
+            hits.append(SearchHit(id=str(rid), distance=float(score or 0.0), payload=payload or {}))
         return hits
 
     async def delete(self, ids: list[str], *, timeout: float = 6.0) -> int:

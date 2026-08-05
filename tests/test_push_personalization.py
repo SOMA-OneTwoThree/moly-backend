@@ -215,6 +215,9 @@ def test_person_reference_relation_words_not_rejected():
         assert not has(ok_body, "ko", "승민"), ok_body
     assert not has("おばさんと話した？", "ja", None)
     assert not has("お疲れさんでした、話そう", "ja", None)
+    # 부사 'ちゃんと(제대로)'는 경칭 아님 — 캐릭터명 문구 오탐 방지(2026-08-05 실측 고정)
+    assert not has("キャピはちゃんと覚えてるよ", "ja", None)
+    assert has("ミサキちゃんに会えた？", "ja", None)  # 진짜 인명+ちゃん은 여전히 차단
 
 
 def test_person_reference_org_suffix_ko():

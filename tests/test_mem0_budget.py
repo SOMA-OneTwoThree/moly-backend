@@ -67,3 +67,13 @@ def test_remaining_never_negative():
     b = mb.StageBudget(total_s=0.05, stages={"a": 0.01})
     time.sleep(0.1)
     assert b.remaining == 0.0
+
+
+def test_float_rounding_does_not_reject_valid_config():
+    """0.1+0.05+0.05+0.1 = 0.30000000000000004 — 정상 설정이 오차로 거부되면 안 된다."""
+    mb.StageBudget(total_s=0.3, stages={"a": 0.1, "b": 0.05, "c": 0.05, "d": 0.1})
+
+
+def test_meaningful_overflow_still_rejected():
+    with pytest.raises(ValueError):
+        mb.StageBudget(total_s=0.3, stages={"a": 0.2, "b": 0.2})

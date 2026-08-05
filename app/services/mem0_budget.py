@@ -62,7 +62,9 @@ class StageBudget:
 
     def __post_init__(self) -> None:
         allocated = sum(self.stages.values())
-        if allocated > self.total_s:
+        # 부동소수점 합계 오차(0.1+0.05+0.05+0.1 = 0.30000000000000004)로 정상 설정이
+        # 거부되지 않게 미세 허용오차를 둔다. 의미 있는 초과는 그대로 걸린다.
+        if allocated > self.total_s + 1e-9:
             raise ValueError(
                 f"단계 합계 {allocated}s가 handler timeout {self.total_s}s를 넘는다"
             )

@@ -41,10 +41,18 @@ HIGH_IMPACT = frozenset({
     ic.Kind.CUSTOM_PREFERENCE,
 })
 
+# ⚠️ **최근 것부터** 가져와 다시 시간순으로 세운다.
+#
+# 예전엔 `ORDER BY id LIMIT 200`이라 **가장 오래된 200건**을 봤다. 대화가 200건을 넘는
+# 순간부터 새 발화는 영원히 안 읽혀서, 사용자가 "앞으로 반말로 해줘"라고 해도 계약이
+# 만들어지지 않았다(실측: 240건 중 #1~#207만 봄, 요청은 #244).
 _MESSAGES = text("""
-SELECT id, sender, content FROM messages
-WHERE user_id = :user_id AND kind = 'normal' AND id > :after
-ORDER BY id LIMIT :limit
+SELECT id, sender, content FROM (
+  SELECT id, sender, content FROM messages
+  WHERE user_id = :user_id AND kind = 'normal' AND id > :after
+  ORDER BY id DESC LIMIT :limit
+) recent
+ORDER BY id
 """)
 
 _PROFILE = text("SELECT nickname, language FROM profiles WHERE id = :user_id")

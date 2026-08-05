@@ -170,9 +170,10 @@ def test_filter_en_proper_noun_heuristic():
 
 
 def test_filter_length_caps():
-    assert not pp.passes_deterministic_filter("가" * 81, "ko")
-    assert pp.passes_deterministic_filter("가" * 80, "ko")
-    assert not pp.passes_deterministic_filter("a" * 161, "en")
+    # 2026-08-05 사용자 피드백으로 축소(ko/ja 60·en 110) — 잠금화면 1~2줄 상한
+    assert not pp.passes_deterministic_filter("가" * (pp._MAX_CHARS["ko"] + 1), "ko")
+    assert pp.passes_deterministic_filter("가" * pp._MAX_CHARS["ko"], "ko")
+    assert not pp.passes_deterministic_filter("a" * (pp._MAX_CHARS["en"] + 1), "en")
 
 
 def test_filter_unicode_bypass_blocked():

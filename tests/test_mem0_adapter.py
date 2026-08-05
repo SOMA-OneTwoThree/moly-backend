@@ -17,6 +17,9 @@ import pytest
 
 from app.services import mem0_adapter as ma
 
+# mem0ai·vecs는 pyproject에 고정된 하드 의존성이다. importorskip으로 넘기면 의존성 누락을
+# CI가 '스킵'으로 통과시켜 버린다(실제로 vecs 미선언 상태가 이렇게 숨어 있었다).
+
 UID = "11111111-1111-1111-1111-111111111111"
 OTHER = "22222222-2222-2222-2222-222222222222"
 DIM = 4
@@ -26,13 +29,13 @@ DIM = 4
 # 1. upstream 구조 가정 (실제 패키지를 본다)
 # ─────────────────────────────────────────────────────────────
 def test_pinned_version_matches_installed():
-    mem0 = pytest.importorskip("mem0")
+    import mem0
+
     assert mem0.__version__ == ma.PINNED_MEM0_VERSION
 
 
 def test_vector_store_layer_is_usable_without_memory_class():
     """`Memory` 없이 벡터 계층만 import·사용 가능해야 façade가 성립한다."""
-    pytest.importorskip("mem0")
     from mem0.vector_stores.supabase import Supabase
 
     assert hasattr(Supabase, "insert") and hasattr(Supabase, "search")
@@ -40,8 +43,9 @@ def test_vector_store_layer_is_usable_without_memory_class():
 
 def test_vecs_client_attributes_we_bypass_init_for_still_exist():
     """engine 주입은 `Client.__init__` 우회에 의존한다 — 속성 이름이 바뀌면 여기서 깨진다."""
-    vecs = pytest.importorskip("vecs")
     import inspect
+
+    import vecs
 
     src = inspect.getsource(vecs.Client.__init__)
     # 우리가 우회하는 두 가지: 기본 풀 생성과 런타임 DDL.
@@ -52,7 +56,7 @@ def test_vecs_client_attributes_we_bypass_init_for_still_exist():
 
 
 def test_collection_methods_we_depend_on_exist():
-    vecs = pytest.importorskip("vecs")
+    import vecs
     from vecs.collection import Collection
 
     for m in ma.REQUIRED_COLLECTION_METHODS:
@@ -62,7 +66,6 @@ def test_collection_methods_we_depend_on_exist():
 
 def test_importing_facade_does_not_create_history_db(tmp_path, monkeypatch):
     """게이트 핵심 — history 파일이 생기면 다중 host 결과가 갈린다."""
-    pytest.importorskip("mem0")
     monkeypatch.setenv("MEM0_DIR", str(tmp_path / "mem0"))
     # 이미 import된 상태라도, 지금까지 history db가 만들어지지 않았음을 확인한다.
     created = [p.name for p in pathlib.Path(str(tmp_path)).rglob("*.db")]

@@ -16,6 +16,7 @@ dependencies = [
     "google-auth>=2.0",
     "openai>=2.44.0",
     "mem0ai==2.0.11",
+    "vecs==0.4.5",
 ]
 
 [dependency-groups]

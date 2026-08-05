@@ -67,7 +67,13 @@ ALLOWED_ACTIONS: dict[Kind, frozenset[Action]] = {
     Kind.TOPIC_BOUNDARY: frozenset({Action.AVOID, Action.ASK_BEFORE}),
     Kind.EXPRESSION_BOUNDARY: frozenset({Action.AVOID}),
     Kind.RELATIONSHIP_DEFINITION: frozenset({Action.PREFER, Action.DO_NOT_ASSUME}),
-    Kind.DURABLE_BEHAVIOR: frozenset({Action.PREFER, Action.LISTEN_BEFORE, Action.ASK_BEFORE}),
+    # do_not_assume 포함 — "그 상황에선 넘겨짚지 마"는 정상 요구다.
+    # ⚠️ avoid는 넣지 않는다. 실데이터에서 compiler가 "그 얘기 잊어줘"를
+    #    `durable_behavior/avoid`로 옮기려 했다 — 기억 삭제 요청이지 행동 합의가 아니다.
+    #    피해달라는 주제·표현은 topic_boundary·expression_boundary가 받는다.
+    Kind.DURABLE_BEHAVIOR: frozenset(
+        {Action.PREFER, Action.LISTEN_BEFORE, Action.ASK_BEFORE, Action.DO_NOT_ASSUME}
+    ),
     Kind.CUSTOM_PREFERENCE: frozenset({Action.HONOR_PREFERENCE}),
 }
 

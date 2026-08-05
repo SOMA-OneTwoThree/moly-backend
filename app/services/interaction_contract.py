@@ -195,6 +195,28 @@ def validate(d: Directive) -> Directive:
 # 렌더 — literal은 **인용된 데이터 슬롯**에만 들어간다
 # ─────────────────────────────────────────────────────────────
 
+# (kind, action)별 문구. **같은 action이라도 kind가 다르면 말이 달라진다** —
+# `use`는 호칭엔 "이렇게 부른다"지만 말투엔 "이렇게 말한다"다. action만 보고 쓰면
+# "반말을 이렇게 부른다" 같은 문장이 나온다(실측).
+_KIND_ACTION_KO: dict[tuple[Kind, Action], str] = {
+    (Kind.ADDRESS, Action.USE): "이렇게 부른다",
+    (Kind.ADDRESS, Action.AVOID): "이렇게 부르지 않는다",
+    (Kind.RESPONSE_STYLE, Action.USE): "이렇게 말한다",
+    (Kind.RESPONSE_STYLE, Action.PREFER): "이런 쪽으로 말한다",
+    (Kind.RESPONSE_STYLE, Action.AVOID): "이렇게 말하지 않는다",
+    (Kind.TOPIC_BOUNDARY, Action.AVOID): "이 얘기는 꺼내지 않는다",
+    (Kind.EXPRESSION_BOUNDARY, Action.AVOID): "이런 표현은 쓰지 않는다",
+    (Kind.RELATIONSHIP_DEFINITION, Action.DO_NOT_ASSUME): "이렇게 단정하지 않는다",
+}
+
+_KIND_ACTION_EN: dict[tuple[Kind, Action], str] = {
+    (Kind.ADDRESS, Action.USE): "address them this way",
+    (Kind.RESPONSE_STYLE, Action.USE): "speak this way",
+    (Kind.RESPONSE_STYLE, Action.PREFER): "lean this way when speaking",
+    (Kind.TOPIC_BOUNDARY, Action.AVOID): "do not bring this up",
+    (Kind.EXPRESSION_BOUNDARY, Action.AVOID): "do not use this wording",
+}
+
 _ACTION_KO: dict[Action, str] = {
     Action.USE: "이렇게 부른다",
     Action.AVOID: "피한다",
@@ -266,7 +288,14 @@ def render(d: Directive, *, language: str = "ko") -> str:
     target = d.target_literal or d.target_tag
     if target:
         parts.append(f"「{target}」을(를)")
-    parts.append(_ACTION_TEXT.get(language, {}).get(d.action) or _ACTION_KO[d.action])
+    # kind별 문구가 있으면 그걸 쓴다. 없으면 action 기본 문구로 떨어진다.
+    if language == "en":
+        verb = _KIND_ACTION_EN.get((d.kind, d.action)) or _ACTION_TEXT["en"].get(d.action)
+    else:
+        verb = _KIND_ACTION_KO.get((d.kind, d.action))
+        if verb is None:
+            verb = _ACTION_TEXT.get(language, {}).get(d.action) or _ACTION_KO[d.action]
+    parts.append(verb)
     if d.polarity is Polarity.NEGATIVE and d.action not in (Action.AVOID, Action.DO_NOT_ASSUME):
         parts.append("않는다")
     return "- " + " ".join(parts) + "."

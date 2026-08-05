@@ -45,7 +45,7 @@ WHERE user_id = :user_id AND status = 'published' AND render_hash = :hash
 
 async def published_text(
     session: AsyncSession, *, user_id: uuid.UUID, locale: str
-) -> str:
+) -> str:  # noqa: C901
     """프롬프트에 넣을 계약 블록. 없으면 빈 문자열이다.
 
     저장된 `rendered_text`를 그대로 쓰지 않고 **정본에서 다시 렌더한다** — 저장분이 옛
@@ -57,9 +57,18 @@ async def published_text(
     )).first()
     if row is None:
         return ""
-    try:
-        items = json.loads(row[1] or "[]")
-    except json.JSONDecodeError:
+    # ⚠️ jsonb는 드라이버가 **이미 파싱해서** 준다. json.loads를 걸면 TypeError가 나고,
+    #    이건 챗 Phase 1이라 그 예외가 그대로 응답을 죽인다 — 계약이 생기는 순간 그
+    #    사용자의 대화가 통째로 실패한다(실측).
+    raw = row[1]
+    if isinstance(raw, (str, bytes, bytearray)):
+        try:
+            items = json.loads(raw or "[]")
+        except json.JSONDecodeError:
+            return ""
+    else:
+        items = raw or []
+    if not isinstance(items, list):
         return ""
     directives = []
     for it in items:

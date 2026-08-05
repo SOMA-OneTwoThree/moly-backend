@@ -13,7 +13,6 @@ from app.models.message import Message
 from app.services import chat as chat_service
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import relationship_profile, relationship_profile_repo
 from app.services.gating import Gating
 from app.services.llm import LLMResult
 
@@ -171,25 +170,6 @@ async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patche
     req = SimpleNamespace(text="ㅎㅇ", greeting_id=None)
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-3")
     assert out.review_prompt is True
-
-
-async def test_post_message_survives_corrupt_relationship_profile(monkeypatch):
-    # 저장된 projection 문서가 손상돼도 과거 사본으로 폴백하지 않고 빈 기억으로 대화한다.
-    async def _boom(session, *, user_id, language):
-        raise relationship_profile.DocumentSchemaError("bad projection")
-
-    async def _fake_llm(system, convo, **kw):
-        return LLMResult(text="응 그래.", input_tokens=10, output_tokens=20)
-
-    async def _res(session, user_id):
-        return _gating()
-
-    monkeypatch.setattr(relationship_profile_repo, "prompt_text", _boom)
-    monkeypatch.setattr(llm_module, "generate", _fake_llm)
-    monkeypatch.setattr(gating_module, "resolve", _res)
-    req = SimpleNamespace(text="안녕", greeting_id=None)
-    out = await chat_service.post_message(FakeSession(), UID, req, "idem-mem")
-    assert out.reply.content == "응 그래."
 
 
 async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patched):

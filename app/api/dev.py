@@ -232,36 +232,18 @@ async def inspect_memory_recall(
     "기억이 있다/없다"를 확인해도 실제 대화 결과와 일치하지 않았다(감사 지적). 사용자 mode에
     따라 챗과 같은 코드를 탄다.
     """
-    from app.services import memory_embeddings, memory_pipeline, recall_memory
+    from app.services import chat, mem0_recall, memory_embeddings
 
-    state = await memory_pipeline.load(session, uuid.UUID(user_id))
-    if state.serves_v2:
-        from app.services import chat, mem0_recall
-
-        items = await mem0_recall.recall(
-            session, uuid.UUID(user_id), query=req.query,
-            adapter=chat._recall_adapter(),
-            embed_query=memory_embeddings.embed_query,
-        )
-        return {"results": [{
-            "text": i.text, "status": i.status, "distance": i.distance,
-            "occurred_at": i.occurred_at.isoformat() if i.occurred_at else None,
-            "uncertain": i.uncertain,
-        } for i in items]}
-
-    # 외부 embedding 동안 AsyncSession은 아직 connection을 checkout하지 않는다.
-    query_embedding = await memory_embeddings.embed_query(req.query)
-    result = await recall_memory.recall(
-        session,
-        user_id,
-        query=req.query,
-        need=req.need,
-        from_date=req.from_date,
-        to_date=req.to_date,
-        limit=req.limit,
-        query_embedding=query_embedding,
+    items = await mem0_recall.recall(
+        session, uuid.UUID(user_id), query=req.query,
+        adapter=chat._recall_adapter(),
+        embed_query=memory_embeddings.embed_query,
     )
-    return {"capability": "recall_memory", "result": result}
+    return {"results": [{
+        "text": i.text, "status": i.status, "distance": i.distance,
+        "occurred_at": i.occurred_at.isoformat() if i.occurred_at else None,
+        "uncertain": i.uncertain,
+    } for i in items]}
 
 
 @router.post("/recall/diaries", response_model=DiaryRecallDiagnosticsResponse)

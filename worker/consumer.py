@@ -26,7 +26,7 @@ from typing import Any
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import job_telemetry, jobs, privacy, projection_repair
+from app.services import job_telemetry, jobs, privacy
 from app.services.jobs import ClaimedJob, QueueConfig
 
 _log = logging.getLogger("moly-worker")
@@ -342,14 +342,6 @@ async def reaper_loop(stop: asyncio.Event, queues: tuple[str, ...] = jobs.QUEUES
                 await jobs.scrub_expired_payloads(session)
         except Exception as e:  # noqa: BLE001
             _log.warning("retention scrub 실패: %r", e)
-        try:
-            async with get_sessionmaker()() as session:
-                repaired = await projection_repair.enqueue_missing(session)
-                await session.commit()
-                if repaired:
-                    _log.info("누락 recall embedding 복구 잡 등록 — count=%d", repaired)
-        except Exception as e:  # noqa: BLE001
-            _log.warning("recall projection reconciliation 실패: %r", e)
         await _sleep_or_stop(stop, settings.job_reaper_interval_s)
 
 
@@ -400,7 +392,7 @@ def main() -> None:
 def _register_handlers() -> None:
     """순환 import를 피해 시작 시 한 번 핸들러를 등록한다."""
     from worker import (  # noqa: F401
-        checkpoint_jobs, contract_jobs, mem0_jobs, memory_jobs, recall_jobs,
+        checkpoint_jobs, contract_jobs, mem0_jobs,
         privacy_jobs, reconsolidate_jobs, relationship_jobs,
         shadow_checkpoint_jobs, shadow_trace_jobs,
     )

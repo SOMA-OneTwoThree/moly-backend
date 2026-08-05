@@ -7,14 +7,13 @@
 |---|---|---|
 | `recall_diaries` | **등록** | 존재·개수·목록·전문을 한 번에 완결하는 일기 회상 |
 | `get_routines` | **등록** | 달력 날짜 기준 루틴 상세 |
-| `recall_memory` | **등록** | 정규화 fact + 검증된 user-message episode 회상 |
 | `finish_response` | **최종 홉 내부 계약** | 응답 mode·선택 ref·focus를 typed sidecar로 확정 |
 """
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from app.services.agent.tools import final_response, get_routines, recall_diaries, recall_memory
+from app.services.agent.tools import final_response, get_routines, recall_diaries
 from app.services.agent.tools.base import BaseTool, wire_schema
 
 # registry에 실제로 올라가는 도구. 순서가 곧 wire 스키마 순서다 —
@@ -22,7 +21,6 @@ from app.services.agent.tools.base import BaseTool, wire_schema
 _ENABLED: tuple[BaseTool, ...] = (
     recall_diaries.TOOL,
     get_routines.TOOL,
-    recall_memory.TOOL,
 )
 
 # 구현은 있으나 켜지 않는 도구(위 표의 사유). 스키마에도 노출하지 않는다.

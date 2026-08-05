@@ -1,6 +1,6 @@
 """기억·현재상태의 프롬프트 렌더에 공통으로 쓰는 텍스트 살균.
 
-장기기억 저장·검색은 `memory_repo`와 pgvector가 담당한다. 이 모듈에는 외부 저장소나
+장기기억 저장·검색은 mem0 v2(`mem0_recall`)가 담당한다. 이 모듈에는 외부 저장소나
 런타임 전환 경로가 없다.
 """
 from __future__ import annotations

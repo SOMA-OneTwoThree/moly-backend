@@ -28,10 +28,10 @@ def _system(**over):
 
 # ── 안 켠 사용자는 그대로 ────────────────────────────────────
 
-def test_prompt_is_unchanged_when_v2_block_is_empty():
-    """v2 블록이 비면 legacy 경로가 그대로 살아 있어야 한다."""
+def test_prompt_is_unchanged_when_v2_is_off():
+    """v2가 꺼져 있으면 legacy 경로가 그대로 살아 있어야 한다."""
     before = _system(relationship_text="고양이를 키운다")
-    after = _system(relationship_text="고양이를 키운다", memory_v2_block="")
+    after = _system(relationship_text="고양이를 키운다", suppress_legacy_memory=False)
     assert before == after
 
 
@@ -59,23 +59,29 @@ async def test_non_v2_user_gets_empty_block_without_touching_provider(mode_serve
 
 # ── 켠 사용자 ────────────────────────────────────────────────
 
-def test_v2_block_replaces_legacy_block_not_stacks():
+def test_v2_suppresses_the_legacy_block():
     """둘 다 넣으면 같은 사실이 두 벌로 들어가 캐피가 중복해서 말한다."""
-    out = _system(relationship_text="고양이를 키운다", memory_v2_block="[기억]\n- 고양이를 키운다")
-    joined = "\n".join(out)
-    assert joined.count("고양이를 키운다") == 1
+    out = "\n".join(_system(relationship_text="고양이를 키운다", suppress_legacy_memory=True))
+    assert "고양이를 키운다" not in out
 
 
-def test_v2_block_is_a_server_owned_system_block():
-    """user 발화로 들어가면 사용자 권위를 갖게 된다 — 저장 데이터는 그러면 안 된다."""
-    out = _system(memory_v2_block="[기억]\n- 고양이를 키운다")
-    assert any("고양이를 키운다" in part for part in out)
+def test_v2_memory_is_not_in_the_cached_system_prefix():
+    """system은 캐시되는 프리픽스다. 매 턴 달라지는 회상을 여기 두면 그 뒤가 전부 miss다.
+
+    실측: 이 자리에 두면 캐시 쓰기가 59토큰 → 4,232토큰으로 뛴다(캐시 쓰기는 읽기의
+    12.5배 단가라 비용도 같이 뛴다).
+    """
+    src = inspect.getsource(chat._build_system)
+    assert "memory_v2_block" not in src, "v2 기억이 다시 system 프리픽스로 들어갔다"
 
 
-def test_nickname_is_rendered_in_the_v2_block():
-    """저장은 placeholder로 한다 — 렌더를 빼먹으면 사용자에게 {유저이름}이 그대로 보인다."""
-    out = _system(memory_v2_block="[기억]\n- {유저이름}은 고양이를 키운다")
-    assert "{유저이름}" not in "\n".join(out)
+def test_v2_memory_goes_after_the_recent_turns():
+    """11장이 정한 자리는 최근 원문 **뒤**다 — 그래야 앞의 append-only 대화가 캐시된다."""
+    src = inspect.getsource(chat.post_message)
+    assert "convo.insert(" in src, "회상을 convo에 넣지 않는다"
+    idx = src.index("convo.insert(")
+    assert '"role": "system"' in src[idx:idx + 260], "role이 system이 아니면 user 권위를 갖는다"
+    assert "naming.render(" in src[idx:idx + 260], "placeholder를 렌더하지 않으면 {유저이름}이 보인다"
 
 
 # ── 실패해도 대화는 살아야 한다 ─────────────────────────────
@@ -164,9 +170,8 @@ def test_rollback_is_a_mode_flip_not_a_code_change():
 
 def test_v2_user_does_not_get_the_legacy_block():
     """둘 다 들어가면 같은 사실이 두 벌이 되고 캐시만 늘어난다."""
-    out = "\n".join(_system(
-        relationship_text="레거시 기억", memory_v2_block="[기억]\n- v2 기억"))
-    assert "v2 기억" in out and "레거시 기억" not in out
+    out = "\n".join(_system(relationship_text="레거시 기억", suppress_legacy_memory=True))
+    assert "레거시 기억" not in out
 
 
 def test_legacy_user_still_gets_the_legacy_block():

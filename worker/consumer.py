@@ -401,7 +401,7 @@ def _register_handlers() -> None:
     """순환 import를 피해 시작 시 한 번 핸들러를 등록한다."""
     from worker import (  # noqa: F401
         checkpoint_jobs, contract_jobs, mem0_jobs, memory_jobs, recall_jobs,
-        relationship_jobs,
+        privacy_jobs, reconsolidate_jobs, relationship_jobs,
         shadow_checkpoint_jobs, shadow_trace_jobs,
     )
 

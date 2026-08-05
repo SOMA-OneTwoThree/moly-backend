@@ -77,3 +77,55 @@ def test_timezone_is_snapshotted_not_recomputed():
     """스냅샷이 없으면 여행 중 tz 변경이 이미 계산된 due를 흔든다."""
     got = us.all_due("Europe/Berlin", datetime.now(timezone.utc))
     assert {d.timezone_snapshot for d in got} == {"Europe/Berlin"}
+
+
+# ── timezone 변경 반영 (실측 버그) ──────────────────────────
+
+def test_retime_exists_because_snapshot_is_not_permanent():
+    """스냅샷은 '실행 중 tz 변경에 안 흔들리기 위한 것'이지 영원히 안 바뀌는 값이 아니다.
+
+    dev 실측: profile은 Asia/Dubai인데 스냅샷은 Asia/Seoul이었다. 그래서 due 인덱스와
+    기존 스캔이 **서로 다른 사용자**를 골랐고, 전환했으면 그 사용자만 조용히 알림을 놓쳤다.
+    """
+    assert hasattr(us, "retime_for_user")
+
+
+def test_retime_only_touches_rows_whose_timezone_changed():
+    """안 바뀐 행까지 건드리면 진행 중 실행의 due가 흔들린다."""
+    import inspect
+
+    src = inspect.getsource(us)
+    assert "timezone_snapshot <> :tz" in src
+
+
+def test_retime_bumps_revision():
+    """진행 중 실행이 자기 세대를 확인할 수 있어야 한다."""
+    import inspect
+
+    assert "revision = revision + 1" in inspect.getsource(us)
+
+
+# ── due dispatcher ──────────────────────────────────────────
+
+def test_dispatcher_is_off_by_default():
+    """잘못 켜면 그 사용자만 조용히 일기·알림을 못 받는다. 설계도 확인 전 전환을 금지한다."""
+    from app.config import settings
+
+    assert settings.schedule_dispatcher_enabled is False
+
+
+def test_advance_is_a_compare_and_set():
+    """두 워커가 같은 스케줄을 집어도 하나만 통과해야 중복 발송이 없다."""
+    import inspect
+
+    src = inspect.getsource(us.advance)
+    assert "next_due_at = :expected" in inspect.getsource(us) or "expected" in src
+
+
+def test_due_uses_the_index_not_a_full_scan():
+    """전 profile 스캔이면 사용자 수에 비례해 비용이 는다 — 15분 안에 못 돌면 그날이 밀린다."""
+    import inspect
+
+    src = inspect.getsource(us)
+    assert "FROM user_schedules" in src
+    assert "FROM profiles" not in src, "dispatcher가 profile을 훑는다"

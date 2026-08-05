@@ -132,6 +132,10 @@ class Settings(BaseSettings):
     job_notification_max_attempts: int = 3
     # 기억 색인 전용 lane. content(일기·요약)와 같은 큐를 쓰면 일기 300건이 도는 동안
     # 기억이 통째로 밀린다 — content concurrency가 1이라 서로를 막는다(감사 지적).
+    # due 인덱스 dispatcher. **기본 off.** 켜기 전에 두 경로 결과가 같은지 확인해야 한다 —
+    # 잘못 켜면 그 사용자만 조용히 일기·알림을 못 받는다(설계 15장 4번: 확인 전 전환 금지).
+    schedule_dispatcher_enabled: bool = False
+
     job_memory_concurrency: int = 2
     job_memory_claim_batch: int = 2
     job_memory_timeout_s: float = 120.0

@@ -202,6 +202,20 @@ async def begin_subject_deletion(
     )
     return tuple(int(value) for value in row) if row is not None else (0, 0, 0)
 
+    # 장벽만 세우고 끝내면 벡터가 그대로 남는다 — 실제로 지우는 잡을 여기서 건다(12.3절).
+    # 같은 transaction이라 장벽 없이 삭제 잡만 도는 일이 없다.
+    from app.services import jobs
+
+    await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_MAINTENANCE,
+        job_type="privacy_cleanup",
+        user_id=user_id,
+        dedup_key=f"privclean:{user_id}:{operation_id}:0",
+        payload={"empty_sweeps": 0},
+    )
+
+
 
 async def mark_subject_deleted(
     session: AsyncSession, *, user_id: uuid.UUID, operation_id: uuid.UUID

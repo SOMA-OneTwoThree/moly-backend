@@ -148,6 +148,9 @@ async def run_ingest(
             p.provider_memory_id,
             vec,
             {
+                # 본문은 provider payload가 보관한다. registry는 본문을 복제하지 않으므로
+                # consolidation이 비교 대상 본문을 여기서 hydrate한다(9.4절).
+                "text": p.text,
                 "user_id": str(user_id),
                 "turn_seq": turn_seq,
                 "candidate_hash": p.candidate_hash,

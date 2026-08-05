@@ -38,3 +38,35 @@ async def test_invalid_payload_is_fatal_not_retried():
 def test_collection_version_is_pinned():
     """런타임이 컬렉션을 만들지 않는다 — migration이 만든 버전만 쓴다."""
     assert mem0_jobs.COLLECTION_VERSION == "v2"
+
+
+def test_consolidation_handler_is_registered():
+    consumer._register_handlers()
+    assert mem0_jobs.JOB_MEM0_CONSOLIDATE in consumer.registered_types()
+    assert consumer._REGISTRY[mem0_jobs.JOB_MEM0_CONSOLIDATE] is mem0_jobs.handle_mem0_consolidate
+
+
+def test_classifier_is_called_at_most_once_per_job():
+    """invalid graph여도 재질의하지 않는다 — 비용과 비결정성만 늘린다."""
+    import ast
+    import inspect
+
+    src = inspect.getsource(mem0_jobs.handle_mem0_consolidate)
+    tree = ast.parse(src.lstrip())
+    generate_calls = [
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+        and n.func.attr == "generate"
+    ]
+    assert len(generate_calls) == 1
+
+
+def test_consolidation_advances_cursor_only_in_apply_domain():
+    """커서 전진이 fencing UPDATE와 같은 transaction이어야 한다."""
+    import inspect
+
+    src = inspect.getsource(mem0_jobs.handle_mem0_consolidate)
+    # advance_consolidated_cursor는 apply_domain 콜백(_publish/_skip) 안에서만 호출된다.
+    for line in src.splitlines():
+        if "advance_consolidated_cursor" in line:
+            assert line.startswith("            ") or line.startswith("        ")

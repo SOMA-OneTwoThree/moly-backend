@@ -111,3 +111,45 @@ def test_document_lists_each_directive():
     ])
     assert "승민아" in doc and "회사 얘기" in doc
     assert doc.count("\n- ") == 2 and doc.startswith("[이 사람과의 약속]")
+
+
+# ── 실제 요청이 스키마에 막히던 것 (실측) ────────────────────
+
+def test_name_placeholder_is_allowed_in_literals():
+    """`{유저이름}`은 이 시스템이 이름을 저장하는 방식이다.
+
+    구조 문자 검사가 `{}`를 막아서 **호칭 계약을 아예 만들 수 없었다** — 사용자가
+    "{유저이름}아라고 불러줘"라고 명시했는데 Markdown delimiter로 거부됐다.
+    시스템의 두 규칙(마스킹 · 인젝션 방어)이 서로 충돌한 것이다.
+    """
+    from app.services import naming
+
+    assert ic._NAME_TOKEN == naming.TOKEN, "정본 토큰과 갈라졌다"
+    assert ic.sanitize_literal("{유저이름}아") == "{유저이름}아"
+
+
+@pytest.mark.parametrize("hostile", ["{other}", "{{nested}}", "{유저이름}<script>", "{a}{b}"])
+def test_other_braces_are_still_blocked(hostile):
+    """예외는 알려진 토큰 하나뿐이다. 중괄호를 통째로 허용하면 방어가 사라진다."""
+    with pytest.raises(ic.ContractViolation):
+        ic.sanitize_literal(hostile)
+
+
+def test_response_style_allows_use():
+    """'반말로 해줘'는 use가 자연스럽다. prefer만 두면 정상 요청이 버려진다(실측)."""
+    ic.validate(ic.Directive(
+        kind=ic.Kind.RESPONSE_STYLE, action=ic.Action.USE,
+        condition=ic.Condition.ALWAYS, polarity=ic.Polarity.POSITIVE,
+        target_literal="반말",
+    ))
+
+
+def test_address_request_survives_the_whole_pipeline():
+    """모델이 낸 정상 요청 두 개가 끝까지 살아남아야 한다."""
+    for kind, action, literal in [
+        (ic.Kind.RESPONSE_STYLE, ic.Action.USE, "반말"),
+        (ic.Kind.ADDRESS, ic.Action.USE, "{유저이름}아"),
+    ]:
+        d = ic.Directive(kind=kind, action=action, condition=ic.Condition.ALWAYS,
+                         polarity=ic.Polarity.POSITIVE, target_literal=literal)
+        assert literal in ic.render(d)

@@ -63,7 +63,9 @@ class Polarity(str, Enum):
 # "관계 정의를 use한다" 같은 의미 없는(그러나 렌더는 되는) 항목이 생긴다.
 ALLOWED_ACTIONS: dict[Kind, frozenset[Action]] = {
     Kind.ADDRESS: frozenset({Action.USE, Action.AVOID}),
-    Kind.RESPONSE_STYLE: frozenset({Action.PREFER, Action.AVOID}),
+    # use 포함 — "반말로 해줘"는 use가 자연스럽다. prefer만 두면 모델이 낸 정상 요청이
+    # 스키마에서 버려진다(실측: 사용자가 명시 요청했는데 계약이 안 만들어졌다).
+    Kind.RESPONSE_STYLE: frozenset({Action.USE, Action.PREFER, Action.AVOID}),
     Kind.COMFORT: frozenset({Action.LISTEN_BEFORE, Action.ASK_BEFORE, Action.PREFER}),
     Kind.TOPIC_BOUNDARY: frozenset({Action.AVOID, Action.ASK_BEFORE}),
     Kind.EXPRESSION_BOUNDARY: frozenset({Action.AVOID}),
@@ -114,6 +116,13 @@ _ROLE_TOKENS = re.compile(
 _STRUCTURE = re.compile(r"[<>{}\[\]|`#*_~\\]")
 
 
+# 이 시스템이 이름을 저장하는 방식. 저장 표면에는 실명 대신 이 토큰이 들어간다.
+# ⚠️ 아래 구조 문자 검사가 `{}`를 막는데, 그러면 **호칭 계약을 아예 만들 수 없다**
+#    (실측: "{유저이름}아라고 불러줘"가 Markdown delimiter로 거부됐다). 이 토큰만 예외로
+#    빼고 나머지 중괄호는 계속 막는다 — 방어를 약화시키지 않으면서 정상 요청을 통과시킨다.
+_NAME_TOKEN = "{유저이름}"
+
+
 def sanitize_literal(raw: str) -> str:
     """`target_literal` 위생 검사. 통과한 값만 렌더에 들어간다.
 
@@ -131,7 +140,8 @@ def sanitize_literal(raw: str) -> str:
         raise ContractViolation("bidi 제어문자가 들어 있다")
     if any(unicodedata.category(ch) in ("Cc", "Cf") for ch in text):
         raise ContractViolation("제어문자가 들어 있다")
-    if _STRUCTURE.search(text):
+    # 알려진 이름 토큰을 뺀 나머지에만 구조 문자 검사를 건다.
+    if _STRUCTURE.search(text.replace(_NAME_TOKEN, "")):
         raise ContractViolation("Markdown/XML delimiter가 들어 있다")
     if _ROLE_TOKENS.search(text):
         raise ContractViolation("role/tool token으로 읽힐 수 있다")

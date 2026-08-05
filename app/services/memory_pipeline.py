@@ -309,8 +309,19 @@ def ingest_dedup_key(user_id: uuid.UUID, turn_seq: int, *, schema_version: str =
     return f"mem0:{user_id}:{turn_seq}:{schema_version}"
 
 
-def consolidate_dedup_key(user_id: uuid.UUID, turn_seq: int, *, schema_version: str = "v1") -> str:
-    return f"mem0c:{user_id}:{turn_seq}:{schema_version}"
+def consolidate_dedup_key(
+    user_id: uuid.UUID, turn_seq: int, *, schema_version: str = "v1", generation: int = 0
+) -> str:
+    """generation을 포함한다 — 같은 turn을 재처리하면 판정도 다시 돌아야 한다.
+
+    generation 없이 고정 키를 쓰면 terminal 잡이 재enqueue를 영구히 막아, 재처리로 생긴
+    pending registry가 영원히 판정되지 않는다(soak 실측).
+    """
+    return f"mem0c:{user_id}:{turn_seq}:{schema_version}:{generation}"
+
+
+def provider_delete_dedup_key(user_id: uuid.UUID, turn_seq: int, *, generation: int = 0) -> str:
+    return f"mem0d:{user_id}:{turn_seq}:{generation}"
 
 
 async def enqueue_ingest(
@@ -334,13 +345,42 @@ async def enqueue_consolidate(
 ) -> uuid.UUID | None:
     from app.services import jobs
 
+    generation = await _repair_generation(session, user_id)
     return await jobs.enqueue(
         session,
         queue=jobs.QUEUE_CONTENT,
         job_type=JOB_MEM0_CONSOLIDATE,
         user_id=user_id,
-        dedup_key=consolidate_dedup_key(user_id, turn_seq),
+        dedup_key=consolidate_dedup_key(user_id, turn_seq, generation=generation),
         payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
+    )
+
+
+JOB_MEM0_PROVIDER_DELETE = "mem0_provider_delete"
+
+_REPAIR_GENERATION = text(
+    "SELECT repair_generation FROM memory_pipeline_states WHERE user_id=:user_id"
+)
+
+
+async def _repair_generation(session: AsyncSession, user_id: uuid.UUID) -> int:
+    return int(await session.scalar(_REPAIR_GENERATION, {"user_id": user_id}) or 0)
+
+
+async def enqueue_provider_delete(
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
+) -> uuid.UUID | None:
+    """non-active 기억의 provider 벡터 정리. 노출은 이미 semantic 필터가 막으므로 저장 비용용이다."""
+    from app.services import jobs
+
+    generation = await _repair_generation(session, user_id)
+    return await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_MAINTENANCE,
+        job_type=JOB_MEM0_PROVIDER_DELETE,
+        user_id=user_id,
+        dedup_key=provider_delete_dedup_key(user_id, turn_seq, generation=generation),
+        payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch, "limit": 50},
     )
 
 

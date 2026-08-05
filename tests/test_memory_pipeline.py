@@ -315,3 +315,27 @@ def test_ingest_success_enqueues_followups_inside_apply_domain():
     advance_block = src.split("async def _advance")[1]
     assert "enqueue_consolidate" in advance_block
     assert "enqueue_next_ingest" in advance_block
+
+
+# ─────────────────────────────────────────────────────────────
+# 8. 재처리와 provider 정리 (soak 실측으로 드러난 것들)
+# ─────────────────────────────────────────────────────────────
+def test_consolidate_key_includes_generation():
+    """고정 키면 terminal 잡이 재enqueue를 영구히 막아, 재처리로 생긴 pending registry가
+    영원히 판정되지 않는다(soak 실측)."""
+    a = mp.consolidate_dedup_key(UID, 7, generation=0)
+    b = mp.consolidate_dedup_key(UID, 7, generation=1)
+    assert a != b
+
+
+def test_delete_key_is_separate_space():
+    assert mp.provider_delete_dedup_key(UID, 7) != mp.consolidate_dedup_key(UID, 7)
+    assert mp.provider_delete_dedup_key(UID, 7) != mp.ingest_dedup_key(UID, 7)
+
+
+def test_provider_delete_goes_to_maintenance_queue():
+    """사용자 경로보다 낮은 우선순위 — 삭제 지연이 대화 후속 처리를 밀어내지 않는다."""
+    import inspect
+
+    src = inspect.getsource(mp.enqueue_provider_delete)
+    assert "QUEUE_MAINTENANCE" in src

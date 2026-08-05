@@ -12,7 +12,7 @@ from app.core.time_utils import activity_date_for
 from app.models.user_daily_stats import UserDailyStats
 from app.models.user_device import UserDevice
 from app.models.user_notification_settings import UserNotificationSettings
-from app.services import i18n, push
+from app.services import i18n, naming, push
 
 # 푸시 문구 — 유저 언어별(profile.language). 없거나 미지원 언어면 ko 폴백.
 _MORNING = {

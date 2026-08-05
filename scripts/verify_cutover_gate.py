@@ -104,7 +104,9 @@ _MANUAL: list[str] = [
     "provider 10분 장애 뒤 backlog 완전 drain (fault injection 필요)",
     "6시간 synthetic soak (시간 필요)",
     "연속 두 sweep에서 gate 유지 (반복 실행 필요)",
-    "implicit/explicit cache fixture의 실제 provider usage 확인 (라이브 호출 필요)",
+    # 2026-08-05 dev 실측: 올바른 배치 cached=2170 / 금지 배치 cached=0 로 통과.
+    # 프롬프트 구성이 바뀌면 다시 돌려야 하므로 자동 항목으로 올리지 않는다.
+    "cache fixture 재실행 (scripts/verify_prompt_cache.py --yes — 프롬프트 구성 변경 시마다)",
     "golden recall 기준 통과 (golden set 고정·평가 필요)",
     "09:00/20:00 알림 expiry·dedup fixture",
 ]

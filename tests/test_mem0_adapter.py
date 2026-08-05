@@ -210,3 +210,55 @@ async def test_empty_inputs_do_not_touch_provider():
     assert await a.get_many([], user_id=UID) == []
     assert await a.delete([]) == 0
     assert col.queries == [] and col.rows == {}
+
+
+# ─────────────────────────────────────────────────────────────
+# 3. 실 드라이버·행 형식 회귀 (전부 dev 실측으로 발견된 것들)
+# ─────────────────────────────────────────────────────────────
+def test_sync_engine_uses_psycopg2_not_asyncpg():
+    """앱의 asyncpg 엔진을 넘기면 vecs 동기 호출이 MissingGreenlet으로 터진다."""
+    eng = ma.build_sync_engine("postgresql+asyncpg://u:p@h:5432/db")
+    assert eng.dialect.driver == "psycopg2"
+    assert eng.dialect.name == "postgresql"
+
+
+def test_sync_engine_normalizes_every_dsn_form():
+    for dsn in (
+        "postgresql+asyncpg://u:p@h/db", "postgres://u:p@h/db", "postgresql://u:p@h/db",
+    ):
+        assert ma.build_sync_engine(dsn).dialect.driver == "psycopg2"
+
+
+def test_sync_engine_has_bounded_pool():
+    """vecs 기본 5+10 무제어 풀을 쓰지 않는 것이 이 façade의 존재 이유 중 하나다."""
+    eng = ma.build_sync_engine("postgresql://u:p@h/db", pool_size=3, max_overflow=0)
+    assert eng.pool.size() == 3
+    assert eng.pool._max_overflow == 0
+
+
+class _RowLike:
+    """SQLAlchemy 2.0 Row 흉내 — 튜플처럼 보이지만 tuple 서브클래스가 아니다."""
+
+    def __init__(self, *values):
+        self._v = values
+
+    def __len__(self):
+        return len(self._v)
+
+    def __getitem__(self, i):
+        return self._v[i]
+
+
+def test_row_objects_are_unpacked_even_though_not_tuples():
+    """isinstance(row, tuple)로 거르면 실제 결과가 전부 튕긴다(실측)."""
+    rid, vec, payload = ma._unpack(_RowLike("id1", [0.1], {"user_id": "u"}))
+    assert rid == "id1" and payload == {"user_id": "u"}
+
+
+def test_numpy_like_vector_does_not_break_truthiness():
+    """`vec or []`는 numpy 배열에서 ValueError로 터진다 — None 비교여야 한다."""
+    import numpy as np
+
+    row = _RowLike("id1", np.array([0.1, 0.2, 0.3]), {"user_id": "u"})
+    rid, vec, payload = ma._unpack(row)
+    assert len(list(vec)) == 3

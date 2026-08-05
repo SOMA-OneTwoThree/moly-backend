@@ -126,3 +126,26 @@ def test_recall_uses_its_own_session():
     """챗의 세션을 재사용하면 커밋으로 놓은 커넥션을 다시 잡는다."""
     src = inspect.getsource(chat._recall_memory_v2)
     assert "get_sessionmaker()" in src
+
+
+def test_rollback_is_a_mode_flip_not_a_code_change():
+    """legacy 경로가 코드에 남아 있어야 mode 한 줄로 되돌릴 수 있다.
+
+    전환이 잘못됐을 때 배포를 되돌려야 한다면 대응이 몇 분에서 몇십 분으로 늘어난다.
+    """
+    src = inspect.getsource(chat._build_system)
+    assert "relationship_text" in src, "legacy 블록 경로가 사라졌다"
+    assert "elif relationship_text" in src, "v2/legacy가 배타 분기가 아니다"
+
+
+def test_v2_user_does_not_get_the_legacy_block():
+    """둘 다 들어가면 같은 사실이 두 벌이 되고 캐시만 늘어난다."""
+    out = "\n".join(_system(
+        relationship_text="레거시 기억", memory_v2_block="[기억]\n- v2 기억"))
+    assert "v2 기억" in out and "레거시 기억" not in out
+
+
+def test_legacy_user_still_gets_the_legacy_block():
+    """전환 안 된 사용자는 지금까지와 똑같아야 한다."""
+    out = "\n".join(_system(relationship_text="레거시 기억"))
+    assert "레거시 기억" in out

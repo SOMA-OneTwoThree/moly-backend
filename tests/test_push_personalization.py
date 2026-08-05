@@ -19,8 +19,14 @@ def _profile(**over):
     return SimpleNamespace(**p)
 
 
-def _row(**over):
-    now = datetime.now(timezone.utc)
+def _row(*, now: datetime | None = None, **over):
+    """기본 anchor는 `now` 기준 어제다.
+
+    ⚠️ 예전엔 `datetime.now()`를 썼다. 그런데 이 픽스처를 쓰는 테스트들은 `now`를 고정
+    날짜로 주입하므로, 실제 날짜가 그 고정값을 지나가는 순간 anchor가 어긋나 실패했다
+    (2026-08-06에 실제로 깨졌다). 시간에 의존하는 테스트는 시간을 주입받아야 한다.
+    """
+    now = now or datetime.now(timezone.utc)
     r = {
         "user_id": UID,
         "anchor_date": activity_date_for(now, "Asia/Seoul") - timedelta(days=1),
@@ -129,12 +135,13 @@ def test_row_valid_reuse_window_off_by_one():
 def test_row_valid_language_and_source_and_rollout():
     now = datetime(2026, 8, 5, 10, 0, tzinfo=timezone.utc)
     p = _profile()
-    assert not pp.row_valid(_row(language="en"), p, now, _cfg())  # 언어 변경 → 무효
-    assert not pp.row_valid(_row(source_kind="transcript"), p, now, _cfg(sources=("diary",)))
-    assert not pp.row_valid(_row(), p, now, _cfg(rollout="off"))
-    assert not pp.row_valid(_row(), p, now, _cfg(rollout="allowlist"))  # 명단 밖
+    # 픽스처에도 같은 now를 준다 — 안 그러면 실제 날짜가 지나가며 조용히 깨진다.
+    assert not pp.row_valid(_row(now=now, language="en"), p, now, _cfg())  # 언어 변경 → 무효
+    assert not pp.row_valid(_row(now=now, source_kind="transcript"), p, now, _cfg(sources=("diary",)))
+    assert not pp.row_valid(_row(now=now), p, now, _cfg(rollout="off"))
+    assert not pp.row_valid(_row(now=now), p, now, _cfg(rollout="allowlist"))  # 명단 밖
     # ko-KR 같은 BCP47 태그도 resolve를 거쳐 일치 판정
-    assert pp.row_valid(_row(), _profile(language="ko-KR"), now, _cfg())
+    assert pp.row_valid(_row(now=now), _profile(language="ko-KR"), now, _cfg())
 
 
 # ── 결정적 필터 ────────────────────────────────────────────────────────────

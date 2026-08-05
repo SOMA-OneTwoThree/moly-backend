@@ -61,13 +61,13 @@ _PROFILE = text("SELECT nickname, language FROM profiles WHERE id = :user_id")
 
 _INSERT = text("""
 INSERT INTO conversation_checkpoints
-  (user_id, through_message_id, summary, source_hash, kind,
+  (user_id, through_message_id, summary, version, source_hash, kind,
    segment_from_message_id, segment_through_message_id,
    coverage_from_message_id, coverage_through_message_id,
    previous_checkpoint_id, locale, source_started_at, source_ended_at,
    activity_date_from, activity_date_to, publish_state)
 VALUES
-  (:user_id, :through, :summary, :source_hash, :kind,
+  (:user_id, :through, :summary, :version, :source_hash, :kind,
    :seg_from, :seg_through, :cov_from, :cov_through,
    :prev, :locale, :started, :ended, :day_from, :day_to, 'ready')
 ON CONFLICT DO NOTHING
@@ -170,6 +170,7 @@ async def handle_shadow_checkpoint(job: ClaimedJob) -> JobResult:
     async def _apply(session) -> None:
         await session.execute(_INSERT, {
             "user_id": uid, "through": ranges.coverage_through, "summary": summary,
+            "version": checkpoint.SUMMARIZER_VERSION,
             "source_hash": row.source_hash, "kind": kind,
             "seg_from": ranges.segment_from, "seg_through": ranges.segment_through,
             "cov_from": ranges.coverage_from, "cov_through": ranges.coverage_through,

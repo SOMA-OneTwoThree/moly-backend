@@ -95,6 +95,17 @@ _CHECKS: list[tuple[str, str]] = [
         """SELECT count(*) FROM ai_usage_ledger
            WHERE status='unknown_usage' AND cost_upper_bound_micro_usd IS NULL""",
     ),
+    (
+        # 누락된 사용자는 scheduler 전환 순간부터 일기도 알림도 못 받는다(15장 4번).
+        "schedule 4종이 빠진 profile",
+        """SELECT count(*) FROM profiles p
+           CROSS JOIN (VALUES ('daily_digest'),('diary_generate'),
+                              ('diary_morning_notification'),('evening_checkin')) AS k(kind)
+           WHERE NOT EXISTS (
+             SELECT 1 FROM user_schedules s
+             WHERE s.user_id = p.id AND s.kind = k.kind
+           )""",
+    ),
 ]
 
 # DB만으로 판정할 수 없는 항목 — 통과 여부를 자동으로 말하지 않는다.

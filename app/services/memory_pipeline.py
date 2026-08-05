@@ -397,6 +397,27 @@ JOB_SHADOW_CHECKPOINT = "shadow_checkpoint"
 JOB_CONTRACT_COMPILE = "contract_compile"
 JOB_RELATIONSHIP_PROJECT = "relationship_project"
 JOB_RECONSOLIDATE = "mem0_reconsolidate"
+JOB_MEMORY_SWEEP = "memory_gap_sweep"
+
+
+async def enqueue_memory_sweep(session: AsyncSession, *, bucket: str) -> uuid.UUID | None:
+    """멈춘 기억 파이프라인을 훑어 되살리는 잡. 틱이 부른다.
+
+    ingest는 체인이라 잡 하나가 dead가 되면 그 사용자는 영영 멈춘다 — chat은
+    `ingest >= source`일 때만 새 잡을 걸고, `ingest_dedup_key`가 (user, turn)으로 고정이라
+    죽은 turn은 다시 걸리지도 않는다. 그래서 훑어서 replay하는 주체가 따로 필요하다.
+
+    `bucket`이 dedup 단위다 — 같은 창에서는 한 번만 생긴다.
+    """
+    from app.services import jobs
+
+    return await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_MAINTENANCE,
+        job_type=JOB_MEMORY_SWEEP,
+        dedup_key=f"memsweep:{bucket}",
+        payload={},
+    )
 
 # 이 turn과 직전 turn의 활동일. 다르면 하루가 닫힌 것이다.
 _DAY_BOUNDARY = text("""

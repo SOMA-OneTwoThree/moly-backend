@@ -23,6 +23,7 @@ from app.services import (
     notify,
     push_personalization,
     slack_notify,
+    memory_pipeline,
     subscription,
 )
 from app.services.limits import effective_token_config
@@ -575,6 +576,19 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 _log.warning("개인화 발송 누계 조회 실패(요약 생략): %r", e)
         summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)
+
+    # --- 멈춘 기억 파이프라인 재개 ---
+    # ingest는 체인이라 잡 하나가 dead가 되면 그 사용자는 영영 멈춘다(챗은 ingest>=source일
+    # 때만 새 잡을 건다). 틱마다 한 번 훑어 다시 출발시킨다. 실패해도 틱을 깨지 않는다.
+    try:
+        async with get_sessionmaker()() as s_sweep:
+            if settings.memory_sweep_enabled:
+                await memory_pipeline.enqueue_memory_sweep(
+                    s_sweep, bucket=now.strftime("%Y%m%dT%H%M")
+                )
+            await s_sweep.commit()
+    except Exception as e:  # noqa: BLE001
+        _log.warning("기억 sweep 예약 실패(무시): %r", e)
 
     # --- 데드맨 핑 + 결과이상/비용 경보(네트워크 — 세션 밖) ---
     # 최후 방어: 모니터링은 무슨 일이 있어도 배치 틱을 깨면 안 된다(일기·푸시는 이미 커밋됨).

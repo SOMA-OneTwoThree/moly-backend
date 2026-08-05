@@ -305,6 +305,56 @@ async def _touch_last_active(session: AsyncSession, uid: uuid.UUID, now: datetim
     await session.execute(stmt)
 
 
+_MEM0_RECALL_TIMEOUT_S = 2.5
+_mem0_recall_adapter = None
+
+
+def _recall_adapter():
+    """챗 프로세스의 vector store 어댑터. 프로세스당 하나만 만든다.
+
+    ⚠️ vecs는 동기 SQLAlchemy라 앱의 asyncpg 엔진을 넘기면 MissingGreenlet으로 터진다.
+    워커와 같은 이유로 **전용 동기 엔진**을 쓴다.
+    """
+    global _mem0_recall_adapter
+    if _mem0_recall_adapter is None:
+        from app.services import mem0_adapter
+
+        engine = mem0_adapter.build_sync_engine(settings.supabase_db_connection_string)
+        _mem0_recall_adapter = mem0_adapter.Mem0VectorIndexAdapter(
+            mem0_adapter.build_client(engine), collection_name="moly_memories_v2"
+        )
+    return _mem0_recall_adapter
+
+
+async def _recall_memory_v2(
+    user_id: uuid.UUID, *, query: str, state, language: str
+) -> str:
+    """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
+
+    회상 실패는 대화를 막지 않는다. 여기서 예외가 새면 응답 전체가 실패하므로
+    마지막 방어선을 하나 더 둔다(mem0_recall도 자체적으로 삼킨다).
+    """
+    if not getattr(state, "serves_v2", False):
+        return ""
+    try:
+        from app.services import mem0_recall, memory_embeddings
+
+        from app.core.db import get_sessionmaker
+
+        maker = get_sessionmaker()
+        async with maker() as s2:
+            items = await mem0_recall.recall(
+                s2, user_id, query=query,
+                adapter=_recall_adapter(),
+                embed_query=memory_embeddings.embed_query,
+                timeout=_MEM0_RECALL_TIMEOUT_S,
+            )
+        return mem0_recall.render_block(items, language=language)
+    except Exception:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
+        _log.warning("v2 회상 블록 생성 실패(빈 기억으로 진행) — user=%s", user_id, exc_info=True)
+        return ""
+
+
 def _build_system(
     language: str,
     nickname: str | None,
@@ -313,6 +363,7 @@ def _build_system(
     summary: str = "",
     relationship_text: str = "",
     current_state: str = "",
+    memory_v2_block: str = "",
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
     뒤 블록이 바뀌어도 페르소나 캐시 생존.
@@ -341,7 +392,12 @@ def _build_system(
             "같은 인사를 또 하지 마.\n"
             f"{said}"
         )
-    if relationship_text:
+    if memory_v2_block:
+        # v2 기억. mem0_recall이 registry 상태로 이미 걸렀고, 서버가 만든 블록이라
+        # user 발화 권위를 넘지 않는다. legacy 관계 프로필과 **동시에 넣지 않는다** —
+        # 같은 사실이 두 벌로 들어가면 캐피가 중복해서 말하고 캐시만 늘어난다.
+        parts.append(naming.render(memory_v2_block, nickname))
+    elif relationship_text:
         block = prompts.relationship_profile_block(
             naming.render(relationship_text, nickname), language, enabled=True
         )
@@ -802,6 +858,10 @@ async def post_message(
     ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
 
+    # v2 읽기 전환 여부. 여기서는 **한 행만 읽고** 실제 회상은 커밋 뒤 외부 호출 구간에서
+    # 한다 — 임베딩 호출이 걸린 채로 DB 커넥션을 쥐고 있으면 Phase 1 점유가 늘어난다.
+    pipeline_state = await memory_pipeline.load(session, uid)
+
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가
     # active fact/insight와 forget marker를 매번 재대조한다. 재생성 지연 중에도 잊은 내용이
     # 프롬프트로 돌아오지 않는다. 손상된 projection은 과거 사본으로 폴백하지 않고 빈 기억으로 간다.
@@ -881,6 +941,12 @@ async def post_message(
     phase1_ms = _ms(t0, t_phase1)
 
     # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — LLM + 백스톱 =====
+    # v2 기억 회상. mode=v2인 사용자만 탄다 — 그 외에는 아래 블록이 빈 문자열이라
+    # 프롬프트가 전환 전과 완전히 같다.
+    memory_v2_block = await _recall_memory_v2(
+        uid, query=req.text, state=pipeline_state, language=language
+    )
+
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
     system = _build_system(
         language,
@@ -889,6 +955,7 @@ async def post_message(
         summary=checkpoint_summary,
         relationship_text=relationship_text,
         current_state=resident_block,
+        memory_v2_block=memory_v2_block,
     )
     if focus_block:
         system = [*system, focus_block]

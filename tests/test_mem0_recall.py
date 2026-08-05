@@ -58,7 +58,7 @@ class _Result:
         return self._rows
 
 
-async def _embed(q):
+async def _embed(q, **_):
     return [0.1] * 8
 
 
@@ -135,7 +135,7 @@ async def test_registry_failure_returns_empty_not_raise():
 
 
 async def test_embedding_failure_returns_empty_not_raise():
-    async def _boom(q):
+    async def _boom(q, **_):
         raise RuntimeError("embed down")
 
     a = _Adapter([_hit("p1")])

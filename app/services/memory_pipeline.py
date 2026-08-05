@@ -332,7 +332,7 @@ async def enqueue_ingest(
 
     return await jobs.enqueue(
         session,
-        queue=jobs.QUEUE_CONTENT,
+        queue=jobs.QUEUE_MEMORY,
         job_type=JOB_MEM0_INGEST,
         user_id=user_id,
         dedup_key=ingest_dedup_key(user_id, turn_seq),
@@ -348,7 +348,7 @@ async def enqueue_consolidate(
     generation = await _repair_generation(session, user_id)
     return await jobs.enqueue(
         session,
-        queue=jobs.QUEUE_CONTENT,
+        queue=jobs.QUEUE_MEMORY,
         job_type=JOB_MEM0_CONSOLIDATE,
         user_id=user_id,
         dedup_key=consolidate_dedup_key(user_id, turn_seq, generation=generation),

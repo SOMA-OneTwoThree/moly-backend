@@ -11,7 +11,9 @@ from app.config import settings
 from app.services import llm
 
 
-async def embed_texts(texts: Sequence[str]) -> list[list[float]]:
+async def embed_texts(
+    texts: Sequence[str], *, timeout: float | None = None
+) -> list[list[float]]:
     if not texts:
         return []
     response = await llm._get_openai_client().embeddings.create(  # noqa: SLF001 — 공용 SDK client
@@ -19,7 +21,9 @@ async def embed_texts(texts: Sequence[str]) -> list[list[float]]:
         input=list(texts),
         dimensions=settings.memory_embedding_dimensions,
         encoding_format="float",
-        timeout=settings.llm_timeout_s,
+        # ⚠️ 호출측 예산을 받는다. 기본(60초)만 쓰면 챗의 5초 마감 안에서 부르는 쪽이
+        #    자기 예산을 강제할 수 없다 — 회상이 60초를 기다리게 된다(감사 지적).
+        timeout=settings.llm_timeout_s if timeout is None else timeout,
     )
     ordered = sorted(response.data, key=lambda item: item.index)
     vectors = [list(item.embedding) for item in ordered]
@@ -34,5 +38,5 @@ async def embed_texts(texts: Sequence[str]) -> list[list[float]]:
     return vectors
 
 
-async def embed_query(query: str) -> list[float]:
-    return (await embed_texts([query]))[0]
+async def embed_query(query: str, *, timeout: float | None = None) -> list[float]:
+    return (await embed_texts([query], timeout=timeout))[0]

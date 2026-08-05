@@ -134,7 +134,9 @@ async def recall(
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
     try:
-        vector = await embed_query(query)
+        # 임베딩에도 **같은 예산**을 건다. 안쪽이 60초를 쓰면 경계의 wait_for가 걸리기 전에
+        # 이미 마감을 넘긴다.
+        vector = await embed_query(query, timeout=timeout)
         hits = await adapter.search(
             vector, user_id=str(user_id), limit=_PROVIDER_FETCH, timeout=timeout
         )

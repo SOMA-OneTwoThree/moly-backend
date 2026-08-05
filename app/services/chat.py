@@ -900,13 +900,18 @@ async def post_message(
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가
     # active fact/insight와 forget marker를 매번 재대조한다. 재생성 지연 중에도 잊은 내용이
     # 프롬프트로 돌아오지 않는다. 손상된 projection은 과거 사본으로 폴백하지 않고 빈 기억으로 간다.
+    # v2 사용자는 legacy 관계 프로필을 **조회조차 하지 않는다**. 프롬프트에 안 쓰면서
+    # 읽기만 하면 쿼리 비용만 들고, legacy 테이블 제거를 영영 막는다.
     relationship_text = ""
-    try:
-        relationship_text = await relationship_profile_repo.prompt_text(
-            session, user_id=uid, language=language
-        )
-    except relationship_profile.ProfileError:
-        _log.warning("관계 프로필 문서 손상(user=%s) — 빈 기억으로 진행", user_id, exc_info=True)
+    if not pipeline_state.serves_v2:
+        try:
+            relationship_text = await relationship_profile_repo.prompt_text(
+                session, user_id=uid, language=language
+            )
+        except relationship_profile.ProfileError:
+            _log.warning(
+                "관계 프로필 문서 손상(user=%s) — 빈 기억으로 진행", user_id, exc_info=True
+            )
 
     # 대화 요약 checkpoint(W11) — 앵커 앞 구간을 대신하는 줄거리. 킬스위치 off면 조회 자체를 안 한다
     # (기존과 완전 동일). 앵커는 항상 `through + 1`이라(리셋이 요약 경계를 정한다) 여기서 읽은
@@ -1293,12 +1298,17 @@ async def post_message(
 
     # 정규화 기억 — 이 턴의 소스 turn 배정 + 추출 잡.
     # 이 턴에 커밋된 선발화도 같은 watermark에 묶는다(그 인사도 이 대화의 근거다).
-    source_watermark = await _record_memory_source(
-        session, uid,
-        representative_message_id=umsg.id,
-        message_ids=[i for i in (greeting_message_id, umsg.id, rmsg.id) if i is not None],
-        now=now,
-    )
+    # v2 사용자는 legacy 정규화 기억을 **쓰지 않는다**. 두 벌로 쌓으면 비용이 두 배고,
+    # 어느 쪽이 정본인지 흐려지며, legacy 테이블을 영영 못 지운다.
+    v2_state = await memory_pipeline.load(session, uid)
+    source_watermark = None
+    if not v2_state.serves_v2:
+        source_watermark = await _record_memory_source(
+            session, uid,
+            representative_message_id=umsg.id,
+            message_ids=[i for i in (greeting_message_id, umsg.id, rmsg.id) if i is not None],
+            now=now,
+        )
     if source_watermark is not None:
         await episodic_memory.enqueue_user_message(
             session,

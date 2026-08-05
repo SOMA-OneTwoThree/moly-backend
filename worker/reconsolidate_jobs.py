@@ -17,7 +17,7 @@ from sqlalchemy import text
 
 from app.core.db import get_sessionmaker
 from app.services import mem0_classifier, mem0_consolidation, mem0_registry_repo
-from app.services import usage_ledger
+from app.services import jobs, memory_pipeline, usage_ledger
 from app.services import llm
 from app.config import settings
 from app.services.jobs import ClaimedJob
@@ -65,6 +65,7 @@ async def handle_reconsolidate(job: ClaimedJob) -> JobResult:
             "limit": _MAX_ITEMS,
         })).all()
         expected_revision = await session.scalar(_REVISION, {"user_id": uid})
+        privacy_epoch = (await memory_pipeline.load(session, uid)).privacy_epoch
 
     items = [(r[0], r[4]) for r in rows if r[4]]
     if len(items) < 2:
@@ -107,6 +108,22 @@ async def handle_reconsolidate(job: ClaimedJob) -> JobResult:
             expected_revision=expected_revision,
             classification_version=mem0_classifier.CLASSIFIER_VERSION,
         )
+        # non-active로 닫은 게 있으면 provider 벡터 정리를 건다 — 일반 consolidation과 같다
+        # (worker/mem0_jobs.py). 이게 빠져 있어서 재판정으로 닫힌 기억의 벡터가 provider에
+        # 영영 남았다(dev 실측: `provider_delete_state='pending'` 1건이 재판정 직후 생겨
+        # 누구도 집어가지 않았고, cutover 게이트가 그 backlog로 막혔다).
+        #
+        # dedup key에 **이 잡의 id**를 넣는다. `enqueue`의 ON CONFLICT는 상태와 무관하게
+        # 영구적이라, 고정 키를 쓰면 두 번째 재판정부터는 삭제 잡이 조용히 사라진다.
+        if any(t.provider_delete_state == "pending" for t in verdict.transitions):
+            await jobs.enqueue(
+                session,
+                queue=jobs.QUEUE_MAINTENANCE,
+                job_type=memory_pipeline.JOB_MEM0_PROVIDER_DELETE,
+                user_id=uid,
+                dedup_key=f"recon-del:{job.id}",
+                payload={"turn_seq": 0, "privacy_epoch": privacy_epoch, "limit": 50},
+            )
 
     closed = sum(
         1 for t in verdict.transitions

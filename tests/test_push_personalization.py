@@ -375,10 +375,38 @@ async def test_generate_no_yesterday_chat_keeps_existing_row(monkeypatch):
 
 
 async def test_generate_barrier_user_excluded(monkeypatch):
-    session = _GenSession(results=[[]], scalars=[True])  # barriers 존재
+    session = _GenSession(results=[[]], scalars=[True])  # 장벽(deleting/deleted) 존재
     now = datetime(2026, 8, 4, 20, 0, tzinfo=timezone.utc)
     status = await pp.generate_for_user(session, _profile(), now, _cfg(), {})
     assert status == "no_target"
+    # 계약 고정: 판정은 행 존재가 아니라 state — backfill로 전 유저에게 'active' 행이
+    # 깔리는 새 장벽 계약(#117)에서 존재 기반이면 전원이 조용히 배제된다.
+    barrier_sql = next(s for s, _ in session.sql if "privacy_subject_barriers" in s)
+    assert "state <> 'active'" in barrier_sql
+
+
+def test_prefetch_barrier_filter_is_state_based():
+    """프리페치 NOT EXISTS도 state 기반이어야 한다(#117 계약) — SQL 컴파일로 고정."""
+    from sqlalchemy import select as sa_select
+
+    from app.models.conversational_recall import PrivacySubjectBarrier
+    from app.models.push_personalization import PushPersonalization
+
+    stmt = sa_select(PushPersonalization).where(
+        ~sa_select(PrivacySubjectBarrier.user_id)
+        .where(
+            PrivacySubjectBarrier.user_id == PushPersonalization.user_id,
+            PrivacySubjectBarrier.state != "active",
+        )
+        .exists()
+    )
+    # 실제 prefetch_rows가 쓰는 조건과 동일한 형태가 컴파일되는지만 확인(스모크) —
+    # 정확한 실행 검증은 dev 리허설이 담당.
+    assert "state !=" in str(stmt) or "state != " in str(stmt)
+    import inspect
+
+    src = inspect.getsource(pp.prefetch_rows)
+    assert 'PrivacySubjectBarrier.state != "active"' in src
 
 
 async def test_inner_rejected_when_verifier_ok_but_filter_fails(monkeypatch):

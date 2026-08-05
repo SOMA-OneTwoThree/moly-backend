@@ -170,8 +170,13 @@ async def prefetch_rows(
     rows = await session.execute(
         select(PushPersonalization).where(
             PushPersonalization.anchor_date >= now.date() - timedelta(days=REUSE_DAYS + 1),
+            # ⚠️ 행 존재가 아니라 state로 판정 — backfill로 전 유저에게 'active' 행이 깔리므로
+            # 존재만 보면 전원이 조용히 디폴트로 배제된다(mem0 epoch 작업의 새 계약, #117).
             ~select(PrivacySubjectBarrier.user_id)
-            .where(PrivacySubjectBarrier.user_id == PushPersonalization.user_id)
+            .where(
+                PrivacySubjectBarrier.user_id == PushPersonalization.user_id,
+                PrivacySubjectBarrier.state != "active",
+            )
             .exists(),
         )
     )
@@ -572,8 +577,12 @@ async def generate_for_user(
         return "already"  # 이번 틱 이전(05:00 등)에 생성 완료 — 15분 케이던스 멱등
 
     # 삭제 진행 유저 전면 배제(C7) — 생성 경로도 barriers를 직접 본다(호출측 필터에 의존 금지).
+    # state <> 'active' 판정 필수 — 행 존재만 보면 backfill 후 전 유저가 차단된다(#117 계약).
     blocked = await session.scalar(
-        text("SELECT EXISTS(SELECT 1 FROM privacy_subject_barriers WHERE user_id=:u)"),
+        text(
+            "SELECT EXISTS(SELECT 1 FROM privacy_subject_barriers "
+            "WHERE user_id=:u AND state <> 'active')"
+        ),
         {"u": profile.id},
     )
     if blocked:

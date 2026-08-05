@@ -188,8 +188,11 @@ def test_filter_unicode_bypass_blocked():
 def test_person_reference_heuristic_ko_ja():
     has = pp.has_person_reference
     assert has("민수씨 요즘 어때? 나랑 얘기하자.", "ko", "승민")   # X씨 = 강한 인명 시그널
+    assert has("민수씨는 요즘 어때?", "ko", "승민")                # 씨/님+조사(가장 흔한 형태)
+    assert has("민수님이 도와줬다며?", "ko", "승민")
     assert has("지현아 잘 지냈어?", "ko", "승민")                  # 문두 호격
     assert not has("선생님 얘기 잘 됐어?", "ko", "승민")           # 호칭 allowlist
+    assert not has("선생님이 칭찬했다며? 잘했어.", "ko", "승민")   # allowlist는 조사 붙어도 유지
     assert not has("승민아 잘 지냈어?", "ko", "승민")              # 본인 이름은 허용(마스킹 대상)
     assert has("田中さんとはどう?", "ja", None)                    # ja 인명+경칭
     assert not has("皆さん元気? 話そう。", "ja", None)             # 경칭 allowlist

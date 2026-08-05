@@ -108,7 +108,9 @@ _MANUAL: list[str] = [
     # 프롬프트 구성이 바뀌면 다시 돌려야 하므로 자동 항목으로 올리지 않는다.
     "cache fixture 재실행 (scripts/verify_prompt_cache.py --yes — 프롬프트 구성 변경 시마다)",
     "golden recall 기준 통과 (golden set 고정·평가 필요)",
-    "09:00/20:00 알림 expiry·dedup fixture",
+    # 2026-08-05 dev 실측 통과: 동시 8회 claim에서 승자 1건, 재청구 0건.
+    # 창(expiry)은 tests/test_notification_expiry.py가 CI에서 지킨다.
+    "알림 dedup 재실행 (scripts/verify_notification_fixture.py — claim 로직 변경 시마다)",
 ]
 
 

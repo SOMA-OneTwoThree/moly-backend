@@ -511,7 +511,10 @@ async def test_poison_job_reaches_dead_at_max_attempts(db):
     for _ in range(3):
         s = _FakeSession(db)
         [job] = await jobs.claim(s, "content", worker_id="W")
-        states.append(await jobs.finalize_retryable(s, job, error_code="boom"))
+        # next_retry_at은 인자가 없으면 실벽시계를 쓴다(운영에선 DB now()와 같은 축). 시뮬레이터
+        # 시계는 _T0에 고정돼 있으므로 여기서 db.now를 넘기지 않으면 available_at이 가짜 시계보다
+        # 한참 미래로 찍혀 다음 claim이 빈 손이 된다 — 작성일 이후로는 항상 실패한다.
+        states.append(await jobs.finalize_retryable(s, job, error_code="boom", now=db.now))
         db.now += timedelta(minutes=5)  # backoff 경과
     assert states == ["ready", "ready", "dead"]
     assert db.rows[jid]["attempt"] == 3 and db.rows[jid]["state"] == "dead"

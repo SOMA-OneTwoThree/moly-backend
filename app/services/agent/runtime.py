@@ -209,6 +209,12 @@ def _transcript(convo: Sequence[Mapping[str, str]]) -> list[TranscriptItem]:
     return items
 
 
+def _is_timeout(exc: BaseException) -> bool:
+    """provider SDK의 timeout인가. SDK 타입을 import하지 않으려고 이름으로 본다 —
+    provider를 바꿔도 이 판정이 따라다니지 않게 하려는 것이다."""
+    return isinstance(exc, (TimeoutError, asyncio.TimeoutError)) or "Timeout" in type(exc).__name__
+
+
 def _crisis(user_text: str) -> bool:
     """안전 게이트 — 분류기가 꽂혀 있을 때만 판정한다(기본은 항상 False, §5.6)."""
     if SAFETY_CLASSIFIER is None:
@@ -597,30 +603,49 @@ async def run_turn(
         skipped = "safety"
 
     use_tools = skipped is None
-    step1 = await llm.generate_step(
-        system,
-        transcript,
-        tools=decide_schemas if use_tools else None,
-        tool_choice="auto" if use_tools else "none",
-        model=model,
-        max_tokens=config.decide_max_tokens,
-        # 도구를 쓸 수 있는 턴이면 뒤에 최종 호출이 한 번 더 오므로 예약분을 남기고 끊는다.
-        # 도구가 없는 턴은 이 호출이 곧 최종 답변이라 예약하면 예산만 깎인다(reserve=0).
-        timeout=_llm_timeout(
-            deadline,
-            floor=config.final_reserve_s,
-            now=now,
-            reserve=config.final_reserve_s if use_tools else 0.0,
-        ),
-        # 도구를 제안하지 않은 호출은 그냥 대화 1회다 — 회계 purpose를 실제 호출 모양에 맞춘다.
-        purpose="tool_decide" if use_tools else "chat",
-        ledger=_ledger_ctx(user_id, activity_date),
-        input_models=input_models if use_tools else None,
-        # 첫 홉에는 control_tools를 **넘기지 않는다** — intent는 final step에서만 유효하다(명세 487행).
-        # generate_step은 자기가 몇 번째 홉인지 모르므로 이 판정은 루프의 책임이다.
-        control_tools=None,
-        response_tools=response_tools or None,
-    )
+
+    async def _hop1(with_tools: bool):
+        return await llm.generate_step(
+            system,
+            transcript,
+            tools=decide_schemas if with_tools else None,
+            tool_choice="auto" if with_tools else "none",
+            model=model,
+            max_tokens=config.decide_max_tokens,
+            # 도구를 쓸 수 있는 턴이면 뒤에 최종 호출이 한 번 더 오므로 예약분을 남기고 끊는다.
+            # 도구가 없는 턴은 이 호출이 곧 최종 답변이라 예약하면 예산만 깎인다(reserve=0).
+            timeout=_llm_timeout(
+                deadline,
+                floor=config.final_reserve_s,
+                now=now,
+                reserve=config.final_reserve_s if with_tools else 0.0,
+            ),
+            # 도구를 제안하지 않은 호출은 그냥 대화 1회다 — 회계 purpose를 실제 호출 모양에 맞춘다.
+            purpose="tool_decide" if with_tools else "chat",
+            ledger=_ledger_ctx(user_id, activity_date),
+            input_models=input_models if with_tools else None,
+            # 첫 홉에는 control_tools를 **넘기지 않는다** — intent는 final step에서만 유효하다(명세 487행).
+            # generate_step은 자기가 몇 번째 홉인지 모르므로 이 판정은 루프의 책임이다.
+            control_tools=None,
+            response_tools=response_tools or None,
+        )
+
+    try:
+        step1 = await _hop1(use_tools)
+    except Exception as exc:  # noqa: BLE001
+        # 도구 판단이 예산 안에 안 끝났다. 그대로 올리면 chat이 롤백하고 **사용자에게 5xx**가 간다.
+        # 명세 334행은 5초를 hard cancellation이 아니라 p95 SLO로 두고 "deadline 부족 시 안전
+        # fallback"을 쓰라고 한다 — 도구 없이 한 번 더 부르는 것이 그 fallback이다.
+        # 일기 조회를 못 할 뿐 대화는 이어진다. (dev 실측: tool_decide 실패 26/104가 전부 timeout)
+        if not (use_tools and _is_timeout(exc) and deadline - now() >= config.final_reserve_s):
+            raise
+        _log.warning(
+            "decide_timeout_fallback %s",
+            json.dumps({"remaining_s": round(deadline - now(), 2)}, ensure_ascii=False),
+        )
+        step1 = await _hop1(False)
+        use_tools = False
+        skipped = "deadline"
     calls: list[LlmCall] = [step1.usage]
     if step1.control_intents:  # 위 계약상 나올 수 없다 — 나오면 버리고 계측만 남긴다
         _log.warning(

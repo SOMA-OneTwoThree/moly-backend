@@ -30,7 +30,7 @@ def test_keys_are_separate_from_token_limit_contract():
 def test_empty_app_config_falls_back_to_settings_defaults():
     snap = build_snapshot({})
     assert snap.enabled is False  # 킬스위치 기본 off
-    assert (snap.turn_deadline_s, snap.final_reserve_s) == (5.0, 2.5)
+    assert (snap.turn_deadline_s, snap.final_reserve_s) == (8.0, 2.5)
     assert (snap.max_tool_rounds, snap.max_tool_calls_per_turn) == (1, 3)
     assert (snap.decide_max_tokens, snap.tool_result_budget_tokens) == (192, 600)
     assert (snap.tool_timeout_ms, snap.tool_inflight, snap.canary_pct) == (800, 8, 0.0)
@@ -93,9 +93,9 @@ def test_cost_invariant_uses_effective_pair_not_only_overrides():
     [
         ("agent_enabled", 1),                    # bool 자리에 숫자 — 킬스위치를 1로 켜지 못한다
         ("agent_enabled", "true"),
-        ("agent_turn_deadline_s", 5.5),          # (0, 5.0]
+        ("agent_turn_deadline_s", 12.5),         # (0, 12.0]
         ("agent_turn_deadline_s", 0),
-        ("agent_final_reserve_s", 5.0),          # (0, turn_deadline)
+        ("agent_final_reserve_s", 9.0),          # (0, turn_deadline)
         ("agent_max_tool_rounds", 2),            # ==1
         ("agent_max_tool_calls_per_turn", 4),    # 1..3
         ("agent_decide_max_tokens", 215),        # 1..214

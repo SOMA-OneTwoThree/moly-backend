@@ -99,15 +99,23 @@ async def load(session: AsyncSession, user_id: uuid.UUID) -> PipelineState:
 
 # historical upper와 collecting을 **같은 문장**에서 고정한다(불변식 1).
 # 이미 shadow/v2인 사용자는 건드리지 않는다 — 재진입이 범위를 다시 흔들면 안 된다.
+#
+# ⚠️ source 커서도 여기서 upper까지 올린다. 이 줄이 없으면 진입 직후 커서가 0이라
+# `_NEXT_INGEST`의 `turn_seq <= source_through_turn_seq`가 아무 턴도 통과시키지 못하고,
+# backfill이 시작조차 못 한다(dev 실측: 104턴 보유 사용자가 진입 직후 next=None).
+# "source"는 **대화가 커밋되었다**는 뜻이고 과거 대화는 이미 커밋돼 있다 — 0은 사실과 다르다.
 _ENTER_SHADOW = text("""
 INSERT INTO memory_pipeline_states
-  (user_id, mode, bootstrap_status, historical_upper_turn_seq, privacy_epoch)
-VALUES (:user_id, 'shadow', 'collecting', :upper, :privacy_epoch)
+  (user_id, mode, bootstrap_status, historical_upper_turn_seq, source_through_turn_seq,
+   privacy_epoch)
+VALUES (:user_id, 'shadow', 'collecting', :upper, :upper, :privacy_epoch)
 ON CONFLICT (user_id) DO UPDATE SET
   mode='shadow',
   bootstrap_status='collecting',
   historical_upper_turn_seq=COALESCE(
     memory_pipeline_states.historical_upper_turn_seq, EXCLUDED.historical_upper_turn_seq),
+  source_through_turn_seq=GREATEST(
+    memory_pipeline_states.source_through_turn_seq, EXCLUDED.source_through_turn_seq),
   revision=memory_pipeline_states.revision + 1,
   updated_at=now()
 WHERE memory_pipeline_states.mode = 'legacy'

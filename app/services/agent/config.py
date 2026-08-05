@@ -59,7 +59,7 @@ DEFAULT_TOOL_RESULT_BUDGET_TOKENS = 600
 # 각 키의 코드 기본값 — `settings` 값마저 범위를 벗어날 때의 최후 fallback(부팅 env 오설정 방어).
 _CODE_DEFAULTS: dict[str, Any] = {
     "agent_enabled": False,
-    "agent_turn_deadline_s": 5.0,
+    "agent_turn_deadline_s": 8.0,  # 실측 근거는 settings.agent_turn_deadline_s 주석 참조
     "agent_final_reserve_s": 2.5,
     "agent_max_tool_rounds": 1,
     "agent_max_tool_calls_per_turn": 3,
@@ -182,7 +182,10 @@ def build_snapshot(raw: Mapping[str, Any]) -> AgentConfigSnapshot:
     r = _Resolver(raw)
 
     enabled = r.pick("agent_enabled", _as_bool, lambda v: True)
-    turn_deadline_s = r.pick("agent_turn_deadline_s", _as_float, lambda v: 0 < v <= 5.0)
+    # 상한 12초. 예전엔 5.0이었는데, 그러면 실측으로 5초가 부족하다고 판명돼도 **app_config로
+    # 못 늘린다** — override가 조용히 거부되고 5.0으로 되돌아간다. 실제로 그 상태에서 1홉
+    # timeout이 25%였다. 상한은 남기되(무한정 대기 방지) 튜닝 여지 위에 둔다.
+    turn_deadline_s = r.pick("agent_turn_deadline_s", _as_float, lambda v: 0 < v <= 12.0)
     # final reserve는 **해석된** turn deadline 기준으로 검증한다(둘 다 override일 수 있어 순서가 있다).
     final_reserve_s = r.pick("agent_final_reserve_s", _as_float, lambda v: 0 < v < turn_deadline_s)
     max_tool_rounds = r.pick("agent_max_tool_rounds", _as_int, lambda v: v == 1)

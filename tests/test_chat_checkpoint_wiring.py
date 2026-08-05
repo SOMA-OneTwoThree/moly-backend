@@ -73,7 +73,8 @@ def _segment(n: int = 40) -> list[Message]:
 @pytest.fixture
 def spy(monkeypatch) -> dict:
     """producer·consumer 진입점 스파이. 실제 plan 계산은 그대로 돌린다."""
-    state: dict = {"enqueued": [], "latest": None, "latest_calls": 0, "systems": []}
+    state: dict = {"enqueued": [], "latest": None, "latest_calls": 0,
+                   "systems": [], "convo": []}
 
     async def _load_latest(session, user_id):
         state["latest_calls"] += 1
@@ -96,6 +97,7 @@ async def _post(session, monkeypatch, spy, *, key="idem-w11"):
 
     async def _fake_llm(system, convo, **kw):
         spy["systems"].append(system)
+        spy["convo"] = convo
         return LLMResult(text="그랬구나.", input_tokens=10, output_tokens=20)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
@@ -106,6 +108,12 @@ async def _post(session, monkeypatch, spy, *, key="idem-w11"):
 
 def _system_text(spy) -> str:
     return "\n".join(spy["systems"][0])
+
+
+def _prompt_text(spy) -> str:
+    """system + 휘발 블록 전체. 요약·기억·서버상태는 휘발 블록에 있다."""
+    vol = [c["content"] for c in spy.get("convo", []) if c.get("role") == "system"]
+    return "\n".join(spy["systems"][0]) + "\n" + "\n".join(vol)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -219,7 +227,7 @@ async def test_next_segment_starts_after_the_previous_checkpoint(monkeypatch, sp
 # ─────────────────────────────────────────────────────────────
 # 4. consumer — 요약이 안정 프리픽스(system 가변 블록)에 들어간다.
 # ─────────────────────────────────────────────────────────────
-async def test_summary_is_injected_into_the_stable_system_block(monkeypatch, spy, enabled):
+async def test_summary_goes_to_the_volatile_block_not_the_cached_prefix(monkeypatch, spy, enabled):
     spy["latest"] = checkpoint.Checkpoint(
         id=uuid.uuid4(), through_message_id=20, summary="이사 준비 이야기를 했다",
         version=checkpoint.SUMMARIZER_VERSION, source_hash="a" * 64,
@@ -228,11 +236,16 @@ async def test_summary_is_injected_into_the_stable_system_block(monkeypatch, spy
 
     await _post(session, monkeypatch, spy)
 
-    system = spy["systems"][0]
-    # [0]=페르소나(불변) / [1]=가변 블록. 요약은 매 턴이 아니라 앵커가 움직일 때만 바뀐다.
-    assert len(system) == 2
-    assert "[지난 이야기]" in system[1] and "이사 준비 이야기를 했다" in system[1]
-    assert "[지난 이야기]" not in system[0]
+    # 요약은 **휘발 블록**이라 system이 아니라 convo 뒤쪽에 들어간다.
+    #
+    # 예전엔 안정 블록에 뒀다. "요약은 앵커가 움직일 때만 바뀌니 괜찮다"는 가정이었는데,
+    # 실측에서 그 가정이 깨졌다 — 요약이 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰으로
+    # 프롬프트 전체가 다시 청구됐다. prompt_assembly도 CHECKPOINT를 CURRENT로 분류한다.
+    convo = spy["convo"]
+    blocks = [c["content"] for c in convo if c["role"] == "system"]
+    assert any("[지난 이야기]" in b and "이사 준비 이야기를 했다" in b for b in blocks)
+    assert all("[지난 이야기]" not in part for part in spy["systems"][0]), \
+        "요약이 다시 캐시 프리픽스로 들어갔다"
 
 
 async def test_summary_is_rendered_with_the_current_nickname(monkeypatch, spy, enabled):
@@ -245,9 +258,9 @@ async def test_summary_is_rendered_with_the_current_nickname(monkeypatch, spy, e
 
     await _post(session, monkeypatch, spy)
 
-    system_text = _system_text(spy)
-    assert "지훈이가 이사 준비를 했다" in system_text
-    assert "{유저이름}" not in system_text
+    # 요약은 휘발 블록에 있다 — placeholder가 현재 닉네임으로 렌더돼야 한다.
+    assert "지훈이가 이사 준비를 했다" in _prompt_text(spy)
+    assert "{유저이름}" not in _prompt_text(spy)
 
 
 async def test_no_checkpoint_leaves_the_prompt_unchanged(monkeypatch, spy, enabled):

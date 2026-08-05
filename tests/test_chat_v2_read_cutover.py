@@ -78,10 +78,14 @@ def test_v2_memory_is_not_in_the_cached_system_prefix():
 def test_v2_memory_goes_after_the_recent_turns():
     """11장이 정한 자리는 최근 원문 **뒤**다 — 그래야 앞의 append-only 대화가 캐시된다."""
     src = inspect.getsource(chat.post_message)
-    assert "convo.insert(" in src, "회상을 convo에 넣지 않는다"
+    assert "convo.insert(" in src, "휘발 블록을 convo에 넣지 않는다"
     idx = src.index("convo.insert(")
-    assert '"role": "system"' in src[idx:idx + 260], "role이 system이 아니면 user 권위를 갖는다"
-    assert "naming.render(" in src[idx:idx + 260], "placeholder를 렌더하지 않으면 {유저이름}이 보인다"
+    assert '"role": "system"' in src[idx:idx + 200], "role이 system이 아니면 user 권위를 갖는다"
+    # 요약·기억·서버상태가 모두 휘발 블록으로 모였는지
+    vol = src[src.index("volatile: list[str] = []"):idx]
+    for name in ("checkpoint_summary", "memory_v2_block", "resident_block"):
+        assert name in vol, f"{name}이 휘발 블록에 없다 — 캐시 프리픽스에 남아 있다"
+    assert "naming.render(" in vol, "placeholder를 렌더하지 않으면 {유저이름}이 보인다"
 
 
 # ── 실패해도 대화는 살아야 한다 ─────────────────────────────

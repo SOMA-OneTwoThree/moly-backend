@@ -71,14 +71,15 @@ async def test_enabled_places_server_state_in_system_not_user_input(monkeypatch)
     assert "오늘 어땠어?" in last["content"]
     assert "[지금] 밤" not in last["content"]
 
-    system_parts = capture["system"]
-    system_text = "\n".join(system_parts) if isinstance(system_parts, list) else system_parts
-    assert "[지금] 밤" in system_text
-    assert "[지금 상태 - 서버 사실]" in system_text
+    # 서버 상태는 휘발 블록(system role)으로 최근 원문 뒤에 들어간다 — 캐시 프리픽스가 아니다.
+    vol = [c["content"] for c in capture["convo"] if c["role"] == "system"]
+    assert any("[지금] 밤" in b and "[지금 상태 - 서버 사실]" in b for b in vol)
+    system_text = "\n".join(capture["system"])
+    assert "[지금] 밤" not in system_text, "서버 상태가 다시 캐시 프리픽스로 들어갔다"
 
 
 # 3) 상태 때문에 대화 배열 항목이 늘지 않는다.
-async def test_enabled_does_not_add_separate_array_item(monkeypatch):
+async def test_enabled_adds_a_system_item_not_a_user_item(monkeypatch):
     monkeypatch.setattr(chat_service.settings, "current_turn_context_enabled", True)
 
     async def _fake_build_context(session, profile, *, is_first_today, now_utc):
@@ -86,17 +87,18 @@ async def test_enabled_does_not_add_separate_array_item(monkeypatch):
 
     monkeypatch.setattr(turn_context_module, "build_context", _fake_build_context)
     capture: dict = {}
-    # 이전 대화 없음(기본 FakeSession) — 이번 턴 user 항목 하나만 생겨야 정상이다.
-    # 별도 role로 잘못 추가됐다면 여기서 길이가 2(user, user)가 되어 실패한다.
+    # 서버 상태는 **휘발 블록**이라 최근 원문 뒤·현재 입력 앞에 들어간다(11장).
+    # 지키려는 건 위치가 아니라 **권위**다 — user로 들어가면 사용자가 쓴 말과 같은 무게를
+    # 갖는다. system role이면 안전하다.
     await _post(FakeSession(), monkeypatch, capture=capture)
 
     convo = capture["convo"]
-    assert len(convo) == 1
-    assert convo[0]["role"] == "user"
-    assert "[지금] 낮" not in convo[0]["content"]
-    assert "오늘 어땠어?" in convo[0]["content"]
-    system_text = "\n".join(capture["system"])
-    assert "[지금] 낮" in system_text
+    assert [c["role"] for c in convo] == ["system", "user"]
+    assert convo[-1]["role"] == "user", "현재 입력이 마지막이어야 한다"
+    assert sum(1 for c in convo if c["role"] == "user") == 1, "user 항목이 늘면 안 된다"
+    assert "[지금] 낮" in convo[0]["content"], "서버 상태가 휘발 블록에 없다"
+    assert "오늘 어땠어?" in convo[-1]["content"]
+
 
 
 # 4) build_context가 예외를 던져도 대화는 정상 응답한다(fail-open) + 경고 로그.

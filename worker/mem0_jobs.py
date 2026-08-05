@@ -243,6 +243,10 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         await memory_pipeline.enqueue_next_ingest(
             session, uid, cursor=turn_seq, privacy_epoch=state.privacy_epoch
         )
+        # shadow 계측(15장 9번). 별도 큐라 이게 늦어도 기억 색인은 안 밀린다.
+        await memory_pipeline.enqueue_shadow_trace(
+            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+        )
 
     return JobResult(
         result_code="no_memory" if outcome.no_memory else "ok",

@@ -384,6 +384,28 @@ async def enqueue_provider_delete(
     )
 
 
+JOB_SHADOW_TRACE = "shadow_prompt_trace"
+
+
+async def enqueue_shadow_trace(
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
+) -> uuid.UUID | None:
+    """이 turn의 프롬프트 계측 잡(15장 9번). 실패해도 대화에는 영향이 없다.
+
+    maintenance 큐다 — 계측이 content 큐를 막아 기억 색인을 늦추면 안 된다.
+    """
+    from app.services import jobs
+
+    return await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_MAINTENANCE,
+        job_type=JOB_SHADOW_TRACE,
+        user_id=user_id,
+        dedup_key=f"trace:{user_id}:{turn_seq}",
+        payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
+    )
+
+
 async def enqueue_next_ingest(
     session: AsyncSession, user_id: uuid.UUID, *, cursor: int, privacy_epoch: int = 0
 ) -> int | None:

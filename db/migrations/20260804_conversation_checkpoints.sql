@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260804_conversation_checkpoints.sql --commit
--- 대화 요약 checkpoint(W11, docs/agentic-chat-IMPLEMENTATION.md §W11) — 대화가 길어지면 오래된
+-- 대화 요약 checkpoint(W11, docs/ARCHITECTURE-capi.md 8.2절) — 대화가 길어지면 오래된
 -- 구간을 요약해 남기고, 다음 턴은 **최신 checkpoint 하나 + 그 이후 메시지**만 쓴다. 지금은 앵커
 -- 리셋이 옛 구간을 통째로 버려서 캐피가 앞 얘기를 잊는다.
 --

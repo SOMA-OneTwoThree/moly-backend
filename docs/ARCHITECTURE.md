@@ -268,7 +268,7 @@ sequenceDiagram
 
 #### 5.2.3 읽기와 일기의 경계
 
-> 아래는 현행 런타임 계약이다. 대화 중심 목표 계약과 차이는 `agentic-chat-ARCHITECTURE.md` §0.3~0.6을 따른다.
+> 아래는 현행 런타임 계약이다. 대화 중심 회상·도구 계약은 `ARCHITECTURE-capi.md` 4장을 따른다.
 
 대화의 기본 기억은 published 관계 프로필이다. active fact를 결정적으로 `known_facts` 최대 5개,
 `recent_threads` 최대 3개, `inferred_tendencies` 최대 2개와 stance에 배치하고 전체를 400토큰 이하로

@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260804_memory_cutover_guard.sql --commit
--- legacy write 차단 트리거(W10, docs/agentic-chat-IMPLEMENTATION.md §W10 1276-1292행).
+-- legacy write 차단 트리거(W10, docs/ARCHITECTURE-capi.md 12장 — legacy, 2026-08-06 폐기).
 -- **cutover보다 먼저** 배포한다 — 구버전 프로세스가 하나라도 남아 있는 동안 normalized 유저의
 -- chat_contexts에 mem0 문자열이 다시 써지면, forget으로 지운 내용이 프롬프트로 되살아난다.
 -- 애플리케이션의 mode 분기(`memory_repo.save_legacy_snapshot`)는 같은 규칙의 **두 번째** 방어선일

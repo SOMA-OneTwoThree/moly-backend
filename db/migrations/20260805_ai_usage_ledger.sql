@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_ai_usage_ledger.sql --commit
--- 기억 재설계 1단계(docs/capi-memory-ARCHITECTURE.md 15장 1번) — 비용 계측 표면을 먼저 깐다.
+-- 기억 재설계 1단계(docs/ARCHITECTURE-capi.md 11.2절) — 비용 계측 표면을 먼저 깐다.
 -- 구조 전환 전에 배포해 legacy 비용까지 같은 표면으로 재고, 전환 전/후를 같은 지표로 비교한다.
 --
 -- 핵심 불변식:

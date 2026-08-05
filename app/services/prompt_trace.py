@@ -1,6 +1,6 @@
 """shadow trace — 새 assembler의 프롬프트를 **실제 응답에 쓰지 않고** 계측만 한다.
 
-기억 재설계 9단계(docs/capi-memory-ARCHITECTURE.md 15장 9번).
+기억 재설계 9단계(docs/ARCHITECTURE-capi.md 3.2절).
 
 측정하는 것:
  · 직렬화 byte / 추정 token

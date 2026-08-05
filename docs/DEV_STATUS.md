@@ -1,8 +1,8 @@
 # 몰리 백엔드 — API 개발 체크리스트
 
 > 2026-08-04: 자연스러운 대화에서 일기·기억·루틴·착용 상태를 회상하는 단일 구조를 구현했다.
-> 규범 설계는 `agentic-chat-ARCHITECTURE.md` §0, 구현 계약은
-> `agentic-chat-IMPLEMENTATION.md` §0.7, 물리 구조는 `ERD.md` §7이 소유한다.
+> 규범 설계·구현 계약은 `ARCHITECTURE-capi.md`,
+> 물리 구조는 `ERD.md` 7장이 소유한다.
 > 이 문서의 상태는 **로컬 구현·회귀 검증 완료, Dev DB/서버 반영 및 E2E 완료, Prod 미적용**이다.
 
 ---

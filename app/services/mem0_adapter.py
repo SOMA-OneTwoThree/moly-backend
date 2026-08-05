@@ -1,6 +1,6 @@
 """mem0 vector-store façade — `Memory`를 쓰지 않고 벡터 인덱스 계층만 감싼다.
 
-기억 재설계 3단계 게이트(docs/capi-memory-ARCHITECTURE.md 15장 3번, 9.1절).
+기억 재설계 3단계 게이트(docs/ARCHITECTURE-capi.md 5.6절).
 
 **왜 public API를 안 쓰나 (실측 근거, mem0ai==2.0.11)**
 

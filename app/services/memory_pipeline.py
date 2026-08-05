@@ -1,6 +1,6 @@
 """기억 v2 파이프라인 상태 — shadow 진입과 source 커서 전진.
 
-기억 재설계 5단계(docs/capi-memory-ARCHITECTURE.md 15장 5번, 13.3절).
+기억 재설계 5단계(docs/ARCHITECTURE-capi.md 5.1절).
 
 불변식:
  1. **shadow 진입은 한 transaction**이다. historical upper turn_seq를 먼저 고정하고

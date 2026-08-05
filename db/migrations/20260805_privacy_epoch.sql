@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_privacy_epoch.sql --commit
--- 기억 재설계 2단계-(a) (docs/capi-memory-ARCHITECTURE.md 15장 2번) — 삭제 장벽에 상태·epoch 추가.
+-- 기억 재설계 2단계-(a) (docs/ARCHITECTURE-capi.md 11.3절) — 삭제 장벽에 상태·epoch 추가.
 --
 -- ⚠️ 순서가 이 마이그레이션의 전부다.
 --   현행 코드는 `privacy_subject_barriers`에 **행이 있으면 차단**으로 읽는다(state를 보지 않음).

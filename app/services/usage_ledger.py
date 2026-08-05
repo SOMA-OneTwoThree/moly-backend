@@ -1,6 +1,6 @@
 """AI 원가 원장 — 호출 전 `started` 기록 → 완료 시 usage/비용 fenced update.
 
-기억 재설계 1단계(docs/capi-memory-ARCHITECTURE.md 15장 1번).
+기억 재설계 1단계(docs/ARCHITECTURE-capi.md 11.2절).
 
 불변식:
  1. **사용자 quota와 회사 원가는 다른 값이다.** quota는 `chat._billable`의 weighted unit이 계속

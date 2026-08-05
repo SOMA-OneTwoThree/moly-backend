@@ -324,7 +324,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `activity_date` / `display_date` | date NULL / date | daily 귀속 04:00 날짜와 화면 표시 날짜. welcome은 activity_date가 NULL |
 | `author` / `primary_subject` / `about_tags` | text / text / text[] | 저자는 항상 캐피. 누구에 관한 기록인지 생성 시 확정 |
 | `occurred_at` / `occurred_timezone` | timestamptz / text | 실제 사건 시각과 당시 timezone snapshot |
-| `source` | enum `diary_source` | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars` — 대화 기반 생성, LLM self-check 실패 시 preset 폴백) / `preset`(기준 미달·미접속 — 멘트 풀) / `welcome`(현행: 목록 최초 조회 때 보정 생성되는 첫 만남 일기. 목표는 일일 슬롯과 분리된 관계 프롤로그 — `agentic-chat-ARCHITECTURE.md` §0.5) |
+| `source` | enum `diary_source` | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars` — 대화 기반 생성, LLM self-check 실패 시 preset 폴백) / `preset`(기준 미달·미접속 — 멘트 풀) / `welcome`(현행: 목록 최초 조회 때 보정 생성되는 첫 만남 일기. 목표는 일일 슬롯과 분리된 관계 프롤로그 — `ARCHITECTURE-capi.md` 2.4절) |
 | `preset_ment_id` | uuid NULL, FK→`moly_life_ments` | `source='preset'`일 때만 |
 | `content` | text | 생성 결과 스냅샷 (preset이어도 본문 복사 저장 — 멘트 풀 수정이 과거 일기를 바꾸지 않게) |
 | `weather` | enum `diary_weather` | 마음 날씨 스탬프 `sunny` `cloudy` `rainy` `windy` — llm은 생성 결과, preset은 멘트에 지정된 값 복사 |

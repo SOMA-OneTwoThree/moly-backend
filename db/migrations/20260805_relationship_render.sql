@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_relationship_render.sql --commit
--- 기억 재설계 5단계 보완 (docs/capi-memory-ARCHITECTURE.md 7.2절) — 관계 event 좌표와 locale render.
+-- 기억 재설계 5단계 보완 (docs/ARCHITECTURE-capi.md 7장) — 관계 event 좌표와 locale render.
 --
 -- 관계 시작 시각은 `profiles`가 정본이다. state에 복제해 두 번째 정본을 만들지 않는다.
 -- locale render는 같은 snapshot에서 profile과 state를 함께 읽어 만든 **projection**이다.

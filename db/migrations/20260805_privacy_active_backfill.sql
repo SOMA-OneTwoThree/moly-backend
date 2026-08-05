@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_privacy_active_backfill.sql --commit
--- 기억 재설계 2단계-(c) (docs/capi-memory-ARCHITECTURE.md 15장 2번) — active 장벽 행 backfill.
+-- 기억 재설계 2단계-(c) (docs/ARCHITECTURE-capi.md 11.3절) — active 장벽 행 backfill.
 --
 -- 🚨 **적용 순서 경고 — 이 파일만은 코드 배포보다 뒤다.**
 --    구 코드는 `privacy_subject_barriers`에 행이 있으면 무조건 차단으로 읽는다. status-aware

@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_mem0_v2_collection.sql --commit
--- 기억 재설계 (docs/capi-memory-ARCHITECTURE.md 9.1절) — v2 벡터 컬렉션.
+-- 기억 재설계 (docs/ARCHITECTURE-capi.md 5.6절) — v2 벡터 컬렉션.
 --
 -- ⚠️ **런타임이 만들지 않는다.** vecs 기본 클라이언트는 `create schema`·`create extension`·
 --    `create table`을 런타임에 치는데, 그러면 서비스 롤에 CREATE 권한이 필요해진다.

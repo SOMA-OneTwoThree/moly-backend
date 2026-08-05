@@ -960,7 +960,19 @@ async def post_message(
 
     # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — LLM + 백스톱 =====
     # 위에서 띄운 회상을 여기서 거둔다. 이미 끝나 있으면 대기 0이다.
-    memory_v2_block = await recall_task
+    #
+    # ⚠️ **여기서 한 번 더 막는다.** 안쪽 타임아웃만 믿으면 안 된다 — `embed_query`는
+    # `settings.llm_timeout_s`(60초)를 쓰고 회상 예산과 무관하다. 임베딩 API가 느려지면
+    # 그냥 `await`은 60초를 기다려 5초 마감을 통째로 날린다. 내부 호출이 각자 예산을
+    # 지키는지에 의존하지 말고 **경계에서 통째로** 자른다.
+    try:
+        memory_v2_block = await asyncio.wait_for(
+            recall_task, timeout=_MEM0_RECALL_TIMEOUT_S
+        )
+    except (TimeoutError, asyncio.CancelledError):
+        recall_task.cancel()  # 끊고 나서도 계속 돌면 비용만 나간다
+        memory_v2_block = ""
+        _log.warning("v2 회상 타임아웃(빈 기억으로 진행) — user=%s", uid)
 
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
     system = _build_system(

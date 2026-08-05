@@ -98,11 +98,35 @@ async def test_recall_failure_does_not_break_the_reply():
     assert got == ""
 
 
-def test_recall_has_a_timeout():
-    """타임아웃이 없으면 벡터 검색 지연이 그대로 챗 응답 지연이 된다."""
+def test_recall_is_bounded_at_the_boundary_not_just_inside():
+    """안쪽 타임아웃만 믿으면 안 된다.
+
+    `embed_query`는 `settings.llm_timeout_s`(60초)를 쓰고 회상 예산과 무관하다. 안쪽에만
+    타임아웃을 걸어두면 임베딩이 느려질 때 60초를 기다려 5초 마감을 통째로 날린다.
+    (이전 버전의 이 테스트는 소스에 `timeout=`이 있는지만 봐서 이걸 못 잡았다.)
+    """
     assert chat._MEM0_RECALL_TIMEOUT_S <= 3.0
-    src = inspect.getsource(chat._recall_memory_v2)
-    assert "timeout=" in src
+    src = inspect.getsource(chat.post_message)
+    assert "asyncio.wait_for(" in src, "회상 await에 상한이 없다"
+    wf = src.index("asyncio.wait_for(")
+    assert "recall_task" in src[wf:wf + 120], "wait_for가 회상 태스크를 감싸지 않는다"
+
+
+async def test_recall_timeout_yields_empty_memory_not_an_error():
+    """타임아웃이 예외로 새면 회상 지연 때문에 대화가 실패한다."""
+    import asyncio as _a
+
+    async def _slow():
+        await _a.sleep(10)
+        return "안 와야 한다"
+
+    task = _a.ensure_future(_slow())
+    try:
+        out = await _a.wait_for(task, timeout=0.05)
+    except (TimeoutError, _a.CancelledError):
+        task.cancel()
+        out = ""
+    assert out == ""
 
 
 def test_recall_is_started_early_and_awaited_after_commit():
@@ -115,11 +139,11 @@ def test_recall_is_started_early_and_awaited_after_commit():
     (test_recall_uses_its_own_session).
     """
     src = inspect.getsource(chat.post_message)
-    start_at = src.index("_recall_memory_v2(")
+    start_at = src.index("recall_task = asyncio.ensure_future")
     commit_at = src.index("await session.commit()")
-    await_at = src.index("await recall_task")
+    collect_at = src.index("asyncio.wait_for(")
     assert start_at < commit_at, "회상을 미리 띄우지 않으면 지연이 숨지 않는다"
-    assert await_at > commit_at, "커밋 전에 거두면 겹쳐 돈 의미가 없다"
+    assert collect_at > commit_at, "커밋 전에 거두면 겹쳐 돈 의미가 없다"
 
 
 def test_recall_uses_its_own_session():
@@ -155,24 +179,28 @@ def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
     """태스크를 만든 뒤 raise하면 그 태스크가 고아가 된다.
 
     응답은 실패했는데 임베딩 호출과 DB 세션은 그대로 돈다. 자체 세션이라 곧 정리되지만,
-    클라이언트가 잘못된 greeting_id를 반복해 보내면 그만큼 낭비된다.
-    실제로 그런 raise가 하나 있었고(잘못된 greeting_id) 검증을 앞으로 옮겨 없앴다.
+    클라이언트가 잘못된 greeting_id를 반복해 보내면 그만큼 낭비된다. 실제로 그런 raise가
+    하나 있었고(잘못된 greeting_id) 검증을 앞으로 옮겨 없앴다.
 
-    앞으로 이 구간에 raise가 추가되면 여기서 잡는다.
+    함수 전체를 파싱해 **줄 번호로** 비교한다 — 소스를 잘라 파싱하면 try 블록 중간에서
+    잘려 IndentationError가 난다(처음 작성했을 때 실제로 그랬다).
     """
     import ast
-
-    src = inspect.getsource(chat.post_message)
-    lines = src.splitlines()
-    start = next(i for i, ln in enumerate(lines) if "recall_task = asyncio.ensure_future" in ln)
-    end = next(i for i, ln in enumerate(lines) if "await recall_task" in ln)
-    assert start < end
-
     import textwrap
 
-    tree = ast.parse(textwrap.dedent("\n".join(lines[start:end])))
-    raises = [n for n in ast.walk(tree) if isinstance(n, ast.Raise)]
-    assert not raises, (
-        f"회상 태스크 생성~await 사이에 raise가 {len(raises)}건 있다 — 태스크가 고아가 된다. "
+    src = textwrap.dedent(inspect.getsource(chat.post_message))
+    lines = src.splitlines()
+    start = next(i for i, ln in enumerate(lines)
+                 if "recall_task = asyncio.ensure_future" in ln) + 1
+    end = next(i for i, ln in enumerate(lines) if "asyncio.wait_for(" in ln) + 1
+    assert start < end
+
+    tree = ast.parse(src)
+    inside = [n for n in ast.walk(tree)
+              if isinstance(n, ast.Raise) and start < n.lineno < end]
+    assert not inside, (
+        f"회상 태스크 생성~수거 사이에 raise가 {len(inside)}건 있다 "
+        f"(줄 {[n.lineno for n in inside]}) — 태스크가 고아가 된다. "
         "검증을 태스크 생성보다 앞으로 옮기거나, 태스크를 cancel하고 raise할 것."
     )
+

@@ -221,6 +221,23 @@ async def chatted_today(session: AsyncSession, profile, now: datetime) -> bool:
     return row.scalars().first() is not None
 
 
+async def sent_count_for(session: AsyncSession, d: date) -> int:
+    """last_sent_on == d 인 행 수 — 요약의 '개인화 발송 누계' 라인용(관측 근사, best-effort).
+
+    last_sent_on은 유저별 활동일이라 단일 날짜 비교는 근사다(KST 기준 호출 전제) — 정밀
+    측정은 §10처럼 SQL로 직접 한다.
+    """
+    from sqlalchemy import func
+
+    return (
+        await session.scalar(
+            select(func.count())
+            .select_from(PushPersonalization)
+            .where(PushPersonalization.last_sent_on == d)
+        )
+    ) or 0
+
+
 async def mark_sent(session: AsyncSession, user_id, now: datetime, tz_name: str) -> None:
     """발송 성공 통계(sent_count·last_sent_on). 멱등은 evening_notified_at claim이 담당 —
     이 카운터는 §10 효과 측정(개인화 vs 디폴트 재방문 비교)용이다."""

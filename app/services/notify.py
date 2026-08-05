@@ -106,3 +106,41 @@ async def notify_evening(session: AsyncSession, profile, now: datetime | None = 
         return 0  # 오늘 이미 발송 — 멱등 스킵
     title, body = _push_text(_EVENING, getattr(profile, "language", None))
     return await push.send(await _tokens(session, profile.id), title, body)
+
+
+async def notify_evening_personalized(
+    session: AsyncSession, profile, row, now: datetime
+) -> int:
+    """개인화 저녁 안부 1건. row = push_personalization.PushRow(사전 생성 문구).
+
+    notify_evening과 **같은 게이트를 같은 순서로** 공유한다(알림설정·토큰 소진) — 개인화가
+    설정 off·소진 유저에게 새는 우회 경로가 되면 안 된다. claim도 evening_notified_at을
+    공유해 디폴트와 상호배제(하루 1회).
+
+    순서 불변식: render → 결정적 필터 재통과 → **그 다음** claim. claim을 먼저 잡으면
+    렌더·필터의 실패가 마커만 소모해 그날 저녁 푸시 전체(디폴트 폴백 포함)를 봉쇄한다.
+    claim 이후 실패 표면은 push.send뿐 — 기존 디폴트와 동일한 수용 리스크.
+    반환 0 = 미발송(claim 미소모면 호출측이 디폴트로 폴백 가능).
+    """
+    if not await _enabled(session, profile.id, "evening_chat"):
+        return 0
+    from app.services import gating, push_personalization
+
+    g = await gating.resolve(session, str(profile.id))
+    remaining = g.entitlement.get("tokens_remaining")
+    if remaining is not None and remaining <= 0:
+        return 0  # SOMA-291: 토큰 소진 유저는 대화 유도 안 함(디폴트와 동일 게이트)
+    body = naming.render(row.body, getattr(profile, "nickname", None)) or ""
+    # 닉네임은 생성 시점 검수를 안 거쳤다(내용 검증 없는 자유 문자열) — render 결과를 다시 검사.
+    if not push_personalization.passes_deterministic_filter(body, row.language):
+        return 0
+    if not await _claim_send_slot(session, profile, "evening_notified_at", now):
+        return 0  # 오늘 이미 발송(디폴트 포함) — 멱등 스킵
+    title, _ = _push_text(_EVENING, row.language)
+    sent = await push.send(await _tokens(session, profile.id), title, body)
+    if sent:
+        try:
+            await push_personalization.mark_sent(session, profile.id, now, profile.timezone)
+        except Exception:  # noqa: BLE001  # 통계 실패가 발송 경로를 죽이면 안 됨
+            await session.rollback()
+    return sent

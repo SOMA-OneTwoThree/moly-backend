@@ -21,6 +21,7 @@ from app.services import (
     config_store,
     diary_generation,
     notify,
+    push_personalization,
     slack_notify,
     subscription,
 )
@@ -67,7 +68,7 @@ def _build_summary(
 
     active_tzs = 이 틱에서 일기·아침·저녁을 실제로 처리한 유저들의 타임존(어느 나라 기준인지).
     """
-    has_warn = counts["diary_failed"] > 0
+    has_warn = counts["diary_failed"] > 0 or counts.get("push_gen_failed", 0) > 0
     prefix = "⚠️ " if has_warn else ""
     ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
     ts_utc = now.strftime("%H:%M UTC")
@@ -76,15 +77,37 @@ def _build_summary(
     if active_tzs:
         zones = " / ".join(_zone_line(tz, now) for tz in sorted(active_tzs))
         lines.append(f"대상 타임존: {zones}")
+    personalized = (
+        f" (개인화 {counts.get('evening_personalized', 0)}건)"
+        if counts.get("evening_personalized") else ""
+    )
     lines += [
         f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}"
         f" / 미발행 {counts['diary_none']}){diary_fail}",
         "기억: 상주 consumer 정규화 파이프라인",
-        f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
+        f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건{personalized}",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
+    gen_total = sum(
+        counts.get(k, 0)
+        for k in ("push_gen_ok", "push_gen_skipped", "push_gen_rejected",
+                  "push_gen_failed", "push_gen_deferred")
+    )
+    if gen_total:
+        fail_mark = " ⚠️" if counts.get("push_gen_failed") else ""
+        lines.append(
+            f"개인화 생성: 성공 {counts.get('push_gen_ok', 0)}"
+            f" / 스킵 {counts.get('push_gen_skipped', 0)}"
+            f" / 리젝 {counts.get('push_gen_rejected', 0)}"
+            f" / 실패{fail_mark} {counts.get('push_gen_failed', 0)}"
+            f" / 이월 {counts.get('push_gen_deferred', 0)}"
+        )
+    if counts.get("personalized_sent_today") is not None:
+        lines.append(f"개인화 발송 누계(오늘·KST 근사): {counts['personalized_sent_today']}건")
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
+    if elapsed > 504:  # 틱 예산 840s(systemd 14분)의 60% — SIGKILL 접근 조기 경보
+        lines.append(f"⚠️ 틱 소요 {elapsed:.0f}s — 예산(840s) 60% 초과")
     return "\n".join(lines)
 
 
@@ -97,17 +120,26 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
         "diary_attempted": 0, "active_tz": None,
+        # 저녁 푸시 개인화 — run_tick counts 초기화에도 같은 키가 있어야 한다(병합이
+        # `elif k in counts`라 한쪽에만 있으면 조용히 버려진다).
+        "push_gen_ok": 0, "push_gen_skipped": 0, "push_gen_rejected": 0,
+        "push_gen_failed": 0, "push_gen_deferred": 0, "evening_personalized": 0,
     }
+    # 개인화 컨텍스트 — cfg dict에 실어 시그니처 불변(기존 테스트·모킹 호환). 부재 시 off.
+    pctx = cfg.get("_push") or push_personalization.TickContext()
     async with get_sessionmaker()() as session:
         p = await session.get(Profile, pid)
         if p is None:
             return out  # 틱 도중 탈퇴 — 스킵
         # tz 해석 방어 — 잘못된 timezone 하나가 배치를 무너뜨리지 않게(SOMA-348).
         try:
-            hour = now.astimezone(ZoneInfo(p.timezone)).hour
+            local_now = now.astimezone(ZoneInfo(p.timezone))
         except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
             _log.warning("틱: 잘못된 timezone %r (user=%s) — 스킵: %r", p.timezone, pid, e)
             return out
+        hour = local_now.hour
+        row = pctx.rows.get(pid)
+        valid = row is not None and push_personalization.row_valid(row, p, now, pctx.cfg)
         try:
             if hour == DIARY_HOUR:
                 out["diary_attempted"] = 1
@@ -154,14 +186,82 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                             {"u": pid, "d": target},
                         )
                         await session.commit()
+            elif hour == push_personalization.GEN_HOUR and pctx.cfg.rollout != "off":
+                # 저녁 푸시 개인화 문구 사전 생성(로컬 05시 — 04시 일기 틱과 분리, 실측 근거).
+                # rollout 게이트는 생성에도 적용: off = LLM 호출·쿼리 0(배포=변화 0, SQL 1줄
+                # 롤백이 비용까지 멈춘다). allowlist 모드는 대상 유저만 생성(카나리 중 전체
+                # 유저 비용 방지). 첫 효과는 설정 후 다음 05시.
+                if push_personalization.user_allowed(pid, pctx.cfg):
+                    if pctx.budget_exceeded():
+                        # 틱 예산(420s) 소진 — 남은 유저는 다음 틱(:15/:30/:45)이 멱등 승계.
+                        # systemd 840s 하드킬 전에 스스로 멈추는 것이 유일한 구조적 방어.
+                        out["push_gen_deferred"] = 1
+                        out["active_tz"] = p.timezone
+                    else:
+                        status = await push_personalization.generate_for_user(
+                            session, p, now, pctx.cfg, cfg
+                        )
+                        key = {
+                            "ok": "push_gen_ok", "rejected": "push_gen_rejected",
+                            "failed": "push_gen_failed", "skipped": "push_gen_skipped",
+                        }.get(status)
+                        if key:  # already/busy/no_target = 멱등 재실행·비대상(무카운트)
+                            out[key] = 1
+                            out["active_tz"] = p.timezone
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
                 if await notify.notify_morning(session, p, now):
                     out["morning"] = 1
             elif hour == EVENING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_evening(session, p, now):
+                sent_p = 0
+                if valid and not await push_personalization.chatted_today(session, p, now):
+                    if row.send_slot == push_personalization.SLOT_NIGHT:
+                        # 야간 코호트(slot=20:00): 기존 저녁 분기 안에서 인라인 처리 —
+                        # 실패하면 같은 틱에서 즉시 디폴트 폴백(claim 공유라 이중발송 불가:
+                        # 개인화가 claim 후 실패했다면 디폴트 claim이 False로 멱등 스킵).
+                        sent_p = await notify.notify_evening_personalized(session, p, row, now)
+                        if not sent_p and await notify.notify_evening(session, p, now):
+                            out["evening"] = 1
+                    else:
+                        # slot ≤ 19:45 코호트: 창(slot+60분)이 20시대로 걸치면 여기서도 개인화
+                        # 재시도, 만료(늦어도 20:45 틱)면 디폴트 백스톱 — 4틱 전부 실패해도
+                        # 그날 저녁 푸시가 사라지지 않는다(M10).
+                        slot_dt = datetime.combine(
+                            local_now.date(), row.send_slot, tzinfo=local_now.tzinfo
+                        )
+                        if slot_dt <= local_now < slot_dt + timedelta(minutes=60):
+                            sent_p = await notify.notify_evening_personalized(
+                                session, p, row, now
+                            )
+                        if not sent_p and local_now >= slot_dt + timedelta(minutes=60):
+                            if await notify.notify_evening(session, p, now):
+                                out["evening"] = 1
+                elif await notify.notify_evening(session, p, now):
+                    # 개인화 무효·오늘 이미 대화 → 기존 디폴트 그대로(rollout off면 항상 여기).
                     out["evening"] = 1
+                if sent_p:
+                    out["evening_personalized"] = 1
+            # ── 개인화 슬롯 창(저녁 20시 외 시간대, 독립 분기) ──────────────────────
+            # slot ∈ [08:00, 19:45]는 자기 슬롯 시각(첫 대화 시각)에 발송한다. 60분 창 ×
+            # 15분 케이던스 = 최대 4회 시도, 실패분은 20시 디폴트 백스톱이 받는다(위).
+            # 야간 코호트(20:00)는 EVENING 분기가 전담. MORNING(09시)과 겹쳐도 클레임이
+            # 다르고 아침 푸시는 킬스위치 off 상태라 이중발송 표면 없음.
+            if (
+                hour != EVENING_HOUR
+                and valid
+                and row.send_slot != push_personalization.SLOT_NIGHT
+            ):
+                slot_dt = datetime.combine(
+                    local_now.date(), row.send_slot, tzinfo=local_now.tzinfo
+                )
+                if (
+                    slot_dt <= local_now < slot_dt + timedelta(minutes=60)
+                    and not await push_personalization.chatted_today(session, p, now)
+                ):
+                    if await notify.notify_evening_personalized(session, p, row, now):
+                        out["evening_personalized"] = 1
+                        out["active_tz"] = p.timezone
         except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
             _log.exception("틱 처리 실패(user=%s hour=%s): %r", pid, hour, e)
             await session.rollback()
@@ -347,6 +447,9 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
         "users": 0,
         "rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0,  # RC inbox 드레인
+        # 저녁 푸시 개인화(_process_user out과 키 집합 동기 필수 — 병합이 elif k in counts)
+        "push_gen_ok": 0, "push_gen_skipped": 0, "push_gen_rejected": 0,
+        "push_gen_failed": 0, "push_gen_deferred": 0, "evening_personalized": 0,
     }
     active_tzs: set[str] = set()  # 이 틱에서 일기·아침·저녁을 처리한 유저 타임존(요약 표기용)
     start = time.monotonic()
@@ -355,6 +458,19 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
 
     async with get_sessionmaker()() as s0:
         cfg = await effective_token_config(s0)
+        # 저녁 푸시 개인화 프리페치 — 전체 try/except: 어떤 실패도 기존 경로를 건드리지 않는다
+        # (실패 = off 컨텍스트 = 전원 디폴트). rollout off면 내부에서 쿼리 없이 빈 맵.
+        pctx = push_personalization.TickContext(tick_start=start)
+        try:
+            pcfg = await push_personalization.effective_push_config(s0)
+            pctx = push_personalization.TickContext(
+                cfg=pcfg,
+                rows=await push_personalization.prefetch_rows(s0, now, pcfg),
+                tick_start=start,
+            )
+        except Exception as e:  # noqa: BLE001  # 프리페치 실패가 푸시 전체를 막으면 안 됨
+            _log.warning("개인화 프리페치 실패(전원 디폴트 폴백): %r", e)
+    cfg = {**cfg, "_push": pctx}  # 시그니처 불변 전달(_process_user가 꺼내 씀)
 
     async def _guarded(pid) -> dict:
         async with sem:  # 동시 실행 유저 수 상한
@@ -419,7 +535,28 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     # 그중 3번은 _diary_exists skip이라 "일기 0건" — 감시 채널이 오탐으로 도배된다(SOMA-348 후속).
     # diary_none(tombstone)은 사용자 노출 0이라 요약 트리거에서 제외 — 지정본 없는 조용한 날에
     # 매 틱 요약이 나가 채널이 도배되는 걸 막는다(SOMA-389, 위 오탐 방지 취지 유지).
-    if counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"] > 0:
+    # 개인화 생성(05시) 활동은 트리거에 포함 — 없으면 생성 전면 실패가 무음이 된다.
+    # 단 evening_personalized(슬롯 발송)는 트리거 제외: 발송 시각이 08:00~20:00에 흩어져
+    # 매 틱 요약 도배가 되므로, 누계는 아래 DB 근사 라인이 20시 요약에 싣는다.
+    gen_activity = (
+        counts["push_gen_ok"] + counts["push_gen_skipped"] + counts["push_gen_rejected"]
+        + counts["push_gen_failed"] + counts["push_gen_deferred"]
+    )
+    if (
+        counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
+        + gen_activity
+    ) > 0:
+        # 상시 신호(조용한 전원 디폴트 회귀 감지): 개인화 발송 누계(KST 활동일 근사, best-effort).
+        if pctx.cfg.rollout != "off" and (counts["evening"] or counts["evening_personalized"]):
+            try:
+                async with get_sessionmaker()() as s_cnt:
+                    counts["personalized_sent_today"] = (
+                        await push_personalization.sent_count_for(
+                            s_cnt, activity_date_for(now, "Asia/Seoul")
+                        )
+                    )
+            except Exception as e:  # noqa: BLE001
+                _log.warning("개인화 발송 누계 조회 실패(요약 생략): %r", e)
         summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)
 
@@ -455,7 +592,22 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
     anomaly = 실패 카운트만으로 판정 — 멱등 재실행의 전원 스킵(diary_skipped)은 정상이라 제외(오탐 방지).
     dedup은 프로세스 내 한정 → 워커는 틱마다 새 프로세스라 지속장애 시 틱당 재알림 감수(스톰은 아님).
     """
-    anomaly = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
+    # memory_failed는 counts 초기화에서 빠져 병합이 버린다(상주 consumer 전환 잔재) —
+    # 직접 인덱싱하면 KeyError로 데드맨 핑 자체가 죽어 왔으므로 .get으로 방어한다.
+    gen_attempted = (
+        counts.get("push_gen_ok", 0) + counts.get("push_gen_rejected", 0)
+        + counts.get("push_gen_failed", 0)
+    )
+    # 개인화 생성 anomaly: 실패가 있거나, 시도(스킵 제외)가 전부 리젝/실패(ok 0) —
+    # 모델 은퇴·검수 포맷 변경 등으로 전원이 조용히 디폴트 회귀하는 걸 당일 잡는 신호.
+    push_gen_anomaly = counts.get("push_gen_failed", 0) > 0 or (
+        gen_attempted > 0 and counts.get("push_gen_ok", 0) == 0
+    )
+    anomaly = (
+        counts["diary_failed"] > 0
+        or counts.get("memory_failed", 0) > 0
+        or push_gen_anomaly
+    )
     if settings.worker_ping_url:
         url = settings.worker_ping_url + ("/fail" if anomaly else "")
         try:
@@ -465,7 +617,10 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
             _log.warning("워커 데드맨 핑 실패: %r", e)
     if anomaly:
         await slack_notify.alert(
-            f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']} / 기억실패 {counts['memory_failed']}",
+            f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']}"
+            f" / 기억실패 {counts.get('memory_failed', 0)}"
+            f" / 개인화 생성실패 {counts.get('push_gen_failed', 0)}"
+            f"·리젝 {counts.get('push_gen_rejected', 0)}(성공 {counts.get('push_gen_ok', 0)})",
             dedup_key="worker_anomaly",
         )
     total = counts.get("billable_yesterday")

@@ -44,7 +44,8 @@ async def test_subject_barrier_blocks_every_serving_path() -> None:
 
 
 async def test_begin_deletion_redacts_replay_and_job_copies_before_account_cascade() -> None:
-    session = _Session(scalars=[17], rows=[(2, 3, 5)])
+    # scalars: _BEGIN watermark → to_regclass(push_personalizations 존재)
+    session = _Session(scalars=[17, True], rows=[(2, 3, 5)])
     counts = await privacy.begin_subject_deletion(
         session, user_id=UID, operation_id=OPERATION_ID
     )
@@ -53,6 +54,23 @@ async def test_begin_deletion_redacts_replay_and_job_copies_before_account_casca
     assert privacy._BEGIN in statements
     assert privacy._REDACT in statements
     assert privacy._LEDGER in statements
+    # 장벽 시점 즉시 삭제 계약: 대화 파생 사본(push_personalizations)도 CASCADE를 기다리지
+    # 않고 begin에서 지운다.
+    assert any("push_personalizations" in str(stmt) for stmt in statements)
+
+
+async def test_begin_deletion_survives_missing_push_personalizations_table() -> None:
+    """마이그레이션 전(테이블 부재)에도 삭제 플로우는 깨지지 않는다(to_regclass 가드)."""
+    session = _Session(scalars=[17, False], rows=[(2, 3, 5)])
+    counts = await privacy.begin_subject_deletion(
+        session, user_id=UID, operation_id=OPERATION_ID
+    )
+    assert counts == (2, 3, 5)
+    deletes = [
+        stmt for stmt, _ in session.calls
+        if "delete from push_personalizations" in str(stmt).lower()
+    ]
+    assert deletes == []  # 가드가 닫혀 DELETE 미실행
 
 
 async def test_mark_deleted_is_operation_fenced() -> None:

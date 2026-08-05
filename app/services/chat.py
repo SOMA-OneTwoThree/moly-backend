@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import time
+import asyncio
 import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
@@ -858,9 +859,19 @@ async def post_message(
     ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
 
-    # v2 읽기 전환 여부. 여기서는 **한 행만 읽고** 실제 회상은 커밋 뒤 외부 호출 구간에서
-    # 한다 — 임베딩 호출이 걸린 채로 DB 커넥션을 쥐고 있으면 Phase 1 점유가 늘어난다.
+    # v2 읽기 전환 여부. 여기서는 **한 행만 읽는다**.
     pipeline_state = await memory_pipeline.load(session, uid)
+    # 회상을 **지금 띄워** Phase 1의 남은 DB 작업과 겹쳐 돌린다.
+    #
+    # 회상 자체는 임베딩+벡터검색으로 약 490ms 걸린다(dev 실측). 커밋 뒤에 직렬로 부르면
+    # 그만큼이 통째로 `agent_turn_deadline_s`(5초) 예산에서 빠진다. 미리 띄우면 Phase 1의
+    # DB 작업 시간만큼 숨는다 — 실측 잔여 대기: Phase1 200ms일 때 287ms, 500ms일 때 21ms.
+    #
+    # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
+    # 문자열로 끝난다(임베딩·검색 호출 0).
+    recall_task = asyncio.ensure_future(
+        _recall_memory_v2(uid, query=req.text, state=pipeline_state, language=language)
+    )
 
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가
     # active fact/insight와 forget marker를 매번 재대조한다. 재생성 지연 중에도 잊은 내용이
@@ -941,11 +952,8 @@ async def post_message(
     phase1_ms = _ms(t0, t_phase1)
 
     # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — LLM + 백스톱 =====
-    # v2 기억 회상. mode=v2인 사용자만 탄다 — 그 외에는 아래 블록이 빈 문자열이라
-    # 프롬프트가 전환 전과 완전히 같다.
-    memory_v2_block = await _recall_memory_v2(
-        uid, query=req.text, state=pipeline_state, language=language
-    )
+    # 위에서 띄운 회상을 여기서 거둔다. 이미 끝나 있으면 대기 0이다.
+    memory_v2_block = await recall_task
 
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
     system = _build_system(

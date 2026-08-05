@@ -105,12 +105,21 @@ def test_recall_has_a_timeout():
     assert "timeout=" in src
 
 
-def test_recall_runs_outside_the_locked_phase():
-    """Phase 1에서 임베딩을 부르면 DB 커넥션을 쥔 채 외부 호출을 기다리게 된다."""
+def test_recall_is_started_early_and_awaited_after_commit():
+    """회상을 커밋 뒤에 **직렬로** 부르면 그 지연이 그대로 LLM 예산에서 빠진다.
+
+    실측: 회상 ON 5.7s 타임아웃 / OFF 2.8s 성공. 임베딩+벡터검색 중앙 570ms가 마감을
+    넘겼다. 그래서 Phase 1 시작 직후 태스크로 띄워 DB 작업과 겹쳐 돌리고, 커밋 뒤에 거둔다.
+
+    요청 세션을 쥔 채 외부 호출을 기다리는 문제는 **자체 세션**으로 막는다
+    (test_recall_uses_its_own_session).
+    """
     src = inspect.getsource(chat.post_message)
+    start_at = src.index("_recall_memory_v2(")
     commit_at = src.index("await session.commit()")
-    recall_at = src.index("_recall_memory_v2(")
-    assert recall_at > commit_at, "회상이 커밋 이전(락 구간)에서 돈다"
+    await_at = src.index("await recall_task")
+    assert start_at < commit_at, "회상을 미리 띄우지 않으면 지연이 숨지 않는다"
+    assert await_at > commit_at, "커밋 전에 거두면 겹쳐 돈 의미가 없다"
 
 
 def test_recall_uses_its_own_session():

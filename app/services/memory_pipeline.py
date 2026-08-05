@@ -388,6 +388,7 @@ JOB_SHADOW_TRACE = "shadow_prompt_trace"
 JOB_SHADOW_CHECKPOINT = "shadow_checkpoint"
 JOB_CONTRACT_COMPILE = "contract_compile"
 JOB_RELATIONSHIP_PROJECT = "relationship_project"
+JOB_RECONSOLIDATE = "mem0_reconsolidate"
 
 # 이 turn과 직전 turn의 활동일. 다르면 하루가 닫힌 것이다.
 _DAY_BOUNDARY = text("""
@@ -428,6 +429,16 @@ async def enqueue_shadow_checkpoints_on_day_boundary(
         dedup_key=f"sckpt:d:{user_id}:{closed.isoformat()}",
         payload={"kind": "daily_digest", "activity_date": closed.isoformat(),
                  "privacy_epoch": privacy_epoch},
+    )
+    # 살아 있는 기억끼리 재판정. 판정기 규칙이 나아져도 이미 active로 굳은 것은 그대로
+    # 남기 때문에(실측: 같은 뜻 두 건이 둘 다 active), 하루에 한 번 잔여를 정리한다.
+    await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_MEMORY,
+        job_type=JOB_RECONSOLIDATE,
+        user_id=user_id,
+        dedup_key=f"recons:{user_id}:{closed.isoformat()}",
+        payload={"privacy_epoch": privacy_epoch},
     )
     # 관계 상태 투영도 하루 경계다 — active_days가 날짜 단위라 매 턴 돌릴 이유가 없다.
     await jobs.enqueue(

@@ -28,10 +28,17 @@ MAX_DATE_OFFSET_DAYS = 3_660
 
 
 class GetDiaryArgs(ToolArgs):
-    # 생략 가능하고 그때는 `ctx.activity_date`(오늘)를 쓴다. 모델이 오늘 날짜를 모를 수 있어
-    # 필수로 두면 "오늘 일기" 요청이 그냥 실패한다.
+    # 생략 가능하다. **그때는 가장 최근 일기**를 준다.
+    #
+    # ⚠️ 예전엔 오늘로 처리했다. 그런데 "저번에 써준 일기 읽어줘" 같은 요청엔 날짜가 없고,
+    #    오늘은 대개 일기가 없어서 null이 돌아왔다. 그러면 캐피가 "일기가 안 보인다"고 답한다.
+    #    모델이 날짜를 찍어 맞혀야 해서 같은 질문에도 됐다 안 됐다 했다(감사 실측: 3번 중 1번).
     date: dt.date | None = Field(
-        default=None, description="Diary date in YYYY-MM-DD. Defaults to today."
+        default=None,
+        description=(
+            "Diary date in YYYY-MM-DD. **Omit this to get the most recent entry** — "
+            "use it that way when the user refers to a diary without naming a date."
+        ),
     )
 
 
@@ -48,8 +55,11 @@ class GetDiaryOut(BaseModel):
 class GetDiaryTool(BaseTool):
     name = "get_diary"
     description = (
-        "Read the user's own diary entry for a single date. "
-        "Returns null when there is no published entry for that date."
+        "Read a diary entry that you (the capybara) wrote about this user. "
+        "Use this whenever the user mentions their diary in any way — asking what you "
+        "wrote, asking you to read it aloud, or referring to it indirectly. "
+        "Omit `date` to get the most recent entry; pass `date` only when the user names "
+        "a specific day. Returns null only when no entry exists at all."
     )
     input_model = GetDiaryArgs
     output_model = GetDiaryOut
@@ -57,20 +67,23 @@ class GetDiaryTool(BaseTool):
     async def run(
         self, ctx: ToolContext, args: GetDiaryArgs, session: AsyncSession
     ) -> tuple[GetDiaryOut, bool]:
-        target = args.date or ctx.activity_date
-        if abs((target - ctx.activity_date).days) > MAX_DATE_OFFSET_DAYS:
+        if args.date is not None and abs(
+            (args.date - ctx.activity_date).days
+        ) > MAX_DATE_OFFSET_DAYS:
             raise InvalidArguments("date_out_of_range")
 
         now = dt.datetime.now(dt.timezone.utc)
+        where = [
+            Diary.user_id == ctx.user_id,  # 서버 주입 — 모델 인자에 없다
+            Diary.published_at.is_not(None),
+            Diary.published_at <= now,
+        ]
+        if args.date is not None:
+            where.append(Diary.diary_date == args.date)
         row = (
             await session.execute(
                 select(Diary)
-                .where(
-                    Diary.user_id == ctx.user_id,  # 서버 주입 — 모델 인자에 없다
-                    Diary.diary_date == target,
-                    Diary.published_at.is_not(None),
-                    Diary.published_at <= now,
-                )
+                .where(*where)
                 # UNIQUE(user_id, diary_date)라 1건이지만 정렬·limit을 명시해 둔다(안정 정렬 규칙).
                 .order_by(Diary.diary_date.desc(), Diary.id)
                 .limit(1)

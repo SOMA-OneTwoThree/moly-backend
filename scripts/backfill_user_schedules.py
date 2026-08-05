@@ -68,6 +68,11 @@ async def main(env: str | None, apply: bool, page: int) -> int:
                     made += await user_schedules.ensure_for_user(
                         session, uid, timezone_name=tz, now=now
                     )
+                    # 이미 있는 사용자라도 timezone이 바뀌었으면 다시 계산한다 — 안 하면
+                    # 스냅샷이 옛 tz에 묶여 엉뚱한 시각에 알림이 간다(실측).
+                    made += await user_schedules.retime_for_user(
+                        session, uid, timezone_name=tz, now=now
+                    )
                 except Exception as e:  # noqa: BLE001  잘못된 IANA tz 등 — 배치를 멈추지 않는다
                     bad_tz.append(f"{str(uid)[:8]}… ({tz}): {type(e).__name__}")
             if apply:

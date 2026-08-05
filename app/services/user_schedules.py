@@ -83,6 +83,16 @@ RETURNING id
 """)
 
 
+# timezone이 바뀌면 스냅샷과 due를 다시 계산한다. revision을 올려 진행 중 실행이 자기
+# 세대를 확인할 수 있게 한다.
+_RETIME = text("""
+UPDATE user_schedules
+SET timezone_snapshot = :tz, next_due_at = :due, revision = revision + 1, updated_at = now()
+WHERE user_id = :user_id AND kind = :kind AND timezone_snapshot <> :tz
+RETURNING id
+""")
+
+
 async def ensure_for_user(
     session: AsyncSession, user_id: uuid.UUID, *, timezone_name: str, now: datetime
 ) -> int:
@@ -99,3 +109,72 @@ async def ensure_for_user(
         )
         made += got.first() is not None
     return made
+
+
+async def retime_for_user(
+    session: AsyncSession, user_id: uuid.UUID, *, timezone_name: str, now: datetime
+) -> int:
+    """timezone이 바뀐 사용자의 스케줄을 다시 계산한다. 반환 = 바뀐 행 수.
+
+    ⚠️ 이게 없으면 스냅샷이 옛 timezone에 묶여 **엉뚱한 시각에 알림이 간다**. dev 실측:
+    profile은 Asia/Dubai인데 스냅샷은 Asia/Seoul이라, 두 경로가 서로 다른 사용자를 골랐다.
+    스냅샷은 "실행 중 tz 변경에 흔들리지 않기 위한 것"이지 "영원히 안 바뀌는 값"이 아니다.
+    """
+    changed = 0
+    for d in all_due(timezone_name, now):
+        got = await session.execute(
+            _RETIME,
+            {"user_id": user_id, "kind": d.kind, "tz": d.timezone_snapshot, "due": d.next_due_at},
+        )
+        changed += got.first() is not None
+    return changed
+
+
+# ─────────────────────────────────────────────────────────────
+# due dispatcher — 전 profile 스캔의 대체
+# ─────────────────────────────────────────────────────────────
+_DUE = text("""
+SELECT user_id, kind, next_due_at, timezone_snapshot
+FROM user_schedules
+WHERE next_due_at <= :now
+ORDER BY next_due_at
+LIMIT :limit
+""")
+
+# 실행 뒤 다음 발화 시각으로 민다. **먼저 밀고 나서 일한다** — 일하고 밀면 중간에 죽었을 때
+# 같은 스케줄이 계속 다시 잡힌다.
+_ADVANCE = text("""
+UPDATE user_schedules
+SET next_due_at = :next_due_at, last_run_at = now(), updated_at = now()
+WHERE user_id = :user_id AND kind = :kind AND next_due_at = :expected
+RETURNING id
+""")
+
+
+async def due(session, *, now: datetime, limit: int = 500) -> list[Due]:
+    """지금 실행할 스케줄. **인덱스로만 집는다** — 전 profile을 훑지 않는다.
+
+    사용자가 늘어도 비용이 due한 건수에만 비례한다. 전 profile 스캔은 유저 수에 비례해
+    늘어서, 15분 케이던스 안에 못 돌면 그날 작업이 통째로 밀린다.
+    """
+    rows = (await session.execute(_DUE, {"now": now, "limit": limit})).all()
+    return [Due(kind=r[1], timezone_snapshot=r[3], next_due_at=r[2]) for r in rows]
+
+
+async def advance(
+    session, *, user_id: uuid.UUID, kind: str, expected: datetime, now: datetime
+) -> bool:
+    """다음 발화 시각으로 민다. 이미 다른 워커가 밀었으면 False(CAS).
+
+    같은 스케줄을 두 워커가 동시에 집어도 하나만 통과한다.
+    """
+    tz = await session.scalar(
+        text("SELECT timezone_snapshot FROM user_schedules "
+             "WHERE user_id=:u AND kind=:k"),
+        {"u": user_id, "k": kind},
+    )
+    nxt = next_due(kind, tz or "Asia/Seoul", now)
+    row = (await session.execute(_ADVANCE, {
+        "user_id": user_id, "kind": kind, "expected": expected, "next_due_at": nxt,
+    })).first()
+    return row is not None

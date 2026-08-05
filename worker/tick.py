@@ -156,11 +156,11 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                         await session.commit()
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_morning(session, p):
+                if await notify.notify_morning(session, p, now):
                     out["morning"] = 1
             elif hour == EVENING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_evening(session, p):
+                if await notify.notify_evening(session, p, now):
                     out["evening"] = 1
         except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
             _log.exception("틱 처리 실패(user=%s hour=%s): %r", pid, hour, e)
@@ -366,7 +366,15 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
 
     async for pids in _profile_id_batches(settings.worker_batch_size):
         counts["users"] += len(pids)
-        for r in await asyncio.gather(*(_guarded(pid) for pid in pids)):
+        # return_exceptions: _process_user·_guarded가 예외를 삼키지만, 여기서 새는 예외 하나가
+        # 남은 배치 전원 + RC 드레인 + 하트비트 + 요약을 전부 죽이는 단일 실패점이 되지 않게 최후 방어.
+        results = await asyncio.gather(
+            *(_guarded(pid) for pid in pids), return_exceptions=True
+        )
+        for r in results:
+            if isinstance(r, BaseException):
+                _log.error("틱: 유저 처리 미포착 예외(무시): %r", r)
+                continue
             for k, v in r.items():
                 if k == "active_tz":
                     if v:

@@ -51,7 +51,7 @@ async def test_notify_morning_sends_when_enabled(monkeypatch):
         captured["title"] = title
         return len(tokens)
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, now=None):
         return True  # 멱등 선점은 test_notify.py가 검증 — 여기선 발송 경로만
 
     monkeypatch.setattr(notify.settings, "morning_push_enabled", True)  # 킬스위치 해제

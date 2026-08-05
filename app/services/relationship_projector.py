@@ -13,6 +13,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import uuid
 
 from sqlalchemy import text
@@ -63,21 +64,27 @@ SELECT COALESCE(EXTRACT(EPOCH FROM relationship_started_at)::bigint, 0)
 FROM profiles WHERE id = :user_id
 """)
 
+# ⚠️ unique 키에 **revision이 들어간다**. 즉 revision마다 새 행이 남는 구조다(이력 보존).
+# 덮어쓰기로 가정하고 (user_id, locale, renderer_version)로 ON CONFLICT를 걸면 맞는 제약이
+# 없어서 터진다 — 그 실패는 예외가 아니라 `lease_expired`로만 보인다(실측).
 _UPSERT_RENDER = text("""
 INSERT INTO relationship_profile_renders
   (user_id, prompt_revision, profile_relationship_revision, locale,
-   renderer_version, rendered_text)
+   renderer_version, rendered_text, render_hash)
 VALUES (:user_id, :prompt_revision, :profile_revision, :locale,
-        :renderer_version, :rendered_text)
-ON CONFLICT (user_id, locale, renderer_version) DO UPDATE SET
-  prompt_revision = EXCLUDED.prompt_revision,
-  profile_relationship_revision = EXCLUDED.profile_relationship_revision,
-  rendered_text = EXCLUDED.rendered_text
+        :renderer_version, :rendered_text, :render_hash)
+ON CONFLICT (user_id, prompt_revision, profile_relationship_revision, locale,
+             renderer_version)
+DO UPDATE SET rendered_text = EXCLUDED.rendered_text,
+              render_hash = EXCLUDED.render_hash
 """)
 
+# 여러 revision이 쌓이므로 **최신 하나**를 집는다. 정렬이 없으면 아무거나 나온다.
 _LOAD_RENDER = text("""
 SELECT rendered_text FROM relationship_profile_renders
 WHERE user_id = :user_id AND locale = :locale AND renderer_version = :renderer_version
+ORDER BY prompt_revision DESC, profile_relationship_revision DESC
+LIMIT 1
 """)
 
 # 단계별 문장. **상태의 투영이지 모델이 쓴 글이 아니다.**
@@ -143,6 +150,7 @@ async def project(
         "user_id": user_id, "prompt_revision": revision,
         "profile_revision": revision, "locale": i18n.resolve(language),
         "renderer_version": RENDERER_VERSION, "rendered_text": rendered,
+        "render_hash": hashlib.sha256(rendered.encode("utf-8")).hexdigest(),
     })
     return rendered
 

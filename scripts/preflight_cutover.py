@@ -62,6 +62,23 @@ CHECKS: list[tuple[str, str, str]] = [
         "routine_completions→routines 복합 FK가 추가된다",
     ),
     (
+        "캐피 발화가 연속됨",
+        "SELECT count(*) FROM (SELECT sender, lag(sender) OVER "
+        "(PARTITION BY user_id ORDER BY id) AS prev FROM messages WHERE kind='normal') t "
+        "WHERE sender='moly' AND prev='moly'",
+        "턴 백필은 캐피 응답에 turn_position=2를 준다. 연속이면 같은 턴에 2가 둘이라 "
+        "UNIQUE(user_id, turn_seq, turn_position)에 걸려 **마이그레이션 전체가 롤백된다**. "
+        "개수 균형만으로는 이걸 못 잡는다 — 교대 순서를 따로 봐야 한다",
+    ),
+    (
+        "사용자 발화보다 앞선 캐피 발화",
+        "SELECT count(*) FROM (SELECT count(*) FILTER (WHERE sender='user') OVER "
+        "(PARTITION BY user_id ORDER BY id) AS turn FROM messages WHERE kind='normal') t "
+        "WHERE turn=0",
+        "짝이 없어 턴을 이루지 못하므로 백필 후에도 turn_seq가 NULL로 남는다. "
+        "그러면 아래 '좌표 없는 대화 메시지'가 영영 0이 되지 않는다",
+    ),
+    (
         "짝 없는 대화 메시지",
         "SELECT abs(count(*) FILTER (WHERE sender='user') - count(*) FILTER (WHERE sender='moly')) "
         "FROM messages WHERE kind='normal'",
@@ -87,6 +104,23 @@ CHECKS: list[tuple[str, str, str]] = [
         "COALESCE((SELECT max(turn_seq) FROM messages m WHERE m.user_id=s.user_id "
         "AND m.kind='normal'),0)",
         "커서가 존재하지 않는 턴을 가리키면 그 사용자는 더 이상 진행하지 않는다",
+    ),
+    (
+        "RLS가 꺼진 테이블",
+        "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+        "WHERE n.nspname='public' AND c.relkind='r' AND c.relrowsecurity=false",
+        "이 레포는 정책을 두지 않고 'RLS 켜짐 + 정책 0 = 전면 차단'으로 막고 서버만 "
+        "service_role로 우회한다. RLS가 꺼진 표는 **아무 방어가 없다**",
+    ),
+    (
+        "클라이언트 롤에 남은 신규 테이블 권한",
+        "SELECT count(*) FROM information_schema.role_table_grants g "
+        "WHERE g.table_schema='public' AND g.grantee IN ('anon','authenticated') "
+        "AND g.table_name IN ('shadow_prompt_traces','user_schedules','mem0_memory_registry',"
+        "'mem0_memory_sources','mem0_ingest_candidates','memory_pipeline_states',"
+        "'user_interaction_contracts','user_relationship_states','relationship_events',"
+        "'async_jobs','ai_usage_ledger')",
+        "공개 anon 키로 PostgREST를 통해 직접 읽고 쓸 수 있게 된다",
     ),
     (
         "legacy에 묶인 사용자",

@@ -15,7 +15,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Sequence
 
-from sqlalchemy import bindparam, text
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -50,21 +50,6 @@ WHERE c.user_id = :user_id
 _GENERATION_SQL = text(
     "SELECT COALESCE(memory_generation, 0) FROM chat_contexts WHERE user_id = :user_id"
 )
-
-# 잊어줘가 닫은 구간이 하나라도 있는가. 재검증은 `(0, through]` 원본 전체를 다시 읽으므로
-# 닫힌 구간을 **필연적으로** 포함한다 — 있으면 재검증을 건너뛰고 체인 요약으로 간다.
-_HAS_CLOSURE_SQL = text(
-    "SELECT 1 FROM memory_recall_suppressions WHERE user_id = :user_id LIMIT 1"
-)
-
-# 이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가.
-# forget은 **앵커를 전진시키지 않는다.** 그래서 잊기 이후 만들어지는 **일반 요약**도 잊기 이전
-# 메시지를 그대로 담는다 — 재검증만 막아서는 안 되고 모든 요약이 이 검사를 통과해야 한다.
-_CLOSED_MESSAGES_SQL = text("""
-SELECT 1 FROM memory_recall_suppressions s
-WHERE s.user_id = :user_id AND s.message_id IN :ids
-LIMIT 1
-""").bindparams(bindparam("ids", expanding=True))
 
 # 요약 대상 구간. after_id는 이전 checkpoint의 through(없으면 0) — 열린 하한, 닫힌 상한이다.
 _RANGE_SQL = text("""
@@ -105,29 +90,6 @@ async def read_memory_generation(session: AsyncSession, user_id: uuid.UUID | str
     row = (await session.execute(_GENERATION_SQL, {"user_id": user_id})).first()
     return int(row[0]) if row is not None else 0
 
-
-async def has_forget_closures(session: AsyncSession, user_id: uuid.UUID | str) -> bool:
-    """이 유저에게 잊어줘로 닫힌 소스 구간이 있는가."""
-    return (await session.execute(_HAS_CLOSURE_SQL, {"user_id": user_id})).first() is not None
-
-
-async def has_closed_messages(
-    session: AsyncSession, user_id: uuid.UUID | str, message_ids: Sequence[int]
-) -> bool:
-    """이 메시지들 중 잊어줘가 닫은 구간에 걸린 게 있는가. 하나라도 있으면 요약하지 않는다.
-
-    별도 recall suppression을 직접 본다. extraction replay guard인 source closure의 min/max 범위를
-    재사용하지 않으므로 무관한 중간 turn을 collateral forgetting하지 않는다.
-    """
-    ids = list(dict.fromkeys(message_ids))
-    if not ids:
-        return False
-    if not await has_forget_closures(session, user_id):
-        return False  # 잊기 이력이 없으면 닫힌 것도 없다 — 매핑 유무를 따질 필요가 없다
-    rows = await session.execute(_CLOSED_MESSAGES_SQL, {"user_id": user_id, "ids": ids})
-    if rows.first() is not None:
-        return True
-    return False
 
 
 async def load_latest(

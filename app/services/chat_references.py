@@ -26,12 +26,6 @@ WHERE d.user_id=:user_id AND d.id=ANY(CAST(:ids AS uuid[]))
   AND d.kind IN ('welcome','shared_day','capi_day')
   AND d.record_status='published' AND d.deleted_at IS NULL
   AND d.published_at IS NOT NULL AND d.published_at<=now()
-  AND NOT EXISTS (
-    SELECT 1 FROM diary_claim_sources s
-    JOIN memory_recall_suppressions x
-      ON x.user_id=s.user_id AND x.message_id=s.message_id
-    WHERE s.user_id=d.user_id AND s.diary_id=d.id
-  )
 """)
 
 async def validate_selected(

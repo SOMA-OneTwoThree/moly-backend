@@ -35,12 +35,6 @@ WITH params AS (
     AND (p.from_date IS NULL OR d.display_date>=p.from_date)
     AND (p.to_date IS NULL OR d.display_date<=p.to_date)
     AND (p.focus_id IS NULL OR d.id=p.focus_id)
-    AND NOT EXISTS (
-      SELECT 1 FROM diary_claim_sources s
-      JOIN memory_recall_suppressions x
-        ON x.user_id=s.user_id AND x.message_id=s.message_id
-      WHERE s.user_id=d.user_id AND s.diary_id=d.id
-    )
 ), ranked AS (
   SELECT *,
     CASE WHEN p.query IS NULL THEN 1.0

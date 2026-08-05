@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 
 import pytest
 
@@ -73,3 +74,39 @@ def test_final_response_schema_advertises_no_forget():
             f"finish_response 스키마에 {banned!r}이 있다. 적용 경로가 생기기 전에는 "
             "모델에 노출하지 않는다 — 모델이 없는 능력을 약속하게 된다."
         )
+
+
+# --- 집계 SQL이 실제로 기록되는 event_type을 세는가 ---
+
+def test_relationship_aggregate_uses_recorded_event_types():
+    """집계가 **기록되지 않는 값**을 세면 조용히 0이 나오고 단계가 영원히 오르지 않는다.
+
+    실제로 그랬다. projector는 'successful_turn'/'qualifying_turn'을 셌는데, 기록되는 값도
+    CHECK 제약이 허용하는 값도 'normal_turn_committed'/'active_day_started'뿐이다. 두 카운터가
+    항상 0이라 `compute_stage(0, 0)`이 'new'를 돌려줬고, dev 사용자는 111턴·3일을 대화하고도
+    stage가 'new'였다. 에러는 나지 않는다 — 숫자만 0일 뿐이다.
+    """
+    from app.services import relationship, relationship_projector
+
+    sql = str(relationship_projector._AGGREGATE)
+    known = {relationship.EVENT_NORMAL_TURN, relationship.EVENT_ACTIVE_DAY}
+    for literal in re.findall(r"'([a-z_]+_turn|[a-z_]+_started|[a-z_]+_committed)'", sql):
+        assert literal in known, (
+            f"집계 SQL이 {literal!r}을 세는데 그런 event_type은 기록되지 않는다. "
+            f"기록되는 값: {sorted(known)}"
+        )
+
+
+def test_every_stage_has_prompt_text():
+    """단계가 올라갔는데 문구가 없으면 렌더가 비고, **옛 문구가 계속 나간다**.
+
+    'acquainted'가 실제로 빠져 있었다. project()는 빈 렌더면 새 행을 쓰지 않고 반환하므로
+    (relationship_projector.project), 승급 순간부터 프롬프트에는 'new' 문장이 계속 붙는다.
+    """
+    from app.services import relationship
+    from app.services.relationship_projector import _STAGE_TEXT
+
+    missing = [s for s in relationship.STAGE_ORDER if s not in _STAGE_TEXT]
+    assert not missing, f"프롬프트 문구가 없는 단계: {missing}"
+    for stage, table in _STAGE_TEXT.items():
+        assert {"ko", "en", "ja"} <= set(table), f"{stage}에 빠진 언어: {{'ko','en','ja'}} - {set(table)}"

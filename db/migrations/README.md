@@ -32,6 +32,10 @@
 16. `20260805_privacy_epoch.sql` — (2단계 a) 삭제 장벽에 `active` state와 `epoch` 추가.
     **컬럼만 추가하고 행은 만들지 않는다** — 안전하게 먼저 적용 가능.
 17. `20260805_privacy_active_backfill.sql` — (2단계 c) 🚨 **코드 배포 뒤에만 적용**.
+19. `20260805_relationship_render.sql` — (5단계) relationship_events.turn_seq, locale render projection.
+20. `20260805_mem0_v2_collection.sql` — v2 벡터 컬렉션(`vecs.moly_memories_v2`). **런타임이 만들지 않는다** —
+    adapter는 이미 존재하는 컬렉션만 연다.
+
 18. `20260805_memory_v2_tables.sql` — (4단계) v2 테이블 additive 생성. 아무것도 지우지 않는다:
     `memory_pipeline_states` · `mem0_ingest_candidates`(+sources) · `mem0_memory_registry`(+sources) ·
     `user_interaction_contracts`(+items) · `user_relationship_states` · `relationship_events` ·

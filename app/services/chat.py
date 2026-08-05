@@ -578,6 +578,13 @@ async def _record_memory_v2(
     await memory_pipeline.record_turn_events(
         session, uid, turn_seq=turn_seq, activity_date=activity_date, occurred_at=now
     )
+    # bootstrap이 끝난 사용자만 live turn 잡을 건다. collecting 중에는 source만 쌓고,
+    # historical manifest가 완성된 뒤 가장 이른 turn부터 순서대로 흐른다(13.3절).
+    # 이미 처리 대기 중인 turn이 있으면 dedup key가 중복 enqueue를 막는다.
+    if state.accepts_live_ingest and state.ingest_through_turn_seq >= state.source_through_turn_seq:
+        await memory_pipeline.enqueue_ingest(
+            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+        )
 
 
 # --- 정규화 기억 소스(W8, Phase 2 트랜잭션 안) ---

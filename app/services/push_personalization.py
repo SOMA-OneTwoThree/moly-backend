@@ -521,6 +521,13 @@ _RETRY_HINT = {
     "person_ref": "사람 이름/고유명사 포함",
     "verify_llm": "민감 소재·시점 지칭·인명 의심",
 }
+# 최종 시도 안전 모드 — 개인화 강도를 낮춰서라도 디폴트 폴백을 피한다(커버리지 요구).
+# 이 수준의 문구는 검수를 사실상 항상 통과한다. 그래도 실패하면(LLM 장애 등) 디폴트 —
+# 그건 누수가 아니라 안전망이다.
+_FINAL_SAFE_HINT = (
+    ". 이번이 마지막 시도다 — 소재에서 가장 안전한 일상 명사 하나만 가볍게 남기고,"
+    " 민감 소재·시점 지칭·인명 여지가 전혀 없는 가장 담백하고 짧은 안부 한 문장으로 써라"
+)
 
 
 async def _generate_body(source_text: str, language: str, hint: str | None = None) -> str:
@@ -693,9 +700,10 @@ async def _generate_inner(
     body = ""
     reason = None
     for attempt in range(GEN_ATTEMPTS):
-        body = await _generate_body(
-            source_text, language, hint=_RETRY_HINT.get(reason) if reason else None
-        )
+        hint = _RETRY_HINT.get(reason) if reason else None
+        if hint and attempt == GEN_ATTEMPTS - 1:
+            hint += _FINAL_SAFE_HINT
+        body = await _generate_body(source_text, language, hint=hint)
         reason = None
         if not passes_deterministic_filter(body, language):
             reason = "filter"

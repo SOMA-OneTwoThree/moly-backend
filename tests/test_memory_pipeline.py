@@ -165,3 +165,58 @@ async def test_repeat_turn_of_day_records_only_turn_event():
 
 async def test_events_are_deduped_at_db_level():
     assert "ON CONFLICT (user_id, dedup_key) DO NOTHING" in str(mp._ADD_EVENT)
+
+
+# ─────────────────────────────────────────────────────────────
+# 5. chat Phase B 배선 — legacy는 건드리지 않고 shadow만 기록한다
+# ─────────────────────────────────────────────────────────────
+async def test_chat_phase_b_is_noop_for_legacy_users(monkeypatch):
+    from app.services import chat
+
+    calls: list[str] = []
+    monkeypatch.setattr(mp, "load", lambda s, u: _legacy_state(u))
+    monkeypatch.setattr(mp, "advance_source", _record("advance", calls))
+    monkeypatch.setattr(mp, "record_turn_events", _record("events", calls))
+    await chat._record_memory_v2(
+        None, UID, turn_seq=1, activity_date=date(2026, 8, 5), now=_T0
+    )
+    assert calls == []  # legacy 사용자에겐 v2 흔적을 남기지 않는다
+
+
+async def test_chat_phase_b_records_for_shadow_users(monkeypatch):
+    from app.services import chat
+
+    calls: list[str] = []
+    monkeypatch.setattr(mp, "load", lambda s, u: _shadow_state(u))
+    monkeypatch.setattr(mp, "advance_source", _record("advance", calls))
+    monkeypatch.setattr(mp, "record_turn_events", _record("events", calls))
+    await chat._record_memory_v2(
+        None, UID, turn_seq=7, activity_date=date(2026, 8, 5), now=_T0
+    )
+    assert calls == ["advance", "events"]
+
+
+def _record(name: str, sink: list[str]):
+    async def _fn(*a, **kw):
+        sink.append(name)
+        return None
+
+    return _fn
+
+
+async def _legacy_state(user_id):
+    return mp.PipelineState(
+        user_id=user_id, mode=mp.MODE_LEGACY, bootstrap_status=mp.BOOTSTRAP_LEGACY,
+        source_through_turn_seq=0, ingest_through_turn_seq=0,
+        consolidated_through_turn_seq=0, historical_upper_turn_seq=None,
+        privacy_epoch=0, revision=0,
+    )
+
+
+async def _shadow_state(user_id):
+    return mp.PipelineState(
+        user_id=user_id, mode=mp.MODE_SHADOW, bootstrap_status=mp.BOOTSTRAP_COLLECTING,
+        source_through_turn_seq=6, ingest_through_turn_seq=0,
+        consolidated_through_turn_seq=0, historical_upper_turn_seq=6,
+        privacy_epoch=0, revision=1,
+    )

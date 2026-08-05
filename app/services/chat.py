@@ -43,6 +43,7 @@ from app.services import (
     text_clean,
     turn_context,
     usage_ledger,
+    memory_pipeline,
     chat_references,
     chat_turns,
     diary as diary_service,
@@ -551,6 +552,32 @@ async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
     게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다.
     보상(economy·ads)과 **같은 직렬화 도메인**을 쓰도록 키 표현은 core.advisory_lock 단일 구현."""
     await advisory_xact_lock(session, uid)
+
+
+# --- 기억 v2 소스·관계 event(15장 5단계, Phase 2 트랜잭션 안) ---
+async def _record_memory_v2(
+    session: AsyncSession,
+    uid: uuid.UUID,
+    *,
+    turn_seq: int,
+    activity_date: date,
+    now: datetime,
+) -> None:
+    """v2 source 커서 전진 + 관계 event append. **legacy 사용자는 아무것도 하지 않는다.**
+
+    메시지·source·잡과 같은 트랜잭션이라, 커밋되면 셋이 함께 남고 롤백되면 함께 사라진다.
+    shadow에서도 기록은 하지만 응답에는 쓰지 않는다(`PipelineState.serves_v2`).
+
+    실패는 삼키지 않는다 — 이 트랜잭션이 깨지면 턴 전체가 클린 재시도되는 게 맞다. 커서만
+    전진하고 메시지가 없거나 그 반대인 상태를 만들지 않는다.
+    """
+    state = await memory_pipeline.load(session, uid)
+    if not state.records_v2:
+        return
+    await memory_pipeline.advance_source(session, uid, turn_seq=turn_seq)
+    await memory_pipeline.record_turn_events(
+        session, uid, turn_seq=turn_seq, activity_date=activity_date, occurred_at=now
+    )
 
 
 # --- 정규화 기억 소스(W8, Phase 2 트랜잭션 안) ---
@@ -1138,6 +1165,9 @@ async def post_message(
             source_watermark=source_watermark,
             content=umsg.content,
         )
+    # 기억 v2(15장 5단계) — legacy 사용자는 no-op. shadow/v2만 source 커서와 관계 event를
+    # **이 트랜잭션에서** 함께 기록한다. shadow는 기록만 하고 응답에는 쓰지 않는다.
+    await _record_memory_v2(session, uid, turn_seq=lease.turn_seq, activity_date=ad, now=now)
     await _touch_last_active(session, uid, now)
 
     # 대화 요약 checkpoint(W11) — 리셋이 일어난 턴에만, 앵커 저장과 같은 트랜잭션에서 잡을 건다.

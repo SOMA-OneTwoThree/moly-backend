@@ -6,9 +6,8 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core import errors
-from app.schemas.memory import MemoryForgetRequest, MemorySearchRequest
-from app.services import memory_embeddings, memory_forget, memory_registry, memory_repo, privacy
+from app.schemas.memory import MemorySearchRequest
+from app.services import memory_embeddings, memory_repo, privacy
 
 _LIST_SQL = text("""
 SELECT f.id, f.kind, f.canonical_text, f.predicate, f.event_time
@@ -70,26 +69,4 @@ async def search(session: AsyncSession, user_id: str, req: MemorySearchRequest) 
             }
             for row in rows
         ]
-    }
-
-
-async def forget(session: AsyncSession, user_id: str, req: MemoryForgetRequest) -> dict:
-    await privacy.ensure_subject_active(session, uuid.UUID(user_id))
-    if req.scope == "predicate" and not memory_registry.is_predicate(req.predicate):
-        raise errors.validation("지원하지 않는 기억 범위입니다.")
-    request = memory_forget.ForgetRequest(
-        scope=req.scope,
-        fact_ids=tuple(req.fact_ids),
-        predicate=req.predicate,
-        future_learning=req.future_learning,
-    )
-    result = await memory_forget.apply(
-        session, user_id=uuid.UUID(user_id), request=request
-    )
-    await session.commit()
-    return {
-        "status": result.status,
-        "forgotten_fact_ids": list(result.forgotten_facts),
-        "invalidated_insight_ids": list(result.invalidated_insights),
-        "memory_generation": result.memory_generation,
     }

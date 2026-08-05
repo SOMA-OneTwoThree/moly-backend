@@ -633,28 +633,6 @@ async def test_config_db_failure_propagates_and_saves_nothing(monkeypatch):
     assert called == [] and session.added == []  # LLM도 저장도 없다(클린 재시도)
 
 
-async def test_control_intents_are_applied_without_persisting_internal_rows(monkeypatch):
-    """기억 제어는 적용하되 내부 control intent 자체를 메시지로 저장하지 않는다."""
-    from app.models.idempotency_key import IdempotencyKey
-    from app.models.message import Message
-
-    intent = ControlIntent(kind="forget", target_fact_ids=(uuid.uuid4(),))
-
-    async def _agent(system, convo, **kw):
-        return agent_runtime.AgentTurn(
-            text="알았어.", calls=[_usage("tool_final")], control_intents=(intent,)
-        )
-
-    session = FakeSession()
-    snapshot = build_snapshot({"agent_enabled": True, "agent_canary_pct": 100.0})
-    out = await _post(session, monkeypatch, agent=_agent, snapshot=snapshot)
-
-    assert out.reply.content == "내가 기억하고 있던 것에서는 찾지 못했어."
-    # 저장된 건 유저 메시지·캐피 응답·멱등 응답뿐이다(기억 제어 행 없음).
-    assert [type(o) for o in session.added] == [Message, Message, IdempotencyKey]
-    assert all("forget" not in (m.content or "") for m in session.added if isinstance(m, Message))
-
-
 async def test_metrics_mark_tool_turn(monkeypatch, caplog):
     from tests.test_chat_metrics import _turn_metrics_payload
 

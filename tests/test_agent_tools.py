@@ -80,7 +80,7 @@ def test_registry_exposes_all_read_tools():
     names = [s["function"]["name"] for s in REGISTRY.wire_schemas()]
     assert names == ["recall_diaries", "get_routines", "recall_memory"]
     assert set(REGISTRY.input_models()) == {
-        "recall_diaries", "get_routines", "recall_memory", "forget_memory"
+        "recall_diaries", "get_routines", "recall_memory"
     }
 
 
@@ -535,7 +535,7 @@ async def test_run_turn_executes_the_real_registry_end_to_end(monkeypatch):
         "recall_diaries", "get_routines", "recall_memory", "finish_response",
     ]
     assert set(seen[0]["input_models"]) == {
-        "recall_diaries", "get_routines", "recall_memory", "forget_memory",
+        "recall_diaries", "get_routines", "recall_memory",
     }
     assert [s["function"]["name"] for s in seen[1]["tools"]] == ["finish_response"]
     assert seen[1]["tool_choice"] == {

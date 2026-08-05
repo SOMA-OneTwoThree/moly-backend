@@ -299,27 +299,6 @@ class RelationshipEvent(Base):
     created_at: Mapped[datetime] = mapped_column(_TZ, nullable=False, server_default=text("now()"))
 
 
-class LegacyRecallTombstone(Base):
-    """과거에 사용자가 잊어달라고 한 source의 비노출 표식.
-
-    ⚠️ 새 대화형 forget 기능이 **아니다.** legacy forget marker/closure/suppression을 source 단위로
-    한 번 이관해, v2 backfill·mem0 후보·timeline·diary hydrate가 그 내용을 되살리지 않게 하는
-    전환 장벽이다(14.3절).
-    """
-
-    __tablename__ = "legacy_recall_tombstones"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    source_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    diary_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    source_operation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    reason: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(_TZ, nullable=False, server_default=text("now()"))
-
-
 class RelationshipProfileRender(Base):
     """관계 상태의 locale별 렌더 projection.
 
@@ -362,7 +341,6 @@ __all__ = [
     "MODE_LEGACY",
     "MODE_SHADOW",
     "MODE_V2",
-    "LegacyRecallTombstone",
     "Mem0IngestCandidate",
     "Mem0IngestCandidateSource",
     "Mem0MemoryRegistry",

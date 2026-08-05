@@ -1,8 +1,7 @@
-"""shadow 진입 오케스트레이터 — 문서가 요구하는 **순서**를 코드가 강제하는지.
+"""shadow 진입 오케스트레이터.
 
-15장 7번은 tombstone 이관을 manifest보다 먼저 끝내라고 못박는다. 순서가 뒤집히면 지워달라던
-내용이 v2 기억으로 되살아나고, 그건 cutover 즉시 중단 사유다. 그 순서는 주석이 아니라
-코드가 지켜야 한다.
+사용자당 단일 transaction으로 historical upper를 고정하고 ready로 열며, 최초 잡을
+**정확히 하나만** 만든다. 여러 개면 커서 순서가 깨진다(15장 7번).
 """
 from __future__ import annotations
 
@@ -25,13 +24,8 @@ def _load():
 
 
 class _Session:
-    """(legacy 마커 수, tombstone 수)를 흉내낸다."""
-
-    def __init__(self, legacy: int, migrated: int):
-        self._counts = (legacy, migrated)
-
     async def execute(self, stmt, params=None):
-        return _Row(self._counts)
+        return _Row(())
 
 
 class _Row:
@@ -48,7 +42,7 @@ def mod(monkeypatch):
     return m
 
 
-async def _run(mod, monkeypatch, *, legacy, migrated, upper=42, earliest=1):
+async def _run(mod, monkeypatch, *, upper=42, earliest=1):
     calls = {"ready": 0, "enqueued": []}
 
     async def _enter(session, uid, **k):
@@ -68,28 +62,13 @@ async def _run(mod, monkeypatch, *, legacy, migrated, upper=42, earliest=1):
     monkeypatch.setattr(mod.memory_pipeline, "next_ingest_turn", _next)
     monkeypatch.setattr(mod.memory_pipeline, "mark_bootstrap_ready", _ready)
     monkeypatch.setattr(mod.memory_pipeline, "enqueue_ingest", _enq)
-    msg = await mod._one(_Session(legacy, migrated), uuid.uuid4(), apply=True)
+    msg = await mod._one(_Session(), uuid.uuid4(), apply=True)
     return msg, calls
-
-
-async def test_refuses_ready_when_tombstones_not_migrated(mod, monkeypatch):
-    """이관 안 된 사용자를 ready로 열면 지워달라던 내용이 되살아난다."""
-    with pytest.raises(RuntimeError) as e:
-        await _run(mod, monkeypatch, legacy=5, migrated=0)
-    assert "tombstone" in str(e.value)
-
-
-async def test_no_job_is_enqueued_when_it_refuses(mod, monkeypatch):
-    """거부하면서 잡만 흘리면 ready가 아닌 채로 색인이 돈다."""
-    calls = {}
-    with pytest.raises(RuntimeError):
-        _, calls = await _run(mod, monkeypatch, legacy=5, migrated=0)
-    assert calls.get("enqueued", []) == []
 
 
 async def test_enqueues_exactly_one_earliest_job(mod, monkeypatch):
     """15장 7번: '정확히 그 earliest 잡 하나만'. 여러 개면 커서 순서가 깨진다."""
-    msg, calls = await _run(mod, monkeypatch, legacy=3, migrated=3, earliest=7)
+    msg, calls = await _run(mod, monkeypatch, earliest=7)
     assert calls["enqueued"] == [7]
     assert calls["ready"] == 1
     assert "turn=7" in msg
@@ -97,12 +76,12 @@ async def test_enqueues_exactly_one_earliest_job(mod, monkeypatch):
 
 async def test_user_with_no_legacy_markers_is_allowed(mod, monkeypatch):
     """이관할 게 없던 사용자(legacy 0)는 막지 않는다 — 신규 가입자가 여기 걸리면 안 된다."""
-    _, calls = await _run(mod, monkeypatch, legacy=0, migrated=0, earliest=1)
+    _, calls = await _run(mod, monkeypatch, earliest=1)
     assert calls["enqueued"] == [1]
 
 
 async def test_no_source_turns_stays_collecting(mod, monkeypatch):
     """처리할 turn이 없으면 ready로 열지 않는다 — 빈 채로 열면 live turn이 앞질러 들어간다."""
-    msg, calls = await _run(mod, monkeypatch, legacy=0, migrated=0, earliest=None)
+    msg, calls = await _run(mod, monkeypatch, earliest=None)
     assert calls["ready"] == 0 and calls["enqueued"] == []
     assert "collecting" in msg

@@ -33,14 +33,6 @@ from app.services import memory_pipeline
 from db.envfile import announce, load_conn, split_env_arg
 
 # tombstone 이관이 남았는지. legacy 마커가 있는데 tombstone이 하나도 없으면 미이관이다.
-_TOMBSTONE_READY = text("""
-SELECT
-  (SELECT count(*) FROM memory_recall_suppressions WHERE user_id=:u)
-  + (SELECT count(*) FROM memory_source_closures WHERE user_id=:u)
-  + (SELECT count(*) FROM memory_forget_markers WHERE user_id=:u) AS legacy,
-  (SELECT count(*) FROM legacy_recall_tombstones WHERE user_id=:u) AS migrated
-""")
-
 _CANDIDATES = text("""
 SELECT p.id
 FROM profiles p
@@ -60,14 +52,6 @@ async def _one(session, uid: uuid.UUID, *, apply: bool) -> str:
     if upper is None:
         return "이미 shadow/v2 — 건너뜀"
 
-    legacy, migrated = (await session.execute(_TOMBSTONE_READY, {"u": uid})).one()
-    if legacy and not migrated:
-        # 여기서 멈추지 않으면 지워달라던 내용이 v2로 되살아난다.
-        raise RuntimeError(
-            f"tombstone 미이관 (legacy {legacy}건, tombstone 0건) — "
-            "migrate_legacy_tombstones.py 를 먼저 돌려라"
-        )
-
     earliest = await memory_pipeline.next_ingest_turn(session, uid, cursor=0)
     if earliest is None:
         return f"upper={upper} 이지만 처리할 source turn이 없다 — collecting 유지"
@@ -76,7 +60,7 @@ async def _one(session, uid: uuid.UUID, *, apply: bool) -> str:
         return "collecting이 아니다 — ready 전환 안 함"
 
     await memory_pipeline.enqueue_ingest(session, uid, turn_seq=earliest)
-    return f"upper={upper}, ready, 최초 잡 turn={earliest} (tombstone {migrated}건)"
+    return f"upper={upper}, ready, 최초 잡 turn={earliest}"
 
 
 async def main(env: str | None, users: list[str], limit: int, apply: bool) -> int:

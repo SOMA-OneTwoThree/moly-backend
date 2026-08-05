@@ -861,6 +861,16 @@ async def post_message(
 
     # v2 읽기 전환 여부. 여기서는 **한 행만 읽는다**.
     pipeline_state = await memory_pipeline.load(session, uid)
+    # greeting_id 형식 검증은 **회상을 띄우기 전에** 끝낸다. 태스크를 만든 뒤에 raise하면
+    # 그 태스크가 고아가 되어, 응답은 실패했는데 임베딩 호출과 DB 세션은 그대로 돈다
+    # (클라이언트가 잘못된 값을 반복해 보내면 그만큼 낭비된다).
+    requested_gid: uuid.UUID | None = None
+    if getattr(req, "greeting_id", None):
+        try:
+            requested_gid = uuid.UUID(req.greeting_id)
+        except ValueError as e:
+            raise errors.validation("잘못된 greeting_id예요.") from e
+
     # 회상을 **지금 띄워** Phase 1의 남은 DB 작업과 겹쳐 돌린다.
     #
     # 회상 자체는 임베딩+벡터검색으로 약 490ms 걸린다(dev 실측). 커밋 뒤에 직렬로 부르면
@@ -932,11 +942,8 @@ async def post_message(
     # 현재 턴 선발화(있으면) — 이번 턴 system[먼저 건넨 말]에 넣으려 읽기만. insert는 phase 2.
     greeting_content: str | None = None
     greeting_gid: uuid.UUID | None = None
-    if getattr(req, "greeting_id", None):
-        try:
-            gid = uuid.UUID(req.greeting_id)
-        except ValueError as e:
-            raise errors.validation("잘못된 greeting_id예요.") from e
+    if requested_gid is not None:
+        gid = requested_gid
         gr = await session.get(Greeting, gid)
         if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
             greeting_content = gr.content  # placeholder 저장분

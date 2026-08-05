@@ -149,3 +149,30 @@ def test_legacy_user_still_gets_the_legacy_block():
     """전환 안 된 사용자는 지금까지와 똑같아야 한다."""
     out = "\n".join(_system(relationship_text="레거시 기억"))
     assert "레거시 기억" in out
+
+
+def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
+    """태스크를 만든 뒤 raise하면 그 태스크가 고아가 된다.
+
+    응답은 실패했는데 임베딩 호출과 DB 세션은 그대로 돈다. 자체 세션이라 곧 정리되지만,
+    클라이언트가 잘못된 greeting_id를 반복해 보내면 그만큼 낭비된다.
+    실제로 그런 raise가 하나 있었고(잘못된 greeting_id) 검증을 앞으로 옮겨 없앴다.
+
+    앞으로 이 구간에 raise가 추가되면 여기서 잡는다.
+    """
+    import ast
+
+    src = inspect.getsource(chat.post_message)
+    lines = src.splitlines()
+    start = next(i for i, ln in enumerate(lines) if "recall_task = asyncio.ensure_future" in ln)
+    end = next(i for i, ln in enumerate(lines) if "await recall_task" in ln)
+    assert start < end
+
+    import textwrap
+
+    tree = ast.parse(textwrap.dedent("\n".join(lines[start:end])))
+    raises = [n for n in ast.walk(tree) if isinstance(n, ast.Raise)]
+    assert not raises, (
+        f"회상 태스크 생성~await 사이에 raise가 {len(raises)}건 있다 — 태스크가 고아가 된다. "
+        "검증을 태스크 생성보다 앞으로 옮기거나, 태스크를 cancel하고 raise할 것."
+    )

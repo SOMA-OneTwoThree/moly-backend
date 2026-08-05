@@ -85,3 +85,37 @@ def test_range_contract_violation_is_fatal_not_silently_fixed():
     """조용히 보정하면 사이 구간이 어디에도 요약되지 않은 채 anchor만 전진한다."""
     src = inspect.getsource(sc.handle_shadow_checkpoint)
     assert "range_contract" in src and "JobFatal" in src
+
+
+def test_insert_supplies_every_bind_parameter_in_the_sql():
+    """SQL의 :param과 실제로 넘기는 키가 어긋나면 finalize가 터진다.
+
+    finalize 실패는 예외로 안 보인다 — lease가 만료되고 reaper가 회수해 재시도가 소진될
+    뿐이라, 로그에는 `lease_expired`만 남고 원인이 드러나지 않는다. 실제로
+    `version`(NOT NULL·기본값 없음)이 빠져 잡 4건이 전부 이렇게 죽었다.
+    """
+    import ast
+    import inspect
+    import re
+
+    binds = set(re.findall(r"(?<![:\w]):([a-z_][a-z0-9_]*)", sc._INSERT.text))
+
+    tree = ast.parse(inspect.getsource(sc.handle_shadow_checkpoint).lstrip())
+    apply_fn = next(
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.AsyncFunctionDef) and n.name == "_apply"
+    )
+    passed = {
+        k.value for call in ast.walk(apply_fn)
+        if isinstance(call, ast.Call)
+        for arg in call.args if isinstance(arg, ast.Dict)
+        for k in arg.keys if isinstance(k, ast.Constant)
+    }
+
+    assert binds, "바인드 파라미터를 못 찾았다 — 정규식이 깨졌다"
+    assert binds <= passed, f"SQL이 쓰는데 안 넘기는 파라미터: {sorted(binds - passed)}"
+
+
+def test_version_column_is_written():
+    """version은 NOT NULL이고 기본값이 없다. 빠지면 finalize가 조용히 실패한다."""
+    assert "version" in sc._INSERT.text

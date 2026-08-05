@@ -157,7 +157,10 @@ _MANUAL: list[str] = [
     # 2026-08-05 dev 실측: 올바른 배치 cached=2170 / 금지 배치 cached=0 로 통과.
     # 프롬프트 구성이 바뀌면 다시 돌려야 하므로 자동 항목으로 올리지 않는다.
     "cache fixture 재실행 (scripts/verify_prompt_cache.py --yes — 프롬프트 구성 변경 시마다)",
-    "golden recall 기준 통과 (golden set 고정·평가 필요)",
+    "golden recall 기준 통과 (case 200건 작성 필요 — 제품 판단)",
+    "1x/2x/5x 부하에서 목표 처리량 (memory 큐 분리 후 재측정 필요)",
+    "worker kill·DB delay 주입 뒤 정합성",
+    "100건 초과 삭제와 두 sweep 0",
     # 2026-08-05 dev 실측 통과: 동시 8회 claim에서 승자 1건, 재청구 0건.
     # 창(expiry)은 tests/test_notification_expiry.py가 CI에서 지킨다.
     "알림 dedup 재실행 (scripts/verify_notification_fixture.py — claim 로직 변경 시마다)",

@@ -180,14 +180,74 @@ async def chat_eval_compare(
     return {"results": [r.__dict__ for r in results]}
 
 
+@router.get("/memory/state")
+async def inspect_memory_state(
+    user_id: str = Depends(require_dev_operator),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """v2 기억 파이프라인 상태 한 장(읽기 전용).
+
+    감사 때 이 값들을 보려고 매번 SQL을 짜야 했다. registry·provenance·계약·관계·checkpoint를
+    한 번에 본다 — 무엇이 **비어 있는지**가 특히 중요하다(없는 걸 안전으로 읽지 않도록).
+    """
+    uid = uuid.UUID(user_id)
+    rows = (await session.execute(text("""
+        SELECT
+          (SELECT mode FROM memory_pipeline_states WHERE user_id=:u) AS mode,
+          (SELECT bootstrap_status FROM memory_pipeline_states WHERE user_id=:u) AS bootstrap,
+          (SELECT source_through_turn_seq FROM memory_pipeline_states WHERE user_id=:u) AS src,
+          (SELECT ingest_through_turn_seq FROM memory_pipeline_states WHERE user_id=:u) AS ingest,
+          (SELECT consolidated_through_turn_seq FROM memory_pipeline_states WHERE user_id=:u)
+            AS consolidated,
+          (SELECT count(*) FROM mem0_memory_registry WHERE user_id=:u
+             AND semantic_status='active') AS active,
+          (SELECT count(*) FROM mem0_memory_registry WHERE user_id=:u
+             AND semantic_status='ambiguous') AS ambiguous,
+          (SELECT count(*) FROM mem0_memory_registry WHERE user_id=:u
+             AND semantic_status NOT IN ('active','ambiguous')) AS closed,
+          (SELECT count(*) FROM mem0_memory_sources WHERE user_id=:u) AS provenance,
+          (SELECT count(*) FROM user_interaction_contracts WHERE user_id=:u
+             AND status='published') AS contracts_published,
+          (SELECT count(*) FROM user_interaction_contracts WHERE user_id=:u
+             AND status='draft') AS contracts_draft,
+          (SELECT count(*) FROM relationship_profile_renders WHERE user_id=:u) AS rel_renders,
+          (SELECT relationship_stage FROM user_relationship_states WHERE user_id=:u) AS stage,
+          (SELECT count(*) FROM conversation_checkpoints WHERE user_id=:u
+             AND publish_state='published') AS checkpoints_published,
+          (SELECT count(*) FROM conversation_checkpoints WHERE user_id=:u
+             AND publish_state='ready') AS checkpoints_ready
+    """), {"u": uid})).mappings().first()
+    return dict(rows or {})
+
+
 @router.post("/recall/memory", response_model=MemoryRecallDiagnosticsResponse)
 async def inspect_memory_recall(
     req: RecallMemoryRequest,
     user_id: str = Depends(require_dev_operator),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
-    """실제 agent와 같은 기억 recall service를 현재 인증 사용자 범위에서 읽기 전용 실행한다."""
-    from app.services import memory_embeddings, recall_memory
+    """실제 챗과 **같은 경로**로 기억을 읽는다(읽기 전용).
+
+    ⚠️ v2 사용자는 챗이 mem0 registry 검색을 쓰는데 이 진단만 legacy를 봤다. 그래서 여기서
+    "기억이 있다/없다"를 확인해도 실제 대화 결과와 일치하지 않았다(감사 지적). 사용자 mode에
+    따라 챗과 같은 코드를 탄다.
+    """
+    from app.services import memory_embeddings, memory_pipeline, recall_memory
+
+    state = await memory_pipeline.load(session, uuid.UUID(user_id))
+    if state.serves_v2:
+        from app.services import chat, mem0_recall
+
+        items = await mem0_recall.recall(
+            session, uuid.UUID(user_id), query=req.query,
+            adapter=chat._recall_adapter(),
+            embed_query=memory_embeddings.embed_query,
+        )
+        return {"results": [{
+            "text": i.text, "status": i.status, "distance": i.distance,
+            "occurred_at": i.occurred_at.isoformat() if i.occurred_at else None,
+            "uncertain": i.uncertain,
+        } for i in items]}
 
     # 외부 embedding 동안 AsyncSession은 아직 connection을 checkout하지 않는다.
     query_embedding = await memory_embeddings.embed_query(req.query)

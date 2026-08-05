@@ -247,6 +247,10 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         await memory_pipeline.enqueue_shadow_trace(
             session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
         )
+        # 하루가 닫혔으면 그날의 shadow checkpoint(15장 8번). 매 turn이 아니라 경계에서만.
+        await memory_pipeline.enqueue_shadow_checkpoints_on_day_boundary(
+            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+        )
 
     return JobResult(
         result_code="no_memory" if outcome.no_memory else "ok",

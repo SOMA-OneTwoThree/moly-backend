@@ -288,7 +288,9 @@ class RelationshipEvent(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    # normal_turn_committed | active_day_started (DB CHECK로 고정)
     event_type: Mapped[str] = mapped_column(String, nullable=False)
+    turn_seq: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     source_id: Mapped[str | None] = mapped_column(String, nullable=True)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(_TZ, nullable=False)
@@ -315,6 +317,28 @@ class LegacyRecallTombstone(Base):
     diary_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     source_operation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     reason: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(_TZ, nullable=False, server_default=text("now()"))
+
+
+class RelationshipProfileRender(Base):
+    """관계 상태의 locale별 렌더 projection.
+
+    결정적 state는 그대로 두고 locale만 바뀌면 이 projection만 새로 만든다. 관계 시작 시각의
+    정본은 `profiles`이며 여기에 복제하지 않는다(7.2절).
+    """
+
+    __tablename__ = "relationship_profile_renders"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    prompt_revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    profile_relationship_revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    locale: Mapped[str] = mapped_column(String, nullable=False)
+    renderer_version: Mapped[str] = mapped_column(String, nullable=False)
+    rendered_text: Mapped[str] = mapped_column(String, nullable=False)
+    render_hash: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(_TZ, nullable=False, server_default=text("now()"))
 
 
@@ -346,6 +370,7 @@ __all__ = [
     "MemoryPipelineState",
     "ProviderBackoff",
     "RelationshipEvent",
+    "RelationshipProfileRender",
     "UserInteractionContract",
     "UserInteractionContractItem",
     "UserRelationshipState",

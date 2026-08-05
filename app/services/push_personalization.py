@@ -1,0 +1,576 @@
+"""저녁 푸시 개인화 — 전날 대화 기반 한 줄 문구를 로컬 05시 틱에서 사전 생성, 슬롯에 발송.
+
+흐름(§계획 v4): 생성(05시, 이 모듈) → 발송 판정(worker/tick.py + notify.notify_evening_personalized).
+
+불변식:
+- 킬스위치는 app_config 3-상태 `push_personalization_rollout`(off|allowlist|all). 미지정·
+  타입오류·미지값·조회실패 = **off**(fail-closed). 생성·발송 **양쪽**이 이 게이트를 본다 —
+  생성이 안 닫히면 "off SQL 1줄 롤백"이 발송만 멈추고 LLM 비용은 계속 나간다.
+- 검수는 **필수·fail-closed**: 결정적 금칙어 필터 AND 검수 LLM 1콜. 오류·타임아웃·불확실 =
+  row 미생성. (일기 self-check의 fail-open과 반대 극성 — 잠금화면은 본인 외 타인도 보는 표면.)
+  검수 LLM은 대화에 심은 지시문으로 조작될 수 있으므로 결정적 필터가 유일한 비조작 게이트다.
+  검수 LLM이 OK라도 필터 위반이면 reject(AND를 OR로 퇴화 금지).
+- 저장 body는 naming placeholder 상태(실명 저장 금지). 발송 직전 render 후 결정적 필터를
+  **다시** 통과시킨다(닉네임으로 유입되는 문자열은 생성 시점 검수를 안 거쳤다).
+- "row는 항상 가장 최근 대화일을 반영하거나 존재하지 않는다": 어제 대화한 유저의 생성이
+  실패·리젝·스킵되면 기존 row를 DELETE — 옛 문구 재사용 방지, 디폴트 폴백 보장.
+- 재사용 한도(D+3)의 정본은 anchor_date 날짜 산술(활동일 04시 경계, activity_date_for).
+  sent_count는 통계 전용 — 판정에 쓰면 복귀 유저가 영구 차단된다(upsert가 리셋하지만 이중 방어).
+- 삭제 진행 유저(privacy_subject_barriers)는 생성·발송 전면 배제 + privacy._REDACT가 장벽
+  설정 즉시 기존 row를 지운다.
+"""
+from __future__ import annotations
+
+import logging
+import re
+import time as time_mod
+import uuid
+from dataclasses import dataclass, field
+from datetime import date, datetime, time, timedelta
+from typing import Any
+
+from sqlalchemy import delete, select, text, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
+from app.core.time_utils import activity_date_for, safe_zone
+from app.models.conversational_recall import PrivacySubjectBarrier
+from app.models.diary import Diary
+from app.models.message import Message
+from app.models.push_personalization import PushPersonalization
+from app.services import i18n, llm, naming
+from app.services.config_store import get_config_values
+from app.services.memory import sanitize_text
+
+_log = logging.getLogger("moly-worker")
+
+GEN_HOUR = 5  # 로컬 05시 — 04시 일기 틱(실측 701/840초)과 분리된 전용 시간대
+GEN_BUDGET_S = 420.0  # 틱 시작 대비 이 경과를 넘으면 생성 skip(다음 틱 승계) — SIGKILL 예방
+GEN_TIMEOUT_S = 20.0  # 문구 생성 LLM 타임아웃
+VERIFY_TIMEOUT_S = 10.0  # 검수 LLM 타임아웃
+SLOT_MIN = time(8, 0)  # 슬롯 하한 — [20:00, 익일 08:00) 첫 대화는 20:00으로
+SLOT_NIGHT = time(20, 0)  # 야간 코호트 슬롯(기존 저녁 푸시 시각과 동일, 20시 분기 인라인 처리)
+REUSE_DAYS = 3  # anchor_date + 3일까지 같은 문구 재사용(미복귀 유저 LLM 비용 절약)
+
+_CONFIG_KEYS = [
+    "push_personalization_rollout",
+    "push_personalization_allowlist",
+    "push_personalization_sources",
+]
+_ROLLOUT_STATES = ("off", "allowlist", "all")
+_SOURCE_KINDS = ("diary", "transcript")
+
+
+@dataclass(frozen=True)
+class PushConfig:
+    rollout: str = "off"
+    allowlist: frozenset[uuid.UUID] = frozenset()
+    sources: frozenset[str] = frozenset(("diary",))
+
+
+@dataclass(frozen=True)
+class PushRow:
+    """프리페치 스냅샷 — 세션 밖에서도 안전하게 들고 다니는 순수 값."""
+
+    user_id: uuid.UUID
+    anchor_date: date
+    send_slot: time
+    body: str  # placeholder 상태
+    language: str
+    source_kind: str
+    sent_count: int
+
+
+@dataclass
+class TickContext:
+    """run_tick s0에서 만들어 cfg['_push']로 유저 처리에 전달(시그니처 불변 — 테스트 호환).
+
+    tick_start = run_tick의 time.monotonic() 시작값. 주입된 now와 무관하게 실벽시계 경과로
+    예산 가드를 계산한다(now 기반이면 run_tick(now=주입) 리허설에서 생성이 전부 skip된다).
+    """
+
+    cfg: PushConfig = field(default_factory=PushConfig)
+    rows: dict[uuid.UUID, PushRow] = field(default_factory=dict)
+    tick_start: float | None = None
+
+    def budget_exceeded(self) -> bool:
+        if self.tick_start is None:
+            return False
+        return (time_mod.monotonic() - self.tick_start) > GEN_BUDGET_S
+
+
+async def effective_push_config(session: AsyncSession) -> PushConfig:
+    """app_config 3키 파싱 — limits.py의 isinstance 폴백 패턴 + 자체 try/except.
+
+    (effective_token_config에는 try가 없어 그대로 복제하면 DB 오류가 전파된다 — 이 설정은
+    매 틱 발송 경로 앞단에서 읽히므로 어떤 예외도 밖으로 내보내지 않는다: 실패 = off.)
+    """
+    try:
+        raw = await get_config_values(session, _CONFIG_KEYS)
+    except Exception as e:  # noqa: BLE001  # 조회 실패 = off (fail-closed)
+        _log.warning("push_personalization 설정 조회 실패 → off: %r", e)
+        return PushConfig()
+
+    rollout = raw.get("push_personalization_rollout")
+    if not isinstance(rollout, str) or rollout not in _ROLLOUT_STATES:
+        if rollout is not None:
+            _log.warning("push_personalization_rollout 무효값 %r → off", rollout)
+        rollout = "off"
+
+    allowlist: set[uuid.UUID] = set()
+    raw_allow = raw.get("push_personalization_allowlist")
+    if isinstance(raw_allow, list):
+        for v in raw_allow:
+            try:
+                allowlist.add(uuid.UUID(str(v).strip()))
+            except (ValueError, AttributeError, TypeError):
+                _log.warning("push_personalization_allowlist 항목 무효 %r (무시)", v)
+    if rollout == "allowlist":
+        # 오타로 0명 vs 아직 미도래(첫 생성은 다음 05시)를 로그에서 구분할 수 있게 파싱 결과를 남긴다.
+        _log.info("push_personalization allowlist %d명 파싱", len(allowlist))
+
+    sources: set[str] = set()
+    raw_sources = raw.get("push_personalization_sources")
+    if isinstance(raw_sources, list):
+        sources = {s for s in raw_sources if isinstance(s, str) and s in _SOURCE_KINDS}
+    if not sources:
+        sources = {"diary"}  # 키 부재·전부 무효 = A경로만(보수 기본값)
+
+    return PushConfig(
+        rollout=rollout, allowlist=frozenset(allowlist), sources=frozenset(sources)
+    )
+
+
+def user_allowed(user_id, cfg: PushConfig) -> bool:
+    if cfg.rollout == "all":
+        return True
+    if cfg.rollout == "allowlist":
+        return user_id in cfg.allowlist
+    return False  # off·미지값
+
+
+async def prefetch_rows(
+    session: AsyncSession, now: datetime, cfg: PushConfig
+) -> dict[uuid.UUID, PushRow]:
+    """이번 틱 발송 후보 row 스냅샷. **호출측이 try/except로 감싼다**(실패 = 빈 맵 = 디폴트 경로).
+
+    - rollout off면 쿼리 없이 빈 맵(기존 경로 바이트 동일).
+    - to_regclass 가드: 코드가 마이그레이션보다 먼저 배포돼도 무해(틱당 1회 평가).
+    - barriers NOT EXISTS: 삭제 진행 유저는 발송 경로가 자동으로 닫힌다.
+    - anchor_date 하한: row는 유저당 1행 누적이라 오래된 행 전량 스캔 방지(UTC-4일 = 로컬
+      편차·D+3 창을 덮는 여유 하한, 정확 판정은 row_valid).
+    """
+    if cfg.rollout == "off":
+        return {}
+    exists = await session.scalar(
+        text("SELECT to_regclass('public.push_personalizations') IS NOT NULL")
+    )
+    if not exists:
+        return {}
+    rows = await session.execute(
+        select(PushPersonalization).where(
+            PushPersonalization.anchor_date >= now.date() - timedelta(days=REUSE_DAYS + 1),
+            ~select(PrivacySubjectBarrier.user_id)
+            .where(PrivacySubjectBarrier.user_id == PushPersonalization.user_id)
+            .exists(),
+        )
+    )
+    out: dict[uuid.UUID, PushRow] = {}
+    for r in rows.scalars():
+        out[r.user_id] = PushRow(
+            user_id=r.user_id,
+            anchor_date=r.anchor_date,
+            send_slot=r.send_slot,
+            body=r.body,
+            language=r.language,
+            source_kind=r.source_kind,
+            sent_count=r.sent_count,
+        )
+    return out
+
+
+def row_valid(row: PushRow | None, profile, now: datetime, cfg: PushConfig) -> bool:
+    """발송 유효성 단일 판정(생성·발송 공용 규칙). 반드시 activity_date_for(now,tz) 기준 —
+    current_activity_date(실시간)를 쓰면 리허설(now 주입)이 무효가 된다."""
+    if row is None:
+        return False
+    if not user_allowed(row.user_id, cfg):
+        return False
+    if row.source_kind not in cfg.sources:
+        return False
+    ad = activity_date_for(now, profile.timezone)
+    # 발송일은 D+1 ~ D+3 (D = anchor_date = 대화일). D 이전/당일·D+4부터는 무효.
+    if not (row.anchor_date < ad <= row.anchor_date + timedelta(days=REUSE_DAYS)):
+        return False
+    return row.language == i18n.resolve(getattr(profile, "language", None))
+
+
+async def chatted_today(session: AsyncSession, profile, now: datetime) -> bool:
+    """오늘(활동일 04시 경계) 유저 발화가 있으면 True — 있으면 개인화 대신 기존 디폴트 유지."""
+    ad = activity_date_for(now, profile.timezone)
+    row = await session.execute(
+        select(Message.id)
+        .where(
+            Message.user_id == profile.id,
+            Message.activity_date == ad,
+            Message.kind == "normal",
+            Message.sender == "user",
+        )
+        .limit(1)
+    )
+    return row.scalars().first() is not None
+
+
+async def mark_sent(session: AsyncSession, user_id, now: datetime, tz_name: str) -> None:
+    """발송 성공 통계(sent_count·last_sent_on). 멱등은 evening_notified_at claim이 담당 —
+    이 카운터는 §10 효과 측정(개인화 vs 디폴트 재방문 비교)용이다."""
+    await session.execute(
+        update(PushPersonalization)
+        .where(PushPersonalization.user_id == user_id)
+        .values(
+            sent_count=PushPersonalization.sent_count + 1,
+            last_sent_on=activity_date_for(now, tz_name),
+        )
+    )
+    await session.commit()
+
+
+# ── 결정적 필터(비조작 게이트) ─────────────────────────────────────────────
+# 잠금화면 금지 소재 + 시간표현. 과탐은 디폴트 폴백이라 비용이 낮고(fail-closed 극성),
+# 미탐만 사고다 — 목록은 보수적으로 넓게. 언어 무관 전체 목록을 한 번에 검사한다
+# (ko 유저 문구에 영어가 섞여 나오는 경우도 잡히게).
+# CJK(ko/ja)는 substring("必死"의 死 같은 과탐 수용), 라틴계는 단어 경계 정규식 —
+# substring이면 skill⊂kill·studied⊂die 류 과탐이 정상 문구 대부분을 죽인다.
+_BANNED_SUBSTR = (
+    # 자해·죽음·폭력
+    "자해", "자살", "죽", "살인", "폭력", "때리", "흉기", "유서",
+    "自殺", "自傷", "死", "殺", "暴力",
+    # 의료·정신건강
+    "병원", "진단", "질병", "우울증", "공황", "약물", "마약", "수술",
+    "病院", "診断", "うつ", "薬物", "手術",
+    # 성적·재정·기타 민감
+    "섹스", "성관계", "야한", "누드", "도박", "빚", "대출", "술 마시",
+    "セックス", "ヌード", "賭博", "借金",
+)
+_BANNED_LATIN_RE = re.compile(
+    r"\b(suicide|self[- ]?harm|kills?|killed|die|dies|died|dying|death|dead|violen\w*|weapons?"
+    r"|hospital|diagnos\w*|disease|depress\w*|panic|drugs?|surgery"
+    r"|sex\w*|naked|nude|gambl\w*|debts?|loans?|drunk)\b",
+    re.IGNORECASE,
+)
+_TIME_SUBSTR = (
+    "어제", "오늘", "내일", "모레", "방금", "아까", "아침", "점심", "저녁", "밤에", "새벽",
+    "주말", "지난주", "이번 주", "이번주", "요일",
+    "월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일",
+    "昨日", "今日", "明日", "今朝", "今夜", "週末", "曜日",
+)
+_TIME_LATIN_RE = re.compile(
+    r"\b(yesterday|today|tonight|tomorrow|weekend"
+    r"|this (morning|afternoon|evening)|last night"
+    r"|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b",
+    re.IGNORECASE,
+)
+_MAX_CHARS = {"ko": 80, "ja": 80, "en": 160}
+# en 고유명사 휴리스틱: 문장 시작이 아닌 대문자 단어 = 인명·지명 가능성 → reject(과탐 수용).
+_EN_PROPER_RE = re.compile(r"[A-Z][a-z]+")
+_EN_PROPER_ALLOW = frozenset(("I", "Cappy", "OK"))
+
+
+def _has_proper_noun_en(body: str) -> bool:
+    for m in _EN_PROPER_RE.finditer(body):
+        if m.group(0) in _EN_PROPER_ALLOW:
+            continue
+        head = body[: m.start()].rstrip()
+        if not head or head[-1] in ".!?\"'":
+            continue  # 문장 시작 대문자는 정상
+        return True
+    return False
+
+
+def passes_deterministic_filter(body: str | None, language: str) -> bool:
+    """금칙어·시간표현·길이·형식의 결정적 검사. 저장 전(생성 직후)과 발송 직전(render 후)
+    **양쪽**에서 호출된다 — render로 유입되는 닉네임은 생성 시점 검수를 안 거쳤기 때문."""
+    if not body or not body.strip():
+        return False
+    if "\n" in body.strip():
+        return False  # 한 줄 문구
+    if any(b in body for b in _BANNED_SUBSTR) or _BANNED_LATIN_RE.search(body):
+        return False
+    if any(t in body for t in _TIME_SUBSTR) or _TIME_LATIN_RE.search(body):
+        return False
+    if len(body) > _MAX_CHARS.get(language, 80):
+        return False
+    if language == "en" and _has_proper_noun_en(body):
+        return False
+    return True
+
+
+# ── 생성 ──────────────────────────────────────────────────────────────────
+_OUT_LANG = {"ko": "한국어", "en": "English(영어)", "ja": "日本語(일본어)"}
+_USER_LABEL = {"ko": "그 사람", "en": "that person", "ja": "その人"}
+
+_GEN_SYS = (
+    "너는 iOS 앱의 오리 캐릭터 '캐피'다. 유저의 지난 대화(또는 일기)를 소재로,"
+    " 유저에게 보낼 푸시 알림 본문 한 줄을 쓴다.\n"
+    "규칙:\n"
+    "- 출력은 알림 본문 한 문장만. 따옴표·설명·접두어·이모지 없이.\n"
+    "- {max_chars}자 이내. 부드럽고 담백한 반말. 소재 하나만 가볍게 이어받아 안부를 묻고"
+    " 대화하러 오라고 청한다.\n"
+    "- 캐묻지 않기: 압박·죄책감('왜 안 와') 금지. 잠금화면에 뜬다 — 민감 소재(자해·죽음·질병·"
+    "돈·성적 내용·다툼의 구체 내용) 금지. 소재가 무거우면 구체 언급 없이 따뜻한 안부만.\n"
+    "- 시간 표현 금지(어제·오늘·방금·아침·저녁·요일 등) — 언제 읽어도 자연스럽게.\n"
+    "- 사람 이름 금지: 유저 본인 이름 포함 어떤 인명도 쓰지 마라. 다른 사람은 '친구'·'가족'처럼"
+    " 관계로만. 직장·학교·지명·병원 등 고유명사도 금지.\n"
+    "- 반드시 {out_lang}로만 써라.\n"
+)
+
+_VERIFY_SYS = (
+    "너는 잠금화면 푸시 문구 검수기다. 입력 문구가 아래를 전부 통과하면 'OK', 하나라도"
+    " 걸리면 'NO'만 출력해라. 다른 말은 하지 마라.\n"
+    "- 자해·자살·죽음·폭력·질병·의료·성적 내용·돈 문제 등 민감 소재 없음\n"
+    "- 시간 표현(어제·오늘·방금·아침·저녁·요일 등) 없음\n"
+    "- 사람 이름·고유명사(직장/학교/지명/병원) 없음 — '친구' 같은 관계 표현은 허용\n"
+    "- 압박·죄책감 유발 없음, 부드러운 안부 톤의 한 문장\n"
+    "- 언어가 {out_lang}\n"
+)
+
+
+def compute_slot(first_local: datetime) -> time:
+    """첫 유저 발화 로컬 시각 → 15분 격자 내림. [20:00, 익일 08:00) = 야간 → 20:00."""
+    slot = time(first_local.hour, (first_local.minute // 15) * 15)
+    if slot >= SLOT_NIGHT or slot < SLOT_MIN:
+        return SLOT_NIGHT
+    return slot
+
+
+async def _yesterday_messages(
+    session: AsyncSession, user_id, target: date
+) -> list[Message]:
+    rows = await session.execute(
+        select(Message)
+        .where(
+            Message.user_id == user_id,
+            Message.activity_date == target,
+            Message.kind == "normal",
+        )
+        .order_by(Message.id.asc())
+    )
+    return list(rows.scalars().all())
+
+
+async def _personal_diary(session: AsyncSession, user_id, target: date) -> Diary | None:
+    """A경로 소스 = 어제의 개인일기(LLM 생성·발행본)만. preset·welcome·tombstone 제외."""
+    rows = await session.execute(
+        select(Diary)
+        .where(
+            Diary.user_id == user_id,
+            Diary.activity_date == target,
+            Diary.kind.in_(("shared_day", "capi_day")),
+            Diary.source == "llm",
+            Diary.record_status == "published",
+            Diary.deleted_at.is_(None),
+        )
+        .limit(1)
+    )
+    return rows.scalars().first()
+
+
+def _transcript_for_push(
+    messages: list[Message], nickname: str | None, language: str | None
+) -> str:
+    """B경로 입력 — 메시지별 render(placeholder→현재 이름) 후 **살균**(제어문자·대괄호 제거,
+    '[일기]' 같은 가짜 섹션 헤더로 검수·생성 프롬프트를 위조하는 인젝션 차단, memory.sanitize_text
+    관례)."""
+    label = nickname or i18n.pick(_USER_LABEL, language)
+    lines = [
+        f"{'캐피' if m.sender == 'moly' else label}: "
+        f"{sanitize_text(naming.render(m.content, nickname) or '')}"
+        for m in messages
+    ]
+    return "\n".join(lines)[:4000]
+
+
+async def _generate_body(source_text: str, language: str) -> str:
+    result = await llm.generate(
+        _GEN_SYS.format(max_chars=_MAX_CHARS.get(language, 80), out_lang=_OUT_LANG[language]),
+        [{"role": "user", "content": source_text}],
+        model=settings.model_utility,
+        max_tokens=120,
+        timeout=GEN_TIMEOUT_S,
+    )
+    body = result.text.strip().splitlines()[0].strip() if result.text.strip() else ""
+    return body.strip("\"'“”「」")
+
+
+async def _verify_body(body: str, language: str) -> bool:
+    """검수 LLM — 입력은 후보 문구만(대화 원문 미포함: 인젝션 표면 축소). 첫 토큰 OK만 통과.
+    오류·타임아웃·모호 = False(fail-closed — 일기 self-check와 반대 극성, 의도)."""
+    result = await llm.generate(
+        _VERIFY_SYS.format(out_lang=_OUT_LANG[language]),
+        [{"role": "user", "content": body}],
+        model=settings.model_utility,
+        max_tokens=8,
+        timeout=VERIFY_TIMEOUT_S,
+    )
+    return result.text.strip().upper().lstrip("*_# ").startswith("OK")
+
+
+async def _delete_row(session: AsyncSession, user_id) -> None:
+    await session.execute(
+        delete(PushPersonalization).where(PushPersonalization.user_id == user_id)
+    )
+    await session.commit()
+
+
+async def _claim(session: AsyncSession, user_id, target: date) -> bool:
+    """diary_gen_claims 재사용(동일 상호배제 의미: (유저,대상일)의 파생 생성 작업).
+
+    04시 일기와 같은 (user, target)을 쓰지만 시간대가 분리돼 있고(04시 vs 05시, systemd
+    oneshot이 틱을 직렬화) 양쪽 다 finally에서 클레임을 지우므로 충돌하지 않는다. 하드킬로
+    남은 클레임은 30분 만료 회수 — 05:15 이후 틱이 승계한다.
+    """
+    claimed = (
+        await session.execute(
+            text(
+                "INSERT INTO diary_gen_claims (user_id, target_date) VALUES (:u, :d) "
+                "ON CONFLICT (user_id, target_date) DO UPDATE SET claimed_at = now() "
+                "WHERE diary_gen_claims.claimed_at < now() - interval '30 minutes' "
+                "RETURNING 1"
+            ),
+            {"u": user_id, "d": target},
+        )
+    ).scalar()
+    await session.commit()
+    return claimed is not None
+
+
+async def _release_claim(session: AsyncSession, user_id, target: date) -> None:
+    await session.rollback()  # 내부 실패로 aborted 상태여도 클레임 삭제는 항상 커밋되게
+    await session.execute(
+        text("DELETE FROM diary_gen_claims WHERE user_id = :u AND target_date = :d"),
+        {"u": user_id, "d": target},
+    )
+    await session.commit()
+
+
+async def generate_for_user(
+    session: AsyncSession, profile, now: datetime, cfg: PushConfig, token_cfg: dict[str, Any]
+) -> str:
+    """유저 1명 문구 생성. 반환 = 카운터 라벨:
+    ok | rejected | failed | skipped(허용 소스 없음) | already(멱등) | busy(클레임 경합) |
+    no_target(어제 대화 없음 — row 무접촉: 이전 사이클 재사용 유지).
+
+    rejected/failed/skipped는 기존 row DELETE — "row는 최신 대화일 반영 또는 부재" 불변식.
+    """
+    target = activity_date_for(now, profile.timezone) - timedelta(days=1)
+
+    existing = await session.execute(
+        select(PushPersonalization.anchor_date).where(
+            PushPersonalization.user_id == profile.id
+        )
+    )
+    anchor = existing.scalars().first()
+    if anchor == target:
+        return "already"  # 이번 틱 이전(05:00 등)에 생성 완료 — 15분 케이던스 멱등
+
+    # 삭제 진행 유저 전면 배제(C7) — 생성 경로도 barriers를 직접 본다(호출측 필터에 의존 금지).
+    blocked = await session.scalar(
+        text("SELECT EXISTS(SELECT 1 FROM privacy_subject_barriers WHERE user_id=:u)"),
+        {"u": profile.id},
+    )
+    if blocked:
+        return "no_target"
+
+    messages = await _yesterday_messages(session, profile.id, target)
+    user_msgs = [m for m in messages if m.sender == "user"]
+    if not user_msgs:
+        return "no_target"
+
+    if not await _claim(session, profile.id, target):
+        return "busy"
+    try:
+        status = await _generate_inner(session, profile, target, user_msgs, messages, cfg, token_cfg)
+    except Exception as e:  # noqa: BLE001  # LLM 타임아웃·DB 오류 등 — fail-closed
+        _log.warning("push_gen 실패(user=%s): %r", profile.id, e)
+        await session.rollback()
+        try:
+            await _delete_row(session, profile.id)
+        except Exception:  # noqa: BLE001  # 삭제 실패는 row_valid 만료가 안전망
+            await session.rollback()
+        status = "failed"
+    finally:
+        await _release_claim(session, profile.id, target)
+    return status
+
+
+async def _generate_inner(
+    session: AsyncSession,
+    profile,
+    target: date,
+    user_msgs: list[Message],
+    messages: list[Message],
+    cfg: PushConfig,
+    token_cfg: dict[str, Any],
+) -> str:
+    nickname = getattr(profile, "nickname", None)
+    language = i18n.resolve(getattr(profile, "language", None))
+
+    # 슬롯 = 첫 유저 발화 로컬 시각(15분 내림, 야간→20:00). created_at 없으면 보수적으로 20:00.
+    first_at = user_msgs[0].created_at
+    slot = (
+        compute_slot(first_at.astimezone(safe_zone(profile.timezone)))
+        if first_at is not None
+        else SLOT_NIGHT
+    )
+
+    # 소스 선택: A = 개인일기 한 줄 요약. 일기가 없는데 게이트(60자)는 통과한 유저는 "일기
+    # 생성이 실패한" 경우다 — B로 강등하지 않는다(스펙: B는 게이트 미달 대화자 전용).
+    diary = await _personal_diary(session, profile.id, target)
+    if diary is not None:
+        source_kind = "diary"
+        source_text = sanitize_text(naming.render(diary.content, nickname) or "")
+    else:
+        gate = token_cfg.get("diary_min_user_chars", settings.diary_min_user_chars)
+        user_chars = sum(len(m.content or "") for m in user_msgs)
+        if user_chars >= gate or "transcript" not in cfg.sources:
+            await _delete_row(session, profile.id)
+            return "skipped"
+        source_kind = "transcript"
+        source_text = _transcript_for_push(messages, nickname, language)
+
+    if not source_text.strip():
+        await _delete_row(session, profile.id)
+        return "skipped"
+
+    body = await _generate_body(source_text, language)
+    # 검수: 결정적 필터 AND 검수 LLM — 순서 무관하게 둘 다 통과해야 저장(fail-closed).
+    if not passes_deterministic_filter(body, language) or not await _verify_body(body, language):
+        _log.info(
+            "push_gen 리젝(user=%s lang=%s): %r",
+            profile.id, language, (naming.to_placeholder(body, nickname) or "")[:80],
+        )
+        await _delete_row(session, profile.id)
+        return "rejected"
+
+    stored = naming.to_placeholder(body, nickname) or body
+    await session.execute(
+        text(
+            "INSERT INTO push_personalizations "
+            "(user_id, anchor_date, send_slot, body, language, source_kind, generated_at, "
+            " sent_count, last_sent_on) "
+            "VALUES (:u, :a, :s, :b, :l, :k, now(), 0, NULL) "
+            "ON CONFLICT (user_id) DO UPDATE SET "
+            # SET 전체 명시 + 사이클 리셋(sent_count=0, last_sent_on=NULL) — 리셋이 빠지면
+            # 3회 소진 유저가 복귀해도 영구 차단되고 §10 효과 측정이 오염된다.
+            "  anchor_date = EXCLUDED.anchor_date, send_slot = EXCLUDED.send_slot, "
+            "  body = EXCLUDED.body, language = EXCLUDED.language, "
+            "  source_kind = EXCLUDED.source_kind, generated_at = now(), "
+            "  sent_count = 0, last_sent_on = NULL"
+        ),
+        {
+            "u": profile.id, "a": target, "s": slot,
+            "b": stored, "l": language, "k": source_kind,
+        },
+    )
+    await session.commit()
+    return "ok"

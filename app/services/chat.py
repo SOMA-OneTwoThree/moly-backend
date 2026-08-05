@@ -302,7 +302,7 @@ async def _touch_last_active(session: AsyncSession, uid: uuid.UUID, now: datetim
     await session.execute(stmt)
 
 
-# 회상 상한. `agent_turn_deadline_s`(5초) 예산에서 이만큼까지만 쓴다.
+# 회상 상한. `agent_turn_deadline_s` 예산에서 이만큼까지만 쓴다.
 # 실측 회상 소요는 450~1,030ms(중앙 570ms)라 1.5초면 정상 회상은 거의 안 잘리고,
 # 느려졌을 때 예산 손실을 1.5초로 묶는다. 잘리면 빈 기억으로 진행한다.
 _MEM0_RECALL_TIMEOUT_S = 1.5
@@ -376,7 +376,7 @@ def _build_system(
     캐시가 매 턴 깨진다.
 
     다만 리셋 사이클당 프리픽스는 **두 번** 바뀐다 — 리셋 턴에 한 번, 요약 잡이 비동기라 도착한
-    턴에 또 한 번. 동기 주입은 5초 제약상 불가하므로 이건 설계상 감수하는 비용이다(리셋 주기가
+    턴에 또 한 번. 동기 주입은 턴 데드라인상 불가하므로 이건 설계상 감수하는 비용이다(리셋 주기가
     40턴이라 턴당으로는 무시할 수준).
     """
     parts: list[str] = []
@@ -835,7 +835,7 @@ async def post_message(
     # 회상을 **지금 띄워** Phase 1의 남은 DB 작업과 겹쳐 돌린다.
     #
     # 회상 자체는 임베딩+벡터검색으로 약 490ms 걸린다(dev 실측). 커밋 뒤에 직렬로 부르면
-    # 그만큼이 통째로 `agent_turn_deadline_s`(5초) 예산에서 빠진다. 미리 띄우면 Phase 1의
+    # 그만큼이 통째로 `agent_turn_deadline_s` 예산에서 빠진다. 미리 띄우면 Phase 1의
     # DB 작업 시간만큼 숨는다 — 실측 잔여 대기: Phase1 200ms일 때 287ms, 500ms일 때 21ms.
     #
     # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
@@ -859,6 +859,12 @@ async def post_message(
     # agent phase는 DB도 settings도 다시 읽지 않는다(TTL 캐시 없음 = 두 EC2 캐시 불일치 없음).
     # 조회 실패는 잡지 않는다 — 설정 장애를 숨기지 않고 기존 Phase 1 DB 오류로 전파시킨다.
     agent_cfg = await agent_config.effective_agent_config(session)
+
+    # 데드라인을 **유효 설정**으로 다시 잰다. api/chat.py는 DB를 열기 전에 요청 수신 시각으로
+    # 데드라인을 만들어야 해서 `settings` 값을 쓸 수밖에 없다. 그대로 두면 app_config로
+    # `agent_turn_deadline_s`를 올려도 실제 요청은 예전 예산에서 끊긴다 — 설정이 있는데
+    # 안 듣는 상태다. 시작점(요청 수신)은 유지하고 예산만 갈아 끼운다.
+    absolute_deadline += agent_cfg.turn_deadline_s - settings.agent_turn_deadline_s
 
     focus_block = await chat_references.load_focus_block(
         session, user_id=uid, current_turn_seq=lease.turn_seq

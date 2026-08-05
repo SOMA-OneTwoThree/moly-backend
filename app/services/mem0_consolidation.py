@@ -1,6 +1,6 @@
 """mem0 consolidation — classifier 판정을 검증하고 registry 전이로 바꾼다.
 
-기억 재설계(docs/capi-memory-ARCHITECTURE.md 9.4절).
+기억 재설계(docs/ARCHITECTURE-capi.md 5.3절).
 
 mem0는 candidate-add-only라 과거와 현재의 상반된 기억이 함께 남는다. **어느 쪽이 현재인지는
 여기서 판정한다.** 검색은 `active|ambiguous`만 통과시키므로, provider delete가 늦어도 과거 값이

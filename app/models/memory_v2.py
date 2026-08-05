@@ -1,6 +1,6 @@
 """기억 v2 — mem0 파이프라인·registry·대화 계약·관계 상태 모델.
 
-기억 재설계 4단계(docs/capi-memory-ARCHITECTURE.md 15장 4번). legacy 정규화 기억 테이블과
+기억 재설계 4단계(docs/ARCHITECTURE-capi.md 5장·10장). legacy 정규화 기억 테이블과
 **함께 존재**하며, shadow → cutover → DROP 순서로만 legacy를 제거한다.
 
 source 좌표는 `(user_id, turn_seq)` 하나다(13.3절). 로직·SQL은 각 서비스 모듈이 소유하고

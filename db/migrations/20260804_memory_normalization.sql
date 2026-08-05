@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260804_memory_normalization.sql --commit
--- 메모리 정규화(W8, docs/agentic-chat-IMPLEMENTATION.md §W8) — 자유문 기억(mem0)을 대체할
+-- 메모리 정규화(W8, docs/ARCHITECTURE-capi.md 12장 — legacy, 2026-08-06 폐기) — 자유문 기억(mem0)을 대체할
 -- **턴 단위 구조화 사실** 저장소. 판정(ADD/REINFORCE/SUPERSEDE/KEEP_BOTH/IGNORE)은 LLM이 아니라
 -- 코드가 한다(app/services/memory_reconcile.py). mem0는 폐기가 아니라 병행이며 유저별 전환은
 -- chat_contexts.memory_mode('legacy'|'normalized')가 가른다. 실제 cutover는 W10 소관.

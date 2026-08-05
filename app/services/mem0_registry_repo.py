@@ -1,6 +1,6 @@
 """registry 전이 저장소 — 판정 결과를 원자적으로 반영한다.
 
-기억 재설계(docs/capi-memory-ARCHITECTURE.md 9.4절 5번).
+기억 재설계(docs/ARCHITECTURE-capi.md 5.3절·5.4절).
 
 **component 전체를 한 transaction에서 publish한다.** 일부만 반영하면 supersede된 기억은 닫혔는데
 새 기억은 active가 아닌 상태가 생겨, 그 사이 검색에 아무것도 안 잡힌다.

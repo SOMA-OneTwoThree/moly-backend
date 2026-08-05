@@ -23,7 +23,7 @@
 14. `20260804_zzzzz_conversational_recall_hardening.sql` — 삭제 장벽 제외, provenance 수렴,
     SHA-256/fenced vector 재색인과 bounded missing-vector repair 상태
 
-## 기억·페르소나·관계 재설계 (docs/capi-memory-ARCHITECTURE.md)
+## 기억·페르소나·관계 재설계 (docs/ARCHITECTURE-capi.md)
 
 15장 전환 순서를 따른다. 아래는 additive 단계이며 legacy 테이블을 건드리지 않는다.
 

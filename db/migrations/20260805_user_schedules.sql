@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_user_schedules.sql --commit
--- 기억 재설계 4단계 (docs/capi-memory-ARCHITECTURE.md 15장 4번) — indexed due scheduler 테이블.
+-- 기억 재설계 4단계 (docs/ARCHITECTURE-capi.md 9.4절) — indexed due scheduler 테이블.
 --
 -- 지금 워커는 매 틱 전 profile을 훑어 각자의 로컬 시각을 계산한다. 사용자가 늘면 이 비용이
 -- 선형으로 늘고, 15분 케이던스 안에 다 못 돌면 그날 작업이 밀린다. `next_due_at` 인덱스로

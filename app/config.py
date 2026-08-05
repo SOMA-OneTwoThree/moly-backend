@@ -232,8 +232,12 @@ class Settings(BaseSettings):
     # 해석·검증은 app/services/agent/config.py(별도 계약, limits.py의 토큰 키와 섞지 않는다).
     # 여기 값은 DB override가 없거나 불량일 때의 fallback일 뿐이다.
     agent_enabled: bool = False                 # 킬스위치. False면 기존 단발 경로 그대로
-    agent_turn_deadline_s: float = 5.0          # §0.1 하드 제약(응답 5초)
-    agent_final_reserve_s: float = 2.5          # 최종 호출용 선예약(**측정 필요**)
+    # 명세는 이 값을 "hard cancellation이 아니라 end-to-end p95 SLO"로 두고 실측으로 검증하라고
+    # 했다. dev `ai_usage_ledger` 실측(2026-08-06): 1홉 tool_decide p50 1.54s / **p90 4.11s**,
+    # 2홉 tool_final p50 1.45s. 5.0이면 1홉 예산이 5.0-2.5=2.5s라 p90을 못 덮어
+    # **호출 104건 중 26건(25%)이 timeout으로 죽었다**. 8.0이면 1홉이 5.5s로 p90 위에 선다.
+    agent_turn_deadline_s: float = 8.0
+    agent_final_reserve_s: float = 2.5          # 최종 호출용 선예약(실측 p50 1.45s)
     agent_max_tool_rounds: int = 1              # 라운드 상한(1 고정)
     agent_max_tool_calls_per_turn: int = 3      # 한 라운드 fan-out 상한
     # 아래 두 값은 임의 설정이 아니라 비용 부등식 `7.25D + 1.25T <= 2307`의 해다(§3.1.3).

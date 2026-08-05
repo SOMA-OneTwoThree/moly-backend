@@ -1,6 +1,6 @@
 """관계 상태 — event에서 stage를 **결정적으로** 계산한다.
 
-기억 재설계 5단계(docs/capi-memory-ARCHITECTURE.md 7절).
+기억 재설계 5단계(docs/ARCHITECTURE-capi.md 7장).
 
 불변식:
  1. stage는 LLM 서술이 아니라 event 집합의 함수다. "가까워진 것 같다"는 말로 오르지 않는다.

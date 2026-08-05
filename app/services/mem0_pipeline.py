@@ -1,6 +1,6 @@
 """mem0 ingest 파이프라인 — 조각들을 하나의 흐름으로 잇는다.
 
-기억 재설계(docs/capi-memory-ARCHITECTURE.md 9.2절).
+기억 재설계(docs/ARCHITECTURE-capi.md 5.2절).
 
     source turn → extractor → eligibility → planned 후보(결정 UUID)
                 → batch embedding(1회) → vector upsert → registry pending

@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260804_async_jobs.sql --commit
--- 잡 플랫폼(W7, docs/agentic-chat-IMPLEMENTATION.md §W7) — 대화 후속 처리(기억 추출 등)를 내구 큐로.
+-- 잡 플랫폼(W7, docs/ARCHITECTURE-capi.md 9장) — 대화 후속 처리(기억 추출 등)를 내구 큐로.
 -- 큐 5종(critical/interactive_async/content/notification/maintenance)은 별도 스키마가 아니라
 -- queue 컬럼 값이며, 소비자 내부 슬롯으로만 분리한다(프로세스 분할 없음).
 --

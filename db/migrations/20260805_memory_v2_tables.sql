@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_memory_v2_tables.sql --commit
--- 기억 재설계 4단계 (docs/capi-memory-ARCHITECTURE.md 15장 4번) — v2 테이블 additive 생성.
+-- 기억 재설계 4단계 (docs/ARCHITECTURE-capi.md 5장·10장) — v2 테이블 additive 생성.
 --
 -- 이 마이그레이션은 **아무것도 지우지 않는다.** legacy 정규화 기억 테이블은 그대로 두고 새 구조를
 -- 옆에 만든다. shadow(5단계) → cutover(10~11단계) → DROP(13단계) 순서로만 제거한다.

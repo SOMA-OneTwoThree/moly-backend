@@ -1,6 +1,6 @@
 """프롬프트 조립 v2 — 순서 보존 segment와 byte 단위 serializer.
 
-기억 재설계 9단계(docs/capi-memory-ARCHITECTURE.md 11장, 14.3절).
+기억 재설계 9단계(docs/ARCHITECTURE-capi.md 3장).
 
 **왜 기존 경로를 못 쓰나**
 현행 `chat._build_system()`은 checkpoint와 current-state를 system 앞쪽에 미리 합치고,

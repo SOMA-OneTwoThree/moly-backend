@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260805_shadow_prompt_traces.sql --commit
--- 기억 재설계 9단계 (docs/capi-memory-ARCHITECTURE.md 15장 9번) — shadow 프롬프트 계측.
+-- 기억 재설계 9단계 (docs/ARCHITECTURE-capi.md 3.2절) — shadow 프롬프트 계측.
 --
 -- 새 assembler를 **실제 LLM 응답에는 쓰지 않고** 프롬프트 크기·캐시 가능 비율만 기록한다.
 -- 이 설계의 비용 주장("휘발값을 최근 원문 뒤에 두면 앞 prefix가 캐시된다")이 실제 대화

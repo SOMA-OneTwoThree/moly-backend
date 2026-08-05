@@ -1,5 +1,5 @@
 -- 적용: python db/apply.py db/migrations/20260804_relationship_profiles.sql --commit
--- 관계 프로필(W9, docs/agentic-chat-IMPLEMENTATION.md §W9) — 정규화 기억(W8)에서 파생한
+-- 관계 프로필(W9, docs/ARCHITECTURE-capi.md 12장 — legacy, 2026-08-06 폐기) — 정규화 기억(W8)에서 파생한
 -- **칸이 고정된** 프롬프트 투영. 자유문 한 덩어리가 아니라 stance / known_facts(≤5) /
 -- recent_threads(≤3) / inferred_tendencies(≤2) 네 칸이며, 렌더 결과는 ≤400토큰으로 안정
 -- 프리픽스에 들어간다(하루 몇 번만 바뀌어야 캐시가 산다). 렌더러·publish 계약은

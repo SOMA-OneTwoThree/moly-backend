@@ -220,46 +220,112 @@ async def test_step1_max_tokens_is_decide_budget(monkeypatch):
 async def test_llm_timeout_bounded_by_deadline_not_llm_timeout_s(monkeypatch):
     """llm_timeout_s=60을 그대로 쓰면 5초 제약이 그 자리에서 깨진다.
 
-    도구가 있는 턴은 뒤에 최종 호출이 한 번 더 오므로 첫 홉을 예약선(5.0-2.5) 앞에서 끊는다.
+    도구가 있는 턴은 뒤에 최종 호출이 한 번 더 오므로 첫 홉을 예약선(deadline-reserve) 앞에서 끊는다.
     """
     assert chat_service.settings.llm_timeout_s == 60.0
     fake = _FakeSteps(_text_step("응."))
     await _run(fake, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
-    assert fake.calls[0]["timeout"] == 2.5
+    cfg = _cfg()
+    assert fake.calls[0]["timeout"] == cfg.turn_deadline_s - cfg.final_reserve_s
 
 
 async def test_single_hop_turn_keeps_full_deadline(monkeypatch):
     """도구가 없는 턴은 첫 홉이 곧 최종 답변이다 — 예약분을 떼면 예산만 깎인다."""
     fake = _FakeSteps(_text_step("응."))
     await _run(fake, registry=None, monkeypatch=monkeypatch)
-    assert fake.calls[0]["timeout"] == 5.0
+    assert fake.calls[0]["timeout"] == _cfg().turn_deadline_s
 
 
 async def test_worst_case_turn_stays_within_deadline(monkeypatch):
     """첫 홉이 제 상한을 꽉 채워도 턴 합계가 turn_deadline_s를 넘지 않는다.
 
-    첫 홉이 예약분을 남기지 않으면(reserve=0) 최종 호출에 floor(=2.5초)가 그대로 더 붙어
-    합계가 7.5초가 된다 — 5초 하드 제약 위반. 첫 홉을 예약선 앞에서 끊어야 성립한다.
+    첫 홉이 예약분을 남기지 않으면(reserve=0) 최종 호출에 floor가 그대로 더 붙어 합계가
+    deadline을 넘는다. 첫 홉을 예약선 앞에서 끊어야 성립한다.
     """
+    cfg = _cfg()
+    budget = cfg.turn_deadline_s - cfg.final_reserve_s
     clock = _Clock()
     fake = _FakeSteps(
         _calls_step(_call(1)), _text_step("응.", purpose="tool_final"),
-        clock=clock, elapse=2.5,  # step 1이 제 상한(5.0-2.5)을 꽉 채운다
+        clock=clock, elapse=budget,  # step 1이 제 상한을 꽉 채운다
     )
     await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
 
     step1, step2 = fake.calls[0]["timeout"], fake.calls[-1]["timeout"]
-    assert step1 == 2.5
-    assert step1 + step2 <= 5.0, f"턴 합계 {step1 + step2}s > 5초 제약"
+    assert step1 == budget
+    assert step1 + step2 <= cfg.turn_deadline_s, f"턴 합계 {step1 + step2}s > {cfg.turn_deadline_s}초"
+
+
+class _TimeoutThenText:
+    """1홉이 timeout으로 죽고, 도구 없이 다시 부르면 답이 나오는 provider 대역."""
+
+    def __init__(self, clock=None, elapse=0.0):
+        self.calls: list[dict] = []
+        self.clock, self.elapse = clock, elapse
+
+    async def __call__(self, system, transcript, **kw):
+        self.calls.append(kw)
+        if self.clock is not None:
+            self.clock.advance(self.elapse)
+        if kw.get("tools"):  # 도구를 제안한 호출만 죽는다
+            raise TimeoutError("decide hop timed out")
+        return _text_step("응, 오늘은 좀 피곤했어.", purpose="chat")
+
+
+async def test_decide_timeout_falls_back_to_toolless_answer(monkeypatch):
+    """1홉 timeout이 **사용자에게 5xx로 나가면 안 된다**.
+
+    명세 334행은 turn deadline을 hard cancellation이 아니라 p95 SLO로 두고 "deadline 부족 시
+    안전 fallback"을 쓰라고 한다. 예전 구현은 그냥 예외를 올렸고, chat이 롤백 후 재raise해서
+    사용자가 에러를 봤다(dev 실측: tool_decide 실패 26/104가 전부 이 경로).
+    일기 조회를 못 할 뿐, 대화는 이어져야 한다.
+    """
+    clock = _Clock()
+    fake = _TimeoutThenText(clock=clock, elapse=1.0)
+    turn = await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
+
+    assert turn.text == "응, 오늘은 좀 피곤했어."
+    assert turn.skipped == "deadline"
+    assert len(fake.calls) == 2
+    assert fake.calls[0]["tools"] and fake.calls[1]["tools"] is None
+
+
+async def test_fallback_turn_total_stays_within_deadline(monkeypatch):
+    """1홉이 예산을 꽉 채우고 timeout → fallback까지 가도 턴 합계가 데드라인을 넘지 않는다.
+
+    fallback은 '한 번 더 부르는' 것이라 예산을 넘길 위험이 가장 큰 경로다. 넘기면 HTTP
+    데드라인 밖에서 응답이 나오고, chat 쪽 lease·멱등 계약이 어긋난다.
+    """
+    cfg = _cfg()
+    clock = _Clock()
+    # 1홉이 제 상한(deadline - reserve)을 정확히 소진하고 죽는다 — 최악의 경우다.
+    fake = _TimeoutThenText(clock=clock, elapse=cfg.turn_deadline_s - cfg.final_reserve_s)
+    turn = await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
+
+    assert turn.skipped == "deadline"
+    total = sum(c["timeout"] for c in fake.calls)
+    assert total <= cfg.turn_deadline_s, f"1홉+fallback 합계 {total}s > {cfg.turn_deadline_s}s"
+
+
+async def test_decide_timeout_raises_when_no_time_left_for_fallback(monkeypatch):
+    """남은 시간이 예약분보다 적으면 fallback을 시작하지 않는다 — 데드라인을 넘겨가며 붙잡지 않는다."""
+    cfg = _cfg()
+    clock = _Clock()
+    fake = _TimeoutThenText(clock=clock, elapse=cfg.turn_deadline_s)  # 1홉이 예산을 통째로 먹는다
+    with pytest.raises(TimeoutError):
+        await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1  # 재시도 없음
 
 
 async def test_tools_not_started_when_remaining_below_final_reserve(monkeypatch):
     """남은 시간 < final_reserve → 도구를 **시작하지 않고** step 2로 직행한다."""
+    cfg = _cfg()
     clock = _Clock()
     tool = _FakeTool()
     fake = _FakeSteps(
         _calls_step(_call(1)), _text_step("그냥 얘기할게.", purpose="tool_final"),
-        clock=clock, elapse=3.0,  # step 1이 3초를 먹어 남은 2초 < 예약 2.5초
+        # step 1이 예약분만 남기고 조금 더 먹어 도구를 시작할 창이 사라진다
+        clock=clock, elapse=cfg.turn_deadline_s - cfg.final_reserve_s + 0.5,
     )
     turn = await _run(fake, registry=_FakeRegistry(tool), clock=clock, monkeypatch=monkeypatch)
 

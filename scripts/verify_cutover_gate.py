@@ -1,6 +1,6 @@
 """read cutover gate 판정 — 10단계 진입 전 실측 검사.
 
-기억 재설계(docs/capi-memory-ARCHITECTURE.md 15장 read cutover gate).
+기억 재설계(docs/ARCHITECTURE-capi.md 12장).
 
 **DB로 판정 가능한 항목만 여기서 본다.** 부하·시간이 필요한 항목(6시간 soak, provider 장애 drain,
 invoice 대사)은 판정하지 않고 `수동`으로 표시한다 — 통과했다고 자동으로 말하지 않는 게 이 도구의

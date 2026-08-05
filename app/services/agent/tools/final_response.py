@@ -26,15 +26,6 @@ class SelectedRef(BaseModel):
     id: str = Field(min_length=1, max_length=128)
 
 
-class FinalControlIntent(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    kind: Literal["forget", "pin"]
-    target_fact_ids: list[str] = Field(default_factory=list, max_length=20)
-    value: str | None = Field(default=None, max_length=500)
-    future_learning: Literal["allow", "block"] = "allow"
-
-
 class FinishResponseArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -42,7 +33,6 @@ class FinishResponseArgs(BaseModel):
     response_mode: Literal["summary", "short_quote", "full_card", "reopen_reference"] = "summary"
     selected_refs: list[SelectedRef] = Field(default_factory=list, max_length=3)
     focus_ref: SelectedRef | None = None
-    control_intents: list[FinalControlIntent] = Field(default_factory=list, max_length=3)
 
 
 def wire_schema() -> dict:

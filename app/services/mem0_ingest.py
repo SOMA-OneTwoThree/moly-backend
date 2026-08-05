@@ -1,6 +1,6 @@
 """mem0 ingest — 후보 정책 게이트와 결정 ID.
 
-기억 재설계(docs/capi-memory-ARCHITECTURE.md 9.2절·9.4절).
+기억 재설계(docs/ARCHITECTURE-capi.md 5.2절·5.3절).
 
 **eligibility는 provider 호출 전에 판정한다.** 통과 못 한 후보는 provider에 보내지 않는다 —
 보내고 나서 지우면 그 사이 검색에 걸리고, delete가 실패하면 영영 남는다.

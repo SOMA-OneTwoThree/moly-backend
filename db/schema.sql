@@ -469,7 +469,7 @@ CREATE INDEX async_jobs_replay_of_idx ON public.async_jobs (replay_of) WHERE rep
 --     · fact의 forgotten/superseded, insight의 invalidated/superseded는 terminal(되살리지 않는다).
 --     · watermark는 대화 turn당 하나, message는 정확히 한 watermark에만 속한다.
 --     · v1 추출 소스는 conversation_turn만(일기·루틴은 자체 watermark/closure 계약 전까지 제외).
---     상세 = docs/agentic-chat-IMPLEMENTATION.md §W8.
+--     상세 = docs/ARCHITECTURE-capi.md 12장(legacy 정규화 기억 — 폐기).
 -- ─────────────────────────────────────────────────────────────
 -- fact 임베딩용(무차원 vector — 차원 고정은 embedder 마이그레이션에서 별도 검증).
 CREATE TABLE public.memory_facts (
@@ -613,7 +613,7 @@ CREATE INDEX memory_source_closures_overlap_idx
 --     · locale당 published는 정확히 1개(부분 유니크 인덱스가 동시성까지 강제).
 --     · invalidated/superseded는 terminal(되돌리는 UPDATE 경로 없음).
 --     · source FK는 복합키(user_id 동반) — 타 유저 근거를 다는 경로를 스키마가 막는다.
---     상세 = docs/agentic-chat-IMPLEMENTATION.md §W9.
+--     상세 = docs/ARCHITECTURE-capi.md 12장(legacy 정규화 기억 — 폐기).
 -- ─────────────────────────────────────────────────────────────
 CREATE TABLE public.relationship_profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -671,7 +671,7 @@ CREATE INDEX relationship_profile_sources_insight_idx
 --       (id, sender, kind, placeholder content)를 길이-prefix 직렬화한 SHA-256.
 --     · UNIQUE(user_id, through_message_id, source_hash) + 잡 dedup key로 같은 입력은 한 번만 요약.
 --     · through_message_id는 RESTRICT — 요약 경계가 되는 메시지는 사라질 수 없다.
---     상세 = docs/agentic-chat-IMPLEMENTATION.md §W11.
+--     상세 = docs/ARCHITECTURE-capi.md 8.2절.
 -- ─────────────────────────────────────────────────────────────
 CREATE TABLE public.conversation_checkpoints (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -1,6 +1,6 @@
 """checkpoint v2 — cumulative window와 daily digest.
 
-기억 재설계 8단계(docs/capi-memory-ARCHITECTURE.md 8.2절).
+기억 재설계 8단계(docs/ARCHITECTURE-capi.md 8.3절).
 
 두 종류는 **같은 source 계약과 권위 규칙**을 쓰지만 역할이 다르다.
 

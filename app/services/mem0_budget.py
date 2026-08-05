@@ -1,6 +1,6 @@
 """외부 호출 단계 예산 — 하나의 monotonic deadline을 단계별로 쪼갠다.
 
-기억 재설계(docs/capi-memory-ARCHITECTURE.md 13.2절).
+기억 재설계(docs/ARCHITECTURE-capi.md 11.1절).
 
 **하나의 handler timeout을 외부 호출 전체에 그대로 넘기지 않는다.** 그러면 첫 호출이 예산을 다
 쓰고 finalize할 시간이 없어 lease를 잃는다. 잃은 lease로 확정하면 남의 실행 결과를 덮어쓴다.

@@ -1,6 +1,6 @@
 """AI 원가 계측 — 단가 catalog · 호출 원장 · 잡 시도 telemetry.
 
-기억 재설계 1단계(docs/capi-memory-ARCHITECTURE.md 15장 1번). 구조 전환 **전에** 깔아서
+기억 재설계 1단계(docs/ARCHITECTURE-capi.md 11.2절). 구조 전환 **전에** 깔아서
 legacy 비용까지 같은 표면으로 재고 전환 전/후를 같은 지표로 비교한다.
 
 ⚠️ 사용자 quota와 회사 원가는 다른 값이다. quota(`daily_token_limit`)는 기존 billable weighted

@@ -20,6 +20,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 
+from app.services import i18n
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -178,6 +179,17 @@ async def recall(
     return [r for r in out if r.distance <= cut][:limit]
 
 
+# 어긋나는 기억을 보여줄 때의 안내. **언어별로 있어야 한다** — 영어 사용자에게 한국어
+# 지시문이 가면 모델이 그 언어로 답할 수 있다(감사 지적: en 요청에 [기억] 한국어 헤더).
+_UNCERTAIN: dict[str, str] = {
+    "ko": "(아래는 서로 어긋나는 기억이야. 어느 쪽이 지금인지 단정하지 말고, "
+          "궁금하면 자연스럽게 물어봐.)",
+    "en": "(These memories conflict. Do not assert which one is current; "
+          "ask naturally if you want to know.)",
+    "ja": "(以下は食い違う記憶。どちらが今かは断定せず、気になるなら自然に聞いて。)",
+}
+
+
 def render_block(items: list[Recalled], *, language: str = "ko") -> str:
     """프롬프트에 넣을 서버 소유 블록. 항목이 없으면 빈 문자열이다.
 
@@ -193,14 +205,11 @@ def render_block(items: list[Recalled], *, language: str = "ko") -> str:
     if sure:
         lines += [f"- {i.text}" for i in sure]
     if unsure:
-        lines.append("(아래는 서로 어긋나는 기억이야. 어느 쪽이 지금인지 단정하지 말고, "
-                     "궁금하면 자연스럽게 물어봐.)")
+        lines.append(_UNCERTAIN[i18n.resolve(language)])
         for i in unsure:
             when = i.occurred_at.strftime("%Y-%m-%d") if i.occurred_at else "시점 모름"
             lines.append(f"- ({when}) {i.text}")
 
-    header = {
-        "ja": "[記憶]",
-        "en": "[기억]",
-    }.get(language, "[기억]")
+    lang = i18n.resolve(language)
+    header = {"ja": "[記憶]", "en": "[memory]"}.get(lang, "[기억]")
     return f"{header}\n" + "\n".join(lines)

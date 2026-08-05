@@ -180,7 +180,7 @@ async def main(env: str | None, users: list[str], limit: int, apply: bool) -> in
                 cid = await session.scalar(_INSERT_CONTRACT, {
                     "user_id": uid, "version": version, "locale": locale,
                     "doc": doc, "rendered": rendered,
-                    "hash": f"{cc.COMPILER_VERSION}:{abs(hash(rendered)):x}",
+                    "hash": ic.document_hash(doc),
                 })
                 for c in kept:
                     await session.execute(_INSERT_ITEM, {

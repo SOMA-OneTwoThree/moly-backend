@@ -16,6 +16,7 @@ stable prefix에 넣으면, 사용자가 쓴 임의의 텍스트가 매 턴 **�
 """
 from __future__ import annotations
 
+import hashlib
 import re
 import unicodedata
 from dataclasses import dataclass
@@ -203,29 +204,83 @@ _CONDITION_KO: dict[Condition, str] = {
 }
 
 
-def render(d: Directive) -> str:
+# 언어별 표현. 정본은 typed 값이고 이건 **투영**이다 — locale이 바뀌면 이것만 새로 만든다.
+_ACTION_TEXT: dict[str, dict[Action, str]] = {
+    "en": {
+        Action.USE: "address them this way",
+        Action.AVOID: "avoid it",
+        Action.PREFER: "prefer this",
+        Action.ASK_BEFORE: "ask first",
+        Action.LISTEN_BEFORE: "listen first",
+        Action.DO_NOT_ASSUME: "do not assume",
+        Action.HONOR_PREFERENCE: "honor this preference",
+    },
+    "ja": {
+        Action.USE: "こう呼ぶ",
+        Action.AVOID: "避ける",
+        Action.PREFER: "こちらを選ぶ",
+        Action.ASK_BEFORE: "先に聞く",
+        Action.LISTEN_BEFORE: "先に聞く",
+        Action.DO_NOT_ASSUME: "決めつけない",
+        Action.HONOR_PREFERENCE: "この好みを守る",
+    },
+}
+_CONDITION_TEXT: dict[str, dict[Condition, str]] = {
+    "en": {
+        Condition.ALWAYS: "Always",
+        Condition.WHEN_DISTRESSED: "When they are struggling",
+        Condition.WHEN_ASKING_ADVICE: "When they ask for advice",
+        Condition.WHEN_TOPIC_TAG: "When that topic comes up",
+        Condition.CUSTOM_TRIGGER: "In that situation",
+    },
+    "ja": {
+        Condition.ALWAYS: "いつも",
+        Condition.WHEN_DISTRESSED: "相手がつらいとき",
+        Condition.WHEN_ASKING_ADVICE: "相手が助言を求めるとき",
+        Condition.WHEN_TOPIC_TAG: "その話題が出たとき",
+        Condition.CUSTOM_TRIGGER: "その状況で",
+    },
+}
+_HEADER = {"en": "[what we agreed]", "ja": "[この人との約束]"}
+
+
+def render(d: Directive, *, language: str = "ko") -> str:
     """서버 고정 template. 사용자 값은 따옴표 안 **데이터**로만 들어간다.
 
     literal을 명령 위치(문장 앞·동사 자리)에 놓으면 그 자체가 지시로 읽힐 수 있다.
     항상 `「…」` 안에 넣어 인용된 대상임을 문법으로 고정한다.
     """
     validate(d)
-    parts = [_CONDITION_KO[d.condition]]
+    cond = _CONDITION_TEXT.get(language, {}).get(d.condition) or _CONDITION_KO[d.condition]
+    parts = [cond]
     target = d.target_literal or d.target_tag
     if target:
         parts.append(f"「{target}」을(를)")
-    parts.append(_ACTION_KO[d.action])
+    parts.append(_ACTION_TEXT.get(language, {}).get(d.action) or _ACTION_KO[d.action])
     if d.polarity is Polarity.NEGATIVE and d.action not in (Action.AVOID, Action.DO_NOT_ASSUME):
         parts.append("않는다")
     return "- " + " ".join(parts) + "."
 
 
-def render_document(directives: list[Directive]) -> str:
+def document_hash(document_json: str) -> str:
+    """locale-neutral 정본의 결정적 hash.
+
+    ⚠️ Python `hash()`를 쓰면 안 된다 — PYTHONHASHSEED 때문에 **프로세스마다 값이 달라져**
+    같은 계약이 매번 다른 버전으로 보인다. 6.3절은 이 값이 같으면 새 version을 만들지 말라고
+    하는데, 그 판단이 통째로 무너진다.
+
+    render가 아니라 **document**를 해싱한다 — locale이 바뀌어도 정본이 같으면 같은 값이어야
+    새 version이 생기지 않는다.
+    """
+    return hashlib.sha256(document_json.encode("utf-8")).hexdigest()
+
+
+def render_document(directives: list[Directive], *, language: str = "ko") -> str:
     """published contract의 stable 블록. 항목이 없으면 빈 문자열이다.
 
     빈 블록을 넣으면 캐시 프리픽스만 늘고 의미가 없다.
     """
-    lines = [render(d) for d in directives]
+    lines = [render(d, language=language) for d in directives]
     if not lines:
         return ""
-    return "[이 사람과의 약속]\n" + "\n".join(lines)
+    return f"{_HEADER.get(language, '[이 사람과의 약속]')}\n" + "\n".join(lines)

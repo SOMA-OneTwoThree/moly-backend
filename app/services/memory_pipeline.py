@@ -386,6 +386,8 @@ async def enqueue_provider_delete(
 
 JOB_SHADOW_TRACE = "shadow_prompt_trace"
 JOB_SHADOW_CHECKPOINT = "shadow_checkpoint"
+JOB_CONTRACT_COMPILE = "contract_compile"
+JOB_RELATIONSHIP_PROJECT = "relationship_project"
 
 # 이 turn과 직전 turn의 활동일. 다르면 하루가 닫힌 것이다.
 _DAY_BOUNDARY = text("""
@@ -426,6 +428,24 @@ async def enqueue_shadow_checkpoints_on_day_boundary(
         dedup_key=f"sckpt:d:{user_id}:{closed.isoformat()}",
         payload={"kind": "daily_digest", "activity_date": closed.isoformat(),
                  "privacy_epoch": privacy_epoch},
+    )
+    # 관계 상태 투영도 하루 경계다 — active_days가 날짜 단위라 매 턴 돌릴 이유가 없다.
+    await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_MAINTENANCE,
+        job_type=JOB_RELATIONSHIP_PROJECT,
+        user_id=user_id,
+        dedup_key=f"relproj:{user_id}:{closed.isoformat()}",
+        payload={"privacy_epoch": privacy_epoch},
+    )
+    # 계약 추출도 하루 경계에서 한다. 매 턴 돌리면 같은 합의를 반복해서 뽑고 비용만 든다.
+    await jobs.enqueue(
+        session,
+        queue=jobs.QUEUE_CONTENT,
+        job_type=JOB_CONTRACT_COMPILE,
+        user_id=user_id,
+        dedup_key=f"contract:{user_id}:{closed.isoformat()}",
+        payload={"after_message_id": 0, "privacy_epoch": privacy_epoch},
     )
     # 누적 window는 그날까지의 대화를 이어 붙인다. digest와 달리 체인이라 하루에 한 고리다.
     await jobs.enqueue(

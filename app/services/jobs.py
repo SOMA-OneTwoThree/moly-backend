@@ -69,6 +69,8 @@ class QueueConfig:
     timeout_s: float
     lease_s: float
     max_attempts: int
+    # 0이면 heartbeat 없음(짧은 잡). 불변식: heartbeat <= min(lease/3, 20s).
+    heartbeat_s: float = 0.0
 
 
 def queue_config(queue: str) -> QueueConfig:
@@ -86,6 +88,7 @@ def queue_config(queue: str) -> QueueConfig:
         timeout_s=float(_v("timeout_s")),
         lease_s=float(_v("lease_s")),
         max_attempts=int(_v("max_attempts")),
+        heartbeat_s=float(_v("heartbeat_s")),
     )
 
 
@@ -287,7 +290,9 @@ SET state='succeeded', result_code=:result_code, result_detail=CAST(:result_deta
     lease_owner=NULL, lease_token=NULL, lease_until=NULL
 {_FENCE}
   AND (user_id IS NULL OR NOT EXISTS (
-    SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=async_jobs.user_id
+    -- 차단 조건은 행 존재가 아니라 state다. active 행은 정상 사용자다.
+    SELECT 1 FROM privacy_subject_barriers b
+    WHERE b.user_id=async_jobs.user_id AND b.state <> 'active'
   ))
 RETURNING id
 """)
@@ -319,7 +324,8 @@ RETURNING lease_until
 """)
 
 _SUBJECT_BLOCKED_SQL = text(
-    "SELECT EXISTS(SELECT 1 FROM privacy_subject_barriers WHERE user_id=:user_id)"
+    "SELECT EXISTS(SELECT 1 FROM privacy_subject_barriers "
+    "WHERE user_id=:user_id AND state <> 'active')"
 )
 
 _SCRUB_RETENTION_SQL = text("""

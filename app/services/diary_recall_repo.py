@@ -36,7 +36,8 @@ FROM diaries d
 LEFT JOIN chat_contexts c ON c.user_id=d.user_id
 WHERE d.user_id=:user_id AND d.id=:diary_id
   AND d.record_status='published' AND d.deleted_at IS NULL
-  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=d.user_id)
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                  WHERE b.user_id=d.user_id AND b.state <> 'active')
 ON CONFLICT (user_id,diary_id) DO UPDATE SET
   search_text=EXCLUDED.search_text,
   source_hash=EXCLUDED.source_hash,
@@ -68,7 +69,8 @@ WHERE rd.user_id=:user_id AND rd.diary_id=:diary_id
   AND d.record_status='published' AND d.deleted_at IS NULL
   AND rd.suppression_generation=COALESCE(c.memory_generation,0)
   AND NOT EXISTS (
-    SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=rd.user_id
+    SELECT 1 FROM privacy_subject_barriers b
+    WHERE b.user_id=rd.user_id AND b.state <> 'active'
   )
   AND NOT EXISTS (
     SELECT 1 FROM diary_claim_sources s

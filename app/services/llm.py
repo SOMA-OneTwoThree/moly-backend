@@ -18,11 +18,13 @@ import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from math import ceil
+from time import perf_counter
 from typing import Literal
 
 from pydantic import BaseModel, ValidationError
 
 from app.config import settings
+from app.services import usage_ledger
 
 _log = logging.getLogger(__name__)
 
@@ -61,6 +63,9 @@ class LLMResult:
     cache_read_tokens: int = 0   # 캐시에서 읽음(0.1× 실원가) — 기본 0이라 기존 positional 생성 호환
     cache_write_tokens: int = 0  # 캐시에 씀(1.25× 실원가). Anthropic=실측 / OpenAI=추정(_generate_openai)
     model: str = ""              # 실제 호출 모델 — _billable이 이 prefix로 provider별 가중치 선택
+    model_snapshot: str = ""     # 응답이 알려준 실제 model(alias 호출의 스냅샷). 원장 귀속용
+    request_id: str = ""         # provider request id — invoice 대사 키
+    cache_write_estimated: bool = False  # OpenAI는 write usage를 안 줘서 추정 → 실비 주장 금지 표식
 
 
 @dataclass
@@ -148,23 +153,62 @@ async def generate(
     ttl_system: str = "5m",
     ttl_messages: str = "5m",
     timeout: float | None = None,
+    ledger: "usage_ledger.LedgerContext | None" = None,
 ) -> LLMResult:
     """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
 
     model 미지정 = 대화 모델(settings.model_chat). 일기 self-check·기억통합은 utility 지정.
     provider는 model 프리픽스로 자동 분기. cache_messages/ttl_* 는 Anthropic 전용(OpenAI 자동캐시).
     timeout 미지정 = settings.llm_timeout_s. 초과 시 SDK가 APITimeoutError를 던진다(호출측이 처리).
+
+    `ledger`를 주면 호출 **전** started 행을 남기고 완료 시 usage/원가를 확정한다(opt-in).
+    계측 실패는 삼키므로 이 인자 때문에 대화가 깨지지 않는다.
     """
     model = model or settings.model_chat
-    if provider_for(model) == "openai":
-        return await _generate_openai(
-            system, convo, model=model, max_tokens=max_tokens, timeout=timeout
+    provider = provider_for(model)
+
+    async def _dispatch() -> LLMResult:
+        if provider == "openai":
+            return await _generate_openai(
+                system, convo, model=model, max_tokens=max_tokens, timeout=timeout
+            )
+        return await _generate_anthropic(
+            system, convo, model=model, max_tokens=max_tokens,
+            cache_messages=cache_messages, ttl_system=ttl_system, ttl_messages=ttl_messages,
+            timeout=timeout,
         )
-    return await _generate_anthropic(
-        system, convo, model=model, max_tokens=max_tokens,
-        cache_messages=cache_messages, ttl_system=ttl_system, ttl_messages=ttl_messages,
-        timeout=timeout,
+
+    if ledger is None:
+        return await _dispatch()
+
+    call_id = await usage_ledger.open_call(ledger, provider=provider, model=model)
+    started = perf_counter()
+    try:
+        r = await _dispatch()
+    except Exception as e:  # noqa: BLE001  기록만 하고 그대로 올린다
+        # 토큰을 썼는지 알 수 없다 — failed로 남기고 0원 completed로 만들지 않는다.
+        await usage_ledger.close_failed(
+            call_id, error_code=type(e).__name__, latency_ms=_elapsed_ms(started)
+        )
+        raise
+    await usage_ledger.close_call(
+        call_id,
+        provider=provider,
+        model=model,
+        input_tokens=r.input_tokens,
+        cached_input_tokens=r.cache_read_tokens,
+        cache_write_tokens=r.cache_write_tokens,
+        output_tokens=r.output_tokens,
+        cache_write_estimated=r.cache_write_estimated,
+        model_snapshot=r.model_snapshot or None,
+        provider_request_id=r.request_id or None,
+        latency_ms=_elapsed_ms(started),
     )
+    return r
+
+
+def _elapsed_ms(started: float) -> int:
+    return max(0, int((perf_counter() - started) * 1000))
 
 
 async def _generate_anthropic(
@@ -197,6 +241,10 @@ async def _generate_anthropic(
         cache_read_tokens=getattr(u, "cache_read_input_tokens", None) or 0,
         cache_write_tokens=getattr(u, "cache_creation_input_tokens", None) or 0,
         model=model,
+        model_snapshot=getattr(resp, "model", None) or "",
+        request_id=getattr(resp, "id", None) or "",
+        # Anthropic은 cache_creation_input_tokens를 실측으로 준다 — 추정 아님.
+        cache_write_estimated=False,
     )
 
 
@@ -225,9 +273,15 @@ async def _generate_openai(
     )
     choices = getattr(resp, "choices", None) or []
     text = (choices[0].message.content or "") if choices else ""
+    # alias 호출의 실제 스냅샷과 request id — 원가 원장의 귀속·invoice 대사 키.
+    snapshot = getattr(resp, "model", None) or ""
+    req_id = getattr(resp, "id", None) or ""
     u = getattr(resp, "usage", None)
     if u is None:
-        return LLMResult(text=text, input_tokens=0, output_tokens=0, model=model)
+        return LLMResult(
+            text=text, input_tokens=0, output_tokens=0, model=model,
+            model_snapshot=snapshot, request_id=req_id,
+        )
     prompt_tokens = getattr(u, "prompt_tokens", None) or 0
     details = getattr(u, "prompt_tokens_details", None)
     cached = (getattr(details, "cached_tokens", None) or 0) if details is not None else 0
@@ -247,6 +301,10 @@ async def _generate_openai(
         cache_read_tokens=cached,
         cache_write_tokens=uncached if cacheable else 0,
         model=model,
+        model_snapshot=snapshot,
+        request_id=req_id,
+        # 위 주석대로 write는 추정값이다 — 원장에서 "정확한 실비"로 집계되지 않게 표시한다.
+        cache_write_estimated=cacheable,
     )
 
 
@@ -693,6 +751,7 @@ async def generate_step(
     input_models: Mapping[str, type[BaseModel]] | None = None,
     control_tools: Mapping[str, str] | None = None,
     response_tools: Mapping[str, type[BaseModel]] | None = None,
+    ledger: "usage_ledger.LedgerContext | None" = None,
 ) -> StepResult:
     """도구 호출을 표현할 수 있는 1 step 호출. OpenAI 경로만(Anthropic은 dormant → 명시적 오류).
 
@@ -721,10 +780,30 @@ async def generate_step(
     if tools:
         kwargs["tools"] = tools
         kwargs["tool_choice"] = tool_choice
-    resp = await _get_openai_client().chat.completions.create(**kwargs)
+    # 원가 원장 — purpose는 step별로 다르다(tool_decide / tool_final).
+    call_id = await usage_ledger.open_call(
+        usage_ledger.with_purpose(ledger, purpose), provider="openai", model=model
+    ) if ledger is not None else None
+    _t0 = perf_counter()
+    try:
+        resp = await _get_openai_client().chat.completions.create(**kwargs)
+    except Exception as e:  # noqa: BLE001
+        await usage_ledger.close_failed(
+            call_id, error_code=type(e).__name__, latency_ms=_elapsed_ms(_t0)
+        )
+        raise
 
     choices = getattr(resp, "choices", None) or []
     usage = _step_usage(getattr(resp, "usage", None), model, purpose)
+    await usage_ledger.close_call(
+        call_id, provider="openai", model=model,
+        input_tokens=usage.input_tokens, cached_input_tokens=usage.cache_read_tokens,
+        cache_write_tokens=usage.cache_write_tokens, output_tokens=usage.output_tokens,
+        cache_write_estimated=bool(usage.cache_write_tokens),
+        model_snapshot=getattr(resp, "model", None),
+        provider_request_id=getattr(resp, "id", None),
+        latency_ms=_elapsed_ms(_t0),
+    )
     if not choices:  # content_filter 등 — 응답을 막지 않고 빈 step으로 닫는다
         return StepResult(text=None, tool_calls=[], finish_reason="", usage=usage, control_intents=[])
     choice = choices[0]

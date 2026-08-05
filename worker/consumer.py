@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import uuid
 import logging
 import os
 import signal
@@ -25,7 +26,7 @@ from typing import Any
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import jobs, projection_repair
+from app.services import job_telemetry, jobs, privacy, projection_repair
 from app.services.jobs import ClaimedJob, QueueConfig
 
 _log = logging.getLogger("moly-worker")
@@ -69,6 +70,19 @@ class JobCancelled(Exception):
         self.error_code = error_code
 
 
+class JobLeaseLost(Exception):
+    """heartbeat fencing 실패 — 이 소비자는 더 이상 이 잡의 주인이 아니다.
+
+    이미 reaper가 회수했거나 다른 소비자가 잡았다는 뜻이므로 **확정하지 않는다.** 확정하면
+    남의 실행 결과를 덮어쓴다. 진행 중이던 handler는 취소하고, 이미 성공했을 수 있는 외부 호출
+    결과는 publish하지 않고 orphan repair에 맡긴다(13.2절).
+    """
+
+    def __init__(self, error_code: str = "lease_lost") -> None:
+        super().__init__(error_code)
+        self.error_code = error_code
+
+
 Handler = Callable[[ClaimedJob], Awaitable[JobResult | None]]
 
 _REGISTRY: dict[str, Handler] = {}
@@ -92,8 +106,18 @@ async def _finalize(what: str, job: ClaimedJob, fn: Callable[[Any], Awaitable[An
     attempt는 claim 때 이미 증가했으므로 무한 재시도가 되지 않는다.
     """
     try:
-        async with get_sessionmaker()() as session:
-            await fn(session)
+        # finalize 전용 예산 — handler timeout 뒤 pool 기본 대기(30s)를 기다리다 lease를 잃는
+        # 경로를 막는다(13.2절). 이 시간은 lease 안에 예약돼 있다.
+        async def _run() -> None:
+            async with get_sessionmaker()() as session:
+                await fn(session)
+
+        await asyncio.wait_for(_run(), timeout=settings.job_finalize_timeout_s)
+    except (asyncio.TimeoutError, TimeoutError):
+        _log.warning(
+            "잡 %s 확정 시간초과(%.1fs, lease 만료 후 reaper 회수) — job_id=%s",
+            what, settings.job_finalize_timeout_s, job.id,
+        )
     except Exception as e:  # noqa: BLE001
         _log.warning(
             "잡 %s 확정 실패(lease 만료 후 reaper 회수) — job_id=%s: %r", what, job.id, e
@@ -117,6 +141,67 @@ async def _finalize_terminal(job: ClaimedJob, state: str, error_code: str) -> No
     )
 
 
+def _payload_uuid(payload: dict, key: str) -> uuid.UUID | None:
+    """payload의 uuid 문자열 → UUID. 없거나 형식이 틀리면 None(추측하지 않는다)."""
+    raw = payload.get(key)
+    if not raw:
+        return None
+    try:
+        return uuid.UUID(str(raw))
+    except ValueError:
+        return None
+
+
+async def _heartbeat_loop(job: ClaimedJob, interval: float, lost: asyncio.Event) -> None:
+    """lease를 주기적으로 연장한다. fencing이 깨지면 `lost`를 세워 handler를 끊는다.
+
+    heartbeat 자체의 DB 오류는 lease 상실로 단정하지 않는다 — 일시 장애로 보고 다음 주기에 다시
+    시도한다. 진짜 상실(다른 소유자/회수)은 `heartbeat()`가 False를 돌려준다.
+    """
+    while not lost.is_set():
+        await asyncio.sleep(interval)
+        if lost.is_set():
+            return
+        try:
+            async with get_sessionmaker()() as session:
+                alive = await jobs.heartbeat(session, job)
+        except Exception as e:  # noqa: BLE001  일시 DB 장애 — 다음 주기 재시도
+            _log.warning("heartbeat 실패(계속) — job_id=%s: %r", job.id, e)
+            continue
+        if not alive:
+            lost.set()
+            return
+
+
+async def _run_with_heartbeat(job: ClaimedJob, cfg: QueueConfig, handler: Handler):
+    """handler와 heartbeat를 함께 관리한다(13.2절).
+
+    heartbeat가 없는 짧은 큐(critical·notification)는 기존 단순 경로 그대로다.
+    """
+    if cfg.heartbeat_s <= 0:
+        return await asyncio.wait_for(handler(job), timeout=cfg.timeout_s)
+
+    lost = asyncio.Event()
+    hb = asyncio.ensure_future(_heartbeat_loop(job, cfg.heartbeat_s, lost))
+    work = asyncio.ensure_future(asyncio.wait_for(handler(job), timeout=cfg.timeout_s))
+    lost_wait = asyncio.ensure_future(lost.wait())
+    try:
+        done, _ = await asyncio.wait({work, lost_wait}, return_when=asyncio.FIRST_COMPLETED)
+        if work in done:
+            return work.result()
+        # lease를 잃었다 — 진행 중 handler를 끊는다(새 provider 호출을 시작하지 않게).
+        work.cancel()
+        with contextlib.suppress(asyncio.CancelledError, Exception):
+            await work
+        raise JobLeaseLost()
+    finally:
+        lost.set()
+        for t in (hb, lost_wait):
+            t.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await t
+
+
 async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
     """claim된 잡 1건 실행 + 확정. 어떤 경로로도 예외를 밖으로 올리지 않는다.
 
@@ -125,32 +210,63 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
     (예외 객체는 except 블록을 벗어나면 사라지므로 오류 코드를 지역 변수로 먼저 꺼내 넘긴다.)
     """
     if job.user_id is not None:
+        # 12.3절 상태표 — 존재 여부가 아니라 status/epoch/operation을 본다. 넓은 "행 존재=차단"으로는
+        # 삭제 continuation 자신이 막혀 삭제가 끝나지 않는다.
         async with get_sessionmaker()() as session:
-            if await jobs.subject_blocked(session, job.user_id):
-                await _finalize_terminal(job, "cancelled", "subject_deleting")
-                return
+            barrier = await privacy.load_barrier(session, job.user_id)
+        auth = privacy.authorize_job(
+            barrier,
+            job_type=job.job_type,
+            payload_epoch=job.payload.get("privacy_epoch"),
+            operation_id=_payload_uuid(job.payload, "privacy_operation_id"),
+            mode=settings.privacy_barrier_mode,
+        )
+        if not auth.allowed:
+            await _finalize_terminal(job, "cancelled", auth.reason)
+            await job_telemetry.record_outcome(
+                job, get_sessionmaker, job_telemetry.OUTCOME_CANCELLED, auth.reason
+            )
+            return
     handler = _REGISTRY.get(job.job_type)
     if handler is None:
         # 미지원 job_type = 배포 스큐 또는 오타 producer. 재시도해도 같으므로 즉시 dead(경보 남김).
         await _finalize_terminal(job, "dead", "unknown_job_type")
         return
+    await job_telemetry.record_start(job, get_sessionmaker)
     try:
-        result = await asyncio.wait_for(handler(job), timeout=cfg.timeout_s)
+        result = await _run_with_heartbeat(job, cfg, handler)
+    except JobLeaseLost as exc:
+        # 확정하지 않는다 — lease 주인이 아니다. reaper/새 소유자가 처리한다.
+        _log.warning("잡 lease 상실(확정 안 함) — job_id=%s job_type=%s", job.id, job.job_type)
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_LEASE_LOST, exc.error_code
+        )
     except (asyncio.TimeoutError, TimeoutError):
         _log.warning(
             "잡 타임아웃(%.0fs) — job_id=%s job_type=%s attempt=%s",
             cfg.timeout_s, job.id, job.job_type, job.attempt,
         )
         await _finalize_retry(job, "timeout")
+        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_TIMEOUT, "timeout")
     except JobRetry as exc:
         await _finalize_retry(job, exc.error_code, exc.retry_after_s)
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, exc.error_code
+        )
     except JobFatal as exc:
         await _finalize_terminal(job, "dead", exc.error_code)
+        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_DEAD, exc.error_code)
     except JobCancelled as exc:
         await _finalize_terminal(job, "cancelled", exc.error_code)
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_CANCELLED, exc.error_code
+        )
     except Exception as exc:  # noqa: BLE001  # 미분류 예외는 일시 장애로 보고 재시도(소진되면 dead)
         _log.exception("잡 처리 예외 — job_id=%s job_type=%s: %r", job.id, job.job_type, exc)
         await _finalize_retry(job, "unexpected_error")
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, "unexpected_error"
+        )
     else:
         res = result or JobResult()
         await _finalize(
@@ -160,6 +276,7 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
                 apply_domain=res.apply_domain,
             ),
         )
+        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_SUCCEEDED, res.result_code)
 
 
 async def _sleep_or_stop(stop: asyncio.Event, seconds: float) -> None:
@@ -282,7 +399,7 @@ def main() -> None:
 
 def _register_handlers() -> None:
     """순환 import를 피해 시작 시 한 번 핸들러를 등록한다."""
-    from worker import checkpoint_jobs, memory_jobs, recall_jobs  # noqa: F401
+    from worker import checkpoint_jobs, mem0_jobs, memory_jobs, recall_jobs  # noqa: F401
 
     if not _REGISTRY:
         raise RuntimeError("consumer handler registry가 비어 있다")

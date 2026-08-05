@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.config import settings
-from app.services import i18n, llm, memory, memory_registry
+from app.services import i18n, llm, memory, memory_registry, usage_ledger
 from app.services.memory_candidates import (
     SCHEMA_VERSION,
     Candidate,
@@ -124,6 +124,7 @@ async def extract(
     nickname: str | None,
     model: str | None = None,
     timeout: float | None = None,
+    ledger: usage_ledger.LedgerContext | None = None,
 ) -> tuple[list[Candidate], llm.LLMResult]:
     """대화 턴 → 검증된 후보 목록 + 그 호출의 실측 usage.
 
@@ -138,6 +139,7 @@ async def extract(
         model=model or settings.model_utility,
         max_tokens=MAX_OUTPUT_TOKENS,
         timeout=timeout if timeout is not None else settings.llm_timeout_s,
+        ledger=usage_ledger.with_purpose(ledger, "memory_extract"),
     )
     candidates = parse_candidates(
         _payload_dict(result.text),

@@ -42,6 +42,8 @@ from app.services import (
     relationship_profile_repo,
     text_clean,
     turn_context,
+    usage_ledger,
+    memory_pipeline,
     chat_references,
     chat_turns,
     diary as diary_service,
@@ -427,7 +429,10 @@ _FOREIGN_REPAIR_SYS = (
 
 
 async def _repair_foreign_ko(
-    reply: str, *, user_id: str | None = None
+    reply: str,
+    *,
+    user_id: str | None = None,
+    ledger: usage_ledger.LedgerContext | None = None,
 ) -> tuple[str, list[llm.LlmCall]]:
     """한국어 응답에 섞인 한자·가나를 utility 모델로 재작성 복원. 호출측에서 language=='ko' 게이팅.
 
@@ -448,6 +453,7 @@ async def _repair_foreign_ko(
                 model=settings.model_utility,
                 max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
                 timeout=settings.llm_timeout_s,
+                ledger=ledger,
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
             _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
@@ -546,6 +552,39 @@ async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
     게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다.
     보상(economy·ads)과 **같은 직렬화 도메인**을 쓰도록 키 표현은 core.advisory_lock 단일 구현."""
     await advisory_xact_lock(session, uid)
+
+
+# --- 기억 v2 소스·관계 event(15장 5단계, Phase 2 트랜잭션 안) ---
+async def _record_memory_v2(
+    session: AsyncSession,
+    uid: uuid.UUID,
+    *,
+    turn_seq: int,
+    activity_date: date,
+    now: datetime,
+) -> None:
+    """v2 source 커서 전진 + 관계 event append. **legacy 사용자는 아무것도 하지 않는다.**
+
+    메시지·source·잡과 같은 트랜잭션이라, 커밋되면 셋이 함께 남고 롤백되면 함께 사라진다.
+    shadow에서도 기록은 하지만 응답에는 쓰지 않는다(`PipelineState.serves_v2`).
+
+    실패는 삼키지 않는다 — 이 트랜잭션이 깨지면 턴 전체가 클린 재시도되는 게 맞다. 커서만
+    전진하고 메시지가 없거나 그 반대인 상태를 만들지 않는다.
+    """
+    state = await memory_pipeline.load(session, uid)
+    if not state.records_v2:
+        return
+    await memory_pipeline.advance_source(session, uid, turn_seq=turn_seq)
+    await memory_pipeline.record_turn_events(
+        session, uid, turn_seq=turn_seq, activity_date=activity_date, occurred_at=now
+    )
+    # bootstrap이 끝난 사용자만 live turn 잡을 건다. collecting 중에는 source만 쌓고,
+    # historical manifest가 완성된 뒤 가장 이른 turn부터 순서대로 흐른다(13.3절).
+    # 이미 처리 대기 중인 turn이 있으면 dedup key가 중복 enqueue를 막는다.
+    if state.accepts_live_ingest and state.ingest_through_turn_seq >= state.source_through_turn_seq:
+        await memory_pipeline.enqueue_ingest(
+            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+        )
 
 
 # --- 정규화 기억 소스(W8, Phase 2 트랜잭션 안) ---
@@ -857,6 +896,14 @@ async def post_message(
     # Claude/OpenAI 호출(프롬프트 캐싱 + 실측 토큰 + per-request timeout).
     cache_on = settings.chat_prompt_cache_enabled
     t_llm0 = time.monotonic()
+    # 원가 원장 귀속 — 사용자 quota(_billable)와 별개로 provider 단가 기준 USD를 적재한다.
+    ledger_ctx = usage_ledger.LedgerContext(
+        lane=usage_ledger.LANE_FOREGROUND,
+        purpose="chat",
+        user_id=uuid.UUID(uid) if isinstance(uid, str) else uid,
+        turn_seq=lease.turn_seq,
+        activity_date=ad,
+    )
     # 도구 루프(W5)는 킬스위치·카나리를 모두 통과했을 때만 탄다. 아니면 아래 단발 호출 그대로다.
     try:
         if time.monotonic() >= absolute_deadline:
@@ -877,6 +924,7 @@ async def post_message(
         if agent_turn is None:
             result = await llm.generate(
                 system, convo,
+                ledger=ledger_ctx,
                 cache_messages=cache_on,
                 ttl_system=settings.cache_ttl_system,
                 ttl_messages=settings.cache_ttl_messages,
@@ -1124,6 +1172,9 @@ async def post_message(
             source_watermark=source_watermark,
             content=umsg.content,
         )
+    # 기억 v2(15장 5단계) — legacy 사용자는 no-op. shadow/v2만 source 커서와 관계 event를
+    # **이 트랜잭션에서** 함께 기록한다. shadow는 기록만 하고 응답에는 쓰지 않는다.
+    await _record_memory_v2(session, uid, turn_seq=lease.turn_seq, activity_date=ad, now=now)
     await _touch_last_active(session, uid, now)
 
     # 대화 요약 checkpoint(W11) — 리셋이 일어난 턴에만, 앵커 저장과 같은 트랜잭션에서 잡을 건다.

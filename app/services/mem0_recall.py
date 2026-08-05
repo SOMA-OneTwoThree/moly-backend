@@ -53,6 +53,17 @@ MAX_DISTANCE = 0.90
 #    이건 임계값 조정으로 풀 문제가 아니며, golden set(회상 정답 200건)으로 재보고 정해야 한다.
 RELEVANCE_MARGIN = 0.08
 
+# margin과 무관하게 최소 이만큼은 남긴다.
+#
+# **margin만 쓰면 같은 주제 기억이 여럿일 때 정작 찾는 게 밀려난다.** dev 실측:
+#     "여자친구 이름 기억나?" → 여자친구 관련 3건이 앞을 채우고
+#                              "내 여자친구 민승이다"는 margin 밖으로 잘림
+#     → 캐피가 "이름은 아직 들은 적이 없어"라고 답함
+#
+# ⚠️ margin을 느슨하게 해도 인사에 기억이 딸려오지 않는다 — 그 방어는 `needs_recall`이
+#    따로 한다. margin은 회상하기로 정한 뒤 **긴 꼬리를 자르는 용도**일 뿐이다.
+MIN_KEEP = 5
+
 
 # 되짚는 발화의 표지. 이게 있으면 짧아도 회상한다("민승이?" 4글자).
 _LOOKBACK = re.compile(
@@ -178,7 +189,11 @@ async def recall(
         return []
     # 상대 컷: 이 질의에서 가장 가까운 것 기준으로 자른다(절대값이 안 되는 이유는 위 주석).
     cut = min(out[0].distance + RELEVANCE_MARGIN, MAX_DISTANCE)
-    return [r for r in out if r.distance <= cut][:limit]
+    kept = [r for r in out if r.distance <= cut]
+    if len(kept) < MIN_KEEP:
+        # 꼬리를 너무 많이 잘랐다. 절대 상한 안쪽에서 최소한은 채운다.
+        kept = [r for r in out if r.distance <= MAX_DISTANCE][:MIN_KEEP]
+    return kept[:limit]
 
 
 # 어긋나는 기억을 보여줄 때의 안내. **언어별로 있어야 한다** — 영어 사용자에게 한국어

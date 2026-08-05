@@ -211,26 +211,42 @@ async def test_absolute_cap_still_applies():
     assert await mr.recall(s, UID, query="그때 무슨 얘기했지?", adapter=a, embed_query=_embed) == []
 
 
-async def test_cut_is_relative_to_the_closest_hit():
-    """절대 임계값은 안 된다 — 내용 없는 입력이 오히려 더 '가깝게' 나온다(실측 'ㅇㅇ' 0.668).
+async def test_cut_is_relative_once_there_are_enough_results():
+    """상대 거리로 꼬리를 자른다. 단 **최소 개수는 채운다**.
 
-    그래서 그 질의 안에서의 상대 거리로 자른다. 여기서는 0.30이 가장 가까우므로
-    0.30+margin 밖의 0.60은 빠져야 한다 — 둘 다 절대 상한(0.90)보다는 가까운데도.
+    margin만 쓰면 같은 주제 기억이 여럿일 때 정작 찾는 게 밀려난다 — 실측에서
+    "여자친구 이름 기억나?"에 여자친구 관련 3건이 앞을 채우고 이름이 있는 기억이 잘려
+    캐피가 "이름은 들은 적 없어"라고 답했다.
     """
-    a = _Adapter([_hit("near", distance=0.30, text="가깝다"),
-                  _hit("far", distance=0.60, text="멀다")])
-    s = _Session([("near", "active", None, None), ("far", "active", None, None)])
-    got = await mr.recall(s, UID, query="그때 무슨 얘기했지?", adapter=a, embed_query=_embed)
-    assert [g.text for g in got] == ["가깝다"]
+    hits = [_hit(f"n{i}", distance=0.30 + i * 0.001, text=f"가깝다{i}") for i in range(6)]
+    hits.append(_hit("far", distance=0.60, text="멀다"))
+    rows = [(h.id, "active", None, None) for h in hits]
+    got = await mr.recall(_Session(rows), UID, query="그때 무슨 얘기했지?",
+                          adapter=_Adapter(hits), embed_query=_embed)
+    # 6건이 margin 안에 있으므로 최소 개수를 이미 넘겼다 → 먼 것은 잘린다.
+    assert "멀다" not in [g.text for g in got]
 
 
-async def test_a_diffuse_query_keeps_few_results():
-    """결과가 뭉쳐 있으면(=질의가 흐릿하면) 적게 남아야 한다."""
+async def test_minimum_is_filled_when_the_margin_cuts_too_much():
+    """꼬리를 너무 자르면 찾는 기억이 빠진다. 절대 상한 안쪽에서 최소한은 채운다.
+
+    인사에 기억이 딸려오는 문제는 `needs_recall`이 따로 막으므로, margin을 느슨하게 해도
+    그 방어는 그대로다.
+    """
     hits = [_hit(f"p{i}", distance=0.70 + i * 0.03) for i in range(8)]
     rows = [(f"p{i}", "active", None, None) for i in range(8)]
     got = await mr.recall(_Session(rows), UID, query="그때 무슨 얘기했지?",
                           adapter=_Adapter(hits), embed_query=_embed)
-    assert len(got) <= 3
+    assert len(got) == mr.MIN_KEEP
+
+
+async def test_minimum_never_overrides_the_absolute_cap():
+    """최소 개수를 채우려고 터무니없이 먼 것까지 끌어오면 안 된다."""
+    hits = [_hit("near", distance=0.30), _hit("far", distance=0.99, text="무관")]
+    rows = [("near", "active", None, None), ("far", "active", None, None)]
+    got = await mr.recall(_Session(rows), UID, query="그때 무슨 얘기했지?",
+                          adapter=_Adapter(hits), embed_query=_embed)
+    assert [g.text for g in got] == ["회사에 다닌다"]
 
 
 # ── 회상할 발화인지 판단 ─────────────────────────────────────

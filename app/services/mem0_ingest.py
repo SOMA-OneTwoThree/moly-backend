@@ -154,11 +154,25 @@ def check_eligibility(
         raise Ineligible("test_state")
 
 
+# 잊어달라는 요청. **프롬프트로는 못 막았다** — 모델이 "정정"으로 바꿔 계속 뽑았다(실측 2회).
+# 지워달라는 말을 기억으로 만들면 그 내용을 오히려 영원히 들고 있게 되므로, 여기서
+# 결정적으로 막는다. 근거가 된 사용자 발화에 이 표현이 있으면 그 후보는 버린다.
+_FORGET_REQUEST = re.compile(
+    r"(잊어|잊어줘|잊어버려|없던\s*걸로|없던\s*것으로|지워\s*줘|지워줘|삭제해|기억하지\s*마)"
+)
+
+
+def mentions_forget_request(text: str) -> bool:
+    """이 발화가 '잊어달라'는 요청인가."""
+    return bool(_FORGET_REQUEST.search(text or ""))
+
+
 def filter_candidates(
     candidates: list[Candidate],
     *,
     nickname: str | None = None,
     contract_texts: tuple[str, ...] = (),
+    source_texts: dict[int, str] | None = None,
 ) -> tuple[list[Candidate], list[tuple[Candidate, str]]]:
     """(통과분, [(탈락분, 사유)]). 통과분은 턴당 상한까지만 남긴다.
 
@@ -167,7 +181,12 @@ def filter_candidates(
     passed: list[Candidate] = []
     rejected: list[tuple[Candidate, str]] = []
     seen: set[str] = set()
+    sources = source_texts or {}
     for c in candidates:
+        # 근거가 '잊어달라'는 발화면 후보로 만들지 않는다.
+        if any(mentions_forget_request(sources.get(ev.message_id, "")) for ev in c.evidence):
+            rejected.append((c, "forget_request"))
+            continue
         try:
             check_eligibility(c, nickname=nickname, contract_texts=contract_texts)
         except Ineligible as e:

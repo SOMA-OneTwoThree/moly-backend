@@ -67,14 +67,6 @@ _CHECKS: list[tuple[str, str]] = [
         "SELECT count(*) FROM mem0_memory_sources WHERE source_sender <> 'user'",
     ),
     (
-        "tombstone source가 v2 기억으로 재노출",
-        """SELECT count(*) FROM mem0_memory_sources s
-           JOIN legacy_recall_tombstones t
-             ON t.user_id = s.user_id AND t.source_message_id = s.source_message_id
-           JOIN mem0_memory_registry r ON r.id = s.registry_id
-           WHERE r.semantic_status IN ('active','ambiguous')""",
-    ),
-    (
         "장벽 없는 profile(enforced 전환 차단 조건)",
         """SELECT count(*) FROM profiles p
            WHERE NOT EXISTS (

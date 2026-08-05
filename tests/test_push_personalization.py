@@ -239,6 +239,23 @@ async def test_verify_body_exact_ok_only(monkeypatch):
         assert await pp._verify_body("문구", "ko") is expected, text_
 
 
+async def test_llm_token_budget_covers_reasoning_overhead(monkeypatch):
+    """utility(luna)는 답변 전 reasoning으로 ~130+ 토큰을 소모한다(dev 리허설 실측:
+    max_completion_tokens=120 → finish=length·본문 0자·HTTP 200 → 전량 filter(len=0) 리젝).
+    두 콜사이트 모두 그 오버헤드를 덮는 예산을 넘겨야 한다 — 다시 낮추면 무음 전량 리젝."""
+    seen = {}
+
+    async def _gen(system, convo, **kw):
+        seen[len(seen)] = kw.get("max_tokens")
+        return SimpleNamespace(text="OK")
+
+    monkeypatch.setattr(pp.llm, "generate", _gen)
+    await pp._generate_body("소재", "ko")
+    await pp._verify_body("문구", "ko")
+    assert seen[0] == pp.GEN_MAX_TOKENS and seen[0] >= 256
+    assert seen[1] == pp.VERIFY_MAX_TOKENS and seen[1] >= 256
+
+
 async def test_rejected_body_content_never_logged(monkeypatch, caplog):
     """리젝 로그는 사유·길이만 — 문구 내용은 journald에 남으면 삭제 계약이 닿지 않는다."""
     import logging

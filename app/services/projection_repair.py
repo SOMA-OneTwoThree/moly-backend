@@ -21,7 +21,8 @@ WITH candidate AS (
   FROM memory_episodic_messages e
   JOIN messages m ON m.user_id=e.user_id AND m.id=e.message_id AND m.sender='user'
   WHERE e.embedding IS NULL AND e.embedding_repair_attempts<:max_attempts
-    AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=e.user_id)
+    AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                    WHERE b.user_id=e.user_id AND b.state <> 'active')
     AND NOT EXISTS (
       SELECT 1 FROM memory_recall_suppressions s
       WHERE s.user_id=e.user_id AND s.message_id=e.message_id
@@ -53,7 +54,8 @@ WITH candidate AS (
   WHERE rd.embedding IS NULL AND rd.embedding_repair_attempts<:max_attempts
     AND d.record_status='published' AND d.deleted_at IS NULL
     AND rd.suppression_generation=COALESCE(c.memory_generation,0)
-    AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=rd.user_id)
+    AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                    WHERE b.user_id=rd.user_id AND b.state <> 'active')
     AND NOT EXISTS (
       SELECT 1 FROM diary_claim_sources s
       JOIN memory_recall_suppressions x

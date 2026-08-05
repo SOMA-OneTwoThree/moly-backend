@@ -55,8 +55,35 @@ class SearchHit:
     payload: dict[str, Any]
 
 
+def build_sync_engine(dsn: str, *, pool_size: int = 3, max_overflow: int = 0):
+    """벡터 store 전용 **동기** engine.
+
+    ⚠️ 앱의 asyncpg 엔진을 쓸 수 없다. vecs는 동기 SQLAlchemy라 asyncpg 기반 엔진을 넘기면
+    `MissingGreenlet`으로 터진다(실측). 그래서 psycopg2 동기 드라이버로 별도 엔진을 만든다.
+    psycopg3는 서버측 바인딩이라 vecs의 가 문법 오류로
+    터진다(실측) — vecs가 psycopg2를 전제로 쓰여 있다.
+
+    풀은 명시 상한을 준다 — vecs 기본 클라이언트의 5+10 무제어 풀을 쓰지 않기 위한 것이
+    이 façade의 존재 이유 중 하나다(9.1절).
+    """
+    from sqlalchemy import create_engine
+
+    sync_dsn = dsn
+    for prefix in ("postgresql+asyncpg://", "postgres://", "postgresql://"):
+        if sync_dsn.startswith(prefix):
+            sync_dsn = "postgresql+psycopg2://" + sync_dsn.split("://", 1)[1]
+            break
+    return create_engine(
+        sync_dsn,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
+        pool_timeout=2,
+        pool_pre_ping=True,
+    )
+
+
 def build_client(engine) -> Any:
-    """주입한 engine으로 `vecs.Client`를 만든다. **DDL을 치지 않는다.**
+    """주입한 **동기** engine으로 `vecs.Client`를 만든다. **DDL을 치지 않는다.**
 
     `Client.__init__`이 create_engine + create schema/extension을 하므로 우회하고 필요한 속성만
     직접 채운다. 이 결합은 깨지기 쉬우므로 계약 테스트가 upstream 속성 이름을 고정한다.
@@ -141,7 +168,14 @@ class Mem0VectorIndexAdapter:
             if (payload or {}).get("user_id") != user_id:
                 _log.error("mem0 fetch에 타 사용자 결과가 섞였다 — id=%s (폐기)", rid)
                 continue
-            out.append(VectorRecord(id=str(rid), embedding=list(vec or []), payload=payload or {}))
+            # ⚠️ `vec or []` 금지 — numpy 배열은 진리값이 모호해 ValueError로 터진다(실측).
+            out.append(
+                VectorRecord(
+                    id=str(rid),
+                    embedding=list(vec) if vec is not None else [],
+                    payload=dict(payload) if payload else {},
+                )
+            )
         return out
 
     async def search(
@@ -201,20 +235,38 @@ class Mem0VectorIndexAdapter:
             return 0
 
 
-def _unpack(row: Any) -> tuple[Any, Any, Any]:
-    """vecs fetch 행 → (id, vector, metadata). 튜플 길이 변화에 방어적으로 대응한다."""
+def _as_sequence(row: Any) -> list | None:
+    """행을 위치 인덱싱 가능한 시퀀스로. 아니면 None.
+
+    ⚠️ SQLAlchemy 2.0의 `Row`는 튜플처럼 보이지만 **tuple 서브클래스가 아니다**.
+    `isinstance(row, tuple)`로 거르면 실제 결과가 전부 튕긴다(실측).
+    """
     if isinstance(row, (tuple, list)):
-        if len(row) >= 3:
-            return row[0], row[1], row[2]
-        if len(row) == 2:
-            return row[0], None, row[1]
+        return list(row)
+    if hasattr(row, "__len__") and hasattr(row, "__getitem__"):
+        try:
+            return [row[i] for i in range(len(row))]
+        except (TypeError, IndexError, KeyError):
+            return None
+    return None
+
+
+def _unpack(row: Any) -> tuple[Any, Any, Any]:
+    """vecs fetch 행 → (id, vector, metadata). 길이 변화에 방어적으로 대응한다."""
+    seq = _as_sequence(row)
+    if seq is not None:
+        if len(seq) >= 3:
+            return seq[0], seq[1], seq[2]
+        if len(seq) == 2:
+            return seq[0], None, seq[1]
     raise Mem0ContractError(f"해석할 수 없는 fetch 행: {row!r}")
 
 
 def _unpack_hit(row: Any) -> tuple[Any, Any, Any]:
-    if isinstance(row, (tuple, list)):
-        if len(row) >= 3:
-            return row[0], row[1], row[2]
-        if len(row) == 2:
-            return row[0], row[1], {}
+    seq = _as_sequence(row)
+    if seq is not None:
+        if len(seq) >= 3:
+            return seq[0], seq[1], seq[2]
+        if len(seq) == 2:
+            return seq[0], seq[1], {}
     raise Mem0ContractError(f"해석할 수 없는 search 행: {row!r}")

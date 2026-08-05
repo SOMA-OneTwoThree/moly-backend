@@ -209,12 +209,15 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
 
 
 def _adapter():
-    """process singleton adapter(9.1절). 프로세스마다 하나만 만든다."""
-    from app.core.db import get_engine
+    """process singleton adapter(9.1절). 프로세스마다 하나만 만든다.
 
+    앱의 asyncpg 엔진이 아니라 **전용 동기 엔진**을 쓴다 — vecs는 동기 SQLAlchemy라
+    asyncpg 엔진을 넘기면 MissingGreenlet으로 터진다.
+    """
     global _ADAPTER
     if _ADAPTER is None:
-        client = mem0_adapter.build_client(get_engine().sync_engine)
+        engine = mem0_adapter.build_sync_engine(settings.supabase_db_connection_string)
+        client = mem0_adapter.build_client(engine)
         _ADAPTER = mem0_adapter.Mem0VectorIndexAdapter(
             client, collection_name=f"moly_memories_{COLLECTION_VERSION}"
         )

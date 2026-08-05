@@ -83,3 +83,24 @@ def test_no_memory_turn_advances_consolidated_cursor_directly():
     assert "advance_consolidated_cursor" in advance
     # 판정할 게 있으면 잡을 만들고, 없으면 커서만 통과 — 둘 다 있어야 한다.
     assert "else:" in advance
+
+
+def test_provider_delete_handler_is_registered():
+    consumer._register_handlers()
+    assert mem0_jobs.JOB_MEM0_PROVIDER_DELETE in consumer.registered_types()
+
+
+def test_delete_only_targets_non_active_memories():
+    """semantic 상태가 먼저 확정된 뒤에야 지운다(9.4절 6번)."""
+    sql = str(mem0_jobs._DELETE_TARGETS)
+    assert "semantic_status IN ('duplicate','superseded','excluded','rejected_policy')" in sql
+    assert "provider_delete_state = 'pending'" in sql
+    assert "LIMIT :limit" in sql  # bounded
+
+
+def test_delete_failure_of_one_does_not_block_others():
+    """개별 실패가 나머지 정리를 막지 않는다 — 삭제는 정합성이 아니라 저장 비용 문제다."""
+    import inspect
+
+    src = inspect.getsource(mem0_jobs.handle_mem0_provider_delete)
+    assert "failed.append" in src and "deleted.append" in src

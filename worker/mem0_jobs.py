@@ -363,6 +363,12 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
             classification_version=mem0_classifier.CLASSIFIER_VERSION,
         )
         await memory_pipeline.advance_consolidated_cursor(session, uid, turn_seq=turn_seq)
+        # non-active로 닫힌 게 있으면 provider 벡터 정리를 건다. 같은 fenced transaction이라
+        # lease를 잃은 소비자가 삭제 잡만 흘리지 않는다.
+        if any(t.provider_delete_state == "pending" for t in verdict.transitions):
+            await memory_pipeline.enqueue_provider_delete(
+                session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+            )
 
     return JobResult(
         result_code="ok",
@@ -375,3 +381,65 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
 
 
 consumer.register(JOB_MEM0_CONSOLIDATE, handle_mem0_consolidate)
+
+
+JOB_MEM0_PROVIDER_DELETE = "mem0_provider_delete"
+
+# non-active로 확정된 뒤에야 지운다(9.4절 6번). semantic 상태가 먼저다.
+_DELETE_TARGETS = text("""
+SELECT id, provider_memory_id FROM mem0_memory_registry
+WHERE user_id = :user_id
+  AND provider_delete_state = 'pending'
+  AND semantic_status IN ('duplicate','superseded','excluded','rejected_policy')
+ORDER BY updated_at
+LIMIT :limit
+""")
+
+_MARK_DELETED = text("""
+UPDATE mem0_memory_registry
+SET provider_delete_state = :state, provider_deleted_at = now(), updated_at = now()
+WHERE id = :id AND user_id = :user_id AND provider_delete_state = 'pending'
+""")
+
+
+async def handle_mem0_provider_delete(job: ClaimedJob) -> JobResult:
+    """non-active 기억의 provider 벡터를 지운다.
+
+    **삭제가 늦거나 실패해도 노출되지 않는다** — search adapter가 semantic 상태로 이미 거른다.
+    그래서 이 잡은 정합성이 아니라 **저장 비용**을 위한 것이며, 실패는 재시도로 충분하다.
+    """
+    if job.user_id is None:
+        raise JobFatal("missing_user")
+    uid = job.user_id
+    limit = int((job.payload or {}).get("limit", 50))
+
+    async with get_sessionmaker()() as session:
+        rows = (await session.execute(
+            _DELETE_TARGETS, {"user_id": uid, "limit": limit}
+        )).all()
+    if not rows:
+        return JobResult(result_code="nothing_to_delete")
+
+    deleted, failed = [], []
+    for registry_id, provider_id in rows:
+        try:
+            await _adapter().delete([str(provider_id)], timeout=6.0)
+            deleted.append(registry_id)
+        except Exception as e:  # noqa: BLE001  개별 실패가 나머지를 막지 않는다
+            _log.warning("provider 삭제 실패 — registry=%s: %r", registry_id, e)
+            failed.append(registry_id)
+
+    async def _apply(session) -> None:
+        for rid in deleted:
+            await session.execute(_MARK_DELETED, {"id": rid, "user_id": uid, "state": "deleted"})
+        for rid in failed:
+            await session.execute(_MARK_DELETED, {"id": rid, "user_id": uid, "state": "failed"})
+
+    return JobResult(
+        result_code="ok",
+        result_detail={"deleted": len(deleted), "failed": len(failed)},
+        apply_domain=_apply,
+    )
+
+
+consumer.register(JOB_MEM0_PROVIDER_DELETE, handle_mem0_provider_delete)

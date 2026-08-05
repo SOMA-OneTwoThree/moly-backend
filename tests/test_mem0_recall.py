@@ -204,13 +204,30 @@ async def test_closer_distance_comes_first():
     assert got[0].text == "더 관련"
 
 
-async def test_far_memories_are_cut_off():
-    """자르지 않으면 질의와 무관한 기억이 매번 limit만큼 실린다."""
+async def test_absolute_cap_still_applies():
+    """상대 컷을 써도 터무니없이 먼 것은 막는다."""
     a = _Adapter([_hit("p1", distance=0.99, text="무관")])
     s = _Session([("p1", "active", None, None)])
     assert await mr.recall(s, UID, query="q", adapter=a, embed_query=_embed) == []
 
 
-def test_cutoff_sits_between_measured_relevant_and_irrelevant():
-    """dev 실측: 관련 0.69~0.81, 무관 0.86~0.90. 경계가 그 사이에 있어야 한다."""
-    assert 0.81 < mr.MAX_DISTANCE < 0.86
+async def test_cut_is_relative_to_the_closest_hit():
+    """절대 임계값은 안 된다 — 내용 없는 입력이 오히려 더 '가깝게' 나온다(실측 'ㅇㅇ' 0.668).
+
+    그래서 그 질의 안에서의 상대 거리로 자른다. 여기서는 0.30이 가장 가까우므로
+    0.30+margin 밖의 0.60은 빠져야 한다 — 둘 다 절대 상한(0.90)보다는 가까운데도.
+    """
+    a = _Adapter([_hit("near", distance=0.30, text="가깝다"),
+                  _hit("far", distance=0.60, text="멀다")])
+    s = _Session([("near", "active", None, None), ("far", "active", None, None)])
+    got = await mr.recall(s, UID, query="q", adapter=a, embed_query=_embed)
+    assert [g.text for g in got] == ["가깝다"]
+
+
+async def test_a_diffuse_query_keeps_few_results():
+    """결과가 뭉쳐 있으면(=질의가 흐릿하면) 적게 남아야 한다."""
+    hits = [_hit(f"p{i}", distance=0.70 + i * 0.03) for i in range(8)]
+    rows = [(f"p{i}", "active", None, None) for i in range(8)]
+    got = await mr.recall(_Session(rows), UID, query="q",
+                          adapter=_Adapter(hits), embed_query=_embed)
+    assert len(got) <= 3

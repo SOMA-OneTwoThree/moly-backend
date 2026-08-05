@@ -32,10 +32,24 @@ VISIBLE_STATUSES = ("active", "ambiguous")
 _PROVIDER_FETCH = 40
 DEFAULT_LIMIT = 8
 
-# 이 거리를 넘으면 질의와 무관한 기억으로 본다. dev 실측: 관련 기억 0.69~0.81,
-# 무관한 기억 0.86~0.90. 경계를 0.84로 두면 무관한 것이 들어오지 않는다.
-# ⚠️ 임베딩 모델을 바꾸면 이 값도 다시 재야 한다.
-MAX_DISTANCE = 0.84
+# 거친 상한. 이것만으로는 **부족하다** — 아래 RELEVANCE_MARGIN 설명 참고.
+MAX_DISTANCE = 0.90
+
+# 가장 가까운 기억으로부터 이만큼 안쪽만 남긴다.
+#
+# **절대 임계값은 원리적으로 안 된다.** 짧거나 내용 없는 입력은 임베딩 공간 중심 근처에
+# 놓여 모든 것과 적당히 가깝다. dev 실측:
+#     'ㅇㅇ'                 최소 거리 0.668   ← 의미 없는 입력이 더 '가깝다'
+#     '여자친구랑 요즘 어때?'  최소 거리 0.726
+# 절대값으로 자르면 'ㅇㅇ'이 기억을 더 많이 끌어온다. 그래서 **그 질의 안에서의 상대
+# 거리**로 자른다. 질의가 흐릿하면 결과가 뭉쳐 있어 적게 남고, 뾰족하면 가까운 것만 남는다.
+#
+# ⚠️ **이 값은 검증되지 않았다.** dev 기억 12건(한 대화에서 나온)으로 고른 값이라 일반화할
+#    근거가 없다. margin 0.08에서 '오늘 루틴 했어?'→루틴 3건, '여자친구랑 요즘 어때?'→
+#    여자친구 관련 3건으로 맞았지만, **'안녕' 같은 내용 없는 발화에도 여전히 기억이 딸려온다**
+#    (2건). 벡터 유사도만으로는 "이 발화에 회상할 대상이 있는가"를 구분할 수 없다.
+#    이건 임계값 조정으로 풀 문제가 아니며, golden set(회상 정답 200건)으로 재보고 정해야 한다.
+RELEVANCE_MARGIN = 0.08
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,8 +138,11 @@ async def recall(
 
     # 거리 **오름차순** — 가까운 것이 먼저다. 같은 거리면 최근 사건을 앞에 둔다.
     out.sort(key=lambda r: (r.distance, -(r.occurred_at.timestamp() if r.occurred_at else 0)))
-    # 거리가 먼 것은 질의와 무관하다. 자르지 않으면 관련 없는 기억이 매번 limit만큼 실린다.
-    return [r for r in out if r.distance <= MAX_DISTANCE][:limit]
+    if not out:
+        return []
+    # 상대 컷: 이 질의에서 가장 가까운 것 기준으로 자른다(절대값이 안 되는 이유는 위 주석).
+    cut = min(out[0].distance + RELEVANCE_MARGIN, MAX_DISTANCE)
+    return [r for r in out if r.distance <= cut][:limit]
 
 
 def render_block(items: list[Recalled], *, language: str = "ko") -> str:

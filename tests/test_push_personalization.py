@@ -266,7 +266,7 @@ async def test_rejected_body_content_never_logged(monkeypatch, caplog):
     async def _diary(session, uid, target):
         return SimpleNamespace(content="소재")
 
-    async def _gen(source_text, language):
+    async def _gen(source_text, language, hint=None):
         return bad_body
 
     async def _delete(session, uid):
@@ -434,7 +434,7 @@ async def test_inner_rejected_when_verifier_ok_but_filter_fails(monkeypatch):
     async def _diary(session, uid, target):
         return SimpleNamespace(content="오늘 회사에서 힘든 일이 있었다")
 
-    async def _gen(source_text, language):
+    async def _gen(source_text, language, hint=None):
         return "어제 힘들었지? 얘기하자."  # 시간표현 위반
 
     async def _verify(body, language):
@@ -506,7 +506,7 @@ async def test_inner_ok_upsert_resets_cycle_and_stores_placeholder(monkeypatch):
     async def _diary(session, uid, target):
         return SimpleNamespace(content="{유저이름}이랑 프로젝트 얘기를 했다")
 
-    async def _gen(source_text, language):
+    async def _gen(source_text, language, hint=None):
         assert "승민" in source_text  # LLM 입력은 render된 현재 이름(유창성)
         return "승민아 그 프로젝트 잘 되고 있어? 얘기하러 와."
 

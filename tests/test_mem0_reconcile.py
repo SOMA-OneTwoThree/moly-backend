@@ -73,3 +73,20 @@ def test_reconciler_never_scans_provider_collection():
     }
     for banned in ("list", "scan", "delete_by_user", "search"):
         assert banned not in called
+
+
+async def test_catch_up_skips_users_with_pending_judgments():
+    """판정 안 된 기억을 통과시키면 검색에 안 잡히는 구간이 생긴다."""
+    s = _Session(rows=[])
+    await rc.catch_up_consolidated(s)
+    sql = s.executed[0][0]
+    assert "semantic_status = 'pending'" in sql
+    assert "NOT EXISTS" in sql
+    assert "consolidated_through_turn_seq < s.ingest_through_turn_seq" in sql
+
+
+async def test_catch_up_never_passes_ingest_cursor():
+    """consolidation이 ingest를 앞지를 수 없다."""
+    s = _Session(rows=[])
+    await rc.catch_up_consolidated(s)
+    assert "= s.ingest_through_turn_seq" in s.executed[0][0]

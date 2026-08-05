@@ -70,3 +70,16 @@ def test_consolidation_advances_cursor_only_in_apply_domain():
     for line in src.splitlines():
         if "advance_consolidated_cursor" in line:
             assert line.startswith("            ") or line.startswith("        ")
+
+
+def test_no_memory_turn_advances_consolidated_cursor_directly():
+    """기억 0건 turn은 consolidate 잡이 없다 — 여기서 커서를 통과시키지 않으면
+    consolidated 커서가 영원히 걸려 cutover gate를 절대 통과할 수 없다(dev 실측)."""
+    import inspect
+
+    src = inspect.getsource(mem0_jobs.handle_mem0_ingest)
+    advance = src.split("async def _advance")[1]
+    assert "enqueue_consolidate" in advance
+    assert "advance_consolidated_cursor" in advance
+    # 판정할 게 있으면 잡을 만들고, 없으면 커서만 통과 — 둘 다 있어야 한다.
+    assert "else:" in advance

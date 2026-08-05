@@ -204,6 +204,11 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             await memory_pipeline.enqueue_consolidate(
                 session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
             )
+        else:
+            # 기억 0건인 turn은 판정할 게 없다. consolidate 잡을 만들지 않으므로 여기서
+            # 커서를 직접 통과시킨다 — 안 그러면 consolidated 커서가 그 turn에 영원히 걸려
+            # cutover gate(`consolidated == ingest`)를 절대 통과할 수 없다.
+            await memory_pipeline.advance_consolidated_cursor(session, uid, turn_seq=turn_seq)
         await memory_pipeline.enqueue_next_ingest(
             session, uid, cursor=turn_seq, privacy_epoch=state.privacy_epoch
         )

@@ -53,7 +53,7 @@ VERIFY_TIMEOUT_S = 10.0  # 검수 LLM 타임아웃
 # 그 오버헤드 위로 잡아야 한다 — 120/8이던 시절 전 건이 filter(len=0)·verify_llm으로 리젝됐다.
 GEN_MAX_TOKENS = 512  # reasoning ~134 + 한 문장(≤120자) 여유
 VERIFY_MAX_TOKENS = 256  # reasoning 소모 후 "OK" 한 단어면 충분
-GEN_ATTEMPTS = 2  # 리젝 시 재생성 횟수(총 시도) — 커버리지 요구와 fail-closed 검수의 절충
+GEN_ATTEMPTS = 3  # 리젝 시 재생성 횟수(총 시도) — 커버리지 요구와 fail-closed 검수의 절충
 SLOT_MIN = time(8, 0)  # 슬롯 하한 — [20:00, 익일 08:00) 첫 대화는 20:00으로
 SLOT_NIGHT = time(20, 0)  # 야간 코호트 슬롯(기존 저녁 푸시 시각과 동일, 20시 분기 인라인 처리)
 REUSE_DAYS = 3  # anchor_date + 3일까지 같은 문구 재사용(미복귀 유저 LLM 비용 절약)
@@ -429,7 +429,8 @@ _GEN_SYS = (
     "- 짧게: {max_chars}자 이내, 목표는 그 3분의 2. 부드럽고 담백한 반말.\n"
     "- 캐묻지 않기: 압박·죄책감('왜 안 와') 금지. 잠금화면에 뜬다 — 민감 소재(자해·죽음·질병·"
     "돈·성적 내용·다툼의 구체 내용) 금지. 소재가 무거우면 구체 언급 없이 따뜻한 안부만.\n"
-    "- 시간 표현 금지(어제·오늘·방금·아침·저녁·요일 등) — 언제 읽어도 자연스럽게.\n"
+    "- 특정 시점을 지칭하는 시간 표현 금지(어제·오늘·방금·아침·저녁·요일, '잘 자' 같은 시각"
+    " 인사) — 언제 읽어도 자연스럽게. 지속·정도 표현('오래'·'늘' 등)은 시점이 아니라 무방.\n"
     "- 사람 이름 금지: 유저 본인 이름 포함 어떤 인명도 쓰지 마라. 다른 사람은 '친구'·'가족'처럼"
     " 관계로만. 직장·학교·지명·병원 등 고유명사도 금지('캐피' 자신은 화자라 예외).\n"
     "- 반드시 {out_lang}로만 써라.\n"
@@ -440,7 +441,9 @@ _VERIFY_SYS = (
     " 걸리면 'NO'만 출력해라. 다른 말은 하지 마라. 톤·스타일·문구 품질은 판정 대상이 아니다"
     " (2026-08-05 실데이터 캘리브레이션: 주관 기준이 정상 문구를 30% 리젝했다).\n"
     "- 자해·자살·죽음·폭력·질병·의료·성적 내용·돈 문제 등 민감 소재 없음\n"
-    "- 시간 표현(어제·오늘·방금·아침·저녁·요일 등) 없음\n"
+    "- 특정 시점을 지칭하는 시간 표현 없음(어제·오늘·방금·아침·저녁·요일, '잘 자' 같은 시각"
+    " 인사). 단 지속·정도 표현('오래'·'늘'·'가끔' 등)은 시간 표현이 아니다 — 허용"
+    " (2026-08-05 진단: '오래'를 시간표현으로 오판해 정상 문구를 리젝한 사례 고정)\n"
     "- 사람 이름·고유명사(직장/학교/지명/병원) 없음 — '친구' 같은 관계 표현과, 발신자인 앱"
     " 캐릭터 이름 '캐피'(キャピ/Cappy)는 인명이 아니라 허용\n"
     "- 압박·죄책감 유발 없음\n"
@@ -504,9 +507,22 @@ def _transcript_for_push(
     return "\n".join(lines)[:4000]
 
 
-async def _generate_body(source_text: str, language: str) -> str:
+_RETRY_HINT = {
+    "filter": "금칙어·시간 표현·길이 상한 위반",
+    "person_ref": "사람 이름/고유명사 포함",
+    "verify_llm": "민감 소재·시점 지칭·인명 의심",
+}
+
+
+async def _generate_body(source_text: str, language: str, hint: str | None = None) -> str:
+    system = _GEN_SYS.format(
+        max_chars=_MAX_CHARS.get(language, 80), out_lang=_OUT_LANG[language]
+    )
+    if hint:
+        # 재시도는 블라인드 재롤이 아니라 반려 사유를 조준해 회피(커버리지 요구).
+        system += f"\n(직전 후보가 검수에서 반려됐다 — 사유: {hint}. 해당 요소를 확실히 피해 새로 써라.)"
     result = await llm.generate(
-        _GEN_SYS.format(max_chars=_MAX_CHARS.get(language, 80), out_lang=_OUT_LANG[language]),
+        system,
         [{"role": "user", "content": source_text}],
         model=settings.model_utility,
         max_tokens=GEN_MAX_TOKENS,
@@ -668,7 +684,9 @@ async def _generate_inner(
     body = ""
     reason = None
     for attempt in range(GEN_ATTEMPTS):
-        body = await _generate_body(source_text, language)
+        body = await _generate_body(
+            source_text, language, hint=_RETRY_HINT.get(reason) if reason else None
+        )
         reason = None
         if not passes_deterministic_filter(body, language):
             reason = "filter"

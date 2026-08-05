@@ -15,7 +15,8 @@ import uuid
 
 from app.services.mem0_consolidation import Edge, Verdict
 
-CLASSIFIER_VERSION = "mem0-classifier-v1"
+# v2: 근사 중복 duplicate · 부정이 긍정을 supersedes(2026-08-06 감사 지적).
+CLASSIFIER_VERSION = "mem0-classifier-v2"
 MAX_EXISTING_CANDIDATES = 12
 MAX_OUTPUT_TOKENS = 900
 
@@ -38,6 +39,10 @@ def build_system() -> str:
         "- id는 입력에 있는 것만 쓴다. 새로 만들지 않는다.\n"
         "- 관계가 없으면 edge를 만들지 않는다. 억지로 잇지 않는다.\n"
         "- 확신이 없으면 ambiguous로 둔다. 단정이 더 위험하다.\n"
+        "- **같은 뜻을 조금 다르게 말한 것은 duplicate다.** '~하려고 한다'와 '~하고 싶다'처럼 "
+        "표현만 다르면 둘 다 남기지 않는다.\n"
+        "- **부정은 긍정을 정정한다.** '산책을 안 했다'는 '산책을 갔다'를 supersedes다. "
+        "같은 대상에 대한 반대 진술이면 나중 것이 앞선 것을 대체한다.\n"
         "- 설명도 코드펜스도 붙이지 말고 JSON만 출력한다."
     )
 

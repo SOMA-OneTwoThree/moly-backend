@@ -255,6 +255,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             budget=budget, extract=_extract, embed=_embed, upsert=_upsert,
             stage_planned=_stage, register_pending=_register,
             nickname=nickname, existing_plan=resumed or None,
+            source_texts={m.id: m.content for m in messages},
         )
     except JobRetry:
         raise

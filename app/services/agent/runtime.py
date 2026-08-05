@@ -54,6 +54,7 @@ from app.services.llm import (
     ToolCall,
     ToolResult,
     TranscriptItem,
+    SystemText,
     UserText,
     unavailable_result,
 )
@@ -196,7 +197,15 @@ def _transcript(convo: Sequence[Mapping[str, str]]) -> list[TranscriptItem]:
     items: list[TranscriptItem] = []
     for m in convo:
         text = m.get("content") or ""
-        items.append(UserText(text) if m.get("role") == "user" else AssistantText(text))
+        role = m.get("role")
+        if role == "user":
+            items.append(UserText(text))
+        elif role == "system":
+            # ⚠️ 예전엔 여기서 AssistantText로 떨어뜨렸다. 그러면 서버 정본(요약·기억·장비)이
+            # **캐피가 과거에 한 말**이 되어, 대화 속 옛 정보와 같은 무게로 경쟁한다.
+            items.append(SystemText(text))
+        else:
+            items.append(AssistantText(text))
     return items
 
 

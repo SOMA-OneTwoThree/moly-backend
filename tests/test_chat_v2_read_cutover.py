@@ -213,3 +213,22 @@ def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
         "검증을 태스크 생성보다 앞으로 옮기거나, 태스크를 cancel하고 raise할 것."
     )
 
+
+
+def test_legacy_suppression_follows_mode_not_search_result():
+    """회상 결과로 정하면 검색 실패 시 legacy 기억이 되살아난다.
+
+    같은 사용자가 턴마다 v2 인격과 legacy 인격을 오가게 된다 — 사용자에겐 캐피가
+    갑자기 다른 걸 기억하는 것으로 보인다.
+    """
+    src = inspect.getsource(chat.post_message)
+    idx = src.index("suppress_legacy_memory=")
+    arg = src[idx:idx + 80]
+    assert "serves_v2" in arg, "legacy 억제가 mode 기준이 아니다"
+    assert "bool(memory_v2_block)" not in arg
+
+
+def test_v2_user_with_no_recall_still_gets_no_legacy_block():
+    """회상 0건이어도 legacy가 들어오면 안 된다."""
+    out = "\n".join(_system(relationship_text="레거시 기억", suppress_legacy_memory=True))
+    assert "레거시 기억" not in out

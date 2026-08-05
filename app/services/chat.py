@@ -974,7 +974,9 @@ async def post_message(
         nick,
         lead_all,
         relationship_text=relationship_text,
-        suppress_legacy_memory=bool(memory_v2_block),
+        # ⚠️ **mode 기준이다.** 회상 결과(bool(memory_v2_block))로 정하면, 검색이 실패하거나
+        # 빈 결과일 때 legacy 기억이 되살아나 같은 사용자가 턴마다 v2/legacy 인격을 오간다.
+        suppress_legacy_memory=pipeline_state.serves_v2,
     )
     # ── 휘발 블록: **최근 원문 뒤·현재 입력 앞**(11장) ────────────────────────
     # 자주 바뀌는 값을 system(캐시 프리픽스)에 두면 바뀔 때마다 프롬프트 전체가 무효가 된다.

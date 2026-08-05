@@ -32,6 +32,10 @@
 16. `20260805_privacy_epoch.sql` — (2단계 a) 삭제 장벽에 `active` state와 `epoch` 추가.
     **컬럼만 추가하고 행은 만들지 않는다** — 안전하게 먼저 적용 가능.
 17. `20260805_privacy_active_backfill.sql` — (2단계 c) 🚨 **코드 배포 뒤에만 적용**.
+18. `20260805_memory_v2_tables.sql` — (4단계) v2 테이블 additive 생성. 아무것도 지우지 않는다:
+    `memory_pipeline_states` · `mem0_ingest_candidates`(+sources) · `mem0_memory_registry`(+sources) ·
+    `user_interaction_contracts`(+items) · `user_relationship_states` · `relationship_events` ·
+    `legacy_recall_tombstones` · `provider_backoffs`, checkpoint v2 컬럼과 async_jobs routing 컬럼.
 
 ### ⚠️ 삭제 장벽 전환 순서 (다른 마이그레이션과 반대)
 

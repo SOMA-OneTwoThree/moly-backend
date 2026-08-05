@@ -220,3 +220,25 @@ async def _shadow_state(user_id):
         consolidated_through_turn_seq=0, historical_upper_turn_seq=6,
         privacy_epoch=0, revision=1,
     )
+
+
+# ─────────────────────────────────────────────────────────────
+# 6. ingest/consolidation 커서 — 서로를 앞지르지 않는다
+# ─────────────────────────────────────────────────────────────
+def test_ingest_cursor_cannot_outrun_source():
+    """source보다 앞서면 아직 안 만들어진 turn을 처리했다는 뜻이다."""
+    sql = str(mp._ADVANCE_INGEST)
+    assert ":turn_seq <= source_through_turn_seq" in sql
+    assert "GREATEST(ingest_through_turn_seq" in sql
+
+
+def test_consolidated_cursor_cannot_outrun_ingest():
+    """판정은 색인된 것에 대해서만 한다."""
+    sql = str(mp._ADVANCE_CONSOLIDATED)
+    assert ":turn_seq <= ingest_through_turn_seq" in sql
+    assert "GREATEST(consolidated_through_turn_seq" in sql
+
+
+def test_cursor_advances_skip_legacy_users():
+    for sql in (mp._ADVANCE_INGEST, mp._ADVANCE_CONSOLIDATED):
+        assert "mode <> 'legacy'" in str(sql)

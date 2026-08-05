@@ -399,7 +399,7 @@ def main() -> None:
 
 def _register_handlers() -> None:
     """순환 import를 피해 시작 시 한 번 핸들러를 등록한다."""
-    from worker import checkpoint_jobs, memory_jobs, recall_jobs  # noqa: F401
+    from worker import checkpoint_jobs, mem0_jobs, memory_jobs, recall_jobs  # noqa: F401
 
     if not _REGISTRY:
         raise RuntimeError("consumer handler registry가 비어 있다")

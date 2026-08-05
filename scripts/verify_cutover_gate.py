@@ -108,6 +108,45 @@ _CHECKS: list[tuple[str, str]] = [
     ),
 ]
 
+# ─────────────────────────────────────────────────────────────
+# 존재 검사 — "있어야 할 게 있는가". 위 `_CHECKS`는 전부 "잘못된 게 없는가"라
+# 데이터가 하나도 없으면 **전부 0으로 통과한다**(허위 양성). 실제로 provenance가 0건인
+# 상태에서 "타 사용자를 가리키는 edge 0 / assistant 근거 edge 0"이 통과했고, 그걸
+# "안전하다"고 보고했다. 없는 것을 안전으로 읽지 않도록 여기서 하한을 본다.
+#
+# (이름, SQL, 최소 기대값)
+_PRESENCE: list[tuple[str, str, int]] = [
+    (
+        "기억 provenance(source edge)",
+        """SELECT count(*) FROM mem0_memory_sources s
+           JOIN mem0_memory_registry r ON r.id = s.registry_id
+           WHERE r.semantic_status IN ('active','ambiguous')""",
+        1,
+    ),
+    (
+        "추출 candidate의 근거 edge",
+        "SELECT count(*) FROM mem0_ingest_candidate_sources",
+        1,
+    ),
+    (
+        "published interaction contract",
+        "SELECT count(*) FROM user_interaction_contracts WHERE status='published'",
+        1,
+    ),
+    (
+        "relationship render",
+        "SELECT count(*) FROM relationship_profile_renders",
+        1,
+    ),
+    (
+        "v2 사용자의 검색 가능한 기억",
+        """SELECT count(*) FROM mem0_memory_registry r
+           JOIN memory_pipeline_states s ON s.user_id = r.user_id
+           WHERE s.mode = 'v2' AND r.semantic_status IN ('active','ambiguous')""",
+        1,
+    ),
+]
+
 # DB만으로 판정할 수 없는 항목 — 통과 여부를 자동으로 말하지 않는다.
 _MANUAL: list[str] = [
     "production-like 구간의 ledger 99.9% 수렴 (dev 트래픽으로는 모수 부족)",
@@ -131,7 +170,7 @@ async def main(env: str | None) -> int:
     conn = await asyncpg.connect(dsn.replace("postgresql+asyncpg://", "postgresql://"))
     failures: list[tuple[str, int]] = []
     try:
-        print("\n[자동 판정]")
+        print("\n[자동 판정 — 잘못된 게 없는가]")
         for name, sql in _CHECKS:
             try:
                 got = int(await conn.fetchval(sql) or 0)
@@ -142,6 +181,18 @@ async def main(env: str | None) -> int:
             mark = "✅" if got == 0 else "❌"
             print(f"  {mark} {name}: {got}")
             if got != 0:
+                failures.append((name, got))
+        print("\n[존재 판정 — 있어야 할 게 있는가]")
+        for name, sql, minimum in _PRESENCE:
+            try:
+                got = int(await conn.fetchval(sql) or 0)
+            except Exception as e:  # noqa: BLE001
+                print(f"  ⚠️  {name}: 조회 실패 — {type(e).__name__}")
+                failures.append((name, -1))
+                continue
+            ok = got >= minimum
+            print(f"  {'✅' if ok else '❌'} {name}: {got} (최소 {minimum})")
+            if not ok:
                 failures.append((name, got))
     finally:
         await conn.close()

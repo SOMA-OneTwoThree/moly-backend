@@ -328,6 +328,21 @@ class AssistantText:
     text: str
 
 
+@dataclass(frozen=True)
+class SystemText:
+    """대화 **중간**에 들어가는 서버 소유 블록(요약·기억·서버 상태).
+
+    ⚠️ 이게 없으면 chat이 넣은 `role="system"` 항목이 `AssistantText`로 떨어져 **캐피가 과거에
+    한 말**로 전달된다. 그러면 서버 정본(장비·루틴)이 대화 기억과 같은 무게로 경쟁하고,
+    실제로 정본(선글라스·목도리)보다 옛 대화 속 안경·귤모자가 이겼다(실측 사고).
+
+    맨 앞 system(페르소나)과 달리 이 블록은 **최근 원문 뒤**에 온다 — 자주 바뀌므로 캐시
+    프리픽스에 두면 매 턴 전체가 다시 청구된다(11장).
+    """
+
+    text: str
+
+
 @dataclass
 class ToolCall:
     """모델이 요청한 도구 호출 1건.
@@ -399,7 +414,7 @@ class ToolResult:
     duration_ms: int = 0  # trace 전용 — 모델 wire에 넣지 않는다
 
 
-TranscriptItem = UserText | AssistantText | AssistantToolCalls | ToolResult
+TranscriptItem = UserText | AssistantText | SystemText | AssistantToolCalls | ToolResult
 
 
 @dataclass
@@ -494,6 +509,10 @@ def to_openai_messages(
         elif isinstance(item, AssistantText):
             _require_closed(item)
             messages.append({"role": "assistant", "content": item.text})
+        elif isinstance(item, SystemText):
+            # 서버 소유 블록. assistant로 떨어뜨리면 캐피가 한 말이 되어 정본 권위를 잃는다.
+            _require_closed(item)
+            messages.append({"role": "system", "content": item.text})
         elif isinstance(item, AssistantToolCalls):
             _require_closed(item)
             if not item.calls:

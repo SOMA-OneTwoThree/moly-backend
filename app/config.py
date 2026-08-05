@@ -82,6 +82,8 @@ class Settings(BaseSettings):
     # (캐시 쓰기는 무료가 아니다. 다만 API가 쓰기 토큰을 안 주므로 llm.py가 추정한다 — 그 주석 참조.)
     bill_weight_output_openai: float = 6.0        # 출력 $1.20 / 입력 $0.20 (luna), 전 tier 동일 비율
     bill_weight_cache_read_openai: float = 0.1    # 캐시 읽기 = 입력 단가의 10%(90% 할인)
+    # GPT-5.6부터 OpenAI도 캐시 쓰기에 1.25× 프리미엄을 받는다(그 이전 모델군은 무료였다).
+    # ⚠️ "OpenAI는 캐시 쓰기가 공짜"는 5.6 이전 기준이다 — 이 값을 1.0으로 되돌리지 마라.
     bill_weight_cache_write_openai: float = 1.25  # 캐시 쓰기 = 입력 단가의 125%
     # 턴 회계 v2 킬스위치 — True면 턴 내 모든 LLM 호출(주 chat + 한자 복원 등)을 합산해 차감한다.
     # False면 기존 동작(주 chat 호출만 차감, 나머지는 계측·로그만) — 롤백 경로. 스키마는 동일.

@@ -306,7 +306,10 @@ async def _touch_last_active(session: AsyncSession, uid: uuid.UUID, now: datetim
     await session.execute(stmt)
 
 
-_MEM0_RECALL_TIMEOUT_S = 2.5
+# 회상 상한. `agent_turn_deadline_s`(5초) 예산에서 이만큼까지만 쓴다.
+# 실측 회상 소요는 450~1,030ms(중앙 570ms)라 1.5초면 정상 회상은 거의 안 잘리고,
+# 느려졌을 때 예산 손실을 1.5초로 묶는다. 잘리면 빈 기억으로 진행한다.
+_MEM0_RECALL_TIMEOUT_S = 1.5
 _mem0_recall_adapter = None
 
 
@@ -364,7 +367,7 @@ def _build_system(
     summary: str = "",
     relationship_text: str = "",
     current_state: str = "",
-    memory_v2_block: str = "",
+    suppress_legacy_memory: bool = False,
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
     뒤 블록이 바뀌어도 페르소나 캐시 생존.
@@ -393,11 +396,12 @@ def _build_system(
             "같은 인사를 또 하지 마.\n"
             f"{said}"
         )
-    if memory_v2_block:
-        # v2 기억. mem0_recall이 registry 상태로 이미 걸렀고, 서버가 만든 블록이라
-        # user 발화 권위를 넘지 않는다. legacy 관계 프로필과 **동시에 넣지 않는다** —
-        # 같은 사실이 두 벌로 들어가면 캐피가 중복해서 말하고 캐시만 늘어난다.
-        parts.append(naming.render(memory_v2_block, nickname))
+    # ⚠️ v2 기억은 **여기 넣지 않는다.** 회상 결과는 매 턴 달라지는데 system은 캐시되는
+    # 프리픽스라, 여기 두면 그 뒤가 전부 cache miss가 된다(실측: 캐시 쓰기 59토큰 → 4,232토큰).
+    # 11장이 정한 자리는 **최근 원문 뒤**이고, prompt_assembly도 MEMORY를 CURRENT로 분류한다.
+    # 실제 주입은 post_message가 convo 끝에서 한다.
+    if suppress_legacy_memory:
+        pass  # v2 사용자는 legacy 관계 프로필을 넣지 않는다(같은 사실이 두 벌이 된다)
     elif relationship_text:
         block = prompts.relationship_profile_block(
             naming.render(relationship_text, nickname), language, enabled=True
@@ -982,8 +986,16 @@ async def post_message(
         summary=checkpoint_summary,
         relationship_text=relationship_text,
         current_state=resident_block,
-        memory_v2_block=memory_v2_block,
+        suppress_legacy_memory=bool(memory_v2_block),
     )
+    if memory_v2_block:
+        # 매 턴 달라지는 값이라 **최근 원문 뒤·현재 입력 앞**에 둔다(11장). 이 자리면 앞의
+        # append-only 대화가 그대로 캐시된다. system이 아니라 convo에 넣지만 role은 system이라
+        # user 발화 권위를 갖지 않는다.
+        convo.insert(
+            max(0, len(convo) - 1),
+            {"role": "system", "content": naming.render(memory_v2_block, nick)},
+        )
     if focus_block:
         system = [*system, focus_block]
 

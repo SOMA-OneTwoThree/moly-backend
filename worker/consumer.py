@@ -25,7 +25,7 @@ from typing import Any
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import jobs, projection_repair
+from app.services import job_telemetry, jobs, projection_repair
 from app.services.jobs import ClaimedJob, QueueConfig
 
 _log = logging.getLogger("moly-worker")
@@ -134,6 +134,7 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
         # 미지원 job_type = 배포 스큐 또는 오타 producer. 재시도해도 같으므로 즉시 dead(경보 남김).
         await _finalize_terminal(job, "dead", "unknown_job_type")
         return
+    await job_telemetry.record_start(job, get_sessionmaker)
     try:
         result = await asyncio.wait_for(handler(job), timeout=cfg.timeout_s)
     except (asyncio.TimeoutError, TimeoutError):
@@ -142,15 +143,26 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
             cfg.timeout_s, job.id, job.job_type, job.attempt,
         )
         await _finalize_retry(job, "timeout")
+        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_TIMEOUT, "timeout")
     except JobRetry as exc:
         await _finalize_retry(job, exc.error_code, exc.retry_after_s)
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, exc.error_code
+        )
     except JobFatal as exc:
         await _finalize_terminal(job, "dead", exc.error_code)
+        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_DEAD, exc.error_code)
     except JobCancelled as exc:
         await _finalize_terminal(job, "cancelled", exc.error_code)
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_CANCELLED, exc.error_code
+        )
     except Exception as exc:  # noqa: BLE001  # 미분류 예외는 일시 장애로 보고 재시도(소진되면 dead)
         _log.exception("잡 처리 예외 — job_id=%s job_type=%s: %r", job.id, job.job_type, exc)
         await _finalize_retry(job, "unexpected_error")
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, "unexpected_error"
+        )
     else:
         res = result or JobResult()
         await _finalize(
@@ -160,6 +172,7 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
                 apply_domain=res.apply_domain,
             ),
         )
+        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_SUCCEEDED, res.result_code)
 
 
 async def _sleep_or_stop(stop: asyncio.Event, seconds: float) -> None:

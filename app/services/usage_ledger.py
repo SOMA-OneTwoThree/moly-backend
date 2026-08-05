@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime, timezone
 from math import ceil
 
@@ -349,3 +349,115 @@ async def mark_failed(
         )
     ).first()
     return row is not None
+
+
+# ─────────────────────────────────────────────────────────────
+# provider 호출 지점에서 쓰는 self-session 래퍼.
+#
+# 짧은 전용 session을 쓰는 이유: 원장 기록이 대화의 user lock/transaction 안에 들어가면 외부 호출
+# 시간만큼 락을 잡게 된다. 계측이 본 경로의 동시성을 갉아먹지 않도록 분리한다.
+# 모든 함수는 **절대 예외를 올리지 않는다** — 계측 실패가 대화·잡을 깨뜨리면 안 된다(불변식 5).
+# ─────────────────────────────────────────────────────────────
+@dataclass(frozen=True)
+class LedgerContext:
+    """호출 1건의 귀속 정보. 이게 없으면 원장에 남기지 않는다(계측 opt-in)."""
+
+    lane: str
+    purpose: str
+    user_id: uuid.UUID | None = None
+    turn_seq: int | None = None
+    job_id: uuid.UUID | None = None
+    activity_date: date | None = None
+    attempt: int = 1
+    prompt_version: str | None = None
+    experiment_id: str | None = None
+
+
+def with_purpose(ctx: LedgerContext | None, purpose: str) -> LedgerContext | None:
+    """같은 귀속에 목적만 바꾼 사본. 한 잡이 여러 목적의 호출을 하는 경우(일기 생성→복원→번역)."""
+    return None if ctx is None else replace(ctx, purpose=purpose)
+
+
+async def open_call(ctx: LedgerContext, *, provider: str, model: str) -> uuid.UUID | None:
+    """호출 **전** started 행. 실패하면 None을 돌려주고 호출측은 그대로 진행한다."""
+    from app.core.db import get_sessionmaker
+
+    try:
+        async with get_sessionmaker()() as session:
+            call_id = await begin(
+                session,
+                lane=ctx.lane,
+                purpose=ctx.purpose,
+                provider=provider,
+                model=model,
+                user_id=ctx.user_id,
+                turn_seq=ctx.turn_seq,
+                job_id=ctx.job_id,
+                activity_date=ctx.activity_date,
+                attempt=ctx.attempt,
+                prompt_version=ctx.prompt_version,
+                experiment_id=ctx.experiment_id,
+            )
+            await session.commit()
+            return call_id
+    except Exception as e:  # noqa: BLE001  계측 실패가 본 경로를 막지 않는다
+        _log.warning("원장 시작 기록 실패(무시): %r", e)
+        return None
+
+
+async def close_call(
+    call_id: uuid.UUID | None,
+    *,
+    provider: str,
+    model: str,
+    input_tokens: int = 0,
+    cached_input_tokens: int = 0,
+    cache_write_tokens: int = 0,
+    output_tokens: int = 0,
+    embedding_tokens: int = 0,
+    cache_write_estimated: bool = False,
+    model_snapshot: str | None = None,
+    provider_request_id: str | None = None,
+    latency_ms: int | None = None,
+) -> None:
+    """usage를 확정한다. 단가를 못 찾으면 `complete`가 unknown_usage로 남긴다."""
+    if call_id is None:
+        return
+    from app.core.db import get_sessionmaker
+
+    try:
+        async with get_sessionmaker()() as session:
+            price = await load_price(session, provider=provider, model=model)
+            await complete(
+                session,
+                call_id,
+                price=price,
+                input_tokens=input_tokens,
+                cached_input_tokens=cached_input_tokens,
+                cache_write_tokens=cache_write_tokens,
+                output_tokens=output_tokens,
+                embedding_tokens=embedding_tokens,
+                cache_write_estimated=cache_write_estimated,
+                model_snapshot=model_snapshot,
+                provider_request_id=provider_request_id,
+                latency_ms=latency_ms,
+            )
+            await session.commit()
+    except Exception as e:  # noqa: BLE001
+        _log.warning("원장 완료 기록 실패(무시): %r", e)
+
+
+async def close_failed(
+    call_id: uuid.UUID | None, *, error_code: str, latency_ms: int | None = None
+) -> None:
+    """provider 호출이 예외로 끝난 경우. 토큰을 썼는지 알 수 없으면 호출측이 unknown을 택한다."""
+    if call_id is None:
+        return
+    from app.core.db import get_sessionmaker
+
+    try:
+        async with get_sessionmaker()() as session:
+            await mark_failed(session, call_id, error_code=error_code, latency_ms=latency_ms)
+            await session.commit()
+    except Exception as e:  # noqa: BLE001
+        _log.warning("원장 실패 기록 실패(무시): %r", e)

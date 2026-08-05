@@ -102,7 +102,7 @@ def test_publish_at_is_next_day_9am_local():
 async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)  # self-check 통과
         return LLMResult("날씨: sunny\n지우는 오늘 발표를 무사히 마쳤다.", 10, 20)
@@ -121,7 +121,7 @@ async def test_personal_non_korean_preserves_cjk(monkeypatch):
     """비한국어(일본어) 일기의 정상 CJK가 삭제·재작성되지 않는다 — 서지컬 복원 미발동(SOMA-345)."""
     _patch_common(monkeypatch, messages=[_msg("user", "今日は発表した")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("Weather: sunny\n今日は発表を無事に終えた。漢字も残る。", 10, 20)
@@ -143,7 +143,7 @@ async def test_personal_english_preserves_punctuation(monkeypatch):
     """영어 일기의 하이픈·아포스트로피 등 자연 문장부호가 보존된다(SOMA-345)."""
     _patch_common(monkeypatch, messages=[_msg("user", "I nailed the talk")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("Weather: sunny\nToday felt laid-back and I'm glad.", 10, 20)
@@ -161,12 +161,12 @@ async def test_personal_korean_repairs_foreign_chars(monkeypatch):
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")], tokens=5000)
     calls = {}
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("날씨: sunny\n오늘 発表를 무사히 마쳤다.", 10, 20)  # 한자 섞임
 
-    async def _repair(body, *, user_id=None):
+    async def _repair(body, *, user_id=None, **_):
         calls["repaired"] = body
         return "오늘 발표를 무사히 마쳤다."
 
@@ -184,7 +184,7 @@ async def test_publishes_personal_even_when_self_check_fails(monkeypatch):
     ment = SimpleNamespace(id=uuid.uuid4(), content="캐피는 오늘 뒹굴거렸다.", weather="rainy")
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 진짜 힘들었어")], tokens=5000, ment=ment)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("NO", 1, 1)  # self-check 리젝 — 이제 비차단(로그만)
         return LLMResult("날씨: sunny\n오늘 그 마음이 오래 남았다", 10, 20)
@@ -203,7 +203,7 @@ async def test_diary_body_strips_markdown_and_ellipsis(monkeypatch):
     # 일기 본문의 마크다운(**,-)·말줄임표(...)는 저장 전 제거.
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 힘들었어")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("날씨: sunny\n**오늘** 마음이 - 무거웠다... 그래도 괜찮아", 10, 20)
@@ -223,7 +223,7 @@ async def test_moly_diary_when_below_threshold(monkeypatch):
 
     called = {"llm": False}
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         called["llm"] = True
         return LLMResult("x", 1, 1)
 

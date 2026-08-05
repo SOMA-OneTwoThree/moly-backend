@@ -27,7 +27,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from app.config import settings
-from app.services import i18n, llm, memory, naming
+from app.services import i18n, llm, memory, naming, usage_ledger
 
 _log = logging.getLogger("moly-backend")
 
@@ -316,6 +316,7 @@ async def summarize(
     nickname: str | None,
     model: str | None = None,
     timeout: float | None = None,
+    ledger: usage_ledger.LedgerContext | None = None,
 ) -> tuple[str, llm.LlmCall]:
     """대화 구간 → 저장 가능한 요약 + 그 호출의 회계 단위.
 
@@ -331,6 +332,7 @@ async def summarize(
         model=used_model,
         max_tokens=SUMMARY_MAX_OUTPUT_TOKENS,
         timeout=timeout if timeout is not None else settings.llm_timeout_s,
+        ledger=usage_ledger.with_purpose(ledger, "context_summary"),
     )
     call = llm.LlmCall(
         provider=llm.provider_for(result.model or used_model),

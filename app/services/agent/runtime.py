@@ -44,7 +44,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import llm
+from app.services import llm, usage_ledger
 from app.services.agent.config import AgentConfigSnapshot
 from app.services.llm import (
     AssistantText,
@@ -529,6 +529,16 @@ def _validated_final(
 
 
 # --- 턴 실행 ---
+def _ledger_ctx(user_id: uuid.UUID, activity_date: date) -> usage_ledger.LedgerContext:
+    """도구 루프 호출의 원가 귀속. purpose는 step별로 generate_step이 덮어쓴다."""
+    return usage_ledger.LedgerContext(
+        lane=usage_ledger.LANE_FOREGROUND,
+        purpose="chat",
+        user_id=user_id,
+        activity_date=activity_date,
+    )
+
+
 async def run_turn(
     system: str | list[str],
     convo: Sequence[Mapping[str, str]],
@@ -595,6 +605,7 @@ async def run_turn(
         ),
         # 도구를 제안하지 않은 호출은 그냥 대화 1회다 — 회계 purpose를 실제 호출 모양에 맞춘다.
         purpose="tool_decide" if use_tools else "chat",
+        ledger=_ledger_ctx(user_id, activity_date),
         input_models=input_models if use_tools else None,
         # 첫 홉에는 control_tools를 **넘기지 않는다** — intent는 final step에서만 유효하다(명세 487행).
         # generate_step은 자기가 몇 번째 홉인지 모르므로 이 판정은 루프의 책임이다.
@@ -676,6 +687,7 @@ async def run_turn(
         max_tokens=settings.llm_max_tokens,  # 최종 답변은 현재 단발 경로와 같은 출력 예산
         timeout=_llm_timeout(deadline, floor=config.final_reserve_s, now=now),
         purpose="tool_final",
+        ledger=_ledger_ctx(user_id, activity_date),
         input_models=input_models,
         control_tools=control,  # final step에서만 의도를 읽는다
         response_tools=response_tools or None,

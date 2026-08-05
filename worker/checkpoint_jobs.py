@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import checkpoint, checkpoint_repo
+from app.services import checkpoint, checkpoint_repo, usage_ledger
 from app.services.jobs import ClaimedJob
 from worker import consumer
 from worker.consumer import JobCancelled, JobFatal, JobResult, JobRetry
@@ -277,6 +277,10 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             previous_summary=previous_summary,
             language=language,
             nickname=nickname,
+            ledger=usage_ledger.LedgerContext(
+                lane=usage_ledger.LANE_BACKGROUND, purpose="context_summary",
+                user_id=job.user_id, job_id=job.id, attempt=job.attempt,
+            ),
         )
     except checkpoint.NameLeakError as e:
         # 마스킹 후에도 실명이 남았다 — 저장하지 않고 재시도(다음 샘플은 통과할 수 있다).

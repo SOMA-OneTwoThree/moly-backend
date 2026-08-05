@@ -216,3 +216,109 @@ async def test_cache_write_estimate_is_flagged(db):
         cache_write_estimated=True, now=_T0,
     )
     assert db.rows[call_id]["cache_write_estimated"] is True
+
+
+# ─────────────────────────────────────────────────────────────
+# 3. generate() 계측 배선 — 계측이 대화를 깨뜨리지 않는다
+# ─────────────────────────────────────────────────────────────
+class _Recorder:
+    """open_call/close_call/close_failed 호출을 잡아 두는 스텁."""
+
+    def __init__(self):
+        self.opened: list[dict] = []
+        self.closed: list[dict] = []
+        self.failed: list[dict] = []
+        self.call_id = uuid.uuid4()
+
+    def install(self, monkeypatch, module):
+        async def _open(ctx, *, provider, model):
+            self.opened.append({"ctx": ctx, "provider": provider, "model": model})
+            return self.call_id
+
+        async def _close(call_id, **kw):
+            self.closed.append({"call_id": call_id, **kw})
+
+        async def _failed(call_id, **kw):
+            self.failed.append({"call_id": call_id, **kw})
+
+        monkeypatch.setattr(module.usage_ledger, "open_call", _open)
+        monkeypatch.setattr(module.usage_ledger, "close_call", _close)
+        monkeypatch.setattr(module.usage_ledger, "close_failed", _failed)
+
+
+def _fake_openai_resp(prompt=2000, completion=50, cached=1500):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        id="req_abc123",
+        model="gpt-5.6-luna-2026-07-01",
+        choices=[SimpleNamespace(message=SimpleNamespace(content="응"), finish_reason="stop")],
+        usage=SimpleNamespace(
+            prompt_tokens=prompt,
+            completion_tokens=completion,
+            prompt_tokens_details=SimpleNamespace(cached_tokens=cached),
+        ),
+    )
+
+
+def _install_client(monkeypatch, module, resp, *, raises: Exception | None = None):
+    class _Completions:
+        async def create(self, **kw):
+            if raises is not None:
+                raise raises
+            return resp
+
+    client = SimpleNamespaceLike(chat=SimpleNamespaceLike(completions=_Completions()))
+    monkeypatch.setattr(module, "_get_openai_client", lambda: client)
+
+
+class SimpleNamespaceLike:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
+async def test_generate_without_ledger_records_nothing(monkeypatch):
+    """계측은 opt-in이다 — ledger를 안 주면 원장을 건드리지 않는다."""
+    from app.services import llm
+
+    rec = _Recorder()
+    rec.install(monkeypatch, llm)
+    _install_client(monkeypatch, llm, _fake_openai_resp())
+    await llm.generate("페르소나", [{"role": "user", "content": "hi"}], model="gpt-5.6-luna")
+    assert rec.opened == [] and rec.closed == []
+
+
+async def test_generate_with_ledger_opens_before_and_closes_with_usage(monkeypatch):
+    from app.services import llm
+
+    rec = _Recorder()
+    rec.install(monkeypatch, llm)
+    _install_client(monkeypatch, llm, _fake_openai_resp(prompt=2000, completion=50, cached=1500))
+    ctx = ul.LedgerContext(lane=ul.LANE_FOREGROUND, purpose="chat")
+    await llm.generate(
+        "페르소나", [{"role": "user", "content": "hi"}], model="gpt-5.6-luna", ledger=ctx
+    )
+    assert len(rec.opened) == 1 and rec.opened[0]["model"] == "gpt-5.6-luna"
+    closed = rec.closed[0]
+    assert closed["call_id"] == rec.call_id
+    assert closed["cached_input_tokens"] == 1500
+    assert closed["output_tokens"] == 50
+    # 응답이 알려준 실제 snapshot과 request id가 원장으로 넘어간다(invoice 대사 키).
+    assert closed["model_snapshot"] == "gpt-5.6-luna-2026-07-01"
+    assert closed["provider_request_id"] == "req_abc123"
+    # OpenAI는 write usage를 주지 않아 추정 — 실비로 집계되지 않게 표시된다.
+    assert closed["cache_write_estimated"] is True
+
+
+async def test_provider_exception_is_recorded_as_failed_and_reraised(monkeypatch):
+    """토큰을 썼는지 알 수 없는 실패를 0원 completed로 만들지 않는다."""
+    from app.services import llm
+
+    rec = _Recorder()
+    rec.install(monkeypatch, llm)
+    _install_client(monkeypatch, llm, None, raises=RuntimeError("boom"))
+    ctx = ul.LedgerContext(lane=ul.LANE_BACKGROUND, purpose="diary_generate")
+    with pytest.raises(RuntimeError):
+        await llm.generate("p", [{"role": "user", "content": "x"}], model="gpt-5.6-luna", ledger=ctx)
+    assert rec.closed == []
+    assert rec.failed[0]["error_code"] == "RuntimeError"

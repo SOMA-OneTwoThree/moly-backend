@@ -90,7 +90,7 @@ _UNSUPPORTED = ("zh-Hant-TW", "es-ES", "th", "fr", "vi")
 def test_chat_falls_back_to_english_outside_ko_ja():
     for lang in _UNSUPPORTED:
         sp = prompts.system_prompt(lang)
-        assert "reply only in en." in sp, f"{lang}: 영어로 안 떨어진다"
+        assert "reply only in English." in sp, f"{lang}: 영어로 안 떨어진다"
         # 태그 조각이 영어 단어에 우연히 들어갈 수 있어(th -> the) 지시문 형태로 정확히 본다.
         assert f"in {lang}." not in sp, f"{lang}: 원본 언어 태그가 프롬프트에 새어 들어갔다"
 
@@ -106,4 +106,43 @@ def test_supported_languages_are_unchanged():
     """ko·ja는 그대로여야 한다. 지역 태그가 붙어도 같은 버킷으로 간다."""
     assert "반드시 한국어" in prompts.system_prompt("ko-KR")
     assert "日本語" in prompts.system_prompt("ja-JP")
-    assert "reply only in en." in prompts.system_prompt("en-US")
+    assert "reply only in English." in prompts.system_prompt("en-US")
+
+
+# --- 영어 네이티브 페르소나 ---
+#
+# 예전에는 영어 유저도 한국어로 쓰인 페르소나를 받았다. 말투 규칙이 한국어 기준이라 영어에
+# 맞지 않았고, 실제 응답이 축약형을 하나도 안 써서(It is / do not) 딱딱했다. 일본어와 같은
+# 방식으로 영어 원본을 따로 둔다.
+def test_english_persona_has_no_korean_or_kana():
+    import re
+
+    sp = prompts.system_prompt("en")
+    assert not re.search(r"[가-힣]", sp), "영어 프롬프트에 한글이 남아 있다"
+    assert not re.search(r"[぀-ヿ]", sp), "영어 프롬프트에 가나가 남아 있다"
+
+
+def test_english_persona_is_used_for_unsupported_languages():
+    """미지원 언어도 영어 갈래로 온다 — 한국어 페르소나로 떨어지면 안 된다."""
+    for lang in ("zh-Hant-TW", "th", "es-ES"):
+        assert prompts.system_prompt(lang) == prompts.system_prompt("en")
+
+
+def test_english_persona_keeps_the_capi_rules():
+    """언어가 달라도 지켜야 할 규칙은 같다. 옮기면서 빠지면 안 된다."""
+    sp = prompts.system_prompt("en")
+    for rule, why in [
+        ("Cappy", "이름"),
+        ("Don't use commas", "쉼표 금지"),
+        ("Use contractions", "축약형"),
+        ("three lines", "세 줄 상한"),
+        ("emoji", "이모지 금지"),
+        ("capybara", "정체성"),
+        ("diary", "일기는 비밀"),
+    ]:
+        assert rule in sp, f"영어 페르소나에 {why} 규칙이 없다"
+
+
+def test_ko_and_ja_personas_are_untouched():
+    assert "너는 '캐피'야" in prompts.system_prompt("ko")
+    assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")

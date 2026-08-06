@@ -3,7 +3,10 @@ from app.services import i18n
 
 
 def test_resolve_buckets():
-    assert i18n.resolve(None) == "ko"          # 미설정 = 한국어(기본 프로필)
+    # 미설정 = 영어. 해외 출시 기준으로 '모르는 언어'는 영어가 맞다. 운영 DB의
+    # profiles.language는 NOT NULL DEFAULT 'en'이라 이 경로는 profile을 못 읽은 경우뿐이다.
+    assert i18n.resolve(None) == "en"
+    assert i18n.resolve("") == "en"
     assert i18n.resolve("ko") == "ko"
     assert i18n.resolve("ko-KR") == "ko"       # BCP47 지역 태그 → base 언어
     assert i18n.resolve("en") == "en"
@@ -14,8 +17,9 @@ def test_resolve_buckets():
 
 
 def test_is_korean():
-    assert i18n.is_korean(None) and i18n.is_korean("ko") and i18n.is_korean("ko-KR")
+    assert i18n.is_korean("ko") and i18n.is_korean("ko-KR")
     assert not (i18n.is_korean("en") or i18n.is_korean("ja") or i18n.is_korean("zh-Hant-TW"))
+    assert not i18n.is_korean(None), "미설정은 이제 영어다 — 한국어로 새면 비한국어 유저가 한국어를 본다"
 
 
 def test_pick():
@@ -35,3 +39,18 @@ def test_pick_fallback_chain():
     assert i18n.pick({"ko": "가"}, "en") == "가"
     # 정확일치 우선 — falsey 값도 키가 존재하면 그대로 반환한다.
     assert i18n.pick({"ko": "가", "en": ""}, "en") == ""
+
+
+def test_content_language_is_only_three_buckets():
+    """콘텐츠 언어는 ko·en·ja 셋뿐이다. 어떤 값이 들어와도 그 밖으로 나가면 안 된다.
+
+    DB `profiles.language`도 트리거로 같은 셋으로 좁힌다
+    (db/migrations/20260806_normalize_profile_language.sql). 여기는 코드 쪽 대비다.
+    """
+    probes = [
+        None, "", "  ", "ko", "ko-KR", "en", "en-US", "en-GB", "ja", "ja-JP",
+        "zh", "zh-Hant-TW", "th", "es-ES", "fr-FR", "vi", "de", "pt-BR", "it-IT",
+        "KO", "Ko-kR", "x-invalid", "12345",
+    ]
+    for tag in probes:
+        assert i18n.resolve(tag) in {"ko", "en", "ja"}, f"{tag!r}가 셋 밖으로 나갔다"

@@ -24,6 +24,7 @@ from app.services import llm, usage_ledger
 from app.services.jobs import ClaimedJob
 from worker import consumer
 from worker.consumer import JobCancelled, JobFatal, JobResult, JobRetry
+from app.services import i18n
 
 _log = logging.getLogger("moly-worker")
 
@@ -122,7 +123,9 @@ async def handle_contract_compile(job: ClaimedJob) -> JobResult:
     if not rows:
         raise JobCancelled("no_source_messages")
 
-    locale = (profile[1] if profile else None) or "ko"
+    # 저장·조회 모두 콘텐츠 언어 버킷(ko·en·ja)으로 맞춘다. 예전에는 원본 태그를 그대로 써서
+    # "ko-KR"과 "ko"가 서로 다른 계약으로 갈렸고, 관계 렌더(i18n.resolve 사용)와도 어긋났다.
+    locale = i18n.resolve(profile[1] if profile else None)
     msgs = [_Msg(r[0], r[1], r[2] or "") for r in rows]
     user_ids = {m.id for m in msgs if m.sender == "user"}
 
@@ -150,7 +153,8 @@ async def handle_contract_compile(job: ClaimedJob) -> JobResult:
 
     doc = _document(kept)
     digest = ic.document_hash(doc)
-    rendered = ic.render_document([c.directive for c in kept])
+    # ⚠️ language를 안 넘기면 기본값 ko라서 영어·일본어 유저의 rendered_text가 한국어로 저장된다.
+    rendered = ic.render_document([c.directive for c in kept], language=locale)
     auto_publish = not any(c.directive.kind in HIGH_IMPACT for c in kept)
 
     async def _apply(session) -> None:
@@ -174,7 +178,7 @@ async def handle_contract_compile(job: ClaimedJob) -> JobResult:
                     "target_tag": c.directive.target_tag,
                     "target_literal": c.directive.target_literal,
                 }, ensure_ascii=False),
-                "rendered": ic.render(c.directive),
+                "rendered": ic.render(c.directive, language=locale),
                 "source_message_id": c.source_message_id,
             })
         if auto_publish:

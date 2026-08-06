@@ -826,7 +826,9 @@ async def post_message(
     # 하나 더 둔다 — 실제로 jsonb 파싱 실수 하나가 대화를 통째로 죽였다.
     try:
         contract_text = await contract_repo.published_text(
-            session, user_id=uid, locale=language
+            # 저장할 때와 같은 버킷으로 찾는다(worker/contract_jobs.py). 원본 태그로 찾으면
+            # "ko-KR" 유저가 "ko"로 저장된 제 계약을 영영 못 찾는다.
+            session, user_id=uid, locale=i18n.resolve(language)
         )
     except Exception:  # noqa: BLE001
         _log.warning("계약 조회 실패(빈 계약으로 진행) — user=%s", user_id, exc_info=True)

@@ -201,7 +201,7 @@ async def _personal(
     """(본문, 날씨) 또는 None + 진단정보. None이면 호출측이 preset 폴백."""
     nickname = getattr(profile, "nickname", None)
     lang = getattr(profile, "language", None)
-    is_ko = i18n.is_korean(lang)  # 미설정=한국어. 비ko(en/ja/zh)는 하이픈 유지 + 외래문자 복원 우회
+    is_ko = i18n.is_korean(lang)  # 미설정=영어. 비ko(en/ja)는 하이픈 유지 + 외래문자 복원 우회
     transcript = _transcript(messages, nickname, lang)
     result = await llm.generate(
         diary_prompt(lang, nickname),

@@ -20,17 +20,17 @@ def _expected(pool, nickname):
 
 def test_home_enter_picks_from_the_hour_bucket():
     for hour, bucket in ((5, "dawn"), (9, "morning"), (14, "day"), (18, "evening"), (23, "night")):
-        picked = {g.pick("home_enter", "지훈", hour) for _ in range(60)}
+        picked = {g.pick("home_enter", "지훈", hour, "ko") for _ in range(60)}
         assert picked <= _expected(g._HOME_BY_TIME[bucket], "지훈")  # 다른 시간대 인사 안 샘
 
 
 def test_home_enter_without_hour_falls_back_to_day():
-    assert g.pick("home_enter", "지훈") in _expected(g._HOME_BY_TIME["day"], "지훈")
+    assert g.pick("home_enter", "지훈", language="ko") in _expected(g._HOME_BY_TIME["day"], "지훈")
 
 
 def test_every_context_has_a_pool():
     for ctx in g.CONTEXTS:
-        assert g.pick(ctx, "지훈", 12)  # KeyError·빈 풀 없이 문구가 나온다
+        assert g.pick(ctx, "지훈", 12, "ko")  # KeyError·빈 풀 없이 문구가 나온다
 
 
 def test_pools_nonempty_and_no_internal_dupes():
@@ -41,9 +41,9 @@ def test_pools_nonempty_and_no_internal_dupes():
 
 def test_morning_greeting_substitutes_nickname_subject_josa():
     # '{subj} 왔어? 아침은?' → 받침 유무에 맞는 주격 조사(승민이 / 지호가)
-    picks = {g.pick("home_enter", "승민", 9) for _ in range(80)}
+    picks = {g.pick("home_enter", "승민", 9, "ko") for _ in range(80)}
     assert "승민이 왔어? 아침은?" in picks
-    picks_jh = {g.pick("home_enter", "지호", 9) for _ in range(80)}
+    picks_jh = {g.pick("home_enter", "지호", 9, "ko") for _ in range(80)}
     assert "지호가 왔어? 아침은?" in picks_jh
 
 
@@ -63,8 +63,8 @@ def test_non_korean_name_no_josa():
 
 
 def test_onboarding_uses_nickname_with_correct_josa():
-    assert "지훈이라고" in g.pick("onboarding", "지훈") or "지훈아" in g.pick("onboarding", "지훈")
-    assert g.pick("onboarding", None) == "난 캐피야, 이 집에 살아. 편하게 얘기 걸어."  # 안전 폴백
+    assert "지훈이라고" in g.pick("onboarding", "지훈", language="ko") or "지훈아" in g.pick("onboarding", "지훈", language="ko")
+    assert g.pick("onboarding", None, language="ko") == "난 캐피야, 이 집에 살아. 편하게 얘기 걸어."  # 안전 폴백
 
 
 def test_ja_pools_integrity():

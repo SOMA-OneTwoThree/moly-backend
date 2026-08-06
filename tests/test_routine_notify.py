@@ -57,6 +57,7 @@ class _G:
 
 class _Profile:
     id = "00000000-0000-0000-0000-000000000000"
+    language = "ko"  # 운영 profiles.language는 NOT NULL이다. 미설정 기본값은 이제 영어라 명시한다.
 
 
 def _patch(monkeypatch, remaining):

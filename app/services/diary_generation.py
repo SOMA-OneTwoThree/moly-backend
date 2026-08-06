@@ -132,7 +132,7 @@ async def _self_check(
 # 개인일기 서지컬 복원 — 깨진문자(�)로 단어 잘림·한자/가나 섞임을 '그 부분만' 고친다.
 # 결정적 삭제는 잘린 단어를 못 살리므로(메� → 메) LLM이 문맥으로 부분수정. 개인일기(LLM 생성)만
 # 대상 — 프리셋은 시드 검증된 사람 글이라 strip_symbols로 충분. 배치라 지연 여유.
-# 한자/가나 판정·제거는 챗과 공용(text_clean.has_foreign_ko / strip_foreign_ko) — 단일 소스(SOMA-345).
+# 외래문자 판정·제거는 챗과 공용(text_clean.has_foreign / strip_foreign) — 단일 소스(SOMA-345).
 # ⚠️ 이 복원은 '한국어 일기'에만 적용한다(호출측 _personal의 is_ko 게이팅). 비한국어(ja/zh)는
 # CJK가 정상 본문이라 여기서 지우면 안 된다.
 _MIN_EDIT_RATIO = 0.80  # 원문 대비 유사도 하한 — 이보다 크게 바뀌면 '부분수정' 아님 → 결정적 폴백
@@ -145,20 +145,34 @@ _SURGICAL_SYS = (
 )
 
 
-def _needs_repair(body: str) -> bool:
-    """깨진문자·한자/가나가 있으면 서지컬 복원 대상(없으면 LLM 안 탐)."""
-    return bool(body) and ("�" in body or text_clean.has_foreign_ko(body))
+def _needs_repair(body: str, *, nickname: str | None = None) -> bool:
+    """깨진문자·외래문자가 있으면 서지컬 복원 대상(없으면 LLM 안 탐).
+
+    닉네임은 판정에서 뺀다. 유저가 이름을 한글 밖 글자로 지어 두면(예: 키릴) 그 이름 때문에
+    멀쩡한 일기가 매번 복원 대상으로 잡혀 LLM을 헛돈다.
+    """
+    return bool(body) and (
+        "�" in body or text_clean.has_foreign(body, language="ko", keep=nickname)
+    )
 
 
-def _fallback_clean(body: str, *, keep_hyphen: bool = False) -> str:
-    """복원 실패·과편집 시 결정적 폴백 — 외래문자·깨짐 제거(단어 깨질 수 있으나 마지막 안전망)."""
+def _fallback_clean(body: str, *, keep_hyphen: bool = False, nickname: str | None = None) -> str:
+    """복원 실패·과편집 시 결정적 폴백 — 외래문자·깨짐 제거(단어 깨질 수 있으나 마지막 안전망).
+
+    닉네임은 지우지 않는다. 이름이 사라진 일기가 발행되는 쪽이 훨씬 나쁘다.
+    """
     return text_clean.strip_symbols(
-        text_clean.strip_foreign_ko(body.replace("�", "")), keep_hyphen=keep_hyphen
+        text_clean.strip_foreign(body.replace("�", ""), language="ko", keep=nickname),
+        keep_hyphen=keep_hyphen,
     )
 
 
 async def _surgical_repair(
-    body: str, *, user_id=None, ledger: usage_ledger.LedgerContext | None = None
+    body: str,
+    *,
+    user_id=None,
+    nickname: str | None = None,
+    ledger: usage_ledger.LedgerContext | None = None,
 ) -> str:
     """깨진 부분만 Haiku로 부분수정. 최소편집 가드(유사도)·재검사·재시도 후 안 되면 결정적 폴백."""
     for _ in range(2):
@@ -170,14 +184,14 @@ async def _surgical_repair(
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 일기 발행을 막지 않게
             _log.warning("일기 서지컬 복원 호출 실패(폴백) user=%s: %r", user_id, e)
-            return _fallback_clean(body)
+            return _fallback_clean(body, nickname=nickname)
         cand = r.text.strip()
         ratio = difflib.SequenceMatcher(None, body, cand).ratio()
-        if not _needs_repair(cand) and ratio >= _MIN_EDIT_RATIO:
+        if not _needs_repair(cand, nickname=nickname) and ratio >= _MIN_EDIT_RATIO:
             _log.info("일기 서지컬 복원 user=%s ratio=%.2f", user_id, ratio)
             return cand
     _log.warning("일기 서지컬 복원 실패(과편집/미해결) 폴백 user=%s", user_id)
-    return _fallback_clean(body)
+    return _fallback_clean(body, nickname=nickname)
 
 
 async def _personal(
@@ -198,9 +212,15 @@ async def _personal(
     weather, body = parse(result.text)
     # 외래문자(한자·가나) 서지컬 복원은 '한국어 일기'에만. 비한국어(ja/zh)는 CJK가 정상 본문이라
     # 지우면 안 됨(AC). 깨진문자(�)는 아래 strip_symbols(JUNK)가 언어 불문 제거한다.
-    if is_ko and _needs_repair(body):
-        body = await _surgical_repair(body, ledger=ledger, user_id=getattr(profile, "id", None))
+    if is_ko and _needs_repair(body, nickname=nickname):
+        body = await _surgical_repair(
+            body, ledger=ledger, user_id=getattr(profile, "id", None), nickname=nickname
+        )
     body = text_clean.strip_symbols(body, keep_hyphen=not is_ko)  # 마크다운·말줄임표 제거(비ko 하이픈 유지)
+    # 언어를 가리지 않는 마지막 안전망. 한국어는 위 서지컬 복원이 먼저 맡지만, 그게 실패했거나
+    # ja·en이라 복원을 안 탄 경우 여기서 결정적으로 지운다. 닉네임은 응답 언어와 계열이 달라도
+    # 정상이므로 판정에서 뺀다.
+    body = text_clean.strip_foreign(body, language=lang, keep=nickname)
     if not body:
         _log.warning("개인일기 본문 비어 폐기(preset 폴백) user=%s", getattr(profile, "id", None))
         return None, {"empty_body": True, "self_check_passed": None}

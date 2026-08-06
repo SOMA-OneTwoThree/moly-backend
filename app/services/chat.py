@@ -524,13 +524,13 @@ async def _repair_foreign_ko(
             return reply, calls
         calls.append(_llm_call(r, "foreign_repair"))
         text = r.text.strip()
-        if not text_clean.has_foreign_ko(text):
+        if not text_clean.has_foreign(text, language="ko"):
             _log.info(  # 관측용 — 드문 이벤트라 발동 사실·토큰만 남긴다(청구엔 포함됨)
                 "한자 복원 완료 user=%s in=%d out=%d", user_id, r.input_tokens, r.output_tokens
             )
             return text, calls
     _log.warning("한자 복원 2회 후에도 잔존 — 최후수단 제거 user=%s", user_id)
-    return text_clean.strip_foreign_ko(text), calls
+    return text_clean.strip_foreign(text, language="ko"), calls
 
 
 def _billable(r: llm.LLMResult) -> int:
@@ -1068,9 +1068,19 @@ async def post_message(
                 user_id, len(removed), removed[:120],
             )
             reply_text = stripped
-    if is_ko and text_clean.has_foreign_ko(reply_text):
+    # 외래문자 백스톱은 언어를 가리지 않는다. 예전엔 한국어에만 걸었는데, 엉뚱한 언어 글자가
+    # 꼬리처럼 붙는 건 영어·일본어 응답에서도 똑같이 일어난다. 닉네임(nick)은 유저가 정한 값이라
+    # 응답 언어와 계열이 달라도 정상이므로 판정에서 뺀다.
+    if text_clean.has_foreign(reply_text, language=language, keep=nick):
         # 세 번째 LLM 호출은 하드 데드라인과 최대 2회 호출 계약을 깨므로 결정적으로 제거한다.
-        reply_text = text_clean.strip_foreign_ko(reply_text)
+        cleaned = text_clean.strip_foreign(reply_text, language=language, keep=nick)
+        # 실측된 경우는 전부 문장 뒤에 붙은 꼬리였다. 단어 중간에 끼어들어 본문이 깨지는 사례가
+        # 실제로 생기는지 보려고 지운 글자를 남긴다(본문은 남기지 않는다).
+        _log.warning(
+            "외래문자 제거(egress) user=%s lang=%s removed=%r",
+            user_id, language, "".join(sorted(set(reply_text) - set(cleaned)))[:40],
+        )
+        reply_text = cleaned
     reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
     egress_ms = _ms(t_egress0, time.monotonic())
 

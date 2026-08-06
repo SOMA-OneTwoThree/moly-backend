@@ -343,6 +343,9 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     counts = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0,  # 이미 생성돼 스킵(멱등 재실행) — 실패와 구분(오탐 방지)
+        # memory_*는 _process_user가 반환하지만 병합이 `k in counts`만 받아서, 여기 없으면
+        # _emit_worker_health의 counts["memory_failed"]가 매 틱 KeyError → 데드맨 핑이 죽는다.
+        "memory_ok": 0, "memory_failed": 0,
         "morning": 0, "evening": 0,
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)

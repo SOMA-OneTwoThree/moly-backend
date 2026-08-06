@@ -441,7 +441,7 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 
 - 상품 필드: `id·name·slot·price_hay(null=비매품)·owned·equipped·asset_version·assets`.
 - `assets` 구조: `thumbnail_url`·`detail_url` 공통. 테마는 `scene`(canvas·character·layers), 착용 아이템은 `upright_layer_url`. 낮/밤 레이어는 `scene.layers[].day_url`·`night_url`.
-- 구독 전용 테마: `price_hay:null`. 사용 가능 여부는 `entitlement.subscriber_theme_unlocked`(§1)로 클라 판단.
+- 구독 전용 테마: `price_hay:null`. 사용 가능 여부는 `entitlement.subscriber_theme_unlocked`(1장)로 클라 판단.
 - 가격: 아이템 최소 1,000·+200 / 테마 최소 4,000·+1,000.
 - v2: `items` 안에 `slot:"hat"`·`slot:"glasses"` 포함(레거시 `head` 없음). 응답 키(`themes`·`items`)는 동일.
 

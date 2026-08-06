@@ -22,9 +22,9 @@ _V = TypeVar("_V")
 
 
 def resolve(language: str | None) -> str:
-    """BCP 47 태그 → 콘텐츠 언어 버킷(ko|en|ja). 미설정=ko, 지원 밖=en 폴백.
+    """BCP 47 태그 → 콘텐츠 언어 버킷(ko|en|ja). 미설정=en, 지원 밖=en 폴백.
 
-    예: None→ko, "ko-KR"→ko, "en-US"→en, "ja-JP"→ja, "zh-Hant-TW"→en(폴백).
+    예: None→en, "ko-KR"→ko, "en-US"→en, "ja-JP"→ja, "zh-Hant-TW"→en(폴백).
     """
     base = (language or _DEFAULT).split("-", 1)[0].lower()
     if base in SUPPORTED:

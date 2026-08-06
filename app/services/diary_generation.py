@@ -20,6 +20,7 @@ from app.models.message import Message
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
 from app.services import diary_recall_repo, i18n, llm, naming, text_clean, usage_ledger
+from app.services import diary_prompts
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -93,16 +94,22 @@ def _transcript(
 
 async def _self_check(
     body: str, transcript: str, user_id=None, nickname: str | None = None,
-    *, ledger: usage_ledger.LedgerContext | None = None,
+    *, language: str | None = None, ledger: usage_ledger.LedgerContext | None = None,
 ) -> bool:
     """Haiku 환각 검사 — 첫 토큰이 'NO'면 탈락. 오류/모호 시 통과(과잉 거부 방지).
 
     판정은 앞부분으로만 한다. 'NO' 포함 여부로 보면 설명문에 섞인 'NO'에 오판한다.
     """
     try:
+        # 검사 지시와 구획 라벨을 검사 대상과 같은 언어로 맞춘다. 영어 일기를 한국어 지시로
+        # 검사하면 판정이 흔들린다.
+        talk_label, diary_label = diary_prompts.self_check_labels(language)
         result = await llm.generate(
-            self_check_prompt(),
-            [{"role": "user", "content": f"[대화]\n{transcript}\n\n[일기]\n{body}"}],
+            self_check_prompt(language),
+            [{
+                "role": "user",
+                "content": f"{talk_label}\n{transcript}\n\n{diary_label}\n{body}",
+            }],
             model=settings.model_utility,
             max_tokens=16,
             ledger=usage_ledger.with_purpose(ledger, "diary_self_check"),
@@ -226,7 +233,8 @@ async def _personal(
         return None, {"empty_body": True, "self_check_passed": None}
     # self-check는 비차단 — 게이트 통과 유저는 리젝돼도 개인일기 발행(preset 누수 차단). 로그만 남긴다.
     passed = await _self_check(
-        body, transcript, user_id=getattr(profile, "id", None), nickname=nickname, ledger=ledger
+        body, transcript, user_id=getattr(profile, "id", None), nickname=nickname,
+        language=lang, ledger=ledger
     )
     return (body, weather), {"empty_body": False, "self_check_passed": passed}
 

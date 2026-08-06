@@ -174,7 +174,7 @@ db/             # schema.sql(테이블 생성 DDL) + migrations/ + 시드. DB �
 | 일기 | `diary`(조회) · `diary_generation`(배치 생성) · `diary_prompts` · `recall_diaries` · `diary_recall_repo` |
 | 기억 | `mem0_*` 계열(추출·판정·저장·검색) · `memory_pipeline`(사용자별 진행 상태) · `memory_embeddings` · `interaction_contract`·`contract_compiler`·`contract_repo`(사용자별 대화 약속) · `relationship`·`relationship_projector`(관계 단계) · `checkpoint_v2`·`checkpoint_repo`(긴 대화 줄거리 요약) |
 | 잡 처리 | `jobs`(큐·처리 권한·재시도) · `job_telemetry` |
-| 그 외 | `routine` · `ads`·`ads_ssv` · `review` · `account`(읽기 도우미만) · `llm` · `usage_ledger`(모델 사용 원가 기록) · `notify`·`push`·`push_personalization` · `config_store` · `i18n` · `naming` · `privacy` · `feedback` · `slack_notify` |
+| 그 외 | `routine` · `ads`·`ads_ssv` · `review` · `account`(읽기 도우미만) · `llm` · `usage_ledger`(모델 사용 원가 기록) · `notify`·`push` · `config_store` · `i18n` · `naming` · `privacy` · `feedback` · `slack_notify` |
 
 **재화가 움직일 때의 순서는 항상 같다.**
 
@@ -424,9 +424,8 @@ sequenceDiagram
 | 사용자 현지 시각 | 하는 일 |
 |---|---|
 | 04:00 | 전날 일기 생성. 사용자가 쓴 글자 수가 기준(`diary_min_user_chars`, 코드 기본값 60자)을 넘으면 terra 모델로 개인 일기를 쓰고 luna 모델로 자체 점검을 한다. 미달이거나 접속이 없었으면 캐피 자기 일기(미리 준비한 문구)를 발행한다 |
-| 05:00 | 저녁 푸시에 쓸 개인화 문구를 미리 만든다. 일부 사용자에게만 먼저 켤 수 있다 |
 | 09:00 | 아침 일기 도착 푸시. **현재 꺼져 있다**(`morning_push_enabled` 기본값 False). 코드는 그대로 두고 값만 True로 바꾸면 재개된다 |
-| 20:00 | 저녁 안부 푸시 |
+| 20:00 | 저녁 안부 푸시. 미리 정해 둔 고정 문구를 언어별로 골라 보낸다(`app/services/notify.py`) |
 
 이 밖에 매 틱마다 RevenueCat 웹훅 대기분을 처리하고, 워커가 끝까지 돌았다는 기록을 남기고,
 멈춘 기억 파이프라인을 재개시키고, 슬랙 요약과 살아 있음 신호를 보낸다.
@@ -456,6 +455,41 @@ sequenceDiagram
 
 어떤 경로로 가입해도 같은 상태가 보장된다. 필요한 상품 시드가 없으면 함수가 예외를 던져 가입이
 실패하도록 되어 있다 — 조용히 반쪽짜리 계정이 만들어지는 것보다 낫기 때문이다.
+
+### 5.7 유저에게 보이는 글의 언어
+
+**서버가 만들어 내보내는 글은 한국어·영어·일본어 셋뿐이다.** 캐피의 대화 응답, 일기, 푸시 문구가
+모두 여기 해당한다. 그 밖의 언어를 쓰는 유저는 영어를 받는다. 셋만 있는 이유는 페르소나도 말투
+규칙도 검수 프롬프트도 셋만 준비돼 있어서, 나머지 언어는 품질을 보장할 수 없기 때문이다.
+
+기준이 되는 값은 `profiles.language`(유저의 앱 콘텐츠 언어) 하나다. 이 값을 셋으로 좁히는 일을
+**두 겹으로** 한다.
+
+| 겹 | 어디서 | 무엇을 하나 |
+|---|---|---|
+| 1 | DB | `trg_normalize_profile_language` 트리거가 저장되는 값 자체를 `ko`·`en`·`ja`로 바꾼다. 규칙은 `docs/ERD.md` 3.2절 |
+| 2 | 코드 | `app/services/i18n.py`의 `resolve()`가 읽은 값을 한 번 더 셋으로 좁힌다 |
+
+두 번 하는 이유는 이렇다. DB만 좁히면 `profiles`를 못 읽은 경우에 대비가 없고, 코드만 좁히면
+저장된 값에 미지원 언어가 계속 남아 앞으로 새로 생기는 코드가 그 값을 다시 읽는다.
+
+**프롬프트는 언어마다 번역이 아니라 각 언어로 새로 쓴 원본을 따로 둔다.**
+
+| 쓰임 | 파일 | 한국어 | 영어 | 일본어 |
+|---|---|---|---|---|
+| 대화 | `app/services/prompts.py` | `CAPI_PERSONA` | `CAPI_PERSONA_EN` | `CAPI_PERSONA_JA` |
+| 일기 | `app/services/diary_prompts.py` | `_DIARY_PERSONA` | `_DIARY_PERSONA_EN` | `_DIARY_PERSONA_JA` |
+
+캐릭터 이름도 언어마다 다르다 — 한국어 `캐피`, 영어 `Cappy`, 일본어 `キャピー`. 예전에는 영어
+유저에게도 한국어 페르소나를 그대로 썼고, 이름이 `캐피`로만 적혀 있어서 모델이 라틴 표기를
+매번 지어냈다(개발 서버 실제 측정: "My name is Capi. C A P I.").
+
+**응답에 그 언어에 없어야 할 글자가 섞이면 코드가 지운다.** `app/services/text_clean.py`의
+`has_foreign`(섞였는지 판정)과 `strip_foreign`(지우기)이 담당한다. 언어마다 **남길 글자 계열**을
+적어 두고 그 밖의 글자를 지우는 방식이다. 예전에는 반대로 지울 계열(한자·가나)을 나열했는데,
+유니코드 문자 계열이 150종이 넘어서 그 목록은 완성될 수 없었다 — 목록에 없던 그리스·구자라트·키릴
+글자가 그대로 나갔다. 유저 닉네임은 판정에서 빼둔다. 유저가 정한 값이라 응답 언어와 계열이 다를
+수 있고, 이름이 통째로 지워진 답을 내보내는 쪽이 더 나쁘기 때문이다.
 
 ---
 

@@ -588,10 +588,10 @@ async def test_inner_rejected_when_verifier_ok_but_filter_fails(monkeypatch):
     """검수 LLM이 OK라도 결정적 필터 위반이면 reject — AND가 OR로 퇴화하지 않는다."""
     deleted = []
 
-    async def _gen(source_text, language, days_ago, hint=None):
+    async def _gen(source_text, language, days_ago, hint=None, **kw):
         return "병원 다녀온 얘기 계속하자."  # 민감어(의료) 위반
 
-    async def _verify(body, language):
+    async def _verify(body, language, **kw):
         return True  # 검수 LLM 조작 가정(인젝션) — 그래도 필터가 막아야 함
 
     async def _delete(session, uid):
@@ -604,7 +604,7 @@ async def test_inner_rejected_when_verifier_ok_but_filter_fails(monkeypatch):
     status = await pp._generate_inner(
         session, _profile(), TARGET, AD, [_msg()], [_msg()], True
     )
-    assert status == "rejected" and deleted == [UID]
+    assert status == "rejected_filter" and deleted == [UID]
 
 
 async def test_inner_rejected_body_content_never_logged(monkeypatch, caplog):
@@ -613,7 +613,7 @@ async def test_inner_rejected_body_content_never_logged(monkeypatch, caplog):
 
     bad_body = "병원 다녀온 얘기 하자"
 
-    async def _gen(source_text, language, days_ago, hint=None):
+    async def _gen(source_text, language, days_ago, hint=None, **kw):
         return bad_body
 
     async def _delete(session, uid):
@@ -626,7 +626,7 @@ async def test_inner_rejected_body_content_never_logged(monkeypatch, caplog):
             _GenSession(results=[], scalars=[]), _profile(), TARGET, AD,
             [_msg()], [_msg()], True,
         )
-    assert status == "rejected"
+    assert status == "rejected_filter"
     assert bad_body not in caplog.text and "병원" not in caplog.text
     assert "reason=filter" in caplog.text
 
@@ -656,12 +656,12 @@ async def test_inner_source_is_transcript_with_speaker_labels(monkeypatch):
     """v2 소스 = 대화 원문(발화자 라벨 포함, render된 현재 이름). 일기 조회는 없어야 한다."""
     captured = {}
 
-    async def _gen(source_text, language, days_ago, hint=None):
+    async def _gen(source_text, language, days_ago, hint=None, **kw):
         captured["source"] = source_text
         captured["days_ago"] = days_ago
         return "빙수 얘기하다 웃었던 거 생각났어."
 
-    async def _verify(body, language):
+    async def _verify(body, language, **kw):
         return True
 
     monkeypatch.setattr(pp, "_generate_body", _gen)
@@ -683,11 +683,11 @@ async def test_inner_source_is_transcript_with_speaker_labels(monkeypatch):
 async def test_inner_ok_upsert_resets_cycle_and_stores_placeholder(monkeypatch):
     """새 사이클(reset=True) upsert: sent_count=0/last_sent_on=NULL 리셋 + placeholder 저장."""
 
-    async def _gen(source_text, language, days_ago, hint=None):
+    async def _gen(source_text, language, days_ago, hint=None, **kw):
         assert "승민" in source_text  # LLM 입력은 render된 현재 이름(유창성)
         return "승민아 그 프로젝트 잘 되고 있어?"
 
-    async def _verify(body, language):
+    async def _verify(body, language, **kw):
         return True
 
     monkeypatch.setattr(pp, "_generate_body", _gen)
@@ -710,10 +710,10 @@ async def test_inner_barrier_set_during_generation_blocks_store(monkeypatch):
     row를 INSERT가 되살리면 삭제 계약 위반(리뷰 Major). 저장 직전 재확인으로 창을 닫는다."""
     deleted = []
 
-    async def _gen(source_text, language, days_ago, hint=None):
+    async def _gen(source_text, language, days_ago, hint=None, **kw):
         return "그 프로젝트 얘기 문득 생각났어."
 
-    async def _verify(body, language):
+    async def _verify(body, language, **kw):
         return True
 
     async def _delete(session, uid):
@@ -734,10 +734,10 @@ async def test_inner_regen_update_zero_rows_is_failed(monkeypatch):
     """재생성 UPDATE가 0행(생성 중 row 삭제 경합)이면 ok로 계수하지 않는다 — row 부활
     금지 + push_gen_ok 정직성(리뷰 Minor)."""
 
-    async def _gen(source_text, language, days_ago, hint=None):
+    async def _gen(source_text, language, days_ago, hint=None, **kw):
         return "며칠 전 그 얘기 문득 생각났어."
 
-    async def _verify(body, language):
+    async def _verify(body, language, **kw):
         return True
 
     monkeypatch.setattr(pp, "_generate_body", _gen)
@@ -760,11 +760,11 @@ async def test_inner_regen_update_preserves_stats(monkeypatch):
     """재생성(reset=False)은 UPDATE — anchor·sent_count·last_sent_on 무접촉(사이클 보존).
     리셋이 섞이면 §10 효과 측정이 오염되고 D+3 소진 판정이 어긋난다."""
 
-    async def _gen(source_text, language, days_ago, hint=None):
+    async def _gen(source_text, language, days_ago, hint=None, **kw):
         assert days_ago == 2  # D+2 재생성 → '며칠 전' 라벨 경로
         return "며칠 전 빙수 얘기하다 웃었던 거 생각났어."
 
-    async def _verify(body, language):
+    async def _verify(body, language, **kw):
         return True
 
     monkeypatch.setattr(pp, "_generate_body", _gen)

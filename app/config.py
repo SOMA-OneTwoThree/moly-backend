@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     model_chat: str = "gpt-5.6-luna"
     model_diary: str = "gpt-5.6-terra"
     model_utility: str = "gpt-5.6-luna"
+    # 저녁 푸시 개인화 생성 모델. 빈 값 = model_diary 폴백 — 단 "일기 모델을 따라간다"가 아니라
+    # "톤·뉘앙스 과제라 상위 모델"이 의도다(아키 리뷰 2026-08-06: 일기 비용 절감으로 model_diary를
+    # 내리면 푸시 품질이 조용히 회귀 — 그때 이 키로 분리 고정할 것).
+    model_push_copy: str = ""
     # dormant(Anthropic 복귀·재사용용) — model_* 를 claude-* 로 되돌리면 prefix 라우팅이
     # _generate_anthropic 경로로 자동 복귀한다(코드 변경 없이 config만으로 왕복). SSM 오버라이드 가능.
     anthropic_api_key: str = ""

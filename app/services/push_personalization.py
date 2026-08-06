@@ -45,7 +45,7 @@ from app.core.time_utils import activity_date_for, safe_zone
 from app.models.conversational_recall import PrivacySubjectBarrier
 from app.models.message import Message
 from app.models.push_personalization import PushPersonalization
-from app.services import i18n, llm, naming
+from app.services import i18n, llm, naming, usage_ledger
 from app.services.config_store import get_config_values
 from app.services.memory import sanitize_text
 
@@ -103,6 +103,9 @@ class TickContext:
     cfg: PushConfig = field(default_factory=PushConfig)
     rows: dict[uuid.UUID, PushRow] = field(default_factory=dict)
     tick_start: float | None = None
+    # 05시 생성 후보 프리셀렉트(아키 리뷰) — None = 미조회/실패(필터 없이 전 유저 순회, 기존
+    # 동작). set이면 후보 밖 유저는 GEN 분기에서 쿼리 없이 스킵 — 틱 예산을 LLM 작업에만 쓴다.
+    gen_candidates: set[uuid.UUID] | None = None
 
     def budget_exceeded(self) -> bool:
         if self.tick_start is None:
@@ -196,6 +199,26 @@ async def prefetch_rows(
             generated_at=r.generated_at,
         )
     return out
+
+
+async def gen_candidate_set(
+    session: AsyncSession, now: datetime, rows: dict[uuid.UUID, PushRow]
+) -> set[uuid.UUID]:
+    """05시 생성 후보 = 최근(창+여유 1일) 발화가 있거나 기존 row가 있는 유저.
+
+    이 집합 밖 유저는 generate_for_user가 무조건 no_target으로 끝나므로, 유저당 4쿼리
+    (profile·row·barrier·messages)의 no-op 순회를 s0 쿼리 1번으로 대체한다(아키 리뷰:
+    유저가 늘수록 틱 예산이 '할 일 없음 확인'에 소모되는 구조 방어). 하한은 UTC 날짜 기준
+    -(REUSE_DAYS+1)일 — 로컬 편차를 덮는 여유라 후보 과소(누락)는 없고 과대만 있다.
+    집합 크기가 곧 eligible 분모(관측)다."""
+    res = await session.execute(
+        text(
+            "SELECT DISTINCT user_id FROM messages "
+            "WHERE kind='normal' AND sender='user' AND activity_date >= :d"
+        ),
+        {"d": now.date() - timedelta(days=REUSE_DAYS + 1)},
+    )
+    return {r[0] for r in res} | set(rows)
 
 
 def row_valid(row: PushRow | None, profile, now: datetime, cfg: PushConfig) -> bool:
@@ -527,6 +550,9 @@ _VERIFY_SYS = (
     " (시간 표현도 허용 — 매일 재생성이라 시점은 항상 사실이다)\n"
     "- 단 어떤 낱말이 사람 이름일 가능성이 조금이라도 있으면 NO — 가게·작품·지명이라고"
     " 확신할 수 없으면 NO다. 애매하면 항상 NO(잠금화면에 제3자 실명이 뜨는 사고가 최악이다)\n"
+    "- 그 사람이 언제 어디에 있었는지/갈 것인지가 특정되는 문구는 NO — 시점 표현과 지명·역·"
+    "동네·건물이 함께 나와 행적이 드러나는 경우다. 장소 이름 자체는 허용(정책 크리틱 2026-08-06:"
+    " 잠금화면은 제3자도 본다)\n"
     "- 압박·죄책감 유발 없음\n"
     "- {out_lang}, 한 줄(짧은 문장 한두 개는 무방)\n"
 )
@@ -596,7 +622,12 @@ def when_label(days_ago: int, language: str) -> str:
 
 
 async def _generate_body(
-    source_text: str, language: str, days_ago: int, hint: str | None = None
+    source_text: str,
+    language: str,
+    days_ago: int,
+    hint: str | None = None,
+    *,
+    ledger: usage_ledger.LedgerContext | None = None,
 ) -> str:
     when = when_label(days_ago, language)
     system = _GEN_SYS.format(
@@ -611,15 +642,19 @@ async def _generate_body(
     result = await llm.generate(
         system,
         [{"role": "user", "content": source_text}],
-        model=settings.model_diary,  # v2: 톤·뉘앙스 과제라 일기와 같은 상위 모델(terra)
+        # v2: 톤·뉘앙스 과제라 상위 모델. 기본은 일기와 동일(terra), 분리 필요 시 model_push_copy.
+        model=settings.model_push_copy or settings.model_diary,
         max_tokens=GEN_MAX_TOKENS,
         timeout=GEN_TIMEOUT_S,
+        ledger=ledger,
     )
     body = result.text.strip().splitlines()[0].strip() if result.text.strip() else ""
     return body.strip("\"'“”「」")
 
 
-async def _verify_body(body: str, language: str) -> bool:
+async def _verify_body(
+    body: str, language: str, *, ledger: usage_ledger.LedgerContext | None = None
+) -> bool:
     """검수 LLM — 입력은 후보 문구만(대화 원문 미포함: 인젝션 표면 축소). 첫 토큰 OK만 통과.
     오류·타임아웃·모호 = False(fail-closed — 일기 self-check와 반대 극성, 의도)."""
     result = await llm.generate(
@@ -628,6 +663,7 @@ async def _verify_body(body: str, language: str) -> bool:
         model=settings.model_utility,
         max_tokens=VERIFY_MAX_TOKENS,
         timeout=VERIFY_TIMEOUT_S,
+        ledger=usage_ledger.with_purpose(ledger, "push_copy_verify"),
     )
     # 정확 일치만 통과 — startswith면 "OK, but ..." 같은 유보 응답도 통과한다(fail-closed 극성).
     verdict = result.text.strip().upper().strip("*_# ").rstrip(".!")
@@ -790,13 +826,21 @@ async def _generate_inner(
         hint = _RETRY_HINT.get(reason) if reason else None
         if hint and attempt == GEN_ATTEMPTS - 1:
             hint += _FINAL_SAFE_HINT
-        body = await _generate_body(source_text, language, days_ago, hint=hint)
+        # 원장 귀속(아키 리뷰: 신규 비용 라인이 어디에도 안 잡히던 것) — 검수는 with_purpose.
+        ledger = usage_ledger.LedgerContext(
+            lane=usage_ledger.LANE_BACKGROUND,
+            purpose="push_copy_generate",
+            user_id=profile.id,
+            activity_date=activity_date,
+            attempt=attempt + 1,
+        )
+        body = await _generate_body(source_text, language, days_ago, hint=hint, ledger=ledger)
         reason = None
         if not passes_deterministic_filter(body, language):
             reason = "filter"
         elif has_person_reference(body, language, nickname):
             reason = "person_ref"
-        elif not await _verify_body(body, language):
+        elif not await _verify_body(body, language, ledger=ledger):
             reason = "verify_llm"
         if reason is None:
             break
@@ -812,7 +856,13 @@ async def _generate_inner(
             profile.id, language, days_ago, reason, len(body),
         )
         await _delete_row(session, profile.id)
-        return "rejected"
+        # 사유별 라벨 — 요약 카운터 분해용(아키 리뷰: 사유 구분 없이는 "가드레일 과탐"과
+        # "모델 드리프트"를 구분할 수 없고 결정층 축소 판단 근거가 영원히 안 생긴다).
+        return {
+            "filter": "rejected_filter",
+            "person_ref": "rejected_person",
+            "verify_llm": "rejected_verify",
+        }.get(reason, "rejected_filter")
 
     stored = naming.to_placeholder(body, nickname) or body
     # 저장 직전 장벽 재확인(리뷰 Major-3) — 진입 검사 후 LLM 왕복(최대 ~90s) 사이에

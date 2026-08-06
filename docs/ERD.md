@@ -360,7 +360,9 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 - **루틴 2개 완료 보상**(US-904) 판정: `해당 activity_date의 completions ≥ 2` AND `user_daily_stats.routine_reward_claimed_at IS NULL` — 서버 트랜잭션에서 수령 처리. 완료 시점 자동 알림 없음(정책).
 - API 응답 `completed_count_today`(API_SPEC 8장) = `routine_completions`에서 `(user_id, activity_date=오늘)` 행 수를 파생 계산(별도 컬럼 아님, 클라 UI·충전소 게이팅용).
 
-### 5.6 `diary_gen_claims` — 일기 생성 클레임 (SOMA-373, 워커 내부)
+### 5.6 `diary_gen_claims` — 일기·푸시 개인화 생성 클레임 (SOMA-373, 워커 내부)
+
+이름과 달리 **저녁 푸시 개인화(05시) 생성도 같은 테이블로 상호배제**한다(v2, 2026-08-06) — 04시 일기는 항상 `(user, 어제)`, 푸시 재생성은 `(user, anchor일=최대 3일 전)`이라 같은 날 키가 겹치지 않는다.
 
 워커 틱 중첩(15분 케이던스·롤링 배포) 시 같은 `(user_id, diary_date)` 일기를 두 프로세스가 동시에 LLM 생성하지 않도록 하는 **상호배제 클레임**. 세션 advisory lock은 커넥션 풀 반환·pgbouncer 트랜잭션 풀링과 맞지 않아 **커밋된 행 기반**으로 구현.
 

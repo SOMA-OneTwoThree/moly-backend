@@ -444,13 +444,31 @@ T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계 상한)
 | `focus_id` | 특정 일기 하나. 이 값을 주면 `query`는 무시된다 |
 | `limit` | 1~5 (서버 상한 `MAX_RETURNED=5`) |
 
-검색은 `diary_recall_documents`의 1536차원 임베딩 코사인 유사도와 `search_text ILIKE` 부분일치를
-함께 쓴다. 통과 조건은 유사도 0.25 이상 **또는** 부분일치이며, 일기 종류가
-`welcome`·`shared_day`·`capi_day`이고 발행 상태이며 삭제되지 않았고 발행 시각이 지난 것만
-돌려준다.
+후보로 뽑는 조건은 일기 자체의 상태뿐이다. 종류가 `welcome`·`shared_day`·`capi_day`이고, 발행
+상태이며, 삭제되지 않았고, 발행 시각이 이미 지난 것만 본다. 날짜 범위(`from`·`to`)와 `focus_id`도
+여기서 걸린다.
 
-> 지금은 `diary_recall_documents.embedding`을 채우는 작업이 돌지 않는다(15장의 알려진 문제
-> 참고). 그래서 실제로는 `search_text ILIKE` 부분일치만 동작한다.
+**`query`는 거르는 조건이 아니라 순서를 정하는 신호다.** 예전에는 `query`로도 걸러냈다. 그러면
+"어제 일기 보여줘"처럼 내용을 지목하지 않는 말이 들어왔을 때 결과가 0건이 되고, 캐피가 꺼낼 수
+없다고 답한 다음 턴에 내용을 지어냈다(개발 서버에서 실제로 측정한 결과다). 지금은 후보를 전부
+통과시키고 순서만 정한다.
+
+순서는 `diary_recall_documents`의 1536차원 임베딩 코사인 유사도와 `search_text ILIKE` 부분일치로
+매긴다. 부분일치면 점수 1.0, 아니면 유사도 값을 그대로 쓴다. 정렬은 뒤에서 설명할 `content_match`가
+참인 것 먼저, 그다음 점수 높은 순, 그다음 최신순이다.
+
+대신 행마다 **`content_match`**(그 질의에 실제로 맞은 일기인지를 나타내는 참·거짓 값)를 붙인다.
+부분일치이거나 유사도가 0.25 이상이면 참이다. `query`가 없으면 전부 참이다(`focus_id`를 주면
+`query`는 무시되므로 이 경우도 전부 참이다).
+
+**`content_match`가 거짓인 행은 본문을 빼고 날짜와 제목만 준다.** 인용할 본문이 없으면 지어낼
+수도 없다. 본문을 뺄지 말지는 요청 단위가 아니라 **행 단위**로 정한다. 한 건이 맞았다고 나머지
+안 맞은 행까지 본문을 실으면, 자리를 채우려고 딸려온 일기를 모델이 물어본 일기로 읽는다. 본문을
+빼도 제목은 남긴다 — 날짜와 제목만으로 "이건가?" 하고 되물을 수 있다.
+
+맞은 행이 하나도 없으면 결과 전체의 상태가 **`no_content_match`**가 되고 모든 행에서 본문이
+빠진다. 모델이 그냥 최근 일기를 답인 것처럼 내놓지 않게 하려는 것이다. 일기가 아예 없어서 목록이
+빈 경우는 여기 해당하지 않는다 — 그건 안 맞은 것이 아니라 없는 것이라 상태가 `ok`다.
 
 **`get_routines`** — 달력 날짜(현지 00:00 기준) 하나의 루틴 목록과 그날 수행 여부를 돌려준다.
 주기 표현은 앱 API와 같은 규칙을 쓴다. `days_of_week`은 ISO 요일(1=월 … 7=일)이고
@@ -1086,9 +1104,8 @@ memory_generation)`이다.
 | 현지 시각 | 하는 일 |
 |---:|---|
 | 04:00 | 일기 생성. `diary_gen_claims` 테이블로 (사용자, 대상일) 단위 30분 짜리 중복 방지를 건다 |
-| 05:00 | 저녁 푸시에 쓸 개인화 문구를 미리 만든다. `app_config`의 3단계 확산 설정, 이중 검수 |
 | 09:00 | 아침 일기 푸시. **현재 꺼져 있다**(`morning_push_enabled=False`). 코드는 남아 있다 |
-| 20:00 | 저녁 안부 푸시. FCM으로 직접 보낸다 |
+| 20:00 | 저녁 안부 푸시. 미리 정해 둔 고정 문구를 언어별로 골라 FCM으로 직접 보낸다 |
 
 이와 별개로 매 틱마다 RevenueCat 수신함을 처리하고(한 틱에 200건, 그중 50건은 선행 조건이 있는
 건들을 위해 예약), 기억 재시작 작업을 등록하고, 데드맨 신호와 비용 경고를 보낸다.
@@ -1128,7 +1145,7 @@ memory_generation)`이다.
 | 예정 시각 | `user_schedules` | 11.4절(읽기 경로 미전환) |
 | 비용 | `ai_price_catalog`, `ai_usage_ledger` | 14.2절 |
 | 계정 삭제 | `privacy_subject_barriers`, `privacy_ledger_events` | 14.3절 |
-| 그 밖 | `user_daily_stats`, `greetings`, `diaries`, `diary_gen_claims`, `push_personalizations` | 하루 토큰 누적 / 먼저 건넨 인사 / 일기 / 일기 생성 중복 방지 / 저녁 푸시 문구 |
+| 그 밖 | `user_daily_stats`, `greetings`, `diaries`, `diary_gen_claims` | 하루 토큰 누적 / 먼저 건넨 인사 / 일기 / 일기 생성 중복 방지 |
 
 `provider_backoffs`는 테이블과 모델만 있고 이 값을 읽거나 쓰는 코드가 없다(15장).
 
@@ -1210,7 +1227,6 @@ memory_generation)`이다.
 | `schedule_dispatcher_enabled` | False | `user_schedules` 기반 대상자 선정(현재는 틱 유지) |
 | `morning_push_enabled` | False | 아침 일기 푸시 |
 | `privacy_barrier_mode` | `compat` | 삭제 차단을 엄격 모드로 전환 |
-| `push_personalization_rollout` (`app_config`) | off | 저녁 푸시 개인화(off / allowlist / all) |
 
 ### 13.5 로그
 

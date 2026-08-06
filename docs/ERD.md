@@ -102,13 +102,18 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | --- | --- | --- |
 | `id` | uuid PK, FK→`auth.users.id` (CASCADE) | |
 | `nickname` | text NULL | 온보딩에서 설정, 최대 10글자 — 앱+CHECK 검증 (US-201). NULL이면 온보딩 미완료 → 온보딩 화면 라우팅 |
-| `language` | text, default `'ko'` | **앱 콘텐츠 언어** (US-103, ISO 639-1) — 온보딩 때 기기 시스템 언어로 초기화, 변경 가능. **서버 생성물(캐피 응답·일기·푸시)은 유저 입력 언어와 무관하게 항상 이 언어**(API_SPEC 1장). UI 문자열은 클라 로컬라이제이션 |
+| `language` | text, default `'en'` | **앱 콘텐츠 언어** (US-103) — 값은 `ko`·`en`·`ja` 셋뿐이다(아래 설명). 온보딩 때 기기 시스템 언어로 초기화. **서버 생성물(캐피 응답·일기·푸시)은 유저 입력 언어와 무관하게 항상 이 언어**(API_SPEC 1장). UI 문자열은 클라 로컬라이제이션 |
 | `timezone` | text, default `'Asia/Seoul'` | IANA 타임존. 앱 기준일(04:00 경계) 계산의 근거 — 클라이언트가 갱신하되 **서버가 마지막 적용 경계를 기억해 리셋 되돌림 방지** (타임존 변경으로 하루 2회 리셋 악용 차단) |
 | `hay_balance` | int, default 0, **CHECK ≥ 0** | 건초 잔액 **캐시** (원본: `hay_transactions`). 서버 전용 쓰기 — 잔액 하한 0을 DB 안전망으로 강제 |
 | `trial_ends_at` | timestamptz | 가입 시각 + **48시간 (절대 시각, 의도된 정책 — 하루 중간 종료 가능)** (US-202). 재가입 어뷰징 방지 정책 TBD |
 | `review_prompted_at` | timestamptz NULL | 리뷰 팝업 노출 이력 — **최초 1회 제한** (US-1101). NOT NULL이면 재노출 금지 |
 | `created_at` / `updated_at` | timestamptz | |
 
+- **`language`는 저장될 때 `ko`·`en`·`ja` 셋 중 하나로 좁혀진다.** `db/migrations/20260806_normalize_profile_language.sql`이 만든 트리거 `trg_normalize_profile_language`(행이 들어오거나 `language`가 바뀔 때 값을 다듬는 DB 장치)가 처리한다. 값을 **거부하지 않고 조용히 바꾼다** — 거부하면 이 테이블을 함께 쓰는 moly-auth의 온보딩이 실패하기 때문이다.
+  - 지역 태그는 앞부분만 남는다: `ko-KR`→`ko`, `en-US`→`en`, `ja-JP`→`ja`.
+  - 셋이 아닌 언어는 전부 `en`이 된다: `zh-Hant-TW`→`en`, `th`→`en`.
+  - 값이 비었거나 없으면 `en`이다. 컬럼 기본값도 `'en'`이다.
+  - 같은 규칙이 코드에도 있다(`app/services/i18n.py`의 `resolve()`). 왜 두 곳에서 좁히는지는 `docs/ARCHITECTURE.md` 5.7절에 적었다.
 - **탈퇴(US-106)**: `auth.users` 삭제 → 기억을 포함한 전 테이블 CASCADE(예외는 계정 삭제 장벽 하나 — 7.11절). App Store 구독은 자동 해지되지 않으므로 별도 안내한다.
 
 ---

@@ -213,3 +213,50 @@ def test_chat_egress_passes_nickname_as_keep():
     for call in ("has_foreign(reply_text", "strip_foreign(reply_text"):
         line = next(ln for ln in src.splitlines() if call in ln)
         assert "keep=nick" in line, f"{call}에 닉네임을 안 넘긴다"
+
+
+# --- 응답 끝에 공백 없이 붙은 라틴 조각 제거 ---
+#
+# 라틴은 어느 언어에서도 정상 글자라 허용 목록으로는 못 잡는다(상표를 지우면 안 된다).
+# 그래서 붙어 있는 방식으로 가른다. 실측 2건 중 공백 없이 붙은 1건만 대상이다.
+def test_strip_trailing_latin_removes_attached_leak():
+    """실측 — 마침표에 공백 없이 붙었다. 정상적으로 쓴 글에는 이런 모양이 없다."""
+    assert (
+        text_clean.strip_trailing_latin("네가 와서 귀가 조금 더 깨어났네.arsuarmi")
+        == "네가 와서 귀가 조금 더 깨어났네."
+    )
+    assert text_clean.strip_trailing_latin("깨어났네arsuarmi") == "깨어났네"
+
+
+def test_strip_trailing_latin_leaves_spaced_latin_alone():
+    """공백으로 띄어진 라틴은 정상 끝맺음과 구조가 같다. 지우면 멀쩡한 답이 깨진다.
+
+    실측된 "...모르겠네. Adios"도 여기 해당해 일부러 안 지운다. 지우려면 "마지막 한글 뒤
+    라틴은 전부 이물질"이라는 규칙이 필요한데, 개발용 계정 189건으로 세울 규칙이 아니다.
+    """
+    for keep in ("이름은 모르겠네. Adios", "그거 봤어 Netflix", "잘 자 ok"):
+        assert text_clean.strip_trailing_latin(keep) == keep
+
+
+def test_strip_trailing_latin_keeps_latin_inside_the_sentence():
+    """문장 안에서 쓰인 라틴은 상표·고유명사다. 마지막 한글 뒤만 보므로 안전하다."""
+    for keep in ("아이폰 3시에 iPhone 봤어", "iPhone 봤어", "카페에서 caf\u00e9 마셨어"):
+        assert text_clean.strip_trailing_latin(keep) == keep
+
+
+def test_strip_trailing_latin_is_a_no_op_without_hangul():
+    """한글이 없으면 손대지 않는다 — 본문을 통째로 지우는 사고를 막는다."""
+    assert text_clean.strip_trailing_latin("Hello there") == "Hello there"
+    assert text_clean.strip_trailing_latin("") == ""
+    assert text_clean.strip_trailing_latin("오늘 좀 어땠어?") == "오늘 좀 어땠어?"
+
+
+def test_chat_egress_strips_trailing_latin():
+    """배선 고정 — chat.py가 이 규칙을 실제로 부르는가."""
+    import inspect
+
+    from app.services import chat
+
+    assert "strip_trailing_latin(reply_text)" in inspect.getsource(chat), (
+        "응답 끝 라틴 제거가 배선에서 빠졌다"
+    )

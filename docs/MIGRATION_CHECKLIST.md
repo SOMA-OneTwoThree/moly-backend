@@ -34,17 +34,25 @@
 
 ### 0-1. `schema_migrations` 표 만들기
 
-- [ ] 운영에 `public.schema_migrations` 표를 만드는 SQL 파일을 작성한다.
-- [ ] 이미 적용된 `20260729`까지의 파일 이름을 그 표에 미리 기록한다.
+**파일은 만들어져 있다** — `db/migrations/20260807_schema_migrations_bootstrap.sql`.
+표를 만들고 `20260729`까지 이미 적용된 18개 파일을 기록한다.
+
+- [ ] 미리보기로 확인한다.
+      `PYTHONPATH=. uv run python db/apply.py db/migrations/20260807_schema_migrations_bootstrap.sql --env prod`
+- [ ] 반영한다. **26개보다 먼저 이것부터 한다.**
+      `PYTHONPATH=. uv run python db/apply.py db/migrations/20260807_schema_migrations_bootstrap.sql --env prod --allow-prod --commit`
 
 **왜 필요한가.** `db/apply.py`는 파일을 실행한 뒤 **매번** `public.schema_migrations`를 조회하고
 기록을 남긴다(33행·42행). 그런데 그 표를 만드는 문장은 `20260804_zzz_conversational_recall.sql`
 안에 있고, 이 파일은 적용 목록에서 11번째다. **그 앞의 10개가 전부 실패한다.** 미리보기(dry-run)도
-같은 경로를 지나므로 미리 볼 수조차 없다. 표를 만드는 파일도 명령도 저장소에 없다.
+같은 경로를 지나므로 미리 볼 수조차 없다. 그래서 표를 먼저 만드는 파일을 따로 두었다.
 
 ### 0-2. `db/apply.py`에 운영 적용 통로 추가
 
-- [ ] `--allow-prod` 같은 선택지를 추가하고 PR을 올려 **머지까지 끝낸다.**
+**수정은 되어 있다** — `db/apply.py`에 `--allow-prod`를 추가했다. `--commit`과 함께 줄 때만
+dev 대상 확인을 건너뛴다. 미리보기는 예전처럼 그냥 된다.
+
+- [ ] 이 변경이 담긴 PR을 **머지까지 끝낸다.** 머지 전에는 운영 반영이 안 된다.
 
 **왜 필요한가.** `db/apply.py` 23~24행은 `--commit`을 줬을 때만 `assert_dev_target`을 부른다.
 그 함수(`db/envfile.py` 92~98행)가 운영이면 중단시킨다. 즉 **미리보기는 지금도 되고, 실제
@@ -52,8 +60,21 @@
 
 ### 0-3. 일기 호환 트리거 작성 — 11번 파일 사본 안에 넣는다
 
-- [ ] `diaries`에 `BEFORE INSERT ... FOR EACH ROW` 트리거를 만드는 SQL을 작성한다.
-- [ ] **그 SQL을 11번 파일 사본의 특정 위치에 끼워 넣는다.** 별도 파일로 미리 적용하면 안 된다.
+**SQL은 만들어져 있다** — `db/cutover/diaries_legacy_compat_trigger.sql`.
+
+- [ ] 그 파일 내용을 11번 파일 사본의 아래 위치에 **끼워 넣는다.** 따로 적용하면 안 된다.
+
+dev에서 실제로 시험해 확인했다(트랜잭션 안에서 넣고 되돌림).
+
+| 구 코드가 넣은 것 | `kind` | `activity_date` | `record_status` |
+|---|---|---|---|
+| `source='llm'` | `shared_day` | 채워짐 | `published` |
+| `source='preset'` | `capi_day` | 채워짐 | `published` |
+| `source='none'` | 비움 | 비움 | `processed` |
+| `source='welcome'` | `welcome` | 비움 | `published` |
+
+`author`는 컬럼 기본값 `capi`로 자동으로 들어갔고, 새 코드가 값을 직접 준 경우에는
+트리거가 **덮어쓰지 않았다.**
 
 **넣는 위치.** `20260804_zzz_conversational_recall.sql` 사본에서
 `ALTER TABLE public.diaries ADD COLUMN ...` 블록(89~102행)이 **끝난 뒤**,

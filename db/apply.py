@@ -1,7 +1,12 @@
 """SQL 적용기. 기본 dry-run(실행 후 ROLLBACK). --commit 주면 실제 반영.
 
 대상은 **기본 dev**(.env). 프로덕션은 `--env prod` 를 명시해야만 간다.
-사용: python db/apply.py [경로=db/schema.sql] [--env dev|prod] [--commit]
+사용: python db/apply.py [경로=db/schema.sql] [--env dev|prod] [--commit] [--allow-prod]
+
+`--allow-prod`는 운영 DB에 **실제로 반영**할 때만 쓴다(운영 전환 절차 전용).
+`--commit`과 함께 줘야 의미가 있고, 둘 다 있을 때만 dev 대상 확인을 건너뛴다.
+미리보기(--commit 없음)는 예나 지금이나 확인을 거치지 않으므로 `--allow-prod`가 필요 없다.
+절차는 docs/MIGRATION_CHECKLIST.md 참고.
 """
 import asyncio
 import asyncpg
@@ -13,7 +18,7 @@ import sys
 sys.path.insert(0, __file__.rsplit("/", 2)[0])  # 레포 루트(스크립트 직접 실행 대비)
 from db.envfile import announce, assert_dev_target, load_conn, split_env_arg
 
-async def main(commit: bool, path: str, env: str | None):
+async def main(commit: bool, path: str, env: str | None, allow_prod: bool = False):
     sql = Path(path).read_text()
     # 파일 자체 BEGIN/COMMIT 제거 — 우리가 트랜잭션 제어
     sql = re.sub(r'^\s*BEGIN;\s*$', '', sql, flags=re.M)
@@ -21,7 +26,12 @@ async def main(commit: bool, path: str, env: str | None):
     dsn = load_conn(env)
     announce(env, dsn, commit=commit)
     if commit:
-        assert_dev_target(env, dsn)
+        if allow_prod:
+            # 운영 반영을 사람이 명시적으로 허용한 경우에만 dev 확인을 건너뛴다.
+            # 실수로 흘러들어가지 않게 무엇을 어디에 적용하는지 다시 보여준다.
+            print(f">>> --allow-prod 지정됨 — dev 대상 확인을 건너뛴다. env={env} 파일={Path(path).name}")
+        else:
+            assert_dev_target(env, dsn)
     c = await asyncpg.connect(dsn, statement_cache_size=0)
     tx = c.transaction()
     await tx.start()
@@ -60,6 +70,7 @@ async def main(commit: bool, path: str, env: str | None):
         await c.close()
 
 _env, _rest = split_env_arg(sys.argv[1:])
-_args = [a for a in _rest if a != "--commit"]
+_flags = {"--commit", "--allow-prod"}
+_args = [a for a in _rest if a not in _flags]
 _path = _args[0] if _args else "db/schema.sql"
-asyncio.run(main("--commit" in _rest, _path, _env))
+asyncio.run(main("--commit" in _rest, _path, _env, "--allow-prod" in _rest))

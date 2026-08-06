@@ -85,6 +85,32 @@ ORDER BY updated_at
 LIMIT :limit
 """)
 
+# 발행됐는데 **회상 문서 자체가 없는** 일기.
+#
+# 임베딩이 비면 위 질의가 잡지만, 문서가 통째로 없으면 잡을 행이 없어서 영영 안 걸린다.
+# 그 비대칭이 결함이다. 실제로 dev에서 일기 한 건이 색인에 없는 채로 남아 있었다.
+#
+# ⚠️ 조건은 `diary_recall_repo`의 upsert와 **똑같아야 한다.** 느슨하게 잡으면 삭제가 진행 중인
+# 사용자의 일기를 되살린다.
+_MISSING_DOCUMENT = text("""
+SELECT d.user_id, d.id AS diary_id
+FROM diaries d
+WHERE d.record_status='published'
+  AND d.deleted_at IS NULL
+  AND d.published_at IS NOT NULL
+  AND d.kind IN ('welcome','shared_day','capi_day')
+  AND NOT EXISTS (
+    SELECT 1 FROM diary_recall_documents rd
+    WHERE rd.user_id=d.user_id AND rd.diary_id=d.id
+  )
+  AND NOT EXISTS (
+    SELECT 1 FROM privacy_subject_barriers b
+    WHERE b.user_id=d.user_id AND b.state <> 'active'
+  )
+ORDER BY d.published_at DESC
+LIMIT :limit
+""")
+
 # 올리면서 다시 확인한다. 그 사이 임베딩이 채워졌으면 건드리지 않는다.
 _BUMP_REPAIR = text("""
 UPDATE diary_recall_documents
@@ -105,19 +131,25 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
                 {"limit": SWEEP_LIMIT, "max_attempts": MAX_EMBEDDING_REPAIR},
             )
         ).all()
+        undocumented = (
+            await session.execute(_MISSING_DOCUMENT, {"limit": SWEEP_LIMIT})
+        ).all()
 
-    if not rows and not missing:
+    if not rows and not missing and not undocumented:
         return JobResult(result_code="nothing_stalled")
 
     if rows:
         _log.warning("기억 파이프라인 정지 감지 — 죽은 잡 %s건 replay 시도", len(rows))
     if missing:
         _log.warning("일기 임베딩 누락 %s건 — 다시 만든다", len(missing))
+    if undocumented:
+        _log.warning("회상 색인에 없는 일기 %s건 — 문서를 만든다", len(undocumented))
     revived: list[str] = []
     repaired = 0
+    indexed = 0
 
     async def _apply(session) -> None:
-        nonlocal repaired
+        nonlocal repaired, indexed
         for job_id, user_id in rows:
             # operation_id가 replay의 멱등 키다. 같은 잡을 두 번 훑어도 새 잡이 겹치지 않게
             # 원본 job_id에서 결정적으로 만든다.
@@ -155,6 +187,14 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
             )
             repaired += 1
 
+        for user_id, diary_id in undocumented:
+            # 문서 생성은 upsert가 한다. 같은 조건을 두 곳에 두지 않으려고 그 함수를 그대로
+            # 부른다. 성공하면 임베딩 잡도 그 안에서 함께 걸린다.
+            await diary_recall_repo.upsert_diary_recall_document(
+                session, user_id=user_id, diary_id=diary_id
+            )
+            indexed += 1
+
     return JobResult(
         result_code="ok",
         result_detail={
@@ -162,6 +202,8 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
             "revived": len(revived),
             "missing_embedding": len(missing),
             "repair_enqueued": repaired,
+            "missing_document": len(undocumented),
+            "document_created": indexed,
         },
         apply_domain=_apply,
     )

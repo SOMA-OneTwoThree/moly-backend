@@ -212,8 +212,8 @@ class RecallDiariesRequest(BaseModel):
     def valid_request(self) -> "RecallDiariesRequest":
         if self.from_date and self.to_date and self.from_date > self.to_date:
             raise ValueError("from_date must be on or before to_date")
-        if not self.query and self.focus_id is None and self.need != "count":
-            raise ValueError("query or focus_id is required for recall/read")
+        # 인자 없는 호출(=최근 일기)을 막지 않는다. 그게 "일기 보여줘"의 정상 경로인데
+        # 진단에서 재현할 수 없으면 문제를 확인할 방법이 사라진다.
         return self
 
 
@@ -228,14 +228,18 @@ class DiaryRecallItem(StrictResponse):
     kind: Literal["welcome", "shared_day", "capi_day"]
     display_date: date
     title: str | None
-    excerpt: str
+    # 질의에 맞은 게 하나도 없을 때는 본문을 빼고 날짜·제목만 준다(지어내기 방지). 그래서
+    # excerpt도 비어 있을 수 있다.
+    excerpt: str | None
     body: str | None
     weather: str
     read: bool
+    content_match: bool
 
 
 class DiaryRecallResult(StrictResponse):
-    status: Literal["ok"]
+    # no_content_match = 질의에 맞은 일기가 없어 최근 일기를 본문 없이 돌려준 상태.
+    status: Literal["ok", "no_content_match"]
     matched_count: int = Field(ge=0)
     returned_count: int = Field(ge=0)
     coverage: Literal["complete", "partial"]

@@ -48,11 +48,6 @@ GEN_HOUR = 5  # 로컬 05시 — 04시 일기 틱(실측 701/840초)과 분리�
 GEN_BUDGET_S = 420.0  # 틱 시작 대비 이 경과를 넘으면 생성 skip(다음 틱 승계) — SIGKILL 예방
 GEN_TIMEOUT_S = 20.0  # 문구 생성 LLM 타임아웃
 VERIFY_TIMEOUT_S = 10.0  # 검수 LLM 타임아웃
-# utility(gpt-5.6-luna)는 답변 전에 reasoning 토큰을 소모한다(dev 실측 ~130+, 예산 부족 시
-# finish=length·본문 0자·HTTP 200). max_completion_tokens는 reasoning+본문 합산 예산이므로
-# 그 오버헤드 위로 잡아야 한다 — 120/8이던 시절 전 건이 filter(len=0)·verify_llm으로 리젝됐다.
-GEN_MAX_TOKENS = 512  # reasoning ~134 + 한 문장(≤120자) 여유
-VERIFY_MAX_TOKENS = 256  # reasoning 소모 후 "OK" 한 단어면 충분
 SLOT_MIN = time(8, 0)  # 슬롯 하한 — [20:00, 익일 08:00) 첫 대화는 20:00으로
 SLOT_NIGHT = time(20, 0)  # 야간 코호트 슬롯(기존 저녁 푸시 시각과 동일, 20시 분기 인라인 처리)
 REUSE_DAYS = 3  # anchor_date + 3일까지 같은 문구 재사용(미복귀 유저 LLM 비용 절약)
@@ -501,7 +496,7 @@ async def _generate_body(source_text: str, language: str) -> str:
         _GEN_SYS.format(max_chars=_MAX_CHARS.get(language, 80), out_lang=_OUT_LANG[language]),
         [{"role": "user", "content": source_text}],
         model=settings.model_utility,
-        max_tokens=GEN_MAX_TOKENS,
+        max_tokens=120,
         timeout=GEN_TIMEOUT_S,
     )
     body = result.text.strip().splitlines()[0].strip() if result.text.strip() else ""
@@ -515,7 +510,7 @@ async def _verify_body(body: str, language: str) -> bool:
         _VERIFY_SYS.format(out_lang=_OUT_LANG[language]),
         [{"role": "user", "content": body}],
         model=settings.model_utility,
-        max_tokens=VERIFY_MAX_TOKENS,
+        max_tokens=8,
         timeout=VERIFY_TIMEOUT_S,
     )
     # 정확 일치만 통과 — startswith면 "OK, but ..." 같은 유보 응답도 통과한다(fail-closed 극성).

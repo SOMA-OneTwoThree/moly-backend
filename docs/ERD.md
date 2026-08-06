@@ -857,7 +857,6 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | `job_attempts` | UNIQUE `(job_id, attempt)` | 작업 시도별 이력. `outcome` = `succeeded` `retryable` `dead` `cancelled` `lease_lost` `timeout` |
 | `shadow_prompt_traces` | UNIQUE `(user_id, turn_seq, assembler_version)` | 새 조립 방식의 프롬프트 크기·캐시 가능 비율만 재는 계측. 실제 응답에 쓰지 않는다 |
 | `user_schedules` | UNIQUE `(user_id, kind)` | 사용자별 예정 시각 4종(`daily_digest` `diary_generate` `diary_morning_notification` `evening_checkin`). **채워 두기만 했고 읽기 경로는 아직 틱 방식**(`schedule_dispatcher_enabled` 기본 꺼짐) |
-| `push_personalizations` | `user_id` PK | 저녁 푸시용 개인화 문구. 대화에서 파생된 본문이라 권한을 회수한다 |
 | `provider_backoffs` | PK `(provider, model, lane)` | 만들어 뒀지만 **읽거나 쓰는 코드가 없다** |
 
 - `shadow_prompt_traces`와 `user_schedules`는 만들 때 RLS와 권한 회수가 빠져 있었고
@@ -886,7 +885,7 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 
 | 테이블 | 왜 한 겹 더 거나 |
 | --- | --- |
-| `chat_contexts` `conversation_checkpoints` `push_personalizations` | 대화 원문·요약·푸시 문구 |
+| `chat_contexts` `conversation_checkpoints` | 대화 원문·요약 |
 | `chat_active_turns` `chat_response_references` `conversation_focus` | 진행 중인 턴과 답변에 실은 카드 |
 | `diary_claim_sources` `diary_recall_documents` | 일기의 근거와 검색용 파생 데이터 |
 | `privacy_subject_barriers` `privacy_ledger_events` | 계정 삭제 진행 상태 |

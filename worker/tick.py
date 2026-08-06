@@ -69,7 +69,13 @@ def _build_summary(
 
     active_tzs = 이 틱에서 일기·아침·저녁을 실제로 처리한 유저들의 타임존(어느 나라 기준인지).
     """
-    has_warn = counts["diary_failed"] > 0 or counts.get("push_gen_failed", 0) > 0
+    # push_gen_deferred도 경보(v2): 매일 재생성 + 신선도 게이트에서 이월 = 그 유저들 그날
+    # 개인화 전멸(디폴트 회귀)이다 — v1의 "기존 문구 재사용" 무해성이 사라졌다(리뷰 Major-1).
+    has_warn = (
+        counts["diary_failed"] > 0
+        or counts.get("push_gen_failed", 0) > 0
+        or counts.get("push_gen_deferred", 0) > 0
+    )
     prefix = "⚠️ " if has_warn else ""
     ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
     ts_utc = now.strftime("%H:%M UTC")
@@ -96,12 +102,13 @@ def _build_summary(
     )
     if gen_total:
         fail_mark = " ⚠️" if counts.get("push_gen_failed") else ""
+        defer_mark = " ⚠️" if counts.get("push_gen_deferred") else ""
         lines.append(
             f"개인화 생성: 성공 {counts.get('push_gen_ok', 0)}"
             f" / 스킵 {counts.get('push_gen_skipped', 0)}"
             f" / 리젝 {counts.get('push_gen_rejected', 0)}"
             f" / 실패{fail_mark} {counts.get('push_gen_failed', 0)}"
-            f" / 이월 {counts.get('push_gen_deferred', 0)}"
+            f" / 이월{defer_mark} {counts.get('push_gen_deferred', 0)}"
         )
     if counts.get("personalized_sent_today") is not None:
         lines.append(f"개인화 발송 누계(오늘·KST 근사): {counts['personalized_sent_today']}건")

@@ -24,7 +24,7 @@ class PushPersonalization(Base):
     send_slot: Mapped[time] = mapped_column(Time)  # [08:00, 20:00] 15분 격자, 20:00=야간 코호트
     body: Mapped[str] = mapped_column(String)  # placeholder 상태({유저이름} 토큰)
     language: Mapped[str] = mapped_column(String)
-    source_kind: Mapped[str] = mapped_column(String)  # diary | transcript
+    source_kind: Mapped[str] = mapped_column(String)  # v2부터 항상 transcript(구 행만 diary)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")
     )

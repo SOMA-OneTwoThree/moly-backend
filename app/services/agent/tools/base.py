@@ -141,10 +141,14 @@ class BaseTool:
             _log.info("도구 인자 스키마 불일치 tool=%s", self.name)
             return unavailable(self.name, "invalid_arguments")
         try:
-            if prepared is None:
-                out, truncated = await self.run(ctx, parsed, session)
-            else:
-                out, truncated = await self.run_prepared(ctx, parsed, session, prepared)
+            # ⚠️ `prepared`가 None인지로 갈라서는 안 된다. None은 "준비 단계를 안 쓴다"가 아니라
+            # **"준비할 게 없었다"**일 수도 있다. `recall_diaries`는 질의가 없으면 임베딩을 만들지
+            # 않아 None을 돌려주는데, 그때 `run()`으로 가면 그 도구는 예외를 던진다. 그래서
+            # "일기 보여줘"처럼 질의 없이 부르는 정상 경로가 통째로 실패했다(dev 실측).
+            #
+            # 항상 `run_prepared`로 보낸다. 준비 단계를 안 쓰는 도구는 기본 구현이 `run`으로
+            # 넘겨주므로 동작이 그대로다.
+            out, truncated = await self.run_prepared(ctx, parsed, session, prepared)
         except InvalidArguments as e:
             _log.info("도구 인자 범위 위반 tool=%s reason=%s", self.name, e)
             return unavailable(self.name, "invalid_arguments")

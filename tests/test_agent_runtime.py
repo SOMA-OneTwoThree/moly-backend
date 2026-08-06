@@ -104,7 +104,7 @@ class _FakeTool:
         self.ran = 0
         self.sessions: list[object] = []
 
-    async def execute(self, ctx, args, session):
+    async def execute(self, ctx, args, session, *, prepared=None):
         self.ran += 1
         self.sessions.append(session)
         if self.delay:
@@ -711,3 +711,92 @@ async def test_metrics_mark_tool_turn(monkeypatch, caplog):
     snapshot = build_snapshot({"agent_enabled": True, "agent_canary_pct": 100.0})
     await _post(FakeSession(), monkeypatch, agent=_agent, snapshot=snapshot)
     assert _turn_metrics_payload(caplog)["used_tools"] is True
+
+
+# --- 준비 단계가 없어도 도구가 돌아야 한다 ---
+#
+# dev 실측: "일기 보여줘"는 질의가 없어 임베딩을 만들지 않는다. 그러면 prepare가 None을
+# 돌려주는데, 예전 배선은 그걸 "준비 단계를 안 쓴다"로 읽고 run()으로 보냈다.
+# recall_diaries.run()은 예외를 던지므로 일기 조회가 통째로 실패했다.
+
+
+class _PreparedOnlyTool:
+    """`recall_diaries`와 같은 모양 — run()은 예외를 던지고 run_prepared()로만 돈다.
+
+    ⚠️ 진짜 `BaseTool.execute`를 타야 한다. execute를 덮어쓰면 분기 자체를 안 타서
+    되돌려도 테스트가 통과한다(실제로 그렇게 만들었다가 가드가 헛돌았다).
+    """
+
+    name = "recall_diaries"
+    timeout_ms = None
+
+    def __init__(self, prepared_value=None):
+        from pydantic import BaseModel
+
+        from app.services.agent.tools.base import BaseTool, ToolArgs
+
+        class _Args(ToolArgs):
+            query: str | None = None
+
+        class _Out(BaseModel):
+            ok: bool
+            prepared_was_none: bool
+
+        self.prepared_value = prepared_value
+        self.ran = 0
+        outer = self
+
+        class _Impl(BaseTool):
+            name = "recall_diaries"
+            description = "test"
+            input_model = _Args
+            output_model = _Out
+
+            async def prepare(self, ctx, args):
+                return outer.prepared_value
+
+            async def run(self, ctx, args, session):
+                raise RuntimeError("recall_diaries requires prepared execution")
+
+            async def run_prepared(self, ctx, args, session, prepared):
+                outer.ran += 1
+                return _Out(ok=True, prepared_was_none=prepared is None), False
+
+        self._impl = _Impl()
+
+    async def prepare(self, ctx, args):
+        return await self._impl.prepare(ctx, args)
+
+    async def execute(self, ctx, args, session, *, prepared=None):
+        return await self._impl.execute(ctx, args, session, prepared=prepared)
+
+
+async def test_tool_runs_even_when_prepare_returns_none(monkeypatch):
+    """준비값이 None이어도 도구가 실행돼야 한다.
+
+    dev 실측: "일기 보여줘"는 질의가 없어 임베딩을 만들지 않는다. 그때 prepare가 None을
+    돌려주는데, 예전 배선은 그걸 "준비 단계를 안 쓴다"로 읽고 run()으로 보냈다.
+    recall_diaries.run()은 예외를 던지므로 일기 조회가 통째로 실패했다.
+    """
+    tool = _PreparedOnlyTool(prepared_value=None)
+    fake = _FakeSteps(_calls_step(_call(1, "recall_diaries")), _text_step("응.", purpose="tool_final"))
+    turn = await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+
+    assert turn.tool_results[0].status == "ok", (
+        "준비값이 없다고 run()으로 보냈다 — '일기 보여줘'가 통째로 실패한다"
+    )
+    assert tool.ran == 1
+    assert turn.tool_results[0].data["prepared_was_none"] is True
+
+
+def test_prepare_has_its_own_budget_apart_from_db_timeout() -> None:
+    """임베딩 같은 외부 호출을 DB 제한(800ms) 안에 밀어 넣으면 내용 검색이 늘 죽는다.
+
+    실측 임베딩 소요가 277~976ms다. 준비 예산이 DB 제한과 분리돼 있어야 한다.
+    """
+    from app.services.agent import runtime
+
+    assert runtime.PREPARE_TIMEOUT_S > 0
+    assert runtime.PREPARE_TIMEOUT_S >= 1.0, (
+        "준비 예산이 임베딩 실측(최대 976ms)보다 작다"
+    )

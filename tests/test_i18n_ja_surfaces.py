@@ -98,7 +98,7 @@ def test_chat_falls_back_to_english_outside_ko_ja():
 def test_diary_falls_back_to_english_outside_ko_ja():
     for lang in _UNSUPPORTED:
         dp = diary_prompts.diary_prompt(lang, "Kim")
-        assert " in en." in dp, f"{lang}: 일기가 영어로 안 떨어진다"
+        assert "naturally in English." in dp, f"{lang}: 일기가 영어로 안 떨어진다"
         assert f"in {lang}." not in dp, f"{lang}: 원본 언어 태그가 일기 프롬프트에 새어 들어갔다"
 
 
@@ -146,3 +146,70 @@ def test_english_persona_keeps_the_capi_rules():
 def test_ko_and_ja_personas_are_untouched():
     assert "너는 '캐피'야" in prompts.system_prompt("ko")
     assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")
+
+
+# --- 일기 프롬프트도 언어별 원본 ---
+#
+# 대화만 고치고 일기를 두면 반쪽이다. 일기는 이 제품의 핵심이고 유저가 매일 읽는 글이다.
+# 예전에는 한국어 페르소나에 언어 규칙만 덧붙여서, 머리말을 "날씨:"로 쓰라는 지시와
+# "Weather:"로 쓰라는 지시가 한 프롬프트 안에서 부딪혔다.
+def test_diary_persona_has_no_other_language():
+    import re
+
+    for lang, forbidden in [("en", r"[가-힣぀-ヿ]"), ("ja", r"[가-힣]")]:
+        dp = diary_prompts.diary_prompt(lang, "Alex")
+        assert not re.search(forbidden, dp), f"{lang} 일기 프롬프트에 다른 언어 글자가 있다"
+
+
+def test_diary_weather_header_is_not_contradictory():
+    """머리말을 두 가지로 지시하면 안 된다. parse()는 값으로 인식하지만 지시는 하나여야 한다."""
+    for lang in ("en", "ja", "zh-Hant-TW"):
+        dp = diary_prompts.diary_prompt(lang, "Alex")
+        assert "Weather:" in dp
+        assert "날씨:" not in dp, f"{lang} 일기 프롬프트가 머리말을 두 가지로 지시한다"
+    ko = diary_prompts.diary_prompt("ko", "승민")
+    assert "날씨:" in ko and "Weather:" not in ko
+
+
+def test_diary_persona_keeps_the_rules():
+    """옮기면서 규칙이 빠지면 안 된다. 일기 품질을 지탱하는 것들이다."""
+    checks = {
+        "en": [
+            ("Never invent", "지어내기 금지"),
+            ("Five to seven sentences", "분량"),
+            ("No emoji", "이모지 금지"),
+            ("counseling record", "상담기록처럼 쓰지 않기"),
+            ("remembers the person", "사람을 기억하는 글"),
+            ("third person", "3인칭으로 쓰기"),
+        ],
+        "ja": [
+            ("\u7d76\u5bfe\u306b\u4f5c\u3089\u306a\u3044", "지어내기 금지"),
+            ("\u4e94\u6587\u304b\u3089\u4e03\u6587", "분량"),
+            ("\u7d75\u6587\u5b57", "이모지 금지"),
+            ("\u76f8\u8ac7\u8a18\u9332", "상담기록처럼 쓰지 않기"),
+        ],
+    }
+    for lang, items in checks.items():
+        dp = diary_prompts.diary_prompt(lang, "Alex")
+        for needle, why in items:
+            assert needle in dp, f"{lang} 일기 페르소나에 {why} 규칙이 없다"
+
+
+def test_self_check_matches_the_diary_language():
+    """영어 일기를 한국어 지시로 검사하면 판정이 흔들린다."""
+    import re
+
+    assert "fact checker" in diary_prompts.self_check_prompt("en")
+    assert not re.search(r"[가-힣]", diary_prompts.self_check_prompt("en"))
+    assert not re.search(r"[가-힣]", diary_prompts.self_check_prompt("ja"))
+    assert re.search(r"[가-힣]", diary_prompts.self_check_prompt("ko"))
+    # 구획 라벨도 같은 언어여야 한다
+    assert diary_prompts.self_check_labels("en") == ("[Conversation]", "[Diary]")
+    assert diary_prompts.self_check_labels("zh-Hant-TW") == ("[Conversation]", "[Diary]")
+
+
+def test_diary_never_calls_the_person_user():
+    """'사용자'가 일기에 나오면 몰입이 깨진다. 세 언어 모두 금지 문구가 있어야 한다."""
+    assert "'사용자'라는 말은 절대 쓰지 마." in diary_prompts.diary_prompt("ko", "승민")
+    assert 'Never use the word "user".' in diary_prompts.diary_prompt("en", "Alex")
+    assert "\u30e6\u30fc\u30b6\u30fc" in diary_prompts.diary_prompt("ja", "Alex")

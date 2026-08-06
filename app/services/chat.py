@@ -1068,6 +1068,16 @@ async def post_message(
                 user_id, len(removed), removed[:120],
             )
             reply_text = stripped
+        # 응답 끝에 공백 없이 붙은 라틴 조각(앞쪽 메타 제거의 짝). 라틴은 상표·고유명사로
+        # 정상적으로 쓰이니 아래 외래문자 백스톱이 통과시킨다 — 그래서 붙은 방식으로 가른다.
+        tailless = text_clean.strip_trailing_latin(reply_text)
+        if tailless != reply_text:
+            # 지운 글자만 남긴다. 길이로 잘라내면 공백 정규화 때문에 본문이 딸려 나올 수 있다.
+            _log.warning(
+                "응답 끝 라틴 제거(egress) user=%s removed=%r",
+                user_id, "".join(sorted(set(reply_text) - set(tailless)))[:40],
+            )
+            reply_text = tailless
     # 외래문자 백스톱은 언어를 가리지 않는다. 예전엔 한국어에만 걸었는데, 엉뚱한 언어 글자가
     # 꼬리처럼 붙는 건 영어·일본어 응답에서도 똑같이 일어난다. 닉네임(nick)은 유저가 정한 값이라
     # 응답 언어와 계열이 달라도 정상이므로 판정에서 뺀다.

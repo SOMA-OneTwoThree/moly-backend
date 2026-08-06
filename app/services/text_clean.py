@@ -163,3 +163,40 @@ def strip_leading_meta(text: str, *, min_words: int = _META_MIN_WORDS) -> str:
         return text  # 짧은 토큰/고유명사 or 구두점 없는 제목·가사 → 미발동
     body = text[m.start():]  # 첫 한글부터 = 페르소나 본문(한글로 시작하므로 lstrip 불필요)
     return body or text  # 방어적 fail-safe — 본문이 비면 원문 유지
+
+
+# 한국어 응답 **끝**에 공백 없이 딱 붙은 라틴 조각 제거. 위 `strip_leading_meta`(응답 앞)의 짝이다.
+#
+# 라틴은 어느 언어에서도 정상 글자라 위 허용 목록으로는 못 잡는다 — 상표·고유명사를 지우면
+# 안 되니 통과시키는 게 맞다. 그래서 위치가 아니라 **붙어 있는 방식**으로 가른다.
+#
+# dev 한국어 발화 189건에서 라틴은 2건뿐이었다.
+#   "...깨어났네.arsuarmi"  — 마침표에 공백 없이 붙음. 정상적으로 쓴 글에는 이런 모양이 없다.
+#   "...모르겠네. Adios"    — 공백으로 띄어짐. 정상적인 영어 끝맺음과 구조가 같다.
+# 뒤엣것까지 지우려면 "마지막 한글 뒤 라틴은 전부 이물질"이라는 규칙이 필요한데, 189건은
+# 개발용 계정 대화라 실제 사용자 표본이 아니다. 실사용에서는 영어로 끝나는 답이 얼마든지
+# 나올 수 있으므로 그 규칙은 세우지 않는다. 앞엣것만 지우고, 나머지는 로그로 쌓아 실제
+# 데이터가 모인 뒤에 다시 판단한다.
+#
+# 앞부분은 마지막 한글 바로 뒤의 문장부호까지만 허용한다(".arsuarmi"). 공백이 하나라도
+# 끼면 발동하지 않는다.
+_TRAILING_ATTACHED_LATIN = re.compile(r"^([^\w\s]*)([A-Za-z]+)$")
+
+
+def strip_trailing_latin(text: str) -> str:
+    """한국어 응답 끝에 공백 없이 붙은 라틴 조각을 지운다. 문장부호는 남긴다.
+
+    한글이 하나도 없으면 그대로 둔다(본문을 통째로 지우는 사고 방지). 공백으로 띄어진
+    라틴은 정상 끝맺음과 구분할 수 없으므로 건드리지 않는다.
+    """
+    if not text:
+        return text
+    last = None
+    for last in _HANGUL.finditer(text):
+        pass
+    if last is None:
+        return text  # 한글 없음 — 호출측이 ko로 게이팅하지만 방어적으로 둔다
+    m = _TRAILING_ATTACHED_LATIN.match(text[last.end():])
+    if m is None:
+        return text
+    return (text[: last.end()] + m.group(1)).strip() or text

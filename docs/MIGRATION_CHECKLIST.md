@@ -210,6 +210,14 @@ SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)
 위험하다. `memory_cutover_guard.sql` 자체 머리말에도 "memory_normalization이 memory_mode
 컬럼을 만든 다음에 적용한다"고 적혀 있다.
 
+> 🚨 **`20260804_zzz_conversational_recall.sql` 원본을 운영에 적용하면 안 된다.**
+> 미뤄둔 두 줄이 실행되어 본문 없는 일기 수천 건이 지워지고, 되돌릴 수 있는 상태가 깨진다.
+> `db/apply.py`는 기록표를 보고 건너뛰지 않고 **항상 실행한다.** 기록이 있어도 막아 주지 않는다.
+> 운영에는 `db/cutover/prepared/11_zzz_conversational_recall_PROD.sql`만 적용한다.
+>
+> 2026-08-07 적용 시 기록표에 사본 이름으로 남아, 파일 목록과 비교하면 원본이 미적용처럼
+> 보였다. 그래서 원본 이름으로도 기록을 넣어 두었다(두 줄이 빠진 채 적용됐다는 뜻이다).
+
 ### 11번 파일에서 빼야 하는 두 줄
 
 ```sql
@@ -277,12 +285,15 @@ DELETE FROM public.diaries WHERE source='none';                              -- 
 - [ ] 사전 점검을 다시 돌려 통과한다.
 - [ ] 구 코드가 도는 상태에서 **일기가 정상 생성되는지** 확인한다(호환 트리거 동작 확인).
 - [ ] 대화가 정상인지 확인한다.
-- [ ] 웰컴 일기가 **612에서 613으로 하나 늘었는지** 본다.
+- [ ] 웰컴 일기 수를 기록해 둔다. **1단계에서는 늘지 않는 것이 정상이다.**
       `SELECT count(*) FROM diaries WHERE source='welcome';` → **613**
 
-      12번 백필이 웰컴 없는 사용자에게 웰컴을 만든다. 운영에 웰컴이 없는 프로필은 10명이지만
-      대상은 첫 사용자 발화가 있는 사람뿐이라 **1명만 늘어난다.** 안 늘었으면 12번이
-      제대로 안 돈 것이다.
+      12번 백필은 웰컴 없는 사용자에게 웰컴을 만든다. 대상은 첫 사용자 발화가 있는 1명뿐인데,
+      **그 1명은 1단계에서 안 생긴다.** 웰컴이 들어갈 날짜(관계 시작일)에 이미 개인일기가
+      있고, 3단계로 미룬 `diaries_user_date_uq`가 살아 있어 `ON CONFLICT DO NOTHING`으로
+      건너뛰기 때문이다. 2026-08-07 운영에서 실제로 그랬다(612 그대로).
+
+      **피해는 없다.** 기존 일기는 그대로이고, 3단계에서 제약을 지운 뒤 채우면 된다.
 
       이 1명은 배포 전까지 웰컴 일기 제목 자리에 본문이 통째로 보인다. 12번은 제목을
       `title` 컬럼에 따로 넣는데 구 코드는 본문을 빈 줄로 갈라 제목을 뽑기 때문이다.
@@ -392,6 +403,10 @@ DELETE FROM public.diaries WHERE source='none';
       돌린다. 그 문장은 수렴형이라 재실행해도 안전하다.
 - [ ] 일기 생성과 웰컴 일기 저장이 정상인지 확인한다.
 - [ ] **1단계와 배포 사이에 쌓인 메시지에 턴 좌표를 매긴다.** 아래를 읽고 할 것.
+- [ ] **못 만든 웰컴 일기를 채운다.** `diaries_user_date_uq`를 지운 뒤라야 들어간다.
+      12번 파일(`20260804_zzzz_conversational_recall_backfill.sql`)의 웰컴 INSERT 부분을
+      한 번 더 돌린다. `ON CONFLICT DO NOTHING`이라 이미 있는 사람은 건너뛴다.
+      확인: `SELECT count(*) FROM diaries WHERE kind='welcome';` 가 1 늘어야 한다.
 
 ### 빈 구간 메시지의 턴 좌표
 

@@ -58,6 +58,31 @@ PYTHONPATH=. uv run python db/apply.py db/migrations/<파일> --env prod --commi
 `db/apply.py`는 기본이 dry-run이고 `--env prod`를 명시해야만 운영으로 간다. **한 번에 하나씩,
 dry-run으로 먼저 본다.**
 
+### 3.1 `profiles`를 건드리는 파일 하나 — 미리 확인할 것
+
+`20260806_normalize_profile_language.sql`은 **기존 사용자 행을 직접 고치는** 유일한 파일이다.
+`profiles.language` 값을 `ko`·`en`·`ja` 셋 중 하나로 좁히고, 앞으로 들어올 값도 같은 규칙으로
+바꾸는 DB 장치(트리거 `trg_normalize_profile_language`)를 만든다. 컬럼 기본값도 `ko`에서 `en`으로
+바꾼다. 값을 되돌릴 수는 없으므로 적용 전에 분포를 찍어 둔다.
+
+```sql
+SELECT language, count(*) FROM public.profiles GROUP BY language ORDER BY 2 DESC;
+```
+
+**2026-08-07 운영 실측 — 값이 바뀌는 사람은 0명이다.**
+
+| 지금 값 | 인원 | 적용 후 |
+|---|---|---|
+| `ko` | 447 | `ko` 그대로 |
+| `ja` | 130 | `ja` 그대로 |
+| `en` | 46 | `en` 그대로 |
+
+운영 사용자 623명이 이미 셋 중 하나만 쓰고 있어서 이 파일은 기존 데이터를 바꾸지 않는다.
+실제로 달라지는 것은 앞으로 들어올 값(트리거)과 컬럼 기본값뿐이다.
+
+적용 뒤에는 위 조회를 다시 돌려 세 값만 남았는지 보고, `zh-Hant-TW` 같은 값을 한 번
+넣어 `en`으로 저장되는지 확인한다.
+
 ### 순서를 뒤집으면 안 되는 두 곳
 
 **삭제 장벽** — `20260805_privacy_epoch.sql`(컬럼만, 안전) → **코드 배포** →

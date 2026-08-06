@@ -22,7 +22,11 @@ DESCRIPTION = (
 class SelectedRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["diary", "memory_fact", "memory_episode", "routine", "item"]
+    # 일기만 남았다. 정규화 기억(fact·episode) 참조는 그 저장 구조와 함께 제거됐고,
+    # 루틴·아이템은 서버가 받아주지 않는다(`chat_references.validate_selected`).
+    # 여기에 서버가 거부할 값을 남겨 두면 모델이 그걸 고르는 순간 답변 전체가
+    # 안전 문구로 바뀐다 — 쓸 수 없는 선택지를 광고하지 않는다.
+    type: Literal["diary"]
     id: str = Field(min_length=1, max_length=128)
 
 

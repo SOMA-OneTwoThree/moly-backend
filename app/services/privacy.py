@@ -83,8 +83,18 @@ MODE_COMPAT = "compat"
 MODE_ENFORCED = "enforced"
 
 # `deleting` 동안 유일하게 허용되는 job type. 이게 없으면 삭제 자체가 진행되지 않는다.
+#
+# ⚠️ **실제로 등록된 처리기 이름이 반드시 들어 있어야 한다.** 한동안 `privacy_cleanup`이
+# 빠져 있어서, 삭제를 시작하면 정리 잡이 만들어지자마자 소비자 게이트에 걸려 취소됐다.
+# 잡은 생기는데 벡터는 영원히 안 지워지고, 오류도 안 나서 눈에 띄지 않았다.
+# 아래 세 이름은 잡을 셋으로 나누려던 설계에서 온 것이고 아직 그런 처리기는 없다.
 PRIVACY_JOB_ALLOWLIST: frozenset[str] = frozenset(
-    {"privacy_delete_coordinator", "privacy_provider_cleanup", "privacy_verify_residual"}
+    {
+        "privacy_cleanup",  # worker/privacy_jobs.py — 지금 실제로 도는 정리 잡
+        "privacy_delete_coordinator",
+        "privacy_provider_cleanup",
+        "privacy_verify_residual",
+    }
 )
 
 
@@ -200,10 +210,9 @@ async def begin_subject_deletion(
             "high_watermark": watermark,
         },
     )
-    return tuple(int(value) for value in row) if row is not None else (0, 0, 0)
-
-    # 장벽만 세우고 끝내면 벡터가 그대로 남는다 — 실제로 지우는 잡을 여기서 건다(12.3절).
-    # 같은 transaction이라 장벽 없이 삭제 잡만 도는 일이 없다.
+    # 장벽만 세우고 끝내면 벡터가 그대로 남는다 — 실제로 지우는 잡을 여기서 건다.
+    # 같은 트랜잭션이라 장벽 없이 삭제 잡만 도는 일이 없다.
+    # ⚠️ 반드시 return **앞**이다. 뒤에 두면 실행되지 않아 벡터가 영원히 남는다(과거 결함).
     from app.services import jobs
 
     await jobs.enqueue(
@@ -214,6 +223,7 @@ async def begin_subject_deletion(
         dedup_key=f"privclean:{user_id}:{operation_id}:0",
         payload={"empty_sweeps": 0},
     )
+    return tuple(int(value) for value in row) if row is not None else (0, 0, 0)
 
 
 

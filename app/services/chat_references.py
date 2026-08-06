@@ -12,8 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.conversational_recall import (
     ChatResponseReference,
     ConversationFocus,
-    DiaryClaimSource,
-    RecallSuppression,
 )
 from app.models.diary import Diary
 from app.services import naming
@@ -130,16 +128,6 @@ async def persist_selected(
                     Diary.deleted_at.is_(None),
                     Diary.published_at.is_not(None),
                     Diary.published_at <= now,
-                    ~select(1)
-                    .where(
-                        and_(
-                            DiaryClaimSource.user_id == Diary.user_id,
-                            DiaryClaimSource.diary_id == Diary.id,
-                            RecallSuppression.user_id == DiaryClaimSource.user_id,
-                            RecallSuppression.message_id == DiaryClaimSource.message_id,
-                        )
-                    )
-                    .exists(),
                 )
             )
         ).scalars().all()
@@ -224,16 +212,6 @@ async def hydrate_for_messages(
                     Diary.deleted_at.is_(None),
                     Diary.published_at.is_not(None),
                     Diary.published_at <= now,
-                    ~select(1)
-                    .where(
-                        and_(
-                            DiaryClaimSource.user_id == Diary.user_id,
-                            DiaryClaimSource.diary_id == Diary.id,
-                            RecallSuppression.user_id == DiaryClaimSource.user_id,
-                            RecallSuppression.message_id == DiaryClaimSource.message_id,
-                        )
-                    )
-                    .exists(),
                 ),
             )
             .where(

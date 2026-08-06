@@ -152,6 +152,27 @@ PYTHONPATH=. uv run python scripts/verify_shadow_entry.py --env prod
 
 ---
 
+## 6.5 기억을 옮기기 전에 — 주인 없는 벡터 확인
+
+과거 대화를 기억으로 만들기 전에 한 번 센다. 탈퇴한 사용자의 벡터가 남아 있는지 보는 것이다.
+
+```sql
+SELECT count(*) FROM vecs.memories v
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.profiles p
+  WHERE p.id = (v.metadata->>'user_id')::uuid
+);
+```
+
+**0이면 그냥 넘어간다.** 0이 아니면 그 행들은 **옮기지 말고 지운다.** 이미 지워졌어야 할
+데이터이고, 옮기면 없는 사용자의 기억이 새 구조로 따라 들어간다.
+
+왜 의심하는지는 `DEV_STATUS.md`의 "탈퇴한 사용자의 기억 벡터"에 적어 뒀다. 요약하면 탈퇴를
+처리하는 moly-auth가 `public` 스키마에서 지우려 하는데 벡터는 `vecs` 스키마에 있고, 실패해도
+경고 로그만 남고 넘어간다. 여기서 개수가 0이 아니면 그 의심이 맞은 것이다.
+
+숫자가 나오면 앞으로 같은 일이 안 생기도록 삭제 경로를 정하는 것까지 해야 끝이다.
+
 ## 7. 전환 후 확인
 
 ```bash

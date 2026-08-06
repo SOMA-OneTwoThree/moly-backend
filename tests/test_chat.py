@@ -73,6 +73,12 @@ class FakeSession:
     async def execute(self, stmt, params=None):
         return _Result(self.execute_items)
 
+    async def scalar(self, stmt, params=None):
+        # get_state가 그날 유저 글자 수를 셀 때 쓴다. 기본은 0(오늘 쓴 글 없음).
+        return self.scalar_value
+
+    scalar_value = 0
+
     async def commit(self):
         self.committed = True
 
@@ -323,11 +329,29 @@ async def test_get_state_shape(monkeypatch):
         return _gating(tokens_used=2500)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    out = await chat_service.get_state(FakeSession(), UID)
+    session = FakeSession()
+    session.scalar_value = 120  # 그날 유저가 쓴 글자 수
+    out = await chat_service.get_state(session, UID)
     assert out["plan"] == "trial"
     assert out["tokens_used"] == 2500
-    assert out["personal_diary_eligible"] is True  # 2500 ≥ 2000
+    assert out["personal_diary_eligible"] is True  # 120자 ≥ 60자
     assert out["limit_reached"] is False
+
+
+async def test_personal_diary_eligible_counts_characters_not_tokens(monkeypatch):
+    """개인 일기 판정은 글자 수로 한다. 토큰을 많이 써도 글자가 모자라면 아니다.
+
+    예전에는 토큰 기준값(2,000)을 가중 청구 토큰과 비교해서, 앱 표시와 실제 일기 생성 결과가
+    어긋났다. 실제 게이트는 `diary_generation.generate_for_user`의 글자 수다.
+    """
+    async def _res(session, user_id):
+        return _gating(tokens_used=100_000)  # 토큰은 충분히 많다
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    session = FakeSession()
+    session.scalar_value = 10  # 그런데 실제로 쓴 글은 10자뿐
+    out = await chat_service.get_state(session, UID)
+    assert out["personal_diary_eligible"] is False
 
 
 class SeqSession(FakeSession):

@@ -73,60 +73,10 @@ class ConversationFocus(Base):
     updated_at: Mapped[datetime] = mapped_column(_TZ, server_default=text("now()"))
 
 
-class RecallSuppressionOperation(Base):
-    __tablename__ = "memory_suppression_operations"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    cut_watermark: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    future_learning: Mapped[str] = mapped_column(String, nullable=False)
-    scope: Mapped[str] = mapped_column(String, nullable=False)
-    reason: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(_TZ, server_default=text("now()"))
-
-
-class RecallSuppression(Base):
-    __tablename__ = "memory_recall_suppressions"
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["user_id", "message_id"], ["messages.user_id", "messages.id"],
-            ondelete="CASCADE",
-        ),
-    )
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    operation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    message_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    source_watermark: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    span_start: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    span_end: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    source_hash: Mapped[str] = mapped_column(String, nullable=False)
-    reason: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(_TZ, server_default=text("now()"))
-
-
-class EpisodicMessage(Base):
-    __tablename__ = "memory_episodic_messages"
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["user_id", "message_id"], ["messages.user_id", "messages.id"],
-            ondelete="CASCADE",
-        ),
-    )
-
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    message_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    source_watermark: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    content_hash: Mapped[str] = mapped_column(String, nullable=False)
-    embedding_model: Mapped[str] = mapped_column(String, nullable=False)
-    index_version: Mapped[str] = mapped_column(String, nullable=False)
-    suppression_generation: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    indexed_at: Mapped[datetime] = mapped_column(_TZ, server_default=text("now()"))
+# `memory_suppression_operations` · `memory_recall_suppressions` · `memory_episodic_messages`의
+# 정의가 여기 있었다. 대화형 망각을 없애면서 세 테이블 모두 삭제됐고
+# (`db/migrations/20260806_drop_legacy_memory.sql`), 정의만 남아 아무도 쓰지 않았다.
+# 없는 테이블을 가리키는 정의는 `db/verify.py`의 모델 대 스키마 대조에서 문제로 잡힌다.
 
 
 class DiaryClaimSource(Base):

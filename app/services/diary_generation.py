@@ -256,7 +256,7 @@ async def _translate_preset(
     """preset(캐피 자기일기) 한국어 카피를 유저 언어로 번역. 실패 시 원문 유지(발행은 막지 않음)."""
     try:
         r = await llm.generate(
-            _TRANSLATE_SYS.format(lang=language),
+            _TRANSLATE_SYS.format(lang=i18n.resolve(language)),  # ko·en·ja 밖은 영어
             [{"role": "user", "content": content}],
             model=settings.model_utility,
             max_tokens=512,

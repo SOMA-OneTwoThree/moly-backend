@@ -50,3 +50,60 @@ def test_diary_prompt_ja_allows_kanji_keeps_weather_header():
     assert "ハングル" in dp
     assert "Weather:" in dp  # parse()가 값(enum) 기준으로 인식하도록 영어 날씨 헤더 유지
     assert "Chinese characters" in diary_prompts.diary_prompt("en", "Sam")  # en 회귀 없음
+
+
+# --- 캐릭터 이름의 라틴 표기 ---
+#
+# 영어(와 지원 밖 언어)는 한국어 페르소나를 그대로 쓰므로 이름이 '캐피'로만 적혀 있었다.
+# 그러면 모델이 라틴 표기를 지어낸다 — dev 실측에서 "My name is Capi. C A P I."라고 답했고
+# "Capi or Cappy?"에는 "Capi. Just one p."로 Cappy를 부정했다. 푸시 알림은 이미 'Cappy'로
+# 나가므로(notify.py) 유저는 Cappy에게 알림을 받고 들어와 Capi와 대화하게 된다.
+def test_latin_name_is_pinned_for_non_ko_ja():
+    for lang in ("en", "en-US", "zh-Hant-TW", "es"):
+        sp = prompts.system_prompt(lang)
+        assert "Cappy" in sp, f"{lang}: 라틴 이름이 프롬프트에 없다 — 모델이 지어낸다"
+
+
+def test_latin_name_matches_push_surface():
+    """대화와 푸시가 같은 이름을 써야 한다. 어긋나면 유저가 다른 상대로 읽는다."""
+    from app.services import notify
+
+    assert notify._MORNING["en"][0] in prompts.system_prompt("en")
+
+
+def test_ko_and_ja_keep_their_own_names():
+    """라틴 이름을 못 박은 게 ko·ja로 새면 안 된다."""
+    assert "Cappy" not in prompts.system_prompt("ko")
+    assert "Cappy" not in prompts.system_prompt("ja")
+    assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")
+
+
+# --- 콘텐츠 언어는 ko·en·ja 셋뿐 ---
+#
+# 예전에는 LLM 지시에 원본 언어 태그를 그대로 넣어서 중국어 유저는 중국어로, 태국어 유저는
+# 태국어로 답을 받았다. 그런데 푸시와 서버 문구는 i18n.resolve 폴백으로 이미 영어라, 한 유저가
+# 화면마다 다른 언어를 봤다. 페르소나·말투·검수 프롬프트도 셋만 준비돼 있어 나머지는 품질을
+# 보장할 수 없다. 이제 ko·ja가 아니면 전부 영어다.
+_UNSUPPORTED = ("zh-Hant-TW", "es-ES", "th", "fr", "vi")
+
+
+def test_chat_falls_back_to_english_outside_ko_ja():
+    for lang in _UNSUPPORTED:
+        sp = prompts.system_prompt(lang)
+        assert "reply only in en." in sp, f"{lang}: 영어로 안 떨어진다"
+        # 태그 조각이 영어 단어에 우연히 들어갈 수 있어(th -> the) 지시문 형태로 정확히 본다.
+        assert f"in {lang}." not in sp, f"{lang}: 원본 언어 태그가 프롬프트에 새어 들어갔다"
+
+
+def test_diary_falls_back_to_english_outside_ko_ja():
+    for lang in _UNSUPPORTED:
+        dp = diary_prompts.diary_prompt(lang, "Kim")
+        assert " in en." in dp, f"{lang}: 일기가 영어로 안 떨어진다"
+        assert f"in {lang}." not in dp, f"{lang}: 원본 언어 태그가 일기 프롬프트에 새어 들어갔다"
+
+
+def test_supported_languages_are_unchanged():
+    """ko·ja는 그대로여야 한다. 지역 태그가 붙어도 같은 버킷으로 간다."""
+    assert "반드시 한국어" in prompts.system_prompt("ko-KR")
+    assert "日本語" in prompts.system_prompt("ja-JP")
+    assert "reply only in en." in prompts.system_prompt("en-US")

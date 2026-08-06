@@ -183,8 +183,11 @@ def system_prompt(language: str) -> str:
     언어로 쓰되 한글·한자·타 스크립트 배제. 페르소나 본문은 한국어 지시문이지만, 응답 언어·문자
     규칙만 언어별로 갈아끼워 다국어 대응한다.
     """
-    # raw BCP47 유지: LLM엔 유저 실제 언어로 지시해야 하므로 resolver 버킷(ko/en)이 아님(zh 유저=중국어 응답).
-    lang = language or "ko"
+    # 콘텐츠 언어는 ko·en·ja 셋뿐이다. 그 밖(zh·es·th…)은 전부 영어로 답한다.
+    # 예전에는 원본 언어 태그를 그대로 넣어서 중국어 유저에게 중국어로 답했다. 그런데 푸시와
+    # 서버 문구는 이미 영어로 나가서(i18n.resolve 폴백) 한 유저가 화면마다 다른 언어를 봤다.
+    # 페르소나·말투·검수 프롬프트도 셋만 준비돼 있어 나머지 언어는 품질을 보장할 수 없다.
+    lang = i18n.resolve(language)
     persona = CAPI_PERSONA  # 기본 = 한국어 페르소나
     if i18n.is_korean(language):
         lang_rule = (
@@ -202,9 +205,16 @@ def system_prompt(language: str) -> str:
         )
         check = _OUTPUT_CHECK_JA
     else:
+        # 이름을 여기서 못 박는다. 이 갈래는 한국어 페르소나를 그대로 쓰므로 이름이 '캐피'로만
+        # 적혀 있고, 그러면 모델이 제 이름의 라틴 표기를 지어낸다(dev 실측: "My name is Capi.
+        # C A P I." 라고 답했고 "Capi or Cappy?"에는 "Capi. Just one p."로 Cappy를 부정했다).
+        # 푸시 알림은 이미 'Cappy'로 나가서(notify.py) 유저는 Cappy에게 알림을 받고 들어와
+        # Capi와 대화하게 된다. push_personalization이 쓰는 값과 같게 맞춘다.
         lang_rule = (
             f"[Language] No matter what language they write in, reply only in {lang}. "
-            f"Write entirely and naturally in {lang}. Don't mix in Korean, Chinese characters, or any other script."
+            f"Write entirely and naturally in {lang}. Don't mix in Korean, Chinese characters, or any other script. "
+            "Your name is spelled 'Cappy' in the Latin alphabet, with two p's. "
+            "Use that spelling whenever you write or say your name."
         )
         check = _OUTPUT_CHECK_OTHER.format(lang=lang)
     return f"{persona}\n\n{lang_rule}\n\n{check}"

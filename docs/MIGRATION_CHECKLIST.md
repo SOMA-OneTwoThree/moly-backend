@@ -4,8 +4,10 @@
 위에서부터 하나씩 하면 된다. 배경 설명은 `docs/CUTOVER.md`에 있고, 이 문서는 **실행 목록**이다.
 
 - 기준 시점: 2026-08-07. 아래 숫자는 전부 운영 DB에서 실제로 조회한 값이다.
-- 운영 사용자 622명 · 대화 메시지 36,575건(`normal` 35,374 + `greeting` 1,201) ·
-  일기 7,992건(그중 웰컴 612, 본문 없는 `none` 3,522) · 구 기억 벡터 9,281건.
+- ⚠️ **아래 숫자는 참고용이다. 매일 늘어나므로 실행 당일에 다시 센다.** 중단 기준은 절대값이
+  아니라 **두 값이 같은지**로 판단한다(아래 "시작 전 확인" 참고).
+- 2026-08-07 기준 — 운영 사용자 622명 · 대화 메시지 `normal` 35,378 + `greeting` 1,201 ·
+  일기 8,573건(그중 웰컴 612, 본문 없는 `none` 4,078, 발행됨 4,495) · 구 기억 벡터 9,545건.
 - 적용 대상 파일은 **26개**다(`db/migrations/20260804*`~`20260806*` 27개 중
   `20260804_zz_memory_contract.sql` 제외 — dev에도 적용된 적이 없다).
 - dev의 적용 기록에 `20260805_push_personalization.sql`이 남아 있지만 **신경 쓰지 않아도 된다.**
@@ -87,7 +89,10 @@ PostgreSQL은 트리거를 만들 때 그 컬럼이 있는지 **검사하지 않
 
 1. **`RETURN NULL`을 쓰면 안 된다.** 새 코드의 일기 저장은 `RETURNING id`를 쓰기 때문에,
    트리거가 행을 버리면 오류가 난다. 값만 채우고 `RETURN NEW`로 끝낸다.
-2. 이 트리거는 3단계에서 **반드시 지운다.** 남겨 두면 새 코드가 넣은 값을 덮어쓴다.
+2. **네 컬럼 모두 비어 있을 때만 채운다.** 배포 뒤 3단계까지는 새 코드가 넣는 값에도 이
+   트리거가 돈다. 지금은 새 코드의 값과 매핑이 같아서 문제가 없지만, 조건을 걸어 두면
+   나중에 매핑이 달라져도 안전하다.
+3. 이 트리거는 3단계에서 **반드시 지운다.**
 
 ---
 
@@ -116,8 +121,8 @@ PYTHONPATH=. uv run python db/apply.py db/migrations/<파일> --env prod --commi
 - [ ] 삭제될 일기 행 수를 기록했다. 아래 두 값이 **같아야** 한다. 다르면 **중단한다.**
 
 ```sql
-SELECT count(*) FROM diaries WHERE source='none';                                  -- 3522
-SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)=0; -- 3522
+SELECT count(*) FROM diaries WHERE source='none';                                  -- 두 값이
+SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)=0; -- 같아야 한다
 ```
 
 ### 적용 순서
@@ -148,7 +153,7 @@ SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)
 | 19 | `20260805_relationship_render.sql` | |
 | 20 | `20260805_shadow_prompt_traces.sql` | |
 | 21 | `20260805_user_schedules.sql` | |
-| 22 | `20260806_backfill_turn_seq.sql` | `kind='normal'`인 `messages` **35,374건**에 턴 좌표를 매긴다(`greeting` 1,201건은 대상이 아니다) |
+| 22 | `20260806_backfill_turn_seq.sql` | `kind='normal'`인 `messages`에만 턴 좌표를 매긴다(`greeting`은 대상이 아니다) |
 | 23 | `20260806_drop_legacy_memory.sql` | 표 13개를 지운다. **앞 단계가 만든 것들이라 반드시 실행해야 한다** |
 | 24 | `20260806_drop_legacy_tombstones.sql` | `legacy_recall_tombstones`를 지운다(16번이 만든 것) |
 | 25 | `20260806_normalize_profile_language.sql` | 값이 바뀌는 사람 **0명** |
@@ -186,7 +191,7 @@ DELETE FROM public.diaries WHERE source='none';                              -- 
 
 - [ ] 이 두 줄을 뺀 사본을 만들어 적용한다(호환 트리거는 그 사본 안에 넣는다. 0-3 참고).
 
-**141행을 왜 빼는가.** 이 줄이 3,522행을 지운다. 되돌릴 수 없는 유일한 작업이다. 3단계로
+**141행을 왜 빼는가.** 이 줄이 본문 없는 일기를 전부 지운다(2026-08-07 기준 4,078행). 되돌릴 수 없는 유일한 작업이다. 3단계로
 미루면 **1단계에 삭제가 하나도 없어져서, 배포를 되돌릴 때 잃을 것이 0이 된다.** 미루는 비용은
 없다. 바로 위 137행의 `diary_generation_results` 옮기기는 **그대로 둔다** — 새 코드가 보는
 것은 그쪽이다.
@@ -231,8 +236,8 @@ DELETE FROM public.diaries WHERE source='none';                              -- 
 | 11번 74~76행 | 고아 `routine_completions` 삭제 | 0행 |
 | 11번 237행 | `memory_evidence` 정리 | 0행 (7번이 방금 만든 빈 표) |
 | 13번 28~37행 | 장벽 있는 사용자의 파생 데이터·웰컴 일기 삭제 | 0행 (이 시점에 장벽 행이 없다) |
-| 11번 104행 | `diaries`의 새 컬럼 채우기 | 7,992행 — 값 추가일 뿐 기존 값은 그대로 |
-| 22번 | `messages` 턴 좌표 매기기 | 35,374행 — 빈 컬럼을 채우는 것 |
+| 11번 104행 | `diaries`의 새 컬럼 채우기 | 일기 전량 — 값 추가일 뿐 기존 값은 그대로 |
+| 22번 | `messages` 턴 좌표 매기기 | `normal` 전량 — 빈 컬럼을 채우는 것 |
 | 25번 | `profiles.language` 정규화 | **값이 바뀌는 사람 0명** |
 
 ### 1단계 확인
@@ -248,8 +253,13 @@ DELETE FROM public.diaries WHERE source='none';                              -- 
       대상은 첫 사용자 발화가 있는 사람뿐이라 **1명만 늘어난다.** 안 늘었으면 12번이
       제대로 안 돈 것이다.
 
+      이 1명은 배포 전까지 웰컴 일기 제목 자리에 본문이 통째로 보인다. 12번은 제목을
+      `title` 컬럼에 따로 넣는데 구 코드는 본문을 빈 줄로 갈라 제목을 뽑기 때문이다.
+      배포하면 정상으로 보인다. 1명이고 곧 해소되므로 따로 손대지 않는다.
+
 - [ ] 13번과 18번의 순서가 지켜졌는지 본다.
-      `SELECT count(*) FROM diary_recall_documents;` → **약 4,470** (0이면 순서가 어긋난 것)
+      `SELECT count(*) FROM diary_recall_documents;` → **발행된 일기 수와 비슷해야 한다**
+      (`SELECT count(*) FROM diaries WHERE published_at IS NOT NULL`). **0이면 순서가 어긋난 것이다.**
 
       웰컴 일기 수로는 이 문제를 못 잡는다. 13번의 웰컴 삭제는
       `d.created_at >= b.created_at` 조건이라 기존 웰컴에는 안 걸린다. 실제 피해는 13번
@@ -318,9 +328,37 @@ DELETE FROM public.diaries WHERE source='none';                              -- 
 배포가 안정된 것을 확인한 뒤에 한다. 둘 다 순식간에 끝나므로 서비스 영향은 거의 없다.
 
 - [ ] 호환 트리거와 그 함수를 지운다. **새 코드가 값을 직접 채우므로 남겨 두면 안 된다.**
-- [ ] 미뤄 둔 두 줄을 실행한다. 삭제 전에 두 값이 같은지 다시 확인한다.
+- [ ] `diaries_user_date_uq` 제약을 지운다.
       `ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;`
-      `DELETE FROM public.diaries WHERE source='none';`
+
+- [ ] **삭제하기 전에 처리 표시를 다시 복사한다. 이 줄을 빼먹으면 데이터가 사라진다.**
+
+```sql
+INSERT INTO public.diary_generation_results(user_id,target_date,status,created_at)
+SELECT user_id,diary_date,'no_entry',COALESCE(created_at,now())
+FROM public.diaries WHERE source='none'
+ON CONFLICT (user_id,target_date) DO NOTHING;
+```
+
+**왜 다시 하는가.** 11번 파일의 같은 INSERT는 1단계에서 **한 번만** 돈다. 그 뒤 배포까지
+구 코드가 계속 `source='none'` 행을 만든다(하루 약 500건). 그 행들은 복사되지 않은 상태이므로
+아래 삭제로 그냥 사라진다. 새 코드는 `diary_generation_results`를 "그날 처리 끝냈다"는 표시로
+읽으므로(`app/services/diary_generation.py` 46~52행), 표시가 없으면 **이미 처리한 날의 일기를
+다시 만들려 한다.** 이 INSERT는 `ON CONFLICT DO NOTHING`이라 몇 번을 돌려도 안전하다.
+
+- [ ] 두 값이 같은지 확인한 뒤 삭제한다. 다르면 **중단한다.**
+
+```sql
+SELECT count(*) FROM diaries WHERE source='none';
+SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)=0;
+DELETE FROM public.diaries WHERE source='none';
+```
+
+- [ ] **빈 구간에 만들어진 일기를 회상 검색에 넣는다.** 1단계의 12·13번 파일은 한 번만 돌고,
+      새 코드는 자기가 만든 일기만 색인한다. 그 사이 구 코드가 만든 발행 일기는
+      `diary_recall_documents`·`diary_claim_sources`에 들어가지 않아 **회상에서 영영 빠진다.**
+      `20260804_zzzzz_conversational_recall_hardening.sql` 101~126행의 재구축 문장을 한 번 더
+      돌린다. 그 문장은 수렴형이라 재실행해도 안전하다.
 - [ ] 일기 생성과 웰컴 일기 저장이 정상인지 확인한다.
 - [ ] **1단계와 배포 사이에 쌓인 메시지에 턴 좌표를 매긴다.** 아래를 읽고 할 것.
 
@@ -374,7 +412,7 @@ DELETE FROM public.diaries WHERE source='none';                              -- 
 **3단계 전이라면 잃을 것이 없다.** 1단계와 1.5단계에는 삭제가 하나도 없다. 코드를 이전
 이미지로 되돌리면 그만이다. 신규 표와 새로 만든 기억은 남아 있어도 구 코드가 읽지 않는다.
 
-3단계를 실행한 뒤에는 `DELETE FROM diaries WHERE source='none'` 3,522행이 되돌아오지 않는다.
+3단계를 실행한 뒤에는 `DELETE FROM diaries WHERE source='none'`로 지운 행이 되돌아오지 않는다.
 지우기 전에 `diary_generation_results`로 옮기고 이 행들은 전부 본문 길이가 0이라 사용자가 보는
 일기는 사라지지 않지만, `diaries`로는 복구되지 않는다. **그래서 3단계는 배포가 확실히 안정된
 뒤에 한다.**

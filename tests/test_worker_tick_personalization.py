@@ -53,15 +53,14 @@ def _row(now, slot):
         send_slot=slot,
         body="요즘 그 프로젝트 잘 돼가? 얘기하자.",
         language="ko",
-        source_kind="transcript",
+        source_kind="diary",
         sent_count=0,
-        generated_at=now,  # v2 신선도: 오늘 생성분만 발송(row_valid)
     )
 
 
 def _ctx(now, slot, rollout="all"):
     return pp.TickContext(
-        cfg=pp.PushConfig(rollout=rollout),
+        cfg=pp.PushConfig(rollout=rollout, sources=frozenset({"diary", "transcript"})),
         rows={UID: _row(now, slot)},
         tick_start=None,
     )
@@ -247,24 +246,3 @@ async def test_gen_budget_guard_defers(monkeypatch):
     )
     out = await tick._process_user(KST05, UID, {"_push": ctx})
     assert gen_calls == [] and out["push_gen_deferred"] == 1  # 다음 틱 멱등 승계
-
-
-async def test_stale_generated_row_falls_back_to_default(monkeypatch):
-    """v2 신선도(틱 레벨): 05시 생성이 통째로 빠진 날(워커 다운·이월)의 어제 몸체는
-    발송하지 않는다 — '어제' 시점이 거짓이 되므로 디폴트 폴백(row_valid generated_at 게이트)."""
-    calls = _spies(monkeypatch)
-    monkeypatch.setattr(tick, "get_sessionmaker", _fake_sessionmaker(_profile()))
-    stale = pp.PushRow(
-        user_id=UID,
-        anchor_date=activity_date_for(KST20, "Asia/Seoul") - timedelta(days=2),
-        send_slot=time(20, 0),
-        body="요즘 그 프로젝트 잘 돼가? 얘기하자.",
-        language="ko",
-        source_kind="transcript",
-        sent_count=1,
-        generated_at=KST20 - timedelta(days=1),  # 어제 생성분 — 오늘 몫 재생성 누락
-    )
-    ctx = pp.TickContext(cfg=pp.PushConfig(rollout="all"), rows={UID: stale}, tick_start=None)
-    out = await tick._process_user(KST20, UID, {"_push": ctx})
-    assert calls == {"personalized": 0, "default": 1}
-    assert out["evening"] == 1 and out.get("evening_personalized", 0) == 0

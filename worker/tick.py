@@ -69,15 +69,7 @@ def _build_summary(
 
     active_tzs = 이 틱에서 일기·아침·저녁을 실제로 처리한 유저들의 타임존(어느 나라 기준인지).
     """
-    # 이월 경보는 **마지막 틱(:45) 이월만**(deferred_final) — 앞 틱 이월은 다음 틱이 멱등
-    # 승계하는 정상 운영이라 ⚠️로 올리면 매일 울리는 소음이 되어 진짜 전멸 신호가 묻힌다
-    # (아키 리뷰). 마지막 틱 이월 = 승계할 틱이 없음 = 그 유저들 그날 개인화 전멸(v2 신선도
-    # 게이트에서 어제 몸체 재사용 무해성이 사라졌기 때문에 경보가 맞다).
-    has_warn = (
-        counts["diary_failed"] > 0
-        or counts.get("push_gen_failed", 0) > 0
-        or counts.get("push_gen_deferred_final", 0) > 0
-    )
+    has_warn = counts["diary_failed"] > 0 or counts.get("push_gen_failed", 0) > 0
     prefix = "⚠️ " if has_warn else ""
     ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
     ts_utc = now.strftime("%H:%M UTC")
@@ -104,26 +96,12 @@ def _build_summary(
     )
     if gen_total:
         fail_mark = " ⚠️" if counts.get("push_gen_failed") else ""
-        defer_mark = " ⚠️" if counts.get("push_gen_deferred_final") else ""
-        rej = counts.get("push_gen_rejected", 0)
-        # 사유 분해 — 가드레일 과탐 vs 모델 드리프트 구분(아키 리뷰). 총계와 함께 표기.
-        rej_detail = (
-            f"(필터 {counts.get('push_gen_rejected_filter', 0)}"
-            f"·인명 {counts.get('push_gen_rejected_person', 0)}"
-            f"·검수 {counts.get('push_gen_rejected_verify', 0)})"
-            if rej else ""
-        )
-        eligible = (
-            f" / 대상 {counts.get('push_gen_eligible', 0)}"
-            if counts.get("push_gen_eligible") else ""
-        )
         lines.append(
             f"개인화 생성: 성공 {counts.get('push_gen_ok', 0)}"
             f" / 스킵 {counts.get('push_gen_skipped', 0)}"
-            f" / 리젝 {rej}{rej_detail}"
+            f" / 리젝 {counts.get('push_gen_rejected', 0)}"
             f" / 실패{fail_mark} {counts.get('push_gen_failed', 0)}"
-            f" / 이월{defer_mark} {counts.get('push_gen_deferred', 0)}"
-            f"{eligible}"
+            f" / 이월 {counts.get('push_gen_deferred', 0)}"
         )
     if counts.get("personalized_sent_today") is not None:
         lines.append(f"개인화 발송 누계(오늘·KST 근사): {counts['personalized_sent_today']}건")
@@ -146,9 +124,7 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
         # 저녁 푸시 개인화 — run_tick counts 초기화에도 같은 키가 있어야 한다(병합이
         # `elif k in counts`라 한쪽에만 있으면 조용히 버려진다).
         "push_gen_ok": 0, "push_gen_skipped": 0, "push_gen_rejected": 0,
-        "push_gen_rejected_filter": 0, "push_gen_rejected_person": 0,
-        "push_gen_rejected_verify": 0, "push_gen_failed": 0, "push_gen_deferred": 0,
-        "push_gen_deferred_final": 0, "push_gen_eligible": 0, "evening_personalized": 0,
+        "push_gen_failed": 0, "push_gen_deferred": 0, "evening_personalized": 0,
     }
     # 개인화 컨텍스트 — cfg dict에 실어 시그니처 불변(기존 테스트·모킹 호환). 부재 시 off.
     pctx = cfg.get("_push") or push_personalization.TickContext()
@@ -222,35 +198,22 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                 # rollout 게이트는 생성에도 적용: off = LLM 호출·쿼리 0(배포=변화 0, SQL 1줄
                 # 롤백이 비용까지 멈춘다). allowlist 모드는 대상 유저만 생성(카나리 중 전체
                 # 유저 비용 방지). 첫 효과는 설정 후 다음 05시.
-                gen_candidate = (
-                    pctx.gen_candidates is None or pid in pctx.gen_candidates
-                )
-                if gen_candidate and push_personalization.user_allowed(pid, pctx.cfg):
+                if push_personalization.user_allowed(pid, pctx.cfg):
                     if pctx.budget_exceeded():
                         # 틱 예산(420s) 소진 — 남은 유저는 다음 틱(:15/:30/:45)이 멱등 승계.
                         # systemd 840s 하드킬 전에 스스로 멈추는 것이 유일한 구조적 방어.
                         out["push_gen_deferred"] = 1
-                        if local_now.minute >= 45:
-                            # 05시대 마지막 틱의 이월 = 승계할 틱이 없음 → 그날 개인화 전멸.
-                            # 앞 틱 이월은 정상 운영(다음 틱 승계)이라 ⚠️로 승격하지 않는다
-                            # (아키 리뷰: 상시 소음이 되면 진짜 전멸 신호가 묻힌다).
-                            out["push_gen_deferred_final"] = 1
                         out["active_tz"] = p.timezone
                     else:
                         status = await push_personalization.generate_for_user(
                             session, p, now, pctx.cfg, token_cfg
                         )
                         key = {
-                            "ok": "push_gen_ok",
-                            "rejected_filter": "push_gen_rejected_filter",
-                            "rejected_person": "push_gen_rejected_person",
-                            "rejected_verify": "push_gen_rejected_verify",
+                            "ok": "push_gen_ok", "rejected": "push_gen_rejected",
                             "failed": "push_gen_failed", "skipped": "push_gen_skipped",
                         }.get(status)
                         if key:  # already/busy/no_target = 멱등 재실행·비대상(무카운트)
                             out[key] = 1
-                            if status.startswith("rejected"):
-                                out["push_gen_rejected"] = 1  # 총계는 유지(요약·anomaly 호환)
                             out["active_tz"] = p.timezone
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
@@ -496,9 +459,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         "rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0,  # RC inbox 드레인
         # 저녁 푸시 개인화(_process_user out과 키 집합 동기 필수 — 병합이 elif k in counts)
         "push_gen_ok": 0, "push_gen_skipped": 0, "push_gen_rejected": 0,
-        "push_gen_rejected_filter": 0, "push_gen_rejected_person": 0,
-        "push_gen_rejected_verify": 0, "push_gen_failed": 0, "push_gen_deferred": 0,
-        "push_gen_deferred_final": 0, "push_gen_eligible": 0, "evening_personalized": 0,
+        "push_gen_failed": 0, "push_gen_deferred": 0, "evening_personalized": 0,
     }
     active_tzs: set[str] = set()  # 이 틱에서 일기·아침·저녁을 처리한 유저 타임존(요약 표기용)
     start = time.monotonic()
@@ -512,20 +473,10 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         pctx = push_personalization.TickContext(tick_start=start)
         try:
             pcfg = await push_personalization.effective_push_config(s0)
-            rows = await push_personalization.prefetch_rows(s0, now, pcfg)
-            # 05시 생성 후보 프리셀렉트 — 실패해도 None(필터 없이 전 유저 순회, 기존 동작).
-            candidates = None
-            if pcfg.rollout != "off":
-                try:
-                    candidates = await push_personalization.gen_candidate_set(s0, now, rows)
-                    counts["push_gen_eligible"] = len(candidates)  # 커버리지 분모(관측)
-                except Exception as e:  # noqa: BLE001
-                    _log.warning("개인화 후보 프리셀렉트 실패(전 유저 순회 폴백): %r", e)
             pctx = push_personalization.TickContext(
                 cfg=pcfg,
-                rows=rows,
+                rows=await push_personalization.prefetch_rows(s0, now, pcfg),
                 tick_start=start,
-                gen_candidates=candidates,
             )
         except Exception as e:  # noqa: BLE001  # 프리페치 실패가 푸시 전체를 막으면 안 됨
             _log.warning("개인화 프리페치 실패(전원 디폴트 폴백): %r", e)

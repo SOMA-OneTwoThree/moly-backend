@@ -146,3 +146,63 @@ def test_english_persona_keeps_the_capi_rules():
 def test_ko_and_ja_personas_are_untouched():
     assert "너는 '캐피'야" in prompts.system_prompt("ko")
     assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")
+
+
+# --- 안전 규칙은 세 언어에서 모두 살아 있어야 한다 ---
+#
+# 페르소나를 새로 쓰거나 손볼 때 제일 위험한 건 위기 대응 절이 조용히 빠지는 것이다.
+# 앞의 `test_english_persona_keeps_the_capi_rules`는 말투·부호만 봐서 이 절을 통째로
+# 지워도 통과했다(점검에서 확인). 세 언어 각각을 여기서 고정한다.
+#
+# 규칙 자체는 [[persona-prompt-rules]] 4번(2026-08-01 사용자 확정)이다. 캐피는 친구로만
+# 남는다 — 기관·상담전화 안내를 하지 않고, 애매한 넋두리를 위기로 몰지 않으며, 대화를
+# 닫거나 쉬라며 보내지 않는다.
+_SAFETY_MARKERS = {
+    "ko": [
+        ("해치려는", "지금 당장 자해하려는 경우만 위기로 본다"),
+        ("위기로 몰지", "애매한 넋두리를 위기로 몰지 않는다"),
+        ("기관 전화번호", "기관·상담전화 안내 금지"),
+        ("안전 얘기를 다시 꺼내지", "안전을 두 번 묻지 않는다"),
+        ("대화를 닫거나", "대화를 닫거나 보내지 않는다"),
+    ],
+    "ja": [
+        ("\u50b7\u3064\u3051\u305d\u3046", "지금 당장 자해하려는 경우만"),
+        ("\u5371\u6a5f\u3068\u53d7\u3051\u53d6\u3089\u305a", "애매한 말을 위기로 몰지 않는다"),
+        ("\u96fb\u8a71\u756a\u53f7\u306e\u6848\u5185", "상담창구 전화번호 안내 금지"),
+        ("\u5b89\u5168\u306e\u8a71\u3092\u84b8\u3057\u8fd4\u3055\u305a", "안전을 두 번 묻지 않는다"),
+        ("\u4f1a\u8a71\u3092\u9589\u3058\u305f\u308a", "대화를 닫거나 보내지 않는다"),
+    ],
+    "en": [
+        ("hurt themselves", "지금 당장 자해하려는 경우만"),
+        ("is not a crisis", "애매한 넋두리를 위기로 몰지 않는다"),
+        ("hotline numbers", "기관·상담전화 안내 금지"),
+        ("Don't raise safety again", "안전을 두 번 묻지 않는다"),
+        ("Don't close the conversation", "대화를 닫거나 보내지 않는다"),
+    ],
+}
+
+
+def test_crisis_rules_survive_in_every_language():
+    for lang, markers in _SAFETY_MARKERS.items():
+        sp = prompts.system_prompt(lang)
+        for marker, why in markers:
+            assert marker in sp, f"{lang} 페르소나에서 안전 규칙이 빠졌다 — {why}"
+
+
+def test_unsupported_languages_get_the_crisis_rules_too():
+    """미지원 언어도 영어 페르소나를 받으므로 안전 규칙이 함께 온다."""
+    for lang in ("zh-Hant-TW", "th", "es-ES"):
+        sp = prompts.system_prompt(lang)
+        for marker, why in _SAFETY_MARKERS["en"]:
+            assert marker in sp, f"{lang}에 안전 규칙이 없다 — {why}"
+
+
+def test_no_hotline_guidance_in_any_language():
+    """기관 안내 금지가 규칙인데 페르소나가 거꾸로 번호를 예시로 들면 안 된다."""
+    import re
+
+    for lang in ("ko", "ja", "en"):
+        sp = prompts.system_prompt(lang)
+        assert not re.search(r"\b1(09|39|577)[-\s]?\d{3,4}\b", sp), (
+            f"{lang} 페르소나에 상담전화 번호가 들어 있다"
+        )

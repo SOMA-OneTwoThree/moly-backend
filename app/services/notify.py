@@ -14,7 +14,7 @@ from app.models.user_device import UserDevice
 from app.models.user_notification_settings import UserNotificationSettings
 from app.services import i18n, naming, push
 
-# 푸시 문구 — 유저 언어별(profile.language). 없거나 미지원 언어면 ko 폴백.
+# 푸시 문구 — 유저 언어별(profile.language). 없거나 미지원 언어면 en 폴백(i18n.pick).
 _MORNING = {
     "ko": ("캐피", "캐피가 어젯밤 일기를 남겼어요. 몰래 보러가볼까요?"),
     "en": ("Cappy", "Cappy left a diary last night. Want to sneak a peek?"),

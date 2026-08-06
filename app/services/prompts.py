@@ -202,9 +202,16 @@ def system_prompt(language: str) -> str:
         )
         check = _OUTPUT_CHECK_JA
     else:
+        # 이름을 여기서 못 박는다. 이 갈래는 한국어 페르소나를 그대로 쓰므로 이름이 '캐피'로만
+        # 적혀 있고, 그러면 모델이 제 이름의 라틴 표기를 지어낸다(dev 실측: "My name is Capi.
+        # C A P I." 라고 답했고 "Capi or Cappy?"에는 "Capi. Just one p."로 Cappy를 부정했다).
+        # 푸시 알림은 이미 'Cappy'로 나가서(notify.py) 유저는 Cappy에게 알림을 받고 들어와
+        # Capi와 대화하게 된다. push_personalization이 쓰는 값과 같게 맞춘다.
         lang_rule = (
             f"[Language] No matter what language they write in, reply only in {lang}. "
-            f"Write entirely and naturally in {lang}. Don't mix in Korean, Chinese characters, or any other script."
+            f"Write entirely and naturally in {lang}. Don't mix in Korean, Chinese characters, or any other script. "
+            "Your name is spelled 'Cappy' in the Latin alphabet, with two p's. "
+            "Use that spelling whenever you write or say your name."
         )
         check = _OUTPUT_CHECK_OTHER.format(lang=lang)
     return f"{persona}\n\n{lang_rule}\n\n{check}"

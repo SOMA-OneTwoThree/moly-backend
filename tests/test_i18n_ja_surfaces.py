@@ -50,3 +50,29 @@ def test_diary_prompt_ja_allows_kanji_keeps_weather_header():
     assert "ハングル" in dp
     assert "Weather:" in dp  # parse()가 값(enum) 기준으로 인식하도록 영어 날씨 헤더 유지
     assert "Chinese characters" in diary_prompts.diary_prompt("en", "Sam")  # en 회귀 없음
+
+
+# --- 캐릭터 이름의 라틴 표기 ---
+#
+# 영어(와 지원 밖 언어)는 한국어 페르소나를 그대로 쓰므로 이름이 '캐피'로만 적혀 있었다.
+# 그러면 모델이 라틴 표기를 지어낸다 — dev 실측에서 "My name is Capi. C A P I."라고 답했고
+# "Capi or Cappy?"에는 "Capi. Just one p."로 Cappy를 부정했다. 푸시 알림은 이미 'Cappy'로
+# 나가므로(notify.py) 유저는 Cappy에게 알림을 받고 들어와 Capi와 대화하게 된다.
+def test_latin_name_is_pinned_for_non_ko_ja():
+    for lang in ("en", "en-US", "zh-Hant-TW", "es"):
+        sp = prompts.system_prompt(lang)
+        assert "Cappy" in sp, f"{lang}: 라틴 이름이 프롬프트에 없다 — 모델이 지어낸다"
+
+
+def test_latin_name_matches_push_surface():
+    """대화와 푸시가 같은 이름을 써야 한다. 어긋나면 유저가 다른 상대로 읽는다."""
+    from app.services import notify
+
+    assert notify._MORNING["en"][0] in prompts.system_prompt("en")
+
+
+def test_ko_and_ja_keep_their_own_names():
+    """라틴 이름을 못 박은 게 ko·ja로 새면 안 된다."""
+    assert "Cappy" not in prompts.system_prompt("ko")
+    assert "Cappy" not in prompts.system_prompt("ja")
+    assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")

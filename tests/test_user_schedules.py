@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from app.services import push_personalization, user_schedules as us
+from app.services import user_schedules as us
 from worker import tick
 
 
@@ -19,7 +19,9 @@ def test_hours_match_the_existing_tick_constants():
     assert us.LOCAL_HOUR[us.KIND_DIARY_GENERATE] == tick.DIARY_HOUR
     assert us.LOCAL_HOUR[us.KIND_DIARY_MORNING] == tick.MORNING_HOUR
     assert us.LOCAL_HOUR[us.KIND_EVENING_CHECKIN] == tick.EVENING_HOUR
-    assert us.LOCAL_HOUR[us.KIND_DAILY_DIGEST] == push_personalization.GEN_HOUR
+    # daily_digest의 05시는 푸시 개인화(2026-08-06 revert로 제거)가 쓰던 슬롯 예약값 —
+    # 대응하는 tick 상수가 더 이상 없어 값 자체를 고정한다.
+    assert us.LOCAL_HOUR[us.KIND_DAILY_DIGEST] == 5
 
 
 def test_all_four_kinds_are_covered():

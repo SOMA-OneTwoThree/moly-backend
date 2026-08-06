@@ -77,7 +77,7 @@ def _patch(monkeypatch, remaining):
     async def _resolve(session, uid, now=None):
         return _G(remaining)
 
-    async def _claim(session, profile, col, now=None):
+    async def _claim(session, profile, col):
         return True  # 멱등 선점은 test_notify.py가 검증 — 여기선 발송 결정 로직만
 
     from app.services import gating

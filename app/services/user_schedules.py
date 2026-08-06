@@ -32,10 +32,10 @@ KINDS: tuple[str, ...] = (
     KIND_EVENING_CHECKIN,
 )
 
-# 로컬 시각. worker/tick.py·push_personalization.py의 상수와 같아야 한다 — 등가는 테스트로 고정한다.
+# 로컬 시각. worker/tick.py의 상수와 같아야 한다 — 등가는 테스트로 고정한다.
 LOCAL_HOUR: dict[str, int] = {
     KIND_DIARY_GENERATE: 4,    # tick.DIARY_HOUR
-    KIND_DAILY_DIGEST: 5,      # push_personalization.GEN_HOUR
+    KIND_DAILY_DIGEST: 5,      # 구 push_personalization.GEN_HOUR(2026-08-06 revert) 슬롯 예약값
     KIND_DIARY_MORNING: 9,     # tick.MORNING_HOUR
     KIND_EVENING_CHECKIN: 20,  # tick.EVENING_HOUR
 }

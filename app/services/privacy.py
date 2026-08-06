@@ -191,16 +191,6 @@ async def begin_subject_deletion(
         )
         watermark = 0
     row = (await session.execute(_REDACT, {"user_id": user_id})).first()
-    # 저녁 푸시 개인화 문구도 대화 파생 사본 — 장벽 설정 즉시 제거(프로필 CASCADE만 기다리면
-    # begin~mark 사이 구간에 남는다). to_regclass 가드: 코드가 마이그레이션보다 먼저 배포된
-    # 상태에서도 삭제 플로우가 깨지지 않게(테이블 생기면 자동 활성).
-    if await session.scalar(
-        text("SELECT to_regclass('public.push_personalizations') IS NOT NULL")
-    ):
-        await session.execute(
-            text("DELETE FROM push_personalizations WHERE user_id=:user_id"),
-            {"user_id": user_id},
-        )
     await session.execute(
         _LEDGER,
         {

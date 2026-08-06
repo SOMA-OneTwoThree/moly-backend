@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import uuid
 from collections.abc import Sequence
 
@@ -10,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.services import jobs, memory_embeddings
+
+_log = logging.getLogger("moly-backend")
 
 INDEX_VERSION = "diary-recall-v1"
 JOB_DIARY_RECALL_EMBED = "diary_recall_embed"
@@ -127,6 +130,13 @@ async def upsert_diary_recall_document(
         )
     ).first()
     if row is None:
+        # upsert가 0행이면 그 일기는 회상 색인에 영원히 안 들어간다. 다시 시도하는 경로도 없다.
+        # 조용히 넘어가면 몇 주 뒤 "일기를 못 찾는다"로만 드러나고 원인 추적이 불가능하다
+        # (실제로 dev에서 한 건이 이렇게 빠졌고 원인 파악에 오래 걸렸다).
+        # 걸릴 수 있는 조건: 아직 published가 아님·삭제됨·계정 삭제 장벽.
+        _log.warning(
+            "일기 회상 색인 대상 아님 — 문서를 만들지 못했다(user=%s diary=%s)", user_id, diary_id
+        )
         return
     await jobs.enqueue(
         session,

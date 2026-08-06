@@ -63,3 +63,42 @@ def test_sweep_is_registered_with_the_consumer():
         f"{sweep.JOB_MEMORY_SWEEP}가 consumer._register_handlers의 import 목록에 없다 — "
         "잡은 만들어지지만 아무도 집어가지 않는다"
     )
+
+
+# --- 색인 누락 복구가 upsert보다 느슨하면 안 된다 ---
+#
+# sweep이 "회상 문서가 없는 일기"를 찾아 문서를 만든다. 이 조건이 upsert보다 느슨하면
+# 계정 삭제가 진행 중인 사용자의 일기를 되살린다. 그래서 두 조건을 대조로 고정한다.
+
+
+def _norm(stmt) -> str:
+    return " ".join(str(stmt).split())
+
+
+def test_missing_document_requires_the_same_guards_as_upsert() -> None:
+    from app.services import diary_recall_repo
+    from worker import memory_sweep_jobs
+
+    upsert = _norm(diary_recall_repo._UPSERT_DOCUMENT)
+    sweep = _norm(memory_sweep_jobs._MISSING_DOCUMENT)
+
+    # upsert가 거는 안전 조건은 sweep도 반드시 걸어야 한다.
+    assert "record_status='published'" in upsert
+    assert "record_status='published'" in sweep, "발행 안 된 일기를 색인한다"
+
+    assert "deleted_at IS NULL" in upsert
+    assert "deleted_at IS NULL" in sweep, "삭제된 일기를 색인한다"
+
+    # 계정 삭제 장벽 — 여기가 어긋나면 삭제 중인 사용자의 일기가 되살아난다.
+    assert "privacy_subject_barriers" in upsert
+    assert "privacy_subject_barriers" in sweep, "삭제 장벽을 보지 않는다"
+    assert "state <> 'active'" in upsert
+    assert "state <> 'active'" in sweep, "삭제 장벽 판정이 upsert와 다르다"
+
+
+def test_missing_document_only_targets_diaries_without_a_document() -> None:
+    """이미 문서가 있는 일기를 다시 만들면 매 틱 같은 일을 반복한다."""
+    from worker import memory_sweep_jobs
+
+    sweep = _norm(memory_sweep_jobs._MISSING_DOCUMENT)
+    assert "NOT EXISTS" in sweep and "diary_recall_documents" in sweep

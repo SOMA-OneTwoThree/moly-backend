@@ -36,17 +36,27 @@ WITH params AS (
     AND (p.to_date IS NULL OR d.display_date<=p.to_date)
     AND (p.focus_id IS NULL OR d.id=p.focus_id)
 ), ranked AS (
+  -- 질의는 **거르는 조건이 아니라 순위 신호**다. 예전에는 여기서 걸러냈는데, 그러면
+  -- "어제 일기 보여줘"처럼 내용이 아닌 말이 들어왔을 때 0건이 되어 캐피가 "꺼낼 수 없다"고
+  -- 답하고 다음 턴에 내용을 지어냈다(dev 실측). 이제 전부 통과시키고 순서만 정한다.
+  --
+  -- `content_match`는 **질의에 진짜로 맞았는지**를 행마다 표시한다. 호출한 쪽이 이 값을 보고
+  -- 맞은 게 하나도 없으면 본문을 빼고 돌려준다 — 인용할 본문이 없으면 지어낼 수도 없다.
   SELECT *,
     CASE WHEN p.query IS NULL THEN 1.0
          WHEN search_text ILIKE ('%' || p.query || '%') THEN 1.0
-         ELSE COALESCE(similarity,0.0) END AS score
+         ELSE COALESCE(similarity,0.0) END AS score,
+    (p.query IS NULL
+     OR search_text ILIKE ('%' || p.query || '%')
+     OR COALESCE(similarity,0.0)>=:min_similarity) AS content_match
   FROM eligible CROSS JOIN params p
-  WHERE p.query IS NULL OR search_text ILIKE ('%' || p.query || '%')
-        OR COALESCE(similarity,0.0)>=:min_similarity
 )
-SELECT *, count(*) OVER() AS exact_count
+SELECT *,
+       count(*) FILTER (WHERE content_match) OVER() AS exact_count,
+       count(*) OVER() AS eligible_count
 FROM ranked
-ORDER BY score DESC,display_date DESC,id DESC
+-- 맞은 것을 먼저. 그다음 점수, 그다음 최신순.
+ORDER BY content_match DESC,score DESC,display_date DESC,id DESC
 LIMIT :limit
 """)
 
@@ -95,10 +105,26 @@ async def recall(
     ).mappings().all()
     exact_count = int(rows[0]["exact_count"]) if rows else 0
     include_body = need in {"full", "full_card", "quote"}
+    # 질의를 줬는데 맞은 게 하나도 없으면, 돌려주는 건 "그 질의의 답"이 아니라 그냥 최근 일기다.
+    # 일기가 아예 없어서 빈 목록인 경우와 구분한다 — 그건 "안 맞은" 게 아니라 "없는" 것이다.
+    fallback = bool(query) and exact_count == 0 and bool(rows)
     items = []
     for row in rows:
         body = naming.render(str(row["content"] or ""), nickname)
         title = naming.render(str(row["title"]), nickname) if row["title"] else None
+        matched = bool(row["content_match"])
+        # ⚠️ 본문 유무는 **요청 단위가 아니라 행 단위**로 정한다. 한 건이라도 맞으면 나머지
+        # 안 맞은 행까지 본문이 실리던 문제가 있었다 — 자리를 채우려고 딸려온 일기인데
+        # 모델은 그걸 물어본 일기로 읽는다. 안 맞은 행은 날짜·제목만 준다.
+        # 본문 없이 줄 때도 제목은 남긴다. 날짜와 제목만으로 "이건가?" 하고 되물을 수 있다.
+        if fallback or not matched:
+            excerpt, full_body = None, None
+        elif include_body:
+            # excerpt와 body에 같은 본문을 두 번 담으면 도구 결과 예산(600토큰)을 두 배로 먹어
+            # 전문 2건만 요청해도 잘린다(실측 101자). 전문을 줄 때는 body 한 곳에만 담는다.
+            excerpt, full_body = None, body
+        else:
+            excerpt, full_body = body[:400], None
         items.append(
             {
                 "ref": {"type": "diary", "id": str(row["id"])},
@@ -106,14 +132,16 @@ async def recall(
                 "kind": row["kind"],
                 "display_date": row["display_date"].isoformat(),
                 "title": title,
-                "excerpt": body if include_body else body[:400],
-                "body": body if include_body else None,
+                "excerpt": excerpt,
+                "body": full_body,
                 "weather": row["weather"],
                 "read": row["first_read_at"] is not None,
+                "content_match": matched,
             }
         )
     return {
-        "status": "ok",
+        # 질의에 맞은 게 없으면 그 사실을 상태로 알린다. 모델이 최근 일기를 답인 양 내놓지 않게.
+        "status": "no_content_match" if fallback else "ok",
         "matched_count": exact_count,
         "returned_count": len(items),
         "coverage": "complete" if exact_count <= effective_limit else "partial",

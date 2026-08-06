@@ -7,13 +7,15 @@
 - 운영 사용자 622명 · 대화 메시지 36,575건 · 일기 7,992건 · 웰컴 일기 612건.
 - 적용 대상 파일은 **26개**다(`db/migrations/20260804*`~`20260806*` 27개 중
   `20260804_zz_memory_contract.sql` 제외 — dev에도 적용된 적이 없다).
+- dev의 적용 기록에 `20260805_push_personalization.sql`이 남아 있지만 **신경 쓰지 않아도 된다.**
+  그 기능은 되돌려졌고(`2a58f56` Revert), 만들었던 표도 dev·운영 양쪽에 없다. 기록만 남은 것이다.
 
 ## 전체 그림
 
 | 단계 | 하는 일 | 서비스 영향 |
 |---|---|---|
 | 0단계 | 사전 준비물 만들기(코드·SQL) | 없음 |
-| 1단계 | 마이그레이션 26개 적용(한 줄만 빼고) | 없음 — 구 코드가 계속 돈다 |
+| 1단계 | 마이그레이션 26개 적용(한 줄만 빼고) | 기능은 계속 된다. 다만 **11번 파일이 도는 몇 초 동안 요청이 대기**한다 |
 | 2단계 | `main` 머지 → 운영 배포 | 배포 시간만큼 |
 | 3단계 | 호환 장치 제거·미뤄둔 한 줄 실행 | 거의 없음 |
 
@@ -40,8 +42,9 @@
 
 - [ ] `--allow-prod` 같은 선택지를 추가하고 PR을 올려 **머지까지 끝낸다.**
 
-**왜 필요한가.** `db/apply.py` 24행의 `assert_dev_target`이 개발 대상인지 확인하고 아니면
-중단시킨다. 지금 상태로는 운영에 아무것도 적용할 수 없다.
+**왜 필요한가.** `db/apply.py` 23~24행은 `--commit`을 줬을 때만 `assert_dev_target`을 부른다.
+그 함수(`db/envfile.py` 92~98행)가 운영이면 중단시킨다. 즉 **미리보기는 지금도 되고, 실제
+반영만 막혀 있다.**
 
 ### 0-3. 일기 호환 트리거 작성
 
@@ -81,6 +84,11 @@ PYTHONPATH=. uv run python db/apply.py db/migrations/<파일> --env prod --commi
 
 **한 번에 한 개씩, 미리보기를 먼저 본다.** 실패하면 그 자리에서 멈추고 원인을 본다.
 
+**언제 하는가.** 11번 파일은 한 번의 트랜잭션 안에서 `diaries`·`messages`·`profiles`·
+`chat_contexts`·`idempotency_keys` 등 여러 표에 `ALTER TABLE`을 실행한다. 그동안 그 표들에
+대한 조회까지 대기한다. 데이터가 크지 않아 몇 초로 끝나지만 0은 아니다. **사용자가 가장 적은
+새벽에 한다.** 다른 파일은 대기 시간이 사실상 없다.
+
 ### 시작 전 확인
 
 - [ ] 0단계 세 가지가 전부 끝났다.
@@ -107,9 +115,9 @@ SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)
 | 4 | `20260804_checkpoint_generation.sql` | **순서 바꿈** |
 | 5 | `20260804_diary_search.sql` | `pg_trgm` 확장을 직접 설치한다 |
 | 6 | `20260804_job_replay_lineage.sql` | |
-| 7 | `20260804_memory_cutover_guard.sql` | |
-| 8 | `20260804_memory_normalization.sql` | **순서 바꿈** — 아래 9번이 `memory_facts`를 쓴다 |
-| 9 | `20260804_memory_embeddings.sql` | **순서 바꿈** |
+| 7 | `20260804_memory_normalization.sql` | **순서 바꿈** — 8번이 `memory_facts`를, 9번이 `memory_mode`를 쓴다 |
+| 8 | `20260804_memory_embeddings.sql` | **순서 바꿈** |
+| 9 | `20260804_memory_cutover_guard.sql` | **순서 바꿈 — 반드시 7번 뒤. 아래 설명을 읽을 것** |
 | 10 | `20260804_relationship_profiles.sql` | |
 | 11 | `20260804_zzz_conversational_recall.sql` | **⚠ 118행 한 줄을 빼고 적용한다. 아래 참고** |
 | 12 | `20260804_zzzz_conversational_recall_backfill.sql` | |
@@ -122,11 +130,31 @@ SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)
 | 19 | `20260805_relationship_render.sql` | |
 | 20 | `20260805_shadow_prompt_traces.sql` | |
 | 21 | `20260805_user_schedules.sql` | |
-| 22 | `20260806_backfill_turn_seq.sql` | `messages` 36,575건을 갱신한다 |
+| 22 | `20260806_backfill_turn_seq.sql` | `kind='normal'`인 `messages` **35,374건**에 턴 좌표를 매긴다(`greeting` 1,201건은 대상이 아니다) |
 | 23 | `20260806_drop_legacy_memory.sql` | 운영에 해당 표가 없어 **아무 일도 안 한다** |
 | 24 | `20260806_drop_legacy_tombstones.sql` | 위와 같음 |
 | 25 | `20260806_normalize_profile_language.sql` | 값이 바뀌는 사람 **0명** |
 | 26 | `20260806_rls_gap.sql` | |
+
+### 9번을 7번보다 먼저 하면 대화가 전부 멈춘다
+
+`20260804_memory_cutover_guard.sql`은 `chat_contexts`에 `BEFORE INSERT OR UPDATE` 트리거를
+설치한다. 그 트리거 함수 `guard_normalized_memory_snapshot`은 `NEW.memory_mode`와
+`OLD.memory_mode`를 읽는다(파일 23~33행). **그 컬럼은 `20260804_memory_normalization.sql`
+181행이 만든다.**
+
+파일명 오름차순으로는 `memory_cutover_guard`가 `memory_normalization`보다 먼저다. 그대로 돌리면
+컬럼이 없는 상태에서 트리거가 설치되고, **그 사이에 `chat_contexts`에 쓰기가 일어나면 오류가
+난다.** 구 코드는 다음 두 곳에서 이 표에 쓴다.
+
+| 위치 | 언제 |
+|---|---|
+| `app/services/chat.py` 255·259행 | 대화 중 기억 스냅샷 저장 |
+| `app/services/diary_generation.py` 291행 | 일기 생성 워커 |
+
+대화 경로가 포함되므로 **사용자가 말을 걸기만 해도 터진다.** 두 파일 사이 간격이 몇 초라도
+위험하다. `memory_cutover_guard.sql` 자체 머리말에도 "memory_normalization이 memory_mode
+컬럼을 만든 다음에 적용한다"고 적혀 있다.
 
 ### 11번 파일에서 빼야 하는 한 줄
 
@@ -146,6 +174,20 @@ ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;   -- 
 13번(`hardening`) 28~37행은 `privacy_subject_barriers`에 행이 있는 사용자의 파생 데이터와
 웰컴 일기를 지운다. 18번(`privacy_active_backfill`)이 그 표에 **622명분 행을 넣는다.**
 18번을 먼저 돌리면 그 뒤에 만들어진 웰컴 일기가 지워질 수 있다. **13번을 먼저 한다.**
+
+### 기존 데이터를 지우거나 바꾸는 곳 전부
+
+빠진 것이 없도록 전수로 적는다. 실제로 사라지는 것은 **첫 줄 하나뿐**이다.
+
+| 파일 | 무엇을 | 운영에서 몇 행 |
+|---|---|---|
+| 11번 141행 | `DELETE FROM diaries WHERE source='none'` | **3,522행** — 전부 본문 길이 0 |
+| 11번 74~76행 | 고아 `routine_completions` 삭제 | 0행 |
+| 11번 237행 | `memory_evidence` 정리 | 0행 (7번이 방금 만든 빈 표) |
+| 13번 28~37행 | 장벽 있는 사용자의 파생 데이터·웰컴 일기 삭제 | 0행 (이 시점에 장벽 행이 없다) |
+| 11번 104행 | `diaries`의 새 컬럼 채우기 | 7,992행 — 값 추가일 뿐 기존 값은 그대로 |
+| 22번 | `messages` 턴 좌표 매기기 | 35,374행 — 빈 컬럼을 채우는 것 |
+| 25번 | `profiles.language` 정규화 | **값이 바뀌는 사람 0명** |
 
 ### 1단계 확인
 
@@ -174,6 +216,29 @@ ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;   -- 
 - [ ] 미뤄 둔 한 줄을 실행한다.
       `ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;`
 - [ ] 일기 생성과 웰컴 일기 저장이 정상인지 확인한다.
+- [ ] **1단계와 배포 사이에 쌓인 메시지에 턴 좌표를 매긴다.** 아래를 읽고 할 것.
+
+### 빈 구간 메시지의 턴 좌표
+
+1단계가 끝난 뒤부터 배포까지 사이에 구 코드가 만든 메시지는 `turn_seq`가 비어 있다. 기억
+파이프라인은 `app/services/memory_pipeline.py` 181행의 `AND m.turn_seq IS NOT NULL`로 거르므로,
+**좌표가 없는 메시지는 영원히 장기 기억에 들어가지 않는다.**
+
+- [ ] 배포 후 남은 개수를 센다.
+      `SELECT count(*) FROM messages WHERE kind='normal' AND turn_seq IS NULL;`
+- [ ] 0이 아니면 좌표를 매긴다.
+
+**⚠ 22번 파일을 다시 돌리면 안 된다.** 그 파일은 좌표 없는 메시지를 **과거 대화로 보고**
+1번부터 번호를 매기면서 기존 번호를 전부 위로 밀어 올린다. 빈 구간 메시지는 가장 최근
+대화인데 가장 앞 번호를 받게 되어 **시간 순서가 뒤집힌다.** 참조하는 표 9개와 커서까지 같이
+밀리므로 되돌리기도 어렵다.
+
+**올바른 방법은 기존 최대 번호 뒤에 이어 붙이는 것이다.** 사용자별로 `max(turn_seq)`를 구하고,
+좌표 없는 메시지를 `id` 순서대로 그 뒤에 매긴다. 사용자 발화가 턴을 열고 뒤따르는 캐피 응답이
+같은 턴을 닫는 규칙(`turn_position` 1=사용자, 2=캐피)은 22번 파일과 같다.
+
+**1단계와 배포를 같은 날 끝내면** 이 작업이 거의 필요 없다. 몇 시간이면 대상이 수십 건이다.
+며칠이 걸리면 수백 건이 되고, 그만큼의 대화가 기억에서 빠진다.
 
 ### 나중에 따로 (급하지 않음)
 

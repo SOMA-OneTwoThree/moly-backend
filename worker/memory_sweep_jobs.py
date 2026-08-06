@@ -32,7 +32,7 @@ import uuid
 from sqlalchemy import text
 
 from app.core.db import get_sessionmaker
-from app.services import jobs, memory_pipeline
+from app.services import diary_recall_repo, jobs, memory_pipeline
 from app.services.jobs import ClaimedJob
 from worker import consumer
 from worker.consumer import JobResult
@@ -67,18 +67,57 @@ LIMIT :limit
 """)
 
 
+# 임베딩이 비어 있는 일기 회상 문서.
+#
+# 여기도 같은 문제가 있다. 임베딩 잡이 죽으면 그 일기는 아무도 다시 걸어주지 않아 영영
+# 검색 대상에서 빠진다. 오류도 안 나고 문자열 부분일치로는 걸리기 때문에 눈에 안 띈다.
+#
+# `embedding_repair_attempts`는 DB에서 0~3으로 제한돼 있는데, 그동안 이 값을 **올리는 코드가
+# 없었다.** 그래서 상한이 아무 일도 하지 않았다. 여기서 올린다.
+MAX_EMBEDDING_REPAIR = 3
+
+_MISSING_EMBEDDING = text("""
+SELECT user_id, diary_id, embedding_repair_attempts
+FROM diary_recall_documents
+WHERE embedding IS NULL
+  AND embedding_repair_attempts < :max_attempts
+ORDER BY updated_at
+LIMIT :limit
+""")
+
+# 올리면서 다시 확인한다. 그 사이 임베딩이 채워졌으면 건드리지 않는다.
+_BUMP_REPAIR = text("""
+UPDATE diary_recall_documents
+SET embedding_repair_attempts = embedding_repair_attempts + 1, updated_at = now()
+WHERE user_id = :user_id AND diary_id = :diary_id AND embedding IS NULL
+  AND embedding_repair_attempts < :max_attempts
+RETURNING embedding_repair_attempts
+""")
+
+
 async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
-    """멈춘 사용자에게 다음 turn 잡을 다시 건다. 멱등이다."""
+    """멈춘 사용자에게 다음 turn 잡을 다시 걸고, 비어 있는 일기 임베딩을 다시 만든다. 멱등이다."""
     async with get_sessionmaker()() as session:
         rows = (await session.execute(_STALLED, {"limit": SWEEP_LIMIT})).all()
+        missing = (
+            await session.execute(
+                _MISSING_EMBEDDING,
+                {"limit": SWEEP_LIMIT, "max_attempts": MAX_EMBEDDING_REPAIR},
+            )
+        ).all()
 
-    if not rows:
+    if not rows and not missing:
         return JobResult(result_code="nothing_stalled")
 
-    _log.warning("기억 파이프라인 정지 감지 — 죽은 잡 %s건 replay 시도", len(rows))
+    if rows:
+        _log.warning("기억 파이프라인 정지 감지 — 죽은 잡 %s건 replay 시도", len(rows))
+    if missing:
+        _log.warning("일기 임베딩 누락 %s건 — 다시 만든다", len(missing))
     revived: list[str] = []
+    repaired = 0
 
     async def _apply(session) -> None:
+        nonlocal repaired
         for job_id, user_id in rows:
             # operation_id가 replay의 멱등 키다. 같은 잡을 두 번 훑어도 새 잡이 겹치지 않게
             # 원본 job_id에서 결정적으로 만든다.
@@ -90,9 +129,40 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
             if new_id is not None:
                 revived.append(str(user_id))
 
+        for user_id, diary_id, _attempts in missing:
+            attempt = await session.scalar(
+                _BUMP_REPAIR,
+                {
+                    "user_id": user_id,
+                    "diary_id": diary_id,
+                    "max_attempts": MAX_EMBEDDING_REPAIR,
+                },
+            )
+            if attempt is None:
+                continue  # 그 사이 채워졌거나 상한에 닿았다
+            # 원래 잡과 같은 중복 방지 키를 쓰면 죽은 잡에 막혀 다시 걸리지 않는다.
+            # 회차를 키에 넣어 매번 새 잡이 되게 한다.
+            await jobs.enqueue(
+                session,
+                queue=jobs.QUEUE_CONTENT,
+                job_type=diary_recall_repo.JOB_DIARY_RECALL_EMBED,
+                user_id=user_id,
+                dedup_key=f"diaryembed:repair:{diary_id}:{attempt}",
+                payload={
+                    "schema_version": diary_recall_repo.INDEX_VERSION,
+                    "diary_id": str(diary_id),
+                },
+            )
+            repaired += 1
+
     return JobResult(
         result_code="ok",
-        result_detail={"dead_found": len(rows), "revived": len(revived)},
+        result_detail={
+            "dead_found": len(rows),
+            "revived": len(revived),
+            "missing_embedding": len(missing),
+            "repair_enqueued": repaired,
+        },
         apply_domain=_apply,
     )
 

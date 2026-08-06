@@ -1,9 +1,9 @@
 # Moly ERD
 
-> 기준 문서: `API_SPEC.md`(계약) · `DB_REFACTOR.md`(2026-07 커머스 스키마 리팩토링 결정) — **2026-08-04 정규화 기억 구조 반영**
+> 기준 문서: `API_SPEC.md`(계약) · `DB_REFACTOR.md`(2026-07 커머스 스키마 리팩토링 결정) — **2026-08-06 기억 구조 재작성**
 > 대상 DB: **Supabase (PostgreSQL)** — 소셜 로그인(Apple/Kakao/Google)은 Supabase Auth(`auth.users`) 사용
-> 장기기억: **public PostgreSQL 정규화 테이블 + pgvector 파생 검색 인덱스** (§7)
-> DDL 원본: `db/schema.sql` (이 문서와 1:1 — 모델↔DB 대조 스크립트로 검증)
+> 장기기억: **후보·장부는 public 테이블, 임베딩은 `vecs.moly_memories_v2`** (7장). 대화·기억 런타임 설명은 `ARCHITECTURE-capi.md`
+> DDL 원본: `db/schema.sql` + `db/migrations/`(schema.sql 이후 추가분 — 7장 테이블 다수가 여기에만 있다)
 >
 > **2026-07-13 개정 요약 (DB_REFACTOR)**: `hay_packs`+`shop_items`→**`products`** · `iap_purchases`→**`orders`+`order_items`+`payments`** · `user_items`+`user_equipment`→**`user_items`(통합)** · `hay_transactions.ref_id`(다형 text)→**`order_id` FK** · `subscription_hay_grants`에 환불 회수 멱등 컬럼 추가
 
@@ -11,11 +11,11 @@
 
 ## 1. 설계 원칙
 
-1. **서버 권위 (US-1002)** — 건초 지급/차감, 결제·구독 상태, 상품 가격, 대화 토큰 사용량, 광고 시청 횟수는 모두 서버가 원본. **클라이언트의 DB 직접 쓰기는 전 테이블 금지 — 모든 쓰기는 서버 API 경유**(ARCHITECTURE 원칙·계약 단일화, 2026-07-07 확정). RLS는 읽기 허용 + 심층 방어(§8).
+1. **서버 권위 (US-1002)** — 건초 지급/차감, 결제·구독 상태, 상품 가격, 대화 토큰 사용량, 광고 시청 횟수는 모두 서버가 원본. **클라이언트의 DB 직접 쓰기는 전 테이블 금지 — 모든 쓰기는 서버 API 경유**(ARCHITECTURE 원칙·계약 단일화, 2026-07-07 확정). RLS는 읽기 허용 + 심층 방어(8장).
 2. **앱 기준일 = 현지 시간 04:00 경계** — 모든 일 단위 로직(`activity_date`)은 `(유저 타임존 현재시각 − 4시간)::date`로 계산. 이를 위해 `profiles.timezone`(IANA)을 저장한다.
 3. **대화 제한은 토큰 기준** — 토큰 = **LLM 입력+출력 합산**. 메시지별 사용량을 기록하고 일 단위로 집계(`user_daily_stats.tokens_used`). **그날 누적 토큰**이 대화 한도·일기 LLM 분기·리뷰 팝업 판단의 공통 지표. 캐피의 인사(greeting)는 차감 제외. 집계는 응답 후 — 마지막 응답으로 한도를 초과할 수 있고, 초과 상태에서 다음 요청 차단.
-4. **유저 티어는 파생값** — trial/free/subscriber를 컬럼으로 저장하지 않고 조회 시 판정한다 (§6.1). 상태 이중화로 인한 불일치를 원천 차단.
-5. **미정 수치는 `app_config`로** — 일일 토큰 한도, 일기/리뷰 임계, 런칭 무료 기간 등 조정 가능 수치는 스키마가 아니라 서버 설정값(§6.2). 클라 노출용 원격 설정(강제 업데이트·점검·낮/밤 시각)은 Firebase — `GET /app-config` 엔드포인트는 제거됨.
+4. **유저 티어는 파생값** — trial/free/subscriber를 컬럼으로 저장하지 않고 조회 시 판정한다 (6.1절). 상태 이중화로 인한 불일치를 원천 차단.
+5. **미정 수치는 `app_config`로** — 일일 토큰 한도, 일기/리뷰 임계, 런칭 무료 기간 등 조정 가능 수치는 스키마가 아니라 서버 설정값(6.2절). 클라 노출용 원격 설정(강제 업데이트·점검·낮/밤 시각)은 Firebase — `GET /app-config` 엔드포인트는 제거됨.
 6. **원장 우선** — 건초의 진실은 `hay_transactions` 원장. `profiles.hay_balance`는 조회 성능용 캐시이며 서버 트랜잭션 안에서만 갱신.
 
 ---
@@ -54,26 +54,37 @@ erDiagram
 
     hay_transactions ||--o| subscription_hay_grants : "지급·회수 기록"
 
-    profiles ||--o| chat_contexts : "기억 좌표·대화 앵커"
-    profiles ||--o{ memory_source_turns : "턴 watermark"
-    memory_source_turns ||--o{ memory_source_turn_messages : "턴 메시지"
-    messages ||--o{ memory_source_turn_messages : "source 연결"
-    profiles ||--o{ memory_facts : "정규화 사실"
-    memory_facts ||--o{ memory_evidence : "대화 근거"
-    messages ||--o{ memory_evidence : "근거 원문"
-    profiles ||--o{ memory_insights : "파생 통찰"
-    memory_insights ||--o{ memory_insight_sources : "통찰 근거"
-    memory_facts ||--o{ memory_insight_sources : "통찰 원천"
-    profiles ||--o{ memory_forget_markers : "영속 deny"
-    profiles ||--o{ memory_source_closures : "닫힌 source 구간"
-    profiles ||--o{ relationship_profiles : "프롬프트 투영"
-    relationship_profiles ||--o{ relationship_profile_sources : "투영 근거"
-    memory_facts ||--o{ relationship_profile_sources : "fact ref"
-    memory_insights ||--o{ relationship_profile_sources : "insight ref"
-    profiles ||--o{ conversation_checkpoints : "단기 대화 요약"
-    profiles ||--o{ async_jobs : "내구 비동기 작업"
-    async_jobs ||--o{ async_jobs : "replay_of"
+    profiles ||--o| chat_contexts : "대화 시작 지점"
+    profiles ||--o| chat_active_turns : "진행 중인 턴"
+    profiles ||--o| memory_pipeline_states : "기억 처리 위치"
+    profiles ||--o{ mem0_ingest_candidates : "기억 후보"
+    mem0_ingest_candidates ||--o{ mem0_ingest_candidate_sources : "후보 근거"
+    messages ||--o{ mem0_ingest_candidate_sources : "근거 원문"
+    profiles ||--o{ mem0_memory_registry : "기억 장부"
+    mem0_memory_registry ||--o{ mem0_memory_sources : "기억 근거"
+    messages ||--o{ mem0_memory_sources : "근거 원문"
+    profiles ||--o{ user_interaction_contracts : "대화 약속"
+    user_interaction_contracts ||--o{ user_interaction_contract_items : "약속 항목"
+    messages ||--o{ user_interaction_contract_items : "약속 근거"
+    profiles ||--o{ relationship_events : "관계 기록"
+    profiles ||--o| user_relationship_states : "관계 상태"
+    profiles ||--o{ relationship_profile_renders : "관계 문장"
+    profiles ||--o{ conversation_checkpoints : "대화 요약"
+    messages ||--o{ conversation_checkpoints : "요약 경계"
+    diaries ||--o| diary_recall_documents : "일기 검색"
+    diaries ||--o{ diary_claim_sources : "일기 근거"
+    messages ||--o{ diary_claim_sources : "근거 원문"
+    messages ||--o{ chat_response_references : "답변에 실은 일기 카드"
+    diaries ||--o{ chat_response_references : "카드 대상"
+    profiles ||--o| conversation_focus : "이어지는 화제"
+    profiles ||--o{ async_jobs : "배치 작업"
+    async_jobs ||--o{ async_jobs : "다시 실행한 작업"
+    async_jobs ||--o{ job_attempts : "시도 이력"
 ```
+
+> 계정 삭제 장벽(`privacy_subject_barriers`)은 프로필이 지워진 뒤에도 남아야 해서 외래 키를 걸지
+> 않았다. 벡터 컬렉션 `vecs.moly_memories_v2`도 외래 키 없이 `mem0_memory_registry`의
+> `provider_memory_id`로만 이어진다.
 
 ---
 
@@ -85,7 +96,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 
 ### 3.2 `profiles`
 
-`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 3종(§4.8)과 기본 루틴 2개(§5.5)도 함께 생성한다(2026-07-13 확정).
+`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 3종(4.8절)과 기본 루틴 2개(5.5절)도 함께 생성한다(2026-07-13 확정).
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
@@ -98,7 +109,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `review_prompted_at` | timestamptz NULL | 리뷰 팝업 노출 이력 — **최초 1회 제한** (US-1101). NOT NULL이면 재노출 금지 |
 | `created_at` / `updated_at` | timestamptz | |
 
-- **탈퇴(US-106)**: `auth.users` 삭제 → 정규화 기억을 포함한 전 테이블 CASCADE. App Store 구독은 자동 해지되지 않으므로 별도 안내한다.
+- **탈퇴(US-106)**: `auth.users` 삭제 → 기억을 포함한 전 테이블 CASCADE(예외는 계정 삭제 장벽 하나 — 7.11절). App Store 구독은 자동 해지되지 않으므로 별도 안내한다.
 
 ---
 
@@ -115,14 +126,14 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `id` | bigint PK (identity) | 시간순 커서 페이지네이션 키 |
 | `user_id` | uuid FK→`profiles` | |
 | `type` | enum `hay_transaction_type` | `attendance` `ad_reward` `routine_reward` `iap_purchase` `subscription_grant` `shop_purchase` `refund_revoke` `admin_adjustment` |
-| `amount` | int, CHECK ≠ 0 | +획득 / −소비. `refund_revoke`는 환불 시 증정 건초 회수(−) — 회수액은 `min(증정량, 현재 잔액)`으로 잔액 하한 0 유지. **회수액 0이면 원장 기록 없이 §4.4의 회수 표식만 남김**(CHECK ≠ 0 보호) |
+| `amount` | int, CHECK ≠ 0 | +획득 / −소비. `refund_revoke`는 환불 시 증정 건초 회수(−) — 회수액은 `min(증정량, 현재 잔액)`으로 잔액 하한 0 유지. **회수액 0이면 원장 기록 없이 4.4절의 회수 표식만 남김**(CHECK ≠ 0 보호) |
 | `balance_after` | int | 거래 후 잔액 — 거래 내역 UI 표시 항목 (US-906) |
 | `order_id` | uuid FK→`orders` NULL | **구매 관련 원장(`iap_purchase`·`shop_purchase`)의 주문 연결** — (구)다형 `ref_id`(text) 폐기. CS가 원장→주문→결제를 FK로 자동 추적 |
 | `created_at` | timestamptz | |
 
 - 인덱스: `(user_id, created_at DESC)` + `(order_id)`.
 - type별 `order_id`: `iap_purchase`·`shop_purchase`만 값 있음. 보상류(출석·광고·루틴)와 구독 증정/회수는 NULL — 역추적은 각 소스 테이블의 `hay_transaction_id`가 담당(광고 멱등은 `reward_ad_sessions`).
-- 일일 보상 중복 방지는 이 테이블이 아니라 `user_daily_stats`의 유니크/카운터로 강제 (§4.2).
+- 일일 보상 중복 방지는 이 테이블이 아니라 `user_daily_stats`의 유니크/카운터로 강제 (4.2절).
 
 ### 4.2 `user_daily_stats` — 앱 기준일 단위 상태
 
@@ -160,7 +171,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `environment` | text | `Production` / `Sandbox` |
 | `created_at` / `updated_at` | timestamptz | |
 
-- **환불(`revoked`) 처리**: 혜택 즉시 회수(증정 건초 회수) — `refund_revoke` 원장 기록, **잔액 하한 0**, 멱등은 `subscription_hay_grants.revoked_at`(§4.4). 증정 이력은 유지 → 재구독해도 재지급 없음 (구독→증정 소비→환불→재구독 루프 차단). 구독 전용 cosmetic 폐지(appearance_v2)로 장착 해제 처리 불필요.
+- **환불(`revoked`) 처리**: 혜택 즉시 회수(증정 건초 회수) — `refund_revoke` 원장 기록, **잔액 하한 0**, 멱등은 `subscription_hay_grants.revoked_at`(4.4절). 증정 이력은 유지 → 재구독해도 재지급 없음 (구독→증정 소비→환불→재구독 루프 차단). 구독 전용 cosmetic 폐지(appearance_v2)로 장착 해제 처리 불필요.
 - **복원 충돌**: `original_transaction_id`는 Apple ID(기기 결제 계정) 소유라 소셜 로그인 계정과 독립 — 다른 소셜 계정으로 로그인 후 복원하면 이미 매핑된 UNIQUE 키와 충돌한다. 처리(RC 전환 후) = **서버가 해당 웹훅을 무시**(다른 계정 소유 구독 스킵) — 원 계정의 구독 상태 유지.
 
 ### 4.4 `subscription_hay_grants` — 구독 건초 증정 이력 (US-704)
@@ -197,7 +208,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 
 - **타입별 컬럼 상호 강제(CHECK)**: `hay_pack` → hay_amount·app_store_product_id 필수, cosmetic 컬럼 전부 NULL, `is_subscriber_only = false` / `cosmetic` → public_id·slot·assets 필수, hay_pack 컬럼 전부 NULL, `is_subscriber_only = false` 강제. 활성 cosmetic은 `asset_version ≥ 1 AND assets IS NOT NULL` 필수(비활성으로만 준비 단계 가능).
 - UNIQUE `(id, slot)` — `user_items` 장착 슬롯 일치 복합 FK 대상.
-- **기본 테마/기본 캐피는 상품이 아님** — `user_items`에 테마 장착 행이 없으면 기본 상태 (US-804). 단 가입 시 bootstrap_user가 theme_default를 자동 장착하므로 신규 유저는 항상 테마 장착 상태로 시작(§4.8).
+- **기본 테마/기본 캐피는 상품이 아님** — `user_items`에 테마 장착 행이 없으면 기본 상태 (US-804). 단 가입 시 bootstrap_user가 theme_default를 자동 장착하므로 신규 유저는 항상 테마 장착 상태로 시작(4.8절).
 
 ### 4.6 `orders` / `order_items` — 주문 (모든 구매의 단일 진입점) ★신설
 
@@ -297,7 +308,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `id` | bigint PK (identity) | 위로 스크롤 커서 페이지네이션 키 (US-407) |
 | `user_id` | uuid FK→`profiles` | 채팅방(단일 연속 스레드) 전체를 시간순 조회 |
 | `sender` | enum `message_sender` | `user` / `moly` |
-| `kind` | enum `message_kind` | `normal` / `greeting` — greeting = **커밋된 선발화**(발급 보관 원본 = `greetings` §5.1). **토큰 한도 미차감**(US-406), 토큰 소진 상태에서도 발급 가능 |
+| `kind` | enum `message_kind` | `normal` / `greeting` — greeting = **커밋된 선발화**(발급 보관 원본 = `greetings` 5.1절). **토큰 한도 미차감**(US-406), 토큰 소진 상태에서도 발급 가능 |
 | `content` | text | 길이 상한은 API 검증 (비용 통제) |
 | `input_tokens` / `output_tokens` | int NULL | LLM 사용량 — `moly` 응답에 기록, `user` 메시지는 NULL. `kind='normal'`인 것만 `user_daily_stats.tokens_used`에 합산 |
 | `cache_read_tokens` | int NULL | 프롬프트 캐시 히트 토큰 — 캐시 텔레메트리(실원가·히트율 분석용) |
@@ -336,7 +347,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 - 첫 성공 Phase B가 `relationship_started_*`와 welcome을 user/reply 메시지와 원자 삽입한다. 목록 GET은 쓰지 않는다.
 - daily 미발행은 `diary_generation_results(user_id,target_date,status=no_entry)`가 소유하며 빈 diary/tombstone을 만들지 않는다.
 - **열람은 등급 무관 항상 무료(확정)** — 접근 제어 없음. 구독 가치 = 개인(`llm`) 일기 "발행"이지 열람이 아님.
-- preset 선택(§5.4): 그날 `diary_date` 지정본 우선 → 없으면 `diary_date IS NULL` 풀에서 랜덤 → 둘 다 없으면 안전 기본 문구.
+- preset 선택(5.4절): 그날 `diary_date` 지정본 우선 → 없으면 `diary_date IS NULL` 풀에서 랜덤 → 둘 다 없으면 안전 기본 문구.
 
 ### 5.4 `moly_life_ments` — '캐피의 삶' 멘트 풀 / 날짜 지정본
 
@@ -376,20 +387,23 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 
 ### 5.7 `chat_contexts` — 대화 컨텍스트 상태 (프롬프트 캐싱 인프라)
 
-앵커 append-only 캐싱 + 정규화 기억 처리 좌표를 유저별 1행으로 관리한다. **민감 테이블 — anon/authenticated 직접 접근 전면 차단(`REVOKE ALL`)**.
+대화 시작 지점과 대화 버전을 유저별 1행으로 관리한다. **민감 테이블 — anon/authenticated 직접 접근 전면 차단(`REVOKE ALL`)**.
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
 | `user_id` | uuid PK FK→`profiles` | 유저당 1행 |
 | `anchor_message_id` | bigint NOT NULL CHECK ≥ 0 | 캐시 앵커 message id — 이 메시지까지 프롬프트 고정 블록에 포함 |
 | `last_active_at` | timestamptz NULL | 직전 대화 활동 시각 — 첫 만남/재방문 판단 입력 |
-| `memory_source_watermark` | bigint NOT NULL | 유저별 source turn 단조 증가 좌표 |
-| `memory_generation` | bigint NOT NULL | 망각 시 증가해 진행 중인 이전 세대 잡을 폐기 |
-| `relationship_profile_input_revision` | bigint NOT NULL | 실제 기억 변경 때만 증가하는 프로필 입력 버전 |
+| `context_revision` | bigint NOT NULL default 0 | 대화 버전. 저장 단계에서 1단계 때와 같은지 확인해 늦게 돌아온 결과를 막는다(7.10절) |
+| `last_committed_turn_seq` | bigint NOT NULL default 0 | 마지막으로 저장된 턴 번호 |
+| `memory_source_watermark` | bigint NOT NULL default 0 | **값을 올리는 코드가 없다(항상 0).** 계정 삭제 장벽 행을 만들 때 `high_watermark` 초기값으로 읽는 곳 하나만 남았다 |
+| `memory_generation` | bigint NOT NULL default 0 | **값을 올리는 코드가 없다(항상 0).** 대화로 기억을 지우던 시절의 세대 번호 — 7.7절 |
+| `relationship_profile_input_revision` | bigint NOT NULL default 0 | 삭제된 이전 기억 구조의 잔재. 읽는 곳이 없다 |
+| `prompt_cache_generation` / `anchor_revision` / `pending_anchor_message_id` / `pending_plan_revision` / `checkpoint_job_id` / `checkpoint_source_hash` | | 마이그레이션이 추가만 하고 아직 쓰지 않는 컬럼 |
 | `updated_at` | timestamptz NOT NULL | 상태 갱신 시각 |
 
-- **`REVOKE ALL ON chat_contexts FROM anon, authenticated`** — 클라이언트가 기억 평문에 직접 접근하는 경로를 DB 레벨에서 차단. 서버(owner 롤)만 접근.
-- RLS enable은 §8 공통 블록에 포함(REVOKE가 추가 보호층).
+- **`REVOKE ALL ON chat_contexts FROM anon, authenticated`** — 클라이언트가 대화 상태에 직접 접근하는 경로를 DB 레벨에서 차단. 서버(owner 롤)만 접근.
+- RLS enable은 8장 공통 블록에 포함(REVOKE가 추가 보호층).
 
 ---
 
@@ -427,170 +441,428 @@ free       : 그 외
 
 ### 6.4 `user_devices` — 푸시 토큰
 
-아침 09:00·저녁 21:00 알림 = **서버 APNs 푸시 확정**(ARCHITECTURE §3.3) — 발송 대상 토큰 저장.
+아침 09:00·저녁 21:00 알림 = **서버 APNs 푸시 확정**(ARCHITECTURE 3.3절) — 발송 대상 토큰 저장.
 
 - `id`, `user_id`, `platform`(`ios|android`), `push_token` UNIQUE, `last_active_at`, `created_at`.
 - 로그아웃 시 해당 `push_token` 행 삭제(API `POST /auth/logout`이 토큰을 받음).
 
 ---
 
-## 7. 정규화 장기기억 — public PostgreSQL + pgvector
+## 7. 대화 런타임·장기기억 테이블
 
-기억의 런타임 흐름은 `ARCHITECTURE.md` §5.2를 따른다. 이 절은 물리 테이블, 상태 전이와 DB
-불변조건을 소유한다. 모든 사용자 기억 행은 `profiles`와 연결되고 탈퇴 시 CASCADE된다. 기억 테이블은
-RLS enable + `REVOKE ALL FROM anon, authenticated`로 클라이언트 직접 접근을 차단한다.
+캐피가 대화를 처리하고 기억을 만드는 과정은 `ARCHITECTURE-capi.md`가 설명한다. 이 장은 그 과정이
+쓰는 **물리 테이블과 제약**을 소유한다.
 
-### 7.1 `memory_source_turns` / `memory_source_turn_messages`
+- 사용자 데이터를 가진 표는 `profiles`를 참조하고 탈퇴 시 함께 삭제된다. 예외가 셋 있다.
+  계정 삭제 장벽(7.11절)은 삭제 뒤에도 남아야 해서 외래 키를 걸지 않았고, 비용 원장은 사람과의
+  연결만 끊고 집계는 남기려고 `ON DELETE SET NULL`이며, 벡터 컬렉션(7.4절)은 다른 스키마에 있어
+  외래 키가 없다.
+- 이 장의 public 테이블은 전부 RLS를 켜고 정책을 두지 않는다(= 클라이언트 전면 차단). 대화에서
+  파생된 본문을 가진 표는 `anon`·`authenticated`의 권한까지 회수한다(8장).
+- 2026-08-06에 이전 구조(`memory_facts`·`memory_evidence`·`memory_insights`·`memory_source_turns`·
+  `memory_forget_markers`·`relationship_profiles` 등 13종)와 이관용 `legacy_recall_tombstones`를
+  삭제했다(`db/migrations/20260806_drop_legacy_memory.sql`, `20260806_drop_legacy_tombstones.sql`).
+  대화로 기억을 지우는 기능과 `/memory` 계열 API도 함께 없앴다. 의미 기반 장기기억은 아래 구조
+  하나뿐이다.
 
-대화 턴을 유저별 단조 watermark에 연결하는 provenance 원본이다.
+### 7.1 `memory_pipeline_states` — 사용자별 기억 처리 상태
 
-| 테이블 | 키·필드 | 제약 |
-|---|---|---|
-| `memory_source_turns` | PK `(user_id, source_watermark)`, `representative_message_id`, `committed_at` | watermark > 0, 대표 메시지는 유저별 UNIQUE이며 코드가 inbound user인지 검증 |
-| `memory_source_turn_messages` | PK `(user_id, source_watermark, message_id)` | `(user_id,message_id)` UNIQUE로 한 message는 정확히 한 turn에만 속함 |
+어디까지 처리했는지를 `(user_id, turn_seq)` 하나로 표현한다. 턴 번호는 `messages.turn_seq`이며
+과거 대화는 `db/migrations/20260806_backfill_turn_seq.sql`이 시간순을 지키며 채웠다.
 
-`chat_contexts.memory_source_watermark`는 대화 Phase 2의 같은 유저락 안에서 증가한다. messages, turn,
-message edge와 `memory_extract` 잡이 같은 트랜잭션에서 커밋되므로 “메시지만 있고 기억 source가 없는”
-부분 성공을 허용하지 않는다.
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `user_id` | uuid PK, FK→`profiles` (CASCADE) | 유저당 1행 |
+| `mode` | text, default `'legacy'` | `legacy`(기억 기능 꺼짐) / `shadow`(기록만) / `v2`(응답에도 사용). CHECK로 3값 강제 |
+| `bootstrap_status` | text, default `'legacy'` | `legacy` / `collecting`(과거 대화를 채우는 중) / `ready` |
+| `source_through_turn_seq` | bigint ≥ 0, default 0 | 대화가 저장된 마지막 턴 번호 |
+| `ingest_through_turn_seq` | bigint ≥ 0, default 0 | 기억으로 색인한 마지막 턴 번호 |
+| `consolidated_through_turn_seq` | bigint ≥ 0, default 0 | 중복·대체 판정을 끝낸 마지막 턴 번호 |
+| `historical_upper_turn_seq` | bigint NULL ≥ 0 | `shadow` 진입 시점에 고정한 과거 대화의 마지막 턴 번호 |
+| `active_job_id` / `stage_token` / `lease_until` | uuid / uuid / timestamptz NULL | 외부 호출 동안 DB 잠금을 잡지 않으려고 두는 처리 권한 |
+| `revision` | bigint ≥ 0, default 0 | 값이 그대로인지 확인한 뒤에만 바꾸기 위한 번호 |
+| `privacy_epoch` | bigint ≥ 0, default 0 | 계정 삭제 사이클 번호 — 이전 사이클의 늦은 작업을 걸러낸다 |
+| `repair_generation` | integer ≥ 0, default 0 | 재처리 세대 번호 |
+| `updated_at` | timestamptz | |
 
-### 7.2 `memory_facts` / `memory_evidence`
+- **세 커서의 순서를 DB가 강제한다**: CHECK `ingest ≤ source`, CHECK `consolidated ≤ ingest`.
+  판정이 색인을 앞지를 수 없다.
+- 인덱스: `(mode, bootstrap_status)` + 부분 인덱스 `(user_id) WHERE consolidated < source`
+  (아직 못 따라잡은 사용자만 훑는다).
+- 다음에 처리할 턴은 커서 + 1이 아니라 `MIN(turn_seq) > 커서`로 찾는다. 번호가 연속이라고
+  가정하지 않는다.
 
-원본 `messages`에서 재생성 가능한 현재 장기기억 projection이다. `memory_evidence`는 진실 자체가 아니라
-fact와 authoritative user message span을 잇는 provenance edge다.
+### 7.2 `mem0_ingest_candidates` / `mem0_ingest_candidate_sources` — 기억 후보와 근거
 
-| 필드 | 계약 |
-|---|---|
-| `kind` | `profile|preference|relationship|event|emotion` 코드 registry |
-| `canonical_text` | 저장 직전 살균·`{유저이름}` placeholder 적용된 자연어 표면 |
-| `subject`, `predicate`, `object_json` | 선택 구조화 값. predicate는 13종 registry와 cardinality를 따름 |
-| `status` | `active|superseded|forgotten`. 뒤의 두 상태는 terminal |
-| `content_hash`, `normalization_version` | versioned 정규화 결과. marker와 동일 hash 산출물 사용 |
-| `superseded_by` | 같은 user의 새 fact만 가리키는 복합 FK, DELETE RESTRICT |
-| `embedding vector(1536)` | 검색용 파생값. 원본이 아니며 NULL에서 전량 재생성 가능 |
+벡터 저장소를 부르기 **전에** 후보를 저장한다. 저장 직후 프로세스가 죽어도 재시도가 같은 계획을
+읽어 같은 ID로 다시 넣으므로 중복이 생기지 않는다.
 
-인덱스는 active user/predicate/event 조회, `(user_id, normalization_version, content_hash)` dedup,
-active non-null embedding의 HNSW cosine 검색을 지원한다.
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `user_id` | uuid FK→`profiles` (CASCADE) | |
+| `turn_seq` | bigint | 이 후보를 뽑아낸 턴 번호 |
+| `candidate_hash` | text | 후보 내용의 해시 |
+| `schema_version` / `extractor_version` / `normalizer_version` | text | 만들 때 쓴 규칙 버전 |
+| `provider_memory_id` | uuid | 벡터 저장소에 쓸 ID를 미리 확정한 값 — `uuid5(고정 네임스페이스, 컬렉션버전:user:turn:후보해시:스키마)` |
+| `candidate_text` | text | 정규화된 후보 문장 |
+| `temporal_proposal_json` | jsonb NULL | 시각 표현 해석 결과 원본 |
+| `event_started_at` / `event_ended_at` / `event_time_precision` / `resolved_timezone` | timestamptz / timestamptz / text / text, NULL | 사건이 일어난 시각 |
+| `status` | text, default `'planned'` | `planned` / `committed` / `dead` |
+| `repair_generation` | integer, default 0 | 재처리 세대 |
+| `scrubbed_at` | timestamptz NULL | 본문을 비운 시각 |
+| `created_at` / `updated_at` | timestamptz | |
 
-`memory_evidence`의 PK는 `(fact_id, source_type, source_id)`이고 v1 `source_type`은
-`conversation_turn`만 허용한다. `source_id`는 `messages.id`, `source_excerpt_hash`는 근거 원문의 SHA-256,
-`observed_at`은 관찰 시각이다. messages FK가 user id를 포함하지 않으므로 repository가 evidence insert
-전에 같은 트랜잭션에서 `messages.user_id == memory_facts.user_id`를 검증한다.
+- UNIQUE `(user_id, turn_seq, candidate_hash, schema_version, repair_generation)` — 같은 세대의
+  중복 계획을 막는다. UNIQUE `(id, user_id)`는 자식 표가 다른 사용자를 가리키지 못하게 하는
+  복합 외래 키의 대상이다.
+- 인덱스: `(user_id, turn_seq) WHERE status = 'planned'`.
 
-상태 전이는 다음으로 제한한다.
+**`mem0_ingest_candidate_sources`** — 후보의 근거가 된 사용자 발화 구간.
 
-- `ADD`: 새 active fact + evidence
-- `REINFORCE`: active fact의 confidence와 새 evidence만 갱신
-- `SUPERSEDE`: 새 active fact를 먼저 만들고 기존 active를 terminal `superseded`로 닫음
-- `KEEP_BOTH`: multi predicate의 기존·신규 fact를 모두 active 유지
-- `IGNORE`: 쓰기와 input revision 증가 없음
+- `candidate_id`+`user_id` 복합 FK→`mem0_ingest_candidates(id, user_id)` (CASCADE).
+- `(user_id, source_message_id, source_sender)` 복합 FK→`messages(user_id, id, sender)` (CASCADE).
+  **CHECK `source_sender = 'user'`** — 캐피의 발화는 근거가 될 수 없다.
+- `evidence_start_utf8` / `evidence_end_utf8` integer, CHECK `0 ≤ start < end`(UTF-8 기준 구간).
+- `source_content_hash` text, `authority` text CHECK `explicit_user|confirmed_user`,
+  `confidence` double 0~1 NULL, `created_at`.
+- UNIQUE `(candidate_id, source_message_id, evidence_start_utf8, evidence_end_utf8)`.
 
-terminal 행을 active로 되돌리는 UPDATE 경로는 없다.
+### 7.3 `mem0_memory_registry` / `mem0_memory_sources` — 유효한 기억 장부
 
-### 7.3 `memory_insights` / `memory_insight_sources`
+벡터 ID의 수명만 기록한다. **본문과 임베딩은 복사하지 않는다.** 검색은 이 장부를 거쳐야 하므로
+판정되지 않은 기억이 프롬프트에 실리지 않는다.
 
-여러 fact에서 파생할 수 있는 통찰 계층이다. `memory_insights.status`는
-`active|invalidated|superseded`, `derivation_version`으로 생성 규칙을 식별한다.
-`memory_insight_sources`는 `(user_id, insight_id, fact_id)` 복합 PK와 user id를 포함한 복합 FK로
-타 사용자의 fact를 근거로 연결하지 못하게 한다.
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `user_id` | uuid FK→`profiles` (CASCADE) | |
+| `provider` / `collection_version` / `provider_memory_id` | text / text / uuid | 어느 벡터 컬렉션의 어느 ID인지 |
+| `source_turn_seq` | bigint | 이 기억이 나온 턴 번호 |
+| `content_hash` | text | 본문 해시 |
+| `event_started_at` / `event_ended_at` / `event_time_precision` / `resolved_timezone` / `temporal_resolver_version` | NULL 허용 | **사건이 일어난 시각** — 서버 해석기가 검증한 경우에만 채운다. "말한 시각"(`mem0_memory_sources.source_occurred_at`)과 다르다 |
+| `semantic_status` | text, default `'pending'` | `pending` `active` `duplicate` `superseded` `ambiguous` `excluded` `rejected_policy`. **검색에 통과하는 것은 `active`와 `ambiguous`뿐** |
+| `provider_delete_state` | text, default `'kept'` | `kept` `pending` `deleted` `failed` |
+| `provider_deleted_at` | timestamptz NULL | |
+| `conflict_group_id` | uuid NULL | 우열을 가릴 수 없는 기억들을 묶는 값 |
+| `duplicate_of_registry_id` / `superseded_by_registry_id` | uuid NULL | 중복·대체 판정 결과 |
+| `classification_version` / `schema_version` | text | 판정·저장 규칙 버전 |
+| `revision` | bigint, default 0 | |
+| `last_confirmed_at` / `source_count` / `max_source_confidence` | timestamptz NULL / integer ≥ 0 / double NULL | 근거에서 다시 계산할 수 있는 파생값 |
+| `created_at` / `updated_at` | timestamptz | |
 
-이 테이블은 이전 스키마와의 호환을 위한 비활성 계층이다. **새 insight를 자동 생성하는 producer는
-없으며 추가할 후속 전제도 없다.** 최종 런타임의 반복 경향은 fact source ref를 가진
-`relationship_profiles.inferred_tendencies`로만 투영한다. 검색·기본 주입의 활성 원천은 §7.2 fact/evidence와
-user-message episode이고, 빈 insight 계층에 의존하지 않는다.
+- UNIQUE `(user_id, provider, collection_version, provider_memory_id)` — 벡터 ID가 컬렉션을
+  넘어 전역으로 유일하다고 가정하지 않는다. UNIQUE `(id, user_id)`는 복합 외래 키 대상이다.
+- 인덱스: `(user_id, semantic_status, source_turn_seq) WHERE semantic_status IN ('active','ambiguous')` ·
+  `(provider_delete_state, updated_at) WHERE provider_delete_state = 'pending'`(삭제가 밀리는지 관측) ·
+  `(conflict_group_id) WHERE conflict_group_id IS NOT NULL`.
 
-### 7.4 `memory_forget_markers` / `memory_source_closures`
+**`mem0_memory_sources`** — 기억의 근거 기록. 벡터 저장소에 붙는 부가 정보는 복구용 사본일 뿐이고
+기준이 되는 값은 이 표다.
 
-망각을 재처리 뒤에도 유지하는 영속 deny 데이터다.
+- `registry_id`+`user_id` 복합 FK→`mem0_memory_registry(id, user_id)` (CASCADE).
+- `(user_id, source_message_id, source_sender)` 복합 FK→`messages` (CASCADE),
+  **CHECK `source_sender = 'user'`**.
+- `source_turn_seq`, `evidence_start_utf8` / `evidence_end_utf8`(CHECK `0 ≤ start < end`),
+  `source_content_hash`, `source_occurred_at`(말한 시각), `source_activity_date`,
+  `authority` CHECK `explicit_user|confirmed_user`, `confidence` 0~1 NULL, `extractor_version`,
+  `created_at`.
+- UNIQUE `(registry_id, source_message_id, evidence_start_utf8, evidence_end_utf8)`,
+  인덱스 `(user_id, source_activity_date)`.
 
-- marker scope는 `fact|predicate|all` 중 하나다.
-- fact marker는 대상 행의 `content_hash`와 `normalization_version`을 그대로 복사한다. 재계산하지 않는다.
-- predicate marker는 canonical predicate만, all marker는 범위 필드를 갖지 않는다.
-- `expires_at IS NULL` CHECK로 사용자 망각이 만료돼 되살아나는 것을 금지한다.
-- fact marker FK는 deferred라 retention 트랜잭션에서 관련 파생 데이터를 먼저 제거하고 marker를 마지막에
-  처리할 수 있다.
-- closure는 `(from_watermark, through_watermark)`와 `forget_operation_id`를 기록하며 범위 겹침 인덱스를
-  가진다. 닫힌 범위와 하나라도 겹친 extraction 결과는 부분 반영하지 않는다.
+### 7.4 `vecs.moly_memories_v2` — 벡터 컬렉션
 
-망각 트랜잭션은 generation/revision 증가, marker/closure, fact `forgotten`+embedding NULL, insight/profile
-무효화, checkpoint 삭제, profile refresh enqueue까지 한 번에 커밋한다.
+기억 본문의 임베딩은 같은 Supabase PostgreSQL 안의 별도 스키마에 있다
+(`db/migrations/20260805_mem0_v2_collection.sql`).
 
-### 7.5 `relationship_profiles` / `relationship_profile_sources`
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `id` | varchar PK | `mem0_memory_registry.provider_memory_id`와 같은 값 |
+| `vec` | vector(1536) NOT NULL | `text-embedding-3-small` 임베딩 |
+| `metadata` | jsonb NOT NULL, default `'{}'` | `user_id` 등 |
 
-active 기억에서 만든 locale별 안정 프롬프트 투영이다.
+- 인덱스: `((metadata->>'user_id'))` · HNSW `vec vector_cosine_ops`.
+- **테이블도 인덱스도 마이그레이션이 만든다.** 런타임은 만들지 않는다(어댑터는 이미 있는
+  컬렉션만 연다). 서비스 롤에 CREATE 권한을 주지 않기 위해서다.
+- 검색 결과는 반드시 7.3절 장부와 대조하고 `user_id`를 한 번 더 확인한 뒤에 쓴다.
 
-| 필드 | 계약 |
-|---|---|
-| `(user_id, locale, version)` | 버전 UNIQUE |
-| `memory_generation`, `relationship_profile_input_revision` | draft가 본 입력 좌표. publish 직전 현재 좌표와 재대조 |
-| `document_json` | `stance`, `known_facts`, `recent_threads`, `inferred_tendencies`와 source ref |
-| `rendered_text`, `render_hash` | 최대 400토큰 투영과 내용 hash. 같은 hash면 새 version 미생성 |
-| `status` | `draft|published|invalidated|superseded`; terminal 상태를 되살리지 않음 |
+### 7.5 `user_interaction_contracts` / `user_interaction_contract_items` — 대화 약속
 
-부분 UNIQUE 인덱스가 `(user_id,locale)`당 published 한 개만 허용한다. source edge는 item별 fact 또는
-insight 중 정확히 하나만 참조하고, 모든 FK에 user id를 포함한다. publish 시 JSON ref와 edge가
-`type/id/item_key`까지 양방향으로 같아야 한다. chat render도 매 턴 source active 상태와 forget marker를
-재검증해 refresh 지연 중 stale 항목을 제외한다.
+"앞으로 반말해" 같은 합의를 정해진 형식으로만 저장한다. 사용자가 쓴 문장을 그대로 프롬프트에
+넣지 않기 위한 구조다.
 
-### 7.6 `conversation_checkpoints`
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `user_id` | uuid FK→`profiles` (CASCADE) | |
+| `version` | integer, CHECK > 0 | |
+| `locale` | text | |
+| `document_json` | jsonb | 언어와 무관한 기준 값 |
+| `rendered_text` / `render_hash` | text | 그 언어로 만든 문장과 그 해시. 해시가 같으면 새 버전을 만들지 않는다 |
+| `status` | text, default `'draft'` | `draft` `published` `superseded` `rejected` |
+| `source_watermark` | bigint NULL | 삭제된 이전 구조의 잔재. 채우는 코드가 없다 |
+| `created_at` / `published_at` | timestamptz | |
 
-긴 대화에서 앵커 밖으로 밀려난 구간의 단기 줄거리다. `through_message_id`, placeholder `summary`,
-요약기 `version`, 결정적 `source_hash`, `memory_generation`을 저장한다. UNIQUE
-`(user_id, through_message_id, source_hash)`와 잡 dedup key로 같은 입력의 중복 생성을 막는다.
+- UNIQUE `(user_id, locale, version)`, UNIQUE `(id, user_id)`(복합 외래 키 대상).
+- **부분 UNIQUE `(user_id, locale) WHERE status = 'published'`** — 사용자·언어당 발행본은 정확히
+  하나. 새로 발행할 때는 기존 행을 지우지 않고 `superseded`로 닫는다.
+- 프롬프트에는 저장된 `rendered_text`를 그대로 쓰지 않고 `document_json`에서 다시 만든다. 저장분이
+  옛 형식일 수 있기 때문이다.
 
-checkpoint는 Fact가 아니고 장기기억 추출 source도 아니다. 망각 시 그 유저의 checkpoint를 전부
-삭제하며, 늦은 이전 generation 잡은 결과를 publish하지 않는다.
+**`user_interaction_contract_items`** — 약속 항목.
 
-### 7.7 `async_jobs`의 기억 잡 계약
+- `contract_id`+`user_id` 복합 FK→`user_interaction_contracts(id, user_id)` (CASCADE),
+  UNIQUE `(contract_id, item_key)`.
+- `section` text CHECK `address_policy` `communication_style` `comfort_style` `boundaries`
+  `relationship_frame` `durable_commitments`.
+- `value_json` jsonb(형식이 고정된 값) · `rendered_text` text ·
+  `authority` CHECK `explicit_user|confirmed|repeated_observation` · `confidence` 0~1 NULL ·
+  `effective_from` / `effective_to` · `status` CHECK `active|superseded|rejected`.
+- `(user_id, source_message_id)` 복합 FK→`messages` **ON DELETE SET NULL** — 근거가 된 사용자
+  발화. 원문이 사라져도 약속 자체는 남는다.
+- 인덱스: `(user_id, section) WHERE status = 'active'`.
 
-기억 파이프라인은 `memory_extract`, `memory_reconcile`, `memory_embed`,
-`relationship_profile_refresh` job type을 content queue에서 처리한다.
+### 7.6 `relationship_events` / `user_relationship_states` / `relationship_profile_renders` — 관계
 
-- 상태: `ready → running → succeeded|dead|cancelled`, retry는 running에서 새 `available_at`의 ready로 전환
-- claim 시 attempt 증가, `max_attempts`로 poison job 무한루프 차단
-- running에만 `lease_owner`, `lease_token`, `lease_until`이 존재한다는 CHECK
-- `(job_type, dedup_key)` UNIQUE로 동일 producer의 중복 enqueue 흡수
-- terminal 원본은 수정·삭제하지 않고, 재처리는 self FK `replay_of`가 가리키는 새 행으로 실행
-- 최종 contract는 dead 원본에 succeeded replay 자식이 있어야 해소된 것으로 인정
+기록 → 상태 → 문장 세 겹이다. 문장은 언제든 다시 만들 수 있는 파생 데이터다.
 
-### 7.8 기억 API 읽기 표면
+**`relationship_events`** — 뒤로만 쌓이는 기록.
 
-- `GET /memory`: active + marker hard filter를 통과한 fact 최대 100건
-- `POST /memory/search`: query embedding으로 fact/insight cosine 검색, 결과 최대 20건
-- `POST /memory/forget`: `fact|predicate|all`, `confirm=true` 필수
+- `id` bigint identity PK, `user_id` FK→`profiles` (CASCADE).
+- `event_type` text — **CHECK로 `normal_turn_committed`와 `active_day_started` 두 값만 허용**한다.
+  자유 문자열이면 집계가 조용히 갈라진다.
+- `activity_date` date, `occurred_at` timestamptz, `turn_seq` bigint NULL(≥ 0), `delta` jsonb NULL.
+- `dedup_key` text + UNIQUE `(user_id, dedup_key)` — 같은 턴·같은 날이 두 번 집계되지 않는다.
+  값은 `turn:{turn_seq}` 또는 `day:{activity_date}`.
+- 인덱스: `(user_id, activity_date, id)`.
 
-자연어 대화용 읽기 표면은 다음 projection을 사용한다.
+**`user_relationship_states`** — 기록을 집계한 상태. 유저당 1행(`user_id` PK).
 
-- `memory_episodic_messages`: user 원문의 hash·watermark·embedding만 저장한다. 원문은 `messages`에서
-  소유권·sender·hash·suppression을 재검증한 뒤 읽는다. `embedding_model`, `index_version`,
-  `suppression_generation`이 stale write를 막고 `embedding_repair_attempts(0..3)`가 terminal job 이후 복구를 제한한다.
-- `diary_claim_sources` / `diary_recall_documents`: 일기의 user-message provenance와 재생성 가능한
-  lexical/vector 문서를 분리한다. 문서 hash는 SHA-256이며 model/index/generation을 함께 fence한다.
-  근거는 일기 생성 시각까지의 실제 입력 message에만 수렴하고, 하나라도 suppress되면 모델 recall 후보에서 제외한다.
-- `memory_suppression_operations` / `memory_recall_suppressions`: marker/closure와 별개인 message/span 노출 차단면.
-- `chat_response_references`: capability가 있는 응답의 diary 원문 카드 위치를 보존한다. 삭제/망각 시
-  `unavailable`로 redaction하며 본문 사본을 두지 않는다.
-- `conversation_focus`: user별 최대 3개 diary ID와 만료 시각/턴을 보관해 “그거/전문”을 이어 간다.
-- `chat_active_turns`와 `chat_contexts.context_revision`: 외부 추론 동안 user별 lease, Phase B publish CAS를 강제한다.
-- `privacy_subject_barriers` / `privacy_ledger_events`: 탈퇴 시작부터 serving과 late worker publish를 막고
-  본문 없는 삭제 좌표를 남긴다. barrier는 profile 삭제 뒤에도 남아야 하므로 profile FK를 두지 않는다.
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `relationship_started_at` | timestamptz NULL | 계산 편의용 사본. **기준이 되는 값은 `profiles`**에 있다 |
+| `active_days` | integer ≥ 0 | 함께한 날 수 |
+| `successful_turns` | bigint ≥ 0 | 성공한 턴 수(상한 없음) |
+| `qualifying_turns` | bigint ≥ 0 | 단계 계산에만 쓰는 턴 수 — 하루 최대 10턴까지만 센다 |
+| `last_interaction_at` | timestamptz NULL | |
+| `relationship_stage` | text, default `'new'` | CHECK `new` `acquainted` `familiar` `close` |
+| `stage_rule_version` | text, default `'relationship-v1'` | |
+| `latest_event_id` | bigint NULL | |
+| `version` | bigint, default 0 | 값이 그대로인지 확인한 뒤에만 바꾸기 위한 번호 |
+| `prompt_revision` | bigint, default 0 | 단계·규칙이 바뀔 때만 올린다. 매 턴 바뀌는 숫자가 프롬프트 캐시를 깨지 않게 분리했다 |
+| `updated_at` | timestamptz | |
 
-### 7.9 `feedback` — 인앱 문의
+- 단계는 뒤로 가지 않는다. 갱신 SQL이 숫자에는 `GREATEST`를, 단계에는 `new < acquainted <
+  familiar < close` 비교를 써서 더 높은 쪽만 반영한다.
 
-유저가 앱 내에서 자유 텍스트로 보내는 의견/문의. 기프티콘 이벤트 등 후속 연락을 위한 선택 연락처 포함.
+**`relationship_profile_renders`** — 상태를 언어별 문장으로 바꾼 결과.
 
-- `id` uuid PK, `user_id` FK→`profiles`, `message` text NOT NULL CHECK ≤ 2000자, `contact` text NULL CHECK ≤ 200자(이메일·전화·인스타 등 이벤트용 선택 연락처), `created_at`.
-- 인덱스: `feedback_user_idx (user_id)`.
-- 클라이언트 직접 읽기/쓰기 모두 차단(§8).
+- `id` uuid PK, `user_id` FK→`profiles` (CASCADE).
+- UNIQUE `(user_id, prompt_revision, profile_relationship_revision, locale, renderer_version)` —
+  **버전마다 새 행이 쌓이는 구조**라 이력이 남는다. 덮어쓰기라고 가정하고 다른 조합으로 충돌
+  처리를 걸면 맞는 제약이 없어 실패한다. 읽을 때는 최신 하나를 정렬해서 집는다.
+- `rendered_text` / `render_hash` text, `created_at`.
+- 인덱스: `(user_id, locale, prompt_revision DESC)`.
+- 짝이 되는 `profiles.relationship_revision`(bigint ≥ 0, default 0)은 관계 표시 3필드가 바뀔 때만
+  올라간다.
 
-### 7.10 `idempotency_keys` — API 멱등 키
+### 7.7 `conversation_checkpoints` — 대화 요약
 
-유저 × 키 복합 PK로 동일 요청 재시도 시 저장된 응답을 그대로 반환.
+시작 지점 밖으로 밀려난 구간의 줄거리. 기능 자체는 `context_checkpoint_enabled`(기본 꺼짐)로
+켜고 끈다.
 
-- `(user_id, key)` PK, `request_hash`, nullable `response`, `response_schema_version`, `reply_message_id`,
-  `terminal_status`, `response_expires_at`, `dedupe_expires_at`, `redacted_at`.
-- 같은 key+body의 응답은 24시간 replay하고, 이후 30일까지는 body를 scrub한 terminal tombstone으로
-  중복 실행을 막는다. 계정 삭제 장벽은 즉시 redaction한다.
-- 클라이언트 직접 접근 차단(§8). 서버가 키 만료·정리 담당.
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `user_id` | uuid FK→`profiles` (CASCADE) | |
+| `through_message_id` | bigint FK→`messages` **ON DELETE RESTRICT** | 이 요약이 덮는 마지막 메시지. 경계 메시지는 사라질 수 없다 |
+| `summary` | text | 저장할 때 실제 이름이 없다(`{유저이름}` 형태) |
+| `version` | text | 요약기 계약 버전 |
+| `source_hash` | text | 결정적 입력 지문 — 이전 요약의 `(id, source_hash)`와 원본 메시지의 정렬된 `(id, sender, kind, content)`를 각 조각 앞에 길이를 붙여 이어 붙인 SHA-256 |
+| `memory_generation` | bigint, default 0 | 아래 참고 |
+| `kind` | text, default `'window'` | CHECK `window`(이어지는 요약) / `daily_digest`(하루 독립 요약) |
+| `segment_*` / `coverage_*` `_message_id` | bigint NULL | 이번에 요약한 구간과 누적으로 덮는 구간 |
+| `previous_checkpoint_id` | uuid NULL | 이어지는 요약의 앞 고리 |
+| `locale` / `source_started_at` / `source_ended_at` / `activity_date_from` / `activity_date_to` | NULL 허용 | |
+| `publish_state` | text, default `'published'` | CHECK `ready` / `published` / `superseded` |
+| `created_at` | timestamptz | |
+
+- UNIQUE `(user_id, through_message_id, source_hash)` + 작업의 중복 방지 키로 같은 입력을 두 번
+  요약하지 않는다.
+- 부분 UNIQUE `(user_id, coverage_through_message_id) WHERE kind='window' AND publish_state='published'` ·
+  `(user_id, activity_date_from) WHERE kind='daily_digest'`.
+- 인덱스: `(user_id, through_message_id DESC)` · `(user_id, memory_generation, through_message_id DESC)`.
+- 복합 FK `(user_id, through_message_id) → messages(user_id, id)` (CASCADE)로 남의 메시지를 경계로
+  삼지 못하게 한다.
+- **요약은 사실이 아니다.** 요약에서 장기기억을 뽑는 경로는 만들지 않는다.
+- `memory_generation`은 대화로 기억을 지우던 시절의 세대 번호다. 그 기능이 사라져 **값을 올리는
+  코드가 없고 항상 0**이며, 비교 조건은 항상 참이다. `chat_contexts.memory_generation`,
+  `diary_recall_documents.suppression_generation`도 같은 상태다. 조건이 여러 곳에 얽혀 있어
+  일부러 그대로 두었다.
+
+### 7.8 `diary_recall_documents` / `diary_claim_sources` — 일기 회상
+
+`recall_diaries` 도구가 쓰는 검색용 파생 데이터와, 일기가 어느 발화에서 나왔는지의 기록이다.
+
+**`diary_recall_documents`** — 일기 1건당 1행. 다시 만들 수 있는 파생 데이터다.
+
+- PK `(user_id, diary_id)`, 복합 FK→`diaries(user_id, id)` (CASCADE).
+- `search_text` text NOT NULL · `source_hash` text · `embedding` vector(1536) NULL ·
+  `embedding_model` text default `'text-embedding-3-small'` · `index_version` text ·
+  `suppression_generation` bigint(7.7절 참고, 항상 0) ·
+  `embedding_repair_attempts` smallint CHECK 0~3 · `updated_at`.
+- 인덱스: `search_text` gin trigram · `embedding` HNSW cosine `WHERE embedding IS NOT NULL` ·
+  `(updated_at) WHERE embedding IS NULL`(임베딩이 빈 행 추적).
+
+**`diary_claim_sources`** — 일기의 근거 메시지.
+
+- PK `(user_id, diary_id, message_id)`, 복합 FK→`diaries(user_id, id)`·`messages(user_id, id)`
+  둘 다 CASCADE. `source_hash` text, `created_at`.
+
+### 7.9 `chat_response_references` / `conversation_focus` — 대화 참조와 이어지는 화제
+
+**`chat_response_references`** — 답변에 실은 일기 카드의 위치. **본문은 복사하지 않는다.**
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `user_id` / `reply_message_id` | uuid / bigint | 복합 FK→`messages(user_id, id)` (CASCADE) |
+| `ordinal` | integer CHECK 0~2 | 한 답변에 최대 3개 |
+| `schema_version` | text, default `'diary-reference-v1'` | 클라이언트와의 계약 이름 |
+| `domain` | text, default `'diary'`, CHECK `='diary'` | 지금은 일기 카드만 |
+| `mode` | text CHECK `full_card` / `reopen_reference` | |
+| `state` | text, default `'available'`, CHECK `available` / `unavailable` | |
+| `diary_id` | uuid NULL | 복합 FK→`diaries(user_id, id)` **ON DELETE RESTRICT** |
+| `rendered_metadata` | jsonb, default `'{}'` | |
+| `redacted_at` / `redaction_reason` | timestamptz NULL / text NULL | |
+| `created_at` | timestamptz | |
+
+- UNIQUE `(user_id, reply_message_id, ordinal)`, 인덱스 `(user_id, reply_message_id, ordinal)`.
+- CHECK: `available`이면 `diary_id`가 있고 `redacted_at`이 비어 있어야 하며, `unavailable`이면
+  `diary_id`가 비어 있어야 한다. 일기가 삭제되거나 비공개가 되면 `unavailable`로 바꾼다.
+
+**`conversation_focus`** — "그거", "두 번째 거" 같은 말을 해석하기 위한 상태. 유저당 1행
+(`user_id` PK, FK→`profiles` CASCADE).
+
+- `domain` text · `facet` text NULL · `reference_ids` uuid[] **CHECK 개수 1~3**(보여준 순서 그대로) ·
+  `context_revision` bigint · `expires_at` timestamptz · `expires_turn_seq` bigint · `updated_at`.
+- 15분이 지나거나 6턴이 더 진행되면 만료다. 읽을 때 만료면 행을 지운다.
+
+### 7.10 `chat_active_turns` — 턴 직렬화
+
+한 사용자의 채팅 요청이 동시에 두 개 처리되지 않게 하는 표. 유저당 1행이다.
+
+- `user_id` uuid PK FK→`profiles` (CASCADE).
+- `turn_seq` bigint CHECK > 0 · `idempotency_key` text · `request_hash` text ·
+  `base_context_revision` bigint(1단계에서 읽은 대화 버전) · `lease_token` uuid ·
+  `lease_until` timestamptz · `created_at`.
+- UNIQUE `(user_id, idempotency_key)`.
+- 살아 있는 권한이 있는데 다른 요청이 들어오면 `CHAT_TURN_IN_PROGRESS`(409)다. 저장 단계에서
+  `lease_token`과 `chat_contexts.context_revision`이 1단계 때와 같은지 확인하고, 다르면 늦게
+  돌아온 결과를 저장하지 않는다.
+
+### 7.11 `privacy_subject_barriers` / `privacy_ledger_events` — 계정 삭제
+
+인증 계정 자체의 삭제는 moly-auth가 하고, 이쪽은 **차단과 파생 데이터 정리**를 맡는다.
+
+**`privacy_subject_barriers`** — 사용자당 1행(`user_id` PK).
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `user_id` | uuid PK | **`profiles` 외래 키를 일부러 걸지 않았다** — 프로필이 지워진 뒤에도 남아야 한다 |
+| `state` | text CHECK `active` / `deleting` / `deleted` | |
+| `operation_id` | uuid NULL | CHECK: `active`가 아니면 반드시 있어야 한다 |
+| `epoch` | bigint ≥ 0, default 0 | 삭제 사이클 번호. 이전 사이클의 진행 중 작업을 무효로 만든다 |
+| `high_watermark` | bigint NULL | 삭제를 시작한 시점의 처리 위치 |
+| `created_at` / `updated_at` | timestamptz | |
+
+- 인덱스 `(state)`. `profiles`에 INSERT가 일어나면 트리거
+  (`create_privacy_barrier_for_profile`)가 같은 트랜잭션에서 `active` 행을 만든다.
+- 설정 `privacy_barrier_mode`: `compat`은 행이 없으면 통과, `enforced`는 행이 없으면 거부한다.
+  **`active` 행 채우기와 개수 검증을 마친 뒤에만 `enforced`로 올린다.** 순서를 어기면 전 사용자의
+  대화가 즉시 막힌다(구 코드가 "행이 있으면 차단"으로 읽던 시기의 사고).
+
+**`privacy_ledger_events`** — 본문 없는 삭제 진행 기록.
+
+- `id` bigint identity PK · `operation_id` uuid · `user_id` uuid · `event` text ·
+  `high_watermark` bigint NULL · `created_at`. 인덱스 `(user_id, id)`.
+
+### 7.12 `async_jobs` — 배치 작업 대기열
+
+Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기열은 `queue` 컬럼 값 6종
+(`critical` `interactive_async` `content` `memory` `notification` `maintenance`)이며 별도
+프로세스가 아니라 소비자 내부 슬롯으로 나뉜다. 값에 DB CHECK는 없고 코드가 목록을 갖는다.
+
+| 컬럼 | 타입 | 설명 |
+| --- | --- | --- |
+| `id` | uuid PK | |
+| `queue` / `job_type` | text | |
+| `user_id` | uuid NULL FK→`profiles` (CASCADE) | |
+| `dedup_key` | text | UNIQUE `(job_type, dedup_key)` — 같은 작업이 두 번 등록되지 않는다 |
+| `payload` | jsonb | |
+| `state` | text, default `'ready'` | CHECK `ready` `running` `succeeded` `dead` `cancelled` |
+| `priority` | integer, default 100 | 작을수록 먼저 |
+| `available_at` | timestamptz | 재시도 예약 시각 |
+| `expires_at` | timestamptz NULL | 지나면 `cancelled`(늦은 알림을 보내지 않기 위한 상태) |
+| `attempt` / `max_attempts` | integer | **시도 횟수는 집어 갈 때 올린다** — 프로세스가 죽어도 반드시 `dead`에 도달한다 |
+| `lease_owner` / `lease_token` / `lease_until` | text / uuid / timestamptz NULL | 처리 권한 |
+| `replay_of` | uuid NULL FK→`async_jobs` | 다시 실행한 작업이 원본을 가리킨다 |
+| `replay_operation_id` | uuid NULL | |
+| `payload_schema_version` / `payload_hash` / `payload_expires_at` / `payload_redacted_at` | | 내용 보존 기간 관리 |
+| `result_code` / `result_detail` / `last_error_code` / `last_error_at` | | |
+| `created_at` / `finished_at` | timestamptz | |
+
+- **CHECK: 처리 권한 3컬럼은 `running`일 때만 전부 채워져 있고, 아니면 전부 비어 있어야 한다.**
+- 최종 상태(`succeeded`/`dead`/`cancelled`)의 행을 `ready`로 되살리지 않고 `dead`를 자동으로
+  지우지도 않는다. 다시 돌려야 하면 `dedup_key='replay:{원래 작업 id}:{작업 식별자}'`인 새 행을
+  만들고 `replay_of`로 잇는다. 부분 UNIQUE `(replay_of, replay_operation_id)`가 같은 재실행이
+  두 번 만들어지는 것을 막는다.
+- 인덱스: `(queue, priority, available_at, created_at) WHERE state='ready'` ·
+  `(queue, lease_until) WHERE state='running'` · `(state, queue)`(`/health` 집계용) ·
+  `(replay_of) WHERE replay_of IS NOT NULL`.
+- `provider` / `model` / `lane` / `eligible_at`과 인덱스 `async_jobs_provider_claim_idx`는 만들어
+  뒀지만 **읽거나 쓰는 코드가 없다.**
+
+### 7.13 `feedback` — 인앱 문의
+
+유저가 앱 안에서 자유 텍스트로 보내는 의견·문의. 기프티콘 이벤트 등 후속 연락을 위한 선택
+연락처를 함께 받는다.
+
+- `id` uuid PK · `user_id` FK→`profiles` (CASCADE) · `message` text NOT NULL CHECK ≤ 2000자 ·
+  `contact` text NULL CHECK ≤ 200자 · `created_at`.
+- 인덱스: `feedback_user_idx (user_id)`. 클라이언트 직접 읽기·쓰기 모두 차단(8장).
+
+### 7.14 `idempotency_keys` — 같은 요청을 다시 보냈을 때
+
+유저 × 키 복합 PK. 같은 키·같은 본문이면 저장된 응답을 그대로 돌려준다.
+
+- PK `(user_id, key)` · `request_hash` text · `response` jsonb **NULL 허용** ·
+  `response_schema_version` bigint default 1 · `reply_message_id` bigint NULL ·
+  `terminal_status` text default `'succeeded'` CHECK `succeeded|expired|redacted` ·
+  `response_expires_at` / `dedupe_expires_at` / `redacted_at` timestamptz · `created_at`.
+- 복합 FK `(user_id, reply_message_id) → messages(user_id, id)` (CASCADE),
+  인덱스 `(user_id, reply_message_id) WHERE reply_message_id IS NOT NULL`.
+- 응답 본문은 24시간(`response_expires_at`), 그 뒤 30일까지는 본문 없는 표시만 남겨
+  (`dedupe_expires_at`) 같은 키로 새 턴이 생기는 것을 막는다. 계정 삭제는 즉시 본문을 비운다.
+- 키가 같은데 본문 해시가 다르면 `IDEMPOTENCY_KEY_REUSED`(409)다. 저장된 응답이 지금 형식과 맞지
+  않으면 **행을 지우지 않고** 500으로 실패시킨다 — 지우면 다음 재시도가 새 턴으로 실행되어
+  메시지와 토큰이 두 번 쌓인다.
+
+### 7.15 그 밖의 운영·계측 테이블
+
+| 테이블 | 키 | 역할 |
+| --- | --- | --- |
+| `ai_price_catalog` | UNIQUE `(catalog_version, provider, model)` | 적용 시작일이 있는 모델 단가표(micro-USD / 1M 토큰). 값 변경은 새 버전 행 추가로만 |
+| `ai_usage_ledger` | `call_id` uuid PK, `user_id` FK **ON DELETE SET NULL** | 모델 호출별 실제 비용(USD). 상태 `started` `completed` `unknown_usage` `failed`. **사용자 토큰 한도와 별개** — CHECK로 `completed` 행은 `price_catalog_version`을 반드시 갖는다 |
+| `job_attempts` | UNIQUE `(job_id, attempt)` | 작업 시도별 이력. `outcome` = `succeeded` `retryable` `dead` `cancelled` `lease_lost` `timeout` |
+| `shadow_prompt_traces` | UNIQUE `(user_id, turn_seq, assembler_version)` | 새 조립 방식의 프롬프트 크기·캐시 가능 비율만 재는 계측. 실제 응답에 쓰지 않는다 |
+| `user_schedules` | UNIQUE `(user_id, kind)` | 사용자별 예정 시각 4종(`daily_digest` `diary_generate` `diary_morning_notification` `evening_checkin`). **채워 두기만 했고 읽기 경로는 아직 틱 방식**(`schedule_dispatcher_enabled` 기본 꺼짐) |
+| `push_personalizations` | `user_id` PK | 저녁 푸시용 개인화 문구. 대화에서 파생된 본문이라 권한을 회수한다 |
+| `provider_backoffs` | PK `(provider, model, lane)` | 만들어 뒀지만 **읽거나 쓰는 코드가 없다** |
+
+- `shadow_prompt_traces`와 `user_schedules`는 만들 때 RLS와 권한 회수가 빠져 있었고
+  `db/migrations/20260806_rls_gap.sql`이 채웠다. 이 레포는 정책을 하나도 두지 않고
+  "RLS 켜짐 + 정책 0 = 전면 차단"으로 운영하므로, RLS가 꺼진 표는 아무 방어가 없다.
 
 ---
 
@@ -605,9 +877,24 @@ checkpoint는 Fact가 아니고 장기기억 추출 source도 아니다. 망각 
 | `messages` `greetings` `diaries` | 본인 행 | ❌ (LLM 프록시·배치가 기록 — 토큰 집계·한도 검증 일원화) |
 | `routines` `routine_completions` `user_notification_settings` `user_devices` | 본인 행 | ❌ (완료 2개 = 건초 보상 조건 — `activity_date` 위조 차단. CRUD 계약은 API_SPEC 8장) |
 | `products` `moly_life_ments` `app_config` | 전체 읽기(active만) | ❌ 운영 전용 |
-| `reward_ad_sessions` `idempotency_keys` `feedback` `diary_gen_claims` | ❌ | ❌ (서버 내부 전용) |
-| `chat_contexts` | ❌ (**REVOKE ALL**, RLS 위에 추가 차단) | ❌ |
-| `memory_*` `relationship_profiles` | ❌ | ❌ (서버 API 경유만) |
+| `reward_ad_sessions` `idempotency_keys` `feedback` `diary_gen_claims` `revenuecat_events` | ❌ | ❌ (서버 내부 전용) |
+| `memory_pipeline_states` `mem0_ingest_candidates`(+`_sources`) `mem0_memory_registry` `mem0_memory_sources` `user_interaction_contracts`(+`_items`) `user_relationship_states` `relationship_events` `relationship_profile_renders` | ❌ | ❌ (7장) |
+| `async_jobs` `job_attempts` `ai_price_catalog` `ai_usage_ledger` `provider_backoffs` | ❌ | ❌ (워커·계측 전용) |
+
+대화에서 파생된 본문을 가진 표는 RLS 위에 **`REVOKE ALL FROM anon, authenticated`**를 한 겹 더
+건다. 읽기·쓰기 모두 ❌이며, 서버(owner 롤)만 접근한다.
+
+| 테이블 | 왜 한 겹 더 거나 |
+| --- | --- |
+| `chat_contexts` `conversation_checkpoints` `push_personalizations` | 대화 원문·요약·푸시 문구 |
+| `chat_active_turns` `chat_response_references` `conversation_focus` | 진행 중인 턴과 답변에 실은 카드 |
+| `diary_claim_sources` `diary_recall_documents` | 일기의 근거와 검색용 파생 데이터 |
+| `privacy_subject_barriers` `privacy_ledger_events` | 계정 삭제 진행 상태 |
+| `diary_generation_results` `schema_migrations` | 일기 미발행 기록과 마이그레이션 적용 이력 |
+| `shadow_prompt_traces` `user_schedules` | 만들 때 빠져 있던 것을 `20260806_rls_gap.sql`이 채웠다. `user_schedules.next_due_at`이 열려 있으면 일기 발행과 저녁 푸시 일정이 망가진다 |
+
+- 벡터 컬렉션 `vecs.moly_memories_v2`에는 RLS를 걸지 않았다. **`vecs` 스키마가 PostgREST 노출
+  대상이 아니라는 전제**에 기대고 있으므로, 노출 스키마 설정을 바꿀 때 함께 확인해야 한다.
 
 ---
 
@@ -624,7 +911,7 @@ checkpoint는 Fact가 아니고 장기기억 추출 source도 아니다. 망각 
 | 10 리뷰 1회 | `profiles.review_prompted_at` + 당일 `tokens_used` 임계 생애 최초 도달(채팅 응답 `review_prompt` 플래그 — API_SPEC 9장) |
 | 11 캐피의 일기 | `kind=welcome|shared_day|capi_day`. welcome은 첫 성공 대화와 원자 생성, daily는 user+activity_date당 하나. 미발행은 별도 result 행. 발행 노출은 `published_at` |
 | 12 2일 체험 (구독 동일 혜택) | `profiles.trial_ends_at` (티어 파생 — 토큰·일기·광고는 subscriber와 동일 처리) |
-| 14 인사 미차감 | `greetings` 발급 보관(§5.1) → 커밋 시 `messages.kind='greeting'`, 집계 제외 |
+| 14 인사 미차감 | `greetings` 발급 보관(5.1절) → 커밋 시 `messages.kind='greeting'`, 집계 제외 |
 | 15 낮/밤 | `products.assets` v2 구조 — `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url`. 전환 시각 = Firebase(클라 원격 설정) |
 | 16 장착 해제 | `user_items.equipped_slot` NULL — 장착 없음 = 기본. `theme` 슬롯은 가입 시 bootstrap_user가 자동 장착 |
 | 17 장착 규칙 (슬롯당 1개) | `user_items` 부분 UNIQUE(user_id, equipped_slot) — 같은 슬롯 장착 = 기존 자동 해제. 슬롯 일치는 복합 FK로 DB 강제 |

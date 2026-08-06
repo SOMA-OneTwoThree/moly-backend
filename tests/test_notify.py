@@ -20,7 +20,7 @@ async def test_evening_skips_when_already_notified(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col, now=None):
+    async def _claim(session, profile, col):
         return False  # 이미 발송됨
 
     async def _resolve(session, uid):
@@ -45,7 +45,7 @@ async def test_evening_sends_and_claims_evening_column(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col, now=None):
+    async def _claim(session, profile, col):
         seen["col"] = col
         return True
 
@@ -75,7 +75,7 @@ async def test_evening_exhausted_does_not_claim(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col, now=None):
+    async def _claim(session, profile, col):
         claimed["called"] = True
         return True
 
@@ -99,7 +99,7 @@ async def test_morning_skips_when_already_notified(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col, now=None):
+    async def _claim(session, profile, col):
         return False
 
     async def _send(tokens, title, body):

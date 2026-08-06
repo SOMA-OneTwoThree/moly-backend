@@ -17,8 +17,10 @@ class Settings(BaseSettings):
 
     # --- Supabase (Auth + Postgres + pgvector) ---
     supabase_url: str = ""
-    supabase_anon_key: str = ""
-    supabase_service_role_key: str = ""
+    # 신형 API 키(sb_publishable_/sb_secret_) — legacy anon/service_role은 2026-08 유출로 폐기.
+    # 런타임 미사용(DB는 connection string 직결, 인증은 JWKS) — dev 스크립트·통합 테스트용.
+    supabase_publishable_key: str = ""
+    supabase_secret_key: str = ""
     # JWT 검증(JWKS 로컬 검증) — 미설정 시 remote getUser 폴백(auth 설계 단계에서 확정)
     supabase_jwks_url: str = ""
     # 익명 로그인 토큰 허용 여부 — 제품은 소셜 전용이라 기본 거부(is_anonymous 토큰 401).

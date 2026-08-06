@@ -1,823 +1,1347 @@
-# 캐피 대화·기억 아키텍처
+# 캐피 대화·기억 시스템 설명서
 
-> 상태: **현행 구현 기술서** (2026-08-06 기준, 브랜치 `fix/cutover-blockers` 코드·Dev DB 대조 완료)
+> 기준 시점: 2026-08-06. 브랜치 `docs/rewrite-chat-memory-architecture`의 코드를 직접 읽고 작성했다.
 >
-> 이 문서는 구 `capi-memory-ARCHITECTURE.md`, `agentic-chat-ARCHITECTURE.md`,
-> `agentic-chat-IMPLEMENTATION.md` 세 문서를 하나로 합치면서 **실제 코드와 다른 진술을 전부
-> 코드 쪽으로 고쳐 쓴 것**이다. 문서와 코드가 어긋나면 코드가 진실이고, 이 문서를 고친다.
-> 설계했으나 구현하지 않았거나 제거한 항목은 12장에 모아 명시한다.
+> 이 문서와 코드가 다르면 **코드가 맞다.** 그때는 이 문서를 고친다.
 >
-> 전체 백엔드 구조는 `ARCHITECTURE.md`, 데이터 계약은 `ERD.md`, HTTP 계약은
-> `openapi/openapi.yaml`이 소유한다. 이 문서는 그중 **대화 런타임·도구 루프·기억 v2·잡 플랫폼**을
-> 상세히 기술한다. 기억 v2와 그 운영값은 **Dev 서버·Dev DB에서 검증 중**이며, prod에는 legacy
-> 기억 구조가 없고 v2 백필·cutover도 아직 적용되지 않았다.
+> 함께 볼 문서: 백엔드 전체 구조는 `docs/ARCHITECTURE.md`, 테이블 정의는 `docs/ERD.md`,
+> HTTP 요청·응답 형식은 `openapi/openapi.yaml`이 담당한다. 이 문서는 그중 **대화 처리·도구
+> 호출·장기 기억·배치 작업**만 자세히 다룬다.
 
 ---
 
-## 1. 개요와 불변식
+## 1. 이 문서를 읽기 전에 알아둘 것
 
-캐피의 대화 시스템은 세 축으로 구성된다.
+캐피는 사용자와 한국어(또는 영어·일본어)로 채팅하는 AI 캐릭터다. 사용자가 메시지를 보내면
+서버가 한 번의 HTTP 요청 안에서 답변을 완성해 돌려준다. 답변을 조금씩 흘려보내는 방식
+(스트리밍)이나 WebSocket은 쓰지 않는다.
 
-1. **대화 런타임** — 한 턴 안에서 제한된 읽기 도구만 호출하고, DB 쓰기와 무거운 추출·요약은
-   최종 확정 트랜잭션과 비동기 잡으로 분리한다.
-2. **컨텍스트·기억** — 코드 소유의 전역 페르소나, 사용자별 대화 계약, 결정적 관계 상태,
-   최근 원문, 대화 요약 checkpoint, mem0 기반 장기 의미기억, 도메인 도구 조회를 권위가 다른
-   계층으로 분리한다.
-3. **내구 잡 플랫폼** — PostgreSQL `async_jobs` 기반 lease/fencing 큐. 결제·기억·콘텐츠·알림·
-   유지보수를 논리 큐로 분리해 한 레인의 장애가 다른 레인에 전파되지 않게 한다.
+이 문서에 자주 나오는 말을 먼저 정리한다.
 
-"에이전틱"은 무제한 자율 루프가 아니라 **모델이 필요한 컨텍스트를 고르되 서버가 권한, 도구,
-횟수, 시간, 비용, 쓰기 시점을 통제하는 bounded orchestration**이다.
-
-깨지면 회귀인 핵심 불변식:
-
-1. LLM·도구를 기다리는 동안 열린 DB 트랜잭션·유저 락은 0개다(SOMA-374).
-2. agent phase(외부 호출 구간)의 durable write는 0개다. 유저 메시지·응답·usage·quota·멱등
-   응답·후속 잡은 Phase 2 한 트랜잭션으로 확정한다.
-3. 같은 `(user_id, idempotency_key)`는 최종 결과를 한 번만 만든다.
-4. 모든 도구 조회는 서버가 주입한 `ToolContext.user_id` 범위 안이다. 모델 인자에 user id,
-   SQL, 임의 필터를 두지 않는다.
-5. **닉네임 비식별 저장** — LLM 입력에는 현재 이름을 주되 저장 직전 `naming.to_placeholder`,
-   출력·재투입 시 `naming.render`. 어떤 저장 표면에도 실명 스템을 남기지 않는다.
-6. egress 순서 고정(ko): 메타 프리앰블 제거 → 외래문자 결정적 제거 → 부호·물음표 정제 →
-   placeholder 변환. i18n은 `i18n.resolve` 버킷(None→ko, 미지원→en)만 사용하고
-   `language == "ko"` 하드코딩을 금지한다.
-
-권위 순서(충돌 시 위가 이김):
-
-```text
-제품 안전 규칙
-→ 캐피 코어 페르소나(코드 소유, 사용자 데이터로 수정 불가)
-→ 현재 사용자의 명시적 발화와 published interaction contract
-→ 서버가 조회한 현재 도메인 상태(장착·루틴·재화)
-→ 결정적 관계 상태
-→ 최근 원문
-→ checkpoint 요약과 mem0 기억
-→ 캐피의 과거 추측
-```
-
-도구 결과·기억·checkpoint 본문은 **untrusted data**다. 그 안의 지시는 실행하지 않으며,
-`memory.sanitize_text`(NFKC + 제어문자·bidi·대괄호 제거)는 표현 정리일 뿐 보안 경계가 아니다.
-
----
-
-## 2. 채팅 요청 1회의 흐름
-
-`app/services/chat.py::post_message`. HTTP 요청-응답 완성본 하나(스트리밍·WS 없음).
-
-### 2.1 멱등 replay
-
-- 요청마다 `request_hash(text, greeting_id, diary_references)`를 만든다. 같은 키를 다른
-  요청에 재사용하면 `IDEMPOTENCY_KEY_REUSED`(409).
-- `idempotency_keys` 행이 있으면 저장된 응답을 스키마 재검증 후 그대로 반환한다. 비호환
-  저장 행은 삭제하지 않고 fail-closed 500으로 보존한다(지우면 재시도가 새 턴이 되어 이중
-  차감된다).
-- 응답 본문 보존은 24시간(`response_expires_at`), 그 뒤 30일은 본문 없는 dedupe
-  tombstone(`dedupe_expires_at`)이 같은 키의 새 턴 생성을 막고
-  `IDEMPOTENCY_REPLAY_UNAVAILABLE`(409)을 돌려준다.
-
-### 2.2 Phase 1 — snapshot (짧은 txn + 유저 advisory lock, DB 쓰기 없음)
-
-1. `privacy.ensure_subject_active` — 삭제 장벽에 걸린 사용자는 진입 자체를 거부.
-2. 유저 advisory lock(xact 범위) → `chat_turns.acquire`로 **active-turn lease** 확보
-   (`chat_active_turns`: user당 1행, `turn_seq` 단조 증가, lease TTL은
-   `max(15s, agent_turn_deadline_s + 10s)`). 동시 요청은 같은 키+같은 body만 replay 대상이고
-   다른 요청은 conflict다.
-3. gating으로 quota 확인. `tokens_remaining`이 해석 불가면 free 한도로 fail-closed.
-4. 스칼라 전량 캡처(커밋 후 ORM 접근 금지): activity_date, 닉네임, 언어, 리뷰 상태 등.
-5. `chat_contexts.anchor_message_id`(대화 앵커), `memory_pipeline_states`(v2 모드),
-   published interaction contract 텍스트(실패 시 빈 계약으로 fail-open), v2 관계 render
-   (mode=v2일 때만) 로드.
-6. **v2 기억 회상 태스크를 여기서 미리 띄운다**(자체 세션·자체 커넥션). 회상은 임베딩+벡터검색
-   약 490ms(dev 실측)라 직렬로 부르면 통째로 deadline에서 빠진다. Phase 1의 남은 DB 작업과
-   겹쳐 돌리고, mode가 v2가 아니면 태스크는 즉시 빈 문자열로 끝난다(호출 0).
-7. checkpoint 요약(킬스위치 on일 때만), agent 설정 snapshot(3.4절), focus block,
-   현재 턴 컨텍스트 블록(킬스위치 on일 때만), 대화 배열 조립(`_context` — 앵커 이후 메시지 +
-   현재 입력 in-memory 결합, 절대날짜 표식), greeting_id 검증·내용 로드.
-8. `commit()` — lease만 남기고 락·커넥션 반납. 이후 LLM 구간 DB 점유 0.
-
-### 2.3 외부 호출 구간 (DB 커넥션 0)
-
-- 회상 태스크를 `asyncio.wait_for(1.5s)` 경계로 거둔다. 내부 타임아웃을 믿지 않고 경계에서
-  통째로 자른다. 실패·타임아웃은 빈 기억이다.
-- 시스템 프롬프트와 휘발 블록을 조립(3장)하고, agent 킬스위치·카나리를 통과하면 도구 루프
-  (4장), 아니면 단발 `llm.generate` 호출. LLM per-request timeout은
-  `min(llm_timeout_s(60), 남은 deadline)`.
-- 외부 호출 실패는 저장 0인 클린 재시도다 — lease를 즉시 회수하고 예외를 올린다.
-- egress 백스톱(ko만): `strip_leading_meta`(메타 프리앰블 제거, 발동 로그) →
-  `strip_foreign_ko`(**결정적 제거** — 과거의 한자·가나 복원 LLM 재호출은 하드 데드라인·최대
-  2회 호출 계약과 충돌해 제거했다) → `_clean_reply`(부호·되묻기 물음표) →
-  `naming.to_placeholder`.
-
-### 2.4 Phase 2 — finalize (짧은 txn + 유저락 재획득)
-
-한 트랜잭션에 다음을 순서대로 확정한다.
-
-1. `chat_turns.verify_publish` — lease token + base context revision CAS. 멱등 중복이 먼저
-   확정했으면 그 응답을 반환(이중 저장 방지).
-2. **grounding 재검증** — 모델이 고른 `selected_refs`/`focus_ref`를
-   `chat_references.validate_selected`로 소유권·published·suppression까지 재확인. 하나라도
-   무효면 grounded 부분을 조용히 제거하지 않고 **응답 전체를 locale별 안전 문구로 교체**한다.
-3. 선발화 커밋 — `populate_existing=True` fresh read로 소유·미커밋을 재확인한 뒤 유저
-   메시지보다 먼저 1회 insert(`turn_position=0`), `committed_message_id` 연결. 실제 커밋분만
-   현재 닉네임 렌더로 응답에 echo.
-4. 유저 메시지(`turn_position=1`) 저장.
-5. **관계 시작 확정 + welcome 프롤로그** — `profiles.relationship_started_at/timezone/
-   display_date`가 없으면 이 턴에서 확정하고,
-   `diary_service.ensure_welcome_for_first_committed_turn`이 같은 트랜잭션에서 welcome 일기를
-   멱등 생성한다(과거 결함으로 누락된 사용자도 같은 경로로 복구).
-6. 앵커 리셋이 있으면 저장, 캐피 응답(`turn_position=2`) 저장 — 턴 내 **모든** LLM 호출의
-   토큰 합계와 billable을 메시지 행에 남긴다.
-7. `_record_memory_v2` — shadow/v2 사용자만 source 커서 전진 + 관계 event append + (bootstrap
-   완료·커서가 따라잡은 경우) `mem0_ingest` 잡 enqueue. legacy 사용자는 no-op.
-8. 앵커 리셋 턴이면 대화 요약 checkpoint 잡 enqueue(킬스위치 on일 때만).
-9. 원가 가중 billable을 `user_daily_stats`에 원자 증분(RETURNING으로 응답 값 일치), 리뷰 노출
-   판정, `finish_publish`(context revision 증가 + lease 해제), diary reference card 영속
-   (4.3절), 멱등 응답 저장(당시 렌더값 고정), commit.
-
-### 2.5 회계와 quota
-
-- `TurnUsage`가 턴 내 모든 `LlmCall`(chat 또는 tool_decide·tool_final)을 합산한다.
-  `turn_usage_v2_enabled=False`(롤백)면 주 호출만 차감하고 나머지는 계측만.
-- 사용자 quota는 **원가 가중 billable weighted unit**이다. provider별 가중치
-  (`_billable`이 model prefix로 선택):
-  - OpenAI GPT-5.6: 출력 6.0 · 캐시 읽기 0.1 · 캐시 쓰기 1.25 (2026-08-03 공식 요금표,
-    전 tier 입력 대비 동일 비율. 캐시 쓰기는 무료가 아니다 — 5.6 이전 기준으로 되돌리지 말 것)
-  - Anthropic(dormant): 출력 5.0 · 읽기 0.1 · 쓰기 1.25
-- OpenAI API는 캐시 쓰기 토큰을 보고하지 않으므로 3버킷 배타 추정을 쓴다:
-  `prompt_tokens >= 1024`면 `uncached = prompt - cached` 전량을 쓰기 버킷으로(보수적 과대,
-  llm.py 주석 참조).
-- 일 한도: 런칭 무료기간 `free_launch_token_limit=150,000`(app_config override 가능),
-  기본 free 20k / trial·subscriber 100k, 소진 경고 임계 8k, 리뷰 노출 임계 15k. 리셋은 로컬
-  04:00 경계(`activity_date`).
-- 회사가 지불하는 **실원가(USD)는 quota와 별개**로 `ai_usage_ledger`에 적재한다(11.2절).
-
----
-
-## 3. 프롬프트 조립과 캐시 계층
-
-### 3.1 라이브 경로의 실제 배치
-
-라이브 챗은 `chat._build_system` + 대화 배열로 조립한다. 순서 원칙은
-**stable → append-only → current**다. 매 턴 바뀌는 값을 안정 프리픽스나 최근 원문 앞에 두면
-그 뒤 전체가 캐시 미스가 된다.
-
-```text
-system (안정 프리픽스, 버전/hash 변경 시에만 교체)
-  1. 캐피 코어 페르소나 + 안전 규칙 + 출력 계약   (ko=CAPI_PERSONA / ja=CAPI_PERSONA_JA /
-                                                    그 외=ko 본문 + 원시 BCP 47 언어 지시)
-  2. published interaction contract 렌더           (6장 — 항상 주입, 없으면 빈 문자열)
-  3. v2 관계 상태 locale render                    (7장 — mode=v2만)
-  4. [먼저 건넨 말] 선발화·미응답 리드              (있을 때만)
-  5. focus block                                   (직전 카드 참조 좌표 — 있을 때만)
-
-대화 배열 (append-only)
-  6. 앵커 이후 최근 원문 (naming.render로 현재 이름)
-
-휘발 system 블록 — 마지막 user 메시지 직전 삽입 (current)
-  7. [지난 이야기] 최신 checkpoint 요약             (킬스위치 on + 존재 시)
-  8. [기억] v2 회상 블록                            (5.5절)
-  9. [지금 상태 - 서버 사실] 현재 턴 컨텍스트        (킬스위치 on 시: 시각 버킷·오늘 첫 대화·
-                                                    함께한 일수·장착 아이템·테마·루틴 집계)
-
-  10. 현재 사용자 메시지
-  (도구 턴이면 이후 assistant tool_calls + tool results)
-```
-
-- 실측 근거: 휘발 값을 system에 두면 요약이 발행된 턴마다 캐시읽기 0·쓰기 4,500토큰이었다.
-  최근 원문 뒤에 두면 앞의 append-only가 그대로 캐시된다.
-- 캐시는 OpenAI **implicit(자동 prefix) 캐시**를 쓴다. explicit breakpoint 모드는 검증 전이라
-  사용하지 않는다. Anthropic 경로(dormant)는 `cache_control` breakpoint(system+마지막 메시지,
-  TTL 5m). `chat_prompt_cache_enabled` 킬스위치, Anthropic 전용 캐시 미작동 경보
-  (`chat_cache_min_prefix_tokens=2048` 이상인데 read=write=0).
-- 프로덕션 billable 구성 실측: 캐시 읽기 65% · 출력 32% · 입력 2%(회계 정정 전) → 정정 후
-  출력이 지배적. 언어별 출력 토큰 차이가 턴 수를 좌우하므로 턴 지표에 `lang` 버킷을 남긴다.
-
-### 3.2 순서 보존 assembler (shadow 전용)
-
-`app/services/prompt_assembly.py`는 `PromptSegment(kind, role, content)`와
-`CacheClass(STABLE→APPEND_ONLY→CURRENT→INPUT→TOOL)` 순서를 byte 단위로 강제하는 직렬화기다.
-**라이브 응답에는 쓰지 않는다.** `shadow_prompt_trace` 잡(`worker/shadow_trace_jobs.py`)이
-대화가 끝난 뒤 같은 재료로 v2 프롬프트를 조립해 직렬화 byte·추정 token·**캐시 가능 프리픽스
-비율**만 계측한다(`prompt_trace.py`). `PENDING_BRIDGE` segment kind는 분류만 정의돼 있고
-생산하는 코드는 없다(12장).
-
-### 3.3 비용 부등식 — 도구 루프 예산의 근거
-
-일 한도를 실제로 소진하는 헤비 유저(프리픽스 약 4,640tok, 현재 42턴) 기준으로, 도구 턴이
-회계 정정 후에도 턴 수 감소 20% 이내여야 한다는 제약에서 유도했다.
-
-```text
-D = agent_decide_max_tokens (1홉 출력 상한 — 함수 호출 JSON)
-T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계)
-
-도구 턴 billable = 2,157(고정비) + 7.25·D + 1.25·T
-   (D는 1홉 출력 6배 + 2홉 입력 1.25배 = 7.25배, T는 2홉 입력 1.25배)
--20% 경계: 턴당 4,464 이하 → 7.25·D + 1.25·T ≤ 2,307
-
-확정값 D=192, T=600 → 2,142 (여유 165)
-검산: 도구 턴 4,299 → 150,000/4,299 ≈ 34.9턴 = 42턴 대비 -17% ✅
-```
-
-`agent/config.py`가 app_config override 조합을 이 부등식으로 재검증한다. 개별 상한
-(D≤214·T≤732)은 상대가 기본값일 때의 최대치라, 둘 다 통과해도 조합이 위반할 수 있다 —
-위반 시 코드 기본값(192/600)으로 되돌리고 경보한다. 이 근거 위에서 **비용 목적의 도구
-사용률 상한은 두지 않는다**(canary는 롤아웃 속도 조절용).
-
----
-
-## 4. 도구 루프와 grounding
-
-### 4.1 런타임 (`app/services/agent/runtime.py`)
-
-```text
-turn_deadline = monotonic() + agent_turn_deadline_s
-  1. 안전 게이트 — 현재 SAFETY_CLASSIFIER=None(승인된 위기 분류기 없음, 게이트는 자리만)
-  2. step 1: generate_step(tools=읽기 도구+finish_response, max_tokens=decide_max_tokens)
-     ├─ finish_response 선택 → 한 번의 호출로 턴 종료
-     └─ 읽기 도구 호출 ↓
-  3. 남은 시간 < final_reserve_s → 도구를 시작하지 않고 step 2 직행
-  4. 도구 병렬 실행(툴별 단명 read-only 세션, per-tool timeout 800ms,
-     프로세스 inflight semaphore 8) — 실패·타임아웃도 ToolResult(unavailable)로 형식 완결
-  5. step 2: finish_response만 노출해 최종 답변·mode·ref를 typed sidecar로 수집
-```
-
-- 킬스위치 `agent_enabled`(기본 False) + `agent_canary_pct`
-  (`sha256(user_id)` 기반 0.01% 단위, 프로세스·재시작 간 안정). 꺼져 있으면 단발 경로와 동일.
-- **`agent_turn_deadline_s = 8.0`.** 5.0이 아니다 — dev `ai_usage_ledger` 실측(2026-08-06)에서
-  1홉 tool_decide p50 1.54s/**p90 4.11s**, 2홉 tool_final p50 1.45s였고, 5.0이면 1홉 예산이
-  2.5s라 p90을 못 덮어 호출 104건 중 26건(25%)이 timeout으로 죽었다. 8.0이면 1홉 5.5s로 p90
-  위에 선다. `agent_final_reserve_s=2.5`.
-- 라운드 상한 1, fan-out 상한 3. 모델이 초과 호출하면 앞의 3개만 실행하되 나머지 call_id에도
-  `unavailable(tool_call_limit)`을 붙여 transcript 형식을 닫는다.
-- 도구 결과는 transcript 삽입 전 **턴 합계 600 token 예산으로 절단**한다(호출 순서대로 채우고
-  초과분은 truncated 표시). 도구별 글자 상한은 개별 안전장치일 뿐이다.
-- 제어 의도(control intent)는 **스키마에서 제거됐다** — 등록된 제어 도구가 없고(4.2절)
-  적용 경로도 없으므로 모델에 광고하지 않는다(없는 능력을 약속하게 된다,
-  `test_transition_side_effects`로 고정). 런타임에 남은 처리 코드는 예기치 않은 제어 호출을
-  shadow 계측 후 버리는 방어 경로다(1홉 도착 시 `control_intent_ignored`).
-- 설정은 Phase 1에서 `effective_agent_config`가 app_config→Settings 우선순위로 1회 조회해
-  frozen snapshot으로 들고 간다(프로세스 TTL 캐시 없음 — 두 EC2 캐시 불일치 없음).
-
-### 4.2 도구 registry (`app/services/agent/tools/registry.py`)
-
-등록된 도구는 **`recall_diaries`·`get_routines` 둘뿐**이다. 파일이 존재하는
-`search_diaries`·`get_diary`는 registry에 올라가 있지 않다(wire 스키마에도 없음).
-제어 도구 `_CONTROL_TOOLS`는 **비어 있다** — `forget_memory`가 유일한 제어 도구였는데
-"잊어줘"를 대화로 처리하는 것은 의미가 없다는 제품 판단으로 제거했다(2026-08-06). 2차 호출에는
-`finish_response`만 노출된다.
-
-- 도구 name/description은 ASCII 고정 영어(언어별 분기 시 프리픽스 캐시가 언어마다 쪼개짐).
-  registry 순서 = wire 스키마 순서(tuple 고정).
-- `recall_diaries` — 답 완결형 일기 회상. 인자: `query`(≤200자), `need`
-  (`count|summary|full|full_card|quote`), `from/to`, `focus_id`, `limit`(≤5). 검색은
-  `diary_recall_documents`의 embedding(1536) 코사인 유사도 + `search_text ILIKE` 부분일치를
-  결합하고, `kind IN (welcome, shared_day, capi_day)`·published·미삭제만 반환한다. 한 번의
-  호출로 존재·개수·coverage·발췌·전문을 함께 돌려준다(검색→GET 순차 호출 구조 금지).
-- `get_routines` — 달력 날짜(현지 00:00 경계) 기준 루틴 상세. `days_of_week` ISO 1=월…7=일,
-  `frequency_per_week=len(days_of_week)`(현행 API와 동일 규칙, 새 enum 금지). 최대 20건,
-  이름 100자·전체 2,000자, 현재 activity date ±31일. 이름은 유저 자유 입력이 섞이는 유일한
-  필드라 `i18n.localized_name` 해석 후 반드시 살균.
-- `finish_response`(내부 계약) — `text`(≤4,000자), `response_mode`
-  (`summary|short_quote|full_card|reopen_reference`), `selected_refs`(≤3), `focus_ref`.
-  ref ID는 런타임 allowlist 검증 전에는 신뢰하지 않는다.
-
-### 4.3 reference card·focus·연속성
-
-- 모델에는 발췌와 ID만 주고, **Phase 2가 DB 원문으로 카드를 만든다**(모델이 전문을 재작성하지
-  않는다). 공개 API는 versioned `reply.references[]`로 노출하며, 클라이언트가
-  `diary-reference-v1` capability를 보낸 요청에만 카드를 싣는다.
-- `chat_response_references` — diary 카드만 영속화(user·reply_message_id·diary_id 복합 FK,
-  본문 비복제, `state=available|unavailable`, redaction 좌표). 삭제·비공개 시 unavailable.
-- `conversation_focus` — "그거/그 일기/두 번째 거"용 담화 좌표. 실제 제시 순서(ordinal)를
-  고정 저장하고, **만료는 15분 또는 +6 커밋 턴**이다. 매 사용 시 소유권·published·suppression을
-  재검증한다.
-- 카드 전달·목록 발췌는 읽음 처리가 아니다 — `first_read_at`은 클라이언트의 명시적 열람
-  이벤트(`/diaries/{id}/read`)만 기록한다.
-
----
-
-## 5. 기억 파이프라인 (mem0 v2)
-
-### 5.1 좌표·모드·부트스트랩
-
-- source 좌표는 **`(user_id, turn_seq)` 하나**다. `messages.turn_seq/turn_position`
-  (1=user, 2=moly, 0=greeting)이 턴을 정의하고, 과거 메시지는
-  `20260806_backfill_turn_seq.sql`이 시간순을 보존하며 백필했다(기존 번호는 +N으로 밀어 올리고
-  참조 테이블 동반 이동 — dev 적용 완료, prod는 컬럼 신설이라 전량 신규 부여).
-- `memory_pipeline_states` — 사용자별 `mode(legacy|shadow|v2)`,
-  `bootstrap_status(legacy|collecting|ready)`, 커서 3종
-  (`source_through_turn_seq ≥ ingest_through_turn_seq ≥ consolidated_through_turn_seq`,
-  DB CHECK로 역전 금지), stage lease(`stage_token`/`lease_until`/`revision` CAS),
-  `privacy_epoch`, `repair_generation`.
-- shadow 진입은 한 트랜잭션에서 historical upper turn_seq를 고정하고 collecting으로 바꾼다.
-  bootstrap 완료 전에는 live turn을 먼저 색인하지 않는다(커서 연속성). shadow는 기록만 하고
-  응답에는 쓰지 않으며, v2 mode만 회상·관계 render를 응답에 쓴다. **v2 mode에서 legacy
-  fallback은 없다**(legacy 저장소 자체가 dev에서 제거됨, 12장).
-- 커서 전진은 숫자 `+1`이 아니라 source table의 `MIN(turn_seq) > cursor`다.
-
-### 5.2 쓰기 — ingest (`worker/mem0_jobs.py`, `mem0_pipeline.py`)
-
-성공한 chat Phase 2가 source 커서 전진과 함께 `mem0_ingest` 잡을 `memory` 큐에 enqueue한다
-(커서가 따라잡은 경우에만 — 대기 중 turn이 있으면 성공 finalize가 다음 `MIN(turn_seq)` 잡을
-이어 건다. dedup key가 중복 enqueue를 막는다).
-
-```text
-source turn → extractor → eligibility → planned 후보(결정 UUID)
-            → batch embedding(1회) → vector upsert → registry pending
-            → 같은 finalize 트랜잭션에서 mem0_consolidate enqueue
-```
-
-- **extractor**: `gpt-4.1-mini-2025-04-14`(alias가 아닌 snapshot 고정,
-  `mem0-extractor-v2`, 출력 상한 700 token). self-contained turn에서 후보 JSON을 뽑고,
-  user 발화 evidence span이 있는 후보만 통과시킨다(assistant 발화는 대명사 해석용
-  context_only일 뿐 독립 근거가 아니다). contract 지시·실명·현재 도메인 상태·테스트 상태·
-  prompt-like 지시는 제외한다.
-- **planned 후보 선저장**: provider 호출 전에 `mem0_ingest_candidates`에 결정
-  `provider_memory_id`(UUID)와 candidate_text·근거 span(`mem0_ingest_candidate_sources`)을
-  저장한다. provider 성공 직후 crash가 나도 재시도가 extractor를 다시 부르지 않고 같은 계획을
-  읽어 **같은 id로 upsert에 수렴**한다(랜덤 중복 방지).
-- **embedding**: `text-embedding-3-small`(1536차원), 통과 후보 전체를 batch 1회
-  (`memory_embedding_batch_size=100`, 상한 2048). usage는 원장에 기록.
-- **vector upsert**: `Mem0VectorIndexAdapter`(5.6절)로 `vecs.moly_memories_v2`에 bounded
-  upsert. 성공 뒤에야 registry `pending`을 쓴다 — registry에 없는 provider 결과는 검색에서
-  쓰지 않으므로, 순서가 뒤집히면 판정 안 된 기억이 노출된다.
-- **단계 예산**: handler 총 40초를 extract 15 / embed 5 / upsert 12 / finalize 5 / wrapper 3으로
-  나누고, 남은 시간이 다음 단계 예산보다 작으면 호출을 시작하지 않고 retry한다
-  (`mem0_budget.StageBudget`). 외부 호출 동안 DB 세션·advisory lock 0 — 사용자 순서는
-  pipeline state의 짧은 transaction CAS(stage token/revision)로만 지킨다.
-- 사용자 내부는 직렬, 사용자 간 병렬. `mode=legacy` 사용자에게는 잡이 enqueue되지 않는다.
-
-### 5.3 consolidation — 모순·중복 판정
-
-`mem0_consolidate` 잡(총 45초: search 6 / classify 24 / validate 4 / finalize 5 / wrapper 6).
-
-1. 한 turn의 신규 기억 전체를 서로 간에도 비교하고, 같은 사용자의 `active|ambiguous` 기존
-   기억을 semantic search해 기존 후보 최대 12개를 만든 뒤 **classifier 1회**로 신규↔신규와
-   신규↔기존을 batch 판정한다(`mem0-classifier-v2`, `settings.model_utility=gpt-5.6-luna`,
-   출력 상한 900 token). 판정값은 `independent | duplicate | supersedes | ambiguous`와 비교
-   대상 id뿐이다 — 자유문 판정과 존재하지 않는 id는 거부한다.
-2. 코드 validator가 graph를 검증한다(존재하는 id만, cycle 없음, component 모순 없음). 같은
-   old를 둘 이상이 supersede하면 `(max(source_occurred_at), source_turn_seq, candidate_hash)`
-   정렬의 최신 canonical 하나만 승자다. 우열 불가·invalid graph는 component 전체를 보수적으로
-   `ambiguous` publish — 두 번째 LLM 호출을 추가하지 않는다.
-3. registry publish(짧은 transaction CAS):
-   - independent → 새 행 `active`
-   - duplicate → 새 행 `duplicate` + `duplicate_of_registry_id`, provider delete `pending`
-   - supersedes → 새 행 `active`, 기존 행 `superseded` + `superseded_by_registry_id`,
-     기존 provider delete `pending`
-   - ambiguous → 관련 행을 같은 `conflict_group_id`로 묶음
-4. provider 벡터 삭제는 `mem0_provider_delete` 잡(maintenance 큐, 한 번에 limit 50)이 뒤에서
-   처리한다. 삭제가 늦거나 실패해도 **검색이 semantic 상태로 먼저 거르므로** 노출은 즉시
-   막힌다(저장 비용 정리일 뿐).
-5. 해당 turn의 provider id가 전부 terminal 상태가 된 뒤에만 consolidated 커서를 전진한다.
-
-**reconsolidation**(`mem0_reconsolidate`, 하루 경계마다): 일반 consolidation은 신규 후보만
-판정하므로 판정 규칙이 나아져도 이미 active로 굳은 중복이 남는다(dev 실측: 같은 뜻 두 건이
-둘 다 프롬프트에 들어감). 이 잡이 살아 있는 기억끼리 재판정해 중복·대체를 닫는다 — 새로
-만들지 않고 상태 전이만 한다.
-
-### 5.4 registry — 현재 유효한 기억의 판정자
-
-`mem0_memory_registry`는 provider memory id의 수명만 기록한다(본문·임베딩 비복제).
-
-- `semantic_status`: `pending | active | duplicate | superseded | ambiguous | excluded |
-  rejected_policy`. **검색에 통과하는 것은 `active | ambiguous`뿐이다.**
-- `provider_delete_state`: `kept | pending | deleted | failed`.
-- identity는 `(user_id, provider, collection_version, provider_memory_id)` unique.
-  `event_started_at/ended_at/precision/resolved_timezone` — 서버 temporal resolver가 검증한
-  경우에만 채우는 사건 시각(발화 시각 `source_occurred_at`과 구분).
-- `mem0_memory_sources` — source hydration·감사의 DB 정본(message id·UTF-8 evidence span·
-  content hash·authority·confidence·extractor version). provider metadata는 복구 보조 사본일
-  뿐이다.
-
-### 5.5 읽기 — 회상 (`app/services/mem0_recall.py`)
-
-- **결정적 planner `needs_recall`**: 별도 LLM 호출 없이 발화 자체를 본다. 되짚는 표지
-  (물음표·"기억/어제/그때/전에…" 정규식)가 있거나 6자 초과면 회상, 짧은 인사·호응은 provider
-  호출 자체를 생략한다. 벡터 거리로는 판정할 수 없다 — dev 실측에서 'ㅇㅇ'(0.667)이
-  '내 루틴 뭐있었지?'(0.623)와 비슷하게 "가까웠고", '안녕' 한마디에 기억 8건이 프롬프트에
-  들어간 사고가 있었다.
-- provider에서 user filter로 **40건 overfetch** → registry에서 `active|ambiguous`만 필터
-  (user_id 재검증 포함 — 벡터 저장소가 오염돼도 남의 기억이 프롬프트에 실리지 않는다) →
-  거리 오름차순 정렬.
-- **상대 거리 컷**: `최소 거리 + margin(0.08)` 안쪽만 남긴다(절대 임계값은 원리적으로 안
-  된다 — 내용 없는 입력이 임베딩 중심 근처에 놓여 모든 것과 적당히 가깝다). 절대 상한 0.90,
-  최소 5건 보장(MIN_KEEP — 같은 주제 기억이 여럿일 때 정작 찾는 것이 margin 밖으로 잘리는
-  실측 사고 방지), 최종 limit 8.
-- margin 값은 dev 기억 12건으로 고른 **미검증 초기값**이다. golden set(회상 정답 200건)으로
-  재측정해 정할 것.
-- `render_block`: ambiguous는 발생 시각과 함께 "단정하지 말고 자연스럽게 물어봐" 지시문
-  (ko/en/ja 언어별)으로 렌더한다. 헤더도 언어별(`[기억]/[memory]/[記憶]`).
-- **이 모듈은 예외를 올리지 않는다.** 회상 실패는 빈 목록이고 대화는 계속된다. 챗 경계에서
-  1.5초 wait_for로 한 번 더 자른다.
-
-### 5.6 벡터 저장소와 mem0 façade
-
-- 저장소는 같은 Supabase PostgreSQL의 `vecs.moly_memories_v2`
-  (id varchar / vec vector(1536) / metadata jsonb). **migration이 만들고 런타임은 만들지
-  않는다** — HNSW cosine 인덱스와 `metadata->>'user_id'` 인덱스 포함.
-- `Mem0VectorIndexAdapter`(`mem0_adapter.py`)는 `mem0ai==2.0.11` exact pin의 **벡터 인덱스
-  계층만** 감싼다. `Memory`/`AsyncMemory`는 인스턴스를 만들지 않는다(계약 테스트로 고정):
-  1. `Memory.add()`는 infer 값과 무관하게 SQLite history를 쳐서 호스트마다 결과가 갈린다.
-  2. 기본 클라이언트는 제어 불가능한 SQLAlchemy 5+10 풀과 런타임 DDL
-     (`create schema/extension`)을 만든다.
-- engine은 주입받는 **psycopg2 동기 엔진**(pool 3+0, timeout 2s, pre-ping — vecs가 동기
-  SQLAlchemy+psycopg2 전제라 asyncpg·psycopg3 불가, 실측). 모든 연산 bounded(limit·timeout,
-  스레드 실행), 결과는 사용 전 `user_id` 재검증.
-- `SearchHit.distance`는 **거리다(낮을수록 가깝다)** — score로 이름 지으면 내림차순 정렬해
-  가장 관련 없는 기억이 실리는 실측 사고가 있어 이름으로 못 박았다.
-
----
-
-## 6. 사용자별 interaction contract
-
-"앞으로 반말해" 같은 합의가 검색 성공 여부와 무관하게 항상 지켜지도록, 계약은 회상 경로를
-타지 않고 **매 턴 안정 프리픽스에 주입**된다.
-
-### 6.1 닫힌 스키마 (`app/services/interaction_contract.py`)
-
-목적은 **사용자 문장을 프롬프트에 넣지 않는 것**이다. raw 문장을 stable prefix에 넣으면 임의
-텍스트가 매 턴 명령 위치에서 전달된다.
-
-- `kind`: `address | response_style | comfort | topic_boundary | expression_boundary |
-  relationship_definition | durable_behavior | custom_preference`
-- `action`: `use | avoid | prefer | ask_before | listen_before | do_not_assume |
-  honor_preference` (kind별 allowlist 조합을 코드로 검증)
-- `condition`: `always | when_distressed | when_asking_advice | when_topic_tag |
-  custom_trigger`, `polarity`, `target_tag`
-- 자유 문자열 자리는 `target_literal` 하나뿐: NFKC 정규화·단일행·최대 64 grapheme,
-  제어문자·bidi·Markdown/XML delimiter·role/tool token 금지, 서버 template의 **인용된 데이터
-  슬롯**에만 escape 렌더(명령 위치 금지).
-- 캐피 정체성·안전 규칙 변경 요청은 후보 자체가 되지 않는다.
-
-### 6.2 저장과 발행
-
-- `user_interaction_contracts` — `(user_id, locale)`별 행. 정본은 locale-neutral
-  `document_json`이고 `rendered_text`는 언어별 투영이다. `(user_id, locale)`당 published
-  1개를 partial unique index로 강제. `render_hash`가 같으면 새 version을 만들지 않는다.
-- `user_interaction_contract_items` — typed `value_json` + `authority(explicit_user |
-  confirmed | repeated_observation)` + `source_message_id`(근거 사용자 발화) + 상태·유효기간.
-- 주입 시(`contract_repo.published_text`) 저장된 `rendered_text`를 그대로 쓰지 않고 **정본
-  document_json에서 다시 렌더한다** — 저장분이 옛 template이면 새 렌더 규칙(인용 슬롯)의
-  방어를 받지 못한다. 조회 실패는 빈 계약으로 fail-open(계약 조회가 대화를 죽이지 않는다).
-
-### 6.3 추출 — contract compiler
-
-`contract_compile` 잡(content 큐)이 **하루 경계마다**(activity date가 닫힐 때) 돈다.
-매 턴 돌리면 같은 합의를 반복 추출하고 비용만 든다.
-
-- compiler(v1)는 추출기가 아니라 **필터**다. 이 경로의 위험은 놓치는 것이 아니라 사용자가
-  안 한 약속을 만들어 내는 것이다 — 잘못 만든 항목은 stable prefix에 실려 매 턴 행동을 바꾼다.
-- 명시적 요청만 후보로 만들고, 모델 출력은 전부 닫힌 스키마를 통과해야 하며, 근거 message id는
-  실제 사용자 발화여야 한다(캐피가 한 말은 근거 불가). 정체성·안전 변경 요청(정규식 차단 목록
-  포함)은 후보가 되지 않는다.
-- 영향이 큰 항목(경계·관계 정의)은 draft로 남기고, 낮은 항목(호칭·말투·위로 방식)만 자동
-  publish한다 — 매번 "이렇게 해줄까?"로 확인하면 페르소나의 질문 절약 규칙과 충돌하고,
-  사용자가 확답 없이 화제를 넘기면 합의가 사라진다.
-- 현재 사용자 메시지는 저장된 계약보다 높은 권위이므로 "지금부터 반말해"는 계약 publish 전에도
-  현재 답변부터 적용된다.
-
----
-
-## 7. 관계 상태
-
-자유 서술 하나로 관리하지 않는다. 정본은 세 겹이다: **event**(append-only 사실) →
-**state**(결정적 집계, 단조 증가) → **render**(locale별 문장 projection).
-
-- `relationship_events` — `normal_turn_committed`(성공 finalize마다,
-  dedup `(user, turn_seq)`)와 `active_day_started`(그날 첫 성공 turn, dedup
-  `(user, activity_date)`) 두 종류(DB CHECK 고정). chat Phase 2가
-  `memory_pipeline.record_turn_events`로 기록한다(shadow/v2 사용자).
-- `user_relationship_states` — `active_days`, `successful_turns`,
-  `qualifying_turns`(**하루 최대 10턴만 stage 계산에 누적**, raw 통계는 별도 보존),
-  `relationship_stage`, `stage_rule_version='relationship-v1'`, CAS용 `version`과 stable
-  prefix 교체 트리거인 `prompt_revision` 분리(매 턴 바뀌는 counter가 프롬프트 캐시를 깨지
-  않게).
-- stage 규칙(`relationship-v1`, 순수 함수 — 같은 입력은 항상 같은 출력):
-
-| stage | 진입 조건 |
+| 말 | 뜻 |
 |---|---|
-| `new` | 아래 미충족 |
-| `acquainted` | `active_days >= 2` AND `qualifying_turns >= 6` |
-| `familiar` | `active_days >= 7` AND `qualifying_turns >= 30` |
-| `close` | `active_days >= 30` AND `qualifying_turns >= 120` |
+| 턴(turn) | 사용자 메시지 1건과 그에 대한 캐피 답변 1건을 묶은 단위 |
+| `turn_seq` | 사용자별로 1부터 올라가는 턴 번호 |
+| `turn_position` | 한 턴 안에서의 순서. 0=캐피가 먼저 건넨 인사, 1=사용자 메시지, 2=캐피 답변 |
+| `activity_date` | 하루를 구분하는 날짜. 자정이 아니라 **사용자 현지 시각 04:00**에 날이 바뀐다 |
+| 처리 권한(lease) | "지금 이 작업은 내가 맡고 있다"는 기한이 있는 표시. 기한이 지나면 다른 프로세스가 가져갈 수 있다 |
+| 도구(tool) | 모델이 필요할 때 서버에 요청하는 읽기 전용 조회 기능 |
 
-- stage는 **단조 증가**한다(GREATEST upsert — event가 늦게 도착하거나 재처리돼도 캐피가
-  어제보다 덜 친해지지 않는다). 자기개방 깊이·민감 주제 발화량·기억 개수·일기 열람률·결제는
-  입력으로 쓰지 않고, 미접속으로 stage를 낮추지 않는다. stage는 말투의 친숙함에만 쓰고 가격·
-  보상·기능 잠금·알림 압박·관계 이용 표현에는 절대 쓰지 않는다.
-- 집계·렌더는 `relationship_project` 잡(maintenance 큐, 하루 경계)이 수행한다 — 챗 경로에서
-  전체 event를 집계하면 지연이 이력 길이에 비례한다. 챗은
-  `relationship_profile_renders`(user·prompt_revision·locale·renderer_version
-  `relationship-render-v1`)의 렌더 결과만 읽는다. projector가 아직 안 돈 사용자는 관계 블록
-  없이 대화한다.
-- 관계 시작 시각의 정본은 `profiles`
-  (`relationship_started_at/timezone/display_date`)다 — state에 복제해 두 번째 정본을 만들지
-  않는다. 첫 성공 대화의 Phase 2에서 확정하고 같은 트랜잭션에서 welcome 일기를 만든다(2.4절).
-  `profiles.relationship_revision`은 관계 표시 필드가 바뀔 때만 증가한다(일반 profile 수정이
-  캐시 identity를 흔들지 않게).
+시스템은 크게 세 부분이다.
 
----
+1. **대화 처리** — 한 번의 요청 안에서 필요한 정보를 읽고, 모델을 호출하고, 결과를 저장한다.
+   외부 호출을 기다리는 동안에는 데이터베이스 연결을 잡지 않는다.
+2. **문맥과 기억** — 캐피의 성격 설명, 사용자와의 약속, 관계 단계, 최근 대화 원문, 대화 요약,
+   장기 기억, 도구로 조회한 현재 상태를 각각 다른 곳에서 관리한다.
+3. **배치 작업 처리** — PostgreSQL의 `async_jobs` 테이블 하나를 작업 대기열로 쓴다. 결제·기억·
+   콘텐츠·알림·유지보수를 각각 다른 대기열로 나눠, 한쪽이 밀려도 다른 쪽이 멈추지 않게 한다.
 
-## 8. 단기기억과 checkpoint
-
-### 8.1 앵커 append-only 최근 원문
-
-- 앵커 리셋 트리거: 세그먼트 40메시지 또는 30,000자. 리셋 후 보존: 최근 20메시지·12,000자.
-  쿼리 안전 상한 120메시지. 트리거≫보존이라 리셋 사이 여러 턴이 캐시 히트한다(매턴 슬라이드
-  방지). 원문 `messages`는 리셋으로 삭제되지 않는다.
-
-### 8.2 대화 요약 checkpoint (W11 — 구현 완료, 킬스위치 기본 off)
-
-`conversation_checkpoints(user_id, through_message_id, summary, version, source_hash)`.
-
-- 리셋이 일어난 턴의 Phase 2에서, 버려질 구간을 요약하는 잡을 메시지와 **같은 트랜잭션**에
-  enqueue한다(content 큐). 요약은 `keep_from - 1`까지 덮고 프롬프트에는 `keep_from` 이후가
-  남아 겹침도 빈틈도 없다.
-- `source_hash`는 이전 checkpoint `(id, source_hash)`와 원본 메시지의 정렬된
-  `(id, sender, kind, content)`를 **길이-prefix 직렬화**해 SHA-256한 결정적 값이다(길이
-  prefix가 없으면 `a|bc` vs `ab|c`가 같은 해시를 낼 수 있다). handler는 claim 후 원본을 다시
-  읽어 hash가 다르면 결과를 버린다.
-- 요약 입력·저장 모두 placeholder 상태를 유지하고 실명 stem 회귀 검사를 통과해야 한다.
-- 다음 턴은 최신 checkpoint 하나 + 이후 메시지를 쓴다. 늦거나 실패하면 앵커를 전진시키지
-  않고 기존 window로 계속 답한다(fail-open).
-- 누적 왜곡 계측: 매 10번째 checkpoint는 체인 요약 대신 원본으로 재검증한다(원본이 400메시지를
-  넘으면 재검증을 건너뛴다 — 부분 이력을 전체인 양 요약하지 않기 위함). 10·400은 측정 후 조정.
-- **Summary는 Fact가 아니다.** checkpoint에서 장기 사실 추출 잡을 만들지 않는다 — 요약을
-  사실로 되먹이면 근거가 요약으로 오염된다.
-- 킬스위치 `context_checkpoint_enabled`(기본 False) — off면 잡도 조회도 없다.
-
-### 8.3 checkpoint v2 — window 체인·daily digest (shadow 전용)
-
-`checkpoint_v2.py`는 `window`(누적 체인, `previous_checkpoint_id`, segment/coverage 범위
-구분)와 `daily_digest`(activity date 하나의 독립 요약, 체인 미연결·날짜 PK 조회)를
-`ready|published|superseded` 상태로 정의한다. 현재는 `shadow_checkpoint` 잡이 하루 경계마다
-**`ready` 상태로 생성만** 하고 live 프롬프트에는 쓰지 않는다(활성화 CAS 미구현, 12장). 요약
-자체는 기존 `checkpoint.summarize()`를 재사용해 실명 검사·마스킹 보호를 공유한다.
+"에이전트"라고 부르지만 모델이 무제한으로 자유롭게 도는 구조가 아니다. 모델은 어떤 정보를
+가져올지만 고르고, 권한·도구 목록·호출 횟수·제한 시간·비용·저장 시점은 전부 서버가 정한다.
 
 ---
 
-## 9. 배치 잡 플랫폼
+## 2. 반드시 지켜야 하는 규칙
 
-### 9.1 `async_jobs` 계약 (`app/services/jobs.py`)
+아래 규칙이 깨지면 곧바로 장애나 데이터 오류로 이어진다.
+
+1. 모델이나 도구의 응답을 기다리는 동안 열려 있는 데이터베이스 트랜잭션과 사용자 잠금은
+   **0개**여야 한다.
+2. 외부 호출 구간에서는 **아무것도 저장하지 않는다.** 사용자 메시지·캐피 답변·토큰 사용량·
+   하루 사용량·재전송 대비 응답 사본·후속 작업 등록은 전부 2단계 저장 구간의 트랜잭션
+   하나에서 함께 확정한다.
+3. 같은 `(user_id, idempotency_key)` 조합은 최종 결과를 **한 번만** 만든다.
+4. 모든 도구 조회는 서버가 직접 넣어준 `ToolContext.user_id` 범위 안에서만 이뤄진다. 모델이
+   넘기는 값에 사용자 ID나 SQL, 임의의 조건을 둘 수 없다.
+5. **저장할 때는 사용자 이름을 남기지 않는다.** 모델에 넣을 때만 실제 이름으로 바꾸고
+   (`naming.render`), 저장 직전에 다시 `{유저이름}` 형태의 토큰으로 되돌린다
+   (`naming.to_placeholder`). 어떤 테이블에도 실제 이름이 남지 않아야 한다.
+6. 답변을 내보내기 직전 처리 순서는 한국어일 때 고정이다. 앞머리에 붙은 군더더기 제거
+   (`strip_leading_meta`) → 한자·가나 제거(`strip_foreign_ko`) → 기호와 되묻기 물음표 정리
+   (`_clean_reply`) → 이름 토큰으로 되돌리기(`naming.to_placeholder`).
+   언어 판정은 `i18n.resolve`가 돌려주는 세 값(`ko`/`en`/`ja`)만 쓰고, 코드에
+   `language == "ko"`를 직접 적지 않는다.
+
+### 정보가 서로 충돌할 때의 우선순위
+
+기본 원칙은 이것이다. **시스템 프롬프트가 가장 위에 있다. 대화는 시스템 프롬프트를 지키는
+선에서 이루어진다.**
+
+위에 있는 것이 이긴다.
+
+```text
+1. 제품 안전 규칙
+2. 캐피 성격 설명과 출력 규칙 (코드가 갖고 있고, 사용자 말로 바뀌지 않는다)
+3. 서버가 확인한 현재 상태 (장착 아이템·방·루틴·재화)
+4. 지금 사용자가 한 말, 그리고 발행된 대화 약속
+5. 관계 단계
+6. 최근 대화 원문
+7. 대화 요약과 장기 기억
+```
+
+앞의 세 줄이 시스템 프롬프트에 해당한다. 네 번째부터가 대화다.
+
+**3번이 4번보다 위로 올라간 것이 최근 변경이다.** 예전에는 사용자 발화가 서버 상태보다 위에
+있었다. 지금은 옷·방·루틴처럼 서버가 값을 갖고 있는 항목에 대해서는, 사용자가 "옷 바꿨어",
+"루틴 다 했어"라고 말해도 서버 값이 그대로면 캐피는 그 말을 사실로 받아들이지 않는다. 굳이
+아니라고 따지지는 않되, 맞장구쳐서 없는 사실을 만들지도 않는다.
+
+반면 장기 기억이 가장 아래인 것은 그대로다. 사용자가 "나 회사 그만뒀어"라고 하면 그 말이 옛
+기억을 이긴다. 기억은 대화에서 뽑아낸 값이라 틀릴 수 있기 때문이다.
+
+두 경우의 차이는 한 문장으로 정리된다. **서버가 값을 갖고 있는 항목은 서버가 이기고, 서버에
+값이 없는 이야기는 사용자의 현재 말이 이긴다.**
+
+이 원칙은 프롬프트 세 곳에 들어 있다.
+
+| 위치 | 내용 |
+|---|---|
+| `app/services/prompts.py`의 `CAPI_PERSONA` / `CAPI_PERSONA_JA` 첫 문단 | 여기 적힌 규칙이 대화보다 위에 있고 사용자 말로 바뀌지 않는다. 규칙과 어긋나는 요구가 오면 규칙을 따르되 거부하는 티를 내지 않고 자연스럽게 넘긴다 |
+| 같은 파일의 `[지금 상태]` 절 (일본어는 `[今の状態]`) | 옷·방·루틴은 사용자 말보다 서버 표시가 우선이다 |
+| `app/services/chat.py`의 `[지금 상태 - 서버 사실]` 블록 머리말 | 같은 내용을 그 턴의 실제 값과 함께 다시 알려준다 |
+
+도구 결과·기억·요약 본문은 전부 **믿을 수 없는 데이터**로 취급한다. 그 안에 지시문처럼 보이는
+문장이 있어도 실행하지 않는다. `memory.sanitize_text`(유니코드 정규화, 제어문자·글자 방향
+바꾸는 문자·대괄호 제거)는 표시를 정리하는 용도이지 보안 방어선이 아니다.
+
+---
+
+## 3. 채팅 요청 1건이 처리되는 과정
+
+담당 코드는 `app/services/chat.py`의 `post_message`다. 처리는 세 구간으로 나뉜다.
+
+```text
+[0] 같은 요청 재전송인지 확인
+[1] 읽기 구간   — 짧은 트랜잭션 + 사용자 잠금. 저장은 하지 않는다
+[2] 외부 호출   — DB 연결 0개. 모델 호출과 답변 정리
+[3] 저장 구간   — 짧은 트랜잭션 + 사용자 잠금 다시 획득. 전부 한 번에 확정
+```
+
+### 3.1 같은 요청을 다시 보냈을 때
+
+클라이언트는 요청마다 `Idempotency-Key` 헤더를 보낸다. 서버는 본문으로부터
+`request_hash(text, greeting_id, diary_references)`를 만들어 함께 저장한다.
+
+| 상황 | 결과 |
+|---|---|
+| 같은 키인데 본문 해시가 다르다 | `IDEMPOTENCY_KEY_REUSED` (409) |
+| 같은 키·같은 본문이고 저장된 응답이 살아 있다 | 저장된 응답을 형식 검사 후 그대로 돌려준다 |
+| 저장된 응답이 없거나 보존 기간이 지났다 | `IDEMPOTENCY_REPLAY_UNAVAILABLE` (409) |
+| 저장된 응답이 지금 형식과 맞지 않는다 | 행을 지우지 않고 500으로 실패시킨다 |
+
+마지막 줄이 중요하다. 형식이 안 맞는다고 행을 지우면 다음 재시도가 새 턴으로 실행되어 메시지와
+토큰이 두 번 쌓인다. 정리는 운영 스크립트(`scripts/verify_idempotency_responses.py
+--delete-invalid`)로만 한다.
+
+보존 기간은 두 단계다. 응답 본문은 24시간(`response_expires_at`), 그 뒤 30일 동안은 본문 없는
+표시만 남아(`dedupe_expires_at`) 같은 키로 새 턴이 생기는 것을 막는다.
+
+### 3.2 1단계 — 읽기 구간
+
+짧은 트랜잭션 안에서 사용자 잠금을 잡고, 필요한 값을 전부 읽은 뒤 커밋한다. **여기서는
+아무것도 쓰지 않는다.**
+
+1. `privacy.ensure_subject_active` — 계정 삭제 처리 중인 사용자는 여기서 409로 막는다.
+2. 사용자 단위 잠금(트랜잭션 범위)을 잡고 `chat_turns.acquire`로 이 턴의 처리 권한을 얻는다.
+   - `chat_active_turns` 테이블에 사용자당 1행이 있다. `turn_seq`는 계속 올라가고, 기한
+     (`lease_until`)은 `max(15초, 턴 제한 시간 + 10초)`다. 기본 설정에서는 18초다.
+   - 이미 살아 있는 권한이 있으면 `CHAT_TURN_IN_PROGRESS`(409)로 거절한다.
+3. `gating.resolve`로 남은 토큰을 확인한다. 남은 토큰을 해석할 수 없으면 무료 등급 한도로
+   계산한다(모르는 값을 무제한으로 취급하지 않는다). 0 이하면 한도 초과 오류.
+4. 커밋 후에는 ORM 객체를 만질 수 없으므로, 필요한 값을 전부 단순 변수로 복사해 둔다.
+   `activity_date`·닉네임·언어·리뷰 노출 여부·한도 등.
+5. 대화 시작 지점 메시지 번호(`chat_contexts.anchor_message_id`), 기억 처리 상태
+   (`memory_pipeline_states`), 발행된 대화 약속 문구, 관계 단계 문장(기억 기능이 `v2`인
+   사용자만)을 읽는다. 약속 조회가 실패하면 빈 약속으로 두고 대화를 계속한다.
+6. **장기 기억 검색을 여기서 미리 시작한다.** 검색은 임베딩 생성과 벡터 조회를 합쳐 약 490ms가
+   걸린다(개발 서버에서 측정). 커밋 뒤에 순서대로 부르면 그 시간이 전부 턴 제한 시간에서
+   빠진다. 미리 띄워 두면 1단계의 남은 DB 작업과 겹쳐서 돈다. 이 작업은 자기 세션과 자기
+   연결을 쓰므로 여기의 잠금과 무관하고, 기억 기능이 `v2`가 아니면 즉시 빈 문자열로 끝난다.
+7. 대화 요약(설정이 켜진 경우만), 도구 설정 값 한 벌, 이어지는 화제 안내문, 현재 상태 블록
+   (설정이 켜진 경우만), 대화 배열을 조립한다. `greeting_id`를 받았으면 형식과 소유권을
+   확인한다.
+8. `commit()` — 처리 권한만 남기고 잠금과 DB 연결을 반납한다.
+
+`greeting_id`의 형식 검사는 기억 검색을 시작하기 **전에** 끝낸다. 검색을 띄운 뒤에 오류를
+던지면 그 작업이 주인 없이 남아, 응답은 실패했는데 임베딩 호출과 DB 세션은 계속 도는 상태가
+된다.
+
+### 3.3 2단계 — 외부 호출 구간
+
+이 구간에서 DB 연결은 0개다.
+
+- 1단계에서 띄운 기억 검색을 `asyncio.wait_for(1.5초)`로 거둔다. 안쪽 함수의 자체 제한 시간을
+  믿지 않고 바깥 경계에서 한 번 더 자른다. 임베딩 호출은 `llm_timeout_s`(60초)를 쓰기 때문에,
+  경계가 없으면 60초를 기다리다 턴 제한 시간을 통째로 날린다. 실패나 시간 초과는 "기억 없음"으로
+  처리하고 대화를 계속한다.
+- 프롬프트를 조립한다(4장).
+- 도구 기능이 켜져 있고 이 사용자가 대상이면 도구 호출 절차(5장)를 타고, 아니면 `llm.generate`를
+  한 번만 부른다. 모델 호출 제한 시간은 `min(llm_timeout_s(60초), 남은 시간)`이다.
+- 외부 호출이 실패하면 저장된 것이 없으므로 그대로 재시도하면 된다. 처리 권한을 즉시 반납하고
+  예외를 올린다.
+- 답변을 내보내기 직전 정리(한국어만): 앞머리 군더더기 제거 → 한자·가나 제거 → 기호·물음표 정리
+  → 이름 토큰으로 되돌리기.
+
+### 3.4 3단계 — 저장 구간
+
+사용자 잠금을 다시 잡고, 아래를 **한 트랜잭션**에서 순서대로 확정한다.
+
+1. `chat_turns.verify_publish` — 처리 권한 토큰과 대화 버전(`context_revision`)이 1단계 때와
+   같은지 확인한다. 그 사이 같은 키의 다른 요청이 먼저 저장을 마쳤다면 그 응답을 돌려준다.
+2. **근거 확인** — 모델이 고른 일기 참조(`selected_refs`·`focus_ref`)를
+   `chat_references.validate_selected`로 다시 검사한다. 검사 항목은 **그 사용자의 것인지, 일기
+   종류가 `welcome`·`shared_day`·`capi_day` 중 하나인지, 발행 상태이고 삭제되지 않았는지,
+   발행 시각이 이미 지났는지**다. 하나라도 통과하지 못하면 답변의 일부만 지우지 않고 **답변
+   전체를 언어별 안전 문구로 바꾼다**("그건 지금 확실하게 떠올리지 못했어." 등).
+3. 캐피가 먼저 건넨 인사 확정 — `populate_existing=True`로 다시 읽어 소유자와 미커밋 상태를
+   확인한 뒤, 사용자 메시지보다 먼저 1건 저장한다(`turn_position=0`). 실제로 저장된 경우에만
+   현재 이름으로 렌더해 응답에 함께 실어 보낸다.
+4. 사용자 메시지 저장(`turn_position=1`).
+5. **관계 시작 시각 확정과 첫 일기 생성** — `profiles.relationship_started_at` 등이 비어 있으면
+   이 턴에서 채우고, 같은 트랜잭션에서
+   `diary_service.ensure_welcome_for_first_committed_turn`이 환영 일기를 만든다. 과거 결함으로
+   환영 일기가 빠진 사용자도 같은 경로로 복구된다.
+6. 대화 시작 지점이 바뀌었으면 저장하고, 캐피 답변을 저장한다(`turn_position=2`). 이 행에는
+   **이 턴에서 일어난 모든 모델 호출의 토큰 합계**와 청구 단위를 함께 남긴다.
+7. `_record_memory_v2` — 기억 기능이 `shadow` 또는 `v2`인 사용자만, 처리 위치 번호를 전진시키고
+   관계 기록을 추가한다. 준비가 끝났고 위치가 밀리지 않았다면 `mem0_ingest` 작업을 등록한다.
+   기억 기능이 꺼진(`legacy`) 사용자에게는 아무 일도 하지 않는다.
+8. 대화 시작 지점이 바뀐 턴이면 대화 요약 작업을 등록한다(설정이 켜진 경우만).
+9. 청구 토큰을 `user_daily_stats`에 원자적으로 더한다(`RETURNING`으로 더한 뒤 총량을 받아
+   응답에 싣는다). 리뷰 노출 여부를 판정하고, `finish_publish`로 대화 버전을 올리며 처리
+   권한을 반납한다. 일기 카드를 저장하고(5.4절), 재전송 대비 응답 사본을 저장한 뒤 커밋한다.
+
+### 3.5 토큰 계산과 하루 한도
+
+한 턴에서 모델을 여러 번 부를 수 있으므로(도구를 쓰면 2번), `TurnUsage`가 그 턴의 모든 호출을
+합산한다. `turn_usage_v2_enabled`를 끄면 첫 호출만 차감하고 나머지는 기록만 남긴다(되돌리기
+경로).
+
+사용자 한도에서 차감하는 값은 단순 토큰 수가 아니라 **실제 비용에 비례하도록 가중치를 곱한
+값**이다. 가중치는 모델 이름 앞부분을 보고 고른다.
+
+| 항목 | OpenAI GPT-5.6 | Anthropic (현재 미사용) |
+|---|---:|---:|
+| 입력 | 1.0 | 1.0 |
+| 출력 | 6.0 | 5.0 |
+| 캐시 읽기 | 0.1 | 0.1 |
+| 캐시 쓰기 | 1.25 | 1.25 |
+
+OpenAI API는 캐시에 새로 쓴 토큰 수를 알려주지 않는다. 그래서 `llm.py`가 추정한다. 입력 토큰이
+1,024개 이상이면 캐시가 걸리는 길이로 보고, `입력 - 캐시읽기` 전량을 캐시 쓰기로 계산한다.
+실제보다 크게 잡히는 쪽이라 안전한 방향이다.
+
+> GPT-5.6부터 OpenAI도 캐시 쓰기에 1.25배를 받는다. 그 이전 모델은 무료였다. 이 값을 1.0으로
+> 되돌리면 안 된다.
+
+하루 한도 관련 값은 `app_config` 테이블로 덮어쓸 수 있고, 없으면 아래 코드 기본값을 쓴다.
+
+| 값 | 기본값 | 설정 키 |
+|---|---:|---|
+| 출시 무료 기간 한도 | 150,000 | `free_launch_token_limit` |
+| 무료 등급 | 20,000 | `daily_token_limit_free` |
+| 체험·구독 등급 | 100,000 | `daily_token_limit_trial` / `_subscriber` |
+| 소진 경고 시작 | 8,000 | `token_warning_threshold` |
+| 리뷰 요청 노출 기준 | 15,000 | `review_prompt_min_tokens` |
+
+한도는 사용자 현지 04:00에 초기화된다(`activity_date` 기준).
+
+회사가 실제로 지불하는 비용(USD)은 사용자 한도와 **완전히 별개**로 `ai_usage_ledger`에
+기록한다(14.2절).
+
+---
+
+## 4. 프롬프트 조립 순서와 캐시
+
+### 4.1 실제로 만들어지는 순서
+
+`chat._build_system`이 시스템 부분을 만들고, 대화 배열이 그 뒤에 붙는다. 순서 원칙은
+**잘 안 바뀌는 것 → 뒤로만 늘어나는 것 → 매번 바뀌는 것**이다. 매 턴 바뀌는 값을 앞쪽에 두면
+그 뒤 전체가 캐시에서 빠진다.
+
+```text
+시스템 (잘 안 바뀌는 앞부분 — 버전이나 내용이 바뀔 때만 교체)
+  1. 캐피 기본 성격 + 안전 규칙 + 출력 형식 규칙
+     (한국어=CAPI_PERSONA / 일본어=CAPI_PERSONA_JA / 그 외=한국어 본문 + 해당 언어로 답하라는 지시)
+  2. 발행된 대화 약속 문구        (7장 — 항상 넣는다. 없으면 빈 문자열)
+  3. 관계 단계 문장                (8장 — 기억 기능이 v2인 사용자만)
+  4. [먼저 건넨 말] 아직 답을 못 받은 인사 (있을 때만)
+  5. 이어지는 화제 안내문          (직전에 보여준 일기 목록 — 있을 때만)
+
+대화 배열 (뒤로만 늘어난다)
+  6. 시작 지점 이후의 최근 대화 원문 (모델에 넣기 직전 실제 이름으로 렌더)
+
+매번 바뀌는 시스템 블록 — 마지막 사용자 메시지 **바로 앞**에 끼워 넣는다
+  7. [지난 이야기] 최신 대화 요약   (설정이 켜져 있고 요약이 있을 때)
+  8. [기억] 장기 기억 검색 결과      (6.5절)
+  9. [지금 상태 - 서버 사실] 현재 상태 (설정이 켜져 있을 때: 시간대·오늘 첫 대화 여부·
+                                       함께한 일수·장착 아이템·테마·루틴 진행)
+
+ 10. 이번 사용자 메시지
+ (도구를 쓴 턴이면 그 뒤에 도구 호출 기록과 도구 결과가 붙는다)
+```
+
+7~9번을 시스템 앞부분에 두었을 때는, 요약이 새로 생긴 턴마다 캐시 읽기 0 · 캐시 쓰기 4,500토큰이
+나왔다. 최근 대화 뒤로 옮기면 앞쪽이 그대로 캐시에 남는다.
+
+9번 블록에는 값과 함께 다루는 방법도 붙는다. 두 가지다.
+
+1. **여기 적힌 값이 사용자 말보다 우선한다**(2장). 사용자가 옷을 바꿨다거나 루틴을 다 했다고
+   말해도 이 값이 그대로면 그 말을 사실로 받아들이지 않는다.
+2. **캐피가 먼저 꺼내지 않는다.** 사용자가 직접 물었을 때만 답하고, 답할 때도 항목을 그대로
+   읽지 않고 말하듯이 푼다. 성격 설명의 `[지금 상태]` 절에도 같은 규칙이 들어 있다.
+
+캐시 관련 사항:
+
+- OpenAI는 **앞부분 자동 캐시**를 쓴다. 코드에서 캐시 지점을 직접 지정하는 방식은 아직 검증 전이라
+  쓰지 않는다. 최소 길이는 1,024 토큰이다.
+- Anthropic 경로(현재 미사용)는 `cache_control`로 캐시 지점을 시스템과 마지막 메시지에 지정하고
+  유지 시간은 5분이다.
+- `chat_prompt_cache_enabled` 설정으로 끌 수 있다.
+- 캐시가 아예 안 걸리는 상황을 감지하는 경고가 있다. 입력이
+  `chat_cache_min_prefix_tokens`(2,048) 이상인데 캐시 읽기와 쓰기가 둘 다 0이면 경고를 남긴다.
+  이 경고는 Anthropic 경로에서만 동작한다(OpenAI는 쓰기 값이 추정치라 거짓 경고가 난다).
+
+### 4.2 계측 전용 조립기
+
+`app/services/prompt_assembly.py`는 프롬프트 조각(`PromptSegment`)을 정해진 순서
+(`STABLE` → `APPEND_ONLY` → `CURRENT` → `INPUT` → `TOOL`)로 강제해 문자열로 만드는 코드다.
+**실제 답변에는 쓰지 않는다.** 대화가 끝난 뒤 `shadow_prompt_trace` 작업
+(`worker/shadow_trace_jobs.py`)이 같은 재료로 새 방식의 프롬프트를 조립해 크기와 캐시 가능
+비율만 재고 `shadow_prompt_traces` 테이블에 남긴다.
+
+조각 종류 중 `PENDING_BRIDGE`는 분류만 정의돼 있고 이것을 만들어 내는 코드는 없다(15장).
+
+### 4.3 도구 사용 비용을 계산한 근거
+
+하루 한도를 실제로 다 쓰는 사용자(앞부분 약 4,640토큰, 하루 42턴)를 기준으로, 도구를 쓰는 턴이
+늘어나도 하루에 가능한 턴 수가 20% 넘게 줄면 안 된다는 조건에서 아래 식을 얻었다.
+
+```text
+D = agent_decide_max_tokens        (첫 번째 호출의 출력 상한 — 도구 선택 JSON)
+T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계 상한)
+
+도구 턴 청구량 = 2,157(고정) + 7.25·D + 1.25·T
+   D는 첫 호출 출력 6배 + 두 번째 호출 입력 1.25배 = 7.25배
+   T는 두 번째 호출 입력 1.25배
+
+-20% 경계: 턴당 4,464 이하  →  7.25·D + 1.25·T ≤ 2,307
+
+확정값 D=192, T=600  →  2,142 (여유 165)
+검산: 도구 턴 4,299 → 150,000 / 4,299 ≈ 34.9턴 = 42턴 대비 -17%
+```
+
+`app/services/agent/config.py`가 설정으로 덮어쓴 값의 조합을 이 식으로 다시 검사한다. 각각의
+상한(D ≤ 214, T ≤ 732)은 **상대가 기본값일 때의** 최대치라, 둘 다 개별 상한을 통과해도 조합이
+식을 어길 수 있다. 어기면 두 값을 함께 코드 기본값(192/600)으로 되돌리고 경고를 보낸다.
+
+이 계산이 있기 때문에 **비용을 이유로 도구 사용 비율에 상한을 두지 않는다.** 일부 사용자에게만
+먼저 켜는 비율(`agent_canary_pct`)은 확산 속도를 조절하는 값이지 비용 상한이 아니다.
+
+---
+
+## 5. 도구 호출
+
+### 5.1 진행 순서
+
+담당 코드는 `app/services/agent/runtime.py`의 `run_turn`이다.
+
+```text
+마감 시각 = 현재시각 + agent_turn_deadline_s (기본 8.0초)
+
+1. 안전 확인 — 위기 상황 분류기를 꽂을 자리만 있고 현재 분류기는 없다(SAFETY_CLASSIFIER=None).
+   그래서 지금은 아무것도 막지 않는다.
+2. 첫 번째 호출: 읽기 도구 + finish_response를 보여주고, 출력 상한은 decide_max_tokens(192).
+   ├─ finish_response를 골랐다 → 호출 한 번으로 턴이 끝난다
+   └─ 읽기 도구를 불렀다 ↓
+3. 남은 시간이 agent_final_reserve_s(2.5초)보다 적으면 도구를 시작하지 않고 4번으로 간다.
+4. 도구를 동시에 실행한다. 도구마다 짧게 살다 사라지는 읽기 전용 세션을 따로 연다.
+   도구별 제한 시간 800ms, 프로세스 전체 동시 실행 상한 8개.
+   실패나 시간 초과도 결과 자리를 비워 두지 않고 unavailable 결과로 채운다.
+5. 두 번째 호출: finish_response만 보여주고, 최종 답변·응답 형식·참조 목록을
+   답변과 함께 돌려받는 구조화된 값으로 받는다.
+```
+
+기능을 켜고 끄는 설정은 `agent_enabled`(기본 꺼짐)와 `agent_canary_pct`다. 대상 판정은
+`sha256(user_id)`를 0.01% 단위로 나눠서 하므로, 프로세스가 바뀌거나 재시작해도 같은 사용자는
+항상 같은 쪽이다. 꺼져 있으면 모델을 한 번만 부르는 기존 경로와 완전히 같다.
+
+대화 모델이 `claude-*`로 되돌아가면 `should_run`이 스스로 비켜선다. 도구 호출을 지원하지 않는
+경로라 설정을 끄는 것을 잊어도 대화가 통째로 죽지 않게 하려는 것이다.
+
+제한 시간 값의 근거:
+
+- **`agent_turn_deadline_s`는 8.0초다. 5.0이 아니다.** 개발 서버 `ai_usage_ledger`에서 실제로
+  측정한 결과(2026-08-06), 첫 번째 호출은 절반이 1.54초 안에, 90%가 4.11초 안에 끝났고 두 번째
+  호출은 절반이 1.45초 안에 끝났다. 8.0에서 예약분 2.5초를 빼면 첫 호출에 5.5초가 남아 4.11초
+  위에 선다. 5.0이던 시절에는 첫 호출 예산이 2.5초뿐이라 호출 104건 중 26건(25%)이 시간 초과로
+  죽었다.
+- 설정으로 올릴 수 있는 상한은 12초다. 예전에는 상한이 5.0이라 실제로 부족하다고 밝혀져도
+  `app_config`로 늘릴 수 없었다.
+
+그 밖의 규칙:
+
+- 도구 호출 라운드는 정확히 1회다. 한 라운드에 부를 수 있는 도구는 최대 3개다. 모델이 더 많이
+  부르면 앞의 3개만 실행하고, 나머지 호출 ID에도 `unavailable(tool_call_limit)` 결과를 채운다.
+  결과 자리를 비우면 두 번째 호출용 대화 기록을 만들 수 없다.
+- 도구 결과는 대화 기록에 넣기 전에 **턴 합계 600토큰 예산으로 잘라낸다.** 호출 순서대로 채우고,
+  안 들어가면 문자열을 줄이고(`truncated=True`), 그래도 자리가 없으면
+  `unavailable(budget_exceeded)`로 닫는다. 도구별 글자 상한은 그것과 별개인 개별 안전장치다.
+- 제어 의도(control intent) 필드는 스키마에서 빠졌다. 등록된 제어 도구가 없고(5.3절) 적용하는
+  코드도 없으므로 모델에게 알리지 않는다. 런타임에 남아 있는 처리 코드는 예상치 못한 제어 호출이
+  들어왔을 때 기록만 남기고 버리는 방어용이다.
+- 도구 설정은 1단계에서 `effective_agent_config`가 `app_config` → `Settings` → 코드 기본값 순으로
+  한 번만 읽어 그 턴 동안 고정한다. 프로세스 안에 캐시를 두지 않으므로 EC2 두 대의 값이 어긋나지
+  않고, `app_config`를 바꾸면 다음 턴부터 곧바로 반영된다.
+- 운영 환경에서는 `agent_enabled=True`만으로 켜지지 않는다. "측정이 필요하다"고 표시된 두 키
+  (`agent_final_reserve_s`, `agent_tool_inflight`)가 `app_config`에 직접 들어 있어야 하고, 없으면
+  경고를 보내고 꺼진 상태로 둔다.
+
+### 5.2 첫 번째 호출이 시간 초과됐을 때의 안전 경로
+
+이 경로는 문서에 빠져 있었고, 실제로도 한동안 동작하지 않았다.
+
+첫 번째 호출(도구 선택)이 시간 초과로 실패했을 때, 남은 시간이 **`FALLBACK_MIN_S = 1.5초`**
+이상이면 **도구 없이 한 번 더 부른다.** 일기 조회를 못 할 뿐 대화는 이어진다. 이 경로가 없으면
+사용자에게 그대로 500 오류가 나간다.
+
+기준값이 1.5초인 이유가 핵심이다. 첫 번째 호출의 제한 시간은 정확히 `마감 시각 − 예약분(2.5초)`에
+걸린다. 그러므로 시간 초과가 난 바로 그 순간 남은 시간은 **정의상 딱 예약분**이고, SDK가 값을
+돌려주는 데 걸린 시간만큼 항상 조금 모자란다. 예전처럼 기준을 `final_reserve_s`로 두면 조건이
+거의 항상 거짓이 되어 이 경로가 사실상 한 번도 돌지 않았다. 실제로 8.57초를 쓰고도 그대로 500이
+나갔다. 다시 부르는 호출은 도구 없는 단발 호출이라 예약분 전부가 필요하지 않으므로, 더 낮은
+기준을 따로 둔다.
+
+이 경로를 탄 턴은 `skipped="deadline"`으로 표시되고, `decide_timeout_fallback` 로그가 남는다.
+
+### 5.3 등록된 도구
+
+`app/services/agent/tools/registry.py`가 유일한 도구 목록이다. 여기 없으면 모델에게 보이지도
+않고 실행되지도 않는다. 파일이 존재하는 것과 켜져 있는 것은 다르다.
+
+| 도구 | 상태 | 설명 |
+|---|---|---|
+| `recall_diaries` | 등록됨 | 일기 회상 |
+| `get_routines` | 등록됨 | 달력 날짜 기준 루틴 목록 |
+| `finish_response` | 내부용 | 최종 답변과 참조를 받는 통로. 실행 도구가 아니다 |
+| `search_diaries`, `get_diary` | 파일만 있음 | 목록에 없어서 모델에게 보이지 않는다 |
+
+제어 도구 목록(`_CONTROL_TOOLS`)은 **비어 있다.** `forget_memory`가 유일한 제어 도구였는데,
+"잊어줘"를 대화로 처리하는 것은 의미가 없다는 제품 판단으로 2026-08-06에 제거했다. 두 번째
+호출에는 `finish_response`만 보인다.
+
+도구 이름과 설명은 ASCII 영어로 고정한다. 언어마다 다르게 만들면 프롬프트 앞부분 캐시가 언어별로
+쪼개진다. 목록 순서가 곧 모델에게 보내는 순서라 튜플로 고정돼 있다.
+
+**`recall_diaries`** — 한 번의 호출로 존재 여부·개수·범위·발췌·전문을 모두 돌려준다(검색한 뒤
+다시 조회하는 2단계 구조를 만들지 않는다).
+
+| 인자 | 제약 |
+|---|---|
+| `query` | 1~200자, 생략 가능 |
+| `need` | `count` / `summary` / `full` / `full_card` / `quote` |
+| `from`, `to` | 날짜 범위. `from > to`면 인자 오류 |
+| `focus_id` | 특정 일기 하나. 이 값을 주면 `query`는 무시된다 |
+| `limit` | 1~5 (서버 상한 `MAX_RETURNED=5`) |
+
+검색은 `diary_recall_documents`의 1536차원 임베딩 코사인 유사도와 `search_text ILIKE` 부분일치를
+함께 쓴다. 통과 조건은 유사도 0.25 이상 **또는** 부분일치이며, 일기 종류가
+`welcome`·`shared_day`·`capi_day`이고 발행 상태이며 삭제되지 않았고 발행 시각이 지난 것만
+돌려준다.
+
+> 지금은 `diary_recall_documents.embedding`을 채우는 작업이 돌지 않는다(15장의 알려진 문제
+> 참고). 그래서 실제로는 `search_text ILIKE` 부분일치만 동작한다.
+
+**`get_routines`** — 달력 날짜(현지 00:00 기준) 하나의 루틴 목록과 그날 수행 여부를 돌려준다.
+주기 표현은 앱 API와 같은 규칙을 쓴다. `days_of_week`은 ISO 요일(1=월 … 7=일)이고
+`frequency_per_week`는 `len(days_of_week)`다. 상한은 20건, 이름 100자, 전체 2,000자이며 현재
+날짜에서 ±31일을 벗어나면 인자 오류다. 이름은 사용자 자유 입력이 섞이는 유일한 필드라
+`i18n.localized_name`으로 해석한 뒤 반드시 잘라내기(`clip`)를 거친다.
+
+**`finish_response`** — `text`(1~4,000자), `response_mode`
+(`summary`/`short_quote`/`full_card`/`reopen_reference`), `selected_refs`(최대 3개),
+`focus_ref`를 받는다. 참조 ID는 런타임이 같은 턴의 도구 결과 목록과 대조하기 전까지 믿지 않는다.
+
+### 5.4 일기 카드와 "그거" 같은 말 처리
+
+- 모델에는 발췌와 ID만 준다. **카드 본문은 3단계 저장 구간이 DB 원문으로 다시 만든다.** 모델이
+  일기 전문을 새로 쓰지 않는다.
+- 공개 API에서는 `reply.references[]`로 내보내며, 클라이언트가 `diary-reference-v1` capability를
+  보낸 요청에만 카드를 싣는다.
+- `chat_response_references` — 일기 카드만 저장한다. 사용자·답변 메시지 ID·일기 ID를 함께 외래
+  키로 걸고 본문은 복사하지 않는다. 상태는 `available` / `unavailable`이며, 일기가 삭제되거나
+  비공개가 되면 `unavailable`이 된다.
+- `conversation_focus` — "그거", "그 일기", "두 번째 거" 같은 말을 해석하기 위한 대화 상태다.
+  실제로 보여준 순서를 그대로 저장하고, **15분이 지나거나 6턴이 더 진행되면 만료된다.**
+  읽을 때 만료 여부와 목록이 비었는지만 확인하고, 만료면 행을 지운다.
+- 카드를 보여주거나 목록에 발췌를 실은 것은 "읽음"이 아니다. `first_read_at`은 클라이언트가
+  명시적으로 `/diaries/{id}/read`를 호출했을 때만 기록된다.
+
+---
+
+## 6. 장기 기억
+
+### 6.1 어디까지 처리했는지 기록하는 방법
+
+처리 위치는 **`(user_id, turn_seq)` 하나**로 표현한다. `messages.turn_seq`와 `turn_position`이
+턴을 정의하고, 과거 메시지는 `db/migrations/20260806_backfill_turn_seq.sql`이 시간순을 지키며
+번호를 채워 넣었다(개발 DB 적용 완료).
+
+`memory_pipeline_states` 테이블이 사용자별 상태를 갖는다.
+
+| 컬럼 | 뜻 |
+|---|---|
+| `mode` | `legacy`(기억 기능 꺼짐) / `shadow`(기록만) / `v2`(응답에도 사용) |
+| `bootstrap_status` | `legacy` / `collecting`(과거 대화 채우는 중) / `ready` |
+| `source_through_turn_seq` | 대화가 커밋된 마지막 턴 번호 |
+| `ingest_through_turn_seq` | 기억으로 색인한 마지막 턴 번호 |
+| `consolidated_through_turn_seq` | 중복·대체 판정을 끝낸 마지막 턴 번호 |
+| `historical_upper_turn_seq` | `shadow` 진입 시점에 고정한 과거 대화의 마지막 턴 번호 |
+| `revision`, `stage_token`, `lease_until` | 여러 프로세스가 겹치지 않게 하는 확인 값 |
+| `privacy_epoch` | 계정 삭제 사이클 번호 |
+| `repair_generation` | 재처리 세대 번호 |
+
+세 커서는 항상 `source ≥ ingest ≥ consolidated` 순서를 지켜야 하고, DB의 CHECK 제약이 역전을
+막는다.
+
+`shadow` 진입은 한 트랜잭션에서 과거 대화의 마지막 턴 번호를 고정하고 상태를 `collecting`으로
+바꾼다. 이때 `source_through_turn_seq`도 같이 그 값까지 올린다. 이 줄이 없으면 진입 직후 커서가
+0이라 아무 턴도 처리 대상이 되지 못해 과거 대화 채우기가 시작조차 못 한다(104턴을 가진
+사용자가 진입 직후 처리 대상 없음으로 나온 사례가 있다).
+
+다음에 처리할 턴은 커서 값에 1을 더한 것이 아니라 **`MIN(turn_seq) > 커서`** 로 찾는다. 번호가
+연속이라고 가정하지 않는다.
+
+`shadow`는 기록만 하고 응답에는 쓰지 않는다. 응답에 쓰는 것은 `v2`뿐이다. **`v2`에서 예전 구조로
+되돌아가는 경로는 없다** — 예전 저장소 자체가 개발 DB에서 삭제됐다(15장).
+
+### 6.2 저장 과정
+
+담당 코드는 `worker/mem0_jobs.py`의 `handle_mem0_ingest`와 `app/services/mem0_pipeline.py`다.
+
+채팅 3단계 저장이 성공하면 `mem0_ingest` 작업을 `memory` 대기열에 등록한다. 등록 조건은 커서가
+밀려 있지 않은 경우뿐이다. 처리를 기다리는 턴이 있으면, 그 작업이 성공한 뒤에 다음 턴 작업을
+이어서 만든다. 그래서 한 사용자에게는 항상 기억 작업이 하나만 대기한다. 중복 등록은 중복 방지
+키가 막는다.
+
+```text
+대화 원문 → 후보 추출 → 조건 검사 → 계획 저장(ID 미리 확정)
+         → 임베딩 한 번에 생성 → 벡터 저장 → 장부에 pending 기록
+         → 같은 트랜잭션에서 판정 작업 등록
+```
+
+**후보 추출.** 모델은 `gpt-4.1-mini-2025-04-14`(별칭이 아니라 고정 버전), 버전 문자열은
+`mem0-extractor-v2`, 출력 상한은 700토큰이다. 한 턴만 보고 후보 JSON을 뽑되, **사용자 발화에
+근거 구간이 있는 후보만** 통과시킨다. 캐피의 발화는 지시대명사를 풀기 위한 참고용일 뿐 독립적인
+근거가 될 수 없다. 대화 약속에 해당하는 지시, 실제 이름, 지금 조회하면 알 수 있는 상태, 테스트성
+발화, 지시문처럼 보이는 문장은 제외한다.
+
+**계획 먼저 저장.** 벡터 저장소를 부르기 전에 `mem0_ingest_candidates`에 후보를 저장한다. 이때
+`provider_memory_id`를 미리 확정하는데, 랜덤이 아니라
+`uuid5(고정 네임스페이스, "{컬렉션버전}:{user_id}:{turn_seq}:{후보해시}:{스키마버전}")`로
+계산한다. 근거 구간은 `mem0_ingest_candidate_sources`에 함께 저장한다. 이렇게 하면 벡터 저장에
+성공한 직후 프로세스가 죽어도, 재시도가 추출 모델을 다시 부르지 않고 같은 계획을 읽어 **같은
+ID로 다시 저장**하므로 중복이 생기지 않는다.
+
+**임베딩.** `text-embedding-3-small`(1536차원)로 통과 후보 전체를 한 번에 만든다
+(`memory_embedding_batch_size=100`, 상한 2,048). 사용량은 비용 장부에 기록한다.
+
+**벡터 저장.** `Mem0VectorIndexAdapter`(6.6절)로 `vecs.moly_memories_v2`에 넣는다. 성공한 뒤에야
+장부(`mem0_memory_registry`)에 `pending` 행을 만든다. 순서가 반대면, 장부에 없는 벡터는 검색에서
+쓰이지 않으므로 판정되지 않은 기억이 노출될 수 있다.
+
+**단계별 시간 배분.** `mem0_budget.StageBudget`이 하나의 마감 시각을 단계별로 나눈다.
+
+| 단계 | 배정 시간 |
+|---|---:|
+| 추출 | 15초 |
+| 임베딩 | 5초 |
+| 벡터 저장 | 12초 |
+| 확정 | 5초 |
+| 마무리 여유 | 3초 |
+
+남은 시간이 다음 단계에 필요한 시간보다 작으면 **호출을 시작하지 않고 재시도로 넘긴다.**
+시작해 놓고 중간에 끊기면 벡터 저장소에는 반영됐는데 우리 DB에는 없는 구간이 생긴다.
+전체 예산은 `settings.job_content_timeout_s`(120초)를 넘겨 받는다. 위 배정의 합은 40초이므로
+정상 상황에서는 여유가 있다.
+
+외부 호출 중에는 DB 세션도 잠금도 잡지 않는다. 한 사용자의 처리 순서는 상태 행의 짧은 트랜잭션
+확인(`stage_token`/`revision`)으로만 지킨다. 한 사용자 안에서는 순서대로, 사용자끼리는 동시에
+돈다. `mode=legacy`인 사용자에게는 작업 자체가 등록되지 않는다.
+
+### 6.3 중복·대체 판정
+
+`mem0_consolidate` 작업이 담당한다. 단계 배정은 검색 6초 / 판정 24초 / 검증 4초 / 확정 5초 /
+마무리 6초(합 45초)이고, 전체 예산은 마찬가지로 `job_content_timeout_s`(120초)다.
+
+1. 이 턴에서 새로 만들어진 기억들을 서로 비교하고, 같은 사용자의 살아 있는 기억
+   (`active` 또는 `ambiguous`, 이 턴보다 앞선 것) 중 최대 12건을 비교 대상으로 모은 뒤,
+   **판정 모델을 한 번만** 부른다. 모델은 `settings.model_utility`(현재 `gpt-5.6-luna`),
+   버전 문자열은 `mem0-classifier-v2`, 출력 상한은 900토큰이다. 모델이 낼 수 있는 값은
+   `independent` / `duplicate` / `supersedes` / `ambiguous`와 비교 대상 ID뿐이다. 자유 문장이나
+   존재하지 않는 ID는 거부한다.
+2. 코드로 만든 검증기가 결과 그래프를 확인한다. 존재하는 ID만 쓰였는지, 순환이 없는지
+   (A가 B를, B가 A를 대체할 수는 없다), 같은 묶음 안에 모순이 없는지를 본다. 같은 기억을 둘
+   이상이 대체하려고 하면
+   `(최신 발생 시각, source_turn_seq, 후보 해시)` 순서로 정렬해 가장 최신인 하나만 승자로
+   삼는다. 우열을 가릴 수 없거나 그래프가 잘못됐으면 그 묶음 전체를 보수적으로 `ambiguous`로
+   확정한다. **두 번째 모델 호출은 하지 않는다.**
+3. 장부에 반영한다(짧은 트랜잭션 + 상태 번호 확인).
+
+| 판정 | 반영 |
+|---|---|
+| `independent` | 새 행을 `active`로 |
+| `duplicate` | 새 행을 `duplicate` + `duplicate_of_registry_id`, 벡터 삭제를 `pending`으로 |
+| `supersedes` | 새 행을 `active`, 기존 행을 `superseded` + `superseded_by_registry_id`, 기존 벡터 삭제를 `pending`으로 |
+| `ambiguous` | 관련 행을 같은 `conflict_group_id`로 묶는다 |
+
+4. 벡터 삭제는 `mem0_provider_delete` 작업이 뒤에서 처리한다(`maintenance` 대기열, 한 번에
+   50건). 삭제가 늦거나 실패해도 **검색이 장부 상태로 먼저 거르므로** 노출은 이미 막혀 있다.
+   이 작업은 저장 비용을 줄이기 위한 것이다.
+5. 그 턴의 벡터 ID가 전부 최종 상태가 된 뒤에만 판정 커서를 전진시킨다. 기억이 하나도 안 나온
+   턴은 판정할 게 없으므로 색인 작업이 커서를 직접 통과시킨다. 그러지 않으면 판정 커서가 그
+   턴에 영원히 걸려 전환 조건(`consolidated == ingest`)을 절대 만족할 수 없다.
+
+**재판정(`mem0_reconsolidate`).** 일반 판정은 새로 들어온 후보만 본다. 그래서 판정 규칙이
+좋아져도 이미 `active`로 굳은 중복은 그대로 남는다(개발 서버에서 같은 뜻의 두 건이 둘 다
+프롬프트에 들어간 사례가 있었다). 이 작업은 살아 있는 기억끼리(한 번에 최대 30건, 판정 버전이
+현재와 다른 것만) 다시 비교해 중복·대체를 닫는다. **새로 만들지 않고 상태만 바꾼다.** 닫힌 기억이
+생기면 벡터 삭제 작업을 이어서 등록하는데, 중복 방지 키에 이 작업의 ID를 넣는다. 고정 키를 쓰면
+두 번째 재판정부터는 삭제 작업이 조용히 사라진다.
+
+### 6.4 유효한 기억 장부
+
+`mem0_memory_registry`는 벡터 ID의 수명만 기록한다. 본문과 임베딩은 복사하지 않는다.
+
+| 컬럼 | 값 |
+|---|---|
+| `semantic_status` | `pending` / `active` / `duplicate` / `superseded` / `ambiguous` / `excluded` / `rejected_policy` |
+| `provider_delete_state` | `kept` / `pending` / `deleted` / `failed` |
+
+**검색에 통과하는 것은 `active`와 `ambiguous`뿐이다.**
+
+행의 고유 키는 `(user_id, provider, collection_version, provider_memory_id)`다.
+`event_started_at` / `ended_at` / `precision` / `resolved_timezone`은 서버의 시각 해석기가
+검증한 경우에만 채우는 "사건이 일어난 시각"이며, "말한 시각"(`source_occurred_at`)과는 다르다.
+
+`mem0_memory_sources`가 근거의 원본 기록이다. 메시지 ID, UTF-8 기준 근거 구간, 내용 해시, 근거
+등급, 추출기 버전을 갖는다. 벡터 저장소의 부가 정보는 복구를 돕는 사본일 뿐이다.
+
+### 6.5 검색(회상)
+
+담당 코드는 `app/services/mem0_recall.py`다.
+
+**먼저 "이 발화에 회상할 대상이 있는가"를 코드로 판정한다(`needs_recall`).** 모델을 따로 부르지
+않고 발화 자체를 본다. 되짚는 표지(물음표, "뭐/무슨/언제/어디/누구/기억/어제/지난/전에/아까/
+그때/저번" 등)가 있거나 6자를 넘으면 회상하고, 짧은 인사나 호응은 벡터 검색조차 하지 않는다.
+
+이 판정을 벡터 거리로 대신할 수 없다. 개발 서버에서 실제로 측정한 결과:
+
+| 입력 | 가장 가까운 기억까지의 거리 |
+|---|---:|
+| `안녕`(2자) | 0.697 |
+| `ㅇㅇ`(2자) | 0.667 |
+| `내 루틴 뭐있었지?`(10자) | 0.623 |
+
+내용이 없는 입력일수록 임베딩 공간의 중심 근처에 놓여 모든 것과 적당히 가깝다. 거리로만 자르면
+`ㅇㅇ`이 기억을 더 많이 끌어온다. 실제로 `안녕` 한마디에 "사이가 안 좋다"를 포함한 기억 8건이
+프롬프트에 들어간 적이 있다.
+
+검색 절차:
+
+1. 벡터 저장소에서 사용자 조건으로 **40건을 넉넉히 받아온다**(`_PROVIDER_FETCH`).
+2. 장부에서 `active`·`ambiguous`만 남긴다. 이때 `user_id`를 한 번 더 확인한다. 벡터 저장소가
+   오염돼도 남의 기억이 프롬프트에 실리지 않게 하려는 것이다.
+3. 거리 오름차순으로 정렬한다(**낮을수록 가깝다**). 거리가 같으면 최근 사건을 앞에 둔다.
+4. **상대 거리로 자른다.** `가장 가까운 거리 + 0.08`(`RELEVANCE_MARGIN`) 안쪽만 남기되, 절대
+   상한 0.90(`MAX_DISTANCE`)을 넘지 않는다.
+5. 남은 것이 5건 미만이면(`MIN_KEEP`) 절대 상한 안쪽에서 5건까지 채운다. 같은 주제 기억이
+   여럿일 때 정작 찾는 것이 잘려 나가는 문제를 막기 위한 것이다("여자친구 이름 기억나?"에
+   여자친구 관련 3건이 앞을 채우고 정작 이름이 잘려 "들은 적이 없어"라고 답한 사례).
+6. 최종 8건까지(`DEFAULT_LIMIT`).
+
+`RELEVANCE_MARGIN = 0.08`은 **아직 검증되지 않은 초기값이다.** 개발 서버의 기억 12건으로 고른
+값이라 일반화할 근거가 없다. 회상 정답 200건을 모은 평가 세트로 다시 재서 정해야 한다.
+
+`render_block`이 프롬프트에 넣을 문장을 만든다. `ambiguous`인 기억은 발생 시각과 함께
+"어느 쪽이 지금인지 단정하지 말고 궁금하면 자연스럽게 물어봐"라는 안내와 같이 넣는다. 제목도
+언어별로 다르다(`[기억]` / `[memory]` / `[記憶]`).
+
+**이 모듈은 예외를 밖으로 올리지 않는다.** 회상 실패는 빈 목록이고 대화는 계속된다. 채팅 쪽에서
+1.5초로 한 번 더 자른다.
+
+### 6.6 벡터 저장소
+
+- 저장 위치는 같은 Supabase PostgreSQL 안의 `vecs.moly_memories_v2` 테이블이다
+  (`id varchar` / `vec vector(1536)` / `metadata jsonb`). **테이블·HNSW 코사인 인덱스·
+  `metadata->>'user_id'` 인덱스는 전부 마이그레이션이 만들고, 실행 중에는 만들지 않는다.**
+- `app/services/mem0_adapter.py`의 `Mem0VectorIndexAdapter`는 `mem0ai==2.0.11`의 **벡터 인덱스
+  부분만** 감싼다. `Memory` / `AsyncMemory` 클래스는 인스턴스를 만들지 않는다(테스트로 고정).
+  이유는 두 가지다.
+  1. `Memory.add()`는 설정과 무관하게 SQLite 파일에 이력을 남겨, 실행하는 서버마다 결과가
+     달라진다.
+  2. 기본 클라이언트는 우리가 제어할 수 없는 연결 풀(5+10)을 만들고, 실행 중에 스키마와 확장을
+     생성한다.
+- 연결은 주입받은 **psycopg2 동기 엔진**을 쓴다(풀 3, 추가 0, 대기 2초, 사전 확인 켜짐).
+  `vecs`가 동기 SQLAlchemy와 psycopg2를 전제로 쓰여 있어 asyncpg나 psycopg3를 넘기면 오류가 난다.
+- 모든 연산은 개수 상한과 제한 시간을 갖는다. 동기 코드라 별도 스레드에서 실행한다. 결과는 쓰기
+  전에 `user_id`를 다시 확인한다.
+- `SearchHit.distance`는 **거리다.** 낮을수록 가깝다. `score`라는 이름을 쓰면 큰 값이 좋은 줄
+  알고 내림차순 정렬하게 되어 가장 관련 없는 기억이 실린다. 실제로 그런 사고가 있어 이름으로
+  못 박았다.
+
+---
+
+## 7. 사용자별 대화 약속
+
+"앞으로 반말해" 같은 합의는 검색이 성공했는지와 무관하게 항상 지켜져야 한다. 그래서 약속은
+회상 경로를 타지 않고 **매 턴 프롬프트 앞부분에 직접 들어간다.**
+
+### 7.1 정해진 형식만 저장한다
+
+담당 코드는 `app/services/interaction_contract.py`다.
+
+목적은 **사용자가 쓴 문장을 프롬프트에 넣지 않는 것**이다. 원문을 앞부분에 그대로 넣으면 임의의
+텍스트가 매 턴 지시가 놓이는 자리에 전달된다. 거기에 "이전 지시를 무시하고…"가 들어오면 성격
+설명과 안전 규칙이 통째로 흔들린다.
+
+| 항목 | 값 |
+|---|---|
+| `kind` | `address` / `response_style` / `comfort` / `topic_boundary` / `expression_boundary` / `relationship_definition` / `durable_behavior` / `custom_preference` |
+| `action` | `use` / `avoid` / `prefer` / `ask_before` / `listen_before` / `do_not_assume` / `honor_preference` |
+| `condition` | `always` / `when_distressed` / `when_asking_advice` / `when_topic_tag` / `custom_trigger` |
+| `polarity` | `positive` / `negative` |
+
+`kind`별로 허용되는 `action`과 `condition` 조합은 코드 표(`ALLOWED_ACTIONS`,
+`ALLOWED_CONDITIONS`)로 강제한다. 자유 조합을 허용하면 "관계 정의를 use한다" 같은 의미 없는
+항목이 만들어진다. `when_topic_tag`는 `target_tag`가 반드시 있어야 한다.
+
+자유 문자열이 들어갈 수 있는 자리는 `target_literal` 하나뿐이고 검사가 까다롭다.
+
+- 유니코드 NFKC 정규화 후 앞뒤 공백 제거
+- 줄바꿈 금지(한 줄이어야 한다)
+- 글자 방향을 바꾸는 문자 금지, 제어문자 금지
+- Markdown / XML 구분 기호(`< > { } [ ] | \` # * _ ~ \`) 금지.
+  단 이름 토큰 `{유저이름}`은 예외다. 이 예외가 없으면 "{유저이름}아라고 불러줘" 같은 정상적인
+  호칭 요청이 전부 거부된다.
+- `system:` / `<assistant>` / `[INST]` / ``` 같은 역할·도구 표시로 읽힐 수 있는 형태 금지
+- 최대 64자(`MAX_LITERAL_GRAPHEMES`, 결합 문자는 한 글자로 센다)
+
+렌더할 때 이 값은 항상 `「…」` 안에 들어간다. 문장 앞이나 동사 자리에 놓으면 그 자체가 지시로
+읽힐 수 있기 때문이다.
+
+캐피의 정체성이나 안전 규칙을 바꾸려는 요청은 애초에 후보가 되지 않는다.
+
+### 7.2 저장과 발행
+
+- `user_interaction_contracts` — `(user_id, locale)` 단위로 행이 생긴다. 기준이 되는 값은 언어와
+  무관한 `document_json`이고, `rendered_text`는 그 언어별 표현이다. 사용자·언어당 `published`
+  상태는 정확히 하나이며 부분 유니크 인덱스가 강제한다. `render_hash`가 같으면 새 버전을 만들지
+  않는다.
+- `user_interaction_contract_items` — 항목별 `value_json`, 근거 등급(`explicit_user` 등),
+  근거가 된 사용자 발화(`source_message_id`), 상태를 갖는다.
+- 발행은 기존 `published`를 지우지 않고 `superseded`로 닫은 뒤 새 행을 올린다. 지우면 변경
+  이력과 되돌리기가 사라진다.
+- **프롬프트에 넣을 때 저장된 `rendered_text`를 그대로 쓰지 않고 `document_json`에서 다시
+  렌더한다**(`contract_repo.published_text`). 저장분이 옛 형식으로 만들어졌을 수 있고, 렌더
+  규칙이 바뀌면 옛 문자열은 새 방어를 받지 못한다. 항목 하나가 깨져 있으면 그 항목만 건너뛰고
+  나머지는 지킨다. 조회가 실패하면 빈 약속으로 두고 대화를 계속한다.
+
+> `document_json`은 jsonb 컬럼이라 드라이버가 이미 파싱해서 준다. 여기에 `json.loads`를 걸면
+> TypeError가 나고, 이 코드는 채팅 1단계라 그 예외가 그대로 응답을 죽인다. 실제로 약속이 생기는
+> 순간 그 사용자의 대화가 통째로 실패한 사고가 있었다.
+
+### 7.3 추출
+
+`contract_compile` 작업(`content` 대기열)이 **하루 경계마다** 돈다(10장). 매 턴 돌리면 같은 합의를
+반복해서 뽑고 비용만 든다.
+
+- 이 코드는 추출기가 아니라 **거르는 장치**에 가깝다. 위험한 것은 놓치는 쪽이 아니라 사용자가
+  하지 않은 약속을 만들어 내는 쪽이다. 잘못 만든 항목은 프롬프트 앞부분에 실려 매 턴 행동을
+  바꾼다.
+- 최근 메시지 **200건**을 최신순으로 가져와 다시 시간순으로 세워 본다. 예전에는 가장 오래된
+  200건을 봐서, 대화가 200건을 넘는 순간부터 새 발화가 영원히 읽히지 않았다.
+- 사용하는 모델은 `settings.model_utility`, 출력 상한은 2,000토큰이다.
+- 모델 출력은 전부 위 형식 검사를 통과해야 하고, 근거 메시지 ID는 **실제 사용자 발화**여야 한다
+  (캐피가 한 말은 근거가 될 수 없다).
+- 영향이 큰 항목(`topic_boundary`, `expression_boundary`, `relationship_definition`,
+  `custom_preference`)이 하나라도 포함되면 전체를 `draft`로 남긴다. 그렇지 않으면 자동으로
+  발행한다. 매번 "이렇게 해줄까?"로 확인하면 질문을 아끼는 성격 규칙과 충돌하고, 사용자가 확답
+  없이 화제를 넘기면 합의가 사라지기 때문이다.
+- 지금 사용자가 한 말과 발행된 약속은 우선순위가 같은 자리에 있고(2장), 둘이 어긋나면 지금 한
+  말이 이긴다. 그래서 "지금부터 반말해"는 약속이 발행되기 전에도 그 답변부터 적용된다.
+
+---
+
+## 8. 관계 단계
+
+자유 서술 하나로 관리하지 않는다. 세 겹으로 나뉜다.
+
+```text
+기록(event)  뒤로만 쌓이는 사실
+   ↓
+상태(state)  기록을 집계한 값. 뒤로 가지 않는다
+   ↓
+문장(render) 상태를 언어별 문장으로 바꾼 것. 다시 만들 수 있는 파생 데이터다
+```
+
+### 8.1 기록
+
+`relationship_events` 테이블에 남는 값은 **두 종류뿐이다.** DB의 CHECK 제약이 이 둘만 허용한다.
+
+| `event_type` | 언제 | 중복 방지 키 |
+|---|---|---|
+| `normal_turn_committed` | 턴 저장이 성공할 때마다 | `turn:{turn_seq}` |
+| `active_day_started` | 그날 첫 성공 턴에서 한 번 | `day:{activity_date}` |
+
+채팅 3단계 저장이 `memory_pipeline.record_turn_events`로 기록한다. 대상은 기억 기능이 `shadow`
+또는 `v2`인 사용자뿐이다.
+
+### 8.2 상태
+
+`user_relationship_states`가 갖는 값은 `active_days`(함께한 날 수), `successful_turns`(성공한 턴
+수), `qualifying_turns`(단계 계산에 쓰는 턴 수), `relationship_stage`, 규칙 버전
+(`relationship-v1`), 갱신 확인용 `version`, 프롬프트 교체 여부를 판단하는 `prompt_revision`이다.
+매 턴 바뀌는 숫자가 프롬프트 캐시를 깨지 않도록 `prompt_revision`을 따로 둔다.
+
+**`qualifying_turns`는 하루에 최대 10턴까지만 센다**(`MAX_QUALIFYING_TURNS_PER_DAY`). 하루에
+몰아서 대화해도 단계가 튀지 않게 하기 위해서다. 이 상한은 집계 SQL 안에
+`sum(LEAST(하루 턴 수, 10))` 형태로 들어가 있다. `successful_turns`에는 상한을 적용하지 않고
+정확한 값을 보존한다.
+
+단계 계산은 두 값만 쓰는 순수 함수다. 같은 입력이면 항상 같은 결과가 나온다.
+
+| 단계 | 조건 |
+|---|---|
+| `close` | `active_days ≥ 30` 그리고 `qualifying_turns ≥ 120` |
+| `familiar` | `active_days ≥ 7` 그리고 `qualifying_turns ≥ 30` |
+| `acquainted` | `active_days ≥ 2` 그리고 `qualifying_turns ≥ 6` |
+| `new` | 위 어느 것도 만족하지 않을 때 |
+
+**단계는 뒤로 가지 않는다.** 상태를 갱신하는 SQL이 숫자 컬럼에는 `GREATEST`를 쓰고, 단계에는
+`new < acquainted < familiar < close` 순서를 비교해 더 높은 쪽만 반영한다. 예전에는 단계를 무조건
+덮어써서, 집계가 0을 내는 동안 이미 `acquainted`였던 사용자가 `new`로 **내려갔다**(개발 서버에서
+`qualifying_turns`가 20인데 단계가 `new`인 상태가 관측됐다).
+
+집계 SQL의 `event_type` 값은 반드시 코드 상수와 같아야 한다. 예전에는 SQL이
+`successful_turn`/`qualifying_turn`을 세고 있었는데 **그런 값은 기록되지 않는다.** 그래서 두
+카운터가 항상 0이었고 단계가 영원히 오르지 않았다.
+
+자기 개방의 깊이, 민감한 주제를 말한 양, 기억 개수, 일기 열람률, 결제 여부는 입력으로 쓰지
+않는다. 접속하지 않았다고 단계를 낮추지도 않는다. 단계는 **말투의 친숙함에만** 쓰고 가격·보상·
+기능 잠금·알림 압박·관계를 이용하는 표현에는 절대 쓰지 않는다.
+
+### 8.3 문장
+
+집계와 문장 만들기는 `relationship_project` 작업(`maintenance` 대기열, 하루 경계)이 한다. 채팅
+경로에서 전체 기록을 집계하면 지연이 이력 길이에 비례해 늘어난다. 채팅은
+`relationship_profile_renders` 테이블의 결과만 읽는다(`prompt_text`).
+
+단계별 문장은 코드에 고정돼 있다. 예를 들어 한국어 `acquainted`는
+"이제 서로 조금은 아는 사이야. 너무 어색해하지 않아도 돼."이고, 한국어·영어·일본어 세 벌이 있다.
+문장 앞에는 제목(`[관계]`/`[relationship]`/`[関係]`)과 함께한 날 수가 붙는다.
+
+`relationship_profile_renders`의 고유 키에는 버전 번호가 들어간다. 즉 버전마다 새 행이 쌓이는
+구조라 이력이 보존된다. 덮어쓰기라고 가정하고 `(user_id, locale, renderer_version)`으로 충돌
+처리를 걸면 맞는 제약이 없어서 실패하는데, 그 실패는 예외로 보이지 않고 `lease_expired`로만
+나타난다. 읽을 때는 반드시 최신 하나를 정렬해서 집는다.
+
+집계 작업이 아직 돌지 않은 사용자는 관계 문장 없이 대화한다.
+
+관계 시작 시각의 기준이 되는 값은 `profiles`
+(`relationship_started_at` / `relationship_started_timezone` / `relationship_display_date`)다.
+상태 테이블에 복사해 두 개의 기준을 만들지 않는다. 첫 성공 대화의 3단계 저장에서 확정하고 같은
+트랜잭션에서 환영 일기를 만든다(3.4절).
+
+---
+
+## 9. 최근 대화 구간과 요약
+
+### 9.1 최근 대화 원문
+
+프롬프트에는 `chat_contexts.anchor_message_id`(시작 지점 메시지 번호) 이후의 메시지를 넣는다.
+이 번호는 뒤로만 전진한다.
+
+| 값 | 설정 키 | 기본값 |
+|---|---|---:|
+| 시작 지점을 옮기는 기준 — 메시지 수 | `context_reset_messages` | 40 |
+| 시작 지점을 옮기는 기준 — 글자 수 | `context_reset_chars` | 30,000 |
+| 옮긴 뒤 남기는 메시지 수 | `context_keep_messages` | 20 |
+| 옮긴 뒤 남기는 글자 수 | `context_keep_chars` | 12,000 |
+| 조회 안전 상한 | `context_hard_msg_cap` | 120 |
+
+기준값이 남기는 값보다 훨씬 크기 때문에, 시작 지점을 옮긴 뒤 여러 턴 동안 프롬프트 앞부분이 그대로
+유지되어 캐시가 살아 있다. 매 턴 조금씩 밀어내면 매 턴 캐시가 깨진다. 시작 지점을 옮겨도
+`messages` 원문은 지워지지 않는다.
+
+날짜가 바뀌는 첫 메시지에는 `[8월 6일 수요일]` 같은 절대 날짜 표시를 붙인다. "어제/오늘" 같은
+상대 표현이 아니라 절대 날짜라서 날이 바뀌어도 옛 메시지의 표시가 변하지 않고, 따라서 캐시가
+유지된다.
+
+대화 배열의 첫 항목은 반드시 사용자 메시지여야 한다. 앞으로 밀려난 캐피 메시지(= 커밋된 인사)는
+버리지 않고 회수해 시스템 블록의 `[먼저 건넨 말]`로 넘긴다. 버리면 캐피가 방금 건넨 인사를 모른
+채 또 인사한다.
+
+### 9.2 대화 요약 (구현 완료, 기본 꺼짐)
+
+테이블은 `conversation_checkpoints(user_id, through_message_id, summary, version, source_hash,
+memory_generation)`이다.
+
+- 시작 지점이 옮겨진 턴의 3단계 저장에서, **버려질 구간을 요약하는 작업을 메시지 저장과 같은
+  트랜잭션에** 등록한다(`content` 대기열). 요약은 새 시작 지점 `- 1`까지를 덮고 프롬프트에는 새
+  시작 지점 이후가 남아, 겹치지도 비지도 않는다.
+- `source_hash`는 결정적인 값이다. 이전 요약의 `(id, source_hash)`와 원본 메시지의 정렬된
+  `(id, sender, kind, content)`를 **각 조각 앞에 길이를 붙여** 이어 붙인 뒤 SHA-256으로 계산한다.
+  길이를 붙이지 않으면 `a|bc`와 `ab|c`가 같은 해시를 낼 수 있다. 작업을 맡은 뒤 원본을 다시 읽어
+  해시가 다르면 결과를 버린다.
+- 요약의 입력과 저장은 모두 이름 토큰 상태를 유지하고, 실제 이름이 새어 나갔는지 검사를 통과해야
+  한다.
+- 다음 턴은 최신 요약 하나와 그 이후 메시지를 쓴다. 요약이 늦거나 실패하면 시작 지점을 옮기지
+  않고 기존 구간으로 계속 답한다.
+- **매 10번째 요약은 이전 요약 대신 원본으로 다시 만든다**(`context_checkpoint_reverify_every`).
+  누적 왜곡을 재기 위한 것이다. 원본이 400건(`context_checkpoint_reverify_max_messages`)을 넘으면
+  건너뛴다. 일부 이력만 보고 전체인 것처럼 요약하지 않기 위해서다. 10과 400은 품질 근거가 없는
+  초기값이라 측정 후 조정해야 한다.
+- **요약은 사실이 아니다.** 요약에서 장기 기억을 뽑는 작업은 만들지 않는다. 요약을 사실로
+  되먹이면 근거가 요약으로 오염된다. `checkpoint_repo`에는 그런 함수 자체가 없다.
+- `context_checkpoint_enabled`(기본 꺼짐)로 켜고 끈다. 꺼져 있으면 작업 등록도 조회도 하지 않는다.
+
+`conversation_checkpoints`와 `chat_contexts`에는 `memory_generation` 컬럼이 남아 있다. 이것은
+"잊어줘" 기능이 있던 시절 세대 번호로, 그 기능이 제거된 지금은 항상 0이다. 관련 검사 코드는
+그대로 남아 있다.
+
+### 9.3 요약 v2 (계측 전용)
+
+`app/services/checkpoint_v2.py`는 두 종류를 정의한다.
+
+| 종류 | 설명 |
+|---|---|
+| `window` | 계속 이어지는 요약. `previous_checkpoint_id`로 앞 고리에 연결된다 |
+| `daily_digest` | `activity_date` 하루의 독립 요약. 체인에 연결하지 않고 날짜로 찾는다 |
+
+상태는 `ready` / `published` / `superseded`다. 현재 `shadow_checkpoint` 작업이 하루 경계마다
+두 종류를 만들되 **전부 `ready` 상태로만 만들고 실제 프롬프트에는 쓰지 않는다.** `published`로
+올리는 코드는 없다(15장). 요약 자체는 기존 `checkpoint.summarize()`를 그대로 재사용해 이름 누출
+검사와 마스킹 보호를 공유한다.
+
+---
+
+## 10. 하루 경계에서 도는 작업들
+
+이 절은 눈에 잘 띄어야 해서 따로 뺐다.
+
+한 사용자의 `activity_date`가 바뀐 것이 확인되면 **직전 활동일**을 대상으로 다섯 개의 작업이
+등록된다. 담당 코드는 `app/services/memory_pipeline.py`의
+`enqueue_shadow_checkpoints_on_day_boundary`다.
+
+| 작업 | 대기열 | 하는 일 |
+|---|---|---|
+| `shadow_checkpoint` (`daily_digest`) | `content` | 그날 하루의 독립 요약 |
+| `mem0_reconsolidate` | `memory` | 살아 있는 기억끼리 재판정 |
+| `relationship_project` | `maintenance` | 관계 상태 집계와 문장 만들기 |
+| `contract_compile` | `content` | 대화 약속 추출 |
+| `shadow_checkpoint` (`window`) | `content` | 이어지는 요약의 다음 고리 |
+
+중복 방지 키에 활동일이 들어가므로 같은 날을 두 번 만들지 않는다. 매 턴 걸면 하루에 수십 번
+모델을 부르게 된다.
+
+**등록되는 위치가 중요하다.** 이 다섯 개는 채팅 요청이 직접 거는 것이 아니라, **기억 색인
+작업(`mem0_ingest`)이 성공했을 때의 확정 경로**에서 등록된다(`worker/mem0_jobs.py`의
+`_advance`).
+
+그 결과가 이것이다. **기억 기능이 꺼진 사용자(`mode=legacy`)에게는 이 다섯 개가 하나도 돌지
+않는다.** 기억 색인 작업 자체가 등록되지 않기 때문이다. 여기에는 **대화 약속 추출과 관계 단계
+갱신이 포함된다.** 즉 기억 기능을 켜지 않은 사용자는 약속도 만들어지지 않고 관계 단계도 오르지
+않는다.
+
+같은 확정 경로에서 다음 턴의 기억 색인 작업(`enqueue_next_ingest`)과 프롬프트 계측 작업
+(`enqueue_shadow_trace`)도 함께 등록된다.
+
+---
+
+## 11. 배치 작업 처리
+
+### 11.1 `async_jobs` 테이블의 규칙
+
+담당 코드는 `app/services/jobs.py`다.
 
 ```sql
--- 핵심 컬럼: queue, job_type, user_id, dedup_key, payload, state, priority,
--- available_at, expires_at, attempt/max_attempts, lease_owner/lease_token/lease_until,
--- result_code/result_detail, last_error_*, replay_of
+-- 주요 컬럼: queue, job_type, user_id, dedup_key, payload, priority,
+-- available_at, expires_at, attempt / max_attempts,
+-- lease_owner / lease_token / lease_until,
+-- result_code / result_detail, last_error_*, replay_of
 -- UNIQUE (job_type, dedup_key)
 -- state ∈ ready | running | succeeded | dead | cancelled
--- CHECK: running이면 lease 3필드 NOT NULL, 아니면 전부 NULL
+-- CHECK: running이면 처리 권한 3개 컬럼이 전부 채워져 있고, 아니면 전부 비어 있어야 한다
 ```
 
-설계 불변식(어기면 조용히 깨진다):
+지켜야 하는 규칙:
 
-1. **attempt는 claim 시점에 증가**한다(claim 트랜잭션 안). 크래시로 finalize를 못 한 잡도
-   재클레임마다 카운트돼 반드시 dead에 도달한다(poison job 무한루프 방지).
-2. **claim은 `ready`만** 대상으로 한다(`FOR UPDATE SKIP LOCKED`, priority→available_at→
-   created_at 순). 만료 lease 회수를 claim 쿼리에 섞지 않는다.
-3. **finalize·heartbeat는 fencing UPDATE**: `id + state='running' + lease_owner +
-   lease_token`. 0행이면 lease를 잃은 것이므로 도메인 반영도 하지 않는다. 도메인 쓰기·후속
-   잡 enqueue는 `JobResult.apply_domain`으로 fencing UPDATE와 같은 짧은 트랜잭션에서만 한다.
-4. **reaper는 (1) terminal running → (2) retryable running → (3) terminal ready를 각각 별도
-   트랜잭션·commit**으로 돈다(10초 주기, statement당 50행, 큐별 독립 — retryable backlog가
-   terminal 전이를 굶기지 않고 그 반대도 없다).
-5. terminal(succeeded/dead/cancelled)에서 같은 행을 ready로 되살리지 않는다. **dead 자동 삭제
-   없음.** 운영 replay는 `dedup_key='replay:{old_job_id}:{operation_id}'`인 **새 행** +
-   `replay_of` FK(계보 감사, `20260804_job_replay_lineage.sql`)로만 만든다.
-6. dead 전이는 commit 후 PII 없는 구조화 로그 + Slack best-effort 경보
-   (`(queue,job_type,error_code)` dedup, 창 300초). 경보 실패가 job 상태를 롤백하지 않는다.
-7. retryable 실패는 equal-jitter 지수 backoff: `raw = min(60, 2·2^(attempt-1))`,
-   `delay = uniform(raw/2, raw)`. 유효한 `Retry-After`가 있으면 그보다 일찍 실행하지 않는다.
-8. 외부 호출 중 row lock·세션 0. finalize 전용 DB acquire에는 별도 5초 상한
-   (`job_finalize_timeout_s`) — handler timeout 뒤 풀 30초를 기다리다 lease를 잃는 경로 차단.
-9. `expires_at` 경과는 `cancelled`(늦은 알림을 보내지 않기 위한 상태), 스키마 검증 실패·미지원
-   payload는 즉시 `dead`, 대상 삭제는 `succeeded|cancelled` + 사유 코드.
+1. **시도 횟수는 작업을 집어 갈 때 올린다.** 확정할 때가 아니다. 그래야 프로세스가 죽어서 확정을
+   못 한 작업도 다시 집어 갈 때마다 세어져 반드시 `dead`에 도달한다. 무한히 도는 작업을 막는
+   장치다.
+2. **집어 가는 대상은 `ready`뿐이다.** 정렬은 `priority` → `available_at` → `created_at`이고
+   `FOR UPDATE SKIP LOCKED`를 쓴다. 기한이 지난 처리 권한을 회수하는 일을 이 쿼리에 섞지 않는다.
+3. **확정과 기한 연장은 늦게 돌아온 작업이 결과를 덮어쓰지 못하게 막는 조건부 UPDATE다.**
+   조건은 `id + state='running' + lease_owner + lease_token`이다. 0행이 바뀌면 처리 권한을 잃은
+   것이므로 도메인 반영도 하지 않는다. 도메인 저장과 후속 작업 등록은 `JobResult.apply_domain`을
+   통해 같은 짧은 트랜잭션 안에서만 한다.
+4. **정리 작업(reaper)은 세 단계를 각각 별도 트랜잭션으로 돈다.**
+   (1) 더 이상 재시도할 수 없는 `running` → 종료 처리, (2) 재시도 가능한 `running` → `ready`로
+   되돌리기, (3) 더 이상 재시도할 수 없는 `ready` → 종료 처리. 한 트랜잭션으로 합치면 한 단계의
+   실패가 나머지를 되돌린다. 주기는 10초, 한 문장당 50행이며 대기열마다 따로 돈다.
+5. **최종 상태(`succeeded`/`dead`/`cancelled`)에서 같은 행을 `ready`로 되살리지 않는다.
+   `dead`를 자동으로 지우지도 않는다.** 다시 돌려야 하면 `dedup_key='replay:{원래 작업 id}:
+   {작업 식별자}'`인 **새 행**을 만들고 `replay_of`로 원본과 연결한다.
+6. `dead`가 되면 커밋 후에 개인정보 없는 로그와 Slack 경고를 남긴다. 같은
+   `(queue, job_type, error_code)`는 `alert_dedup_window_sec`(300초) 동안 억제한다. 경고 전송
+   실패가 작업 상태를 되돌리지 않는다.
+7. 재시도 간격은 점점 늘린다. `raw = min(60, 2 × 2^(시도횟수-1))`을 구하고 실제 대기 시간은
+   `raw/2`와 `raw` 사이의 난수다. 서버가 유효한 `Retry-After`를 주면 그보다 이르게 재시도하지
+   않는다.
+8. 외부 호출 중에는 행 잠금도 세션도 잡지 않는다. 확정할 때 DB 연결을 얻는 데는 별도 상한 5초
+   (`job_finalize_timeout_s`)를 둔다. 처리 시간이 초과된 뒤 기본 풀 대기 30초를 기다리다 처리
+   권한을 잃는 경로를 막는다.
+9. `expires_at`이 지나면 `cancelled`가 된다(늦은 알림을 보내지 않기 위한 상태). 형식 검사 실패나
+   지원하지 않는 내용은 즉시 `dead`다.
 
-### 9.2 큐와 실행값
+### 11.2 대기열 종류와 설정값
 
-큐는 6종이며 별도 프로세스가 아니라 `queue` 컬럼 + consumer 내부 고정 슬롯으로 분리한다
-(content가 밀려도 critical/notification 슬롯을 빌려 쓰지 않는다). Redis·Kafka·Celery 없이
-PostgreSQL 큐만 쓴다.
+대기열은 6종이며 별도 프로세스가 아니라 `queue` 컬럼 값과 소비자 내부의 고정 슬롯으로 나뉜다.
+`content`가 밀려도 `critical`이나 `notification` 슬롯을 빌려 쓰지 않는다. Redis·Kafka·Celery
+없이 PostgreSQL만 쓴다.
 
-| queue | 용도 | slots | claim | timeout | lease | heartbeat | attempts |
+| 대기열 | 용도 | 동시 실행 | 한 번에 집어갈 개수 | 처리 제한 시간 | 처리 권한 기한 | 기한 연장 주기 | 재시도 횟수 |
 |---|---|---:|---:|---:|---:|---:|---:|
-| `critical` | 결제(RC) | 2 | 2 | 10s | 30s | 없음 | 3 |
+| `critical` | 결제(RevenueCat) | 2 | 2 | 10s | 30s | 없음 | 3 |
 | `interactive_async` | 대화 후속 | 2 | 2 | 30s | 45s | 15s | 3 |
-| `content` | 일기·요약·계약 | 1 | 1 | 120s | 150s | 20s | 3 |
-| `memory` | 기억 색인·판정 | 2 | 2 | 120s | 180s | 30s | 3 |
+| `content` | 일기·요약·약속 | 1 | 1 | 120s | 150s | 20s | 3 |
+| `memory` | 기억 색인·판정 | 2 | 2 | 120s | 180s | 30s | **8** |
 | `notification` | 저녁 푸시 | 1 | 1 | 10s | 20s | 없음 | 3 |
-| `maintenance` | 정리·투영·벡터 삭제 | 1 | 1 | 60s | 90s | 20s | 3 |
+| `maintenance` | 정리·집계·벡터 삭제 | 1 | 1 | 60s | 90s | 20s | 3 |
 
-- `memory`는 content와 분리된 전용 lane이다 — 같은 큐면 일기 300건이 도는 동안 기억이 통째로
-  밀린다(concurrency 1이라 서로를 막는다, 감사 지적).
-- 이 값은 전부 **env 전용**(app_config hot override 대상 아님 — 소비자 동시성·lease는 기동값
-  이라 런타임 변경 시 이미 잡힌 lease와 어긋난다)이고, 처리량 근거가 아직 없는 보수적
-  초기값이다(부하 측정 후 조정).
-- heartbeat 불변식: `interval <= min(lease/3, 20s)`.
+**`memory`만 재시도 횟수가 8인 이유.** 3이면 재시도 간격이 2초, 4초라 첫 실패로부터 약 6초 만에
+`dead`가 된다. 외부 서비스 장애는 보통 그보다 길다. 그리고 기억 작업이 `dead`로 끝나면 **그
+사용자의 기억이 통째로 멈춘다.** 채팅은 색인 커서가 밀리지 않은 경우에만 새 작업을 걸기 때문에,
+한 번 죽으면 자동으로 복구되지 않는다. 8이면 상한 60초와 합쳐 재시도 창이 약 3분으로 늘어 짧은
+장애를 넘길 수 있다.
 
-### 9.3 consumer와 등록 핸들러
+`content`와 `memory`를 나눠 둔 이유도 같다. 같은 대기열이면 동시 실행이 1이라, 일기 300건이 도는
+동안 기억 작업이 통째로 밀린다. 점검에서 발견된 문제다.
 
-`python -m worker.consumer` 상주 프로세스(`worker/consumer.py`). 등록 핸들러:
+이 값들은 전부 **환경변수 전용**이고 `app_config`로 실행 중에 바꿀 수 없다. 소비자 동시 실행 수와
+처리 권한 기한은 프로세스 시작 시점의 값이라, 실행 중에 바뀌면 이미 잡혀 있는 처리 권한과
+어긋난다. 아직 처리량 근거가 없는 보수적인 초기값이므로 부하 측정 후 조정해야 한다.
 
-| job_type | 큐 | 역할 |
+기한 연장 주기는 `주기 ≤ min(기한/3, 20초)`를 지켜야 한다.
+
+### 11.3 등록된 작업 목록
+
+상주 프로세스는 `python -m worker.consumer`다. 시작할 때 `_register_handlers()`가 작업 처리기를
+등록한다.
+
+| `job_type` | 대기열 | 하는 일 |
 |---|---|---|
-| `mem0_ingest` | memory | 5.2절 추출→임베딩→upsert→registry |
-| `mem0_consolidate` | memory | 5.3절 batch 판정·registry publish |
-| `mem0_provider_delete` | maintenance | non-active 벡터 정리(한 번에 50) |
-| `mem0_reconsolidate` | memory | active끼리 재판정(하루 1회) |
-| `conversation_checkpoint` | content | 8.2절 W11 요약 |
-| `contract_compile` | content | 6.3절 계약 추출 |
-| `relationship_project` | maintenance | 7장 state 집계·locale render |
-| `shadow_prompt_trace` | content | 3.2절 프롬프트 계측(응답 미사용) |
-| `shadow_checkpoint` | content | 8.3절 window/digest ready 생성 |
-| privacy 계열 | maintenance | 11.3절 bounded 삭제·two-sweep 검증 |
+| `mem0_ingest` | `memory` | 6.2절 — 추출·임베딩·벡터 저장·장부 기록 |
+| `mem0_consolidate` | `memory` | 6.3절 — 중복·대체 판정과 장부 반영 |
+| `mem0_reconsolidate` | `memory` | 6.3절 — 살아 있는 기억끼리 재판정(하루 1회) |
+| `mem0_provider_delete` | `maintenance` | 닫힌 기억의 벡터 삭제(한 번에 50건) |
+| `memory_gap_sweep` | `maintenance` | 멈춘 기억 처리를 다시 시작시킨다(아래 참고) |
+| `conversation_checkpoint` | `content` | 9.2절 — 대화 요약 |
+| `shadow_checkpoint` | `content` | 9.3절 — `window` / `daily_digest`를 `ready`로 생성 |
+| `contract_compile` | `content` | 7.3절 — 대화 약속 추출 |
+| `relationship_project` | `maintenance` | 8.3절 — 관계 상태 집계와 문장 생성 |
+| `shadow_prompt_trace` | `maintenance` | 4.2절 — 프롬프트 크기 계측(응답에 쓰지 않음) |
+| `privacy_cleanup` | `maintenance` | 14.3절 — 계정 삭제 시 벡터 정리 |
 
-하루 경계(직전 turn과 activity date가 달라진 시점)에
-`shadow_checkpoint(daily_digest)`·`mem0_reconsolidate`·`relationship_project`·
-`contract_compile`·window checkpoint를 activity date가 dedup key에 들어간 잡으로 건다 —
-매 턴 걸면 하루에 수십 번 LLM을 부른다.
+목록에 없는 `job_type`이 들어오면 즉시 `dead(unknown_job_type)`가 된다. 배포 시점이 어긋났거나
+오타가 있는 경우를 드러내기 위한 것이다.
 
-미지원 job_type은 즉시 `dead(unknown_job_type)`(배포 스큐·오타 관측). 배포 시 SIGTERM →
-새 claim 중단 → 짧은 잡만 grace 안에 완료 → 끝나지 않은 잡은 lease 만료로 다른 host가 회수.
+배포할 때는 SIGTERM을 받아 새 작업을 집어 가는 것을 멈추고, 진행 중인 작업은 마칠 때까지
+기다린다. 끝나지 않은 작업은 처리 권한 기한이 지나면 다른 서버가 회수한다.
 
-### 9.4 스케줄러 — 현행 tick과 이행 상태
+**`memory_gap_sweep`이 왜 따로 필요한가.** 기억 색인은 이어지는 구조다. 성공한 작업이 다음 작업을
+만들고, 채팅은 커서가 밀리지 않았을 때만 새 작업을 건다. 그래서 작업 하나가 `dead`가 되면 그
+사용자의 기억은 사람이 손대기 전까지 영원히 멈춘다. 증상은 오류가 아니라 침묵이다.
 
-- **현행 프로덕션 스케줄러는 15분 크론 틱**(`python -m worker`, `worker/tick.py`)이다:
-  전체 profile을 순회해 로컬 04:00 일기 생성(`diary_gen_claims`로 (유저,대상일) 30분 lease
-  상호배제), 05:00 저녁 푸시 개인화 문구 사전 생성(`push_personalization`, app_config 3-상태
-  롤아웃·이중 검수 fail-closed), 09:00 아침 일기 푸시(**킬스위치 off** —
-  `morning_push_enabled=False`, 코드 유지), 20:00 저녁 안부 푸시(FCM 직접 발송), RevenueCat
-  inbox 드레인(틱당 200건, dependency 예약 슬롯 50).
-- `user_schedules`(user×kind unique, kind 4종 `daily_digest | diary_generate |
-  diary_morning_notification | evening_checkin`, timezone snapshot·`next_due_at`·revision)는
-  **테이블·백필·대사까지만 구현됐다.** due 인덱스 dispatcher는
-  `schedule_dispatcher_enabled=False`(기본 off)이며, schedule 4종 count=활성 profile 수·중복
-  0·두 경로 결과 동일이 확인되기 전에는 full-profile scan을 제거하거나 읽기 경로를 전환하지
-  않는다(잘못 켜면 그 사용자만 조용히 일기·알림을 못 받는다).
-- 저녁 푸시는 notification 큐로의 이관 전이며 tick이 직접 발송한다(at-most-once: 발송 marker
-  선점 후 실패는 재시도하지 않고 당일 손실 수용). scheduler는 `/etc/moly-worker-host` marker가
-  있는 한 EC2에서만 실행한다.
+그런데 **그냥 다시 등록해서는 풀리지 않는다.** 색인 작업의 중복 방지 키는 `(사용자, 턴 번호)`로
+고정이고, 등록 SQL의 충돌 무시는 작업 상태와 무관하게 영구적이다. 즉 한 번 죽은 턴은 어떤 코드로
+다시 등록해도 조용히 무시된다(재등록이 `None`을 돌려주는 것으로 확인했다). 그래서 원본을 그대로
+두고 `replay_of`로 연결된 **새 작업**을 만드는 방법(`jobs.replay_dead`)만 통한다.
+
+이 작업이 찾는 대상은 `state='dead'`이고 `queue='memory'`이며, 사용자의 상태가 `legacy`가
+아니고 준비가 끝났으며(`bootstrap_status='ready'`) 색인 커서가 실제로 밀려 있는 경우다. 이미
+되살린 작업은 다시 만들지 않으므로 여러 번 돌아도 안전하다. 한 번에 최대 50명
+(`SWEEP_LIMIT`)까지 처리한다. 되살릴 때 쓰는 식별자는 원본 작업 ID에서 계산하므로(uuid5) 같은
+작업을 두 번 훑어도 새 작업이 겹치지 않는다.
+
+등록은 정해진 시각 작업(11.4절)이 15분마다 한다. `memory_sweep_enabled`(기본 켜짐)로 끌 수 있고,
+중복 방지 키는 15분 단위 시각 문자열이다.
+
+### 11.4 정해진 시각에 도는 작업
+
+현재 운영에서 쓰는 방식은 **15분마다 도는 크론 작업**이다(`python -m worker`,
+`worker/tick.py`). 전체 프로필을 훑으며 각 사용자의 현지 시각을 보고 아래를 처리한다.
+
+| 현지 시각 | 하는 일 |
+|---:|---|
+| 04:00 | 일기 생성. `diary_gen_claims` 테이블로 (사용자, 대상일) 단위 30분 짜리 중복 방지를 건다 |
+| 05:00 | 저녁 푸시에 쓸 개인화 문구를 미리 만든다. `app_config`의 3단계 확산 설정, 이중 검수 |
+| 09:00 | 아침 일기 푸시. **현재 꺼져 있다**(`morning_push_enabled=False`). 코드는 남아 있다 |
+| 20:00 | 저녁 안부 푸시. FCM으로 직접 보낸다 |
+
+이와 별개로 매 틱마다 RevenueCat 수신함을 처리하고(한 틱에 200건, 그중 50건은 선행 조건이 있는
+건들을 위해 예약), 기억 재시작 작업을 등록하고, 데드맨 신호와 비용 경고를 보낸다.
+
+`user_schedules` 테이블(사용자 × 종류 유니크, 종류는 `daily_digest` / `diary_generate` /
+`diary_morning_notification` / `evening_checkin` 4종, 시간대 기록과 `next_due_at`과 개정 번호를
+가짐)은 **테이블과 데이터 채우기, 대조까지만 만들어져 있다.** 이 인덱스를 보고 대상자를 뽑는
+방식은 `schedule_dispatcher_enabled=False`(기본 꺼짐)라 동작하지 않는다. 4종의 개수가 활성
+프로필 수와 같고, 중복이 0이며, 두 방식의 결과가 같다는 것을 확인하기 전에는 전체 프로필 훑기를
+없애거나 읽기 경로를 바꾸지 않는다. 잘못 켜면 그 사용자만 조용히 일기와 알림을 못 받는다.
+
+저녁 푸시는 아직 `notification` 대기열로 옮기지 않았고 틱이 직접 보낸다. 발송 표시를 먼저 잡고
+실패하면 재시도하지 않아 그날 분은 손실을 받아들인다(같은 알림을 두 번 보내지 않는 쪽을 택했다).
 
 ---
 
-## 10. 데이터 모델 요약
+## 12. 테이블 목록
 
-물리 계약의 정본은 `ERD.md`다. 여기서는 소유 관계만 정리한다.
+테이블의 정확한 정의는 `docs/ERD.md`가 갖는다. 여기서는 어느 기능이 어느 테이블을 쓰는지만
+정리한다.
 
-| 그룹 | 테이블 | 역할 |
+| 묶음 | 테이블 | 역할 |
 |---|---|---|
-| 대화 원본 | `messages` | 원문 정본. `turn_seq/turn_position` 턴 좌표. 수정·삭제 없음 |
-| 대화 상태 | `chat_contexts` | 앵커, `context_revision`, `last_committed_turn_seq`, `last_active_at` |
-| 직렬화 | `chat_active_turns` | user당 1행 lease(turn_seq·idempotency_key·request_hash·token) |
-| 멱등 | `idempotency_keys` | 응답 24h/tombstone 30d, `request_hash`, `terminal_status`, redaction |
-| 참조·연속성 | `chat_response_references` / `conversation_focus` | diary 카드 영속·담화 focus(15분/+6턴) |
-| 일기 회상 | `diary_recall_documents` / `diary_claim_sources` | 검색 projection(embedding+search_text) / 일기 span의 근거 message 연결 |
-| 기억 v2 | `memory_pipeline_states` / `mem0_ingest_candidates(+_sources)` / `mem0_memory_registry` / `mem0_memory_sources` | 5장 |
-| 벡터 | `vecs.moly_memories_v2` | mem0 벡터 컬렉션(1536, HNSW). migration 소유 |
-| 계약 | `user_interaction_contracts` / `user_interaction_contract_items` | 6장 |
-| 관계 | `relationship_events` / `user_relationship_states` / `relationship_profile_renders` | 7장 |
-| 요약 | `conversation_checkpoints` | W11 체인 요약(라이브) · checkpoint v2 shadow 산출물 |
-| 잡 | `async_jobs` | 9장. `replay_of` 계보 |
-| 스케줄 | `user_schedules` | 9.4절(읽기 경로 미전환) |
-| 비용 | `ai_price_catalog` / `ai_usage_ledger` | 11.2절 |
-| 삭제 | `privacy_subject_barriers` / `privacy_ledger_events` | 11.3절 |
-| 기타 | `user_daily_stats` / `greetings` / `diaries` / `diary_gen_claims` | quota 누적 / 선발화 / 일기(`kind=welcome|shared_day|capi_day`) / 일기 생성 상호배제 |
+| 대화 원문 | `messages` | 원문. `turn_seq`/`turn_position`으로 턴을 표현. 수정·삭제 없음 |
+| 대화 상태 | `chat_contexts` | 시작 지점 메시지 번호, `context_revision`, `last_committed_turn_seq`, `last_active_at` |
+| 턴 직렬화 | `chat_active_turns` | 사용자당 1행. 처리 권한(턴 번호·요청 키·요청 해시·토큰) |
+| 재전송 대비 | `idempotency_keys` | 응답 24시간 / 표시만 30일, `request_hash`, `terminal_status` |
+| 참조·연속성 | `chat_response_references`, `conversation_focus` | 일기 카드 저장 / "그거" 해석용 상태(15분·6턴) |
+| 일기 검색 | `diary_recall_documents`, `diary_claim_sources` | 검색용 파생 데이터(임베딩 + 검색 문자열) / 일기 근거 메시지 |
+| 장기 기억 | `memory_pipeline_states`, `mem0_ingest_candidates`(+`_sources`), `mem0_memory_registry`, `mem0_memory_sources` | 6장 |
+| 벡터 | `vecs.moly_memories_v2` | 1536차원 벡터, HNSW 인덱스. 마이그레이션이 만든다 |
+| 대화 약속 | `user_interaction_contracts`, `user_interaction_contract_items` | 7장 |
+| 관계 | `relationship_events`, `user_relationship_states`, `relationship_profile_renders` | 8장 |
+| 요약 | `conversation_checkpoints` | 9.2절(실제 사용) · 9.3절(계측용 산출물) |
+| 계측 | `shadow_prompt_traces` | 4.2절 프롬프트 크기·캐시 가능 비율 |
+| 작업 | `async_jobs` | 11장. `replay_of`로 원본과 연결 |
+| 예정 시각 | `user_schedules` | 11.4절(읽기 경로 미전환) |
+| 비용 | `ai_price_catalog`, `ai_usage_ledger` | 14.2절 |
+| 계정 삭제 | `privacy_subject_barriers`, `privacy_ledger_events` | 14.3절 |
+| 그 밖 | `user_daily_stats`, `greetings`, `diaries`, `diary_gen_claims`, `push_personalizations` | 하루 토큰 누적 / 먼저 건넨 인사 / 일기 / 일기 생성 중복 방지 / 저녁 푸시 문구 |
 
-`provider_backoffs`는 모델·테이블만 있고 갱신·조회 경로가 아직 없다(12장).
+`provider_backoffs`는 테이블과 모델만 있고 이 값을 읽거나 쓰는 코드가 없다(15장).
 
 ---
 
-## 11. 운영
+## 13. 운영
 
-### 11.1 타임아웃·예산 총괄
+### 13.1 제한 시간 정리
 
 | 항목 | 값 | 근거·비고 |
 |---|---:|---|
-| chat end-to-end deadline | 8.0s | dev 실측 p90 기반(4.1절). app_config override 가능 |
-| final reserve | 2.5s | 2홉 p50 1.45s |
-| per-tool timeout | 800ms | |
-| tool inflight(프로세스) | 8 | 측정 후 조정 |
-| decide 출력 상한 | 192 tok | 부등식 3.3절 |
-| tool result 턴 합계 | 600 tok | 부등식 3.3절 |
-| v2 회상 경계 | 1.5s | 챗 wait_for |
-| LLM per-request | min(60s, 남은 deadline) | |
-| mem0 ingest | 40s = 15/5/12/5/3 | extract/embed/upsert/finalize/wrapper |
-| mem0 consolidation | 45s = 6/24/4/5/6 | search/classify/validate/finalize/wrapper |
-| context summary | 75s = 55/5/5/10 | model/verify/finalize/wrapper |
-| job backoff | base 2s · cap 60s | equal-jitter |
-| reaper | 10s 주기 · 50행 | 최단 lease(20s)보다 짧게 |
-| finalize DB acquire | 5s | lease 상실 경로 차단 |
+| 채팅 전체 마감 | 8.0s | 실제 측정 기반(5.1절). `app_config`로 12초까지 조정 가능 |
+| 최종 호출용 예약분 | 2.5s | 두 번째 호출의 절반이 1.45초 안에 끝남 |
+| 첫 호출 실패 후 다시 부르는 최소 잔여 | 1.5s | `FALLBACK_MIN_S` (5.2절) |
+| 도구별 제한 시간 | 800ms | |
+| 프로세스 전체 동시 도구 수 | 8 | 측정 후 조정 필요 |
+| 첫 호출 출력 상한 | 192 토큰 | 4.3절 계산 |
+| 도구 결과 턴 합계 | 600 토큰 | 4.3절 계산 |
+| 장기 기억 검색 경계 | 1.5s | 채팅에서 `wait_for`로 자름 |
+| 모델 호출 1회 | min(60s, 남은 시간) | `llm_timeout_s` |
+| 기억 색인 단계 배정 | 15 / 5 / 12 / 5 / 3 | 추출·임베딩·저장·확정·마무리 |
+| 기억 판정 단계 배정 | 6 / 24 / 4 / 5 / 6 | 검색·판정·검증·확정·마무리 |
+| 작업 재시도 간격 | 기준 2s · 상한 60s | 절반~전체 사이의 난수 |
+| 정리 작업 | 10초 주기 · 50행 | 가장 짧은 처리 권한 기한(20s)보다 짧게 |
+| 확정용 DB 연결 획득 | 5s | 처리 권한을 잃는 경로 차단 |
 
-### 11.2 비용 회계 (`ai_price_catalog` / `ai_usage_ledger`)
+### 13.2 비용 기록
 
-- **사용자 quota와 회사 원가는 다른 값이다.** quota는 `chat._billable`의 weighted unit,
-  원장은 provider 단가 기반 실원가(USD). 백그라운드 장애가 대화 quota를 갉아먹는 경로를
-  만들지 않는다.
-- 단가는 코드 상수가 아니라 **effective-dated catalog**(micro-USD per 1M tokens, 변경은 새
-  version 행 추가로만). 원장 행은 `price_catalog_version`을 저장해 가격 변경 뒤에도 과거
-  비용을 재현한다.
-- 호출 전 `started` 기록 → 완료 시 usage/비용 fenced update. 응답을 잃은 호출은 0원으로
-  숨기지 않고 `unknown_usage` + 단가 기반 상한 추정으로 보존한다. 상태:
-  `started | completed | unknown_usage | failed`. lane `foreground | background`, purpose별
-  (chat/tool_decide/tool_final/mem0 extract·embed·classify/checkpoint/diary 등) 귀속.
-- 필요한 단가가 NULL인데 토큰이 0이 아니면 비용을 확정하지 않고 None(공짜 집계 사고 방지).
-- cache-write는 provider가 주지 않는 추정값이며 표시를 남긴다 — "정확한 실비"라고 부르지
-  않는다. 원장 기록 실패가 대화·잡을 깨뜨리지 않는다(best-effort).
+`ai_price_catalog`와 `ai_usage_ledger`가 담당한다.
 
-### 11.3 계정 삭제와 프라이버시
+- **사용자 한도와 회사 원가는 다른 값이다.** 한도는 `chat._billable`의 가중치가 곱해진 값이고,
+  장부는 실제 단가 기준 USD다. 배경 작업의 장애가 사용자 대화 한도를 갉아먹는 경로를 만들지
+  않는다.
+- 단가는 코드 상수가 아니라 **적용 시작일이 있는 표**다. 값을 바꿀 때는 새 버전 행을 추가한다.
+  장부의 각 행은 `price_catalog_version`을 저장해, 나중에 가격이 바뀌어도 과거 비용을 그대로
+  재현할 수 있다.
+- 호출 **전에** `started` 행을 만들고, 완료되면 사용량과 비용을 조건부 UPDATE로 확정한다. 상태는
+  `started` / `completed` / `unknown_usage` / `failed`다. 응답을 잃어버린 호출을 0원으로 숨기지
+  않고 `unknown_usage`로 남긴다.
+- 필요한 단가가 비어 있는데 토큰이 0이 아니면 비용을 확정하지 않고 비워 둔다. 공짜로 집계되는
+  사고를 막기 위한 것이다.
+- 구분자: `lane`은 `foreground`(사용자 요청) / `background`(배치), `purpose`는
+  `chat` / `tool_decide` / `tool_final` / `memory_extract` / `memory_consolidate` /
+  `contract_compile` 등이다.
+- 캐시 쓰기 토큰은 추정값이며 그 사실을 남긴다. "정확한 실비"라고 부르지 않는다. 장부 기록 실패가
+  대화나 작업을 깨뜨리지 않는다.
 
-인증 계정 삭제 자체는 moly-auth 소유다. moly-backend는 삭제 장벽과 파생 데이터 정리를 맡는다.
+### 13.3 계정 삭제
 
-- `privacy_subject_barriers` — `state(active | deleting | deleted)` + **epoch**(삭제 사이클
-  세대. 삭제 시작마다 +1 — 이전 epoch의 pending/running 잡은 authorize에서 걸린다).
-  `privacy_barrier_mode`: `compat`(행 없으면 허용 — backfill 중) / `enforced`(행 없으면
-  fail-closed). active 행 backfill·count 검증 두 sweep 통과 후에만 enforced로 올린다.
-  순서 주의: 현행 코드가 "행 존재=차단"으로 읽던 시기의 사고를 막기 위해 (a) 컬럼 additive →
-  (b) status-aware 코드 → (c) active 행 backfill → (d) enforced 전환 순서를 지켰다.
-- `begin_subject_deletion`은 장벽을 `deleting`으로 세우면서 같은 문에서 즉시 비식별화한다:
-  멱등 응답 payload NULL·`terminal_status='redacted'`, reference 카드 unavailable·metadata
-  제거, `async_jobs` payload 제거·ready 잡 cancel.
-- 실제 삭제는 coordinator 잡이 **bounded**(`delete_by_user(limit)` 후 continuation 잡),
-  **two-sweep**(늦게 도착한 쓰기를 잡기 위해 연속 두 번 0이어야 완료), **멱등**으로 수행한다.
-  완료 후 `mark_subject_deleted`.
-- 챗 진입(`ensure_subject_active`)·worker publish·푸시 개인화 생성이 모두 장벽을 본다.
+인증 계정 자체의 삭제는 moly-auth가 담당한다. moly-backend는 차단과 파생 데이터 정리를 맡는다.
 
-### 11.4 킬스위치와 관측
+- `privacy_subject_barriers` — 상태는 `active` / `deleting` / `deleted`이고, 삭제 사이클마다
+  1씩 오르는 `epoch`을 갖는다. 이전 사이클의 대기·실행 중 작업은 `authorize_job`에서 걸린다.
+- `privacy_barrier_mode` 설정: `compat`은 행이 없으면 허용(데이터를 채우는 중), `enforced`는 행이
+  없으면 거부한다. `active` 행 채우기와 개수 검증 두 번을 통과한 뒤에만 `enforced`로 올린다.
+  순서가 중요하다. 예전 코드가 "행이 있으면 차단"으로 읽던 시기의 사고를 막기 위해 (a) 컬럼 추가
+  → (b) 상태를 보는 코드 → (c) `active` 행 채우기 → (d) `enforced` 전환 순서를 지켰다.
+- `begin_subject_deletion`은 차단 상태를 `deleting`으로 세우면서 같은 트랜잭션에서 바로 개인
+  식별 정보를 지운다. 재전송 대비 응답 본문을 비우고 `terminal_status='redacted'`로 바꾸며,
+  일기 카드를 `unavailable`로 만들고 부가 정보를 지우고, 대기 중인 작업의 내용을 비우고
+  `ready` 상태 작업을 `cancelled`로 바꾸며, 저녁 푸시 문구를 지운다.
+- 벡터 삭제는 `privacy_cleanup` 작업이 맡는다. **한 번에 200건씩만** 지우고(`DELETE_BATCH`),
+  남으면 다음 회차 작업을 만든다. 그리고 **연속 두 번**(`REQUIRED_EMPTY_SWEEPS`) 비어 있어야
+  완료로 본다. 늦게 도착한 쓰기를 잡기 위해서다. 완료되면 `mark_subject_deleted`를 부른다.
+  > 지금은 이 작업의 **첫 회차가 등록되지 않는다.** 등록 코드가 `begin_subject_deletion`의
+  > `return` 문 뒤에 있어 실행되지 않는다(15장).
+- 채팅 진입(`ensure_subject_active`), 작업 확정, 푸시 문구 생성이 모두 이 차단 상태를 본다.
 
-| 킬스위치 | 기본 | 효과 |
+### 13.4 기능을 끄고 켜는 설정
+
+| 설정 | 기본값 | 효과 |
 |---|---|---|
-| `agent_enabled` + `agent_canary_pct` | False / 0 | 도구 루프. off면 단발 경로와 동일 |
-| `context_checkpoint_enabled` | False | W11 요약(잡·조회 모두 없음) |
-| `current_turn_context_enabled` (+`current_context_last_active_enabled`) | False | 현재 턴 컨텍스트 블록 |
-| `chat_prompt_cache_enabled` | True | breakpoint 캐싱(Anthropic 경로) |
-| `turn_usage_v2_enabled` | True | 턴 내 전 호출 합산 차감(off=주 호출만, 롤백 경로) |
-| `schedule_dispatcher_enabled` | False | user_schedules due dispatcher(현재 tick 유지) |
+| `agent_enabled` + `agent_canary_pct` | False / 0 | 도구 호출. 꺼지면 모델을 한 번만 부르는 경로와 같다 |
+| `context_checkpoint_enabled` | False | 대화 요약(작업 등록도 조회도 하지 않음) |
+| `current_turn_context_enabled` (+ `current_context_last_active_enabled`) | False | 현재 상태 블록 |
+| `chat_prompt_cache_enabled` | True | 캐시 지점 지정(Anthropic 경로) |
+| `turn_usage_v2_enabled` | True | 턴 내 모든 호출 합산 차감. 끄면 첫 호출만 차감 |
+| `memory_sweep_enabled` | True | 멈춘 기억 처리 자동 재시작 |
+| `schedule_dispatcher_enabled` | False | `user_schedules` 기반 대상자 선정(현재는 틱 유지) |
 | `morning_push_enabled` | False | 아침 일기 푸시 |
-| `privacy_barrier_mode` | compat | 장벽 fail-closed 전환 |
-| `push_personalization_rollout` (app_config) | off | 저녁 푸시 개인화(off/allowlist/all) |
+| `privacy_barrier_mode` | `compat` | 삭제 차단을 엄격 모드로 전환 |
+| `push_personalization_rollout` (`app_config`) | off | 저녁 푸시 개인화(off / allowlist / all) |
 
-관측:
+### 13.5 로그
 
-- 턴 구조화 로그 1줄(유저 id·본문 미기록): `phase1_ms / context_ms / llm_ms / repair_ms /
-  egress_ms / phase2_ms / total_ms / prompt·cache_read·cache_write tokens /
-  cache_read_ratio / billable / lang 버킷 / used_tools / replay`. 언어별 분리 집계가 계약이다
-  (메모리 `dialogue-eval-lang-split`).
-- 잡: 큐별 ready/running/dead·oldest age(`/health` 노출), dead Slack 경보, `job_telemetry`.
-- `worker_last_success` 하나로 전체를 정상 판정하지 않는다 — deadman은 "기대된 작업이 기한
-  안에 수렴했다"를 검사한다.
+턴마다 구조화 로그 한 줄을 남긴다(`chat_turn_metrics`). 사용자 ID와 메시지 본문은 절대 넣지
+않는다.
+
+```text
+replay / total_ms / phase1_ms / context_ms / llm_ms / repair_ms / egress_ms / phase2_ms /
+prompt_tokens / cache_read_tokens / cache_write_tokens / cache_read_ratio /
+billable / lang / used_tools
+```
+
+- `repair_ms`는 **항상 0이다.** 한자·가나를 모델로 복원하던 처리가 실제 응답 경로에서 빠졌기
+  때문이다(15장). 변수는 남아 있고 값은 갱신되지 않는다.
+- `lang` 값으로 언어별 분리 집계를 하는 것이 계약이다. 언어에 따라 출력 토큰 수가 달라 하루에
+  가능한 턴 수가 달라지기 때문이다.
+
+작업 쪽은 대기열별 `ready`/`running`/`dead` 개수와 가장 오래된 항목의 나이를 `/health`로 내보내고,
+`dead`가 되면 Slack 경고를 보내며, `job_telemetry`에 결과를 남긴다.
+
+`worker_last_success` 하나로 전체가 정상이라고 판정하지 않는다. 데드맨 신호는 "기대한 작업이
+기한 안에 끝났는가"를 검사한다.
 
 ---
 
-## 12. 설계했으나 구현하지 않았거나 제거한 것
+## 14. 이 문서를 읽을 때 주의할 것
 
-문서로만 존재하던 설계와 현재 코드의 차이. 새로 읽는 사람은 이 목록의 항목을 **현재 시스템에
-없는 것**으로 읽어야 한다.
+이 시스템은 아직 개발 서버에서 검증 중인 부분이 많다. 특히 아래는 확정된 값이 아니다.
 
-**제품 판단으로 제거:**
+- 기억 검색의 상대 거리 기준(0.08)과 최소 유지 개수(5)
+- 대기열별 동시 실행 수·처리 권한 기한·재시도 횟수 전부
+- 요약 재검증 주기(10)와 원본 상한(400건)
+- 프로세스 전체 동시 도구 수(8)
+- 도구 결과 토큰 추정 함수(`estimate_tokens`)의 정확도. 실제 토크나이저가 아니라
+  "한중일 문자 1자 ≈ 1토큰, ASCII 4자 ≈ 1토큰"의 근사값이다. 예산은 비용 상한이라 크게 잡히는
+  쪽이 안전한 방향이다.
 
-- **대화형 망각 전체** — `forget_memory` 제어 도구, `/memory/forget` API, forget marker·
-  suppression·closure 체계. "잊어줘"를 대화로 처리하는 것은 의미가 없다는 제품 판단
-  (2026-08-06). registry의 `_CONTROL_TOOLS`는 비어 있고, 계정 삭제만 완결적으로 지원한다.
-  `finish_response`의 `control_intents(forget|pin)` 필드도 스키마에서 함께 제거됐다 —
-  적용 경로 없는 능력을 모델에 광고하지 않는다(테스트로 고정).
-- **legacy 정규화 기억 구조** — `memory_facts/evidence/insights(+sources)`,
-  `memory_source_turns(+messages)/closures`, `memory_forget_markers`,
-  `memory_recall_suppressions/suppression_operations/episodic_messages`,
-  `relationship_profiles(+sources)` 13종과 이관 다리 `legacy_recall_tombstones`는 dev에서
-  **삭제됐다**(`20260806_drop_legacy_memory.sql`, `20260806_drop_legacy_tombstones.sql`).
-  legacy 읽기 경로도 없다. 구 문서의 W8~W10(정규화 fact/forget/cutover) 계약은 이
-  구조와 함께 폐기됐고, 의미 장기기억은 mem0 v2(5장) 하나다.
-- **한자·가나 복원 LLM 재호출**(`_repair_foreign_ko`) — 하드 데드라인·최대 2회 호출 계약과
-  충돌해 결정적 제거(`strip_foreign_ko`)로 대체.
+운영 환경에는 아직 기억 v2 테이블과 데이터가 없다. 전환 절차는 따로 정의해야 한다.
 
-**설계만 있고 구현되지 않음(코드에 근거 없음):**
+---
 
-- `recall_timeline` 원문 조회 도구, `pending_bridge` 주입(segment 분류만 정의),
-  checkpoint v2의 pending anchor·activate CAS(`chat_contexts`에 관련 컬럼 없음 — v2는 shadow
-  `ready` 생성까지만).
-- `user_interaction_contract_renders`/`user_interaction_contract_item_sources` 분리 테이블 —
-  실제는 `(user_id, locale)`별 계약 행 + item의 `source_message_id` 단일 컬럼.
-- `user_relationship_state_renders`의 profile_relationship_revision 복합 키 설계 — 실제는
-  `relationship_profile_renders`(user·prompt_revision·locale·renderer_version).
-- 9-queue 분리(`memory_ingest/memory_consolidation/interaction_profile/context_summary/
-  diary/privacy` 등) — 실제는 6-queue(9.2절).
-- `async_jobs`의 provider/model/lane/`eligible_at` 라우팅 컬럼과 `provider_backoffs` 공유
-  backoff 배선, `ai_rate_windows` 분당 예약 — 미구현(`provider_backoffs`는 테이블만 존재).
-- `user_schedules` due dispatcher 읽기 경로 전환(9.4절 — 기본 off), notification 큐를 통한
-  푸시 발송(현재 tick 직접 발송).
-- explicit prompt cache 모드·breakpoint 검증(현재 OpenAI implicit만),
-  15,000 token 프롬프트 hard cap과 블록별 tokenizer 예산 강제(현재는 문자 상한과 도구 예산만),
-  `memory-golden-v1` 200케이스 golden set·`dev-load-v1` 부하 manifest(계획 단계).
-- 구 문서의 활성화 게이트·cutover 절차(cohort mode 전환, dual-write rollback soak 등)는
-  설계 검토 이력이다. 실제 dev는 전 사용자 v2 전환·legacy DROP까지 완료했고, prod 적용
-  절차는 별도로 다시 정의해야 한다(prod에는 v2 테이블·백필이 없다).
+## 15. 설계만 하고 만들지 않은 것 / 없앤 것 / 지금 코드에 남아 있는 문제
 
-**설계값과 다르게 확정된 값:**
+새로 읽는 사람은 이 장의 항목을 **현재 시스템에 없는 것**으로 읽어야 한다.
 
-- `agent_turn_deadline_s` 5.0 → **8.0**(실측 근거 4.1절).
-- mem0 회상: overfetch 25→**40**, 목표 K 5→**limit 8·MIN_KEEP 5**, score threshold 대신
-  **상대 거리 margin 0.08 + 절대 상한 0.90**.
-- focus 만료 24시간/20턴 → **15분/+6턴**.
-- 일 한도 150k 유지 확정(2026-08-03), 캐시 읽기 가중 0.5→0.1·쓰기 0→1.25 반영 완료.
+### 15.1 제품 판단으로 없앤 것
+
+- **대화로 기억을 지우는 기능 전체** — `forget_memory` 제어 도구, `/memory/forget` API, 삭제
+  표시·억제·닫기 체계. "잊어줘"를 대화로 처리하는 것은 의미가 없다는 제품 판단(2026-08-06).
+  제어 도구 목록은 비어 있고, 계정 삭제만 완결적으로 지원한다. `finish_response`의
+  `control_intents` 필드도 함께 스키마에서 빠졌다. 적용할 수 없는 기능을 모델에게 알리지 않기
+  위해서이며, 테스트로 고정돼 있다.
+- **예전 정규화 기억 구조** — `memory_facts` / `memory_evidence` / `memory_insights`(+`_sources`),
+  `memory_source_turns`(+`_messages`) / `memory_source_closures`, `memory_forget_markers`,
+  `memory_recall_suppressions` / `memory_suppression_operations` / `memory_episodic_messages`,
+  `relationship_profiles`(+`_sources`) 13종과 이관용 `legacy_recall_tombstones`는 개발 DB에서
+  **삭제됐다**(`db/migrations/20260806_drop_legacy_memory.sql`,
+  `20260806_drop_legacy_tombstones.sql`). 읽는 경로도 없다. 의미 기반 장기 기억은 6장의 구조
+  하나뿐이다.
+- **한자·가나를 모델로 다시 써서 고치는 처리** — 세 번째 모델 호출이 필요해 마감 시각 및 "한 턴에
+  최대 두 번 호출" 규칙과 충돌한다. `_repair_foreign_ko` 함수와 그 테스트는 `app/services/chat.py`
+  와 `tests/test_chat_caching.py`에 **아직 남아 있지만, 실제 응답 경로에서 이 함수를 부르는 곳은
+  없다.** 지금은 `text_clean.strip_foreign_ko`로 해당 글자를 지우기만 한다. 그래서 턴 로그의
+  `repair_ms`는 항상 0이다(13.5절).
+
+### 15.2 설계만 있고 만들지 않은 것
+
+- `recall_timeline` 원문 조회 도구.
+- 프롬프트 조각 종류 `pending_bridge` — 분류만 정의돼 있고 만들어 내는 코드가 없다.
+- 요약 v2를 실제로 쓰기 위한 전환 처리 — `chat_contexts`에 관련 컬럼이 없다. `ready` 생성까지만
+  있다.
+- `user_interaction_contract_renders` / `user_interaction_contract_item_sources`로 테이블을
+  나누는 설계 — 실제로는 `(user_id, locale)`별 약속 행과 항목의 `source_message_id` 컬럼 하나다.
+- `user_relationship_state_renders`의 복합 키 설계 — 실제 테이블은
+  `relationship_profile_renders`다.
+- 대기열 9종 분리(`memory_ingest` / `memory_consolidation` / `interaction_profile` /
+  `context_summary` / `diary` / `privacy` 등) — 실제는 6종이다(11.2절).
+- `async_jobs`의 provider·model·lane·`eligible_at` 같은 라우팅 컬럼과 `provider_backoffs` 연동,
+  분당 호출 예약(`ai_rate_windows`) — 만들지 않았다. `provider_backoffs`는 테이블과 모델만 있다.
+- `user_schedules` 기반 대상자 선정으로의 전환(11.4절), 저녁 푸시를 `notification` 대기열로
+  옮기는 것.
+- 캐시 지점을 코드로 지정하는 방식(현재는 OpenAI 자동 캐시만), 프롬프트 15,000토큰 상한과
+  블록별 토큰 예산 강제(현재는 글자 상한과 도구 결과 예산만 있다), 회상 정답 200건 평가 세트,
+  부하 테스트 정의.
+- `mem0_budget.context_summary_budget`(75초 = 55 / 5 / 5 / 10) — 함수는 정의돼 있지만 이 함수를
+  부르는 코드가 없다. 요약 작업은 대기열의 처리 제한 시간만 쓴다.
+
+### 15.3 설계값과 다르게 확정된 값
+
+- `agent_turn_deadline_s`: 5.0 → **8.0** (근거는 5.1절).
+- 기억 검색: 받아오는 개수 25 → **40**, 목표 개수 5 → **최종 8건 · 최소 5건 보장**, 절대 점수
+  기준 대신 **상대 거리 0.08 + 절대 상한 0.90**.
+- "그거" 해석용 상태 만료: 24시간 / 20턴 → **15분 / 6턴**.
+- 하루 한도 150,000 유지 확정(2026-08-03). 캐시 읽기 가중치 0.5 → 0.1, 캐시 쓰기 0 → 1.25 반영
+  완료.
+
+### 15.4 지금 코드에 남아 있는 문제 (2026-08-06 확인)
+
+문서를 쓰면서 코드에서 확인된 것이다. 고치기 전까지는 아래가 실제 동작이다.
+
+아래 세 가지는 **확인 직후 고쳤다.** 어떤 문제였는지는 같은 실수를 막기 위해 남겨 둔다.
+
+- ~~일기 검색용 임베딩이 만들어지지 않는다~~ → **고침.** `diary_recall_repo`가
+  `diary_recall_embed` 작업을 등록하는데 처리기가 어디에도 없어서, 집어 가는 즉시
+  `dead(unknown_job_type)`가 되고 `diary_recall_documents.embedding`이 항상 비어 있었다.
+  그래서 `recall_diaries`의 유사도 검색이 통째로 동작하지 않고 `search_text ILIKE` 부분일치만
+  남아 있었다. `worker/diary_recall_jobs.py`를 만들어 처리기를 등록했다. 같은 실수를 다시
+  잡으려고 "만드는 곳이 있는데 처리기가 없는 작업"을 찾는 검사를
+  `tests/test_every_job_type_is_reachable.py`에 추가했다.
+- ~~계정 삭제 시 벡터 정리 작업이 시작되지 않는다~~ → **고침.** `privacy.begin_subject_deletion`
+  에서 `privacy_cleanup`을 등록하는 코드가 `return` 뒤에 있어 실행되지 않았다. `return` 앞으로
+  옮겼다.
+- ~~삭제된 테이블을 참조하는 쿼리가 남아 있다~~ → **고침.** `chat_references`의
+  `persist_selected`와 `hydrate_for_messages`가 삭제된 `memory_recall_suppressions`를
+  참조하는 조건을 갖고 있었다. 그 조건이 하던 일(닫힌 구간 걸러내기)은 구간을 만드는 기능이
+  사라져 원래 항상 통과였으므로, 조건을 지워도 동작은 같다.
+
+아래 둘도 함께 고쳤다.
+
+- ~~기억 작업의 단계 예산이 `content` 대기열 값을 쓴다~~ → **고침.** `worker/mem0_jobs.py`가
+  `memory` 대기열에서 도는데 `job_content_timeout_s`를 넘기고 있었다. `job_memory_timeout_s`로
+  바꿨다. 지금은 두 값이 같아 동작 차이는 없지만 한쪽만 바꿔도 어긋나지 않는다.
+- ~~`finish_response`가 받는 참조 종류와 서버가 허용하는 종류가 다르다~~ → **고침.**
+  `SelectedRef.type`이 다섯 가지를 받는데 서버는 `diary`만 통과시켜, 모델이 다른 값을 고르면
+  답변 전체가 안전 문구로 바뀌었다. 받는 종류를 `diary` 하나로 좁혔다.
+
+아래는 **아직 남아 있다.**
+
+1. **`diary_recall_repo`와 `checkpoint_repo`에 "잊어줘" 시절의 세대 번호가 남아 있다.**
+   `diary_recall_documents.suppression_generation`과 `chat_contexts.memory_generation`을 비교하는
+   조건이 여러 곳에 있는데, 그 값을 올리던 코드가 제거되어 지금은 양쪽 모두 항상 0이다. 비교는
+   항상 참이라 동작에는 문제가 없다. **일부러 그대로 두었다** — 조건이 SQL·작업 payload·요약
+   경계 검사까지 스무 곳 넘게 얽혀 있어서, 얻는 것 없이 위험만 큰 정리다. 나중에 손댈 때는
+   요약 작업의 오래된 결과 차단 로직을 함께 봐야 한다.

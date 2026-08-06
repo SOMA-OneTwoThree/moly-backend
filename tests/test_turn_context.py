@@ -43,12 +43,12 @@ def test_render_empty_when_all_none():
 
 
 def test_render_omits_line_when_that_section_is_fully_empty():
-    # 시간대만 있고 모습·루틴 값이 전혀 없으면 [모습]/[루틴] 줄 자체가 생기지 않는다.
+    # 시간대만 있고 모습·루틴 값이 전혀 없으면 [모습]/[상대 루틴] 줄 자체가 생기지 않는다.
     ctx = tc.CurrentTurnContext(time_bucket="night")
     rendered = tc.render(ctx, "ko")
     assert rendered == "[지금] 밤"
     assert "[모습]" not in rendered
-    assert "[루틴]" not in rendered
+    assert "[상대 루틴]" not in rendered
 
 
 def test_render_full_context_ko():
@@ -65,7 +65,7 @@ def test_render_full_context_ko():
     assert rendered == (
         "[지금] 밤 · 오늘 첫 대화 · 함께한 지 43일\n"
         "[모습] 밀짚모자 · 방: 바닷가\n"
-        "[루틴] 오늘 예정 2개 중 1개 완료"
+        "[상대 루틴] 오늘 예정 2개 중 1개 완료"
     )
 
 
@@ -73,7 +73,7 @@ def test_render_labels_in_english():
     ctx = tc.CurrentTurnContext(time_bucket="day", days_together=5, routines_planned=1, routines_done=0)
     rendered = tc.render(ctx, "en")
     assert "[Now]" in rendered and "day" in rendered and "5 days together" in rendered
-    assert "[Routines]" in rendered and "0/1 routines done today" in rendered
+    assert "[Their routines]" in rendered and "0/1 routines done today" in rendered
 
 
 def test_render_labels_in_japanese():
@@ -92,7 +92,7 @@ def test_render_sanitizes_bracket_injection_in_equipped_names():
 def test_render_routine_uses_numbers_only_no_names():
     ctx = tc.CurrentTurnContext(routines_planned=3, routines_done=2)
     rendered = tc.render(ctx, "ko")
-    assert rendered == "[루틴] 오늘 예정 3개 중 2개 완료"
+    assert rendered == "[상대 루틴] 오늘 예정 3개 중 2개 완료"
     # 루틴 이름이 아니라 숫자만 들어간다(스펙 요구) — 필드 자체가 이름을 안 받으므로 값 검증으로 대체
     assert "3" in rendered and "2" in rendered
 
@@ -338,3 +338,42 @@ async def test_build_context_days_together_uses_local_date_not_utc_date():
     session = FakeSession([_Result([]), _Result([]), _Result([])])
     ctx = await tc.build_context(session, profile, is_first_today=False, now_utc=now)
     assert ctx.days_together == 215
+
+
+# --- 소유 구분과 "묻기 전엔 말하지 않기" 고정 ---
+#
+# dev 실측(2026-08-06): 캐피가 인사할 때마다 "선글라스랑 목도리 하고 있어"를 되풀이하고,
+# 상대의 루틴을 자기 할 일로 읽어 "아직 루틴을 하나도 못 했어"라고 말했다.
+# 라벨에 소유가 없으면 모델이 자기 것으로 읽는다.
+
+
+def test_routine_label_marks_it_as_the_other_persons() -> None:
+    """루틴은 상대가 하는 일이다. 라벨만 보고도 구분돼야 한다."""
+    from app.services import turn_context as tc
+
+    for lang in ("ko", "en", "ja"):
+        label = tc._LABEL_ROUTINE[lang]
+        assert label != {"ko": "루틴", "en": "Routines", "ja": "ルーティン"}[lang], (
+            f"{lang} 루틴 라벨에 소유 표시가 없다 — 캐피가 자기 할 일로 읽는다"
+        )
+
+
+def test_persona_forbids_volunteering_own_state() -> None:
+    """묻기 전에 제 모습·방을 먼저 꺼내지 말라는 지시가 페르소나에 있어야 한다."""
+    from app.services import prompts
+
+    ko = prompts.CAPI_PERSONA
+    assert "먼저 꺼내지 마" in ko, "한국어 페르소나에 먼저 말하지 말라는 지시가 없다"
+    assert "[상대 루틴]" in ko, "한국어 페르소나가 루틴 소유를 짚지 않는다"
+
+    ja = prompts.CAPI_PERSONA_JA
+    assert "自分から出さない" in ja, "일본어 페르소나에 먼저 말하지 말라는 지시가 없다"
+    assert "[相手のルーティン]" in ja, "일본어 페르소나가 루틴 소유를 짚지 않는다"
+
+
+def test_persona_routine_label_matches_rendered_label() -> None:
+    """페르소나가 가리키는 라벨과 실제로 렌더되는 라벨이 같아야 한다."""
+    from app.services import prompts, turn_context as tc
+
+    assert f"[{tc._LABEL_ROUTINE['ko']}]" in prompts.CAPI_PERSONA
+    assert f"[{tc._LABEL_ROUTINE['ja']}]" in prompts.CAPI_PERSONA_JA

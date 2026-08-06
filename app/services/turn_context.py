@@ -208,7 +208,9 @@ def last_active_bucket(delta_seconds: float) -> str:
 # --- 렌더 라벨(ko/ja/en) — i18n.pick 표. 하드코딩 언어분기 금지(SOMA-346 이후 규칙). ---
 _LABEL_NOW = {"ko": "지금", "en": "Now", "ja": "いま"}
 _LABEL_APPEARANCE = {"ko": "모습", "en": "Look", "ja": "すがた"}
-_LABEL_ROUTINE = {"ko": "루틴", "en": "Routines", "ja": "ルーティン"}
+# ⚠️ 루틴은 **상대가 하는 일**이다. 라벨을 그냥 "루틴"으로 두면 캐피가 자기 할 일로 읽고
+# "아직 루틴을 하나도 못 했다"처럼 말한다(실제 발생). 소유를 라벨에 박아 넣는다.
+_LABEL_ROUTINE = {"ko": "상대 루틴", "en": "Their routines", "ja": "相手のルーティン"}
 
 _TIME_BUCKET_TEXT = {
     "morning": {"ko": "아침", "en": "morning", "ja": "朝"},

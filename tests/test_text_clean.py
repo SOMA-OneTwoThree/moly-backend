@@ -75,6 +75,13 @@ def test_allowed_scripts_differ_by_language():
     assert text_clean.has_foreign("Nice jalape\u00f1o d\u00eda", language="en") is False
 
 
+def test_fullwidth_and_halfwidth_forms_are_not_stripped():
+    """전각 라틴·반각 가타카나는 정상 글자다. 빼놓으면 멀쩡한 일본어 글을 지운다."""
+    assert text_clean.has_foreign("\uff21\uff22\uff23 test", language="en") is False  # 전각 라틴
+    assert text_clean.has_foreign("\uff21\uff22 시작", language="ko") is False
+    assert text_clean.has_foreign("\uff83\uff7d\uff84\u3067\u3059", language="ja") is False  # 반각 가타카나
+
+
 def test_strip_removes_and_normalizes():
     ko = dict(language="ko")
     assert text_clean.strip_foreign("나도 中 생각엔", **ko) == "나도 생각엔"
@@ -174,3 +181,35 @@ def test_strip_leading_meta_edge_cases():
     assert text_clean.strip_leading_meta("this is only meta with no korean body") == (
         "this is only meta with no korean body"
     )
+
+
+# --- 호출부 배선 고정 ---
+#
+# 위 테스트들은 text_clean만 본다. 그래서 chat.py가 백스톱을 한국어에만 걸도록 되돌아가도
+# 전부 통과한다. 원래 결함이 정확히 "적용 범위"에 있었으므로 여기서 고정한다.
+def test_chat_egress_backstop_is_not_korean_only():
+    """외래문자 백스톱은 언어를 가리지 않아야 한다.
+
+    엉뚱한 언어 글자가 문장 뒤에 붙는 건 영어·일본어 응답에서도 똑같이 일어난다.
+    예전에는 `is_ko and` 게이팅이라 ja·en 응답은 백스톱이 아예 없었다.
+    """
+    import inspect
+
+    from app.services import chat
+
+    line = next(
+        ln for ln in inspect.getsource(chat).splitlines() if "has_foreign(reply_text" in ln
+    )
+    assert "is_ko" not in line, "백스톱이 다시 한국어 전용이 됐다 — ja·en 응답이 무방비다"
+
+
+def test_chat_egress_passes_nickname_as_keep():
+    """닉네임을 안 넘기면 한글 밖 이름이 응답에서 통째로 지워진다."""
+    import inspect
+
+    from app.services import chat
+
+    src = inspect.getsource(chat)
+    for call in ("has_foreign(reply_text", "strip_foreign(reply_text"):
+        line = next(ln for ln in src.splitlines() if call in ln)
+        assert "keep=nick" in line, f"{call}에 닉네임을 안 넘긴다"

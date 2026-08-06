@@ -307,6 +307,28 @@ def test_fallback_clean_deterministic():
     assert dg._fallback_clean("天气 좋다") == "좋다"                    # 한자 제거 + 정제
 
 
+# --- 닉네임은 외래문자 판정에서 뺀다 ---
+#
+# 유저가 이름을 한글 밖 글자로 지어 두면(예: 키릴 "Аня") 이름 때문에 멀쩡한 일기가 매번
+# 복원 대상으로 잡혀 LLM을 헛돌고, 폴백에서는 이름이 통째로 지워진다.
+_CYRILLIC_NICK = "\u0410\u043d\u044f"
+
+
+def test_needs_repair_ignores_nickname():
+    body = f"{_CYRILLIC_NICK}는 오늘 기분이 좋아 보였다."
+    assert dg._needs_repair(body, nickname=_CYRILLIC_NICK) is False
+    assert dg._needs_repair(body) is True  # 이름을 안 알려주면 이물질로 본다(대비)
+    # 이름은 빼되 진짜 이물질은 그대로 잡는다
+    assert dg._needs_repair(f"{body} \u03a3", nickname=_CYRILLIC_NICK) is True
+
+
+def test_fallback_clean_keeps_nickname():
+    body = f"{_CYRILLIC_NICK}는 오늘 기분이 좋아 보였다. \u03a3"
+    out = dg._fallback_clean(body, nickname=_CYRILLIC_NICK)
+    assert _CYRILLIC_NICK in out, "이름이 지워졌다 — 이름 없는 일기가 발행된다"
+    assert "\u03a3" not in out
+
+
 async def test_surgical_repair_minimal_fix(monkeypatch):
     """Haiku가 그 부분만 고쳐 반환(유사도 높음·클린) → 그대로 채택."""
     body = "산책하다 수박주스를 마셨다. 天气가 좋아서 기분이 들떴다."

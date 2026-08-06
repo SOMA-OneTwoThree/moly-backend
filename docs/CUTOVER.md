@@ -22,11 +22,23 @@
 
 **prod에만 있는 테이블은 0개다.** 전환에 DROP이 필요 없고, 되돌릴 때 잃을 것도 없다.
 
-prod는 `20260729`까지 적용된 상태이고 `20260804` 이후가 전부 남아 있다 — 깔끔한 prefix라
-순서대로 적용하면 된다. 다만 **적용 기록이 없으므로**(schema_migrations 부재) 1단계에서 그 표를
-먼저 만들고 이미 적용된 것을 기록해 둔다. 안 그러면 다음 사람이 또 이 조사를 반복한다.
+prod는 `20260729`까지 적용된 상태이고 `20260804` 이후가 전부 남아 있다.
 
-prod에는 `vecs` 스키마와 pgvector 0.8.0이 **이미 있다** — 확장 설치는 필요 없다.
+**시작 전에 반드시 해결해야 하는 것이 둘 있다.**
+
+**첫째, `schema_migrations` 표를 사람이 먼저 만들어야 한다.** `db/apply.py`는 파일을 실행한 뒤
+매번 `public.schema_migrations`를 조회해 기록을 남긴다(`db/apply.py` 33행·42행). 그런데 그 표를
+만드는 문장은 `20260804_zzz_conversational_recall.sql` 안에 있고, 이 파일은 적용 목록에서
+**12번째**다. 즉 **앞의 11개 파일이 전부 실패한다.** dry-run도 같은 경로를 지나므로 미리보기조차
+안 된다. 표를 만드는 파일도 명령도 저장소에 없으므로 별도로 준비해야 한다.
+
+**둘째, `db/apply.py`가 prod 접속을 막는다.** 24행의 `assert_dev_target`이 개발 대상인지 확인하고
+아니면 중단시킨다. `--allow-prod` 같은 통로를 먼저 추가해 머지해야 한다.
+
+확장은 이렇다. prod에 `vector`·`pgcrypto`는 **이미 있고**, `pg_trgm`은 **없다**. 다만
+`20260804_diary_search.sql` 5행과 `20260804_zzz_conversational_recall.sql` 8행이
+`CREATE EXTENSION IF NOT EXISTS pg_trgm`으로 직접 설치하고, 접속 계정 `postgres`에 설치 권한이
+있으므로 **따로 준비할 필요는 없다.**
 
 ---
 
@@ -47,8 +59,22 @@ PYTHONPATH=. uv run python scripts/preflight_cutover.py --env prod
 
 ## 3. 적용 순서
 
-`db/migrations/`의 `20260804*` → `20260805*` → `20260806*`를 **파일명 오름차순 그대로** 적용한다.
-파일명이 곧 순서다(`zz`·`zzz` 접두는 같은 날짜 안에서 순서를 강제하려고 붙었다).
+> ⚠️ **파일명 오름차순 그대로 적용하면 안 된다.** 예전에 이 문서는 "파일명이 곧 순서"라고
+> 적어 두었지만 **사실이 아니다.** 아래 3.0절의 예외를 반드시 먼저 읽는다.
+
+`db/migrations/`의 `20260804*` → `20260805*` → `20260806*` 총 27개 중
+`20260804_zz_memory_contract.sql`을 뺀 **26개**가 적용 대상이다(그 파일은 dev에도 적용된 적이
+없다). 기본 흐름은 파일명 오름차순이되, 3.0절의 예외를 적용한 뒤 실행한다.
+
+### 3.0 파일명 순서가 깨지는 곳
+
+**`privacy_active_backfill` → `privacy_epoch` 순서를 뒤집어야 한다.** 알파벳으로는
+`active`가 `epoch`보다 앞이라 `20260805_privacy_active_backfill.sql`이 먼저 오는데, 이 파일은
+`privacy_subject_barriers`의 `epoch` 컬럼에 INSERT한다. 그 컬럼을 만드는 것은
+`20260805_privacy_epoch.sql` 24행이다. **그대로 돌리면 컬럼이 없어서 실패한다.**
+`privacy_epoch.sql`을 먼저 적용한다.
+
+나머지 파일도 파일명이 아니라 **서로가 만든 표와 컬럼을 기준으로** 순서를 확인한 뒤 실행한다.
 
 ```bash
 PYTHONPATH=. uv run python db/apply.py db/migrations/<파일> --env prod            # dry-run
@@ -85,10 +111,16 @@ SELECT language, count(*) FROM public.profiles GROUP BY language ORDER BY 2 DESC
 
 ### 순서를 뒤집으면 안 되는 두 곳
 
-**삭제 장벽** — `20260805_privacy_epoch.sql`(컬럼만, 안전) → **코드 배포** →
-`20260805_privacy_active_backfill.sql`. 구 코드는 `privacy_subject_barriers`에 행이 있으면
-무조건 차단으로 읽으므로, status-aware 코드보다 먼저 `active` 행을 깔면 **전 사용자의 대화가
-즉시 막힌다.** 이 한 건만 "마이그레이션 먼저" 규칙의 예외다.
+**삭제 장벽** — `20260805_privacy_epoch.sql`(컬럼만) → `20260805_privacy_active_backfill.sql`
+순서만 지키면 된다(이유는 3.0절).
+
+`privacy_active_backfill.sql` 머리말에는 "구 코드는 `privacy_subject_barriers`에 행이 있으면
+무조건 차단으로 읽으므로 코드 배포 뒤에 적용하라"고 적혀 있다. **운영 전환에는 해당하지 않는다.**
+2026-08-07 확인 결과 운영 코드(`origin/main`) 전체에 `privacy_subject_barriers`를 읽는 곳이
+**한 군데도 없다.** 그 경고는 dev에서 표와 구 코드가 함께 있던 시기의 이야기다. 운영은 구 코드가
+이 표의 존재 자체를 모르므로 행을 미리 깔아도 아무도 막히지 않고, 이후 배포되는 새 코드는
+status를 보고 판단한다. **따라서 이 파일도 코드 배포보다 먼저 적용한다** —
+[[migration-before-merge]] 규칙의 예외가 아니다.
 
 **턴 좌표** — `20260806_backfill_turn_seq.sql`은 `20260804_zzz_conversational_recall.sql`이
 `messages.turn_seq` 컬럼을 만든 **뒤**에 와야 한다. 파일명 순서가 이미 그렇다.
@@ -133,7 +165,7 @@ dev `ai_usage_ledger` 실측 단가(호출당 micro USD):
 
 마이그레이션이 끝나도 사용자는 `mode='legacy'`다. 그리고 **legacy 읽기 경로는 이미 삭제됐다.**
 즉 이 상태로 두면 전원이 기억 0으로 대화한다. `prod`의 legacy 벡터 9,251개와
-`chat_contexts.memory_text`(244명분)도 새 구조에서는 읽지 않는다 — 기억은 **대화에서 다시
+`chat_contexts.memory_text`(2026-08-07 기준 247명분)도 새 구조에서는 읽지 않는다 — 기억은 **대화에서 다시
 만들어진다.**
 
 ```bash
@@ -162,8 +194,21 @@ PYTHONPATH=. uv run python scripts/verify_shadow_entry.py --env prod
 
 ## 6. 되돌리기
 
-**테이블 삭제가 없으므로 데이터 손실 경로가 없다.** 문제가 나면 코드를 이전 이미지로 되돌리는
-것으로 대부분 해결된다 — 신규 테이블은 남아 있어도 구 코드가 읽지 않는다.
+테이블 삭제는 없다. 문제가 나면 코드를 이전 이미지로 되돌리는 것으로 대부분 해결된다 —
+신규 테이블은 남아 있어도 구 코드가 읽지 않는다.
+
+**다만 "데이터 손실 경로가 없다"고 말하면 안 된다. 행 삭제가 한 곳 있다.**
+`20260804_zzz_conversational_recall.sql` 141행의 `DELETE FROM diaries WHERE source='none'`가
+**운영 3,522행**을 지운다(전체 일기 7,992행의 44%). 2026-08-07 확인 결과 이 3,522행은
+**전부 본문 길이가 0**이고, 삭제 전에 `diary_generation_results`로 옮겨지므로 사용자가 보는
+일기가 사라지지는 않는다. 그래도 되돌릴 수 없는 삭제이므로 적용 전에 행 수를 찍어 둔다.
+
+```sql
+SELECT count(*) FROM diaries WHERE source='none';
+SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)=0;
+```
+
+두 값이 같아야 한다. 다르면 **본문이 있는 일기가 지워진다는 뜻이므로 중단한다.**
 
 단, 기존 테이블에 대한 이 두 변경은 구 코드와 함께 쓸 수 없다:
 
@@ -172,8 +217,8 @@ PYTHONPATH=. uv run python scripts/verify_shadow_entry.py --env prod
 - `diaries_user_date_uq` → `diaries_one_daily_uq` 교체 — 되돌릴 때 옛 UNIQUE를 다시 만들려면
   그 사이 생긴 행이 중복이 아닌지 먼저 세야 한다.
 
-`chat_contexts.memory_text`는 **지우지 않았다**(prod 244명분). 새 구조가 안 읽을 뿐이라,
-되돌리면 그대로 살아난다. 전환이 확실히 안정된 뒤에 따로 정리한다.
+`chat_contexts.memory_text`는 **지우지 않는다**(2026-08-07 기준 운영 247명분). 새 구조가 안
+읽을 뿐이라 되돌리면 그대로 살아난다. 전환이 확실히 안정된 뒤에 따로 정리한다.
 
 ---
 

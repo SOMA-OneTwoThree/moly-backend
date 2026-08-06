@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import pytest
 
+import re
+
 from app.services import interaction_contract as ic
 
 
@@ -153,3 +155,61 @@ def test_address_request_survives_the_whole_pipeline():
         d = ic.Directive(kind=kind, action=action, condition=ic.Condition.ALWAYS,
                          polarity=ic.Polarity.POSITIVE, target_literal=literal)
         assert literal in ic.render(d)
+
+
+# --- 렌더 문장에 다른 언어가 섞이면 안 된다 ---
+#
+# 이 글은 대화 시스템 프롬프트의 고정 블록으로 그대로 들어간다. 예전에는 한국어 조사
+# '을(를)'이 모든 언어에 붙었고("「Alex」을(를) address them this way"), 일본어는 한국어
+# 동사표를 먼저 봐서 "이렇게 부른다"가 일본어 프롬프트에 들어갔다(실측).
+_HANGUL_RE = re.compile(r"[가-힣]")
+_KANA_RE = re.compile(r"[぀-ヿ]")
+
+
+def _all_directives():
+    for kind in ic.Kind:
+        for action in ic.Action:
+            for polarity in ic.Polarity:
+                d = ic.Directive(
+                    kind=kind, action=action, condition=ic.Condition.ALWAYS,
+                    polarity=polarity, target_tag=None, target_literal="Alex",
+                )
+                try:
+                    ic.validate(d)
+                except ic.ContractViolation:
+                    continue
+                yield d
+
+
+def test_render_never_mixes_languages():
+    checked = 0
+    for d in _all_directives():
+        en = ic.render(d, language="en")
+        ja = ic.render(d, language="ja")
+        assert not _HANGUL_RE.search(en), f"영어 렌더에 한글: {en}"
+        assert not _KANA_RE.search(en), f"영어 렌더에 가나: {en}"
+        assert not _HANGUL_RE.search(ja), f"일본어 렌더에 한글: {ja}"
+        checked += 1
+    assert checked >= 20, "검사한 조합이 너무 적다 — 표가 바뀐 것 같다"
+
+
+def test_render_resolves_unsupported_language_to_english():
+    """미지원 언어는 영어로 떨어진다. 한국어 기본값으로 새면 안 된다."""
+    d = next(_all_directives())
+    for tag in ("zh-Hant-TW", "th", "es-ES"):
+        out = ic.render_document([d], language=tag)
+        assert out == ic.render_document([d], language="en"), f"{tag}가 영어로 안 떨어진다"
+        assert not _HANGUL_RE.search(out)
+
+
+def test_negative_polarity_is_grammatical_not_appended():
+    """부정은 어미를 갈아 끼운다. 꼬리말을 붙이면 '부른다 않는다'가 된다."""
+    d = ic.Directive(
+        kind=ic.Kind.ADDRESS, action=ic.Action.USE, condition=ic.Condition.ALWAYS,
+        polarity=ic.Polarity.NEGATIVE, target_tag=None, target_literal="Alex",
+    )
+    assert "부른다 않는다" not in ic.render(d, language="ko")
+    assert "이렇게 부르지 않는다" in ic.render(d, language="ko")
+    assert "呼ぶない" not in ic.render(d, language="ja")
+    assert "こう呼ばない" in ic.render(d, language="ja")
+    assert "do not address them this way" in ic.render(d, language="en")

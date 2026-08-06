@@ -22,6 +22,8 @@ import unicodedata
 from dataclasses import dataclass
 from enum import Enum
 
+from app.services import i18n
+
 MAX_LITERAL_GRAPHEMES = 64
 
 
@@ -274,6 +276,25 @@ _CONDITION_TEXT: dict[str, dict[Condition, str]] = {
     },
 }
 _HEADER = {"en": "[what we agreed]", "ja": "[この人との約束]"}
+# 인용한 대상 뒤에 붙는 조사. 영어는 붙이지 않는다.
+_PARTICLE = {"ko": "을(를)", "ja": "を", "en": ""}
+# 부정형. 한국어·일본어는 어미를 갈아 끼워야 해서 꼬리말을 붙이면 말이 안 된다
+# ("이렇게 부른다 않는다", "こう呼ぶない"). 영어는 동사 앞에 do not을 붙이면 되므로 표가 없다.
+# AVOID와 DO_NOT_ASSUME은 이미 부정이라 render가 이 표를 보지 않는다.
+_NEGATIVE_KO = {
+    Action.USE: "이렇게 부르지 않는다",
+    Action.PREFER: "이 쪽을 택하지 않는다",
+    Action.ASK_BEFORE: "먼저 물어보지 않는다",
+    Action.LISTEN_BEFORE: "먼저 듣지 않는다",
+    Action.HONOR_PREFERENCE: "이 선호를 지키지 않는다",
+}
+_NEGATIVE_JA = {
+    Action.USE: "こう呼ばない",
+    Action.PREFER: "こちらを選ばない",
+    Action.ASK_BEFORE: "先に聞かない",
+    Action.LISTEN_BEFORE: "先に聞かない",
+    Action.HONOR_PREFERENCE: "この好みを守らない",
+}
 
 
 def render(d: Directive, *, language: str = "ko") -> str:
@@ -283,21 +304,31 @@ def render(d: Directive, *, language: str = "ko") -> str:
     항상 `「…」` 안에 넣어 인용된 대상임을 문법으로 고정한다.
     """
     validate(d)
-    cond = _CONDITION_TEXT.get(language, {}).get(d.condition) or _CONDITION_KO[d.condition]
+    lang = i18n.resolve(language)
+    cond = _CONDITION_TEXT.get(lang, {}).get(d.condition) or _CONDITION_KO[d.condition]
     parts = [cond]
     target = d.target_literal or d.target_tag
     if target:
-        parts.append(f"「{target}」을(를)")
+        # ⚠️ 조사는 언어마다 다르다. 예전에는 한국어 조사 '을(를)'을 모든 언어에 붙여서
+        # 영어 프롬프트에 "「Alex」을(를) address them this way"가 들어갔다(실측).
+        parts.append(f"「{target}」{_PARTICLE[lang]}".rstrip())
     # kind별 문구가 있으면 그걸 쓴다. 없으면 action 기본 문구로 떨어진다.
-    if language == "en":
-        verb = _KIND_ACTION_EN.get((d.kind, d.action)) or _ACTION_TEXT["en"].get(d.action)
+    if lang == "en":
+        verb = _KIND_ACTION_EN.get((d.kind, d.action)) or _ACTION_TEXT["en"][d.action]
+    elif lang == "ja":
+        # ⚠️ 일본어용 kind별 표는 아직 없다. 예전에는 여기서 한국어 표(_KIND_ACTION_KO)를
+        # 먼저 봐서 일본어 프롬프트에 "이렇게 부른다" 같은 한국어가 들어갔다(실측).
+        # kind별 뉘앙스를 잃더라도 한국어가 새는 것보다 낫다. 일본어 표가 생기면 여기에 붙인다.
+        verb = _ACTION_TEXT["ja"][d.action]
     else:
-        verb = _KIND_ACTION_KO.get((d.kind, d.action))
-        if verb is None:
-            verb = _ACTION_TEXT.get(language, {}).get(d.action) or _ACTION_KO[d.action]
-    parts.append(verb)
+        verb = _KIND_ACTION_KO.get((d.kind, d.action)) or _ACTION_KO[d.action]
     if d.polarity is Polarity.NEGATIVE and d.action not in (Action.AVOID, Action.DO_NOT_ASSUME):
-        parts.append("않는다")
+        if lang == "en":
+            verb = f"do not {verb}"
+        else:
+            table = _NEGATIVE_JA if lang == "ja" else _NEGATIVE_KO
+            verb = table.get(d.action, verb)
+    parts.append(verb)
     return "- " + " ".join(parts) + "."
 
 
@@ -322,4 +353,6 @@ def render_document(directives: list[Directive], *, language: str = "ko") -> str
     lines = [render(d, language=language) for d in directives]
     if not lines:
         return ""
-    return f"{_HEADER.get(language, '[이 사람과의 약속]')}\n" + "\n".join(lines)
+    # ⚠️ 머리말도 버킷으로 고른다. 원본 태그로 고르면 본문은 영어인데 머리말만 한국어가 된다
+    # (zh-Hant-TW에서 실측). `_HEADER`에 ko 키가 없으므로 한국어는 기본값으로 떨어진다.
+    return f"{_HEADER.get(i18n.resolve(language), '[이 사람과의 약속]')}\n" + "\n".join(lines)

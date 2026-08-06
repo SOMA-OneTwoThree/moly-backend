@@ -4,7 +4,8 @@
 위에서부터 하나씩 하면 된다. 배경 설명은 `docs/CUTOVER.md`에 있고, 이 문서는 **실행 목록**이다.
 
 - 기준 시점: 2026-08-07. 아래 숫자는 전부 운영 DB에서 실제로 조회한 값이다.
-- 운영 사용자 622명 · 대화 메시지 36,575건 · 일기 7,992건 · 웰컴 일기 612건.
+- 운영 사용자 622명 · 대화 메시지 36,575건(`normal` 35,374 + `greeting` 1,201) ·
+  일기 7,992건(그중 웰컴 612, 본문 없는 `none` 3,522) · 구 기억 벡터 9,281건.
 - 적용 대상 파일은 **26개**다(`db/migrations/20260804*`~`20260806*` 27개 중
   `20260804_zz_memory_contract.sql` 제외 — dev에도 적용된 적이 없다).
 - dev의 적용 기록에 `20260805_push_personalization.sql`이 남아 있지만 **신경 쓰지 않아도 된다.**
@@ -15,9 +16,10 @@
 | 단계 | 하는 일 | 서비스 영향 |
 |---|---|---|
 | 0단계 | 사전 준비물 만들기(코드·SQL) | 없음 |
-| 1단계 | 마이그레이션 26개 적용(한 줄만 빼고) | 기능은 계속 된다. 다만 **11번 파일이 도는 몇 초 동안 요청이 대기**한다 |
+| 1단계 | 마이그레이션 26개 적용(두 줄만 빼고) | 기능은 계속 된다. 다만 **11번 파일이 도는 몇 초 동안 요청이 대기**한다 |
+| 1.5단계 | 과거 대화에서 기억 미리 만들기 | 없음 — 새 표에만 쓴다 |
 | 2단계 | `main` 머지 → 운영 배포 | 배포 시간만큼 |
-| 3단계 | 호환 장치 제거·미뤄둔 한 줄 실행 | 거의 없음 |
+| 3단계 | 호환 장치 제거·미뤄둔 두 줄 실행·빈 구간 정리 | 거의 없음 |
 
 **1단계를 다 끝내고 확인한 뒤에 2단계로 간다.** 1단계는 구 코드가 도는 중에 해도 안전하도록
 설계했다.
@@ -46,9 +48,25 @@
 그 함수(`db/envfile.py` 92~98행)가 운영이면 중단시킨다. 즉 **미리보기는 지금도 되고, 실제
 반영만 막혀 있다.**
 
-### 0-3. 일기 호환 트리거 작성
+### 0-3. 일기 호환 트리거 작성 — 11번 파일 사본 안에 넣는다
 
 - [ ] `diaries`에 `BEFORE INSERT ... FOR EACH ROW` 트리거를 만드는 SQL을 작성한다.
+- [ ] **그 SQL을 11번 파일 사본의 특정 위치에 끼워 넣는다.** 별도 파일로 미리 적용하면 안 된다.
+
+**넣는 위치.** `20260804_zzz_conversational_recall.sql` 사본에서
+`ALTER TABLE public.diaries ADD COLUMN ...` 블록(89~102행)이 **끝난 뒤**,
+`ALTER COLUMN display_date SET NOT NULL`(117행)이 **오기 전**이다.
+
+**왜 이 위치인가.** 트리거 함수는 `NEW.kind`·`NEW.display_date` 같은 컬럼을 읽는다.
+PostgreSQL은 트리거를 만들 때 그 컬럼이 있는지 **검사하지 않는다.** 그래서 11번보다 먼저 깔면
+트리거 생성은 성공하고, 그 순간부터 **모든 일기 삽입이 실패한다.** 개발 DB에서 실제로 재현해
+확인했다(오류: 없는 컬럼 참조).
+
+반대로 11번을 다 적용한 뒤에 깔아도 안 된다. 그 사이에 `display_date NOT NULL`과 CHECK 3종이
+트리거 없이 존재하는 구간이 생겨 구 코드의 일기 생성이 실패한다.
+
+`db/apply.py`는 파일 하나를 하나의 트랜잭션으로 실행한다(20~22행·27~29행). 그래서 **파일 안에
+끼워 넣어야만** 위험 구간이 0이 된다.
 
 **왜 필요한가.** 1단계에서 `diaries`에 새 컬럼과 제약이 붙는데, 구 코드는 그 컬럼들을 모른다.
 구 코드의 일기 모델에는 `kind`·`record_status`·`display_date`·`activity_date`가 **아예 없다.**
@@ -92,7 +110,7 @@ PYTHONPATH=. uv run python db/apply.py db/migrations/<파일> --env prod --commi
 ### 시작 전 확인
 
 - [ ] 0단계 세 가지가 전부 끝났다.
-- [ ] 호환 트리거를 **먼저** 설치했다(11번 파일보다 앞).
+- [ ] 호환 트리거를 **11번 파일 사본 안에** 끼워 넣었다(0-3 참고). 별도로 미리 적용하지 않았다.
 - [ ] 읽기 전용 사전 점검을 돌려 통과했다.
       `PYTHONPATH=. uv run python scripts/preflight_cutover.py --env prod`
 - [ ] 삭제될 일기 행 수를 기록했다. 아래 두 값이 **같아야** 한다. 다르면 **중단한다.**
@@ -119,7 +137,7 @@ SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)
 | 8 | `20260804_memory_embeddings.sql` | **순서 바꿈** |
 | 9 | `20260804_memory_cutover_guard.sql` | **순서 바꿈 — 반드시 7번 뒤. 아래 설명을 읽을 것** |
 | 10 | `20260804_relationship_profiles.sql` | |
-| 11 | `20260804_zzz_conversational_recall.sql` | **⚠ 118행 한 줄을 빼고 적용한다. 아래 참고** |
+| 11 | `20260804_zzz_conversational_recall.sql` | **⚠ 118행·141행 두 줄을 빼고, 호환 트리거를 끼워 넣은 사본으로 적용한다. 아래 참고** |
 | 12 | `20260804_zzzz_conversational_recall_backfill.sql` | |
 | 13 | `20260804_zzzzz_conversational_recall_hardening.sql` | **⚠ 반드시 18번보다 먼저** |
 | 14 | `20260805_ai_usage_ledger.sql` | |
@@ -131,8 +149,8 @@ SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)
 | 20 | `20260805_shadow_prompt_traces.sql` | |
 | 21 | `20260805_user_schedules.sql` | |
 | 22 | `20260806_backfill_turn_seq.sql` | `kind='normal'`인 `messages` **35,374건**에 턴 좌표를 매긴다(`greeting` 1,201건은 대상이 아니다) |
-| 23 | `20260806_drop_legacy_memory.sql` | 운영에 해당 표가 없어 **아무 일도 안 한다** |
-| 24 | `20260806_drop_legacy_tombstones.sql` | 위와 같음 |
+| 23 | `20260806_drop_legacy_memory.sql` | 표 13개를 지운다. **앞 단계가 만든 것들이라 반드시 실행해야 한다** |
+| 24 | `20260806_drop_legacy_tombstones.sql` | `legacy_recall_tombstones`를 지운다(16번이 만든 것) |
 | 25 | `20260806_normalize_profile_language.sql` | 값이 바뀌는 사람 **0명** |
 | 26 | `20260806_rls_gap.sql` | |
 
@@ -156,15 +174,28 @@ SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)
 위험하다. `memory_cutover_guard.sql` 자체 머리말에도 "memory_normalization이 memory_mode
 컬럼을 만든 다음에 적용한다"고 적혀 있다.
 
-### 11번 파일에서 빼야 하는 한 줄
+### 11번 파일에서 빼야 하는 두 줄
 
 ```sql
 ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;   -- 118행
 ```
 
-- [ ] 이 한 줄을 뺀 사본을 만들어 적용한다.
+```sql
+DELETE FROM public.diaries WHERE source='none';                              -- 141행
+```
 
-**왜 빼는가.** 구 코드의 웰컴 일기 저장이
+- [ ] 이 두 줄을 뺀 사본을 만들어 적용한다(호환 트리거는 그 사본 안에 넣는다. 0-3 참고).
+
+**141행을 왜 빼는가.** 이 줄이 3,522행을 지운다. 되돌릴 수 없는 유일한 작업이다. 3단계로
+미루면 **1단계에 삭제가 하나도 없어져서, 배포를 되돌릴 때 잃을 것이 0이 된다.** 미루는 비용은
+없다. 바로 위 137행의 `diary_generation_results` 옮기기는 **그대로 둔다** — 새 코드가 보는
+것은 그쪽이다.
+
+지우지 않고 남겨도 제약에 걸리지 않는다. 104행 갱신이 이 행들의 `record_status`를
+`processed`로, `display_date`를 채워 주기 때문에 CHECK를 통과하고, `processed`는 사용자에게
+보이지 않는다.
+
+**118행을 왜 빼는가.** 구 코드의 웰컴 일기 저장이
 `on_conflict_do_nothing(index_elements=["user_id", "diary_date"])`를 쓴다. 이 제약을 지우면
 데이터베이스가 맞는 인덱스를 찾지 못해 오류를 낸다. **이 판정은 실행 계획을 짤 때 일어나서
 트리거가 돌기 전이다.** 그래서 호환 트리거로도 막을 수 없다. 3단계에서 지운다.
@@ -175,13 +206,28 @@ ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;   -- 
 웰컴 일기를 지운다. 18번(`privacy_active_backfill`)이 그 표에 **622명분 행을 넣는다.**
 18번을 먼저 돌리면 그 뒤에 만들어진 웰컴 일기가 지워질 수 있다. **13번을 먼저 한다.**
 
+### 23·24번을 건너뛰면 안 된다
+
+운영에는 지금 이 14개 표가 **없다.** 그래서 "지울 게 없으니 건너뛰어도 된다"고 생각하기 쉽지만
+틀렸다. **앞 단계가 이 표들을 만든다.**
+
+| 만드는 파일 | 표 |
+|---|---|
+| 7번 `memory_normalization` | `memory_facts`·`memory_evidence`·`memory_insights`·`memory_insight_sources`·`memory_forget_markers`·`memory_source_turns`·`memory_source_turn_messages`·`memory_source_closures` |
+| 10번 `relationship_profiles` | `relationship_profiles`·`relationship_profile_sources` |
+| 11번 `zzz` | `memory_episodic_messages`·`memory_recall_suppressions`·`memory_suppression_operations` |
+| 16번 `memory_v2_tables` | `legacy_recall_tombstones` |
+
+건너뛰면 운영에 쓰지 않는 표 14개가 남아 개발과 구조가 어긋난다. **반드시 실행한다.**
+
 ### 기존 데이터를 지우거나 바꾸는 곳 전부
 
 빠진 것이 없도록 전수로 적는다. 실제로 사라지는 것은 **첫 줄 하나뿐**이다.
 
+**1단계에는 지워지는 것이 하나도 없다.** 유일한 삭제(11번 141행)를 3단계로 미뤘기 때문이다.
+
 | 파일 | 무엇을 | 운영에서 몇 행 |
 |---|---|---|
-| 11번 141행 | `DELETE FROM diaries WHERE source='none'` | **3,522행** — 전부 본문 길이 0 |
 | 11번 74~76행 | 고아 `routine_completions` 삭제 | 0행 |
 | 11번 237행 | `memory_evidence` 정리 | 0행 (7번이 방금 만든 빈 표) |
 | 13번 28~37행 | 장벽 있는 사용자의 파생 데이터·웰컴 일기 삭제 | 0행 (이 시점에 장벽 행이 없다) |
@@ -195,7 +241,66 @@ ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;   -- 
 - [ ] 사전 점검을 다시 돌려 통과한다.
 - [ ] 구 코드가 도는 상태에서 **일기가 정상 생성되는지** 확인한다(호환 트리거 동작 확인).
 - [ ] 대화가 정상인지 확인한다.
-- [ ] 웰컴 일기 수가 그대로인지 본다. `SELECT count(*) FROM diaries WHERE source='welcome';` → 612
+- [ ] 웰컴 일기가 **612에서 613으로 하나 늘었는지** 본다.
+      `SELECT count(*) FROM diaries WHERE source='welcome';` → **613**
+
+      12번 백필이 웰컴 없는 사용자에게 웰컴을 만든다. 운영에 웰컴이 없는 프로필은 10명이지만
+      대상은 첫 사용자 발화가 있는 사람뿐이라 **1명만 늘어난다.** 안 늘었으면 12번이
+      제대로 안 돈 것이다.
+
+- [ ] 13번과 18번의 순서가 지켜졌는지 본다.
+      `SELECT count(*) FROM diary_recall_documents;` → **약 4,470** (0이면 순서가 어긋난 것)
+
+      웰컴 일기 수로는 이 문제를 못 잡는다. 13번의 웰컴 삭제는
+      `d.created_at >= b.created_at` 조건이라 기존 웰컴에는 안 걸린다. 실제 피해는 13번
+      28~30행의 삭제 3개다. 이건 조건이 없어서 장벽 행이 있는 사용자 전원의 검색 문서를
+      지우고, 뒤따르는 재구축은 전부 장벽 있는 사용자를 빼기 때문에 **0건이 된다.**
+
+---
+
+## 1.5단계 — 기억 미리 채우기 (배포 전, 서비스 영향 없음)
+
+마이그레이션은 기억 표를 만들 뿐 **내용을 하나도 만들지 않는다.** 이 단계를 건너뛰고 배포하면
+캐피는 과거 대화를 전혀 기억하지 못한 채로 시작한다.
+
+배포 전에 미리 해 둘 수 있다. 기억 추출이 쓰는 표가 전부 새 표라서 **구 코드가 영향을 받지
+않는다.** 확인 결과 쓰기 대상은 `memory_pipeline_states`·`mem0_memory_registry`·
+`mem0_memory_sources`·`mem0_ingest_candidates`·`async_jobs`·`relationship_events`·
+`diary_recall_documents`이고, 구 코드는 이 중 어느 것도 참조하지 않는다. `messages`와
+`chat_contexts`는 읽기만 한다.
+
+### 기존 기억은 살리지 않는다
+
+| 기존 것 | 운영 현재 | 처리 |
+|---|---|---|
+| `vecs.memories` (구 벡터) | 9,281건 | **버린다.** 새 코드가 읽지 않는다(참조 0건 확인) |
+| `chat_contexts.memory_text` | 247명분 | **버린다.** 새 코드가 읽지 않는다 |
+
+둘 다 지우지 않고 그대로 둔다. 되돌릴 때 필요하고, 새 코드가 안 읽을 뿐이라 무해하다. 정리는
+전환이 확실히 안정된 뒤에 한다.
+
+새 기억은 **과거 대화에서 다시 만든다.** 22번 파일이 매긴 턴 좌표가 그 재료다.
+
+### 절차
+
+- [ ] 새 코드(`dev` 브랜치)를 운영 데이터베이스를 향해 **따로 실행할 자리**를 준비한다.
+      운영 서버에 배포하는 것이 아니다. 스크립트를 로컬이나 별도 기기에서 `.env.prod`로 돌린다.
+- [ ] 사용자를 기억 파이프라인에 등록한다. 먼저 미리보기로 확인한다.
+      `PYTHONPATH=. uv run python scripts/enter_shadow_cohort.py --limit 1`
+- [ ] 소수(1~5명)로 먼저 돌려 결과를 눈으로 본다. 기억 내용이 이상하면 지우고 다시 한다.
+      **배포 전이라 사용자에게는 아무것도 보이지 않는다.** 얼마든지 고쳐 쓸 수 있다.
+- [ ] 전체로 넓힌다. 과거 대화 약 17,687턴 기준 **비용 약 $14, 시간 약 7.4시간**이다.
+- [ ] 진행 상황을 확인한다.
+      `SELECT count(*) FROM mem0_memory_registry;`
+      `SELECT count(*) FROM memory_pipeline_states;`
+
+### 주의
+
+- **여기서 만든 기억은 배포 전까지 아무도 보지 못한다.** 잘못돼도 지우고 다시 만들면 된다.
+  이것이 배포 전에 하는 가장 큰 이점이다.
+- 이 작업이 도는 동안에도 사용자는 평소대로 대화한다. 그 사이 생기는 새 대화는 턴 좌표가
+  없으므로 3단계의 "빈 구간 메시지" 처리로 이어서 넣는다.
+- `.env.prod`를 다루므로 접속 정보가 화면이나 기록에 남지 않게 한다.
 
 ---
 
@@ -213,8 +318,9 @@ ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;   -- 
 배포가 안정된 것을 확인한 뒤에 한다. 둘 다 순식간에 끝나므로 서비스 영향은 거의 없다.
 
 - [ ] 호환 트리거와 그 함수를 지운다. **새 코드가 값을 직접 채우므로 남겨 두면 안 된다.**
-- [ ] 미뤄 둔 한 줄을 실행한다.
+- [ ] 미뤄 둔 두 줄을 실행한다. 삭제 전에 두 값이 같은지 다시 확인한다.
       `ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;`
+      `DELETE FROM public.diaries WHERE source='none';`
 - [ ] 일기 생성과 웰컴 일기 저장이 정상인지 확인한다.
 - [ ] **1단계와 배포 사이에 쌓인 메시지에 턴 좌표를 매긴다.** 아래를 읽고 할 것.
 
@@ -257,19 +363,21 @@ ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;   -- 
 
 | 신호 | 뜻 |
 |---|---|
-| `source='none'` 행 수와 본문 빈 행 수가 다르다 | 본문이 있는 일기가 지워진다 |
-| 웰컴 일기 수가 612보다 줄었다 | 13번·18번 순서가 어긋났다 |
+| `source='none'` 행 수와 본문 빈 행 수가 다르다 | 본문이 있는 일기가 지워진다(3단계 직전 확인) |
+| `diary_recall_documents`가 0이다 | 13번·18번 순서가 어긋났다 |
+| 웰컴 일기가 613으로 늘지 않았다 | 12번 백필이 제대로 안 돌았다 |
 | 미리보기에서 오류가 난다 | 순서나 사전 준비가 잘못됐다 |
 | 구 코드의 일기 생성이 실패한다 | 호환 트리거가 제대로 동작하지 않는다 |
 
 ## 되돌리기
 
-테이블 삭제가 없어서 코드를 이전 이미지로 되돌리는 것으로 대부분 해결된다. 신규 표는 남아 있어도
-구 코드가 읽지 않는다.
+**3단계 전이라면 잃을 것이 없다.** 1단계와 1.5단계에는 삭제가 하나도 없다. 코드를 이전
+이미지로 되돌리면 그만이다. 신규 표와 새로 만든 기억은 남아 있어도 구 코드가 읽지 않는다.
 
-**되돌릴 수 없는 것이 하나 있다.** 11번 파일의 `DELETE FROM diaries WHERE source='none'`가
-3,522행을 지운다. 지우기 전에 `diary_generation_results`로 옮기고, 이 행들은 전부 본문 길이가
-0이라 사용자가 보는 일기는 사라지지 않는다. 그래도 되돌아오지는 않는다.
+3단계를 실행한 뒤에는 `DELETE FROM diaries WHERE source='none'` 3,522행이 되돌아오지 않는다.
+지우기 전에 `diary_generation_results`로 옮기고 이 행들은 전부 본문 길이가 0이라 사용자가 보는
+일기는 사라지지 않지만, `diaries`로는 복구되지 않는다. **그래서 3단계는 배포가 확실히 안정된
+뒤에 한다.**
 
 되돌린다면 `diaries`에 붙은 CHECK 3종과 `display_date NOT NULL`도 같이 내려야 한다. 구 코드는
 그 값들을 채우지 않기 때문이다(호환 트리거를 이미 지웠다면 더욱 그렇다).

@@ -76,3 +76,34 @@ def test_ko_and_ja_keep_their_own_names():
     assert "Cappy" not in prompts.system_prompt("ko")
     assert "Cappy" not in prompts.system_prompt("ja")
     assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")
+
+
+# --- 콘텐츠 언어는 ko·en·ja 셋뿐 ---
+#
+# 예전에는 LLM 지시에 원본 언어 태그를 그대로 넣어서 중국어 유저는 중국어로, 태국어 유저는
+# 태국어로 답을 받았다. 그런데 푸시와 서버 문구는 i18n.resolve 폴백으로 이미 영어라, 한 유저가
+# 화면마다 다른 언어를 봤다. 페르소나·말투·검수 프롬프트도 셋만 준비돼 있어 나머지는 품질을
+# 보장할 수 없다. 이제 ko·ja가 아니면 전부 영어다.
+_UNSUPPORTED = ("zh-Hant-TW", "es-ES", "th", "fr", "vi")
+
+
+def test_chat_falls_back_to_english_outside_ko_ja():
+    for lang in _UNSUPPORTED:
+        sp = prompts.system_prompt(lang)
+        assert "reply only in en." in sp, f"{lang}: 영어로 안 떨어진다"
+        # 태그 조각이 영어 단어에 우연히 들어갈 수 있어(th -> the) 지시문 형태로 정확히 본다.
+        assert f"in {lang}." not in sp, f"{lang}: 원본 언어 태그가 프롬프트에 새어 들어갔다"
+
+
+def test_diary_falls_back_to_english_outside_ko_ja():
+    for lang in _UNSUPPORTED:
+        dp = diary_prompts.diary_prompt(lang, "Kim")
+        assert " in en." in dp, f"{lang}: 일기가 영어로 안 떨어진다"
+        assert f"in {lang}." not in dp, f"{lang}: 원본 언어 태그가 일기 프롬프트에 새어 들어갔다"
+
+
+def test_supported_languages_are_unchanged():
+    """ko·ja는 그대로여야 한다. 지역 태그가 붙어도 같은 버킷으로 간다."""
+    assert "반드시 한국어" in prompts.system_prompt("ko-KR")
+    assert "日本語" in prompts.system_prompt("ja-JP")
+    assert "reply only in en." in prompts.system_prompt("en-US")

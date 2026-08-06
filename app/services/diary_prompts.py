@@ -43,7 +43,7 @@ def diary_prompt(language: str, nickname: str | None = None) -> str:
         else "[상대]\n아직 이름을 몰라. '걔'나 '그 사람'처럼 자연스럽게 불러."
     )
     # raw BCP47 유지: 일기도 유저 실제 언어로 지시(resolver 버킷 아님 — zh 유저=중국어 일기).
-    lang = language or "ko"
+    lang = i18n.resolve(language)  # 콘텐츠 언어는 ko·en·ja뿐 — 그 밖은 영어([[prompts.system_prompt]]와 같은 규칙)
     if i18n.is_korean(language):
         lang_rule = "반드시 한국어로 써. 한자나 다른 나라 문자를 한 글자도 섞지 마."
     elif i18n.resolve(language) == "ja":

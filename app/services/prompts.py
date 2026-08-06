@@ -183,8 +183,11 @@ def system_prompt(language: str) -> str:
     언어로 쓰되 한글·한자·타 스크립트 배제. 페르소나 본문은 한국어 지시문이지만, 응답 언어·문자
     규칙만 언어별로 갈아끼워 다국어 대응한다.
     """
-    # raw BCP47 유지: LLM엔 유저 실제 언어로 지시해야 하므로 resolver 버킷(ko/en)이 아님(zh 유저=중국어 응답).
-    lang = language or "ko"
+    # 콘텐츠 언어는 ko·en·ja 셋뿐이다. 그 밖(zh·es·th…)은 전부 영어로 답한다.
+    # 예전에는 원본 언어 태그를 그대로 넣어서 중국어 유저에게 중국어로 답했다. 그런데 푸시와
+    # 서버 문구는 이미 영어로 나가서(i18n.resolve 폴백) 한 유저가 화면마다 다른 언어를 봤다.
+    # 페르소나·말투·검수 프롬프트도 셋만 준비돼 있어 나머지 언어는 품질을 보장할 수 없다.
+    lang = i18n.resolve(language)
     persona = CAPI_PERSONA  # 기본 = 한국어 페르소나
     if i18n.is_korean(language):
         lang_rule = (

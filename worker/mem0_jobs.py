@@ -168,7 +168,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
     nickname = profile[0] if profile else None
     language = profile[1] if profile else None
 
-    budget = memory_ingest_budget(total_s=settings.job_content_timeout_s)
+    budget = memory_ingest_budget(total_s=settings.job_memory_timeout_s)
     ledger = usage_ledger.LedgerContext(
         lane=usage_ledger.LANE_BACKGROUND, purpose="memory_extract",
         user_id=uid, turn_seq=turn_seq, job_id=job.id, attempt=job.attempt,
@@ -375,7 +375,7 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
         expected_revision = state.revision
 
     # 기존 기억 본문은 provider payload에서 hydrate한다(registry는 본문 미복제).
-    budget = memory_consolidation_budget(total_s=settings.job_content_timeout_s)
+    budget = memory_consolidation_budget(total_s=settings.job_memory_timeout_s)
     existing_pairs: list[tuple[uuid.UUID, str]] = []
     if pool:
         try:

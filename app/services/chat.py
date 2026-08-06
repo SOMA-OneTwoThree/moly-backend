@@ -88,11 +88,26 @@ def _iso(dt: datetime | None) -> str | None:
 
 # --- GET /chat/state ---
 async def get_state(session: AsyncSession, user_id: str) -> dict[str, Any]:
-    await privacy.ensure_subject_active(session, _uid(user_id))
+    uid = _uid(user_id)
+    await privacy.ensure_subject_active(session, uid)
     g = await gating.resolve(session, user_id)
     ent = g.entitlement
     remaining = ent["tokens_remaining"]
-    threshold = ent["personal_diary_token_threshold"]
+    # 개인 일기를 받을 수 있는지는 **그날 유저가 쓴 글자 수**로 정해진다. 조건과 세는 범위를
+    # `diary_generation.generate_for_user`와 똑같이 맞춘다(그날 normal 메시지 중 유저 발화).
+    # 예전에는 토큰 기준값(`diary_llm_min_tokens`)을 가중 청구 토큰과 비교했는데, 단위도
+    # 기준도 달라서 앱 표시와 실제 결과가 어긋났다.
+    user_chars = int(
+        await session.scalar(
+            select(func.coalesce(func.sum(func.length(Message.content)), 0)).where(
+                Message.user_id == uid,
+                Message.activity_date == g.activity_date,
+                Message.kind == "normal",
+                Message.sender == "user",
+            )
+        )
+        or 0
+    )
     return {
         "activity_date": g.activity_date.isoformat(),
         "plan": ent["plan"],
@@ -100,7 +115,7 @@ async def get_state(session: AsyncSession, user_id: str) -> dict[str, Any]:
         "daily_token_limit": ent["daily_token_limit"],
         "tokens_remaining": remaining,
         "warning_threshold": g.warning_threshold,
-        "personal_diary_eligible": threshold is not None and g.tokens_used >= threshold,
+        "personal_diary_eligible": user_chars >= g.diary_min_user_chars,
         "limit_reached": remaining == 0,
     }
 
@@ -959,8 +974,10 @@ async def post_message(
         volatile.append(naming.render(memory_v2_block, nick))
     if resident_block:
         volatile.append(
-            "[지금 상태 - 서버 사실]\n아래 상태는 상대가 쓴 말이 아니라 지금 네 주변의 사실이야. "
-            "항목을 그대로 읊지 말고 말투에 자연스럽게 녹여.\n"
+            # 다루는 규칙(먼저 꺼내지 말 것·상대 말보다 우선일 것)은 페르소나 [지금 상태] 절이
+            # 갖는다. 그건 캐시되는 앞부분이라 한 번만 청구된다. 여기 같이 적으면 같은 설명을
+            # 매 턴 새로 낸다(실측 116토큰). 이 자리에는 값만 넣는다.
+            "[지금 상태 - 서버 사실]\n"
             f"{resident_block}"
         )
     if volatile:

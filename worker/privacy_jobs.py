@@ -76,10 +76,18 @@ async def handle_privacy_cleanup(job: ClaimedJob) -> JobResult:
     swept_clean = deleted == 0 and remaining == 0
     next_sweeps = empty_sweeps + 1 if swept_clean else 0
 
+    if barrier.operation_id is None:
+        # `deleting`인데 삭제 회차 번호가 없다. 완료 표시를 할 수 없으므로 조용히 넘기지 않는다.
+        raise JobFatal("missing_operation_id")
+
     async def _apply(session) -> None:
         if next_sweeps >= REQUIRED_EMPTY_SWEEPS:
             # 두 번 연속 비었다 — 이제 끝났다고 표시한다.
-            await privacy.mark_subject_deleted(session, uid)
+            # 인자는 이름을 붙여야 한다. 예전에 `(session, uid)`로 넘겨 TypeError가 났는데,
+            # 확정 트랜잭션 안이라 예외가 삼켜지고 잡만 재시도를 소진하다 죽었다.
+            await privacy.mark_subject_deleted(
+                session, user_id=uid, operation_id=barrier.operation_id
+            )
             _log.info("삭제 완료 — user=%s (registry 잔여 %s)", uid, dict(rows._mapping) if rows else {})
             return
         # 아직이다. 다음 sweep을 건다. dedup_key에 회차를 넣어 매번 새 잡이 된다.

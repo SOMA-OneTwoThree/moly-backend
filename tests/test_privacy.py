@@ -171,3 +171,48 @@ def test_retention_scrubs_payload_bodies_but_keeps_terminal_rows() -> None:
     assert "payload='{}'::jsonb" in sql
     assert "delete from async_jobs" not in sql
     assert "update idempotency_keys" in sql
+
+
+# --- 삭제 중에 실제로 도는 잡이 게이트를 통과하는가 ---
+#
+# 허용 목록에 이름이 빠져 있으면 삭제를 시작하는 순간 정리 잡이 만들어지자마자 취소된다.
+# 잡은 생기고 오류도 안 나는데 벡터만 영원히 안 지워져서 눈에 안 띈다. 실제로 그랬다.
+
+
+def test_registered_privacy_job_types_are_allowed_while_deleting() -> None:
+    """등록된 privacy 처리기 이름은 전부 허용 목록에 있어야 한다."""
+    from worker import consumer
+
+    consumer._register_handlers()
+    registered = {t for t in consumer.registered_types() if t.startswith("privacy")}
+    assert registered, "privacy 계열 처리기가 하나도 등록되지 않았다"
+    missing = registered - privacy.PRIVACY_JOB_ALLOWLIST
+    assert not missing, (
+        f"{missing} 처리기는 등록됐지만 허용 목록에 없다. "
+        "삭제 중에는 이 잡이 취소되어 삭제가 끝나지 않는다."
+    )
+
+
+def test_cleanup_job_passes_the_gate_in_both_modes() -> None:
+    """실제 정리 잡이 deleting 상태에서 통과해야 한다."""
+    from worker import privacy_jobs
+
+    barrier = privacy.BarrierState(
+        status=privacy.STATUS_DELETING, epoch=3, operation_id=OPERATION_ID
+    )
+    for mode in (privacy.MODE_COMPAT, privacy.MODE_ENFORCED):
+        auth = privacy.authorize_job(
+            barrier, job_type=privacy_jobs.JOB_PRIVACY_CLEANUP, mode=mode
+        )
+        assert auth.allowed, f"{mode}에서 막혔다: {auth.reason}"
+
+
+def test_cleanup_job_is_blocked_while_active() -> None:
+    """살아 있는 계정에서 정리 잡이 돌면 안 된다."""
+    from worker import privacy_jobs
+
+    barrier = privacy.BarrierState(
+        status=privacy.STATUS_ACTIVE, epoch=1, operation_id=None
+    )
+    auth = privacy.authorize_job(barrier, job_type=privacy_jobs.JOB_PRIVACY_CLEANUP)
+    assert not auth.allowed

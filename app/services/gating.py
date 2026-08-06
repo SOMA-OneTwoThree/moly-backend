@@ -11,6 +11,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
 from app.services.account import (
@@ -30,6 +31,11 @@ class Gating:
     tokens_used: int
     warning_threshold: int
     review_min_tokens: int
+    # 개인 일기를 쓸지 정하는 기준 = 그날 **유저가 쓴 글자 수**다. 토큰이 아니다
+    # (`diary_generation.generate_for_user`). 토큰 기준값 `diary_llm_min_tokens`는
+    # 남아 있지만 실제 판정에는 쓰이지 않는다.
+    # 기본값을 두는 이유는 이 값을 넘기지 않는 호출부(주로 테스트)를 깨지 않기 위함이다.
+    diary_min_user_chars: int = settings.diary_min_user_chars
 
 
 async def resolve(session: AsyncSession, user_id: str, now: datetime | None = None) -> Gating:
@@ -47,4 +53,5 @@ async def resolve(session: AsyncSession, user_id: str, now: datetime | None = No
         tokens_used=tokens_used,
         warning_threshold=cfg["token_warning_threshold"],
         review_min_tokens=cfg["review_prompt_min_tokens"],
+        diary_min_user_chars=cfg["diary_min_user_chars"],
     )

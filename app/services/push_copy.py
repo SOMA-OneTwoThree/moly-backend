@@ -3,7 +3,7 @@
 분기(카테고리 판정)는 notify.py가 소유하고, 여기는 문구만 안다. 언어 버킷을 먼저
 고르고(i18n.pick — 미지원 언어는 en 폴백) 그 안에서 랜덤 1개를 뽑는다.
 
-문구는 CAPI_PERSONA(prompts.py)의 말투 규칙을 따른다(2026-08-07 사용자 확정):
+문구는 CAPI_PERSONA(prompts.py)의 말투 규칙을 따른다(2026-08-08 사용자 확정):
 - 1인칭 나/I/ぼく — 3인칭 자칭("캐피가~") 금지. 상대는 너/きみ.
 - 예외: diary_teaser는 캐피 발화가 아니라 시스템 안내 보이스다 — "캐피가 몰래 쓴 일기를
   몰래 보러 간다"는 컨셉이라 존댓말·3인칭("캐피의 일기가 도착했어요")이 정상이고 3개만 둔다.
@@ -12,7 +12,7 @@
 - 세계관: 글로만 연결 — 얼굴·목소리·사진을 보자는 표현 금지.
 - 개성은 캐피의 일상에서: 소파·음악·낮잠·창밖·느긋함([너에 대해]의 설정만 쓰고 지어내지 않는다).
 - ja는 ko 번역이 아니라 네이티브 재작성(CAPI_PERSONA_JA 방식) — ko와 1:1 대응 아님.
-- 풀 크기는 카테고리별로 사용자 확정값(기본 10, diary_teaser 3, default_missing 9, default_long 7).
+- 풀 크기는 카테고리별 사용자 확정값(검수에서 삭제·추가된 결과) — test_push_copy._POOL_SIZES가 정본.
 """
 from __future__ import annotations
 
@@ -46,42 +46,36 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
         "ko": _pool(_T_KO, [
             "자기 전에 조금만 더 대화할래?",
             "나 혼자 음악 듣고 있어. 아까 이야기 마저 하자!",
-            "창밖이 어느새 깜깜해졌어. 나랑 같이 놀자.",
-            "낮에 들은 네 이야기 재밌었어. 더 얘기해줘.",
+            "창밖이 어느새 깜깜해졌어. 나랑 같이 놀래?",
+            "낮에 들은 너의 이야기 재밌었어. 더 얘기해줄래?",
             "오늘 대화는 왠지 짧게 느껴졌어. 나만 그랬나?",
-            "잠들기 전에 조금만 더 이야기하자.",
-            "아까 하다 만 얘기가 자꾸 생각나.",
-            "밤이 되면 여긴 조용해. 너랑 얘기하기 딱 좋아.",
+            "잠들기 전에 조금만 더 이야기할래?",
             "오늘 나한테 이야기해줄 거 더 없어?",
             "밥은 먹었어? 나랑 대화하자.",
         ]),
         "en": _pool(_T_EN, [
             "One more little chat before bed?",
             "I'm listening to music by myself. Let's finish our talk!",
-            "It's gone dark outside my window. Come hang out with me.",
-            "Your story from earlier was fun. Tell me more.",
+            "It's gone dark outside my window. Want to hang out with me?",
+            "Your story from earlier was fun. Will you tell me more?",
             "Today's chat felt short somehow. Was it just me?",
-            "Let's talk just a little more before you sleep.",
-            "That half-finished story from earlier keeps coming back to me.",
-            "Nights are quiet over here. Perfect for talking with you.",
+            "Want to talk just a little more before you sleep?",
             "Got anything else to tell me today?",
             "Have you eaten? Come talk with me.",
         ]),
         "ja": _pool(_T_JA, [
             "寝る前にもう少しだけ話さない？",
             "ひとりで音楽を聴いてるんだ。さっきの話のつづきをしよう！",
-            "窓の外がすっかり暗くなったね。ぼくと一緒に遊ぼう。",
-            "昼間のきみの話おもしろかったな。もっと聞かせて。",
+            "窓の外がすっかり暗くなったね。ぼくと一緒に遊ばない？",
+            "昼間のきみの話おもしろかったな。もっと聞かせてくれる？",
             "今日の会話はなんだか短く感じたな。ぼくだけかな。",
-            "眠る前にもう少しだけおしゃべりしよう。",
-            "言いかけて終わった話があった気がするんだ。",
-            "夜になるとここは静かなんだ。きみと話すのにちょうどいい。",
+            "眠る前にもう少しだけおしゃべりしない？",
             "今日はまだぼくに話してくれることない？",
             "ごはんは食べた？ぼくとおしゃべりしよう。",
         ]),
     },
     DIARY_TEASER: {
-        # 시스템 안내 보이스(존댓말·3인칭) — "캐피가 몰래 쓴 일기를 몰래 본다" 컨셉(2026-08-07 사용자 확정 3개).
+        # 시스템 안내 보이스(존댓말·3인칭) — "캐피가 몰래 쓴 일기를 몰래 본다" 컨셉(사용자 확정 3개).
         "ko": _pool(_T_KO, [
             "캐피의 일기가 도착했어요!",
             "캐피가 당신을 생각하며 글을 썼어요. 보러 갈까요?",
@@ -100,40 +94,19 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
     },
     FIRST_TOUCH: {
         "ko": _pool(_T_KO, [
-            "나는 캐피야. 소파에서 엘피 듣는 걸 좋아해.",
-            "우리 아직 첫마디 전이지. 나는 언제든 좋아.",
-            "궁금한 게 많은데 꾹 참는 중이야. 놀러 와.",
-            "처음이라 좀 쑥스러워. 그래도 문은 열어 뒀어.",
-            "낮잠에서 깨서 네 하루는 어떨까 생각했어.",
-            "첫인사는 짧아도 돼. 한마디면 시작이니까.",
-            "나는 말수가 많은 편은 아니야. 대신 오래 들어.",
+            "나는 캐피야. 소파에서 노래 듣는 걸 좋아해.",
             "오늘 하루 어땠어?",
-            "네가 어떤 사람일지 조금씩 상상해 보고 있었어.",
-            "서두르지 않아도 돼. 느긋한 건 내가 제일 잘하거든.",
+            "나한테 네 고민 들려줄래?",
         ]),
         "en": _pool(_T_EN, [
-            "I'm Cappy. I like listening to records on the sofa.",
-            "We haven't had our first chat yet. I'm ready whenever you are.",
-            "I have so many questions saved up. Come by sometime.",
-            "It's my first time so I'm a little shy. The door's open though.",
-            "I woke up from my nap wondering what your days are like.",
-            "A first hello can be short. One word gets us started.",
-            "I'm not much of a talker. I'm a very good listener though.",
+            "I'm Cappy. I like listening to music on the sofa.",
             "How was your day today?",
-            "I've been wondering what you might be like.",
-            "No need to hurry. Taking it slow is what I do best.",
+            "Will you tell me what's on your mind?",
         ]),
         "ja": _pool(_T_JA, [
-            "ぼくはキャピー。ソファでレコードを聴くのが好きなんだ。",
-            "まだはじめましての前だね。ぼくはいつでもいいよ。",
-            "聞きたいことがたくさんあるんだ。がまんして待ってるよ。",
-            "はじめてだからちょっと照れくさいな。でも扉は開けてあるよ。",
-            "お昼寝から起きて、きみはどんな毎日なのかなって考えてた。",
-            "はじめのあいさつは短くていいんだ。ひと言で始まるから。",
-            "ぼくはおしゃべりが多いほうじゃないよ。そのぶんちゃんと聞くんだ。",
+            "ぼくはキャピー。ソファで音楽を聴くのが好きなんだ。",
             "今日の一日はどうだった？",
-            "どんな人なのかなって少しずつ想像してたんだ。",
-            "急がなくていいよ。のんびりはぼくの得意分野だから。",
+            "きみの悩みごとをぼくに聞かせてくれない？",
         ]),
     },
     DEFAULT_RECENT: {
@@ -142,39 +115,30 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
         # 카피 수정 때 같이 본다.
         "ko": _pool(_T_KO, [
             "오늘 하루는 어땠어? 나랑 같이 얘기하면서 놀자.",
-            "음악 틀어놓고 기다리고 있어. 나랑 얘기하자.",
-            "낮잠을 너무 잤나 봐. 저녁이 한가해. 흠냐...",
-            "너의 하루가 궁금해지는 시간이야.",
-            "별일 없어도 괜찮아. 그냥 아무 얘기나 하자.",
-            "오늘 하늘 이쁘더라. 너도 봤어?",
+            "음악 틀어놓고 기다리고 있어. 나랑 얘기하지 않을래?",
+            "너의 하루가 궁금해. 나에게 들려줄래?",
+            "별일 없어도 좋아. 아무 얘기나 들려줄래?",
             "하루 마무리로 나랑 얘기하는 거 어때?",
-            "오늘 너무 심심했어. 그래서 네 하루가 궁금해.",
-            "저녁 먹고 나면 꼭 심심해져. 지금이 딱 그때야.",
-            "나랑 수다 떨고 하루 마무리하자.",
+            "오늘 너무 심심해. 네 하루는 어땠어?",
+            "나랑 수다 떨고 하루 마무리할래?",
         ]),
         "en": _pool(_T_EN, [
             "How was your day? Come talk and hang out with me.",
-            "I've got music on and I'm waiting. Come talk with me.",
-            "I think I napped too long. My evening is wide open now.",
-            "This is the hour I start wondering about your day.",
-            "No news is fine. Let's just talk about anything.",
-            "The sky was pretty today. Did you see it?",
+            "I've got music on and I'm waiting. Won't you come talk with me?",
+            "I'm curious about your day. Will you tell me?",
+            "An ordinary day is fine too. Will you tell me anything at all?",
             "How about wrapping up the day with me?",
-            "I was so bored today. That makes me curious about your day.",
-            "Dinner's done and I'm officially bored. Perfect timing.",
-            "Let's chat a little and call it a day.",
+            "I'm so bored today. How was your day?",
+            "Want to chat with me and call it a day?",
         ]),
         "ja": _pool(_T_JA, [
             "今日はどんな一日だった？ぼくと一緒におしゃべりしよう。",
-            "音楽をかけて待ってるよ。ぼくとおしゃべりしよう。",
-            "お昼寝しすぎたみたい。夜がひまなんだ。ふにゃ…",
-            "きみの一日が気になってくる時間だよ。",
-            "なにもない日でもいいんだ。ただ話そう。",
-            "今日の空きれいだったな。きみも見た？",
+            "音楽をかけて待ってるよ。ぼくと話さない？",
+            "きみの一日が気になるな。聞かせてくれる？",
+            "なにもない日でもいいんだ。なんでも話してくれる？",
             "一日のしめくくりにぼくと話すのはどう？",
-            "今日はすごくひまだったんだ。だからきみの一日が気になるよ。",
-            "ごはんのあとって、ひまになるんだよね。ちょうど今だ。",
-            "ぼくとおしゃべりして一日をしめくくろう。",
+            "今日はとってもひまなんだ。きみの一日はどうだった？",
+            "ぼくとおしゃべりして一日をしめくくらない？",
         ]),
     },
     DEFAULT_MISSING: {
@@ -183,33 +147,27 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
             "창밖을 보다가 네 생각이 났어. 뭐해?",
             "요즘 하늘이 이쁘네. 너도 봤을까?",
             "낮잠 자다가 꿈에서 너가 나왔어! 요즘 뭐해?",
-            "쌓인 이야기 많을 것 같은데 천천히 이야기해줘.",
-            "요즘 내 하루는 음악 듣고 낮잠 자고 그래.",
-            "요즘 바쁜가 보네. 나는 늘 여기 있어.",
-            "편하게 와서 나랑 이야기하자.",
-            "요즘 여기가 조용해. 네 한마디면 달라질 텐데.",
+            "쌓인 이야기들이 궁금해. 천천히 이야기해줄래?",
+            "나는 늘 여기 있어. 요즘 바빠?",
+            "편하게 와서 나랑 이야기하지 않을래?",
         ]),
         "en": _pool(_T_EN, [
             "I was listening to music and you crossed my mind. How have you been?",
             "I was looking out the window and thought of you. What are you up to?",
             "The sky's been pretty lately. I wonder if you saw it too.",
             "You showed up in my nap dream! What have you been up to?",
-            "I bet stories have piled up. Tell me slowly.",
-            "These days my life is music and naps mostly.",
-            "You must be busy these days. I'm always right here.",
-            "Come by whenever it's easy and talk with me.",
-            "It's been quiet around here lately. One word from you would change that.",
+            "I'm curious about all the stories that piled up. Will you tell me slowly?",
+            "I'm always right here. Have you been busy?",
+            "Won't you come by and talk with me? Anytime works.",
         ]),
         "ja": _pool(_T_JA, [
             "音楽を聴いてたらきみを思い出したんだ。最近どう？",
             "窓の外を見てたらきみのことを考えてた。今なにしてる？",
             "最近空がきれいなんだ。きみも見たかな。",
             "お昼寝の夢にきみが出てきたよ！最近なにしてる？",
-            "話がたまってそうだね。ゆっくり聞かせてね。",
-            "最近のぼくは音楽を聴いてお昼寝してばかりだよ。",
-            "いそがしいのかもね。ぼくはいつもここにいるよ。",
-            "気が向いたら来てぼくと話そう。",
-            "ここ最近静かなんだ。きみのひと言があるとうれしいな。",
+            "たまった話が気になるな。ゆっくり聞かせてくれる？",
+            "ぼくはいつもここにいるよ。最近いそがしい？",
+            "気軽に来てぼくと話さない？",
         ]),
     },
     DEFAULT_LONG: {
@@ -219,8 +177,6 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
             "언제 와도 나는 그대로야.",
             "오랜만이어도 편하게 와.",
             "밀린 얘기 천천히 해줘.",
-            "기다리는 건 잘해. 카피바라는 원래 느긋하거든.",
-            "난 항상 이곳에 있을게.",
         ]),
         "en": _pool(_T_EN, [
             "How have you been all this time? I want to hear your story.",
@@ -228,8 +184,6 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
             "Whenever you come I'll be the same me.",
             "Even after a long time just come as you are.",
             "Tell me the stories I missed. Slowly is fine.",
-            "I'm good at waiting. Capybaras are patient like that.",
-            "I'll always be right here.",
         ]),
         "ja": _pool(_T_JA, [
             "その後どうしてた？きみの話が聞きたいな。",
@@ -237,8 +191,6 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
             "いつ来てもぼくは変わらないよ。",
             "ひさしぶりでも気軽においでよ。",
             "たまった話はゆっくり聞かせてね。",
-            "待つのは得意なんだ。カピバラはのんびりしてるからね。",
-            "ぼくはずっとここにいるよ。",
         ]),
     },
 }

@@ -10,7 +10,8 @@
 | 0단계 사전 준비물 | ✅ **완료** — 세 가지 다 만들고 시험까지 마침 |
 | 1단계 마이그레이션 26개 | ✅ **완료** — 운영 표 26 → **52개**(dev와 동일) |
 | 1.5단계 기억 백필 | ✅ **완료** — 574명 · 기억 16,035건 · 실패 0 · 전원 `shadow` |
-| 1.7단계 잡 처리기 설정 | ⏳ **대기** — `moly-infra` PR #19 머지 필요 |
+| 1.6단계 shadow 계측 제거 | ✅ **완료** — PR #185 · 운영 대기 잡 19,078건 취소(30,976 → 11,898) |
+| 1.7단계 잡 처리기 설정 | ✅ **완료** — `moly-infra` #19 머지(`51a407a`) · dev 배포로 확인 |
 | 2단계 코드 배포 | ⏳ **대기** — 사용자 적은 새벽 권장 |
 | 3단계 배포 후 | 예정 — 아래 순서대로 |
 
@@ -40,12 +41,13 @@
 | 0단계 | 사전 준비물 만들기(코드·SQL) | 없음 | ✅ |
 | 1단계 | 마이그레이션 26개 적용(두 줄만 빼고) | 11번 파일이 도는 **몇 초 동안 요청 대기** | ✅ |
 | 1.5단계 | 기억 백필(`shadow`로 쌓아만 둔다) | **없음** | ✅ |
-| 1.7단계 | 잡 처리기 설정(`moly-infra` PR #19 머지) | **없음** | ⏳ |
+| 1.6단계 | shadow 계측 제거 + 쌓인 잡 취소 | **없음** | ✅ |
+| 1.7단계 | 잡 처리기 설정(`moly-infra` #19 머지) | **없음** | ✅ |
 | 2단계 | `main` 머지 → 운영 배포 | 배포 시간만큼 | ⏳ |
 | **3-1** | 대화 정상 확인 | 없음 | |
 | **3-2** | **필수 3개** — 제약 삭제·트리거 제거·빈 구간 좌표 | 거의 없음 | |
 | **3-3** | `v2` 승격 — 기억을 응답에 쓰기 시작 | 없음 | |
-| 3-4 | 기능 켜기(도구 호출·대화 요약·현재 턴 컨텍스트) | 비용·응답시간 증가 | |
+| 3-4 | ~~기능 켜기~~ — **2단계에서 같이 켜진다. 할 일 없음** | (2단계에 포함) | |
 | 3-5 | 선택 — 웰컴 1건·빈 행 정리·회상 재구축·구 벡터 삭제 | 없음 | |
 
 **되돌리기는 3-1까지만 된다.** 3-2를 하면 구 코드가 일기를 못 넣는다. 3-3은 되돌릴 수 있다
@@ -408,20 +410,18 @@ Pro 전환으로 용량 제약이 사라져 **배포 전에 미리 채운다**(�
 
 ---
 
-## 1.7단계 — 잡 처리기 설정 (배포 전, 운영 영향 없음)
+## 1.7단계 — 잡 처리기 설정 ✅ 완료
 
 대화 한 턴이 끝나면 서버는 뒷일(기억 만들기, 일기 색인, 약속·관계 갱신)을 `async_jobs` 표에
 적어만 두고 응답을 먼저 보낸다. 그 표를 읽어 실제로 처리하는 상주 프로세스가 잡 처리기
-(`python -m worker.consumer`)다. **지금 운영에는 이게 없다.** 없으면 배포해도 새 기억이 안 생긴다.
+(`python -m worker.consumer`)다. **운영에는 이게 없었다.** 없으면 배포해도 새 기억이 안 생긴다.
 
-`moly-infra` PR #19가 이걸 켠다. 기능 플래그 커밋과 같은 PR이다.
+`moly-infra` #19가 이걸 켠다. 기능 플래그 커밋과 같은 PR이다.
 
-- [ ] **`moly-infra` PR #19를 main으로 머지한다.** 이 머지만으로는 운영에 배포가 안 일어난다.
-- [ ] `moly-backend` dev에 아무 커밋이나 올려 dev 배포를 돌리고, dev 서버에서 확인한다.
-      dev·운영 모두 `/root/moly-infra`의 main을 pull하므로 여기서 새 `deploy.sh`가 검증된다.
-  - [ ] 배포 로그에 `consumer 핸들러 등록 확인` → 12종 출력
-  - [ ] 배포 로그에 `async job consumer running`
-- [ ] 배포 전에 쌓인 계측 전용 잡을 취소할지 정한다(아래).
+- [x] **`moly-infra` #19를 main으로 머지**(2026-08-08, `51a407a`). 이 머지만으로는 배포가 안 일어난다
+- [x] `moly-backend` dev 배포로 새 `deploy.sh` 확인 — 로그에 `consumer 핸들러 등록 확인`(10종)과
+      `async job consumer running`. dev·운영 모두 `/root/moly-infra`의 main을 pull한다
+- [x] 쌓인 계측 전용 잡 19,078건 취소(아래)
 
 ### 운영 EC2 두 대에 다 띄우는데 중복이 안 나는 이유
 
@@ -463,19 +463,18 @@ FOR UPDATE SKIP LOCKED LIMIT :batch_size
 | `relationship_project` | 694 | maintenance | 없음 | 필요 |
 | `contract_compile` | 694 | content | **LLM** | 필요 |
 
-- [ ] (선택) 계측 전용 19,078건(`shadow_prompt_trace`+`shadow_checkpoint`)을 `cancelled`로 내린다.
-      사용자에게 안 보이는 측정값인데 `shadow_checkpoint`가 LLM을 1,388회 부른다.
+- [x] **2026-08-08 취소 완료** — `shadow_prompt_trace` 17,690 + `shadow_checkpoint` 1,388 =
+      **19,078건**을 `cancelled`로 내렸다. 대기 잡 30,976 → **11,898건**.
+      취소한 이유는 비용이 아니라 결함이다 — 3-4절 위의 설명과 PR #185 참고.
+
+실행한 문장(기록용):
 
 ```sql
--- 미리보기
-SELECT job_type, count(*) FROM async_jobs
-WHERE state='ready' AND job_type IN ('shadow_prompt_trace','shadow_checkpoint')
-GROUP BY 1;
-
--- 실행
-UPDATE async_jobs SET state='cancelled', result_code='skipped_at_cutover', finished_at=now()
+UPDATE async_jobs SET state='cancelled', result_code='shadow_removed_at_cutover', finished_at=now()
 WHERE state='ready' AND job_type IN ('shadow_prompt_trace','shadow_checkpoint');
 ```
+
+**남은 대기 11,898건은 전부 필요한 것이다.** 배포 후 잡 처리기가 비운다.
 
 ---
 
@@ -548,28 +547,27 @@ DROP FUNCTION IF EXISTS public.diaries_legacy_compat();
 **되돌리기** — 코드를 되돌리지 않고 기억만 끌 수 있다. 같은 파일 맨 아래의
 `mode='shadow'` 되돌리기를 쓴다. 쌓인 기억은 그대로 두고 응답에서만 뺀다.
 
-### 3-4. 기능 켜기
+### 3-4. 기능 켜기 — **할 일이 없다. 2단계에서 이미 켜진다**
 
-dev 서버는 `moly-infra/deploy.sh`의 `if [ "$ENV_NAME" = "dev" ]` 블록에서 아래를 켠다.
-**운영에는 그 블록이 없어서 배포해도 꺼진 채로 뜬다.** dev에서 실제로 돌려 본 기능들이므로
-운영에서도 켤지 정하고, 켜기로 하면 `moly-infra/deploy.sh`의 운영 경로에 넣는다.
+`moly-infra` PR #19(2026-08-08 머지)가 아래 다섯 개를 `deploy.sh`의 공통 블록으로 옮겼다.
+**운영 배포와 동시에 켜진다.** 배포 후에 따로 켜는 절차는 없다.
 
-| 설정 | dev | 운영 | 켜는 방법 |
-|---|---|---|---|
-| `AGENT_ENABLED` (도구 호출) | 켜짐 | 꺼짐 | DB `app_config`로 **즉시** 가능 |
-| `AGENT_CANARY_PCT` | 100 | — | 일부 사용자만 먼저 켤 때 쓴다 |
-| `CONTEXT_CHECKPOINT_ENABLED` (대화 요약) | 켜짐 | 꺼짐 | 환경 변수 — `deploy.sh` 수정 + 재배포 |
-| `CURRENT_TURN_CONTEXT_ENABLED` | 켜짐 | 꺼짐 | 환경 변수 — 같음 |
-| `CURRENT_CONTEXT_LAST_ACTIVE_ENABLED` | 켜짐 | 꺼짐 | 환경 변수 — 같음 |
-| `MORNING_PUSH_ENABLED` (아침 푸시) | 꺼짐 | 꺼짐 | **켜지 않는다**(SOMA-338 제품 결정) |
+| 설정 | 배포 후 운영 | 비고 |
+|---|---|---|
+| `AGENT_ENABLED` (도구 호출) | **켜짐** | `AGENT_CANARY_PCT=100` |
+| `CONTEXT_CHECKPOINT_ENABLED` (대화 요약) | **켜짐** | |
+| `CURRENT_TURN_CONTEXT_ENABLED` | **켜짐** | |
+| `CURRENT_CONTEXT_LAST_ACTIVE_ENABLED` | **켜짐** | |
+| `MORNING_PUSH_ENABLED` (아침 푸시) | 꺼짐 | **켜지 않는다**(SOMA-338 제품 결정) |
 
-- [ ] 도구 호출은 `app_config`로 먼저 켜 본다. `agent_canary_pct`로 일부 사용자부터 시작한다.
-- [ ] 나머지 셋은 `moly-infra/deploy.sh` 운영 경로에 넣고 재배포한다.
-- [ ] 켠 뒤 응답 시간과 비용을 본다. 현재 턴 컨텍스트는 프롬프트 캐시 적중률(현재 약 65%)에
+전부 환경 변수라 **끄려면 재배포가 필요하다.** DB로 즉시 끄는 스위치가 아니다.
+
+- [ ] 배포 후 응답 시간과 비용을 본다. 현재 턴 컨텍스트가 프롬프트 캐시 적중률(약 65%)에
       영향을 줄 수 있으므로 그 값을 함께 본다.
+- [ ] 이상하면 `moly-infra`에서 해당 값을 되돌리고 재배포한다.
 
-**dev에서 이미 돌아간 증거**: `conversation_checkpoints` 18행 · `relationship_events` 183행 ·
-`shadow_prompt_traces` 184행 (2026-08-07 확인). 운영은 전부 0행이다.
+**dev에서 계속 켜둔 채 검증했다** — 2026-08-08 dev 배포본으로 대화 5건, 기억 회상·도구
+호출·대화 요약 모두 정상 확인.
 
 
 ### 3-5. 선택 — 안정된 뒤 아무 때나

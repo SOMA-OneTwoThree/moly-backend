@@ -73,7 +73,7 @@ uv run python scripts/verify_idempotency_responses.py
 uv run python scripts/verify_idempotency_responses.py --delete-invalid  # 명시할 때만 DB 삭제
 ```
 
-`.env` 필수값: `SUPABASE_URL`·`SUPABASE_ANON_KEY`·`SUPABASE_SERVICE_ROLE_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `OPENAI_API_KEY`. 선택: `ANTHROPIC_API_KEY`(모델 롤백), `FCM_*`(푸시 — 키 없이 ADC/WIF 지원). 값이 없으면 해당 외부 기능은 안전하게 비활성(no-op/거부)된다.
+`.env` 필수값: `SUPABASE_URL`·`SUPABASE_PUBLISHABLE_KEY`·`SUPABASE_SECRET_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `OPENAI_API_KEY`. 선택: `ANTHROPIC_API_KEY`(모델 롤백), `FCM_*`(푸시 — 키 없이 ADC/WIF 지원), `REVENUECAT_WEBHOOK_AUTH`(구독·IAP). 값이 없으면 해당 외부 기능은 안전하게 비활성(no-op/거부)된다.
 
 ### API 손으로 테스트 (curl)
 

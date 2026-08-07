@@ -27,7 +27,20 @@ MAX_CANDIDATE_BYTES = 1_000
 MAX_CANDIDATE_MODEL_TOKENS = 160
 
 # 한 턴에서 만들 수 있는 후보 수 상한.
+#
+# 추출 단위가 턴 하나에서 **대화 덩어리**로 바뀌었으므로 상한도 덩어리 크기를 따라가야 한다.
+# 그대로 두면 20턴짜리 덩어리에서도 5개만 남아, 조각남을 고치는 대신 남기는 총량이 줄어든다.
+# 게다가 버리는 순서가 모델이 낸 순서라 **덩어리 뒷부분에서 나온 사실이 조용히 잘린다**
+# (검토 지적 H-2).
 MAX_CANDIDATES_PER_TURN = 5
+# 덩어리 하나의 절대 상한. 턴 수에 비례시키되 여기서 멈춘다 — 출력 토큰 상한과 짝이다.
+MAX_CANDIDATES_PER_CHUNK = 24
+
+
+def candidate_limit(turns: int) -> int:
+    """이 덩어리에서 남길 후보 수. 턴 수에 비례하되 절대 상한을 넘지 않는다."""
+    return max(MAX_CANDIDATES_PER_TURN, min(MAX_CANDIDATES_PER_TURN * max(1, turns),
+                                            MAX_CANDIDATES_PER_CHUNK))
 
 SCHEMA_VERSION = "mem0-candidate-v1"
 NORMALIZER_VERSION = "mem0-normalizer-v1"
@@ -173,6 +186,7 @@ def filter_candidates(
     nickname: str | None = None,
     contract_texts: tuple[str, ...] = (),
     source_texts: dict[int, str] | None = None,
+    limit: int | None = None,
 ) -> tuple[list[Candidate], list[tuple[Candidate, str]]]:
     """(통과분, [(탈락분, 사유)]). 통과분은 턴당 상한까지만 남긴다.
 
@@ -197,7 +211,7 @@ def filter_candidates(
             rejected.append((c, "duplicate_in_turn"))
             continue
         seen.add(h)
-        if len(passed) >= MAX_CANDIDATES_PER_TURN:
+        if len(passed) >= (limit if limit is not None else MAX_CANDIDATES_PER_TURN):
             rejected.append((c, "over_turn_limit"))
             continue
         passed.append(c)

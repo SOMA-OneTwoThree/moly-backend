@@ -283,6 +283,30 @@ async def claim(
 
 
 # ─────────────────────────────────────────────────────────────
+# payload 고정 — 첫 시도가 정한 값을 이후 재시도가 그대로 쓰게 한다.
+#
+# 재시도마다 다시 계산하면 그 사이 바뀐 DB 상태 때문에 답이 달라지고, 앞 시도가 남긴
+# 중간 산출물(계획·registry 행)을 아무도 이어받지 못한다. 핸들러가 "이 잡은 이 범위를
+# 처리한다"를 한 번 정하고 여기 적어두면 그 문제가 사라진다.
+#
+# **덮어쓰지 않고 합친다** — payload의 다른 키(turn_seq 등)를 지우면 안 된다.
+# ─────────────────────────────────────────────────────────────
+_FREEZE_PAYLOAD = text("""
+UPDATE async_jobs
+SET payload = COALESCE(payload, '{}'::jsonb) || CAST(:patch AS jsonb)
+WHERE id = :job_id
+""")
+
+
+async def freeze_job_payload(session: AsyncSession, *, job_id: uuid.UUID, patch: dict) -> None:
+    """이 잡의 payload에 `patch`를 합친다. 커밋은 호출측 소유."""
+    await session.execute(
+        _FREEZE_PAYLOAD, {"job_id": job_id, "patch": json.dumps(patch, ensure_ascii=False)}
+    )
+    await session.commit()
+
+
+# ─────────────────────────────────────────────────────────────
 # finalize — 전부 fencing(불변식 3). 0행이면 도메인 반영 없이 rollback.
 # ─────────────────────────────────────────────────────────────
 _FENCE = "WHERE id=:id AND state='running' AND lease_owner=:worker_id AND lease_token=:lease_token"

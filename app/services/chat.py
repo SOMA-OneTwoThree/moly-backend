@@ -342,7 +342,13 @@ def _recall_adapter():
 
 
 async def _recall_memory_v2(
-    user_id: uuid.UUID, *, query: str, state, language: str
+    user_id: uuid.UUID,
+    *,
+    query: str,
+    state,
+    language: str,
+    today: date | None = None,
+    tz_name: str = "Asia/Seoul",
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
 
@@ -364,7 +370,9 @@ async def _recall_memory_v2(
                 embed_query=memory_embeddings.embed_query,
                 timeout=_MEM0_RECALL_TIMEOUT_S,
             )
-        return mem0_recall.render_block(items, language=language)
+        return mem0_recall.render_block(
+            items, language=language, today=today, tz_name=tz_name
+        )
     except Exception:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
         _log.warning("v2 회상 블록 생성 실패(빈 기억으로 진행) — user=%s", user_id, exc_info=True)
         return ""
@@ -646,8 +654,12 @@ async def _record_memory_v2(
     # historical manifest가 완성된 뒤 가장 이른 turn부터 순서대로 흐른다(13.3절).
     # 이미 처리 대기 중인 turn이 있으면 dedup key가 중복 enqueue를 막는다.
     if state.accepts_live_ingest and state.ingest_through_turn_seq >= state.source_through_turn_seq:
+        # 바로 돌리지 않고 대화가 잠잠해지길 기다린다. 기다리는 동안 이 사용자의 새 턴은
+        # 위 조건(커서가 따라잡았을 때만)에 걸려 잡을 만들지 않으므로, 잡 하나가 그동안 쌓인
+        # 구간을 통째로 먹는다 — 한 사건이 여러 턴에 걸쳐도 조각나지 않는다.
         await memory_pipeline.enqueue_ingest(
-            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch,
+            delay_s=settings.memory_chunk_idle_s,
         )
 
 
@@ -858,7 +870,12 @@ async def post_message(
     # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
     # 문자열로 끝난다(임베딩·검색 호출 0).
     recall_task = asyncio.ensure_future(
-        _recall_memory_v2(uid, query=req.text, state=pipeline_state, language=language)
+        _recall_memory_v2(
+            uid, query=req.text, state=pipeline_state, language=language,
+            # 시점 표기 기준 = 이 사용자의 로컬 활동일. UTC로 재면 자정 근처에서
+            # "오늘"과 "어제"가 뒤집힌다.
+            today=ad, tz_name=getattr(g.profile, "timezone", "Asia/Seoul"),
+        )
     )
 
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가

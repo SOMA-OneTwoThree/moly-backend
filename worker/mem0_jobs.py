@@ -21,6 +21,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import (
+    jobs,
     llm,
     mem0_adapter,
     mem0_classifier,
@@ -49,10 +50,22 @@ JOB_MEM0_INGEST = "mem0_ingest"
 # v2 컬렉션 이름·버전. migration 롤이 만든 것만 쓴다(런타임 DDL 금지).
 COLLECTION_VERSION = "v2"
 
+# 추출 범위는 **턴 하나가 아니라 대화 덩어리**다(커서 다음부터 이번 대상 턴까지).
+#
+# 한 턴만 보면 한 사건이 여러 턴에 걸칠 때 조각난다. 실제로 유저가 캐피의 모습(귤·안경·목도리)을
+# 보고 "귀여워"라고 한 턴에서 `유저가 상대를 귀엽다고 한다`만 남았다 — 무엇을 귀여워했는지가
+# 사라졌다. 앞 턴을 안 봤기 때문이다.
+#
+# 실측(2026-08-08): 유저 발화의 86%가 직전 발화로부터 3분 안에 이어진다. 대화는 턴이 아니라
+# 덩어리로 온다. 같은 주제가 여러 턴에 걸치니 비슷한 후보가 반복 생성돼 중복 판정이 7.7%였다.
+#
+# 근거(evidence)는 `message_id`로 묶이므로(mem0_extractor의 `by_id` 대조) 범위를 넓혀도
+# 어느 발화가 근거인지는 그대로 정확하다.
 _SOURCE_MESSAGES = text("""
 SELECT id, sender, content
 FROM messages
-WHERE user_id = :user_id AND turn_seq = :turn_seq AND kind = 'normal'
+WHERE user_id = :user_id AND kind = 'normal'
+  AND turn_seq > :from_seq AND turn_seq <= :to_seq
 ORDER BY id
 """)
 
@@ -126,6 +139,60 @@ ON CONFLICT (user_id, provider, collection_version, provider_memory_id) DO NOTHI
 """)
 
 
+# 덩어리 경계 — 커서 다음부터 **아래 셋 중 먼저 걸리는 곳**까지가 한 덩어리다.
+#
+#   1. 활동일이 바뀌면 끊는다. 하루 경계 뒷정리(관계 투영·약속 추출·재판정)의 유일한 진입
+#      경로가 "앞 턴과 날짜가 다른가"라서, 덩어리가 자정을 넘으면 그 감지가 통째로 막힌다.
+#      어제와 오늘은 실제로 다른 자리이기도 하다.
+#   2. 앞 턴과의 간격이 idle을 넘으면 끊는다. 실측(2026-08-08)으로 유저 발화의 86%가 3분 안에
+#      이어진다 — 그보다 벌어졌으면 다른 자리의 대화로 본다.
+#   3. max_turns에서 끊는다. 프롬프트가 모델 상한을 넘지 않게 하는 안전장치다.
+#
+# 시간은 "의미가 끊기는 지점"이 아니라 **기다릴 수 있는 한계**다. 하루치를 통째로 넣는 게
+# 맥락은 가장 온전하지만 그러면 기억이 하루 늦는다(구 방식을 버린 이유). 그래서 조용해지면
+# 그 자리는 끝난 것으로 보고 처리한다.
+_CHUNK_BOUNDS = text("""
+WITH t AS (
+  SELECT turn_seq, MIN(created_at) AS ts, MIN(activity_date) AS ad
+  FROM messages
+  WHERE user_id = :user_id AND kind = 'normal' AND turn_seq IS NOT NULL
+    AND turn_seq > :from_seq AND turn_seq <= :upper
+  GROUP BY turn_seq
+), n AS (
+  SELECT turn_seq, ts,
+         row_number() OVER (ORDER BY turn_seq) AS rn,
+         lag(ts) OVER (ORDER BY turn_seq) AS prev_ts,
+         ad <> first_value(ad) OVER (ORDER BY turn_seq ROWS UNBOUNDED PRECEDING) AS day_changed
+  FROM t
+), brk AS (
+  SELECT MIN(rn) AS rn FROM n
+  WHERE rn > 1 AND (day_changed OR ts - prev_ts > make_interval(secs => :idle_s))
+)
+SELECT MIN(turn_seq) AS first_turn,
+       MAX(turn_seq) FILTER (
+         WHERE rn <= LEAST(COALESCE((SELECT rn FROM brk) - 1, :max_turns), :max_turns)
+       ) AS last_turn
+FROM n
+""")
+
+
+async def resolve_chunk(
+    session, *, user_id, from_seq: int, upper: int, idle_s: float, max_turns: int
+) -> tuple[int, int] | None:
+    """이 잡이 먹을 구간 `(from, to]`와 그 구간의 첫 턴. 처리할 게 없으면 None.
+
+    반환 = `(first_turn, last_turn)`. `first_turn`은 하루 경계 판정에 쓴다 — 마지막 턴을 주면
+    덩어리 안이 전부 같은 날이라 경계가 안 보인다(검토 지적 C-1).
+    """
+    row = (await session.execute(_CHUNK_BOUNDS, {
+        "user_id": user_id, "from_seq": from_seq, "upper": upper,
+        "idle_s": float(idle_s), "max_turns": int(max_turns),
+    })).first()
+    if row is None or row[0] is None or row[1] is None:
+        return None
+    return int(row[0]), int(row[1])
+
+
 async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
     payload = job.payload or {}
     try:
@@ -144,8 +211,34 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         if not state.accepts_live_ingest:
             # historical backfill 전 — 이 turn은 아직 차례가 아니다.
             raise JobRetry("bootstrap_not_ready")
+
+        from_seq = int(state.ingest_through_turn_seq)
+        # 구간은 **첫 시도에서 확정해 payload에 적어둔다.** 매 시도마다 다시 계산하면 그 사이
+        # 사용자가 새 턴을 보냈을 때 끝이 밀려, 앞 시도가 남긴 계획을 `_RESUME_PLAN`이 못 찾는다.
+        # 그러면 추출을 다시 부르고(결과가 달라진다) 벡터가 중복되고 판정 안 된 기억이 고아로
+        # 남는다(검토 지적 H-1).
+        frozen = payload.get("chunk")
+        if isinstance(frozen, dict) and "first" in frozen and "last" in frozen:
+            first_turn, to_seq = int(frozen["first"]), int(frozen["last"])
+        else:
+            chunk = await resolve_chunk(
+                session, user_id=uid, from_seq=from_seq,
+                upper=max(turn_seq, int(state.source_through_turn_seq)),
+                idle_s=settings.memory_chunk_idle_s,
+                max_turns=settings.memory_chunk_max_turns,
+            )
+            if chunk is None:
+                # 커서 뒤에 처리할 턴이 없다 — 커서만 맞추고 끝낸다(잡이 되돌아오지 않게).
+                raise JobCancelled("no_source_messages")
+            first_turn, to_seq = chunk
+            await jobs.freeze_job_payload(
+                session, job_id=job.id, patch={"chunk": {"first": first_turn, "last": to_seq}}
+            )
+        # 아래 단계(staging·registry·커서·판정 잡)는 전부 이 구간의 끝을 기준으로 돈다.
+        turn_seq = to_seq
+
         rows = (await session.execute(
-            _SOURCE_MESSAGES, {"user_id": uid, "turn_seq": turn_seq}
+            _SOURCE_MESSAGES, {"user_id": uid, "from_seq": from_seq, "to_seq": to_seq}
         )).all()
         profile = (await session.execute(
             text("SELECT nickname, language FROM profiles WHERE id = :u"), {"u": uid}
@@ -256,6 +349,8 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             stage_planned=_stage, register_pending=_register,
             nickname=nickname, existing_plan=resumed or None,
             source_texts={m.id: m.content for m in messages},
+            # 후보 상한을 덩어리 크기에 맞춘다 — 20턴에서 5개만 남기면 뒷부분이 조용히 잘린다.
+            turns=to_seq - from_seq,
         )
     except JobRetry:
         raise
@@ -289,8 +384,12 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             session, uid, cursor=turn_seq, privacy_epoch=state.privacy_epoch
         )
         # 하루가 닫혔으면 그날의 뒷정리 잡(재판정·관계 투영·계약 추출). 매 turn이 아니라 경계에서만.
+        #
+        # ⚠️ **덩어리의 끝이 아니라 첫 턴**을 넘긴다. 판정이 "이 턴과 바로 앞 턴의 날짜가 다른가"라서
+        #    끝을 주면 덩어리 안이 전부 같은 날이라 경계가 안 보인다. 덩어리는 활동일을 넘지 않게
+        #    잘리므로 경계는 항상 첫 턴 앞에 하나만 있다(검토 지적 C-1).
         await memory_pipeline.enqueue_day_boundary_jobs(
-            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+            session, uid, turn_seq=first_turn, privacy_epoch=state.privacy_epoch
         )
 
     return JobResult(

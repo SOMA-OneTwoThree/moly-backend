@@ -660,6 +660,9 @@ async def _record_memory_v2(
         await memory_pipeline.enqueue_ingest(
             session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch,
             delay_s=settings.memory_chunk_idle_s,
+            # 재추출로 커서를 되돌리면 revision이 올라간다. 그래야 이미 처리한 turn을
+            # 다시 처리할 수 있다 — 세대가 없으면 옛 잡 행에 막혀 조용히 무시된다.
+            generation=state.revision,
         )
 
 

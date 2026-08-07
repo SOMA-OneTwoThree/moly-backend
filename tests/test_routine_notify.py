@@ -53,6 +53,7 @@ def test_streak_gap_stops():
 class _G:
     def __init__(self, remaining):
         self.entitlement = {"tokens_remaining": remaining}
+        self.tokens_used = 0  # 실제 Gating은 항상 갖는 필드 — 분기(spoke_today)가 읽는다
 
 
 class _Profile:

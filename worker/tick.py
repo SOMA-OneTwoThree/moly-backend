@@ -38,6 +38,17 @@ EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
 
 
 _KST = ZoneInfo("Asia/Seoul")
+
+# 슬랙 요약용 저녁 카테고리 한국어 라벨(notify.EVENING_STAT_KEYS와 같은 키).
+_EVENING_CATEGORY_KO = {
+    "more_chat": "대화후",
+    "diary_teaser": "일기",
+    "first_touch": "첫인사",
+    "default_recent": "일상",
+    "default_missing": "그리움",
+    "default_long": "오랜만",
+    "fallback": "폴백",
+}
 # 자주 보는 타임존의 한국어 나라 라벨(가독성용). 없으면 IANA 이름 그대로.
 _TZ_KO = {
     "Asia/Seoul": "한국",
@@ -84,6 +95,16 @@ def _build_summary(
         f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
+    # 저녁 카테고리 분포 — 다양화가 실제로 작동하는지의 유일한 관측 출구.
+    # 특정 카테고리 독식(예: 폴백 급증 = 신호 조회 장애)을 여기서 발견한다.
+    if counts.get("evening"):
+        dist = [
+            f"{label} {counts.get(f'evening_{key}', 0)}"
+            for key, label in _EVENING_CATEGORY_KO.items()
+            if counts.get(f"evening_{key}", 0)
+        ]
+        if dist:
+            lines.insert(len(lines) - 1, "저녁 분포: " + " / ".join(dist))
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
     return "\n".join(lines)
@@ -161,7 +182,8 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                     out["morning"] = 1
             elif hour == EVENING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_evening(session, p):
+                # now 주입(테스트 결정성) + stats=out(카테고리별 발송 카운트 — 관측).
+                if await notify.notify_evening(session, p, now=now, stats=out):
                     out["evening"] = 1
         except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
             _log.exception("틱 처리 실패(user=%s hour=%s): %r", pid, hour, e)
@@ -347,6 +369,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         # _emit_worker_health의 counts["memory_failed"]가 매 틱 KeyError → 데드맨 핑이 죽는다.
         "memory_ok": 0, "memory_failed": 0,
         "morning": 0, "evening": 0,
+        # 저녁 카테고리별 카운트 — 병합이 `k in counts`라 여기 없으면 조용히 버려진다(위와 동일).
+        **{f"evening_{c}": 0 for c in notify.EVENING_STAT_KEYS},
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
         "users": 0,

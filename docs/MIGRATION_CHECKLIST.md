@@ -14,10 +14,9 @@
 
 **1단계에는 삭제가 하나도 없다. 지금 멈추거나 되돌려도 잃을 데이터가 없다.**
 
-⚠️ **기억 백필은 배포 전에서 배포 후로 옮겼다.** Supabase 무료 요금제의 Database Size 한도가
-500 MB인데 현재 300 MB(60%)라 여유가 200 MB뿐이고, 백필에 약 275~300 MB가 필요하다.
-배포 후 `vecs.memories` 158 MB를 지우면 여유가 358 MB가 되어 들어간다. 순서만 바뀌고
-없어지는 것은 없다. (유료 전환 시 한도가 8 GB가 되어 이 제약이 사라진다.)
+**2026-08-07 Supabase Pro 전환됨.** Database Size 한도가 500 MB → **8 GB**가 되어 용량
+제약이 사라졌다(현재 300 MB = 3.7%). 그래서 **기억 백필을 배포 전에 한다**(1.5단계).
+배포 직후 값 하나로 켜면 되므로 기억 공백이 없다.
 
 - 기준 시점: 2026-08-07. 아래 숫자는 전부 운영 DB에서 실제로 조회한 값이다.
 - ⚠️ **아래 숫자는 참고용이다. 매일 늘어나므로 실행 당일에 다시 센다.** 중단 기준은 절대값이
@@ -35,12 +34,16 @@
 |---|---|---|---|
 | 0단계 | 사전 준비물 만들기(코드·SQL) | 없음 | ✅ |
 | 1단계 | 마이그레이션 26개 적용(두 줄만 빼고) | 11번 파일이 도는 **몇 초 동안 요청 대기** | ✅ |
+| 1.5단계 | 기억 백필(`shadow`로 쌓아만 둔다) | **없음** | |
 | 2단계 | `main` 머지 → 운영 배포 | 배포 시간만큼 | ⏳ |
-| 3-1 | 배포 후 정상 확인(며칠) | 없음 | |
-| 3-2 | 기능 켜기(도구 호출·대화 요약·현재 턴 컨텍스트) | 비용·응답시간 증가 | |
-| 3-3 | `vecs.memories` 삭제 → 자리 확보 | 없음 | |
-| 3-4 | 과거 대화에서 기억 백필 | 없음 — 새 표에만 쓴다 | |
-| 3-5 | 뒷정리(호환 장치 제거·미룬 두 줄·빈 구간) | 거의 없음 | |
+| **3-1** | 대화 정상 확인 | 없음 | |
+| **3-2** | **필수 3개** — 제약 삭제·트리거 제거·빈 구간 좌표 | 거의 없음 | |
+| **3-3** | `v2` 승격 — 기억을 응답에 쓰기 시작 | 없음 | |
+| 3-4 | 기능 켜기(도구 호출·대화 요약·현재 턴 컨텍스트) | 비용·응답시간 증가 | |
+| 3-5 | 선택 — 웰컴 1건·빈 행 정리·회상 재구축·구 벡터 삭제 | 없음 | |
+
+**되돌리기는 3-1까지만 된다.** 3-2를 하면 구 코드가 일기를 못 넣는다. 3-3은 되돌릴 수 있다
+(`mode`를 `shadow`로 내리면 기억만 꺼진다).
 
 **1단계를 다 끝내고 확인한 뒤에 2단계로 간다.** 1단계는 구 코드가 도는 중에 해도 안전하도록
 설계했다.
@@ -348,67 +351,14 @@ DELETE FROM public.diaries WHERE source='none';                              -- 
 
 ---
 
-## 2단계 — 코드 배포
-
-- [ ] dev 브랜치를 `main`으로 머지한다. **머지는 사용자가 한다.**
-- [ ] 배포가 끝날 때까지 기다린다.
-- [ ] 헬스 점검 4종을 확인한다.
-- [ ] 대화·일기 조회가 정상인지 본다.
-
----
-
-## 3단계 — 배포 후
-
-아래 순서대로 한다. **3-1을 충분히 지켜본 뒤에 3-3으로 간다** — 3-3부터는 되돌리기 어렵다.
-
-### 3-1. 정상 확인 (며칠)
-
-- [ ] 대화·일기·가입·재화가 평소대로 도는지 본다.
-- [ ] 일기 열람률이 평소(발행 후 하루 기준 약 50%) 수준인지 본다.
-- [ ] 오류 경보가 늘지 않았는지 본다.
-
-**여기까지는 배포를 되돌릴 수 있다.** 구 코드가 `vecs.memories`를 다시 쓰면 되기 때문이다.
-
-### 3-2. 기능 켜기 — 운영 `deploy.sh`에 값 추가
-
-dev 서버는 `moly-infra/deploy.sh`의 `if [ "$ENV_NAME" = "dev" ]` 블록에서 아래를 켠다.
-**운영에는 그 블록이 없어서 배포해도 꺼진 채로 뜬다.** dev에서 실제로 돌려 본 기능들이므로
-운영에서도 켤지 정하고, 켜기로 하면 `moly-infra/deploy.sh`의 운영 경로에 넣는다.
-
-| 설정 | dev | 운영 | 켜는 방법 |
-|---|---|---|---|
-| `AGENT_ENABLED` (도구 호출) | 켜짐 | 꺼짐 | DB `app_config`로 **즉시** 가능 |
-| `AGENT_CANARY_PCT` | 100 | — | 일부 사용자만 먼저 켤 때 쓴다 |
-| `CONTEXT_CHECKPOINT_ENABLED` (대화 요약) | 켜짐 | 꺼짐 | 환경 변수 — `deploy.sh` 수정 + 재배포 |
-| `CURRENT_TURN_CONTEXT_ENABLED` | 켜짐 | 꺼짐 | 환경 변수 — 같음 |
-| `CURRENT_CONTEXT_LAST_ACTIVE_ENABLED` | 켜짐 | 꺼짐 | 환경 변수 — 같음 |
-| `MORNING_PUSH_ENABLED` (아침 푸시) | 꺼짐 | 꺼짐 | **켜지 않는다**(SOMA-338 제품 결정) |
-
-- [ ] 도구 호출은 `app_config`로 먼저 켜 본다. `agent_canary_pct`로 일부 사용자부터 시작한다.
-- [ ] 나머지 셋은 `moly-infra/deploy.sh` 운영 경로에 넣고 재배포한다.
-- [ ] 켠 뒤 응답 시간과 비용을 본다. 현재 턴 컨텍스트는 프롬프트 캐시 적중률(현재 약 65%)에
-      영향을 줄 수 있으므로 그 값을 함께 본다.
-
-**dev에서 이미 돌아간 증거**: `conversation_checkpoints` 18행 · `relationship_events` 183행 ·
-`shadow_prompt_traces` 184행 (2026-08-07 확인). 운영은 전부 0행이다.
-
-### 3-3. 구 기억 벡터 삭제 — 되돌릴 수 없다
-
-`vecs.memories` 158 MB(9,545건)를 지운다. 새 코드는 이 모음을 읽지 않는다
-(`memory_collection` 설정 자체가 없고 코드는 `moly_memories_v2`만 지정한다).
-
-- [ ] 3-1을 충분히 지켜봤고 배포를 되돌릴 일이 없다고 판단했다.
-- [ ] `DROP TABLE vecs.memories;` 실행 → Database Size 300 MB → 약 142 MB
-- [ ] `chat_contexts.memory_text`도 함께 정리할지 정한다(247명분, 소량).
-
-**이걸 하면 배포 되돌리기가 사실상 불가능해진다.** 구 코드가 기억을 못 읽게 되기 때문이다.
-
-### 3-4. 과거 대화에서 기억 백필
+## 1.5단계 — 기억 백필 (배포 전, 운영 영향 없음)
 
 마이그레이션은 기억 표를 만들 뿐 **내용을 하나도 만들지 않는다.** 이 단계를 안 하면
 캐피는 과거 대화를 전혀 기억하지 못한다.
 
-**3-3(구 벡터 삭제)을 먼저 해야 자리가 생긴다.** 약 275~300 MB가 필요하다.
+Pro 전환으로 용량 제약이 사라져 **배포 전에 미리 채운다**(약 275~300 MB, 8 GB 한도의 3.5%).
+등록은 `shadow` 상태로 한다 — 기억을 쌓기만 하고 **응답에는 쓰지 않는다**. 구 코드는 이 표들을
+아예 모르므로 운영에 영향이 없다.
 
 기억 추출이 쓰는 표는 전부 새 표라 다른 기능에 영향이 없다. 확인 결과 쓰기 대상은 `memory_pipeline_states`·`mem0_memory_registry`·
 `mem0_memory_sources`·`mem0_ingest_candidates`·`async_jobs`·`relationship_events`·
@@ -450,50 +400,127 @@ dev 서버는 `moly-infra/deploy.sh`의 `if [ "$ENV_NAME" = "dev" ]` 블록에�
 
 ---
 
-### 3-5. 마무리
+---
 
-배포가 안정된 것을 확인한 뒤에 한다. 둘 다 순식간에 끝나므로 서비스 영향은 거의 없다.
+## 2단계 — 코드 배포
 
-- [ ] 호환 트리거와 그 함수를 지운다. **새 코드가 값을 직접 채우므로 남겨 두면 안 된다.**
-- [ ] `diaries_user_date_uq` 제약을 지운다.
-      `ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;`
+- [ ] dev 브랜치를 `main`으로 머지한다. **머지는 사용자가 한다.**
+- [ ] 배포가 끝날 때까지 기다린다.
+- [ ] 헬스 점검 4종을 확인한다.
+- [ ] 대화·일기 조회가 정상인지 본다.
 
-- [ ] **삭제하기 전에 처리 표시를 다시 복사한다. 이 줄을 빼먹으면 데이터가 사라진다.**
+---
+
+## 3단계 — 배포 후
+
+### 3-1. 대화 정상 확인 — 되돌릴 수 있는 마지막 구간
+
+- [ ] 대화·일기 조회·가입·재화가 평소대로 도는지 본다.
+- [ ] 이때 **기억은 아직 안 나온다**. 전원 `shadow`라 쌓기만 하고 응답에 안 쓴다(3-3에서 켠다).
+
+**되돌리려면 여기서 해야 한다.** 코드를 이전 이미지로 되돌리면 끝난다. 미뤄둔 것들
+(`diaries_user_date_uq`·빈 행·호환 트리거·구 벡터)이 그대로 남아 있어 구 코드가 바로 돈다.
+새 코드도 `diary_date`를 채우므로 그 사이 만들어진 일기도 구 코드가 찾는다.
+
+### 3-2. 필수 3개 — 이걸 하면 되돌리기가 끊긴다
+
+**하나라도 안 하면 새 코드가 제대로 못 돈다.** 반대로 하고 나면 구 코드로 못 돌아간다.
+
+#### 3-2-1. `diaries_user_date_uq` 삭제
+
+```sql
+ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;
+```
+
+**안 하면 신규 가입자가 첫 개인일기를 못 받는다.** 새 코드는 웰컴 일기를 **첫 대화일 그대로**
+놓는데(`diary.py` `_welcome_date`), 구 코드는 하루 앞에 놨다. 그래서 새 코드에서는 웰컴과
+그날 개인일기의 `diary_date`가 같아져 이 제약에 걸린다. 일반 일기 저장은 `session.add()`라
+`ON CONFLICT`가 없어 **오류가 그대로 터진다.**
+
+2026-08-07 운영에서 재현 확인:
+`웰컴(첫 대화일) 저장 성공 → 같은 날짜 개인일기 실패: duplicate key ... diaries_user_date_uq`
+
+#### 3-2-2. 호환 트리거·함수 제거
+
+```sql
+DROP TRIGGER IF EXISTS diaries_legacy_compat_tg ON public.diaries;
+DROP FUNCTION IF EXISTS public.diaries_legacy_compat();
+```
+
+구 코드 대신 새 컬럼을 채워 주던 장치다. 새 코드는 스스로 채우므로 필요 없다. 남겨두면 매번
+헛돌고 나중에 매핑이 달라질 때 문제를 가린다. 3-2-1을 한 뒤라 어차피 구 코드로 못 돌아간다.
+
+#### 3-2-3. 빈 구간 메시지에 턴 좌표 매기기
+
+배포 전까지 구 코드가 만든 메시지는 `turn_seq`가 비어 있다. 기억 파이프라인이
+`turn_seq IS NOT NULL`로 거르므로(`memory_pipeline.py` 181행) **그 기간 대화가 영영 기억에
+안 들어간다.** 아래 상세를 읽고 실행한다.
+
+### 3-3. `v2` 승격 — 기억을 응답에 쓰기 시작
+
+- [ ] `PYTHONPATH=. uv run python scripts/verify_cutover_gate.py --env prod` 통과 확인
+- [ ] `db/cutover/promote_memory_v2.sql`의 미리보기 SELECT로 대상 확인
+- [ ] 같은 파일의 UPDATE 실행 → 기억이 프롬프트에 들어가기 시작
+
+`serves_v2`는 `mode='v2'`일 때만 참이다(`memory_pipeline.py` 55~57행). 승격 경로가 코드에
+없어서 SQL로 직접 바꾼다.
+
+**되돌리기** — 코드를 되돌리지 않고 기억만 끌 수 있다. 같은 파일 맨 아래의
+`mode='shadow'` 되돌리기를 쓴다. 쌓인 기억은 그대로 두고 응답에서만 뺀다.
+
+### 3-4. 기능 켜기
+
+dev 서버는 `moly-infra/deploy.sh`의 `if [ "$ENV_NAME" = "dev" ]` 블록에서 아래를 켠다.
+**운영에는 그 블록이 없어서 배포해도 꺼진 채로 뜬다.** dev에서 실제로 돌려 본 기능들이므로
+운영에서도 켤지 정하고, 켜기로 하면 `moly-infra/deploy.sh`의 운영 경로에 넣는다.
+
+| 설정 | dev | 운영 | 켜는 방법 |
+|---|---|---|---|
+| `AGENT_ENABLED` (도구 호출) | 켜짐 | 꺼짐 | DB `app_config`로 **즉시** 가능 |
+| `AGENT_CANARY_PCT` | 100 | — | 일부 사용자만 먼저 켤 때 쓴다 |
+| `CONTEXT_CHECKPOINT_ENABLED` (대화 요약) | 켜짐 | 꺼짐 | 환경 변수 — `deploy.sh` 수정 + 재배포 |
+| `CURRENT_TURN_CONTEXT_ENABLED` | 켜짐 | 꺼짐 | 환경 변수 — 같음 |
+| `CURRENT_CONTEXT_LAST_ACTIVE_ENABLED` | 켜짐 | 꺼짐 | 환경 변수 — 같음 |
+| `MORNING_PUSH_ENABLED` (아침 푸시) | 꺼짐 | 꺼짐 | **켜지 않는다**(SOMA-338 제품 결정) |
+
+- [ ] 도구 호출은 `app_config`로 먼저 켜 본다. `agent_canary_pct`로 일부 사용자부터 시작한다.
+- [ ] 나머지 셋은 `moly-infra/deploy.sh` 운영 경로에 넣고 재배포한다.
+- [ ] 켠 뒤 응답 시간과 비용을 본다. 현재 턴 컨텍스트는 프롬프트 캐시 적중률(현재 약 65%)에
+      영향을 줄 수 있으므로 그 값을 함께 본다.
+
+**dev에서 이미 돌아간 증거**: `conversation_checkpoints` 18행 · `relationship_events` 183행 ·
+`shadow_prompt_traces` 184행 (2026-08-07 확인). 운영은 전부 0행이다.
+
+
+### 3-5. 선택 — 안정된 뒤 아무 때나
+
+급하지 않다. 안 해도 새 코드는 정상으로 돈다.
+
+- [ ] **못 만든 웰컴 1건 채우기** — 3-2-1 뒤라야 들어간다. 12번 파일의 웰컴 INSERT를 한 번 더
+      돌린다. `SELECT count(*) FROM diaries WHERE kind='welcome';` 가 1 늘어야 한다.
+- [ ] **처리 표시 재복사 → 빈 행 삭제** — 이 순서를 지킨다. 새 코드의 중복 검사는
+      `activity_date`·`kind`로 보는데 빈 행은 그 둘이 비어 있어 검사에 안 걸린다. 즉 남아 있어도
+      해가 없다.
+- [ ] **회상 문서 재구축** — 빈 구간에 만들어진 일기를 검색에 넣는다.
+      `20260804_zzzzz_conversational_recall_hardening.sql` 101~126행을 한 번 더 돌린다.
+- [ ] **구 기억 벡터 삭제** — `DROP TABLE vecs.memories;` 158 MB. Pro 한도 8 GB 중이라
+      **몇 주 두어도 된다.** 지우면 구 코드로 되돌려도 기억이 없다.
+
+#### 처리 표시 재복사 (빈 행 삭제 전 필수)
 
 ```sql
 INSERT INTO public.diary_generation_results(user_id,target_date,status,created_at)
 SELECT user_id,diary_date,'no_entry',COALESCE(created_at,now())
 FROM public.diaries WHERE source='none'
 ON CONFLICT (user_id,target_date) DO NOTHING;
-```
 
-**왜 다시 하는가.** 11번 파일의 같은 INSERT는 1단계에서 **한 번만** 돈다. 그 뒤 배포까지
-구 코드가 계속 `source='none'` 행을 만든다(하루 약 500건). 그 행들은 복사되지 않은 상태이므로
-아래 삭제로 그냥 사라진다. 새 코드는 `diary_generation_results`를 "그날 처리 끝냈다"는 표시로
-읽으므로(`app/services/diary_generation.py` 46~52행), 표시가 없으면 **이미 처리한 날의 일기를
-다시 만들려 한다.** 이 INSERT는 `ON CONFLICT DO NOTHING`이라 몇 번을 돌려도 안전하다.
-
-- [ ] 두 값이 같은지 확인한 뒤 삭제한다. 다르면 **중단한다.**
-
-```sql
+-- 두 값이 같은지 확인한 뒤 삭제한다. 다르면 중단한다.
 SELECT count(*) FROM diaries WHERE source='none';
 SELECT count(*) FROM diaries WHERE source='none' AND coalesce(length(content),0)=0;
 DELETE FROM public.diaries WHERE source='none';
 ```
 
-- [ ] **빈 구간에 만들어진 일기를 회상 검색에 넣는다.** 1단계의 12·13번 파일은 한 번만 돌고,
-      새 코드는 자기가 만든 일기만 색인한다. 그 사이 구 코드가 만든 발행 일기는
-      `diary_recall_documents`·`diary_claim_sources`에 들어가지 않아 **회상에서 영영 빠진다.**
-      `20260804_zzzzz_conversational_recall_hardening.sql` 101~126행의 재구축 문장을 한 번 더
-      돌린다. 그 문장은 수렴형이라 재실행해도 안전하다.
-- [ ] 일기 생성과 웰컴 일기 저장이 정상인지 확인한다.
-- [ ] **1단계와 배포 사이에 쌓인 메시지에 턴 좌표를 매긴다.** 아래를 읽고 할 것.
-- [ ] **못 만든 웰컴 일기를 채운다.** `diaries_user_date_uq`를 지운 뒤라야 들어간다.
-      12번 파일(`20260804_zzzz_conversational_recall_backfill.sql`)의 웰컴 INSERT 부분을
-      한 번 더 돌린다. `ON CONFLICT DO NOTHING`이라 이미 있는 사람은 건너뛴다.
-      확인: `SELECT count(*) FROM diaries WHERE kind='welcome';` 가 1 늘어야 한다.
-
-#### 빈 구간 메시지의 턴 좌표
+#### 3-2-3 상세 — 빈 구간 메시지의 턴 좌표
 
 1단계가 끝난 뒤부터 배포까지 사이에 구 코드가 만든 메시지는 `turn_seq`가 비어 있다. 기억
 파이프라인은 `app/services/memory_pipeline.py` 181행의 `AND m.turn_seq IS NOT NULL`로 거르므로,
@@ -515,16 +542,6 @@ DELETE FROM public.diaries WHERE source='none';
 **1단계와 배포를 같은 날 끝내면** 이 작업이 거의 필요 없다. 몇 시간이면 대상이 수십 건이다.
 며칠이 걸리면 수백 건이 되고, 그만큼의 대화가 기억에서 빠진다.
 
-#### 나중에 따로 (급하지 않음)
-
-- [ ] `chat_contexts.memory_text` 정리(247명분). 새 구조가 읽지 않을 뿐이라 남겨 둬도 무해하다.
-      되돌릴 가능성이 완전히 사라진 뒤에 지운다.
-- [ ] `vecs.memories`의 legacy 기억 벡터 9,251건 처리 방침 결정.
-- [ ] 고아 벡터 57건 정리.
-- [ ] `20260804_zz_memory_contract.sql` 적용 여부 결정. 적용한다면 그 안의 확인 블록이
-      이미 지워진 표를 참조하므로 **그 부분을 먼저 걷어내야 한다.**
-
----
 
 ## 중단 기준
 

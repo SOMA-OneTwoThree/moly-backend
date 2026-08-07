@@ -339,3 +339,32 @@ def test_provider_delete_goes_to_maintenance_queue():
 
     src = inspect.getsource(mp.enqueue_provider_delete)
     assert "QUEUE_MAINTENANCE" in src
+
+
+# ── 잡 멱등 키의 세대 (2026-08-08) ────────────────────────────────────────
+#
+# 세대가 없으면 **이미 처리한 turn을 다시 처리할 수 없다.** 지난 백필이 만든 잡 행이 남아 있어
+# 새 enqueue가 `ON CONFLICT DO NOTHING`으로 조용히 무시된다. 재추출이 정확히 여기서 막혀
+# "잡 등록"이라고 찍히는데 실제로는 한 건도 안 들어갔다.
+
+def test_ingest_dedup_key_keeps_old_shape_at_generation_zero():
+    """평상시 키가 바뀌면 이미 대기 중인 잡과 어긋나 같은 turn이 두 번 돈다."""
+    uid = uuid.uuid4()
+    assert mp.ingest_dedup_key(uid, 7) == f"mem0:{uid}:7:v1"
+    assert mp.ingest_dedup_key(uid, 7, generation=0) == f"mem0:{uid}:7:v1"
+
+
+def test_ingest_dedup_key_differs_per_generation():
+    """세대가 다르면 키가 달라야 같은 turn을 다시 처리할 수 있다."""
+    uid = uuid.uuid4()
+    k0 = mp.ingest_dedup_key(uid, 7)
+    k1 = mp.ingest_dedup_key(uid, 7, generation=1)
+    k2 = mp.ingest_dedup_key(uid, 7, generation=2)
+    assert k0 != k1 != k2 and k0 != k2
+
+
+def test_ingest_and_consolidate_keys_never_collide():
+    """두 잡이 같은 키를 쓰면 한쪽이 다른 쪽을 막는다."""
+    uid = uuid.uuid4()
+    assert mp.ingest_dedup_key(uid, 7, generation=3) != \
+        mp.consolidate_dedup_key(uid, 7, generation=3)

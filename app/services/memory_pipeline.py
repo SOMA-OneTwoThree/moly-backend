@@ -312,9 +312,21 @@ JOB_MEM0_INGEST = "mem0_ingest"
 JOB_MEM0_CONSOLIDATE = "mem0_consolidate"
 
 
-def ingest_dedup_key(user_id: uuid.UUID, turn_seq: int, *, schema_version: str = "v1") -> str:
-    """`(job_type, dedup_key)`가 멱등 키다. 같은 turn을 두 번 enqueue해도 한 행이다."""
-    return f"mem0:{user_id}:{turn_seq}:{schema_version}"
+def ingest_dedup_key(
+    user_id: uuid.UUID, turn_seq: int, *, schema_version: str = "v1", generation: int = 0
+) -> str:
+    """`(job_type, dedup_key)`가 멱등 키다. 같은 turn을 두 번 enqueue해도 한 행이다.
+
+    `generation`을 포함한다 — 판정 잡(`consolidate_dedup_key`)이 같은 이유로 이미 그렇게 한다.
+    세대 없이 고정 키를 쓰면 **한 번 처리한 turn을 다시 처리할 수 없다.** 이미 끝난 잡 행이
+    남아 있어 새 enqueue가 조용히 무시되기 때문이다. 재추출(기억을 다시 뽑는 작업)이 정확히
+    여기서 막혔다 — 잡을 넣었다고 찍히는데 실제로는 한 건도 안 들어갔다(2026-08-08 실측).
+
+    세대는 `memory_pipeline_states.revision`을 쓴다. 평상시에는 안 바뀌고, 커서를 되돌리는
+    재추출에서만 올라간다. **0이면 예전 형식 그대로** — 이미 돌고 있는 잡과 키가 어긋나지 않는다.
+    """
+    base = f"mem0:{user_id}:{turn_seq}:{schema_version}"
+    return base if generation == 0 else f"{base}:{generation}"
 
 
 def consolidate_dedup_key(
@@ -339,6 +351,7 @@ async def enqueue_ingest(
     turn_seq: int,
     privacy_epoch: int = 0,
     delay_s: float = 0.0,
+    generation: int = 0,
 ) -> uuid.UUID | None:
     """이 turn의 ingest 잡. 이미 있으면 None(멱등).
 
@@ -360,7 +373,7 @@ async def enqueue_ingest(
         queue=jobs.QUEUE_MEMORY,
         job_type=JOB_MEM0_INGEST,
         user_id=user_id,
-        dedup_key=ingest_dedup_key(user_id, turn_seq),
+        dedup_key=ingest_dedup_key(user_id, turn_seq, generation=generation),
         payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
         available_at=available_at,
     )
@@ -496,14 +509,24 @@ async def enqueue_day_boundary_jobs(
 
 
 async def enqueue_next_ingest(
-    session: AsyncSession, user_id: uuid.UUID, *, cursor: int, privacy_epoch: int = 0
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    *,
+    cursor: int,
+    privacy_epoch: int = 0,
+    generation: int = 0,
 ) -> int | None:
     """cursor 다음 turn의 ingest 잡을 만든다. 없으면 None(따라잡음).
 
     성공 finalize가 이걸 부른다 — 한 사용자의 잡이 항상 한 개만 대기하게 하는 장치다.
+
+    `generation`은 호출측이 그 사용자의 `revision`을 넘긴다. 재추출로 커서를 되돌리면
+    revision이 올라가고, 그래야 **이미 처리한 turn을 다시 처리할 수 있다.**
     """
     nxt = await next_ingest_turn(session, user_id, cursor=cursor)
     if nxt is None:
         return None
-    await enqueue_ingest(session, user_id, turn_seq=nxt, privacy_epoch=privacy_epoch)
+    await enqueue_ingest(
+        session, user_id, turn_seq=nxt, privacy_epoch=privacy_epoch, generation=generation
+    )
     return nxt

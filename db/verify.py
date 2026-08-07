@@ -1,25 +1,25 @@
-"""모델 ↔ 실 스키마 교차검증. 각 모델 컬럼이 DB에 있고 nullable/타입이 호환되는지."""
+"""모델 ↔ 실 스키마 교차검증. 각 모델 컬럼이 DB에 있고 nullable/타입이 호환되는지.
+
+대상은 **기본 dev**(.env). 프로덕션 검증은 `--env prod`.
+사용: PYTHONPATH=. python db/verify.py [--env dev|prod]
+"""
 import asyncio
 import asyncpg
-import re
+import sys
 import importlib
 import pkgutil
 import app.models as models_pkg
 from app.core.db import Base
-
-def load_conn():
-    for line in open(".env"):
-        line=line.strip()
-        if line.startswith("SUPABASE_DB_CONNECTION_STRING"):
-            v=line.split("=",1)[1].strip().strip('"').strip("'")
-            return re.sub(r'^postgresql\+asyncpg://','postgresql://',v)
+from db.envfile import announce, load_conn, split_env_arg
 
 # 전 모델 임포트(Base.metadata 채우기)
 for m in pkgutil.iter_modules(models_pkg.__path__):
     importlib.import_module(f"app.models.{m.name}")
 
-async def main():
-    c = await asyncpg.connect(load_conn(), statement_cache_size=0)
+async def main(env: str | None = None):
+    dsn = load_conn(env)
+    announce(env, dsn)
+    c = await asyncpg.connect(dsn, statement_cache_size=0)
     db_cols = {}
     rows = await c.fetch("""select table_name, column_name, is_nullable, data_type
         from information_schema.columns where table_schema='public'""")
@@ -62,4 +62,6 @@ async def main():
     else:
         print("✅ 전 모델 컬럼이 DB에 존재. nullable/RLS/grant 위험 없음.")
     await c.close()
-asyncio.run(main())
+
+_env, _ = split_env_arg(sys.argv[1:])
+asyncio.run(main(_env))

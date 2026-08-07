@@ -1,0 +1,101 @@
+# memory-golden-v1 — 회상 품질 게이트 fixture
+#
+# ⚠️ shadow 시작 **전에** 내용과 hash를 고정한다(16.5절). 결과를 본 뒤 threshold나 case를
+#    지워 통과시키지 않는다 — 변경은 새 manifest version과 독립 재승인을 거친다.
+#
+# 게이트 기준(16.5절):
+#   required recall@5   >= 0.90
+#   precision@5         >= 0.90
+#   무관 기억 주입률     <= 0.02
+#   domain/tool routing >= 0.98
+#   greeting skip       >= 0.95
+#   최소 200 case, 아래 category가 균형 있게 포함
+version: 1
+manifest_version: "memory-golden-v1"
+
+thresholds:
+  recall_at_5: 0.90
+  precision_at_5: 0.90
+  irrelevant_injection_rate: 0.02
+  routing_accuracy: 0.98
+  greeting_skip_rate: 0.95
+
+min_cases: 200
+
+# 이 category가 전부 있어야 한다. 하나라도 비면 게이트 실패다.
+required_categories:
+  - explicit_recall      # "내가 뭘 좋아한다고 했지"
+  - implicit_recall      # 직접 묻지 않지만 기억이 필요한 대화
+  - greeting             # 검색하면 안 되는 단순 인사
+  - contradiction        # 모순·정정된 선호
+  - date_query           # "어제", "지난주"
+  - exact_quote          # "그때 정확히 뭐라고 했어"
+  - diary                # 일기 회상
+  - current_state        # 지금 장비·루틴 (기억이 아니라 도메인 조회)
+  - locale_change        # 언어 변경 뒤 회상
+
+# ─────────────────────────────────────────────────────────────
+# 시드 case — 각 category의 형태를 보여주는 최소 예시.
+# ⚠️ 200개를 채우는 건 제품 판단이 필요하다. 지금은 하네스 검증용 시드이며
+#    이대로는 min_cases 게이트를 통과하지 못한다(의도된 것).
+# ─────────────────────────────────────────────────────────────
+cases:
+  - id: exp01
+    category: explicit_recall
+    query: "내가 좋아한다고 했던 거 뭐였지"
+    expect_recall: true
+    expect_memory_ids: []      # 실행 시 실제 registry id로 채운다
+    forbid_memory_ids: []
+
+  - id: imp01
+    category: implicit_recall
+    query: "그 루틴 오늘도 했어"
+    expect_recall: true
+
+  - id: gre01
+    category: greeting
+    query: "안녕"
+    expect_recall: false       # provider 호출 자체를 생략해야 한다
+    expect_provider_skip: true
+
+  - id: gre02
+    category: greeting
+    query: "ㅇㅇ"
+    expect_recall: false
+    expect_provider_skip: true
+
+  - id: con01
+    category: contradiction
+    query: "나 그거 이제 안 좋아해"
+    expect_recall: true
+    note: "정정 후에는 옛 값이 active로 나오면 안 된다"
+
+  - id: dat01
+    category: date_query
+    query: "어제 무슨 얘기 했지"
+    expect_recall: false       # 날짜 질의는 timeline이 정본, mem0가 아니다
+    expect_route: "recall_timeline"
+
+  - id: quo01
+    category: exact_quote
+    query: "그때 내가 정확히 뭐라고 했어"
+    expect_recall: false
+    expect_route: "recall_timeline"
+
+  - id: dia01
+    category: diary
+    query: "그날 일기 기억나"
+    expect_recall: false
+    expect_route: "diary"
+
+  - id: cur01
+    category: current_state
+    query: "나 지금 뭐 쓰고 있어"
+    expect_recall: false       # 낡은 기억이 아니라 현재 도메인 조회
+    expect_route: "equipment"
+
+  - id: loc01
+    category: locale_change
+    query: "What did I say I liked?"
+    expect_recall: true
+    note: "언어가 바뀌어도 같은 기억을 찾아야 한다"

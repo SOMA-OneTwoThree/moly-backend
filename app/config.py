@@ -1,10 +1,7 @@
 import os
 from functools import lru_cache
 
-# mem0 텔레메트리(phone-home) 비활성 — mem0 import 전에 꺼야 적용(telemetry가 import 시 1회 읽음).
-# 과거 moly-llm에서 세션시작 로드 지연(ReadTimeout)의 주원인. infra 명시값 우선(setdefault).
-os.environ.setdefault("MEM0_TELEMETRY", "False")
-
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +11,9 @@ class Settings(BaseSettings):
     # /dev 라우트(일기 강제삭제·유료 모델 평가 등 위험)는 명시 opt-in만 등록(기본 off). environment
     # 추정과 분리 — ENVIRONMENT 누락으로 local로 새어도 /dev가 노출되지 않게 한다(fail-closed, SOMA-376).
     enable_dev_routes: bool = False
+    # /dev의 유료 모델 실행·강제 생성·embedding recall은 인증만으로 허용하지 않는다.
+    # comma-separated auth user UUID allowlist. 빈 값은 모든 operator 동작을 fail-closed한다.
+    dev_operator_user_ids: str = ""
 
     # --- Supabase (Auth + Postgres + pgvector) ---
     supabase_url: str = ""
@@ -59,6 +59,16 @@ class Settings(BaseSettings):
     context_keep_messages: int = 20        # 리셋 후 유지 메시지 수 (KEEP ≪ RESET)
     context_keep_chars: int = 12_000       # 리셋 후 유지 문자 상한
     context_hard_msg_cap: int = 120        # 쿼리 안전 상한(정상 시 트리거가 먼저 걸려 안 닿음)
+    # --- 대화 요약 checkpoint(W11) --- 리셋으로 버려질 구간을 요약해 남기고, 다음 턴은
+    # 최신 checkpoint 하나 + 그 이후 메시지만 쓴다. 트리거(context_reset_*)·보존 tail
+    # (context_keep_*)은 위 값을 그대로 쓴다 — 여기서 새 수치를 만들지 않는다.
+    context_checkpoint_enabled: bool = False  # 킬스위치. False면 잡을 걸지도 저장하지도 않는다
+    # 매 N번째 checkpoint는 이전 요약 대신 **원본**으로 다시 요약해 누적 왜곡을 계측한다.
+    # ⚠️ 10은 품질 근거가 없는 운영 초기값이다 — 재검증본과 체인본의 차이를 재고 **측정 후 조정 필요**.
+    context_checkpoint_reverify_every: int = 10
+    # 재검증 1회가 읽을 원본 메시지 상한. 넘으면 재검증을 건너뛰고 체인 요약으로 진행한다
+    # (부분 이력을 전체인 양 요약하지 않기 위함). ⚠️ 잠정값 — 실제 이력 길이 보고 **측정 후 조정 필요**.
+    context_checkpoint_reverify_max_messages: int = 400
     # 프롬프트 캐싱: system(페르소나/기억) + 마지막 메시지에 cache_control. 기본 5m(단일 TTL).
     chat_prompt_cache_enabled: bool = True  # 킬스위치. OFF=메시지 breakpoint 제거(히스토리 청구 스케일↑ 유의)
     cache_ttl_system: str = "5m"            # "5m" | "1h"(write 2×, 워밍률 측정 후 결정)
@@ -69,19 +79,94 @@ class Settings(BaseSettings):
     bill_weight_output: float = 5.0        # 출력 $15 / 입력 $3
     bill_weight_cache_read: float = 0.1    # 캐시 읽기 $0.30 / 입력 $3
     bill_weight_cache_write: float = 1.25  # 캐시 쓰기(5m) $3.75 / 입력 $3
-    # OpenAI(GPT-5.6 전 tier 출력=입력×6, 캐시 읽기 0.5×, 캐시 쓰기 별도과금 없음).
-    bill_weight_output_openai: float = 6.0        # 출력 $15 / 입력 $2.5 (terra), 전 tier 동일 비율
-    bill_weight_cache_read_openai: float = 0.5    # 캐시 읽기 = 입력 단가의 50%
-    bill_weight_cache_write_openai: float = 0.0   # OpenAI 자동캐시는 쓰기 과금 없음(cache_write=0)
+    # OpenAI(GPT-5.6 공식 요금표 2026-08-03, Standard·short context). 전 tier 입력 대비 비율 동일 —
+    # 출력 6.0 / 캐시 읽기 0.1 / 캐시 쓰기 1.25. 예: luna $0.20·$0.02·$0.25·$1.20, terra는 ×10.
+    # (캐시 쓰기는 무료가 아니다. 다만 API가 쓰기 토큰을 안 주므로 llm.py가 추정한다 — 그 주석 참조.)
+    bill_weight_output_openai: float = 6.0        # 출력 $1.20 / 입력 $0.20 (luna), 전 tier 동일 비율
+    bill_weight_cache_read_openai: float = 0.1    # 캐시 읽기 = 입력 단가의 10%(90% 할인)
+    # GPT-5.6부터 OpenAI도 캐시 쓰기에 1.25× 프리미엄을 받는다(그 이전 모델군은 무료였다).
+    # ⚠️ "OpenAI는 캐시 쓰기가 공짜"는 5.6 이전 기준이다 — 이 값을 1.0으로 되돌리지 마라.
+    bill_weight_cache_write_openai: float = 1.25  # 캐시 쓰기 = 입력 단가의 125%
+    # 턴 회계 v2 킬스위치 — True면 턴 내 모든 LLM 호출(주 chat + 한자 복원 등)을 합산해 차감한다.
+    # False면 기존 동작(주 chat 호출만 차감, 나머지는 계측·로그만) — 롤백 경로. 스키마는 동일.
+    turn_usage_v2_enabled: bool = True
 
     # --- 워커 배치 스케일링(SOMA-349) ---
     # 프로필을 키셋 페이지네이션으로 배치 처리(전량 메모리 적재 회피).
     worker_batch_size: int = 200
     # 배치 내 동시 처리 유저 수 상한(세마포어). 기본 1 = 실질 순차(유저별 독립 세션·타임아웃만).
-    # >1로 올리려면 Phase 2 확인 필요(DB 풀 사이즈·pgbouncer 상한·mem0 직렬 이미 반영).
+    # >1로 올리려면 Phase 2 확인 필요(DB 풀 사이즈·pgbouncer 상한 반영).
     worker_max_concurrency: int = 1
     # 유저 1명 처리 상한(초). 외부 API 지연이 배치를 장시간 막지 않게. 초과 시 스킵(다음 틱 재시도).
     worker_user_timeout_s: float = 120.0
+
+    # --- 잡 플랫폼(async_jobs, W7) ---
+    # ⚠️ 이 블록은 전부 **env 전용**이다. `app_config` hot override 대상에 넣지 않는다(명세 §W7):
+    # 소비자 동시성·lease는 프로세스 기동값이라 런타임에 바뀌면 이미 잡힌 lease와 어긋난다.
+    # ⚠️ 아래 수치는 전부 **보수적 초기값**이고 처리량 근거가 아직 없다 —
+    #    DB pool wait p95 · queue oldest age · lease 만료율 · provider p95를 본 뒤 **측정 후 조정 필요**.
+    job_backoff_base_s: float = 2.0     # equal-jitter 지수 backoff 기준(0초 연속 재시도 방지)
+    job_backoff_cap_s: float = 60.0     # backoff 상한(긴 장애에서 무한정 대기 방지)
+    job_reaper_interval_s: float = 10.0  # 최단 lease(20s)보다 짧게 — 회수 지연을 한 lease 안으로 제한
+    job_reaper_batch_size: int = 50     # statement당 상한(무제한 UPDATE 방지)
+    job_idle_sleep_s: float = 1.0       # claim 0건일 때 폴링 간격(빈 큐 스핀 방지)
+    # 큐별 소비자 실행값(consumer 1개당, 두 EC2 각각 동일). content가 밀려도 critical/notification
+    # 슬롯을 빌려 쓰지 않는다 — 큐 A 적체가 큐 B를 막지 않게 슬롯을 고정 분리한다.
+    job_critical_concurrency: int = 2           # 결제 — 분리된 예약 슬롯, 짧은 DB/provider 처리
+    job_critical_claim_batch: int = 2
+    job_critical_timeout_s: float = 10.0
+    job_critical_lease_s: float = 30.0
+    job_critical_max_attempts: int = 3
+    job_interactive_async_concurrency: int = 2  # 대화 후속 — 지연을 content와 격리
+    job_interactive_async_claim_batch: int = 2
+    job_interactive_async_timeout_s: float = 30.0
+    job_interactive_async_lease_s: float = 45.0
+    job_interactive_async_max_attempts: int = 3
+    job_content_concurrency: int = 1            # 일기·요약·반추 — 현행 worker_user_timeout_s=120 준용
+    job_content_claim_batch: int = 1
+    job_content_timeout_s: float = 120.0
+    job_content_lease_s: float = 150.0
+    job_content_max_attempts: int = 3
+    job_notification_concurrency: int = 1       # 저녁 푸시 — marker 선점 전 장애만 bounded retry
+    job_notification_claim_batch: int = 1
+    job_notification_timeout_s: float = 10.0
+    job_notification_lease_s: float = 20.0
+    job_notification_max_attempts: int = 3
+    # 기억 색인 전용 lane. content(일기·요약)와 같은 큐를 쓰면 일기 300건이 도는 동안
+    # 기억이 통째로 밀린다 — content concurrency가 1이라 서로를 막는다(감사 지적).
+    # due 인덱스 dispatcher. **기본 off.** 켜기 전에 두 경로 결과가 같은지 확인해야 한다 —
+    # 잘못 켜면 그 사용자만 조용히 일기·알림을 못 받는다(설계 15장 4번: 확인 전 전환 금지).
+    schedule_dispatcher_enabled: bool = False
+
+    job_memory_concurrency: int = 2
+    job_memory_claim_batch: int = 2
+    job_memory_timeout_s: float = 120.0
+    job_memory_lease_s: float = 180.0
+    # 3이면 backoff 2·4초라 **첫 실패로부터 약 6초**면 dead다(실측). provider 장애는 보통
+    # 그보다 길고, 여기서 dead가 나면 그 사용자의 기억 체인이 통째로 멈춘다(chat은 ingest>=source
+    # 일 때만 새 잡을 건다). cap 60초와 함께 8이면 창이 약 3분으로 늘어 짧은 장애를 넘긴다.
+    job_memory_max_attempts: int = 8
+    job_memory_heartbeat_s: float = 30.0
+
+    job_maintenance_concurrency: int = 1        # 유저 경로보다 낮은 우선순위
+    job_maintenance_claim_batch: int = 1
+    job_maintenance_timeout_s: float = 60.0
+    job_maintenance_lease_s: float = 90.0
+    memory_sweep_enabled: bool = True   # 멈춘 기억 파이프라인 자동 재개(worker/memory_sweep_jobs.py)
+    job_maintenance_max_attempts: int = 3
+    # 큐별 heartbeat 간격(초). 0이면 heartbeat 없음(짧은 잡: critical·notification).
+    # 불변식(13.2절): heartbeat interval <= min(lease/3, 20s). 이보다 크면 lease를 잃는다.
+    job_critical_heartbeat_s: float = 0.0
+    job_interactive_async_heartbeat_s: float = 15.0
+    job_content_heartbeat_s: float = 20.0
+    job_notification_heartbeat_s: float = 0.0
+    job_maintenance_heartbeat_s: float = 20.0
+    # finalize 전용 DB acquire 상한. handler timeout 뒤 기본 pool 30초를 기다리다 lease를 잃는
+    # 경로를 막는다(13.2절). 이 예산은 handler timeout과 별개로 lease 안에 예약돼 있어야 한다.
+    job_finalize_timeout_s: float = 5.0
+    # 삭제 장벽 전환 모드. compat=행 없으면 허용(backfill 중) / enforced=행 없으면 거부(fail-closed).
+    # active 행 backfill과 count 검증 두 sweep을 통과한 뒤에만 enforced로 올린다(15장 2번 d).
+    privacy_barrier_mode: str = "compat"
 
     # --- FCM 푸시(Firebase Cloud Messaging) — 워커 아침/저녁 알림 ---
     fcm_project_id: str = ""
@@ -99,19 +184,14 @@ class Settings(BaseSettings):
     # Incoming Webhook URL(/moly/prod/slack-webhook → SLACK_WEBHOOK_URL 환경변수). 비면 no-op.
     slack_webhook_url: str = ""
 
-    # --- mem0 (장기기억, 같은 Supabase pgvector) — 추출/임베딩은 OpenAI ---
+    # --- 정규화 장기기억(OpenAI embedding + 같은 PostgreSQL의 pgvector) ---
     openai_api_key: str = ""
     embedder_model: str = "text-embedding-3-small"
-    memory_llm_model: str = "gpt-4.1-mini"
+    memory_embedding_dimensions: int = Field(default=1536, ge=1)
+    memory_embedding_batch_size: int = Field(default=100, ge=1, le=2048)
+    memory_search_min_similarity: float = Field(default=0.25, ge=-1.0, le=1.0)
     # 대화 모델 A/B 테스트(dev 전용, /dev/chat-eval). OpenAI는 위 키 재사용, Gemini만 별도 키.
     gemini_api_key: str = ""
-    memory_collection: str = "memories"
-    memory_load_top_k: int = 200  # 로드 상한(recency 로컬 랭킹)
-    memory_max_render_items: int = 20  # 프롬프트에 넣을 최대 기억 수
-    # 기억 스냅샷(chat_contexts.memory_text) — 핫패스 mem0 제거 + system[1] 안정(캐시 유지).
-    memory_snapshot_refresh_hours: int = 6   # 이보다 오래면 갱신(mem0 재로드)
-    memory_snapshot_stale_hours: int = 48    # 장애 시 이보다 오래된 스냅샷은 폐기("")
-    memory_orphan_grace_hours: int = 24      # 탈퇴 고아 기억 스위퍼 유예(온보딩 레이스 방어)
 
     # --- 토큰 한도(임의 기본값, TBD) — app_config에 값이 오면 그게 우선 ---
     # 집계 = LLM 입력+출력 합산(kind='normal'만). 04:00 리셋.
@@ -128,7 +208,8 @@ class Settings(BaseSettings):
     # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
     # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).
     free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
-    free_launch_token_limit: int = 150_000  # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 기준 ~월 $4.5/인. 헤비유저 ~42턴.
+    # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 입력 $0.20/M 기준 ~월 $0.90/인 상한.
+    free_launch_token_limit: int = 150_000
 
     # --- 모니터링·알림 (observability, SOMA-301) ---
     # 배포 이미지 커밋 sha — deploy가 GIT_SHA env로 주입. /health 버전 노출·배포 반영 확인용.
@@ -147,8 +228,37 @@ class Settings(BaseSettings):
     # 합성 대화 모니터가 실제 LLM을 호출할지(비용 발생). False면 DB·설정 도달성만 확인.
     synthetic_check_llm: bool = True
 
+    # --- 현재 턴 컨텍스트(프롬프트 삽입, SOMA-미정) — 킬스위치, 기본 off ---
+    # 챗 프롬프트에 "지금 시각·오늘 첫 대화·함께한 일수·장착 아이템·루틴 진행" 블록 삽입 여부.
+    current_turn_context_enabled: bool = False
+    # last_active_bucket(최근 접속 후 경과) 렌더 여부 — 별도 스위치(단계적 롤아웃 대비).
+    current_context_last_active_enabled: bool = False
+
+    # --- 도구 루프(agent, W5) — 환경/배포 기본값. 전 키가 `app_config` override 대상이다 ---
+    # 해석·검증은 app/services/agent/config.py(별도 계약, limits.py의 토큰 키와 섞지 않는다).
+    # 여기 값은 DB override가 없거나 불량일 때의 fallback일 뿐이다.
+    agent_enabled: bool = False                 # 킬스위치. False면 기존 단발 경로 그대로
+    # 명세는 이 값을 "hard cancellation이 아니라 end-to-end p95 SLO"로 두고 실측으로 검증하라고
+    # 했다. dev `ai_usage_ledger` 실측(2026-08-06): 1홉 tool_decide p50 1.54s / **p90 4.11s**,
+    # 2홉 tool_final p50 1.45s. 5.0이면 1홉 예산이 5.0-2.5=2.5s라 p90을 못 덮어
+    # **호출 104건 중 26건(25%)이 timeout으로 죽었다**. 8.0이면 1홉이 5.5s로 p90 위에 선다.
+    agent_turn_deadline_s: float = 8.0
+    agent_final_reserve_s: float = 2.5          # 최종 호출용 선예약(실측 p50 1.45s)
+    agent_max_tool_rounds: int = 1              # 라운드 상한(1 고정)
+    agent_max_tool_calls_per_turn: int = 3      # 한 라운드 fan-out 상한
+    # 아래 두 값은 임의 설정이 아니라 비용 부등식 `7.25D + 1.25T <= 2307`의 해다(§3.1.3).
+    # **단독으로 바꾸지 말 것** — agent/config.py가 조합을 다시 검증해 위반이면 기본값으로 되돌린다.
+    agent_decide_max_tokens: int = 192          # step 1 출력 상한(도구 결정)
+    agent_tool_result_budget_tokens: int = 600  # 한 턴 도구 결과 **합계** 예산
+    agent_tool_timeout_ms: int = 800            # 도구별 상한
+    agent_tool_inflight: int = 8                # 프로세스 전체 동시 도구 수(**측정 필요**)
+    agent_canary_pct: float = 0.0               # 카나리 비율(0.01% 단위, 비용 캡이 아니다)
+
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # 로컬 기본 = .env(dev). 프로덕션을 로컬에서 띄우려면 MOLY_ENV_FILE=.env.prod 로 명시한다.
+        # 서버(EC2)는 docker compose가 backend.env를 실제 환경변수로 주입하고, 환경변수가
+        # dotenv보다 우선하므로 이 값은 서버 동작에 영향이 없다.
+        env_file=os.getenv("MOLY_ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
         extra="ignore",

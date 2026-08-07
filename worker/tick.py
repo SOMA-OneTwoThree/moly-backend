@@ -20,9 +20,9 @@ from app.models.user_daily_stats import UserDailyStats
 from app.services import (
     config_store,
     diary_generation,
-    memory,
     notify,
     slack_notify,
+    memory_pipeline,
     subscription,
 )
 from app.services.limits import effective_token_config
@@ -38,6 +38,17 @@ EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
 
 
 _KST = ZoneInfo("Asia/Seoul")
+
+# 슬랙 요약용 저녁 카테고리 한국어 라벨(notify.EVENING_STAT_KEYS와 같은 키).
+_EVENING_CATEGORY_KO = {
+    "more_chat": "대화후",
+    "diary_teaser": "일기",
+    "first_touch": "첫인사",
+    "default_recent": "일상",
+    "default_missing": "그리움",
+    "default_long": "오랜만",
+    "fallback": "폴백",
+}
 # 자주 보는 타임존의 한국어 나라 라벨(가독성용). 없으면 IANA 이름 그대로.
 _TZ_KO = {
     "Asia/Seoul": "한국",
@@ -68,12 +79,11 @@ def _build_summary(
 
     active_tzs = 이 틱에서 일기·아침·저녁을 실제로 처리한 유저들의 타임존(어느 나라 기준인지).
     """
-    has_warn = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
+    has_warn = counts["diary_failed"] > 0
     prefix = "⚠️ " if has_warn else ""
     ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
     ts_utc = now.strftime("%H:%M UTC")
     diary_fail = f", 실패 ⚠️ {counts['diary_failed']}건" if counts["diary_failed"] else ""
-    mem_fail = f" ⚠️ {counts['memory_failed']}" if counts["memory_failed"] else f" {counts['memory_failed']}"
     lines = [f"{prefix}[워커 요약] {ts_kst} ({ts_utc})"]
     if active_tzs:
         zones = " / ".join(_zone_line(tz, now) for tz in sorted(active_tzs))
@@ -81,10 +91,20 @@ def _build_summary(
     lines += [
         f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}"
         f" / 미발행 {counts['diary_none']}){diary_fail}",
-        f"기억(mem0): 성공 {counts['memory_ok']} / 실패{mem_fail}",
+        "기억: 상주 consumer 정규화 파이프라인",
         f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
+    # 저녁 카테고리 분포 — 다양화가 실제로 작동하는지의 유일한 관측 출구.
+    # 특정 카테고리 독식(예: 폴백 급증 = 신호 조회 장애)을 여기서 발견한다.
+    if counts.get("evening"):
+        dist = [
+            f"{label} {counts.get(f'evening_{key}', 0)}"
+            for key, label in _EVENING_CATEGORY_KO.items()
+            if counts.get(f"evening_{key}", 0)
+        ]
+        if dist:
+            lines.insert(len(lines) - 1, "저녁 분포: " + " / ".join(dist))
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
     return "\n".join(lines)
@@ -162,7 +182,8 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                     out["morning"] = 1
             elif hour == EVENING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_evening(session, p):
+                # now 주입(테스트 결정성) + stats=out(카테고리별 발송 카운트 — 관측).
+                if await notify.notify_evening(session, p, now=now, stats=out):
                     out["evening"] = 1
         except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
             _log.exception("틱 처리 실패(user=%s hour=%s): %r", pid, hour, e)
@@ -344,11 +365,14 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     counts = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0,  # 이미 생성돼 스킵(멱등 재실행) — 실패와 구분(오탐 방지)
+        # memory_*는 _process_user가 반환하지만 병합이 `k in counts`만 받아서, 여기 없으면
+        # _emit_worker_health의 counts["memory_failed"]가 매 틱 KeyError → 데드맨 핑이 죽는다.
         "memory_ok": 0, "memory_failed": 0,
         "morning": 0, "evening": 0,
+        # 저녁 카테고리별 카운트 — 병합이 `k in counts`라 여기 없으면 조용히 버려진다(위와 동일).
+        **{f"evening_{c}": 0 for c in notify.EVENING_STAT_KEYS},
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
-        "swept": 0,            # 고아 기억 청소 건수(UTC 04시 틱)
         "users": 0,
         "rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0,  # RC inbox 드레인
     }
@@ -396,16 +420,10 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
         _log.warning("워커 상태 기록 실패: %r", e)
 
-    # 하루 1회(UTC 04시 틱): 고아 기억 청소 + 비용 기록. 한 세션(smon)으로 처리.
+    # 하루 1회(UTC 04시 틱): 비용 기록.
     # (SOMA-349에서 유저별 세션으로 바뀌어 공유 session이 없으므로 전용 세션을 연다.)
     if now.hour == DIARY_HOUR:
         async with get_sessionmaker()() as smon:
-            # 탈퇴 고아 기억 스위프 — vecs는 FK 밖이라 CASCADE 안 닿음(백스톱)
-            try:
-                counts["swept"] = await memory.sweep_orphans(smon)
-            except Exception as e:  # noqa: BLE001
-                _log.warning("고아 기억 스위프 실패: %r", e)
-                await smon.rollback()
             # 전일 완결분 billable 합산(임계 비교·경보는 _emit_worker_health)
             if settings.daily_billable_alert_threshold > 0:
                 try:
@@ -424,6 +442,19 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     if counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"] > 0:
         summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)
+
+    # --- 멈춘 기억 파이프라인 재개 ---
+    # ingest는 체인이라 잡 하나가 dead가 되면 그 사용자는 영영 멈춘다(챗은 ingest>=source일
+    # 때만 새 잡을 건다). 틱마다 한 번 훑어 다시 출발시킨다. 실패해도 틱을 깨지 않는다.
+    try:
+        async with get_sessionmaker()() as s_sweep:
+            if settings.memory_sweep_enabled:
+                await memory_pipeline.enqueue_memory_sweep(
+                    s_sweep, bucket=now.strftime("%Y%m%dT%H%M")
+                )
+            await s_sweep.commit()
+    except Exception as e:  # noqa: BLE001
+        _log.warning("기억 sweep 예약 실패(무시): %r", e)
 
     # --- 데드맨 핑 + 결과이상/비용 경보(네트워크 — 세션 밖) ---
     # 최후 방어: 모니터링은 무슨 일이 있어도 배치 틱을 깨면 안 된다(일기·푸시는 이미 커밋됨).

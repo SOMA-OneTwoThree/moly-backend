@@ -23,8 +23,8 @@ async def test_evening_skips_when_already_notified(monkeypatch):
     async def _claim(session, profile, col):
         return False  # 이미 발송됨
 
-    async def _resolve(session, uid):
-        return SimpleNamespace(entitlement={"tokens_remaining": None})
+    async def _resolve(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
 
     async def _send(tokens, title, body):
         sent["called"] = True
@@ -49,8 +49,8 @@ async def test_evening_sends_and_claims_evening_column(monkeypatch):
         seen["col"] = col
         return True
 
-    async def _resolve(session, uid):
-        return SimpleNamespace(entitlement={"tokens_remaining": None})
+    async def _resolve(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
 
     async def _tokens(session, uid):
         return ["tok"]
@@ -79,7 +79,7 @@ async def test_evening_exhausted_does_not_claim(monkeypatch):
         claimed["called"] = True
         return True
 
-    async def _resolve(session, uid):
+    async def _resolve(session, uid, now=None):
         return SimpleNamespace(entitlement={"tokens_remaining": 0})  # 소진
 
     monkeypatch.setattr(notify, "_enabled", _enabled)

@@ -7,7 +7,6 @@ from types import SimpleNamespace
 from app.config import settings
 from app.services import diary_generation as dg
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services.diary_prompts import parse
 from app.services.llm import LLMResult
 
@@ -23,8 +22,13 @@ class FakeSession:
     def add(self, obj):
         self.added.append(obj)
 
-    async def execute(self, stmt, params=None):  # 스냅샷 무효화 UPDATE
+    async def execute(self, stmt, params=None):
         return None
+
+    async def flush(self):
+        for obj in self.added:
+            if getattr(obj, "id", None) is None:
+                obj.id = uuid.uuid4()
 
     async def commit(self):
         self.committed = True
@@ -43,18 +47,19 @@ def _patch_common(monkeypatch, *, exists=False, messages=None, tokens=5000, ment
     async def _pick(session, target_date):
         return ment
 
-    async def _mem(user_id, msgs, language=None):
+    async def _no_recall(*args, **kwargs):
         return None
 
     monkeypatch.setattr(dg, "_diary_exists", _exists)
     monkeypatch.setattr(dg, "_day_messages", _msgs)
     monkeypatch.setattr(dg, "_tokens_used", _toks)
     monkeypatch.setattr(dg, "_pick_ment", _pick)
-    monkeypatch.setattr(memory_module, "add_conversation", _mem)
+    monkeypatch.setattr(dg.diary_recall_repo, "record_diary_sources", _no_recall)
+    monkeypatch.setattr(dg.diary_recall_repo, "upsert_diary_recall_document", _no_recall)
 
 
 def _msg(sender, content):
-    return SimpleNamespace(sender=sender, content=content)
+    return SimpleNamespace(id=1, sender=sender, content=content)
 
 
 # --- 순수 파서/발행시각 ---
@@ -97,7 +102,7 @@ def test_publish_at_is_next_day_9am_local():
 async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)  # self-check 통과
         return LLMResult("날씨: sunny\n지우는 오늘 발표를 무사히 마쳤다.", 10, 20)
@@ -116,7 +121,7 @@ async def test_personal_non_korean_preserves_cjk(monkeypatch):
     """비한국어(일본어) 일기의 정상 CJK가 삭제·재작성되지 않는다 — 서지컬 복원 미발동(SOMA-345)."""
     _patch_common(monkeypatch, messages=[_msg("user", "今日は発表した")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("Weather: sunny\n今日は発表を無事に終えた。漢字も残る。", 10, 20)
@@ -138,7 +143,7 @@ async def test_personal_english_preserves_punctuation(monkeypatch):
     """영어 일기의 하이픈·아포스트로피 등 자연 문장부호가 보존된다(SOMA-345)."""
     _patch_common(monkeypatch, messages=[_msg("user", "I nailed the talk")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("Weather: sunny\nToday felt laid-back and I'm glad.", 10, 20)
@@ -156,12 +161,12 @@ async def test_personal_korean_repairs_foreign_chars(monkeypatch):
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")], tokens=5000)
     calls = {}
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("날씨: sunny\n오늘 発表를 무사히 마쳤다.", 10, 20)  # 한자 섞임
 
-    async def _repair(body, *, user_id=None):
+    async def _repair(body, *, user_id=None, **_):
         calls["repaired"] = body
         return "오늘 발표를 무사히 마쳤다."
 
@@ -179,7 +184,7 @@ async def test_publishes_personal_even_when_self_check_fails(monkeypatch):
     ment = SimpleNamespace(id=uuid.uuid4(), content="캐피는 오늘 뒹굴거렸다.", weather="rainy")
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 진짜 힘들었어")], tokens=5000, ment=ment)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("NO", 1, 1)  # self-check 리젝 — 이제 비차단(로그만)
         return LLMResult("날씨: sunny\n오늘 그 마음이 오래 남았다", 10, 20)
@@ -198,7 +203,7 @@ async def test_diary_body_strips_markdown_and_ellipsis(monkeypatch):
     # 일기 본문의 마크다운(**,-)·말줄임표(...)는 저장 전 제거.
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 힘들었어")], tokens=5000)
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
         return LLMResult("날씨: sunny\n**오늘** 마음이 - 무거웠다... 그래도 괜찮아", 10, 20)
@@ -218,7 +223,7 @@ async def test_moly_diary_when_below_threshold(monkeypatch):
 
     called = {"llm": False}
 
-    async def _gen(system, convo, *, max_tokens=None, model=None):
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         called["llm"] = True
         return LLMResult("x", 1, 1)
 
@@ -237,17 +242,13 @@ async def test_idempotent_skips_when_exists(monkeypatch):
     assert session.committed is False
 
 
-async def test_no_ment_creates_hidden_tombstone(monkeypatch):
-    # SOMA-389: 임계 미달 + 지정본 없음 → 사용자 노출 일기 없음. 처리완료 멱등 마커로
-    # tombstone(source='none', content='', published_at=NULL) 행만 — 목록/상세 API 자동 제외.
+async def test_no_ment_records_processing_without_a_fake_diary(monkeypatch):
     _patch_common(monkeypatch, messages=[], tokens=0, ment=None)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
-    d = session.added[0]
-    assert d.source == "none"
-    assert d.content == ""
-    assert d.published_at is None
-    assert d.preset_ment_id is None
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    assert result["reason"] == "no_scheduled_entry"
+    assert session.added == []
+    assert session.committed is True
 
 
 # --- _pick_ment: 그날 지정본만(랜덤 폴백 폐지, SOMA-389) ---
@@ -304,6 +305,28 @@ def test_needs_repair_detects_broken_and_foreign():
 def test_fallback_clean_deterministic():
     assert dg._fallback_clean("저녁 메�뉴 얘기") == "저녁 메뉴 얘기"  # � 제거·재결합
     assert dg._fallback_clean("天气 좋다") == "좋다"                    # 한자 제거 + 정제
+
+
+# --- 닉네임은 외래문자 판정에서 뺀다 ---
+#
+# 유저가 이름을 한글 밖 글자로 지어 두면(예: 키릴 "Аня") 이름 때문에 멀쩡한 일기가 매번
+# 복원 대상으로 잡혀 LLM을 헛돌고, 폴백에서는 이름이 통째로 지워진다.
+_CYRILLIC_NICK = "\u0410\u043d\u044f"
+
+
+def test_needs_repair_ignores_nickname():
+    body = f"{_CYRILLIC_NICK}는 오늘 기분이 좋아 보였다."
+    assert dg._needs_repair(body, nickname=_CYRILLIC_NICK) is False
+    assert dg._needs_repair(body) is True  # 이름을 안 알려주면 이물질로 본다(대비)
+    # 이름은 빼되 진짜 이물질은 그대로 잡는다
+    assert dg._needs_repair(f"{body} \u03a3", nickname=_CYRILLIC_NICK) is True
+
+
+def test_fallback_clean_keeps_nickname():
+    body = f"{_CYRILLIC_NICK}는 오늘 기분이 좋아 보였다. \u03a3"
+    out = dg._fallback_clean(body, nickname=_CYRILLIC_NICK)
+    assert _CYRILLIC_NICK in out, "이름이 지워졌다 — 이름 없는 일기가 발행된다"
+    assert "\u03a3" not in out
 
 
 async def test_surgical_repair_minimal_fix(monkeypatch):

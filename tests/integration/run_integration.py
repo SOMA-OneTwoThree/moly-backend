@@ -296,7 +296,7 @@ async def run_flow(c, ext, db, uid, token):
         else:
             warn("POST /chat/messages 비200", f"{r.status_code} {str(r.text)[:120]}")
     except Exception as e:
-        warn("POST /chat/messages 예외(LLM/mem0)", repr(e)[:120])
+        warn("POST /chat/messages 예외(LLM/기억)", repr(e)[:120])
 
     # (탈퇴/로그아웃은 moly-auth 소유 — 유저 정리는 main()의 finally에서 admin API로 수행)
 

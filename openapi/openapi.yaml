@@ -32,6 +32,10 @@ paths:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D
   /diaries/{diary_id}/read:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D~1read
+  /v2/diaries:
+    $ref: ./paths/conversations.yaml#/~1v2~1diaries
+  /v2/diaries/{diary_id}:
+    $ref: ./paths/conversations.yaml#/~1v2~1diaries~1%7Bdiary_id%7D
   /wallet:
     $ref: ./paths/economy.yaml#/~1wallet
   /wallet/transactions:
@@ -92,6 +96,8 @@ components:
       $ref: ./components/economy.yaml#/schemas/ChargingStationResponse
     ChatMessage:
       $ref: ./components/conversations.yaml#/schemas/ChatMessage
+    ChatReference:
+      $ref: ./components/conversations.yaml#/schemas/ChatReference
     ChatStateResponse:
       $ref: ./components/conversations.yaml#/schemas/ChatStateResponse
     CommittedGreeting:
@@ -108,10 +114,18 @@ components:
       $ref: ./components/routines.yaml#/schemas/DayOfWeek
     DiaryDetailResponse:
       $ref: ./components/conversations.yaml#/schemas/DiaryDetailResponse
+    DiaryDetailResponseV2:
+      $ref: ./components/conversations.yaml#/schemas/DiaryDetailResponseV2
+    DiaryReferenceCard:
+      $ref: ./components/conversations.yaml#/schemas/DiaryReferenceCard
     DiaryListItem:
       $ref: ./components/conversations.yaml#/schemas/DiaryListItem
     DiaryListResponse:
       $ref: ./components/conversations.yaml#/schemas/DiaryListResponse
+    DiaryListItemV2:
+      $ref: ./components/conversations.yaml#/schemas/DiaryListItemV2
+    DiaryListResponseV2:
+      $ref: ./components/conversations.yaml#/schemas/DiaryListResponseV2
     EquipmentPutRequest:
       $ref: ./components/shop.yaml#/schemas/EquipmentPutRequest
     EquipmentPutRequestV2:
@@ -246,6 +260,8 @@ tags:
   description: 채팅 상태, 이력, 메시지 전송, 선발화
 - name: diary
   description: 발행된 일기 목록, 상세, 읽음 처리
+- name: memory
+  description: 정규화 기억 조회, 의미 검색, 명시적 망각
 - name: economy
   description: 건초 지갑, 원장, 충전소 보상
 - name: routine

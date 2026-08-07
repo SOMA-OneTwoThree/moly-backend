@@ -40,26 +40,82 @@ def test_strip_symbols_removes_junk_chars():
     assert text_clean.strip_symbols("오늘‏ 좋았다") == "오늘 좋았다"        # bidi RLM
     assert text_clean.strip_symbols("제어\x07문자") == "제어문자"               # C0 제어
     assert text_clean.strip_symbols("오늘 좋았다") == "오늘 좋았다"         # NBSP → 공백
-# --- 외래문자(한자·가나) 탐지/제거 — 한국어 응답 백스톱 ---
-def test_has_foreign_ko_detects_hanzi_and_kana():
-    assert text_clean.has_foreign_ko("나도 中 생각엔") is True       # 단일 한자
-    assert text_clean.has_foreign_ko("오늘 天气 좋더라") is True     # 한자 단어
-    assert text_clean.has_foreign_ko("완전 かわいい다") is True       # 가나
-    assert text_clean.has_foreign_ko("𠀀 희귀자") is True            # CJK 확장 B(astral)
+# --- 외래문자 백스톱 — 응답 언어에 없어야 할 계열의 글자 탐지/제거 ---
+#
+# 실제로 새어 나간 4건(dev 캐피 발화 178건 중)은 전부 완결된 문장 뒤에 붙은 꼬리였고,
+# 계열도 제각각이었다(그리스 구자라트 키릴). 예전 코드는 지울 계열을 나열하는 방식이라
+# 목록에 없던 이 세 계열이 그대로 통과했다. 그래서 아래는 계열별로 하나씩 고정한다.
+def test_detects_any_script_outside_the_response_language():
+    ko = dict(language="ko")
+    assert text_clean.has_foreign("느긋하게 있어. \u03a3", **ko) is True          # 그리스(실측 62)
+    assert text_clean.has_foreign("몰라.\u0ac7\u0aa3", **ko) is True             # 구자라트(실측 265)
+    assert text_clean.has_foreign("짙어 보여. \u04bb\u04af", **ko) is True       # 키릴(실측 353)
+    assert text_clean.has_foreign("\u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35 왔어", **ko) is True  # 태국(목록에 없던 계열)
+    assert text_clean.has_foreign("나도 中 생각엔", **ko) is True                  # 한자
+    assert text_clean.has_foreign("완전 かわいい다", **ko) is True                  # 가나
+    assert text_clean.has_foreign("\U00020000 희귀자", **ko) is True               # CJK 확장 B
 
 
-def test_has_foreign_ko_no_false_positive():
-    assert text_clean.has_foreign_ko("오늘 좀 어땠어 힘들었어?") is False
-    assert text_clean.has_foreign_ko("아이폰 3시에 iPhone 봤어") is False  # 라틴·숫자
-    assert text_clean.has_foreign_ko("{유저이름}아 안녕") is False          # placeholder 안전
-    assert text_clean.has_foreign_ko("") is False
-    assert text_clean.has_foreign_ko(None) is False
+def test_no_false_positive_on_normal_korean():
+    ko = dict(language="ko")
+    assert text_clean.has_foreign("오늘 좀 어땠어 힘들었어?", **ko) is False
+    assert text_clean.has_foreign("아이폰 3시에 iPhone 봤어", **ko) is False   # 라틴 숫자
+    assert text_clean.has_foreign("카페에서 caf\u00e9 마셨어", **ko) is False  # 악센트 라틴
+    assert text_clean.has_foreign("{유저이름}아 안녕", **ko) is False           # placeholder 안전
+    assert text_clean.has_foreign("", **ko) is False
+    assert text_clean.has_foreign(None, **ko) is False
 
 
-def test_strip_foreign_ko_removes_and_normalizes():
-    assert text_clean.strip_foreign_ko("나도 中 생각엔") == "나도 생각엔"
-    assert text_clean.strip_foreign_ko("완전 かわいい다") == "완전 다"
-    assert text_clean.strip_foreign_ko("") == ""
+def test_allowed_scripts_differ_by_language():
+    """일본어 응답의 가나 한자는 정상이다. 예전엔 한국어에만 백스톱이 있어 ja en은 무방비였다."""
+    assert text_clean.has_foreign("今日はどうだった", language="ja") is False
+    assert text_clean.has_foreign("今日はどうだった \u03a3", language="ja") is True
+    assert text_clean.has_foreign("How was your day", language="en") is False
+    assert text_clean.has_foreign("How was your day \u04bb", language="en") is True
+    assert text_clean.has_foreign("Nice jalape\u00f1o d\u00eda", language="en") is False
+
+
+def test_fullwidth_and_halfwidth_forms_are_not_stripped():
+    """전각 라틴·반각 가타카나는 정상 글자다. 빼놓으면 멀쩡한 일본어 글을 지운다."""
+    assert text_clean.has_foreign("\uff21\uff22\uff23 test", language="en") is False  # 전각 라틴
+    assert text_clean.has_foreign("\uff21\uff22 시작", language="ko") is False
+    assert text_clean.has_foreign("\uff83\uff7d\uff84\u3067\u3059", language="ja") is False  # 반각 가타카나
+
+
+def test_strip_removes_and_normalizes():
+    ko = dict(language="ko")
+    assert text_clean.strip_foreign("나도 中 생각엔", **ko) == "나도 생각엔"
+    assert text_clean.strip_foreign("완전 かわいい다", **ko) == "완전 다"
+    assert text_clean.strip_foreign("느긋하게 있어. \u03a3", **ko) == "느긋하게 있어."
+    assert text_clean.strip_foreign("", **ko) == ""
+
+
+def test_strip_removes_combining_marks_too():
+    """모음기호는 유니코드가 '글자'로 분류하지 않는다. 글자만 지우면 그 조각이 남는다.
+
+    실측 'વાત'에서 글자만 지우면 'ા'가 남아 오히려 더 이상해졌다.
+    """
+    assert text_clean.strip_foreign("알아준 것 같아. \u0ab5\u0abe\u0aa4?", language="ko") == "알아준 것 같아. ?"
+
+
+def test_nickname_is_never_stripped():
+    """닉네임은 유저가 정한 값이라 응답 언어와 계열이 달라도 정상이다.
+
+    이름이 사라진 답을 내보내는 쪽이 이물질이 남는 것보다 나쁘다.
+    """
+    nick = "\u0410\u043d\u044f"  # 키릴 이름
+    assert text_clean.has_foreign(f"{nick}야 안녕", language="ko", keep=nick) is False
+    assert text_clean.strip_foreign(f"{nick}야 안녕", language="ko", keep=nick) == f"{nick}야 안녕"
+    # 이름은 지키면서 진짜 이물질은 그대로 지운다
+    assert text_clean.strip_foreign(f"{nick}야 안녕 \u03a3", language="ko", keep=nick) == f"{nick}야 안녕"
+
+
+def test_unmodeled_language_is_left_alone():
+    """허용 계열을 안 적은 언어는 아예 거르지 않는다 — 본문이 통째로 지워지는 쪽이 더 나쁘다."""
+    assert text_clean._filter_for("zh-Hant-TW")[0] is True  # 미지원은 en 폴백이라 걸러짐
+    assert set(text_clean._ALLOWED_LETTERS) == {"ko", "en", "ja"}, (
+        "i18n.SUPPORTED에 언어를 추가했으면 여기 허용 계열도 적어야 한다"
+    )
 
 
 # --- 메타 프리앰블 제거 — 한국어 응답 앞 라틴 메타 백스톱(SOMA-329) ---
@@ -124,4 +180,83 @@ def test_strip_leading_meta_edge_cases():
     # 라틴 뒤 본문이 비면 원문 유지.
     assert text_clean.strip_leading_meta("this is only meta with no korean body") == (
         "this is only meta with no korean body"
+    )
+
+
+# --- 호출부 배선 고정 ---
+#
+# 위 테스트들은 text_clean만 본다. 그래서 chat.py가 백스톱을 한국어에만 걸도록 되돌아가도
+# 전부 통과한다. 원래 결함이 정확히 "적용 범위"에 있었으므로 여기서 고정한다.
+def test_chat_egress_backstop_is_not_korean_only():
+    """외래문자 백스톱은 언어를 가리지 않아야 한다.
+
+    엉뚱한 언어 글자가 문장 뒤에 붙는 건 영어·일본어 응답에서도 똑같이 일어난다.
+    예전에는 `is_ko and` 게이팅이라 ja·en 응답은 백스톱이 아예 없었다.
+    """
+    import inspect
+
+    from app.services import chat
+
+    line = next(
+        ln for ln in inspect.getsource(chat).splitlines() if "has_foreign(reply_text" in ln
+    )
+    assert "is_ko" not in line, "백스톱이 다시 한국어 전용이 됐다 — ja·en 응답이 무방비다"
+
+
+def test_chat_egress_passes_nickname_as_keep():
+    """닉네임을 안 넘기면 한글 밖 이름이 응답에서 통째로 지워진다."""
+    import inspect
+
+    from app.services import chat
+
+    src = inspect.getsource(chat)
+    for call in ("has_foreign(reply_text", "strip_foreign(reply_text"):
+        line = next(ln for ln in src.splitlines() if call in ln)
+        assert "keep=nick" in line, f"{call}에 닉네임을 안 넘긴다"
+
+
+# --- 응답 끝에 공백 없이 붙은 라틴 조각 제거 ---
+#
+# 라틴은 어느 언어에서도 정상 글자라 허용 목록으로는 못 잡는다(상표를 지우면 안 된다).
+# 그래서 붙어 있는 방식으로 가른다. 실측 2건 중 공백 없이 붙은 1건만 대상이다.
+def test_strip_trailing_latin_removes_attached_leak():
+    """실측 — 마침표에 공백 없이 붙었다. 정상적으로 쓴 글에는 이런 모양이 없다."""
+    assert (
+        text_clean.strip_trailing_latin("네가 와서 귀가 조금 더 깨어났네.arsuarmi")
+        == "네가 와서 귀가 조금 더 깨어났네."
+    )
+    assert text_clean.strip_trailing_latin("깨어났네arsuarmi") == "깨어났네"
+
+
+def test_strip_trailing_latin_leaves_spaced_latin_alone():
+    """공백으로 띄어진 라틴은 정상 끝맺음과 구조가 같다. 지우면 멀쩡한 답이 깨진다.
+
+    실측된 "...모르겠네. Adios"도 여기 해당해 일부러 안 지운다. 지우려면 "마지막 한글 뒤
+    라틴은 전부 이물질"이라는 규칙이 필요한데, 개발용 계정 189건으로 세울 규칙이 아니다.
+    """
+    for keep in ("이름은 모르겠네. Adios", "그거 봤어 Netflix", "잘 자 ok"):
+        assert text_clean.strip_trailing_latin(keep) == keep
+
+
+def test_strip_trailing_latin_keeps_latin_inside_the_sentence():
+    """문장 안에서 쓰인 라틴은 상표·고유명사다. 마지막 한글 뒤만 보므로 안전하다."""
+    for keep in ("아이폰 3시에 iPhone 봤어", "iPhone 봤어", "카페에서 caf\u00e9 마셨어"):
+        assert text_clean.strip_trailing_latin(keep) == keep
+
+
+def test_strip_trailing_latin_is_a_no_op_without_hangul():
+    """한글이 없으면 손대지 않는다 — 본문을 통째로 지우는 사고를 막는다."""
+    assert text_clean.strip_trailing_latin("Hello there") == "Hello there"
+    assert text_clean.strip_trailing_latin("") == ""
+    assert text_clean.strip_trailing_latin("오늘 좀 어땠어?") == "오늘 좀 어땠어?"
+
+
+def test_chat_egress_strips_trailing_latin():
+    """배선 고정 — chat.py가 이 규칙을 실제로 부르는가."""
+    import inspect
+
+    from app.services import chat
+
+    assert "strip_trailing_latin(reply_text)" in inspect.getsource(chat), (
+        "응답 끝 라틴 제거가 배선에서 빠졌다"
     )

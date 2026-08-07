@@ -55,6 +55,15 @@ class FakeSession:
         self.committed = True
 
 
+class SequentialScalarSession(FakeSession):
+    def __init__(self, values, **kwargs):
+        super().__init__(**kwargs)
+        self.values = iter(values)
+
+    async def scalar(self, stmt):
+        return next(self.values)
+
+
 def _diary(**over):
     base = dict(
         id=uuid.uuid4(), user_id=UID_UUID, diary_date=date(2026, 7, 5), source="llm",
@@ -79,49 +88,104 @@ def test_welcome_content_is_placeholder_and_renders_with_josa():
     assert naming.TOKEN in tpl and "승민" not in tpl  # 저장은 토큰만
     seungmin = naming.render(tpl, "승민")
     assert seungmin.startswith("승민, 첫 만남\n\n")
-    assert "이름은 승민." in seungmin
+    assert "오늘 승민과 처음 대화를 나눴다." in seungmin
     assert naming.render(tpl, "지호").startswith("지호, 첫 만남")
     assert "사용자" not in seungmin  # 화자 라벨 누출 없음
 
 
-def test_welcome_date_is_signup_activity_date_minus_one():
-    # 웰컴 = 가입 activity_date - 1. 주간 가입(로컬 04시 이후)은 activity_date=가입 로컬일.
+def test_welcome_date_is_first_conversation_local_date():
     created = datetime(2026, 7, 15, 2, 0, tzinfo=timezone.utc)  # = KST 7/15 11:00 → activity_date 7/15
-    assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 14)
+    assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 15)
 
 
-def test_welcome_date_uses_activity_boundary_for_early_morning_signup():
-    # SOMA-287 회귀: 00~04시(로컬) 가입은 activity_date가 전날 → 웰컴은 그보다 하루 앞.
-    # 첫 대화 activity_date(=7/14)와 웰컴 슬롯(7/13)이 겹치지 않아야 개인일기가 안 스킵된다.
+def test_welcome_date_does_not_use_the_four_am_activity_boundary():
     created = datetime(2026, 7, 14, 17, 0, tzinfo=timezone.utc)  # = KST 7/15 02:00 → activity_date 7/14
-    assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 13)
-    # 음수 오프셋 타임존(PDT, UTC-7)도 동일: 로컬 02:00 → activity_date 7/14 → 웰컴 7/13.
+    assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 15)
     la = datetime(2026, 7, 15, 9, 0, tzinfo=timezone.utc)  # = LA 7/15 02:00
-    assert diary_service._welcome_date(la, "America/Los_Angeles") == date(2026, 7, 13)
+    assert diary_service._welcome_date(la, "America/Los_Angeles") == date(2026, 7, 15)
 
 
-async def test_ensure_welcome_skips_without_nickname():
-    profile = SimpleNamespace(nickname=None, created_at=PAST, timezone="Asia/Seoul")
-    session = FakeSession(get_obj=profile)
-    await diary_service.ensure_welcome(session, UID)
-    assert session.committed is False  # 닉네임 없으면 생성 안 함(온보딩 후 다음 조회에서)
+def test_welcome_is_not_created_by_a_list_read_anymore():
+    assert not hasattr(diary_service, "ensure_welcome")
 
 
-async def test_ensure_welcome_inserts_when_onboarded():
-    profile = SimpleNamespace(nickname="승민", created_at=PAST, timezone="Asia/Seoul")
-    session = FakeSession(get_obj=profile)
-    await diary_service.ensure_welcome(session, UID)
-    assert session.committed is True  # 삽입 시도 + 커밋(멱등은 DB ON CONFLICT가 담당)
+async def test_first_committed_turn_welcome_joins_the_callers_transaction(monkeypatch):
+    diary_id = uuid.uuid4()
+    profile = SimpleNamespace(
+        id=UID_UUID,
+        nickname=None,
+        language="ko",
+        timezone="Asia/Seoul",
+        relationship_started_at=None,
+    )
+    session = FakeSession(get_obj=profile, welcome_id=diary_id)
 
+    async def _sources(*args, **kwargs):
+        return None
 
-async def test_ensure_welcome_skips_when_welcome_already_exists():
-    # SOMA-287 후속: _welcome_date가 옮겨져도(배포 전엔 가입일, 후엔 가입일-1) 웰컴은 유저당 1건.
-    # 이미 웰컴이 있으면 새 diary_date로 두 번째를 삽입하지 않는다.
-    profile = SimpleNamespace(nickname="승민", created_at=PAST, timezone="Asia/Seoul")
-    session = FakeSession(get_obj=profile, welcome_id=uuid.uuid4())
-    await diary_service.ensure_welcome(session, UID)
-    assert session.executed is False  # 삽입 자체를 시도하지 않음
+    async def _document(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _sources)
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _document)
+    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
+        session, profile, PAST, source_message_id=11
+    )
+    assert inserted == diary_id
     assert session.committed is False
+    assert profile.relationship_started_at == PAST
+
+
+async def test_existing_welcome_is_a_true_noop_for_projection_hooks(monkeypatch):
+    diary_id = uuid.uuid4()
+    profile = SimpleNamespace(
+        id=UID_UUID,
+        language="ko",
+        timezone="Asia/Seoul",
+        relationship_started_timezone="America/Los_Angeles",
+        relationship_started_at=PAST,
+    )
+    session = SequentialScalarSession([None, diary_id], get_obj=profile)
+    calls = []
+
+    async def _called(*args, **kwargs):
+        calls.append((args, kwargs))
+
+    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _called)
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _called)
+    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
+        session, profile, PAST, source_message_id=None
+    )
+    assert inserted is None
+    assert calls == []
+
+
+async def test_missing_welcome_for_existing_relationship_uses_first_user_message(monkeypatch):
+    diary_id = uuid.uuid4()
+    profile = SimpleNamespace(
+        id=UID_UUID,
+        language="ko",
+        timezone="Asia/Seoul",
+        relationship_started_timezone="America/Los_Angeles",
+        relationship_started_at=PAST,
+    )
+    session = SequentialScalarSession([diary_id, 7], get_obj=profile)
+    observed = {}
+
+    async def _sources(*args, **kwargs):
+        observed["sources"] = kwargs
+
+    async def _document(*args, **kwargs):
+        observed["document"] = kwargs
+
+    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _sources)
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _document)
+    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
+        session, profile, PAST, source_message_id=None
+    )
+    assert inserted == diary_id
+    assert observed["sources"]["message_ids"] == [7]
+    assert observed["document"]["diary_id"] == diary_id
 
 
 def test_list_item_welcome_exposes_title_and_strips_body():
@@ -188,6 +252,20 @@ async def test_get_diary_not_owned_404():
 async def test_get_diary_unpublished_404():
     future = datetime.now(timezone.utc) + timedelta(hours=1)
     d = _diary(published_at=future)
+    with pytest.raises(AppError) as e:
+        await diary_service.get_diary(FakeSession(get_obj=d), UID, str(d.id))
+    assert e.value.http_status == 404
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        {"record_status": "deleted", "deleted_at": PAST},
+        {"record_status": "published", "deleted_at": PAST},
+    ],
+)
+async def test_get_diary_never_serves_deleted_records(state):
+    d = _diary(**state)
     with pytest.raises(AppError) as e:
         await diary_service.get_diary(FakeSession(get_obj=d), UID, str(d.id))
     assert e.value.http_status == 404

@@ -7,6 +7,9 @@
 
 BEGIN;
 
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- updated_at 자동 갱신 트리거 함수(기존 존재 시 재사용). 없으면 생성.
 CREATE OR REPLACE FUNCTION public.set_updated_at() RETURNS trigger AS $$
 BEGIN
@@ -290,6 +293,7 @@ CREATE TABLE public.diaries (
   CONSTRAINT diaries_user_date_uq UNIQUE (user_id, diary_date)
 );
 CREATE INDEX diaries_user_published_idx ON public.diaries (user_id, published_at);
+CREATE INDEX diaries_content_trgm_idx ON public.diaries USING gin (content gin_trgm_ops);
 
 -- ─────────────────────────────────────────────────────────────
 -- 7. 루틴
@@ -364,12 +368,15 @@ CREATE TABLE public.reward_ad_sessions (
 );
 CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions (user_id);
 
--- 대화 컨텍스트 상태(앵커 append-only + 기억 스냅샷). 기억 평문 사본 → 민감(RLS + REVOKE 아래).
+-- 대화 컨텍스트 상태(앵커 append-only + 정규화 기억 처리 좌표).
 CREATE TABLE public.chat_contexts (
   user_id             uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
   anchor_message_id   bigint NOT NULL DEFAULT 0 CHECK (anchor_message_id >= 0),
-  memory_text         text,
-  memory_refreshed_at timestamptz,
+  memory_generation   bigint NOT NULL DEFAULT 0,       -- forget마다 +1 → stale 잡 결과 폐기
+  memory_source_watermark bigint NOT NULL DEFAULT 0,   -- 대화 turn당 +1(turn 커밋마다 배정)
+  -- fact/insight의 실제 내용·source·상태 변경 트랜잭션에서만 정확히 +1(no-op·retry·재색인은 제외)
+  relationship_profile_input_revision bigint NOT NULL DEFAULT 0,
+  last_active_at       timestamptz,
   updated_at          timestamptz NOT NULL DEFAULT now()
 );
 REVOKE ALL ON public.chat_contexts FROM anon, authenticated;
@@ -410,8 +417,82 @@ CREATE TABLE public.feedback (
 );
 CREATE INDEX feedback_user_idx ON public.feedback (user_id);
 
+-- 잡 플랫폼(W7) — 대화 후속 처리(기억 추출 등)의 내구 큐. 큐 5종은 스키마가 아니라 queue 컬럼 값이며
+-- 소비자 내부 슬롯으로만 분리한다. attempt는 **claim 시점**에 증가해(크래시로 finalize 못 한 잡도
+-- 재클레임마다 카운트) 반드시 dead에 도달한다(poison job 무한루프 방지). finalize/heartbeat은
+-- (id, state='running', lease_owner, lease_token) fencing으로만 쓴다 — lease 잃은 늦은 소비자가
+-- 잘못 확정 못 함. terminal(succeeded/dead/cancelled)에서 같은 행을 ready로 되살리지 않고,
+-- 운영 replay는 dedup_key='replay:{old_job_id}:{operation_id}'인 새 행으로만. dead 자동 삭제 없음.
+CREATE TABLE public.async_jobs (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  queue         text NOT NULL,                       -- critical|interactive_async|content|notification|maintenance
+  job_type      text NOT NULL,
+  user_id       uuid NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  dedup_key     text NOT NULL,
+  replay_of     uuid NULL REFERENCES public.async_jobs(id), -- terminal 원본을 보존하는 replay 계보
+  payload       jsonb NOT NULL,
+  state         text NOT NULL DEFAULT 'ready'
+    CHECK (state IN ('ready','running','succeeded','dead','cancelled')),
+  priority      integer NOT NULL DEFAULT 100,        -- 작을수록 먼저
+  available_at  timestamptz NOT NULL DEFAULT now(),  -- 재시도 backoff 예약 시각
+  expires_at    timestamptz NULL,                    -- 경과 시 cancelled(처리 의미 없어진 잡)
+  attempt       integer NOT NULL DEFAULT 0 CHECK (attempt >= 0),
+  max_attempts  integer NOT NULL CHECK (max_attempts > 0),
+  lease_owner   text NULL,
+  lease_token   uuid NULL,
+  lease_until   timestamptz NULL,
+  result_code   text NULL,
+  result_detail jsonb NULL,
+  last_error_code text NULL,
+  last_error_at timestamptz NULL,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  finished_at   timestamptz NULL,
+  UNIQUE (job_type, dedup_key),                      -- 멱등 키(구·신 producer 겹침 구간 합류점)
+  CHECK (                                            -- lease 3종은 running일 때만 존재
+    (state = 'running' AND lease_owner IS NOT NULL AND lease_token IS NOT NULL AND lease_until IS NOT NULL)
+    OR (state <> 'running' AND lease_owner IS NULL AND lease_token IS NULL AND lease_until IS NULL)
+  )
+);
+CREATE INDEX async_jobs_claim_idx
+  ON public.async_jobs (queue, priority, available_at, created_at) WHERE state='ready';
+CREATE INDEX async_jobs_reclaim_idx
+  ON public.async_jobs (queue, lease_until) WHERE state='running';
+-- /health/queues 큐별 집계·oldest dead age(이관 게이트). dead 미삭제로 단조 증가하는 테이블의 풀스캔 방지.
+CREATE INDEX async_jobs_state_queue_idx ON public.async_jobs (state, queue);
+CREATE INDEX async_jobs_replay_of_idx ON public.async_jobs (replay_of) WHERE replay_of IS NOT NULL;
+
 -- ─────────────────────────────────────────────────────────────
--- 10. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
+-- 12. 대화 요약 checkpoint(W11) — 길어진 대화의 오래된 구간을 요약해 남긴다.
+--     다음 턴은 **가장 앞선 checkpoint 하나 + 그 이후 메시지**만 쓴다(앵커 리셋이 옛 구간을
+--     통째로 버리던 문제).
+--     · source_hash = (이전 checkpoint id·source_hash) + 이번 원본 메시지의 정렬된
+--       (id, sender, kind, placeholder content)를 길이-prefix 직렬화한 SHA-256.
+--     · UNIQUE(user_id, through_message_id, source_hash) + 잡 dedup key로 같은 입력은 한 번만 요약.
+--     · through_message_id는 RESTRICT — 요약 경계가 되는 메시지는 사라질 수 없다.
+--     상세 = docs/ARCHITECTURE-capi.md 8.2절.
+-- ─────────────────────────────────────────────────────────────
+CREATE TABLE public.conversation_checkpoints (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  through_message_id bigint NOT NULL REFERENCES public.messages(id) ON DELETE RESTRICT,
+  summary text NOT NULL,                    -- 저장 표면(실명 금지 — {유저이름} placeholder)
+  version text NOT NULL,                    -- 요약기 계약 버전
+  source_hash text NOT NULL,                -- 결정적 입력 지문
+  -- 만들 때의 chat_contexts.memory_generation. 잊어줘가 세대를 올리므로, 조회는 **현재 세대와
+  -- 같은 행만** 돌려준다. 잊어줘의 DELETE와 요약 INSERT가 겹치면 한쪽이 다른 쪽의 미커밋 행을
+  -- 못 봐(READ COMMITTED) 삭제를 피한 행이 남는데, 잠금으로 막으면 챗과 락 순서가 반대라
+  -- 교착이 난다. 지우는 대신 읽을 때 걸러 프롬프트에 안 실리게 한다.
+  memory_generation bigint NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, through_message_id, source_hash)
+);
+CREATE INDEX conversation_checkpoints_latest_idx
+  ON public.conversation_checkpoints(user_id, through_message_id DESC);
+CREATE INDEX conversation_checkpoints_live_idx
+  ON public.conversation_checkpoints(user_id, memory_generation, through_message_id DESC);
+
+-- ─────────────────────────────────────────────────────────────
+-- 13. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
 --     클라 데이터 경로는 전부 서버 API → anon/authenticated 직접 접근 차단.
 --     (클라 직접 읽기가 필요해지면 여기에 own-row SELECT 정책 추가)
 -- ─────────────────────────────────────────────────────────────
@@ -424,10 +505,365 @@ BEGIN
     'subscriptions','subscription_hay_grants','payments',
     'user_items','diaries','routines','routine_completions',
     'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
-    'chat_contexts','feedback','diary_gen_claims','revenuecat_events'
+    'chat_contexts','feedback','diary_gen_claims','revenuecat_events','async_jobs'
   ] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
   END LOOP;
+  -- 대화 요약(W11)은 유저 대화에서 뽑은 PII(와 그 파생)라
+  -- RLS에 더해 클라 롤 권한도 회수한다(chat_contexts와 동일).
+  FOREACH t IN ARRAY ARRAY[
+    'conversation_checkpoints'
+  ] LOOP
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
+    EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated;', t);
+  END LOOP;
 END $$;
+
++-- Dev rollout migration: conversation-centred recall, exact suppression, diary prologue,
+-- active-turn CAS, typed diary references and bounded retention metadata.
+-- Additive where possible. The legacy diary (user_id, diary_date) unique constraint is replaced
+-- because welcome and a daily diary must coexist on the same display date.
+
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS public.schema_migrations (
+  migration_name text PRIMARY KEY,
+  checksum_sha256 text NOT NULL,
+  applied_at timestamptz NOT NULL DEFAULT now(),
+  applied_by text NOT NULL DEFAULT current_user
+);
+ALTER TABLE public.schema_migrations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.schema_migrations FROM anon, authenticated;
+
+-- Relationship origin is the first committed conversation, not auth/profile creation.
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS relationship_started_at timestamptz,
+  ADD COLUMN IF NOT EXISTS relationship_started_timezone text,
+  ADD COLUMN IF NOT EXISTS relationship_display_date date,
+  ADD COLUMN IF NOT EXISTS next_diary_due_at timestamptz;
+
+WITH first_turn AS (
+  SELECT DISTINCT ON (m.user_id) m.user_id, m.created_at
+  FROM public.messages m
+  WHERE m.sender='user'
+  ORDER BY m.user_id, m.id
+)
+UPDATE public.profiles p
+SET relationship_started_at = f.created_at,
+    relationship_started_timezone = p.timezone,
+    relationship_display_date = (f.created_at AT TIME ZONE p.timezone)::date
+FROM first_turn f
+WHERE p.id=f.user_id AND p.relationship_started_at IS NULL;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname='profiles_relationship_origin_ck'
+      AND conrelid='public.profiles'::regclass
+  ) THEN
+    ALTER TABLE public.profiles ADD CONSTRAINT profiles_relationship_origin_ck CHECK (
+      num_nonnulls(relationship_started_at, relationship_started_timezone, relationship_display_date)
+      IN (0, 3)
+    );
+  END IF;
+END $$;
+
+-- Tenant candidate keys and committed-turn coordinates.
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS turn_seq bigint,
+  ADD COLUMN IF NOT EXISTS turn_position smallint;
+CREATE UNIQUE INDEX IF NOT EXISTS messages_user_id_id_uq ON public.messages(user_id,id);
+CREATE UNIQUE INDEX IF NOT EXISTS messages_user_id_id_sender_uq ON public.messages(user_id,id,sender);
+CREATE UNIQUE INDEX IF NOT EXISTS messages_user_turn_position_uq
+  ON public.messages(user_id,turn_seq,turn_position) WHERE turn_seq IS NOT NULL;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname='messages_turn_position_ck'
+      AND conrelid='public.messages'::regclass
+  ) THEN
+    ALTER TABLE public.messages ADD CONSTRAINT messages_turn_position_ck
+      CHECK ((turn_seq IS NULL AND turn_position IS NULL)
+             OR (turn_seq > 0 AND turn_position BETWEEN 0 AND 2));
+  END IF;
+END $$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS routines_user_id_id_uq ON public.routines(user_id,id);
+DELETE FROM public.routine_completions c
+USING public.routines r
+WHERE c.routine_id=r.id AND c.user_id<>r.user_id;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname='routine_completions_user_routine_fk'
+      AND conrelid='public.routine_completions'::regclass
+  ) THEN
+    ALTER TABLE public.routine_completions
+      ADD CONSTRAINT routine_completions_user_routine_fk
+      FOREIGN KEY (user_id,routine_id) REFERENCES public.routines(user_id,id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+-- Diary: product kind and display/activity coordinates replace the single daily slot.
+ALTER TABLE public.diaries
+  ADD COLUMN IF NOT EXISTS kind text,
+  ADD COLUMN IF NOT EXISTS activity_date date,
+  ADD COLUMN IF NOT EXISTS display_date date,
+  ADD COLUMN IF NOT EXISTS title text,
+  ADD COLUMN IF NOT EXISTS author text NOT NULL DEFAULT 'capi',
+  ADD COLUMN IF NOT EXISTS occurred_at timestamptz,
+  ADD COLUMN IF NOT EXISTS occurred_timezone text,
+  ADD COLUMN IF NOT EXISTS occurred_timezone_provenance text,
+  ADD COLUMN IF NOT EXISTS primary_subject text,
+  ADD COLUMN IF NOT EXISTS about_tags text[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS content_version integer NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS record_status text NOT NULL DEFAULT 'published',
+  ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
+
+UPDATE public.diaries SET
+  kind = CASE source WHEN 'welcome' THEN 'welcome' WHEN 'llm' THEN 'shared_day'
+                     WHEN 'preset' THEN 'capi_day' ELSE NULL END,
+  activity_date = CASE WHEN source IN ('llm','preset') THEN diary_date ELSE NULL END,
+  display_date = diary_date,
+  author = 'capi',
+  occurred_timezone_provenance = COALESCE(occurred_timezone_provenance, 'legacy_unknown'),
+  primary_subject = CASE WHEN source IN ('welcome','llm') THEN 'user' ELSE 'capi' END,
+  about_tags = CASE WHEN source IN ('welcome','llm') THEN ARRAY['user']::text[]
+                    WHEN source='preset' THEN ARRAY['capi']::text[] ELSE '{}'::text[] END,
+  record_status = CASE WHEN source='none' THEN 'processed' ELSE 'published' END
+WHERE display_date IS NULL OR kind IS NULL;
+
+ALTER TABLE public.diaries ALTER COLUMN display_date SET NOT NULL;
+ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;
+CREATE UNIQUE INDEX IF NOT EXISTS diaries_user_id_id_uq ON public.diaries(user_id,id);
+CREATE UNIQUE INDEX IF NOT EXISTS diaries_one_welcome_uq
+  ON public.diaries(user_id) WHERE kind='welcome' AND deleted_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS diaries_one_daily_uq
+  ON public.diaries(user_id,activity_date)
+  WHERE kind IN ('shared_day','capi_day') AND deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS diaries_user_display_cursor_idx
+  ON public.diaries(user_id,display_date DESC,id DESC)
+  WHERE record_status='published' AND deleted_at IS NULL;
+DROP INDEX IF EXISTS public.diaries_content_trgm_idx;
+
+CREATE TABLE IF NOT EXISTS public.diary_generation_results (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  target_date date NOT NULL,
+  status text NOT NULL CHECK (status IN ('no_entry')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id,target_date)
+);
+INSERT INTO public.diary_generation_results(user_id,target_date,status,created_at)
+SELECT user_id,diary_date,'no_entry',COALESCE(created_at,now())
+FROM public.diaries WHERE source='none'
+ON CONFLICT (user_id,target_date) DO NOTHING;
+DELETE FROM public.diaries WHERE source='none';
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname='diaries_kind_ck'
+      AND conrelid='public.diaries'::regclass
+  ) THEN
+    ALTER TABLE public.diaries ADD CONSTRAINT diaries_kind_ck CHECK (
+      (record_status='processed' AND kind IS NULL)
+      OR (record_status IN ('draft','published') AND kind IN ('welcome','shared_day','capi_day'))
+      OR (record_status='deleted')
+    );
+    ALTER TABLE public.diaries ADD CONSTRAINT diaries_kind_activity_ck CHECK (
+      (kind='welcome' AND activity_date IS NULL)
+      OR (kind IN ('shared_day','capi_day') AND activity_date IS NOT NULL)
+      OR kind IS NULL
+    );
+    ALTER TABLE public.diaries ADD CONSTRAINT diaries_author_ck CHECK (author='capi');
+  END IF;
+END $$;
+
+-- Chat revision, one active inference lease per user and exact idempotency semantics.
+ALTER TABLE public.chat_contexts
+  ADD COLUMN IF NOT EXISTS context_revision bigint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS last_committed_turn_seq bigint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS prompt_cache_generation bigint NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS public.chat_active_turns (
+  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  turn_seq bigint NOT NULL CHECK (turn_seq > 0),
+  idempotency_key text NOT NULL,
+  request_hash text NOT NULL,
+  base_context_revision bigint NOT NULL,
+  lease_token uuid NOT NULL,
+  lease_until timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS chat_active_turns_key_uq
+  ON public.chat_active_turns(user_id,idempotency_key);
+
+ALTER TABLE public.idempotency_keys
+  ALTER COLUMN response DROP NOT NULL,
+  ADD COLUMN IF NOT EXISTS request_hash text,
+  ADD COLUMN IF NOT EXISTS response_schema_version bigint NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS reply_message_id bigint,
+  ADD COLUMN IF NOT EXISTS terminal_status text NOT NULL DEFAULT 'succeeded',
+  ADD COLUMN IF NOT EXISTS response_expires_at timestamptz,
+  ADD COLUMN IF NOT EXISTS dedupe_expires_at timestamptz,
+  ADD COLUMN IF NOT EXISTS redacted_at timestamptz;
+
+UPDATE public.idempotency_keys
+SET response_expires_at=COALESCE(response_expires_at,created_at+interval '24 hours'),
+    dedupe_expires_at=COALESCE(dedupe_expires_at,created_at+interval '30 days'),
+    reply_message_id=CASE
+      WHEN response #>> '{reply,message_id}' ~ '^[0-9]+$'
+      THEN (response #>> '{reply,message_id}')::bigint ELSE reply_message_id END
+WHERE response_expires_at IS NULL OR dedupe_expires_at IS NULL OR reply_message_id IS NULL;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname='idempotency_reply_message_fk'
+      AND conrelid='public.idempotency_keys'::regclass
+  ) THEN
+    ALTER TABLE public.idempotency_keys ADD CONSTRAINT idempotency_reply_message_fk
+      FOREIGN KEY (user_id,reply_message_id) REFERENCES public.messages(user_id,id)
+      ON DELETE CASCADE;
+    ALTER TABLE public.idempotency_keys ADD CONSTRAINT idempotency_terminal_status_ck
+      CHECK (terminal_status IN ('succeeded','expired','redacted'));
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS idempotency_reply_idx
+  ON public.idempotency_keys(user_id,reply_message_id) WHERE reply_message_id IS NOT NULL;
+
+-- Diary provenance and suppression-safe recall projection.
+CREATE TABLE IF NOT EXISTS public.diary_claim_sources (
+  user_id uuid NOT NULL,
+  diary_id uuid NOT NULL,
+  message_id bigint NOT NULL,
+  source_hash text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id,diary_id,message_id),
+  FOREIGN KEY (user_id,diary_id) REFERENCES public.diaries(user_id,id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id,message_id) REFERENCES public.messages(user_id,id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS public.diary_recall_documents (
+  user_id uuid NOT NULL,
+  diary_id uuid NOT NULL,
+  search_text text NOT NULL,
+  source_hash text NOT NULL,
+  embedding vector(1536),
+  embedding_model text NOT NULL DEFAULT 'text-embedding-3-small',
+  suppression_generation bigint NOT NULL,
+  index_version text NOT NULL,
+  embedding_repair_attempts smallint NOT NULL DEFAULT 0 CHECK (embedding_repair_attempts BETWEEN 0 AND 3),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id,diary_id),
+  FOREIGN KEY (user_id,diary_id) REFERENCES public.diaries(user_id,id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS diary_recall_documents_text_trgm_idx
+  ON public.diary_recall_documents USING gin (search_text gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS diary_recall_documents_embedding_hnsw_idx
+  ON public.diary_recall_documents USING hnsw (embedding vector_cosine_ops)
+  WHERE embedding IS NOT NULL;
+CREATE INDEX IF NOT EXISTS diary_recall_missing_embedding_idx
+  ON public.diary_recall_documents(updated_at) WHERE embedding IS NULL;
+
+-- Persisted public diary cards and short-lived conversational focus.
+CREATE TABLE IF NOT EXISTS public.chat_response_references (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  reply_message_id bigint NOT NULL,
+  ordinal integer NOT NULL CHECK (ordinal BETWEEN 0 AND 2),
+  schema_version text NOT NULL DEFAULT 'diary-reference-v1',
+  domain text NOT NULL DEFAULT 'diary' CHECK (domain='diary'),
+  mode text NOT NULL CHECK (mode IN ('full_card','reopen_reference')),
+  state text NOT NULL DEFAULT 'available' CHECK (state IN ('available','unavailable')),
+  diary_id uuid,
+  rendered_metadata jsonb NOT NULL DEFAULT '{}',
+  redacted_at timestamptz,
+  redaction_reason text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY (user_id,reply_message_id) REFERENCES public.messages(user_id,id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id,diary_id) REFERENCES public.diaries(user_id,id) ON DELETE RESTRICT,
+  UNIQUE (user_id,reply_message_id,ordinal),
+  CHECK ((state='available' AND diary_id IS NOT NULL AND redacted_at IS NULL)
+         OR (state='unavailable' AND diary_id IS NULL))
+);
+CREATE INDEX IF NOT EXISTS chat_response_references_reply_idx
+  ON public.chat_response_references(user_id,reply_message_id,ordinal);
+
+CREATE TABLE IF NOT EXISTS public.conversation_focus (
+  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  domain text NOT NULL,
+  facet text,
+  reference_ids uuid[] NOT NULL CHECK (cardinality(reference_ids) BETWEEN 1 AND 3),
+  context_revision bigint NOT NULL,
+  expires_at timestamptz NOT NULL,
+  expires_turn_seq bigint NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Deletion serving barrier is intentionally not FK-bound to profiles so it survives account deletion.
+CREATE TABLE IF NOT EXISTS public.privacy_subject_barriers (
+  user_id uuid PRIMARY KEY,
+  state text NOT NULL CHECK (state IN ('deleting','deleted')),
+  operation_id uuid NOT NULL,
+  high_watermark bigint,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.privacy_ledger_events (
+  id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  operation_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  event text NOT NULL,
+  high_watermark bigint,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS privacy_ledger_user_idx
+  ON public.privacy_ledger_events(user_id,id);
+
+-- Durable job replay lineage and bounded payload retention.
+ALTER TABLE public.async_jobs
+  ADD COLUMN IF NOT EXISTS replay_of uuid REFERENCES public.async_jobs(id),
+  ADD COLUMN IF NOT EXISTS replay_operation_id uuid,
+  ADD COLUMN IF NOT EXISTS payload_schema_version text NOT NULL DEFAULT 'job-payload-v1',
+  ADD COLUMN IF NOT EXISTS payload_hash text,
+  ADD COLUMN IF NOT EXISTS payload_expires_at timestamptz,
+  ADD COLUMN IF NOT EXISTS payload_redacted_at timestamptz;
+UPDATE public.async_jobs SET
+  payload_hash=COALESCE(payload_hash,encode(digest(payload::text,'sha256'),'hex')),
+  payload_expires_at=COALESCE(payload_expires_at,
+    CASE WHEN state='dead' THEN COALESCE(finished_at,created_at)+interval '7 days'
+         WHEN state IN ('succeeded','cancelled') THEN COALESCE(finished_at,created_at)+interval '24 hours'
+         ELSE NULL END)
+WHERE payload_hash IS NULL OR payload_expires_at IS NULL;
+CREATE INDEX IF NOT EXISTS async_jobs_replay_of_idx
+  ON public.async_jobs(replay_of) WHERE replay_of IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS async_jobs_replay_operation_uq
+  ON public.async_jobs(replay_of,replay_operation_id)
+  WHERE replay_of IS NOT NULL AND replay_operation_id IS NOT NULL;
+
+-- Composite provenance FKs that were previously app-only.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname='conversation_checkpoints_user_message_fk'
+      AND conrelid='public.conversation_checkpoints'::regclass
+  ) THEN
+    ALTER TABLE public.conversation_checkpoints ADD CONSTRAINT conversation_checkpoints_user_message_fk
+      FOREIGN KEY (user_id,through_message_id) REFERENCES public.messages(user_id,id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+DECLARE t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY[
+    'schema_migrations','chat_active_turns','chat_response_references','conversation_focus',
+    'diary_generation_results',
+    'diary_claim_sources','diary_recall_documents','privacy_subject_barriers','privacy_ledger_events'
+  ] LOOP
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;',t);
+    EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated;',t);
+  END LOOP;
+END $$;
+
+
 
 COMMIT;

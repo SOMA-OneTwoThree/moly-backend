@@ -126,6 +126,59 @@ def test_deep_degraded_when_worker_stale(monkeypatch):
     assert r.status_code == 503 and r.json()["worker"]["stale"] is True
 
 
+# --- /health/queues (잡 큐 — 이관 게이트 지표) ---
+def test_queues_exposes_counts_and_oldest_dead_age(monkeypatch):
+    monkeypatch.setattr(health.settings, "environment", "local")
+    monkeypatch.setattr(health.settings, "health_token", "")
+
+    async def _stats(session):
+        return {
+            "critical": {"ready": 0, "running": 0, "dead": 0, "oldest_dead_age_s": None},
+            "content": {"ready": 3, "running": 1, "dead": 2, "oldest_dead_age_s": 900},
+        }
+
+    monkeypatch.setattr(health.jobs, "queue_stats", _stats)
+    app.dependency_overrides[get_session] = _override(_OkSession())
+    try:
+        r = client.get("/health/queues")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 200
+    body = r.json()
+    assert body["queues"]["content"] == {
+        "ready": 3, "running": 1, "dead": 2, "oldest_dead_age_s": 900
+    }
+    assert body["dead_total"] == 2  # 이관 게이트: dead 증가·미확인은 배포 gate 실패
+    assert r.headers["Cache-Control"] == "no-store"
+
+
+def test_queues_requires_token_in_prod(monkeypatch):
+    monkeypatch.setattr(health.settings, "environment", "production")
+    monkeypatch.setattr(health.settings, "health_token", "")
+    app.dependency_overrides[get_session] = _override(_OkSession())
+    try:
+        r = client.get("/health/queues")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 403
+
+
+def test_queues_down_when_db_unreachable(monkeypatch):
+    monkeypatch.setattr(health.settings, "environment", "local")
+    monkeypatch.setattr(health.settings, "health_token", "")
+
+    async def _boom(session):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(health.jobs, "queue_stats", _boom)
+    app.dependency_overrides[get_session] = _override(_OkSession())
+    try:
+        r = client.get("/health/queues")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 503 and r.json()["status"] == "down"
+
+
 # --- /health/synthetic (의존성 능동점검) ---
 def test_synthetic_ok_with_llm_mocked(monkeypatch):
     monkeypatch.setattr(health.settings, "synthetic_check_llm", True)

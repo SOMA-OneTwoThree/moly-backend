@@ -4,47 +4,45 @@
 """
 from __future__ import annotations
 
+import base64
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
-from app.core.time_utils import activity_date_for
+from app.core.time_utils import safe_zone
 from app.models.diary import Diary
 from app.models.profile import Profile
-from app.services import i18n, naming
+from app.services import i18n, naming, privacy
 from app.services.account import _uid
 
 _PREVIEW_LEN = 60
+_VISIBLE_KINDS = ("welcome", "shared_day", "capi_day")
+_CURSOR_VERSION = "v1"
 
-# 웰컴 일기 — 온보딩 후 첫 일기. content = '제목\n\n본문'(제목 컬럼 없어 스키마 무변경).
-# 이름은 placeholder 토큰으로만 저장하고 egress에서 현재 닉네임으로 렌더한다(개명 드리프트 방지).
-# source=welcome(→ type=moly, title 필드로 분리 노출). 자세한 배치는 ensure_welcome 참조.
+# 웰컴 프롤로그는 첫 성공 대화의 Phase B에서 동기 생성한다. 가입 시각·목록 GET을 생성
+# 트리거로 쓰지 않고, 커밋된 사실만 담는 결정적·사실 중립 템플릿을 사용한다.
 _WELCOME_CONTENT = (
     "{유저이름}, 첫 만남\n\n"
-    "오늘은 뒹굴거리다가 새 친구를 만났다. 이름은 {유저이름}.\n"
-    "말하는 카피바라라니 신기하다고 했다. 나는 그 말이 조금 웃겼다. 나한테는 그 친구가 더 신기한데.\n"
-    "우리 집도 보여줬다. 낮잠 자는 자리랑, 음악 듣는 자리랑. 어떤 친구일까? 또 대화해보고 싶다."
+    "오늘 {유저이름}과 처음 대화를 나눴다.\n"
+    "우리의 첫 대화가 시작된 날이다."
 )
-# 비한국어 유저용 웰컴 일기. {유저이름} placeholder 유지(egress에서 현재 닉네임 렌더).
 _WELCOME_CONTENT_EN = (
     "{유저이름}, our first meeting\n\n"
-    "Today I was lounging around and met a new friend. Their name is {유저이름}.\n"
-    "They said a talking capybara is strange. That made me chuckle a little. To me they're the stranger one.\n"
-    "I showed them around my place. Where I nap. Where I listen to music. What kind of friend are they? I'd like to talk again."
+    "Today, {유저이름} and I talked for the first time.\n"
+    "This is the day our first conversation began."
 )
 
 
 # 일본어 유저용 웰컴 일기. {유저이름} placeholder 유지(egress에서 현재 닉네임 렌더).
 _WELCOME_CONTENT_JA = (
     "{유저이름}、はじめての出会い\n\n"
-    "今日はごろごろしていたら、新しい友だちに会った。名前は{유저이름}。\n"
-    "しゃべるカピバラなんて不思議だと言われた。わたしはその言葉が少しおかしかった。わたしからすれば、その子のほうがもっと不思議なのに。\n"
-    "うちの中も見せてあげた。お昼寝する場所と、音楽を聴く場所と。どんな友だちなんだろう。またおしゃべりしたいな。"
+    "今日、{유저이름}とはじめて話した。\n"
+    "わたしたちの最初の会話が始まった日だ。"
 )
 
 
@@ -57,53 +55,125 @@ def _welcome_content(language: str | None) -> str:
     return _WELCOME_CONTENT_EN
 
 
-def _welcome_date(created_at: datetime, tz: str) -> date:
-    """웰컴 일기 날짜 = 가입 activity_date - 1일.
+def _welcome_date(started_at: datetime, tz: str) -> date:
+    """첫 커밋 대화의 당시 로컬 달력 날짜. timezone 변경 뒤에도 저장값은 바뀌지 않는다."""
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    return started_at.astimezone(safe_zone(tz)).date()
 
-    반드시 activity_date 경계(로컬 -4h)로 계산한다. 달력 로컬일(.date())로 잡으면
-    00~04시 가입자는 첫 대화의 activity_date(=가입 activity_date)와 웰컴 슬롯이 겹쳐
-    UNIQUE(user, diary_date) 충돌로 첫날 개인일기가 스킵된다(SOMA-287). 가입 activity_date
-    슬롯은 비워 둬야 워커가 그 날 개인일기(또는 preset)를 정상 생성한다.
+
+def _welcome_parts(language: str | None) -> tuple[str, str]:
+    title, separator, body = _welcome_content(language).partition("\n\n")
+    if not separator:  # 상수 손상은 빈 본문을 발행하지 않고 즉시 드러낸다.
+        raise RuntimeError("welcome diary template must contain a title and body")
+    return title, body
+
+
+async def ensure_welcome_for_first_committed_turn(
+    session: AsyncSession,
+    profile: Profile,
+    started_at: datetime,
+    *,
+    source_message_id: int | None = None,
+) -> uuid.UUID | None:
+    """첫 성공 대화와 같은 Phase B 트랜잭션에 welcome 프롤로그를 멱등 삽입한다.
+
+    commit하지 않는다. 호출자가 user/assistant message, relationship_started_at과 원자적으로 확정한다.
+    partial unique ``one welcome per user``가 동시 삽입을 수렴시키며, 목록 GET은 이 함수를 호출하지
+    않는다. 반환값은 이번 호출에서 새로 삽입된 diary id이고 기존 행이면 ``None``이다.
     """
-    return activity_date_for(created_at, tz) - timedelta(days=1)
 
-
-async def ensure_welcome(session: AsyncSession, user_id: str) -> None:
-    """웰컴 일기 1회 삽입 — 가입일-1(가장 오래된 일기)에 고정.
-
-    가입일 슬롯은 비워 둔다. 그래야 다음날 워커가 '가입일' 개인일기를 정상 생성한다(웰컴과 별개).
-    유저당 웰컴 1건 — 이미 있으면 건너뛴다. UNIQUE(user, date)+ON CONFLICT는 같은 날짜만 막으므로,
-    _welcome_date가 옮겨져도(로직 변경·재계산) 중복이 생기지 않게 source로 존재 여부를 먼저 본다.
-    닉네임/가입시각이 없으면(온보딩 전) 건너뛰고, 온보딩 후 다음 조회에서 만든다.
-    """
-    uid = _uid(user_id)
-    profile = await session.get(Profile, uid)
-    if profile is None or not profile.nickname or profile.created_at is None:
-        return
-    already = await session.scalar(
-        select(Diary.id).where(Diary.user_id == uid, Diary.source == "welcome").limit(1)
+    started_at = (
+        started_at.replace(tzinfo=timezone.utc)
+        if started_at.tzinfo is None
+        else started_at.astimezone(timezone.utc)
     )
-    if already is not None:
-        return
+    tz_name = getattr(profile, "relationship_started_timezone", None) or profile.timezone
+    display_date = _welcome_date(started_at, tz_name)
+    title, body = _welcome_parts(getattr(profile, "language", None))
     stmt = (
         pg_insert(Diary)
         .values(
-            user_id=uid,
-            diary_date=_welcome_date(profile.created_at, profile.timezone),
+            user_id=profile.id,
+            diary_date=display_date,  # v1 compatibility alias
+            kind="welcome",
+            activity_date=None,
+            display_date=display_date,
+            title=title,
+            author="capi",
+            occurred_at=started_at,
+            occurred_timezone=tz_name,
+            occurred_timezone_provenance="profile_snapshot",
+            primary_subject="user",
+            about_tags=["user"],
             source="welcome",
             preset_ment_id=None,
-            content=_welcome_content(getattr(profile, "language", None)),  # 언어별. placeholder→egress 렌더
+            content=body,
             weather="sunny",
-            published_at=datetime.now(timezone.utc),  # 즉시 노출
+            published_at=started_at,
         )
-        .on_conflict_do_nothing(index_elements=["user_id", "diary_date"])
+        .on_conflict_do_nothing()
+        .returning(Diary.id)
     )
-    await session.execute(stmt)
-    await session.commit()
+    inserted = await session.scalar(stmt)
+    diary_id = inserted
+    if diary_id is None:
+        diary_id = await session.scalar(
+            select(Diary.id).where(
+                Diary.user_id == profile.id,
+                Diary.kind == "welcome",
+            )
+        )
+    if inserted is not None:
+        # Import here so expand-reader deployments can load the service before the new projection
+        # module is activated. Both hooks join the caller's Phase B transaction.
+        from app.services import diary_recall_repo
+
+        if source_message_id is None:
+            from app.models.message import Message
+
+            source_message_id = await session.scalar(
+                select(Message.id)
+                .where(Message.user_id == profile.id, Message.sender == "user")
+                .order_by(Message.id)
+                .limit(1)
+            )
+        if source_message_id is not None:
+            await diary_recall_repo.record_diary_sources(
+                session,
+                user_id=profile.id,
+                diary_id=diary_id,
+                message_ids=[source_message_id],
+            )
+        await diary_recall_repo.upsert_diary_recall_document(
+            session,
+            user_id=profile.id,
+            diary_id=diary_id,
+        )
+    if hasattr(profile, "relationship_started_at") and profile.relationship_started_at is None:
+        profile.relationship_started_at = started_at
+    return inserted
 
 
-def _type(source: str) -> str:
-    return "personal" if source == "llm" else "moly"
+def _kind(diary_or_source: Diary | str) -> str | None:
+    if not isinstance(diary_or_source, str):
+        value = getattr(diary_or_source, "kind", None)
+        if value in _VISIBLE_KINDS:
+            return value
+        source = getattr(diary_or_source, "source", "")
+    else:
+        source = diary_or_source
+    return {
+        "welcome": "welcome",
+        "llm": "shared_day",
+        "preset": "capi_day",
+        "shared_day": "shared_day",
+        "capi_day": "capi_day",
+    }.get(source)
+
+
+def _type(source_or_kind: str) -> str:
+    return "personal" if _kind(source_or_kind) == "shared_day" else "moly"
 
 
 def _iso(dt: datetime | None) -> str | None:
@@ -111,20 +181,31 @@ def _iso(dt: datetime | None) -> str | None:
 
 
 def _title_body(d: Diary, nickname: str | None) -> tuple[str | None, str]:
-    """(특별 제목, 본문). placeholder → 현재 닉네임 렌더. 웰컴만 content='제목\\n\\n본문' 분리."""
+    """title/body placeholder를 현재 닉네임으로 렌더한다. legacy welcome도 읽는다."""
     content = naming.render(d.content or "", nickname)
-    if d.source != "welcome":
-        return None, content
-    title, _, body = content.partition("\n\n")
-    return title, body
+    stored_title = getattr(d, "title", None)
+    if stored_title is not None:
+        return naming.render(stored_title, nickname), content
+    if _kind(d) == "welcome":
+        title, separator, body = content.partition("\n\n")
+        return (title, body) if separator else (None, content)
+    return None, content
+
+
+def _display_date(d: Diary) -> date:
+    return getattr(d, "display_date", None) or d.diary_date
+
+
+def _activity_date(d: Diary) -> date:
+    return getattr(d, "activity_date", None) or _display_date(d)
 
 
 def _list_item(d: Diary, nickname: str | None) -> dict[str, Any]:
     title, body = _title_body(d, nickname)
     return {
         "id": str(d.id),
-        "diary_date": d.diary_date.isoformat(),
-        "type": _type(d.source),
+        "diary_date": _display_date(d).isoformat(),
+        "type": _type(_kind(d) or d.source),
         "title": title,
         "weather": d.weather,
         "preview": body[:_PREVIEW_LEN],
@@ -136,27 +217,122 @@ def _list_item(d: Diary, nickname: str | None) -> dict[str, Any]:
 async def list_diaries(
     session: AsyncSession, user_id: str, *, limit: int = 30, cursor: str | None = None
 ) -> dict[str, Any]:
-    await ensure_welcome(session, user_id)  # 첫 조회 때 웰컴 일기 lazy 생성(멱등)
     now = datetime.now(timezone.utc)
     limit = max(1, min(limit, 100))
     profile = await session.get(Profile, _uid(user_id))
+    await privacy.ensure_subject_active(session, _uid(user_id))
     nickname = profile.nickname if profile is not None else None
-    q = select(Diary).where(Diary.user_id == _uid(user_id), Diary.published_at <= now)
+    q = select(Diary).where(
+        Diary.user_id == _uid(user_id),
+        Diary.record_status == "published",
+        Diary.deleted_at.is_(None),
+        Diary.published_at <= now,
+        Diary.kind.in_(_VISIBLE_KINDS),
+    )
     if cursor:
         try:
             cursor_date = date.fromisoformat(cursor)
         except ValueError as e:
             raise errors.validation("잘못된 커서 형식이에요.") from e
-        q = q.where(Diary.diary_date < cursor_date)
-    q = q.order_by(Diary.diary_date.desc()).limit(limit + 1)  # +1로 다음 페이지 유무 판별
+        q = q.where(Diary.display_date < cursor_date)
+    # v1 date cursor는 같은 표시 날짜의 welcome+daily 중 하나를 건너뛸 수 있다. 경계 날짜
+    # 동률을 함께 반환하므로 target limit보다 최대 한 건 많을 수 있다.
+    q = q.order_by(Diary.display_date.desc(), Diary.id.desc()).limit(limit + 2)
+    rows = list((await session.execute(q)).scalars().all())
+    page = rows[:limit]
+    boundary = _display_date(page[-1]) if page else None
+    index = limit
+    while boundary is not None and index < len(rows) and _display_date(rows[index]) == boundary:
+        page.append(rows[index])
+        index += 1
+    has_more = index < len(rows)
+    next_cursor = boundary.isoformat() if has_more and boundary is not None else None
+    return {"data": [_list_item(d, nickname) for d in page], "next_cursor": next_cursor}
+
+
+def _encode_cursor(display_date: date, diary_id: uuid.UUID) -> str:
+    raw = f"{display_date.isoformat()}|{diary_id}".encode("ascii")
+    encoded = base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+    return f"{_CURSOR_VERSION}.{encoded}"
+
+
+def _decode_cursor(cursor: str) -> tuple[date, uuid.UUID]:
+    try:
+        version, encoded = cursor.split(".", 1)
+        if version != _CURSOR_VERSION or not encoded:
+            raise ValueError
+        padding = "=" * (-len(encoded) % 4)
+        raw = base64.b64decode(encoded + padding, altchars=b"-_", validate=True).decode("ascii")
+        day_raw, id_raw = raw.split("|", 1)
+        day = date.fromisoformat(day_raw)
+        diary_id = uuid.UUID(id_raw)
+        # 비정규 표현을 받아 다른 cursor 문자열로 재발행하지 않는다.
+        if _encode_cursor(day, diary_id) != cursor:
+            raise ValueError
+        return day, diary_id
+    except (UnicodeError, ValueError) as exc:
+        raise errors.validation("잘못된 커서 형식이에요.") from exc
+
+
+def _list_item_v2(d: Diary, nickname: str | None) -> dict[str, Any]:
+    title, body = _title_body(d, nickname)
+    return {
+        "id": str(d.id),
+        "display_date": _display_date(d).isoformat(),
+        "kind": _kind(d),
+        "author": getattr(d, "author", None) or "capi",
+        "title": title,
+        "weather": d.weather,
+        "preview": body[:_PREVIEW_LEN],
+        "published_at": _iso(d.published_at),
+        "read": d.first_read_at is not None,
+    }
+
+
+async def list_diaries_v2(
+    session: AsyncSession,
+    user_id: str,
+    *,
+    limit: int = 30,
+    cursor: str | None = None,
+) -> dict[str, Any]:
+    """발행된 일기를 안정적인 ``(display_date,id)`` keyset으로 조회한다."""
+
+    uid = _uid(user_id)
+    await privacy.ensure_subject_active(session, uid)
+    now = datetime.now(timezone.utc)
+    limit = max(1, min(limit, 100))
+    profile = await session.get(Profile, uid)
+    nickname = profile.nickname if profile is not None else None
+    q = select(Diary).where(
+        Diary.user_id == uid,
+        Diary.record_status == "published",
+        Diary.deleted_at.is_(None),
+        Diary.published_at <= now,
+        Diary.kind.in_(_VISIBLE_KINDS),
+    )
+    if cursor:
+        cursor_date, cursor_id = _decode_cursor(cursor)
+        q = q.where(
+            or_(
+                Diary.display_date < cursor_date,
+                and_(Diary.display_date == cursor_date, Diary.id < cursor_id),
+            )
+        )
+    q = q.order_by(Diary.display_date.desc(), Diary.id.desc()).limit(limit + 1)
     rows = list((await session.execute(q)).scalars().all())
     has_more = len(rows) > limit
-    rows = rows[:limit]
-    next_cursor = rows[-1].diary_date.isoformat() if (has_more and rows) else None
-    return {"data": [_list_item(d, nickname) for d in rows], "next_cursor": next_cursor}
+    page = rows[:limit]
+    next_cursor = (
+        _encode_cursor(_display_date(page[-1]), page[-1].id)
+        if has_more and page
+        else None
+    )
+    return {"data": [_list_item_v2(d, nickname) for d in page], "next_cursor": next_cursor}
 
 
 async def _load_published(session: AsyncSession, user_id: str, diary_id: str) -> Diary:
+    await privacy.ensure_subject_active(session, _uid(user_id))
     try:
         did = uuid.UUID(diary_id)
     except ValueError as e:
@@ -166,8 +342,11 @@ async def _load_published(session: AsyncSession, user_id: str, diary_id: str) ->
     if (
         d is None
         or d.user_id != _uid(user_id)
+        or getattr(d, "record_status", "published") != "published"
+        or getattr(d, "deleted_at", None) is not None
         or d.published_at is None
         or d.published_at > now
+        or _kind(d) not in _VISIBLE_KINDS
     ):
         raise errors.AppError("NOT_FOUND", 404, "일기를 찾을 수 없어요.")
     return d
@@ -177,16 +356,45 @@ async def get_diary(session: AsyncSession, user_id: str, diary_id: str) -> dict[
     d = await _load_published(session, user_id, diary_id)
     profile = await session.get(Profile, _uid(user_id))
     nickname = profile.nickname if profile is not None else None
-    is_personal = _type(d.source) == "personal"
+    kind = _kind(d)
+    is_personal = kind == "shared_day"
     title, body = _title_body(d, nickname)
     return {
         "id": str(d.id),
-        "diary_date": d.diary_date.isoformat(),
-        "type": _type(d.source),
+        "diary_date": _display_date(d).isoformat(),
+        "type": _type(kind or d.source),
         "title": title,
         "weather": d.weather,
         "body": body,
-        "conversation_ref": {"anchor_date": d.diary_date.isoformat()} if is_personal else None,
+        "conversation_ref": {"anchor_date": _activity_date(d).isoformat()} if is_personal else None,
+        "published_at": _iso(d.published_at),
+        "first_read_at": _iso(d.first_read_at),
+    }
+
+
+async def get_diary_v2(
+    session: AsyncSession, user_id: str, diary_id: str
+) -> dict[str, Any]:
+    d = await _load_published(session, user_id, diary_id)
+    profile = await session.get(Profile, _uid(user_id))
+    nickname = profile.nickname if profile is not None else None
+    kind = _kind(d)
+    title, body = _title_body(d, nickname)
+    occurred_at = getattr(d, "occurred_at", None)
+    return {
+        "id": str(d.id),
+        "display_date": _display_date(d).isoformat(),
+        "kind": kind,
+        "author": getattr(d, "author", None) or "capi",
+        "title": title,
+        "weather": d.weather,
+        "body": body,
+        "occurred_at": _iso(occurred_at),
+        "conversation_ref": (
+            {"anchor_date": _activity_date(d).isoformat()}
+            if kind == "shared_day"
+            else None
+        ),
         "published_at": _iso(d.published_at),
         "first_read_at": _iso(d.first_read_at),
     }

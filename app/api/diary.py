@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.diary import DiaryDetailResponse, DiaryListResponse
+from app.schemas.diary import (
+    DiaryDetailResponse,
+    DiaryDetailResponseV2,
+    DiaryListResponse,
+    DiaryListResponseV2,
+)
 from app.services import diary as diary_service
 
 router = APIRouter(tags=["diary"])
@@ -31,6 +36,28 @@ async def get_diary(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await diary_service.get_diary(session, user_id, diary_id)
+
+
+@router.get("/v2/diaries", response_model=DiaryListResponseV2)
+async def list_diaries_v2(
+    limit: int = Query(30, ge=1, le=100),
+    cursor: str | None = Query(None, max_length=256),
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    """종류와 안정적인 복합 cursor를 노출하는 일기 정본 API."""
+    return await diary_service.list_diaries_v2(
+        session, user_id, limit=limit, cursor=cursor
+    )
+
+
+@router.get("/v2/diaries/{diary_id}", response_model=DiaryDetailResponseV2)
+async def get_diary_v2(
+    diary_id: str,
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await diary_service.get_diary_v2(session, user_id, diary_id)
 
 
 @router.post("/diaries/{diary_id}/read", status_code=status.HTTP_204_NO_CONTENT)

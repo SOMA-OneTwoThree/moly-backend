@@ -53,10 +53,12 @@ def test_streak_gap_stops():
 class _G:
     def __init__(self, remaining):
         self.entitlement = {"tokens_remaining": remaining}
+        self.tokens_used = 0  # 실제 Gating은 항상 갖는 필드 — 분기(spoke_today)가 읽는다
 
 
 class _Profile:
     id = "00000000-0000-0000-0000-000000000000"
+    language = "ko"  # 운영 profiles.language는 NOT NULL이다. 미설정 기본값은 이제 영어라 명시한다.
 
 
 def _patch(monkeypatch, remaining):

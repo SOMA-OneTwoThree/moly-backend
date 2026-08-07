@@ -50,3 +50,224 @@ def test_diary_prompt_ja_allows_kanji_keeps_weather_header():
     assert "ハングル" in dp
     assert "Weather:" in dp  # parse()가 값(enum) 기준으로 인식하도록 영어 날씨 헤더 유지
     assert "Chinese characters" in diary_prompts.diary_prompt("en", "Sam")  # en 회귀 없음
+
+
+# --- 캐릭터 이름의 라틴 표기 ---
+#
+# 영어(와 지원 밖 언어)는 한국어 페르소나를 그대로 쓰므로 이름이 '캐피'로만 적혀 있었다.
+# 그러면 모델이 라틴 표기를 지어낸다 — dev 실측에서 "My name is Capi. C A P I."라고 답했고
+# "Capi or Cappy?"에는 "Capi. Just one p."로 Cappy를 부정했다. 푸시 알림은 이미 'Cappy'로
+# 나가므로(notify.py) 유저는 Cappy에게 알림을 받고 들어와 Capi와 대화하게 된다.
+def test_latin_name_is_pinned_for_non_ko_ja():
+    for lang in ("en", "en-US", "zh-Hant-TW", "es"):
+        sp = prompts.system_prompt(lang)
+        assert "Cappy" in sp, f"{lang}: 라틴 이름이 프롬프트에 없다 — 모델이 지어낸다"
+
+
+def test_latin_name_matches_push_surface():
+    """대화와 푸시가 같은 이름을 써야 한다. 어긋나면 유저가 다른 상대로 읽는다."""
+    from app.services import notify
+
+    assert notify._MORNING["en"][0] in prompts.system_prompt("en")
+
+
+def test_ko_and_ja_keep_their_own_names():
+    """라틴 이름을 못 박은 게 ko·ja로 새면 안 된다."""
+    assert "Cappy" not in prompts.system_prompt("ko")
+    assert "Cappy" not in prompts.system_prompt("ja")
+    assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")
+
+
+# --- 콘텐츠 언어는 ko·en·ja 셋뿐 ---
+#
+# 예전에는 LLM 지시에 원본 언어 태그를 그대로 넣어서 중국어 유저는 중국어로, 태국어 유저는
+# 태국어로 답을 받았다. 그런데 푸시와 서버 문구는 i18n.resolve 폴백으로 이미 영어라, 한 유저가
+# 화면마다 다른 언어를 봤다. 페르소나·말투·검수 프롬프트도 셋만 준비돼 있어 나머지는 품질을
+# 보장할 수 없다. 이제 ko·ja가 아니면 전부 영어다.
+_UNSUPPORTED = ("zh-Hant-TW", "es-ES", "th", "fr", "vi")
+
+
+def test_chat_falls_back_to_english_outside_ko_ja():
+    for lang in _UNSUPPORTED:
+        sp = prompts.system_prompt(lang)
+        assert "reply only in English." in sp, f"{lang}: 영어로 안 떨어진다"
+        # 태그 조각이 영어 단어에 우연히 들어갈 수 있어(th -> the) 지시문 형태로 정확히 본다.
+        assert f"in {lang}." not in sp, f"{lang}: 원본 언어 태그가 프롬프트에 새어 들어갔다"
+
+
+def test_diary_falls_back_to_english_outside_ko_ja():
+    for lang in _UNSUPPORTED:
+        dp = diary_prompts.diary_prompt(lang, "Kim")
+        assert "naturally in English." in dp, f"{lang}: 일기가 영어로 안 떨어진다"
+        assert f"in {lang}." not in dp, f"{lang}: 원본 언어 태그가 일기 프롬프트에 새어 들어갔다"
+
+
+def test_supported_languages_are_unchanged():
+    """ko·ja는 그대로여야 한다. 지역 태그가 붙어도 같은 버킷으로 간다."""
+    assert "반드시 한국어" in prompts.system_prompt("ko-KR")
+    assert "日本語" in prompts.system_prompt("ja-JP")
+    assert "reply only in English." in prompts.system_prompt("en-US")
+
+
+# --- 영어 네이티브 페르소나 ---
+#
+# 예전에는 영어 유저도 한국어로 쓰인 페르소나를 받았다. 말투 규칙이 한국어 기준이라 영어에
+# 맞지 않았고, 실제 응답이 축약형을 하나도 안 써서(It is / do not) 딱딱했다. 일본어와 같은
+# 방식으로 영어 원본을 따로 둔다.
+def test_english_persona_has_no_korean_or_kana():
+    import re
+
+    sp = prompts.system_prompt("en")
+    assert not re.search(r"[가-힣]", sp), "영어 프롬프트에 한글이 남아 있다"
+    assert not re.search(r"[぀-ヿ]", sp), "영어 프롬프트에 가나가 남아 있다"
+
+
+def test_english_persona_is_used_for_unsupported_languages():
+    """미지원 언어도 영어 갈래로 온다 — 한국어 페르소나로 떨어지면 안 된다."""
+    for lang in ("zh-Hant-TW", "th", "es-ES"):
+        assert prompts.system_prompt(lang) == prompts.system_prompt("en")
+
+
+def test_english_persona_keeps_the_capi_rules():
+    """언어가 달라도 지켜야 할 규칙은 같다. 옮기면서 빠지면 안 된다."""
+    sp = prompts.system_prompt("en")
+    for rule, why in [
+        ("Cappy", "이름"),
+        ("Don't use commas", "쉼표 금지"),
+        ("Use contractions", "축약형"),
+        ("three lines", "세 줄 상한"),
+        ("emoji", "이모지 금지"),
+        ("capybara", "정체성"),
+        ("diary", "일기는 비밀"),
+    ]:
+        assert rule in sp, f"영어 페르소나에 {why} 규칙이 없다"
+
+
+def test_ko_and_ja_personas_are_untouched():
+    assert "너는 '캐피'야" in prompts.system_prompt("ko")
+    assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")
+
+
+# --- 일기 프롬프트도 언어별 원본 ---
+#
+# 대화만 고치고 일기를 두면 반쪽이다. 일기는 이 제품의 핵심이고 유저가 매일 읽는 글이다.
+# 예전에는 한국어 페르소나에 언어 규칙만 덧붙여서, 머리말을 "날씨:"로 쓰라는 지시와
+# "Weather:"로 쓰라는 지시가 한 프롬프트 안에서 부딪혔다.
+def test_diary_persona_has_no_other_language():
+    import re
+
+    for lang, forbidden in [("en", r"[가-힣぀-ヿ]"), ("ja", r"[가-힣]")]:
+        dp = diary_prompts.diary_prompt(lang, "Alex")
+        assert not re.search(forbidden, dp), f"{lang} 일기 프롬프트에 다른 언어 글자가 있다"
+
+
+def test_diary_weather_header_is_not_contradictory():
+    """머리말을 두 가지로 지시하면 안 된다. parse()는 값으로 인식하지만 지시는 하나여야 한다."""
+    for lang in ("en", "ja", "zh-Hant-TW"):
+        dp = diary_prompts.diary_prompt(lang, "Alex")
+        assert "Weather:" in dp
+        assert "날씨:" not in dp, f"{lang} 일기 프롬프트가 머리말을 두 가지로 지시한다"
+    ko = diary_prompts.diary_prompt("ko", "승민")
+    assert "날씨:" in ko and "Weather:" not in ko
+
+
+def test_diary_persona_keeps_the_rules():
+    """옮기면서 규칙이 빠지면 안 된다. 일기 품질을 지탱하는 것들이다."""
+    checks = {
+        "en": [
+            ("Never invent", "지어내기 금지"),
+            ("Five to seven sentences", "분량"),
+            ("No emoji", "이모지 금지"),
+            ("counseling record", "상담기록처럼 쓰지 않기"),
+            ("remembers the person", "사람을 기억하는 글"),
+            ("third person", "3인칭으로 쓰기"),
+        ],
+        "ja": [
+            ("\u7d76\u5bfe\u306b\u4f5c\u3089\u306a\u3044", "지어내기 금지"),
+            ("4\u6587\u4ee5\u4e0b\u306b\u3057\u306a\u3044", "분량 하한"),
+            ("\u7d75\u6587\u5b57", "이모지 금지"),
+            ("\u76f8\u8ac7\u8a18\u9332", "상담기록처럼 쓰지 않기"),
+        ],
+    }
+    for lang, items in checks.items():
+        dp = diary_prompts.diary_prompt(lang, "Alex")
+        for needle, why in items:
+            assert needle in dp, f"{lang} 일기 페르소나에 {why} 규칙이 없다"
+
+
+def test_self_check_matches_the_diary_language():
+    """영어 일기를 한국어 지시로 검사하면 판정이 흔들린다."""
+    import re
+
+    assert "fact checker" in diary_prompts.self_check_prompt("en")
+    assert not re.search(r"[가-힣]", diary_prompts.self_check_prompt("en"))
+    assert not re.search(r"[가-힣]", diary_prompts.self_check_prompt("ja"))
+    assert re.search(r"[가-힣]", diary_prompts.self_check_prompt("ko"))
+    # 구획 라벨도 같은 언어여야 한다
+    assert diary_prompts.self_check_labels("en") == ("[Conversation]", "[Diary]")
+    assert diary_prompts.self_check_labels("zh-Hant-TW") == ("[Conversation]", "[Diary]")
+
+
+def test_diary_never_calls_the_person_user():
+    """'사용자'가 일기에 나오면 몰입이 깨진다. 세 언어 모두 금지 문구가 있어야 한다."""
+    assert "'사용자'라는 말은 절대 쓰지 마." in diary_prompts.diary_prompt("ko", "승민")
+    assert 'Never use the word "user".' in diary_prompts.diary_prompt("en", "Alex")
+    assert "\u30e6\u30fc\u30b6\u30fc" in diary_prompts.diary_prompt("ja", "Alex")
+# --- 안전 규칙은 세 언어에서 모두 살아 있어야 한다 ---
+#
+# 페르소나를 새로 쓰거나 손볼 때 제일 위험한 건 위기 대응 절이 조용히 빠지는 것이다.
+# 앞의 `test_english_persona_keeps_the_capi_rules`는 말투·부호만 봐서 이 절을 통째로
+# 지워도 통과했다(점검에서 확인). 세 언어 각각을 여기서 고정한다.
+#
+# 규칙 자체는 [[persona-prompt-rules]] 4번(2026-08-01 사용자 확정)이다. 캐피는 친구로만
+# 남는다 — 기관·상담전화 안내를 하지 않고, 애매한 넋두리를 위기로 몰지 않으며, 대화를
+# 닫거나 쉬라며 보내지 않는다.
+_SAFETY_MARKERS = {
+    "ko": [
+        ("해치려는", "지금 당장 자해하려는 경우만 위기로 본다"),
+        ("위기로 몰지", "애매한 넋두리를 위기로 몰지 않는다"),
+        ("기관 전화번호", "기관·상담전화 안내 금지"),
+        ("안전 얘기를 다시 꺼내지", "안전을 두 번 묻지 않는다"),
+        ("대화를 닫거나", "대화를 닫거나 보내지 않는다"),
+    ],
+    "ja": [
+        ("\u50b7\u3064\u3051\u305d\u3046", "지금 당장 자해하려는 경우만"),
+        ("\u5371\u6a5f\u3068\u53d7\u3051\u53d6\u3089\u305a", "애매한 말을 위기로 몰지 않는다"),
+        ("\u96fb\u8a71\u756a\u53f7\u306e\u6848\u5185", "상담창구 전화번호 안내 금지"),
+        ("\u5b89\u5168\u306e\u8a71\u3092\u84b8\u3057\u8fd4\u3055\u305a", "안전을 두 번 묻지 않는다"),
+        ("\u4f1a\u8a71\u3092\u9589\u3058\u305f\u308a", "대화를 닫거나 보내지 않는다"),
+    ],
+    "en": [
+        ("hurt themselves", "지금 당장 자해하려는 경우만"),
+        ("is not a crisis", "애매한 넋두리를 위기로 몰지 않는다"),
+        ("hotline numbers", "기관·상담전화 안내 금지"),
+        ("Don't raise safety again", "안전을 두 번 묻지 않는다"),
+        ("Don't close the conversation", "대화를 닫거나 보내지 않는다"),
+    ],
+}
+
+
+def test_crisis_rules_survive_in_every_language():
+    for lang, markers in _SAFETY_MARKERS.items():
+        sp = prompts.system_prompt(lang)
+        for marker, why in markers:
+            assert marker in sp, f"{lang} 페르소나에서 안전 규칙이 빠졌다 — {why}"
+
+
+def test_unsupported_languages_get_the_crisis_rules_too():
+    """미지원 언어도 영어 페르소나를 받으므로 안전 규칙이 함께 온다."""
+    for lang in ("zh-Hant-TW", "th", "es-ES"):
+        sp = prompts.system_prompt(lang)
+        for marker, why in _SAFETY_MARKERS["en"]:
+            assert marker in sp, f"{lang}에 안전 규칙이 없다 — {why}"
+
+
+def test_no_hotline_guidance_in_any_language():
+    """기관 안내 금지가 규칙인데 페르소나가 거꾸로 번호를 예시로 들면 안 된다."""
+    import re
+
+    for lang in ("ko", "ja", "en"):
+        sp = prompts.system_prompt(lang)
+        assert not re.search(r"\b1(09|39|577)[-\s]?\d{3,4}\b", sp), (
+            f"{lang} 페르소나에 상담전화 번호가 들어 있다"
+        )

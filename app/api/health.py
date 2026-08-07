@@ -4,6 +4,7 @@
 - GET /health/ready    readiness(공개) — DB 도달성. 외부 상시감시(Betterstack)의 유일 대상. 503 on down.
 - GET /health/deep     진단(헤더인증·수동/배포직후 전용) — 기록된 상태 종합(LLM 호출 없음). 외부 상시폴링 금지.
 - GET /health/synthetic 합성(헤더인증·스케줄) — 의존성(DB·LLM) 능동 점검. 유저/통계 미오염.
+- GET /health/queues  잡 큐(헤더인증) — 큐별 ready/running/dead + oldest dead age. 이관 게이트.
 
 deep·synthetic 인증 = 헤더 X-Health-Token 상수시간 비교. 토큰 설정 시 항상 요구,
 미설정 시 비-local은 403(fail-closed)·local은 통과(개발 편의).
@@ -25,7 +26,7 @@ from app.core import errors
 from app.core.db import get_session
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.common import HealthResponse
-from app.services import config_store, llm, slack_notify  # noqa: F401 (slack_notify: 향후 확장)
+from app.services import config_store, jobs, llm, slack_notify  # noqa: F401 (slack_notify: 향후 확장)
 
 router = APIRouter(tags=["system"])
 
@@ -121,6 +122,30 @@ async def health_deep(
         response.status_code = 503
     out["status"] = "degraded" if degraded else "ok"
     return out
+
+
+@router.get("/health/queues", dependencies=[Depends(require_health_token)], include_in_schema=False)
+async def health_queues(
+    response: Response, session: AsyncSession = Depends(get_session)
+) -> dict[str, Any]:
+    """잡 큐(async_jobs) 상태 — 큐별 ready/running/dead count + oldest dead age(초).
+
+    기존 전역 틱의 핸들러를 큐로 옮기는 **이관 게이트** 지표다. dead는 자동 삭제하지 않으므로
+    dead_total 증가 또는 미확인 1건 이상은 배포 gate 실패로 취급한다(운영 규칙).
+    DB 도달 실패만 503 — dead가 있다는 사실 자체는 이 엔드포인트의 실패가 아니다(데이터로 노출).
+    """
+    response.headers["Cache-Control"] = "no-store"
+    try:
+        queues = await jobs.queue_stats(session)
+    except Exception:  # noqa: BLE001
+        response.status_code = 503
+        return {"status": "down", "version": settings.git_sha}
+    return {
+        "status": "ok",
+        "version": settings.git_sha,
+        "queues": queues,
+        "dead_total": sum(q["dead"] for q in queues.values()),
+    }
 
 
 @router.get("/health/synthetic", dependencies=[Depends(require_health_token)], include_in_schema=False)

@@ -45,11 +45,18 @@ def load_env() -> dict[str, str]:
 
 def config(env: dict[str, str]) -> tuple[str, str, str]:
     url = env.get("SUPABASE_URL", "").rstrip("/")
-    # 신형 키 우선, legacy(anon/service_role)는 전환기 폴백 — legacy는 disable되면 동작하지 않는다.
+    # Supabase가 키 체계를 바꿨다. 새 이름(secret·publishable)을 먼저 보고, 없으면 옛 이름
+    # (service_role·anon)으로 내려간다. 2026-08 키 재발급 때 .env가 새 이름으로 바뀌면서
+    # 이 스크립트가 옛 이름만 찾아 동작을 멈췄다.
+    # 옛 이름 폴백은 전환기용이다 — legacy 키를 폐기하면 그 경로는 더 이상 동작하지 않는다.
     sr = env.get("SUPABASE_SECRET_KEY", "") or env.get("SUPABASE_SERVICE_ROLE_KEY", "")
     anon = env.get("SUPABASE_PUBLISHABLE_KEY", "") or env.get("SUPABASE_ANON_KEY", "")
     if not (url and sr and anon):
-        sys.exit("[에러] .env 에 SUPABASE_URL·SECRET_KEY·PUBLISHABLE_KEY 가 모두 있어야 합니다.")
+        sys.exit(
+            "[에러] .env 에 SUPABASE_URL 과 "
+            "SUPABASE_SECRET_KEY·SUPABASE_PUBLISHABLE_KEY(또는 옛 이름 "
+            "SUPABASE_SERVICE_ROLE_KEY·SUPABASE_ANON_KEY)가 있어야 합니다."
+        )
     return url, sr, anon
 
 

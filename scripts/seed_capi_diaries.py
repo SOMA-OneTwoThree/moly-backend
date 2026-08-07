@@ -12,11 +12,13 @@ CSV 열: diary_date(YYYY-MM-DD), weather(sunny|cloudy|rainy|windy), content.
 """
 import asyncio
 import csv
-import re
 import sys
 from datetime import date, datetime
 
 import asyncpg
+
+sys.path.insert(0, __file__.rsplit("/", 2)[0])  # 레포 루트
+from db.envfile import announce, is_prod, load_conn, split_env_arg
 
 WEATHERS = {"sunny", "cloudy", "rainy", "windy"}
 
@@ -29,13 +31,6 @@ DO UPDATE SET content = EXCLUDED.content, weather = EXCLUDED.weather
 """
 
 
-def load_conn() -> str:
-    for line in open(".env"):
-        line = line.strip()
-        if line.startswith("SUPABASE_DB_CONNECTION_STRING"):
-            v = line.split("=", 1)[1].strip().strip('"').strip("'")
-            return re.sub(r"^postgresql\+asyncpg://", "postgresql://", v)
-    raise SystemExit("no conn (.env의 SUPABASE_DB_CONNECTION_STRING 없음)")
 
 
 def load_rows(path: str) -> list[tuple[str, str, date]]:
@@ -63,12 +58,17 @@ def load_rows(path: str) -> list[tuple[str, str, date]]:
     return rows
 
 
-async def main(commit: bool, path: str) -> None:
+async def main(commit: bool, path: str, env: str | None = None) -> None:
+    # 대상 표시는 조기 반환보다 먼저 — "어디에 쏘려던 것인지"가 항상 남아야 한다.
+    dsn = load_conn(env)
+    announce(env, dsn, commit=commit)
     rows = load_rows(path)
     if not rows:
         print("반영할 행 없음(content 채운 행이 하나도 없음).")
         return
-    c = await asyncpg.connect(load_conn(), statement_cache_size=0)
+    if commit and is_prod(env):
+        print(">>> PROD 실반영을 시작합니다.", file=sys.stderr)
+    c = await asyncpg.connect(dsn, statement_cache_size=0)
     tx = c.transaction()
     await tx.start()
     try:
@@ -89,6 +89,7 @@ async def main(commit: bool, path: str) -> None:
 
 
 if __name__ == "__main__":
-    _args = [a for a in sys.argv[1:] if a != "--commit"]
+    _env, _rest = split_env_arg(sys.argv[1:])
+    _args = [a for a in _rest if a != "--commit"]
     _path = _args[0] if _args else "db/capi_diaries.csv"
-    asyncio.run(main("--commit" in sys.argv, _path))
+    asyncio.run(main("--commit" in _rest, _path, _env))

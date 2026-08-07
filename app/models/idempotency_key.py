@@ -8,7 +8,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, text
+from sqlalchemy import BigInteger, DateTime, ForeignKeyConstraint, String, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -22,11 +22,31 @@ RESERVED_KEY_PREFIXES: tuple[str, ...] = (SHOP_PURCHASE_KEY_PREFIX,)
 
 class IdempotencyKey(Base):
     __tablename__ = "idempotency_keys"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "reply_message_id"],
+            ["messages.user_id", "messages.id"],
+            ondelete="CASCADE",
+        ),
+    )
 
     # 복합 PK (user_id, key) — 유저 스코프. 다른 유저가 같은 키 써도 격리(응답 유출 방지).
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     key: Mapped[str] = mapped_column(String, primary_key=True)
-    response: Mapped[dict] = mapped_column(JSONB)
+    # request_hash가 같은 재시도만 최초 결과를 hydrate한다. NULL은 migration 이전 legacy 행이다.
+    request_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    response_schema_version: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("1")
+    )
+    # legacy snapshot은 TTL 동안만 유지한다. 정본은 reply_message_id + chat_response_references다.
+    response: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    reply_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    terminal_status: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'succeeded'")
+    )
+    response_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    dedupe_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    redacted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=True
     )

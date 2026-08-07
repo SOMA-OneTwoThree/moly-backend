@@ -13,7 +13,6 @@ from app.models.message import Message
 from app.services import chat as chat_service
 from app.services import gating as gating_module
 from app.services import llm as llm_module
-from app.services import memory as memory_module
 from app.services.gating import Gating
 from app.services.llm import LLMResult
 
@@ -24,6 +23,9 @@ UID = "11111111-1111-1111-1111-111111111111"
 class _Scalars:
     def __init__(self, items):
         self._items = items
+
+    def __iter__(self):  # 실제 ScalarResult는 iterable — config_store.get_config_values가 그렇게 쓴다
+        return iter(self._items)
 
     def all(self):
         return list(self._items)
@@ -40,6 +42,9 @@ class _Result:
         return _Scalars(self._items)
 
     def scalar(self):
+        return self._items[0] if self._items else None
+
+    def first(self):  # 실제 Result.first()와 같게 — RETURNING 0행이면 None
         return self._items[0] if self._items else None
 
 
@@ -67,6 +72,12 @@ class FakeSession:
 
     async def execute(self, stmt, params=None):
         return _Result(self.execute_items)
+
+    async def scalar(self, stmt, params=None):
+        # get_state가 그날 유저 글자 수를 셀 때 쓴다. 기본은 0(오늘 쓴 글 없음).
+        return self.scalar_value
+
+    scalar_value = 0
 
     async def commit(self):
         self.committed = True
@@ -98,13 +109,9 @@ def _gating(**over):
 
 @pytest.fixture
 def patched(monkeypatch):
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="그냥 그랬어.", input_tokens=10, output_tokens=20)
 
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
 
 
@@ -129,14 +136,10 @@ async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
     async def _res(session, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text="지훈아 반가워.", input_tokens=10, output_tokens=20)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     session = FakeSession()
     req = SimpleNamespace(text="나는 지훈이야", greeting_id=None)
@@ -173,25 +176,6 @@ async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patche
     req = SimpleNamespace(text="ㅎㅇ", greeting_id=None)
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-3")
     assert out.review_prompt is True
-
-
-async def test_post_message_survives_mem0_outage(monkeypatch):
-    # mem0 장애(MemoryUnavailable)가 채팅을 500으로 막지 않아야 함
-    async def _boom(user_id):
-        raise memory_module.MemoryUnavailable("pgvector down")
-
-    async def _fake_llm(system, convo, **kw):
-        return LLMResult(text="응 그래.", input_tokens=10, output_tokens=20)
-
-    async def _res(session, user_id):
-        return _gating()
-
-    monkeypatch.setattr(memory_module, "load_for_context", _boom)
-    monkeypatch.setattr(llm_module, "generate", _fake_llm)
-    monkeypatch.setattr(gating_module, "resolve", _res)
-    req = SimpleNamespace(text="안녕", greeting_id=None)
-    out = await chat_service.post_message(FakeSession(), UID, req, "idem-mem")
-    assert out.reply.content == "응 그래."
 
 
 async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patched):
@@ -234,7 +218,8 @@ async def test_post_message_idempotent_returns_cached(monkeypatch, patched):
     req = SimpleNamespace(text="재시도", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "same-key")
     # 와이어 포맷 보존: 저장본과 json 직렬화 결과가 동일해야 한다(+00:00 유지 포함).
-    assert out.model_dump(mode="json") == cached_response
+    expected = {**cached_response, "reply": {**cached_response["reply"], "references": []}}
+    assert out.model_dump(mode="json") == expected
     assert session.committed is False  # LLM·저장 안 탐
 
 
@@ -245,14 +230,10 @@ async def test_post_message_llm_failure_persists_nothing(monkeypatch):
     async def _res(session, user_id):
         return _gating()
 
-    async def _fake_mem(user_id):
-        return ""
-
     async def _boom(*a, **k):
         raise RuntimeError("LLM down")
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    monkeypatch.setattr(memory_module, "load_for_context", _fake_mem)
     monkeypatch.setattr(llm_module, "generate", _boom)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)
@@ -312,6 +293,7 @@ async def test_post_message_phase2_dup_returns_cached(monkeypatch, patched):
     req = SimpleNamespace(text="hi", greeting_id=None)
     out = await chat_service.post_message(session, UID, req, "dup-key")
     assert out.reply.content == "동시본"
+    assert out.reply.references == []
     assert [m for m in session.added if isinstance(m, Message)] == []  # 이중 저장 없음
 
 
@@ -347,11 +329,29 @@ async def test_get_state_shape(monkeypatch):
         return _gating(tokens_used=2500)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
-    out = await chat_service.get_state(FakeSession(), UID)
+    session = FakeSession()
+    session.scalar_value = 120  # 그날 유저가 쓴 글자 수
+    out = await chat_service.get_state(session, UID)
     assert out["plan"] == "trial"
     assert out["tokens_used"] == 2500
-    assert out["personal_diary_eligible"] is True  # 2500 ≥ 2000
+    assert out["personal_diary_eligible"] is True  # 120자 ≥ 60자
     assert out["limit_reached"] is False
+
+
+async def test_personal_diary_eligible_counts_characters_not_tokens(monkeypatch):
+    """개인 일기 판정은 글자 수로 한다. 토큰을 많이 써도 글자가 모자라면 아니다.
+
+    예전에는 토큰 기준값(2,000)을 가중 청구 토큰과 비교해서, 앱 표시와 실제 일기 생성 결과가
+    어긋났다. 실제 게이트는 `diary_generation.generate_for_user`의 글자 수다.
+    """
+    async def _res(session, user_id):
+        return _gating(tokens_used=100_000)  # 토큰은 충분히 많다
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    session = FakeSession()
+    session.scalar_value = 10  # 그런데 실제로 쓴 글은 10자뿐
+    out = await chat_service.get_state(session, UID)
+    assert out["personal_diary_eligible"] is False
 
 
 class SeqSession(FakeSession):

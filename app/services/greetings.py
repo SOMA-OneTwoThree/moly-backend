@@ -88,11 +88,10 @@ _HOME_BY_TIME = {
         "{subj} 왔어? 아침은?",
     ],
     "day": [
-        "어, 왔네. 나는 소파에 늘어져 있었어.",
+        "좋은 아침! 나는 소파에 늘어져 있었어.",
         "한낮이다. 밖은 좀 어때?",
-        "방금 낮잠에서 깼어. 잘 왔다.",
+        "방금 낮잠에서 깼어. 오늘 하루는 어때?",
         "안녕. 나는 창밖 구경하고 있었어.",
-        "이 시간에 오는 건 오랜만이네.",
     ],
     "evening": [
         "벌써 저녁이네. 오늘 하루는 어땠어?",
@@ -170,9 +169,9 @@ _HOME_BY_TIME_EN = {
         "Morning already. How's the weather out there?",
     ],
     "day": [
-        "Oh hey. I was sprawled on the sofa.",
+        "Good morning! I was sprawled on the sofa.",
         "It's midday. How's it out there?",
-        "Just woke from a nap. Glad you came.",
+        "Just woke from a nap. How's your day going?",
         "Hi. I was watching out the window.",
     ],
     "evening": [
@@ -226,11 +225,10 @@ _HOME_BY_TIME_JA = {
         "{name}、来たの？朝ごはんは？",
     ],
     "day": [
-        "お、来たね。ぼくはソファでのんびりしてたよ。",
+        "おはよう！ぼくはソファでのんびりしてたよ。",
         "真っ昼間だね。外はどんな感じ？",
-        "ちょうどお昼寝から覚めたところ。よく来たね。",
+        "ちょうどお昼寝から覚めたところ。今日はどんな感じ？",
         "やあ。ぼくは窓の外を眺めてたよ。",
-        "この時間に来るのは久しぶりだね。",
     ],
     "evening": [
         "もう夕方だね。今日はどんな一日だった？",

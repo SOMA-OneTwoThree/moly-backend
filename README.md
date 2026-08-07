@@ -12,7 +12,7 @@
 |---|---|
 | 언어/프레임워크 | Python 3.12 · FastAPI · SQLAlchemy 2.0 (async) · uv |
 | 데이터 | Supabase (Auth + Postgres + pgvector) |
-| LLM | Anthropic Claude (Sonnet=대화·개인일기 / Haiku=self-check) · mem0(장기기억) |
+| LLM·기억 | OpenAI GPT-5.6(luna=대화·utility, terra=일기) · PostgreSQL 정규화 기억 + pgvector 검색 |
 | 외부 | FCM(푸시) · AdMob(리워드 SSV) · Apple StoreKit(구독·IAP) |
 
 ## 구조
@@ -73,7 +73,7 @@ uv run python scripts/verify_idempotency_responses.py
 uv run python scripts/verify_idempotency_responses.py --delete-invalid  # 명시할 때만 DB 삭제
 ```
 
-`.env` 필수값: `SUPABASE_URL`·`SUPABASE_PUBLISHABLE_KEY`·`SUPABASE_SECRET_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`(mem0). 선택: `FCM_*`(푸시 — 키 없이 ADC/WIF 지원), `APP_STORE_*`(구독·IAP 실검증). 값이 없으면 해당 기능은 안전하게 비활성(no-op/거부)된다.
+`.env` 필수값: `SUPABASE_URL`·`SUPABASE_PUBLISHABLE_KEY`·`SUPABASE_SECRET_KEY`·`SUPABASE_DB_CONNECTION_STRING`, `OPENAI_API_KEY`. 선택: `ANTHROPIC_API_KEY`(모델 롤백), `FCM_*`(푸시 — 키 없이 ADC/WIF 지원), `REVENUECAT_WEBHOOK_AUTH`(구독·IAP). 값이 없으면 해당 외부 기능은 안전하게 비활성(no-op/거부)된다.
 
 ### API 손으로 테스트 (curl)
 
@@ -99,7 +99,8 @@ uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 
 ## 배치 워커
 
 외부 **15분 크론**(SOMA-348)이 `python -m worker`를 1틱 실행(멱등). 유저 로컬시각 기준:
-- **04:00** — 전일 일기 생성(개인/캐피) + mem0 기억 통합
+- **매 대화 후 비동기** — 정규화 사실 추출·판정·pgvector 임베딩·관계 프로필 갱신
+- **04:00** — 전일 일기 생성(개인/캐피)
 - **09:00** — 아침 일기 FCM 푸시 · **20:00** — 저녁 안부 푸시
 - **매 틱** — RC 웹훅 inbox 드레인(pending 처리 + 미해결 failed·장기 pending Slack 재요약, SOMA-372)
 

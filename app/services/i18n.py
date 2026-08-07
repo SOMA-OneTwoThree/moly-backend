@@ -14,15 +14,17 @@ _log = logging.getLogger("moly-backend")
 # 콘텐츠가 실제로 존재하는 언어(그 외는 폴백). 새 언어 카피가 준비되면 여기에 추가.
 SUPPORTED = frozenset(("ko", "en", "ja"))
 FALLBACK = "en"  # 지원 밖 언어(zh 등)에 적용할 폴백 — ko 앱이지만 미지원은 영어가 무난.
-_DEFAULT = "ko"  # 언어 미설정(None) = 한국어(기본 프로필).
+_DEFAULT = "en"  # 언어 미설정(None) = 영어. 해외 출시 기준으로 '모르는 언어'는 영어가 맞다.
+# (DB `profiles.language`도 NOT NULL DEFAULT 'en'이고 트리거가 ko·en·ja로 좁힌다 —
+#  20260806_normalize_profile_language.sql. 여기는 profile을 못 읽은 경우의 대비다.)
 
 _V = TypeVar("_V")
 
 
 def resolve(language: str | None) -> str:
-    """BCP 47 태그 → 콘텐츠 언어 버킷(ko|en|ja). 미설정=ko, 지원 밖=en 폴백.
+    """BCP 47 태그 → 콘텐츠 언어 버킷(ko|en|ja). 미설정=en, 지원 밖=en 폴백.
 
-    예: None→ko, "ko-KR"→ko, "en-US"→en, "ja-JP"→ja, "zh-Hant-TW"→en(폴백).
+    예: None→en, "ko-KR"→ko, "en-US"→en, "ja-JP"→ja, "zh-Hant-TW"→en(폴백).
     """
     base = (language or _DEFAULT).split("-", 1)[0].lower()
     if base in SUPPORTED:

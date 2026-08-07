@@ -79,6 +79,25 @@ if [ "$GAP" != "0" ]; then
   fi
 fi
 
+# ── 1-b. 다음 턴 번호 기준값 맞추기 ─────────────────────────────────────────
+#
+# ⚠️ **1번을 하면 반드시 이것도 해야 한다.** 좌표 백필은 기존 최대 뒤에 번호를 붙이므로
+#    그 사용자의 실제 최대 turn_seq가 올라간다. 그런데 다음 턴 번호를 정하는 기준값
+#    (`chat_contexts.last_committed_turn_seq`)은 안 따라간다. 그러면 새 대화가 이미 쓰인
+#    번호를 다시 쓰려다 `messages_user_turn_position_uq`에 걸려 **저장이 통째로 실패한다.**
+#
+#    2026-08-08 운영에서 실제로 났다. 1번 직후 28명의 대화가 막혔다(그전 별도 사고로 574명이
+#    막힌 것과 같은 원인). 앱에는 "메시지를 보내지 못했다"로만 보여서 원인이 안 드러난다.
+say "1-b. 다음 턴 번호 기준값 맞추기"
+BAD="$(sql "SELECT count(*) FROM chat_contexts cc JOIN (SELECT user_id, max(turn_seq) mx FROM messages WHERE turn_seq IS NOT NULL GROUP BY 1) m ON m.user_id=cc.user_id WHERE coalesce(cc.last_committed_turn_seq,0) < m.mx")"
+echo "  기준값이 실제 최대보다 작은 사용자: ${BAD}명"
+run "UPDATE chat_contexts cc SET last_committed_turn_seq = m.mx, updated_at = now() FROM (SELECT user_id, max(turn_seq) mx FROM messages WHERE turn_seq IS NOT NULL GROUP BY 1) m WHERE m.user_id = cc.user_id AND coalesce(cc.last_committed_turn_seq,0) < m.mx"
+if [ "$APPLY" = "1" ]; then
+  LEFTB="$(sql "SELECT count(*) FROM chat_contexts cc JOIN (SELECT user_id, max(turn_seq) mx FROM messages WHERE turn_seq IS NOT NULL GROUP BY 1) m ON m.user_id=cc.user_id WHERE coalesce(cc.last_committed_turn_seq,0) < m.mx")"
+  [ "$LEFTB" = "0" ] || die "기준값이 여전히 어긋난 사용자 ${LEFTB}명 — 대화가 막힌다"
+  echo "  맞춤 확인"
+fi
+
 # ── 2. 옛 제약 삭제 ─────────────────────────────────────────────────────────
 say "2. diaries_user_date_uq 삭제 (되돌리기가 여기서 끊긴다)"
 echo "  안 하면 신규 가입자가 첫 개인일기를 못 받는다."

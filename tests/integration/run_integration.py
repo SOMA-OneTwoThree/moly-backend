@@ -33,8 +33,9 @@ def _env() -> dict[str, str]:
 
 ENV = _env()
 URL = ENV["SUPABASE_URL"].rstrip("/")
-SR = ENV["SUPABASE_SERVICE_ROLE_KEY"]
-ANON = ENV["SUPABASE_ANON_KEY"]
+# 신형 키 우선, legacy는 전환기 폴백(disable 후엔 legacy로 동작 안 함).
+SR = ENV.get("SUPABASE_SECRET_KEY") or ENV["SUPABASE_SERVICE_ROLE_KEY"]
+ANON = ENV.get("SUPABASE_PUBLISHABLE_KEY") or ENV["SUPABASE_ANON_KEY"]
 PG = re.sub(r"^postgresql\+asyncpg://", "postgresql://", ENV["SUPABASE_DB_CONNECTION_STRING"])
 
 # 앱은 .env를 pydantic-settings로 읽음 — ENVIRONMENT=local로 docs 노출/로컬 판정

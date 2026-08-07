@@ -2,7 +2,7 @@
 """로컬 개발용 — curl 등으로 개별 API를 손으로 테스트하기 위한 실 토큰 발급 스크립트.
 
 이 앱은 소셜 전용(이메일·익명 로그인 비활성)이라 브라우저만으로는 토큰을 못 얻는다.
-이 스크립트가 service_role로 테스트 유저를 만들고 magiclink를 admin 발급→verify 해서
+이 스크립트가 secret key(admin)로 테스트 유저를 만들고 magiclink를 admin 발급→verify 해서
 실제 Supabase access token(ES256)을 출력한다. 그 토큰을 `Authorization: Bearer` 헤더에
 넣으면 전 엔드포인트를 실 DB에 대고 눌러볼 수 있다.
 
@@ -33,7 +33,7 @@ def load_env() -> dict[str, str]:
     root = Path(__file__).resolve().parent.parent
     env_path = root / ".env"
     if not env_path.exists():
-        sys.exit(f"[에러] .env 없음: {env_path} — service_role 키가 있어야 동작합니다.")
+        sys.exit(f"[에러] .env 없음: {env_path} — secret key가 있어야 동작합니다.")
     env: dict[str, str] = {}
     for line in env_path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
@@ -48,6 +48,7 @@ def config(env: dict[str, str]) -> tuple[str, str, str]:
     # Supabase가 키 체계를 바꿨다. 새 이름(secret·publishable)을 먼저 보고, 없으면 옛 이름
     # (service_role·anon)으로 내려간다. 2026-08 키 재발급 때 .env가 새 이름으로 바뀌면서
     # 이 스크립트가 옛 이름만 찾아 동작을 멈췄다.
+    # 옛 이름 폴백은 전환기용이다 — legacy 키를 폐기하면 그 경로는 더 이상 동작하지 않는다.
     sr = env.get("SUPABASE_SECRET_KEY", "") or env.get("SUPABASE_SERVICE_ROLE_KEY", "")
     anon = env.get("SUPABASE_PUBLISHABLE_KEY", "") or env.get("SUPABASE_ANON_KEY", "")
     if not (url and sr and anon):

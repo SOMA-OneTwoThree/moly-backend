@@ -654,8 +654,12 @@ async def _record_memory_v2(
     # historical manifest가 완성된 뒤 가장 이른 turn부터 순서대로 흐른다(13.3절).
     # 이미 처리 대기 중인 turn이 있으면 dedup key가 중복 enqueue를 막는다.
     if state.accepts_live_ingest and state.ingest_through_turn_seq >= state.source_through_turn_seq:
+        # 바로 돌리지 않고 대화가 잠잠해지길 기다린다. 기다리는 동안 이 사용자의 새 턴은
+        # 위 조건(커서가 따라잡았을 때만)에 걸려 잡을 만들지 않으므로, 잡 하나가 그동안 쌓인
+        # 구간을 통째로 먹는다 — 한 사건이 여러 턴에 걸쳐도 조각나지 않는다.
         await memory_pipeline.enqueue_ingest(
-            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
+            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch,
+            delay_s=settings.memory_chunk_idle_s,
         )
 
 

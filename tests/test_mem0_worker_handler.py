@@ -104,3 +104,80 @@ def test_delete_failure_of_one_does_not_block_others():
 
     src = inspect.getsource(mem0_jobs.handle_mem0_provider_delete)
     assert "failed.append" in src and "deleted.append" in src
+
+
+# ── 대화 덩어리 단위 추출 (2026-08-08) ──────────────────────────────────
+#
+# 턴 하나만 보면 한 사건이 여러 턴에 걸칠 때 조각난다. 실제로 유저가 캐피 모습을 보고
+# "귀여워"라고 한 턴에서 무엇을 귀여워했는지가 빠졌다. 실측으로 유저 발화의 86%가 3분 안에
+# 이어져서, 잡을 늦춰 덩어리로 묶고 그 구간을 한 번에 먹게 바꿨다.
+
+def test_source_query_reads_a_range_not_one_turn():
+    """`turn_seq = :turn_seq`로 되돌아가면 다시 조각난다."""
+    sql = str(mem0_jobs._SOURCE_MESSAGES)
+    assert "turn_seq > :from_seq" in sql and "turn_seq <= :to_seq" in sql
+    assert "turn_seq = :turn_seq" not in sql
+
+
+@pytest.mark.parametrize(
+    "payload_turn,ingest,source,expected",
+    [
+        # 대화가 이어져 커서(10)와 현재(15) 사이가 벌어졌다 — 한 번에 먹는다
+        (11, 10, 15, (10, 15)),
+        # 한 턴만 쌓였으면 한 턴만
+        (11, 10, 11, (10, 11)),
+        # 상한(20턴)을 넘으면 잘라서 먹고 나머지는 다음 잡이 이어간다
+        (11, 10, 500, (10, 30)),
+        # source가 뒤처져 있어도 payload가 가리키는 턴까지는 먹는다
+        (14, 10, 12, (10, 14)),
+        # 구간이 비어도 최소 한 턴 — 안 그러면 커서가 안 움직여 같은 잡이 무한히 돈다
+        (10, 10, 10, (10, 11)),
+    ],
+)
+def test_ingest_window(payload_turn, ingest, source, expected):
+    assert mem0_jobs.ingest_window(
+        payload_turn=payload_turn, ingest_through=ingest,
+        source_through=source, max_turns=20,
+    ) == expected
+
+
+def test_ingest_window_never_reprocesses_past_turns():
+    """시작점은 항상 커서다 — 이미 처리한 턴을 다시 뽑으면 같은 기억이 중복으로 쌓인다."""
+    from_seq, to_seq = mem0_jobs.ingest_window(
+        payload_turn=3, ingest_through=100, source_through=105, max_turns=20)
+    assert from_seq == 100 and to_seq > from_seq
+
+
+async def test_enqueue_ingest_delays_so_the_chunk_can_accumulate():
+    """지연이 없으면 턴마다 잡이 돌아 예전처럼 조각난다."""
+    import uuid as _uuid
+    from datetime import datetime, timezone
+    from app.services import memory_pipeline
+
+    captured = {}
+
+    class _S:
+        async def execute(self, *a, **k):
+            class _R:
+                def first(self_inner):
+                    return None
+            return _R()
+
+    async def _fake_enqueue(session, **kw):
+        captured.update(kw)
+        return None
+
+    import app.services.jobs as jobs_mod
+    orig = jobs_mod.enqueue
+    jobs_mod.enqueue = _fake_enqueue
+    try:
+        await memory_pipeline.enqueue_ingest(
+            _S(), _uuid.uuid4(), turn_seq=7, delay_s=180.0)
+        assert captured["available_at"] is not None
+        assert captured["available_at"] > datetime.now(timezone.utc)
+
+        captured.clear()
+        await memory_pipeline.enqueue_ingest(_S(), _uuid.uuid4(), turn_seq=7, delay_s=0)
+        assert captured["available_at"] is None  # 0이면 예전처럼 즉시
+    finally:
+        jobs_mod.enqueue = orig

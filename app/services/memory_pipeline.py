@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -333,11 +333,28 @@ def provider_delete_dedup_key(user_id: uuid.UUID, turn_seq: int, *, generation: 
 
 
 async def enqueue_ingest(
-    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    *,
+    turn_seq: int,
+    privacy_epoch: int = 0,
+    delay_s: float = 0.0,
 ) -> uuid.UUID | None:
-    """이 turn의 ingest 잡. 이미 있으면 None(멱등)."""
+    """이 turn의 ingest 잡. 이미 있으면 None(멱등).
+
+    `delay_s`를 주면 그만큼 뒤에 실행된다. **대화가 잠잠해질 때까지 기다리는 장치다.**
+    기다리는 동안 같은 사용자의 새 턴은 잡을 만들지 않는다(chat이 커서가 따라잡았을 때만
+    걸기 때문). 그래서 잡 하나가 그동안 쌓인 구간을 통째로 먹는다 — 한 사건이 여러 턴에
+    걸쳐도 조각나지 않는다.
+
+    사람도 대화 중에 정리하지 않고 끝나고 나서 남긴다. 지연은 사용자에게 안 보인다 —
+    최근 대화는 원문 그대로 프롬프트에 들어가므로 회상이 없어도 캐피가 방금 얘기를 안다.
+    """
     from app.services import jobs
 
+    available_at = (
+        datetime.now(timezone.utc) + timedelta(seconds=delay_s) if delay_s > 0 else None
+    )
     return await jobs.enqueue(
         session,
         queue=jobs.QUEUE_MEMORY,
@@ -345,6 +362,7 @@ async def enqueue_ingest(
         user_id=user_id,
         dedup_key=ingest_dedup_key(user_id, turn_seq),
         payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
+        available_at=available_at,
     )
 
 

@@ -49,10 +49,22 @@ JOB_MEM0_INGEST = "mem0_ingest"
 # v2 컬렉션 이름·버전. migration 롤이 만든 것만 쓴다(런타임 DDL 금지).
 COLLECTION_VERSION = "v2"
 
+# 추출 범위는 **턴 하나가 아니라 대화 덩어리**다(커서 다음부터 이번 대상 턴까지).
+#
+# 한 턴만 보면 한 사건이 여러 턴에 걸칠 때 조각난다. 실제로 유저가 캐피의 모습(귤·안경·목도리)을
+# 보고 "귀여워"라고 한 턴에서 `유저가 상대를 귀엽다고 한다`만 남았다 — 무엇을 귀여워했는지가
+# 사라졌다. 앞 턴을 안 봤기 때문이다.
+#
+# 실측(2026-08-08): 유저 발화의 86%가 직전 발화로부터 3분 안에 이어진다. 대화는 턴이 아니라
+# 덩어리로 온다. 같은 주제가 여러 턴에 걸치니 비슷한 후보가 반복 생성돼 중복 판정이 7.7%였다.
+#
+# 근거(evidence)는 `message_id`로 묶이므로(mem0_extractor의 `by_id` 대조) 범위를 넓혀도
+# 어느 발화가 근거인지는 그대로 정확하다.
 _SOURCE_MESSAGES = text("""
 SELECT id, sender, content
 FROM messages
-WHERE user_id = :user_id AND turn_seq = :turn_seq AND kind = 'normal'
+WHERE user_id = :user_id AND kind = 'normal'
+  AND turn_seq > :from_seq AND turn_seq <= :to_seq
 ORDER BY id
 """)
 
@@ -126,6 +138,24 @@ ON CONFLICT (user_id, provider, collection_version, provider_memory_id) DO NOTHI
 """)
 
 
+def ingest_window(
+    *, payload_turn: int, ingest_through: int, source_through: int, max_turns: int
+) -> tuple[int, int]:
+    """이 잡이 먹을 구간 `(from, to]`를 정한다.
+
+    잡이 지연 실행되는 동안 쌓인 턴을 한 번에 가져간다 — 그게 "대화 덩어리"다.
+
+    지켜야 할 것 셋.
+      1. **커서 뒤부터** 먹는다. 이미 처리한 턴을 다시 뽑으면 같은 기억이 중복으로 쌓인다.
+      2. **상한을 둔다.** 오래 안 오던 사용자가 돌아오면 수백 턴이 한 잡에 몰려 프롬프트가
+         모델 상한을 넘고, 실패하면 그 전부를 다시 해야 한다. 남은 구간은 다음 잡이 이어 먹는다.
+      3. **최소 한 턴은 처리한다.** 구간이 비면 커서가 그대로라 같은 잡이 무한히 되돌아온다.
+    """
+    from_seq = ingest_through
+    to_seq = min(max(payload_turn, source_through), from_seq + max_turns)
+    return from_seq, max(to_seq, from_seq + 1)
+
+
 async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
     payload = job.payload or {}
     try:
@@ -144,8 +174,18 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         if not state.accepts_live_ingest:
             # historical backfill 전 — 이 turn은 아직 차례가 아니다.
             raise JobRetry("bootstrap_not_ready")
+
+        from_seq, to_seq = ingest_window(
+            payload_turn=turn_seq,
+            ingest_through=int(state.ingest_through_turn_seq),
+            source_through=int(state.source_through_turn_seq),
+            max_turns=settings.memory_chunk_max_turns,
+        )
+        # 아래 단계(staging·registry·커서·판정 잡)는 전부 이 구간의 끝을 기준으로 돈다.
+        turn_seq = to_seq
+
         rows = (await session.execute(
-            _SOURCE_MESSAGES, {"user_id": uid, "turn_seq": turn_seq}
+            _SOURCE_MESSAGES, {"user_id": uid, "from_seq": from_seq, "to_seq": to_seq}
         )).all()
         profile = (await session.execute(
             text("SELECT nickname, language FROM profiles WHERE id = :u"), {"u": uid}

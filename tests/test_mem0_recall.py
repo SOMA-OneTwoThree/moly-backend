@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
@@ -166,9 +166,78 @@ def test_render_tells_capi_not_to_assert_when_uncertain():
         mr.Recalled("회사를 그만뒀다", "ambiguous", 0.5,
                     datetime(2026, 8, 1, tzinfo=timezone.utc), uuid.uuid4()),
     ]
-    out = mr.render_block(items)
+    out = mr.render_block(items, today=date(2026, 8, 8), tz_name="Asia/Seoul")
     assert "단정하지" in out
-    assert "2026-08-01" in out
+    # 시점은 보이되 **절대 날짜가 아니라 상대 표현**이다. 페르소나가 날짜를 숫자로
+    # 말하지 말라고 못 박아서, 프롬프트에 '2026-08-01'을 넣으면 그대로 말할 여지를 준다.
+    assert "지난주" in out
+    assert "2026-08-01" not in out
+
+
+def test_render_puts_time_on_certain_memories_too():
+    """확실한 기억에 시점이 없으면 옛일이 지금 일로 말해진다.
+
+    실제 사고(2026-08-08): 반년 전 얘기를 캐피가 "지금 하고 있지"로 답했다.
+    당시 확실한 기억이 전체의 99%였고 그 전부가 시점 없이 프롬프트에 들어갔다.
+    """
+    items = [
+        mr.Recalled("월드컵을 보고 있다", "active", 0.3,
+                    datetime(2026, 2, 8, tzinfo=timezone.utc), None),
+        mr.Recalled("오늘 개발을 했다", "active", 0.3,
+                    datetime(2026, 8, 8, 3, tzinfo=timezone.utc), None),
+    ]
+    out = mr.render_block(items, today=date(2026, 8, 8), tz_name="Asia/Seoul")
+    assert "달 전) 월드컵을 보고 있다" in out
+    assert "(오늘) 오늘 개발을 했다" in out
+
+
+def test_render_time_labels_follow_language():
+    """시점 표기가 한국어로 새어 나가면 모델이 그 언어로 답한다(기존 헤더 사고와 같은 결)."""
+    items = [mr.Recalled("강남에서 미팅했다", "active", 0.3,
+                         datetime(2026, 8, 7, tzinfo=timezone.utc), None)]
+    assert "(yesterday)" in mr.render_block(
+        items, language="en", today=date(2026, 8, 8), tz_name="Asia/Seoul")
+    assert "(きのう)" in mr.render_block(
+        items, language="ja", today=date(2026, 8, 8), tz_name="Asia/Seoul")
+
+
+def test_render_falls_back_when_timezone_is_broken():
+    """저장된 시간대가 깨져도 Asia/Seoul로 폴백해 **정상 라벨**이 나온다.
+
+    (검토 지적) 예전 이름은 예외 처리를 지키는 것처럼 읽혔는데 실제로는 그 경로에 닿지 않는다.
+    `safe_zone`이 먼저 폴백하기 때문이다. 라벨까지 단언해 폴백이 엉뚱한 날짜를 내면 잡는다.
+    """
+    items = [mr.Recalled("고양이를 키운다", "active", 0.3,
+                         datetime(2026, 8, 1, tzinfo=timezone.utc), None)]
+    out = mr.render_block(items, today=date(2026, 8, 8), tz_name="Not/AZone")
+    assert "(지난주) 고양이를 키운다" in out
+
+
+def test_render_marks_time_unknown_when_value_is_not_a_datetime():
+    """시각 값이 깨져도 대화는 계속된다 — 예외를 밖으로 흘리지 않는다."""
+    items = [mr.Recalled("고양이를 키운다", "active", 0.3, "2026-08-01", None)]  # type: ignore[arg-type]
+    out = mr.render_block(items, today=date(2026, 8, 8), tz_name="Asia/Seoul")
+    assert "시점 모름" in out
+    assert "고양이를 키운다" in out
+
+
+@pytest.mark.parametrize(
+    "days,expected",
+    [(0, "오늘"), (1, "어제"), (6, "6일 전"), (7, "지난주"), (13, "지난주"),
+     (14, "2주 전"), (29, "4주 전"), (30, "지난달"), (59, "지난달"),
+     (60, "2달 전"), (299, "9달 전"), (300, "오래전"), (900, "오래전")],
+)
+def test_when_label_boundaries(days, expected):
+    """구간 경계 고정. `d < 7`을 `d <= 7`로 바꾸는 식의 변경을 여기서 잡는다."""
+    base = date(2026, 8, 8)
+    occurred = datetime(2026, 8, 8, 12, tzinfo=timezone.utc) - timedelta(days=days)
+    assert mr._when_label(occurred, base, "Asia/Seoul", "ko") == expected
+
+
+def test_unsupported_language_falls_back_to_english_not_korean():
+    """지원 밖 언어에 한국어 라벨이 가면 모델이 한국어로 답한다(예전 헤더 사고와 같은 결)."""
+    occurred = datetime(2026, 8, 7, 12, tzinfo=timezone.utc)
+    assert mr._when_label(occurred, date(2026, 8, 8), "Asia/Seoul", "fr") == "yesterday"
 
 
 def test_render_is_empty_when_nothing_recalled():

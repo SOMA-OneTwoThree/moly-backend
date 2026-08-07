@@ -18,8 +18,9 @@ import logging
 import re
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timezone
 
+from app.core.time_utils import activity_date_for
 from app.services import i18n
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -112,12 +113,23 @@ class Recalled:
 # 벡터 id → registry. 상태 필터와 user 재검증을 **DB에서** 한 번에 한다.
 # provider payload의 user_id는 adapter가 이미 봤지만, registry로 한 번 더 본다 —
 # 벡터 저장소가 오염돼도 남의 기억이 프롬프트에 실리면 안 된다.
+# ⚠️ 시점의 기준값은 **근거가 된 발화의 시각**이지 registry 행이 만들어진 시각이 아니다.
+#    `event_started_at`은 아직 아무도 채우지 않는 컬럼이라(2026-08-08 확인: 읽는 곳만 있고
+#    쓰는 곳이 없다) 그것만 보면 항상 `created_at`으로 떨어진다. 그런데 새 사용자를 넣을 때는
+#    과거 대화 전체를 한 번에 옮기므로 그 사람의 registry 행 수백 개가 전부 같은 날이 된다 —
+#    반년 전 얘기가 "(오늘)"로 찍힌다. 실제로 그 사고가 났다.
+#    `mem0_registry_repo`·`worker/reconsolidate_jobs`가 이미 쓰는 형태로 맞춰, 세 모듈이
+#    같은 기준값을 보게 한다.
 _FILTER = text("""
 SELECT r.provider_memory_id::text AS pid,
        r.semantic_status,
-       COALESCE(r.event_started_at, r.created_at) AS occurred_at,
+       COALESCE(r.event_started_at, s.source_occurred_at, r.created_at) AS occurred_at,
        r.conflict_group_id
 FROM mem0_memory_registry r
+LEFT JOIN LATERAL (
+  SELECT MAX(source_occurred_at) AS source_occurred_at
+  FROM mem0_memory_sources ms WHERE ms.registry_id = r.id
+) s ON true
 WHERE r.user_id = :user_id
   AND r.collection_version = :collection_version
   AND r.semantic_status = ANY(:statuses)
@@ -207,26 +219,91 @@ _UNCERTAIN: dict[str, str] = {
 }
 
 
-def render_block(items: list[Recalled], *, language: str = "ko") -> str:
+# 시점 표기 — **절대 날짜가 아니라 상대 표현**이다. 이유가 둘이다.
+#   1. 페르소나 [날짜] 절이 "날짜나 요일을 숫자로 굳이 입에 올리진 마"라고 못 박는다.
+#      프롬프트에 '2026-07-25'를 넣으면 캐피가 그 숫자를 그대로 말할 여지를 준다.
+#   2. 사람은 "칠월 이십오일에"가 아니라 "저번에"로 떠올린다. 회상은 그쪽이 자연스럽다.
+# 경계는 사용자 로컬 활동일(04시 경계) 기준 일수 차이다.
+_WHEN_LABELS: dict[str, dict[str, str]] = {
+    "ko": {"today": "오늘", "yesterday": "어제", "days": "{n}일 전", "last_week": "지난주",
+           "weeks": "{n}주 전", "last_month": "지난달", "months": "{n}달 전", "long_ago": "오래전",
+           "unknown": "시점 모름"},
+    "en": {"today": "today", "yesterday": "yesterday", "days": "{n} days ago",
+           "last_week": "last week", "weeks": "{n} weeks ago", "last_month": "last month",
+           "months": "{n} months ago", "long_ago": "a long time ago", "unknown": "time unknown"},
+    "ja": {"today": "きょう", "yesterday": "きのう", "days": "{n}日前", "last_week": "先週",
+           "weeks": "{n}週間前", "last_month": "先月", "months": "{n}か月前",
+           "long_ago": "ずっと前", "unknown": "時期はわからない"},
+}
+
+
+def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, lang: str) -> str:
+    """사건 시각 → 상대 표현. 기준일이 없으면 지금 시각으로 근사한다.
+
+    표에 없는 언어는 `en`으로 떨어뜨린다 — `i18n.FALLBACK`과 같은 방향이다. 한국어로 떨어뜨리면
+    영어 사용자에게 한국어 라벨이 가고, 모델이 그 언어로 답한다(예전에 헤더로 같은 사고가 났다).
+    """
+    t = _WHEN_LABELS.get(lang, _WHEN_LABELS[i18n.FALLBACK])
+    if occurred_at is None:
+        return t["unknown"]
+    try:
+        then = activity_date_for(occurred_at, tz_name)
+        base = today if today is not None else activity_date_for(datetime.now(timezone.utc), tz_name)
+        d = (base - then).days
+    except Exception:  # noqa: BLE001  회상 한 줄 때문에 대화가 죽으면 안 된다
+        # `safe_zone`이 깨진 시간대를 이미 폴백하므로 여기까지 오는 건 시각 값 자체가
+        # datetime이 아닐 때뿐이다. 그런 일이 생기면 모든 기억이 "시점 모름"으로 나가므로
+        # 조용히 넘기지 않고 남긴다.
+        _log.warning("시점 라벨 계산 실패 — 시점 모름으로 진행: %r", occurred_at, exc_info=True)
+        return t["unknown"]
+    if d <= 0:
+        return t["today"]
+    if d == 1:
+        return t["yesterday"]
+    if d < 7:
+        return t["days"].format(n=d)
+    if d < 14:
+        return t["last_week"]
+    if d < 30:
+        return t["weeks"].format(n=d // 7)
+    if d < 60:
+        return t["last_month"]
+    if d < 300:
+        return t["months"].format(n=d // 30)
+    # 300일을 넘기면 달로 세지 않는다. "12달 전"은 한국어로 어색하고, 이 나이의 기억은
+    # 정확한 개월 수보다 "한참 됐다"가 대화에 맞다.
+    return t["long_ago"]
+
+
+def render_block(
+    items: list[Recalled],
+    *,
+    language: str = "ko",
+    today: date | None = None,
+    tz_name: str = "Asia/Seoul",
+) -> str:
     """프롬프트에 넣을 서버 소유 블록. 항목이 없으면 빈 문자열이다.
+
+    **모든 항목에 시점을 붙인다.** 예전에는 ambiguous에만 붙였는데, 그러면 확실한 기억
+    (실측 99%)이 시점 없이 들어가 옛일이 지금 일로 말해진다 — 실제로 반년 전 얘기를
+    "지금 하고 있지"로 답한 사고가 있었다(2026-08-08).
 
     ambiguous는 **단정하지 않는 문장**으로 렌더한다. 캐피가 "너 회사 그만뒀잖아"라고
     말해버리면 틀렸을 때 사용자가 정정해야 하고, 그건 기억이 아니라 사고다.
     """
     if not items:
         return ""
+    lang = i18n.resolve(language)
     sure = [i for i in items if not i.uncertain]
     unsure = [i for i in items if i.uncertain]
 
-    lines: list[str] = []
-    if sure:
-        lines += [f"- {i.text}" for i in sure]
-    if unsure:
-        lines.append(_UNCERTAIN[i18n.resolve(language)])
-        for i in unsure:
-            when = i.occurred_at.strftime("%Y-%m-%d") if i.occurred_at else "시점 모름"
-            lines.append(f"- ({when}) {i.text}")
+    def line(i: Recalled) -> str:
+        return f"- ({_when_label(i.occurred_at, today, tz_name, lang)}) {i.text}"
 
-    lang = i18n.resolve(language)
+    lines: list[str] = [line(i) for i in sure]
+    if unsure:
+        lines.append(_UNCERTAIN[lang])
+        lines += [line(i) for i in unsure]
+
     header = {"ja": "[記憶]", "en": "[memory]"}.get(lang, "[기억]")
     return f"{header}\n" + "\n".join(lines)

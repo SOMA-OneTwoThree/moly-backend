@@ -18,8 +18,9 @@ import logging
 import re
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timezone
 
+from app.core.time_utils import activity_date_for
 from app.services import i18n
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -207,26 +208,81 @@ _UNCERTAIN: dict[str, str] = {
 }
 
 
-def render_block(items: list[Recalled], *, language: str = "ko") -> str:
+# 시점 표기 — **절대 날짜가 아니라 상대 표현**이다. 이유가 둘이다.
+#   1. 페르소나 [날짜] 절이 "날짜나 요일을 숫자로 굳이 입에 올리진 마"라고 못 박는다.
+#      프롬프트에 '2026-07-25'를 넣으면 캐피가 그 숫자를 그대로 말할 여지를 준다.
+#   2. 사람은 "칠월 이십오일에"가 아니라 "저번에"로 떠올린다. 회상은 그쪽이 자연스럽다.
+# 경계는 사용자 로컬 활동일(04시 경계) 기준 일수 차이다.
+_WHEN_LABELS: dict[str, dict[str, str]] = {
+    "ko": {"today": "오늘", "yesterday": "어제", "days": "{n}일 전", "last_week": "지난주",
+           "weeks": "{n}주 전", "last_month": "지난달", "months": "{n}달 전", "long_ago": "오래전",
+           "unknown": "시점 모름"},
+    "en": {"today": "today", "yesterday": "yesterday", "days": "{n} days ago",
+           "last_week": "last week", "weeks": "{n} weeks ago", "last_month": "last month",
+           "months": "{n} months ago", "long_ago": "a long time ago", "unknown": "time unknown"},
+    "ja": {"today": "きょう", "yesterday": "きのう", "days": "{n}日前", "last_week": "先週",
+           "weeks": "{n}週間前", "last_month": "先月", "months": "{n}か月前",
+           "long_ago": "ずっと前", "unknown": "時期はわからない"},
+}
+
+
+def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, lang: str) -> str:
+    """사건 시각 → 상대 표현. 기준일이 없으면 UTC 오늘로 근사한다."""
+    t = _WHEN_LABELS.get(lang, _WHEN_LABELS["ko"])
+    if occurred_at is None:
+        return t["unknown"]
+    try:
+        then = activity_date_for(occurred_at, tz_name)
+        base = today if today is not None else activity_date_for(datetime.now(timezone.utc), tz_name)
+    except Exception:  # noqa: BLE001  시간대 값이 깨져도 회상은 계속돼야 한다
+        return t["unknown"]
+    d = (base - then).days
+    if d <= 0:
+        return t["today"]
+    if d == 1:
+        return t["yesterday"]
+    if d < 7:
+        return t["days"].format(n=d)
+    if d < 14:
+        return t["last_week"]
+    if d < 30:
+        return t["weeks"].format(n=d // 7)
+    if d < 60:
+        return t["last_month"]
+    if d < 365:
+        return t["months"].format(n=d // 30)
+    return t["long_ago"]
+
+
+def render_block(
+    items: list[Recalled],
+    *,
+    language: str = "ko",
+    today: date | None = None,
+    tz_name: str = "Asia/Seoul",
+) -> str:
     """프롬프트에 넣을 서버 소유 블록. 항목이 없으면 빈 문자열이다.
+
+    **모든 항목에 시점을 붙인다.** 예전에는 ambiguous에만 붙였는데, 그러면 확실한 기억
+    (실측 99%)이 시점 없이 들어가 옛일이 지금 일로 말해진다 — 실제로 반년 전 얘기를
+    "지금 하고 있지"로 답한 사고가 있었다(2026-08-08).
 
     ambiguous는 **단정하지 않는 문장**으로 렌더한다. 캐피가 "너 회사 그만뒀잖아"라고
     말해버리면 틀렸을 때 사용자가 정정해야 하고, 그건 기억이 아니라 사고다.
     """
     if not items:
         return ""
+    lang = i18n.resolve(language)
     sure = [i for i in items if not i.uncertain]
     unsure = [i for i in items if i.uncertain]
 
-    lines: list[str] = []
-    if sure:
-        lines += [f"- {i.text}" for i in sure]
-    if unsure:
-        lines.append(_UNCERTAIN[i18n.resolve(language)])
-        for i in unsure:
-            when = i.occurred_at.strftime("%Y-%m-%d") if i.occurred_at else "시점 모름"
-            lines.append(f"- ({when}) {i.text}")
+    def line(i: Recalled) -> str:
+        return f"- ({_when_label(i.occurred_at, today, tz_name, lang)}) {i.text}"
 
-    lang = i18n.resolve(language)
+    lines: list[str] = [line(i) for i in sure]
+    if unsure:
+        lines.append(_UNCERTAIN[lang])
+        lines += [line(i) for i in unsure]
+
     header = {"ja": "[記憶]", "en": "[memory]"}.get(lang, "[기억]")
     return f"{header}\n" + "\n".join(lines)

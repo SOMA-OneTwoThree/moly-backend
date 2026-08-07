@@ -342,7 +342,13 @@ def _recall_adapter():
 
 
 async def _recall_memory_v2(
-    user_id: uuid.UUID, *, query: str, state, language: str
+    user_id: uuid.UUID,
+    *,
+    query: str,
+    state,
+    language: str,
+    today: date | None = None,
+    tz_name: str = "Asia/Seoul",
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
 
@@ -364,7 +370,9 @@ async def _recall_memory_v2(
                 embed_query=memory_embeddings.embed_query,
                 timeout=_MEM0_RECALL_TIMEOUT_S,
             )
-        return mem0_recall.render_block(items, language=language)
+        return mem0_recall.render_block(
+            items, language=language, today=today, tz_name=tz_name
+        )
     except Exception:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
         _log.warning("v2 회상 블록 생성 실패(빈 기억으로 진행) — user=%s", user_id, exc_info=True)
         return ""
@@ -858,7 +866,12 @@ async def post_message(
     # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
     # 문자열로 끝난다(임베딩·검색 호출 0).
     recall_task = asyncio.ensure_future(
-        _recall_memory_v2(uid, query=req.text, state=pipeline_state, language=language)
+        _recall_memory_v2(
+            uid, query=req.text, state=pipeline_state, language=language,
+            # 시점 표기 기준 = 이 사용자의 로컬 활동일. UTC로 재면 자정 근처에서
+            # "오늘"과 "어제"가 뒤집힌다.
+            today=ad, tz_name=getattr(g.profile, "timezone", "Asia/Seoul"),
+        )
     )
 
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가

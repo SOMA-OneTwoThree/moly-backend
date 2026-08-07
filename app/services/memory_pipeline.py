@@ -392,8 +392,6 @@ async def enqueue_provider_delete(
     )
 
 
-JOB_SHADOW_TRACE = "shadow_prompt_trace"
-JOB_SHADOW_CHECKPOINT = "shadow_checkpoint"
 JOB_CONTRACT_COMPILE = "contract_compile"
 JOB_RELATIONSHIP_PROJECT = "relationship_project"
 JOB_RECONSOLIDATE = "mem0_reconsolidate"
@@ -431,14 +429,12 @@ SELECT
 """)
 
 
-async def enqueue_shadow_checkpoints_on_day_boundary(
+async def enqueue_day_boundary_jobs(
     session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
 ) -> str | None:
-    """하루가 닫혔으면 **직전 활동일**의 shadow checkpoint를 건다(15장 8번).
+    """하루가 닫혔으면 **직전 활동일**에 대한 뒷정리 잡을 건다. 반환 = 대상 활동일(없으면 None).
 
-    매 turn 걸면 하루에 수십 번 LLM을 부른다. digest는 "activity date 하나의 독립 요약"이라
-    하루가 닫힌 시점에 한 번이면 충분하다. 반환 = 대상 활동일(없으면 None).
-
+    매 turn 걸면 하루에 수십 번 LLM을 부르는 것들이라 하루가 닫힌 시점에 한 번만 건다.
     dedup key에 활동일이 들어가므로 같은 날을 두 번 만들지 않는다.
     """
     from app.services import jobs
@@ -450,15 +446,6 @@ async def enqueue_shadow_checkpoints_on_day_boundary(
         return None  # 첫 turn이거나 같은 날 — 아직 닫히지 않았다
     closed = row[1]
 
-    await jobs.enqueue(
-        session,
-        queue=jobs.QUEUE_CONTENT,
-        job_type=JOB_SHADOW_CHECKPOINT,
-        user_id=user_id,
-        dedup_key=f"sckpt:d:{user_id}:{closed.isoformat()}",
-        payload={"kind": "daily_digest", "activity_date": closed.isoformat(),
-                 "privacy_epoch": privacy_epoch},
-    )
     # 살아 있는 기억끼리 재판정. 판정기 규칙이 나아져도 이미 active로 굳은 것은 그대로
     # 남기 때문에(실측: 같은 뜻 두 건이 둘 다 active), 하루에 한 번 잔여를 정리한다.
     await jobs.enqueue(
@@ -487,35 +474,7 @@ async def enqueue_shadow_checkpoints_on_day_boundary(
         dedup_key=f"contract:{user_id}:{closed.isoformat()}",
         payload={"after_message_id": 0, "privacy_epoch": privacy_epoch},
     )
-    # 누적 window는 그날까지의 대화를 이어 붙인다. digest와 달리 체인이라 하루에 한 고리다.
-    await jobs.enqueue(
-        session,
-        queue=jobs.QUEUE_CONTENT,
-        job_type=JOB_SHADOW_CHECKPOINT,
-        user_id=user_id,
-        dedup_key=f"sckpt:w:{user_id}:{closed.isoformat()}",
-        payload={"kind": "window", "privacy_epoch": privacy_epoch},
-    )
     return closed.isoformat()
-
-
-async def enqueue_shadow_trace(
-    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
-) -> uuid.UUID | None:
-    """이 turn의 프롬프트 계측 잡(15장 9번). 실패해도 대화에는 영향이 없다.
-
-    maintenance 큐다 — 계측이 content 큐를 막아 기억 색인을 늦추면 안 된다.
-    """
-    from app.services import jobs
-
-    return await jobs.enqueue(
-        session,
-        queue=jobs.QUEUE_MAINTENANCE,
-        job_type=JOB_SHADOW_TRACE,
-        user_id=user_id,
-        dedup_key=f"trace:{user_id}:{turn_seq}",
-        payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
-    )
 
 
 async def enqueue_next_ingest(

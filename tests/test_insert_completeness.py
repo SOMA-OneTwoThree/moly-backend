@@ -3,6 +3,7 @@
 **이 세션에서 세 번 났다.**
 
   1. `shadow_prompt_traces` — `:param::jsonb`가 바인드로 오인돼 문법 오류
+     (그 계측 코드는 이후 제거됐고, 아래 표에서도 빠졌다. 빈 표만 DB에 남아 있다)
   2. `conversation_checkpoints` — `version` 누락
   3. `relationship_profile_renders` — `render_hash` 누락
 
@@ -30,10 +31,6 @@ REQUIRED: dict[str, set[str]] = {
     },
     "user_interaction_contracts": {
         "user_id", "version", "locale", "document_json", "rendered_text", "render_hash",
-    },
-    "shadow_prompt_traces": {
-        "user_id", "turn_seq", "assembler_version",
-        "total_bytes", "cacheable_bytes", "volatile_bytes", "message_count",
     },
     "user_schedules": {"user_id", "kind", "timezone_snapshot", "next_due_at"},
     "mem0_memory_sources": {

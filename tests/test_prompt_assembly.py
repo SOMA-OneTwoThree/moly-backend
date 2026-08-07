@@ -13,7 +13,6 @@ from app.services.prompt_assembly import (
     PromptSegment,
     SegmentKind,
     assemble,
-    prompt_bytes,
     stable_prefix,
     to_openai_messages,
 )
@@ -124,9 +123,3 @@ def test_stable_prefix_selection():
     ]
 
 
-def test_prompt_bytes_counts_utf8():
-    ordered = assemble(_full())
-    assert prompt_bytes(ordered) == sum(
-        len(m["content"].encode("utf-8")) for m in to_openai_messages(ordered)
-    )
-    assert prompt_bytes(ordered) > 0

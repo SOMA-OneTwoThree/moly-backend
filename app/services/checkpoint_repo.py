@@ -25,6 +25,10 @@ from app.services import checkpoint, jobs
 # 트랜잭션이 겹치면 한쪽이 다른 쪽의 미커밋 행을 못 본다(READ COMMITTED) — 그 틈으로 들어온
 # 요약은 삭제를 피한다. 잠금으로 막으면 챗 Phase 2와 락 순서가 반대라 교착이 나므로,
 # **지우는 대신 읽을 때 거른다.** 끼어든 행은 남아 있어도 프롬프트에 실리지 않는다.
+#
+# `publish_state='published'`도 같은 이유로 여기서 거른다. 이 컬럼은 "아직 쓰면 안 되는 행"을
+# 표시하는데, 거르는 조건이 없으면 표시를 붙여 넣은 행이 그대로 프롬프트에 실린다.
+# 기존 행은 컬럼 기본값이 `published`라 이 조건에 영향받지 않는다.
 _LATEST_SQL = text("""
 SELECT c.id, c.through_message_id, c.summary, c.version, c.source_hash
 FROM conversation_checkpoints c
@@ -32,6 +36,7 @@ JOIN chat_contexts cc
   ON cc.user_id = c.user_id
  AND COALESCE(cc.memory_generation, 0) = c.memory_generation
 WHERE c.user_id = :user_id
+  AND c.publish_state = 'published'
 ORDER BY c.through_message_id DESC
 LIMIT 1
 """)
@@ -43,6 +48,7 @@ JOIN chat_contexts cc
   ON cc.user_id = c.user_id
  AND COALESCE(cc.memory_generation, 0) = c.memory_generation
 WHERE c.user_id = :user_id
+  AND c.publish_state = 'published'
 """)
 
 # 요약 잡의 stale 판정 기준. forget이 이 값을 +1 하므로(memory_forget._BUMP_SQL), 잡을 만든

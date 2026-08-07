@@ -147,6 +147,3 @@ def to_openai_messages(ordered: list[PromptSegment]) -> list[dict]:
     return out
 
 
-def prompt_bytes(ordered: list[PromptSegment]) -> int:
-    """shadow 비교용 — 직렬화 결과의 UTF-8 byte 수."""
-    return sum(len(m["content"].encode("utf-8")) for m in to_openai_messages(ordered))

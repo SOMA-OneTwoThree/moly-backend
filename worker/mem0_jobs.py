@@ -288,12 +288,8 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         await memory_pipeline.enqueue_next_ingest(
             session, uid, cursor=turn_seq, privacy_epoch=state.privacy_epoch
         )
-        # shadow 계측(15장 9번). 별도 큐라 이게 늦어도 기억 색인은 안 밀린다.
-        await memory_pipeline.enqueue_shadow_trace(
-            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
-        )
-        # 하루가 닫혔으면 그날의 shadow checkpoint(15장 8번). 매 turn이 아니라 경계에서만.
-        await memory_pipeline.enqueue_shadow_checkpoints_on_day_boundary(
+        # 하루가 닫혔으면 그날의 뒷정리 잡(재판정·관계 투영·계약 추출). 매 turn이 아니라 경계에서만.
+        await memory_pipeline.enqueue_day_boundary_jobs(
             session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch
         )
 

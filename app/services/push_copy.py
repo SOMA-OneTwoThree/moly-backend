@@ -173,23 +173,20 @@ _POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
     DEFAULT_LONG: {
         "ko": _pool(_T_KO, [
             "그동안 어떻게 지냈어? 너의 이야기가 궁금해.",
-            "창밖 계절이 조금 바뀌었어. 너도 그랬을까?",
             "언제 와도 나는 그대로야.",
-            "오랜만이어도 편하게 와.",
+            "오랜만이야. 편하게 얘기할래?",
             "밀린 얘기 천천히 해줘.",
         ]),
         "en": _pool(_T_EN, [
             "How have you been all this time? I want to hear your story.",
-            "The season outside my window has turned a little. Maybe for you too?",
             "Whenever you come I'll be the same me.",
-            "Even after a long time just come as you are.",
+            "It's been a while. Want to have a relaxed little chat?",
             "Tell me the stories I missed. Slowly is fine.",
         ]),
         "ja": _pool(_T_JA, [
             "その後どうしてた？きみの話が聞きたいな。",
-            "窓の外の季節が少し変わったよ。きみのほうもそうかな。",
             "いつ来てもぼくは変わらないよ。",
-            "ひさしぶりでも気軽においでよ。",
+            "ひさしぶりだね。気軽に話さない？",
             "たまった話はゆっくり聞かせてね。",
         ]),
     },

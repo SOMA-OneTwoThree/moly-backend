@@ -20,7 +20,7 @@ _POOL_SIZES = {
     push_copy.FIRST_TOUCH: 3,
     push_copy.DEFAULT_RECENT: 7,
     push_copy.DEFAULT_MISSING: 7,
-    push_copy.DEFAULT_LONG: 5,
+    push_copy.DEFAULT_LONG: 4,
 }
 
 

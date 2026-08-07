@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
@@ -201,12 +201,43 @@ def test_render_time_labels_follow_language():
         items, language="ja", today=date(2026, 8, 8), tz_name="Asia/Seoul")
 
 
-def test_render_survives_broken_timezone():
-    """시간대 값이 깨져도 회상은 계속돼야 한다 — 빈 기억으로 떨어뜨리지 않는다."""
+def test_render_falls_back_when_timezone_is_broken():
+    """저장된 시간대가 깨져도 Asia/Seoul로 폴백해 **정상 라벨**이 나온다.
+
+    (검토 지적) 예전 이름은 예외 처리를 지키는 것처럼 읽혔는데 실제로는 그 경로에 닿지 않는다.
+    `safe_zone`이 먼저 폴백하기 때문이다. 라벨까지 단언해 폴백이 엉뚱한 날짜를 내면 잡는다.
+    """
     items = [mr.Recalled("고양이를 키운다", "active", 0.3,
                          datetime(2026, 8, 1, tzinfo=timezone.utc), None)]
     out = mr.render_block(items, today=date(2026, 8, 8), tz_name="Not/AZone")
+    assert "(지난주) 고양이를 키운다" in out
+
+
+def test_render_marks_time_unknown_when_value_is_not_a_datetime():
+    """시각 값이 깨져도 대화는 계속된다 — 예외를 밖으로 흘리지 않는다."""
+    items = [mr.Recalled("고양이를 키운다", "active", 0.3, "2026-08-01", None)]  # type: ignore[arg-type]
+    out = mr.render_block(items, today=date(2026, 8, 8), tz_name="Asia/Seoul")
+    assert "시점 모름" in out
     assert "고양이를 키운다" in out
+
+
+@pytest.mark.parametrize(
+    "days,expected",
+    [(0, "오늘"), (1, "어제"), (6, "6일 전"), (7, "지난주"), (13, "지난주"),
+     (14, "2주 전"), (29, "4주 전"), (30, "지난달"), (59, "지난달"),
+     (60, "2달 전"), (299, "9달 전"), (300, "오래전"), (900, "오래전")],
+)
+def test_when_label_boundaries(days, expected):
+    """구간 경계 고정. `d < 7`을 `d <= 7`로 바꾸는 식의 변경을 여기서 잡는다."""
+    base = date(2026, 8, 8)
+    occurred = datetime(2026, 8, 8, 12, tzinfo=timezone.utc) - timedelta(days=days)
+    assert mr._when_label(occurred, base, "Asia/Seoul", "ko") == expected
+
+
+def test_unsupported_language_falls_back_to_english_not_korean():
+    """지원 밖 언어에 한국어 라벨이 가면 모델이 한국어로 답한다(예전 헤더 사고와 같은 결)."""
+    occurred = datetime(2026, 8, 7, 12, tzinfo=timezone.utc)
+    assert mr._when_label(occurred, date(2026, 8, 8), "Asia/Seoul", "fr") == "yesterday"
 
 
 def test_render_is_empty_when_nothing_recalled():

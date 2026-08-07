@@ -113,12 +113,23 @@ class Recalled:
 # 벡터 id → registry. 상태 필터와 user 재검증을 **DB에서** 한 번에 한다.
 # provider payload의 user_id는 adapter가 이미 봤지만, registry로 한 번 더 본다 —
 # 벡터 저장소가 오염돼도 남의 기억이 프롬프트에 실리면 안 된다.
+# ⚠️ 시점의 기준값은 **근거가 된 발화의 시각**이지 registry 행이 만들어진 시각이 아니다.
+#    `event_started_at`은 아직 아무도 채우지 않는 컬럼이라(2026-08-08 확인: 읽는 곳만 있고
+#    쓰는 곳이 없다) 그것만 보면 항상 `created_at`으로 떨어진다. 그런데 새 사용자를 넣을 때는
+#    과거 대화 전체를 한 번에 옮기므로 그 사람의 registry 행 수백 개가 전부 같은 날이 된다 —
+#    반년 전 얘기가 "(오늘)"로 찍힌다. 실제로 그 사고가 났다.
+#    `mem0_registry_repo`·`worker/reconsolidate_jobs`가 이미 쓰는 형태로 맞춰, 세 모듈이
+#    같은 기준값을 보게 한다.
 _FILTER = text("""
 SELECT r.provider_memory_id::text AS pid,
        r.semantic_status,
-       COALESCE(r.event_started_at, r.created_at) AS occurred_at,
+       COALESCE(r.event_started_at, s.source_occurred_at, r.created_at) AS occurred_at,
        r.conflict_group_id
 FROM mem0_memory_registry r
+LEFT JOIN LATERAL (
+  SELECT MAX(source_occurred_at) AS source_occurred_at
+  FROM mem0_memory_sources ms WHERE ms.registry_id = r.id
+) s ON true
 WHERE r.user_id = :user_id
   AND r.collection_version = :collection_version
   AND r.semantic_status = ANY(:statuses)
@@ -227,16 +238,24 @@ _WHEN_LABELS: dict[str, dict[str, str]] = {
 
 
 def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, lang: str) -> str:
-    """사건 시각 → 상대 표현. 기준일이 없으면 UTC 오늘로 근사한다."""
-    t = _WHEN_LABELS.get(lang, _WHEN_LABELS["ko"])
+    """사건 시각 → 상대 표현. 기준일이 없으면 지금 시각으로 근사한다.
+
+    표에 없는 언어는 `en`으로 떨어뜨린다 — `i18n.FALLBACK`과 같은 방향이다. 한국어로 떨어뜨리면
+    영어 사용자에게 한국어 라벨이 가고, 모델이 그 언어로 답한다(예전에 헤더로 같은 사고가 났다).
+    """
+    t = _WHEN_LABELS.get(lang, _WHEN_LABELS[i18n.FALLBACK])
     if occurred_at is None:
         return t["unknown"]
     try:
         then = activity_date_for(occurred_at, tz_name)
         base = today if today is not None else activity_date_for(datetime.now(timezone.utc), tz_name)
-    except Exception:  # noqa: BLE001  시간대 값이 깨져도 회상은 계속돼야 한다
+        d = (base - then).days
+    except Exception:  # noqa: BLE001  회상 한 줄 때문에 대화가 죽으면 안 된다
+        # `safe_zone`이 깨진 시간대를 이미 폴백하므로 여기까지 오는 건 시각 값 자체가
+        # datetime이 아닐 때뿐이다. 그런 일이 생기면 모든 기억이 "시점 모름"으로 나가므로
+        # 조용히 넘기지 않고 남긴다.
+        _log.warning("시점 라벨 계산 실패 — 시점 모름으로 진행: %r", occurred_at, exc_info=True)
         return t["unknown"]
-    d = (base - then).days
     if d <= 0:
         return t["today"]
     if d == 1:
@@ -249,8 +268,10 @@ def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, 
         return t["weeks"].format(n=d // 7)
     if d < 60:
         return t["last_month"]
-    if d < 365:
+    if d < 300:
         return t["months"].format(n=d // 30)
+    # 300일을 넘기면 달로 세지 않는다. "12달 전"은 한국어로 어색하고, 이 나이의 기억은
+    # 정확한 개월 수보다 "한참 됐다"가 대화에 맞다.
     return t["long_ago"]
 
 

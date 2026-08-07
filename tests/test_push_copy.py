@@ -13,11 +13,20 @@ def test_every_category_has_every_language():
         assert set(push_copy._POOLS[c]) == _LANGS, f"{c}: 언어 버킷 누락"
 
 
-def test_pools_have_ten_nonempty_entries():
-    """카테고리·언어별 10개(2026-08-07 사용자 확정)."""
+# 카테고리별 확정 개수(2026-08-07 사용자 확정): 기본 10, 티저는 시스템 보이스 3개,
+# 그리움 9개, 오랜만 7개(검수에서 삭제).
+_POOL_SIZES = {
+    push_copy.DIARY_TEASER: 3,
+    push_copy.DEFAULT_MISSING: 9,
+    push_copy.DEFAULT_LONG: 7,
+}
+
+
+def test_pool_sizes_match_confirmed_counts():
     for c in push_copy.CATEGORIES:
+        expected = _POOL_SIZES.get(c, 10)
         for lang, pool in push_copy._POOLS[c].items():
-            assert len(pool) == 10, f"{c}/{lang}: 풀 크기 {len(pool)} != 10"
+            assert len(pool) == expected, f"{c}/{lang}: 풀 크기 {len(pool)} != {expected}"
             for title, body in pool:
                 assert title and body, f"{c}/{lang}: 빈 문구"
 
@@ -26,8 +35,12 @@ def test_no_third_person_self_reference_in_ko():
     """캐피는 1인칭(나) — '캐피가~' '캐피는~' 3인칭 자칭 금지(사용자 확정).
 
     자기소개("나는 캐피야")의 '캐피야'는 허용 — 이름을 말하는 것이지 자칭이 아니다.
+    diary_teaser는 예외: 캐피 발화가 아니라 시스템 안내 보이스(존댓말)라서
+    "캐피가 일기를 적어두었어요"가 컨셉이다(2026-08-07 사용자 확정).
     """
     for c in push_copy.CATEGORIES:
+        if c == push_copy.DIARY_TEASER:
+            continue
         for _, body in push_copy._POOLS[c]["ko"]:
             assert "캐피가" not in body and "캐피는" not in body, f"{c}: 3인칭 자칭 — {body!r}"
 

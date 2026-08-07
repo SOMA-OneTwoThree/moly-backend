@@ -107,6 +107,7 @@ async def run_ingest(
     contract_texts: tuple[str, ...] = (),
     existing_plan: list[PlannedCandidate] | None = None,
     source_texts: dict[int, str] | None = None,
+    turns: int = 1,
 ) -> IngestOutcome:
     """한 source turn을 ingest한다.
 
@@ -125,7 +126,7 @@ async def run_ingest(
             return out
         passed, rejected = mi.filter_candidates(
             raw, nickname=nickname, contract_texts=contract_texts,
-            source_texts=source_texts,
+            source_texts=source_texts, limit=mi.candidate_limit(turns),
         )
         out.rejected = [(c.text, reason) for c, reason in rejected]
         if not passed:

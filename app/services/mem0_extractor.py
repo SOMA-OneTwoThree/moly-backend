@@ -31,7 +31,15 @@ EXTRACTOR_MODEL = "gpt-4.1-mini-2025-04-14"
 # ⚠️ 프롬프트 규칙을 바꾸면 반드시 올린다 — 옛 규칙으로 뽑힌 기억과 구분이 안 되면
 #    무엇을 재처리해야 하는지 알 수 없다.
 EXTRACTOR_VERSION = "mem0-extractor-v2"
-MAX_OUTPUT_TOKENS = 700
+# 출력이 여기서 잘리면 JSON이 안 닫혀 **후보 전량 폐기**다(부분 수용 금지). 그러면 같은
+# 입력으로 8번 재시도하고 전부 잘려 잡이 죽고, 그 사용자의 기억 사슬이 멈춘다.
+# 추출 단위가 턴 하나에서 대화 덩어리로 커졌으므로 상한도 같이 올린다(검토 지적 H-3).
+# 후보 하나가 본문 + category + evidence로 대략 40~80토큰이라, 2,400이면 24개까지 여유가 있다
+# (`mem0_ingest.MAX_CANDIDATES_PER_CHUNK`와 짝이다).
+MAX_OUTPUT_TOKENS = 2_400
+# 프롬프트에 적는 후보 개수 상한. 코드 쪽 상한(`mem0_ingest.MAX_CANDIDATES_PER_CHUNK`)과 같은
+# 값이어야 한다 — 모델이 더 내면 뒷부분이 조용히 잘린다.
+MAX_CANDIDATES = 24
 
 # 허용 category — registry 밖 값은 조용히 흡수하지 않고 거부한다.
 CATEGORIES: frozenset[str] = frozenset(
@@ -94,6 +102,9 @@ def build_system(language: str | None) -> str:
         "착각한다. '내'가 누구인지 모호한 문장을 만들지 않는다.\n"
         f"{_INSTRUCTIONS[i18n.resolve(language)]}\n"
         "- 뽑을 게 없으면 candidates를 빈 배열로 둔다. 억지로 만들지 않는다.\n"
+        # 개수 지시가 없으면 모델이 몇 개를 낼지 알 수 없다. 대화 여러 턴이 한 번에 들어오므로
+        # 상한을 명시해 출력이 잘리는 것을 막는다 — 잘리면 후보가 전량 폐기된다.
+        f"- 후보는 최대 {MAX_CANDIDATES}개까지만 낸다. 넘치면 오래 기억할 값이 큰 것부터 고른다.\n"
         "- 설명도 코드펜스도 붙이지 말고 JSON만 출력한다."
     )
 

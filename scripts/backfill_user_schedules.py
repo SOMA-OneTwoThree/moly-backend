@@ -1,6 +1,6 @@
-"""schedule 4종 keyset backfill + count gate (15장 4번).
+"""schedule 3종 keyset backfill + count gate (15장 4번).
 
-기존 profile 전부에 schedule 4종을 idempotent insert하고, **문서가 요구하는 게이트를 검사한다**:
+기존 profile 전부에 schedule 3종을 idempotent insert하고, **문서가 요구하는 게이트를 검사한다**:
 활성 profile 수 `N`에 대해 종류별 count가 각각 `N`, 중복 0.
 
 이 게이트를 통과하기 전에는 tick의 full-profile scan을 제거하거나 scheduler read로 전환하지

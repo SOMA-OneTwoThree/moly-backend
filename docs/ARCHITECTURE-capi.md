@@ -1110,10 +1110,10 @@ memory_generation)`이다.
 이와 별개로 매 틱마다 RevenueCat 수신함을 처리하고(한 틱에 200건, 그중 50건은 선행 조건이 있는
 건들을 위해 예약), 기억 재시작 작업을 등록하고, 데드맨 신호와 비용 경고를 보낸다.
 
-`user_schedules` 테이블(사용자 × 종류 유니크, 종류는 `daily_digest` / `diary_generate` /
-`diary_morning_notification` / `evening_checkin` 4종, 시간대 기록과 `next_due_at`과 개정 번호를
+`user_schedules` 테이블(사용자 × 종류 유니크, 종류는 `diary_generate` /
+`diary_morning_notification` / `evening_checkin` 3종, 시간대 기록과 `next_due_at`과 개정 번호를
 가짐)은 **테이블과 데이터 채우기, 대조까지만 만들어져 있다.** 이 인덱스를 보고 대상자를 뽑는
-방식은 `schedule_dispatcher_enabled=False`(기본 꺼짐)라 동작하지 않는다. 4종의 개수가 활성
+방식은 `schedule_dispatcher_enabled=False`(기본 꺼짐)라 동작하지 않는다. 3종의 개수가 활성
 프로필 수와 같고, 중복이 0이며, 두 방식의 결과가 같다는 것을 확인하기 전에는 전체 프로필 훑기를
 없애거나 읽기 경로를 바꾸지 않는다. 잘못 켜면 그 사용자만 조용히 일기와 알림을 못 받는다.
 

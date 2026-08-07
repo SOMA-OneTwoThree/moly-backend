@@ -89,9 +89,9 @@ _CHECKS: list[tuple[str, str]] = [
     ),
     (
         # 누락된 사용자는 scheduler 전환 순간부터 일기도 알림도 못 받는다(15장 4번).
-        "schedule 4종이 빠진 profile",
+        "schedule 3종이 빠진 profile",
         """SELECT count(*) FROM profiles p
-           CROSS JOIN (VALUES ('daily_digest'),('diary_generate'),
+           CROSS JOIN (VALUES ('diary_generate'),
                               ('diary_morning_notification'),('evening_checkin')) AS k(kind)
            WHERE NOT EXISTS (
              SELECT 1 FROM user_schedules s

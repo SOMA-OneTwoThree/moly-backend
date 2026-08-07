@@ -861,7 +861,7 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | `ai_usage_ledger` | `call_id` uuid PK, `user_id` FK **ON DELETE SET NULL** | 모델 호출별 실제 비용(USD). 상태 `started` `completed` `unknown_usage` `failed`. **사용자 토큰 한도와 별개** — CHECK로 `completed` 행은 `price_catalog_version`을 반드시 갖는다 |
 | `job_attempts` | UNIQUE `(job_id, attempt)` | 작업 시도별 이력. `outcome` = `succeeded` `retryable` `dead` `cancelled` `lease_lost` `timeout` |
 | `shadow_prompt_traces` | UNIQUE `(user_id, turn_seq, assembler_version)` | 새 조립 방식의 프롬프트 크기·캐시 가능 비율만 재는 계측. 실제 응답에 쓰지 않는다 |
-| `user_schedules` | UNIQUE `(user_id, kind)` | 사용자별 예정 시각 4종(`daily_digest` `diary_generate` `diary_morning_notification` `evening_checkin`). **채워 두기만 했고 읽기 경로는 아직 틱 방식**(`schedule_dispatcher_enabled` 기본 꺼짐) |
+| `user_schedules` | UNIQUE `(user_id, kind)` | 사용자별 예정 시각 3종(`diary_generate` `diary_morning_notification` `evening_checkin`). `daily_digest`는 revert된 푸시 개인화의 예약 슬롯이었고 `20260807_drop_daily_digest_schedule.sql`이 제거했다. **채워 두기만 했고 읽기 경로는 아직 틱 방식**(`schedule_dispatcher_enabled` 기본 꺼짐) |
 | `provider_backoffs` | PK `(provider, model, lane)` | 만들어 뒀지만 **읽거나 쓰는 코드가 없다** |
 
 - `shadow_prompt_traces`와 `user_schedules`는 만들 때 RLS와 권한 회수가 빠져 있었고

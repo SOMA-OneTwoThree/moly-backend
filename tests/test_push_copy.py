@@ -13,18 +13,20 @@ def test_every_category_has_every_language():
         assert set(push_copy._POOLS[c]) == _LANGS, f"{c}: 언어 버킷 누락"
 
 
-# 카테고리별 확정 개수(2026-08-07 사용자 확정): 기본 10, 티저는 시스템 보이스 3개,
-# 그리움 9개, 오랜만 7개(검수에서 삭제).
+# 카테고리별 확정 개수(2026-08-08 사용자 최종 검수 — 삭제 반영 후 개수 고정).
 _POOL_SIZES = {
+    push_copy.MORE_CHAT: 8,
     push_copy.DIARY_TEASER: 3,
-    push_copy.DEFAULT_MISSING: 9,
-    push_copy.DEFAULT_LONG: 7,
+    push_copy.FIRST_TOUCH: 3,
+    push_copy.DEFAULT_RECENT: 7,
+    push_copy.DEFAULT_MISSING: 7,
+    push_copy.DEFAULT_LONG: 4,
 }
 
 
 def test_pool_sizes_match_confirmed_counts():
     for c in push_copy.CATEGORIES:
-        expected = _POOL_SIZES.get(c, 10)
+        expected = _POOL_SIZES[c]
         for lang, pool in push_copy._POOLS[c].items():
             assert len(pool) == expected, f"{c}/{lang}: 풀 크기 {len(pool)} != {expected}"
             for title, body in pool:

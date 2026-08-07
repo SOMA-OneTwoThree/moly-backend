@@ -1,4 +1,4 @@
-"""schedule 4종 due 계산 — 전환 시점에 제품 동작이 바뀌지 않아야 한다.
+"""schedule 3종 due 계산 — 전환 시점에 제품 동작이 바뀌지 않아야 한다.
 
 scheduler는 tick의 full-profile scan을 대체한다. 두 경로가 **같은 시각**을 계산하지 않으면
 전환하는 순간 일기와 알림이 다른 때 나간다. 그 등가를 여기서 고정한다.
@@ -19,14 +19,11 @@ def test_hours_match_the_existing_tick_constants():
     assert us.LOCAL_HOUR[us.KIND_DIARY_GENERATE] == tick.DIARY_HOUR
     assert us.LOCAL_HOUR[us.KIND_DIARY_MORNING] == tick.MORNING_HOUR
     assert us.LOCAL_HOUR[us.KIND_EVENING_CHECKIN] == tick.EVENING_HOUR
-    # daily_digest의 05시는 푸시 개인화(2026-08-06 revert로 제거)가 쓰던 슬롯 예약값 —
-    # 대응하는 tick 상수가 더 이상 없어 값 자체를 고정한다.
-    assert us.LOCAL_HOUR[us.KIND_DAILY_DIGEST] == 5
 
 
-def test_all_four_kinds_are_covered():
+def test_all_kinds_are_covered():
     assert set(us.KINDS) == set(us.LOCAL_HOUR)
-    assert len(us.KINDS) == 4
+    assert len(us.KINDS) == 3
 
 
 @pytest.mark.parametrize("kind", us.KINDS)

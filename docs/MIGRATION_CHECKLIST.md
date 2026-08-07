@@ -12,6 +12,9 @@
   `20260804_zz_memory_contract.sql` 제외 — dev에도 적용된 적이 없다).
 - dev의 적용 기록에 `20260805_push_personalization.sql`이 남아 있지만 **신경 쓰지 않아도 된다.**
   그 기능은 되돌려졌고(`2a58f56` Revert), 만들었던 표도 dev·운영 양쪽에 없다. 기록만 남은 것이다.
+- `20260807_drop_daily_digest_schedule.sql`은 이 목록 **이후에 추가된 후속 정리다** —
+  `user_schedules`에서 revert된 푸시 개인화의 예약 슬롯(`daily_digest`)을 뺀다. 읽기 경로가
+  없어 언제 적용해도 안전하다(21번 적용 뒤라면 순서 무관).
 
 ## 전체 그림
 

@@ -44,7 +44,7 @@ async def _sent(monkeypatch, when: datetime) -> dict:
         calls["morning"] += 1
         return 1
 
-    async def _e(session, p, now=None):
+    async def _e(session, p, now=None, stats=None):
         calls["evening"] += 1
         return 1
 

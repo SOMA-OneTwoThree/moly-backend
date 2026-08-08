@@ -299,7 +299,7 @@ WHERE id = :job_id
 
 
 async def freeze_job_payload(session: AsyncSession, *, job_id: uuid.UUID, patch: dict) -> None:
-    """이 잡의 payload에 `patch`를 합친다. 커밋은 호출측 소유."""
+    """이 잡의 payload에 `patch`를 합친다. **여기서 바로 커밋한다** — 다음 시도가 읽어야 한다."""
     await session.execute(
         _FREEZE_PAYLOAD, {"job_id": job_id, "patch": json.dumps(patch, ensure_ascii=False)}
     )

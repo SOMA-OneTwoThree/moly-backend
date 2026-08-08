@@ -72,9 +72,10 @@ ORDER BY id
 _STAGE_CANDIDATE = text("""
 INSERT INTO mem0_ingest_candidates
   (user_id, turn_seq, candidate_hash, schema_version, extractor_version, normalizer_version,
-   provider_memory_id, candidate_text, status, repair_generation)
+   provider_memory_id, candidate_text, status, repair_generation, category)
 VALUES (:user_id, :turn_seq, :candidate_hash, :schema_version, :extractor_version,
-        :normalizer_version, :provider_memory_id, :candidate_text, 'planned', :generation)
+        :normalizer_version, :provider_memory_id, :candidate_text, 'planned', :generation,
+        :category)
 ON CONFLICT (user_id, turn_seq, candidate_hash, schema_version, repair_generation) DO NOTHING
 """)
 
@@ -119,14 +120,32 @@ WHERE user_id=:user_id AND provider_memory_id=:provider_memory_id AND status='pl
 #    남긴 후보를 "앞 시도의 계획"으로 착각해 **추출을 통째로 건너뛴다.** 재추출이 정확히 여기서
 #    막혔다 — 옛 후보를 그대로 다시 올리고 registry는 `ON CONFLICT DO NOTHING`에 걸려,
 #    잡은 성공으로 찍히는데 새 기억은 한 건도 안 생겼다(2026-08-08 실측: 4명 중 2명이 0건).
+#
+# ⚠️ **근거도 함께 되살린다.** 예전에는 본문 세 값만 읽어서, 이어받은 계획으로 만든 기억은
+#    `mem0_memory_sources` 행이 한 건도 안 생겼다. 그러면 회상이 시점을 registry 생성일로
+#    떨어뜨려 **반년 전 얘기가 "(오늘)"로 나간다**(운영에 근거 없는 기억 45건). 근거는 이미
+#    `mem0_ingest_candidate_sources`에 저장돼 있으므로 여기서 같이 읽어 오면 된다.
 _RESUME_PLAN = text("""
-SELECT provider_memory_id, candidate_hash, candidate_text
-FROM mem0_ingest_candidates
-WHERE user_id = :user_id AND turn_seq = :turn_seq
-  AND schema_version = :schema_version
-  AND repair_generation = :generation
-  AND status IN ('planned', 'committed')
-ORDER BY candidate_hash
+SELECT c.provider_memory_id, c.candidate_hash, c.candidate_text, c.category,
+       COALESCE(
+         json_agg(
+           json_build_object(
+             'message_id', s.source_message_id, 'sender', s.source_sender,
+             'start', s.evidence_start_utf8, 'end', s.evidence_end_utf8,
+             'hash', s.source_content_hash
+           ) ORDER BY s.source_message_id, s.evidence_start_utf8
+         ) FILTER (WHERE s.candidate_id IS NOT NULL),
+         '[]'::json
+       ) AS evidence
+FROM mem0_ingest_candidates c
+LEFT JOIN mem0_ingest_candidate_sources s
+       ON s.candidate_id = c.id AND s.user_id = c.user_id
+WHERE c.user_id = :user_id AND c.turn_seq = :turn_seq
+  AND c.schema_version = :schema_version
+  AND c.repair_generation = :generation
+  AND c.status IN ('planned', 'committed')
+GROUP BY c.provider_memory_id, c.candidate_hash, c.candidate_text, c.category
+ORDER BY c.candidate_hash
 """)
 
 # 이 turn에 아직 판정 안 된 기억이 남았는가. 커서를 통과시키기 전에 반드시 본다.
@@ -138,9 +157,9 @@ WHERE user_id = :user_id AND source_turn_seq = :turn_seq AND semantic_status = '
 _REGISTER_PENDING = text("""
 INSERT INTO mem0_memory_registry
   (user_id, provider, collection_version, provider_memory_id, source_turn_seq,
-   content_hash, semantic_status, schema_version)
+   content_hash, semantic_status, schema_version, category)
 VALUES (:user_id, 'mem0', :collection_version, :provider_memory_id, :turn_seq,
-        :content_hash, 'pending', :schema_version)
+        :content_hash, 'pending', :schema_version, :category)
 ON CONFLICT (user_id, provider, collection_version, provider_memory_id) DO NOTHING
 """)
 
@@ -252,7 +271,15 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         )).first()
         resumed = [
             mem0_pipeline.PlannedCandidate(
-                provider_memory_id=r[0], candidate_hash=r[1], text=r[2],
+                provider_memory_id=r[0], candidate_hash=r[1], text=r[2], category=r[3],
+                restored_evidence=tuple(
+                    mem0_ingest.EvidenceSpan(
+                        message_id=int(e["message_id"]), sender=e["sender"],
+                        start_utf8=int(e["start"]), end_utf8=int(e["end"]),
+                        content_hash=e["hash"],
+                    )
+                    for e in (r[4] or [])
+                ),
             )
             for r in (await session.execute(_RESUME_PLAN, {
                 "user_id": uid, "turn_seq": turn_seq,
@@ -263,8 +290,10 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
 
     if not rows:
         raise JobCancelled("no_source_messages")
+    # ⚠️ **살균본으로 만든다.** 모델이 보는 글과 근거를 대조하는 글이 같아야 한다 — 다르면
+    # 전각 문자(`ＡＢＣ`·`ｱｲｳ`)나 괄호가 있는 발화에서 그 뒤 좌표가 통째로 어긋난다.
     messages = [
-        mem0_extractor.SourceMessage(id=r[0], sender=r[1], content=r[2] or "") for r in rows
+        mem0_extractor.SourceMessage.sanitized(id=r[0], sender=r[1], content=r[2]) for r in rows
     ]
     nickname = profile[0] if profile else None
     language = profile[1] if profile else None
@@ -286,12 +315,37 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             ledger=ledger,
         )
         try:
-            candidates, dropped = mem0_extractor.parse(result.text, messages=messages)
+            candidates, dropped = mem0_extractor.parse(
+                result.text, messages=messages, finish_reason=result.finish_reason
+            )
+        except mem0_extractor.OutputTruncated as e:
+            # 잘림은 **재시도해도 같다.** 같은 입력을 8번 다시 넣어봐야 8번 다 잘리고 잡이 죽는다.
+            # 그러면 그 사람의 기억이 통째로 멈춘다. 그래서 덩어리를 반으로 줄여 다시 시도한다.
+            if to_seq > first_turn:
+                half = first_turn + (to_seq - first_turn) // 2
+                async with get_sessionmaker()() as s:
+                    await jobs.freeze_job_payload(
+                        s, job_id=job.id, patch={"chunk": {"first": first_turn, "last": half}}
+                    )
+                _log.warning(
+                    "추출 출력이 잘렸다 — 덩어리를 %s~%s에서 %s~%s로 줄인다 (job=%s)",
+                    first_turn, to_seq, first_turn, half, job.id,
+                )
+                raise JobRetry("output_truncated_split") from e
+            # 한 턴짜리가 잘리면 더 쪼갤 수 없다. 그 턴은 기억 없이 넘긴다 —
+            # 사슬을 멈춰 그 사람의 이후 기억을 전부 잃는 것보다 낫다.
+            _log.warning("한 턴이 출력 상한을 넘었다 — 기억 없이 넘긴다 (job=%s 턴 %s)",
+                         job.id, to_seq)
+            return []
         except mem0_extractor.ExtractionSchemaError as e:
             # 계약 위반 — 다음 샘플은 통과할 수 있으니 재시도.
             raise JobRetry("candidate_schema") from e
         if dropped:
-            _log.info("근거 미검증 후보 폐기 %d건 — job=%s", len(dropped), job.id)
+            # **사유별로** 남긴다. 개수만 남기면 무엇이 왜 빠졌는지 알 수 없어 정책을 고칠 수 없다.
+            reasons: dict[str, int] = {}
+            for _body, why in dropped:
+                reasons[why] = reasons.get(why, 0) + 1
+            _log.info("근거 미검증 후보 폐기 %d건 %s — job=%s", len(dropped), reasons, job.id)
         return candidates
 
     async def _embed(texts: list[str], timeout: float) -> list[list[float]]:
@@ -317,6 +371,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                     "provider_memory_id": p.provider_memory_id,
                     "candidate_text": p.text,
                     "generation": generation,
+                    "category": p.category,
                 })
                 for ev in p.evidence:
                     await session.execute(_CANDIDATE_SOURCE, {
@@ -335,6 +390,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                     "provider_memory_id": p.provider_memory_id, "turn_seq": turn_seq,
                     "content_hash": p.candidate_hash,
                     "schema_version": mem0_ingest.SCHEMA_VERSION,
+                    "category": p.category,
                 })
                 # registry가 생긴 뒤에야 계획을 닫는다(9.2절). 순서가 뒤집히면 crash 복구가
                 # 참조할 planned 행이 사라져 provider에만 남은 벡터를 못 찾는다.

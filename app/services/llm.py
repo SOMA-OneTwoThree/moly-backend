@@ -66,6 +66,9 @@ class LLMResult:
     model_snapshot: str = ""     # 응답이 알려준 실제 model(alias 호출의 스냅샷). 원장 귀속용
     request_id: str = ""         # provider request id — invoice 대사 키
     cache_write_estimated: bool = False  # OpenAI는 write usage를 안 줘서 추정 → 실비 주장 금지 표식
+    # 응답이 왜 끝났는가. `"length"`면 **출력 상한에서 잘린 것**이다. 이 값이 없으면 잘림과
+    # 모델의 형식 오류를 구분할 수 없어, 잘렸는데도 같은 입력으로 재시도만 반복하다 잡이 죽는다.
+    finish_reason: str = ""
 
 
 @dataclass
@@ -273,6 +276,8 @@ async def _generate_openai(
     )
     choices = getattr(resp, "choices", None) or []
     text = (choices[0].message.content or "") if choices else ""
+    # 왜 끝났는가. `length`면 상한에서 잘린 것 — 호출측이 형식 오류와 구분해야 한다.
+    finish = (getattr(choices[0], "finish_reason", None) or "") if choices else ""
     # alias 호출의 실제 스냅샷과 request id — 원가 원장의 귀속·invoice 대사 키.
     snapshot = getattr(resp, "model", None) or ""
     req_id = getattr(resp, "id", None) or ""
@@ -280,7 +285,7 @@ async def _generate_openai(
     if u is None:
         return LLMResult(
             text=text, input_tokens=0, output_tokens=0, model=model,
-            model_snapshot=snapshot, request_id=req_id,
+            model_snapshot=snapshot, request_id=req_id, finish_reason=finish,
         )
     prompt_tokens = getattr(u, "prompt_tokens", None) or 0
     details = getattr(u, "prompt_tokens_details", None)
@@ -305,6 +310,7 @@ async def _generate_openai(
         request_id=req_id,
         # 위 주석대로 write는 추정값이다 — 원장에서 "정확한 실비"로 집계되지 않게 표시한다.
         cache_write_estimated=cacheable,
+        finish_reason=finish,
     )
 
 

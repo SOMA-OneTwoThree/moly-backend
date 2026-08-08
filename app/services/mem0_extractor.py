@@ -22,6 +22,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 from dataclasses import dataclass
 
 from app.services import i18n, memory
@@ -188,7 +189,7 @@ _KO = """너는 대화에서 오래 기억할 만한 사실 후보만 뽑는 추
 - **상대가 아직 안 알려줬다거나 네가 모른다는 건 사실이 아니다.** 그건 그때 못 찾았다는 것뿐이다. 그걸 기억으로 만들면 나중에, 또는 이미 예전에 알게 된 진짜 사실을 밀어낸다. ('유저가 제일 좋아하는 것을 아직 말하지 않았다' 같은 건 후보가 아니다)
 - 하려는 것과 한 것을 구분한다. '라면 먹을래'는 의도지 완료가 아니다. 의도면 '~하려고 한다'로 쓴다.
 - 항상 3인칭으로 쓴다. 유저 발화를 그대로 복사하지 말고 '유저가 ~한다'로 바꾼다. 주어가 없으면 누가 하는 일인지 알 수 없어 상대가 자기 일로 착각한다.
-- **어제·오늘·내일·방금·아까·이번 주 같은 말을 사실 안에 쓰지 마.** 언제였는지는 따로 붙으니 사실만 쓴다. 그 말이 본문에 박히면 나중에 꺼낼 때 언제 일인지가 어긋난다. ('유저가 어제 국밥을 먹었다' 대신 '유저가 국밥을 먹었다')
+- **어제·오늘·내일·요즘·최근·아까·방금·이번 주·지난달·올해 같은 말을 사실 안에 쓰지 마.** 언제였는지는 따로 붙으니 사실만 쓴다. 그 말이 본문에 박히면 나중에 꺼낼 때 언제 일인지가 어긋난다. ('유저가 어제 국밥을 먹었다' 대신 '유저가 국밥을 먹었다')
 - 사실은 한국어로 짧게 쓴다.
 - 뽑을 게 없으면 candidates를 빈 배열로 둔다.
 - 후보는 최대 {cap}개까지만 낸다. 넘치면 오래 기억할 값이 큰 것부터 고른다.
@@ -232,7 +233,7 @@ If nothing fits exactly, pick the closest one.
 - **That the user has not told you something yet, or that you do not know it, is not a fact.** It only means you did not find it at that moment. Turning it into a memory pushes out the real fact you learn later, or already learned before. ("The user has not said their favorite yet" is not a candidate.)
 - Separate intent from completion. "I'll have ramen" is an intent, not a finished act. For an intent, write "plans to ...".
 - Always write in the third person. Do not copy the user's words; rewrite as "The user ...". Without a subject it is unclear who did what.
-- **Never put words like yesterday, today, tomorrow, just now, this week into the fact.** When it happened is attached separately, so write only the fact. Baked-in words like these go wrong when the memory is recalled later. (Write "The user had gukbap" not "The user had gukbap yesterday".)
+- **Never put words like yesterday, today, tomorrow, recently, lately, just now, this week, last month, this year into the fact.** When it happened is attached separately, so write only the fact. Baked-in words like these go wrong when the memory is recalled later. (Write "The user had gukbap" not "The user had gukbap yesterday".)
 - Write each fact in short English.
 - If there is nothing to take, leave candidates as an empty array.
 - Produce at most {cap} candidates. If there are more, keep the ones worth remembering longest.
@@ -276,7 +277,7 @@ _JA = """あなたは会話から長く覚えておく価値のある事実だ�
 - **相手がまだ教えてくれていない、きみが知らない、というのは事実ではありません。** それはそのとき見つけられなかっただけです。それを記憶にすると、あとで、あるいはすでに前に知った本当の事実を押しのけてしまいます。（「ユーザーは一番好きなものをまだ言っていない」のようなものは候補ではありません）
 - しようとしていることと、したことを区別します。「ラーメン食べよう」は意図であって完了ではありません。意図なら「〜しようとしている」と書きます。
 - 必ず三人称で書きます。ユーザーの発言をそのまま写さず「ユーザーは〜」に直します。主語がないと誰のことか分からなくなります。
-- **昨日・今日・明日・さっき・今週のような言葉を事実の中に入れないでください。** いつのことかは別に付くので、事実だけを書きます。こうした言葉が本文に入ると、あとで思い出すときに時期がずれます。（「ユーザーは昨日クッパを食べた」ではなく「ユーザーはクッパを食べた」）
+- **昨日・今日・明日・最近・さっき・今週・先月・今年のような言葉を事実の中に入れないでください。** いつのことかは別に付くので、事実だけを書きます。こうした言葉が本文に入ると、あとで思い出すときに時期がずれます。（「ユーザーは昨日クッパを食べた」ではなく「ユーザーはクッパを食べた」）
 - 事実は短い日本語で書きます。
 - 取るものがなければ candidates を空の配列にします。
 - 候補は最大{cap}個までです。多すぎる場合は長く覚える価値の大きいものから選びます。
@@ -317,6 +318,26 @@ def _payload(text: str) -> dict:
     if not isinstance(obj, dict):
         raise ExtractionSchemaError("최상위가 객체가 아니다")
     return obj
+
+
+# 사실 안에 들어가면 안 되는 시점 표현.
+#
+# 프롬프트로 금지해도 모델이 **3.5% 흘린다**(2026-08-08 운영 실측: 370건 중 13건).
+# 그래서 코드에서 한 번 더 막는다. 걸리면 그 후보를 버린다 — 빠진 기억은 다시 뽑으면
+# 되지만, 틀린 날짜가 박힌 기억은 캐피가 그대로 말한다.
+#
+# 기준일이 사라지면 뜻이 어긋나는 말만 넣는다. '아침'·'저녁'처럼 하루 안의 때는 언제
+# 읽어도 뜻이 같으니 넣지 않는다.
+_RELATIVE_TIME = re.compile(
+    r"어제|오늘|내일|모레|그저께|엊그제|지난\s*(?:주|달|해|밤)|이번\s*(?:주|달|해)"
+    r"|다음\s*(?:주|달|해)|요즘|최근|근래|아까|방금|올해|작년|내년|며칠\s*전"
+    r"|昨日|今日|明日|あさって|おととい|先週|先月|今週|今月|来週|来月"
+    r"|最近|さっき|今年|去年|来年|数日前"
+    r"|\byesterday\b|\btoday\b|\btomorrow\b|\bjust now\b|\brecently\b|\blately\b"
+    r"|\b(?:last|this|next)\s+(?:week|month|year|night)\b"
+    r"|\bdays ago\b|\bthe other day\b",
+    re.IGNORECASE,
+)
 
 
 def parse(
@@ -393,6 +414,11 @@ def parse(
             )
         if not verified:
             dropped.append((body, problem or "no_evidence"))
+            continue
+        # 근거를 다 갖췄어도 본문에 시점 표현이 남아 있으면 버린다. 언제였는지는 따로
+        # 붙으므로, 본문에 박힌 '어제'는 나중에 읽을 때 반드시 틀린 날이 된다.
+        if _RELATIVE_TIME.search(body):
+            dropped.append((body, "relative_time"))
             continue
         out.append(Candidate(text=body, evidence=tuple(verified), category=category))
 

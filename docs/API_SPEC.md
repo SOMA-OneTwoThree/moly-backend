@@ -364,7 +364,7 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 ### `GET /wallet/transactions`
 
 ```json
-{ "data":[ { "id":"…","type":"attendance","amount":10,"balance_after":650,"created_at":"…" } ], "next_cursor":null }
+{ "data":[ { "id":"…","type":"attendance","amount":20,"balance_after":660,"created_at":"…" } ], "next_cursor":null }
 ```
 
 `amount` = +획득/−소비. `type` = 부록 A.
@@ -373,9 +373,9 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 
 ```json
 { "activity_date":"2026-07-06",
-  "attendance": { "claimable":true, "claimed":false, "reward":10 },
-  "ad": { "views_used":3, "views_limit":10, "reward_per_view":10 },
-  "routine_pair": { "completed_today":1, "required":2, "claimable":false, "claimed":false, "reward":10 },
+  "attendance": { "claimable":true, "claimed":false, "reward":20 },
+  "ad": { "views_used":3, "views_limit":5, "reward_per_view":20 },
+  "routine_pair": { "completed_today":1, "required":2, "claimable":false, "claimed":false, "reward":20 },
   "hay_products":[
     { "product_id":"com.geniusjun.moly.hay.300","play_store_product_id":null,"amount":300 },
     { "product_id":"com.geniusjun.moly.hay.1500","play_store_product_id":null,"amount":1500 },
@@ -386,23 +386,23 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 - **2026-07-13**: 키 `hay_packs` → **`hay_products`**. `product_id` = App Store product id, `play_store_product_id` = Google Play product id(미확정 시 null) — RC SDK 구매 시 해당 스토어 필드 사용.
 - 팩 가격: 300 ₩1,500 / 1,500 ₩6,500 / 3,000 ₩10,000 (표시 문자열은 스토어).
 
-### `POST /charging-station/attendance` — 출석(일1회 +10)
+### `POST /charging-station/attendance` — 출석(일1회 +20)
 
-`200 { "granted":10,"balance_after":650 }` / `409 ALREADY_CLAIMED`
+`200 { "granted":20,"balance_after":660 }` / `409 ALREADY_CLAIMED`
 
-### `POST /charging-station/routine-reward` — 루틴 2개 완료(일1회 +10)
+### `POST /charging-station/routine-reward` — 루틴 2개 완료(일1회 +20)
 
-`200 { "granted":10,"balance_after":660 }` / `409 ALREADY_CLAIMED` / `422 ROUTINE_GOAL_NOT_MET`. 수령 후 체크 해제해도 회수 없음.
+`200 { "granted":20,"balance_after":680 }` / `409 ALREADY_CLAIMED` / `422 ROUTINE_GOAL_NOT_MET`. 수령 후 체크 해제해도 회수 없음.
 
-### 리워드 광고 (회당 +10, 일 10회) — 세션 발급 + SSV 자동 지급
+### 리워드 광고 (회당 +20, 일 5회) — 세션 발급 + SSV 자동 지급
 
 ```
 (a) POST /reward-ad-sessions   (클라, 인증 — 광고 시청 전 세션 발급)
-    200 { "reward_session_id":"…", "admob_user_id":"…", "views_used":3, "views_limit":10 }
-    429 AD_LIMIT_REACHED (오늘 10회 소진)
+    200 { "reward_session_id":"…", "admob_user_id":"…", "views_used":3, "views_limit":5 }
+    429 AD_LIMIT_REACHED (오늘 5회 소진)
     → 클라는 AdMob SSV 옵션에 custom_data=reward_session_id, userIdentifier=admob_user_id 설정
 (b) GET /webhooks/ad-ssv       (AdMob→서버, 서명 검증 — 서버-서버, 클라 무관)
-    검증 통과 시 해당 세션으로 +10 자동 지급. 멱등 = 세션당 1회 + ssv_transaction_id UNIQUE.
+    검증 통과 시 해당 세션으로 +20 자동 지급. 멱등 = 세션당 1회 + ssv_transaction_id UNIQUE.
 ```
 
 - **클레임 API 없음** — 지급은 SSV 콜백이 곧바로 처리. 클라는 시청 종료 후 `GET /charging-station`(또는 `GET /wallet`) 재조회로 반영 확인(SSV 지연 대비 짧은 재시도, 예: 2s×3).
@@ -594,7 +594,7 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 | `ALREADY_CLAIMED` | 409 | 출석/루틴 보상 중복 |
 | `ALREADY_OWNED` | 409 | 상점 중복 구매(기본 지급분 재구매 포함) |
 | `ROUTINE_GOAL_NOT_MET` | 422 | 루틴 2개 미완료 |
-| `AD_LIMIT_REACHED` | 429 | 광고 일 10회 초과 |
+| `AD_LIMIT_REACHED` | 429 | 광고 일 5회 초과 |
 | `AD_VERIFY_FAILED` | 422 | SSV 서명 검증 실패(서버-서버 — 클라 미노출) |
 | `NOT_OWNED` | 422 | 미보유 장착 |
 | `VALIDATION` | 422 | 필드 검증 |
@@ -609,7 +609,7 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 | 구독 | 월 ₩5,900 / 연 ₩59,000 · 건초 증정 월 1,000 / 연 4,000(플랜별 최초 1회) |
 | 체험 | 가입 후 2일(48h) · 구독 수준 혜택(건초 증정·구독 전용 배경 제외) |
 | 런칭 무료 | `free_launch_until`(기본 2026-08-31)까지 전원 무료·일 50k. app_config로 조정 |
-| 건초 획득 | 출석 10 / 광고 회당 10(일 10회) / 루틴 2개 완료 10 |
+| 건초 획득 | 출석 20 / 광고 회당 20(일 5회) / 루틴 2개 완료 20 |
 | 건초 IAP | 300 ₩1,500 / 1,500 ₩6,500 / 3,000 ₩10,000 |
 | 상점 | 아이템 최소 1,000·+200 / 배경 최소 4,000·+1,000 · 구독 전용 배경 = 비매품 |
 | 가입 기본 세팅 | 아이템 3종 지급(집·운동 배경, 선글라스 — 장착은 안 함) + 기본 루틴 2개(이불 정리하기·물 마시기, 주 7회) |

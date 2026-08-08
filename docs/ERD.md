@@ -150,7 +150,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `user_id` | uuid FK→`profiles` | |
 | `activity_date` | date | 앱 기준일 (04:00 경계, 유저 타임존) |
 | `tokens_used` | int, default 0 | 그날 누적 토큰 (**LLM 입력+출력 합산**, US-403). greeting 제외. **대화 한도·일기 LLM 분기·리뷰 팝업의 공통 판정 지표** — 한도·기준치는 `app_config` |
-| `ad_reward_count` | smallint, default 0 | 리워드 광고 수령 횟수 — 일 최대 10회 서버 검증 (US-903). SSV 콜백은 **멱등 처리**(재전송 중복 지급 방지) + 원자 증가 |
+| `ad_reward_count` | smallint, default 0 | 리워드 광고 수령 횟수 — 일 최대 5회 서버 검증 (US-903). SSV 콜백은 **멱등 처리**(재전송 중복 지급 방지) + 원자 증가 |
 | `attendance_claimed_at` | timestamptz NULL | 출석 수령 시각 — NOT NULL이면 당일 수령 완료 (US-902) |
 | `routine_reward_claimed_at` | timestamptz NULL | 루틴 2개 완료 보상 수령 시각 (US-904) |
 | `morning_notified_at` | timestamptz NULL | 아침(09:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료, 재발송 차단 |
@@ -281,13 +281,13 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | --- | --- | --- |
 | `session_id` | uuid PK | 앱이 광고 노출 전에 발급 |
 | `user_id` | uuid FK→`profiles` | |
-| `activity_date` | date | 앱 기준일 — 일 10회 한도 게이팅용 |
+| `activity_date` | date | 앱 기준일 — 일 5회 한도 게이팅용 |
 | `ssv_transaction_id` | text UNIQUE NULL | SSV 콜백 도착 시 기록 — UNIQUE로 재전송 멱등 처리 |
 | `granted` | bool NOT NULL default false | 건초 지급 완료 여부 |
 | `created_at` | timestamptz | |
 
 - 인덱스: `reward_ad_sessions_user_idx (user_id)`.
-- `user_daily_stats.ad_reward_count`와 이 테이블이 이중 멱등: SSV `ssv_transaction_id` UNIQUE + 카운터 ≤ 10 서버 검증.
+- `user_daily_stats.ad_reward_count`와 이 테이블이 이중 멱등: SSV `ssv_transaction_id` UNIQUE + 카운터 ≤ 5 서버 검증.
 
 ---
 

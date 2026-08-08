@@ -112,12 +112,12 @@ async def test_attendance_success(monkeypatch):
         return SimpleNamespace(attendance_claimed_at=None)
 
     async def _apply(session, uid, t, amt, **kw):
-        return SimpleNamespace(id=1, balance_after=650)
+        return SimpleNamespace(id=1, balance_after=660)
 
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     out = await economy.claim_attendance(FakeSession(), UID)
-    assert out == {"granted": 10, "balance_after": 650}
+    assert out == {"granted": 20, "balance_after": 660}
 
 
 async def test_attendance_already_claimed(monkeypatch):

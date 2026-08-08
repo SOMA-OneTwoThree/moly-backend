@@ -122,12 +122,12 @@ async def test_create_session_success(monkeypatch):
     monkeypatch.setattr(ads, "_load_profile", _lp)
     out = await ads.create_session(FakeSession(), UID)
     assert out["admob_user_id"] == UID
-    assert out["views_used"] == 3 and out["views_limit"] == 10
+    assert out["views_used"] == 3 and out["views_limit"] == economy.AD_DAILY_LIMIT
     assert out["reward_session_id"]  # 발급됨
 
 
 async def test_create_session_limit_429(monkeypatch):
-    _patch(monkeypatch, ad_count=10)
+    _patch(monkeypatch, ad_count=economy.AD_DAILY_LIMIT)
 
     async def _lp(session, user_id):
         return SimpleNamespace(id=UID_UUID, timezone="Asia/Seoul")
@@ -163,7 +163,7 @@ async def test_grant_limit_no_pay(monkeypatch):
         raise AssertionError("한도 초과 시 지급 금지")
 
     async def _daily(session, uid, ad):
-        return SimpleNamespace(ad_reward_count=10)
+        return SimpleNamespace(ad_reward_count=economy.AD_DAILY_LIMIT)
 
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)

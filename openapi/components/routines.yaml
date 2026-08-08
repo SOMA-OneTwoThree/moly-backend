@@ -127,7 +127,7 @@ schemas:
         type: integer
         minimum: 0
         title: Reward
-        description: 현재 routine 보상 10.
+        description: 현재 routine 보상 20.
     type: object
     required:
     - completed_today

@@ -29,7 +29,7 @@ async def ad_ssv(
     request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
-    """AdMob 리워드 SSV 콜백(서버-서버). 인증 = 서명. 검증 후 세션으로 자동 +10 지급.
+    """AdMob 리워드 SSV 콜백(서버-서버). 인증 = 서명. 검증 후 세션으로 자동 +20 지급.
 
     서명 통과 후에는 항상 200 — 비-200이면 Google이 1초 간격 5회 재전송하는데 중복·한도 등
     영구 조건엔 무의미. 처리 결과는 body `result`로 구분(운영·테스트용, Google은 무시).

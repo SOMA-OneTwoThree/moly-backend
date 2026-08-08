@@ -44,7 +44,7 @@ def test_persona_forbids_volunteering_routines():
 ])
 def test_needs_recall_english(q, expected):
     from app.services import mem0_recall
-    assert mem0_recall.needs_recall(q, "en") is expected
+    assert mem0_recall.needs_recall(q) is expected
 
 
 @pytest.mark.parametrize("q,expected", [
@@ -53,7 +53,7 @@ def test_needs_recall_english(q, expected):
 ])
 def test_needs_recall_japanese(q, expected):
     from app.services import mem0_recall
-    assert mem0_recall.needs_recall(q, "ja") is expected
+    assert mem0_recall.needs_recall(q) is expected
 
 
 @pytest.mark.parametrize("q,expected", [
@@ -62,13 +62,18 @@ def test_needs_recall_japanese(q, expected):
 ])
 def test_needs_recall_korean_unchanged(q, expected):
     from app.services import mem0_recall
-    assert mem0_recall.needs_recall(q, "ko") is expected
+    assert mem0_recall.needs_recall(q) is expected
 
 
-def test_recall_receives_the_language_from_chat():
-    """언어를 안 넘기면 전부 영어 기준으로 판정된다(i18n 기본값이 en)."""
+def test_needs_recall_picks_the_rule_by_script_not_by_profile_language():
+    """프로필이 `en`인데 한국어로 말하는 사람이 운영에 실제로 있다.
+
+    프로필 언어로 규칙을 고르면 그 사람의 한국어 문장이 영어 낱말 수 기준으로 판정돼
+    되짚는 말을 놓친다. 그래서 `needs_recall`은 언어를 아예 받지 않는다.
+    """
     import inspect
-    from app.services import chat
-    src = inspect.getsource(chat)
-    block = src.split("mem0_recall.recall(")[1][:400]
-    assert "language=language" in block
+    from app.services import mem0_recall
+    assert list(inspect.signature(mem0_recall.needs_recall).parameters) == ["query"]
+    # 같은 글에 대해 판정은 하나뿐이다 — 프로필이 무엇이든 결과가 갈리지 않는다.
+    assert mem0_recall.needs_recall("오늘 진짜 힘들었어") is True
+    assert mem0_recall.needs_recall("haha okay") is False

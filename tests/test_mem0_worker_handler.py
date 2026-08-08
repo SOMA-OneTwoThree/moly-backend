@@ -229,8 +229,9 @@ def test_resume_plan_is_scoped_to_the_same_repair_generation():
     assert "repair_generation = :generation" in sql
     # 계획을 저장할 때도 같은 세대를 적어야 짝이 맞는다.
     assert ":generation" in str(mem0_jobs._STAGE_CANDIDATE)
-    # 판정이 읽는 본문도 같은 세대만 본다.
-    assert "repair_generation = :generation" in str(mem0_jobs._CANDIDATE_TEXTS)
+    # 반대로 판정이 읽는 본문은 **세대로 거르면 안 된다.** provider id에 이미 세대가 들어
+    # 있어 거를 필요가 없고, 거르면 지난 세대의 미판정 기억이 영원히 판정을 못 받는다.
+    assert "repair_generation" not in str(mem0_jobs._CANDIDATE_TEXTS)
 
 
 def test_all_memory_job_keys_use_one_generation_source():
@@ -250,3 +251,32 @@ def test_all_memory_job_keys_use_one_generation_source():
     # 판정·삭제는 repair_generation을 직접 읽고, 추출은 호출측이 같은 값을 넘긴다.
     assert "repair_generation" in inspect.getsource(chat._record_memory_v2)
     assert "state.revision" not in inspect.getsource(chat._record_memory_v2)
+
+
+def test_reextract_script_key_matches_the_real_key_builder():
+    """스크립트가 손으로 만든 키가 실제 함수와 어긋나면 같은 턴을 두 번 처리한다."""
+    import re
+    import uuid as _uuid
+    from pathlib import Path
+    from app.services import memory_pipeline
+
+    src = Path("scripts/reextract_memories.py").read_text()
+    m = re.search(r'key = f"([^"]+)"', src)
+    assert m, "스크립트에서 키 문자열을 못 찾았다"
+    uid, first, gen = _uuid.uuid4(), 7, 3
+    built = m.group(1).replace("{uid}", str(uid)).replace("{first}", str(first)).replace("{gen}", str(gen))
+    assert built == memory_pipeline.ingest_dedup_key(uid, first, generation=gen)
+
+
+def test_generation_suffix_cannot_collide_with_the_old_revision_keys():
+    """접미사를 숫자만 붙이면 옛 revision 키(운영에 2·3·5가 남아 있다)와 같아진다."""
+    import uuid as _uuid
+    from app.services import memory_pipeline
+
+    uid = _uuid.uuid4()
+    # 세대 0은 세대 없는 예전 형식 그대로 — 지금 돌고 있는 잡과 키가 어긋나면 안 된다.
+    assert memory_pipeline.ingest_dedup_key(uid, 7, generation=0) == f"mem0:{uid}:7:v1"
+    for gen in (1, 2, 3, 5):
+        key = memory_pipeline.ingest_dedup_key(uid, 7, generation=gen)
+        assert not key.endswith(f":{gen}"), "숫자만 붙이면 옛 키와 겹친다"
+        assert key.endswith(f":g{gen}")

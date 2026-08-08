@@ -332,10 +332,16 @@ def ingest_dedup_key(
     한다** — 다르면 한쪽만 새 키를 받아, 추출은 다시 도는데 판정 잡은 옛 키에 막혀 조용히
     무시된다(그 기억은 `pending`인 채로 영원히 안 보인다).
 
-    **0이면 예전 형식 그대로** — 이미 돌고 있는 잡과 키가 어긋나지 않는다.
+    **0이면 세대 없는 예전 형식 그대로** — 지금까지 만든 잡 17,786건이 그 형식이라 평상시
+    동작이 바뀌지 않는다.
+
+    ⚠️ 0이 아니면 **`g`를 앞에 붙인다.** 잠깐 이 자리에 `revision`을 쓴 적이 있어서
+    운영에 접미사 `2`·`3`·`5`인 키가 이미 남아 있다(2026-08-08 실제 측정). 숫자만 붙이면
+    세대가 2로 올라갈 때 그 키와 같은 문자열이 되어, 잡이 `ON CONFLICT DO NOTHING`으로
+    조용히 안 생긴다 — 이 함수가 막으려는 고장과 똑같은 고장이 난다.
     """
     base = f"mem0:{user_id}:{turn_seq}:{schema_version}"
-    return base if generation == 0 else f"{base}:{generation}"
+    return base if generation == 0 else f"{base}:g{generation}"
 
 
 def consolidate_dedup_key(

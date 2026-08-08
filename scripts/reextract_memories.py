@@ -139,7 +139,10 @@ async def reextract(
             #
             # ⚠️ 키에 **세대를 넣는다.** 안 넣으면 지난 백필이 만든 같은 키의 잡 행에
             #    막혀 `ON CONFLICT DO NOTHING`으로 조용히 무시된다(2026-08-08에 실제로 그랬다).
-            key = f"mem0:{uid}:{first}:v1:{gen}"
+            #    형식은 `memory_pipeline.ingest_dedup_key`와 **글자 하나까지 같아야 한다** —
+            #    다르면 이어지는 잡들과 키 공간이 갈려 같은 턴을 두 번 처리한다.
+            #    `g`를 붙이는 이유는 그 함수 설명에 있다(옛 `revision` 키와 겹침).
+            key = f"mem0:{uid}:{first}:v1:g{gen}"
             res = await c.execute(
                 "INSERT INTO async_jobs "
                 "  (queue, job_type, user_id, dedup_key, payload, state, priority, "
@@ -192,22 +195,36 @@ async def rollback(c: asyncpg.Connection, *, apply: bool) -> None:
             restored += int(r.split()[-1])
 
         # 남아 있는 재추출 잡을 취소한다. 안 그러면 되살린 직후에 다시 새 기억이 생긴다.
+        #
+        # **`running`도 함께 끊는다.** 대기 중인 것만 끊으면, 그때 돌고 있던 추출 잡이 끝나면서
+        # 다음 구간 잡을 스스로 만들어 재추출이 그대로 이어진다. 상태를 바꾸면 그 잡의 마무리
+        # UPDATE가 `state='running'` 조건에 걸려 실패하고, 그 잡이 한 일은 반영되지 않는다.
+        #
+        # **추출·판정 잡만** 끊는다. 큐 전체를 끊으면 채팅이 정상적으로 걸어둔 잡까지 죽는다.
         cancelled = await c.execute(
             "UPDATE async_jobs SET state='cancelled', finished_at=now() "
-            "WHERE queue='memory' AND state='ready' AND user_id = ANY($1::uuid[])", uids)
+            "WHERE job_type IN ('mem0_ingest','mem0_consolidate') "
+            "AND state IN ('ready','running') AND user_id = ANY($1::uuid[])", uids)
+        # 판정 잡을 끊었으니 판정 못 받은 기억이 남는다. 회상은 `active`·`ambiguous`만 읽어
+        # 사용자에게 보이지는 않지만, 그대로 두면 미판정으로 영원히 남아 운영 전환 관문을 막는다.
+        left = await c.execute(
+            "UPDATE mem0_memory_registry SET semantic_status='excluded', updated_at=now() "
+            "WHERE user_id = ANY($1::uuid[]) AND semantic_status='pending'", uids)
 
         # ⚠️ **커서도 반드시 되돌린다.** 기억만 되살리고 커서를 0으로 두면 그 사용자의
         #    앞으로의 대화가 기억으로 안 들어간다 — chat이 "커서가 따라잡았을 때만" 잡을
         #    걸기 때문이다. 2026-08-08에 이걸 빠뜨려 3명이 그 상태로 남았다.
         #    **되돌린 사람만** 손댄다 — 조건만 보고 전체를 훑으면 지금 정상적으로 처리 중인
         #    사람의 커서까지 건너뛰어 그 대화가 기억에서 통째로 빠진다.
+        #    ⚠️ 아직 추출 안 된 구간이 남아 있으면 그 대화는 기억으로 안 들어간다. 앞으로의
+        #    대화가 통째로 막히는 것보다 낫다고 보고 이쪽을 택했다.
         cur = await c.execute(
             "UPDATE memory_pipeline_states SET ingest_through_turn_seq=source_through_turn_seq, "
             "consolidated_through_turn_seq=source_through_turn_seq, "
             "repair_generation=repair_generation+1, revision=revision+1, updated_at=now() "
             "WHERE user_id = ANY($1::uuid[])", uids)
         print(f"  대상 {len(uids)}명 · 새 기억 숨김 {hidden} · 옛 기억 복구 {restored}건")
-        print(f"  잡 취소 {cancelled} · 커서 복구 {cur}")
+        print(f"  잡 취소 {cancelled} · 미판정 정리 {left} · 커서 복구 {cur}")
     print("되돌리기 완료 — 옛 기억이 다시 회상에 나온다.")
 
 

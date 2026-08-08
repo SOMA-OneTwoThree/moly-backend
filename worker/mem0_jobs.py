@@ -436,12 +436,14 @@ consumer.register(JOB_MEM0_INGEST, handle_mem0_ingest)
 
 JOB_MEM0_CONSOLIDATE = "mem0_consolidate"
 
+# ⚠️ 여기는 **세대로 거르지 않는다.** provider id에 이미 세대가 들어 있어서 세대별로 갈리므로
+# 거를 필요가 없고, 거르면 지난 세대가 남긴 미판정 기억의 본문을 못 찾는다. registry에는 세대
+# 컬럼이 없어(`load_pending`도 세대를 안 본다) 그 행은 판정 대상에서 빠지고 영원히 `pending`으로
+# 남는다 — 운영 전환 관문의 "미판정 0" 조건을 영구히 막는다(검토 지적 3-2).
 _CANDIDATE_TEXTS = text("""
 SELECT provider_memory_id, candidate_text
 FROM mem0_ingest_candidates
-WHERE user_id = :user_id AND turn_seq = :turn_seq
-  AND repair_generation = :generation
-  AND status IN ('planned','committed')
+WHERE user_id = :user_id AND turn_seq = :turn_seq AND status IN ('planned','committed')
 """)
 
 
@@ -477,10 +479,7 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
         texts = dict(
             (r[0], r[1])
             for r in (await session.execute(
-                _CANDIDATE_TEXTS, {
-                    "user_id": uid, "turn_seq": turn_seq,
-                    "generation": int(state.repair_generation),
-                }
+                _CANDIDATE_TEXTS, {"user_id": uid, "turn_seq": turn_seq}
             )).all()
         )
         expected_revision = state.revision

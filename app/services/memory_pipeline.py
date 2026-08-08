@@ -48,6 +48,9 @@ class PipelineState:
     # 재처리 세대. 커서를 되돌려 같은 turn을 다시 처리할 때만 올라간다.
     # **잡 멱등 키와 후보 계획의 소유자를 가르는 값이다** — 세대가 다르면 남남이다.
     repair_generation: int = 0
+    # DB에 행이 실제로 있는가. `legacy`는 두 가지를 뜻한다 — 행이 아예 없는 신규 가입자와,
+    # 일부러 꺼둔 사용자. 등록은 앞의 경우에만 시도해야 헛된 쓰기가 안 나간다.
+    exists: bool = True
 
     @property
     def records_v2(self) -> bool:
@@ -88,6 +91,7 @@ async def load(session: AsyncSession, user_id: uuid.UUID) -> PipelineState:
             privacy_epoch=0,
             revision=0,
             repair_generation=0,
+            exists=False,
         )
     return PipelineState(
         user_id=row[0],

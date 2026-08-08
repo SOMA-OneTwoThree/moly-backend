@@ -322,3 +322,37 @@ def test_reextract_jobs_run_behind_live_users():
     from pathlib import Path
     src = Path("scripts/reextract_memories.py").read_text()
     assert "'ready',500,now(),8" in src, "재추출 잡은 우선순위를 뒤로 미룬다"
+
+
+def test_stall_detection_measures_the_age_of_the_unprocessed_turn():
+    """상태 행의 `updated_at`으로 재면, 멈춘 사람이 계속 대화하는 한 영원히 안 걸린다.
+
+    그 값은 대화 커서 전진 때문에 매 턴 새로 찍힌다. 대화하는 내내 기억이 안 쌓이는데
+    감지도 안 되는 상태가 된다 — 이번 수정이 잡으려던 사고가 정확히 그 모양이었다.
+    """
+    from worker import memory_sweep_jobs as sw
+    sql = str(sw._STALLED_USERS)
+    assert "m.created_at < now() - make_interval(mins => :grace)" in sql
+    assert "s.updated_at <" not in sql, "상태 행의 갱신 시각으로 재면 안 된다"
+
+    from app.api import health
+    hsql = str(health._MEMORY_STALL)
+    assert "m.created_at < now() - interval '30 minutes'" in hsql
+    assert "s.updated_at <" not in hsql
+
+
+def test_sweep_does_not_double_revive_the_same_user():
+    """죽은 잡 되살리기와 커서 되살리기가 겹치면 같은 구간을 두 번 추출한다."""
+    import inspect
+    from worker import memory_sweep_jobs as sw
+    src = inspect.getsource(sw.handle_memory_sweep)
+    assert "replaying = {u for _j, u in rows}" in src
+    assert "user_id in replaying" in src
+
+
+def test_excluded_memories_get_their_vectors_cleaned():
+    """회상에 안 나오는 벡터가 저장소에 영원히 남아 검색 상위 칸만 잡아먹는다."""
+    import inspect
+    src = inspect.getsource(mem0_jobs.handle_mem0_consolidate)
+    block = src.split("STATUS_EXCLUDED")[1][:300]
+    assert "DELETE_PENDING" in block

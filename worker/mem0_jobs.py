@@ -627,7 +627,10 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
         _log.warning("본문을 못 찾아 판정에서 뺀 기억 %d건 — job=%s", len(unjudged), job.id)
         verdict.transitions.extend(
             mem0_consolidation.Transition(
-                registry_id=rid, semantic_status=mem0_consolidation.STATUS_EXCLUDED
+                registry_id=rid, semantic_status=mem0_consolidation.STATUS_EXCLUDED,
+                # 벡터도 정리 대상으로 표시한다. 안 하면 회상에 안 나오는 벡터가 저장소에
+                # 영원히 남아 검색 상위 칸만 잡아먹는다.
+                provider_delete_state=mem0_consolidation.DELETE_PENDING,
             )
             for rid in unjudged
         )

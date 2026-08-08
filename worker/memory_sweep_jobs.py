@@ -58,23 +58,31 @@ STALL_GRACE_MIN = 30
 # 애초에 잡이 하나도 없는 경우도 마찬가지였다.
 #
 # 믿을 수 있는 신호는 하나다: **커서가 뒤처졌는데 대기·실행 중인 잡이 없다.**
+# ⚠️ 기다린 시간은 **처리 안 된 가장 오래된 턴의 나이**로 잰다. 상태 행의 `updated_at`으로 재면
+#    안 된다 — 그 값은 대화 커서 전진 때문에 **매 턴 새로 찍히므로**, 사슬이 멈춘 사람이 계속
+#    대화하는 한 유예 조건을 영원히 못 넘는다. 그러면 대화하는 내내 기억이 안 쌓이는데
+#    감지도 안 된다. 이번 수정이 잡으려던 사고가 정확히 그 모양이었다.
 _STALLED_USERS = text("""
 SELECT s.user_id, s.ingest_through_turn_seq AS cursor, s.repair_generation, s.privacy_epoch,
-       (SELECT MIN(m.turn_seq) FROM messages m
-         WHERE m.user_id = s.user_id AND m.kind = 'normal' AND m.turn_seq IS NOT NULL
-           AND m.turn_seq > s.ingest_through_turn_seq
-           AND m.turn_seq <= s.source_through_turn_seq) AS next_turn
+       nxt.turn_seq AS next_turn
 FROM memory_pipeline_states s
+JOIN LATERAL (
+  SELECT MIN(m.turn_seq) AS turn_seq
+  FROM messages m
+  WHERE m.user_id = s.user_id AND m.kind = 'normal' AND m.turn_seq IS NOT NULL
+    AND m.turn_seq > s.ingest_through_turn_seq
+    AND m.turn_seq <= s.source_through_turn_seq
+    AND m.created_at < now() - make_interval(mins => :grace)
+) nxt ON nxt.turn_seq IS NOT NULL
 WHERE s.mode <> 'legacy'
   AND s.bootstrap_status = 'ready'
   AND s.ingest_through_turn_seq < s.source_through_turn_seq
-  AND s.updated_at < now() - make_interval(mins => :grace)
   AND NOT EXISTS (
     SELECT 1 FROM async_jobs j
     WHERE j.user_id = s.user_id AND j.job_type = 'mem0_ingest'
       AND j.state IN ('ready', 'running')
   )
-ORDER BY s.updated_at
+ORDER BY nxt.turn_seq
 LIMIT :limit
 """)
 
@@ -86,6 +94,7 @@ SELECT r.user_id, MIN(r.source_turn_seq) AS turn_seq,
 FROM mem0_memory_registry r
 JOIN memory_pipeline_states s ON s.user_id = r.user_id
 WHERE r.semantic_status = 'pending'
+  AND s.mode <> 'legacy'
   AND r.created_at < now() - make_interval(mins => :grace)
   AND NOT EXISTS (
     SELECT 1 FROM async_jobs j
@@ -223,9 +232,12 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
         # 시간 칸을 키에 넣어 한 시간에 한 번만 다시 건다. 매 틱마다 새 잡을 쌓지 않는다.
         bucket = datetime.now(timezone.utc).strftime("%Y%m%d%H")
 
+        # 죽은 잡 되살리기(`rows`)가 이미 집어간 사람은 건너뛴다. 둘 다 걸면 같은 구간을
+        # 두 번 추출해 LLM 호출이 두 배로 든다(데이터는 결정적 id라 수렴한다).
+        replaying = {u for _j, u in rows}
         for user_id, cursor, generation, epoch, next_turn in stalled:
-            if next_turn is None:
-                continue  # 커서 뒤에 처리할 턴이 실제로는 없다 — 곧 따라잡는다
+            if next_turn is None or user_id in replaying:
+                continue  # 커서 뒤에 처리할 턴이 없거나, 죽은 잡 쪽에서 이미 되살린다
             made = await jobs.enqueue(
                 session,
                 queue=jobs.QUEUE_MEMORY,

@@ -186,8 +186,9 @@ async def test_chat_phase_b_is_noop_for_legacy_users(monkeypatch):
 
     calls: list[str] = []
     monkeypatch.setattr(mp, "load", lambda s, u: _legacy_state(u))
-    # 행이 이미 있는데 legacy면 일부러 꺼둔 것이다 — 등록이 아무것도 하지 않는다.
-    monkeypatch.setattr(mp, "enroll", _false_enroll)
+    # 행이 이미 있는데 legacy면 일부러 꺼둔 것이다 — 등록을 **시도조차 하지 않는다**
+    # (매 턴 헛된 INSERT가 나가면 안 된다).
+    monkeypatch.setattr(mp, "enroll", _must_not_enroll)
     monkeypatch.setattr(mp, "advance_source", _record("advance", calls))
     monkeypatch.setattr(mp, "record_turn_events", _record("events", calls))
     await chat._record_memory_v2(
@@ -217,7 +218,18 @@ def _record(name: str, sink: list[str]):
     return _fn
 
 
+async def _no_row_state(user_id):
+    """DB에 행이 아예 없는 신규 가입자 — 등록 대상이다."""
+    return mp.PipelineState(
+        user_id=user_id, mode=mp.MODE_LEGACY, bootstrap_status=mp.BOOTSTRAP_LEGACY,
+        source_through_turn_seq=0, ingest_through_turn_seq=0,
+        consolidated_through_turn_seq=0, historical_upper_turn_seq=None,
+        privacy_epoch=0, revision=0, exists=False,
+    )
+
+
 async def _legacy_state(user_id):
+    """행은 있는데 legacy — 일부러 꺼둔 사용자다."""
     return mp.PipelineState(
         user_id=user_id, mode=mp.MODE_LEGACY, bootstrap_status=mp.BOOTSTRAP_LEGACY,
         source_through_turn_seq=0, ingest_through_turn_seq=0,
@@ -391,7 +403,7 @@ async def test_new_user_is_enrolled_on_first_turn(monkeypatch):
     from app.services import chat
 
     calls: list[str] = []
-    states = iter([_legacy_state, _v2_state])
+    states = iter([_no_row_state, _v2_state])
 
     def _load(s, u):
         return next(states)(u)
@@ -424,6 +436,10 @@ async def test_enrollment_does_not_revive_a_deliberate_legacy_user(monkeypatch):
 
 async def _false_enroll(session, user_id):
     return False
+
+
+async def _must_not_enroll(session, user_id):
+    raise AssertionError("행이 있는 legacy 사용자에게 등록을 시도하면 안 된다")
 
 
 async def _v2_state(user_id):

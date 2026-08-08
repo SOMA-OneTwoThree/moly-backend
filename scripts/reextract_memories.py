@@ -114,6 +114,12 @@ async def reextract(
         epoch = int(await c.fetchval(
             "SELECT privacy_epoch FROM memory_pipeline_states WHERE user_id=$1", uid) or 0)
         async with c.transaction():
+            # 옛 세대의 남은 잡을 먼저 끊는다. 안 끊으면 그 잡이 뒤늦게 끝나면서 판정 커서를
+            # 자기 턴까지 올려, 재추출 진행 중에 전환 관문 숫자가 실제보다 앞서 보인다.
+            await c.execute(
+                "UPDATE async_jobs SET state='cancelled', finished_at=now() "
+                "WHERE user_id=$1 AND job_type IN ('mem0_ingest','mem0_consolidate') "
+                "AND state IN ('ready','running')", uid)
             hidden = 0
             for orig, mark in MARK.items():
                 n = await c.execute(

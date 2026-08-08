@@ -645,10 +645,14 @@ async def _record_memory_v2(
     """
     state = await memory_pipeline.load(session, uid)
     if not state.records_v2:
+        # 행이 있는데 legacy면 일부러 꺼둔 사용자다 — 건드리지 않는다.
+        if state.exists:
+            return
         # 신규 가입자는 **여기서 처음 등록된다.** 이 경로가 없으면 그 사람은 평생 기억이
-        # 0건이다 — 오류도 로그도 안 난다(2026-08-08 감사에서 발견).
+        # 0건이다 — 오류도 로그도 안 난다(2026-08-08 감사에서 발견. 전환 이후 가입한 52명이
+        # 실제로 그 상태였고 그중 4명은 이미 대화까지 했다).
         if not await memory_pipeline.enroll(session, uid):
-            return  # 이미 행이 있는데 legacy다 — 일부러 꺼둔 사용자이므로 건드리지 않는다
+            return
         state = await memory_pipeline.load(session, uid)
         _log.info("기억 파이프라인 신규 등록 — user=%s", uid)
     await memory_pipeline.advance_source(session, uid, turn_seq=turn_seq)

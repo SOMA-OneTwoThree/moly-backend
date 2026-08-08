@@ -136,7 +136,13 @@ SELECT
   (SELECT count(*) FROM memory_pipeline_states s
     WHERE s.mode <> 'legacy' AND s.bootstrap_status = 'ready'
       AND s.ingest_through_turn_seq < s.source_through_turn_seq
-      AND s.updated_at < now() - interval '30 minutes'
+      -- ⚠️ 기다린 시간은 **처리 안 된 턴의 나이**로 잰다. 상태 행의 `updated_at`은 대화할
+      --    때마다 새로 찍혀서, 멈춘 사람이 계속 대화하면 영원히 안 걸린다.
+      AND EXISTS (SELECT 1 FROM messages m
+                   WHERE m.user_id = s.user_id AND m.kind = 'normal'
+                     AND m.turn_seq > s.ingest_through_turn_seq
+                     AND m.turn_seq <= s.source_through_turn_seq
+                     AND m.created_at < now() - interval '30 minutes')
       AND NOT EXISTS (SELECT 1 FROM async_jobs j
                        WHERE j.user_id = s.user_id AND j.job_type = 'mem0_ingest'
                          AND j.state IN ('ready','running'))) AS stalled,

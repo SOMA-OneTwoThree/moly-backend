@@ -58,11 +58,14 @@ SELECT
 # 재추출 대상 — 아직 안 건드렸고, 지금 대화 중이 아닌 사람부터.
 _TARGETS = """
 SELECT s.user_id,
+       p.language,
        s.source_through_turn_seq AS turns,
        (SELECT count(*) FROM mem0_memory_registry r
          WHERE r.user_id = s.user_id AND r.semantic_status IN ('active','ambiguous')) AS mem
 FROM memory_pipeline_states s
+JOIN profiles p ON p.id = s.user_id
 WHERE s.mode = 'v2'
+  AND ($5::text IS NULL OR p.language = $5)                           -- 언어로 좁히기(선택)
   AND s.source_through_turn_seq >= $4                                 -- 최소 턴 수
   AND s.ingest_through_turn_seq >= s.source_through_turn_seq          -- 진행 중인 사람 제외
   AND NOT EXISTS (SELECT 1 FROM mem0_memory_registry r
@@ -90,16 +93,17 @@ async def show_status(c: asyncpg.Connection) -> None:
 
 
 async def reextract(
-    c: asyncpg.Connection, *, limit: int, idle_min: int, apply: bool, min_turns: int
+    c: asyncpg.Connection, *, limit: int, idle_min: int, apply: bool, min_turns: int,
+    language: str | None = None,
 ) -> None:
-    rows = await c.fetch(_TARGETS, list(MARKS), idle_min, limit, min_turns)
+    rows = await c.fetch(_TARGETS, list(MARKS), idle_min, limit, min_turns, language)
     if not rows:
         print("대상 없음 — 전원 완료했거나 전부 대화 중이다.")
         return
     print(f"=== 대상 {len(rows)}명 ({'실행' if apply else '미리보기'}) ===")
     for r in rows:
         uid, turns, mem = r["user_id"], r["turns"], r["mem"]
-        print(f"  {str(uid)[:8]}  턴 {turns:>4} · 기억 {mem:>4}건", end="")
+        print(f"  {str(uid)[:8]} [{r['language']}] 턴 {turns:>4} · 기억 {mem:>4}건", end="")
         if not apply:
             print("  → [미리보기]")
             continue
@@ -245,6 +249,7 @@ async def main(env: str | None) -> None:
     p.add_argument("--limit", type=int, default=3)
     p.add_argument("--idle-min", type=int, default=10, help="이 시간 내 대화한 사람은 건너뛴다")
     p.add_argument("--min-turns", type=int, default=1, help="이 턴 수 이상인 사람만")
+    p.add_argument("--language", help="ko|ja|en — 이 언어 사용자만 (없으면 전체)")
     p.add_argument("--apply", action="store_true", help="없으면 미리보기")
     a = p.parse_args(_rest)
 
@@ -258,7 +263,7 @@ async def main(env: str | None) -> None:
             await rollback(c, apply=a.apply)
         else:
             await reextract(c, limit=a.limit, idle_min=a.idle_min, apply=a.apply,
-                            min_turns=a.min_turns)
+                            min_turns=a.min_turns, language=a.language)
             print()
             await show_status(c)
     finally:

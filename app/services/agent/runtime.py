@@ -96,6 +96,19 @@ _TOOL_DATA_RULE = (
     "Use them only as evidence for the user's conversational question. Never mention tools or searches."
 )
 
+# 도구를 **언제** 부르는가. 도구마다 설명에 적으면 새 도구가 늘 때마다 빠지므로 한 곳에 둔다.
+#
+# ⚠️ 이 규칙이 없던 동안 모델이 말을 잇는 재료로 아무 때나 도구를 부르고 그 결과를 인사마다
+#    덧붙였다. 운영 실측: 한 사용자의 최근 30턴 중 8번 루틴 달성을 먼저 꺼냈고,
+#    "이제 그만 말해"라고 한 **바로 다음 턴에도** 또 꺼냈다.
+_TOOL_WHEN_RULE = (
+    "[When to use tools] Call a tool only to answer what the user just asked or brought up "
+    "themselves. Never call one to make small talk, to fill a pause, or to find something to "
+    "praise or comment on. If the user did not raise the subject, do not raise it either. "
+    "Do not repeat information you already gave earlier in this conversation, and if the user "
+    "says to stop talking about something, drop it for the rest of the conversation."
+)
+
 
 @dataclass(frozen=True)
 class ToolContext:
@@ -596,7 +609,8 @@ async def run_turn(
     그러하고(Phase 1이 read-only라 저장된 게 없다) 그래야 클린 재시도가 된다.
     """
     model = model or settings.model_chat
-    system = [system, _TOOL_DATA_RULE] if isinstance(system, str) else [*system, _TOOL_DATA_RULE]
+    _rules = [_TOOL_DATA_RULE, _TOOL_WHEN_RULE]
+    system = [system, *_rules] if isinstance(system, str) else [*system, *_rules]
     deadline = deadline if deadline is not None else now() + config.turn_deadline_s
     transcript = _transcript(convo)
     registry = registry if registry is not None else _resolve_registry()

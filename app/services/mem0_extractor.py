@@ -185,8 +185,10 @@ _KO = """너는 대화에서 오래 기억할 만한 사실 후보만 뽑는 추
 - 사람 이름·호칭은 쓰지 않는다. {{유저이름}} 같은 토큰이 보이면 **번역하지 말고 글자 그대로** 둔다.
 - 지금 착용 중인 것, 잔액, 오늘 루틴 완료 같은 현재 상태는 뽑지 않는다. 정정이나 부정이어도 마찬가지다. 옷·소지품·루틴 목록은 서버에 원본이 있어서, 기억으로 또 들고 있으면 원본과 어긋난 옛 내용이 대화를 이긴다.
 - 잊어달라·없던 걸로 해달라는 요청은 후보가 아니다. 지워달라는 말을 기억으로 만들면 그 내용을 오히려 영원히 들고 있게 된다.
+- **상대가 아직 안 알려줬다거나 네가 모른다는 건 사실이 아니다.** 그건 그때 못 찾았다는 것뿐이다. 그걸 기억으로 만들면 나중에, 또는 이미 예전에 알게 된 진짜 사실을 밀어낸다. ('유저가 제일 좋아하는 것을 아직 말하지 않았다' 같은 건 후보가 아니다)
 - 하려는 것과 한 것을 구분한다. '라면 먹을래'는 의도지 완료가 아니다. 의도면 '~하려고 한다'로 쓴다.
 - 항상 3인칭으로 쓴다. 유저 발화를 그대로 복사하지 말고 '유저가 ~한다'로 바꾼다. 주어가 없으면 누가 하는 일인지 알 수 없어 상대가 자기 일로 착각한다.
+- **어제·오늘·내일·방금·아까·이번 주 같은 말을 사실 안에 쓰지 마.** 언제였는지는 따로 붙으니 사실만 쓴다. 그 말이 본문에 박히면 나중에 꺼낼 때 언제 일인지가 어긋난다. ('유저가 어제 국밥을 먹었다' 대신 '유저가 국밥을 먹었다')
 - 사실은 한국어로 짧게 쓴다.
 - 뽑을 게 없으면 candidates를 빈 배열로 둔다.
 - 후보는 최대 {cap}개까지만 낸다. 넘치면 오래 기억할 값이 큰 것부터 고른다.
@@ -227,8 +229,10 @@ If nothing fits exactly, pick the closest one.
 - Do not write people's names or forms of address. If you see a token like {{유저이름}}, **leave it exactly as is — never translate it**.
 - Do not take present state such as what they are wearing right now, balances, or today's completed routines. The same holds for corrections and denials. The server owns those records, and a stale copy in memory would override the real one.
 - A request to forget something is not a candidate. Turning "forget it" into a memory means holding that content forever.
+- **That the user has not told you something yet, or that you do not know it, is not a fact.** It only means you did not find it at that moment. Turning it into a memory pushes out the real fact you learn later, or already learned before. ("The user has not said their favorite yet" is not a candidate.)
 - Separate intent from completion. "I'll have ramen" is an intent, not a finished act. For an intent, write "plans to ...".
 - Always write in the third person. Do not copy the user's words; rewrite as "The user ...". Without a subject it is unclear who did what.
+- **Never put words like yesterday, today, tomorrow, just now, this week into the fact.** When it happened is attached separately, so write only the fact. Baked-in words like these go wrong when the memory is recalled later. (Write "The user had gukbap" not "The user had gukbap yesterday".)
 - Write each fact in short English.
 - If there is nothing to take, leave candidates as an empty array.
 - Produce at most {cap} candidates. If there are more, keep the ones worth remembering longest.
@@ -269,8 +273,10 @@ _JA = """あなたは会話から長く覚えておく価値のある事実だ�
 - 人の名前や呼び方は書きません。{{유저이름}} のようなトークンが見えたら**翻訳せず、そのままの文字で**残します。
 - 今身に着けているもの、残高、今日のルーティン達成のような現在の状態は取りません。訂正や否定でも同じです。服・持ち物・ルーティンはサーバーに原本があり、記憶に持つと古い内容が会話に勝ってしまいます。
 - 忘れてほしい・なかったことにしてほしいという依頼は候補ではありません。消してという言葉を記憶にすると、その内容を逆に永久に持つことになります。
+- **相手がまだ教えてくれていない、きみが知らない、というのは事実ではありません。** それはそのとき見つけられなかっただけです。それを記憶にすると、あとで、あるいはすでに前に知った本当の事実を押しのけてしまいます。（「ユーザーは一番好きなものをまだ言っていない」のようなものは候補ではありません）
 - しようとしていることと、したことを区別します。「ラーメン食べよう」は意図であって完了ではありません。意図なら「〜しようとしている」と書きます。
 - 必ず三人称で書きます。ユーザーの発言をそのまま写さず「ユーザーは〜」に直します。主語がないと誰のことか分からなくなります。
+- **昨日・今日・明日・さっき・今週のような言葉を事実の中に入れないでください。** いつのことかは別に付くので、事実だけを書きます。こうした言葉が本文に入ると、あとで思い出すときに時期がずれます。（「ユーザーは昨日クッパを食べた」ではなく「ユーザーはクッパを食べた」）
 - 事実は短い日本語で書きます。
 - 取るものがなければ candidates を空の配列にします。
 - 候補は最大{cap}個までです。多すぎる場合は長く覚える価値の大きいものから選びます。

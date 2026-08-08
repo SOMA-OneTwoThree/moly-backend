@@ -352,27 +352,32 @@ def parse(
             dropped.append((body, "no_evidence"))
             continue
 
+        # ⚠️ 근거 하나가 어긋나도 **그 근거만 버리고 후보는 살린다.** 유저 발화 근거가 하나라도
+        #    남으면 그 후보는 유효하다. 예전에는 첫 문제에서 멈춰 후보 전체를 버렸는데,
+        #    모델이 유저 발화와 캐피 발화를 함께 대는 일이 잦아(일본어 실측에서 덩어리당 3~4건)
+        #    멀쩡한 기억이 통째로 사라졌다.
         verified: list[EvidenceSpan] = []
         problem: str | None = None
         for sp in spans:
             if not isinstance(sp, dict):
-                problem = "bad_evidence_shape"
-                break
+                problem = problem or "bad_evidence_shape"
+                continue
             mid, quote = sp.get("message_id"), sp.get("quote")
             if not isinstance(mid, int) or not isinstance(quote, str):
-                problem = "bad_evidence_shape"
-                break
+                problem = problem or "bad_evidence_shape"
+                continue
             src = by_id.get(mid)
             if src is None:
-                problem = "unknown_message_id"
-                break
+                problem = problem or "unknown_message_id"
+                continue
             if src.sender != "user":
-                problem = "assistant_evidence"
-                break
+                # 상대 발화는 대명사 해석용일 뿐 단독 근거가 아니다 — 이 근거만 뺀다.
+                problem = problem or "assistant_evidence"
+                continue
             found = src.locate(quote)
             if found is None:
-                problem = "quote_not_found"
-                break
+                problem = problem or "quote_not_found"
+                continue
             start, end = found
             verified.append(
                 EvidenceSpan(
@@ -380,7 +385,7 @@ def parse(
                     content_hash=src.hash_of(start, end),
                 )
             )
-        if problem or not verified:
+        if not verified:
             dropped.append((body, problem or "no_evidence"))
             continue
         out.append(Candidate(text=body, evidence=tuple(verified), category=category))

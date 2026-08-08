@@ -209,3 +209,29 @@ def test_prompt_cap_matches_the_code_cap():
     from app.services import mem0_ingest as mi
     assert ex.MAX_CANDIDATES == mi.MAX_CANDIDATES_PER_CHUNK
     assert str(ex.MAX_CANDIDATES) in ex.build_system("ko")
+
+
+def test_one_bad_span_does_not_kill_a_candidate_with_a_good_one():
+    """모델이 유저 발화와 캐피 발화를 함께 대는 일이 잦다(일본어 실측 덩어리당 3~4건).
+
+    첫 문제에서 멈추면 그럴 때마다 멀쩡한 기억이 통째로 사라진다.
+    """
+    payload = json.dumps({"candidates": [{
+        "text": "커피를 좋아한다", "category": "preference",
+        "evidence": [
+            {"message_id": 12, "quote": "좋아하는구나"},   # 캐피 발화 — 이 근거만 버린다
+            {"message_id": 11, "quote": "커피를 좋아해"},  # 유저 발화 — 살아남는다
+        ],
+    }]}, ensure_ascii=False)
+    got, dropped = ex.parse(payload, messages=[MSG, ASSISTANT])
+    assert len(got) == 1 and dropped == []
+    assert [e.message_id for e in got[0].evidence] == [11]
+
+
+def test_candidate_dies_only_when_no_user_evidence_remains():
+    payload = json.dumps({"candidates": [{
+        "text": "지어낸 것", "category": "event",
+        "evidence": [{"message_id": 12, "quote": "좋아하는구나"}],
+    }]}, ensure_ascii=False)
+    got, dropped = ex.parse(payload, messages=[MSG, ASSISTANT])
+    assert got == [] and dropped[0][1] == "assistant_evidence"

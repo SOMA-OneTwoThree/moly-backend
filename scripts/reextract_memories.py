@@ -20,11 +20,14 @@
 ⚠️ `post_deploy.sh`(좌표 없는 메시지에 턴 번호 매기기)를 **먼저** 끝내야 한다. 좌표가 없으면
    그 대화는 추출 대상에서 통째로 빠진다.
 
+기본은 dev다. 운영은 `--env prod` 를 붙여야만 선택된다.
+
 사용:
-    MOLY_ENV_FILE=.env.prod uv run python scripts/reextract_memories.py --status
-    MOLY_ENV_FILE=.env.prod uv run python scripts/reextract_memories.py --limit 3
-    MOLY_ENV_FILE=.env.prod uv run python scripts/reextract_memories.py --limit 3 --apply
-    MOLY_ENV_FILE=.env.prod uv run python scripts/reextract_memories.py --rollback --apply
+    uv run python scripts/reextract_memories.py --status
+    uv run python scripts/reextract_memories.py --env prod --status
+    uv run python scripts/reextract_memories.py --env prod --limit 3
+    uv run python scripts/reextract_memories.py --env prod --limit 3 --apply
+    uv run python scripts/reextract_memories.py --env prod --rollback --apply
 """
 from __future__ import annotations
 
@@ -36,7 +39,7 @@ from pathlib import Path
 import asyncpg
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from db.envfile import load_conn  # noqa: E402
+from db.envfile import announce, load_conn, split_env_arg  # noqa: E402
 
 # 되돌리기 표시 — 원래 상태를 값에 담아 두 가지를 구분해 되살린다.
 MARK = {"active": "pre-reextract-active", "ambiguous": "pre-reextract-ambiguous"}
@@ -208,7 +211,7 @@ async def rollback(c: asyncpg.Connection, *, apply: bool) -> None:
     print("되돌리기 완료 — 옛 기억이 다시 회상에 나온다.")
 
 
-async def main() -> None:
+async def main(env: str | None) -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--status", action="store_true")
     p.add_argument("--rollback", action="store_true")
@@ -216,9 +219,11 @@ async def main() -> None:
     p.add_argument("--idle-min", type=int, default=10, help="이 시간 내 대화한 사람은 건너뛴다")
     p.add_argument("--min-turns", type=int, default=1, help="이 턴 수 이상인 사람만")
     p.add_argument("--apply", action="store_true", help="없으면 미리보기")
-    a = p.parse_args()
+    a = p.parse_args(_rest)
 
-    c = await asyncpg.connect(load_conn("prod"), statement_cache_size=0)
+    dsn = load_conn(env)
+    announce(env, dsn, commit=a.apply)
+    c = await asyncpg.connect(dsn, statement_cache_size=0)
     try:
         if a.status:
             await show_status(c)
@@ -233,4 +238,5 @@ async def main() -> None:
         await c.close()
 
 
-asyncio.run(main())
+_env, _rest = split_env_arg(sys.argv[1:])
+asyncio.run(main(_env))

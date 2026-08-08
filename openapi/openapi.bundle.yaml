@@ -668,7 +668,7 @@ paths:
                       details: {}
       security:
       - SupabaseBearer: []
-      description: 사용자 local 00:00 reward date마다 한 번 +10 건초를 원장과 함께 지급한다.
+      description: 사용자 local 00:00 reward date마다 한 번 +20 건초를 원장과 함께 지급한다.
   /charging-station/routine-reward:
     post:
       tags:
@@ -718,7 +718,7 @@ paths:
                       details: {}
       security:
       - SupabaseBearer: []
-      description: 같은 local reward date에 routine 완료가 2개 이상이면 한 번 +10 건초를 지급한다.
+      description: 같은 local reward date에 routine 완료가 2개 이상이면 한 번 +20 건초를 지급한다.
   /routines:
     get:
       tags:
@@ -1577,7 +1577,7 @@ paths:
       tags:
       - ads
       summary: 리워드 광고 session 발급
-      description: 광고 시청 전에 local reward date 일 10회 한도를 확인하고 SSV custom_data와 userIdentifier 값을 발급한다.
+      description: 광고 시청 전에 local reward date 일 5회 한도를 확인하고 SSV custom_data와 userIdentifier 값을 발급한다.
       operationId: createRewardAdSession
       responses:
         '200':
@@ -1593,7 +1593,7 @@ paths:
         '404':
           $ref: '#/components/responses/ProfileNotFound'
         '429':
-          description: 같은 reward date 광고 보상 사용량이 10회 이상
+          description: 같은 reward date 광고 보상 사용량이 5회 이상
           content:
             application/json:
               schema:
@@ -1707,12 +1707,12 @@ components:
           type: integer
           minimum: 0
           title: Views Limit
-          description: 현재 일 한도 10.
+          description: 현재 일 한도 5.
         reward_per_view:
           type: integer
           minimum: 0
           title: Reward Per View
-          description: 현재 회당 보상 10.
+          description: 현재 회당 보상 20.
       type: object
       required:
       - views_used
@@ -1731,7 +1731,7 @@ components:
           type: integer
           minimum: 0
           title: Reward
-          description: 현재 출석 보상 10.
+          description: 현재 출석 보상 20.
       type: object
       required:
       - claimable
@@ -3051,7 +3051,7 @@ components:
           type: integer
           minimum: 0
           title: Views Limit
-          description: 현재 일 한도 10.
+          description: 현재 일 한도 5.
       type: object
       required:
       - reward_session_id
@@ -3065,7 +3065,7 @@ components:
           type: integer
           minimum: 0
           title: Granted
-          description: 현재 두 보상 endpoint의 지급량 10.
+          description: 현재 두 보상 endpoint의 지급량 20.
         balance_after:
           type: integer
           minimum: 0
@@ -3122,7 +3122,7 @@ components:
           type: integer
           minimum: 0
           title: Reward
-          description: 현재 routine 보상 10.
+          description: 현재 routine 보상 20.
       type: object
       required:
       - completed_today

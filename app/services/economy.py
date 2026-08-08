@@ -22,10 +22,10 @@ from app.services import hay_ledger
 from app.services.account import _load_profile, _uid
 
 _log = logging.getLogger("moly-backend")
-HAY_ATTENDANCE = 10
-HAY_ROUTINE_REWARD = 10
-HAY_AD = 10
-AD_DAILY_LIMIT = 10
+HAY_ATTENDANCE = 20
+HAY_ROUTINE_REWARD = 20
+HAY_AD = 20
+AD_DAILY_LIMIT = 5
 ROUTINE_PAIR_REQUIRED = 2
 
 

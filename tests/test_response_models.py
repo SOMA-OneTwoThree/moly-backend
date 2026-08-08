@@ -88,14 +88,14 @@ ROUTINE = {
             ChargingStationResponse,
             {
                 "activity_date": "2026-07-16",
-                "attendance": {"claimable": True, "claimed": False, "reward": 10},
-                "ad": {"views_used": 0, "views_limit": 10, "reward_per_view": 10},
+                "attendance": {"claimable": True, "claimed": False, "reward": 20},
+                "ad": {"views_used": 0, "views_limit": 5, "reward_per_view": 20},
                 "routine_pair": {
                     "completed_today": 0,
                     "required": 2,
                     "claimable": False,
                     "claimed": False,
-                    "reward": 10,
+                    "reward": 20,
                 },
                 "hay_products": [
                     {"product_id": "com.geniusjun.moly.hay.300",
@@ -104,7 +104,7 @@ ROUTINE = {
                 "balance": 100,
             },
         ),
-        (RewardResponse, {"granted": 10, "balance_after": 110}),
+        (RewardResponse, {"granted": 20, "balance_after": 120}),
         (RoutineResponse, ROUTINE),
         (RoutineListResponse, {"data": [ROUTINE]}),
         (RoutineCompleteResponse, {"completed_today": True, "completed_count_today": 1}),
@@ -150,7 +150,7 @@ ROUTINE = {
                 "reward_session_id": UUID,
                 "admob_user_id": UUID,
                 "views_used": 0,
-                "views_limit": 10,
+                "views_limit": 5,
             },
         ),
         (AdSsvResponse, {"status": "ok", "result": "granted"}),
@@ -277,14 +277,14 @@ def test_response_models_reject_unknown_fields_and_invalid_enums():
         ChargingStationResponse.model_validate(
             {
                 "activity_date": "2026-07-16",
-                "attendance": {"claimable": True, "claimed": False, "reward": 10},
-                "ad": {"views_used": 0, "views_limit": 10, "reward_per_view": 10},
+                "attendance": {"claimable": True, "claimed": False, "reward": 20},
+                "ad": {"views_used": 0, "views_limit": 5, "reward_per_view": 20},
                 "routine_pair": {
                     "completed_today": 0,
                     "required": 2,
                     "claimable": False,
                     "claimed": False,
-                    "reward": 10,
+                    "reward": 20,
                 },
                 "hay_products": [{"product_id": None, "amount": None}],
                 "balance": 100,

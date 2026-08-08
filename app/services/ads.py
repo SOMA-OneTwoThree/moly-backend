@@ -49,13 +49,13 @@ async def create_session(session: AsyncSession, user_id: str) -> dict[str, Any]:
 
 
 async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id: str) -> str:
-    """SSV 콜백(서명검증 후) → 세션 조회 후 +10 지급. 반환 = 처리 결과(콜백 응답 body에 노출).
+    """SSV 콜백(서명검증 후) → 세션 조회 후 +20 지급. 반환 = 처리 결과(콜백 응답 body에 노출).
 
     결과: granted / invalid_session / session_not_found / duplicate / daily_limit
     / stale_reward_window / transaction_conflict. Google은 body를 보지 않으므로 HTTP는 항상 200
     — 비-200은 Google 재전송을 유발하므로 tz 역행도 예외(409) 아닌 결과값으로 200 유지.
     멱등 = 세션당 1회(`granted` 행잠금) + `ssv_transaction_id` UNIQUE(재전송/다른세션 방어).
-    일 한도는 지급 시 원자 카운트 체크 — 세션 남발해도 10회 초과 지급 안 됨.
+    일 한도는 지급 시 원자 카운트 체크 — 세션 남발해도 5회 초과 지급 안 됨.
     custom_data = reward_session_id(서명검증된 값) → 세션 소유자에게만 지급.
 
     락 순서: 세션을 무잠금 조회해 소유자 uid 확보 → user advisory lock(보상 공통 도메인) →

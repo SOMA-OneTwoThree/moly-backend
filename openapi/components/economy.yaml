@@ -33,12 +33,12 @@ schemas:
         type: integer
         minimum: 0
         title: Views Limit
-        description: 현재 일 한도 10.
+        description: 현재 일 한도 5.
       reward_per_view:
         type: integer
         minimum: 0
         title: Reward Per View
-        description: 현재 회당 보상 10.
+        description: 현재 회당 보상 20.
     type: object
     required:
     - views_used
@@ -57,7 +57,7 @@ schemas:
         type: integer
         minimum: 0
         title: Reward
-        description: 현재 출석 보상 10.
+        description: 현재 출석 보상 20.
     type: object
     required:
     - claimable
@@ -185,7 +185,7 @@ schemas:
         type: integer
         minimum: 0
         title: Views Limit
-        description: 현재 일 한도 10.
+        description: 현재 일 한도 5.
     type: object
     required:
     - reward_session_id
@@ -199,7 +199,7 @@ schemas:
         type: integer
         minimum: 0
         title: Granted
-        description: 현재 두 보상 endpoint의 지급량 10.
+        description: 현재 두 보상 endpoint의 지급량 20.
       balance_after:
         type: integer
         minimum: 0

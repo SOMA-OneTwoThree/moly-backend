@@ -1,7 +1,7 @@
 """reward_ad_sessions — 리워드 광고 세션(SSV 자동 지급 소스).
 
 플로우: POST /reward-ad-sessions(한도 확인)로 세션 발급 → 클라가 세션 id를 SSV
-custom_data에 실어 광고 시청 → AdMob SSV 콜백이 세션 조회 후 +10 지급.
+custom_data에 실어 광고 시청 → AdMob SSV 콜백이 세션 조회 후 +20 지급.
 멱등 = **세션당 1회 지급**(`granted` 행잠금) + `ssv_transaction_id` UNIQUE(재전송 방어).
 """
 from __future__ import annotations

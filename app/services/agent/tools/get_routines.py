@@ -51,7 +51,11 @@ class GetRoutinesTool(BaseTool):
     description = (
         "List the user's own routines with their weekly schedule "
         "(days_of_week uses ISO weekdays, 1=Monday..7=Sunday) "
-        "and whether each one was completed on the given date."
+        "and whether each one was completed on the given date. "
+        # 언제 부르는지가 없으면 모델이 말을 잇는 재료로 아무 때나 부르고, 그 결과를
+        # 인사마다 덧붙인다(운영 실측: 30턴 중 8번, '그만하라'는 말 직후에도 반복).
+        "Call this ONLY when the user asks about their routines or brings them up "
+        "themselves. Never call it to make small talk or to find something to praise."
     )
     input_model = GetRoutinesArgs
     output_model = GetRoutinesOut

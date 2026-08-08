@@ -235,3 +235,29 @@ def test_candidate_dies_only_when_no_user_evidence_remains():
     }]}, ensure_ascii=False)
     got, dropped = ex.parse(payload, messages=[MSG, ASSISTANT])
     assert got == [] and dropped[0][1] == "assistant_evidence"
+
+
+def test_no_relative_time_words_in_the_fact():
+    """`어제 국밥을 먹었다`가 기억이 되면, 나중에 꺼낼 때 언제 일인지가 어긋난다.
+
+    운영 실측(2026-08-08): 07-21에 저장된 `유저가 어제 국밥을 먹었다`를 08-08에 회상해
+    캐피가 "어제도 먹었잖아"라고 말했다. 같은 문제가 183건·112명에게 있었다.
+    """
+    for lang, words in (("ko", ["어제", "오늘", "내일"]),
+                        ("en", ["yesterday", "today", "tomorrow"]),
+                        ("ja", ["昨日", "今日", "明日"])):
+        sys = ex.build_system(lang)
+        assert all(w in sys for w in words), f"{lang} 프롬프트에 상대시간 금지 규칙이 없다"
+
+
+def test_absence_of_information_is_not_a_memory():
+    """`아직 말하지 않았다`가 기억이 되면 진짜 사실을 밀어낸다.
+
+    운영 실측(2026-08-08): 08-03에 저장된 `유저가 마라탕 재료 중에 양고기를 제일 좋아한다`가
+    08-07에 만들어진 `유저가 마라탕에서 제일 좋아하는 것을 아직 말하지 않았다`에 대체돼 닫혔다.
+    캐피가 못 찾을수록 못 찾는다는 사실이 굳는 악순환이 된다.
+    """
+    for lang, needle in (("ko", "아직 안 알려줬다거나"),
+                         ("en", "has not told you something yet"),
+                         ("ja", "まだ教えてくれていない")):
+        assert needle in ex.build_system(lang), f"{lang} 프롬프트에 부재 금지 규칙이 없다"

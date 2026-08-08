@@ -66,6 +66,9 @@ class LLMResult:
     model_snapshot: str = ""     # 응답이 알려준 실제 model(alias 호출의 스냅샷). 원장 귀속용
     request_id: str = ""         # provider request id — invoice 대사 키
     cache_write_estimated: bool = False  # OpenAI는 write usage를 안 줘서 추정 → 실비 주장 금지 표식
+    # 응답이 왜 끝났는가. `"length"`면 **출력 상한에서 잘린 것**이다. 이 값이 없으면 잘림과
+    # 모델의 형식 오류를 구분할 수 없어, 잘렸는데도 같은 입력으로 재시도만 반복하다 잡이 죽는다.
+    finish_reason: str = ""
 
 
 @dataclass
@@ -154,6 +157,7 @@ async def generate(
     ttl_messages: str = "5m",
     timeout: float | None = None,
     ledger: "usage_ledger.LedgerContext | None" = None,
+    reasoning_effort: str | None = None,
 ) -> LLMResult:
     """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
 
@@ -163,6 +167,11 @@ async def generate(
 
     `ledger`를 주면 호출 **전** started 행을 남기고 완료 시 usage/원가를 확정한다(opt-in).
     계측 실패는 삼키므로 이 인자 때문에 대화가 깨지지 않는다.
+
+    ⚠️ `reasoning_effort`를 안 주면 **모델 기본 추론이 켜진 채로 돈다.** GPT-5.x는 추론 토큰이
+    `max_completion_tokens`에서 함께 빠지므로, 짧은 상한을 준 유틸리티 호출은 추론이 상한을
+    먹고 답이 통째로 잘릴 수 있다(판정 잡이 실제로 34번 그렇게 실패했다). 구조화된 짧은 답만
+    필요한 호출은 `"none"`을 준다. 대화 경로는 그대로 두려고 기본값을 None으로 둔다.
     """
     model = model or settings.model_chat
     provider = provider_for(model)
@@ -170,7 +179,8 @@ async def generate(
     async def _dispatch() -> LLMResult:
         if provider == "openai":
             return await _generate_openai(
-                system, convo, model=model, max_tokens=max_tokens, timeout=timeout
+                system, convo, model=model, max_tokens=max_tokens, timeout=timeout,
+                reasoning_effort=reasoning_effort,
             )
         return await _generate_anthropic(
             system, convo, model=model, max_tokens=max_tokens,
@@ -255,6 +265,7 @@ async def _generate_openai(
     model: str,
     max_tokens: int | None = None,
     timeout: float | None = None,
+    reasoning_effort: str | None = None,
 ) -> LLMResult:
     """OpenAI 경로(신설). system(str|list) → messages[0] system 합침(평문, cache_control 미부착).
 
@@ -264,15 +275,22 @@ async def _generate_openai(
     """
     sys = system if isinstance(system, str) else "\n\n".join(b for b in system if b)
     messages = ([{"role": "system", "content": sys}] if sys else []) + list(convo)
-    # GPT-5.x는 max_tokens 대신 max_completion_tokens. reasoning 미사용이라 전액 응답에 쓰인다.
-    resp = await _get_openai_client().chat.completions.create(
-        model=model,
-        messages=messages,
-        max_completion_tokens=max_tokens or settings.llm_max_tokens,
-        timeout=_timeout(timeout),
-    )
+    # GPT-5.x는 max_tokens 대신 max_completion_tokens.
+    # ⚠️ 추론 토큰도 이 상한에서 함께 빠진다. `reasoning_effort`를 안 주면 모델 기본 추론이
+    #    켜진 채로 돌아, 짧은 상한을 준 호출은 답이 잘린다. 호출측이 정한다.
+    kwargs: dict = {
+        "model": model,
+        "messages": messages,
+        "max_completion_tokens": max_tokens or settings.llm_max_tokens,
+        "timeout": _timeout(timeout),
+    }
+    if reasoning_effort is not None:
+        kwargs["reasoning_effort"] = reasoning_effort
+    resp = await _get_openai_client().chat.completions.create(**kwargs)
     choices = getattr(resp, "choices", None) or []
     text = (choices[0].message.content or "") if choices else ""
+    # 왜 끝났는가. `length`면 상한에서 잘린 것 — 호출측이 형식 오류와 구분해야 한다.
+    finish = (getattr(choices[0], "finish_reason", None) or "") if choices else ""
     # alias 호출의 실제 스냅샷과 request id — 원가 원장의 귀속·invoice 대사 키.
     snapshot = getattr(resp, "model", None) or ""
     req_id = getattr(resp, "id", None) or ""
@@ -280,7 +298,7 @@ async def _generate_openai(
     if u is None:
         return LLMResult(
             text=text, input_tokens=0, output_tokens=0, model=model,
-            model_snapshot=snapshot, request_id=req_id,
+            model_snapshot=snapshot, request_id=req_id, finish_reason=finish,
         )
     prompt_tokens = getattr(u, "prompt_tokens", None) or 0
     details = getattr(u, "prompt_tokens_details", None)
@@ -305,6 +323,7 @@ async def _generate_openai(
         request_id=req_id,
         # 위 주석대로 write는 추정값이다 — 원장에서 "정확한 실비"로 집계되지 않게 표시한다.
         cache_write_estimated=cacheable,
+        finish_reason=finish,
     )
 
 

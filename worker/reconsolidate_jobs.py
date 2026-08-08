@@ -21,6 +21,7 @@ from app.services import jobs, memory_pipeline, usage_ledger
 from app.services import llm
 from app.config import settings
 from app.services.jobs import ClaimedJob
+from app.services.mem0_budget import memory_consolidation_budget
 from worker import consumer
 from worker.consumer import JobFatal, JobResult, JobRetry
 
@@ -31,6 +32,12 @@ JOB_RECONSOLIDATE = "mem0_reconsolidate"
 # 한 번에 비교할 기억 수. 쌍 비교라 n²로 늘어나므로 작게 잡는다.
 _MAX_ITEMS = 30
 
+# ⚠️ 대상 선택은 **마지막으로 본 시각** 기준이다.
+#
+# 예전에는 `classification_version <> '현재 버전'`이었는데, 판정을 마친 기억은 예외 없이 그
+# 값이 되므로 조건이 **절대 참이 될 수 없었다.** 운영에서 이 잡 706건이 전부
+# `nothing_to_compare`로 끝났다 — 한 번도 돈 적이 없다. `NULL <> 'x'`도 참이 아니라서
+# 값이 비어 있는 행까지 빠졌다.
 _LIVING = text("""
 SELECT r.id, r.source_turn_seq, r.content_hash,
        COALESCE(s.source_occurred_at, r.created_at) AS occurred_at,
@@ -43,10 +50,21 @@ LEFT JOIN LATERAL (
 LEFT JOIN vecs.moly_memories_v2 v ON v.id = r.provider_memory_id::text
 WHERE r.user_id = :user_id
   AND r.semantic_status IN ('active', 'ambiguous')
-  AND r.classification_version <> :classifier_version
-ORDER BY r.source_turn_seq
+  AND (r.last_reconsolidated_at IS NULL
+       OR r.last_reconsolidated_at < now() - make_interval(days => :cooldown_days))
+ORDER BY r.last_reconsolidated_at NULLS FIRST, r.source_turn_seq
 LIMIT :limit
 """)
+
+# 비교에 참여한 행에 표시를 남긴다. **전이가 없어도 남긴다** — 안 그러면 커서가 앞으로 못 가고
+# 같은 30건만 매일 다시 본다.
+_MARK_SEEN = text("""
+UPDATE mem0_memory_registry SET last_reconsolidated_at = now()
+WHERE user_id = :user_id AND id = ANY(:ids)
+""")
+
+# 한 번 본 기억을 다시 보기까지 기다리는 날. 매일 같은 것을 되씹지 않게 한다.
+_COOLDOWN_DAYS = 7
 
 _REVISION = text(
     "SELECT revision FROM memory_pipeline_states WHERE user_id = :user_id"
@@ -57,15 +75,22 @@ async def handle_reconsolidate(job: ClaimedJob) -> JobResult:
     if job.user_id is None:
         raise JobFatal("missing_user")
     uid = job.user_id
+    # 일반 판정과 같은 예산을 쓴다. 예산이 없으면 확정(finalize) 몫이 남지 않아 느려질 때
+    # 처리 권한을 잃는다.
+    budget = memory_consolidation_budget(total_s=settings.job_memory_timeout_s)
 
     async with get_sessionmaker()() as session:
         rows = (await session.execute(_LIVING, {
             "user_id": uid,
-            "classifier_version": mem0_classifier.CLASSIFIER_VERSION,
+            "cooldown_days": _COOLDOWN_DAYS,
             "limit": _MAX_ITEMS,
         })).all()
         expected_revision = await session.scalar(_REVISION, {"user_id": uid})
         privacy_epoch = (await memory_pipeline.load(session, uid)).privacy_epoch
+        lang_row = (await session.execute(
+            text("SELECT language FROM profiles WHERE id = :u"), {"u": uid}
+        )).first()
+        language = lang_row[0] if lang_row else None
 
     items = [(r[0], r[4]) for r in rows if r[4]]
     if len(items) < 2:
@@ -75,10 +100,14 @@ async def handle_reconsolidate(job: ClaimedJob) -> JobResult:
     # ── 외부 호출: DB 커넥션 0 ──
     try:
         raw = await llm.generate(
-            mem0_classifier.build_system(),
-            [{"role": "user", "content": mem0_classifier.render_pairs(items, [])}],
+            mem0_classifier.build_system(language),
+            [{"role": "user", "content": mem0_classifier.render_pairs(
+                items, [], language=language)}],
             model=settings.model_utility,
             max_tokens=mem0_classifier.MAX_OUTPUT_TOKENS,
+            timeout=budget.timeout_for("classify"),
+            # 유틸리티 모델은 추론 모델이다 — 안 끄면 추론 토큰이 출력 상한을 먹어 답이 잘린다.
+            reasoning_effort="none",
             ledger=usage_ledger.LedgerContext(
                 lane=usage_ledger.LANE_BACKGROUND, purpose="memory_consolidate",
                 user_id=uid, job_id=job.id, attempt=job.attempt,
@@ -107,6 +136,11 @@ async def handle_reconsolidate(job: ClaimedJob) -> JobResult:
             session, uid, verdict.transitions,
             expected_revision=expected_revision,
             classification_version=mem0_classifier.CLASSIFIER_VERSION,
+        )
+        # 비교에 참여한 것 전부에 표시를 남긴다. **전이가 없어도 남긴다** — 안 그러면 커서가
+        # 앞으로 못 가고 다음 회차가 같은 30건을 또 본다(31번째 이후는 영영 안 본다).
+        await session.execute(
+            _MARK_SEEN, {"user_id": uid, "ids": [r[0] for r in rows if r[4]]}
         )
         # non-active로 닫은 게 있으면 provider 벡터 정리를 건다 — 일반 consolidation과 같다
         # (worker/mem0_jobs.py). 이게 빠져 있어서 재판정으로 닫힌 기억의 벡터가 provider에

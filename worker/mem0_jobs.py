@@ -72,9 +72,10 @@ ORDER BY id
 _STAGE_CANDIDATE = text("""
 INSERT INTO mem0_ingest_candidates
   (user_id, turn_seq, candidate_hash, schema_version, extractor_version, normalizer_version,
-   provider_memory_id, candidate_text, status, repair_generation)
+   provider_memory_id, candidate_text, status, repair_generation, category)
 VALUES (:user_id, :turn_seq, :candidate_hash, :schema_version, :extractor_version,
-        :normalizer_version, :provider_memory_id, :candidate_text, 'planned', :generation)
+        :normalizer_version, :provider_memory_id, :candidate_text, 'planned', :generation,
+        :category)
 ON CONFLICT (user_id, turn_seq, candidate_hash, schema_version, repair_generation) DO NOTHING
 """)
 
@@ -119,14 +120,32 @@ WHERE user_id=:user_id AND provider_memory_id=:provider_memory_id AND status='pl
 #    남긴 후보를 "앞 시도의 계획"으로 착각해 **추출을 통째로 건너뛴다.** 재추출이 정확히 여기서
 #    막혔다 — 옛 후보를 그대로 다시 올리고 registry는 `ON CONFLICT DO NOTHING`에 걸려,
 #    잡은 성공으로 찍히는데 새 기억은 한 건도 안 생겼다(2026-08-08 실측: 4명 중 2명이 0건).
+#
+# ⚠️ **근거도 함께 되살린다.** 예전에는 본문 세 값만 읽어서, 이어받은 계획으로 만든 기억은
+#    `mem0_memory_sources` 행이 한 건도 안 생겼다. 그러면 회상이 시점을 registry 생성일로
+#    떨어뜨려 **반년 전 얘기가 "(오늘)"로 나간다**(운영에 근거 없는 기억 45건). 근거는 이미
+#    `mem0_ingest_candidate_sources`에 저장돼 있으므로 여기서 같이 읽어 오면 된다.
 _RESUME_PLAN = text("""
-SELECT provider_memory_id, candidate_hash, candidate_text
-FROM mem0_ingest_candidates
-WHERE user_id = :user_id AND turn_seq = :turn_seq
-  AND schema_version = :schema_version
-  AND repair_generation = :generation
-  AND status IN ('planned', 'committed')
-ORDER BY candidate_hash
+SELECT c.provider_memory_id, c.candidate_hash, c.candidate_text, c.category,
+       COALESCE(
+         json_agg(
+           json_build_object(
+             'message_id', s.source_message_id, 'sender', s.source_sender,
+             'start', s.evidence_start_utf8, 'end', s.evidence_end_utf8,
+             'hash', s.source_content_hash
+           ) ORDER BY s.source_message_id, s.evidence_start_utf8
+         ) FILTER (WHERE s.candidate_id IS NOT NULL),
+         '[]'::json
+       ) AS evidence
+FROM mem0_ingest_candidates c
+LEFT JOIN mem0_ingest_candidate_sources s
+       ON s.candidate_id = c.id AND s.user_id = c.user_id
+WHERE c.user_id = :user_id AND c.turn_seq = :turn_seq
+  AND c.schema_version = :schema_version
+  AND c.repair_generation = :generation
+  AND c.status IN ('planned', 'committed')
+GROUP BY c.provider_memory_id, c.candidate_hash, c.candidate_text, c.category
+ORDER BY c.candidate_hash
 """)
 
 # 이 turn에 아직 판정 안 된 기억이 남았는가. 커서를 통과시키기 전에 반드시 본다.
@@ -138,9 +157,9 @@ WHERE user_id = :user_id AND source_turn_seq = :turn_seq AND semantic_status = '
 _REGISTER_PENDING = text("""
 INSERT INTO mem0_memory_registry
   (user_id, provider, collection_version, provider_memory_id, source_turn_seq,
-   content_hash, semantic_status, schema_version)
+   content_hash, semantic_status, schema_version, category)
 VALUES (:user_id, 'mem0', :collection_version, :provider_memory_id, :turn_seq,
-        :content_hash, 'pending', :schema_version)
+        :content_hash, 'pending', :schema_version, :category)
 ON CONFLICT (user_id, provider, collection_version, provider_memory_id) DO NOTHING
 """)
 
@@ -230,7 +249,10 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         else:
             chunk = await resolve_chunk(
                 session, user_id=uid, from_seq=from_seq,
-                upper=max(turn_seq, int(state.source_through_turn_seq)),
+                # ⚠️ 상한은 **source 커서까지**다. payload 턴이 그보다 크다고 거기까지 먹으면
+                #    커서 전진이 `turn_seq <= source` 조건에 걸려 조용히 0행이 되고,
+                #    기억은 만들어졌는데 커서가 그대로라 그 사용자가 멈춘다.
+                upper=int(state.source_through_turn_seq),
                 idle_s=settings.memory_chunk_idle_s,
                 max_turns=settings.memory_chunk_max_turns,
             )
@@ -252,7 +274,15 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         )).first()
         resumed = [
             mem0_pipeline.PlannedCandidate(
-                provider_memory_id=r[0], candidate_hash=r[1], text=r[2],
+                provider_memory_id=r[0], candidate_hash=r[1], text=r[2], category=r[3],
+                restored_evidence=tuple(
+                    mem0_ingest.EvidenceSpan(
+                        message_id=int(e["message_id"]), sender=e["sender"],
+                        start_utf8=int(e["start"]), end_utf8=int(e["end"]),
+                        content_hash=e["hash"],
+                    )
+                    for e in (r[4] or [])
+                ),
             )
             for r in (await session.execute(_RESUME_PLAN, {
                 "user_id": uid, "turn_seq": turn_seq,
@@ -263,8 +293,10 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
 
     if not rows:
         raise JobCancelled("no_source_messages")
+    # ⚠️ **살균본으로 만든다.** 모델이 보는 글과 근거를 대조하는 글이 같아야 한다 — 다르면
+    # 전각 문자(`ＡＢＣ`·`ｱｲｳ`)나 괄호가 있는 발화에서 그 뒤 좌표가 통째로 어긋난다.
     messages = [
-        mem0_extractor.SourceMessage(id=r[0], sender=r[1], content=r[2] or "") for r in rows
+        mem0_extractor.SourceMessage.sanitized(id=r[0], sender=r[1], content=r[2]) for r in rows
     ]
     nickname = profile[0] if profile else None
     language = profile[1] if profile else None
@@ -286,12 +318,37 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             ledger=ledger,
         )
         try:
-            candidates, dropped = mem0_extractor.parse(result.text, messages=messages)
+            candidates, dropped = mem0_extractor.parse(
+                result.text, messages=messages, finish_reason=result.finish_reason
+            )
+        except mem0_extractor.OutputTruncated as e:
+            # 잘림은 **재시도해도 같다.** 같은 입력을 8번 다시 넣어봐야 8번 다 잘리고 잡이 죽는다.
+            # 그러면 그 사람의 기억이 통째로 멈춘다. 그래서 덩어리를 반으로 줄여 다시 시도한다.
+            if to_seq > first_turn:
+                half = first_turn + (to_seq - first_turn) // 2
+                async with get_sessionmaker()() as s:
+                    await jobs.freeze_job_payload(
+                        s, job_id=job.id, patch={"chunk": {"first": first_turn, "last": half}}
+                    )
+                _log.warning(
+                    "추출 출력이 잘렸다 — 덩어리를 %s~%s에서 %s~%s로 줄인다 (job=%s)",
+                    first_turn, to_seq, first_turn, half, job.id,
+                )
+                raise JobRetry("output_truncated_split") from e
+            # 한 턴짜리가 잘리면 더 쪼갤 수 없다. 그 턴은 기억 없이 넘긴다 —
+            # 사슬을 멈춰 그 사람의 이후 기억을 전부 잃는 것보다 낫다.
+            _log.warning("한 턴이 출력 상한을 넘었다 — 기억 없이 넘긴다 (job=%s 턴 %s)",
+                         job.id, to_seq)
+            return []
         except mem0_extractor.ExtractionSchemaError as e:
             # 계약 위반 — 다음 샘플은 통과할 수 있으니 재시도.
             raise JobRetry("candidate_schema") from e
         if dropped:
-            _log.info("근거 미검증 후보 폐기 %d건 — job=%s", len(dropped), job.id)
+            # **사유별로** 남긴다. 개수만 남기면 무엇이 왜 빠졌는지 알 수 없어 정책을 고칠 수 없다.
+            reasons: dict[str, int] = {}
+            for _body, why in dropped:
+                reasons[why] = reasons.get(why, 0) + 1
+            _log.info("근거 미검증 후보 폐기 %d건 %s — job=%s", len(dropped), reasons, job.id)
         return candidates
 
     async def _embed(texts: list[str], timeout: float) -> list[list[float]]:
@@ -317,6 +374,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                     "provider_memory_id": p.provider_memory_id,
                     "candidate_text": p.text,
                     "generation": generation,
+                    "category": p.category,
                 })
                 for ev in p.evidence:
                     await session.execute(_CANDIDATE_SOURCE, {
@@ -335,6 +393,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                     "provider_memory_id": p.provider_memory_id, "turn_seq": turn_seq,
                     "content_hash": p.candidate_hash,
                     "schema_version": mem0_ingest.SCHEMA_VERSION,
+                    "category": p.category,
                 })
                 # registry가 생긴 뒤에야 계획을 닫는다(9.2절). 순서가 뒤집히면 crash 복구가
                 # 참조할 planned 행이 사라져 provider에만 남은 벡터를 못 찾는다.
@@ -373,7 +432,9 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         raise JobRetry(outcome.skipped_reason.replace(":", "_"))
 
     async def _advance(session) -> None:
-        await memory_pipeline.advance_ingest_cursor(session, uid, turn_seq=turn_seq)
+        await memory_pipeline.advance_ingest_cursor(
+            session, uid, turn_seq=turn_seq, generation=generation
+        )
         # 판정 잡과 다음 turn 잡을 **같은 fenced transaction**에서 만든다. lease를 잃은
         # 소비자가 후속 잡만 흘리는 일이 없다.
         # 판정 대상 유무는 **DB 상태로** 본다. 이번 실행의 outcome만 보면, 앞 시도가 남긴
@@ -482,6 +543,12 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
                 _CANDIDATE_TEXTS, {"user_id": uid, "turn_seq": turn_seq}
             )).all()
         )
+        # 판정 프롬프트도 유저 언어로 간다. 기억 본문은 유저 언어로 저장되는데 비교 지시만
+        # 한국어면, 한국어 어미 예시가 일본어·영어 기억에는 아무 도움이 안 된다.
+        lang_row = (await session.execute(
+            text("SELECT language FROM profiles WHERE id = :u"), {"u": uid}
+        )).first()
+        language = lang_row[0] if lang_row else None
         expected_revision = state.revision
 
     # 기존 기억 본문은 provider payload에서 hydrate한다(registry는 본문 미복제).
@@ -519,12 +586,16 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
     )
     try:
         result = await llm.generate(
-            mem0_classifier.build_system(),
-            [{"role": "user", "content": mem0_classifier.render_pairs(new_pairs, existing_pairs)}],
+            mem0_classifier.build_system(language),
+            [{"role": "user", "content": mem0_classifier.render_pairs(
+                new_pairs, existing_pairs, language=language)}],
             model=settings.model_utility,
             max_tokens=mem0_classifier.MAX_OUTPUT_TOKENS,
             timeout=budget.timeout_for("classify"),
             ledger=ledger,
+            # ⚠️ 유틸리티 모델은 추론 모델이다. 안 끄면 추론 토큰이 출력 상한에서 함께 빠져
+            #    답이 통째로 잘린다 — 운영에서 그렇게 34번 실패했다.
+            reasoning_effort="none",
         )
         edges = mem0_classifier.parse(result.text, known_ids=known)
     except BudgetExceeded:
@@ -534,6 +605,10 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
     except Exception as e:  # noqa: BLE001
         raise JobRetry("classify_failed") from e
 
+    # ⚠️ 판정에 실제로 들어간 것만 refs에 넣는다. 본문을 못 찾아 입력에서 빠진 기억을 여기
+    #    포함시키면 edge가 없다는 이유로 `active`가 된다 — "비교를 통과했다"가 아니라
+    #    "비교를 안 했다"인데도 살아남는다.
+    judged = {i for i, _ in new_pairs} | {i for i, _ in existing_pairs}
     refs = [
         mem0_consolidation.MemoryRef(
             registry_id=p["id"], source_turn_seq=p["source_turn_seq"],
@@ -542,8 +617,23 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
         )
         for group, is_new in ((pending, True), (pool, False))
         for p in group
+        if p["id"] in judged
     ]
+    # 본문이 없어 판정에서 빠진 pending은 따로 닫는다. 안 닫으면 영원히 미판정으로 남아
+    # 회상에도 안 나오고 운영 전환 관문도 막는다.
+    unjudged = [p["id"] for p in pending if p["id"] not in judged]
     verdict = mem0_consolidation.consolidate(refs, edges)
+    if unjudged:
+        _log.warning("본문을 못 찾아 판정에서 뺀 기억 %d건 — job=%s", len(unjudged), job.id)
+        verdict.transitions.extend(
+            mem0_consolidation.Transition(
+                registry_id=rid, semantic_status=mem0_consolidation.STATUS_EXCLUDED,
+                # 벡터도 정리 대상으로 표시한다. 안 하면 회상에 안 나오는 벡터가 저장소에
+                # 영원히 남아 검색 상위 칸만 잡아먹는다.
+                provider_delete_state=mem0_consolidation.DELETE_PENDING,
+            )
+            for rid in unjudged
+        )
     if verdict.rejected_reasons:
         _log.warning(
             "consolidation graph 거부 %s — job=%s (보수적 ambiguous)",

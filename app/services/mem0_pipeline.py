@@ -43,13 +43,23 @@ class PlannedCandidate:
     provider_memory_id: uuid.UUID
     candidate_hash: str
     text: str
-    # 재시도로 DB에서 되살린 계획에는 없다(evidence는 이미 candidate_sources에 저장돼 있다).
+    category: str | None = None
+    # 재시도로 DB에서 되살린 계획에는 `candidate`가 없다. 그때는 저장해 둔 근거를
+    # `restored_evidence`로 넘겨준다 — 안 넘기면 근거 시각이 없는 기억이 만들어진다.
     candidate: mi.Candidate | None = None
+    restored_evidence: tuple = ()
 
     @property
     def evidence(self) -> tuple:
-        """근거 span. 이게 없으면 '어느 발화에서 나온 기억인지'를 영영 알 수 없다."""
-        return self.candidate.evidence if self.candidate is not None else ()
+        """근거 span. 이게 없으면 '어느 발화에서 나온 기억인지'를 영영 알 수 없다.
+
+        ⚠️ 비어 있으면 `mem0_memory_sources` 행이 한 건도 안 생기고, 그러면 회상이 시점을
+        registry 생성일로 떨어뜨려 **반년 전 얘기가 "(오늘)"로 나간다.** 재시도로 계획을
+        이어받는 경로에서 실제로 그렇게 됐다(운영에 근거 없는 기억 45건).
+        """
+        if self.candidate is not None:
+            return self.candidate.evidence
+        return self.restored_evidence
 
 
 @dataclass(slots=True)
@@ -88,6 +98,7 @@ def plan(
                 ),
                 candidate_hash=h,
                 text=mi.normalize(c.text),
+                category=c.category,
                 candidate=c,
             )
         )
@@ -169,6 +180,8 @@ async def run_ingest(
                 "candidate_hash": p.candidate_hash,
                 "schema_version": mi.SCHEMA_VERSION,
                 "collection_version": collection_version,
+                # 회상이 종류로 앞세울 수 있게 벡터 payload에도 싣는다.
+                "category": p.category,
             },
         )
         for p, vec in zip(planned, vectors, strict=True)

@@ -114,6 +114,12 @@ async def reextract(
         epoch = int(await c.fetchval(
             "SELECT privacy_epoch FROM memory_pipeline_states WHERE user_id=$1", uid) or 0)
         async with c.transaction():
+            # 옛 세대의 남은 잡을 먼저 끊는다. 안 끊으면 그 잡이 뒤늦게 끝나면서 판정 커서를
+            # 자기 턴까지 올려, 재추출 진행 중에 전환 관문 숫자가 실제보다 앞서 보인다.
+            await c.execute(
+                "UPDATE async_jobs SET state='cancelled', finished_at=now() "
+                "WHERE user_id=$1 AND job_type IN ('mem0_ingest','mem0_consolidate') "
+                "AND state IN ('ready','running')", uid)
             hidden = 0
             for orig, mark in MARK.items():
                 n = await c.execute(
@@ -135,19 +141,23 @@ async def reextract(
                 "WHERE user_id=$1 RETURNING repair_generation", uid)
             # 첫 구간 잡만 건다 — 나머지는 처리기가 이어간다. 지연 없이 바로 돈다.
             # max_attempts는 NOT NULL이고 기본값이 없다 — memory 큐 설정값(8)을 그대로 쓴다.
-            # priority도 명시한다(기본 100). available_at은 지금 — 재추출은 기다릴 이유가 없다.
+            #
+            # ⚠️ priority를 **500으로 둔다.** 처리 순서가 `priority` 오름차순이라, 기본값(100)을
+            #    쓰면 재추출 잡이 실사용자 잡보다 항상 먼저 처리된다. 실사용자 잡은 3분 뒤에
+            #    도는데 재추출은 즉시라 정렬에서 더 밀린다. 574명 분량이 앞을 막으면 지금
+            #    대화하는 사람의 기억이 큐 깊이만큼 늦어진다.
             #
             # ⚠️ 키에 **세대를 넣는다.** 안 넣으면 지난 백필이 만든 같은 키의 잡 행에
             #    막혀 `ON CONFLICT DO NOTHING`으로 조용히 무시된다(2026-08-08에 실제로 그랬다).
             #    형식은 `memory_pipeline.ingest_dedup_key`와 **글자 하나까지 같아야 한다** —
             #    다르면 이어지는 잡들과 키 공간이 갈려 같은 턴을 두 번 처리한다.
-            #    `g`를 붙이는 이유는 그 함수 설명에 있다(옛 `revision` 키와 겹침).
-            key = f"mem0:{uid}:{first}:v1:g{gen}"
+            #    기준은 처리 대상 턴이 아니라 **출발 커서**다. 위에서 커서를 0으로 내렸으니 0이다.
+            key = f"mem0:{uid}:c0:v1:g{gen}"
             res = await c.execute(
                 "INSERT INTO async_jobs "
                 "  (queue, job_type, user_id, dedup_key, payload, state, priority, "
                 "   available_at, max_attempts) "
-                "VALUES ('memory','mem0_ingest',$1,$2,$3::jsonb,'ready',100,now(),8) "
+                "VALUES ('memory','mem0_ingest',$1,$2,$3::jsonb,'ready',500,now(),8) "
                 "ON CONFLICT (job_type, dedup_key) DO NOTHING",
                 uid, key, f'{{"turn_seq": {first}, "privacy_epoch": {epoch}}}')
             # **등록 결과를 반드시 확인한다.** 넣었다고 찍고 실제로는 안 들어가는 사고를 막는다.

@@ -89,5 +89,6 @@ def test_versions_bumped_so_old_memories_are_distinguishable():
     from app.services import mem0_classifier as cl
     from app.services import mem0_extractor as ex
 
-    assert ex.EXTRACTOR_VERSION.endswith("v2")
+    # v3 = 언어별 프롬프트 전문 분리 · 근거를 인용문으로 · 우선순위 지시 · 부분 폐기(2026-08-08)
+    assert ex.EXTRACTOR_VERSION.endswith("v3")
     assert cl.CLASSIFIER_VERSION.endswith("v2")

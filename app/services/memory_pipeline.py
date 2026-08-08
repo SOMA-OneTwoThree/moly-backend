@@ -128,6 +128,34 @@ WHERE memory_pipeline_states.mode = 'legacy'
 RETURNING historical_upper_turn_seq
 """)
 
+# 신규 가입자 등록.
+#
+# ⚠️ 이게 없으면 **가입하는 사람마다 평생 기억이 0건**이다. `memory_pipeline_states` 행을
+#    만드는 코드가 지금까지 스크립트(`enter_shadow_cohort.py`)에만 있었다. 가입·온보딩·첫 대화
+#    어디에도 없어서, 행이 없는 사용자는 `load()`가 legacy로 해석하고 chat이 즉시 반환했다.
+#    오류도 로그도 안 났다.
+#
+# 과거 대화가 없으므로 backfill 범위도 없다 — 바로 `ready`로 두어도 불변식 2가 깨지지 않는다.
+# 이미 행이 있으면 건드리지 않는다(legacy로 둔 사용자를 되살리지 않는다).
+_ENROLL = text("""
+INSERT INTO memory_pipeline_states
+  (user_id, mode, bootstrap_status, historical_upper_turn_seq,
+   source_through_turn_seq, privacy_epoch)
+VALUES (:user_id, 'v2', 'ready', 0, 0, 0)
+ON CONFLICT (user_id) DO NOTHING
+RETURNING user_id
+""")
+
+
+async def enroll(session: AsyncSession, user_id: uuid.UUID) -> bool:
+    """기억 파이프라인에 처음 등록한다. 이미 행이 있으면 False(아무것도 안 함).
+
+    커밋은 호출측 소유 — 첫 turn과 같은 transaction에 묶는다.
+    """
+    row = (await session.execute(_ENROLL, {"user_id": user_id})).first()
+    return row is not None
+
+
 _MAX_TURN = text("""
 SELECT COALESCE(MAX(turn_seq), 0) FROM messages WHERE user_id=:user_id AND kind='normal'
 """)
@@ -264,12 +292,17 @@ async def record_turn_events(
 
 # ingest 커서 전진 — 이 turn의 모든 provider id가 registry에 기록된 뒤에만 부른다.
 # 되감기지 않는다(GREATEST). fenced finalize와 같은 transaction에서 실행된다.
+# ⚠️ **세대를 확인한다.** 재추출이 커서를 0으로 내린 뒤, 그 전에 떠 있던 잡이 뒤늦게 끝나면
+#    `GREATEST`가 커서를 옛 위치까지 다시 밀어 올린다. 그 사이 구간은 재추출 대상에서 통째로
+#    빠지고 아무도 눈치채지 못한다. 판정 결과 반영은 이미 revision을 확인하는데(registry_repo)
+#    커서만 안 보고 있었다.
 _ADVANCE_INGEST = text("""
 UPDATE memory_pipeline_states
 SET ingest_through_turn_seq = GREATEST(ingest_through_turn_seq, :turn_seq),
     updated_at = now()
 WHERE user_id=:user_id
   AND mode <> 'legacy'
+  AND repair_generation = :generation
   -- source보다 앞설 수 없다. 앞서면 아직 안 만들어진 turn을 처리했다는 뜻이다.
   AND :turn_seq <= source_through_turn_seq
 RETURNING ingest_through_turn_seq
@@ -277,13 +310,28 @@ RETURNING ingest_through_turn_seq
 
 
 async def advance_ingest_cursor(
-    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, generation: int = 0
 ) -> int | None:
-    """ingest 커서 전진. source를 앞지르면 아무것도 하지 않는다(None)."""
+    """ingest 커서 전진. 전진하지 못하면 None.
+
+    None인 경우는 둘이다 — source를 앞지르려 했거나, 그 사이 세대가 바뀌어 이 잡의 결과가
+    낡았거나. 둘 다 **커서를 안 옮기는 것이 맞다.** 그 사용자는 훑기(sweep)가 커서 기준으로
+    다시 집어간다.
+    """
     row = (
-        await session.execute(_ADVANCE_INGEST, {"user_id": user_id, "turn_seq": turn_seq})
+        await session.execute(
+            _ADVANCE_INGEST,
+            {"user_id": user_id, "turn_seq": turn_seq, "generation": generation},
+        )
     ).first()
-    return int(row[0]) if row is not None else None
+    if row is None:
+        _log.warning(
+            "ingest 커서가 전진하지 못했다 — user=%s turn=%s 세대=%s "
+            "(세대가 바뀌었거나 source를 앞지르려 했다)",
+            user_id, turn_seq, generation,
+        )
+        return None
+    return int(row[0])
 
 
 _ADVANCE_CONSOLIDATED = text("""
@@ -319,28 +367,30 @@ JOB_MEM0_CONSOLIDATE = "mem0_consolidate"
 
 
 def ingest_dedup_key(
-    user_id: uuid.UUID, turn_seq: int, *, schema_version: str = "v1", generation: int = 0
+    user_id: uuid.UUID, cursor: int, *, schema_version: str = "v1", generation: int = 0
 ) -> str:
-    """`(job_type, dedup_key)`가 멱등 키다. 같은 turn을 두 번 enqueue해도 한 행이다.
+    """`(job_type, dedup_key)`가 멱등 키다.
 
-    `generation`을 포함한다 — 판정 잡(`consolidate_dedup_key`)이 같은 이유로 이미 그렇게 한다.
-    세대 없이 고정 키를 쓰면 **한 번 처리한 turn을 다시 처리할 수 없다.** 이미 끝난 잡 행이
-    남아 있어 새 enqueue가 조용히 무시되기 때문이다. 재추출(기억을 다시 뽑는 작업)이 정확히
-    여기서 막혔다 — 잡을 넣었다고 찍히는데 실제로는 한 건도 안 들어갔다(2026-08-08 실측).
+    ⚠️ 키의 기준은 **이 잡이 출발할 커서**다. 처리 대상 턴이 아니다.
+
+    예전에는 "요청한 턴 번호"로 키를 만들었는데, 실제 처리는 **대화 덩어리가 끊기는 데까지**만
+    한다. 덩어리가 요청 턴보다 앞에서 끊기면(하루 경계 등) 커서는 그 앞에서 멈추고, 잡이
+    끝나면서 "다음은 요청 턴" 하고 새 잡을 만들려다 **자기가 방금 쓴 키와 부딪힌다.**
+    `ON CONFLICT DO NOTHING`이라 잡은 안 생기고 오류도 안 난다 — 그 사람의 기억이 조용히
+    영원히 멈춘다(2026-08-08 운영에서 실제로 한 명이 그 상태였다).
+
+    커서는 성공할 때마다 반드시 앞으로 가므로 같은 커서가 두 번 필요해지지 않는다. 재시도는
+    같은 커서라 그대로 멱등이다.
 
     세대는 `memory_pipeline_states.repair_generation`을 쓴다. 판정 잡·삭제 잡과 **같은 값이어야
     한다** — 다르면 한쪽만 새 키를 받아, 추출은 다시 도는데 판정 잡은 옛 키에 막혀 조용히
     무시된다(그 기억은 `pending`인 채로 영원히 안 보인다).
 
-    **0이면 세대 없는 예전 형식 그대로** — 지금까지 만든 잡 17,786건이 그 형식이라 평상시
-    동작이 바뀌지 않는다.
-
-    ⚠️ 0이 아니면 **`g`를 앞에 붙인다.** 잠깐 이 자리에 `revision`을 쓴 적이 있어서
-    운영에 접미사 `2`·`3`·`5`인 키가 이미 남아 있다(2026-08-08 실제 측정). 숫자만 붙이면
-    세대가 2로 올라갈 때 그 키와 같은 문자열이 되어, 잡이 `ON CONFLICT DO NOTHING`으로
-    조용히 안 생긴다 — 이 함수가 막으려는 고장과 똑같은 고장이 난다.
+    세대 0은 접미사를 안 붙인다. 0이 아니면 **`g`를 앞에 붙인다** — 잠깐 이 자리에 `revision`을
+    쓴 적이 있어서 운영에 접미사 `2`·`3`·`5`인 키가 남아 있다(실제 측정). 숫자만 붙이면
+    세대가 2로 올라갈 때 그 키와 같은 문자열이 된다.
     """
-    base = f"mem0:{user_id}:{turn_seq}:{schema_version}"
+    base = f"mem0:{user_id}:c{cursor}:{schema_version}"
     return base if generation == 0 else f"{base}:g{generation}"
 
 
@@ -364,6 +414,7 @@ async def enqueue_ingest(
     user_id: uuid.UUID,
     *,
     turn_seq: int,
+    cursor: int,
     privacy_epoch: int = 0,
     delay_s: float = 0.0,
     generation: int | None = None,
@@ -380,6 +431,9 @@ async def enqueue_ingest(
 
     `generation`을 안 주면 그 사용자의 `repair_generation`을 직접 읽는다 — 호출측이 빠뜨려서
     판정 잡과 세대가 어긋나는 사고를 막는다.
+
+    `cursor`는 **이 잡이 출발할 지점**이고 멱등 키의 기준이다. `turn_seq`는 payload에만 들어가
+    덩어리 상한을 잡는 데 쓴다. 둘을 헷갈리면 키가 겹쳐 사슬이 조용히 끊긴다.
     """
     from app.services import jobs
 
@@ -393,7 +447,7 @@ async def enqueue_ingest(
         queue=jobs.QUEUE_MEMORY,
         job_type=JOB_MEM0_INGEST,
         user_id=user_id,
-        dedup_key=ingest_dedup_key(user_id, turn_seq, generation=generation),
+        dedup_key=ingest_dedup_key(user_id, cursor, generation=generation),
         payload={"turn_seq": turn_seq, "privacy_epoch": privacy_epoch},
         available_at=available_at,
     )
@@ -546,7 +600,27 @@ async def enqueue_next_ingest(
     nxt = await next_ingest_turn(session, user_id, cursor=cursor)
     if nxt is None:
         return None
-    await enqueue_ingest(
-        session, user_id, turn_seq=nxt, privacy_epoch=privacy_epoch, generation=generation
+    made = await enqueue_ingest(
+        session, user_id, turn_seq=nxt, cursor=cursor,
+        privacy_epoch=privacy_epoch, generation=generation,
     )
+    if made is None:
+        # **사슬의 유일한 연결 고리다.** 여기서 조용히 끊기면 그 사용자의 기억이 영원히 멈춘다.
+        # 커서 기준 키라 정상적으로는 안 겹치지만, 겹쳤다면 이미 끝난 잡에 막힌 것이므로
+        # 유일한 키로 하나 더 만든다. 같은 구간을 두 번 처리해도 id가 결정적이라 데이터는
+        # 수렴한다 — 사슬이 끊기는 것보다 낫다.
+        from app.services import jobs
+
+        _log.warning(
+            "다음 추출 잡이 키에 막혔다 — user=%s 커서=%s 다음턴=%s 세대=%s. 유일 키로 다시 건다",
+            user_id, cursor, nxt, generation,
+        )
+        await jobs.enqueue(
+            session,
+            queue=jobs.QUEUE_MEMORY,
+            job_type=JOB_MEM0_INGEST,
+            user_id=user_id,
+            dedup_key=f"{ingest_dedup_key(user_id, cursor, generation=generation or 0)}:r{nxt}",
+            payload={"turn_seq": nxt, "privacy_epoch": privacy_epoch},
+        )
     return nxt

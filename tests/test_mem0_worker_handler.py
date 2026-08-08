@@ -205,12 +205,12 @@ async def test_enqueue_ingest_delays_so_the_chunk_can_accumulate():
     jobs_mod.enqueue = _fake_enqueue
     try:
         await memory_pipeline.enqueue_ingest(
-            _S(), _uuid.uuid4(), turn_seq=7, delay_s=180.0)
+            _S(), _uuid.uuid4(), turn_seq=7, cursor=6, delay_s=180.0)
         assert captured["available_at"] is not None
         assert captured["available_at"] > datetime.now(timezone.utc)
 
         captured.clear()
-        await memory_pipeline.enqueue_ingest(_S(), _uuid.uuid4(), turn_seq=7, delay_s=0)
+        await memory_pipeline.enqueue_ingest(_S(), _uuid.uuid4(), turn_seq=7, cursor=6, delay_s=0)
         assert captured["available_at"] is None  # 0이면 예전처럼 즉시
     finally:
         jobs_mod.enqueue = orig
@@ -263,9 +263,10 @@ def test_reextract_script_key_matches_the_real_key_builder():
     src = Path("scripts/reextract_memories.py").read_text()
     m = re.search(r'key = f"([^"]+)"', src)
     assert m, "스크립트에서 키 문자열을 못 찾았다"
-    uid, first, gen = _uuid.uuid4(), 7, 3
-    built = m.group(1).replace("{uid}", str(uid)).replace("{first}", str(first)).replace("{gen}", str(gen))
-    assert built == memory_pipeline.ingest_dedup_key(uid, first, generation=gen)
+    uid, gen = _uuid.uuid4(), 3
+    built = m.group(1).replace("{uid}", str(uid)).replace("{gen}", str(gen))
+    # 스크립트는 커서를 0으로 내린 뒤 첫 잡을 건다 — 키 기준도 커서 0이다.
+    assert built == memory_pipeline.ingest_dedup_key(uid, 0, generation=gen)
 
 
 def test_generation_suffix_cannot_collide_with_the_old_revision_keys():
@@ -274,9 +275,50 @@ def test_generation_suffix_cannot_collide_with_the_old_revision_keys():
     from app.services import memory_pipeline
 
     uid = _uuid.uuid4()
-    # 세대 0은 세대 없는 예전 형식 그대로 — 지금 돌고 있는 잡과 키가 어긋나면 안 된다.
-    assert memory_pipeline.ingest_dedup_key(uid, 7, generation=0) == f"mem0:{uid}:7:v1"
+    # 키의 기준은 **출발 커서**다(`c` 접두어). 처리 대상 턴이 아니다.
+    assert memory_pipeline.ingest_dedup_key(uid, 7, generation=0) == f"mem0:{uid}:c7:v1"
     for gen in (1, 2, 3, 5):
         key = memory_pipeline.ingest_dedup_key(uid, 7, generation=gen)
         assert not key.endswith(f":{gen}"), "숫자만 붙이면 옛 키와 겹친다"
         assert key.endswith(f":g{gen}")
+
+
+# ── 사슬이 조용히 멈추지 않아야 한다 (2026-08-08 감사) ────────
+def test_chunk_upper_is_bounded_by_the_source_cursor():
+    """source를 넘는 턴까지 먹으면 커서 전진이 조용히 0행이 되고 그 사용자가 멈춘다."""
+    import inspect
+    src = inspect.getsource(mem0_jobs.handle_mem0_ingest)
+    assert "upper=int(state.source_through_turn_seq)" in src
+    assert "max(turn_seq" not in src, "payload 턴으로 상한을 넓히면 안 된다"
+
+
+def test_cursor_advance_checks_the_generation():
+    """재추출이 커서를 되돌린 뒤 옛 잡이 끝나면 커서를 다시 밀어 올려 구간을 건너뛴다."""
+    from app.services import memory_pipeline
+    assert "repair_generation = :generation" in str(memory_pipeline._ADVANCE_INGEST)
+
+
+def test_next_ingest_falls_back_when_the_key_is_taken():
+    """사슬의 유일한 연결 고리다 — 키에 막혀 조용히 끊기면 그 사람 기억이 영원히 멈춘다."""
+    import inspect
+    from app.services import memory_pipeline
+    src = inspect.getsource(memory_pipeline.enqueue_next_ingest)
+    assert "if made is None" in src, "enqueue 결과를 확인해야 한다"
+    assert "dedup_key=f" in src, "막혔으면 유일 키로 다시 걸어야 한다"
+
+
+def test_sweep_detects_stalls_by_user_cursor_not_only_dead_jobs():
+    """실제 정지는 대부분 잡이 성공했는데 다음 잡이 안 생긴 경우다 — 죽은 잡 행이 없다."""
+    from worker import memory_sweep_jobs as sw
+    sql = str(sw._STALLED_USERS)
+    assert "ingest_through_turn_seq < s.source_through_turn_seq" in sql
+    assert "j.state IN ('ready', 'running')" in sql
+    # 판정만 죽은 경우도 따로 본다(추출 커서는 따라잡아 위 조건에 안 걸린다).
+    assert "semantic_status = 'pending'" in str(sw._UNJUDGED_USERS)
+
+
+def test_reextract_jobs_run_behind_live_users():
+    """처리 순서가 priority 오름차순이라, 기본값이면 재추출이 실사용자보다 먼저 처리된다."""
+    from pathlib import Path
+    src = Path("scripts/reextract_memories.py").read_text()
+    assert "'ready',500,now(),8" in src, "재추출 잡은 우선순위를 뒤로 미룬다"

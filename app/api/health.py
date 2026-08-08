@@ -124,6 +124,30 @@ async def health_deep(
     return out
 
 
+# 기억 사슬 정지 신호 네 가지.
+#  · behind        커서가 뒤처진 사용자 수(정상 처리 중인 사람도 잠깐 여기 들어온다)
+#  · stalled       그중 **대기·실행 중인 잡이 하나도 없는** 사람 — 이게 진짜 정지 신호다
+#  · unjudged      판정 못 받은 채 오래 남은 기억 수 — 회상에 안 나오고 전환 관문도 막는다
+#  · collecting    진입 절차가 중간에 끊겨 갇힌 사용자 수
+_MEMORY_STALL = text("""
+SELECT
+  (SELECT count(*) FROM memory_pipeline_states
+    WHERE mode <> 'legacy' AND ingest_through_turn_seq < source_through_turn_seq) AS behind,
+  (SELECT count(*) FROM memory_pipeline_states s
+    WHERE s.mode <> 'legacy' AND s.bootstrap_status = 'ready'
+      AND s.ingest_through_turn_seq < s.source_through_turn_seq
+      AND s.updated_at < now() - interval '30 minutes'
+      AND NOT EXISTS (SELECT 1 FROM async_jobs j
+                       WHERE j.user_id = s.user_id AND j.job_type = 'mem0_ingest'
+                         AND j.state IN ('ready','running'))) AS stalled,
+  (SELECT count(*) FROM mem0_memory_registry
+    WHERE semantic_status = 'pending' AND created_at < now() - interval '30 minutes') AS unjudged,
+  (SELECT count(*) FROM memory_pipeline_states
+    WHERE bootstrap_status = 'collecting'
+      AND updated_at < now() - interval '2 hours') AS collecting
+""")
+
+
 @router.get("/health/queues", dependencies=[Depends(require_health_token)], include_in_schema=False)
 async def health_queues(
     response: Response, session: AsyncSession = Depends(get_session)
@@ -140,11 +164,18 @@ async def health_queues(
     except Exception:  # noqa: BLE001
         response.status_code = 503
         return {"status": "down", "version": settings.git_sha}
+    # 기억 사슬이 멈춘 신호. **이 숫자가 없으면 정지가 침묵으로만 나타난다** — 지금까지
+    # 발견된 정지 사고가 전부 사람이 우연히 알아챈 것이었다(2026-08-08 감사).
+    try:
+        memory = dict((await session.execute(_MEMORY_STALL)).mappings().first() or {})
+    except Exception:  # noqa: BLE001
+        memory = {}
     return {
         "status": "ok",
         "version": settings.git_sha,
         "queues": queues,
         "dead_total": sum(q["dead"] for q in queues.values()),
+        "memory": memory,
     }
 
 

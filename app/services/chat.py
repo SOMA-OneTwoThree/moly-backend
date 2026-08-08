@@ -645,7 +645,12 @@ async def _record_memory_v2(
     """
     state = await memory_pipeline.load(session, uid)
     if not state.records_v2:
-        return
+        # 신규 가입자는 **여기서 처음 등록된다.** 이 경로가 없으면 그 사람은 평생 기억이
+        # 0건이다 — 오류도 로그도 안 난다(2026-08-08 감사에서 발견).
+        if not await memory_pipeline.enroll(session, uid):
+            return  # 이미 행이 있는데 legacy다 — 일부러 꺼둔 사용자이므로 건드리지 않는다
+        state = await memory_pipeline.load(session, uid)
+        _log.info("기억 파이프라인 신규 등록 — user=%s", uid)
     await memory_pipeline.advance_source(session, uid, turn_seq=turn_seq)
     await memory_pipeline.record_turn_events(
         session, uid, turn_seq=turn_seq, activity_date=activity_date, occurred_at=now
@@ -658,7 +663,11 @@ async def _record_memory_v2(
         # 위 조건(커서가 따라잡았을 때만)에 걸려 잡을 만들지 않으므로, 잡 하나가 그동안 쌓인
         # 구간을 통째로 먹는다 — 한 사건이 여러 턴에 걸쳐도 조각나지 않는다.
         await memory_pipeline.enqueue_ingest(
-            session, uid, turn_seq=turn_seq, privacy_epoch=state.privacy_epoch,
+            session, uid, turn_seq=turn_seq,
+            # 키의 기준은 **출발 커서**다. 처리 대상 턴으로 키를 만들면, 덩어리가 그 앞에서
+            # 끊길 때 다음 잡이 자기 키와 부딪혀 사슬이 조용히 멈춘다.
+            cursor=state.ingest_through_turn_seq,
+            privacy_epoch=state.privacy_epoch,
             delay_s=settings.memory_chunk_idle_s,
             # 재추출로 커서를 되돌리면 repair_generation이 올라간다. 그래야 이미 처리한 turn을
             # 다시 처리할 수 있다 — 세대가 없으면 옛 잡 행에 막혀 조용히 무시된다.

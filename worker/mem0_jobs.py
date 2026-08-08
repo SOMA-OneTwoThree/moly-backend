@@ -249,7 +249,10 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         else:
             chunk = await resolve_chunk(
                 session, user_id=uid, from_seq=from_seq,
-                upper=max(turn_seq, int(state.source_through_turn_seq)),
+                # ⚠️ 상한은 **source 커서까지**다. payload 턴이 그보다 크다고 거기까지 먹으면
+                #    커서 전진이 `turn_seq <= source` 조건에 걸려 조용히 0행이 되고,
+                #    기억은 만들어졌는데 커서가 그대로라 그 사용자가 멈춘다.
+                upper=int(state.source_through_turn_seq),
                 idle_s=settings.memory_chunk_idle_s,
                 max_turns=settings.memory_chunk_max_turns,
             )
@@ -429,7 +432,9 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         raise JobRetry(outcome.skipped_reason.replace(":", "_"))
 
     async def _advance(session) -> None:
-        await memory_pipeline.advance_ingest_cursor(session, uid, turn_seq=turn_seq)
+        await memory_pipeline.advance_ingest_cursor(
+            session, uid, turn_seq=turn_seq, generation=generation
+        )
         # 판정 잡과 다음 turn 잡을 **같은 fenced transaction**에서 만든다. lease를 잃은
         # 소비자가 후속 잡만 흘리는 일이 없다.
         # 판정 대상 유무는 **DB 상태로** 본다. 이번 실행의 outcome만 보면, 앞 시도가 남긴

@@ -42,7 +42,8 @@ class SearchDiariesTool(BaseTool):
     name = "search_diaries"
     description = (
         "Search the user's own published diary entries within a date range "
-        "(at most 90 days) and return short excerpts."
+        "(at most 90 days) and return short excerpts. "
+        "Call this only when the user asks about their diaries or brings them up."
     )
     input_model = SearchDiariesArgs
     output_model = SearchDiariesOut

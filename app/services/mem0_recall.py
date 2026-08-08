@@ -67,15 +67,41 @@ MIN_KEEP = 5
 
 
 # 되짚는 발화의 표지. 이게 있으면 짧아도 회상한다("민승이?" 4글자).
-_LOOKBACK = re.compile(
-    r"[?？]|뭐|무슨|언제|어디|누구|얼마|어떻|어땠|했지|있었|였지|이었|"
-    r"기억|어제|지난|전에|예전|아까|그때|저번"
-)
-# 이 길이 이하에서 표지가 없으면 되짚을 대상이 없다고 본다.
+#
+# ⚠️ **언어마다 따로 둔다.** 한국어 표지만 쓰던 동안 영어·일본어에서 어긋났다 —
+#    영어는 `sounds good`·`good morning` 같은 호응이 전부 회상을 켰고(글자 기준이 6이라),
+#    일본어는 `彼女の名前`처럼 되짚는 말을 놓쳤다(표지가 없어서).
+_LOOKBACK = {
+    "ko": re.compile(
+        r"[?？]|뭐|무슨|언제|어디|누구|얼마|어떻|어땠|했지|있었|였지|이었|"
+        r"기억|어제|지난|전에|예전|아까|그때|저번|이름"
+    ),
+    "en": re.compile(
+        r"[?？]|\bwh(at|en|ere|o|ich|y)\b|\bhow\b|\bremember\b|\bforget\b|"
+        r"\brecall\b|\byesterday\b|\blast (week|time|night|month)\b|\bname\b|"
+        r"\bbefore\b|\bearlier\b|\bago\b|\btold you\b|\bsaid\b",
+        re.IGNORECASE,
+    ),
+    "ja": re.compile(
+        r"[?？]|何|なに|いつ|どこ|誰|だれ|どう|どんな|いくら|"
+        r"覚え|おぼえ|昨日|きのう|この前|前に|さっき|以前|去年|先週|名前"
+    ),
+}
+
+# 표지가 없을 때 "되짚을 거리가 있는 길이인가"를 재는 기준.
+#
+# 한국어·일본어는 글자 하나가 담는 뜻이 많아 글자 수로 재도 된다. **영어는 안 된다** —
+# 같은 내용에 글자가 3배쯤 들어서 6자 기준이면 `haha ok`(7자)도 통과한다. 영어는 낱말 수로 잰다.
+#
+# ⚠️ 어느 쪽으로 잴지는 **프로필 언어가 아니라 글자 종류로** 정한다. 프로필이 `en`인데
+#    한국어로 말하는 사람이 실제로 있고(운영 실측 5명), 그 반대도 된다. 눈앞의 글을 보고 정한다.
 SHORT_TURN_CHARS = 6
+SHORT_TURN_WORDS = 3
+
+_CJK = re.compile(r"[가-힣ぁ-んァ-ヶ一-龯]")
 
 
-def needs_recall(query: str) -> bool:
+def needs_recall(query: str, language: str | None = None) -> bool:
     """이 발화에 회상할 대상이 있는가.
 
     **벡터 거리로는 판정할 수 없다.** 짧거나 내용 없는 입력은 임베딩 공간 중심 근처에 놓여
@@ -92,9 +118,14 @@ def needs_recall(query: str) -> bool:
     text = (query or "").strip()
     if not text:
         return False
-    if _LOOKBACK.search(text):
-        return True
-    return len(text) > SHORT_TURN_CHARS
+    # 프로필 언어와 다른 언어로 말할 수 있으므로 표지는 전부 훑는다.
+    for rx in _LOOKBACK.values():
+        if rx.search(text):
+            return True
+    # 글자 종류로 재는 방식을 고른다. 한글·가나·한자가 있으면 글자 수, 없으면 낱말 수.
+    if _CJK.search(text):
+        return len(text) > SHORT_TURN_CHARS
+    return len([w for w in text.split() if w]) > SHORT_TURN_WORDS
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,13 +178,14 @@ async def recall(
     collection_version: str = "v2",
     limit: int = DEFAULT_LIMIT,
     timeout: float = 3.0,
+    language: str | None = None,
 ) -> list[Recalled]:
     """질의와 관련된 **현재 유효한** 기억. 실패하면 빈 목록이다.
 
     adapter·embed_query를 주입받는다 — 워커와 챗이 같은 코드를 쓰되 각자의 클라이언트를
     들고 있고, 테스트가 provider 없이 돌 수 있어야 한다.
     """
-    if not needs_recall(query):
+    if not needs_recall(query, language):
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
     try:

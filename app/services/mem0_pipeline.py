@@ -71,6 +71,7 @@ def plan(
     collection_version: str,
     user_id: uuid.UUID,
     turn_seq: int,
+    repair_generation: int = 0,
 ) -> list[PlannedCandidate]:
     """통과 후보에 결정 UUID를 붙인다. 이 시점 이후로는 id가 바뀌지 않는다."""
     out: list[PlannedCandidate] = []
@@ -83,6 +84,7 @@ def plan(
                     user_id=user_id,
                     turn_seq=turn_seq,
                     candidate_hash_hex=h,
+                    repair_generation=repair_generation,
                 ),
                 candidate_hash=h,
                 text=mi.normalize(c.text),
@@ -108,6 +110,7 @@ async def run_ingest(
     existing_plan: list[PlannedCandidate] | None = None,
     source_texts: dict[int, str] | None = None,
     turns: int = 1,
+    repair_generation: int = 0,
 ) -> IngestOutcome:
     """한 source turn을 ingest한다.
 
@@ -136,6 +139,7 @@ async def run_ingest(
             collection_version=collection_version,
             user_id=user_id,
             turn_seq=turn_seq,
+            repair_generation=repair_generation,
         )
         # provider보다 **먼저** 계획을 저장한다.
         await stage_planned(planned)

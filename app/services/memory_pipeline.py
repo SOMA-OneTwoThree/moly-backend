@@ -45,6 +45,9 @@ class PipelineState:
     historical_upper_turn_seq: int | None
     privacy_epoch: int
     revision: int
+    # 재처리 세대. 커서를 되돌려 같은 turn을 다시 처리할 때만 올라간다.
+    # **잡 멱등 키와 후보 계획의 소유자를 가르는 값이다** — 세대가 다르면 남남이다.
+    repair_generation: int = 0
 
     @property
     def records_v2(self) -> bool:
@@ -64,7 +67,8 @@ class PipelineState:
 
 _LOAD = text("""
 SELECT user_id, mode, bootstrap_status, source_through_turn_seq, ingest_through_turn_seq,
-       consolidated_through_turn_seq, historical_upper_turn_seq, privacy_epoch, revision
+       consolidated_through_turn_seq, historical_upper_turn_seq, privacy_epoch, revision,
+       repair_generation
 FROM memory_pipeline_states WHERE user_id=:user_id
 """)
 
@@ -83,6 +87,7 @@ async def load(session: AsyncSession, user_id: uuid.UUID) -> PipelineState:
             historical_upper_turn_seq=None,
             privacy_epoch=0,
             revision=0,
+            repair_generation=0,
         )
     return PipelineState(
         user_id=row[0],
@@ -94,6 +99,7 @@ async def load(session: AsyncSession, user_id: uuid.UUID) -> PipelineState:
         historical_upper_turn_seq=int(row[6]) if row[6] is not None else None,
         privacy_epoch=int(row[7]),
         revision=int(row[8]),
+        repair_generation=int(row[9] or 0),
     )
 
 
@@ -322,8 +328,11 @@ def ingest_dedup_key(
     남아 있어 새 enqueue가 조용히 무시되기 때문이다. 재추출(기억을 다시 뽑는 작업)이 정확히
     여기서 막혔다 — 잡을 넣었다고 찍히는데 실제로는 한 건도 안 들어갔다(2026-08-08 실측).
 
-    세대는 `memory_pipeline_states.revision`을 쓴다. 평상시에는 안 바뀌고, 커서를 되돌리는
-    재추출에서만 올라간다. **0이면 예전 형식 그대로** — 이미 돌고 있는 잡과 키가 어긋나지 않는다.
+    세대는 `memory_pipeline_states.repair_generation`을 쓴다. 판정 잡·삭제 잡과 **같은 값이어야
+    한다** — 다르면 한쪽만 새 키를 받아, 추출은 다시 도는데 판정 잡은 옛 키에 막혀 조용히
+    무시된다(그 기억은 `pending`인 채로 영원히 안 보인다).
+
+    **0이면 예전 형식 그대로** — 이미 돌고 있는 잡과 키가 어긋나지 않는다.
     """
     base = f"mem0:{user_id}:{turn_seq}:{schema_version}"
     return base if generation == 0 else f"{base}:{generation}"
@@ -351,7 +360,7 @@ async def enqueue_ingest(
     turn_seq: int,
     privacy_epoch: int = 0,
     delay_s: float = 0.0,
-    generation: int = 0,
+    generation: int | None = None,
 ) -> uuid.UUID | None:
     """이 turn의 ingest 잡. 이미 있으면 None(멱등).
 
@@ -362,9 +371,14 @@ async def enqueue_ingest(
 
     사람도 대화 중에 정리하지 않고 끝나고 나서 남긴다. 지연은 사용자에게 안 보인다 —
     최근 대화는 원문 그대로 프롬프트에 들어가므로 회상이 없어도 캐피가 방금 얘기를 안다.
+
+    `generation`을 안 주면 그 사용자의 `repair_generation`을 직접 읽는다 — 호출측이 빠뜨려서
+    판정 잡과 세대가 어긋나는 사고를 막는다.
     """
     from app.services import jobs
 
+    if generation is None:
+        generation = await _repair_generation(session, user_id)
     available_at = (
         datetime.now(timezone.utc) + timedelta(seconds=delay_s) if delay_s > 0 else None
     )
@@ -514,14 +528,14 @@ async def enqueue_next_ingest(
     *,
     cursor: int,
     privacy_epoch: int = 0,
-    generation: int = 0,
+    generation: int | None = None,
 ) -> int | None:
     """cursor 다음 turn의 ingest 잡을 만든다. 없으면 None(따라잡음).
 
     성공 finalize가 이걸 부른다 — 한 사용자의 잡이 항상 한 개만 대기하게 하는 장치다.
 
-    `generation`은 호출측이 그 사용자의 `revision`을 넘긴다. 재추출로 커서를 되돌리면
-    revision이 올라가고, 그래야 **이미 처리한 turn을 다시 처리할 수 있다.**
+    `generation`을 안 주면 `repair_generation`을 읽는다. 재추출로 커서를 되돌리면 이 값이
+    올라가고, 그래야 **이미 처리한 turn을 다시 처리할 수 있다.**
     """
     nxt = await next_ingest_turn(session, user_id, cursor=cursor)
     if nxt is None:

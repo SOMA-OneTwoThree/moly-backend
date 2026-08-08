@@ -261,3 +261,48 @@ def test_absence_of_information_is_not_a_memory():
                          ("en", "has not told you something yet"),
                          ("ja", "まだ教えてくれていない")):
         assert needle in ex.build_system(lang), f"{lang} 프롬프트에 부재 금지 규칙이 없다"
+
+
+# ── 사실 안의 시점 표현은 코드가 막는다 ────────────────────
+#
+# 프롬프트로 금지해도 모델이 3.5% 흘렸다(2026-08-08 운영 실측: 370건 중 13건).
+# 실제로 새어 나온 문장들을 그대로 잠근다.
+@pytest.mark.parametrize("body", [
+    "유저가 요즘 너무 무기력하다",
+    "유저가 내일 저녁에 남자친구를 만나려고 한다",
+    "유저가 오늘 루틴 모임에 참여했다",
+    "유저가 좋아하는 사람이 최근에 헤어졌다고 했다",
+    "유저가 어제 국밥을 먹었다",
+    "ユーザーは最近ギターを始めた",
+    "ユーザーは昨日クッパを食べた",
+    "The user started guitar recently",
+    "The user met their friend last week",
+])
+def test_relative_time_words_are_dropped_even_if_the_model_writes_them(body):
+    from app.services import mem0_extractor as ex
+    src = ex.SourceMessage.sanitized(id=1, sender="user", content="라면 먹었어")
+    raw = json.dumps({"candidates": [
+        {"text": body, "category": "event",
+         "evidence": [{"message_id": 1, "quote": "라면 먹었어"}]},
+    ]})
+    out, dropped = ex.parse(raw, messages=[src])
+    assert out == []
+    assert dropped and dropped[0][1] == "relative_time"
+
+
+@pytest.mark.parametrize("body", [
+    "유저가 국밥을 먹었다",
+    "유저가 아침에 커피를 마신다",       # 하루 안의 때는 언제 읽어도 뜻이 같다
+    "유저가 저녁형 사람이다",
+    "ユーザーはギターを始めた",
+    "The user drinks coffee in the morning",
+])
+def test_facts_without_relative_time_survive(body):
+    from app.services import mem0_extractor as ex
+    src = ex.SourceMessage.sanitized(id=1, sender="user", content="라면 먹었어")
+    raw = json.dumps({"candidates": [
+        {"text": body, "category": "event",
+         "evidence": [{"message_id": 1, "quote": "라면 먹었어"}]},
+    ]})
+    out, dropped = ex.parse(raw, messages=[src])
+    assert len(out) == 1 and out[0].text == body

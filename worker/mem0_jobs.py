@@ -72,9 +72,9 @@ ORDER BY id
 _STAGE_CANDIDATE = text("""
 INSERT INTO mem0_ingest_candidates
   (user_id, turn_seq, candidate_hash, schema_version, extractor_version, normalizer_version,
-   provider_memory_id, candidate_text, status)
+   provider_memory_id, candidate_text, status, repair_generation)
 VALUES (:user_id, :turn_seq, :candidate_hash, :schema_version, :extractor_version,
-        :normalizer_version, :provider_memory_id, :candidate_text, 'planned')
+        :normalizer_version, :provider_memory_id, :candidate_text, 'planned', :generation)
 ON CONFLICT (user_id, turn_seq, candidate_hash, schema_version, repair_generation) DO NOTHING
 """)
 
@@ -114,11 +114,17 @@ WHERE user_id=:user_id AND provider_memory_id=:provider_memory_id AND status='pl
 
 # 재시도가 앞 시도의 계획을 이어받는다. **extractor를 다시 부르면 안 된다** — LLM이라
 # 결과가 달라지고, 그러면 앞 시도가 남긴 candidate/registry 행을 아무도 닫지 않는다(실측 사고).
+#
+# ⚠️ **세대(`repair_generation`)를 반드시 함께 본다.** 이 조건이 없으면 지난 세대가 같은 턴에
+#    남긴 후보를 "앞 시도의 계획"으로 착각해 **추출을 통째로 건너뛴다.** 재추출이 정확히 여기서
+#    막혔다 — 옛 후보를 그대로 다시 올리고 registry는 `ON CONFLICT DO NOTHING`에 걸려,
+#    잡은 성공으로 찍히는데 새 기억은 한 건도 안 생겼다(2026-08-08 실측: 4명 중 2명이 0건).
 _RESUME_PLAN = text("""
 SELECT provider_memory_id, candidate_hash, candidate_text
 FROM mem0_ingest_candidates
 WHERE user_id = :user_id AND turn_seq = :turn_seq
   AND schema_version = :schema_version
+  AND repair_generation = :generation
   AND status IN ('planned', 'committed')
 ORDER BY candidate_hash
 """)
@@ -212,6 +218,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             # historical backfill 전 — 이 turn은 아직 차례가 아니다.
             raise JobRetry("bootstrap_not_ready")
 
+        generation = int(state.repair_generation)
         from_seq = int(state.ingest_through_turn_seq)
         # 구간은 **첫 시도에서 확정해 payload에 적어둔다.** 매 시도마다 다시 계산하면 그 사이
         # 사용자가 새 턴을 보냈을 때 끝이 밀려, 앞 시도가 남긴 계획을 `_RESUME_PLAN`이 못 찾는다.
@@ -250,6 +257,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             for r in (await session.execute(_RESUME_PLAN, {
                 "user_id": uid, "turn_seq": turn_seq,
                 "schema_version": mem0_ingest.SCHEMA_VERSION,
+                "generation": generation,
             })).all()
         ]
 
@@ -308,6 +316,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                     "normalizer_version": mem0_ingest.NORMALIZER_VERSION,
                     "provider_memory_id": p.provider_memory_id,
                     "candidate_text": p.text,
+                    "generation": generation,
                 })
                 for ev in p.evidence:
                     await session.execute(_CANDIDATE_SOURCE, {
@@ -351,6 +360,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             source_texts={m.id: m.content for m in messages},
             # 후보 상한을 덩어리 크기에 맞춘다 — 20턴에서 5개만 남기면 뒷부분이 조용히 잘린다.
             turns=to_seq - from_seq,
+            repair_generation=generation,
         )
     except JobRetry:
         raise
@@ -382,7 +392,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             await memory_pipeline.advance_consolidated_cursor(session, uid, turn_seq=turn_seq)
         await memory_pipeline.enqueue_next_ingest(
             session, uid, cursor=turn_seq, privacy_epoch=state.privacy_epoch,
-            generation=state.revision,
+            generation=generation,
         )
         # 하루가 닫혔으면 그날의 뒷정리 잡(재판정·관계 투영·계약 추출). 매 turn이 아니라 경계에서만.
         #
@@ -429,7 +439,9 @@ JOB_MEM0_CONSOLIDATE = "mem0_consolidate"
 _CANDIDATE_TEXTS = text("""
 SELECT provider_memory_id, candidate_text
 FROM mem0_ingest_candidates
-WHERE user_id = :user_id AND turn_seq = :turn_seq AND status IN ('planned','committed')
+WHERE user_id = :user_id AND turn_seq = :turn_seq
+  AND repair_generation = :generation
+  AND status IN ('planned','committed')
 """)
 
 
@@ -465,7 +477,10 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
         texts = dict(
             (r[0], r[1])
             for r in (await session.execute(
-                _CANDIDATE_TEXTS, {"user_id": uid, "turn_seq": turn_seq}
+                _CANDIDATE_TEXTS, {
+                    "user_id": uid, "turn_seq": turn_seq,
+                    "generation": int(state.repair_generation),
+                }
             )).all()
         )
         expected_revision = state.revision

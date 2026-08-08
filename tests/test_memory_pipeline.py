@@ -53,6 +53,8 @@ class _Session:
             return self.plan.get("max_turn", 0)
         if s == str(mp._NEXT_INGEST):
             return self.plan.get("next_ingest")
+        if s == str(mp._REPAIR_GENERATION):
+            return self.plan.get("repair_generation", 0)
         raise AssertionError(f"모르는 scalar: {s[:60]}")
 
 
@@ -67,22 +69,22 @@ async def test_missing_row_is_legacy_and_does_nothing():
 
 async def test_shadow_records_but_does_not_serve():
     """shadow의 핵심 — 기록은 하되 응답에 v2를 쓰지 않는다."""
-    row = (UID, mp.MODE_SHADOW, mp.BOOTSTRAP_COLLECTING, 10, 0, 0, 10, 0, 1)
+    row = (UID, mp.MODE_SHADOW, mp.BOOTSTRAP_COLLECTING, 10, 0, 0, 10, 0, 1, 0)
     st = await mp.load(_Session(load=[row]), UID)
     assert st.records_v2 is True
     assert st.serves_v2 is False
 
 
 async def test_v2_mode_serves():
-    row = (UID, mp.MODE_V2, mp.BOOTSTRAP_READY, 10, 10, 10, 10, 0, 3)
+    row = (UID, mp.MODE_V2, mp.BOOTSTRAP_READY, 10, 10, 10, 10, 0, 3, 0)
     st = await mp.load(_Session(load=[row]), UID)
     assert st.records_v2 is True and st.serves_v2 is True
 
 
 async def test_live_ingest_blocked_until_bootstrap_ready():
     """collecting 동안 live turn을 집어가면 최신 turn이 과거보다 먼저 색인된다."""
-    collecting = (UID, mp.MODE_SHADOW, mp.BOOTSTRAP_COLLECTING, 5, 0, 0, 5, 0, 1)
-    ready = (UID, mp.MODE_SHADOW, mp.BOOTSTRAP_READY, 5, 0, 0, 5, 0, 2)
+    collecting = (UID, mp.MODE_SHADOW, mp.BOOTSTRAP_COLLECTING, 5, 0, 0, 5, 0, 1, 0)
+    ready = (UID, mp.MODE_SHADOW, mp.BOOTSTRAP_READY, 5, 0, 0, 5, 0, 2, 0)
     assert (await mp.load(_Session(load=[collecting]), UID)).accepts_live_ingest is False
     assert (await mp.load(_Session(load=[ready]), UID)).accepts_live_ingest is True
 

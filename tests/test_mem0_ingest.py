@@ -50,6 +50,23 @@ def test_provider_id_differs_by_every_coordinate():
     assert len(ids) == 6  # 좌표가 하나만 달라도 다른 id
 
 
+def test_provider_id_separates_repair_generations():
+    """재추출이 같은 턴에서 같은 말을 다시 뽑아도 새 행으로 들어가야 한다.
+
+    id까지 같으면 registry 등록이 `ON CONFLICT DO NOTHING`에 걸려 새 기억이 조용히 사라진다.
+    """
+    base = dict(
+        collection_version="v2", user_id=UID, turn_seq=7,
+        candidate_hash_hex=mi.candidate_hash("커피"),
+    )
+    gen0 = mi.provider_memory_id(**base)
+    # 세대 0은 예전 이름 그대로여야 한다 — 이미 저장된 id·벡터가 그대로 유효해야 하니까.
+    assert mi.provider_memory_id(**base, repair_generation=0) == gen0
+    assert mi.provider_memory_id(**base, repair_generation=1) != gen0
+    assert (mi.provider_memory_id(**base, repair_generation=1)
+            != mi.provider_memory_id(**base, repair_generation=2))
+
+
 def test_hash_ignores_whitespace_but_not_content():
     assert mi.candidate_hash("커피를  좋아한다") == mi.candidate_hash(" 커피를 좋아한다 ")
     assert mi.candidate_hash("커피") != mi.candidate_hash("차")

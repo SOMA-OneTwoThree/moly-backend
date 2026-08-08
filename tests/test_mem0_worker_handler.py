@@ -193,6 +193,9 @@ async def test_enqueue_ingest_delays_so_the_chunk_can_accumulate():
                     return None
             return _R()
 
+        async def scalar(self, *a, **k):
+            return 0  # repair_generation
+
     async def _fake_enqueue(session, **kw):
         captured.update(kw)
         return None
@@ -211,3 +214,39 @@ async def test_enqueue_ingest_delays_so_the_chunk_can_accumulate():
         assert captured["available_at"] is None  # 0이면 예전처럼 즉시
     finally:
         jobs_mod.enqueue = orig
+
+
+def test_resume_plan_is_scoped_to_the_same_repair_generation():
+    """세대를 안 보면 지난 세대의 후보를 '앞 시도의 계획'으로 착각해 추출을 건너뛴다.
+
+    2026-08-08 실측: 재추출한 4명 중 2명이 기억 0건이 됐다. 잡은 성공으로 찍히는데
+    옛 후보를 그대로 다시 올리고, registry는 `ON CONFLICT DO NOTHING`에 걸려 아무것도
+    안 남았다.
+    """
+    from worker import mem0_jobs
+
+    sql = str(mem0_jobs._RESUME_PLAN)
+    assert "repair_generation = :generation" in sql
+    # 계획을 저장할 때도 같은 세대를 적어야 짝이 맞는다.
+    assert ":generation" in str(mem0_jobs._STAGE_CANDIDATE)
+    # 판정이 읽는 본문도 같은 세대만 본다.
+    assert "repair_generation = :generation" in str(mem0_jobs._CANDIDATE_TEXTS)
+
+
+def test_all_memory_job_keys_use_one_generation_source():
+    """추출·판정·삭제 키가 서로 다른 세대를 쓰면 한쪽만 새 키를 받는다.
+
+    추출은 다시 도는데 판정 잡이 옛 키에 막히면, 그 기억은 `pending`인 채로 영원히
+    안 보인다.
+    """
+    import inspect
+    from app.services import chat, memory_pipeline
+
+    # 세 dedup 키 모두 generation을 받는다.
+    for fn in (memory_pipeline.ingest_dedup_key, memory_pipeline.consolidate_dedup_key,
+               memory_pipeline.provider_delete_dedup_key):
+        assert "generation" in inspect.signature(fn).parameters
+
+    # 판정·삭제는 repair_generation을 직접 읽고, 추출은 호출측이 같은 값을 넘긴다.
+    assert "repair_generation" in inspect.getsource(chat._record_memory_v2)
+    assert "state.revision" not in inspect.getsource(chat._record_memory_v2)

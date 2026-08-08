@@ -93,13 +93,20 @@ def provider_memory_id(
     turn_seq: int,
     candidate_hash_hex: str,
     schema_version: str = SCHEMA_VERSION,
+    repair_generation: int = 0,
 ) -> uuid.UUID:
     """결정적 provider id(UUIDv5).
 
     provider 호출 **전에** 정해두기 때문에, 호출 성공 직후 crash가 나도 재시도가 같은 id로
     upsert되어 랜덤 중복이 생기지 않는다(9.2절).
+
+    재처리 세대도 이름에 넣는다. 같은 턴에서 같은 말이 다시 나오면 id까지 같아져,
+    registry 등록이 `ON CONFLICT DO NOTHING`에 걸려 **새 기억이 조용히 사라진다.**
+    `0`이면 예전 이름 그대로라 이미 저장된 id·벡터가 그대로 유효하다.
     """
     name = f"{collection_version}:{user_id}:{turn_seq}:{candidate_hash_hex}:{schema_version}"
+    if repair_generation:
+        name = f"{name}:g{repair_generation}"
     return uuid.uuid5(_NAMESPACE, name)
 
 

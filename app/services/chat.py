@@ -369,7 +369,6 @@ async def _recall_memory_v2(
                 adapter=_recall_adapter(),
                 embed_query=memory_embeddings.embed_query,
                 timeout=_MEM0_RECALL_TIMEOUT_S,
-                language=language,
             )
         return mem0_recall.render_block(
             items, language=language, today=today, tz_name=tz_name

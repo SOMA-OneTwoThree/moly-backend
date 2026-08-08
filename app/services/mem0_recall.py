@@ -101,7 +101,7 @@ SHORT_TURN_WORDS = 3
 _CJK = re.compile(r"[가-힣ぁ-んァ-ヶ一-龯]")
 
 
-def needs_recall(query: str, language: str | None = None) -> bool:
+def needs_recall(query: str) -> bool:
     """이 발화에 회상할 대상이 있는가.
 
     **벡터 거리로는 판정할 수 없다.** 짧거나 내용 없는 입력은 임베딩 공간 중심 근처에 놓여
@@ -178,14 +178,13 @@ async def recall(
     collection_version: str = "v2",
     limit: int = DEFAULT_LIMIT,
     timeout: float = 3.0,
-    language: str | None = None,
 ) -> list[Recalled]:
     """질의와 관련된 **현재 유효한** 기억. 실패하면 빈 목록이다.
 
     adapter·embed_query를 주입받는다 — 워커와 챗이 같은 코드를 쓰되 각자의 클라이언트를
     들고 있고, 테스트가 provider 없이 돌 수 있어야 한다.
     """
-    if not needs_recall(query, language):
+    if not needs_recall(query):
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
     try:

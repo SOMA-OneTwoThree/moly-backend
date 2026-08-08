@@ -538,6 +538,12 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
                 _CANDIDATE_TEXTS, {"user_id": uid, "turn_seq": turn_seq}
             )).all()
         )
+        # 판정 프롬프트도 유저 언어로 간다. 기억 본문은 유저 언어로 저장되는데 비교 지시만
+        # 한국어면, 한국어 어미 예시가 일본어·영어 기억에는 아무 도움이 안 된다.
+        lang_row = (await session.execute(
+            text("SELECT language FROM profiles WHERE id = :u"), {"u": uid}
+        )).first()
+        language = lang_row[0] if lang_row else None
         expected_revision = state.revision
 
     # 기존 기억 본문은 provider payload에서 hydrate한다(registry는 본문 미복제).
@@ -575,12 +581,16 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
     )
     try:
         result = await llm.generate(
-            mem0_classifier.build_system(),
-            [{"role": "user", "content": mem0_classifier.render_pairs(new_pairs, existing_pairs)}],
+            mem0_classifier.build_system(language),
+            [{"role": "user", "content": mem0_classifier.render_pairs(
+                new_pairs, existing_pairs, language=language)}],
             model=settings.model_utility,
             max_tokens=mem0_classifier.MAX_OUTPUT_TOKENS,
             timeout=budget.timeout_for("classify"),
             ledger=ledger,
+            # ⚠️ 유틸리티 모델은 추론 모델이다. 안 끄면 추론 토큰이 출력 상한에서 함께 빠져
+            #    답이 통째로 잘린다 — 운영에서 그렇게 34번 실패했다.
+            reasoning_effort="none",
         )
         edges = mem0_classifier.parse(result.text, known_ids=known)
     except BudgetExceeded:
@@ -590,6 +600,10 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
     except Exception as e:  # noqa: BLE001
         raise JobRetry("classify_failed") from e
 
+    # ⚠️ 판정에 실제로 들어간 것만 refs에 넣는다. 본문을 못 찾아 입력에서 빠진 기억을 여기
+    #    포함시키면 edge가 없다는 이유로 `active`가 된다 — "비교를 통과했다"가 아니라
+    #    "비교를 안 했다"인데도 살아남는다.
+    judged = {i for i, _ in new_pairs} | {i for i, _ in existing_pairs}
     refs = [
         mem0_consolidation.MemoryRef(
             registry_id=p["id"], source_turn_seq=p["source_turn_seq"],
@@ -598,8 +612,20 @@ async def handle_mem0_consolidate(job: ClaimedJob) -> JobResult:
         )
         for group, is_new in ((pending, True), (pool, False))
         for p in group
+        if p["id"] in judged
     ]
+    # 본문이 없어 판정에서 빠진 pending은 따로 닫는다. 안 닫으면 영원히 미판정으로 남아
+    # 회상에도 안 나오고 운영 전환 관문도 막는다.
+    unjudged = [p["id"] for p in pending if p["id"] not in judged]
     verdict = mem0_consolidation.consolidate(refs, edges)
+    if unjudged:
+        _log.warning("본문을 못 찾아 판정에서 뺀 기억 %d건 — job=%s", len(unjudged), job.id)
+        verdict.transitions.extend(
+            mem0_consolidation.Transition(
+                registry_id=rid, semantic_status=mem0_consolidation.STATUS_EXCLUDED
+            )
+            for rid in unjudged
+        )
     if verdict.rejected_reasons:
         _log.warning(
             "consolidation graph 거부 %s — job=%s (보수적 ambiguous)",

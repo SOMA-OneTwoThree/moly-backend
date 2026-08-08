@@ -26,3 +26,22 @@ COMMENT ON COLUMN public.mem0_memory_registry.category IS
 CREATE INDEX IF NOT EXISTS mem0_memory_registry_category_idx
   ON public.mem0_memory_registry (user_id, category)
   WHERE semantic_status IN ('active', 'ambiguous');
+
+-- 하루 경계 재판정이 어디까지 봤는지 표시한다.
+--
+-- 예전에는 대상을 고르는 조건이 `classification_version <> '현재 버전'`이었다. 그런데 판정을
+-- 마친 기억은 예외 없이 그 값이 되므로, 조건이 **절대 참이 될 수 없었다.** 운영에서 재판정
+-- 잡 706건이 전부 `nothing_to_compare`로 끝났다 — 이 기능은 한 번도 돈 적이 없다.
+-- 그 사이 "같은 뜻 두 건이 둘 다 살아남는" 문제를 정리하는 수단이 아무것도 없었다.
+--
+-- 비교에 참여한 행은 **전이가 없어도** 이 값을 갱신한다. 그래야 다음 회차가 다음 30건으로
+-- 넘어간다. 안 그러면 같은 30건만 매일 다시 본다.
+ALTER TABLE public.mem0_memory_registry
+  ADD COLUMN IF NOT EXISTS last_reconsolidated_at timestamptz NULL;
+
+COMMENT ON COLUMN public.mem0_memory_registry.last_reconsolidated_at IS
+  '마지막으로 재판정 비교에 참여한 시각. NULL = 아직 한 번도 안 봤다.';
+
+CREATE INDEX IF NOT EXISTS mem0_memory_registry_reconsolidate_idx
+  ON public.mem0_memory_registry (user_id, last_reconsolidated_at NULLS FIRST)
+  WHERE semantic_status IN ('active', 'ambiguous');

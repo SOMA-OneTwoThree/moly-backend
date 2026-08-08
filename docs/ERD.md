@@ -509,8 +509,9 @@ free       : 그 외
 | `turn_seq` | bigint | 이 후보를 뽑아낸 턴 번호 |
 | `candidate_hash` | text | 후보 내용의 해시 |
 | `schema_version` / `extractor_version` / `normalizer_version` | text | 만들 때 쓴 규칙 버전 |
-| `provider_memory_id` | uuid | 벡터 저장소에 쓸 ID를 미리 확정한 값 — `uuid5(고정 네임스페이스, 컬렉션버전:user:turn:후보해시:스키마)` |
+| `provider_memory_id` | uuid | 벡터 저장소에 쓸 ID를 미리 확정한 값 — `uuid5(고정 네임스페이스, 컬렉션버전:user:turn:후보해시:스키마[:g세대])`. 세대가 0이 아니면 뒤에 `:g세대`가 붙는다 — 같은 턴에서 같은 말이 다시 나와도 새 행으로 들어가게 |
 | `candidate_text` | text | 정규화된 후보 문장 |
+| `category` | text NULL | 기억의 종류(`preference` `relationship` `concern` `emotion` `routine_intent` `event`). **DB에 CHECK를 두지 않는다** — 목록 밖 값이 오면 코드가 `event`로 흡수한다. DB에서 막으면 값 하나 때문에 덩어리 전체 쓰기가 실패한다. NULL = v3 이전에 뽑힌 기억 |
 | `temporal_proposal_json` | jsonb NULL | 시각 표현 해석 결과 원본 |
 | `event_started_at` / `event_ended_at` / `event_time_precision` / `resolved_timezone` | timestamptz / timestamptz / text / text, NULL | 사건이 일어난 시각 |
 | `status` | text, default `'planned'` | `planned` / `committed` / `dead` |
@@ -552,6 +553,8 @@ free       : 그 외
 | `conflict_group_id` | uuid NULL | 우열을 가릴 수 없는 기억들을 묶는 값 |
 | `duplicate_of_registry_id` / `superseded_by_registry_id` | uuid NULL | 중복·대체 판정 결과 |
 | `classification_version` / `schema_version` | text | 판정·저장 규칙 버전 |
+| `category` | text NULL | 기억의 종류. 회상에서 오래 남는 종류(취향·관계)를 일회성 사건보다 앞세우는 데 쓴다. 후보 표와 같은 값이며 CHECK도 같은 이유로 두지 않는다 |
+| `last_reconsolidated_at` | timestamptz NULL | 마지막으로 하루 경계 재판정 비교에 참여한 시각. NULL = 아직 한 번도 안 봤다. **재판정 대상 선택의 기준**이며, 비교에 참여했으면 전이가 없어도 갱신한다 — 안 그러면 커서가 앞으로 못 가 같은 30건만 매일 다시 본다 |
 | `revision` | bigint, default 0 | |
 | `last_confirmed_at` / `source_count` / `max_source_confidence` | timestamptz NULL / integer ≥ 0 / double NULL | 근거에서 다시 계산할 수 있는 파생값 |
 | `created_at` / `updated_at` | timestamptz | |

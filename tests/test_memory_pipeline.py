@@ -186,6 +186,9 @@ async def test_chat_phase_b_is_noop_for_legacy_users(monkeypatch):
 
     calls: list[str] = []
     monkeypatch.setattr(mp, "load", lambda s, u: _legacy_state(u))
+    # 행이 이미 있는데 legacy면 일부러 꺼둔 것이다 — 등록을 **시도조차 하지 않는다**
+    # (매 턴 헛된 INSERT가 나가면 안 된다).
+    monkeypatch.setattr(mp, "enroll", _must_not_enroll)
     monkeypatch.setattr(mp, "advance_source", _record("advance", calls))
     monkeypatch.setattr(mp, "record_turn_events", _record("events", calls))
     await chat._record_memory_v2(
@@ -215,7 +218,18 @@ def _record(name: str, sink: list[str]):
     return _fn
 
 
+async def _no_row_state(user_id):
+    """DB에 행이 아예 없는 신규 가입자 — 등록 대상이다."""
+    return mp.PipelineState(
+        user_id=user_id, mode=mp.MODE_LEGACY, bootstrap_status=mp.BOOTSTRAP_LEGACY,
+        source_through_turn_seq=0, ingest_through_turn_seq=0,
+        consolidated_through_turn_seq=0, historical_upper_turn_seq=None,
+        privacy_epoch=0, revision=0, exists=False,
+    )
+
+
 async def _legacy_state(user_id):
+    """행은 있는데 legacy — 일부러 꺼둔 사용자다."""
     return mp.PipelineState(
         user_id=user_id, mode=mp.MODE_LEGACY, bootstrap_status=mp.BOOTSTRAP_LEGACY,
         source_through_turn_seq=0, ingest_through_turn_seq=0,
@@ -287,7 +301,9 @@ async def test_next_ingest_enqueues_actual_next_turn_not_plus_one():
     finally:
         jobs_mod.enqueue = original
     assert got == 23
-    assert calls["dedup_key"] == mp.ingest_dedup_key(UID, 23)
+    # 키는 **출발 커서(9)** 기준, payload는 처리 대상 턴(23)이다. 둘을 섞으면 다음 잡이
+    # 자기 키와 부딪혀 사슬이 조용히 끊긴다.
+    assert calls["dedup_key"] == mp.ingest_dedup_key(UID, 9)
     assert calls["payload"]["turn_seq"] == 23
 
 
@@ -349,11 +365,18 @@ def test_provider_delete_goes_to_maintenance_queue():
 # 새 enqueue가 `ON CONFLICT DO NOTHING`으로 조용히 무시된다. 재추출이 정확히 여기서 막혀
 # "잡 등록"이라고 찍히는데 실제로는 한 건도 안 들어갔다.
 
-def test_ingest_dedup_key_keeps_old_shape_at_generation_zero():
-    """평상시 키가 바뀌면 이미 대기 중인 잡과 어긋나 같은 turn이 두 번 돈다."""
+def test_ingest_dedup_key_is_keyed_by_the_starting_cursor():
+    """처리 대상 턴으로 키를 만들면, 덩어리가 그 앞에서 끊길 때 다음 잡이 자기 키와 부딪힌다.
+
+    2026-08-08 운영에서 한 명이 실제로 그 상태였다 — 5턴이 기억에 안 들어가고 멈췄고,
+    대기 잡이 0이라 스스로 풀릴 방법이 없었다. 커서는 성공할 때마다 반드시 앞으로 가므로
+    같은 커서가 두 번 필요해지지 않는다.
+    """
     uid = uuid.uuid4()
-    assert mp.ingest_dedup_key(uid, 7) == f"mem0:{uid}:7:v1"
-    assert mp.ingest_dedup_key(uid, 7, generation=0) == f"mem0:{uid}:7:v1"
+    assert mp.ingest_dedup_key(uid, 7) == f"mem0:{uid}:c7:v1"
+    assert mp.ingest_dedup_key(uid, 7, generation=0) == f"mem0:{uid}:c7:v1"
+    # 커서가 다르면 키도 다르다 — 구간이 겹치지 않는다.
+    assert mp.ingest_dedup_key(uid, 7) != mp.ingest_dedup_key(uid, 8)
 
 
 def test_ingest_dedup_key_differs_per_generation():
@@ -370,3 +393,66 @@ def test_ingest_and_consolidate_keys_never_collide():
     uid = uuid.uuid4()
     assert mp.ingest_dedup_key(uid, 7, generation=3) != \
         mp.consolidate_dedup_key(uid, 7, generation=3)
+
+
+# ── 신규 가입자 등록 (2026-08-08 감사) ────────────────────────
+#
+# `memory_pipeline_states` 행을 만드는 코드가 스크립트에만 있었다. 가입·온보딩·첫 대화
+# 어디에도 없어서, 새로 가입한 사람은 오류도 로그도 없이 **평생 기억이 0건**이었다.
+async def test_new_user_is_enrolled_on_first_turn(monkeypatch):
+    from app.services import chat
+
+    calls: list[str] = []
+    states = iter([_no_row_state, _v2_state])
+
+    def _load(s, u):
+        return next(states)(u)
+
+    async def _enroll(s, u):
+        calls.append("enroll")
+        return True
+
+    monkeypatch.setattr(mp, "load", _load)
+    monkeypatch.setattr(mp, "enroll", _enroll)
+    monkeypatch.setattr(mp, "advance_source", _record("advance", calls))
+    monkeypatch.setattr(mp, "record_turn_events", _record("events", calls))
+    monkeypatch.setattr(mp, "enqueue_ingest", _record("enqueue", calls))
+    await chat._record_memory_v2(None, UID, turn_seq=1, activity_date=date(2026, 8, 8), now=_T0)
+    assert "enroll" in calls and "advance" in calls
+
+
+async def test_enrollment_does_not_revive_a_deliberate_legacy_user(monkeypatch):
+    """행이 이미 있는데 legacy면 일부러 꺼둔 것이다 — 되살리지 않는다."""
+    from app.services import chat
+
+    calls: list[str] = []
+    monkeypatch.setattr(mp, "load", lambda s, u: _legacy_state(u))
+    monkeypatch.setattr(mp, "enroll", _false_enroll)
+    monkeypatch.setattr(mp, "advance_source", _record("advance", calls))
+    monkeypatch.setattr(mp, "record_turn_events", _record("events", calls))
+    await chat._record_memory_v2(None, UID, turn_seq=1, activity_date=date(2026, 8, 8), now=_T0)
+    assert calls == []
+
+
+async def _false_enroll(session, user_id):
+    return False
+
+
+async def _must_not_enroll(session, user_id):
+    raise AssertionError("행이 있는 legacy 사용자에게 등록을 시도하면 안 된다")
+
+
+async def _v2_state(user_id):
+    return mp.PipelineState(
+        user_id=user_id, mode=mp.MODE_V2, bootstrap_status=mp.BOOTSTRAP_READY,
+        source_through_turn_seq=0, ingest_through_turn_seq=0,
+        consolidated_through_turn_seq=0, historical_upper_turn_seq=0,
+        privacy_epoch=0, revision=0, repair_generation=0,
+    )
+
+
+def test_enroll_starts_ready_because_there_is_no_history():
+    """과거 대화가 없으니 backfill 범위도 없다 — collecting에 갇히면 안 된다."""
+    sql = str(mp._ENROLL)
+    assert "'v2'" in sql and "'ready'" in sql
+    assert "ON CONFLICT (user_id) DO NOTHING" in sql

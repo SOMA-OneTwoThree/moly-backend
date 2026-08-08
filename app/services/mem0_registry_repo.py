@@ -32,6 +32,11 @@ ORDER BY r.created_at
 """)
 
 # 비교 대상 — 같은 사용자의 살아 있는 기억만. 다른 사용자는 SQL에서 배제한다.
+#
+# ⚠️ 고르는 기준은 **턴 번호가 최근인 것**이지 의미가 비슷한 것이 아니다. 오래전에 한 얘기를
+#    다시 하면 여기서는 중복으로 안 잡힌다. 그건 하루 경계 재판정이 맡는다.
+# ⚠️ 동점 기준(`id`)이 없으면 같은 turn_seq가 24건씩 있을 때 매번 다른 것이 뽑혀 결과가
+#    비결정이 된다.
 _COMPARISON_POOL = text("""
 SELECT r.id, r.provider_memory_id, r.source_turn_seq, r.content_hash,
        COALESCE(s.source_occurred_at, r.created_at) AS occurred_at
@@ -43,7 +48,7 @@ LEFT JOIN LATERAL (
 WHERE r.user_id = :user_id
   AND r.semantic_status IN ('active','ambiguous')
   AND r.source_turn_seq < :turn_seq
-ORDER BY r.source_turn_seq DESC
+ORDER BY r.source_turn_seq DESC, r.id DESC
 LIMIT :limit
 """)
 

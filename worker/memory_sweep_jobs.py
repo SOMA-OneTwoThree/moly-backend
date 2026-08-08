@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import text
 
@@ -47,8 +48,68 @@ _REPLAY_NAMESPACE = uuid.UUID("6f9b1d2e-0000-4000-8000-000000000001")
 # 한 번에 되살릴 사용자 수. 크게 잡으면 한 틱이 길어지고, 작으면 회복이 느리다.
 SWEEP_LIMIT = 50
 
+# 다시 걸기까지 기다리는 시간(분). 채팅이 건 잡은 3분 뒤에 도므로 그보다 넉넉히 둔다.
+STALL_GRACE_MIN = 30
+
+# ── 정지 감지의 기준은 **사용자 커서**다 ────────────────────────────────
+#
+# 예전에는 "죽은 잡"만 봤다. 그런데 실제 정지는 대부분 잡이 **성공**했는데 다음 잡이 안 생긴
+# 경우다(키 충돌·enqueue 실패). 그때는 죽은 잡 행 자체가 없어 감지 밖이었다. 취소된 잡,
+# 애초에 잡이 하나도 없는 경우도 마찬가지였다.
+#
+# 믿을 수 있는 신호는 하나다: **커서가 뒤처졌는데 대기·실행 중인 잡이 없다.**
+# ⚠️ 기다린 시간은 **처리 안 된 가장 오래된 턴의 나이**로 잰다. 상태 행의 `updated_at`으로 재면
+#    안 된다 — 그 값은 대화 커서 전진 때문에 **매 턴 새로 찍히므로**, 사슬이 멈춘 사람이 계속
+#    대화하는 한 유예 조건을 영원히 못 넘는다. 그러면 대화하는 내내 기억이 안 쌓이는데
+#    감지도 안 된다. 이번 수정이 잡으려던 사고가 정확히 그 모양이었다.
+_STALLED_USERS = text("""
+SELECT s.user_id, s.ingest_through_turn_seq AS cursor, s.repair_generation, s.privacy_epoch,
+       nxt.turn_seq AS next_turn
+FROM memory_pipeline_states s
+JOIN LATERAL (
+  SELECT MIN(m.turn_seq) AS turn_seq
+  FROM messages m
+  WHERE m.user_id = s.user_id AND m.kind = 'normal' AND m.turn_seq IS NOT NULL
+    AND m.turn_seq > s.ingest_through_turn_seq
+    AND m.turn_seq <= s.source_through_turn_seq
+    AND m.created_at < now() - make_interval(mins => :grace)
+) nxt ON nxt.turn_seq IS NOT NULL
+WHERE s.mode <> 'legacy'
+  AND s.bootstrap_status = 'ready'
+  AND s.ingest_through_turn_seq < s.source_through_turn_seq
+  AND NOT EXISTS (
+    SELECT 1 FROM async_jobs j
+    WHERE j.user_id = s.user_id AND j.job_type = 'mem0_ingest'
+      AND j.state IN ('ready', 'running')
+  )
+ORDER BY nxt.turn_seq
+LIMIT :limit
+""")
+
+# 판정만 죽은 경우. 추출 커서는 계속 따라잡아 결국 `ingest == source`가 되므로 위 조건에
+# 안 걸린다. 그러면 그 기억은 영원히 미판정으로 남아 회상에 안 나오고 전환 관문도 막는다.
+_UNJUDGED_USERS = text("""
+SELECT r.user_id, MIN(r.source_turn_seq) AS turn_seq,
+       MAX(s.repair_generation) AS repair_generation, MAX(s.privacy_epoch) AS privacy_epoch
+FROM mem0_memory_registry r
+JOIN memory_pipeline_states s ON s.user_id = r.user_id
+WHERE r.semantic_status = 'pending'
+  AND s.mode <> 'legacy'
+  AND r.created_at < now() - make_interval(mins => :grace)
+  AND NOT EXISTS (
+    SELECT 1 FROM async_jobs j
+    WHERE j.user_id = r.user_id AND j.job_type = 'mem0_consolidate'
+      AND j.state IN ('ready', 'running')
+  )
+GROUP BY r.user_id
+ORDER BY 2
+LIMIT :limit
+""")
+
 # 죽은 채로 아직 replay되지 않은 기억 잡. 커서가 뒤처진 사용자로 한정한다 — 뒤처지지 않았다면
 # 그 잡이 죽었어도 체인은 이미 지나갔으므로 되살릴 이유가 없다.
+#
+# 위 두 질의가 주 감지 수단이고, 이건 보조다.
 _STALLED = text("""
 SELECT j.id, j.user_id
 FROM async_jobs j
@@ -124,6 +185,12 @@ RETURNING embedding_repair_attempts
 async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
     """멈춘 사용자에게 다음 turn 잡을 다시 걸고, 비어 있는 일기 임베딩을 다시 만든다. 멱등이다."""
     async with get_sessionmaker()() as session:
+        stalled = (await session.execute(
+            _STALLED_USERS, {"limit": SWEEP_LIMIT, "grace": STALL_GRACE_MIN}
+        )).all()
+        unjudged = (await session.execute(
+            _UNJUDGED_USERS, {"limit": SWEEP_LIMIT, "grace": STALL_GRACE_MIN}
+        )).all()
         rows = (await session.execute(_STALLED, {"limit": SWEEP_LIMIT})).all()
         missing = (
             await session.execute(
@@ -135,9 +202,19 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
             await session.execute(_MISSING_DOCUMENT, {"limit": SWEEP_LIMIT})
         ).all()
 
-    if not rows and not missing and not undocumented:
+    if not rows and not missing and not undocumented and not stalled and not unjudged:
         return JobResult(result_code="nothing_stalled")
 
+    if stalled:
+        _log.warning(
+            "기억 사슬이 멈춘 사용자 %s명 — 커서 기준으로 다시 건다 %s",
+            len(stalled), [str(r[0])[:8] for r in stalled[:10]],
+        )
+    if unjudged:
+        _log.warning(
+            "판정 안 된 기억이 남은 사용자 %s명 — 판정 잡을 다시 건다 %s",
+            len(unjudged), [str(r[0])[:8] for r in unjudged[:10]],
+        )
     if rows:
         _log.warning("기억 파이프라인 정지 감지 — 죽은 잡 %s건 replay 시도", len(rows))
     if missing:
@@ -147,9 +224,41 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
     revived: list[str] = []
     repaired = 0
     indexed = 0
+    resumed = 0
+    rejudged = 0
 
     async def _apply(session) -> None:
-        nonlocal repaired, indexed
+        nonlocal repaired, indexed, resumed, rejudged
+        # 시간 칸을 키에 넣어 한 시간에 한 번만 다시 건다. 매 틱마다 새 잡을 쌓지 않는다.
+        bucket = datetime.now(timezone.utc).strftime("%Y%m%d%H")
+
+        # 죽은 잡 되살리기(`rows`)가 이미 집어간 사람은 건너뛴다. 둘 다 걸면 같은 구간을
+        # 두 번 추출해 LLM 호출이 두 배로 든다(데이터는 결정적 id라 수렴한다).
+        replaying = {u for _j, u in rows}
+        for user_id, cursor, generation, epoch, next_turn in stalled:
+            if next_turn is None or user_id in replaying:
+                continue  # 커서 뒤에 처리할 턴이 없거나, 죽은 잡 쪽에서 이미 되살린다
+            made = await jobs.enqueue(
+                session,
+                queue=jobs.QUEUE_MEMORY,
+                job_type=memory_pipeline.JOB_MEM0_INGEST,
+                user_id=user_id,
+                dedup_key=f"resume:{user_id}:c{cursor}:g{generation}:{bucket}",
+                payload={"turn_seq": int(next_turn), "privacy_epoch": int(epoch)},
+            )
+            resumed += made is not None
+
+        for user_id, turn_seq, generation, epoch in unjudged:
+            made = await jobs.enqueue(
+                session,
+                queue=jobs.QUEUE_MEMORY,
+                job_type=memory_pipeline.JOB_MEM0_CONSOLIDATE,
+                user_id=user_id,
+                dedup_key=f"rejudge:{user_id}:{turn_seq}:g{generation}:{bucket}",
+                payload={"turn_seq": int(turn_seq), "privacy_epoch": int(epoch)},
+            )
+            rejudged += made is not None
+
         for job_id, user_id in rows:
             # operation_id가 replay의 멱등 키다. 같은 잡을 두 번 훑어도 새 잡이 겹치지 않게
             # 원본 job_id에서 결정적으로 만든다.
@@ -198,6 +307,10 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
     return JobResult(
         result_code="ok",
         result_detail={
+            "stalled_users": len(stalled),
+            "resumed": resumed,
+            "unjudged_users": len(unjudged),
+            "rejudged": rejudged,
             "dead_found": len(rows),
             "revived": len(revived),
             "missing_embedding": len(missing),

@@ -59,7 +59,7 @@ async def _one(session, uid: uuid.UUID, *, apply: bool) -> str:
     if not await memory_pipeline.mark_bootstrap_ready(session, uid):
         return "collecting이 아니다 — ready 전환 안 함"
 
-    await memory_pipeline.enqueue_ingest(session, uid, turn_seq=earliest)
+    await memory_pipeline.enqueue_ingest(session, uid, turn_seq=earliest, cursor=0)
     return f"upper={upper}, ready, 최초 잡 turn={earliest}"
 
 

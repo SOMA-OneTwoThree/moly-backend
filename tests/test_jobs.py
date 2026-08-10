@@ -163,7 +163,7 @@ class _FakeJobsDB:
         r.update(state="succeeded", result_code=p["result_code"],
                  result_detail=p["result_detail"], finished_at=self.now)
         self._clear_lease(r)
-        return _Res([_R(id=r["id"])])
+        return _Res([_R(id=r["id"], replay_of=r.get("replay_of"))])
 
     def _retryable(self, p) -> _Res:
         r = self._fenced(p)
@@ -186,7 +186,7 @@ class _FakeJobsDB:
                  result_detail=p["result_detail"], finished_at=self.now,
                  last_error_code=p["error_code"], last_error_at=self.now)
         self._clear_lease(r)
-        return _Res([_R(id=r["id"])])
+        return _Res([_R(id=r["id"], replay_of=r.get("replay_of"))])
 
     def _heartbeat(self, p) -> _Res:
         r = self._fenced(p)
@@ -968,3 +968,52 @@ def test_mem0_jobs_go_to_the_memory_queue():
 
     for fn in (memory_pipeline.enqueue_ingest, memory_pipeline.enqueue_consolidate):
         assert "QUEUE_MEMORY" in inspect.getsource(fn), f"{fn.__name__}이 memory 큐를 안 쓴다"
+
+
+# ── 죽었다 되살아난 잡은 성공했을 때 알린다 ────────────────
+#
+# 2026-08-09에 죽음 경보 8건이 슬랙으로 갔는데 그날 안에 전부 복구됐고, 복구됐다는 사실은
+# 아무 데도 안 나갔다. 죽음만 알리고 복구를 안 알리면 보는 사람이 실제보다 나쁘게 읽는다.
+async def test_recovered_replay_job_sends_an_alert(db, monkeypatch):
+    sent = []
+
+    async def _fake(**kw):
+        sent.append(kw)
+
+    monkeypatch.setattr(jobs, "notify_recovered_fields", _fake)
+    original = uuid.uuid4()
+    db.insert(queue="content")
+    s = _FakeSession(db)
+    [job] = await jobs.claim(s, "content", worker_id="W")
+    db.rows[job.id]["replay_of"] = original            # 되살려서 만든 잡이다
+
+    assert await jobs.finalize_success(s, job) is True
+    assert len(sent) == 1
+    assert sent[0]["original_job_id"] == original
+    assert sent[0]["job_id"] == job.id
+
+
+async def test_ordinary_job_success_sends_no_recovery_alert(db, monkeypatch):
+    """평범한 성공까지 알리면 슬랙이 도배돼 진짜 소식이 묻힌다."""
+    sent = []
+
+    async def _fake(**kw):
+        sent.append(kw)
+
+    monkeypatch.setattr(jobs, "notify_recovered_fields", _fake)
+    db.insert(queue="content")
+    s = _FakeSession(db)
+    [job] = await jobs.claim(s, "content", worker_id="W")
+    assert await jobs.finalize_success(s, job) is True
+    assert sent == []
+
+
+def test_resolved_deaths_are_not_counted_as_dead():
+    """되살아나 성공한 원본을 계속 세면 진짜 안 풀린 죽음이 그 숫자에 묻힌다.
+
+    한 단계만 보면 안 된다 — 되살린 잡이 또 죽고 그다음 것이 성공하는 일이 실제로 있다
+    (2026-08-09 운영: 죽음 8건 중 4건이 그 모양이라 한 단계 검사로는 절반만 걸렀다).
+    """
+    s = _norm(jobs._STATS_SQL)
+    assert "RECURSIVE" in s.upper(), "사슬 전체를 거슬러야 한다"
+    assert "replay_of" in s and "succeeded" in s

@@ -322,7 +322,7 @@ SET state='succeeded', result_code=:result_code, result_detail=CAST(:result_deta
     SELECT 1 FROM privacy_subject_barriers b
     WHERE b.user_id=async_jobs.user_id AND b.state <> 'active'
   ))
-RETURNING id
+RETURNING id, replay_of
 """)
 
 _RETRYABLE_SQL = text(f"""
@@ -425,6 +425,15 @@ async def finalize_success(
     if apply_domain is not None:
         await apply_domain(session)
     await session.commit()
+    # 되살린 잡이 성공했으면 알린다. **죽었다는 소식만 가고 풀렸다는 소식이 안 가면**
+    # 보는 사람은 실제보다 나쁜 상태로 읽는다(2026-08-09: 죽음 경보 8건이 갔는데 그날 안에
+    # 전부 복구됐고, 복구됐다는 사실은 아무 데도 안 나갔다).
+    # 경보는 **commit 이후**다 — 전송 실패가 잡 상태를 되돌리면 안 된다(불변식 6).
+    if row[1] is not None:
+        await notify_recovered_fields(
+            job_id=job.id, original_job_id=row[1], queue=job.queue,
+            job_type=job.job_type, attempt=job.attempt,
+        )
     return True
 
 
@@ -646,6 +655,27 @@ async def notify_dead_fields(
         _log.warning("잡 dead 경보 전송 실패(무시): %r", e)
 
 
+async def notify_recovered_fields(
+    *, job_id: Any, original_job_id: Any, queue: str, job_type: str, attempt: int
+) -> None:
+    """죽었던 잡이 되살아나 성공했다는 알림. 실패해도 절대 예외를 올리지 않는다.
+
+    죽음 경보와 짝이다. 한쪽만 있으면 슬랙을 보는 사람이 실제보다 나쁘게 읽는다.
+    """
+    _log.info(
+        "잡 복구 — job_id=%s original=%s queue=%s job_type=%s attempt=%s",
+        job_id, original_job_id, queue, job_type, attempt,
+    )
+    try:
+        await slack_notify.alert(
+            f"✅ [잡 복구] queue={queue} job_type={job_type} "
+            f"attempt={attempt} job_id={job_id} (죽었던 {original_job_id} 대신 성공)",
+            dedup_key=f"job_recovered:{queue}:{job_type}",
+        )
+    except Exception as e:  # noqa: BLE001  # 경보 실패가 job 상태를 되돌리면 안 된다(불변식 6)
+        _log.warning("잡 복구 경보 전송 실패(무시): %r", e)
+
+
 async def notify_dead(job: ClaimedJob, *, error_code: str) -> None:
     await notify_dead_fields(
         job_id=job.id, queue=job.queue, job_type=job.job_type,
@@ -656,12 +686,30 @@ async def notify_dead(job: ClaimedJob, *, error_code: str) -> None:
 # ─────────────────────────────────────────────────────────────
 # 큐 상태 — /health/queues(이관 게이트). dead count 증가·미확인 1건 이상이면 배포 gate 실패로 본다.
 # ─────────────────────────────────────────────────────────────
+# ⚠️ **이미 풀린 죽음은 세지 않는다.**
+#
+# 되살리기(`replay_dead`)는 원본을 그대로 두고 새 잡을 만든다. 그래서 되살아나 성공해도
+# 원본은 영원히 `dead`로 남고, 세면 계속 쌓인다. 2026-08-09에 죽음 8건이 그날 안에 전부
+# 복구됐는데 지표는 계속 8을 가리켰다 — 그러면 진짜 안 풀린 죽음이 그 숫자에 묻힌다.
+#
+# 사슬 **전체**를 거슬러 본다. 되살린 잡이 또 죽고 그다음 것이 성공하는 일이 실제로 있어서
+# (2026-08-09: 죽음 8건 중 4건이 그런 모양), 한 단계만 보면 절반을 놓친다. 성공한 잡에서
+# 출발해 `replay_of`를 따라 올라가며 그 위 조상을 전부 풀린 것으로 본다.
+#
+# 되살린 것도 죽었고 그 뒤가 없으면 그대로 센다 — 그게 진짜 안 풀린 죽음이다.
 _STATS_SQL = text("""
+WITH RECURSIVE resolved(id) AS (
+  SELECT replay_of FROM async_jobs WHERE state='succeeded' AND replay_of IS NOT NULL
+  UNION
+  SELECT j.replay_of FROM async_jobs j JOIN resolved x ON j.id = x.id
+   WHERE j.replay_of IS NOT NULL
+)
 SELECT queue, state, count(*) AS n,
        EXTRACT(EPOCH FROM (now() - min(COALESCE(finished_at, created_at))))::double precision
          AS oldest_age_s
-FROM async_jobs
+FROM async_jobs j
 WHERE state IN ('ready','running','dead')
+  AND NOT (state = 'dead' AND j.id IN (SELECT id FROM resolved))
 GROUP BY queue, state
 """)
 

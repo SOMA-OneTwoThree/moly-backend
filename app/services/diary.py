@@ -4,12 +4,11 @@
 """
 from __future__ import annotations
 
-import base64
 import uuid
 from datetime import date, datetime, timezone
 from typing import Any
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +21,6 @@ from app.services.account import _uid
 
 _PREVIEW_LEN = 60
 _VISIBLE_KINDS = ("welcome", "shared_day", "capi_day")
-_CURSOR_VERSION = "v1"
 
 # 웰컴 프롤로그는 첫 성공 대화의 Phase B에서 동기 생성한다. 가입 시각·목록 GET을 생성
 # 트리거로 쓰지 않고, 커밋된 사실만 담는 결정적·사실 중립 템플릿을 사용한다.
@@ -250,87 +248,6 @@ async def list_diaries(
     return {"data": [_list_item(d, nickname) for d in page], "next_cursor": next_cursor}
 
 
-def _encode_cursor(display_date: date, diary_id: uuid.UUID) -> str:
-    raw = f"{display_date.isoformat()}|{diary_id}".encode("ascii")
-    encoded = base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
-    return f"{_CURSOR_VERSION}.{encoded}"
-
-
-def _decode_cursor(cursor: str) -> tuple[date, uuid.UUID]:
-    try:
-        version, encoded = cursor.split(".", 1)
-        if version != _CURSOR_VERSION or not encoded:
-            raise ValueError
-        padding = "=" * (-len(encoded) % 4)
-        raw = base64.b64decode(encoded + padding, altchars=b"-_", validate=True).decode("ascii")
-        day_raw, id_raw = raw.split("|", 1)
-        day = date.fromisoformat(day_raw)
-        diary_id = uuid.UUID(id_raw)
-        # 비정규 표현을 받아 다른 cursor 문자열로 재발행하지 않는다.
-        if _encode_cursor(day, diary_id) != cursor:
-            raise ValueError
-        return day, diary_id
-    except (UnicodeError, ValueError) as exc:
-        raise errors.validation("잘못된 커서 형식이에요.") from exc
-
-
-def _list_item_v2(d: Diary, nickname: str | None) -> dict[str, Any]:
-    title, body = _title_body(d, nickname)
-    return {
-        "id": str(d.id),
-        "display_date": _display_date(d).isoformat(),
-        "kind": _kind(d),
-        "author": getattr(d, "author", None) or "capi",
-        "title": title,
-        "weather": d.weather,
-        "preview": body[:_PREVIEW_LEN],
-        "published_at": _iso(d.published_at),
-        "read": d.first_read_at is not None,
-    }
-
-
-async def list_diaries_v2(
-    session: AsyncSession,
-    user_id: str,
-    *,
-    limit: int = 30,
-    cursor: str | None = None,
-) -> dict[str, Any]:
-    """발행된 일기를 안정적인 ``(display_date,id)`` keyset으로 조회한다."""
-
-    uid = _uid(user_id)
-    await privacy.ensure_subject_active(session, uid)
-    now = datetime.now(timezone.utc)
-    limit = max(1, min(limit, 100))
-    profile = await session.get(Profile, uid)
-    nickname = profile.nickname if profile is not None else None
-    q = select(Diary).where(
-        Diary.user_id == uid,
-        Diary.record_status == "published",
-        Diary.deleted_at.is_(None),
-        Diary.published_at <= now,
-        Diary.kind.in_(_VISIBLE_KINDS),
-    )
-    if cursor:
-        cursor_date, cursor_id = _decode_cursor(cursor)
-        q = q.where(
-            or_(
-                Diary.display_date < cursor_date,
-                and_(Diary.display_date == cursor_date, Diary.id < cursor_id),
-            )
-        )
-    q = q.order_by(Diary.display_date.desc(), Diary.id.desc()).limit(limit + 1)
-    rows = list((await session.execute(q)).scalars().all())
-    has_more = len(rows) > limit
-    page = rows[:limit]
-    next_cursor = (
-        _encode_cursor(_display_date(page[-1]), page[-1].id)
-        if has_more and page
-        else None
-    )
-    return {"data": [_list_item_v2(d, nickname) for d in page], "next_cursor": next_cursor}
-
-
 async def _load_published(session: AsyncSession, user_id: str, diary_id: str) -> Diary:
     await privacy.ensure_subject_active(session, _uid(user_id))
     try:
@@ -367,34 +284,6 @@ async def get_diary(session: AsyncSession, user_id: str, diary_id: str) -> dict[
         "weather": d.weather,
         "body": body,
         "conversation_ref": {"anchor_date": _activity_date(d).isoformat()} if is_personal else None,
-        "published_at": _iso(d.published_at),
-        "first_read_at": _iso(d.first_read_at),
-    }
-
-
-async def get_diary_v2(
-    session: AsyncSession, user_id: str, diary_id: str
-) -> dict[str, Any]:
-    d = await _load_published(session, user_id, diary_id)
-    profile = await session.get(Profile, _uid(user_id))
-    nickname = profile.nickname if profile is not None else None
-    kind = _kind(d)
-    title, body = _title_body(d, nickname)
-    occurred_at = getattr(d, "occurred_at", None)
-    return {
-        "id": str(d.id),
-        "display_date": _display_date(d).isoformat(),
-        "kind": kind,
-        "author": getattr(d, "author", None) or "capi",
-        "title": title,
-        "weather": d.weather,
-        "body": body,
-        "occurred_at": _iso(occurred_at),
-        "conversation_ref": (
-            {"anchor_date": _activity_date(d).isoformat()}
-            if kind == "shared_day"
-            else None
-        ),
         "published_at": _iso(d.published_at),
         "first_read_at": _iso(d.first_read_at),
     }

@@ -6,7 +6,7 @@
 `--allow-prod`는 운영 DB에 **실제로 반영**할 때만 쓴다(운영 전환 절차 전용).
 `--commit`과 함께 줘야 의미가 있고, 둘 다 있을 때만 dev 대상 확인을 건너뛴다.
 미리보기(--commit 없음)는 예나 지금이나 확인을 거치지 않으므로 `--allow-prod`가 필요 없다.
-절차는 docs/MIGRATION_CHECKLIST.md 참고.
+마이그레이션 순서와 주의사항은 db/migrations/README.md 참고.
 """
 import asyncio
 import asyncpg

@@ -23,9 +23,6 @@ _ENABLED: tuple[BaseTool, ...] = (
     get_routines.TOOL,
 )
 
-# 구현은 있으나 켜지 않는 도구(위 표의 사유). 스키마에도 노출하지 않는다.
-_DISABLED: tuple[BaseTool, ...] = ()
-
 # 제어 도구 — 모델이 답변 외의 의도를 전달하는 통로.
 #
 # 지금은 비어 있다. `forget_memory`가 유일한 제어 도구였는데, "잊어줘"를 대화로 처리하는

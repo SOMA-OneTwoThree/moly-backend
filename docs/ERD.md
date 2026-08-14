@@ -1,6 +1,6 @@
 # Moly ERD
 
-> 기준 문서: `API_SPEC.md`(계약) · `DB_REFACTOR.md`(2026-07 커머스 스키마 리팩토링 결정) — **2026-08-06 기억 구조 재작성**
+> 기준 문서: `API_SPEC.md`(계약) · `db/schema.sql`(기본 DDL) · `db/migrations/`(변경 역사) — **2026-08-14 현행 구조 재확인**
 > 대상 DB: **Supabase (PostgreSQL)** — 소셜 로그인(Apple/Kakao/Google)은 Supabase Auth(`auth.users`) 사용
 > 장기기억: **후보·장부는 public 테이블, 임베딩은 `vecs.moly_memories_v2`** (7장). 대화·기억 런타임 설명은 `ARCHITECTURE-capi.md`
 > DDL 원본: `db/schema.sql` + `db/migrations/`(schema.sql 이후 추가분 — 7장 테이블 다수가 여기에만 있다)
@@ -12,7 +12,7 @@
 ## 1. 설계 원칙
 
 1. **서버 권위 (US-1002)** — 건초 지급/차감, 결제·구독 상태, 상품 가격, 대화 토큰 사용량, 광고 시청 횟수는 모두 서버가 원본. **클라이언트의 DB 직접 쓰기는 전 테이블 금지 — 모든 쓰기는 서버 API 경유**(ARCHITECTURE 원칙·계약 단일화, 2026-07-07 확정). RLS는 읽기 허용 + 심층 방어(8장).
-2. **앱 기준일 = 현지 시간 04:00 경계** — 모든 일 단위 로직(`activity_date`)은 `(유저 타임존 현재시각 − 4시간)::date`로 계산. 이를 위해 `profiles.timezone`(IANA)을 저장한다.
+2. **도메인별 기준일** — 대화 한도·일기 `activity_date`는 현지 04:00 경계, 출석·루틴·광고 보상 날짜는 현지 00:00 경계다. 이를 위해 `profiles.timezone`(IANA)을 저장하며 두 날짜를 하나로 합치지 않는다.
 3. **대화 제한은 토큰 기준** — 토큰 = **LLM 입력+출력 합산**. 메시지별 사용량을 기록하고 일 단위로 집계(`user_daily_stats.tokens_used`). **그날 누적 토큰**이 대화 한도·일기 LLM 분기·리뷰 팝업 판단의 공통 지표. 캐피의 인사(greeting)는 차감 제외. 집계는 응답 후 — 마지막 응답으로 한도를 초과할 수 있고, 초과 상태에서 다음 요청 차단.
 4. **유저 티어는 파생값** — trial/free/subscriber를 컬럼으로 저장하지 않고 조회 시 판정한다 (6.1절). 상태 이중화로 인한 불일치를 원천 차단.
 5. **미정 수치는 `app_config`로** — 일일 토큰 한도, 일기/리뷰 임계, 런칭 무료 기간 등 조정 가능 수치는 스키마가 아니라 서버 설정값(6.2절). 클라 노출용 원격 설정(강제 업데이트·점검·낮/밤 시각)은 Firebase — `GET /app-config` 엔드포인트는 제거됨.
@@ -103,7 +103,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `id` | uuid PK, FK→`auth.users.id` (CASCADE) | |
 | `nickname` | text NULL | 온보딩에서 설정, 최대 10글자 — 앱+CHECK 검증 (US-201). NULL이면 온보딩 미완료 → 온보딩 화면 라우팅 |
 | `language` | text, default `'en'` | **앱 콘텐츠 언어** (US-103) — 값은 `ko`·`en`·`ja` 셋뿐이다(아래 설명). 온보딩 때 기기 시스템 언어로 초기화. **서버 생성물(캐피 응답·일기·푸시)은 유저 입력 언어와 무관하게 항상 이 언어**(API_SPEC 1장). UI 문자열은 클라 로컬라이제이션 |
-| `timezone` | text, default `'Asia/Seoul'` | IANA 타임존. 앱 기준일(04:00 경계) 계산의 근거 — 클라이언트가 갱신하되 **서버가 마지막 적용 경계를 기억해 리셋 되돌림 방지** (타임존 변경으로 하루 2회 리셋 악용 차단) |
+| `timezone` | text, default `'Asia/Seoul'` | IANA 타임존. 04:00 대화·일기 기준일과 00:00 보상 기준일 계산의 근거 — 클라이언트가 갱신하되 **서버가 마지막 적용 경계를 기억해 보상·한도 되돌림을 차단** |
 | `hay_balance` | int, default 0, **CHECK ≥ 0** | 건초 잔액 **캐시** (원본: `hay_transactions`). 서버 전용 쓰기 — 잔액 하한 0을 DB 안전망으로 강제 |
 | `trial_ends_at` | timestamptz | 가입 시각 + **48시간 (절대 시각, 의도된 정책 — 하루 중간 종료 가능)** (US-202). 재가입 어뷰징 방지 정책 TBD |
 | `review_prompted_at` | timestamptz NULL | 리뷰 팝업 노출 이력 — **최초 1회 제한** (US-1101). NOT NULL이면 재노출 금지 |
@@ -140,15 +140,17 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 - type별 `order_id`: `iap_purchase`·`shop_purchase`만 값 있음. 보상류(출석·광고·루틴)와 구독 증정/회수는 NULL — 역추적은 각 소스 테이블의 `hay_transaction_id`가 담당(광고 멱등은 `reward_ad_sessions`).
 - 일일 보상 중복 방지는 이 테이블이 아니라 `user_daily_stats`의 유니크/카운터로 강제 (4.2절).
 
-### 4.2 `user_daily_stats` — 앱 기준일 단위 상태
+### 4.2 `user_daily_stats` — 도메인 기준일 단위 상태
 
-유저 × 앱 기준일 1행. 토큰 한도, 일일 보상 게이팅을 한 곳에서 관리.
+유저 × 날짜 1행. 같은 `activity_date` 컬럼을 쓰지만 호출 기능에 따라 날짜 경계가 다르다. 토큰은 04:00
+대화 기준일, 출석·루틴·광고는 00:00 보상 기준일을 넣는다. 00:00~03:59에는 두 날짜의 행이 함께 있을
+수 있으므로 한 행이 모든 기능의 공통 "오늘"을 뜻한다고 해석하면 안 된다.
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
 | `id` | bigint PK | |
 | `user_id` | uuid FK→`profiles` | |
-| `activity_date` | date | 앱 기준일 (04:00 경계, 유저 타임존) |
+| `activity_date` | date | 기능이 계산한 날짜 키. 토큰·대화 관련 값은 04:00 경계, 보상 관련 값은 00:00 경계 |
 | `tokens_used` | int, default 0 | 그날 누적 토큰 (**LLM 입력+출력 합산**, US-403). greeting 제외. **대화 한도·일기 LLM 분기·리뷰 팝업의 공통 판정 지표** — 한도·기준치는 `app_config` |
 | `ad_reward_count` | smallint, default 0 | 리워드 광고 수령 횟수 — 일 최대 5회 서버 검증 (US-903). SSV 콜백은 **멱등 처리**(재전송 중복 지급 방지) + 원자 증가 |
 | `attendance_claimed_at` | timestamptz NULL | 출석 수령 시각 — NOT NULL이면 당일 수령 완료 (US-902) |
@@ -157,7 +159,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `evening_notified_at` | timestamptz NULL | 저녁(21:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료 |
 
 - 유니크: `(user_id, activity_date)`.
-- 04:00 리셋 = 새 행 생성일 뿐, 별도 리셋 잡 불필요.
+- 각 도메인의 날짜가 바뀌면 새 행을 사용할 뿐, 별도 리셋 잡은 없다.
 
 ### 4.3 `subscriptions` — 구독 (US-702~705)
 
@@ -281,7 +283,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | --- | --- | --- |
 | `session_id` | uuid PK | 앱이 광고 노출 전에 발급 |
 | `user_id` | uuid FK→`profiles` | |
-| `activity_date` | date | 앱 기준일 — 일 5회 한도 게이팅용 |
+| `activity_date` | date | 00:00 보상 기준일 — 일 5회 한도 게이팅용 |
 | `ssv_transaction_id` | text UNIQUE NULL | SSV 콜백 도착 시 기록 — UNIQUE로 재전송 멱등 처리 |
 | `granted` | bool NOT NULL default false | 건초 지급 완료 여부 |
 | `created_at` | timestamptz | |
@@ -319,7 +321,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `cache_read_tokens` | int NULL | 프롬프트 캐시 히트 토큰 — 캐시 텔레메트리(실원가·히트율 분석용) |
 | `cache_write_tokens` | int NULL | 프롬프트 캐시 기록 토큰 |
 | `billable_tokens` | int NULL | 원가 가중 청구 스냅샷 — `input×1 + output×1 + cache_read×0.1 + cache_write×1.25` 가중합. 단가 변경 후 재감사 필요 |
-| `activity_date` | date | 날짜 칩(US-401)·일 집계용 앱 기준일 |
+| `activity_date` | date | 날짜 칩(US-401)·일 집계용 00:00 보상 기준일 |
 | `turn_seq` / `turn_position` | bigint / smallint NULL | 성공한 user별 턴 순번과 greeting/user/reply 위치. 부분 UNIQUE로 한 턴의 위치 중복을 금지 |
 | `created_at` | timestamptz | |
 
@@ -335,7 +337,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | --- | --- | --- |
 | `id` | uuid PK | |
 | `user_id` | uuid FK→`profiles` | |
-| `diary_date` | date | 일기의 대상 앱 기준일 |
+| `diary_date` | date | 일기의 대상 04:00 대화·일기 기준일 |
 | `kind` | text | `welcome`(관계 프롤로그) / `shared_day`(대화 기반 daily) / `capi_day`(캐피의 삶 daily) |
 | `activity_date` / `display_date` | date NULL / date | daily 귀속 04:00 날짜와 화면 표시 날짜. welcome은 activity_date가 NULL |
 | `author` / `primary_subject` / `about_tags` | text / text / text[] | 저자는 항상 캐피. 누구에 관한 기록인지 생성 시 확정 |

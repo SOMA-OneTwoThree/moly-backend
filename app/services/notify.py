@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -21,6 +21,7 @@ from app.models.user_daily_stats import UserDailyStats
 from app.models.user_device import UserDevice
 from app.models.user_notification_settings import UserNotificationSettings
 from app.services import i18n, push, push_copy
+from app.services.config_store import get_config_values
 
 _log = logging.getLogger("moly-worker")
 
@@ -41,9 +42,16 @@ _EVENING = {
 # 가입 후 이 일수(활동일 차) 이내 + 대화 이력 없음 = first_touch. 지나면 default_long.
 FIRST_TOUCH_MAX_DAYS = 7
 
+# app_config 키 — 저녁 푸시 1회성 오버라이드(공지). value(jsonb) 형식:
+# {"date": "YYYY-MM-DD", "ko": ["제목", "본문"], "en": [...], "ja": [...]}
+# 유저의 활동일이 date와 같으면 카테고리 분기 대신 이 문구로 발송한다. 운영은 쿼리만으로
+# (INSERT=예약 / DELETE=취소, 재배포 없음). 날짜가 지나면 자동으로 평소 동작 복귀.
+OVERRIDE_KEY = "evening_push_override"
+OVERRIDE_CATEGORY = "override"
+
 # 카테고리별 발송 카운트 키(관측) — tick의 counts 초기화가 이 목록으로 만든다.
 # "fallback" = 신호 조회 실패로 중립 문구가 나간 건(분포 이상 감지용).
-EVENING_STAT_KEYS: tuple[str, ...] = push_copy.CATEGORIES + ("fallback",)
+EVENING_STAT_KEYS: tuple[str, ...] = push_copy.CATEGORIES + ("fallback", OVERRIDE_CATEGORY)
 
 
 def _push_text(table: dict, language: str | None) -> tuple[str, str]:
@@ -106,6 +114,35 @@ async def notify_morning(session: AsyncSession, profile) -> int:
     return await push.send(await _tokens(session, profile.id), title, body)
 
 
+async def _override_copy(session, profile, now: datetime) -> tuple[str, str] | None:
+    """app_config 오버라이드가 유저의 활동일과 일치하면 (제목, 본문). 아니면 None.
+
+    조회·파싱 실패는 평소 문구로 발송(fail-open, 이 파일의 규칙) — 공지가 하루 늦는 게
+    푸시의 조용한 소멸보다 낫다. 값 검증이 빡빡한 이유: 이 행은 운영자가 손으로 넣는다 —
+    언어 누락·문자열 오타가 "일부 유저만 엉뚱한 문구"로 새는 것보다 평소 문구가 낫다.
+    """
+    try:
+        async with session.begin_nested():  # DB 실패 격리 — 세션 오염 방지(이웃 신호 조회 선례)
+            cfg = (await get_config_values(session, [OVERRIDE_KEY])).get(OVERRIDE_KEY)
+        if not isinstance(cfg, dict):
+            return None
+        if activity_date_for(now, profile.timezone) != date.fromisoformat(cfg["date"]):
+            return None
+        table = {k: v for k, v in cfg.items() if k != "date"}
+        # 전 언어 버킷이 ["제목","본문"] 형태여야 발송 — 하나라도 누락·오타(문자열이 2글자로
+        # 쪼개지는 사고 등)면 전원 평소 문구(fail-open). 일부 언어만 깨진 공지를 내보내지 않는다.
+        if any(
+            not isinstance(table.get(lang), (list, tuple)) or len(table[lang]) != 2
+            for lang in i18n.SUPPORTED
+        ):
+            return None
+        title, body = i18n.pick(table, getattr(profile, "language", None))
+        return str(title), str(body)
+    except Exception:  # noqa: BLE001
+        _log.warning("저녁 오버라이드 해석 실패 — 평소 문구(user=%s)", profile.id, exc_info=True)
+        return None
+
+
 async def notify_evening(
     session: AsyncSession, profile, now: datetime | None = None, stats: dict | None = None
 ) -> int:
@@ -114,24 +151,32 @@ async def notify_evening(
     if not await _enabled(session, profile.id, "evening_chat"):
         return 0
     now = now or datetime.now(timezone.utc)
-    # 하루 대화량을 모두 소진한 유저는 저녁 안부(대화 유도)를 받지 않는다 (SOMA-291).
-    # tokens_remaining=None = 무제한 tier → 계속 발송. <=0 = 소진 → 스킵.
-    from app.services import gating
+    override = await _override_copy(session, profile, now)
+    g = None  # override 경로에선 미사용 — 분기 조건이 어긋나도 NameError가 안 나게 고정
+    if override is None:
+        # 하루 대화량을 모두 소진한 유저는 저녁 안부(대화 유도)를 받지 않는다 (SOMA-291).
+        # tokens_remaining=None = 무제한 tier → 계속 발송. <=0 = 소진 → 스킵.
+        # 오버라이드는 대화 유도가 아니라 공지라 이 게이트를 건너뛴다(소진 유저에게도 발송).
+        from app.services import gating
 
-    g = await gating.resolve(session, str(profile.id), now)
-    remaining = g.entitlement.get("tokens_remaining")
-    if remaining is not None and remaining <= 0:
-        return 0
+        g = await gating.resolve(session, str(profile.id), now)
+        remaining = g.entitlement.get("tokens_remaining")
+        if remaining is not None and remaining <= 0:
+            return 0
     if not await _claim_send_slot(session, profile, "evening_notified_at"):
         return 0  # 오늘 이미 발송 — 멱등 스킵
     # 클레임은 위에서 이미 커밋됐다 — 이 아래에서 무슨 일이 나도 발송은 포기하지 않는다
     # (포기 = 그날 푸시의 조용한 소멸). 분기 전체를 구조적으로 가드하고 중립 폴백으로 발송.
-    try:
-        category, title, body = await _evening_copy(session, profile, g, now)
-    except Exception:  # noqa: BLE001
-        _log.warning("저녁 분기 실패 — 중립 폴백(user=%s)", profile.id, exc_info=True)
-        category = "fallback"
-        title, body = _push_text(_EVENING, getattr(profile, "language", None))
+    if override is not None:
+        category = OVERRIDE_CATEGORY
+        title, body = override
+    else:
+        try:
+            category, title, body = await _evening_copy(session, profile, g, now)
+        except Exception:  # noqa: BLE001
+            _log.warning("저녁 분기 실패 — 중립 폴백(user=%s)", profile.id, exc_info=True)
+            category = "fallback"
+            title, body = _push_text(_EVENING, getattr(profile, "language", None))
     sent = await push.send(await _tokens(session, profile.id), title, body)
     # stats는 실제 발송(sent>0) 뒤에 — 토큰 없는 유저를 세면 tick의 '저녁 N건'과 분포 합이 어긋난다.
     if sent and stats is not None:

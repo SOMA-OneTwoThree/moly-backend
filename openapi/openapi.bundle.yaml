@@ -4,8 +4,8 @@ info:
   version: 1.0.0
   summary: Moly 앱 백엔드 API 계약
   description: '이 문서는 moly-backend 공개 HTTP API의 확정 계약이다. 호환성에 영향을 주는 변경은 Semantic Versioning으로 관리한다. 보호
-    API는 Supabase access token Bearer 인증을 사용한다. 서버 자체 문서 URL(`/openapi.json`, `/docs`, `/redoc`)은 비활성화되어
-    있다.
+    API는 Supabase access token Bearer 인증을 사용한다. `/openapi.json`과 `/docs`는 local·development에서만 열리고 staging·production에서는
+    등록되지 않는다. `/redoc`은 항상 비활성화되어 있다.
 
 
     애플리케이션 오류, 요청 검증 오류, 등록되지 않은 path의 404, 등록된 path의 미지원 method 405, 미처리 예외 500은 모두 `ErrorEnvelope`로
@@ -16,7 +16,7 @@ info:
     `/charging-station.activity_date` 필드명은 레거시이며 실제 의미는 00:00 경계 reward date다.
 
 
-    local 환경 전용 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
+    local·development 환경의 명시 플래그로만 등록되는 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
 paths:
   /health:
     get:
@@ -461,67 +461,6 @@ paths:
                       message: 일기를 찾을 수 없어요.
                       details: {}
       description: first_read_at은 최초 한 번만 기록되며 이후 호출도 멱등 204다.
-  /v2/diaries:
-    get:
-      tags:
-      - diary
-      summary: 종류와 안정 cursor를 포함한 일기 목록
-      operationId: listDiariesV2
-      security:
-      - SupabaseBearer: []
-      parameters:
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 30
-      - name: cursor
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-            maxLength: 256
-          - type: 'null'
-      responses:
-        '200':
-          description: 발행 일기 목록
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DiaryListResponseV2'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/Validation'
-  /v2/diaries/{diary_id}:
-    get:
-      tags:
-      - diary
-      summary: 종류와 시각 좌표를 포함한 일기 상세
-      operationId: getDiaryV2
-      security:
-      - SupabaseBearer: []
-      parameters:
-      - name: diary_id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: 발행 일기 상세
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DiaryDetailResponseV2'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/Validation'
   /wallet:
     get:
       tags:
@@ -2099,67 +2038,6 @@ components:
       - published_at
       - first_read_at
       title: DiaryDetailResponse
-    DiaryDetailResponseV2:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - display_date
-      - kind
-      - title
-      - weather
-      - body
-      - occurred_at
-      - conversation_ref
-      - published_at
-      - first_read_at
-      properties:
-        id:
-          type: string
-          format: uuid
-        display_date:
-          type: string
-          format: date
-        kind:
-          type: string
-          enum:
-          - welcome
-          - shared_day
-          - capi_day
-        author:
-          type: string
-          const: capi
-          default: capi
-        title:
-          anyOf:
-          - type: string
-          - type: 'null'
-        weather:
-          type: string
-          enum:
-          - sunny
-          - cloudy
-          - rainy
-          - windy
-        body:
-          type: string
-        occurred_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-        conversation_ref:
-          anyOf:
-          - $ref: '#/components/schemas/ConversationRef'
-          - type: 'null'
-        published_at:
-          type: string
-          format: date-time
-        first_read_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
     DiaryReferenceCard:
       type: object
       additionalProperties: false
@@ -2278,69 +2156,6 @@ components:
       - data
       - next_cursor
       title: DiaryListResponse
-    DiaryListItemV2:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - display_date
-      - kind
-      - title
-      - weather
-      - preview
-      - published_at
-      - read
-      properties:
-        id:
-          type: string
-          format: uuid
-        display_date:
-          type: string
-          format: date
-        kind:
-          type: string
-          enum:
-          - welcome
-          - shared_day
-          - capi_day
-        author:
-          type: string
-          const: capi
-          default: capi
-        title:
-          anyOf:
-          - type: string
-          - type: 'null'
-        weather:
-          type: string
-          enum:
-          - sunny
-          - cloudy
-          - rainy
-          - windy
-        preview:
-          type: string
-          maxLength: 60
-        published_at:
-          type: string
-          format: date-time
-        read:
-          type: boolean
-    DiaryListResponseV2:
-      type: object
-      additionalProperties: false
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/DiaryListItemV2'
-        next_cursor:
-          anyOf:
-          - type: string
-            maxLength: 256
-          - type: 'null'
     EquipmentPutRequest:
       properties:
         theme_id:

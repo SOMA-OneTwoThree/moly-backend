@@ -3,6 +3,7 @@ import time
 from fastapi import FastAPI, Request
 
 from app.api.ads import router as ads_router
+from app.api.attribution import router as attribution_router
 from app.api.chat import router as chat_router
 from app.api.diary import router as diary_router
 from app.api.economy import router as economy_router
@@ -36,8 +37,11 @@ def create_app() -> FastAPI:
         # 인증 dependency와 DB 대기까지 포함한 절대 HTTP 예산의 시작점.
         request.state.started_monotonic = time.monotonic()
         return await call_next(request)
-    # 공개(인증 불필요): 헬스체크만. (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)
+    # 공개(인증 불필요): 헬스체크와 설치 귀속 복호화.
+    # (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)
+    # 설치 리퍼러 복호화는 설치 직후 로그인 전에 호출되므로 인증을 걸 수 없다.
     app.include_router(health_router)
+    app.include_router(attribution_router)
     # 인증 필요: 각 엔드포인트가 get_current_user 의존
     # (계정 API — /me·/onboarding·알림·푸시토큰·로그아웃·탈퇴 — 는 moly-auth 서버 소유)
     app.include_router(chat_router)

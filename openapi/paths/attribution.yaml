@@ -1,0 +1,47 @@
+/attribution/meta-referrer/decrypt:
+  post:
+    tags:
+    - attribution
+    summary: Meta 설치 리퍼러 복호화
+    operationId: decryptMetaReferrer
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ../components/attribution.yaml#/schemas/MetaReferrerDecryptRequest
+      required: true
+    responses:
+      '200':
+        description: 복호화 결과. Meta 암호문이 없으면 attribution은 null이다.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/attribution.yaml#/schemas/MetaReferrerDecryptResponse
+            examples:
+              decrypted:
+                summary: 복호화 성공
+                value:
+                  attribution:
+                    ad_id: '120200000000000000'
+                    adgroup_id: '120200000000000001'
+                    adgroup_name: 광고세트 A
+                    campaign_id: '120200000000000002'
+                    campaign_name: 캠페인 A
+                    campaign_group_id: '120200000000000003'
+                    campaign_group_name: 캠페인 그룹 A
+                    account_id: '100000000000000'
+                    ad_objective_name: APP_INSTALLS
+              organic:
+                summary: Meta 암호문 없음
+                value:
+                  attribution: null
+      '422':
+        $ref: ../components/attribution.yaml#/responses/AttributionDecryptFailed
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '503':
+        $ref: ../components/attribution.yaml#/responses/AttributionKeyUnavailable
+    security: []
+    description: 설치 직후 로그인 전에 호출되므로 인증이 없다. utm_content 안의 AES-256-GCM 암호문(source.data/source.nonce)을
+      서버 보관 키로 풀어 광고 귀속 필드를 돌려준다. 암호문이 없거나 hex가 깨진 입력은 오류가 아니라 attribution=null(200)이다. 서버는 요청을 저장하지
+      않는다.

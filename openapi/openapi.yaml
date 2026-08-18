@@ -82,6 +82,8 @@ paths:
     $ref: ./paths/economy.yaml#/~1reward-ad-sessions
   /webhooks/ad-ssv:
     $ref: ./paths/economy.yaml#/~1webhooks~1ad-ssv
+  /attribution/meta-referrer/decrypt:
+    $ref: ./paths/attribution.yaml#/~1attribution~1meta-referrer~1decrypt
 components:
   schemas:
     AdSsvResponse:
@@ -154,6 +156,12 @@ components:
       $ref: ./components/common.yaml#/schemas/JsonValue
     MessagesResponse:
       $ref: ./components/conversations.yaml#/schemas/MessagesResponse
+    MetaAttribution:
+      $ref: ./components/attribution.yaml#/schemas/MetaAttribution
+    MetaReferrerDecryptRequest:
+      $ref: ./components/attribution.yaml#/schemas/MetaReferrerDecryptRequest
+    MetaReferrerDecryptResponse:
+      $ref: ./components/attribution.yaml#/schemas/MetaReferrerDecryptResponse
     PatchRoutineRequest:
       $ref: ./components/routines.yaml#/schemas/PatchRoutineRequest
     PostMessageRequest:
@@ -242,6 +250,10 @@ components:
       $ref: ./components/common.yaml#/responses/Internal
     ProfileNotFound:
       $ref: ./components/common.yaml#/responses/ProfileNotFound
+    AttributionDecryptFailed:
+      $ref: ./components/attribution.yaml#/responses/AttributionDecryptFailed
+    AttributionKeyUnavailable:
+      $ref: ./components/attribution.yaml#/responses/AttributionKeyUnavailable
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 x-contract-status: stable
 x-contract-versioning:
@@ -276,6 +288,8 @@ tags:
   description: 구독 조회, 고정 플랜, RevenueCat webhook
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
+- name: attribution
+  description: Meta 설치 리퍼러 복호화
 x-source-of-truth:
   contract: openapi/openapi.yaml
   generated_bundle: openapi/openapi.bundle.yaml

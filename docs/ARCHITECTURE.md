@@ -365,7 +365,7 @@ sequenceDiagram
 
 등급은 DB에 저장하지 않는다. `entitlement.derive_entitlement`가 조회할 때마다 판정하며,
 순서는 **실제 구독자 → 런칭 무료 기간 → 체험 기간 → 무료**다.
-런칭 무료 기간(`app_config.free_launch_until`, 코드 기본값 2026-09-01 04:00 KST)에는 구독이 없어도
+런칭 무료 기간(`app_config.free_launch_until`, 코드 기본값 2026-10-01 04:00 KST)에는 구독이 없어도
 구독과 같은 혜택을 주되, 하루 토큰 한도는 전용 값(`free_launch_token_limit`, 코드 기본값 150,000)을 쓴다.
 
 참고 — 하루 토큰 한도의 코드 기본값은 `app/config.py`에 있다.

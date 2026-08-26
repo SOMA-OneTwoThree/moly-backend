@@ -86,8 +86,8 @@
 - 클라 게이팅은 `plan` 분기가 아니라 **`entitlement` 파생 플래그**(`ads_removed`·`subscriber_theme_unlocked` 등)로 판단.
 - `entitlement`는 **moly-auth `/me`** 가 내려주고, 서버측 한도 집행은 moly-backend가 자체 계산(두 서버 이중화, 기준값은 공유 `app_config`).
 
-**🚀 런칭 무료 기간 (기본 2026-08-31까지, 조정 가능)**
-- 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도(50k)**. `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
+**🚀 런칭 무료 기간 (`2026-10-01 04:00 KST`까지, DB에서 조정 가능)**
+- 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도 150,000**. `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
 - 종료일 `app_config.free_launch_until`·한도 `free_launch_token_limit` → **재배포 없이 조정**. 종료 시 자동으로 정상 등급 복귀.
 
 ### 시간·하루 경계
@@ -138,7 +138,7 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
   "entitlement": {
     "plan":"trial",                       // trial | free | monthly | yearly
     "is_subscriber":false,                // monthly·yearly만 true
-    "trial_ends_at":"2026-09-01T04:00:00+09:00",  // trial 아니면 null
+    "trial_ends_at":"2026-10-01T04:00:00+09:00",  // trial 아니면 null
     "ads_removed":true,                   // 배너 광고 숨김
     "subscriber_theme_unlocked":false,    // 구독(active·grace)만 true
     "daily_token_limit":50000,

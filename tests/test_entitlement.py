@@ -61,7 +61,7 @@ def test_missing_config_yields_nulls():
 
 
 # --- 런칭 무료 기간 ---
-_LAUNCH_CFG = {**CONFIG, "free_launch_until": "2026-09-01T04:00:00+09:00",
+_LAUNCH_CFG = {**CONFIG, "free_launch_until": "2026-10-01T04:00:00+09:00",
                "free_launch_token_limit": 50_000}
 
 
@@ -71,7 +71,7 @@ def test_launch_free_period_active():
     assert e["plan"] == "trial" and e["is_subscriber"] is False
     assert e["daily_token_limit"] == 50_000  # 런칭 한도(trial 5000 아님)
     assert e["tokens_remaining"] == 40_000
-    assert e["trial_ends_at"].isoformat() == "2026-09-01T04:00:00+09:00"
+    assert e["trial_ends_at"].isoformat() == "2026-10-01T04:00:00+09:00"
 
 
 def test_launch_subscriber_takes_precedence():
@@ -82,7 +82,7 @@ def test_launch_subscriber_takes_precedence():
 
 
 def test_launch_ended_falls_back_to_normal():
-    after = datetime(2026, 9, 2, 0, 0, tzinfo=timezone.utc)  # 종료일 지남
+    after = datetime(2026, 10, 2, 0, 0, tzinfo=timezone.utc)  # 종료일 지남
     e = derive_entitlement(_profile(None), None, 300, _LAUNCH_CFG, after)
     assert e["plan"] == "free" and e["daily_token_limit"] == 1000  # 정상 free 복귀
 

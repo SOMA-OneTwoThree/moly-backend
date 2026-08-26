@@ -84,7 +84,7 @@
 - 클라 게이팅은 `plan` 문자열보다 `entitlement` 파생값을 우선한다. `subscriber_theme_unlocked`는 호환을 위해 남은 필드이며 현재 꾸미기 접근 제어에는 사용하지 않는다.
 - `entitlement`는 **moly-auth `/me`** 가 내려주고, 서버측 한도 집행은 moly-backend가 자체 계산(두 서버 이중화, 기준값은 공유 `app_config`).
 
-**🚀 런칭 무료 기간 (`2026-09-01 04:00 KST`까지, DB에서 조정 가능)**
+**🚀 런칭 무료 기간 (`2026-10-01 04:00 KST`까지, DB에서 조정 가능)**
 - 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도 150,000**. `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
 - 종료일 `app_config.free_launch_until`·한도 `free_launch_token_limit` → **재배포 없이 조정**. 종료 시 자동으로 정상 등급 복귀.
 
@@ -137,7 +137,7 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
   "entitlement": {
     "plan":"trial",                       // trial | free | monthly | yearly
     "is_subscriber":false,                // monthly·yearly만 true
-    "trial_ends_at":"2026-09-01T04:00:00+09:00",  // trial 아니면 null
+    "trial_ends_at":"2026-10-01T04:00:00+09:00",  // trial 아니면 null
     "ads_removed":true,                   // 배너 광고 숨김
     "subscriber_theme_unlocked":false,    // 호환 필드. 현재 꾸미기 접근 제어에는 사용하지 않음
     "daily_token_limit":150000,

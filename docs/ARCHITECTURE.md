@@ -361,11 +361,11 @@ sequenceDiagram
 | `CANCELLATION` (그 외 사유) | 자동 갱신만 끈다. 남은 기간의 혜택은 유지된다 |
 | `EXPIRATION` | 만료 처리 + 구독 전용 장착 해제 |
 | `BILLING_ISSUE` | 유예 상태(`grace_period`)로 둔다 — 혜택은 유지된다 |
-| `TRANSFER` | **자동 처리하지 않는다.** 즉시 실패로 표시하고 슬랙으로 알린다. 운영자가 직접 본다 |
+| `TRANSFER` | `SANDBOX`(TestFlight/테스트)는 경제·구독·결제 변경 없이 `processed` no-op. `PRODUCTION`과 환경 미확인 건은 즉시 실패로 표시하고 슬랙으로 알려 운영자가 직접 본다 |
 
 등급은 DB에 저장하지 않는다. `entitlement.derive_entitlement`가 조회할 때마다 판정하며,
 순서는 **실제 구독자 → 런칭 무료 기간 → 체험 기간 → 무료**다.
-런칭 무료 기간(`app_config.free_launch_until`, 코드 기본값 2026-09-01 04:00 KST)에는 구독이 없어도
+런칭 무료 기간(`app_config.free_launch_until`, 코드 기본값 2026-10-01 04:00 KST)에는 구독이 없어도
 구독과 같은 혜택을 주되, 하루 토큰 한도는 전용 값(`free_launch_token_limit`, 코드 기본값 150,000)을 쓴다.
 
 참고 — 하루 토큰 한도의 코드 기본값은 `app/config.py`에 있다.

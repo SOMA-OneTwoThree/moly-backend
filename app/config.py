@@ -232,16 +232,18 @@ class Settings(BaseSettings):
 
     # --- 런칭 무료 기간 --- 이 시각 이전엔 구독 없이 전원 무료(구독급 경험). 이후 자동으로 정상 등급.
     # app_config로 오버라이드 가능(재배포 없이 날짜 조정). 미설정/파싱실패 = OFF(fail-safe).
-    free_launch_until: str = "2026-09-01T04:00:00+09:00"  # 활동일 8/31까지(로컬 04:00 경계)
+    free_launch_until: str = "2026-10-01T04:00:00+09:00"  # 활동일 9/30까지(로컬 04:00 경계)
     # 런칭 기간 일 토큰 한도(원가가중 billable 기준). luna 입력 $0.20/M 기준 ~월 $0.90/인 상한.
     free_launch_token_limit: int = 150_000
 
     # --- 모니터링·알림 (observability, SOMA-301) ---
     # 배포 이미지 커밋 sha — deploy가 GIT_SHA env로 주입. /health 버전 노출·배포 반영 확인용.
     git_sha: str = "unknown"
-    # Slack severity 라우팅: 크리티컬(alerts)/상태·요약(status) 분리. 미설정 시 slack_webhook_url 폴백.
+    # Slack 라우팅: 크리티컬(alerts)/상태·요약(status)/사용자 피드백(feedback) 분리.
+    # feedback 미설정 시 alert, 개별 채널 미설정 시 공용 slack_webhook_url로 폴백.
     slack_alert_webhook_url: str = ""   # 즉시 크리티컬(#moly-alerts) — down·배치실패·비용급증
     slack_status_webhook_url: str = ""  # 상태·요약·배포(#moly-status) — 조용한 채널
+    slack_feedback_webhook_url: str = ""  # 인앱 문의(#moly-feedback) — 미설정 시 alert → 공용 폴백
     alert_dedup_window_sec: int = 300   # 같은 알림키 억제 창(상관 스톰·flapping 스팸 방지)
     # 심층/합성 헬스 엔드포인트 인증(헤더 X-Health-Token 상수시간 비교). 비-local에서 비면 403(fail-closed).
     health_token: str = ""

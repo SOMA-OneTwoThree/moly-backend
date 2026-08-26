@@ -49,6 +49,32 @@ async def test_status_routes_to_status_webhook(monkeypatch):
     assert [c["url"] for c in fake.calls] == ["STATUS"]
 
 
+async def test_feedback_routes_to_feedback_webhook(monkeypatch):
+    monkeypatch.setattr(slack_notify.settings, "slack_feedback_webhook_url", "FEEDBACK")
+    monkeypatch.setattr(slack_notify.settings, "slack_alert_webhook_url", "ALERT")
+    fake = _patch_client(monkeypatch)
+    await slack_notify.send_feedback("피드백")
+    assert [c["url"] for c in fake.calls] == ["FEEDBACK"]
+
+
+async def test_feedback_falls_back_to_alert_webhook(monkeypatch):
+    monkeypatch.setattr(slack_notify.settings, "slack_feedback_webhook_url", "")
+    monkeypatch.setattr(slack_notify.settings, "slack_alert_webhook_url", "ALERT")
+    monkeypatch.setattr(slack_notify.settings, "slack_webhook_url", "COMMON")
+    fake = _patch_client(monkeypatch)
+    await slack_notify.send_feedback("피드백")
+    assert [c["url"] for c in fake.calls] == ["ALERT"]
+
+
+async def test_feedback_falls_back_to_common_when_dedicated_and_alert_are_empty(monkeypatch):
+    monkeypatch.setattr(slack_notify.settings, "slack_feedback_webhook_url", "")
+    monkeypatch.setattr(slack_notify.settings, "slack_alert_webhook_url", "")
+    monkeypatch.setattr(slack_notify.settings, "slack_webhook_url", "COMMON")
+    fake = _patch_client(monkeypatch)
+    await slack_notify.send_feedback("피드백")
+    assert [c["url"] for c in fake.calls] == ["COMMON"]
+
+
 async def test_falls_back_to_common_webhook(monkeypatch):
     monkeypatch.setattr(slack_notify.settings, "slack_alert_webhook_url", "")
     monkeypatch.setattr(slack_notify.settings, "slack_webhook_url", "COMMON")

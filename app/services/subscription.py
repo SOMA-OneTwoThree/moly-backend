@@ -6,7 +6,8 @@ RC가 Apple/Google 영수증 검증을 대행 → 우리는 RC 웹훅 이벤트�
 SOMA-372: 웹훅은 내구 inbox(revenuecat_events)에 raw 커밋 후 process_event로 소비한다.
 - 큰문제1(순서 역행 오만료): 상태 단조(event_ts > last_event_at) + 단조 연장 예외.
 - 큰문제2(오류 삼킴 유실): 핸들러 내부 commit·광범위 except 제거 → 예외는 롤백·재시도, 은폐 없음.
-- 큰문제3(환불 회수 우회): 음수 부채 회수(실 원장액 권위) + 팩 환불 경로 + TRANSFER 전면 수동.
+- 큰문제3(환불 회수 우회): 음수 부채 회수(실 원장액 권위) + 팩 환불 경로 +
+  PRODUCTION TRANSFER 수동(SANDBOX는 경제 변경 없는 no-op).
 """
 from __future__ import annotations
 
@@ -218,7 +219,7 @@ HANDLED = "handled"          # 상태·재무 변경 완료 → processed
 NO_OP = "no_op"              # 의도적 무처리(상태 단조 skip·PRODUCT_CHANGE 등) → processed + durable reason
 DEPENDENCY_MISSING = "dependency_missing"  # 선행 결제/구독 없음 → pending(attempts 불변, 다음 틱 수렴)
 PERMANENT_FAILURE = "permanent_failure"    # 재시도로 안 풀리는 영구 오류 → failed(즉시 관측)
-TRANSFER_MANUAL = "transfer"               # TRANSFER 전면 수동 → failed + 워커 재요약
+TRANSFER_MANUAL = "transfer"               # PRODUCTION/미확인 TRANSFER 수동 → failed + 워커 재요약
 
 
 @dataclass(frozen=True)
@@ -390,12 +391,21 @@ async def handle_revenuecat_event(session: AsyncSession, event: dict) -> Handler
 async def _dispatch(session: AsyncSession, event: dict) -> HandlerResult:
     etype = event.get("type")
 
-    # TRANSFER는 전면 수동(§5) — 경제·구독·결제 무변경, 즉시 failed + 워커 재요약. uid 파싱 이전에
-    # 분기(transferred_from/to만 있고 app_user_id가 없을 수 있음). 무성 회수우회 원천 차단.
+    # TRANSFER는 uid 파싱 이전에 분기한다(transferred_from/to만 있고
+    # app_user_id가 없을 수 있음). SANDBOX TRANSFER는 TestFlight/테스트 계정 이동 잡음이므로
+    # 경제·구독·결제를 손대지 않고 processed no-op. PRODUCTION과 환경 미확인 건은
+    # 기존처럼 failed + 수동 확인(fail-closed)으로 두어 무성 회수 우회를 막는다.
     if etype == "TRANSFER":
+        environment = str(event.get("environment") or "").strip().upper()
+        if environment == "SANDBOX":
+            return HandlerResult(
+                NO_OP,
+                "SANDBOX TRANSFER 자동 no-op(경제·구독·결제 무변경)",
+            )
         return HandlerResult(
             TRANSFER_MANUAL,
-            f"TRANSFER 수동 처리 필요 from={event.get('transferred_from')!r} "
+            f"TRANSFER 수동 처리 필요 environment={environment or 'UNKNOWN'!r} "
+            f"from={event.get('transferred_from')!r} "
             f"to={event.get('transferred_to')!r}",
         )
 

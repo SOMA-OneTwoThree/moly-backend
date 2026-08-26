@@ -95,15 +95,18 @@ CREATE TRIGGER on_auth_user_created
 -- ─────────────────────────────────────────────────────────────
 -- 2. products (product_type='hay_pack') — 건초 IAP 상품 3종 (App Store Connect 등록 product_id)
 --    가격: 300/₩1,500 · 1,500/₩6,500 · 3,000/₩10,000 (확정 정책)
+--    Play Console 상품ID는 App Store 와 동일하게 등록돼 있다(수신 RC 웹훅 payload로 확인) →
+--    play_store_product_id 도 같은 값. 비우면 안드로이드 소모성 구매가 미상 상품으로 떨어져 미지급된다.
 -- ─────────────────────────────────────────────────────────────
-INSERT INTO public.products (product_type, name, hay_amount, price_krw, app_store_product_id, is_active, sort_order) VALUES
-  ('hay_pack', '건초 300',   300,   1500, 'com.geniusjun.moly.hay.300',  true, 1),
-  ('hay_pack', '건초 1500', 1500,   6500, 'com.geniusjun.moly.hay.1500', true, 2),
-  ('hay_pack', '건초 3000', 3000,  10000, 'com.geniusjun.moly.hay.3000', true, 3)
+INSERT INTO public.products (product_type, name, hay_amount, price_krw, app_store_product_id, play_store_product_id, is_active, sort_order) VALUES
+  ('hay_pack', '건초 300',   300,   1500, 'com.geniusjun.moly.hay.300',  'com.geniusjun.moly.hay.300',  true, 1),
+  ('hay_pack', '건초 1500', 1500,   6500, 'com.geniusjun.moly.hay.1500', 'com.geniusjun.moly.hay.1500', true, 2),
+  ('hay_pack', '건초 3000', 3000,  10000, 'com.geniusjun.moly.hay.3000', 'com.geniusjun.moly.hay.3000', true, 3)
 ON CONFLICT (app_store_product_id) DO UPDATE
   SET name       = EXCLUDED.name,
       hay_amount = EXCLUDED.hay_amount,
       price_krw  = EXCLUDED.price_krw,
+      play_store_product_id = EXCLUDED.play_store_product_id,
       is_active  = EXCLUDED.is_active,
       sort_order = EXCLUDED.sort_order;
 

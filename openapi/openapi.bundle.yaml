@@ -1610,6 +1610,53 @@ paths:
         schema:
           type: string
           minLength: 1
+  /attribution/meta-referrer/decrypt:
+    post:
+      tags:
+      - attribution
+      summary: Meta 설치 리퍼러 복호화
+      operationId: decryptMetaReferrer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetaReferrerDecryptRequest'
+        required: true
+      responses:
+        '200':
+          description: 복호화 결과. Meta 암호문이 없으면 attribution은 null이다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaReferrerDecryptResponse'
+              examples:
+                decrypted:
+                  summary: 복호화 성공
+                  value:
+                    attribution:
+                      ad_id: '120200000000000000'
+                      adgroup_id: '120200000000000001'
+                      adgroup_name: 광고세트 A
+                      campaign_id: '120200000000000002'
+                      campaign_name: 캠페인 A
+                      campaign_group_id: '120200000000000003'
+                      campaign_group_name: 캠페인 그룹 A
+                      account_id: '100000000000000'
+                      ad_objective_name: APP_INSTALLS
+                organic:
+                  summary: Meta 암호문 없음
+                  value:
+                    attribution: null
+        '422':
+          $ref: '#/components/responses/AttributionDecryptFailed'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '503':
+          $ref: '#/components/responses/AttributionKeyUnavailable'
+      security: []
+      description: 설치 직후 로그인 전에 호출되므로 인증이 없다. utm_content 안의 AES-256-GCM 암호문(source.data/source.nonce)을
+        서버 보관 키로 풀어 광고 귀속 필드를 돌려준다. 암호문이 없거나 hex가 깨진 입력은 오류가 아니라 attribution=null(200)이다. 서버는 요청을 저장하지
+        않는다.
 components:
   schemas:
     AdSsvResponse:
@@ -2528,6 +2575,81 @@ components:
       - older_cursor
       - newer_cursor
       title: MessagesResponse
+    MetaAttribution:
+      properties:
+        ad_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ad Id
+        adgroup_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Adgroup Id
+        adgroup_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Adgroup Name
+        campaign_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Campaign Id
+        campaign_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Campaign Name
+        campaign_group_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Campaign Group Id
+        campaign_group_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Campaign Group Name
+        account_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Account Id
+        ad_objective_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ad Objective Name
+      additionalProperties: false
+      type: object
+      title: MetaAttribution
+      description: 복호화된 귀속 값. Meta는 숫자처럼 보이는 ID도 전부 문자열로 준다. 암호문에 없던 필드는 키는 있고 값이 null이다.
+    MetaReferrerDecryptRequest:
+      properties:
+        utm_content:
+          type: string
+          maxLength: 8192
+          title: Utm Content
+          description: Google Play 설치 리퍼러의 utm_content 원문. URL 디코드된 JSON과 percent-encoded JSON을 모두 받는다.
+      additionalProperties: false
+      type: object
+      required:
+      - utm_content
+      title: MetaReferrerDecryptRequest
+    MetaReferrerDecryptResponse:
+      properties:
+        attribution:
+          anyOf:
+          - $ref: '#/components/schemas/MetaAttribution'
+          - type: 'null'
+          description: Meta 암호문이 없으면 null이다. 오류가 아니라 정상적인 '귀속 없음' 결과다.
+      additionalProperties: false
+      type: object
+      required:
+      - attribution
+      title: MetaReferrerDecryptResponse
     PatchRoutineRequest:
       properties:
         name:
@@ -3706,6 +3828,47 @@ components:
                   code: NOT_FOUND
                   message: 프로필을 찾을 수 없어요.
                   details: {}
+    AttributionDecryptFailed:
+      description: 요청 형식 오류이거나, 암호문은 있지만 복호화에 실패함(키 불일치·손상). 재시도해도 결과가 같다.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            requestValidation:
+              summary: 요청 검증
+              value:
+                error:
+                  code: VALIDATION
+                  message: 요청 형식이 올바르지 않습니다.
+                  details:
+                    errors:
+                    - loc:
+                      - body
+                      - utm_content
+                      type: missing
+                      msg: Field required
+            decryptFailed:
+              summary: 복호화 실패
+              value:
+                error:
+                  code: ATTRIBUTION_DECRYPT_FAILED
+                  message: 설치 리퍼러를 복호화할 수 없어요.
+                  details: {}
+    AttributionKeyUnavailable:
+      description: 서버에 복호화 키가 설정되지 않음. 설정 반영 후 성공하므로 client는 재시도해도 된다.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            keyUnavailable:
+              summary: 키 미설정
+              value:
+                error:
+                  code: ATTRIBUTION_KEY_UNAVAILABLE
+                  message: 설치 귀속 복호화를 잠시 사용할 수 없어요.
+                  details: {}
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 x-contract-status: stable
 x-contract-versioning:
@@ -3740,6 +3903,8 @@ tags:
   description: 구독 조회, 고정 플랜, RevenueCat webhook
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
+- name: attribution
+  description: Meta 설치 리퍼러 복호화
 x-source-of-truth:
   contract: openapi/openapi.yaml
   generated_bundle: openapi/openapi.bundle.yaml

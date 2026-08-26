@@ -24,6 +24,7 @@ PUBLIC_SECURITY = {
     ("/health", "get"): [],
     ("/webhooks/revenuecat", "post"): [{"RevenueCatAuthorization": []}],
     ("/webhooks/ad-ssv", "get"): [{"AdMobSsvSignature": []}],
+    ("/attribution/meta-referrer/decrypt", "post"): [],
 }
 MANUAL_PARAMETERS = {
     ("/webhooks/ad-ssv", "get"): {

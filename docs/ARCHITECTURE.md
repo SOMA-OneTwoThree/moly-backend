@@ -1,6 +1,6 @@
 # Moly 백엔드 구조
 
-> **2026-08-06 개정** — 실제 코드를 읽고 다시 썼다.
+> **2026-08-14 개정** — 현재 코드와 운영 전환 상태를 다시 대조했다.
 > 짝 문서: `API_SPEC.md`(앱과 서버가 주고받는 약속) · `ERD.md`(테이블 정의) · `DEV_STATUS.md`(진행 현황).
 > 기억 시스템의 자세한 설계는 이 문서가 아니라 `docs/ARCHITECTURE-capi.md`가 가지고 있다.
 > 이 문서는 백엔드 전체를 훑는 문서라 기억은 5.2절에서 요약만 한다.
@@ -500,8 +500,9 @@ sequenceDiagram
   ORM 모델은 이 정의와 1:1로 대조할 수 있어야 한다.
 - enum은 PostgreSQL enum 타입 대신 **text + CHECK**로 둔다(asyncpg 드라이버와의 마찰을 피하려는 것이다).
   모델도 String으로 매핑한다.
-- 하루 단위 로직의 키는 `activity_date`다. 계산은 `core/time_utils`에 있다. 토큰·출석·광고·루틴·일기
-  귀속이 전부 이 키를 쓴다. **초기화 배치가 없다** — 새 날짜의 행이 생기는 것이 곧 초기화다.
+- 대화 한도·일기 귀속은 사용자 로컬 04:00 경계 `activity_date`, 출석·광고·루틴 보상은 로컬
+  00:00 경계 `reward_date`를 쓴다. 계산은 `core/time_utils`에 있다. **초기화 배치가 없다** — 새 날짜의
+  행이 생기는 것이 곧 초기화다. `/charging-station.activity_date`는 호환 필드명이며 값은 reward date다.
 - 조정값은 두 갈래다.
 
   | 용도 | 저장 위치 |
@@ -524,6 +525,14 @@ sequenceDiagram
 
   `vecs.moly_memories_v2` 컬렉션은 마이그레이션(`db/migrations/20260805_mem0_v2_collection.sql`)이 만든다.
   **서버가 돌면서 자동으로 만들지 않는다.**
+
+  **2026-08-14 재추출 잔여물 정리 완료.** 재추출 때 롤백용으로 숨겨 두었던
+  `classification_version IN ('pre-reextract-active', 'pre-reextract-ambiguous')` 기억 19,063건은
+  provider 벡터 삭제 완료를 확인한 뒤 100건씩 순차 처리했다. 대응 candidate와 source, registry를
+  제거하고 이미 닫힌 기억의 `duplicate_of_registry_id` / `superseded_by_registry_id` 참조 2,217건만
+  `NULL`로 정리했다. `active` / `ambiguous` / `pending` 기억, `messages`, 파이프라인 커서, 대화 약속,
+  관계, 일기, checkpoint는 변경하지 않았다. 작업 뒤 과거 표식·고아 candidate/source·끊어진 참조는
+  모두 0건이며, 현행 기억의 벡터·근거 누락도 0건으로 확인했다.
 - 일기 검색용 `diary_recall_documents`는 원문을 복제하지 않는, 다시 만들 수 있는 pgvector 파생 데이터다.
 - 모든 사용자 데이터 행은 `profiles`에 외래키로 이어져 있고, 탈퇴 시 연쇄 삭제된다.
 

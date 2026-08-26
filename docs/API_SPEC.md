@@ -58,9 +58,7 @@
 |  | `POST /me/push-token` · `POST /auth/logout` · `DELETE /me` | 푸시토큰·로그아웃·탈퇴 |
 | 대화 | `GET /chat/state` | 오늘 토큰 사용량·한도 |
 |  | `GET /chat/messages` · `POST /chat/messages` · `GET /chat/greeting` | 이력·전송·선발화 |
-|  | `GET /memory` · `POST /memory/search` · `POST /memory/forget` | 정규화 기억 조회·검색·망각 |
-| 일기 | `GET /v2/diaries` · `GET /v2/diaries/{id}` · `POST /diaries/{id}/read` | 종류가 명확한 목록·상세·열람 |
-|  | `GET /diaries` · `GET /diaries/{id}` | v1 호환 목록·상세 |
+| 일기 | `GET /diaries` · `GET /diaries/{id}` · `POST /diaries/{id}/read` | 목록·상세·열람 |
 | 구독 | `GET /subscription` · `GET /subscription/plans` | 상태·플랜 |
 | 건초 | `GET /wallet` · `GET /wallet/transactions` | 잔액·내역 |
 | 충전소 | `GET /charging-station` · `POST /charging-station/attendance` · `/routine-reward` · `POST /reward-ad-sessions` | 획득 현황·보상·광고 세션 |
@@ -80,19 +78,20 @@
 
 | 등급 | 조건 | 혜택 |
 | --- | --- | --- |
-| `trial` | 가입 +48시간 | 확장 토큰 한도·개인 일기·광고 제거 (건초 증정·구독 전용 배경 제외) |
+| `trial` | 가입 +48시간 | 확장 토큰 한도·개인 일기·광고 제거 (건초 증정 제외) |
 | `free` | 체험 종료 후 | 일 토큰 소량 + 배너 광고(현재 미출시 → 전 등급 `ads_removed=true`) |
-| `monthly`·`yearly` | 결제 활성(`active`·`grace_period`) | 확장 토큰·개인 일기·광고 제거·구독 전용 배경·건초 증정(플랜별 최초 1회) |
-- 클라 게이팅은 `plan` 분기가 아니라 **`entitlement` 파생 플래그**(`ads_removed`·`subscriber_theme_unlocked` 등)로 판단.
+| `monthly`·`yearly` | 결제 활성(`active`·`grace_period`) | 확장 토큰·개인 일기·광고 제거·건초 증정(플랜별 최초 1회) |
+- 클라 게이팅은 `plan` 문자열보다 `entitlement` 파생값을 우선한다. `subscriber_theme_unlocked`는 호환을 위해 남은 필드이며 현재 꾸미기 접근 제어에는 사용하지 않는다.
 - `entitlement`는 **moly-auth `/me`** 가 내려주고, 서버측 한도 집행은 moly-backend가 자체 계산(두 서버 이중화, 기준값은 공유 `app_config`).
 
-**🚀 런칭 무료 기간 (기본 2026-08-31까지, 조정 가능)**
-- 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도(50k)**. `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
+**🚀 런칭 무료 기간 (`2026-09-01 04:00 KST`까지, DB에서 조정 가능)**
+- 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도 150,000**. `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
 - 종료일 `app_config.free_launch_until`·한도 `free_launch_token_limit` → **재배포 없이 조정**. 종료 시 자동으로 정상 등급 복귀.
 
 ### 시간·하루 경계
 
-- 절대시각 = ISO 8601 UTC. 일 단위 날짜 = **`activity_date`** = 유저 로컬 **04:00** 경계.
+- 절대시각 = ISO 8601 UTC. 대화 한도·일기 귀속의 `activity_date`는 유저 로컬 **04:00** 경계다.
+- 출석·루틴·광고 보상 날짜는 유저 로컬 **00:00** 경계다. `/charging-station.activity_date`라는 필드명은 호환 때문에 유지하지만 값의 의미는 이 보상 날짜다.
 - 타임존은 클라가 명시 전송(IANA, 온보딩 시 / 변경 시 `PATCH /me`). 서버가 마지막 경계를 기억해 리셋 되돌림 차단.
 
 ### 토큰 집계(대화 한도)
@@ -140,8 +139,8 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
     "is_subscriber":false,                // monthly·yearly만 true
     "trial_ends_at":"2026-09-01T04:00:00+09:00",  // trial 아니면 null
     "ads_removed":true,                   // 배너 광고 숨김
-    "subscriber_theme_unlocked":false,    // 구독(active·grace)만 true
-    "daily_token_limit":50000,
+    "subscriber_theme_unlocked":false,    // 호환 필드. 현재 꾸미기 접근 제어에는 사용하지 않음
+    "daily_token_limit":150000,
     "tokens_used":1200,
     "tokens_remaining":48800,
     "personal_diary_token_threshold":2000 // 개인 일기 참고 지표(토큰) — 실제 발행 분기는 문자수(1장)
@@ -200,7 +199,7 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 
 ```json
 { "activity_date":"2026-07-06", "plan":"trial",
-  "tokens_used":1200, "daily_token_limit":50000, "tokens_remaining":48800,
+  "tokens_used":1200, "daily_token_limit":150000, "tokens_remaining":148800,
   "warning_threshold":3000,          // 소진 경고 임계
   "personal_diary_eligible":false,   // 개인 일기 참고 지표(토큰 기준 UI 힌트 — 실제 발행 분기는 문자수, 1장)
   "limit_reached":false }
@@ -265,17 +264,8 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 - 하루 첫 진입 **시각**에 따라 인사 톤이 갈린다(새벽·아침·낮·저녁·밤). 하루에 여러 시간대 인사를 받는 게 아니라, 그날 처음 만난 시각의 인사 하나를 받는다.
 - 토큰 소진 상태에서도 발급(미차감). 유저가 답하면 다음 `POST /chat/messages`에 `greeting_id` 실어 커밋. 미커밋은 이력에 안 남고 만료 폐기.
 
-### 기억 조회·검색·망각
-
-- `GET /memory` → 현재 active이고 망각 marker에 걸리지 않은 사실 목록.
-- `POST /memory/search` — `{ "query":"서울", "from_date":null, "to_date":null }` → pgvector 유사도순 사실·통찰.
-- `POST /memory/forget` — `scope`는 `fact|predicate|all`. 전량 삭제를 포함한 모든 요청은 `confirm:true`가 필수다.
-  `future_learning=allow`는 cut 이전 근거만 잊고 이후 사용자의 재진술은 학습할 수 있으며, `block`은 같은
-  범주의 이후 학습도 막는다.
-
-망각은 원본 대화·발행 일기를 지우지 않고 캐피의 fact/insight/profile/checkpoint를 무효화한다. 별도
-message-level suppression이 recent transcript, episode 검색, 일기 recall, focus/reference에서 같은 주장과
-같은 턴의 캐피 echo를 즉시 숨긴다. marker/source closure는 늦은 job과 과거 재처리로 되살아나는 것을 막는다.
+장기 기억은 대화 내부 기능이다. 앱이 직접 조회·검색·삭제하는 `/memory` API는 없다. 사용자가 자연스럽게
+이전 일을 꺼내면 서버가 관련 기억을 검색해 대화에 넣고, 계정 삭제 시 원본 대화와 파생 기억을 함께 지운다.
 
 ---
 
@@ -284,14 +274,6 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 > 첫 성공 대화에는 일일 슬롯과 별개인 `kind:"welcome"` 관계 프롤로그가 즉시 생긴다. daily는 다음날
 > 09:00 발행하며 `shared_day`(대화 기반) 또는 `capi_day`(캐피의 삶)다. 생성 재료가 없고 안전한 preset도
 > 없으면 `diary_generation_results(no_entry)`만 남기며 가짜 빈 일기를 만들지 않는다. 열람은 항상 무료다.
-
-### `GET /v2/diaries` · `GET /v2/diaries/{id}`
-
-- `kind=welcome|shared_day|capi_day`, `author=capi`, `display_date`를 명시한다.
-- 목록 커서는 불투명한 `(display_date,id)` keyset이라 welcome과 같은 날짜 daily가 공존해도 누락되지 않는다.
-- 상세는 `body`, `occurred_at`, `conversation_ref`, `first_read_at`을 반환한다.
-- 첫 만남은 첫 성공 대화의 당시 timezone/달력 날짜로 고정되며 가입일이나 목록 조회 시각으로 만들지 않는다.
->
 
 ### `GET /diaries`
 
@@ -302,8 +284,9 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 ], "next_cursor":"2026-07-04" }
 ```
 
-- `published_at ≤ 현재`만 노출. v1은 호환용 date 커서이며 신규 클라이언트는 같은 날짜 복수 종류를
-  안정적으로 순회하는 v2를 사용한다.
+- `published_at ≤ 현재`인 발행 상태의 본인 일기만 노출한다.
+- 첫 만남 일기는 첫 성공 대화와 같은 트랜잭션에서 한 번만 만들며, 가입이나 목록 조회는 생성 계기가 아니다.
+- 날짜 커서 경계에 같은 날짜의 일기가 둘 있으면 둘을 함께 반환하므로 누락되지 않는다. 이때 응답 건수는 요청 `limit`보다 한 건 많을 수 있다.
 - `title`: 개인 일기 제목 문자열. 캐피 자기일기(`type:"moly"`)는 `null`.
 - `next_cursor`는 `diary_date`(date isoformat, 예: `"2026-07-04"`) — 대화 이력 커서(불투명 숫자)와 다름.
 
@@ -340,10 +323,10 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 { "plans":[
   { "product_id":"app.moly.sub.monthly","period":"monthly","hay_grant":1000 },
   { "product_id":"app.moly.sub.yearly","period":"yearly","hay_grant":4000 }
-], "benefits":["대화 한도 확장","개인 일기 발행","배너 광고 제거","구독 전용 배경","건초 증정"] }
+], "benefits":["대화 한도 확장","개인 일기 발행","배너 광고 제거","건초 증정"] }
 ```
 
-가격 = 스토어(RevenueCat) 문자열. **월 ₩5,900 / 연 ₩59,000**.
+표시 가격은 RevenueCat/스토어 응답을 사용한다. 서버는 가격 문자열을 고정하지 않는다.
 
 ### `POST /webhooks/revenuecat` *(서버-서버, 프론트 무관)*
 
@@ -351,8 +334,8 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 - **본문**: `{ "api_version", "event":{…} }`.
 - **이벤트 매핑**:
     - 활성계열(`INITIAL_PURCHASE`·`RENEWAL`·`UNCANCELLATION`·`PRODUCT_CHANGE`·`SUBSCRIPTION_EXTENDED`·`REFUND_REVERSED`) → active + 증정(플랜별 최초 1회)
-    - `CANCELLATION`(`CUSTOMER_SUPPORT`=환불) → revoked + 구독 전용 장착 해제 + 증정 회수(min(증정,잔액))
-    - 그 외 `CANCELLATION` → 자동갱신 off / `EXPIRATION` → expired + 해제 / `BILLING_ISSUE` → grace_period / `NON_RENEWING_PURCHASE` → 건초팩 지급
+    - `CANCELLATION`(`CUSTOMER_SUPPORT`=환불) → revoked + 증정 건초 회수
+    - 그 외 `CANCELLATION` → 자동갱신 off / `EXPIRATION` → expired / `BILLING_ISSUE` → grace_period / `NON_RENEWING_PURCHASE` → 건초팩 지급
 - 스토어 서버 알림(ASSN 등)은 우리 서버에 연결하지 않음(RC가 소비). RC 웹훅 `event.store` 필드는 서버가 정규화(`APP_STORE`·`MAC_APP_STORE`→`app_store`, `PLAY_STORE`→`play_store`, `AMAZON`→`amazon`).
 
 ---
@@ -428,7 +411,7 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
                   "character_frame":{"x":0,"y":0,"width":200,"height":300},
                   "character_url":"…",
                   "layers":[{"id":"bg","frame":{"x":0,"y":0,"width":393,"height":852},"z_index":0,"day_url":"…","night_url":"…"}] } } },
-    { "id":"…","name":"구독 전용 테마","slot":"theme","price_hay":null,"owned":false,"equipped":false,
+    { "id":"…","name":"봄밤","slot":"theme","price_hay":5000,"owned":false,"equipped":false,
       "asset_version":1,"assets":{…} } ],
   "items":[
     { "id":"…","name":"모자","slot":"head","price_hay":1000,"owned":false,"equipped":false,
@@ -441,8 +424,7 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 
 - 상품 필드: `id·name·slot·price_hay(null=비매품)·owned·equipped·asset_version·assets`.
 - `assets` 구조: `thumbnail_url`·`detail_url` 공통. 테마는 `scene`(canvas·character·layers), 착용 아이템은 `upright_layer_url`. 낮/밤 레이어는 `scene.layers[].day_url`·`night_url`.
-- 구독 전용 테마: `price_hay:null`. 사용 가능 여부는 `entitlement.subscriber_theme_unlocked`(1장)로 클라 판단.
-- 가격: 아이템 최소 1,000·+200 / 테마 최소 4,000·+1,000.
+- `price_hay:null`은 비매품이다. 현재 꾸미기는 구독 전용으로 제한하지 않으며 실제 가격과 노출 여부는 DB 상품 카탈로그가 기준이다.
 - v2: `items` 안에 `slot:"hat"`·`slot:"glasses"` 포함(레거시 `head` 없음). 응답 키(`themes`·`items`)는 동일.
 
 ### `POST /shop/purchases`
@@ -478,7 +460,6 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 ```
 
 - `theme_id` **필수 non-null**(테마는 해제 불가). 나머지 슬롯 `null`=해제.
-- 구독 전용 테마 장착 중 자격 만료 → 서버가 자동 해제.
 
 ---
 
@@ -520,7 +501,7 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
   "last_30_days":["2026-07-06"], "completion_rate":0.7 }
 ```
 
-- `streak` 연속 시행 일수(단순 달력일) · `completed_today` 오늘 완료 · `target_count` 설정 횟수 · `this_week` 이번 주(월 시작·04:00 경계) 수행 횟수·요일별 완료 · `completion_rate` 최근 4주.
+- `streak` 연속 시행 일수(단순 달력일) · `completed_today` 오늘 완료 · `target_count` 설정 횟수 · `this_week` 이번 주(월 시작·00:00 보상 경계) 수행 횟수·요일별 완료 · `completion_rate` 최근 4주.
 - 루틴 알림은 **클라 로컬 노티**(서버는 스케줄만 보관, 발송 안 함). 2개 완료 보상은 충전소에서 수령.
 
 ---
@@ -606,12 +587,12 @@ message-level suppression이 recent transcript, episode 검색, 일기 recall, f
 
 | 항목 | 값 |
 | --- | --- |
-| 구독 | 월 ₩5,900 / 연 ₩59,000 · 건초 증정 월 1,000 / 연 4,000(플랜별 최초 1회) |
-| 체험 | 가입 후 2일(48h) · 구독 수준 혜택(건초 증정·구독 전용 배경 제외) |
-| 런칭 무료 | `free_launch_until`(기본 2026-08-31)까지 전원 무료·일 50k. app_config로 조정 |
+| 구독 | 표시 가격은 스토어 기준 · 건초 증정 월 1,000 / 연 4,000(플랜별 최초 1회) |
+| 체험 | 가입 후 2일(48h) · 구독 수준 혜택(건초 증정 제외) |
+| 런칭 무료 | `2026-09-01 04:00 KST`까지 전원 무료·일 150,000. `app_config`로 조정 |
 | 건초 획득 | 출석 20 / 광고 회당 20(일 5회) / 루틴 2개 완료 20 |
 | 건초 IAP | 300 ₩1,500 / 1,500 ₩6,500 / 3,000 ₩10,000 |
-| 상점 | 아이템 최소 1,000·+200 / 배경 최소 4,000·+1,000 · 구독 전용 배경 = 비매품 |
+| 상점 | 가격·노출 여부는 DB의 활성 상품 카탈로그가 기준. 꾸미기 구독 전용 정책 없음 |
 | 가입 기본 세팅 | 아이템 3종 지급(집·운동 배경, 선글라스 — 장착은 안 함) + 기본 루틴 2개(이불 정리하기·물 마시기, 주 7회) |
 | 일기 | 매일 09:00 발행. 임계↑=개인 일기 / 그 외=캐피 자기일기. 열람 항상 무료 |
 | 리뷰 | 당일 토큰이 임계 생애 최초 초과 시 1회 노출, 보상 없음 |

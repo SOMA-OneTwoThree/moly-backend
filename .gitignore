@@ -27,8 +27,7 @@ venv/
 AGENTS.md
 CLAUDE.md
 
-# 문서 — 노션에서 관리/공유 (레포에 올리지 않음)
-docs/
+# 루트의 로컬 개발 상태 메모
 DEV_STATUS.md
 
 # 키파일(.p8/.json 등) — README만 커밋

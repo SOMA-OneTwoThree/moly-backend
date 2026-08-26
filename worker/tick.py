@@ -48,6 +48,7 @@ _EVENING_CATEGORY_KO = {
     "default_missing": "그리움",
     "default_long": "오랜만",
     "fallback": "폴백",
+    "override": "공지",
 }
 # 자주 보는 타임존의 한국어 나라 라벨(가독성용). 없으면 IANA 이름 그대로.
 _TZ_KO = {

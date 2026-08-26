@@ -198,7 +198,9 @@ async def test_category_copy_and_stats_when_signals_work(monkeypatch):
 
 def test_stat_keys_cover_all_categories_plus_fallback():
     """tick의 counts 초기화가 이 목록으로 만들어진다 — 카테고리 추가 시 누락을 구조로 방지."""
-    assert set(notify.EVENING_STAT_KEYS) == set(push_copy.CATEGORIES) | {"fallback"}
+    assert set(notify.EVENING_STAT_KEYS) == (
+        set(push_copy.CATEGORIES) | {"fallback", notify.OVERRIDE_CATEGORY}
+    )
 
 
 def test_tick_labels_match_stat_keys():
@@ -206,3 +208,176 @@ def test_tick_labels_match_stat_keys():
     from worker import tick
 
     assert set(tick._EVENING_CATEGORY_KO) == set(notify.EVENING_STAT_KEYS)
+
+
+# ── app_config 오버라이드 (공지) ──────────────────────────────
+
+def _override_value(date_str: str) -> dict:
+    return {
+        "date": date_str,
+        "ko": ["캐피", "건초 500개가 들어왔어요!"],
+        "en": ["Cappy", "500 hay just arrived!"],
+        "ja": ["キャピー", "干し草が500個届きました！"],
+    }
+
+
+def _patch_send_pipeline(monkeypatch, sent):
+    async def _enabled(session, uid, t):
+        return True
+
+    async def _claim(session, profile, col):
+        return True
+
+    async def _tokens(session, uid):
+        return ["tok"]
+
+    async def _send(tokens, title, body):
+        sent["title"], sent["body"] = title, body
+        return 1
+
+    monkeypatch.setattr(notify, "_enabled", _enabled)
+    monkeypatch.setattr(notify, "_claim_send_slot", _claim)
+    monkeypatch.setattr(notify, "_tokens", _tokens)
+    monkeypatch.setattr(push, "send", _send)
+
+
+def _patch_override(monkeypatch, value):
+    async def _get(session, keys):
+        return value
+
+    monkeypatch.setattr(notify, "get_config_values", _get)
+
+
+def _patch_normal_copy(monkeypatch, called):
+    """평소 분기 재개 검증용 — _evening_copy가 실제로 호출됐는지 기록."""
+    async def _copy(session, profile, g, now):
+        called["yes"] = True
+        return "more_chat", "제목", "본문"
+
+    monkeypatch.setattr(notify, "_evening_copy", _copy)
+
+
+_NOW = datetime(2026, 8, 14, 11, 0, tzinfo=timezone.utc)  # KST 20:00 → 활동일 8/14
+_SESSION = _OneRowSession(None)  # begin_nested만 필요(오버라이드 조회는 monkeypatch)
+
+
+async def test_override_replaces_copy_and_skips_token_gate(monkeypatch):
+    """활동일이 일치하면 오버라이드 문구가 나가고, 대화량 소진 게이트(SOMA-291)를 건너뛴다."""
+    sent, stats = {}, {}
+    _patch_send_pipeline(monkeypatch, sent)
+    _patch_override(monkeypatch, {notify.OVERRIDE_KEY: _override_value("2026-08-14")})
+
+    async def _resolve(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": 0}, tokens_used=0)  # 소진 유저
+
+    monkeypatch.setattr(gating, "resolve", _resolve)
+
+    assert await notify.notify_evening(_SESSION, _profile(), now=_NOW, stats=stats) == 1
+    assert (sent["title"], sent["body"]) == ("캐피", "건초 500개가 들어왔어요!")
+    assert stats == {"evening_override": 1}
+
+
+async def test_override_uses_language_bucket(monkeypatch):
+    sent = {}
+    _patch_send_pipeline(monkeypatch, sent)
+    _patch_override(monkeypatch, {notify.OVERRIDE_KEY: _override_value("2026-08-14")})
+
+    assert await notify.notify_evening(_SESSION, _profile(language="ja"), now=_NOW) == 1
+    assert (sent["title"], sent["body"]) == ("キャピー", "干し草が500個届きました！")
+
+
+async def test_override_respects_optout_and_claim(monkeypatch):
+    """오버라이드여도 알림 꺼둔 유저·이미 발송한 유저는 그대로 스킵된다."""
+    sent = {}
+    _patch_send_pipeline(monkeypatch, sent)
+    _patch_override(monkeypatch, {notify.OVERRIDE_KEY: _override_value("2026-08-14")})
+
+    async def _disabled(session, uid, t):
+        return False
+
+    monkeypatch.setattr(notify, "_enabled", _disabled)
+    assert await notify.notify_evening(_SESSION, _profile(), now=_NOW) == 0
+
+    async def _enabled(session, uid, t):
+        return True
+
+    async def _no_claim(session, profile, col):
+        return False
+
+    monkeypatch.setattr(notify, "_enabled", _enabled)
+    monkeypatch.setattr(notify, "_claim_send_slot", _no_claim)
+    assert await notify.notify_evening(_SESSION, _profile(), now=_NOW) == 0
+    assert sent == {}
+
+
+async def test_override_other_date_keeps_normal_behavior(monkeypatch):
+    """date가 다른 활동일이면 평소 분기 그대로(게이트 포함) — 예약해둔 공지가 미리 새지 않는다."""
+    sent, stats = {}, {}
+    _patch_send_pipeline(monkeypatch, sent)
+    _patch_override(monkeypatch, {notify.OVERRIDE_KEY: _override_value("2026-08-15")})
+
+    async def _resolve(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": 0}, tokens_used=0)
+
+    monkeypatch.setattr(gating, "resolve", _resolve)
+
+    assert await notify.notify_evening(_SESSION, _profile(), now=_NOW, stats=stats) == 0  # 소진 게이트 유지
+    assert sent == {} and stats == {}
+
+
+async def test_override_absent_key_is_untouched_normal_path(monkeypatch):
+    """키가 없으면(평소) 기존 분기가 그대로 돈다 — 100% 무변경 계약."""
+    sent, called = {}, {}
+    _patch_send_pipeline(monkeypatch, sent)
+    _patch_override(monkeypatch, {})
+    _patch_normal_copy(monkeypatch, called)
+
+    async def _resolve(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
+
+    monkeypatch.setattr(gating, "resolve", _resolve)
+
+    assert await notify.notify_evening(_SESSION, _profile(), now=_NOW) == 1
+    assert called == {"yes": True} and sent["body"] == "본문"
+
+
+async def test_override_read_failure_fails_open_to_normal_path(monkeypatch):
+    """app_config 조회가 죽어도(20시 피크 DB 장애 등) 평소 분기로 발송이 산다."""
+    sent, called = {}, {}
+    _patch_send_pipeline(monkeypatch, sent)
+    _patch_normal_copy(monkeypatch, called)
+
+    async def _boom(session, keys):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(notify, "get_config_values", _boom)
+
+    async def _resolve(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
+
+    monkeypatch.setattr(gating, "resolve", _resolve)
+
+    assert await notify.notify_evening(_SESSION, _profile(), now=_NOW) == 1
+    assert called == {"yes": True}
+
+
+async def test_override_malformed_values_fail_open(monkeypatch):
+    """운영자 오타(문자열 값·date 누락·언어 누락·잘못된 date)는 전부 평소 분기로."""
+    sent, called = {}, {}
+    _patch_send_pipeline(monkeypatch, sent)
+    _patch_normal_copy(monkeypatch, called)
+
+    async def _resolve(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
+
+    monkeypatch.setattr(gating, "resolve", _resolve)
+
+    bad = _override_value("2026-08-14")
+    bad["ko"] = "건초"  # 문자열 — 2글자 (제목,본문) 쪼개짐 사고 방지
+    no_date = {k: v for k, v in _override_value("2026-08-14").items() if k != "date"}
+    no_lang = {k: v for k, v in _override_value("2026-08-14").items() if k != "ja"}
+    for value in ("문자열", bad, no_date, no_lang, _override_value("not-a-date")):
+        called.clear()
+        _patch_override(monkeypatch, {notify.OVERRIDE_KEY: value})
+        assert await notify.notify_evening(_SESSION, _profile(language="ja"), now=_NOW) == 1
+        assert called == {"yes": True}, f"fail-open 실패: {value!r}"

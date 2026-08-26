@@ -4,8 +4,8 @@ info:
   version: 1.0.0
   summary: Moly 앱 백엔드 API 계약
   description: '이 문서는 moly-backend 공개 HTTP API의 확정 계약이다. 호환성에 영향을 주는 변경은 Semantic Versioning으로
-    관리한다. 보호 API는 Supabase access token Bearer 인증을 사용한다. 서버 자체 문서 URL(`/openapi.json`, `/docs`,
-    `/redoc`)은 비활성화되어 있다.
+    관리한다. 보호 API는 Supabase access token Bearer 인증을 사용한다. `/openapi.json`과 `/docs`는 local·development에서만
+    열리고 staging·production에서는 등록되지 않는다. `/redoc`은 항상 비활성화되어 있다.
 
 
     애플리케이션 오류, 요청 검증 오류, 등록되지 않은 path의 404, 등록된 path의 미지원 method 405, 미처리 예외 500은 모두 `ErrorEnvelope`로
@@ -16,7 +16,7 @@ info:
     `/charging-station.activity_date` 필드명은 레거시이며 실제 의미는 00:00 경계 reward date다.
 
 
-    local 환경 전용 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
+    local·development 환경의 명시 플래그로만 등록되는 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
 paths:
   /health:
     $ref: ./paths/core.yaml#/~1health
@@ -32,10 +32,6 @@ paths:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D
   /diaries/{diary_id}/read:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D~1read
-  /v2/diaries:
-    $ref: ./paths/conversations.yaml#/~1v2~1diaries
-  /v2/diaries/{diary_id}:
-    $ref: ./paths/conversations.yaml#/~1v2~1diaries~1%7Bdiary_id%7D
   /wallet:
     $ref: ./paths/economy.yaml#/~1wallet
   /wallet/transactions:
@@ -116,18 +112,12 @@ components:
       $ref: ./components/routines.yaml#/schemas/DayOfWeek
     DiaryDetailResponse:
       $ref: ./components/conversations.yaml#/schemas/DiaryDetailResponse
-    DiaryDetailResponseV2:
-      $ref: ./components/conversations.yaml#/schemas/DiaryDetailResponseV2
     DiaryReferenceCard:
       $ref: ./components/conversations.yaml#/schemas/DiaryReferenceCard
     DiaryListItem:
       $ref: ./components/conversations.yaml#/schemas/DiaryListItem
     DiaryListResponse:
       $ref: ./components/conversations.yaml#/schemas/DiaryListResponse
-    DiaryListItemV2:
-      $ref: ./components/conversations.yaml#/schemas/DiaryListItemV2
-    DiaryListResponseV2:
-      $ref: ./components/conversations.yaml#/schemas/DiaryListResponseV2
     EquipmentPutRequest:
       $ref: ./components/shop.yaml#/schemas/EquipmentPutRequest
     EquipmentPutRequestV2:

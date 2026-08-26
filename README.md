@@ -12,8 +12,8 @@
 |---|---|
 | 언어/프레임워크 | Python 3.12 · FastAPI · SQLAlchemy 2.0 (async) · uv |
 | 데이터 | Supabase (Auth + Postgres + pgvector) |
-| LLM·기억 | OpenAI GPT-5.6(luna=대화·utility, terra=일기) · PostgreSQL 정규화 기억 + pgvector 검색 |
-| 외부 | FCM(푸시) · AdMob(리워드 SSV) · Apple StoreKit(구독·IAP) |
+| LLM·기억 | OpenAI GPT-5.6(luna=대화·utility, terra=일기) · `vecs.moly_memories_v2` + `mem0_memory_registry` |
+| 외부 | FCM(푸시) · AdMob(리워드 SSV) · RevenueCat(구독·IAP) |
 
 ## 구조
 
@@ -99,7 +99,7 @@ uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 
 ## 배치 워커
 
 외부 **15분 크론**(SOMA-348)이 `python -m worker`를 1틱 실행(멱등). 유저 로컬시각 기준:
-- **매 대화 후 비동기** — 정규화 사실 추출·판정·pgvector 임베딩·관계 프로필 갱신
+- **매 대화 후 비동기** — 기억 후보 추출·임베딩·유효성 판정·관계와 사용자별 대화 약속 갱신
 - **04:00** — 전일 일기 생성(개인/캐피)
 - **09:00** — 아침 일기 FCM 푸시 · **20:00** — 저녁 안부 푸시
 - **매 틱** — RC 웹훅 inbox 드레인(pending 처리 + 미해결 failed·장기 pending Slack 재요약, SOMA-372)
@@ -132,12 +132,11 @@ uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv --commit   # 실�
   웹훅 유입을 일시중단하거나 신버전 전용 라우팅으로 전환한 뒤 배포한다(배포 런북).
 - 공개 웹훅(배포 후 URL을 각 콘솔에 등록): `POST /webhooks/revenuecat`은 대시보드에 설정한 Authorization 값과 서버 secret을 정확히 비교하고, `GET /webhooks/ad-ssv`는 AdMob SSV 서명을 검증한다.
 
-## 상태 (2026-07-08)
+## 상태 (2026-08-14)
 
-- ✅ API 전 기능 + 배치 워커 구현. 유닛 테스트 116개 + 실 Supabase 통합 테스트(전 엔드포인트 E2E, 50 체크)
-- ✅ **실 DB 스키마 적용 완료** — 21테이블 + 가입 트리거 + `hay_packs` 시드 (`db/`, 3관점 보안 리뷰 반영)
-- ✅ **StoreKit x5c 인증서체인 서명검증 완료**(Apple Root CA G3 내장) · **FCM 키리스 인증**(ADC/WIF, 키 다운로드 불필요)
-- ✅ 로컬 토큰 스크립트(dev_token.py) + curl로 수동 테스트 지원
-- ⏳ 남은 시딩(0행, 코드 기본값 폴백): `shop_items`·`moly_life_ments`·`app_config` — 카피·수치 확정 필요
-- ⏳ 배포/매시 크론(SOMA-151) · FCM 서비스계정 · 프로덕션 전 실 sandbox 결제 E2E
-- 계약/스키마 상세 = 팀 노션(API_SPEC · ERD · ARCHITECTURE)
+- ✅ API·상주 잡 소비자·15분 배치 워커 운영 중
+- ✅ 대화·기억 구조 운영 전환 완료. 장기 기억은 pgvector와 수명 장부 한 구조만 사용
+- ✅ 에이전트 100% 적용. 공개 도구는 `recall_diaries`, `get_routines` 두 개
+- ✅ 일기 앱 계약은 `/diaries` 세 경로. 상점 v2는 모자·안경 독립 장착 계약으로 유지
+- ✅ 로컬·격리 개발 환경에서만 Swagger와 `/dev/*` 수동 테스트 지원
+- 상세 현황은 `docs/DEV_STATUS.md`, 계약은 `docs/API_SPEC.md`, 구조는 `docs/ARCHITECTURE.md`와 `docs/ARCHITECTURE-capi.md`

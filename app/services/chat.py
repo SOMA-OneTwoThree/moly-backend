@@ -490,57 +490,6 @@ def _clean_reply(text: str, nickname: str | None = None, language: str | None = 
     return out if keep_hy else _fix_qmarks(out, nickname)
 
 
-# 한국어 응답에 드물게 섞이는 한자·가나(LLM 디코딩 아티팩트) 복원 지시. 프롬프트로 빈도는 낮췄지만
-# 0은 아니라(확률적 토큰 슬립) 코드 백스톱으로 확정한다. 삭제는 단어를 깨므로 재작성으로 복원.
-_FOREIGN_REPAIR_SYS = (
-    "다음 한국어 문장에 중국어 한자나 일본어 문자가 섞여 있다. "
-    "그 글자만 문맥에 맞는 자연스러운 한국어로 바꿔라. "
-    "나머지 표현 말투 문장부호는 절대 바꾸지 말고 그대로 둬라. "
-    "설명 없이 고친 문장만 출력해라."
-)
-
-
-async def _repair_foreign_ko(
-    reply: str,
-    *,
-    user_id: str | None = None,
-    ledger: usage_ledger.LedgerContext | None = None,
-) -> tuple[str, list[llm.LlmCall]]:
-    """한국어 응답에 섞인 한자·가나를 utility 모델로 재작성 복원. 호출측에서 language=='ko' 게이팅.
-
-    최대 2회 시도 후에도 남으면 최후수단으로 제거(단어 깨질 수 있어 최후). 호출 실패는
-    원문 유지(응답을 막지 않음). 실발동은 드문 이벤트라 지연·비용 영향은 무시 수준.
-
-    반환 = (복원문, 이 함수가 실제로 소비한 LLM 호출 목록). 호출자가 턴 합계에 넣어 청구한다 —
-    예전엔 이 호출들이 청구에서 통째로 누락됐다(실비용 ↔ 한도 불변식 깨짐).
-    실패로 원문을 되돌리는 경우에도 그 전 시도는 이미 과금됐으므로 calls는 버리지 않는다.
-    """
-    text = reply
-    calls: list[llm.LlmCall] = []
-    for _ in range(2):
-        try:
-            r = await llm.generate(
-                _FOREIGN_REPAIR_SYS,
-                [{"role": "user", "content": text}],
-                model=settings.model_utility,
-                max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
-                timeout=settings.llm_timeout_s,
-                ledger=ledger,
-            )
-        except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
-            _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
-            return reply, calls
-        calls.append(_llm_call(r, "foreign_repair"))
-        text = r.text.strip()
-        if not text_clean.has_foreign(text, language="ko"):
-            _log.info(  # 관측용 — 드문 이벤트라 발동 사실·토큰만 남긴다(청구엔 포함됨)
-                "한자 복원 완료 user=%s in=%d out=%d", user_id, r.input_tokens, r.output_tokens
-            )
-            return text, calls
-    _log.warning("한자 복원 2회 후에도 잔존 — 최후수단 제거 user=%s", user_id)
-    return text_clean.strip_foreign(text, language="ko"), calls
-
-
 def _billable(r: llm.LLMResult) -> int:
     """실비용 가중 청구 토큰 = billable × 입력단가 = 실제 청구액(정확). 한도가 달러예산에 직결.
 

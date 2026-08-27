@@ -62,6 +62,7 @@ _RANGE_SQL = text("""
 SELECT id, sender, kind, content
 FROM messages
 WHERE user_id = :user_id AND id > :after_id AND id <= :through_id
+  AND kind NOT IN ('fortune_context_root','fortune_derived')
 ORDER BY id
 LIMIT :max_rows
 """)

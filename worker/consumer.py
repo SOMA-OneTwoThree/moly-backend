@@ -26,7 +26,7 @@ from typing import Any
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import job_telemetry, jobs, privacy
+from app.services import fortune_ads, job_telemetry, jobs, privacy
 from app.services.jobs import ClaimedJob, QueueConfig
 
 _log = logging.getLogger("moly-worker")
@@ -342,6 +342,11 @@ async def reaper_loop(stop: asyncio.Event, queues: tuple[str, ...] = jobs.QUEUES
                 await jobs.scrub_expired_payloads(session)
         except Exception as e:  # noqa: BLE001
             _log.warning("retention scrub 실패: %r", e)
+        try:
+            async with get_sessionmaker()() as session:
+                await fortune_ads.cleanup_expired_sessions(session)
+        except Exception as e:  # noqa: BLE001
+            _log.warning("fortune ad session cleanup 실패: %r", e)
         await _sleep_or_stop(stop, settings.job_reaper_interval_s)
 
 

@@ -281,6 +281,14 @@ class Settings(BaseSettings):
     agent_tool_inflight: int = 8                # 프로세스 전체 동시 도구 수(**측정 필요**)
     agent_canary_pct: float = 0.0               # 카나리 비율(0.01% 단위, 비용 캡이 아니다)
 
+    # --- 오늘의 운세 --- 핵심/채팅을 독립적으로 롤백한다. 기본 OFF.
+    fortune_enabled: bool = False
+    fortune_chat_enabled: bool = False
+    # AdMob ad unit ID는 비밀값은 아니지만 환경 혼용을 막기 위해 서버 allowlist로 검증한다.
+    fortune_ad_unit_ids: str = ""
+    fortune_ad_reward_item: str = "fortune_unlock"
+    fortune_ad_reward_amount: int = 1
+
     model_config = SettingsConfigDict(
         # 로컬 기본 = .env(dev). 프로덕션을 로컬에서 띄우려면 MOLY_ENV_FILE=.env.prod 로 명시한다.
         # 서버(EC2)는 docker compose가 backend.env를 실제 환경변수로 주입하고, 환경변수가

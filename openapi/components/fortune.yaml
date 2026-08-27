@@ -1,0 +1,175 @@
+schemas:
+  DailyFortuneContextRef:
+    type: object
+    additionalProperties: false
+    required: [type, local_date, locale]
+    properties:
+      type: {type: string, const: daily_fortune}
+      local_date: {type: string, format: date}
+      locale: {type: string, const: ko}
+  FortuneProfilePut:
+    type: object
+    additionalProperties: false
+    required: [gender, birth_date]
+    properties:
+      gender: {type: string, enum: [man, woman, undisclosed]}
+      birth_date:
+        type: string
+        format: date
+        description: 1900-01-01 이상이며 요청 시점의 현지 날짜 기준 만 14세 이상이어야 한다.
+  FortuneProfileView:
+    type: object
+    additionalProperties: false
+    required: [gender, birth_date, revision]
+    properties:
+      gender: {type: string, enum: [man, woman, undisclosed]}
+      birth_date: {type: string, format: date}
+      revision: {type: integer, minimum: 1}
+  FortuneProfileResponse:
+    type: object
+    additionalProperties: false
+    required: [profile]
+    properties:
+      profile: {$ref: '#/schemas/FortuneProfileView'}
+  FortuneProfilePutResponse:
+    type: object
+    additionalProperties: false
+    required: [profile, result_invalidated, unlock_preserved]
+    properties:
+      profile: {$ref: '#/schemas/FortuneProfileView'}
+      result_invalidated: {type: boolean}
+      unlock_preserved: {type: boolean}
+  FortuneOverallResult:
+    type: object
+    additionalProperties: false
+    required: [score, headline, flow, do, pause]
+    properties:
+      score: {type: integer, minimum: 0, maximum: 100}
+      headline: {type: string, minLength: 1}
+      flow: {type: array, minItems: 3, maxItems: 3, items: {type: string}}
+      do: {type: string, minLength: 1}
+      pause: {type: string, minLength: 1}
+  FortuneCategoryResult:
+    type: object
+    additionalProperties: false
+    required: [score, text]
+    properties:
+      score: {type: integer, minimum: 0, maximum: 100}
+      text: {type: array, minItems: 2, maxItems: 2, items: {type: string}}
+  FortuneCategories:
+    type: object
+    additionalProperties: false
+    required: [love, money, work, energy]
+    properties:
+      love: {$ref: '#/schemas/FortuneCategoryResult'}
+      money: {$ref: '#/schemas/FortuneCategoryResult'}
+      work: {$ref: '#/schemas/FortuneCategoryResult'}
+      energy: {$ref: '#/schemas/FortuneCategoryResult'}
+  FortuneLuckyColor:
+    type: object
+    additionalProperties: false
+    required: [key, name, hex]
+    properties:
+      key:
+        type: string
+        enum: [red, coral, orange, yellow, green, sky, blue, navy, purple, pink, white, beige]
+      name: {type: string, minLength: 1}
+      hex: {type: string, pattern: '^#[0-9A-F]{6}$'}
+  FortuneResult:
+    type: object
+    additionalProperties: false
+    required: [schema_version, locale, overall, categories, lucky_color]
+    properties:
+      schema_version: {type: integer, const: 3, default: 3}
+      locale: {type: string, const: ko}
+      overall: {$ref: '#/schemas/FortuneOverallResult'}
+      categories: {$ref: '#/schemas/FortuneCategories'}
+      lucky_color: {$ref: '#/schemas/FortuneLuckyColor'}
+  FortuneVersions:
+    type: object
+    additionalProperties: false
+    required: [ephemeris, rules, copy]
+    properties:
+      ephemeris: {type: string}
+      rules: {type: string}
+      copy: {type: string}
+  DailyFortuneStatusResponse:
+    oneOf:
+    - type: object
+      title: FortuneUnavailable
+      additionalProperties: false
+      required: [available]
+      properties:
+        available: {type: boolean, const: false}
+    - type: object
+      title: FortuneProfileRequired
+      additionalProperties: false
+      required: [available, state, access]
+      properties:
+        available: {type: boolean, const: true}
+        state: {type: string, const: profile_required}
+        access: {type: string, enum: [included, ad_required]}
+    - type: object
+      title: FortuneUnseen
+      additionalProperties: false
+      required: [available, state, access, local_date]
+      properties:
+        available: {type: boolean, const: true}
+        state: {type: string, const: unseen}
+        access: {type: string, enum: [included, ad_required, unlocked_today]}
+        local_date: {type: string, format: date}
+    - type: object
+      title: FortuneLocked
+      additionalProperties: false
+      required: [available, state, access, local_date]
+      properties:
+        available: {type: boolean, const: true}
+        state: {type: string, const: locked}
+        access: {type: string, enum: [included, ad_required]}
+        local_date: {type: string, format: date}
+    - type: object
+      title: FortuneAlreadyRevealed
+      additionalProperties: false
+      required: [available, state, access, local_date, result, versions]
+      properties:
+        available: {type: boolean, const: true}
+        state: {type: string, const: revealed}
+        access: {type: string, const: unlocked_today}
+        local_date: {type: string, format: date}
+        result: {$ref: '#/schemas/FortuneResult'}
+        versions: {$ref: '#/schemas/FortuneVersions'}
+  DailyFortuneRevealResponse:
+    oneOf:
+    - type: object
+      title: FortuneRevealLocked
+      additionalProperties: false
+      required: [state, access, local_date]
+      properties:
+        state: {type: string, const: locked}
+        access: {type: string, const: ad_required}
+        local_date: {type: string, format: date}
+    - type: object
+      title: FortuneRevealComplete
+      additionalProperties: false
+      required: [state, access, local_date, result, versions]
+      properties:
+        state: {type: string, const: revealed}
+        access: {type: string, enum: [included, unlocked_today]}
+        local_date: {type: string, format: date}
+        result: {$ref: '#/schemas/FortuneResult'}
+        versions: {$ref: '#/schemas/FortuneVersions'}
+  FortuneAdSessionRequest:
+    type: object
+    additionalProperties: false
+    required: [client_request_id]
+    properties:
+      client_request_id: {type: string, format: uuid}
+  FortuneAdSessionResponse:
+    type: object
+    additionalProperties: false
+    required: [session_id, custom_data, admob_user_id, expires_at]
+    properties:
+      session_id: {type: string, format: uuid}
+      custom_data: {type: string}
+      admob_user_id: {type: string, format: uuid}
+      expires_at: {type: string, format: date-time}

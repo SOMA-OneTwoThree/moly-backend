@@ -1,6 +1,6 @@
 # Moly — API 명세 (Frontend 연동)
 
-> 앱↔︎서버 **계약·가격 정책의 단일 소스**. 통신 = 전부 HTTP 요청-응답(JSON), 스트리밍/소켓/폴링 없음. 서버 선발신 = 푸시(APNs)뿐.
+> 앱↔︎서버 **계약·가격 정책의 설명 문서**. 기계 판독 원본은 `openapi/openapi.yaml`이다. 통신은 전부 HTTP 요청-응답(JSON)이고 스트리밍·소켓·폴링은 없다. 서버 선발신은 FCM 푸시뿐이다(iOS는 APNs로 릴레이).
 >
 
 ## Base URL
@@ -42,7 +42,7 @@
 
 | 무엇 | 내용 |
 | --- | --- |
-| 가입 기본 지급 | 신규 유저는 시작부터 **아이템 3종 보유**(배경 집·운동, 머리 선글라스) — 상점에 `owned:true`, 장착은 안 된 상태(기본 캐릭터로 시작). 재구매 시도는 `409 ALREADY_OWNED` |
+| 가입 기본 지급 | 신규 유저는 시작부터 **아이템 3종 보유**(배경 집·운동, 선글라스) — 기본 집 테마는 자동 장착되고 나머지는 미장착. 상점에는 `owned:true`, 재구매 시도는 `409 ALREADY_OWNED` |
 | 가입 기본 루틴 | 루틴 목록에 **"이불 정리하기"·"물 마시기" 2건** 기본 존재(주 7회, 리마인더 off — 일반 루틴처럼 수정·삭제 가능) |
 | `POST /shop/purchases` 응답 | `order_id` 필드 **추가**(구매 추적용) — 기존 필드 유지, 파싱 안 해도 무방 |
 
@@ -68,6 +68,9 @@
 | 루틴 | `GET/POST /routines` · `PATCH/DELETE /routines/{id}` · `POST/DELETE /routines/{id}/complete` · `GET /routines/{id}/statistics` | CRUD·완료·통계 |
 | 리뷰 | `POST /review/prompted` | 리뷰 노출 기록 |
 | 문의 | `POST /feedback` | 사용자 문의 접수 |
+| 오늘의 운세 | `GET/PUT/DELETE /fortune-profile` | 생년월일·성별 조회·저장·삭제 |
+|  | `GET /daily-fortune/status` · `POST /daily-fortune/reveal` · `POST /daily-fortune/ad-sessions` | 상태·공개·운세 전용 광고 세션 |
+| 설치 귀속 | `POST /attribution/meta-referrer/decrypt` | Android Meta 설치 리퍼러의 `utm_content` 복호화(로그인 전 공개 경로) |
 | 웹훅 | `POST /webhooks/revenuecat` · `GET /webhooks/ad-ssv` | 구독·광고 SSV(서버-서버) |
 
 ---
@@ -113,6 +116,13 @@
 - 건초·토큰·등급·상품가격은 서버가 원본. 클라는 응답값을 캐시로만, 직접 계산 금지. 미확정 수치는 `app_config`. **클라 DB 직접 쓰기 없음.**
 - 커서: `?limit=30&cursor=<opaque>` → `{ "data":[…], "next_cursor":null }`(null=끝). 대화 이력만 양방향.
 - `POST /chat/messages`는 `Idempotency-Key: <uuid>` **필수**. 출석/루틴 = `(user, activity_date)` 자연 멱등. 구독·IAP = RevenueCat 웹훅(transaction_id 멱등). 광고 = `ssv_transaction_id` 멱등.
+
+### 로그인 전 공개 경로
+
+`POST /attribution/meta-referrer/decrypt`는 Android 앱이 로그인 전에 받은 Meta 설치 리퍼러를
+복호화하기 위한 예외 경로다. 상태를 저장하지 않으며 요청 본문 길이를 제한한다. 암호문이 없으면
+`200 {"attribution":null}`, 복호화 실패는 `422`, 서버 키 미설정은 `503`이다. 정확한 필드 계약은
+`openapi/paths/attribution.yaml`을 따른다.
 
 ### 에러 형식
 
@@ -165,7 +175,7 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
 
 ### `GET /me/notifications` · `PATCH /me/notifications`
 
-알림 = **아침 09:00(일기) · 저녁 21:00(안부) 2종 고정**, on/off만(기본 on).
+알림 = **아침 09:00(일기) · 저녁 20:00(안부) 2종 고정**, on/off만(기본 on).
 
 ```json
 { "morning_diary":true, "evening_chat":true }
@@ -173,11 +183,11 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
 
 ### `POST /me/push-token`
 
-`{ "token":"<APNs>", "platform":"ios" }` → 204.
+`{ "token":"<FCM registration token>", "platform":"ios" }` → 204. Android는 `platform:"android"`를 사용한다.
 
 ### `POST /auth/logout`
 
-`{ "push_token":"<APNs>" }` → 204. 해당 토큰만 무효화(세션 종료는 클라 Supabase signOut).
+`{ "push_token":"<FCM registration token>" }` → 204. 해당 토큰만 무효화(세션 종료는 클라 Supabase signOut).
 
 ### `DELETE /me` — 회원탈퇴
 
@@ -225,7 +235,8 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 유저 메시지 → 캐피 응답 완성본. 둘 다 영구 저장. 메시지 길이 상한(`422 VALIDATION`).
 
 ```json
-// req  { "text":"오늘 좀 힘들었어", "greeting_id":"…" }   // greeting_id = 화면의 미커밋 선발화, 없으면 생략
+// 일반 req  { "text":"오늘 좀 힘들었어", "greeting_id":"…" }
+// 운세 req  { "text":"내 운세를 풀어줘", "context_ref":{"type":"daily_fortune","local_date":"2026-08-28","locale":"ko"} }
 // 200
 { "greeting": { "message_id":"…","content":"…","created_at":"…" },  // 커밋된 선발화, 없으면 null
   "user_message": { "message_id":"…","created_at":"…" },
@@ -238,6 +249,9 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 - `403 DAILY_LIMIT_REACHED` = 토큰 소진. 응답 수 초 소요 → 로딩 표시 + 타임아웃 넉넉히, 재시도는 같은 `Idempotency-Key`.
 - 같은 key에 다른 body를 보내면 `409 IDEMPOTENCY_KEY_REUSED`. 응답 본문 replay는 24시간, 이후 30일까지는
   body 없는 tombstone으로 중복 턴 생성을 막고 새 key를 요구한다.
+- `context_ref`는 이미 공개된 오늘 운세만 한 요청의 서버 컨텍스트로 붙인다. 날짜·프로필·결과가 바뀌면
+  `409 FORTUNE_CONTEXT_STALE`이다. 현재 발화가 위기 또는 이어지는 고통 표현이면 운세 참조를 무시하고
+  현재 대화를 우선한다. 운세에서 파생된 구간은 장기 기억·관계·일기·대화 요약의 근거로 쓰지 않는다.
 - 일기 전문을 대화 안에서 받을 클라이언트는 `X-Moly-Capabilities: diary-reference-v1`을 보낸다.
   이때만 `reply.references`와 `GET /chat/messages`의 `references`에 DB 원문 카드가 붙는다. 카드 전달은
   읽음이 아니며 실제 펼침 시 `POST /diaries/{id}/read`를 호출한다.
@@ -360,13 +374,13 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
   "ad": { "views_used":3, "views_limit":5, "reward_per_view":20 },
   "routine_pair": { "completed_today":1, "required":2, "claimable":false, "claimed":false, "reward":20 },
   "hay_products":[
-    { "product_id":"com.geniusjun.moly.hay.300","play_store_product_id":null,"amount":300 },
-    { "product_id":"com.geniusjun.moly.hay.1500","play_store_product_id":null,"amount":1500 },
-    { "product_id":"com.geniusjun.moly.hay.3000","play_store_product_id":null,"amount":3000 } ],
+    { "product_id":"com.geniusjun.moly.hay.300","play_store_product_id":"com.geniusjun.moly.hay.300","amount":300 },
+    { "product_id":"com.geniusjun.moly.hay.1500","play_store_product_id":"com.geniusjun.moly.hay.1500","amount":1500 },
+    { "product_id":"com.geniusjun.moly.hay.3000","play_store_product_id":"com.geniusjun.moly.hay.3000","amount":3000 } ],
   "balance":640 }
 ```
 
-- **2026-07-13**: 키 `hay_packs` → **`hay_products`**. `product_id` = App Store product id, `play_store_product_id` = Google Play product id(미확정 시 null) — RC SDK 구매 시 해당 스토어 필드 사용.
+- **2026-08-17 현재**: `product_id`는 App Store ID, `play_store_product_id`는 Google Play ID다. 현재 세 건초팩은 양쪽 스토어에서 같은 ID를 사용하며 RC SDK 구매 시 실행 중인 스토어의 필드를 선택한다.
 - 팩 가격: 300 ₩1,500 / 1,500 ₩6,500 / 3,000 ₩10,000 (표시 문자열은 스토어).
 
 ### `POST /charging-station/attendance` — 출석(일1회 +20)
@@ -530,7 +544,27 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 
 ---
 
-## 11. 클라 전용 (API 없음)
+## 11. 오늘의 운세
+
+> 개발 서버 전용 seed이며 기본 플래그는 OFF다. 제품 규칙·계산·문구·DB·프론트 상태 머신의 단일 설명은
+> `DAILY-FORTUNE.md`, 정확한 필드 계약은 OpenAPI를 따른다.
+
+- 최초 진입은 `GET /daily-fortune/status`의 `profile_required`를 확인하고 `PUT /fortune-profile`에
+  `{ "birth_date":"2002-12-13", "gender":"man" }`을 보낸다.
+- 생년월일은 1900-01-01 이상, 사용자 현지 날짜 기준 만 14세 이상이다. 위반 코드는
+  `INVALID_BIRTH_DATE`, `UNDER_MINIMUM_AGE`다.
+- `POST /daily-fortune/reveal`은 체험·구독이면 `revealed`, 무료면 문구가 없는 `locked`를 반환한다.
+- 무료 사용자는 `POST /daily-fortune/ad-sessions`의 값을 AdMob에 넣고, 검증 완료 뒤 status를 다시 조회한다.
+- `state`(`profile_required|unseen|locked|revealed`)와 `access`(`included|ad_required|unlocked_today`)를
+  따로 분기한다.
+- 공개 결과는 `overall`, `categories`, `lucky_color`의 중첩 구조이며 `schema_version=3`, `locale=ko`다.
+- 프로필 수정 응답의 `result_invalidated`, `unlock_preserved`를 사용한다. 같은 날 광고 해제 권한은 유지된다.
+- 광고 중 프로필이 바뀌어 SSV 후 `unseen + unlocked_today`가 오면 광고 없이 reveal을 다시 호출한다.
+- `locked` 상태에는 점수·문구·버전이 없다. 프론트가 이전 공개 결과를 섞어 보여주면 안 된다.
+
+---
+
+## 12. 클라 전용 (API 없음)
 
 | 기능 | 처리 |
 | --- | --- |
@@ -577,6 +611,10 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 | `ROUTINE_GOAL_NOT_MET` | 422 | 루틴 2개 미완료 |
 | `AD_LIMIT_REACHED` | 429 | 광고 일 5회 초과 |
 | `AD_VERIFY_FAILED` | 422 | SSV 서명 검증 실패(서버-서버 — 클라 미노출) |
+| `PROFILE_REQUIRED` | 404 | 운세 생년월일·성별 미입력 |
+| `FEATURE_UNAVAILABLE` | 403 | 운세 개발 기능 비활성 또는 미승인 규칙 |
+| `AD_NOT_REQUIRED` | 403 | 운세 광고가 필요하지 않은 상태 |
+| `DATE_ROLLOVER` | 409 | 운세 현지 날짜 전환 2분 보호 구간 |
 | `NOT_OWNED` | 422 | 미보유 장착 |
 | `VALIDATION` | 422 | 필드 검증 |
 | `INTERNAL` | 500 | 서버 내부 오류 |
@@ -589,13 +627,13 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 | --- | --- |
 | 구독 | 표시 가격은 스토어 기준 · 건초 증정 월 1,000 / 연 4,000(플랜별 최초 1회) |
 | 체험 | 가입 후 2일(48h) · 구독 수준 혜택(건초 증정 제외) |
-| 런칭 무료 | `2026-09-01 04:00 KST`까지 전원 무료·일 150,000. `app_config`로 조정 |
+| 런칭 무료 | `2026-10-01 04:00 KST`까지 전원 무료·일 150,000. `app_config`로 조정 |
 | 건초 획득 | 출석 20 / 광고 회당 20(일 5회) / 루틴 2개 완료 20 |
 | 건초 IAP | 300 ₩1,500 / 1,500 ₩6,500 / 3,000 ₩10,000 |
 | 상점 | 가격·노출 여부는 DB의 활성 상품 카탈로그가 기준. 꾸미기 구독 전용 정책 없음 |
-| 가입 기본 세팅 | 아이템 3종 지급(집·운동 배경, 선글라스 — 장착은 안 함) + 기본 루틴 2개(이불 정리하기·물 마시기, 주 7회) |
-| 일기 | 매일 09:00 발행. 임계↑=개인 일기 / 그 외=캐피 자기일기. 열람 항상 무료 |
+| 가입 기본 세팅 | 아이템 3종 지급(집·운동 배경, 선글라스 — 집 배경만 자동 장착) + 기본 루틴 2개(이불 정리하기·물 마시기, 주 7회) |
+| 일기 | 09:00 발행. 임계↑=개인 일기 / 그 외=해당 날짜 지정본이 있을 때만 캐피 자기일기. 열람 항상 무료 |
 | 리뷰 | 당일 토큰이 임계 생애 최초 초과 시 1회 노출, 보상 없음 |
-| 알림 | 아침 09:00 일기 · 저녁 21:00 안부 — 2종 고정 on/off |
+| 알림 | 아침 09:00 일기 · 저녁 20:00 안부 — 2종 고정 on/off |
 | 루틴 | 요일별 또는 주 N회 · 삭제 = soft delete |
 | 미정(TBD) | 일반 토큰 한도·임계 수치(app_config) · 광고 SDK · 낮/밤 시각(Firebase) |

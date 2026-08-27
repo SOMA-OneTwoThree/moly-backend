@@ -353,6 +353,11 @@ schemas:
         - type: 'null'
         title: Greeting Id
         description: 화면에 있던 미커밋 greeting UUID 또는 null.
+      context_ref:
+        anyOf:
+        - $ref: ./fortune.yaml#/schemas/DailyFortuneContextRef
+        - type: 'null'
+        description: 오늘 운세 결과 화면에서 대화로 넘어올 때 붙이는 일회성 참조.
     additionalProperties: false
     type: object
     required:

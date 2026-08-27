@@ -55,3 +55,18 @@ async def resolve(session: AsyncSession, user_id: str, now: datetime | None = No
         review_min_tokens=cfg["review_prompt_min_tokens"],
         diary_min_user_chars=cfg["diary_min_user_chars"],
     )
+
+
+async def resolve_plan(
+    session: AsyncSession,
+    user_id: str,
+    now: datetime,
+    *,
+    profile: Profile | None = None,
+) -> str:
+    """운세처럼 plan만 필요한 경로에서 토큰 사용량 조회 없이 등급을 판정한다."""
+
+    loaded_profile = profile or await _load_profile(session, user_id)
+    sub = await _load_active_subscription(session, user_id, now)
+    cfg = await effective_token_config(session)
+    return str(derive_entitlement(loaded_profile, sub, 0, cfg, now)["plan"])

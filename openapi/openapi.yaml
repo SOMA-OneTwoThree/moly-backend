@@ -78,6 +78,14 @@ paths:
     $ref: ./paths/economy.yaml#/~1reward-ad-sessions
   /webhooks/ad-ssv:
     $ref: ./paths/economy.yaml#/~1webhooks~1ad-ssv
+  /fortune-profile:
+    $ref: ./paths/fortune.yaml#/~1fortune-profile
+  /daily-fortune/status:
+    $ref: ./paths/fortune.yaml#/~1daily-fortune~1status
+  /daily-fortune/reveal:
+    $ref: ./paths/fortune.yaml#/~1daily-fortune~1reveal
+  /daily-fortune/ad-sessions:
+    $ref: ./paths/fortune.yaml#/~1daily-fortune~1ad-sessions
   /attribution/meta-referrer/decrypt:
     $ref: ./paths/attribution.yaml#/~1attribution~1meta-referrer~1decrypt
 components:
@@ -98,6 +106,12 @@ components:
       $ref: ./components/conversations.yaml#/schemas/ChatReference
     ChatStateResponse:
       $ref: ./components/conversations.yaml#/schemas/ChatStateResponse
+    DailyFortuneContextRef:
+      $ref: ./components/fortune.yaml#/schemas/DailyFortuneContextRef
+    DailyFortuneRevealResponse:
+      $ref: ./components/fortune.yaml#/schemas/DailyFortuneRevealResponse
+    DailyFortuneStatusResponse:
+      $ref: ./components/fortune.yaml#/schemas/DailyFortuneStatusResponse
     CommittedGreeting:
       $ref: ./components/conversations.yaml#/schemas/CommittedGreeting
     ConversationRef:
@@ -128,6 +142,22 @@ components:
       $ref: ./components/shop.yaml#/schemas/EquipmentResponseV2
     Frame:
       $ref: ./components/shop.yaml#/schemas/Frame
+    FortuneAdSessionRequest:
+      $ref: ./components/fortune.yaml#/schemas/FortuneAdSessionRequest
+    FortuneAdSessionResponse:
+      $ref: ./components/fortune.yaml#/schemas/FortuneAdSessionResponse
+    FortuneProfilePut:
+      $ref: ./components/fortune.yaml#/schemas/FortuneProfilePut
+    FortuneProfilePutResponse:
+      $ref: ./components/fortune.yaml#/schemas/FortuneProfilePutResponse
+    FortuneProfileResponse:
+      $ref: ./components/fortune.yaml#/schemas/FortuneProfileResponse
+    FortuneProfileView:
+      $ref: ./components/fortune.yaml#/schemas/FortuneProfileView
+    FortuneResult:
+      $ref: ./components/fortune.yaml#/schemas/FortuneResult
+    FortuneVersions:
+      $ref: ./components/fortune.yaml#/schemas/FortuneVersions
     GreetingResponse:
       $ref: ./components/conversations.yaml#/schemas/GreetingResponse
     HayProduct:
@@ -276,6 +306,8 @@ tags:
   description: 인앱 문의 등록
 - name: subscription
   description: 구독 조회, 고정 플랜, RevenueCat webhook
+- name: fortune
+  description: 운세 프로필, 당일 결과, 공개용 광고 세션
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

@@ -8,6 +8,7 @@ from app.api.chat import router as chat_router
 from app.api.diary import router as diary_router
 from app.api.economy import router as economy_router
 from app.api.feedback import router as feedback_router
+from app.api.fortune import router as fortune_router
 from app.api.health import router as health_router
 from app.api.review import router as review_router
 from app.api.routine import router as routine_router
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(shop_router)
     app.include_router(review_router)
     app.include_router(feedback_router)
+    app.include_router(fortune_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
     # 로컬/격리 개발 서버 전용: 워커·회상·모델 평가를 Swagger에서 손으로 검증한다.

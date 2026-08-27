@@ -330,6 +330,8 @@ UPDATE async_jobs
 SET state=CASE WHEN attempt >= max_attempts THEN 'dead' ELSE 'ready' END,
     available_at=CASE WHEN attempt >= max_attempts THEN available_at ELSE :retry_at END,
     finished_at=CASE WHEN attempt >= max_attempts THEN now() ELSE NULL END,
+    payload_expires_at=CASE WHEN attempt >= max_attempts
+      THEN COALESCE(payload_expires_at,now()+interval '7 days') ELSE payload_expires_at END,
     last_error_code=:error_code, last_error_at=now(),
     lease_owner=NULL, lease_token=NULL, lease_until=NULL
 {_FENCE}
@@ -339,7 +341,11 @@ RETURNING state, attempt
 _TERMINAL_SQL = text(f"""
 UPDATE async_jobs
 SET state=:state, result_code=:result_code, result_detail=CAST(:result_detail AS jsonb),
-    finished_at=now(), last_error_code=:error_code, last_error_at=now(),
+    finished_at=now(), payload_expires_at=COALESCE(
+      payload_expires_at,
+      now()+CASE WHEN :state='dead' THEN interval '7 days' ELSE interval '24 hours' END
+    ),
+    last_error_code=:error_code, last_error_at=now(),
     lease_owner=NULL, lease_token=NULL, lease_until=NULL
 {_FENCE}
 RETURNING id
@@ -357,14 +363,26 @@ _SUBJECT_BLOCKED_SQL = text(
 )
 
 _SCRUB_RETENTION_SQL = text("""
-WITH scrub_jobs AS (
-  UPDATE async_jobs SET payload='{}'::jsonb,result_detail=NULL,payload_redacted_at=now()
+WITH scrub_job_candidates AS (
+  SELECT id FROM async_jobs
   WHERE state IN ('succeeded','dead','cancelled') AND payload_redacted_at IS NULL
     AND payload_expires_at IS NOT NULL AND payload_expires_at<=now()
+  ORDER BY payload_expires_at,id
+  FOR UPDATE SKIP LOCKED LIMIT 500
+), scrub_jobs AS (
+  UPDATE async_jobs j
+  SET payload='{}'::jsonb,result_detail=NULL,payload_redacted_at=now()
+  FROM scrub_job_candidates c WHERE j.id=c.id
   RETURNING 1
-), scrub_idempotency AS (
-  UPDATE idempotency_keys SET response=NULL,redacted_at=now()
+), scrub_idempotency_candidates AS (
+  SELECT user_id,key FROM idempotency_keys
   WHERE response IS NOT NULL AND response_expires_at IS NOT NULL AND response_expires_at<=now()
+  ORDER BY response_expires_at,user_id,key
+  FOR UPDATE SKIP LOCKED LIMIT 500
+), scrub_idempotency AS (
+  UPDATE idempotency_keys i SET response=NULL,redacted_at=now()
+  FROM scrub_idempotency_candidates c
+  WHERE i.user_id=c.user_id AND i.key=c.key
   RETURNING 1
 )
 SELECT (SELECT count(*) FROM scrub_jobs),(SELECT count(*) FROM scrub_idempotency)
@@ -553,6 +571,11 @@ WITH candidate AS (
 UPDATE async_jobs j SET
   state=CASE WHEN j.expires_at IS NOT NULL AND j.expires_at <= now() THEN 'cancelled' ELSE 'dead' END,
   finished_at=now(),
+  payload_expires_at=COALESCE(
+    j.payload_expires_at,
+    now()+CASE WHEN j.expires_at IS NOT NULL AND j.expires_at <= now()
+      THEN interval '24 hours' ELSE interval '7 days' END
+  ),
   last_error_code=CASE WHEN j.expires_at IS NOT NULL AND j.expires_at <= now()
                        THEN 'expired' ELSE 'attempts_exhausted' END,
   last_error_at=now(), lease_owner=NULL, lease_token=NULL, lease_until=NULL
@@ -586,6 +609,11 @@ WITH candidate AS (
 UPDATE async_jobs j SET
   state=CASE WHEN j.expires_at IS NOT NULL AND j.expires_at <= now() THEN 'cancelled' ELSE 'dead' END,
   finished_at=now(),
+  payload_expires_at=COALESCE(
+    j.payload_expires_at,
+    now()+CASE WHEN j.expires_at IS NOT NULL AND j.expires_at <= now()
+      THEN interval '24 hours' ELSE interval '7 days' END
+  ),
   last_error_code=CASE WHEN j.expires_at IS NOT NULL AND j.expires_at <= now()
                        THEN 'expired' ELSE 'attempts_exhausted' END,
   last_error_at=now()

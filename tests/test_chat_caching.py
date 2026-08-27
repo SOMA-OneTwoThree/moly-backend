@@ -76,7 +76,7 @@ async def test_context_marks_first_surviving_message_after_greeting_pop():
     from datetime import date
     d = date(2026, 7, 15)
     desc = [_msg(2, "user", "답", activity_date=d), _msg(1, "moly", "인사", activity_date=d)]
-    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    convo, _anchor, lead, _note = await c._context(FakeSession(execute_items=desc), UID, 0)
     assert [m.content for m in lead] == ["인사"]           # 선발화는 system으로
     assert convo[0]["content"].startswith("[7월 15일")     # 남은 첫 메시지에 표식
 
@@ -155,7 +155,7 @@ def test_keep_window_bounds_and_user_first():
 async def test_context_reset_triggers_on_message_count():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 46)]  # 45 > 40 트리거
     session = FakeSession(execute_items=rows)
-    convo, new_anchor, _lead = await c._context(session, UID, 0)
+    convo, new_anchor, _lead, _note = await c._context(session, UID, 0)
     assert new_anchor is not None                 # 리셋 발생
     assert convo[0]["role"] == "user"
     assert len(convo) <= c.settings.context_keep_messages
@@ -164,7 +164,7 @@ async def test_context_reset_triggers_on_message_count():
 async def test_context_no_reset_when_small():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 11)]  # 10 < 40
     session = FakeSession(execute_items=rows)
-    convo, new_anchor, _lead = await c._context(session, UID, 0)
+    convo, new_anchor, _lead, _note = await c._context(session, UID, 0)
     assert new_anchor is None                     # append-only 유지
     assert convo[0]["role"] == "user"
 
@@ -174,7 +174,7 @@ async def test_context_no_reset_when_small():
 async def test_context_returns_leading_greeting_instead_of_dropping_it():
     """맨 앞 캐피 메시지(=선발화)는 배열에서 빠지되 lead로 회수된다. 버리면 또 인사한다."""
     desc = [_msg(2, "user", "그냥 그랬어"), _msg(1, "moly", "왔네. 오늘은 좀 어땠어?")]
-    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    convo, _anchor, lead, _note = await c._context(FakeSession(execute_items=desc), UID, 0)
     assert convo[0]["role"] == "user"                     # Anthropic 제약 유지
     assert len(convo) == 1 and convo[0]["content"].endswith("그냥 그랬어")  # 날짜 표식 뒤 본문
     assert [m.content for m in lead] == ["왔네. 오늘은 좀 어땠어?"]  # 버려지지 않음
@@ -183,7 +183,7 @@ async def test_context_returns_leading_greeting_instead_of_dropping_it():
 async def test_context_keeps_mid_conversation_moly_messages_in_array():
     """중간의 캐피 메시지는 그대로 대화 배열에 남는다(lead는 맨 앞만)."""
     desc = [_msg(3, "user", "뭐해"), _msg(2, "moly", "왔네"), _msg(1, "user", "안녕")]
-    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    convo, _anchor, lead, _note = await c._context(FakeSession(execute_items=desc), UID, 0)
     assert [m["role"] for m in convo] == ["user", "assistant", "user"]
     assert lead == []
 

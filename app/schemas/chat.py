@@ -10,11 +10,22 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.schemas.common import StrictResponse, UtcDatetime
 
 
+class DailyFortuneContextRef(BaseModel):
+    """운세 결과 화면이 현재 공개 결과를 한 번만 채팅에 붙이는 명시적 참조."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["daily_fortune"]
+    local_date: date
+    locale: Literal["ko"]
+
+
 class PostMessageRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     text: str = Field(min_length=1, max_length=2000)
     greeting_id: str | None = None  # 화면에 떠 있던 미커밋 선발화(있으면 커밋)
+    context_ref: DailyFortuneContextRef | None = None
 
 
 class ChatStateResponse(StrictResponse):

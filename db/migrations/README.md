@@ -1,6 +1,6 @@
 # DB 변경 관리
 
-> 최종 확인: 2026-08-14. 대화·기억·꾸미기 전환은 dev와 prod에 모두 끝났다.
+> 최종 확인: 2026-08-28. 대화·기억·꾸미기 전환은 dev와 prod에 끝났고, 오늘의 운세는 dev에만 적용했다.
 
 ## 기준
 
@@ -86,3 +86,14 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 
 런타임은 벡터 컬렉션이나 테이블을 자동 생성하지 않는다. 새 환경을 만들 때는 이 파일들이
 `schema_migrations`에 기록됐다는 사실만 보지 말고 `db/verify.py`와 기억 컬렉션 존재를 함께 확인한다.
+
+## 오늘의 운세 계약
+
+| 파일 | 현재 역할 |
+|---|---|
+| `20260827_daily_fortune.sql` | dev에 최초 적용한 운세 프로필·당일 snapshot·광고 세션 이력 |
+| `20260827_daily_fortune_v2.sql` | 입력을 생년월일·성별로 축소하고 결과 schema·당일 권한 제약을 확정 |
+| `20260827_fortune_chat_context.sql` | 운세 대화 구간을 표시하는 `messages.kind` 값 추가 |
+
+세 파일은 dev의 `schema_migrations`에 기록돼 있으므로 수정하지 않는다. 운영에는 적용하지 않았으며, 운영
+전환은 `docs/DAILY-FORTUNE.md`의 승인·배포 조건을 통과한 뒤 별도로 진행한다.

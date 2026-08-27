@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
-from app.core.time_utils import safe_zone
+from app.core.time_utils import reward_date_for, safe_zone
 from app.models.chat_context import ChatContext
 from app.models.greeting import Greeting
 from app.models.idempotency_key import IdempotencyKey
@@ -30,6 +30,7 @@ from app.schemas.chat import PostMessageResponse
 from app.services import (
     checkpoint,
     checkpoint_repo,
+    context_safety,
     gating,
     greetings,
     i18n,
@@ -45,6 +46,7 @@ from app.services import (
     chat_references,
     chat_turns,
     diary as diary_service,
+    fortune_chat,
 )
 from app.services.account import _uid
 from app.services.agent import config as agent_config
@@ -233,7 +235,8 @@ async def _context(
     *,
     current_text: str | None = None,
     current_date: date | None = None,
-) -> tuple[list[dict[str, str]], int | None, list[Message]]:
+    language: str | None = None,
+) -> tuple[list[dict[str, str]], int | None, list[Message], str]:
     """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
 
     프리픽스는 리셋 때만 1회 바뀌고 그 사이엔 append-only → 캐시 히트 유지.
@@ -241,6 +244,10 @@ async def _context(
     셋째 반환값 = 대화 배열 맨 앞에서 밀려난 캐피 메시지(=커밋된 선발화).
     Anthropic이 messages[0]를 user로 강제해서 배열엔 못 넣지만, 버리면 캐피가 방금 건넨
     인사를 모른 채 또 인사한다. 호출측이 system 가변 블록으로 넘긴다.
+
+    넷째 반환값 = 완료된 과거 위기 에피소드가 압축됐을 때의 서버 소유 중립 상태. 이 문자열은
+    user/assistant 대화로 위조하지 않고 호출측이 휘발 system 블록으로 넣는다. 현재·최신 위기 발화는
+    압축하지 않는다(`context_safety`).
 
     current_text가 주어지면(SOMA-374 read-only phase) 이번 턴 유저 메시지가 아직 DB에
     없으므로, 과거 메시지로 조립한 뒤 현재 턴을 배열 끝에 in-memory로 붙인다(날짜 표식 포함).
@@ -284,6 +291,19 @@ async def _context(
             if m.sender != "moly":
                 convo, kept = [{"role": "user", "content": m.content}], [m]
                 break
+    compacted = context_safety.compact_historical_crises(
+        [
+            context_safety.ContextEntry(
+                role=slot["role"], content=slot["content"], activity_date=m.activity_date
+            )
+            for slot, m in zip(convo, kept, strict=True)
+        ],
+        current_text=current_text,
+        current_date=current_date,
+        language=language,
+    )
+    convo = [{"role": entry.role, "content": entry.content} for entry in compacted.entries]
+    kept = list(compacted.entries)  # `_mark_dates`는 activity_date 속성만 읽는다.
     _mark_dates(convo, kept)
     if current_text is not None:  # 현재 턴을 배열 끝에 붙임 — 직전 kept와 날짜가 다르면 표식 부착
         content = current_text
@@ -291,7 +311,7 @@ async def _context(
         if current_date is not None and current_date != prev_date:
             content = f"{_date_label(current_date)}\n{current_text}"
         convo.append({"role": "user", "content": content})
-    return convo, new_anchor, lead
+    return convo, new_anchor, lead, compacted.note
 
 
 async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
@@ -583,6 +603,7 @@ async def _record_memory_v2(
     turn_seq: int,
     activity_date: date,
     now: datetime,
+    record_derived: bool = True,
 ) -> None:
     """v2 source 커서 전진 + 관계 event append. **legacy 사용자는 아무것도 하지 않는다.**
 
@@ -592,6 +613,10 @@ async def _record_memory_v2(
     실패는 삼키지 않는다 — 이 트랜잭션이 깨지면 턴 전체가 클린 재시도되는 게 맞다. 커서만
     전진하고 메시지가 없거나 그 반대인 상태를 만들지 않는다.
     """
+    # fortune_* kind는 memory source 자체가 아니다(`_MAX_TURN`·worker source도 normal만).
+    # source cursor를 움직였다가 별도 gap을 처리하게 만들 필요 없이 처음부터 제외한다.
+    if not record_derived:
+        return
     state = await memory_pipeline.load(session, uid)
     if not state.records_v2:
         # 행이 있는데 legacy면 일부러 꺼둔 사용자다 — 건드리지 않는다.
@@ -669,6 +694,7 @@ async def _enqueue_checkpoint(
                     id=m.id, sender=m.sender, kind=m.kind, content=m.content or ""
                 )
                 for m in rows
+                if m.kind not in {"fortune_context_root", "fortune_derived"}
             ],
             keep_from_message_id=keep_from,
         )
@@ -722,6 +748,11 @@ async def post_message(
         text_value=req.text,
         greeting_id=getattr(req, "greeting_id", None),
         diary_references=references_enabled,
+        context_ref=(
+            req.context_ref.model_dump(mode="json")
+            if getattr(req, "context_ref", None) is not None
+            else None
+        ),
     )
     await privacy.ensure_subject_active(session, uid)
 
@@ -787,12 +818,68 @@ async def post_message(
     ad = g.activity_date
     nick = g.profile.nickname  # 저장=placeholder / egress·LLM 투입=render 전 공용
     language = g.profile.language
+    account_timezone = getattr(g.profile, "timezone", "Asia/Seoul")
     review_prompted_at = g.profile.review_prompted_at
     review_min = g.review_min_tokens
     tokens_used_pre = g.tokens_used
     limit = g.entitlement["daily_token_limit"]
     if not isinstance(limit, int):  # fail-closed(위 게이트와 동일 근거)
         limit = settings.daily_token_limit_free
+
+    # 현재 위기·연속 distress가 있으면 운세 참조는 DB 조회 전부터 완전히 무시한다. 안전 응답이
+    # 오늘 운세의 표현에 끌리거나 stale 참조 오류로 막혀서는 안 된다.
+    crisis_now = context_safety.is_continuing_distress(req.text, language)
+    fortune_snapshot: fortune_chat.FortuneContextSnapshot | None = None
+    fortune_date = reward_date_for(now, account_timezone)
+    if getattr(req, "context_ref", None) is not None and not crisis_now:
+        if req.context_ref.local_date != fortune_date:
+            raise errors.AppError(
+                "FORTUNE_CONTEXT_STALE", 409, "오늘의 운세가 바뀌었어요. 결과 화면에서 다시 시작해 주세요."
+            )
+        fortune_snapshot = await fortune_chat.load_snapshot(
+            session,
+            user_id=uid,
+            local_date=req.context_ref.local_date,
+            locale=req.context_ref.locale,
+            account_timezone=account_timezone,
+        )
+
+    # 운세가 장기 기억·관계·일기 계약으로 굳지 않게 시작 턴과 이어지는 두 유저 턴을 기존
+    # messages.kind discriminator로 격리한다. 현재 위기는 언제나 normal이 우선한다.
+    message_kind = "normal"
+    if fortune_snapshot is not None:
+        message_kind = "fortune_context_root"
+    elif settings.fortune_chat_enabled:
+        root = (
+            await session.execute(
+                select(Message)
+                .where(
+                Message.user_id == uid,
+                Message.sender == "user",
+                Message.kind == "fortune_context_root",
+                )
+                .order_by(Message.id.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        # 운세 날짜는 00:00 경계다. chat activity_date(04:00)와 섞지 않는다.
+        if (
+            root is not None
+            and root.created_at is not None
+            and reward_date_for(root.created_at, account_timezone) == fortune_date
+        ):
+            following = int(
+                await session.scalar(
+                    select(func.count()).select_from(Message).where(
+                        Message.user_id == uid,
+                        Message.sender == "user",
+                        Message.id > root.id,
+                    )
+                )
+                or 0
+            )
+            if following < 2:
+                message_kind = "fortune_derived"
 
     ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
@@ -893,8 +980,8 @@ async def post_message(
         context_ms = _ms(t_context0, time.monotonic())
 
     # 컨텍스트 조립 — 현재 유저 메시지는 아직 미저장. _context가 현재 턴을 in-memory로 붙인다.
-    convo, new_anchor, lead = await _context(
-        session, uid, anchor, current_text=req.text, current_date=ad
+    convo, new_anchor, lead, historical_safety_note = await _context(
+        session, uid, anchor, current_text=req.text, current_date=ad, language=language
     )
     lead_texts = [m.content for m in lead]  # placeholder 저장분(문자열) — 커밋 후 ORM 미접근
 
@@ -949,7 +1036,21 @@ async def post_message(
     # 대화가 그대로 캐시되고, 바뀐 이 블록과 현재 입력만 새로 쓴다.
     # role은 system이라 user 발화 권위를 갖지 않는다.
     volatile: list[str] = []
+    if historical_safety_note:
+        volatile.append(historical_safety_note)
     if checkpoint_summary:
+        # 기존 checkpoint(v1)에 남은 과거 위기 원문도 최근 대화가 명확히 다른 화제로 넘어간
+        # 경우에만 문장 단위로 중립화한다. 현재 위기/불명확한 전환이면 원문을 그대로 둔다.
+        checkpoint_summary = context_safety.compact_checkpoint_summary(
+            checkpoint_summary,
+            recent_entries=[
+                context_safety.ContextEntry(c["role"], c["content"])
+                for c in convo[:-1]
+                if c["role"] in ("user", "assistant")
+            ],
+            current_text=req.text,
+            language=language,
+        )
         volatile.append(
             "[지난 이야기]\n"
             "위 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
@@ -965,6 +1066,8 @@ async def post_message(
             "[지금 상태 - 서버 사실]\n"
             f"{resident_block}"
         )
+    if fortune_snapshot is not None:
+        volatile.append(fortune_snapshot.block)
     if volatile:
         convo.insert(
             max(0, len(convo) - 1),
@@ -1094,6 +1197,21 @@ async def post_message(
     t_phase2_0 = time.monotonic()
     await _lock_user(session, uid)
     await chat_turns.verify_publish(session, user_id=uid, lease=lease)
+    if fortune_snapshot is not None:
+        phase2_now = datetime.now(timezone.utc)
+        fresh_account = await session.get(type(g.profile), uid, populate_existing=True)
+        fresh_timezone = (
+            getattr(fresh_account, "timezone", account_timezone)
+            if fresh_account is not None
+            else account_timezone
+        )
+        await fortune_chat.revalidate(
+            session,
+            user_id=uid,
+            snapshot=fortune_snapshot,
+            current_local_date=reward_date_for(phase2_now, fresh_timezone),
+            account_timezone=fresh_timezone,
+        )
     lang_bucket = i18n.resolve(language)
     used_tools = any(c.purpose in ("tool_decide", "tool_final") for c in usage.calls)
     usage_totals = usage.totals  # W2 계측 — billed(v2 킬스위치 영향)와 별개로 실제 턴 합계
@@ -1183,7 +1301,7 @@ async def post_message(
 
     # 유저 메시지 저장 — 유저가 자기 현재 이름을 말했으면 placeholder로(저장 표면 이름 0)
     umsg = Message(
-        user_id=uid, sender="user", kind="normal",
+        user_id=uid, sender="user", kind=message_kind,
         content=naming.to_placeholder(req.text, nick),
         activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=1,
     )
@@ -1213,7 +1331,7 @@ async def post_message(
 
     # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷) — 턴 내 모든 호출의 합계를 남긴다.
     rmsg = Message(
-        user_id=uid, sender="moly", kind="normal",
+        user_id=uid, sender="moly", kind=message_kind,
         content=reply_stored,
         input_tokens=totals["input_tokens"], output_tokens=totals["output_tokens"],
         cache_read_tokens=totals["cache_read_tokens"],
@@ -1226,7 +1344,14 @@ async def post_message(
 
     # 기억 v2(15장 5단계) — legacy 사용자는 no-op. shadow/v2만 source 커서와 관계 event를
     # **이 트랜잭션에서** 함께 기록한다. shadow는 기록만 하고 응답에는 쓰지 않는다.
-    await _record_memory_v2(session, uid, turn_seq=lease.turn_seq, activity_date=ad, now=now)
+    await _record_memory_v2(
+        session,
+        uid,
+        turn_seq=lease.turn_seq,
+        activity_date=ad,
+        now=now,
+        record_derived=message_kind == "normal",
+    )
     await _touch_last_active(session, uid, now)
 
     # 대화 요약 checkpoint(W11) — 리셋이 일어난 턴에만, 앵커 저장과 같은 트랜잭션에서 잡을 건다.

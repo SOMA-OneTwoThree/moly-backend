@@ -1,7 +1,8 @@
 # Moly 백엔드 구조
 
-> **2026-08-14 개정** — 현재 코드와 운영 전환 상태를 다시 대조했다.
-> 짝 문서: `API_SPEC.md`(앱과 서버가 주고받는 약속) · `ERD.md`(테이블 정의) · `DEV_STATUS.md`(진행 현황).
+> **2026-08-28 개정** — 현재 코드와 공개 계약을 다시 대조했다.
+> 짝 문서: `API_SPEC.md`(앱과 서버가 주고받는 약속) · `ERD.md`(테이블 정의) ·
+> `DAILY-FORTUNE.md`(오늘의 운세 상세).
 > 기억 시스템의 자세한 설계는 이 문서가 아니라 `docs/ARCHITECTURE-capi.md`가 가지고 있다.
 > 이 문서는 백엔드 전체를 훑는 문서라 기억은 5.2절에서 요약만 한다.
 
@@ -9,8 +10,9 @@
 
 ## 0. 이 문서를 읽기 전에
 
-이 백엔드는 **몰리**라는 iOS 앱의 서버다. 사용자는 카피바라 캐릭터 **캐피**와 한국어로 채팅하고,
-캐피는 그 대화를 바탕으로 몰래 일기를 쓴다. 사용자는 다음 날 아침 그 일기를 읽는다.
+이 백엔드는 **BeCappy** iOS·Android 앱의 도메인 서버다. 사용자는 카피바라 캐릭터 **캐피**와
+한국어·영어·일본어로 대화하고, 캐피는 대화를 바탕으로 일기를 쓴다. 루틴·꾸미기·장기 기억도
+같은 사용자 관계에 연결된다.
 
 문서 전체에서 반복해서 나오는 말들을 먼저 정리한다.
 
@@ -19,7 +21,8 @@
 | **턴(turn)** | 대화 한 번 주고받기. 사용자 메시지 1개 + 캐피 답변 1개(+ 캐피가 먼저 건넨 인사 1개)를 묶은 단위 |
 | **선발화** | 사용자가 말을 걸기 전에 캐피가 먼저 건넨 인사. 사용자가 답을 해야 비로소 대화 기록에 저장된다 |
 | **건초** | 앱 안에서 쓰는 재화 이름 |
-| **활동일(`activity_date`)** | 하루의 경계를 자정이 아니라 사용자 현지 시각 **04:00**으로 잡은 날짜 값. 토큰 한도·출석·광고·루틴·일기가 전부 이 날짜에 귀속된다 |
+| **활동일(`activity_date`)** | 사용자 현지 시각 **04:00**을 경계로 하는 날짜 값. 대화 토큰 한도와 일기 귀속에 사용한다 |
+| **보상일(`reward_date`)** | 사용자 현지 시각 **00:00**을 경계로 하는 날짜 값. 출석·광고·루틴 보상에 사용한다 |
 | **entitlement** | 그 사용자가 지금 무엇을 쓸 수 있는지(등급, 하루 토큰 한도, 광고 제거 여부 등)를 정리한 값 |
 | **잡(job)** | 요청을 처리하는 도중에 하지 않고 나중에 따로 돌리는 작업. `async_jobs` 테이블에 한 줄로 쌓인다 |
 | **큐(queue)** | 잡을 성격별로 나눈 칸. 한쪽이 밀려도 다른 쪽이 같이 멈추지 않게 한다 |
@@ -58,9 +61,12 @@ RC = RevenueCat(구독·결제 검증을 대행하는 서비스) · RLS = Row Le
 
 ```mermaid
 flowchart TB
-  subgraph C[iOS 앱 · SwiftUI]
-    V[View / ViewModel / Repository]
+  subgraph C[모바일 앱]
+    IOS[iOS · SwiftUI]
+    AND[Android · Flutter]
   end
+  IOS --> V[공통 API 계약]
+  AND --> V
   V -->|"계정 API (/me·온보딩·알림·탈퇴)"| AUTH[moly-auth · Next.js<br/>Vercel]
   V -->|"도메인 API (대화·일기·경제·상점·루틴)"| API[moly-backend · FastAPI<br/>EC2 Docker]
   V -.->|소셜 로그인 SDK| SA[Supabase Auth]
@@ -84,12 +90,13 @@ flowchart TB
   API -->|"대화 생성 · 프롬프트 캐시"| OAI["OpenAI GPT-5.6<br/>luna=대화·보조 / terra=일기<br/>text-embedding-3-small=기억 검색"]
   W1 -->|"기억 추출·임베딩·판정"| OAI
   W2 -->|"개인 일기 생성·푸시 문구 생성"| OAI
-  W2 -->|아침·저녁 알림| FCM[(FCM → APNs)]
+  W2 -->|아침·저녁 알림| FCM[(FCM → iOS APNs·Android)]
 
   RC -->|웹훅: 구독·건초 결제| API
   AD -->|SSV 콜백: 광고 시청 확정| API
 
   W2 -->|"슬랙 요약·경보"| SLK[Slack<br/>#moly-alerts · #moly-status]
+  API -->|"인앱 피드백"| SLKF[Slack<br/>#moly-feedback]
   W2 -->|"살아 있음 신호"| HC[Healthchecks.io]
   BS[Betterstack] -.->|"/health/ready 계속 확인"| API
 ```
@@ -100,6 +107,9 @@ flowchart TB
 |---|---|---|
 | `https://moly-server.vercel.app` | moly-auth | 계정: `/me`·온보딩·알림 설정·푸시 토큰·로그아웃·탈퇴 |
 | `https://voice.moly.asia` | moly-backend | 그 외 전부 |
+
+Android 앱은 로그인 전에 `POST /attribution/meta-referrer/decrypt`를 호출해 Meta 설치 리퍼러의
+암호문을 복호화할 수 있다. 이 공개 경로는 상태를 저장하지 않고 요청 크기와 출력 필드를 제한한다.
 
 서버끼리 들어오는 요청은 웹훅 둘이다.
 
@@ -218,7 +228,7 @@ db/             # schema.sql(테이블 생성 DDL) + migrations/ + 시드. DB �
 
 ```mermaid
 sequenceDiagram
-  participant App as iOS 앱
+  participant App as 모바일 앱
   participant API
   participant DB
   participant LLM as OpenAI
@@ -409,7 +419,9 @@ sequenceDiagram
   경우는 취소(cancelled)로 닫는다. 시도 횟수는 잡을 집는 순간에 늘어나기 때문에, 프로세스가 죽어서
   마무리를 못 한 잡도 결국은 포기 상태에 도달한다.
 - 끝난 잡(`succeeded` `dead` `cancelled`)은 같은 행을 다시 살리지 않는다. 다시 돌려야 하면 원본을
-  남기고 `replay_of`로 이어지는 새 행을 만든다.
+  남기고 `replay_of`로 이어지는 새 행을 만든다. 성공·취소 payload는 24시간, 원인 조사에 필요한
+  `dead` payload는 7일 뒤 자동으로 비우고 상태·시각·오류 코드만 남긴다. 정리 한 번에 테이블별
+  최대 500건만 잠금 대기 없이 처리한다.
 - 등록된 잡 종류: 기억 3종(`mem0_ingest`·`mem0_consolidate`·`mem0_provider_delete`), 기억 재판정
   (`mem0_reconsolidate`), 멈춘 기억 파이프라인 재개(`memory_gap_sweep`), 대화 요약(`conversation_checkpoint`,
   `shadow_checkpoint`), 대화 약속 컴파일(`contract_compile`), 관계 문장 생성(`relationship_project`),
@@ -449,8 +461,8 @@ sequenceDiagram
 한 트랜잭션 안에서 다음을 만든다.
 
 - `profiles` 행(체험 기간 = 가입 시각 + 48시간)
-- 기본 지급 꾸미기 2종 — 기본 테마(`theme_default`)와 선글라스(`head_sunglasses`), `source='admin_grant'`.
-  기본 테마는 장착까지 해 준다
+- 기본 지급 꾸미기 3종 — 기본 테마(`theme_default`), 운동 테마(`theme_workout`), 선글라스
+  (`head_sunglasses`)를 `source='admin_grant'`로 지급하고 기본 테마만 장착한다
 - 기본 루틴 2개 — "이불 정리하기", "물 마시기"(둘 다 주 7일)
 
 어떤 경로로 가입해도 같은 상태가 보장된다. 필요한 상품 시드가 없으면 함수가 예외를 던져 가입이
@@ -578,7 +590,7 @@ sequenceDiagram
 | 대상 | 방법 |
 |---|---|
 | 서버·DB 장애 | Betterstack이 `/health/ready`를 계속 호출한다 |
-| 경보 전달 | 슬랙 2채널로 나눈다. `#moly-alerts`(즉시 봐야 하는 것) / `#moly-status`(요약·배포). 같은 내용은 300초 안에 다시 보내지 않는다 |
+| 경보 전달 | 슬랙을 `#moly-alerts`(즉시 봐야 하는 서버·배치 경보), `#moly-status`(요약·배포), `#moly-feedback`(사용자 문의)로 나눈다. 피드백 웹훅 미설정 시는 배포 호환을 위해 alerts 웹훅으로 폴백한다. 같은 경보는 300초 안에 다시 보내지 않는다 |
 | 워커 생존 | Healthchecks.io로 신호를 보낸다. 결과가 정상일 때만 신호를 보내고, 이상이 있으면 `/fail`을 보낸다. 강제 종료된 프로세스는 신호가 끊겨 자연히 감지된다 |
 | 모델 비용 급증 | 전날 사용량 합계가 임계값(`daily_billable_alert_threshold`, 코드 기본값 5,000,000)을 넘으면 슬랙으로 알린다. UTC 04시 틱에서 집계한다 |
 | 모델 도달성 | `/health/synthetic`이 실제로 모델을 호출해 확인한다 |
@@ -624,13 +636,15 @@ sequenceDiagram
 | 개인 일기를 구독자 전용으로 바꾼다 | `diary_generation`의 분기 한 줄. 배치 전용이라 API와 앱은 그대로다 |
 | 읽기 트래픽이 급증한다 | 캐시를 넣거나, 일부 읽기만 RLS 정책을 만들어 앱이 직접 읽게 한다 |
 | 답변이 타이핑되듯 보이게 하고 싶다 | 대화 엔드포인트만 SSE로 올린다. 약속 변경이 그 하나로 끝난다 |
-| 안드로이드를 낸다 | API는 그대로 쓴다(푸시가 이미 FCM이다). 앱만 추가하면 된다 |
+| 모바일 플랫폼이 더 늘어난다 | 현재와 같은 HTTP·FCM·RevenueCat 계약을 재사용하고 플랫폼별 클라이언트만 추가한다 |
 
 ---
 
 ## 10. 문서 지도
 
-로컬 `docs/`는 gitignore된 작업 사본이다. 단일 소스는 팀 노션이다.
+`docs/`의 핵심 기술 문서는 코드와 함께 버전 관리한다. 코드 계약과 충돌할 때는 실제 라우터·스키마·서비스,
+canonical DDL, OpenAPI 순으로 확인하고 문서를 같은 변경에서 갱신한다. 전체 문서의 역할과 기준 우선순위는
+`docs/README.md`에 정리한다.
 
 | 문서 | 내용 | 읽는 사람 |
 |---|---|---|
@@ -638,4 +652,4 @@ sequenceDiagram
 | `ERD.md` | 테이블·제약·정책 | 서버 |
 | `ARCHITECTURE.md` | 백엔드 전체 구조·흐름·운영(이 문서) | 서버 |
 | `ARCHITECTURE-capi.md` | 캐피의 기억과 대화 설계(상세) | 서버 |
-| `DEV_STATUS.md` | 스프린트 현황과 남은 작업 | 팀 |
+| `DAILY-FORTUNE.md` | 오늘의 운세 계산·문구·DB·API·배포 | 서버 |

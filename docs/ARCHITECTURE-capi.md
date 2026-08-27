@@ -120,7 +120,7 @@
 ### 3.1 같은 요청을 다시 보냈을 때
 
 클라이언트는 요청마다 `Idempotency-Key` 헤더를 보낸다. 서버는 본문으로부터
-`request_hash(text, greeting_id, diary_references)`를 만들어 함께 저장한다.
+`request_hash(text, greeting_id, diary_references, context_ref)`를 만들어 함께 저장한다.
 
 | 상황 | 결과 |
 |---|---|
@@ -158,8 +158,8 @@
    빠진다. 미리 띄워 두면 1단계의 남은 DB 작업과 겹쳐서 돈다. 이 작업은 자기 세션과 자기
    연결을 쓰므로 여기의 잠금과 무관하고, 기억 기능이 `v2`가 아니면 즉시 빈 문자열로 끝난다.
 7. 대화 요약(설정이 켜진 경우만), 도구 설정 값 한 벌, 이어지는 화제 안내문, 현재 상태 블록
-   (설정이 켜진 경우만), 대화 배열을 조립한다. `greeting_id`를 받았으면 형식과 소유권을
-   확인한다.
+   (설정이 켜진 경우만), 대화 배열을 조립한다. 끝난 과거 위기 구간은 9.2절의 규칙으로 중립화한다.
+   `greeting_id`를 받았으면 형식과 소유권을 확인한다.
 8. `commit()` — 처리 권한만 남기고 잠금과 DB 연결을 반납한다.
 
 `greeting_id`의 형식 검사는 기억 검색을 시작하기 **전에** 끝낸다. 검색을 띄운 뒤에 오류를
@@ -262,7 +262,7 @@ OpenAI API는 캐시에 새로 쓴 토큰 수를 알려주지 않는다. 그래�
 ```text
 시스템 (잘 안 바뀌는 앞부분 — 버전이나 내용이 바뀔 때만 교체)
   1. 캐피 기본 성격 + 안전 규칙 + 출력 형식 규칙
-     (한국어=CAPI_PERSONA / 일본어=CAPI_PERSONA_JA / 그 외=한국어 본문 + 해당 언어로 답하라는 지시)
+     (한국어=CAPI_PERSONA / 영어=CAPI_PERSONA_EN / 일본어=CAPI_PERSONA_JA / 미지원 언어=영어)
   2. 발행된 대화 약속 문구        (7장 — 항상 넣는다. 없으면 빈 문자열)
   3. 관계 단계 문장                (8장 — 기억 기능이 v2인 사용자만)
   4. [먼저 건넨 말] 아직 답을 못 받은 인사 (있을 때만)
@@ -922,7 +922,21 @@ candidate/source, 끊어진 참조, 현행 기억의 벡터·근거 누락이 �
 버리지 않고 회수해 시스템 블록의 `[먼저 건넨 말]`로 넘긴다. 버리면 캐피가 방금 건넨 인사를 모른
 채 또 인사한다.
 
-### 9.2 대화 요약 (구현 완료, 코드 기본값 꺼짐·운영 활성)
+### 9.2 과거 위기 컨텍스트 중립화
+
+`context_safety`는 자살·자해 대응 정책이나 별도 모델 분류기가 아니라, 이미 끝난 과거 위기 원문이 이후
+일상 대화를 계속 끌어당기지 않게 하는 프롬프트 위생 계층이다.
+
+- 현재 발화가 위기 또는 이어지는 고통 표현이면 아무것도 줄이지 않고 최신 맥락을 보존한다.
+- 과거 위기 뒤에 실제 안전 확인 답변이 있었고, 명시적 화제 전환·날짜 경과·같은 날 독립 화제 두 번 중
+  하나가 확인될 때만 해당 과거 구간을 원문에서 제외한다.
+- 제외한 구간 대신 서버 소유 system 블록에 "과거 안전 확인이 필요했고 이후 다른 화제로 넘어갔다"는
+  중립 상태만 넣는다. 사용자 발화처럼 넣지 않는다.
+- 기존 checkpoint에 남은 위기 원문도 같은 전환 근거가 있을 때만 문장 단위로 중립화한다.
+- 한국어·영어·일본어에 같은 보수적 규칙을 적용하며 추가 LLM 호출이나 기능 플래그는 없다.
+- 현재 위기 발화에 운세 `context_ref`가 함께 와도 운세는 조회하지 않고 현재 안전 맥락을 우선한다.
+
+### 9.3 대화 요약 (구현 완료, 코드 기본값 꺼짐·운영 활성)
 
 테이블은 `conversation_checkpoints(user_id, through_message_id, summary, version, source_hash,
 memory_generation)`이다.
@@ -952,7 +966,7 @@ memory_generation)`이다.
 "잊어줘" 기능이 있던 시절 세대 번호로, 그 기능이 제거된 지금은 항상 0이다. 관련 검사 코드는
 그대로 남아 있다.
 
-### 9.3 요약 v2 (계측 전용)
+### 9.4 요약 v2 (계측 전용)
 
 `app/services/checkpoint_v2.py`는 두 종류를 정의한다.
 
@@ -1089,8 +1103,8 @@ memory_generation)`이다.
 | `mem0_reconsolidate` | `memory` | 6.3절 — 살아 있는 기억끼리 재판정(하루 1회) |
 | `mem0_provider_delete` | `maintenance` | 닫힌 기억의 벡터 삭제(한 번에 50건) |
 | `memory_gap_sweep` | `maintenance` | 멈춘 기억 처리를 다시 시작시킨다(아래 참고) |
-| `conversation_checkpoint` | `content` | 9.2절 — 대화 요약 |
-| `shadow_checkpoint` | `content` | 9.3절 — `window` / `daily_digest`를 `ready`로 생성 |
+| `conversation_checkpoint` | `content` | 9.3절 — 대화 요약 |
+| `shadow_checkpoint` | `content` | 9.4절 — `window` / `daily_digest`를 `ready`로 생성 |
 | `contract_compile` | `content` | 7.3절 — 대화 약속 추출 |
 | `relationship_project` | `maintenance` | 8.3절 — 관계 상태 집계와 문장 생성 |
 | `shadow_prompt_trace` | `maintenance` | 4.2절 — 프롬프트 크기 계측(응답에 쓰지 않음) |
@@ -1163,7 +1177,7 @@ memory_generation)`이다.
 | 벡터 | `vecs.moly_memories_v2` | 1536차원 벡터, HNSW 인덱스. 마이그레이션이 만든다 |
 | 대화 약속 | `user_interaction_contracts`, `user_interaction_contract_items` | 7장 |
 | 관계 | `relationship_events`, `user_relationship_states`, `relationship_profile_renders` | 8장 |
-| 요약 | `conversation_checkpoints` | 9.2절(실제 사용) · 9.3절(계측용 산출물) |
+| 요약 | `conversation_checkpoints` | 9.3절(실제 사용) · 9.4절(계측용 산출물) |
 | 계측 | `shadow_prompt_traces` | 4.2절 프롬프트 크기·캐시 가능 비율 |
 | 작업 | `async_jobs` | 11장. `replay_of`로 원본과 연결 |
 | 예정 시각 | `user_schedules` | 11.4절(읽기 경로 미전환) |

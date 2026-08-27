@@ -33,13 +33,18 @@ def diary_reference_capable(capabilities: str | None) -> bool:
 
 
 def request_hash(
-    *, text_value: str, greeting_id: str | None, diary_references: bool = False
+    *,
+    text_value: str,
+    greeting_id: str | None,
+    diary_references: bool = False,
+    context_ref: dict | None = None,
 ) -> str:
     wire = json.dumps(
         {
             "text": text_value,
             "greeting_id": greeting_id,
             "diary_references": diary_references,
+            "context_ref": context_ref,
         },
         ensure_ascii=False,
         sort_keys=True,

@@ -1,6 +1,6 @@
 # moly-backend
 
-**몰리 앱**(AI 컴패니언 iOS)의 백엔드. 츤데레 카피바라 **캐피**와 한국어로 채팅하면, 캐피가 그 대화를 바탕으로 **몰래 일기를 쓰고** 유저는 다음 날 아침 훔쳐본다.
+**BeCappy**(AI 컴패니언 iOS·Android 앱)의 백엔드. 카피바라 **캐피**와 여러 언어로 대화하고, 장기 기억·일기·루틴·꾸미기를 통해 관계를 이어간다.
 
 - **모듈러 모놀리스**(FastAPI) 1서비스 + **배치 워커**(같은 코드, 프로세스만 분리)
 - 통신은 전부 **HTTP 요청-응답(JSON)** — 스트리밍·WebSocket·폴링 없음. 서버가 먼저 보내는 건 FCM 푸시뿐
@@ -106,8 +106,8 @@ uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 
 
 ### 캐피 자기일기 — 날짜별 지정
 
-임계 미달·미접속 날 나가는 캐피 자기일기(`source=preset`)는 **날짜별로 직접 지정**할 수 있다.
-생성 틱이 그날 `diary_date` 지정본을 우선 쓰고, 없으면 `moly_life_ments`의 랜덤 폴백 풀(`diary_date IS NULL`)로 떨어진다.
+임계 미달·미접속 날 나가는 캐피 자기일기(`source=preset`)는 **날짜별로 직접 지정**한다.
+생성 틱은 그날 `diary_date` 지정본만 사용하며, 지정본이 없으면 그날 캐피 자기일기는 발행하지 않는다.
 
 - `diary_date` = 그 일기가 **담는 날짜**(= `diaries.diary_date`). 예) `2026-07-17` 행 = **7/17 일기 → 7/18 아침 발행**.
 - 지정본은 그날 **04:00 생성 틱 전까지** 들어가 있어야 반영된다(하루이틀 미리 채워두기). 빈 날은 랜덤 풀이 대신 나가 일기는 절대 비지 않는다.
@@ -123,7 +123,7 @@ uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv            # dry-
 uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv --commit   # 실제 반영
 ```
 
-> ⚠️ 최초 1회 마이그레이션 선행 필요: `python db/apply.py db/migrations/20260717_capi_dated_diary.sql --commit` (`moly_life_ments.diary_date` 컬럼 추가). Supabase 대시보드에서 행을 직접 추가해도 동일하게 동작한다.
+> 기존 DB에는 `moly_life_ments.diary_date` 마이그레이션이 적용돼 있어야 한다. 신규 DB는 canonical schema와 `db/migrations/README.md`의 적용 순서를 따른다.
 
 ## 배포 · 웹훅
 
@@ -132,11 +132,13 @@ uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv --commit   # 실�
   웹훅 유입을 일시중단하거나 신버전 전용 라우팅으로 전환한 뒤 배포한다(배포 런북).
 - 공개 웹훅(배포 후 URL을 각 콘솔에 등록): `POST /webhooks/revenuecat`은 대시보드에 설정한 Authorization 값과 서버 secret을 정확히 비교하고, `GET /webhooks/ad-ssv`는 AdMob SSV 서명을 검증한다.
 
-## 상태 (2026-08-14)
+## 저장소 상태 (2026-08-26 확인)
 
 - ✅ API·상주 잡 소비자·15분 배치 워커 운영 중
 - ✅ 대화·기억 구조 운영 전환 완료. 장기 기억은 pgvector와 수명 장부 한 구조만 사용
 - ✅ 에이전트 100% 적용. 공개 도구는 `recall_diaries`, `get_routines` 두 개
 - ✅ 일기 앱 계약은 `/diaries` 세 경로. 상점 v2는 모자·안경 독립 장착 계약으로 유지
+- ✅ iOS·Android 건초팩 상품 ID를 모두 처리하고, Meta 설치 리퍼러 복호화 API를 제공
+- ✅ 저녁 푸시는 날짜·언어별 1회성 공지를 `app_config`로 예약할 수 있음
 - ✅ 로컬·격리 개발 환경에서만 Swagger와 `/dev/*` 수동 테스트 지원
-- 상세 현황은 `docs/DEV_STATUS.md`, 계약은 `docs/API_SPEC.md`, 구조는 `docs/ARCHITECTURE.md`와 `docs/ARCHITECTURE-capi.md`
+- 문서의 역할과 기준 우선순위는 `docs/README.md`에서 확인한다.

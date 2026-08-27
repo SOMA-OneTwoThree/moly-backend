@@ -10,7 +10,7 @@ from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
 from app.schemas.ads import AdSsvResponse, RewardAdSessionResponse
-from app.services import ads, ads_ssv
+from app.services import ads, ads_ssv, fortune_ads
 
 router = APIRouter(tags=["ads"])
 
@@ -41,5 +41,17 @@ async def ad_ssv(
         raise errors.validation("SSV 파라미터가 누락됐어요.")
     if not await ads_ssv.verify(request.url.query, key_id, signature):
         raise errors.ad_verify_failed()
-    result = await ads.grant_from_ssv(session, reward_session_id, transaction_id)
+    if reward_session_id.startswith("fortune:"):
+        result = await fortune_ads.verify_from_ssv(
+            session,
+            custom_data=reward_session_id,
+            transaction_id=transaction_id,
+            signed_user_id=p.get("user_id"),
+            ad_unit=p.get("ad_unit"),
+            reward_item=p.get("reward_item"),
+            reward_amount=p.get("reward_amount"),
+        )
+    else:
+        # 기존 UUID custom_data는 건초 보상 경로로 그대로 전달한다.
+        result = await ads.grant_from_ssv(session, reward_session_id, transaction_id)
     return {"status": "ok", "result": result}

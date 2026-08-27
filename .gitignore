@@ -33,3 +33,6 @@ DEV_STATUS.md
 # 키파일(.p8/.json 등) — README만 커밋
 secrets/*
 !secrets/README.md
+
+# 일일 지표 리포트 산출물 (운영 수치 — 커밋 금지)
+reports/

@@ -39,6 +39,9 @@ erDiagram
     profiles ||--o{ routine_completions : ""
     profiles ||--o{ user_notification_settings : ""
     profiles ||--o{ user_devices : ""
+    profiles ||--o| fortune_profiles : "운세 입력"
+    fortune_profiles ||--o| daily_fortunes : "현재 날짜 snapshot"
+    fortune_profiles ||--o{ fortune_ad_sessions : "운세 공개 광고"
 
     orders ||--o{ order_items : "주문 항목"
     products ||--o{ order_items : ""
@@ -156,7 +159,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `attendance_claimed_at` | timestamptz NULL | 출석 수령 시각 — NOT NULL이면 당일 수령 완료 (US-902) |
 | `routine_reward_claimed_at` | timestamptz NULL | 루틴 2개 완료 보상 수령 시각 (US-904) |
 | `morning_notified_at` | timestamptz NULL | 아침(09:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료, 재발송 차단 |
-| `evening_notified_at` | timestamptz NULL | 저녁(21:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료 |
+| `evening_notified_at` | timestamptz NULL | 저녁(20:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료 |
 
 - 유니크: `(user_id, activity_date)`.
 - 각 도메인의 날짜가 바뀌면 새 행을 사용할 뿐, 별도 리셋 잡은 없다.
@@ -291,6 +294,19 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 - 인덱스: `reward_ad_sessions_user_idx (user_id)`.
 - `user_daily_stats.ad_reward_count`와 이 테이블이 이중 멱등: SSV `ssv_transaction_id` UNIQUE + 카운터 ≤ 5 서버 검증.
 
+### 4.10 오늘의 운세 — `fortune_profiles` / `daily_fortunes` / `fortune_ad_sessions`
+
+- `fortune_profiles`: 사용자당 1행. 생년월일·성별과 실제 변경 때만 증가하는 `revision`을 저장한다.
+- `daily_fortunes`: 사용자당 현재 snapshot 1행. 날짜·시간대·프로필 revision·결과 schema와 계산 의미값,
+  실제 공개 문구, unlock 상태, asset version을 함께 저장한다. 날짜별 이력을 계속 쌓지 않는다.
+- `fortune_ad_sessions`: 운세 공개 전용 AdMob SSV 세션. 사용자별 `client_request_id`와 전역
+  `ssv_transaction_id`가 중복 해제를 막으며 만료 조회는 `(expires_at, session_id)` 인덱스를 쓴다.
+  만료 7일 뒤 worker가 한 번에 최대 500건씩 정리한다.
+- 당일 결과 freshness와 unlock 권한은 분리한다. 프로필이 바뀌어 결과는 무효가 되어도 같은 날 이미 얻은
+  광고·구독 공개 권한은 유지한다.
+- 세 테이블은 FK CASCADE, RLS ON, `anon/authenticated` 전면 권한 회수다.
+- 필드와 제약의 단일 원본은 `app/models/fortune.py`, `db/schema.sql`; 설계 상세는 `DAILY-FORTUNE.md`다.
+
 ---
 
 ## 5. 대화·일기·루틴
@@ -315,7 +331,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `id` | bigint PK (identity) | 위로 스크롤 커서 페이지네이션 키 (US-407) |
 | `user_id` | uuid FK→`profiles` | 채팅방(단일 연속 스레드) 전체를 시간순 조회 |
 | `sender` | enum `message_sender` | `user` / `moly` |
-| `kind` | enum `message_kind` | `normal` / `greeting` — greeting = **커밋된 선발화**(발급 보관 원본 = `greetings` 5.1절). **토큰 한도 미차감**(US-406), 토큰 소진 상태에서도 발급 가능 |
+| `kind` | text + CHECK | `normal` / `greeting` / `fortune_context_root` / `fortune_derived`. `greeting`은 커밋된 선발화, `fortune_*`는 운세에서 시작해 이어지는 대화 구간이다 |
 | `content` | text | 길이 상한은 API 검증 (비용 통제) |
 | `input_tokens` / `output_tokens` | int NULL | LLM 사용량 — `moly` 응답에 기록, `user` 메시지는 NULL. `kind='normal'`인 것만 `user_daily_stats.tokens_used`에 합산 |
 | `cache_read_tokens` | int NULL | 프롬프트 캐시 히트 토큰 — 캐시 텔레메트리(실원가·히트율 분석용) |
@@ -326,6 +342,8 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `created_at` | timestamptz | |
 
 - 인덱스: `(user_id, id DESC)` + `(user_id, activity_date)` — 일기→해당 날짜 점프(`anchor_date` 조회, API_SPEC 3장)용.
+- 운세에서 시작한 턴과 이어지는 두 유저 턴은 `fortune_*`로 표시한다. 원문 대화 이력에는 남지만 장기 기억,
+  관계 집계, 일기 생성과 checkpoint의 근거에서는 제외한다. 현재 위기 발화는 항상 `normal`이 우선이다.
 - 보관 기간·조회 범위 정책 TBD — 스키마는 영구 보존 전제, 정책 확정 시 파티셔닝/아카이빙 검토.
 - 캐피의 일기 LLM 생성 비용은 유저 한도와 무관 → messages와 분리된 배치에서 처리 (5.3).
 
@@ -342,7 +360,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `activity_date` / `display_date` | date NULL / date | daily 귀속 04:00 날짜와 화면 표시 날짜. welcome은 activity_date가 NULL |
 | `author` / `primary_subject` / `about_tags` | text / text / text[] | 저자는 항상 캐피. 누구에 관한 기록인지 생성 시 확정 |
 | `occurred_at` / `occurred_timezone` | timestamptz / text | 실제 사건 시각과 당시 timezone snapshot |
-| `source` | enum `diary_source` | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars` — 대화 기반 생성, LLM self-check 실패 시 preset 폴백) / `preset`(기준 미달·미접속 — 멘트 풀) / `welcome`(현행: 목록 최초 조회 때 보정 생성되는 첫 만남 일기. 목표는 일일 슬롯과 분리된 관계 프롤로그 — `ARCHITECTURE-capi.md` 2.4절) |
+| `source` | enum `diary_source` | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars`인 대화 기반 생성) / `preset`(기준 미달·미접속이고 해당 날짜 지정본이 있을 때) / `welcome`(첫 성공 대화와 같은 트랜잭션에서 생성되는 관계 프롤로그) |
 | `preset_ment_id` | uuid NULL, FK→`moly_life_ments` | `source='preset'`일 때만 |
 | `content` | text | 생성 결과 스냅샷 (preset이어도 본문 복사 저장 — 멘트 풀 수정이 과거 일기를 바꾸지 않게) |
 | `weather` | enum `diary_weather` | 마음 날씨 스탬프 `sunny` `cloudy` `rainy` `windy` — llm은 생성 결과, preset은 멘트에 지정된 값 복사 |
@@ -354,15 +372,16 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 - 첫 성공 Phase B가 `relationship_started_*`와 welcome을 user/reply 메시지와 원자 삽입한다. 목록 GET은 쓰지 않는다.
 - daily 미발행은 `diary_generation_results(user_id,target_date,status=no_entry)`가 소유하며 빈 diary/tombstone을 만들지 않는다.
 - **열람은 등급 무관 항상 무료(확정)** — 접근 제어 없음. 구독 가치 = 개인(`llm`) 일기 "발행"이지 열람이 아님.
-- preset 선택(5.4절): 그날 `diary_date` 지정본 우선 → 없으면 `diary_date IS NULL` 풀에서 랜덤 → 둘 다 없으면 안전 기본 문구.
+- preset 선택(5.4절): 그날 `diary_date` 지정본만 사용한다. 없으면 `diary_generation_results.status='no_entry'`를 남기고 발행하지 않는다.
 
 ### 5.4 `moly_life_ments` — '캐피의 삶' 멘트 풀 / 날짜 지정본
 
-임계 미달·미접속 날의 일기 소스(전원 매일 발행이므로 상시 사용). `id`, `content`, `weather`(멘트에 어울리는 마음 날씨 스탬프), `is_active`, `diary_date` date NULL, `created_at`.
+임계 미달·미접속 날 중 운영자가 날짜별 캐피 자기일기를 준비한 날의 소스다. `id`, `content`,
+`weather`(멘트에 어울리는 마음 날씨 스탬프), `is_active`, `diary_date` date NULL, `created_at`.
 
-- **`diary_date` 있는 행 = 그 날짜 지정본**(직접 작성) — 생성 틱이 해당 `target_date`에 우선 선택. 부분 유니크 인덱스 `moly_life_ments_diary_date_uq (diary_date) WHERE diary_date IS NOT NULL`로 날짜당 1건(편집은 in-place).
-- **`diary_date` NULL 행 = 랜덤 폴백 풀** — 지정본 없는 날에만 랜덤 선택. (기존 시드 10건이 여기 해당)
-- 날짜 지정본 입력 = `db/capi_diaries.csv` + `scripts/seed_capi_diaries.py`(멱등 업서트, content 빈 행 스킵). 랜덤 풀 = `db/seed_moly_life_ments.sql`. (문구·개수 TBD — 운영 등록)
+- **`diary_date` 있는 행 = 그 날짜 지정본**(직접 작성) — 생성 틱이 같은 `target_date`인 행만 선택한다. 부분 유니크 인덱스 `moly_life_ments_diary_date_uq (diary_date) WHERE diary_date IS NOT NULL`로 날짜당 1건(편집은 in-place).
+- **`diary_date` NULL 행은 현재 생성 경로에서 사용하지 않는다.** 과거 랜덤 풀 데이터가 남아 있어도 발행 대상으로 선택되지 않는다.
+- 날짜 지정본 입력 = `db/capi_diaries.csv` + `scripts/seed_capi_diaries.py`(멱등 업서트, content 빈 행 스킵).
 
 > 로딩 멘트 6종(US-402)은 확정 문구라 클라이언트 상수로 처리 — 테이블 없음.
 
@@ -448,7 +467,8 @@ free       : 그 외
 
 ### 6.4 `user_devices` — 푸시 토큰
 
-아침 09:00·저녁 21:00 알림 = **서버 APNs 푸시 확정**(ARCHITECTURE 3.3절) — 발송 대상 토큰 저장.
+아침 09:00·저녁 20:00 알림은 서버가 FCM HTTP v1으로 발송한다. iOS는 Firebase가 APNs로
+릴레이하고 Android는 FCM으로 직접 전달한다. 이 테이블에는 발송 대상 등록 토큰을 저장한다.
 
 - `id`, `user_id`, `platform`(`ios|android`), `push_token` UNIQUE, `last_active_at`, `created_at`.
 - 로그아웃 시 해당 `push_token` 행 삭제(API `POST /auth/logout`이 토큰을 받음).
@@ -827,6 +847,9 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
   지우지도 않는다. 다시 돌려야 하면 `dedup_key='replay:{원래 작업 id}:{작업 식별자}'`인 새 행을
   만들고 `replay_of`로 잇는다. 부분 UNIQUE `(replay_of, replay_operation_id)`가 같은 재실행이
   두 번 만들어지는 것을 막는다.
+- 성공·취소는 `payload_expires_at`을 24시간 뒤로, 원인 조사에 필요한 `dead`는 7일 뒤로 설정한다.
+  consumer의 retention scrub은 한 번에 테이블별 최대 500건의 `payload`와 `result_detail`만 비우고
+  상태·시각·오류 코드·재실행 계보는 남긴다.
 - 인덱스: `(queue, priority, available_at, created_at) WHERE state='ready'` ·
   `(queue, lease_until) WHERE state='running'` · `(state, queue)`(`/health` 집계용) ·
   `(replay_of) WHERE replay_of IS NOT NULL`.
@@ -886,7 +909,7 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | `messages` `greetings` `diaries` | 본인 행 | ❌ (LLM 프록시·배치가 기록 — 토큰 집계·한도 검증 일원화) |
 | `routines` `routine_completions` `user_notification_settings` `user_devices` | 본인 행 | ❌ (완료 2개 = 건초 보상 조건 — `activity_date` 위조 차단. CRUD 계약은 API_SPEC 8장) |
 | `products` `moly_life_ments` `app_config` | 전체 읽기(active만) | ❌ 운영 전용 |
-| `reward_ad_sessions` `idempotency_keys` `feedback` `diary_gen_claims` `revenuecat_events` | ❌ | ❌ (서버 내부 전용) |
+| `reward_ad_sessions` `fortune_profiles` `daily_fortunes` `fortune_ad_sessions` `idempotency_keys` `feedback` `diary_gen_claims` `revenuecat_events` | ❌ | ❌ (서버 내부 전용) |
 | `memory_pipeline_states` `mem0_ingest_candidates`(+`_sources`) `mem0_memory_registry` `mem0_memory_sources` `user_interaction_contracts`(+`_items`) `user_relationship_states` `relationship_events` `relationship_profile_renders` | ❌ | ❌ (7장) |
 | `async_jobs` `job_attempts` `ai_price_catalog` `ai_usage_ledger` `provider_backoffs` | ❌ | ❌ (워커·계측 전용) |
 

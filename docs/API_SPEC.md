@@ -546,7 +546,7 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 
 ## 11. 오늘의 운세
 
-> 개발 서버 전용 seed이며 기본 플래그는 OFF다. 제품 규칙·계산·문구·DB·프론트 상태 머신의 단일 설명은
+> 개발 서버 전용 seed이며 기본 플래그는 OFF다. 제품 규칙·계산·문구·DB·API 상태 머신의 단일 설명은
 > `DAILY-FORTUNE.md`, 정확한 필드 계약은 OpenAPI를 따른다.
 
 - 최초 진입은 `GET /daily-fortune/status`의 `profile_required`를 확인하고 `PUT /fortune-profile`에
@@ -557,10 +557,11 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 - 무료 사용자는 `POST /daily-fortune/ad-sessions`의 값을 AdMob에 넣고, 검증 완료 뒤 status를 다시 조회한다.
 - `state`(`profile_required|unseen|locked|revealed`)와 `access`(`included|ad_required|unlocked_today`)를
   따로 분기한다.
-- 공개 결과는 `overall`, `categories`, `lucky_color`의 중첩 구조이며 `schema_version=3`, `locale=ko`다.
+- 공개 결과는 `overall`, `categories`, `lucky_color`의 중첩 구조이며 `schema_version=3`이다.
+  `X-App-Locale: ko|en|ja`에 따라 실제 반환 언어가 `result.locale`에 들어간다.
 - 프로필 수정 응답의 `result_invalidated`, `unlock_preserved`를 사용한다. 같은 날 광고 해제 권한은 유지된다.
 - 광고 중 프로필이 바뀌어 SSV 후 `unseen + unlocked_today`가 오면 광고 없이 reveal을 다시 호출한다.
-- `locked` 상태에는 점수·문구·버전이 없다. 프론트가 이전 공개 결과를 섞어 보여주면 안 된다.
+- `locked` 상태에는 점수·문구·버전이 없다. 이전 공개 결과와 섞어 사용하면 안 된다.
 
 ---
 

@@ -1,0 +1,1102 @@
+{
+  "schema": "fortune-copy-v2",
+  "copy_version": "fortune-copy.v2-seed.4",
+  "content_status": "development_seed",
+  "locales": [
+    "en"
+  ],
+  "overall": {
+    "overall.d00.start.default": {
+      "headline": "Don’t launch anything new today; put your attention on getting what’s already underway safely across the finish line.",
+      "flow": [
+        "If you rush from the start, even the preparation you’ve done may go unused.",
+        "For anything that can’t wait, walk back through the order of steps and make sure you have every piece you need.",
+        "When a decision can sit for another day, give it that room."
+      ],
+      "do": "Rebuild the prep sequence",
+      "pause": "Starting without a plan"
+    },
+    "overall.d00.advance.default": {
+      "headline": "Pushing harder is likely to make the tangle worse, so step back instead of forcing progress.",
+      "flow": [
+        "It may feel especially frustrating when your effort isn’t getting you anywhere.",
+        "Rather than repeating the same stalled approach, pinpoint where things first went off course.",
+        "Any timing that isn’t urgent can be moved without causing real damage."
+      ],
+      "do": "Identify the snag",
+      "pause": "Forcing the same approach"
+    },
+    "overall.d00.focus.default": {
+      "headline": "Your attention may be scattered today, so give important matters more time and less pressure.",
+      "flow": [
+        "It’s easy to lose your place or make mistakes you wouldn’t normally make.",
+        "Divide what needs doing into short sections, then mark each piece off as you complete it.",
+        "Trying to hold too many things at once will leave every one of them unfinished."
+      ],
+      "do": "Break it into three steps",
+      "pause": "Juggling everything at once"
+    },
+    "overall.d00.coordinate.default": {
+      "headline": "Mixed signals are easy to create today, so don’t rush important conversations to a conclusion.",
+      "flow": [
+        "Even a familiar explanation can land very differently than you intended.",
+        "Ask what the other person heard before you move on.",
+        "Once emotions start driving the exchange, there’s no need to settle it on the spot."
+      ],
+      "do": "Confirm what was understood",
+      "pause": "Pressing for an answer"
+    },
+    "overall.d00.change.default": {
+      "headline": "Stick with what’s holding up rather than making a major change just to escape a momentary annoyance.",
+      "flow": [
+        "Trying to avoid what feels inconvenient now could create a bigger hassle later.",
+        "Think through what you’ll have to handle after the change, not just what you want to alter.",
+        "If something truly needs adjusting, test it on a small scale first."
+      ],
+      "do": "List the tradeoffs first",
+      "pause": "Changing course on impulse"
+    },
+    "overall.d00.organize.default": {
+      "headline": "Resist adding to the pile today; an old unfinished matter deserves your attention first.",
+      "flow": [
+        "Seeing several loose ends at once can make it hard to know where to begin.",
+        "Choose the item that’s been waiting longest and take it only as far as you can realistically finish.",
+        "The goal isn’t perfection right now—it’s keeping the backlog from growing."
+      ],
+      "do": "Close the oldest loose end",
+      "pause": "Adding another new task"
+    },
+    "overall.d00.recover.default": {
+      "headline": "Scale back instead of trying to squeeze out more; clearing some of the weight matters most today.",
+      "flow": [
+        "A tightly packed plan can drain your margin faster than you expect.",
+        "Keep only the nonnegotiables and move everything else to a later spot.",
+        "Unclaimed time isn’t wasted time—it gives you a chance to reset."
+      ],
+      "do": "Remove one commitment",
+      "pause": "Filling every open hour"
+    },
+    "overall.d00.balance.default": {
+      "headline": "Leaning too far in one direction could make you miss what matters elsewhere, so keep your choices measured.",
+      "flow": [
+        "Chasing only the most urgent item may leave the truly important one untouched.",
+        "Separate what must happen now from what can wait until later.",
+        "You don’t have to carry every request; take on only what you can reasonably manage."
+      ],
+      "do": "Sort today’s priorities",
+      "pause": "Taking on every request"
+    },
+    "overall.d10.start.default": {
+      "headline": "A rushed start could create more pressure than progress, so get the basics in place first.",
+      "flow": [
+        "What looks simple at first may reveal a few missing pieces once you begin.",
+        "List the people, timing, and steps involved, and the gaps will be easier to spot.",
+        "If you’re not sold yet, choosing a start date is enough for today."
+      ],
+      "do": "List three essentials",
+      "pause": "Launching without certainty"
+    },
+    "overall.d10.advance.default": {
+      "headline": "The pace may be frustratingly slow today, but don’t abandon what’s already underway.",
+      "flow": [
+        "You might feel like the effort isn’t paying off when progress comes in small increments.",
+        "Scale back the original goal if needed, then keep going until you reach a realistic stopping point.",
+        "Trying to match someone else’s pace could make you overlook an important detail."
+      ],
+      "do": "Set a finish line",
+      "pause": "Racing someone else"
+    },
+    "overall.d10.focus.default": {
+      "headline": "Your attention may wander quickly, so give one priority the room to hold your focus.",
+      "flow": [
+        "Even minor interruptions can break your train of thought and make restarting take longer.",
+        "Clear your immediate space and commit to one short stretch of uninterrupted effort.",
+        "A brief, contained task will serve you better than forcing yourself to stay locked in for hours."
+      ],
+      "do": "Clear nearby distractions",
+      "pause": "Pushing for marathon focus"
+    },
+    "overall.d10.coordinate.default": {
+      "headline": "Small comments can land the wrong way today, so choose your words with extra care.",
+      "flow": [
+        "Something said casually could linger longer than you intended.",
+        "For anything that matters, be direct and keep the message clear instead of hinting around it.",
+        "If a remark stings, ask what was meant before turning it into a confrontation."
+      ],
+      "do": "Draft the key point",
+      "pause": "Confronting while upset"
+    },
+    "overall.d10.change.default": {
+      "headline": "Stick with what’s familiar until there’s a clear reason to make a change.",
+      "flow": [
+        "A new approach may look appealing without actually fitting the situation in front of you.",
+        "Separate what’s irritating right now from what truly needs a lasting fix.",
+        "Changing course because everyone else seems excited about it could leave you second-guessing yourself."
+      ],
+      "do": "Sort short-term issues",
+      "pause": "Following the crowd"
+    },
+    "overall.d10.organize.default": {
+      "headline": "Don’t try to clear every loose end at once; start with the most visible small task.",
+      "flow": [
+        "A long list can feel exhausting before you’ve even made a move.",
+        "Once one manageable item is done, the next place to put your attention should become clearer.",
+        "Keep your system steady, since changing the rules midway can create unnecessary redo work."
+      ],
+      "do": "Finish one small task",
+      "pause": "Switching systems midway"
+    },
+    "overall.d10.recover.default": {
+      "headline": "There’s not much extra room in the day, so keep plans and commitments lighter than usual.",
+      "flow": [
+        "Expecting yourself to handle the usual volume could make everything feel more demanding.",
+        "You don’t need to answer a nonurgent request the moment it arrives.",
+        "What helps most now is a little breathing room, not a bigger push."
+      ],
+      "do": "Delay nonurgent replies",
+      "pause": "Overloading your schedule"
+    },
+    "overall.d10.balance.default": {
+      "headline": "Competing priorities could pull you in different directions, so decide what comes first.",
+      "flow": [
+        "Going only where the mood takes you may leave a key responsibility waiting until too late.",
+        "Choose two things that need to be wrapped up today and keep them front and center.",
+        "Taking on every last-minute favor could erase the space you set aside for yourself."
+      ],
+      "do": "Pick two priorities",
+      "pause": "Saying yes to everything"
+    },
+    "overall.d20.start.default": {
+      "headline": "You can get moving, but an overlooked detail could trip up the next step.",
+      "flow": [
+        "Something missing from the original plan may send you back for a revision midway through.",
+        "Before you begin, make sure the help and time you need are actually available.",
+        "Try a limited version first, then widen the scope only if it holds up."
+      ],
+      "do": "Test the smaller version first",
+      "pause": "Going big immediately"
+    },
+    "overall.d20.advance.default": {
+      "headline": "Progress may drag today, yet sticking to the sequence will keep things from going sideways.",
+      "flow": [
+        "When the payoff feels delayed, you may be tempted to abandon your current path for a new one.",
+        "Return to the approach that has already produced a solid result.",
+        "Skipping a step now could leave you circling back to the same spot later."
+      ],
+      "do": "Reuse what already worked",
+      "pause": "Skipping the middle steps"
+    },
+    "overall.d20.focus.default": {
+      "headline": "A minor miss can linger, so don't wave through anything you haven't verified.",
+      "flow": [
+        "Familiar territory can make you careless about the detail that matters most.",
+        "Set completed items aside briefly, then give them a fresh look.",
+        "Getting it right matters more than wrapping it up quickly today."
+      ],
+      "do": "Review finished details once more",
+      "pause": "Assuming familiar means flawless"
+    },
+    "overall.d20.coordinate.default": {
+      "headline": "You're aiming for the same outcome, but the way it's said can create avoidable distance.",
+      "flow": [
+        "What seems obvious to you may land as brand-new information for someone else.",
+        "Find out what the other person already knows before building on the conversation.",
+        "Instead of deciding who's right, make sure you're both picturing the same finish line."
+      ],
+      "do": "Clarify the shared starting point",
+      "pause": "Arguing about who's right"
+    },
+    "overall.d20.change.default": {
+      "headline": "A sudden pivot is likely to leave you second-guessing yourself, so give the decision room.",
+      "flow": [
+        "A choice made just to escape today's frustration could create a bigger hassle tomorrow.",
+        "Put your reasons for changing course beside what would actually be different afterward.",
+        "If nothing requires an answer now, let the matter sit for another day."
+      ],
+      "do": "List the reasons to change",
+      "pause": "Pivoting out of frustration"
+    },
+    "overall.d20.organize.default": {
+      "headline": "The more you sort through, the more loose ends may appear—don't call it done too soon.",
+      "flow": [
+        "A clean surface can hide pieces that still haven't been accounted for.",
+        "At the final pass, line up names, order, and any details you promised to include.",
+        "Set aside anything you're unsure about rather than forcing a permanent call today."
+      ],
+      "do": "Match the final details",
+      "pause": "Tossing uncertain items"
+    },
+    "overall.d20.recover.default": {
+      "headline": "The day may feel heavier than usual, so reserve your attention for what truly needs it.",
+      "flow": [
+        "Trying to meet every outside expectation could make you lose track of your own priorities.",
+        "For anything that can wait, give people a heads-up and move it to another day.",
+        "Hold off on adding fresh commitments until there's more room in your day."
+      ],
+      "do": "Give notice before postponing",
+      "pause": "Accepting new commitments quickly"
+    },
+    "overall.d20.balance.default": {
+      "headline": "One small choice can throw off the whole day, so honor the order you set at the start.",
+      "flow": [
+        "Choosing only what feels best in the moment may leave more to handle later.",
+        "Before deciding, name one thing you'll gain and one thing you'll have to let go.",
+        "Trying to keep both options alive could mean neither gets the attention it deserves."
+      ],
+      "do": "Name each trade-off",
+      "pause": "Holding onto both options"
+    },
+    "overall.d30.start.default": {
+      "headline": "If you're starting something new, give the setup more time than you think it needs.",
+      "flow": [
+        "The real conditions may look a little different once you get into the details.",
+        "Before jumping in, check the part that gives you the most pause.",
+        "Keeping day one modest will make it easier to stay with it."
+      ],
+      "do": "Check the biggest concern first",
+      "pause": "Taking on too much day one"
+    },
+    "overall.d30.advance.default": {
+      "headline": "A few delays won't throw you off if you resist the urge to rush.",
+      "flow": [
+        "Progress may move more slowly than your patience would like.",
+        "Stick with the next manageable step, and picking it back up later won't feel so daunting.",
+        "Constantly rewriting the plan for a faster payoff could leave you more scattered than before."
+      ],
+      "do": "Keep the next step manageable",
+      "pause": "Reworking plans for quick results"
+    },
+    "overall.d30.focus.default": {
+      "headline": "Your attention may wander today, so protect time for what matters most.",
+      "flow": [
+        "Small distractions could seem more urgent than the item already on your list.",
+        "Set aside a short stretch without interruptions and use it to finish one thing.",
+        "A break in concentration doesn't mean you need to start from square one."
+      ],
+      "do": "Block off quiet time",
+      "pause": "Restarting after every distraction"
+    },
+    "overall.d30.coordinate.default": {
+      "headline": "Minor differences in perspective can feel bigger than they are, but a calm exchange can clear the air.",
+      "flow": [
+        "People may be reacting to the same point from very different priorities.",
+        "Hear what the other person needs before laying out your own position.",
+        "You don't have to settle every detail in a single conversation."
+      ],
+      "do": "Listen for their priority",
+      "pause": "Forcing an immediate conclusion"
+    },
+    "overall.d30.change.default": {
+      "headline": "A change may be overdue, but tackle one piece at a time.",
+      "flow": [
+        "Adjusting several things at once can make it hard to tell what actually helped.",
+        "Fix the most frustrating spot first, then notice what shifts.",
+        "Don't ditch a new approach just because it feels unfamiliar at the start."
+      ],
+      "do": "Improve one trouble spot",
+      "pause": "Overhauling the whole setup"
+    },
+    "overall.d30.organize.default": {
+      "headline": "Even if getting organized takes longer than expected, finish what you've started before moving on.",
+      "flow": [
+        "Another area may catch your eye before the current one is wrapped up.",
+        "Complete one section or sequence, then shift your attention elsewhere.",
+        "A system that's easy to use later matters more than one that simply looks polished."
+      ],
+      "do": "Finish one section first",
+      "pause": "Leaving tasks half-done"
+    },
+    "overall.d30.recover.default": {
+      "headline": "When your mind feels crowded, a simpler schedule will make the day easier to handle.",
+      "flow": [
+        "Even small choices could take longer while so much is competing for your attention.",
+        "Decide what you can ahead of time and give yourself fewer options.",
+        "Let open space stay open instead of treating it like a problem to solve."
+      ],
+      "do": "Cut down today's choices",
+      "pause": "Packing every open hour"
+    },
+    "overall.d30.balance.default": {
+      "headline": "You may not be able to give every area equal attention today, so ease up on the pressure.",
+      "flow": [
+        "Trying to do everything well can delay the one thing that matters most.",
+        "Choose one standard you want to protect before the day gets moving.",
+        "Some loose ends are okay when your priorities stay intact."
+      ],
+      "do": "Choose one nonnegotiable",
+      "pause": "Reordering priorities out of guilt"
+    },
+    "overall.d40.start.default": {
+      "headline": "It’s fine to begin today, as long as you keep the first move small.",
+      "flow": [
+        "You may get a question you didn’t see coming, even if you’ve done your prep.",
+        "Treat the opening as a test run instead of expecting a finished version right away.",
+        "Starting with a few loose ends is workable when you leave room to refine things later."
+      ],
+      "do": "Start with a small test",
+      "pause": "Expecting polish immediately"
+    },
+    "overall.d40.advance.default": {
+      "headline": "You can keep making progress today, even if the payoff isn’t obvious yet.",
+      "flow": [
+        "A lack of visible results could make it tempting to lose steam halfway through.",
+        "Notice one thing that’s better than yesterday, and the next step will come into focus.",
+        "Before pushing ahead, take a moment to make sure you’re still headed where you meant to go."
+      ],
+      "do": "Spot one improvement",
+      "pause": "Quitting over small results"
+    },
+    "overall.d40.focus.default": {
+      "headline": "Getting settled may take a minute, but you can find a solid groove once you do.",
+      "flow": [
+        "Your mind may wander before you’re ready to dive in.",
+        "Touch the easiest piece first, and the rest will feel more manageable.",
+        "When momentum picks up, don’t let speed talk you into skipping the details."
+      ],
+      "do": "Tackle the easiest piece",
+      "pause": "Skipping the details"
+    },
+    "overall.d40.coordinate.default": {
+      "headline": "A slow start doesn’t mean you can’t get on the same page today.",
+      "flow": [
+        "It’ll be easy to read too much into someone’s first reaction.",
+        "Ask what’s behind each point of view before deciding where things stand.",
+        "There’s less friction when you don’t rush everyone toward immediate agreement."
+      ],
+      "do": "Ask what’s behind it",
+      "pause": "Reading too much into reactions"
+    },
+    "overall.d40.change.default": {
+      "headline": "A surprise shift is manageable when you hold on to what matters most.",
+      "flow": [
+        "An unexpected detour could make it hard to follow your original order.",
+        "Separate the parts that can bend from the parts that need to stay put.",
+        "Give sudden invitations a beat before responding, then look over your plans."
+      ],
+      "do": "Sort flexible from fixed",
+      "pause": "Saying yes on the spot"
+    },
+    "overall.d40.organize.default": {
+      "headline": "You can wrap things up neatly today if you give the final details their due.",
+      "flow": [
+        "Once something looks nearly finished, it’s easy to coast through the last stretch.",
+        "Compare the result with the standard you set at the beginning.",
+        "The fewer loose ends remain, the more important it is not to rush them."
+      ],
+      "do": "Match result to your standard",
+      "pause": "Coasting through the finish"
+    },
+    "overall.d40.recover.default": {
+      "headline": "Today favors a careful once-over over trying to move at top speed.",
+      "flow": [
+        "Feeling rushed can make you miss things you’d normally catch without effort.",
+        "Leave breathing room in your day and finish the most necessary item first.",
+        "Taking a little longer now can spare you from having to revisit it later."
+      ],
+      "do": "Finish one overdue task",
+      "pause": "Packing every minute"
+    },
+    "overall.d40.balance.default": {
+      "headline": "Keeping your expectations in check helps you protect what matters today.",
+      "flow": [
+        "Trying to tend to everything at once could delay the item that needs your attention first.",
+        "Decide early where your time and focus are best spent.",
+        "If something new pops up later, don’t reshuffle your priorities too quickly."
+      ],
+      "do": "Set morning priorities",
+      "pause": "Reordering for every interruption"
+    },
+    "overall.d50.start.default": {
+      "headline": "If you’ve been waiting for a low-pressure moment to begin, this is it.",
+      "flow": [
+        "Once you get your hands on it, the task will likely look more straightforward than it did from a distance.",
+        "Start with the easiest piece, and the next move should reveal itself without much fuss.",
+        "Keep the first target reasonable so you can stay comfortably in motion."
+      ],
+      "do": "Start with the easy part",
+      "pause": "Setting an oversized first goal"
+    },
+    "overall.d50.advance.default": {
+      "headline": "Nothing dramatic has to happen for you to make solid headway today.",
+      "flow": [
+        "Stick with a familiar sequence and you should reach the point you had in mind.",
+        "Clear the items closest to done first; that’ll make the rest of the day feel lighter.",
+        "Rather than chasing a fresh win, put your attention behind what’s already underway."
+      ],
+      "do": "Finish the closest task",
+      "pause": "Chasing a new goal midstream"
+    },
+    "overall.d50.focus.default": {
+      "headline": "Choose one clear priority, and settling in will be easier than expected.",
+      "flow": [
+        "Too many options can scatter your attention, but momentum should come once you’ve started.",
+        "Write down the one thing you want off your plate today and keep it where you’ll see it.",
+        "When another idea pops up, save it for later instead of switching gears on the spot."
+      ],
+      "do": "Post your top priority",
+      "pause": "Jumping at every new idea"
+    },
+    "overall.d50.coordinate.default": {
+      "headline": "A straightforward conversation can point you toward the answer today.",
+      "flow": [
+        "Something you’ve been turning over alone may make more sense once you say it out loud.",
+        "Before making a call, get perspective from someone whose judgment you trust.",
+        "Don’t assume you know where someone stands; ask the question that’s on your mind."
+      ],
+      "do": "Talk it through honestly",
+      "pause": "Reading minds before asking"
+    },
+    "overall.d50.change.default": {
+      "headline": "One small adjustment could make your day run more smoothly.",
+      "flow": [
+        "You don’t need to toss out the whole routine to notice a meaningful difference.",
+        "Look for the step that regularly slows you down and try a simpler approach.",
+        "Choose changes because they genuinely help, not just because they’re new."
+      ],
+      "do": "Tweak one sticking point",
+      "pause": "Choosing novelty for its own sake"
+    },
+    "overall.d50.organize.default": {
+      "headline": "Putting a few loose ends in place can bring the day into better order.",
+      "flow": [
+        "What looks tangled at first becomes easier to handle when you lay it out step by step.",
+        "Separate what needs attention today from what can be filed away for later.",
+        "Just don’t turn a quick reset into an all-day overhaul."
+      ],
+      "do": "Sort today’s loose ends",
+      "pause": "Letting the cleanup sprawl"
+    },
+    "overall.d50.recover.default": {
+      "headline": "A calmer pace will still carry you where you need to go.",
+      "flow": [
+        "There’s no need to sprint from the start; you can get through the essentials in good time.",
+        "Leave small pockets of space between tasks, and your next choice will come into clearer view.",
+        "You don’t have to pack every open minute with a plan."
+      ],
+      "do": "Leave room between tasks",
+      "pause": "Scheduling every spare minute"
+    },
+    "overall.d50.balance.default": {
+      "headline": "There’s room today for both the necessary stuff and what you’ve been looking forward to.",
+      "flow": [
+        "Give each part of the day its share of attention, and the important pieces won’t get lost.",
+        "Decide what needs to happen first, then set aside time for what you want to enjoy.",
+        "Don’t keep pushing your own plans back to accommodate every outside request."
+      ],
+      "do": "Mark your nonnegotiables first",
+      "pause": "Putting your plans last"
+    },
+    "overall.d60.start.default": {
+      "headline": "A delayed beginning feels easier to step into today.",
+      "flow": [
+        "What looked intimidating may become surprisingly straightforward once you get your hands on it.",
+        "Don’t wait for perfect conditions; use what’s already available and take the first step.",
+        "There’s plenty of room to adjust as you go, so don’t judge the whole effort by its first version."
+      ],
+      "do": "Open the first door",
+      "pause": "Overthinking the first result"
+    },
+    "overall.d60.advance.default": {
+      "headline": "Your momentum is back, and you can make solid progress toward the point you had in mind.",
+      "flow": [
+        "A useful answer may appear around the part that’s been holding you up, making the next move clearer.",
+        "You’ve already built more than you may realize, so lean into what you know how to do well.",
+        "Keep a steady pace instead of rushing just because the finish line is finally in sight."
+      ],
+      "do": "Try a fresh workaround",
+      "pause": "Rushing the final stretch"
+    },
+    "overall.d60.focus.default": {
+      "headline": "The day has a clear direction, making it easier to get through what matters.",
+      "flow": [
+        "Once you settle in, distractions are less likely to pull you away from your train of thought.",
+        "Put the one item that matters most at the top of the list and stay with it.",
+        "You can wrap up feeling satisfied as long as you don’t keep adding new goals midway through."
+      ],
+      "do": "Stick with the priority",
+      "pause": "Adding more to the list"
+    },
+    "overall.d60.coordinate.default": {
+      "headline": "Conversations flow more naturally today, making it easier to get on the same page.",
+      "flow": [
+        "Even a topic that felt hard to raise could receive a warmer response than expected.",
+        "If you’ve been stuck making a decision alone, bring someone else into the discussion.",
+        "A relaxed tone is great, but make sure any important agreement means the same thing to everyone involved."
+      ],
+      "do": "Bring up the hard topic",
+      "pause": "Leaving details unclear"
+    },
+    "overall.d60.change.default": {
+      "headline": "A small change in approach could reveal a much easier way forward.",
+      "flow": [
+        "This is a good time to fix an inconvenience you’ve been tolerating simply because it’s familiar.",
+        "Shorten a drawn-out sequence or switch up your setting to see what a minor adjustment can do.",
+        "One good result doesn’t mean everything needs an overhaul, so give the new approach time to prove itself."
+      ],
+      "do": "Trim a slow routine",
+      "pause": "Changing everything at once"
+    },
+    "overall.d60.organize.default": {
+      "headline": "The right order is easier to see, so you can finally clear out something that’s been lingering.",
+      "flow": [
+        "You’ll likely know where to begin sooner than expected, which makes mapping out the rest feel manageable.",
+        "Choose one long-postponed item and bring it to a close before the day is over.",
+        "It may be tempting to keep going once things look tidy, but honor the limits you set at the start."
+      ],
+      "do": "Finish one old task",
+      "pause": "Expanding the cleanup"
+    },
+    "overall.d60.recover.default": {
+      "headline": "A lighter mood lets you move through the day at a pace that feels like your own.",
+      "flow": [
+        "You don’t need to force a quick answer; the pieces can come together in their own time.",
+        "Use the extra breathing room to revisit one thought that’s been sitting in the back of your mind.",
+        "To keep that sense of ease around, resist packing your calendar with new commitments."
+      ],
+      "do": "Sort through lingering thoughts",
+      "pause": "Overbooking your free time"
+    },
+    "overall.d60.balance.default": {
+      "headline": "You can see what deserves your attention first and make the most of the day.",
+      "flow": [
+        "There’s enough room to handle what matters without skipping the parts you were looking forward to.",
+        "Giving the morning and afternoon separate assignments can help the day stay on track.",
+        "Even if your plan is clicking, you don’t have to take on every surprise that lands in front of you."
+      ],
+      "do": "Split up your day",
+      "pause": "Taking on every extra"
+    },
+    "overall.d70.start.default": {
+      "headline": "If something’s been sitting on the fence, today gives you a solid reason to begin.",
+      "flow": [
+        "Put what you’ve prepared in front of the right audience, and someone is likely to take notice.",
+        "You don’t need every detail locked down before you make your first move.",
+        "Let the encouraging response motivate you, but keep your original aim in view."
+      ],
+      "do": "Share what you’ve prepared",
+      "pause": "Losing sight of your goal"
+    },
+    "overall.d70.advance.default": {
+      "headline": "Your recent efforts are gaining traction, making this a good day to move forward.",
+      "flow": [
+        "A welcome shift around something you’ve tended carefully can give your confidence a lift.",
+        "For a plan that stalled out, reach back out to the person who can help restart it.",
+        "Even when things are clicking, the final details and order of events still matter."
+      ],
+      "do": "Restart a stalled plan",
+      "pause": "Skipping the final details"
+    },
+    "overall.d70.focus.default": {
+      "headline": "Give a difficult question your full attention, and the answer can come into focus.",
+      "flow": [
+        "You’ve got the patience to stay with a tangled issue you’d normally put off.",
+        "Look straight at the trickiest piece instead of circling around it.",
+        "One success doesn’t mean you need to take on every similar challenge at once."
+      ],
+      "do": "Tackle the hardest piece",
+      "pause": "Taking on too much"
+    },
+    "overall.d70.coordinate.default": {
+      "headline": "Open conversation and shared effort can lead you to a better answer today.",
+      "flow": [
+        "When you speak plainly first, others may feel more comfortable sharing what’s really on their mind.",
+        "Ask for backup or divide up something that’s been too much to carry alone.",
+        "A good vibe can sour quickly if you push only your own preference."
+      ],
+      "do": "Ask for help",
+      "pause": "Insisting on your way"
+    },
+    "overall.d70.change.default": {
+      "headline": "A small break from the usual can ease a frustration that’s been hanging around.",
+      "flow": [
+        "An option that once felt intimidating may seem surprisingly doable now.",
+        "Start the change you’ve delayed with its simplest, most manageable step.",
+        "Welcome a fresh approach without tossing out what has served you well."
+      ],
+      "do": "Start with the easy step",
+      "pause": "Discarding what already works"
+    },
+    "overall.d70.organize.default": {
+      "headline": "The pieces are falling into place, and clearing the backlog can feel deeply satisfying.",
+      "flow": [
+        "You can finally see how the loose ends connect and what deserves your attention first.",
+        "Close the loop on something that’s been lingering in the back of your mind.",
+        "Once it’s finished, turn toward what’s next instead of picking at what can’t be changed."
+      ],
+      "do": "Close a lingering loop",
+      "pause": "Revisiting what’s finished"
+    },
+    "overall.d70.recover.default": {
+      "headline": "The pace lets up enough for you to reset and enjoy what’s been waiting.",
+      "flow": [
+        "A problem you’ve been trying to force may reveal a simpler solution once you give it some room.",
+        "Make time for a favorite pastime or someone you’ve been meaning to see.",
+        "Enjoy the breathing room without cramming every open moment full."
+      ],
+      "do": "Make room for enjoyment",
+      "pause": "Packing every free moment"
+    },
+    "overall.d70.balance.default": {
+      "headline": "You can handle what matters and still make room for what makes the day enjoyable.",
+      "flow": [
+        "If something unexpected pops up, you’ll be able to reset priorities without losing your cool.",
+        "Make a call on the choice you’ve been weighing by using your own standards.",
+        "Being generous with others doesn’t require giving away what you need."
+      ],
+      "do": "Make the choice",
+      "pause": "Giving up your share"
+    },
+    "overall.d80.start.default": {
+      "headline": "This is a great day to finally put a long-held idea in motion.",
+      "flow": [
+        "Your first move is likely to get the encouraging response you needed to keep going.",
+        "If you’ve been meaning to make something real, set a date or send the invitation today.",
+        "Just don’t let one strong debut tempt you into expanding the plan before its foundation is set."
+      ],
+      "do": "Set a date for it",
+      "pause": "Expanding too fast"
+    },
+    "overall.d80.advance.default": {
+      "headline": "What’s been stalled can start moving again, with results you can actually see.",
+      "flow": [
+        "The time and effort you’ve already put in are beginning to pay off in tangible ways.",
+        "Reopen a paused plan and give it the next clear push forward.",
+        "Momentum is on your side, but a final review will keep a promising outcome from getting sloppy."
+      ],
+      "do": "Restart the paused plan",
+      "pause": "Skipping the final check"
+    },
+    "overall.d80.focus.default": {
+      "headline": "You’ve got the focus to crack a tough problem and get closer to the answer you want.",
+      "flow": [
+        "Even a tangled situation becomes easier to handle once you spot the central issue.",
+        "Block out enough uninterrupted time for the one thing you’re determined to finish.",
+        "A win will mean more if you resist chasing several major goals at once."
+      ],
+      "do": "Protect time for one priority",
+      "pause": "Chasing too many goals"
+    },
+    "overall.d80.coordinate.default": {
+      "headline": "The right people are in sync today, making shared progress feel unusually easy.",
+      "flow": [
+        "A thoughtful suggestion is likely to receive an enthusiastic yes.",
+        "Bring up an important idea in a relaxed setting instead of putting it on the spot in a crowd.",
+        "Good rapport thrives when you still show appreciation for the effort others bring."
+      ],
+      "do": "Make the ask one-on-one",
+      "pause": "Taking kindness for granted"
+    },
+    "overall.d80.change.default": {
+      "headline": "A fresh approach can fit better than expected and make the day run more smoothly.",
+      "flow": [
+        "Trying the option you’ve been second-guessing may reveal a convenience you hadn’t considered.",
+        "Clear out one outdated habit that no longer earns its place.",
+        "Enjoy the upgrade, but let other people decide for themselves whether it’s right for them."
+      ],
+      "do": "Drop one outdated habit",
+      "pause": "Pushing your choice on others"
+    },
+    "overall.d80.organize.default": {
+      "headline": "Loose ends can come together cleanly, leaving room for what’s next.",
+      "flow": [
+        "Roles, timing, and next steps become clearer, so wrapping things up takes less effort.",
+        "Get the confirmation you’ve been waiting on and bring that open question to a close.",
+        "Once it’s settled, turn your attention forward instead of lingering over what’s already done."
+      ],
+      "do": "Get the final confirmation",
+      "pause": "Revisiting finished business"
+    },
+    "overall.d80.recover.default": {
+      "headline": "A lingering weight can lift today, making it easier to enjoy what’s in front of you.",
+      "flow": [
+        "You may find an answer to an old concern—or realize you don’t need to keep carrying it.",
+        "Say yes to a postponed outing or make time for something you’ve been looking forward to.",
+        "Feeling lighter doesn’t mean dismissing the lesson in whatever came before."
+      ],
+      "do": "Enjoy the postponed plan",
+      "pause": "Brushing off the past"
+    },
+    "overall.d80.balance.default": {
+      "headline": "Competing demands fall into place, leaving you with time that actually feels like yours.",
+      "flow": [
+        "Even with several demands competing for attention, you’ll know what deserves to come first.",
+        "Make the decision you’ve been putting off, then use the open time for something you genuinely enjoy.",
+        "Don’t mistake a manageable schedule for an obligation to take on everyone else’s requests."
+      ],
+      "do": "Make the pending decision",
+      "pause": "Saying yes to every favor"
+    },
+    "overall.d90.start.default": {
+      "headline": "The start you’ve been waiting on has real momentum today, so lead with what you want most.",
+      "flow": [
+        "Share the idea you’ve been shaping, and you could draw more interest and support than expected.",
+        "Put forward the suggestion you’d usually second-guess; your confidence has extra pull right now.",
+        "Don’t try to chase every opening at once—choose the path that genuinely excites you."
+      ],
+      "do": "Lead with your top idea",
+      "pause": "Chasing every option at once"
+    },
+    "overall.d90.advance.default": {
+      "headline": "Something you’ve put serious time into can finally deliver the payoff you’ve been hoping for.",
+      "flow": [
+        "A route through a long-standing obstacle opens up, taking things further than you planned.",
+        "When a meaningful opportunity appears, step in quickly and claim your place in it.",
+        "Enjoy the win, but make sure the people who contributed know their effort mattered."
+      ],
+      "do": "Claim the opening in front of you",
+      "pause": "Overlooking your supporters"
+    },
+    "overall.d90.focus.default": {
+      "headline": "A long-running question can finally yield the answer you’ve been looking for.",
+      "flow": [
+        "Even a complicated situation reveals its key detail, making it easier to dig in with purpose.",
+        "Give your fullest attention to the issue that’s been waiting the longest.",
+        "A smooth breakthrough isn’t a reason to settle early; keep refining until it meets your standards."
+      ],
+      "do": "Give the tough issue your best time",
+      "pause": "Stopping at the easy answer"
+    },
+    "overall.d90.coordinate.default": {
+      "headline": "Your honesty lands well today, and shared effort can turn a big idea into something real.",
+      "flow": [
+        "Speak plainly about what you’re thinking, and more people may rally around it than you anticipated.",
+        "Tell a trusted circle about the hope you’ve been carrying on your own.",
+        "Even with strong support behind you, give differing viewpoints a fair hearing."
+      ],
+      "do": "Share your vision with trusted people",
+      "pause": "Dismissing other perspectives"
+    },
+    "overall.d90.change.default": {
+      "headline": "A bold shift can open fresh possibilities, making this a standout day to break from an old pattern.",
+      "flow": [
+        "You have the nerve to change a choice that familiarity has kept on hold.",
+        "If you can clearly picture a better direction, take the first concrete step now.",
+        "Welcome what’s new without pretending the road that brought you here meant nothing."
+      ],
+      "do": "Take the first step toward change",
+      "pause": "Rejecting everything that came before"
+    },
+    "overall.d90.organize.default": {
+      "headline": "A lingering loose end can finally be put to rest, clearing space for what comes next.",
+      "flow": [
+        "The order of a complicated situation starts to make sense, and the conclusion you’ve awaited comes into view.",
+        "Finish the final step on the matter you’ve kept pushing off.",
+        "Once it’s done, let yourself move on instead of reopening the same concern."
+      ],
+      "do": "Wrap up the final loose end",
+      "pause": "Revisiting a settled worry"
+    },
+    "overall.d90.recover.default": {
+      "headline": "The weight of a persistent concern begins to lift, leaving room for a day that feels like yours again.",
+      "flow": [
+        "A problem that seemed impossible to resolve may have a simpler answer than you thought.",
+        "Make room for a pleasure or wish you’ve been denying yourself for too long.",
+        "As ease returns, don’t put off thanking someone who’s been there for you."
+      ],
+      "do": "Enjoy something you’ve postponed",
+      "pause": "Delaying a heartfelt thank-you"
+    },
+    "overall.d90.balance.default": {
+      "headline": "You’re clear-headed and light on your feet, making this an excellent day to begin what you’ve wanted most.",
+      "flow": [
+        "A challenge that once felt overwhelming shows you exactly where to start.",
+        "Trust your own judgment before looking around for everyone else’s approval.",
+        "Keep the good mood going by leaving enough room in your day for yourself."
+      ],
+      "do": "Start with what matters most",
+      "pause": "Overbooking your day"
+    }
+  },
+  "categories": {
+    "category.love.d00.general": {
+      "text": [
+        "When feelings are running high, a small comment can turn into a lasting misunderstanding.",
+        "Save the conversation that matters until everyone has had time to cool off."
+      ]
+    },
+    "category.money.d00.general": {
+      "text": [
+        "An unexpected charge could pop up, making this a poor day for a major purchase.",
+        "Check upcoming autopayments and what’s left to spend before buying anything beyond the essentials."
+      ]
+    },
+    "category.work.d00.general": {
+      "text": [
+        "Details are more likely to slip through today, so hold off on high-stakes submissions or final calls when possible.",
+        "If something has to go out, ask a second set of eyes to review it first."
+      ]
+    },
+    "category.energy.d00.general": {
+      "text": [
+        "Your reserves may run low faster than usual, so cut back on any plan that asks too much of you.",
+        "Handle the essentials, then give yourself permission to turn in earlier than normal."
+      ]
+    },
+    "category.love.d10.general": {
+      "text": [
+        "A passing comment may feel more personal than it was meant to be.",
+        "Don’t press for an immediate answer; give yourself time to sort out what you’re feeling first."
+      ]
+    },
+    "category.money.d10.general": {
+      "text": [
+        "A handful of small purchases could add up faster than expected.",
+        "Set a firm limit before you buy anything, then stay within it."
+      ]
+    },
+    "category.work.d10.general": {
+      "text": [
+        "It may be harder than usual to get traction, and your progress could feel slow.",
+        "Handle the tasks you can close out rather than getting stuck on the toughest problem."
+      ]
+    },
+    "category.energy.d10.general": {
+      "text": [
+        "You may feel sluggish from the start, making your normal pace hard to maintain.",
+        "Leave breathing room between plans and make rest, sleep, and regular meals a priority."
+      ]
+    },
+    "category.love.d20.general": {
+      "text": [
+        "The response you were hoping for may not show up right away, which can make you doubt the moment.",
+        "Rather than reading into every signal, ask directly about what's on their mind."
+      ]
+    },
+    "category.money.d20.general": {
+      "text": [
+        "Outgoing costs may feel more noticeable than what’s coming in today.",
+        "Give any unplanned purchase a full day before you commit."
+      ]
+    },
+    "category.work.d20.general": {
+      "text": [
+        "A misunderstood instruction could send you in the wrong direction.",
+        "Confirm the assignment’s scope and deadline before you dive in."
+      ]
+    },
+    "category.energy.d20.general": {
+      "text": [
+        "Even small tasks may wear you out faster than usual, so avoid packing the day too tightly.",
+        "Take seated breaks when you can and keep water nearby."
+      ]
+    },
+    "category.love.d30.general": {
+      "text": [
+        "A small difference in perspective could land more heavily than usual.",
+        "Instead of waiting to be understood, say what you need with a gentle, direct tone."
+      ]
+    },
+    "category.money.d30.general": {
+      "text": [
+        "A low price could tempt you into buying something that won't earn its place in your routine.",
+        "Consider how often you'll truly use it before you check out."
+      ]
+    },
+    "category.work.d30.general": {
+      "text": [
+        "An unexpected revision may push your timeline back.",
+        "Mark the exact sections that need attention rather than redoing the whole thing."
+      ]
+    },
+    "category.energy.d30.general": {
+      "text": [
+        "You may run out of steam sooner than usual.",
+        "Leave unscheduled breathing room between plans instead of stacking the day too tightly."
+      ]
+    },
+    "category.love.d40.general": {
+      "text": [
+        "A little awkwardness doesn’t have to set the tone; a warm smile can loosen things up fast.",
+        "Bring up a memory that made you both laugh instead of reopening a recent disappointment."
+      ]
+    },
+    "category.money.d40.general": {
+      "text": [
+        "If an expense comes up, waiting before you commit can keep it from feeling heavier than it needs to.",
+        "Compare prices for the same terms before you hit checkout."
+      ]
+    },
+    "category.work.d40.general": {
+      "text": [
+        "Your pace may be slower than usual, but sticking to the sequence will still get the essentials done.",
+        "Rather than racing to finish, review the details for anything that slipped through."
+      ]
+    },
+    "category.energy.d40.general": {
+      "text": [
+        "You’re not running on empty, but missed breaks could leave you more drained than expected.",
+        "Stretch now and then, and step away from your usual spot for a few minutes."
+      ]
+    },
+    "category.love.d50.general": {
+      "text": [
+        "Being around someone close feels easygoing today, with no need to force a big moment.",
+        "A quick check-in or a thoughtful message can say plenty."
+      ]
+    },
+    "category.money.d50.general": {
+      "text": [
+        "Financial matters stay fairly predictable, making it easier to remain within your usual plan.",
+        "If you’re on the fence about a purchase, add it to a list and revisit it tonight."
+      ]
+    },
+    "category.work.d50.general": {
+      "text": [
+        "Your usual method should carry you through assigned tasks at a steady pace.",
+        "Handle what was already on your list before adding another objective."
+      ]
+    },
+    "category.energy.d50.general": {
+      "text": [
+        "Your regular rhythm is dependable enough to support a typical day.",
+        "Keep food breaks and downtime on schedule, and that should be all you need."
+      ]
+    },
+    "category.love.d60.general": {
+      "text": [
+        "It’s easier to say what you mean without making things feel heavy.",
+        "If there’s someone you’ve been wanting to see, send the first message."
+      ]
+    },
+    "category.money.d60.general": {
+      "text": [
+        "You can tell the difference between what’s worth getting now and what can wait.",
+        "For a purchase you’ve been weighing, compare the terms before you commit."
+      ]
+    },
+    "category.work.d60.general": {
+      "text": [
+        "Your focus holds, giving you a real chance to clear out what’s been sitting there.",
+        "Start with the assignment or study session that carries the most weight."
+      ]
+    },
+    "category.energy.d60.general": {
+      "text": [
+        "You’re likely to feel relatively light and even-keeled through the day.",
+        "A walk or a few stretches can help you hold onto that steady rhythm."
+      ]
+    },
+    "category.love.d70.general": {
+      "text": [
+        "You won’t have to overthink every signal; honest affection comes through clearly.",
+        "Send the first check-in and let an easy, welcome conversation unfold."
+      ]
+    },
+    "category.money.d70.general": {
+      "text": [
+        "Your financial priorities are clear, which makes it easier to choose what’s worth it.",
+        "Use the momentum to review subscriptions or finally sort out a pending budget."
+      ]
+    },
+    "category.work.d70.general": {
+      "text": [
+        "Presenting something you’ve put real care into can earn the response you were hoping for.",
+        "Bring a stuck task to a coworker or trusted friend, and a practical solution may surface fast."
+      ]
+    },
+    "category.energy.d70.general": {
+      "text": [
+        "Getting moving adds a welcome spark to your day.",
+        "Take a short trip somewhere you’ve wanted to check out and enjoy the change of scene."
+      ]
+    },
+    "category.love.d80.general": {
+      "text": [
+        "The spark is easy to feel, and closeness can grow naturally.",
+        "If there’s something you’d like to do together, go ahead and suggest it."
+      ]
+    },
+    "category.money.d80.general": {
+      "text": [
+        "A favorable price or well-matched option is easier to find than usual.",
+        "For something you truly need, compare the perks before choosing."
+      ]
+    },
+    "category.work.d80.general": {
+      "text": [
+        "Tasks are clicking, and the items you’ve delayed can finally pick up speed.",
+        "Start with the biggest priority so your progress has a clear payoff."
+      ]
+    },
+    "category.energy.d80.general": {
+      "text": [
+        "Your stamina has staying power, even through a packed day.",
+        "Make room for an activity you enjoy, and your mood will rise along with it."
+      ]
+    },
+    "category.love.d90.general": {
+      "text": [
+        "Being open with your feelings creates a deeper sense of closeness today.",
+        "Bring up the story you’ve held onto for a long time in a warm, unhurried moment."
+      ]
+    },
+    "category.money.d90.general": {
+      "text": [
+        "You can handle both the things worth buying and the amount worth setting aside with confidence.",
+        "Take the first step on a savings goal or planned purchase you’ve been considering for a while."
+      ]
+    },
+    "category.work.d90.general": {
+      "text": [
+        "Your accumulated skill is easy for others to see, and strong recognition can follow.",
+        "Volunteer for the assignment you know best and make your contribution unmistakable."
+      ]
+    },
+    "category.energy.d90.general": {
+      "text": [
+        "Your energy is running high, and you’ll be eager to get moving on something enjoyable.",
+        "Put that extra spark toward a workout or a fun outing that gets you out of the house."
+      ]
+    }
+  },
+  "colors": {
+    "red": {
+      "name": "Red",
+      "hex": "#E53935"
+    },
+    "coral": {
+      "name": "Coral",
+      "hex": "#FF7F6E"
+    },
+    "orange": {
+      "name": "Orange",
+      "hex": "#FB8C00"
+    },
+    "yellow": {
+      "name": "Yellow",
+      "hex": "#FDD835"
+    },
+    "green": {
+      "name": "Green",
+      "hex": "#43A047"
+    },
+    "sky": {
+      "name": "Sky Blue",
+      "hex": "#4FC3F7"
+    },
+    "blue": {
+      "name": "Blue",
+      "hex": "#1E88E5"
+    },
+    "navy": {
+      "name": "Navy",
+      "hex": "#3949AB"
+    },
+    "purple": {
+      "name": "Purple",
+      "hex": "#8E44AD"
+    },
+    "pink": {
+      "name": "Pink",
+      "hex": "#EC6F91"
+    },
+    "white": {
+      "name": "White",
+      "hex": "#FFFFFF"
+    },
+    "beige": {
+      "name": "Beige",
+      "hex": "#D8C3A5"
+    }
+  }
+}

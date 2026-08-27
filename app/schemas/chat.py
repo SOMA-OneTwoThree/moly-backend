@@ -1,4 +1,5 @@
 """대화 요청·응답 스키마. 메시지 길이 상한 = 비용 통제(ERD §5.2)."""
+
 from __future__ import annotations
 
 from datetime import date
@@ -8,6 +9,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.common import StrictResponse, UtcDatetime
+from app.schemas.fortune import Locale
 
 
 class DailyFortuneContextRef(BaseModel):
@@ -17,7 +19,7 @@ class DailyFortuneContextRef(BaseModel):
 
     type: Literal["daily_fortune"]
     local_date: date
-    locale: Literal["ko"]
+    locale: Locale
 
 
 class PostMessageRequest(BaseModel):

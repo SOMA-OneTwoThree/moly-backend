@@ -2354,7 +2354,10 @@ components:
           format: date
         locale:
           type: string
-          const: ko
+          enum:
+          - ko
+          - en
+          - ja
     DailyFortuneRevealResponse:
       oneOf:
       - type: object
@@ -3103,7 +3106,10 @@ components:
           default: 3
         locale:
           type: string
-          const: ko
+          enum:
+          - ko
+          - en
+          - ja
         overall:
           type: object
           additionalProperties: false

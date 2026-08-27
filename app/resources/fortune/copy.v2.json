@@ -1,6 +1,6 @@
 {
   "schema": "fortune-copy-v2",
-  "copy_version": "fortune-copy.v2-seed.3",
+  "copy_version": "fortune-copy.v2-seed.4",
   "content_status": "development_seed",
   "locales": [
     "ko"

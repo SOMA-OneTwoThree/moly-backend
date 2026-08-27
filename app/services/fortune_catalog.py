@@ -1,4 +1,5 @@
-"""오늘의 운세 v2 한국어 seed 카탈로그 로드·검증·렌더링."""
+"""오늘의 운세 v2 다국어 seed 카탈로그 로드·검증·렌더링."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,17 +16,40 @@ from app.services import fortune_rules
 
 _RESOURCE_DIR: Final = Path(__file__).resolve().parents[1] / "resources" / "fortune"
 _MANIFEST_PATH: Final = _RESOURCE_DIR / "manifest.v2.json"
-_COPY_PATH: Final = _RESOURCE_DIR / "copy.v2.json"
 _RULES_PATH: Final = _RESOURCE_DIR / "rules.v2.json"
+_COPY_FILENAMES: Final = MappingProxyType(
+    {
+        "ko": "copy.v2.json",
+        "en": "copy.v2.en.json",
+        "ja": "copy.v2.ja.json",
+    }
+)
+SUPPORTED_LOCALES: Final = tuple(_COPY_FILENAMES)
 _DECILES: Final = tuple(f"d{value:02d}" for value in range(0, 100, 10))
 _FLOWS: Final = (
-    "start", "advance", "focus", "coordinate",
-    "change", "organize", "recover", "balance",
+    "start",
+    "advance",
+    "focus",
+    "coordinate",
+    "change",
+    "organize",
+    "recover",
+    "balance",
 )
 _CATEGORIES: Final = ("love", "money", "work", "energy")
 _COLORS: Final = (
-    "red", "coral", "orange", "yellow", "green", "sky",
-    "blue", "navy", "purple", "pink", "white", "beige",
+    "red",
+    "coral",
+    "orange",
+    "yellow",
+    "green",
+    "sky",
+    "blue",
+    "navy",
+    "purple",
+    "pink",
+    "white",
+    "beige",
 )
 _PLACEHOLDER_RE: Final = re.compile(r"(?:\.\.\.|\{\{|\}\}|\bTODO\b|\bTBD\b)", re.I)
 _FORBIDDEN_RE: Final = re.compile(
@@ -40,9 +64,26 @@ _AWKWARD_COPY_RE: Final = re.compile(
 _OVERALL_DOMAIN_RE: Final = re.compile(
     r"(?:금전|지출|결제|연애|상대방|업무|과제|수면|몸|피로|컨디션|식사|숨을 돌)"
 )
+_OVERALL_DOMAIN_BY_LOCALE: Final = MappingProxyType(
+    {
+        "ko": _OVERALL_DOMAIN_RE,
+        "ja": re.compile(
+            r"(?:恋愛|恋人|デート|お金|金銭|出費|支払い|予算|買い物|価格|貯金|収入|"
+            r"仕事|会社|職場|同僚|上司|業務|勉強|提出|締切|健康|体調|睡眠|食事|疲れ|心身|運動)"
+        ),
+        "en": re.compile(
+            r"\b(?:love|romance|relationship|money|financial|spending|budget|purchase|price|"
+            r"saving|income|job|career|workplace|coworker|boss|assignment|study|deadline|health|"
+            r"sleep|meal|fatigue|body|workout)\b",
+            re.I,
+        ),
+    }
+)
+_HANGUL_RE: Final = re.compile(r"[가-힣]")
+_CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-COPY_VERSION = "fortune-copy.v2-seed.3"
+COPY_VERSION = "fortune-copy.v2-seed.4"
 
 
 class FortuneCatalogError(ValueError):
@@ -50,18 +91,12 @@ class FortuneCatalogError(ValueError):
 
 
 def _overall_keys() -> set[str]:
-    return {
-        f"overall.{decile}.{flow}.default"
-        for decile in _DECILES
-        for flow in _FLOWS
-    }
+    return {f"overall.{decile}.{flow}.default" for decile in _DECILES for flow in _FLOWS}
 
 
 def _category_keys() -> set[str]:
     return {
-        f"category.{category}.{decile}.general"
-        for category in _CATEGORIES
-        for decile in _DECILES
+        f"category.{category}.{decile}.general" for category in _CATEGORIES for decile in _DECILES
     }
 
 
@@ -92,36 +127,45 @@ def _exact_keys(value: Mapping[str, Any], expected: set[str], label: str) -> Non
     actual = set(value)
     if actual != expected:
         raise FortuneCatalogError(
-            f"{label} keys mismatch: missing={sorted(expected-actual)}, "
-            f"extra={sorted(actual-expected)}"
+            f"{label} keys mismatch: missing={sorted(expected - actual)}, "
+            f"extra={sorted(actual - expected)}"
         )
 
 
-def _text(value: Any, label: str, *, overall: bool = False) -> str:
+def _text(value: Any, label: str, *, locale: str, overall: bool = False) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
         raise FortuneCatalogError(f"{label} must be a trimmed non-empty string")
     if unicodedata.normalize("NFC", value) != value:
         raise FortuneCatalogError(f"{label} must use NFC normalization")
     if _PLACEHOLDER_RE.search(value):
         raise FortuneCatalogError(f"{label} contains a placeholder")
-    if _FORBIDDEN_RE.search(value):
+    if locale == "ko" and _FORBIDDEN_RE.search(value):
         raise FortuneCatalogError(f"{label} contains forbidden fortune wording")
-    if _AWKWARD_COPY_RE.search(value):
+    if locale == "ko" and _AWKWARD_COPY_RE.search(value):
         raise FortuneCatalogError(f"{label} contains awkward Korean fortune wording")
-    if overall and _OVERALL_DOMAIN_RE.search(value):
+    if overall and _OVERALL_DOMAIN_BY_LOCALE[locale].search(value):
         raise FortuneCatalogError(f"{label} contains category-specific wording")
+    if locale != "ko" and _HANGUL_RE.search(value):
+        raise FortuneCatalogError(f"{label} contains Korean script")
+    if locale == "en" and _CJK_RE.search(value):
+        raise FortuneCatalogError(f"{label} contains CJK script")
     return value
 
 
 @dataclass(frozen=True, slots=True)
 class FortuneCatalog:
-    overall: Mapping[str, Mapping[str, Any]]
-    categories: Mapping[str, Mapping[str, Any]]
-    colors: Mapping[str, Mapping[str, str]]
+    overall_by_locale: Mapping[str, Mapping[str, Mapping[str, Any]]]
+    categories_by_locale: Mapping[str, Mapping[str, Mapping[str, Any]]]
+    colors_by_locale: Mapping[str, Mapping[str, Mapping[str, str]]]
     manifest_hash: str
     asset_hashes: Mapping[str, str]
 
-    def render(self, semantic: Mapping[str, Any]) -> dict[str, Any]:
+    def render(self, semantic: Mapping[str, Any], locale: str = "ko") -> dict[str, Any]:
+        if locale not in SUPPORTED_LOCALES:
+            raise FortuneCatalogError(f"unsupported locale: {locale}")
+        overall_catalog = self.overall_by_locale[locale]
+        category_catalog = self.categories_by_locale[locale]
+        color_catalog = self.colors_by_locale[locale]
         _exact_keys(
             semantic,
             {"schema_version", "overall", "categories", "lucky_color_key"},
@@ -139,7 +183,9 @@ class FortuneCatalog:
             {"score", "reading_code", "expression_route"},
             "semantic overall",
         )
-        if not isinstance(categories_semantic, Mapping) or set(categories_semantic) != set(_CATEGORIES):
+        if not isinstance(categories_semantic, Mapping) or set(categories_semantic) != set(
+            _CATEGORIES
+        ):
             raise FortuneCatalogError("semantic categories must contain four categories")
         overall_score = _score(overall_semantic.get("score"), "semantic overall score")
         overall_decile = fortune_rules.decile_for(overall_score)
@@ -148,9 +194,9 @@ class FortuneCatalog:
         expected_route = f"overall.{overall_decile}.{overall_reading['flow']}.default"
         if overall_reading["decile"] != overall_decile or overall_route != expected_route:
             raise FortuneCatalogError("semantic overall score and routes do not match")
-        if overall_route not in self.overall:
+        if overall_route not in overall_catalog:
             raise FortuneCatalogError(f"unknown overall route: {overall_route}")
-        bundle = self.overall[str(overall_route)]
+        bundle = overall_catalog[str(overall_route)]
         rules = fortune_rules.load_rule_assets()
         rendered_categories: dict[str, Any] = {}
         for category in _CATEGORIES:
@@ -166,27 +212,29 @@ class FortuneCatalog:
             decile = fortune_rules.decile_for(score)
             reading = _category_reading(item.get("reading_code"), category)
             route = item.get("expression_route")
-            allowed_topics = {
-                str(slot["topic"]) for slot in rules["category_slots"][category]
-            } | {"general"}
+            allowed_topics = {str(slot["topic"]) for slot in rules["category_slots"][category]} | {
+                "general"
+            }
             if (
                 reading["decile"] != decile
                 or reading["topic"] not in allowed_topics
                 or route != f"category.{category}.{decile}.general"
             ):
-                raise FortuneCatalogError(f"semantic category score and routes do not match: {category}")
-            if route not in self.categories:
+                raise FortuneCatalogError(
+                    f"semantic category score and routes do not match: {category}"
+                )
+            if route not in category_catalog:
                 raise FortuneCatalogError(f"unknown category route: {route}")
             rendered_categories[category] = {
-                "text": list(self.categories[str(route)]["text"]),
+                "text": list(category_catalog[str(route)]["text"]),
             }
-        if color_key not in self.colors:
+        if color_key not in color_catalog:
             raise FortuneCatalogError(f"unknown lucky color: {color_key}")
         color_index = min(overall_score // 10, 9)
         expected_color = rules["lucky_color_by_flow"][overall_reading["flow"]][color_index]
         if color_key != expected_color:
             raise FortuneCatalogError("lucky color does not match overall flow and score")
-        color = self.colors[str(color_key)]
+        color = color_catalog[str(color_key)]
         return {
             "overall": {
                 "headline": bundle["headline"],
@@ -236,7 +284,11 @@ def _category_reading(value: Any, category: str) -> dict[str, str]:
     return {"decile": parts[2], "topic": parts[3], "context": parts[4]}
 
 
-def _validate_copy(asset: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+def _validate_copy(
+    asset: Mapping[str, Any],
+    *,
+    locale: str,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     _exact_keys(
         asset,
         {"schema", "copy_version", "content_status", "locales", "overall", "categories", "colors"},
@@ -244,13 +296,17 @@ def _validate_copy(asset: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, 
     )
     if asset["schema"] != "fortune-copy-v2" or asset["copy_version"] != COPY_VERSION:
         raise FortuneCatalogError("unexpected copy schema or version")
-    if asset["content_status"] != "development_seed" or asset["locales"] != ["ko"]:
-        raise FortuneCatalogError("v2 seed catalog must be Korean development content")
+    if asset["content_status"] != "development_seed" or asset["locales"] != [locale]:
+        raise FortuneCatalogError(f"v2 seed catalog locale mismatch: {locale}")
 
     overall = asset["overall"]
     categories = asset["categories"]
     colors = asset["colors"]
-    if not isinstance(overall, dict) or not isinstance(categories, dict) or not isinstance(colors, dict):
+    if (
+        not isinstance(overall, dict)
+        or not isinstance(categories, dict)
+        or not isinstance(colors, dict)
+    ):
         raise FortuneCatalogError("copy sections must be objects")
     _exact_keys(overall, set(EXPECTED_OVERALL_KEYS), "overall routes")
     _exact_keys(categories, set(EXPECTED_CATEGORY_KEYS), "category routes")
@@ -265,20 +321,22 @@ def _validate_copy(asset: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, 
         flow = bundle["flow"]
         if not isinstance(flow, list) or len(flow) != 3:
             raise FortuneCatalogError(f"{route}.flow must contain exactly three sentences")
-        headline = _text(bundle["headline"], f"{route}.headline", overall=True)
+        headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=True)
         rendered_flow = tuple(
-                _text(sentence, f"{route}.flow[{index}]", overall=True)
-                for index, sentence in enumerate(flow)
-            )
-        do = _text(bundle["do"], f"{route}.do", overall=True)
-        pause = _text(bundle["pause"], f"{route}.pause", overall=True)
+            _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=True)
+            for index, sentence in enumerate(flow)
+        )
+        do = _text(bundle["do"], f"{route}.do", locale=locale, overall=True)
+        pause = _text(bundle["pause"], f"{route}.pause", locale=locale, overall=True)
         expressions.extend((headline, *rendered_flow, do, pause))
-        validated_overall[route] = MappingProxyType({
-            "headline": headline,
-            "flow": rendered_flow,
-            "do": do,
-            "pause": pause,
-        })
+        validated_overall[route] = MappingProxyType(
+            {
+                "headline": headline,
+                "flow": rendered_flow,
+                "do": do,
+                "pause": pause,
+            }
+        )
 
     validated_categories: dict[str, Any] = {}
     for route, block in categories.items():
@@ -289,20 +347,20 @@ def _validate_copy(asset: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, 
         if not isinstance(lines, list) or len(lines) != 2:
             raise FortuneCatalogError(f"{route}.text must contain exactly two sentences")
         rendered_lines = tuple(
-            _text(line, f"{route}.text[{index}]") for index, line in enumerate(lines)
+            _text(line, f"{route}.text[{index}]", locale=locale) for index, line in enumerate(lines)
         )
         expressions.extend(rendered_lines)
         validated_categories[route] = MappingProxyType({"text": rendered_lines})
 
     if len(expressions) != len(set(expressions)):
-        raise FortuneCatalogError("all Korean fortune expressions must be unique")
+        raise FortuneCatalogError(f"all {locale} fortune expressions must be unique")
 
     validated_colors: dict[str, Any] = {}
     for key, color in colors.items():
         if not isinstance(color, dict):
             raise FortuneCatalogError(f"color {key} must be an object")
         _exact_keys(color, {"name", "hex"}, f"color {key}")
-        name = _text(color["name"], f"color {key}.name")
+        name = _text(color["name"], f"color {key}.name", locale=locale)
         hex_value = color["hex"]
         if not isinstance(hex_value, str) or not _HEX_RE.fullmatch(hex_value):
             raise FortuneCatalogError(f"invalid color hex: {key}")
@@ -320,7 +378,7 @@ def _load_catalog(resource_dir: Path) -> FortuneCatalog:
     assets = manifest["assets"]
     if not isinstance(assets, dict):
         raise FortuneCatalogError("manifest assets must be an object")
-    expected_assets = {_RULES_PATH.name, _COPY_PATH.name}
+    expected_assets = {_RULES_PATH.name, *_COPY_FILENAMES.values()}
     _exact_keys(assets, expected_assets, "manifest assets")
     parsed: dict[str, dict[str, Any]] = {}
     hashes: dict[str, str] = {}
@@ -335,11 +393,18 @@ def _load_catalog(resource_dir: Path) -> FortuneCatalog:
             raise FortuneCatalogError(f"sha256 mismatch for {filename}")
         parsed[filename] = _load_json(raw, filename)
         hashes[filename] = actual
-    overall, categories, colors = _validate_copy(parsed[_COPY_PATH.name])
+    overall_by_locale: dict[str, Any] = {}
+    categories_by_locale: dict[str, Any] = {}
+    colors_by_locale: dict[str, Any] = {}
+    for locale, filename in _COPY_FILENAMES.items():
+        overall, categories, colors = _validate_copy(parsed[filename], locale=locale)
+        overall_by_locale[locale] = MappingProxyType(overall)
+        categories_by_locale[locale] = MappingProxyType(categories)
+        colors_by_locale[locale] = MappingProxyType(colors)
     return FortuneCatalog(
-        overall=MappingProxyType(overall),
-        categories=MappingProxyType(categories),
-        colors=MappingProxyType(colors),
+        overall_by_locale=MappingProxyType(overall_by_locale),
+        categories_by_locale=MappingProxyType(categories_by_locale),
+        colors_by_locale=MappingProxyType(colors_by_locale),
         manifest_hash=sha256(manifest_raw).hexdigest(),
         asset_hashes=MappingProxyType(hashes),
     )
@@ -355,6 +420,7 @@ def load_catalog(resource_dir: Path | None = None) -> FortuneCatalog:
 
 
 def render_all(semantic: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
-    """개발 seed가 지원하는 한국어 snapshot을 반환한다."""
+    """개발 seed가 지원하는 모든 언어의 고정 snapshot을 반환한다."""
 
-    return {"ko": load_catalog().render(semantic)}
+    catalog = load_catalog()
+    return {locale: catalog.render(semantic, locale) for locale in SUPPORTED_LOCALES}

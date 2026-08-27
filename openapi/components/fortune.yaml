@@ -6,7 +6,7 @@ schemas:
     properties:
       type: {type: string, const: daily_fortune}
       local_date: {type: string, format: date}
-      locale: {type: string, const: ko}
+      locale: {type: string, enum: [ko, en, ja]}
   FortuneProfilePut:
     type: object
     additionalProperties: false
@@ -81,7 +81,7 @@ schemas:
     required: [schema_version, locale, overall, categories, lucky_color]
     properties:
       schema_version: {type: integer, const: 3, default: 3}
-      locale: {type: string, const: ko}
+      locale: {type: string, enum: [ko, en, ja]}
       overall: {$ref: '#/schemas/FortuneOverallResult'}
       categories: {$ref: '#/schemas/FortuneCategories'}
       lucky_color: {$ref: '#/schemas/FortuneLuckyColor'}

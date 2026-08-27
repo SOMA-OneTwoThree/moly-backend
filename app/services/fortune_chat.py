@@ -1,4 +1,5 @@
 """오늘 운세 결과를 한 요청의 휘발 컨텍스트로만 전달한다."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core import errors
 from app.models.fortune import DailyFortune, FortuneProfile
-from app.services import fortune
+from app.services import fortune, fortune_catalog
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,19 +32,48 @@ def _stale() -> errors.AppError:
 
 def _render(row: DailyFortune, locale: str) -> str:
     result = fortune._public_result(row, locale)
-    category_names = {"love": "애정", "money": "금전", "work": "일", "energy": "활력"}
+    copy = {
+        "ko": {
+            "header": "서버가 확인한 오늘의 운세 데이터",
+            "fortune": "오늘의 운세",
+            "index": "행운 지수",
+            "do": "오늘 해볼 것",
+            "pause": "오늘 조심할 것",
+            "color": "행운색",
+            "categories": {"love": "애정", "money": "금전", "work": "일", "energy": "활력"},
+        },
+        "ja": {
+            "header": "サーバーで確認済みの今日の運勢データ",
+            "fortune": "今日の運勢",
+            "index": "運勢スコア",
+            "do": "今日やってみること",
+            "pause": "今日気をつけること",
+            "color": "ラッキーカラー",
+            "categories": {"love": "恋愛", "money": "金運", "work": "仕事", "energy": "健康"},
+        },
+        "en": {
+            "header": "Today's verified fortune data",
+            "fortune": "Today's outlook",
+            "index": "Fortune score",
+            "do": "Try today",
+            "pause": "Watch out for",
+            "color": "Lucky color",
+            "categories": {"love": "Love", "money": "Money", "work": "Work", "energy": "Energy"},
+        },
+    }[result["locale"]]
+    category_names = copy["categories"]
     categories = ", ".join(
         f"{category_names[key]} {result['categories'][key]['score']}"
         for key in ("love", "money", "work", "energy")
     )
     overall = result["overall"]
     return (
-        "[서버가 확인한 오늘의 운세 데이터]\n"
-        f"오늘의 운세: {overall['headline']}\n"
-        f"행운 지수: {overall['score']}/100\n"
+        f"[{copy['header']}]\n"
+        f"{copy['fortune']}: {overall['headline']}\n"
+        f"{copy['index']}: {overall['score']}/100\n"
         f"{' '.join(overall['flow'])}\n{categories}\n"
-        f"오늘 해볼 것: {overall['do']}\n오늘 조심할 것: {overall['pause']}\n"
-        f"행운색: {result['lucky_color']['name']}"
+        f"{copy['do']}: {overall['do']}\n{copy['pause']}: {overall['pause']}\n"
+        f"{copy['color']}: {result['lucky_color']['name']}"
     )
 
 
@@ -57,7 +87,7 @@ async def load_snapshot(
 ) -> FortuneContextSnapshot:
     if not fortune._ready() or not settings.fortune_chat_enabled:
         raise errors.AppError("FEATURE_UNAVAILABLE", 403, "운세 대화를 사용할 수 없어요.")
-    if locale != "ko" or local_date is None:
+    if locale not in fortune_catalog.SUPPORTED_LOCALES or local_date is None:
         raise _stale()
     profile = await session.get(FortuneProfile, user_id)
     row = await session.get(DailyFortune, user_id)

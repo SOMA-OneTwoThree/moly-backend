@@ -1,7 +1,9 @@
 """운세 one-shot 채팅 컨텍스트의 안전·TOCTOU·파생 격리 계약."""
+
 from __future__ import annotations
 
 import inspect
+import copy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -34,8 +36,10 @@ def _daily():
             "schema_version": 3,
             "overall": {"score": 78},
             "categories": {
-                "love": {"score": 72}, "money": {"score": 61},
-                "work": {"score": 88}, "energy": {"score": 57},
+                "love": {"score": 72},
+                "money": {"score": 61},
+                "work": {"score": 88},
+                "energy": {"score": 57},
             },
         },
         copy_by_locale={
@@ -57,7 +61,7 @@ def _daily():
         revealed_at=datetime(2026, 8, 27, 1, tzinfo=timezone.utc),
         ephemeris_version=fortune_ephemeris.EPHEMERIS_VERSION,
         rule_version="fortune-rules.v2.1",
-        copy_version="fortune-copy.v2-seed.3",
+        copy_version="fortune-copy.v2-seed.4",
     )
 
 
@@ -96,6 +100,25 @@ def test_context_ref_is_strict_and_requires_locale():
                 },
             }
         )
+    for locale in ("ko", "en", "ja"):
+        parsed = PostMessageRequest.model_validate(
+            {
+                "text": "read it",
+                "context_ref": {
+                    "type": "daily_fortune",
+                    "local_date": str(TODAY),
+                    "locale": locale,
+                },
+            }
+        )
+        assert parsed.context_ref is not None and parsed.context_ref.locale == locale
+    with pytest.raises(ValidationError):
+        PostMessageRequest.model_validate(
+            {
+                "text": "read it",
+                "context_ref": {"type": "daily_fortune", "local_date": str(TODAY), "locale": "fr"},
+            }
+        )
 
 
 def test_request_hash_includes_full_context_ref():
@@ -126,6 +149,27 @@ async def test_snapshot_renders_only_public_result(monkeypatch):
     assert "애정 72, 금전 61, 일 88, 활력 57" in snapshot.block
     assert "birth" not in snapshot.block.lower()
     assert "advert" not in snapshot.block.lower()
+
+
+@pytest.mark.asyncio
+async def test_snapshot_renders_labels_in_the_selected_locale(monkeypatch):
+    _enable(monkeypatch)
+    daily = _daily()
+    japanese = copy.deepcopy(daily.copy_by_locale["ko"])
+    japanese["overall"]["headline"] = "今日は落ち着いて進められる日です。"
+    japanese["lucky_color"]["name"] = "紫"
+    daily.copy_by_locale["ja"] = japanese
+    snapshot = await fortune_chat.load_snapshot(
+        _Session(daily=daily),
+        user_id=UID,
+        local_date=TODAY,
+        locale="ja",
+        account_timezone="Asia/Seoul",
+    )
+    assert "[サーバーで確認済みの今日の運勢データ]" in snapshot.block
+    assert "運勢スコア: 78/100" in snapshot.block
+    assert "恋愛 72, 金運 61, 仕事 88, 健康 57" in snapshot.block
+    assert "ラッキーカラー: 紫" in snapshot.block
 
 
 @pytest.mark.asyncio

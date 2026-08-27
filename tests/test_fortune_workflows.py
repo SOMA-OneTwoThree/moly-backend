@@ -1,4 +1,5 @@
 """운세 프로필·snapshot·공개 권한 상태 전이 회귀 테스트."""
+
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
@@ -33,7 +34,9 @@ class _MemorySession:
 
     async def get(self, model, key, **_kwargs):
         if model is FortuneProfile:
-            return self.profile if self.profile is not None and self.profile.user_id == key else None
+            return (
+                self.profile if self.profile is not None and self.profile.user_id == key else None
+            )
         if model is DailyFortune:
             return self.daily if self.daily is not None and self.daily.user_id == key else None
         if model is FortuneAdSession:
@@ -136,7 +139,9 @@ async def test_stale_unlocked_snapshot_status_is_unseen_with_access_preserved(en
         unlocked_at=NOW,
         revealed_at=NOW,
     )
-    value = await fortune.status(_MemorySession(profile=profile, daily=daily), str(UID), locale="ko", now_utc=NOW)
+    value = await fortune.status(
+        _MemorySession(profile=profile, daily=daily), str(UID), locale="ko", now_utc=NOW
+    )
     assert value == {
         "available": True,
         "state": "unseen",
@@ -164,9 +169,10 @@ async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_
     session = _MemorySession(profile=profile, daily=daily)
     first = await fortune.reveal(session, str(UID), locale="ko", now_utc=NOW)
     second = await fortune.reveal(session, str(UID), locale="ja", now_utc=NOW)
-    assert first == second
+    assert first["result"]["overall"]["score"] == second["result"]["overall"]["score"]
     assert first["state"] == "revealed" and first["access"] == "unlocked_today"
     assert first["result"]["schema_version"] == 3 and first["result"]["locale"] == "ko"
+    assert second["result"]["locale"] == "ja"
     assert session.daily.profile_revision == 2
     assert session.daily.unlock_source == "rewarded_ad"
     assert session.daily.unlocked_at == original_unlock

@@ -13,6 +13,7 @@ from app.services.fortune_catalog import (
     EXPECTED_CATEGORY_KEYS,
     EXPECTED_OVERALL_KEYS,
     FortuneCatalogError,
+    SUPPORTED_LOCALES,
     load_catalog,
     render_all,
 )
@@ -61,17 +62,28 @@ def _semantic() -> dict:
 
 def test_seed_catalog_has_complete_safe_coverage():
     catalog = load_catalog()
-    assert COPY_VERSION == "fortune-copy.v2-seed.3"
-    assert set(catalog.overall) == set(EXPECTED_OVERALL_KEYS)
-    assert set(catalog.categories) == set(EXPECTED_CATEGORY_KEYS)
-    assert len(catalog.overall) == 80
-    assert len(catalog.categories) == 40
-    assert len(catalog.colors) == 12
+    assert COPY_VERSION == "fortune-copy.v2-seed.4"
+    assert SUPPORTED_LOCALES == ("ko", "en", "ja")
+    for locale in SUPPORTED_LOCALES:
+        assert set(catalog.overall_by_locale[locale]) == set(EXPECTED_OVERALL_KEYS)
+        assert set(catalog.categories_by_locale[locale]) == set(EXPECTED_CATEGORY_KEYS)
+        assert len(catalog.overall_by_locale[locale]) == 80
+        assert len(catalog.categories_by_locale[locale]) == 40
+        assert len(catalog.colors_by_locale[locale]) == 12
     assert len(catalog.manifest_hash) == 64
 
 
-def test_all_seed_expressions_are_unique_and_not_near_duplicates():
-    asset = json.loads((RESOURCE_DIR / "copy.v2.json").read_text(encoding="utf-8"))
+@pytest.mark.parametrize(
+    ("locale", "filename", "minimum_length"),
+    [("ko", "copy.v2.json", 12), ("en", "copy.v2.en.json", 30), ("ja", "copy.v2.ja.json", 12)],
+)
+def test_all_seed_expressions_are_unique_and_not_near_duplicates(
+    locale: str,
+    filename: str,
+    minimum_length: int,
+):
+    asset = json.loads((RESOURCE_DIR / filename).read_text(encoding="utf-8"))
+    assert asset["locales"] == [locale]
     expressions = []
     for bundle in asset["overall"].values():
         expressions.extend((bundle["headline"], *bundle["flow"], bundle["do"], bundle["pause"]))
@@ -80,11 +92,11 @@ def test_all_seed_expressions_are_unique_and_not_near_duplicates():
 
     assert len(expressions) == 560
     assert len(expressions) == len(set(expressions))
-    sentences = [value for value in expressions if len(value) >= 12]
+    sentences = [value for value in expressions if len(value) >= minimum_length]
     near_duplicates = [
         (left, right)
         for index, left in enumerate(sentences)
-        for right in sentences[index + 1:]
+        for right in sentences[index + 1 :]
         if SequenceMatcher(None, left, right).ratio() >= 0.72
     ]
     assert near_duplicates == []
@@ -93,8 +105,17 @@ def test_all_seed_expressions_are_unique_and_not_near_duplicates():
 def test_no_response_can_repeat_the_reviewed_canned_terms():
     asset = json.loads((RESOURCE_DIR / "copy.v2.json").read_text(encoding="utf-8"))
     watched = (
-        "무난하게", "차분히", "편하게", "가볍게", "자연스럽게",
-        "분명하게", "꼼꼼히", "천천히", "서두르", "좋은 날이야", "좋아.",
+        "무난하게",
+        "차분히",
+        "편하게",
+        "가볍게",
+        "자연스럽게",
+        "분명하게",
+        "꼼꼼히",
+        "천천히",
+        "서두르",
+        "좋은 날이야",
+        "좋아.",
     )
     overall_blocks = [
         "\n".join((bundle["headline"], *bundle["flow"], bundle["do"], bundle["pause"]))
@@ -110,8 +131,7 @@ def test_no_response_can_repeat_the_reviewed_canned_terms():
     }
     for term in watched:
         maximum_in_one_response = max(block.count(term) for block in overall_blocks) + sum(
-            max(block.count(term) for block in blocks)
-            for blocks in category_blocks.values()
+            max(block.count(term) for block in blocks) for blocks in category_blocks.values()
         )
         assert maximum_in_one_response <= 1, term
 
@@ -119,21 +139,23 @@ def test_no_response_can_repeat_the_reviewed_canned_terms():
 def test_manifest_hashes_rules_and_copy_together():
     catalog = load_catalog()
     manifest = json.loads((RESOURCE_DIR / "manifest.v2.json").read_text(encoding="utf-8"))
-    for filename in ("rules.v2.json", "copy.v2.json"):
+    for filename in ("rules.v2.json", "copy.v2.json", "copy.v2.en.json", "copy.v2.ja.json"):
         actual = hashlib.sha256((RESOURCE_DIR / filename).read_bytes()).hexdigest()
         assert manifest["assets"][filename]["sha256"] == actual
         assert catalog.asset_hashes[filename] == actual
 
 
-def test_render_returns_atomic_korean_bundle_and_four_two_line_categories():
+def test_render_returns_atomic_localized_bundles_and_four_two_line_categories():
     rendered = render_all(_semantic())
-    assert set(rendered) == {"ko"}
-    result = rendered["ko"]
-    assert set(result["overall"]) == {"headline", "flow", "do", "pause"}
-    assert len(result["overall"]["flow"]) == 3
-    assert set(result["categories"]) == {"love", "money", "work", "energy"}
-    assert all(len(value["text"]) == 2 for value in result["categories"].values())
-    assert result["lucky_color"] == {"key": "blue", "name": "파랑", "hex": "#1E88E5"}
+    assert set(rendered) == {"ko", "en", "ja"}
+    for result in rendered.values():
+        assert set(result["overall"]) == {"headline", "flow", "do", "pause"}
+        assert len(result["overall"]["flow"]) == 3
+        assert set(result["categories"]) == {"love", "money", "work", "energy"}
+        assert all(len(value["text"]) == 2 for value in result["categories"].values())
+    assert rendered["ko"]["lucky_color"] == {"key": "blue", "name": "파랑", "hex": "#1E88E5"}
+    assert rendered["en"]["lucky_color"]["name"] == "Blue"
+    assert rendered["ja"]["lucky_color"]["name"] == "青"
 
 
 @pytest.mark.parametrize(
@@ -206,9 +228,9 @@ def test_duplicate_expression_is_rejected_across_routes(tmp_path: Path):
     resources = _copy_resources(tmp_path)
     path = resources / "copy.v2.json"
     asset = json.loads(path.read_text(encoding="utf-8"))
-    asset["categories"]["category.money.d00.general"]["text"][0] = (
-        asset["categories"]["category.love.d00.general"]["text"][0]
-    )
+    asset["categories"]["category.money.d00.general"]["text"][0] = asset["categories"][
+        "category.love.d00.general"
+    ]["text"][0]
     _write_json(path, asset)
     _refresh_manifest_hash(resources, path.name)
     with pytest.raises(FortuneCatalogError, match="expressions must be unique"):
@@ -232,6 +254,31 @@ def test_overall_category_word_and_bad_flow_length_are_rejected(tmp_path: Path):
     _write_json(path, asset)
     _refresh_manifest_hash(resources, path.name)
     with pytest.raises(FortuneCatalogError, match="exactly three"):
+        load_catalog(resources)
+
+
+@pytest.mark.parametrize(
+    ("filename", "bad", "message"),
+    [
+        ("copy.v2.en.json", "Money should be your only concern today.", "category-specific"),
+        ("copy.v2.ja.json", "今日は仕事だけに集中したい日です。", "category-specific"),
+        ("copy.v2.en.json", "오늘은 a clear day.", "Korean script"),
+        ("copy.v2.en.json", "今日は a clear day.", "CJK script"),
+    ],
+)
+def test_non_korean_catalog_rejects_domain_leaks_and_wrong_scripts(
+    tmp_path: Path,
+    filename: str,
+    bad: str,
+    message: str,
+):
+    resources = _copy_resources(tmp_path)
+    path = resources / filename
+    asset = json.loads(path.read_text(encoding="utf-8"))
+    asset["overall"]["overall.d00.start.default"]["headline"] = bad
+    _write_json(path, asset)
+    _refresh_manifest_hash(resources, filename)
+    with pytest.raises(FortuneCatalogError, match=message):
         load_catalog(resources)
 
 

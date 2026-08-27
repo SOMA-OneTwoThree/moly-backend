@@ -1,4 +1,5 @@
 """오늘의 운세 v3 API 계약."""
+
 from __future__ import annotations
 
 from datetime import date
@@ -13,8 +14,18 @@ Locale = Literal["ko", "en", "ja"]
 Gender = Literal["man", "woman", "undisclosed"]
 CategoryKey = Literal["love", "money", "work", "energy"]
 LuckyColorKey = Literal[
-    "red", "coral", "orange", "yellow", "green", "sky",
-    "blue", "navy", "purple", "pink", "white", "beige",
+    "red",
+    "coral",
+    "orange",
+    "yellow",
+    "green",
+    "sky",
+    "blue",
+    "navy",
+    "purple",
+    "pink",
+    "white",
+    "beige",
 ]
 
 
@@ -68,7 +79,7 @@ class FortuneLuckyColor(StrictResponse):
 
 class FortuneResult(StrictResponse):
     schema_version: Literal[3] = 3
-    locale: Literal["ko"]
+    locale: Locale
     overall: FortuneOverallResult
     categories: FortuneCategories
     lucky_color: FortuneLuckyColor

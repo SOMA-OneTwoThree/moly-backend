@@ -1,4 +1,5 @@
 """오늘 운세 v3 서비스 경계와 공개 projection."""
+
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
@@ -45,11 +46,13 @@ def test_profile_accepts_only_birth_date_and_gender():
     req = FortuneProfilePut(gender="man", birth_date=date(2002, 12, 13))
     assert req.model_dump() == {"gender": "man", "birth_date": date(2002, 12, 13)}
     with pytest.raises(ValidationError):
-        FortuneProfilePut.model_validate({
-            "gender": "man",
-            "birth_date": "2002-12-13",
-            "birth_time_known": False,
-        })
+        FortuneProfilePut.model_validate(
+            {
+                "gender": "man",
+                "birth_date": "2002-12-13",
+                "birth_time_known": False,
+            }
+        )
 
 
 def test_birth_date_age_and_lower_bound_are_explicit():
@@ -62,7 +65,7 @@ def test_birth_date_age_and_lower_bound_are_explicit():
     assert old.value.code == "INVALID_BIRTH_DATE"
 
 
-def test_result_build_is_deterministic_and_has_complete_korean_projection():
+def test_result_build_is_deterministic_and_has_complete_localized_projections():
     profile = SimpleNamespace(birth_date=date(2002, 12, 13))
     first = fortune._build_result(
         profile=profile,
@@ -79,9 +82,10 @@ def test_result_build_is_deterministic_and_has_complete_korean_projection():
     assert semantic["schema_version"] == 3
     assert 0 <= semantic["overall"]["score"] <= 100
     assert set(semantic["categories"]) == {"love", "money", "work", "energy"}
-    assert set(localized) == {"ko"}
-    assert len(localized["ko"]["overall"]["flow"]) == 3
-    assert all(len(value["text"]) == 2 for value in localized["ko"]["categories"].values())
+    assert set(localized) == {"ko", "en", "ja"}
+    for copy in localized.values():
+        assert len(copy["overall"]["flow"]) == 3
+        assert all(len(value["text"]) == 2 for value in copy["categories"].values())
 
 
 def test_public_result_matches_frontend_v3_schema():
@@ -94,7 +98,21 @@ def test_public_result_matches_frontend_v3_schema():
     value = fortune._public_result(row, "ja")
     parsed = FortuneResult.model_validate(value)
     assert parsed.schema_version == 3
-    assert parsed.locale == "ko"
+    assert parsed.locale == "ja"
+    assert parsed.lucky_color.name in {
+        "赤",
+        "コーラル",
+        "オレンジ",
+        "黄色",
+        "緑",
+        "水色",
+        "青",
+        "ネイビー",
+        "紫",
+        "ピンク",
+        "白",
+        "ベージュ",
+    }
     assert len(parsed.overall.flow) == 3
     assert len(parsed.categories.love.text) == 2
 
@@ -108,10 +126,14 @@ def test_current_row_rejects_v1_snapshot_and_accepts_matching_v3():
         semantic_result={"schema_version": 3},
         copy_by_locale={"ko": {}},
     )
-    assert fortune._current_row(SimpleNamespace(**base), today=date(2026, 8, 27), timezone_name="Asia/Seoul", revision=2)
+    assert fortune._current_row(
+        SimpleNamespace(**base), today=date(2026, 8, 27), timezone_name="Asia/Seoul", revision=2
+    )
     base["result_schema_version"] = 2
     base["semantic_result"] = {"schema_version": 2}
-    assert not fortune._current_row(SimpleNamespace(**base), today=date(2026, 8, 27), timezone_name="Asia/Seoul", revision=2)
+    assert not fortune._current_row(
+        SimpleNamespace(**base), today=date(2026, 8, 27), timezone_name="Asia/Seoul", revision=2
+    )
 
 
 def test_fortune_routes_are_registered_but_require_authentication():

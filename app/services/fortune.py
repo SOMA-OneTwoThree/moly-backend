@@ -1,4 +1,5 @@
 """오늘의 운세 핵심 서비스 — 프로필, 당일 snapshot, 광고 잠금."""
+
 from __future__ import annotations
 
 import hashlib
@@ -31,7 +32,10 @@ def _ready() -> bool:
     if not settings.fortune_enabled:
         return False
     rules = fortune_rules.load_rule_assets()
-    if not rules["approved_for_production"] and settings.environment not in {"local", "development"}:
+    if not rules["approved_for_production"] and settings.environment not in {
+        "local",
+        "development",
+    }:
         return False
     # feature가 켜질 때 asset 누락·hash 불일치를 즉시 실패시킨다.
     fortune_catalog.load_catalog()
@@ -43,8 +47,13 @@ def _require_enabled() -> None:
         raise _err("FEATURE_UNAVAILABLE", 403, "오늘의 운세 기능을 사용할 수 없어요.")
 
 
-def _locale(_value: str | None, _fallback: str | None = None) -> str:
-    # 개발 seed는 한국어만 승인됐다. 응답의 locale도 실제 콘텐츠 언어인 ko를 명시한다.
+def _locale(value: str | None, fallback: str | None = None) -> str:
+    """명시 헤더를 우선하고 계정 언어, 한국어 순서로 안전하게 해석한다."""
+
+    for candidate in (value, fallback):
+        normalized = (candidate or "").split("-", 1)[0].lower()
+        if normalized in fortune_catalog.SUPPORTED_LOCALES:
+            return normalized
     return "ko"
 
 
@@ -97,7 +106,9 @@ async def put_profile(
     _validate_birth_date(req.birth_date, today=today)
 
     current = await session.get(FortuneProfile, uid, with_for_update=True)
-    changed = current is None or current.birth_date != req.birth_date or current.gender != req.gender
+    changed = (
+        current is None or current.birth_date != req.birth_date or current.gender != req.gender
+    )
     if current is None:
         current = FortuneProfile(
             user_id=uid,
@@ -345,17 +356,17 @@ async def reveal(
             row.unlocked_at = None
             row.revealed_at = None
 
-    access, plan = await _access(
-        session, user_id, now=now, daily=row, today=today, account=account
-    )
+    access, plan = await _access(session, user_id, now=now, daily=row, today=today, account=account)
     if access == "ad_required":
         verified = (
             await session.execute(
-                select(FortuneAdSession.session_id).where(
+                select(FortuneAdSession.session_id)
+                .where(
                     FortuneAdSession.user_id == uid,
                     FortuneAdSession.fortune_date == today,
                     FortuneAdSession.verified.is_(True),
-                ).limit(1)
+                )
+                .limit(1)
             )
         ).scalar_one_or_none()
         if verified is not None:

@@ -26,7 +26,7 @@ def _turn_metrics_payload(caplog) -> dict:
 
 
 async def test_turn_metrics_logs_all_required_fields(monkeypatch, caplog):
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _fake_llm(system, convo, **kw):
@@ -59,7 +59,7 @@ async def test_turn_metrics_logs_all_required_fields(monkeypatch, caplog):
 
 async def test_turn_metrics_cache_read_ratio_null_when_no_prompt_tokens(monkeypatch, caplog):
     # 분모(prompt_tokens) 0이면 cache_read_ratio는 null이어야 한다(0으로 나누기 회피).
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _fake_llm(system, convo, **kw):
@@ -100,7 +100,7 @@ async def test_turn_metrics_replay_flagged_on_idempotent_cache_hit(monkeypatch, 
 
 async def test_post_message_survives_metrics_log_failure(monkeypatch, caplog):
     """로그 배출 중 예외가 나도 post_message 응답이 막히면 안 된다(계측 실패 ≠ 응답 실패)."""
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _fake_llm(system, convo, **kw):

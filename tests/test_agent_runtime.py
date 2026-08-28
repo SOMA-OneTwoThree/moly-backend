@@ -601,13 +601,13 @@ async def test_budget_applied_before_step2(monkeypatch):
 
 # --- 8) chat 배선 ---
 async def _post(session, monkeypatch, *, reply="응.", agent=None, snapshot=None):
-    async def _res(s, user_id):
+    async def _res(s, user_id, **kwargs):
         return _gating()
 
     async def _fake_llm(system, convo, **kw):
         return LLMResult(text=reply, input_tokens=10, output_tokens=20, model="gpt-5.6-luna")
 
-    async def _fake_cfg(s):
+    async def _fake_cfg(s, **kwargs):
         return snapshot if snapshot is not None else build_snapshot({})
 
     monkeypatch.setattr(gating_module, "resolve", _res)
@@ -678,7 +678,7 @@ async def test_config_db_failure_propagates_and_saves_nothing(monkeypatch):
     """설정 조회 실패를 삼키면 설정 장애가 조용히 기본값으로 둔갑한다 — Phase 1 DB 오류로 올린다."""
     called = []
 
-    async def _boom(session):
+    async def _boom(session, **kwargs):
         raise RuntimeError("app_config 조회 실패")
 
     async def _llm_must_not_run(*a, **kw):
@@ -689,7 +689,7 @@ async def test_config_db_failure_propagates_and_saves_nothing(monkeypatch):
     monkeypatch.setattr(gating_module, "resolve", lambda s, u: _gating())
     session = FakeSession()
 
-    async def _res(s, user_id):
+    async def _res(s, user_id, **kwargs):
         return _gating()
 
     monkeypatch.setattr(gating_module, "resolve", _res)

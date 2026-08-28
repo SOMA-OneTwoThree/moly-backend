@@ -30,7 +30,9 @@ from app.schemas.chat import PostMessageResponse
 from app.services import (
     checkpoint,
     checkpoint_repo,
+    config_store,
     gating,
+    limits,
     greetings,
     i18n,
     llm,
@@ -303,16 +305,6 @@ async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> No
             "anchor_message_id": func.greatest(ChatContext.anchor_message_id, anchor),
             "updated_at": func.now(),
         },
-    )
-    await session.execute(stmt)
-
-
-async def _touch_last_active(session: AsyncSession, uid: uuid.UUID, now: datetime) -> None:
-    """이번 턴 확정 시각을 저장한다. Phase 1은 이 쓰기 전 값을 읽으므로 직전 방문을 본다."""
-    stmt = pg_insert(ChatContext).values(user_id=uid, last_active_at=now)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=["user_id"],
-        set_={"last_active_at": now, "updated_at": func.now()},
     )
     await session.execute(stmt)
 
@@ -825,7 +817,12 @@ async def post_message(
         lease_seconds=max(15.0, settings.agent_turn_deadline_s + 10.0),
     )
 
-    g = await gating.resolve(session, user_id)
+    # app_config 왕복 병합(#11) — 게이팅 키 + 도구 루프 키를 한 SELECT로 읽는다.
+    # 반드시 유저 락(808행) **이후**여야 한다 — 동시요청의 한도 우회(TOCTOU) 방지 순서 불변.
+    raw_cfg = await config_store.get_config_values(
+        session, [*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS]
+    )
+    g = await gating.resolve(session, user_id, config_raw=raw_cfg)
     remaining = g.entitlement["tokens_remaining"]
     if remaining is None:
         # 한도 미해석(app_config의 daily_token_limit dict 부분/불량) → 무제한으로 새지 않게 free 폴백.
@@ -906,10 +903,10 @@ async def post_message(
         latest_checkpoint = await checkpoint_repo.load_latest(session, uid)
         checkpoint_summary = latest_checkpoint.summary if latest_checkpoint is not None else ""
 
-    # 도구 루프 설정(W5) — read-only 구간에서 **1회** 조회해 frozen snapshot으로 들고 나간다.
+    # 도구 루프 설정(W5) — Phase 1에서 이미 읽은 raw_cfg(#11 병합 SELECT)로 frozen snapshot을 만든다.
     # agent phase는 DB도 settings도 다시 읽지 않는다(TTL 캐시 없음 = 두 EC2 캐시 불일치 없음).
     # 조회 실패는 잡지 않는다 — 설정 장애를 숨기지 않고 기존 Phase 1 DB 오류로 전파시킨다.
-    agent_cfg = await agent_config.effective_agent_config(session)
+    agent_cfg = await agent_config.effective_agent_config(session, raw=raw_cfg)
 
     # 데드라인을 **유효 설정**으로 다시 잰다. api/chat.py는 DB를 열기 전에 요청 수신 시각으로
     # 데드라인을 만들어야 해서 `settings` 값을 쓸 수밖에 없다. 그대로 두면 app_config로
@@ -1278,7 +1275,8 @@ async def post_message(
     # 기억 v2(15장 5단계) — legacy 사용자는 no-op. shadow/v2만 source 커서와 관계 event를
     # **이 트랜잭션에서** 함께 기록한다. shadow는 기록만 하고 응답에는 쓰지 않는다.
     await _record_memory_v2(session, uid, turn_seq=lease.turn_seq, activity_date=ad, now=now)
-    await _touch_last_active(session, uid, now)
+    # last_active_at 기록은 finish_publish의 _PUBLISH SET에 병합됐다(#23a — 왕복 1회 절감).
+    # 같은 트랜잭션이라 원자성 동일: CAS 실패(409) 시 함께 롤백된다.
 
     # 대화 요약 checkpoint(W11) — 리셋이 일어난 턴에만, 앵커 저장과 같은 트랜잭션에서 잡을 건다.
     # 킬스위치 off면 no-op(현재 전 유저).
@@ -1294,7 +1292,7 @@ async def post_message(
     # 리뷰 노출 판정(당일 누적이 임계 생애 최초 초과 & 미노출)
     review = review_prompted_at is None and new_used >= review_min
 
-    new_revision = await chat_turns.finish_publish(session, user_id=uid, lease=lease)
+    new_revision = await chat_turns.finish_publish(session, user_id=uid, lease=lease, now=now)
     references = await chat_references.persist_selected(
         session,
         user_id=uid,

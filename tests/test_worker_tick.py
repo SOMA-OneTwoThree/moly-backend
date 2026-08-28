@@ -19,10 +19,11 @@ class _Res:
 
 
 class _FakeSession:
-    """execute → 프로필 id 목록(페이지네이션), get → id로 프로필 조회."""
-    def __init__(self, ids, by_id):
+    """execute → tz distinct/프로필 id 목록(페이지네이션), get → id로 프로필 조회."""
+    def __init__(self, ids, by_id, tzs):
         self._ids = ids
         self._by_id = by_id
+        self._tzs = tzs
 
     async def __aenter__(self):
         return self
@@ -31,6 +32,11 @@ class _FakeSession:
         return False
 
     async def execute(self, stmt, *a, **k):
+        s = str(stmt)
+        # #16+#24 사전 필터의 timezone distinct 조회 — id를 돌려주면 tz 해석이 전부 실패해
+        # 유저 루프가 조용히 비므로 반드시 구분한다.
+        if "profiles.timezone" in s and "profiles.id" not in s:
+            return _Res(self._tzs)
         return _Res(self._ids)
 
     async def get(self, model, pid):
@@ -46,16 +52,19 @@ class _FakeSession:
 def _fake_get_sessionmaker(profiles):
     ids = [p.id for p in profiles]
     by_id = {p.id: p for p in profiles}
+    tzs = sorted({p.timezone for p in profiles})
 
     def get():
         def maker():
-            return _FakeSession(ids, by_id)
+            return _FakeSession(ids, by_id, tzs)
         return maker
     return get
 
 
 async def test_run_tick_skips_bad_timezone_and_continues(monkeypatch):
-    """잘못된 IANA timezone 유저는 스킵하고 나머지 유저 처리를 계속한다(배치 붕괴 방지)."""
+    """잘못된 IANA timezone은 tz 집합 단계에서 경고 후 제외되고, 나머지는 계속된다(배치 붕괴 방지).
+
+    #16+#24 이후: 판정은 파이썬(ZoneInfo)이므로 이상 tz 1건이 쿼리를 죽일 수 없다."""
     bad = SimpleNamespace(id=uuid.uuid4(), timezone="Not/AZone")
     good = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
 
@@ -64,10 +73,26 @@ async def test_run_tick_skips_bad_timezone_and_continues(monkeypatch):
 
     monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([bad, good]))
     monkeypatch.setattr(tick, "effective_token_config", _cfg)
-    # UTC 06:00 = KST 15:00 → 목표 시각(04/09/20) 아님 → 작업 없이 순회. UTC hour≠4 → sweep 없음.
+    # UTC 00:00 = KST 09:00 → 아침 시각. bad tz는 해석 불가로 tz 집합에서 빠지고 good만 대상.
+    now = datetime(2026, 7, 6, 0, 0, tzinfo=timezone.utc)
+    counts = await tick.run_tick(now)
+    assert counts["timed_out"] == 0
+    assert counts["users"] == 2  # 페이크 페이징은 필터를 흉내 안 내지만, 순회가 죽지 않는다
+
+
+async def test_run_tick_idle_hour_skips_user_loop(monkeypatch):
+    """#16+#24: 어느 tz도 처리 시각(04/09/20)이 아니면 유저 순회 자체를 하지 않는다."""
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+
+    async def _cfg(session):
+        return {}
+
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    monkeypatch.setattr(tick, "effective_token_config", _cfg)
+    # UTC 06:00 = KST 15:00 → 목표 시각 아님 → 유저 루프 스킵(유휴 쿼리 제거의 핵심).
     now = datetime(2026, 7, 6, 6, 0, tzinfo=timezone.utc)
     counts = await tick.run_tick(now)
-    assert counts["users"] == 2 and counts["timed_out"] == 0  # 예외 없이 두 유저 순회
+    assert counts["users"] == 0 and counts["timed_out"] == 0
 
 
 async def test_run_tick_user_timeout_isolated(monkeypatch):
@@ -85,7 +110,8 @@ async def test_run_tick_user_timeout_isolated(monkeypatch):
     monkeypatch.setattr(tick, "effective_token_config", _cfg)
     monkeypatch.setattr(tick, "_process_user", _slow)
     monkeypatch.setattr(tick.settings, "worker_user_timeout_s", 0.001)
-    now = datetime(2026, 7, 6, 6, 0, tzinfo=timezone.utc)
+    # UTC 00:00 = KST 09:00 → 아침 시각(유저 루프가 실제로 돈다 — #16+#24 이후 유휴 시각이면 스킵).
+    now = datetime(2026, 7, 6, 0, 0, tzinfo=timezone.utc)
     counts = await tick.run_tick(now)
     assert counts["timed_out"] == 1 and counts["users"] == 1
 

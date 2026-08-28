@@ -62,17 +62,22 @@ def test_worker_writes_memory_sources_with_time_coordinates():
 
 
 def test_evidence_is_written_in_the_same_transaction_as_the_row_it_belongs_to():
-    """따로 커밋하면 그 사이 crash에서 근거 없는 기억이 남는다."""
+    """따로 커밋하면 그 사이 crash에서 근거 없는 기억이 남는다.
+
+    #21 배치화 이후: 근거 저장은 `_evidence_arrays`(후보 전체 평탄화) → 배치 INSERT 1문이고,
+    본문 저장과 같은 세션에서 커밋 앞에 실행돼야 한다는 계약은 동일하다.
+    """
     src = inspect.getsource(mem0_jobs.handle_mem0_ingest)
     tree = ast.parse(inspect.getsource(mem0_jobs.handle_mem0_ingest).lstrip())
-    for name in ("_stage", "_register"):
+    evidence_stmt = {"_stage": "_CANDIDATE_SOURCES_BATCH", "_register": "_MEMORY_SOURCES_BATCH"}
+    for name, stmt in evidence_stmt.items():
         fn = next(n for n in ast.walk(tree)
                   if isinstance(n, ast.AsyncFunctionDef) and n.name == name)
         body = ast.unparse(fn)
-        assert "for ev in p.evidence" in body, f"{name}이 근거를 저장하지 않는다"
-        assert body.rindex("commit") > body.index("for ev in p.evidence"), \
+        assert stmt in body, f"{name}이 근거를 저장하지 않는다"
+        assert body.rindex("commit") > body.index(stmt), \
             f"{name}이 근거 저장 전에 커밋한다"
-    assert "_MEMORY_SOURCE" in src
+    assert "_MEMORY_SOURCES_BATCH" in src
 
 
 def test_only_user_utterances_can_be_evidence():

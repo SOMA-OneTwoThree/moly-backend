@@ -74,7 +74,7 @@ def _gating(**over):
 
 def _patch_repair_turn(monkeypatch):
     """외래문자는 세 번째 모델 호출 없이 결정적으로 제거된다."""
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _gen(system, convo, **kw):
@@ -102,7 +102,7 @@ async def test_foreign_character_backstop_does_not_add_a_third_llm_call(monkeypa
 
 async def test_no_repair_turn_bills_chat_only(monkeypatch):
     """복원 미발동 턴은 주 호출분만 — 합산 도입이 정상 턴을 부풀리지 않는다(회귀)."""
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _gen(system, convo, **kw):

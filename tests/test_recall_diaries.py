@@ -127,10 +127,20 @@ def test_query_is_not_a_filter_in_sql() -> None:
 
     `eligible` 단계의 WHERE는 소유·공개 여부라 정상이다. `ranked` 단계에 WHERE가 생기면
     그게 곧 질의 필터이고, "어제 일기" 같은 말에 0건이 되어 캐피가 일기를 지어낸다.
+
+    #15c 이후: 절단은 `top`의 두 갈래(맞은 행 점수순 / 안 맞은 행 최신순)가 나눠 하므로,
+    안 맞은 행도 반드시 도달 가능해야 한다 — WHERE NOT content_match 갈래의 존재가 그 증거다.
     """
-    ranked = _sql().split("ranked AS (", 1)[1]
+    ranked = _sql().split("ranked AS (", 1)[1].split("), counts AS (", 1)[0]
     assert " WHERE " not in ranked.upper(), (
         "ranked 단계에 WHERE가 생겼다 — 질의가 다시 하드 필터가 됐다"
+    )
+    sql = _sql()
+    assert "WHERE content_match" in sql and "WHERE NOT content_match" in sql, (
+        "안 맞은 행의 자리 채움 갈래가 사라졌다 — 질의가 하드 필터가 됐다"
+    )
+    assert "NOT content_match ORDER BY display_date DESC" in sql, (
+        "자리 채움은 벡터 점수가 아니라 display_date DESC 상한이어야 한다(#15c)"
     )
 
 
@@ -147,10 +157,12 @@ def test_matched_count_counts_only_real_matches() -> None:
 
 
 def test_matched_rows_come_first() -> None:
-    """맞은 것이 먼저 나와야 limit 안에 답이 들어온다."""
+    """맞은 것이 먼저 나와야 limit 안에 답이 들어온다.
+
+    #15c 이후 ORDER BY가 여러 개(top 갈래 내부 정렬)라 **최종** ORDER BY를 본다."""
     sql = _sql()
-    order = sql.split("ORDER BY")[1]
-    assert order.strip().startswith("content_match DESC"), (
+    order = sql.rsplit("ORDER BY", 1)[1]
+    assert order.strip().startswith("t.content_match DESC"), (
         "맞은 행을 먼저 정렬하지 않는다 — 후보가 많으면 답이 limit 밖으로 밀린다"
     )
 

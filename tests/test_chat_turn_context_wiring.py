@@ -19,7 +19,7 @@ UID = "11111111-1111-1111-1111-111111111111"
 
 
 async def _post(session, monkeypatch, *, reply="응.", capture: dict | None = None, tokens_used=1000):
-    async def _res(s, user_id):
+    async def _res(s, user_id, **kwargs):
         return _gating(tokens_used=tokens_used)
 
     async def _fake_llm(system, convo, **kw):

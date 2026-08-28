@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.services.config_store import get_config_values
 
-_KEYS = [
+CONFIG_KEYS = [
     "daily_token_limit",
     "diary_llm_min_tokens",
     "diary_min_user_chars",
@@ -22,8 +22,11 @@ _KEYS = [
 ]
 
 
-async def effective_token_config(session: AsyncSession) -> dict[str, Any]:
-    cfg = await get_config_values(session, _KEYS)
+async def effective_token_config(
+    session: AsyncSession, *, raw: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    # raw: 호출측이 app_config를 이미 읽어 왔으면 재조회하지 않는다(#11 — 요청당 왕복 병합).
+    cfg = raw if raw is not None else await get_config_values(session, CONFIG_KEYS)
     limits = cfg.get("daily_token_limit")
     if not isinstance(limits, dict):
         limits = {

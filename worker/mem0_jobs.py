@@ -69,48 +69,63 @@ WHERE user_id = :user_id AND kind = 'normal'
 ORDER BY id
 """)
 
-_STAGE_CANDIDATE = text("""
+# 배치(#21): 계획 전량을 unnest 배열 1문으로 넣는다(후보 N개 = 왕복 N회 → 1회).
+# ⚠️ `INSERT…RETURNING`을 CTE로 이어 자식을 넣지 않는다 — RETURNING은 ON CONFLICT DO
+# NOTHING에 걸린 기존 행을 돌려주지 않아, resume(이어받은 계획)에서 근거 연결이 소실된다
+# (과거 운영사고 계열). 자식은 아래 배치문이 부모 테이블 조인으로 연결한다.
+_STAGE_CANDIDATES_BATCH = text("""
 INSERT INTO mem0_ingest_candidates
   (user_id, turn_seq, candidate_hash, schema_version, extractor_version, normalizer_version,
    provider_memory_id, candidate_text, status, repair_generation, category)
-VALUES (:user_id, :turn_seq, :candidate_hash, :schema_version, :extractor_version,
-        :normalizer_version, :provider_memory_id, :candidate_text, 'planned', :generation,
-        :category)
+SELECT :user_id, :turn_seq, t.candidate_hash, :schema_version, :extractor_version,
+       :normalizer_version, t.provider_memory_id, t.candidate_text, 'planned', :generation,
+       t.category
+FROM unnest(:hashes ::text[], :provider_memory_ids ::uuid[], :texts ::text[],
+            :categories ::text[])
+     AS t(candidate_hash, provider_memory_id, candidate_text, category)
 ON CONFLICT (user_id, turn_seq, candidate_hash, schema_version, repair_generation) DO NOTHING
 """)
 
 # 후보의 근거. **이게 없으면 정정을 기존 기억에 연결할 수 없다** — 사용자가 "산책 안 했어"라고
 # 해도 어느 기억을 닫아야 하는지 특정할 방법이 없다(감사 지적).
-_CANDIDATE_SOURCE = text("""
+# 부모 연결은 단건 시절과 동일한 (user_id, provider_memory_id) 조인 — RETURNING 미사용.
+_CANDIDATE_SOURCES_BATCH = text("""
 INSERT INTO mem0_ingest_candidate_sources
   (candidate_id, user_id, source_message_id, source_sender, source_content_hash,
    evidence_start_utf8, evidence_end_utf8, authority, confidence)
-SELECT c.id, :user_id, :message_id, :sender, :content_hash,
-       :start_utf8, :end_utf8, 'explicit_user', NULL
-FROM mem0_ingest_candidates c
-WHERE c.user_id = :user_id AND c.provider_memory_id = :provider_memory_id
+SELECT c.id, :user_id, e.message_id, e.sender, e.content_hash,
+       e.start_utf8, e.end_utf8, 'explicit_user', NULL
+FROM unnest(:e_provider_memory_ids ::uuid[], :e_message_ids ::bigint[], :e_senders ::text[],
+            :e_content_hashes ::text[], :e_starts ::integer[], :e_ends ::integer[])
+     AS e(provider_memory_id, message_id, sender, content_hash, start_utf8, end_utf8)
+JOIN mem0_ingest_candidates c
+  ON c.user_id = :user_id AND c.provider_memory_id = e.provider_memory_id
 ON CONFLICT DO NOTHING
 """)
 
 # registry 확정 시 같은 근거를 시간 좌표와 함께 옮긴다. timeline 원문 hydration과
 # tombstone 검증이 이 표를 읽는다.
-_MEMORY_SOURCE = text("""
+_MEMORY_SOURCES_BATCH = text("""
 INSERT INTO mem0_memory_sources
   (registry_id, user_id, source_turn_seq, source_message_id, source_sender,
    evidence_start_utf8, evidence_end_utf8, source_content_hash,
    source_occurred_at, source_activity_date, authority, confidence, extractor_version)
-SELECT r.id, :user_id, :turn_seq, m.id, :sender,
-       :start_utf8, :end_utf8, :content_hash,
+SELECT r.id, :user_id, :turn_seq, m.id, e.sender,
+       e.start_utf8, e.end_utf8, e.content_hash,
        m.created_at, m.activity_date, 'explicit_user', NULL, :extractor_version
-FROM mem0_memory_registry r
-JOIN messages m ON m.id = :message_id AND m.user_id = :user_id
-WHERE r.user_id = :user_id AND r.provider_memory_id = :provider_memory_id
+FROM unnest(:e_provider_memory_ids ::uuid[], :e_message_ids ::bigint[], :e_senders ::text[],
+            :e_content_hashes ::text[], :e_starts ::integer[], :e_ends ::integer[])
+     AS e(provider_memory_id, message_id, sender, content_hash, start_utf8, end_utf8)
+JOIN mem0_memory_registry r
+  ON r.user_id = :user_id AND r.provider_memory_id = e.provider_memory_id
+JOIN messages m ON m.id = e.message_id AND m.user_id = :user_id
 ON CONFLICT DO NOTHING
 """)
 
-_COMMIT_CANDIDATE = text("""
+_COMMIT_CANDIDATES_BATCH = text("""
 UPDATE mem0_ingest_candidates SET status='committed', updated_at=now()
-WHERE user_id=:user_id AND provider_memory_id=:provider_memory_id AND status='planned'
+WHERE user_id=:user_id AND provider_memory_id = ANY(:provider_memory_ids ::uuid[])
+  AND status='planned'
 """)
 
 # 재시도가 앞 시도의 계획을 이어받는다. **extractor를 다시 부르면 안 된다** — LLM이라
@@ -154,12 +169,14 @@ SELECT count(*) FROM mem0_memory_registry
 WHERE user_id = :user_id AND source_turn_seq = :turn_seq AND semantic_status = 'pending'
 """)
 
-_REGISTER_PENDING = text("""
+_REGISTER_PENDING_BATCH = text("""
 INSERT INTO mem0_memory_registry
   (user_id, provider, collection_version, provider_memory_id, source_turn_seq,
    content_hash, semantic_status, schema_version, category)
-VALUES (:user_id, 'mem0', :collection_version, :provider_memory_id, :turn_seq,
-        :content_hash, 'pending', :schema_version, :category)
+SELECT :user_id, 'mem0', :collection_version, t.provider_memory_id, :turn_seq,
+       t.content_hash, 'pending', :schema_version, t.category
+FROM unnest(:provider_memory_ids ::uuid[], :content_hashes ::text[], :categories ::text[])
+     AS t(provider_memory_id, content_hash, category)
 ON CONFLICT (user_id, provider, collection_version, provider_memory_id) DO NOTHING
 """)
 
@@ -362,52 +379,71 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         ]
         return await _adapter().insert_many(records, user_id=str(uid), timeout=timeout)
 
+    def _evidence_arrays(planned: list[mem0_pipeline.PlannedCandidate]) -> dict:
+        """후보 전체의 근거를 평탄화한 병렬 배열(unnest 입력)."""
+        pmids, mids, senders, hashes, starts, ends = [], [], [], [], [], []
+        for p in planned:
+            for ev in p.evidence:
+                pmids.append(p.provider_memory_id)
+                mids.append(ev.message_id)
+                senders.append(ev.sender)
+                hashes.append(ev.content_hash)
+                starts.append(ev.start_utf8)
+                ends.append(ev.end_utf8)
+        return {
+            "e_provider_memory_ids": pmids, "e_message_ids": mids, "e_senders": senders,
+            "e_content_hashes": hashes, "e_starts": starts, "e_ends": ends,
+        }
+
     async def _stage(planned: list[mem0_pipeline.PlannedCandidate]) -> None:
+        if not planned:
+            return
         async with get_sessionmaker()() as session:
-            for p in planned:
-                await session.execute(_STAGE_CANDIDATE, {
-                    "user_id": uid, "turn_seq": turn_seq,
-                    "candidate_hash": p.candidate_hash,
-                    "schema_version": mem0_ingest.SCHEMA_VERSION,
-                    "extractor_version": mem0_extractor.EXTRACTOR_VERSION,
-                    "normalizer_version": mem0_ingest.NORMALIZER_VERSION,
-                    "provider_memory_id": p.provider_memory_id,
-                    "candidate_text": p.text,
-                    "generation": generation,
-                    "category": p.category,
-                })
-                for ev in p.evidence:
-                    await session.execute(_CANDIDATE_SOURCE, {
-                        "user_id": uid, "provider_memory_id": p.provider_memory_id,
-                        "message_id": ev.message_id, "sender": ev.sender,
-                        "content_hash": ev.content_hash,
-                        "start_utf8": ev.start_utf8, "end_utf8": ev.end_utf8,
-                    })
+            await session.execute(_STAGE_CANDIDATES_BATCH, {
+                "user_id": uid, "turn_seq": turn_seq,
+                "schema_version": mem0_ingest.SCHEMA_VERSION,
+                "extractor_version": mem0_extractor.EXTRACTOR_VERSION,
+                "normalizer_version": mem0_ingest.NORMALIZER_VERSION,
+                "generation": generation,
+                "hashes": [p.candidate_hash for p in planned],
+                "provider_memory_ids": [p.provider_memory_id for p in planned],
+                "texts": [p.text for p in planned],
+                "categories": [p.category for p in planned],
+            })
+            ev_arrays = _evidence_arrays(planned)
+            if ev_arrays["e_message_ids"]:
+                await session.execute(
+                    _CANDIDATE_SOURCES_BATCH, {"user_id": uid, **ev_arrays}
+                )
             await session.commit()
 
     async def _register(planned: list[mem0_pipeline.PlannedCandidate]) -> None:
+        if not planned:
+            return
         async with get_sessionmaker()() as session:
-            for p in planned:
-                await session.execute(_REGISTER_PENDING, {
-                    "user_id": uid, "collection_version": COLLECTION_VERSION,
-                    "provider_memory_id": p.provider_memory_id, "turn_seq": turn_seq,
-                    "content_hash": p.candidate_hash,
-                    "schema_version": mem0_ingest.SCHEMA_VERSION,
-                    "category": p.category,
-                })
-                # registry가 생긴 뒤에야 계획을 닫는다(9.2절). 순서가 뒤집히면 crash 복구가
-                # 참조할 planned 행이 사라져 provider에만 남은 벡터를 못 찾는다.
-                for ev in p.evidence:
-                    await session.execute(_MEMORY_SOURCE, {
-                        "user_id": uid, "provider_memory_id": p.provider_memory_id,
-                        "turn_seq": turn_seq, "message_id": ev.message_id,
-                        "sender": ev.sender, "content_hash": ev.content_hash,
-                        "start_utf8": ev.start_utf8, "end_utf8": ev.end_utf8,
+            await session.execute(_REGISTER_PENDING_BATCH, {
+                "user_id": uid, "collection_version": COLLECTION_VERSION,
+                "turn_seq": turn_seq,
+                "schema_version": mem0_ingest.SCHEMA_VERSION,
+                "provider_memory_ids": [p.provider_memory_id for p in planned],
+                "content_hashes": [p.candidate_hash for p in planned],
+                "categories": [p.category for p in planned],
+            })
+            # registry가 생긴 뒤에야 계획을 닫는다(9.2절) — 한 트랜잭션이라 원자성은 동일하고,
+            # 문장 순서도 registry → sources → commit 을 유지한다.
+            ev_arrays = _evidence_arrays(planned)
+            if ev_arrays["e_message_ids"]:
+                await session.execute(
+                    _MEMORY_SOURCES_BATCH, {
+                        "user_id": uid, "turn_seq": turn_seq,
                         "extractor_version": mem0_extractor.EXTRACTOR_VERSION,
-                    })
-                await session.execute(_COMMIT_CANDIDATE, {
-                    "user_id": uid, "provider_memory_id": p.provider_memory_id,
-                })
+                        **ev_arrays,
+                    }
+                )
+            await session.execute(_COMMIT_CANDIDATES_BATCH, {
+                "user_id": uid,
+                "provider_memory_ids": [p.provider_memory_id for p in planned],
+            })
             await session.commit()
 
     try:
@@ -679,10 +715,10 @@ ORDER BY updated_at
 LIMIT :limit
 """)
 
-_MARK_DELETED = text("""
+_MARK_DELETED_BATCH = text("""
 UPDATE mem0_memory_registry
-SET provider_delete_state = :state, provider_deleted_at = now(), updated_at = now()
-WHERE id = :id AND user_id = :user_id AND provider_delete_state = 'pending'
+SET provider_delete_state = 'deleted', provider_deleted_at = now(), updated_at = now()
+WHERE id = ANY(:ids ::uuid[]) AND user_id = :user_id AND provider_delete_state = 'pending'
 """)
 
 
@@ -691,6 +727,10 @@ async def handle_mem0_provider_delete(job: ClaimedJob) -> JobResult:
 
     **삭제가 늦거나 실패해도 노출되지 않는다** — search adapter가 semantic 상태로 이미 거른다.
     그래서 이 잡은 정합성이 아니라 **저장 비용**을 위한 것이며, 실패는 재시도로 충분하다.
+
+    #15b: provider `delete`는 전체 ids 1회 호출이다(행당 1회 왕복 → 1회). 성공하면 전원
+    'deleted', 실패하면 **아무도 마킹하지 않고 JobRetry** — 행은 pending으로 남아 재시도가
+    다시 훑는다. 예전의 "실패분 전원 failed 마킹"은 일시 장애 한 번에 잔존물을 만들었다.
     """
     if job.user_id is None:
         raise JobFatal("missing_user")
@@ -704,24 +744,22 @@ async def handle_mem0_provider_delete(job: ClaimedJob) -> JobResult:
     if not rows:
         return JobResult(result_code="nothing_to_delete")
 
-    deleted, failed = [], []
-    for registry_id, provider_id in rows:
-        try:
-            await _adapter().delete([str(provider_id)], timeout=6.0)
-            deleted.append(registry_id)
-        except Exception as e:  # noqa: BLE001  개별 실패가 나머지를 막지 않는다
-            _log.warning("provider 삭제 실패 — registry=%s: %r", registry_id, e)
-            failed.append(registry_id)
+    registry_ids = [registry_id for registry_id, _pid in rows]
+    provider_ids = [str(provider_id) for _rid, provider_id in rows]
+    try:
+        await _adapter().delete(provider_ids, timeout=6.0)
+    except Exception as e:  # noqa: BLE001  일시 장애 — 마킹 없이 backoff 재시도
+        _log.warning("provider 삭제 실패(재시도) — user=%s %d건: %r", uid, len(rows), e)
+        raise JobRetry("provider_delete_failed") from e
 
     async def _apply(session) -> None:
-        for rid in deleted:
-            await session.execute(_MARK_DELETED, {"id": rid, "user_id": uid, "state": "deleted"})
-        for rid in failed:
-            await session.execute(_MARK_DELETED, {"id": rid, "user_id": uid, "state": "failed"})
+        await session.execute(
+            _MARK_DELETED_BATCH, {"ids": registry_ids, "user_id": uid}
+        )
 
     return JobResult(
         result_code="ok",
-        result_detail={"deleted": len(deleted), "failed": len(failed)},
+        result_detail={"deleted": len(registry_ids)},
         apply_domain=_apply,
     )
 

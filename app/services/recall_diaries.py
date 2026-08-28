@@ -22,7 +22,10 @@ WITH params AS (
          CAST(:to_date AS date) AS to_date,
          CAST(:focus_id AS uuid) AS focus_id
 ), eligible AS (
-  SELECT d.id,d.kind,d.display_date,d.title,d.content,d.weather,d.published_at,d.first_read_at,
+  -- #15c: 여기서 본문(title/content/weather)을 끌고 다니지 않는다 — 예전에는 published
+  -- 전량이 본문(TOAST)째 실체화·정렬됐다(§5.2 "최악"). 본문은 마지막에 뽑힌 ≤limit행만
+  -- diaries에 다시 조인해 읽는다.
+  SELECT d.id,d.kind,d.display_date,d.published_at,d.first_read_at,
          rd.search_text,
          CASE WHEN p.embedding IS NULL OR rd.embedding IS NULL THEN NULL
               ELSE 1-(rd.embedding <=> p.embedding) END AS similarity
@@ -50,13 +53,30 @@ WITH params AS (
      OR search_text ILIKE ('%' || p.query || '%')
      OR COALESCE(similarity,0.0)>=:min_similarity) AS content_match
   FROM eligible CROSS JOIN params p
+), counts AS (
+  -- 창 집계 의미 보존: 두 카운트는 여전히 **eligible 전체** 기준이다(절단 없음).
+  SELECT count(*) AS eligible_count,
+         count(*) FILTER (WHERE content_match) AS exact_count
+  FROM ranked
+), top AS (
+  -- 절단은 두 갈래로 나눠서만 한다. 맞은 행은 점수순 상위, **안 맞은 행(자리 채움)은
+  -- 벡터 점수가 아니라 display_date DESC 상한**(#15c — 임계 미만 유사도는 순위 신호가
+  -- 아니고, 채움 행은 어차피 본문 없이 날짜·제목만 나간다). 두 갈래 합이 전량 정렬을
+  -- 대체하므로 질의가 후보를 배제하는 일은 없다.
+  (SELECT * FROM ranked WHERE content_match
+   ORDER BY score DESC, display_date DESC, id DESC LIMIT :limit)
+  UNION ALL
+  (SELECT * FROM ranked WHERE NOT content_match
+   ORDER BY display_date DESC, id DESC LIMIT :limit)
 )
-SELECT *,
-       count(*) FILTER (WHERE content_match) OVER() AS exact_count,
-       count(*) OVER() AS eligible_count
-FROM ranked
+SELECT t.id, t.kind, t.display_date, d.title, d.content, d.weather,
+       t.published_at, t.first_read_at, t.search_text, t.similarity,
+       t.score, t.content_match, c.exact_count, c.eligible_count
+FROM top t
+JOIN diaries d ON d.user_id=:user_id AND d.id=t.id
+CROSS JOIN counts c
 -- 맞은 것을 먼저. 그다음 점수, 그다음 최신순.
-ORDER BY content_match DESC,score DESC,display_date DESC,id DESC
+ORDER BY t.content_match DESC, t.score DESC, t.display_date DESC, t.id DESC
 LIMIT :limit
 """)
 

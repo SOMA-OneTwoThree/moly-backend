@@ -201,6 +201,58 @@ async def enqueue(
     return row[0] if row is not None else None
 
 
+# 배치 enqueue(#15a) — 같은 (queue, job_type)의 잡 여러 건을 unnest 1문으로 등록한다.
+# sweep처럼 행당 enqueue가 왕복 N회가 되는 곳 전용. 멱등(ON CONFLICT DO NOTHING)과
+# "커밋하지 않는다" 계약은 enqueue와 동일하다.
+_ENQUEUE_MANY_SQL = text("""
+INSERT INTO async_jobs
+  (queue, job_type, user_id, dedup_key, payload, payload_hash, payload_schema_version,
+   priority, available_at, expires_at, max_attempts)
+SELECT :queue, :job_type, t.user_id, t.dedup_key, CAST(t.payload AS jsonb), t.payload_hash,
+       t.payload_schema_version, :priority, now(), NULL, :max_attempts
+FROM unnest(:user_ids ::uuid[], :dedup_keys ::text[], :payloads ::text[],
+            :payload_hashes ::text[], :payload_schema_versions ::text[])
+     AS t(user_id, dedup_key, payload, payload_hash, payload_schema_version)
+ON CONFLICT (job_type, dedup_key) DO NOTHING
+""")
+
+
+async def enqueue_many(
+    session: AsyncSession,
+    *,
+    queue: str,
+    job_type: str,
+    items: list[tuple[uuid.UUID | str | None, str, dict | None]],
+    priority: int = 100,
+    max_attempts: int | None = None,
+) -> int:
+    """(user_id, dedup_key, payload) 목록을 한 문장으로 등록. 반환 = 새로 삽입된 수.
+
+    이미 있는 (job_type, dedup_key)는 조용히 건너뛴다(enqueue의 None 반환과 등가).
+    """
+    if not items:
+        return 0
+    cfg = queue_config(queue)
+    user_ids, dedup_keys, payloads, hashes, versions = [], [], [], [], []
+    for user_id, dedup_key, payload in items:
+        wire = json.dumps(payload or {}, sort_keys=True, separators=(",", ":"))
+        user_ids.append(user_id)
+        dedup_keys.append(dedup_key)
+        payloads.append(wire)
+        hashes.append(hashlib.sha256(wire.encode("utf-8")).hexdigest())
+        versions.append(str((payload or {}).get("schema_version", "job-payload-v1")))
+    res = await session.execute(
+        _ENQUEUE_MANY_SQL,
+        {
+            "queue": queue, "job_type": job_type, "priority": priority,
+            "max_attempts": max_attempts if max_attempts is not None else cfg.max_attempts,
+            "user_ids": user_ids, "dedup_keys": dedup_keys, "payloads": payloads,
+            "payload_hashes": hashes, "payload_schema_versions": versions,
+        },
+    )
+    return int(res.rowcount or 0)
+
+
 _REPLAY_DEAD_SQL = text("""
 INSERT INTO async_jobs
   (queue, job_type, user_id, dedup_key, replay_of, replay_operation_id,
@@ -232,6 +284,46 @@ async def replay_dead(
         )
     ).first()
     return row[0] if row is not None else None
+
+
+# 배치 replay(#15a) — sweep이 dead 잡 N건을 한 문장으로 되살린다. 술어·dedup 규칙은
+# _REPLAY_DEAD_SQL과 동일해야 한다(둘이 어긋나면 sweep과 수동 replay의 멱등 키가 갈린다).
+_REPLAY_DEAD_MANY_SQL = text("""
+INSERT INTO async_jobs
+  (queue, job_type, user_id, dedup_key, replay_of, replay_operation_id,
+   payload, payload_hash, payload_schema_version, priority,
+   available_at, expires_at, max_attempts)
+SELECT j.queue, j.job_type, j.user_id,
+       'replay:' || j.id::text || ':' || t.operation_id::text,
+       j.id, t.operation_id, j.payload, j.payload_hash, j.payload_schema_version,
+       j.priority, now(), j.expires_at, j.max_attempts
+FROM unnest(:job_ids ::uuid[], :operation_ids ::uuid[]) AS t(job_id, operation_id)
+JOIN async_jobs j ON j.id = t.job_id
+WHERE j.state='dead'
+  AND (j.expires_at IS NULL OR j.expires_at > now())
+  AND j.payload_redacted_at IS NULL
+  AND (j.payload_expires_at IS NULL OR j.payload_expires_at > now())
+ON CONFLICT (job_type,dedup_key) DO NOTHING
+RETURNING replay_of
+""")
+
+
+async def replay_dead_many(
+    session: AsyncSession, *, pairs: list[tuple[uuid.UUID, uuid.UUID]]
+) -> set[uuid.UUID]:
+    """(job_id, operation_id) 목록 배치 replay. 반환 = 실제로 되살린 원본 job_id 집합."""
+    if not pairs:
+        return set()
+    rows = (
+        await session.execute(
+            _REPLAY_DEAD_MANY_SQL,
+            {
+                "job_ids": [j for j, _o in pairs],
+                "operation_ids": [str(o) for _j, o in pairs],
+            },
+        )
+    ).all()
+    return {r[0] for r in rows}
 
 
 # ─────────────────────────────────────────────────────────────

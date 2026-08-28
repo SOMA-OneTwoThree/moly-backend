@@ -126,6 +126,77 @@ def test_deep_degraded_when_worker_stale(monkeypatch):
     assert r.status_code == 503 and r.json()["worker"]["stale"] is True
 
 
+# --- deep: retention 잡 stale 판정(app_config 기록 기반 — Phase 5 교차검증 [중-1]) ---
+def _fresh_worker_cfg(extra: dict | None = None):
+    """worker fresh + retention 키를 얹은 config_store 페이크."""
+    base = {"monitoring:worker_last_success": datetime.now(timezone.utc).isoformat()}
+    base.update(extra or {})
+
+    async def _cfg(session, keys):
+        return base
+
+    return _cfg
+
+
+def test_deep_retention_never_run_is_not_stale(monkeypatch):
+    """일간 잡만 기록되고 월간 rc 잡이 아직 None이어도 503이 아니다 — async_jobs 이력
+    기반이던 시절엔 이 상황(배포~다음달 1일, 그리고 14일 GC 이후 매달 후반)이 상시 503이었다."""
+    monkeypatch.setattr(health.settings, "environment", "local")
+    monkeypatch.setattr(health.settings, "health_token", "")
+    fresh = datetime.now(timezone.utc).isoformat()
+    daily = {f"monitoring:retention_last_success:{jt}": fresh
+             for jt in ("retention_idempotency_gc", "usage_ledger_rollup",
+                        "retention_jobs_gc", "mem0_candidate_gc")}  # rc_events 없음
+    monkeypatch.setattr(health.config_store, "get_config_values", _fresh_worker_cfg(daily))
+    app.dependency_overrides[get_session] = _override(_DeepSession())
+    try:
+        r = client.get("/health/deep")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 200
+    body = r.json()
+    assert body["retention"]["stale"] is False
+    assert body["retention"]["jobs"]["retention_rc_events"]["last_success"] is None
+
+
+def test_deep_retention_stale_daily_degrades(monkeypatch):
+    """일간 잡 기록이 25h를 넘으면 503 — 기록은 GC와 무관하게 영구 보존이라 판정이 견고하다."""
+    monkeypatch.setattr(health.settings, "environment", "local")
+    monkeypatch.setattr(health.settings, "health_token", "")
+    old = datetime(2026, 1, 1, tzinfo=timezone.utc).isoformat()
+    monkeypatch.setattr(
+        health.config_store, "get_config_values",
+        _fresh_worker_cfg({"monitoring:retention_last_success:usage_ledger_rollup": old}),
+    )
+    app.dependency_overrides[get_session] = _override(_DeepSession())
+    try:
+        r = client.get("/health/deep")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 503 and r.json()["retention"]["stale"] is True
+
+
+def test_deep_vecs_bytes_per_row_none_before_analyze(monkeypatch):
+    """ANALYZE 전 reltuples=-1 — 음수 팽창비 대신 None(교차검증 [하-1])."""
+    monkeypatch.setattr(health.settings, "environment", "local")
+    monkeypatch.setattr(health.settings, "health_token", "")
+    monkeypatch.setattr(health.config_store, "get_config_values", _fresh_worker_cfg())
+
+    class _TablesSession(_DeepSession):
+        async def execute(self, stmt, *a, **k):
+            if "pg_total_relation_size" in str(stmt):
+                return SimpleNamespace(one=lambda: (10, 10, 10, 1000, -1.0))
+            return SimpleNamespace(one=lambda: (0, 0))
+
+    app.dependency_overrides[get_session] = _override(_TablesSession())
+    try:
+        r = client.get("/health/deep")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 200
+    assert r.json()["tables"]["vecs_bytes_per_row"] is None
+
+
 # --- /health/queues (잡 큐 — 이관 게이트 지표) ---
 def test_queues_exposes_counts_and_oldest_dead_age(monkeypatch):
     monkeypatch.setattr(health.settings, "environment", "local")

@@ -83,6 +83,7 @@ _PUBLISH = text("""
 UPDATE chat_contexts SET
   context_revision=context_revision+1,
   last_committed_turn_seq=:turn_seq,
+  last_active_at=:now,
   updated_at=now()
 WHERE user_id=:user_id AND context_revision=:base_revision
 RETURNING context_revision
@@ -136,7 +137,10 @@ async def verify_publish(session: AsyncSession, *, user_id: uuid.UUID, lease: Le
         )
 
 
-async def finish_publish(session: AsyncSession, *, user_id: uuid.UUID, lease: Lease) -> int:
+async def finish_publish(
+    session: AsyncSession, *, user_id: uuid.UUID, lease: Lease, now: datetime
+) -> int:
+    # last_active_at은 반드시 턴의 :now — now()로 바꾸면 저녁 푸시의 활동일 판정이 어긋난다.
     revision = (
         await session.execute(
             _PUBLISH,
@@ -144,6 +148,7 @@ async def finish_publish(session: AsyncSession, *, user_id: uuid.UUID, lease: Le
                 "user_id": user_id,
                 "turn_seq": lease.turn_seq,
                 "base_revision": lease.base_context_revision,
+                "now": now,
             },
         )
     ).scalar()

@@ -118,6 +118,61 @@ async def health_deep(
     except Exception:  # noqa: BLE001
         out["today"] = {"billable": None, "active_users": None}
 
+    # Phase 5-6: 증식 관측 — 주요 테이블 크기·vecs 팽창비, retention 잡 최근 성공.
+    # retention stale 임계는 **25h**다(잡 주기 24h — 24h 임계면 정상 상태가 상시 오탐).
+    try:
+        srow = (
+            await session.execute(text("""
+                SELECT pg_total_relation_size('public.async_jobs'),
+                       pg_total_relation_size('public.idempotency_keys'),
+                       pg_total_relation_size('public.ai_usage_ledger'),
+                       pg_total_relation_size('vecs.moly_memories_v2'),
+                       (SELECT COALESCE(reltuples,0) FROM pg_class WHERE oid='vecs.moly_memories_v2'::regclass)
+            """))
+        ).one()
+        out["tables"] = {
+            "async_jobs_bytes": int(srow[0]), "idempotency_keys_bytes": int(srow[1]),
+            "ai_usage_ledger_bytes": int(srow[2]), "vecs_memories_bytes": int(srow[3]),
+            # 팽창비: 행당 바이트(대략) — repack/autovacuum 평형 감시용 조잡 신호.
+            # ANALYZE 전 reltuples=-1 — >0 가드 없이는 음수가 노출된다.
+            "vecs_bytes_per_row": int(srow[3] / srow[4]) if srow[4] > 0 else None,
+        }
+    except Exception:  # noqa: BLE001
+        out["tables"] = None
+
+    # retention 성공 시각은 **app_config 기록**으로 판정한다(핸들러가 성공 시 기록 — 단일 소스).
+    # async_jobs 이력 기반은 불가: 5-3이 succeeded 잡을 14일에 지우므로 월간 rc 잡의 증거가
+    # 매달 중순에 소멸해 후반 내내 상시 503이 된다(Phase 5 교차검증 [중-1]).
+    try:
+        # 일간 4종 임계 25h(24h면 상시 오탐), 월간 rc 이벤트 GC는 32일.
+        thresholds = (('retention_idempotency_gc', 25), ('usage_ledger_rollup', 25),
+                      ('retention_jobs_gc', 25), ('mem0_candidate_gc', 25),
+                      ('retention_rc_events', 32 * 24))
+        prefix = config_store.RETENTION_LAST_SUCCESS_PREFIX
+        vals = await config_store.get_config_values(session, [prefix + jt for jt, _ in thresholds])
+        retention = {}
+        stale_retention = False
+        for jt, stale_h in thresholds:
+            raw = vals.get(prefix + jt)
+            last = None
+            if isinstance(raw, str):
+                try:
+                    last = datetime.fromisoformat(raw)
+                except ValueError:
+                    pass
+            age = (now - last).total_seconds() if last else None
+            retention[jt] = {"last_success": raw if last else None,
+                             "age_sec": int(age) if age is not None else None}
+            # 첫 실행 전(None)은 stale 아님 — 월간 잡은 배포 후 다음달 1일까지 기록이 없는 게
+            # 정상이다. 한 번도 안 도는 고장은 기존 dead→Slack·/health/queues가 잡는다.
+            if age is not None and age > stale_h * 3600:
+                stale_retention = True
+        out["retention"] = {"jobs": retention, "stale": stale_retention}
+        if stale_retention:
+            degraded = True
+    except Exception:  # noqa: BLE001
+        out["retention"] = None
+
     if degraded:
         response.status_code = 503
     out["status"] = "degraded" if degraded else "ok"

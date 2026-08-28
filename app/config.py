@@ -109,7 +109,23 @@ class Settings(BaseSettings):
     job_backoff_cap_s: float = 60.0     # backoff 상한(긴 장애에서 무한정 대기 방지)
     job_reaper_interval_s: float = 10.0  # 최단 lease(20s)보다 짧게 — 회수 지연을 한 lease 안으로 제한
     job_reaper_batch_size: int = 50     # statement당 상한(무제한 UPDATE 방지)
-    job_idle_sleep_s: float = 1.0       # claim 0건일 때 폴링 간격(빈 큐 스핀 방지)
+    job_idle_sleep_s: float = 1.0       # claim 0건일 때 폴링 간격 기준값(빈 큐 스핀 방지)
+    job_idle_sleep_max_s: float = 8.0   # 빈 claim 연속 시 지수 백오프 상한 — 잡 완료/웨이크업이 즉시 깨우므로 사슬 지연 없음
+    # DB 커넥션 풀 상한 — prod max_connections=60 실측 기준. 산정(세션 풀러 5432 최악 가정):
+    #   가용 ≈ 60 − 내부 서비스·관리 여유(~15) = 45, 롤링 배포 중 구·신 프로세스 동시 생존 ×2 계수
+    #   → 프로세스 합산 ≤ 22. 프로세스 4개(EC2 2대 × API+consumer) × (3+2)=20 ≤ 22.
+    #   (15분 tick은 단명 프로세스로 순간 +5×2 가능 — 최악 겹침은 드물고 짧아 허용. 상시화되면 재산정.)
+    #   트랜잭션 풀러(6543)면 서버측은 Supavisor가 다중화하므로 이 상한은 더 여유 있다.
+    db_pool_size: int = 3
+    db_max_overflow: int = 2
+    db_pool_timeout_s: float = 10.0     # 풀 대기 상한 — 기본 30s는 finalize 예산(5s)·요청 타임아웃과 어긋남
+    # ai_price_catalog 프로세스 캐시 TTL — effective-dated append-only 테이블만의 예외(usage_ledger.load_price 주석).
+    price_catalog_cache_ttl_s: float = 300.0
+    # #23b: 원장 close 배치 flush. started 선커밋은 불변 — close만 모아 ≤1분 주기로 확정.
+    # 끄면 예전처럼 호출당 즉시 세션을 열어 확정한다(운영 회귀 스위치).
+    usage_close_flush_enabled: bool = True
+    usage_close_flush_interval_s: float = 30.0
+    usage_close_flush_max_buffer: int = 5000  # flush 장기 실패 시 초과분은 reconciler로 수렴
     # 큐별 소비자 실행값(consumer 1개당, 두 EC2 각각 동일). content가 밀려도 critical/notification
     # 슬롯을 빌려 쓰지 않는다 — 큐 A 적체가 큐 B를 막지 않게 슬롯을 고정 분리한다.
     job_critical_concurrency: int = 2           # 결제 — 분리된 예약 슬롯, 짧은 DB/provider 처리

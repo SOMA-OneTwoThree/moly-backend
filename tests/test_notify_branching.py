@@ -76,6 +76,9 @@ class _OneRowSession:
 
         return _CM()
 
+    async def commit(self):  # #16+#24: 푸시 전 트랜잭션 해제 경로
+        pass
+
     async def execute(self, *a, **k):
         value = self._value
 

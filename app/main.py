@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 import time
 
 from fastapi import FastAPI, Request
@@ -25,11 +27,28 @@ def create_app() -> FastAPI:
     # Swagger/OpenAPI는 로컬과 격리된 개발 서버에서만 노출한다. dev는 실제 인증·DB를 붙인
     # 수동 대화 검증 표면이고, staging/prod/알 수 없는 환경은 계속 fail-closed다.
     _docs_enabled = settings.environment in {"local", "development"}
+    # #23b: 원장 close 배치 flush — 챗 lane의 close_call이 버퍼로 가므로, API 프로세스에도
+    # flusher와 **graceful shutdown flush**가 반드시 있어야 한다(consumer만 있으면 챗 close가
+    # 프로세스 종료 때 유실돼 reconciler(24h)까지 unknown으로 밀린다).
+    @contextlib.asynccontextmanager
+    async def _lifespan(app: FastAPI):
+        from app.services import usage_ledger
+
+        stop = asyncio.Event()
+        flusher = asyncio.ensure_future(usage_ledger.run_close_flusher(stop))
+        try:
+            yield
+        finally:
+            stop.set()
+            with contextlib.suppress(Exception):
+                await asyncio.wait_for(flusher, timeout=10.0)
+
     app = FastAPI(
         title=settings.app_name,
         docs_url="/docs" if _docs_enabled else None,
         redoc_url=None,
         openapi_url="/openapi.json" if _docs_enabled else None,
+        lifespan=_lifespan,
     )
     register_error_handlers(app)
 

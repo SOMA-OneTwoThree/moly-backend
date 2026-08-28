@@ -116,7 +116,7 @@ def patched(monkeypatch):
 
 
 async def test_post_message_flow(monkeypatch, patched):
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     monkeypatch.setattr(gating_module, "resolve", _res)
@@ -133,7 +133,7 @@ async def test_post_message_flow(monkeypatch, patched):
 
 async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
     # 불변식: 저장(messages.content)엔 실이름 0·placeholder만, 클라 응답엔 현재 이름 렌더.
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _fake_llm(system, convo, **kw):
@@ -154,7 +154,7 @@ async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
 
 
 async def test_post_message_daily_limit(monkeypatch, patched):
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating(entitlement={
             "plan": "free", "tokens_remaining": 0, "daily_token_limit": 20_000,
             "personal_diary_token_threshold": 2000,
@@ -169,7 +169,7 @@ async def test_post_message_daily_limit(monkeypatch, patched):
 
 
 async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patched):
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating(tokens_used=49_990)  # +30 → 50020 ≥ 50000
 
     monkeypatch.setattr(gating_module, "resolve", _res)
@@ -180,7 +180,7 @@ async def test_post_message_review_prompt_crossing_threshold(monkeypatch, patche
 
 async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patched):
     # daily_token_limit 미해석(None) → 무제한 아님, free 한도로 차단 판정
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating(
             tokens_used=20_000,  # free 20k 소진
             entitlement={
@@ -197,7 +197,7 @@ async def test_post_message_fail_closed_when_limit_unresolved(monkeypatch, patch
 
 
 async def test_post_message_idempotent_returns_cached(monkeypatch, patched):
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     monkeypatch.setattr(gating_module, "resolve", _res)
@@ -227,7 +227,7 @@ async def test_post_message_llm_failure_persists_nothing(monkeypatch):
     # SOMA-374: phase-1은 read-only라 LLM 실패 시 유저 메시지·토큰·멱등키가 저장되지 않는다(클린 재시도).
     from app.models.idempotency_key import IdempotencyKey
 
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _boom(*a, **k):
@@ -247,7 +247,7 @@ async def test_post_message_passes_llm_timeout(monkeypatch, patched):
     # SOMA-374: LLM 호출에 per-request timeout이 전달된다(무한 대기 방지).
     captured: dict = {}
 
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _capture(system, convo, **kw):
@@ -264,7 +264,7 @@ async def test_post_message_passes_llm_timeout(monkeypatch, patched):
 async def test_post_message_phase2_dup_returns_cached(monkeypatch, patched):
     # SOMA-374: LLM 도중 동시 중복이 먼저 확정하면, phase-2 멱등 재조회에서 발견해 저장응답을 반환하고
     # 이중 저장하지 않는다(phase-0엔 없었지만 phase-2엔 존재).
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating()
 
     monkeypatch.setattr(gating_module, "resolve", _res)
@@ -325,7 +325,7 @@ async def test_post_message_incompatible_cache_fails_closed(monkeypatch):
 
 
 async def test_get_state_shape(monkeypatch):
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating(tokens_used=2500)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
@@ -344,7 +344,7 @@ async def test_personal_diary_eligible_counts_characters_not_tokens(monkeypatch)
     예전에는 토큰 기준값(2,000)을 가중 청구 토큰과 비교해서, 앱 표시와 실제 일기 생성 결과가
     어긋났다. 실제 게이트는 `diary_generation.generate_for_user`의 글자 수다.
     """
-    async def _res(session, user_id):
+    async def _res(session, user_id, **kwargs):
         return _gating(tokens_used=100_000)  # 토큰은 충분히 많다
 
     monkeypatch.setattr(gating_module, "resolve", _res)

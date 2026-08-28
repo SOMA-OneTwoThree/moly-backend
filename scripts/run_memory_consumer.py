@@ -49,6 +49,7 @@ async def _pending(session_maker) -> tuple[int, int, int]:
                     "       count(*) FILTER (WHERE state='running') running,"
                     "       count(*) FILTER (WHERE state='dead') dead"
                     "  FROM async_jobs WHERE queue=:q"
+                    "    AND state IN ('ready','running','dead')"
                 ),
                 {"q": QUEUE},
             )

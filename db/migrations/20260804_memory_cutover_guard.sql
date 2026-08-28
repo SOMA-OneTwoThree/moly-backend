@@ -19,23 +19,45 @@
 -- memory_mode 컬럼을 만든 **다음에** 적용한다.
 BEGIN;
 
-CREATE OR REPLACE FUNCTION public.guard_normalized_memory_snapshot()
-RETURNS trigger LANGUAGE plpgsql AS $$
+-- 하드 가드(2026-08-28 추가): 이 트리거 함수는 chat_contexts의 legacy 컬럼
+-- `memory_text`·`memory_refreshed_at`을 참조한다. 그 컬럼이 이미 DROP된 DB(컬럼 제거
+-- 마이그레이션 이후의 재적용·신규 부트스트랩)에 그대로 설치하면, 트리거가 모든
+-- chat_contexts INSERT/UPDATE에서 "record NEW has no field" 런타임 에러를 내
+-- **대화가 전멸**한다. 컬럼이 없으면 파일 전체를 no-op으로 만든다(README 산문이 아니라
+-- 파일 자체가 안전해야 한다 — 실행자는 README를 안 읽는다).
+DO $cutover_guard$
 BEGIN
-  IF TG_OP='INSERT' AND NEW.memory_mode='normalized' THEN
-    NEW.memory_text := NULL;
-    NEW.memory_refreshed_at := NULL;
-  ELSIF TG_OP='UPDATE' AND OLD.memory_mode='normalized' THEN
-    NEW.memory_mode := 'normalized';   -- downgrade 차단
-    NEW.memory_text := NULL;
-    NEW.memory_refreshed_at := NULL;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'chat_contexts'
+      AND column_name = 'memory_text'
+  ) THEN
+    RAISE NOTICE 'memory_cutover_guard: chat_contexts.memory_text 없음 — legacy 스냅샷 시대 종료 후의 DB. no-op.';
+    RETURN;
   END IF;
-  RETURN NEW;
-END $$;
 
-DROP TRIGGER IF EXISTS chat_contexts_normalized_snapshot_guard ON public.chat_contexts;
-CREATE TRIGGER chat_contexts_normalized_snapshot_guard
-BEFORE INSERT OR UPDATE ON public.chat_contexts
-FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot();
+  EXECUTE $install_fn$
+    CREATE OR REPLACE FUNCTION public.guard_normalized_memory_snapshot()
+    RETURNS trigger LANGUAGE plpgsql AS $fn$
+    BEGIN
+      IF TG_OP='INSERT' AND NEW.memory_mode='normalized' THEN
+        NEW.memory_text := NULL;
+        NEW.memory_refreshed_at := NULL;
+      ELSIF TG_OP='UPDATE' AND OLD.memory_mode='normalized' THEN
+        NEW.memory_mode := 'normalized';   -- downgrade 차단
+        NEW.memory_text := NULL;
+        NEW.memory_refreshed_at := NULL;
+      END IF;
+      RETURN NEW;
+    END $fn$
+  $install_fn$;
+
+  EXECUTE 'DROP TRIGGER IF EXISTS chat_contexts_normalized_snapshot_guard ON public.chat_contexts';
+  EXECUTE $install_trg$
+    CREATE TRIGGER chat_contexts_normalized_snapshot_guard
+    BEFORE INSERT OR UPDATE ON public.chat_contexts
+    FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot()
+  $install_trg$;
+END $cutover_guard$;
 
 COMMIT;

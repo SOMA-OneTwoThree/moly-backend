@@ -521,7 +521,7 @@ BEGIN
   END LOOP;
 END $$;
 
-+-- Dev rollout migration: conversation-centred recall, exact suppression, diary prologue,
+-- Dev rollout migration: conversation-centred recall, exact suppression, diary prologue,
 -- active-turn CAS, typed diary references and bounded retention metadata.
 -- Additive where possible. The legacy diary (user_id, diary_date) unique constraint is replaced
 -- because welcome and a daily diary must coexist on the same display date.

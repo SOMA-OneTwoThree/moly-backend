@@ -879,6 +879,55 @@ async def test_queue_loop_claims_within_free_slots_and_stops(db, monkeypatch):
     assert all(r["state"] == "succeeded" for r in db.rows.values())
 
 
+async def test_queue_loop_recreates_wake_event(db, monkeypatch):
+    """루프 시작 시 wake 이벤트를 무조건 재생성한다.
+
+    asyncio.Event는 첫 wait의 이벤트 루프에 묶인다 — 이전 루프(직전 테스트·asyncio.run 반복)의
+    이벤트를 재사용하면 wait가 즉시 RuntimeError로 끝나고, 그 예외는 suppress에 삼켜져
+    sleep 0초 핫스핀이 조용히 계속된다."""
+    stale = asyncio.Event()
+    consumer._WAKE["interactive_async"] = stale
+
+    claims: list[int] = []
+
+    async def _spy(session, queue, *, worker_id, batch_size=None, lease_s=None):
+        claims.append(1)
+        return []
+
+    monkeypatch.setattr(consumer.jobs, "claim", _spy)
+    monkeypatch.setattr(consumer.settings, "job_idle_sleep_s", 0.01)
+    _patch_sessions(monkeypatch, db)
+
+    stop = asyncio.Event()
+    task = asyncio.ensure_future(consumer.queue_loop("interactive_async", "W", stop))
+    await asyncio.sleep(0.05)
+    stop.set()
+    await asyncio.wait_for(task, timeout=2)
+    assert consumer._WAKE["interactive_async"] is not stale
+
+
+async def test_queue_loop_idle_backoff_reduces_claims(db, monkeypatch):
+    """빈 claim이 이어지면 지수 백오프로 폴링이 줄어든다(고정 간격 대비 claim 횟수 감소)."""
+    claims: list[int] = []
+
+    async def _spy(session, queue, *, worker_id, batch_size=None, lease_s=None):
+        claims.append(1)
+        return []
+
+    monkeypatch.setattr(consumer.jobs, "claim", _spy)
+    monkeypatch.setattr(consumer.settings, "job_idle_sleep_s", 0.02)
+    monkeypatch.setattr(consumer.settings, "job_idle_sleep_max_s", 0.16)
+    _patch_sessions(monkeypatch, db)
+
+    stop = asyncio.Event()
+    task = asyncio.ensure_future(consumer.queue_loop("interactive_async", "W", stop))
+    await asyncio.sleep(0.3)
+    stop.set()
+    await asyncio.wait_for(task, timeout=2)
+    # 고정 0.02s 간격이면 ~15회. 백오프(0.02→0.04→0.08→0.16 유지)면 ~6회.
+    assert 1 <= len(claims) <= 10
+
+
 async def test_reaper_loop_stops_on_event(db, monkeypatch):
     calls: list[str] = []
 

@@ -98,12 +98,17 @@ def test_delete_only_targets_non_active_memories():
     assert "LIMIT :limit" in sql  # bounded
 
 
-def test_delete_failure_of_one_does_not_block_others():
-    """개별 실패가 나머지 정리를 막지 않는다 — 삭제는 정합성이 아니라 저장 비용 문제다."""
+def test_delete_failure_marks_nothing_and_retries():
+    """#15b: provider delete는 전체 ids 1회 호출. 실패 시 아무도 마킹하지 않고 JobRetry —
+    행이 pending으로 남아 재시도가 다시 훑는다. "실패분 전원 failed 마킹"으로 되돌아가면
+    일시 장애 한 번이 잔존물(failed)을 만든다."""
     import inspect
 
     src = inspect.getsource(mem0_jobs.handle_mem0_provider_delete)
-    assert "failed.append" in src and "deleted.append" in src
+    assert "JobRetry" in src, "실패가 재시도로 이어지지 않는다"
+    assert "'failed'" not in src and '"failed"' not in src, "실패 마킹이 되살아났다"
+    assert src.count("_adapter().delete") == 1  # 전체 ids 1회 호출
+    assert "provider_ids" in src
 
 
 # ── 대화 덩어리 단위 추출 (2026-08-08) ──────────────────────────────────
@@ -228,7 +233,7 @@ def test_resume_plan_is_scoped_to_the_same_repair_generation():
     sql = str(mem0_jobs._RESUME_PLAN)
     assert "repair_generation = :generation" in sql
     # 계획을 저장할 때도 같은 세대를 적어야 짝이 맞는다.
-    assert ":generation" in str(mem0_jobs._STAGE_CANDIDATE)
+    assert ":generation" in str(mem0_jobs._STAGE_CANDIDATES_BATCH)
     # 반대로 판정이 읽는 본문은 **세대로 거르면 안 된다.** provider id에 이미 세대가 들어
     # 있어 거를 필요가 없고, 거르면 지난 세대의 미판정 기억이 영원히 판정을 못 받는다.
     assert "repair_generation" not in str(mem0_jobs._CANDIDATE_TEXTS)
@@ -347,7 +352,7 @@ def test_sweep_does_not_double_revive_the_same_user():
     from worker import memory_sweep_jobs as sw
     src = inspect.getsource(sw.handle_memory_sweep)
     assert "replaying = {u for _j, u in rows}" in src
-    assert "user_id in replaying" in src
+    assert "user_id not in replaying" in src  # 배치 comprehension의 스킵 조건(#15a)
 
 
 def test_excluded_memories_get_their_vectors_cleaned():

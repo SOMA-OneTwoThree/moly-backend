@@ -232,37 +232,32 @@ class Mem0VectorIndexAdapter:
 
         public `Memory.delete_all()`은 쓰지 않는다(12.3절 6번). 남은 잔존은 호출측이 직접 SQL로
         확인·정리하고 두 sweep 0을 검증한다.
+
+        #21: 열거를 영벡터 유사도 검색(전 벡터 거리 계산 = vecs Seq Scan)에서 직접 SQL로
+        대체했다. `metadata->>'user_id'` 동등은 기존 moly_memories_v2_user_idx를 타고,
+        user_id 스코프가 SQL 술어 자체라 provider 필터 재검증이 필요 없다(타 사용자 행은
+        구조적으로 대상 밖). bounded 계약은 서브쿼리 LIMIT으로 유지한다.
         """
-        col = self._col()
+        from sqlalchemy import text as _text
 
-        def _del():
-            # ⚠️ limit을 실제로 지킨다. 예전엔 인자만 받고 전량 삭제해서, bounded
-            # continuation이라는 계약이 거짓이었다(감사 지적). 한 번에 다 지우면 큰 계정에서
-            # 트랜잭션이 길어지고 그 사이 실패하면 어디까지 지웠는지 알 수 없다.
-            rows = col.query(
-                data=[0.0] * self.dimension,
-                limit=limit,
-                filters={"user_id": {"$eq": user_id}},
-                include_value=False,
-                include_metadata=True,
+        from app.core.db import get_sessionmaker
+
+        delete_sql = _text("""
+            DELETE FROM vecs.moly_memories_v2
+            WHERE id IN (
+              SELECT id FROM vecs.moly_memories_v2
+              WHERE metadata->>'user_id' = :user_id
+              LIMIT :limit
             )
-            ids: list[str] = []
-            for row in rows or []:
-                rid, _score, payload = _unpack_hit(row)
-                # ⚠️ provider 필터를 믿지 않고 **다시 확인한다**. search와 같은 방어선이다 —
-                # 필터가 실패하면 남의 기억을 지우게 되고, 삭제는 되돌릴 수 없다.
-                if (payload or {}).get("user_id") != user_id:
-                    _log.error("삭제 대상에 타 사용자 결과가 섞였다 — id=%s (건너뜀)", rid)
-                    continue
-                ids.append(str(rid))
-            if not ids:
-                return 0
-            col.delete(ids=ids)
-            return len(ids)
+        """)
 
-        # `_del`이 실제로 지운 수를 그대로 돌려준다. 예전엔 provider 반환값을 len()해서
-        # 세었는데, 이제 우리가 직접 세므로 그 변환이 남아 있으면 항상 0이 된다.
-        return int(await self._run(_del, timeout=timeout) or 0)
+        async def _del() -> int:
+            async with get_sessionmaker()() as session:
+                res = await session.execute(delete_sql, {"user_id": user_id, "limit": limit})
+                await session.commit()
+                return int(res.rowcount or 0)
+
+        return await asyncio.wait_for(_del(), timeout=timeout)
 
 
 def _as_sequence(row: Any) -> list | None:

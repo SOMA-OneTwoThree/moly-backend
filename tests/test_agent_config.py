@@ -20,8 +20,8 @@ _MEASURED = {"agent_final_reserve_s": 2.5, "agent_tool_inflight": 8}
 
 
 def test_keys_are_separate_from_token_limit_contract():
-    """토큰 한도(limits._KEYS)와 키를 섞지 않는다 — 한쪽 롤아웃이 다른 쪽을 흔들면 안 된다."""
-    from app.services.limits import _KEYS as TOKEN_KEYS
+    """토큰 한도(limits.CONFIG_KEYS)와 키를 섞지 않는다 — 한쪽 롤아웃이 다른 쪽을 흔들면 안 된다."""
+    from app.services.limits import CONFIG_KEYS as TOKEN_KEYS
 
     assert set(AGENT_CONFIG_KEYS).isdisjoint(TOKEN_KEYS)
     assert all(k.startswith("agent_") for k in AGENT_CONFIG_KEYS)

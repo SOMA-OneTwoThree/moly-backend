@@ -171,7 +171,8 @@ paths:
           type: string
           minLength: 1
         description: user 범위 멱등 key. route signature는 optional이지만 endpoint logic에서 누락/빈 문자열을 422로 거부한다.
-          길이/형식 상한은 없다.
+          길이/형식 상한은 없다. 멱등 보장 창은 30일 — 같은 key의 재요청 충돌(409)·응답 재사용은 30일 안에서만 보장되고, 30일이 지난 key는 정리(retention
+          GC)되어 재사용 시 신규 요청으로 처리(과금)된다.
       - name: X-Moly-Capabilities
         in: header
         required: false

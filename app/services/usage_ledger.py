@@ -16,7 +16,9 @@
 """
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 import uuid
 from dataclasses import dataclass, replace
 from datetime import date, datetime, timezone
@@ -25,6 +27,7 @@ from math import ceil
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.ai_usage import (  # noqa: F401  (상태 상수의 단일 소스)
     LANE_BACKGROUND,
     LANE_FOREGROUND,
@@ -98,19 +101,40 @@ LIMIT 1
 """)
 
 
+# (provider, model) → (monotonic 시각, PriceRow|None). None(단가 없음)도 캐시한다 —
+# 미등록 모델이 호출마다 카탈로그를 다시 두드리지 않게. TTL 안에 새 단가가 등록되면
+# 최대 TTL만큼 늦게 보이지만, 원장 행에 price_catalog_version이 남아 사후 재계산 가능하다.
+_PRICE_CACHE: dict[tuple[str, str], tuple[float, PriceRow | None]] = {}
+
+
+def _price_cache_clear() -> None:
+    """테스트·단가 긴급 반영용."""
+    _PRICE_CACHE.clear()
+
+
 async def load_price(
     session: AsyncSession, *, provider: str, model: str, at: datetime | None = None
 ) -> PriceRow | None:
-    """해당 시점에 유효한 단가. 없으면 None(호출측이 unknown 비용으로 남긴다)."""
+    """해당 시점에 유효한 단가. 없으면 None(호출측이 unknown 비용으로 남긴다).
+
+    이 테이블만 프로세스 캐시(TTL 5분)를 허용하는 이유: effective-dated append-only라
+    행이 제자리 수정되지 않고, 단가 변경은 사전 등록(미래 effective_from)이 원칙이라
+    5분 지연이 과금 정확성을 해치지 않는다. 반면 app_config·게이팅류는 즉시 반영이
+    계약이라 캐시하지 않는다. 과거 시점 조회(at 지정)는 캐시를 타지 않는다 —
+    캐시 값은 '지금' 유효한 행이므로 과거 창과 다를 수 있다.
+    """
+    use_cache = at is None
+    if use_cache:
+        hit = _PRICE_CACHE.get((provider, model))
+        if hit is not None and time.monotonic() - hit[0] < settings.price_catalog_cache_ttl_s:
+            return hit[1]
     row = (
         await session.execute(
             _PRICE_SQL,
             {"provider": provider, "model": model, "at": at or datetime.now(timezone.utc)},
         )
     ).first()
-    if row is None:
-        return None
-    return PriceRow(
+    price = None if row is None else PriceRow(
         catalog_version=row[0],
         provider=row[1],
         model=row[2],
@@ -120,6 +144,9 @@ async def load_price(
         output_micro_usd=row[6],
         embedding_micro_usd=row[7],
     )
+    if use_cache:
+        _PRICE_CACHE[(provider, model)] = (time.monotonic(), price)
+    return price
 
 
 _BEGIN_SQL = text("""
@@ -405,6 +432,136 @@ async def open_call(ctx: LedgerContext, *, provider: str, model: str) -> uuid.UU
         return None
 
 
+# ─────────────────────────────────────────────────────────────
+# close 배치 flush(#23b) — 호출당 세션+커밋(왕복 3+)을 없앤다.
+#
+# `open_call`(started 선커밋)은 그대로다 — 그게 "돈을 쓰기 시작했다"는 유일한 durable 증거라
+# 버퍼에 넣으면 crash 때 호출 자체가 사라진다. close만 버퍼에 모아 주기적으로(≤1분) 한
+# 세션에서 확정한다. 프로세스가 flush 전에 죽으면 그 행은 'started'로 남는데, 아래
+# reconcile_stale_started가 24h 뒤 catalog 상한 추정과 함께 unknown_usage로 수렴시킨다
+# (최장 lease 180s ≪ 24h — in-flight 오탐 불가). graceful shutdown flush는 consumer와
+# **API 프로세스(챗 lane) 양쪽**에 있어야 한다 — run_close_flusher가 stop 후 마지막으로 민다.
+# ─────────────────────────────────────────────────────────────
+@dataclass(frozen=True, slots=True)
+class _PendingClose:
+    call_id: uuid.UUID
+    provider: str
+    model: str
+    input_tokens: int
+    cached_input_tokens: int
+    cache_write_tokens: int
+    output_tokens: int
+    embedding_tokens: int
+    cache_write_estimated: bool
+    model_snapshot: str | None
+    provider_request_id: str | None
+    latency_ms: int | None
+    closed_at: datetime  # flush 지연이 completed_at을 밀지 않게 close 시각을 잡아 둔다
+
+
+_CLOSE_BUFFER: list[_PendingClose] = []
+
+
+async def _write_close(session: AsyncSession, item: _PendingClose) -> None:
+    price = await load_price(session, provider=item.provider, model=item.model)
+    await complete(
+        session,
+        item.call_id,
+        price=price,
+        input_tokens=item.input_tokens,
+        cached_input_tokens=item.cached_input_tokens,
+        cache_write_tokens=item.cache_write_tokens,
+        output_tokens=item.output_tokens,
+        embedding_tokens=item.embedding_tokens,
+        cache_write_estimated=item.cache_write_estimated,
+        model_snapshot=item.model_snapshot,
+        provider_request_id=item.provider_request_id,
+        latency_ms=item.latency_ms,
+        now=item.closed_at,
+    )
+
+
+async def flush_closes() -> int:
+    """버퍼를 한 세션에서 확정한다. 실패하면 버퍼 앞에 되돌린다(상한 초과분은 reconciler 몫)."""
+    if not _CLOSE_BUFFER:
+        return 0
+    items = list(_CLOSE_BUFFER)
+    _CLOSE_BUFFER.clear()  # copy~clear 사이 await 없음 — 유실 창 없음
+    from app.core.db import get_sessionmaker
+
+    try:
+        async with get_sessionmaker()() as session:
+            for item in items:
+                await _write_close(session, item)
+            await session.commit()
+        return len(items)
+    except Exception as e:  # noqa: BLE001  계측 실패가 본 경로를 막지 않는다
+        _log.warning("원장 close flush 실패(%d건 되돌림): %r", len(items), e)
+        _CLOSE_BUFFER[:0] = items
+        overflow = len(_CLOSE_BUFFER) - settings.usage_close_flush_max_buffer
+        if overflow > 0:
+            # 오래 실패하면 무한 증식 대신 앞(가장 오래된 것)을 버린다 — 그 행들은 'started'로
+            # 남아 reconciler가 unknown_usage(상한 추정)로 수렴시킨다. 조용한 소실이 아니다.
+            del _CLOSE_BUFFER[:overflow]
+            _log.warning("원장 close 버퍼 상한 초과 — %d건은 reconciler로 넘긴다", overflow)
+        return 0
+
+
+# 24h 넘은 started → unknown_usage. 상한 추정은 같은 (provider, model, purpose)의 completed
+# 실측 최대 비용 — catalog 단가만으로는 토큰 수를 모른다. 동종 실측이 없으면 NULL(미확정 보존).
+_RECONCILE_STALE_SQL = text("""
+UPDATE ai_usage_ledger l
+SET status='unknown_usage', completed_at=now(),
+    cost_upper_bound_micro_usd=b.upper_bound,
+    error_code='stale_started_reconciled', updated_at=now()
+FROM (
+  SELECT s.call_id,
+         (SELECT max(c.cost_micro_usd) FROM ai_usage_ledger c
+          WHERE c.provider=s.provider AND c.model=s.model AND c.purpose=s.purpose
+            AND c.status='completed') AS upper_bound
+  FROM ai_usage_ledger s
+  WHERE s.status='started' AND s.started_at < now() - interval '24 hours'
+  ORDER BY s.started_at LIMIT :limit
+) b
+WHERE l.call_id = b.call_id AND l.status='started'
+""")
+
+
+async def reconcile_stale_started(limit: int = 200) -> int:
+    """flush 유실 창(≤1분)·crash가 남긴 started 잔존을 수렴시킨다. 멱등."""
+    from app.core.db import get_sessionmaker
+
+    try:
+        async with get_sessionmaker()() as session:
+            res = await session.execute(_RECONCILE_STALE_SQL, {"limit": limit})
+            await session.commit()
+            n = int(res.rowcount or 0)
+            if n:
+                _log.warning("stale started %d건 → unknown_usage(상한 추정) 수렴", n)
+            return n
+    except Exception as e:  # noqa: BLE001
+        _log.warning("stale started reconcile 실패(무시): %r", e)
+        return 0
+
+
+async def run_close_flusher(stop, *, reconcile: bool = False) -> None:
+    """주기 flush 루프. consumer·API 프로세스 각각 1개 태스크로 돈다. stop 후 마지막 flush.
+
+    reconcile=True는 consumer 쪽 한 곳이면 충분하다(status='started' fencing이라 중복 무해).
+    """
+    import contextlib
+
+    last_reconcile = 0.0
+    while not stop.is_set():
+        with contextlib.suppress(asyncio.TimeoutError, TimeoutError):
+            await asyncio.wait_for(stop.wait(), timeout=settings.usage_close_flush_interval_s)
+        await flush_closes()
+        if reconcile and time.monotonic() - last_reconcile >= 3600.0:
+            last_reconcile = time.monotonic()
+            await reconcile_stale_started()
+    await flush_closes()  # graceful shutdown flush — 챗 lane 포함(#23b)
+
+
 async def close_call(
     call_id: uuid.UUID | None,
     *,
@@ -420,28 +577,32 @@ async def close_call(
     provider_request_id: str | None = None,
     latency_ms: int | None = None,
 ) -> None:
-    """usage를 확정한다. 단가를 못 찾으면 `complete`가 unknown_usage로 남긴다."""
+    """usage를 확정한다. 단가를 못 찾으면 `complete`가 unknown_usage로 남긴다.
+
+    #23b: 기본은 버퍼에 쌓고 flusher가 ≤1분 안에 확정한다. 스위치를 끄면 예전처럼 즉시
+    세션을 열어 확정한다(운영 회귀 스위치).
+    """
     if call_id is None:
+        return
+    item = _PendingClose(
+        call_id=call_id, provider=provider, model=model,
+        input_tokens=input_tokens, cached_input_tokens=cached_input_tokens,
+        cache_write_tokens=cache_write_tokens, output_tokens=output_tokens,
+        embedding_tokens=embedding_tokens, cache_write_estimated=cache_write_estimated,
+        model_snapshot=model_snapshot, provider_request_id=provider_request_id,
+        latency_ms=latency_ms, closed_at=datetime.now(timezone.utc),
+    )
+    if settings.usage_close_flush_enabled:
+        _CLOSE_BUFFER.append(item)
+        if len(_CLOSE_BUFFER) > settings.usage_close_flush_max_buffer:
+            del _CLOSE_BUFFER[0]
+            _log.warning("원장 close 버퍼 상한 — 가장 오래된 1건을 reconciler로 넘긴다")
         return
     from app.core.db import get_sessionmaker
 
     try:
         async with get_sessionmaker()() as session:
-            price = await load_price(session, provider=provider, model=model)
-            await complete(
-                session,
-                call_id,
-                price=price,
-                input_tokens=input_tokens,
-                cached_input_tokens=cached_input_tokens,
-                cache_write_tokens=cache_write_tokens,
-                output_tokens=output_tokens,
-                embedding_tokens=embedding_tokens,
-                cache_write_estimated=cache_write_estimated,
-                model_snapshot=model_snapshot,
-                provider_request_id=provider_request_id,
-                latency_ms=latency_ms,
-            )
+            await _write_close(session, item)
             await session.commit()
     except Exception as e:  # noqa: BLE001
         _log.warning("원장 완료 기록 실패(무시): %r", e)

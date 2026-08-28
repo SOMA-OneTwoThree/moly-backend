@@ -12,6 +12,10 @@ from app.models.app_config import AppConfig
 # 워커 데드맨 상태 키 — 워커(worker/tick.py)가 기록, 헬스(app/api/health.py)가 판정. 단일 소스.
 WORKER_LAST_SUCCESS_KEY = "monitoring:worker_last_success"
 
+# retention 잡 성공 시각 키 프리픽스 — 핸들러(worker/retention_jobs.py)가 기록, 헬스가 판정.
+# async_jobs 이력으로 판정하면 5-3의 14일 GC가 월간 잡의 성공 증거를 지워 상시 오탐이 된다.
+RETENTION_LAST_SUCCESS_PREFIX = "monitoring:retention_last_success:"
+
 
 async def get_config_values(session: AsyncSession, keys: list[str]) -> dict[str, Any]:
     """여러 key의 value(jsonb)를 dict로. 없는 key는 결과에서 빠짐(호출측이 기본값 처리)."""

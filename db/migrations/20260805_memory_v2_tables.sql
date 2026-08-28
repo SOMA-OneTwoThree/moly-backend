@@ -233,8 +233,11 @@ CREATE TABLE IF NOT EXISTS public.user_interaction_contract_items (
   created_at        timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY (contract_id, user_id)
     REFERENCES public.user_interaction_contracts(id, user_id) ON DELETE CASCADE,
+  -- ⚠️ 복합 FK + SET NULL은 기본적으로 FK의 **모든** 컬럼을 NULL로 만든다 — NOT NULL user_id가
+  -- 23502로 터져 탈퇴(auth.users CASCADE) 전체가 롤백된다(2026-08-28 운영 장애). PG15+ 컬럼 지정
+  -- 구문으로 source_message_id만 NULL 처리한다. 라이브(prod)는 2026-08-28 핫픽스로 동일 형태 적용됨.
   FOREIGN KEY (user_id, source_message_id)
-    REFERENCES public.messages(user_id, id) ON DELETE SET NULL,
+    REFERENCES public.messages(user_id, id) ON DELETE SET NULL (source_message_id),
   UNIQUE (contract_id, item_key)
 );
 

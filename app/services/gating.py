@@ -38,13 +38,19 @@ class Gating:
     diary_min_user_chars: int = settings.diary_min_user_chars
 
 
-async def resolve(session: AsyncSession, user_id: str, now: datetime | None = None) -> Gating:
+async def resolve(
+    session: AsyncSession,
+    user_id: str,
+    now: datetime | None = None,
+    *,
+    config_raw: dict[str, Any] | None = None,
+) -> Gating:
     now = now or datetime.now(timezone.utc)
     profile = await _load_profile(session, user_id)
     activity_date = activity_date_for(now, profile.timezone)
     sub = await _load_active_subscription(session, user_id, now)
     tokens_used = await _load_tokens_used(session, user_id, activity_date)
-    cfg = await effective_token_config(session)
+    cfg = await effective_token_config(session, raw=config_raw)
     entitlement = derive_entitlement(profile, sub, tokens_used, cfg, now)
     return Gating(
         profile=profile,

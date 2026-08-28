@@ -45,6 +45,10 @@ def get_engine() -> AsyncEngine:
         _engine = create_async_engine(
             _async_dsn(),
             pool_pre_ping=True,
+            # 상한 산정 근거는 settings 주석 참조 — prod max_connections=60, 롤링 배포 2배 계수.
+            pool_size=settings.db_pool_size,
+            max_overflow=settings.db_max_overflow,
+            pool_timeout=settings.db_pool_timeout_s,
             # pgbouncer(트랜잭션 풀링) 환경에서 asyncpg prepared statement 충돌 방지.
             connect_args={"statement_cache_size": 0},
         )

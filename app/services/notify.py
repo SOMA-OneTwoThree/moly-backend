@@ -111,7 +111,12 @@ async def notify_morning(session: AsyncSession, profile) -> int:
     if not await _claim_send_slot(session, profile, "morning_notified_at"):
         return 0  # 오늘 이미 발송 — 멱등 스킵
     title, body = _push_text(_MORNING, getattr(profile, "language", None))
-    return await push.send(await _tokens(session, profile.id), title, body)
+    tokens = await _tokens(session, profile.id)
+    # 외부 호출(FCM) 전 읽기 트랜잭션 해제 — 커넥션을 쥔 채 네트워크를 기다리지 않는다(#16+#24).
+    # (단위 테스트는 조회 전부를 mock하고 session=None을 넘긴다 — 가드.)
+    if session is not None:
+        await session.commit()
+    return await push.send(tokens, title, body)
 
 
 async def _override_copy(session, profile, now: datetime) -> tuple[str, str] | None:
@@ -177,7 +182,12 @@ async def notify_evening(
             _log.warning("저녁 분기 실패 — 중립 폴백(user=%s)", profile.id, exc_info=True)
             category = "fallback"
             title, body = _push_text(_EVENING, getattr(profile, "language", None))
-    sent = await push.send(await _tokens(session, profile.id), title, body)
+    tokens = await _tokens(session, profile.id)
+    # 외부 호출(FCM) 전 읽기 트랜잭션 해제 — 커넥션을 쥔 채 네트워크를 기다리지 않는다(#16+#24).
+    # (단위 테스트는 조회 전부를 mock하고 session=None을 넘긴다 — 가드.)
+    if session is not None:
+        await session.commit()
+    sent = await push.send(tokens, title, body)
     # stats는 실제 발송(sent>0) 뒤에 — 토큰 없는 유저를 세면 tick의 '저녁 N건'과 분포 합이 어긋난다.
     if sent and stats is not None:
         key = f"evening_{category}"

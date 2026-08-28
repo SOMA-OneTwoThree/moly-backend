@@ -92,7 +92,7 @@ def spy(monkeypatch) -> dict:
 
 
 async def _post(session, monkeypatch, spy, *, key="idem-w11"):
-    async def _res(s, user_id):
+    async def _res(s, user_id, **kwargs):
         return _gating()
 
     async def _fake_llm(system, convo, **kw):

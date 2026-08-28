@@ -339,12 +339,46 @@ def _rc_inbox_summary(
     return "\n".join(lines)
 
 
-async def _profile_id_batches(batch_size: int):
-    """프로필 id를 키셋 페이지네이션으로 배치 단위 yield — 전량 메모리 적재를 피한다(SOMA-349)."""
+async def _relevant_timezones(now: datetime) -> set[str]:
+    """이 틱에서 일기/아침/저녁 시각(로컬 04·09·20시)에 걸리는 timezone 문자열 집합(#16+#24).
+
+    판정은 전부 파이썬(ZoneInfo)이다 — SQL `AT TIME ZONE`은 금지: 이상 tz 문자열 1행이
+    쿼리 전체를 에러로 죽여 **그날 일기·푸시가 전멸**한다. 여기서는 해석 실패 tz를 경고만
+    남기고 제외한다(그 tz 유저는 종전 per-user 방어(SOMA-348)에서도 스킵되던 대상이라 의미
+    동일 — 다만 경고가 유저당 1회에서 tz당 1회로 줄어든다).
+    """
+    async with get_sessionmaker()() as s:
+        tzs = list((await s.execute(select(Profile.timezone).distinct())).scalars().all())
+    relevant: set[str] = set()
+    for tz in tzs:
+        if not tz:
+            continue  # NOT NULL DEFAULT 'Asia/Seoul'이지만 방어
+        try:
+            hour = now.astimezone(ZoneInfo(tz)).hour
+        except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
+            _log.warning("틱: 해석 불가 timezone %r — 이 tz 유저 전원 스킵: %r", tz, e)
+            continue
+        if hour in (DIARY_HOUR, MORNING_HOUR, EVENING_HOUR):
+            relevant.add(tz)
+    return relevant
+
+
+async def _profile_id_batches(batch_size: int, tzs: set[str]):
+    """프로필 id를 키셋 페이지네이션으로 배치 단위 yield — 전량 메모리 적재를 피한다(SOMA-349).
+
+    #16+#24: 처리 시각에 걸린 timezone 유저만 뽑는다 — **문자열 동등만**(IN), tz 해석은
+    _relevant_timezones가 파이썬에서 이미 끝냈다. 대부분의 틱은 tzs가 비어 이 함수에
+    오지도 않는다(유휴 틱의 전 유저 순회 제거).
+    """
     last = None
     while True:
         async with get_sessionmaker()() as s:
-            q = select(Profile.id).order_by(Profile.id).limit(batch_size)
+            q = (
+                select(Profile.id)
+                .where(Profile.timezone.in_(sorted(tzs)))
+                .order_by(Profile.id)
+                .limit(batch_size)
+            )
             if last is not None:
                 q = q.where(Profile.id > last)
             pids = list((await s.execute(q)).scalars().all())
@@ -382,26 +416,30 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     sem = asyncio.Semaphore(max(1, settings.worker_max_concurrency))
     timeout = settings.worker_user_timeout_s
 
-    async with get_sessionmaker()() as s0:
-        cfg = await effective_token_config(s0)
+    # #16+#24: 지금 처리 시각에 걸린 timezone이 하나도 없으면 유저 루프를 통째로 건너뛴다.
+    # (counts["users"]는 이제 "전체 유저"가 아니라 "후보 tz 유저" 수다 — 관측 의미 변경.)
+    tzs = await _relevant_timezones(now)
+    if tzs:
+        async with get_sessionmaker()() as s0:
+            cfg = await effective_token_config(s0)
 
-    async def _guarded(pid) -> dict:
-        async with sem:  # 동시 실행 유저 수 상한
-            try:
-                return await asyncio.wait_for(_process_user(now, pid, cfg), timeout=timeout)
-            except (asyncio.TimeoutError, TimeoutError):
-                _log.warning("틱: 유저 처리 타임아웃(user=%s, %.0fs) — 스킵", pid, timeout)
-                return {"timed_out": 1}
+        async def _guarded(pid) -> dict:
+            async with sem:  # 동시 실행 유저 수 상한
+                try:
+                    return await asyncio.wait_for(_process_user(now, pid, cfg), timeout=timeout)
+                except (asyncio.TimeoutError, TimeoutError):
+                    _log.warning("틱: 유저 처리 타임아웃(user=%s, %.0fs) — 스킵", pid, timeout)
+                    return {"timed_out": 1}
 
-    async for pids in _profile_id_batches(settings.worker_batch_size):
-        counts["users"] += len(pids)
-        for r in await asyncio.gather(*(_guarded(pid) for pid in pids)):
-            for k, v in r.items():
-                if k == "active_tz":
-                    if v:
-                        active_tzs.add(v)
-                elif k in counts:
-                    counts[k] += v
+        async for pids in _profile_id_batches(settings.worker_batch_size, tzs):
+            counts["users"] += len(pids)
+            for r in await asyncio.gather(*(_guarded(pid) for pid in pids)):
+                for k, v in r.items():
+                    if k == "active_tz":
+                        if v:
+                            active_tzs.add(v)
+                    elif k in counts:
+                        counts[k] += v
 
     # RC 웹훅 inbox 드레인 — 매 틱(15분). 유저 처리와 독립(전용 세션·이벤트별 트랜잭션).
     try:
@@ -409,6 +447,17 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
             counts[k] = counts.get(k, 0) + v
     except Exception as e:  # noqa: BLE001  # 드레인 실패가 배치 전체를 막으면 안 됨
         _log.exception("RC inbox 드레인 틱 실패(무시): %r", e)
+
+    # retention 잡 예약(Phase 5) — KST hour>=5 + {job_type}:{KST날짜} dedup으로 하루 1회 수렴.
+    # 유저 루프와 독립(tzs가 비어도 돈다 — 예약이 유휴 틱 스킵에 딸려가면 self-heal이 깨진다).
+    try:
+        from worker import retention_jobs
+
+        async with get_sessionmaker()() as s_rt:
+            counts["retention_enqueued"] = await retention_jobs.enqueue_daily(s_rt, now)
+            await s_rt.commit()
+    except Exception as e:  # noqa: BLE001  # 예약 실패가 배치 전체를 막으면 안 됨
+        _log.warning("retention 잡 예약 실패(무시): %r", e)
 
     # 워커가 끝까지 돌았음을 매 틱 기록 — /health/deep의 stale(2h) 판정 근거.
     # DIARY_HOUR 블록 안에 있으면 하루 1회만 갱신돼 나머지 22시간이 오탐 stale이 된다.

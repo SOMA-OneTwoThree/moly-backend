@@ -33,6 +33,9 @@ class FakeSession:
     async def execute(self, stmt):
         return _Result(self.exec_results.pop(0) if self.exec_results else [])
 
+    async def commit(self):  # #16+#24: 푸시 전 트랜잭션 해제 경로
+        pass
+
 
 async def test_push_noop_without_credentials(monkeypatch):
     monkeypatch.setattr(push.settings, "fcm_service_account_file", "")

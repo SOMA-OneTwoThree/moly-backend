@@ -92,6 +92,28 @@ CREATE TRIGGER on_auth_user_created
 
 -- (기존 auth.users backfill 안 함 — 사용자 결정 2026-07-08. 트리거 이후 신규 가입만 생성.)
 
+-- 회원탈퇴 mem0 정리 — mem0 v2 벡터 컬렉션(vecs.moly_memories_v2)은 profiles FK 밖이라
+-- CASCADE로 지워지지 않고, vecs 스키마는 PostgREST에 노출되지 않아 supabase-js가 직접 못
+-- 지운다. moly-auth deleteAccount가 이 RPC로 정리한다(bootstrap_user와 같은 self-heal 짝).
+-- 과거 코드는 v1 `memories` 테이블을 지웠는데 v2 전환 뒤 대상이 사라져 조용한 no-op였다
+-- (2026-08-28 탈퇴 사고 후속 — 탈퇴 유저 16명의 기억 258행이 남아 있었다).
+CREATE OR REPLACE FUNCTION public.delete_user_memories(p_user_id uuid)
+RETURNS integer
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  WITH deleted AS (
+    DELETE FROM vecs.moly_memories_v2
+    WHERE metadata->>'user_id' = p_user_id::text
+    RETURNING 1
+  )
+  SELECT count(*)::integer FROM deleted;
+$$;
+
+REVOKE ALL ON FUNCTION public.delete_user_memories(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_user_memories(uuid) TO service_role;
+
 -- ─────────────────────────────────────────────────────────────
 -- 2. products (product_type='hay_pack') — 건초 IAP 상품 3종 (App Store Connect 등록 product_id)
 --    가격: 300/₩1,500 · 1,500/₩6,500 · 3,000/₩10,000 (확정 정책)

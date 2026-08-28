@@ -254,7 +254,14 @@ def _is_production() -> bool:
     return settings.environment.strip().lower() not in _NON_PRODUCTION_ENVS
 
 
-async def effective_agent_config(session: AsyncSession) -> AgentConfigSnapshot:
-    """Phase 1 read-only 구간에서 1회 호출. 조회 실패는 잡지 않는다(Phase 1 DB 오류로 전파)."""
-    raw = await get_config_values(session, list(AGENT_CONFIG_KEYS))
+async def effective_agent_config(
+    session: AsyncSession, *, raw: Mapping[str, Any] | None = None
+) -> AgentConfigSnapshot:
+    """Phase 1 read-only 구간에서 1회 호출. 조회 실패는 잡지 않는다(Phase 1 DB 오류로 전파).
+
+    raw: 호출측이 app_config를 이미 읽어 왔으면 재조회하지 않는다(#11 — 요청당 왕복 병합).
+    슈퍼셋이어도 된다 — build_snapshot은 AGENT_CONFIG_KEYS만 본다.
+    """
+    if raw is None:
+        raw = await get_config_values(session, list(AGENT_CONFIG_KEYS))
     return build_snapshot(raw)

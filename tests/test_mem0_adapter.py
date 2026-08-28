@@ -14,6 +14,7 @@ import pathlib
 import sys
 
 import pytest
+from types import SimpleNamespace
 
 from app.services import mem0_adapter as ma
 
@@ -184,13 +185,37 @@ async def test_get_many_discards_foreign_rows():
     assert await a.get_many(["leak"], user_id=UID) == []
 
 
-async def test_delete_by_user_is_bounded_continuation():
-    col = _FakeCollection()
-    a = _adapter(col)
-    await a.insert_many([_rec("m1"), _rec("m2")], user_id=UID)
-    col.rows["other"] = ([0.1] * DIM, {"user_id": OTHER})
-    assert await a.delete_by_user(UID) == 2
-    assert set(col.rows) == {"other"}  # 타 사용자 데이터는 건드리지 않는다
+async def test_delete_by_user_is_bounded_direct_sql(monkeypatch):
+    """#21 이후: 열거 없이 직접 SQL 1문. user_id 동등이 술어 자체(타 사용자 구조적 배제),
+    서브쿼리 LIMIT이 bounded continuation 계약을 유지한다."""
+    import app.core.db as core_db
+
+    captured: dict = {}
+
+    class _S:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def execute(self, stmt, params=None):
+            captured["sql"] = str(stmt)
+            captured["params"] = params
+            return SimpleNamespace(rowcount=2)
+
+        async def commit(self):
+            captured["committed"] = True
+
+    monkeypatch.setattr(core_db, "get_sessionmaker", lambda: lambda: _S())
+    a = _adapter(_FakeCollection())
+    assert await a.delete_by_user(UID, limit=500) == 2
+    assert captured["committed"]
+    assert captured["params"] == {"user_id": UID, "limit": 500}
+    sql = captured["sql"]
+    assert "metadata->>'user_id' = :user_id" in sql  # 술어가 곧 스코프
+    assert "LIMIT :limit" in sql  # bounded 계약
+    assert "vecs.moly_memories_v2" in sql
 
 
 async def test_every_operation_is_bounded_by_timeout():

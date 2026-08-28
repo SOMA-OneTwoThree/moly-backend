@@ -26,7 +26,7 @@ from typing import Any
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import fortune_ads, job_telemetry, jobs, privacy
+from app.services import fortune_ads, job_telemetry, jobs, privacy, usage_ledger
 from app.services.jobs import ClaimedJob, QueueConfig
 
 _log = logging.getLogger("moly-worker")
@@ -285,6 +285,31 @@ async def _sleep_or_stop(stop: asyncio.Event, seconds: float) -> None:
         await asyncio.wait_for(stop.wait(), timeout=seconds)
 
 
+# 큐별 웨이크업 이벤트 — 잡 finalize(커밋 완료) 시점에 전 큐를 깨운다. finalize의 apply_domain이
+# 넣은 후속 잡(ingest→consolidate 사슬)이 백오프 상한(job_idle_sleep_max_s)만큼 잠든 루프를
+# 기다리는 일을 없앤다. 커밋 이후에만 set되므로 깨어난 claim이 후속 잡을 놓치지 않는다.
+_WAKE: dict[str, asyncio.Event] = {}
+
+
+def _wake_queues() -> None:
+    for ev in _WAKE.values():
+        ev.set()
+
+
+async def _sleep_stop_or_wake(stop: asyncio.Event, wake: asyncio.Event, seconds: float) -> bool:
+    """stop 또는 wake가 오면 즉시 깨는 sleep. wake로 깼으면 True(백오프 리셋 신호)."""
+    stop_t = asyncio.ensure_future(stop.wait())
+    wake_t = asyncio.ensure_future(wake.wait())
+    try:
+        await asyncio.wait({stop_t, wake_t}, timeout=seconds, return_when=asyncio.FIRST_COMPLETED)
+        return wake_t.done()
+    finally:
+        for t in (stop_t, wake_t):
+            t.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await t
+
+
 @dataclass
 class _Slots:
     """큐 1개의 인플라이트 태스크 집합(= 점유 슬롯)."""
@@ -300,15 +325,35 @@ class _Slots:
         return concurrency - len(self.tasks)
 
 
+async def _run_job_then_wake(job: ClaimedJob, cfg: QueueConfig) -> None:
+    """run_job 후 전 큐 웨이크업 — finalize 커밋이 끝난 뒤라 후속 잡이 claim에 보인다."""
+    try:
+        await run_job(job, cfg)
+    finally:
+        _wake_queues()
+
+
 async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event) -> None:
-    """한 큐의 claim 루프. 빈 슬롯만큼만 claim하고, 없으면 짧게 쉬며 폴링한다."""
+    """한 큐의 claim 루프. 빈 슬롯만큼만 claim하고, 없으면 지수 백오프로 쉬며 폴링한다.
+
+    빈 claim이 이어지면 job_idle_sleep_s → job_idle_sleep_max_s 지수 증가(유휴 폴링 부하 축소),
+    잡을 잡거나 웨이크업(잡 완료)으로 깨면 즉시 기준값 복귀 — 바쁠 때 반응성은 그대로다.
+    """
     cfg = jobs.queue_config(queue)
     slots = _Slots()
     idle = settings.job_idle_sleep_s
+    idle_max = max(settings.job_idle_sleep_max_s, idle)
+    delay = idle
+    # 무조건 재생성 — asyncio.Event는 첫 wait의 이벤트 루프에 묶이므로, 이전 루프의 이벤트를
+    # 재사용하면 wait가 즉시 RuntimeError로 끝나 sleep 0초 핫스핀이 된다(테스트·asyncio.run 반복).
+    wake = _WAKE[queue] = asyncio.Event()
     while not stop.is_set():
+        # claim 이전에 clear — claim과 sleep 사이에 finalize가 끼어도 wake가 남아 즉시 깬다.
+        wake.clear()
         free = slots.free(cfg.concurrency)
         if free <= 0:
-            await _sleep_or_stop(stop, idle)
+            # 슬롯 만석은 유휴가 아니다 — 잡 완료(wake)가 슬롯을 비우는 즉시 깬다.
+            await _sleep_stop_or_wake(stop, wake, idle)
             continue
         try:
             async with get_sessionmaker()() as session:
@@ -320,10 +365,12 @@ async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event) -> None:
             await _sleep_or_stop(stop, idle)
             continue
         if not claimed:
-            await _sleep_or_stop(stop, idle)
+            woken = await _sleep_stop_or_wake(stop, wake, delay)
+            delay = idle if woken else min(delay * 2, idle_max)
             continue
+        delay = idle
         for job in claimed:
-            slots.spawn(run_job(job, cfg))
+            slots.spawn(_run_job_then_wake(job, cfg))
     if slots.tasks:  # graceful drain — 진행 중 잡은 마치고 종료(lease 만료 회수 최소화)
         await asyncio.gather(*list(slots.tasks), return_exceptions=True)
 
@@ -367,10 +414,22 @@ async def run_consumer(
     stop = stop or asyncio.Event()
     wid = worker_id or default_worker_id()
     _log.info("잡 소비자 시작 — worker_id=%s queues=%s handlers=%s", wid, queues, registered_types())
-    await asyncio.gather(
-        *(queue_loop(q, wid, stop) for q in queues),
-        reaper_loop(stop, queues),
+    # #23b: flusher는 gather 밖의 별도 태스크다. gather 안에 두면 stop 직후 최종 flush를
+    # 해버리는데, queue_loop들은 그 뒤에도 in-flight 잡을 드레인하며 close_call을 버퍼에
+    # 넣는다 — 드레인 완료 **후에** flusher를 세워야 그 close들이 마지막 flush에 담긴다.
+    flusher_stop = asyncio.Event()
+    flusher = asyncio.ensure_future(
+        usage_ledger.run_close_flusher(flusher_stop, reconcile=True)
     )
+    try:
+        await asyncio.gather(
+            *(queue_loop(q, wid, stop) for q in queues),
+            reaper_loop(stop, queues),
+        )
+    finally:
+        flusher_stop.set()
+        with contextlib.suppress(Exception):
+            await flusher  # 드레인된 잡들의 close까지 포함한 graceful shutdown flush
     _log.info("잡 소비자 종료 — worker_id=%s", wid)
 
 
@@ -399,6 +458,7 @@ def _register_handlers() -> None:
     from worker import (  # noqa: F401
         checkpoint_jobs, contract_jobs, diary_recall_jobs, mem0_jobs,
         memory_sweep_jobs, privacy_jobs, reconsolidate_jobs, relationship_jobs,
+        retention_jobs,
     )
 
     if not _REGISTRY:

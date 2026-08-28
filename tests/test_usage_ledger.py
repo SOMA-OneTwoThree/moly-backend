@@ -123,6 +123,8 @@ class _FakeLedgerDB:
             })
         if s == str(ul._FAILED_SQL):
             return self._transition(p, "failed", {"error_code": p["error_code"]})
+        if s == str(ul._PRICE_SQL):
+            return _Res([])  # 단가 미등록 — complete가 unknown_usage로 수렴하는 경로
         raise AssertionError(f"시뮬레이터가 모르는 문장: {s[:80]}")
 
     def _transition(self, p, new_status: str, fields: dict) -> _Res:
@@ -322,3 +324,98 @@ async def test_provider_exception_is_recorded_as_failed_and_reraised(monkeypatch
         await llm.generate("p", [{"role": "user", "content": "x"}], model="gpt-5.6-luna", ledger=ctx)
     assert rec.closed == []
     assert rec.failed[0]["error_code"] == "RuntimeError"
+
+
+# ── #23b: close 배치 flush ─────────────────────────────────────
+
+
+class _FlushSession:
+    """flush가 여는 세션 — _FakeLedgerDB에 위임한다."""
+
+    def __init__(self, db):
+        self._db = db
+        self.committed = False
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *a):
+        return False
+
+    async def execute(self, stmt, params=None):
+        return await self._db.execute(stmt, params)
+
+    async def commit(self):
+        self.committed = True
+
+
+async def test_close_call_buffers_then_flush_converges(db, monkeypatch):
+    """#23b: close_call은 버퍼에 쌓이고(즉시 세션 없음), flush가 한 세션에서 확정한다."""
+    import app.core.db as core_db
+
+    monkeypatch.setattr(core_db, "get_sessionmaker", lambda: lambda: _FlushSession(db))
+    monkeypatch.setattr(ul.settings, "usage_close_flush_enabled", True)
+    ul._CLOSE_BUFFER.clear()
+    ul._price_cache_clear()
+
+    call_id = await _start(db)
+    await ul.close_call(call_id, provider="openai", model="gpt-5.6-luna", input_tokens=100)
+    assert db.rows[call_id]["status"] == "started"  # 아직 DB에 손대지 않았다
+    assert len(ul._CLOSE_BUFFER) == 1
+
+    assert await ul.flush_closes() == 1
+    assert not ul._CLOSE_BUFFER
+    # 이 페이크는 단가 미등록이라 unknown_usage로 수렴 — started로 남지만 않으면 된다.
+    assert db.rows[call_id]["status"] == "unknown_usage"
+
+
+async def test_flush_failure_returns_items_to_buffer(db, monkeypatch):
+    """flush 실패는 유실이 아니라 되돌림이다(상한 초과분만 reconciler로 넘어간다)."""
+    import app.core.db as core_db
+
+    def _boom():
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(core_db, "get_sessionmaker", _boom)
+    monkeypatch.setattr(ul.settings, "usage_close_flush_enabled", True)
+    ul._CLOSE_BUFFER.clear()
+
+    call_id = await _start(db)
+    await ul.close_call(call_id, provider="openai", model="gpt-5.6-luna")
+    assert await ul.flush_closes() == 0
+    assert len(ul._CLOSE_BUFFER) == 1  # 되돌아왔다
+    ul._CLOSE_BUFFER.clear()
+
+
+async def test_close_call_sync_path_when_flag_off(db, monkeypatch):
+    """운영 회귀 스위치: 끄면 예전처럼 즉시 확정한다."""
+    import app.core.db as core_db
+
+    monkeypatch.setattr(core_db, "get_sessionmaker", lambda: lambda: _FlushSession(db))
+    monkeypatch.setattr(ul.settings, "usage_close_flush_enabled", False)
+    ul._CLOSE_BUFFER.clear()
+    ul._price_cache_clear()
+
+    call_id = await _start(db)
+    await ul.close_call(call_id, provider="openai", model="gpt-5.6-luna")
+    assert db.rows[call_id]["status"] == "unknown_usage"  # 즉시 수렴(페이크는 단가 미등록)
+    assert not ul._CLOSE_BUFFER
+
+
+def test_reconciler_sql_contract():
+    """stale started(>24h)만, started fencing으로, 동종 completed 실측 최대를 상한으로."""
+    sql = " ".join(str(ul._RECONCILE_STALE_SQL).split())
+    assert "s.status='started'" in sql and "l.status='started'" in sql  # 이중 fencing
+    assert "interval '24 hours'" in sql  # 최장 lease 180s ≪ 24h — in-flight 오탐 불가
+    assert "status='unknown_usage'" in sql  # 0원 확정이 아니라 미확정 보존(불변식 2)
+    assert "max(c.cost_micro_usd)" in sql and "c.status='completed'" in sql
+    assert "LIMIT :limit" in sql  # bounded
+
+
+def test_flusher_does_final_flush_after_stop():
+    """graceful shutdown flush — stop 뒤 마지막 flush가 소스에 실재해야 한다(챗 lane 유실 방지)."""
+    import inspect
+
+    src = inspect.getsource(ul.run_close_flusher)
+    tail = src.rsplit("while not stop.is_set():", 1)[1]
+    assert tail.rstrip().endswith("await flush_closes()  # graceful shutdown flush — 챗 lane 포함(#23b)")

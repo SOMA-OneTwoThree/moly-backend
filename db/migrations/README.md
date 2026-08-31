@@ -1,6 +1,6 @@
 # DB 변경 관리
 
-> 최종 확인: 2026-08-28. 대화·기억·꾸미기 전환은 dev와 prod에 끝났고, 오늘의 운세는 dev에만 적용했다.
+> 최종 확인: 2026-09-05. 대화·기억·꾸미기 전환은 dev와 prod에 끝났고, 오늘의 운세는 dev에만 적용했다.
 
 ## 기준
 
@@ -17,10 +17,8 @@
 
 ## 현재 상태
 
-2026-08-14 읽기 전용 검증 결과:
-
-- dev와 prod 모두 ORM 모델 47개 테이블의 컬럼·nullable·RLS·민감 테이블 권한 검사를 통과했다.
-- prod 장기 기억 사용자 상태 729개가 모두 `mode='v2'`, `bootstrap_status='ready'`다.
+- dev와 prod 모두 ORM 모델 테이블의 컬럼·nullable·RLS·민감 테이블 권한 검사를 통과한다.
+- 장기 기억 사용자는 `mode='v2'`, `bootstrap_status='ready'`를 사용한다.
 - 예전 정규화 기억 테이블과 `vecs.memories`는 제거됐고 현재 기억 컬렉션은
   `vecs.moly_memories_v2` 하나다.
 - 운영 전환용 일회성 절차는 끝났다. 과거 SQL 파일은 현재 실행 지침이 아니라 적용 이력이다.
@@ -70,6 +68,16 @@ dry-run 성공만으로 운영 적용을 결정하지 않는다. 대상 DB, 예�
 ```bash
 uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 ```
+
+### 모자 7종 (`20260826_hats_seven.sql`)
+
+버킷햇·캡모자·빵모자·두건·수건·수박 모자·토끼 모자는 각 1,000건초인 v2 전용 상품이다.
+운영 DB에는 먼저 반영됐으며 파일 checksum은 운영 원장과 일치한다. 새 DB는
+`db/seed_and_triggers.sql`, 기존 DB는 해당 마이그레이션으로 같은 카탈로그를 재현한다.
+
+7종은 `rightside` 레이어만 있으므로 반드시 `is_v2_only=true`를 유지한다. 기존 DB에 적용할 때는
+사전에 에셋 업로드를 확인하고, 적용 후 `/v2/shop/products`에는 보이고 레거시 `/shop/products`에는
+노출되지 않는지 검증한다.
 
 ## 기억 계약
 

@@ -143,6 +143,34 @@ URL만 바꾸면 iOS 캐시가 갱신되지 않는다.
 7. 레거시 `/me`·`/shop/products`·`/inventory`·두 equipment 조회에 hat/glasses·`rightside`가
    노출되지 않는지, `/v2/*` 4종이 새 슬롯과 rightside upright를 반환하는지 스모크 테스트한다.
 
+### 모자 7종 추가 (`20260826_hats_seven.sql`)
+
+`hat` 슬롯에 버킷햇·캡모자·빵모자·두건·수건·수박 모자·토끼 모자를 1,000건초로 추가한다
+(`sort_order` 3~9 — 기존 `head_mandarin`=2 뒤에 붙는다). 계약도 스키마도 바뀌지 않아 서버·앱
+배포와 순서 의존이 없다.
+
+7종 모두 `rightside` 레이어만 있고 `detail_url`·구 자세 `upright_layer_url`이 없다.
+`head_glasses`와 같은 **v2 전용** 상품이라 `is_v2_only=true`로 넣는다 — 이 플래그가 빠지면
+레거시 계약(`ShopProduct`)이 `detail_url`을 요구해 구버전 앱의 `/shop/products`와 `/inventory`가
+통째로 500이 된다.
+
+새 DB(dev·CI): `db/seed_and_triggers.sql`이 7종과 `is_v2_only`를 이미 담는다.
+
+기존 DB(staging·prod):
+
+1. `shop-assets` 버킷에 7종의 `{public_id}/v1/thumb.png`(200×200)와
+   `{public_id}/v1/rightside/upright.png`(800×1100)를 올린다. 착용 레이어는 iOS 번들
+   캐릭터(`cappy.imageset`, 800×1100)와 픽셀 정렬이 같아야 한다.
+2. `python db/apply.py db/migrations/20260826_hats_seven.sql`로 dry-run한 뒤 `--commit`으로 적용한다.
+   재실행해도 안전하다(고정 uuid + `ON CONFLICT`). 사후 검증이 슬롯·플래그·에셋 URL·활성 hat
+   개수(8종)를 모두 확인하고, 어긋나면 트랜잭션을 되돌린다.
+3. `/v2/shop/products`에 8종이 보이는지, 레거시 `/shop/products`에는 새 7종이 **안** 보이는지
+   확인한다. 앱에서 각 모자를 장착해 캐릭터와 정렬이 맞는지 본다.
+
+> ⚠️ `scripts/verify_appearance_assets.py`는 `is_v2_only`를 모른다(스크립트가 20260720보다 앞선다).
+> 모든 착용 상품에 `detail_url`과 구 자세 `upright_layer_url`이 있다고 가정하므로 이 7종과
+> `head_glasses`를 매니페스트에 넣으면 실패한다. 이 상품들에는 아직 쓸 수 없다.
+
 ---
 
 ## 프로덕션 적용 — 순서와 위험 (2026-08-05 실측)

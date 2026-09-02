@@ -745,13 +745,48 @@ async def test_record_subscription_payment_tx_reuse_same_owner_idempotent():
     await subscription._record_subscription_payment(s, sub, _rc_event())  # 예외 없이 멱등 반환
 
 
-# --- TRANSFER 전면 수동(§5): failed + 경제/구독/결제 무변경 ---
-async def test_rc_transfer_manual_no_change():
+# --- TRANSFER(§5): SANDBOX no-op / PRODUCTION 수동, 둘 다 경제·구독·결제 무변경 ---
+async def test_rc_sandbox_transfer_no_op_no_change():
+    """TestFlight/Sandbox 계정 이동은 inbox processed로 수렴하되 사용자 자산은 무변경."""
     s = FakeSession()
     res = await subscription.handle_revenuecat_event(
-        s, _rc_event(type="TRANSFER", transferred_from=["a"], transferred_to=["b"]))
-    assert res.outcome == TRANSFER_MANUAL
+        s,
+        _rc_event(
+            type="TRANSFER",
+            environment="SANDBOX",
+            app_user_id=None,  # TRANSFER는 uid가 없어도 환경만으로 안전하게 분기
+            transferred_from=["a"],
+            transferred_to=["b"],
+        ),
+    )
+    assert res.outcome == NO_OP
+    assert "SANDBOX TRANSFER" in (res.reason or "")
     assert s.added == [] and s.committed is False and s.rolled_back is False
+
+
+async def test_rc_production_transfer_manual_no_change():
+    s = FakeSession()
+    res = await subscription.handle_revenuecat_event(
+        s,
+        _rc_event(
+            type="TRANSFER", environment="PRODUCTION",
+            transferred_from=["a"], transferred_to=["b"],
+        ),
+    )
+    assert res.outcome == TRANSFER_MANUAL
+    assert "PRODUCTION" in (res.reason or "")
+    assert s.added == [] and s.committed is False and s.rolled_back is False
+
+
+async def test_rc_transfer_missing_environment_stays_manual():
+    """환경 누락을 SANDBOX로 추정하지 않는 fail-closed 회귀."""
+    s = FakeSession()
+    event = _rc_event(type="TRANSFER", transferred_from=["a"], transferred_to=["b"])
+    event.pop("environment")
+    res = await subscription.handle_revenuecat_event(s, event)
+    assert res.outcome == TRANSFER_MANUAL
+    assert "UNKNOWN" in (res.reason or "")
+    assert s.added == []
 
 
 # --- Google Play 구독 매핑(SOMA-341) ---

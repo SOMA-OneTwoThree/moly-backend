@@ -231,6 +231,25 @@ async def test_process_event_no_op_records_reason(monkeypatch):
     assert row.status == "processed" and row.last_error == "옛 상태 skip"  # durable reason(은폐 아님)
 
 
+async def test_process_event_sandbox_transfer_is_processed_without_economy_change():
+    """SANDBOX TRANSFER 실핸 경로: 수동 failed가 아니라 durable processed/no-op으로 종료."""
+    row = _inbox_row()
+    row.payload = {
+        "id": "evt-1",
+        "type": "TRANSFER",
+        "environment": "SANDBOX",
+        "transferred_from": ["test-old"],
+        "transferred_to": ["test-new"],
+    }
+    s = _InboxSession(row)
+
+    assert await subscription.process_event(s, "evt-1") == NO_OP
+    assert row.status == "processed"
+    assert row.processed_at is not None
+    assert "SANDBOX TRANSFER" in (row.last_error or "")
+    assert s.rolled_back == 0 and s.committed == 1
+
+
 async def test_process_event_dependency_missing_rolls_back_keeps_pending(monkeypatch):
     async def _h(session, event):
         return HandlerResult(DEPENDENCY_MISSING, "선행 결제 없음")

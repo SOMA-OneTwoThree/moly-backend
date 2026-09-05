@@ -238,7 +238,7 @@ async def _context(
     current_text: str | None = None,
     current_date: date | None = None,
     language: str | None = None,
-) -> tuple[list[dict[str, str]], int | None, list[Message], str]:
+) -> tuple[list[dict[str, str]], int | None, list[Message]]:
     """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
 
     프리픽스는 리셋 때만 1회 바뀌고 그 사이엔 append-only → 캐시 히트 유지.
@@ -246,10 +246,6 @@ async def _context(
     셋째 반환값 = 대화 배열 맨 앞에서 밀려난 캐피 메시지(=커밋된 선발화).
     Anthropic이 messages[0]를 user로 강제해서 배열엔 못 넣지만, 버리면 캐피가 방금 건넨
     인사를 모른 채 또 인사한다. 호출측이 system 가변 블록으로 넘긴다.
-
-    넷째 반환값 = 완료된 과거 위기 에피소드가 압축됐을 때의 서버 소유 중립 상태. 이 문자열은
-    user/assistant 대화로 위조하지 않고 호출측이 휘발 system 블록으로 넣는다. 현재·최신 위기 발화는
-    압축하지 않는다(`context_safety`).
 
     current_text가 주어지면(SOMA-374 read-only phase) 이번 턴 유저 메시지가 아직 DB에
     없으므로, 과거 메시지로 조립한 뒤 현재 턴을 배열 끝에 in-memory로 붙인다(날짜 표식 포함).
@@ -313,7 +309,7 @@ async def _context(
         if current_date is not None and current_date != prev_date:
             content = f"{_date_label(current_date)}\n{current_text}"
         convo.append({"role": "user", "content": content})
-    return convo, new_anchor, lead, compacted.note
+    return convo, new_anchor, lead
 
 
 async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
@@ -977,7 +973,7 @@ async def post_message(
         context_ms = _ms(t_context0, time.monotonic())
 
     # 컨텍스트 조립 — 현재 유저 메시지는 아직 미저장. _context가 현재 턴을 in-memory로 붙인다.
-    convo, new_anchor, lead, historical_safety_note = await _context(
+    convo, new_anchor, lead = await _context(
         session, uid, anchor, current_text=req.text, current_date=ad, language=language
     )
     lead_texts = [m.content for m in lead]  # placeholder 저장분(문자열) — 커밋 후 ORM 미접근
@@ -1033,11 +1029,10 @@ async def post_message(
     # 대화가 그대로 캐시되고, 바뀐 이 블록과 현재 입력만 새로 쓴다.
     # role은 system이라 user 발화 권위를 갖지 않는다.
     volatile: list[str] = []
-    if historical_safety_note:
-        volatile.append(historical_safety_note)
     if checkpoint_summary:
         # 기존 checkpoint(v1)에 남은 과거 위기 원문도 최근 대화가 명확히 다른 화제로 넘어간
-        # 경우에만 문장 단위로 중립화한다. 현재 위기/불명확한 전환이면 원문을 그대로 둔다.
+        # 경우에만 문장 단위로 제거한다. 구형 서버 대체 문구도 함께 제거하며, 현재 위기/불명확한
+        # 전환이면 위기 원문은 그대로 둔다.
         checkpoint_summary = context_safety.compact_checkpoint_summary(
             checkpoint_summary,
             recent_entries=[
@@ -1048,11 +1043,12 @@ async def post_message(
             current_text=req.text,
             language=language,
         )
-        volatile.append(
-            "[지난 이야기]\n"
-            "위 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
-            f"{naming.render(checkpoint_summary, nick)}"
-        )
+        if checkpoint_summary:
+            volatile.append(
+                "[지난 이야기]\n"
+                "위 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
+                f"{naming.render(checkpoint_summary, nick)}"
+            )
     if memory_v2_block:
         volatile.append(naming.render(memory_v2_block, nick))
     if resident_block:

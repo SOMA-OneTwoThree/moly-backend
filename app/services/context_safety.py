@@ -1,8 +1,8 @@
-"""과거 위기 대화가 이후 턴을 오염시키지 않게 하는 결정적 컨텍스트 압축.
+"""과거 위기 대화가 이후 턴을 오염시키지 않게 하는 결정적 컨텍스트 필터.
 
 이 모듈은 안전 분류기나 위기 대응 정책이 아니다. 현재·최신 발화는 절대 숨기지 않고, 이미
-응답이 있었으며 이후 다른 화제로 명확히 넘어간 **과거 구간**만 원문 대신 서버 소유 중립 상태로
-바꾸기 위한 프롬프트 위생 계층이다. 스키마와 추가 LLM 호출 없이 ko/en/ja에서 같은 규칙을 쓴다.
+응답이 있었으며 이후 다른 화제로 명확히 넘어간 **과거 구간**만 모델 입력에서 제외한다.
+제외 사실을 알리는 대체 문장도 만들지 않으며, 추가 LLM 호출 없이 ko/en/ja에서 같은 규칙을 쓴다.
 """
 from __future__ import annotations
 
@@ -24,7 +24,6 @@ class ContextEntry:
 @dataclass(frozen=True, slots=True)
 class CompactionResult:
     entries: tuple[ContextEntry, ...]
-    note: str = ""
     compacted_episodes: int = 0
 
 
@@ -108,33 +107,34 @@ _SAFETY_REPLY = {
     ),
 }
 
-_NOTE = {
-    "ko": (
-        "[과거 안전 상태]\n"
-        "이전에 안전 확인이 필요했던 힘든 순간이 있었고, 이후 대화는 분명히 다른 화제로 "
-        "넘어갔다. 현재 발화가 아닌 과거 상태이므로 당시의 위기 표현이나 반복된 안전 확인 문구를 "
-        "되풀이하지 않는다."
+# 이 필터를 도입하기 전 checkpoint 프롬프트가 생성하던 서버 소유 문구다. 사용자가 한 말이
+# 아니므로 언어별로 알려진 형태만 제거한다. 일반적인 "힘들었다"는 사용자 서술까지 넓게 지우지
+# 않도록 패턴을 의도적으로 좁게 유지한다.
+_LEGACY_NEUTRAL_SUMMARY = {
+    "ko": re.compile(
+        r"(?:\[과거\s*안전\s*상태\]\s*)?"
+        r"(?:이전에\s*)?안전\s*확인이\s*필요했던\s*힘든\s*순간이\s*있었고,?\s*"
+        r"이후(?:\s*대화는\s*분명히)?\s*(?:다른\s*이야기|다른\s*화제)(?:로)?\s*넘어갔다[.!?]?"
+        r"(?:\s*현재\s*발화가\s*아닌\s*과거\s*상태이므로\s*당시의\s*위기\s*표현이나\s*"
+        r"반복된\s*안전\s*확인\s*문구를\s*되풀이하지\s*않는다[.!?]?)?",
+        re.IGNORECASE,
     ),
-    "en": (
-        "[Past safety context]\n"
-        "There was an earlier difficult moment that required a safety check, and the conversation "
-        "clearly moved to another topic afterward. This is past context, not the current message; do "
-        "not repeat the earlier crisis wording or repeated safety-check boilerplate."
+    "en": re.compile(
+        r"(?:\[Past\s+safety\s+context\]\s*)?"
+        r"There\s+was\s+an\s+earlier\s+difficult\s+moment(?:\s+that)?\s+requir(?:ed|ing)\s+"
+        r"a\s+safety\s+check,?\s+(?:and\s+the\s+conversation\s+clearly\s+moved\s+to\s+"
+        r"another\s+topic\s+afterward|followed\s+by\s+a\s+different\s+topic)[.!?]?"
+        r"(?:\s*This\s+is\s+past\s+context,?\s+not\s+the\s+current\s+message;?\s*do\s+not\s+"
+        r"repeat\s+the\s+earlier\s+crisis\s+wording\s+or\s+repeated\s+safety-check\s+boilerplate[.!?]?)?",
+        re.IGNORECASE,
     ),
-    "ja": (
-        "[過去の安全状態]\n"
-        "以前、安全確認が必要なつらい場面があり、その後の会話は明確に別の話題へ移った。"
-        "これは現在の発言ではなく過去の状態なので、当時の危機表現や繰り返された安全確認文を"
-        "繰り返さない。"
+    "ja": re.compile(
+        r"(?:\[過去の安全状態\]\s*)?以前[、,]?安全確認が必要なつらい場面があり[、,]?"
+        r"その後(?:の会話)?は?(?:明確に)?別の(?:話|話題)へ移った[。！？!?]?"
+        r"(?:\s*これは現在の発言ではなく過去の状態なので[、,]?当時の危機表現や"
+        r"繰り返された安全確認文を繰り返さない[。！？!?]?)?"
     ),
 }
-
-_SUMMARY_NEUTRAL = {
-    "ko": "이전에 안전 확인이 필요했던 힘든 순간이 있었고, 이후 다른 이야기로 넘어갔다.",
-    "en": "There was an earlier difficult moment requiring a safety check, followed by a different topic.",
-    "ja": "以前、安全確認が必要なつらい場面があり、その後は別の話題へ移った。",
-}
-
 
 def _lang(language: str | None) -> str:
     return i18n.resolve(language)
@@ -219,10 +219,10 @@ def compact_historical_crises(
     current_date: date | None,
     language: str | None,
 ) -> CompactionResult:
-    """완료된 과거 위기 에피소드만 원문에서 제외하고 서버 소유 중립 메모를 돌려준다.
+    """완료된 과거 위기 에피소드만 원문에서 제외한다.
 
     현재 발화가 위기 또는 위기 연속 신호면 보수적으로 아무것도 바꾸지 않는다. 따라서 이 계층의
-    오탐이 최신 안전 대응을 약화시키는 경로가 없다.
+    오탐이 최신 안전 대응을 약화시키는 경로가 없다. 제외 사실을 나타내는 대체 문장은 반환하지 않는다.
     """
     lang = _lang(language)
     original = tuple(entries)
@@ -262,7 +262,7 @@ def compact_historical_crises(
 
     if not episodes:
         return CompactionResult(original)
-    return CompactionResult(tuple(out), _NOTE[lang], episodes)
+    return CompactionResult(tuple(out), compacted_episodes=episodes)
 
 
 def _has_clear_neutral_tail(
@@ -293,12 +293,18 @@ def compact_checkpoint_summary(
     current_text: str | None,
     language: str | None,
 ) -> str:
-    """기존 checkpoint 속 완료 위기 원문만 문장 단위로 중립화한다.
+    """기존 checkpoint 속 완료 위기 원문과 구형 대체 문구를 제거한다.
 
     최신 위기/연속 신호가 있거나 최근 대화에서 명확한 전환을 증명하지 못하면 원문을 그대로 둔다.
     단순 키워드 전역 삭제가 아니라, checkpoint라는 과거 표면과 전환 근거가 모두 있을 때만 작동한다.
     """
     lang = _lang(language)
+    if not summary:
+        return summary
+
+    # 이미 저장된 구형 서버 대체 문구는 현재 위기 여부와 무관하게 먼저 제거한다. 최신 위기는
+    # recent_entries/current_text에 원문으로 남아 있어 이 문구를 보존할 안전상 이유가 없다.
+    summary = _LEGACY_NEUTRAL_SUMMARY[lang].sub("", summary).strip()
     if not summary or not is_explicit_crisis(summary, lang):
         return summary
     if current_text is not None and is_continuing_distress(current_text, lang):
@@ -313,7 +319,4 @@ def compact_checkpoint_summary(
         if not is_explicit_crisis(sentence, lang)
         and not _SAFETY_REPLY[lang].search(sentence)
     ]
-    neutral = _SUMMARY_NEUTRAL[lang]
-    if neutral not in kept:
-        kept.append(neutral)
     return " ".join(kept)

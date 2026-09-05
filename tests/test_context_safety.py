@@ -59,7 +59,6 @@ def test_completed_episode_is_compacted_after_clear_topic_shift(
 
     prompt = "\n".join(e.content for e in result.entries)
     assert result.compacted_episodes == 1
-    assert result.note
     assert crisis not in prompt
     assert safety not in prompt and repeated not in prompt
     assert shift in prompt
@@ -81,7 +80,6 @@ def test_current_crisis_disables_all_compaction(language, current):
     )
 
     assert result.entries == tuple(old)
-    assert result.note == ""
     assert result.compacted_episodes == 0
 
 
@@ -94,7 +92,6 @@ def test_acknowledgement_is_not_a_topic_transition():
         entries, current_text="응, 고마워.", current_date=D1, language="ko"
     )
     assert result.entries == tuple(entries)
-    assert result.note == ""
 
 
 def test_one_substantive_topic_on_a_later_day_is_a_clear_transition():
@@ -131,7 +128,6 @@ def test_no_assistant_reply_means_episode_is_not_completed():
         entries, current_text="주인공이 정말 좋았어.", current_date=D1, language="ko"
     )
     assert result.entries == tuple(entries)
-    assert result.note == ""
 
 
 def test_unrelated_assistant_reply_does_not_complete_crisis_episode():
@@ -147,7 +143,6 @@ def test_unrelated_assistant_reply_does_not_complete_crisis_episode():
     )
 
     assert result.entries == tuple(entries)
-    assert result.note == ""
     assert result.compacted_episodes == 0
 
 
@@ -163,7 +158,6 @@ def test_matching_safety_reply_allows_completed_episode_compaction():
     )
 
     assert [entry.content for entry in result.entries] == ["다른 얘기하자. 오늘 영화 봤어."]
-    assert result.note
     assert result.compacted_episodes == 1
 
 
@@ -213,11 +207,10 @@ def test_current_continuing_distress_preserves_all_historical_crisis_context(
     )
 
     assert result.entries == tuple(entries)
-    assert result.note == ""
     assert result.compacted_episodes == 0
 
 
-def test_existing_checkpoint_is_neutralized_only_with_clear_later_topic():
+def test_existing_checkpoint_removes_completed_episode_only_with_clear_later_topic():
     summary = (
         "유저는 새 프로젝트를 시작했다. 죽고 싶다고 말했다. "
         "캐피는 지금 안전한 곳인지 확인하고 주변 사람에게 연락하라고 했다."
@@ -235,7 +228,40 @@ def test_existing_checkpoint_is_neutralized_only_with_clear_later_topic():
     assert "새 프로젝트" in compacted
     assert "죽고 싶" not in compacted
     assert "안전한 곳" not in compacted
-    assert "힘든 순간" in compacted
+    assert "힘든 순간" not in compacted
+
+
+@pytest.mark.parametrize(
+    ("language", "summary"),
+    [
+        (
+            "ko-KR",
+            "이전에 안전 확인이 필요했던 힘든 순간이 있었고, 이후 다른 이야기로 넘어갔다.",
+        ),
+        (
+            "en-US",
+            "There was an earlier difficult moment requiring a safety check, followed by a different topic.",
+        ),
+        (
+            "ja-JP",
+            "以前、安全確認が必要なつらい場面があり、その後は別の話題へ移った。",
+        ),
+        (
+            "ko",
+            "[과거 안전 상태]\n이전에 안전 확인이 필요했던 힘든 순간이 있었고, 이후 대화는 "
+            "분명히 다른 화제로 넘어갔다. 현재 발화가 아닌 과거 상태이므로 당시의 위기 표현이나 "
+            "반복된 안전 확인 문구를 되풀이하지 않는다.",
+        ),
+    ],
+)
+def test_legacy_neutral_checkpoint_sentence_is_removed_without_replacement(language, summary):
+    out = cs.compact_checkpoint_summary(
+        summary,
+        recent_entries=[],
+        current_text="지금 죽고 싶어." if language.startswith("ko") else None,
+        language=language,
+    )
+    assert out == ""
 
 
 def test_existing_checkpoint_stays_raw_during_current_crisis():
@@ -273,5 +299,6 @@ def test_checkpoint_stays_raw_during_current_continuing_distress(
 def test_checkpoint_prompt_encodes_completed_vs_active_crisis_rule():
     prompt = checkpoint.build_system("ko")
     assert "다른 화제로 명확히 넘어갔다면" in prompt
+    assert "대체 문장도 만들지 않는다" in prompt
     assert "최신 위기 발화" in prompt
-    assert checkpoint.SUMMARIZER_VERSION.endswith("v2")
+    assert checkpoint.SUMMARIZER_VERSION.endswith("v3")

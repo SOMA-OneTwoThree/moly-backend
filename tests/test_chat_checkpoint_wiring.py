@@ -270,3 +270,22 @@ async def test_no_checkpoint_leaves_the_prompt_unchanged(monkeypatch, spy, enabl
     await _post(session, monkeypatch, spy)
 
     assert "[지난 이야기]" not in _system_text(spy)
+
+
+async def test_legacy_safety_replacement_checkpoint_does_not_create_empty_block(
+    monkeypatch, spy, enabled
+):
+    spy["latest"] = checkpoint.Checkpoint(
+        id=uuid.uuid4(),
+        through_message_id=20,
+        summary="이전에 안전 확인이 필요했던 힘든 순간이 있었고, 이후 다른 이야기로 넘어갔다.",
+        version=checkpoint.SUMMARIZER_VERSION,
+        source_hash="a" * 64,
+    )
+    session = _Session(execute_items=_segment(6))
+
+    await _post(session, monkeypatch, spy)
+
+    prompt = _prompt_text(spy)
+    assert "힘든 순간" not in prompt
+    assert "[지난 이야기]" not in prompt

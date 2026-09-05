@@ -36,7 +36,7 @@ _log = logging.getLogger("moly-backend")
 JOB_CONVERSATION_CHECKPOINT = "conversation_checkpoint"
 # v2 = payload에 `memory_generation`이 들어간다(잊어줘 이후 늦게 도착한 잡을 stale로 끊는 세대 검사).
 SCHEMA_VERSION = "conversation-checkpoint-payload-v2"
-SUMMARIZER_VERSION = "conversation-checkpoint-summary-v2"
+SUMMARIZER_VERSION = "conversation-checkpoint-summary-v3"
 
 # W1 회계의 호출 목적 라벨(LlmCall.purpose). 대화 턴 밖(워커)에서 도는 호출이라 chat 턴 사용량과
 # 섞이지 않게 자체 라벨을 쓴다.
@@ -280,9 +280,9 @@ def build_system(language: str | None) -> str:
         "- 사람 이름·호칭은 쓰지 않는다. {유저이름} 같은 토큰이 보이면 그대로 둔다.\n"
         "- 이전 요약이 함께 주어지면 그 내용을 이어받아 하나의 요약으로 합친다.\n"
         "- 자살·자해처럼 안전 확인이 필요했던 대화가 나온 뒤 다른 화제로 명확히 넘어갔다면, "
-        "당시의 원문 표현과 반복된 안전 질문을 옮기지 말고 '힘든 순간에 안전 확인이 필요했고 "
-        "이후 다른 이야기로 넘어갔다'는 중립 상태만 남긴다. 구간 끝까지 위기가 이어지면 최신 "
-        "위기 발화와 안전 대응에 필요한 맥락을 생략하지 않는다.\n"
+        "해당 위기 구간과 반복된 안전 질문을 요약에 남기지 않는다. 그 일이 있었다는 대체 문장도 "
+        "만들지 않는다. 구간 끝까지 위기가 이어지면 최신 위기 발화와 안전 대응에 필요한 맥락을 "
+        "생략하지 않는다.\n"
         f"{_LANG_RULE[i18n.resolve(language)]}\n"
         f"- 전체 {SUMMARY_MAX_CHARS}자 이내의 줄글로 쓰고, 제목·머리말·코드펜스는 붙이지 않는다."
     )

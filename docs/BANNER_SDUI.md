@@ -161,12 +161,11 @@ uv run pytest -q --ignore=tests/integration
 
 위 suite와 별도로 실제 DB 통합/개발 서버 검증이 필요하다.
 [deploy-dev.yml](../.github/workflows/deploy-dev.yml)의 dev 배포 경로로 반영하고 https://dev.moly.asia/health SHA를 확인한다.
-feature 브랜치 push만으로 개발 서버가 바뀌지 않는다. 로그인/계정 서버와 Supabase Auth는 공용이며 별도 개발 배포를 전제하지 않는다.
-개발 API는 공용 Auth의 issuer/JWKS를 검증하고, SUPABASE_DB_CONNECTION_STRING은 개발 DB를 선택한다. 클라 flavor가 DB를 직접 고르지 않는다.
-개발 DB에는 공용 JWT sub에 대응하는 테스트 프로필과 참조 관계가 필요하다. 현재 profiles.id가 auth.users를 참조하므로
-프로필 한 행만 임의 생성하거나 운영 DB를 자동 복사하지 않는다. https://dev.moly.asia가 개발 DB에 연결된 구성은 사용자에게 확인했다.
-클라에는 개발 API 주소만 설정하고 공용 계정 로그인 후 개발 루틴 조회·변경은 dev TestFlight에서 검수한다.
-공용 계정 API가 처리하는 프로필 변경/탈퇴까지 개발 DB로 분리되는 것은 아니다.
+feature 브랜치 push만으로 개발 서버가 바뀌지 않는다. 개발 로그인은 기존 개발 Supabase `wywzjslvxwttxkecbyis`를 사용한다.
+개발 계정 API는 `https://moly-server-dev.vercel.app`이며 moly-auth의 dev 브랜치를 자동 배포한다.
+개발 backend의 SUPABASE_URL·issuer/JWKS와 SUPABASE_DB_CONNECTION_STRING은 모두 개발 프로젝트를 사용한다.
+앱 flavor는 인증·계정 API·기능 API를 함께 선택하며 DB에 직접 연결하지 않는다. 운영 계정을 개발 DB에 복사하지 않는다.
+개발 프로필은 개발 로그인 후 계정 API의 기존 /me·온보딩 흐름으로 준비한다. 로그인·재실행·루틴·배너는 dev TestFlight에서 검수한다.
 개발 TestFlight에서 공동 완료 조건을 확인한 뒤 main으로 반영한다. [운영 배포](../.github/workflows/deploy.yml)는 main push가 계기다.
 검증한 파일 hash·서버/클라 SHA·TestFlight 빌드·기기/언어를 PR·CI에 남긴다. 지원 요소의 배너 파일만 변경하면 같은 앱으로 재검수한다.
 구현 완료 시 [문서 안내](README.md)의 API_SPEC/ARCHITECTURE에 해당 책임만 최신화하고 이 문서와 상세를 중복하지 않는다.

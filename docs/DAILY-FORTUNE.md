@@ -31,7 +31,8 @@ v2 문서는 만들지 않는다.
 사용자 화면에는 행성, 각, 오브, 트랜짓, 내부 의미 코드와 계산 근거 카드를 노출하지 않는다.
 
 종합 점수·총평, 해볼 것·조심할 것, 행운색은 광고 없이 제공한다. “자세히 보기”의 오늘의 흐름과
-네 분야 점수·문구만 무료 사용자의 광고 SSV 검증 후 제공한다. 체험·구독은 상세도 광고 없이 제공한다.
+네 분야 점수·문구는 무료·체험(런칭 무료 기간 포함) 사용자의 광고 SSV 검증 후 제공한다.
+월간·연간 구독자만 상세도 광고 없이 제공한다. 다른 체험 혜택은 유지한다.
 
 ## 2. 고정된 제품 규칙
 
@@ -270,7 +271,7 @@ seed는 엔진·DB·API 계약을 검증하기 위한 최소 안전 집합이다
 | `DELETE /fortune-profile` | 운세 프로필과 하위 당일 데이터 삭제 |
 | `GET /daily-fortune/status` | 홈 진입 상태, 이미 공개된 결과 조회 |
 | `POST /daily-fortune/reveal` | 오늘 기본 결과 계산·공개 및 상세 권한 확인 |
-| `POST /daily-fortune/ad-sessions` | 무료 사용자의 자세히 보기용 AdMob SSV 세션 발급 |
+| `POST /daily-fortune/ad-sessions` | 무료·체험 사용자의 자세히 보기용 AdMob SSV 세션 발급 |
 | `GET /webhooks/ad-ssv` | Google 서명 검증 후 당일 상세 즉시 해제 |
 
 `X-App-Locale`은 `ko/en/ja`와 해당 언어의 지역 태그(`ko-KR/en-US/ja-JP` 등)를 받는다. 지역 태그는
@@ -282,8 +283,8 @@ seed는 엔진·DB·API 계약을 검증하기 위한 최소 안전 집합이다
 
 ```text
 profile_required ── PUT profile ──> unseen
-unseen ── POST reveal ──> revealed       (체험·구독)
-unseen ── POST reveal ──> locked         (무료: 기본 결과 공개, 상세 잠금)
+unseen ── POST reveal ──> revealed       (월간·연간 구독)
+unseen ── POST reveal ──> locked         (무료·체험: 기본 결과 공개, 상세 잠금)
 locked ── ad session + verified SSV ──> revealed
                                  └──> unseen + unlocked_today  (광고 중 프로필 변경 시)
 revealed ── 같은 날 재조회 ──> 같은 snapshot
@@ -299,6 +300,7 @@ revealed ── 프로필 수정 ──> unseen       (unlock 권한은 유지)
 - `locked`는 상세 잠금이다. `result`는 `FortuneBasicResult`로 종합 점수·총평·행동·행운색만
   포함하고 `versions`도 반환한다. `overall.flow`와 `categories`는 빈 값 대신 필드 자체를 생략한다.
 - `revealed`는 상세까지 공개된 상태이며 `FortuneResult` 전체를 반환한다.
+- 정책 변경 전에 체험 혜택으로 얻은 당일 해금도 유지하고 다음 현지 날짜부터 광고를 요구한다.
 - `status`는 읽기 전용이다. 현재 snapshot이 없으면 `unseen`을 반환하고 앱이 `reveal`을 호출한다.
   snapshot이 있으면 광고 전에도 기본 결과를 다시 받을 수 있다.
 - 광고 SSV가 성공하면 서버가 DB의 당일 행을 직접 해제한다. 이후 status를 다시 조회한다.

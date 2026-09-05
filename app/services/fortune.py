@@ -165,7 +165,7 @@ async def _access(
     if daily is not None and daily.fortune_date == today and daily.unlock_state == "unlocked":
         return "unlocked_today", "free"
     plan = await gating.resolve_plan(session, user_id, now, profile=account)
-    return ("included" if plan != "free" else "ad_required"), plan
+    return ("included" if plan in {"monthly", "yearly"} else "ad_required"), plan
 
 
 def _versions(row: DailyFortune) -> dict[str, str]:
@@ -360,7 +360,7 @@ async def reveal(
             row.unlocked_at = None
             row.revealed_at = None
 
-    access, plan = await _access(session, user_id, now=now, daily=row, today=today, account=account)
+    access, _plan = await _access(session, user_id, now=now, daily=row, today=today, account=account)
     if access == "ad_required":
         verified = (
             await session.execute(
@@ -381,7 +381,7 @@ async def reveal(
             access = "unlocked_today"
     elif row.unlock_state != "unlocked":
         row.unlock_state = "unlocked"
-        row.unlock_source = "trial" if plan == "trial" else "subscription"
+        row.unlock_source = "subscription"
         row.unlocked_at = now
         row.revealed_at = now
         access = "included"

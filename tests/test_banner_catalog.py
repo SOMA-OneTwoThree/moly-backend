@@ -166,3 +166,73 @@ def test_bad_runtime_card_does_not_remove_static_card():
         catalog, selected, now=now, local_date=None, day_ends_at=None, remaining=None
     )
     assert [c.id for c in feed.items] == ["static"]
+
+
+def composed_action_manifest():
+    raw = manifest()
+    canvas = raw["banners"][0]["canvases_by_locale"]["en"]
+    label = canvas["elements"][0]
+    label["frame"] = {"x": 0.12, "y": 0.56, "width": 0.4, "height": 0.2}
+    canvas["elements"] = [
+        {
+            "id": "surface",
+            "type": "shape_v1",
+            "frame": {"x": 0.1, "y": 0.5, "width": 0.5, "height": 0.35},
+            "background": {"type": "solid_v1", "color": "#FFFFFF"},
+            "radius": 12,
+            "border": {"width": 0, "color": "#FFFFFF"},
+            "semantics_order": None,
+        },
+        label,
+        {
+            "id": "shop-action",
+            "type": "action_region_v1",
+            "frame": {"x": 0.1, "y": 0.5, "width": 0.5, "height": 0.35},
+            "content_ids": ["surface", label["id"]],
+            "accessibility_label": "Visit shop",
+            "semantics_order": 2,
+            "action": {"type": "open_shop"},
+        },
+    ]
+    return raw
+
+
+def test_composed_action_compiles_and_requires_new_capabilities():
+    catalog = load(composed_action_manifest())
+    banner = catalog.manifest.banners[0]
+    canvas = banner.canvases_by_locale["en"]
+    wire = compile_canvas(canvas, {"today": "Sep 6", "remaining": 1})
+    assert wire.elements[1].text == "Sep 6"
+    assert wire.elements[2].action.type == "open_shop"
+    supported = capabilities(canvas)
+    assert {"shape_v1", "action_region_v1", "open_shop"} <= supported
+    params = dict(now=datetime.now(timezone.utc), platform="ios", app_version="1.1.6", locale="en")
+    assert select_candidates(catalog, supported=supported, **params)
+    assert not select_candidates(catalog, supported=supported - {"action_region_v1"}, **params)
+
+
+@pytest.mark.parametrize(
+    "references", [["missing"], ["shop-action"], ["surface"], ["surface", "surface"]]
+)
+def test_composed_action_rejects_invalid_references(references):
+    raw = composed_action_manifest()
+    raw["banners"][0]["canvases_by_locale"]["en"]["elements"][-1]["content_ids"] = references
+    with pytest.raises(ValueError):
+        load(raw)
+
+
+def test_composed_action_rejects_content_outside_region():
+    raw = composed_action_manifest()
+    raw["banners"][0]["canvases_by_locale"]["en"]["elements"][1]["frame"]["x"] = 0.01
+    with pytest.raises(ValueError, match="outside"):
+        load(raw)
+
+
+def test_composed_action_rejects_shared_visual_ownership():
+    raw = composed_action_manifest()
+    elements = raw["banners"][0]["canvases_by_locale"]["en"]["elements"]
+    other = copy.deepcopy(elements[-1])
+    other.update(id="second-action", semantics_order=3)
+    elements.append(other)
+    with pytest.raises(ValueError, match="multiple actions"):
+        load(raw)

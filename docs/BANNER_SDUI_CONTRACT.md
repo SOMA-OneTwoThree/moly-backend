@@ -1,8 +1,8 @@
 # 홈 배너 SDUI 공동 규약
 
-상태: **구현 중 / 미배포** · 최신화: 2026-09-05 · API schema v1 제안
+상태: **기본 v1 dev 검수 완료 / 시각 구성·클릭 분리 확장 구현 중** · 최신화: 2026-09-06
 
-현재 합의한 동작과 구현할 계약을 정의한다. 실제 서비스에 적용된 API라는 뜻은 아니다.
+현재 합의한 동작을 정의한다. 새 capability의 클라 배포·검수 여부는 레포별 적용 문서에서 확인한다.
 레포별 책임은 [BANNER_SDUI.md](BANNER_SDUI.md), 문서 갱신 방법은 이 문서의 「문서 유지 규칙」을 따른다.
 
 ## 1. 범위와 고정 경계
@@ -31,7 +31,7 @@
 |---|---|
 | 컴포넌트 | `banner_canvas_v1` |
 | 배치 규칙 | `home_blind_v1`: 고정 카드 크기·폰트 매핑·배율·터치 제약 |
-| 요소 | `text_v1`, `button_v1`, `image_v1` |
+| 요소 | `text_v1`, `button_v1`, `image_v1`, `shape_v1`, `action_region_v1` |
 | 배경 | `solid_v1`, `linear_gradient_v1`, `image_background_v1` |
 | action | `open_fortune`, `open_shop`, `open_conversation`, `open_routines` |
 
@@ -39,7 +39,7 @@
   이 frame은 내부 요소에만 존재한다. canvas 최상위에는 크기/위치 필드를 두지 않는다.
 - font_size/radius/border/padding은 기준 카드의 design unit이다. renderer는 기준 공간에서 그리고 기존 host가 한 번 확대한다.
   TextScaler도 현재 앱 상한1.24 내에서 한 번 적용한다. 이중 배율·추가 자동 글자 축소는 금지한다.
-- 한 카드 최대12요소/버튼2개. 배열 순서는 뒤→앞 그리기, 읽을 요소의 고유 semantics_order(0..11)는 읽기 순서다.
+- 한 카드 최대12요소/동작2개(button_v1과 action_region_v1 합계). 배열 순서는 뒤→앞 그리기, 읽을 요소의 고유 semantics_order(0..11)는 읽기 순서다.
 - 중첩·상대 참조·자동 높이·스크롤·원격 애니메이션·실행 코드는 지원하지 않는다.
 - 글자 overflow, 필수 요소 잘림, 의미 있는 요소끼리 겹침은 카드 제외 사유다. 장식 이미지/배경 위 텍스트는 가독성을 유지할 때 허용한다.
   임의 ellipsis/축소로 통과시키지 않는다. 장식 이미지는 필수 정보나 버튼을 가리거나 터치를 가로채지 않는다.
@@ -91,6 +91,22 @@ prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `sh
 각 카드의 이미지 검증/디코딩까지 끝나야 카드와 CTA를 표시한다. 실패/시간 초과는 해당 카드 전체 제외, 정상 카드는 유지한다.
 갱신 중에는 기존 유효 카드만 유지할 수 있다. 늦은 이미지 완료에도 context/generation/만료를 재검사하고 제외한 카드를 되살리지 않는다.
 사용자별 feed의 no-store와 달리 공통 이미지 bytes는 (허용 origin, sha256) 기준으로 캐시할 수 있다. 캐시도 bytes/hash를 검증한다.
+
+### 서버 시각 구성과 클릭 영역
+
+서버가 이미지·문구·도형의 디자인과 배치를 결정하고, 클라는 이를 그린 뒤 등록된 action을 기존 앱 화면에 연결한다. 화면별 버튼 디자인은 필요하지 않다. 기존 button_v1은 호환용으로 유지한다.
+
+| 요소 | 필수 필드와 의미 |
+|---|---|
+| shape_v1 | id, frame, background(solid_v1 또는 linear_gradient_v1), radius(0..24), border, semantics_order=null. 장식 도형이며 자체 터치 없음 |
+| action_region_v1 | id, frame, content_ids(고유 시각 요소 ID 1..10개), accessibility_label(1..120자), semantics_order(0..11), action. 자체 시각 스타일 없음 |
+
+- content_ids는 같은 canvas의 text_v1/image_v1/shape_v1만 참조한다. 최소 한 개의 이미지 또는 텍스트를 포함하고 한 요소를 여러 동작에 연결하지 않는다. 참조 요소의 전체 frame은 클릭 영역 안에 있어야 한다.
+- 이미지와 텍스트를 겹쳐 버튼처럼 구성할 수 있다. 배열 순서대로 뒤에서 앞으로 그리며 장식이 앞의 필수 내용을 덮는 배치는 거부한다. 클릭 영역 자체는 그리기 순서와 무관하게 터치를 처리한다.
+- 클릭 영역도 최소48×48 터치·고정 카드/화면/줄 충돌 검사를 적용한다. 다른 동작과의 겹침 및 연결하지 않은 필수 내용 위의 클릭 영역은 거부한다.
+- 연결한 시각 요소의 별도 읽기는 제외하고 accessibility_label을 지정한 순서의 버튼으로 한 번 읽는다. 이미지가 준비되지 않거나 카드가 만료되면 클릭도 제공하지 않는다.
+- 도형 위 텍스트 대비는 해당 배경으로 검사한다. 이미지 위의 실제 대비는 dev TestFlight에서 검수한다.
+- 새 type은 같은 이름의 capability를 요구한다. action_region_v1은 연결한 action capability도 요구한다. 25번 등 기존 앱에는 새 표현을 보내지 않는다. 새 지원 앱 설치 후에는 이미지·문구·배치·동작 구성을 서버 파일만 바꿔 적용한다.
 
 ## 3. 조회 API와 응답
 

@@ -221,9 +221,33 @@ class BannerAuthoredButton(BannerButton):
     text: TextExpression
 
 
-Element = Annotated[BannerText | BannerButton | BannerImage, Field(discriminator="type")]
+class BannerShape(BannerModel):
+    id: Id
+    type: Literal["shape_v1"]
+    frame: BannerFrame
+    background: Annotated[BannerSolid | BannerGradient, Field(discriminator="type")]
+    radius: Annotated[Scalar, Field(ge=0, le=24)]
+    border: BannerBorder
+    semantics_order: None
+
+
+class BannerActionRegion(BannerModel):
+    id: Id
+    type: Literal["action_region_v1"]
+    frame: BannerFrame
+    content_ids: Annotated[tuple[Id, ...], Field(min_length=1, max_length=10)]
+    accessibility_label: Annotated[str, Field(min_length=1, max_length=120)]
+    semantics_order: Annotated[int, Field(ge=0, le=11)]
+    action: BannerAction
+
+
+Element = Annotated[
+    BannerText | BannerButton | BannerImage | BannerShape | BannerActionRegion,
+    Field(discriminator="type"),
+]
 AuthoredElement = Annotated[
-    BannerAuthoredText | BannerAuthoredButton | BannerImage, Field(discriminator="type")
+    BannerAuthoredText | BannerAuthoredButton | BannerImage | BannerShape | BannerActionRegion,
+    Field(discriminator="type"),
 ]
 
 
@@ -239,8 +263,34 @@ class BannerCanvas(BannerModel):
         orders = [e.semantics_order for e in self.elements if e.semantics_order is not None]
         if len(set(ids)) != len(ids) or len(set(orders)) != len(orders):
             raise ValueError("duplicate element id or reading order")
-        if sum(e.type == "button_v1" for e in self.elements) > 2:
+        if sum(e.type in {"button_v1", "action_region_v1"} for e in self.elements) > 2:
             raise ValueError("too many buttons")
+        by_id = {e.id: e for e in self.elements}
+        owned = set()
+        for region in self.elements:
+            if not isinstance(region, BannerActionRegion):
+                continue
+            if len(set(region.content_ids)) != len(region.content_ids):
+                raise ValueError("duplicate action content reference")
+            has_content = False
+            for content_id in region.content_ids:
+                child = by_id.get(content_id)
+                if child is None or child.type not in {"text_v1", "image_v1", "shape_v1"}:
+                    raise ValueError("action must reference visual elements")
+                if content_id in owned:
+                    raise ValueError("visual element belongs to multiple actions")
+                owned.add(content_id)
+                has_content |= child.type in {"text_v1", "image_v1"}
+                f, r = child.frame, region.frame
+                if (
+                    f.x < r.x
+                    or f.y < r.y
+                    or f.x + f.width > r.x + r.width + 1e-9
+                    or f.y + f.height > r.y + r.height + 1e-9
+                ):
+                    raise ValueError("action content lies outside its region")
+            if not has_content:
+                raise ValueError("action requires visible image or text content")
         images = sum(e.type == "image_v1" for e in self.elements)
         if images + (self.background.type == "image_background_v1") > 2:
             raise ValueError("too many images")
@@ -320,7 +370,7 @@ class BannerDefinition(BannerModel):
                 raise ValueError("routine-dependent banners require remaining > 0")
         for canvas in self.canvases_by_locale.values():
             for element in canvas.elements:
-                if isinstance(element, BannerImage):
+                if not isinstance(element, (BannerAuthoredText, BannerAuthoredButton)):
                     continue
                 expression = element.text
                 templates = [expression]

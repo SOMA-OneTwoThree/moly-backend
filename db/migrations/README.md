@@ -105,13 +105,36 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 
 ## 오늘의 운세 계약
 
+운세 운영 전환은 공용 AdMob SSV 경로도 함께 강화하므로
+`20260905_reward_ad_session_security.sql`을 먼저 적용한다. 이 파일은 기존 건초 광고 세션에
+`expires_at`, 만료 CHECK와 전체 세션 정리 인덱스를 추가한다. 아래 운세 전용 구조가 준비돼도 이
+마이그레이션의 원장 checksum이 없으면 infra preflight는 기능 플래그 활성화를 거부한다.
+
 | 파일 | 현재 역할 |
 |---|---|
 | `20260827_daily_fortune.sql` | dev에 최초 적용한 운세 프로필·당일 snapshot·광고 세션 이력 |
 | `20260827_daily_fortune_v2.sql` | 입력을 생년월일·성별로 축소하고 결과 schema·당일 권한 제약을 확정 |
-| `20260827_fortune_chat_context.sql` | 운세 대화 구간을 표시하는 `messages.kind` 값 추가 |
+| `20260827_fortune_chat_context.sql` | dev 적용 이력과 빈 DB 순차 재생용. 운영 live `messages`에는 직접 실행하지 않음 |
+| `20260905_fortune_chat_kind_constraint_prepare.sql` | 확장 CHECK를 `NOT VALID`로 짧게 추가 |
+| `20260905_fortune_chat_kind_constraint_validate.sql` | 쓰기를 막지 않는 별도 트랜잭션에서 기존 행 검증 |
+| `20260905_fortune_chat_kind_constraint_swap.sql` | 검증된 CHECK를 2초 lock timeout으로 짧게 이름 교체 |
 | `20260905_fortune_chat_root_index.sql` | 일반 대화의 최근 운세 시작점 조회용 부분 인덱스(CONCURRENTLY) |
 
-네 파일은 dev의 `schema_migrations`에 기록돼 있으므로 수정하지 않는다. 운영에는 아직 적용하지 않았다. 이번
-운영 전환에서는 네 파일을 표 순서대로 먼저 적용·검증한 뒤 코드 배포와 운세·운세 대화 플래그 활성화를 진행한다.
-마지막 인덱스는 `db/apply.py`가 아니라 `db/RUNBOOK_PROD_DDL.md` 절차로 적용한다.
+기존 파일은 dev의 `schema_migrations`에 기록돼 있으므로 수정하지 않는다. 운영에는 아직 운세 구조를
+적용하지 않았다. 운영 전환에서는 `reward_ad_session_security` → `daily_fortune` →
+`daily_fortune_v2` → `prepare` → `validate` → `swap` 순서로 각 파일을 따로 적용한다. 운영 live
+테이블에는 잠금 제한이 없는
+`20260827_fortune_chat_context.sql`을 실행하지 않는다. 마지막 부분 인덱스는 `db/apply.py`가 아니라
+`db/RUNBOOK_PROD_DDL.md` 절차로 적용하고 checksum 원장을 기록한다.
+
+`prepare`와 `swap`은 `ACCESS EXCLUSIVE`가 필요한 짧은 catalog 변경이지만 `lock_timeout='2s'`라
+즉시 lock을 얻지 못하면 요청을 줄 세우지 않고 rollback한다. 이 경우 제한 시간을 늘리지 말고 잠시 뒤
+같은 파일을 재실행한다. 행 스캔은 별도 `validate` 트랜잭션에서 수행한다. 전체 적용 뒤
+`db/verify.py --env prod`가 종료 코드 0인지 확인하고, infra 배포 preflight가 세 운세 테이블·RLS·권한,
+건초 광고 세션 만료 계약·전체 만료 인덱스, `messages.kind` CHECK·부분 인덱스·필수 migration checksum을 모두 통과한
+뒤에만 두 기능 플래그를 켠다.
+
+건초 광고 세션은 30분 동안만 지급 가능하다. 만료 후 7일이 지나면 지급 여부와 관계없이 500행씩
+정리한다. 영구 지급 원장은 `hay_transactions`와 `user_daily_stats`이며 완료된 광고 세션 자체를 무한히
+쌓지 않는다. 2026-09-05 운영 실측은 802행·약 296KiB로 작지만, migration의 2초 lock timeout은
+유지하고 실패하면 제한 시간을 늘리지 말고 재시도한다.

@@ -1517,7 +1517,8 @@ paths:
       tags:
       - ads
       summary: 리워드 광고 session 발급
-      description: 광고 시청 전에 local reward date 일 5회 한도를 확인하고 SSV custom_data와 userIdentifier 값을 발급한다.
+      description: 광고 시청 전에 local reward date 일 5회 한도를 확인하고 30분 동안 유효한 SSV custom_data와 userIdentifier
+        값을 발급한다. 같은 사용자의 유효한 pending 세션은 재사용한다.
       operationId: createRewardAdSession
       responses:
         '200':
@@ -1554,10 +1555,12 @@ paths:
       - ads
       summary: AdMob server-side verification callback
       description: 공개 HTTP endpoint지만 Google ECDSA signature가 권한 경계다. custom_data는 건초용 UUID 또는 운세용 fortune:<UUID>다.
-        운세형은 user_id·ad_unit·reward_item·reward_amount까지 서명된 query와 서버 계약을 대조한다. 서명된 AdMob URL 확인 요청에
-        실제 세션 또는 거래 ID가 없으면 보상 없이 200 invalid_session으로 종결한다. signature 통과 후 영구 실패/중복도 Google 재시도를 피하기
-        위해 항상 200이고 result로 구분한다. verifier key timeout은 10초, cache TTL은 24시간이다. 추가 query는 허용되며 signature
-        앞 원본 query에 있으면 서명 대상에 포함된다.
+        실제 보상은 두 경로 모두 user_id·ad_unit·reward_item·reward_amount까지 서명된 query와 세션 소유자·서버 placement/reward
+        계약을 대조한다. 서명된 AdMob URL 확인 요청에 실제 세션 또는 거래 ID가 없으면 보상 없이 200 invalid_session으로 종결한다. signature
+        통과 후 영구 실패/중복도 Google 재시도를 피하기 위해 항상 200이고 result로 구분한다. verifier key timeout은 10초, cache TTL은
+        24시간이다. signature와 key_id는 각각 정확히 한 번, 마지막 두 query로 이 순서에 있어야 한다. 그 뒤 suffix와 ad_network·ad_unit·custom_data·reward_amount·reward_item·timestamp·transaction_id·user_id
+        중복은 거절하며 business field는 검증을 통과한 signature 앞 원본 query에서만 파싱한다. 추가 query는 signature 앞 원본 query에
+        있을 때만 서명 대상에 포함된다.
       operationId: handleAdMobSsv
       responses:
         '200':
@@ -1569,7 +1572,8 @@ paths:
         '500':
           $ref: '#/components/responses/Internal'
         '422':
-          description: signature/key 누락·empty 또는 Google SSV signature/key 검증 실패
+          description: signature/key 누락·empty, 잘못된 마지막 순서·suffix·critical duplicate, 크기 제한 초과 또는 Google
+            SSV signature/key 검증 실패
           content:
             application/json:
               schema:
@@ -1589,6 +1593,13 @@ paths:
                       code: AD_VERIFY_FAILED
                       message: 광고 시청 확인에 실패했어요.
                       details: {}
+                envelope:
+                  summary: signature/key_id 뒤 suffix 또는 critical field 중복
+                  value:
+                    error:
+                      code: AD_VERIFY_FAILED
+                      message: 광고 시청 확인에 실패했어요.
+                      details: {}
       security:
       - AdMobSsvSignature: []
       parameters:
@@ -1602,44 +1613,44 @@ paths:
       - name: custom_data
         in: query
         required: false
-        description: 건초는 reward_session_id UUID, 운세는 fortune:<fortune_session_uuid>. AdMob URL 확인 요청에서
-          생략될 수 있으며, 누락·형식 오류는 signature 통과 후 200 result=invalid_session.
+        description: 건초는 reward_session_id UUID, 운세는 fortune:<fortune_session_uuid>. 검증된 signed prefix에서만
+          읽는다. AdMob URL 확인 요청에서 생략될 수 있으며, 누락·형식 오류는 signature 통과 후 200 result=invalid_session.
         schema:
           type: string
           minLength: 1
       - name: transaction_id
         in: query
         required: false
-        description: AdMob SSV transaction id. 실제 보상에서는 unique 멱등 key이며, URL 확인 요청에서 누락되면 보상 없이 200으로
-          종결한다.
+        description: 검증된 signed prefix의 AdMob SSV transaction id. 실제 보상에서는 unique 멱등 key이며, URL 확인 요청에서
+          누락되면 보상 없이 200으로 종결한다.
         schema:
           type: string
           minLength: 1
       - name: user_id
         in: query
         required: false
-        description: 운세 custom_data에서 필수인 AdMob SSV user_id. 서버가 세션 소유자 UUID와 대조한다.
+        description: 실제 건초·운세 보상에서 필수인 AdMob SSV user_id. 서버가 세션 소유자 UUID와 대조한다. URL 확인 요청에서는 생략될 수 있다.
         schema:
           type: string
           format: uuid
       - name: ad_unit
         in: query
         required: false
-        description: 운세 custom_data에서 필수. 서버 환경의 운세 placement allowlist와 대조한다.
+        description: 실제 보상에서 필수. 보상 종류별 서버 placement allowlist와 대조한다.
         schema:
           type: string
           minLength: 1
       - name: reward_item
         in: query
         required: false
-        description: 운세 custom_data에서 필수. 기본 계약값은 fortune_unlock이다.
+        description: 실제 보상에서 필수. 건초·운세 보상 종류별 서버 계약값과 대조한다.
         schema:
           type: string
           minLength: 1
       - name: reward_amount
         in: query
         required: false
-        description: 운세 custom_data에서 필수. 기본 계약값은 정수 문자열 1이다.
+        description: 실제 보상에서 필수. 보상 종류별 서버 계약 정수값과 대조한다.
         schema:
           type: string
           pattern: ^[0-9]+$
@@ -4620,11 +4631,13 @@ components:
       in: query
       name: signature
       description: URL-safe base64 Google AdMob SSV ECDSA P-256/SHA-256 signature. key_id로 공개키를 선택하고 signature
-        앞의 percent-encoded 원본 query를 검증한다.
+        앞의 percent-encoded 원본 query를 검증한다. signature와 key_id는 각각 정확히 한 번, query의 마지막 두 필드에 이 순서로 있어야 하며
+        그 뒤 suffix는 거절한다.
       x-verification:
         algorithm: ECDSA P-256 SHA-256
         signed_material: signature parameter 앞의 percent-encoded raw query
         public_key_selector: key_id
+        envelope: signature와 key_id가 마지막 두 필드이며 suffix와 critical duplicate는 허용하지 않음
   responses:
     AssetInternal:
       description: 상품 asset schema 위반 또는 기타 내부 오류

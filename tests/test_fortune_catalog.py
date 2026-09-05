@@ -9,6 +9,7 @@ import shutil
 import pytest
 
 from app.services.fortune_catalog import (
+    CONTENT_STATUS,
     COPY_VERSION,
     EXPECTED_CATEGORY_KEYS,
     EXPECTED_OVERALL_KEYS,
@@ -60,9 +61,10 @@ def _semantic() -> dict:
     }
 
 
-def test_seed_catalog_has_complete_safe_coverage():
+def test_approved_initial_catalog_has_complete_safe_coverage():
     catalog = load_catalog()
-    assert COPY_VERSION == "fortune-copy.v2-seed.4"
+    assert COPY_VERSION == "fortune-copy.v2-initial.1"
+    assert CONTENT_STATUS == "approved_for_production"
     assert SUPPORTED_LOCALES == ("ko", "en", "ja")
     for locale in SUPPORTED_LOCALES:
         assert set(catalog.overall_by_locale[locale]) == set(EXPECTED_OVERALL_KEYS)
@@ -70,7 +72,22 @@ def test_seed_catalog_has_complete_safe_coverage():
         assert len(catalog.overall_by_locale[locale]) == 80
         assert len(catalog.categories_by_locale[locale]) == 40
         assert len(catalog.colors_by_locale[locale]) == 12
+        filename = {"ko": "copy.v2.json", "en": "copy.v2.en.json", "ja": "copy.v2.ja.json"}[locale]
+        asset = json.loads((RESOURCE_DIR / filename).read_text(encoding="utf-8"))
+        assert asset["content_status"] == CONTENT_STATUS
     assert len(catalog.manifest_hash) == 64
+
+
+def test_unapproved_copy_is_rejected_even_when_manifest_hash_matches(tmp_path):
+    resources = _copy_resources(tmp_path)
+    path = resources / "copy.v2.json"
+    asset = json.loads(path.read_text(encoding="utf-8"))
+    asset["content_status"] = "development_seed"
+    _write_json(path, asset)
+    _refresh_manifest_hash(resources, path.name)
+
+    with pytest.raises(FortuneCatalogError, match="approval/locale"):
+        load_catalog(resources)
 
 
 @pytest.mark.parametrize(

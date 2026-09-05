@@ -8,7 +8,12 @@ from __future__ import annotations
 import asyncio
 import base64
 import logging
+import re
 import time
+from collections.abc import Mapping
+from dataclasses import dataclass
+from types import MappingProxyType
+from urllib.parse import parse_qsl
 
 import httpx
 from cryptography.hazmat.primitives import hashes
@@ -23,6 +28,51 @@ _keys_cache: dict[str, str] | None = None
 _keys_fetched_at: float = 0.0
 _last_force_at: float = 0.0
 _keys_lock = asyncio.Lock()
+
+_MAX_QUERY_LENGTH = 8192
+_KEY_ID_RE = re.compile(r"^[0-9]{1,20}$")
+_SIGNATURE_RE = re.compile(r"^[A-Za-z0-9_-]{64,512}$")
+_BAD_PERCENT_ESCAPE_RE = re.compile(r"%(?![0-9A-Fa-f]{2})")
+_MAX_FIELD_LENGTHS = {
+    "ad_network": 64,
+    "ad_unit": 128,
+    "custom_data": 1024,
+    "reward_amount": 32,
+    "reward_item": 128,
+    "timestamp": 32,
+    "transaction_id": 256,
+    "user_id": 256,
+}
+
+_CRITICAL_FIELDS = frozenset({
+    "ad_network",
+    "ad_unit",
+    "custom_data",
+    "reward_amount",
+    "reward_item",
+    "timestamp",
+    "transaction_id",
+    "user_id",
+})
+
+
+@dataclass(frozen=True)
+class VerifiedSsvPayload:
+    """ECDSA 검증을 통과한 signed prefix의 파라미터만 노출한다."""
+
+    key_id: str
+    parameters: Mapping[str, str]
+
+    def get(self, name: str) -> str | None:
+        return self.parameters.get(name)
+
+
+@dataclass(frozen=True)
+class _SsvEnvelope:
+    signed_content: bytes
+    signature: str
+    key_id: str
+    parameters: Mapping[str, str]
 
 
 async def _get_keys(*, force: bool = False) -> dict[str, str]:
@@ -49,26 +99,100 @@ async def _get_keys(*, force: bool = False) -> dict[str, str]:
     return _keys_cache
 
 
-def _signed_content(raw_query: str) -> bytes | None:
-    idx = raw_query.find("&signature=")
-    return raw_query[:idx].encode() if idx >= 0 else None
+def _parse_envelope(raw_query: str) -> _SsvEnvelope | None:
+    """Google의 고정 envelope를 검증하고 signed prefix만 파싱한다.
 
-
-async def verify(raw_query: str, key_id: str, signature_b64: str) -> bool:
-    """SSV 콜백 서명 검증. 실패/오류 = False(거절)."""
-    content = _signed_content(raw_query)
-    if content is None:
-        return False
+    정상 SSV는 마지막 두 query가 정확히 signature, key_id 순서다. 따라서 suffix나
+    중복 critical field를 허용하지 않는다. business value는 서명 검증에 사용한 동일
+    prefix에서만 만들어, framework QueryParams의 last-value 동작과 분리한다.
+    """
+    if not raw_query or len(raw_query) > _MAX_QUERY_LENGTH:
+        return None
     try:
-        pem = (await _get_keys()).get(str(key_id))
+        raw_query_bytes = raw_query.encode("ascii")
+    except UnicodeEncodeError:
+        return None
+    if _BAD_PERCENT_ESCAPE_RE.search(raw_query):
+        return None
+
+    fields = raw_query.split("&")
+    if len(fields) < 3:
+        return None
+    signature_name, separator, signature = fields[-2].partition("=")
+    if (
+        signature_name != "signature"
+        or not separator
+        or _SIGNATURE_RE.fullmatch(signature) is None
+    ):
+        return None
+    key_name, separator, key_id = fields[-1].partition("=")
+    if key_name != "key_id" or not separator or _KEY_ID_RE.fullmatch(key_id) is None:
+        return None
+
+    signed_query = "&".join(fields[:-2])
+    if not signed_query:
+        return None
+    try:
+        pairs = parse_qsl(
+            signed_query,
+            keep_blank_values=True,
+            strict_parsing=True,
+            encoding="utf-8",
+            errors="strict",
+            max_num_fields=32,
+        )
+    except (UnicodeError, ValueError):
+        return None
+
+    parameters: dict[str, str] = {}
+    seen_critical_fields: set[str] = set()
+    for name, value in pairs:
+        # signature/key_id가 prefix에도 있으면 envelope가 중복·모호하므로 거절한다.
+        if name in {"signature", "key_id"}:
+            return None
+        if name in _CRITICAL_FIELDS:
+            if name in seen_critical_fields:
+                return None
+            seen_critical_fields.add(name)
+            if len(value) > _MAX_FIELD_LENGTHS[name] or "\x00" in value:
+                return None
+        elif len(name) > 128 or len(value) > 2048 or "\x00" in name or "\x00" in value:
+            return None
+        parameters[name] = value
+
+    signed_content = raw_query_bytes[: len(signed_query)]
+    return _SsvEnvelope(
+        signed_content=signed_content,
+        signature=signature,
+        key_id=key_id,
+        parameters=MappingProxyType(parameters),
+    )
+
+
+async def verify_and_parse(raw_query: str) -> VerifiedSsvPayload | None:
+    """SSV envelope와 ECDSA를 검증하고 signed business payload만 반환한다."""
+    envelope = _parse_envelope(raw_query)
+    if envelope is None:
+        return None
+    try:
+        pem = (await _get_keys()).get(envelope.key_id)
         if not pem:  # 캐시에 없는 key_id → Google 키 로테이션 대응 재조회
-            pem = (await _get_keys(force=True)).get(str(key_id))
+            pem = (await _get_keys(force=True)).get(envelope.key_id)
         if not pem:
-            return False
+            return None
         public_key = load_pem_public_key(pem.encode())
-        signature = base64.urlsafe_b64decode(signature_b64 + "=" * (-len(signature_b64) % 4))
-        public_key.verify(signature, content, ec.ECDSA(hashes.SHA256()))  # DER 서명
-        return True
+        signature = base64.urlsafe_b64decode(
+            envelope.signature + "=" * (-len(envelope.signature) % 4)
+        )
+        public_key.verify(
+            signature,
+            envelope.signed_content,
+            ec.ECDSA(hashes.SHA256()),
+        )
+        return VerifiedSsvPayload(
+            key_id=envelope.key_id,
+            parameters=envelope.parameters,
+        )
     except Exception as e:  # noqa: BLE001  # 검증 실패는 조용히 거절
         _log.info("AdMob SSV 검증 실패: %r", e)
-        return False
+        return None

@@ -60,6 +60,12 @@ def _msg(i: int, sender: str) -> Message:
     return m
 
 
+def _fortune_msg(i: int, sender: str) -> Message:
+    m = _msg(i, sender)
+    m.kind = "fortune_context_root" if sender == "user" else "fortune_derived"
+    return m
+
+
 def _segment(n: int = 40) -> list[Message]:
     """앵커 이후 세그먼트 n건. FakeSession.execute는 모든 문장에 같은 목록을 주므로
     `_context`(desc 조회)와 배선의 세그먼트 조회(asc)가 같은 값을 본다 — 정렬은
@@ -189,6 +195,26 @@ async def test_summary_boundary_matches_the_new_anchor(monkeypatch, spy, enabled
     # 보존 tail = 최근 20건(#21~#40) → 새 앵커 #21, 요약은 그 직전(#20)까지.
     assert saved_anchor == 21
     assert plan.source_message_ids == tuple(range(1, 21))
+
+
+async def test_filtered_fortune_rows_do_not_drop_the_normal_head(monkeypatch, spy, enabled):
+    """원본 40건의 리셋 사실을 보존해, 필터 후 34건이어도 앵커 앞 정상 대화를 요약한다."""
+    fortune_ids = {9, 10, 21, 22, 31, 32}
+    items = [
+        (
+            _fortune_msg(i, "user" if i % 2 else "moly")
+            if i in fortune_ids
+            else _msg(i, "user" if i % 2 else "moly")
+        )
+        for i in range(40, 0, -1)
+    ]
+    session = _Session(execute_items=items)
+
+    await _post(session, monkeypatch, spy)
+
+    plan = spy["enqueued"][0]["plan"]
+    assert plan.through_message_id == 20
+    assert plan.source_message_ids == tuple(i for i in range(1, 21) if i not in fortune_ids)
 
 
 async def test_summary_covers_the_message_popped_by_the_first_user_rule(monkeypatch, spy, enabled):

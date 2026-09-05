@@ -1,4 +1,4 @@
-"""오늘의 운세 v2 다국어 seed 카탈로그 로드·검증·렌더링."""
+"""오늘의 운세 v2 다국어 카탈로그 로드·검증·렌더링."""
 
 from __future__ import annotations
 
@@ -83,7 +83,8 @@ _HANGUL_RE: Final = re.compile(r"[가-힣]")
 _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-COPY_VERSION = "fortune-copy.v2-seed.4"
+COPY_VERSION = "fortune-copy.v2-initial.1"
+CONTENT_STATUS = "approved_for_production"
 
 
 class FortuneCatalogError(ValueError):
@@ -296,8 +297,8 @@ def _validate_copy(
     )
     if asset["schema"] != "fortune-copy-v2" or asset["copy_version"] != COPY_VERSION:
         raise FortuneCatalogError("unexpected copy schema or version")
-    if asset["content_status"] != "development_seed" or asset["locales"] != [locale]:
-        raise FortuneCatalogError(f"v2 seed catalog locale mismatch: {locale}")
+    if asset["content_status"] != CONTENT_STATUS or asset["locales"] != [locale]:
+        raise FortuneCatalogError(f"v2 production catalog approval/locale mismatch: {locale}")
 
     overall = asset["overall"]
     categories = asset["categories"]
@@ -420,7 +421,7 @@ def load_catalog(resource_dir: Path | None = None) -> FortuneCatalog:
 
 
 def render_all(semantic: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
-    """개발 seed가 지원하는 모든 언어의 고정 snapshot을 반환한다."""
+    """승인된 카탈로그가 지원하는 모든 언어의 고정 snapshot을 반환한다."""
 
     catalog = load_catalog()
     return {locale: catalog.render(semantic, locale) for locale in SUPPORTED_LOCALES}

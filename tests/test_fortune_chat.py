@@ -14,8 +14,13 @@ from pydantic import ValidationError
 
 from app.core import errors
 from app.models.fortune import DailyFortune, FortuneProfile
+from app.models.message import Message
 from app.schemas.chat import PostMessageRequest
 from app.services import chat, chat_turns, fortune_chat, fortune_ephemeris
+from app.services import gating as gating_module
+from app.services import llm as llm_module
+from app.services.llm import LLMResult
+from tests.test_chat import FakeSession, _Result, _gating
 
 
 TODAY = date(2026, 8, 27)
@@ -61,7 +66,7 @@ def _daily():
         revealed_at=datetime(2026, 8, 27, 1, tzinfo=timezone.utc),
         ephemeris_version=fortune_ephemeris.EPHEMERIS_VERSION,
         rule_version="fortune-rules.v2.1",
-        copy_version="fortune-copy.v2-seed.4",
+        copy_version="fortune-copy.v2-initial.1",
     )
 
 
@@ -219,6 +224,65 @@ def test_crisis_check_precedes_fortune_fetch_in_chat_source():
     fetch = source.index("fortune_snapshot = await fortune_chat.load_snapshot")
     assert crisis < fetch
     assert "and not crisis_now" in source[crisis:fetch]
+    continuation = source.index("elif settings.fortune_chat_enabled")
+    assert "and not crisis_now" in source[continuation: continuation + 100]
+
+
+@pytest.mark.asyncio
+async def test_current_crisis_is_not_classified_as_fortune_continuation(monkeypatch):
+    """오늘 운세 root가 있어도 현재 위기 턴과 응답은 normal이며 운세 블록을 붙이지 않는다."""
+    _enable(monkeypatch)
+    seen: dict[str, object] = {}
+
+    class _ContinuationSession(FakeSession):
+        def __init__(self):
+            super().__init__()
+            self.root_queries = 0
+
+        async def execute(self, stmt, params=None):
+            sql = str(stmt)
+            if "FROM messages" in sql and "messages.kind =" in sql:
+                self.root_queries += 1
+                root = Message(
+                    user_id=UID,
+                    sender="user",
+                    kind="fortune_context_root",
+                    content="오늘 운세를 풀어줘",
+                    activity_date=TODAY,
+                    created_at=datetime.now(timezone.utc),
+                )
+                root.id = 100
+                return _Result([root])
+            return _Result([])
+
+    async def _resolve(session, user_id, **kwargs):
+        return _gating()
+
+    async def _generate(system, convo, **kwargs):
+        seen["system"] = system
+        seen["convo"] = convo
+        return LLMResult(
+            text="지금 혼자 있지 말고 가까운 사람이나 119에 바로 연락해 줘.",
+            input_tokens=10,
+            output_tokens=20,
+        )
+
+    monkeypatch.setattr(gating_module, "resolve", _resolve)
+    monkeypatch.setattr(llm_module, "generate", _generate)
+    session = _ContinuationSession()
+    req = SimpleNamespace(text="죽고 싶어", greeting_id=None, context_ref=None)
+
+    await chat.post_message(session, str(UID), req, "crisis-after-fortune")
+
+    stored = [m for m in session.added if isinstance(m, Message)]
+    user = next(m for m in stored if m.sender == "user")
+    assistant = next(m for m in stored if m.sender == "moly")
+    assert user.kind == assistant.kind == "normal"
+    prompt = "\n".join(seen["system"]) + "\n" + "\n".join(
+        part["content"] for part in seen["convo"]
+    )
+    assert "오늘의 운세 데이터" not in prompt
+    assert session.root_queries == 0
 
 
 def test_fortune_message_kinds_are_allowed_by_database_schema():

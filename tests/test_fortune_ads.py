@@ -70,8 +70,18 @@ def test_signed_fortune_prefix_dispatches_without_touching_hay(monkeypatch):
     uid = uuid.uuid4()
     captured = {}
 
-    async def verify(*_args, **_kwargs):
-        return True
+    async def verify(_raw_query):
+        return ads_ssv.VerifiedSsvPayload(
+            key_id="1",
+            parameters={
+                "custom_data": f"fortune:{sid}",
+                "transaction_id": "tx-1",
+                "user_id": str(uid),
+                "ad_unit": "unit-a",
+                "reward_item": "fortune_unlock",
+                "reward_amount": "1",
+            },
+        )
 
     async def fortune_verify(_session, **kwargs):
         captured.update(kwargs)
@@ -80,7 +90,7 @@ def test_signed_fortune_prefix_dispatches_without_touching_hay(monkeypatch):
     async def hay_grant(*_args, **_kwargs):
         raise AssertionError("fortune callback must not enter hay grant path")
 
-    monkeypatch.setattr(ads_ssv, "verify", verify)
+    monkeypatch.setattr(ads_ssv, "verify_and_parse", verify)
     monkeypatch.setattr(fortune_ads, "verify_from_ssv", fortune_verify)
     monkeypatch.setattr(ads, "grant_from_ssv", hay_grant)
     app.dependency_overrides[get_session] = _dummy_session

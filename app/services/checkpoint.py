@@ -214,6 +214,7 @@ def plan(
     previous: Checkpoint | None,
     keep_from_message_id: int | None = None,
     memory_generation: int = 0,
+    reset_triggered: bool = False,
 ) -> CheckpointPlan | None:
     """이번 세그먼트로 만들 checkpoint 계획. 만들 게 없으면 None.
 
@@ -230,12 +231,16 @@ def plan(
     값이 없으면(워커·단위 테스트) `keep_tail`로 자체 계산한다 — 그쪽엔 pop 규칙이 없으므로 배선
     경로와 경계가 한 칸 다를 수 있고, 그래서 챗은 항상 앵커를 넘긴다.
 
+    `reset_triggered=True`는 호출측이 **필터 전 원본 세그먼트로 이미 리셋을 확정한 경우**다.
+    장기 기억에서 제외할 행을 제거한 뒤 메시지 수·글자 수를 다시 세어 정상 head의 checkpoint를
+    놓치지 않게 한다. 경계는 반드시 같은 리셋에서 나온 `keep_from_message_id`와 함께 넘긴다.
+
     `memory_generation`은 잡을 만드는 시점의 `chat_contexts.memory_generation`이다(§forget 계약).
     **producer(`checkpoint_repo.maybe_enqueue`)가 반드시 실제 값을 넘긴다** — 기본값 0은 순수 계획
     로직만 보는 호출(단위 테스트)용이다.
     """
     ordered = normalize_messages(messages)
-    if not should_checkpoint(ordered):
+    if not reset_triggered and not should_checkpoint(ordered):
         return None
     if keep_from_message_id is not None:
         head = tuple(m for m in ordered if m.id < keep_from_message_id)

@@ -402,6 +402,9 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
     검증 통과 시 해당 세션으로 +20 자동 지급. 멱등 = 세션당 1회 + ssv_transaction_id UNIQUE.
 ```
 
+발급 세션은 30분 동안 유효하며, 같은 사용자의 유효한 미지급 세션은 재사용한다. 서버는 Google 서명뿐 아니라
+서명된 `user_id`, 광고 단위와 보상 항목·수량을 세션 소유자 및 서버 계약과 대조한 뒤 지급한다.
+
 - **클레임 API 없음** — 지급은 SSV 콜백이 곧바로 처리. 클라는 시청 종료 후 `GET /charging-station`(또는 `GET /wallet`) 재조회로 반영 확인(SSV 지연 대비 짧은 재시도, 예: 2s×3).
 - 건초 IAP는 RevenueCat `NON_RENEWING_PURCHASE` 웹훅으로 지급(주문·결제 기록 포함).
 

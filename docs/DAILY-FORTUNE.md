@@ -151,7 +151,7 @@ S = 선택된 후보값의 합, 빈 자리는 0
 것·조심할 것이 함께 들어 있다. 런타임에 서로 다른 문장을 임의 조합하지 않으므로 총평과 흐름이 따로 놀지
 않는다.
 
-보조 후보가 반대 방향으로 충분히 섞였는지는 내부 의미 코드의 `clear/mixed`로 보존한다. 다만 개발 seed의
+보조 후보가 반대 방향으로 충분히 섞였는지는 내부 의미 코드의 `clear/mixed`로 보존한다. 다만 초기 출시본의
 표현 경로는 같은 점수·유형 안에서 하나로 고정했다. `좋을 수도, 나쁠 수도 있다` 같은 양비론 문장은 쓰지
 않는다. 다음 콘텐츠 확장 때 검수된 `clear/mixed` 변형만 추가한다.
 
@@ -160,8 +160,8 @@ S = 선택된 후보값의 합, 빈 자리는 0
 애정·금전·일/학업·활력은 각각 관련 후보 5개만 사용해 종합과 독립적으로 점수를 계산한다. 종합 점수를 네
 분야 평균으로 만들지 않고, 종합 점수를 분야에 복사하지도 않는다.
 
-현재 개발 seed는 `분야 4개 × 점수 구간 10개 = 40개` 경로이며 각 경로는 함께 검수한 2문장을 가진다.
-내부에는 대표 세부 주제를 의미 코드로 남기지만, seed 문구는 점수 구간별 범용 표현을 쓴다.
+현재 초기 출시본은 `분야 4개 × 점수 구간 10개 = 40개` 경로이며 각 경로는 함께 검수한 2문장을 가진다.
+내부에는 대표 세부 주제를 의미 코드로 남기지만, 초기 문구는 점수 구간별 범용 표현을 쓴다.
 
 ### 3.6 행운색
 
@@ -171,7 +171,7 @@ S = 선택된 후보값의 합, 빈 자리는 0
 
 ## 4. 문구 카탈로그
 
-### 4.1 현재 개발 seed
+### 4.1 승인된 초기 출시 카탈로그
 
 한국어는 `copy.v2.json`, 미국 영어는 `copy.v2.en.json`, 일본어는 `copy.v2.ja.json`에 들어 있다. 세 파일은
 같은 경로 키를 사용한다. 어느 언어든 경로가 하나라도 빠지거나 manifest hash가 다르면 기능 준비 검사가
@@ -183,7 +183,7 @@ S = 선택된 후보값의 합, 빈 자리는 0
 | 분야 문구 묶음 | 40 | 80 |
 | 행운색 | 12 | 12개 이름과 색상 값 |
 
-현재 구현에는 도달 가능한 seed 경로의 문구를 세 언어 모두 전부 넣었다. 언어별 560개, 총 1,680개 표현이며
+현재 구현에는 도달 가능한 초기 경로의 문구를 세 언어 모두 전부 넣었다. 언어별 560개, 총 1,680개 표현이며
 각 언어 안에서 동일한 문장을 다른 경로에 재사용하지 않는다. 문서에는 중복 관리하지 않고 아래 대표 예시만
 싣는다. 전체 문구의 단일 원본은 JSON 자산이다.
 
@@ -340,7 +340,7 @@ fingerprint를 다시 검사한다. 서버가 붙이는 운세 표제도 `ko/en/
   "versions": {
     "ephemeris": "astronomy-engine-2.1.19-geocentric-apparent-v1",
     "rules": "fortune-rules.v2.1",
-    "copy": "fortune-copy.v2-seed.4"
+    "copy": "fortune-copy.v2-initial.1"
   }
 }
 ```
@@ -401,11 +401,18 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
   `approved_for_production=true`다. 승인되지 않은 후속 규칙은 운영에서 계속 fail-closed다.
 - 규칙이나 문구를 바꾸면 asset version과 manifest SHA-256을 함께 바꾼다.
 - 적용된 마이그레이션 파일은 checksum 원장이 있으므로 수정하지 않고 새 파일을 추가한다.
-- 운세 테이블·계약 마이그레이션 3개는 개발 DB에 적용했다. 운영 DB에는 아직 적용하지 않았다.
+- 운세 테이블·계약 마이그레이션은 개발 DB에 적용했다. 운영 DB에는 아직 적용하지 않았다. 개발 이력인
+  `20260827_fortune_chat_context.sql`은 운영 live `messages`에 실행하지 않고, 2026-09-05의
+  `prepare` → `validate` → `swap` 3단계 CHECK 확장으로 대체한다.
 - 운세 대화 시작점 조회용 `20260905_fortune_chat_root_index.sql`은 개발 DB에 런북 절차로 적용해
   checksum 원장 기록과 실제 사용 계획을 확인했다. 운영에서는 부분 인덱스를 `CONCURRENTLY` 생성한 뒤 같은
   방식으로 원장에 기록한다.
-- 배포 순서는 **DB migration → 검증 → 코드 배포 → 기능 플래그 활성화**로 고정한다. 프로필 API는 플래그가
+- 건초 광고 세션의 30분 만료 보안 migration도 같은 운영 승격에 포함하며, infra preflight가 해당
+  컬럼·CHECK·전체 만료 인덱스·checksum까지 확인한다.
+- 이번 배포 순서는 **하위 호환 DB migration → 검증 → 플래그 OFF 코드 배포 → infra 머지 → 검증한 동일
+  backend SHA 재배포 → 기능 smoke**로 고정한다. 기존 건초 광고 코드도 새 `expires_at` 컬럼을 읽으므로
+  이 릴리스에서는 DB보다 코드를 먼저 배포하지 않는다. infra 머지만으로는 EC2 설정이 바뀌지 않으며, 다음 무관한 코드
+  배포까지 활성화를 미루지 않는다. 프로필 API는 플래그가
   꺼지면 운세 테이블 접근 전에 종료한다. worker 정리는 `to_regclass`로 테이블 존재를 확인하므로 migration 전에는
   건너뛰고, 테이블이 생긴 뒤에는 기능을 중지해도 7일 보존 정책을 계속 지킨다.
 
@@ -418,7 +425,7 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 5. 프로필 동일 PUT/변경 PUT과 unlock 보존 테스트
 6. 광고 SSV 즉시 unlock·중복 transaction·만료·소유자 불일치 테스트
 7. 잠긴 응답 content leak과 공개 응답 Pydantic/OpenAPI 계약 테스트
-8. 개발 DB migration dry-run, 모델 교차검증, 인증 포함 실제 HTTP smoke test
+8. 개발 DB migration dry-run, 모델 교차검증, infra의 읽기 전용 운세·광고 보안 DB preflight, 인증 포함 실제 HTTP smoke test
 9. 출시 전 문구 전수 사람 검수, 점수 분포·경로 도달률 장기 시뮬레이션
 
 이번 운영 업데이트에는 오늘의 운세와 운세 대화 연결을 함께 포함한다. 운영 반영 직전에는 실 AdMob ID와 SSV E2E,

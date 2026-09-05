@@ -304,6 +304,12 @@ class Settings(BaseSettings):
     fortune_ad_unit_ids: str = ""
     fortune_ad_reward_item: str = "fortune_unlock"
     fortune_ad_reward_amount: int = 1
+    # 기존 충전소(건초 +20) 보상형 광고도 Google 서명만 믿지 않고 Moly placement와
+    # AdMob 보상 계약을 대조한다. 공개 식별자인 현재 iOS placement를 혼합 배포용 기본값으로
+    # 고정하고 infra에서도 명시한다. 명시적으로 빈 값을 주면 모든 건초 SSV를 fail-closed 거절한다.
+    hay_ad_unit_ids: str = "3343480648"
+    hay_ad_reward_item: str = "Reward"
+    hay_ad_reward_amount: int = 1
 
     model_config = SettingsConfigDict(
         # 로컬 기본 = .env(dev). 프로덕션을 로컬에서 띄우려면 MOLY_ENV_FILE=.env.prod 로 명시한다.

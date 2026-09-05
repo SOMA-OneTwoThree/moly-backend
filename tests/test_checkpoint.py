@@ -74,6 +74,20 @@ def test_plan_is_none_before_the_trigger():
     assert checkpoint.plan(_msgs(39, chars=1), previous=None) is None
 
 
+def test_known_reset_can_plan_filtered_normal_head_below_the_trigger():
+    """원본은 리셋됐지만 운세 행 제거 후 40건 미만이어도 정상 head를 잃지 않는다."""
+    plan = checkpoint.plan(
+        _msgs(34, chars=1),
+        previous=None,
+        keep_from_message_id=15,
+        reset_triggered=True,
+    )
+
+    assert plan is not None
+    assert plan.through_message_id == 14
+    assert plan.source_message_ids == tuple(range(1, 15))
+
+
 def test_plan_summarizes_everything_before_the_kept_tail():
     plan = checkpoint.plan(_msgs(40, chars=1), previous=None)
     assert plan is not None

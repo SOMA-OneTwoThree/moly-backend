@@ -43,6 +43,13 @@ moly-backend main merge
 - EC2에서 수동 배포: `cd /root/moly-infra && git pull --ff-only && bash deploy.sh` (멱등, 여러 번 실행 안전)
 - **moly-infra를 바꿨을 때**: push만 해서는 반영 안 됨 — 다음 배포 때 git pull로 딸려감. 즉시 반영하려면 위의 재실행 또는 수동 배포.
 
+이번 운세 승격처럼 기존 건초 광고 모델도 함께 바뀌는 변경은 `하위 호환 DB migration/검증 → 플래그 OFF
+코드 배포 → infra 머지 → 검증한 동일 backend SHA 재배포 → 기능 smoke` 순서로 진행한다. 새 코드가
+`reward_ad_sessions.expires_at`을 읽으므로 이번에는 DB보다 코드를 먼저 배포하지 않는다. infra 머지만 하고
+끝내면 기능은 켜지지 않고 다음 무관한 backend 배포에서 예고 없이 켜진다. 운세 배포는 컨테이너 교체 전에 세 운세 테이블,
+RLS·권한, 건초 광고 세션 만료 계약·전체 만료 인덱스, `messages.kind`, 운세 대화 부분 인덱스와 migration checksum을 읽기 전용
+preflight로 확인한다.
+
 ## 3. 시크릿/설정값 관리
 
 **원칙** — "이 값 하나로 계정/돈/데이터에 접근 가능한가?"

@@ -366,9 +366,13 @@ CREATE TABLE public.reward_ad_sessions (
   activity_date      date NOT NULL,
   ssv_transaction_id text UNIQUE,           -- SSV 도착 시 기록(재전송 멱등)
   granted            boolean NOT NULL DEFAULT false,
-  created_at         timestamptz NOT NULL DEFAULT now()
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  expires_at         timestamptz NOT NULL DEFAULT (now() + interval '30 minutes'),
+  CONSTRAINT reward_ad_sessions_expiry_ck CHECK (expires_at > created_at)
 );
 CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions (user_id);
+CREATE INDEX reward_ad_sessions_expiry_idx
+  ON public.reward_ad_sessions (expires_at, session_id);
 
 -- 대화 컨텍스트 상태(앵커 append-only + 정규화 기억 처리 좌표).
 CREATE TABLE public.chat_contexts (

@@ -685,6 +685,9 @@ async def _enqueue_checkpoint(
                 if m.kind not in {"fortune_context_root", "fortune_derived"}
             ],
             keep_from_message_id=keep_from,
+            # `_context`가 필터 전 원본 세그먼트로 이미 리셋을 확정했다. 운세 격리 행을
+            # 제거한 뒤 트리거를 다시 계산하면 정상 head가 요약 없이 버려질 수 있다.
+            reset_triggered=True,
         )
     except checkpoint.CheckpointError as e:  # 쓰기 이전 단계에서만 발생 — 트랜잭션은 멀쩡하다
         _log.info("대화 요약 잡 건너뜀(user=%s): %s", uid, e)
@@ -842,7 +845,7 @@ async def post_message(
     message_kind = "normal"
     if fortune_snapshot is not None:
         message_kind = "fortune_context_root"
-    elif settings.fortune_chat_enabled:
+    elif settings.fortune_chat_enabled and not crisis_now:
         root = (
             await session.execute(
                 select(Message)

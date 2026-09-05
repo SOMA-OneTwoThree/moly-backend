@@ -1,7 +1,7 @@
 {
   "schema": "fortune-copy-v2",
-  "copy_version": "fortune-copy.v2-seed.4",
-  "content_status": "development_seed",
+  "copy_version": "fortune-copy.v2-initial.1",
+  "content_status": "approved_for_production",
   "locales": [
     "en"
   ],

@@ -5,18 +5,24 @@ import asyncio
 import json
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.services.banner_catalog import BannerCatalog  # noqa: E402
 
 
-async def validate_assets(catalog: BannerCatalog) -> int:
+async def validate_assets(catalog: BannerCatalog, environment: str | None = None) -> int:
     from app.services.banner_assets import validate_remote_image
+
+    from app.schemas.banners import PRODUCTION_ASSET_ORIGIN
 
     sources = {}
 
     def add(source):
+        parsed = urlsplit(source.url)
+        if environment == "prod" and f"{parsed.scheme}://{parsed.netloc}" != PRODUCTION_ASSET_ORIGIN:
+            raise ValueError("production deployment cannot reference development banner assets")
         key = (source.url, source.sha256)
         if key in sources and sources[key] != source:
             raise ValueError("conflicting image metadata for the same content")
@@ -43,9 +49,10 @@ async def validate_assets(catalog: BannerCatalog) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--assets", action="store_true")
+    parser.add_argument("--environment", choices=("dev", "prod"))
     args = parser.parse_args()
     catalog = BannerCatalog.load()
-    count = asyncio.run(validate_assets(catalog)) if args.assets else None
+    count = asyncio.run(validate_assets(catalog, args.environment)) if args.assets else None
     print(
         json.dumps(
             {

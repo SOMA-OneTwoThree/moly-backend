@@ -81,7 +81,12 @@ diagonal_up(bottomLeft→topRight)다. 축 방향은 양 끝 중앙을 기준으
 배경 그림에 필수 문구를 구워 넣지 않는다. 문구·이동 버튼은 실제 text/button 요소로 표현하고 이미지 위의 대비도 실제 crop별로 검수한다.
 GIF/APNG/움직이는 WebP·SVG·data/file URL·임시 서명 URL·redirect는 v1에 허용하지 않는다. URL에 인증정보/사용자 식별자를 넣지 않는다.
 이미지 주소로 앱 Bearer 토큰/cookie를 보내지 않는다. 원본 URL을 서버 사용자 요청마다 다운로드하거나 proxy하지 않는다.
-같은 URL을 덮어쓰지 않는다. 새 이미지에는 새 URL/sha256을 사용하고 dev/prod는 검수한 같은 bytes를 참조한다.
+같은 URL을 덮어쓰지 않는다. 새 이미지에는 새 URL/sha256을 사용한다.
+이미지 bucket 이름은 dev/prod 모두 `banner-assets`다. dev 프로젝트는 `wywzjslvxwttxkecbyis`,
+prod 프로젝트는 `qkgjlgzsharnilxnkytd`다. dev에서 검수한 파일을 prod bucket의 같은 경로에 같은 bytes로 업로드하고,
+manifest의 URL만 prod 주소로 교체한다. hash·크기·형식은 유지하고 운영 배포 전 공개 다운로드로 재검증한다.
+개발 origin은 dev flavor(로컬 flavor 생략 포함)에서만 허용한다. prod 앱은 운영 origin만 허용하고,
+prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `shop-assets` URL은 호환성을 위해 계속 허용한다.
 이는 기존 Storage의 [CDN 갱신 지연을 피하는 업로드 지침](https://supabase.com/docs/guides/storage/uploads/standard-uploads#overwriting-files)과도 일치한다.
 각 카드의 이미지 검증/디코딩까지 끝나야 카드와 CTA를 표시한다. 실패/시간 초과는 해당 카드 전체 제외, 정상 카드는 유지한다.
 갱신 중에는 기존 유효 카드만 유지할 수 있다. 늦은 이미지 완료에도 context/generation/만료를 재검사하고 제외한 카드를 되살리지 않는다.

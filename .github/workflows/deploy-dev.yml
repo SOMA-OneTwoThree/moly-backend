@@ -81,7 +81,7 @@ jobs:
           docker pull "$image"
           docker run --rm --entrypoint sh "$image" -ec '
             if [ -f app/services/banner_catalog.py ]; then
-              python scripts/validate_banners.py --assets
+              python scripts/validate_banners.py --assets --environment dev
             else
               echo "Pre-SDUI rollback image: no banner endpoint"
             fi

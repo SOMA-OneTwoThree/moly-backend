@@ -12,7 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 BANNER_WIDTH = 287.7
 BANNER_HEIGHT = 158.457
-ASSET_ORIGINS = frozenset({"https://qkgjlgzsharnilxnkytd.supabase.co"})
+PRODUCTION_ASSET_ORIGIN = "https://qkgjlgzsharnilxnkytd.supabase.co"
+DEVELOPMENT_ASSET_ORIGIN = "https://wywzjslvxwttxkecbyis.supabase.co"
+ASSET_ORIGINS = frozenset({PRODUCTION_ASSET_ORIGIN, DEVELOPMENT_ASSET_ORIGIN})
 Id = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9_-]{0,63}$")]
 Color = Annotated[str, Field(pattern=r"^#[0-9A-Fa-f]{6}$")]
 Scalar = Annotated[float, Field(allow_inf_nan=False)]

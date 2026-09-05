@@ -72,3 +72,34 @@ def test_url_policy(url):
     raw["url"] = url
     with pytest.raises(ValueError):
         BannerImageSource.model_validate(raw)
+
+
+@pytest.mark.asyncio
+async def test_production_deploy_rejects_dev_asset_before_network(monkeypatch):
+    from types import SimpleNamespace
+
+    from scripts.validate_banners import validate_assets
+
+    source, _ = asset()
+    source = source.model_copy(update={
+        "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/test.png"
+    })
+    background = SimpleNamespace(type="image_background_v1", source=source)
+    canvas = SimpleNamespace(background=background, elements=[])
+    banner = SimpleNamespace(canvases_by_locale={"en": canvas})
+    catalog = SimpleNamespace(manifest=SimpleNamespace(banners=[banner]))
+    calls = []
+
+    async def download(asset):
+        calls.append(asset.url)
+
+    monkeypatch.setattr("app.services.banner_assets.validate_remote_image", download)
+    with pytest.raises(ValueError, match="production deployment"):
+        await validate_assets(catalog, "prod")
+    assert calls == []
+    assert await validate_assets(catalog, "dev") == 1
+    assert len(calls) == 1
+    background.source = source.model_copy(update={
+        "url": source.url.replace("wywzjslvxwttxkecbyis", "qkgjlgzsharnilxnkytd")
+    })
+    assert await validate_assets(catalog, "prod") == 1

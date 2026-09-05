@@ -2,6 +2,50 @@
   "manifest_format_version": 1,
   "wire_schema_version": 1,
   "placement": "home_blind",
-  "enabled": false,
-  "banners": []
+  "enabled": true,
+  "banners": [
+    {
+      "id": "purple-image-test",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {},
+      "when": null,
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/purple-254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5.png",
+              "sha256": "254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5",
+              "byte_length": 1940,
+              "pixel_width": 864,
+              "pixel_height": 476,
+              "media_type": "image/png"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 1.5,
+            "color": "#2A1D15"
+          },
+          "elements": []
+        }
+      }
+    }
+  ]
 }

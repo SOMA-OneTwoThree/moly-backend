@@ -5,8 +5,9 @@
 공개 동작·필드·고정 카드·문서 갱신 절차는 [공동 규약](BANNER_SDUI_CONTRACT.md)이 소유한다.
 이 문서에는 파일 로딩·binding 실행·서버 연결·배포/검증 방법만 둔다. API·로더·검증 도구와 배포 전후 gate를 구현했다. 실제 배포와 앱 통합 검수는 별도다.
 
-초기 배경·장식의 bucket 공개 URL 확정 전까지 번들 manifest는 `enabled=false`, `banners=[]`다.
-이 상태는 빈 배너 응답만 검증한다. 실제 이미지 검증·A→B 변경 검수에는 URL과 캠페인 파일 반영이 필요하다.
+현재 번들 manifest는 개발 `banner-assets`의 보라색 배경 한 장을 표시한다(문구·버튼 없음).
+실제 공개 다운로드의 MIME·bytes·hash를 검증했다. 개발 서버 배포와 dev 앱에서의 표시 검수는 별도다.
+운영 승격 시 같은 파일을 prod `banner-assets`로 복사하고 URL을 교체한다. 개발 URL이 남으면 prod 배포는 실패한다.
 
 ## 1. 서버 책임과 입력 모델
 
@@ -35,7 +36,7 @@
 - 미등록/누락 alias·속성 접근·format expression·함수/eval·중복 JSON key·NaN/Infinity는 거부한다.
 - 계산 후에도 공개 문구 길이/스키마를 검사한다. 새 binding은 서버에 등록하고 기존 source의 의미를 바꾸지 않는다.
 
-배포 workflow는 선택한 이미지의 `validate_banners.py --assets`를 먼저 실행한다. SSM 배포 후 같은 컨테이너의
+배포 workflow는 선택한 이미지의 `validate_banners.py --assets --environment dev|prod`를 먼저 실행한다. SSM 배포 후 같은 컨테이너의
 `check_running_banners.py`가 내부 `/health/banners` 응답 revision과 파일 hash를 대조한다. 기존 `HEALTH_TOKEN`을
 프로세스 내부에서만 사용하며 토큰은 출력하지 않는다. 도구가 없는 SDUI 이전 이미지는 기존 롤백 경로를 유지한다.
 

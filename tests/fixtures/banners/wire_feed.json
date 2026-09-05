@@ -99,7 +99,11 @@
             }
           }
         ]
-      }
+      },
+      "data_dependencies": [
+        "user.local_date",
+        "routines.remaining_today"
+      ]
     }
   ]
 }

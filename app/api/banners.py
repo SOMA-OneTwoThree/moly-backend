@@ -44,8 +44,11 @@ async def list_banners(
         raise AppError("BANNERS_UNAVAILABLE", 503, "배너를 불러올 수 없습니다.")
     try:
         started = getattr(request.state, "started_monotonic", time.monotonic())
-        async with asyncio.timeout(max(0, started + 2 - time.monotonic())):
-            return await banners.list_banners(
+        budget = started + 2 - time.monotonic()
+        if budget <= 0:
+            raise TimeoutError("banner request budget exhausted")
+        async with asyncio.timeout(budget):
+            result = await banners.list_banners(
                 catalog,
                 session,
                 user_id,
@@ -56,6 +59,9 @@ async def list_banners(
                 timezone_name=x_app_timezone,
                 capabilities=frozenset(capabilities),
             )
+            if time.monotonic() - started > 2:
+                raise TimeoutError("banner compilation budget exhausted")
+            return result
     except Exception as exc:
         _log.warning("banner request unavailable: %s", type(exc).__name__)
         raise AppError("BANNERS_UNAVAILABLE", 503, "배너를 불러올 수 없습니다.") from exc

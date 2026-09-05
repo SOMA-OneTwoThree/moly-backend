@@ -348,6 +348,7 @@ class BannerManifest(BannerModel):
 
 
 class BannerCard(BannerModel):
+    data_dependencies: tuple[Literal["user.local_date", "routines.remaining_today"], ...]
     id: Id
     component: Literal["banner_canvas_v1"]
     layout_profile: Literal["home_blind_v1"]

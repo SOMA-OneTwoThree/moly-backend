@@ -1,9 +1,12 @@
 # 홈 배너 SDUI — 서버 적용
 
-상태: **설계 / 미구현** · 최신화: 2026-09-05
+상태: **구현 중 / 미배포** · 최신화: 2026-09-05
 
 공개 동작·필드·고정 카드·문서 갱신 절차는 [공동 규약](BANNER_SDUI_CONTRACT.md)이 소유한다.
-이 문서에는 파일 로딩·binding 실행·서버 연결·배포/검증 방법만 둔다. 아래 API·파일·검증 도구는 구현 대상이다.
+이 문서에는 파일 로딩·binding 실행·서버 연결·배포/검증 방법만 둔다. API·로더·검증 도구와 배포 전후 gate를 구현했다. 실제 배포와 앱 통합 검수는 별도다.
+
+초기 배경·장식의 bucket 공개 URL 확정 전까지 번들 manifest는 `enabled=false`, `banners=[]`다.
+이 상태는 빈 배너 응답만 검증한다. 실제 이미지 검증·A→B 변경 검수에는 URL과 캠페인 파일 반영이 필요하다.
 
 ## 1. 서버 책임과 입력 모델
 
@@ -32,6 +35,10 @@
 - 미등록/누락 alias·속성 접근·format expression·함수/eval·중복 JSON key·NaN/Infinity는 거부한다.
 - 계산 후에도 공개 문구 길이/스키마를 검사한다. 새 binding은 서버에 등록하고 기존 source의 의미를 바꾸지 않는다.
 
+배포 workflow는 선택한 이미지의 `validate_banners.py --assets`를 먼저 실행한다. SSM 배포 후 같은 컨테이너의
+`check_running_banners.py`가 내부 `/health/banners` 응답 revision과 파일 hash를 대조한다. 기존 `HEALTH_TOKEN`을
+프로세스 내부에서만 사용하며 토큰은 출력하지 않는다. 도구가 없는 SDUI 이전 이미지는 기존 롤백 경로를 유지한다.
+
 ## 2. 사용자 데이터와 읽기 경계
 
 인증 user_id, 검증한 X-App-Timezone(생략만 profiles.timezone), 앱 요청 locale, 요청에서 한 번 읽은 서버 UTC clock으로 계산한다.
@@ -43,7 +50,7 @@ user_id·fixture·시간 override를 공개 API 입력으로 받지 않는다.
 3. 같은 본인/routine_id/현지 오늘 completion이 없음. NOT EXISTS/anti-join COUNT로 한 번 조회한다.
 
 routine_completions.activity_date는 이 기능에서 현지00:00 reward_date다. 채팅의04:00 날짜를 사용하지 않는다.
-[time_utils](../app/core/time_utils.py)의 reward_date_for/safe_zone를 재사용하고 다음 달력일 자정을 UTC로 변환한다.
+[AppDay](../app/core/app_day.py)가 한 번 캡처한 clock과 IANA 시간대에서 오늘과 다음 달력일 자정을 계산한다.
 현재 클라는 온보딩 때만 시간대를 저장하므로 자동 동기화가 있다고 가정하지 않는다. 이번 범위에서 요청 시간대 규칙을
 [routine API](../app/api/routine.py)와 service의 목록/_today/완료/취소/통계에 함께 적용하고 날짜 응답 헤더를 OpenAPI에 명시한다.
 헤더가 없으면 기존 저장 시간대를 사용한다. 다른 기기의 profile/과거 기록을 변경하지 않으며 소유권·요일·완료 유일성 규칙은 유지한다.
@@ -78,7 +85,7 @@ flowchart LR
 - 미노출은 유효한 enabled=false,banners=[] 파일로 표현한다. 누락/잘못된 파일을 정상 빈 배너로 바꾸지 않는다.
   로딩 실패 시 배너만 unavailable로 두고 `/banners`는503을 반환한다. 다른 API는 기존 동작을 유지한다.
 - 이미지 빌드 검증은 실제 패키징된 파일을 runtime과 같은 loader로 읽어 hash/스키마를 확인한다. 실패하면 배포를 진행하지 않는다.
-  배포 점검에서도 로딩 실패를 성공으로 처리하지 않는다. 위 로더와 검증 연결은 아직 구현되지 않았다.
+  [검증기](../scripts/validate_banners.py)를 이미지 빌드와 배포 workflow에 연결한다. 실제 배포 실행 검증은 별도다.
 - 메모리에는 공통 정의만 보관한다. 사용자별 날짜/count는 요청 시 해당 환경의 기존 DB에서 읽고 공유 정의를 변경하지 않는다.
 
 ### 이미지 원본
@@ -120,11 +127,11 @@ GitHub Actions는 서버 이미지를 배포하고 서버가 포함된 파일을
 | app/api/banners.py, app/main.py | 라우터·기존 인증·입력/공통 오류·private/no-store |
 | app/schemas/banners.py | Banner 접두어의 공개 스키마와 운영 manifest 검증 |
 | app/services/banners.py | 후보 선택·binding 조합·최종 응답. binding 코드가 커질 때 별도 모듈 분리 |
-| app/api/routine.py, app/services/routine.py, app/core/time_utils.py | 요청 시간대/단일 clock·날짜 응답 헤더, 배너와 같은 현지 날짜 계산 |
+| app/api/routine.py, app/services/routine.py, app/core/app_day.py | 요청 시간대/단일 clock·날짜 응답 헤더, 배너와 같은 현지 날짜 계산 |
 | app/resources/banners/home_blind.json | 서버 이미지에 포함되는 배너 정의 원본 |
-| app/services/banner_catalog.py | 시작 시 파일 검증/로딩·revision·immutable snapshot. 크기가 작으면 banners.py에 함께 구현 |
+| app/services/banner_catalog.py | 시작 시 파일 검증/로딩·revision·immutable snapshot |
 | scripts/validate_banners.py, 기존 CI/배포 workflow | runtime과 같은 loader/compiler로 파일·패키징 검증, 배포 점검 |
-| openapi/paths/banners.yaml, openapi/schemas/banners.yaml | 공개 HTTP 기계 판독 원본, 상위 openapi.yaml 참조 |
+| openapi/paths/banners.yaml, openapi/components/banners.yaml | 공개 HTTP 기계 판독 원본, 상위 openapi.yaml 참조 |
 
 wire items의 raw 값 경계는 카드별 클라 파싱을 위한 것이다. 서버는 최종 카드를 strict 검증하고 UI에 임의 JSON을 실행시키지 않는다.
 생성 SDK·normalizer에서 손상/unknown 카드와 정상 카드의 혼합 파싱을 먼저 확인한다. generation 결과를 수동 수정하지 않는다.

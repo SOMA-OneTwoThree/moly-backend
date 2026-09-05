@@ -10,7 +10,7 @@ RUN uv sync --frozen --no-dev
 
 COPY app ./app
 COPY worker ./worker
-COPY scripts/validate_banners.py ./scripts/validate_banners.py
+COPY scripts/validate_banners.py scripts/check_running_banners.py ./scripts/
 RUN .venv/bin/python scripts/validate_banners.py
 
 EXPOSE 8000

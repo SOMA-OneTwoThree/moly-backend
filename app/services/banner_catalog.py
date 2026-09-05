@@ -195,6 +195,9 @@ def render_feed(
                 deadlines.append(day_ends_at)
             deadline = min((v for v in deadlines if v is not None), default=None)
             card = BannerCard(
+                data_dependencies=tuple(
+                    sorted({binding.source for binding in banner.bindings.values()})
+                ),
                 id=banner.id,
                 component=banner.component,
                 layout_profile=banner.layout_profile,

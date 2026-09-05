@@ -200,7 +200,7 @@ jobs:
               --instance-ids "$ID" \
               --document-name "AWS-RunShellScript" \
               --comment "Deploy moly-backend ${DEPLOY_TAG::7}" \
-              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG}\"]" \
+              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG} && docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi'\"]" \
               --query "Command.CommandId" \
               --output text)"
             echo "CommandId: $CMD_ID"

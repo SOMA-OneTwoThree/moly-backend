@@ -11,6 +11,8 @@
 | `ARCHITECTURE.md` | 백엔드 전체 구조·핵심 흐름·운영 원칙 |
 | `ARCHITECTURE-capi.md` | 대화·장기 기억·도구·관계·비동기 작업 상세 |
 | `ERD.md` | 테이블·제약·권한·데이터 수명 주기 |
+| [BANNER_SDUI_CONTRACT.md](BANNER_SDUI_CONTRACT.md) | 고정 홈 배너의 서버·클라이언트 공동 규약 |
+| [BANNER_SDUI.md](BANNER_SDUI.md) | 배너 파일·실데이터 조합·배포 검증의 서버 구현 |
 | `DAILY-FORTUNE.md` | 오늘의 운세 입력·계산·문구·DB·API·광고·배포 상세 |
 
 HTTP 계약의 기계 판독 원본은 `openapi/openapi.yaml`과 분할 YAML이며, DB 구조의 원본은

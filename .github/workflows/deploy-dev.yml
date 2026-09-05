@@ -177,7 +177,7 @@ jobs:
           CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
             --instance-ids "$ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG}\"],executionTimeout=[\"600\"]" \
+            --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG} && docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi'\"],executionTimeout=[\"600\"]" \
             --query 'Command.CommandId' --output text)"
 
           poll_ssm "$CMD_ID" "$ID"

@@ -1,6 +1,6 @@
 # 홈 배너 SDUI 공동 규약
 
-상태: **설계 / 미구현** · 최신화: 2026-09-05 · API schema v1 제안
+상태: **구현 중 / 미배포** · 최신화: 2026-09-05 · API schema v1 제안
 
 현재 합의한 동작과 구현할 계약을 정의한다. 실제 서비스에 적용된 API라는 뜻은 아니다.
 레포별 책임은 [BANNER_SDUI.md](BANNER_SDUI.md), 문서 갱신 방법은 이 문서의 「문서 유지 규칙」을 따른다.
@@ -113,6 +113,7 @@ GIF/APNG/움직이는 WebP·SVG·data/file URL·임시 서명 URL·redirect는 v
   "items": [
     {
       "id": "today-routines",
+      "data_dependencies": ["user.local_date", "routines.remaining_today"],
       "component": "banner_canvas_v1",
       "layout_profile": "home_blind_v1",
       "locale": "ko",
@@ -151,6 +152,8 @@ GIF/APNG/움직이는 WebP·SVG·data/file URL·임시 서명 URL·redirect는 v
 ```
 
 예시는 필드 구조 설명용이며 시각 검수된 게시본은 아니다. 예시 숫자를 runtime fallback으로 사용하지 않는다.
+data_dependencies는 카드가 사용하는 source의 중복 없는 목록(user.local_date / routines.remaining_today, 정적 카드는 빈 배열)이다.
+앱은 이 값으로 저장 중 루틴 의존 카드를 무효화한다. 서버가 binding에서 자동 도출하며 카드 ID나 문구로 추측하지 않는다.
 위 필드는 모두 필수이고 valid_until만 nullable이다. 필수 필드 누락을 Flutter 기본값으로 채우지 않는다.
 카드/요소 id는 `[a-z0-9][a-z0-9_-]{0,63}`, 각각 목록/카드 안에서 고유하다.
 revision은 **배포된 정의 파일의 원본 UTF-8 bytes SHA256**이며 `[a-f0-9]{64}`다. 코드 버전/배포 순번은 아니다.

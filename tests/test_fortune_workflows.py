@@ -190,26 +190,28 @@ async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_
 
 
 @pytest.mark.parametrize(
-    ("access", "plan", "expected_state"),
+    ("plan", "expected_state"),
     [
-        ("ad_required", "free", "locked"),
-        ("included", "monthly", "revealed"),
-        ("included", "trial", "revealed"),
+        ("free", "locked"),
+        ("trial", "locked"),
+        ("monthly", "revealed"),
+        ("yearly", "revealed"),
     ],
 )
 async def test_first_reveal_exposes_basic_copy_and_included_plan_exposes_detail(
-    enabled, monkeypatch, access, plan, expected_state
+    enabled, monkeypatch, plan, expected_state
 ):
-    async def fixed_access(*_args, **_kwargs):
-        return access, plan
+    async def fixed_plan(*_args, **_kwargs):
+        return plan
 
-    monkeypatch.setattr(fortune, "_access", fixed_access)
+    monkeypatch.setattr(fortune.gating, "resolve_plan", fixed_plan)
     profile = FortuneProfile(user_id=UID, gender="man", birth_date=date(2002, 12, 13), revision=1)
     session = _MemorySession(profile=profile)
     value = await fortune.reveal(session, str(UID), locale="ko", now_utc=NOW)
     assert value["state"] == expected_state
     assert value["result"]["overall"]["score"] == 47
     if expected_state == "locked":
+        assert value["access"] == "ad_required"
         assert set(value["result"]["overall"]) == {"score", "headline", "do", "pause"}
         assert set(value["result"]) == {"schema_version", "locale", "overall", "lucky_color"}
         assert session.daily.revealed_at is None
@@ -217,16 +219,19 @@ async def test_first_reveal_exposes_basic_copy_and_included_plan_exposes_detail(
         assert value["access"] == "included"
         assert len(value["result"]["overall"]["flow"]) == 3
         assert len(value["result"]["categories"]) == 4
-        assert session.daily.unlock_source == ("trial" if plan == "trial" else "subscription")
+        assert session.daily.unlock_source == "subscription"
 
 
 @pytest.mark.parametrize("locale", ["ko", "en", "ja"])
-async def test_basic_result_is_public_but_detail_requires_verified_ad(enabled, monkeypatch, locale):
+@pytest.mark.parametrize("plan", ["free", "trial"])
+async def test_basic_result_is_public_but_detail_requires_verified_ad(
+    enabled, monkeypatch, locale, plan
+):
     profile = FortuneProfile(user_id=UID, gender="man", birth_date=date(2002, 12, 13), revision=1)
     session = _MemorySession(profile=profile)
 
-    async def free_plan(*_args, **_kwargs):
-        return "free"
+    async def fixed_plan(*_args, **_kwargs):
+        return plan
 
     async def database():
         yield session
@@ -237,7 +242,7 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(enabled, m
             return NOW
 
     monkeypatch.setattr(fortune, "datetime", Clock)
-    monkeypatch.setattr(fortune.gating, "resolve_plan", free_plan)
+    monkeypatch.setattr(fortune.gating, "resolve_plan", fixed_plan)
     monkeypatch.setattr(fortune_ads, "advisory_xact_lock", fortune.advisory_xact_lock)
     monkeypatch.setattr(fortune_ads, "_load_profile", fortune._load_profile)
     monkeypatch.setattr(settings, "fortune_ad_unit_ids", "unit-a")

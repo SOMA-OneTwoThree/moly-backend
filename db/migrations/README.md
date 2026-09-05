@@ -27,6 +27,13 @@
 이전 파일이 기록표에 모두 없을 수 있고, prod는 실제 순차 적용과 일회성 보정 SQL까지 기록한다.
 행 수 자체가 아니라 파일 checksum과 `db/verify.py` 결과, 필요한 테이블·제약의 존재를 확인한다.
 
+`20260805_push_personalization.sql`은 개발 원장에 남은 역사 원본이다. 기능은 2026-08-06에
+되돌렸으며 현재 테이블도 없다. 새 환경에서 과거 이력을 순서대로 재생하더라도
+`20260905_drop_reverted_push_personalizations.sql`이 제거 상태를 다시 보장한다.
+
+`20260828_fix_contract_items_fk_setnull.sql`은 운영에 직접 적용한 FK 핫픽스의 복원 원본이다.
+양쪽 DB의 현재 제약을 검증해 재현했으며, 운영의 옛 checksum은 별도 조건부 보정 파일로 맞춘다.
+
 ## 새 마이그레이션 작성
 
 1. `YYYYMMDD_<설명>.sql` 파일을 새로 만든다.

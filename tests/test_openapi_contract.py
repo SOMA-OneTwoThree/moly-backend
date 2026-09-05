@@ -31,6 +31,10 @@ MANUAL_PARAMETERS = {
         ("key_id", "query"),
         ("custom_data", "query"),
         ("transaction_id", "query"),
+        ("user_id", "query"),
+        ("ad_unit", "query"),
+        ("reward_item", "query"),
+        ("reward_amount", "query"),
     },
 }
 

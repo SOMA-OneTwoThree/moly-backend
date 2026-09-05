@@ -4,8 +4,8 @@ info:
   version: 1.0.0
   summary: Moly 앱 백엔드 API 계약
   description: '이 문서는 moly-backend 공개 HTTP API의 확정 계약이다. 호환성에 영향을 주는 변경은 Semantic Versioning으로 관리한다. 보호
-    API는 Supabase access token Bearer 인증을 사용한다. 서버 자체 문서 URL(`/openapi.json`, `/docs`, `/redoc`)은 비활성화되어
-    있다.
+    API는 Supabase access token Bearer 인증을 사용한다. `/openapi.json`과 `/docs`는 local·development에서만 열리고 staging·production에서는
+    등록되지 않는다. `/redoc`은 항상 비활성화되어 있다.
 
 
     애플리케이션 오류, 요청 검증 오류, 등록되지 않은 path의 404, 등록된 path의 미지원 method 405, 미처리 예외 500은 모두 `ErrorEnvelope`로
@@ -16,7 +16,7 @@ info:
     `/charging-station.activity_date` 필드명은 레거시이며 실제 의미는 00:00 경계 reward date다.
 
 
-    local 환경 전용 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
+    local·development 환경의 명시 플래그로만 등록되는 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
 paths:
   /health:
     get:
@@ -462,67 +462,6 @@ paths:
                       message: 일기를 찾을 수 없어요.
                       details: {}
       description: first_read_at은 최초 한 번만 기록되며 이후 호출도 멱등 204다.
-  /v2/diaries:
-    get:
-      tags:
-      - diary
-      summary: 종류와 안정 cursor를 포함한 일기 목록
-      operationId: listDiariesV2
-      security:
-      - SupabaseBearer: []
-      parameters:
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 30
-      - name: cursor
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-            maxLength: 256
-          - type: 'null'
-      responses:
-        '200':
-          description: 발행 일기 목록
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DiaryListResponseV2'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/Validation'
-  /v2/diaries/{diary_id}:
-    get:
-      tags:
-      - diary
-      summary: 종류와 시각 좌표를 포함한 일기 상세
-      operationId: getDiaryV2
-      security:
-      - SupabaseBearer: []
-      parameters:
-      - name: diary_id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: 발행 일기 상세
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DiaryDetailResponseV2'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/Validation'
   /wallet:
     get:
       tags:
@@ -1578,7 +1517,8 @@ paths:
       tags:
       - ads
       summary: 리워드 광고 session 발급
-      description: 광고 시청 전에 local reward date 일 5회 한도를 확인하고 SSV custom_data와 userIdentifier 값을 발급한다.
+      description: 광고 시청 전에 local reward date 일 5회 한도를 확인하고 30분 동안 유효한 SSV custom_data와 userIdentifier
+        값을 발급한다. 같은 사용자의 유효한 pending 세션은 재사용한다.
       operationId: createRewardAdSession
       responses:
         '200':
@@ -1614,9 +1554,13 @@ paths:
       tags:
       - ads
       summary: AdMob server-side verification callback
-      description: 공개 HTTP endpoint지만 Google ECDSA signature가 권한 경계다. signature 통과 후 영구 실패/중복도 Google
-        재시도를 피하기 위해 항상 200이고 result로 구분한다. verifier key timeout은 10초, cache TTL은 24시간이다. 추가 query는 허용되며
-        signature 앞 원본 query에 있으면 서명 대상에 포함된다.
+      description: 공개 HTTP endpoint지만 Google ECDSA signature가 권한 경계다. custom_data는 건초용 UUID 또는 운세용 fortune:<UUID>다.
+        실제 보상은 두 경로 모두 user_id·ad_unit·reward_item·reward_amount까지 서명된 query와 세션 소유자·서버 placement/reward
+        계약을 대조한다. 서명된 AdMob URL 확인 요청에 실제 세션 또는 거래 ID가 없으면 보상 없이 200 invalid_session으로 종결한다. signature
+        통과 후 영구 실패/중복도 Google 재시도를 피하기 위해 항상 200이고 result로 구분한다. verifier key timeout은 10초, cache TTL은
+        24시간이다. signature와 key_id는 각각 정확히 한 번, 마지막 두 query로 이 순서에 있어야 한다. 그 뒤 suffix와 ad_network·ad_unit·custom_data·reward_amount·reward_item·timestamp·transaction_id·user_id
+        중복은 거절하며 business field는 검증을 통과한 signature 앞 원본 query에서만 파싱한다. 추가 query는 signature 앞 원본 query에
+        있을 때만 서명 대상에 포함된다.
       operationId: handleAdMobSsv
       responses:
         '200':
@@ -1628,7 +1572,8 @@ paths:
         '500':
           $ref: '#/components/responses/Internal'
         '422':
-          description: 필수 query 누락/empty 또는 Google SSV signature/key 검증 실패
+          description: signature/key 누락·empty, 잘못된 마지막 순서·suffix·critical duplicate, 크기 제한 초과 또는 Google
+            SSV signature/key 검증 실패
           content:
             application/json:
               schema:
@@ -1648,6 +1593,13 @@ paths:
                       code: AD_VERIFY_FAILED
                       message: 광고 시청 확인에 실패했어요.
                       details: {}
+                envelope:
+                  summary: signature/key_id 뒤 suffix 또는 critical field 중복
+                  value:
+                    error:
+                      code: AD_VERIFY_FAILED
+                      message: 광고 시청 확인에 실패했어요.
+                      details: {}
       security:
       - AdMobSsvSignature: []
       parameters:
@@ -1660,18 +1612,451 @@ paths:
           minLength: 1
       - name: custom_data
         in: query
-        required: true
-        description: 발급된 reward_session_id. UUID가 아니면 signature 통과 후 200 result=invalid_session.
+        required: false
+        description: 건초는 reward_session_id UUID, 운세는 fortune:<fortune_session_uuid>. 검증된 signed prefix에서만
+          읽는다. AdMob URL 확인 요청에서 생략될 수 있으며, 누락·형식 오류는 signature 통과 후 200 result=invalid_session.
         schema:
           type: string
           minLength: 1
       - name: transaction_id
         in: query
-        required: true
-        description: AdMob SSV transaction id. unique 멱등 key.
+        required: false
+        description: 검증된 signed prefix의 AdMob SSV transaction id. 실제 보상에서는 unique 멱등 key이며, URL 확인 요청에서
+          누락되면 보상 없이 200으로 종결한다.
         schema:
           type: string
           minLength: 1
+      - name: user_id
+        in: query
+        required: false
+        description: 실제 건초·운세 보상에서 필수인 AdMob SSV user_id. 서버가 세션 소유자 UUID와 대조한다. URL 확인 요청에서는 생략될 수 있다.
+        schema:
+          type: string
+          format: uuid
+      - name: ad_unit
+        in: query
+        required: false
+        description: 실제 보상에서 필수. 보상 종류별 서버 placement allowlist와 대조한다.
+        schema:
+          type: string
+          minLength: 1
+      - name: reward_item
+        in: query
+        required: false
+        description: 실제 보상에서 필수. 건초·운세 보상 종류별 서버 계약값과 대조한다.
+        schema:
+          type: string
+          minLength: 1
+      - name: reward_amount
+        in: query
+        required: false
+        description: 실제 보상에서 필수. 보상 종류별 서버 계약 정수값과 대조한다.
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+  /fortune-profile:
+    get:
+      tags:
+      - fortune
+      summary: 운세 프로필 조회
+      operationId: getFortuneProfile
+      responses:
+        '200':
+          description: 저장된 계산 프로필
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FortuneProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 개발 기능이 비활성화됨
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                featureUnavailable:
+                  summary: 개발 기능 비활성
+                  value:
+                    error:
+                      code: FEATURE_UNAVAILABLE
+                      message: 오늘의 운세 기능을 사용할 수 없어요.
+                      details: {}
+        '404':
+          description: 운세 프로필을 아직 입력하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profileRequired:
+                  summary: 운세 프로필 미입력
+                  value:
+                    error:
+                      code: PROFILE_REQUIRED
+                      message: 운세 정보를 먼저 입력해 주세요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+    put:
+      tags:
+      - fortune
+      summary: 운세 프로필 저장
+      operationId: putFortuneProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FortuneProfilePut'
+      responses:
+        '200':
+          description: 저장된 계산 프로필
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FortuneProfilePutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 개발 기능이 비활성화됨
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                featureUnavailable:
+                  summary: 개발 기능 비활성
+                  value:
+                    error:
+                      code: FEATURE_UNAVAILABLE
+                      message: 오늘의 운세 기능을 사용할 수 없어요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 생년월일 정책 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 형식 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          - birth_date
+                          type: missing
+                          msg: Field required
+                invalidBirthDate:
+                  summary: 지원 범위보다 오래된 생년월일
+                  value:
+                    error:
+                      code: INVALID_BIRTH_DATE
+                      message: 지원하지 않는 생년월일이에요.
+                      details: {}
+                underMinimumAge:
+                  summary: 만 14세 미만
+                  value:
+                    error:
+                      code: UNDER_MINIMUM_AGE
+                      message: 만 14세 이상만 사용할 수 있어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+    delete:
+      tags:
+      - fortune
+      summary: 운세 프로필 삭제
+      operationId: deleteFortuneProfile
+      responses:
+        '204':
+          description: 삭제 완료; 이미 없어도 동일
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 개발 기능이 비활성화됨
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                featureUnavailable:
+                  summary: 개발 기능 비활성
+                  value:
+                    error:
+                      code: FEATURE_UNAVAILABLE
+                      message: 오늘의 운세 기능을 사용할 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /daily-fortune/status:
+    get:
+      tags:
+      - fortune
+      summary: 오늘 운세 상태 조회
+      operationId: getDailyFortuneStatus
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '운세 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다. 대소문자를 구분하지 않으며
+          응답의 result.locale은 ko, en, ja 중 하나로 정규화된다.'
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$
+            examples:
+            - ko
+            - ko-KR
+            - en-US
+            - ja-JP
+          - type: 'null'
+      responses:
+        '200':
+          description: 읽기 전용 홈 상태와 이미 공개된 결과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyFortuneStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
+  /daily-fortune/reveal:
+    post:
+      tags:
+      - fortune
+      summary: 오늘 운세 계산·공개
+      operationId: revealDailyFortune
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '운세 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다. 대소문자를 구분하지 않으며
+          응답의 result.locale은 ko, en, ja 중 하나로 정규화된다.'
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$
+            examples:
+            - ko
+            - ko-KR
+            - en-US
+            - ja-JP
+          - type: 'null'
+      responses:
+        '200':
+          description: 공개 결과 또는 광고 잠금 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyFortuneRevealResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 개발 기능이 비활성화됨
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                featureUnavailable:
+                  summary: 개발 기능 비활성
+                  value:
+                    error:
+                      code: FEATURE_UNAVAILABLE
+                      message: 오늘의 운세 기능을 사용할 수 없어요.
+                      details: {}
+        '404':
+          description: 운세 프로필을 아직 입력하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profileRequired:
+                  summary: 운세 프로필 미입력
+                  value:
+                    error:
+                      code: PROFILE_REQUIRED
+                      message: 운세 정보를 먼저 입력해 주세요.
+                      details: {}
+        '409':
+          description: 현지 날짜가 바뀌는 중이므로 재시도 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                dateRollover:
+                  summary: 현지 날짜 전환 보호
+                  value:
+                    error:
+                      code: DATE_ROLLOVER
+                      message: 날짜가 바뀌고 있어요. 잠시 후 다시 시도해 주세요.
+                      details: {}
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
+  /daily-fortune/ad-sessions:
+    post:
+      tags:
+      - fortune
+      summary: 운세 공개용 광고 세션 발급
+      operationId: createFortuneAdSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FortuneAdSessionRequest'
+      responses:
+        '200':
+          description: 같은 client_request_id의 기존 세션
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FortuneAdSessionResponse'
+        '201':
+          description: 새 광고 세션
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FortuneAdSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 광고가 필요하지 않거나 개발 기능이 비활성화됨
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                adNotRequired:
+                  summary: 광고가 필요하지 않음
+                  value:
+                    error:
+                      code: AD_NOT_REQUIRED
+                      message: 운세 광고가 필요하지 않아요.
+                      details: {}
+                featureUnavailable:
+                  summary: 개발 기능 비활성
+                  value:
+                    error:
+                      code: FEATURE_UNAVAILABLE
+                      message: 오늘의 운세 기능을 사용할 수 없어요.
+                      details: {}
+        '404':
+          description: 운세 프로필을 아직 입력하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profileRequired:
+                  summary: 운세 프로필 미입력
+                  value:
+                    error:
+                      code: PROFILE_REQUIRED
+                      message: 운세 정보를 먼저 입력해 주세요.
+                      details: {}
+        '409':
+          description: 현지 날짜가 바뀌는 중이므로 재시도 필요
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                dateRollover:
+                  summary: 현지 날짜 전환 보호
+                  value:
+                    error:
+                      code: DATE_ROLLOVER
+                      message: 날짜가 바뀌고 있어요. 잠시 후 다시 시도해 주세요.
+                      details: {}
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
   /attribution/meta-referrer/decrypt:
     post:
       tags:
@@ -1737,6 +2122,15 @@ components:
           - duplicate
           - daily_limit
           - transaction_conflict
+          - stale_reward_window
+          - verified
+          - invalid_placement
+          - invalid_reward
+          - owner_mismatch
+          - session_used
+          - expired
+          - stale_session
+          - subject_deleting
           title: Result
           description: 지급/무시/멱등 결과. signature 통과 후 실패 result도 HTTP 200.
       type: object
@@ -1966,6 +2360,174 @@ components:
       - personal_diary_eligible
       - limit_reached
       title: ChatStateResponse
+    DailyFortuneContextRef:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - local_date
+      - locale
+      properties:
+        type:
+          type: string
+          const: daily_fortune
+        local_date:
+          type: string
+          format: date
+        locale:
+          type: string
+          enum:
+          - ko
+          - en
+          - ja
+    DailyFortuneRevealResponse:
+      oneOf:
+      - type: object
+        title: FortuneRevealLocked
+        additionalProperties: false
+        required:
+        - state
+        - access
+        - local_date
+        properties:
+          state:
+            type: string
+            const: locked
+          access:
+            type: string
+            const: ad_required
+          local_date:
+            type: string
+            format: date
+      - type: object
+        title: FortuneRevealComplete
+        additionalProperties: false
+        required:
+        - state
+        - access
+        - local_date
+        - result
+        - versions
+        properties:
+          state:
+            type: string
+            const: revealed
+          access:
+            type: string
+            enum:
+            - included
+            - unlocked_today
+          local_date:
+            type: string
+            format: date
+          result:
+            $ref: '#/components/schemas/FortuneResult'
+          versions:
+            $ref: '#/components/schemas/FortuneVersions'
+    DailyFortuneStatusResponse:
+      oneOf:
+      - type: object
+        title: FortuneUnavailable
+        additionalProperties: false
+        required:
+        - available
+        properties:
+          available:
+            type: boolean
+            const: false
+      - type: object
+        title: FortuneProfileRequired
+        additionalProperties: false
+        required:
+        - available
+        - state
+        - access
+        properties:
+          available:
+            type: boolean
+            const: true
+          state:
+            type: string
+            const: profile_required
+          access:
+            type: string
+            enum:
+            - included
+            - ad_required
+      - type: object
+        title: FortuneUnseen
+        additionalProperties: false
+        required:
+        - available
+        - state
+        - access
+        - local_date
+        properties:
+          available:
+            type: boolean
+            const: true
+          state:
+            type: string
+            const: unseen
+          access:
+            type: string
+            enum:
+            - included
+            - ad_required
+            - unlocked_today
+          local_date:
+            type: string
+            format: date
+      - type: object
+        title: FortuneLocked
+        additionalProperties: false
+        required:
+        - available
+        - state
+        - access
+        - local_date
+        properties:
+          available:
+            type: boolean
+            const: true
+          state:
+            type: string
+            const: locked
+          access:
+            type: string
+            enum:
+            - included
+            - ad_required
+          local_date:
+            type: string
+            format: date
+      - type: object
+        title: FortuneAlreadyRevealed
+        additionalProperties: false
+        required:
+        - available
+        - state
+        - access
+        - local_date
+        - result
+        - versions
+        properties:
+          available:
+            type: boolean
+            const: true
+          state:
+            type: string
+            const: revealed
+          access:
+            type: string
+            const: unlocked_today
+          local_date:
+            type: string
+            format: date
+          result:
+            $ref: '#/components/schemas/FortuneResult'
+          versions:
+            $ref: '#/components/schemas/FortuneVersions'
     CommittedGreeting:
       properties:
         message_id:
@@ -2147,67 +2709,6 @@ components:
       - published_at
       - first_read_at
       title: DiaryDetailResponse
-    DiaryDetailResponseV2:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - display_date
-      - kind
-      - title
-      - weather
-      - body
-      - occurred_at
-      - conversation_ref
-      - published_at
-      - first_read_at
-      properties:
-        id:
-          type: string
-          format: uuid
-        display_date:
-          type: string
-          format: date
-        kind:
-          type: string
-          enum:
-          - welcome
-          - shared_day
-          - capi_day
-        author:
-          type: string
-          const: capi
-          default: capi
-        title:
-          anyOf:
-          - type: string
-          - type: 'null'
-        weather:
-          type: string
-          enum:
-          - sunny
-          - cloudy
-          - rainy
-          - windy
-        body:
-          type: string
-        occurred_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-        conversation_ref:
-          anyOf:
-          - $ref: '#/components/schemas/ConversationRef'
-          - type: 'null'
-        published_at:
-          type: string
-          format: date-time
-        first_read_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
     DiaryReferenceCard:
       type: object
       additionalProperties: false
@@ -2326,69 +2827,6 @@ components:
       - data
       - next_cursor
       title: DiaryListResponse
-    DiaryListItemV2:
-      type: object
-      additionalProperties: false
-      required:
-      - id
-      - display_date
-      - kind
-      - title
-      - weather
-      - preview
-      - published_at
-      - read
-      properties:
-        id:
-          type: string
-          format: uuid
-        display_date:
-          type: string
-          format: date
-        kind:
-          type: string
-          enum:
-          - welcome
-          - shared_day
-          - capi_day
-        author:
-          type: string
-          const: capi
-          default: capi
-        title:
-          anyOf:
-          - type: string
-          - type: 'null'
-        weather:
-          type: string
-          enum:
-          - sunny
-          - cloudy
-          - rainy
-          - windy
-        preview:
-          type: string
-          maxLength: 60
-        published_at:
-          type: string
-          format: date-time
-        read:
-          type: boolean
-    DiaryListResponseV2:
-      type: object
-      additionalProperties: false
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/DiaryListItemV2'
-        next_cursor:
-          anyOf:
-          - type: string
-            maxLength: 256
-          - type: 'null'
     EquipmentPutRequest:
       properties:
         theme_id:
@@ -2586,6 +3024,263 @@ components:
       - width
       - height
       title: Frame
+    FortuneAdSessionRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - client_request_id
+      properties:
+        client_request_id:
+          type: string
+          format: uuid
+    FortuneAdSessionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - session_id
+      - custom_data
+      - admob_user_id
+      - expires_at
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        custom_data:
+          type: string
+        admob_user_id:
+          type: string
+          format: uuid
+        expires_at:
+          type: string
+          format: date-time
+    FortuneProfilePut:
+      type: object
+      additionalProperties: false
+      required:
+      - gender
+      - birth_date
+      properties:
+        gender:
+          type: string
+          enum:
+          - man
+          - woman
+          - undisclosed
+        birth_date:
+          type: string
+          format: date
+          description: 1900-01-01 이상이며 요청 시점의 현지 날짜 기준 만 14세 이상이어야 한다.
+    FortuneProfilePutResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - profile
+      - result_invalidated
+      - unlock_preserved
+      properties:
+        profile:
+          $ref: '#/components/schemas/FortuneProfileView'
+        result_invalidated:
+          type: boolean
+        unlock_preserved:
+          type: boolean
+    FortuneProfileResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - profile
+      properties:
+        profile:
+          $ref: '#/components/schemas/FortuneProfileView'
+    FortuneProfileView:
+      type: object
+      additionalProperties: false
+      required:
+      - gender
+      - birth_date
+      - revision
+      properties:
+        gender:
+          type: string
+          enum:
+          - man
+          - woman
+          - undisclosed
+        birth_date:
+          type: string
+          format: date
+        revision:
+          type: integer
+          minimum: 1
+    FortuneResult:
+      type: object
+      additionalProperties: false
+      required:
+      - schema_version
+      - locale
+      - overall
+      - categories
+      - lucky_color
+      properties:
+        schema_version:
+          type: integer
+          const: 3
+          default: 3
+        locale:
+          type: string
+          enum:
+          - ko
+          - en
+          - ja
+        overall:
+          type: object
+          additionalProperties: false
+          required:
+          - score
+          - headline
+          - flow
+          - do
+          - pause
+          properties:
+            score:
+              type: integer
+              minimum: 0
+              maximum: 100
+            headline:
+              type: string
+              minLength: 1
+            flow:
+              type: array
+              minItems: 3
+              maxItems: 3
+              items:
+                type: string
+            do:
+              type: string
+              minLength: 1
+            pause:
+              type: string
+              minLength: 1
+        categories:
+          type: object
+          additionalProperties: false
+          required:
+          - love
+          - money
+          - work
+          - energy
+          properties:
+            love:
+              type: object
+              additionalProperties: false
+              required:
+              - score
+              - text
+              properties:
+                score:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                text:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: string
+            money:
+              type: object
+              additionalProperties: false
+              required:
+              - score
+              - text
+              properties:
+                score:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                text:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: string
+            work:
+              type: object
+              additionalProperties: false
+              required:
+              - score
+              - text
+              properties:
+                score:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                text:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: string
+            energy:
+              type: object
+              additionalProperties: false
+              required:
+              - score
+              - text
+              properties:
+                score:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                text:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: string
+        lucky_color:
+          type: object
+          additionalProperties: false
+          required:
+          - key
+          - name
+          - hex
+          properties:
+            key:
+              type: string
+              enum:
+              - red
+              - coral
+              - orange
+              - yellow
+              - green
+              - sky
+              - blue
+              - navy
+              - purple
+              - pink
+              - white
+              - beige
+            name:
+              type: string
+              minLength: 1
+            hex:
+              type: string
+              pattern: ^#[0-9A-F]{6}$
+    FortuneVersions:
+      type: object
+      additionalProperties: false
+      required:
+      - ephemeris
+      - rules
+      - copy
+      properties:
+        ephemeris:
+          type: string
+        rules:
+          type: string
+        copy:
+          type: string
     GreetingResponse:
       properties:
         greeting_id:
@@ -2887,6 +3582,11 @@ components:
           - type: 'null'
           title: Greeting Id
           description: 화면에 있던 미커밋 greeting UUID 또는 null.
+        context_ref:
+          anyOf:
+          - $ref: '#/components/schemas/DailyFortuneContextRef'
+          - type: 'null'
+          description: 오늘 운세 결과 화면에서 대화로 넘어올 때 붙이는 일회성 참조.
       additionalProperties: false
       type: object
       required:
@@ -3931,11 +4631,13 @@ components:
       in: query
       name: signature
       description: URL-safe base64 Google AdMob SSV ECDSA P-256/SHA-256 signature. key_id로 공개키를 선택하고 signature
-        앞의 percent-encoded 원본 query를 검증한다.
+        앞의 percent-encoded 원본 query를 검증한다. signature와 key_id는 각각 정확히 한 번, query의 마지막 두 필드에 이 순서로 있어야 하며
+        그 뒤 suffix는 거절한다.
       x-verification:
         algorithm: ECDSA P-256 SHA-256
         signed_material: signature parameter 앞의 percent-encoded raw query
         public_key_selector: key_id
+        envelope: signature와 key_id가 마지막 두 필드이며 suffix와 critical duplicate는 허용하지 않음
   responses:
     AssetInternal:
       description: 상품 asset schema 위반 또는 기타 내부 오류
@@ -4087,6 +4789,8 @@ tags:
   description: 인앱 문의 등록
 - name: subscription
   description: 구독 조회, 고정 플랜, RevenueCat webhook
+- name: fortune
+  description: 운세 프로필, 당일 결과, 공개용 광고 세션
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

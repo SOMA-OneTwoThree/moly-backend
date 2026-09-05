@@ -6,11 +6,14 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
 from app.core.pg import unique_violation
@@ -22,6 +25,39 @@ from app.services.account import _load_profile
 _log = logging.getLogger("moly-backend")
 AD_REWARD = economy.HAY_AD
 AD_DAILY_LIMIT = economy.AD_DAILY_LIMIT
+_SESSION_TTL = timedelta(minutes=30)
+
+_REUSE_PENDING_SESSION = text("""
+WITH deleted AS (
+  DELETE FROM reward_ad_sessions
+  WHERE user_id=:user_id AND granted=false AND expires_at <= :now
+  RETURNING session_id
+)
+SELECT session_id
+FROM reward_ad_sessions
+WHERE user_id=:user_id AND activity_date=:activity_date
+  AND granted=false AND expires_at > :now
+ORDER BY expires_at DESC, session_id
+LIMIT 1
+""")
+
+_DELETE_EXPIRED_SESSIONS = text("""
+WITH candidates AS (
+  SELECT session_id FROM reward_ad_sessions
+  WHERE expires_at < now() - interval '7 days'
+  ORDER BY expires_at, session_id
+  FOR UPDATE SKIP LOCKED
+  LIMIT 500
+)
+DELETE FROM reward_ad_sessions target
+USING candidates
+WHERE target.session_id = candidates.session_id
+RETURNING target.session_id
+""")
+
+
+def _allowed_ad_units() -> set[str]:
+    return {value.strip() for value in settings.hay_ad_unit_ids.split(",") if value.strip()}
 
 
 async def create_session(session: AsyncSession, user_id: str) -> dict[str, Any]:
@@ -36,7 +72,26 @@ async def create_session(session: AsyncSession, user_id: str) -> dict[str, Any]:
     stats = await economy._daily(session, profile.id, ad)
     if stats.ad_reward_count >= AD_DAILY_LIMIT:
         raise errors.ad_limit_reached()  # 429
-    row = RewardAdSession(user_id=profile.id, activity_date=ad)
+    now = datetime.now(timezone.utc)
+    pending = (
+        await session.execute(
+            _REUSE_PENDING_SESSION,
+            {"user_id": profile.id, "activity_date": ad, "now": now},
+        )
+    ).mappings().first()
+    if pending is not None:
+        await session.commit()
+        return {
+            "reward_session_id": str(pending["session_id"]),
+            "admob_user_id": str(profile.id),
+            "views_used": stats.ad_reward_count,
+            "views_limit": AD_DAILY_LIMIT,
+        }
+    row = RewardAdSession(
+        user_id=profile.id,
+        activity_date=ad,
+        expires_at=now + _SESSION_TTL,
+    )
     session.add(row)
     await session.commit()
     await session.refresh(row)
@@ -48,7 +103,16 @@ async def create_session(session: AsyncSession, user_id: str) -> dict[str, Any]:
     }
 
 
-async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id: str) -> str:
+async def grant_from_ssv(
+    session: AsyncSession,
+    session_id: str,
+    transaction_id: str,
+    *,
+    signed_user_id: str | None,
+    ad_unit: str | None,
+    reward_item: str | None,
+    reward_amount: str | None,
+) -> str:
     """SSV 콜백(서명검증 후) → 세션 조회 후 +20 지급. 반환 = 처리 결과(콜백 응답 body에 노출).
 
     결과: granted / invalid_session / session_not_found / duplicate / daily_limit
@@ -63,8 +127,20 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
     identity map에 남긴 stale granted=False를 재조회가 갱신 못 해, 대기 중 다른 SSV가 지급했어도
     이중 지급될 수 있다(SOMA-375 C11).
     """
+    allowed = _allowed_ad_units()
+    if not allowed or ad_unit not in allowed:
+        return "invalid_placement"
+    if reward_item != settings.hay_ad_reward_item:
+        return "invalid_reward"
+    try:
+        amount = int(reward_amount or "")
+    except ValueError:
+        return "invalid_reward"
+    if amount != settings.hay_ad_reward_amount:
+        return "invalid_reward"
     try:
         sid = uuid.UUID(session_id)
+        signed_uid = uuid.UUID(signed_user_id or "")
     except (ValueError, TypeError):
         _log.warning("SSV: reward_session_id 형식 오류(%r) — 스킵", session_id)
         return "invalid_session"
@@ -72,6 +148,8 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
     if pre is None:
         _log.warning("SSV: 세션 없음(%s) — 스킵", session_id)
         return "session_not_found"
+    if pre.user_id != signed_uid:
+        return "owner_mismatch"
     await advisory_xact_lock(session, pre.user_id)  # 보상 경로 공통 직렬화(커서 조회~지급 원자화)
     # 락 하에서 강제 fresh-load 재조회 — stale granted 이중지급 창 차단(populate_existing 필수)
     row = await session.get(
@@ -81,6 +159,8 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
         return "session_not_found"
     if row.granted:
         return "duplicate"  # 이미 지급 — 재전송/중복 콜백 멱등
+    if row.expires_at <= datetime.now(timezone.utc):
+        return "expired"
     # 선발급된 과거 세션(현재 커서보다 뒤)은 지급 거부 — 200 유지(예외 던지지 않음)
     if await economy._reward_window_regressed(session, row.user_id, row.activity_date):
         _log.info("SSV: 보상 윈도우 역행(user=%s date=%s) — 미지급", row.user_id, row.activity_date)
@@ -104,3 +184,14 @@ async def grant_from_ssv(session: AsyncSession, session_id: str, transaction_id:
             return "transaction_conflict"
         raise  # 예상 밖 IntegrityError(NULL/FK 등) → 전파(500, 은폐 금지)
     return "granted"
+
+
+async def cleanup_expired_sessions(session: AsyncSession) -> int:
+    """만료 후 7일 지난 세션을 bounded batch로 정리한다.
+
+    지급 이력의 영구 원장은 hay_transactions와 user_daily_stats다. 광고 세션은 콜백 재시도와
+    운영 확인에 필요한 짧은 기간만 보존해 완료 행도 무한 증식하지 않게 한다.
+    """
+    rows = (await session.execute(_DELETE_EXPIRED_SESSIONS)).all()
+    await session.commit()
+    return len(rows)

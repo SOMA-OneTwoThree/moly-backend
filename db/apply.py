@@ -6,7 +6,7 @@
 `--allow-prod`는 운영 DB에 **실제로 반영**할 때만 쓴다(운영 전환 절차 전용).
 `--commit`과 함께 줘야 의미가 있고, 둘 다 있을 때만 dev 대상 확인을 건너뛴다.
 미리보기(--commit 없음)는 예나 지금이나 확인을 거치지 않으므로 `--allow-prod`가 필요 없다.
-절차는 docs/MIGRATION_CHECKLIST.md 참고.
+마이그레이션 순서와 주의사항은 db/migrations/README.md 참고.
 """
 import asyncio
 import asyncpg
@@ -32,10 +32,19 @@ async def main(commit: bool, path: str, env: str | None, allow_prod: bool = Fals
             print(f">>> --allow-prod 지정됨 — dev 대상 확인을 건너뛴다. env={env} 파일={Path(path).name}")
         else:
             assert_dev_target(env, dsn)
-    c = await asyncpg.connect(dsn, statement_cache_size=0)
+    c = await asyncpg.connect(
+        dsn,
+        statement_cache_size=0,
+        server_settings={"application_name": "moly-db-apply"},
+    )
     tx = c.transaction()
     await tx.start()
     try:
+        # 라이브 DB에서 DDL이 다른 트랜잭션 뒤에 오래 줄 서면, 그 뒤의 정상 요청까지 함께
+        # 쌓일 수 있다. 2초 안에 필요한 lock을 얻지 못하면 migration이 먼저 rollback하고
+        # 트래픽이 잠잠한 시점에 재시도한다. 파일 안에서 더 짧게 지정하면 그 값이 우선한다.
+        await c.execute("SET LOCAL lock_timeout = '2s'")
+        await c.execute("SET LOCAL idle_in_transaction_session_timeout = '60s'")
         await c.execute(sql)
         checksum = hashlib.sha256(Path(path).read_bytes()).hexdigest()
         migration_name = Path(path).name

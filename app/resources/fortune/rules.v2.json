@@ -1,0 +1,77 @@
+{
+  "schema_id": "fortune-rules-schema.v2",
+  "rule_version": "fortune-rules.v2.1",
+  "semantic_result_schema_version": 3,
+  "approved_for_production": true,
+  "approval_note": "Approved for the 2026-09 production release after deterministic rule, score-distribution, locale-catalog, and API contract validation.",
+  "birth_planets": ["sun", "mercury", "venus", "mars", "jupiter", "saturn"],
+  "current_planets": ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn"],
+  "flow_priority": ["start", "advance", "focus", "coordinate", "change", "organize", "recover", "balance"],
+  "orbs": {"moon": 5.0, "default": 2.0},
+  "category_orbs": {"moon": 7.0, "default": 4.0},
+  "aspects": {
+    "conjunction": {"angle": 0, "q_bp": null, "priority": 1},
+    "sextile": {"angle": 60, "q_bp": 6667, "priority": 2},
+    "square": {"angle": 90, "q_bp": -10000, "priority": 3},
+    "trine": {"angle": 120, "q_bp": 10000, "priority": 4},
+    "opposition": {"angle": 180, "q_bp": -10000, "priority": 5}
+  },
+  "conjunction_q_bp": {
+    "sun": {"sun": 6667, "mercury": 6667, "venus": 6667, "mars": 6667, "jupiter": 6667, "saturn": 0},
+    "moon": {"sun": 6667, "mercury": 0, "venus": 6667, "mars": -6667, "jupiter": 6667, "saturn": -6667},
+    "mercury": {"sun": 6667, "mercury": 6667, "venus": 6667, "mars": 0, "jupiter": 6667, "saturn": 0},
+    "venus": {"sun": 6667, "mercury": 6667, "venus": 6667, "mars": 6667, "jupiter": 6667, "saturn": 0},
+    "mars": {"sun": 6667, "mercury": 0, "venus": 6667, "mars": 6667, "jupiter": 6667, "saturn": -6667},
+    "jupiter": {"sun": 6667, "mercury": 6667, "venus": 6667, "mars": 6667, "jupiter": 6667, "saturn": 0},
+    "saturn": {"sun": 0, "mercury": 0, "venus": -6667, "mars": -6667, "jupiter": 0, "saturn": 0}
+  },
+  "flow_matrix": {
+    "sun": {"sun": "start", "mercury": "focus", "venus": "coordinate", "mars": "advance", "jupiter": "start", "saturn": "organize"},
+    "moon": {"sun": "balance", "mercury": "focus", "venus": "coordinate", "mars": "change", "jupiter": "recover", "saturn": "recover"},
+    "mercury": {"sun": "focus", "mercury": "focus", "venus": "coordinate", "mars": "advance", "jupiter": "start", "saturn": "organize"},
+    "venus": {"sun": "coordinate", "mercury": "coordinate", "venus": "coordinate", "mars": "change", "jupiter": "balance", "saturn": "organize"},
+    "mars": {"sun": "advance", "mercury": "advance", "venus": "change", "mars": "advance", "jupiter": "start", "saturn": "organize"},
+    "jupiter": {"sun": "start", "mercury": "advance", "venus": "coordinate", "mars": "advance", "jupiter": "start", "saturn": "balance"},
+    "saturn": {"sun": "organize", "mercury": "organize", "venus": "coordinate", "mars": "organize", "jupiter": "balance", "saturn": "recover"}
+  },
+  "category_slots": {
+    "love": [
+      {"current": "mercury", "birth": "venus", "topic": "conversation", "priority": 10},
+      {"current": "venus", "birth": "venus", "topic": "intimacy", "priority": 20},
+      {"current": "moon", "birth": "venus", "topic": "expression", "priority": 30},
+      {"current": "mars", "birth": "venus", "topic": "expectation", "priority": 40},
+      {"current": "saturn", "birth": "venus", "topic": "distance", "priority": 50}
+    ],
+    "money": [
+      {"current": "venus", "birth": "jupiter", "topic": "spending", "priority": 10},
+      {"current": "saturn", "birth": "jupiter", "topic": "management", "priority": 20},
+      {"current": "mercury", "birth": "jupiter", "topic": "planning", "priority": 30},
+      {"current": "jupiter", "birth": "jupiter", "topic": "opportunity", "priority": 40},
+      {"current": "mars", "birth": "jupiter", "topic": "risk", "priority": 50}
+    ],
+    "work": [
+      {"current": "mercury", "birth": "mercury", "topic": "focus", "priority": 10},
+      {"current": "mars", "birth": "sun", "topic": "execution", "priority": 20},
+      {"current": "venus", "birth": "mercury", "topic": "collaboration", "priority": 30},
+      {"current": "saturn", "birth": "mercury", "topic": "adjustment", "priority": 40},
+      {"current": "jupiter", "birth": "mercury", "topic": "result", "priority": 50}
+    ],
+    "energy": [
+      {"current": "mars", "birth": "mars", "topic": "activity", "priority": 10},
+      {"current": "moon", "birth": "sun", "topic": "balance", "priority": 20},
+      {"current": "saturn", "birth": "sun", "topic": "recovery", "priority": 30},
+      {"current": "sun", "birth": "sun", "topic": "maintenance", "priority": 40},
+      {"current": "jupiter", "birth": "sun", "topic": "pacing", "priority": 50}
+    ]
+  },
+  "lucky_color_by_flow": {
+    "start": ["white", "beige", "yellow", "yellow", "orange", "orange", "coral", "coral", "red", "red"],
+    "advance": ["navy", "navy", "blue", "blue", "sky", "sky", "orange", "coral", "red", "red"],
+    "focus": ["beige", "navy", "navy", "blue", "blue", "sky", "green", "green", "purple", "purple"],
+    "coordinate": ["white", "beige", "pink", "pink", "sky", "sky", "green", "coral", "pink", "pink"],
+    "change": ["navy", "blue", "blue", "purple", "purple", "sky", "orange", "orange", "coral", "red"],
+    "organize": ["white", "beige", "beige", "navy", "navy", "blue", "green", "green", "yellow", "yellow"],
+    "recover": ["white", "beige", "sky", "sky", "green", "green", "blue", "purple", "pink", "pink"],
+    "balance": ["white", "beige", "sky", "sky", "green", "green", "yellow", "yellow", "coral", "purple"]
+  }
+}

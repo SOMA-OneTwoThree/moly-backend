@@ -1,4 +1,5 @@
 """대화 요청·응답 스키마. 메시지 길이 상한 = 비용 통제(ERD §5.2)."""
+
 from __future__ import annotations
 
 from datetime import date
@@ -8,6 +9,17 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.common import StrictResponse, UtcDatetime
+from app.schemas.fortune import Locale
+
+
+class DailyFortuneContextRef(BaseModel):
+    """운세 결과 화면이 현재 공개 결과를 한 번만 채팅에 붙이는 명시적 참조."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["daily_fortune"]
+    local_date: date
+    locale: Locale
 
 
 class PostMessageRequest(BaseModel):
@@ -15,6 +27,7 @@ class PostMessageRequest(BaseModel):
 
     text: str = Field(min_length=1, max_length=2000)
     greeting_id: str | None = None  # 화면에 떠 있던 미커밋 선발화(있으면 커밋)
+    context_ref: DailyFortuneContextRef | None = None
 
 
 class ChatStateResponse(StrictResponse):

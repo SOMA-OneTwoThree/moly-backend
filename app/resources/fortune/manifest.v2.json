@@ -1,0 +1,17 @@
+{
+  "schema": "fortune-manifest-v2",
+  "assets": {
+    "copy.v2.json": {
+      "sha256": "37ae5d74248a5150bed6c6e641caff54dc98fb197ad089e40cc17213f9e15351"
+    },
+    "copy.v2.en.json": {
+      "sha256": "e73f9f624d2fd3175e3cd87c4135bcdb50968c970af1a979fc09a9f57fed94e0"
+    },
+    "copy.v2.ja.json": {
+      "sha256": "28ff1500a9b91ff534102afac7c998b8061eb65859bbdaf570d3f4726ac0e6fe"
+    },
+    "rules.v2.json": {
+      "sha256": "e65b6be07b523e8b8c8e9ace4e0863d4859f2f729f2c6ec02963b1a660ff33c0"
+    }
+  }
+}

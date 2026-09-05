@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
-from app.core.time_utils import safe_zone
+from app.core.time_utils import reward_date_for, safe_zone
 from app.models.chat_context import ChatContext
 from app.models.greeting import Greeting
 from app.models.idempotency_key import IdempotencyKey
@@ -31,6 +31,7 @@ from app.services import (
     checkpoint,
     checkpoint_repo,
     config_store,
+    context_safety,
     gating,
     limits,
     greetings,
@@ -47,6 +48,7 @@ from app.services import (
     chat_references,
     chat_turns,
     diary as diary_service,
+    fortune_chat,
 )
 from app.services.account import _uid
 from app.services.agent import config as agent_config
@@ -235,6 +237,7 @@ async def _context(
     *,
     current_text: str | None = None,
     current_date: date | None = None,
+    language: str | None = None,
 ) -> tuple[list[dict[str, str]], int | None, list[Message]]:
     """앵커 이후 메시지로 대화 컨텍스트 조립. 세그먼트가 트리거 넘으면 새 앵커 반환(리셋).
 
@@ -286,6 +289,19 @@ async def _context(
             if m.sender != "moly":
                 convo, kept = [{"role": "user", "content": m.content}], [m]
                 break
+    compacted = context_safety.compact_historical_crises(
+        [
+            context_safety.ContextEntry(
+                role=slot["role"], content=slot["content"], activity_date=m.activity_date
+            )
+            for slot, m in zip(convo, kept, strict=True)
+        ],
+        current_text=current_text,
+        current_date=current_date,
+        language=language,
+    )
+    convo = [{"role": entry.role, "content": entry.content} for entry in compacted.entries]
+    kept = list(compacted.entries)  # `_mark_dates`는 activity_date 속성만 읽는다.
     _mark_dates(convo, kept)
     if current_text is not None:  # 현재 턴을 배열 끝에 붙임 — 직전 kept와 날짜가 다르면 표식 부착
         content = current_text
@@ -482,57 +498,6 @@ def _clean_reply(text: str, nickname: str | None = None, language: str | None = 
     return out if keep_hy else _fix_qmarks(out, nickname)
 
 
-# 한국어 응답에 드물게 섞이는 한자·가나(LLM 디코딩 아티팩트) 복원 지시. 프롬프트로 빈도는 낮췄지만
-# 0은 아니라(확률적 토큰 슬립) 코드 백스톱으로 확정한다. 삭제는 단어를 깨므로 재작성으로 복원.
-_FOREIGN_REPAIR_SYS = (
-    "다음 한국어 문장에 중국어 한자나 일본어 문자가 섞여 있다. "
-    "그 글자만 문맥에 맞는 자연스러운 한국어로 바꿔라. "
-    "나머지 표현 말투 문장부호는 절대 바꾸지 말고 그대로 둬라. "
-    "설명 없이 고친 문장만 출력해라."
-)
-
-
-async def _repair_foreign_ko(
-    reply: str,
-    *,
-    user_id: str | None = None,
-    ledger: usage_ledger.LedgerContext | None = None,
-) -> tuple[str, list[llm.LlmCall]]:
-    """한국어 응답에 섞인 한자·가나를 utility 모델로 재작성 복원. 호출측에서 language=='ko' 게이팅.
-
-    최대 2회 시도 후에도 남으면 최후수단으로 제거(단어 깨질 수 있어 최후). 호출 실패는
-    원문 유지(응답을 막지 않음). 실발동은 드문 이벤트라 지연·비용 영향은 무시 수준.
-
-    반환 = (복원문, 이 함수가 실제로 소비한 LLM 호출 목록). 호출자가 턴 합계에 넣어 청구한다 —
-    예전엔 이 호출들이 청구에서 통째로 누락됐다(실비용 ↔ 한도 불변식 깨짐).
-    실패로 원문을 되돌리는 경우에도 그 전 시도는 이미 과금됐으므로 calls는 버리지 않는다.
-    """
-    text = reply
-    calls: list[llm.LlmCall] = []
-    for _ in range(2):
-        try:
-            r = await llm.generate(
-                _FOREIGN_REPAIR_SYS,
-                [{"role": "user", "content": text}],
-                model=settings.model_utility,
-                max_tokens=min(len(text) * 2 + 64, 512),  # 한 문장 교정분만(러너웨이 생성 방지)
-                timeout=settings.llm_timeout_s,
-                ledger=ledger,
-            )
-        except Exception as e:  # noqa: BLE001  # 복원 실패가 응답을 막지 않게
-            _log.warning("한자 복원 호출 실패(원문 유지) user=%s: %r", user_id, e)
-            return reply, calls
-        calls.append(_llm_call(r, "foreign_repair"))
-        text = r.text.strip()
-        if not text_clean.has_foreign(text, language="ko"):
-            _log.info(  # 관측용 — 드문 이벤트라 발동 사실·토큰만 남긴다(청구엔 포함됨)
-                "한자 복원 완료 user=%s in=%d out=%d", user_id, r.input_tokens, r.output_tokens
-            )
-            return text, calls
-    _log.warning("한자 복원 2회 후에도 잔존 — 최후수단 제거 user=%s", user_id)
-    return text_clean.strip_foreign(text, language="ko"), calls
-
-
 def _billable(r: llm.LLMResult) -> int:
     """실비용 가중 청구 토큰 = billable × 입력단가 = 실제 청구액(정확). 한도가 달러예산에 직결.
 
@@ -626,6 +591,7 @@ async def _record_memory_v2(
     turn_seq: int,
     activity_date: date,
     now: datetime,
+    record_derived: bool = True,
 ) -> None:
     """v2 source 커서 전진 + 관계 event append. **legacy 사용자는 아무것도 하지 않는다.**
 
@@ -635,6 +601,10 @@ async def _record_memory_v2(
     실패는 삼키지 않는다 — 이 트랜잭션이 깨지면 턴 전체가 클린 재시도되는 게 맞다. 커서만
     전진하고 메시지가 없거나 그 반대인 상태를 만들지 않는다.
     """
+    # fortune_* kind는 memory source 자체가 아니다(`_MAX_TURN`·worker source도 normal만).
+    # source cursor를 움직였다가 별도 gap을 처리하게 만들 필요 없이 처음부터 제외한다.
+    if not record_derived:
+        return
     state = await memory_pipeline.load(session, uid)
     if not state.records_v2:
         # 행이 있는데 legacy면 일부러 꺼둔 사용자다 — 건드리지 않는다.
@@ -712,8 +682,12 @@ async def _enqueue_checkpoint(
                     id=m.id, sender=m.sender, kind=m.kind, content=m.content or ""
                 )
                 for m in rows
+                if m.kind not in {"fortune_context_root", "fortune_derived"}
             ],
             keep_from_message_id=keep_from,
+            # `_context`가 필터 전 원본 세그먼트로 이미 리셋을 확정했다. 운세 격리 행을
+            # 제거한 뒤 트리거를 다시 계산하면 정상 head가 요약 없이 버려질 수 있다.
+            reset_triggered=True,
         )
     except checkpoint.CheckpointError as e:  # 쓰기 이전 단계에서만 발생 — 트랜잭션은 멀쩡하다
         _log.info("대화 요약 잡 건너뜀(user=%s): %s", uid, e)
@@ -765,6 +739,11 @@ async def post_message(
         text_value=req.text,
         greeting_id=getattr(req, "greeting_id", None),
         diary_references=references_enabled,
+        context_ref=(
+            req.context_ref.model_dump(mode="json")
+            if getattr(req, "context_ref", None) is not None
+            else None
+        ),
     )
     await privacy.ensure_subject_active(session, uid)
 
@@ -835,12 +814,68 @@ async def post_message(
     ad = g.activity_date
     nick = g.profile.nickname  # 저장=placeholder / egress·LLM 투입=render 전 공용
     language = g.profile.language
+    account_timezone = getattr(g.profile, "timezone", "Asia/Seoul")
     review_prompted_at = g.profile.review_prompted_at
     review_min = g.review_min_tokens
     tokens_used_pre = g.tokens_used
     limit = g.entitlement["daily_token_limit"]
     if not isinstance(limit, int):  # fail-closed(위 게이트와 동일 근거)
         limit = settings.daily_token_limit_free
+
+    # 현재 위기·연속 distress가 있으면 운세 참조는 DB 조회 전부터 완전히 무시한다. 안전 응답이
+    # 오늘 운세의 표현에 끌리거나 stale 참조 오류로 막혀서는 안 된다.
+    crisis_now = context_safety.is_continuing_distress(req.text, language)
+    fortune_snapshot: fortune_chat.FortuneContextSnapshot | None = None
+    fortune_date = reward_date_for(now, account_timezone)
+    if getattr(req, "context_ref", None) is not None and not crisis_now:
+        if req.context_ref.local_date != fortune_date:
+            raise errors.AppError(
+                "FORTUNE_CONTEXT_STALE", 409, "오늘의 운세가 바뀌었어요. 결과 화면에서 다시 시작해 주세요."
+            )
+        fortune_snapshot = await fortune_chat.load_snapshot(
+            session,
+            user_id=uid,
+            local_date=req.context_ref.local_date,
+            locale=req.context_ref.locale,
+            account_timezone=account_timezone,
+        )
+
+    # 운세가 장기 기억·관계·일기 계약으로 굳지 않게 시작 턴과 이어지는 두 유저 턴을 기존
+    # messages.kind discriminator로 격리한다. 현재 위기는 언제나 normal이 우선한다.
+    message_kind = "normal"
+    if fortune_snapshot is not None:
+        message_kind = "fortune_context_root"
+    elif settings.fortune_chat_enabled and not crisis_now:
+        root = (
+            await session.execute(
+                select(Message)
+                .where(
+                Message.user_id == uid,
+                Message.sender == "user",
+                Message.kind == "fortune_context_root",
+                )
+                .order_by(Message.id.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        # 운세 날짜는 00:00 경계다. chat activity_date(04:00)와 섞지 않는다.
+        if (
+            root is not None
+            and root.created_at is not None
+            and reward_date_for(root.created_at, account_timezone) == fortune_date
+        ):
+            following = int(
+                await session.scalar(
+                    select(func.count()).select_from(Message).where(
+                        Message.user_id == uid,
+                        Message.sender == "user",
+                        Message.id > root.id,
+                    )
+                )
+                or 0
+            )
+            if following < 2:
+                message_kind = "fortune_derived"
 
     ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
@@ -942,7 +977,7 @@ async def post_message(
 
     # 컨텍스트 조립 — 현재 유저 메시지는 아직 미저장. _context가 현재 턴을 in-memory로 붙인다.
     convo, new_anchor, lead = await _context(
-        session, uid, anchor, current_text=req.text, current_date=ad
+        session, uid, anchor, current_text=req.text, current_date=ad, language=language
     )
     lead_texts = [m.content for m in lead]  # placeholder 저장분(문자열) — 커밋 후 ORM 미접근
 
@@ -998,11 +1033,25 @@ async def post_message(
     # role은 system이라 user 발화 권위를 갖지 않는다.
     volatile: list[str] = []
     if checkpoint_summary:
-        volatile.append(
-            "[지난 이야기]\n"
-            "위 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
-            f"{naming.render(checkpoint_summary, nick)}"
+        # 기존 checkpoint(v1)에 남은 과거 위기 원문도 최근 대화가 명확히 다른 화제로 넘어간
+        # 경우에만 문장 단위로 제거한다. 구형 서버 대체 문구도 함께 제거하며, 현재 위기/불명확한
+        # 전환이면 위기 원문은 그대로 둔다.
+        checkpoint_summary = context_safety.compact_checkpoint_summary(
+            checkpoint_summary,
+            recent_entries=[
+                context_safety.ContextEntry(c["role"], c["content"])
+                for c in convo[:-1]
+                if c["role"] in ("user", "assistant")
+            ],
+            current_text=req.text,
+            language=language,
         )
+        if checkpoint_summary:
+            volatile.append(
+                "[지난 이야기]\n"
+                "위 대화 앞에 오간 내용을 네가 정리해 둔 거야. 이미 아는 것처럼 자연스럽게 이어 말해.\n"
+                f"{naming.render(checkpoint_summary, nick)}"
+            )
     if memory_v2_block:
         volatile.append(naming.render(memory_v2_block, nick))
     if resident_block:
@@ -1013,6 +1062,8 @@ async def post_message(
             "[지금 상태 - 서버 사실]\n"
             f"{resident_block}"
         )
+    if fortune_snapshot is not None:
+        volatile.append(fortune_snapshot.block)
     if volatile:
         convo.insert(
             max(0, len(convo) - 1),
@@ -1142,6 +1193,21 @@ async def post_message(
     t_phase2_0 = time.monotonic()
     await _lock_user(session, uid)
     await chat_turns.verify_publish(session, user_id=uid, lease=lease)
+    if fortune_snapshot is not None:
+        phase2_now = datetime.now(timezone.utc)
+        fresh_account = await session.get(type(g.profile), uid, populate_existing=True)
+        fresh_timezone = (
+            getattr(fresh_account, "timezone", account_timezone)
+            if fresh_account is not None
+            else account_timezone
+        )
+        await fortune_chat.revalidate(
+            session,
+            user_id=uid,
+            snapshot=fortune_snapshot,
+            current_local_date=reward_date_for(phase2_now, fresh_timezone),
+            account_timezone=fresh_timezone,
+        )
     lang_bucket = i18n.resolve(language)
     used_tools = any(c.purpose in ("tool_decide", "tool_final") for c in usage.calls)
     usage_totals = usage.totals  # W2 계측 — billed(v2 킬스위치 영향)와 별개로 실제 턴 합계
@@ -1231,7 +1297,7 @@ async def post_message(
 
     # 유저 메시지 저장 — 유저가 자기 현재 이름을 말했으면 placeholder로(저장 표면 이름 0)
     umsg = Message(
-        user_id=uid, sender="user", kind="normal",
+        user_id=uid, sender="user", kind=message_kind,
         content=naming.to_placeholder(req.text, nick),
         activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=1,
     )
@@ -1261,7 +1327,7 @@ async def post_message(
 
     # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷) — 턴 내 모든 호출의 합계를 남긴다.
     rmsg = Message(
-        user_id=uid, sender="moly", kind="normal",
+        user_id=uid, sender="moly", kind=message_kind,
         content=reply_stored,
         input_tokens=totals["input_tokens"], output_tokens=totals["output_tokens"],
         cache_read_tokens=totals["cache_read_tokens"],
@@ -1274,7 +1340,14 @@ async def post_message(
 
     # 기억 v2(15장 5단계) — legacy 사용자는 no-op. shadow/v2만 source 커서와 관계 event를
     # **이 트랜잭션에서** 함께 기록한다. shadow는 기록만 하고 응답에는 쓰지 않는다.
-    await _record_memory_v2(session, uid, turn_seq=lease.turn_seq, activity_date=ad, now=now)
+    await _record_memory_v2(
+        session,
+        uid,
+        turn_seq=lease.turn_seq,
+        activity_date=ad,
+        now=now,
+        record_derived=message_kind == "normal",
+    )
     # last_active_at 기록은 finish_publish의 _PUBLISH SET에 병합됐다(#23a — 왕복 1회 절감).
     # 같은 트랜잭션이라 원자성 동일: CAS 실패(409) 시 함께 롤백된다.
 

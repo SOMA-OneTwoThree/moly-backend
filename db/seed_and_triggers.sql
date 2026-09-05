@@ -133,7 +133,7 @@ ON CONFLICT (app_store_product_id) DO UPDATE
       sort_order = EXCLUDED.sort_order;
 
 -- ─────────────────────────────────────────────────────────────
--- 3. products (cosmetic) — 꾸미기 10종: 테마 2 · 모자 1 · 안경 3 · 목 3 · 몸 1
+-- 3. products (cosmetic) — 꾸미기 17종: 테마 2 · 모자 8 · 안경 3 · 목 3 · 몸 1
 --    자연키가 없어 id를 고정 uuid로 박아 멱등(재실행 = 갱신).
 --    에셋: Storage `shop-assets` 버킷 public URL. 경로 규칙은 {public_id}/v{asset_version}/…
 --    — 파일 내용이 바뀌면 asset_version과 URL을 함께 올린다(iOS는 URL 전체를 캐시 키로 씀).
@@ -243,7 +243,37 @@ INSERT INTO public.products (
      "detail_url":        "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/clothes_hawaiianpants/v1/detail.png",
      "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/clothes_hawaiianpants/v1/upright.png",
      "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/clothes_hawaiianpants/v1/rightside/upright.png"}}',
-   true, 1)
+   true, 1),
+  -- 모자 7종(20260826_hats_seven.sql) — head_glasses처럼 rightside 레이어만 있는 v2 전용 상품이다.
+  -- detail_url·구 자세 upright가 없으므로 아래 is_v2_only UPDATE가 레거시 노출에서 반드시 뺀다.
+  ('00000000-0000-4000-8000-000000000205', 'cosmetic', 'head_bucket', 'hat', '버킷햇', 1000, false, 1,
+   '{"thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_bucket/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_bucket/v1/rightside/upright.png"}}',
+   true, 3),
+  ('00000000-0000-4000-8000-000000000206', 'cosmetic', 'head_cap', 'hat', '캡모자', 1000, false, 1,
+   '{"thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_cap/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_cap/v1/rightside/upright.png"}}',
+   true, 4),
+  ('00000000-0000-4000-8000-000000000207', 'cosmetic', 'head_beret', 'hat', '빵모자', 1000, false, 1,
+   '{"thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_beret/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_beret/v1/rightside/upright.png"}}',
+   true, 5),
+  ('00000000-0000-4000-8000-000000000208', 'cosmetic', 'head_bandana', 'hat', '두건', 1000, false, 1,
+   '{"thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_bandana/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_bandana/v1/rightside/upright.png"}}',
+   true, 6),
+  ('00000000-0000-4000-8000-000000000209', 'cosmetic', 'head_towel', 'hat', '수건', 1000, false, 1,
+   '{"thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_towel/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_towel/v1/rightside/upright.png"}}',
+   true, 7),
+  ('00000000-0000-4000-8000-000000000210', 'cosmetic', 'head_watermelon', 'hat', '수박 모자', 1000, false, 1,
+   '{"thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_watermelon/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_watermelon/v1/rightside/upright.png"}}',
+   true, 8),
+  ('00000000-0000-4000-8000-000000000211', 'cosmetic', 'head_rabbit', 'hat', '토끼 모자', 1000, false, 1,
+   '{"thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_rabbit/v1/thumb.png",
+     "rightside": {"upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_rabbit/v1/rightside/upright.png"}}',
+   true, 9)
 ON CONFLICT (id) DO UPDATE
   SET product_type       = EXCLUDED.product_type,
       public_id          = EXCLUDED.public_id,
@@ -261,5 +291,9 @@ ON CONFLICT (id) DO UPDATE
         ELSE public.products.assets
       END;
 
--- head_glasses는 v2(rightside) 계약에만 노출 — 레거시엔 detail_url이 없어 카탈로그/인벤토리에서 제외한다.
-UPDATE public.products SET is_v2_only = true WHERE public_id = 'head_glasses';
+-- 아래 상품들은 v2(rightside) 계약에만 노출 — 레거시엔 detail_url이 없어 카탈로그/인벤토리에서 제외한다.
+UPDATE public.products SET is_v2_only = true
+WHERE public_id = ANY (ARRAY[
+  'head_glasses',
+  'head_bucket', 'head_cap', 'head_beret', 'head_bandana',
+  'head_towel', 'head_watermelon', 'head_rabbit']);

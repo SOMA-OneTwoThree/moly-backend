@@ -23,7 +23,8 @@ class Message(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     sender: Mapped[str] = mapped_column(String)  # user | moly
-    kind: Mapped[str] = mapped_column(String, server_default=text("'normal'"))  # normal | greeting
+    # fortune_*는 원문 대화에는 보이되 기억·일기·관계 같은 파생 파이프라인에서 제외한다.
+    kind: Mapped[str] = mapped_column(String, server_default=text("'normal'"))
     turn_seq: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     turn_position: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     content: Mapped[str] = mapped_column(String)

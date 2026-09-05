@@ -336,6 +336,29 @@ def test_every_finalize_path_is_fenced():
         assert "lease_owner=:worker_id" in s and "lease_token=:lease_token" in s
 
 
+def test_every_terminal_path_sets_payload_retention_deadline():
+    """성공·취소는 24시간, 조사할 dead는 7일 뒤 scrub 대상이 되어야 한다."""
+    for sql in (
+        jobs._SUCCESS_SQL,
+        jobs._TERMINAL_SQL,
+        jobs._REAP_TERMINAL_RUNNING_SQL,
+        jobs._REAP_TERMINAL_READY_SQL,
+    ):
+        assert "payload_expires_at=COALESCE(" in _norm(sql)
+    retryable = _norm(jobs._RETRYABLE_SQL)
+    assert "attempt>=max_attempts" in retryable
+    assert "interval'7days'" in retryable
+    assert "interval'7days'" in _norm(jobs._TERMINAL_SQL)
+    assert "interval'24hours'" in _norm(jobs._TERMINAL_SQL)
+
+
+def test_retention_scrub_is_bounded_and_lock_safe():
+    sql = _norm(jobs._SCRUB_RETENTION_SQL)
+    assert sql.count("FORUPDATESKIPLOCKEDLIMIT500") == 2
+    assert "ORDERBYpayload_expires_at,id" in sql
+    assert "ORDERBYresponse_expires_at,user_id,key" in sql
+
+
 def test_jobs_service_never_deletes_rows():
     """dead 자동 삭제 금지 — 잡 행을 지우는 문장이 존재하면 안 된다(운영 replay는 새 행)."""
     import inspect

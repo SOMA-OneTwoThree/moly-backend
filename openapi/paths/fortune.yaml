@@ -1,0 +1,270 @@
+/fortune-profile:
+  get:
+    tags: [fortune]
+    summary: 운세 프로필 조회
+    operationId: getFortuneProfile
+    responses:
+      '200':
+        description: 저장된 계산 프로필
+        content:
+          application/json:
+            schema: {$ref: ../components/fortune.yaml#/schemas/FortuneProfileResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '403':
+        description: 개발 기능이 비활성화됨
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              featureUnavailable:
+                summary: 개발 기능 비활성
+                value: {error: {code: FEATURE_UNAVAILABLE, message: 오늘의 운세 기능을 사용할 수 없어요., details: {}}}
+      '404':
+        description: 운세 프로필을 아직 입력하지 않음
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              profileRequired:
+                summary: 운세 프로필 미입력
+                value: {error: {code: PROFILE_REQUIRED, message: 운세 정보를 먼저 입력해 주세요., details: {}}}
+      '409':
+        description: 계정 삭제 진행 중
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              accountDeleting:
+                summary: 계정 삭제 진행 중
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+    security: [{SupabaseBearer: []}]
+  put:
+    tags: [fortune]
+    summary: 운세 프로필 저장
+    operationId: putFortuneProfile
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: ../components/fortune.yaml#/schemas/FortuneProfilePut}
+    responses:
+      '200':
+        description: 저장된 계산 프로필
+        content:
+          application/json:
+            schema: {$ref: ../components/fortune.yaml#/schemas/FortuneProfilePutResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '403':
+        description: 개발 기능이 비활성화됨
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              featureUnavailable:
+                summary: 개발 기능 비활성
+                value: {error: {code: FEATURE_UNAVAILABLE, message: 오늘의 운세 기능을 사용할 수 없어요., details: {}}}
+      '422':
+        description: 요청 형식 또는 생년월일 정책 위반
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              validation:
+                summary: 요청 형식 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc: [body, birth_date]
+                        type: missing
+                        msg: Field required
+              invalidBirthDate:
+                summary: 지원 범위보다 오래된 생년월일
+                value: {error: {code: INVALID_BIRTH_DATE, message: 지원하지 않는 생년월일이에요., details: {}}}
+              underMinimumAge:
+                summary: 만 14세 미만
+                value: {error: {code: UNDER_MINIMUM_AGE, message: 만 14세 이상만 사용할 수 있어요., details: {}}}
+      '409':
+        description: 계정 삭제 진행 중
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              accountDeleting:
+                summary: 계정 삭제 진행 중
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+    security: [{SupabaseBearer: []}]
+  delete:
+    tags: [fortune]
+    summary: 운세 프로필 삭제
+    operationId: deleteFortuneProfile
+    responses:
+      '204': {description: 삭제 완료; 이미 없어도 동일}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '403':
+        description: 개발 기능이 비활성화됨
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              featureUnavailable:
+                summary: 개발 기능 비활성
+                value: {error: {code: FEATURE_UNAVAILABLE, message: 오늘의 운세 기능을 사용할 수 없어요., details: {}}}
+      '409':
+        description: 계정 삭제 진행 중
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              accountDeleting:
+                summary: 계정 삭제 진행 중
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+    security: [{SupabaseBearer: []}]
+
+/daily-fortune/status:
+  get:
+    tags: [fortune]
+    summary: 오늘 운세 상태 조회
+    operationId: getDailyFortuneStatus
+    parameters:
+    - {$ref: '#/parameters/AppLocale'}
+    responses:
+      '200':
+        description: 읽기 전용 홈 상태와 이미 공개된 결과
+        content:
+          application/json:
+            schema: {$ref: ../components/fortune.yaml#/schemas/DailyFortuneStatusResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '409':
+        description: 계정 삭제 진행 중
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              accountDeleting:
+                summary: 계정 삭제 진행 중
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+      '422': {$ref: ../components/common.yaml#/responses/Validation}
+    security: [{SupabaseBearer: []}]
+
+/daily-fortune/reveal:
+  post:
+    tags: [fortune]
+    summary: 오늘 운세 계산·공개
+    operationId: revealDailyFortune
+    parameters:
+    - {$ref: '#/parameters/AppLocale'}
+    responses:
+      '200':
+        description: 공개 결과 또는 광고 잠금 상태
+        content:
+          application/json:
+            schema: {$ref: ../components/fortune.yaml#/schemas/DailyFortuneRevealResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '403':
+        description: 개발 기능이 비활성화됨
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              featureUnavailable:
+                summary: 개발 기능 비활성
+                value: {error: {code: FEATURE_UNAVAILABLE, message: 오늘의 운세 기능을 사용할 수 없어요., details: {}}}
+      '404':
+        description: 운세 프로필을 아직 입력하지 않음
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              profileRequired:
+                summary: 운세 프로필 미입력
+                value: {error: {code: PROFILE_REQUIRED, message: 운세 정보를 먼저 입력해 주세요., details: {}}}
+      '409':
+        description: 현지 날짜가 바뀌는 중이므로 재시도 필요
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              dateRollover:
+                summary: 현지 날짜 전환 보호
+                value: {error: {code: DATE_ROLLOVER, message: 날짜가 바뀌고 있어요. 잠시 후 다시 시도해 주세요., details: {}}}
+              accountDeleting:
+                summary: 계정 삭제 진행 중
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+      '422': {$ref: ../components/common.yaml#/responses/Validation}
+    security: [{SupabaseBearer: []}]
+
+/daily-fortune/ad-sessions:
+  post:
+    tags: [fortune]
+    summary: 운세 공개용 광고 세션 발급
+    operationId: createFortuneAdSession
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: ../components/fortune.yaml#/schemas/FortuneAdSessionRequest}
+    responses:
+      '200':
+        description: 같은 client_request_id의 기존 세션
+        content:
+          application/json:
+            schema: {$ref: ../components/fortune.yaml#/schemas/FortuneAdSessionResponse}
+      '201':
+        description: 새 광고 세션
+        content:
+          application/json:
+            schema: {$ref: ../components/fortune.yaml#/schemas/FortuneAdSessionResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '403':
+        description: 광고가 필요하지 않거나 개발 기능이 비활성화됨
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              adNotRequired:
+                summary: 광고가 필요하지 않음
+                value: {error: {code: AD_NOT_REQUIRED, message: 운세 광고가 필요하지 않아요., details: {}}}
+              featureUnavailable:
+                summary: 개발 기능 비활성
+                value: {error: {code: FEATURE_UNAVAILABLE, message: 오늘의 운세 기능을 사용할 수 없어요., details: {}}}
+      '404':
+        description: 운세 프로필을 아직 입력하지 않음
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              profileRequired:
+                summary: 운세 프로필 미입력
+                value: {error: {code: PROFILE_REQUIRED, message: 운세 정보를 먼저 입력해 주세요., details: {}}}
+      '409':
+        description: 현지 날짜가 바뀌는 중이므로 재시도 필요
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              dateRollover:
+                summary: 현지 날짜 전환 보호
+                value: {error: {code: DATE_ROLLOVER, message: 날짜가 바뀌고 있어요. 잠시 후 다시 시도해 주세요., details: {}}}
+              accountDeleting:
+                summary: 계정 삭제 진행 중
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+      '422': {$ref: ../components/common.yaml#/responses/Validation}
+    security: [{SupabaseBearer: []}]
+
+parameters:
+  AppLocale:
+    name: X-App-Locale
+    in: header
+    required: false
+    description: >-
+      운세 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다.
+      대소문자를 구분하지 않으며 응답의 result.locale은 ko, en, ja 중 하나로 정규화된다.
+    schema:
+      anyOf:
+      - type: string
+        pattern: '^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$'
+        examples: [ko, ko-KR, en-US, ja-JP]
+      - type: 'null'

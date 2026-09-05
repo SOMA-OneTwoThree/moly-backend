@@ -114,7 +114,7 @@ def test_create_feedback_triggers_slack(monkeypatch):
     async def _spy(text):
         calls.append(text)
 
-    monkeypatch.setattr("app.services.slack_notify.send_summary", _spy)
+    monkeypatch.setattr("app.services.slack_notify.send_feedback", _spy)
 
     async def _session():
         yield fake

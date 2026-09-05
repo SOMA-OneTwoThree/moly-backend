@@ -15,6 +15,15 @@ schemas:
         - duplicate
         - daily_limit
         - transaction_conflict
+        - stale_reward_window
+        - verified
+        - invalid_placement
+        - invalid_reward
+        - owner_mismatch
+        - session_used
+        - expired
+        - stale_session
+        - subject_deleting
         title: Result
         description: 지급/무시/멱등 결과. signature 통과 후 실패 result도 HTTP 200.
     type: object

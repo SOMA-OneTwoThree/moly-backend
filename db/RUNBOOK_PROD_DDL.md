@@ -41,6 +41,26 @@ DROP INDEX CONCURRENTLY <스키마>.<이름>;
 - 실패 시 인덱스가 INVALID로 남을 수 있다(쿼리는 이미 안 쓰지만 쓰기 오버헤드는 남는 단계 있음) — **같은 DROP을 재실행**하면 완결.
 - 롤백(재생성)이 필요한 대상은 로드맵 해당 항목의 롤백 절차를 따른다(예: HNSW 재생성은 `SET maintenance_work_mem='512MB'` 후 CIC — 14K행 기준 분 단위·무차단).
 
+## 2a. 운세 `messages.kind` CHECK 확장
+
+`20260827_fortune_chat_context.sql`은 기존 CHECK를 한 트랜잭션에서 삭제·재생성하며 검증하는 개발 이력이다.
+운영 live `messages`에는 실행하지 않는다. 다음 세 파일을 `db/apply.py`로 각각 별도 실행한다.
+
+1. `20260905_fortune_chat_kind_constraint_prepare.sql`: 새 CHECK를 `NOT VALID`로 추가.
+2. `20260905_fortune_chat_kind_constraint_validate.sql`: 기존 행을 별도 트랜잭션에서 검증.
+3. `20260905_fortune_chat_kind_constraint_swap.sql`: 검증된 CHECK를 기존 이름으로 교체.
+
+`prepare`와 `swap`은 짧게 `ACCESS EXCLUSIVE`를 요구하지만 자체 `lock_timeout='2s'`가 있다. 실패하면
+기존 제약과 서비스는 그대로이므로 timeout을 늘리지 말고 재시도한다. 세 파일 적용 전에는 운세 대화 코드를
+켜지 않는다. 완료 뒤 아래 결과가 validated인 확장 제약인지 확인한다.
+
+```sql
+SELECT conname, convalidated, pg_get_constraintdef(oid)
+FROM pg_constraint
+WHERE conrelid='public.messages'::regclass
+  AND conname LIKE 'messages_kind_check%';
+```
+
 ## 3. pg_repack (`vecs.moly_memories_v2` 등)
 
 사전:
@@ -92,6 +112,11 @@ UPDATE public.schema_migrations SET checksum_sha256='<새 해시>'
 ```
 - prod와 dev **양쪽 모두** 갱신해야 한다. 갱신 문은 로드맵 "실행 기록"에 남긴다.
 - ⚠️ `promote_memory_v2.sql` 등 `db/` 직하 운영 스크립트는 apply.py의 checksum 가드를 우회한다 — 반드시 이 런북 경로(기록 포함)로만 실행.
+
+운세 활성화 전에는 `db/verify.py --env prod`의 출력뿐 아니라 **종료 코드 0**을 확인한다. infra의
+`scripts/verify_fortune_schema.py`도 컨테이너 교체 전에 같은 DB를 읽기 전용으로 검사한다. 세 운세
+테이블·RLS·권한, 건초 광고 세션의 만료 컬럼·CHECK·전체 만료 인덱스, 운세 대화 CHECK·부분 인덱스와 필수
+migration 이름·checksum 중 하나라도 다르면 배포를 중단한다.
 
 ## 7. 사전 확인 상태 (2026-08-28)
 

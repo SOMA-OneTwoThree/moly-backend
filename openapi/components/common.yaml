@@ -116,11 +116,13 @@ securitySchemes:
     in: query
     name: signature
     description: URL-safe base64 Google AdMob SSV ECDSA P-256/SHA-256 signature. key_id로 공개키를 선택하고
-      signature 앞의 percent-encoded 원본 query를 검증한다.
+      signature 앞의 percent-encoded 원본 query를 검증한다. signature와 key_id는 각각 정확히 한 번,
+      query의 마지막 두 필드에 이 순서로 있어야 하며 그 뒤 suffix는 거절한다.
     x-verification:
       algorithm: ECDSA P-256 SHA-256
       signed_material: signature parameter 앞의 percent-encoded raw query
       public_key_selector: key_id
+      envelope: signature와 key_id가 마지막 두 필드이며 suffix와 critical duplicate는 허용하지 않음
 responses:
   AssetInternal:
     description: 상품 asset schema 위반 또는 기타 내부 오류

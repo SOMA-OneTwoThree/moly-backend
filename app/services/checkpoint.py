@@ -36,7 +36,7 @@ _log = logging.getLogger("moly-backend")
 JOB_CONVERSATION_CHECKPOINT = "conversation_checkpoint"
 # v2 = payload에 `memory_generation`이 들어간다(잊어줘 이후 늦게 도착한 잡을 stale로 끊는 세대 검사).
 SCHEMA_VERSION = "conversation-checkpoint-payload-v2"
-SUMMARIZER_VERSION = "conversation-checkpoint-summary-v1"
+SUMMARIZER_VERSION = "conversation-checkpoint-summary-v3"
 
 # W1 회계의 호출 목적 라벨(LlmCall.purpose). 대화 턴 밖(워커)에서 도는 호출이라 chat 턴 사용량과
 # 섞이지 않게 자체 라벨을 쓴다.
@@ -214,6 +214,7 @@ def plan(
     previous: Checkpoint | None,
     keep_from_message_id: int | None = None,
     memory_generation: int = 0,
+    reset_triggered: bool = False,
 ) -> CheckpointPlan | None:
     """이번 세그먼트로 만들 checkpoint 계획. 만들 게 없으면 None.
 
@@ -230,12 +231,16 @@ def plan(
     값이 없으면(워커·단위 테스트) `keep_tail`로 자체 계산한다 — 그쪽엔 pop 규칙이 없으므로 배선
     경로와 경계가 한 칸 다를 수 있고, 그래서 챗은 항상 앵커를 넘긴다.
 
+    `reset_triggered=True`는 호출측이 **필터 전 원본 세그먼트로 이미 리셋을 확정한 경우**다.
+    장기 기억에서 제외할 행을 제거한 뒤 메시지 수·글자 수를 다시 세어 정상 head의 checkpoint를
+    놓치지 않게 한다. 경계는 반드시 같은 리셋에서 나온 `keep_from_message_id`와 함께 넘긴다.
+
     `memory_generation`은 잡을 만드는 시점의 `chat_contexts.memory_generation`이다(§forget 계약).
     **producer(`checkpoint_repo.maybe_enqueue`)가 반드시 실제 값을 넘긴다** — 기본값 0은 순수 계획
     로직만 보는 호출(단위 테스트)용이다.
     """
     ordered = normalize_messages(messages)
-    if not should_checkpoint(ordered):
+    if not reset_triggered and not should_checkpoint(ordered):
         return None
     if keep_from_message_id is not None:
         head = tuple(m for m in ordered if m.id < keep_from_message_id)
@@ -279,6 +284,10 @@ def build_system(language: str | None) -> str:
         "- 대화에 나온 내용만 쓴다. 추측하거나 없는 사실을 만들지 않는다.\n"
         "- 사람 이름·호칭은 쓰지 않는다. {유저이름} 같은 토큰이 보이면 그대로 둔다.\n"
         "- 이전 요약이 함께 주어지면 그 내용을 이어받아 하나의 요약으로 합친다.\n"
+        "- 자살·자해처럼 안전 확인이 필요했던 대화가 나온 뒤 다른 화제로 명확히 넘어갔다면, "
+        "해당 위기 구간과 반복된 안전 질문을 요약에 남기지 않는다. 그 일이 있었다는 대체 문장도 "
+        "만들지 않는다. 구간 끝까지 위기가 이어지면 최신 위기 발화와 안전 대응에 필요한 맥락을 "
+        "생략하지 않는다.\n"
         f"{_LANG_RULE[i18n.resolve(language)]}\n"
         f"- 전체 {SUMMARY_MAX_CHARS}자 이내의 줄글로 쓰고, 제목·머리말·코드펜스는 붙이지 않는다."
     )

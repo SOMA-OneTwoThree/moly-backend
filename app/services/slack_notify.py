@@ -1,7 +1,8 @@
 """슬랙 Incoming Webhook — 운영 알림(워커 요약·유저 피드백·모니터링 경보). URL 미설정 시 no-op.
 
-severity 라우팅: alert=즉시 크리티컬(#moly-alerts) / status=상태·요약(#moly-status).
-채널별 웹훅 미설정 시 공용 slack_webhook_url로 폴백. dedup_key로 스톰·flapping 스팸 억제
+severity 라우팅: alert=즉시 크리티컬(#moly-alerts) / status=상태·요약(#moly-status)
+/ feedback=인앱 문의(#moly-feedback). 피드백 웹훅 미설정 시 alert → 공용 웹훅으로
+폴백하고, 나머지 채널은 미설정 시 공용 slack_webhook_url로 폴백한다. dedup_key로 스톰·flapping 스팸 억제
 (프로세스 내 best-effort — API·워커는 별도 프로세스라 각자 억제).
 """
 from __future__ import annotations
@@ -27,6 +28,12 @@ def _webhook_for(severity: str) -> str:
         return settings.slack_alert_webhook_url or settings.slack_webhook_url
     if severity == "status":
         return settings.slack_status_webhook_url or settings.slack_webhook_url
+    if severity == "feedback":
+        return (
+            settings.slack_feedback_webhook_url
+            or settings.slack_alert_webhook_url
+            or settings.slack_webhook_url
+        )
     return settings.slack_webhook_url
 
 
@@ -59,6 +66,14 @@ async def alert(text: str, *, dedup_key: str | None = None) -> None:
     await send(text, severity="alert", dedup_key=dedup_key)
 
 
+async def send_feedback(text: str) -> None:
+    """인앱 피드백 전용 채널로 전송.
+
+    전용 웹훅이 없는 기존 배포는 alert → 공용 웹훅을 그대로 사용한다.
+    """
+    await _post(_webhook_for("feedback"), text)
+
+
 def feedback_text(
     user_id: str,
     nickname: str | None,
@@ -80,5 +95,5 @@ def feedback_text(
 
 
 async def send_summary(text: str) -> None:
-    """워커 요약·피드백 등 상태성 메시지 → status 채널(조용). 하위호환 유지."""
+    """워커 요약 등 상태성 메시지 → status 채널(조용). 하위호환 유지."""
     await _post(_webhook_for("status"), text)

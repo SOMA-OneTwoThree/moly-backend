@@ -26,6 +26,11 @@ class RewardAdSession(Base):
     activity_date: Mapped[date] = mapped_column(Date)
     ssv_transaction_id: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     granted: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
-    created_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), server_default=text("now()"), nullable=True
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()"), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=text("now() + interval '30 minutes'"),
+        nullable=False,
     )

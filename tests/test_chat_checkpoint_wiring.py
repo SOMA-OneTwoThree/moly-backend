@@ -60,6 +60,12 @@ def _msg(i: int, sender: str) -> Message:
     return m
 
 
+def _fortune_msg(i: int, sender: str) -> Message:
+    m = _msg(i, sender)
+    m.kind = "fortune_context_root" if sender == "user" else "fortune_derived"
+    return m
+
+
 def _segment(n: int = 40) -> list[Message]:
     """앵커 이후 세그먼트 n건. FakeSession.execute는 모든 문장에 같은 목록을 주므로
     `_context`(desc 조회)와 배선의 세그먼트 조회(asc)가 같은 값을 본다 — 정렬은
@@ -191,6 +197,26 @@ async def test_summary_boundary_matches_the_new_anchor(monkeypatch, spy, enabled
     assert plan.source_message_ids == tuple(range(1, 21))
 
 
+async def test_filtered_fortune_rows_do_not_drop_the_normal_head(monkeypatch, spy, enabled):
+    """원본 40건의 리셋 사실을 보존해, 필터 후 34건이어도 앵커 앞 정상 대화를 요약한다."""
+    fortune_ids = {9, 10, 21, 22, 31, 32}
+    items = [
+        (
+            _fortune_msg(i, "user" if i % 2 else "moly")
+            if i in fortune_ids
+            else _msg(i, "user" if i % 2 else "moly")
+        )
+        for i in range(40, 0, -1)
+    ]
+    session = _Session(execute_items=items)
+
+    await _post(session, monkeypatch, spy)
+
+    plan = spy["enqueued"][0]["plan"]
+    assert plan.through_message_id == 20
+    assert plan.source_message_ids == tuple(i for i in range(1, 21) if i not in fortune_ids)
+
+
 async def test_summary_covers_the_message_popped_by_the_first_user_rule(monkeypatch, spy, enabled):
     """`_keep_window`가 첫-user 보장으로 pop한 캐피 메시지는 **요약이 받아간다**.
 
@@ -270,3 +296,22 @@ async def test_no_checkpoint_leaves_the_prompt_unchanged(monkeypatch, spy, enabl
     await _post(session, monkeypatch, spy)
 
     assert "[지난 이야기]" not in _system_text(spy)
+
+
+async def test_legacy_safety_replacement_checkpoint_does_not_create_empty_block(
+    monkeypatch, spy, enabled
+):
+    spy["latest"] = checkpoint.Checkpoint(
+        id=uuid.uuid4(),
+        through_message_id=20,
+        summary="이전에 안전 확인이 필요했던 힘든 순간이 있었고, 이후 다른 이야기로 넘어갔다.",
+        version=checkpoint.SUMMARIZER_VERSION,
+        source_hash="a" * 64,
+    )
+    session = _Session(execute_items=_segment(6))
+
+    await _post(session, monkeypatch, spy)
+
+    prompt = _prompt_text(spy)
+    assert "힘든 순간" not in prompt
+    assert "[지난 이야기]" not in prompt

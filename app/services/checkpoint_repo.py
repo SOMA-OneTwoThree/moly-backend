@@ -62,6 +62,7 @@ _RANGE_SQL = text("""
 SELECT id, sender, kind, content
 FROM messages
 WHERE user_id = :user_id AND id > :after_id AND id <= :through_id
+  AND kind NOT IN ('fortune_context_root','fortune_derived')
 ORDER BY id
 LIMIT :max_rows
 """)
@@ -213,6 +214,7 @@ async def maybe_enqueue(
     user_id: uuid.UUID | str,
     messages: Sequence[checkpoint.SourceMessage],
     keep_from_message_id: int | None = None,
+    reset_triggered: bool = False,
 ) -> uuid.UUID | None:
     """세그먼트가 트리거에 닿았으면 요약 잡을 건다. 아니면(또는 킬스위치 off면) None.
 
@@ -221,6 +223,10 @@ async def maybe_enqueue(
 
     `keep_from_message_id`는 보존 tail의 첫 메시지 = **새 앵커**다(챗 배선은 항상 넘긴다).
     `checkpoint.plan` docstring 참조 — 요약 경계와 프롬프트에 남는 구간이 이 값으로 맞물린다.
+
+    `reset_triggered=True`면 호출측이 필터 전 세그먼트로 이미 리셋을 확정했다는 뜻이다. 이때는
+    필터 후 메시지가 자체 트리거에 못 미쳐도 같은 `keep_from_message_id` 앞의 정상 메시지를
+    checkpoint로 보존한다.
     """
     if not settings.context_checkpoint_enabled:  # 킬스위치 — 켜기 전까지 동작 변화 0
         return None
@@ -235,6 +241,7 @@ async def maybe_enqueue(
         previous=previous,
         keep_from_message_id=keep_from_message_id,
         memory_generation=generation,
+        reset_triggered=reset_triggered,
     )
     if plan is None:
         return None

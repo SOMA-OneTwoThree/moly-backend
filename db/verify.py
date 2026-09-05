@@ -62,6 +62,10 @@ async def main(env: str | None = None):
     else:
         print("✅ 전 모델 컬럼이 DB에 존재. nullable/RLS/grant 위험 없음.")
     await c.close()
+    if problems:
+        # 운영 절차와 CI가 출력 문자열을 사람이 읽는 데 의존하지 않게 한다. 스키마가
+        # 불완전한데도 exit 0이면 뒤의 배포 단계가 그대로 진행돼 feature flag가 먼저 켜진다.
+        raise SystemExit(1)
 
 _env, _ = split_env_arg(sys.argv[1:])
 asyncio.run(main(_env))

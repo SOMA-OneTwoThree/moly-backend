@@ -10,7 +10,7 @@ from app.core import errors
 from app.core.db import get_session
 from app.core.security import get_current_user
 from app.schemas.ads import AdSsvResponse, RewardAdSessionResponse
-from app.services import ads, ads_ssv
+from app.services import ads, ads_ssv, fortune_ads
 
 router = APIRouter(tags=["ads"])
 
@@ -34,12 +34,40 @@ async def ad_ssv(
     서명 통과 후에는 항상 200 — 비-200이면 Google이 1초 간격 5회 재전송하는데 중복·한도 등
     영구 조건엔 무의미. 처리 결과는 body `result`로 구분(운영·테스트용, Google은 무시).
     """
-    p = request.query_params
-    key_id, signature = p.get("key_id"), p.get("signature")
-    reward_session_id, transaction_id = p.get("custom_data"), p.get("transaction_id")
-    if not (key_id and signature and reward_session_id and transaction_id):
-        raise errors.validation("SSV 파라미터가 누락됐어요.")
-    if not await ads_ssv.verify(request.url.query, key_id, signature):
+    try:
+        raw_query = request.scope.get("query_string", b"").decode("ascii")
+    except UnicodeDecodeError:
+        raise errors.ad_verify_failed() from None
+    verified = await ads_ssv.verify_and_parse(raw_query)
+    if verified is None:
         raise errors.ad_verify_failed()
-    result = await ads.grant_from_ssv(session, reward_session_id, transaction_id)
+    reward_session_id = verified.get("custom_data")
+    transaction_id = verified.get("transaction_id")
+    # AdMob 콘솔의 콜백 URL 확인 요청은 실제 보상 콜백과 달리 선택 매개변수를
+    # 생략할 수 있다. Google 서명이 유효한 요청만 200으로 종결하되, 세션/거래가
+    # 없으면 어떤 보상도 지급하지 않는다. 실제 콜백은 아래 처리 경로에서 두 값을
+    # 모두 사용하므로 누락된 요청이 보상으로 이어질 수 없다.
+    if not (reward_session_id and transaction_id):
+        return {"status": "ok", "result": "invalid_session"}
+    if reward_session_id.startswith("fortune:"):
+        result = await fortune_ads.verify_from_ssv(
+            session,
+            custom_data=reward_session_id,
+            transaction_id=transaction_id,
+            signed_user_id=verified.get("user_id"),
+            ad_unit=verified.get("ad_unit"),
+            reward_item=verified.get("reward_item"),
+            reward_amount=verified.get("reward_amount"),
+        )
+    else:
+        # 기존 UUID custom_data는 건초 보상 경로로 그대로 전달한다.
+        result = await ads.grant_from_ssv(
+            session,
+            reward_session_id,
+            transaction_id,
+            signed_user_id=verified.get("user_id"),
+            ad_unit=verified.get("ad_unit"),
+            reward_item=verified.get("reward_item"),
+            reward_amount=verified.get("reward_amount"),
+        )
     return {"status": "ok", "result": result}

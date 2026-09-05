@@ -1,6 +1,6 @@
 # 캐피 대화·기억 시스템 설명서
 
-> 기준 시점: 2026-08-06. 브랜치 `docs/rewrite-chat-memory-architecture`의 코드를 직접 읽고 작성했다.
+> 기준 시점: 2026-08-14. 현재 저장소 코드와 운영 DB 상태를 다시 대조했다.
 >
 > 이 문서와 코드가 다르면 **코드가 맞다.** 그때는 이 문서를 고친다.
 >
@@ -120,7 +120,7 @@
 ### 3.1 같은 요청을 다시 보냈을 때
 
 클라이언트는 요청마다 `Idempotency-Key` 헤더를 보낸다. 서버는 본문으로부터
-`request_hash(text, greeting_id, diary_references)`를 만들어 함께 저장한다.
+`request_hash(text, greeting_id, diary_references, context_ref)`를 만들어 함께 저장한다.
 
 | 상황 | 결과 |
 |---|---|
@@ -158,8 +158,8 @@
    빠진다. 미리 띄워 두면 1단계의 남은 DB 작업과 겹쳐서 돈다. 이 작업은 자기 세션과 자기
    연결을 쓰므로 여기의 잠금과 무관하고, 기억 기능이 `v2`가 아니면 즉시 빈 문자열로 끝난다.
 7. 대화 요약(설정이 켜진 경우만), 도구 설정 값 한 벌, 이어지는 화제 안내문, 현재 상태 블록
-   (설정이 켜진 경우만), 대화 배열을 조립한다. `greeting_id`를 받았으면 형식과 소유권을
-   확인한다.
+   (설정이 켜진 경우만), 대화 배열을 조립한다. 끝난 과거 위기 구간은 9.2절의 규칙으로 중립화한다.
+   `greeting_id`를 받았으면 형식과 소유권을 확인한다.
 8. `commit()` — 처리 권한만 남기고 잠금과 DB 연결을 반납한다.
 
 `greeting_id`의 형식 검사는 기억 검색을 시작하기 **전에** 끝낸다. 검색을 띄운 뒤에 오류를
@@ -262,7 +262,7 @@ OpenAI API는 캐시에 새로 쓴 토큰 수를 알려주지 않는다. 그래�
 ```text
 시스템 (잘 안 바뀌는 앞부분 — 버전이나 내용이 바뀔 때만 교체)
   1. 캐피 기본 성격 + 안전 규칙 + 출력 형식 규칙
-     (한국어=CAPI_PERSONA / 일본어=CAPI_PERSONA_JA / 그 외=한국어 본문 + 해당 언어로 답하라는 지시)
+     (한국어=CAPI_PERSONA / 영어=CAPI_PERSONA_EN / 일본어=CAPI_PERSONA_JA / 미지원 언어=영어)
   2. 발행된 대화 약속 문구        (7장 — 항상 넣는다. 없으면 빈 문자열)
   3. 관계 단계 문장                (8장 — 기억 기능이 v2인 사용자만)
   4. [먼저 건넨 말] 아직 답을 못 받은 인사 (있을 때만)
@@ -362,7 +362,8 @@ T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계 상한)
    답변과 함께 돌려받는 구조화된 값으로 받는다.
 ```
 
-기능을 켜고 끄는 설정은 `agent_enabled`(기본 꺼짐)와 `agent_canary_pct`다. 대상 판정은
+기능을 켜고 끄는 설정은 `agent_enabled`(코드 기본값 꺼짐)와 `agent_canary_pct`다. 운영 DB는
+2026-08-14 현재 `true`와 100으로 전 사용자에게 적용 중이다. 대상 판정은
 `sha256(user_id)`를 0.01% 단위로 나눠서 하므로, 프로세스가 바뀌거나 재시작해도 같은 사용자는
 항상 같은 쪽이다. 꺼져 있으면 모델을 한 번만 부르는 기존 경로와 완전히 같다.
 
@@ -424,7 +425,6 @@ T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계 상한)
 | `recall_diaries` | 등록됨 | 일기 회상 |
 | `get_routines` | 등록됨 | 달력 날짜 기준 루틴 목록 |
 | `finish_response` | 내부용 | 최종 답변과 참조를 받는 통로. 실행 도구가 아니다 |
-| `search_diaries`, `get_diary` | 파일만 있음 | 목록에 없어서 모델에게 보이지 않는다 |
 
 제어 도구 목록(`_CONTROL_TOOLS`)은 **비어 있다.** `forget_memory`가 유일한 제어 도구였는데,
 "잊어줘"를 대화로 처리하는 것은 의미가 없다는 제품 판단으로 2026-08-06에 제거했다. 두 번째
@@ -658,6 +658,14 @@ ID로 다시 저장**하므로 중복이 생기지 않는다.
 
 `mem0_memory_sources`가 근거의 원본 기록이다. 메시지 ID, UTF-8 기준 근거 구간, 내용 해시, 근거
 등급, 추출기 버전을 갖는다. 벡터 저장소의 부가 정보는 복구를 돕는 사본일 뿐이다.
+
+**운영 정리 기록(2026-08-14).** `scripts/reextract_memories.py`가 재추출 전 기억에 남긴
+`pre-reextract-active` / `pre-reextract-ambiguous` 표식 19,063건은 재추출 결과가 안정된 뒤 제거했다.
+먼저 모든 provider 벡터가 `deleted`이고 실제 컬렉션에도 남지 않았음을 확인했다. 그 다음 동시 실행
+1개, 100행 단위의 짧은 트랜잭션으로 대응 candidate·source·registry를 지우고, 이 과거 registry를
+가리키던 닫힌 기억의 참조 2,217건만 `NULL`로 정리했다. 검색 가능한 상태와 `pending`, 대화 원문,
+파이프라인 상태, 계약·관계·일기·checkpoint는 대상에서 제외했다. 완료 후 과거 표식, 고아
+candidate/source, 끊어진 참조, 현행 기억의 벡터·근거 누락이 모두 0건임을 확인했다.
 
 ### 6.5 검색(회상)
 
@@ -914,7 +922,21 @@ ID로 다시 저장**하므로 중복이 생기지 않는다.
 버리지 않고 회수해 시스템 블록의 `[먼저 건넨 말]`로 넘긴다. 버리면 캐피가 방금 건넨 인사를 모른
 채 또 인사한다.
 
-### 9.2 대화 요약 (구현 완료, 기본 꺼짐)
+### 9.2 과거 위기 컨텍스트 제외
+
+`context_safety`는 자살·자해 대응 정책이나 별도 모델 분류기가 아니라, 이미 끝난 과거 위기 원문이 이후
+일상 대화를 계속 끌어당기지 않게 하는 프롬프트 위생 계층이다.
+
+- 현재 발화가 위기 또는 이어지는 고통 표현이면 아무것도 줄이지 않고 최신 맥락을 보존한다.
+- 과거 위기 뒤에 실제 안전 확인 답변이 있었고, 명시적 화제 전환·날짜 경과·같은 날 독립 화제 두 번 중
+  하나가 확인될 때만 해당 과거 구간을 원문에서 제외한다.
+- 제외한 사실을 알리는 system 블록이나 대체 문장은 만들지 않는다.
+- 기존 checkpoint에 남은 위기 원문도 같은 전환 근거가 있을 때 문장 단위로 제거하고, 과거 버전이 만든
+  중립 대체 문구도 읽는 시점에 제거한다. 제거 뒤 내용이 없으면 `[지난 이야기]` 블록 자체를 보내지 않는다.
+- 한국어·영어·일본어에 같은 보수적 규칙을 적용하며 추가 LLM 호출이나 기능 플래그는 없다.
+- 현재 위기 발화에 운세 `context_ref`가 함께 와도 운세는 조회하지 않고 현재 안전 맥락을 우선한다.
+
+### 9.3 대화 요약 (구현 완료, 코드 기본값 꺼짐·운영 활성)
 
 테이블은 `conversation_checkpoints(user_id, through_message_id, summary, version, source_hash,
 memory_generation)`이다.
@@ -936,13 +958,15 @@ memory_generation)`이다.
   초기값이라 측정 후 조정해야 한다.
 - **요약은 사실이 아니다.** 요약에서 장기 기억을 뽑는 작업은 만들지 않는다. 요약을 사실로
   되먹이면 근거가 요약으로 오염된다. `checkpoint_repo`에는 그런 함수 자체가 없다.
-- `context_checkpoint_enabled`(기본 꺼짐)로 켜고 끈다. 꺼져 있으면 작업 등록도 조회도 하지 않는다.
+- `context_checkpoint_enabled`(코드 기본값 꺼짐)로 켜고 끈다. 꺼져 있으면 작업 등록도 조회도 하지 않는다.
+  운영에서는 최근 7일 `conversation_checkpoint` 성공 429건과 저장된 checkpoint 427건을 확인해 실제
+  활성 상태임을 검증했다.
 
 `conversation_checkpoints`와 `chat_contexts`에는 `memory_generation` 컬럼이 남아 있다. 이것은
 "잊어줘" 기능이 있던 시절 세대 번호로, 그 기능이 제거된 지금은 항상 0이다. 관련 검사 코드는
 그대로 남아 있다.
 
-### 9.3 요약 v2 (계측 전용)
+### 9.4 요약 v2 (계측 전용)
 
 `app/services/checkpoint_v2.py`는 두 종류를 정의한다.
 
@@ -1079,8 +1103,8 @@ memory_generation)`이다.
 | `mem0_reconsolidate` | `memory` | 6.3절 — 살아 있는 기억끼리 재판정(하루 1회) |
 | `mem0_provider_delete` | `maintenance` | 닫힌 기억의 벡터 삭제(한 번에 50건) |
 | `memory_gap_sweep` | `maintenance` | 멈춘 기억 처리를 다시 시작시킨다(아래 참고) |
-| `conversation_checkpoint` | `content` | 9.2절 — 대화 요약 |
-| `shadow_checkpoint` | `content` | 9.3절 — `window` / `daily_digest`를 `ready`로 생성 |
+| `conversation_checkpoint` | `content` | 9.3절 — 대화 요약 |
+| `shadow_checkpoint` | `content` | 9.4절 — `window` / `daily_digest`를 `ready`로 생성 |
 | `contract_compile` | `content` | 7.3절 — 대화 약속 추출 |
 | `relationship_project` | `maintenance` | 8.3절 — 관계 상태 집계와 문장 생성 |
 | `shadow_prompt_trace` | `maintenance` | 4.2절 — 프롬프트 크기 계측(응답에 쓰지 않음) |
@@ -1153,7 +1177,7 @@ memory_generation)`이다.
 | 벡터 | `vecs.moly_memories_v2` | 1536차원 벡터, HNSW 인덱스. 마이그레이션이 만든다 |
 | 대화 약속 | `user_interaction_contracts`, `user_interaction_contract_items` | 7장 |
 | 관계 | `relationship_events`, `user_relationship_states`, `relationship_profile_renders` | 8장 |
-| 요약 | `conversation_checkpoints` | 9.2절(실제 사용) · 9.3절(계측용 산출물) |
+| 요약 | `conversation_checkpoints` | 9.3절(실제 사용) · 9.4절(계측용 산출물) |
 | 계측 | `shadow_prompt_traces` | 4.2절 프롬프트 크기·캐시 가능 비율 |
 | 작업 | `async_jobs` | 11장. `replay_of`로 원본과 연결 |
 | 예정 시각 | `user_schedules` | 11.4절(읽기 경로 미전환) |
@@ -1268,7 +1292,7 @@ billable / lang / used_tools
 
 ## 14. 이 문서를 읽을 때 주의할 것
 
-이 시스템은 아직 개발 서버에서 검증 중인 부분이 많다. 특히 아래는 확정된 값이 아니다.
+이 구조는 운영에 전환되어 실제 사용자 대화를 처리 중이다. 다만 아래 수치는 계속 관측하며 조정해야 하는 운영 초기값이다.
 
 - 기억 검색의 상대 거리 기준(0.08)과 최소 유지 개수(5)
 - 대기열별 동시 실행 수·처리 권한 기한·재시도 횟수 전부
@@ -1278,11 +1302,13 @@ billable / lang / used_tools
   "한중일 문자 1자 ≈ 1토큰, ASCII 4자 ≈ 1토큰"의 근사값이다. 예산은 비용 상한이라 크게 잡히는
   쪽이 안전한 방향이다.
 
-운영 환경에는 아직 기억 v2 테이블과 데이터가 없다. 전환 절차는 따로 정의해야 한다.
+2026-08-14 운영 DB 읽기 전용 확인에서 `memory_pipeline_states` 729개가 모두 `v2`·`ready`였고,
+대화에 노출 가능한 `active`·`ambiguous` 기억은 10,292건이었다. `agent_enabled=true`,
+`agent_canary_pct=100`이므로 등록된 두 도구도 운영 전 사용자에게 적용된다.
 
 ---
 
-## 15. 설계만 하고 만들지 않은 것 / 없앤 것 / 지금 코드에 남아 있는 문제
+## 15. 제외된 범위와 현재 제약
 
 새로 읽는 사람은 이 장의 항목을 **현재 시스템에 없는 것**으로 읽어야 한다.
 
@@ -1296,39 +1322,23 @@ billable / lang / used_tools
 - **예전 정규화 기억 구조** — `memory_facts` / `memory_evidence` / `memory_insights`(+`_sources`),
   `memory_source_turns`(+`_messages`) / `memory_source_closures`, `memory_forget_markers`,
   `memory_recall_suppressions` / `memory_suppression_operations` / `memory_episodic_messages`,
-  `relationship_profiles`(+`_sources`) 13종과 이관용 `legacy_recall_tombstones`는 개발 DB에서
+  `relationship_profiles`(+`_sources`) 13종과 이관용 `legacy_recall_tombstones`는 운영 DB에서도
   **삭제됐다**(`db/migrations/20260806_drop_legacy_memory.sql`,
   `20260806_drop_legacy_tombstones.sql`). 읽는 경로도 없다. 의미 기반 장기 기억은 6장의 구조
   하나뿐이다.
 - **한자·가나를 모델로 다시 써서 고치는 처리** — 세 번째 모델 호출이 필요해 마감 시각 및 "한 턴에
-  최대 두 번 호출" 규칙과 충돌한다. `_repair_foreign_ko` 함수와 그 테스트는 `app/services/chat.py`
-  와 `tests/test_chat_caching.py`에 **아직 남아 있지만, 실제 응답 경로에서 이 함수를 부르는 곳은
-  없다.** 지금은 `text_clean.strip_foreign_ko`로 해당 글자를 지우기만 한다. 그래서 턴 로그의
-  `repair_ms`는 항상 0이다(13.5절).
+  최대 두 번 호출" 규칙과 충돌한다. 실제 응답 경로는 `text_clean.strip_foreign_ko`로 해당 글자를
+  제거한다. 호출되지 않던 `_repair_foreign_ko` 구현과 전용 테스트는 2026-08-14 삭제했다.
 
-### 15.2 설계만 있고 만들지 않은 것
+### 15.2 현재 범위 밖
 
-- `recall_timeline` 원문 조회 도구.
-- 프롬프트 조각 종류 `pending_bridge` — 분류만 정의돼 있고 만들어 내는 코드가 없다.
-- 요약 v2를 실제로 쓰기 위한 전환 처리 — `chat_contexts`에 관련 컬럼이 없다. `ready` 생성까지만
-  있다.
-- `user_interaction_contract_renders` / `user_interaction_contract_item_sources`로 테이블을
-  나누는 설계 — 실제로는 `(user_id, locale)`별 약속 행과 항목의 `source_message_id` 컬럼 하나다.
-- `user_relationship_state_renders`의 복합 키 설계 — 실제 테이블은
-  `relationship_profile_renders`다.
-- 대기열 9종 분리(`memory_ingest` / `memory_consolidation` / `interaction_profile` /
-  `context_summary` / `diary` / `privacy` 등) — 실제는 6종이다(11.2절).
-- `async_jobs`의 provider·model·lane·`eligible_at` 같은 라우팅 컬럼과 `provider_backoffs` 연동,
-  분당 호출 예약(`ai_rate_windows`) — 만들지 않았다. `provider_backoffs`는 테이블과 모델만 있다.
-- `user_schedules` 기반 대상자 선정으로의 전환(11.4절), 저녁 푸시를 `notification` 대기열로
-  옮기는 것.
-- 캐시 지점을 코드로 지정하는 방식(현재는 OpenAI 자동 캐시만), 프롬프트 15,000토큰 상한과
-  블록별 토큰 예산 강제(현재는 글자 상한과 도구 결과 예산만 있다), 회상 정답 200건 평가 세트,
-  부하 테스트 정의.
-- `mem0_budget.context_summary_budget`(75초 = 55 / 5 / 5 / 10) — 함수는 정의돼 있지만 이 함수를
-  부르는 코드가 없다. 요약 작업은 대기열의 처리 제한 시간만 쓴다.
+- 모델이 호출하는 원문 타임라인 도구와 앱용 `/memory` API는 없다.
+- 사용자 예정시각을 미리 계산하는 `user_schedules`는 아직 배치 대상 선정의 기본 읽기 경로가 아니다.
+- OpenAI 캐시는 자동 앞부분 캐시를 사용하며, 코드가 캐시 지점을 직접 지정하지 않는다.
+- `provider_backoffs`는 저장 구조만 있고 현재 잡 라우팅에는 연결하지 않는다.
+- 프롬프트 전체 토큰 상한은 없고, 최근 대화 글자 상한과 도구 결과 토큰 예산을 각각 적용한다.
 
-### 15.3 설계값과 다르게 확정된 값
+### 15.3 현재 확정값
 
 - `agent_turn_deadline_s`: 5.0 → **8.0** (근거는 5.1절).
 - 기억 검색: 받아오는 개수 25 → **40**, 목표 개수 5 → **최종 8건 · 최소 5건 보장**, 절대 점수
@@ -1337,37 +1347,7 @@ billable / lang / used_tools
 - 하루 한도 150,000 유지 확정(2026-08-03). 캐시 읽기 가중치 0.5 → 0.1, 캐시 쓰기 0 → 1.25 반영
   완료.
 
-### 15.4 지금 코드에 남아 있는 문제 (2026-08-06 확인)
-
-문서를 쓰면서 코드에서 확인된 것이다. 고치기 전까지는 아래가 실제 동작이다.
-
-아래 세 가지는 **확인 직후 고쳤다.** 어떤 문제였는지는 같은 실수를 막기 위해 남겨 둔다.
-
-- ~~일기 검색용 임베딩이 만들어지지 않는다~~ → **고침.** `diary_recall_repo`가
-  `diary_recall_embed` 작업을 등록하는데 처리기가 어디에도 없어서, 집어 가는 즉시
-  `dead(unknown_job_type)`가 되고 `diary_recall_documents.embedding`이 항상 비어 있었다.
-  그래서 `recall_diaries`의 유사도 검색이 통째로 동작하지 않고 `search_text ILIKE` 부분일치만
-  남아 있었다. `worker/diary_recall_jobs.py`를 만들어 처리기를 등록했다. 같은 실수를 다시
-  잡으려고 "만드는 곳이 있는데 처리기가 없는 작업"을 찾는 검사를
-  `tests/test_every_job_type_is_reachable.py`에 추가했다.
-- ~~계정 삭제 시 벡터 정리 작업이 시작되지 않는다~~ → **고침.** `privacy.begin_subject_deletion`
-  에서 `privacy_cleanup`을 등록하는 코드가 `return` 뒤에 있어 실행되지 않았다. `return` 앞으로
-  옮겼다.
-- ~~삭제된 테이블을 참조하는 쿼리가 남아 있다~~ → **고침.** `chat_references`의
-  `persist_selected`와 `hydrate_for_messages`가 삭제된 `memory_recall_suppressions`를
-  참조하는 조건을 갖고 있었다. 그 조건이 하던 일(닫힌 구간 걸러내기)은 구간을 만드는 기능이
-  사라져 원래 항상 통과였으므로, 조건을 지워도 동작은 같다.
-
-아래 둘도 함께 고쳤다.
-
-- ~~기억 작업의 단계 예산이 `content` 대기열 값을 쓴다~~ → **고침.** `worker/mem0_jobs.py`가
-  `memory` 대기열에서 도는데 `job_content_timeout_s`를 넘기고 있었다. `job_memory_timeout_s`로
-  바꿨다. 지금은 두 값이 같아 동작 차이는 없지만 한쪽만 바꿔도 어긋나지 않는다.
-- ~~`finish_response`가 받는 참조 종류와 서버가 허용하는 종류가 다르다~~ → **고침.**
-  `SelectedRef.type`이 다섯 가지를 받는데 서버는 `diary`만 통과시켜, 모델이 다른 값을 고르면
-  답변 전체가 안전 문구로 바뀌었다. 받는 종류를 `diary` 하나로 좁혔다.
-
-아래는 **아직 남아 있다.**
+### 15.4 남아 있는 호환 컬럼
 
 1. **`diary_recall_repo`와 `checkpoint_repo`에 "잊어줘" 시절의 세대 번호가 남아 있다.**
    `diary_recall_documents.suppression_generation`과 `chat_contexts.memory_generation`을 비교하는

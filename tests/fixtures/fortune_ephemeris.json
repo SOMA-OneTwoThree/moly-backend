@@ -1,0 +1,46 @@
+{
+  "fixture_kind": "astronomy_engine_library_regression",
+  "library": "astronomy-engine",
+  "library_version": "2.1.19",
+  "coordinate_contract": "GeoVector(body, utc, aberration=true) then Ecliptic(vector).elon",
+  "provenance": "Values captured from the official Astronomy Engine 2.1.19 Python library. This is not an independent JPL Horizons accuracy fixture.",
+  "tolerance_degrees": 1e-10,
+  "cases": [
+    {
+      "utc": "2000-01-01T12:00:00Z",
+      "longitudes": {
+        "sun": 280.3687386398185,
+        "moon": 223.32389112747416,
+        "mercury": 271.8889120664631,
+        "venus": 241.56523294036205,
+        "mars": 327.96389907790274,
+        "jupiter": 25.25419984487423,
+        "saturn": 40.39612413717841
+      }
+    },
+    {
+      "utc": "2024-02-29T00:00:00Z",
+      "longitudes": {
+        "sun": 339.8857648141456,
+        "moon": 208.42630124899736,
+        "mercury": 340.4406073225061,
+        "venus": 315.25527683080463,
+        "mars": 312.1430249618008,
+        "jupiter": 41.14338714359427,
+        "saturn": 339.789797742635
+      }
+    },
+    {
+      "utc": "2026-08-27T03:00:00Z",
+      "longitudes": {
+        "sun": 153.883991812443,
+        "moon": 321.56931837674,
+        "mercury": 153.29728230192532,
+        "venus": 199.13702757023904,
+        "mars": 100.2844892573521,
+        "jupiter": 132.66759737729558,
+        "saturn": 13.937055820749721
+      }
+    }
+  ]
+}

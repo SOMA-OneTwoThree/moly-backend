@@ -91,6 +91,7 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 | `20260806_drop_legacy_memory.sql` | 예전 정규화 기억 테이블 제거 |
 | `20260806_drop_legacy_tombstones.sql` | 이관용 tombstone 제거 |
 | `20260808_memory_category.sql` | 현재 기억 분류 보강 |
+| `20260905_drop_empty_legacy_vecs_memories.sql` | 남아 있던 빈 `vecs.memories` 컬렉션을 검증 후 제거 |
 
 런타임은 벡터 컬렉션이나 테이블을 자동 생성하지 않는다. 새 환경을 만들 때는 이 파일들이
 `schema_migrations`에 기록됐다는 사실만 보지 말고 `db/verify.py`와 기억 컬렉션 존재를 함께 확인한다.

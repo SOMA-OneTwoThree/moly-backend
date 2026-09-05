@@ -33,15 +33,11 @@ _LEEWAY_SECONDS = 60
 _jwks_client: PyJWKClient | None = None
 
 
-def _auth_url() -> str:
-    return (settings.supabase_auth_url or settings.supabase_url).rstrip("/")
-
-
 def _jwks_url() -> str:
     if settings.supabase_jwks_url:
         return settings.supabase_jwks_url
-    if url := _auth_url():
-        return f"{url}/auth/v1/.well-known/jwks.json"
+    if settings.supabase_url:
+        return f"{settings.supabase_url}/auth/v1/.well-known/jwks.json"
     return ""
 
 
@@ -61,8 +57,7 @@ def _verify_sync(token: str) -> str | None:
         _log.warning("SUPABASE_JWKS_URL/URL 미설정 — 토큰 검증 불가")
         return None
     # iss 검증(심층방어) — 설정된 경우에만. Supabase iss = "<url>/auth/v1".
-    auth_url = _auth_url()
-    issuer = f"{auth_url}/auth/v1" if auth_url else None
+    issuer = f"{settings.supabase_url}/auth/v1" if settings.supabase_url else None
     try:
         signing_key = client.get_signing_key_from_jwt(token)
         claims = jwt.decode(

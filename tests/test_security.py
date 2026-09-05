@@ -1,5 +1,4 @@
 """JWT 검증 토대 테스트 — 실제 ES256 서명/검증 경로를 태워 확인(JWKS 페치만 스텁)."""
-
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -101,44 +100,3 @@ async def test_get_current_user_returns_uid(monkeypatch):
     monkeypatch.setattr(security, "verify_supabase_token", _fake_verify)
     cred = HTTPAuthorizationCredentials(scheme="Bearer", credentials="abc.def.ghi")
     assert await security.get_current_user(cred=cred) == "user-xyz"
-
-
-def _separate_auth_project(monkeypatch, *, auth_url="https://shared-auth.example"):
-    from types import SimpleNamespace
-
-    monkeypatch.setattr(
-        security,
-        "settings",
-        SimpleNamespace(
-            supabase_url="https://dev-data.example",
-            supabase_auth_url=auth_url,
-            supabase_jwks_url="",
-            allow_anonymous_auth=False,
-        ),
-    )
-
-
-def test_jwks_uses_auth_project_instead_of_data_project(monkeypatch):
-    _separate_auth_project(monkeypatch)
-    assert security._jwks_url() == "https://shared-auth.example/auth/v1/.well-known/jwks.json"
-
-
-async def test_shared_auth_issuer_accepted_and_data_issuer_rejected(monkeypatch, ec_keys):
-    _separate_auth_project(monkeypatch)
-    priv, pub = ec_keys
-    _patch_client(monkeypatch, pub)
-    good = _make_token(priv, iss="https://shared-auth.example/auth/v1")
-    wrong = _make_token(priv, iss="https://dev-data.example/auth/v1")
-    assert await security.verify_supabase_token(good) == "user-123"
-    assert await security.verify_supabase_token(wrong) is None
-
-
-def test_unconfigured_auth_project_preserves_existing_jwks_default(monkeypatch):
-    _separate_auth_project(monkeypatch, auth_url="")
-    assert security._jwks_url() == "https://dev-data.example/auth/v1/.well-known/jwks.json"
-
-
-def test_explicit_jwks_override_preserved(monkeypatch):
-    _separate_auth_project(monkeypatch)
-    security.settings.supabase_jwks_url = "https://keys.example/jwks.json"
-    assert security._jwks_url() == "https://keys.example/jwks.json"

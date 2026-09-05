@@ -57,7 +57,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "Banner A from the server"
+                "value": "Banner B from the server"
               },
               "style": {
                 "font": "body",
@@ -75,14 +75,14 @@
               "semantics_order": 1,
               "vertical_align": "center",
               "frame": {
-                "x": 0.06,
+                "x": 0.42,
                 "y": 0.59,
-                "width": 0.44,
+                "width": 0.52,
                 "height": 0.31
               },
               "text": {
                 "kind": "template",
-                "value": "Open shop"
+                "value": "Visit shop"
               },
               "style": {
                 "font": "body",
@@ -93,7 +93,7 @@
                 "max_lines": 1,
                 "line_height": 1.2
               },
-              "background_color": "#FFFFFF",
+              "background_color": "#FFE082",
               "radius": 12,
               "border": {
                 "width": 1.5,
@@ -144,7 +144,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "서버에서 보낸 배너 A"
+                "value": "서버에서 바꾼 배너 B"
               },
               "style": {
                 "font": "body",
@@ -162,14 +162,14 @@
               "semantics_order": 1,
               "vertical_align": "center",
               "frame": {
-                "x": 0.06,
+                "x": 0.42,
                 "y": 0.59,
-                "width": 0.44,
+                "width": 0.52,
                 "height": 0.31
               },
               "text": {
                 "kind": "template",
-                "value": "상점 보기"
+                "value": "상점으로 가기"
               },
               "style": {
                 "font": "body",
@@ -180,7 +180,7 @@
                 "max_lines": 1,
                 "line_height": 1.2
               },
-              "background_color": "#FFFFFF",
+              "background_color": "#FFE082",
               "radius": 12,
               "border": {
                 "width": 1.5,

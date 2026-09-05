@@ -132,7 +132,7 @@
     - {$ref: '#/parameters/AppLocale'}
     responses:
       '200':
-        description: 읽기 전용 홈 상태와 이미 공개된 결과
+        description: 읽기 전용 홈 상태. 당일 snapshot이 있으면 기본 정보를 반환하고 상세 해금 후에는 전체 결과를 반환한다.
         content:
           application/json:
             schema: {$ref: ../components/fortune.yaml#/schemas/DailyFortuneStatusResponse}
@@ -158,7 +158,7 @@
     - {$ref: '#/parameters/AppLocale'}
     responses:
       '200':
-        description: 공개 결과 또는 광고 잠금 상태
+        description: 기본 정보는 광고 없이 공개한다. locked는 기본 결과와 상세 광고 잠금, revealed는 상세를 포함한 전체 결과다.
         content:
           application/json:
             schema: {$ref: ../components/fortune.yaml#/schemas/DailyFortuneRevealResponse}
@@ -199,7 +199,7 @@
 /daily-fortune/ad-sessions:
   post:
     tags: [fortune]
-    summary: 운세 공개용 광고 세션 발급
+    summary: 운세 자세히 보기 해금용 광고 세션 발급
     operationId: createFortuneAdSession
     requestBody:
       required: true

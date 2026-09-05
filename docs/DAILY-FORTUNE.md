@@ -1,6 +1,6 @@
 # 오늘의 운세
 
-> 기준일: 2026-09-05
+> 기준일: 2026-09-06
 >
 > 구현 상태: 개발·운영 활성화 완료. 애플리케이션 기본값은 비상 차단을 위해 OFF이고 배포 설정이 명시적으로 ON
 >
@@ -29,6 +29,9 @@ v2 문서는 만들지 않는다.
 같은 결론을 더 쉽게 설명한다. 분야별 운세는 종합과 별도로 계산한다.
 
 사용자 화면에는 행성, 각, 오브, 트랜짓, 내부 의미 코드와 계산 근거 카드를 노출하지 않는다.
+
+종합 점수·총평, 해볼 것·조심할 것, 행운색은 광고 없이 제공한다. “자세히 보기”의 오늘의 흐름과
+네 분야 점수·문구만 무료 사용자의 광고 SSV 검증 후 제공한다. 체험·구독은 상세도 광고 없이 제공한다.
 
 ## 2. 고정된 제품 규칙
 
@@ -266,9 +269,9 @@ seed는 엔진·DB·API 계약을 검증하기 위한 최소 안전 집합이다
 | `PUT /fortune-profile` | 최초 저장 또는 수정 |
 | `DELETE /fortune-profile` | 운세 프로필과 하위 당일 데이터 삭제 |
 | `GET /daily-fortune/status` | 홈 진입 상태, 이미 공개된 결과 조회 |
-| `POST /daily-fortune/reveal` | 오늘 결과 최초 계산·공개 또는 광고 잠금 확인 |
-| `POST /daily-fortune/ad-sessions` | 무료 사용자용 AdMob SSV 세션 발급 |
-| `GET /webhooks/ad-ssv` | Google 서명 검증 후 당일 결과 즉시 해제 |
+| `POST /daily-fortune/reveal` | 오늘 기본 결과 계산·공개 및 상세 권한 확인 |
+| `POST /daily-fortune/ad-sessions` | 무료 사용자의 자세히 보기용 AdMob SSV 세션 발급 |
+| `GET /webhooks/ad-ssv` | Google 서명 검증 후 당일 상세 즉시 해제 |
 
 `X-App-Locale`은 `ko/en/ja`와 해당 언어의 지역 태그(`ko-KR/en-US/ja-JP` 등)를 받는다. 지역 태그는
 대소문자와 관계없이 기본 언어로 정규화한다. `jp`와 지원하지 않는 언어는 422로 거절한다. 헤더가 없으면
@@ -280,7 +283,7 @@ seed는 엔진·DB·API 계약을 검증하기 위한 최소 안전 집합이다
 ```text
 profile_required ── PUT profile ──> unseen
 unseen ── POST reveal ──> revealed       (체험·구독)
-unseen ── POST reveal ──> locked         (무료)
+unseen ── POST reveal ──> locked         (무료: 기본 결과 공개, 상세 잠금)
 locked ── ad session + verified SSV ──> revealed
                                  └──> unseen + unlocked_today  (광고 중 프로필 변경 시)
 revealed ── 같은 날 재조회 ──> 같은 snapshot
@@ -293,17 +296,27 @@ revealed ── 프로필 수정 ──> unseen       (unlock 권한은 유지)
 - `access`: `included | ad_required | unlocked_today`
 - `available=false`: 기능 플래그 또는 승인 상태 문제이므로 운세 탭을 비활성화한다.
 - 기능이 꺼져 있으면 프로필 GET·PUT·DELETE도 `FEATURE_UNAVAILABLE`로 DB 접근 전에 종료한다.
-- `locked` 응답에는 점수·문구·버전이 절대 포함되지 않는다.
+- `locked`는 상세 잠금이다. `result`는 `FortuneBasicResult`로 종합 점수·총평·행동·행운색만
+  포함하고 `versions`도 반환한다. `overall.flow`와 `categories`는 빈 값 대신 필드 자체를 생략한다.
+- `revealed`는 상세까지 공개된 상태이며 `FortuneResult` 전체를 반환한다.
+- `status`는 읽기 전용이다. 현재 snapshot이 없으면 `unseen`을 반환하고 앱이 `reveal`을 호출한다.
+  snapshot이 있으면 광고 전에도 기본 결과를 다시 받을 수 있다.
 - 광고 SSV가 성공하면 서버가 DB의 당일 행을 직접 해제한다. 이후 status를 다시 조회한다.
 - 광고를 보는 사이 프로필이 바뀌어 `unseen + unlocked_today`가 오면 광고를 다시 요구하지 말고
   `POST /daily-fortune/reveal`을 호출해 새 결과를 만든다.
 - 프로필 PUT의 `unlock_preserved`는 **이번 실제 변경에서 오늘 권한을 보존했는지**를 뜻한다.
   같은 값 PUT에서는 false이며 현재 access 판정 대신 status를 다시 조회한다.
 
-운세 결과를 대화에 붙이는 기능은 `FORTUNE_CHAT_ENABLED`로 별도 제어한다. 공개된 당일 결과를
+운세 결과를 대화에 붙이는 기능은 `FORTUNE_CHAT_ENABLED`로 별도 제어한다. 상세가 해금된 당일 결과를
 `context_ref={type:daily_fortune, local_date, locale}`로 참조하며, 답변 저장 직전에 날짜·프로필 revision·결과
 fingerprint를 다시 검사한다. 서버가 붙이는 운세 표제도 `ko/en/ja`에 맞춰 바뀐다. 운세에서 파생된 대화는 장기
 기억·일기·관계 데이터의 근거로 사용하지 않는다.
+
+모바일 연동 시 `locked.result`도 기본 결과 화면에 표시하고 상세 버튼에서 광고를 시작한다.
+기존 앱의 전체 잠금 분기와 필수 상세 필드 파싱은 계약 동기화 및 수정이 필요하다. 광고 완료 SDK
+콜백만으로 상세를 펼치지 않으며, SSV 후 `status`의 `revealed`와 전체 결과를 확인한다.
+`locked + included`는 구독 전환 등으로 광고가 불필요해진 상태이므로 `reveal`로 상세를 공개한다.
+결과 계산·저장 스키마는 계속 `3`이며, 기존 당일 snapshot과 해금은 유지하므로 DB migration은 없다.
 
 ### 5.3 공개 응답 예시
 
@@ -375,8 +388,8 @@ snapshot만 저장한다.
 | `result_schema_version` | 현재 `3` |
 | `semantic_result` | 점수·내부 의미 코드·표현 경로 |
 | `copy_by_locale` | 실제 공개한 `ko/en/ja` 문구 snapshot |
-| `unlock_state/source/at` | 오늘 공개 권한 |
-| `revealed_at` | 결과가 공개된 시각; 권한만 있으면 NULL 가능 |
+| `unlock_state/source/at` | 오늘 상세 공개 권한 |
+| `revealed_at` | 상세 결과가 공개된 시각; 기본만 공개되었거나 권한만 있으면 NULL 가능 |
 | `ephemeris/rule/copy_version` | 결과 재현용 버전 |
 
 freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_version`으로 판단한다. 공개 권한은 같은
@@ -442,7 +455,7 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 4. 언어별 560개, 총 1,680개 표현의 완전 중복·높은 문장 유사도와 응답 안 상투어 반복 테스트
 5. 프로필 동일 PUT/변경 PUT과 unlock 보존 테스트
 6. 광고 SSV 즉시 unlock·중복 transaction·만료·소유자 불일치 테스트
-7. 잠긴 응답 content leak과 공개 응답 Pydantic/OpenAPI 계약 테스트
+7. 광고 전 기본 공개·상세 누출 방지와 해금 후 전체 응답 Pydantic/OpenAPI 계약 테스트
 8. 개발 DB migration dry-run, 모델 교차검증, infra의 읽기 전용 운세·광고 보안 DB preflight, 인증 포함 실제 HTTP smoke test
 9. 출시 전 문구 전수 사람 검수, 점수 분포·경로 도달률 장기 시뮬레이션
 

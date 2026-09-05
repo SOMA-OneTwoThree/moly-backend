@@ -1861,7 +1861,7 @@ paths:
           - type: 'null'
       responses:
         '200':
-          description: 읽기 전용 홈 상태와 이미 공개된 결과
+          description: 읽기 전용 홈 상태. 당일 snapshot이 있으면 기본 정보를 반환하고 상세 해금 후에는 전체 결과를 반환한다.
           content:
             application/json:
               schema:
@@ -1910,7 +1910,7 @@ paths:
           - type: 'null'
       responses:
         '200':
-          description: 공개 결과 또는 광고 잠금 상태
+          description: 기본 정보는 광고 없이 공개한다. locked는 기본 결과와 상세 광고 잠금, revealed는 상세를 포함한 전체 결과다.
           content:
             application/json:
               schema:
@@ -1974,7 +1974,7 @@ paths:
     post:
       tags:
       - fortune
-      summary: 운세 공개용 광고 세션 발급
+      summary: 운세 자세히 보기 해금용 광고 세션 발급
       operationId: createFortuneAdSession
       requestBody:
         required: true
@@ -2384,11 +2384,14 @@ components:
       oneOf:
       - type: object
         title: FortuneRevealLocked
+        description: 기본 정보는 공개되었으며 자세히 보기는 광고 SSV 검증 후 공개한다.
         additionalProperties: false
         required:
         - state
         - access
         - local_date
+        - result
+        - versions
         properties:
           state:
             type: string
@@ -2399,6 +2402,10 @@ components:
           local_date:
             type: string
             format: date
+          result:
+            $ref: '#/components/schemas/FortuneBasicResult'
+          versions:
+            $ref: '#/components/schemas/FortuneVersions'
       - type: object
         title: FortuneRevealComplete
         additionalProperties: false
@@ -2480,12 +2487,15 @@ components:
             format: date
       - type: object
         title: FortuneLocked
+        description: 기본 정보는 공개되었으며 자세히 보기는 잠겨 있다. included이면 reveal로 상세를 공개한다.
         additionalProperties: false
         required:
         - available
         - state
         - access
         - local_date
+        - result
+        - versions
         properties:
           available:
             type: boolean
@@ -2501,6 +2511,10 @@ components:
           local_date:
             type: string
             format: date
+          result:
+            $ref: '#/components/schemas/FortuneBasicResult'
+          versions:
+            $ref: '#/components/schemas/FortuneVersions'
       - type: object
         title: FortuneAlreadyRevealed
         additionalProperties: false
@@ -3112,6 +3126,77 @@ components:
         revision:
           type: integer
           minimum: 1
+    FortuneBasicResult:
+      type: object
+      description: 광고 없이 제공하는 기본 정보. overall.flow와 categories는 포함하지 않는다.
+      additionalProperties: false
+      required:
+      - schema_version
+      - locale
+      - overall
+      - lucky_color
+      properties:
+        schema_version:
+          type: integer
+          const: 3
+          default: 3
+        locale:
+          type: string
+          enum:
+          - ko
+          - en
+          - ja
+        overall:
+          type: object
+          additionalProperties: false
+          required:
+          - score
+          - headline
+          - do
+          - pause
+          properties:
+            score:
+              type: integer
+              minimum: 0
+              maximum: 100
+            headline:
+              type: string
+              minLength: 1
+            do:
+              type: string
+              minLength: 1
+            pause:
+              type: string
+              minLength: 1
+        lucky_color:
+          type: object
+          additionalProperties: false
+          required:
+          - key
+          - name
+          - hex
+          properties:
+            key:
+              type: string
+              enum:
+              - red
+              - coral
+              - orange
+              - yellow
+              - green
+              - sky
+              - blue
+              - navy
+              - purple
+              - pink
+              - white
+              - beige
+            name:
+              type: string
+              minLength: 1
+            hex:
+              type: string
+              pattern: ^#[0-9A-F]{6}$
     FortuneResult:
       type: object
       additionalProperties: false

@@ -575,6 +575,7 @@ dependencies = [
     { name = "httpx" },
     { name = "mem0ai" },
     { name = "openai" },
+    { name = "pillow" },
     { name = "psycopg", extra = ["binary"] },
     { name = "psycopg2-binary" },
     { name = "pydantic-settings" },
@@ -588,7 +589,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "google-genai" },
-    { name = "pillow" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pyyaml" },
@@ -605,6 +605,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.0" },
     { name = "mem0ai", specifier = "==2.0.11" },
     { name = "openai", specifier = ">=2.44.0" },
+    { name = "pillow", specifier = ">=11.0.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.4" },
     { name = "psycopg2-binary", specifier = ">=2.9.12" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
@@ -618,7 +619,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "google-genai", specifier = ">=2.12.1" },
-    { name = "pillow", specifier = ">=11.0.0" },
     { name = "pytest", specifier = ">=8.3.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },

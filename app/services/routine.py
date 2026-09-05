@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.app_day import AppDay
 from app.core.time_utils import current_reward_date
 from app.models.routine import Routine, RoutineCompletion
 from app.services import i18n
@@ -49,7 +50,9 @@ def _week_bounds(ad):
     return monday, monday + timedelta(days=6)
 
 
-async def _today(session: AsyncSession, user_id: str):
+async def _today(session: AsyncSession, user_id: str, day: AppDay | None = None):
+    if day is not None:
+        return _uid(user_id), day.local_date
     profile = await _load_profile(session, user_id)
     return profile.id, current_reward_date(profile.timezone)
 
@@ -65,9 +68,9 @@ async def _load_owned(session: AsyncSession, uid: uuid.UUID, routine_id: str) ->
     return r
 
 
-async def list_routines(session: AsyncSession, user_id: str) -> dict[str, Any]:
+async def list_routines(session: AsyncSession, user_id: str, day: AppDay | None = None) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
-    uid, ad = profile.id, current_reward_date(profile.timezone)
+    uid, ad = profile.id, day.local_date if day else current_reward_date(profile.timezone)
     rows = list(
         (
             await session.execute(
@@ -131,8 +134,8 @@ async def delete_routine(session: AsyncSession, user_id: str, routine_id: str) -
     await session.commit()
 
 
-async def complete(session: AsyncSession, user_id: str, routine_id: str) -> dict[str, Any]:
-    uid, ad = await _today(session, user_id)
+async def complete(session: AsyncSession, user_id: str, routine_id: str, day: AppDay | None = None) -> dict[str, Any]:
+    uid, ad = await _today(session, user_id, day)
     r = await _load_owned(session, uid, routine_id)
     stmt = pg_insert(RoutineCompletion).values(routine_id=r.id, user_id=uid, activity_date=ad)
     stmt = stmt.on_conflict_do_nothing(index_elements=["routine_id", "activity_date"])
@@ -148,8 +151,8 @@ async def complete(session: AsyncSession, user_id: str, routine_id: str) -> dict
     return {"completed_today": True, "completed_count_today": count}
 
 
-async def uncomplete(session: AsyncSession, user_id: str, routine_id: str) -> None:
-    uid, ad = await _today(session, user_id)
+async def uncomplete(session: AsyncSession, user_id: str, routine_id: str, day: AppDay | None = None) -> None:
+    uid, ad = await _today(session, user_id, day)
     r = await _load_owned(session, uid, routine_id)
     from sqlalchemy import delete
 
@@ -161,8 +164,8 @@ async def uncomplete(session: AsyncSession, user_id: str, routine_id: str) -> No
     await session.commit()
 
 
-async def statistics(session: AsyncSession, user_id: str, routine_id: str) -> dict[str, Any]:
-    uid, ad = await _today(session, user_id)
+async def statistics(session: AsyncSession, user_id: str, routine_id: str, day: AppDay | None = None) -> dict[str, Any]:
+    uid, ad = await _today(session, user_id, day)
     r = await _load_owned(session, uid, routine_id)
     dates = sorted(
         (

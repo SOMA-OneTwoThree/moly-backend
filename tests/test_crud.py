@@ -148,7 +148,7 @@ async def test_routine_reward_goal_not_met(monkeypatch):
 async def test_routine_statistics_streak(monkeypatch):
     ad = date(2026, 7, 7)
 
-    async def _today(session, user_id):
+    async def _today(session, user_id, day=None):
         return UID_UUID, ad
 
     async def _owned(session, uid, rid):

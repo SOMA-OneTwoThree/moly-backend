@@ -86,6 +86,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Validate deployed banner catalog and assets
+        run: |
+          set -euo pipefail
+          image="$ECR_REGISTRY/$IMAGE_NAME:$DEPLOY_TAG"
+          docker pull "$image"
+          docker run --rm --entrypoint sh "$image" -ec '
+            if [ -f app/services/banner_catalog.py ]; then
+              python scripts/validate_banners.py --assets --environment prod
+            else
+              echo "Pre-SDUI rollback image: no banner endpoint"
+            fi
+          '
+
       # 6. 인스턴스별 순차 롤링 배포.
       #    ALB 헬스체크 감지(10s×2)만으로는 컨테이너 재시작 갭(10~30s)을 못 가리므로
       #    명시적 deregister로 트래픽을 뺀 뒤 배포한다. 첫 인스턴스가 실패하면 워크플로가
@@ -187,7 +200,7 @@ jobs:
               --instance-ids "$ID" \
               --document-name "AWS-RunShellScript" \
               --comment "Deploy moly-backend ${DEPLOY_TAG::7}" \
-              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG}\"]" \
+              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG} && docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi'\"]" \
               --query "Command.CommandId" \
               --output text)"
             echo "CommandId: $CMD_ID"

@@ -11,15 +11,43 @@
           application/json:
             schema:
               $ref: ../components/routines.yaml#/schemas/RoutineListResponse
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
       '500':
         $ref: ../components/common.yaml#/responses/Internal
       '401':
         $ref: ../components/common.yaml#/responses/Unauthorized
       '404':
         $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
     security:
     - SupabaseBearer: []
-    description: soft-delete되지 않은 본인 routine을 created_at 오름차순으로 모두 반환한다. pagination은 없다.
+    description: soft-delete되지 않은 본인 routine을 created_at 오름차순으로 모두 반환한다. pagination은
+      없다.
+    parameters:
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
   post:
     tags:
     - routine
@@ -46,7 +74,8 @@
         $ref: ../components/common.yaml#/responses/Validation
     security:
     - SupabaseBearer: []
-    description: days_of_week는 ISO 월=1…일=7 중복 없는 1개 이상이며 저장 전에 정렬된다. frequency_per_week는 배열 길이로 파생된다.
+    description: days_of_week는 ISO 월=1…일=7 중복 없는 1개 이상이며 저장 전에 정렬된다. frequency_per_week는
+      배열 길이로 파생된다.
 /routines/{routine_id}:
   patch:
     tags:
@@ -92,8 +121,9 @@
                     code: NOT_FOUND
                     message: 루틴을 찾을 수 없어요.
                     details: {}
-    description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week의 null은 변경 없음. reminder_time은
-      생략하면 변경 없고 명시적 null이면 제거한다. days_of_week를 바꾸면 frequency_per_week도 길이로 갱신한다.
+    description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week의
+      null은 변경 없음. reminder_time은 생략하면 변경 없고 명시적 null이면 제거한다. days_of_week를 바꾸면 frequency_per_week도
+      길이로 갱신한다.
   delete:
     tags:
     - routine
@@ -147,6 +177,14 @@
         type: string
         title: Routine Id
       description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
     responses:
       '200':
         description: 완료 상태와 오늘 전체 완료 수
@@ -154,6 +192,22 @@
           application/json:
             schema:
               $ref: ../components/routines.yaml#/schemas/RoutineCompleteResponse
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
       '500':
         $ref: ../components/common.yaml#/responses/Internal
       '401':
@@ -179,6 +233,8 @@
                     code: NOT_FOUND
                     message: 루틴을 찾을 수 없어요.
                     details: {}
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
     description: local 00:00 reward date 기준 완료를 insert하며 unique conflict를 무시하므로 멱등이다.
   delete:
     tags:
@@ -195,9 +251,33 @@
         type: string
         title: Routine Id
       description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
     responses:
       '204':
         description: 완료 취소; body 없음
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
       '500':
         $ref: ../components/common.yaml#/responses/Internal
       '401':
@@ -223,6 +303,8 @@
                     code: NOT_FOUND
                     message: 루틴을 찾을 수 없어요.
                     details: {}
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
     description: 해당 reward date 완료 행이 없어도 204다.
 /routines/{routine_id}/statistics:
   get:
@@ -240,6 +322,14 @@
         type: string
         title: Routine Id
       description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
     responses:
       '200':
         description: 루틴 통계
@@ -247,6 +337,22 @@
           application/json:
             schema:
               $ref: ../components/routines.yaml#/schemas/RoutineStatisticsResponse
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
       '500':
         $ref: ../components/common.yaml#/responses/Internal
       '401':
@@ -272,5 +378,7 @@
                     code: NOT_FOUND
                     message: 루틴을 찾을 수 없어요.
                     details: {}
-    description: streak는 지정 요일이 아니라 오늘부터 역방향 연속 calendar day 수다. completion_rate는 최근 28일 완료 수/(요일 수×4),
-      상한 1.0, 소수 둘째 자리 반올림이다.
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+    description: streak는 지정 요일이 아니라 오늘부터 역방향 연속 calendar day 수다. completion_rate는
+      최근 28일 완료 수/(요일 수×4), 상한 1.0, 소수 둘째 자리 반올림이다.

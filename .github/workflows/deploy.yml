@@ -86,6 +86,19 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Validate deployed banner catalog and assets
+        run: |
+          set -euo pipefail
+          image="$ECR_REGISTRY/$IMAGE_NAME:$DEPLOY_TAG"
+          docker pull "$image"
+          docker run --rm --entrypoint sh "$image" -ec '
+            if [ -f app/services/banner_catalog.py ]; then
+              python scripts/validate_banners.py --assets
+            else
+              echo "Pre-SDUI rollback image: no banner endpoint"
+            fi
+          '
+
       # 6. 인스턴스별 순차 롤링 배포.
       #    ALB 헬스체크 감지(10s×2)만으로는 컨테이너 재시작 갭(10~30s)을 못 가리므로
       #    명시적 deregister로 트래픽을 뺀 뒤 배포한다. 첫 인스턴스가 실패하면 워크플로가

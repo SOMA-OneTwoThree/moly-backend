@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "placement": "home_blind",
+  "revision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "served_at": "2026-09-05T03:00:00Z",
+  "items": [
+    {
+      "id": "today-routines",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "locale": "ko",
+      "valid_until": "2026-09-05T15:00:00Z",
+      "canvas": {
+        "background": {
+          "type": "solid_v1",
+          "color": "#3A2A2C"
+        },
+        "radius": 16,
+        "border": {
+          "width": 1.5,
+          "color": "#2A1D15"
+        },
+        "elements": [
+          {
+            "id": "label",
+            "type": "text_v1",
+            "semantics_order": 0,
+            "vertical_align": "center",
+            "frame": {
+              "x": 0.06,
+              "y": 0.08,
+              "width": 0.88,
+              "height": 0.15
+            },
+            "text": "9월 5일의 루틴",
+            "style": {
+              "font": "body",
+              "font_size": 13,
+              "weight": 600,
+              "color": "#E0AC63",
+              "align": "center",
+              "max_lines": 1,
+              "line_height": 1.2
+            }
+          },
+          {
+            "id": "headline",
+            "type": "text_v1",
+            "semantics_order": 1,
+            "vertical_align": "center",
+            "frame": {
+              "x": 0.06,
+              "y": 0.25,
+              "width": 0.88,
+              "height": 0.35
+            },
+            "text": "아직 3개가 기다리고 있어요",
+            "style": {
+              "font": "body",
+              "font_size": 16,
+              "weight": 600,
+              "color": "#F7EEE1",
+              "align": "center",
+              "max_lines": 2,
+              "line_height": 1.3
+            }
+          },
+          {
+            "id": "cta",
+            "type": "button_v1",
+            "semantics_order": 2,
+            "vertical_align": "center",
+            "frame": {
+              "x": 0.25,
+              "y": 0.66,
+              "width": 0.5,
+              "height": 0.25
+            },
+            "text": "확인하기",
+            "style": {
+              "font": "body",
+              "font_size": 17,
+              "weight": 600,
+              "color": "#1B1614",
+              "align": "center",
+              "max_lines": 1,
+              "line_height": 1.2
+            },
+            "background_color": "#E0AC63",
+            "radius": 18,
+            "border": {
+              "width": 1.5,
+              "color": "#2A1D15"
+            },
+            "padding_horizontal": 12,
+            "padding_vertical": 4,
+            "action": {
+              "type": "open_routines"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

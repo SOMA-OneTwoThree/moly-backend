@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Validate banner catalog and assets
+        run: uv run python scripts/validate_banners.py --assets
+
       - name: Lint
         run: uv run ruff check app scripts tests
 

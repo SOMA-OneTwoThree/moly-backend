@@ -74,6 +74,19 @@ jobs:
           cache-from: type=gha,scope=dev
           cache-to: type=gha,mode=max,scope=dev
 
+      - name: Validate deployed banner catalog and assets
+        run: |
+          set -euo pipefail
+          image="$ECR_REGISTRY/$IMAGE_NAME:$DEPLOY_TAG"
+          docker pull "$image"
+          docker run --rm --entrypoint sh "$image" -ec '
+            if [ -f app/services/banner_catalog.py ]; then
+              python scripts/validate_banners.py --assets
+            else
+              echo "Pre-SDUI rollback image: no banner endpoint"
+            fi
+          '
+
       - name: Deploy via SSM (single dev instance)
         run: |
           set -euo pipefail

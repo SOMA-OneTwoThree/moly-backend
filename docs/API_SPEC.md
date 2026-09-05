@@ -546,7 +546,8 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 
 ## 11. 오늘의 운세
 
-> 개발 서버 전용 seed이며 기본 플래그는 OFF다. 제품 규칙·계산·문구·DB·API 상태 머신의 단일 설명은
+> 이번 운영 업데이트에 오늘의 운세와 운세 대화 연결을 포함한다. 애플리케이션 기본 플래그는 비상 차단을
+> 위해 OFF로 유지하고 배포 설정에서 활성화한다. 제품 규칙·계산·문구·DB·API 상태 머신의 단일 설명은
 > `DAILY-FORTUNE.md`, 정확한 필드 계약은 OpenAPI를 따른다.
 
 - 최초 진입은 `GET /daily-fortune/status`의 `profile_required`를 확인하고 `PUT /fortune-profile`에

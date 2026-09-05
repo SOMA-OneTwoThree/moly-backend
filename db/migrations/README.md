@@ -1,6 +1,7 @@
 # DB 변경 관리
 
-> 최종 확인: 2026-09-05. 대화·기억·꾸미기 전환은 dev와 prod에 끝났고, 오늘의 운세는 dev에만 적용했다.
+> 최종 확인: 2026-09-05. 대화·기억·꾸미기 전환과 오늘의 운세 DB 계약은 dev·prod에 적용했다.
+> 운영 API 기능 플래그 활성화는 backend·infra PR 머지 이후다.
 
 ## 기준
 
@@ -120,10 +121,9 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 | `20260905_fortune_chat_kind_constraint_swap.sql` | 검증된 CHECK를 2초 lock timeout으로 짧게 이름 교체 |
 | `20260905_fortune_chat_root_index.sql` | 일반 대화의 최근 운세 시작점 조회용 부분 인덱스(CONCURRENTLY) |
 
-기존 파일은 dev의 `schema_migrations`에 기록돼 있으므로 수정하지 않는다. 운영에는 아직 운세 구조를
-적용하지 않았다. 운영 전환에서는 `reward_ad_session_security` → `daily_fortune` →
-`daily_fortune_v2` → `prepare` → `validate` → `swap` 순서로 각 파일을 따로 적용한다. 운영 live
-테이블에는 잠금 제한이 없는
+기존 파일은 적용된 `schema_migrations` checksum과 함께 수정하지 않는다. 운영에는 2026-09-05
+`reward_ad_session_security` → `daily_fortune` → `daily_fortune_v2` → `prepare` → `validate` →
+`swap` 순서로 적용을 완료했다. 운영 live 테이블에는 잠금 제한이 없는
 `20260827_fortune_chat_context.sql`을 실행하지 않는다. 마지막 부분 인덱스는 `db/apply.py`가 아니라
 `db/RUNBOOK_PROD_DDL.md` 절차로 적용하고 checksum 원장을 기록한다.
 

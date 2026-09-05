@@ -401,9 +401,9 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
   `approved_for_production=true`다. 승인되지 않은 후속 규칙은 운영에서 계속 fail-closed다.
 - 규칙이나 문구를 바꾸면 asset version과 manifest SHA-256을 함께 바꾼다.
 - 적용된 마이그레이션 파일은 checksum 원장이 있으므로 수정하지 않고 새 파일을 추가한다.
-- 운세 테이블·계약 마이그레이션은 개발 DB에 적용했다. 운영 DB에는 아직 적용하지 않았다. 개발 이력인
-  `20260827_fortune_chat_context.sql`은 운영 live `messages`에 실행하지 않고, 2026-09-05의
-  `prepare` → `validate` → `swap` 3단계 CHECK 확장으로 대체한다.
+- 운세 테이블·계약 마이그레이션은 개발 DB와 운영 DB에 적용했다. 운영은 개발 이력인
+  `20260827_fortune_chat_context.sql`을 실행하지 않고, 2026-09-05의 `prepare` → `validate` → `swap`
+  3단계 CHECK 확장으로 대체했다. 기능 플래그 활성화는 backend·infra PR 머지 이후다.
 - 운세 대화 시작점 조회용 `20260905_fortune_chat_root_index.sql`은 개발 DB에 런북 절차로 적용해
   checksum 원장 기록과 실제 사용 계획을 확인했다. 운영에서는 부분 인덱스를 `CONCURRENTLY` 생성한 뒤 같은
   방식으로 원장에 기록한다.

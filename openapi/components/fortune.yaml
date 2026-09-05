@@ -39,6 +39,15 @@ schemas:
       profile: {$ref: '#/schemas/FortuneProfileView'}
       result_invalidated: {type: boolean}
       unlock_preserved: {type: boolean}
+  FortuneBasicOverallResult:
+    type: object
+    additionalProperties: false
+    required: [score, headline, do, pause]
+    properties:
+      score: {type: integer, minimum: 0, maximum: 100}
+      headline: {type: string, minLength: 1}
+      do: {type: string, minLength: 1}
+      pause: {type: string, minLength: 1}
   FortuneOverallResult:
     type: object
     additionalProperties: false
@@ -75,6 +84,16 @@ schemas:
         enum: [red, coral, orange, yellow, green, sky, blue, navy, purple, pink, white, beige]
       name: {type: string, minLength: 1}
       hex: {type: string, pattern: '^#[0-9A-F]{6}$'}
+  FortuneBasicResult:
+    type: object
+    description: 광고 없이 제공하는 기본 정보. overall.flow와 categories는 포함하지 않는다.
+    additionalProperties: false
+    required: [schema_version, locale, overall, lucky_color]
+    properties:
+      schema_version: {type: integer, const: 3, default: 3}
+      locale: {type: string, enum: [ko, en, ja]}
+      overall: {$ref: '#/schemas/FortuneBasicOverallResult'}
+      lucky_color: {$ref: '#/schemas/FortuneLuckyColor'}
   FortuneResult:
     type: object
     additionalProperties: false
@@ -120,13 +139,16 @@ schemas:
         local_date: {type: string, format: date}
     - type: object
       title: FortuneLocked
+      description: 기본 정보는 공개되었으며 자세히 보기는 잠겨 있다. included이면 reveal로 상세를 공개한다.
       additionalProperties: false
-      required: [available, state, access, local_date]
+      required: [available, state, access, local_date, result, versions]
       properties:
         available: {type: boolean, const: true}
         state: {type: string, const: locked}
         access: {type: string, enum: [included, ad_required]}
         local_date: {type: string, format: date}
+        result: {$ref: '#/schemas/FortuneBasicResult'}
+        versions: {$ref: '#/schemas/FortuneVersions'}
     - type: object
       title: FortuneAlreadyRevealed
       additionalProperties: false
@@ -142,12 +164,15 @@ schemas:
     oneOf:
     - type: object
       title: FortuneRevealLocked
+      description: 기본 정보는 공개되었으며 자세히 보기는 광고 SSV 검증 후 공개한다.
       additionalProperties: false
-      required: [state, access, local_date]
+      required: [state, access, local_date, result, versions]
       properties:
         state: {type: string, const: locked}
         access: {type: string, const: ad_required}
         local_date: {type: string, format: date}
+        result: {$ref: '#/schemas/FortuneBasicResult'}
+        versions: {$ref: '#/schemas/FortuneVersions'}
     - type: object
       title: FortuneRevealComplete
       additionalProperties: false

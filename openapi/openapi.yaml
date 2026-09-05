@@ -154,6 +154,8 @@ components:
       $ref: ./components/fortune.yaml#/schemas/FortuneProfileResponse
     FortuneProfileView:
       $ref: ./components/fortune.yaml#/schemas/FortuneProfileView
+    FortuneBasicResult:
+      $ref: ./components/fortune.yaml#/schemas/FortuneBasicResult
     FortuneResult:
       $ref: ./components/fortune.yaml#/schemas/FortuneResult
     FortuneVersions:

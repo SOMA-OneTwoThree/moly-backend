@@ -1,9 +1,8 @@
 # 홈 배너 SDUI 공동 규약
 
-상태: **기본 v1 dev 검수 완료 / 시각 구성·클릭 분리 확장 구현 중** · 최신화: 2026-09-06
+적용: `schema_version=1`, `banner_canvas_v1`, `home_blind_v1`. 현재 지원 동작과 호환성 경계를 정의한다.
 
-현재 합의한 동작을 정의한다. 새 capability의 클라 배포·검수 여부는 레포별 적용 문서에서 확인한다.
-레포별 책임은 [BANNER_SDUI.md](BANNER_SDUI.md), 문서 갱신 방법은 이 문서의 「문서 유지 규칙」을 따른다.
+공동 규약의 원본은 moly-backend의 이 파일이며 becappy-mobile의 동명 문서는 동일 사본이다. 작성·배포 방법과 레포 내부 연결은 각 레포의 [BANNER_SDUI.md](BANNER_SDUI.md)를 따른다.
 
 ## 1. 범위와 고정 경계
 
@@ -78,7 +77,7 @@ diagonal_up(bottomLeft→topRight)다. 축 방향은 양 끝 중앙을 기준으
 | 접근성 | 장식은 accessibility_label/semantics_order 모두 null. 의미 있는 이미지는 해당 locale의 설명1..120자와 고유 읽기 순서 필수 |
 
 이미지는 비율을 유지한다. 투명 배경의 base_color는 최하단 색이며 로딩 실패를 덮는 대체 디자인으로 사용하지 않는다.
-배경 그림에 필수 문구를 구워 넣지 않는다. 문구·이동 버튼은 실제 text/button 요소로 표현하고 이미지 위의 대비도 실제 crop별로 검수한다.
+필수 안내 문구는 text_v1로 제공한다. 이미지 버튼은 image_v1과 action_region_v1으로 구성하고 클릭 영역의 접근성 이름을 제공한다. 이미지 위 문구의 대비는 실제 crop별로 검수한다.
 GIF/APNG/움직이는 WebP·SVG·data/file URL·임시 서명 URL·redirect는 v1에 허용하지 않는다. URL에 인증정보/사용자 식별자를 넣지 않는다.
 이미지 주소로 앱 Bearer 토큰/cookie를 보내지 않는다. 원본 URL을 서버 사용자 요청마다 다운로드하거나 proxy하지 않는다.
 같은 URL을 덮어쓰지 않는다. 새 이미지에는 새 URL/sha256을 사용한다.
@@ -106,7 +105,7 @@ prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `sh
 - 클릭 영역도 최소48×48 터치·고정 카드/화면/줄 충돌 검사를 적용한다. 다른 동작과의 겹침 및 연결하지 않은 필수 내용 위의 클릭 영역은 거부한다.
 - 연결한 시각 요소의 별도 읽기는 제외하고 accessibility_label을 지정한 순서의 버튼으로 한 번 읽는다. 이미지가 준비되지 않거나 카드가 만료되면 클릭도 제공하지 않는다.
 - 도형 위 텍스트 대비는 해당 배경으로 검사한다. 이미지 위의 실제 대비는 dev TestFlight에서 검수한다.
-- 새 type은 같은 이름의 capability를 요구한다. action_region_v1은 연결한 action capability도 요구한다. 25번 등 기존 앱에는 새 표현을 보내지 않는다. 새 지원 앱 설치 후에는 이미지·문구·배치·동작 구성을 서버 파일만 바꿔 적용한다.
+- 새 type은 같은 이름의 capability를 요구한다. action_region_v1은 연결한 action capability도 요구한다. 해당 capability를 광고하지 않는 앱에는 새 표현을 보내지 않는다. 새 지원 앱 설치 후에는 이미지·문구·배치·동작 구성을 서버 파일만 바꿔 적용한다.
 
 ## 3. 조회 API와 응답
 
@@ -123,59 +122,11 @@ prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `sh
 | X-App-Locale | 최대64자 BCP47 앱 표시 언어. 미설정·미지원→en |
 | X-App-Timezone | IANA 시간대1..64자. 지원 앱은 기기의 현재 식별자를 전송. 생략은 profiles.timezone, 잘못된 값은422 APP_TIMEZONE_INVALID |
 
-정상 응답 예시:
+필수 필드와 타입은 서버 `app/schemas/banners.py`, HTTP 입력/응답은 `openapi/paths/banners.yaml` 및 `openapi/components/banners.yaml`을 따른다. 완성 응답 예시는 양 레포의 `tests/fixtures/banners/composed_feed.json`(클라: `test/fixtures/banners/composed_feed.json`)을 참조한다. 서버 파일의 template 선언과 API 응답의 완성 문자열을 혼동하지 않는다.
 
-```json
-{
-  "schema_version": 1,
-  "placement": "home_blind",
-  "revision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "served_at": "2026-09-05T03:00:00Z",
-  "items": [
-    {
-      "id": "today-routines",
-      "data_dependencies": ["user.local_date", "routines.remaining_today"],
-      "component": "banner_canvas_v1",
-      "layout_profile": "home_blind_v1",
-      "locale": "ko",
-      "valid_until": "2026-09-05T15:00:00Z",
-      "canvas": {
-        "background": {"type": "solid_v1", "color": "#3A2A2C"},
-        "radius": 16,
-        "border": {"width": 1.5, "color": "#2A1D15"},
-        "elements": [
-          {
-            "id": "label", "type": "text_v1", "semantics_order": 0, "vertical_align": "center",
-            "frame": {"x": 0.06, "y": 0.08, "width": 0.88, "height": 0.15},
-            "text": "9월 5일의 루틴",
-            "style": {"font": "body", "font_size": 13, "weight": 600, "color": "#E0AC63", "align": "center", "max_lines": 1, "line_height": 1.2}
-          },
-          {
-            "id": "headline", "type": "text_v1", "semantics_order": 1, "vertical_align": "center",
-            "frame": {"x": 0.06, "y": 0.25, "width": 0.88, "height": 0.35},
-            "text": "아직 3개가 기다리고 있어요",
-            "style": {"font": "body", "font_size": 16, "weight": 600, "color": "#F7EEE1", "align": "center", "max_lines": 2, "line_height": 1.3}
-          },
-          {
-            "id": "cta", "type": "button_v1", "semantics_order": 2, "vertical_align": "center",
-            "frame": {"x": 0.25, "y": 0.66, "width": 0.5, "height": 0.25},
-            "text": "확인하기",
-            "style": {"font": "body", "font_size": 17, "weight": 600, "color": "#1B1614", "align": "center", "max_lines": 1, "line_height": 1.2},
-            "background_color": "#E0AC63", "radius": 18,
-            "border": {"width": 1.5, "color": "#2A1D15"}, "padding_horizontal": 12, "padding_vertical": 4,
-            "action": {"type": "open_routines"}
-          }
-        ]
-      }
-    }
-  ]
-}
-```
-
-예시는 필드 구조 설명용이며 시각 검수된 게시본은 아니다. 예시 숫자를 runtime fallback으로 사용하지 않는다.
 data_dependencies는 카드가 사용하는 source의 중복 없는 목록(user.local_date / routines.remaining_today, 정적 카드는 빈 배열)이다.
 앱은 이 값으로 저장 중 루틴 의존 카드를 무효화한다. 서버가 binding에서 자동 도출하며 카드 ID나 문구로 추측하지 않는다.
-위 필드는 모두 필수이고 valid_until만 nullable이다. 필수 필드 누락을 Flutter 기본값으로 채우지 않는다.
+응답의 valid_until은 nullable이며 필수 필드 여부는 스키마를 따른다. 필수 필드 누락을 Flutter 기본값으로 채우지 않는다.
 카드/요소 id는 `[a-z0-9][a-z0-9_-]{0,63}`, 각각 목록/카드 안에서 고유하다.
 revision은 **배포된 정의 파일의 원본 UTF-8 bytes SHA256**이며 `[a-f0-9]{64}`다. 코드 버전/배포 순번은 아니다.
 같은 revision에도 사용자·언어·시각에 따라 결과가 달라지므로 새 응답을 적용한다. 순차 배포/복구로 이전 hash가 와도 적용한다.
@@ -252,45 +203,29 @@ manifest 문법·wire schema·layout profile의 의미를 별도로 버전 관�
 새 요소/필드가 화면 의미를 바꾸면 해당 capability 또는 v2를 추가한다. 구버전에는 지원 카드만 선택하고 대체 카드가 없으면 숨긴다.
 초기 renderer를 실제 운영 앱에 배포한 뒤 파일만으로 디자인을 바꿀 수 있다. 개발 TestFlight 설치만으로 운영 앱 지원이 생기지는 않는다.
 
-## 6. 배포와 완료 기준
+## 6. 배포·호환성 운영
 
-개발 흐름: 서버 feature 브랜치에서 파일 작성 → 자동 검증 → 서버 dev 머지/배포 → 같은 dev TestFlight에서 확인.
-이번 작업은 검수 완료 후 becappy-mobile만 main에 머지한다. 테스트는 클라 브랜치와 관계없이 dev flavor를 사용한다.
-서버 main 머지·운영 배포와 운영 앱 빌드·심사 제출은 별도로 진행한다.
-서버 이미지가 코드와 정의 파일을 함께 포함하고, 프로세스 시작 때 검증한 파일을 메모리에 로딩한다. 별도 DB 게시 단계는 없다.
-새 원격 이미지는 정의 배포 전에 불변 주소로 준비/검증한다. JSON 배포가 외부 이미지 bytes까지 자동으로 변경하는 것은 아니다.
-검수한 파일 hash·서버/클라 SHA·TestFlight 빌드와 결과를 PR/CI에서 연결한다. 파일/관련 구현이 바뀌면 다시 검수한다.
-운영 순차 배포 중에는 이전/새 정의가 잠시 섞일 수 있다. 반영 시점은 앱의 다음 조회이며 전체 이용자 동시 전환은 보장하지 않는다.
-배너만 복구할 때는 과거 파일을 복원해 검증/재배포한다. 서버 이미지 rollback은 코드와 파일을 함께 되돌린다.
-같은 파일은 같은 revision이고, 일정과 사용자 날짜/count는 현재 시점으로 재계산한다. 상세 배포/검증은 서버 적용 문서가 소유한다.
+서버 feature 브랜치에서 파일 작성·검증 → 서버 dev 반영·배포 → 같은 dev TestFlight의 다음 조회로 확인한다. 테스트 앱의 환경은 Git 브랜치와 무관하게 dev flavor다. 서버 파일 저장·기능 브랜치 push만으로 실행 중 앱 내용이 변경되지는 않는다.
 
-구현 완료에는 다음 검증이 필요하다. 실행 로그/결과는 PR·CI에 남기며 이 절에는 통과 기준만 유지한다.
+서버 이미지는 코드와 정의 파일을 함께 포함하고 시작 시 메모리에 로딩한다. 별도 DB 게시 단계는 없다. 새 이미지 bytes는 bucket에 먼저 올린다. 배너 중단·복구도 파일 변경과 서버 재배포가 필요하다. 순차 배포 중에는 이전/새 정의가 잠시 섞일 수 있고 전체 이용자의 동시 전환을 보장하지 않는다.
 
-- 개발 서버 연결 **동일 TestFlight 빌드**에서 서버 파일 A→B 배포의 배경·문구·내부 frame/색 변경; **카드 외곽 크기/비율 불변**.
-- 사용자별 count, 오늘 요일·삭제·완료/취소·0개 숨김·현지 자정/DST·시간대 변경/다중 기기·저장 중 popup 복귀.
-- 네 action 이동/back/제한, 기존 블라인드·줄·모션·테마 조건 유지.
-- 5→1→0장, 실패/중단/rollback, 손상 카드 격리, 구버전·계정/언어 전환·늦은 응답·만료.
-- 실제 stage 폭×높이·지원 ko/en/ja·기본/최대 글자 배율에서 overflow·hit 영역·접근성 검사.
-- 이미지 변경/투명도/crop·깨진 캐시·404/timeout·hash 불일치·대용량/움직이는 파일·전환 중 늦은 완료·실기기 메모리 검사.
-- 코드 생성/계약 sync, 이미지 내 파일 포함·검수 파일 hash 일치·누락/손상·순차 배포/복구 검사.
+지원 앱이 있어야 서버 변경을 해석할 수 있다. 새 요소/action을 추가하면 공동 규약·서버·클라 지원을 갱신하고 capability로 구버전을 분리한다. 운영 앱 배포, 운영 bucket 준비, 서버 운영 승격은 개발 검수와 별개다. 환경 URL을 바꾸면 파일 revision도 달라지므로 최종 배포 파일을 다시 검증한다.
+
+콘텐츠 검수는 고정 외곽, 실제 문구/이미지 배치·대비·터치·화면 이동, 지원 언어/화면/글자 배율을 포함한다. 사용자 데이터·시간대·실패·만료·구버전 조건도 해당 변경에 맞춰 확인한다. 자동 schema 검사 통과를 실제 기기 시각 검수 완료로 간주하지 않는다. 실행 결과는 이 규약에 누적하지 않는다.
 
 ## 7. 문서 유지 규칙
 
-| 정보 | 유일한 원본/관리 위치 |
+| 정보 | 원본 |
 |---|---|
-| 고정 카드/홈 geometry | becappy-mobile의 RoomBlind/RoomStageGeometry 소스. 계약에 필요한 고정 경계만 이 문서에 명시 |
-| 공동 동작·경계·호환성 | **moly-backend/docs/BANNER_SDUI_CONTRACT.md**. 클라의 동명 파일은 동일한 배포 사본 |
-| 레포 내부 구조/운영 방법 | 각 레포 BANNER_SDUI.md. 공동 규약을 재서술하지 않고 참조 |
-| 운영 배너 정의 | 서버의 app/resources/banners/home_blind.json. 문서 예시/DB를 운영 원본으로 사용하지 않음 |
-| 구현된 HTTP/DB 상세 | 서버 분할 OpenAPI, models/schema/migrations. 클라는 생성 bundle/SDK를 동기화 |
-| 변경 이유·조사·실행 결과 | Git/PR·CI. 이 규약에 시간순 이력이나 검토 보고서를 누적하지 않음 |
+| 고정 카드/홈 geometry | becappy-mobile의 RoomBlind/RoomStageGeometry 소스 |
+| 공동 동작·경계·호환성 | moly-backend/docs/BANNER_SDUI_CONTRACT.md; 클라 동명 파일은 동일 사본 |
+| 레포 연결·작성/운영 방법 | 각 레포 docs/BANNER_SDUI.md |
+| 배너 콘텐츠 | 서버 app/resources/banners/home_blind.json |
+| 필드/HTTP 상세·완성 예시 | 서버 schema/OpenAPI와 공유 fixture; 클라는 공식 생성 SDK |
+| 변경 이유·빌드/QA/CI 결과 | Git/PR·검토 기록 |
 
-1. 변경 시 **해당 절을 수정하고 기존 설명을 교체**한다. 독립적인 새 책임이 있을 때만 절을 추가한다.
-2. 공동 동작/필드 변경은 원본과 클라 사본을 함께 갱신한다. UI 경계 변경은 클라이언트 진실과 먼저 대조한다.
-3. 바뀐 규칙의 검증 기준과 영향을 받는 레포 적용 문서만 함께 수정한다. 중복·폐기된 규칙/예시는 제거한다.
-4. 한 개념은 한 곳에서 정의한다. 공식 schema/fixture가 구현되면 여기에 중복한 필드 설명/긴 JSON을 원본 링크로 교체한다.
-5. 질문 이력·폐기안·조사 과정·완료 로그·미승인 확장 상세는 넣지 않는다. 미결정은 범위 절의 짧은 항목으로만 유지하고 결정 즉시 교체한다.
-6. 구현 계획은 레포의 정식 specs 절차, 배너 변경/배포 이력은 Git/PR·CI에 둔다. 문서에 체크리스트/테이블 사본을 계속 추가하지 않는다.
-7. 변경 완료 전 상태/최신화 날짜, JSON·링크, 두 사본의 동일성, schema/fixture sync와 관련 검증 기준을 확인한다.
-
-현재 이 규칙은 문서 갱신 절차다. 자동 동기화/CI 검사가 구현된 것으로 간주하지 않는다.
+1. 바뀐 절을 제자리에서 수정하고 폐기된 설명을 제거한다. 개발 과정·이전 빌드 번호·질문 이력을 누적하지 않는다.
+2. 공동 규칙은 서버 원본과 클라 사본을 동시에 수정하고 byte 동일성을 확인한다.
+3. 필드 정의·예시를 여러 문서에 복제하지 않는다. 팀 공유본은 입문용이며 최신 상세는 레포 문서를 따른다.
+4. 필드/동작 변경 시 schema·fixture·관련 구현/검증 기준을 함께 갱신한다. 새 독립 책임이 생긴 경우에만 절을 추가한다.
+5. 변경 완료 전 링크·예시·명령·양쪽 사본·실제 구현과의 일치를 확인한다. 문서 사본 동기화는 자동 CI 기능으로 가정하지 않는다.

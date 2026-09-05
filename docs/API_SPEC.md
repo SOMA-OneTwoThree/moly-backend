@@ -558,7 +558,14 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 - 생년월일은 1900-01-01 이상, 사용자 현지 날짜 기준 만 14세 이상이다. 위반 코드는
   `INVALID_BIRTH_DATE`, `UNDER_MINIMUM_AGE`다.
 - `POST /daily-fortune/reveal`은 체험·구독이면 `revealed`, 무료면 문구가 없는 `locked`를 반환한다.
-- 무료 사용자는 `POST /daily-fortune/ad-sessions`의 값을 AdMob에 넣고, 검증 완료 뒤 status를 다시 조회한다.
+- 무료 사용자는 `POST /daily-fortune/ad-sessions`가 반환한 `admob_user_id`와 `custom_data`를 SSV 옵션에
+  그대로 넣고, 검증 완료 뒤 status를 다시 조회한다. iOS에서는 사용자 식별값과 custom reward string,
+  Android에서는 `setUserId`와 `setCustomData`에 각각 대응한다. 값을 앱에서 새로 만들거나 고정 테스트 UUID로
+  바꾸면 안 된다.
+- 운세 광고의 AdMob 보상 계약은 항목 `fortune_unlock`, 수량 `1`이다. 운영 광고 단위는 iOS
+  `ca-app-pub-5805427935121417/3157498952`, Android
+  `ca-app-pub-5805427935121417/2146352961`이며 SSV URL은
+  `https://voice.moly.asia/webhooks/ad-ssv`다.
 - `state`(`profile_required|unseen|locked|revealed`)와 `access`(`included|ad_required|unlocked_today`)를
   따로 분기한다.
 - 공개 결과는 `overall`, `categories`, `lucky_color`의 중첩 구조이며 `schema_version=3`이다.

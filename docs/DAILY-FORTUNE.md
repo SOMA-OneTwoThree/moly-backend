@@ -1,8 +1,8 @@
 # 오늘의 운세
 
-> 기준일: 2026-08-28
+> 기준일: 2026-09-05
 >
-> 구현 상태: 개발 서버 검증용, 기능 플래그 기본 OFF
+> 구현 상태: 개발·운영 활성화 완료. 애플리케이션 기본값은 비상 차단을 위해 OFF이고 배포 설정이 명시적으로 ON
 >
 > 공개 계약: `openapi/paths/fortune.yaml`, `openapi/components/fortune.yaml`
 >
@@ -396,25 +396,43 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 
 ## 7. 버전·배포·검증
 
-- 기능 플래그: `FORTUNE_ENABLED=false`, `FORTUNE_CHAT_ENABLED=false`가 기본값이다.
+- `FORTUNE_ENABLED`, `FORTUNE_CHAT_ENABLED`의 애플리케이션 기본값은 fail-closed를 위해 `false`다.
+  개발·운영에서는 infra의 `deploy.sh`가 두 값을 명시적으로 `true`로 주입한다. 기능을 다시 끄려면 코드 기본값에
+  기대지 말고 infra 설정을 변경한 뒤 두 인스턴스를 재배포한다.
 - 현재 `fortune-rules.v2.1`은 결정 규칙·점수 분포·3개 언어 카탈로그·API 계약 검증을 마쳐
   `approved_for_production=true`다. 승인되지 않은 후속 규칙은 운영에서 계속 fail-closed다.
 - 규칙이나 문구를 바꾸면 asset version과 manifest SHA-256을 함께 바꾼다.
 - 적용된 마이그레이션 파일은 checksum 원장이 있으므로 수정하지 않고 새 파일을 추가한다.
 - 운세 테이블·계약 마이그레이션은 개발 DB와 운영 DB에 적용했다. 운영은 개발 이력인
   `20260827_fortune_chat_context.sql`을 실행하지 않고, 2026-09-05의 `prepare` → `validate` → `swap`
-  3단계 CHECK 확장으로 대체했다. 기능 플래그 활성화는 backend·infra PR 머지 이후다.
+  3단계 CHECK 확장으로 대체했다.
 - 운세 대화 시작점 조회용 `20260905_fortune_chat_root_index.sql`은 개발 DB에 런북 절차로 적용해
-  checksum 원장 기록과 실제 사용 계획을 확인했다. 운영에서는 부분 인덱스를 `CONCURRENTLY` 생성한 뒤 같은
-  방식으로 원장에 기록한다.
-- 건초 광고 세션의 30분 만료 보안 migration도 같은 운영 승격에 포함하며, infra preflight가 해당
-  컬럼·CHECK·전체 만료 인덱스·checksum까지 확인한다.
-- 이번 배포 순서는 **하위 호환 DB migration → 검증 → 플래그 OFF 코드 배포 → infra 머지 → 검증한 동일
-  backend SHA 재배포 → 기능 smoke**로 고정한다. 기존 건초 광고 코드도 새 `expires_at` 컬럼을 읽으므로
-  이 릴리스에서는 DB보다 코드를 먼저 배포하지 않는다. infra 머지만으로는 EC2 설정이 바뀌지 않으며, 다음 무관한 코드
-  배포까지 활성화를 미루지 않는다. 프로필 API는 플래그가
-  꺼지면 운세 테이블 접근 전에 종료한다. worker 정리는 `to_regclass`로 테이블 존재를 확인하므로 migration 전에는
-  건너뛰고, 테이블이 생긴 뒤에는 기능을 중지해도 7일 보존 정책을 계속 지킨다.
+  checksum 원장 기록과 실제 사용 계획을 확인했다. 운영도 부분 인덱스를 `CONCURRENTLY` 생성하고 원장에
+  기록했으며 유효·ready 상태를 확인했다.
+- 건초 광고 세션의 30분 만료 보안 migration도 개발·운영에 적용했다. infra preflight는 운세 테이블·RLS·권한,
+  `messages.kind` 제약·부분 인덱스, 건초 광고 세션의 컬럼·CHECK·전체 만료 인덱스와 필수 checksum을 배포 전에
+  읽기 전용으로 검증한다.
+- 최초 운영 전환은 **하위 호환 DB migration → 검증 → 플래그 OFF 코드 배포 → infra 머지 → 검증한 동일
+  backend SHA 재배포 → 기능 smoke** 순서로 완료했다. 이후 스키마가 바뀌는 운세 릴리스도 이 순서를 지킨다.
+  infra 머지만으로는 실행 중인 EC2 설정이 바뀌지 않으므로 반드시 검증한 이미지 태그로 재배포한다.
+- 프로필 API는 플래그가 꺼지면 운세 테이블 접근 전에 종료한다. worker 정리는 `to_regclass`로 테이블 존재를
+  확인하므로 migration 전에는 건너뛰고, 테이블이 생긴 뒤에는 기능을 중지해도 7일 보존 정책을 계속 지킨다.
+
+### 7.1 AdMob 운영 계약
+
+| 플랫폼 | 광고 단위 | 서버 allowlist 값 |
+|---|---|---|
+| iOS | `ca-app-pub-5805427935121417/3157498952` | `3157498952` |
+| Android | `ca-app-pub-5805427935121417/2146352961` | `2146352961` |
+
+- 두 광고 단위의 형식은 보상형, 보상 항목은 `fortune_unlock`, 수량은 `1`이다.
+- SSV URL은 `https://voice.moly.asia/webhooks/ad-ssv`이며 두 광고 단위 모두 AdMob 콘솔의 URL 확인을 마쳤다.
+- 운영 Parameter Store의 `/moly/prod/fortune-ad-unit-ids`에는 위 allowlist 값 두 개를 쉼표로 구분해 둔다.
+- 앱은 광고 요청 전에 `POST /daily-fortune/ad-sessions`가 돌려준 `admob_user_id`와 `custom_data`를 그대로
+  Google Mobile Ads SDK의 SSV 옵션에 넣는다. 임의 UUID나 고정 테스트 값을 실제 광고에 재사용하지 않는다.
+- 서버는 Google 서명뿐 아니라 사용자·세션 소유자·광고 단위·보상 항목·수량·만료·당일 날짜를 모두 대조한다.
+- AdMob 콘솔의 서명된 URL 확인 요청처럼 `transaction_id`가 없는 요청은 200 no-op으로 끝내고 운세를 열지 않는다.
+  서명이 없거나 서명 뒤에 임의 필드를 붙인 요청은 422로 거절한다.
 
 필수 검증:
 
@@ -428,6 +446,6 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 8. 개발 DB migration dry-run, 모델 교차검증, infra의 읽기 전용 운세·광고 보안 DB preflight, 인증 포함 실제 HTTP smoke test
 9. 출시 전 문구 전수 사람 검수, 점수 분포·경로 도달률 장기 시뮬레이션
 
-이번 운영 업데이트에는 오늘의 운세와 운세 대화 연결을 함께 포함한다. 운영 반영 직전에는 실 AdMob ID와 SSV E2E,
-클라이언트 상태 머신 연동, 부하·운영 모니터링을 최종 확인한다. 애플리케이션 기본값은 비상 차단을 위해 OFF로
-유지하고, 운영 배포 설정에서 두 플래그를 명시적으로 활성화한다.
+오늘의 운세와 운세 대화 연결은 운영에서 활성화돼 있다. 운영 배포는 DB preflight, 두 인스턴스 롤링,
+버전 일치와 synthetic health를 모두 통과해야 한다. 새 앱 빌드가 광고 연동을 시작할 때에는 iOS·Android에서
+각각 실제 광고 1회를 사용해 `세션 발급 → SSV → 당일 unlock → status 재조회`를 출시 전 최종 확인한다.

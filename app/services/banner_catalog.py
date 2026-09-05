@@ -82,7 +82,7 @@ def capabilities(canvas: BannerAuthoredCanvas) -> frozenset[str]:
     result = {"banner_canvas_v1", "home_blind_v1", canvas.background.type}
     for element in canvas.elements:
         result.add(element.type)
-        if element.type == "button_v1":
+        if element.type in {"button_v1", "action_region_v1"}:
             result.add(element.action.type)
     return frozenset(result)
 
@@ -161,7 +161,7 @@ def binding_values(
 def compile_canvas(canvas: BannerAuthoredCanvas, values: Mapping[str, str | int]) -> BannerCanvas:
     raw = canvas.model_dump(mode="json")
     for element in raw["elements"]:
-        if element["type"] == "image_v1":
+        if element["type"] not in {"text_v1", "button_v1"}:
             continue
         expression = element["text"]
         if expression["kind"] == "count_cases":

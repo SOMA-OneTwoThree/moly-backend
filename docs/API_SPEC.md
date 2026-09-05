@@ -558,7 +558,8 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 - `state`(`profile_required|unseen|locked|revealed`)와 `access`(`included|ad_required|unlocked_today`)를
   따로 분기한다.
 - 공개 결과는 `overall`, `categories`, `lucky_color`의 중첩 구조이며 `schema_version=3`이다.
-  `X-App-Locale: ko|en|ja`에 따라 실제 반환 언어가 `result.locale`에 들어간다.
+  `X-App-Locale`은 `ko|en|ja`와 `ko-KR|en-US|ja-JP` 같은 지역 태그를 받으며, 실제 반환 언어는
+  기본 코드로 정규화되어 `result.locale`에 들어간다. `jp`와 지원하지 않는 언어는 422다.
 - 프로필 수정 응답의 `result_invalidated`, `unlock_preserved`를 사용한다. 같은 날 광고 해제 권한은 유지된다.
 - 광고 중 프로필이 바뀌어 SSV 후 `unseen + unlocked_today`가 오면 광고 없이 reveal을 다시 호출한다.
 - `locked` 상태에는 점수·문구·버전이 없다. 이전 공개 결과와 섞어 사용하면 안 된다.

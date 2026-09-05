@@ -259,5 +259,12 @@ parameters:
     name: X-App-Locale
     in: header
     required: false
+    description: >-
+      운세 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다.
+      대소문자를 구분하지 않으며 응답의 result.locale은 ko, en, ja 중 하나로 정규화된다.
     schema:
-      anyOf: [{type: string, enum: [ko, en, ja]}, {type: 'null'}]
+      anyOf:
+      - type: string
+        pattern: '^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$'
+        examples: [ko, ko-KR, en-US, ja-JP]
+      - type: 'null'

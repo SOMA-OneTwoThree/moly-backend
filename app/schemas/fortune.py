@@ -3,14 +3,31 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal
+import re
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
 
 from app.schemas.common import StrictResponse, UtcDatetime
 
 Locale = Literal["ko", "en", "ja"]
+
+
+def _normalize_locale_header(value: object) -> object:
+    """지원하는 BCP 47 언어 태그를 응답용 기본 언어 코드로 좁힌다."""
+
+    if not isinstance(value, str):
+        return value
+    matched = re.fullmatch(
+        r"(ko|en|ja)(?:-[A-Za-z0-9]{2,8})*",
+        value,
+        flags=re.IGNORECASE,
+    )
+    return matched.group(1).lower() if matched else value
+
+
+FortuneLocaleHeader = Annotated[Locale, BeforeValidator(_normalize_locale_header)]
 Gender = Literal["man", "woman", "undisclosed"]
 CategoryKey = Literal["love", "money", "work", "energy"]
 LuckyColorKey = Literal[

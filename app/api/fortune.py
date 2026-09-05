@@ -13,7 +13,7 @@ from app.schemas.fortune import (
     DailyFortuneStatusResponse,
     FortuneAdSessionRequest,
     FortuneAdSessionResponse,
-    Locale,
+    FortuneLocaleHeader,
     FortuneProfilePut,
     FortuneProfilePutResponse,
     FortuneProfileResponse,
@@ -21,6 +21,11 @@ from app.schemas.fortune import (
 from app.services import fortune
 
 router = APIRouter(tags=["fortune"])
+
+_LOCALE_HEADER_DESCRIPTION = (
+    "운세 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 "
+    "받으며 응답은 기본 언어 코드로 정규화한다."
+)
 
 
 @router.get("/fortune-profile", response_model=FortuneProfileResponse)
@@ -55,7 +60,11 @@ async def delete_fortune_profile(
     response_model_exclude_none=True,
 )
 async def get_daily_fortune_status(
-    locale: Locale | None = Header(default=None, alias="X-App-Locale"),
+    locale: FortuneLocaleHeader | None = Header(
+        default=None,
+        alias="X-App-Locale",
+        description=_LOCALE_HEADER_DESCRIPTION,
+    ),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
@@ -68,7 +77,11 @@ async def get_daily_fortune_status(
     response_model_exclude_none=True,
 )
 async def reveal_daily_fortune(
-    locale: Locale | None = Header(default=None, alias="X-App-Locale"),
+    locale: FortuneLocaleHeader | None = Header(
+        default=None,
+        alias="X-App-Locale",
+        description=_LOCALE_HEADER_DESCRIPTION,
+    ),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:

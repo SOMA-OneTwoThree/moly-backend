@@ -9,7 +9,9 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from app.core.db import get_session
 from app.core.errors import AppError
+from app.core.security import get_current_user
 from app.main import app
 from app.schemas.fortune import (
     DailyFortuneRevealResponse,
@@ -18,6 +20,13 @@ from app.schemas.fortune import (
     FortuneResult,
 )
 from app.services import fortune
+
+
+_USER_ID = "10000000-0000-4000-8000-000000000099"
+
+
+async def _dummy_session():
+    yield None
 
 
 def _result_wire() -> dict:
@@ -141,6 +150,93 @@ def test_fortune_routes_are_registered_but_require_authentication():
     assert client.get("/daily-fortune/status").status_code == 401
     assert client.get("/fortune-profile").status_code == 401
     assert client.post("/daily-fortune/reveal").status_code == 401
+
+
+@pytest.mark.parametrize(
+    ("sent_locale", "normalized_locale"),
+    [
+        (None, None),
+        ("ko", "ko"),
+        ("en", "en"),
+        ("ja", "ja"),
+        ("ko-KR", "ko"),
+        ("en-US", "en"),
+        ("ja-JP", "ja"),
+        ("KO-kr", "ko"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("method", "path", "service_name"),
+    [
+        ("GET", "/daily-fortune/status", "status"),
+        ("POST", "/daily-fortune/reveal", "reveal"),
+    ],
+)
+def test_fortune_routes_normalize_supported_locale_headers(
+    monkeypatch,
+    sent_locale,
+    normalized_locale,
+    method,
+    path,
+    service_name,
+):
+    captured = []
+
+    async def fake_service(_session, _user_id, *, locale):
+        captured.append(locale)
+        if service_name == "status":
+            return {"available": False}
+        return {
+            "state": "locked",
+            "access": "ad_required",
+            "local_date": "2026-09-05",
+        }
+
+    monkeypatch.setattr(fortune, service_name, fake_service)
+    app.dependency_overrides[get_current_user] = lambda: _USER_ID
+    app.dependency_overrides[get_session] = _dummy_session
+    headers = {"X-App-Locale": sent_locale} if sent_locale is not None else {}
+    try:
+        response = TestClient(app).request(method, path, headers=headers)
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert captured == [normalized_locale]
+
+
+@pytest.mark.parametrize("sent_locale", ["jp", "zh-Hant-TW", "ko_kr", "ko-"])
+@pytest.mark.parametrize(
+    ("method", "path"),
+    [
+        ("GET", "/daily-fortune/status"),
+        ("POST", "/daily-fortune/reveal"),
+    ],
+)
+def test_fortune_routes_reject_unsupported_or_malformed_locale_headers(
+    monkeypatch,
+    sent_locale,
+    method,
+    path,
+):
+    async def must_not_run(*_args, **_kwargs):  # pragma: no cover - 검증 실패가 먼저여야 한다
+        raise AssertionError("invalid locale reached the fortune service")
+
+    monkeypatch.setattr(fortune, "status", must_not_run)
+    monkeypatch.setattr(fortune, "reveal", must_not_run)
+    app.dependency_overrides[get_current_user] = lambda: _USER_ID
+    app.dependency_overrides[get_session] = _dummy_session
+    try:
+        response = TestClient(app).request(
+            method,
+            path,
+            headers={"X-App-Locale": sent_locale},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VALIDATION"
 
 
 @pytest.mark.asyncio

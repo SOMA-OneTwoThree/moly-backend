@@ -270,9 +270,10 @@ seed는 엔진·DB·API 계약을 검증하기 위한 최소 안전 집합이다
 | `POST /daily-fortune/ad-sessions` | 무료 사용자용 AdMob SSV 세션 발급 |
 | `GET /webhooks/ad-ssv` | Google 서명 검증 후 당일 결과 즉시 해제 |
 
-`X-App-Locale`은 `ko/en/ja`를 받는다. 명시한 헤더, 계정 언어, `ko` 순서로 선택하며 응답의 `locale`에는
-실제로 반환한 언어가 들어간다. 과거 한국어-only snapshot에서 요청 언어가 없을 때만 `ko`로 안전하게
-폴백한다.
+`X-App-Locale`은 `ko/en/ja`와 해당 언어의 지역 태그(`ko-KR/en-US/ja-JP` 등)를 받는다. 지역 태그는
+대소문자와 관계없이 기본 언어로 정규화한다. `jp`와 지원하지 않는 언어는 422로 거절한다. 헤더가 없으면
+계정 언어, `ko` 순서로 선택하며 응답의 `locale`에는 실제 반환한 기본 언어 코드가 들어간다. 과거
+한국어-only snapshot에서 요청 언어가 없을 때만 `ko`로 안전하게 폴백한다.
 
 ### 5.2 상태 머신
 

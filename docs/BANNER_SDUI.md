@@ -1,12 +1,13 @@
 # 홈 배너 SDUI — 서버 적용
 
-상태: **구현 중 / 미배포** · 최신화: 2026-09-05
+상태: **dev 실기기 배경 표시 확인 / 서버 문구·배치 변경 검수 중** · 최신화: 2026-09-06
 
 공개 동작·필드·고정 카드·문서 갱신 절차는 [공동 규약](BANNER_SDUI_CONTRACT.md)이 소유한다.
-이 문서에는 파일 로딩·binding 실행·서버 연결·배포/검증 방법만 둔다. API·로더·검증 도구와 배포 전후 gate를 구현했다. 실제 배포와 앱 통합 검수는 별도다.
+이 문서에는 파일 로딩·binding 실행·서버 연결·배포/검증 방법만 둔다. API·로더·검증 도구와 배포 전후 gate를 구현했다. 개발 배포와 실행 중 revision 대조를 완료했으며 앱 통합 검수는 별도다.
 
-현재 번들 manifest는 개발 `banner-assets`의 보라색 배경 한 장을 표시한다(문구·버튼 없음).
-실제 공개 다운로드의 MIME·bytes·hash를 검증했다. 개발 서버 배포와 dev 앱에서의 표시 검수는 별도다.
+현재 번들 manifest는 개발 `banner-assets`의 보라색 배경에 검수용 문구와 상점 이동 버튼을 표시한다.
+TestFlight 1.1.6 (25)에서 Apple 로그인·재실행 후 로그인 유지·보라색 배경 표시를 확인했다.
+같은 앱에서 서버 파일의 문구·버튼 frame 변경이 다음 홈 진입/앱 복귀에 반영되는지 검수한다.
 운영 승격 시 같은 파일을 prod `banner-assets`로 복사하고 URL을 교체한다. 개발 URL이 남으면 prod 배포는 실패한다.
 
 ## 1. 서버 책임과 입력 모델
@@ -92,7 +93,7 @@ flowchart LR
 ### 이미지 원본
 
 정의 파일은 이미지의 불변 URL/hash/메타데이터를 참조한다. bytes는 기존 Supabase Storage 공개 asset 배포 방식을 재사용한다.
-초기 origin 후보는 현재 상품 자산의 `https://qkgjlgzsharnilxnkytd.supabase.co`다. 배너 전용 prefix와 업로드 권한은 실제 저장소 설정을 확인해 확정한다.
+개발 저장소는 `wywzjslvxwttxkecbyis` 프로젝트의 공개 `banner-assets` bucket이다. 운영에 반영할 때는 운영 프로젝트의 저장소를 별도로 준비한다.
 새 이미지를 먼저 업로드하고, 공개 읽기/형식/상한/hash/해상도를 검증한 뒤 그 URL을 참조하는 JSON을 dev에 반영한다.
 검증기는 인증 헤더 없이 허용 origin만 조회하며 redirect를 따르지 않는다. API 시작/사용자 요청은 외부 자산 다운로드를 기다리지 않는다.
 dev/prod는 같은 공개 이미지 bytes를 사용한다. 개인화 정보는 이미지나 URL에 넣지 않는다.
@@ -100,7 +101,8 @@ dev/prod는 같은 공개 이미지 bytes를 사용한다. 개인화 정보는 �
 
 ## 4. 검증·배포·되돌리기
 
-백엔드 흐름: feature 브랜치 작업 → 자동 검증 → dev 머지/배포 → 개발 서버를 바라보는 TestFlight 확인 → main 머지/배포.
+이번 작업 흐름: 서버 feature 브랜치 작업 → 자동 검증 → 서버 dev 머지/배포 → 같은 개발 TestFlight에서 확인.
+완료 후 **becappy-mobile만 main에 머지**해 팀에 구현과 사용법을 공유한다. 서버 main 머지·운영 배포와 앱 심사 제출은 별도 작업이다.
 GitHub Actions는 서버 이미지를 배포하고 서버가 포함된 파일을 로딩한다. 배포 후 별도 DB 게시 단계는 없다.
 
 - PR/CI에서는 API와 같은 validator/compiler 및 합성 데이터로 규약·binding·경계값을 검사한다.
@@ -161,12 +163,11 @@ uv run pytest -q --ignore=tests/integration
 
 위 suite와 별도로 실제 DB 통합/개발 서버 검증이 필요하다.
 [deploy-dev.yml](../.github/workflows/deploy-dev.yml)의 dev 배포 경로로 반영하고 https://dev.moly.asia/health SHA를 확인한다.
-feature 브랜치 push만으로 개발 서버가 바뀌지 않는다. 로그인/계정 서버와 Supabase Auth는 공용이며 별도 개발 배포를 전제하지 않는다.
-개발 API는 공용 Auth의 issuer/JWKS를 검증하고, SUPABASE_DB_CONNECTION_STRING은 개발 DB를 선택한다. 클라 flavor가 DB를 직접 고르지 않는다.
-개발 DB에는 공용 JWT sub에 대응하는 테스트 프로필과 참조 관계가 필요하다. 현재 profiles.id가 auth.users를 참조하므로
-프로필 한 행만 임의 생성하거나 운영 DB를 자동 복사하지 않는다. https://dev.moly.asia가 개발 DB에 연결된 구성은 사용자에게 확인했다.
-클라에는 개발 API 주소만 설정하고 공용 계정 로그인 후 개발 루틴 조회·변경은 dev TestFlight에서 검수한다.
-공용 계정 API가 처리하는 프로필 변경/탈퇴까지 개발 DB로 분리되는 것은 아니다.
-개발 TestFlight에서 공동 완료 조건을 확인한 뒤 main으로 반영한다. [운영 배포](../.github/workflows/deploy.yml)는 main push가 계기다.
+feature 브랜치 push만으로 개발 서버가 바뀌지 않는다. 개발 로그인은 기존 개발 Supabase `wywzjslvxwttxkecbyis`를 사용한다.
+개발 계정 API는 `https://moly-server-dev.vercel.app`이며 moly-auth의 dev 브랜치를 자동 배포한다.
+개발 backend의 SUPABASE_URL·issuer/JWKS와 SUPABASE_DB_CONNECTION_STRING은 모두 개발 프로젝트를 사용한다.
+앱 flavor는 인증·계정 API·기능 API를 함께 선택하며 DB에 직접 연결하지 않는다. 운영 계정을 개발 DB에 복사하지 않는다.
+개발 프로필은 개발 로그인 후 계정 API의 기존 /me·온보딩 흐름으로 준비한다. 로그인·재실행·루틴·배너는 dev TestFlight에서 검수한다.
+이번 검수는 서버 dev에서 계속한다. 이후 별도로 운영 승격할 때 [운영 배포](../.github/workflows/deploy.yml)는 서버 main push가 계기다.
 검증한 파일 hash·서버/클라 SHA·TestFlight 빌드·기기/언어를 PR·CI에 남긴다. 지원 요소의 배너 파일만 변경하면 같은 앱으로 재검수한다.
 구현 완료 시 [문서 안내](README.md)의 API_SPEC/ARCHITECTURE에 해당 책임만 최신화하고 이 문서와 상세를 중복하지 않는다.

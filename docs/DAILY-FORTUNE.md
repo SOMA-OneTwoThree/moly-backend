@@ -397,10 +397,14 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 ## 7. 버전·배포·검증
 
 - 기능 플래그: `FORTUNE_ENABLED=false`, `FORTUNE_CHAT_ENABLED=false`가 기본값이다.
-- 개발 seed의 `approved_for_production=false`이므로 `local/development` 외 환경에서는 플래그를 켜도 fail-closed다.
+- 현재 `fortune-rules.v2.1`은 결정 규칙·점수 분포·3개 언어 카탈로그·API 계약 검증을 마쳐
+  `approved_for_production=true`다. 승인되지 않은 후속 규칙은 운영에서 계속 fail-closed다.
 - 규칙이나 문구를 바꾸면 asset version과 manifest SHA-256을 함께 바꾼다.
 - 적용된 마이그레이션 파일은 checksum 원장이 있으므로 수정하지 않고 새 파일을 추가한다.
-- 현재 개발 DB에는 `20260827_daily_fortune_v2.sql`을 적용했다. 운영 DB에는 적용하지 않았다.
+- 운세 테이블·계약 마이그레이션 3개는 개발 DB에 적용했다. 운영 DB에는 아직 적용하지 않았다.
+- 운세 대화 시작점 조회용 `20260905_fortune_chat_root_index.sql`은 개발 DB에 런북 절차로 적용해
+  checksum 원장 기록과 실제 사용 계획을 확인했다. 운영에서는 부분 인덱스를 `CONCURRENTLY` 생성한 뒤 같은
+  방식으로 원장에 기록한다.
 - 배포 순서는 **DB migration → 검증 → 코드 배포 → 기능 플래그 활성화**로 고정한다. 프로필 API는 플래그가
   꺼지면 운세 테이블 접근 전에 종료한다. worker 정리는 `to_regclass`로 테이블 존재를 확인하므로 migration 전에는
   건너뛰고, 테이블이 생긴 뒤에는 기능을 중지해도 7일 보존 정책을 계속 지킨다.
@@ -417,5 +421,6 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 8. 개발 DB migration dry-run, 모델 교차검증, 인증 포함 실제 HTTP smoke test
 9. 출시 전 문구 전수 사람 검수, 점수 분포·경로 도달률 장기 시뮬레이션
 
-정식 출시 조건은 규칙 승인, 목표 문구 확장·전수 검수, 실 AdMob ID와 SSV E2E, 모바일 상태 머신 연동, 부하·운영
-모니터링 완료다. 그 전까지 기능 플래그를 기본 OFF로 유지한다.
+이번 운영 업데이트에는 오늘의 운세와 운세 대화 연결을 함께 포함한다. 운영 반영 직전에는 실 AdMob ID와 SSV E2E,
+클라이언트 상태 머신 연동, 부하·운영 모니터링을 최종 확인한다. 애플리케이션 기본값은 비상 차단을 위해 OFF로
+유지하고, 운영 배포 설정에서 두 플래그를 명시적으로 활성화한다.

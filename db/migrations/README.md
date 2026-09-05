@@ -110,6 +110,8 @@ uv run python scripts/verify_appearance_assets.py /path/to/appearance.json
 | `20260827_daily_fortune.sql` | dev에 최초 적용한 운세 프로필·당일 snapshot·광고 세션 이력 |
 | `20260827_daily_fortune_v2.sql` | 입력을 생년월일·성별로 축소하고 결과 schema·당일 권한 제약을 확정 |
 | `20260827_fortune_chat_context.sql` | 운세 대화 구간을 표시하는 `messages.kind` 값 추가 |
+| `20260905_fortune_chat_root_index.sql` | 일반 대화의 최근 운세 시작점 조회용 부분 인덱스(CONCURRENTLY) |
 
-세 파일은 dev의 `schema_migrations`에 기록돼 있으므로 수정하지 않는다. 운영에는 적용하지 않았으며, 운영
-전환은 `docs/DAILY-FORTUNE.md`의 승인·배포 조건을 통과한 뒤 별도로 진행한다.
+네 파일은 dev의 `schema_migrations`에 기록돼 있으므로 수정하지 않는다. 운영에는 아직 적용하지 않았다. 이번
+운영 전환에서는 네 파일을 표 순서대로 먼저 적용·검증한 뒤 코드 배포와 운세·운세 대화 플래그 활성화를 진행한다.
+마지막 인덱스는 `db/apply.py`가 아니라 `db/RUNBOOK_PROD_DDL.md` 절차로 적용한다.

@@ -40,9 +40,20 @@ def _result(*, birth=None, current=None):
     )
 
 
-def test_unapproved_seed_rules_fail_closed_by_default():
+def test_release_rules_are_approved_and_run_without_development_override():
     rules = fortune_rules.load_rule_assets()
-    assert rules["approved_for_production"] is False
+    assert rules["approved_for_production"] is True
+    result = fortune_rules.generate_semantic_result(
+        birth_positions=_BIRTH,
+        current_positions=_CURRENT,
+    )
+    assert result["overall"]["score"] == 50
+
+
+def test_unapproved_rules_still_fail_closed_by_default(monkeypatch):
+    rules = dict(fortune_rules.load_rule_assets())
+    rules["approved_for_production"] = False
+    monkeypatch.setattr(fortune_rules, "load_rule_assets", lambda: rules)
     with pytest.raises(fortune_rules.UnapprovedRulesError):
         fortune_rules.generate_semantic_result(
             birth_positions=_BIRTH,

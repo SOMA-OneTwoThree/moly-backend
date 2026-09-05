@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from app.config import settings
 from app.core.db import get_session
 from app.core.errors import AppError
 from app.core.security import get_current_user
@@ -27,6 +28,12 @@ _USER_ID = "10000000-0000-4000-8000-000000000099"
 
 async def _dummy_session():
     yield None
+
+
+def test_approved_release_assets_are_ready_in_production(monkeypatch):
+    monkeypatch.setattr(settings, "fortune_enabled", True)
+    monkeypatch.setattr(settings, "environment", "production")
+    assert fortune._ready() is True
 
 
 def _result_wire() -> dict:

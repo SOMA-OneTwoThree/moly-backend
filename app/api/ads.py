@@ -36,11 +36,17 @@ async def ad_ssv(
     """
     p = request.query_params
     key_id, signature = p.get("key_id"), p.get("signature")
-    reward_session_id, transaction_id = p.get("custom_data"), p.get("transaction_id")
-    if not (key_id and signature and reward_session_id and transaction_id):
+    if not (key_id and signature):
         raise errors.validation("SSV 파라미터가 누락됐어요.")
     if not await ads_ssv.verify(request.url.query, key_id, signature):
         raise errors.ad_verify_failed()
+    reward_session_id, transaction_id = p.get("custom_data"), p.get("transaction_id")
+    # AdMob 콘솔의 콜백 URL 확인 요청은 실제 보상 콜백과 달리 선택 매개변수를
+    # 생략할 수 있다. Google 서명이 유효한 요청만 200으로 종결하되, 세션/거래가
+    # 없으면 어떤 보상도 지급하지 않는다. 실제 콜백은 아래 처리 경로에서 두 값을
+    # 모두 사용하므로 누락된 요청이 보상으로 이어질 수 없다.
+    if not (reward_session_id and transaction_id):
+        return {"status": "ok", "result": "invalid_session"}
     if reward_session_id.startswith("fortune:"):
         result = await fortune_ads.verify_from_ssv(
             session,

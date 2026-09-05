@@ -263,6 +263,40 @@ def test_ssv_webhook_missing_params():
     assert r.status_code == 422 and r.json()["error"]["code"] == "VALIDATION"
 
 
+def test_ssv_webhook_signed_probe_without_business_params_returns_200(monkeypatch):
+    """AdMob URL 확인 요청은 서명 후 no-op 200으로 종결하고 보상을 건드리지 않는다."""
+    async def _verify(*_args, **_kwargs):
+        return True
+
+    async def _grant(*_args, **_kwargs):
+        raise AssertionError("verification-only callback must not grant a reward")
+
+    monkeypatch.setattr(ads_ssv, "verify", _verify)
+    monkeypatch.setattr(ads, "grant_from_ssv", _grant)
+    app.dependency_overrides[get_session] = _dummy_session
+    try:
+        r = TestClient(app).get("/webhooks/ad-ssv?signature=s&key_id=1")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok", "result": "invalid_session"}
+
+
+def test_ssv_webhook_unsigned_probe_is_rejected(monkeypatch):
+    """URL 확인 호환 경로도 Google 서명 검증을 우회하지 못한다."""
+    async def _verify(*_args, **_kwargs):
+        return False
+
+    monkeypatch.setattr(ads_ssv, "verify", _verify)
+    app.dependency_overrides[get_session] = _dummy_session
+    try:
+        r = TestClient(app).get("/webhooks/ad-ssv?signature=bad&key_id=1")
+    finally:
+        app.dependency_overrides.clear()
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "AD_VERIFY_FAILED"
+
+
 @pytest.mark.parametrize("outcome", ["granted", "session_not_found"])
 def test_ssv_webhook_result_in_body(monkeypatch, outcome):
     """서명 통과 후 처리 결과는 HTTP 200 유지 + body result로 구분."""

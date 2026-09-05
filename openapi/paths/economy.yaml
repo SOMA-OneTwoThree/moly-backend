@@ -238,7 +238,8 @@
     summary: AdMob server-side verification callback
     description: 공개 HTTP endpoint지만 Google ECDSA signature가 권한 경계다. custom_data는 건초용 UUID 또는
       운세용 fortune:<UUID>다. 운세형은 user_id·ad_unit·reward_item·reward_amount까지 서명된 query와 서버 계약을
-      대조한다. signature 통과 후 영구 실패/중복도 Google 재시도를 피하기 위해 항상 200이고 result로 구분한다.
+      대조한다. 서명된 AdMob URL 확인 요청에 실제 세션 또는 거래 ID가 없으면 보상 없이 200 invalid_session으로
+      종결한다. signature 통과 후 영구 실패/중복도 Google 재시도를 피하기 위해 항상 200이고 result로 구분한다.
       verifier key timeout은 10초, cache TTL은 24시간이다. 추가 query는 허용되며 signature 앞 원본 query에 있으면
       서명 대상에 포함된다.
     operationId: handleAdMobSsv
@@ -252,7 +253,7 @@
       '500':
         $ref: ../components/common.yaml#/responses/Internal
       '422':
-        description: 필수 query 누락/empty 또는 Google SSV signature/key 검증 실패
+        description: signature/key 누락·empty 또는 Google SSV signature/key 검증 실패
         content:
           application/json:
             schema:
@@ -284,15 +285,15 @@
         minLength: 1
     - name: custom_data
       in: query
-      required: true
-      description: 건초는 reward_session_id UUID, 운세는 fortune:<fortune_session_uuid>. 형식이 다르면 signature 통과 후 200 result=invalid_session.
+      required: false
+      description: 건초는 reward_session_id UUID, 운세는 fortune:<fortune_session_uuid>. AdMob URL 확인 요청에서 생략될 수 있으며, 누락·형식 오류는 signature 통과 후 200 result=invalid_session.
       schema:
         type: string
         minLength: 1
     - name: transaction_id
       in: query
-      required: true
-      description: AdMob SSV transaction id. unique 멱등 key.
+      required: false
+      description: AdMob SSV transaction id. 실제 보상에서는 unique 멱등 key이며, URL 확인 요청에서 누락되면 보상 없이 200으로 종결한다.
       schema:
         type: string
         minLength: 1

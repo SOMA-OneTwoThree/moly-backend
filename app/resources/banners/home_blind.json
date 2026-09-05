@@ -5,6 +5,306 @@
   "enabled": true,
   "banners": [
     {
+      "id": "composed-image-test",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {},
+      "when": null,
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/purple-254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5.png",
+              "sha256": "254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5",
+              "byte_length": 1940,
+              "pixel_width": 864,
+              "pixel_height": 476,
+              "media_type": "image/png"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 1.5,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "qa-title",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "top",
+              "frame": {
+                "x": 0.06,
+                "y": 0.1,
+                "width": 0.88,
+                "height": 0.32
+              },
+              "text": {
+                "kind": "template",
+                "value": "Images placed by the server"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 18,
+                "weight": 700,
+                "color": "#FFFFFF",
+                "align": "start",
+                "max_lines": 2,
+                "line_height": 1.2
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.42,
+                "y": 0.5,
+                "width": 0.52,
+                "height": 0.42
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFE082"
+              },
+              "radius": 12,
+              "border": {
+                "width": 0,
+                "color": "#FFE082"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-image",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.44,
+                "y": 0.53,
+                "width": 0.48,
+                "height": 0.36
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/purple-254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5.png",
+                "sha256": "254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5",
+                "byte_length": 1940,
+                "pixel_width": 864,
+                "pixel_height": 476,
+                "media_type": "image/png"
+              },
+              "fit": "cover",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.5,
+                "y": 0.63,
+                "width": 0.36,
+                "height": 0.16
+              },
+              "text": {
+                "kind": "template",
+                "value": "Open shop"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 15,
+                "weight": 700,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.2
+              }
+            },
+            {
+              "id": "shop-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.42,
+                "y": 0.5,
+                "width": 0.52,
+                "height": 0.42
+              },
+              "content_ids": [
+                "action-surface",
+                "action-image",
+                "action-label"
+              ],
+              "accessibility_label": "Open shop",
+              "semantics_order": 2,
+              "action": {
+                "type": "open_shop"
+              }
+            }
+          ]
+        },
+        "ko": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/purple-254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5.png",
+              "sha256": "254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5",
+              "byte_length": 1940,
+              "pixel_width": 864,
+              "pixel_height": 476,
+              "media_type": "image/png"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 1.5,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "qa-title",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "top",
+              "frame": {
+                "x": 0.06,
+                "y": 0.1,
+                "width": 0.88,
+                "height": 0.32
+              },
+              "text": {
+                "kind": "template",
+                "value": "이미지도 서버에서 배치해요"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 18,
+                "weight": 700,
+                "color": "#FFFFFF",
+                "align": "start",
+                "max_lines": 2,
+                "line_height": 1.2
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.42,
+                "y": 0.5,
+                "width": 0.52,
+                "height": 0.42
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFE082"
+              },
+              "radius": 12,
+              "border": {
+                "width": 0,
+                "color": "#FFE082"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-image",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.44,
+                "y": 0.53,
+                "width": 0.48,
+                "height": 0.36
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/purple-254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5.png",
+                "sha256": "254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5",
+                "byte_length": 1940,
+                "pixel_width": 864,
+                "pixel_height": 476,
+                "media_type": "image/png"
+              },
+              "fit": "cover",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.5,
+                "y": 0.63,
+                "width": 0.36,
+                "height": 0.16
+              },
+              "text": {
+                "kind": "template",
+                "value": "상점 열기"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 15,
+                "weight": 700,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.2
+              }
+            },
+            {
+              "id": "shop-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.42,
+                "y": 0.5,
+                "width": 0.52,
+                "height": 0.42
+              },
+              "content_ids": [
+                "action-surface",
+                "action-image",
+                "action-label"
+              ],
+              "accessibility_label": "상점 열기",
+              "semantics_order": 2,
+              "action": {
+                "type": "open_shop"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "purple-image-test",
       "component": "banner_canvas_v1",
       "layout_profile": "home_blind_v1",

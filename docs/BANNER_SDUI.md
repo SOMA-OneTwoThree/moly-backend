@@ -162,7 +162,9 @@ uv run pytest -q --ignore=tests/integration
 위 suite와 별도로 실제 DB 통합/개발 서버 검증이 필요하다.
 [deploy-dev.yml](../.github/workflows/deploy-dev.yml)의 dev 배포 경로로 반영하고 https://dev.moly.asia/health SHA를 확인한다.
 feature 브랜치 push만으로 개발 서버가 바뀌지 않는다. 로그인/계정 서버와 Supabase Auth는 공용이며 별도 개발 배포를 전제하지 않는다.
-개발 API는 공용 Auth의 issuer/JWKS를 검증하고, SUPABASE_DB_CONNECTION_STRING은 개발 DB를 선택한다. 클라 flavor가 DB를 직접 고르지 않는다.
+개발 API는 `SUPABASE_AUTH_URL=https://qkgjlgzsharnilxnkytd.supabase.co`의 issuer/JWKS를 검증한다.
+`SUPABASE_URL`은 개발 프로젝트, `SUPABASE_DB_CONNECTION_STRING`은 개발 DB를 유지한다.
+배포 스크립트가 SSM `supabase-auth-url`을 전달한다. 이 선택 값이 없으면 기존처럼 `SUPABASE_URL`로 검증한다. 클라 flavor가 DB를 직접 고르지 않는다.
 개발 DB에는 공용 JWT sub에 대응하는 테스트 프로필과 참조 관계가 필요하다. 현재 profiles.id가 auth.users를 참조하므로
 프로필 한 행만 임의 생성하거나 운영 DB를 자동 복사하지 않는다. https://dev.moly.asia가 개발 DB에 연결된 구성은 사용자에게 확인했다.
 클라에는 개발 API 주소만 설정하고 공용 계정 로그인 후 개발 루틴 조회·변경은 dev TestFlight에서 검수한다.

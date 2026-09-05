@@ -17,11 +17,13 @@ class Settings(BaseSettings):
 
     # --- Supabase (Auth + Postgres + pgvector) ---
     supabase_url: str = ""
+    # 공용 로그인과 환경별 데이터 프로젝트가 다르면 JWT 발급자를 별도로 지정한다.
+    supabase_auth_url: str = ""
     # 신형 API 키(sb_publishable_/sb_secret_) — legacy anon/service_role은 2026-08 유출로 폐기.
     # 런타임 미사용(DB는 connection string 직결, 인증은 JWKS) — dev 스크립트·통합 테스트용.
     supabase_publishable_key: str = ""
     supabase_secret_key: str = ""
-    # JWT 검증(JWKS 로컬 검증) — 미설정 시 remote getUser 폴백(auth 설계 단계에서 확정)
+    # JWT 공개키 URL override. 미설정 시 Auth URL에서 JWKS 경로를 유도한다.
     supabase_jwks_url: str = ""
     # 익명 로그인 토큰 허용 여부 — 제품은 소셜 전용이라 기본 거부(is_anonymous 토큰 401).
     # 통합 테스트만 True로 오버라이드(익명 sign-in으로 토큰 발급).

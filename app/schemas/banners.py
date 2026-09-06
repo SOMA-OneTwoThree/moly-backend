@@ -101,12 +101,18 @@ class BannerGradient(BannerModel):
     direction: Literal["horizontal", "vertical", "diagonal_down", "diagonal_up"]
 
 
+class BannerBackgroundOverlay(BannerModel):
+    color: Color
+    opacity: Unit
+
+
 class BannerImageBackground(BannerModel):
     type: Literal["image_background_v1"]
     source: BannerImageSource
     fit: Literal["cover"]
     alignment: BannerAlignment
     base_color: Color
+    overlay: BannerBackgroundOverlay | None = None
 
 
 Background = Annotated[

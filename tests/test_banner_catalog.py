@@ -197,6 +197,65 @@ def composed_action_manifest():
     return raw
 
 
+def overlay_manifest():
+    raw = composed_action_manifest()
+    fixture = json.loads((Path(__file__).parent / "fixtures/banners/overlay_feed.json").read_text())
+    raw["banners"][0]["canvases_by_locale"]["en"]["background"] = fixture["items"][0]["canvas"][
+        "background"
+    ]
+    return raw
+
+
+@pytest.mark.parametrize("opacity", [0, 0.25, 1])
+def test_overlay_compiles_and_requires_capability_even_when_transparent(opacity):
+    raw = overlay_manifest()
+    raw["banners"][0]["canvases_by_locale"]["en"]["background"]["overlay"]["opacity"] = opacity
+    catalog = load(raw)
+    canvas = catalog.manifest.banners[0].canvases_by_locale["en"]
+    wire = compile_canvas(canvas, {"today": "Sep 6", "remaining": 1})
+    assert wire.background.overlay.opacity == opacity
+    assert wire.background.overlay.color == "#000000"
+    supported = capabilities(canvas)
+    params = dict(now=datetime.now(timezone.utc), platform="ios", app_version="1.1.6", locale="en")
+    assert select_candidates(catalog, supported=supported, **params)
+    assert not select_candidates(
+        catalog, supported=supported - {"image_background_overlay_v1"}, **params
+    )
+
+
+@pytest.mark.parametrize("omit", [True, False])
+def test_image_without_overlay_retains_existing_capabilities(omit):
+    raw = overlay_manifest()
+    background = raw["banners"][0]["canvases_by_locale"]["en"]["background"]
+    if omit:
+        del background["overlay"]
+    else:
+        background["overlay"] = None
+    canvas = load(raw).manifest.banners[0].canvases_by_locale["en"]
+    assert "image_background_overlay_v1" not in capabilities(canvas)
+    assert compile_canvas(canvas, {"today": "Sep 6", "remaining": 1}).background.overlay is None
+
+
+@pytest.mark.parametrize(
+    "overlay",
+    [
+        {},
+        {"color": "#000000"},
+        {"color": "#00000080", "opacity": 0.25},
+        {"color": "#000000", "opacity": -0.01},
+        {"color": "#000000", "opacity": 1.01},
+        {"color": "#000000", "opacity": True},
+        {"color": "#000000", "opacity": "0.25"},
+        {"color": "#000000", "opacity": float("nan")},
+    ],
+)
+def test_invalid_overlay_rejected(overlay):
+    raw = overlay_manifest()
+    raw["banners"][0]["canvases_by_locale"]["en"]["background"]["overlay"] = overlay
+    with pytest.raises(ValueError):
+        load(raw)
+
+
 def test_composed_action_compiles_and_requires_new_capabilities():
     catalog = load(composed_action_manifest())
     banner = catalog.manifest.banners[0]

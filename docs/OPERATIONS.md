@@ -26,8 +26,8 @@ infra 변경은 저장소 반영만으로 실행 중 프로세스에 적용되�
 `deploy.sh`는 SSM에서 후보 env 생성 → 이미지 pull → 읽기 전용 DB preflight → live env 교체 →
 API·consumer 기동 → 헬스·이미지·nginx 검사 → 워커 타이머 갱신 순서다. 새 이미지는 전체 스키마
 계약을 검사하고, 검증 모듈이 없는 구 이미지는 운세·광고 구조 검사로 롤백을 지원한다.
-preflight 실패 시 기존 `.env`·`backend.env`를 유지한다. FCM 파일은 먼저 작성되는 현재 절차이므로
-모든 파일이 함께 rollback되는 것은 아니다.
+preflight 실패 시 기존 `.env`·`backend.env`·FCM 파일을 유지한다. FCM도 후보 파일에서 검증 성공
+후 반영한다. 이후 컨테이너 기동 실패까지 모든 파일을 자동 rollback하는 것은 아니다.
 
 롤백은 해당 workflow의 `workflow_dispatch`에서 검증된 기존 `image_tag`를 지정한다.
 prod의 `expected_instances`는 기본 2다. 1로 줄이면 남은 호스트를 제외하는 동안 서비스가

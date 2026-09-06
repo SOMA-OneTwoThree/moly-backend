@@ -14,7 +14,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from contextlib import suppress
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -28,22 +27,13 @@ QUEUE = "memory"
 
 
 async def _pending(session_maker) -> tuple[int, int, int]:
-    from sqlalchemy import text
+    from app.services import jobs
 
     async with session_maker() as s:
-        row = (
-            await s.execute(
-                text(
-                    "SELECT count(*) FILTER (WHERE state='ready') ready,"
-                    "       count(*) FILTER (WHERE state='running') running,"
-                    "       count(*) FILTER (WHERE state='dead') dead"
-                    "  FROM async_jobs WHERE queue=:q"
-                    "    AND state IN ('ready','running','dead')"
-                ),
-                {"q": QUEUE},
-            )
-        ).first()
-    return int(row[0]), int(row[1]), int(row[2])
+        # 4a47960: a successful replay resolves every dead ancestor, while the
+        # original rows remain for audit. Use the production queue definition.
+        stats = (await jobs.queue_stats(s))[QUEUE]
+    return stats['ready'], stats['running'], stats['dead']
 
 
 async def main() -> int:
@@ -101,8 +91,9 @@ async def main() -> int:
     finally:
         stop.set()
         watcher.cancel()
-        with suppress(asyncio.CancelledError):
-            await watcher
+        # A monitor exception was already propagated above. It must not skip the
+        # consumer drain in this finally block and abandon an external write.
+        await asyncio.gather(watcher, return_exceptions=True)
         if not task.done():
             await task
         r, run_, d = await _pending(maker)

@@ -62,6 +62,7 @@ async def _run(mod, monkeypatch, *, upper=42, earliest=1):
     async def _enq(session, uid, *, turn_seq, **k):
         assert k["privacy_epoch"] == 4
         calls["enqueued"].append(turn_seq)
+        return uuid.uuid4()
 
     monkeypatch.setattr(mod.memory_pipeline, "enter_shadow", _enter)
     monkeypatch.setattr(mod.memory_pipeline, "next_ingest_turn", _next)

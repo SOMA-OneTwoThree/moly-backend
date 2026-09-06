@@ -57,6 +57,8 @@ uv run python -m db.verify --env dev
 실행한다. 시퀀스 증가와 외부 호출처럼 PostgreSQL rollback 대상이 아닌 효과는 복구되지 않으므로
 검토 없이 live 데이터 쓰기를 시험하는 용도로 쓰지 않는다. 쓰기는 dev 프로젝트 ref를 확인하며, prod 반영에는
 `--env prod --commit --allow-prod`가 모두 필요하다. 운영 반영은 검토·승인한 SQL만 실행한다.
+대상 보호 검사는 URL의 사용자 이름에서 프로젝트 ref를 읽는다. 연결 대상을 덮어쓸 수 있는
+query parameter나 fragment가 있는 주소는 dev 쓰기 대상으로 승인하지 않는다.
 `--expected-sha256`은 검토 이후 파일이 바뀌었는지 확인한다. 기존 `schema_migrations` 기록은
 보존하지만 새 변경을 이 원장에 누적하거나 배포 성공 조건으로 사용하지 않는다.
 

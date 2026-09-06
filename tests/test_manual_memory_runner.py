@@ -65,3 +65,36 @@ def test_batch_shell_is_bounded_and_propagates_failure(tmp_path, scenario):
     if scenario == 'preview':
         assert '--yes' not in calls[0]
         assert 'run_memory_consumer' not in calls[0]
+
+
+async def test_monitor_failure_still_drains_the_running_consumer(monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['run_memory_consumer.py', '--env', 'dev', '--seconds', '1'])
+    monkeypatch.setenv('MOLY_ENV_FILE', '.env')
+    monkeypatch.setattr(envfile, 'configure_application_db', lambda env: 'postgresql://test@localhost/local')
+    monkeypatch.setattr(envfile, 'announce', lambda *a, **k: None)
+    monkeypatch.setattr(db, 'get_sessionmaker', lambda: object())
+    calls = 0
+    drained = False
+    original_sleep = asyncio.sleep
+    async def pending(maker):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError('monitor connection failed')
+        return (1, 0, 0)
+    async def quick_sleep(seconds):
+        await original_sleep(0)
+    async def run(*, queues, stop):
+        nonlocal drained
+        await stop.wait()
+        await original_sleep(0.02)
+        drained = True
+    monkeypatch.setattr(runner, '_pending', pending)
+    monkeypatch.setattr(consumer, 'run_consumer', run)
+    monkeypatch.setattr(asyncio, 'sleep', quick_sleep)
+    try:
+        with pytest.raises(OSError, match='monitor connection failed'):
+            await runner.main()
+        assert drained, 'monitor error must not abandon an in-flight provider call'
+    finally:
+        await original_sleep(0.03)

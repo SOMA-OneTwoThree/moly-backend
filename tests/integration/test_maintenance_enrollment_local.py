@@ -89,3 +89,37 @@ async def test_contract_draft_rechecks_source_and_privacy_before_atomic_write(su
         with pytest.raises(MaintenanceBlocked):
             await backfill._persist_draft(session, uid, [candidate], 'en', 4, source)
         assert await conn.fetchval('SELECT count(*) FROM user_interaction_contracts WHERE user_id=$1', uid) == 0
+
+
+async def test_bootstrap_terminal_key_conflict_is_not_reported_as_started(subject):
+    from app.services import memory_pipeline
+    session, conn, uid = subject
+    original = await memory_pipeline.enqueue_ingest(session, uid, turn_seq=5, cursor=0, privacy_epoch=4)
+    await conn.execute("UPDATE async_jobs SET state='dead',finished_at=now() WHERE id=$1", original)
+    with pytest.raises(MaintenanceBlocked, match='bootstrap_job_conflict'):
+        async with session.begin_nested():
+            await enter_shadow_cohort._one(session, uid, apply=True)
+    assert await conn.fetchval('SELECT mode FROM memory_pipeline_states WHERE user_id=$1', uid) == 'legacy'
+    assert await conn.fetchval('SELECT state FROM async_jobs WHERE id=$1', original) == 'dead'
+    assert await conn.fetchval('SELECT count(*) FROM async_jobs WHERE user_id=$1', uid) == 1
+
+
+async def test_manual_consumer_counts_unresolved_death_across_full_replay_chain(subject):
+    from contextlib import asynccontextmanager
+    from app.services import jobs, memory_pipeline
+    from scripts.run_memory_consumer import _pending
+    session, conn, uid = subject
+    @asynccontextmanager
+    async def maker():
+        yield session
+    before = await _pending(maker)
+    original = await memory_pipeline.enqueue_ingest(session, uid, turn_seq=5, cursor=0, privacy_epoch=4)
+    await conn.execute("UPDATE async_jobs SET state='dead',finished_at=now() WHERE id=$1", original)
+    retry = await jobs.replay_dead(session, job_id=original, operation_id=uuid.uuid4())
+    await conn.execute("UPDATE async_jobs SET state='dead',finished_at=now() WHERE id=$1", retry)
+    last = await jobs.replay_dead(session, job_id=retry, operation_id=uuid.uuid4())
+    # While the last replay is ready, both dead ancestors are still unresolved.
+    assert await _pending(maker) == (before[0] + 1, before[1], before[2] + 2)
+    await conn.execute("UPDATE async_jobs SET state='succeeded',finished_at=now() WHERE id=$1", last)
+    assert await _pending(maker) == before
+    assert await conn.fetchval("SELECT count(*) FROM async_jobs WHERE user_id=$1 AND state='dead'", uid) == 2

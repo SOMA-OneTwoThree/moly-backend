@@ -44,3 +44,24 @@ def test_db_only_env_read_preserves_literal_password_and_ignores_unrelated_notes
                    'SUPABASE_DB_CONNECTION_STRING="postgresql://tester:${not_expanded}@localhost/test"\n')
     assert load_conn(str(env)) == 'postgresql://tester:${not_expanded}@localhost/test'
     assert not caplog.records
+
+
+@pytest.mark.parametrize('dsn', [
+    'postgresql://postgres.wywzjslvxwttxkecbyis:pw@localhost/postgres?user=postgres.otherproject',
+    'postgresql://postgres.wywzjslvxwttxkecbyis:pw@localhost/postgres?host=another-host',
+    'postgresql://postgres.wywzjslvxwttxkecbyis:pw@localhost/postgres?dbname=another-database',
+    'postgresql://admin:postgres.wywzjslvxwttxkecbyis:pw@localhost/postgres',
+])
+def test_dev_guard_rejects_connection_overrides_and_ref_in_password(dsn):
+    from db.envfile import assert_dev_target
+    with pytest.raises(SystemExit, match='차단'):
+        assert_dev_target('dev', dsn)
+
+
+def test_dev_guard_accepts_only_the_expected_username_target():
+    from db.envfile import assert_dev_target, project_ref
+    dsn = 'postgresql://postgres.wywzjslvxwttxkecbyis:pw@localhost/postgres'
+    assert_dev_target('dev', dsn)
+    assert project_ref(dsn) == 'wywzjslvxwttxkecbyis'
+    with pytest.raises(SystemExit):
+        assert_dev_target('prod', dsn)

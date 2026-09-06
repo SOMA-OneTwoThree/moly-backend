@@ -18,6 +18,7 @@ import re
 import sys
 from io import StringIO
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 from dotenv import dotenv_values
 
@@ -83,7 +84,17 @@ def load_conn(env_file: str | None = None) -> str:
 
 def project_ref(dsn: str) -> str:
     """DSN에서 Supabase 프로젝트 ref 추출(로그용). 실패 시 unknown."""
-    m = re.search(r"postgres\.([a-z0-9]+):", dsn)
+    try:
+        target = urlsplit(dsn)
+        # asyncpg permits URL query parameters to override user/host/database.
+        # Never authorize a different effective target from the visible URL.
+        if (target.scheme not in {'postgres', 'postgresql', 'postgresql+asyncpg'}
+                or target.query or target.fragment):
+            return 'unknown'
+        username = unquote(target.username or '')
+    except ValueError:
+        return 'unknown'
+    m = re.fullmatch(r"postgres\.([a-z0-9]+)", username)
     return m.group(1) if m else "unknown"
 
 

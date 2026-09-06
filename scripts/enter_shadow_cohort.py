@@ -21,7 +21,7 @@ from sqlalchemy import text
 from app.core.db import get_sessionmaker
 from app.services import memory_pipeline
 from db.envfile import announce, configure_application_db, split_env_arg
-from db.maintenance import lock_enrollment_subject
+from db.maintenance import MaintenanceBlocked, lock_enrollment_subject
 
 # 후보 조회 뒤에도 쓰기 트랜잭션에서 삭제 장벽과 버전을 다시 검사한다.
 _CANDIDATES = text("""
@@ -51,7 +51,11 @@ async def _one(session, uid: uuid.UUID, *, apply: bool) -> str:
     if not await memory_pipeline.mark_bootstrap_ready(session, uid):
         return "collecting이 아니다 — ready 전환 안 함"
 
-    await memory_pipeline.enqueue_ingest(session, uid, turn_seq=earliest, cursor=0, privacy_epoch=epoch)
+    created = await memory_pipeline.enqueue_ingest(
+        session, uid, turn_seq=earliest, cursor=0, privacy_epoch=epoch,
+    )
+    if created is None:
+        raise MaintenanceBlocked('bootstrap_job_conflict')
     return f"upper={upper}, ready, 최초 잡 turn={earliest}"
 
 

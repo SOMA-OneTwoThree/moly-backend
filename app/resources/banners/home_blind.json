@@ -40,7 +40,7 @@
           },
           "radius": 16,
           "border": {
-            "width": 1.5,
+            "width": 0,
             "color": "#2A1D15"
           },
           "elements": [
@@ -181,7 +181,7 @@
           },
           "radius": 16,
           "border": {
-            "width": 1.5,
+            "width": 0,
             "color": "#2A1D15"
           },
           "elements": [
@@ -340,7 +340,7 @@
           },
           "radius": 16,
           "border": {
-            "width": 1.5,
+            "width": 0,
             "color": "#2A1D15"
           },
           "elements": [
@@ -427,7 +427,7 @@
           },
           "radius": 16,
           "border": {
-            "width": 1.5,
+            "width": 0,
             "color": "#2A1D15"
           },
           "elements": [

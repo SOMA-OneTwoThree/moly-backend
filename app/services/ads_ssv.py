@@ -1,6 +1,7 @@
 """AdMob 리워드 SSV 서명검증 — Google verifier 공개키(ECDSA P-256)로 검증.
 
-서명 대상 = 콜백 쿼리스트링에서 '&signature=' 이전 전체(원본 순서). 키는 key_id로 매칭.
+서명 대상 = '&signature=' 이전 쿼리를 percent-decode 한 번 한 UTF-8 바이트(원본 순서).
+Google Tink RewardedAdsVerifier의 URI.getQuery()와 동일하다. 키는 key_id로 매칭.
 클라는 서명을 다루지 않음 — 시청 확정은 반드시 서버-서버 SSV로(ERD §4.2).
 """
 from __future__ import annotations
@@ -13,7 +14,7 @@ import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from urllib.parse import parse_qsl
+from urllib.parse import unquote
 
 import httpx
 from cryptography.hazmat.primitives import hashes
@@ -109,7 +110,7 @@ def _parse_envelope(raw_query: str) -> _SsvEnvelope | None:
     if not raw_query or len(raw_query) > _MAX_QUERY_LENGTH:
         return None
     try:
-        raw_query_bytes = raw_query.encode("ascii")
+        raw_query.encode("ascii")
     except UnicodeEncodeError:
         return None
     if _BAD_PERCENT_ESCAPE_RE.search(raw_query):
@@ -129,24 +130,21 @@ def _parse_envelope(raw_query: str) -> _SsvEnvelope | None:
     if key_name != "key_id" or not separator or _KEY_ID_RE.fullmatch(key_id) is None:
         return None
 
-    signed_query = "&".join(fields[:-2])
-    if not signed_query:
-        return None
     try:
-        pairs = parse_qsl(
-            signed_query,
-            keep_blank_values=True,
-            strict_parsing=True,
-            encoding="utf-8",
-            errors="strict",
-            max_num_fields=32,
-        )
+        signed_query = unquote("&".join(fields[:-2]), encoding="utf-8", errors="strict")
     except (UnicodeError, ValueError):
+        return None
+    signed_fields = signed_query.split("&")
+    if not signed_query or len(signed_fields) > 32:
         return None
 
     parameters: dict[str, str] = {}
     seen_critical_fields: set[str] = set()
-    for name, value in pairs:
+    for field in signed_fields:
+        # 서명한 표현을 그대로 파싱한다. parse_qsl은 '%'를 두 번 decode하고 '+'도 바꾼다.
+        name, separator, value = field.partition("=")
+        if not separator:
+            return None
         # signature/key_id가 prefix에도 있으면 envelope가 중복·모호하므로 거절한다.
         if name in {"signature", "key_id"}:
             return None
@@ -160,7 +158,7 @@ def _parse_envelope(raw_query: str) -> _SsvEnvelope | None:
             return None
         parameters[name] = value
 
-    signed_content = raw_query_bytes[: len(signed_query)]
+    signed_content = signed_query.encode("utf-8")
     return _SsvEnvelope(
         signed_content=signed_content,
         signature=signature,

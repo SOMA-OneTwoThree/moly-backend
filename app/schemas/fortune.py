@@ -68,12 +68,15 @@ class FortuneProfilePutResponse(FortuneProfileResponse):
     unlock_preserved: bool
 
 
-class FortuneOverallResult(StrictResponse):
+class FortuneBasicOverallResult(StrictResponse):
     score: int = Field(ge=0, le=100)
     headline: str = Field(min_length=1)
-    flow: list[str] = Field(min_length=3, max_length=3)
     do: str = Field(min_length=1)
     pause: str = Field(min_length=1)
+
+
+class FortuneOverallResult(FortuneBasicOverallResult):
+    flow: list[str] = Field(min_length=3, max_length=3)
 
 
 class FortuneCategoryResult(StrictResponse):
@@ -94,12 +97,16 @@ class FortuneLuckyColor(StrictResponse):
     hex: str = Field(pattern=r"^#[0-9A-F]{6}$")
 
 
-class FortuneResult(StrictResponse):
+class FortuneBasicResult(StrictResponse):
     schema_version: Literal[3] = 3
     locale: Locale
+    overall: FortuneBasicOverallResult
+    lucky_color: FortuneLuckyColor
+
+
+class FortuneResult(FortuneBasicResult):
     overall: FortuneOverallResult
     categories: FortuneCategories
-    lucky_color: FortuneLuckyColor
 
 
 class FortuneVersions(StrictResponse):
@@ -113,11 +120,11 @@ class DailyFortuneStatusResponse(StrictResponse):
     state: Literal["profile_required", "unseen", "locked", "revealed"] | None = None
     access: Literal["included", "ad_required", "unlocked_today"] | None = None
     local_date: date | None = None
-    result: FortuneResult | None = None
+    result: FortuneResult | FortuneBasicResult | None = None
     versions: FortuneVersions | None = None
 
     @model_validator(mode="after")
-    def result_only_when_revealed(self) -> "DailyFortuneStatusResponse":
+    def result_matches_state(self) -> "DailyFortuneStatusResponse":
         optional = (self.state, self.access, self.local_date, self.result, self.versions)
         if not self.available:
             if any(value is not None for value in optional):
@@ -136,10 +143,13 @@ class DailyFortuneStatusResponse(StrictResponse):
         if self.state == "revealed":
             if self.access != "unlocked_today":
                 raise ValueError("status only exposes revealed content after today's unlock")
-            if self.result is None or self.versions is None:
+            if not isinstance(self.result, FortuneResult) or self.versions is None:
                 raise ValueError("revealed status requires result and versions")
-        elif self.state == "locked" and self.access == "unlocked_today":
-            raise ValueError("locked status cannot have a daily unlock")
+        elif self.state == "locked":
+            if self.access == "unlocked_today":
+                raise ValueError("locked status cannot have a daily unlock")
+            if type(self.result) is not FortuneBasicResult or self.versions is None:
+                raise ValueError("locked status requires basic result and versions only")
         elif self.result is not None or self.versions is not None:
             raise ValueError("non-revealed status cannot include content")
         return self
@@ -149,15 +159,23 @@ class DailyFortuneRevealResponse(StrictResponse):
     state: Literal["locked", "revealed"]
     access: Literal["included", "ad_required", "unlocked_today"]
     local_date: date
-    result: FortuneResult | None = None
+    result: FortuneResult | FortuneBasicResult | None = None
     versions: FortuneVersions | None = None
 
     @model_validator(mode="after")
     def result_matches_state(self) -> "DailyFortuneRevealResponse":
         if self.state == "locked":
-            if self.access != "ad_required" or self.result is not None or self.versions is not None:
-                raise ValueError("locked response must require an ad and cannot expose content")
-        elif self.access == "ad_required" or self.result is None or self.versions is None:
+            if (
+                self.access != "ad_required"
+                or type(self.result) is not FortuneBasicResult
+                or self.versions is None
+            ):
+                raise ValueError("locked response requires an ad, basic result, and versions only")
+        elif (
+            self.access == "ad_required"
+            or not isinstance(self.result, FortuneResult)
+            or self.versions is None
+        ):
             raise ValueError("revealed response requires access, result, and versions")
         return self
 

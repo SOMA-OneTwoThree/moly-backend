@@ -58,6 +58,13 @@ def _result_wire() -> dict:
     }
 
 
+def _basic_result_wire() -> dict:
+    result = _result_wire()
+    del result["overall"]["flow"]
+    del result["categories"]
+    return result
+
+
 def test_profile_accepts_only_birth_date_and_gender():
     req = FortuneProfilePut(gender="man", birth_date=date(2002, 12, 13))
     assert req.model_dump() == {"gender": "man", "birth_date": date(2002, 12, 13)}
@@ -197,6 +204,8 @@ def test_fortune_routes_normalize_supported_locale_headers(
             "state": "locked",
             "access": "ad_required",
             "local_date": "2026-09-05",
+            "result": _basic_result_wire(),
+            "versions": {"ephemeris": "e", "rules": "r", "copy": "c"},
         }
 
     monkeypatch.setattr(fortune, service_name, fake_service)
@@ -259,14 +268,14 @@ async def test_disabled_profile_reads_and_deletes_never_touch_fortune_tables(mon
         assert caught.value.code == "FEATURE_UNAVAILABLE"
 
 
-def test_v2_cleanup_migration_is_targeted_and_preserves_applied_v1_file():
-    v1 = open("db/migrations/20260827_daily_fortune.sql", encoding="utf-8").read()
-    v2 = open("db/migrations/20260827_daily_fortune_v2.sql", encoding="utf-8").read()
-    assert "CREATE TABLE IF NOT EXISTS public.fortune_profiles" in v1
-    assert "DROP COLUMN IF EXISTS birth_time" in v2
-    assert "ADD COLUMN IF NOT EXISTS result_schema_version" in v2
-    assert "revision=revision+1" in v2
-    assert "DROP TABLE" not in v2 and "TRUNCATE" not in v2
+def test_schema_contains_current_fortune_profile_and_result_contract():
+    from db.schema_contract import load_contract
+
+    columns = load_contract()['columns']
+    assert 'public.fortune_profiles.birth_date' in columns
+    assert 'public.fortune_profiles.gender' in columns
+    assert 'public.fortune_profiles.birth_time' not in columns
+    assert 'public.daily_fortunes.result_schema_version' in columns
 
 
 def test_result_fingerprint_uses_actual_seed_locale():
@@ -333,3 +342,26 @@ def test_status_and_reveal_schemas_reject_impossible_state_combinations():
                 "local_date": "2026-08-27",
             }
         )
+
+
+@pytest.mark.parametrize("schema", [DailyFortuneStatusResponse, DailyFortuneRevealResponse])
+def test_response_contract_rejects_detail_in_locked_result_and_partial_revealed_result(schema):
+    response = {
+        "state": "locked", "access": "ad_required", "local_date": "2026-08-27",
+        "versions": {"ephemeris": "e", "rules": "r", "copy": "c"},
+        "result": _basic_result_wire(),
+    }
+    if schema is DailyFortuneStatusResponse:
+        response["available"] = True
+    parsed = schema.model_validate(response)
+    assert parsed.model_dump(mode="json", by_alias=True, exclude_none=True) == response
+    for detail in ("flow", "categories", "both"):
+        leaked = _basic_result_wire()
+        if detail in ("flow", "both"):
+            leaked["overall"]["flow"] = _result_wire()["overall"]["flow"]
+        if detail in ("categories", "both"):
+            leaked["categories"] = _result_wire()["categories"]
+        with pytest.raises(ValidationError):
+            schema.model_validate({**response, "result": leaked})
+    with pytest.raises(ValidationError):
+        schema.model_validate({**response, "state": "revealed", "access": "unlocked_today"})

@@ -167,7 +167,7 @@ async def uncomplete(session: AsyncSession, user_id: str, routine_id: str, day: 
 async def statistics(session: AsyncSession, user_id: str, routine_id: str, day: AppDay | None = None) -> dict[str, Any]:
     uid, ad = await _today(session, user_id, day)
     r = await _load_owned(session, uid, routine_id)
-    dates = sorted(
+    dates = (
         (
             await session.execute(
                 select(RoutineCompletion.activity_date).where(RoutineCompletion.routine_id == r.id)
@@ -180,13 +180,21 @@ async def statistics(session: AsyncSession, user_id: str, routine_id: str, day: 
     wk_start, wk_end = _week_bounds(ad)
     by_weekday = {str(i): False for i in range(1, 8)}
     week_count = 0
+    last_30_dates = []
+    recent = 0
     for d in dates:
         if wk_start <= d <= wk_end:
             by_weekday[str(d.isoweekday())] = True
             week_count += 1
-    last_30 = [d.isoformat() for d in dates if (ad - d).days < 30]
+        age = (ad - d).days
+        # Preserve the historical one-sided boundary, including dates ahead of ad.
+        # Only the returned window needs sorting; streak uses the complete date set.
+        if age < 30:
+            last_30_dates.append(d)
+            if age < 28:
+                recent += 1
+    last_30 = [d.isoformat() for d in sorted(last_30_dates)]
     # 완료율: 최근 4주 완료수 / (목표 × 4), 상한 1.0
-    recent = sum(1 for d in dates if (ad - d).days < 28)
     target = max(1, len(r.days_of_week) * 4)
     return {
         "streak": streak,

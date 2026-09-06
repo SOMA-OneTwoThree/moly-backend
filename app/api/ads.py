@@ -1,6 +1,7 @@
 """광고 API — 세션 발급(인증) + SSV 웹훅(공개, 서명검증 후 자동 지급)."""
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -13,6 +14,7 @@ from app.schemas.ads import AdSsvResponse, RewardAdSessionResponse
 from app.services import ads, ads_ssv, fortune_ads
 
 router = APIRouter(tags=["ads"])
+_log = logging.getLogger("moly-backend")
 
 
 @router.post("/reward-ad-sessions", response_model=RewardAdSessionResponse)
@@ -37,9 +39,11 @@ async def ad_ssv(
     try:
         raw_query = request.scope.get("query_string", b"").decode("ascii")
     except UnicodeDecodeError:
+        _log.info("AdMob SSV rejected: non_ascii_query")
         raise errors.ad_verify_failed() from None
     verified = await ads_ssv.verify_and_parse(raw_query)
     if verified is None:
+        _log.info("AdMob SSV rejected: invalid_signature_or_envelope")
         raise errors.ad_verify_failed()
     reward_session_id = verified.get("custom_data")
     transaction_id = verified.get("transaction_id")
@@ -48,8 +52,10 @@ async def ad_ssv(
     # 없으면 어떤 보상도 지급하지 않는다. 실제 콜백은 아래 처리 경로에서 두 값을
     # 모두 사용하므로 누락된 요청이 보상으로 이어질 수 없다.
     if not (reward_session_id and transaction_id):
+        _log.info("AdMob SSV result: kind=unknown result=invalid_session")
         return {"status": "ok", "result": "invalid_session"}
     if reward_session_id.startswith("fortune:"):
+        kind = "fortune"
         result = await fortune_ads.verify_from_ssv(
             session,
             custom_data=reward_session_id,
@@ -60,6 +66,7 @@ async def ad_ssv(
             reward_amount=verified.get("reward_amount"),
         )
     else:
+        kind = "hay"
         # 기존 UUID custom_data는 건초 보상 경로로 그대로 전달한다.
         result = await ads.grant_from_ssv(
             session,
@@ -70,4 +77,11 @@ async def ad_ssv(
             reward_item=verified.get("reward_item"),
             reward_amount=verified.get("reward_amount"),
         )
+    # Google은 응답 body를 무시한다. 거절 이유도 남겨 수신 실패와 계약 불일치를 구분한다.
+    # 사용자/세션/거래 식별자 및 원본 쿼리·서명은 기록하지 않는다.
+    _log.info(
+        "AdMob SSV result: kind=%s result=%s ad_unit=%r reward_item=%r reward_amount=%r",
+        kind, result, verified.get("ad_unit"), verified.get("reward_item"),
+        verified.get("reward_amount"),
+    )
     return {"status": "ok", "result": result}

@@ -1,62 +1,86 @@
-"""배포 스큐로 죽은 기억 잡을 terminal 원본 보존 상태로 새 잡에 replay한다.
+"""현재 기억 처리기가 배포 스큐로 거부한 dead 잡을 이력 보존 상태로 replay한다.
 
-기본은 dry-run이다. `--execute`가 있어야 새 행을 만든다. payload 본문은 출력하지 않는다.
-자동 대상은 원인이 확정된 `unknown_job_type`뿐이다. 다른 오류는 원인별 검토가 필요하다.
+원인이 unknown_job_type인 현재 mem0 잡만 제한된 수로 검토한다. 폐기된 처리기 이름을
+새 이름으로 변환하지 않는다. 기본 미리보기, --execute는 기존처럼 개발 DB만 허용한다.
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
-import os
+import json
+import re
 import sys
-import uuid
 from pathlib import Path
 
+import asyncpg
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from db.envfile import announce, assert_dev_target, load_conn, split_env_arg  # noqa: E402
+from db.maintenance import MaintenanceBlocked, enqueue_recovery, locked_subject  # noqa: E402
+from app.services.memory_pipeline import consolidate_dedup_key, provider_delete_dedup_key  # noqa: E402
 
-from sqlalchemy import text
-
-from app.core.db import get_sessionmaker
-from app.config import settings
-from app.services import jobs
-from db.envfile import announce, assert_dev_target
-
-_TARGETS_SQL = text("""
-SELECT j.id
-FROM async_jobs j
-WHERE j.job_type IN ('memory_extract','memory_reconcile','memory_embed','relationship_profile_refresh')
-  AND j.state='dead' AND j.last_error_code='unknown_job_type'
-  AND NOT EXISTS (
-    SELECT 1 FROM async_jobs r WHERE r.replay_of=j.id AND r.state IN ('ready','running','succeeded')
-  )
-ORDER BY j.created_at, j.id
-""")
+_TARGETS = """
+SELECT id,user_id,job_type,dedup_key,payload FROM async_jobs j
+WHERE job_type IN ('mem0_ingest','mem0_consolidate','mem0_provider_delete')
+  AND state='dead' AND last_error_code='unknown_job_type' AND user_id IS NOT NULL
+  AND replay_of IS NULL AND payload_redacted_at IS NULL
+  AND (expires_at IS NULL OR expires_at>now())
+  AND (payload_expires_at IS NULL OR payload_expires_at>now())
+  AND NOT EXISTS(SELECT 1 FROM async_jobs r WHERE r.replay_of=j.id)
+ORDER BY created_at,id LIMIT $1
+"""
 
 
-async def run(*, execute: bool) -> None:
-    env_file = os.getenv("MOLY_ENV_FILE", ".env")
-    announce(env_file, settings.supabase_db_connection_string, commit=execute)
+async def replay(conn, *, execute: bool, limit: int) -> int:
+    rows = await conn.fetch(_TARGETS, limit)
+    made = 0
     if execute:
-        assert_dev_target(env_file, settings.supabase_db_connection_string)
-    operation_id = uuid.uuid4()
-    async with get_sessionmaker()() as session:
-        ids = list((await session.execute(_TARGETS_SQL)).scalars().all())
-        created = 0
-        if execute:
-            for job_id in ids:
-                created += await jobs.replay_dead(
-                    session, job_id=job_id, operation_id=operation_id
-                ) is not None
-            await session.commit()
-    print(f"대상={len(ids)} replay={created if execute else 0}")
+        for row in rows:
+            async with locked_subject(conn, row['user_id']) as state:
+                payload = json.loads(row['payload'])
+                if payload.get('privacy_epoch') != state['privacy_epoch']:
+                    raise MaintenanceBlocked('privacy_epoch_mismatch')
+                gen = state['repair_generation']
+                key = row['dedup_key']
+                turn = payload.get('turn_seq')
+                if type(turn) is not int or turn < 0:
+                    raise MaintenanceBlocked('invalid_turn_payload')
+                if row['job_type'] == 'mem0_ingest':
+                    match = re.fullmatch(re.escape(f"mem0:{row['user_id']}:c") +
+                                         r'([0-9]+):v1(?::g([0-9]+))?', key)
+                    valid = (match is not None and int(match[2] or 0) == gen
+                             and int(match[1]) == state['ingest_through_turn_seq'])
+                else:
+                    builder = (consolidate_dedup_key if row['job_type'] == 'mem0_consolidate'
+                               else provider_delete_dedup_key)
+                    valid = key == builder(row['user_id'], turn, generation=gen)
+                if not valid:
+                    raise MaintenanceBlocked('repair_coordinate_mismatch')
+                made += await enqueue_recovery(
+                    conn, job_type=row['job_type'], user_id=row['user_id'],
+                    dedup_key=key, payload=payload) is not None
+    print(f'대상={len(rows)} replay={made}')
+    return made
 
 
-def main() -> None:
+async def run(env: str | None, *, execute: bool, limit: int) -> None:
+    dsn = load_conn(env)
+    announce(env, dsn, commit=execute)
+    if execute:
+        assert_dev_target(env, dsn)
+    conn = await asyncpg.connect(dsn, statement_cache_size=0)
+    try:
+        await replay(conn, execute=execute, limit=limit)
+    finally:
+        await conn.close()
+
+
+if __name__ == '__main__':
+    env, rest = split_env_arg(sys.argv[1:])
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--execute", action="store_true", help="실제 replay 잡 생성")
-    args = parser.parse_args()
-    asyncio.run(run(execute=args.execute))
-
-
-if __name__ == "__main__":
-    main()
+    parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--limit', type=int, default=10)
+    args = parser.parse_args(rest)
+    if args.limit < 1:
+        parser.error('limit must be positive')
+    asyncio.run(run(env, execute=args.execute, limit=args.limit))

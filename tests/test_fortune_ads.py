@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import uuid
 import inspect
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.config import settings
@@ -65,7 +66,8 @@ async def _dummy_session():
     yield None
 
 
-def test_signed_fortune_prefix_dispatches_without_touching_hay(monkeypatch):
+@pytest.mark.parametrize("outcome", ["verified", "invalid_placement", "invalid_reward"])
+def test_signed_fortune_prefix_dispatches_without_touching_hay(monkeypatch, outcome, caplog):
     sid = uuid.uuid4()
     uid = uuid.uuid4()
     captured = {}
@@ -85,7 +87,7 @@ def test_signed_fortune_prefix_dispatches_without_touching_hay(monkeypatch):
 
     async def fortune_verify(_session, **kwargs):
         captured.update(kwargs)
-        return "verified"
+        return outcome
 
     async def hay_grant(*_args, **_kwargs):
         raise AssertionError("fortune callback must not enter hay grant path")
@@ -93,6 +95,7 @@ def test_signed_fortune_prefix_dispatches_without_touching_hay(monkeypatch):
     monkeypatch.setattr(ads_ssv, "verify_and_parse", verify)
     monkeypatch.setattr(fortune_ads, "verify_from_ssv", fortune_verify)
     monkeypatch.setattr(ads, "grant_from_ssv", hay_grant)
+    caplog.set_level("INFO", logger="moly-backend")
     app.dependency_overrides[get_session] = _dummy_session
     try:
         response = TestClient(app).get(
@@ -111,7 +114,13 @@ def test_signed_fortune_prefix_dispatches_without_touching_hay(monkeypatch):
     finally:
         app.dependency_overrides.clear()
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "result": "verified"}
+    assert response.json() == {"status": "ok", "result": outcome}
+    messages = [r.getMessage() for r in caplog.records if "AdMob SSV result:" in r.getMessage()]
+    assert len(messages) == 1
+    assert f"kind=fortune result={outcome}" in messages[0]
+    assert "ad_unit='unit-a' reward_item='fortune_unlock' reward_amount='1'" in messages[0]
+    assert str(uid) not in messages[0] and str(sid) not in messages[0]
+    assert "tx-1" not in messages[0]
     assert captured["signed_user_id"] == str(uid)
     assert captured["ad_unit"] == "unit-a"
 

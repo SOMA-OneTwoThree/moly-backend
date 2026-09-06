@@ -20,13 +20,14 @@ from __future__ import annotations
 import argparse
 import asyncio
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 import asyncpg
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from db.envfile import announce, load_conn, split_env_arg  # noqa: E402
+from db.maintenance import locked_subject, enqueue_recovery, MaintenanceBlocked  # noqa: E402
+from app.services.memory_pipeline import ingest_dedup_key  # noqa: E402
 
 # 이어붙일 대상 — 커서가 뒤처졌는데 잡이 하나도 없는 사람.
 # 대화 중인 사람은 건너뛴다(그 사람의 잡은 채팅이 알아서 건다).
@@ -52,12 +53,6 @@ ORDER BY s.source_through_turn_seq - s.ingest_through_turn_seq DESC
 LIMIT $1
 """
 
-_ENQUEUE = """
-INSERT INTO async_jobs
-  (queue, job_type, user_id, dedup_key, payload, state, priority, available_at, max_attempts)
-VALUES ('memory','mem0_ingest',$1,$2,$3::jsonb,'ready',500,now(),8)
-ON CONFLICT (job_type, dedup_key) DO NOTHING
-"""
 
 
 async def show_status(c: asyncpg.Connection) -> None:
@@ -80,7 +75,6 @@ async def resume(c: asyncpg.Connection, *, limit: int, idle_min: int, apply: boo
     if not rows:
         print("이어붙일 사람 없음 — 전원 따라잡았거나 전부 대화 중이다.")
         return
-    bucket = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
     print(f"=== 대상 {len(rows)}명 ({'실행' if apply else '미리보기'}) ===")
     made = 0
     for r in rows:
@@ -94,13 +88,21 @@ async def resume(c: asyncpg.Connection, *, limit: int, idle_min: int, apply: boo
         if not apply:
             print("  → [미리보기]")
             continue
-        # 끝난 잡이 같은 키를 막고 있을 수 있으므로 시각을 넣어 유일하게 만든다.
-        key = f"resume:{uid}:c{cursor}:g{gen}:{bucket}"
-        res = await c.execute(
-            _ENQUEUE, uid, key, f'{{"turn_seq": {nxt}, "privacy_epoch": {epoch}}}')
-        ok = res.split()[-1] != "0"
+        async with locked_subject(c, uid) as state:
+            if (state['ingest_through_turn_seq'], state['repair_generation']) != (cursor, gen):
+                raise MaintenanceBlocked('pipeline_changed_since_preview')
+            if state['privacy_epoch'] != epoch:
+                raise MaintenanceBlocked('privacy_epoch_changed')
+            if await c.fetchval("SELECT EXISTS(SELECT 1 FROM messages WHERE user_id=$1 "
+                                "AND created_at > now() - make_interval(mins => $2))", uid, idle_min):
+                raise MaintenanceBlocked('subject_recently_active')
+            key = ingest_dedup_key(uid, cursor, generation=gen)
+            result = await enqueue_recovery(c, job_type='mem0_ingest', user_id=uid,
+                                            dedup_key=key, payload={'turn_seq': nxt, 'privacy_epoch': epoch},
+                                            priority=500)
+            ok = result is not None
         made += ok
-        print(f"  → {'잡 등록' if ok else '⚠️ 키 충돌'}(turn {nxt})")
+        print(f"  → {'잡 등록' if ok else '이미 대기 중'}(turn {nxt})")
     if apply:
         print(f"\n{made}건 등록. 이 묶음이 다 빠진 뒤에 다음을 건다(--status).")
 
@@ -113,6 +115,8 @@ async def main(env: str | None) -> None:
     p.add_argument("--apply", action="store_true", help="없으면 미리보기")
     a = p.parse_args(_rest)
 
+    if a.limit < 1 or a.idle_min < 0:
+        p.error('limit must be positive; idle-min must be nonnegative')
     dsn = load_conn(env)
     announce(env, dsn, commit=a.apply)
     c = await asyncpg.connect(dsn, statement_cache_size=0)
@@ -127,5 +131,6 @@ async def main(env: str | None) -> None:
         await c.close()
 
 
-_env, _rest = split_env_arg(sys.argv[1:])
-asyncio.run(main(_env))
+if __name__ == '__main__':
+    _env, _rest = split_env_arg(sys.argv[1:])
+    asyncio.run(main(_env))

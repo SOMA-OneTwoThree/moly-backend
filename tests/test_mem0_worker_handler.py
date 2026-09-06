@@ -258,20 +258,6 @@ def test_all_memory_job_keys_use_one_generation_source():
     assert "state.revision" not in inspect.getsource(chat._record_memory_v2)
 
 
-def test_reextract_script_key_matches_the_real_key_builder():
-    """스크립트가 손으로 만든 키가 실제 함수와 어긋나면 같은 턴을 두 번 처리한다."""
-    import re
-    import uuid as _uuid
-    from pathlib import Path
-    from app.services import memory_pipeline
-
-    src = Path("scripts/reextract_memories.py").read_text()
-    m = re.search(r'key = f"([^"]+)"', src)
-    assert m, "스크립트에서 키 문자열을 못 찾았다"
-    uid, gen = _uuid.uuid4(), 3
-    built = m.group(1).replace("{uid}", str(uid)).replace("{gen}", str(gen))
-    # 스크립트는 커서를 0으로 내린 뒤 첫 잡을 건다 — 키 기준도 커서 0이다.
-    assert built == memory_pipeline.ingest_dedup_key(uid, 0, generation=gen)
 
 
 def test_generation_suffix_cannot_collide_with_the_old_revision_keys():
@@ -322,11 +308,6 @@ def test_sweep_detects_stalls_by_user_cursor_not_only_dead_jobs():
     assert "semantic_status = 'pending'" in str(sw._UNJUDGED_USERS)
 
 
-def test_reextract_jobs_run_behind_live_users():
-    """처리 순서가 priority 오름차순이라, 기본값이면 재추출이 실사용자보다 먼저 처리된다."""
-    from pathlib import Path
-    src = Path("scripts/reextract_memories.py").read_text()
-    assert "'ready',500,now(),8" in src, "재추출 잡은 우선순위를 뒤로 미룬다"
 
 
 def test_stall_detection_measures_the_age_of_the_unprocessed_turn():

@@ -16,6 +16,10 @@ from __future__ import annotations
 
 import re
 import sys
+from io import StringIO
+from pathlib import Path
+
+from dotenv import dotenv_values
 
 DEFAULT = ".env"
 ALIASES = {
@@ -63,15 +67,17 @@ def split_env_arg(argv: list[str]) -> tuple[str | None, list[str]]:
 def load_conn(env_file: str | None = None) -> str:
     """대상 env 파일에서 DB DSN을 읽는다. asyncpg 용으로 `+asyncpg` 를 벗긴다."""
     path = resolve(env_file)
-    try:
-        lines = open(path).read().splitlines()
-    except FileNotFoundError:
+    if not Path(path).is_file():
         raise SystemExit(f"env 파일 없음: {path}") from None
-    for line in lines:
-        line = line.strip()
-        if line.startswith("SUPABASE_DB_CONNECTION_STRING"):
-            v = line.split("=", 1)[1].strip().strip('"').strip("'")
-            return re.sub(r"^postgresql\+asyncpg://", "postgresql://", v)
+    # DB-only tools do not need to parse unrelated provider settings or multiline
+    # notes. Keep literal password characters, including ${...}, unchanged.
+    for line in Path(path).read_text().splitlines():
+        if not re.match(r'^\s*(?:export\s+)?SUPABASE_DB_CONNECTION_STRING\s*=', line):
+            continue
+        value = dotenv_values(stream=StringIO(line), interpolate=False).get('SUPABASE_DB_CONNECTION_STRING')
+        if value:
+            return re.sub(r"^postgresql\+asyncpg://", "postgresql://", value)
+        break
     raise SystemExit(f"{path} 에 SUPABASE_DB_CONNECTION_STRING 없음")
 
 
@@ -97,3 +103,31 @@ def assert_dev_target(env_file: str | None, dsn: str) -> None:
             f"개발 DB 쓰기 차단: 허용 ref={sorted(DEV_PROJECT_REFS)}, 실제 ref={ref}, "
             f"env={resolve(env_file)}"
         )
+
+
+def configure_application_db(env_file: str | None) -> str:
+    """Select the same DB for the script's display and SQLAlchemy domain calls.
+
+    Must run before the lazy application engine is created. Refuse an existing
+    engine instead of changing only the displayed target under an active pool.
+    """
+    from app.config import settings
+    from app.core import db
+
+    dsn = load_conn(env_file)
+    if db._engine is not None or db._sessionmaker is not None:
+        raise RuntimeError('database target must be selected before creating an engine')
+    settings.supabase_db_connection_string = dsn
+    return dsn
+
+
+def bootstrap_script_environment(argv: list[str]) -> None:
+    """Select provider settings before app.config is imported by a CLI script.
+
+    Explicit --env wins over MOLY_ENV_FILE; without either the default is dev.
+    Database helpers still select the file DSN explicitly, avoiding shell DSN drift.
+    """
+    import os
+
+    env, _ = split_env_arg(argv)
+    os.environ['MOLY_ENV_FILE'] = resolve(env or os.environ.get('MOLY_ENV_FILE'))

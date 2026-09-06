@@ -7,8 +7,8 @@ fixture와 대조한다."
 stable prefix에 실려 매 턴 캐피의 행동을 바꾸는데, 사용자는 자기가 그런 말을 한 적 없다는
 것조차 모른다. 그래서 자동 publish는 이 스크립트의 기능이 아니다.
 
-기본은 dry-run이며 **뽑은 것과 버린 것을 함께 출력한다.** 버린 게 0이면 필터가 동작하지
-않는다는 신호다.
+기본은 DB 미반영이다. 미리보기에서도 LLM 비용과 사용량 기록이 발생한다.
+내용 대신 후보·제외 개수를 출력하며, 저장한 draft는 별도로 검토한다.
 
 사용:
     PYTHONPATH=. uv run python scripts/backfill_interaction_contracts.py --limit 1
@@ -19,8 +19,17 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
+from pathlib import Path
 import uuid
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from db.envfile import bootstrap_script_environment
+
+if __name__ == "__main__":
+    bootstrap_script_environment(sys.argv[1:])
 
 from sqlalchemy import text
 
@@ -29,7 +38,8 @@ from app.core.db import get_sessionmaker
 from app.services import contract_compiler as cc
 from app.services import interaction_contract as ic
 from app.services import llm, usage_ledger
-from db.envfile import announce, load_conn, split_env_arg
+from db.envfile import announce, configure_application_db, split_env_arg
+from db.maintenance import MaintenanceBlocked, lock_active_subject
 
 # 한 번에 읽는 원문 상한. 넘으면 앞이 잘려 부분 이력을 전체인 양 보게 된다.
 _MAX_SOURCE = 300
@@ -102,14 +112,19 @@ def _item_key(d: ic.Directive) -> str:
     return f"{d.kind.value}:{d.action.value}:{d.condition.value}:{target}"
 
 
-async def _compile_for_user(session, uid: uuid.UUID) -> tuple[list, list[str], str]:
-    rows = (await session.execute(
-        _MESSAGES, {"user_id": uid, "limit": _MAX_SOURCE}
-    )).all()
-    profile = (await session.execute(_PROFILE, {"user_id": uid})).first()
-    locale = (profile[1] if profile else None) or "ko"
+async def _compile_for_user(maker, uid: uuid.UUID):
+    # Close the read transaction before an external LLM call; recheck before writing.
+    async with maker() as session:
+        epoch = await lock_active_subject(session, uid)
+        rows = (await session.execute(
+            _MESSAGES, {"user_id": uid, "limit": _MAX_SOURCE + 1}
+        )).all()
+        profile = (await session.execute(_PROFILE, {"user_id": uid})).first()
+        locale = (profile[1] if profile else None) or "ko"
+    if len(rows) > _MAX_SOURCE:
+        raise MaintenanceBlocked('source_exceeds_review_limit')
     if not rows:
-        return [], ["원문 없음"], locale
+        return [], ["원문 없음"], locale, epoch, rows
 
     messages = [_Msg(r[0], r[1], r[2] or "") for r in rows]
     user_ids = {m.id for m in messages if m.sender == "user"}
@@ -125,13 +140,60 @@ async def _compile_for_user(session, uid: uuid.UUID) -> tuple[list, list[str], s
     try:
         kept, dropped = cc.parse(result.text, user_message_ids=user_ids)
     except cc.CompilerRejection as e:
-        return [], [f"추출 실패: {e}"], locale
-    return kept, dropped, locale
+        return [], [f"추출 실패: {type(e).__name__}"], locale, epoch, rows
+    return kept, dropped, locale, epoch, rows
+
+
+async def _persist_draft(session, uid, kept, locale, epoch, source_rows):
+    current_epoch = await lock_active_subject(session, uid)
+    current_rows = (await session.execute(
+        _MESSAGES, {"user_id": uid, "limit": _MAX_SOURCE + 1}
+    )).all()
+    if current_epoch != epoch or current_rows != source_rows:
+        raise MaintenanceBlocked('source_or_privacy_changed_during_compile')
+    version = int(await session.scalar(
+        _NEXT_VERSION, {"user_id": uid, "locale": locale}
+    ))
+    rendered = ic.render_document([c.directive for c in kept])
+    doc = json.dumps(
+        [{
+            "kind": c.directive.kind.value,
+            "action": c.directive.action.value,
+            "condition": c.directive.condition.value,
+            "polarity": c.directive.polarity.value,
+            "target_tag": c.directive.target_tag,
+            "target_literal": c.directive.target_literal,
+            "source_message_id": c.source_message_id,
+        } for c in kept],
+        ensure_ascii=False,
+    )
+    cid = await session.scalar(_INSERT_CONTRACT, {
+        "user_id": uid, "version": version, "locale": locale,
+        "doc": doc, "rendered": rendered,
+        "hash": ic.document_hash(doc),
+    })
+    for c in kept:
+        await session.execute(_INSERT_ITEM, {
+            "contract_id": cid, "user_id": uid,
+            "item_key": _item_key(c.directive),
+            "section": _SECTION[c.directive.kind],
+            "value": json.dumps({
+                "action": c.directive.action.value,
+                "condition": c.directive.condition.value,
+                "polarity": c.directive.polarity.value,
+                "target_tag": c.directive.target_tag,
+                "target_literal": c.directive.target_literal,
+            }, ensure_ascii=False),
+            "rendered": ic.render(c.directive),
+            "source_message_id": c.source_message_id,
+        })
+    return version
 
 
 async def main(env: str | None, users: list[str], limit: int, apply: bool) -> int:
-    dsn = load_conn(env)
-    announce(env, dsn)
+    env = env or os.environ.get("MOLY_ENV_FILE")
+    dsn = configure_application_db(env)
+    announce(env, dsn, commit=apply)
     maker = get_sessionmaker()
 
     async with maker() as session:
@@ -150,53 +212,14 @@ async def main(env: str | None, users: list[str], limit: int, apply: bool) -> in
     total_kept = total_dropped = 0
 
     for uid in targets:
+        kept, dropped, locale, epoch, source_rows = await _compile_for_user(maker, uid)
         async with maker() as session:
-            kept, dropped, locale = await _compile_for_user(session, uid)
             total_kept += len(kept)
             total_dropped += len(dropped)
             print(f"\n[{str(uid)[:8]}…] 후보 {len(kept)}건 / 버림 {len(dropped)}건")
-            for c in kept:
-                print(f"  · {ic.render(c.directive)}   (#{c.source_message_id} {c.rationale})")
-            for reason in dropped[:5]:
-                print(f"  ✕ {reason}")
 
             if apply and kept:
-                version = int(await session.scalar(
-                    _NEXT_VERSION, {"user_id": uid, "locale": locale}
-                ))
-                rendered = ic.render_document([c.directive for c in kept])
-                doc = json.dumps(
-                    [{
-                        "kind": c.directive.kind.value,
-                        "action": c.directive.action.value,
-                        "condition": c.directive.condition.value,
-                        "polarity": c.directive.polarity.value,
-                        "target_tag": c.directive.target_tag,
-                        "target_literal": c.directive.target_literal,
-                        "source_message_id": c.source_message_id,
-                    } for c in kept],
-                    ensure_ascii=False,
-                )
-                cid = await session.scalar(_INSERT_CONTRACT, {
-                    "user_id": uid, "version": version, "locale": locale,
-                    "doc": doc, "rendered": rendered,
-                    "hash": ic.document_hash(doc),
-                })
-                for c in kept:
-                    await session.execute(_INSERT_ITEM, {
-                        "contract_id": cid, "user_id": uid,
-                        "item_key": _item_key(c.directive),
-                        "section": _SECTION[c.directive.kind],
-                        "value": json.dumps({
-                            "action": c.directive.action.value,
-                            "condition": c.directive.condition.value,
-                            "polarity": c.directive.polarity.value,
-                            "target_tag": c.directive.target_tag,
-                            "target_literal": c.directive.target_literal,
-                        }, ensure_ascii=False),
-                        "rendered": ic.render(c.directive),
-                        "source_message_id": c.source_message_id,
-                    })
+                version = await _persist_draft(session, uid, kept, locale, epoch, source_rows)
                 await session.commit()
                 print(f"  → draft v{version} 생성 ({len(kept)}항목)")
             else:
@@ -213,12 +236,15 @@ async def main(env: str | None, users: list[str], limit: int, apply: bool) -> in
     return 0
 
 
-_env, _rest = split_env_arg(sys.argv[1:])
-_p = argparse.ArgumentParser()
-_p.add_argument("--users", default="")
-_p.add_argument("--limit", type=int, default=1)
-_p.add_argument("--yes", action="store_true")
-_a = _p.parse_args(_rest)
-raise SystemExit(asyncio.run(main(
-    _env, [u for u in _a.users.split(",") if u], _a.limit, _a.yes,
-)))
+if __name__ == '__main__':
+    _env, _rest = split_env_arg(sys.argv[1:])
+    _p = argparse.ArgumentParser()
+    _p.add_argument("--users", default="")
+    _p.add_argument("--limit", type=int, default=1)
+    _p.add_argument("--yes", action="store_true")
+    _a = _p.parse_args(_rest)
+    if _a.limit < 1:
+        _p.error("limit must be positive")
+    raise SystemExit(asyncio.run(main(
+        _env, [u for u in _a.users.split(",") if u], _a.limit, _a.yes,
+    )))

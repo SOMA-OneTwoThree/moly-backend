@@ -25,13 +25,17 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from pathlib import Path
 import uuid
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from sqlalchemy import text
 
 from app.core.db import get_sessionmaker
 from app.services import memory_pipeline
-from db.envfile import announce, load_conn, split_env_arg
+from db.envfile import announce, configure_application_db, split_env_arg
+from db.maintenance import lock_enrollment_subject
 
 # 과거 대화(turn_seq가 매겨진 normal 턴)가 가장 많은 사용자. 없으면 검사할 것이 없다.
 _PICK = text("""
@@ -51,9 +55,12 @@ WHERE user_id=:u
 async def run(session, uid: uuid.UUID, upper: int) -> list[str]:
     """진입 경로를 태우고 실패 사유를 모아 돌려준다. 빈 리스트 = 통과."""
     fail: list[str] = []
+    epoch = await lock_enrollment_subject(session, uid)
+    expected_first = await session.scalar(text("SELECT min(turn_seq) FROM messages "
+                                               "WHERE user_id=:uid AND kind='normal'"), {"uid": uid})
     await session.execute(_TO_LEGACY, {"u": uid})
 
-    fixed = await memory_pipeline.enter_shadow(session, uid)
+    fixed = await memory_pipeline.enter_shadow(session, uid, privacy_epoch=epoch)
     if fixed != upper:
         fail.append(f"historical upper가 {fixed} — 실제 최대 턴 {upper}와 다르다")
 
@@ -63,8 +70,8 @@ async def run(session, uid: uuid.UUID, upper: int) -> list[str]:
             f"진입 직후 다음 ingest 턴이 없다 — 과거 {upper}턴이 있는데도 backfill이 "
             "시작될 수 없다(source 커서가 0으로 남았다는 뜻)"
         )
-    elif earliest != 1:
-        fail.append(f"가장 이른 턴이 {earliest} — 1부터 시작해야 과거가 순서대로 흐른다")
+    elif earliest != expected_first:
+        fail.append(f"가장 이른 턴이 {earliest} — 실제 첫 턴 {expected_first}와 다르다")
 
     if not await memory_pipeline.mark_bootstrap_ready(session, uid):
         fail.append("collecting → ready 전환이 거부됐다 — 이 사용자는 영영 기억을 못 받는다")
@@ -76,7 +83,7 @@ async def run(session, uid: uuid.UUID, upper: int) -> list[str]:
 
 
 async def main(env: str | None) -> int:
-    announce(env, load_conn(env))
+    announce(env, configure_application_db(env))
     async with get_sessionmaker()() as session:
         row = (await session.execute(_PICK)).first()
         if row is None:
@@ -100,5 +107,8 @@ async def main(env: str | None) -> int:
     return 0
 
 
-_env, _ = split_env_arg(sys.argv[1:])
-raise SystemExit(asyncio.run(main(_env)))
+if __name__ == '__main__':
+    import argparse
+    _env, _rest = split_env_arg(sys.argv[1:])
+    argparse.ArgumentParser(description=__doc__).parse_args(_rest)
+    raise SystemExit(asyncio.run(main(_env)))

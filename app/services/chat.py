@@ -425,22 +425,21 @@ def _build_system(
         )
     if contract_text:
         # 계약은 검색 성공 여부와 무관하게 **항상** 지켜야 하는 합의라 회상 경로를 타지 않는다.
-        # 자주 바뀌지 않으므로 안정 프리픽스에 둔다(prompt_assembly도 CONTRACT를 STABLE로 분류).
+        # 자주 바뀌지 않으므로 안정 프리픽스에 둔다(계약 문구 변경 시에만 프리픽스가 바뀐다).
         # 저장은 placeholder로 하므로 투입 전에 현재 이름으로 렌더한다 — 안 하면 사용자에게
         # {유저이름}이 그대로 보인다.
         parts.append(naming.render(contract_text, nickname))
 
     # ⚠️ v2 기억은 **여기 넣지 않는다.** 회상 결과는 매 턴 달라지는데 system은 캐시되는
     # 프리픽스라, 여기 두면 그 뒤가 전부 cache miss가 된다(실측: 캐시 쓰기 59토큰 → 4,232토큰).
-    # 11장이 정한 자리는 **최근 원문 뒤**이고, prompt_assembly도 MEMORY를 CURRENT로 분류한다.
+    # 11장이 정한 자리는 **최근 원문 뒤**이다.
     # 실제 주입은 post_message가 convo 끝에서 한다.
     if relationship_v2:
         # 결정적 state의 투영. 모델이 쓴 자유 서술과 달리 값이 흘러가지 않는다(7.1절).
         parts.append(relationship_v2)
     # ⚠️ [지난 이야기](요약)와 [지금 상태]는 **여기 없다.** 둘 다 자주 바뀌는데 system은
     # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
-    # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). prompt_assembly도 CHECKPOINT·
-    # SERVER_SNAPSHOT을 CURRENT로 분류한다. 실제 주입은 post_message가 convo 끝에서 한다.
+    # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). 요약과 현재 상태는 휘발 컨텍스트다. 실제 주입은 post_message가 convo 끝에서 한다.
     dyn = "\n\n".join(parts)
     return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
 

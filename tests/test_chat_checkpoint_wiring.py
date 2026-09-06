@@ -266,7 +266,7 @@ async def test_summary_goes_to_the_volatile_block_not_the_cached_prefix(monkeypa
     #
     # 예전엔 안정 블록에 뒀다. "요약은 앵커가 움직일 때만 바뀌니 괜찮다"는 가정이었는데,
     # 실측에서 그 가정이 깨졌다 — 요약이 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰으로
-    # 프롬프트 전체가 다시 청구됐다. prompt_assembly도 CHECKPOINT를 CURRENT로 분류한다.
+    # 프롬프트 전체가 다시 청구됐다. checkpoint는 최근 원문 뒤 휘발 컨텍스트에 둔다.
     convo = spy["convo"]
     blocks = [c["content"] for c in convo if c["role"] == "system"]
     assert any("[지난 이야기]" in b and "이사 준비 이야기를 했다" in b for b in blocks)

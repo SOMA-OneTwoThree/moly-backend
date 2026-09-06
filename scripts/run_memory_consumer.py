@@ -1,23 +1,11 @@
-"""기억 큐 전용 소비자 — 운영 전환 1.5단계에서 사람이 손으로 돌린다(1회성).
+"""선택한 환경의 memory 큐를 제한된 시간 동안 수동 처리한다.
 
-배포 전에 과거 대화에서 장기기억을 미리 만들어 두기 위한 것이다. 운영 서버는 아직 구 코드라
-`async_jobs`를 모르므로, 이 코드를 사람이 자기 컴퓨터에서 돌려 큐를 비운다.
+현재 배포된 consumer와 같은 처리기를 사용한다. 해당 큐의 모든 사용자 작업이 대상이며
+외부 LLM·벡터 호출과 비용이 발생한다. --seconds 후 새 claim을 멈추고 실행 중 작업을 마친다.
+--until-empty도 이 시간 제한 안에서만 대기한다. 실패 작업이 있으면 종료 코드 1이다.
 
-**기억 큐만 돌린다.** `worker.consumer.run_consumer(queues=...)`에 `memory`만 넘긴다.
-그 큐에 들어가는 작업은 `mem0_ingest`·`mem0_consolidate`·`reconsolidate` 셋뿐이고
-(`app/services/memory_pipeline.py`가 넣는 세 곳이 전부), 그 처리기들이 쓰는 표는
-`mem0_*`·`memory_pipeline_states`·`relationship_events`로 전부 새 표다. 구 코드가 쓰는
-`messages`·`chat_contexts`·`diaries`·`profiles`는 읽기만 한다. 벡터도 `moly_memories_v2`라
-구 코드의 `memories`와 분리돼 있다.
-
-접속 대상은 **`MOLY_ENV_FILE`이 정한다.** `--env`는 화면 표시만 바꾸는 스크립트가 있으니
-반드시 `MOLY_ENV_FILE`을 준다.
-
-사용:
-    MOLY_ENV_FILE=.env.prod PYTHONPATH=. uv run python scripts/run_memory_consumer.py --seconds 60
-    MOLY_ENV_FILE=.env.prod PYTHONPATH=. uv run python scripts/run_memory_consumer.py --until-empty
+    PYTHONPATH=. uv run python scripts/run_memory_consumer.py --env dev --seconds 60
 """
-
 from __future__ import annotations
 
 import argparse
@@ -26,6 +14,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from contextlib import suppress
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -57,18 +46,19 @@ async def _pending(session_maker) -> tuple[int, int, int]:
     return int(row[0]), int(row[1]), int(row[2])
 
 
-async def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--seconds", type=float, default=0, help="이 시간만 돌고 멈춘다")
+async def main() -> int:
+    from db.envfile import announce, bootstrap_script_environment, configure_application_db, split_env_arg
+
+    bootstrap_script_environment(sys.argv[1:])
+    env, rest = split_env_arg(sys.argv[1:])
+    env = env or os.environ['MOLY_ENV_FILE']
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--seconds", type=float, default=60, help="새 작업 claim을 멈출 때까지의 최대 초")
     ap.add_argument("--until-empty", action="store_true", help="큐가 빌 때까지 돈다")
-    args = ap.parse_args()
-
-    envf = os.getenv("MOLY_ENV_FILE", ".env")
-    from app.config import settings  # noqa: E402
-
-    dsn = settings.supabase_db_connection_string
-    ref = dsn.split("@")[-1].split(".")[0] if "@" in dsn else "?"
-    _log.info("접속 대상 env=%s (project 주소 앞부분 %s)", envf, ref[:14])
+    args = ap.parse_args(rest)
+    if not 0 < args.seconds < float('inf'):
+        ap.error('seconds must be finite and positive')
+    announce(env, configure_application_db(env), commit=True)
 
     from app.core.db import get_sessionmaker  # noqa: E402
     from worker import consumer  # noqa: E402
@@ -78,7 +68,10 @@ async def main() -> None:
     _log.info("시작 전 — 대기 %d · 진행 %d · 실패 %d", ready, running, dead)
     if ready == 0 and running == 0:
         _log.info("처리할 작업이 없다. 먼저 enter_shadow_cohort.py 로 등록한다.")
-        return
+        return int(dead > 0)
+    if dead:
+        _log.error("기존 실패 작업을 먼저 검토한다.")
+        return 1
 
     stop = asyncio.Event()
     task = asyncio.ensure_future(consumer.run_consumer(queues=(QUEUE,), stop=stop))
@@ -89,6 +82,8 @@ async def main() -> None:
             await asyncio.sleep(10)
             r, run_, d = await _pending(maker)
             _log.info("  대기 %d · 진행 %d · 실패 %d", r, run_, d)
+            if d:
+                stop.set()
             if args.until_empty:
                 idle = idle + 1 if (r == 0 and run_ == 0) else 0
                 if idle >= 2:  # 20초 연속 비어 있으면 끝
@@ -97,16 +92,23 @@ async def main() -> None:
 
     watcher = asyncio.ensure_future(watch())
     try:
-        if args.seconds:
-            await asyncio.sleep(args.seconds)
-            stop.set()
+        done, _ = await asyncio.wait({task, watcher}, timeout=args.seconds,
+                                     return_when=asyncio.FIRST_COMPLETED)
+        for finished in done:
+            finished.result()
+        stop.set()
         await task
     finally:
         stop.set()
         watcher.cancel()
+        with suppress(asyncio.CancelledError):
+            await watcher
+        if not task.done():
+            await task
         r, run_, d = await _pending(maker)
         _log.info("끝 — 대기 %d · 진행 %d · 실패 %d", r, run_, d)
+    return int(d > 0 or (args.until_empty and r + run_ > 0))
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    raise SystemExit(asyncio.run(main()))

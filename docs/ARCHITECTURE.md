@@ -150,7 +150,7 @@ app/
 ├── core/       # 여러 곳에서 함께 쓰는 것들 — db(세션)·security(토큰 검증)·errors(에러 형식)·time_utils(활동일 계산)
 └── config.py   # 모든 조정값의 코드 기본값. app_config 테이블에 값이 없으면 여기 값을 쓴다
 worker/         # 배치·잡 처리 진입점(5.5절). app/services를 그대로 가져다 쓰고 HTTP는 없다
-db/             # schema.sql(테이블 생성 DDL) + migrations/ + 시드. DB 정의의 기준
+db/             # schema.sql(전체 DDL) + seed.sql + 구조 검증. 변경 절차는 db/README.md
 ```
 
 의존 방향은 `api → services → models·core` 한 방향뿐이다. 반대 방향은 금지다.
@@ -183,10 +183,10 @@ db/             # schema.sql(테이블 생성 DDL) + migrations/ + 시드. DB �
 
 | 영역 | 주요 모듈 |
 |---|---|
-| 대화 | `chat` · `chat_turns`(턴 처리 권한과 순서) · `chat_references`(답변에 붙는 일기 참조) · `greetings` · `turn_context` · `prompt_assembly` · `prompts` |
+| 대화 | `chat` · `chat_turns`(턴 처리 권한과 순서) · `chat_references`(답변에 붙는 일기 참조) · `greetings` · `turn_context` · `prompts` |
 | 대화 도구 | `agent/runtime`(모델 호출 루프) · `agent/tools/*`(`recall_diaries`·`get_routines`) |
 | 일기 | `diary`(조회) · `diary_generation`(배치 생성) · `diary_prompts` · `recall_diaries` · `diary_recall_repo` |
-| 기억 | `mem0_*` 계열(추출·판정·저장·검색) · `memory_pipeline`(사용자별 진행 상태) · `memory_embeddings` · `interaction_contract`·`contract_compiler`·`contract_repo`(사용자별 대화 약속) · `relationship`·`relationship_projector`(관계 단계) · `checkpoint_v2`·`checkpoint_repo`(긴 대화 줄거리 요약) |
+| 기억 | `mem0_*` 계열(추출·판정·저장·검색) · `memory_pipeline`(사용자별 진행 상태) · `memory_embeddings` · `interaction_contract`·`contract_compiler`·`contract_repo`(사용자별 대화 약속) · `relationship`·`relationship_projector`(관계 단계) · `worker/checkpoint_jobs`·`checkpoint_repo`(긴 대화 줄거리 요약) |
 | 잡 처리 | `jobs`(큐·처리 권한·재시도) · `job_telemetry` |
 | 그 외 | `routine` · `ads`·`ads_ssv` · `review` · `account`(읽기 도우미만) · `llm` · `usage_ledger`(모델 사용 원가 기록) · `notify`·`push` · `config_store` · `i18n` · `naming` · `privacy` · `feedback` · `slack_notify` |
 
@@ -427,10 +427,10 @@ sequenceDiagram
   `dead` payload는 7일 뒤 자동으로 비우고 상태·시각·오류 코드만 남긴다. 정리 한 번에 테이블별
   최대 500건만 잠금 대기 없이 처리한다.
 - 등록된 잡 종류: 기억 3종(`mem0_ingest`·`mem0_consolidate`·`mem0_provider_delete`), 기억 재판정
-  (`mem0_reconsolidate`), 멈춘 기억 파이프라인 재개(`memory_gap_sweep`), 대화 요약(`conversation_checkpoint`,
-  `shadow_checkpoint`), 대화 약속 컴파일(`contract_compile`), 관계 문장 생성(`relationship_project`),
-  프롬프트 기록(`shadow_prompt_trace`), 탈퇴 정리(`privacy_cleanup`),
-  일기 검색용 임베딩(`diary_recall_embed`). 모두 12종이다.
+  (`mem0_reconsolidate`), 멈춘 기억 파이프라인 재개(`memory_gap_sweep`), 대화 요약(`conversation_checkpoint`), 대화 약속 컴파일(`contract_compile`), 관계 문장 생성(`relationship_project`),
+  탈퇴 정리(`privacy_cleanup`), 일기 검색용 임베딩(`diary_recall_embed`)의 10종과
+  보존 기간 정리 5종이다. 전체 등록 목록은 `ARCHITECTURE-capi.md` 11.3절,
+  정리 조건은 `OPERATIONS.md`를 따른다.
 
 **(2) `python -m worker` — 15분마다 한 번 도는 배치**
 
@@ -446,10 +446,10 @@ sequenceDiagram
 이 밖에 매 틱마다 RevenueCat 웹훅 대기분을 처리하고, 워커가 끝까지 돌았다는 기록을 남기고,
 멈춘 기억 파이프라인을 재개시키고, 슬랙 요약과 살아 있음 신호를 보낸다.
 
-배치는 타임존별로 나눠 스케줄을 거는 게 아니라 **전체 사용자를 훑으면서 각자의 현지 시각을 계산**한다.
-그래서 별도 스케줄러가 필요 없다. 대신 사용자가 늘면 비용도 같이 는다. 이 문제를 대비해
-`user_schedules` 테이블에 사용자별 다음 실행 시각을 채워 두고 있지만, **아직 읽기 경로가 아니다** —
-값이 정확한지 확인되기 전까지 전체 훑기를 제거하지 않는다.
+배치는 저장된 타임존의 고유 값만 먼저 읽고 Python `ZoneInfo`로 현지 시각을 계산한다.
+해당 시각인 타임존의 사용자만 문자열 동등 조건으로 조회하고 ID 순으로 나눠 처리한다.
+잘못된 타임존은 경고 후 제외하며 SQL `AT TIME ZONE`으로 바꾸지 않는다.
+`user_schedules`는 유지하지만 기본 대상 선정 경로는 이 타임존 필터다.
 
 한 사용자의 처리가 실패하거나 늦어도 배치 전체는 멈추지 않는다. 사용자마다 독립된 DB 세션을 쓰고,
 사용자당 시간 제한(`worker_user_timeout_s`, 코드 기본값 120초)을 두며, 실패는 다음 틱이 다시 시도한다.
@@ -465,9 +465,10 @@ sequenceDiagram
 한 트랜잭션 안에서 다음을 만든다.
 
 - `profiles` 행(체험 기간 = 가입 시각 + 48시간)
-- 기본 지급 꾸미기 3종 — 기본 테마(`theme_default`), 운동 테마(`theme_workout`), 선글라스
-  (`head_sunglasses`)를 `source='admin_grant'`로 지급하고 기본 테마만 장착한다
-- 기본 루틴 2개 — "이불 정리하기", "물 마시기"(둘 다 주 7일)
+- 기본 지급 꾸미기 2종 — 기본 테마(`theme_default`)와 선글라스(`head_sunglasses`)를
+  `source='admin_grant'`로 지급하고 기본 테마만 장착한다. 운동 테마는 비활성 상품이다
+- 기본 루틴 2개 — "이불 정리하기", "물 마시기"(둘 다 주 7일, ko/en/ja 이름 포함)
+- 기본 언어 `en`, 건초 잔액 0, active 삭제 장벽
 
 어떤 경로로 가입해도 같은 상태가 보장된다. 필요한 상품 시드가 없으면 함수가 예외를 던져 가입이
 실패하도록 되어 있다 — 조용히 반쪽짜리 계정이 만들어지는 것보다 낫기 때문이다.
@@ -511,9 +512,9 @@ sequenceDiagram
 
 ## 6. 데이터 계층
 
-- **DB 정의의 기준은 `db/schema.sql`이다**(테이블 생성 DDL). 이후 변경은 `db/migrations/`에 날짜순
-  파일로 쌓이며, `db/apply.py`로 적용하고 `schema_migrations` 테이블에 기록된다.
-  ORM 모델은 이 정의와 1:1로 대조할 수 있어야 한다.
+- **DB 정의의 기준은 `db/schema.sql`이다.** 빈 DB에서 생성한 구조 계약으로 dev·prod를 읽기 전용
+  검증한다. 기존 DB에는 검토한 차이 SQL만 수동 적용한다. 날짜별 파일과 checksum 원장을 새로
+  누적하지 않는다. ORM은 코드 매핑이고 전체 DDL을 대체하지 않는다. 절차는 `db/README.md`에 있다.
 - enum은 PostgreSQL enum 타입 대신 **text + CHECK**로 둔다(asyncpg 드라이버와의 마찰을 피하려는 것이다).
   모델도 String으로 매핑한다.
 - 대화 한도·일기 귀속은 사용자 로컬 04:00 경계 `activity_date`, 출석·광고·루틴 보상은 로컬
@@ -539,18 +540,16 @@ sequenceDiagram
   | 사용자별 처리 상태 | `memory_pipeline_states` | 어디까지 처리했는지 기록한 번호와 처리 권한 |
   | 대화 약속 / 관계 / 대화 요약 | `user_interaction_contracts`, `user_relationship_states`, `relationship_events`, `relationship_profile_renders`, `conversation_checkpoints` | 관계와 약속. 관계 단계는 `relationship_events`에서 다시 계산할 수 있다 |
 
-  `vecs.moly_memories_v2` 컬렉션은 마이그레이션(`db/migrations/20260805_mem0_v2_collection.sql`)이 만든다.
+  `vecs.moly_memories_v2` 컬렉션과 인덱스는 `db/schema.sql`에 정의한다.
   **서버가 돌면서 자동으로 만들지 않는다.**
 
-  **2026-08-14 재추출 잔여물 정리 완료.** 재추출 때 롤백용으로 숨겨 두었던
-  `classification_version IN ('pre-reextract-active', 'pre-reextract-ambiguous')` 기억 19,063건은
-  provider 벡터 삭제 완료를 확인한 뒤 100건씩 순차 처리했다. 대응 candidate와 source, registry를
-  제거하고 이미 닫힌 기억의 `duplicate_of_registry_id` / `superseded_by_registry_id` 참조 2,217건만
-  `NULL`로 정리했다. `active` / `ambiguous` / `pending` 기억, `messages`, 파이프라인 커서, 대화 약속,
-  관계, 일기, checkpoint는 변경하지 않았다. 작업 뒤 과거 표식·고아 candidate/source·끊어진 참조는
-  모두 0건이며, 현행 기억의 벡터·근거 누락도 0건으로 확인했다.
+  재추출·삭제 정리에서 NULL이 된 참조는 빈 값을 채우는 대상으로 보지 않는다.
+  현재 기억의 벡터·근거·커서와 사용자 원문을 보존하는 조건은 `OPERATIONS.md`에 있다.
+
 - 일기 검색용 `diary_recall_documents`는 원문을 복제하지 않는, 다시 만들 수 있는 pgvector 파생 데이터다.
-- 모든 사용자 데이터 행은 `profiles`에 외래키로 이어져 있고, 탈퇴 시 연쇄 삭제된다.
+- 프로필을 참조하는 도메인 데이터는 탈퇴 시 연쇄 삭제된다. 삭제 장벽은 삭제 뒤에도 남고,
+  비용 원장은 사용자 참조만 NULL로 끊으며, FK가 없는 기억 벡터는 별도 삭제 경로로 정리한다.
+  상세 수명 주기는 `ERD.md` 7.11절과 `OPERATIONS.md`를 따른다.
 
 ---
 
@@ -558,7 +557,7 @@ sequenceDiagram
 
 | 항목 | 현재 |
 |---|---|
-| moly-backend | **EC2(서울) 도커.** 이미지는 하나이고 실행 명령만 다르다 — API는 `uvicorn`, 잡 처리는 `python -m worker.consumer`, 15분 배치는 systemd 타이머가 `python -m worker`. nginx + certbot으로 TLS. GitHub main 브랜치에 머지하면 자동으로 빌드·배포된다 |
+| moly-backend | **EC2(서울) 도커.** 이미지는 하나이고 실행 명령만 다르다 — API는 `uvicorn`, 잡 처리는 `python -m worker.consumer`, 15분 배치는 systemd 타이머가 `python -m worker`. ALB가 ACM 인증서로 TLS를 종료하고 nginx :8080으로 전달한다. GitHub main 브랜치에 머지하면 자동으로 빌드·배포된다 |
 | moly-auth | **Vercel.** main 머지 시 자동 배포 |
 | DB·로그인·파일 저장 | Supabase(운영 프로젝트 `qkgjlgzsharnilxnkytd`) — 자동 백업. 상품 이미지는 Storage의 `shop-assets` 공개 버킷 |
 | 비밀값 | 서버 환경변수(AWS SSM Parameter Store / Vercel 환경변수). 코드와 저장소에는 절대 커밋하지 않는다 |
@@ -566,8 +565,8 @@ sequenceDiagram
 
 배포 시 주의할 점이 둘 있다.
 
-- **스키마를 바꾸면 두 서버를 함께 배포한다.** moly-auth도 `subscriptions`·`user_daily_stats`·
-  `user_items`·`profiles`를 직접 읽기 때문이다.
+- **공유 스키마는 두 서버의 호환성을 확인한다.** moly-auth도 `subscriptions`·`user_daily_stats`·
+  `user_items`·`profiles`를 직접 읽는다. 검토한 변경은 구·신 서버가 공존하는 동안에도 호환돼야 한다.
 - **DB 마이그레이션이 머지보다 먼저다.** 머지하면 배포가 자동으로 나가기 때문에, 순서를 바꾸면
   새 코드가 없는 컬럼을 참조한다.
 
@@ -614,8 +613,8 @@ sequenceDiagram
   대화에서 뽑은 개인정보가 들어가는 표(기억·관계·대화 요약·`chat_contexts`·프롬프트 기록·스케줄)는
   RLS에 더해 `anon`·`authenticated` 롤의 권한 자체를 회수한다.
   ⚠️ **새 테이블을 만들 때 이 두 줄을 빠뜨리면 앱에 내장된 공개 키만으로 읽고 쓰고 비울 수 있게 된다.**
-  실제로 `shadow_prompt_traces`와 `user_schedules`가 이 상태였고
-  `db/migrations/20260806_rls_gap.sql`로 막았다.
+  현재 권한은 `db/schema.sql`과 생성한 구조 계약으로 검증한다. 권한 정리를 이유로 기존
+  정책·함수 실행 권한을 임의로 넓히거나 줄이지 않는다.
 - **페르소나 프롬프트는 코드가 기준이다.** SSM 같은 외부에서 덮어쓰는 경로를 두지 않는다
   (과거에 외부 값이 잘못 들어가 캐릭터 이름이 오염된 사고가 있었다).
 - **사용자가 쓴 문장을 명령 위치에 그대로 넣지 않는다.** 대화 약속은 정해진 항목 값으로 저장하고

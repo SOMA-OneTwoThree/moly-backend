@@ -417,19 +417,15 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 - 현재 `fortune-rules.v2.1`은 결정 규칙·점수 분포·3개 언어 카탈로그·API 계약 검증을 마쳐
   `approved_for_production=true`다. 승인되지 않은 후속 규칙은 운영에서 계속 fail-closed다.
 - 규칙이나 문구를 바꾸면 asset version과 manifest SHA-256을 함께 바꾼다.
-- 적용된 마이그레이션 파일은 checksum 원장이 있으므로 수정하지 않고 새 파일을 추가한다.
-- 운세 테이블·계약 마이그레이션은 개발 DB와 운영 DB에 적용했다. 운영은 개발 이력인
-  `20260827_fortune_chat_context.sql`을 실행하지 않고, 2026-09-05의 `prepare` → `validate` → `swap`
-  3단계 CHECK 확장으로 대체했다.
-- 운세 대화 시작점 조회용 `20260905_fortune_chat_root_index.sql`은 개발 DB에 런북 절차로 적용해
-  checksum 원장 기록과 실제 사용 계획을 확인했다. 운영도 부분 인덱스를 `CONCURRENTLY` 생성하고 원장에
-  기록했으며 유효·ready 상태를 확인했다.
-- 건초 광고 세션의 30분 만료 보안 migration도 개발·운영에 적용했다. infra preflight는 운세 테이블·RLS·권한,
-  `messages.kind` 제약·부분 인덱스, 건초 광고 세션의 컬럼·CHECK·전체 만료 인덱스와 필수 checksum을 배포 전에
-  읽기 전용으로 검증한다.
-- 최초 운영 전환은 **하위 호환 DB migration → 검증 → 플래그 OFF 코드 배포 → infra 머지 → 검증한 동일
-  backend SHA 재배포 → 기능 smoke** 순서로 완료했다. 이후 스키마가 바뀌는 운세 릴리스도 이 순서를 지킨다.
-  infra 머지만으로는 실행 중인 EC2 설정이 바뀌지 않으므로 반드시 검증한 이미지 태그로 재배포한다.
+- DB 정의는 `db/schema.sql`에 합친다. 기존 DB에는 검토한 차이 SQL을 수동 적용한다.
+  파일 checksum 원장을 배포 조건으로 삼거나 날짜별 마이그레이션을 추가하지 않는다.
+- 스키마 변경 시 구·신 이미지가 공존할 수 있는 DB 변경을 먼저 적용하고 검증한 뒤 코드를 배포한다.
+  기능을 새로 켜는 경우에는 플래그 OFF 코드 배포 → infra 설정 변경 → 같은 이미지 SHA 재배포 →
+  기능 smoke 순서를 확인한다. infra 머지만으로 실행 중인 환경변수가 바뀌지는 않는다.
+- 새 이미지의 DB preflight는 전체 구조 계약을 읽기 전용으로 검증한다. 구 이미지 롤백은 infra의
+  운세·건초 광고 구조 검증을 사용한다. 테이블·RLS·권한·광고 만료·메시지 제약·인덱스를 확인하며
+  어느 경로도 DB를 자동 변경하지 않는다.
+
 - 프로필 API는 플래그가 꺼지면 운세 테이블 접근 전에 종료한다. worker 정리는 `to_regclass`로 테이블 존재를
   확인하므로 migration 전에는 건너뛰고, 테이블이 생긴 뒤에는 기능을 중지해도 7일 보존 정책을 계속 지킨다.
 
@@ -461,7 +457,7 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 5. 프로필 동일 PUT/변경 PUT과 unlock 보존 테스트
 6. 광고 SSV 즉시 unlock·중복 transaction·만료·소유자 불일치 테스트
 7. 광고 전 기본 공개·상세 누출 방지와 해금 후 전체 응답 Pydantic/OpenAPI 계약 테스트
-8. 개발 DB migration dry-run, 모델 교차검증, infra의 읽기 전용 운세·광고 보안 DB preflight, 인증 포함 실제 HTTP smoke test
+8. 빈 로컬 DB의 schema·seed 재생성, 검토 SQL rollback 검증, dev 구조 검증, infra의 읽기 전용 DB preflight, 인증 포함 실제 HTTP smoke test
 9. 출시 전 문구 전수 사람 검수, 점수 분포·경로 도달률 장기 시뮬레이션
 
 오늘의 운세와 운세 대화 연결은 운영에서 활성화돼 있다. 운영 배포는 DB preflight, 두 인스턴스 롤링,

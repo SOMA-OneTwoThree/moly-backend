@@ -4,7 +4,7 @@
 
 ## 배너를 바꾸는 순서
 
-1. 이 레포의 [app/resources/banners/home_blind.json](../app/resources/banners/home_blind.json)을 편집한다. 새 카드는 기존 카드 구조를 복사해 고유 `id`를 부여한다. `banners` 배열이 노출 순서이고, 영어 `en` canvas는 필수다.
+1. 이 레포의 [app/resources/banners/home_blind.json](../app/resources/banners/home_blind.json)을 편집한다. 새 카드는 기존 카드 구조를 복사해 고유 `id`를 부여한다. `banners` 배열이 노출 순서다. 한국어 문구를 추가·수정할 때 영어·일본어 canvas도 함께 작성한다. 스키마에서 영어 `en` canvas는 필수다.
 2. 새 이미지가 있으면 개발 Supabase의 공개 `banner-assets` bucket에 먼저 업로드한다. JSON에 공개 URL과 파일 메타데이터를 반영한다. 이미지 준비 절차는 아래를 따른다.
 3. 레포 루트에서 파일과 실제 원격 이미지를 검증한다.
 
@@ -79,6 +79,8 @@ PY_IMAGE
 문구는 `{"kind":"template","value":"오늘은 {day}"}`처럼 작성한다. `{day}`는 등록한 binding alias이며 literal 중괄호는 `{{`/`}}`로 쓴다. `count_cases`는 0/1/그 외 문구를 선택한다. `when`은 binding의 `eq` 또는 `gt` 조건이며 루틴 배너에는 `remaining > 0` 조건을 둔다.
 
 `ko`, `en`, `ja` 등 언어별 canvas를 저장한다. 요청 언어가 없으면 영어 canvas 전체를 사용한다. 서버가 사용된 capability를 자동 수집하므로 지원하지 않는 앱에는 해당 카드를 보내지 않는다.
+
+배너 문구 작업은 한국어를 기준으로 **한국어·영어·일본어를 함께 완료**한다. 사용자가 한국어만 제공해도 별도 요청 없이 제목·본문·버튼·접근성 이름의 영어·일본어 문구를 작성한다. 직역보다 각 언어에서 자연스러운 짧은 앱 문구를 우선하되 의미·말투·동작과 `{day}` 같은 binding은 유지한다. 각 언어의 글꼴·줄바꿈·확대 글자·버튼 영역을 검수한다. 이는 작성 규칙이며 실행 중 자동번역 기능이 아니다.
 
 ## 런타임과 유지보수
 

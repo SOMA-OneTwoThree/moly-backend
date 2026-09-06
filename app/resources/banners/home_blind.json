@@ -39,7 +39,7 @@
             "base_color": "#FFFFFF",
             "overlay": {
               "color": "#000000",
-              "opacity": 0.25
+              "opacity": 0.3
             }
           },
           "radius": 16,
@@ -184,7 +184,7 @@
             "base_color": "#FFFFFF",
             "overlay": {
               "color": "#000000",
-              "opacity": 0.25
+              "opacity": 0.3
             }
           },
           "radius": 16,
@@ -346,8 +346,8 @@
             },
             "base_color": "#FFFFFF",
             "overlay": {
-              "color": "#FFFFFF",
-              "opacity": 0.25
+              "color": "#000000",
+              "opacity": 0.3
             }
           },
           "radius": 16,
@@ -437,8 +437,8 @@
             },
             "base_color": "#FFFFFF",
             "overlay": {
-              "color": "#FFFFFF",
-              "opacity": 0.25
+              "color": "#000000",
+              "opacity": 0.3
             }
           },
           "radius": 16,

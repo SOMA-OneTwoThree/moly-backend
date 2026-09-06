@@ -17,7 +17,12 @@
       ],
       "min_app_version": null,
       "max_app_version_exclusive": null,
-      "bindings": {},
+      "bindings": {
+        "day": {
+          "source": "user.local_date",
+          "format": "month_day"
+        }
+      },
       "when": null,
       "canvases_by_locale": {
         "en": {
@@ -39,7 +44,7 @@
             "base_color": "#FFFFFF",
             "overlay": {
               "color": "#000000",
-              "opacity": 0.3
+              "opacity": 0.2
             }
           },
           "radius": 16,
@@ -49,118 +54,137 @@
           },
           "elements": [
             {
-              "id": "qa-title",
+              "id": "heading",
               "type": "text_v1",
               "semantics_order": 0,
-              "vertical_align": "top",
+              "vertical_align": "center",
               "frame": {
-                "x": 0.06,
-                "y": 0.1,
-                "width": 0.88,
-                "height": 0.32
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
               },
               "text": {
                 "kind": "template",
-                "value": "Images placed by the server"
+                "value": "TODAY'S FORTUNE"
               },
               "style": {
                 "font": "body",
-                "font_size": 18,
-                "weight": 700,
+                "font_size": 12,
+                "weight": 600,
                 "color": "#FFFFFF",
-                "align": "start",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFFFFF"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#FFFFFF"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.32,
+                "width": 0.88,
+                "height": 0.31
+              },
+              "text": {
+                "kind": "template",
+                "value": "{day}\nWhat will your day bring?"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
                 "max_lines": 2,
-                "line_height": 1.2
+                "line_height": 1.15
               }
             },
             {
               "id": "action-surface",
               "type": "shape_v1",
               "frame": {
-                "x": 0.42,
-                "y": 0.5,
-                "width": 0.52,
-                "height": 0.42
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFE082"
+                "color": "#FFFFFF"
               },
-              "radius": 12,
+              "radius": 16.5,
               "border": {
                 "width": 0,
-                "color": "#FFE082"
+                "color": "#FFFFFF"
               },
-              "semantics_order": null
-            },
-            {
-              "id": "action-image",
-              "type": "image_v1",
-              "frame": {
-                "x": 0.44,
-                "y": 0.53,
-                "width": 0.48,
-                "height": 0.36
-              },
-              "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/purple-254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5.png",
-                "sha256": "254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5",
-                "byte_length": 1940,
-                "pixel_width": 864,
-                "pixel_height": 476,
-                "media_type": "image/png"
-              },
-              "fit": "cover",
-              "alignment": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "accessibility_label": null,
               "semantics_order": null
             },
             {
               "id": "action-label",
               "type": "text_v1",
-              "semantics_order": 1,
+              "semantics_order": 2,
               "vertical_align": "center",
               "frame": {
-                "x": 0.5,
-                "y": 0.63,
+                "x": 0.32,
+                "y": 0.7,
                 "width": 0.36,
-                "height": 0.16
+                "height": 0.17
               },
               "text": {
                 "kind": "template",
-                "value": "Open shop"
+                "value": "See fortune"
               },
               "style": {
                 "font": "body",
-                "font_size": 15,
-                "weight": 700,
-                "color": "#FFFFFF",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#211C2C",
                 "align": "center",
                 "max_lines": 1,
-                "line_height": 1.2
+                "line_height": 1.15
               }
             },
             {
-              "id": "shop-action",
+              "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.42,
-                "y": 0.5,
-                "width": 0.52,
-                "height": 0.42
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
               },
               "content_ids": [
                 "action-surface",
-                "action-image",
                 "action-label"
               ],
-              "accessibility_label": "Open shop",
-              "semantics_order": 2,
+              "accessibility_label": "See fortune",
+              "semantics_order": 3,
               "action": {
-                "type": "open_shop"
+                "type": "open_fortune"
               }
             }
           ]
@@ -184,7 +208,7 @@
             "base_color": "#FFFFFF",
             "overlay": {
               "color": "#000000",
-              "opacity": 0.3
+              "opacity": 0.2
             }
           },
           "radius": 16,
@@ -194,118 +218,137 @@
           },
           "elements": [
             {
-              "id": "qa-title",
+              "id": "heading",
               "type": "text_v1",
               "semantics_order": 0,
-              "vertical_align": "top",
+              "vertical_align": "center",
               "frame": {
-                "x": 0.06,
-                "y": 0.1,
-                "width": 0.88,
-                "height": 0.32
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
               },
               "text": {
                 "kind": "template",
-                "value": "이미지도 서버에서 배치해요"
+                "value": "오늘의 운세"
               },
               "style": {
                 "font": "body",
-                "font_size": 18,
-                "weight": 700,
+                "font_size": 12,
+                "weight": 600,
                 "color": "#FFFFFF",
-                "align": "start",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFFFFF"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#FFFFFF"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.32,
+                "width": 0.88,
+                "height": 0.31
+              },
+              "text": {
+                "kind": "template",
+                "value": "{day}\n너의 하루는?"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
                 "max_lines": 2,
-                "line_height": 1.2
+                "line_height": 1.15
               }
             },
             {
               "id": "action-surface",
               "type": "shape_v1",
               "frame": {
-                "x": 0.42,
-                "y": 0.5,
-                "width": 0.52,
-                "height": 0.42
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFE082"
+                "color": "#FFFFFF"
               },
-              "radius": 12,
+              "radius": 16.5,
               "border": {
                 "width": 0,
-                "color": "#FFE082"
+                "color": "#FFFFFF"
               },
-              "semantics_order": null
-            },
-            {
-              "id": "action-image",
-              "type": "image_v1",
-              "frame": {
-                "x": 0.44,
-                "y": 0.53,
-                "width": 0.48,
-                "height": 0.36
-              },
-              "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/purple-254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5.png",
-                "sha256": "254918c4f6a96b639da8d4681749613d680be1c60963547abea3eb8c936825b5",
-                "byte_length": 1940,
-                "pixel_width": 864,
-                "pixel_height": 476,
-                "media_type": "image/png"
-              },
-              "fit": "cover",
-              "alignment": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "accessibility_label": null,
               "semantics_order": null
             },
             {
               "id": "action-label",
               "type": "text_v1",
-              "semantics_order": 1,
+              "semantics_order": 2,
               "vertical_align": "center",
               "frame": {
-                "x": 0.5,
-                "y": 0.63,
+                "x": 0.32,
+                "y": 0.7,
                 "width": 0.36,
-                "height": 0.16
+                "height": 0.17
               },
               "text": {
                 "kind": "template",
-                "value": "상점 열기"
+                "value": "운세 보기"
               },
               "style": {
                 "font": "body",
-                "font_size": 15,
-                "weight": 700,
-                "color": "#FFFFFF",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#211C2C",
                 "align": "center",
                 "max_lines": 1,
-                "line_height": 1.2
+                "line_height": 1.15
               }
             },
             {
-              "id": "shop-action",
+              "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.42,
-                "y": 0.5,
-                "width": 0.52,
-                "height": 0.42
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
               },
               "content_ids": [
                 "action-surface",
-                "action-image",
                 "action-label"
               ],
-              "accessibility_label": "상점 열기",
-              "semantics_order": 2,
+              "accessibility_label": "운세 보기",
+              "semantics_order": 3,
               "action": {
-                "type": "open_shop"
+                "type": "open_fortune"
               }
             }
           ]
@@ -357,64 +400,137 @@
           },
           "elements": [
             {
-              "id": "qa-title",
+              "id": "heading",
               "type": "text_v1",
               "semantics_order": 0,
-              "vertical_align": "top",
+              "vertical_align": "center",
               "frame": {
-                "x": 0.06,
-                "y": 0.1,
-                "width": 0.88,
-                "height": 0.32
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
               },
               "text": {
                 "kind": "template",
-                "value": "Banner B from the server"
+                "value": "TODAY'S TOPIC"
               },
               "style": {
                 "font": "body",
-                "font_size": 18,
-                "weight": 700,
+                "font_size": 12,
+                "weight": 600,
                 "color": "#2A1D15",
-                "align": "start",
-                "max_lines": 2,
-                "line_height": 1.2
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
               }
             },
             {
-              "id": "qa-shop",
-              "type": "button_v1",
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#2A1D15"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#2A1D15"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
               "semantics_order": 1,
               "vertical_align": "center",
               "frame": {
-                "x": 0.42,
-                "y": 0.59,
-                "width": 0.52,
+                "x": 0.06,
+                "y": 0.32,
+                "width": 0.88,
                 "height": 0.31
               },
               "text": {
                 "kind": "template",
-                "value": "Visit shop"
+                "value": "What small moment\nmade you happy today?"
               },
               "style": {
                 "font": "body",
-                "font_size": 15,
-                "weight": 700,
+                "font_size": 16,
+                "weight": 600,
                 "color": "#2A1D15",
                 "align": "center",
-                "max_lines": 1,
-                "line_height": 1.2
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
               },
-              "background_color": "#FFE082",
-              "radius": 12,
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFFFFF"
+              },
+              "radius": 16.5,
               "border": {
-                "width": 1.5,
-                "color": "#2A1D15"
+                "width": 0,
+                "color": "#FFFFFF"
               },
-              "padding_horizontal": 8,
-              "padding_vertical": 4,
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "Let’s talk"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#211C2C",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "Let’s talk",
+              "semantics_order": 3,
               "action": {
-                "type": "open_shop"
+                "type": "open_conversation"
               }
             }
           ]
@@ -448,64 +564,137 @@
           },
           "elements": [
             {
-              "id": "qa-title",
+              "id": "heading",
               "type": "text_v1",
               "semantics_order": 0,
-              "vertical_align": "top",
+              "vertical_align": "center",
               "frame": {
-                "x": 0.06,
-                "y": 0.1,
-                "width": 0.88,
-                "height": 0.32
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
               },
               "text": {
                 "kind": "template",
-                "value": "서버에서 바꾼 배너 B"
+                "value": "오늘의 대화 주제"
               },
               "style": {
                 "font": "body",
-                "font_size": 18,
-                "weight": 700,
+                "font_size": 12,
+                "weight": 600,
                 "color": "#2A1D15",
-                "align": "start",
-                "max_lines": 2,
-                "line_height": 1.2
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
               }
             },
             {
-              "id": "qa-shop",
-              "type": "button_v1",
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#2A1D15"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#2A1D15"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
               "semantics_order": 1,
               "vertical_align": "center",
               "frame": {
-                "x": 0.42,
-                "y": 0.59,
-                "width": 0.52,
+                "x": 0.06,
+                "y": 0.32,
+                "width": 0.88,
                 "height": 0.31
               },
               "text": {
                 "kind": "template",
-                "value": "상점으로 가기"
+                "value": "오늘 작은 행복을 느낀\n순간이 있었어?"
               },
               "style": {
                 "font": "body",
-                "font_size": 15,
-                "weight": 700,
+                "font_size": 16,
+                "weight": 600,
                 "color": "#2A1D15",
                 "align": "center",
-                "max_lines": 1,
-                "line_height": 1.2
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
               },
-              "background_color": "#FFE082",
-              "radius": 12,
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFFFFF"
+              },
+              "radius": 16.5,
               "border": {
-                "width": 1.5,
-                "color": "#2A1D15"
+                "width": 0,
+                "color": "#FFFFFF"
               },
-              "padding_horizontal": 8,
-              "padding_vertical": 4,
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "대화하기"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#211C2C",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "대화하기",
+              "semantics_order": 3,
               "action": {
-                "type": "open_shop"
+                "type": "open_conversation"
               }
             }
           ]

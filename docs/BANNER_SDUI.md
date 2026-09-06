@@ -41,7 +41,7 @@
 
 이미지 버튼은 `image_v1` + 필요 시 `text_v1`/`shape_v1` + `action_region_v1`로 구성한다. 클릭 영역의 `content_ids`에 시각 요소의 ID를 연결하고, 영역 안에 해당 요소의 전체 frame이 들어오도록 편집한다. 시각 요소와 클릭 영역을 각각 옮겨야 하며 자동으로 따라 움직이는 부모·자식 좌표계는 없다.
 
-현재 정의의 `composed-image-test`는 이 조합의 편집 출발점이다. 실제 서비스용 이미지·문구·배치는 팀에서 정하며 검수용 콘텐츠를 제품 디자인 기준으로 사용하지 않는다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
+이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·대화 주제의 배경, 제목, 본문과 `shape_v1` + `text_v1` + `action_region_v1` 버튼을 정의한다. 운세 본문의 `{day}`는 요청 시간대의 오늘 날짜이며, 버튼은 각각 기존 운세·대화 화면으로 이동한다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
 
 ## 이미지 준비
 

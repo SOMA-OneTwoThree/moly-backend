@@ -148,6 +148,12 @@ async def test_missing_required_catalog_fails_signup_atomically(connection):
      'unexpected triggers: public.profiles.drift_probe'),
     ('ALTER FUNCTION public.bootstrap_user(uuid,timestamptz) SECURITY INVOKER',
      'changed functions: public.bootstrap_user(uuid,timestamp with time zone)'),
+    ('ALTER TABLE public.fortune_profiles DISABLE TRIGGER ALL',
+     'changed constraints: public.fortune_profiles.fortune_profiles_user_id_fkey'),
+    ('ALTER TABLE public.profiles DISABLE TRIGGER ALL',
+     'changed constraints: public.fortune_profiles.fortune_profiles_user_id_fkey'),
+    ('CREATE RULE drift_probe AS ON DELETE TO public.fortune_profiles DO INSTEAD NOTHING',
+     'unexpected rules: public.fortune_profiles.drift_probe'),
 ])
 async def test_real_catalog_rejects_behavioral_and_security_drift(connection, sql, expected):
     await connection.execute(sql)
@@ -166,6 +172,30 @@ async def test_additive_nullable_column_and_nonunique_index_allow_rollback(conne
         'unexpected columns: public.profiles.drift_probe',
         'unexpected indexes: public.drift_probe',
     ]
+
+
+async def test_disabled_fk_cannot_pass_gate_while_accepting_an_orphan(connection):
+    await connection.execute('ALTER TABLE public.fortune_profiles DISABLE TRIGGER ALL')
+    uid = uuid.uuid4()
+    await connection.execute("INSERT INTO public.fortune_profiles(user_id,gender,birth_date) "
+                             "VALUES($1,'undisclosed','1995-01-01')", uid)
+    assert await connection.fetchval('SELECT count(*) FROM public.profiles WHERE id=$1', uid) == 0
+    assert await connection.fetchval('SELECT count(*) FROM public.fortune_profiles WHERE user_id=$1', uid) == 1
+    assert 'changed constraints: public.fortune_profiles.fortune_profiles_user_id_fkey' in compare_catalog(
+        load_contract(), await read_catalog(connection),
+    )
+
+
+async def test_silent_delete_rule_cannot_pass_gate(connection):
+    uid, _ = await signup(connection)
+    await connection.execute("INSERT INTO public.fortune_profiles(user_id,gender,birth_date) "
+                             "VALUES($1,'undisclosed','1995-01-01')", uid)
+    await connection.execute('CREATE RULE drift_probe AS ON DELETE TO public.fortune_profiles DO INSTEAD NOTHING')
+    await connection.execute('DELETE FROM public.fortune_profiles WHERE user_id=$1', uid)
+    assert await connection.fetchval('SELECT count(*) FROM public.fortune_profiles WHERE user_id=$1', uid) == 1
+    assert 'unexpected rules: public.fortune_profiles.drift_probe' in compare_catalog(
+        load_contract(), await read_catalog(connection),
+    )
 
 
 @pytest.mark.parametrize('ending', ['COMMIT;', 'END;',

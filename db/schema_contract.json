@@ -5096,1734 +5096,2353 @@
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((cache_write_micro_usd >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_price_catalog.ai_price_catalog_cached_input_micro_usd_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((cached_input_micro_usd >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_price_catalog.ai_price_catalog_catalog_version_provider_model_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (catalog_version, provider, model)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_price_catalog.ai_price_catalog_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((effective_to IS NULL) OR (effective_to > effective_from)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_price_catalog.ai_price_catalog_embedding_micro_usd_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((embedding_micro_usd >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_price_catalog.ai_price_catalog_input_micro_usd_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((input_micro_usd >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_price_catalog.ai_price_catalog_output_micro_usd_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((output_micro_usd >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_price_catalog.ai_price_catalog_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_daily_rollup.ai_usage_daily_rollup_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (kst_date, provider, model, lane, purpose, status)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_attempt_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((attempt >= 1))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_cache_write_tokens_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((cache_write_tokens >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_cached_input_tokens_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((cached_input_tokens >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((status <> 'completed'::text) OR (price_catalog_version IS NOT NULL)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_cost_micro_usd_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((cost_micro_usd >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_cost_upper_bound_micro_usd_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((cost_upper_bound_micro_usd >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_embedding_tokens_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((embedding_tokens >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_input_tokens_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((input_tokens >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_lane_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((lane = ANY (ARRAY['foreground'::text, 'background'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_latency_ms_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((latency_ms >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_output_tokens_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((output_tokens >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (call_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['started'::text, 'completed'::text, 'unknown_usage'::text, 'failed'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.ai_usage_ledger.ai_usage_ledger_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.ai_usage_ledger:17:O",
+          "public.ai_usage_ledger:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.app_config.app_config_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (key)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_attempt_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((attempt >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((((state = 'running'::text) AND (lease_owner IS NOT NULL) AND (lease_token IS NOT NULL) AND (lease_until IS NOT NULL)) OR ((state <> 'running'::text) AND (lease_owner IS NULL) AND (lease_token IS NULL) AND (lease_until IS NULL))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_job_type_dedup_key_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (job_type, dedup_key)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_max_attempts_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((max_attempts > 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_replay_of_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (replay_of) REFERENCES public.async_jobs(id)",
+        "enforcement_triggers": [
+          "public.async_jobs:17:O",
+          "public.async_jobs:17:O",
+          "public.async_jobs:5:O",
+          "public.async_jobs:9:O"
+        ],
         "validated": true
       },
       "public.async_jobs.async_jobs_state_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((state = ANY (ARRAY['ready'::text, 'running'::text, 'succeeded'::text, 'dead'::text, 'cancelled'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.async_jobs:17:O",
+          "public.async_jobs:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.chat_active_turns.chat_active_turns_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_active_turns.chat_active_turns_turn_seq_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((turn_seq > 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_active_turns.chat_active_turns_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.chat_active_turns:17:O",
+          "public.chat_active_turns:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.chat_contexts.chat_contexts_anchor_message_id_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((anchor_message_id >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_contexts.chat_contexts_memory_mode_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((memory_mode = ANY (ARRAY['legacy'::text, 'normalized'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_contexts.chat_contexts_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_contexts.chat_contexts_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.chat_contexts:17:O",
+          "public.chat_contexts:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((((state = 'available'::text) AND (diary_id IS NOT NULL) AND (redacted_at IS NULL)) OR ((state = 'unavailable'::text) AND (diary_id IS NULL))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_domain_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((domain = 'diary'::text))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_mode_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((mode = ANY (ARRAY['full_card'::text, 'reopen_reference'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_ordinal_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((ordinal >= 0) AND (ordinal <= 2)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_state_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((state = ANY (ARRAY['available'::text, 'unavailable'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_user_id_diary_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, diary_id) REFERENCES public.diaries(user_id, id) ON DELETE RESTRICT",
+        "enforcement_triggers": [
+          "public.chat_response_references:17:O",
+          "public.chat_response_references:5:O",
+          "public.diaries:17:O",
+          "public.diaries:9:O"
+        ],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_user_id_reply_message_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, reply_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.chat_response_references:17:O",
+          "public.chat_response_references:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
         "validated": true
       },
       "public.chat_response_references.chat_response_references_user_id_reply_message_id_ordinal_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, reply_message_id, ordinal)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.conversation_checkpoints.conversation_checkpoints_kind_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((kind = ANY (ARRAY['window'::text, 'daily_digest'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.conversation_checkpoints.conversation_checkpoints_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.conversation_checkpoints.conversation_checkpoints_publish_state_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((publish_state = ANY (ARRAY['ready'::text, 'published'::text, 'superseded'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.conversation_checkpoints.conversation_checkpoints_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.conversation_checkpoints:17:O",
+          "public.conversation_checkpoints:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.conversation_checkpoints.conversation_checkpoints_user_id_through_message_id_source__key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, through_message_id, source_hash)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.conversation_checkpoints.conversation_checkpoints_user_message_fk": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, through_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.conversation_checkpoints:17:O",
+          "public.conversation_checkpoints:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
         "validated": true
       },
       "public.conversation_focus.conversation_focus_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.conversation_focus.conversation_focus_reference_ids_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((cardinality(reference_ids) >= 1) AND (cardinality(reference_ids) <= 3)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.conversation_focus.conversation_focus_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.conversation_focus:17:O",
+          "public.conversation_focus:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_copy_by_locale_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((jsonb_typeof(copy_by_locale) = 'object'::text))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_profile_revision_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((profile_revision >= 1))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_result_schema_version_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((result_schema_version >= 2))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_semantic_result_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((jsonb_typeof(semantic_result) = 'object'::text))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_unlock_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((((unlock_state = 'locked'::text) AND (unlock_source IS NULL) AND (unlocked_at IS NULL) AND (revealed_at IS NULL)) OR ((unlock_state = 'unlocked'::text) AND (unlock_source IS NOT NULL) AND (unlocked_at IS NOT NULL))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_unlock_source_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((unlock_source = ANY (ARRAY['subscription'::text, 'trial'::text, 'rewarded_ad'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_unlock_state_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((unlock_state = ANY (ARRAY['locked'::text, 'unlocked'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_fortunes.daily_fortunes_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.fortune_profiles(user_id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.daily_fortunes:17:O",
+          "public.daily_fortunes:5:O",
+          "public.fortune_profiles:17:O",
+          "public.fortune_profiles:9:O"
+        ],
         "validated": true
       },
       "public.diaries.diaries_author_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((author = 'capi'::text))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diaries.diaries_kind_activity_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((((kind = 'welcome'::text) AND (activity_date IS NULL)) OR ((kind = ANY (ARRAY['shared_day'::text, 'capi_day'::text])) AND (activity_date IS NOT NULL)) OR (kind IS NULL)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diaries.diaries_kind_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((((record_status = 'processed'::text) AND (kind IS NULL)) OR ((record_status = ANY (ARRAY['draft'::text, 'published'::text])) AND (kind = ANY (ARRAY['welcome'::text, 'shared_day'::text, 'capi_day'::text]))) OR (record_status = 'deleted'::text)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diaries.diaries_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diaries.diaries_preset_ment_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (preset_ment_id) REFERENCES public.moly_life_ments(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.diaries:17:O",
+          "public.diaries:5:O",
+          "public.moly_life_ments:17:O",
+          "public.moly_life_ments:9:O"
+        ],
         "validated": true
       },
       "public.diaries.diaries_source_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((source = ANY (ARRAY['llm'::text, 'preset'::text, 'welcome'::text, 'none'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diaries.diaries_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.diaries:17:O",
+          "public.diaries:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.diaries.diaries_weather_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diary_claim_sources.diary_claim_sources_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id, diary_id, message_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diary_claim_sources.diary_claim_sources_user_id_diary_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, diary_id) REFERENCES public.diaries(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.diaries:17:O",
+          "public.diaries:9:O",
+          "public.diary_claim_sources:17:O",
+          "public.diary_claim_sources:5:O"
+        ],
         "validated": true
       },
       "public.diary_claim_sources.diary_claim_sources_user_id_message_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.diary_claim_sources:17:O",
+          "public.diary_claim_sources:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
         "validated": true
       },
       "public.diary_gen_claims.diary_gen_claims_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id, target_date)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diary_generation_results.diary_generation_results_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id, target_date)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diary_generation_results.diary_generation_results_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = 'no_entry'::text))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diary_generation_results.diary_generation_results_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.diary_generation_results:17:O",
+          "public.diary_generation_results:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.diary_recall_documents.diary_recall_documents_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id, diary_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.diary_recall_documents.diary_recall_documents_user_id_diary_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, diary_id) REFERENCES public.diaries(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.diaries:17:O",
+          "public.diaries:9:O",
+          "public.diary_recall_documents:17:O",
+          "public.diary_recall_documents:5:O"
+        ],
         "validated": true
       },
       "public.diary_recall_documents.diary_recall_repair_attempts_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((embedding_repair_attempts >= 0) AND (embedding_repair_attempts <= 3)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.feedback.feedback_contact_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((char_length(contact) <= 200))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.feedback.feedback_message_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((char_length(message) <= 2000))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.feedback.feedback_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.feedback.feedback_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.feedback:17:O",
+          "public.feedback:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.fortune_ad_sessions.fortune_ad_sessions_client_uq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, client_request_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_ad_sessions.fortune_ad_sessions_expiry_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((expires_at > created_at))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_ad_sessions.fortune_ad_sessions_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (session_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_ad_sessions.fortune_ad_sessions_ssv_transaction_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (ssv_transaction_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_ad_sessions.fortune_ad_sessions_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.fortune_profiles(user_id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.fortune_ad_sessions:17:O",
+          "public.fortune_ad_sessions:5:O",
+          "public.fortune_profiles:17:O",
+          "public.fortune_profiles:9:O"
+        ],
         "validated": true
       },
       "public.fortune_ad_sessions.fortune_ad_sessions_verified_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((((verified = false) AND (ssv_transaction_id IS NULL) AND (verified_at IS NULL)) OR ((verified = true) AND (ssv_transaction_id IS NOT NULL) AND (verified_at IS NOT NULL))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_profiles.fortune_profiles_gender_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((gender = ANY (ARRAY['man'::text, 'woman'::text, 'undisclosed'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_profiles.fortune_profiles_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_profiles.fortune_profiles_revision_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((revision >= 1))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.fortune_profiles.fortune_profiles_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.fortune_profiles:17:O",
+          "public.fortune_profiles:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.greetings.greetings_committed_message_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (committed_message_id) REFERENCES public.messages(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.greetings:17:O",
+          "public.greetings:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
         "validated": true
       },
       "public.greetings.greetings_context_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((context = ANY (ARRAY['onboarding'::text, 'home_enter'::text, 'morning'::text, 'evening'::text, 'comeback'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.greetings.greetings_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.greetings.greetings_user_ctx_date_uq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, context, activity_date)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.greetings.greetings_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.greetings:17:O",
+          "public.greetings:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.hay_transactions.hay_transactions_amount_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((amount <> 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.hay_transactions.hay_transactions_order_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.hay_transactions:17:O",
+          "public.hay_transactions:5:O",
+          "public.orders:17:O",
+          "public.orders:9:O"
+        ],
         "validated": true
       },
       "public.hay_transactions.hay_transactions_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.hay_transactions.hay_transactions_type_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.hay_transactions.hay_transactions_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.hay_transactions:17:O",
+          "public.hay_transactions:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.idempotency_keys.idempotency_keys_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id, key)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.idempotency_keys.idempotency_keys_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.idempotency_keys:17:O",
+          "public.idempotency_keys:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.idempotency_keys.idempotency_reply_message_fk": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, reply_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.idempotency_keys:17:O",
+          "public.idempotency_keys:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
         "validated": true
       },
       "public.idempotency_keys.idempotency_terminal_status_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((terminal_status = ANY (ARRAY['succeeded'::text, 'expired'::text, 'redacted'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.job_attempts.job_attempts_attempt_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((attempt >= 1))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.job_attempts.job_attempts_duration_ms_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((duration_ms >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.job_attempts.job_attempts_job_id_attempt_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (job_id, attempt)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.job_attempts.job_attempts_job_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (job_id) REFERENCES public.async_jobs(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.async_jobs:17:O",
+          "public.async_jobs:9:O",
+          "public.job_attempts:17:O",
+          "public.job_attempts:5:O"
+        ],
         "validated": true
       },
       "public.job_attempts.job_attempts_outcome_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((outcome IS NULL) OR (outcome = ANY (ARRAY['succeeded'::text, 'retryable'::text, 'dead'::text, 'cancelled'::text, 'lease_lost'::text, 'timeout'::text]))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.job_attempts.job_attempts_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidate_sources.mem0_ingest_candidate_sources_authority_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((authority = ANY (ARRAY['explicit_user'::text, 'confirmed_user'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidate_sources.mem0_ingest_candidate_sources_candidate_id_source_message_i_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (candidate_id, source_message_id, evidence_start_utf8, evidence_end_utf8)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidate_sources.mem0_ingest_candidate_sources_candidate_id_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (candidate_id, user_id) REFERENCES public.mem0_ingest_candidates(id, user_id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.mem0_ingest_candidate_sources:17:O",
+          "public.mem0_ingest_candidate_sources:5:O",
+          "public.mem0_ingest_candidates:17:O",
+          "public.mem0_ingest_candidates:9:O"
+        ],
         "validated": true
       },
       "public.mem0_ingest_candidate_sources.mem0_ingest_candidate_sources_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((0 <= evidence_start_utf8) AND (evidence_start_utf8 < evidence_end_utf8)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidate_sources.mem0_ingest_candidate_sources_confidence_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((confidence >= (0)::double precision) AND (confidence <= (1)::double precision)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidate_sources.mem0_ingest_candidate_sources_source_sender_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((source_sender = 'user'::text))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidate_sources.mem0_ingest_candidate_sources_user_id_source_message_id_so_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, source_message_id, source_sender) REFERENCES public.messages(user_id, id, sender) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.mem0_ingest_candidate_sources:17:O",
+          "public.mem0_ingest_candidate_sources:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
         "validated": true
       },
       "public.mem0_ingest_candidates.mem0_ingest_candidates_id_user_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (id, user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidates.mem0_ingest_candidates_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidates.mem0_ingest_candidates_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['planned'::text, 'committed'::text, 'dead'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_ingest_candidates.mem0_ingest_candidates_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.mem0_ingest_candidates:17:O",
+          "public.mem0_ingest_candidates:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.mem0_ingest_candidates.mem0_ingest_candidates_user_id_turn_seq_candidate_hash_sche_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, turn_seq, candidate_hash, schema_version, repair_generation)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_registry.mem0_memory_registry_id_user_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (id, user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_registry.mem0_memory_registry_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_registry.mem0_memory_registry_provider_delete_state_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((provider_delete_state = ANY (ARRAY['kept'::text, 'pending'::text, 'deleted'::text, 'failed'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_registry.mem0_memory_registry_semantic_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((semantic_status = ANY (ARRAY['pending'::text, 'active'::text, 'duplicate'::text, 'superseded'::text, 'ambiguous'::text, 'excluded'::text, 'rejected_policy'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_registry.mem0_memory_registry_source_count_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((source_count >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_registry.mem0_memory_registry_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.mem0_memory_registry:17:O",
+          "public.mem0_memory_registry:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.mem0_memory_registry.mem0_memory_registry_user_id_provider_collection_version_pr_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, provider, collection_version, provider_memory_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_sources.mem0_memory_sources_authority_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((authority = ANY (ARRAY['explicit_user'::text, 'confirmed_user'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_sources.mem0_memory_sources_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((0 <= evidence_start_utf8) AND (evidence_start_utf8 < evidence_end_utf8)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_sources.mem0_memory_sources_confidence_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((confidence >= (0)::double precision) AND (confidence <= (1)::double precision)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_sources.mem0_memory_sources_registry_id_source_message_id_evidence__key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (registry_id, source_message_id, evidence_start_utf8, evidence_end_utf8)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_sources.mem0_memory_sources_registry_id_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (registry_id, user_id) REFERENCES public.mem0_memory_registry(id, user_id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.mem0_memory_registry:17:O",
+          "public.mem0_memory_registry:9:O",
+          "public.mem0_memory_sources:17:O",
+          "public.mem0_memory_sources:5:O"
+        ],
         "validated": true
       },
       "public.mem0_memory_sources.mem0_memory_sources_source_sender_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((source_sender = 'user'::text))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.mem0_memory_sources.mem0_memory_sources_user_id_source_message_id_source_sende_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, source_message_id, source_sender) REFERENCES public.messages(user_id, id, sender) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.mem0_memory_sources:17:O",
+          "public.mem0_memory_sources:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_bootstrap_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((bootstrap_status = ANY (ARRAY['legacy'::text, 'collecting'::text, 'ready'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((ingest_through_turn_seq <= source_through_turn_seq))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_check1": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((consolidated_through_turn_seq <= ingest_through_turn_seq))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_consolidated_through_turn_seq_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((consolidated_through_turn_seq >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_historical_upper_turn_seq_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((historical_upper_turn_seq >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_ingest_through_turn_seq_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((ingest_through_turn_seq >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_mode_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((mode = ANY (ARRAY['legacy'::text, 'shadow'::text, 'v2'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_privacy_epoch_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((privacy_epoch >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_repair_generation_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((repair_generation >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_revision_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((revision >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_source_through_turn_seq_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((source_through_turn_seq >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.memory_pipeline_states.memory_pipeline_states_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.memory_pipeline_states:17:O",
+          "public.memory_pipeline_states:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.messages.messages_kind_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.messages.messages_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.messages.messages_sender_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((sender = ANY (ARRAY['user'::text, 'moly'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.messages.messages_turn_position_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((((turn_seq IS NULL) AND (turn_position IS NULL)) OR ((turn_seq > 0) AND ((turn_position >= 0) AND (turn_position <= 2)))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.messages.messages_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.messages:17:O",
+          "public.messages:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.moly_life_ments.moly_life_ments_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.moly_life_ments.moly_life_ments_weather_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.order_items.order_items_order_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.order_items:17:O",
+          "public.order_items:5:O",
+          "public.orders:17:O",
+          "public.orders:9:O"
+        ],
         "validated": true
       },
       "public.order_items.order_items_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.order_items.order_items_product_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE RESTRICT",
+        "enforcement_triggers": [
+          "public.order_items:17:O",
+          "public.order_items:5:O",
+          "public.products:17:O",
+          "public.products:9:O"
+        ],
         "validated": true
       },
       "public.order_items.order_items_quantity_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((quantity > 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.order_items.order_items_unit_price_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((unit_price >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.orders.orders_currency_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((currency = ANY (ARRAY['KRW'::text, 'HAY'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.orders.orders_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.orders.orders_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'paid'::text, 'failed'::text, 'refunded'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.orders.orders_total_amount_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((total_amount >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.orders.orders_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.orders:17:O",
+          "public.orders:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.payments.payments_order_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.orders:17:O",
+          "public.orders:9:O",
+          "public.payments:17:O",
+          "public.payments:5:O"
+        ],
         "validated": true
       },
       "public.payments.payments_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.payments.payments_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['paid'::text, 'refunded'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.payments.payments_store_transaction_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (store_transaction_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.payments.payments_subscription_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (subscription_id) REFERENCES public.subscriptions(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.payments:17:O",
+          "public.payments:5:O",
+          "public.subscriptions:17:O",
+          "public.subscriptions:9:O"
+        ],
         "validated": true
       },
       "public.payments.payments_target_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((order_id IS NOT NULL) OR (subscription_id IS NOT NULL)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.payments.payments_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.payments:17:O",
+          "public.payments:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
         "validated": true
       },
       "public.privacy_ledger_events.privacy_ledger_events_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.privacy_subject_barriers.privacy_subject_barriers_epoch_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((epoch >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.privacy_subject_barriers.privacy_subject_barriers_operation_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((state = 'active'::text) OR (operation_id IS NOT NULL)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.privacy_subject_barriers.privacy_subject_barriers_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.privacy_subject_barriers.privacy_subject_barriers_state_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((state = ANY (ARRAY['active'::text, 'deleting'::text, 'deleted'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_app_store_product_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (app_store_product_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_cosmetic_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((product_type <> 'cosmetic'::text) OR ((public_id IS NOT NULL) AND (slot IS NOT NULL) AND (hay_amount IS NULL) AND (app_store_product_id IS NULL) AND (price_krw IS NULL) AND (play_store_product_id IS NULL) AND (is_subscriber_only = false) AND ((is_active = false) OR ((asset_version IS NOT NULL) AND (asset_version >= 1) AND (assets IS NOT NULL))))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_hay_pack_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((product_type <> 'hay_pack'::text) OR ((hay_amount IS NOT NULL) AND (app_store_product_id IS NOT NULL) AND (slot IS NULL) AND (price_hay IS NULL) AND (assets IS NULL) AND (is_subscriber_only = false))))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_id_slot_uq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (id, slot)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_name_i18n_obj_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((name_i18n IS NULL) OR (jsonb_typeof(name_i18n) = 'object'::text)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_play_store_product_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (play_store_product_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_price_hay_positive_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((price_hay >= 1))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_product_type_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((product_type = ANY (ARRAY['hay_pack'::text, 'cosmetic'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.products.products_slot_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((slot = ANY (ARRAY['theme'::text, 'hat'::text, 'glasses'::text, 'neck'::text, 'body'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.profiles.profiles_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "auth.users:17:O",
+          "auth.users:9:O",
+          "public.profiles:17:O",
+          "public.profiles:5:O"
+        ],
         "validated": true
       },
       "public.profiles.profiles_nickname_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((char_length(nickname) <= 10))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.profiles.profiles_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.profiles.profiles_relationship_origin_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((num_nonnulls(relationship_started_at, relationship_started_timezone, relationship_display_date) = ANY (ARRAY[0, 3])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.profiles.profiles_relationship_revision_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((relationship_revision >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.provider_backoffs.provider_backoffs_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (provider, model, lane)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.relationship_events.relationship_events_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.relationship_events.relationship_events_turn_seq_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((turn_seq IS NULL) OR (turn_seq >= 0)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.relationship_events.relationship_events_type_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((event_type = ANY (ARRAY['normal_turn_committed'::text, 'active_day_started'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.relationship_events.relationship_events_user_id_dedup_key_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, dedup_key)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.relationship_events.relationship_events_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.relationship_events:17:O",
+          "public.relationship_events:5:O"
+        ],
         "validated": true
       },
       "public.relationship_profile_renders.relationship_profile_renders_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.relationship_profile_renders.relationship_profile_renders_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.relationship_profile_renders:17:O",
+          "public.relationship_profile_renders:5:O"
+        ],
         "validated": true
       },
       "public.relationship_profile_renders.relationship_profile_renders_user_id_prompt_revision_profil_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, prompt_revision, profile_relationship_revision, locale, renderer_version)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.revenuecat_events.revenuecat_events_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (event_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.revenuecat_events.revenuecat_events_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['pending'::text, 'processed'::text, 'failed'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.reward_ad_sessions.reward_ad_sessions_expiry_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((expires_at > created_at))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.reward_ad_sessions.reward_ad_sessions_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (session_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.reward_ad_sessions.reward_ad_sessions_ssv_transaction_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (ssv_transaction_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.reward_ad_sessions.reward_ad_sessions_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.reward_ad_sessions:17:O",
+          "public.reward_ad_sessions:5:O"
+        ],
         "validated": true
       },
       "public.routine_completions.routine_completions_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.routine_completions.routine_completions_routine_date_uq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (routine_id, activity_date)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.routine_completions.routine_completions_routine_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (routine_id) REFERENCES public.routines(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.routine_completions:17:O",
+          "public.routine_completions:5:O",
+          "public.routines:17:O",
+          "public.routines:9:O"
+        ],
         "validated": true
       },
       "public.routine_completions.routine_completions_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.routine_completions:17:O",
+          "public.routine_completions:5:O"
+        ],
         "validated": true
       },
       "public.routine_completions.routine_completions_user_routine_fk": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, routine_id) REFERENCES public.routines(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.routine_completions:17:O",
+          "public.routine_completions:5:O",
+          "public.routines:17:O",
+          "public.routines:9:O"
+        ],
         "validated": true
       },
       "public.routines.routines_name_i18n_obj_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((name_i18n IS NULL) OR (jsonb_typeof(name_i18n) = 'object'::text)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.routines.routines_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.routines.routines_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.routines:17:O",
+          "public.routines:5:O"
+        ],
         "validated": true
       },
       "public.schema_migrations.schema_migrations_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (migration_name)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_cacheable_bytes_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((cacheable_bytes >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_message_count_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((message_count >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_total_bytes_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((total_bytes >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_turn_seq_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((turn_seq > 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_turn_uniq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, turn_seq, assembler_version)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.shadow_prompt_traces:17:O",
+          "public.shadow_prompt_traces:5:O"
+        ],
         "validated": true
       },
       "public.shadow_prompt_traces.shadow_prompt_traces_volatile_bytes_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((volatile_bytes >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscription_hay_grants.subscription_hay_grants_clawback_hay_transaction_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (clawback_hay_transaction_id) REFERENCES public.hay_transactions(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.hay_transactions:17:O",
+          "public.hay_transactions:9:O",
+          "public.subscription_hay_grants:17:O",
+          "public.subscription_hay_grants:5:O"
+        ],
         "validated": true
       },
       "public.subscription_hay_grants.subscription_hay_grants_hay_transaction_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (hay_transaction_id) REFERENCES public.hay_transactions(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.hay_transactions:17:O",
+          "public.hay_transactions:9:O",
+          "public.subscription_hay_grants:17:O",
+          "public.subscription_hay_grants:5:O"
+        ],
         "validated": true
       },
       "public.subscription_hay_grants.subscription_hay_grants_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscription_hay_grants.subscription_hay_grants_plan_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((plan = ANY (ARRAY['monthly'::text, 'yearly'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscription_hay_grants.subscription_hay_grants_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.subscription_hay_grants:17:O",
+          "public.subscription_hay_grants:5:O"
+        ],
         "validated": true
       },
       "public.subscription_hay_grants.subscription_hay_grants_user_plan_uq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, plan)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscriptions.subscriptions_original_transaction_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (original_transaction_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscriptions.subscriptions_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscriptions.subscriptions_plan_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((plan = ANY (ARRAY['monthly'::text, 'yearly'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscriptions.subscriptions_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['active'::text, 'grace_period'::text, 'expired'::text, 'revoked'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.subscriptions.subscriptions_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.subscriptions:17:O",
+          "public.subscriptions:5:O"
+        ],
         "validated": true
       },
       "public.user_daily_stats.user_daily_stats_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_daily_stats.user_daily_stats_user_date_uq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, activity_date)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_daily_stats.user_daily_stats_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_daily_stats:17:O",
+          "public.user_daily_stats:5:O"
+        ],
         "validated": true
       },
       "public.user_devices.user_devices_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_devices.user_devices_platform_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((platform = ANY (ARRAY['ios'::text, 'android'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_devices.user_devices_push_token_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (push_token)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_devices.user_devices_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_devices:17:O",
+          "public.user_devices:5:O"
+        ],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_authority_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((authority = ANY (ARRAY['explicit_user'::text, 'confirmed'::text, 'repeated_observation'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_confidence_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((confidence >= (0)::double precision) AND (confidence <= (1)::double precision)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_contract_id_item_key_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (contract_id, item_key)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_contract_id_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (contract_id, user_id) REFERENCES public.user_interaction_contracts(id, user_id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.user_interaction_contract_items:17:O",
+          "public.user_interaction_contract_items:5:O",
+          "public.user_interaction_contracts:17:O",
+          "public.user_interaction_contracts:9:O"
+        ],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_section_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((section = ANY (ARRAY['address_policy'::text, 'communication_style'::text, 'comfort_style'::text, 'boundaries'::text, 'relationship_frame'::text, 'durable_commitments'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['active'::text, 'superseded'::text, 'rejected'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contract_items.user_interaction_contract_items_user_id_source_message_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id, source_message_id) REFERENCES public.messages(user_id, id) ON DELETE SET NULL (source_message_id)",
+        "enforcement_triggers": [
+          "public.messages:17:O",
+          "public.messages:9:O",
+          "public.user_interaction_contract_items:17:O",
+          "public.user_interaction_contract_items:5:O"
+        ],
         "validated": true
       },
       "public.user_interaction_contracts.user_interaction_contracts_id_user_id_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (id, user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contracts.user_interaction_contracts_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contracts.user_interaction_contracts_status_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((status = ANY (ARRAY['draft'::text, 'published'::text, 'superseded'::text, 'rejected'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contracts.user_interaction_contracts_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_interaction_contracts:17:O",
+          "public.user_interaction_contracts:5:O"
+        ],
         "validated": true
       },
       "public.user_interaction_contracts.user_interaction_contracts_user_id_locale_version_key": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, locale, version)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_interaction_contracts.user_interaction_contracts_version_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((version > 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_items.user_items_equipped_ck": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK (((equipped_at IS NULL) OR (equipped_slot IS NOT NULL)))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_items.user_items_equipped_slot_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((equipped_slot = ANY (ARRAY['theme'::text, 'hat'::text, 'glasses'::text, 'neck'::text, 'body'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_items.user_items_order_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.orders:17:O",
+          "public.orders:9:O",
+          "public.user_items:17:O",
+          "public.user_items:5:O"
+        ],
         "validated": true
       },
       "public.user_items.user_items_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_items.user_items_product_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.products:17:O",
+          "public.products:9:O",
+          "public.user_items:17:O",
+          "public.user_items:5:O"
+        ],
         "validated": true
       },
       "public.user_items.user_items_product_slot_fk": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (product_id, equipped_slot) REFERENCES public.products(id, slot)",
+        "enforcement_triggers": [
+          "public.products:17:O",
+          "public.products:9:O",
+          "public.user_items:17:O",
+          "public.user_items:5:O"
+        ],
         "validated": true
       },
       "public.user_items.user_items_source_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((source = ANY (ARRAY['purchase'::text, 'subscription'::text, 'admin_grant'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_items.user_items_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_items:17:O",
+          "public.user_items:5:O"
+        ],
         "validated": true
       },
       "public.user_items.user_items_user_product_uq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, product_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_notification_settings.user_notification_settings_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id, type)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_notification_settings.user_notification_settings_type_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((type = ANY (ARRAY['morning_diary'::text, 'evening_chat'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_notification_settings.user_notification_settings_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_notification_settings:17:O",
+          "public.user_notification_settings:5:O"
+        ],
         "validated": true
       },
       "public.user_relationship_states.user_relationship_states_active_days_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((active_days >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_relationship_states.user_relationship_states_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_relationship_states.user_relationship_states_qualifying_turns_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((qualifying_turns >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_relationship_states.user_relationship_states_relationship_stage_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((relationship_stage = ANY (ARRAY['new'::text, 'acquainted'::text, 'familiar'::text, 'close'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_relationship_states.user_relationship_states_successful_turns_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((successful_turns >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_relationship_states.user_relationship_states_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_relationship_states:17:O",
+          "public.user_relationship_states:5:O"
+        ],
         "validated": true
       },
       "public.user_schedules.user_schedules_kind_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((kind = ANY (ARRAY['diary_generate'::text, 'diary_morning_notification'::text, 'evening_checkin'::text])))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_schedules.user_schedules_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_schedules.user_schedules_revision_check": {
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((revision >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.user_schedules.user_schedules_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_schedules:17:O",
+          "public.user_schedules:5:O"
+        ],
         "validated": true
       },
       "public.user_schedules.user_schedules_user_kind_uniq": {
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, kind)",
+        "enforcement_triggers": [],
         "validated": true
       },
       "vecs.moly_memories_v2.moly_memories_v2_pkey": {
         "deferrable": false,
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
         "validated": true
       }
     },
@@ -11947,6 +12566,7 @@
         "grantable": false
       }
     },
+    "rules": {},
     "sequences": {
       "public.hay_transactions_id_seq": {
         "cache": 1,

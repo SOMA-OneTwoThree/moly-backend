@@ -37,9 +37,11 @@ QUERIES = {
     """,
     'constraints': f"""
         SELECT conrelid::regclass::text || '.' || conname AS key,
-               pg_get_constraintdef(oid) AS definition, convalidated AS validated,
-               condeferrable AS deferrable, condeferred AS deferred
-        FROM pg_constraint WHERE conrelid IN ({_RELATIONS})
+               pg_get_constraintdef(c.oid) AS definition, convalidated AS validated,
+               condeferrable AS deferrable, condeferred AS deferred,
+               ARRAY(SELECT t.tgrelid::regclass::text || ':' || t.tgtype::text || ':' || t.tgenabled::text
+                     FROM pg_trigger t WHERE t.tgconstraint=c.oid ORDER BY 1) AS enforcement_triggers
+        FROM pg_constraint c WHERE conrelid IN ({_RELATIONS})
     """,
     'indexes': f"""
         SELECT i.indexrelid::regclass::text AS key, pg_get_indexdef(i.indexrelid) AS definition,
@@ -61,6 +63,11 @@ QUERIES = {
         SELECT oid::regprocedure::text AS key, pg_get_functiondef(oid) AS definition,
                pg_get_userbyid(proowner) AS owner
         FROM pg_proc WHERE oid IN ({_FUNCTIONS})
+    """,
+    'rules': f"""
+        SELECT ev_class::regclass::text || '.' || rulename AS key,
+               pg_get_ruledef(oid) AS definition, ev_enabled AS enabled
+        FROM pg_rewrite WHERE ev_class IN ({_RELATIONS})
     """,
     'policies': f"""
         SELECT polrelid::regclass::text || '.' || polname AS key,
@@ -115,6 +122,10 @@ async def read_catalog(conn: asyncpg.Connection) -> dict:
                 # would otherwise look truthy (e.g. a nonexistent identity default).
                 item = {key: value.decode().rstrip('\x00') if isinstance(value, bytes) else value
                         for key, value in dict(row).items()}
+                # These arrays describe sets/multisets, not column order. Database
+                # locales sort names with underscores differently (C vs en_US).
+                item = {key: sorted(value) if isinstance(value, list) else value
+                        for key, value in item.items()}
                 entries[item.pop('key')] = item
             catalog[section] = entries
     return catalog
@@ -140,7 +151,7 @@ def compare_catalog(expected: dict, actual: dict, *, strict: bool = False) -> li
                 index = observed[key]
                 extra_is_unsafe |= (index['table_name'] in expected['tables']
                                     and (index['unique'] or index['exclusion']))
-            if section in {'constraints', 'triggers', 'policies'}:
+            if section in {'constraints', 'triggers', 'rules', 'policies'}:
                 extra_is_unsafe |= key.rsplit('.', 1)[0] in expected['tables']
             if section.endswith('_grants'):
                 object_name = key.split(':', 1)[0]

@@ -58,6 +58,13 @@ def _result_wire() -> dict:
     }
 
 
+def _basic_result_wire() -> dict:
+    result = _result_wire()
+    del result["overall"]["flow"]
+    del result["categories"]
+    return result
+
+
 def test_profile_accepts_only_birth_date_and_gender():
     req = FortuneProfilePut(gender="man", birth_date=date(2002, 12, 13))
     assert req.model_dump() == {"gender": "man", "birth_date": date(2002, 12, 13)}
@@ -197,6 +204,8 @@ def test_fortune_routes_normalize_supported_locale_headers(
             "state": "locked",
             "access": "ad_required",
             "local_date": "2026-09-05",
+            "result": _basic_result_wire(),
+            "versions": {"ephemeris": "e", "rules": "r", "copy": "c"},
         }
 
     monkeypatch.setattr(fortune, service_name, fake_service)
@@ -333,3 +342,26 @@ def test_status_and_reveal_schemas_reject_impossible_state_combinations():
                 "local_date": "2026-08-27",
             }
         )
+
+
+@pytest.mark.parametrize("schema", [DailyFortuneStatusResponse, DailyFortuneRevealResponse])
+def test_response_contract_rejects_detail_in_locked_result_and_partial_revealed_result(schema):
+    response = {
+        "state": "locked", "access": "ad_required", "local_date": "2026-08-27",
+        "versions": {"ephemeris": "e", "rules": "r", "copy": "c"},
+        "result": _basic_result_wire(),
+    }
+    if schema is DailyFortuneStatusResponse:
+        response["available"] = True
+    parsed = schema.model_validate(response)
+    assert parsed.model_dump(mode="json", by_alias=True, exclude_none=True) == response
+    for detail in ("flow", "categories", "both"):
+        leaked = _basic_result_wire()
+        if detail in ("flow", "both"):
+            leaked["overall"]["flow"] = _result_wire()["overall"]["flow"]
+        if detail in ("categories", "both"):
+            leaked["categories"] = _result_wire()["categories"]
+        with pytest.raises(ValidationError):
+            schema.model_validate({**response, "result": leaked})
+    with pytest.raises(ValidationError):
+        schema.model_validate({**response, "state": "revealed", "access": "unlocked_today"})

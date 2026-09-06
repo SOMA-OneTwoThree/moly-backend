@@ -1,8 +1,8 @@
 # 오늘의 운세
 
-> 기준일: 2026-08-28
+> 기준일: 2026-09-06
 >
-> 구현 상태: 개발 서버 검증용, 기능 플래그 기본 OFF
+> 구현 상태: 개발·운영 활성화 완료. 애플리케이션 기본값은 비상 차단을 위해 OFF이고 배포 설정이 명시적으로 ON
 >
 > 공개 계약: `openapi/paths/fortune.yaml`, `openapi/components/fortune.yaml`
 >
@@ -29,6 +29,10 @@ v2 문서는 만들지 않는다.
 같은 결론을 더 쉽게 설명한다. 분야별 운세는 종합과 별도로 계산한다.
 
 사용자 화면에는 행성, 각, 오브, 트랜짓, 내부 의미 코드와 계산 근거 카드를 노출하지 않는다.
+
+종합 점수·총평, 해볼 것·조심할 것, 행운색은 광고 없이 제공한다. “자세히 보기”의 오늘의 흐름과
+네 분야 점수·문구는 무료·체험(런칭 무료 기간 포함) 사용자의 광고 SSV 검증 후 제공한다.
+월간·연간 구독자만 상세도 광고 없이 제공한다. 다른 체험 혜택은 유지한다.
 
 ## 2. 고정된 제품 규칙
 
@@ -266,9 +270,9 @@ seed는 엔진·DB·API 계약을 검증하기 위한 최소 안전 집합이다
 | `PUT /fortune-profile` | 최초 저장 또는 수정 |
 | `DELETE /fortune-profile` | 운세 프로필과 하위 당일 데이터 삭제 |
 | `GET /daily-fortune/status` | 홈 진입 상태, 이미 공개된 결과 조회 |
-| `POST /daily-fortune/reveal` | 오늘 결과 최초 계산·공개 또는 광고 잠금 확인 |
-| `POST /daily-fortune/ad-sessions` | 무료 사용자용 AdMob SSV 세션 발급 |
-| `GET /webhooks/ad-ssv` | Google 서명 검증 후 당일 결과 즉시 해제 |
+| `POST /daily-fortune/reveal` | 오늘 기본 결과 계산·공개 및 상세 권한 확인 |
+| `POST /daily-fortune/ad-sessions` | 무료·체험 사용자의 자세히 보기용 AdMob SSV 세션 발급 |
+| `GET /webhooks/ad-ssv` | Google 서명 검증 후 당일 상세 즉시 해제 |
 
 `X-App-Locale`은 `ko/en/ja`와 해당 언어의 지역 태그(`ko-KR/en-US/ja-JP` 등)를 받는다. 지역 태그는
 대소문자와 관계없이 기본 언어로 정규화한다. `jp`와 지원하지 않는 언어는 422로 거절한다. 헤더가 없으면
@@ -279,8 +283,8 @@ seed는 엔진·DB·API 계약을 검증하기 위한 최소 안전 집합이다
 
 ```text
 profile_required ── PUT profile ──> unseen
-unseen ── POST reveal ──> revealed       (체험·구독)
-unseen ── POST reveal ──> locked         (무료)
+unseen ── POST reveal ──> revealed       (월간·연간 구독)
+unseen ── POST reveal ──> locked         (무료·체험: 기본 결과 공개, 상세 잠금)
 locked ── ad session + verified SSV ──> revealed
                                  └──> unseen + unlocked_today  (광고 중 프로필 변경 시)
 revealed ── 같은 날 재조회 ──> 같은 snapshot
@@ -293,17 +297,28 @@ revealed ── 프로필 수정 ──> unseen       (unlock 권한은 유지)
 - `access`: `included | ad_required | unlocked_today`
 - `available=false`: 기능 플래그 또는 승인 상태 문제이므로 운세 탭을 비활성화한다.
 - 기능이 꺼져 있으면 프로필 GET·PUT·DELETE도 `FEATURE_UNAVAILABLE`로 DB 접근 전에 종료한다.
-- `locked` 응답에는 점수·문구·버전이 절대 포함되지 않는다.
+- `locked`는 상세 잠금이다. `result`는 `FortuneBasicResult`로 종합 점수·총평·행동·행운색만
+  포함하고 `versions`도 반환한다. `overall.flow`와 `categories`는 빈 값 대신 필드 자체를 생략한다.
+- `revealed`는 상세까지 공개된 상태이며 `FortuneResult` 전체를 반환한다.
+- 정책 변경 전에 체험 혜택으로 얻은 당일 해금도 유지하고 다음 현지 날짜부터 광고를 요구한다.
+- `status`는 읽기 전용이다. 현재 snapshot이 없으면 `unseen`을 반환하고 앱이 `reveal`을 호출한다.
+  snapshot이 있으면 광고 전에도 기본 결과를 다시 받을 수 있다.
 - 광고 SSV가 성공하면 서버가 DB의 당일 행을 직접 해제한다. 이후 status를 다시 조회한다.
 - 광고를 보는 사이 프로필이 바뀌어 `unseen + unlocked_today`가 오면 광고를 다시 요구하지 말고
   `POST /daily-fortune/reveal`을 호출해 새 결과를 만든다.
 - 프로필 PUT의 `unlock_preserved`는 **이번 실제 변경에서 오늘 권한을 보존했는지**를 뜻한다.
   같은 값 PUT에서는 false이며 현재 access 판정 대신 status를 다시 조회한다.
 
-운세 결과를 대화에 붙이는 기능은 `FORTUNE_CHAT_ENABLED`로 별도 제어한다. 공개된 당일 결과를
+운세 결과를 대화에 붙이는 기능은 `FORTUNE_CHAT_ENABLED`로 별도 제어한다. 상세가 해금된 당일 결과를
 `context_ref={type:daily_fortune, local_date, locale}`로 참조하며, 답변 저장 직전에 날짜·프로필 revision·결과
 fingerprint를 다시 검사한다. 서버가 붙이는 운세 표제도 `ko/en/ja`에 맞춰 바뀐다. 운세에서 파생된 대화는 장기
 기억·일기·관계 데이터의 근거로 사용하지 않는다.
+
+모바일 연동 시 `locked.result`도 기본 결과 화면에 표시하고 상세 버튼에서 광고를 시작한다.
+기존 앱의 전체 잠금 분기와 필수 상세 필드 파싱은 계약 동기화 및 수정이 필요하다. 광고 완료 SDK
+콜백만으로 상세를 펼치지 않으며, SSV 후 `status`의 `revealed`와 전체 결과를 확인한다.
+`locked + included`는 구독 전환 등으로 광고가 불필요해진 상태이므로 `reveal`로 상세를 공개한다.
+결과 계산·저장 스키마는 계속 `3`이며, 기존 당일 snapshot과 해금은 유지하므로 DB migration은 없다.
 
 ### 5.3 공개 응답 예시
 
@@ -375,8 +390,8 @@ snapshot만 저장한다.
 | `result_schema_version` | 현재 `3` |
 | `semantic_result` | 점수·내부 의미 코드·표현 경로 |
 | `copy_by_locale` | 실제 공개한 `ko/en/ja` 문구 snapshot |
-| `unlock_state/source/at` | 오늘 공개 권한 |
-| `revealed_at` | 결과가 공개된 시각; 권한만 있으면 NULL 가능 |
+| `unlock_state/source/at` | 오늘 상세 공개 권한 |
+| `revealed_at` | 상세 결과가 공개된 시각; 기본만 공개되었거나 권한만 있으면 NULL 가능 |
 | `ephemeris/rule/copy_version` | 결과 재현용 버전 |
 
 freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_version`으로 판단한다. 공개 권한은 같은
@@ -396,25 +411,46 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 
 ## 7. 버전·배포·검증
 
-- 기능 플래그: `FORTUNE_ENABLED=false`, `FORTUNE_CHAT_ENABLED=false`가 기본값이다.
+- `FORTUNE_ENABLED`, `FORTUNE_CHAT_ENABLED`의 애플리케이션 기본값은 fail-closed를 위해 `false`다.
+  개발·운영에서는 infra의 `deploy.sh`가 두 값을 명시적으로 `true`로 주입한다. 기능을 다시 끄려면 코드 기본값에
+  기대지 말고 infra 설정을 변경한 뒤 두 인스턴스를 재배포한다.
 - 현재 `fortune-rules.v2.1`은 결정 규칙·점수 분포·3개 언어 카탈로그·API 계약 검증을 마쳐
   `approved_for_production=true`다. 승인되지 않은 후속 규칙은 운영에서 계속 fail-closed다.
 - 규칙이나 문구를 바꾸면 asset version과 manifest SHA-256을 함께 바꾼다.
 - 적용된 마이그레이션 파일은 checksum 원장이 있으므로 수정하지 않고 새 파일을 추가한다.
 - 운세 테이블·계약 마이그레이션은 개발 DB와 운영 DB에 적용했다. 운영은 개발 이력인
   `20260827_fortune_chat_context.sql`을 실행하지 않고, 2026-09-05의 `prepare` → `validate` → `swap`
-  3단계 CHECK 확장으로 대체했다. 기능 플래그 활성화는 backend·infra PR 머지 이후다.
+  3단계 CHECK 확장으로 대체했다.
 - 운세 대화 시작점 조회용 `20260905_fortune_chat_root_index.sql`은 개발 DB에 런북 절차로 적용해
-  checksum 원장 기록과 실제 사용 계획을 확인했다. 운영에서는 부분 인덱스를 `CONCURRENTLY` 생성한 뒤 같은
-  방식으로 원장에 기록한다.
-- 건초 광고 세션의 30분 만료 보안 migration도 같은 운영 승격에 포함하며, infra preflight가 해당
-  컬럼·CHECK·전체 만료 인덱스·checksum까지 확인한다.
-- 이번 배포 순서는 **하위 호환 DB migration → 검증 → 플래그 OFF 코드 배포 → infra 머지 → 검증한 동일
-  backend SHA 재배포 → 기능 smoke**로 고정한다. 기존 건초 광고 코드도 새 `expires_at` 컬럼을 읽으므로
-  이 릴리스에서는 DB보다 코드를 먼저 배포하지 않는다. infra 머지만으로는 EC2 설정이 바뀌지 않으며, 다음 무관한 코드
-  배포까지 활성화를 미루지 않는다. 프로필 API는 플래그가
-  꺼지면 운세 테이블 접근 전에 종료한다. worker 정리는 `to_regclass`로 테이블 존재를 확인하므로 migration 전에는
-  건너뛰고, 테이블이 생긴 뒤에는 기능을 중지해도 7일 보존 정책을 계속 지킨다.
+  checksum 원장 기록과 실제 사용 계획을 확인했다. 운영도 부분 인덱스를 `CONCURRENTLY` 생성하고 원장에
+  기록했으며 유효·ready 상태를 확인했다.
+- 건초 광고 세션의 30분 만료 보안 migration도 개발·운영에 적용했다. infra preflight는 운세 테이블·RLS·권한,
+  `messages.kind` 제약·부분 인덱스, 건초 광고 세션의 컬럼·CHECK·전체 만료 인덱스와 필수 checksum을 배포 전에
+  읽기 전용으로 검증한다.
+- 최초 운영 전환은 **하위 호환 DB migration → 검증 → 플래그 OFF 코드 배포 → infra 머지 → 검증한 동일
+  backend SHA 재배포 → 기능 smoke** 순서로 완료했다. 이후 스키마가 바뀌는 운세 릴리스도 이 순서를 지킨다.
+  infra 머지만으로는 실행 중인 EC2 설정이 바뀌지 않으므로 반드시 검증한 이미지 태그로 재배포한다.
+- 프로필 API는 플래그가 꺼지면 운세 테이블 접근 전에 종료한다. worker 정리는 `to_regclass`로 테이블 존재를
+  확인하므로 migration 전에는 건너뛰고, 테이블이 생긴 뒤에는 기능을 중지해도 7일 보존 정책을 계속 지킨다.
+
+### 7.1 AdMob 운영 계약
+
+| 플랫폼 | 광고 단위 | 서버 allowlist 값 |
+|---|---|---|
+| iOS | `ca-app-pub-5805427935121417/3157498952` | `3157498952` |
+| Android | `ca-app-pub-5805427935121417/2146352961` | `2146352961` |
+
+- 두 광고 단위의 형식은 보상형, 보상 항목은 `fortune_unlock`, 수량은 `1`이다.
+- SSV URL은 `https://voice.moly.asia/webhooks/ad-ssv`이며 두 광고 단위 모두 AdMob 콘솔의 URL 확인을 마쳤다.
+- 운영 Parameter Store의 `/moly/prod/fortune-ad-unit-ids`에는 위 allowlist 값 두 개를 쉼표로 구분해 둔다.
+- 앱은 광고 요청 전에 `POST /daily-fortune/ad-sessions`가 돌려준 `admob_user_id`와 `custom_data`를 그대로
+  Google Mobile Ads SDK의 SSV 옵션에 넣는다. 임의 UUID나 고정 테스트 값을 실제 광고에 재사용하지 않는다.
+- 서버는 Google 서명뿐 아니라 사용자·세션 소유자·광고 단위·보상 항목·수량·만료·당일 날짜를 모두 대조한다.
+- SSV 서명은 Google `RewardedAdsVerifier`와 동일하게 signed query를 percent-decode 한 번 한
+  UTF-8 바이트로 검사한다. `fortune%3A<UUID>`를 raw 바이트로 검사하면 정상 콜백도 422가 된다.
+  파라미터도 같은 표현에서 읽으며, 추가 decode나 `+` 치환은 하지 않는다.
+- AdMob 콘솔의 서명된 URL 확인 요청처럼 `transaction_id`가 없는 요청은 200 no-op으로 끝내고 운세를 열지 않는다.
+  서명이 없거나 서명 뒤에 임의 필드를 붙인 요청은 422로 거절한다.
 
 필수 검증:
 
@@ -424,10 +460,10 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 4. 언어별 560개, 총 1,680개 표현의 완전 중복·높은 문장 유사도와 응답 안 상투어 반복 테스트
 5. 프로필 동일 PUT/변경 PUT과 unlock 보존 테스트
 6. 광고 SSV 즉시 unlock·중복 transaction·만료·소유자 불일치 테스트
-7. 잠긴 응답 content leak과 공개 응답 Pydantic/OpenAPI 계약 테스트
+7. 광고 전 기본 공개·상세 누출 방지와 해금 후 전체 응답 Pydantic/OpenAPI 계약 테스트
 8. 개발 DB migration dry-run, 모델 교차검증, infra의 읽기 전용 운세·광고 보안 DB preflight, 인증 포함 실제 HTTP smoke test
 9. 출시 전 문구 전수 사람 검수, 점수 분포·경로 도달률 장기 시뮬레이션
 
-이번 운영 업데이트에는 오늘의 운세와 운세 대화 연결을 함께 포함한다. 운영 반영 직전에는 실 AdMob ID와 SSV E2E,
-클라이언트 상태 머신 연동, 부하·운영 모니터링을 최종 확인한다. 애플리케이션 기본값은 비상 차단을 위해 OFF로
-유지하고, 운영 배포 설정에서 두 플래그를 명시적으로 활성화한다.
+오늘의 운세와 운세 대화 연결은 운영에서 활성화돼 있다. 운영 배포는 DB preflight, 두 인스턴스 롤링,
+버전 일치와 synthetic health를 모두 통과해야 한다. 새 앱 빌드가 광고 연동을 시작할 때에는 iOS·Android에서
+각각 실제 광고 1회를 사용해 `세션 발급 → SSV → 당일 unlock → status 재조회`를 출시 전 최종 확인한다.

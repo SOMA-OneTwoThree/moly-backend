@@ -3,13 +3,14 @@ import base64
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
+from urllib.parse import unquote
 
 import pytest
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from fastapi.testclient import TestClient
 
-from app.config import settings
+from app.config import Settings, settings
 from app.core.db import get_session
 from app.core.errors import AppError
 from app.main import app
@@ -62,6 +63,53 @@ async def test_ssv_verify_valid(monkeypatch, signed):
     assert payload.get("transaction_id") == "t1"
 
 
+@pytest.mark.parametrize(
+    ("encoded_value", "expected"),
+    [
+        (f"fortune%3A{SID}", f"fortune:{SID}"),
+        ("hello%20world", "hello world"),
+        ("user%40example.com", "user@example.com"),
+        ("%EC%9A%B4%EC%84%B8", "운세"),
+        ("literal+plus%2B", "literal+plus+"),
+        ("once%2526only", "once%26only"),
+    ],
+)
+async def test_ssv_verifies_percent_decoded_content_once(monkeypatch, encoded_value, expected):
+    # Google Tink의 testShouldVerifyWithEncodedUrl과 같은 서명 계약.
+    content = f"custom_data={encoded_value}&transaction_id=t1"
+    priv = ec.generate_private_key(ec.SECP256R1())
+    signature = priv.sign(unquote(content).encode(), ec.ECDSA(hashes.SHA256()))
+    pem = priv.public_key().public_bytes(
+        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode()
+    monkeypatch.setattr(ads_ssv, "_get_keys", _keys({"1234": pem}))
+    sig_b64 = base64.urlsafe_b64encode(signature).decode().rstrip("=")
+    query = f"{content}&signature={sig_b64}&key_id=1234"
+
+    payload = await ads_ssv.verify_and_parse(query)
+    assert payload is not None
+    assert payload.get("custom_data") == expected
+    assert await ads_ssv.verify_and_parse(query.replace("transaction_id=t1", "transaction_id=t2")) is None
+
+
+@pytest.mark.parametrize(
+    "encoded_suffix",
+    ["%26custom_data%3Dshadow", "%26signature%3Dshadow", "%26key_id%3D9999"],
+)
+async def test_ssv_rejects_encoded_duplicate_fields(monkeypatch, encoded_suffix):
+    content = f"custom_data={SID}{encoded_suffix}&transaction_id=t1"
+    priv = ec.generate_private_key(ec.SECP256R1())
+    signature = priv.sign(unquote(content).encode(), ec.ECDSA(hashes.SHA256()))
+    pem = priv.public_key().public_bytes(
+        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode()
+    monkeypatch.setattr(ads_ssv, "_get_keys", _keys({"1234": pem}))
+    sig_b64 = base64.urlsafe_b64encode(signature).decode().rstrip("=")
+    assert await ads_ssv.verify_and_parse(
+        f"{content}&signature={sig_b64}&key_id=1234"
+    ) is None
+
+
 async def test_ssv_verify_tampered(monkeypatch, signed):
     monkeypatch.setattr(ads_ssv, "_get_keys", _keys({"1234": signed.pem}))
     tampered = signed.raw_query.replace("reward_amount=1", "reward_amount=999")
@@ -93,6 +141,7 @@ async def test_ssv_verify_rejects_critical_duplicate(monkeypatch):
     "raw_query",
     [
         "x=%ZZ&signature=" + ("a" * 80) + "&key_id=1234",
+        "x=%FF&signature=" + ("a" * 80) + "&key_id=1234",
         "x=1&signature=short&key_id=1234",
         "x=1&signature=" + ("a" * 80) + "&key_id=not-numeric",
         "x=" + ("a" * ads_ssv._MAX_QUERY_LENGTH) + "&signature=" + ("a" * 80) + "&key_id=1",
@@ -242,6 +291,29 @@ async def test_grant_success(monkeypatch):
     s = FakeSession(get_obj=row)
     assert await ads.grant_from_ssv(s, SID, "t1", **VALID_SSV_FIELDS) == "granted"
     assert row.granted is True and row.ssv_transaction_id == "t1" and s.committed
+
+
+@pytest.mark.parametrize(
+    ("ad_unit", "expected"),
+    [
+        ("3343480648", "granted"),
+        ("3086065971", "granted"),
+        ("3157498952", "invalid_placement"),
+        ("2146352961", "invalid_placement"),
+        ("unknown-unit", "invalid_placement"),
+    ],
+)
+async def test_default_hay_placements_grant_both_platforms_only(monkeypatch, ad_unit, expected):
+    monkeypatch.setattr(settings, "hay_ad_unit_ids", Settings.model_fields["hay_ad_unit_ids"].default)
+    _patch(monkeypatch)
+    row = _sess_row()
+    session = FakeSession(get_obj=row)
+    result = await ads.grant_from_ssv(
+        session, SID, "t1", **{**VALID_SSV_FIELDS, "ad_unit": ad_unit}
+    )
+    assert result == expected
+    assert row.granted is (expected == "granted")
+    assert session.committed is (expected == "granted")
 
 
 @pytest.mark.parametrize(
@@ -488,8 +560,8 @@ def test_ssv_webhook_unsigned_probe_is_rejected(monkeypatch):
     assert r.json()["error"]["code"] == "AD_VERIFY_FAILED"
 
 
-@pytest.mark.parametrize("outcome", ["granted", "session_not_found"])
-def test_ssv_webhook_result_in_body(monkeypatch, outcome):
+@pytest.mark.parametrize("outcome", ["granted", "session_not_found", "invalid_placement"])
+def test_ssv_webhook_result_in_body(monkeypatch, outcome, caplog):
     """서명 통과 후 처리 결과는 HTTP 200 유지 + body result로 구분."""
     async def _verify(_raw_query):
         return ads_ssv.VerifiedSsvPayload(
@@ -502,6 +574,7 @@ def test_ssv_webhook_result_in_body(monkeypatch, outcome):
 
     monkeypatch.setattr(ads_ssv, "verify_and_parse", _verify)
     monkeypatch.setattr(ads, "grant_from_ssv", _grant)
+    caplog.set_level("INFO", logger="moly-backend")
     app.dependency_overrides[get_session] = _dummy_session
     try:
         r = TestClient(app).get(
@@ -510,6 +583,10 @@ def test_ssv_webhook_result_in_body(monkeypatch, outcome):
     finally:
         app.dependency_overrides.clear()
     assert r.status_code == 200 and r.json() == {"status": "ok", "result": outcome}
+    messages = [r.getMessage() for r in caplog.records if "AdMob SSV result:" in r.getMessage()]
+    assert len(messages) == 1
+    assert f"kind=hay result={outcome}" in messages[0]
+    assert SID not in messages[0]
 
 
 def test_reward_ad_session_requires_auth():

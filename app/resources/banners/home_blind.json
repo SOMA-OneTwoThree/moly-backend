@@ -347,7 +347,7 @@
             "base_color": "#FFFFFF",
             "overlay": {
               "color": "#000000",
-              "opacity": 0.3
+              "opacity": 0.1
             }
           },
           "radius": 16,
@@ -438,7 +438,7 @@
             "base_color": "#FFFFFF",
             "overlay": {
               "color": "#000000",
-              "opacity": 0.3
+              "opacity": 0.1
             }
           },
           "radius": 16,

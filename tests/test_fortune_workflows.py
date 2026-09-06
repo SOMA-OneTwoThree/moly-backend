@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import base64
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
 import uuid
+from urllib.parse import quote, unquote, urlencode
 
 import pytest
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 from httpx import ASGITransport, AsyncClient
 
 from app.config import settings
@@ -15,7 +19,7 @@ from app.core.security import get_current_user
 from app.main import app
 from app.models.fortune import DailyFortune, FortuneAdSession, FortuneProfile
 from app.schemas.fortune import FortuneProfilePut
-from app.services import fortune, fortune_ads
+from app.services import ads_ssv, fortune, fortune_ads
 
 UID = uuid.UUID("10000000-0000-4000-8000-000000000099")
 TODAY = date(2026, 8, 27)
@@ -242,6 +246,7 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
             return NOW
 
     monkeypatch.setattr(fortune, "datetime", Clock)
+    monkeypatch.setattr(fortune_ads, "datetime", Clock)
     monkeypatch.setattr(fortune.gating, "resolve_plan", fixed_plan)
     monkeypatch.setattr(fortune_ads, "advisory_xact_lock", fortune.advisory_xact_lock)
     monkeypatch.setattr(fortune_ads, "_load_profile", fortune._load_profile)
@@ -276,12 +281,29 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
             assert len(stored_copy["overall"]["flow"]) == 3
             assert len(stored_copy["categories"]) == 4
             ad = ad_response.json()
-            assert await fortune_ads.verify_from_ssv(
-                session, custom_data=ad["custom_data"], transaction_id="verified-tx",
-                signed_user_id=str(UID), ad_unit="unit-a",
-                reward_item=settings.fortune_ad_reward_item,
-                reward_amount=str(settings.fortune_ad_reward_amount), now_utc=NOW,
-            ) == "verified"
+            content = urlencode({
+                "custom_data": ad["custom_data"], "transaction_id": "verified-tx",
+                "user_id": str(UID), "ad_unit": "unit-a",
+                "reward_item": settings.fortune_ad_reward_item,
+                "reward_amount": str(settings.fortune_ad_reward_amount),
+            }, quote_via=quote)
+            assert "fortune%3A" in content
+            private_key = ec.generate_private_key(ec.SECP256R1())
+            signature = private_key.sign(unquote(content).encode(), ec.ECDSA(hashes.SHA256()))
+            pem = private_key.public_key().public_bytes(
+                serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo,
+            ).decode()
+
+            async def keys(**_kwargs):
+                return {"1234": pem}
+
+            monkeypatch.setattr(ads_ssv, "_get_keys", keys)
+            sig_b64 = base64.urlsafe_b64encode(signature).decode().rstrip("=")
+            callback = await client.get(
+                f"/webhooks/ad-ssv?{content}&signature={sig_b64}&key_id=1234"
+            )
+            assert callback.status_code == 200
+            assert callback.json()["result"] == "verified"
             unlocked = (await client.get("/daily-fortune/status")).json()
             assert unlocked["state"] == "revealed" and unlocked["access"] == "unlocked_today"
             full = unlocked["result"]

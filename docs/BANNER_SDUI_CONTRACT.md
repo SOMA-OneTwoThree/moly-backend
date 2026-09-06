@@ -186,7 +186,7 @@ rebuild·swipe·줄 탭은 조회 계기가 아니다. 동일 진행 요청은 �
 
 valid_until은 캠페인 종료와 binding 날짜 경계 중 빠른 값, null은 알려진 기한 없음이다.
 만료 deadline은 `requestStartMonotonic + (valid_until - served_at)`으로 보수적으로 계산한다.
-만료 timer·resume·클릭 직전에 검사해 제거/CTA 차단한다. background 경과를 clock이 보장하지 못하면 이전 snapshot을 폐기한다.
+요청 시작의 기기 시각에도 같은 유효 기간을 더해 보조 deadline을 만들고, 두 시계 중 하나라도 만료되면 timer·resume·클릭 직전에 제거/CTA 차단한다. 절전 중 단조 시계가 멈춰도 기기 시각으로 만료를 검사한다. 앱 background·운세 이동에서는 진행 요청을 무효화하고 동작을 차단하되 유효한 snapshot·선택 페이지는 유지한다. 동일 context 복귀 갱신은 등장 연출을 반복하지 않는다.
 프로세스 재시작 후 재조회하며 홈 체류 중 polling·push 회수는 하지 않는다. 새 예약/운영 중단은 다음 조회에 반영된다.
 현재 카드 id 유지, 삭제되면 첫 카드, 0장에는 PageView/dots 없음, 1장은 점 하나. 늦은 응답으로 slat 진입을 재시작하지 않는다.
 

@@ -10,6 +10,9 @@ RUN uv sync --frozen --no-dev
 
 COPY app ./app
 COPY worker ./worker
+COPY db/catalog.py db/schema_contract.py db/schema_contract.json db/schema.sql ./db/
+COPY scripts/validate_banners.py scripts/check_running_banners.py ./scripts/
+RUN .venv/bin/python scripts/validate_banners.py
 
 EXPOSE 8000
 ENV PATH="/app/.venv/bin:$PATH"

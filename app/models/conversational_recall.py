@@ -75,7 +75,7 @@ class ConversationFocus(Base):
 
 # `memory_suppression_operations` · `memory_recall_suppressions` · `memory_episodic_messages`의
 # 정의가 여기 있었다. 대화형 망각을 없애면서 세 테이블 모두 삭제됐고
-# (`db/migrations/20260806_drop_legacy_memory.sql`), 정의만 남아 아무도 쓰지 않았다.
+# (이전 구조 제거 커밋), 정의만 남아 아무도 쓰지 않았다.
 # 없는 테이블을 가리키는 정의는 `db/verify.py`의 모델 대 스키마 대조에서 문제로 잡힌다.
 
 

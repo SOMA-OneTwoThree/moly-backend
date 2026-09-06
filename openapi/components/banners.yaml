@@ -1,0 +1,33 @@
+schemas:
+  BannerFeed:
+    additionalProperties: false
+    properties:
+      schema_version:
+        const: 1
+        title: Schema Version
+        type: integer
+      placement:
+        const: home_blind
+        title: Placement
+        type: string
+      revision:
+        pattern: ^[a-f0-9]{64}$
+        title: Revision
+        type: string
+      served_at:
+        format: date-time
+        title: Served At
+        type: string
+      items:
+        items: {}
+        maxItems: 5
+        title: Items
+        type: array
+    required:
+    - schema_version
+    - placement
+    - revision
+    - served_at
+    - items
+    title: BannerFeed
+    type: object

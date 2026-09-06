@@ -1,0 +1,99 @@
+/banners:
+  get:
+    tags:
+    - banners
+    summary: 홈 배너 조회
+    operationId: listBanners
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: placement
+      in: query
+      required: true
+      schema:
+        type: string
+        title: Placement
+    - name: schema_version
+      in: query
+      required: true
+      schema:
+        type: integer
+        exclusiveMinimum: 0
+        title: Schema Version
+    - name: platform
+      in: query
+      required: true
+      schema:
+        enum:
+        - android
+        - ios
+        type: string
+        title: Platform
+    - name: app_version
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+        title: App Version
+    - name: capabilities
+      in: query
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,63}$
+        maxItems: 32
+        title: Capabilities
+      style: form
+      explode: true
+    - name: x-app-locale
+      in: header
+      required: false
+      schema:
+        anyOf:
+        - type: string
+          maxLength: 64
+        - type: 'null'
+        title: X-App-Locale
+    - name: x-app-timezone
+      in: header
+      required: false
+      schema:
+        anyOf:
+        - type: string
+        - type: 'null'
+        title: X-App-Timezone
+    responses:
+      '200':
+        description: 유효한 배너 목록. 비활성/조건 불일치는 빈 items.
+        headers:
+          Cache-Control:
+            schema:
+              type: string
+              const: private, no-store
+        content:
+          application/json:
+            schema:
+              $ref: ../components/banners.yaml#/schemas/BannerFeed
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '503':
+        description: 정의·공통 context·조회 예산 실패
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              unavailable:
+                value:
+                  error:
+                    code: BANNERS_UNAVAILABLE
+                    message: 배너를 불러올 수 없습니다.
+                    details: {}
+    description: 배포된 정의로 사용자별 카드를 구성한다. items의 각 raw JSON 값은 클라이언트가 독립적으로 검증한다. 서버는
+      카드별 strict 검증을 수행한다.

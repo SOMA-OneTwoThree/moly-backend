@@ -1,11 +1,13 @@
 import asyncio
 import contextlib
+import logging
 import time
 
 from fastapi import FastAPI, Request
 
 from app.api.ads import router as ads_router
 from app.api.attribution import router as attribution_router
+from app.api.banners import router as banners_router
 from app.api.chat import router as chat_router
 from app.api.diary import router as diary_router
 from app.api.economy import router as economy_router
@@ -33,7 +35,13 @@ def create_app() -> FastAPI:
     @contextlib.asynccontextmanager
     async def _lifespan(app: FastAPI):
         from app.services import usage_ledger
+        from app.services.banner_catalog import BannerCatalog
 
+        app.state.banner_catalog = None
+        try:
+            app.state.banner_catalog = BannerCatalog.load()
+        except (OSError, ValueError) as exc:
+            logging.getLogger('moly-backend').error('banner catalog unavailable: %s', type(exc).__name__)
         stop = asyncio.Event()
         flusher = asyncio.ensure_future(usage_ledger.run_close_flusher(stop))
         try:
@@ -56,7 +64,10 @@ def create_app() -> FastAPI:
     async def request_clock(request: Request, call_next):  # type: ignore[no-untyped-def]
         # 인증 dependency와 DB 대기까지 포함한 절대 HTTP 예산의 시작점.
         request.state.started_monotonic = time.monotonic()
-        return await call_next(request)
+        response = await call_next(request)
+        if request.url.path == '/banners':
+            response.headers['Cache-Control'] = 'private, no-store'
+        return response
     # 공개(인증 불필요): 헬스체크와 설치 귀속 복호화.
     # (부팅 설정/강제업데이트/점검/낮밤은 Firebase로 이관)
     # 설치 리퍼러 복호화는 설치 직후 로그인 전에 호출되므로 인증을 걸 수 없다.
@@ -68,6 +79,7 @@ def create_app() -> FastAPI:
     app.include_router(diary_router)
     app.include_router(economy_router)
     app.include_router(routine_router)
+    app.include_router(banners_router)
     app.include_router(shop_router)
     app.include_router(review_router)
     app.include_router(feedback_router)

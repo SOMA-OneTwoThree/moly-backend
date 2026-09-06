@@ -145,10 +145,37 @@ async def test_routine_reward_goal_not_met(monkeypatch):
 
 
 # --- 루틴 통계(streak) ---
+async def test_statistics_preserves_window_edges_future_dates_and_long_streak(monkeypatch):
+    ad = date(2024, 3, 1)  # leap day is yesterday
+
+    async def _today(session, user_id, day=None):
+        return UID_UUID, ad
+
+    async def _owned(session, uid, rid):
+        return SimpleNamespace(id=uuid.uuid4(), days_of_week=[1, 3, 5])
+
+    monkeypatch.setattr(routine, "_today", _today)
+    monkeypatch.setattr(routine, "_load_owned", _owned)
+    # More than 30 days are needed for streak. Keep the established one-sided
+    # window when a request's shared day is behind a stored completion date.
+    dates = [ad - timedelta(days=i) for i in range(60, -1, -1)]
+    dates.insert(0, ad + timedelta(days=1))
+    out = await routine.statistics(FakeSession(exec_results=[dates]), UID, str(uuid.uuid4()))
+    assert out["streak"] == 61
+    assert out["last_30_days"] == [
+        (ad - timedelta(days=i)).isoformat() for i in range(29, -2, -1)
+    ]
+    assert out["completion_rate"] == 1.0
+    assert out["this_week"]["completed_count"] == 6
+    assert out["this_week"]["by_weekday"] == {
+        "1": True, "2": True, "3": True, "4": True, "5": True, "6": True, "7": False,
+    }
+
+
 async def test_routine_statistics_streak(monkeypatch):
     ad = date(2026, 7, 7)
 
-    async def _today(session, user_id):
+    async def _today(session, user_id, day=None):
         return UID_UUID, ad
 
     async def _owned(session, uid, rid):
@@ -412,7 +439,7 @@ async def test_purchase_success(monkeypatch):
     out = await shop.purchase(session, UID, "x", idempotency_key="purchase-key")
     assert out["product_id"] == it.public_id
     assert out["price_hay"] == 1000 and out["balance_after"] == 640
-    # 주문 생성(HAY·paid) + 가격 스냅샷 + 원장·인벤토리가 주문으로 연결(DB_REFACTOR §B.2)
+    # 주문 생성(HAY·paid) + 가격 스냅샷 + 원장·인벤토리가 주문으로 연결(ERD 4.6절)
     order, order_item, user_item, idempotency = session.added
     assert order.currency == "HAY" and order.status == "paid" and order.total_amount == 1000
     assert order_item.order_id == order.id and order_item.product_id == it.id
@@ -467,7 +494,7 @@ async def test_purchase_incompatible_cache_fails_closed(monkeypatch):
     assert session.committed is False
 
 
-# --- 장착(user_items 통합 — DB_REFACTOR §B.4) ---
+# --- 장착(user_items 통합 — ERD 4.8절) ---
 def _row(product_id, source="purchase", equipped_slot=None):
     return SimpleNamespace(product_id=product_id, source=source,
                            equipped_slot=equipped_slot, equipped_at=None)

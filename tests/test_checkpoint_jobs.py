@@ -14,6 +14,7 @@
 import inspect
 import json
 import uuid
+from types import SimpleNamespace
 
 import pytest
 
@@ -180,6 +181,23 @@ async def _run(db, jid) -> dict:
 # ─────────────────────────────────────────────────────────────
 # 0. 등록
 # ─────────────────────────────────────────────────────────────
+@pytest.mark.parametrize("ids", [[1, 1], [1, True], [1, 0], [1, -1], [1, 2.0], [1, {}]])
+def test_payload_rejects_duplicates_and_non_positive_integer_ids(ids):
+    payload = _payload()
+    payload["source_message_ids"] = ids
+    with pytest.raises(consumer.JobFatal, match="invalid_payload"):
+        checkpoint_jobs._parse(SimpleNamespace(user_id=_UID, payload=payload))
+
+
+def test_payload_orders_source_ids_without_changing_generation_zero():
+    payload = _payload()
+    payload["source_message_ids"] = list(range(400, 0, -1))
+    payload["memory_generation"] = 0
+    result = checkpoint_jobs._parse(SimpleNamespace(user_id=_UID, payload=payload))
+    assert result.source_message_ids == tuple(range(1, 401))
+    assert result.memory_generation == 0
+
+
 def test_handler_is_registered():
     assert checkpoint.JOB_CONVERSATION_CHECKPOINT in consumer.registered_types()
 
@@ -573,5 +591,4 @@ async def test_forget_between_check_and_insert_writes_nothing(db, store, llm_cal
         cj.checkpoint_repo.read_memory_generation = orig
 
     assert store["rows"] == []                  # 저장 0
-
 

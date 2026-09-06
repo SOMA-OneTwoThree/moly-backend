@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, Header, Response
+from fastapi import APIRouter, Depends, Header, Request, Response
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -284,3 +284,14 @@ async def health_synthetic(
         response.status_code = 503
     out["status"] = "ok" if ok else "down"
     return out
+
+
+@router.get("/health/banners", dependencies=[Depends(require_health_token)], include_in_schema=False)
+async def health_banners(request: Request, response: Response) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    catalog = getattr(request.app.state, "banner_catalog", None)
+    if catalog is None:
+        response.status_code = 503
+        return {"status": "unavailable", "version": settings.git_sha}
+    return {"status": "ok", "revision": catalog.revision,
+            "enabled": catalog.manifest.enabled, "version": settings.git_sha}

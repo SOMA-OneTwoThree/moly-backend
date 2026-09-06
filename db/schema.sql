@@ -1,933 +1,2690 @@
--- moly-backend 스키마 (Supabase / PostgreSQL)
--- 단일 소스 = app/models/*.py (코드가 실제로 읽고 쓰는 형태). 설계 근거 = docs/ERD.md.
--- enum은 모델이 String 매핑(asyncpg 바인딩 마찰 회피) → DB도 text + CHECK 제약으로 검증.
--- 클라 직접 쓰기 없음(전부 서버 API 경유) → RLS deny-default(심층 방어). 서버는 owner 롤이라 RLS 우회.
--- 실행 전제: 빈 public 스키마(생성만 있음 — 기존 테이블 정리는 docs/DB_RESET_RUNBOOK.md).
--- 실행: psql "<conn>" -f db/schema.sql  (또는 python db/apply.py)
+-- moly-backend: current application schema (PostgreSQL 17 / Supabase).
+-- Edit this file for structural changes. It creates an EMPTY application schema;
+-- existing environments use reviewed incremental SQL, never a baseline replay.
+-- Supabase owns auth.users and its roles; install them before this schema.
+-- Public/vecs definitions preserve the production catalog, including policy NULLs.
 
 BEGIN;
+SET LOCAL lock_timeout = '2s';
+SET LOCAL statement_timeout = '60s';
+SET LOCAL check_function_bodies = false;
+SELECT pg_catalog.set_config('search_path', '', true);
 
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname IN ('public', 'vecs') AND c.relkind IN ('r', 'p')
+      AND NOT EXISTS (
+        SELECT 1 FROM pg_depend d WHERE d.classid='pg_class'::regclass
+          AND d.objid=c.oid AND d.deptype='e'
+      )
+  ) THEN
+    RAISE EXCEPTION 'schema.sql requires an empty application schema; use reviewed change SQL';
+  END IF;
+END $$;
 
--- updated_at 자동 갱신 트리거 함수(기존 존재 시 재사용). 없으면 생성.
-CREATE OR REPLACE FUNCTION public.set_updated_at() RETURNS trigger AS $$
+CREATE SCHEMA IF NOT EXISTS public;
+CREATE SCHEMA IF NOT EXISTS vecs;
+CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+-- FUNCTION: public.bootstrap_user(uuid, timestamp with time zone)
+CREATE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone DEFAULT now()) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_required_count integer;
+  v_profile_created integer;
+BEGIN
+  SELECT count(*) INTO v_required_count
+  FROM public.products
+  WHERE product_type = 'cosmetic' AND is_active = true
+    AND (
+      (public_id = 'theme_default' AND slot = 'theme')
+      OR (public_id = 'head_sunglasses' AND slot = 'glasses')
+    );
+  IF v_required_count <> 2 THEN
+    RAISE EXCEPTION 'appearance bootstrap products are not ready';
+  END IF;
+
+  INSERT INTO public.profiles (id, trial_ends_at)
+  VALUES (p_user_id, p_created_at + interval '48 hours')
+  ON CONFLICT (id) DO NOTHING;
+  GET DIAGNOSTICS v_profile_created = ROW_COUNT;
+
+  INSERT INTO public.user_items (user_id, product_id, source)
+  SELECT p_user_id, p.id, 'admin_grant'
+  FROM public.products p
+  WHERE p.product_type = 'cosmetic' AND p.is_active = true
+    AND (
+      (p.public_id = 'theme_default' AND p.slot = 'theme')
+      OR (p.public_id = 'head_sunglasses' AND p.slot = 'glasses')
+    )
+  ON CONFLICT (user_id, product_id) DO NOTHING;
+
+  UPDATE public.user_items default_item
+  SET equipped_slot = 'theme', equipped_at = COALESCE(default_item.equipped_at, now())
+  FROM public.products default_product
+  WHERE default_item.user_id = p_user_id
+    AND default_item.product_id = default_product.id
+    AND default_product.public_id = 'theme_default'
+    AND NOT EXISTS (
+      SELECT 1 FROM public.user_items equipped
+      WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'
+    );
+
+  IF v_profile_created = 1 THEN
+    INSERT INTO public.routines (user_id, name, name_i18n, frequency_per_week, days_of_week, reminder_enabled)
+    VALUES
+      (p_user_id, '이불 정리하기',
+       '{"ko":"이불 정리하기","en":"Make the bed","ja":"布団を整える"}'::jsonb,
+       7, '{1,2,3,4,5,6,7}', false),
+      (p_user_id, '물 마시기',
+       '{"ko":"물 마시기","en":"Drink water","ja":"水を飲む"}'::jsonb,
+       7, '{1,2,3,4,5,6,7}', false);
+  END IF;
+END;
+$$;
+
+-- FUNCTION: public.create_privacy_barrier_for_profile()
+CREATE FUNCTION public.create_privacy_barrier_for_profile() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  INSERT INTO public.privacy_subject_barriers (user_id, state, epoch)
+  VALUES (NEW.id, 'active', 0)
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+-- FUNCTION: public.delete_user_memories(uuid)
+CREATE FUNCTION public.delete_user_memories(p_user_id uuid) RETURNS integer
+    LANGUAGE sql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$
+  WITH deleted AS (
+    DELETE FROM vecs.moly_memories_v2
+    WHERE metadata->>'user_id' = p_user_id::text
+    RETURNING 1
+  )
+  SELECT count(*)::integer FROM deleted;
+$$;
+
+-- FUNCTION: public.guard_normalized_memory_snapshot()
+CREATE FUNCTION public.guard_normalized_memory_snapshot() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  IF TG_OP='INSERT' AND NEW.memory_mode='normalized' THEN
+    NEW.memory_text := NULL;
+    NEW.memory_refreshed_at := NULL;
+  ELSIF TG_OP='UPDATE' AND OLD.memory_mode='normalized' THEN
+    NEW.memory_mode := 'normalized';   -- downgrade 차단
+    NEW.memory_text := NULL;
+    NEW.memory_refreshed_at := NULL;
+  END IF;
+  RETURN NEW;
+END $$;
+
+-- FUNCTION: public.handle_new_user()
+CREATE FUNCTION public.handle_new_user() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  PERFORM public.bootstrap_user(NEW.id, NEW.created_at);
+  RETURN NEW;
+END;
+$$;
+
+-- FUNCTION: public.normalize_content_language(text)
+CREATE FUNCTION public.normalize_content_language(tag text) RETURNS text
+    LANGUAGE sql IMMUTABLE
+    SET search_path TO 'public'
+    AS $$
+  SELECT CASE
+    WHEN tag IS NULL OR btrim(tag) = '' THEN 'en'
+    WHEN lower(split_part(btrim(tag), '-', 1)) IN ('ko', 'en', 'ja')
+      THEN lower(split_part(btrim(tag), '-', 1))
+    ELSE 'en'
+  END
+$$;
+
+-- FUNCTION: public.normalize_profile_language()
+CREATE FUNCTION public.normalize_profile_language() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  NEW.language := public.normalize_content_language(NEW.language);
+  RETURN NEW;
+END;
+$$;
+
+-- FUNCTION: public.set_updated_at()
+CREATE FUNCTION public.set_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
--- ─────────────────────────────────────────────────────────────
--- 1. 계정·프로필
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.profiles (
-  id                 uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  nickname           text        CHECK (char_length(nickname) <= 10),
-  language           text        NOT NULL DEFAULT 'ko',
-  timezone           text        NOT NULL DEFAULT 'Asia/Seoul',
-  -- 음수 허용 = 부채(환불 회수 시 증정 소비분을 음수로 내려 이후 획득이 자연 상계 → 완전 회수, SOMA-372).
-  -- 소비 경로의 <0 게이트는 코드가 유지(hay_ledger.apply allow_negative=False 기본).
-  hay_balance        integer     NOT NULL DEFAULT 0,
-  trial_ends_at      timestamptz,
-  review_prompted_at timestamptz,
-  created_at         timestamptz NOT NULL DEFAULT now(),
-  updated_at         timestamptz NOT NULL DEFAULT now()
-);
-CREATE TRIGGER profiles_set_updated_at BEFORE UPDATE ON public.profiles
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
--- ─────────────────────────────────────────────────────────────
--- 2. 서버 원본 카탈로그(FK 없음) — products / moly_life_ments / app_config
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.products (
-  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_type         text    NOT NULL CHECK (product_type IN ('hay_pack','cosmetic')),
-  name                 text    NOT NULL,           -- 원문(ko). 다국어는 name_i18n
-  description          text,
-  name_i18n            jsonb CONSTRAINT products_name_i18n_obj_ck CHECK (name_i18n IS NULL OR jsonb_typeof(name_i18n) = 'object'),  -- 언어별 이름({ko,en,ja}), object만(SOMA-346)
-  -- cosmetic 전용
-  public_id            text    UNIQUE,           -- API 노출용 안정 문자열 ID
-  slot                 text    CHECK (slot IN ('theme','hat','glasses','neck','body')),
-  -- NULL = 구매 불가(기본 지급 등). 0원은 구매 시 원장 CHECK(amount<>0)와 충돌하므로 금지.
-  price_hay            integer CONSTRAINT products_price_hay_positive_ck CHECK (price_hay >= 1),
-  is_subscriber_only   boolean NOT NULL DEFAULT false,
-  asset_version        integer,
-  assets               jsonb,
-  -- hay_pack 전용
-  hay_amount           integer,
-  price_krw            integer,                 -- 표시 참고용(결제가는 StoreKit)
-  app_store_product_id text    UNIQUE,
-  play_store_product_id text   UNIQUE,          -- Google Play 상품ID(Play Console 확정 후 주입, NULL 허용)
-  is_active            boolean NOT NULL DEFAULT true,
-  -- 신버전(rightside 자세) 계약에만 노출 — 레거시 카탈로그/인벤토리에서 제외.
-  is_v2_only           boolean NOT NULL DEFAULT false,
-  sort_order           integer NOT NULL DEFAULT 0,
-  -- 타입별 컬럼 상호 강제
-  CONSTRAINT products_hay_pack_ck CHECK (
-    product_type <> 'hay_pack' OR (
-      hay_amount IS NOT NULL AND app_store_product_id IS NOT NULL
-      AND public_id IS NULL AND slot IS NULL AND price_hay IS NULL
-      AND asset_version IS NULL AND assets IS NULL
-      AND is_subscriber_only = false
-    )
-  ),
-  CONSTRAINT products_cosmetic_ck CHECK (
-    product_type <> 'cosmetic' OR (
-      public_id IS NOT NULL AND slot IS NOT NULL
-      AND hay_amount IS NULL AND app_store_product_id IS NULL AND price_krw IS NULL
-      AND play_store_product_id IS NULL
-      -- 구독 전용 꾸미기는 폐지 — 카탈로그에 노출되면서 구매만 막히는 상품을 만들 수 없다.
-      AND is_subscriber_only = false
-      -- 최종 에셋이 없는 상품은 inactive로만 준비할 수 있다.
-      AND (
-        is_active = false
-        OR (asset_version IS NOT NULL AND asset_version >= 1 AND assets IS NOT NULL)
-      )
-    )
-  ),
-  -- user_items 복합 FK (product_id, equipped_slot) → (id, slot) 대상
-  CONSTRAINT products_id_slot_uq UNIQUE (id, slot)
+-- TABLE: public.ai_price_catalog
+CREATE TABLE public.ai_price_catalog (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    catalog_version integer NOT NULL,
+    provider text NOT NULL,
+    model text NOT NULL,
+    input_micro_usd bigint,
+    cached_input_micro_usd bigint,
+    cache_write_micro_usd bigint,
+    output_micro_usd bigint,
+    embedding_micro_usd bigint,
+    source_note text,
+    effective_from timestamp with time zone NOT NULL,
+    effective_to timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ai_price_catalog_cache_write_micro_usd_check CHECK ((cache_write_micro_usd >= 0)),
+    CONSTRAINT ai_price_catalog_cached_input_micro_usd_check CHECK ((cached_input_micro_usd >= 0)),
+    CONSTRAINT ai_price_catalog_check CHECK (((effective_to IS NULL) OR (effective_to > effective_from))),
+    CONSTRAINT ai_price_catalog_embedding_micro_usd_check CHECK ((embedding_micro_usd >= 0)),
+    CONSTRAINT ai_price_catalog_input_micro_usd_check CHECK ((input_micro_usd >= 0)),
+    CONSTRAINT ai_price_catalog_output_micro_usd_check CHECK ((output_micro_usd >= 0))
 );
 
-CREATE TABLE public.moly_life_ments (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  content    text    NOT NULL,
-  weather    text    NOT NULL CHECK (weather IN ('sunny','cloudy','rainy','windy')),
-  is_active  boolean NOT NULL DEFAULT true,
-  -- 날짜 지정본(직접 작성) = 그날 우선 선택. NULL = 랜덤 폴백 풀.
-  diary_date date,
-  created_at timestamptz NOT NULL DEFAULT now()
+-- TABLE: public.ai_usage_daily_rollup
+CREATE TABLE public.ai_usage_daily_rollup (
+    kst_date date NOT NULL,
+    provider text NOT NULL,
+    model text NOT NULL,
+    lane text NOT NULL,
+    purpose text NOT NULL,
+    status text NOT NULL,
+    calls bigint DEFAULT 0 NOT NULL,
+    input_tokens bigint DEFAULT 0 NOT NULL,
+    cached_input_tokens bigint DEFAULT 0 NOT NULL,
+    cache_write_tokens bigint DEFAULT 0 NOT NULL,
+    output_tokens bigint DEFAULT 0 NOT NULL,
+    embedding_tokens bigint DEFAULT 0 NOT NULL,
+    cost_micro_usd bigint DEFAULT 0 NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
--- 한 날짜당 지정본 1건만(부분 유니크). NULL 풀 행은 제약 밖.
-CREATE UNIQUE INDEX moly_life_ments_diary_date_uq
-  ON public.moly_life_ments (diary_date) WHERE diary_date IS NOT NULL;
 
+-- TABLE: public.ai_usage_ledger
+CREATE TABLE public.ai_usage_ledger (
+    call_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid,
+    turn_seq bigint,
+    job_id uuid,
+    activity_date date,
+    lane text NOT NULL,
+    purpose text NOT NULL,
+    provider text NOT NULL,
+    model text NOT NULL,
+    model_snapshot text,
+    status text DEFAULT 'started'::text NOT NULL,
+    started_at timestamp with time zone DEFAULT now() NOT NULL,
+    completed_at timestamp with time zone,
+    latency_ms integer,
+    input_tokens integer DEFAULT 0 NOT NULL,
+    cached_input_tokens integer DEFAULT 0 NOT NULL,
+    cache_write_tokens integer DEFAULT 0 NOT NULL,
+    output_tokens integer DEFAULT 0 NOT NULL,
+    embedding_tokens integer DEFAULT 0 NOT NULL,
+    cache_write_estimated boolean DEFAULT false NOT NULL,
+    provider_request_id text,
+    price_catalog_version integer,
+    cost_micro_usd bigint,
+    cost_upper_bound_micro_usd bigint,
+    attempt integer DEFAULT 1 NOT NULL,
+    schema_version text,
+    prompt_version text,
+    experiment_id text,
+    error_code text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ai_usage_ledger_attempt_check CHECK ((attempt >= 1)),
+    CONSTRAINT ai_usage_ledger_cache_write_tokens_check CHECK ((cache_write_tokens >= 0)),
+    CONSTRAINT ai_usage_ledger_cached_input_tokens_check CHECK ((cached_input_tokens >= 0)),
+    CONSTRAINT ai_usage_ledger_check CHECK (((status <> 'completed'::text) OR (price_catalog_version IS NOT NULL))),
+    CONSTRAINT ai_usage_ledger_cost_micro_usd_check CHECK ((cost_micro_usd >= 0)),
+    CONSTRAINT ai_usage_ledger_cost_upper_bound_micro_usd_check CHECK ((cost_upper_bound_micro_usd >= 0)),
+    CONSTRAINT ai_usage_ledger_embedding_tokens_check CHECK ((embedding_tokens >= 0)),
+    CONSTRAINT ai_usage_ledger_input_tokens_check CHECK ((input_tokens >= 0)),
+    CONSTRAINT ai_usage_ledger_lane_check CHECK ((lane = ANY (ARRAY['foreground'::text, 'background'::text]))),
+    CONSTRAINT ai_usage_ledger_latency_ms_check CHECK ((latency_ms >= 0)),
+    CONSTRAINT ai_usage_ledger_output_tokens_check CHECK ((output_tokens >= 0)),
+    CONSTRAINT ai_usage_ledger_status_check CHECK ((status = ANY (ARRAY['started'::text, 'completed'::text, 'unknown_usage'::text, 'failed'::text])))
+);
+
+-- TABLE: public.app_config
 CREATE TABLE public.app_config (
-  key         text PRIMARY KEY,
-  value       jsonb NOT NULL,
-  description text,
-  updated_at  timestamptz NOT NULL DEFAULT now()
+    key text NOT NULL,
+    value jsonb NOT NULL,
+    description text,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
--- ─────────────────────────────────────────────────────────────
--- 3. 대화(messages → greetings 순서) · 주문 · 원장 · 일일 통계
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.messages (
-  id            bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-  user_id       uuid   NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  sender        text   NOT NULL CHECK (sender IN ('user','moly')),
-  kind          text   NOT NULL DEFAULT 'normal' CHECK (
-    kind IN ('normal','greeting','fortune_context_root','fortune_derived')
-  ),
-  content       text   NOT NULL,
-  input_tokens  integer,
-  output_tokens integer,
-  cache_read_tokens  integer,   -- 프롬프트 캐시 텔레메트리(실원가·히트율)
-  cache_write_tokens integer,
-  billable_tokens    integer,   -- 원가 가중 청구 스냅샷(가중치 변경 후 재감사)
-  activity_date date   NOT NULL,
-  created_at    timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX messages_user_id_desc_idx  ON public.messages (user_id, id DESC);
-CREATE INDEX messages_user_actdate_idx  ON public.messages (user_id, activity_date);
-
-CREATE TABLE public.greetings (
-  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id              uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  context              text NOT NULL CHECK (context IN ('onboarding','home_enter','morning','evening','comeback')),
-  content              text NOT NULL,
-  activity_date        date NOT NULL,
-  committed_message_id bigint REFERENCES public.messages(id) ON DELETE SET NULL,
-  created_at           timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT greetings_user_ctx_date_uq UNIQUE (user_id, context, activity_date)
-);
-
--- 주문 — 모든 구매의 단일 진입점 (DB_REFACTOR §B.2)
--- currency: KRW = IAP 건초 구매(실결제) / HAY = 상점 꾸미기 구매(재화 차감)
-CREATE TABLE public.orders (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id      uuid    NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  currency     text    NOT NULL CHECK (currency IN ('KRW','HAY')),
-  status       text    NOT NULL CHECK (status IN ('pending','paid','failed','refunded')),
-  total_amount integer NOT NULL CHECK (total_amount >= 0),
-  created_at   timestamptz NOT NULL DEFAULT now(),
-  updated_at   timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX orders_user_created_idx ON public.orders (user_id, created_at DESC);
-CREATE TRIGGER orders_set_updated_at BEFORE UPDATE ON public.orders
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-CREATE TABLE public.order_items (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_id   uuid    NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
-  product_id uuid    NOT NULL REFERENCES public.products(id) ON DELETE RESTRICT,
-  quantity   integer NOT NULL DEFAULT 1 CHECK (quantity > 0),
-  unit_price integer NOT NULL CHECK (unit_price >= 0)   -- 구매 시점 가격 스냅샷(가격정책 변동 대비)
-);
-CREATE INDEX order_items_order_idx   ON public.order_items (order_id);
-CREATE INDEX order_items_product_idx ON public.order_items (product_id);
-
-CREATE TABLE public.hay_transactions (
-  id            bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-  user_id       uuid    NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  type          text    NOT NULL CHECK (type IN (
-                  'attendance','ad_reward','routine_reward','iap_purchase',
-                  'subscription_grant','shop_purchase','refund_revoke','admin_adjustment')),
-  amount        integer NOT NULL CHECK (amount <> 0),
-  balance_after integer NOT NULL,
-  order_id      uuid REFERENCES public.orders(id) ON DELETE SET NULL,  -- 구매 관련 원장만(iap_purchase·shop_purchase)
-  created_at    timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX hay_transactions_user_created_idx ON public.hay_transactions (user_id, created_at DESC);
-CREATE INDEX hay_transactions_order_idx        ON public.hay_transactions (order_id);
-
-CREATE TABLE public.user_daily_stats (
-  id                        bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-  user_id                   uuid     NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  activity_date             date     NOT NULL,
-  tokens_used               integer  NOT NULL DEFAULT 0,
-  ad_reward_count           smallint NOT NULL DEFAULT 0,
-  attendance_claimed_at     timestamptz,
-  routine_reward_claimed_at timestamptz,
-  morning_notified_at       timestamptz,   -- 아침 푸시 발송 멱등 마커(유저×활동일 1회)
-  evening_notified_at       timestamptz,   -- 저녁 푸시 발송 멱등 마커
-  CONSTRAINT user_daily_stats_user_date_uq UNIQUE (user_id, activity_date)
-);
-
--- ─────────────────────────────────────────────────────────────
--- 4. 구독 · 결제 · 증정
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.subscriptions (
-  id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id                 uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  plan                    text NOT NULL CHECK (plan IN ('monthly','yearly')),
-  status                  text NOT NULL CHECK (status IN ('active','grace_period','expired','revoked')),
-  original_transaction_id text NOT NULL UNIQUE,
-  latest_transaction_id   text,
-  purchased_at            timestamptz,
-  expires_at              timestamptz,
-  auto_renew_enabled      boolean NOT NULL DEFAULT true,
-  environment             text,
-  -- 상태 단조 기준(SOMA-372) — 이 시각 이하의 옛 상태 이벤트는 활성 구독을 되돌리지 않는다.
-  last_event_at           timestamptz,
-  created_at              timestamptz NOT NULL DEFAULT now(),
-  updated_at              timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX subscriptions_user_idx ON public.subscriptions (user_id);
-CREATE TRIGGER subscriptions_set_updated_at BEFORE UPDATE ON public.subscriptions
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-CREATE TABLE public.subscription_hay_grants (
-  id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id                     uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  plan                        text NOT NULL CHECK (plan IN ('monthly','yearly')),
-  hay_transaction_id          bigint REFERENCES public.hay_transactions(id) ON DELETE SET NULL,
-  granted_at                  timestamptz NOT NULL DEFAULT now(),
-  -- 환불 회수 멱등(회수 완료 표식)
-  revoked_at                  timestamptz,
-  clawback_hay_transaction_id bigint REFERENCES public.hay_transactions(id) ON DELETE SET NULL,
-  CONSTRAINT subscription_hay_grants_user_plan_uq UNIQUE (user_id, plan)
-);
-
--- 실결제(현금) 기록 — IAP 건초 + 구독 결제(구매·갱신) 통합 (DB_REFACTOR §B.3)
--- 매출 집계 = payments 단일 테이블.
-CREATE TABLE public.payments (
-  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id              uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  -- CASCADE 사유: order/subscription 삭제는 회원탈퇴 CASCADE 경로뿐 — SET NULL이면 탈퇴 중 target_ck 위반
-  order_id             uuid REFERENCES public.orders(id) ON DELETE CASCADE,          -- IAP 건초 주문과 1:1
-  subscription_id      uuid REFERENCES public.subscriptions(id) ON DELETE CASCADE,   -- 구독 결제(구매·갱신)
-  store                text NOT NULL,               -- 실제 스토어(app_store|play_store|…). 코드가 항상 명시
-  store_transaction_id text NOT NULL UNIQUE,   -- 멱등 키(영수증 중복 지급 방지)
-  amount               numeric(14,4),          -- 결제금액(원통화·무손실). 이벤트에 없으면 NULL
-  currency             text,                   -- 구매 통화(ISO 4217). 미확인이면 NULL(KRW로 확정 금지)
-  status               text NOT NULL CHECK (status IN ('paid','refunded')),
-  paid_at              timestamptz,
-  created_at           timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT payments_target_ck CHECK (order_id IS NOT NULL OR subscription_id IS NOT NULL)
-);
-CREATE INDEX payments_user_idx         ON public.payments (user_id);
-CREATE INDEX payments_order_idx        ON public.payments (order_id);
-CREATE INDEX payments_subscription_idx ON public.payments (subscription_id);
-CREATE INDEX payments_store_idx        ON public.payments (store);
-
--- ─────────────────────────────────────────────────────────────
--- 5. 인벤토리 + 장착 — user_items (보유 + 장착 상태 통합)
---    equipped_slot NULL = 미장착. theme은 사용자마다 항상 1개 장착한다.
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.user_items (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  product_id    uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
-  source        text NOT NULL DEFAULT 'purchase' CHECK (source IN ('purchase','subscription','admin_grant')),
-  order_id      uuid REFERENCES public.orders(id) ON DELETE SET NULL,
-  equipped_slot text CHECK (equipped_slot IN ('theme','hat','glasses','neck','body')),
-  equipped_at   timestamptz,
-  acquired_at   timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT user_items_user_product_uq UNIQUE (user_id, product_id),
-  -- ERD §4.9 승계: 슬롯 일치를 DB가 강제(복합 FK — equipped_slot NULL이면 미평가)
-  CONSTRAINT user_items_product_slot_fk
-    FOREIGN KEY (product_id, equipped_slot) REFERENCES public.products(id, slot),
-  CONSTRAINT user_items_equipped_ck CHECK (equipped_at IS NULL OR equipped_slot IS NOT NULL)
-);
-CREATE INDEX user_items_user_idx    ON public.user_items (user_id);
-CREATE INDEX user_items_product_idx ON public.user_items (product_id);
-CREATE INDEX user_items_order_idx   ON public.user_items (order_id);
--- 슬롯당 1개 장착
-CREATE UNIQUE INDEX user_items_user_equipped_slot_uq
-  ON public.user_items (user_id, equipped_slot) WHERE equipped_slot IS NOT NULL;
-
--- ─────────────────────────────────────────────────────────────
--- 6. 일기
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.diaries (
-  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id        uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  diary_date     date NOT NULL,
-  source         text NOT NULL CHECK (source IN ('llm','preset','welcome','none')),
-  preset_ment_id uuid REFERENCES public.moly_life_ments(id) ON DELETE SET NULL,
-  content        text NOT NULL,
-  weather        text NOT NULL CHECK (weather IN ('sunny','cloudy','rainy','windy')),
-  published_at   timestamptz,
-  first_read_at  timestamptz,
-  created_at     timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT diaries_user_date_uq UNIQUE (user_id, diary_date)
-);
-CREATE INDEX diaries_user_published_idx ON public.diaries (user_id, published_at);
-CREATE INDEX diaries_content_trgm_idx ON public.diaries USING gin (content gin_trgm_ops);
-
--- ─────────────────────────────────────────────────────────────
--- 7. 루틴
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.routines (
-  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id            uuid     NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  name               text     NOT NULL,
-  name_i18n          jsonb CONSTRAINT routines_name_i18n_obj_ck CHECK (name_i18n IS NULL OR jsonb_typeof(name_i18n) = 'object'),  -- 기본 루틴 다국어, object만(SOMA-346)
-  frequency_per_week smallint NOT NULL,            -- 항상 요일 수(응답 하위호환용)
-  days_of_week       smallint[] NOT NULL,          -- 지정 요일(ISO 1=월…7=일)
-  reminder_enabled   boolean  NOT NULL DEFAULT false,
-  reminder_time      time,
-  deleted_at         timestamptz,
-  created_at         timestamptz NOT NULL DEFAULT now(),
-  updated_at         timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX routines_user_idx ON public.routines (user_id);
-CREATE TRIGGER routines_set_updated_at BEFORE UPDATE ON public.routines
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
--- 일기 생성 클레임 — 워커 틱 중첩 시 (유저,날짜) 일기 중복 LLM 생성 방지(SOMA-373).
--- 커밋된 행 기반 상호배제(세션 advisory lock은 풀링·pgbouncer와 불호환). 30분 만료로 크래시 회수.
-CREATE TABLE public.diary_gen_claims (
-  user_id     uuid        NOT NULL,
-  target_date date        NOT NULL,
-  claimed_at  timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (user_id, target_date)
-);
-
-CREATE TABLE public.routine_completions (
-  id            bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-  routine_id    uuid NOT NULL REFERENCES public.routines(id) ON DELETE CASCADE,
-  user_id       uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  activity_date date NOT NULL,
-  completed_at  timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT routine_completions_routine_date_uq UNIQUE (routine_id, activity_date)
-);
-CREATE INDEX routine_completions_routine_idx ON public.routine_completions (routine_id);
-CREATE INDEX routine_completions_user_idx    ON public.routine_completions (user_id);
-
--- ─────────────────────────────────────────────────────────────
--- 8. 알림 · 디바이스
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.user_notification_settings (
-  user_id uuid    NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  type    text    NOT NULL CHECK (type IN ('morning_diary','evening_chat')),
-  enabled boolean NOT NULL DEFAULT true,
-  PRIMARY KEY (user_id, type)
-);
-
-CREATE TABLE public.user_devices (
-  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id        uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  platform       text NOT NULL CHECK (platform IN ('ios', 'android')),
-  push_token     text NOT NULL UNIQUE,
-  last_active_at timestamptz,
-  created_at     timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX user_devices_user_idx ON public.user_devices (user_id);
-
--- ─────────────────────────────────────────────────────────────
--- 9. 광고 SSV · 멱등키 (ERD 밖, 백엔드 신규)
--- ─────────────────────────────────────────────────────────────
-CREATE TABLE public.reward_ad_sessions (
-  session_id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id            uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  activity_date      date NOT NULL,
-  ssv_transaction_id text UNIQUE,           -- SSV 도착 시 기록(재전송 멱등)
-  granted            boolean NOT NULL DEFAULT false,
-  created_at         timestamptz NOT NULL DEFAULT now(),
-  expires_at         timestamptz NOT NULL DEFAULT (now() + interval '30 minutes'),
-  CONSTRAINT reward_ad_sessions_expiry_ck CHECK (expires_at > created_at)
-);
-CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions (user_id);
-CREATE INDEX reward_ad_sessions_expiry_idx
-  ON public.reward_ad_sessions (expires_at, session_id);
-
--- 대화 컨텍스트 상태(앵커 append-only + 정규화 기억 처리 좌표).
-CREATE TABLE public.chat_contexts (
-  user_id             uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
-  anchor_message_id   bigint NOT NULL DEFAULT 0 CHECK (anchor_message_id >= 0),
-  memory_generation   bigint NOT NULL DEFAULT 0,       -- forget마다 +1 → stale 잡 결과 폐기
-  memory_source_watermark bigint NOT NULL DEFAULT 0,   -- 대화 turn당 +1(turn 커밋마다 배정)
-  -- fact/insight의 실제 내용·source·상태 변경 트랜잭션에서만 정확히 +1(no-op·retry·재색인은 제외)
-  relationship_profile_input_revision bigint NOT NULL DEFAULT 0,
-  last_active_at       timestamptz,
-  updated_at          timestamptz NOT NULL DEFAULT now()
-);
-REVOKE ALL ON public.chat_contexts FROM anon, authenticated;
-
-CREATE TABLE public.idempotency_keys (
-  user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  key        text NOT NULL,
-  response   jsonb NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (user_id, key)
-);
-
--- RC 웹훅 내구 inbox(SOMA-372) — 엔드포인트가 event.id를 PK로 raw 커밋(중복 웹훅 멱등) 후
--- process_event가 소비. DB 오류 삼킴에 의한 구독·결제·건초 영구 유실 차단. 미결 pending·미해결
--- failed는 워커가 매 틱 관측(은폐 없음). FK 없음(RC 소유 식별자·유저 매핑은 payload 안).
-CREATE TABLE public.revenuecat_events (
-  event_id     text        PRIMARY KEY,               -- RC event.id(전역 유일)
-  payload      jsonb       NOT NULL,                  -- 이벤트 원문(운영 수동 처리·재처리 근거)
-  status       text        NOT NULL DEFAULT 'pending'
-                 CHECK (status IN ('pending','processed','failed')),
-  attempts     integer     NOT NULL DEFAULT 0,        -- 예상 밖 예외 재시도 횟수(≥5 → failed)
-  received_at  timestamptz NOT NULL DEFAULT now(),
-  next_attempt_at timestamptz NOT NULL DEFAULT now(), -- 다음 재시도 예약(backoff) — 드레인 후보·정렬 기준(rotation)
-  processed_at timestamptz,                           -- processed/failed 확정 시각
-  last_error   text                                   -- 실패 사유 또는 no-op durable reason
-);
-CREATE INDEX revenuecat_events_status_idx ON public.revenuecat_events (status, received_at);
--- 드레인 후보 인덱스 — pending 중 next_attempt_at <= now() 스캔·정렬(집합 내부 rotation, SOMA-372).
-CREATE INDEX revenuecat_events_status_next_attempt_idx ON public.revenuecat_events (status, next_attempt_at);
-
--- 인앱 문의(자유 텍스트). contact = 기프티콘 이벤트용 선택 연락처(이메일·전화·인스타 등).
-CREATE TABLE public.feedback (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  message    text NOT NULL CHECK (char_length(message) <= 2000),
-  contact    text CHECK (char_length(contact) <= 200),
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX feedback_user_idx ON public.feedback (user_id);
-
--- 잡 플랫폼(W7) — 대화 후속 처리(기억 추출 등)의 내구 큐. 큐 5종은 스키마가 아니라 queue 컬럼 값이며
--- 소비자 내부 슬롯으로만 분리한다. attempt는 **claim 시점**에 증가해(크래시로 finalize 못 한 잡도
--- 재클레임마다 카운트) 반드시 dead에 도달한다(poison job 무한루프 방지). finalize/heartbeat은
--- (id, state='running', lease_owner, lease_token) fencing으로만 쓴다 — lease 잃은 늦은 소비자가
--- 잘못 확정 못 함. terminal(succeeded/dead/cancelled)에서 같은 행을 ready로 되살리지 않고,
--- 운영 replay는 dedup_key='replay:{old_job_id}:{operation_id}'인 새 행으로만. dead 자동 삭제 없음.
+-- TABLE: public.async_jobs
 CREATE TABLE public.async_jobs (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  queue         text NOT NULL,                       -- critical|interactive_async|content|notification|maintenance
-  job_type      text NOT NULL,
-  user_id       uuid NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  dedup_key     text NOT NULL,
-  replay_of     uuid NULL REFERENCES public.async_jobs(id), -- terminal 원본을 보존하는 replay 계보
-  payload       jsonb NOT NULL,
-  state         text NOT NULL DEFAULT 'ready'
-    CHECK (state IN ('ready','running','succeeded','dead','cancelled')),
-  priority      integer NOT NULL DEFAULT 100,        -- 작을수록 먼저
-  available_at  timestamptz NOT NULL DEFAULT now(),  -- 재시도 backoff 예약 시각
-  expires_at    timestamptz NULL,                    -- 경과 시 cancelled(처리 의미 없어진 잡)
-  attempt       integer NOT NULL DEFAULT 0 CHECK (attempt >= 0),
-  max_attempts  integer NOT NULL CHECK (max_attempts > 0),
-  lease_owner   text NULL,
-  lease_token   uuid NULL,
-  lease_until   timestamptz NULL,
-  result_code   text NULL,
-  result_detail jsonb NULL,
-  last_error_code text NULL,
-  last_error_at timestamptz NULL,
-  created_at    timestamptz NOT NULL DEFAULT now(),
-  finished_at   timestamptz NULL,
-  UNIQUE (job_type, dedup_key),                      -- 멱등 키(구·신 producer 겹침 구간 합류점)
-  CHECK (                                            -- lease 3종은 running일 때만 존재
-    (state = 'running' AND lease_owner IS NOT NULL AND lease_token IS NOT NULL AND lease_until IS NOT NULL)
-    OR (state <> 'running' AND lease_owner IS NULL AND lease_token IS NULL AND lease_until IS NULL)
-  )
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    queue text NOT NULL,
+    job_type text NOT NULL,
+    user_id uuid,
+    dedup_key text NOT NULL,
+    payload jsonb NOT NULL,
+    state text DEFAULT 'ready'::text NOT NULL,
+    priority integer DEFAULT 100 NOT NULL,
+    available_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone,
+    attempt integer DEFAULT 0 NOT NULL,
+    max_attempts integer NOT NULL,
+    lease_owner text,
+    lease_token uuid,
+    lease_until timestamp with time zone,
+    result_code text,
+    result_detail jsonb,
+    last_error_code text,
+    last_error_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    finished_at timestamp with time zone,
+    replay_of uuid,
+    replay_operation_id uuid,
+    payload_schema_version text DEFAULT 'job-payload-v1'::text NOT NULL,
+    payload_hash text,
+    payload_expires_at timestamp with time zone,
+    payload_redacted_at timestamp with time zone,
+    provider text,
+    model text,
+    lane text,
+    eligible_at timestamp with time zone,
+    CONSTRAINT async_jobs_attempt_check CHECK ((attempt >= 0)),
+    CONSTRAINT async_jobs_check CHECK ((((state = 'running'::text) AND (lease_owner IS NOT NULL) AND (lease_token IS NOT NULL) AND (lease_until IS NOT NULL)) OR ((state <> 'running'::text) AND (lease_owner IS NULL) AND (lease_token IS NULL) AND (lease_until IS NULL)))),
+    CONSTRAINT async_jobs_max_attempts_check CHECK ((max_attempts > 0)),
+    CONSTRAINT async_jobs_state_check CHECK ((state = ANY (ARRAY['ready'::text, 'running'::text, 'succeeded'::text, 'dead'::text, 'cancelled'::text])))
 );
-CREATE INDEX async_jobs_claim_idx
-  ON public.async_jobs (queue, priority, available_at, created_at) WHERE state='ready';
-CREATE INDEX async_jobs_reclaim_idx
-  ON public.async_jobs (queue, lease_until) WHERE state='running';
--- /health/queues 큐별 집계·oldest dead age(이관 게이트). dead 미삭제로 단조 증가하는 테이블의 풀스캔 방지.
-CREATE INDEX async_jobs_state_queue_idx ON public.async_jobs (state, queue);
-CREATE INDEX async_jobs_replay_of_idx ON public.async_jobs (replay_of) WHERE replay_of IS NOT NULL;
 
--- ─────────────────────────────────────────────────────────────
--- 12. 대화 요약 checkpoint(W11) — 길어진 대화의 오래된 구간을 요약해 남긴다.
---     다음 턴은 **가장 앞선 checkpoint 하나 + 그 이후 메시지**만 쓴다(앵커 리셋이 옛 구간을
---     통째로 버리던 문제).
---     · source_hash = (이전 checkpoint id·source_hash) + 이번 원본 메시지의 정렬된
---       (id, sender, kind, placeholder content)를 길이-prefix 직렬화한 SHA-256.
---     · UNIQUE(user_id, through_message_id, source_hash) + 잡 dedup key로 같은 입력은 한 번만 요약.
---     · through_message_id는 RESTRICT — 요약 경계가 되는 메시지는 사라질 수 없다.
---     상세 = docs/ARCHITECTURE-capi.md 8.2절.
--- ─────────────────────────────────────────────────────────────
+-- TABLE: public.chat_active_turns
+CREATE TABLE public.chat_active_turns (
+    user_id uuid NOT NULL,
+    turn_seq bigint NOT NULL,
+    idempotency_key text NOT NULL,
+    request_hash text NOT NULL,
+    base_context_revision bigint NOT NULL,
+    lease_token uuid NOT NULL,
+    lease_until timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT chat_active_turns_turn_seq_check CHECK ((turn_seq > 0))
+);
+
+-- TABLE: public.chat_contexts
+CREATE TABLE public.chat_contexts (
+    user_id uuid NOT NULL,
+    anchor_message_id bigint DEFAULT 0 NOT NULL,
+    memory_text text,
+    memory_refreshed_at timestamp with time zone,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_active_at timestamp with time zone,
+    memory_mode text DEFAULT 'legacy'::text NOT NULL,
+    memory_generation bigint DEFAULT 0 NOT NULL,
+    memory_source_watermark bigint DEFAULT 0 NOT NULL,
+    relationship_profile_input_revision bigint DEFAULT 0 NOT NULL,
+    context_revision bigint DEFAULT 0 NOT NULL,
+    last_committed_turn_seq bigint DEFAULT 0 NOT NULL,
+    prompt_cache_generation bigint DEFAULT 0 NOT NULL,
+    anchor_revision bigint DEFAULT 0 NOT NULL,
+    pending_anchor_message_id bigint,
+    pending_plan_revision bigint,
+    checkpoint_job_id uuid,
+    checkpoint_source_hash text,
+    CONSTRAINT chat_contexts_anchor_message_id_check CHECK ((anchor_message_id >= 0)),
+    CONSTRAINT chat_contexts_memory_mode_check CHECK ((memory_mode = ANY (ARRAY['legacy'::text, 'normalized'::text])))
+);
+
+-- TABLE: public.chat_response_references
+CREATE TABLE public.chat_response_references (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    reply_message_id bigint NOT NULL,
+    ordinal integer NOT NULL,
+    schema_version text DEFAULT 'diary-reference-v1'::text NOT NULL,
+    domain text DEFAULT 'diary'::text NOT NULL,
+    mode text NOT NULL,
+    state text DEFAULT 'available'::text NOT NULL,
+    diary_id uuid,
+    rendered_metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
+    redacted_at timestamp with time zone,
+    redaction_reason text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT chat_response_references_check CHECK ((((state = 'available'::text) AND (diary_id IS NOT NULL) AND (redacted_at IS NULL)) OR ((state = 'unavailable'::text) AND (diary_id IS NULL)))),
+    CONSTRAINT chat_response_references_domain_check CHECK ((domain = 'diary'::text)),
+    CONSTRAINT chat_response_references_mode_check CHECK ((mode = ANY (ARRAY['full_card'::text, 'reopen_reference'::text]))),
+    CONSTRAINT chat_response_references_ordinal_check CHECK (((ordinal >= 0) AND (ordinal <= 2))),
+    CONSTRAINT chat_response_references_state_check CHECK ((state = ANY (ARRAY['available'::text, 'unavailable'::text])))
+);
+
+-- TABLE: public.conversation_checkpoints
 CREATE TABLE public.conversation_checkpoints (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  through_message_id bigint NOT NULL REFERENCES public.messages(id) ON DELETE RESTRICT,
-  summary text NOT NULL,                    -- 저장 표면(실명 금지 — {유저이름} placeholder)
-  version text NOT NULL,                    -- 요약기 계약 버전
-  source_hash text NOT NULL,                -- 결정적 입력 지문
-  -- 만들 때의 chat_contexts.memory_generation. 잊어줘가 세대를 올리므로, 조회는 **현재 세대와
-  -- 같은 행만** 돌려준다. 잊어줘의 DELETE와 요약 INSERT가 겹치면 한쪽이 다른 쪽의 미커밋 행을
-  -- 못 봐(READ COMMITTED) 삭제를 피한 행이 남는데, 잠금으로 막으면 챗과 락 순서가 반대라
-  -- 교착이 난다. 지우는 대신 읽을 때 걸러 프롬프트에 안 실리게 한다.
-  memory_generation bigint NOT NULL DEFAULT 0,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (user_id, through_message_id, source_hash)
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    through_message_id bigint NOT NULL,
+    summary text NOT NULL,
+    version text NOT NULL,
+    source_hash text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    memory_generation bigint DEFAULT 0 NOT NULL,
+    kind text DEFAULT 'window'::text NOT NULL,
+    segment_from_message_id bigint,
+    segment_through_message_id bigint,
+    coverage_from_message_id bigint,
+    coverage_through_message_id bigint,
+    previous_checkpoint_id uuid,
+    locale text,
+    source_started_at timestamp with time zone,
+    source_ended_at timestamp with time zone,
+    activity_date_from date,
+    activity_date_to date,
+    publish_state text DEFAULT 'published'::text NOT NULL,
+    CONSTRAINT conversation_checkpoints_kind_check CHECK ((kind = ANY (ARRAY['window'::text, 'daily_digest'::text]))),
+    CONSTRAINT conversation_checkpoints_publish_state_check CHECK ((publish_state = ANY (ARRAY['ready'::text, 'published'::text, 'superseded'::text])))
 );
-CREATE INDEX conversation_checkpoints_latest_idx
-  ON public.conversation_checkpoints(user_id, through_message_id DESC);
-CREATE INDEX conversation_checkpoints_live_idx
-  ON public.conversation_checkpoints(user_id, memory_generation, through_message_id DESC);
 
--- ─────────────────────────────────────────────────────────────
--- 13. RLS — deny-default (심층 방어). 서버는 테이블 owner 롤이라 우회.
---     클라 데이터 경로는 전부 서버 API → anon/authenticated 직접 접근 차단.
---     (클라 직접 읽기가 필요해지면 여기에 own-row SELECT 정책 추가)
--- ─────────────────────────────────────────────────────────────
-DO $$
-DECLARE t text;
-BEGIN
-  FOREACH t IN ARRAY ARRAY[
-    'profiles','products','moly_life_ments','app_config',
-    'messages','greetings','orders','order_items','hay_transactions','user_daily_stats',
-    'subscriptions','subscription_hay_grants','payments',
-    'user_items','diaries','routines','routine_completions',
-    'user_notification_settings','user_devices','reward_ad_sessions','idempotency_keys',
-    'chat_contexts','feedback','diary_gen_claims','revenuecat_events','async_jobs'
-  ] LOOP
-    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
-  END LOOP;
-  -- 대화 요약(W11)은 유저 대화에서 뽑은 PII(와 그 파생)라
-  -- RLS에 더해 클라 롤 권한도 회수한다(chat_contexts와 동일).
-  FOREACH t IN ARRAY ARRAY[
-    'conversation_checkpoints'
-  ] LOOP
-    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
-    EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated;', t);
-  END LOOP;
-END $$;
-
--- Dev rollout migration: conversation-centred recall, exact suppression, diary prologue,
--- active-turn CAS, typed diary references and bounded retention metadata.
--- Additive where possible. The legacy diary (user_id, diary_date) unique constraint is replaced
--- because welcome and a daily diary must coexist on the same display date.
-
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-CREATE TABLE IF NOT EXISTS public.schema_migrations (
-  migration_name text PRIMARY KEY,
-  checksum_sha256 text NOT NULL,
-  applied_at timestamptz NOT NULL DEFAULT now(),
-  applied_by text NOT NULL DEFAULT current_user
+-- TABLE: public.conversation_focus
+CREATE TABLE public.conversation_focus (
+    user_id uuid NOT NULL,
+    domain text NOT NULL,
+    facet text,
+    reference_ids uuid[] NOT NULL,
+    context_revision bigint NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    expires_turn_seq bigint NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT conversation_focus_reference_ids_check CHECK (((cardinality(reference_ids) >= 1) AND (cardinality(reference_ids) <= 3)))
 );
-ALTER TABLE public.schema_migrations ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.schema_migrations FROM anon, authenticated;
 
--- Relationship origin is the first committed conversation, not auth/profile creation.
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS relationship_started_at timestamptz,
-  ADD COLUMN IF NOT EXISTS relationship_started_timezone text,
-  ADD COLUMN IF NOT EXISTS relationship_display_date date,
-  ADD COLUMN IF NOT EXISTS next_diary_due_at timestamptz;
+-- TABLE: public.daily_fortunes
+CREATE TABLE public.daily_fortunes (
+    user_id uuid NOT NULL,
+    fortune_date date NOT NULL,
+    timezone_snapshot text NOT NULL,
+    profile_revision bigint NOT NULL,
+    semantic_result jsonb NOT NULL,
+    copy_by_locale jsonb NOT NULL,
+    unlock_state text NOT NULL,
+    unlock_source text,
+    unlocked_at timestamp with time zone,
+    revealed_at timestamp with time zone,
+    ephemeris_version text NOT NULL,
+    rule_version text NOT NULL,
+    copy_version text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    result_schema_version integer DEFAULT 3 NOT NULL,
+    CONSTRAINT daily_fortunes_copy_by_locale_check CHECK ((jsonb_typeof(copy_by_locale) = 'object'::text)),
+    CONSTRAINT daily_fortunes_profile_revision_check CHECK ((profile_revision >= 1)),
+    CONSTRAINT daily_fortunes_result_schema_version_ck CHECK ((result_schema_version >= 2)),
+    CONSTRAINT daily_fortunes_semantic_result_check CHECK ((jsonb_typeof(semantic_result) = 'object'::text)),
+    CONSTRAINT daily_fortunes_unlock_ck CHECK ((((unlock_state = 'locked'::text) AND (unlock_source IS NULL) AND (unlocked_at IS NULL) AND (revealed_at IS NULL)) OR ((unlock_state = 'unlocked'::text) AND (unlock_source IS NOT NULL) AND (unlocked_at IS NOT NULL)))),
+    CONSTRAINT daily_fortunes_unlock_source_check CHECK ((unlock_source = ANY (ARRAY['subscription'::text, 'trial'::text, 'rewarded_ad'::text]))),
+    CONSTRAINT daily_fortunes_unlock_state_check CHECK ((unlock_state = ANY (ARRAY['locked'::text, 'unlocked'::text])))
+);
 
-WITH first_turn AS (
-  SELECT DISTINCT ON (m.user_id) m.user_id, m.created_at
-  FROM public.messages m
-  WHERE m.sender='user'
-  ORDER BY m.user_id, m.id
+-- TABLE: public.diaries
+CREATE TABLE public.diaries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    diary_date date NOT NULL,
+    source text NOT NULL,
+    preset_ment_id uuid,
+    content text NOT NULL,
+    weather text NOT NULL,
+    published_at timestamp with time zone,
+    first_read_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    kind text,
+    activity_date date,
+    display_date date NOT NULL,
+    title text,
+    author text DEFAULT 'capi'::text NOT NULL,
+    occurred_at timestamp with time zone,
+    occurred_timezone text,
+    occurred_timezone_provenance text,
+    primary_subject text,
+    about_tags text[] DEFAULT '{}'::text[] NOT NULL,
+    content_version integer DEFAULT 1 NOT NULL,
+    record_status text DEFAULT 'published'::text NOT NULL,
+    deleted_at timestamp with time zone,
+    CONSTRAINT diaries_author_ck CHECK ((author = 'capi'::text)),
+    CONSTRAINT diaries_kind_activity_ck CHECK ((((kind = 'welcome'::text) AND (activity_date IS NULL)) OR ((kind = ANY (ARRAY['shared_day'::text, 'capi_day'::text])) AND (activity_date IS NOT NULL)) OR (kind IS NULL))),
+    CONSTRAINT diaries_kind_ck CHECK ((((record_status = 'processed'::text) AND (kind IS NULL)) OR ((record_status = ANY (ARRAY['draft'::text, 'published'::text])) AND (kind = ANY (ARRAY['welcome'::text, 'shared_day'::text, 'capi_day'::text]))) OR (record_status = 'deleted'::text))),
+    CONSTRAINT diaries_source_check CHECK ((source = ANY (ARRAY['llm'::text, 'preset'::text, 'welcome'::text, 'none'::text]))),
+    CONSTRAINT diaries_weather_check CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))
+);
+
+-- TABLE: public.diary_claim_sources
+CREATE TABLE public.diary_claim_sources (
+    user_id uuid NOT NULL,
+    diary_id uuid NOT NULL,
+    message_id bigint NOT NULL,
+    source_hash text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- TABLE: public.diary_gen_claims
+CREATE TABLE public.diary_gen_claims (
+    user_id uuid NOT NULL,
+    target_date date NOT NULL,
+    claimed_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- TABLE: public.diary_generation_results
+CREATE TABLE public.diary_generation_results (
+    user_id uuid NOT NULL,
+    target_date date NOT NULL,
+    status text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT diary_generation_results_status_check CHECK ((status = 'no_entry'::text))
+);
+
+-- TABLE: public.diary_recall_documents
+CREATE TABLE public.diary_recall_documents (
+    user_id uuid NOT NULL,
+    diary_id uuid NOT NULL,
+    search_text text NOT NULL,
+    source_hash text NOT NULL,
+    embedding public.vector(1536),
+    suppression_generation bigint NOT NULL,
+    index_version text NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    embedding_model text DEFAULT 'text-embedding-3-small'::text NOT NULL,
+    embedding_repair_attempts smallint DEFAULT 0 NOT NULL,
+    CONSTRAINT diary_recall_repair_attempts_ck CHECK (((embedding_repair_attempts >= 0) AND (embedding_repair_attempts <= 3)))
+);
+
+-- TABLE: public.feedback
+CREATE TABLE public.feedback (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    message text NOT NULL,
+    contact text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT feedback_contact_check CHECK ((char_length(contact) <= 200)),
+    CONSTRAINT feedback_message_check CHECK ((char_length(message) <= 2000))
+);
+
+-- TABLE: public.fortune_ad_sessions
+CREATE TABLE public.fortune_ad_sessions (
+    session_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    fortune_date date NOT NULL,
+    client_request_id uuid NOT NULL,
+    verified boolean DEFAULT false NOT NULL,
+    ssv_transaction_id text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    verified_at timestamp with time zone,
+    CONSTRAINT fortune_ad_sessions_expiry_ck CHECK ((expires_at > created_at)),
+    CONSTRAINT fortune_ad_sessions_verified_ck CHECK ((((verified = false) AND (ssv_transaction_id IS NULL) AND (verified_at IS NULL)) OR ((verified = true) AND (ssv_transaction_id IS NOT NULL) AND (verified_at IS NOT NULL))))
+);
+
+-- TABLE: public.fortune_profiles
+CREATE TABLE public.fortune_profiles (
+    user_id uuid NOT NULL,
+    gender text NOT NULL,
+    birth_date date NOT NULL,
+    revision bigint DEFAULT 1 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT fortune_profiles_gender_ck CHECK ((gender = ANY (ARRAY['man'::text, 'woman'::text, 'undisclosed'::text]))),
+    CONSTRAINT fortune_profiles_revision_check CHECK ((revision >= 1))
+);
+
+-- TABLE: public.greetings
+CREATE TABLE public.greetings (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    context text NOT NULL,
+    content text NOT NULL,
+    activity_date date NOT NULL,
+    committed_message_id bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT greetings_context_check CHECK ((context = ANY (ARRAY['onboarding'::text, 'home_enter'::text, 'morning'::text, 'evening'::text, 'comeback'::text])))
+);
+
+-- TABLE: public.hay_transactions
+CREATE TABLE public.hay_transactions (
+    id bigint NOT NULL,
+    user_id uuid NOT NULL,
+    type text NOT NULL,
+    amount integer NOT NULL,
+    balance_after integer NOT NULL,
+    order_id uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT hay_transactions_amount_check CHECK ((amount <> 0)),
+    CONSTRAINT hay_transactions_type_check CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text])))
+);
+
+-- SEQUENCE: public.hay_transactions_id_seq
+ALTER TABLE public.hay_transactions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.hay_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+-- TABLE: public.idempotency_keys
+CREATE TABLE public.idempotency_keys (
+    user_id uuid NOT NULL,
+    key text NOT NULL,
+    response jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    request_hash text,
+    response_schema_version bigint DEFAULT 1 NOT NULL,
+    reply_message_id bigint,
+    terminal_status text DEFAULT 'succeeded'::text NOT NULL,
+    response_expires_at timestamp with time zone,
+    dedupe_expires_at timestamp with time zone,
+    redacted_at timestamp with time zone,
+    CONSTRAINT idempotency_terminal_status_ck CHECK ((terminal_status = ANY (ARRAY['succeeded'::text, 'expired'::text, 'redacted'::text])))
+);
+
+-- TABLE: public.job_attempts
+CREATE TABLE public.job_attempts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    job_id uuid NOT NULL,
+    attempt integer NOT NULL,
+    queue text NOT NULL,
+    job_type text NOT NULL,
+    worker_id text,
+    lease_token uuid,
+    started_at timestamp with time zone DEFAULT now() NOT NULL,
+    finished_at timestamp with time zone,
+    duration_ms integer,
+    outcome text,
+    error_code text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT job_attempts_attempt_check CHECK ((attempt >= 1)),
+    CONSTRAINT job_attempts_duration_ms_check CHECK ((duration_ms >= 0)),
+    CONSTRAINT job_attempts_outcome_check CHECK (((outcome IS NULL) OR (outcome = ANY (ARRAY['succeeded'::text, 'retryable'::text, 'dead'::text, 'cancelled'::text, 'lease_lost'::text, 'timeout'::text]))))
+);
+
+-- TABLE: public.mem0_ingest_candidate_sources
+CREATE TABLE public.mem0_ingest_candidate_sources (
+    candidate_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    source_message_id bigint NOT NULL,
+    source_sender text NOT NULL,
+    source_content_hash text NOT NULL,
+    evidence_start_utf8 integer NOT NULL,
+    evidence_end_utf8 integer NOT NULL,
+    authority text NOT NULL,
+    confidence double precision,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT mem0_ingest_candidate_sources_authority_check CHECK ((authority = ANY (ARRAY['explicit_user'::text, 'confirmed_user'::text]))),
+    CONSTRAINT mem0_ingest_candidate_sources_check CHECK (((0 <= evidence_start_utf8) AND (evidence_start_utf8 < evidence_end_utf8))),
+    CONSTRAINT mem0_ingest_candidate_sources_confidence_check CHECK (((confidence >= (0)::double precision) AND (confidence <= (1)::double precision))),
+    CONSTRAINT mem0_ingest_candidate_sources_source_sender_check CHECK ((source_sender = 'user'::text))
+);
+
+-- TABLE: public.mem0_ingest_candidates
+CREATE TABLE public.mem0_ingest_candidates (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    turn_seq bigint NOT NULL,
+    candidate_hash text NOT NULL,
+    schema_version text NOT NULL,
+    extractor_version text NOT NULL,
+    normalizer_version text NOT NULL,
+    provider_memory_id uuid NOT NULL,
+    candidate_text text NOT NULL,
+    temporal_proposal_json jsonb,
+    event_started_at timestamp with time zone,
+    event_ended_at timestamp with time zone,
+    event_time_precision text,
+    resolved_timezone text,
+    status text DEFAULT 'planned'::text NOT NULL,
+    repair_generation integer DEFAULT 0 NOT NULL,
+    scrubbed_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    category text,
+    CONSTRAINT mem0_ingest_candidates_status_check CHECK ((status = ANY (ARRAY['planned'::text, 'committed'::text, 'dead'::text])))
+);
+
+-- COMMENT: public.COLUMN mem0_ingest_candidates.category
+COMMENT ON COLUMN public.mem0_ingest_candidates.category IS '기억의 종류. 허용 목록은 코드가 갖는다(mem0_extractor.CATEGORIES). NULL = v3 이전에 뽑힌 기억.';
+
+-- TABLE: public.mem0_memory_registry
+CREATE TABLE public.mem0_memory_registry (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    provider text NOT NULL,
+    collection_version text NOT NULL,
+    provider_memory_id uuid NOT NULL,
+    source_turn_seq bigint NOT NULL,
+    content_hash text NOT NULL,
+    event_started_at timestamp with time zone,
+    event_ended_at timestamp with time zone,
+    event_time_precision text,
+    resolved_timezone text,
+    temporal_resolver_version text,
+    semantic_status text DEFAULT 'pending'::text NOT NULL,
+    provider_delete_state text DEFAULT 'kept'::text NOT NULL,
+    provider_deleted_at timestamp with time zone,
+    conflict_group_id uuid,
+    duplicate_of_registry_id uuid,
+    superseded_by_registry_id uuid,
+    classification_version text,
+    schema_version text NOT NULL,
+    revision bigint DEFAULT 0 NOT NULL,
+    last_confirmed_at timestamp with time zone,
+    source_count integer DEFAULT 0 NOT NULL,
+    max_source_confidence double precision,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    category text,
+    last_reconsolidated_at timestamp with time zone,
+    CONSTRAINT mem0_memory_registry_provider_delete_state_check CHECK ((provider_delete_state = ANY (ARRAY['kept'::text, 'pending'::text, 'deleted'::text, 'failed'::text]))),
+    CONSTRAINT mem0_memory_registry_semantic_status_check CHECK ((semantic_status = ANY (ARRAY['pending'::text, 'active'::text, 'duplicate'::text, 'superseded'::text, 'ambiguous'::text, 'excluded'::text, 'rejected_policy'::text]))),
+    CONSTRAINT mem0_memory_registry_source_count_check CHECK ((source_count >= 0))
+);
+
+-- COMMENT: public.COLUMN mem0_memory_registry.category
+COMMENT ON COLUMN public.mem0_memory_registry.category IS '기억의 종류. 회상에서 오래 남는 종류를 앞세우는 데 쓴다. NULL = v3 이전에 뽑힌 기억.';
+
+-- COMMENT: public.COLUMN mem0_memory_registry.last_reconsolidated_at
+COMMENT ON COLUMN public.mem0_memory_registry.last_reconsolidated_at IS '마지막으로 재판정 비교에 참여한 시각. NULL = 아직 한 번도 안 봤다.';
+
+-- TABLE: public.mem0_memory_sources
+CREATE TABLE public.mem0_memory_sources (
+    registry_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    source_turn_seq bigint NOT NULL,
+    source_message_id bigint NOT NULL,
+    source_sender text NOT NULL,
+    evidence_start_utf8 integer NOT NULL,
+    evidence_end_utf8 integer NOT NULL,
+    source_content_hash text NOT NULL,
+    source_occurred_at timestamp with time zone NOT NULL,
+    source_activity_date date NOT NULL,
+    authority text NOT NULL,
+    confidence double precision,
+    extractor_version text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT mem0_memory_sources_authority_check CHECK ((authority = ANY (ARRAY['explicit_user'::text, 'confirmed_user'::text]))),
+    CONSTRAINT mem0_memory_sources_check CHECK (((0 <= evidence_start_utf8) AND (evidence_start_utf8 < evidence_end_utf8))),
+    CONSTRAINT mem0_memory_sources_confidence_check CHECK (((confidence >= (0)::double precision) AND (confidence <= (1)::double precision))),
+    CONSTRAINT mem0_memory_sources_source_sender_check CHECK ((source_sender = 'user'::text))
+);
+
+-- TABLE: public.memory_pipeline_states
+CREATE TABLE public.memory_pipeline_states (
+    user_id uuid NOT NULL,
+    source_through_turn_seq bigint DEFAULT 0 NOT NULL,
+    ingest_through_turn_seq bigint DEFAULT 0 NOT NULL,
+    consolidated_through_turn_seq bigint DEFAULT 0 NOT NULL,
+    active_job_id uuid,
+    stage_token uuid,
+    lease_until timestamp with time zone,
+    revision bigint DEFAULT 0 NOT NULL,
+    privacy_epoch bigint DEFAULT 0 NOT NULL,
+    repair_generation integer DEFAULT 0 NOT NULL,
+    bootstrap_status text DEFAULT 'legacy'::text NOT NULL,
+    historical_upper_turn_seq bigint,
+    mode text DEFAULT 'legacy'::text NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT memory_pipeline_states_bootstrap_status_check CHECK ((bootstrap_status = ANY (ARRAY['legacy'::text, 'collecting'::text, 'ready'::text]))),
+    CONSTRAINT memory_pipeline_states_check CHECK ((ingest_through_turn_seq <= source_through_turn_seq)),
+    CONSTRAINT memory_pipeline_states_check1 CHECK ((consolidated_through_turn_seq <= ingest_through_turn_seq)),
+    CONSTRAINT memory_pipeline_states_consolidated_through_turn_seq_check CHECK ((consolidated_through_turn_seq >= 0)),
+    CONSTRAINT memory_pipeline_states_historical_upper_turn_seq_check CHECK ((historical_upper_turn_seq >= 0)),
+    CONSTRAINT memory_pipeline_states_ingest_through_turn_seq_check CHECK ((ingest_through_turn_seq >= 0)),
+    CONSTRAINT memory_pipeline_states_mode_check CHECK ((mode = ANY (ARRAY['legacy'::text, 'shadow'::text, 'v2'::text]))),
+    CONSTRAINT memory_pipeline_states_privacy_epoch_check CHECK ((privacy_epoch >= 0)),
+    CONSTRAINT memory_pipeline_states_repair_generation_check CHECK ((repair_generation >= 0)),
+    CONSTRAINT memory_pipeline_states_revision_check CHECK ((revision >= 0)),
+    CONSTRAINT memory_pipeline_states_source_through_turn_seq_check CHECK ((source_through_turn_seq >= 0))
+);
+
+-- TABLE: public.messages
+CREATE TABLE public.messages (
+    id bigint NOT NULL,
+    user_id uuid NOT NULL,
+    sender text NOT NULL,
+    kind text DEFAULT 'normal'::text NOT NULL,
+    content text NOT NULL,
+    input_tokens integer,
+    output_tokens integer,
+    cache_read_tokens integer,
+    cache_write_tokens integer,
+    billable_tokens integer,
+    activity_date date NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    turn_seq bigint,
+    turn_position smallint,
+    CONSTRAINT messages_kind_check CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text]))),
+    CONSTRAINT messages_sender_check CHECK ((sender = ANY (ARRAY['user'::text, 'moly'::text]))),
+    CONSTRAINT messages_turn_position_ck CHECK ((((turn_seq IS NULL) AND (turn_position IS NULL)) OR ((turn_seq > 0) AND ((turn_position >= 0) AND (turn_position <= 2)))))
+);
+
+-- SEQUENCE: public.messages_id_seq
+ALTER TABLE public.messages ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+-- TABLE: public.moly_life_ments
+CREATE TABLE public.moly_life_ments (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    content text NOT NULL,
+    weather text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    diary_date date,
+    CONSTRAINT moly_life_ments_weather_check CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))
+);
+
+-- TABLE: public.order_items
+CREATE TABLE public.order_items (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    order_id uuid NOT NULL,
+    product_id uuid NOT NULL,
+    quantity integer DEFAULT 1 NOT NULL,
+    unit_price integer NOT NULL,
+    CONSTRAINT order_items_quantity_check CHECK ((quantity > 0)),
+    CONSTRAINT order_items_unit_price_check CHECK ((unit_price >= 0))
+);
+
+-- TABLE: public.orders
+CREATE TABLE public.orders (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    currency text NOT NULL,
+    status text NOT NULL,
+    total_amount integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT orders_currency_check CHECK ((currency = ANY (ARRAY['KRW'::text, 'HAY'::text]))),
+    CONSTRAINT orders_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'paid'::text, 'failed'::text, 'refunded'::text]))),
+    CONSTRAINT orders_total_amount_check CHECK ((total_amount >= 0))
+);
+
+-- TABLE: public.payments
+CREATE TABLE public.payments (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    order_id uuid,
+    subscription_id uuid,
+    store text NOT NULL,
+    store_transaction_id text NOT NULL,
+    amount numeric(14,4),
+    currency text,
+    status text NOT NULL,
+    paid_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT payments_status_check CHECK ((status = ANY (ARRAY['paid'::text, 'refunded'::text]))),
+    CONSTRAINT payments_target_ck CHECK (((order_id IS NOT NULL) OR (subscription_id IS NOT NULL)))
+);
+
+-- TABLE: public.privacy_ledger_events
+CREATE TABLE public.privacy_ledger_events (
+    id bigint NOT NULL,
+    operation_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    event text NOT NULL,
+    high_watermark bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- SEQUENCE: public.privacy_ledger_events_id_seq
+ALTER TABLE public.privacy_ledger_events ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.privacy_ledger_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+-- TABLE: public.privacy_subject_barriers
+CREATE TABLE public.privacy_subject_barriers (
+    user_id uuid NOT NULL,
+    state text NOT NULL,
+    operation_id uuid,
+    high_watermark bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    epoch bigint DEFAULT 0 NOT NULL,
+    CONSTRAINT privacy_subject_barriers_epoch_check CHECK ((epoch >= 0)),
+    CONSTRAINT privacy_subject_barriers_operation_ck CHECK (((state = 'active'::text) OR (operation_id IS NOT NULL))),
+    CONSTRAINT privacy_subject_barriers_state_check CHECK ((state = ANY (ARRAY['active'::text, 'deleting'::text, 'deleted'::text])))
+);
+
+-- TABLE: public.products
+CREATE TABLE public.products (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    product_type text NOT NULL,
+    name text NOT NULL,
+    description text,
+    slot text,
+    price_hay integer,
+    is_subscriber_only boolean DEFAULT false NOT NULL,
+    assets jsonb,
+    hay_amount integer,
+    price_krw integer,
+    app_store_product_id text,
+    is_active boolean DEFAULT true NOT NULL,
+    sort_order integer DEFAULT 0 NOT NULL,
+    public_id text,
+    asset_version integer,
+    is_v2_only boolean DEFAULT false NOT NULL,
+    play_store_product_id text,
+    name_i18n jsonb,
+    CONSTRAINT products_cosmetic_ck CHECK (((product_type <> 'cosmetic'::text) OR ((public_id IS NOT NULL) AND (slot IS NOT NULL) AND (hay_amount IS NULL) AND (app_store_product_id IS NULL) AND (price_krw IS NULL) AND (play_store_product_id IS NULL) AND (is_subscriber_only = false) AND ((is_active = false) OR ((asset_version IS NOT NULL) AND (asset_version >= 1) AND (assets IS NOT NULL)))))),
+    CONSTRAINT products_hay_pack_ck CHECK (((product_type <> 'hay_pack'::text) OR ((hay_amount IS NOT NULL) AND (app_store_product_id IS NOT NULL) AND (slot IS NULL) AND (price_hay IS NULL) AND (assets IS NULL) AND (is_subscriber_only = false)))),
+    CONSTRAINT products_name_i18n_obj_ck CHECK (((name_i18n IS NULL) OR (jsonb_typeof(name_i18n) = 'object'::text))),
+    CONSTRAINT products_price_hay_positive_ck CHECK ((price_hay >= 1)),
+    CONSTRAINT products_product_type_check CHECK ((product_type = ANY (ARRAY['hay_pack'::text, 'cosmetic'::text]))),
+    CONSTRAINT products_slot_check CHECK ((slot = ANY (ARRAY['theme'::text, 'hat'::text, 'glasses'::text, 'neck'::text, 'body'::text])))
+);
+
+-- TABLE: public.profiles
+CREATE TABLE public.profiles (
+    id uuid NOT NULL,
+    nickname text,
+    language text DEFAULT 'en'::text NOT NULL,
+    timezone text DEFAULT 'Asia/Seoul'::text NOT NULL,
+    hay_balance integer DEFAULT 0 NOT NULL,
+    trial_ends_at timestamp with time zone,
+    review_prompted_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    relationship_started_at timestamp with time zone,
+    relationship_started_timezone text,
+    relationship_display_date date,
+    next_diary_due_at timestamp with time zone,
+    relationship_revision bigint DEFAULT 0 NOT NULL,
+    CONSTRAINT profiles_nickname_check CHECK ((char_length(nickname) <= 10)),
+    CONSTRAINT profiles_relationship_origin_ck CHECK ((num_nonnulls(relationship_started_at, relationship_started_timezone, relationship_display_date) = ANY (ARRAY[0, 3]))),
+    CONSTRAINT profiles_relationship_revision_check CHECK ((relationship_revision >= 0))
+);
+
+-- TABLE: public.provider_backoffs
+CREATE TABLE public.provider_backoffs (
+    provider text NOT NULL,
+    model text NOT NULL,
+    lane text NOT NULL,
+    blocked_until timestamp with time zone NOT NULL,
+    reason text,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- TABLE: public.relationship_events
+CREATE TABLE public.relationship_events (
+    id bigint NOT NULL,
+    user_id uuid NOT NULL,
+    event_type text NOT NULL,
+    source_id text,
+    activity_date date NOT NULL,
+    occurred_at timestamp with time zone NOT NULL,
+    delta jsonb,
+    dedup_key text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    turn_seq bigint,
+    CONSTRAINT relationship_events_turn_seq_check CHECK (((turn_seq IS NULL) OR (turn_seq >= 0))),
+    CONSTRAINT relationship_events_type_ck CHECK ((event_type = ANY (ARRAY['normal_turn_committed'::text, 'active_day_started'::text])))
+);
+
+-- SEQUENCE: public.relationship_events_id_seq
+ALTER TABLE public.relationship_events ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.relationship_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+-- TABLE: public.relationship_profile_renders
+CREATE TABLE public.relationship_profile_renders (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    prompt_revision bigint NOT NULL,
+    profile_relationship_revision bigint NOT NULL,
+    locale text NOT NULL,
+    renderer_version text NOT NULL,
+    rendered_text text NOT NULL,
+    render_hash text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- TABLE: public.revenuecat_events
+CREATE TABLE public.revenuecat_events (
+    event_id text NOT NULL,
+    payload jsonb NOT NULL,
+    status text DEFAULT 'pending'::text NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
+    received_at timestamp with time zone DEFAULT now() NOT NULL,
+    next_attempt_at timestamp with time zone DEFAULT now() NOT NULL,
+    processed_at timestamp with time zone,
+    last_error text,
+    CONSTRAINT revenuecat_events_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'processed'::text, 'failed'::text])))
+);
+
+-- TABLE: public.reward_ad_sessions
+CREATE TABLE public.reward_ad_sessions (
+    session_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    activity_date date NOT NULL,
+    ssv_transaction_id text,
+    granted boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone DEFAULT (now() + '00:30:00'::interval) NOT NULL,
+    CONSTRAINT reward_ad_sessions_expiry_ck CHECK ((expires_at > created_at))
+);
+
+-- TABLE: public.routine_completions
+CREATE TABLE public.routine_completions (
+    id bigint NOT NULL,
+    routine_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    activity_date date NOT NULL,
+    completed_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- SEQUENCE: public.routine_completions_id_seq
+ALTER TABLE public.routine_completions ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.routine_completions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+-- TABLE: public.routines
+CREATE TABLE public.routines (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    name text NOT NULL,
+    frequency_per_week smallint NOT NULL,
+    days_of_week smallint[] NOT NULL,
+    reminder_enabled boolean DEFAULT false NOT NULL,
+    reminder_time time without time zone,
+    deleted_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    name_i18n jsonb,
+    CONSTRAINT routines_name_i18n_obj_ck CHECK (((name_i18n IS NULL) OR (jsonb_typeof(name_i18n) = 'object'::text)))
+);
+
+-- TABLE: public.schema_migrations
+CREATE TABLE public.schema_migrations (
+    migration_name text NOT NULL,
+    checksum_sha256 text NOT NULL,
+    applied_at timestamp with time zone DEFAULT now() NOT NULL,
+    applied_by text DEFAULT CURRENT_USER NOT NULL
+);
+
+-- TABLE: public.shadow_prompt_traces
+CREATE TABLE public.shadow_prompt_traces (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    turn_seq bigint NOT NULL,
+    assembler_version text NOT NULL,
+    total_bytes integer NOT NULL,
+    cacheable_bytes integer NOT NULL,
+    volatile_bytes integer NOT NULL,
+    message_count integer NOT NULL,
+    segment_counts jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT shadow_prompt_traces_cacheable_bytes_check CHECK ((cacheable_bytes >= 0)),
+    CONSTRAINT shadow_prompt_traces_message_count_check CHECK ((message_count >= 0)),
+    CONSTRAINT shadow_prompt_traces_total_bytes_check CHECK ((total_bytes >= 0)),
+    CONSTRAINT shadow_prompt_traces_turn_seq_check CHECK ((turn_seq > 0)),
+    CONSTRAINT shadow_prompt_traces_volatile_bytes_check CHECK ((volatile_bytes >= 0))
+);
+
+-- TABLE: public.subscription_hay_grants
+CREATE TABLE public.subscription_hay_grants (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    plan text NOT NULL,
+    hay_transaction_id bigint,
+    granted_at timestamp with time zone DEFAULT now() NOT NULL,
+    revoked_at timestamp with time zone,
+    clawback_hay_transaction_id bigint,
+    CONSTRAINT subscription_hay_grants_plan_check CHECK ((plan = ANY (ARRAY['monthly'::text, 'yearly'::text])))
+);
+
+-- TABLE: public.subscriptions
+CREATE TABLE public.subscriptions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    plan text NOT NULL,
+    status text NOT NULL,
+    original_transaction_id text NOT NULL,
+    latest_transaction_id text,
+    purchased_at timestamp with time zone,
+    expires_at timestamp with time zone,
+    auto_renew_enabled boolean DEFAULT true NOT NULL,
+    environment text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_event_at timestamp with time zone,
+    CONSTRAINT subscriptions_plan_check CHECK ((plan = ANY (ARRAY['monthly'::text, 'yearly'::text]))),
+    CONSTRAINT subscriptions_status_check CHECK ((status = ANY (ARRAY['active'::text, 'grace_period'::text, 'expired'::text, 'revoked'::text])))
+);
+
+-- TABLE: public.user_daily_stats
+CREATE TABLE public.user_daily_stats (
+    id bigint NOT NULL,
+    user_id uuid NOT NULL,
+    activity_date date NOT NULL,
+    tokens_used integer DEFAULT 0 NOT NULL,
+    ad_reward_count smallint DEFAULT 0 NOT NULL,
+    attendance_claimed_at timestamp with time zone,
+    routine_reward_claimed_at timestamp with time zone,
+    morning_notified_at timestamp with time zone,
+    evening_notified_at timestamp with time zone
+);
+
+-- SEQUENCE: public.user_daily_stats_id_seq
+ALTER TABLE public.user_daily_stats ALTER COLUMN id ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public.user_daily_stats_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+-- TABLE: public.user_devices
+CREATE TABLE public.user_devices (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    platform text NOT NULL,
+    push_token text NOT NULL,
+    last_active_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT user_devices_platform_check CHECK ((platform = ANY (ARRAY['ios'::text, 'android'::text])))
+);
+
+-- TABLE: public.user_interaction_contract_items
+CREATE TABLE public.user_interaction_contract_items (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    contract_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    item_key text NOT NULL,
+    section text NOT NULL,
+    value_json jsonb NOT NULL,
+    rendered_text text NOT NULL,
+    authority text NOT NULL,
+    confidence double precision,
+    effective_from timestamp with time zone DEFAULT now() NOT NULL,
+    effective_to timestamp with time zone,
+    status text DEFAULT 'active'::text NOT NULL,
+    source_message_id bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT user_interaction_contract_items_authority_check CHECK ((authority = ANY (ARRAY['explicit_user'::text, 'confirmed'::text, 'repeated_observation'::text]))),
+    CONSTRAINT user_interaction_contract_items_confidence_check CHECK (((confidence >= (0)::double precision) AND (confidence <= (1)::double precision))),
+    CONSTRAINT user_interaction_contract_items_section_check CHECK ((section = ANY (ARRAY['address_policy'::text, 'communication_style'::text, 'comfort_style'::text, 'boundaries'::text, 'relationship_frame'::text, 'durable_commitments'::text]))),
+    CONSTRAINT user_interaction_contract_items_status_check CHECK ((status = ANY (ARRAY['active'::text, 'superseded'::text, 'rejected'::text])))
+);
+
+-- TABLE: public.user_interaction_contracts
+CREATE TABLE public.user_interaction_contracts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    version integer NOT NULL,
+    locale text NOT NULL,
+    document_json jsonb NOT NULL,
+    rendered_text text NOT NULL,
+    render_hash text NOT NULL,
+    status text DEFAULT 'draft'::text NOT NULL,
+    source_watermark bigint,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    published_at timestamp with time zone,
+    CONSTRAINT user_interaction_contracts_status_check CHECK ((status = ANY (ARRAY['draft'::text, 'published'::text, 'superseded'::text, 'rejected'::text]))),
+    CONSTRAINT user_interaction_contracts_version_check CHECK ((version > 0))
+);
+
+-- TABLE: public.user_items
+CREATE TABLE public.user_items (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    product_id uuid NOT NULL,
+    source text DEFAULT 'purchase'::text NOT NULL,
+    order_id uuid,
+    equipped_slot text,
+    equipped_at timestamp with time zone,
+    acquired_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT user_items_equipped_ck CHECK (((equipped_at IS NULL) OR (equipped_slot IS NOT NULL))),
+    CONSTRAINT user_items_equipped_slot_check CHECK ((equipped_slot = ANY (ARRAY['theme'::text, 'hat'::text, 'glasses'::text, 'neck'::text, 'body'::text]))),
+    CONSTRAINT user_items_source_check CHECK ((source = ANY (ARRAY['purchase'::text, 'subscription'::text, 'admin_grant'::text])))
+);
+
+-- TABLE: public.user_notification_settings
+CREATE TABLE public.user_notification_settings (
+    user_id uuid NOT NULL,
+    type text NOT NULL,
+    enabled boolean DEFAULT true NOT NULL,
+    CONSTRAINT user_notification_settings_type_check CHECK ((type = ANY (ARRAY['morning_diary'::text, 'evening_chat'::text])))
+);
+
+-- TABLE: public.user_relationship_states
+CREATE TABLE public.user_relationship_states (
+    user_id uuid NOT NULL,
+    relationship_started_at timestamp with time zone,
+    active_days integer DEFAULT 0 NOT NULL,
+    successful_turns bigint DEFAULT 0 NOT NULL,
+    qualifying_turns bigint DEFAULT 0 NOT NULL,
+    last_interaction_at timestamp with time zone,
+    relationship_stage text DEFAULT 'new'::text NOT NULL,
+    stage_rule_version text DEFAULT 'relationship-v1'::text NOT NULL,
+    latest_event_id bigint,
+    version bigint DEFAULT 0 NOT NULL,
+    prompt_revision bigint DEFAULT 0 NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT user_relationship_states_active_days_check CHECK ((active_days >= 0)),
+    CONSTRAINT user_relationship_states_qualifying_turns_check CHECK ((qualifying_turns >= 0)),
+    CONSTRAINT user_relationship_states_relationship_stage_check CHECK ((relationship_stage = ANY (ARRAY['new'::text, 'acquainted'::text, 'familiar'::text, 'close'::text]))),
+    CONSTRAINT user_relationship_states_successful_turns_check CHECK ((successful_turns >= 0))
+);
+
+-- TABLE: public.user_schedules
+CREATE TABLE public.user_schedules (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    kind text NOT NULL,
+    timezone_snapshot text NOT NULL,
+    next_due_at timestamp with time zone NOT NULL,
+    revision bigint DEFAULT 0 NOT NULL,
+    last_run_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT user_schedules_kind_check CHECK ((kind = ANY (ARRAY['diary_generate'::text, 'diary_morning_notification'::text, 'evening_checkin'::text]))),
+    CONSTRAINT user_schedules_revision_check CHECK ((revision >= 0))
+);
+
+-- TABLE: vecs.moly_memories_v2
+CREATE TABLE vecs.moly_memories_v2 (
+    id character varying NOT NULL,
+    vec public.vector(1536) NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL
 )
-UPDATE public.profiles p
-SET relationship_started_at = f.created_at,
-    relationship_started_timezone = p.timezone,
-    relationship_display_date = (f.created_at AT TIME ZONE p.timezone)::date
-FROM first_turn f
-WHERE p.id=f.user_id AND p.relationship_started_at IS NULL;
+WITH (autovacuum_vacuum_scale_factor='0.02', toast.autovacuum_vacuum_scale_factor='0.02');
 
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint
-    WHERE conname='profiles_relationship_origin_ck'
-      AND conrelid='public.profiles'::regclass
-  ) THEN
-    ALTER TABLE public.profiles ADD CONSTRAINT profiles_relationship_origin_ck CHECK (
-      num_nonnulls(relationship_started_at, relationship_started_timezone, relationship_display_date)
-      IN (0, 3)
-    );
-  END IF;
-END $$;
+-- CONSTRAINT: public.ai_price_catalog ai_price_catalog_catalog_version_provider_model_key
+ALTER TABLE ONLY public.ai_price_catalog
+    ADD CONSTRAINT ai_price_catalog_catalog_version_provider_model_key UNIQUE (catalog_version, provider, model);
 
--- Tenant candidate keys and committed-turn coordinates.
-ALTER TABLE public.messages
-  ADD COLUMN IF NOT EXISTS turn_seq bigint,
-  ADD COLUMN IF NOT EXISTS turn_position smallint;
-CREATE UNIQUE INDEX IF NOT EXISTS messages_user_id_id_uq ON public.messages(user_id,id);
-CREATE UNIQUE INDEX IF NOT EXISTS messages_user_id_id_sender_uq ON public.messages(user_id,id,sender);
-CREATE UNIQUE INDEX IF NOT EXISTS messages_user_turn_position_uq
-  ON public.messages(user_id,turn_seq,turn_position) WHERE turn_seq IS NOT NULL;
+-- CONSTRAINT: public.ai_price_catalog ai_price_catalog_pkey
+ALTER TABLE ONLY public.ai_price_catalog
+    ADD CONSTRAINT ai_price_catalog_pkey PRIMARY KEY (id);
 
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname='messages_turn_position_ck'
-      AND conrelid='public.messages'::regclass
-  ) THEN
-    ALTER TABLE public.messages ADD CONSTRAINT messages_turn_position_ck
-      CHECK ((turn_seq IS NULL AND turn_position IS NULL)
-             OR (turn_seq > 0 AND turn_position BETWEEN 0 AND 2));
-  END IF;
-END $$;
+-- CONSTRAINT: public.ai_usage_daily_rollup ai_usage_daily_rollup_pkey
+ALTER TABLE ONLY public.ai_usage_daily_rollup
+    ADD CONSTRAINT ai_usage_daily_rollup_pkey PRIMARY KEY (kst_date, provider, model, lane, purpose, status);
 
-CREATE UNIQUE INDEX IF NOT EXISTS routines_user_id_id_uq ON public.routines(user_id,id);
-DELETE FROM public.routine_completions c
-USING public.routines r
-WHERE c.routine_id=r.id AND c.user_id<>r.user_id;
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname='routine_completions_user_routine_fk'
-      AND conrelid='public.routine_completions'::regclass
-  ) THEN
-    ALTER TABLE public.routine_completions
-      ADD CONSTRAINT routine_completions_user_routine_fk
-      FOREIGN KEY (user_id,routine_id) REFERENCES public.routines(user_id,id) ON DELETE CASCADE;
-  END IF;
-END $$;
+-- CONSTRAINT: public.ai_usage_ledger ai_usage_ledger_pkey
+ALTER TABLE ONLY public.ai_usage_ledger
+    ADD CONSTRAINT ai_usage_ledger_pkey PRIMARY KEY (call_id);
 
--- Diary: product kind and display/activity coordinates replace the single daily slot.
-ALTER TABLE public.diaries
-  ADD COLUMN IF NOT EXISTS kind text,
-  ADD COLUMN IF NOT EXISTS activity_date date,
-  ADD COLUMN IF NOT EXISTS display_date date,
-  ADD COLUMN IF NOT EXISTS title text,
-  ADD COLUMN IF NOT EXISTS author text NOT NULL DEFAULT 'capi',
-  ADD COLUMN IF NOT EXISTS occurred_at timestamptz,
-  ADD COLUMN IF NOT EXISTS occurred_timezone text,
-  ADD COLUMN IF NOT EXISTS occurred_timezone_provenance text,
-  ADD COLUMN IF NOT EXISTS primary_subject text,
-  ADD COLUMN IF NOT EXISTS about_tags text[] NOT NULL DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS content_version integer NOT NULL DEFAULT 1,
-  ADD COLUMN IF NOT EXISTS record_status text NOT NULL DEFAULT 'published',
-  ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
+-- CONSTRAINT: public.app_config app_config_pkey
+ALTER TABLE ONLY public.app_config
+    ADD CONSTRAINT app_config_pkey PRIMARY KEY (key);
 
-UPDATE public.diaries SET
-  kind = CASE source WHEN 'welcome' THEN 'welcome' WHEN 'llm' THEN 'shared_day'
-                     WHEN 'preset' THEN 'capi_day' ELSE NULL END,
-  activity_date = CASE WHEN source IN ('llm','preset') THEN diary_date ELSE NULL END,
-  display_date = diary_date,
-  author = 'capi',
-  occurred_timezone_provenance = COALESCE(occurred_timezone_provenance, 'legacy_unknown'),
-  primary_subject = CASE WHEN source IN ('welcome','llm') THEN 'user' ELSE 'capi' END,
-  about_tags = CASE WHEN source IN ('welcome','llm') THEN ARRAY['user']::text[]
-                    WHEN source='preset' THEN ARRAY['capi']::text[] ELSE '{}'::text[] END,
-  record_status = CASE WHEN source='none' THEN 'processed' ELSE 'published' END
-WHERE display_date IS NULL OR kind IS NULL;
+-- CONSTRAINT: public.async_jobs async_jobs_job_type_dedup_key_key
+ALTER TABLE ONLY public.async_jobs
+    ADD CONSTRAINT async_jobs_job_type_dedup_key_key UNIQUE (job_type, dedup_key);
 
-ALTER TABLE public.diaries ALTER COLUMN display_date SET NOT NULL;
-ALTER TABLE public.diaries DROP CONSTRAINT IF EXISTS diaries_user_date_uq;
-CREATE UNIQUE INDEX IF NOT EXISTS diaries_user_id_id_uq ON public.diaries(user_id,id);
-CREATE UNIQUE INDEX IF NOT EXISTS diaries_one_welcome_uq
-  ON public.diaries(user_id) WHERE kind='welcome' AND deleted_at IS NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS diaries_one_daily_uq
-  ON public.diaries(user_id,activity_date)
-  WHERE kind IN ('shared_day','capi_day') AND deleted_at IS NULL;
-CREATE INDEX IF NOT EXISTS diaries_user_display_cursor_idx
-  ON public.diaries(user_id,display_date DESC,id DESC)
-  WHERE record_status='published' AND deleted_at IS NULL;
-DROP INDEX IF EXISTS public.diaries_content_trgm_idx;
+-- CONSTRAINT: public.async_jobs async_jobs_pkey
+ALTER TABLE ONLY public.async_jobs
+    ADD CONSTRAINT async_jobs_pkey PRIMARY KEY (id);
 
-CREATE TABLE IF NOT EXISTS public.diary_generation_results (
-  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  target_date date NOT NULL,
-  status text NOT NULL CHECK (status IN ('no_entry')),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (user_id,target_date)
-);
-INSERT INTO public.diary_generation_results(user_id,target_date,status,created_at)
-SELECT user_id,diary_date,'no_entry',COALESCE(created_at,now())
-FROM public.diaries WHERE source='none'
-ON CONFLICT (user_id,target_date) DO NOTHING;
-DELETE FROM public.diaries WHERE source='none';
+-- CONSTRAINT: public.chat_active_turns chat_active_turns_pkey
+ALTER TABLE ONLY public.chat_active_turns
+    ADD CONSTRAINT chat_active_turns_pkey PRIMARY KEY (user_id);
 
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname='diaries_kind_ck'
-      AND conrelid='public.diaries'::regclass
-  ) THEN
-    ALTER TABLE public.diaries ADD CONSTRAINT diaries_kind_ck CHECK (
-      (record_status='processed' AND kind IS NULL)
-      OR (record_status IN ('draft','published') AND kind IN ('welcome','shared_day','capi_day'))
-      OR (record_status='deleted')
-    );
-    ALTER TABLE public.diaries ADD CONSTRAINT diaries_kind_activity_ck CHECK (
-      (kind='welcome' AND activity_date IS NULL)
-      OR (kind IN ('shared_day','capi_day') AND activity_date IS NOT NULL)
-      OR kind IS NULL
-    );
-    ALTER TABLE public.diaries ADD CONSTRAINT diaries_author_ck CHECK (author='capi');
-  END IF;
-END $$;
+-- CONSTRAINT: public.chat_contexts chat_contexts_pkey
+ALTER TABLE ONLY public.chat_contexts
+    ADD CONSTRAINT chat_contexts_pkey PRIMARY KEY (user_id);
 
--- Chat revision, one active inference lease per user and exact idempotency semantics.
-ALTER TABLE public.chat_contexts
-  ADD COLUMN IF NOT EXISTS context_revision bigint NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS last_committed_turn_seq bigint NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS prompt_cache_generation bigint NOT NULL DEFAULT 0;
+-- CONSTRAINT: public.chat_response_references chat_response_references_pkey
+ALTER TABLE ONLY public.chat_response_references
+    ADD CONSTRAINT chat_response_references_pkey PRIMARY KEY (id);
 
-CREATE TABLE IF NOT EXISTS public.chat_active_turns (
-  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
-  turn_seq bigint NOT NULL CHECK (turn_seq > 0),
-  idempotency_key text NOT NULL,
-  request_hash text NOT NULL,
-  base_context_revision bigint NOT NULL,
-  lease_token uuid NOT NULL,
-  lease_until timestamptz NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE UNIQUE INDEX IF NOT EXISTS chat_active_turns_key_uq
-  ON public.chat_active_turns(user_id,idempotency_key);
+-- CONSTRAINT: public.chat_response_references chat_response_references_user_id_reply_message_id_ordinal_key
+ALTER TABLE ONLY public.chat_response_references
+    ADD CONSTRAINT chat_response_references_user_id_reply_message_id_ordinal_key UNIQUE (user_id, reply_message_id, ordinal);
 
-ALTER TABLE public.idempotency_keys
-  ALTER COLUMN response DROP NOT NULL,
-  ADD COLUMN IF NOT EXISTS request_hash text,
-  ADD COLUMN IF NOT EXISTS response_schema_version bigint NOT NULL DEFAULT 1,
-  ADD COLUMN IF NOT EXISTS reply_message_id bigint,
-  ADD COLUMN IF NOT EXISTS terminal_status text NOT NULL DEFAULT 'succeeded',
-  ADD COLUMN IF NOT EXISTS response_expires_at timestamptz,
-  ADD COLUMN IF NOT EXISTS dedupe_expires_at timestamptz,
-  ADD COLUMN IF NOT EXISTS redacted_at timestamptz;
+-- CONSTRAINT: public.conversation_checkpoints conversation_checkpoints_pkey
+ALTER TABLE ONLY public.conversation_checkpoints
+    ADD CONSTRAINT conversation_checkpoints_pkey PRIMARY KEY (id);
 
-UPDATE public.idempotency_keys
-SET response_expires_at=COALESCE(response_expires_at,created_at+interval '24 hours'),
-    dedupe_expires_at=COALESCE(dedupe_expires_at,created_at+interval '30 days'),
-    reply_message_id=CASE
-      WHEN response #>> '{reply,message_id}' ~ '^[0-9]+$'
-      THEN (response #>> '{reply,message_id}')::bigint ELSE reply_message_id END
-WHERE response_expires_at IS NULL OR dedupe_expires_at IS NULL OR reply_message_id IS NULL;
+-- CONSTRAINT: public.conversation_checkpoints conversation_checkpoints_user_id_through_message_id_source__key
+ALTER TABLE ONLY public.conversation_checkpoints
+    ADD CONSTRAINT conversation_checkpoints_user_id_through_message_id_source__key UNIQUE (user_id, through_message_id, source_hash);
 
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname='idempotency_reply_message_fk'
-      AND conrelid='public.idempotency_keys'::regclass
-  ) THEN
-    ALTER TABLE public.idempotency_keys ADD CONSTRAINT idempotency_reply_message_fk
-      FOREIGN KEY (user_id,reply_message_id) REFERENCES public.messages(user_id,id)
-      ON DELETE CASCADE;
-    ALTER TABLE public.idempotency_keys ADD CONSTRAINT idempotency_terminal_status_ck
-      CHECK (terminal_status IN ('succeeded','expired','redacted'));
-  END IF;
-END $$;
-CREATE INDEX IF NOT EXISTS idempotency_reply_idx
-  ON public.idempotency_keys(user_id,reply_message_id) WHERE reply_message_id IS NOT NULL;
+-- CONSTRAINT: public.conversation_focus conversation_focus_pkey
+ALTER TABLE ONLY public.conversation_focus
+    ADD CONSTRAINT conversation_focus_pkey PRIMARY KEY (user_id);
 
--- Diary provenance and suppression-safe recall projection.
-CREATE TABLE IF NOT EXISTS public.diary_claim_sources (
-  user_id uuid NOT NULL,
-  diary_id uuid NOT NULL,
-  message_id bigint NOT NULL,
-  source_hash text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (user_id,diary_id,message_id),
-  FOREIGN KEY (user_id,diary_id) REFERENCES public.diaries(user_id,id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id,message_id) REFERENCES public.messages(user_id,id) ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS public.diary_recall_documents (
-  user_id uuid NOT NULL,
-  diary_id uuid NOT NULL,
-  search_text text NOT NULL,
-  source_hash text NOT NULL,
-  embedding vector(1536),
-  embedding_model text NOT NULL DEFAULT 'text-embedding-3-small',
-  suppression_generation bigint NOT NULL,
-  index_version text NOT NULL,
-  embedding_repair_attempts smallint NOT NULL DEFAULT 0 CHECK (embedding_repair_attempts BETWEEN 0 AND 3),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (user_id,diary_id),
-  FOREIGN KEY (user_id,diary_id) REFERENCES public.diaries(user_id,id) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS diary_recall_documents_text_trgm_idx
-  ON public.diary_recall_documents USING gin (search_text gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS diary_recall_documents_embedding_hnsw_idx
-  ON public.diary_recall_documents USING hnsw (embedding vector_cosine_ops)
-  WHERE embedding IS NOT NULL;
-CREATE INDEX IF NOT EXISTS diary_recall_missing_embedding_idx
-  ON public.diary_recall_documents(updated_at) WHERE embedding IS NULL;
+-- CONSTRAINT: public.daily_fortunes daily_fortunes_pkey
+ALTER TABLE ONLY public.daily_fortunes
+    ADD CONSTRAINT daily_fortunes_pkey PRIMARY KEY (user_id);
 
--- Persisted public diary cards and short-lived conversational focus.
-CREATE TABLE IF NOT EXISTS public.chat_response_references (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  reply_message_id bigint NOT NULL,
-  ordinal integer NOT NULL CHECK (ordinal BETWEEN 0 AND 2),
-  schema_version text NOT NULL DEFAULT 'diary-reference-v1',
-  domain text NOT NULL DEFAULT 'diary' CHECK (domain='diary'),
-  mode text NOT NULL CHECK (mode IN ('full_card','reopen_reference')),
-  state text NOT NULL DEFAULT 'available' CHECK (state IN ('available','unavailable')),
-  diary_id uuid,
-  rendered_metadata jsonb NOT NULL DEFAULT '{}',
-  redacted_at timestamptz,
-  redaction_reason text,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  FOREIGN KEY (user_id,reply_message_id) REFERENCES public.messages(user_id,id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id,diary_id) REFERENCES public.diaries(user_id,id) ON DELETE RESTRICT,
-  UNIQUE (user_id,reply_message_id,ordinal),
-  CHECK ((state='available' AND diary_id IS NOT NULL AND redacted_at IS NULL)
-         OR (state='unavailable' AND diary_id IS NULL))
-);
-CREATE INDEX IF NOT EXISTS chat_response_references_reply_idx
-  ON public.chat_response_references(user_id,reply_message_id,ordinal);
+-- CONSTRAINT: public.diaries diaries_pkey
+ALTER TABLE ONLY public.diaries
+    ADD CONSTRAINT diaries_pkey PRIMARY KEY (id);
 
-CREATE TABLE IF NOT EXISTS public.conversation_focus (
-  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
-  domain text NOT NULL,
-  facet text,
-  reference_ids uuid[] NOT NULL CHECK (cardinality(reference_ids) BETWEEN 1 AND 3),
-  context_revision bigint NOT NULL,
-  expires_at timestamptz NOT NULL,
-  expires_turn_seq bigint NOT NULL,
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+-- CONSTRAINT: public.diary_claim_sources diary_claim_sources_pkey
+ALTER TABLE ONLY public.diary_claim_sources
+    ADD CONSTRAINT diary_claim_sources_pkey PRIMARY KEY (user_id, diary_id, message_id);
 
--- Daily Fortune keeps one current-day snapshot per user; copy assets remain versioned files.
-CREATE TABLE IF NOT EXISTS public.fortune_profiles (
-  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
-  gender text NOT NULL CHECK (gender IN ('man','woman','undisclosed')),
-  birth_date date NOT NULL,
-  revision bigint NOT NULL DEFAULT 1 CHECK (revision >= 1),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+-- CONSTRAINT: public.diary_gen_claims diary_gen_claims_pkey
+ALTER TABLE ONLY public.diary_gen_claims
+    ADD CONSTRAINT diary_gen_claims_pkey PRIMARY KEY (user_id, target_date);
 
-CREATE TABLE IF NOT EXISTS public.daily_fortunes (
-  user_id uuid PRIMARY KEY REFERENCES public.fortune_profiles(user_id) ON DELETE CASCADE,
-  fortune_date date NOT NULL,
-  timezone_snapshot text NOT NULL,
-  profile_revision bigint NOT NULL CHECK (profile_revision >= 1),
-  result_schema_version integer NOT NULL DEFAULT 3 CHECK (result_schema_version >= 2),
-  semantic_result jsonb NOT NULL CHECK (jsonb_typeof(semantic_result)='object'),
-  copy_by_locale jsonb NOT NULL CHECK (jsonb_typeof(copy_by_locale)='object'),
-  unlock_state text NOT NULL CHECK (unlock_state IN ('locked','unlocked')),
-  unlock_source text CHECK (unlock_source IN ('subscription','trial','rewarded_ad')),
-  unlocked_at timestamptz,
-  revealed_at timestamptz,
-  ephemeris_version text NOT NULL,
-  rule_version text NOT NULL,
-  copy_version text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT daily_fortunes_unlock_ck CHECK (
-    (unlock_state='locked' AND unlock_source IS NULL AND unlocked_at IS NULL AND revealed_at IS NULL)
-    OR
-    (unlock_state='unlocked' AND unlock_source IS NOT NULL AND unlocked_at IS NOT NULL)
-  )
-);
+-- CONSTRAINT: public.diary_generation_results diary_generation_results_pkey
+ALTER TABLE ONLY public.diary_generation_results
+    ADD CONSTRAINT diary_generation_results_pkey PRIMARY KEY (user_id, target_date);
 
-CREATE TABLE IF NOT EXISTS public.fortune_ad_sessions (
-  session_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES public.fortune_profiles(user_id) ON DELETE CASCADE,
-  fortune_date date NOT NULL,
-  client_request_id uuid NOT NULL,
-  verified boolean NOT NULL DEFAULT false,
-  ssv_transaction_id text UNIQUE,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  expires_at timestamptz NOT NULL,
-  verified_at timestamptz,
-  CONSTRAINT fortune_ad_sessions_client_uq UNIQUE(user_id,client_request_id),
-  CONSTRAINT fortune_ad_sessions_expiry_ck CHECK (expires_at > created_at),
-  CONSTRAINT fortune_ad_sessions_verified_ck CHECK (
-    (verified=false AND ssv_transaction_id IS NULL AND verified_at IS NULL)
-    OR
-    (verified=true AND ssv_transaction_id IS NOT NULL AND verified_at IS NOT NULL)
-  )
-);
-CREATE INDEX IF NOT EXISTS fortune_ad_sessions_lookup_idx
-  ON public.fortune_ad_sessions(user_id,fortune_date,verified);
-CREATE INDEX IF NOT EXISTS fortune_ad_sessions_retention_idx
-  ON public.fortune_ad_sessions(expires_at,session_id);
+-- CONSTRAINT: public.diary_recall_documents diary_recall_documents_pkey
+ALTER TABLE ONLY public.diary_recall_documents
+    ADD CONSTRAINT diary_recall_documents_pkey PRIMARY KEY (user_id, diary_id);
 
--- Deletion serving barrier is intentionally not FK-bound to profiles so it survives account deletion.
-CREATE TABLE IF NOT EXISTS public.privacy_subject_barriers (
-  user_id uuid PRIMARY KEY,
-  state text NOT NULL CHECK (state IN ('deleting','deleted')),
-  operation_id uuid NOT NULL,
-  high_watermark bigint,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE TABLE IF NOT EXISTS public.privacy_ledger_events (
-  id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-  operation_id uuid NOT NULL,
-  user_id uuid NOT NULL,
-  event text NOT NULL,
-  high_watermark bigint,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS privacy_ledger_user_idx
-  ON public.privacy_ledger_events(user_id,id);
+-- CONSTRAINT: public.feedback feedback_pkey
+ALTER TABLE ONLY public.feedback
+    ADD CONSTRAINT feedback_pkey PRIMARY KEY (id);
 
--- Durable job replay lineage and bounded payload retention.
-ALTER TABLE public.async_jobs
-  ADD COLUMN IF NOT EXISTS replay_of uuid REFERENCES public.async_jobs(id),
-  ADD COLUMN IF NOT EXISTS replay_operation_id uuid,
-  ADD COLUMN IF NOT EXISTS payload_schema_version text NOT NULL DEFAULT 'job-payload-v1',
-  ADD COLUMN IF NOT EXISTS payload_hash text,
-  ADD COLUMN IF NOT EXISTS payload_expires_at timestamptz,
-  ADD COLUMN IF NOT EXISTS payload_redacted_at timestamptz;
-UPDATE public.async_jobs SET
-  payload_hash=COALESCE(payload_hash,encode(digest(payload::text,'sha256'),'hex')),
-  payload_expires_at=COALESCE(payload_expires_at,
-    CASE WHEN state='dead' THEN COALESCE(finished_at,created_at)+interval '7 days'
-         WHEN state IN ('succeeded','cancelled') THEN COALESCE(finished_at,created_at)+interval '24 hours'
-         ELSE NULL END)
-WHERE payload_hash IS NULL OR payload_expires_at IS NULL;
-CREATE INDEX IF NOT EXISTS async_jobs_replay_of_idx
-  ON public.async_jobs(replay_of) WHERE replay_of IS NOT NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS async_jobs_replay_operation_uq
-  ON public.async_jobs(replay_of,replay_operation_id)
-  WHERE replay_of IS NOT NULL AND replay_operation_id IS NOT NULL;
+-- CONSTRAINT: public.fortune_ad_sessions fortune_ad_sessions_client_uq
+ALTER TABLE ONLY public.fortune_ad_sessions
+    ADD CONSTRAINT fortune_ad_sessions_client_uq UNIQUE (user_id, client_request_id);
 
--- Composite provenance FKs that were previously app-only.
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname='conversation_checkpoints_user_message_fk'
-      AND conrelid='public.conversation_checkpoints'::regclass
-  ) THEN
-    ALTER TABLE public.conversation_checkpoints ADD CONSTRAINT conversation_checkpoints_user_message_fk
-      FOREIGN KEY (user_id,through_message_id) REFERENCES public.messages(user_id,id) ON DELETE CASCADE;
-  END IF;
-END $$;
+-- CONSTRAINT: public.fortune_ad_sessions fortune_ad_sessions_pkey
+ALTER TABLE ONLY public.fortune_ad_sessions
+    ADD CONSTRAINT fortune_ad_sessions_pkey PRIMARY KEY (session_id);
 
-DO $$
-DECLARE t text;
-BEGIN
-  FOREACH t IN ARRAY ARRAY[
-    'schema_migrations','chat_active_turns','chat_response_references','conversation_focus',
-    'diary_generation_results',
-    'diary_claim_sources','diary_recall_documents','privacy_subject_barriers','privacy_ledger_events',
-    'fortune_profiles','daily_fortunes','fortune_ad_sessions'
-  ] LOOP
-    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;',t);
-    EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated;',t);
-  END LOOP;
-END $$;
+-- CONSTRAINT: public.fortune_ad_sessions fortune_ad_sessions_ssv_transaction_id_key
+ALTER TABLE ONLY public.fortune_ad_sessions
+    ADD CONSTRAINT fortune_ad_sessions_ssv_transaction_id_key UNIQUE (ssv_transaction_id);
 
+-- CONSTRAINT: public.fortune_profiles fortune_profiles_pkey
+ALTER TABLE ONLY public.fortune_profiles
+    ADD CONSTRAINT fortune_profiles_pkey PRIMARY KEY (user_id);
 
+-- CONSTRAINT: public.greetings greetings_pkey
+ALTER TABLE ONLY public.greetings
+    ADD CONSTRAINT greetings_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.greetings greetings_user_ctx_date_uq
+ALTER TABLE ONLY public.greetings
+    ADD CONSTRAINT greetings_user_ctx_date_uq UNIQUE (user_id, context, activity_date);
+
+-- CONSTRAINT: public.hay_transactions hay_transactions_pkey
+ALTER TABLE ONLY public.hay_transactions
+    ADD CONSTRAINT hay_transactions_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.idempotency_keys idempotency_keys_pkey
+ALTER TABLE ONLY public.idempotency_keys
+    ADD CONSTRAINT idempotency_keys_pkey PRIMARY KEY (user_id, key);
+
+-- CONSTRAINT: public.job_attempts job_attempts_job_id_attempt_key
+ALTER TABLE ONLY public.job_attempts
+    ADD CONSTRAINT job_attempts_job_id_attempt_key UNIQUE (job_id, attempt);
+
+-- CONSTRAINT: public.job_attempts job_attempts_pkey
+ALTER TABLE ONLY public.job_attempts
+    ADD CONSTRAINT job_attempts_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.mem0_ingest_candidate_sources mem0_ingest_candidate_sources_candidate_id_source_message_i_key
+ALTER TABLE ONLY public.mem0_ingest_candidate_sources
+    ADD CONSTRAINT mem0_ingest_candidate_sources_candidate_id_source_message_i_key UNIQUE (candidate_id, source_message_id, evidence_start_utf8, evidence_end_utf8);
+
+-- CONSTRAINT: public.mem0_ingest_candidates mem0_ingest_candidates_id_user_id_key
+ALTER TABLE ONLY public.mem0_ingest_candidates
+    ADD CONSTRAINT mem0_ingest_candidates_id_user_id_key UNIQUE (id, user_id);
+
+-- CONSTRAINT: public.mem0_ingest_candidates mem0_ingest_candidates_pkey
+ALTER TABLE ONLY public.mem0_ingest_candidates
+    ADD CONSTRAINT mem0_ingest_candidates_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.mem0_ingest_candidates mem0_ingest_candidates_user_id_turn_seq_candidate_hash_sche_key
+ALTER TABLE ONLY public.mem0_ingest_candidates
+    ADD CONSTRAINT mem0_ingest_candidates_user_id_turn_seq_candidate_hash_sche_key UNIQUE (user_id, turn_seq, candidate_hash, schema_version, repair_generation);
+
+-- CONSTRAINT: public.mem0_memory_registry mem0_memory_registry_id_user_id_key
+ALTER TABLE ONLY public.mem0_memory_registry
+    ADD CONSTRAINT mem0_memory_registry_id_user_id_key UNIQUE (id, user_id);
+
+-- CONSTRAINT: public.mem0_memory_registry mem0_memory_registry_pkey
+ALTER TABLE ONLY public.mem0_memory_registry
+    ADD CONSTRAINT mem0_memory_registry_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.mem0_memory_registry mem0_memory_registry_user_id_provider_collection_version_pr_key
+ALTER TABLE ONLY public.mem0_memory_registry
+    ADD CONSTRAINT mem0_memory_registry_user_id_provider_collection_version_pr_key UNIQUE (user_id, provider, collection_version, provider_memory_id);
+
+-- CONSTRAINT: public.mem0_memory_sources mem0_memory_sources_registry_id_source_message_id_evidence__key
+ALTER TABLE ONLY public.mem0_memory_sources
+    ADD CONSTRAINT mem0_memory_sources_registry_id_source_message_id_evidence__key UNIQUE (registry_id, source_message_id, evidence_start_utf8, evidence_end_utf8);
+
+-- CONSTRAINT: public.memory_pipeline_states memory_pipeline_states_pkey
+ALTER TABLE ONLY public.memory_pipeline_states
+    ADD CONSTRAINT memory_pipeline_states_pkey PRIMARY KEY (user_id);
+
+-- CONSTRAINT: public.messages messages_pkey
+ALTER TABLE ONLY public.messages
+    ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.moly_life_ments moly_life_ments_pkey
+ALTER TABLE ONLY public.moly_life_ments
+    ADD CONSTRAINT moly_life_ments_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.order_items order_items_pkey
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT order_items_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.orders orders_pkey
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.payments payments_pkey
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.payments payments_store_transaction_id_key
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_store_transaction_id_key UNIQUE (store_transaction_id);
+
+-- CONSTRAINT: public.privacy_ledger_events privacy_ledger_events_pkey
+ALTER TABLE ONLY public.privacy_ledger_events
+    ADD CONSTRAINT privacy_ledger_events_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.privacy_subject_barriers privacy_subject_barriers_pkey
+ALTER TABLE ONLY public.privacy_subject_barriers
+    ADD CONSTRAINT privacy_subject_barriers_pkey PRIMARY KEY (user_id);
+
+-- CONSTRAINT: public.products products_app_store_product_id_key
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_app_store_product_id_key UNIQUE (app_store_product_id);
+
+-- CONSTRAINT: public.products products_id_slot_uq
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_id_slot_uq UNIQUE (id, slot);
+
+-- CONSTRAINT: public.products products_pkey
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.products products_play_store_product_id_key
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_play_store_product_id_key UNIQUE (play_store_product_id);
+
+-- CONSTRAINT: public.profiles profiles_pkey
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.provider_backoffs provider_backoffs_pkey
+ALTER TABLE ONLY public.provider_backoffs
+    ADD CONSTRAINT provider_backoffs_pkey PRIMARY KEY (provider, model, lane);
+
+-- CONSTRAINT: public.relationship_events relationship_events_pkey
+ALTER TABLE ONLY public.relationship_events
+    ADD CONSTRAINT relationship_events_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.relationship_events relationship_events_user_id_dedup_key_key
+ALTER TABLE ONLY public.relationship_events
+    ADD CONSTRAINT relationship_events_user_id_dedup_key_key UNIQUE (user_id, dedup_key);
+
+-- CONSTRAINT: public.relationship_profile_renders relationship_profile_renders_pkey
+ALTER TABLE ONLY public.relationship_profile_renders
+    ADD CONSTRAINT relationship_profile_renders_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.relationship_profile_renders relationship_profile_renders_user_id_prompt_revision_profil_key
+ALTER TABLE ONLY public.relationship_profile_renders
+    ADD CONSTRAINT relationship_profile_renders_user_id_prompt_revision_profil_key UNIQUE (user_id, prompt_revision, profile_relationship_revision, locale, renderer_version);
+
+-- CONSTRAINT: public.revenuecat_events revenuecat_events_pkey
+ALTER TABLE ONLY public.revenuecat_events
+    ADD CONSTRAINT revenuecat_events_pkey PRIMARY KEY (event_id);
+
+-- CONSTRAINT: public.reward_ad_sessions reward_ad_sessions_pkey
+ALTER TABLE ONLY public.reward_ad_sessions
+    ADD CONSTRAINT reward_ad_sessions_pkey PRIMARY KEY (session_id);
+
+-- CONSTRAINT: public.reward_ad_sessions reward_ad_sessions_ssv_transaction_id_key
+ALTER TABLE ONLY public.reward_ad_sessions
+    ADD CONSTRAINT reward_ad_sessions_ssv_transaction_id_key UNIQUE (ssv_transaction_id);
+
+-- CONSTRAINT: public.routine_completions routine_completions_pkey
+ALTER TABLE ONLY public.routine_completions
+    ADD CONSTRAINT routine_completions_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.routine_completions routine_completions_routine_date_uq
+ALTER TABLE ONLY public.routine_completions
+    ADD CONSTRAINT routine_completions_routine_date_uq UNIQUE (routine_id, activity_date);
+
+-- CONSTRAINT: public.routines routines_pkey
+ALTER TABLE ONLY public.routines
+    ADD CONSTRAINT routines_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.schema_migrations schema_migrations_pkey
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (migration_name);
+
+-- CONSTRAINT: public.shadow_prompt_traces shadow_prompt_traces_pkey
+ALTER TABLE ONLY public.shadow_prompt_traces
+    ADD CONSTRAINT shadow_prompt_traces_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.shadow_prompt_traces shadow_prompt_traces_turn_uniq
+ALTER TABLE ONLY public.shadow_prompt_traces
+    ADD CONSTRAINT shadow_prompt_traces_turn_uniq UNIQUE (user_id, turn_seq, assembler_version);
+
+-- CONSTRAINT: public.subscription_hay_grants subscription_hay_grants_pkey
+ALTER TABLE ONLY public.subscription_hay_grants
+    ADD CONSTRAINT subscription_hay_grants_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.subscription_hay_grants subscription_hay_grants_user_plan_uq
+ALTER TABLE ONLY public.subscription_hay_grants
+    ADD CONSTRAINT subscription_hay_grants_user_plan_uq UNIQUE (user_id, plan);
+
+-- CONSTRAINT: public.subscriptions subscriptions_original_transaction_id_key
+ALTER TABLE ONLY public.subscriptions
+    ADD CONSTRAINT subscriptions_original_transaction_id_key UNIQUE (original_transaction_id);
+
+-- CONSTRAINT: public.subscriptions subscriptions_pkey
+ALTER TABLE ONLY public.subscriptions
+    ADD CONSTRAINT subscriptions_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.user_daily_stats user_daily_stats_pkey
+ALTER TABLE ONLY public.user_daily_stats
+    ADD CONSTRAINT user_daily_stats_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.user_daily_stats user_daily_stats_user_date_uq
+ALTER TABLE ONLY public.user_daily_stats
+    ADD CONSTRAINT user_daily_stats_user_date_uq UNIQUE (user_id, activity_date);
+
+-- CONSTRAINT: public.user_devices user_devices_pkey
+ALTER TABLE ONLY public.user_devices
+    ADD CONSTRAINT user_devices_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.user_devices user_devices_push_token_key
+ALTER TABLE ONLY public.user_devices
+    ADD CONSTRAINT user_devices_push_token_key UNIQUE (push_token);
+
+-- CONSTRAINT: public.user_interaction_contract_items user_interaction_contract_items_contract_id_item_key_key
+ALTER TABLE ONLY public.user_interaction_contract_items
+    ADD CONSTRAINT user_interaction_contract_items_contract_id_item_key_key UNIQUE (contract_id, item_key);
+
+-- CONSTRAINT: public.user_interaction_contract_items user_interaction_contract_items_pkey
+ALTER TABLE ONLY public.user_interaction_contract_items
+    ADD CONSTRAINT user_interaction_contract_items_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.user_interaction_contracts user_interaction_contracts_id_user_id_key
+ALTER TABLE ONLY public.user_interaction_contracts
+    ADD CONSTRAINT user_interaction_contracts_id_user_id_key UNIQUE (id, user_id);
+
+-- CONSTRAINT: public.user_interaction_contracts user_interaction_contracts_pkey
+ALTER TABLE ONLY public.user_interaction_contracts
+    ADD CONSTRAINT user_interaction_contracts_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.user_interaction_contracts user_interaction_contracts_user_id_locale_version_key
+ALTER TABLE ONLY public.user_interaction_contracts
+    ADD CONSTRAINT user_interaction_contracts_user_id_locale_version_key UNIQUE (user_id, locale, version);
+
+-- CONSTRAINT: public.user_items user_items_pkey
+ALTER TABLE ONLY public.user_items
+    ADD CONSTRAINT user_items_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.user_items user_items_user_product_uq
+ALTER TABLE ONLY public.user_items
+    ADD CONSTRAINT user_items_user_product_uq UNIQUE (user_id, product_id);
+
+-- CONSTRAINT: public.user_notification_settings user_notification_settings_pkey
+ALTER TABLE ONLY public.user_notification_settings
+    ADD CONSTRAINT user_notification_settings_pkey PRIMARY KEY (user_id, type);
+
+-- CONSTRAINT: public.user_relationship_states user_relationship_states_pkey
+ALTER TABLE ONLY public.user_relationship_states
+    ADD CONSTRAINT user_relationship_states_pkey PRIMARY KEY (user_id);
+
+-- CONSTRAINT: public.user_schedules user_schedules_pkey
+ALTER TABLE ONLY public.user_schedules
+    ADD CONSTRAINT user_schedules_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.user_schedules user_schedules_user_kind_uniq
+ALTER TABLE ONLY public.user_schedules
+    ADD CONSTRAINT user_schedules_user_kind_uniq UNIQUE (user_id, kind);
+
+-- CONSTRAINT: vecs.moly_memories_v2 moly_memories_v2_pkey
+ALTER TABLE ONLY vecs.moly_memories_v2
+    ADD CONSTRAINT moly_memories_v2_pkey PRIMARY KEY (id);
+
+-- INDEX: public.ai_price_catalog_lookup_idx
+CREATE INDEX ai_price_catalog_lookup_idx ON public.ai_price_catalog USING btree (provider, model, effective_from DESC);
+
+-- INDEX: public.ai_usage_ledger_open_idx
+CREATE INDEX ai_usage_ledger_open_idx ON public.ai_usage_ledger USING btree (status, started_at) WHERE (status = ANY (ARRAY['started'::text, 'unknown_usage'::text]));
+
+-- INDEX: public.ai_usage_ledger_purpose_idx
+CREATE INDEX ai_usage_ledger_purpose_idx ON public.ai_usage_ledger USING btree (purpose, started_at DESC);
+
+-- INDEX: public.ai_usage_ledger_request_idx
+CREATE INDEX ai_usage_ledger_request_idx ON public.ai_usage_ledger USING btree (provider, provider_request_id) WHERE (provider_request_id IS NOT NULL);
+
+-- INDEX: public.ai_usage_ledger_started_idx
+CREATE INDEX ai_usage_ledger_started_idx ON public.ai_usage_ledger USING btree (started_at);
+
+-- INDEX: public.ai_usage_ledger_user_day_idx
+CREATE INDEX ai_usage_ledger_user_day_idx ON public.ai_usage_ledger USING btree (user_id, activity_date, lane);
+
+-- INDEX: public.async_jobs_claim_idx
+CREATE INDEX async_jobs_claim_idx ON public.async_jobs USING btree (queue, priority, available_at, created_at) WHERE (state = 'ready'::text);
+
+-- INDEX: public.async_jobs_finished_gc_idx
+CREATE INDEX async_jobs_finished_gc_idx ON public.async_jobs USING btree (finished_at) WHERE (state = ANY (ARRAY['succeeded'::text, 'cancelled'::text]));
+
+-- INDEX: public.async_jobs_reclaim_idx
+CREATE INDEX async_jobs_reclaim_idx ON public.async_jobs USING btree (queue, lease_until) WHERE (state = 'running'::text);
+
+-- INDEX: public.async_jobs_replay_of_idx
+CREATE INDEX async_jobs_replay_of_idx ON public.async_jobs USING btree (replay_of) WHERE (replay_of IS NOT NULL);
+
+-- INDEX: public.async_jobs_replay_operation_uq
+CREATE UNIQUE INDEX async_jobs_replay_operation_uq ON public.async_jobs USING btree (replay_of, replay_operation_id) WHERE ((replay_of IS NOT NULL) AND (replay_operation_id IS NOT NULL));
+
+-- INDEX: public.async_jobs_scrub_idx
+CREATE INDEX async_jobs_scrub_idx ON public.async_jobs USING btree (payload_expires_at) WHERE ((payload_redacted_at IS NULL) AND (payload_expires_at IS NOT NULL));
+
+-- INDEX: public.async_jobs_state_queue_idx
+CREATE INDEX async_jobs_state_queue_idx ON public.async_jobs USING btree (state, queue);
+
+-- INDEX: public.async_jobs_user_idx
+CREATE INDEX async_jobs_user_idx ON public.async_jobs USING btree (user_id) WHERE (user_id IS NOT NULL);
+
+-- INDEX: public.chat_active_turns_key_uq
+CREATE UNIQUE INDEX chat_active_turns_key_uq ON public.chat_active_turns USING btree (user_id, idempotency_key);
+
+-- INDEX: public.conversation_checkpoints_daily_uq
+CREATE UNIQUE INDEX conversation_checkpoints_daily_uq ON public.conversation_checkpoints USING btree (user_id, activity_date_from) WHERE (kind = 'daily_digest'::text);
+
+-- INDEX: public.conversation_checkpoints_latest_idx
+CREATE INDEX conversation_checkpoints_latest_idx ON public.conversation_checkpoints USING btree (user_id, through_message_id DESC);
+
+-- INDEX: public.conversation_checkpoints_live_idx
+CREATE INDEX conversation_checkpoints_live_idx ON public.conversation_checkpoints USING btree (user_id, memory_generation, through_message_id DESC);
+
+-- INDEX: public.conversation_checkpoints_published_window_uq
+CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text));
+
+-- INDEX: public.diaries_one_daily_uq
+CREATE UNIQUE INDEX diaries_one_daily_uq ON public.diaries USING btree (user_id, activity_date) WHERE ((kind = ANY (ARRAY['shared_day'::text, 'capi_day'::text])) AND (deleted_at IS NULL));
+
+-- INDEX: public.diaries_one_welcome_uq
+CREATE UNIQUE INDEX diaries_one_welcome_uq ON public.diaries USING btree (user_id) WHERE ((kind = 'welcome'::text) AND (deleted_at IS NULL));
+
+-- INDEX: public.diaries_user_display_cursor_idx
+CREATE INDEX diaries_user_display_cursor_idx ON public.diaries USING btree (user_id, display_date DESC, id DESC) WHERE ((record_status = 'published'::text) AND (deleted_at IS NULL));
+
+-- INDEX: public.diaries_user_id_id_uq
+CREATE UNIQUE INDEX diaries_user_id_id_uq ON public.diaries USING btree (user_id, id);
+
+-- INDEX: public.diaries_user_published_idx
+CREATE INDEX diaries_user_published_idx ON public.diaries USING btree (user_id, published_at);
+
+-- INDEX: public.diary_claim_sources_user_msg_idx
+CREATE INDEX diary_claim_sources_user_msg_idx ON public.diary_claim_sources USING btree (user_id, message_id);
+
+-- INDEX: public.diary_recall_missing_embedding_idx
+CREATE INDEX diary_recall_missing_embedding_idx ON public.diary_recall_documents USING btree (updated_at) WHERE (embedding IS NULL);
+
+-- INDEX: public.feedback_user_idx
+CREATE INDEX feedback_user_idx ON public.feedback USING btree (user_id);
+
+-- INDEX: public.fortune_ad_sessions_lookup_idx
+CREATE INDEX fortune_ad_sessions_lookup_idx ON public.fortune_ad_sessions USING btree (user_id, fortune_date, verified);
+
+-- INDEX: public.fortune_ad_sessions_retention_idx
+CREATE INDEX fortune_ad_sessions_retention_idx ON public.fortune_ad_sessions USING btree (expires_at, session_id);
+
+-- INDEX: public.greetings_committed_message_idx
+CREATE INDEX greetings_committed_message_idx ON public.greetings USING btree (committed_message_id) WHERE (committed_message_id IS NOT NULL);
+
+-- INDEX: public.hay_transactions_order_idx
+CREATE INDEX hay_transactions_order_idx ON public.hay_transactions USING btree (order_id);
+
+-- INDEX: public.hay_transactions_user_created_idx
+CREATE INDEX hay_transactions_user_created_idx ON public.hay_transactions USING btree (user_id, created_at DESC);
+
+-- INDEX: public.hay_transactions_user_id_idx
+CREATE INDEX hay_transactions_user_id_idx ON public.hay_transactions USING btree (user_id, id);
+
+-- INDEX: public.idempotency_keys_dedupe_gc_idx
+CREATE INDEX idempotency_keys_dedupe_gc_idx ON public.idempotency_keys USING btree (dedupe_expires_at) WHERE (dedupe_expires_at IS NOT NULL);
+
+-- INDEX: public.idempotency_keys_scrub_idx
+CREATE INDEX idempotency_keys_scrub_idx ON public.idempotency_keys USING btree (response_expires_at) WHERE (response IS NOT NULL);
+
+-- INDEX: public.idempotency_reply_idx
+CREATE INDEX idempotency_reply_idx ON public.idempotency_keys USING btree (user_id, reply_message_id) WHERE (reply_message_id IS NOT NULL);
+
+-- INDEX: public.job_attempts_open_idx
+CREATE INDEX job_attempts_open_idx ON public.job_attempts USING btree (job_id) WHERE (outcome IS NULL);
+
+-- INDEX: public.job_attempts_queue_idx
+CREATE INDEX job_attempts_queue_idx ON public.job_attempts USING btree (queue, started_at DESC);
+
+-- INDEX: public.mem0_ingest_candidate_sources_user_msg_idx
+CREATE INDEX mem0_ingest_candidate_sources_user_msg_idx ON public.mem0_ingest_candidate_sources USING btree (user_id, source_message_id);
+
+-- INDEX: public.mem0_ingest_candidates_open_idx
+CREATE INDEX mem0_ingest_candidates_open_idx ON public.mem0_ingest_candidates USING btree (user_id, turn_seq) WHERE (status = 'planned'::text);
+
+-- INDEX: public.mem0_memory_registry_category_idx
+CREATE INDEX mem0_memory_registry_category_idx ON public.mem0_memory_registry USING btree (user_id, category) WHERE (semantic_status = ANY (ARRAY['active'::text, 'ambiguous'::text]));
+
+-- INDEX: public.mem0_memory_registry_conflict_idx
+CREATE INDEX mem0_memory_registry_conflict_idx ON public.mem0_memory_registry USING btree (conflict_group_id) WHERE (conflict_group_id IS NOT NULL);
+
+-- INDEX: public.mem0_memory_registry_delete_backlog_idx
+CREATE INDEX mem0_memory_registry_delete_backlog_idx ON public.mem0_memory_registry USING btree (provider_delete_state, updated_at) WHERE (provider_delete_state = 'pending'::text);
+
+-- INDEX: public.mem0_memory_registry_delete_scan_idx
+CREATE INDEX mem0_memory_registry_delete_scan_idx ON public.mem0_memory_registry USING btree (provider_delete_state) WHERE (provider_delete_state = ANY (ARRAY['pending'::text, 'failed'::text]));
+
+-- INDEX: public.mem0_memory_registry_reconsolidate_idx
+CREATE INDEX mem0_memory_registry_reconsolidate_idx ON public.mem0_memory_registry USING btree (user_id, last_reconsolidated_at NULLS FIRST) WHERE (semantic_status = ANY (ARRAY['active'::text, 'ambiguous'::text]));
+
+-- INDEX: public.mem0_memory_registry_searchable_idx
+CREATE INDEX mem0_memory_registry_searchable_idx ON public.mem0_memory_registry USING btree (user_id, semantic_status, source_turn_seq) WHERE (semantic_status = ANY (ARRAY['active'::text, 'ambiguous'::text]));
+
+-- INDEX: public.mem0_memory_sources_date_idx
+CREATE INDEX mem0_memory_sources_date_idx ON public.mem0_memory_sources USING btree (user_id, source_activity_date);
+
+-- INDEX: public.mem0_memory_sources_user_msg_idx
+CREATE INDEX mem0_memory_sources_user_msg_idx ON public.mem0_memory_sources USING btree (user_id, source_message_id);
+
+-- INDEX: public.memory_pipeline_states_lag_idx
+CREATE INDEX memory_pipeline_states_lag_idx ON public.memory_pipeline_states USING btree (user_id) WHERE (consolidated_through_turn_seq < source_through_turn_seq);
+
+-- INDEX: public.memory_pipeline_states_mode_idx
+CREATE INDEX memory_pipeline_states_mode_idx ON public.memory_pipeline_states USING btree (mode, bootstrap_status);
+
+-- INDEX: public.messages_fortune_context_root_idx
+CREATE INDEX messages_fortune_context_root_idx ON public.messages USING btree (user_id, id DESC) WHERE ((sender = 'user'::text) AND (kind = 'fortune_context_root'::text));
+
+-- INDEX: public.messages_user_actdate_idx
+CREATE INDEX messages_user_actdate_idx ON public.messages USING btree (user_id, activity_date);
+
+-- INDEX: public.messages_user_id_id_sender_uq
+CREATE UNIQUE INDEX messages_user_id_id_sender_uq ON public.messages USING btree (user_id, id, sender);
+
+-- INDEX: public.messages_user_id_id_uq
+CREATE UNIQUE INDEX messages_user_id_id_uq ON public.messages USING btree (user_id, id);
+
+-- INDEX: public.messages_user_turn_position_uq
+CREATE UNIQUE INDEX messages_user_turn_position_uq ON public.messages USING btree (user_id, turn_seq, turn_position) WHERE (turn_seq IS NOT NULL);
+
+-- INDEX: public.moly_life_ments_diary_date_uq
+CREATE UNIQUE INDEX moly_life_ments_diary_date_uq ON public.moly_life_ments USING btree (diary_date) WHERE (diary_date IS NOT NULL);
+
+-- INDEX: public.order_items_order_idx
+CREATE INDEX order_items_order_idx ON public.order_items USING btree (order_id);
+
+-- INDEX: public.order_items_product_idx
+CREATE INDEX order_items_product_idx ON public.order_items USING btree (product_id);
+
+-- INDEX: public.orders_user_created_idx
+CREATE INDEX orders_user_created_idx ON public.orders USING btree (user_id, created_at DESC);
+
+-- INDEX: public.payments_order_idx
+CREATE INDEX payments_order_idx ON public.payments USING btree (order_id);
+
+-- INDEX: public.payments_store_idx
+CREATE INDEX payments_store_idx ON public.payments USING btree (store);
+
+-- INDEX: public.payments_subscription_idx
+CREATE INDEX payments_subscription_idx ON public.payments USING btree (subscription_id);
+
+-- INDEX: public.payments_user_idx
+CREATE INDEX payments_user_idx ON public.payments USING btree (user_id);
+
+-- INDEX: public.privacy_ledger_user_idx
+CREATE INDEX privacy_ledger_user_idx ON public.privacy_ledger_events USING btree (user_id, id);
+
+-- INDEX: public.privacy_subject_barriers_state_idx
+CREATE INDEX privacy_subject_barriers_state_idx ON public.privacy_subject_barriers USING btree (state);
+
+-- INDEX: public.products_public_id_uq
+CREATE UNIQUE INDEX products_public_id_uq ON public.products USING btree (public_id) WHERE (public_id IS NOT NULL);
+
+-- INDEX: public.relationship_events_replay_idx
+CREATE INDEX relationship_events_replay_idx ON public.relationship_events USING btree (user_id, activity_date, id);
+
+-- INDEX: public.relationship_profile_renders_lookup_idx
+CREATE INDEX relationship_profile_renders_lookup_idx ON public.relationship_profile_renders USING btree (user_id, locale, prompt_revision DESC);
+
+-- INDEX: public.revenuecat_events_status_idx
+CREATE INDEX revenuecat_events_status_idx ON public.revenuecat_events USING btree (status, received_at);
+
+-- INDEX: public.revenuecat_events_status_next_attempt_idx
+CREATE INDEX revenuecat_events_status_next_attempt_idx ON public.revenuecat_events USING btree (status, next_attempt_at);
+
+-- INDEX: public.reward_ad_sessions_expiry_idx
+CREATE INDEX reward_ad_sessions_expiry_idx ON public.reward_ad_sessions USING btree (expires_at, session_id);
+
+-- INDEX: public.reward_ad_sessions_user_idx
+CREATE INDEX reward_ad_sessions_user_idx ON public.reward_ad_sessions USING btree (user_id);
+
+-- INDEX: public.routine_completions_routine_idx
+CREATE INDEX routine_completions_routine_idx ON public.routine_completions USING btree (routine_id);
+
+-- INDEX: public.routine_completions_user_actdate_idx
+CREATE INDEX routine_completions_user_actdate_idx ON public.routine_completions USING btree (user_id, activity_date);
+
+-- INDEX: public.routine_completions_user_idx
+CREATE INDEX routine_completions_user_idx ON public.routine_completions USING btree (user_id);
+
+-- INDEX: public.routines_user_id_id_uq
+CREATE UNIQUE INDEX routines_user_id_id_uq ON public.routines USING btree (user_id, id);
+
+-- INDEX: public.routines_user_idx
+CREATE INDEX routines_user_idx ON public.routines USING btree (user_id);
+
+-- INDEX: public.shadow_prompt_traces_user_idx
+CREATE INDEX shadow_prompt_traces_user_idx ON public.shadow_prompt_traces USING btree (user_id, turn_seq);
+
+-- INDEX: public.subscriptions_user_idx
+CREATE INDEX subscriptions_user_idx ON public.subscriptions USING btree (user_id);
+
+-- INDEX: public.user_devices_user_idx
+CREATE INDEX user_devices_user_idx ON public.user_devices USING btree (user_id);
+
+-- INDEX: public.user_interaction_contract_items_active_idx
+CREATE INDEX user_interaction_contract_items_active_idx ON public.user_interaction_contract_items USING btree (user_id, section) WHERE (status = 'active'::text);
+
+-- INDEX: public.user_interaction_contracts_published_uq
+CREATE UNIQUE INDEX user_interaction_contracts_published_uq ON public.user_interaction_contracts USING btree (user_id, locale) WHERE (status = 'published'::text);
+
+-- INDEX: public.user_items_order_idx
+CREATE INDEX user_items_order_idx ON public.user_items USING btree (order_id);
+
+-- INDEX: public.user_items_product_idx
+CREATE INDEX user_items_product_idx ON public.user_items USING btree (product_id);
+
+-- INDEX: public.user_items_user_equipped_slot_uq
+CREATE UNIQUE INDEX user_items_user_equipped_slot_uq ON public.user_items USING btree (user_id, equipped_slot) WHERE (equipped_slot IS NOT NULL);
+
+-- INDEX: public.user_items_user_idx
+CREATE INDEX user_items_user_idx ON public.user_items USING btree (user_id);
+
+-- INDEX: public.user_schedules_due_idx
+CREATE INDEX user_schedules_due_idx ON public.user_schedules USING btree (kind, next_due_at);
+
+-- INDEX: vecs.moly_memories_v2_user_idx
+CREATE INDEX moly_memories_v2_user_idx ON vecs.moly_memories_v2 USING btree (((metadata ->> 'user_id'::text)));
+
+-- TRIGGER: public.chat_contexts chat_contexts_normalized_snapshot_guard
+CREATE TRIGGER chat_contexts_normalized_snapshot_guard BEFORE INSERT OR UPDATE ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot();
+
+-- TRIGGER: public.orders orders_set_updated_at
+CREATE TRIGGER orders_set_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- TRIGGER: public.profiles profiles_create_privacy_barrier
+CREATE TRIGGER profiles_create_privacy_barrier AFTER INSERT ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.create_privacy_barrier_for_profile();
+
+-- TRIGGER: public.profiles profiles_set_updated_at
+CREATE TRIGGER profiles_set_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- TRIGGER: public.routines routines_set_updated_at
+CREATE TRIGGER routines_set_updated_at BEFORE UPDATE ON public.routines FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- TRIGGER: public.subscriptions subscriptions_set_updated_at
+CREATE TRIGGER subscriptions_set_updated_at BEFORE UPDATE ON public.subscriptions FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- TRIGGER: public.profiles trg_normalize_profile_language
+CREATE TRIGGER trg_normalize_profile_language BEFORE INSERT OR UPDATE OF language ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.normalize_profile_language();
+
+-- FK CONSTRAINT: public.ai_usage_ledger ai_usage_ledger_user_id_fkey
+ALTER TABLE ONLY public.ai_usage_ledger
+    ADD CONSTRAINT ai_usage_ledger_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+-- FK CONSTRAINT: public.async_jobs async_jobs_replay_of_fkey
+ALTER TABLE ONLY public.async_jobs
+    ADD CONSTRAINT async_jobs_replay_of_fkey FOREIGN KEY (replay_of) REFERENCES public.async_jobs(id);
+
+-- FK CONSTRAINT: public.async_jobs async_jobs_user_id_fkey
+ALTER TABLE ONLY public.async_jobs
+    ADD CONSTRAINT async_jobs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.chat_active_turns chat_active_turns_user_id_fkey
+ALTER TABLE ONLY public.chat_active_turns
+    ADD CONSTRAINT chat_active_turns_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.chat_contexts chat_contexts_user_id_fkey
+ALTER TABLE ONLY public.chat_contexts
+    ADD CONSTRAINT chat_contexts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.chat_response_references chat_response_references_user_id_diary_id_fkey
+ALTER TABLE ONLY public.chat_response_references
+    ADD CONSTRAINT chat_response_references_user_id_diary_id_fkey FOREIGN KEY (user_id, diary_id) REFERENCES public.diaries(user_id, id) ON DELETE RESTRICT;
+
+-- FK CONSTRAINT: public.chat_response_references chat_response_references_user_id_reply_message_id_fkey
+ALTER TABLE ONLY public.chat_response_references
+    ADD CONSTRAINT chat_response_references_user_id_reply_message_id_fkey FOREIGN KEY (user_id, reply_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.conversation_checkpoints conversation_checkpoints_user_id_fkey
+ALTER TABLE ONLY public.conversation_checkpoints
+    ADD CONSTRAINT conversation_checkpoints_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.conversation_checkpoints conversation_checkpoints_user_message_fk
+ALTER TABLE ONLY public.conversation_checkpoints
+    ADD CONSTRAINT conversation_checkpoints_user_message_fk FOREIGN KEY (user_id, through_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.conversation_focus conversation_focus_user_id_fkey
+ALTER TABLE ONLY public.conversation_focus
+    ADD CONSTRAINT conversation_focus_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.daily_fortunes daily_fortunes_user_id_fkey
+ALTER TABLE ONLY public.daily_fortunes
+    ADD CONSTRAINT daily_fortunes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.fortune_profiles(user_id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.diaries diaries_preset_ment_id_fkey
+ALTER TABLE ONLY public.diaries
+    ADD CONSTRAINT diaries_preset_ment_id_fkey FOREIGN KEY (preset_ment_id) REFERENCES public.moly_life_ments(id) ON DELETE SET NULL;
+
+-- FK CONSTRAINT: public.diaries diaries_user_id_fkey
+ALTER TABLE ONLY public.diaries
+    ADD CONSTRAINT diaries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.diary_claim_sources diary_claim_sources_user_id_diary_id_fkey
+ALTER TABLE ONLY public.diary_claim_sources
+    ADD CONSTRAINT diary_claim_sources_user_id_diary_id_fkey FOREIGN KEY (user_id, diary_id) REFERENCES public.diaries(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.diary_claim_sources diary_claim_sources_user_id_message_id_fkey
+ALTER TABLE ONLY public.diary_claim_sources
+    ADD CONSTRAINT diary_claim_sources_user_id_message_id_fkey FOREIGN KEY (user_id, message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.diary_generation_results diary_generation_results_user_id_fkey
+ALTER TABLE ONLY public.diary_generation_results
+    ADD CONSTRAINT diary_generation_results_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.diary_recall_documents diary_recall_documents_user_id_diary_id_fkey
+ALTER TABLE ONLY public.diary_recall_documents
+    ADD CONSTRAINT diary_recall_documents_user_id_diary_id_fkey FOREIGN KEY (user_id, diary_id) REFERENCES public.diaries(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.feedback feedback_user_id_fkey
+ALTER TABLE ONLY public.feedback
+    ADD CONSTRAINT feedback_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.fortune_ad_sessions fortune_ad_sessions_user_id_fkey
+ALTER TABLE ONLY public.fortune_ad_sessions
+    ADD CONSTRAINT fortune_ad_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.fortune_profiles(user_id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.fortune_profiles fortune_profiles_user_id_fkey
+ALTER TABLE ONLY public.fortune_profiles
+    ADD CONSTRAINT fortune_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.greetings greetings_committed_message_id_fkey
+ALTER TABLE ONLY public.greetings
+    ADD CONSTRAINT greetings_committed_message_id_fkey FOREIGN KEY (committed_message_id) REFERENCES public.messages(id) ON DELETE SET NULL;
+
+-- FK CONSTRAINT: public.greetings greetings_user_id_fkey
+ALTER TABLE ONLY public.greetings
+    ADD CONSTRAINT greetings_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.hay_transactions hay_transactions_order_id_fkey
+ALTER TABLE ONLY public.hay_transactions
+    ADD CONSTRAINT hay_transactions_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;
+
+-- FK CONSTRAINT: public.hay_transactions hay_transactions_user_id_fkey
+ALTER TABLE ONLY public.hay_transactions
+    ADD CONSTRAINT hay_transactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.idempotency_keys idempotency_keys_user_id_fkey
+ALTER TABLE ONLY public.idempotency_keys
+    ADD CONSTRAINT idempotency_keys_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.idempotency_keys idempotency_reply_message_fk
+ALTER TABLE ONLY public.idempotency_keys
+    ADD CONSTRAINT idempotency_reply_message_fk FOREIGN KEY (user_id, reply_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.job_attempts job_attempts_job_id_fkey
+ALTER TABLE ONLY public.job_attempts
+    ADD CONSTRAINT job_attempts_job_id_fkey FOREIGN KEY (job_id) REFERENCES public.async_jobs(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.mem0_ingest_candidate_sources mem0_ingest_candidate_sources_candidate_id_user_id_fkey
+ALTER TABLE ONLY public.mem0_ingest_candidate_sources
+    ADD CONSTRAINT mem0_ingest_candidate_sources_candidate_id_user_id_fkey FOREIGN KEY (candidate_id, user_id) REFERENCES public.mem0_ingest_candidates(id, user_id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.mem0_ingest_candidate_sources mem0_ingest_candidate_sources_user_id_source_message_id_so_fkey
+ALTER TABLE ONLY public.mem0_ingest_candidate_sources
+    ADD CONSTRAINT mem0_ingest_candidate_sources_user_id_source_message_id_so_fkey FOREIGN KEY (user_id, source_message_id, source_sender) REFERENCES public.messages(user_id, id, sender) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.mem0_ingest_candidates mem0_ingest_candidates_user_id_fkey
+ALTER TABLE ONLY public.mem0_ingest_candidates
+    ADD CONSTRAINT mem0_ingest_candidates_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.mem0_memory_registry mem0_memory_registry_user_id_fkey
+ALTER TABLE ONLY public.mem0_memory_registry
+    ADD CONSTRAINT mem0_memory_registry_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.mem0_memory_sources mem0_memory_sources_registry_id_user_id_fkey
+ALTER TABLE ONLY public.mem0_memory_sources
+    ADD CONSTRAINT mem0_memory_sources_registry_id_user_id_fkey FOREIGN KEY (registry_id, user_id) REFERENCES public.mem0_memory_registry(id, user_id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.mem0_memory_sources mem0_memory_sources_user_id_source_message_id_source_sende_fkey
+ALTER TABLE ONLY public.mem0_memory_sources
+    ADD CONSTRAINT mem0_memory_sources_user_id_source_message_id_source_sende_fkey FOREIGN KEY (user_id, source_message_id, source_sender) REFERENCES public.messages(user_id, id, sender) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.memory_pipeline_states memory_pipeline_states_user_id_fkey
+ALTER TABLE ONLY public.memory_pipeline_states
+    ADD CONSTRAINT memory_pipeline_states_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.messages messages_user_id_fkey
+ALTER TABLE ONLY public.messages
+    ADD CONSTRAINT messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.order_items order_items_order_id_fkey
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT order_items_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.order_items order_items_product_id_fkey
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT order_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE RESTRICT;
+
+-- FK CONSTRAINT: public.orders orders_user_id_fkey
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.payments payments_order_id_fkey
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.payments payments_subscription_id_fkey
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_subscription_id_fkey FOREIGN KEY (subscription_id) REFERENCES public.subscriptions(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.payments payments_user_id_fkey
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.profiles profiles_id_fkey
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.relationship_events relationship_events_user_id_fkey
+ALTER TABLE ONLY public.relationship_events
+    ADD CONSTRAINT relationship_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.relationship_profile_renders relationship_profile_renders_user_id_fkey
+ALTER TABLE ONLY public.relationship_profile_renders
+    ADD CONSTRAINT relationship_profile_renders_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.reward_ad_sessions reward_ad_sessions_user_id_fkey
+ALTER TABLE ONLY public.reward_ad_sessions
+    ADD CONSTRAINT reward_ad_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.routine_completions routine_completions_routine_id_fkey
+ALTER TABLE ONLY public.routine_completions
+    ADD CONSTRAINT routine_completions_routine_id_fkey FOREIGN KEY (routine_id) REFERENCES public.routines(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.routine_completions routine_completions_user_id_fkey
+ALTER TABLE ONLY public.routine_completions
+    ADD CONSTRAINT routine_completions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.routine_completions routine_completions_user_routine_fk
+ALTER TABLE ONLY public.routine_completions
+    ADD CONSTRAINT routine_completions_user_routine_fk FOREIGN KEY (user_id, routine_id) REFERENCES public.routines(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.routines routines_user_id_fkey
+ALTER TABLE ONLY public.routines
+    ADD CONSTRAINT routines_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.shadow_prompt_traces shadow_prompt_traces_user_id_fkey
+ALTER TABLE ONLY public.shadow_prompt_traces
+    ADD CONSTRAINT shadow_prompt_traces_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.subscription_hay_grants subscription_hay_grants_clawback_hay_transaction_id_fkey
+ALTER TABLE ONLY public.subscription_hay_grants
+    ADD CONSTRAINT subscription_hay_grants_clawback_hay_transaction_id_fkey FOREIGN KEY (clawback_hay_transaction_id) REFERENCES public.hay_transactions(id) ON DELETE SET NULL;
+
+-- FK CONSTRAINT: public.subscription_hay_grants subscription_hay_grants_hay_transaction_id_fkey
+ALTER TABLE ONLY public.subscription_hay_grants
+    ADD CONSTRAINT subscription_hay_grants_hay_transaction_id_fkey FOREIGN KEY (hay_transaction_id) REFERENCES public.hay_transactions(id) ON DELETE SET NULL;
+
+-- FK CONSTRAINT: public.subscription_hay_grants subscription_hay_grants_user_id_fkey
+ALTER TABLE ONLY public.subscription_hay_grants
+    ADD CONSTRAINT subscription_hay_grants_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.subscriptions subscriptions_user_id_fkey
+ALTER TABLE ONLY public.subscriptions
+    ADD CONSTRAINT subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_daily_stats user_daily_stats_user_id_fkey
+ALTER TABLE ONLY public.user_daily_stats
+    ADD CONSTRAINT user_daily_stats_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_devices user_devices_user_id_fkey
+ALTER TABLE ONLY public.user_devices
+    ADD CONSTRAINT user_devices_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_interaction_contract_items user_interaction_contract_items_contract_id_user_id_fkey
+ALTER TABLE ONLY public.user_interaction_contract_items
+    ADD CONSTRAINT user_interaction_contract_items_contract_id_user_id_fkey FOREIGN KEY (contract_id, user_id) REFERENCES public.user_interaction_contracts(id, user_id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_interaction_contract_items user_interaction_contract_items_user_id_source_message_id_fkey
+ALTER TABLE ONLY public.user_interaction_contract_items
+    ADD CONSTRAINT user_interaction_contract_items_user_id_source_message_id_fkey FOREIGN KEY (user_id, source_message_id) REFERENCES public.messages(user_id, id) ON DELETE SET NULL (source_message_id);
+
+-- FK CONSTRAINT: public.user_interaction_contracts user_interaction_contracts_user_id_fkey
+ALTER TABLE ONLY public.user_interaction_contracts
+    ADD CONSTRAINT user_interaction_contracts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_items user_items_order_id_fkey
+ALTER TABLE ONLY public.user_items
+    ADD CONSTRAINT user_items_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;
+
+-- FK CONSTRAINT: public.user_items user_items_product_id_fkey
+ALTER TABLE ONLY public.user_items
+    ADD CONSTRAINT user_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_items user_items_product_slot_fk
+ALTER TABLE ONLY public.user_items
+    ADD CONSTRAINT user_items_product_slot_fk FOREIGN KEY (product_id, equipped_slot) REFERENCES public.products(id, slot);
+
+-- FK CONSTRAINT: public.user_items user_items_user_id_fkey
+ALTER TABLE ONLY public.user_items
+    ADD CONSTRAINT user_items_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_notification_settings user_notification_settings_user_id_fkey
+ALTER TABLE ONLY public.user_notification_settings
+    ADD CONSTRAINT user_notification_settings_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_relationship_states user_relationship_states_user_id_fkey
+ALTER TABLE ONLY public.user_relationship_states
+    ADD CONSTRAINT user_relationship_states_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.user_schedules user_schedules_user_id_fkey
+ALTER TABLE ONLY public.user_schedules
+    ADD CONSTRAINT user_schedules_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- ROW SECURITY: public.ai_price_catalog
+ALTER TABLE public.ai_price_catalog ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.ai_usage_daily_rollup
+ALTER TABLE public.ai_usage_daily_rollup ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.ai_usage_ledger
+ALTER TABLE public.ai_usage_ledger ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.app_config
+ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.async_jobs
+ALTER TABLE public.async_jobs ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.chat_active_turns
+ALTER TABLE public.chat_active_turns ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.chat_contexts
+ALTER TABLE public.chat_contexts ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.chat_response_references
+ALTER TABLE public.chat_response_references ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.conversation_checkpoints
+ALTER TABLE public.conversation_checkpoints ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.conversation_focus
+ALTER TABLE public.conversation_focus ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.daily_fortunes
+ALTER TABLE public.daily_fortunes ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.diaries
+ALTER TABLE public.diaries ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.diary_claim_sources
+ALTER TABLE public.diary_claim_sources ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.diary_gen_claims
+ALTER TABLE public.diary_gen_claims ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.diary_generation_results
+ALTER TABLE public.diary_generation_results ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.diary_recall_documents
+ALTER TABLE public.diary_recall_documents ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.feedback
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.fortune_ad_sessions
+ALTER TABLE public.fortune_ad_sessions ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.fortune_profiles
+ALTER TABLE public.fortune_profiles ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.greetings
+ALTER TABLE public.greetings ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.hay_transactions
+ALTER TABLE public.hay_transactions ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.idempotency_keys
+ALTER TABLE public.idempotency_keys ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.job_attempts
+ALTER TABLE public.job_attempts ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.mem0_ingest_candidate_sources
+ALTER TABLE public.mem0_ingest_candidate_sources ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.mem0_ingest_candidates
+ALTER TABLE public.mem0_ingest_candidates ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.mem0_memory_registry
+ALTER TABLE public.mem0_memory_registry ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.mem0_memory_sources
+ALTER TABLE public.mem0_memory_sources ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.memory_pipeline_states
+ALTER TABLE public.memory_pipeline_states ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.messages
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.moly_life_ments
+ALTER TABLE public.moly_life_ments ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.order_items
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.orders
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.payments
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.privacy_ledger_events
+ALTER TABLE public.privacy_ledger_events ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.privacy_subject_barriers
+ALTER TABLE public.privacy_subject_barriers ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.products
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.profiles
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.provider_backoffs
+ALTER TABLE public.provider_backoffs ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.relationship_events
+ALTER TABLE public.relationship_events ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.relationship_profile_renders
+ALTER TABLE public.relationship_profile_renders ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.revenuecat_events
+ALTER TABLE public.revenuecat_events ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.reward_ad_sessions
+ALTER TABLE public.reward_ad_sessions ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.routine_completions
+ALTER TABLE public.routine_completions ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.routines
+ALTER TABLE public.routines ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.schema_migrations
+ALTER TABLE public.schema_migrations ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.shadow_prompt_traces
+ALTER TABLE public.shadow_prompt_traces ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.subscription_hay_grants
+ALTER TABLE public.subscription_hay_grants ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.subscriptions
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_daily_stats
+ALTER TABLE public.user_daily_stats ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_devices
+ALTER TABLE public.user_devices ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_interaction_contract_items
+ALTER TABLE public.user_interaction_contract_items ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_interaction_contracts
+ALTER TABLE public.user_interaction_contracts ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_items
+ALTER TABLE public.user_items ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_notification_settings
+ALTER TABLE public.user_notification_settings ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_relationship_states
+ALTER TABLE public.user_relationship_states ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.user_schedules
+ALTER TABLE public.user_schedules ENABLE ROW LEVEL SECURITY;
+
+-- ACL: public.FUNCTION bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone)
+REVOKE ALL ON FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone) TO service_role;
+
+-- ACL: public.FUNCTION create_privacy_barrier_for_profile()
+REVOKE ALL ON FUNCTION public.create_privacy_barrier_for_profile() FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON FUNCTION public.create_privacy_barrier_for_profile() TO anon;
+GRANT ALL ON FUNCTION public.create_privacy_barrier_for_profile() TO authenticated;
+GRANT ALL ON FUNCTION public.create_privacy_barrier_for_profile() TO service_role;
+GRANT EXECUTE ON FUNCTION public.create_privacy_barrier_for_profile() TO PUBLIC;
+
+-- ACL: public.FUNCTION delete_user_memories(p_user_id uuid)
+REVOKE ALL ON FUNCTION public.delete_user_memories(p_user_id uuid) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.delete_user_memories(p_user_id uuid) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.delete_user_memories(p_user_id uuid) TO service_role;
+
+-- ACL: public.FUNCTION guard_normalized_memory_snapshot()
+REVOKE ALL ON FUNCTION public.guard_normalized_memory_snapshot() FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON FUNCTION public.guard_normalized_memory_snapshot() TO anon;
+GRANT ALL ON FUNCTION public.guard_normalized_memory_snapshot() TO authenticated;
+GRANT ALL ON FUNCTION public.guard_normalized_memory_snapshot() TO service_role;
+GRANT EXECUTE ON FUNCTION public.guard_normalized_memory_snapshot() TO PUBLIC;
+
+-- ACL: public.FUNCTION handle_new_user()
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON FUNCTION public.handle_new_user() TO anon;
+GRANT ALL ON FUNCTION public.handle_new_user() TO authenticated;
+GRANT ALL ON FUNCTION public.handle_new_user() TO service_role;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO PUBLIC;
+
+-- ACL: public.FUNCTION normalize_content_language(tag text)
+REVOKE ALL ON FUNCTION public.normalize_content_language(tag text) FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON FUNCTION public.normalize_content_language(tag text) TO anon;
+GRANT ALL ON FUNCTION public.normalize_content_language(tag text) TO authenticated;
+GRANT ALL ON FUNCTION public.normalize_content_language(tag text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.normalize_content_language(tag text) TO PUBLIC;
+
+-- ACL: public.FUNCTION normalize_profile_language()
+REVOKE ALL ON FUNCTION public.normalize_profile_language() FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON FUNCTION public.normalize_profile_language() TO anon;
+GRANT ALL ON FUNCTION public.normalize_profile_language() TO authenticated;
+GRANT ALL ON FUNCTION public.normalize_profile_language() TO service_role;
+GRANT EXECUTE ON FUNCTION public.normalize_profile_language() TO PUBLIC;
+
+-- ACL: public.FUNCTION set_updated_at()
+REVOKE ALL ON FUNCTION public.set_updated_at() FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON FUNCTION public.set_updated_at() TO anon;
+GRANT ALL ON FUNCTION public.set_updated_at() TO authenticated;
+GRANT ALL ON FUNCTION public.set_updated_at() TO service_role;
+GRANT EXECUTE ON FUNCTION public.set_updated_at() TO PUBLIC;
+
+-- ACL: public.TABLE ai_price_catalog
+REVOKE ALL ON TABLE public.ai_price_catalog FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.ai_price_catalog TO anon;
+GRANT ALL ON TABLE public.ai_price_catalog TO authenticated;
+GRANT ALL ON TABLE public.ai_price_catalog TO service_role;
+
+-- ACL: public.TABLE ai_usage_daily_rollup
+REVOKE ALL ON TABLE public.ai_usage_daily_rollup FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.ai_usage_daily_rollup TO anon;
+GRANT ALL ON TABLE public.ai_usage_daily_rollup TO authenticated;
+GRANT ALL ON TABLE public.ai_usage_daily_rollup TO service_role;
+
+-- ACL: public.TABLE ai_usage_ledger
+REVOKE ALL ON TABLE public.ai_usage_ledger FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.ai_usage_ledger TO anon;
+GRANT ALL ON TABLE public.ai_usage_ledger TO authenticated;
+GRANT ALL ON TABLE public.ai_usage_ledger TO service_role;
+
+-- ACL: public.TABLE app_config
+REVOKE ALL ON TABLE public.app_config FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.app_config TO anon;
+GRANT ALL ON TABLE public.app_config TO authenticated;
+GRANT ALL ON TABLE public.app_config TO service_role;
+
+-- ACL: public.TABLE async_jobs
+REVOKE ALL ON TABLE public.async_jobs FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.async_jobs TO anon;
+GRANT ALL ON TABLE public.async_jobs TO authenticated;
+GRANT ALL ON TABLE public.async_jobs TO service_role;
+
+-- ACL: public.TABLE chat_active_turns
+REVOKE ALL ON TABLE public.chat_active_turns FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.chat_active_turns TO service_role;
+
+-- ACL: public.TABLE chat_contexts
+REVOKE ALL ON TABLE public.chat_contexts FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.chat_contexts TO service_role;
+
+-- ACL: public.TABLE chat_response_references
+REVOKE ALL ON TABLE public.chat_response_references FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.chat_response_references TO service_role;
+
+-- ACL: public.TABLE conversation_checkpoints
+REVOKE ALL ON TABLE public.conversation_checkpoints FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.conversation_checkpoints TO service_role;
+
+-- ACL: public.TABLE conversation_focus
+REVOKE ALL ON TABLE public.conversation_focus FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.conversation_focus TO service_role;
+
+-- ACL: public.TABLE daily_fortunes
+REVOKE ALL ON TABLE public.daily_fortunes FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.daily_fortunes TO service_role;
+
+-- ACL: public.TABLE diaries
+REVOKE ALL ON TABLE public.diaries FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.diaries TO anon;
+GRANT ALL ON TABLE public.diaries TO authenticated;
+GRANT ALL ON TABLE public.diaries TO service_role;
+
+-- ACL: public.TABLE diary_claim_sources
+REVOKE ALL ON TABLE public.diary_claim_sources FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.diary_claim_sources TO service_role;
+
+-- ACL: public.TABLE diary_gen_claims
+REVOKE ALL ON TABLE public.diary_gen_claims FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.diary_gen_claims TO anon;
+GRANT ALL ON TABLE public.diary_gen_claims TO authenticated;
+GRANT ALL ON TABLE public.diary_gen_claims TO service_role;
+
+-- ACL: public.TABLE diary_generation_results
+REVOKE ALL ON TABLE public.diary_generation_results FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.diary_generation_results TO service_role;
+
+-- ACL: public.TABLE diary_recall_documents
+REVOKE ALL ON TABLE public.diary_recall_documents FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.diary_recall_documents TO service_role;
+
+-- ACL: public.TABLE feedback
+REVOKE ALL ON TABLE public.feedback FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.feedback TO anon;
+GRANT ALL ON TABLE public.feedback TO authenticated;
+GRANT ALL ON TABLE public.feedback TO service_role;
+
+-- ACL: public.TABLE fortune_ad_sessions
+REVOKE ALL ON TABLE public.fortune_ad_sessions FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.fortune_ad_sessions TO service_role;
+
+-- ACL: public.TABLE fortune_profiles
+REVOKE ALL ON TABLE public.fortune_profiles FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.fortune_profiles TO service_role;
+
+-- ACL: public.TABLE greetings
+REVOKE ALL ON TABLE public.greetings FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.greetings TO anon;
+GRANT ALL ON TABLE public.greetings TO authenticated;
+GRANT ALL ON TABLE public.greetings TO service_role;
+
+-- ACL: public.TABLE hay_transactions
+REVOKE ALL ON TABLE public.hay_transactions FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.hay_transactions TO anon;
+GRANT ALL ON TABLE public.hay_transactions TO authenticated;
+GRANT ALL ON TABLE public.hay_transactions TO service_role;
+
+-- ACL: public.SEQUENCE hay_transactions_id_seq
+REVOKE ALL ON SEQUENCE public.hay_transactions_id_seq FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON SEQUENCE public.hay_transactions_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.hay_transactions_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.hay_transactions_id_seq TO service_role;
+
+-- ACL: public.TABLE idempotency_keys
+REVOKE ALL ON TABLE public.idempotency_keys FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.idempotency_keys TO anon;
+GRANT ALL ON TABLE public.idempotency_keys TO authenticated;
+GRANT ALL ON TABLE public.idempotency_keys TO service_role;
+
+-- ACL: public.TABLE job_attempts
+REVOKE ALL ON TABLE public.job_attempts FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.job_attempts TO anon;
+GRANT ALL ON TABLE public.job_attempts TO authenticated;
+GRANT ALL ON TABLE public.job_attempts TO service_role;
+
+-- ACL: public.TABLE mem0_ingest_candidate_sources
+REVOKE ALL ON TABLE public.mem0_ingest_candidate_sources FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.mem0_ingest_candidate_sources TO anon;
+GRANT ALL ON TABLE public.mem0_ingest_candidate_sources TO authenticated;
+GRANT ALL ON TABLE public.mem0_ingest_candidate_sources TO service_role;
+
+-- ACL: public.TABLE mem0_ingest_candidates
+REVOKE ALL ON TABLE public.mem0_ingest_candidates FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.mem0_ingest_candidates TO anon;
+GRANT ALL ON TABLE public.mem0_ingest_candidates TO authenticated;
+GRANT ALL ON TABLE public.mem0_ingest_candidates TO service_role;
+
+-- ACL: public.TABLE mem0_memory_registry
+REVOKE ALL ON TABLE public.mem0_memory_registry FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.mem0_memory_registry TO anon;
+GRANT ALL ON TABLE public.mem0_memory_registry TO authenticated;
+GRANT ALL ON TABLE public.mem0_memory_registry TO service_role;
+
+-- ACL: public.TABLE mem0_memory_sources
+REVOKE ALL ON TABLE public.mem0_memory_sources FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.mem0_memory_sources TO anon;
+GRANT ALL ON TABLE public.mem0_memory_sources TO authenticated;
+GRANT ALL ON TABLE public.mem0_memory_sources TO service_role;
+
+-- ACL: public.TABLE memory_pipeline_states
+REVOKE ALL ON TABLE public.memory_pipeline_states FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.memory_pipeline_states TO anon;
+GRANT ALL ON TABLE public.memory_pipeline_states TO authenticated;
+GRANT ALL ON TABLE public.memory_pipeline_states TO service_role;
+
+-- ACL: public.TABLE messages
+REVOKE ALL ON TABLE public.messages FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.messages TO anon;
+GRANT ALL ON TABLE public.messages TO authenticated;
+GRANT ALL ON TABLE public.messages TO service_role;
+
+-- ACL: public.SEQUENCE messages_id_seq
+REVOKE ALL ON SEQUENCE public.messages_id_seq FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON SEQUENCE public.messages_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.messages_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.messages_id_seq TO service_role;
+
+-- ACL: public.TABLE moly_life_ments
+REVOKE ALL ON TABLE public.moly_life_ments FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.moly_life_ments TO anon;
+GRANT ALL ON TABLE public.moly_life_ments TO authenticated;
+GRANT ALL ON TABLE public.moly_life_ments TO service_role;
+
+-- ACL: public.TABLE order_items
+REVOKE ALL ON TABLE public.order_items FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.order_items TO anon;
+GRANT ALL ON TABLE public.order_items TO authenticated;
+GRANT ALL ON TABLE public.order_items TO service_role;
+
+-- ACL: public.TABLE orders
+REVOKE ALL ON TABLE public.orders FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.orders TO anon;
+GRANT ALL ON TABLE public.orders TO authenticated;
+GRANT ALL ON TABLE public.orders TO service_role;
+
+-- ACL: public.TABLE payments
+REVOKE ALL ON TABLE public.payments FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.payments TO anon;
+GRANT ALL ON TABLE public.payments TO authenticated;
+GRANT ALL ON TABLE public.payments TO service_role;
+
+-- ACL: public.TABLE privacy_ledger_events
+REVOKE ALL ON TABLE public.privacy_ledger_events FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.privacy_ledger_events TO service_role;
+
+-- ACL: public.SEQUENCE privacy_ledger_events_id_seq
+REVOKE ALL ON SEQUENCE public.privacy_ledger_events_id_seq FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON SEQUENCE public.privacy_ledger_events_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.privacy_ledger_events_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.privacy_ledger_events_id_seq TO service_role;
+
+-- ACL: public.TABLE privacy_subject_barriers
+REVOKE ALL ON TABLE public.privacy_subject_barriers FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.privacy_subject_barriers TO service_role;
+
+-- ACL: public.TABLE products
+REVOKE ALL ON TABLE public.products FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.products TO anon;
+GRANT ALL ON TABLE public.products TO authenticated;
+GRANT ALL ON TABLE public.products TO service_role;
+
+-- ACL: public.TABLE profiles
+REVOKE ALL ON TABLE public.profiles FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.profiles TO anon;
+GRANT ALL ON TABLE public.profiles TO authenticated;
+GRANT ALL ON TABLE public.profiles TO service_role;
+
+-- ACL: public.TABLE provider_backoffs
+REVOKE ALL ON TABLE public.provider_backoffs FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.provider_backoffs TO anon;
+GRANT ALL ON TABLE public.provider_backoffs TO authenticated;
+GRANT ALL ON TABLE public.provider_backoffs TO service_role;
+
+-- ACL: public.TABLE relationship_events
+REVOKE ALL ON TABLE public.relationship_events FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.relationship_events TO anon;
+GRANT ALL ON TABLE public.relationship_events TO authenticated;
+GRANT ALL ON TABLE public.relationship_events TO service_role;
+
+-- ACL: public.SEQUENCE relationship_events_id_seq
+REVOKE ALL ON SEQUENCE public.relationship_events_id_seq FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON SEQUENCE public.relationship_events_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.relationship_events_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.relationship_events_id_seq TO service_role;
+
+-- ACL: public.TABLE relationship_profile_renders
+REVOKE ALL ON TABLE public.relationship_profile_renders FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.relationship_profile_renders TO anon;
+GRANT ALL ON TABLE public.relationship_profile_renders TO authenticated;
+GRANT ALL ON TABLE public.relationship_profile_renders TO service_role;
+
+-- ACL: public.TABLE revenuecat_events
+REVOKE ALL ON TABLE public.revenuecat_events FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.revenuecat_events TO anon;
+GRANT ALL ON TABLE public.revenuecat_events TO authenticated;
+GRANT ALL ON TABLE public.revenuecat_events TO service_role;
+
+-- ACL: public.TABLE reward_ad_sessions
+REVOKE ALL ON TABLE public.reward_ad_sessions FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.reward_ad_sessions TO anon;
+GRANT ALL ON TABLE public.reward_ad_sessions TO authenticated;
+GRANT ALL ON TABLE public.reward_ad_sessions TO service_role;
+
+-- ACL: public.TABLE routine_completions
+REVOKE ALL ON TABLE public.routine_completions FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.routine_completions TO anon;
+GRANT ALL ON TABLE public.routine_completions TO authenticated;
+GRANT ALL ON TABLE public.routine_completions TO service_role;
+
+-- ACL: public.SEQUENCE routine_completions_id_seq
+REVOKE ALL ON SEQUENCE public.routine_completions_id_seq FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON SEQUENCE public.routine_completions_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.routine_completions_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.routine_completions_id_seq TO service_role;
+
+-- ACL: public.TABLE routines
+REVOKE ALL ON TABLE public.routines FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.routines TO anon;
+GRANT ALL ON TABLE public.routines TO authenticated;
+GRANT ALL ON TABLE public.routines TO service_role;
+
+-- ACL: public.TABLE schema_migrations
+REVOKE ALL ON TABLE public.schema_migrations FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.schema_migrations TO service_role;
+
+-- ACL: public.TABLE shadow_prompt_traces
+REVOKE ALL ON TABLE public.shadow_prompt_traces FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.shadow_prompt_traces TO service_role;
+
+-- ACL: public.TABLE subscription_hay_grants
+REVOKE ALL ON TABLE public.subscription_hay_grants FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.subscription_hay_grants TO anon;
+GRANT ALL ON TABLE public.subscription_hay_grants TO authenticated;
+GRANT ALL ON TABLE public.subscription_hay_grants TO service_role;
+
+-- ACL: public.TABLE subscriptions
+REVOKE ALL ON TABLE public.subscriptions FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.subscriptions TO anon;
+GRANT ALL ON TABLE public.subscriptions TO authenticated;
+GRANT ALL ON TABLE public.subscriptions TO service_role;
+
+-- ACL: public.TABLE user_daily_stats
+REVOKE ALL ON TABLE public.user_daily_stats FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_daily_stats TO anon;
+GRANT ALL ON TABLE public.user_daily_stats TO authenticated;
+GRANT ALL ON TABLE public.user_daily_stats TO service_role;
+
+-- ACL: public.SEQUENCE user_daily_stats_id_seq
+REVOKE ALL ON SEQUENCE public.user_daily_stats_id_seq FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON SEQUENCE public.user_daily_stats_id_seq TO anon;
+GRANT ALL ON SEQUENCE public.user_daily_stats_id_seq TO authenticated;
+GRANT ALL ON SEQUENCE public.user_daily_stats_id_seq TO service_role;
+
+-- ACL: public.TABLE user_devices
+REVOKE ALL ON TABLE public.user_devices FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_devices TO anon;
+GRANT ALL ON TABLE public.user_devices TO authenticated;
+GRANT ALL ON TABLE public.user_devices TO service_role;
+
+-- ACL: public.TABLE user_interaction_contract_items
+REVOKE ALL ON TABLE public.user_interaction_contract_items FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_interaction_contract_items TO anon;
+GRANT ALL ON TABLE public.user_interaction_contract_items TO authenticated;
+GRANT ALL ON TABLE public.user_interaction_contract_items TO service_role;
+
+-- ACL: public.TABLE user_interaction_contracts
+REVOKE ALL ON TABLE public.user_interaction_contracts FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_interaction_contracts TO anon;
+GRANT ALL ON TABLE public.user_interaction_contracts TO authenticated;
+GRANT ALL ON TABLE public.user_interaction_contracts TO service_role;
+
+-- ACL: public.TABLE user_items
+REVOKE ALL ON TABLE public.user_items FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_items TO anon;
+GRANT ALL ON TABLE public.user_items TO authenticated;
+GRANT ALL ON TABLE public.user_items TO service_role;
+
+-- ACL: public.TABLE user_notification_settings
+REVOKE ALL ON TABLE public.user_notification_settings FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_notification_settings TO anon;
+GRANT ALL ON TABLE public.user_notification_settings TO authenticated;
+GRANT ALL ON TABLE public.user_notification_settings TO service_role;
+
+-- ACL: public.TABLE user_relationship_states
+REVOKE ALL ON TABLE public.user_relationship_states FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_relationship_states TO anon;
+GRANT ALL ON TABLE public.user_relationship_states TO authenticated;
+GRANT ALL ON TABLE public.user_relationship_states TO service_role;
+
+-- ACL: public.TABLE user_schedules
+REVOKE ALL ON TABLE public.user_schedules FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.user_schedules TO service_role;
+
+-- Auth signup hook (owned by this application).
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 COMMIT;

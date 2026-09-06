@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "placement": "home_blind",
+  "revision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "served_at": "2026-09-05T03:00:00Z",
+  "items": [
+    {
+      "id": "today-routines",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "locale": "en",
+      "valid_until": "2026-09-05T15:00:00Z",
+      "canvas": {
+        "background": {
+          "type": "solid_v1",
+          "color": "#3A2A2C"
+        },
+        "radius": 16.0,
+        "border": {
+          "width": 1.5,
+          "color": "#2A1D15"
+        },
+        "elements": [
+          {
+            "id": "surface",
+            "type": "shape_v1",
+            "frame": {
+              "x": 0.1,
+              "y": 0.5,
+              "width": 0.5,
+              "height": 0.35
+            },
+            "background": {
+              "type": "solid_v1",
+              "color": "#FFFFFF"
+            },
+            "radius": 12.0,
+            "border": {
+              "width": 0.0,
+              "color": "#FFFFFF"
+            },
+            "semantics_order": null
+          },
+          {
+            "id": "label",
+            "type": "text_v1",
+            "semantics_order": 0,
+            "vertical_align": "center",
+            "frame": {
+              "x": 0.12,
+              "y": 0.56,
+              "width": 0.4,
+              "height": 0.2
+            },
+            "text": "Shop",
+            "style": {
+              "font": "body",
+              "font_size": 13.0,
+              "weight": 600,
+              "color": "#000000",
+              "align": "center",
+              "max_lines": 1,
+              "line_height": 1.2
+            }
+          },
+          {
+            "id": "shop-action",
+            "type": "action_region_v1",
+            "frame": {
+              "x": 0.1,
+              "y": 0.5,
+              "width": 0.5,
+              "height": 0.35
+            },
+            "content_ids": [
+              "surface",
+              "label"
+            ],
+            "accessibility_label": "Visit shop",
+            "semantics_order": 2,
+            "action": {
+              "type": "open_shop"
+            }
+          }
+        ]
+      },
+      "data_dependencies": [
+        "user.local_date",
+        "routines.remaining_today"
+      ]
+    }
+  ]
+}

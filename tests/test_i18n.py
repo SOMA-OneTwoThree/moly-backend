@@ -45,7 +45,7 @@ def test_content_language_is_only_three_buckets():
     """콘텐츠 언어는 ko·en·ja 셋뿐이다. 어떤 값이 들어와도 그 밖으로 나가면 안 된다.
 
     DB `profiles.language`도 트리거로 같은 셋으로 좁힌다
-    (db/migrations/20260806_normalize_profile_language.sql). 여기는 코드 쪽 대비다.
+    (db/schema.sql의 normalize_profile_language). 여기는 코드 쪽 대비다.
     """
     probes = [
         None, "", "  ", "ko", "ko-KR", "en", "en-US", "en-GB", "ja", "ja-JP",

@@ -2,7 +2,7 @@
 
 계약은 **검색 성공 여부와 무관하게 항상 지켜야 하는 합의**다. 그래서 기억과 달리 회상
 경로를 타지 않고 매 턴 프롬프트에 들어간다. 대신 **자주 바뀌지 않으므로** 안정 프리픽스에
-둔다 — `prompt_assembly`도 CONTRACT를 STABLE로 분류한다.
+둔다 — 실제 조립은 chat.py의 안정 프리픽스에 포함한다.
 
 정본은 locale-neutral `document_json`이고 `rendered_text`는 그 언어별 투영이다. 정본이
 같으면(document_hash 동일) 새 version을 만들지 않는다.

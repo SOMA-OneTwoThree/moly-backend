@@ -1,38 +1,29 @@
-"""shadow 진입 오케스트레이터 — 15장 5·7단계의 운영 경로.
+"""기존 사용자를 기억 파이프라인에 수동 등록한다.
 
-`enter_shadow()`와 `mark_bootstrap_ready()`는 도메인 함수일 뿐 **부르는 곳이 없었다.**
-그래서 어떤 사용자도 코드 경로로는 shadow에 들어가지 못했다(SQL 수기 투입만 가능했다).
-이 스크립트가 그 경로다.
+활성 삭제 장벽과 현재 개인정보 버전을 확인하고, 사용자별 단일 트랜잭션에서
+historical upper → collecting → earliest source turn → ready → 최초 잡 하나를 만든다.
+기존 shadow/v2 사용자는 그대로 둔다. 기본은 롤백이며 실제 반영은 --yes.
 
-사용자 하나를 **단일 transaction**으로 처리하며 문서가 요구하는 순서를 코드로 강제한다:
-
-  1. shadow 진입 — historical upper를 고정하고 `bootstrap_status=collecting`
-  2. **tombstone 이관이 끝났는지 먼저 확인한다.** 안 끝났으면 그 사용자는 통째로 롤백한다 —
-     순서가 뒤집히면 지워달라던 내용이 v2 기억으로 되살아난다(15장 7번, cutover 즉시 중단 사유)
-  3. tombstone 제외 후 가장 이른 source turn을 구한다
-  4. `bootstrap_status=ready`로 바꾸고 **정확히 그 turn 하나만** enqueue한다.
-     이후는 성공 finalize가 `MIN(turn_seq)>cursor`로 이어받는다
-
-기본은 dry-run이다. 실제 반영은 `--yes`.
-
-사용:
-    PYTHONPATH=. uv run python scripts/enter_shadow_cohort.py --limit 1
-    PYTHONPATH=. uv run python scripts/enter_shadow_cohort.py --users <uuid> --yes
+    PYTHONPATH=. uv run python scripts/enter_shadow_cohort.py --env dev --limit 1
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
 import sys
+from pathlib import Path
 import uuid
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from sqlalchemy import text
 
 from app.core.db import get_sessionmaker
 from app.services import memory_pipeline
-from db.envfile import announce, load_conn, split_env_arg
+from db.envfile import announce, configure_application_db, split_env_arg
+from db.maintenance import MaintenanceBlocked, lock_enrollment_subject
 
-# tombstone 이관이 남았는지. legacy 마커가 있는데 tombstone이 하나도 없으면 미이관이다.
+# 후보 조회 뒤에도 쓰기 트랜잭션에서 삭제 장벽과 버전을 다시 검사한다.
 _CANDIDATES = text("""
 SELECT p.id
 FROM profiles p
@@ -48,7 +39,8 @@ LIMIT :limit
 
 
 async def _one(session, uid: uuid.UUID, *, apply: bool) -> str:
-    upper = await memory_pipeline.enter_shadow(session, uid)
+    epoch = await lock_enrollment_subject(session, uid)
+    upper = await memory_pipeline.enter_shadow(session, uid, privacy_epoch=epoch)
     if upper is None:
         return "이미 shadow/v2 — 건너뜀"
 
@@ -59,13 +51,17 @@ async def _one(session, uid: uuid.UUID, *, apply: bool) -> str:
     if not await memory_pipeline.mark_bootstrap_ready(session, uid):
         return "collecting이 아니다 — ready 전환 안 함"
 
-    await memory_pipeline.enqueue_ingest(session, uid, turn_seq=earliest, cursor=0)
+    created = await memory_pipeline.enqueue_ingest(
+        session, uid, turn_seq=earliest, cursor=0, privacy_epoch=epoch,
+    )
+    if created is None:
+        raise MaintenanceBlocked('bootstrap_job_conflict')
     return f"upper={upper}, ready, 최초 잡 turn={earliest}"
 
 
 async def main(env: str | None, users: list[str], limit: int, apply: bool) -> int:
-    dsn = load_conn(env)
-    announce(env, dsn)
+    dsn = configure_application_db(env)
+    announce(env, dsn, commit=apply)
     maker = get_sessionmaker()
 
     async with maker() as session:
@@ -93,7 +89,7 @@ async def main(env: str | None, users: list[str], limit: int, apply: bool) -> in
             except Exception as e:  # noqa: BLE001
                 await session.rollback()
                 failed += 1
-                print(f"  ❌ {str(uid)[:8]}… {e}")
+                print(f"  ❌ {str(uid)[:8]}… {type(e).__name__}")
 
     print("\n" + "=" * 56)
     if not apply:
@@ -102,12 +98,15 @@ async def main(env: str | None, users: list[str], limit: int, apply: bool) -> in
     return 1 if failed else 0
 
 
-_env, _rest = split_env_arg(sys.argv[1:])
-_p = argparse.ArgumentParser()
-_p.add_argument("--users", default="", help="쉼표로 구분한 user uuid")
-_p.add_argument("--limit", type=int, default=1)
-_p.add_argument("--yes", action="store_true")
-_a = _p.parse_args(_rest)
-raise SystemExit(asyncio.run(main(
-    _env, [u for u in _a.users.split(",") if u], _a.limit, _a.yes,
-)))
+if __name__ == '__main__':
+    _env, _rest = split_env_arg(sys.argv[1:])
+    _p = argparse.ArgumentParser()
+    _p.add_argument("--users", default="", help="쉼표로 구분한 user uuid")
+    _p.add_argument("--limit", type=int, default=1)
+    _p.add_argument("--yes", action="store_true")
+    _a = _p.parse_args(_rest)
+    if _a.limit < 1:
+        _p.error("limit must be positive")
+    raise SystemExit(asyncio.run(main(
+        _env, [u for u in _a.users.split(",") if u], _a.limit, _a.yes,
+    )))

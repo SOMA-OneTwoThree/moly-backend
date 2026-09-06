@@ -268,14 +268,14 @@ async def test_disabled_profile_reads_and_deletes_never_touch_fortune_tables(mon
         assert caught.value.code == "FEATURE_UNAVAILABLE"
 
 
-def test_v2_cleanup_migration_is_targeted_and_preserves_applied_v1_file():
-    v1 = open("db/migrations/20260827_daily_fortune.sql", encoding="utf-8").read()
-    v2 = open("db/migrations/20260827_daily_fortune_v2.sql", encoding="utf-8").read()
-    assert "CREATE TABLE IF NOT EXISTS public.fortune_profiles" in v1
-    assert "DROP COLUMN IF EXISTS birth_time" in v2
-    assert "ADD COLUMN IF NOT EXISTS result_schema_version" in v2
-    assert "revision=revision+1" in v2
-    assert "DROP TABLE" not in v2 and "TRUNCATE" not in v2
+def test_schema_contains_current_fortune_profile_and_result_contract():
+    from db.schema_contract import load_contract
+
+    columns = load_contract()['columns']
+    assert 'public.fortune_profiles.birth_date' in columns
+    assert 'public.fortune_profiles.gender' in columns
+    assert 'public.fortune_profiles.birth_time' not in columns
+    assert 'public.daily_fortunes.result_schema_version' in columns
 
 
 def test_result_fingerprint_uses_actual_seed_locale():

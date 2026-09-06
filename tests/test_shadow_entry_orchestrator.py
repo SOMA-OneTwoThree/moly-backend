@@ -15,11 +15,9 @@ _PATH = pathlib.Path(__file__).resolve().parents[1] / "scripts" / "enter_shadow_
 
 
 def _load():
-    """스크립트는 import 시 argv를 파싱하고 SystemExit을 낸다 — 함수만 떼어 쓴다."""
-    src = _PATH.read_text().split("_env, _rest = split_env_arg")[0]
-    spec = importlib.util.spec_from_loader("shadow_entry", loader=None)
+    spec = importlib.util.spec_from_file_location("shadow_entry", _PATH)
     mod = importlib.util.module_from_spec(spec)
-    exec(compile(src, str(_PATH), "exec"), mod.__dict__)
+    spec.loader.exec_module(mod)
     return mod
 
 
@@ -45,7 +43,13 @@ def mod(monkeypatch):
 async def _run(mod, monkeypatch, *, upper=42, earliest=1):
     calls = {"ready": 0, "enqueued": []}
 
+    async def _lock(session, uid):
+        return 4
+
+    monkeypatch.setattr(mod, "lock_enrollment_subject", _lock)
+
     async def _enter(session, uid, **k):
+        assert k["privacy_epoch"] == 4
         return upper
 
     async def _next(session, uid, *, cursor):
@@ -56,7 +60,9 @@ async def _run(mod, monkeypatch, *, upper=42, earliest=1):
         return True
 
     async def _enq(session, uid, *, turn_seq, **k):
+        assert k["privacy_epoch"] == 4
         calls["enqueued"].append(turn_seq)
+        return uuid.uuid4()
 
     monkeypatch.setattr(mod.memory_pipeline, "enter_shadow", _enter)
     monkeypatch.setattr(mod.memory_pipeline, "next_ingest_turn", _next)

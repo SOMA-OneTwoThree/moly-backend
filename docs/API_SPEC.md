@@ -1,5 +1,10 @@
 # Moly — API 명세 (Frontend 연동)
 
+홈 배너는 인증된 `GET /banners`로 조회한다. 필드·capability·이미지·실패 정책은
+[배너 공동 규약](BANNER_SDUI_CONTRACT.md)에 둔다. 루틴의 날짜를 사용하는 요청도 `X-App-Timezone`을 받으며,
+같은 계산 기준을 `X-App-Local-Date`/`X-App-Served-At`/`X-App-Day-Ends-At` 응답 헤더로 제공한다.
+
+
 > 앱↔︎서버 **계약·가격 정책의 설명 문서**. 기계 판독 원본은 `openapi/openapi.yaml`이다. 통신은 전부 HTTP 요청-응답(JSON)이고 스트리밍·소켓·폴링은 없다. 서버 선발신은 FCM 푸시뿐이다(iOS는 APNs로 릴레이).
 >
 

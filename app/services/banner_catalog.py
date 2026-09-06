@@ -80,6 +80,8 @@ class BannerCatalog:
 
 def capabilities(canvas: BannerAuthoredCanvas) -> frozenset[str]:
     result = {"banner_canvas_v1", "home_blind_v1", canvas.background.type}
+    if canvas.background.type == "image_background_v1" and canvas.background.overlay is not None:
+        result.add("image_background_overlay_v1")
     for element in canvas.elements:
         result.add(element.type)
         if element.type in {"button_v1", "action_region_v1"}:

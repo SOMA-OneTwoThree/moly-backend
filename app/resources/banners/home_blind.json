@@ -36,7 +36,11 @@
               "x": 0.5,
               "y": 0.5
             },
-            "base_color": "#FFFFFF"
+            "base_color": "#FFFFFF",
+            "overlay": {
+              "color": "#000000",
+              "opacity": 0.25
+            }
           },
           "radius": 16,
           "border": {
@@ -177,7 +181,11 @@
               "x": 0.5,
               "y": 0.5
             },
-            "base_color": "#FFFFFF"
+            "base_color": "#FFFFFF",
+            "overlay": {
+              "color": "#000000",
+              "opacity": 0.25
+            }
           },
           "radius": 16,
           "border": {
@@ -336,7 +344,11 @@
               "x": 0.5,
               "y": 0.5
             },
-            "base_color": "#FFFFFF"
+            "base_color": "#FFFFFF",
+            "overlay": {
+              "color": "#FFFFFF",
+              "opacity": 0.25
+            }
           },
           "radius": 16,
           "border": {
@@ -363,7 +375,7 @@
                 "font": "body",
                 "font_size": 18,
                 "weight": 700,
-                "color": "#FFFFFF",
+                "color": "#2A1D15",
                 "align": "start",
                 "max_lines": 2,
                 "line_height": 1.2
@@ -423,7 +435,11 @@
               "x": 0.5,
               "y": 0.5
             },
-            "base_color": "#FFFFFF"
+            "base_color": "#FFFFFF",
+            "overlay": {
+              "color": "#FFFFFF",
+              "opacity": 0.25
+            }
           },
           "radius": 16,
           "border": {
@@ -450,7 +466,7 @@
                 "font": "body",
                 "font_size": 18,
                 "weight": 700,
-                "color": "#FFFFFF",
+                "color": "#2A1D15",
                 "align": "start",
                 "max_lines": 2,
                 "line_height": 1.2

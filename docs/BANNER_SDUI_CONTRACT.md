@@ -13,12 +13,14 @@
 | 고정 카드 | `RoomTheme.theme1Blind.bannerRect = Rect.fromLTWH(52, 120.5, 287.7, 158.457)` 기준. 선언은 `becappy-mobile/lib/ui/core/room/room_theme.dart` |
 | 크기의 의미 | 기준 크기 **287.7 × 158.457**과 비율 고정. 실제 기기에서는 현재 홈의 무대 배율을 그대로 적용 |
 | 서버 소유 | 고정 카드 안의 배경·색·테두리·텍스트/버튼 등 지원 요소의 위치·크기·내용·순서·action |
-| 앱 소유 | 카드 바깥 위치·크기·홈 배율·블라인드/줄·접힘 모션·페이지 넘김·인디케이터·렌더러·화면 이동 |
+| 앱 소유 | 카드 바깥 위치·크기·홈 배율·블라인드/줄·접힘 모션·페이지 넘김과 카드 사이 여백·인디케이터·렌더러·화면 이동 |
 | 금지 | 서버가 카드 자체의 width/height/aspect_ratio/scale을 지정하거나 콘텐츠에 맞춰 카드를 늘리는 동작 |
 | 운영 | Git의 배너 파일을 서버 이미지에 포함. dev 배포·개발 TestFlight 검수, 운영 승격은 별도. 공통 정의에 사용자별 날짜·루틴 수를 채움 |
 | 이미지 | 첫 버전부터 서버가 지정한 원격 배경/내부 이미지 지원. 주소·배치·크기·맞춤 방식을 정의 파일에 명시 |
 | 날짜 일치 | 배너와 루틴 조회/완료/취소/통계가 같은 요청 시간대와 서버 날짜를 사용 |
 | 별도 범위 | 관리자 화면, 사용자 세그먼트 선정, 외부 URL action, 운세 화면 실제 API 연동 |
+
+페이지 사이 여백은 클라 `AppBlindBannerTokens.cardGap`의 기준 12에 홈 배율을 적용한다. 정착한 카드 크기·위치는 그대로이고 서버 요소 좌표에는 여백을 포함하지 않는다.
 
 배경은 고정 카드 영역을 채우며 내부 요소는 그 경계 안에서만 배치한다. 긴 문구 때문에 외곽 크기를 바꾸지 않는다.
 새 캠페인·문구·배경·배치는 지원 요소 안에서 서버 배포로 변경한다. 앱 업데이트는 새 요소/동작 구현을 추가할 때 필요하다.
@@ -71,12 +73,13 @@ diagonal_up(bottomLeft→topRight)다. 축 방향은 양 끝 중앙을 기준으
 | url | 최대2048자 HTTPS 공개 불변 주소. 앱/검증기의 배너 asset origin 허용 목록 안에서만 사용 |
 | 파일 | 정지 PNG/JPEG/WebP. MIME/실제 형식/sha256(소문자64자리)/bytes/원본 해상도가 선언과 일치해야 함 |
 | 상한 | 파일당512KiB, 한 변2048px 및 총1,048,576픽셀 이하. 카드당 배경 포함2개, 내부 이미지는12요소 상한에도 포함 |
-| image_background_v1 | type, source, fit=cover, alignment={x,y}(각0..1), base_color 필수. 고정 canvas 전체를 채우고 radius로 clip |
+| image_background_v1 | type, source, fit=cover, alignment={x,y}(각0..1), base_color 필수. 고정 canvas 전체를 채우고 radius로 clip. 선택적 overlay는 아래 규칙 적용 |
 | image_v1 | id, type, frame, source, fit(contain/cover), alignment, accessibility_label, semantics_order 필수. frame 안에 clip |
 | alignment | 0은 왼쪽/위, 0.5는 중앙, 1은 오른쪽/아래. contain은 여백 정렬, cover는 잘릴 영역의 정렬 |
 | 접근성 | 장식은 accessibility_label/semantics_order 모두 null. 의미 있는 이미지는 해당 locale의 설명1..120자와 고유 읽기 순서 필수 |
 
 이미지는 비율을 유지한다. 투명 배경의 base_color는 최하단 색이며 로딩 실패를 덮는 대체 디자인으로 사용하지 않는다.
+배경 `overlay`는 생략/null이면 효과 없음, 객체이면 `{color: "#RRGGBB", opacity: 0..1}`이다. 색·불투명도는 필수이고 불투명도는 유한수다. 이미지 위·모든 내부 요소 아래에 단색으로 합성하며 글자·버튼의 불투명도, 터치·읽기·디코딩 수명에 영향을 주지 않는다. 이미지 실패를 덮개로 대체하지 않는다. 객체가 있으면 opacity=0이어도 `image_background_overlay_v1` capability를 요구하며 미지원 앱에는 해당 카드를 제외한다. 이미지 수/요소 수를 추가로 사용하지 않는다. 덮개 색·농도 변경은 기존 이미지 bytes/디코딩을 재사용한다.
 필수 안내 문구는 text_v1로 제공한다. 이미지 버튼은 image_v1과 action_region_v1으로 구성하고 클릭 영역의 접근성 이름을 제공한다. 이미지 위 문구의 대비는 실제 crop별로 검수한다.
 GIF/APNG/움직이는 WebP·SVG·data/file URL·임시 서명 URL·redirect는 v1에 허용하지 않는다. URL에 인증정보/사용자 식별자를 넣지 않는다.
 이미지 주소로 앱 Bearer 토큰/cookie를 보내지 않는다. 원본 URL을 서버 사용자 요청마다 다운로드하거나 proxy하지 않는다.

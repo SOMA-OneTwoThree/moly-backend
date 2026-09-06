@@ -25,6 +25,8 @@
 | 바꿀 내용 | JSON 위치 |
 |---|---|
 | 카드 배경 | `background`: 단색·그라데이션·원격 이미지 |
+| 배경 위 반투명 덮개 | 이미지 배경의 `background.overlay`: `color`와 `opacity`(0..1). 생략/null이면 효과 없음. 지원 앱 필요 |
+| 카드 외곽선·모서리 | canvas의 `border.width`(0이면 선 없음), `radius` |
 | 문구 | `elements[].text.value` (`text_v1`, `button_v1`의 template) |
 | 글자 크기·색·정렬 | `elements[].style` |
 | 요소의 위치·크기 | `elements[].frame`의 `x`, `y`, `width`, `height` |

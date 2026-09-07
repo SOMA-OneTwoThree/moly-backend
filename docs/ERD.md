@@ -371,20 +371,27 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 
 - 부분 유니크: user당 active welcome 1개, `(user_id,activity_date)`당 active daily 1개.
 - 첫 성공 Phase B가 `relationship_started_*`와 welcome을 user/reply 메시지와 원자 삽입한다. 목록 GET은 쓰지 않는다.
-- daily 미발행은 `diary_generation_results(user_id,target_date,status=no_entry)`가 소유하며 빈 diary/tombstone을 만들지 않는다.
+- daily 미발행은 `diary_generation_results(user_id,target_date,status=no_entry)`가 기록하며 빈 일기를 만들지 않는다. 주간 preset 지급은 같은 결과 테이블의 `status=preset,preset_ment_id`에 기록하고 일기와 함께 커밋한다.
 - **열람은 등급 무관 항상 무료(확정)** — 접근 제어 없음. 구독 가치 = 개인(`llm`) 일기 "발행"이지 열람이 아님.
-- preset 선택(5.4절): 그날 `diary_date` 지정본만 사용한다. 없으면 `diary_generation_results.status='no_entry'`를 남기고 발행하지 않는다.
+- preset 선택(5.4절): 전환일 이전에는 날짜별 원고, 이후에는 주간 미수령 원고를 순서대로 사용한다. 없으면 `diary_generation_results.status='no_entry'`를 남기고 발행하지 않는다.
 
-### 5.4 `moly_life_ments` — '캐피의 삶' 멘트 풀 / 날짜 지정본
+### 5.4 `moly_life_ments` — 운영자 일기 원고
 
-임계 미달·미접속 날 중 운영자가 날짜별 캐피 자기일기를 준비한 날의 소스다. `id`, `content`,
-`weather`(멘트에 어울리는 마음 날씨 스탬프), `is_active`, `diary_date` date NULL, `created_at`.
+`id/content/weather/is_active/created_at`과 기존 `diary_date`를 유지한다.
+주간 원고는 `week_start_date date`와 `sequence_no integer`를 추가로 사용하며 `diary_date=NULL`이다.
+주 시작일은 월요일, 순서는 양수이며 `(week_start_date,sequence_no)` 부분 UNIQUE를 둔다.
+기존 날짜별 원고는 두 신규 컬럼이 모두 NULL이다. 날짜 없는 과거 원고는 보존하지만 선택하지 않는다.
 
-- **`diary_date` 있는 행 = 그 날짜 지정본**(직접 작성) — 생성 틱이 같은 `target_date`인 행만 선택한다. 부분 유니크 인덱스 `moly_life_ments_diary_date_uq (diary_date) WHERE diary_date IS NOT NULL`로 날짜당 1건(편집은 in-place).
-- **`diary_date` NULL 행은 현재 생성 경로에서 사용하지 않는다.** 과거 랜덤 풀 데이터가 남아 있어도 발행 대상으로 선택되지 않는다.
-- 날짜 지정본 입력 = `db/capi_diaries.csv` + `scripts/seed_capi_diaries.py`(멱등 업서트, content 빈 행 스킵).
+주간 원고는 해당 사용자에게 지급된 원고를 제외하고 활성 최소 순번을 선택한다. 등록 도구는 주별
+트랜잭션 잠금으로 추가 작업을 직렬화하고, 기존 원고 수정·재활성화와 앞 순번 삽입을 거부한다.
+지급된 본문은 `diaries.content`에 복사하므로 원고 회수가 과거 일기를 바꾸지 않는다.
 
-> 로딩 멘트 6종(US-402)은 확정 문구라 클라이언트 상수로 처리 — 테이블 없음.
+`diary_generation_results`는 기존 PK `(user_id,target_date)`를 유지하며, status는
+`no_entry|preset`이다. preset은 주간 지급 기록이며 `preset_ment_id uuid NOT NULL`을 요구한다.
+no_entry는 원고 ID가 NULL이다. 개인/기존 날짜별 일기 성공은 별도 결과 행을 만들지 않는다.
+사용자·원고 부분 UNIQUE가 중복 소비를 막고 원고 FK는 ON DELETE RESTRICT다. 일기 삭제 시
+지급 기록은 유지하며 계정 삭제 시 기존 profiles FK CASCADE로 정리한다. 결과의 주와 순서는
+원고에서 조회하며 중복 컬럼이나 별도 순번 카운터를 만들지 않는다.
 
 ### 5.5 `routines` / `routine_completions` (US-601~606)
 
@@ -445,7 +452,7 @@ free       : 그 외
 ```
 - **체험(trial)은 구독과 동일 혜택** — 단 한 가지 제외: 건초 증정 없음(구독 전용 아이템·테마 폐지됨, appearance_v2 이후 모든 cosmetic은 HAY 구매 가능).
 - 티어별 게이팅: 일일 토큰 한도(`app_config` — trial은 subscriber와 동일 수준), 배너 광고(**free만 노출**), 건초 증정(subscriber 결제 시, 플랜별 최초 1회).
-- **일기 발행 자체는 전원 매일**(티어 무관) — 개인(`llm`)/`preset` 분기는 티어가 아니라 당일 토큰 임계(free는 한도상 사실상 preset).
+- **일기 분기는 티어가 아니라 사용자 메시지 문자 수 기준**이다. 개인 조건 미달 시 운영 원고가 있을 때만 지급한다.
 
 ### 6.2 `app_config` — 서버 설정 (key-value)
 
@@ -456,6 +463,7 @@ free       : 그 외
 | `daily_token_limit` (`{free, trial, subscriber}`) | 일일 토큰 한도 |
 | `token_warning_threshold` | 소진 경고 임계치 (US-404) |
 | `review_prompt_min_tokens` | 리뷰 팝업 기준 — 그날 누적 토큰 |
+| `diary_weekly_start_date` | 주간 운영자 원고 전환 시작일(ISO 월요일, 미설정=날짜별) |
 | `diary_min_user_chars` | 개인(관찰) 일기 분기 — 당일 유저 메시지 문자수 |
 | `diary_llm_min_tokens` | (레거시) 토큰 기반 일기 분기 — `diary_min_user_chars`로 대체 |
 | `free_launch_until` | 런칭 무료 종료 시각 — 이전엔 전원 무료 (backend·moly-auth 공유) |

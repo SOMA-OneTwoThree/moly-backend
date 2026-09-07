@@ -111,7 +111,10 @@ def _build_summary(
     return "\n".join(lines)
 
 
-async def _process_user(now: datetime, pid, cfg: dict) -> dict:
+async def _process_user(
+    now: datetime, pid, cfg: dict, *,
+    diary_policy: diary_generation.DiaryPolicy | None = None,
+) -> dict:
     """유저 1명 처리 — 자기 세션(격리). 반환 = 이 유저 partial counts(+active_tz).
 
     유저별 독립 세션이라 한 유저의 롤백/실패가 다른 유저를 오염시키지 않는다(SOMA-349).
@@ -135,6 +138,8 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
             if hour == DIARY_HOUR:
                 out["diary_attempted"] = 1
                 out["active_tz"] = p.timezone
+                if diary_policy is None:
+                    raise RuntimeError("diary policy unavailable; generation stopped")
                 target = activity_date_for(now, p.timezone) - timedelta(days=1)
                 # 워커 틱 중첩(15분 케이던스·재시도) 시 같은 (유저,날짜) 일기를 두 프로세스가 동시에
                 # LLM 생성하지 않도록 커밋된 클레임 행으로 상호배제(SOMA-373). 세션 advisory lock은
@@ -158,12 +163,15 @@ async def _process_user(now: datetime, pid, cfg: dict) -> dict:
                     out["diary_skipped"] = 1  # 다른 프로세스가 신선한 클레임 보유 — 중복 LLM 방지
                 else:
                     try:
-                        result = await diary_generation.generate_for_user(session, p, target, cfg)
+                        result = await diary_generation.generate_for_user(
+                            session, p, target, cfg, policy=diary_policy,
+                        )
                         if result.get("created") and result.get("source") != "none":
                             out["diaries"] = 1
                             out["diary_llm" if result.get("source") == "llm" else "diary_preset"] = 1
-                        elif result.get("created"):  # tombstone(사용자 노출 X, SOMA-389) — 발행 아님
+                        elif result.get("source") == "none":  # 미발행 결과는 created=False
                             out["diary_none"] = 1
+                            _log.info("일기 미발행 user=%s reason=%s", pid, result.get("reason"))
                         elif result.get("skipped"):
                             out["diary_skipped"] = 1  # 멱등 재실행 스킵(실패와 구분, SOMA-301)
                         out["memory_ok"] = result.get("memory_ok", 0)
@@ -422,11 +430,17 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     if tzs:
         async with get_sessionmaker()() as s0:
             cfg = await effective_token_config(s0)
+            try:
+                diary_policy = await diary_generation.load_policy(s0)
+            except Exception:  # noqa: BLE001
+                await s0.rollback()
+                diary_policy = None
+                _log.error("일기 전환 설정 조회/검증 실패 — 이번 틱 일기 생성 중단")
 
         async def _guarded(pid) -> dict:
             async with sem:  # 동시 실행 유저 수 상한
                 try:
-                    return await asyncio.wait_for(_process_user(now, pid, cfg), timeout=timeout)
+                    return await asyncio.wait_for(_process_user(now, pid, cfg, diary_policy=diary_policy), timeout=timeout)
                 except (asyncio.TimeoutError, TimeoutError):
                     _log.warning("틱: 유저 처리 타임아웃(user=%s, %.0fs) — 스킵", pid, timeout)
                     return {"timed_out": 1}

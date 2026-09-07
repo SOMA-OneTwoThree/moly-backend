@@ -489,7 +489,9 @@ CREATE TABLE public.diary_generation_results (
     target_date date NOT NULL,
     status text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT diary_generation_results_status_check CHECK ((status = 'no_entry'::text))
+    preset_ment_id uuid,
+    CONSTRAINT diary_generation_results_status_check CHECK ((status = ANY (ARRAY['no_entry'::text, 'preset'::text]))),
+    CONSTRAINT diary_generation_results_preset_shape_check CHECK ((((status = 'preset'::text) AND (preset_ment_id IS NOT NULL)) OR ((status = 'no_entry'::text) AND (preset_ment_id IS NULL))))
 );
 
 -- TABLE: public.diary_recall_documents
@@ -793,6 +795,9 @@ CREATE TABLE public.moly_life_ments (
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     diary_date date,
+    week_start_date date,
+    sequence_no integer,
+    CONSTRAINT moly_life_ments_week_shape_check CHECK ((((week_start_date IS NULL) AND (sequence_no IS NULL)) OR ((week_start_date IS NOT NULL) AND (sequence_no IS NOT NULL) AND (diary_date IS NULL) AND (EXTRACT(isodow FROM week_start_date) = 1) AND (sequence_no > 0)))),
     CONSTRAINT moly_life_ments_weather_check CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))
 );
 
@@ -1632,6 +1637,9 @@ CREATE INDEX conversation_checkpoints_live_idx ON public.conversation_checkpoint
 -- INDEX: public.conversation_checkpoints_published_window_uq
 CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text));
 
+-- INDEX: public.diary_generation_results_user_preset_uq
+CREATE UNIQUE INDEX diary_generation_results_user_preset_uq ON public.diary_generation_results USING btree (user_id, preset_ment_id) WHERE (status = 'preset'::text);
+
 -- INDEX: public.diaries_one_daily_uq
 CREATE UNIQUE INDEX diaries_one_daily_uq ON public.diaries USING btree (user_id, activity_date) WHERE ((kind = ANY (ARRAY['shared_day'::text, 'capi_day'::text])) AND (deleted_at IS NULL));
 
@@ -1739,6 +1747,9 @@ CREATE UNIQUE INDEX messages_user_id_id_uq ON public.messages USING btree (user_
 
 -- INDEX: public.messages_user_turn_position_uq
 CREATE UNIQUE INDEX messages_user_turn_position_uq ON public.messages USING btree (user_id, turn_seq, turn_position) WHERE (turn_seq IS NOT NULL);
+
+-- INDEX: public.moly_life_ments_week_sequence_uq
+CREATE UNIQUE INDEX moly_life_ments_week_sequence_uq ON public.moly_life_ments USING btree (week_start_date, sequence_no) WHERE (week_start_date IS NOT NULL);
 
 -- INDEX: public.moly_life_ments_diary_date_uq
 CREATE UNIQUE INDEX moly_life_ments_diary_date_uq ON public.moly_life_ments USING btree (diary_date) WHERE (diary_date IS NOT NULL);
@@ -1919,6 +1930,10 @@ ALTER TABLE ONLY public.diary_claim_sources
 -- FK CONSTRAINT: public.diary_claim_sources diary_claim_sources_user_id_message_id_fkey
 ALTER TABLE ONLY public.diary_claim_sources
     ADD CONSTRAINT diary_claim_sources_user_id_message_id_fkey FOREIGN KEY (user_id, message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.diary_generation_results diary_generation_results_preset_ment_id_fkey
+ALTER TABLE ONLY public.diary_generation_results
+    ADD CONSTRAINT diary_generation_results_preset_ment_id_fkey FOREIGN KEY (preset_ment_id) REFERENCES public.moly_life_ments(id) ON DELETE RESTRICT;
 
 -- FK CONSTRAINT: public.diary_generation_results diary_generation_results_user_id_fkey
 ALTER TABLE ONLY public.diary_generation_results

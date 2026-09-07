@@ -29,11 +29,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-4-e1a31ce1acea96a68b996dada1902c4b2de387e891df8632a81e615e83c116d8.webp",
-              "sha256": "e1a31ce1acea96a68b996dada1902c4b2de387e891df8632a81e615e83c116d8",
-              "byte_length": 4826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-5-65b537dd81f2d7af9a422ffc1cefcf530022d9dcd4b51a6dbfd1fa92d3a4d6f3.webp",
+              "sha256": "65b537dd81f2d7af9a422ffc1cefcf530022d9dcd4b51a6dbfd1fa92d3a4d6f3",
+              "byte_length": 4222,
               "pixel_width": 1000,
-              "pixel_height": 509,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -72,7 +72,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -89,7 +89,7 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
@@ -117,7 +117,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 400,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -142,7 +142,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -218,11 +218,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-4-e1a31ce1acea96a68b996dada1902c4b2de387e891df8632a81e615e83c116d8.webp",
-              "sha256": "e1a31ce1acea96a68b996dada1902c4b2de387e891df8632a81e615e83c116d8",
-              "byte_length": 4826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-5-65b537dd81f2d7af9a422ffc1cefcf530022d9dcd4b51a6dbfd1fa92d3a4d6f3.webp",
+              "sha256": "65b537dd81f2d7af9a422ffc1cefcf530022d9dcd4b51a6dbfd1fa92d3a4d6f3",
+              "byte_length": 4222,
               "pixel_width": 1000,
-              "pixel_height": 509,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -261,7 +261,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -278,7 +278,7 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
@@ -306,7 +306,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 400,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -331,7 +331,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -407,11 +407,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-4-e1a31ce1acea96a68b996dada1902c4b2de387e891df8632a81e615e83c116d8.webp",
-              "sha256": "e1a31ce1acea96a68b996dada1902c4b2de387e891df8632a81e615e83c116d8",
-              "byte_length": 4826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-5-65b537dd81f2d7af9a422ffc1cefcf530022d9dcd4b51a6dbfd1fa92d3a4d6f3.webp",
+              "sha256": "65b537dd81f2d7af9a422ffc1cefcf530022d9dcd4b51a6dbfd1fa92d3a4d6f3",
+              "byte_length": 4222,
               "pixel_width": 1000,
-              "pixel_height": 509,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -450,7 +450,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -467,7 +467,7 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
@@ -495,7 +495,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 400,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -520,7 +520,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15

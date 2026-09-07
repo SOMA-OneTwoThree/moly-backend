@@ -1,4 +1,4 @@
-"""orders / order_items — 모든 구매의 단일 진입점(DB_REFACTOR §B.2).
+"""orders / order_items — 모든 구매의 단일 진입점(ERD 4.6절).
 
 currency: KRW(IAP 건초, 실결제) | HAY(상점 꾸미기, 재화 차감 — 트랜잭션 안에서 즉시 paid).
 order_items.unit_price = 구매 시점 가격 스냅샷(가격정책 변동·부분환불 대비).

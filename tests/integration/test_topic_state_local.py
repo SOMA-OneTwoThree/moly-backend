@@ -218,7 +218,7 @@ async def test_prepare_idempotency_restores_terminal_state_and_rejects_changed_b
     assert failure.value.code == "IDEMPOTENCY_CONFLICT"
 
 
-async def test_migration_is_reentrant_and_denies_client_roles(database):
+async def test_topic_baseline_matches_models_and_denies_client_roles(database):
     import asyncpg
     dsn = os.environ["TOPIC_TEST_DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://")
     conn = await asyncpg.connect(dsn)
@@ -233,15 +233,8 @@ async def test_migration_is_reentrant_and_denies_client_roles(database):
             "kind text NOT NULL DEFAULT 'normal' CONSTRAINT messages_kind_check "
             "CHECK(kind IN ('normal','greeting','fortune_context_root','fortune_derived')), "
             'UNIQUE(user_id,id));')
-        for _ in range(2):
-            for stage in ('prepare', 'validate', 'swap'):
-                kind_sql = Path(f"db/migrations/20260907_topic_kind_constraint_{stage}.sql").read_text()
-                # Keep the DO block's BEGIN; only remove the outer transaction commands.
-                kind_sql = kind_sql.replace("BEGIN;", "", 1).replace("COMMIT;", "")
-                kind_sql = kind_sql.replace("public.", f'"{schema}".')
-                await conn.execute(kind_sql)
-        await conn.execute(f"INSERT INTO \"{schema}\".messages(id,kind) VALUES (1,'topic_opening')")
-        sql = Path("db/migrations/20260907_banner_topic_conversation.sql").read_text()
+        baseline = Path("db/schema.sql").read_text()
+        sql = baseline[baseline.index("-- Topic offers and prepared conversation openings."):]
         sql = sql.replace("BEGIN;", "").replace("COMMIT;", "").replace("public.", f'"{schema}".')
         sql = sql.replace("FROM anon, authenticated", f'FROM "{anon}", "{authenticated}"')
         await conn.execute(sql)

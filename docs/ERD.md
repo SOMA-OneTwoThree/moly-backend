@@ -1,17 +1,15 @@
 # Moly ERD
 
-> 기준 문서: `API_SPEC.md`(계약) · `db/schema.sql`(기본 DDL) · `db/migrations/`(변경 역사) — **2026-08-14 현행 구조 재확인**
+> 기준 문서: `API_SPEC.md`(API 계약) · `db/schema.sql`(전체 애플리케이션 DDL)
 > 대상 DB: **Supabase (PostgreSQL)** — 소셜 로그인(Apple/Kakao/Google)은 Supabase Auth(`auth.users`) 사용
 > 장기기억: **후보·장부는 public 테이블, 임베딩은 `vecs.moly_memories_v2`** (7장). 대화·기억 런타임 설명은 `ARCHITECTURE-capi.md`
-> DDL 원본: `db/schema.sql` + `db/migrations/`(schema.sql 이후 추가분 — 7장 테이블 다수가 여기에만 있다)
->
-> **2026-07-13 개정 요약 (DB_REFACTOR)**: `hay_packs`+`shop_items`→**`products`** · `iap_purchases`→**`orders`+`order_items`+`payments`** · `user_items`+`user_equipment`→**`user_items`(통합)** · `hay_transactions.ref_id`(다형 text)→**`order_id` FK** · `subscription_hay_grants`에 환불 회수 멱등 컬럼 추가
+> 초기화·검증·기존 DB 수동 변경 절차: [db/README.md](../db/README.md). 과거 전환 이력은 Git에서 조회한다.
 
 ---
 
 ## 1. 설계 원칙
 
-1. **서버 권위 (US-1002)** — 건초 지급/차감, 결제·구독 상태, 상품 가격, 대화 토큰 사용량, 광고 시청 횟수는 모두 서버가 원본. **클라이언트의 DB 직접 쓰기는 전 테이블 금지 — 모든 쓰기는 서버 API 경유**(ARCHITECTURE 원칙·계약 단일화, 2026-07-07 확정). RLS는 읽기 허용 + 심층 방어(8장).
+1. **서버 권위 (US-1002)** — 건초 지급/차감, 결제·구독 상태, 상품 가격, 대화 토큰 사용량, 광고 시청 횟수는 모두 서버가 원본. **클라이언트의 DB 직접 쓰기는 전 테이블 금지 — 모든 쓰기는 서버 API 경유**(ARCHITECTURE 원칙·계약 단일화, 2026-07-07 확정). public 도메인 테이블의 RLS는 정책 없이 읽기·쓰기 모두 차단한다(8장).
 2. **도메인별 기준일** — 대화 한도·일기 `activity_date`는 현지 04:00 경계, 출석·루틴·광고 보상 날짜는 현지 00:00 경계다. 이를 위해 `profiles.timezone`(IANA)을 저장하며 두 날짜를 하나로 합치지 않는다.
 3. **대화 제한은 토큰 기준** — 토큰 = **LLM 입력+출력 합산**. 메시지별 사용량을 기록하고 일 단위로 집계(`user_daily_stats.tokens_used`). **그날 누적 토큰**이 대화 한도·일기 LLM 분기·리뷰 팝업 판단의 공통 지표. 캐피의 인사(greeting)는 차감 제외. 집계는 응답 후 — 마지막 응답으로 한도를 초과할 수 있고, 초과 상태에서 다음 요청 차단.
 4. **유저 티어는 파생값** — trial/free/subscriber를 컬럼으로 저장하지 않고 조회 시 판정한다 (6.1절). 상태 이중화로 인한 불일치를 원천 차단.
@@ -102,7 +100,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 
 ### 3.2 `profiles`
 
-`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 3종(4.8절)과 기본 루틴 2개(5.5절)도 함께 생성한다(2026-07-13 확정).
+`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 2종(4.8절)과 기본 루틴 2개(5.5절)도 함께 생성한다(2026-07-13 확정).
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
@@ -115,7 +113,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `review_prompted_at` | timestamptz NULL | 리뷰 팝업 노출 이력 — **최초 1회 제한** (US-1101). NOT NULL이면 재노출 금지 |
 | `created_at` / `updated_at` | timestamptz | |
 
-- **`language`는 저장될 때 `ko`·`en`·`ja` 셋 중 하나로 좁혀진다.** `db/migrations/20260806_normalize_profile_language.sql`이 만든 트리거 `trg_normalize_profile_language`(행이 들어오거나 `language`가 바뀔 때 값을 다듬는 DB 장치)가 처리한다. 값을 **거부하지 않고 조용히 바꾼다** — 거부하면 이 테이블을 함께 쓰는 moly-auth의 온보딩이 실패하기 때문이다.
+- **`language`는 저장될 때 `ko`·`en`·`ja` 셋 중 하나로 좁혀진다.** `schema.sql`의 트리거 `trg_normalize_profile_language`(행이 들어오거나 `language`가 바뀔 때 값을 다듬는 DB 장치)가 처리한다. 값을 **거부하지 않고 조용히 바꾼다** — 거부하면 이 테이블을 함께 쓰는 moly-auth의 온보딩이 실패하기 때문이다.
   - 지역 태그는 앞부분만 남는다: `ko-KR`→`ko`, `en-US`→`en`, `ja-JP`→`ja`.
   - 셋이 아닌 언어는 전부 `en`이 된다: `zh-Hant-TW`→`en`, `th`→`en`.
   - 값이 비었거나 없으면 `en`이다. 컬럼 기본값도 `'en'`이다.
@@ -126,7 +124,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 
 ## 4. 경제 (건초·구독·커머스)
 
-> **도메인 구분(DB_REFACTOR)**: 카탈로그 = `products` / 주문 = `orders`·`order_items` / 실결제(현금) = `payments` / 재화 원장 = `hay_transactions` / 보유·장착 = `user_items`. 구매 이력(주문·결제)과 재화 이력(원장)을 분리하되 `order_id`로 연결 — 가격정책 변동·매출 집계·부분 환불 대비.
+> **도메인 구분**: 카탈로그 = `products` / 주문 = `orders`·`order_items` / 실결제(현금) = `payments` / 재화 원장 = `hay_transactions` / 보유·장착 = `user_items`. 구매 이력(주문·결제)과 재화 이력(원장)을 분리하되 `order_id`로 연결 — 가격정책 변동·매출 집계·부분 환불 대비.
 
 ### 4.1 `hay_transactions` — 건초 원장 (US-906, US-1002)
 
@@ -203,14 +201,14 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
 | `id` | uuid PK | 내부 참조용 |
-| `product_type` | enum `product_type` | `hay_pack`(건초 IAP — KRW 실결제) / `cosmetic`(꾸미기 — HAY 결제) |
+| `product_type` | text + CHECK | `hay_pack`(건초 IAP — KRW 실결제) / `cosmetic`(꾸미기 — HAY 결제) |
 | `name` / `description` | text | 원문(한국어). 렌더 폴백의 최종 단계 |
 | `name_i18n` | jsonb NULL | **다국어 이름**(SOMA-346) — `{"ko":…,"en":…,"ja":…}`. CHECK `jsonb_typeof='object'`. 렌더 = `resolve(lang)→en→ko→원문 name` 폴백(NULL·부분키 안전). 신규 언어는 키 추가만 |
-| `public_id` | text UNIQUE NULL | **cosmetic 전용** — API 노출용 안정 문자열 식별자. 외부에 노출되는 키는 `id`(uuid) 대신 이 값을 사용 |
+| `public_id` | text UNIQUE NULL | **cosmetic에서 사용** — API 노출용 안정 문자열 식별자. 외부에 노출되는 키는 `id`(uuid) 대신 이 값을 사용 |
 | `slot` | text NULL | **cosmetic 전용** — `theme`(테마/배경) \| `hat`(모자) \| `glasses`(안경) \| `neck`(목) \| `body`(몸). 장착 부위이자 상점 탭 분류. 기존 `background`·`head` enum이 `theme`·`hat`/`glasses`로 분리됨(appearance_v2 이후) |
 | `price_hay` | int NULL | **cosmetic 전용** — 서버가 원본 (US-801). **NULL = 구매 불가(기본 지급품 등)**. 판매 상품이면 `≥ 1` 강제(0원 구매는 원장 CHECK `amount≠0`와 충돌하므로 금지). 정책(최소 1,000, 200단위)은 운영·앱 검증 |
 | `is_subscriber_only` | bool NOT NULL default false | **항상 false — 구독 전용 cosmetic 폐지(appearance_v2).** 구독 전용 장착 사용권 방식 폐기 → 모든 cosmetic은 구독 여부 무관하게 HAY 구매 가능(가격 정책으로 조절). cosmetic CHECK로 `false` 강제 |
-| `asset_version` | int NULL | **cosmetic 전용** — 에셋 구조 버전. 활성 cosmetic은 `≥ 1` 필수(inactive 상태로만 준비 가능) |
+| `asset_version` | int NULL | **cosmetic에서 사용** — 에셋 구조 버전. 활성 cosmetic은 `≥ 1` 필수(inactive 상태로만 준비 가능) |
 | `assets` | jsonb NULL | **cosmetic 전용** — v2 구조: `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url` |
 | `is_v2_only` | bool NOT NULL default false | **cosmetic 전용** — `true`이면 rightside(v2) 자세 계약에만 노출. 레거시 카탈로그·인벤토리 조회에서 제외 |
 | `hay_amount` | int NULL | **hay_pack 전용** — 지급 건초량 (300/1,500/3,000) |
@@ -219,9 +217,9 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `play_store_product_id` | text UNIQUE NULL | **hay_pack 전용** — Google Play 상품 ID(Play Console 확정 후 주입, NULL 허용) |
 | `is_active` / `sort_order` | | |
 
-- **타입별 컬럼 상호 강제(CHECK)**: `hay_pack` → hay_amount·app_store_product_id 필수, cosmetic 컬럼 전부 NULL, `is_subscriber_only = false` / `cosmetic` → public_id·slot·assets 필수, hay_pack 컬럼 전부 NULL, `is_subscriber_only = false` 강제. 활성 cosmetic은 `asset_version ≥ 1 AND assets IS NOT NULL` 필수(비활성으로만 준비 단계 가능).
+- **타입별 CHECK**: `hay_pack`은 hay_amount·app_store_product_id가 필수이고 slot·price_hay·assets는 NULL, is_subscriber_only는 false다. **public_id·asset_version을 NULL로 강제하지 않는다.** `cosmetic`은 public_id·slot이 필수이고 hay_amount·app_store_product_id·play_store_product_id·price_krw는 NULL, is_subscriber_only는 false다. 활성 cosmetic만 asset_version ≥ 1·assets가 필수다. 비활성 준비 상품의 NULL을 일괄 보정하지 않는다.
 - UNIQUE `(id, slot)` — `user_items` 장착 슬롯 일치 복합 FK 대상.
-- **기본 테마/기본 캐피는 상품이 아님** — `user_items`에 테마 장착 행이 없으면 기본 상태 (US-804). 단 가입 시 bootstrap_user가 theme_default를 자동 장착하므로 신규 유저는 항상 테마 장착 상태로 시작(4.8절).
+- `theme_default`는 가격 NULL인 기본 지급 상품이다. 가입 시 자동 지급·장착한다. 테마 장착 행이 없는 사용자는 앱의 기본 상태로 표시한다(4.8절).
 
 ### 4.6 `orders` / `order_items` — 주문 (모든 구매의 단일 진입점) ★신설
 
@@ -279,7 +277,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 - **복합 FK `(product_id, equipped_slot) → products(id, slot)`** — 슬롯 일치를 DB가 강제 (equipped_slot NULL이면 미평가).
 - 장착 서버 검증: 보유 확인(`source IN ('purchase','admin_grant')`). 같은 슬롯 교체 = 기존 자동 해제. **해제 = `equipped_slot` NULL**(소유 행 유지).
 - ⚠️ **구현 주의**: 슬롯 교체는 "해제 전부 → flush → 장착" 순서 필수 — 부분 UNIQUE는 statement 단위 평가라 한 flush에 섞이면 순서에 따라 위반(2026-07-13 리뷰에서 실DB 재현·수정).
-- **가입 기본 지급(2026-07-13 확정, 2026-07-27 장착 정책 갱신)**: 가입 트리거(`bootstrap_user`)가 `source='admin_grant'`로 3종 지급 — 테마(theme) 1종·기타 2종(hat/glasses 등). **테마 1종은 자동 장착(`equipped_slot='theme'`)** — 캐피가 항상 테마 있는 상태로 시작. 나머지 2종은 미장착. 상점에는 `owned:true`로 노출, 재구매는 UNIQUE로 차단.
+- **가입 기본 지급**: `bootstrap_user`가 기본 집(`theme_default`)과 선글라스(`head_sunglasses`)를 `source='admin_grant'`로 지급한다. 기본 집만 자동 장착하며 선글라스는 미장착이다. 운동 테마는 비활성이다. 보유 상품의 재구매는 UNIQUE로 차단한다.
 
 ### 4.9 `reward_ad_sessions` — 광고 SSV 세션 (US-903)
 
@@ -358,12 +356,12 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | --- | --- | --- |
 | `id` | uuid PK | |
 | `user_id` | uuid FK→`profiles` | |
-| `diary_date` | date | 일기의 대상 04:00 대화·일기 기준일 |
+| `diary_date` | date | v1 호환 날짜. 새 daily 기준은 `activity_date`, 목록 표시는 `display_date` |
 | `kind` | text | `welcome`(관계 프롤로그) / `shared_day`(대화 기반 daily) / `capi_day`(캐피의 삶 daily) |
 | `activity_date` / `display_date` | date NULL / date | daily 귀속 04:00 날짜와 화면 표시 날짜. welcome은 activity_date가 NULL |
 | `author` / `primary_subject` / `about_tags` | text / text / text[] | 저자는 항상 캐피. 누구에 관한 기록인지 생성 시 확정 |
 | `occurred_at` / `occurred_timezone` | timestamptz / text | 실제 사건 시각과 당시 timezone snapshot |
-| `source` | enum `diary_source` | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars`인 대화 기반 생성) / `preset`(기준 미달·미접속이고 해당 날짜 지정본이 있을 때) / `welcome`(첫 성공 대화와 같은 트랜잭션에서 생성되는 관계 프롤로그) |
+| `source` | text | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars`인 대화 기반 생성) / `preset`(기준 미달·미접속이고 해당 날짜 지정본이 있을 때) / `welcome`(첫 성공 대화와 같은 트랜잭션에서 생성되는 관계 프롤로그) |
 | `preset_ment_id` | uuid NULL, FK→`moly_life_ments` | `source='preset'`일 때만 |
 | `content` | text | 생성 결과 스냅샷 (preset이어도 본문 복사 저장 — 멘트 풀 수정이 과거 일기를 바꾸지 않게) |
 | `weather` | enum `diary_weather` | 마음 날씨 스탬프 `sunny` `cloudy` `rainy` `windy` — llm은 생성 결과, preset은 멘트에 지정된 값 복사 |
@@ -412,7 +410,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 
 - 클레임 = `INSERT … ON CONFLICT DO UPDATE … WHERE claimed_at < now()-interval '30 min'`(만료된 크래시 클레임만 회수). 정상 종료 시 삭제(누적 방지).
 - **RLS deny-default**(다른 테이블과 동일 불변식) — 서버는 owner 롤로 우회, 클라(anon/authenticated) 직접 차단(임의 유저 claim INSERT로 일기 스킵 유도 방지).
-- 멱등 백스톱은 이 클레임 + `diaries (user_id, diary_date)` 유니크(= `_diary_exists`) 이중. 워커는 단일 호스트(`/etc/moly-worker-host` 마커)지만 롤링 배포·타임아웃 킬 대비 크로스프로세스 안전장치.
+- 멱등 백스톱은 이 클레임 + `diaries (user_id, activity_date)` active daily 부분 유니크 이중. 워커는 단일 호스트(`/etc/moly-worker-host` 마커)지만 롤링 배포·타임아웃 킬 대비 크로스프로세스 안전장치.
 
 ### 5.7 `chat_contexts` — 대화 컨텍스트 상태 (프롬프트 캐싱 인프라)
 
@@ -425,8 +423,8 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `last_active_at` | timestamptz NULL | 직전 대화 활동 시각 — 첫 만남/재방문 판단 입력 |
 | `context_revision` | bigint NOT NULL default 0 | 대화 버전. 저장 단계에서 1단계 때와 같은지 확인해 늦게 돌아온 결과를 막는다(7.10절) |
 | `last_committed_turn_seq` | bigint NOT NULL default 0 | 마지막으로 저장된 턴 번호 |
-| `memory_source_watermark` | bigint NOT NULL default 0 | **값을 올리는 코드가 없다(항상 0).** 계정 삭제 장벽 행을 만들 때 `high_watermark` 초기값으로 읽는 곳 하나만 남았다 |
-| `memory_generation` | bigint NOT NULL default 0 | **값을 올리는 코드가 없다(항상 0).** 대화로 기억을 지우던 시절의 세대 번호 — 7.7절 |
+| `memory_source_watermark` | bigint NOT NULL default 0 | **현재 값을 올리는 경로가 없다. 기존 값과 검사는 보존한다.** 계정 삭제 장벽 행을 만들 때 `high_watermark` 초기값으로 읽는 곳 하나만 남았다 |
+| `memory_generation` | bigint NOT NULL default 0 | **현재 값을 올리는 경로가 없다. 기존 값과 검사는 보존한다.** 대화로 기억을 지우던 시절의 세대 번호 — 7.7절 |
 | `relationship_profile_input_revision` | bigint NOT NULL default 0 | 삭제된 이전 기억 구조의 잔재. 읽는 곳이 없다 |
 | `prompt_cache_generation` / `anchor_revision` / `pending_anchor_message_id` / `pending_plan_revision` / `checkpoint_job_id` / `checkpoint_source_hash` | | 마이그레이션이 추가만 하고 아직 쓰지 않는 컬럼 |
 | `updated_at` | timestamptz NOT NULL | 상태 갱신 시각 |
@@ -491,14 +489,14 @@ free       : 그 외
   파생된 본문을 가진 표는 `anon`·`authenticated`의 권한까지 회수한다(8장).
 - 2026-08-06에 이전 구조(`memory_facts`·`memory_evidence`·`memory_insights`·`memory_source_turns`·
   `memory_forget_markers`·`relationship_profiles` 등 13종)와 이관용 `legacy_recall_tombstones`를
-  삭제했다(`db/migrations/20260806_drop_legacy_memory.sql`, `20260806_drop_legacy_tombstones.sql`).
+  삭제했다. 당시 DDL은 Git 이력에서만 조회한다.
   대화로 기억을 지우는 기능과 `/memory` 계열 API도 함께 없앴다. 의미 기반 장기기억은 아래 구조
   하나뿐이다.
 
 ### 7.1 `memory_pipeline_states` — 사용자별 기억 처리 상태
 
 어디까지 처리했는지를 `(user_id, turn_seq)` 하나로 표현한다. 턴 번호는 `messages.turn_seq`이며
-과거 대화는 `db/migrations/20260806_backfill_turn_seq.sql`이 시간순을 지키며 채웠다.
+과거 대화의 턴 번호도 백필돼 있다. 번호에 빈 구간이 있을 수 있으므로 연속성을 가정하지 않는다.
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
@@ -605,8 +603,7 @@ free       : 그 외
 
 ### 7.4 `vecs.moly_memories_v2` — 벡터 컬렉션
 
-기억 본문의 임베딩은 같은 Supabase PostgreSQL 안의 별도 스키마에 있다
-(`db/migrations/20260805_mem0_v2_collection.sql`).
+기억 본문의 임베딩은 같은 Supabase PostgreSQL 안의 `vecs` 스키마에 있다.
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
@@ -614,8 +611,8 @@ free       : 그 외
 | `vec` | vector(1536) NOT NULL | `text-embedding-3-small` 임베딩 |
 | `metadata` | jsonb NOT NULL, default `'{}'` | `user_id` 등 |
 
-- 인덱스: `((metadata->>'user_id'))` · HNSW `vec vector_cosine_ops`.
-- **테이블도 인덱스도 마이그레이션이 만든다.** 런타임은 만들지 않는다(어댑터는 이미 있는
+- 인덱스: PK `id`와 `((metadata->>'user_id'))` B-tree. HNSW 인덱스는 없다.
+- **테이블도 인덱스도 `schema.sql`에 정의한다.** 런타임은 만들지 않는다(어댑터는 이미 있는
   컬렉션만 연다). 서비스 롤에 CREATE 권한을 주지 않기 위해서다.
 - 검색 결과는 반드시 7.3절 장부와 대조하고 `user_id`를 한 번 더 확인한 뒤에 쓴다.
 
@@ -729,7 +726,7 @@ free       : 그 외
   삼지 못하게 한다.
 - **요약은 사실이 아니다.** 요약에서 장기기억을 뽑는 경로는 만들지 않는다.
 - `memory_generation`은 대화로 기억을 지우던 시절의 세대 번호다. 그 기능이 사라져 **값을 올리는
-  코드가 없고 항상 0**이며, 비교 조건은 항상 참이다. `chat_contexts.memory_generation`,
+  코드가 없다**. 기존 값과 지연된 작업의 세대 검사는 보존한다. `chat_contexts.memory_generation`,
   `diary_recall_documents.suppression_generation`도 같은 상태다. 조건이 여러 곳에 얽혀 있어
   일부러 그대로 두었다.
 
@@ -742,7 +739,7 @@ free       : 그 외
 - PK `(user_id, diary_id)`, 복합 FK→`diaries(user_id, id)` (CASCADE).
 - `search_text` text NOT NULL · `source_hash` text · `embedding` vector(1536) NULL ·
   `embedding_model` text default `'text-embedding-3-small'` · `index_version` text ·
-  `suppression_generation` bigint(7.7절 참고, 항상 0) ·
+  `suppression_generation` bigint(7.7절의 호환 세대 검사) ·
   `embedding_repair_attempts` smallint CHECK 0~3 · `updated_at`.
 - 인덱스: `search_text` gin trigram · `embedding` HNSW cosine `WHERE embedding IS NOT NULL` ·
   `(updated_at) WHERE embedding IS NULL`(임베딩이 빈 행 추적).
@@ -891,47 +888,28 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | `ai_price_catalog` | UNIQUE `(catalog_version, provider, model)` | 적용 시작일이 있는 모델 단가표(micro-USD / 1M 토큰). 값 변경은 새 버전 행 추가로만 |
 | `ai_usage_ledger` | `call_id` uuid PK, `user_id` FK **ON DELETE SET NULL** | 모델 호출별 실제 비용(USD). 상태 `started` `completed` `unknown_usage` `failed`. **사용자 토큰 한도와 별개** — CHECK로 `completed` 행은 `price_catalog_version`을 반드시 갖는다 |
 | `job_attempts` | UNIQUE `(job_id, attempt)` | 작업 시도별 이력. `outcome` = `succeeded` `retryable` `dead` `cancelled` `lease_lost` `timeout` |
-| `shadow_prompt_traces` | UNIQUE `(user_id, turn_seq, assembler_version)` | 새 조립 방식의 프롬프트 크기·캐시 가능 비율만 재는 계측. 실제 응답에 쓰지 않는다 |
-| `user_schedules` | UNIQUE `(user_id, kind)` | 사용자별 예정 시각 3종(`diary_generate` `diary_morning_notification` `evening_checkin`). `daily_digest`는 revert된 푸시 개인화의 예약 슬롯이었고 `20260807_drop_daily_digest_schedule.sql`이 제거했다. **채워 두기만 했고 읽기 경로는 아직 틱 방식**(`schedule_dispatcher_enabled` 기본 꺼짐) |
+| `shadow_prompt_traces` | UNIQUE `(user_id, turn_seq, assembler_version)` | 계측 제거 후 남겨 둔 호환 테이블. 현재 생성·소비 작업 없음(`ab8031d`) |
+| `user_schedules` | UNIQUE `(user_id, kind)` | 사용자별 예정 시각 3종(`diary_generate` `diary_morning_notification` `evening_checkin`). `daily_digest` 예약 슬롯은 없다. **채워 두기만 했고 읽기 경로는 아직 틱 방식**(`schedule_dispatcher_enabled` 기본 꺼짐) |
 | `provider_backoffs` | PK `(provider, model, lane)` | 만들어 뒀지만 **읽거나 쓰는 코드가 없다** |
 
-- `shadow_prompt_traces`와 `user_schedules`는 만들 때 RLS와 권한 회수가 빠져 있었고
-  `db/migrations/20260806_rls_gap.sql`이 채웠다. 이 레포는 정책을 하나도 두지 않고
-  "RLS 켜짐 + 정책 0 = 전면 차단"으로 운영하므로, RLS가 꺼진 표는 아무 방어가 없다.
+- 보존 기간 정리 조건과 변경하면 안 되는 NULL·재처리 참조는 `OPERATIONS.md`에 있다.
+- 호환 테이블이나 현재 쓰지 않는 컬럼도 구조 계약에 포함한다. 삭제는 별도 영향 검토 대상이다.
 
 ---
 
 ## 8. 보안(RLS) 요약
 
-**쓰기 = 전 테이블 클라이언트 금지(서버 API 전용, 2026-07-07 확정).** 모든 쓰기는 API 경유로 단일화 — 계약은 `API_SPEC.md` 하나, 검증 일원화, 클라 네트워크 계층 한 벌(ARCHITECTURE 원칙). 읽기 RLS는 서버 결함에 대비한 **심층 방어**로 유지.
+애플리케이션이 소유한 public 테이블은 모두 **RLS ON, 정책 0개**다. `anon`과
+`authenticated`의 행 읽기·쓰기 정책은 없다. 본인 행이나 활성 상품을 클라이언트가 직접 읽도록
+허용한 구조가 아니다. API가 인증과 소유권을 검증하고 서버 연결로 접근한다.
 
-| 테이블 | 클라이언트 읽기 | 클라이언트 쓰기 |
-| --- | --- | --- |
-| `profiles` | 본인 행 | ❌ (닉네임·언어·타임존 변경도 API 경유 — `hay_balance` 등 서버 전용 컬럼과 한 행이라 컬럼 단위 부분 허용보다 단순·안전) |
-| `hay_transactions` `user_daily_stats` `subscriptions` `subscription_hay_grants` `orders` `order_items` `payments` `user_items` | 본인 행 | ❌ |
-| `messages` `greetings` `diaries` | 본인 행 | ❌ (LLM 프록시·배치가 기록 — 토큰 집계·한도 검증 일원화) |
-| `routines` `routine_completions` `user_notification_settings` `user_devices` | 본인 행 | ❌ (완료 2개 = 건초 보상 조건 — `activity_date` 위조 차단. CRUD 계약은 API_SPEC 8장) |
-| `products` `moly_life_ments` `app_config` | 전체 읽기(active만) | ❌ 운영 전용 |
-| `reward_ad_sessions` `fortune_profiles` `daily_fortunes` `fortune_ad_sessions` `idempotency_keys` `feedback` `diary_gen_claims` `revenuecat_events` | ❌ | ❌ (서버 내부 전용) |
-| `memory_pipeline_states` `mem0_ingest_candidates`(+`_sources`) `mem0_memory_registry` `mem0_memory_sources` `user_interaction_contracts`(+`_items`) `user_relationship_states` `relationship_events` `relationship_profile_renders` | ❌ | ❌ (7장) |
-| `async_jobs` `job_attempts` `ai_price_catalog` `ai_usage_ledger` `provider_backoffs` | ❌ | ❌ (워커·계측 전용) |
+일부 기존 테이블에는 클라이언트 롤의 객체 권한이 남아 있지만 RLS가 행 접근을 차단한다.
+기억·대화 컨텍스트·운세 등 내부 테이블은 객체 권한도 회수했다. 정확한 GRANT/REVOKE와 함수
+실행 권한은 `db/schema.sql`을 따른다. 구조 검증은 RLS·정책·객체 권한의 변경도 실패로 처리한다.
 
-대화에서 파생된 본문을 가진 표는 RLS 위에 **`REVOKE ALL FROM anon, authenticated`**를 한 겹 더
-건다. 읽기·쓰기 모두 ❌이며, 서버(owner 롤)만 접근한다.
-
-| 테이블 | 왜 한 겹 더 거나 |
-| --- | --- |
-| `chat_contexts` `conversation_checkpoints` | 대화 원문·요약 |
-| `chat_active_turns` `chat_response_references` `conversation_focus` | 진행 중인 턴과 답변에 실은 카드 |
-| `diary_claim_sources` `diary_recall_documents` | 일기의 근거와 검색용 파생 데이터 |
-| `privacy_subject_barriers` `privacy_ledger_events` | 계정 삭제 진행 상태 |
-| `diary_generation_results` `schema_migrations` | 일기 미발행 기록과 마이그레이션 적용 이력 |
-| `shadow_prompt_traces` `user_schedules` | 만들 때 빠져 있던 것을 `20260806_rls_gap.sql`이 채웠다. `user_schedules.next_due_at`이 열려 있으면 일기 발행과 저녁 푸시 일정이 망가진다 |
-
-- 벡터 컬렉션 `vecs.moly_memories_v2`에는 RLS를 걸지 않았다. **`vecs` 스키마가 PostgREST 노출
-  대상이 아니라는 전제**에 기대고 있으므로, 노출 스키마 설정을 바꿀 때 함께 확인해야 한다.
-
----
+`vecs.moly_memories_v2`에는 RLS가 없다. Supabase의 PostgREST 노출 스키마에서 `vecs`를 제외하고
+서버만 접근하게 하는 운영 전제를 유지한다. 노출 스키마·역할 구성은 플랫폼 설정이므로 DB 구조
+검증만으로 보장되지 않는다. Supabase 소유 `auth.users`의 정책도 이 저장소에서 재정의하지 않는다.
 
 ## 9. 정책 ↔ 스키마 매핑 체크리스트
 
@@ -959,4 +937,4 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 
 ## 배너 주제 상태
 
-시각 정의와 질문 원본은 Git 파일이다. `user_topic_states`는 사용자+placement의 현재 제안·질문 snapshot·날짜 high-watermark·완료 표시, `chat_topic_entries`는 준비 수명·문맥 revision·첫 답변 연결을 갖는다. pending은 사용자당 하나, 실제 답변은 사용자+offer당 하나다. 두 테이블은 RLS deny-default이며 클라이언트 권한이 없다. 계정 삭제와 메시지 cascade/미응답 retention을 적용한다. 상세 상태/API/운영 원본은 [배너 주제 대화](BANNER_TOPICS_DESIGN.md), 추가 DDL은 `20260907_banner_topic_conversation.sql`이다.
+시각 정의와 질문 원본은 Git 파일이다. `user_topic_states`는 사용자+placement의 현재 제안·질문 snapshot·날짜 high-watermark·완료 표시, `chat_topic_entries`는 준비 수명·문맥 revision·첫 답변 연결을 갖는다. pending은 사용자당 하나, 실제 답변은 사용자+offer당 하나다. 두 테이블은 RLS deny-default이며 클라이언트 권한이 없다. 계정 삭제와 메시지 cascade/미응답 retention을 적용한다. 상세 상태/API/운영 원본은 [배너 주제 대화](BANNER_TOPICS_DESIGN.md), DB 구조 원본은 `db/schema.sql`이다.

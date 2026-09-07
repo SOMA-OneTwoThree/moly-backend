@@ -75,7 +75,7 @@ uv run python scripts/validate_banners.py --assets --environment dev --previous-
 
 ## 배포
 
-1. 신규 API를 올리기 전에 대상 dev DB에 `20260907_banner_topic_conversation.sql`과 `20260907_topic_kind_constraint_prepare.sql` → `validate.sql` → `swap.sql` 순서의 세 제약 확장을 적용한다(모두 `db/migrations/`). 기존 운세 kind 제약 확장이 선행되어야 한다. `PYTHONPATH=. uv run python db/verify.py --env dev`로 확인한다. RLS deny-default, anon/authenticated 권한 없음이 필요하다.
+1. 신규 API 전에 `db/schema.sql`을 기준으로 주제 테이블과 `topic_opening` 메시지 종류를 추가하는 차이 SQL을 별도 리뷰 산출물로 준비한다. `db/README.md`의 dev 적용 절차를 따르고 `uv run python -m db.verify --env dev`로 확인한다. baseline을 기존 DB에 실행하지 않는다. RLS deny-default, anon/authenticated 권한 없음이 필요하다.
 2. 질문·배너를 함께 검증하고 서버 dev에 배포한다. 실행 중 `/health/banners`는 인증된 진단 경로로 banner revision과 topic_revision을 제공한다. `scripts/check_running_banners.py`가 이미지와 실행 프로세스의 두 hash를 대조한다.
 3. 지원하는 dev TestFlight로 첫 진입·3개 순환·재시도·앱 복귀·자정·언어·기존 대화 회귀를 확인한다. 운영 배포/main 통합은 별도다.
 

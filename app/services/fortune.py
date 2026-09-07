@@ -165,7 +165,7 @@ async def _access(
     if daily is not None and daily.fortune_date == today and daily.unlock_state == "unlocked":
         return "unlocked_today", "free"
     plan = await gating.resolve_plan(session, user_id, now, profile=account)
-    return ("included" if plan != "free" else "ad_required"), plan
+    return ("included" if plan in {"monthly", "yearly"} else "ad_required"), plan
 
 
 def _versions(row: DailyFortune) -> dict[str, str]:
@@ -176,30 +176,33 @@ def _versions(row: DailyFortune) -> dict[str, str]:
     }
 
 
-def _public_result(row: DailyFortune, locale: str) -> dict[str, Any]:
+def _public_result(
+    row: DailyFortune, locale: str, *, include_detail: bool = True
+) -> dict[str, Any]:
     actual_locale = locale if locale in row.copy_by_locale else "ko"
     rendered = row.copy_by_locale[actual_locale]
     semantic = row.semantic_result
-    categories = {
-        category: {
-            "score": int(semantic["categories"][category]["score"]),
-            "text": list(rendered["categories"][category]["text"]),
-        }
-        for category in ("love", "money", "work", "energy")
-    }
-    return {
+    result = {
         "schema_version": _RESULT_SCHEMA_VERSION,
         "locale": actual_locale,
         "overall": {
             "score": int(semantic["overall"]["score"]),
             "headline": rendered["overall"]["headline"],
-            "flow": list(rendered["overall"]["flow"]),
             "do": rendered["overall"]["do"],
             "pause": rendered["overall"]["pause"],
         },
-        "categories": categories,
         "lucky_color": dict(rendered["lucky_color"]),
     }
+    if include_detail:
+        result["overall"]["flow"] = list(rendered["overall"]["flow"])
+        result["categories"] = {
+            category: {
+                "score": int(semantic["categories"][category]["score"]),
+                "text": list(rendered["categories"][category]["text"]),
+            }
+            for category in ("love", "money", "work", "energy")
+        }
+    return result
 
 
 def _current_row(
@@ -251,19 +254,20 @@ async def status(
         timezone_name=account.timezone,
         revision=profile.revision,
     )
-    if current and daily is not None and daily.revealed_at is not None:
+    if current and daily is not None:
+        detail_unlocked = daily.unlock_state == "unlocked" and daily.revealed_at is not None
         lang = _locale(locale, account.language)
         return {
             "available": True,
-            "state": "revealed",
+            "state": "revealed" if detail_unlocked else "locked",
             "access": access,
             "local_date": today,
-            "result": _public_result(daily, lang),
+            "result": _public_result(daily, lang, include_detail=detail_unlocked),
             "versions": _versions(daily),
         }
     return {
         "available": True,
-        "state": "locked" if current else "unseen",
+        "state": "unseen",
         "access": access,
         "local_date": today,
     }
@@ -356,7 +360,7 @@ async def reveal(
             row.unlocked_at = None
             row.revealed_at = None
 
-    access, plan = await _access(session, user_id, now=now, daily=row, today=today, account=account)
+    access, _plan = await _access(session, user_id, now=now, daily=row, today=today, account=account)
     if access == "ad_required":
         verified = (
             await session.execute(
@@ -377,7 +381,7 @@ async def reveal(
             access = "unlocked_today"
     elif row.unlock_state != "unlocked":
         row.unlock_state = "unlocked"
-        row.unlock_source = "trial" if plan == "trial" else "subscription"
+        row.unlock_source = "subscription"
         row.unlocked_at = now
         row.revealed_at = now
         access = "included"
@@ -388,6 +392,8 @@ async def reveal(
             "state": "locked",
             "access": "ad_required",
             "local_date": today,
+            "result": _public_result(row, _locale(locale, account.language), include_detail=False),
+            "versions": _versions(row),
         }
     if row.revealed_at is None:
         row.revealed_at = now

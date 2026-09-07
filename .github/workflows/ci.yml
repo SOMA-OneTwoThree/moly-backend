@@ -17,6 +17,20 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: schema-test-only
+          POSTGRES_DB: moly_schema_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d moly_schema_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -29,10 +43,27 @@ jobs:
         run: uv sync --frozen
 
       - name: Validate banner catalog and assets
-        run: uv run python scripts/validate_banners.py --assets
+        env:
+          BANNER_ENVIRONMENT: ${{ github.base_ref == 'main' && 'prod' || 'dev' }}
+        run: uv run python scripts/validate_banners.py --assets --environment "$BANNER_ENVIRONMENT"
 
       - name: Lint
-        run: uv run ruff check app scripts tests
+        run: uv run ruff check app worker scripts tests db
+
+      - name: Rebuild schema contract and check database behavior
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: schema-test-only
+          PGDATABASE: moly_schema_ci
+          SUPABASE_DB_CONNECTION_STRING: postgresql://postgres:schema-test-only@127.0.0.1:5432/moly_schema_ci
+          MOLY_SCHEMA_TEST_DSN: postgresql://postgres:schema-test-only@127.0.0.1:5432/moly_schema_ci
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f db/testing/supabase.sql
+          uv run python -m db.schema_contract --check-generated
+          psql -X -v ON_ERROR_STOP=1 -f db/seed.sql
+          uv run pytest -q tests/integration/test_schema_bootstrap_local.py tests/integration/test_memory_maintenance_local.py tests/integration/test_maintenance_enrollment_local.py
 
       - name: Test (통합 테스트 제외 — 실 Supabase 필요)
         run: uv run pytest -q --ignore=tests/integration

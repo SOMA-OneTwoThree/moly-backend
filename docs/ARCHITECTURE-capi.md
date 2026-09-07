@@ -1,6 +1,6 @@
 # 캐피 대화·기억 시스템 설명서
 
-> 기준 시점: 2026-08-14. 현재 저장소 코드와 운영 DB 상태를 다시 대조했다.
+> 현재 코드의 대화·기억 계약. DB 구조 원본은 `db/schema.sql`, 배포·보존 조건은 `OPERATIONS.md`를 따른다.
 >
 > 이 문서와 코드가 다르면 **코드가 맞다.** 그때는 이 문서를 고친다.
 >
@@ -158,7 +158,7 @@
    빠진다. 미리 띄워 두면 1단계의 남은 DB 작업과 겹쳐서 돈다. 이 작업은 자기 세션과 자기
    연결을 쓰므로 여기의 잠금과 무관하고, 기억 기능이 `v2`가 아니면 즉시 빈 문자열로 끝난다.
 7. 대화 요약(설정이 켜진 경우만), 도구 설정 값 한 벌, 이어지는 화제 안내문, 현재 상태 블록
-   (설정이 켜진 경우만), 대화 배열을 조립한다. 끝난 과거 위기 구간은 9.2절의 규칙으로 중립화한다.
+   (설정이 켜진 경우만), 대화 배열을 조립한다. 끝난 과거 위기 구간은 9.2절의 규칙으로 완전히 제외한다.
    `greeting_id`를 받았으면 형식과 소유권을 확인한다.
 8. `commit()` — 처리 권한만 남기고 잠금과 DB 연결을 반납한다.
 
@@ -247,7 +247,7 @@ OpenAI API는 캐시에 새로 쓴 토큰 수를 알려주지 않는다. 그래�
 한도는 사용자 현지 04:00에 초기화된다(`activity_date` 기준).
 
 회사가 실제로 지불하는 비용(USD)은 사용자 한도와 **완전히 별개**로 `ai_usage_ledger`에
-기록한다(14.2절).
+기록한다(13.2절).
 
 ---
 
@@ -302,15 +302,14 @@ OpenAI API는 캐시에 새로 쓴 토큰 수를 알려주지 않는다. 그래�
   `chat_cache_min_prefix_tokens`(2,048) 이상인데 캐시 읽기와 쓰기가 둘 다 0이면 경고를 남긴다.
   이 경고는 Anthropic 경로에서만 동작한다(OpenAI는 쓰기 값이 추정치라 거짓 경고가 난다).
 
-### 4.2 계측 전용 조립기
+### 4.2 프롬프트 순서와 계측 제거
 
-`app/services/prompt_assembly.py`는 프롬프트 조각(`PromptSegment`)을 정해진 순서
-(`STABLE` → `APPEND_ONLY` → `CURRENT` → `INPUT` → `TOOL`)로 강제해 문자열로 만드는 코드다.
-**실제 답변에는 쓰지 않는다.** 대화가 끝난 뒤 `shadow_prompt_trace` 작업
-(`worker/shadow_trace_jobs.py`)이 같은 재료로 새 방식의 프롬프트를 조립해 크기와 캐시 가능
-비율만 재고 `shadow_prompt_traces` 테이블에 남긴다.
+실제 조립 경로는 `chat.py`와 `llm.py`다. 안정적인 페르소나·약속은 앞부분에, 매 턴 달라지는
+기억·checkpoint·현재 상태는 최근 원문 뒤에 둔다. 이 순서를 바꾸면 프리픽스 캐시와 답변이 달라진다.
 
-조각 종류 중 `PENDING_BRIDGE`는 분류만 정의돼 있고 이것을 만들어 내는 코드는 없다(15장).
+별도 `shadow_prompt_trace`·`shadow_checkpoint` 작업은 제거됐다(`ab8031d`). 계측용 요약이
+실제 프롬프트에 섞였던 것이 이유다. `checkpoint_repo`의 `publish_state='published'` 검사는
+계속 유지한다. 기억 파이프라인의 `mode='shadow'`는 별개 상태이므로 함께 제거하지 않는다.
 
 ### 4.3 도구 사용 비용을 계산한 근거
 
@@ -362,8 +361,8 @@ T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계 상한)
    답변과 함께 돌려받는 구조화된 값으로 받는다.
 ```
 
-기능을 켜고 끄는 설정은 `agent_enabled`(코드 기본값 꺼짐)와 `agent_canary_pct`다. 운영 DB는
-2026-08-14 현재 `true`와 100으로 전 사용자에게 적용 중이다. 대상 판정은
+기능을 켜고 끄는 설정은 `agent_enabled`(코드 기본값 꺼짐)와 `agent_canary_pct`다. dev·prod의 infra 설정은
+`true`와 100을 주입한다. DB의 `app_config` override도 함께 확인한다. 대상 판정은
 `sha256(user_id)`를 0.01% 단위로 나눠서 하므로, 프로세스가 바뀌거나 재시작해도 같은 사용자는
 항상 같은 쪽이다. 꺼져 있으면 모델을 한 번만 부르는 기존 경로와 완전히 같다.
 
@@ -502,7 +501,7 @@ T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계 상한)
 ### 6.1 어디까지 처리했는지 기록하는 방법
 
 처리 위치는 **`(user_id, turn_seq)` 하나**로 표현한다. `messages.turn_seq`와 `turn_position`이
-턴을 정의하고, 과거 메시지는 `db/migrations/20260806_backfill_turn_seq.sql`이 시간순을 지키며
+턴을 정의하고, 과거 메시지는 이전 백필에서 시간순을 지키며
 번호를 채워 넣었다(개발 DB 적용 완료).
 
 `memory_pipeline_states` 테이블이 사용자별 상태를 갖는다.
@@ -659,13 +658,8 @@ ID로 다시 저장**하므로 중복이 생기지 않는다.
 `mem0_memory_sources`가 근거의 원본 기록이다. 메시지 ID, UTF-8 기준 근거 구간, 내용 해시, 근거
 등급, 추출기 버전을 갖는다. 벡터 저장소의 부가 정보는 복구를 돕는 사본일 뿐이다.
 
-**운영 정리 기록(2026-08-14).** `scripts/reextract_memories.py`가 재추출 전 기억에 남긴
-`pre-reextract-active` / `pre-reextract-ambiguous` 표식 19,063건은 재추출 결과가 안정된 뒤 제거했다.
-먼저 모든 provider 벡터가 `deleted`이고 실제 컬렉션에도 남지 않았음을 확인했다. 그 다음 동시 실행
-1개, 100행 단위의 짧은 트랜잭션으로 대응 candidate·source·registry를 지우고, 이 과거 registry를
-가리키던 닫힌 기억의 참조 2,217건만 `NULL`로 정리했다. 검색 가능한 상태와 `pending`, 대화 원문,
-파이프라인 상태, 계약·관계·일기·checkpoint는 대상에서 제외했다. 완료 후 과거 표식, 고아
-candidate/source, 끊어진 참조, 현행 기억의 벡터·근거 누락이 모두 0건임을 확인했다.
+재추출의 과거 숨김 표식과 정리 이력은 Git에서 조회한다. 현재 `active`·`ambiguous`·`pending`
+기억과 그 벡터·근거, 판정 커서는 원본 조건을 확인하지 않고 정리하지 않는다.
 
 ### 6.5 검색(회상)
 
@@ -713,8 +707,9 @@ candidate/source, 끊어진 참조, 현행 기억의 벡터·근거 누락이 �
 ### 6.6 벡터 저장소
 
 - 저장 위치는 같은 Supabase PostgreSQL 안의 `vecs.moly_memories_v2` 테이블이다
-  (`id varchar` / `vec vector(1536)` / `metadata jsonb`). **테이블·HNSW 코사인 인덱스·
-  `metadata->>'user_id'` 인덱스는 전부 마이그레이션이 만들고, 실행 중에는 만들지 않는다.**
+  (`id varchar` / `vec vector(1536)` / `metadata jsonb`). 구조의 기준은 `db/schema.sql`이며
+  실행 중 DDL을 만들지 않는다. 사용자 필터 인덱스를 사용하고 HNSW는 `b8df79d`에서 제거됐다.
+  사용자별 범위를 확정한 뒤 거리순으로 비교하며 ANN 사전 제한을 다시 넣지 않는다.
 - `app/services/mem0_adapter.py`의 `Mem0VectorIndexAdapter`는 `mem0ai==2.0.11`의 **벡터 인덱스
   부분만** 감싼다. `Memory` / `AsyncMemory` 클래스는 인스턴스를 만들지 않는다(테스트로 고정).
   이유는 두 가지다.
@@ -959,61 +954,32 @@ memory_generation)`이다.
 - **요약은 사실이 아니다.** 요약에서 장기 기억을 뽑는 작업은 만들지 않는다. 요약을 사실로
   되먹이면 근거가 요약으로 오염된다. `checkpoint_repo`에는 그런 함수 자체가 없다.
 - `context_checkpoint_enabled`(코드 기본값 꺼짐)로 켜고 끈다. 꺼져 있으면 작업 등록도 조회도 하지 않는다.
-  운영에서는 최근 7일 `conversation_checkpoint` 성공 429건과 저장된 checkpoint 427건을 확인해 실제
-  활성 상태임을 검증했다.
+  dev·prod의 infra 설정은 명시적으로 켠다. 실제 활성 여부는 배포 이미지와 환경변수를 확인한다.
 
 `conversation_checkpoints`와 `chat_contexts`에는 `memory_generation` 컬럼이 남아 있다. 이것은
-"잊어줘" 기능이 있던 시절 세대 번호로, 그 기능이 제거된 지금은 항상 0이다. 관련 검사 코드는
+"잊어줘" 기능이 있던 시절 세대 번호로, 그 값을 올리던 기능이 제거된 뒤에도 기존 값과 관련 검사 코드는
 그대로 남아 있다.
 
-### 9.4 요약 v2 (계측 전용)
+### 9.4 보존한 요약 계약
 
-`app/services/checkpoint_v2.py`는 두 종류를 정의한다.
-
-| 종류 | 설명 |
-|---|---|
-| `window` | 계속 이어지는 요약. `previous_checkpoint_id`로 앞 고리에 연결된다 |
-| `daily_digest` | `activity_date` 하루의 독립 요약. 체인에 연결하지 않고 날짜로 찾는다 |
-
-상태는 `ready` / `published` / `superseded`다. 현재 `shadow_checkpoint` 작업이 하루 경계마다
-두 종류를 만들되 **전부 `ready` 상태로만 만들고 실제 프롬프트에는 쓰지 않는다.** `published`로
-올리는 코드는 없다(15장). 요약 자체는 기존 `checkpoint.summarize()`를 그대로 재사용해 이름 누출
-검사와 마스킹 보호를 공유한다.
-
----
+별도 계측용 `window`·`daily_digest` 생성기는 제거됐다. 기존 컬럼과 상태 CHECK는 보존하지만
+현재 소비자는 발행 상태(`published`)만 읽는다. 호환 컬럼이나 기본값을 정리하면서 이 필터와
+오래된 작업의 결과를 차단하는 세대 검사를 제거하지 않는다.
 
 ## 10. 하루 경계에서 도는 작업들
 
-이 절은 눈에 잘 띄어야 해서 따로 뺐다.
+기억 색인(`mem0_ingest`) 성공 확정 경로의 `_advance`가 `enqueue_day_boundary_jobs`를 부른다.
+사용자의 활동일이 바뀌면 직전 활동일에 대해 다음 세 작업을 같은 확정 트랜잭션에서 등록한다.
 
-한 사용자의 `activity_date`가 바뀐 것이 확인되면 **직전 활동일**을 대상으로 다섯 개의 작업이
-등록된다. 담당 코드는 `app/services/memory_pipeline.py`의
-`enqueue_shadow_checkpoints_on_day_boundary`다.
-
-| 작업 | 대기열 | 하는 일 |
+| 작업 | 대기열 | 역할 |
 |---|---|---|
-| `shadow_checkpoint` (`daily_digest`) | `content` | 그날 하루의 독립 요약 |
-| `mem0_reconsolidate` | `memory` | 살아 있는 기억끼리 재판정 |
-| `relationship_project` | `maintenance` | 관계 상태 집계와 문장 만들기 |
+| `mem0_reconsolidate` | `memory` | 살아 있는 기억 재판정 |
+| `relationship_project` | `maintenance` | 관계 집계와 문장 생성 |
 | `contract_compile` | `content` | 대화 약속 추출 |
-| `shadow_checkpoint` (`window`) | `content` | 이어지는 요약의 다음 고리 |
 
-중복 방지 키에 활동일이 들어가므로 같은 날을 두 번 만들지 않는다. 매 턴 걸면 하루에 수십 번
-모델을 부르게 된다.
-
-**등록되는 위치가 중요하다.** 이 다섯 개는 채팅 요청이 직접 거는 것이 아니라, **기억 색인
-작업(`mem0_ingest`)이 성공했을 때의 확정 경로**에서 등록된다(`worker/mem0_jobs.py`의
-`_advance`).
-
-그 결과가 이것이다. **기억 기능이 꺼진 사용자(`mode=legacy`)에게는 이 다섯 개가 하나도 돌지
-않는다.** 기억 색인 작업 자체가 등록되지 않기 때문이다. 여기에는 **대화 약속 추출과 관계 단계
-갱신이 포함된다.** 즉 기억 기능을 켜지 않은 사용자는 약속도 만들어지지 않고 관계 단계도 오르지
-않는다.
-
-같은 확정 경로에서 다음 턴의 기억 색인 작업(`enqueue_next_ingest`)과 프롬프트 계측 작업
-(`enqueue_shadow_trace`)도 함께 등록된다.
-
----
+중복 방지 키에는 사용자·활동일이 들어간다. 다음 턴의 색인은 `enqueue_next_ingest`가 이어받는다.
+기억 기능이 꺼진 `legacy` 사용자는 이 색인 성공 경로를 타지 않으므로 세 작업도 여기서 등록되지
+않는다. 계측용 요약과 프롬프트 추적 작업은 등록하지 않는다.
 
 ## 11. 배치 작업 처리
 
@@ -1104,11 +1070,15 @@ memory_generation)`이다.
 | `mem0_provider_delete` | `maintenance` | 닫힌 기억의 벡터 삭제(한 번에 50건) |
 | `memory_gap_sweep` | `maintenance` | 멈춘 기억 처리를 다시 시작시킨다(아래 참고) |
 | `conversation_checkpoint` | `content` | 9.3절 — 대화 요약 |
-| `shadow_checkpoint` | `content` | 9.4절 — `window` / `daily_digest`를 `ready`로 생성 |
 | `contract_compile` | `content` | 7.3절 — 대화 약속 추출 |
 | `relationship_project` | `maintenance` | 8.3절 — 관계 상태 집계와 문장 생성 |
-| `shadow_prompt_trace` | `maintenance` | 4.2절 — 프롬프트 크기 계측(응답에 쓰지 않음) |
-| `privacy_cleanup` | `maintenance` | 14.3절 — 계정 삭제 시 벡터 정리 |
+| `privacy_cleanup` | `maintenance` | 계정 삭제 시 벡터 정리 |
+| `diary_recall_embed` | `content` | 일기 검색용 임베딩 |
+| `retention_idempotency_gc` | `maintenance` | 만료된 중복 방지 키 정리 |
+| `usage_ledger_rollup` | `maintenance` | 90일 지난 확정 비용을 KST 일 단위로 집계 |
+| `retention_jobs_gc` | `maintenance` | 완료 작업·만료된 단명 잠금 정리 |
+| `mem0_candidate_gc` | `maintenance` | 판정이 끝난 오래된 기억 후보 정리 |
+| `retention_rc_events` | `maintenance` | 처리 완료 후 365일 지난 결제 이벤트 정리 |
 
 목록에 없는 `job_type`이 들어오면 즉시 `dead(unknown_job_type)`가 된다. 배포 시점이 어긋났거나
 오타가 있는 경우를 드러내기 위한 것이다.
@@ -1137,7 +1107,8 @@ memory_generation)`이다.
 ### 11.4 정해진 시각에 도는 작업
 
 현재 운영에서 쓰는 방식은 **15분마다 도는 크론 작업**이다(`python -m worker`,
-`worker/tick.py`). 전체 프로필을 훑으며 각 사용자의 현지 시각을 보고 아래를 처리한다.
+`worker/tick.py`). 타임존의 고유 값으로 현지 시각을 먼저 계산하고 해당 타임존의 프로필만
+ID 순으로 나눠 조회한다. 잘못된 타임존은 경고 후 제외한다.
 
 | 현지 시각 | 하는 일 |
 |---:|---|
@@ -1152,8 +1123,8 @@ memory_generation)`이다.
 `diary_morning_notification` / `evening_checkin` 3종, 시간대 기록과 `next_due_at`과 개정 번호를
 가짐)은 **테이블과 데이터 채우기, 대조까지만 만들어져 있다.** 이 인덱스를 보고 대상자를 뽑는
 방식은 `schedule_dispatcher_enabled=False`(기본 꺼짐)라 동작하지 않는다. 3종의 개수가 활성
-프로필 수와 같고, 중복이 0이며, 두 방식의 결과가 같다는 것을 확인하기 전에는 전체 프로필 훑기를
-없애거나 읽기 경로를 바꾸지 않는다. 잘못 켜면 그 사용자만 조용히 일기와 알림을 못 받는다.
+프로필 수와 같고, 중복이 0이며, 현재 타임존 필터와 결과가 같다는 것을 확인하기 전에는
+대상 선정 경로를 바꾸지 않는다. 잘못 켜면 그 사용자만 조용히 일기와 알림을 못 받는다.
 
 저녁 푸시는 아직 `notification` 대기열로 옮기지 않았고 틱이 직접 보낸다. 발송 표시를 먼저 잡고
 실패하면 재시도하지 않아 그날 분은 손실을 받아들인다(같은 알림을 두 번 보내지 않는 쪽을 택했다).
@@ -1162,7 +1133,7 @@ memory_generation)`이다.
 
 ## 12. 테이블 목록
 
-테이블의 정확한 정의는 `docs/ERD.md`가 갖는다. 여기서는 어느 기능이 어느 테이블을 쓰는지만
+테이블의 정확한 정의는 `db/schema.sql`이고, 기능별 설명은 `docs/ERD.md`에 둔다. 여기서는 어느 기능이 어느 테이블을 쓰는지만
 정리한다.
 
 | 묶음 | 테이블 | 역할 |
@@ -1174,15 +1145,15 @@ memory_generation)`이다.
 | 참조·연속성 | `chat_response_references`, `conversation_focus` | 일기 카드 저장 / "그거" 해석용 상태(15분·6턴) |
 | 일기 검색 | `diary_recall_documents`, `diary_claim_sources` | 검색용 파생 데이터(임베딩 + 검색 문자열) / 일기 근거 메시지 |
 | 장기 기억 | `memory_pipeline_states`, `mem0_ingest_candidates`(+`_sources`), `mem0_memory_registry`, `mem0_memory_sources` | 6장 |
-| 벡터 | `vecs.moly_memories_v2` | 1536차원 벡터, HNSW 인덱스. 마이그레이션이 만든다 |
+| 벡터 | `vecs.moly_memories_v2` | 1536차원 벡터와 사용자 필터 인덱스. `schema.sql` 기준 |
 | 대화 약속 | `user_interaction_contracts`, `user_interaction_contract_items` | 7장 |
 | 관계 | `relationship_events`, `user_relationship_states`, `relationship_profile_renders` | 8장 |
-| 요약 | `conversation_checkpoints` | 9.3절(실제 사용) · 9.4절(계측용 산출물) |
-| 계측 | `shadow_prompt_traces` | 4.2절 프롬프트 크기·캐시 가능 비율 |
+| 요약 | `conversation_checkpoints` | 9.3절. published 검증을 통과한 요약만 사용 |
+| 호환 구조 | `shadow_prompt_traces` | 계측 제거 후 보존 중인 테이블. 현재 작업 없음 |
 | 작업 | `async_jobs` | 11장. `replay_of`로 원본과 연결 |
 | 예정 시각 | `user_schedules` | 11.4절(읽기 경로 미전환) |
-| 비용 | `ai_price_catalog`, `ai_usage_ledger` | 14.2절 |
-| 계정 삭제 | `privacy_subject_barriers`, `privacy_ledger_events` | 14.3절 |
+| 비용 | `ai_price_catalog`, `ai_usage_ledger` | 13.2절 |
+| 계정 삭제 | `privacy_subject_barriers`, `privacy_ledger_events` | 13.3절 |
 | 그 밖 | `user_daily_stats`, `greetings`, `diaries`, `diary_gen_claims` | 하루 토큰 누적 / 먼저 건넨 인사 / 일기 / 일기 생성 중복 방지 |
 
 `provider_backoffs`는 테이블과 모델만 있고 이 값을 읽거나 쓰는 코드가 없다(15장).
@@ -1243,14 +1214,13 @@ memory_generation)`이다.
   → (b) 상태를 보는 코드 → (c) `active` 행 채우기 → (d) `enforced` 전환 순서를 지켰다.
 - `begin_subject_deletion`은 차단 상태를 `deleting`으로 세우면서 같은 트랜잭션에서 바로 개인
   식별 정보를 지운다. 재전송 대비 응답 본문을 비우고 `terminal_status='redacted'`로 바꾸며,
-  일기 카드를 `unavailable`로 만들고 부가 정보를 지우고, 대기 중인 작업의 내용을 비우고
-  `ready` 상태 작업을 `cancelled`로 바꾸며, 저녁 푸시 문구를 지운다.
+  일기 카드를 `unavailable`로 만들고 부가 정보를 지운다. 대기·실행·종료 작업의 payload를
+  비식별화하고 `ready` 상태 작업을 `cancelled`로 바꾼다.
 - 벡터 삭제는 `privacy_cleanup` 작업이 맡는다. **한 번에 200건씩만** 지우고(`DELETE_BATCH`),
   남으면 다음 회차 작업을 만든다. 그리고 **연속 두 번**(`REQUIRED_EMPTY_SWEEPS`) 비어 있어야
   완료로 본다. 늦게 도착한 쓰기를 잡기 위해서다. 완료되면 `mark_subject_deleted`를 부른다.
-  > 지금은 이 작업의 **첫 회차가 등록되지 않는다.** 등록 코드가 `begin_subject_deletion`의
-  > `return` 문 뒤에 있어 실행되지 않는다(15장).
-- 채팅 진입(`ensure_subject_active`), 작업 확정, 푸시 문구 생성이 모두 이 차단 상태를 본다.
+  첫 회차는 `begin_subject_deletion`이 장벽·비식별화와 같은 트랜잭션에서 등록한다.
+- 채팅 진입(`ensure_subject_active`)과 작업 확정은 이 차단 상태를 검사한다.
 
 ### 13.4 기능을 끄고 켜는 설정
 
@@ -1282,7 +1252,7 @@ billable / lang / used_tools
 - `lang` 값으로 언어별 분리 집계를 하는 것이 계약이다. 언어에 따라 출력 토큰 수가 달라 하루에
   가능한 턴 수가 달라지기 때문이다.
 
-작업 쪽은 대기열별 `ready`/`running`/`dead` 개수와 가장 오래된 항목의 나이를 `/health`로 내보내고,
+작업 쪽은 대기열별 `ready`/`running`/`dead` 개수와 가장 오래된 항목의 나이를 `/health/queues`로 내보내고,
 `dead`가 되면 Slack 경고를 보내며, `job_telemetry`에 결과를 남긴다.
 
 `worker_last_success` 하나로 전체가 정상이라고 판정하지 않는다. 데드맨 신호는 "기대한 작업이
@@ -1302,9 +1272,8 @@ billable / lang / used_tools
   "한중일 문자 1자 ≈ 1토큰, ASCII 4자 ≈ 1토큰"의 근사값이다. 예산은 비용 상한이라 크게 잡히는
   쪽이 안전한 방향이다.
 
-2026-08-14 운영 DB 읽기 전용 확인에서 `memory_pipeline_states` 729개가 모두 `v2`·`ready`였고,
-대화에 노출 가능한 `active`·`ambiguous` 기억은 10,292건이었다. `agent_enabled=true`,
-`agent_canary_pct=100`이므로 등록된 두 도구도 운영 전 사용자에게 적용된다.
+환경별 활성 값은 `app_config`와 배포 환경변수로 확인한다. 과거 사용자 수·작업 성공 수를
+현재 상태로 해석하지 않는다.
 
 ---
 
@@ -1323,8 +1292,7 @@ billable / lang / used_tools
   `memory_source_turns`(+`_messages`) / `memory_source_closures`, `memory_forget_markers`,
   `memory_recall_suppressions` / `memory_suppression_operations` / `memory_episodic_messages`,
   `relationship_profiles`(+`_sources`) 13종과 이관용 `legacy_recall_tombstones`는 운영 DB에서도
-  **삭제됐다**(`db/migrations/20260806_drop_legacy_memory.sql`,
-  `20260806_drop_legacy_tombstones.sql`). 읽는 경로도 없다. 의미 기반 장기 기억은 6장의 구조
+  **삭제됐다**. 당시 DDL은 Git 이력에서 조회한다. 읽는 경로도 없다. 의미 기반 장기 기억은 6장의 구조
   하나뿐이다.
 - **한자·가나를 모델로 다시 써서 고치는 처리** — 세 번째 모델 호출이 필요해 마감 시각 및 "한 턴에
   최대 두 번 호출" 규칙과 충돌한다. 실제 응답 경로는 `text_clean.strip_foreign_ko`로 해당 글자를
@@ -1351,7 +1319,7 @@ billable / lang / used_tools
 
 1. **`diary_recall_repo`와 `checkpoint_repo`에 "잊어줘" 시절의 세대 번호가 남아 있다.**
    `diary_recall_documents.suppression_generation`과 `chat_contexts.memory_generation`을 비교하는
-   조건이 여러 곳에 있는데, 그 값을 올리던 코드가 제거되어 지금은 양쪽 모두 항상 0이다. 비교는
-   항상 참이라 동작에는 문제가 없다. **일부러 그대로 두었다** — 조건이 SQL·작업 payload·요약
+   조건이 여러 곳에 있는데, 그 값을 올리던 코드가 제거됐다. 기존 데이터와 지연된 작업이 가진 값은
+   유지하고 비교 조건도 보존한다. **일부러 그대로 두었다** — 조건이 SQL·작업 payload·요약
    경계 검사까지 스무 곳 넘게 얽혀 있어서, 얻는 것 없이 위험만 큰 정리다. 나중에 손댈 때는
    요약 작업의 오래된 결과 차단 로직을 함께 봐야 한다.

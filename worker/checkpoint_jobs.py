@@ -80,11 +80,11 @@ def _parse(job: ClaimedJob) -> _Request:
     raw_ids = payload.get("source_message_ids")
     if not isinstance(raw_ids, list) or not raw_ids:
         raise JobFatal("invalid_payload")
-    ids: list[int] = []
+    ids: set[int] = set()
     for raw in raw_ids:
         if isinstance(raw, bool) or not isinstance(raw, int) or raw <= 0 or raw in ids:
             raise JobFatal("invalid_payload")
-        ids.append(raw)
+        ids.add(raw)
     source_hash = payload.get("source_hash")
     version = payload.get("summarizer_version")
     if not isinstance(source_hash, str) or not source_hash:

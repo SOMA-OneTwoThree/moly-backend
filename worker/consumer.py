@@ -1,10 +1,7 @@
 """잡 소비자(W7) — `async_jobs`를 상주 소비하는 프로세스. `python -m worker.consumer`.
 
-기존 15분 전역 틱(`worker/tick.py`)을 **대체하지 않는다.** 명세 §2 순서: 소비자를 먼저 상주 실행해
-`/health/queues`의 큐별 ready/running/dead·oldest age가 보인 뒤, 기존 틱의 producer/handler를
-큐로 하나씩 옮기고 그때 비활성화한다. 겹치는 동안은 `(job_type, dedup_key)` + ON CONFLICT DO NOTHING이
-구·신 producer를 합쳐준다. 지금 등록된 핸들러는 **기억 잡 3종**(W8)과 **대화 요약 checkpoint**
-(W11)이고, 기존 틱의 나머지 producer/handler 이관은 후속 작업이다.
+15분 배치와 별개로 기억·요약·약속·관계·탈퇴·일기 임베딩·retention 잡을 처리한다.
+등록 목록은 `_register_handlers()`와 각 모듈의 `register()`가 원본이다.
 
 구조: 큐마다 독립 루프 + 고정 슬롯. content가 밀려도 critical/notification 슬롯을 빌려 쓰지 않는다
 (큐 A 적체가 큐 B를 막지 않는다). claim batch는 항상 그 큐의 **빈 슬롯 수 이하로 clamp**한다.

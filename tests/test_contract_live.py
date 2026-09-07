@@ -21,7 +21,7 @@ def test_contract_is_read_in_the_chat_path():
 
 
 def test_contract_goes_into_the_cached_prefix():
-    """계약은 자주 안 바뀐다 — 휘발 블록에 두면 매 턴 캐시를 깬다(prompt_assembly: STABLE)."""
+    """계약은 자주 안 바뀐다 — 휘발 블록에 두면 매 턴 캐시를 깬다."""
     src = inspect.getsource(chat._build_system)
     assert "contract_text" in src
 

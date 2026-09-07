@@ -3282,6 +3282,54 @@
         "not_null": false,
         "type": "date"
       },
+      "public.mood_entries.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.mood_entries.entry_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.mood_entries.kind": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.mood_entries.note": {
+        "collation": "\"default\"",
+        "default": "''::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.mood_entries.updated_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.mood_entries.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "public.order_items.id": {
         "collation": null,
         "default": "gen_random_uuid()",
@@ -6768,6 +6816,25 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.mood_entries.mood_entries_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id, entry_date)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.mood_entries.mood_entries_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.mood_entries:17:O",
+          "public.mood_entries:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
+        "validated": true
+      },
       "public.order_items.order_items_order_id_fkey": {
         "deferrable": false,
         "deferred": false,
@@ -8867,6 +8934,15 @@
         "options": [],
         "ready": true,
         "table_name": "public.moly_life_ments",
+        "unique": true,
+        "valid": true
+      },
+      "public.mood_entries_pkey": {
+        "definition": "CREATE UNIQUE INDEX mood_entries_pkey ON public.mood_entries USING btree (user_id, entry_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.mood_entries",
         "unique": true,
         "valid": true
       },
@@ -11330,6 +11406,30 @@
       "public.moly_life_ments:service_role:UPDATE": {
         "grantable": false
       },
+      "public.mood_entries:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.mood_entries:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.mood_entries:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.mood_entries:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.mood_entries:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.mood_entries:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.mood_entries:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.mood_entries:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.order_items:anon:DELETE": {
         "grantable": false
       },
@@ -13370,6 +13470,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.mood_entries": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.order_items": {
         "options": [],
         "owner": "postgres",
@@ -13604,5 +13711,5 @@
       }
     }
   },
-  "schema_sha256": "221d367fb8f1d5330af7e21e6168e43d11363efccc0b451d986b6dc95d192811"
+  "schema_sha256": "1caa657d04454297f0963482955b0970c41cd4b3d691d285049dd076513cdef3"
 }

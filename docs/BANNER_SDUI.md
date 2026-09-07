@@ -8,7 +8,7 @@
 
 1. 이 레포의 [app/resources/banners/home_blind.json](../app/resources/banners/home_blind.json)을 편집한다. 새 카드는 기존 카드 구조를 복사해 고유 `id`를 부여한다. `banners` 배열이 노출 순서다. 한국어 문구를 추가·수정할 때 영어·일본어 canvas도 함께 작성한다. 스키마에서 영어 `en` canvas는 필수다.
 2. 새 이미지가 있으면 개발 Supabase의 공개 `banner-assets` bucket에 먼저 업로드한다. JSON에 공개 URL과 파일 메타데이터를 반영한다. 이미지 준비 절차는 아래를 따른다.
-3. 레포 루트에서 파일과 실제 원격 이미지를 검증한다.
+3. 레포 루트에서 파일과 실제 원격 이미지를 검증한다. 위치·글자 크기를 바꿨다면 클라이언트의 실제 폰트와 `measureBannerCard`로 각 언어·화면 크기·최대 글자 확대도 확인한다. 서버 스키마 통과만으로 표시를 보장하지 않는다.
 
    ```sh
    uv run python scripts/validate_banners.py --assets --environment dev
@@ -41,6 +41,8 @@
 
 좌표는 **고정 카드 전체 기준 0..1 비율**이다. 예를 들어 `x: 0.42`는 카드 왼쪽에서 42% 지점이다. 카드 바깥 크기는 변경할 수 없다.
 
+버튼의 실제 터치 영역은 최소 48px로 확장된다. 본문 frame이 이 영역과 겹치면 앱이 카드 전체를 숨긴다. 글자를 조금 내릴 때는 frame 이동뿐 아니라 `vertical_align: bottom`도 검토한다.
+
 이미지 버튼은 `image_v1` + 필요 시 `text_v1`/`shape_v1` + `action_region_v1`로 구성한다. 클릭 영역의 `content_ids`에 시각 요소의 ID를 연결하고, 영역 안에 해당 요소의 전체 frame이 들어오도록 편집한다. 시각 요소와 클릭 영역을 각각 옮겨야 하며 자동으로 따라 움직이는 부모·자식 좌표계는 없다.
 
 이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·대화 주제의 배경, 제목, 본문과 `shape_v1` + `text_v1` + `action_region_v1` 버튼을 정의한다. 운세 본문의 `{day}`는 요청 시간대의 오늘 날짜이며, 버튼은 각각 기존 운세 화면과 주제 준비를 거친 대화 화면으로 이동한다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
@@ -49,7 +51,7 @@
 
 - 개발 프로젝트: `wywzjslvxwttxkecbyis`, 공개 bucket: `banner-assets`.
 - `source`에는 `url`, `sha256`, `byte_length`, `pixel_width`, `pixel_height`, `media_type`을 기록한다. 크기는 화면 표시 크기가 아니라 **업로드한 원본 파일** 기준이다.
-- 정지 PNG/JPEG/WebP를 사용한다. 파일당 512KiB, 한 변 2048px, 총 1,048,576픽셀 이하이며 카드당 배경 포함 이미지 요소는 최대 2개다.
+- 정지 **PNG·JPG(JPEG)·WebP**를 지원하며 **WebP를 권장**한다. 업로드 파일은 **512KiB(524,288바이트) 이하**여야 한다. 한 변 2048px, 총 1,048,576픽셀 이하이며 카드당 배경 포함 이미지 요소는 최대 2개다.
 - 새 파일명/경로로 업로드한다. 기존 URL을 덮어쓰지 않고 과거 배너가 참조하는 파일도 보관한다. 임시 서명 URL·SVG·움직이는 이미지는 지원하지 않는다.
 
 로컬 이미지의 메타데이터는 다음처럼 확인할 수 있다. `image.png`를 업로드할 파일로 바꾸고, 출력값에 Storage의 공개 `url`을 추가한다.

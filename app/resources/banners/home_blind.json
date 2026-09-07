@@ -688,10 +688,10 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "center",
+              "vertical_align": "bottom",
               "frame": {
                 "x": 0.06,
-                "y": 0.285,
+                "y": 0.279,
                 "width": 0.88,
                 "height": 0.31
               },
@@ -848,10 +848,10 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "center",
+              "vertical_align": "bottom",
               "frame": {
                 "x": 0.06,
-                "y": 0.285,
+                "y": 0.279,
                 "width": 0.88,
                 "height": 0.31
               },
@@ -1008,10 +1008,10 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "center",
+              "vertical_align": "bottom",
               "frame": {
                 "x": 0.06,
-                "y": 0.285,
+                "y": 0.279,
                 "width": 0.88,
                 "height": 0.31
               },

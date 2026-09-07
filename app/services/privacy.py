@@ -13,6 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.advisory_lock import advisory_xact_lock
 
 
 _BEGIN = text("""
@@ -29,7 +30,11 @@ RETURNING high_watermark
 """)
 
 _REDACT = text("""
-WITH idem AS (
+WITH topic_entries AS (
+  DELETE FROM chat_topic_entries WHERE user_id=:user_id RETURNING 1
+), topic_state AS (
+  DELETE FROM user_topic_states WHERE user_id=:user_id RETURNING 1
+), idem AS (
   UPDATE idempotency_keys SET response=NULL,terminal_status='redacted',redacted_at=now()
   WHERE user_id=:user_id RETURNING 1
 ), refs AS (
@@ -175,6 +180,7 @@ async def ensure_subject_active(session: AsyncSession, user_id: uuid.UUID) -> No
 async def begin_subject_deletion(
     session: AsyncSession, *, user_id: uuid.UUID, operation_id: uuid.UUID
 ) -> tuple[int, int, int]:
+    await advisory_xact_lock(session, user_id)
     watermark = await session.scalar(
         _BEGIN, {"user_id": user_id, "operation_id": operation_id}
     )

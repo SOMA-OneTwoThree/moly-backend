@@ -9,6 +9,7 @@ from datetime import date, datetime
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping
+from uuid import UUID
 
 from pydantic import ValidationError
 
@@ -21,6 +22,7 @@ from app.schemas.banners import (
     BannerManifest,
     version_core,
 )
+from app.schemas.topics import TopicReference
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "resources/banners/home_blind.json"
 MAX_MANIFEST_BYTES = 256 * 1024
@@ -68,8 +70,12 @@ class BannerCatalog:
         for banner in manifest.banners:
             for locale, canvas in banner.canvases_by_locale.items():
                 for count in (0, 1, 999999999):
-                    values = binding_values(banner, locale, date(2026, 12, 31), count)
-                    compile_canvas(canvas, values)
+                    values = binding_values(banner, locale, date(2026, 12, 31), count,
+                                            topic_question="Question?")
+                    compile_canvas(canvas, values, topic_ref=TopicReference(
+                        offer_id=UUID(int=1), offer_sequence=1, topic_id="validation",
+                        topic_revision="0" * 64, locale=locale,
+                    ))
         return cls(hashlib.sha256(raw).hexdigest(), _freeze(manifest))
 
     @classmethod
@@ -124,7 +130,8 @@ def select_candidates(
 
 
 def binding_values(
-    banner: BannerDefinition, locale: str, local_date: date | None, remaining: int | None
+    banner: BannerDefinition, locale: str, local_date: date | None, remaining: int | None,
+    *, topic_question: str | None = None,
 ) -> dict[str, str | int]:
     values = {}
     for alias, binding in banner.bindings.items():
@@ -132,6 +139,10 @@ def binding_values(
             if remaining is None:
                 raise ValueError("routine binding unavailable")
             values[alias] = remaining
+        elif binding.source == "topic.question":
+            if topic_question is None:
+                raise ValueError("topic binding unavailable")
+            values[alias] = topic_question
         else:
             if local_date is None:
                 raise ValueError("date binding unavailable")
@@ -160,9 +171,16 @@ def binding_values(
     return values
 
 
-def compile_canvas(canvas: BannerAuthoredCanvas, values: Mapping[str, str | int]) -> BannerCanvas:
+def compile_canvas(
+    canvas: BannerAuthoredCanvas, values: Mapping[str, str | int],
+    *, topic_ref: TopicReference | None = None,
+) -> BannerCanvas:
     raw = canvas.model_dump(mode="json")
     for element in raw["elements"]:
+        if element.get("action", {}).get("type") == "open_topic_conversation_v1":
+            if topic_ref is None:
+                raise ValueError("topic reference unavailable")
+            element["action"]["topic_ref"] = topic_ref.model_dump(mode="json")
         if element["type"] not in {"text_v1", "button_v1"}:
             continue
         expression = element["text"]
@@ -181,11 +199,20 @@ def render_feed(
     local_date: date | None,
     day_ends_at: datetime | None,
     remaining: int | None,
+    topic_offer=None,
 ) -> BannerFeed:
     cards = []
     for banner, locale, canvas in candidates:
         try:
-            values = binding_values(banner, locale, local_date, remaining)
+            values = binding_values(
+                banner, locale, local_date, remaining,
+                topic_question=topic_offer.questions[locale] if topic_offer else None,
+            )
+            topic_ref = TopicReference(
+                offer_id=topic_offer.offer_id, offer_sequence=topic_offer.offer_sequence,
+                topic_id=topic_offer.topic_id, topic_revision=topic_offer.topic_revision,
+                locale=locale,
+            ) if topic_offer else None
             if banner.when:
                 value = values[banner.when.binding]
                 if banner.when.operator == "eq" and value != banner.when.value:
@@ -205,7 +232,7 @@ def render_feed(
                 layout_profile=banner.layout_profile,
                 locale=locale,
                 valid_until=deadline,
-                canvas=compile_canvas(canvas, values),
+                canvas=compile_canvas(canvas, values, topic_ref=topic_ref),
             )
             cards.append(card)
         except (ValueError, KeyError, ValidationError):

@@ -14,11 +14,45 @@ from app.core.db import get_session
 from app.core.errors import AppError
 from app.core.security import get_current_user
 from app.schemas.banners import BannerFeed
+from app.schemas.topics import BannerClientContext
 from app.services import banners
 
 router = APIRouter(tags=["banners"])
 _log = logging.getLogger("moly-backend")
 Capability = Annotated[str, Query(pattern=r"^[a-z][a-z0-9_]{0,63}$")]
+
+
+@router.post("/banners/resolve", response_model=BannerFeed, operation_id="resolveBanners")
+async def resolve_banners(
+    body: BannerClientContext,
+    request: Request,
+    x_app_locale: Annotated[str | None, Header(max_length=64)] = None,
+    x_app_timezone: Annotated[str | None, Header()] = None,
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> BannerFeed:
+    validate_app_timezone(x_app_timezone)
+    catalog = getattr(request.app.state, "banner_catalog", None)
+    if catalog is None:
+        raise AppError("BANNERS_UNAVAILABLE", 503, "배너를 불러올 수 없습니다.")
+    started = getattr(request.state, "started_monotonic", time.monotonic())
+    try:
+        async with asyncio.timeout(max(0, started + 2 - time.monotonic())):
+            result = await banners.list_banners(
+                catalog, session, user_id, now=datetime.now(timezone.utc),
+                platform=body.platform, app_version=body.app_version, locale=x_app_locale,
+                timezone_name=x_app_timezone, capabilities=frozenset(body.capabilities),
+                topic_catalog=getattr(request.app.state, "topic_catalog", None),
+            )
+            await session.commit()
+            return result
+    except AppError:
+        await session.rollback()
+        raise
+    except Exception as exc:
+        await session.rollback()
+        _log.warning("banner resolve unavailable: %s", type(exc).__name__)
+        raise AppError("BANNERS_UNAVAILABLE", 503, "배너를 불러올 수 없습니다.") from exc
 
 
 @router.get("/banners", response_model=BannerFeed, operation_id="listBanners")

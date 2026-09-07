@@ -1,0 +1,236 @@
+schemas:
+  TopicReference:
+    properties:
+      offer_id:
+        type: string
+        format: uuid
+        title: Offer Id
+      offer_sequence:
+        type: integer
+        exclusiveMinimum: 0.0
+        title: Offer Sequence
+      topic_id:
+        type: string
+        pattern: ^[a-z][a-z0-9-]{0,63}$
+        title: Topic Id
+      topic_revision:
+        type: string
+        pattern: ^[a-f0-9]{64}$
+        title: Topic Revision
+      locale:
+        type: string
+        enum:
+        - ko
+        - en
+        - ja
+        title: Locale
+    additionalProperties: false
+    type: object
+    required:
+    - offer_id
+    - offer_sequence
+    - topic_id
+    - topic_revision
+    - locale
+    title: TopicReference
+  BannerClientContext:
+    properties:
+      placement:
+        type: string
+        const: home_blind
+        title: Placement
+      schema_version:
+        type: integer
+        const: 1
+        title: Schema Version
+      platform:
+        type: string
+        enum:
+        - ios
+        - android
+        title: Platform
+      app_version:
+        type: string
+        maxLength: 64
+        minLength: 1
+        title: App Version
+      capabilities:
+        items:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,63}$
+        type: array
+        maxItems: 32
+        title: Capabilities
+    additionalProperties: false
+    type: object
+    required:
+    - placement
+    - schema_version
+    - platform
+    - app_version
+    - capabilities
+    title: BannerClientContext
+  PrepareTopicRequest:
+    properties:
+      placement:
+        type: string
+        const: home_blind
+        title: Placement
+      schema_version:
+        type: integer
+        const: 1
+        title: Schema Version
+      platform:
+        type: string
+        enum:
+        - ios
+        - android
+        title: Platform
+      app_version:
+        type: string
+        maxLength: 64
+        minLength: 1
+        title: App Version
+      capabilities:
+        items:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,63}$
+        type: array
+        maxItems: 32
+        title: Capabilities
+      banner_id:
+        type: string
+        pattern: ^[a-z][a-z0-9_-]{0,63}$
+        title: Banner Id
+      topic_ref:
+        $ref: '#/schemas/TopicReference'
+    additionalProperties: false
+    type: object
+    required:
+    - placement
+    - schema_version
+    - platform
+    - app_version
+    - capabilities
+    - banner_id
+    - topic_ref
+    title: PrepareTopicRequest
+  PendingTopicEntry:
+    properties:
+      entry_id:
+        type: string
+        format: uuid
+        title: Entry Id
+      offer_id:
+        type: string
+        format: uuid
+        title: Offer Id
+      created_at:
+        type: string
+        title: Created At
+      expires_at:
+        type: string
+        title: Expires At
+      state:
+        type: string
+        const: pending
+        title: State
+      locale:
+        type: string
+        enum:
+        - ko
+        - en
+        - ja
+        title: Locale
+      content:
+        type: string
+        maxLength: 120
+        minLength: 1
+        title: Content
+    additionalProperties: false
+    type: object
+    required:
+    - entry_id
+    - offer_id
+    - created_at
+    - expires_at
+    - state
+    - locale
+    - content
+    title: PendingTopicEntry
+  CommittedTopicEntry:
+    properties:
+      entry_id:
+        type: string
+        format: uuid
+        title: Entry Id
+      offer_id:
+        type: string
+        format: uuid
+        title: Offer Id
+      created_at:
+        type: string
+        title: Created At
+      expires_at:
+        type: string
+        title: Expires At
+      state:
+        type: string
+        const: committed
+        title: State
+      message_id:
+        type: string
+        pattern: ^\d+$
+        title: Message Id
+    additionalProperties: false
+    type: object
+    required:
+    - entry_id
+    - offer_id
+    - created_at
+    - expires_at
+    - state
+    - message_id
+    title: CommittedTopicEntry
+  SupersededTopicEntry:
+    properties:
+      entry_id:
+        type: string
+        format: uuid
+        title: Entry Id
+      offer_id:
+        type: string
+        format: uuid
+        title: Offer Id
+      created_at:
+        type: string
+        title: Created At
+      expires_at:
+        type: string
+        title: Expires At
+      state:
+        type: string
+        const: superseded
+        title: State
+    additionalProperties: false
+    type: object
+    required:
+    - entry_id
+    - offer_id
+    - created_at
+    - expires_at
+    - state
+    title: SupersededTopicEntry
+  TopicEntryResponse:
+    oneOf:
+    - $ref: '#/schemas/PendingTopicEntry'
+    - $ref: '#/schemas/CommittedTopicEntry'
+    - $ref: '#/schemas/SupersededTopicEntry'
+    title: TopicEntryResponse
+    description: Concrete response model with a state-discriminated JSON root.
+    discriminator:
+      propertyName: state
+      mapping:
+        committed: '#/schemas/CommittedTopicEntry'
+        pending: '#/schemas/PendingTopicEntry'
+        superseded: '#/schemas/SupersededTopicEntry'

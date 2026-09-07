@@ -16,8 +16,9 @@ from app.core.db import Base
 
 
 SHOP_PURCHASE_KEY_PREFIX = "shop-purchase:"
+TOPIC_PREPARE_KEY_PREFIX = "topic-prepare:"
 
-RESERVED_KEY_PREFIXES: tuple[str, ...] = (SHOP_PURCHASE_KEY_PREFIX,)
+RESERVED_KEY_PREFIXES: tuple[str, ...] = (SHOP_PURCHASE_KEY_PREFIX, TOPIC_PREPARE_KEY_PREFIX)
 
 
 class IdempotencyKey(Base):

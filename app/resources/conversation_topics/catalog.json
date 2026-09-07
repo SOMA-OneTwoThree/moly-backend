@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "topics": [
+    {
+      "id": "small-joy-001",
+      "category": "small-joy",
+      "versions": [
+        {
+          "revision": "f0875f91d5076805b37ad5c5ad92a3171de07129f7ebeba25a6bbfa06d4d59fb",
+          "questions": {
+            "ko": "오늘 작은 행복을 느낀 순간이 있었어?",
+            "en": "What small moment made you happy today?",
+            "ja": "今日、ちょっとうれしいことはあった？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "free-time-001",
+      "category": "rest",
+      "versions": [
+        {
+          "revision": "d3b6a5f73012f1e91f7c035d7eb0420adb11e08e62f649b4985ee35abe44628f",
+          "questions": {
+            "ko": "잠깐 여유가 생기면 뭘 하고 싶어?",
+            "en": "What would you do with a little time to yourself?",
+            "ja": "少し自由な時間ができたら、何をしたい？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "comfort-food-001",
+      "category": "food",
+      "versions": [
+        {
+          "revision": "bb8aea9c92a876ad72d5b8d7d2675d83de15ea385ca65184ba55b477009af18d",
+          "questions": {
+            "ko": "생각만 해도 기분 좋아지는 음식이 있어?",
+            "en": "Is there a food that always makes you smile?",
+            "ja": "思い浮かべるだけでうれしくなる食べ物はある？"
+          }
+        }
+      ]
+    }
+  ],
+  "sequence": [
+    {
+      "topic_id": "small-joy-001",
+      "topic_revision": "f0875f91d5076805b37ad5c5ad92a3171de07129f7ebeba25a6bbfa06d4d59fb"
+    },
+    {
+      "topic_id": "free-time-001",
+      "topic_revision": "d3b6a5f73012f1e91f7c035d7eb0420adb11e08e62f649b4985ee35abe44628f"
+    },
+    {
+      "topic_id": "comfort-food-001",
+      "topic_revision": "bb8aea9c92a876ad72d5b8d7d2675d83de15ea385ca65184ba55b477009af18d"
+    }
+  ],
+  "revoked": []
+}

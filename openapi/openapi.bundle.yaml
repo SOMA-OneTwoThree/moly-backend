@@ -2307,6 +2307,158 @@ paths:
       description: 설치 직후 로그인 전에 호출되므로 인증이 없다. utm_content 안의 AES-256-GCM 암호문(source.data/source.nonce)을
         서버 보관 키로 풀어 광고 귀속 필드를 돌려준다. 암호문이 없거나 hex가 깨진 입력은 오류가 아니라 attribution=null(200)이다. 서버는 요청을 저장하지
         않는다.
+  /banners/resolve:
+    post:
+      tags:
+      - banners
+      summary: 사용자별 홈 배너 제안 조회
+      operationId: resolveBanners
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: x-app-locale
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+          title: X-App-Locale
+      - name: x-app-timezone
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-App-Timezone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BannerClientContext'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BannerFeed'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+        '422':
+          $ref: '#/components/responses/Validation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 현재 상태에서 요청을 처리할 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 요청 상태를 다시 확인해 주세요.
+                      details: {}
+        '503':
+          description: 일시적으로 사용 불가
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      code: BANNERS_UNAVAILABLE
+                      message: 잠시 후 다시 시도해 주세요.
+                      details: {}
+      description: 동일 상태와 현지 날짜에서 반복 호출해도 같은 offer로 수렴한다. 완료 또는 현지 날짜 변경 시 하나만 전진한다. 구버전 GET은 주제 상태를 변경하지
+        않는다.
+  /chat/topic-entries:
+    post:
+      tags:
+      - chat
+      summary: 배너 대화 질문 준비 또는 복원
+      operationId: prepareTopicEntry
+      security:
+      - SupabaseBearer: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Idempotency-Key
+      - name: x-app-timezone
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-App-Timezone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrepareTopicRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopicEntryResponse'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+        '422':
+          $ref: '#/components/responses/Validation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 현재 상태에서 요청을 처리할 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      code: TOPIC_OFFER_UNAVAILABLE
+                      message: 요청 상태를 다시 확인해 주세요.
+                      details: {}
+        '503':
+          description: 일시적으로 사용 불가
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                unavailable:
+                  value:
+                    error:
+                      code: TOPICS_UNAVAILABLE
+                      message: 잠시 후 다시 시도해 주세요.
+                      details: {}
+      description: LLM 호출 없음. Idempotency-Key는 필수이며 같은 키의 재시도는 기존 entry의 현재 상태를 반환한다. 키 내용 변경은 409. 준비
+        키 중복 방지는 30일 동안 유지된다. pending의 content만 화면에 표시하고, 첫 사용자 답변에 topic_entry_id와 locale를 보낸다.
 components:
   schemas:
     BannerFeed:
@@ -3822,11 +3974,28 @@ components:
           - $ref: '#/components/schemas/DailyFortuneContextRef'
           - type: 'null'
           description: 오늘 운세 결과 화면에서 대화로 넘어올 때 붙이는 일회성 참조.
+        topic_entry_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Topic Entry Id
+        locale:
+          anyOf:
+          - type: string
+            enum:
+            - ko
+            - en
+            - ja
+          - type: 'null'
+          title: Locale
       additionalProperties: false
       type: object
       required:
       - text
       title: PostMessageRequest
+      description: topic_entry_id와 locale는 첫 주제 답변에 함께 지정한다. topic_entry_id는 greeting_id 및 context_ref와
+        동시 사용 불가. locale 단독 지정은 후속 일반 대화의 앱 언어를 선택한다. 새 필드가 없는 구버전 요청은 기존 동작을 유지한다.
     PostMessageResponse:
       properties:
         greeting:
@@ -4847,6 +5016,241 @@ components:
       properties:
         error:
           $ref: '#/components/schemas/ErrorBody'
+    TopicReference:
+      properties:
+        offer_id:
+          type: string
+          format: uuid
+          title: Offer Id
+        offer_sequence:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Offer Sequence
+        topic_id:
+          type: string
+          pattern: ^[a-z][a-z0-9-]{0,63}$
+          title: Topic Id
+        topic_revision:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+          title: Topic Revision
+        locale:
+          type: string
+          enum:
+          - ko
+          - en
+          - ja
+          title: Locale
+      additionalProperties: false
+      type: object
+      required:
+      - offer_id
+      - offer_sequence
+      - topic_id
+      - topic_revision
+      - locale
+      title: TopicReference
+    BannerClientContext:
+      properties:
+        placement:
+          type: string
+          const: home_blind
+          title: Placement
+        schema_version:
+          type: integer
+          const: 1
+          title: Schema Version
+        platform:
+          type: string
+          enum:
+          - ios
+          - android
+          title: Platform
+        app_version:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: App Version
+        capabilities:
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_]{0,63}$
+          type: array
+          maxItems: 32
+          title: Capabilities
+      additionalProperties: false
+      type: object
+      required:
+      - placement
+      - schema_version
+      - platform
+      - app_version
+      - capabilities
+      title: BannerClientContext
+    PrepareTopicRequest:
+      properties:
+        placement:
+          type: string
+          const: home_blind
+          title: Placement
+        schema_version:
+          type: integer
+          const: 1
+          title: Schema Version
+        platform:
+          type: string
+          enum:
+          - ios
+          - android
+          title: Platform
+        app_version:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: App Version
+        capabilities:
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_]{0,63}$
+          type: array
+          maxItems: 32
+          title: Capabilities
+        banner_id:
+          type: string
+          pattern: ^[a-z][a-z0-9_-]{0,63}$
+          title: Banner Id
+        topic_ref:
+          $ref: '#/components/schemas/TopicReference'
+      additionalProperties: false
+      type: object
+      required:
+      - placement
+      - schema_version
+      - platform
+      - app_version
+      - capabilities
+      - banner_id
+      - topic_ref
+      title: PrepareTopicRequest
+    PendingTopicEntry:
+      properties:
+        entry_id:
+          type: string
+          format: uuid
+          title: Entry Id
+        offer_id:
+          type: string
+          format: uuid
+          title: Offer Id
+        created_at:
+          type: string
+          title: Created At
+        expires_at:
+          type: string
+          title: Expires At
+        state:
+          type: string
+          const: pending
+          title: State
+        locale:
+          type: string
+          enum:
+          - ko
+          - en
+          - ja
+          title: Locale
+        content:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: Content
+      additionalProperties: false
+      type: object
+      required:
+      - entry_id
+      - offer_id
+      - created_at
+      - expires_at
+      - state
+      - locale
+      - content
+      title: PendingTopicEntry
+    CommittedTopicEntry:
+      properties:
+        entry_id:
+          type: string
+          format: uuid
+          title: Entry Id
+        offer_id:
+          type: string
+          format: uuid
+          title: Offer Id
+        created_at:
+          type: string
+          title: Created At
+        expires_at:
+          type: string
+          title: Expires At
+        state:
+          type: string
+          const: committed
+          title: State
+        message_id:
+          type: string
+          pattern: ^\d+$
+          title: Message Id
+      additionalProperties: false
+      type: object
+      required:
+      - entry_id
+      - offer_id
+      - created_at
+      - expires_at
+      - state
+      - message_id
+      title: CommittedTopicEntry
+    SupersededTopicEntry:
+      properties:
+        entry_id:
+          type: string
+          format: uuid
+          title: Entry Id
+        offer_id:
+          type: string
+          format: uuid
+          title: Offer Id
+        created_at:
+          type: string
+          title: Created At
+        expires_at:
+          type: string
+          title: Expires At
+        state:
+          type: string
+          const: superseded
+          title: State
+      additionalProperties: false
+      type: object
+      required:
+      - entry_id
+      - offer_id
+      - created_at
+      - expires_at
+      - state
+      title: SupersededTopicEntry
+    TopicEntryResponse:
+      oneOf:
+      - $ref: '#/components/schemas/PendingTopicEntry'
+      - $ref: '#/components/schemas/CommittedTopicEntry'
+      - $ref: '#/components/schemas/SupersededTopicEntry'
+      title: TopicEntryResponse
+      description: Concrete response model with a state-discriminated JSON root.
+      discriminator:
+        propertyName: state
+        mapping:
+          committed: '#/schemas/CommittedTopicEntry'
+          pending: '#/schemas/PendingTopicEntry'
+          superseded: '#/schemas/SupersededTopicEntry'
   securitySchemes:
     SupabaseBearer:
       type: http

@@ -158,3 +158,70 @@ DB 트랜잭션을 닫고, draft 저장 전 원문·개인정보 버전을 다�
 수동 consumer의 dead 판정은 운영 큐 통계와 동일하게 성공한 replay의 모든 조상을 제외한다.
 과거 dead 이력은 보존한다. 큐 감시가 실패해도 새 작업 획득을 멈추고 실행 중 작업을 마친 뒤
 오류를 반환한다.
+
+## 주간 운영자 일기 DB 전환
+
+운영 머지 전에 [검토용 차이 SQL](../db/changes/weekly_operator_diaries.sql)을 해당 운영 DB에
+적용하고 구조 검증을 완료해야 한다. main 머지는 자동 배포를 시작하므로 **머지 후 DB 적용은 늦다**.
+개발 작업에서는 운영 DB를 변경하지 않는다. SQL은 이번 릴리스 인계용이며 자동 실행하지 않는다.
+
+변경은 기존 원고에 `week_start_date`·`sequence_no`, 기존 결과에 `preset_ment_id` 추가뿐이다.
+날짜별 원고·과거 일기를 변환하거나 복사하지 않는다. 기존 결과는 no_entry/NULL로 그대로 유효하다.
+사용자·원고 중복 금지, 원고 주/순서 조합, 결과 상태 조합 및 원고 삭제 제한을 함께 추가한다.
+
+### 적용 순서
+
+1. **기존 개발 API·Supabase DB에서 먼저 검증한다.** `.env`의 개발 프로젝트를 도구의 대상 검사로
+   확인하고 기존 schema contract와 실제 DB 구조가 일치하는지 검사한다. 검토한 차이 SQL 적용 후
+   주간 동시 생성/rollback 테스트를 수행한다. 테스트는 별도 생성한 사용자·원고만 쓰고 종료 시
+   정리한다. SSH·개인 AWS 계정·로컬 Docker/DB가 필요하지 않다.
+   `MOLY_WEEKLY_TEST_ENV=dev uv run pytest -q tests/integration/test_weekly_diary.py`가 개발 DB
+   검증 경로다. 테스트 임베딩 잡은 미래로 예약하여 개발 소비자의 외부 호출을 막는다.
+2. 실제 대상 DB에서 `moly_life_ments`·`diary_generation_results`의 행 수/크기와 현재 제약을
+   읽기 전용으로 확인한다. 신규 컬럼/제약 일부만 있는 상태라면 아래 SQL을 그대로 재실행하지 않는다.
+   신규 UNIQUE 구축이 잠금 예산을 넘을 크기라면 별도 검토한 concurrent index 절차를 사용한다.
+3. 전환 설정은 미설정으로 둔 상태에서 DB 차이를 먼저 적용한다. 기본 lock 2초, statement 60초를
+   넘으면 rollback 후 재시도하며 제한을 임의로 늘리지 않는다. 구버전 DB verifier는 추가 CHECK/
+   UNIQUE를 거부할 수 있으므로 DDL 후 구버전 자동 배포를 별도로 재실행하지 않는다.
+4. 새 코드 전체(API/워커)를 배포하고 검증한다. 새 코드의 원고 ORM 조회는 신규 컬럼을 포함하므로
+   전환 설정이 꺼져 있어도 **DDL보다 코드가 먼저 배포되면 안 된다**.
+5. 구 워커 종료를 확인하고 주간 원고를 등록·검수한 뒤 app_config의 `diary_weekly_start_date`를
+   미래 월요일 ISO 날짜 JSON 문자열로 설정한다. 가장 빠른 사용자 시간대의 첫 주간 생성 전에 준비한다.
+   일요일 일기의 월요일 공개는 이전 주 활동일 기준으로 처리한다.
+6. 주간 preset 결과를 만든 이후에는 전환일을 변경/삭제하거나 구 legacy 바이너리로 회귀하지 않는다.
+   장애 시 주간 결과를 이해하는 버전으로 수정 배포하거나 일기 생성 작업만 중지한다. 이력·컬럼·
+   제약을 삭제해서 복구하지 않는다. 원고 미등록은 정상 미발행이며 개인 LLM 오류와 구별한다.
+
+DDL 직후 검증은 **이번 릴리스 후보 코드와 재생성된 schema_contract.json**으로 실행한다.
+이번 릴리스의 계약은 변경 전 개발 DB가 기존 계약과 정확히 일치함을 확인한 뒤, 검토한 3컬럼·
+제약·인덱스 변경만 생겼음을 검사하고 PostgreSQL 카탈로그에서 생성했다. CI에서는 별도의 빈
+PostgreSQL 17에 canonical schema를 실행해 동일 계약이 재현되는지 독립 검사한다.
+기존 main checkout의 검증 계약으로 실행하면 신규 제약을 차이로 보고하므로 검증용 후보 checkout을
+운영 머지 전에 준비해야 한다.
+
+아래 명령은 **해당 서버/환경에서 검토 후 실행할 절차**이며 문서 추가가 적용 완료를 뜻하지 않는다.
+
+```bash
+# 검토한 파일의 SHA256을 기록하고 동일 파일을 환경별로 사용한다.
+sha256sum db/changes/weekly_operator_diaries.sql
+uv run python -m db.apply db/changes/weekly_operator_diaries.sql --env dev
+uv run python -m db.apply db/changes/weekly_operator_diaries.sql --env dev --commit --expected-sha256 <검토한-SHA256>
+uv run python -m db.verify --env dev
+
+# 운영 반영은 나중의 운영 머지 준비 단계에서만 실행한다.
+uv run python -m db.apply db/changes/weekly_operator_diaries.sql --env prod
+uv run python -m db.apply db/changes/weekly_operator_diaries.sql --env prod --commit --allow-prod --expected-sha256 <검토한-SHA256>
+uv run python -m db.verify --env prod
+```
+
+전환 설정은 키 없음/JSON null일 때 날짜별 방식이다. 잘못된 날짜·비월요일·설정 조회 실패는
+일기 생성을 중단하며 날짜별 방식으로 되돌리지 않는다. 워커는 한 틱에 한 번 읽는다.
+`weekly_unavailable`은 활성 원고 0편, `weekly_exhausted`는 활성 원고를 모두 지급받은 상태다.
+둘 다 빈 diary 없이 no_entry로 확정하며, 이후 원고 등록으로 그 날짜를 소급 생성하지 않는다.
+
+### 개발용 수동 생성
+
+주간 모드에서는 종료된 `target_date`와 `force=false`를 명시한다. 기존 요청 기본값은 유지하므로
+날짜/force 생략 요청은 주간 모드에서 거부된다. `DIARY_FORCE_NOT_ALLOWED`(409)는 지급 이력
+보호, `DIARY_POLICY_UNAVAILABLE`(503)는 설정 조회/검증 실패다. 현재/미래 활동일은 422다.
+아침 푸시는 별도 후속 작업이며 이 릴리스에서 동작이나 설정을 변경하지 않는다.

@@ -1,65 +1,130 @@
-"""캐피 날짜별 자기일기 CSV → moly_life_ments 업서트(멱등).
+"""캐피 CSV 등록: 날짜별 업서트 또는 주간 원고의 불변·append 등록.
 
-CSV 열: diary_date(YYYY-MM-DD), weather(sunny|cloudy|rainy|windy), content.
-  · content 빈 행은 스킵(빈 일기 방지 · content NOT NULL). 그날은 랜덤 폴백 풀이 대신 나감.
-  · 같은 diary_date 재실행 시 in-place 갱신(ON CONFLICT). is_active는 건드리지 않음
-    (운영자가 꺼둔 지정본이 재실행으로 되살아나지 않게).
-
-기본 dry-run(ROLLBACK). --commit 주면 실제 반영.
-사용:
-  python scripts/seed_capi_diaries.py                       # db/capi_diaries.csv dry-run
-  python scripts/seed_capi_diaries.py db/capi_diaries.csv --commit
+legacy: diary_date,weather,content (빈 본문 스킵, 날짜별 내용 갱신).
+weekly: week_start_date,sequence_no,weather,content (빈 본문 거부).
+주간 동일 슬롯 재입력은 no-op이며 회수된 원고도 재활성화하지 않는다.
+기본 dry-run(전체 ROLLBACK). --commit과 기존 --env 선택으로 실반영.
 """
 import asyncio
 import csv
 import sys
-from datetime import date, datetime
+from dataclasses import dataclass
+from datetime import date
 
 import asyncpg
 
-sys.path.insert(0, __file__.rsplit("/", 2)[0])  # 레포 루트
+sys.path.insert(0, __file__.rsplit("/", 2)[0])
+from app.services.text_clean import strip_symbols
 from db.envfile import announce, is_prod, load_conn, split_env_arg
 
 WEATHERS = {"sunny", "cloudy", "rainy", "windy"}
-
-# 부분 유니크 인덱스(WHERE diary_date IS NOT NULL) 대상이라 ON CONFLICT에 술어를 포함해야 한다.
+LEGACY_FIELDS = {"diary_date", "weather", "content"}
+WEEKLY_FIELDS = {"week_start_date", "sequence_no", "weather", "content"}
 _UPSERT = """
 INSERT INTO public.moly_life_ments (content, weather, diary_date)
 VALUES ($1, $2, $3)
 ON CONFLICT (diary_date) WHERE diary_date IS NOT NULL
 DO UPDATE SET content = EXCLUDED.content, weather = EXCLUDED.weather
 """
+# Two-int advisory locks have a separate key space from the user UUID bigint locks.
+_WEEK_LOCK = "SELECT pg_advisory_xact_lock(1297042521, $1::integer)"
+_WEEK_ROWS = """
+SELECT sequence_no, content, weather FROM public.moly_life_ments
+WHERE week_start_date = $1
+"""  # Includes inactive rows: withdrawal must never reopen an earlier slot.
+_WEEK_INSERT = """
+INSERT INTO public.moly_life_ments (content, weather, week_start_date, sequence_no)
+VALUES ($1, $2, $3, $4)
+"""
 
 
+@dataclass(frozen=True)
+class WeeklyRow:
+    content: str
+    weather: str
+    week_start_date: date
+    sequence_no: int
 
 
-def load_rows(path: str) -> list[tuple[str, str, date]]:
-    """(content, weather, diary_date) 검증된 행. content 빈 행은 스킵.
+def _date(raw: str, field: str, line: int) -> date:
+    try:
+        value = date.fromisoformat(raw)
+        if value.isoformat() != raw:
+            raise ValueError
+        return value
+    except ValueError:
+        raise SystemExit(f"{line}행: {field} 형식 오류 {raw!r} (YYYY-MM-DD)") from None
 
-    diary_date는 asyncpg의 date 컬럼 바인딩을 위해 `date` 객체로 변환한다(문자열이면 타입 에러).
-    """
-    rows: list[tuple[str, str, date]] = []
-    with open(path, newline="", encoding="utf-8") as f:
-        for i, r in enumerate(csv.DictReader(f), start=2):  # 2 = 헤더 다음 줄
-            content = (r.get("content") or "").strip()
-            if not content:
-                continue  # 아직 안 쓴 날 — 스킵
-            if "�" in content:  # 깨진 문자(U+FFFD �) = CSV 인코딩 사고 — 문 앞에서 막는다
+
+def load_rows(path: str) -> list[tuple[str, str, date]] | list[WeeklyRow]:
+    """헤더로 형식을 결정하고 파일 전체를 검증. legacy 반환 형식은 유지한다."""
+    rows = []
+    seen = set()
+    with open(path, newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        fields = reader.fieldnames or []
+        if len(fields) != len(set(fields)) or set(fields) not in (LEGACY_FIELDS, WEEKLY_FIELDS):
+            raise SystemExit("CSV 헤더 오류: 날짜형 또는 주간형 열을 정확히 사용하세요(혼합 불가).")
+        weekly = set(fields) == WEEKLY_FIELDS
+        for i, r in enumerate(reader, start=2):
+            if None in r or any(v is None for v in r.values()):
+                raise SystemExit(f"{i}행: CSV 열 수 오류")
+            content = r["content"].strip()
+            if not content and not weekly:
+                continue
+            if "�" in content:
                 raise SystemExit(f"{i}행: 깨진 문자(U+FFFD �) 포함 — CSV 인코딩(UTF-8) 확인 필요")
-            raw = (r.get("diary_date") or "").strip()
-            try:
-                d = datetime.strptime(raw, "%Y-%m-%d").date()  # ISO 형식 검증 + date 변환
-            except ValueError:
-                raise SystemExit(f"{i}행: diary_date 형식 오류 {raw!r} (YYYY-MM-DD)")
-            weather = (r.get("weather") or "sunny").strip() or "sunny"
+            if weekly and not strip_symbols(content).strip():
+                raise SystemExit(f"{i}행: content가 비어 있거나 정제 후 빈 본문입니다.")
+            weather = r["weather"].strip() or "sunny"
             if weather not in WEATHERS:
                 raise SystemExit(f"{i}행: weather 값 오류 {weather!r} (허용: {sorted(WEATHERS)})")
-            rows.append((content, weather, d))
+            if not weekly:
+                rows.append((content, weather, _date(r["diary_date"].strip(), "diary_date", i)))
+                continue
+            week = _date(r["week_start_date"].strip(), "week_start_date", i)
+            if week.weekday() != 0:
+                raise SystemExit(f"{i}행: week_start_date는 월요일이어야 합니다.")
+            raw_sequence = r["sequence_no"].strip()
+            if not raw_sequence.isascii() or not raw_sequence.isdecimal():
+                raise SystemExit(f"{i}행: sequence_no는 양의 정수여야 합니다.")
+            sequence = int(raw_sequence)
+            if not 1 <= sequence <= 2147483647:
+                raise SystemExit(f"{i}행: sequence_no는 양의 PostgreSQL integer여야 합니다.")
+            slot = (week, sequence)
+            if slot in seen:
+                raise SystemExit(f"{i}행: 주간 순번 중복 {week}/{sequence}")
+            seen.add(slot)
+            rows.append(WeeklyRow(content, weather, week, sequence))
     return rows
 
 
+async def insert_weekly_rows(c, rows: list[WeeklyRow]) -> tuple[int, int]:
+    """호출자의 단일 transaction 안에서 모든 주 잠금→검증→삽입. (추가, no-op)."""
+    weeks = sorted({r.week_start_date for r in rows})
+    for week in weeks:
+        await c.execute(_WEEK_LOCK, week.toordinal())
+    inserts = []
+    unchanged = 0
+    for week in weeks:
+        existing = {r["sequence_no"]: r for r in await c.fetch(_WEEK_ROWS, week)}
+        maximum = max(existing, default=0)
+        for row in sorted((r for r in rows if r.week_start_date == week), key=lambda r: r.sequence_no):
+            old = existing.get(row.sequence_no)
+            if old is not None:
+                if old["content"] != row.content or old["weather"] != row.weather:
+                    raise ValueError(f"주간 원고 수정 불가: {week}/{row.sequence_no}")
+                unchanged += 1
+                continue
+            if row.sequence_no <= maximum:
+                raise ValueError(f"주간 원고는 기존 최대 순번 {maximum} 뒤에만 추가 가능: {week}/{row.sequence_no}")
+            inserts.append((row.content, row.weather, week, row.sequence_no))
+    if inserts:
+        await c.executemany(_WEEK_INSERT, inserts)
+    return len(inserts), unchanged
+
+
 async def main(commit: bool, path: str, env: str | None = None) -> None:
-    # 대상 표시는 조기 반환보다 먼저 — "어디에 쏘려던 것인지"가 항상 남아야 한다.
     dsn = load_conn(env)
     announce(env, dsn, commit=commit)
     rows = load_rows(path)
@@ -70,10 +135,14 @@ async def main(commit: bool, path: str, env: str | None = None) -> None:
         print(">>> PROD 실반영을 시작합니다.", file=sys.stderr)
     c = await asyncpg.connect(dsn, statement_cache_size=0)
     tx = c.transaction()
-    await tx.start()
     try:
-        await c.executemany(_UPSERT, rows)
-        print(f"업서트 {len(rows)}건: {', '.join(d.isoformat() for *_, d in rows)}")
+        await tx.start()
+        if isinstance(rows[0], WeeklyRow):
+            added, unchanged = await insert_weekly_rows(c, rows)
+            print(f"주간 원고 추가 {added}건, 동일 원고 no-op {unchanged}건")
+        else:
+            await c.executemany(_UPSERT, rows)
+            print(f"업서트 {len(rows)}건: {', '.join(d.isoformat() for *_, d in rows)}")
         if commit:
             await tx.commit()
             print(">>> COMMIT 완료 — 실 DB 반영됨.")

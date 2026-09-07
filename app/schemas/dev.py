@@ -17,11 +17,11 @@ class DiaryGenerateRequest(BaseModel):
 
     target_date: date | None = Field(
         default=None,
-        description="일기 대상 날짜. 생략 시 오늘(로컬 activity_date). 이 날짜의 대화가 재료가 된다.",
+        description="일기 대상 날짜. 생략 시 오늘(로컬 activity_date). 이 날짜의 대화가 재료가 된다. 주간 모드는 종료된 날짜를 명시해야 한다.",
     )
     force: bool = Field(
         default=True,
-        description="기존 일기 행을 지우고 재생성. false면 이미 있을 때 조용히 스킵된다(멱등).",
+        description="기존 일기 행을 지우고 재생성. false면 이미 있을 때 조용히 스킵된다(멱등). 주간 모드는 반드시 false(강제 생성 409).",
     )
     publish_now: bool = Field(
         default=True,
@@ -53,7 +53,7 @@ class CreatedDiagnostics(StrictResponse):
 class NoEntryDiagnostics(StrictResponse):
     created: Literal[False]
     skipped: Literal[False]
-    reason: Literal["no_scheduled_entry"]
+    reason: Literal["no_scheduled_entry", "weekly_unavailable", "weekly_exhausted"]
     source: Literal["none"]
     user_chars: int = Field(ge=0)
     gate: JsonValue

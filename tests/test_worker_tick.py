@@ -1,8 +1,11 @@
 """배치 워커 틱 — 유저별 세션 격리·불량 tz 스킵·유저 타임아웃(SOMA-348/349)."""
 import asyncio
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+import pytest
 
 from worker import tick
 
@@ -16,6 +19,9 @@ class _Res:
 
     def all(self):
         return self._items
+
+    def scalar(self):
+        return self._items[0] if self._items else None
 
 
 class _FakeSession:
@@ -33,6 +39,8 @@ class _FakeSession:
 
     async def execute(self, stmt, *a, **k):
         s = str(stmt)
+        if "INSERT INTO diary_gen_claims" in s:
+            return _Res([1])
         # #16+#24 사전 필터의 timezone distinct 조회 — id를 돌려주면 tz 해석이 전부 실패해
         # 유저 루프가 조용히 비므로 반드시 구분한다.
         if "profiles.timezone" in s and "profiles.id" not in s:
@@ -59,6 +67,12 @@ def _fake_get_sessionmaker(profiles):
             return _FakeSession(ids, by_id, tzs)
         return maker
     return get
+
+
+@pytest.fixture(autouse=True)
+def _default_diary_policy(monkeypatch):
+    monkeypatch.setattr(tick.diary_generation, "load_policy",
+                        AsyncMock(return_value=tick.diary_generation.DiaryPolicy()))
 
 
 async def test_run_tick_skips_bad_timezone_and_continues(monkeypatch):
@@ -102,7 +116,7 @@ async def test_run_tick_user_timeout_isolated(monkeypatch):
     async def _cfg(session):
         return {}
 
-    async def _slow(now, pid, cfg):
+    async def _slow(now, pid, cfg, *, diary_policy):
         await asyncio.sleep(0.05)  # 타임아웃 상한 초과
         return {}
 
@@ -241,3 +255,79 @@ async def test_dependency_internal_rotation_via_next_attempt_at():
         if len(selected_ever) == n:
             break
     assert selected_ever == set(next_at)                # 모든 dependency가 결국 선택(굶지 않음)
+
+
+@pytest.mark.parametrize("reason", ["weekly_unavailable", "weekly_exhausted"])
+async def test_process_user_counts_no_entry_without_created_diary(monkeypatch, reason):
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    generate = AsyncMock(return_value={
+        "created": False, "skipped": False, "source": "none", "reason": reason,
+    })
+    monkeypatch.setattr(tick.diary_generation, "generate_for_user", generate)
+    policy = tick.diary_generation.DiaryPolicy(date(2026, 9, 7))
+    # 09-08 04:00 KST: 전날의 발행 결과를 확정한다.
+    counts = await tick._process_user(datetime(2026, 9, 7, 19, tzinfo=timezone.utc),
+                                      p.id, {}, diary_policy=policy)
+    assert counts["diary_none"] == counts["diary_attempted"] == 1
+    assert counts["diaries"] == counts["diary_failed"] == counts["diary_skipped"] == 0
+    assert generate.await_args.kwargs == {"policy": policy}
+    assert generate.await_args.args[2] == date(2026, 9, 7)
+
+
+async def test_process_user_missing_policy_stops_generation_before_claim(monkeypatch):
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    session = _FakeSession([p.id], {p.id: p}, [p.timezone])
+    session.execute = AsyncMock(side_effect=AssertionError("정책 오류에서는 클레임도 만들지 않음"))
+    monkeypatch.setattr(tick, "get_sessionmaker", lambda: lambda: session)
+    generate = AsyncMock()
+    monkeypatch.setattr(tick.diary_generation, "generate_for_user", generate)
+    counts = await tick._process_user(datetime(2026, 9, 7, 19, tzinfo=timezone.utc),
+                                      p.id, {}, diary_policy=None)
+    assert counts["diary_failed"] == counts["diary_attempted"] == 1
+    assert counts["diaries"] == counts["diary_none"] == 0
+    generate.assert_not_awaited()
+    session.execute.assert_not_awaited()
+
+
+async def test_missing_diary_policy_keeps_morning_notification_working(monkeypatch):
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    morning = AsyncMock(return_value=True)
+    monkeypatch.setattr(tick.notify, "notify_morning", morning)
+    counts = await tick._process_user(datetime(2026, 9, 8, 0, tzinfo=timezone.utc),
+                                      p.id, {}, diary_policy=None)
+    assert counts["morning"] == 1 and counts["diary_failed"] == 0
+    morning.assert_awaited_once()
+
+
+async def test_run_tick_policy_load_failure_counts_failed_diary_users(monkeypatch):
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
+    loader = AsyncMock(side_effect=ValueError("bad cutover setting"))
+    monkeypatch.setattr(tick.diary_generation, "load_policy", loader)
+    generate = AsyncMock()
+    monkeypatch.setattr(tick.diary_generation, "generate_for_user", generate)
+    counts = await tick.run_tick(datetime(2026, 9, 7, 19, tzinfo=timezone.utc))
+    assert counts["users"] == counts["diary_failed"] == counts["diary_attempted"] == 1
+    assert counts["diaries"] == counts["diary_none"] == 0
+    loader.assert_awaited_once()
+    generate.assert_not_awaited()
+
+
+async def test_run_tick_loads_policy_once_and_aggregates_no_entries(monkeypatch):
+    profiles = [SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul") for _ in range(2)]
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker(profiles))
+    monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
+    policy = tick.diary_generation.DiaryPolicy(date(2026, 9, 7))
+    loader = AsyncMock(return_value=policy)
+    monkeypatch.setattr(tick.diary_generation, "load_policy", loader)
+    generate = AsyncMock(return_value={"created": False, "source": "none", "reason": "weekly_exhausted"})
+    monkeypatch.setattr(tick.diary_generation, "generate_for_user", generate)
+    counts = await tick.run_tick(datetime(2026, 9, 7, 19, tzinfo=timezone.utc))
+    assert counts["users"] == counts["diary_none"] == counts["diary_attempted"] == 2
+    assert counts["diaries"] == counts["diary_failed"] == 0
+    loader.assert_awaited_once()
+    assert generate.await_count == 2
+    assert all(call.kwargs["policy"] is policy for call in generate.await_args_list)

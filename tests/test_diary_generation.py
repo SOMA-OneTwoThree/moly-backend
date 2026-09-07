@@ -2,6 +2,9 @@
 import uuid
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 
 from app.config import settings
@@ -18,12 +21,22 @@ class FakeSession:
     def __init__(self):
         self.added = []
         self.committed = False
+        self.rollbacks = 0
+        self.executed = []
+        self.active_weekly = False
 
     def add(self, obj):
         self.added.append(obj)
 
     async def execute(self, stmt, params=None):
+        self.executed.append((str(stmt), params))
         return None
+
+    async def scalar(self, stmt, params=None):
+        return self.active_weekly
+
+    async def rollback(self):
+        self.rollbacks += 1
 
     async def flush(self):
         for obj in self.added:
@@ -51,6 +64,7 @@ def _patch_common(monkeypatch, *, exists=False, messages=None, tokens=5000, ment
         return None
 
     monkeypatch.setattr(dg, "_diary_exists", _exists)
+    monkeypatch.setattr(dg, "_lock_and_check", _exists)
     monkeypatch.setattr(dg, "_day_messages", _msgs)
     monkeypatch.setattr(dg, "_tokens_used", _toks)
     monkeypatch.setattr(dg, "_pick_ment", _pick)
@@ -109,7 +123,7 @@ async def test_personal_diary_when_tokens_above_threshold(monkeypatch):
 
     monkeypatch.setattr(llm_module, "generate", _gen)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert d.source == "llm"
     assert d.weather == "sunny"
@@ -133,7 +147,7 @@ async def test_personal_non_korean_preserves_cjk(monkeypatch):
     monkeypatch.setattr(dg, "_surgical_repair", _no_surgical)
     profile = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="ja")
     session = FakeSession()
-    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert d.source == "llm" and d.weather == "sunny"
     assert "漢字も残る" in d.content and "今日" in d.content  # CJK 보존
@@ -151,7 +165,7 @@ async def test_personal_english_preserves_punctuation(monkeypatch):
     monkeypatch.setattr(llm_module, "generate", _gen)
     profile = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="en")
     session = FakeSession()
-    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert "laid-back" in d.content and "I'm" in d.content  # 하이픈·아포스트로피 보존
 
@@ -173,7 +187,7 @@ async def test_personal_korean_repairs_foreign_chars(monkeypatch):
     monkeypatch.setattr(llm_module, "generate", _gen)
     monkeypatch.setattr(dg, "_surgical_repair", _repair)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert "repaired" in calls  # ko는 서지컬 복원 발동
     assert d.content == "오늘 발표를 무사히 마쳤다."
@@ -191,7 +205,7 @@ async def test_publishes_personal_even_when_self_check_fails(monkeypatch):
 
     monkeypatch.setattr(llm_module, "generate", _gen)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert d.source == "llm"  # 리젝에도 개인일기 발행(preset 아님)
     assert d.weather == "sunny"
@@ -210,7 +224,7 @@ async def test_diary_body_strips_markdown_and_ellipsis(monkeypatch):
 
     monkeypatch.setattr(llm_module, "generate", _gen)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert d.source == "llm"
     assert "**" not in d.content and "..." not in d.content and "…" not in d.content
@@ -229,7 +243,7 @@ async def test_moly_diary_when_below_threshold(monkeypatch):
 
     monkeypatch.setattr(llm_module, "generate", _gen)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     assert session.added[0].source == "preset"
     assert called["llm"] is False  # 임계 미달 → LLM 미호출
 
@@ -237,7 +251,7 @@ async def test_moly_diary_when_below_threshold(monkeypatch):
 async def test_idempotent_skips_when_exists(monkeypatch):
     _patch_common(monkeypatch, exists=True)
     session = FakeSession()
-    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     assert session.added == []
     assert session.committed is False
 
@@ -245,7 +259,7 @@ async def test_idempotent_skips_when_exists(monkeypatch):
 async def test_no_ment_records_processing_without_a_fake_diary(monkeypatch):
     _patch_common(monkeypatch, messages=[], tokens=0, ment=None)
     session = FakeSession()
-    result = await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG)
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     assert result["reason"] == "no_scheduled_entry"
     assert session.added == []
     assert session.committed is True
@@ -376,3 +390,148 @@ async def test_surgical_repair_succeeds_on_second_attempt(monkeypatch):
     monkeypatch.setattr(dg.llm, "generate", fake)
     assert await dg._surgical_repair(body) == fixed
     assert calls["n"] == 2  # 2차까지 시도
+
+
+# 주간 전환 정책: unset만 legacy이며 잘못된 설정은 조용히 fallback하지 않는다.
+@pytest.mark.parametrize("raw", [None, "2026-09-07"])
+async def test_load_policy_accepts_unset_or_iso_monday(monkeypatch, raw):
+    values = {} if raw is None else {"diary_weekly_start_date": raw}
+    monkeypatch.setattr(dg.config_store, "get_config_values", AsyncMock(return_value=values))
+    policy = await dg.load_policy(FakeSession())
+    assert policy.weekly_start_date == (None if raw is None else date(2026, 9, 7))
+    assert policy.is_weekly(date(2026, 9, 6)) is False
+    assert policy.is_weekly(date(2026, 9, 7)) is (raw is not None)
+
+
+@pytest.mark.parametrize("raw", ["", "2026-09-08", "20260907", "2026-W37-1", 1, {}, True])
+async def test_load_policy_rejects_malformed_setting(monkeypatch, raw):
+    monkeypatch.setattr(dg.config_store, "get_config_values",
+                        AsyncMock(return_value={"diary_weekly_start_date": raw}))
+    with pytest.raises(ValueError, match="ISO Monday"):
+        await dg.load_policy(FakeSession())
+
+
+async def test_load_policy_propagates_database_failure(monkeypatch):
+    monkeypatch.setattr(dg.config_store, "get_config_values",
+                        AsyncMock(side_effect=RuntimeError("database unavailable")))
+    with pytest.raises(RuntimeError, match="database unavailable"):
+        await dg.load_policy(FakeSession())
+
+
+@pytest.mark.parametrize("activity,week", [
+    (date(2026, 9, 7), date(2026, 9, 7)),
+    (date(2026, 9, 13), date(2026, 9, 7)),
+    (date(2026, 9, 14), date(2026, 9, 14)),
+    (date(2027, 1, 3), date(2026, 12, 28)),
+])
+def test_week_uses_activity_day_including_sunday_and_year_boundary(activity, week):
+    assert dg._week_start(activity) == week
+
+
+@pytest.mark.parametrize("lock", [False, True])
+async def test_weekly_selector_binds_user_and_week_and_excludes_consumed(lock):
+    row = {"id": uuid.uuid4(), "content": "원고", "weather": "sunny",
+           "week_start_date": date(2026, 9, 7), "sequence_no": 2}
+    result = Mock()
+    result.mappings.return_value.first.return_value = row
+    session = AsyncMock()
+    session.execute.return_value = result
+    got = await dg._pick_weekly_ment(session, PROFILE.id, date(2026, 9, 7), lock=lock)
+    assert got.id == row["id"] and got.sequence_no == 2
+    statement, params = session.execute.await_args.args
+    sql = str(statement)
+    assert params == {"week": date(2026, 9, 7), "uid": PROFILE.id}
+    assert "m.is_active=true" in sql and "NOT EXISTS" in sql
+    assert "r.user_id=:uid" in sql and "r.preset_ment_id=m.id" in sql
+    assert "ORDER BY m.sequence_no LIMIT 1" in sql
+    assert ("FOR SHARE OF m" in sql) is lock
+
+
+async def test_weekly_personal_diary_never_selects_or_consumes_operator_entry(monkeypatch):
+    _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")])
+    monkeypatch.setattr(dg, "_personal", AsyncMock(return_value=(
+        ("발표를 마쳤다.", "sunny"), {"empty_body": False, "self_check_passed": True})))
+    picker = AsyncMock(side_effect=AssertionError("개인 일기에서 운영 원고를 소비하면 안 됨"))
+    monkeypatch.setattr(dg, "_pick_weekly_ment", picker)
+    session = FakeSession()
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 9, 7), CFG,
+                                        policy=dg.DiaryPolicy(date(2026, 9, 7)))
+    assert result["created"] and result["source"] == "llm"
+    picker.assert_not_awaited()
+    assert not any("diary_generation_results" in sql for sql, _ in session.executed)
+
+
+async def test_weekly_preset_records_consumption_in_same_commit(monkeypatch):
+    _patch_common(monkeypatch, messages=[])
+    ment = SimpleNamespace(id=uuid.uuid4(), content="한가한 하루.", weather="rainy")
+    picker = AsyncMock(return_value=ment)
+    monkeypatch.setattr(dg, "_pick_weekly_ment", picker)
+    session = FakeSession()
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 9, 13), CFG,
+                                        policy=dg.DiaryPolicy(date(2026, 9, 7)))
+    assert result["created"] and result["source"] == "preset"
+    assert session.added[0].preset_ment_id == ment.id
+    assert session.added[0].published_at == datetime(2026, 9, 14, 0, tzinfo=timezone.utc)
+    assert picker.await_args_list[0].args[2] == date(2026, 9, 7)
+    assert picker.await_args_list[1].kwargs == {"lock": True}
+    writes = [(sql, params) for sql, params in session.executed
+              if "INSERT INTO diary_generation_results" in sql]
+    assert len(writes) == 1 and writes[0][1]["ment"] == ment.id
+    assert session.committed
+
+
+@pytest.mark.parametrize("active,reason", [(False, "weekly_unavailable"), (True, "weekly_exhausted")])
+async def test_weekly_missing_entry_is_terminal_without_fake_diary(monkeypatch, active, reason):
+    _patch_common(monkeypatch)
+    monkeypatch.setattr(dg, "_pick_weekly_ment", AsyncMock(return_value=None))
+    session = FakeSession()
+    session.active_weekly = active
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 9, 7), CFG,
+                                        policy=dg.DiaryPolicy(date(2026, 9, 7)))
+    assert result["created"] is False and result["source"] == "none"
+    assert result["reason"] == reason
+    assert session.added == [] and session.committed
+    assert any("'no_entry'" in sql for sql, _ in session.executed)
+
+
+async def test_weekly_candidate_withdrawal_reselects_before_consuming(monkeypatch):
+    _patch_common(monkeypatch)
+    withdrawn = SimpleNamespace(id=uuid.uuid4(), content="회수 전 원고", weather="sunny")
+    replacement = SimpleNamespace(id=uuid.uuid4(), content="다음 원고", weather="rainy")
+    picker = AsyncMock(side_effect=[withdrawn, replacement, replacement, replacement])
+    monkeypatch.setattr(dg, "_pick_weekly_ment", picker)
+    session = FakeSession()
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 9, 7), CFG,
+                                        policy=dg.DiaryPolicy(date(2026, 9, 7)))
+    assert result["created"] and len(session.added) == 1
+    assert session.added[0].preset_ment_id == replacement.id
+    writes = [params for sql, params in session.executed
+              if "INSERT INTO diary_generation_results" in sql]
+    assert [p["ment"] for p in writes] == [replacement.id]
+
+
+async def test_llm_failure_rolls_back_without_consuming_weekly_entry(monkeypatch):
+    _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")])
+    monkeypatch.setattr(dg, "_personal", AsyncMock(side_effect=RuntimeError("LLM unavailable")))
+    picker = AsyncMock()
+    monkeypatch.setattr(dg, "_pick_weekly_ment", picker)
+    session = FakeSession()
+    with pytest.raises(RuntimeError, match="LLM unavailable"):
+        await dg.generate_for_user(session, PROFILE, date(2026, 9, 7), CFG,
+                                   policy=dg.DiaryPolicy(date(2026, 9, 7)))
+    picker.assert_not_awaited()
+    assert not session.committed and session.added == [] and session.rollbacks >= 1
+
+
+async def test_two_empty_personal_attempts_fall_back_to_weekly_entry(monkeypatch):
+    _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")])
+    personal = AsyncMock(return_value=(None, {"empty_body": True, "self_check_passed": None}))
+    monkeypatch.setattr(dg, "_personal", personal)
+    ment = SimpleNamespace(id=uuid.uuid4(), content="운영자 원고", weather="sunny")
+    monkeypatch.setattr(dg, "_pick_weekly_ment", AsyncMock(return_value=ment))
+    session = FakeSession()
+    result = await dg.generate_for_user(session, PROFILE, date(2026, 9, 7), CFG,
+                                        policy=dg.DiaryPolicy(date(2026, 9, 7)))
+    assert personal.await_count == 2
+    assert result["created"] and result["source"] == "preset"
+    assert result["empty_body"] is True

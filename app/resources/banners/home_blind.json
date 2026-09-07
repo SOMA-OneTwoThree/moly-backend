@@ -688,12 +688,12 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "bottom",
+              "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.269,
+                "y": 0.285,
                 "width": 0.88,
-                "height": 0.298
+                "height": 0.31
               },
               "text": {
                 "kind": "template",
@@ -848,12 +848,12 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "bottom",
+              "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.269,
+                "y": 0.285,
                 "width": 0.88,
-                "height": 0.298
+                "height": 0.31
               },
               "text": {
                 "kind": "template",
@@ -1008,12 +1008,12 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "bottom",
+              "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.269,
+                "y": 0.285,
                 "width": 0.88,
-                "height": 0.298
+                "height": 0.31
               },
               "text": {
                 "kind": "template",

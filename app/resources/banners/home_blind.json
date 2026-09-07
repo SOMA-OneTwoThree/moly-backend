@@ -691,7 +691,7 @@
               "vertical_align": "bottom",
               "frame": {
                 "x": 0.06,
-                "y": 0.279,
+                "y": 0.269,
                 "width": 0.88,
                 "height": 0.31
               },
@@ -851,7 +851,7 @@
               "vertical_align": "bottom",
               "frame": {
                 "x": 0.06,
-                "y": 0.279,
+                "y": 0.269,
                 "width": 0.88,
                 "height": 0.31
               },
@@ -1011,7 +1011,7 @@
               "vertical_align": "bottom",
               "frame": {
                 "x": 0.06,
-                "y": 0.279,
+                "y": 0.269,
                 "width": 0.88,
                 "height": 0.31
               },
@@ -1091,6 +1091,504 @@
               "semantics_order": 3,
               "action": {
                 "type": "open_topic_conversation_v1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "shop-new-items",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {},
+      "when": null,
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/shop-background-1-3e3550dbdda5d949c029b619464386787485c36ebc8318acef2afcb703de1e18.webp",
+              "sha256": "3e3550dbdda5d949c029b619464386787485c36ebc8318acef2afcb703de1e18",
+              "byte_length": 5210,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "NEW ITEMS"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.285,
+                "width": 0.88,
+                "height": 0.31
+              },
+              "text": {
+                "kind": "template",
+                "value": "Give Cappy a new look!"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFFFFF"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#FFFFFF"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "Visit shop"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "Visit shop",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_shop"
+              }
+            }
+          ]
+        },
+        "ko": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/shop-background-1-3e3550dbdda5d949c029b619464386787485c36ebc8318acef2afcb703de1e18.webp",
+              "sha256": "3e3550dbdda5d949c029b619464386787485c36ebc8318acef2afcb703de1e18",
+              "byte_length": 5210,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "새로운 아이템 추가"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.285,
+                "width": 0.88,
+                "height": 0.31
+              },
+              "text": {
+                "kind": "template",
+                "value": "캐피를 꾸며보세요!"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFFFFF"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#FFFFFF"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "상점 가기"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "상점 가기",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_shop"
+              }
+            }
+          ]
+        },
+        "ja": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/shop-background-1-3e3550dbdda5d949c029b619464386787485c36ebc8318acef2afcb703de1e18.webp",
+              "sha256": "3e3550dbdda5d949c029b619464386787485c36ebc8318acef2afcb703de1e18",
+              "byte_length": 5210,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "新アイテム登場"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.285,
+                "width": 0.88,
+                "height": 0.31
+              },
+              "text": {
+                "kind": "template",
+                "value": "キャピーを着せ替えよう！"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#FFFFFF"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#FFFFFF"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "ショップへ"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "ショップへ",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_shop"
               }
             }
           ]

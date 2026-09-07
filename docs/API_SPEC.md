@@ -63,6 +63,7 @@
 |  | `POST /me/push-token` · `POST /auth/logout` · `DELETE /me` | 푸시토큰·로그아웃·탈퇴 |
 | 대화 | `GET /chat/state` | 오늘 토큰 사용량·한도 |
 |  | `GET /chat/messages` · `POST /chat/messages` · `GET /chat/greeting` | 이력·전송·선발화 |
+| 감정일기 | `GET /moods?month=YYYY-MM` · `PUT /moods/{date}` · `DELETE /moods/{date}` | 월별 조회·날짜별 저장·삭제 |
 | 일기 | `GET /diaries` · `GET /diaries/{id}` · `POST /diaries/{id}/read` | 목록·상세·열람 |
 | 구독 | `GET /subscription` · `GET /subscription/plans` | 상태·플랜 |
 | 건초 | `GET /wallet` · `GET /wallet/transactions` | 잔액·내역 |
@@ -319,6 +320,20 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 ```
 
 ### `POST /diaries/{id}/read` → 204 (멱등, 최초 `first_read_at` 기록)
+
+---
+
+## 4.1. 사용자 감정일기
+
+Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 별도인 사용자 입력 데이터다.
+
+- `GET /moods?month=2026-09` → `200`, `{"data":[{"date":"2026-09-07","kind":"content","note":"편안한 하루"}]}`. 해당 월 전체를 날짜 내림차순으로 반환하며, 기록이 없으면 `data: []`다.
+- `PUT /moods/2026-09-07`, 본문 `{"kind":"content","note":"편안한 하루"}` → `200`, `{"date":"2026-09-07","kind":"content","note":"편안한 하루"}`. 같은 사용자의 같은 날짜는 원자적으로 덮어쓴다.
+- `DELETE /moods/2026-09-07` → `204`, 본문 없음. 기록이 없어도 성공한다.
+
+`kind`는 필수 자유 문자열이며 서버에서 감정 목록을 고정하지 않는다. `note`는 선택 문자열로 길이 제한이 없고, 생략하면 빈 문자열로 저장·덮어쓴다. 날짜는 유효한 `YYYY-MM-DD`, 월은 `YYYY-MM` 형식이며 잘못된 값은 기존 `422 VALIDATION` 응답을 따른다.
+
+현지 날짜를 그대로 저장하고 AppDay·서버 시간대로 변환하지 않는다. 과거·미래 날짜 및 1년 보관 제한은 없다. 조회는 기록을 자동 생성하지 않는다. 오늘 작성 창을 닫을 때 `neutral`과 빈 메모를 저장하는 동작 및 월별 통계 계산은 클라이언트가 담당한다.
 
 ---
 

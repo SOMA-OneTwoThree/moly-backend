@@ -22,6 +22,7 @@ from app.core.db import get_session
 from app.core.security import get_current_user
 from app.core.time_utils import activity_date_for
 from app.config import settings
+from app.core.advisory_lock import advisory_xact_lock
 from app.models.diary import Diary
 from app.models.profile import Profile
 from app.schemas.dev import (
@@ -36,7 +37,7 @@ from app.schemas.dev import (
     RecallDiariesRequest,
     RecallMemoryRequest,
 )
-from app.services import diary_generation, model_eval
+from app.services import diary_generation, model_eval, privacy
 from app.services.account import _uid
 from app.services.limits import effective_token_config
 from app.services.prompts import system_prompt
@@ -87,7 +88,25 @@ async def generate_diary(
     now = datetime.now(timezone.utc)
     target = req.target_date or activity_date_for(now, profile.timezone)
 
+    try:
+        policy = await diary_generation.load_policy(session)
+    except Exception:  # noqa: BLE001
+        await session.rollback()
+        raise errors.AppError("DIARY_POLICY_UNAVAILABLE", 503, "일기 설정을 확인할 수 없어요.") from None
+    if policy.is_weekly(target):
+        if req.force:
+            raise errors.AppError("DIARY_FORCE_NOT_ALLOWED", 409, "주간 일기는 강제 재생성할 수 없어요.")
+        if target >= activity_date_for(now, profile.timezone):
+            raise errors.validation("주간 일기는 종료된 활동일만 생성할 수 있어요.")
+
     if req.force:
+        await advisory_xact_lock(session, uid)
+        await privacy.ensure_subject_active(session, uid)
+        if await session.scalar(text(
+            "SELECT 1 FROM diary_generation_results "
+            "WHERE user_id=:user_id AND target_date=:day AND status='preset'"
+        ), {"user_id": uid, "day": target}) is not None:
+            raise errors.AppError("DIARY_FORCE_NOT_ALLOWED", 409, "지급한 주간 일기는 재생성할 수 없어요.")
         await session.execute(
             delete(Diary).where(
                 Diary.user_id == uid,
@@ -96,13 +115,14 @@ async def generate_diary(
             )
         )
         await session.execute(
-            text("DELETE FROM diary_generation_results WHERE user_id=:user_id AND target_date=:day"),
+            text("DELETE FROM diary_generation_results "
+                 "WHERE user_id=:user_id AND target_date=:day AND status='no_entry'"),
             {"user_id": uid, "day": target},
         )
         await session.commit()
 
     cfg = await effective_token_config(session)
-    diag = await diary_generation.generate_for_user(session, profile, target, cfg)
+    diag = await diary_generation.generate_for_user(session, profile, target, cfg, policy=policy)
 
     diary = (
         await session.execute(
@@ -273,9 +293,13 @@ async def inspect_diary_recall(
 
 def _hint(diag: dict[str, Any]) -> str:
     if diag.get("skipped"):
-        return "이미 일기가 있어 스킵됨. force=true로 재생성하세요."
+        return "이미 해당 날짜의 일기 또는 미발행 처리가 확정되어 스킵됨."
     if diag.get("source") == "llm":
         return "개인일기 생성 성공."
+    if diag.get("reason") == "weekly_unavailable":
+        return "이번 주 활성 운영자 일기가 없어 미발행 처리됨."
+    if diag.get("reason") == "weekly_exhausted":
+        return "이번 주 운영자 일기를 모두 지급받아 미발행 처리됨."
     if diag.get("reason") == "no_scheduled_entry":
         return "지정된 캐피 일기가 없어 미발행으로 처리됨. 가짜 일기 행은 만들지 않음."
     if not diag.get("gate_passed"):

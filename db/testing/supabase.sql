@@ -1,5 +1,7 @@
 -- Minimal Supabase dependencies for a DISPOSABLE local PostgreSQL database.
 -- Never run this fixture on Supabase or an existing environment.
+-- Supabase supplies pgcrypto; diary recall uses digest(text, text).
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN

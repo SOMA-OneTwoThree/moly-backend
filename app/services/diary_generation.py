@@ -1,29 +1,97 @@
 """일기 생성 배치 로직 — 워커가 04:00 틱에 전일 일기를 만든다.
 
-분기(ERD §5.3): 전일 누적토큰 ≥ 임계 → 개인(llm, Sonnet 생성 + Haiku self-check)
-              / 미달·미접속 → 캐피(preset, 멘트 풀). 멱등: unique(user, diary_date).
+사용자 메시지 문자 수 충족 시 개인 일기, 미달이면 운영 원고를 사용한다.
+주간 전환일 이후에는 사용자별 미수령 원고를 순서대로 지급한다.
 """
 from __future__ import annotations
 
 import difflib
 import logging
+from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
+from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from app.config import settings
+from app.core.advisory_lock import advisory_xact_lock
 from app.core.time_utils import safe_zone
 from app.models.diary import Diary
 from app.models.message import Message
+from app.models.profile import Profile
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
 from app.services import diary_recall_repo, i18n, llm, naming, text_clean, usage_ledger
-from app.services import diary_prompts
+from app.services import config_store, diary_prompts, privacy
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
+
+
+@dataclass(frozen=True)
+class DiaryPolicy:
+    weekly_start_date: date | None = None
+
+    def is_weekly(self, target_date: date) -> bool:
+        return self.weekly_start_date is not None and target_date >= self.weekly_start_date
+
+
+async def load_policy(session: AsyncSession) -> DiaryPolicy:
+    """미설정은 날짜별 방식. 잘못된 설정/조회 실패는 생성 실패로 처리한다."""
+    raw = (await config_store.get_config_values(session, ["diary_weekly_start_date"])).get(
+        "diary_weekly_start_date"
+    )
+    if raw is None:
+        return DiaryPolicy()
+    if not isinstance(raw, str):
+        raise ValueError("diary_weekly_start_date must be an ISO Monday")
+    try:
+        start = date.fromisoformat(raw)
+    except ValueError:
+        raise ValueError("diary_weekly_start_date must be an ISO Monday") from None
+    if start.isoformat() != raw or start.weekday() != 0:
+        raise ValueError("diary_weekly_start_date must be an ISO Monday")
+    return DiaryPolicy(start)
+
+
+def _week_start(target_date: date) -> date:
+    return target_date - timedelta(days=target_date.weekday())
+
+
+def _ment_snapshot(ment):
+    if ment is None:
+        return None
+    return SimpleNamespace(
+        id=ment.id, content=ment.content, weather=ment.weather,
+        week_start_date=getattr(ment, "week_start_date", None),
+        sequence_no=getattr(ment, "sequence_no", None),
+    )
+
+
+async def _pick_weekly_ment(
+    session: AsyncSession, user_id, week_start: date, *, lock: bool = False,
+):
+    stmt = text(
+        "SELECT m.id,m.content,m.weather,m.week_start_date,m.sequence_no "
+        "FROM moly_life_ments m "
+        "WHERE m.week_start_date=:week AND m.is_active=true "
+        "AND NOT EXISTS (SELECT 1 FROM diary_generation_results r "
+        "WHERE r.user_id=:uid AND r.status='preset' AND r.preset_ment_id=m.id) "
+        "ORDER BY m.sequence_no LIMIT 1" + (" FOR SHARE OF m" if lock else "")
+    )
+    row = (await session.execute(stmt, {"week": week_start, "uid": user_id})).mappings().first()
+    return SimpleNamespace(**row) if row is not None else None
+
+
+async def _lock_and_check(session: AsyncSession, user_id, target_date: date) -> bool:
+    await advisory_xact_lock(session, user_id)
+    await privacy.ensure_subject_active(session, user_id)
+    if await session.scalar(select(Profile.id).where(Profile.id == user_id)) is None:
+        raise RuntimeError("diary profile no longer exists")
+    return await _diary_exists(session, user_id, target_date)
 
 
 def publish_at(target_date: date, tz_name: str) -> datetime:
@@ -46,7 +114,7 @@ async def _diary_exists(session: AsyncSession, user_id, target_date: date) -> bo
     processed = await session.scalar(
         text(
             "SELECT 1 FROM diary_generation_results "
-            "WHERE user_id=:user_id AND target_date=:target_date AND status='no_entry'"
+            "WHERE user_id=:user_id AND target_date=:target_date AND status IN ('no_entry','preset')"
         ),
         {"user_id": user_id, "target_date": target_date},
     )
@@ -276,125 +344,164 @@ async def _translate_preset(
     return r.text.strip() or content
 
 
-async def generate_for_user(
-    session: AsyncSession, profile, target_date: date, cfg: dict[str, Any]
+async def _finalize_diary(
+    session: AsyncSession, profile, target_date: date, *, policy: DiaryPolicy,
+    source: str, content: str | None, weather: str, ment, messages: list,
 ) -> dict[str, Any]:
-    """전일 일기 1건 생성(멱등). profile = Profile(또는 동형: id·timezone·language).
-
-    반환 = 진단정보(dev 엔드포인트·로깅용). 생성 자체의 성패는 예외로만 알린다.
-    """
-    gate = cfg["diary_min_user_chars"]
-    if await _diary_exists(session, profile.id, target_date):
+    """사용자 잠금 안에서 재확인 후 일기/지급이력/회상 잡을 함께 확정한다."""
+    if await _lock_and_check(session, profile.id, target_date):
+        await session.rollback()
         return {"created": False, "skipped": True, "reason": "already_exists"}
-
-    messages = await _day_messages(session, profile.id, target_date)
-    # 개인일기 게이트 = 당일 유저 메시지 문자수(토큰 카운터와 분리 → 회계/캐싱 변경에 불변).
-    user_chars = sum(len(m.content or "") for m in messages if m.sender == "user")
-
-    source, weather, content, preset_id = "preset", "cloudy", None, None
-    diag: dict[str, Any] = {"empty_body": None, "self_check_passed": None}
-    # 원가 원장 귀속 — 일기는 배치(background) lane이며 활동일은 생성 대상 날짜다.
-    ledger = usage_ledger.LedgerContext(
-        lane=usage_ledger.LANE_BACKGROUND,
-        purpose="diary_generate",
-        user_id=profile.id,
-        activity_date=target_date,
-    )
-    gate_passed = bool(messages) and user_chars >= gate
-    if gate_passed:
-        personal, diag = await _personal(profile, messages, ledger=ledger)
-        # personal is None = 빈 본문(드묾). self-check는 이제 비차단이라 리젝으론 None이 안 된다.
-        # 빈 본문일 때만 1회 재생성(폐기율 제곱으로↓). 그래도 비면 preset.
-        if personal is None:
-            _log.info("개인일기 빈 본문 재생성 1회 시도(user=%s)", getattr(profile, "id", None))
-            personal, retry_diag = await _personal(profile, messages, ledger=ledger)
-            diag = {**retry_diag, "retried": True}
-        if personal is not None:
-            content, weather = personal
-            # 개인일기 본문의 이름 → placeholder(egress에서 현재 이름 렌더). self-check 이후라 검사엔 무영향.
-            content = naming.to_placeholder(content, getattr(profile, "nickname", None))
-            source = "llm"
-
-    published: datetime | None = publish_at(target_date, profile.timezone)
+    weekly = policy.is_weekly(target_date)
     if source == "preset":
-        ment = await _pick_ment(session, target_date)
-        if ment is not None:
-            # 프리셋도 정제 통과(개인일기와 동일) — CSV/시드에 깨짐·부호 섞여도 저장 전 걸러낸다.
-            content, weather, preset_id = text_clean.strip_symbols(ment.content), ment.weather, ment.id
-            # 비한국어 유저는 preset(한국어 카피)을 유저 언어로 번역해 발행(우리가 넣는 일기도 언어 대응).
-            plang = getattr(profile, "language", None)
-            if not i18n.is_korean(plang):
-                content = await _translate_preset(
-                    content, plang, user_id=getattr(profile, "id", None), ledger=ledger
-                )
-                content = text_clean.strip_symbols(content, keep_hyphen=True)  # 번역 부호 재정제(en 하이픈 유지)
-        else:
-            # 미발행 처리 좌표는 일기 정본에 가짜 빈 행을 넣지 않고 별도 결과 테이블에 둔다.
-            await session.execute(
-                text(
-                    "INSERT INTO diary_generation_results(user_id,target_date,status) "
-                    "VALUES (:user_id,:target_date,'no_entry') ON CONFLICT DO NOTHING"
-                ),
-                {"user_id": profile.id, "target_date": target_date},
+        if weekly:
+            current = await _pick_weekly_ment(
+                session, profile.id, _week_start(target_date), lock=True,
             )
+        else:
+            current = _ment_snapshot(await _pick_ment(session, target_date))
+        # 원고 선택 이후 다른 날짜에 지급됐거나 회수/수정되면 새 후보를 준비한다.
+        if (
+            (current is None) != (ment is None)
+            or (current is not None and (
+                current.id != ment.id or current.content != ment.content
+                or current.weather != ment.weather
+            ))
+        ):
+            await session.rollback()
+            return {"retry": True, "reason": "candidate_changed"}
+        if current is None:
+            reason = "no_scheduled_entry"
+            if weekly:
+                active = await session.scalar(text(
+                    "SELECT EXISTS (SELECT 1 FROM moly_life_ments "
+                    "WHERE week_start_date=:week AND is_active=true)"
+                ), {"week": _week_start(target_date)})
+                reason = "weekly_exhausted" if active else "weekly_unavailable"
+            await session.execute(text(
+                "INSERT INTO diary_generation_results(user_id,target_date,status) "
+                "VALUES (:uid,:day,'no_entry')"
+            ), {"uid": profile.id, "day": target_date})
             await session.commit()
-            return {
-                "created": False,
-                "skipped": False,
-                "reason": "no_scheduled_entry",
-                "source": "none",
-                "user_chars": user_chars,
-                "gate": gate,
-                "gate_passed": gate_passed,
-                "personal_attempted": gate_passed,
-            }
-
+            return {"created": False, "skipped": False, "reason": reason, "source": "none"}
+    if not content or not content.strip():
+        raise ValueError("cannot publish an empty diary")
     kind = "shared_day" if source == "llm" else "capi_day"
-    occurred_at = datetime.combine(
-        target_date, time(12, 0), tzinfo=safe_zone(profile.timezone)
-    ).astimezone(timezone.utc)
     diary = Diary(
-        user_id=profile.id,
-        diary_date=target_date,
-        kind=kind,
-        activity_date=target_date,
-        display_date=target_date,
-        title=None,
-        author="capi",
-        occurred_at=occurred_at,
-        occurred_timezone=profile.timezone,
-        occurred_timezone_provenance="profile_snapshot",
+        user_id=profile.id, diary_date=target_date, kind=kind,
+        activity_date=target_date, display_date=target_date, title=None, author="capi",
+        occurred_at=datetime.combine(target_date, time(12), tzinfo=safe_zone(profile.timezone))
+            .astimezone(timezone.utc),
+        occurred_timezone=profile.timezone, occurred_timezone_provenance="profile_snapshot",
         primary_subject="user" if kind == "shared_day" else "capi",
         about_tags=["user"] if kind == "shared_day" else ["capi"],
-        source=source,
-        preset_ment_id=preset_id,
-        content=content,
-        weather=weather,
-        published_at=published,
+        source=source, preset_ment_id=ment.id if source == "preset" else None,
+        content=content, weather=weather, published_at=publish_at(target_date, profile.timezone),
     )
     session.add(diary)
     await session.flush()
+    if weekly and source == "preset":
+        await session.execute(text(
+            "INSERT INTO diary_generation_results(user_id,target_date,status,preset_ment_id) "
+            "VALUES (:uid,:day,'preset',:ment)"
+        ), {"uid": profile.id, "day": target_date, "ment": ment.id})
     if kind == "shared_day":
         await diary_recall_repo.record_diary_sources(
-            session,
-            user_id=profile.id,
-            diary_id=diary.id,
+            session, user_id=profile.id, diary_id=diary.id,
             message_ids=[m.id for m in messages if m.sender == "user"],
         )
     await diary_recall_repo.upsert_diary_recall_document(
-        session, user_id=profile.id, diary_id=diary.id
+        session, user_id=profile.id, diary_id=diary.id,
     )
     await session.commit()
+    return {"created": True, "skipped": False, "source": source, "diary_id": str(diary.id)}
 
-    return {
-        "created": True,
-        "skipped": False,
-        "source": source,  # llm = 개인일기 / preset = 캐피 자기일기
-        "user_chars": user_chars,
-        "gate": gate,
-        "gate_passed": gate_passed,
-        "personal_attempted": gate_passed,
-        "empty_body": diag.get("empty_body"),
-        "self_check_passed": diag.get("self_check_passed"),
-        "diary_id": str(diary.id) if diary.id else None,
+
+def _is_generation_conflict(exc: IntegrityError) -> bool:
+    orig = getattr(exc.orig, "__cause__", None) or exc.orig
+    return getattr(orig, "constraint_name", None) in {
+        "diaries_one_daily_uq", "diary_generation_results_pkey",
+        "diary_generation_results_user_preset_uq",
     }
+
+
+async def generate_for_user(
+    session: AsyncSession, profile, target_date: date, cfg: dict[str, Any], *, policy: DiaryPolicy,
+) -> dict[str, Any]:
+    """개인 우선, 운영 원고 대체, 미발행. 네트워크와 최종 DB 확정 구간을 분리한다."""
+    profile = SimpleNamespace(**{
+        key: getattr(profile, key, None) for key in ("id", "timezone", "language", "nickname")
+    })
+    try:
+        return await _generate_for_user(session, profile, target_date, cfg, policy=policy)
+    except BaseException:
+        await session.rollback()
+        raise
+
+
+async def _generate_for_user(session, profile, target_date, cfg, *, policy):
+    gate = cfg["diary_min_user_chars"]
+    if await _diary_exists(session, profile.id, target_date):
+        return {"created": False, "skipped": True, "reason": "already_exists"}
+    await privacy.ensure_subject_active(session, profile.id)
+    messages = [SimpleNamespace(id=m.id, sender=m.sender, content=m.content)
+                for m in await _day_messages(session, profile.id, target_date)]
+    user_chars = sum(len(m.content or "") for m in messages if m.sender == "user")
+    gate_passed = bool(messages) and user_chars >= gate
+    ledger = usage_ledger.LedgerContext(
+        lane=usage_ledger.LANE_BACKGROUND, purpose="diary_generate",
+        user_id=profile.id, activity_date=target_date,
+    )
+    await session.rollback()  # snapshot 완료. LLM 호출 중 DB 연결을 보유하지 않는다.
+    source, content, weather = "preset", None, "cloudy"
+    diag = {"empty_body": None, "self_check_passed": None}
+    if gate_passed:
+        personal, diag = await _personal(profile, messages, ledger=ledger)
+        if personal is None:
+            personal, diag = await _personal(profile, messages, ledger=ledger)
+            diag = {**diag, "retried": True}
+        if personal is not None:
+            content, weather = personal
+            content = naming.to_placeholder(content, profile.nickname)
+            source = "llm"
+    diagnostics = {
+        "user_chars": user_chars, "gate": gate, "gate_passed": gate_passed,
+        "personal_attempted": gate_passed, "empty_body": diag.get("empty_body"),
+        "self_check_passed": diag.get("self_check_passed"),
+    }
+    for _ in range(3):
+        ment = None
+        if source == "preset":
+            if policy.is_weekly(target_date):
+                ment = await _pick_weekly_ment(session, profile.id, _week_start(target_date))
+            else:
+                ment = _ment_snapshot(await _pick_ment(session, target_date))
+            await session.rollback()
+            if ment is not None:
+                original = text_clean.strip_symbols(ment.content)
+                content, weather = original, ment.weather
+                if not i18n.is_korean(profile.language):
+                    content = await _translate_preset(
+                        original, profile.language, user_id=profile.id, ledger=ledger,
+                    )
+                    content = text_clean.strip_symbols(content, keep_hyphen=True) or original
+        try:
+            result = await _finalize_diary(
+                session, profile, target_date, policy=policy, source=source,
+                content=content, weather=weather, ment=ment, messages=messages,
+            )
+        except IntegrityError as exc:
+            await session.rollback()
+            if not _is_generation_conflict(exc):
+                raise
+            continue
+        if result.get("retry"):
+            continue
+        if result.get("skipped"):
+            return result
+        # no_entry 스키마는 개인 생성 세부 필드를 갖지 않는다.
+        if result.get("source") == "none":
+            return {**{k: v for k, v in diagnostics.items()
+                       if k not in ("empty_body", "self_check_passed")}, **result}
+        return {**diagnostics, **result}
+    raise RuntimeError("diary generation contention; retry next tick")

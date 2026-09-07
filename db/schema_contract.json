@@ -1794,6 +1794,14 @@
         "not_null": true,
         "type": "timestamp with time zone"
       },
+      "public.diary_generation_results.preset_ment_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
       "public.diary_generation_results.status": {
         "collation": "\"default\"",
         "default": null,
@@ -3250,6 +3258,14 @@
         "not_null": true,
         "type": "boolean"
       },
+      "public.moly_life_ments.sequence_no": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "integer"
+      },
       "public.moly_life_ments.weather": {
         "collation": "\"default\"",
         "default": null,
@@ -3257,6 +3273,14 @@
         "identity": "",
         "not_null": true,
         "type": "text"
+      },
+      "public.moly_life_ments.week_start_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "date"
       },
       "public.order_items.id": {
         "collation": null,
@@ -6007,10 +6031,29 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.diary_generation_results.diary_generation_results_preset_ment_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preset_ment_id) REFERENCES public.moly_life_ments(id) ON DELETE RESTRICT",
+        "enforcement_triggers": [
+          "public.diary_generation_results:17:O",
+          "public.diary_generation_results:5:O",
+          "public.moly_life_ments:17:O",
+          "public.moly_life_ments:9:O"
+        ],
+        "validated": true
+      },
+      "public.diary_generation_results.diary_generation_results_preset_shape_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((status = 'preset'::text) AND (preset_ment_id IS NOT NULL)) OR ((status = 'no_entry'::text) AND (preset_ment_id IS NULL))))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.diary_generation_results.diary_generation_results_status_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((status = 'no_entry'::text))",
+        "definition": "CHECK ((status = ANY (ARRAY['no_entry'::text, 'preset'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -6699,6 +6742,13 @@
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.moly_life_ments.moly_life_ments_week_shape_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((week_start_date IS NULL) AND (sequence_no IS NULL)) OR ((week_start_date IS NOT NULL) AND (sequence_no IS NOT NULL) AND (diary_date IS NULL) AND (EXTRACT(isodow FROM week_start_date) = (1)::numeric) AND (sequence_no > 0))))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -8293,6 +8343,15 @@
         "unique": true,
         "valid": true
       },
+      "public.diary_generation_results_user_preset_uq": {
+        "definition": "CREATE UNIQUE INDEX diary_generation_results_user_preset_uq ON public.diary_generation_results USING btree (user_id, preset_ment_id) WHERE (status = 'preset'::text)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.diary_generation_results",
+        "unique": true,
+        "valid": true
+      },
       "public.diary_recall_documents_pkey": {
         "definition": "CREATE UNIQUE INDEX diary_recall_documents_pkey ON public.diary_recall_documents USING btree (user_id, diary_id)",
         "exclusion": false,
@@ -8772,6 +8831,15 @@
       },
       "public.moly_life_ments_pkey": {
         "definition": "CREATE UNIQUE INDEX moly_life_ments_pkey ON public.moly_life_ments USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.moly_life_ments",
+        "unique": true,
+        "valid": true
+      },
+      "public.moly_life_ments_week_sequence_uq": {
+        "definition": "CREATE UNIQUE INDEX moly_life_ments_week_sequence_uq ON public.moly_life_ments USING btree (week_start_date, sequence_no) WHERE (week_start_date IS NOT NULL)",
         "exclusion": false,
         "options": [],
         "ready": true,
@@ -13513,5 +13581,5 @@
       }
     }
   },
-  "schema_sha256": "5ee68eb17efbad55f9379377f888b2f039ec155ae9685300d3ca19cad4a1b82a"
+  "schema_sha256": "656d185f0c3ab611a2339dda050060ed22dc3ebedac789e3681048cf326d626b"
 }

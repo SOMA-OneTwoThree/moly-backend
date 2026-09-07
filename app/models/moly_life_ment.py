@@ -7,7 +7,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, String, text
+from sqlalchemy import Boolean, Date, DateTime, Integer, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,8 +23,10 @@ class MolyLifeMent(Base):
     content: Mapped[str] = mapped_column(String)
     weather: Mapped[str] = mapped_column(String)  # sunny | cloudy | rainy | windy
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
-    # 날짜 지정본이면 그 날짜. NULL이면 랜덤 폴백 풀.
+    # Legacy 날짜 지정본. 날짜 없는 legacy 풀은 선택하지 않는다.
     diary_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    week_start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    sequence_no: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=True
     )

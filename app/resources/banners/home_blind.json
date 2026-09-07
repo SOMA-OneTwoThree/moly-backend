@@ -29,12 +29,12 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "sha256": "97fa67e285e49190a5281998341e6fddbbe526e6f720c08c59291c343de69b75",
-              "byte_length": 13556,
+              "sha256": "37a850d9fbd4d1191a537e2fb6f52e9088438d3e71f6dca2ea5ba7781a59fbf6",
+              "byte_length": 13882,
               "pixel_width": 1000,
               "pixel_height": 563,
               "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-3-97fa67e285e49190a5281998341e6fddbbe526e6f720c08c59291c343de69b75.webp"
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-2-37a850d9fbd4d1191a537e2fb6f52e9088438d3e71f6dca2ea5ba7781a59fbf6.webp"
             },
             "fit": "cover",
             "alignment": {
@@ -72,7 +72,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -89,12 +89,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -117,7 +117,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 2,
                 "line_height": 1.15
@@ -193,12 +193,12 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "sha256": "97fa67e285e49190a5281998341e6fddbbe526e6f720c08c59291c343de69b75",
-              "byte_length": 13556,
+              "sha256": "37a850d9fbd4d1191a537e2fb6f52e9088438d3e71f6dca2ea5ba7781a59fbf6",
+              "byte_length": 13882,
               "pixel_width": 1000,
               "pixel_height": 563,
               "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-3-97fa67e285e49190a5281998341e6fddbbe526e6f720c08c59291c343de69b75.webp"
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-2-37a850d9fbd4d1191a537e2fb6f52e9088438d3e71f6dca2ea5ba7781a59fbf6.webp"
             },
             "fit": "cover",
             "alignment": {
@@ -236,7 +236,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -253,12 +253,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -281,7 +281,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 2,
                 "line_height": 1.15
@@ -357,12 +357,12 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "sha256": "97fa67e285e49190a5281998341e6fddbbe526e6f720c08c59291c343de69b75",
-              "byte_length": 13556,
+              "sha256": "37a850d9fbd4d1191a537e2fb6f52e9088438d3e71f6dca2ea5ba7781a59fbf6",
+              "byte_length": 13882,
               "pixel_width": 1000,
               "pixel_height": 563,
               "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-3-97fa67e285e49190a5281998341e6fddbbe526e6f720c08c59291c343de69b75.webp"
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/fortune-background-2-37a850d9fbd4d1191a537e2fb6f52e9088438d3e71f6dca2ea5ba7781a59fbf6.webp"
             },
             "fit": "cover",
             "alignment": {
@@ -400,7 +400,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -417,12 +417,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -445,7 +445,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 2,
                 "line_height": 1.15

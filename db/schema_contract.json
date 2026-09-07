@@ -9961,6 +9961,30 @@
       "public.chat_response_references:service_role:UPDATE": {
         "grantable": false
       },
+      "public.chat_topic_entries:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.conversation_checkpoints:service_role:DELETE": {
         "grantable": false
       },
@@ -12954,6 +12978,30 @@
       },
       "public.user_schedules:service_role:UPDATE": {
         "grantable": false
+      },
+      "public.user_topic_states:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:UPDATE": {
+        "grantable": false
       }
     },
     "rules": {},
@@ -13465,5 +13513,5 @@
       }
     }
   },
-  "schema_sha256": "0bd05f8ab723aac3e362a4d43835e6fa04c9d7a20413e97a9eb98bf49c50c097"
+  "schema_sha256": "5ee68eb17efbad55f9379377f888b2f039ec155ae9685300d3ca19cad4a1b82a"
 }

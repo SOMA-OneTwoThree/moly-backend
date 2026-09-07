@@ -2742,6 +2742,7 @@ CREATE INDEX IF NOT EXISTS topic_entry_expiry
 
 ALTER TABLE public.user_topic_states ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chat_topic_entries ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.user_topic_states, public.chat_topic_entries FROM anon, authenticated;
+REVOKE ALL ON public.user_topic_states, public.chat_topic_entries FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.user_topic_states, public.chat_topic_entries TO service_role;
 
 COMMIT;

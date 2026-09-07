@@ -236,7 +236,7 @@ async def test_topic_baseline_matches_models_and_denies_client_roles(database):
         baseline = Path("db/schema.sql").read_text()
         sql = baseline[baseline.index("-- Topic offers and prepared conversation openings."):]
         sql = sql.replace("BEGIN;", "").replace("COMMIT;", "").replace("public.", f'"{schema}".')
-        sql = sql.replace("FROM anon, authenticated", f'FROM "{anon}", "{authenticated}"')
+        sql = sql.replace("anon, authenticated", f'"{anon}", "{authenticated}"')
         await conn.execute(sql)
         await conn.execute(sql)
         for table, model in [("user_topic_states", UserTopicState), ("chat_topic_entries", ChatTopicEntry)]:

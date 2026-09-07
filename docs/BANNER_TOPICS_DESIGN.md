@@ -5,23 +5,29 @@
 ## 흐름
 
 1. 홈에서 `POST /banners/resolve`가 사용자별 현재 질문과 디자인을 반환한다.
-2. `대화하기`는 `POST /chat/topic-entries`로 클릭한 제안을 준비한다. 배너와 같은 질문을 캐피 말풍선으로 표시한다. 일반 인사·LLM 호출·토큰 차감은 없다.
+2. 하루 서로 다른 주제 두 개까지 준비한다. 첫 준비 성공 시 배너 포인터를 즉시 다음 주제로 옮기고, 두 번째 이후에는 그 주제를 유지한다. `대화하기`는 `POST /chat/topic-entries`로 클릭한 제안을 준비한다. 배너와 같은 질문을 캐피 말풍선으로 표시한다. 일반 인사·LLM 호출·토큰 차감은 없다.
 3. 사용자가 첫 답변을 보내면 `POST /chat/messages`에 `text`, `topic_entry_id`, 실제 표시 `locale`를 보낸다. 서버가 고정 질문을 조회해 **이미 건넨 질문**이라는 문맥과 실제 답변을 기존 AI 호출에 연결한다.
 4. 질문·사용자 말·캐피 답변·사용량·entry 완료를 하나의 트랜잭션으로 확정한다. 아직 같은 offer이면 완료 표시한다. 후속 전송은 일반 대화다.
-5. 다음 홈 조회에서 다음 질문을 고른다. 대화 중 숨겨진 배너를 갱신해 질문을 미리 소모하지 않는다.
+5. 홈 복귀 시 서버의 현재 질문을 조회한다. 답변 성공은 추천 위치·횟수를 바꾸지 않는다. 답변한 두 번째 주제를 다시 누르면 기존 대화 이력을 보여주며 질문을 다시 생성하지 않는다.
 
 질문은 `kind=topic_opening`, 사용자의 실제 말과 AI 답변은 기존 normal 메시지로 저장한다. 질문 자체를 사용자 사실/활동으로 추출하지 않는다. 실제 답변은 기존 기억·일기 파이프라인을 사용한다. 질문 문맥도 실제 AI 호출의 입력 토큰에 포함될 수 있다. 주제 시작은 이전 운세 대화 분류를 끝내고, 안전 대응은 유효하지 않은 선택적 주제 참조 때문에 차단하지 않는다.
 
 ## 주제 선택
 
-| 조건 | 다음 resolve |
+| 조건 | 현재/다음 배너 |
 |---|---|
-| 처음 | 첫 질문 |
-| 같은 날, 미완료 | 같은 offer |
-| 첫 답변 성공 **또는** 현지 날짜 경과 | 다음 질문으로 한 번 |
-| 두 조건 동시 / 여러 날 미접속 | 역시 한 번 |
+| 처음 | A, 오늘 준비 횟수 0 |
+| A 첫 준비 성공, 답변 여부 무관 | B, 횟수 1; 대화창 질문은 A 유지 |
+| B 첫 준비 성공 | B, 횟수 2 |
+| 같은 제안 재탭·재시도·답변 성공 | 위치·횟수 유지 |
+| 현지 날짜 경과 | 현재 배너에서 한 개 이동, 횟수 0 |
+| A 준비 후 B 미클릭 상태로 다음 날 / 여러 날 미접속 | C, 한 번의 날짜 전환만 적용 |
 | 목록 끝 | 처음부터 새 offer로 순환 |
-| 시간대 이동으로 이전 날짜 | 되돌리거나 다시 선택하지 않음 |
+| 시간대 이동으로 이전 날짜 | 날짜·횟수·위치를 되돌리지 않음 |
+
+클릭은 준비 API의 성공 트랜잭션으로 센다. 통신 응답 유실은 같은 키로 복구하고 중복 차감하지 않는다. 준비 성공 후 화면을 닫거나 답하지 않아도 소비된다. 첫 준비와 다음 offer 생성은 같은 트랜잭션이므로 홈 재조회 여부에 따라 다음 날 결과가 달라지지 않는다.
+
+목록은 공통 순서이며 사용자마다 포인터와 일일 횟수를 저장한다. 한도를 채운 제안이 긴급 철회되면 당일 주제 카드만 숨기고 다음 현지 날짜에 재개한다. 추천할 다른 유효 질문이 없으면 억지로 같은 질문을 새 offer로 만들지 않는다.
 
 날짜는 서버 UTC 시각 + `X-App-Timezone`의 현지 자정이다. 헤더 생략만 profile 시간대를 사용한다. 대화 한도·일기의 04:00 활동일과 별개다. 날짜 high-watermark는 감소하지 않는다.
 
@@ -29,13 +35,13 @@
 
 ## 상태·동시성·복구
 
-- `user_topic_states`: 사용자+placement당 현재 offer 한 행. topic ID/revision, 증가 sequence, ko/en/ja snapshot, 날짜 high-watermark, 완료 표시를 저장한다.
+- `user_topic_states`: 사용자+placement당 현재 offer 한 행. topic ID/revision, 증가 sequence, ko/en/ja snapshot, 날짜 high-watermark, 실제 답변 완료 표시, daily_open_count(0..2), offer_opened를 저장한다. completed는 추천 전환 조건이 아니다.
 - `chat_topic_entries`: pending/committed/superseded. 사용자당 pending 최대 하나, 사용자+offer당 실제 첫 답변 최대 하나. 질문/첫 사용자 메시지에 사용자 복합 FK를 둔다.
 - 준비 기한은 `max(최초 준비 시점의 다음 현지 자정, 최초 준비 +30분)`. 재탭/언어 변경은 기한을 늘리지 않는다. 준비한 UTC 시각·현지 날짜·시간대·context revision을 고정한다.
 - 유효하게 열린 A는 자정 후 B가 나와도 자기 기한까지 답할 수 있다. A의 성공은 B를 완료 처리하지 않는다. 실제로 B를 준비하거나 다른 일반 대화가 성공하면 이전 pending을 닫는다.
 - 사용자 advisory lock과 기존 chat lease/context revision을 사용한다. 외부 추론 동안 DB 연결/락을 잡지 않는다. 정상 입장한 추론은 단순 기한 경과로 버리지 않으며 확정 때 소유권·삭제 장벽·문맥·미소비·철회를 다시 검사한다.
 - 준비와 메시지는 별도 `Idempotency-Key`를 쓴다. 준비 키는 `topic-prepare:` namespace에 30일 보관하며 재시도 때 entry의 **현재 상태**를 읽는다. 첫 메시지는 기존 성공 응답 재생을 사용한다. 신규 필드 없는 메시지의 기존 request hash는 유지한다.
-- pending 응답만 질문 content/locale를 갖는다. committed는 확정 질문 message_id, superseded는 질문 없는 종료 상태다. 최신 이력 병합은 메시지 ID로 중복 제거한다.
+- pending 응답만 질문 content/locale를 갖는다. committed는 확정 대화의 message_id(보통 질문, 안전 응답으로 질문을 생략한 경우 첫 사용자 메시지), superseded는 답변 없는 종료 상태다. 최신 이력 병합은 메시지 ID로 중복 제거한다.
 - `TOPIC_OFFER_UNAVAILABLE`(409), `TOPIC_ENTRY_UNAVAILABLE`(409/410)은 입력 보존 후 재확인/재선택한다. 타인 ID도 이 오류로 내용 없이 거절한다. `CHAT_TURN_IN_PROGRESS`/`CHAT_TURN_STALE`은 동일 요청을 유지한다.
 - 네트워크·5xx 등 성공이 불명확하면 첫 답변의 text/entry/locale/key를 바꾸거나 참조 없는 요청을 자동 전송하지 않는다. 준비 실패 시 사용자가 ‘이 질문 없이 일반 대화하기’를 선택할 수 있으나, 첫 전송 미확정 상태는 먼저 복구해야 한다.
 - 계정 삭제/잔존 검사에 두 테이블을 포함한다. 미응답 entry는 만료 후 30일이 지나면 기존 retention 작업이 정리한다. 답변한 entry는 메시지 삭제 시 cascade된다. 정리 작업 중단과 무관하게 런타임 기한 검사는 계속한다.
@@ -44,7 +50,7 @@
 
 `POST /banners/resolve`: placement=`home_blind`, schema_version=1, platform, app_version, capabilities를 JSON으로 받는다. 언어/시간대는 기존 헤더다. 지원되는 주제 카드가 있을 때만 상태를 만들거나 전진시킨다. 응답 형식은 기존 BannerFeed이며 `private, no-store`다.
 
-`POST /chat/topic-entries`: 같은 client context + banner_id + topic_ref, 별도 Idempotency-Key. topic_ref는 offer_id(UUID), offer_sequence(양의 정수), topic_id, topic_revision(SHA256), locale(ko/en/ja)다. 클라이언트 질문 원문은 받지 않는다. 현재 노출 후보와 현재 offer를 대조하며 같은 유효 질문은 같은 entry로 수렴한다.
+`POST /chat/topic-entries`: 같은 client context + banner_id + topic_ref, 별도 Idempotency-Key. topic_ref는 offer_id(UUID), offer_sequence(양의 정수), topic_id, topic_revision(SHA256), locale(ko/en/ja)다. 클라이언트 질문 원문은 받지 않는다. 현재 노출 후보와 offer를 대조한다. 첫 클릭 후 이미 B로 이동했더라도 같은 사용자·전체 참조·문맥의 유효 pending A는 복구한다. 답변한 현재 offer는 기존 entry를 반환한다. 오래된 임의 offer를 새로 준비하지 않는다.
 
 `POST /chat/messages`: 첫 답변에만 topic_entry_id/locale. greeting_id와 운세 context_ref는 동시에 지정할 수 없다. locale는 준비된 질문의 언어로 고정한다.
 
@@ -58,7 +64,7 @@
 | 배경·버튼·글꼴·좌표 | `app/resources/banners/home_blind.json` |
 | 이미지 bytes | 환경별 공개 `banner-assets` bucket |
 
-현재 catalog는 검증용 3개다. 본편 약 90개 작성, 생성 배치, 개인화는 별도다. 정상 질문 전환에 매일 배포나 배치는 필요 없다.
+현재 catalog는 기존 3개를 포함한 보편적인 질문 40개와 ko/en/ja 원문이다. 생성 배치·개인화는 포함하지 않는다. 문구는 사용자 최종 검수 대상이다. 정상 질문 전환에 매일 배포나 배치는 필요 없다.
 
 질문마다 canvas를 복사하지 않는다. 공통 배너에 `bindings.question = {"source":"topic.question","format":null}`, 질문 text를 `{"kind":"template","value":"{question}"}`, action을 `{"type":"open_topic_conversation_v1"}`로 둔다. 질문은 다시 template로 실행하지 않는 원문이며 action 참조는 서버가 채운다.
 
@@ -75,9 +81,9 @@ uv run python scripts/validate_banners.py --assets --environment dev --previous-
 
 ## 배포
 
-1. 신규 API 전에 `db/schema.sql`을 기준으로 주제 테이블과 `topic_opening` 메시지 종류를 추가하는 차이 SQL을 별도 리뷰 산출물로 준비한다. `db/README.md`의 dev 적용 절차를 따르고 `uv run python -m db.verify --env dev`로 확인한다. baseline을 기존 DB에 실행하지 않는다. RLS deny-default, anon/authenticated 권한 없음이 필요하다.
+1. 서버 배포 전에 `db/schema.sql`을 기준으로 기존 user_topic_states에 daily_open_count/offer_opened와 0..2 제약을 추가하는 차이 SQL을 별도 리뷰 산출물로 준비한다. 기존 사용자 진행 위치·질문·대화는 보존하며 새 필드는 0/false로 시작한다. 과거 클릭을 추측해 소급 차감하지 않는다. `db/README.md`의 dev 적용 절차를 따르고 `uv run python -m db.verify --env dev`로 확인한다. baseline을 기존 DB에 실행하지 않는다. RLS deny-default, anon/authenticated 권한 없음이 필요하다.
 2. 질문·배너를 함께 검증하고 서버 dev에 배포한다. 실행 중 `/health/banners`는 인증된 진단 경로로 banner revision과 topic_revision을 제공한다. `scripts/check_running_banners.py`가 이미지와 실행 프로세스의 두 hash를 대조한다.
-3. 지원하는 dev TestFlight로 첫 진입·3개 순환·재시도·앱 복귀·자정·언어·기존 대화 회귀를 확인한다. 운영 배포/main 통합은 별도다.
+3. 지원하는 dev TestFlight로 첫 진입·하루 2개 준비·40개 순환·재시도·앱 복귀·자정·언어·기존 대화 회귀를 확인한다. 운영 배포/main 통합은 별도다.
 
 롤백은 사용자 cursor/entry나 확장된 messages kind 제약을 되돌리지 않는다. 이전 버전·철회 기록을 보존한 호환 catalog로 복구한다. 대화 품질 검수는 첫 답변, 후속 2턴, 화제 전환, 답하기 싫음, 위기 표현을 포함한다.
 
@@ -85,7 +91,7 @@ uv run python scripts/validate_banners.py --assets --environment dev --previous-
 
 답변을 보내지 않은 주제 화면을 나가면 질문 표시를 지운다. 홈의 일반 대화로 재진입할 때 이전 질문을 복원하거나 답변에 첨부하지 않는다. 배너를 명시적으로 다시 누르면 해당 주제를 준비한다. 이미 전송한 답변의 성공 여부가 불명확한 경우에는 중복 전송 방지를 위해 기존 요청·주제 참조의 상태 복구를 유지한다.
 
-첫 발화가 다른 화제여도 사용자 말을 우선하고 답을 강요하지 않는다. 첫 답변 성공 시 해당 offer를 완료하는 기준은 동일하다.
+첫 발화가 다른 화제여도 사용자 말을 우선하고 답을 강요하지 않는다. 첫 답변 성공 시 대화 완료만 기록하며 추천 횟수나 위치를 추가 변경하지 않는다.
 
 ## 준비 실패 처리
 

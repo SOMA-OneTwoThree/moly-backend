@@ -90,7 +90,7 @@ PY_IMAGE
 ## 런타임과 유지보수
 
 - [BannerCatalog](../app/services/banner_catalog.py)는 서버 시작 시 번들 JSON을 strict 검증하고 메모리에 로딩한다. 파일 원본 bytes의 SHA256이 `revision`이다. 사용자별 날짜·루틴 수는 조회 시 계산한다.
-- 시각 정의는 파일 기반이며 별도 게시 명령이 없다. 주제 진행/준비 상태만 `user_topic_states`, `chat_topic_entries`에 저장한다. 질문 문구의 편집 원본은 `app/resources/conversation_topics/catalog.json`이다. [Dockerfile](../Dockerfile)이 정의 파일을 서버 코드와 함께 포함한다. 컨테이너 파일 수동 수정이나 hot reload는 운영 경로가 아니다.
+- 시각 정의는 파일 기반이며 별도 게시 명령이 없다. 사용자별 주제 위치·일일 준비 횟수와 대화 준비/완료 상태만 `user_topic_states`, `chat_topic_entries`에 저장한다. 하루 두 주제까지 준비하고 날짜가 바뀌면 현재 배너에서 한 개 전진한다. 질문 문구의 편집 원본은 `app/resources/conversation_topics/catalog.json`이다. [Dockerfile](../Dockerfile)이 정의 파일을 서버 코드와 함께 포함한다. 컨테이너 파일 수동 수정이나 hot reload는 운영 경로가 아니다.
 - [배너 API](../app/api/banners.py)는 기존 Bearer 인증과 `private, no-store` 응답을 사용한다. 정의 로딩 실패는 503, 비노출은 정상 빈 목록이다.
 - [AppDay](../app/core/app_day.py)와 요청 `X-App-Timezone`을 배너·루틴이 공유한다. 사용자 profile의 시간대나 과거 완료 기록을 덮어쓰지 않는다.
 - [서비스](../app/services/banners.py)는 필요한 binding을 묶어 조회한다. 실패한 데이터를 0이나 샘플 문구로 대체하지 않는다.

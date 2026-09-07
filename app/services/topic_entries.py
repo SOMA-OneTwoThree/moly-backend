@@ -70,7 +70,19 @@ async def prepare(
     if state is None or (
         state.offer_id, state.offer_sequence, state.topic_id, state.topic_revision
     ) != (ref.offer_id, ref.offer_sequence, ref.topic_id, ref.topic_revision):
-        raise AppError("TOPIC_OFFER_UNAVAILABLE", 409, "새 대화 주제를 확인해 주세요.")
+        # A successful first opening already moved the banner to B. A second
+        # device or a lost response may still be restoring the prepared A.
+        pending = await session.scalar(select(ChatTopicEntry).where(
+            ChatTopicEntry.user_id == uid, ChatTopicEntry.offer_id == ref.offer_id,
+            ChatTopicEntry.offer_sequence == ref.offer_sequence,
+            ChatTopicEntry.topic_id == ref.topic_id,
+            ChatTopicEntry.topic_revision == ref.topic_revision,
+            ChatTopicEntry.state == "pending",
+            ChatTopicEntry.context_revision == revision,
+            ChatTopicEntry.expires_at > now,
+        ))
+        if pending is None:
+            raise AppError("TOPIC_OFFER_UNAVAILABLE", 409, "새 대화 주제를 확인해 주세요.")
     active = await session.scalar(text(
         "SELECT 1 FROM chat_active_turns WHERE user_id=:uid AND lease_until > now()"
     ), {"uid": uid})

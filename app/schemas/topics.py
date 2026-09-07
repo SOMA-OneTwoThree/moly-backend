@@ -71,9 +71,12 @@ class TopicEntryResponse(RootModel[TopicEntry]):
 def entry_response(entry, *, locale: Literal["ko", "en", "ja"], now: datetime):
     base = dict(entry_id=entry.id, offer_id=entry.offer_id,
                 created_at=entry.created_at, expires_at=entry.expires_at)
-    if entry.state == "committed":
+    # A safety-first reply may have omitted the question, but its conversation
+    # still exists and must reopen without treating it as an unanswered failure.
+    message_id = entry.committed_message_id or entry.first_user_message_id
+    if message_id is not None:
         return CommittedTopicEntry(**base, state="committed",
-                                   message_id=str(entry.committed_message_id))
+                                   message_id=str(message_id))
     if entry.state == "pending" and now < entry.expires_at:
         return PendingTopicEntry(**base, state="pending", locale=locale,
                                  content=entry.questions[locale])

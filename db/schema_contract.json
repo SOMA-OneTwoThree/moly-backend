@@ -5226,6 +5226,14 @@
         "not_null": true,
         "type": "boolean"
       },
+      "public.user_topic_states.daily_open_count": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
       "public.user_topic_states.day_high_watermark": {
         "collation": null,
         "default": null,
@@ -5241,6 +5249,14 @@
         "identity": "",
         "not_null": true,
         "type": "uuid"
+      },
+      "public.user_topic_states.offer_opened": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
       },
       "public.user_topic_states.offer_sequence": {
         "collation": null,
@@ -7772,6 +7788,13 @@
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, kind)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.user_topic_states.topic_daily_open_limit": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((daily_open_count >= 0) AND (daily_open_count <= 2)))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -13581,5 +13604,5 @@
       }
     }
   },
-  "schema_sha256": "656d185f0c3ab611a2339dda050060ed22dc3ebedac789e3681048cf326d626b"
+  "schema_sha256": "221d367fb8f1d5330af7e21e6168e43d11363efccc0b451d986b6dc95d192811"
 }

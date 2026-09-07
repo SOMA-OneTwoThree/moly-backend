@@ -1,6 +1,6 @@
 import copy
 import json
-from datetime import date, datetime
+from datetime import datetime
 
 import pytest
 
@@ -10,7 +10,6 @@ from app.services.topic_catalog import (
     TopicQuestions,
     content_revision,
     entry_expiration,
-    should_advance,
 )
 
 
@@ -135,15 +134,6 @@ def test_question_bounds_and_literal_text(question):
         TopicQuestions(ko=question, en="Question?", ja="質問？")
 
 
-@pytest.mark.parametrize("completed,day,expected", [
-    (False, 7, False), (True, 7, True), (False, 8, True),
-    (True, 8, True), (False, 30, True), (False, 6, False),
-])
-def test_completion_or_forward_day_is_one_boolean_transition(completed, day, expected):
-    assert should_advance(completed=completed, high_watermark=date(2026, 9, 7),
-                          local_date=date(2026, 9, day)) is expected
-
-
 @pytest.mark.parametrize("now,zone,expected", [
     ("2026-09-07T14:59:00+00:00", "Asia/Seoul", "2026-09-07T15:29:00+00:00"),
     ("2026-09-07T01:00:00+00:00", "Asia/Seoul", "2026-09-07T15:00:00+00:00"),
@@ -154,9 +144,9 @@ def test_calendar_midnight_and_minimum_grace(now, zone, expected):
     assert entry_expiration(datetime.fromisoformat(now), zone) == datetime.fromisoformat(expected)
 
 
-def test_sample_catalog_has_three_complete_languages_and_is_immutable():
+def test_catalog_has_forty_complete_languages_and_is_immutable():
     catalog = TopicCatalog.load()
-    assert len(catalog.manifest.sequence) == 3
+    assert len(catalog.manifest.sequence) == 40
     for pointer in catalog.manifest.sequence:
         questions = catalog.questions(pointer)
         assert questions.for_locale("fr") == questions.en

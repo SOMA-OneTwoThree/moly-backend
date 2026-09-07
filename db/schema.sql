@@ -2713,6 +2713,8 @@ CREATE TABLE IF NOT EXISTS public.user_topic_states (
   questions jsonb NOT NULL,
   day_high_watermark date NOT NULL,
   completed boolean NOT NULL DEFAULT false,
+  daily_open_count smallint NOT NULL DEFAULT 0 CONSTRAINT topic_daily_open_limit CHECK (daily_open_count BETWEEN 0 AND 2),
+  offer_opened boolean NOT NULL DEFAULT false,
   offered_at timestamptz NOT NULL,
   updated_at timestamptz NOT NULL,
   PRIMARY KEY (user_id, placement)

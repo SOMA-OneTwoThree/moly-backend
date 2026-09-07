@@ -1,7 +1,7 @@
 """Transactional topic progress. Callers own commit and privacy admission.
 
-Every writer shares the chat user's advisory lock. Completing an offer does not
-allocate its successor: the next home resolve does that exactly once.
+Every writer shares the chat user's advisory lock. Preparing the first daily
+opening allocates its successor atomically; answering never advances the cursor.
 """
 
 from __future__ import annotations
@@ -16,9 +16,37 @@ from app.core.advisory_lock import advisory_xact_lock
 from app.core.app_day import AppDay
 from app.core.errors import AppError
 from app.models.topic import ChatTopicEntry, UserTopicState
-from app.services.topic_catalog import TopicCatalog, entry_expiration, should_advance
+from app.services.topic_catalog import TopicCatalog, entry_expiration
 
 PLACEMENT = "home_blind"
+DAILY_OPEN_LIMIT = 2
+
+
+def _assign_offer(state: UserTopicState, catalog: TopicCatalog, now: datetime) -> bool:
+    pointer = catalog.next_pointer(state.topic_id)
+    if pointer is None:
+        return False
+    state.offer_id = uuid.uuid4()
+    state.offer_sequence += 1
+    state.topic_id = pointer.topic_id
+    state.topic_revision = pointer.topic_revision
+    state.questions = catalog.questions(pointer).model_dump()
+    state.completed = False
+    state.offer_opened = False
+    state.offered_at = state.updated_at = now
+    return True
+
+
+def _record_open(state: UserTopicState, offer_id: uuid.UUID, catalog: TopicCatalog, now: datetime) -> None:
+    if state.offer_id != offer_id or state.offer_opened:
+        return
+    if state.daily_open_count >= DAILY_OPEN_LIMIT:
+        raise AppError("TOPIC_OFFER_UNAVAILABLE", 409, "새 대화 주제를 확인해 주세요.")
+    state.offer_opened = True
+    state.daily_open_count += 1
+    state.updated_at = now
+    if state.daily_open_count < DAILY_OPEN_LIMIT:
+        _assign_offer(state, catalog, now)
 
 
 async def resolve_offer(
@@ -32,28 +60,31 @@ async def resolve_offer(
         # An older deployment must not reset progress created by a newer catalog.
         if state.topic_id not in catalog.positions:
             return None
-        advance = should_advance(
-            completed=state.completed, high_watermark=state.day_high_watermark,
-            local_date=day.local_date,
-        ) or catalog.is_revoked(state.topic_id, state.topic_revision)
-        if not advance:
-            return state
-    pointer = catalog.next_pointer(state.topic_id if state else None)
+        new_day = day.local_date > state.day_high_watermark
+        revoked = catalog.is_revoked(state.topic_id, state.topic_revision)
+        if revoked and not new_day and state.daily_open_count >= DAILY_OPEN_LIMIT:
+            return None
+        if new_day or revoked:
+            if not _assign_offer(state, catalog, day.served_at):
+                return None
+            if new_day:
+                state.day_high_watermark = day.local_date
+                state.daily_open_count = 0
+            await session.flush()
+        return state
+    pointer = catalog.next_pointer(None)
     if pointer is None:
         return None
     values = dict(
-        offer_id=uuid.uuid4(), offer_sequence=state.offer_sequence + 1 if state else 1,
+        offer_id=uuid.uuid4(), offer_sequence=1,
         topic_id=pointer.topic_id, topic_revision=pointer.topic_revision,
         questions=catalog.questions(pointer).model_dump(),
-        day_high_watermark=max(state.day_high_watermark, day.local_date) if state else day.local_date,
+        day_high_watermark=day.local_date,
         completed=False, offered_at=day.served_at, updated_at=day.served_at,
+        daily_open_count=0, offer_opened=False,
     )
-    if state is None:
-        state = UserTopicState(user_id=user_id, placement=PLACEMENT, **values)
-        session.add(state)
-    else:
-        for key, value in values.items():
-            setattr(state, key, value)
+    state = UserTopicState(user_id=user_id, placement=PLACEMENT, **values)
+    session.add(state)
     await session.flush()
     return state
 
@@ -76,17 +107,31 @@ async def prepare_entry(
     """
     await advisory_xact_lock(session, user_id)
     state = await session.get(UserTopicState, (user_id, PLACEMENT), populate_existing=True)
-    if (state is None or state.offer_id != offer_id or state.completed
-            or not catalog.manifest.enabled or state.topic_id not in catalog.positions
-            or catalog.is_revoked(state.topic_id, state.topic_revision)):
+    if state is None or not catalog.manifest.enabled:
         raise AppError("TOPIC_OFFER_UNAVAILABLE", 409, "새 대화 주제를 확인해 주세요.")
     pending = await session.scalar(select(ChatTopicEntry).where(
         ChatTopicEntry.user_id == user_id, ChatTopicEntry.state == "pending",
     ).execution_options(populate_existing=True))
     if (pending is not None and pending.offer_id == offer_id
-            and pending.context_revision == context_revision and now < pending.expires_at):
+            and pending.context_revision == context_revision and now < pending.expires_at
+            and not catalog.is_revoked(pending.topic_id, pending.topic_revision)):
+        _record_open(state, offer_id, catalog, now)
+        await session.flush()
         return pending
+    if (state.offer_id != offer_id or state.topic_id not in catalog.positions
+            or catalog.is_revoked(state.topic_id, state.topic_revision)):
+        raise AppError("TOPIC_OFFER_UNAVAILABLE", 409, "새 대화 주제를 확인해 주세요.")
     if AppDay.at(now, timezone_name).local_date > state.day_high_watermark:
+        raise AppError("TOPIC_OFFER_UNAVAILABLE", 409, "새 대화 주제를 확인해 주세요.")
+    answered = await session.scalar(select(ChatTopicEntry).where(
+        ChatTopicEntry.user_id == user_id, ChatTopicEntry.offer_id == offer_id,
+        ChatTopicEntry.first_user_message_id.is_not(None),
+    ).execution_options(populate_existing=True))
+    if answered is not None:
+        _record_open(state, offer_id, catalog, now)
+        await session.flush()
+        return answered
+    if state.completed or (not state.offer_opened and state.daily_open_count >= DAILY_OPEN_LIMIT):
         raise AppError("TOPIC_OFFER_UNAVAILABLE", 409, "새 대화 주제를 확인해 주세요.")
     await supersede_pending(session, user_id)
     entry = ChatTopicEntry(
@@ -98,6 +143,7 @@ async def prepare_entry(
         created_at=now, expires_at=entry_expiration(now, timezone_name),
     )
     session.add(entry)
+    _record_open(state, offer_id, catalog, now)
     await session.flush()
     return entry
 

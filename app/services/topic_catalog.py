@@ -6,7 +6,7 @@ import hashlib
 import json
 import unicodedata
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from types import MappingProxyType
 from typing import Annotated, Literal, Mapping
@@ -180,10 +180,6 @@ class TopicCatalog:
         for key, questions in previous.versions.items():
             if self.versions.get(key) != questions:
                 raise ValueError("published topic versions must be preserved")
-
-
-def should_advance(*, completed: bool, high_watermark: date, local_date: date) -> bool:
-    return completed or local_date > high_watermark
 
 
 def entry_expiration(now: datetime, timezone_name: str) -> datetime:

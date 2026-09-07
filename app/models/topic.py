@@ -6,7 +6,7 @@ import uuid
 from datetime import date, datetime
 
 from sqlalchemy import (
-    BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKey,
+    BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKey, SmallInteger,
     ForeignKeyConstraint, Index, String, UniqueConstraint, text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -21,6 +21,7 @@ class UserTopicState(Base):
         UniqueConstraint("offer_id"),
         CheckConstraint("offer_sequence > 0", name="user_topic_sequence_positive"),
         CheckConstraint("placement = 'home_blind'", name="user_topic_placement"),
+        CheckConstraint("daily_open_count BETWEEN 0 AND 2", name="topic_daily_open_limit"),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -34,6 +35,8 @@ class UserTopicState(Base):
     questions: Mapped[dict] = mapped_column(JSONB, nullable=False)
     day_high_watermark: Mapped[date] = mapped_column(Date, nullable=False)
     completed: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    daily_open_count: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default=text("0"))
+    offer_opened: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
     offered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -90,4 +93,3 @@ class ChatTopicEntry(Base):
     committed_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     # Also records a successful safety-first turn that omitted the prepared question.
     first_user_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-

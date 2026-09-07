@@ -1,0 +1,48 @@
+schemas:
+  MoodPutRequest:
+    type: object
+    required: [kind]
+    properties:
+      kind:
+        type: string
+        description: 클라이언트가 정하는 감정 식별자. 서버 고정 목록이나 길이 제한 없음.
+      note:
+        type: string
+        default: ''
+        description: 선택 메모. 길이 제한 없음. 생략하면 빈 문자열로 덮어쓴다.
+  MoodEntryResponse:
+    type: object
+    additionalProperties: false
+    required: [date, kind, note]
+    properties:
+      date:
+        type: string
+        format: date
+        description: 사용자가 기록한 현지 달력 날짜. 시간대 변환 없음.
+      kind:
+        type: string
+      note:
+        type: string
+  MoodListResponse:
+    type: object
+    additionalProperties: false
+    required: [data]
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/schemas/MoodEntryResponse'
+responses:
+  AccountDeleting:
+    description: 계정 삭제 중이거나 삭제 완료되어 감정일기에 접근할 수 없음.
+    content:
+      application/json:
+        schema:
+          $ref: ./common.yaml#/schemas/ErrorEnvelope
+        examples:
+          deleting:
+            value:
+              error:
+                code: ACCOUNT_DELETING
+                message: 계정 삭제를 처리하고 있어요.
+                details: {}

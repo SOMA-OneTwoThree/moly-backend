@@ -14,6 +14,7 @@ from app.api.economy import router as economy_router
 from app.api.feedback import router as feedback_router
 from app.api.fortune import router as fortune_router
 from app.api.health import router as health_router
+from app.api.mood import router as mood_router
 from app.api.review import router as review_router
 from app.api.routine import router as routine_router
 from app.api.shop import router as shop_router
@@ -83,6 +84,7 @@ def create_app() -> FastAPI:
     # (계정 API — /me·/onboarding·알림·푸시토큰·로그아웃·탈퇴 — 는 moly-auth 서버 소유)
     app.include_router(chat_router)
     app.include_router(diary_router)
+    app.include_router(mood_router)
     app.include_router(economy_router)
     app.include_router(routine_router)
     app.include_router(banners_router)

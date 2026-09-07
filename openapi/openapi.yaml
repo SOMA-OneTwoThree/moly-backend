@@ -34,6 +34,10 @@ paths:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D
   /diaries/{diary_id}/read:
     $ref: ./paths/conversations.yaml#/~1diaries~1%7Bdiary_id%7D~1read
+  /moods:
+    $ref: ./paths/mood.yaml#/~1moods
+  /moods/{date}:
+    $ref: ./paths/mood.yaml#/~1moods~1%7Bdate%7D
   /wallet:
     $ref: ./paths/economy.yaml#/~1wallet
   /wallet/transactions:
@@ -96,6 +100,12 @@ paths:
     $ref: ./paths/conversations.yaml#/~1chat~1topic-entries
 components:
   schemas:
+    MoodPutRequest:
+      $ref: ./components/mood.yaml#/schemas/MoodPutRequest
+    MoodEntryResponse:
+      $ref: ./components/mood.yaml#/schemas/MoodEntryResponse
+    MoodListResponse:
+      $ref: ./components/mood.yaml#/schemas/MoodListResponse
     BannerFeed:
       $ref: ./components/banners.yaml#/schemas/BannerFeed
     AdSsvResponse:
@@ -316,6 +326,8 @@ tags:
   description: 채팅 상태, 이력, 메시지 전송, 선발화
 - name: diary
   description: 발행된 일기 목록, 상세, 읽음 처리
+- name: mood
+  description: 사용자 날짜별 감정일기 조회, 저장, 삭제
 - name: memory
   description: 정규화 기억 조회, 의미 검색, 명시적 망각
 - name: economy

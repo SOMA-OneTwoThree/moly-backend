@@ -1,0 +1,94 @@
+/moods:
+  get:
+    tags: [mood]
+    summary: 월별 감정일기 조회
+    operationId: listMoods
+    description: 본인의 해당 월 기록 전체를 날짜 내림차순으로 반환한다. 기록이 없으면 빈 배열이며 조회로 기록을 생성하지 않는다. 통계는 클라이언트가 이 데이터로 계산한다.
+    parameters:
+    - name: month
+      in: query
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-[0-9]{2}$'
+      description: 유효한 달력 연월 YYYY-MM. 과거·미래 조회 제한 없음.
+    responses:
+      '200':
+        description: 월별 기록
+        content:
+          application/json:
+            schema:
+              $ref: ../components/mood.yaml#/schemas/MoodListResponse
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '409':
+        $ref: ../components/mood.yaml#/responses/AccountDeleting
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+    security:
+    - SupabaseBearer: []
+/moods/{date}:
+  put:
+    tags: [mood]
+    summary: 날짜별 감정일기 저장
+    operationId: putMood
+    description: 사용자당 날짜별 하나의 기록을 원자적으로 생성하거나 kind와 note를 덮어쓴다. 날짜는 현지 달력 날짜 그대로 저장하며 AppDay나 서버 시간대로 변환하지 않는다. 과거·미래 날짜 제한 없음.
+    parameters:
+    - name: date
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+      description: 유효한 달력 날짜 YYYY-MM-DD.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/mood.yaml#/schemas/MoodPutRequest
+    responses:
+      '200':
+        description: 저장된 감정일기
+        content:
+          application/json:
+            schema:
+              $ref: ../components/mood.yaml#/schemas/MoodEntryResponse
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '409':
+        $ref: ../components/mood.yaml#/responses/AccountDeleting
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+    security:
+    - SupabaseBearer: []
+  delete:
+    tags: [mood]
+    summary: 날짜별 감정일기 삭제
+    operationId: deleteMood
+    description: 본인의 해당 날짜 기록을 삭제한다. 기록이 없어도 동일하게 204를 반환한다.
+    parameters:
+    - name: date
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+      description: 유효한 달력 날짜 YYYY-MM-DD.
+    responses:
+      '204':
+        description: 삭제 완료; body 없음
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '409':
+        $ref: ../components/mood.yaml#/responses/AccountDeleting
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+    security:
+    - SupabaseBearer: []

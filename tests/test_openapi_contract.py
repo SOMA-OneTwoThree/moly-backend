@@ -20,6 +20,17 @@ from scripts.openapi_contract import (
 
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
+
+
+def test_topic_discriminator_targets_resolve_in_bundled_document():
+    contract = build_bundle(DEFAULT_SOURCE)
+    schema = contract["components"]["schemas"]["TopicEntryResponse"]
+    mapping = schema["discriminator"]["mapping"]
+    assert set(mapping) == {"pending", "committed", "superseded"}
+    assert set(mapping.values()) == {item["$ref"] for item in schema["oneOf"]}
+    for state, ref in mapping.items():
+        target = _resolve_ref(contract, {"$ref": ref})
+        assert target["properties"]["state"]["const"] == state
 PUBLIC_SECURITY = {
     ("/health", "get"): [],
     ("/webhooks/revenuecat", "post"): [{"RevenueCatAuthorization": []}],

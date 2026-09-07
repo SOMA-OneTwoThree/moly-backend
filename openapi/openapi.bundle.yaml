@@ -5248,9 +5248,9 @@ components:
       discriminator:
         propertyName: state
         mapping:
-          committed: '#/schemas/CommittedTopicEntry'
-          pending: '#/schemas/PendingTopicEntry'
-          superseded: '#/schemas/SupersededTopicEntry'
+          committed: '#/components/schemas/CommittedTopicEntry'
+          pending: '#/components/schemas/PendingTopicEntry'
+          superseded: '#/components/schemas/SupersededTopicEntry'
   securitySchemes:
     SupabaseBearer:
       type: http

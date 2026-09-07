@@ -3,6 +3,7 @@
 import asyncio
 import os
 import uuid
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 
@@ -17,6 +18,9 @@ from app.core.errors import AppError
 from app.models.message import Message
 from app.models.profile import Profile
 from app.models.topic import ChatTopicEntry, UserTopicState
+from app.models.chat_context import ChatContext
+from app.models.conversational_recall import ChatActiveTurn
+from app.models.idempotency_key import IdempotencyKey
 from app.services.topic_catalog import TopicCatalog
 from app.services.topic_state import admit_entry, complete_entry, prepare_entry, resolve_offer
 
@@ -32,11 +36,13 @@ async def database():
     if urlsplit(dsn).hostname not in {"localhost", "127.0.0.1", "::1"}:
         pytest.fail("local PostgreSQL only")
     schema = "topic_test_" + uuid.uuid4().hex
-    engine = create_async_engine(dsn, execution_options={"schema_translate_map": {None: schema}})
+    engine = create_async_engine(dsn, execution_options={"schema_translate_map": {None: schema}},
+                                 connect_args={"server_settings": {"search_path": schema}})
     async with engine.begin() as conn:
         await conn.execute(text(f'CREATE SCHEMA "{schema}"'))
         await conn.run_sync(lambda sync: Base.metadata.create_all(sync, tables=[
             Profile.__table__, Message.__table__, UserTopicState.__table__, ChatTopicEntry.__table__,
+            ChatContext.__table__, ChatActiveTurn.__table__, IdempotencyKey.__table__,
         ]))
     uid = uuid.uuid4()
     try:
@@ -173,3 +179,79 @@ async def test_admitted_turn_can_finish_after_expiry_but_new_admission_cannot(da
         assert state.completed
         assert entry.first_user_message_id == answer.id
         assert entry.state == "superseded"
+
+
+async def test_prepare_idempotency_restores_terminal_state_and_rejects_changed_body(database):
+    from app.schemas.topics import PrepareTopicRequest, TopicReference
+    from app.services.topic_entries import prepare
+    from app.services.banner_catalog import BannerCatalog, capabilities
+    offer = await resolve(database)
+    engine, uid, catalog = database
+    banners = BannerCatalog.load()
+    banner = next(b for b in banners.manifest.banners if any(
+        binding.source == "topic.question" for binding in b.bindings.values()
+    ))
+    request = PrepareTopicRequest(placement="home_blind", schema_version=1,
+        platform="ios", app_version="1.0.0", capabilities=list(capabilities(banner.canvases_by_locale['ko'])),
+        banner_id=banner.id, topic_ref=TopicReference(offer_id=offer.offer_id,
+        offer_sequence=offer.offer_sequence, topic_id=offer.topic_id,
+        topic_revision=offer.topic_revision, locale="ko"))
+
+    async def run(req=request):
+        async with AsyncSession(engine, expire_on_commit=False) as session:
+            result = await prepare(session, str(uid), req, "retry-key", banner_catalog=banners,
+                topic_catalog=catalog, now=NOW, timezone_name=TZ)
+            await session.commit()
+            return result
+
+    results = await asyncio.gather(*(run() for _ in range(6)))
+    assert len({result.entry_id for result in results}) == 1
+    async with AsyncSession(engine) as session:
+        entry = await session.get(ChatTopicEntry, results[0].entry_id)
+        entry.state = "superseded"
+        await session.commit()
+    replay = await run()
+    assert replay.state == "superseded"
+    assert not hasattr(replay, "content")
+    with pytest.raises(AppError) as failure:
+        await run(request.model_copy(update={"platform": "android"}))
+    assert failure.value.code == "IDEMPOTENCY_CONFLICT"
+
+
+async def test_migration_is_reentrant_and_denies_client_roles(database):
+    import asyncpg
+    dsn = os.environ["TOPIC_TEST_DATABASE_URL"].replace("postgresql+asyncpg://", "postgresql://")
+    conn = await asyncpg.connect(dsn)
+    transaction = conn.transaction()
+    await transaction.start()
+    suffix = uuid.uuid4().hex
+    schema, anon, authenticated = (f"migration_{suffix}", f"anon_{suffix}", f"auth_{suffix}")
+    try:
+        await conn.execute(f'CREATE SCHEMA "{schema}"; CREATE ROLE "{anon}"; CREATE ROLE "{authenticated}";')
+        await conn.execute(f'CREATE TABLE "{schema}".profiles (id uuid PRIMARY KEY); '
+            f'CREATE TABLE "{schema}".messages (id bigint PRIMARY KEY, user_id uuid, '
+            "kind text NOT NULL DEFAULT 'normal' CONSTRAINT messages_kind_check "
+            "CHECK(kind IN ('normal','greeting','fortune_context_root','fortune_derived')), "
+            'UNIQUE(user_id,id));')
+        for _ in range(2):
+            for stage in ('prepare', 'validate', 'swap'):
+                kind_sql = Path(f"db/migrations/20260907_topic_kind_constraint_{stage}.sql").read_text()
+                # Keep the DO block's BEGIN; only remove the outer transaction commands.
+                kind_sql = kind_sql.replace("BEGIN;", "", 1).replace("COMMIT;", "")
+                kind_sql = kind_sql.replace("public.", f'"{schema}".')
+                await conn.execute(kind_sql)
+        await conn.execute(f"INSERT INTO \"{schema}\".messages(id,kind) VALUES (1,'topic_opening')")
+        sql = Path("db/migrations/20260907_banner_topic_conversation.sql").read_text()
+        sql = sql.replace("BEGIN;", "").replace("COMMIT;", "").replace("public.", f'"{schema}".')
+        sql = sql.replace("FROM anon, authenticated", f'FROM "{anon}", "{authenticated}"')
+        await conn.execute(sql)
+        await conn.execute(sql)
+        for table, model in [("user_topic_states", UserTopicState), ("chat_topic_entries", ChatTopicEntry)]:
+            columns = await conn.fetch("SELECT column_name FROM information_schema.columns WHERE table_schema=$1 AND table_name=$2", schema, table)
+            assert {row['column_name'] for row in columns} == set(model.__table__.columns.keys())
+            assert await conn.fetchval("SELECT relrowsecurity FROM pg_class WHERE oid=$1::regclass", f'{schema}.{table}')
+            for role in (anon, authenticated):
+                assert not await conn.fetchval("SELECT has_table_privilege($1,$2,'SELECT,INSERT,UPDATE,DELETE')", role, f'{schema}.{table}')
+    finally:
+        await transaction.rollback()
+        await conn.close()

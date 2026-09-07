@@ -2,6 +2,8 @@
 
 배너의 디자인·문구·노출 조건은 서버 파일이, 이미지 파일은 Supabase Storage가 소유한다. 앱은 공통 규약에 따라 그리며 등록된 화면으로 이동한다. 필드·제약·호환성의 원본은 [공동 규약](BANNER_SDUI_CONTRACT.md)이다.
 
+`open_topic_conversation_v1`은 배너에 보인 질문으로 대화를 준비한다. [주제 대화](BANNER_TOPICS_DESIGN.md)에 선택·첫 답변·복구·콘텐츠 운영 규칙을 둔다. `open_conversation`은 기존 일반 대화 이동이다.
+
 ## 배너를 바꾸는 순서
 
 1. 이 레포의 [app/resources/banners/home_blind.json](../app/resources/banners/home_blind.json)을 편집한다. 새 카드는 기존 카드 구조를 복사해 고유 `id`를 부여한다. `banners` 배열이 노출 순서다. 한국어 문구를 추가·수정할 때 영어·일본어 canvas도 함께 작성한다. 스키마에서 영어 `en` canvas는 필수다.
@@ -13,7 +15,7 @@
    ```
 
 4. 변경을 서버 `dev` 브랜치에 반영한다. [Deploy dev](../.github/workflows/deploy-dev.yml)가 서버 이미지를 빌드하고 배포한다. **기능 브랜치 push나 JSON 저장만으로 실행 중 서버가 바뀌지는 않는다.**
-5. 배포 성공과 `https://dev.moly.asia/health`의 커밋 SHA를 확인한다. 배포 과정의 `check_running_banners.py`는 실행 중 서버의 배너 revision과 배포 이미지 속 파일 hash도 대조한다.
+5. 배포 성공과 `https://dev.moly.asia/health`의 커밋 SHA를 확인한다. 배포 과정의 `check_running_banners.py`는 실행 중 서버의 배너·주제 catalog revision과 배포 이미지 속 두 파일 hash도 대조한다.
 6. **dev TestFlight에서 홈 재진입 또는 앱 복귀**로 결과를 확인한다. 지원하는 문구·스타일·이미지·배치 변경은 앱 재빌드 없이 적용된다. 홈에 계속 머물러 있을 때 실시간 push로 바뀌지는 않는다.
 
 검증·배포 Actions가 실행되지 않거나 실패하면 새 정의가 반영됐다고 판단하지 않는다. 서버 배포가 끝난 시점과 앱이 다시 조회하는 시점을 구분한다.
@@ -41,7 +43,7 @@
 
 이미지 버튼은 `image_v1` + 필요 시 `text_v1`/`shape_v1` + `action_region_v1`로 구성한다. 클릭 영역의 `content_ids`에 시각 요소의 ID를 연결하고, 영역 안에 해당 요소의 전체 frame이 들어오도록 편집한다. 시각 요소와 클릭 영역을 각각 옮겨야 하며 자동으로 따라 움직이는 부모·자식 좌표계는 없다.
 
-이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·대화 주제의 배경, 제목, 본문과 `shape_v1` + `text_v1` + `action_region_v1` 버튼을 정의한다. 운세 본문의 `{day}`는 요청 시간대의 오늘 날짜이며, 버튼은 각각 기존 운세·대화 화면으로 이동한다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
+이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·대화 주제의 배경, 제목, 본문과 `shape_v1` + `text_v1` + `action_region_v1` 버튼을 정의한다. 운세 본문의 `{day}`는 요청 시간대의 오늘 날짜이며, 버튼은 각각 기존 운세 화면과 주제 준비를 거친 대화 화면으로 이동한다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
 
 ## 이미지 준비
 
@@ -74,6 +76,7 @@ PY_IMAGE
 | source | 의미 |
 |---|---|
 | `user.local_date` | 요청한 기기 시간대의 오늘. format은 `month_day` 또는 `full_date` |
+| `topic.question` | 현재 offer의 질문 원문. format null, text에는 `{question}` 단독 사용 |
 | `routines.remaining_today` | 본인·오늘 요일 예정·미삭제·현지 오늘 미완료 루틴 수. format은 null. 0개면 의존 배너 숨김 |
 
 문구는 `{"kind":"template","value":"오늘은 {day}"}`처럼 작성한다. `{day}`는 등록한 binding alias이며 literal 중괄호는 `{{`/`}}`로 쓴다. `count_cases`는 0/1/그 외 문구를 선택한다. `when`은 binding의 `eq` 또는 `gt` 조건이며 루틴 배너에는 `remaining > 0` 조건을 둔다.
@@ -85,8 +88,8 @@ PY_IMAGE
 ## 런타임과 유지보수
 
 - [BannerCatalog](../app/services/banner_catalog.py)는 서버 시작 시 번들 JSON을 strict 검증하고 메모리에 로딩한다. 파일 원본 bytes의 SHA256이 `revision`이다. 사용자별 날짜·루틴 수는 조회 시 계산한다.
-- 배너 전용 테이블·쓰기 API·별도 게시 명령은 없다. [Dockerfile](../Dockerfile)이 정의 파일을 서버 코드와 함께 포함한다. 컨테이너 파일 수동 수정이나 hot reload는 운영 경로가 아니다.
-- [GET /banners](../app/api/banners.py)는 기존 Bearer 인증과 `private, no-store` 응답을 사용한다. 정의 로딩 실패는 503, 비노출은 정상 빈 목록이다.
+- 시각 정의는 파일 기반이며 별도 게시 명령이 없다. 주제 진행/준비 상태만 `user_topic_states`, `chat_topic_entries`에 저장한다. 질문 문구의 편집 원본은 `app/resources/conversation_topics/catalog.json`이다. [Dockerfile](../Dockerfile)이 정의 파일을 서버 코드와 함께 포함한다. 컨테이너 파일 수동 수정이나 hot reload는 운영 경로가 아니다.
+- [배너 API](../app/api/banners.py)는 기존 Bearer 인증과 `private, no-store` 응답을 사용한다. 정의 로딩 실패는 503, 비노출은 정상 빈 목록이다.
 - [AppDay](../app/core/app_day.py)와 요청 `X-App-Timezone`을 배너·루틴이 공유한다. 사용자 profile의 시간대나 과거 완료 기록을 덮어쓰지 않는다.
 - [서비스](../app/services/banners.py)는 필요한 binding을 묶어 조회한다. 실패한 데이터를 0이나 샘플 문구로 대체하지 않는다.
 - 배너 전체 중단은 최상위 `enabled: false`, `banners: []`로 검증·재배포한다. 복구는 과거 JSON을 복원해 검증·재배포한다. 중단·복구도 다음 앱 조회에 반영된다.

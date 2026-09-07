@@ -532,7 +532,12 @@
       ],
       "min_app_version": null,
       "max_app_version_exclusive": null,
-      "bindings": {},
+      "bindings": {
+        "question": {
+          "source": "topic.question",
+          "format": null
+        }
+      },
       "when": null,
       "canvases_by_locale": {
         "en": {
@@ -611,13 +616,13 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.32,
+                "y": 0.285,
                 "width": 0.88,
                 "height": 0.31
               },
               "text": {
                 "kind": "template",
-                "value": "What small moment\nmade you happy today?"
+                "value": "{question}"
               },
               "style": {
                 "font": "body",
@@ -690,7 +695,7 @@
               "accessibility_label": "Let’s talk",
               "semantics_order": 3,
               "action": {
-                "type": "open_conversation"
+                "type": "open_topic_conversation_v1"
               }
             }
           ]
@@ -771,13 +776,13 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.32,
+                "y": 0.285,
                 "width": 0.88,
                 "height": 0.31
               },
               "text": {
                 "kind": "template",
-                "value": "오늘 작은 행복을 느낀\n순간이 있었어?"
+                "value": "{question}"
               },
               "style": {
                 "font": "body",
@@ -850,7 +855,7 @@
               "accessibility_label": "대화하기",
               "semantics_order": 3,
               "action": {
-                "type": "open_conversation"
+                "type": "open_topic_conversation_v1"
               }
             }
           ]
@@ -931,13 +936,13 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.32,
+                "y": 0.285,
                 "width": 0.88,
                 "height": 0.31
               },
               "text": {
                 "kind": "template",
-                "value": "今日、ちょっとうれしい\nことはあった？"
+                "value": "{question}"
               },
               "style": {
                 "font": "body",
@@ -1010,7 +1015,7 @@
               "accessibility_label": "話してみる",
               "semantics_order": 3,
               "action": {
-                "type": "open_conversation"
+                "type": "open_topic_conversation_v1"
               }
             }
           ]

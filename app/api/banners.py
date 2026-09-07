@@ -1,4 +1,4 @@
-"""Read-only banner endpoint; the deploy image owns the catalog."""
+"""Banner resolve and read-only compatibility; the deploy image owns the catalog."""
 
 import asyncio
 import logging

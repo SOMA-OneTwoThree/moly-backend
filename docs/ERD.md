@@ -32,6 +32,9 @@ erDiagram
     profiles ||--o{ orders : ""
     profiles ||--o{ payments : ""
     profiles ||--o{ user_items : ""
+    profiles ||--o{ user_topic_states : "배너 제안 진행"
+    profiles ||--o{ chat_topic_entries : "주제 질문 준비"
+    messages ||--o{ chat_topic_entries : "질문·첫 답변 연결"
     profiles ||--o{ greetings : ""
     profiles ||--o{ messages : ""
     profiles ||--o{ diaries : ""
@@ -953,3 +956,7 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 
 **TBD여도 스키마가 안 흔들리는 것**: 토큰 수치 전부, 알림 문구, 멘트 풀 내용, 경고 임계치 → 전부 `app_config`(서버)·Firebase(클라)/운영 데이터.
 **TBD 확정 시 스키마 영향 가능**: 메시지 보관 기간(파티셔닝), 탈퇴 후 재가입 어뷰징 정책(식별자 보관 테이블 추가 가능성). ~~알림 발송 방식~~(서버 푸시 확정) · ~~일기 열람~~(항상 무료 확정) · ~~복원 충돌~~(RC 웹훅 무시 처리 확정)은 종결.
+
+## 배너 주제 상태
+
+시각 정의와 질문 원본은 Git 파일이다. `user_topic_states`는 사용자+placement의 현재 제안·질문 snapshot·날짜 high-watermark·완료 표시, `chat_topic_entries`는 준비 수명·문맥 revision·첫 답변 연결을 갖는다. pending은 사용자당 하나, 실제 답변은 사용자+offer당 하나다. 두 테이블은 RLS deny-default이며 클라이언트 권한이 없다. 계정 삭제와 메시지 cascade/미응답 retention을 적용한다. 상세 상태/API/운영 원본은 [배너 주제 대화](BANNER_TOPICS_DESIGN.md), 추가 DDL은 `20260907_banner_topic_conversation.sql`이다.

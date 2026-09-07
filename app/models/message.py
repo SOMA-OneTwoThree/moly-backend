@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import BigInteger, Date, DateTime, Integer, SmallInteger, String, UniqueConstraint, text
+from sqlalchemy import BigInteger, CheckConstraint, Date, DateTime, Integer, SmallInteger, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -16,6 +16,10 @@ class Message(Base):
     # 모든 파생/참조 테이블은 user_id를 FK에 함께 태워 tenant 경계를 DB에서도 강제한다.
     # sender까지 포함한 키는 memory_evidence가 user 발화만 근거로 삼도록 하는 FK 대상이다.
     __table_args__ = (
+        CheckConstraint(
+            "kind IN ('normal','greeting','fortune_context_root','fortune_derived','topic_opening')",
+            name="messages_kind_check",
+        ),
         UniqueConstraint("user_id", "id", name="messages_user_id_id_uq"),
         UniqueConstraint("user_id", "id", "sender", name="messages_user_id_id_sender_uq"),
     )

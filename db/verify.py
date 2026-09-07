@@ -53,6 +53,12 @@ async def main(env: str | None = None):
           and grantee in ('anon','authenticated')""")
     for r in grants:
         problems.append(f"[민감 테이블 권한 노출] {r['table_name']} → {r['grantee']}")
+    message_kind = await c.fetchrow("""SELECT pg_get_constraintdef(oid) AS definition, convalidated
+        FROM pg_constraint WHERE conrelid='public.messages'::regclass
+          AND conname='messages_kind_check'""")
+    if (not message_kind or not message_kind['convalidated']
+            or "'topic_opening'" not in message_kind['definition']):
+        problems.append("[메시지 kind 제약] topic_opening prepare/validate/swap 적용 필요")
 
     print(f"모델 테이블 {len(Base.metadata.tables)}개 검증.")
     if problems:

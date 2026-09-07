@@ -34,7 +34,7 @@
 | 배치 규칙 | `home_blind_v1`: 고정 카드 크기·폰트 매핑·배율·터치 제약 |
 | 요소 | `text_v1`, `button_v1`, `image_v1`, `shape_v1`, `action_region_v1` |
 | 배경 | `solid_v1`, `linear_gradient_v1`, `image_background_v1` |
-| action | `open_fortune`, `open_shop`, `open_conversation`, `open_routines` |
+| action | `open_fortune`, `open_shop`, `open_conversation`, `open_routines`, `open_topic_conversation_v1` |
 
 - 내부 `frame={x,y,width,height}`는 **카드 전체 기준** 0..1 좌표다. x/y≥0, width/height>0, x+width/y+height≤1, 모두 유한수다.
   이 frame은 내부 요소에만 존재한다. canvas 최상위에는 크기/위치 필드를 두지 않는다.
@@ -112,7 +112,7 @@ prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `sh
 
 ## 3. 조회 API와 응답
 
-`GET /banners`, operationId `listBanners`. 기존 Bearer 인증, `Cache-Control: private, no-store`.
+신규 앱은 `POST /banners/resolve`(`resolveBanners`)에 아래 client context를 JSON으로 전송한다. 지원하는 주제 카드가 있을 때 사용자별 현재 제안을 유지/전진시키므로 POST다. 기존 `GET /banners`(`listBanners`)는 같은 context를 query로 받고 신규 주제 카드를 제외하는 읽기 전용 호환 경로다. 둘 다 기존 Bearer 인증, `Cache-Control: private, no-store`.
 운영용 쓰기는 이 API에 넣지 않는다. 사용자별 JSON에 공유/CDN/영속 disk cache·ETag를 사용하지 않는다.
 
 | 입력 | 규칙 |
@@ -121,13 +121,13 @@ prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `sh
 | schema_version | 필수 양의 정수, 지원값1 |
 | platform | 필수 android/ios |
 | app_version | 필수1..64자. major.minor.patch 비교, 시험용 suffix/metadata 분리. 해석 불가면 버전 제한 없는 카드만 허용 |
-| capabilities | 필수 반복 query 배열, 최대32개, 각 값 `[a-z][a-z0-9_]{0,63}`, 중복 제거 |
+| capabilities | 필수 배열(GET은 반복 query), 최대32개, 각 값 `[a-z][a-z0-9_]{0,63}`, 중복 제거 |
 | X-App-Locale | 최대64자 BCP47 앱 표시 언어. 미설정·미지원→en |
 | X-App-Timezone | IANA 시간대1..64자. 지원 앱은 기기의 현재 식별자를 전송. 생략은 profiles.timezone, 잘못된 값은422 APP_TIMEZONE_INVALID |
 
 필수 필드와 타입은 서버 `app/schemas/banners.py`, HTTP 입력/응답은 `openapi/paths/banners.yaml` 및 `openapi/components/banners.yaml`을 따른다. 완성 응답 예시는 양 레포의 `tests/fixtures/banners/composed_feed.json`(클라: `test/fixtures/banners/composed_feed.json`)을 참조한다. 서버 파일의 template 선언과 API 응답의 완성 문자열을 혼동하지 않는다.
 
-data_dependencies는 카드가 사용하는 source의 중복 없는 목록(user.local_date / routines.remaining_today, 정적 카드는 빈 배열)이다.
+data_dependencies는 카드가 사용하는 source의 중복 없는 목록(user.local_date / routines.remaining_today / topic.question, 정적 카드는 빈 배열)이다.
 앱은 이 값으로 저장 중 루틴 의존 카드를 무효화한다. 서버가 binding에서 자동 도출하며 카드 ID나 문구로 추측하지 않는다.
 응답의 valid_until은 nullable이며 필수 필드 여부는 스키마를 따른다. 필수 필드 누락을 Flutter 기본값으로 채우지 않는다.
 카드/요소 id는 `[a-z0-9][a-z0-9_-]{0,63}`, 각각 목록/카드 안에서 고유하다.
@@ -141,6 +141,7 @@ revision은 **배포된 정의 파일의 원본 UTF-8 bytes SHA256**이며 `[a-f
 |---|---|
 | user.local_date | 검증한 X-App-Timezone(생략만 profiles.timezone) + 요청의 단일 서버 UTC clock. 현지 달력일, 다음 현지 자정까지 |
 | routines.remaining_today | 본인·삭제되지 않음·오늘 ISO 요일 예정·현지 오늘 미완료. **0개면 의존 루틴 배너 숨김**. 다음 현지 자정까지 |
+| topic.question | 사용자별 현재 offer의 고정된 locale 질문. 다음 현지 자정까지; 첫 답변 성공 시에도 해당 offer 카드 무효화 |
 
 서버가 binding/조건을 실행하고 완성 문자열만 응답한다. 앱은 날짜/count를 다시 계산하지 않는다.
 동일 시간대 규칙을 기존 `/routines` 목록·완료·취소·통계에도 적용한다. 날짜를 사용한 정상 루틴 응답에는
@@ -164,13 +165,15 @@ count는 조회 시점 값이며 타 기기의 즉시 변경을 보장하지 않
 | open_routines | 기존 루틴 화면 |
 | open_conversation | 기존 대화 진입, chatEnabled 등 접근 제한 유지 |
 | open_fortune | 기존 운세 화면으로 이동/복귀. 운세 실제 API 연동 완료를 뜻하지 않음 |
+| open_topic_conversation_v1 | `topic_ref`로 클릭한 질문을 준비한 뒤 기존 대화에 연결 |
 
-네 action 모두 매개변수 없음. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
+기존 네 action은 매개변수 없음. 신규 주제 action만 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
 새 의미/매개변수는 별도 action 계약이 필요하다. 버튼 없는 안내형 카드도 허용한다.
 
 ## 5. 갱신·실패·호환성
 
 조회 계기: 첫 홈 진입, foreground, 대화/타이머 종료, 상점/루틴 popup 닫힘, 운세 화면 복귀, locale 변경.
+대화 화면이 활성화된 동안 배너 resolve를 중지하고 홈 복귀 때 재개한다. 첫 주제 답변 성공은 해당 offer의 카드만 무효화하며 다른 offer를 완료 처리하지 않는다.
 rebuild·swipe·줄 탭은 조회 계기가 아니다. 동일 진행 요청은 합치되 routine 변경 후에는 새 generation으로 재조회한다.
 변경 전 count 카드와 이전 generation 응답은 적용하지 않는다.
 루틴의 낙관적 UI 갱신은 서버 저장 완료가 아니다. 저장 중 popup을 닫으면 count 카드를 숨기고,

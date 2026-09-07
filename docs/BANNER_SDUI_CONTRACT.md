@@ -163,11 +163,14 @@ count는 조회 시점 값이며 타 기기의 즉시 변경을 보장하지 않
 |---|---|
 | open_shop | 기존 상점 화면 |
 | open_routines | 기존 루틴 화면 |
+| open_diary | 기존 일기 목록 |
+| open_timer | 기존 타이머 설정. 자동 시작 없음 |
+| open_music | 기존 음악 선택. 자동 재생 없음 |
 | open_conversation | 기존 대화 진입, chatEnabled 등 접근 제한 유지 |
 | open_fortune | 기존 운세 화면으로 이동/복귀. 운세 실제 API 연동 완료를 뜻하지 않음 |
 | open_topic_conversation_v1 | `topic_ref`로 클릭한 질문을 준비한 뒤 기존 대화에 연결 |
 
-기존 네 action은 매개변수 없음. 신규 주제 action만 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
+주제 이외의 일곱 action은 매개변수 없음. 각 action 이름의 capability가 있어야 해당 카드를 제공한다. 신규 주제 action만 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
 새 의미/매개변수는 별도 action 계약이 필요하다. 버튼 없는 안내형 카드도 허용한다.
 
 ## 5. 갱신·실패·호환성

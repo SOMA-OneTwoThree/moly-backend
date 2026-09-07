@@ -40,7 +40,8 @@ def test_first_topic_request_rejects_ambiguous_context(extra):
 
 
 @pytest.mark.parametrize("crisis", [False, True])
-async def test_first_question_is_one_turn_context_and_publication_is_tied_to_user_message(monkeypatch, crisis):
+@pytest.mark.parametrize("user_text", ["少し散歩したよ", "明日の面接が不安なんだ"])
+async def test_first_question_is_one_turn_context_and_publication_is_tied_to_user_message(monkeypatch, crisis, user_text):
     entry_id = uuid.uuid4()
     snapshot = TopicChatSnapshot(entry_id, "今日、ちょっとうれしいことはあった？", date(2026, 9, 7), 0)
     seen = {}
@@ -67,8 +68,10 @@ async def test_first_question_is_one_turn_context_and_publication_is_tied_to_use
     monkeypatch.setattr(llm, "generate", generate)
     monkeypatch.setattr(chat.context_safety, "is_continuing_distress", lambda *a: crisis)
     session = FakeSession()
-    req = PostMessageRequest(text="少し散歩したよ", topic_entry_id=entry_id, locale="ja")
+    req = PostMessageRequest(text=user_text, topic_entry_id=entry_id, locale="ja")
     response = await chat.post_message(session, UID, req, "topic-first")
+    assert seen["convo"][-1]["role"] == "user"
+    assert seen["convo"][-1]["content"].endswith("\n" + user_text)
     assert seen["load"]["locale"] == "ja"
     assert seen["publish"]["snapshot"] == snapshot
     messages = [m for m in session.added if isinstance(m, Message)]

@@ -2,7 +2,7 @@
 
 배너의 디자인·문구·노출 조건은 서버 파일이, 이미지 파일은 Supabase Storage가 소유한다. 앱은 공통 규약에 따라 그리며 등록된 화면으로 이동한다. 필드·제약·호환성의 원본은 [공동 규약](BANNER_SDUI_CONTRACT.md)이다.
 
-`open_topic_conversation_v1`은 배너에 보인 질문으로 대화를 준비한다. [주제 대화](BANNER_TOPICS_DESIGN.md)에 선택·첫 답변·복구·콘텐츠 운영 규칙을 둔다. `open_conversation`은 기존 일반 대화 이동이다.
+`open_topic_conversation_v1`은 배너에 보인 질문으로 대화를 준비한다. [주제 대화](BANNER_TOPICS_DESIGN.md)에 선택·첫 답변·복구·콘텐츠 운영 규칙을 둔다. `open_conversation`은 일반 대화 진입이며 같은 앱 세션에서 이미 본 미완료 질문은 복구한다. 일기 목록·루틴·타이머 설정·음악 선택 이동도 지원하며 action 이름은 공동 규약을 따른다. 새 action을 지원하지 않는 앱에는 해당 카드를 제공하지 않는다.
 
 ## 배너를 바꾸는 순서
 

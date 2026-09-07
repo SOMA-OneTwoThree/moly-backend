@@ -133,7 +133,8 @@ class BannerStyle(BannerModel):
 
 
 class BannerAction(BannerModel):
-    type: Literal["open_shop", "open_routines", "open_conversation", "open_fortune"]
+    type: Literal["open_shop", "open_routines", "open_conversation", "open_fortune",
+                  "open_diary", "open_timer", "open_music"]
 
 
 class BannerTopicAction(BannerModel):

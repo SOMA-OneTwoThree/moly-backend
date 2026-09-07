@@ -105,7 +105,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.32,
+                "y": 0.285,
                 "width": 0.88,
                 "height": 0.31
               },
@@ -127,9 +127,9 @@
               "id": "action-surface",
               "type": "shape_v1",
               "frame": {
-                "x": 0.3,
+                "x": 0.25,
                 "y": 0.68,
-                "width": 0.4,
+                "width": 0.5,
                 "height": 0.21
               },
               "background": {
@@ -149,14 +149,14 @@
               "semantics_order": 2,
               "vertical_align": "center",
               "frame": {
-                "x": 0.32,
+                "x": 0.27,
                 "y": 0.7,
-                "width": 0.36,
+                "width": 0.46,
                 "height": 0.17
               },
               "text": {
                 "kind": "template",
-                "value": "See fortune"
+                "value": "Check fortune"
               },
               "style": {
                 "font": "body",
@@ -172,16 +172,16 @@
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.3,
+                "x": 0.25,
                 "y": 0.68,
-                "width": 0.4,
+                "width": 0.5,
                 "height": 0.21
               },
               "content_ids": [
                 "action-surface",
                 "action-label"
               ],
-              "accessibility_label": "See fortune",
+              "accessibility_label": "Check fortune",
               "semantics_order": 3,
               "action": {
                 "type": "open_fortune"
@@ -269,7 +269,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.32,
+                "y": 0.285,
                 "width": 0.88,
                 "height": 0.31
               },
@@ -433,7 +433,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.32,
+                "y": 0.285,
                 "width": 0.88,
                 "height": 0.31
               },

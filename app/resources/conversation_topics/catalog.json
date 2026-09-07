@@ -13,6 +13,14 @@
             "en": "What small moment made you happy today?",
             "ja": "今日、ちょっとうれしいことはあった？"
           }
+        },
+        {
+          "revision": "e3e50c4ff5630466fe2955d4d82134239cbb36046318b1e17d011589ceb8a995",
+          "questions": {
+            "ko": "오늘 작은 행복을 느낀 순간이 있었어?",
+            "en": "Did anything make you smile today?",
+            "ja": "今日、ちょっとうれしいことはあった？"
+          }
         }
       ]
     },
@@ -195,6 +203,14 @@
             "en": "What do you love about your favorite season?",
             "ja": "好きな季節の、どんなところがいい？"
           }
+        },
+        {
+          "revision": "f799d114bce13fae07321a731b5f5cff4c7f1e736941f081bc4631b620cac29c",
+          "questions": {
+            "ko": "가장 좋아하는 계절의 매력은 뭐야?",
+            "en": "What do you love about your favorite season?",
+            "ja": "好きな季節のいいところ、教えて？"
+          }
         }
       ]
     },
@@ -293,6 +309,14 @@
             "en": "Anything you look forward to, even something small?",
             "ja": "小さなことでも、今楽しみにしていることはある？"
           }
+        },
+        {
+          "revision": "098822fbee33a1e525aebe94ceae03059b51f77121e1453d548b62cf48ebc0fa",
+          "questions": {
+            "ko": "작은 일이라도 요즘 기다려지는 게 있어?",
+            "en": "Anything you’re looking forward to?",
+            "ja": "小さなことでも、今楽しみにしていることはある？"
+          }
         }
       ]
     },
@@ -307,6 +331,14 @@
             "en": "What would you enjoy learning, just for yourself?",
             "ja": "上手にできなくても、習ってみたいことは？"
           }
+        },
+        {
+          "revision": "e986fa7645ad477dce68b3b4daa065eaa81f5eaff7f4724a087071f543bb2b38",
+          "questions": {
+            "ko": "잘하지 않아도 배워보고 싶은 건 뭐야?",
+            "en": "What would you love to learn, just for fun?",
+            "ja": "上手にできなくても、習ってみたいことは？"
+          }
         }
       ]
     },
@@ -319,6 +351,14 @@
           "questions": {
             "ko": "곁에 두면 괜히 마음이 놓이는 물건은?",
             "en": "Is there an object you find comforting to have nearby?",
+            "ja": "そばにあると、なんだか安心するものは？"
+          }
+        },
+        {
+          "revision": "3e394ec901b99a174488aaaf9c498fb2e25c953383da2f67bf864ee3e29b27d6",
+          "questions": {
+            "ko": "곁에 두면 괜히 마음이 놓이는 물건은?",
+            "en": "Is there something you keep nearby for comfort?",
             "ja": "そばにあると、なんだか安心するものは？"
           }
         }
@@ -447,6 +487,14 @@
             "en": "What would you like to drink on a little break?",
             "ja": "ひと休みするなら、何を飲みたい？"
           }
+        },
+        {
+          "revision": "24fe7642af40e3b22fb3d993d564d704c79dcefba7938865be1b9f59d092a743",
+          "questions": {
+            "ko": "가장 좋아하는 음료는 뭐야?",
+            "en": "What’s your favorite drink?",
+            "ja": "一番好きな飲み物は何？"
+          }
         }
       ]
     },
@@ -460,6 +508,14 @@
             "ko": "내 공간에 작은 장식을 더한다면?",
             "en": "What little touch would you add to your space?",
             "ja": "自分の空間に小さな飾りを足すなら？"
+          }
+        },
+        {
+          "revision": "83b01f9f91cb1a57d46ab428b6eb8228f604cffe3f4b61dd3dd9edae6dd99b33",
+          "questions": {
+            "ko": "네 방에 하나 더 놓고 싶은 물건이 있어?",
+            "en": "Anything you’d love to add to your room?",
+            "ja": "部屋に新しく置きたいものはある？"
           }
         }
       ]
@@ -503,6 +559,14 @@
             "en": "What makes time fly for you lately?",
             "ja": "最近、何をしていると時間があっという間？"
           }
+        },
+        {
+          "revision": "95f34bb8b68a8fda6341f944a5102cf9fbae760442d34390684c1295ea49cb29",
+          "questions": {
+            "ko": "요즘 뭘 할 때 시간이 금방 지나가?",
+            "en": "What do you lose track of time doing?",
+            "ja": "最近、何をしていると時間があっという間？"
+          }
         }
       ]
     },
@@ -516,6 +580,14 @@
             "ko": "어떤 작은 깜짝 선물이 오면 좋겠어?",
             "en": "What little surprise would make your day?",
             "ja": "どんな小さなサプライズがあったらうれしい？"
+          }
+        },
+        {
+          "revision": "5dab2d4cd87b3974b70ba7408df11c0ab885eeb3ea6e867818b02db73c5ded7c",
+          "questions": {
+            "ko": "지금 선물을 하나 받을 수 있다면 뭘 받고 싶어?",
+            "en": "If you could get a gift right now, what would it be?",
+            "ja": "今プレゼントをもらえるなら、何がいい？"
           }
         }
       ]
@@ -561,12 +633,152 @@
           }
         }
       ]
+    },
+    {
+      "id": "recent-first-001",
+      "category": "curiosity",
+      "versions": [
+        {
+          "revision": "49bf426a58ba6b205340adc905f9a5807d682d067ea881403c05de5d46c70585",
+          "questions": {
+            "ko": "최근에 처음 해본 일이 있어?",
+            "en": "Tried anything for the first time lately?",
+            "ja": "最近、初めてやってみたことはある？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "favorite-daytime-001",
+      "category": "daily-life",
+      "versions": [
+        {
+          "revision": "8a5d3148c8e01d511d01561c1c05036f3a53f199f39bae00dc42464d9d5ed252",
+          "questions": {
+            "ko": "요즘 하루 중 가장 좋아하는 시간은 언제야?",
+            "en": "What’s your favorite time of day lately?",
+            "ja": "最近、一日の中でどの時間が一番好き？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "current-interest-001",
+      "category": "curiosity",
+      "versions": [
+        {
+          "revision": "2c9371e139d5e724cd16eeee68a0040bc70ba336e81420d509fd03fc91a79ddc",
+          "questions": {
+            "ko": "요즘 관심 가는 게 있어?",
+            "en": "What’s caught your interest lately?",
+            "ja": "最近、気になっていることはある？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "favorite-food-001",
+      "category": "food",
+      "versions": [
+        {
+          "revision": "61ebb6d5ca92c85c433471832ecccf9e68ca8d6efdb2a8906ed17bc708727815",
+          "questions": {
+            "ko": "가장 좋아하는 음식은 뭐야?",
+            "en": "What’s your favorite food?",
+            "ja": "一番好きな食べ物は何？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "animal-for-a-day-001",
+      "category": "imagination",
+      "versions": [
+        {
+          "revision": "ccda734135c5c8889d4589631a81557f757ac8b4f281bf528a8f3eb9ddadb101",
+          "questions": {
+            "ko": "하루 동안 동물이 될 수 있다면 어떤 동물이 되고 싶어?",
+            "en": "If you were an animal for a day, what would you be?",
+            "ja": "一日だけ動物になれるなら、何になりたい？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "recommend-anything-001",
+      "category": "curiosity",
+      "versions": [
+        {
+          "revision": "9e000a7b007d45e9d330d07fb05b42fb2671293baf45a5a8f7157811880d34af",
+          "questions": {
+            "ko": "나한테 추천해 주고 싶은 거 있어?",
+            "en": "Got any recommendations for me?",
+            "ja": "何かおすすめ、教えてくれる？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unnoticed-habit-001",
+      "category": "daily-life",
+      "versions": [
+        {
+          "revision": "7ad6980f1a3d6ff0cb6fa692bcf575e0075dfd7c64723d89637e7d10a03bd313",
+          "questions": {
+            "ko": "너도 모르게 자주 하는 습관이 있어?",
+            "en": "Anything you often do without even noticing?",
+            "ja": "気づくとついやっちゃう癖はある？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "self-discovery-001",
+      "category": "self-kindness",
+      "versions": [
+        {
+          "revision": "1bdf74b62a1c2ff49c167f169dce1be425a222aefc83bfc73c448b1680f12af3",
+          "questions": {
+            "ko": "요즘 너에 대해 새롭게 알게 된 게 있어?",
+            "en": "Learned anything new about yourself lately?",
+            "ja": "最近、自分について新しく気づいたことはある？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day-off-place-001",
+      "category": "rest",
+      "versions": [
+        {
+          "revision": "27d9d92be4eee2858fb4088687e684300a907e5842a8f0a7b9beeb77dbd24004",
+          "questions": {
+            "ko": "푹 쉬는 날엔 집에 있고 싶어, 밖에 나가고 싶어?",
+            "en": "On a day off, would you rather stay in or go out?",
+            "ja": "ゆっくり休める日は、家で過ごしたい？出かけたい？"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tomorrow-plans-001",
+      "category": "daily-life",
+      "versions": [
+        {
+          "revision": "45ff4fb5d914fcf28c3608fb6c03f76de9fd14b68986f9c94370228bb8680337",
+          "questions": {
+            "ko": "내일 하고 싶은 일이 하나 있다면 뭐야?",
+            "en": "What’s one thing you’d like to do tomorrow?",
+            "ja": "明日やりたいことを一つ挙げるなら？"
+          }
+        }
+      ]
     }
   ],
   "sequence": [
     {
       "topic_id": "small-joy-001",
-      "topic_revision": "f0875f91d5076805b37ad5c5ad92a3171de07129f7ebeba25a6bbfa06d4d59fb"
+      "topic_revision": "e3e50c4ff5630466fe2955d4d82134239cbb36046318b1e17d011589ceb8a995"
     },
     {
       "topic_id": "free-time-001",
@@ -618,7 +830,7 @@
     },
     {
       "topic_id": "favorite-season-001",
-      "topic_revision": "689164118ab1dbd50510190a6a2816bc0011a06b419314c59ac3badd12224762"
+      "topic_revision": "f799d114bce13fae07321a731b5f5cff4c7f1e736941f081bc4631b620cac29c"
     },
     {
       "topic_id": "tiny-discovery-001",
@@ -646,15 +858,15 @@
     },
     {
       "topic_id": "looking-forward-001",
-      "topic_revision": "e08cbabddcb0b9483ba67c68db80527f793b046b7b456183d130aeae2b503fd4"
+      "topic_revision": "098822fbee33a1e525aebe94ceae03059b51f77121e1453d548b62cf48ebc0fa"
     },
     {
       "topic_id": "learn-for-fun-001",
-      "topic_revision": "22356303b124d4edd2212b8ce18f5093d1aa5852b905a6805e22a18781f663ed"
+      "topic_revision": "e986fa7645ad477dce68b3b4daa065eaa81f5eaff7f4724a087071f543bb2b38"
     },
     {
       "topic_id": "cozy-item-001",
-      "topic_revision": "15bf8e5d690439f447e411aec4d5527435bef12c962ca4d75c04cb01864d4edd"
+      "topic_revision": "3e394ec901b99a174488aaaf9c498fb2e25c953383da2f67bf864ee3e29b27d6"
     },
     {
       "topic_id": "childhood-play-001",
@@ -690,11 +902,11 @@
     },
     {
       "topic_id": "favorite-drink-001",
-      "topic_revision": "7fda6581a26b45b70470c3db4e00045d578a0016df5af12d63a0bef3c6c05728"
+      "topic_revision": "24fe7642af40e3b22fb3d993d564d704c79dcefba7938865be1b9f59d092a743"
     },
     {
       "topic_id": "room-detail-001",
-      "topic_revision": "9800f5e3cbd33360fd568fcd9f75bdd219efe2cea815351c76458cf5d24e4bf1"
+      "topic_revision": "83b01f9f91cb1a57d46ab428b6eb8228f604cffe3f4b61dd3dd9edae6dd99b33"
     },
     {
       "topic_id": "recent-photo-001",
@@ -706,11 +918,93 @@
     },
     {
       "topic_id": "time-flies-001",
-      "topic_revision": "ab08f503811358cf447696b33e2382bfba85cb4c7b6bf4054d944385a2ed6aae"
+      "topic_revision": "95f34bb8b68a8fda6341f944a5102cf9fbae760442d34390684c1295ea49cb29"
     },
     {
       "topic_id": "pleasant-surprise-001",
-      "topic_revision": "1c4cf946edc8eb354ebbb633b0317eb0cbfacd3475e86cc58d7faffa7b56d58b"
+      "topic_revision": "5dab2d4cd87b3974b70ba7408df11c0ab885eeb3ea6e867818b02db73c5ded7c"
+    },
+    {
+      "topic_id": "own-pace-001",
+      "topic_revision": "99654bd6ede99e1f3119e536713cdd3afe27e9dba92e7dd0ef7fad48cc6a90dd"
+    },
+    {
+      "topic_id": "weather-food-001",
+      "topic_revision": "8b76dab9463ef72c53c324569cd901289e789b49cdd5b05a4c5a7dd782195e2f"
+    },
+    {
+      "topic_id": "tomorrow-joy-001",
+      "topic_revision": "b16ed4126f932108bdb1bfc5652dfaf9564fa0d4c09a42bfffd5a2993f22c658"
+    },
+    {
+      "topic_id": "recent-first-001",
+      "topic_revision": "49bf426a58ba6b205340adc905f9a5807d682d067ea881403c05de5d46c70585"
+    },
+    {
+      "topic_id": "favorite-daytime-001",
+      "topic_revision": "8a5d3148c8e01d511d01561c1c05036f3a53f199f39bae00dc42464d9d5ed252"
+    },
+    {
+      "topic_id": "current-interest-001",
+      "topic_revision": "2c9371e139d5e724cd16eeee68a0040bc70ba336e81420d509fd03fc91a79ddc"
+    },
+    {
+      "topic_id": "favorite-food-001",
+      "topic_revision": "61ebb6d5ca92c85c433471832ecccf9e68ca8d6efdb2a8906ed17bc708727815"
+    },
+    {
+      "topic_id": "animal-for-a-day-001",
+      "topic_revision": "ccda734135c5c8889d4589631a81557f757ac8b4f281bf528a8f3eb9ddadb101"
+    },
+    {
+      "topic_id": "recommend-anything-001",
+      "topic_revision": "9e000a7b007d45e9d330d07fb05b42fb2671293baf45a5a8f7157811880d34af"
+    },
+    {
+      "topic_id": "unnoticed-habit-001",
+      "topic_revision": "7ad6980f1a3d6ff0cb6fa692bcf575e0075dfd7c64723d89637e7d10a03bd313"
+    },
+    {
+      "topic_id": "self-discovery-001",
+      "topic_revision": "1bdf74b62a1c2ff49c167f169dce1be425a222aefc83bfc73c448b1680f12af3"
+    },
+    {
+      "topic_id": "day-off-place-001",
+      "topic_revision": "27d9d92be4eee2858fb4088687e684300a907e5842a8f0a7b9beeb77dbd24004"
+    },
+    {
+      "topic_id": "tomorrow-plans-001",
+      "topic_revision": "45ff4fb5d914fcf28c3608fb6c03f76de9fd14b68986f9c94370228bb8680337"
+    }
+  ],
+  "revoked": [
+    {
+      "topic_id": "new-interest-001",
+      "topic_revision": "c68d764c76d5974997db917aae3cd3303a31486054c31d05307b05d5b05f65bf"
+    },
+    {
+      "topic_id": "small-change-001",
+      "topic_revision": "a56a5ec13784bd655bc57c080a0f61c3275f743c9f6de2631bdc174b06693a49"
+    },
+    {
+      "topic_id": "favorite-color-001",
+      "topic_revision": "e807c859bbd01371923d369221d63ce7f3ec97402e4141965a0f33de2b60bc2e"
+    },
+    {
+      "topic_id": "simple-meal-001",
+      "topic_revision": "49bca7513fcc19436ff6bea59b390d5d2365c200c742d7be7cfe75c5ac47ab16"
+    },
+    {
+      "topic_id": "window-view-001",
+      "topic_revision": "db2c57baf66384affecab30316fca44ac8910dcb2102d4b3ea5a5ee98fc5865c"
+    },
+    {
+      "topic_id": "recommend-story-001",
+      "topic_revision": "8f297a02fe00117038b3ee07d682fe3bd6465291ff70903dab986d512281241b"
+    },
+    {
+      "topic_id": "small-ritual-001",
+      "topic_revision": "2abf07207a5d7e353853446e6f90a1cad481ee14452299ce4ceec58d9f3e6f49"
     },
     {
       "topic_id": "own-pace-001",
@@ -724,6 +1018,5 @@
       "topic_id": "tomorrow-joy-001",
       "topic_revision": "b16ed4126f932108bdb1bfc5652dfaf9564fa0d4c09a42bfffd5a2993f22c658"
     }
-  ],
-  "revoked": []
+  ]
 }

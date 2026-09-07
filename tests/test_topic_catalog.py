@@ -146,7 +146,8 @@ def test_calendar_midnight_and_minimum_grace(now, zone, expected):
 
 def test_catalog_has_forty_complete_languages_and_is_immutable():
     catalog = TopicCatalog.load()
-    assert len(catalog.manifest.sequence) == 40
+    assert sum(not catalog.is_revoked(p.topic_id, p.topic_revision)
+               for p in catalog.manifest.sequence) == 40
     for pointer in catalog.manifest.sequence:
         questions = catalog.questions(pointer)
         assert questions.for_locale("fr") == questions.en

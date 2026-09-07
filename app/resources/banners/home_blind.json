@@ -71,7 +71,7 @@
               "style": {
                 "font": "body",
                 "font_size": 12,
-                "weight": 600,
+                "weight": 400,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -83,15 +83,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.458,
-                "y": 0.254,
+                "y": 0.257,
                 "width": 0.084,
-                "height": 0.012
+                "height": 0.006
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#000000"
               },
-              "radius": 0.9,
+              "radius": 0.45,
               "border": {
                 "width": 0,
                 "color": "#000000"
@@ -99,7 +99,7 @@
               "semantics_order": null
             },
             {
-              "id": "message",
+              "id": "date",
               "type": "text_v1",
               "semantics_order": 1,
               "vertical_align": "center",
@@ -107,11 +107,36 @@
                 "x": 0.06,
                 "y": 0.285,
                 "width": 0.88,
-                "height": 0.31
+                "height": 0.155
               },
               "text": {
                 "kind": "template",
-                "value": "{day}\nWhat’s your luck score?"
+                "value": "{day}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 400,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.44,
+                "width": 0.88,
+                "height": 0.155
+              },
+              "text": {
+                "kind": "template",
+                "value": "What’s your luck score?"
               },
               "style": {
                 "font": "body",
@@ -119,7 +144,7 @@
                 "weight": 600,
                 "color": "#000000",
                 "align": "center",
-                "max_lines": 2,
+                "max_lines": 1,
                 "line_height": 1.15
               }
             },
@@ -146,7 +171,7 @@
             {
               "id": "action-label",
               "type": "text_v1",
-              "semantics_order": 2,
+              "semantics_order": 3,
               "vertical_align": "center",
               "frame": {
                 "x": 0.27,
@@ -182,7 +207,7 @@
                 "action-label"
               ],
               "accessibility_label": "Check fortune",
-              "semantics_order": 3,
+              "semantics_order": 4,
               "action": {
                 "type": "open_fortune"
               }
@@ -235,7 +260,7 @@
               "style": {
                 "font": "body",
                 "font_size": 12,
-                "weight": 600,
+                "weight": 400,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -247,15 +272,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.458,
-                "y": 0.254,
+                "y": 0.257,
                 "width": 0.084,
-                "height": 0.012
+                "height": 0.006
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#000000"
               },
-              "radius": 0.9,
+              "radius": 0.45,
               "border": {
                 "width": 0,
                 "color": "#000000"
@@ -263,7 +288,7 @@
               "semantics_order": null
             },
             {
-              "id": "message",
+              "id": "date",
               "type": "text_v1",
               "semantics_order": 1,
               "vertical_align": "center",
@@ -271,11 +296,36 @@
                 "x": 0.06,
                 "y": 0.285,
                 "width": 0.88,
-                "height": 0.31
+                "height": 0.155
               },
               "text": {
                 "kind": "template",
-                "value": "{day}\n오늘의 행운 지수는?"
+                "value": "{day}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 400,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.44,
+                "width": 0.88,
+                "height": 0.155
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 행운 지수는?"
               },
               "style": {
                 "font": "body",
@@ -283,7 +333,7 @@
                 "weight": 600,
                 "color": "#000000",
                 "align": "center",
-                "max_lines": 2,
+                "max_lines": 1,
                 "line_height": 1.15
               }
             },
@@ -310,7 +360,7 @@
             {
               "id": "action-label",
               "type": "text_v1",
-              "semantics_order": 2,
+              "semantics_order": 3,
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
@@ -346,7 +396,7 @@
                 "action-label"
               ],
               "accessibility_label": "운세 보기",
-              "semantics_order": 3,
+              "semantics_order": 4,
               "action": {
                 "type": "open_fortune"
               }
@@ -399,7 +449,7 @@
               "style": {
                 "font": "body",
                 "font_size": 12,
-                "weight": 600,
+                "weight": 400,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -411,15 +461,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.458,
-                "y": 0.254,
+                "y": 0.257,
                 "width": 0.084,
-                "height": 0.012
+                "height": 0.006
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#000000"
               },
-              "radius": 0.9,
+              "radius": 0.45,
               "border": {
                 "width": 0,
                 "color": "#000000"
@@ -427,7 +477,7 @@
               "semantics_order": null
             },
             {
-              "id": "message",
+              "id": "date",
               "type": "text_v1",
               "semantics_order": 1,
               "vertical_align": "center",
@@ -435,11 +485,36 @@
                 "x": 0.06,
                 "y": 0.285,
                 "width": 0.88,
-                "height": 0.31
+                "height": 0.155
               },
               "text": {
                 "kind": "template",
-                "value": "{day}\n今日のラッキー度は？"
+                "value": "{day}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 400,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.44,
+                "width": 0.88,
+                "height": 0.155
+              },
+              "text": {
+                "kind": "template",
+                "value": "今日のラッキー度は？"
               },
               "style": {
                 "font": "body",
@@ -447,7 +522,7 @@
                 "weight": 600,
                 "color": "#000000",
                 "align": "center",
-                "max_lines": 2,
+                "max_lines": 1,
                 "line_height": 1.15
               }
             },
@@ -474,7 +549,7 @@
             {
               "id": "action-label",
               "type": "text_v1",
-              "semantics_order": 2,
+              "semantics_order": 3,
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
@@ -510,7 +585,7 @@
                 "action-label"
               ],
               "accessibility_label": "運勢を見る",
-              "semantics_order": 3,
+              "semantics_order": 4,
               "action": {
                 "type": "open_fortune"
               }
@@ -582,7 +657,7 @@
               "style": {
                 "font": "body",
                 "font_size": 12,
-                "weight": 600,
+                "weight": 400,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -594,15 +669,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.458,
-                "y": 0.254,
+                "y": 0.257,
                 "width": 0.084,
-                "height": 0.012
+                "height": 0.006
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#000000"
               },
-              "radius": 0.9,
+              "radius": 0.45,
               "border": {
                 "width": 0,
                 "color": "#000000"
@@ -613,7 +688,7 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "bottom",
+              "vertical_align": "center",
               "frame": {
                 "x": 0.06,
                 "y": 0.285,
@@ -742,7 +817,7 @@
               "style": {
                 "font": "body",
                 "font_size": 12,
-                "weight": 600,
+                "weight": 400,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -754,15 +829,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.458,
-                "y": 0.254,
+                "y": 0.257,
                 "width": 0.084,
-                "height": 0.012
+                "height": 0.006
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#000000"
               },
-              "radius": 0.9,
+              "radius": 0.45,
               "border": {
                 "width": 0,
                 "color": "#000000"
@@ -773,7 +848,7 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "bottom",
+              "vertical_align": "center",
               "frame": {
                 "x": 0.06,
                 "y": 0.285,
@@ -902,7 +977,7 @@
               "style": {
                 "font": "body",
                 "font_size": 12,
-                "weight": 600,
+                "weight": 400,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -914,15 +989,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.458,
-                "y": 0.254,
+                "y": 0.257,
                 "width": 0.084,
-                "height": 0.012
+                "height": 0.006
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#000000"
               },
-              "radius": 0.9,
+              "radius": 0.45,
               "border": {
                 "width": 0,
                 "color": "#000000"
@@ -933,7 +1008,7 @@
               "id": "message",
               "type": "text_v1",
               "semantics_order": 1,
-              "vertical_align": "bottom",
+              "vertical_align": "center",
               "frame": {
                 "x": 0.06,
                 "y": 0.285,

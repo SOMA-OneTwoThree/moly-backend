@@ -796,6 +796,16 @@ CREATE TABLE public.moly_life_ments (
     CONSTRAINT moly_life_ments_weather_check CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))
 );
 
+-- TABLE: public.mood_entries
+CREATE TABLE public.mood_entries (
+    user_id uuid NOT NULL,
+    entry_date date NOT NULL,
+    kind text NOT NULL,
+    note text DEFAULT ''::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
 -- TABLE: public.order_items
 CREATE TABLE public.order_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1394,6 +1404,10 @@ ALTER TABLE ONLY public.messages
 -- CONSTRAINT: public.moly_life_ments moly_life_ments_pkey
 ALTER TABLE ONLY public.moly_life_ments
     ADD CONSTRAINT moly_life_ments_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.mood_entries mood_entries_pkey
+ALTER TABLE ONLY public.mood_entries
+    ADD CONSTRAINT mood_entries_pkey PRIMARY KEY (user_id, entry_date);
 
 -- CONSTRAINT: public.order_items order_items_pkey
 ALTER TABLE ONLY public.order_items
@@ -2000,6 +2014,10 @@ ALTER TABLE ONLY public.memory_pipeline_states
 ALTER TABLE ONLY public.messages
     ADD CONSTRAINT messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
+-- FK CONSTRAINT: public.mood_entries mood_entries_user_id_fkey
+ALTER TABLE ONLY public.mood_entries
+    ADD CONSTRAINT mood_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
 -- FK CONSTRAINT: public.order_items order_items_order_id_fkey
 ALTER TABLE ONLY public.order_items
     ADD CONSTRAINT order_items_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
@@ -2213,6 +2231,9 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- ROW SECURITY: public.moly_life_ments
 ALTER TABLE public.moly_life_ments ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.mood_entries
+ALTER TABLE public.mood_entries ENABLE ROW LEVEL SECURITY;
 
 -- ROW SECURITY: public.order_items
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
@@ -2513,6 +2534,10 @@ REVOKE ALL ON TABLE public.moly_life_ments FROM PUBLIC, anon, authenticated, ser
 GRANT ALL ON TABLE public.moly_life_ments TO anon;
 GRANT ALL ON TABLE public.moly_life_ments TO authenticated;
 GRANT ALL ON TABLE public.moly_life_ments TO service_role;
+
+-- ACL: public.TABLE mood_entries
+REVOKE ALL ON TABLE public.mood_entries FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.mood_entries TO service_role;
 
 -- ACL: public.TABLE order_items
 REVOKE ALL ON TABLE public.order_items FROM PUBLIC, anon, authenticated, service_role;

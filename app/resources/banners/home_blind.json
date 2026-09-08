@@ -720,12 +720,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 16.5,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -748,7 +748,7 @@
                 "font": "body",
                 "font_size": 14,
                 "weight": 600,
-                "color": "#000000",
+                "color": "#FFFFFF",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -880,12 +880,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 16.5,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -908,7 +908,7 @@
                 "font": "body",
                 "font_size": 14,
                 "weight": 600,
-                "color": "#000000",
+                "color": "#FFFFFF",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -1040,12 +1040,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 16.5,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -1068,7 +1068,7 @@
                 "font": "body",
                 "font_size": 14,
                 "weight": 600,
-                "color": "#000000",
+                "color": "#FFFFFF",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -1589,6 +1589,884 @@
               "semantics_order": 3,
               "action": {
                 "type": "open_shop"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mood-daily",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {},
+      "when": null,
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347",
+              "byte_length": 5634,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/mood-background-1-cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "How are you feeling?"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.326,
+                "width": 0.88,
+                "height": 0.294
+              },
+              "text": {
+                "kind": "template",
+                "value": "Take a moment to log your mood."
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "Log mood"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "Log mood",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_mood"
+              }
+            }
+          ]
+        },
+        "ko": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347",
+              "byte_length": 5634,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/mood-background-1-cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 감정은?"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.326,
+                "width": 0.88,
+                "height": 0.294
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 감정을 기록해보세요!"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "기록하기"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "기록하기",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_mood"
+              }
+            }
+          ]
+        },
+        "ja": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347",
+              "byte_length": 5634,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/mood-background-1-cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "今日の気分は？"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.326,
+                "width": 0.88,
+                "height": 0.294
+              },
+              "text": {
+                "kind": "template",
+                "value": "今の気持ちを残してみよう"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "記録する"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "記録する",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_mood"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "music-daily",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {
+        "track": {
+          "source": "music.daily_title",
+          "format": null
+        }
+      },
+      "when": null,
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
+              "byte_length": 28240,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "Today’s music pick"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.29,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "{track}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.25,
+                "y": 0.49,
+                "width": 0.5,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "Choose music"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.1,
+                "y": 0.49,
+                "width": 0.8,
+                "height": 0.46
+              },
+              "content_ids": [
+                "action-label"
+              ],
+              "accessibility_label": "Choose music",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_music"
+              }
+            }
+          ]
+        },
+        "ko": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
+              "byte_length": 28240,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 노래 추천"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.29,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "{track}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.25,
+                "y": 0.49,
+                "width": 0.5,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "음악 선택"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.1,
+                "y": 0.49,
+                "width": 0.8,
+                "height": 0.46
+              },
+              "content_ids": [
+                "action-label"
+              ],
+              "accessibility_label": "음악 선택",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_music"
+              }
+            }
+          ]
+        },
+        "ja": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
+              "byte_length": 28240,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "今日のおすすめ曲"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.29,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "{track}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.25,
+                "y": 0.49,
+                "width": 0.5,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "音楽を選ぶ"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.1,
+                "y": 0.49,
+                "width": 0.8,
+                "height": 0.46
+              },
+              "content_ids": [
+                "action-label"
+              ],
+              "accessibility_label": "音楽を選ぶ",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_music"
               }
             }
           ]

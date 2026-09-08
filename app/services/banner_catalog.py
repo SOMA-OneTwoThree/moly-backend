@@ -23,6 +23,7 @@ from app.schemas.banners import (
     version_core,
 )
 from app.schemas.topics import TopicReference
+from app.services.banner_music import daily_music_title
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "resources/banners/home_blind.json"
 MAX_MANIFEST_BYTES = 256 * 1024
@@ -139,6 +140,10 @@ def binding_values(
             if remaining is None:
                 raise ValueError("routine binding unavailable")
             values[alias] = remaining
+        elif binding.source == "music.daily_title":
+            if local_date is None:
+                raise ValueError("music date unavailable")
+            values[alias] = daily_music_title(local_date)
         elif binding.source == "topic.question":
             if topic_question is None:
                 raise ValueError("topic binding unavailable")
@@ -225,7 +230,8 @@ def render_feed(
             deadline = min((v for v in deadlines if v is not None), default=None)
             card = BannerCard(
                 data_dependencies=tuple(
-                    sorted({binding.source for binding in banner.bindings.values()})
+                    sorted({"user.local_date" if binding.source == "music.daily_title"
+                            else binding.source for binding in banner.bindings.values()})
                 ),
                 id=banner.id,
                 component=banner.component,

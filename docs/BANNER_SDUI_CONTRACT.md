@@ -127,7 +127,7 @@ prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `sh
 
 필수 필드와 타입은 서버 `app/schemas/banners.py`, HTTP 입력/응답은 `openapi/paths/banners.yaml` 및 `openapi/components/banners.yaml`을 따른다. 완성 응답 예시는 양 레포의 `tests/fixtures/banners/composed_feed.json`(클라: `test/fixtures/banners/composed_feed.json`)을 참조한다. 서버 파일의 template 선언과 API 응답의 완성 문자열을 혼동하지 않는다.
 
-data_dependencies는 카드가 사용하는 source의 중복 없는 목록(user.local_date / routines.remaining_today / topic.question, 정적 카드는 빈 배열)이다.
+data_dependencies는 카드의 런타임 의존성 중복 없는 목록(user.local_date / routines.remaining_today / topic.question, 정적 카드는 빈 배열)이다.
 앱은 이 값으로 저장 중 루틴 의존 카드를 무효화한다. 서버가 binding에서 자동 도출하며 카드 ID나 문구로 추측하지 않는다.
 응답의 valid_until은 nullable이며 필수 필드 여부는 스키마를 따른다. 필수 필드 누락을 Flutter 기본값으로 채우지 않는다.
 카드/요소 id는 `[a-z0-9][a-z0-9_-]{0,63}`, 각각 목록/카드 안에서 고유하다.
@@ -141,6 +141,7 @@ revision은 **배포된 정의 파일의 원본 UTF-8 bytes SHA256**이며 `[a-f
 |---|---|
 | user.local_date | 검증한 X-App-Timezone(생략만 profiles.timezone) + 요청의 단일 서버 UTC clock. 현지 달력일, 다음 현지 자정까지 |
 | routines.remaining_today | 본인·삭제되지 않음·오늘 ISO 요일 예정·현지 오늘 미완료. **0개면 의존 루틴 배너 숨김**. 다음 현지 자정까지 |
+| music.daily_title (서버 작성 전용) | 앱 내장 6곡의 제목 중 현지 날짜 기준으로 고른 곡. 같은 날짜·언어 변경·서버 재시작에 유지. 응답은 완성 문자열이며 의존성은 기존 `user.local_date`, 유효 기한은 다음 현지 자정. `open_music`은 음악 선택 화면만 열며 곡을 자동 선택·재생하지 않음 |
 | topic.question | 사용자별 현재 offer의 고정된 locale 질문. 다음 현지 자정까지; 첫 답변 성공 시에도 해당 offer 카드 무효화 |
 
 서버가 binding/조건을 실행하고 완성 문자열만 응답한다. 앱은 날짜/count를 다시 계산하지 않는다.

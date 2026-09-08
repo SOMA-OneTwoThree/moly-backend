@@ -329,7 +329,7 @@ class BannerAuthoredCanvas(BannerCanvas):
 
 
 class BannerBinding(BannerModel):
-    source: Literal["user.local_date", "routines.remaining_today", "topic.question"]
+    source: Literal["user.local_date", "routines.remaining_today", "topic.question", "music.daily_title"]
     format: Literal["month_day", "full_date"] | None
 
     @model_validator(mode="after")

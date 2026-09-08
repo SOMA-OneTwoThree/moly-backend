@@ -316,6 +316,8 @@ def test_navigation_capability_filters_old_clients(action):
 def test_authored_banner_body_is_centered_between_divider_and_visible_button():
     catalog = BannerCatalog.load()
     for banner in catalog.manifest.banners:
+        if banner.id == "music-daily":
+            continue  # Music has image playback controls instead of the standard divider/button.
         for canvas in banner.canvases_by_locale.values():
             elements = {element.id: element for element in canvas.elements}
             divider = elements['heading-divider'].frame

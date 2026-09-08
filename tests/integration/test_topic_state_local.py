@@ -439,3 +439,40 @@ async def test_topic_baseline_matches_models_and_denies_client_roles(database):
     finally:
         await transaction.rollback()
         await conn.close()
+
+
+async def test_reordered_catalog_preserves_offer_until_next_transition(database):
+    import json
+
+    first = await resolve(database)
+    engine, uid, catalog = database
+    raw = catalog.manifest.model_dump(mode="json")
+    raw["sequence"].reverse()
+    reordered = TopicCatalog.from_bytes(json.dumps(raw).encode())
+    reordered.validate_update(catalog, allow_reorder=True)
+    held = await resolve((engine, uid, reordered))
+    assert held.offer_id == first.offer_id
+    assert held.questions == first.questions
+    assert held.daily_open_count == first.daily_open_count
+    tomorrow = await resolve((engine, uid, reordered), NOW + timedelta(days=1))
+    assert tomorrow.topic_id == reordered.next_pointer(first.topic_id).topic_id
+    assert tomorrow.offer_sequence == first.offer_sequence + 1
+
+
+async def test_erased_revoked_question_does_not_break_stored_cursor(database):
+    import json
+
+    first = await resolve(database)
+    engine, uid, catalog = database
+    raw = catalog.manifest.model_dump(mode="json")
+    topic = next(t for t in raw["topics"] if t["id"] == first.topic_id)
+    raw["revoked"].extend({"topic_id": topic["id"], "topic_revision": v["revision"]}
+                          for v in topic["versions"])
+    raw["topics"].remove(topic)
+    pruned = TopicCatalog.from_bytes(json.dumps(raw).encode())
+    pruned.validate_update(catalog)
+    next_offer = await resolve((engine, uid, pruned))
+    assert next_offer.topic_id == catalog.next_pointer(first.topic_id).topic_id
+    assert next_offer.offer_sequence == first.offer_sequence + 1
+    assert next_offer.daily_open_count == first.daily_open_count
+    assert next_offer.questions == pruned.questions(pruned.next_pointer(first.topic_id)).model_dump()

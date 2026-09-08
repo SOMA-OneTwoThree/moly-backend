@@ -74,11 +74,16 @@ def main() -> None:
     parser.add_argument("--environment", choices=("dev", "prod"))
     parser.add_argument("--previous-topics", type=Path,
                         help="Previously deployed catalog; enforce append-only compatible updates")
+    parser.add_argument("--allow-topic-reorder", action="store_true",
+                        help="Allow reviewed sequence reordering; retain all published cursor ids")
     args = parser.parse_args()
+    if args.allow_topic_reorder and not args.previous_topics:
+        parser.error("--allow-topic-reorder requires --previous-topics")
     catalog = BannerCatalog.load()
     topics = TopicCatalog.load()
     if args.previous_topics:
-        topics.validate_update(TopicCatalog.load(args.previous_topics))
+        topics.validate_update(TopicCatalog.load(args.previous_topics),
+                               allow_reorder=args.allow_topic_reorder)
     topic_variants = validate_topics(catalog, topics)
     count = asyncio.run(validate_assets(catalog, args.environment)) if args.assets else None
     print(

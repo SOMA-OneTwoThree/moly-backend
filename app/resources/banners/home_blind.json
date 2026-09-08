@@ -116,7 +116,7 @@
               "style": {
                 "font": "body",
                 "font_size": 16,
-                "weight": 400,
+                "weight": 700,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -305,7 +305,7 @@
               "style": {
                 "font": "body",
                 "font_size": 16,
-                "weight": 400,
+                "weight": 700,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -494,7 +494,7 @@
               "style": {
                 "font": "body",
                 "font_size": 16,
-                "weight": 400,
+                "weight": 700,
                 "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
@@ -514,7 +514,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "今日はどんな一日になるかな？"
+                "value": "今日はどんな一日かな？"
               },
               "style": {
                 "font": "body",
@@ -619,11 +619,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
-              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
-              "byte_length": 22826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-2-8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c.webp",
+              "sha256": "8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c",
+              "byte_length": 17414,
               "pixel_width": 1000,
-              "pixel_height": 563,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -645,44 +645,24 @@
               "semantics_order": 0,
               "vertical_align": "center",
               "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
+                "x": 0.3,
+                "y": 0.07,
+                "width": 0.58,
+                "height": 0.15
               },
               "text": {
                 "kind": "template",
-                "value": "TODAY'S TOPIC"
+                "value": "Today's topic"
               },
               "style": {
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
                 "color": "#000000",
-                "align": "center",
+                "align": "end",
                 "max_lines": 1,
                 "line_height": 1.15
               }
-            },
-            {
-              "id": "heading-divider",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.458,
-                "y": 0.254,
-                "width": 0.084,
-                "height": 0.012
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 0.9,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
             },
             {
               "id": "message",
@@ -691,7 +671,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.326,
+                "y": 0.325,
                 "width": 0.88,
                 "height": 0.294
               },
@@ -714,15 +694,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.68,
+                "y": 0.704,
                 "width": 0.4,
-                "height": 0.21
+                "height": 0.19
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#FFFFFF"
               },
-              "radius": 16.5,
+              "radius": 15,
               "border": {
                 "width": 0,
                 "color": "#FFFFFF"
@@ -736,7 +716,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
-                "y": 0.7,
+                "y": 0.714,
                 "width": 0.36,
                 "height": 0.17
               },
@@ -759,9 +739,9 @@
               "type": "action_region_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.68,
+                "y": 0.704,
                 "width": 0.4,
-                "height": 0.256
+                "height": 0.207
               },
               "content_ids": [
                 "action-surface",
@@ -779,11 +759,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
-              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
-              "byte_length": 22826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-2-8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c.webp",
+              "sha256": "8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c",
+              "byte_length": 17414,
               "pixel_width": 1000,
-              "pixel_height": 563,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -805,10 +785,10 @@
               "semantics_order": 0,
               "vertical_align": "center",
               "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
+                "x": 0.3,
+                "y": 0.07,
+                "width": 0.58,
+                "height": 0.15
               },
               "text": {
                 "kind": "template",
@@ -819,30 +799,10 @@
                 "font_size": 12,
                 "weight": 600,
                 "color": "#000000",
-                "align": "center",
+                "align": "end",
                 "max_lines": 1,
                 "line_height": 1.15
               }
-            },
-            {
-              "id": "heading-divider",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.458,
-                "y": 0.254,
-                "width": 0.084,
-                "height": 0.012
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 0.9,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
             },
             {
               "id": "message",
@@ -851,7 +811,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.326,
+                "y": 0.325,
                 "width": 0.88,
                 "height": 0.294
               },
@@ -874,15 +834,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.68,
+                "y": 0.704,
                 "width": 0.4,
-                "height": 0.21
+                "height": 0.19
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#FFFFFF"
               },
-              "radius": 16.5,
+              "radius": 15,
               "border": {
                 "width": 0,
                 "color": "#FFFFFF"
@@ -896,7 +856,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
-                "y": 0.7,
+                "y": 0.714,
                 "width": 0.36,
                 "height": 0.17
               },
@@ -919,9 +879,9 @@
               "type": "action_region_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.68,
+                "y": 0.704,
                 "width": 0.4,
-                "height": 0.256
+                "height": 0.207
               },
               "content_ids": [
                 "action-surface",
@@ -939,11 +899,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
-              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
-              "byte_length": 22826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-2-8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c.webp",
+              "sha256": "8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c",
+              "byte_length": 17414,
               "pixel_width": 1000,
-              "pixel_height": 563,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -965,10 +925,10 @@
               "semantics_order": 0,
               "vertical_align": "center",
               "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
+                "x": 0.3,
+                "y": 0.07,
+                "width": 0.58,
+                "height": 0.15
               },
               "text": {
                 "kind": "template",
@@ -979,30 +939,10 @@
                 "font_size": 12,
                 "weight": 600,
                 "color": "#000000",
-                "align": "center",
+                "align": "end",
                 "max_lines": 1,
                 "line_height": 1.15
               }
-            },
-            {
-              "id": "heading-divider",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.458,
-                "y": 0.254,
-                "width": 0.084,
-                "height": 0.012
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 0.9,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
             },
             {
               "id": "message",
@@ -1011,7 +951,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.326,
+                "y": 0.325,
                 "width": 0.88,
                 "height": 0.294
               },
@@ -1034,15 +974,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.68,
+                "y": 0.704,
                 "width": 0.4,
-                "height": 0.21
+                "height": 0.19
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#FFFFFF"
               },
-              "radius": 16.5,
+              "radius": 15,
               "border": {
                 "width": 0,
                 "color": "#FFFFFF"
@@ -1056,7 +996,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
-                "y": 0.7,
+                "y": 0.714,
                 "width": 0.36,
                 "height": 0.17
               },
@@ -1079,9 +1019,9 @@
               "type": "action_region_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.68,
+                "y": 0.704,
                 "width": 0.4,
-                "height": 0.256
+                "height": 0.207
               },
               "content_ids": [
                 "action-surface",

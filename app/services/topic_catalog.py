@@ -95,9 +95,10 @@ class TopicManifest(TopicModel):
         if len({ref.topic_id for ref in self.sequence}) != len(self.sequence):
             raise ValueError("sequence contains a repeated topic")
         known = {(topic.id, v.revision) for topic in self.topics for v in topic.versions}
-        if any((ref.topic_id, ref.topic_revision) not in known for ref in self.sequence):
-            raise ValueError("sequence references missing content")
         revocations = {(ref.topic_id, ref.topic_revision) for ref in self.revoked}
+        if any((ref.topic_id, ref.topic_revision) not in known | revocations
+               for ref in self.sequence):
+            raise ValueError("sequence references missing content")
         if len(revocations) != len(self.revoked):
             raise ValueError("duplicate revocation")
         # Revocations can outlive a rollback's content, so they need not be in known.
@@ -170,16 +171,20 @@ class TopicCatalog:
                 return ref
         return None
 
-    def validate_update(self, previous: TopicCatalog) -> None:
+    def validate_update(self, previous: TopicCatalog, *, allow_reorder: bool = False) -> None:
         before = tuple(ref.topic_id for ref in previous.manifest.sequence)
         after = tuple(ref.topic_id for ref in self.manifest.sequence)
-        if after[:len(before)] != before:
-            raise ValueError("topic sequence may only append new ids")
+        if not set(before) <= set(after):
+            raise ValueError("published topic cursor ids must be preserved")
+        if not allow_reorder and after[:len(before)] != before:
+            raise ValueError("topic sequence may only append new ids unless reorder is explicit")
         if not previous.revoked <= self.revoked:
             raise ValueError("revocations cannot be removed")
         for key, questions in previous.versions.items():
+            if key not in self.versions and key in self.revoked:
+                continue
             if self.versions.get(key) != questions:
-                raise ValueError("published topic versions must be preserved")
+                raise ValueError("published topic versions must be preserved unless revoked")
 
 
 def entry_expiration(now: datetime, timezone_name: str) -> datetime:

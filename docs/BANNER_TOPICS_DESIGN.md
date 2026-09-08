@@ -64,13 +64,13 @@
 | 배경·버튼·글꼴·좌표 | `app/resources/banners/home_blind.json` |
 | 이미지 bytes | 환경별 공개 `banner-assets` bucket |
 
-현재 추천 대상은 사용자 검수한 보편적인 질문 40개와 ko/en/ja 원문이다. 교체한 질문·버전도 과거 기록과 진행 위치를 위해 파일에 보존하므로 전체 항목 수와 추천 대상 수는 다를 수 있다. 생성 배치·개인화는 포함하지 않는다. 정상 질문 전환에 매일 배포나 배치는 필요 없다.
+현재 추천 대상은 사용자 검수한 보편적인 질문 50개와 ko/en/ja 원문이다. 철회한 질문 원문은 파일에서 삭제할 수 있다. 현재 주제는 50개이며, 삭제한 주제는 진행 위치 연결용 sequence ID/revision과 revoked 표시만 남긴다. 기존 대화 원문은 DB snapshot으로 유지한다. 생성 배치·개인화는 포함하지 않는다. 정상 질문 전환에 매일 배포나 배치는 필요 없다.
 
 질문마다 canvas를 복사하지 않는다. 공통 배너에 `bindings.question = {"source":"topic.question","format":null}`, 질문 text를 `{"kind":"template","value":"{question}"}`, action을 `{"type":"open_topic_conversation_v1"}`로 둔다. 질문은 다시 template로 실행하지 않는 원문이며 action 참조는 서버가 채운다.
 
 - 질문은 ko/en/ja 모두 짧고 자연스러운 한 질문으로 작성한다. 언어당 1..120자, NFC, 줄바꿈 없는 일반 문장이다. 배너에서 표현용 줄바꿈을 한다.
 - 같은 의미의 문구 수정은 기존 versions를 보존하고 새 revision을 추가한다. revision은 `questions`의 키 정렬·공백 없는 UTF-8 JSON SHA256이다. 활성 offer/entry 원문은 바뀌지 않고 다음 제안부터 새 revision을 사용한다.
-- 의미가 다른 질문은 새 ID로 sequence 말미에 추가한다. 기존 ID의 순서 변경/삭제, 공개된 version 덮어쓰기, 철회 제거는 허용하지 않는다.
+- 의미가 다른 질문은 새 ID로 추가한다. 기본 갱신은 sequence 말미 추가만 허용한다. 검토한 순서 재배치는 `--allow-topic-reorder`로 명시한다. 기존 사용자는 현재 ID를 유지하고 다음 전환부터 새 순서를 따른다. 삭제한 ID도 연결용으로 남기며 공개된 version 덮어쓰기·철회 제거는 금지한다. 철회된 version의 원문은 삭제할 수 있다.
 - 새 주제를 추가해도 기존 주제가 자동으로 빠지지 않는다. 인기 집계·자동 제외 기능은 없으며 운영자가 제외 대상을 결정한다.
 - 철회는 revoked의 ID/revision으로 표시한다. 다음 선택·첫 답변 검증에서 제외한다. 다른 유효 질문이 없으면 주제 카드만 숨긴다.
 
@@ -78,13 +78,13 @@
 uv run python scripts/validate_banners.py --assets --environment dev --previous-topics /path/to/previous-catalog.json
 ```
 
-직전 배포 파일을 `--previous-topics`로 제공해 순서·기존 revision·철회 보존까지 검사한다. 생략하면 현재 파일의 자체 검증만 한다. 검증기는 보존된 모든 질문 version × ko/en/ja canvas를 조립하고 실제 이미지 메타데이터를 검사한다. 글꼴 overflow·대비·말투·AI 대화 품질은 dev TestFlight에서 별도 검수한다.
+직전 배포 파일을 `--previous-topics`로 제공해 ID·미철회 revision 원문·철회 표시 보존까지 검사한다. 순서를 검토 후 섞었을 때만 `--allow-topic-reorder`를 함께 지정한다. 이 옵션도 기존 ID 삭제를 허용하지 않는다. 생략하면 현재 파일의 자체 검증만 한다. 검증기는 보존된 모든 질문 version × ko/en/ja canvas를 조립하고 실제 이미지 메타데이터를 검사한다. 글꼴 overflow·대비·말투·AI 대화 품질은 dev TestFlight에서 별도 검수한다.
 
 ## 배포
 
 1. 서버 배포 전에 `db/schema.sql`을 기준으로 기존 user_topic_states에 daily_open_count/offer_opened와 0..2 제약을 추가하는 차이 SQL을 별도 리뷰 산출물로 준비한다. 기존 사용자 진행 위치·질문·대화는 보존하며 새 필드는 0/false로 시작한다. 과거 클릭을 추측해 소급 차감하지 않는다. `db/README.md`의 dev 적용 절차를 따르고 `uv run python -m db.verify --env dev`로 확인한다. baseline을 기존 DB에 실행하지 않는다. RLS deny-default, anon/authenticated 권한 없음이 필요하다.
 2. 질문·배너를 함께 검증하고 서버 dev에 배포한다. 실행 중 `/health/banners`는 인증된 진단 경로로 banner revision과 topic_revision을 제공한다. `scripts/check_running_banners.py`가 이미지와 실행 프로세스의 두 hash를 대조한다.
-3. 지원하는 dev TestFlight로 첫 진입·하루 2개 준비·40개 순환·재시도·앱 복귀·자정·언어·기존 대화 회귀를 확인한다. 운영 배포/main 통합은 별도다.
+3. 지원하는 dev TestFlight로 첫 진입·하루 2개 준비·50개 순환·재시도·앱 복귀·자정·언어·기존 대화 회귀를 확인한다. 운영 배포/main 통합은 별도다.
 
 롤백은 사용자 cursor/entry나 확장된 messages kind 제약을 되돌리지 않는다. 이전 버전·철회 기록을 보존한 호환 catalog로 복구한다. 대화 품질 검수는 첫 답변, 후속 2턴, 화제 전환, 답하기 싫음, 위기 표현을 포함한다.
 

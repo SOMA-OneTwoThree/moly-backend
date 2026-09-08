@@ -144,11 +144,15 @@ def test_calendar_midnight_and_minimum_grace(now, zone, expected):
     assert entry_expiration(datetime.fromisoformat(now), zone) == datetime.fromisoformat(expected)
 
 
-def test_catalog_has_forty_complete_languages_and_is_immutable():
+def test_catalog_has_fifty_complete_languages_and_is_immutable():
     catalog = TopicCatalog.load()
     assert sum(not catalog.is_revoked(p.topic_id, p.topic_revision)
-               for p in catalog.manifest.sequence) == 40
+               for p in catalog.manifest.sequence) == 50
+    assert len(catalog.manifest.topics) == 50
     for pointer in catalog.manifest.sequence:
+        if catalog.is_revoked(pointer.topic_id, pointer.topic_revision):
+            assert (pointer.topic_id, pointer.topic_revision) not in catalog.versions
+            continue
         questions = catalog.questions(pointer)
         assert questions.for_locale("fr") == questions.en
         assert all(questions.for_locale(locale) for locale in ("ko", "en", "ja"))
@@ -156,3 +160,50 @@ def test_catalog_has_forty_complete_languages_and_is_immutable():
         catalog.positions["evil"] = 1
     with pytest.raises(ValueError):
         catalog.manifest.enabled = False
+
+
+def test_revoked_content_can_be_erased_without_changing_cursor_successors():
+    raw = manifest()
+    previous = load(raw)
+    removed = raw["sequence"][1]
+    raw["revoked"] = [removed]
+    raw["topics"].pop(1)
+    catalog = load(raw)
+    catalog.validate_update(previous)
+    assert catalog.next_pointer("topic-1").topic_id == "topic-2"
+    assert catalog.next_pointer("topic-0").topic_id == "topic-2"
+    assert catalog.next_pointer("topic-2").topic_id == "topic-0"
+    assert catalog.is_revoked(removed["topic_id"], removed["topic_revision"])
+    assert (removed["topic_id"], removed["topic_revision"]) not in catalog.versions
+
+
+def test_erased_content_cannot_be_unrevoked():
+    raw = manifest()
+    raw["revoked"] = [raw["sequence"][1]]
+    raw["topics"].pop(1)
+    previous = load(raw)
+    restored = manifest()
+    with pytest.raises(ValueError, match="revocations"):
+        load(restored).validate_update(previous)
+
+
+def test_explicit_reorder_keeps_cursor_identity_and_uses_new_successor():
+    raw = manifest(4)
+    previous = load(raw)
+    raw["sequence"] = [raw["sequence"][i] for i in [2, 0, 3, 1]]
+    reordered = load(raw)
+    with pytest.raises(ValueError, match="explicit"):
+        reordered.validate_update(previous)
+    reordered.validate_update(previous, allow_reorder=True)
+    assert reordered.next_pointer(None).topic_id == "topic-2"
+    assert reordered.next_pointer("topic-0").topic_id == "topic-3"
+    assert reordered.next_pointer("topic-1").topic_id == "topic-2"
+    assert reordered.questions(reordered.next_pointer(None)) == previous.questions(previous.manifest.sequence[2])
+
+
+def test_explicit_reorder_cannot_delete_a_published_cursor():
+    raw = manifest()
+    previous = load(raw)
+    raw["sequence"].pop()
+    with pytest.raises(ValueError, match="cursor ids"):
+        load(raw).validate_update(previous, allow_reorder=True)

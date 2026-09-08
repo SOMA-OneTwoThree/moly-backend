@@ -13,6 +13,19 @@
 버전별로 기준 문서를 새로 만들지 않는다. 본문은 실행·검수 계약, 부록 A·B의 연결 문서는 전체 본문 전문이다.
 클라이언트에 아직 반영하지 않은 UI 제안은 4.6절과 부록 D·E에서 구분한다.
 
+파일은 다음 역할로 관리한다. 문구 버전은 자산의 `copy_version`에 기록하고 문서 폴더명에는 붙이지 않는다.
+
+| 위치 | 역할 | 수정 방법 |
+| --- | --- | --- |
+| `docs/DAILY-FORTUNE.md` | 제품·API·DB·배포 및 검증 기준 | 기준 변경 시 이 문서에 반영 |
+| `app/resources/fortune/` | 실행용 세 언어 문구·계산 규칙·manifest | 문구 원본을 수정하고 hash 갱신 |
+| `docs/fortune-content/briefs.json` | 집필·현지화 기준 | 편집 기준이 바뀔 때 수정 |
+| `docs/fortune-content/overall-*.md`, `category-*.md` | 전체 문구의 세 언어 대조표 14개 | 서버 자산 수정 후 생성기로 갱신 |
+| `docs/fortune-content/review-notes.md` | 언어별 검수 기록 | 검수 결과를 한 파일에 기록 |
+| `scripts/build_fortune_copy_docs.py` | 전문 생성 및 CI 일치 검사 | `--check`로 정본과 문서 일치 확인 |
+
+집필용 중간 원고·변환 스크립트·일회성 로그는 실행 자산이나 정본 문서로 사용하지 않는다.
+
 - [검수 기준·적용 계획](#4-운세-문구-재설계--2026-09-08)
 - [종합 운세 전문](#부록-a-종합-운세-전문--10점수-구간--20묶음--3언어) · [분야별 전문](#부록-b-분야별-운세-전문--40경로--20변형--3언어)
 - [행운색](#부록-c-행운색-전문--12색--3언어) · [기존 UI·배너](#부록-d-기존-ui와-서버-운세-배너-전문) · [누락 상태 UI](#부록-e-누락-상태접근성-ui-제안-전문)
@@ -245,7 +258,7 @@ S = 선택된 후보값의 합, 빈 자리는 0
 
 ### 4.3 점수 구간과 내용의 차이
 
-점수 산식과 경계는 3.3을 유지한다. 편집 기준은 [공통 명세](fortune-content-v3/briefs.json)에 둔다.
+점수 산식과 경계는 3.3을 유지한다. 편집 기준은 [공통 명세](fortune-content/briefs.json)에 둔다.
 같은 20개 과제를 점수마다 강약만 바꿔 반복하지 않고, 각 구간 안에서 하루 해석 20개를 작성한다.
 ID의 의미 일치는 같은 점수 구간의 한국어·영어·일본어 사이에서 보장한다. 다른 점수의 v01이
 반드시 같은 소재일 필요는 없다.
@@ -338,7 +351,7 @@ ID의 의미 일치는 같은 점수 구간의 한국어·영어·일본어 사�
 동일 ID의 하루 판정·상황·조언을 대조해 현지화한다. 총괄은 저·중·고점과 세 언어를 교차 검수한다.
 기존 8유형별 원고는 재사용하지 않는다. 언어별 검수 기록은 아래와 같다.
 
-[한국어](fortune-content-v3/review-notes.ko.md) · [영어](fortune-content-v3/review-notes.en.md) · [일본어](fortune-content-v3/review-notes.ja.md)
+[한국어·영어·일본어 통합 검수 기록](fortune-content/review-notes.md)
 
 최종 검증 결과(2026-09-08, 이번 분야 교체 후 다시 실행):
 
@@ -647,16 +660,16 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 
 | 점수 구간 | 전체 전문 | 언어별 묶음 / 표현 |
 | --- | --- | --- |
-| 0–9 | [총평 0–9점](fortune-content-v3/overall-d00.md) | 20 / 120 |
-| 10–19 | [총평 10–19점](fortune-content-v3/overall-d10.md) | 20 / 120 |
-| 20–29 | [총평 20–29점](fortune-content-v3/overall-d20.md) | 20 / 120 |
-| 30–39 | [총평 30–39점](fortune-content-v3/overall-d30.md) | 20 / 120 |
-| 40–49 | [총평 40–49점](fortune-content-v3/overall-d40.md) | 20 / 120 |
-| 50–59 | [총평 50–59점](fortune-content-v3/overall-d50.md) | 20 / 120 |
-| 60–69 | [총평 60–69점](fortune-content-v3/overall-d60.md) | 20 / 120 |
-| 70–79 | [총평 70–79점](fortune-content-v3/overall-d70.md) | 20 / 120 |
-| 80–89 | [총평 80–89점](fortune-content-v3/overall-d80.md) | 20 / 120 |
-| 90–100 | [총평 90–100점](fortune-content-v3/overall-d90.md) | 20 / 120 |
+| 0–9 | [총평 0–9점](fortune-content/overall-d00.md) | 20 / 120 |
+| 10–19 | [총평 10–19점](fortune-content/overall-d10.md) | 20 / 120 |
+| 20–29 | [총평 20–29점](fortune-content/overall-d20.md) | 20 / 120 |
+| 30–39 | [총평 30–39점](fortune-content/overall-d30.md) | 20 / 120 |
+| 40–49 | [총평 40–49점](fortune-content/overall-d40.md) | 20 / 120 |
+| 50–59 | [총평 50–59점](fortune-content/overall-d50.md) | 20 / 120 |
+| 60–69 | [총평 60–69점](fortune-content/overall-d60.md) | 20 / 120 |
+| 70–79 | [총평 70–79점](fortune-content/overall-d70.md) | 20 / 120 |
+| 80–89 | [총평 80–89점](fortune-content/overall-d80.md) | 20 / 120 |
+| 90–100 | [총평 90–100점](fortune-content/overall-d90.md) | 20 / 120 |
 
 ## 부록 B. 분야별 운세 전문 — 40경로 × 20변형 × 3언어
 
@@ -664,10 +677,10 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 
 | 분야 | 전체 전문 | 언어별 묶음 / 표현 |
 |---|---|---|
-| 애정 | [love](fortune-content-v3/category-love.md) | 200 / 400 |
-| 금전 | [money](fortune-content-v3/category-money.md) | 200 / 400 |
-| 일·학업 | [work](fortune-content-v3/category-work.md) | 200 / 400 |
-| 활력 | [energy](fortune-content-v3/category-energy.md) | 200 / 400 |
+| 애정 | [love](fortune-content/category-love.md) | 200 / 400 |
+| 금전 | [money](fortune-content/category-money.md) | 200 / 400 |
+| 일·학업 | [work](fortune-content/category-work.md) | 200 / 400 |
+| 활력 | [energy](fortune-content/category-energy.md) | 200 / 400 |
 
 본문 수정 후 `uv run python scripts/build_fortune_copy_docs.py`로 전문을 다시 생성한다.
 CI의 `--check`는 실행 자산과 문서가 다르면 실패한다. 생성 파일을 단독 수정하지 않는다.

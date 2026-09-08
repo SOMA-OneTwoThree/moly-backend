@@ -48,8 +48,8 @@ def render_documents() -> dict[Path, str]:
     from app.services.fortune_copy_selection import CATEGORY_KEYS, DECILES, VARIANT_IDS
 
     catalog = load_catalog()
-    briefs = json.loads((ROOT / "docs/fortune-content-v3/briefs.json").read_text())
-    directory = ROOT / "docs/fortune-content-v3"
+    briefs = json.loads((ROOT / "docs/fortune-content/briefs.json").read_text())
+    directory = ROOT / "docs/fortune-content"
     documents = {}
     for decile in DECILES:
         number = int(decile[1:])
@@ -93,7 +93,7 @@ def main() -> int:
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content)
-    obsolete = set((ROOT / "docs/fortune-content-v3").glob("overall-*.md")) - set(documents)
+    obsolete = set((ROOT / "docs/fortune-content").glob("overall-*.md")) - set(documents)
     stale.extend(str(p.relative_to(ROOT)) for p in sorted(obsolete))
     if stale:
         print("Fortune copy documents are stale or obsolete:\n" + "\n".join(stale))

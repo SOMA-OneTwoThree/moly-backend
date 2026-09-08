@@ -150,8 +150,9 @@ async def test_snapshot_renders_only_public_result(monkeypatch):
         _Session(), user_id=UID, local_date=TODAY, locale="ko", account_timezone="Asia/Seoul"
     )
     assert "미뤄 둔 일을 시작" in snapshot.block
-    assert "행운 지수: 78/100" in snapshot.block
-    assert "애정 72, 금전 61, 일 88, 활력 57" in snapshot.block
+    assert "운세 점수: 78/100" in snapshot.block
+    for label, score in (("애정", 72), ("금전", 61), ("일·학업", 88), ("활력", 57)):
+        assert f"{label} {score}" in snapshot.block
     assert "birth" not in snapshot.block.lower()
     assert "advert" not in snapshot.block.lower()
 
@@ -161,7 +162,15 @@ async def test_snapshot_renders_labels_in_the_selected_locale(monkeypatch):
     _enable(monkeypatch)
     daily = _daily()
     japanese = copy.deepcopy(daily.copy_by_locale["ko"])
-    japanese["overall"]["headline"] = "今日は落ち着いて進められる日です。"
+    japanese["overall"] = {
+        "headline": "今日は落ち着いて進められる日。",
+        "flow": ["考えをまとめやすそう。", "取りかかる順番を選ぼう。", "今の範囲を守ってみて。"],
+        "do": "優先することを選ぶ", "pause": "返事を急がせる",
+    }
+    japanese["categories"] = {
+        category: {"text": [f"{label}の選ばれた見通し。", f"{label}で意識したい行動。"]}
+        for category, label in (("love", "恋愛運"), ("money", "金運"), ("work", "仕事・学業"), ("energy", "活力"))
+    }
     japanese["lucky_color"]["name"] = "紫"
     daily.copy_by_locale["ja"] = japanese
     snapshot = await fortune_chat.load_snapshot(
@@ -173,8 +182,12 @@ async def test_snapshot_renders_labels_in_the_selected_locale(monkeypatch):
     )
     assert "[サーバーで確認済みの今日の運勢データ]" in snapshot.block
     assert "運勢スコア: 78/100" in snapshot.block
-    assert "恋愛 72, 金運 61, 仕事 88, 健康 57" in snapshot.block
+    for label, score in (("恋愛運", 72), ("金運", 61), ("仕事・学業", 88), ("活力", 57)):
+        assert f"{label} {score}" in snapshot.block
     assert "ラッキーカラー: 紫" in snapshot.block
+    for block in japanese["categories"].values():
+        assert all(sentence in snapshot.block for sentence in block["text"])
+    assert not any("가" <= character <= "힣" for character in snapshot.block)
 
 
 @pytest.mark.asyncio
@@ -304,3 +317,48 @@ def test_long_lived_derivations_filter_fortune_message_kinds():
     assert 'Message.kind == "normal"' in diary_source
     assert "kind = 'normal'" in str(mem0_jobs._SOURCE_MESSAGES)
     assert "kind = 'normal'" in str(contract_jobs._MESSAGES)
+
+
+
+@pytest.mark.asyncio
+async def test_legacy_snapshot_survives_catalog_version_change(monkeypatch):
+    _enable(monkeypatch)
+    session = _Session()
+    snapshot = await fortune_chat.load_snapshot(
+        session, user_id=UID, local_date=TODAY, locale="ko", account_timezone="Asia/Seoul"
+    )
+    monkeypatch.setattr(fortune_chat.fortune_catalog, "COPY_VERSION", "fortune-copy.future")
+    await fortune_chat.revalidate(
+        session, user_id=UID, snapshot=snapshot,
+        current_local_date=TODAY, account_timezone="Asia/Seoul",
+    )
+    assert session.daily.copy_version == "fortune-copy.v2-initial.1"
+
+
+@pytest.mark.asyncio
+async def test_revalidate_rejects_private_selection_metadata_change(monkeypatch):
+    _enable(monkeypatch)
+    session = _Session()
+    session.daily.semantic_result["copy_selection"] = {"overall": "v01"}
+    snapshot = await fortune_chat.load_snapshot(
+        session, user_id=UID, local_date=TODAY, locale="ko", account_timezone="Asia/Seoul"
+    )
+    session.daily.semantic_result["copy_selection"] = {"overall": "v02"}
+    with pytest.raises(errors.AppError) as caught:
+        await fortune_chat.revalidate(
+            session, user_id=UID, snapshot=snapshot,
+            current_local_date=TODAY, account_timezone="Asia/Seoul",
+        )
+    assert caught.value.code == "FORTUNE_CONTEXT_STALE"
+
+
+def test_chat_context_includes_selected_category_explanations():
+    daily = _daily()
+    for category in ("love", "money", "work", "energy"):
+        daily.copy_by_locale["ko"]["categories"][category]["text"] = [
+            f"{category}의 선택된 첫 해석.", f"{category}의 선택된 둘째 해석.",
+        ]
+    block = fortune_chat._render(daily, "ko")
+    for category in ("love", "money", "work", "energy"):
+        for sentence in daily.copy_by_locale["ko"]["categories"][category]["text"]:
+            assert sentence in block

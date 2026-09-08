@@ -19,6 +19,7 @@ from app.models.fortune import DailyFortune, FortuneAdSession, FortuneProfile
 from app.schemas.fortune import FortuneProfilePut
 from app.services import fortune_catalog, fortune_ephemeris, fortune_rules, gating, privacy
 from app.services.account import _load_profile
+from app.services.fortune_copy_selection import select_variants
 
 _MIN_BIRTH_DATE = date(1900, 1, 1)
 _RESULT_SCHEMA_VERSION = 3
@@ -278,6 +279,7 @@ def _build_result(
     profile: FortuneProfile,
     today: date,
     timezone_name: str,
+    previous_semantic: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     birth_positions = fortune_ephemeris.date_chart_longitudes(
         profile.birth_date,
@@ -294,7 +296,9 @@ def _build_result(
         current_positions=current_positions,
         allow_unapproved=settings.environment in {"local", "development"},
     )
-    return semantic, fortune_catalog.render_all(semantic)
+    selection = select_variants(semantic, today=today, previous_semantic=previous_semantic)
+    copies = fortune_catalog.render_all(semantic, selected=selection["selected"])
+    return {**semantic, "copy_selection": selection}, copies
 
 
 async def reveal(
@@ -335,6 +339,7 @@ async def reveal(
             profile=profile,
             today=today,
             timezone_name=account.timezone,
+            previous_semantic=row.semantic_result if row is not None else None,
         )
         if row is None:
             row = DailyFortune(user_id=uid, created_at=now)

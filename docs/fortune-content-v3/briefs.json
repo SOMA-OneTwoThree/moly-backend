@@ -1,0 +1,2499 @@
+{
+  "schema": "fortune-editorial-briefs-v1",
+  "status": "agent_reviewed",
+  "brief_version": "fortune-variants-briefs.1",
+  "source_review": "docs/DAILY-FORTUNE.md",
+  "purpose": "점수별 20묶음의 ko/en/ja 독립 집필에 공통으로 사용하는 의미 명세. 사용자 표시 문장이 아니며 문장 자동 생성 템플릿이 아니다.",
+  "score_bands": {
+    "d00": {
+      "min": 0,
+      "max": 9,
+      "direction": "부담이나 어긋남이 큰 구간. 핵심 조건을 확인하고 실행 범위를 최소화한다. 재앙·금지·실패를 예고하지 않는다."
+    },
+    "d10": {
+      "min": 10,
+      "max": 19,
+      "direction": "계속하기 버거운 구간. 준비·간격·기준을 확보한 작은 실행만 제안한다."
+    },
+    "d20": {
+      "min": 20,
+      "max": 29,
+      "direction": "막히는 원인을 짚어 조정할 구간. 문제 한 곳을 확인해 불필요한 수고를 줄인다."
+    },
+    "d30": {
+      "min": 30,
+      "max": 39,
+      "direction": "마찰이 있지만 좁은 범위에서는 이어갈 수 있다. 작은 보완을 조건으로 진행한다."
+    },
+    "d40": {
+      "min": 40,
+      "max": 49,
+      "direction": "사소한 확인을 더하면 필요한 몫을 해낼 수 있다. 확대보다 누락 방지에 무게를 둔다."
+    },
+    "d50": {
+      "min": 50,
+      "max": 59,
+      "direction": "평소 방식으로 정해둔 분량을 유지한다. 특별한 이익·방해 사건을 추가하지 않는다."
+    },
+    "d60": {
+      "min": 60,
+      "max": 69,
+      "direction": "작은 진전이나 여유가 생긴다. 해당 상황에서 부담 적은 한 걸음을 활용한다."
+    },
+    "d70": {
+      "min": 70,
+      "max": 79,
+      "direction": "해당 행동을 조금 적극적으로 해볼 여건이다. 구체적인 다음 단계로 연결한다."
+    },
+    "d80": {
+      "min": 80,
+      "max": 89,
+      "direction": "중요한 구간에 힘을 실을 여지가 크다. 범위를 무작정 늘리지 않고 깊이·정확성·만족을 높인다."
+    },
+    "d90": {
+      "min": 90,
+      "max": 100,
+      "direction": "준비·조건이 잘 맞아 해당 상황을 충분히 활용할 여건이다. 마무리·이해·상호존중을 갖추되 결과를 보장하지 않는다."
+    }
+  },
+  "authoring_rules": [
+    "각 variant는 같은 의미 상황을 10점수 구간에서 다룬다. 점수가 바뀌어도 다른 사건이나 사람을 추가하지 않는다.",
+    "low_direction은 d00~d30, mid_direction은 d40~d60, high_direction은 d70~d90의 방향이다. 실제 열 구간은 score_bands와 함께 개별 집필한다.",
+    "focus는 판정 대상이며 context는 사용할 수 있는 상황이다. context가 조건부이면 사용자에게 실제로 그런 일이 있다고 단정하지 않는다.",
+    "do_intent/pause_intent는 의미 축이다. 같은 문장을 열 구간에 복사하지 않고 분량·확인 수준·실행 깊이를 구간에 맞춰 구체적으로 쓴다.",
+    "각 언어는 같은 판정·조건·행동 범위를 지키되 자연스러운 어순·운세 문체로 독립 작성한다. 단순 번역이나 어미 교체로 분량을 채우지 않는다.",
+    "종합은 해당 flow의 하루 풀이에 집중하고 애정·돈·일학업·신체 진단을 혼합하지 않는다.",
+    "recover는 하던 것에서 떨어져 집중과 선택의 여유를 되찾는 의미다. energy는 활동할 양·속도·활기의 의미다. 서로의 문장을 재활용하지 않는다.",
+    "애정은 연인·혼인·상대의 마음을 전제하지 않는다. 금전은 수입이나 투자 결과를 예고하지 않는다. work는 일과 공부 모두를 포함한다. energy는 의학적 판단을 하지 않는다.",
+    "본문에 고정된 시간대·새 연락·새 인물·특별한 사건을 임의로 넣지 않는다. 문구를 다르게 만들기 위한 낯선 비유나 동의어 교체를 피한다.",
+    "v01은 기존 영역의 핵심 맥락을 유지하지만 원문 문장 고정을 뜻하지 않는다. 나머지 v02~v20은 같은 영역 안에서 판정 초점과 행동 대상을 분화한다."
+  ],
+  "overall": {
+    "start": {
+      "v01": {
+        "id": "v01",
+        "focus": "시작 범위",
+        "context": "새로 해보려는 일의 첫 분량",
+        "low_direction": "범위를 최소화해 준비 확인",
+        "mid_direction": "정한 분량으로 출발",
+        "high_direction": "준비된 첫 결과물까지 실행",
+        "do_intent": "첫 단계 작게 정하기",
+        "pause_intent": "착수 전에 범위 키우기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "준비물 확보",
+        "context": "시작에 필요한 물건이나 자료",
+        "low_direction": "빠진 준비를 채운 뒤 착수",
+        "mid_direction": "필수 준비만 갖춰 시작",
+        "high_direction": "갖춘 자원을 바로 활용",
+        "do_intent": "필수 준비물 확인하기",
+        "pause_intent": "준비 없이 진행 약속하기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "첫 질문",
+        "context": "처음이라 모르는 부분",
+        "low_direction": "불확실한 점부터 질문",
+        "mid_direction": "알아야 할 내용을 확인하고 시작",
+        "high_direction": "질문을 통해 출발점 구체화",
+        "do_intent": "가장 궁금한 점 묻기",
+        "pause_intent": "모른 채 이해한 척하기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "착수 시점",
+        "context": "시작할 시간을 고르는 상황",
+        "low_direction": "무리 없는 짧은 틈 확보",
+        "mid_direction": "정한 시간에 착수",
+        "high_direction": "집중할 시간을 확보해 출발",
+        "do_intent": "시작할 시간 정하기",
+        "pause_intent": "완벽한 때만 기다리기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "첫 기록",
+        "context": "생각을 실제 형태로 옮길 때",
+        "low_direction": "짧은 메모로 부담 낮추기",
+        "mid_direction": "간단한 초안 작성",
+        "high_direction": "초안을 구체적인 형태로 발전",
+        "do_intent": "생각을 한 줄로 적기",
+        "pause_intent": "머릿속에서만 고치기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "시작 이유",
+        "context": "새 일을 해보고 싶은 마음",
+        "low_direction": "왜 필요한지 먼저 점검",
+        "mid_direction": "목적에 맞는 첫 단계 선택",
+        "high_direction": "분명한 목적을 실행에 연결",
+        "do_intent": "해보려는 이유 적기",
+        "pause_intent": "분위기에 따라 시작하기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "필수 조건",
+        "context": "착수 전에 맞춰야 할 기준",
+        "low_direction": "충족하지 않은 조건 확인",
+        "mid_direction": "필수 조건을 맞춘 뒤 실행",
+        "high_direction": "준비된 조건을 출발에 활용",
+        "do_intent": "시작 조건 확인하기",
+        "pause_intent": "조건을 추측하고 넘어가기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "쉬운 진입점",
+        "context": "첫 단계가 복잡하게 느껴질 때",
+        "low_direction": "부담 적은 입구 찾기",
+        "mid_direction": "익숙한 부분부터 시작",
+        "high_direction": "쉬운 첫 단계로 다음 과정 열기",
+        "do_intent": "손댈 수 있는 부분 고르기",
+        "pause_intent": "어려운 첫 단계만 고집하기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "임시로 해보기",
+        "context": "처음부터 확정하기 어려운 선택",
+        "low_direction": "되돌릴 수 있게 시험",
+        "mid_direction": "잠깐 써보고 시작 여부 판단",
+        "high_direction": "시험 결과로 첫 방향 확정",
+        "do_intent": "짧은 시험 범위 정하기",
+        "pause_intent": "시험을 큰 약속으로 바꾸기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "시작 알리기",
+        "context": "함께 알아야 하는 사람이 있는 일",
+        "low_direction": "필요한 범위에만 의사 전달",
+        "mid_direction": "준비한 계획을 간단히 공유",
+        "high_direction": "명확한 출발 계획으로 협조 요청",
+        "do_intent": "시작할 내용을 정확히 알리기",
+        "pause_intent": "준비보다 큰 기대 만들기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "첫 기준 세우기",
+        "context": "처음 해보는 일의 완료 기준",
+        "low_direction": "최소한의 완료점 설정",
+        "mid_direction": "정한 기준까지 첫 시도",
+        "high_direction": "확인 가능한 첫 성과 만들기",
+        "do_intent": "첫 시도의 완료점 정하기",
+        "pause_intent": "잘했다는 느낌만 기준 삼기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "환경 마련",
+        "context": "새 일에 손댈 자리나 화면",
+        "low_direction": "착수에 방해되는 것 제거",
+        "mid_direction": "필요한 환경만 갖추기",
+        "high_direction": "준비된 환경에서 바로 착수",
+        "do_intent": "시작할 자리 마련하기",
+        "pause_intent": "환경 꾸미느라 시작 늦추기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "기존 경험 활용",
+        "context": "처음인 일에 비슷한 경험이 있을 때",
+        "low_direction": "맞는 경험인지 확인",
+        "mid_direction": "익숙한 방법을 출발에 사용",
+        "high_direction": "경험을 응용해 첫 단계 안정화",
+        "do_intent": "도움 되는 경험 떠올리기",
+        "pause_intent": "다른 일을 똑같다고 여기기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "첫 선택 좁히기",
+        "context": "시작 방법이 여러 개일 때",
+        "low_direction": "선택지를 줄여 혼란 완화",
+        "mid_direction": "필수 기준으로 하나 선택",
+        "high_direction": "기준에 맞는 방법으로 출발",
+        "do_intent": "첫 방법 하나 고르기",
+        "pause_intent": "모든 방법을 동시에 시작하기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "짧은 예행",
+        "context": "진행 전에 순서를 연습할 수 있는 일",
+        "low_direction": "작은 연습으로 빈틈 확인",
+        "mid_direction": "순서를 익힌 뒤 착수",
+        "high_direction": "예행에서 확인한 강점 활용",
+        "do_intent": "처음 순서를 한번 해보기",
+        "pause_intent": "연습을 끝없이 반복하기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "시작 비용 가늠",
+        "context": "새 일에 드는 시간과 수고",
+        "low_direction": "감당할 분량인지 먼저 확인",
+        "mid_direction": "시간과 수고 안에서 착수",
+        "high_direction": "확보한 여유를 첫 단계에 투입",
+        "do_intent": "처음 드는 수고 가늠하기",
+        "pause_intent": "할 수 있는 양 부풀리기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "기본부터 익히기",
+        "context": "새 활동의 기본을 접하는 상황",
+        "low_direction": "기초 조건부터 확인",
+        "mid_direction": "기본 방식대로 첫 시도",
+        "high_direction": "기본을 이해하며 직접 실행",
+        "do_intent": "기본 단계 익히기",
+        "pause_intent": "고급 방식부터 따라 하기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "첫 피드백",
+        "context": "작은 시도를 보여줄 수 있을 때",
+        "low_direction": "질문 범위를 좁혀 확인",
+        "mid_direction": "첫 시도의 필요한 의견 듣기",
+        "high_direction": "구체적 의견으로 출발 개선",
+        "do_intent": "확인받을 부분 하나 정하기",
+        "pause_intent": "모든 평가에 방향 바꾸기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "망설임 분류",
+        "context": "시작 직전 여러 걱정이 떠오를 때",
+        "low_direction": "실제 부족과 막연한 걱정 구분",
+        "mid_direction": "확인할 걱정만 처리하고 착수",
+        "high_direction": "남은 불확실성을 감안해 실행",
+        "do_intent": "확인 가능한 걱정 적기",
+        "pause_intent": "모든 불안을 없애려 기다리기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "출발 후 점검",
+        "context": "시작한 직후 방향을 살피는 때",
+        "low_direction": "첫 단계가 맞는지 확인",
+        "mid_direction": "작게 시작하고 상태 점검",
+        "high_direction": "잘 맞는 첫 단계를 자리 잡게 하기",
+        "do_intent": "첫 시도 뒤 상태 살피기",
+        "pause_intent": "시작했으니 무조건 늘리기"
+      }
+    },
+    "advance": {
+      "v01": {
+        "id": "v01",
+        "focus": "다음 단계",
+        "context": "이미 진행 중인 일의 다음 과정",
+        "low_direction": "막힌 지점부터 확인",
+        "mid_direction": "정한 순서로 한 단계 진행",
+        "high_direction": "중요한 구간까지 진전",
+        "do_intent": "다음 필수 단계 진행하기",
+        "pause_intent": "막힌 채 힘으로 밀기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "의존 단계",
+        "context": "먼저 끝나야 다음을 할 수 있는 일",
+        "low_direction": "앞 단계의 누락 확인",
+        "mid_direction": "선행 과정을 마친 뒤 진행",
+        "high_direction": "맞물리는 과정을 끊김 없이 연결",
+        "do_intent": "먼저 필요한 단계 끝내기",
+        "pause_intent": "순서가 맞지 않는데 넘어가기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "진행 속도",
+        "context": "일의 속도를 조절할 필요",
+        "low_direction": "지속 가능한 속도로 낮추기",
+        "mid_direction": "평소 속도 유지",
+        "high_direction": "잘 풀리는 속도를 중요한 곳에 활용",
+        "do_intent": "이어갈 수 있는 속도 정하기",
+        "pause_intent": "남의 진도를 그대로 따라가기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "막힌 원인",
+        "context": "진도가 같은 곳에서 멈출 때",
+        "low_direction": "원인 한 가지를 좁혀 확인",
+        "mid_direction": "확인한 원인부터 해소",
+        "high_direction": "원인 해소 후 다음 구간 진행",
+        "do_intent": "멈춘 이유 하나 살피기",
+        "pause_intent": "같은 시도만 거듭하기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "짧은 마감점",
+        "context": "긴 과정 중 끊어 끝낼 지점",
+        "low_direction": "작은 구간만 마치기",
+        "mid_direction": "정한 구간까지 진행",
+        "high_direction": "중요한 중간 결과 완성",
+        "do_intent": "중간 마감점 정하기",
+        "pause_intent": "끝없이 진행만 늘리기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "다시 잇기",
+        "context": "잠시 중단했던 일을 이어갈 때",
+        "low_direction": "마지막 상태부터 확인",
+        "mid_direction": "기록을 따라 다시 진행",
+        "high_direction": "기존 진도를 살려 빠르게 복귀",
+        "do_intent": "마지막 진행 상태 읽기",
+        "pause_intent": "처음부터 전부 다시 하기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "범위 지키기",
+        "context": "진행 중 추가할 것이 떠오를 때",
+        "low_direction": "추가보다 현재 몫 보호",
+        "mid_direction": "현재 범위까지 진행",
+        "high_direction": "핵심 범위에 힘 모아 완성",
+        "do_intent": "추가 아이디어 따로 적기",
+        "pause_intent": "진행 중 목표 계속 늘리기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "걸림돌 우회",
+        "context": "당장 해결하기 어려운 구간",
+        "low_direction": "필수 여부부터 확인",
+        "mid_direction": "독립적인 다른 단계 진행",
+        "high_direction": "가능한 우회로 전체 진전",
+        "do_intent": "따로 진행 가능한 곳 찾기",
+        "pause_intent": "막힌 한 곳에 전체 묶어두기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "진도 확인",
+        "context": "어디까지 했는지 흐려질 때",
+        "low_direction": "끝난 곳과 남은 곳 구분",
+        "mid_direction": "현재 위치를 확인하고 진행",
+        "high_direction": "남은 구간을 정확히 겨냥",
+        "do_intent": "현재 지점 표시하기",
+        "pause_intent": "바쁜 정도로 진도 판단하기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "반복 과정",
+        "context": "비슷한 단계를 거듭하는 일",
+        "low_direction": "반복 오류부터 줄이기",
+        "mid_direction": "같은 기준으로 일정하게 진행",
+        "high_direction": "안정된 반복으로 분량 진전",
+        "do_intent": "반복 기준 일정하게 지키기",
+        "pause_intent": "매번 방법 바꾸기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "도움 요청",
+        "context": "진행에 필요한 정보를 구할 수 있을 때",
+        "low_direction": "질문할 지점을 분명히 하기",
+        "mid_direction": "필요한 도움만 구해 진행",
+        "high_direction": "구체적 도움으로 막힌 구간 돌파",
+        "do_intent": "막힌 부분을 설명해 묻기",
+        "pause_intent": "진행 전체를 남에게 맡기기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "선택 확정",
+        "context": "계속 진행하려면 하나를 정해야 할 때",
+        "low_direction": "필수 조건을 다시 확인",
+        "mid_direction": "기준에 맞는 선택으로 진행",
+        "high_direction": "검토한 선택을 실행으로 연결",
+        "do_intent": "진행에 필요한 선택 정하기",
+        "pause_intent": "이미 정한 선택 계속 되돌리기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "중간 검토",
+        "context": "진행 도중 방향을 확인할 때",
+        "low_direction": "엇나간 부분을 먼저 바로잡기",
+        "mid_direction": "정한 기준과 비교하며 진행",
+        "high_direction": "검토한 방향에 힘 실어 진전",
+        "do_intent": "중간 결과를 기준과 비교하기",
+        "pause_intent": "잘된다는 느낌만 믿기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "인수인계",
+        "context": "다른 사람이 이어받을 일이 있을 때",
+        "low_direction": "누락 정보부터 정리",
+        "mid_direction": "진행 상태와 다음 단계 전달",
+        "high_direction": "분명한 전달로 다음 과정 연결",
+        "do_intent": "다음 사람이 필요한 것 전달하기",
+        "pause_intent": "완료 표시만 하고 넘기기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "역할 분량",
+        "context": "여럿이 나눠 진행하는 경우",
+        "low_direction": "내 몫과 남은 조건 확인",
+        "mid_direction": "정해진 몫부터 진행",
+        "high_direction": "내 몫을 마쳐 전체 진도 보탬",
+        "do_intent": "맡은 범위 끝내기",
+        "pause_intent": "다른 몫까지 임의로 떠안기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "진도와 품질",
+        "context": "빨리 끝내고 싶은 마음이 들 때",
+        "low_direction": "필수 확인을 유지하며 축소",
+        "mid_direction": "속도와 확인 간격 유지",
+        "high_direction": "속도가 붙어도 핵심 품질 확보",
+        "do_intent": "확인할 지점 남기기",
+        "pause_intent": "빠르다는 이유로 검토 빼기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "작은 동력",
+        "context": "긴 과정에서 의욕이 줄 때",
+        "low_direction": "이미 한 부분 확인",
+        "mid_direction": "작은 완료를 다음 단계에 연결",
+        "high_direction": "누적된 진도로 계속할 힘 얻기",
+        "do_intent": "끝낸 구간을 눈에 보이게 남기기",
+        "pause_intent": "전체 양만 보며 조급해하기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "순서 재배치",
+        "context": "진행 순서를 바꿀 수 있는 일",
+        "low_direction": "의존 관계를 먼저 점검",
+        "mid_direction": "효율적인 순서로 조정",
+        "high_direction": "맞는 순서로 흐름을 이어가기",
+        "do_intent": "앞뒤가 바뀌어도 될 단계 찾기",
+        "pause_intent": "편한 것만 먼저 골라 하기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "지연분 조절",
+        "context": "예상보다 진도가 늦은 상황",
+        "low_direction": "필수 분량과 기한 재확인",
+        "mid_direction": "남은 시간에 맞게 계획 조정",
+        "high_direction": "현재 탄력으로 우선 구간 마무리",
+        "do_intent": "남은 분량을 다시 배분하기",
+        "pause_intent": "늦은 만큼 무리해 채우기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "끝까지 이어가기",
+        "context": "마무리가 가까운 진행 상태",
+        "low_direction": "마지막 누락을 조심히 확인",
+        "mid_direction": "정한 마감까지 진행",
+        "high_direction": "최종 확인까지 완결",
+        "do_intent": "마지막 단계까지 챙기기",
+        "pause_intent": "다 왔다고 중간에 놓기"
+      }
+    },
+    "focus": {
+      "v01": {
+        "id": "v01",
+        "focus": "집중 대상",
+        "context": "여러 일 중 하나를 골라야 할 때",
+        "low_direction": "대상을 하나로 좁히기",
+        "mid_direction": "정한 대상에 집중",
+        "high_direction": "한 가지를 깊게 이해",
+        "do_intent": "눈앞에 하나만 두기",
+        "pause_intent": "여러 일 동시에 펼치기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "알림 간섭",
+        "context": "알림이 생각을 끊는 환경",
+        "low_direction": "불필요한 자극 차단",
+        "mid_direction": "확인 시간을 따로 두기",
+        "high_direction": "긴 생각을 끊지 않고 유지",
+        "do_intent": "알림 볼 시간을 정하기",
+        "pause_intent": "울릴 때마다 화면 바꾸기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "질문 하나",
+        "context": "무엇을 알아볼지 흐린 상태",
+        "low_direction": "알아낼 질문 좁히기",
+        "mid_direction": "한 질문에 맞춰 읽기",
+        "high_direction": "질문의 핵심과 근거 파악",
+        "do_intent": "답할 질문 하나 적기",
+        "pause_intent": "목적 없이 자료 늘리기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "짧은 분량",
+        "context": "긴 대상을 끝까지 보기 버거울 때",
+        "low_direction": "짧게 끊어 확인",
+        "mid_direction": "정한 단락 끝내기",
+        "high_direction": "작은 구간들을 깊이 연결",
+        "do_intent": "한 번에 볼 분량 정하기",
+        "pause_intent": "분량 없이 오래 붙잡기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "핵심 찾기",
+        "context": "내용이 복잡하게 느껴질 때",
+        "low_direction": "중요한 항목부터 표시",
+        "mid_direction": "핵심과 예시 구분",
+        "high_direction": "복잡한 내용의 중심 파악",
+        "do_intent": "가장 중요한 문장 고르기",
+        "pause_intent": "모든 정보를 같은 비중으로 보기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "근거 확인",
+        "context": "그럴듯한 설명을 접하는 경우",
+        "low_direction": "결론보다 출처 점검",
+        "mid_direction": "주장과 근거 비교",
+        "high_direction": "근거를 연결해 깊이 이해",
+        "do_intent": "주장의 근거 확인하기",
+        "pause_intent": "그럴듯함만 믿고 결론 내리기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "중간 기록",
+        "context": "생각이 끊겼다가 돌아올 때",
+        "low_direction": "다음 지점 남기기",
+        "mid_direction": "짧은 메모로 이어가기",
+        "high_direction": "생각의 연결을 기록으로 강화",
+        "do_intent": "다음 생각 한 줄 남기기",
+        "pause_intent": "기억만 믿고 자리를 뜨기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "같은 부분 재읽기",
+        "context": "이해가 덜 된 부분을 다시 볼 때",
+        "low_direction": "막힌 문장 좁혀 보기",
+        "mid_direction": "정확히 모르는 점 확인",
+        "high_direction": "재검토로 해석의 차이 발견",
+        "do_intent": "모르는 부분 표시하기",
+        "pause_intent": "처음부터 무작정 반복해서 읽기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "비교해서 보기",
+        "context": "비슷한 내용 둘을 살필 때",
+        "low_direction": "비교 기준부터 정하기",
+        "mid_direction": "같은 기준으로 대조",
+        "high_direction": "미세한 차이까지 파악",
+        "do_intent": "차이를 볼 기준 세우기",
+        "pause_intent": "겉모양만 보고 같다고 하기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "자기 말로 설명",
+        "context": "이해한 내용을 확인할 때",
+        "low_direction": "막히는 대목 찾기",
+        "mid_direction": "짧게 설명해 이해 확인",
+        "high_direction": "개념의 관계까지 설명",
+        "do_intent": "핵심을 네 말로 풀기",
+        "pause_intent": "외운 표현만 반복하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "세부 검토",
+        "context": "작은 수치나 문구를 살필 때",
+        "low_direction": "검토 범위를 좁히기",
+        "mid_direction": "순서대로 세부 확인",
+        "high_direction": "중요한 차이를 정확히 포착",
+        "do_intent": "한 항목씩 대조하기",
+        "pause_intent": "익숙하다고 눈으로 넘기기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "집중 환경",
+        "context": "자리나 화면이 산만한 경우",
+        "low_direction": "필요 없는 것을 치우기",
+        "mid_direction": "잘 맞는 환경 유지",
+        "high_direction": "안정된 환경에서 깊이 몰입",
+        "do_intent": "집중에 필요한 것만 남기기",
+        "pause_intent": "환경을 계속 바꾸기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "생각 속도",
+        "context": "마음이 답보다 앞서갈 때",
+        "low_direction": "결론을 잠시 늦추기",
+        "mid_direction": "생각을 차례로 확인",
+        "high_direction": "빠른 이해를 충분히 검증",
+        "do_intent": "한 단계씩 이유 짚기",
+        "pause_intent": "답이 떠올랐다고 중간 생략하기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "어려운 지점",
+        "context": "복잡한 대목을 피하고 싶을 때",
+        "low_direction": "가장 작은 문제로 나누기",
+        "mid_direction": "하나씩 풀어 이해",
+        "high_direction": "어려운 핵심을 끝까지 파악",
+        "do_intent": "막힌 대목 쪼개서 보기",
+        "pause_intent": "쉽게 읽히는 곳만 반복하기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "연결 찾기",
+        "context": "흩어진 정보를 함께 볼 때",
+        "low_direction": "서로 관계있는 것만 추리기",
+        "mid_direction": "관련 내용을 묶어 보기",
+        "high_direction": "내용 사이 구조 발견",
+        "do_intent": "이어지는 항목 묶기",
+        "pause_intent": "모든 것을 억지로 연결하기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "끝내는 기준",
+        "context": "더 찾아볼지 멈출지 고민할 때",
+        "low_direction": "필요한 답의 범위 설정",
+        "mid_direction": "질문에 답하면 마무리",
+        "high_direction": "핵심을 충분히 확인하고 정리",
+        "do_intent": "확인할 범위 정하기",
+        "pause_intent": "이미 답한 질문 계속 찾기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "모르는 것 분리",
+        "context": "아는 내용과 모르는 내용이 섞일 때",
+        "low_direction": "불명확한 곳 구분",
+        "mid_direction": "모르는 항목만 확인",
+        "high_direction": "빈틈을 메워 이해 완성",
+        "do_intent": "확실하지 않은 곳 표시하기",
+        "pause_intent": "다 아는 듯 넘어가기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "몰입 시간 보호",
+        "context": "생각이 이어지는 도중 다른 일이 떠오를 때",
+        "low_direction": "다른 할 일은 메모만 하기",
+        "mid_direction": "현재 분량까지 마치기",
+        "high_direction": "깊어진 집중을 핵심에 활용",
+        "do_intent": "떠오른 다른 일 따로 적기",
+        "pause_intent": "생각날 때마다 작업 옮기기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "다른 시각 검토",
+        "context": "한 해석에 익숙해진 상황",
+        "low_direction": "빠진 설명이 없는지 확인",
+        "mid_direction": "가능한 해석을 비교",
+        "high_direction": "다른 관점으로 이해 확장",
+        "do_intent": "다른 설명 하나 검토하기",
+        "pause_intent": "처음 떠오른 해석 고집하기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "요약해 남기기",
+        "context": "읽거나 생각한 내용을 마칠 때",
+        "low_direction": "중요한 한 줄 남기기",
+        "mid_direction": "핵심과 다음 질문 정리",
+        "high_direction": "전체 구조를 간결하게 정리",
+        "do_intent": "핵심과 남은 질문 적기",
+        "pause_intent": "기록 없이 이해했다고 끝내기"
+      }
+    },
+    "coordinate": {
+      "v01": {
+        "id": "v01",
+        "focus": "서로의 뜻",
+        "context": "대화에서 뜻이 같다고 여길 때",
+        "low_direction": "해석부터 확인",
+        "mid_direction": "핵심 의미를 맞추기",
+        "high_direction": "공통 이해로 다음 행동 정하기",
+        "do_intent": "이해한 내용 되짚기",
+        "pause_intent": "같이 들었다고 같게 이해했다 보기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "기대 범위",
+        "context": "함께할 일의 기대가 다를 수 있을 때",
+        "low_direction": "각자 원하는 범위 확인",
+        "mid_direction": "가능한 범위 맞추기",
+        "high_direction": "서로 만족할 구체안 구성",
+        "do_intent": "어디까지 원하는지 묻기",
+        "pause_intent": "당연히 같은 기대라 여기기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "대화 속도",
+        "context": "답을 주고받는 속도가 다를 때",
+        "low_direction": "재촉보다 생각할 틈 주기",
+        "mid_direction": "서로 편한 응답 간격 찾기",
+        "high_direction": "여유 있는 교환으로 의견 구체화",
+        "do_intent": "답할 시간을 남기기",
+        "pause_intent": "바로 답을 요구하기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "질문 방식",
+        "context": "알고 싶은 것을 물어볼 때",
+        "low_direction": "한 번에 하나만 묻기",
+        "mid_direction": "분명한 질문으로 확인",
+        "high_direction": "핵심 질문으로 대화 진전",
+        "do_intent": "질문을 하나씩 나누기",
+        "pause_intent": "여러 질문 한꺼번에 던지기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "부탁 전달",
+        "context": "도움을 부탁할 일이 있는 경우",
+        "low_direction": "필요한 도움만 좁혀 말하기",
+        "mid_direction": "분량과 시점을 분명히 하기",
+        "high_direction": "구체적 요청으로 협력 이끌기",
+        "do_intent": "부탁의 범위 설명하기",
+        "pause_intent": "막연히 도와달라고만 하기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "의견 차이",
+        "context": "다른 생각을 마주한 경우",
+        "low_direction": "차이를 단정하지 않고 듣기",
+        "mid_direction": "공통점부터 맞추기",
+        "high_direction": "다른 장점들을 합쳐 안 만들기",
+        "do_intent": "겹치는 목적부터 찾기",
+        "pause_intent": "상대 의견 전부 틀리다 보기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "조건 확인",
+        "context": "약속이나 일정을 정할 때",
+        "low_direction": "누락 조건부터 질문",
+        "mid_direction": "서로 가능한 조건 정리",
+        "high_direction": "조건을 맞춰 실행안 확정",
+        "do_intent": "시간과 범위 확인하기",
+        "pause_intent": "좋은 분위기에 확인 빼기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "말의 길이",
+        "context": "설명이 길어지는 대화",
+        "low_direction": "핵심 하나만 전달",
+        "mid_direction": "필요한 설명만 덧붙이기",
+        "high_direction": "짧고 정확한 전달로 합의",
+        "do_intent": "요점을 먼저 말하기",
+        "pause_intent": "설명으로 상대 말 막기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "듣는 순서",
+        "context": "여럿이 의견을 나누는 경우",
+        "low_direction": "말할 틈을 나누기",
+        "mid_direction": "끝까지 듣고 답하기",
+        "high_direction": "서로의 의견을 연결해 정리",
+        "do_intent": "상대 말이 끝난 뒤 답하기",
+        "pause_intent": "중간에 결론 대신 내주기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "감정과 사실",
+        "context": "표현이 마음에 걸리는 대화",
+        "low_direction": "들은 내용과 해석 분리",
+        "mid_direction": "사실을 확인하고 느낌 전달",
+        "high_direction": "분명한 설명으로 오해 줄이기",
+        "do_intent": "걸린 말의 뜻 확인하기",
+        "pause_intent": "느낌만으로 의도 정하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "거절 표현",
+        "context": "부탁을 다 받기 어려운 경우",
+        "low_direction": "가능한 선부터 확인",
+        "mid_direction": "어려운 부분을 분명히 전달",
+        "high_direction": "관계를 존중하며 대안 제시",
+        "do_intent": "가능한 것과 어려운 것 나누기",
+        "pause_intent": "마지못해 전부 수락하기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "공통 목표",
+        "context": "함께 결정할 방향이 필요한 때",
+        "low_direction": "원하는 결과부터 확인",
+        "mid_direction": "공통 목표를 말로 맞추기",
+        "high_direction": "공통 목표를 다음 행동에 연결",
+        "do_intent": "같이 원하는 결과 정하기",
+        "pause_intent": "세부 조건부터 다투기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "문자 전달",
+        "context": "짧은 글로 의사를 전할 때",
+        "low_direction": "모호한 표현 줄이기",
+        "mid_direction": "필요한 맥락 덧붙이기",
+        "high_direction": "간결한 글로 분명히 조율",
+        "do_intent": "핵심 맥락 한 줄 더하기",
+        "pause_intent": "말투만으로 뜻 판단하기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "다시 확인",
+        "context": "이미 나눈 이야기를 정리할 때",
+        "low_direction": "놓친 이해를 확인",
+        "mid_direction": "결정 내용 간단히 되짚기",
+        "high_direction": "공통 이해를 실행으로 이어가기",
+        "do_intent": "정한 내용을 한 번 정리하기",
+        "pause_intent": "대화가 끝났다고 확인 생략하기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "의견 제안",
+        "context": "네 생각을 꺼낼 기회가 있을 때",
+        "low_direction": "근거 한 가지부터 말하기",
+        "mid_direction": "생각과 이유를 함께 전달",
+        "high_direction": "다른 의견을 보태 제안 개선",
+        "do_intent": "제안에 이유 덧붙이기",
+        "pause_intent": "결론만 강하게 주장하기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "역할 나누기",
+        "context": "둘 이상이 할 일을 정하는 경우",
+        "low_direction": "각자 가능한 몫 확인",
+        "mid_direction": "역할과 경계 정하기",
+        "high_direction": "서로의 강점을 살려 분담",
+        "do_intent": "누가 어디까지 할지 정하기",
+        "pause_intent": "좋아 보인다고 역할 임의로 정하기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "선택 비교",
+        "context": "함께 여러 안을 고를 때",
+        "low_direction": "비교 기준부터 맞추기",
+        "mid_direction": "같은 기준으로 장단점 보기",
+        "high_direction": "각자의 우선순위를 반영해 선택",
+        "do_intent": "고를 기준을 함께 정하기",
+        "pause_intent": "자기 기준만 당연하게 여기기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "대화 마무리",
+        "context": "이야기는 했지만 다음이 모호할 때",
+        "low_direction": "남은 질문부터 확인",
+        "mid_direction": "다음 행동 하나 정하기",
+        "high_direction": "구체적인 실행 약속으로 연결",
+        "do_intent": "대화 뒤 할 일 정하기",
+        "pause_intent": "말이 통했다고 끝내기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "의견 수정",
+        "context": "이야기하며 생각이 달라질 때",
+        "low_direction": "바뀐 이유를 차분히 설명",
+        "mid_direction": "달라진 부분만 공유",
+        "high_direction": "새 정보로 공통안 개선",
+        "do_intent": "생각이 바뀐 이유 알리기",
+        "pause_intent": "설명 없이 말을 뒤집기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "민감한 주제",
+        "context": "조심스러운 이야기를 꺼낼 경우",
+        "low_direction": "대화 가능한지 먼저 묻기",
+        "mid_direction": "상대의 여유를 보며 전달",
+        "high_direction": "서로 존중하며 깊이 이야기",
+        "do_intent": "이야기할 여유가 있는지 묻기",
+        "pause_intent": "준비되지 않은 대화를 밀어붙이기"
+      }
+    },
+    "change": {
+      "v01": {
+        "id": "v01",
+        "focus": "방법 교체",
+        "context": "하던 방식을 다른 방법으로 바꿀 때",
+        "low_direction": "바꾸는 수고부터 확인",
+        "mid_direction": "작은 범위에서 비교",
+        "high_direction": "검토한 대안을 실제 적용",
+        "do_intent": "대안을 작게 시험하기",
+        "pause_intent": "불편하다고 전부 뒤집기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "순서 변경",
+        "context": "같은 일을 다른 순서로 할 수 있을 때",
+        "low_direction": "선행 조건부터 점검",
+        "mid_direction": "바꿔도 되는 순서 조정",
+        "high_direction": "새 순서로 번거로움 줄이기",
+        "do_intent": "반복 순서 하나 바꾸기",
+        "pause_intent": "편의만 보고 필수 순서 뒤집기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "도구 선택",
+        "context": "익숙한 도구의 대안을 살필 때",
+        "low_direction": "기능보다 실제 필요 확인",
+        "mid_direction": "필요한 기능만 시험",
+        "high_direction": "잘 맞는 도구로 과정 개선",
+        "do_intent": "필수 기능을 비교하기",
+        "pause_intent": "새 기능이 많다고 옮기기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "환경 조정",
+        "context": "자리나 화면 배치를 바꿀 수 있을 때",
+        "low_direction": "불편한 한 곳만 손보기",
+        "mid_direction": "자주 쓰는 곳부터 조정",
+        "high_direction": "잘 맞는 배치로 사용성 개선",
+        "do_intent": "불편한 배치 하나 조정하기",
+        "pause_intent": "한꺼번에 전부 옮기기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "관점 전환",
+        "context": "같은 문제를 다른 기준으로 볼 때",
+        "low_direction": "지금 기준의 빈틈 확인",
+        "mid_direction": "다른 관점 하나 비교",
+        "high_direction": "새 관점에서 실마리 찾기",
+        "do_intent": "다른 질문으로 다시 보기",
+        "pause_intent": "관점만 바꾸며 결정 피하기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "습관 수정",
+        "context": "반복하는 행동을 손보고 싶을 때",
+        "low_direction": "바꿀 행동 하나로 제한",
+        "mid_direction": "작은 행동만 조정",
+        "high_direction": "맞는 변화를 일상에 연결",
+        "do_intent": "반복 행동 하나 바꾸기",
+        "pause_intent": "생활 전체를 갑자기 바꾸기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "기준 재검토",
+        "context": "예전 기준이 현재에 맞는지 볼 때",
+        "low_direction": "달라진 조건부터 확인",
+        "mid_direction": "필요한 기준만 보완",
+        "high_direction": "현재 조건에 맞는 선택 정리",
+        "do_intent": "지금도 필요한 기준인지 보기",
+        "pause_intent": "익숙한 기준을 무조건 버리기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "작은 실험",
+        "context": "효과가 확실하지 않은 대안",
+        "low_direction": "되돌릴 수 있는 시험 설계",
+        "mid_direction": "짧게 비교하며 판단",
+        "high_direction": "시험에서 맞는 방법 골라 적용",
+        "do_intent": "비교할 항목 하나 정하기",
+        "pause_intent": "시험 전에 결과 단정하기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "속도 바꾸기",
+        "context": "하던 템포를 조정하려는 때",
+        "low_direction": "현재 감당할 속도 확인",
+        "mid_direction": "구간에 따라 속도 조절",
+        "high_direction": "맞는 템포로 과정 개선",
+        "do_intent": "한 구간의 속도 조정하기",
+        "pause_intent": "갑자기 속도 전부 바꾸기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "대안 줄이기",
+        "context": "새 선택지가 많아진 상황",
+        "low_direction": "필요 없는 대안 제외",
+        "mid_direction": "조건에 맞는 안만 비교",
+        "high_direction": "검토된 안을 분명히 선택",
+        "do_intent": "불필요한 대안 덜어내기",
+        "pause_intent": "새 선택지 계속 추가하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "유지할 것 찾기",
+        "context": "변경 중 지킬 부분이 있는 경우",
+        "low_direction": "잘되는 부분 먼저 확인",
+        "mid_direction": "유지와 변경 범위 나누기",
+        "high_direction": "강점은 살리며 필요한 변화 적용",
+        "do_intent": "그대로 둘 부분 정하기",
+        "pause_intent": "바꾸는 김에 전부 손대기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "표현 바꾸기",
+        "context": "같은 내용을 다른 방식으로 전할 때",
+        "low_direction": "핵심 의미부터 확인",
+        "mid_direction": "이해하기 쉬운 표현 시험",
+        "high_direction": "맞는 표현으로 전달 개선",
+        "do_intent": "같은 뜻을 다른 말로 풀기",
+        "pause_intent": "표현 바꾸다 뜻까지 바꾸기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "규모 조절",
+        "context": "계획 크기를 다시 정할 수 있을 때",
+        "low_direction": "감당할 크기로 축소",
+        "mid_direction": "필요한 규모로 조정",
+        "high_direction": "맞는 규모에서 효과 살리기",
+        "do_intent": "지금 필요한 크기 정하기",
+        "pause_intent": "의욕만으로 규모 키우기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "되돌릴 길",
+        "context": "변경 후 원래대로 돌아갈 수 있어야 할 때",
+        "low_direction": "복구할 정보 먼저 확보",
+        "mid_direction": "원래 상태를 남기고 시험",
+        "high_direction": "비교 가능한 상태에서 대안 확정",
+        "do_intent": "바꾸기 전 상태 남기기",
+        "pause_intent": "되돌릴 방법 없이 바꾸기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "선택 이유 점검",
+        "context": "다른 방식을 택하고 싶어진 경우",
+        "low_direction": "충동과 필요를 구분",
+        "mid_direction": "분명한 이유에 맞게 변경",
+        "high_direction": "필요에 맞는 변화로 불편 해소",
+        "do_intent": "바꾸려는 이유 확인하기",
+        "pause_intent": "남이 바꿨다고 따라 바꾸기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "예외 처리",
+        "context": "평소 방식이 맞지 않는 구간",
+        "low_direction": "예외 범위를 좁혀 보기",
+        "mid_direction": "해당 부분만 다른 방식 사용",
+        "high_direction": "예외에 맞는 방법으로 진행",
+        "do_intent": "다르게 할 부분만 구분하기",
+        "pause_intent": "한 예외로 전체 규칙 버리기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "중간 적용",
+        "context": "변경을 단계적으로 할 수 있을 때",
+        "low_direction": "가장 작은 구간만 변경",
+        "mid_direction": "한 구간씩 적용하며 확인",
+        "high_direction": "검증된 변화를 넓혀가기",
+        "do_intent": "한 부분 적용 뒤 살피기",
+        "pause_intent": "확인 전에 적용 범위 늘리기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "낡은 과정 덜기",
+        "context": "필요가 줄어든 절차가 있을 때",
+        "low_direction": "정말 불필요한지 확인",
+        "mid_direction": "효과 없는 단계만 덜기",
+        "high_direction": "핵심을 남겨 과정 간소화",
+        "do_intent": "쓰임 적은 과정 확인하기",
+        "pause_intent": "번거롭다고 검토 단계 빼기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "다른 예시 참고",
+        "context": "타인의 방법이나 예시를 접할 때",
+        "low_direction": "조건 차이부터 살피기",
+        "mid_direction": "맞는 부분만 골라 시험",
+        "high_direction": "적합한 아이디어를 자기 상황에 적용",
+        "do_intent": "맞는 부분만 가져오기",
+        "pause_intent": "조건 다른 예시 그대로 따라 하기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "변경 결과 검토",
+        "context": "바꿔본 뒤 차이를 확인할 때",
+        "low_direction": "불편이 늘지 않았는지 보기",
+        "mid_direction": "전후 차이를 같은 기준으로 비교",
+        "high_direction": "효과 있는 변화를 남기기",
+        "do_intent": "바뀐 뒤 차이 적기",
+        "pause_intent": "낯설다는 이유만으로 원상복귀하기"
+      }
+    },
+    "organize": {
+      "v01": {
+        "id": "v01",
+        "focus": "남은 매듭",
+        "context": "거의 끝난 일을 마칠 때",
+        "low_direction": "작게 끝낼 것부터 선택",
+        "mid_direction": "남은 단계 순서대로 마무리",
+        "high_direction": "오래 남은 매듭까지 완결",
+        "do_intent": "끝낼 준비 된 일 마치기",
+        "pause_intent": "마무리 전에 새로 벌이기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "물건 자리",
+        "context": "자주 쓰는 물건의 위치를 정할 때",
+        "low_direction": "좁은 구역부터 정리",
+        "mid_direction": "사용 빈도대로 자리 정하기",
+        "high_direction": "찾기 쉬운 배치까지 마무리",
+        "do_intent": "자주 쓰는 것의 자리 정하기",
+        "pause_intent": "위치만 바꾸며 정리 반복하기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "자료 분류",
+        "context": "여러 자료를 나눠둘 때",
+        "low_direction": "지금 쓸 자료부터 구분",
+        "mid_direction": "간단한 기준으로 분류",
+        "high_direction": "다시 찾기 쉬운 구조 만들기",
+        "do_intent": "자료 나눌 기준 정하기",
+        "pause_intent": "분류 기준 계속 늘리기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "끝난 목록",
+        "context": "완료와 미완료가 섞인 목록",
+        "low_direction": "끝난 항목부터 표시",
+        "mid_direction": "남은 일만 목록에 남기기",
+        "high_direction": "정리된 목록으로 다음 일 선명화",
+        "do_intent": "끝난 항목 덜어내기",
+        "pause_intent": "완료한 일도 계속 붙잡기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "보관 판단",
+        "context": "남길지 치울지 고민하는 것",
+        "low_direction": "필요한지 먼저 확인",
+        "mid_direction": "다시 쓸 것만 보관",
+        "high_direction": "쓰임을 기준으로 분명히 정리",
+        "do_intent": "다시 쓸 이유 확인하기",
+        "pause_intent": "언젠가 쓸 거라 전부 남기기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "잔일 묶기",
+        "context": "비슷한 짧은 일이 흩어져 있을 때",
+        "low_direction": "짧게 끝날 묶음만 선택",
+        "mid_direction": "같은 종류끼리 처리",
+        "high_direction": "흩어진 잔일을 한 번에 매듭",
+        "do_intent": "비슷한 잔일 모으기",
+        "pause_intent": "생각나는 대로 오가며 처리하기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "미뤄둔 확인",
+        "context": "완료 뒤 확인만 남은 일",
+        "low_direction": "확인 범위부터 좁히기",
+        "mid_direction": "필수 확인을 마치기",
+        "high_direction": "최종 점검까지 끝내기",
+        "do_intent": "남은 확인 항목 처리하기",
+        "pause_intent": "다 끝났다고 확인 빼기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "파일 이름",
+        "context": "자료 이름이 모호한 경우",
+        "low_direction": "중요한 것부터 이름 정리",
+        "mid_direction": "찾는 기준으로 이름 통일",
+        "high_direction": "내용과 버전을 분명히 구분",
+        "do_intent": "다시 찾기 쉬운 이름 붙이기",
+        "pause_intent": "이름만 보고 최신본 추측하기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "겹치는 것",
+        "context": "같거나 비슷한 것이 여러 개일 때",
+        "low_direction": "내용 차이부터 대조",
+        "mid_direction": "기준본을 정해 중복 덜기",
+        "high_direction": "필요한 차이만 남겨 정리",
+        "do_intent": "기준이 될 하나 정하기",
+        "pause_intent": "비슷해 보인다고 바로 지우기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "일정 정돈",
+        "context": "지난 일정과 남은 일정이 섞일 때",
+        "low_direction": "지난 것부터 구분",
+        "mid_direction": "남은 일정과 준비 정리",
+        "high_direction": "일정별 필요한 것까지 정돈",
+        "do_intent": "지난 일정 덜어내기",
+        "pause_intent": "지난 계획을 그대로 복사하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "닫을 일 선택",
+        "context": "계속 둘지 마칠지 애매한 일",
+        "low_direction": "목적과 남은 가치 확인",
+        "mid_direction": "정리할 일을 하나 선택",
+        "high_direction": "불필요하게 끌던 일을 매듭",
+        "do_intent": "계속할 이유가 있는지 보기",
+        "pause_intent": "들인 수고 때문에 계속 끌기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "메모 정리",
+        "context": "짧은 메모가 여러 곳에 있을 때",
+        "low_direction": "쓸 메모부터 모으기",
+        "mid_direction": "관련 내용끼리 합치기",
+        "high_direction": "행동할 내용까지 분명히 정리",
+        "do_intent": "같은 주제 메모 모으기",
+        "pause_intent": "모으기만 하고 읽지 않기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "연결 정리",
+        "context": "자료나 일의 관계가 복잡할 때",
+        "low_direction": "필수 연결부터 표시",
+        "mid_direction": "순서와 관계를 간단히 정리",
+        "high_direction": "전체 구조를 한눈에 파악",
+        "do_intent": "이어지는 순서 표시하기",
+        "pause_intent": "관계 없는 것까지 한데 묶기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "마무리 기준",
+        "context": "언제 끝났다고 할지 모호할 때",
+        "low_direction": "최소 완료 기준 정하기",
+        "mid_direction": "기준을 채우면 마치기",
+        "high_direction": "충분히 완성하고 다음으로 이동",
+        "do_intent": "끝낼 기준 확인하기",
+        "pause_intent": "끝없이 기준 높이기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "눈앞 정돈",
+        "context": "현재 쓰는 공간이 어수선할 때",
+        "low_direction": "한 구역만 비우기",
+        "mid_direction": "필요한 것만 눈앞에 두기",
+        "high_direction": "다음 사용까지 편한 상태로 마무리",
+        "do_intent": "지금 쓸 것만 남기기",
+        "pause_intent": "정리하다 다른 구역까지 벌이기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "보류함 정리",
+        "context": "나중에 보려고 남겨둔 것이 있을 때",
+        "low_direction": "급한 것부터 확인",
+        "mid_direction": "필요한 보류만 남기기",
+        "high_direction": "결정 가능한 보류를 매듭",
+        "do_intent": "보류 이유 다시 확인하기",
+        "pause_intent": "다시 보지도 않고 계속 보류하기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "인계 준비",
+        "context": "정리한 것을 다른 이가 볼 수 있을 때",
+        "low_direction": "필수 설명부터 확보",
+        "mid_direction": "위치와 상태를 분명히 남기기",
+        "high_direction": "누가 봐도 찾을 수 있게 정돈",
+        "do_intent": "필요한 안내 함께 남기기",
+        "pause_intent": "내가 아는 방식으로만 정리하기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "다음 사용 준비",
+        "context": "마친 뒤 다시 쓸 준비가 필요할 때",
+        "low_direction": "필수 물건과 자료만 제자리",
+        "mid_direction": "다음 시작에 필요한 것 정리",
+        "high_direction": "마무리와 다음 준비를 함께 완결",
+        "do_intent": "다음에 쓸 것 제자리에 두기",
+        "pause_intent": "끝나자마자 흩어둔 채 떠나기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "완성본 구분",
+        "context": "초안과 최종본이 섞여 있을 때",
+        "low_direction": "최신 상태부터 확인",
+        "mid_direction": "완성본을 분명히 표시",
+        "high_direction": "정리된 결과만 전달·보관",
+        "do_intent": "최종본 표시하기",
+        "pause_intent": "초안과 완성본 함께 섞어두기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "정리 유지",
+        "context": "정리한 상태를 오래 쓰려 할 때",
+        "low_direction": "관리할 범위를 작게 잡기",
+        "mid_direction": "간단한 되돌림 규칙 정하기",
+        "high_direction": "유지하기 쉬운 체계 마무리",
+        "do_intent": "다 쓴 뒤 둘 자리 정하기",
+        "pause_intent": "손이 많이 가는 체계 만들기"
+      }
+    },
+    "recover": {
+      "v01": {
+        "id": "v01",
+        "focus": "쉬는 몫",
+        "context": "일정에서 떨어져 쉬어갈 때",
+        "low_direction": "해야 할 몫을 줄여 틈 확보",
+        "mid_direction": "평소 쉬는 시간 유지",
+        "high_direction": "쉼을 충분히 누려 여유 회복",
+        "do_intent": "쉴 시간을 남겨두기",
+        "pause_intent": "빈 시간을 전부 채우기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "알림에서 거리",
+        "context": "연락이나 알림이 쉬는 시간을 끊을 때",
+        "low_direction": "짧게라도 확인 멈추기",
+        "mid_direction": "알림 확인 간격 정하기",
+        "high_direction": "방해 없는 쉼을 충분히 누리기",
+        "do_intent": "잠시 알림에서 떨어지기",
+        "pause_intent": "쉬면서 계속 알림 살피기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "남은 일 내려두기",
+        "context": "할 일을 생각하며 쉬기 어려울 때",
+        "low_direction": "다음 할 일을 적어두기",
+        "mid_direction": "기록 후 잠깐 멈추기",
+        "high_direction": "일과 거리를 두고 여유 즐기기",
+        "do_intent": "남은 일 적고 쉬기",
+        "pause_intent": "기억하려고 계속 되새기기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "재촉 줄이기",
+        "context": "쉬는 중에도 빨리 돌아가고 싶을 때",
+        "low_direction": "스스로 정한 재촉 알아차리기",
+        "mid_direction": "정한 휴식 길이 지키기",
+        "high_direction": "서두르지 않고 쉬는 시간 누리기",
+        "do_intent": "휴식 중 마감 생각 내려두기",
+        "pause_intent": "쉬는 시간에도 속도 재기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "빈 시간 허용",
+        "context": "아무 일정 없는 틈을 마주할 때",
+        "low_direction": "비어 있는 칸 보호",
+        "mid_direction": "할 일 없는 시간을 그대로 두기",
+        "high_direction": "빈틈에서 선택할 여유 회복",
+        "do_intent": "빈 시간 그대로 남기기",
+        "pause_intent": "의미 있는 일로 꼭 채우기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "익숙한 쉼",
+        "context": "평소 편한 휴식 방법을 고를 때",
+        "low_direction": "새 계획보다 익숙한 것 선택",
+        "mid_direction": "잘 맞던 방식으로 쉬기",
+        "high_direction": "편한 쉼에 충분히 머물기",
+        "do_intent": "잘 맞는 휴식 방식 고르기",
+        "pause_intent": "쉼까지 새 과제로 만들기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "활동 사이 간격",
+        "context": "한 일을 마치고 다음으로 갈 때",
+        "low_direction": "곧바로 이어가지 않기",
+        "mid_direction": "일정 사이 짧은 틈 유지",
+        "high_direction": "충분한 전환 시간으로 여유 회복",
+        "do_intent": "다음 활동 전 멈추기",
+        "pause_intent": "끝나자마자 다음 일 시작하기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "생각 환기",
+        "context": "한 주제에 오래 머문 뒤",
+        "low_direction": "다른 자극으로 잠깐 전환",
+        "mid_direction": "잠시 다른 풍경이나 내용 보기",
+        "high_direction": "거리 두기로 다시 볼 여유 얻기",
+        "do_intent": "하던 것에서 잠깐 시선 떼기",
+        "pause_intent": "막힌 생각을 계속 되풀이하기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "혼자 보내는 틈",
+        "context": "대화나 활동에서 잠깐 떨어질 수 있을 때",
+        "low_direction": "혼자 있을 짧은 시간 확보",
+        "mid_direction": "원하는 만큼 조용한 시간 갖기",
+        "high_direction": "자기 리듬으로 쉴 여유 누리기",
+        "do_intent": "혼자 쉴 틈 마련하기",
+        "pause_intent": "모든 틈에 사람 일정 넣기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "즐기는 시간",
+        "context": "성과 없이 즐길 수 있는 것이 있을 때",
+        "low_direction": "짧게 즐길 분량만 선택",
+        "mid_direction": "익숙한 즐거움으로 쉬기",
+        "high_direction": "좋아하는 순간에 충분히 머물기",
+        "do_intent": "결과 없이 즐길 것 고르기",
+        "pause_intent": "즐기는 일에도 목표 매기기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "멈출 시점",
+        "context": "하던 일을 언제 끊을지 정할 때",
+        "low_direction": "늦추지 않고 중단점 정하기",
+        "mid_direction": "정한 시점에 멈추기",
+        "high_direction": "마친 뒤 충분한 쉼 확보",
+        "do_intent": "그만할 시간 정하기",
+        "pause_intent": "조금만 더 하며 끝없이 연장하기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "여유 되찾기",
+        "context": "오래 바쁘게 지낸 느낌이 있을 때",
+        "low_direction": "덜어낼 부담부터 고르기",
+        "mid_direction": "필요한 몫만 하며 쉬기",
+        "high_direction": "자기 속도를 고를 여유 회복",
+        "do_intent": "급하지 않은 일 하나 덜기",
+        "pause_intent": "쉬었다고 곧바로 일정 늘리기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "자극 낮추기",
+        "context": "화면이나 소리가 많게 느껴질 때",
+        "low_direction": "덜 자극적인 쉼 선택",
+        "mid_direction": "조용한 방식으로 쉬기",
+        "high_direction": "간섭 적은 시간에 충분히 머물기",
+        "do_intent": "덜 복잡한 쉼 고르기",
+        "pause_intent": "쉴 때 더 많은 정보 펼치기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "잠깐 보류",
+        "context": "당장 답이 안 나는 일이 남았을 때",
+        "low_direction": "계속 붙잡지 않고 보류",
+        "mid_direction": "다시 볼 때를 정하고 쉬기",
+        "high_direction": "거리 두기로 다시 판단할 여유 얻기",
+        "do_intent": "다시 볼 시점 남기고 멈추기",
+        "pause_intent": "답이 날 때까지 쉬지 않기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "쉬는 선택 존중",
+        "context": "쉬어도 되는지 망설일 때",
+        "low_direction": "쉴 몫도 필요한 시간으로 보기",
+        "mid_direction": "정한 휴식을 허용",
+        "high_direction": "쉬는 시간을 후회 없이 누리기",
+        "do_intent": "쉬는 계획도 지키기",
+        "pause_intent": "쉬는 시간을 낭비로 몰기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "속도 낮추기",
+        "context": "계속 빠르게 움직인 뒤",
+        "low_direction": "당장 할 양 줄이기",
+        "mid_direction": "평소보다 느슨한 간격 두기",
+        "high_direction": "자기에게 맞는 리듬 회복",
+        "do_intent": "일 사이 속도 낮추기",
+        "pause_intent": "남의 빠른 속도 계속 맞추기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "휴식 경계",
+        "context": "쉬는 시간에 부탁이나 일이 들어올 때",
+        "low_direction": "즉답 가능한지 먼저 보기",
+        "mid_direction": "쉬는 몫을 남기며 응답",
+        "high_direction": "여유를 지키는 경계 유지",
+        "do_intent": "쉬는 시간 뒤에 답하기",
+        "pause_intent": "급하지 않은 일에도 바로 복귀하기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "새 계획 멈추기",
+        "context": "쉬다가 또 하고 싶은 일이 떠오를 때",
+        "low_direction": "아이디어만 적어두기",
+        "mid_direction": "쉬는 동안 실행은 미루기",
+        "high_direction": "여유를 즐기고 나중에 선택",
+        "do_intent": "새 생각 메모만 남기기",
+        "pause_intent": "떠오른 계획 즉시 시작하기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "비교에서 거리",
+        "context": "남의 활동을 보며 마음이 바빠질 때",
+        "low_direction": "비교할 정보 잠시 끊기",
+        "mid_direction": "자기 일정으로 돌아와 쉬기",
+        "high_direction": "자기 속도를 편하게 받아들이기",
+        "do_intent": "남의 진행 상황 잠시 안 보기",
+        "pause_intent": "쉬면서 남의 성과 비교하기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "복귀 준비",
+        "context": "쉬고 다시 하던 일로 돌아갈 때",
+        "low_direction": "작은 첫 분량만 정하기",
+        "mid_direction": "부담 없는 속도로 재개",
+        "high_direction": "되찾은 여유로 차분히 복귀",
+        "do_intent": "돌아갈 첫 단계 작게 정하기",
+        "pause_intent": "쉰 만큼 한꺼번에 만회하기"
+      }
+    },
+    "balance": {
+      "v01": {
+        "id": "v01",
+        "focus": "우선순위",
+        "context": "여러 몫을 함께 챙겨야 할 때",
+        "low_direction": "꼭 지킬 몫부터 남기기",
+        "mid_direction": "중요도에 맞게 배분",
+        "high_direction": "할 일과 여유를 함께 지키기",
+        "do_intent": "우선순위 먼저 정하기",
+        "pause_intent": "모든 요구 같은 비중으로 받기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "시간 배분",
+        "context": "각 일에 쓸 시간이 필요한 때",
+        "low_direction": "한쪽에 쏠린 시간 줄이기",
+        "mid_direction": "필요한 시간씩 배정",
+        "high_direction": "각각의 몫을 충분히 살리기",
+        "do_intent": "쓸 시간을 나눠 적기",
+        "pause_intent": "눈앞의 일에 하루 다 쓰기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "부탁의 한도",
+        "context": "다른 요청을 받을 수 있는 상황",
+        "low_direction": "이미 맡은 몫부터 확인",
+        "mid_direction": "가능한 범위만 수락",
+        "high_direction": "협조와 자기 계획 함께 지키기",
+        "do_intent": "추가 요청 전 여유 확인하기",
+        "pause_intent": "작은 부탁이라 모두 받기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "일과 즐거움",
+        "context": "의무와 원하는 활동이 함께 있을 때",
+        "low_direction": "각각의 양을 줄여 지키기",
+        "mid_direction": "둘 다 작은 자리 마련",
+        "high_direction": "해야 할 일과 만족을 함께 챙기기",
+        "do_intent": "원하는 활동에도 시간 남기기",
+        "pause_intent": "한쪽을 전부 없애기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "빠름과 정확함",
+        "context": "속도와 확인이 함께 필요할 때",
+        "low_direction": "필수 확인을 먼저 보호",
+        "mid_direction": "구간별 속도 조절",
+        "high_direction": "진도와 정확성을 함께 확보",
+        "do_intent": "확인 시간을 포함해 계획하기",
+        "pause_intent": "속도만 성과로 여기기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "자기와 타인",
+        "context": "다른 사람의 편의를 함께 고려할 때",
+        "low_direction": "내가 가능한 선부터 보기",
+        "mid_direction": "서로 감당할 몫 조정",
+        "high_direction": "배려와 자기 기준 함께 지키기",
+        "do_intent": "가능한 선을 분명히 말하기",
+        "pause_intent": "맞춰주느라 내 몫 없애기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "긴급과 중요",
+        "context": "급한 것과 중요한 것이 다른 때",
+        "low_direction": "중요한 일을 먼저 표시",
+        "mid_direction": "급한 일 사이 중요 일정 배치",
+        "high_direction": "둘의 우선순위를 분명히 조절",
+        "do_intent": "중요한 일의 시간 확보하기",
+        "pause_intent": "급하다는 말만 따라가기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "양과 깊이",
+        "context": "많이 할지 깊게 할지 고를 때",
+        "low_direction": "오늘 필요한 수준 확인",
+        "mid_direction": "핵심은 깊게 나머지는 적정량",
+        "high_direction": "필요한 깊이와 분량 함께 달성",
+        "do_intent": "항목별 필요한 깊이 정하기",
+        "pause_intent": "모든 것을 같은 깊이로 파기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "공통과 개인",
+        "context": "함께할 일정과 개인 일정이 있을 때",
+        "low_direction": "겹치는 부담부터 조정",
+        "mid_direction": "각 일정의 경계 정하기",
+        "high_direction": "공동 몫과 개인 여유 모두 확보",
+        "do_intent": "각자의 시간을 따로 남기기",
+        "pause_intent": "함께하는 일정으로 전부 채우기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "계획과 여지",
+        "context": "정한 일정에 변동 여지가 필요할 때",
+        "low_direction": "빈칸부터 확보",
+        "mid_direction": "필수 일정과 여유 섞기",
+        "high_direction": "계획을 지키며 변동도 수용",
+        "do_intent": "일정 사이 여유 칸 두기",
+        "pause_intent": "모든 시간을 촘촘히 확정하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "새 일과 하던 일",
+        "context": "새로 하고 싶은 것이 생길 때",
+        "low_direction": "진행 중인 몫 먼저 보호",
+        "mid_direction": "새 시도 분량을 작게 배정",
+        "high_direction": "기존 진도와 새 시도 함께 유지",
+        "do_intent": "새 일에 쓸 양 제한하기",
+        "pause_intent": "새것 때문에 기존 일 전부 놓기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "노력 배분",
+        "context": "여러 대상에 힘을 나눠 쓸 때",
+        "low_direction": "중요한 곳에 힘 남기기",
+        "mid_direction": "필요한 만큼 각각 배분",
+        "high_direction": "힘 쓸 곳을 정확히 골라 활용",
+        "do_intent": "힘을 많이 쓸 곳 정하기",
+        "pause_intent": "초반에 모든 힘 쏟기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "기대 조정",
+        "context": "원하는 수준이 현재 여건보다 높을 때",
+        "low_direction": "가능한 수준 다시 가늠",
+        "mid_direction": "여건에 맞게 기준 조정",
+        "high_direction": "높일 곳과 유지할 곳을 구분",
+        "do_intent": "항목별 기대 수준 정하기",
+        "pause_intent": "모든 곳에서 최고를 바라기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "주기 맞추기",
+        "context": "활동과 쉬는 간격을 정할 때",
+        "low_direction": "쉼이 빠진 구간부터 수정",
+        "mid_direction": "익숙한 간격 유지",
+        "high_direction": "활동과 쉼을 안정적으로 배치",
+        "do_intent": "쉬는 간격까지 함께 잡기",
+        "pause_intent": "끝난 뒤에만 쉬기로 하기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "분담 공정성",
+        "context": "몫을 나눌 수 있는 일이 있을 때",
+        "low_direction": "누가 얼마나 맡는지 확인",
+        "mid_direction": "감당할 양으로 조정",
+        "high_direction": "각자 가능한 몫으로 균형 확보",
+        "do_intent": "맡은 양을 함께 확인하기",
+        "pause_intent": "같은 양이 항상 공평하다 보기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "선택의 비중",
+        "context": "여러 기준으로 하나를 고를 때",
+        "low_direction": "우선 기준부터 정하기",
+        "mid_direction": "기준마다 비중 나누기",
+        "high_direction": "중요한 조건을 살려 선택",
+        "do_intent": "가장 중요한 기준 정하기",
+        "pause_intent": "모든 조건을 똑같이 채우려 하기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "속도 차이",
+        "context": "자기 속도와 주변 속도가 다를 때",
+        "low_direction": "맞출 구간만 고르기",
+        "mid_direction": "같이할 부분과 내 속도 구분",
+        "high_direction": "협력하면서 자기 리듬도 유지",
+        "do_intent": "속도를 맞출 범위 정하기",
+        "pause_intent": "하루 내내 남의 속도 따르기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "절제와 만족",
+        "context": "더 하고 싶지만 여유도 남겨야 할 때",
+        "low_direction": "적당히 멈출 선부터 정하기",
+        "mid_direction": "만족할 만큼 하고 멈추기",
+        "high_direction": "충분히 즐기고 여유까지 유지",
+        "do_intent": "만족할 분량 미리 정하기",
+        "pause_intent": "좋다고 계속 양 늘리기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "장기와 당장",
+        "context": "눈앞의 일과 이어갈 계획이 함께 있을 때",
+        "low_direction": "당장 꼭 필요한 몫 확인",
+        "mid_direction": "오늘 일과 다음 준비 나누기",
+        "high_direction": "현재 진도와 다음 여건 함께 마련",
+        "do_intent": "다음 준비에 작은 시간 배정하기",
+        "pause_intent": "오늘 일만으로 전부 채우기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "균형 재점검",
+        "context": "하루 배분이 어긋났다고 느낄 때",
+        "low_direction": "치우친 한 곳부터 줄이기",
+        "mid_direction": "남은 일정의 비중 조절",
+        "high_direction": "상황에 맞게 균형 다시 잡기",
+        "do_intent": "남은 몫을 다시 나누기",
+        "pause_intent": "처음 계획을 끝까지 고집하기"
+      }
+    }
+  },
+  "categories": {
+    "love": {
+      "v01": {
+        "id": "v01",
+        "focus": "마음 표현",
+        "context": "마음을 전하고 싶은 사람이 있다면",
+        "low_direction": "반응을 재촉하지 않기",
+        "mid_direction": "담백하게 마음 나누기",
+        "high_direction": "진솔한 표현으로 대화 깊이 더하기",
+        "do_intent": "마음을 짧게 전하기",
+        "pause_intent": "바로 같은 마음을 요구하기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "안부 건네기",
+        "context": "생각나는 사람에게 연락할 때",
+        "low_direction": "부담 없는 한마디로 시작",
+        "mid_direction": "일상적인 안부 주고받기",
+        "high_direction": "관심을 담아 대화 이어가기",
+        "do_intent": "상대가 답하기 쉬운 안부 묻기",
+        "pause_intent": "답이 늦다고 거듭 연락하기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "표현 해석",
+        "context": "누군가의 짧은 말을 받아들일 때",
+        "low_direction": "뜻을 혼자 단정하지 않기",
+        "mid_direction": "실제 말에 맞게 이해",
+        "high_direction": "확인하는 대화로 마음을 더 알기",
+        "do_intent": "궁금한 표현의 뜻 묻기",
+        "pause_intent": "한마디로 애정의 크기 판단하기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "관심 묻기",
+        "context": "더 알고 싶은 사람이 있을 때",
+        "low_direction": "한 번에 깊은 질문 피하기",
+        "mid_direction": "관심사 하나 물어보기",
+        "high_direction": "서로의 취향을 더 자세히 나누기",
+        "do_intent": "좋아하는 것을 하나 묻기",
+        "pause_intent": "대답 전에 다음 질문 쏟기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "고마움 표현",
+        "context": "고마운 마음을 전할 일이 있다면",
+        "low_direction": "과한 의미보다 사실을 전하기",
+        "mid_direction": "구체적인 고마움 말하기",
+        "high_direction": "진심을 담아 친밀감 더하기",
+        "do_intent": "고마웠던 점을 짚어 말하기",
+        "pause_intent": "반응을 기대하며 고마움 말하기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "거리 조절",
+        "context": "가까워지는 속도를 가늠할 때",
+        "low_direction": "내 마음과 상대 여유 확인",
+        "mid_direction": "서로 편한 간격 유지",
+        "high_direction": "맞는 속도로 한 걸음 가까워지기",
+        "do_intent": "편한 연락 간격 살피기",
+        "pause_intent": "가까워지고 싶어 간격 몰아붙이기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "이야기 듣기",
+        "context": "마음을 나누는 대화가 있을 때",
+        "low_direction": "판단보다 끝까지 듣기",
+        "mid_direction": "말과 느낌을 함께 받아들이기",
+        "high_direction": "충분히 들으며 이해 깊게 하기",
+        "do_intent": "상대 이야기 끝까지 듣기",
+        "pause_intent": "자기 경험으로 바로 덮기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "함께할 제안",
+        "context": "함께 시간을 보내고 싶은 사람이 있다면",
+        "low_direction": "짧고 부담 적은 제안",
+        "mid_direction": "서로 가능한 활동 고르기",
+        "high_direction": "관심에 맞는 시간을 구체적으로 제안",
+        "do_intent": "가능한지 먼저 물어보기",
+        "pause_intent": "함께할 일을 혼자 확정하기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "기대 차이",
+        "context": "원하는 반응과 실제 반응이 다를 때",
+        "low_direction": "실망을 곧바로 결론 내리지 않기",
+        "mid_direction": "기대했던 것을 차분히 말하기",
+        "high_direction": "차이를 이야기하며 이해 넓히기",
+        "do_intent": "바랐던 표현을 설명하기",
+        "pause_intent": "기대와 다르다고 마음 단정하기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "다정한 표현",
+        "context": "애정을 드러낼 말을 고를 때",
+        "low_direction": "큰 말보다 진심 확인",
+        "mid_direction": "자기 말투로 담백하게 표현",
+        "high_direction": "구체적인 말로 따뜻함 전하기",
+        "do_intent": "어떤 점이 좋은지 말하기",
+        "pause_intent": "익숙한 표현을 의미 없이 반복하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "자기 마음 확인",
+        "context": "누군가에 대한 감정이 헷갈릴 때",
+        "low_direction": "즉시 이름 붙이지 않기",
+        "mid_direction": "느끼는 마음을 구분",
+        "high_direction": "원하는 관계의 방향을 또렷하게 보기",
+        "do_intent": "원하는 감정과 거리 적어보기",
+        "pause_intent": "주변 말로 내 마음 정하기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "어색함 다루기",
+        "context": "마음은 있지만 말이 잘 안 나올 때",
+        "low_direction": "짧은 대화만 시도",
+        "mid_direction": "편한 주제로 말문 열기",
+        "high_direction": "자연스러운 교환을 조금 더 이어가기",
+        "do_intent": "공통으로 아는 이야기 꺼내기",
+        "pause_intent": "침묵을 메우려 과하게 말하기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "서운함 전하기",
+        "context": "관계에서 마음에 남은 일이 있다면",
+        "low_direction": "감정이 앞설 때 즉답 피하기",
+        "mid_direction": "사실과 느낌을 나눠 말하기",
+        "high_direction": "바라는 것을 솔직하게 전달",
+        "do_intent": "서운했던 지점을 구체적으로 말하기",
+        "pause_intent": "늘 그렇다고 몰아붙이기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "칭찬하기",
+        "context": "상대의 좋은 점을 전하고 싶을 때",
+        "low_direction": "진심인 부분만 고르기",
+        "mid_direction": "구체적인 장점 말하기",
+        "high_direction": "관찰한 장점으로 마음 전하기",
+        "do_intent": "실제로 좋았던 점 칭찬하기",
+        "pause_intent": "호감을 얻으려고 과장하기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "의견 다름",
+        "context": "마음 가는 사람과 취향이 다를 때",
+        "low_direction": "차이를 거절로 해석하지 않기",
+        "mid_direction": "다른 취향을 그대로 인정",
+        "high_direction": "서로 다른 점을 알아가는 대화",
+        "do_intent": "다른 이유를 호기심으로 묻기",
+        "pause_intent": "다르면 안 맞는다고 단정하기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "일상 나누기",
+        "context": "작은 경험을 이야기할 상대가 있다면",
+        "low_direction": "답을 요구하지 않는 이야기",
+        "mid_direction": "소소한 일상 공유",
+        "high_direction": "작은 이야기를 통해 친밀감 더하기",
+        "do_intent": "오늘의 작은 경험 전하기",
+        "pause_intent": "관심 확인용으로 이야기 늘리기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "대화 뒤 여운",
+        "context": "마음을 나눈 뒤 생각이 많아질 때",
+        "low_direction": "모든 반응 재해석하지 않기",
+        "mid_direction": "실제로 주고받은 말 받아들이기",
+        "high_direction": "좋았던 대화를 담백하게 이어가기",
+        "do_intent": "좋았던 말 한 가지 기억하기",
+        "pause_intent": "대화 전체를 반복 분석하기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "호의 받기",
+        "context": "누군가의 다정한 행동을 접할 때",
+        "low_direction": "큰 뜻을 바로 붙이지 않기",
+        "mid_direction": "고마움을 편하게 표현",
+        "high_direction": "따뜻함을 받고 진심으로 응답",
+        "do_intent": "받은 호의에 고마움 전하기",
+        "pause_intent": "호의를 확정적인 애정으로 보기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "개인 시간 존중",
+        "context": "가까운 사이에도 각자 시간이 필요한 때",
+        "low_direction": "연락이 없는 시간을 단정하지 않기",
+        "mid_direction": "각자 시간을 존중",
+        "high_direction": "신뢰와 자기 시간을 함께 지키기",
+        "do_intent": "상대와 내 여유를 함께 남기기",
+        "pause_intent": "빈 시간을 모두 함께하려 하기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "다음 대화",
+        "context": "좋았던 교환을 이어가고 싶을 때",
+        "low_direction": "이어갈 주제를 하나만 남기기",
+        "mid_direction": "부담 없이 다음 이야기 건네기",
+        "high_direction": "관심을 기억해 더 깊게 연결",
+        "do_intent": "전에 들은 관심사를 다시 묻기",
+        "pause_intent": "친밀해졌다고 모든 것을 묻기"
+      }
+    },
+    "money": {
+      "v01": {
+        "id": "v01",
+        "focus": "예산과 선택",
+        "context": "계획한 소비와 남길 돈을 살필 때",
+        "low_direction": "총액과 여유부터 확인",
+        "mid_direction": "예산 안에서 필요한 소비",
+        "high_direction": "쓸 몫과 남길 몫을 분명히 배분",
+        "do_intent": "남은 예산 먼저 보기",
+        "pause_intent": "기분에 따라 예산 늘리기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "최종 가격",
+        "context": "가격을 비교해 구매할 일이 있다면",
+        "low_direction": "추가 비용부터 확인",
+        "mid_direction": "같은 조건의 총액 비교",
+        "high_direction": "실제 지출 기준으로 만족할 선택",
+        "do_intent": "추가 비용 포함해 비교하기",
+        "pause_intent": "표시 가격만 보고 결정하기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "사용 빈도",
+        "context": "살까 말까 하는 것이 있을 때",
+        "low_direction": "쓰임새를 부풀리지 않기",
+        "mid_direction": "쓸 횟수에 맞게 판단",
+        "high_direction": "자주 쓸 것에 합당하게 배분",
+        "do_intent": "언제 얼마나 쓸지 떠올리기",
+        "pause_intent": "언젠가 필요할 거라 사기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "할인 조건",
+        "context": "할인이나 혜택을 접할 때",
+        "low_direction": "최소 조건과 지출 증가 확인",
+        "mid_direction": "필요한 범위에서 혜택 사용",
+        "high_direction": "총액과 조건이 맞는 혜택 선택",
+        "do_intent": "혜택 뒤 실제 지출 계산하기",
+        "pause_intent": "할인을 받으려고 더 사기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "작은 결제",
+        "context": "소액 지출이 이어질 수 있는 날",
+        "low_direction": "합산 금액부터 확인",
+        "mid_direction": "건별 지출을 예산에 반영",
+        "high_direction": "작은 소비까지 기준 있게 선택",
+        "do_intent": "작은 결제도 합쳐 보기",
+        "pause_intent": "적은 돈이라 기록 안 하기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "정기 지출",
+        "context": "반복 결제나 이용료를 살필 때",
+        "low_direction": "내용과 시점 확인",
+        "mid_direction": "필요한 이용만 유지",
+        "high_direction": "쓰임과 비용을 함께 정리",
+        "do_intent": "계속 쓰는 항목인지 확인하기",
+        "pause_intent": "자동이라 확인 없이 두기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "구매 보류",
+        "context": "당장 사지 않아도 되는 선택",
+        "low_direction": "즉시 결제 전 시간 두기",
+        "mid_direction": "필요를 다시 보고 결정",
+        "high_direction": "기준이 분명해진 뒤 선택",
+        "do_intent": "다시 볼 구매 목록 만들기",
+        "pause_intent": "찜한 것을 모두 사야 한다 여기기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "보유품 확인",
+        "context": "비슷한 것을 이미 갖고 있을 수 있을 때",
+        "low_direction": "이미 있는지 먼저 보기",
+        "mid_direction": "보유한 것의 쓰임 확인",
+        "high_direction": "추가가 필요한 부분만 선택",
+        "do_intent": "갖고 있는 것부터 확인하기",
+        "pause_intent": "잊고 비슷한 것 또 사기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "용도 우선",
+        "context": "외형과 실제 필요가 다른 구매",
+        "low_direction": "핵심 용도부터 짚기",
+        "mid_direction": "필요한 기능 중심으로 선택",
+        "high_direction": "용도에 맞는 품질과 비용 조합",
+        "do_intent": "필수 기능을 먼저 적기",
+        "pause_intent": "멋져 보이는 기능에 예산 쓰기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "교환 조건",
+        "context": "구매 뒤 바꿀 가능성을 고려할 때",
+        "low_direction": "제한 조건부터 확인",
+        "mid_direction": "교환과 이용 조건 함께 보기",
+        "high_direction": "가격 외 조건까지 납득하고 선택",
+        "do_intent": "구매 후 조건 읽기",
+        "pause_intent": "쉽게 바꿀 수 있다 짐작하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "공동 비용",
+        "context": "다른 사람과 비용을 나누는 경우",
+        "low_direction": "나눌 범위부터 확인",
+        "mid_direction": "각자 부담을 분명히 정리",
+        "high_direction": "조건을 맞춰 깔끔하게 배분",
+        "do_intent": "무엇을 얼마씩 나눌지 정하기",
+        "pause_intent": "작은 금액이라 말없이 넘기기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "지출 우선순위",
+        "context": "필요한 구매가 여러 개일 때",
+        "low_direction": "급한 필수부터 구분",
+        "mid_direction": "중요도에 맞게 순서 정하기",
+        "high_direction": "필요한 곳에 충분히 쓰고 나머지 보류",
+        "do_intent": "먼저 필요한 것을 고르기",
+        "pause_intent": "모든 구매를 한 번에 끝내기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "비교 기준",
+        "context": "비슷한 상품이나 서비스를 볼 때",
+        "low_direction": "조건을 통일해 비교",
+        "mid_direction": "가격과 구성 같이 보기",
+        "high_direction": "자기 기준에 맞는 조건 선택",
+        "do_intent": "같은 구성끼리 비교하기",
+        "pause_intent": "다른 조건의 가격만 비교하기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "기분과 소비",
+        "context": "기분을 바꾸고 싶어 구매가 떠오를 때",
+        "low_direction": "감정과 필요 분리",
+        "mid_direction": "정한 범위 안에서 선택",
+        "high_direction": "만족할 소비를 의식적으로 고르기",
+        "do_intent": "지금 원하는 이유 확인하기",
+        "pause_intent": "기분 따라 결제 계속 늘리기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "남길 몫",
+        "context": "계획적으로 돈을 남기려는 때",
+        "low_direction": "고정 지출부터 확인",
+        "mid_direction": "감당할 남길 몫 정하기",
+        "high_direction": "소비와 저축을 함께 계획",
+        "do_intent": "필요한 지출 뒤 남길 몫 정하기",
+        "pause_intent": "생활비 무시하고 남길 액수 잡기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "일회성 사용",
+        "context": "잠깐 쓸 것을 마련해야 할 때",
+        "low_direction": "반드시 소유해야 하는지 확인",
+        "mid_direction": "기간에 맞는 방법 비교",
+        "high_direction": "사용 기간에 맞는 합리적 선택",
+        "do_intent": "얼마나 오래 쓸지 확인하기",
+        "pause_intent": "한 번 쓸 것에 과하게 쓰기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "목록 지키기",
+        "context": "정해둔 구매 목록이 있을 때",
+        "low_direction": "계획 밖 항목부터 분리",
+        "mid_direction": "필요 목록대로 구매",
+        "high_direction": "목적에 맞게 소비 마무리",
+        "do_intent": "목록 밖 항목 따로 두기",
+        "pause_intent": "보다가 마음에 든 것을 계속 더하기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "이용량 확인",
+        "context": "사용한 만큼 비용이 드는 경우",
+        "low_direction": "누적 이용량 먼저 확인",
+        "mid_direction": "예상 범위와 실제 비교",
+        "high_direction": "사용량에 맞춰 비용 효율 조정",
+        "do_intent": "현재 이용량 살피기",
+        "pause_intent": "단가만 보고 총비용 잊기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "오래 쓸 품질",
+        "context": "값과 내구성을 함께 봐야 할 때",
+        "low_direction": "과한 기대 없이 필요 확인",
+        "mid_direction": "예산 안에서 품질 비교",
+        "high_direction": "수고와 교체 비용까지 고려",
+        "do_intent": "얼마나 오래 쓸지 기준 세우기",
+        "pause_intent": "비싸면 무조건 낫다 여기기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "지출 돌아보기",
+        "context": "쓴 돈의 만족을 살펴볼 때",
+        "low_direction": "아쉬운 항목 하나만 짚기",
+        "mid_direction": "만족한 소비와 아닌 소비 구분",
+        "high_direction": "다음 선택에 쓸 기준 정리",
+        "do_intent": "만족했던 지출 이유 적기",
+        "pause_intent": "후회만 하고 기준 안 바꾸기"
+      }
+    },
+    "work": {
+      "v01": {
+        "id": "v01",
+        "focus": "정해둔 과제",
+        "context": "일이나 공부의 맡은 분량",
+        "low_direction": "필수 범위와 확인 시간 보호",
+        "mid_direction": "익숙한 방식으로 분량 수행",
+        "high_direction": "준비해온 힘으로 중요한 과제 완성",
+        "do_intent": "중요한 항목 먼저 하기",
+        "pause_intent": "분량만 채우고 확인 빼기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "요구사항 읽기",
+        "context": "업무 지시나 문제를 확인할 때",
+        "low_direction": "조건을 놓치지 않게 좁혀 읽기",
+        "mid_direction": "요구한 범위대로 진행",
+        "high_direction": "핵심 요구를 정확히 반영",
+        "do_intent": "해야 할 조건 표시하기",
+        "pause_intent": "읽기 전에 답부터 정하기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "복습과 재검토",
+        "context": "전에 배운 내용을 다시 볼 때",
+        "low_direction": "모르는 부분부터 확인",
+        "mid_direction": "기억과 자료를 대조",
+        "high_direction": "헷갈린 부분을 확실히 이해",
+        "do_intent": "틀리기 쉬운 부분 다시 보기",
+        "pause_intent": "익숙한 내용만 반복 보기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "직접 적용",
+        "context": "알고 있는 것을 실제로 해볼 때",
+        "low_direction": "작은 예제로 확인",
+        "mid_direction": "배운 순서대로 적용",
+        "high_direction": "응용할 곳까지 이해 확대",
+        "do_intent": "설명 대신 직접 해보기",
+        "pause_intent": "안다고 생각하며 실습 건너뛰기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "문제 나누기",
+        "context": "어려운 과제가 크게 느껴질 때",
+        "low_direction": "가장 작은 단계로 나누기",
+        "mid_direction": "한 단계씩 해결",
+        "high_direction": "단계들을 연결해 복잡한 과제 수행",
+        "do_intent": "과제를 작은 질문으로 나누기",
+        "pause_intent": "전체를 한 번에 해결하려 하기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "자료 찾기",
+        "context": "과제에 필요한 정보를 구할 때",
+        "low_direction": "필수 정보부터 좁혀 찾기",
+        "mid_direction": "질문에 맞는 자료 사용",
+        "high_direction": "관련 근거를 정확히 확보",
+        "do_intent": "찾을 정보를 먼저 정하기",
+        "pause_intent": "자료 수집만 계속 늘리기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "실수 수정",
+        "context": "틀리거나 고칠 부분을 발견한 경우",
+        "low_direction": "틀린 지점부터 확인",
+        "mid_direction": "이유를 보고 수정",
+        "high_direction": "원인까지 이해해 결과 개선",
+        "do_intent": "고칠 이유를 함께 적기",
+        "pause_intent": "답만 바꾸고 이유 넘기기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "시간 배정",
+        "context": "일이나 공부에 쓸 시간을 정할 때",
+        "low_direction": "필수 분량에 먼저 배정",
+        "mid_direction": "분량에 맞춰 일정 나누기",
+        "high_direction": "중요한 과제에 충분히 집중",
+        "do_intent": "분량별 시간을 가늠하기",
+        "pause_intent": "모든 과제 같은 시간 잡기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "질문과 도움",
+        "context": "모르는 것을 물어볼 수 있을 때",
+        "low_direction": "어디까지 아는지 정리",
+        "mid_direction": "구체적인 질문으로 확인",
+        "high_direction": "답을 적용해 이해 진전",
+        "do_intent": "막힌 부분을 정확히 묻기",
+        "pause_intent": "전체 답만 대신 요구하기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "설명하기",
+        "context": "배운 것이나 한 일을 말로 정리할 때",
+        "low_direction": "설명이 막힌 곳 찾기",
+        "mid_direction": "핵심을 자기 말로 설명",
+        "high_direction": "근거까지 연결해 정확히 전달",
+        "do_intent": "핵심과 이유 함께 설명하기",
+        "pause_intent": "외운 말만 그대로 나열하기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "초안 작성",
+        "context": "결과물을 처음 적어볼 때",
+        "low_direction": "필수 구조만 먼저 잡기",
+        "mid_direction": "기본 초안 완성",
+        "high_direction": "핵심이 드러나는 결과물로 발전",
+        "do_intent": "핵심 순서부터 적기",
+        "pause_intent": "첫 문장만 완벽하게 고치기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "최종 확인",
+        "context": "제출이나 마무리 전 점검할 때",
+        "low_direction": "필수 누락을 먼저 확인",
+        "mid_direction": "조건별로 대조",
+        "high_direction": "완성도와 정확성을 함께 다듬기",
+        "do_intent": "제출 조건 하나씩 확인하기",
+        "pause_intent": "끝났다는 느낌으로 바로 넘기기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "우선 과제",
+        "context": "여러 업무나 학습 항목이 있을 때",
+        "low_direction": "기한과 필수부터 구분",
+        "mid_direction": "중요한 순서대로 처리",
+        "high_direction": "핵심 과제에 힘 모아 성과 확보",
+        "do_intent": "먼저 끝낼 과제 정하기",
+        "pause_intent": "쉬운 것만 계속 고르기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "기록 남기기",
+        "context": "다음에 참고할 풀이와 과정",
+        "low_direction": "핵심 중단점만 기록",
+        "mid_direction": "재현할 수 있게 과정 정리",
+        "high_direction": "다음 적용까지 고려해 기록",
+        "do_intent": "중요한 과정 짧게 남기기",
+        "pause_intent": "결과만 적고 과정 버리기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "개념 연결",
+        "context": "여러 내용의 관계를 이해할 때",
+        "low_direction": "관련 항목부터 묶기",
+        "mid_direction": "개념 사이 관계 확인",
+        "high_direction": "흩어진 지식을 구조화",
+        "do_intent": "이어지는 개념 함께 정리하기",
+        "pause_intent": "다른 개념을 비슷하다 합치기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "반복 연습",
+        "context": "같은 유형을 다시 수행할 때",
+        "low_direction": "틀리는 부분만 좁혀 연습",
+        "mid_direction": "정확한 순서로 반복",
+        "high_direction": "안정된 수행과 응용 확보",
+        "do_intent": "오류가 난 단계 연습하기",
+        "pause_intent": "수행 횟수만 늘리기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "중간 피드백",
+        "context": "업무나 학습 결과를 확인받을 때",
+        "low_direction": "바꿀 부분 하나부터 정하기",
+        "mid_direction": "구체적인 의견 반영",
+        "high_direction": "피드백으로 핵심 품질 향상",
+        "do_intent": "의견의 근거와 수정점 확인하기",
+        "pause_intent": "모든 의견에 전부 다시 하기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "새 내용 이해",
+        "context": "처음 접하는 업무나 학습 내용",
+        "low_direction": "기본 용어부터 확인",
+        "mid_direction": "핵심 원리를 따라가기",
+        "high_direction": "원리를 이해해 스스로 적용",
+        "do_intent": "모르는 용어부터 짚기",
+        "pause_intent": "뜻 모른 채 순서만 외우기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "성취 정리",
+        "context": "해낸 분량과 배운 것을 돌아볼 때",
+        "low_direction": "작게 해낸 부분 확인",
+        "mid_direction": "완료와 남은 과제 구분",
+        "high_direction": "쌓은 실력과 다음 과제 분명히 보기",
+        "do_intent": "해낸 것과 배운 점 적기",
+        "pause_intent": "남의 결과만 보며 판단하기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "집중 과제 선택",
+        "context": "시간이 한정된 일이나 공부",
+        "low_direction": "오늘 다룰 핵심 하나 선택",
+        "mid_direction": "정한 과제 끝까지 수행",
+        "high_direction": "중요한 난점까지 깊게 해결",
+        "do_intent": "오늘 풀 핵심 질문 정하기",
+        "pause_intent": "중간마다 과제 바꾸기"
+      }
+    },
+    "energy": {
+      "v01": {
+        "id": "v01",
+        "focus": "활동할 여유",
+        "context": "오늘의 활동량을 가늠할 때",
+        "low_direction": "필수 분량 줄이고 쉼 확보",
+        "mid_direction": "익숙한 활동량 유지",
+        "high_direction": "활기를 원하는 활동에 충분히 활용",
+        "do_intent": "남은 여유에 맞게 양 정하기",
+        "pause_intent": "기분 좋다고 한도 없이 늘리기"
+      },
+      "v02": {
+        "id": "v02",
+        "focus": "첫 움직임",
+        "context": "활동을 시작하기 전의 마음",
+        "low_direction": "가장 짧은 움직임부터",
+        "mid_direction": "편한 속도로 시작",
+        "high_direction": "붙은 활기를 계획한 활동에 사용",
+        "do_intent": "작은 움직임부터 해보기",
+        "pause_intent": "처음부터 많은 양 잡기"
+      },
+      "v03": {
+        "id": "v03",
+        "focus": "활동 길이",
+        "context": "한 활동을 얼마나 이어갈지 정할 때",
+        "low_direction": "짧게 나눠 멈추기",
+        "mid_direction": "익숙한 길이 유지",
+        "high_direction": "충분히 즐기되 멈출 여유 남기기",
+        "do_intent": "마칠 분량 먼저 정하기",
+        "pause_intent": "끝날 때까지 쉬지 않기"
+      },
+      "v04": {
+        "id": "v04",
+        "focus": "활동 사이 쉼",
+        "context": "여러 활동을 연달아 할 수 있을 때",
+        "low_direction": "사이 간격부터 확보",
+        "mid_direction": "활동과 쉼 번갈아 두기",
+        "high_direction": "활기를 유지하며 다음 활동 연결",
+        "do_intent": "다음 활동 전 여유 확인하기",
+        "pause_intent": "빈틈없이 활동 이어가기"
+      },
+      "v05": {
+        "id": "v05",
+        "focus": "즐기는 활동",
+        "context": "기분 좋게 움직일 일이 있을 때",
+        "low_direction": "부담 적은 분량만 선택",
+        "mid_direction": "익숙한 즐거움으로 움직이기",
+        "high_direction": "좋아하는 활동에 활기 보태기",
+        "do_intent": "좋아하는 활동 하나 고르기",
+        "pause_intent": "즐거워도 계속 양 늘리기"
+      },
+      "v06": {
+        "id": "v06",
+        "focus": "움직임 속도",
+        "context": "활동의 빠르기를 조절할 때",
+        "low_direction": "평소보다 여유 있게",
+        "mid_direction": "자기에게 편한 속도",
+        "high_direction": "활기 있게 움직이며 자기 속도 유지",
+        "do_intent": "내게 맞는 속도 찾기",
+        "pause_intent": "주변 속도에 계속 맞추기"
+      },
+      "v07": {
+        "id": "v07",
+        "focus": "외부 일정",
+        "context": "밖에서 할 활동이 있다면",
+        "low_direction": "필수 일정만 남기기",
+        "mid_direction": "이동과 활동에 맞게 분량 배정",
+        "high_direction": "계획한 활동을 충분히 즐기기",
+        "do_intent": "이동까지 포함해 여유 남기기",
+        "pause_intent": "할 일을 여러 곳에 과하게 넣기"
+      },
+      "v08": {
+        "id": "v08",
+        "focus": "실내 활동",
+        "context": "머무는 곳에서 할 것을 고를 때",
+        "low_direction": "손쉬운 활동부터",
+        "mid_direction": "익숙한 활동으로 리듬 유지",
+        "high_direction": "즐길 거리에 힘을 보태기",
+        "do_intent": "지금 할 수 있는 활동 고르기",
+        "pause_intent": "환경 탓하며 선택 계속 미루기"
+      },
+      "v09": {
+        "id": "v09",
+        "focus": "새 활동",
+        "context": "새로 해보고 싶은 활동이 있다면",
+        "low_direction": "짧게 맛볼 분량만",
+        "mid_direction": "낯선 정도에 맞춰 시도",
+        "high_direction": "새 활동을 자기 속도로 즐기기",
+        "do_intent": "시험할 분량 작게 정하기",
+        "pause_intent": "처음부터 익숙한 사람만큼 하기"
+      },
+      "v10": {
+        "id": "v10",
+        "focus": "동행 활동",
+        "context": "다른 사람과 함께 움직이는 경우",
+        "low_direction": "내가 가능한 양 먼저 알리기",
+        "mid_direction": "서로 맞는 분량 조절",
+        "high_direction": "함께 즐기며 내 여유도 유지",
+        "do_intent": "가능한 속도와 양 말하기",
+        "pause_intent": "맞춰주려고 무리해서 따라가기"
+      },
+      "v11": {
+        "id": "v11",
+        "focus": "남은 힘 확인",
+        "context": "활동을 더할지 고민할 때",
+        "low_direction": "현재 여유부터 확인",
+        "mid_direction": "남은 일정까지 고려",
+        "high_direction": "활기를 필요한 곳에 잘 배분",
+        "do_intent": "추가 전에 남은 몫 보기",
+        "pause_intent": "지금 괜찮다고 계속 더하기"
+      },
+      "v12": {
+        "id": "v12",
+        "focus": "단조로운 활동",
+        "context": "비슷한 움직임이 지루하게 느껴질 때",
+        "low_direction": "짧게 끊어 전환",
+        "mid_direction": "작은 변화를 주며 이어가기",
+        "high_direction": "흥미를 살려 활기 있게 진행",
+        "do_intent": "작은 변화를 하나 넣기",
+        "pause_intent": "지루하다고 활동량 급히 늘리기"
+      },
+      "v13": {
+        "id": "v13",
+        "focus": "집중을 쓰는 활동",
+        "context": "생각을 오래 써야 하는 일정",
+        "low_direction": "짧은 분량과 간격 확보",
+        "mid_direction": "정한 분량 뒤 쉬기",
+        "high_direction": "집중 여유를 의미 있는 활동에 사용",
+        "do_intent": "생각 쓸 분량 나누기",
+        "pause_intent": "모든 틈에 새 정보 보기"
+      },
+      "v14": {
+        "id": "v14",
+        "focus": "자극이 많은 곳",
+        "context": "소리나 움직임이 많은 환경에 있을 때",
+        "low_direction": "머무를 분량 조절",
+        "mid_direction": "내게 편한 간격으로 참여",
+        "high_direction": "활기를 즐기며 빠져나올 여유 유지",
+        "do_intent": "잠깐 벗어날 틈 남기기",
+        "pause_intent": "분위기에 휩쓸려 끝없이 머물기"
+      },
+      "v15": {
+        "id": "v15",
+        "focus": "움직임과 정적",
+        "context": "활동과 조용한 시간이 함께 필요할 때",
+        "low_direction": "조용한 틈 먼저 보호",
+        "mid_direction": "두 시간을 번갈아 배치",
+        "high_direction": "활기와 차분한 여유 함께 누리기",
+        "do_intent": "움직인 뒤 쉴 틈 정하기",
+        "pause_intent": "한 방식으로 하루 전부 보내기"
+      },
+      "v16": {
+        "id": "v16",
+        "focus": "반복 일상",
+        "context": "익숙한 활동을 이어가는 날",
+        "low_direction": "평소보다 분량 낮추기",
+        "mid_direction": "익숙한 리듬 유지",
+        "high_direction": "안정된 활동에서 만족 더하기",
+        "do_intent": "기본 활동량부터 챙기기",
+        "pause_intent": "익숙하다고 계속 추가하기"
+      },
+      "v17": {
+        "id": "v17",
+        "focus": "기대와 실제 여유",
+        "context": "하고 싶은 양이 많을 때",
+        "low_direction": "현재 가능한 양 가늠",
+        "mid_direction": "원하는 것 중 일부 선택",
+        "high_direction": "우선 활동을 충분히 즐기기",
+        "do_intent": "가장 하고 싶은 것 고르기",
+        "pause_intent": "원하는 모든 것을 같은 날 넣기"
+      },
+      "v18": {
+        "id": "v18",
+        "focus": "활동 마치기",
+        "context": "그만할 때를 고르는 상황",
+        "low_direction": "늦추지 말고 종료점 확인",
+        "mid_direction": "정한 만큼 하고 마치기",
+        "high_direction": "만족한 상태에서 여유 남기기",
+        "do_intent": "마칠 지점 지키기",
+        "pause_intent": "아쉽다고 끝없이 연장하기"
+      },
+      "v19": {
+        "id": "v19",
+        "focus": "잠깐 재개",
+        "context": "쉬었다가 다시 움직일 때",
+        "low_direction": "작은 분량으로 재개",
+        "mid_direction": "편한 속도로 돌아가기",
+        "high_direction": "되찾은 활기를 활동에 연결",
+        "do_intent": "다시 할 첫 분량 작게 잡기",
+        "pause_intent": "쉰 만큼 한꺼번에 만회하기"
+      },
+      "v20": {
+        "id": "v20",
+        "focus": "하루 분량 돌아보기",
+        "context": "활동을 얼마나 했는지 살필 때",
+        "low_direction": "버거웠던 양을 구분",
+        "mid_direction": "맞았던 분량 확인",
+        "high_direction": "즐거움과 여유가 남은 기준 찾기",
+        "do_intent": "편했던 활동량 기억하기",
+        "pause_intent": "많이 한 정도만 기준 삼기"
+      }
+    }
+  }
+}

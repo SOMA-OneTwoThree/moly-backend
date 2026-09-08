@@ -66,7 +66,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "TODAY'S FORTUNE"
+                "value": "Today's fortune"
               },
               "style": {
                 "font": "body",
@@ -136,7 +136,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "What’s your luck score?"
+                "value": "What might today bring?"
               },
               "style": {
                 "font": "body",
@@ -181,7 +181,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "Check fortune"
+                "value": "See my fortune"
               },
               "style": {
                 "font": "body",
@@ -206,7 +206,7 @@
                 "action-surface",
                 "action-label"
               ],
-              "accessibility_label": "Check fortune",
+              "accessibility_label": "See today's fortune",
               "semantics_order": 4,
               "action": {
                 "type": "open_fortune"
@@ -325,7 +325,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "오늘의 행운 지수는?"
+                "value": "오늘은 어떤 하루가 될까?"
               },
               "style": {
                 "font": "body",
@@ -395,7 +395,7 @@
                 "action-surface",
                 "action-label"
               ],
-              "accessibility_label": "운세 보기",
+              "accessibility_label": "오늘의 운세 보기",
               "semantics_order": 4,
               "action": {
                 "type": "open_fortune"
@@ -514,7 +514,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "今日のラッキー度は？"
+                "value": "今日はどんな一日になるかな？"
               },
               "style": {
                 "font": "body",
@@ -584,7 +584,7 @@
                 "action-surface",
                 "action-label"
               ],
-              "accessibility_label": "運勢を見る",
+              "accessibility_label": "今日の運勢を見る",
               "semantics_order": 4,
               "action": {
                 "type": "open_fortune"

@@ -13,6 +13,7 @@ from typing import Any, Final, Mapping
 import unicodedata
 
 from app.services import fortune_rules
+from app.services.fortune_copy_selection import VARIANT_IDS, validate_selected
 
 _RESOURCE_DIR: Final = Path(__file__).resolve().parents[1] / "resources" / "fortune"
 _MANIFEST_PATH: Final = _RESOURCE_DIR / "manifest.v2.json"
@@ -59,7 +60,7 @@ _FORBIDDEN_RE: Final = re.compile(
 )
 _AWKWARD_COPY_RE: Final = re.compile(
     r"(?:앞서가기보다|눈에 띄는 진전|진전을 만들|서로의 의견을 무리 없이|"
-    r"판단과 여유가 잘 맞아떨어|무난하게)"
+    r"판단과 여유가 잘 맞아떨어|무난)"
 )
 _OVERALL_DOMAIN_RE: Final = re.compile(
     r"(?:금전|지출|결제|연애|상대방|업무|과제|수면|몸|피로|컨디션|식사|숨을 돌)"
@@ -83,7 +84,7 @@ _HANGUL_RE: Final = re.compile(r"[가-힣]")
 _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-COPY_VERSION = "fortune-copy.v2-initial.1"
+COPY_VERSION = "fortune-copy.v2-variants.1"
 CONTENT_STATUS = "approved_for_production"
 
 
@@ -161,9 +162,12 @@ class FortuneCatalog:
     manifest_hash: str
     asset_hashes: Mapping[str, str]
 
-    def render(self, semantic: Mapping[str, Any], locale: str = "ko") -> dict[str, Any]:
+    def render(
+        self, semantic: Mapping[str, Any], locale: str = "ko", *, selected: Mapping[str, str],
+    ) -> dict[str, Any]:
         if locale not in SUPPORTED_LOCALES:
             raise FortuneCatalogError(f"unsupported locale: {locale}")
+        selected = validate_selected(selected)
         overall_catalog = self.overall_by_locale[locale]
         category_catalog = self.categories_by_locale[locale]
         color_catalog = self.colors_by_locale[locale]
@@ -197,7 +201,7 @@ class FortuneCatalog:
             raise FortuneCatalogError("semantic overall score and routes do not match")
         if overall_route not in overall_catalog:
             raise FortuneCatalogError(f"unknown overall route: {overall_route}")
-        bundle = overall_catalog[str(overall_route)]
+        bundle = overall_catalog[str(overall_route)]["variants"][selected["overall"]]
         rules = fortune_rules.load_rule_assets()
         rendered_categories: dict[str, Any] = {}
         for category in _CATEGORIES:
@@ -227,7 +231,7 @@ class FortuneCatalog:
             if route not in category_catalog:
                 raise FortuneCatalogError(f"unknown category route: {route}")
             rendered_categories[category] = {
-                "text": list(category_catalog[str(route)]["text"]),
+                "text": list(category_catalog[str(route)]["variants"][selected[category]]["text"]),
             }
         if color_key not in color_catalog:
             raise FortuneCatalogError(f"unknown lucky color: {color_key}")
@@ -315,43 +319,44 @@ def _validate_copy(
 
     validated_overall: dict[str, Any] = {}
     expressions: list[str] = []
-    for route, bundle in overall.items():
-        if not isinstance(bundle, dict):
+    for route, entry in overall.items():
+        if not isinstance(entry, dict):
             raise FortuneCatalogError(f"{route} must be an object")
-        _exact_keys(bundle, {"headline", "flow", "do", "pause"}, route)
-        flow = bundle["flow"]
-        if not isinstance(flow, list) or len(flow) != 3:
-            raise FortuneCatalogError(f"{route}.flow must contain exactly three sentences")
-        headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=True)
-        rendered_flow = tuple(
-            _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=True)
-            for index, sentence in enumerate(flow)
-        )
-        do = _text(bundle["do"], f"{route}.do", locale=locale, overall=True)
-        pause = _text(bundle["pause"], f"{route}.pause", locale=locale, overall=True)
-        expressions.extend((headline, *rendered_flow, do, pause))
-        validated_overall[route] = MappingProxyType(
-            {
-                "headline": headline,
-                "flow": rendered_flow,
-                "do": do,
-                "pause": pause,
-            }
-        )
+        _exact_keys(entry, {"variants"}, route)
+        if not isinstance(entry["variants"], dict):
+            raise FortuneCatalogError(f"{route}.variants must be an object")
+        _exact_keys(entry["variants"], set(VARIANT_IDS), f"{route}.variants")
+        variants = {}
+        for variant, bundle in entry["variants"].items():
+            validated, texts = _validate_overall_bundle(bundle, f"{route}.{variant}", locale)
+            variants[variant] = validated
+            expressions.extend(texts)
+        validated_overall[route] = MappingProxyType({"variants": MappingProxyType(variants)})
 
     validated_categories: dict[str, Any] = {}
-    for route, block in categories.items():
-        if not isinstance(block, dict):
+    for route, entry in categories.items():
+        if not isinstance(entry, dict):
             raise FortuneCatalogError(f"{route} must be an object")
-        _exact_keys(block, {"text"}, route)
-        lines = block["text"]
-        if not isinstance(lines, list) or len(lines) != 2:
-            raise FortuneCatalogError(f"{route}.text must contain exactly two sentences")
-        rendered_lines = tuple(
-            _text(line, f"{route}.text[{index}]", locale=locale) for index, line in enumerate(lines)
-        )
-        expressions.extend(rendered_lines)
-        validated_categories[route] = MappingProxyType({"text": rendered_lines})
+        _exact_keys(entry, {"variants"}, route)
+        if not isinstance(entry["variants"], dict):
+            raise FortuneCatalogError(f"{route}.variants must be an object")
+        _exact_keys(entry["variants"], set(VARIANT_IDS), f"{route}.variants")
+        variants = {}
+        for variant, block in entry["variants"].items():
+            label = f"{route}.{variant}"
+            if not isinstance(block, dict):
+                raise FortuneCatalogError(f"{label} must be an object")
+            _exact_keys(block, {"text"}, label)
+            lines = block["text"]
+            if not isinstance(lines, list) or len(lines) != 2:
+                raise FortuneCatalogError(f"{label}.text must contain exactly two sentences")
+            rendered_lines = tuple(
+                _text(line, f"{label}.text[{index}]", locale=locale)
+                for index, line in enumerate(lines)
+            )
+            expressions.extend(rendered_lines)
+            variants[variant] = MappingProxyType({"text": rendered_lines})
+        validated_categories[route] = MappingProxyType({"variants": MappingProxyType(variants)})
 
     if len(expressions) != len(set(expressions)):
         raise FortuneCatalogError(f"all {locale} fortune expressions must be unique")
@@ -367,6 +372,34 @@ def _validate_copy(
             raise FortuneCatalogError(f"invalid color hex: {key}")
         validated_colors[key] = MappingProxyType({"name": name, "hex": hex_value})
     return validated_overall, validated_categories, validated_colors
+
+
+def _validate_overall_bundle(
+    bundle: Any, route: str, locale: str,
+) -> tuple[Mapping[str, Any], tuple[str, ...]]:
+    if not isinstance(bundle, dict):
+        raise FortuneCatalogError(f"{route} must be an object")
+    _exact_keys(bundle, {"headline", "flow", "do", "pause"}, route)
+    flow = bundle["flow"]
+    if not isinstance(flow, list) or len(flow) != 3:
+        raise FortuneCatalogError(f"{route}.flow must contain exactly three sentences")
+    headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=True)
+    rendered_flow = tuple(
+        _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=True)
+        for index, sentence in enumerate(flow)
+    )
+    do = _text(bundle["do"], f"{route}.do", locale=locale, overall=True)
+    pause = _text(bundle["pause"], f"{route}.pause", locale=locale, overall=True)
+    validated = MappingProxyType(
+        {
+            "headline": headline,
+            "flow": rendered_flow,
+            "do": do,
+            "pause": pause,
+        }
+    )
+
+    return validated, (headline, *rendered_flow, do, pause)
 
 
 def _load_catalog(resource_dir: Path) -> FortuneCatalog:
@@ -420,8 +453,13 @@ def load_catalog(resource_dir: Path | None = None) -> FortuneCatalog:
     return _load_default_catalog() if resource_dir is None else _load_catalog(Path(resource_dir))
 
 
-def render_all(semantic: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+def render_all(
+    semantic: Mapping[str, Any], *, selected: Mapping[str, str],
+) -> dict[str, dict[str, Any]]:
     """승인된 카탈로그가 지원하는 모든 언어의 고정 snapshot을 반환한다."""
 
     catalog = load_catalog()
-    return {locale: catalog.render(semantic, locale) for locale in SUPPORTED_LOCALES}
+    return {
+        locale: catalog.render(semantic, locale, selected=selected)
+        for locale in SUPPORTED_LOCALES
+    }

@@ -1,4 +1,4 @@
-"""diary 서비스 — 조회·상세·열람표시. 생성은 워커(04:00 배치). 열람은 등급무관 무료.
+"""diary 서비스 — 조회·상세·열람표시. 첫 만남은 첫 조회, daily는 워커(04:00 배치)에서 생성. 열람은 등급무관 무료.
 
 노출 규칙: published_at ≤ now 인 건만(배치 생성분의 발행 전 노출 방지, API_SPEC §4).
 """
@@ -22,25 +22,25 @@ from app.services.account import _uid
 _PREVIEW_LEN = 60
 _VISIBLE_KINDS = ("welcome", "shared_day", "capi_day")
 
-# 웰컴 프롤로그는 첫 성공 대화의 Phase B에서 동기 생성한다. 가입 시각·목록 GET을 생성
-# 트리거로 쓰지 않고, 커밋된 사실만 담는 결정적·사실 중립 템플릿을 사용한다.
+# 웰컴 일기는 대화 여부와 무관하게 가입 직후 첫 조회에서 생성한다.
+# 실제 대화나 유저의 발언을 지어내지 않고, 이름은 조회 시 현재 닉네임으로 렌더한다.
 _WELCOME_CONTENT = (
     "{유저이름}, 첫 만남\n\n"
-    "오늘 {유저이름}과 처음 대화를 나눴다.\n"
-    "우리의 첫 대화가 시작된 날이다."
+    "오늘 새 친구 {유저이름}을 만났다.\n"
+    "어떤 친구일까? 앞으로 함께할 날들이 궁금하다."
 )
 _WELCOME_CONTENT_EN = (
     "{유저이름}, our first meeting\n\n"
-    "Today, {유저이름} and I talked for the first time.\n"
-    "This is the day our first conversation began."
+    "Today I met a new friend, {유저이름}.\n"
+    "What kind of friend will they be? I look forward to our days together."
 )
 
 
 # 일본어 유저용 웰컴 일기. {유저이름} placeholder 유지(egress에서 현재 닉네임 렌더).
 _WELCOME_CONTENT_JA = (
     "{유저이름}、はじめての出会い\n\n"
-    "今日、{유저이름}とはじめて話した。\n"
-    "わたしたちの最初の会話が始まった日だ。"
+    "今日、新しい友だちの{유저이름}に出会った。\n"
+    "どんな友だちなんだろう。これから一緒に過ごす日々が楽しみだ。"
 )
 
 
@@ -53,11 +53,11 @@ def _welcome_content(language: str | None) -> str:
     return _WELCOME_CONTENT_EN
 
 
-def _welcome_date(started_at: datetime, tz: str) -> date:
-    """첫 커밋 대화의 당시 로컬 달력 날짜. timezone 변경 뒤에도 저장값은 바뀌지 않는다."""
-    if started_at.tzinfo is None:
-        started_at = started_at.replace(tzinfo=timezone.utc)
-    return started_at.astimezone(safe_zone(tz)).date()
+def _welcome_date(created_at: datetime, tz: str) -> date:
+    """가입 시각의 로컬 달력 날짜. 최초 저장 뒤 timezone이 바뀌어도 재계산하지 않는다."""
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+    return created_at.astimezone(safe_zone(tz)).date()
 
 
 def _welcome_parts(language: str | None) -> tuple[str, str]:
@@ -67,28 +67,28 @@ def _welcome_parts(language: str | None) -> tuple[str, str]:
     return title, body
 
 
-async def ensure_welcome_for_first_committed_turn(
-    session: AsyncSession,
-    profile: Profile,
-    started_at: datetime,
-    *,
-    source_message_id: int | None = None,
-) -> uuid.UUID | None:
-    """첫 성공 대화와 같은 Phase B 트랜잭션에 welcome 프롤로그를 멱등 삽입한다.
+async def ensure_welcome(session: AsyncSession, profile: Profile) -> uuid.UUID | None:
+    """가입 기준 welcome을 멱등 삽입한다. 호출자가 조회 전에 커밋한다.
 
-    commit하지 않는다. 호출자가 user/assistant message, relationship_started_at과 원자적으로 확정한다.
-    partial unique ``one welcome per user``가 동시 삽입을 수렴시키며, 목록 GET은 이 함수를 호출하지
-    않는다. 반환값은 이번 호출에서 새로 삽입된 diary id이고 기존 행이면 ``None``이다.
+    닉네임·대화는 필수 조건이 아니다. 기존 일기는 날짜·언어를 바꾸지 않으며 삭제된 일기도
+    재생성하지 않는다. 동시 첫 조회는 DB의 user당 active welcome 유니크 인덱스로 수렴한다.
     """
-
-    started_at = (
-        started_at.replace(tzinfo=timezone.utc)
-        if started_at.tzinfo is None
-        else started_at.astimezone(timezone.utc)
+    if profile.created_at is None:
+        return None
+    existing = await session.scalar(
+        select(Diary.id).where(Diary.user_id == profile.id, Diary.kind == "welcome").limit(1)
     )
-    tz_name = getattr(profile, "relationship_started_timezone", None) or profile.timezone
-    display_date = _welcome_date(started_at, tz_name)
-    title, body = _welcome_parts(getattr(profile, "language", None))
+    if existing is not None:
+        return None
+    created_at = profile.created_at
+    created_at = (
+        created_at.replace(tzinfo=timezone.utc)
+        if created_at.tzinfo is None
+        else created_at.astimezone(timezone.utc)
+    )
+    tz_name = profile.timezone
+    display_date = _welcome_date(created_at, tz_name)
+    title, body = _welcome_parts(profile.language)
     stmt = (
         pg_insert(Diary)
         .values(
@@ -99,7 +99,7 @@ async def ensure_welcome_for_first_committed_turn(
             display_date=display_date,
             title=title,
             author="capi",
-            occurred_at=started_at,
+            occurred_at=created_at,
             occurred_timezone=tz_name,
             occurred_timezone_provenance="profile_snapshot",
             primary_subject="user",
@@ -108,48 +108,21 @@ async def ensure_welcome_for_first_committed_turn(
             preset_ment_id=None,
             content=body,
             weather="sunny",
-            published_at=started_at,
+            published_at=created_at,
         )
         .on_conflict_do_nothing()
         .returning(Diary.id)
     )
     inserted = await session.scalar(stmt)
-    diary_id = inserted
-    if diary_id is None:
-        diary_id = await session.scalar(
-            select(Diary.id).where(
-                Diary.user_id == profile.id,
-                Diary.kind == "welcome",
-            )
-        )
     if inserted is not None:
-        # Import here so expand-reader deployments can load the service before the new projection
-        # module is activated. Both hooks join the caller's Phase B transaction.
         from app.services import diary_recall_repo
 
-        if source_message_id is None:
-            from app.models.message import Message
-
-            source_message_id = await session.scalar(
-                select(Message.id)
-                .where(Message.user_id == profile.id, Message.sender == "user")
-                .order_by(Message.id)
-                .limit(1)
-            )
-        if source_message_id is not None:
-            await diary_recall_repo.record_diary_sources(
-                session,
-                user_id=profile.id,
-                diary_id=diary_id,
-                message_ids=[source_message_id],
-            )
+        # 가입 환영 문구에는 대화 근거가 없다. 회상 문서·색인 잡만 같은 트랜잭션에 저장한다.
         await diary_recall_repo.upsert_diary_recall_document(
             session,
             user_id=profile.id,
-            diary_id=diary_id,
+            diary_id=inserted,
         )
-    if hasattr(profile, "relationship_started_at") and profile.relationship_started_at is None:
-        profile.relationship_started_at = started_at
     return inserted
 
 
@@ -220,6 +193,10 @@ async def list_diaries(
     profile = await session.get(Profile, _uid(user_id))
     await privacy.ensure_subject_active(session, _uid(user_id))
     nickname = profile.nickname if profile is not None else None
+    if profile is not None:
+        inserted = await ensure_welcome(session, profile)
+        if inserted is not None:
+            await session.commit()
     q = select(Diary).where(
         Diary.user_id == _uid(user_id),
         Diary.record_status == "published",

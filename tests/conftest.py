@@ -11,7 +11,6 @@ import pytest
 from app.services import (
     chat_references,
     chat_turns,
-    diary,
     privacy,
 )
 
@@ -48,5 +47,3 @@ def _unified_memory_defaults(monkeypatch, request):
         monkeypatch.setattr(chat_references, "validate_selected", _valid_refs)
     if request.module.__name__ != "tests.test_privacy":
         monkeypatch.setattr(privacy, "ensure_subject_active", _nothing)
-    if request.module.__name__ != "tests.test_diary":
-        monkeypatch.setattr(diary, "ensure_welcome_for_first_committed_turn", _nothing)

@@ -350,7 +350,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 
 ### 5.3 `diaries` — 캐피의 일기 (US-501~503)
 
-첫 성공 대화의 관계 프롤로그와 04:00 배치 daily를 같은 테이블에 보관하되 종류와 uniqueness를 분리한다.
+가입 환영 일기와 04:00 배치 daily를 같은 테이블에 보관하되 종류와 uniqueness를 분리한다.
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
@@ -361,7 +361,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `activity_date` / `display_date` | date NULL / date | daily 귀속 04:00 날짜와 화면 표시 날짜. welcome은 activity_date가 NULL |
 | `author` / `primary_subject` / `about_tags` | text / text / text[] | 저자는 항상 캐피. 누구에 관한 기록인지 생성 시 확정 |
 | `occurred_at` / `occurred_timezone` | timestamptz / text | 실제 사건 시각과 당시 timezone snapshot |
-| `source` | text | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars`인 대화 기반 생성) / `preset`(기준 미달·미접속이고 해당 날짜 지정본이 있을 때) / `welcome`(첫 성공 대화와 같은 트랜잭션에서 생성되는 관계 프롤로그) |
+| `source` | text | `llm`(당일 **유저 메시지 문자수** ≥ `app_config.diary_min_user_chars`인 대화 기반 생성) / `preset`(기준 미달·미접속이고 해당 날짜 지정본이 있을 때) / `welcome`(대화와 무관하게 가입 후 첫 일기 조회에서 생성되는 환영 일기) |
 | `preset_ment_id` | uuid NULL, FK→`moly_life_ments` | `source='preset'`일 때만 |
 | `content` | text | 생성 결과 스냅샷 (preset이어도 본문 복사 저장 — 멘트 풀 수정이 과거 일기를 바꾸지 않게) |
 | `weather` | enum `diary_weather` | 마음 날씨 스탬프 `sunny` `cloudy` `rainy` `windy` — llm은 생성 결과, preset은 멘트에 지정된 값 복사 |
@@ -370,7 +370,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `created_at` | timestamptz | |
 
 - 부분 유니크: user당 active welcome 1개, `(user_id,activity_date)`당 active daily 1개.
-- 첫 성공 Phase B가 `relationship_started_*`와 welcome을 user/reply 메시지와 원자 삽입한다. 목록 GET은 쓰지 않는다.
+- 첫 성공 Phase B는 `relationship_started_*`를 user/reply 메시지와 함께 확정한다. welcome은 별도로 첫 목록 GET에서 가입일 기준으로 생성하고 회상 문서·색인 잡과 원자 커밋한다.
 - daily 미발행은 `diary_generation_results(user_id,target_date,status=no_entry)`가 기록하며 빈 일기를 만들지 않는다. 주간 preset 지급은 같은 결과 테이블의 `status=preset,preset_ment_id`에 기록하고 일기와 함께 커밋한다.
 - **열람은 등급 무관 항상 무료(확정)** — 접근 제어 없음. 구독 가치 = 개인(`llm`) 일기 "발행"이지 열람이 아님.
 - preset 선택(5.4절): 전환일 이전에는 날짜별 원고, 이후에는 주간 미수령 원고를 순서대로 사용한다. 없으면 `diary_generation_results.status='no_entry'`를 남기고 발행하지 않는다.
@@ -930,7 +930,7 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | 8 건초 IAP | `products(hay_pack)` + `orders`/`payments`(영수증 `store_transaction_id` UNIQUE) |
 | 9 상점 가격 | `products.price_hay` (서버 원본) + `order_items.unit_price`(구매 시점 스냅샷) |
 | 10 리뷰 1회 | `profiles.review_prompted_at` + 당일 `tokens_used` 임계 생애 최초 도달(채팅 응답 `review_prompt` 플래그 — API_SPEC 9장) |
-| 11 캐피의 일기 | `kind=welcome|shared_day|capi_day`. welcome은 첫 성공 대화와 원자 생성, daily는 user+activity_date당 하나. 미발행은 별도 result 행. 발행 노출은 `published_at` |
+| 11 캐피의 일기 | `kind=welcome|shared_day|capi_day`. welcome은 가입 후 첫 목록 조회에서 생성, daily는 user+activity_date당 하나. 미발행은 별도 result 행. 발행 노출은 `published_at` |
 | 12 2일 체험 (구독 동일 혜택) | `profiles.trial_ends_at` (티어 파생 — 토큰·일기·광고는 subscriber와 동일 처리) |
 | 14 인사 미차감 | `greetings` 발급 보관(5.1절) → 커밋 시 `messages.kind='greeting'`, 집계 제외 |
 | 15 낮/밤 | `products.assets` v2 구조 — `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url`. 전환 시각 = Firebase(클라 원격 설정) |

@@ -13,7 +13,7 @@ from typing import Any, Final, Mapping
 import unicodedata
 
 from app.services import fortune_rules
-from app.services.fortune_copy_selection import VARIANT_IDS, validate_selected
+from app.services.fortune_copy_selection import VARIANT_IDS, overall_copy_route, validate_selected
 
 _RESOURCE_DIR: Final = Path(__file__).resolve().parents[1] / "resources" / "fortune"
 _MANIFEST_PATH: Final = _RESOURCE_DIR / "manifest.v2.json"
@@ -63,19 +63,18 @@ _AWKWARD_COPY_RE: Final = re.compile(
     r"판단과 여유가 잘 맞아떨어|무난)"
 )
 _OVERALL_DOMAIN_RE: Final = re.compile(
-    r"(?:금전|지출|결제|연애|상대방|업무|과제|수면|몸|피로|컨디션|식사|숨을 돌)"
+    r"(?:금전|지출|결제|연애|업무|과제|최종본|파일 이름|자료 분류)"
 )
 _OVERALL_DOMAIN_BY_LOCALE: Final = MappingProxyType(
     {
         "ko": _OVERALL_DOMAIN_RE,
         "ja": re.compile(
             r"(?:恋愛|恋人|デート|お金|金銭|出費|支払い|予算|買い物|価格|貯金|収入|"
-            r"仕事|会社|職場|同僚|上司|業務|勉強|提出|締切|健康|体調|睡眠|食事|疲れ|心身|運動)"
+            r"会社|職場|同僚|上司|業務|勉強|提出|締切|最終版|ファイル名)"
         ),
         "en": re.compile(
-            r"\b(?:love|romance|relationship|money|financial|spending|budget|purchase|price|"
-            r"saving|income|job|career|workplace|coworker|boss|assignment|study|deadline|health|"
-            r"sleep|meal|fatigue|body|workout)\b",
+            r"\b(?:romance|money|financial|budget|"
+            r"income|job|career|workplace|coworker|boss|assignment|study|deadline|filename)\b",
             re.I,
         ),
     }
@@ -84,7 +83,7 @@ _HANGUL_RE: Final = re.compile(r"[가-힣]")
 _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-COPY_VERSION = "fortune-copy.v2-variants.1"
+COPY_VERSION = "fortune-copy.v2-day-overview.1"
 CONTENT_STATUS = "approved_for_production"
 
 
@@ -93,7 +92,7 @@ class FortuneCatalogError(ValueError):
 
 
 def _overall_keys() -> set[str]:
-    return {f"overall.{decile}.{flow}.default" for decile in _DECILES for flow in _FLOWS}
+    return {f"overall.{decile}.general" for decile in _DECILES}
 
 
 def _category_keys() -> set[str]:
@@ -145,6 +144,8 @@ def _text(value: Any, label: str, *, locale: str, overall: bool = False) -> str:
         raise FortuneCatalogError(f"{label} contains forbidden fortune wording")
     if locale == "ko" and _AWKWARD_COPY_RE.search(value):
         raise FortuneCatalogError(f"{label} contains awkward Korean fortune wording")
+    if value.endswith((".", "。")) or (overall and locale == "ko" and "겠어" in value):
+        raise FortuneCatalogError(f"{label} contains retired fortune punctuation or tone")
     if overall and _OVERALL_DOMAIN_BY_LOCALE[locale].search(value):
         raise FortuneCatalogError(f"{label} contains category-specific wording")
     if locale != "ko" and _HANGUL_RE.search(value):
@@ -199,9 +200,10 @@ class FortuneCatalog:
         expected_route = f"overall.{overall_decile}.{overall_reading['flow']}.default"
         if overall_reading["decile"] != overall_decile or overall_route != expected_route:
             raise FortuneCatalogError("semantic overall score and routes do not match")
-        if overall_route not in overall_catalog:
+        copy_route = overall_copy_route(overall_route)
+        if copy_route not in overall_catalog:
             raise FortuneCatalogError(f"unknown overall route: {overall_route}")
-        bundle = overall_catalog[str(overall_route)]["variants"][selected["overall"]]
+        bundle = overall_catalog[copy_route]["variants"][selected["overall"]]
         rules = fortune_rules.load_rule_assets()
         rendered_categories: dict[str, Any] = {}
         for category in _CATEGORIES:
@@ -319,6 +321,7 @@ def _validate_copy(
 
     validated_overall: dict[str, Any] = {}
     expressions: list[str] = []
+    headlines: list[str] = []
     for route, entry in overall.items():
         if not isinstance(entry, dict):
             raise FortuneCatalogError(f"{route} must be an object")
@@ -330,7 +333,9 @@ def _validate_copy(
         for variant, bundle in entry["variants"].items():
             validated, texts = _validate_overall_bundle(bundle, f"{route}.{variant}", locale)
             variants[variant] = validated
-            expressions.extend(texts)
+            # Short action labels can recur naturally; unique readings matter.
+            expressions.append("\n".join(texts[:4]))
+            headlines.append(texts[0])
         validated_overall[route] = MappingProxyType({"variants": MappingProxyType(variants)})
 
     validated_categories: dict[str, Any] = {}
@@ -359,7 +364,9 @@ def _validate_copy(
         validated_categories[route] = MappingProxyType({"variants": MappingProxyType(variants)})
 
     if len(expressions) != len(set(expressions)):
-        raise FortuneCatalogError(f"all {locale} fortune expressions must be unique")
+        raise FortuneCatalogError(f"all {locale} fortune readings must be unique")
+    if len(headlines) != len(set(headlines)):
+        raise FortuneCatalogError(f"all {locale} overall headlines must be unique")
 
     validated_colors: dict[str, Any] = {}
     for key, color in colors.items():

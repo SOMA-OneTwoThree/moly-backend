@@ -1,55 +1,71 @@
-# 영어 운세 문구 확장 검수 기록
+> 이번 재설계의 통합 정본: `app/resources/fortune/copy.v2.en.json`
+> 실행 자산에서 생성한 전문과 최종 테스트 결과는 [기준 문서](../DAILY-FORTUNE.md)에 정리
 
-이 문서는 영어 문구 제안의 작성·검수 기록이다. 런타임 통합이나 개발 서버 배포·검증 완료를 뜻하지 않는다. 원어민 인간 편집자의 검수가 아니라 AI 작성과 별도 AI 에이전트 검수, 자동 검사로 진행했다.
+# English overall fortune rewrite review
 
-## 범위와 정본
+## Editorial standard
 
-- 통합 후 정본: `app/resources/fortune/copy.v2.en.json`. 집필 당시 유형·분야별 12개 작업 파일을 합쳤으며, 전문 문서는 이 실행 자산에서 생성한다.
-- 전체 120개 경로마다 v01–v20을 작성했다. overall 1,600묶음 × 6표현 = 9,600표현, category 800묶음 × 2표현 = 1,600표현으로 총 2,400묶음 / 11,200표현이다.
-- 전체 묶음은 완성된 문장·행동 문구로 저장한다. 실행 시 접두사나 동의어 목록을 조합해 만드는 문구가 아니다.
-- 작성용 `*.authored.txt`와 `refine_*.py`는 초안·교열 이력이다. 교열 이후 JSON이 우선하며 TXT를 그대로 재변환하면 최종 수정이 사라진다.
-- UI와 색상은 이번 20개 변형 확장 대상이 아니다. 기존 3언어 기본 검수 제안과 별도 UI 설계를 유지한다.
+- Describe the feel of a whole day before suggesting an attitude toward it
+- Keep each entry recognizable to a reader without assuming a job, partner, project, or specific event
+- Match the Korean entry's outlook, situation, and advice at the same score and variant ID
+- Use idiomatic contemporary US English for a daily fortune, without literal Korean syntax
+- Replace abstract coaching language and workflow instructions with everyday experiences and emotional relevance
+- Different score bands must change the day's interpretation, not merely add stronger adjectives
+- Never guarantee success, threaten misfortune, invent facts about the reader, or prescribe financial or medical decisions
+- End no field with a period; keep headlines concise, body lines complete, and action/caution labels short
+- Check the 20 entries in each band for distinct situations and interpretations, not adjective substitutions
 
-## 공통 brief 대조 기준
+## Prior copy problems
 
-`briefs.json`의 240개 의미 명세를 읽고, 각 의미별로 10개 점수 구간의 판정·설명·행동·주의를 작성했다. 파일마다 v01–v05, v01–v10, v01–v20 순서로 범위를 확장했고 각 단계에 모든 점수 구간을 포함했다. 최초 start 표본은 총괄의 사전 검토를 받았다.
+The old entries were organized around task phases such as starting, coordinating, and finishing. Many entries required a reader to imagine a specific project, document, or unconfirmed requirement. Headlines described instructions rather than a day's fortune. Repeated modal phrasing made the reading feel tentative and procedural. This rewrite starts from the approved day-level Korean concepts rather than editing those old sentences.
 
-같은 ID는 언어와 점수가 달라도 같은 상황과 행동·주의 의도를 유지한다. 예를 들어 coordinate의 질문 분리는 질문을 하나씩 묻는 상황이며 고점이라고 역할 분담이나 감사 표현으로 바꾸지 않았다. balance v04 저점은 의무와 즐거움을 모두 줄여 남기는 뜻을 유지한다. organize의 정리·완료와 recover의 쉼·정신적 여유는 서로 대체하지 않았다.
+## Completion
 
-점수 구간의 공통 방향은 낮은 구간의 무리·누락·편중 확인, 중간 구간의 제한된 조정과 필요한 기준에 따른 진행, 높은 구간의 유용한 연결·완결·선택 가능성이다. 좋은 구간도 성공을 보장하지 않으며 낮은 구간에 불운 사건이나 공포를 추가하지 않는다. 날짜·인물·연인·직장 상황 등 명세 밖 사건을 사실처럼 만들지 않는다.
+Complete: all 200 readings independently localized and self-reviewed; final results below
 
-분야 문구는 love의 관계 상황을 조건부로 다루고, work는 일·학습에 함께 적용 가능한 상황을 사용했다. money는 필요·사용량·조건·지출 판단을 다루며 수익이나 거래 적기를 예측하지 않는다. energy는 활동량과 체감하는 페이스를 다루며 건강 상태나 의학적 회복을 약속하지 않는다. overall에는 분야 전용 단어를 넣지 않는 공통 검사 기준을 적용했다.
+## Final authoring and review result
 
-전체 동일-ID 방향은 영어 작성·교열 중 명세와 대조했다. 총괄의 언어 간 검수는 별도 표본 대조를 포함한다. 이 기록은 한국어·일본어·영어 전체 7,200묶음에 대해 독립 인간 대조를 완료했다는 뜻이 아니다.
+- Completed `en/d00.json` through `en/d90.json`: 10 score bands × 20 complete readings = 200 readings / 1,200 fields
+- Each reading contains one headline, three interpretation lines, one action, and one caution
+- Wrote from the newly authored Korean source for the same score/variant ID; did not reuse the previous eight-flow catalog
+- Compared the meaning of each Korean bundle while localizing: overall outlook, recognizable situation, and suggested attitude remain aligned
+- Synchronized the Korean d70 v03/v13 headline revisions and reviewed the later four Korean wording refinements; their meaning was already reflected in English
+- Lowest bands allow delays, sensitivity, and self-protection without predicting disaster; middle bands emphasize everyday satisfaction and choice; upper bands allow more favorable response and opportunity without promising an event or outcome
+- Removed literal metaphors that sounded unnatural in English during the final pass, including a choice having confidence settle around it and a wish itself gaining confidence
+- Corrected d20 v19 action to `agreeing to a favor`, avoiding the opposite meaning of receiving a favor
+- Final `python reports/fortune-reset/en/check.py`: 200 readings / 1,200 fields, 0 shape/punctuation/global exact duplicate/same-band same-field near-duplicate findings
+- Near-duplicate check: SequenceMatcher ≥ 0.72, field length ≥ 30, interchangeable fields within each 20-reading band
+- These are agent editorial checks, not a claim of external human native-speaker approval or device QA
+- English source frozen after final checks; root informed before runtime assembly
 
-## 주요 교정
+## Independent server review
 
-- start의 `agreed`를 개인의 시작 선택에 맞는 `chosen`으로 고쳤다. 뜻이 즉시 읽히지 않던 약속·추가 범위 문장도 명확하게 다시 썼다.
-- 중간 점수를 `ordinary`라는 공통 수식어로 표시하던 overall·category 문장을 실제 상황과 필요한 기준을 설명하는 문장으로 재작성했다. 일상 언어 자체를 가리키는 일부 용례까지 기계적으로 삭제하지는 않았다.
-- love·money·energy 고점의 `especially/particularly ... choice/decision` 틀을 각 상황에서 판단할 수 있는 구체적인 가능성으로 바꿨다.
-- balance 50점과 90점 headline 40개를 모두 다시 읽고 `practical`·`A carefully ...` 공통 골격을 제거했다. change 90점 headline 20개와 advance 90점의 반복 고점 골격 7개도 상황 자체를 말하는 판정으로 다시 썼다.
-- coordinate의 `actionable agreement`, `accepted contribution`, `coherent result` 등 업무 문서에 가까운 명사구를 함께 따를 수 있는 계획, 각자의 몫 등 일상적인 설명으로 고쳤다.
-- organize와 balance 40점의 `Most ... could already ...` 반복 문장을 각 장면의 남은 확인·조정으로 재작성했다.
-- 분야 검사에 걸리는 비금융 문맥의 `spending` 등도 의미를 유지하는 쉬운 표현으로 바꿨다. 단순 유사도 회피를 위해 무관한 수식어나 다른 상황을 추가하지 않았다.
+Reviewed `app/services/fortune_copy_selection.py`, `app/services/fortune_catalog.py`, relevant selector/catalog test changes, and the main document's selection and deployment contracts without changing server code
 
-## 검증 결과
+No correctness defect found in the reviewed routing/state changes
 
-최종 JSON 12개를 대상으로 구조와 수량을 확인했다.
+Verified by code inspection:
 
-- 각 파일 10개 경로, 각 경로 v01–v20과 공통 brief ID 집합 일치.
-- 전체 2,400묶음 / 11,200표현, 누락 0.
-- overall은 headline·flow 3문장·do·pause만, category는 text 2문장만 포함.
-- 모든 overall headline 100자 이하, flow 3문장 합계 65단어 이하. 이는 화면 적합성의 자동 제한 확인이며 실제 클라이언트 화면 확인을 대체하지 않는다.
-- 공통 `audit_shards.py` 기준 영어 lexical 0, exact duplicate 0, 같은 경로·같은 필드 near ≥ .72 후보 0, 동일 ID의 점수 간 near ≥ .88 후보 0.
+- The original 80 semantic routes remain validated against score and flow, then collapse into ten score-only editorial routes
+- Changing only the calculation flow within a score band uses the same overall cursor
+- All current cursor routes belong to a closed set of 10 overall + 40 category routes, bounding persisted state at 50
+- v1 state is fully shape/date/position/selection-identity checked before discarded overall routes are removed
+- Categories retain both the v1 permutation and their previous cursor; advancing applies only on a later local day
+- Same/older local dates preserve position and the stored date high-water mark
+- Malformed/unknown states remain errors; they are not silently reset
+- Current state is deep-copied, so migration does not mutate the prior snapshot in place
+- Existing valid snapshots are not rewritten simply because the copy version changed
 
-자동 유사도 0은 모든 문장의 자연스러움이나 충분한 의미 차이를 증명하지 않는다. 위 수치는 정해진 검사 범위에서 나온 결과이며 별도 의미·문체 검토와 함께 사용한다. 최종 변경 뒤의 공통 결과는 `reports/fortune-expansion/shard-audit.json`에서 확인한다.
+Review notes sent to root:
 
-## 선택 로직 독립 검증
+1. A v1 writer rejects v2 state on subsequent regeneration, so a simple old-image rollback or mixed writers is unsafe at this version boundary. Root's section 7 now documents this and favors a v2-compatible fixed image after disabling the feature if needed
+2. The API response example still contained the old copy version and old punctuated body at review time. Requested replacement with a current response or explicit legacy labeling before final documentation completion
 
-별도 담당 범위에서 선택 설계를 독립 검토하고 `tests/test_fortune_copy_selection.py`를 작성했다. 당시 159개 테스트 통과 및 Ruff 통과를 확인했다. 경로별 20회 무중복·21회 순환, 같은 날짜와 과거 날짜의 high-water 유지, 다른 경로 방문 뒤 복귀, 입력 비변경, 경로 120개 한도, 손상된 상태의 거부, 고정 순열 golden을 다뤘다. 이는 해당 선택 모듈의 검증 결과이며 최종 통합 API·개발 DB 검증을 대신하지 않는다.
+The root executes final combined tests and the development-DB verification; this review does not claim an independent new test execution
 
-## 언어 참고와 한계
+## Final independent editorial follow-up
 
-기존 영어 기본 문구 검수에서 공개 일일 운세 페이지의 장르 문체를 확인했다: [Astrology.com](https://www.astrology.com/horoscope/daily/today.html), [Horoscope.com](https://www.horoscope.com/us/horoscopes/general/index-horoscope-general-daily.aspx). 가능성의 판정과 일상 행동으로 연결하는 장르적 방식을 참고했으며 원문 문장을 복사하거나 번안하지 않았다. 해당 사이트는 운세의 예측 정확성을 뒷받침하는 근거가 아니다.
+Root flagged two unnatural expressions in d90. Replaced v09 flow[1] with `You don't need to put on an act to be interesting`, preserving the appeal of the reader's ordinary self. Replaced v20 headline with `Look forward to what today might bring`, preserving a hopeful daily-fortune outlook without the awkward phrase `happy possibility`. Re-ran all English checks with zero findings and froze the final files again before assembly.
 
-영어 문구 담당은 카탈로그 제안과 위 독립 선택 테스트만 변경했다. DB·AWS·배포 작업이나 PR 생성은 하지 않았다. 최종 통합과 서비스/개발 DB 검증 결과는 [기준 문서 4.7절](../DAILY-FORTUNE.md#47-검수-과정과-결과)에 기록했다.
+
+통합 완료: 새 원고를 서버 자산에 반영하고 전체 서버 2,171개·서비스/개발 DB 6개 테스트를 통과했다. 최신 API 예시와 배포 제한은 [기준 문서](../DAILY-FORTUNE.md)에 반영했다.

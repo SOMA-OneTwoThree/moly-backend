@@ -7,18 +7,21 @@ from functools import lru_cache
 from hashlib import sha256
 from typing import Any, Mapping
 
-SELECTION_VERSION = "fortune-selection.v1"
+SELECTION_VERSION = "fortune-selection.v2"
+_LEGACY_VERSION = "fortune-selection.v1"
 VARIANT_IDS = tuple(f"v{number:02d}" for number in range(1, 21))
 CATEGORY_KEYS = ("love", "money", "work", "energy")
 FLOW_KEYS = ("start", "advance", "focus", "coordinate", "change", "organize", "recover", "balance")
 DECILES = tuple(f"d{number:02d}" for number in range(0, 100, 10))
-OVERALL_ROUTES = frozenset(
+SEMANTIC_OVERALL_ROUTES = frozenset(
     f"overall.{decile}.{flow}.default" for decile in DECILES for flow in FLOW_KEYS
 )
+OVERALL_ROUTES = frozenset(f"overall.{decile}.general" for decile in DECILES)
 CATEGORY_ROUTES = frozenset(
     f"category.{category}.{decile}.general" for category in CATEGORY_KEYS for decile in DECILES
 )
 ALL_ROUTES = OVERALL_ROUTES | CATEGORY_ROUTES
+_LEGACY_ROUTES = SEMANTIC_OVERALL_ROUTES | CATEGORY_ROUTES
 SELECTED_KEYS = frozenset(("overall", *CATEGORY_KEYS))
 
 
@@ -26,17 +29,29 @@ class FortuneSelectionError(ValueError):
     """Do not silently reset a malformed or unknown presentation cursor."""
 
 
-@lru_cache(maxsize=120)
-def variant_order(route: str) -> tuple[str, ...]:
-    if route not in ALL_ROUTES:
-        raise FortuneSelectionError("unknown fortune expression route")
+def _order(route: str, version: str) -> tuple[str, ...]:
     return tuple(sorted(
         VARIANT_IDS,
         key=lambda variant: (
-            sha256(f"{SELECTION_VERSION}|{route}|{variant}".encode("ascii")).digest(),
-            variant,
+            sha256(f"{version}|{route}|{variant}".encode("ascii")).digest(), variant,
         ),
     ))
+
+
+@lru_cache(maxsize=50)
+def variant_order(route: str) -> tuple[str, ...]:
+    if route not in ALL_ROUTES:
+        raise FortuneSelectionError("unknown fortune expression route")
+    # Category copy is unchanged: retain its original permutation and cursor.
+    version = _LEGACY_VERSION if route in CATEGORY_ROUTES else SELECTION_VERSION
+    return _order(route, version)
+
+
+def overall_copy_route(semantic_route: str) -> str:
+    """Collapse calculation-only flow types into one editorial pool per score band."""
+    if not isinstance(semantic_route, str) or semantic_route not in SEMANTIC_OVERALL_ROUTES:
+        raise FortuneSelectionError("invalid semantic overall route")
+    return f"overall.{semantic_route.split('.')[1]}.general"
 
 
 def validate_selected(value: Any) -> dict[str, str]:
@@ -47,16 +62,16 @@ def validate_selected(value: Any) -> dict[str, str]:
     return dict(value)
 
 
-def _read_state(value: Any) -> dict[str, dict[str, Any]]:
+def _read_state(value: Any, *, legacy: bool) -> dict[str, dict[str, Any]]:
     if (
         not isinstance(value, Mapping)
         or set(value) != {"version", "selected", "routes"}
-        or value["version"] != SELECTION_VERSION
+        or value["version"] != (_LEGACY_VERSION if legacy else SELECTION_VERSION)
     ):
         raise FortuneSelectionError("unsupported fortune selection state")
     validate_selected(value["selected"])
     routes = value["routes"]
-    if not isinstance(routes, Mapping) or not set(routes).issubset(ALL_ROUTES):
+    if not isinstance(routes, Mapping) or not set(routes).issubset(_LEGACY_ROUTES if legacy else ALL_ROUTES):
         raise FortuneSelectionError("invalid fortune cursor routes")
     for cursor in routes.values():
         if not isinstance(cursor, Mapping) or set(cursor) != {"day", "position"}:
@@ -75,7 +90,7 @@ def _read_state(value: Any) -> dict[str, dict[str, Any]]:
     return deepcopy(dict(routes))
 
 
-def _result_routes(semantic: Mapping[str, Any]) -> dict[str, str]:
+def _result_routes(semantic: Mapping[str, Any], *, legacy: bool = False) -> dict[str, str]:
     try:
         routes = {"overall": semantic["overall"]["expression_route"]}
         routes.update({
@@ -86,12 +101,14 @@ def _result_routes(semantic: Mapping[str, Any]) -> dict[str, str]:
         raise FortuneSelectionError("missing fortune result routes") from exc
     if any(not isinstance(route, str) for route in routes.values()):
         raise FortuneSelectionError("invalid fortune result routes")
-    if routes["overall"] not in OVERALL_ROUTES or any(
+    if routes["overall"] not in SEMANTIC_OVERALL_ROUTES or any(
         routes[category] not in CATEGORY_ROUTES
         or not routes[category].startswith(f"category.{category}.")
         for category in CATEGORY_KEYS
     ):
         raise FortuneSelectionError("invalid fortune result routes")
+    if not legacy:
+        routes["overall"] = overall_copy_route(routes["overall"])
     return routes
 
 
@@ -104,20 +121,24 @@ def select_variants(
     """Advance only on a later local date, atomically with the five-copy snapshot.
 
     A cursor counts result construction, including locked details, not UI reads.
-    Keeping at most 120 route cursors survives intervening routes without storing
+    Keeping at most 50 route cursors survives intervening routes without storing
     an unbounded event history. Date rollback and same-day profile edits reuse
     the cursor, rather than allowing refreshes to consume the remaining copies.
     """
-    routes = (
-        _read_state(previous_semantic["copy_selection"])
-        if previous_semantic is not None and "copy_selection" in previous_semantic
-        else {}
-    )
+    routes = {}
     if previous_semantic is not None and "copy_selection" in previous_semantic:
-        previous_selected = previous_semantic["copy_selection"]["selected"]
-        for key, route in _result_routes(previous_semantic).items():
-            if route not in routes or previous_selected[key] != variant_order(route)[routes[route]["position"]]:
+        state = previous_semantic["copy_selection"]
+        legacy = isinstance(state, Mapping) and state.get("version") == _LEGACY_VERSION
+        routes = _read_state(state, legacy=legacy)
+        for key, route in _result_routes(previous_semantic, legacy=legacy).items():
+            order = _order(route, _LEGACY_VERSION) if legacy else variant_order(route)
+            if route not in routes or state["selected"][key] != order[routes[route]["position"]]:
                 raise FortuneSelectionError("selected fortune variant does not match its cursor")
+        if legacy:
+            # Old overall IDs describe discarded, flow-specific copy. They have no
+            # meaningful correspondence to the new general-day readings. Reset only
+            # those pools, after validating the complete old state; keep categories.
+            routes = {route: cursor for route, cursor in routes.items() if route in CATEGORY_ROUTES}
     chosen_routes = _result_routes(semantic)
     selected = {}
     for key, route in chosen_routes.items():

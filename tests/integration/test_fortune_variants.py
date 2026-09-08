@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from app.models.fortune import DailyFortune
 from app.schemas.fortune import FortuneProfilePut
 from app.services import fortune, fortune_catalog, fortune_rules, privacy
-from app.services.fortune_copy_selection import variant_order
+from app.services.fortune_copy_selection import overall_copy_route, variant_order
 from db.envfile import assert_dev_target, load_conn
 from db.schema_contract import require_scratch
 
@@ -174,6 +174,8 @@ async def test_flush_then_failed_commit_does_not_consume_a_variant(fortune_db):
     for key, variant in after["copy_selection"]["selected"].items():
         route = after["overall" if key == "overall" else "categories"]
         route = route["expression_route"] if key == "overall" else route[key]["expression_route"]
+        if key == "overall":
+            route = overall_copy_route(route)
         assert variant == variant_order(route)[1]
 
 
@@ -204,3 +206,42 @@ async def test_profile_deletion_cascades_cursor_with_snapshot(fortune_db):
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.delete_profile(session, str(db.uid))
     assert await db.conn.fetchval("SELECT count(*) FROM daily_fortunes WHERE user_id=$1", db.uid) == 0
+
+
+async def test_type_based_cursor_upgrades_once_without_resetting_categories(fortune_db):
+    from hashlib import sha256
+    from app.services.fortune_copy_selection import VARIANT_IDS
+
+    db = fortune_db
+    before = await _reveal(db)
+    old = _semantic()
+    source_routes = {'overall': old['overall']['expression_route']}
+    source_routes.update({k: v['expression_route'] for k, v in old['categories'].items()})
+    selected = {}
+    for key, route in source_routes.items():
+        order = sorted(VARIANT_IDS, key=lambda v: (
+            sha256(f'fortune-selection.v1|{route}|{v}'.encode('ascii')).digest(), v,
+        ))
+        selected[key] = order[7]
+    old['copy_selection'] = {
+        'version': 'fortune-selection.v1', 'selected': selected,
+        'routes': {r: {'day': DAY.isoformat(), 'position': 7} for r in source_routes.values()},
+    }
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        row = await session.get(DailyFortune, db.uid)
+        row.semantic_result = old
+        row.copy_version = 'fortune-copy.v2-variants.1'
+        await session.commit()
+    same_day = await _reveal(db)
+    assert same_day['result'] == before['result']
+    assert (await _stored(db))['copy_selection']['version'] == 'fortune-selection.v1'
+    await _reveal(db, now=NOW + timedelta(days=1))
+    after = await _stored(db)
+    state = after['copy_selection']
+    assert state['version'] == 'fortune-selection.v2'
+    assert state['routes']['overall.d60.general']['position'] == 0
+    for category in ('love', 'money', 'work', 'energy'):
+        assert state['routes'][f'category.{category}.d50.general']['position'] == 8
+    assert len(state['routes']) == 5
+    await _reveal(db, now=NOW + timedelta(days=1), locale='ja')
+    assert await _stored(db) == after

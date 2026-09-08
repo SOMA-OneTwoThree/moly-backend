@@ -297,7 +297,7 @@ def test_composed_action_rejects_shared_visual_ownership():
         load(raw)
 
 
-@pytest.mark.parametrize("action", ["open_diary", "open_timer", "open_music"])
+@pytest.mark.parametrize("action", ["open_diary", "open_mood", "open_timer", "open_music"])
 def test_navigation_capability_filters_old_clients(action):
     raw = manifest()
     raw["banners"][0]["canvases_by_locale"]["en"]["elements"][-1]["action"] = {"type": action}
@@ -311,3 +311,22 @@ def test_navigation_capability_filters_old_clients(action):
     assert not select_candidates(catalog, supported=supported - {action}, **params)
     wire = compile_canvas(canvas, binding_values(catalog.manifest.banners[0], "en", date(2026, 9, 7), 2))
     assert wire.elements[-1].action.model_dump() == {"type": action}
+
+
+def test_authored_banner_body_is_centered_between_divider_and_visible_button():
+    catalog = BannerCatalog.load()
+    for banner in catalog.manifest.banners:
+        for canvas in banner.canvases_by_locale.values():
+            elements = {element.id: element for element in canvas.elements}
+            divider = elements['heading-divider'].frame
+            button = elements['action-surface'].frame
+            body = elements['message'].frame
+            top = elements['date'].frame.y if 'date' in elements else body.y
+            bottom = body.y + body.height
+            assert (top + bottom) / 2 == pytest.approx(
+                (divider.y + divider.height + button.y) / 2, abs=1e-8
+            )
+            assert elements['message'].vertical_align == 'center'
+            if 'date' in elements:
+                assert elements['date'].vertical_align == 'center'
+                assert elements['date'].frame.height == body.height

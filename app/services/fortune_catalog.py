@@ -83,7 +83,7 @@ _HANGUL_RE: Final = re.compile(r"[가-힣]")
 _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-COPY_VERSION = "fortune-copy.v2-day-overview.1"
+COPY_VERSION = "fortune-copy.v2-field-readings.1"
 CONTENT_STATUS = "approved_for_production"
 
 
@@ -144,7 +144,9 @@ def _text(value: Any, label: str, *, locale: str, overall: bool = False) -> str:
         raise FortuneCatalogError(f"{label} contains forbidden fortune wording")
     if locale == "ko" and _AWKWARD_COPY_RE.search(value):
         raise FortuneCatalogError(f"{label} contains awkward Korean fortune wording")
-    if value.endswith((".", "。")) or (overall and locale == "ko" and "겠어" in value):
+    if value.endswith((".", "。")) or (
+        locale == "ko" and any(token in value for token in ("겠어", "흐름이야", "가능성이 보여", "기운이 모여"))
+    ):
         raise FortuneCatalogError(f"{label} contains retired fortune punctuation or tone")
     if overall and _OVERALL_DOMAIN_BY_LOCALE[locale].search(value):
         raise FortuneCatalogError(f"{label} contains category-specific wording")
@@ -359,7 +361,11 @@ def _validate_copy(
                 _text(line, f"{label}.text[{index}]", locale=locale)
                 for index, line in enumerate(lines)
             )
-            expressions.extend(rendered_lines)
+            # Repeated short suggestions need not be forced into awkward synonyms.
+            # The interpretation and suggestion together must remain distinct.
+            if rendered_lines[0] == rendered_lines[1]:
+                raise FortuneCatalogError(f"{label} must contain two distinct sentences")
+            expressions.append("\n".join(rendered_lines))
             variants[variant] = MappingProxyType({"text": rendered_lines})
         validated_categories[route] = MappingProxyType({"variants": MappingProxyType(variants)})
 

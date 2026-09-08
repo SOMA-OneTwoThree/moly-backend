@@ -1,6 +1,6 @@
 # 오늘의 총평 30–39점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
@@ -15,7 +15,7 @@
 | --- | --- | --- | --- |
 | 총평 | 아쉬운 장면 뒤에 작은 반전이 숨어 있는 하루야 | A small turn for the better may follow today's disappointment | 残念な場面の後に、小さな好転が隠れている日 |
 | 풀이 1 | 처음 기대한 것과 다른 결과에 잠깐 김이 빠질 수 있어 | An outcome different from the one you hoped for could leave you deflated at first | 期待と違う結果に、少し気が抜けるかも |
-| 풀이 2 | 하지만 달라진 흐름 덕분에 편해지는 부분도 눈에 들어올 거야 | As the day changes course, you may notice something that actually becomes easier | でも、流れが変わったからこそ楽になる部分も見えてきそう |
+| 풀이 2 | 하지만 계획이 달라져 오히려 편해지는 부분도 눈에 들어올 수 있어 | A changed plan could reveal something that actually becomes easier | でも、予定が変わってかえって楽になる部分も見つかるかも |
 | 풀이 3 | 원래 바라던 모습만 고집하지 않으면 뜻밖의 괜찮음을 발견해 | Leave room beyond your original picture and you might find something worth liking | 最初の望みだけにこだわらなければ、思いがけない良さに気づけるよ |
 | 해볼 것 | 달라져서 오히려 나아진 점을 찾아봐 | Look for what has improved because things changed | 変わったことで、かえって良くなった点を探してみて |
 | 조심할 것 | 첫 실망 뒤에 남은 가능성까지 지우지 마 | Don't let the first disappointment erase the remaining possibilities | 最初のがっかりで、残った可能性まで消さないで |
@@ -35,7 +35,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 흐름이 조금 더뎌도 방향까지 틀린 건 아니야 | A slower day doesn't mean you're heading the wrong way | 進みがゆっくりでも、進む方向まで間違いとは限らないよ |
+| 총평 | 조금 늦게 나아가도 방향까지 틀린 건 아니야 | A slower day doesn't mean you're heading the wrong way | 進みがゆっくりでも、進む方向まで間違いとは限らないよ |
 | 풀이 1 | 금방 달라질 줄 알았던 일에서 변화가 작게 느껴질 수 있어 | Something you expected to change quickly may show only a little movement | すぐ変わると思ったことに、あまり変化を感じられないかも |
 | 풀이 2 | 오늘은 눈에 띄는 결과보다 이어지고 있다는 사실이 중요해 | Today, the fact that it is continuing matters more than a striking result | 今日は目立つ結果より、続いていることそのものを大切にしたい日 |
 | 풀이 3 | 작은 진전을 알아보면 기다리는 마음도 한결 가벼워져 | Recognizing small progress can make the waiting easier | 小さな前進に気づけば、待つ気持ちも軽くなるはず |
@@ -57,7 +57,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 맞지 않던 박자가 조금씩 맞아가는 날이야 | An awkward rhythm can gradually find its beat today | 合わなかった歩調が、少しずつ合っていく日 |
+| 총평 | 맞지 않던 박자가 조금씩 맞아가는 날이야 | A difficult conversation can become easier once you find something in common | 合わなかった歩調が、少しずつ合っていく日 |
 | 풀이 1 | 처음에는 서로 원하는 것이 달라 이야기가 겉돌 수 있어 | Different wishes may leave you talking in circles at first | 出だしは望みが違って、話がかみ合わないかも |
 | 풀이 2 | 작은 공통점을 찾으면 나머지 차이도 덜 크게 느껴져 | Finding one point in common can make the other differences feel smaller | 小さな共通点が見つかると、ほかの違いも気になりにくくなるよ |
 | 풀이 3 | 모두 같아지려 하기보다 함께할 수 있는 부분부터 봐줘 | Look for where you can meet rather than trying to agree on everything | 全部同じにしようとせず、一緒にできる部分から見てみよう |
@@ -104,7 +104,7 @@
 | 총평 | 마음에 들지 않던 부분을 조금 바꿀 기회가 있어 | Something you've put up with may be ready for a small improvement | 気に入らなかったところを、少し変える機会がある日 |
 | 풀이 1 | 늘 어쩔 수 없다고 생각했던 일에 다른 방법이 보일 수 있어 | A situation you thought you couldn't change could offer another way | 仕方がないと思っていたことに、別のやり方が見つかるかも |
 | 풀이 2 | 전체를 뒤집지 않아도 불편 하나를 덜면 느낌이 달라져 | Removing one irritation can feel different without overturning everything | 全部を変えなくても、不便がひとつ減れば感じ方も変わるよ |
-| 풀이 3 | 작은 개선을 가볍게 시도하기에 괜찮은 흐름이야 | Today's mood is suited to trying a modest improvement | 小さな工夫を気軽に試すには、悪くない流れ |
+| 풀이 3 | 평소 거슬렸던 부분 하나부터 바꿔봐도 괜찮아 | It's okay to begin by changing one thing that's been bothering you | 普段気になっていたところから、ひとつ変えてみてもいいよ |
 | 해볼 것 | 반복해서 불편했던 점 하나를 손봐줘 | Fix one small annoyance that keeps returning | 繰り返し困っていた点を、ひとつ直してみて |
 | 조심할 것 | 다 바꿀 수 없다는 이유로 작은 불편까지 그대로 두지 마 | Don't leave every discomfort untouched because you can't change it all | 全部は変えられなくても、小さな不便まで放置しないで |
 
@@ -126,7 +126,7 @@
 | 총평 | 기대치를 맞추면 생각보다 편하게 흘러가는 날이야 | Shared expectations can make today easier than you imagined | 期待をすり合わせると、思ったより楽に進む日 |
 | 풀이 1 | 네가 생각한 만큼 상대도 알고 있지는 않을 수 있어 | The other person may not know as much about your hopes as you think | 自分が想定したほど、相手は事情を知らないかも |
 | 풀이 2 | 서로 바라는 정도를 짚어두면 작은 실망을 예방할 수 있어 | A quick check of what you both expect can prevent a small letdown | 何をどこまで望むか確かめておけば、小さな失望を防げるよ |
-| 풀이 3 | 오늘은 알아서 통하기보다 맞춰가며 편해지는 흐름이야 | A little adjustment will help more than expecting things to click on their own | 今日は自然に通じ合うより、話しながら合っていく流れ |
+| 풀이 3 | 알아서 알아주길 기다리기보다 서로 기대하는 것을 말해봐 | Talk about what each of you expects instead of waiting to be understood without words | 察してもらうのを待つより、お互いの望みを言葉にしてみよう |
 | 해볼 것 | 서로 무엇을 기대하는지 가볍게 확인해봐 | Casually check what each of you is expecting | お互いに何を期待しているか、軽く聞いてみて |
 | 조심할 것 | 말하지 않은 기준으로 상대를 평가하지 마 | Don't judge someone by a standard you never mentioned | 伝えていない基準で、相手を採点しないで |
 
@@ -157,9 +157,9 @@
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
 | 총평 | 내키지 않던 일에도 네 방식이 들어갈 자리가 있어 | Even an unappealing situation may leave room for your own touch | 気が進まないことにも、自分らしさを入れる余地がある日 |
-| 풀이 1 | 처음에는 정해진 흐름에 따라가야만 할 것처럼 보일 수 있어 | At first, it could seem as though you simply have to follow along | 最初は決まった流れに従うしかないように見えるかも |
+| 풀이 1 | 처음에는 남이 정한 대로 따라야만 할 것처럼 보일 수 있어 | At first, it could seem as though you simply have to follow along | 最初は、人の決めたとおりに従うしかないと感じるかも |
 | 풀이 2 | 작은 선택 하나를 바꾸면 네가 원하는 느낌에 가까워져 | Changing one small choice may bring it closer to something you want | 小さな選択をひとつ変えるだけで、望む感じに近づけそう |
-| 풀이 3 | 오늘은 완전한 자유보다 허용된 여지를 발견하는 게 중요해 | Today is about finding the freedom available, even if it isn't complete | 今日は何でも自由にするより、選べる部分に気づくことが大切だよ |
+| 풀이 3 | 오늘은 완전한 자유보다 허용된 여지를 발견하는 게 중요해 | Notice where you still have a choice, even if you can't decide everything | 今日は何でも自由にするより、選べる部分に気づくことが大切だよ |
 | 해볼 것 | 네 뜻을 반영할 수 있는 부분을 물어봐 | Ask where your preference can be included | 自分の希望を入れられるところがないか、聞いてみて |
 | 조심할 것 | 처음부터 선택권이 없다고 단정하지 마 | Don't assume from the start that you have no say | 初めから選ぶ余地はないと決めつけないで |
 
@@ -169,7 +169,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘은 급히 내린 평가가 조금 달라질 수 있어 | An early judgment may look different by the end of today | 急いでつけた評価が、少し変わるかもしれない日 |
 | 풀이 1 | 별로라고 여겼던 사람이나 일이 다시 보이는 순간이 있어 | Someone or something you weren't keen on could reveal a more appealing side | 今ひとつと思っていた人や物事が、違って見える瞬間がありそう |
-| 풀이 2 | 첫 경험에서 드러나지 않았던 면을 만날 수 있는 흐름이야 | You may see a quality that wasn't visible in your first encounter | 最初の経験では見えなかった面に、出合える流れだよ |
+| 풀이 2 | 다시 접하면 처음엔 보이지 않던 장점을 발견할 수 있어 | You may see a quality that wasn't visible in your first encounter | もう一度接すると、最初には見えなかったよさに気づけそう |
 | 풀이 3 | 틀렸다는 부담 없이 생각을 고쳐도 괜찮아 | You can change your mind without treating your earlier view as a failure | 間違いを認めると重く考えず、見方を変えても大丈夫 |
 | 해볼 것 | 새로 알게 된 모습에 자리를 내줘봐 | Make room for the new side you've discovered | 新しく知った一面を、受け入れてみて |
 | 조심할 것 | 예전에 한 말을 지키려고 판단을 고집하지 마 | Don't cling to a judgment just to stand by your earlier words | 前に言ったことを守るために、判断に固執しないで |
@@ -225,6 +225,6 @@
 | 총평 | 하루의 분위기는 아직 바뀔 여지가 있어 | Today's mood still has room to turn around | 一日の空気は、まだ変わる余地があるよ |
 | 풀이 1 | 몇 번의 어긋남 때문에 마음이 움츠러들 수 있어 | A few things going wrong may leave you feeling withdrawn | いくつかの行き違いで、気持ちが縮こまるかも |
 | 풀이 2 | 이후의 작은 친절이나 반가운 발견이 생각을 돌려줄 수 있어 | A small kindness or welcome discovery later could change your view | その後の小さな親切やうれしい発見が、見方を変えてくれそう |
-| 풀이 3 | 오늘을 너무 일찍 정리하지 말고 남은 순간을 받아줘 | Don't close the book on today before its remaining moments arrive | 今日を早々に締めくくらず、残りの瞬間も受け取ってみて |
+| 풀이 3 | 오늘을 너무 일찍 정리하지 말고 남은 순간을 받아줘 | Leave room for the good moments that may still come today | 今日を早々に締めくくらず、残りの瞬間も受け取ってみて |
 | 해볼 것 | 지금부터 괜찮아질 장면을 하나 만들어봐 | Make space for one moment that feels better from here | 今から気持ちが和らぐ場面を、ひとつ作ってみよう |
 | 조심할 것 | 몇 가지 아쉬움으로 좋은 순간까지 흘리지 마 | Don't let a few regrets make you miss what's good | いくつかの残念さで、良い瞬間まで見逃さないで |

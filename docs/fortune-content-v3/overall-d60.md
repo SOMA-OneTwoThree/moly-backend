@@ -1,11 +1,11 @@
 # 오늘의 총평 60–69점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
-작은 호의와 기회를 받아들이며 하루가 한결 나아질 수 있는 흐름
+작은 호의와 기회를 받아들이면 한결 편해질 수 있는 하루
 
 내부 계산 유형과 관계없이 이 점수 구간의 20묶음에서 선택한다
 
@@ -13,9 +13,9 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 망설이던 마음에 작은 용기가 붙는 날이야 | A little courage may join you where you've been hesitating | ためらう気持ちに、小さな勇気が湧いてくる日 |
+| 총평 | 망설이던 마음에 작은 용기가 붙는 날이야 | You may feel a little more ready to try what you've been putting off | ためらう気持ちに、小さな勇気が湧いてくる日 |
 | 풀이 1 | 생각만 하던 일을 실제로 해볼 만하다는 기분이 들 수 있어 | Something you've only thought about could begin to feel worth trying | 考えるだけだったことも、試してみようと思えるかも |
-| 풀이 2 | 크게 준비하지 않아도 첫발을 내딛을 틈이 보이는 흐름이야 | An opening for a first step may appear without elaborate preparation | 大がかりに準備しなくても、踏み出せるきっかけが見えそう |
+| 풀이 2 | 크게 준비하지 않아도 지금 할 수 있는 작은 시작을 찾기 좋아 | You can find a small way to begin now without elaborate preparation | 大がかりな準備をしなくても、今できる小さな始め方を見つけやすい日 |
 | 풀이 3 | 확신이 가득 찰 때까지 기다리지 않아도 괜찮아 | You don't need to wait until every trace of doubt is gone | 確信でいっぱいになるまで、待たなくても大丈夫 |
 | 해볼 것 | 마음에 두던 일을 작게 시작해봐 | Make a small beginning on something you've had in mind | 心に留めていたことを、小さく始めてみて |
 | 조심할 것 | 떨린다는 이유만으로 준비가 안 됐다고 여기지 마 | Don't take nervousness as proof you're not ready | 緊張するからと、準備不足だと思わないで |
@@ -37,7 +37,7 @@
 | --- | --- | --- | --- |
 | 총평 | 익숙한 일에서도 새로운 재미가 살아나는 하루야 | Fresh enjoyment can return to something familiar today | 慣れたことにも、新しい楽しさが戻ってくる日 |
 | 풀이 1 | 반복되던 시간이 전보다 덜 지루하게 느껴질 수 있어 | Time that felt repetitive may seem less dull than before | 繰り返しの時間が、前ほど退屈に感じられないかも |
-| 풀이 2 | 작은 변화 하나가 처음의 관심을 다시 불러오는 흐름이야 | One small change could revive the interest you had at the start | 小さな変化から、最初の興味がよみがえる流れだよ |
+| 풀이 2 | 익숙한 방식에 변화를 조금 주면 처음 느낀 재미가 돌아올 수 있어 | One small change could revive the interest you had at the start | いつものやり方に少し変化を加えると、最初の楽しさを思い出せそう |
 | 풀이 3 | 즐거워진 이유를 따라가면 하루에 활기가 더해져 | Following what feels enjoyable can bring more life into your day | 楽しくなった理由をたどると、一日に弾みがつきそう |
 | 해볼 것 | 재미가 느껴지는 부분을 조금 더 즐겨봐 | Spend a little longer with the part you're enjoying | 面白いと感じた部分を、もう少し楽しんでみて |
 | 조심할 것 | 흥미가 생겼다고 한꺼번에 너무 많이 벌이지 마 | Don't take on too much at once just because your interest is back | 興味が湧いても、一度に広げすぎないで |
@@ -68,10 +68,10 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 도움을 주고받으며 흐름이 풀리는 하루야 | Giving and receiving help can get today moving more easily | 助けをやり取りするうちに、流れがほぐれる日 |
+| 총평 | 도움을 주고받으면 어려운 일도 한결 수월해질 수 있어 | Giving and receiving help can make a difficult task easier | 助け合えば、難しいこともぐっと楽になりそう |
 | 풀이 1 | 혼자서는 번거롭던 일이 짧은 질문으로 쉬워질 수 있어 | Something awkward to handle alone may become simpler with a short question | ひとりでは面倒だったことも、短い質問で楽になるかも |
 | 풀이 2 | 네가 아는 작은 정보도 누군가에게는 필요한 답이 돼 | A small piece of knowledge you have could be exactly what someone needs | 自分には小さな情報でも、誰かには必要な答えになるよ |
-| 풀이 3 | 서로 기대는 일을 부담보다 자연스러운 교류로 받아봐 | Let relying on each other feel like an ordinary exchange rather than a burden | 頼り合うことを負担より、自然なやり取りとして受け取ってみよう |
+| 풀이 3 | 서로 기대는 일을 부담보다 자연스러운 교류로 받아봐 | It's okay for help to be a simple give-and-take rather than a burden | 頼り合うことを負担より、自然なやり取りとして受け取ってみよう |
 | 해볼 것 | 필요한 도움을 구체적으로 청해봐 | Ask for the specific help you need | どんな助けがほしいか、具体的に頼んでみて |
 | 조심할 것 | 모든 것을 혼자 해야 마음이 편하다고 고집하지 마 | Don't insist that doing everything alone is the only comfortable way | 何でもひとりのほうが楽だと、決め込まないで |
 
@@ -104,7 +104,7 @@
 | 총평 | 오늘은 작은 제안이 반가운 반응으로 이어질 수 있어 | A small invitation may find a welcoming response today | 小さな誘いに、うれしい反応が返ってくるかも |
 | 풀이 1 | 함께하고 싶던 일을 꺼내기에 분위기가 나쁘지 않아 | The mood is favorable for mentioning something you'd like to do together | 一緒にしたかったことを話すには、悪くない雰囲気の日 |
 | 풀이 2 | 상대의 취향을 살핀 제안이라면 더 편하게 대화가 이어져 | A suggestion that considers the other person's taste can keep the conversation comfortable | 相手の好みを考えた提案なら、会話も気楽に続きそう |
-| 풀이 3 | 먼저 말을 꺼내는 정도의 용기를 내봐 | Try the modest courage of being the one to bring it up | まず声をかけるくらいの勇気を出してみよう |
+| 풀이 3 | 먼저 말을 꺼내는 정도의 용기를 내봐 | Let yourself be the one to suggest something, even if it takes a little courage | まず声をかけるくらいの勇気を出してみよう |
 | 해볼 것 | 함께 즐길 만한 일을 제안해봐 | Suggest an activity you could both enjoy | 一緒に楽しめそうなことを、提案してみて |
 | 조심할 것 | 좋은 반응을 얻으려고 상대의 몫까지 정하지 마 | Don't decide the other person's part to secure a positive response | 良い反応がほしくても、相手の分まで決めないで |
 
@@ -123,7 +123,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 오래 미룬 안부를 전하기 좋은 흐름이야 | Today is a friendly opening for a long-overdue hello | 長く延ばしていた連絡をするのに、良い流れの日 |
+| 총평 | 오늘은 오래 미룬 안부를 편하게 전해봐도 좋아 | Today is a good time for a hello you've been meaning to send | 今日は、延ばしていた連絡を気軽にしてみてもいい日 |
 | 풀이 1 | 시간이 지났다는 어색함보다 반가운 마음이 더 잘 닿을 수 있어 | The warmth of hearing from you may matter more than the awkwardness of time passed | 時間が空いた気まずさより、会いたい気持ちが届きやすそう |
 | 풀이 2 | 긴 설명 없이 요즘 어떠냐는 말로도 시작은 충분해 | A simple question about how they're doing is enough to begin | 長い説明がなくても、最近どうというひと言で始められるよ |
 | 풀이 3 | 답의 속도보다 연락했다는 마음에 의미를 둬봐 | Let the reaching out count more than the speed of the reply | 返事の速さより、連絡した思いを大切にしてみよう |
@@ -156,7 +156,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 편안한 사이에서 좋은 기운을 나눌 수 있는 하루야 | Easy company can bring a welcome lift to your day | 気を許せる相手と、明るい気分を分け合える日 |
+| 총평 | 편안한 사이에서 웃음을 나눌 수 있는 하루야 | Comfortable company can give you plenty to laugh about today | 気楽な間柄で、笑いを分かち合える日 |
 | 풀이 1 | 힘을 주지 않은 대화가 생각보다 오래 기분을 밝혀줄 수 있어 | An unforced conversation may brighten your mood for longer than expected | 気取らない会話が、思いのほか長く心を明るくしてくれそう |
 | 풀이 2 | 함께 웃는 시간 속에서 복잡했던 마음도 한결 단순해져 | Time spent laughing together can make complicated feelings seem simpler | 一緒に笑う時間に、複雑だった気持ちもほぐれるかも |
 | 풀이 3 | 잘 보이려는 노력보다 평소의 너로 함께해봐 | Be your usual self rather than trying to make an impression | 良く見せようとするより、いつもの自分で過ごしてみよう |
@@ -172,7 +172,7 @@
 | 풀이 2 | 처음의 부담이 줄어들면서 네 방식도 보이기 시작해 | As the initial pressure fades, your own way of doing it may begin to appear | 初めの重さが減って、自分に合うやり方も見え始めるよ |
 | 풀이 3 | 의욕이 붙는 만큼만 즐겁게 이어가봐 | Continue for as long as the interest feels enjoyable | 意欲のある分だけ、楽しんで続けてみよう |
 | 해볼 것 | 다시 하고 싶어진 일을 이어서 해봐 | Return to something you feel like doing again | またしたくなったことを、その続きから試してみて |
-| 조심할 것 | 좋은 흐름을 오래 붙잡으려 쉬는 때를 놓치지 마 | Don't miss your chance to rest while trying to keep a good run going | 良い流れを保とうと、休みどきを逃さないで |
+| 조심할 것 | 계속 잘된다고 쉬어갈 때를 놓치지 마 | Don't miss your chance to rest while trying to keep a good run going | うまくいっていても、休みどきを逃さないで |
 
 ## v16
 
@@ -191,7 +191,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘은 가벼운 관심이 유용한 발견으로 이어질 수 있어 | A passing interest may lead to a useful discovery today | 気軽な興味が、役立つ発見につながりそうな日 |
 | 풀이 1 | 우연히 살펴본 이야기에서 지금 필요한 힌트를 만날 수 있어 | Something you happen to read or hear could contain a hint you need right now | たまたま見た話に、今ほしいヒントがあるかも |
-| 풀이 2 | 처음부터 목적을 정하지 않은 탐색도 의미가 있는 흐름이야 | Exploring without a purpose fixed in advance can still be worthwhile | 初めから目的を決めない寄り道にも、意味がある流れ |
+| 풀이 2 | 쓸 곳을 미리 정하지 않고 알아봐도 뜻밖에 도움이 될 수 있어 | Exploring without a purpose fixed in advance can still be worthwhile | 使い道を先に決めずに知ったことも、思いがけず助けになりそう |
 | 풀이 3 | 궁금함이 생긴 곳에서 조금 더 머물러봐 | Stay a little longer where your curiosity wakes up | 気になるところで、もう少し立ち止まってみよう |
 | 해볼 것 | 눈길이 간 내용을 한 번 더 찾아봐 | Look again into something that caught your attention | 目に留まった内容を、もう一度調べてみて |
 | 조심할 것 | 당장 쓸모를 모르겠다고 관심을 끊지 마 | Don't drop an interest because you can't yet see its use | すぐに役立つかわからなくても、興味を切らないで |
@@ -213,7 +213,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘은 네 생활에 맞는 기회를 골라볼 수 있어 | An opportunity that fits your life is worth choosing today | 今の暮らしに合うチャンスを、選べる日 |
 | 풀이 1 | 관심 가는 것이 생겨도 전부 잡아야 한다는 부담은 적어 | Something appealing can catch your interest without making you feel you must take everything | 興味を引かれても、全部つかまなければという重さは少なそう |
-| 풀이 2 | 좋아 보이는 것과 지금 잘 맞는 것을 구분하기 쉬운 흐름이야 | It may be easier to tell the difference between what looks good and what suits you now | 良く見えることと、今合うことを分けやすい流れだよ |
+| 풀이 2 | 좋아 보이는 것과 지금 네게 맞는 것의 차이를 알아보기 좋아 | It may be easier to tell the difference between what looks good and what suits you now | よさそうに見えるものと、今の自分に合うものの違いに気づきやすい日 |
 | 풀이 3 | 욕심을 넓히기보다 마음에 드는 하나를 살펴봐 | Take a closer look at one favorite rather than expanding your wish list | 欲しいものを広げるより、気に入ったひとつを見てみよう |
 | 해볼 것 | 지금의 여유에 맞는 기회를 골라봐 | Choose an opportunity you have space for right now | 今の余裕に合った機会を、選んでみて |
 | 조심할 것 | 괜찮아 보이는 제안을 모두 받아들이지 마 | Don't accept every offer that seems appealing | 良さそうな提案を、片端から引き受けないで |
@@ -224,7 +224,7 @@
 | --- | --- | --- | --- |
 | 총평 | 하루를 마칠 때 작은 만족이 남기 쉬운 날이야 | Today may leave you with a small, satisfying memory | 一日の終わりに、小さな満足が残りやすい日 |
 | 풀이 1 | 크게 기대하지 않았던 장면이 생각보다 기분 좋게 지나갈 수 있어 | A moment you expected little from could turn out to feel surprisingly good | あまり期待していなかった場面も、意外と気持ちよく過ぎそう |
-| 풀이 2 | 좋은 순간을 알아보는 마음이 오늘의 흐름을 더 편하게 해줘 | Noticing those good moments can make the day's rhythm more comfortable | 良い瞬間に気づくことが、今日の流れをいっそう楽にしてくれるよ |
+| 풀이 2 | 기분 좋았던 순간에 눈길을 주면 남은 시간도 한결 편하게 보낼 수 있어 | Noticing what goes well can help you feel more at ease with the day | うれしかった瞬間に目を向けると、残り時間も少し気楽に過ごせるよ |
 | 풀이 3 | 조금 잘된 일은 충분히 기뻐해도 괜찮아 | Something going a little well is still worth enjoying | 少しうまくいったことも、十分に喜んで大丈夫 |
 | 해볼 것 | 하루 중 마음에 든 장면을 기억해봐 | Remember a scene from today that you liked | 一日の中で好きだった場面を、覚えておこう |
 | 조심할 것 | 남은 아쉬움으로 잘된 일까지 덮지 마 | Don't let lingering regrets cover up what went well | 残った心残りで、うまくいったことまで覆わないで |

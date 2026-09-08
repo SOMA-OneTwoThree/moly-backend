@@ -70,7 +70,7 @@ def _semantic() -> dict:
 
 def test_approved_catalog_has_complete_variant_coverage():
     catalog = load_catalog()
-    assert COPY_VERSION == "fortune-copy.v2-day-overview.1"
+    assert COPY_VERSION == "fortune-copy.v2-field-readings.1"
     assert CONTENT_STATUS == "approved_for_production"
     assert SUPPORTED_LOCALES == ("ko", "en", "ja")
     for locale in SUPPORTED_LOCALES:
@@ -131,6 +131,11 @@ def test_complete_day_readings_are_distinct_without_forcing_action_synonyms(loca
         for b in wrapper["variants"].values():
             assert len(b["text"]) == 2
             assert all(not text.endswith((".", "。")) for text in b["text"])
+            if locale == "ko":
+                assert all(
+                    not any(token in text for token in ("겠어", "흐름이야", "가능성이 보여", "기운이 모여"))
+                    for text in b["text"]
+                )
             expressions.extend(b["text"])
     assert len(expressions) == 2800
 
@@ -235,13 +240,13 @@ def test_awkward_korean_copy_is_rejected(tmp_path: Path, bad: str):
         load_catalog(resources)
 
 
-def test_duplicate_expression_is_rejected_across_routes(tmp_path: Path):
+def test_duplicate_category_bundle_is_rejected_across_routes(tmp_path: Path):
     resources = _copy_resources(tmp_path)
     path = resources / "copy.v2.json"
     asset = json.loads(path.read_text(encoding="utf-8"))
-    asset["categories"]["category.money.d00.general"]["variants"]["v01"]["text"][0] = asset["categories"][
+    asset["categories"]["category.money.d00.general"]["variants"]["v01"]["text"] = asset["categories"][
         "category.love.d00.general"
-    ]["variants"]["v01"]["text"][0]
+    ]["variants"]["v01"]["text"]
     _write_json(path, asset)
     _refresh_manifest_hash(resources, path.name)
     with pytest.raises(FortuneCatalogError, match="readings must be unique"):
@@ -400,4 +405,36 @@ def test_repeated_short_action_is_allowed_but_duplicate_whole_reading_is_rejecte
     _write_json(path, asset)
     _refresh_manifest_hash(resources, path.name)
     with pytest.raises(FortuneCatalogError, match='readings must be unique'):
+        load_catalog(resources)
+
+
+@pytest.mark.parametrize("text", [
+    "마음이 가벼워지겠어", "편하게 다가갈 수 있는 흐름이야", "좋은 가능성이 보여",
+    "기운이 모여", "서로를 알아가기 좋아.",
+])
+def test_retired_category_tone_is_rejected(tmp_path, text):
+    resources = _copy_resources(tmp_path)
+    path = resources / "copy.v2.json"
+    asset = json.loads(path.read_text())
+    asset["categories"]["category.love.d00.general"]["variants"]["v01"]["text"][0] = text
+    _write_json(path, asset)
+    _refresh_manifest_hash(resources, path.name)
+    with pytest.raises(FortuneCatalogError, match="retired fortune"):
+        load_catalog(resources)
+
+
+def test_repeated_category_suggestion_is_allowed_but_same_two_lines_are_not(tmp_path):
+    resources = _copy_resources(tmp_path)
+    path = resources / "copy.v2.json"
+    asset = json.loads(path.read_text())
+    variants = asset["categories"]["category.love.d00.general"]["variants"]
+    variants["v02"]["text"][1] = variants["v01"]["text"][1]
+    _write_json(path, asset)
+    _refresh_manifest_hash(resources, path.name)
+    load_catalog(resources)
+
+    variants["v02"]["text"][0] = variants["v02"]["text"][1]
+    _write_json(path, asset)
+    _refresh_manifest_hash(resources, path.name)
+    with pytest.raises(FortuneCatalogError, match="two distinct sentences"):
         load_catalog(resources)

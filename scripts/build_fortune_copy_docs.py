@@ -38,8 +38,8 @@ def _bundle_rows(bundles, *, overall):
         lines.append(_row("해볼 것", [b["do"] for b in bundles]))
         lines.append(_row("조심할 것", [b["pause"] for b in bundles]))
     else:
-        for i in range(2):
-            lines.append(_row(f"문장 {i + 1}", [b["text"][i] for b in bundles]))
+        for i, label in enumerate(("분야 해석", "제안·기회")):
+            lines.append(_row(label, [b["text"][i] for b in bundles]))
     return lines + [""]
 
 
@@ -65,14 +65,15 @@ def render_documents() -> dict[Path, str]:
         documents[directory / f"overall-{decile}.md"] = "\n".join(lines)
     for category in CATEGORY_KEYS:
         lines = _header(f"{LABELS[category]} 운세 — 10점수 구간 × 20변형 × 3언어", COPY_VERSION)
+        lines.extend([briefs["category_contracts"][category], "",
+                      "같은 분야·점수·ID의 세 언어는 같은 상황과 제안을 담는다. ID는 점수 간 고정 주제를 뜻하지 않는다.", ""])
         for decile in DECILES:
             number = int(decile[1:])
             upper = 100 if number == 90 else number + 9
             route = f"category.{category}.{decile}.general"
             lines.extend([f"## {number}–{upper}점 — `{route}`", ""])
             for variant in VARIANT_IDS:
-                brief = briefs["categories"][category][variant]
-                lines.extend([f"### {variant} · {brief['focus']}", "", f"의미 명세: {brief['context']}", ""])
+                lines.extend([f"### {variant}", ""])
                 bundles = [catalog.categories_by_locale[locale][route]["variants"][variant] for locale in LOCALES]
                 lines.extend(_bundle_rows(bundles, overall=False))
         documents[directory / f"category-{category}.md"] = "\n".join(lines)

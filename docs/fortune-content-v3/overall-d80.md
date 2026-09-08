@@ -1,11 +1,11 @@
 # 오늘의 총평 80–89점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
-자신의 장점과 주변의 반응을 바탕으로 더 적극적으로 참여하기 좋은 흐름
+자신의 장점과 주변의 반응을 바탕으로 더 적극적으로 참여하기 좋은 하루
 
 내부 계산 유형과 관계없이 이 점수 구간의 20묶음에서 선택한다
 
@@ -38,7 +38,7 @@
 | 총평 | 네 마음이 반갑게 받아들여지기 좋은 날이야 | What comes from the heart may find a warm welcome today | 大切にしてきた思いを、喜んで受け取ってもらいやすい日 |
 | 풀이 1 | 조심스럽게 품어온 생각을 꺼내면 예상보다 열린 반응을 만날 수 있어 | A thought you've held cautiously could meet a more open response than expected | そっと抱えていた考えを話すと、予想より前向きに聞いてもらえそう |
 | 풀이 2 | 있는 그대로 말하는 태도가 상대에게 편안함을 줘 | Speaking honestly can help the other person feel at ease | 飾らずに話す姿勢が、相手にも安心を与えるよ |
-| 풀이 3 | 오늘은 진심을 숨기기보다 전하는 쪽이 잘 맞아 | Today suits expressing sincerity rather than keeping it hidden | 今日は本心を隠すより、伝えるほうが合っているみたい |
+| 풀이 3 | 오늘은 진심을 숨기기보다 전하는 쪽이 잘 맞아 | You can say what's in your heart instead of keeping it to yourself today | 今日は本心を隠すより、伝えるほうが合っているみたい |
 | 해볼 것 | 오래 전하고 싶던 마음을 솔직하게 말해봐 | Say honestly what you've wanted to share for a while | 長く伝えたかった気持ちを、正直に話してみて |
 | 조심할 것 | 원하는 답이 정해진 채로 상대를 재촉하지 마 | Don't push for a response you've already decided you want | ほしい答えを決めたまま、相手を急かさないで |
 
@@ -48,7 +48,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘은 새로운 경험에서 뜻밖의 자신감을 얻을 수 있어 | A new experience may bring an unexpected boost of confidence today | 新しい体験から、思いがけない自信をもらえる日 |
 | 풀이 1 | 낯설어서 어렵게만 보던 일도 직접 만나면 흥미롭게 느껴질 수 있어 | Something that looked difficult from a distance could feel interesting once you encounter it | なじみがなく難しく見えたことも、実際には面白く感じるかも |
-| 풀이 2 | 시도해봤다는 사실이 이후의 선택까지 넓혀주는 흐름이야 | The fact that you've tried can widen your later choices too | 試した経験そのものが、この先の選択を広げてくれる流れ |
+| 풀이 2 | 한 번 해본 경험이 남으면 다음에는 고를 수 있는 것이 더 많아져 | The fact that you've tried can widen your later choices too | 一度試した経験があれば、次に選べるものも増えていくよ |
 | 풀이 3 | 너무 멀리 생각하지 말고 지금의 호기심을 따라가봐 | Follow your present curiosity without looking too far ahead | 先のことを考えすぎず、今の好奇心をたどってみよう |
 | 해볼 것 | 처음 해보는 일에 참여할 기회를 잡아봐 | Take a chance to join something you haven't tried before | 初めてのことに参加できる機会を、つかんでみて |
 | 조심할 것 | 처음부터 능숙한 모습을 보여주려 애쓰지 마 | Don't strive to look accomplished from the very beginning | 出だしから慣れた姿を見せようと、頑張りすぎないで |
@@ -68,9 +68,9 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 함께할수록 좋은 흐름이 더 커져 | Today's good momentum can grow when you share it | 一緒に取り組むほど、良い流れが大きくなる日 |
+| 총평 | 오늘은 함께 생각을 나눌수록 선택이 풍성해져 | Sharing ideas could give you more promising choices today | 今日は、考えを交わすほど選択肢が豊かになる日 |
 | 풀이 1 | 각자 가진 생각을 나누면 혼자보다 풍성한 선택이 나올 수 있어 | Exchanging ideas may produce richer choices than either of you would find alone | それぞれの考えを出し合うと、ひとりでは浮かばない選択が生まれそう |
-| 풀이 2 | 서로의 장점이 맞물리기 좋은 분위기가 있어 | The atmosphere favors bringing different strengths together | お互いの長所が、うまくかみ合いやすい雰囲気だよ |
+| 풀이 2 | 서로의 장점이 맞물리기 좋은 분위기가 있어 | Different strengths can help you find something neither of you would think of alone | お互いの長所が、うまくかみ合いやすい雰囲気だよ |
 | 풀이 3 | 네 의견을 보태면서 상대의 좋은 부분도 살려봐 | Add your view while leaving room for what the other person does well | 自分の意見を添えながら、相手の良さも生かしてみよう |
 | 해볼 것 | 함께할 사람과 서로 잘하는 것을 나눠봐 | Talk with someone about what each of you brings | 一緒にする人と、お互いの得意なことを話してみて |
 | 조심할 것 | 잘 풀린다고 한 사람이 모든 방향을 정하지 마 | Don't let one person set every direction just because things are going well | うまくいっても、ひとりですべての方向を決めないで |
@@ -91,7 +91,7 @@
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
 | 총평 | 오늘은 네 선택에 기분 좋은 확신이 붙어 | Your choice can feel reassuringly clear today | 自分の選択に、心地よい確信がついてくる日 |
-| 풀이 1 | 여러 가능성을 살펴본 뒤 무엇이 맞는지 한결 또렷하게 느껴질 수 있어 | After considering the options, what fits may feel much clearer | いくつかの可能性を見た後で、合うものがはっきり感じられそう |
+| 풀이 1 | 여러 가능성을 살펴본 뒤 무엇이 맞는지 한결 또렷하게 느껴질 수 있어 | After considering the options, what fits may feel much clearer | いくつかの選択肢を見た後で、合うものがはっきり感じられそう |
 | 풀이 2 | 모든 의심이 사라지지 않아도 움직일 만큼의 이유는 충분해 | You don't need every doubt gone to have enough reason to move | 疑いが全部消えなくても、動けるだけの理由は十分にあるかも |
 | 풀이 3 | 네가 확인한 근거를 믿고 다음 걸음을 골라봐 | Trust what you've checked as you choose your next step | 確かめてきた根拠を信じて、次の一歩を選んでみよう |
 | 해볼 것 | 마음과 조건이 맞는 선택을 실행해봐 | Act on a choice that fits both your wishes and the circumstances | 気持ちと条件が合う選択を、実行してみて |
@@ -114,7 +114,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘은 한 번의 시도가 다음 기회로 이어지기 좋아 | One attempt can lead toward another opportunity today | ひとつの挑戦が、次の機会につながりやすい日 |
 | 풀이 1 | 작게 참여한 일에서 또 다른 관심이나 제안을 만날 수 있어 | A small act of participation may bring a new interest or suggestion | 少し参加したことから、別の興味や提案に出合うかも |
-| 풀이 2 | 처음부터 끝을 정해두지 않으면 좋은 흐름을 더 유연하게 탈 수 있어 | Leaving the ending open lets you follow a good development more flexibly | 初めから着地点を決めなければ、良い流れに柔軟に乗れそう |
+| 풀이 2 | 처음 예상한 대로만 하려 하지 않으면 새 제안을 받아볼 여유가 생겨 | Letting go of exactly how you pictured it can leave room to welcome another suggestion | 最初の予想にこだわらなければ、新しい提案を受け止める余裕ができるよ |
 | 풀이 3 | 현재의 경험을 충분히 누리며 다음을 살펴봐 | Enjoy the experience in front of you while staying curious about what follows | 今の体験を十分に楽しみながら、その先も見てみよう |
 | 해볼 것 | 열려 있는 다음 이야기에 귀를 기울여봐 | Listen for where the next conversation might lead | 次の話が出たら、耳を傾けてみて |
 | 조심할 것 | 첫 기회에 모든 기대를 몰아넣지 마 | Don't put every hope into the first opportunity | 最初の機会ひとつに、すべての期待をかけないで |
@@ -147,9 +147,9 @@
 | --- | --- | --- | --- |
 | 총평 | 작은 배려가 예상보다 넓은 호응을 얻을 수 있어 | A little consideration could meet a bigger response than you expect | 小さな心遣いに、思った以上の温かい反応がありそう |
 | 풀이 1 | 네가 자연스럽게 건넨 관심이 누군가에게 반갑게 닿는 날이야 | The interest you show naturally may arrive as something welcome to another person | 自然に向けた関心が、誰かにうれしく届きやすい日 |
-| 풀이 2 | 좋은 마음을 알아주는 반응 덕분에 네 기분도 함께 밝아질 수 있어 | Their recognition of your good intention can lift your own mood too | 好意をわかってもらう反応で、自分の気分も明るくなるかも |
+| 풀이 2 | 좋은 마음을 알아주는 반응 덕분에 네 기분도 함께 밝아질 수 있어 | Their recognition of your good intention can lift your own mood too | 好意が伝わったと感じると、自分の気分も明るくなるかも |
 | 풀이 3 | 억지로 무언가를 더 하지 않아도 지금의 따뜻함이면 충분해 | The warmth you already have to give is enough without forcing anything extra | 無理に何かを足さなくても、今の温かさで十分だよ |
-| 해볼 것 | 할 수 있는 만큼의 관심을 편하게 표현해봐 | Express the interest you can offer comfortably | できる分の気遣いを、気楽に表してみて |
+| 해볼 것 | 할 수 있는 만큼의 관심을 편하게 표현해봐 | Show interest in a way that feels comfortable for you | できる分の気遣いを、気楽に表してみて |
 | 조심할 것 | 호응을 이어가려고 네 여유 이상을 내주지 마 | Don't give beyond your capacity to keep the response coming | 反応がうれしくても、無理に気を配り続けないで |
 
 ## v14
@@ -191,7 +191,7 @@
 | --- | --- | --- | --- |
 | 총평 | 생각보다 넓은 세상과 닿을 기회가 있는 하루야 | Today may bring you into touch with a wider world | 思っていたより広い世界に、触れる機会がある日 |
 | 풀이 1 | 평소 접하지 않던 이야기나 사람에게서 흥미로운 자극을 받을 수 있어 | An unfamiliar story or person could offer an interesting spark | 普段は出合わない話や人から、面白い刺激を受けそう |
-| 풀이 2 | 네가 알던 범위를 넓히는 경험이 좋은 의욕으로 이어져 | An experience beyond what you know may leave you feeling eager | 知っている範囲が広がる経験が、良い意欲につながるよ |
+| 풀이 2 | 네가 알던 범위를 넓히는 경험이 좋은 의욕으로 이어져 | An experience outside your usual life may leave you eager to discover more | 知っている範囲が広がる経験が、良い意欲につながるよ |
 | 풀이 3 | 모든 것을 이해하려 하기보다 마음에 드는 하나를 가져와봐 | Take away one thing you like instead of trying to understand it all | 全部を理解しようとせず、好きなひとつを持ち帰ってみよう |
 | 해볼 것 | 낯선 관심사를 열린 마음으로 접해봐 | Meet an unfamiliar interest with an open mind | なじみのない関心事にも、心を開いて触れてみて |
 | 조심할 것 | 새로 알게 된 것을 당장 완전히 익히려 하지 마 | Don't demand instant mastery of something you've just discovered | 新しく知ったことを、すぐ完璧に覚えようとしないで |
@@ -222,7 +222,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 좋은 흐름을 네 방식으로 누릴 수 있어 | You can enjoy today's good fortune in your own way | 良い流れを、自分らしく楽しめる日 |
+| 총평 | 오늘은 반가운 기회를 네 방식으로 누려도 좋아 | You can enjoy a welcome opportunity in your own way today | 今日は、うれしい機会を自分らしく楽しんでいい日 |
 | 풀이 1 | 주변의 분위기가 밝아도 남과 똑같이 움직일 필요는 없어 | A bright atmosphere around you doesn't require you to move exactly like everyone else | 周りが明るくても、人と同じ動き方でなくていいよ |
 | 풀이 2 | 네가 원하는 정도로 참여하면 즐거움과 여유를 함께 챙기기 좋아 | Taking part as much as you want can leave room for both enjoyment and ease | 望む分だけ参加すれば、楽しさもゆとりも大切にできそう |
 | 풀이 3 | 기회가 많을수록 마음이 가는 것을 골라봐 | The more opportunities you notice, the more useful it is to choose what appeals | 機会が多いほど、自分の心が向くものを選んでみよう |

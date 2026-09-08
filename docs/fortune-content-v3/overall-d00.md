@@ -1,6 +1,6 @@
 # 오늘의 총평 0–9점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
@@ -35,7 +35,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 남의 속도를 따라가다 네 하루를 놓치기 쉬운 날이야 | Trying to keep up with everyone else could pull you off course today | 人のペースを追ううちに、自分の一日を見失いがちな日 |
+| 총평 | 남의 속도를 따라가다 네 하루를 놓치기 쉬운 날이야 | Trying to keep up with everyone else could make today harder than it needs to be | 人のペースを追ううちに、自分の一日を見失いがちな日 |
 | 풀이 1 | 주변 소식이 들릴수록 너만 제자리에 있는 듯한 기분이 들 수 있어 | Other people's news may make it seem as though you're the only one standing still | 周りの近況を聞くほど、自分だけ進んでいない気がするかも |
 | 풀이 2 | 하지만 오늘 보이는 모습만으로 서로의 하루를 비교할 수는 없어 | What you see today isn't the whole story of either of your lives | でも、今日見えた姿だけでお互いの毎日は比べられないもの |
 | 풀이 3 | 네가 감당할 수 있는 만큼만 해도 오늘의 몫은 충분해 | Doing what you can manage is enough for now | 今の自分にできる分だけで、今日の役目は十分だよ |
@@ -46,11 +46,11 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 작은 어긋남을 오래 붙잡지 않는 게 좋아 | Small things may go off course today, but they don't have to take you with them | 小さな行き違いは、長く抱え込まないほうがいい日 |
+| 총평 | 오늘은 작은 어긋남을 오래 붙잡지 않는 게 좋아 | Small setbacks don't have to spoil your whole day | 小さな行き違いは、長く抱え込まないほうがいい日 |
 | 풀이 1 | 생각한 순서와 다르게 흘러가는 일에 기운이 빠질 수 있어 | A change in the order you expected can be surprisingly discouraging | 思っていた順番で物事が進まず、がっかりする場面があるかも |
 | 풀이 2 | 하나가 틀어졌다고 하루 전체까지 나쁜 건 아니야 | One thing going wrong doesn't make the entire day a bad one | ひとつ予定が狂っても、一日全部が悪くなったわけではないよ |
 | 풀이 3 | 바꿀 수 없는 부분을 놓아주면 남은 시간에 숨통이 트여 | Letting go of what you can't change leaves room to breathe | 変えられないことから離れると、残りの時間にゆとりが戻るはず |
-| 해볼 것 | 달라진 상황에 맞춰 기대를 조정해봐 | Adjust your expectations to the day you actually have | 変わった状況に合わせて、期待の置き方も変えてみて |
+| 해볼 것 | 달라진 상황에 맞춰 기대를 조정해봐 | Adjust your expectations to the day you actually have | 状況が変わったら、どこまで望むかも考え直してみて |
 | 조심할 것 | 이미 지난 장면을 거듭 되짚지 마 | Don't keep replaying a moment that's already passed | 過ぎた場面を何度も思い返さないで |
 
 ## v05
@@ -95,7 +95,7 @@
 | 풀이 2 | 오늘의 기분이 네가 해온 노력까지 평가하게 두지는 마 | Don't let today's mood judge all the effort you've made | 今日の気分に、これまでの頑張りまで採点させなくていいよ |
 | 풀이 3 | 조금 서툴렀던 하루도 너를 설명하는 전부는 아니야 | An awkward day is only one small part of who you are | うまくいかない日があっても、それがあなたのすべてではないから |
 | 해볼 것 | 작게라도 해낸 일을 하나 떠올려봐 | Recall something you managed, however small | 小さくても、できたことをひとつ思い出してみて |
-| 조심할 것 | 실수 하나를 네 성격 탓으로 돌리지 마 | Don't turn one mistake into a verdict on your character | ひとつの失敗を、自分の性格のせいにしないで |
+| 조심할 것 | 실수 하나를 네 성격 탓으로 돌리지 마 | One mistake doesn't define who you are | ひとつの失敗を、自分の性格のせいにしないで |
 
 ## v09
 
@@ -115,7 +115,7 @@
 | 총평 | 계획에 없던 일이 마음의 여유를 흔들 수 있는 날이야 | An unexpected change may ask more of you than usual today | 予定外のことに、心のゆとりを揺さぶられやすい日 |
 | 풀이 1 | 예상하지 못한 부탁이나 변경이 평소보다 크게 느껴질 수 있어 | A last-minute request or altered plan could feel harder to absorb | 急な頼みごとや変更を、いつもより大きく受け止めるかも |
 | 풀이 2 | 모든 상황을 바로 받아들여야 하는 건 아니야 | You don't have to welcome every change immediately | どんな事情でも、その場で受け入れなくていいんだよ |
-| 풀이 3 | 네 하루에 들어올 수 있는 만큼만 허락해도 괜찮아 | It's okay to let in only what your day can hold | 今日の自分に収まる分だけ、引き受けてみよう |
+| 풀이 3 | 네 하루에 들어올 수 있는 만큼만 허락해도 괜찮아 | It's okay to let in only what your day can hold | 今日無理なくできる分だけ、引き受けてみよう |
 | 해볼 것 | 새로운 부탁에는 가능 여부부터 확인해봐 | Check what you can manage before agreeing to a request | 新しい頼みごとには、まず対応できるか確かめてみて |
 | 조심할 것 | 미안한 마음만으로 일정을 모두 바꾸지 마 | Don't rearrange everything out of guilt | 申し訳なさだけで、予定を全部変えないで |
 
@@ -137,7 +137,7 @@
 | 총평 | 확실하지 않은 소식에 마음을 빼앗기기 쉬운 날이야 | Half a story can stir up more worry than it deserves today | 確かでない話に、心を持っていかれやすい日 |
 | 풀이 1 | 짧게 들은 이야기 하나가 걱정 속에서 커질 수 있어 | A brief piece of news may grow larger as you turn it over in your mind | 少し耳にしたことが、不安の中で大きく膨らむかも |
 | 풀이 2 | 아직 모르는 부분을 모두 나쁜 쪽으로 채울 필요는 없어 | You don't need to fill every unknown with the worst possibility | わからない部分を、悪い想像で埋めなくてもいいんだよ |
-| 풀이 3 | 확인할 수 있는 것만 보고 나머지는 남겨두는 게 좋아 | Stay with what you can verify and let the rest remain unanswered | 確かめられることを見て、それ以外は保留にしておこう |
+| 풀이 3 | 확인할 수 있는 것만 보고 나머지는 남겨두는 게 좋아 | Stay with what you know for sure and leave the rest unanswered for now | 確かめられることを見て、それ以外は保留にしておこう |
 | 해볼 것 | 걱정의 근거가 실제로 있는지 살펴봐 | Look for real evidence behind the worry | 心配する根拠が本当にあるのか、確かめてみて |
 | 조심할 것 | 들은 이야기를 사실처럼 받아들이지 마 | Don't treat something you heard as an established fact | 耳に入った話を、そのまま事実と決めないで |
 
@@ -147,7 +147,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘의 아쉬움은 오늘 안에서만 다뤄도 충분해 | Today's disappointment doesn't have to become tomorrow's worry | 今日の残念さは、今日だけのことにしておこう |
 | 풀이 1 | 뜻대로 되지 않는 순간에 앞으로도 그럴 것 같은 생각이 들 수 있어 | When things don't go your way, it's easy to imagine more of the same ahead | 思い通りにならないと、この先も続くように感じやすいとき |
-| 풀이 2 | 하루의 흐름이 더딘 것과 네 앞길이 막힌 건 다른 일이야 | A slow day doesn't mean your future is blocked | 一日の進みが遅いことと、行く先が閉ざされることは違うよ |
+| 풀이 2 | 오늘 일이 더디다고 네 앞길까지 막힌 건 아니야 | A slow day doesn't mean your future is blocked | 今日の進みが遅くても、この先まで閉ざされたわけではないよ |
 | 풀이 3 | 먼 미래까지 걱정하기보다 지금 편해질 방법을 찾아봐 | Look for what would ease this moment instead of solving your whole future | 遠い未来を案じるより、今を少し楽にする方法を探してみて |
 | 해볼 것 | 오늘 끝낼 수 있는 걱정부터 내려놔봐 | Let a worry end with today when it can | 今日で手放せる心配を、ひとつ下ろしてみよう |
 | 조심할 것 | 아직 오지 않은 실패를 미리 떠안지 마 | Don't take on failures that haven't happened | まだ起きていない失敗まで、先に背負わないで |
@@ -191,7 +191,7 @@
 | --- | --- | --- | --- |
 | 총평 | 무리 없이 지나가는 것만으로도 의미가 있는 날이야 | Simply getting through today gently is enough | 無理なく一日を過ごせたら、それだけで意味のある日 |
 | 풀이 1 | 눈에 보이는 성과가 없으면 하루를 허비한 듯 느낄 수 있어 | Without a visible achievement, you might feel you've wasted the day | 目に見える成果がないと、時間を無駄にした気になるかも |
-| 풀이 2 | 하지만 오늘은 더 보태기보다 지켜내는 쪽이 네게 이로워 | For now, preserving what you have matters more than adding to it | でも今日は、何かを増やすより今を保つほうが自分のためになるよ |
+| 풀이 2 | 하지만 오늘은 더 보태기보다 지켜내는 쪽이 네게 이로워 | Taking care of what you already have matters more today than doing more | でも今日は、何かを増やすより今を保つほうが自分のためになるよ |
 | 풀이 3 | 해야 할 최소한을 챙겼다면 나머지는 내려놓아도 돼 | Once the essentials are covered, you can let the rest go | 欠かせないことを済ませたら、残りは手放しても大丈夫 |
 | 해볼 것 | 오늘 꼭 필요한 일만 남겨봐 | Keep only what truly needs your attention today | 今日どうしても必要なことだけに絞ってみて |
 | 조심할 것 | 남은 힘까지 써서 하루를 증명하려 하지 마 | Don't use your last reserves to prove the day was worthwhile | 一日の価値を示そうと、最後の力まで使わないで |
@@ -202,7 +202,7 @@
 | --- | --- | --- | --- |
 | 총평 | 작은 선택에도 후회가 따라붙기 쉬운 날이야 | Second thoughts may follow even small choices today | 小さな選択にも、後悔がついて回りやすい日 |
 | 풀이 1 | 다른 쪽을 골랐다면 더 나았을 거라는 생각이 자꾸 들 수 있어 | You could find yourself imagining how much better the other option would have been | 別のほうを選べばよかったと、繰り返し考えてしまうかも |
-| 풀이 2 | 선택하지 않은 길은 좋은 부분만 상상하기 쉬워 | It's easy to give the road you didn't take only its best possible ending | 選ばなかった道は、いいところだけが見えやすいもの |
+| 풀이 2 | 선택하지 않은 길은 좋은 부분만 상상하기 쉬워 | It's easy to imagine only the best about the option you didn't choose | 選ばなかった道は、いいところだけが見えやすいもの |
 | 풀이 3 | 지금 고른 쪽에서 불편을 줄이는 데 마음을 써봐 | Put your attention toward making your actual choice more comfortable | 今選んだほうで、困ることを減らす工夫に気持ちを向けてみて |
 | 해볼 것 | 이미 정한 일에서 바꿀 수 있는 부분을 찾아봐 | Find what you can still adjust within your decision | もう決めたことの中で、変えられる部分を探してみよう |
 | 조심할 것 | 다른 선택을 끝없이 되짚으며 자책하지 마 | Don't blame yourself through endless what-ifs | 別の選択を考え続けて、自分を責めないで |

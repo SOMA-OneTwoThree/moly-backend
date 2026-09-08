@@ -1,6 +1,6 @@
 # 오늘의 총평 20–29점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
@@ -24,7 +24,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 서두른 한 걸음보다 신중한 반걸음이 나아 | A thoughtful half-step beats a hurried leap today | 急ぐ一歩より、慎重な半歩を選びたい日 |
+| 총평 | 오늘은 서두른 한 걸음보다 신중한 반걸음이 나아 | Taking a little more care will serve you better than hurrying today | 急ぐ一歩より、慎重な半歩を選びたい日 |
 | 풀이 1 | 빨리 정하고 싶은 마음과 실제 상황의 속도가 다를 수 있어 | Your wish to decide quickly may be ahead of what the situation allows | 早く決めたい気持ちと、実際の状況の進み方がずれるかも |
 | 풀이 2 | 잠깐 멈추면 놓쳤던 조건이나 상대의 뜻이 보이는 날이야 | A pause can reveal a detail or someone's intention that you missed | 少し止まると、見落とした条件や相手の意向に気づきやすい日 |
 | 풀이 3 | 남보다 늦어지는 것보다 네가 납득하는 선택이 중요해 | A choice you understand matters more than keeping up with others | 人より早いかどうかより、自分で納得できる選択を大切にしてね |
@@ -60,7 +60,7 @@
 | 총평 | 예상 밖의 빈틈이 생겨도 너무 실망하지 마 | An unexpected gap in your plans may have something to offer | 思いがけず空いた時間にも、がっかりしすぎなくていい日 |
 | 풀이 1 | 꼭 맞을 줄 알았던 계획에 작은 변경이 들어올 수 있어 | A plan you thought would fit perfectly could need a small change | きれいに収まるはずの予定に、小さな変更が入りそう |
 | 풀이 2 | 그 틈을 서둘러 채우지 않으면 잠깐의 여유로 바뀌기도 해 | Leave the gap unfilled for a moment and it may become welcome breathing room | その隙間を急いで埋めなければ、ひと息つける時間にもなるよ |
-| 풀이 3 | 처음 정한 모양을 지키는 것보다 편한 흐름을 찾아봐 | Look for a comfortable way through instead of preserving the original shape | 最初の形を守るより、楽に過ごせる流れを探してみて |
+| 풀이 3 | 처음 계획대로 채우기보다 지금 편하게 보낼 방법을 찾아봐 | Look for what feels comfortable now instead of trying to keep the original plan intact | 最初の予定を守るより、今を気楽に過ごす方法を探してみて |
 | 해볼 것 | 빈 시간이 생기면 네 상태부터 살펴봐 | Check in with yourself when some time opens up | 時間が空いたら、まず自分の調子を見てみよう |
 | 조심할 것 | 계획이 달라졌다는 이유로 하루를 포기하지 마 | Don't write off the day because the plan changed | 予定が変わっただけで、今日を投げ出さないで |
 
@@ -192,7 +192,7 @@
 | 총평 | 생각이 많아질수록 실제보다 복잡해 보일 수 있는 날이야 | Too much thought may make today look more tangled than it is | 考えを広げすぎると、物事が複雑に見えやすい日 |
 | 풀이 1 | 아직 일어나지 않은 상황까지 준비하다가 시작이 무거워질 수 있어 | Preparing for things that haven't happened could make the beginning feel heavy | まだ起きていない場面まで備えて、取りかかるのが重たくなるかも |
 | 풀이 2 | 지금 필요한 답은 네가 상상한 모든 경우의 답과 달라 | The answer you need now isn't an answer to every possibility you can imagine | 今必要な答えは、想像したすべての場合への答えではないよ |
-| 풀이 3 | 눈앞에서 확인되는 한 가지부터 다뤄봐 | Start with the one thing you can actually establish | 目の前で確かにわかることから、ひとつ扱ってみよう |
+| 풀이 3 | 눈앞에서 확인되는 한 가지부터 다뤄봐 | Begin with the one thing you can find out for certain | 目の前で確かにわかることから、ひとつ扱ってみよう |
 | 해볼 것 | 사실과 걱정을 나눠서 바라봐 | Separate what you know from what you fear | 事実と心配を分けて、眺めてみて |
 | 조심할 것 | 최악의 경우만 거듭 떠올리지 마 | Don't keep rehearsing only the worst outcome | いちばん悪い場合ばかり、繰り返し思い描かないで |
 
@@ -222,7 +222,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘의 흐름은 한 번 더 살피는 쪽에 유리해 | Today's luck favors a second look | もう一度確かめる姿勢が、今日の流れを助けてくれる |
+| 총평 | 오늘은 한 번 더 살펴보면 마음 놓고 선택할 수 있어 | A second look can help you choose with peace of mind today | 今日は、もう一度確かめると安心して選べる日 |
 | 풀이 1 | 처음에는 사소했던 차이가 뒤에서 중요하게 느껴질 수 있어 | A difference that seems minor at first could matter more later | 最初は小さく見えた違いが、後で大切になるかも |
 | 풀이 2 | 의심을 늘리기보다 네가 놓치기 쉬운 부분만 챙겨봐 | You don't need more suspicion, just attention to what you tend to overlook | 疑いを増やすより、自分が見落としやすいところだけ見ておこう |
 | 풀이 3 | 확인한 뒤에는 지나친 걱정 없이 네 선택을 따라가도 돼 | Once you've checked, allow yourself to follow your choice without endless worry | 確認できた後は、心配しすぎず自分の選択を進めていいよ |

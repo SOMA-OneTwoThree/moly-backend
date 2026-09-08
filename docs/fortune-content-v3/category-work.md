@@ -1,1826 +1,1430 @@
 # 일·학업 운세 — 10점수 구간 × 20변형 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
+일·학업: 집중·이해·익힘·노력과 성취를 해석한다. 직업이나 학생 신분을 전제하지 않고 점검 매뉴얼 대신 시도할 방향을 제안한다.
+
+같은 분야·점수·ID의 세 언어는 같은 상황과 제안을 담는다. ID는 점수 간 고정 주제를 뜻하지 않는다.
+
 ## 0–9점 — `category.work.d00.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 분량을 다 채우려 하면 중요한 확인까지 놓칠 수 있어 | A task or study session may need a much narrower focus today | 仕事や勉強は、量より大事な点を守りたい日 |
-| 문장 2 | 핵심 항목 하나부터 하고, 분량보다 확인을 마쳤는지 기준으로 삼아봐 | Choose the important item and leave time to check it, even if that means doing less overall | 重要な項目に絞って進め、分量を埋めるために確認を省かないでね |
+| 분야 해석 | 집중이 자주 끊겨 평소보다 진도가 더디게 느껴질 수 있어 | Frequent distractions could make progress feel slower than usual | 集中が途切れがちで、普段より進みが遅く感じられそう |
+| 제안·기회 | 오늘 할 일을 넓게 잡기보다 가장 필요한 것부터 끝내봐 | Finish what's most necessary instead of giving yourself a broad list today | 今日の範囲を広げるより、いちばん必要なことから終えてみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 지시나 문제를 급히 읽으면 해야 할 조건을 놓칠 수 있어 | Reading requirements too quickly may send a task in an unhelpful direction | 指示や問題を、早く読み終えたくなりやすそう |
-| 문장 2 | 요구사항부터 표시하고, 내용을 읽기 전에 답을 정하는 일은 멈춰봐 | Mark what must be included before attempting an answer or solution | 求められる条件に印をつけて、読む前に答えを決めないようにしよう |
+| 분야 해석 | 익숙한 내용도 바로 떠오르지 않아 답답할 수 있어 | Even familiar ideas may be hard to recall, leaving you frustrated | 慣れた内容もすぐ浮かばず、もどかしくなるかも |
+| 제안·기회 | 기억이 막히면 잠시 쉬었다가 쉬운 부분부터 다시 살펴봐 | Take a short break when memory stalls, then return to an easier part | 思い出せないときは少し休み、簡単な部分から見直してみて |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 익숙한 내용만 다시 보면 실제로 어려운 부분이 그대로 남을 수 있어 | Familiar material may feel reassuring while the uncertain part remains untouched | 知っているところだけ見直すと、弱点が残りやすい日 |
-| 문장 2 | 틀리기 쉬운 한 곳부터 짚고, 편한 내용만 반복하는 데 시간을 다 쓰지는 마 | Review the point you are most likely to get wrong rather than repeating only what you know | 前に間違えやすかった点へ戻り、分かる内容だけで復習を終えないでね |
+| 분야 해석 | 한 번의 실수가 네 실력 전체처럼 느껴지기 쉬워 | One mistake could feel like a measure of your whole ability | 一度のミスが、自分の実力全部のように感じられそう |
+| 제안·기회 | 잘못된 부분만 고치고 이미 해낸 것까지 지우지는 마 | Correct the part that went wrong without dismissing what you've already accomplished | 間違ったところだけ直して、できたことまで否定しなくていいよ |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 설명으로는 알아도 직접 하려면 막히는 부분이 있을 수 있어 | Feeling familiar with an explanation may hide a gap in using it | 知っているつもりと、できることに差が出やすそう |
-| 문장 2 | 아주 작은 예를 손수 해보고, 안다는 느낌으로 실습을 건너뛰지는 마 | Try a brief practical example before deciding that you can carry out the whole task | 説明だけで済ませず少し動かして、分かるからと実践を飛ばさないでね |
+| 분야 해석 | 해야 할 일이 많을수록 시작을 미루기 쉬워 | The more you have to do, the easier it may be to put off starting | やることが多いほど、取りかかるのを延ばしがち |
+| 제안·기회 | 지금 손댈 수 있는 작은 부분 하나만 골라봐 | Choose just one small part you can begin now | 今手をつけられる、小さなひとつを選んでみよう |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 큰 과제를 한 번에 생각하면 어디부터 할지 막막해질 수 있어 | The whole problem may feel too demanding to hold at once | 難しい課題を丸ごと見ると、手が止まりやすい日 |
-| 문장 2 | 아주 작은 질문 하나로 나누고, 전체 답을 단번에 내려고 하지는 마 | Separate it into short questions and choose the essential one to address first | 小さな問いに分け、全部を一度で解くことは求めなくて大丈夫 |
+| 분야 해석 | 노력에 비해 결과가 보이지 않아 힘이 빠질 수 있어 | Effort without visible results could feel discouraging | 努力ほど結果が見えず、気落ちするかも |
+| 제안·기회 | 오늘은 얼마나 나아갔는지보다 포기하지 않고 해본 것을 인정해줘 | Today, give yourself credit for trying rather than only for how far you got | 今日は進んだ量より、投げ出さず試したことを認めてあげて |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 자료를 더 모으다가 실제로 필요한 정보가 묻힐 수 있어 | Searching widely may add more material than the task can use | 情報を集めすぎると、必要なものを見失いがち |
-| 문장 2 | 찾을 내용 하나를 먼저 정하고, 수집량보다 필요한 답을 얻었는지 봐 | Define the information you need before opening another source | 何を調べるか先に決めて、資料を増やすだけに時間を使わないでね |
+| 분야 해석 | 다른 사람의 성과가 유난히 크게 보일 수 있어 | Other people's achievements may look unusually impressive | 人の成果が、いつも以上に大きく見えそう |
+| 제안·기회 | 비교할 여력이 있다면 네가 막힌 부분을 알아보는 데 써봐 | Use that attention to understand where you're stuck instead of comparing | 比べる余裕があるなら、自分が困る部分を知るために使ってみよう |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 틀린 답만 고치면 같은 지점에서 다시 막힐 수 있어 | Changing an incorrect answer may not be enough to prevent the same confusion | 間違いを見つけたら、直す理由まで確かめて |
-| 문장 2 | 왜 고쳐야 하는지 짧게 적고, 답을 바꾼 것으로 이해를 대신하지는 마 | Write why the step was wrong before replacing it with the corrected version | なぜ変更するか短く残し、答えだけ置き換えて終わらないでね |
+| 분야 해석 | 급한 마음에 읽은 내용을 건너뛰기 쉬워 | Hurrying could make you skip something you're reading | 急ぐ気持ちで、読んだ内容を飛ばしやすいとき |
+| 제안·기회 | 중요한 안내나 조건은 속도를 낮춰 한 번 더 읽어봐 | Slow down and reread an important instruction or condition | 大事な説明や条件は、速さを落としてもう一度読んでみて |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 모든 일이나 공부에 같은 시간을 잡으면 필요한 부분이 밀릴 수 있어 | A task may feel especially demanding if every part is given the same amount of time | 時間の割り振りは、課題ごとの重さを見てから |
-| 문장 2 | 분량별로 들 시간을 작게 가늠하고, 시간 배정은 서로 달라도 괜찮아 | Estimate the difficult section separately before deciding what can fit | それぞれにかかる長さを考え、全て同じ時間で済むとは決めないでね |
+| 분야 해석 | 모르는 것을 숨기려다 더 오래 헤맬 수 있어 | Hiding what you don't know could leave you confused for longer | わからなさを隠すと、余計に遠回りしそう |
+| 제안·기회 | 어디부터 이해되지 않는지 짧게 정리해서 물어봐 | Briefly explain where your understanding stops and ask about it | どこから理解できないか、短くまとめて尋ねてみよう |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 모르는 범위를 크게 물으면 필요한 도움도 흐려질 수 있어 | An unclear request for help may leave the sticking point unresolved | 助けを求めるなら、分からない位置を絞って |
-| 문장 2 | 막힌 한 부분을 정확히 묻고, 전체 답을 대신 내달라는 요청은 줄여봐 | Explain the step you cannot follow instead of asking someone to supply the whole answer | どこで止まるか具体的に聞き、答え全体を代わりに作ってもらおうとしないでね |
+| 분야 해석 | 여러 일을 오가면 어느 것도 끝내지 못한 느낌이 들 수 있어 | Switching between tasks could leave you feeling you've finished nothing | いくつも行き来すると、何も終わっていない気分になるかも |
+| 제안·기회 | 하나를 잠깐이라도 붙들 수 있게 다른 알림은 내려둬봐 | Mute other notifications so you can stay with one thing for a while | 少しでもひとつに向き合えるよう、ほかの通知は切っておこう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 외운 말을 그대로 꺼내면 핵심의 이유가 빠질 수 있어 | Remembered wording may be hiding a gap in the explanation today | 覚えた言葉だけでは、説明が伝わりにくそう |
-| 문장 2 | 짧은 핵심 하나와 그 이유를 설명하고, 암기한 표현을 줄줄 나열하지는 마 | State the central point and check why it follows before trying to explain everything | 何が大事でなぜそうなるかを合わせて話し、暗記した文の列挙で済ませないでね |
+| 분야 해석 | 지적을 받으면 내용보다 감정이 먼저 남기 쉬워 | Criticism could hurt enough to make its useful points hard to hear | 指摘されると、内容より気持ちの傷つきが残りがち |
+| 제안·기회 | 마음이 가라앉은 뒤 실제로 고칠 수 있는 부분만 골라봐 | Once you feel calmer, pick out what you can actually improve | 落ち着いてから、実際に直せるところだけ選んでみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 초안의 첫 문장에 오래 머물면 내용 전체를 잡기 어려울 수 있어 | Perfecting the opening sentence may make a first draft feel harder than it needs to | 書き出しを磨きすぎると、全体が残らない日 |
-| 문장 2 | 핵심 순서만 먼저 적고, 첫 줄은 완벽하지 않아도 남겨둬 | List the central points in order before trying to polish the beginning | まず要点の順番を置き、最初の一文だけを直し続けないでね |
+| 분야 해석 | 잘해야 한다는 부담이 손을 멈추게 할 수 있어 | The pressure to do well could stop you from beginning | うまくしなくてはという重さで、手が止まるかも |
+| 제안·기회 | 처음부터 만족스럽지 않아도 일단 네 생각을 적어봐 | Write down your thoughts even if you aren't happy with them yet | 最初から納得できなくても、まず考えを書いてみよう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 끝냈다는 느낌에 기대면 제출 조건을 빠뜨릴 수 있어 | The feeling of being finished may arrive before the requirements are met | 終わったつもりの提出物に、抜けを残しやすそう |
-| 문장 2 | 조건을 하나씩 짚고, 확인 전에는 바로 넘기지 않는 편이 낫겠어 | Check the submission conditions individually rather than passing the result on immediately | 求められる条件を順に確認して、完了した気分だけで渡さないでね |
+| 분야 해석 | 작은 막힘이 오늘 할 일 전체를 어렵게 느끼게 할 수 있어 | A small difficulty could make everything you have to do feel harder | 小さなつまずきが、今日すること全部を難しく感じさせそう |
+| 제안·기회 | 답이 안 나오는 부분은 표시해두고 이어갈 수 있는 곳부터 해봐 | Mark the part you can't answer and continue where you can | 答えの出ない部分に印をつけて、続けられるところから進もう |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 쉬운 항목만 처리하면 꼭 해야 할 과제가 뒤에 남을 수 있어 | The easiest task may draw attention away from what most needs doing | 簡単なことばかり選ぶと、大事な課題が後になりがち |
-| 문장 2 | 먼저 끝낼 과제 하나를 정하고, 쉬운 것만 고르는 반복은 줄여봐 | Choose the essential priority before filling the time with simpler items | 最初に終える必要のあるものを決めて、易しさだけを追わないでね |
+| 분야 해석 | 오래 붙들고 있어도 머릿속에 잘 남지 않을 수 있어 | Spending a long time on something may not help it stay in your mind | 長く取り組んでも、頭に残りにくいかも |
+| 제안·기회 | 시간을 더 늘리기보다 짧게 쉬고 핵심 하나를 떠올려봐 | Take a short break and recall one main idea instead of adding more time | 時間を増やすより、短く休んで要点をひとつ思い出してみて |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 결과만 남기면 다음에 같은 과정을 다시 찾게 될 수 있어 | A result may be hard to use again if its steps are left unrecorded | 結果だけ残すと、次に同じ過程をたどりにくそう |
-| 문장 2 | 중요한 과정 한 줄을 적고, 결과가 나왔어도 풀이를 모두 지우지는 마 | Note the important part of the process before keeping only the final answer | 重要な手順を短く記録し、答え以外を全部捨てないでね |
+| 분야 해석 | 마감이 가까워질수록 빠뜨린 것이 생기기 쉬워 | A nearing deadline could make omissions more likely | 締め切りが近づくほど、抜けが生まれやすいとき |
+| 제안·기회 | 남은 시간에는 꼭 필요한 부분부터 챙겨봐 | Use the time left to cover the parts you truly need | 残り時間は、欠かせない部分から押さえてみよう |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 비슷한 개념을 같은 것으로 묶으면 차이를 놓칠 수 있어 | Similar-looking ideas may be easy to merge before their differences are understood | 似た概念を、同じものとしてまとめやすい日 |
-| 문장 2 | 이어지는 개념을 작게 정리하되 서로 다른 뜻은 나눠둬 | Separate the concepts and check how they connect rather than treating them as identical | つながる内容を並べて、共通点と違いを分けて確かめよう |
+| 분야 해석 | 익숙하지 않은 설명에 자신감이 꺾일 수 있어 | An unfamiliar explanation could knock your confidence | 慣れない説明に、自信が揺らぐかも |
+| 제안·기회 | 한 번에 이해하지 못했다고 배우는 속도를 탓하지 마 | Not understanding immediately says nothing bad about the pace you learn | 一度でわからなくても、覚える速さを責めなくていいよ |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 연습 횟수를 늘려도 같은 단계에서 계속 막힐 수 있어 | Repeating the full exercise may leave the same difficult step unresolved | 回数を重ねるだけでは、つまずきを繰り返しやすそう |
-| 문장 2 | 오류가 난 한 단계부터 연습하고, 횟수만 채우는 반복은 줄여봐 | Practice the point where the error occurs before adding more repetitions | 間違えた段階を選んで練習し、回数だけを達成の目印にしないでね |
+| 분야 해석 | 도움을 청하기가 어렵게 느껴져 혼자 버티기 쉬워 | Asking for help may feel difficult enough to keep you struggling alone | 助けを求めづらくて、ひとりで耐えてしまいがち |
+| 제안·기회 | 답 전체보다 막힌 한 부분을 함께 봐달라고 해봐 | Ask someone to look at one confusing part rather than supply the entire answer | 全部の答えより、困っている一部分を一緒に見てもらおう |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 의견을 모두 반영하려 하면 결과물 전체가 다시 흔들릴 수 있어 | Too many comments may make an unfinished task feel harder to judge | 意見をもらうと、全部直したくなりやすい日 |
-| 문장 2 | 근거와 수정점부터 확인하고, 들은 말마다 전부 새로 하지는 마 | Ask which correction has a clear reason before deciding to redo the whole thing | 指摘の理由と直す箇所を聞いて、全体のやり直しを急がないでね |
+| 분야 해석 | 결과를 빨리 확인하고 싶은 마음이 집중을 흔들 수 있어 | Wanting to see a result quickly could distract you | 早く結果を知りたい思いが、集中を乱すかも |
+| 제안·기회 | 반응을 기다리는 동안 네가 끝낼 수 있는 일로 돌아와봐 | Return to something you can finish while waiting for a response | 反応を待つ間は、自分で終えられることへ戻ってみて |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 처음 보는 내용은 용어를 모른 채 따라가면 순서도 흐려질 수 있어 | An unfamiliar term may make the sequence harder to understand than it appears | 初めての内容では、言葉の意味が置き去りになりがち |
-| 문장 2 | 모르는 단어 하나부터 짚고, 뜻 없이 차례만 외우지는 마 | Check its meaning before trying to memorize the steps around it | 分からない用語を先に確かめ、手順だけ暗記して進まないでね |
+| 분야 해석 | 피곤할 때 내린 판단은 평소보다 엄격해질 수 있어 | Tiredness could make your judgment stricter than usual | 疲れていると、普段より厳しく判断しやすいよ |
+| 제안·기회 | 오늘의 결과에 대한 평가는 잠시 미뤄두어도 괜찮아 | It's okay to postpone your assessment of today's results | 今日の出来を評価するのは、少し後でも大丈夫 |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 남의 결과를 기준으로 보면 자신이 해낸 부분을 놓칠 수 있어 | Other people's results may make your own effort difficult to assess fairly | 周りの出来だけを見ると、自分の進みを見失いそう |
-| 문장 2 | 끝낸 것과 배운 점을 작게 적고, 다른 사람의 결과만으로 평가하지는 마 | Note what you completed and learned before comparing outcomes | 終えたことと分かったことを記録して、人の結果だけで評価しないでね |
+| 분야 해석 | 처음 정한 양을 다 못하면 실패한 것처럼 느끼기 쉬워 | Not completing the amount you first planned could feel like failure | 最初の量をこなせないと、失敗したように感じがち |
+| 제안·기회 | 지금 가능한 만큼으로 줄이는 것도 일을 이어가는 방법이야 | Reducing it to what is possible now is also a way to keep going | 今できる量に減らすことも、続けていく方法だよ |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 시간이 적을수록 과제를 자주 바꾸면 시작만 반복할 수 있어 | Switching tasks may make the central question difficult to keep in view | 限られた時間には、取り組む問いを絞りたい日 |
-| 문장 2 | 오늘 풀 핵심 질문 하나를 정하고, 도중마다 다른 과제로 옮기지는 마 | Choose the essential question and set the other tasks aside for a brief attempt | 今日答えを出す核を決めて、途中で課題を何度も取り替えないでね |
+| 분야 해석 | 머릿속에서만 반복하던 고민이 쉽게 풀리지 않을 수 있어 | A question replayed only in your head may remain hard to resolve | 頭の中で繰り返すだけでは、悩みが解けにくそう |
+| 제안·기회 | 막힌 내용을 밖으로 적어보며 무엇이 필요한지 찾아봐 | Write out where you're stuck to discover what you need | 困っている内容を書き出して、何が必要か探してみよう |
 
 ## 10–19점 — `category.work.d10.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 정해둔 분량도 한꺼번에 보면 시작할 곳이 흐려질 수 있어 | The planned amount could be harder to handle than the most important part alone | 仕事や勉強の量は、少し控えめにして重点を守ろう |
-| 문장 2 | 중요한 부분을 먼저 처리하되 끝낸 양만 보고 점검을 빼지는 마 | Begin with that part and keep a review inside the time available | 重要な項目から手をつけて、数をこなすための確認省略は避けてね |
+| 분야 해석 | 서두를수록 아는 부분에서 실수가 나기 쉬워 | Hurrying could bring mistakes even in what you know well | 急ぐほど、知っている部分で間違いやすいとき |
+| 제안·기회 | 쉽다고 느끼는 곳도 마지막에 짧게 확인해봐 | Give the parts that feel easy a brief final look too | 簡単だと感じるところも、最後に短く確かめてみて |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 조건을 다시 읽을 수고가 생길 수 있겠어 | The instructions may need more attention than their length suggests | 答えを急ぐと、求められた条件を見落としやすそう |
-| 문장 2 | 해야 할 조건을 짚어두고, 첫인상으로 답부터 고르지는 마 | Identify the conditions before deciding what the finished response should look like | 指示や問題を読み、必要な点へ印をつけてから考えてみて |
+| 분야 해석 | 새로운 내용을 많이 만나면 무엇이 중요한지 흐려질 수 있어 | Lots of new information could make the important points less clear | 新しい内容が多いと、大切な点がぼやけそう |
+| 제안·기회 | 오늘 꼭 이해할 것 하나를 먼저 정해봐 | Choose one thing you really need to understand today | 今日必ず理解したいひとつを、先に決めてみよう |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 복습이나 재검토에서 아는 부분으로 돌아가고 싶어질 수 있어 | A review could take time without addressing the detail that needs it | 復習は、間違えやすいところを先に見たい日 |
-| 문장 2 | 헷갈리던 곳 하나를 다시 보고, 익숙함만 확인하는 반복은 줄여봐 | Choose the confusing part and give it a brief, deliberate look | 慣れた内容だけを繰り返さず、以前迷った点に時間を使ってみて |
+| 분야 해석 | 일을 시작하기 전부터 부담이 크게 느껴질 수 있어 | The task may feel daunting before you've even started | 始める前から、負担が大きく感じられるかも |
+| 제안·기회 | 끝까지 할 생각보다 처음 몇 분만 해본다는 마음으로 앉아봐 | Sit down to try the first few minutes rather than thinking about the whole finish | 最後までこなすより、最初の数分だけ試すつもりで向き合ってみて |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 알고 있다고 생각한 내용을 적용하는 데 수고가 들 수 있겠어 | A concept could feel easier to recognize than to apply today | 分かったつもりの内容も、少し試して確かめて |
-| 문장 2 | 짧은 부분부터 직접 해보며, 이해했다는 생각만으로 연습을 빼지는 마 | Choose a modest exercise instead of assuming familiarity makes practice unnecessary | 説明を覚えただけで終えず、自分で行うところまで取り組もう |
+| 분야 해석 | 설명이 길어질수록 핵심을 놓치기 쉬워 | A long explanation could make the main idea easy to miss | 説明が長くなるほど、要点を逃しがち |
+| 제안·기회 | 이해한 내용을 네 말로 짧게 바꿔보면 막힌 곳을 알 수 있어 | Briefly putting it in your own words can show where you're stuck | わかったことを短く自分の言葉にすると、不明な点が見えてくるよ |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 과제 전체가 크게 느껴져 손대기 어려울 수 있겠어 | A large task could ask for more attention than is comfortable today | 大きな課題は、小さく分けると近づきやすそう |
-| 문장 2 | 답할 수 있는 작은 질문으로 나눠보고, 한꺼번에 해결할 부담은 내려놔 | Break it into manageable questions instead of trying to solve the entire thing together | 答えられそうな問いから考え、全体を一気に解こうとしないでね |
+| 분야 해석 | 한 가지 방식만 고집하면 제자리에서 지칠 수 있어 | Sticking to one approach could leave you tired without getting further | ひとつの方法にこだわると、進まないまま疲れそう |
+| 제안·기회 | 계속 막힌다면 다른 설명이나 예시를 찾아봐 | Find another explanation or example if you keep getting stuck | つまずきが続くなら、別の説明や例を探してみよう |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부에 쓸 자료를 찾는 범위가 쉽게 넓어질 수 있어 | Collecting references could become more demanding than finding the useful answer | 調べ物は、探す内容を狭めてから |
-| 문장 2 | 필요한 정보를 먼저 적어두고, 관련 있어 보인다고 계속 모으지는 마 | Choose the specific fact you are looking for and stop gathering unrelated material | 必要な情報を決めて、資料集めを続けるだけの時間にはしないでね |
+| 분야 해석 | 작은 지적도 네 노력 전체를 부정하는 말처럼 들릴 수 있어 | Even minor criticism could sound like a dismissal of all your effort | 小さな指摘も、努力全部を否定する言葉に聞こえるかも |
+| 제안·기회 | 도움이 되는 내용과 말투에서 받은 감정을 나눠서 살펴봐 | Separate useful feedback from how its delivery made you feel | 役立つ内容と、口調から受けた気持ちを分けてみて |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 수정할 곳을 찾더라도 이유를 정리하는 데 수고가 들 수 있겠어 | A correction could feel complete before its reason is understood | 修正した理由を残すことが、次のつまずきを減らしそう |
-| 문장 2 | 고칠 이유 한 가지를 적어두고, 답만 맞춰놓고 넘어가지는 마 | Note the cause of the error rather than simply copying the right answer | 間違いがあればなぜ直すかを書き、答えの交換だけで終えないでね |
+| 분야 해석 | 해야 할 순서를 고민하다 시간이 지나가기 쉬워 | Deciding what order to work in could use up the time itself | 順番を考えているうちに、時間が過ぎやすいとき |
+| 제안·기회 | 미뤘을 때 가장 곤란한 것부터 하나 시작해봐 | Start with the one thing that would cause the most trouble if postponed | 延ばすといちばん困ることから、ひとつ始めよう |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 예상한 시간 안에 모든 분량을 다루기 어려울 수 있겠어 | An equal time split could leave the most demanding part without enough attention | 各課題にかかる時間を、少し丁寧に見たい日 |
-| 문장 2 | 항목별로 걸릴 시간을 따져보고, 과제마다 같은 시간을 배정하지는 마 | Allow more for that section and reduce the planned amount elsewhere | 分量ごとに必要な長さを考え、同じ枠へ無理に押し込まないでね |
+| 분야 해석 | 모르는 것이 많아 보여도 한꺼번에 해결할 필요는 없어 | What you don't know may seem extensive, but it doesn't all need solving at once | わからないことが多く見えても、一度に解かなくていいよ |
+| 제안·기회 | 지금 다루는 내용과 직접 이어지는 질문부터 골라봐 | Choose the question most directly connected to what you're doing now | 今の内容に直接つながる質問から選んでみて |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 무엇을 모르는지 말로 설명하기가 어려울 수 있어 | The task could feel heavier while the needed question remains vague | 聞けることがあれば、迷う点を小さく絞ろう |
-| 문장 2 | 어디서 막혔는지 짚어서 묻고, 과제 전체를 대신 해결해달라고 하지는 마 | Choose the part you want explained and ask about that directly | どこが分からないかを示して、全部の答えを代わりに求めないでね |
+| 분야 해석 | 주변이 바쁘면 네 속도까지 억지로 올리기 쉬워 | Other people's busyness could push you to speed up unnecessarily | 周りが忙しいと、自分の速さまで無理に上げがち |
+| 제안·기회 | 빨리 끝내는 것보다 빠뜨리지 않는 데 마음을 써봐 | Give more attention to covering what matters than to finishing fast | 早く終えるより、抜かさないことに心を向けよう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 배운 내용이나 한 일을 길게 설명하려면 말이 흩어질 수 있어 | An explanation could become difficult to follow if it relies only on memorized phrases | 説明が難しいときは、大事な点と理由に絞って |
-| 문장 2 | 핵심과 이유를 짧게 묶어 전하고, 외운 문장만 이어 붙이는 방식은 줄여봐 | Choose the main idea and describe its reason in plain language | 覚えた言葉を全部出すより、自分が理解したつながりを話してみて |
+| 분야 해석 | 자꾸 결과를 고치다 마무리할 시점을 놓칠 수 있어 | Repeatedly changing a result could make it hard to know when to stop | 何度も直しているうちに、仕上げどきを逃すかも |
+| 제안·기회 | 꼭 고쳐야 할 부분과 취향의 차이를 구분해봐 | Distinguish a necessary correction from a difference in taste | 必ず直すところと、好みの違いを区別してみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 처음부터 잘 쓰려는 부담이 초안을 막을 수 있겠어 | A draft could stall while too much attention stays on its first words | 最初の文に迷ったら、先に全体の順番を書こう |
-| 문장 2 | 중요한 내용의 순서를 짧게 적어보고, 첫 문장만 계속 다듬지는 마 | Write the useful sequence roughly instead of making the opening line carry the whole task | 伝える要点を置いてから、書き出しの磨き直しへ戻ってみて |
+| 분야 해석 | 한 번에 오래 집중하려 하면 뒤로 갈수록 힘이 빠질 수 있어 | Trying to concentrate for a long stretch could leave you fading later | 一度に長く集中しようとすると、後半に力が抜けそう |
+| 제안·기회 | 짧게 나누어 하고 쉬는 시간도 미리 챙겨봐 | Work in shorter periods and make time for breaks in advance | 短く分けて、休む時間も先に用意しておこう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 마무리 단계에서 사소한 요구를 놓칠 수 있겠어 | A rushed finish could leave an important condition unconfirmed | 提出前には、確認に使う短い時間を残して |
-| 문장 2 | 제출 조건을 차례로 확인하고, 다 했다는 기분만으로 넘기지는 마 | Reserve a brief final check before sending or submitting what you have done | 必要な条件を確かめ、終わった気分に押されてそのまま渡さないでね |
+| 분야 해석 | 배운 내용을 다시 볼 때 낯설게 느껴질 수 있어 | Something you've learned may feel unfamiliar when you revisit it | 学んだ内容を見返すと、初めてのように感じるかも |
+| 제안·기회 | 처음부터 전부 반복하기보다 기억나는 부분을 먼저 꺼내봐 | Start with what you remember instead of repeating everything from the beginning | 全部やり直す前に、覚えている部分から思い出してみよう |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 여러 일이 겹치면 쉬운 것부터 손대고 싶어질 수 있겠어 | Avoiding the demanding item could leave the important part waiting | 易しいものへ手が伸びても、優先する課題を忘れずに |
-| 문장 2 | 먼저 마칠 과제를 하나 골라두고, 편한 항목만 이어서 선택하지는 마 | Pick a manageable portion of the priority instead of continuing through only easy tasks | 先に終えるものを選んで、簡単な作業だけを増やさないでね |
+| 분야 해석 | 급하게 답을 내놓으면 네 생각이 충분히 전해지지 않을 수 있어 | A rushed answer may not give your thoughts enough room | 急いで答えると、考えが十分伝わらないこともありそう |
+| 제안·기회 | 잠깐 정리할 시간을 가진 뒤 중요한 뜻부터 말해봐 | Take a moment to organize them, then lead with the main point | 少し整理してから、大事な意味を先に話してみて |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 다시 참고할 과정을 남기지 않으면 복구할 수고가 늘 수 있겠어 | Remembering how you reached a result could be harder than expected | 大切な過程を短く残すと、次に戻りやすそう |
-| 문장 2 | 핵심 단계를 짧게 기록하고, 답이나 결과만 남기는 일은 줄여봐 | Leave a brief record of the key steps instead of trusting the outcome to remind you | 結果だけでなく判断した手順も記録して、途中を捨てずにいよう |
+| 분야 해석 | 혼자 해결해야 한다는 생각이 부담을 키울 수 있어 | Feeling you must solve it alone could add to the burden | ひとりで解かなければと思うと、負担が増えそう |
+| 제안·기회 | 이미 시도한 것과 막힌 점을 함께 전하며 도움을 구해봐 | Explain what you've tried and where you're stuck when asking for help | 試したことと困る点を一緒に伝えて、助けを求めてみよう |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 여러 내용을 연결하려다 개념의 경계가 흐려질 수 있겠어 | A loose resemblance could make unfamiliar concepts harder to follow | 似ている内容ほど、違いを確かめてつなごう |
-| 문장 2 | 관련된 개념을 함께 적고, 비슷하다는 이유만으로 하나로 합치지는 마 | Name the distinct role of each before drawing them together | 関係する概念を並べ、同じ意味としてひとまとめにしないでね |
+| 분야 해석 | 예상보다 오래 걸리는 일에 조급해지기 쉬워 | A task taking longer than expected could make you impatient | 予想より時間がかかると、焦りやすいとき |
+| 제안·기회 | 남은 양을 보고 오늘 끝낼 범위를 다시 정해도 괜찮아 | Look at what's left and adjust what you aim to finish today | 残った量を見て、今日終える範囲を決め直しても大丈夫 |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 같은 유형을 여러 번 해도 어려운 지점이 남을 수 있겠어 | A higher repetition count could ask for effort without improving the weak point | 練習は、回数より間違えた場所に目を向けて |
-| 문장 2 | 실수한 단계를 따로 연습하되 수행 횟수만 늘리지는 마 | Choose the troublesome step and work through it briefly with attention | つまずいた段階だけ試し直し、実行した数を増やすだけにはしないでね |
+| 분야 해석 | 여러 조언을 듣다 보면 오히려 갈피를 잃을 수 있어 | Several pieces of advice could leave you less sure of what to do | 助言をいくつも聞くと、かえって迷ってしまうかも |
+| 제안·기회 | 지금 겪는 어려움에 맞는 방법 하나만 먼저 써봐 | Try just one approach that fits the difficulty you're facing now | 今の難しさに合う方法を、まずひとつ使ってみて |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 피드백을 받으면 무엇부터 고칠지 부담이 커질 수 있겠어 | Feedback could create more work if every opinion is treated as a requirement | もらった意見は、直す範囲を確かめて受け取ろう |
-| 문장 2 | 의견의 이유와 필요한 수정만 확인하고, 모든 제안에 전체를 다시 만들지는 마 | Identify the relevant point and its reason before revising | なぜそう思うかを聞き、全てを最初から作り直さないでね |
+| 분야 해석 | 비교하는 마음이 집중할 시간을 빼앗기 쉬워 | Comparison could take time away from concentrating | 比べる気持ちに、集中する時間を取られがち |
+| 제안·기회 | 남의 결과를 잠시 내려두고 네가 궁금한 내용으로 돌아와봐 | Set other people's results aside and return to what you want to understand | 人の結果から少し離れ、自分が知りたい内容へ戻ってみよう |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 새 업무나 학습 내용에서 낯선 말이 이해를 막을 수 있겠어 | Remembering the order could take effort without clarifying the new material | 知らない言葉を残すと、新しい内容が重く感じられそう |
-| 문장 2 | 모르는 용어를 먼저 확인하고, 뜻을 모르는 순서를 통째로 외우려 하지는 마 | Choose the term you do not understand and establish what it means first | まず用語の意味を調べ、分からないまま順番だけ覚えないでね |
+| 분야 해석 | 익숙한 표현을 알아본 것을 이해했다고 착각할 수 있어 | Recognizing a familiar phrase could feel like understanding it | 見覚えのある表現を、理解したつもりになりやすいとき |
+| 제안·기회 | 예시 없이도 뜻을 설명할 수 있는지 가볍게 떠올려봐 | Briefly consider whether you could explain the meaning without its example | 例を見なくても意味を説明できるか、軽く考えてみて |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 해낸 분량이 있어도 남과 비교하면 부족하게만 느낄 수 있겠어 | Looking outward could overshadow the part of the task you actually handled | 自分の進みを、周りの結果と切り離して見たい日 |
-| 문장 2 | 끝낸 일과 새로 안 점을 적어두고, 판단을 남의 결과에만 맡기지는 마 | Record the useful progress instead of letting someone else's result define the whole session | 終えた分と学べた点を書き、自分に残ったものを確かめよう |
+| 분야 해석 | 걱정이 앞서면 시작할 기회를 자꾸 놓칠 수 있어 | Worry could keep making you miss the chance to begin | 心配が先に立つと、始める機会を逃しがち |
+| 제안·기회 | 실수해도 고칠 수 있는 부분부터 부담 없이 손대봐 | Start with a part where a mistake would be easy to correct | 間違っても直せるところから、気楽に手をつけよう |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 한정된 시간에 여러 과제를 오가면 다시 파악할 수고가 늘 수 있겠어 | Several possible tasks could compete for more attention than you want to give | 時間が少ないなら、今日解く問いを先に決めて |
-| 문장 2 | 오늘 답할 핵심 질문을 좁혀두고, 중간마다 대상을 바꾸는 일은 줄여봐 | Pick a manageable core question instead of moving between all of them | 核になる課題に絞り、途中の思いつきで次々と移らないでね |
+| 분야 해석 | 한 번 막힌 뒤 다시 앉기가 어려울 수 있어 | Returning after getting stuck may feel difficult | 一度つまずくと、また向き合うのが難しく感じられそう |
+| 제안·기회 | 어려운 곳을 바로 넘기려 하기보다 쉬운 한 단계로 감을 찾아봐 | Regain your footing with one easy step rather than tackling the hard part immediately | 難所へ戻る前に、簡単な一段階で感覚を取り戻してみて |
 
 ## 20–29점 — `category.work.d20.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부가 밀리는 이유는 분량보다 순서에 있을 수 있어 | Trying to fill the whole quota may be making the priority harder to see | 大事な内容の抜けを確かめると、進め方が見えそう |
-| 문장 2 | 핵심 항목부터 하고, 양을 채운 뒤에도 맞게 했는지 확인해봐 | Identify what matters most before deciding how much else to complete | 仕事でも勉強でも重要な点を先に扱い、量だけで終わりを決めないでね |
+| 분야 해석 | 익숙하다는 생각에 작은 실수를 놓치기 쉬워 | Familiarity could make small mistakes easy to miss | 慣れているつもりで、小さなミスを見落としがち |
+| 제안·기회 | 다 했다고 넘기기 전에 빠진 부분이 없는지 한번 살펴봐 | Check for anything left out before calling it finished | 終わったと片づける前に、抜けがないか一度見てみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 문제나 지시가 어렵다면 빠뜨린 조건이 있는지 볼 때야 | An overlooked requirement could explain why the next step feels unclear | 条件の読み違いに気づけば、答えの方向を直せそう |
-| 문장 2 | 요구하는 내용을 표시한 뒤 생각하고, 읽기 전 떠올린 답은 확정하지 말아봐 | Reread the relevant condition instead of continuing with the answer you first assumed | 必要な箇所を示して、読み切る前に結論を置かないでね |
+| 분야 해석 | 이해한 것과 아직 헷갈리는 것이 섞여 있을 수 있어 | What you understand may be mixed with what still confuses you | わかったことと、まだ曖昧なことが混じっていそう |
+| 제안·기회 | 어떤 질문에 답하기 어려운지 하나씩 짚어봐 | Notice which questions you find difficult to answer, one at a time | どの質問に答えにくいか、ひとつずつ確かめてみて |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 다시 봐도 걸리는 내용은 자주 틀리는 지점이 따로 있을 수 있어 | The weak point may be hidden by how comfortable the surrounding material feels | 前に迷ったところが、見直しの手がかりになりそう |
-| 문장 2 | 그 부분을 골라 재검토하고, 이미 아는 곳만 되풀이하지 않도록 해봐 | Return to the error-prone detail before continuing with familiar examples | 間違えやすい点を確かめ、知っている範囲だけで復習を済ませないでね |
+| 분야 해석 | 도중에 새 일이 눈에 들어오면 마무리가 늦어질 수 있어 | Something new catching your eye could delay a finish | 途中で新しい用事が気になると、仕上がりが遅れるかも |
+| 제안·기회 | 떠오른 것은 메모해두고 하던 일을 먼저 이어가봐 | Note what came to mind and continue what you were doing first | 思いついたことはメモして、先に続きへ戻ろう |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 실제로 해보면 설명만 읽을 때 놓친 단계가 드러나겠어 | The difference between knowing an explanation and using it may need attention | 実際にやってみると、理解の穴が見つかりそう |
-| 문장 2 | 작은 예에 직접 적용하고, 익숙한 내용이라는 이유로 실습을 넘기지는 마 | Attempt the relevant step yourself to see where understanding becomes uncertain | 知っていることを少し使ってみて、説明できるからと実践を省かないでね |
+| 분야 해석 | 남의 방법이 네게도 꼭 잘 맞는 것은 아니야 | Someone else's method won't necessarily suit you | 人の方法が、必ず自分にも合うとは限らないよ |
+| 제안·기회 | 따라 해보되 불편한 부분은 네 방식으로 조정해봐 | Try it, then adjust the parts that feel awkward to your own way | 試してみて、不便なところは自分流に変えてみよう |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 과제의 어려움은 여러 문제가 섞여 있어서일 수 있어 | The difficulty may come from several questions being treated as a single problem | 難しさを分ければ、解ける問いが見えてきそう |
-| 문장 2 | 작은 질문으로 나누어 원인을 살피고, 전체를 한 번에 풀려고 밀어붙이지는 마 | Separate the parts before deciding which answer is needed next | 課題を小さな質問にして、全体の答えを一度に出そうとしないでね |
+| 분야 해석 | 열심히 한 만큼 바로 결과가 나오지 않을 수 있어 | Results may not immediately reflect how hard you've tried | 頑張った分が、すぐ結果に出ないこともありそう |
+| 제안·기회 | 오늘 익힌 작은 내용이 무엇인지부터 확인해봐 | Start by recognizing one small thing you learned today | 今日覚えた小さなことから、確かめてみて |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 검색해도 답이 흐리다면 찾는 정보가 구체적이지 않을 수 있어 | An unclear search question may be the reason useful information is hard to find | 何を知りたいか決めると、情報の迷いを減らせそう |
-| 문장 2 | 무엇을 알아야 하는지부터 정해보고, 자료만 늘리는 반복은 멈춰봐 | Name the gap in the task before expanding the collection of sources | 必要な資料を探す前に目的を絞り、集める量ばかり増やさないでね |
+| 분야 해석 | 너무 자세한 부분에 머물면 큰 뜻을 놓치기 쉬워 | Dwelling on details could make you miss the larger meaning | 細部にとどまりすぎると、大きな意味を見逃しがち |
+| 제안·기회 | 전체가 무엇을 말하는지 먼저 한 문장으로 잡아봐 | First capture what the whole thing is saying in one sentence | 全体が何を言うのか、まず一文でつかんでみよう |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 틀린 부분의 원인을 알면 수정 방향도 잡히겠어 | The repeated difficulty may sit in the reasoning behind the mistake | 直す理由まで見ると、同じ間違いを理解できそう |
-| 문장 2 | 왜 고치는지 함께 기록하고, 바뀐 답만 남기는 수정은 피해봐 | Identify what led to the error and explain why the correction changes that step | 変更する点と理由を一緒に残し、正しい答えに直すだけで済ませないでね |
+| 분야 해석 | 질문을 미루면 뒤의 내용까지 낯설어질 수 있어 | Putting off a question could make what follows harder to understand | 質問を先送りすると、その先までわかりにくくなりそう |
+| 제안·기회 | 모호한 부분이 작을 때 바로 물어보는 편이 좋아 | Ask while the unclear point is still small | 曖昧な点が小さいうちに、聞いておくのがおすすめ |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 시간이 모자란 이유는 분량별 차이를 놓쳐서일 수 있어 | The schedule may be awkward because the sections require different levels of effort | 分量の違いを見れば、時間の割り振りを直せそう |
-| 문장 2 | 각 분량에 필요한 시간을 가늠해보고, 똑같이 나누는 방식부터 재검토해봐 | Compare their demands before assigning time to each | 各項目に要る長さを確かめ、全部へ同じ時間を当てないでね |
+| 분야 해석 | 잘하던 일도 방식이 바뀌면 잠시 어색할 수 있어 | Even something you do well may feel awkward after the method changes | 得意なことでも、やり方が変わると少し戸惑うかも |
+| 제안·기회 | 예전 속도를 기준으로 삼지 말고 익숙해질 시간을 줘봐 | Give yourself time to get used to it instead of measuring against your old speed | 以前の速さを基準にせず、慣れる時間をあげてみて |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 정확한 질문을 만들면 무엇을 모르는지도 구분되겠어 | A precise question may reveal what is missing from your understanding | つまずいた位置が伝われば、必要な助けを聞けそう |
-| 문장 2 | 막힌 부분을 구체적으로 묻되 전체 답을 받는 것만 도움으로 보지는 마 | Show where you stopped and what you have tried rather than requesting a finished solution | 何が分からないかを具体的に話し、答え全体を頼む形にはしないでね |
+| 분야 해석 | 설명을 끝까지 듣기 전에 답을 예상하기 쉬워 | You could anticipate the answer before an explanation is finished | 説明の終わりを待たず、答えを予想しやすいとき |
+| 제안·기회 | 이미 아는 내용처럼 보여도 조건이 다른지 살펴봐 | Look for different conditions even when the subject seems familiar | 知っている内容に見えても、条件の違いを確かめよう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 설명이 막힌다면 핵심과 이유의 연결이 모호할 수 있어 | The missing link may be between the point you state and the reason behind it | 理由を言葉にすると、理解が曖昧な点に気づけそう |
-| 문장 2 | 둘을 함께 말해보고, 기억나는 표현을 나열하는 것으로 대신하지는 마 | Explain that connection rather than adding more familiar wording | 要点と根拠を合わせて説明し、覚えた文章だけを並べないでね |
+| 분야 해석 | 계획을 빽빽하게 잡으면 작은 지연에도 마음이 급해질 수 있어 | A packed plan could make a small delay feel urgent | 予定を詰めると、小さな遅れにも気が急きそう |
+| 제안·기회 | 예상보다 오래 걸릴 여유를 조금 남겨둬봐 | Leave a little room for things to take longer than expected | 予想より時間がかかってもいい余裕を、少し残してみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 초안이 막힌다면 문장보다 내용의 차례가 정해지지 않았을 수 있어 | The difficulty may be an unclear order rather than an imperfect first sentence | 要点の並びを書けば、初稿の足りない点が見えそう |
-| 문장 2 | 핵심 순서를 먼저 적고, 첫 줄을 고치는 반복에서 잠시 벗어나봐 | Sketch the main points before returning to the wording at the start | 全体の筋から置いて、最初の文だけを完璧にしようとしないでね |
+| 분야 해석 | 일을 끝낸 뒤 아쉬운 점만 눈에 들어올 수 있어 | Only the disappointing parts may catch your eye after you finish | 終えた後に、惜しかったところばかり見えがち |
+| 제안·기회 | 고칠 곳을 찾기 전에 이번에 잘된 점도 하나 적어봐 | Write down one thing that went well before looking for improvements | 直す部分を探す前に、うまくいった点もひとつ書いてみよう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 마무리가 불안하다면 내용보다 제출 조건이 빠졌는지 봐 | The last uncertainty may be about the requirements rather than the content itself | 提出条件を見直すと、残った抜けを見つけられそう |
-| 문장 2 | 요구 항목을 하나씩 확인한 뒤 넘기고, 완료한 느낌만 기준으로 삼지는 마 | Compare the finished result with each condition before deciding it is ready | 項目を順番に確かめ、できた感じだけでそのまま出さないでね |
+| 분야 해석 | 내용은 알아도 표현하는 데 시간이 걸릴 수 있어 | Knowing something may not make it quick to explain | 内容がわかっていても、表すには時間がかかるかも |
+| 제안·기회 | 멋진 말보다 네가 이해한 순서대로 차근차근 전해봐 | Share it in the order you understand it rather than searching for impressive words | 立派な言葉より、理解した順にゆっくり話してみて |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 할 일이 줄지 않는다면 쉬운 것만 반복해서 고르는지 볼 때야 | An unclear priority may be making the workload feel larger | 必要な順を確かめれば、先に終えるものを選べそう |
-| 문장 2 | 먼저 끝낼 과제를 정해보고, 난도가 낮다는 이유만으로 순서를 잡지는 마 | Decide what must be finished first rather than choosing each next task by ease | 大事な課題を決めて、簡単な内容ばかりに時間を使わないでね |
+| 분야 해석 | 여러 의견을 한꺼번에 반영하면 네 생각이 흐려질 수 있어 | Taking in every opinion at once could blur your own thinking | 多くの意見を一度に入れると、自分の考えがぼやけそう |
+| 제안·기회 | 어떤 조언이 목적에 맞는지 골라서 받아들여봐 | Choose the advice that fits what you're trying to achieve | 目的に合う助言を選んで、取り入れてみよう |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 다음에 막히는 이유가 이번 과정의 기록 부족일 수 있어 | The missing information may be the path between the question and the answer | 過程を残すと、どこで考えたかを見直しやすそう |
-| 문장 2 | 중요한 단계를 짧게 적어두고, 결과만 쓰고 과정을 버리지는 마 | Write the step that changed your understanding before moving on | 大切な手順を短く書き、結果以外の記録を抜かないでね |
+| 분야 해석 | 쉬운 일만 반복하다 어려운 부분을 미룰 수 있어 | Repeating easy tasks could keep the difficult part postponed | 簡単なことを繰り返して、難所を延ばしがち |
+| 제안·기회 | 힘이 남아 있을 때 까다로운 곳에 짧게라도 도전해봐 | Give a challenging section a brief try while you still have energy | 力が残るうちに、手ごわい部分へ短く挑んでみて |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 이해가 헷갈린다면 닮은 개념 사이의 차이를 먼저 볼 때야 | The confusing part may be a difference hidden beneath familiar wording | 概念の違いを確かめると、つながりが見えそう |
-| 문장 2 | 연결되는 내용을 함께 정리하면서도 다른 개념을 같은 뜻으로 묶지는 마 | Compare the concepts at that point before assuming they work the same way | 関係する内容を一緒に並べ、似ているだけで同じものにしないでね |
+| 분야 해석 | 기억에만 맡긴 작은 약속을 놓치기 쉬워 | A small commitment left only to memory could slip by | 覚えているつもりの、小さな約束を忘れやすいとき |
+| 제안·기회 | 언제까지 무엇을 해야 하는지 눈에 보이게 남겨둬봐 | Put what you need to do and by when somewhere visible | いつまでに何をするか、見えるところに残しておこう |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 반복 연습이 잘되지 않는다면 오류가 나는 단계가 따로 있을 수 있어 | The pattern of mistakes may reveal which part needs practice | 間違えた段階を探せば、練習する場所を選べそう |
-| 문장 2 | 그 부분을 골라 연습하고, 횟수 증가만으로 해결하려 하지는 마 | Target that step instead of increasing the number of complete attempts | そこを試し直して、回数だけ増やす繰り返しから離れよう |
+| 분야 해석 | 오래 생각한 내용이라 오히려 설명이 복잡해질 수 있어 | Something you've thought about a lot could become complicated to explain | 長く考えた内容ほど、説明が複雑になるかも |
+| 제안·기회 | 처음 듣는 사람에게 가장 먼저 알려줄 점부터 골라봐 | Choose what someone hearing it for the first time needs to know first | 初めて聞く人に、最初に伝える点から選んでみよう |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 서로 다른 의견이 있다면 근거와 수정 범위를 나눠볼 때야 | An unclear basis for a comment may be the source of revision confusion | 意見の根拠を聞くと、必要な修正を絞れそう |
-| 문장 2 | 왜 고쳐야 하는지와 바꿀 곳을 확인하고, 의견마다 전부 다시 하는 반복은 줄여봐 | Ask what needs changing and why instead of rebuilding the task around the opinion | どこをどう直すか確かめ、全ての指摘で全体を作り直さないでね |
+| 분야 해석 | 일의 양보다 마음의 부담이 더 크게 느껴질 수 있어 | The worry about a task may feel bigger than the task itself | 量そのものより、心の負担が大きく感じられそう |
+| 제안·기회 | 해야 할 것을 밖으로 적고 끝난 것은 하나씩 지워봐 | Write out what needs doing and cross things off as you finish | することを書き出して、済んだものから消してみて |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 새 내용이 어렵다면 설명에 쓰인 용어부터 살펴볼 때야 | The confusing point may be a word whose meaning has been assumed | 分からない用語を確かめると、新しい内容を追いやすそう |
-| 문장 2 | 모르는 말을 먼저 짚어보고, 의미를 건너뛴 채 차례만 암기하지는 마 | Look it up or ask about it before continuing with the sequence | 意味を押さえてから順番に入り、言葉の理解を置き去りにしないでね |
+| 분야 해석 | 급히 외운 내용은 서로 뒤섞일 수 있어 | Information learned in a hurry could become mixed up | 急いで覚えたことが、混ざってしまうかも |
+| 제안·기회 | 비슷한 개념이 어떻게 다른지 예를 들어 구분해봐 | Use examples to distinguish similar ideas | 似た考えの違いを、例を挙げて分けてみよう |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 성과가 잘 보이지 않는다면 자신이 한 과정부터 확인할 때야 | The missing measure may be what changed in your own understanding | 終えたことを言葉にすると、自分の学びを見つけられそう |
-| 문장 2 | 해낸 것과 배운 점을 적고, 남의 결과만 보며 자신의 진행을 정하지는 마 | Compare where you began with what you can now do before looking at others | 進んだ分と分かった点を書き、人の出来だけを自分の物差しにしないでね |
+| 분야 해석 | 혼자 고민할 때 놓친 부분이 있을 수 있어 | Thinking alone may have left something unnoticed | ひとりで考えていると、見逃した部分があるかも |
+| 제안·기회 | 다른 시선을 빌릴 수 있다면 짧게 의견을 물어봐 | Ask for a brief opinion if you can draw on another perspective | 別の視点を借りられるなら、短く意見を聞いてみて |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 시간을 써도 진척이 흐리다면 과제를 자주 바꾸는지 볼 때야 | An unclear target may be the reason your attention keeps changing tasks | 中心の問いを選ぶと、限られた時間を使いやすそう |
-| 문장 2 | 오늘 답할 핵심 질문을 하나 고르고, 진행 중에 자꾸 과제를 교체하는 선택은 줄여봐 | Write the question you need answered before deciding what to work on next | 今日答えたいことを決めて、途中で別の課題へ何度も移らないでね |
+| 분야 해석 | 시작이 더뎌도 오늘의 진도가 모두 정해진 것은 아니야 | A slow start doesn't decide all of today's progress | 出だしが遅くても、今日の進みが全部決まったわけではないよ |
+| 제안·기회 | 남은 시간에 할 수 있는 한 가지로 다시 이어가봐 | Pick up again with one thing you can do in the time left | 残り時間でできるひとつから、また続けてみよう |
 
 ## 30–39점 — `category.work.d30.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 정해둔 일을 모두 끝내기엔 걸리는 부분이 남을 수 있겠어 | A limited section can move forward with a little attention to accuracy | 重点を選べば、仕事や学びを少しずつ進められそう |
-| 문장 2 | 중요한 항목부터 조금씩 하고, 분량에 쫓겨 확인을 넘기지 않도록 해봐 | Do the important part first and check it before adding more volume | 大事な項目から取り組み、分量を終えるための見直し省略はしないでね |
+| 분야 해석 | 막혔던 부분도 작게 나누면 다시 손댈 수 있어 | Breaking down a difficult part can make it approachable again | つまずいた部分も、小さく分ければまた取りかかれるよ |
+| 제안·기회 | 가장 먼저 풀어야 할 질문 하나부터 골라봐 | Choose the first question that needs answering | 最初に解きたい質問を、ひとつ選んでみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 조건을 하나씩 읽으면 막연했던 과제도 조금 나뉘겠어 | A careful reading can make an uncertain task easier to approach | 条件を押さえて読めば、答えを考えやすくなりそう |
-| 문장 2 | 해야 할 부분을 표시해보고, 다 읽기 전에 풀이 방향부터 고정하지는 마 | Mark the necessary conditions and use them to choose a limited first step | 求められる部分を示して、読み始めから結論を決めないでね |
+| 분야 해석 | 아직 결과가 작아도 배운 것을 써볼 여지는 있어 | Even if the results are small so far, you can try using what you've learned | まだ成果が小さくても、学んだことを使う余地はあるよ |
+| 제안·기회 | 익숙한 예시 하나에 적용하며 이해를 다져봐 | Build understanding by applying it to a familiar example | 慣れた例で試しながら、理解を確かなものにしてみて |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 틀리기 쉬운 부분을 다시 보면 작은 이해를 보탤 수 있겠어 | A targeted review can make the next attempt more manageable | 苦手な点を見直すと、学んだ内容を使いやすそう |
-| 문장 2 | 헷갈렸던 곳에 시간을 쓰고, 익숙한 내용만 확인한 것으로 끝내지는 마 | Revisit the part that caused uncertainty instead of working through everything equally | 間違いやすかった箇所へ戻り、慣れた問題だけを繰り返さないでね |
+| 분야 해석 | 집중이 완벽하지 않아도 짧은 진도는 낼 수 있어 | You can make brief progress without perfect concentration | 完璧に集中できなくても、少しは先へ進めるよ |
+| 제안·기회 | 방해받지 않을 시간을 잠깐 정하고 한 가지에만 써봐 | Set aside a short uninterrupted period and give it to one thing | 邪魔の入らない短い時間を、ひとつのことに使ってみよう |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 알던 내용을 직접 써보며 한 단계를 더 이해할 수 있겠어 | A limited practical try can make a difficult point easier to grasp | 少し動かしてみれば、知識を使う感触がつかめそう |
-| 문장 2 | 설명에서 멈추지 말고 손수 해보고, 안다고 여겨 실습을 생략하지 않도록 해봐 | Apply the idea to a manageable example rather than rereading the explanation alone | 説明だけにせず自分で行い、分かっているという理由で試す段階を抜かないでね |
+| 분야 해석 | 네게 맞지 않던 방법을 알아차리는 것도 배움이야 | Noticing that a method doesn't suit you is learning too | 合わなかった方法に気づくことも、学びのひとつ |
+| 제안·기회 | 계속 불편했던 방식은 조금 바꿔서 시도해봐 | Try a small change to an approach that's kept feeling awkward | ずっと不便だったやり方は、少し変えて試してみて |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 큰 과제도 질문을 나누면 한 부분은 다룰 수 있겠어 | A narrower question can make a complicated task workable | 小さな問いにすれば、難しい課題にも手をつけられそう |
-| 문장 2 | 작게 답할 질문부터 만들고, 한 번에 완결하려는 범위는 줄여봐 | Choose a manageable part and resolve it before bringing the whole problem back into view | 答える部分を分けて、全体を一気に片づけようとしないでね |
+| 분야 해석 | 오늘은 속도보다 이해를 챙길 때 부담을 줄일 수 있어 | Focusing on understanding over speed can ease the pressure today | 今日は速さより理解を大事にすると、負担を減らせそう |
+| 제안·기회 | 넘어가기 아쉬운 부분이 있다면 한 번 더 읽어봐 | Reread a section you don't feel ready to leave | そのまま進むのが気になる部分は、もう一度読んでみよう |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 필요한 내용을 좁히면 자료에서 단서 하나는 찾을 수 있겠어 | A focused search can make a difficult task easier to handle | 探す情報が決まると、必要な資料に近づけそう |
-| 문장 2 | 찾을 정보를 먼저 정하고, 더 모으는 것만으로 진행을 대신하지는 마 | Look for the information that answers the current question instead of gathering everything connected to the topic | 何を知るためか先に置き、集めた量だけで進んだと思わないでね |
+| 분야 해석 | 도움을 받으면 오래 붙들던 고민이 단순해질 수 있어 | Help could simplify a question you've spent a long time on | 助けを借りると、長く抱えた悩みが単純になるかも |
+| 제안·기회 | 질문할 때 무엇을 해봤는지도 함께 알려줘 | Explain what you've already tried when asking | 尋ねるときには、何を試したかも知らせてみて |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 고칠 이유를 짚으면 틀린 부분에서 하나 더 배울 수 있겠어 | Understanding why an answer was wrong can make the correction useful | 修正の意味が分かれば、次へ進みやすくなりそう |
-| 문장 2 | 수정 이유를 짧게 적어보고, 답이 달라졌다는 사실만으로 끝내지는 마 | Write a brief reason beside the change instead of treating the answer alone as the lesson | 直す理由も書き留めて、答えだけ変えて過程を飛ばさないでね |
+| 분야 해석 | 다른 사람의 설명에서 필요한 힌트를 찾을 수 있어 | Someone else's explanation can hold the hint you need | 人の説明から、必要なヒントが見つかりそう |
+| 제안·기회 | 전부 따라 하기보다 네가 막힌 곳에 맞는 부분을 골라봐 | Take the part that fits where you're stuck instead of following everything | 全部まねるより、自分のつまずきに合う部分を選ぼう |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 분량을 나눠 시간을 잡으면 일부 과제부터 진행할 수 있겠어 | A revised time estimate can make the task more manageable | 項目ごとに時間を考えると、予定を組みやすそう |
-| 문장 2 | 각 부분에 들 시간을 가늠하되 모두 같은 길이로 맞출 필요는 없어 | Give the difficult portion a realistic allowance instead of dividing the session evenly | それぞれの分量を見て、全て同じ長さで終える計画にはしないでね |
+| 분야 해석 | 일을 줄여 잡으면 마무리한 느낌을 되찾기 좋아 | Reducing what you aim to do can bring back a sense of finishing | 範囲を減らすと、終えた手応えを取り戻しやすいよ |
+| 제안·기회 | 오늘 꼭 끝내고 싶은 하나를 먼저 정해봐 | Choose one thing you really want to complete today | 今日こそ終えたいひとつを、先に決めてみて |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 모르는 곳을 나눠 물으면 다음 단서를 얻어볼 만하겠어 | A limited request for help can make the next step more approachable | 具体的な疑問なら、必要な助けを求めやすそう |
-| 문장 2 | 막힌 지점을 정확히 설명하고, 전체 답을 대신 요구하는 질문은 피해봐 | Ask about the difficult point and use the explanation to continue yourself | 止まった箇所を聞いて、全体の答えを代わりに出してもらわずに進めよう |
+| 분야 해석 | 틀린 부분을 알아보면 다음에 무엇을 배울지 선명해져 | Recognizing an error makes what to learn next clearer | 間違いを知ると、次に何を学ぶかが明確になるよ |
+| 제안·기회 | 답만 고치기보다 어디서 생각이 달라졌는지 살펴봐 | Look at where your reasoning changed instead of only correcting the answer | 答えだけでなく、どこで考えがずれたか見てみよう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심에 이유를 붙여 설명하면 이해를 조금 더 확인하겠어 | A shorter explanation can become clearer when its reason is included | 要点に理由を添えれば、学んだ内容を説明しやすそう |
-| 문장 2 | 중요한 내용과 근거를 함께 말하고, 외운 표현을 그대로 읽는 데 그치지는 마 | Say the main point and show why it makes sense before expanding the account | 理解したつながりを話し、暗記した言葉だけでまとめないでね |
+| 분야 해석 | 잠시 멀리서 보면 복잡하던 내용이 다르게 보일 수 있어 | A little distance could make complicated material look different | 少し離れて見ると、複雑だった内容も違って見えるかも |
+| 제안·기회 | 한곳에 오래 막혔다면 쉬었다 돌아와 전체를 다시 읽어봐 | If you've been stuck for a while, take a break and reread the whole thing | 同じ所で止まるなら、休んでから全体を読み直してみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심 차례를 적으면 초안에 작은 틀이 생기겠어 | A rough sequence can make a hesitant draft manageable | 全体の順序を置くと、初稿を進めやすくなりそう |
-| 문장 2 | 중요한 내용의 순서부터 남기고, 첫 문장을 완성해야 다음으로 갈 수 있다고 보지는 마 | Put the key ideas in order and leave fine wording until the structure can be seen | 核心となる内容から書き、書き出しだけを磨き続けないでね |
+| 분야 해석 | 말로 설명하다 보면 네 이해가 어디까지인지 알 수 있어 | Explaining aloud can show how much you understand | 言葉で説明すると、理解できた範囲がわかるよ |
+| 제안·기회 | 편한 상대가 없다면 혼잣말로 핵심을 풀어봐 | Talk it through to yourself if there's no one you'd feel at ease explaining it to | 気軽に話せる人がいなければ、ひとりで要点を話してみよう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 마지막 조건을 확인하면 마무리할 근거가 생기겠어 | A careful final pass can make an imperfect task ready to hand over | 最後の条件を確かめれば、落ち着いて提出できそう |
-| 문장 2 | 제출 요구를 하나씩 짚어보고, 끝났다고 느끼는 순간 바로 보내지는 마 | Check the required details instead of relying on relief at having reached the end | 必要な項目を順に見て、終えた気分で確認前に渡さないでね |
+| 분야 해석 | 덜 완벽한 시작이 오래 고민하는 것보다 도움이 될 수 있어 | An imperfect start could help more than prolonged thought | 不完全でも始めるほうが、長く迷うより役立つかも |
+| 제안·기회 | 고칠 수 있는 초안부터 네 방식대로 만들어봐 | Make a draft in your own way that you can change later | 後で直せる下書きから、自分のやり方で作ってみて |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 우선 마칠 것을 고르면 여러 과제 사이에서 한 걸음 나아가겠어 | A narrower priority can make a demanding set of tasks workable | 先に済ませる課題が決まると、取り組む順を作れそう |
-| 문장 2 | 먼저 끝낼 과제 하나를 정하되 쉬운 항목만 연달아 택하지는 마 | Choose the item that matters and begin a manageable section of it | 重要なものを選び、易しいことだけを続けて後回しにしないでね |
+| 분야 해석 | 익숙한 부분이 어려운 내용을 배우는 발판이 될 수 있어 | Something familiar can help you learn the difficult part | 知っていることが、難しい内容を学ぶ足がかりになるよ |
+| 제안·기회 | 새로운 것과 이미 아는 것의 공통점을 찾아봐 | Look for a similarity between what's new and what you know | 新しい内容と、すでに知ることの共通点を探してみよう |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심 과정을 남기면 다음 시도에 작은 단서가 되겠어 | A short process note can make the task easier to resume | 短い過程のメモが、次に思い出す助けになりそう |
-| 문장 2 | 중요한 풀이를 짧게 기록하고, 답을 얻었다고 과정까지 없애지는 마 | Record the useful transition rather than preserving only what the result was | 大切な考え方を残して、結果だけの記録にはしないでね |
+| 분야 해석 | 작은 성과를 알아보면 다시 할 마음을 얻을 수 있어 | Noticing a small achievement can make you willing to try again | 小さな成果に気づくと、また取り組む気持ちが生まれそう |
+| 제안·기회 | 어제보다 덜 어려워진 부분 하나를 떠올려봐 | Recall one part that's less difficult than yesterday | 昨日より楽になった部分を、ひとつ思い出してみて |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 관련 개념을 나란히 보면 작은 연결을 찾을 수 있겠어 | A careful connection can make difficult material more manageable | 違いを分けて考えれば、関連する内容を理解しやすそう |
-| 문장 2 | 이어지는 내용을 함께 정리하고, 비슷한 부분만 보고 서로 다른 개념을 합치지는 마 | Place the related ideas together while keeping their separate meanings visible | つながる概念を並べ、似た言葉を全て同じ意味にまとめないでね |
+| 분야 해석 | 막연한 걱정은 필요한 내용을 확인하며 줄일 수 있어 | Checking what you need to know can reduce a vague worry | 漠然とした心配は、必要なことを確かめると減らせるよ |
+| 제안·기회 | 무엇을 해야 하는지 불분명하다면 먼저 물어봐 | Ask first if what you're expected to do is unclear | 何をするのか曖昧なら、先に聞いてみよう |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 틀린 단계에 집중하면 연습에서 작은 차이를 만들겠어 | Practice may help more when it stays with the step that caused trouble | つまずいた部分だけ練習すると、動きを直しやすそう |
-| 문장 2 | 오류가 난 부분을 다시 해보고, 수행한 횟수만 세는 방식은 벗어나봐 | Repeat the difficult transition carefully rather than the whole exercise automatically | 間違いの出た段階に絞り、繰り返した回数ばかり追わないでね |
+| 분야 해석 | 한 번에 끝내지 못한 일도 이어갈 자리를 남길 수 있어 | Something unfinished can still be easy to return to | 一度で終わらなくても、続きに戻る準備はできるよ |
+| 제안·기회 | 오늘 멈춘 곳과 다음에 할 일을 짧게 적어둬봐 | Briefly note where you stopped today and what comes next | 今日止めた場所と、次にすることを短く残しておこう |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 의견에서 수정할 한 곳을 찾으면 다음 시도를 할 수 있겠어 | A limited, reasoned correction can make mid-task feedback manageable | 直す箇所を確かめれば、意見を役立てやすそう |
-| 문장 2 | 근거와 수정점을 짚어보고, 받은 의견마다 전체를 새로 할 필요는 없어 | Choose the change that addresses the stated issue rather than restarting everything | なぜそう言えるかを聞き、指摘があるたび全部やり直さないでね |
+| 분야 해석 | 여러 의견 속에서 네 생각을 정리할 기회가 있어 | Several opinions can give you a chance to clarify your own | いろいろな意見の中で、自分の考えを整える機会がありそう |
+| 제안·기회 | 동의하는 점과 다르게 보는 점을 나눠서 말해봐 | Say which parts you agree with and which you see differently | 賛成する点と違う見方を、分けて話してみて |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 낯선 용어를 하나 알면 새로운 내용에 들어갈 단서가 생기겠어 | A modest vocabulary check can make unfamiliar material more approachable | 用語の意味を押さえると、初めての内容も追えそう |
-| 문장 2 | 모르는 말부터 확인하고, 순서만 외워 이해를 대신하지는 마 | Clarify the essential term and then return to the steps it helps explain | 分からない言葉から調べて、意味を知らず手順だけ覚えないでね |
+| 분야 해석 | 오늘은 새로운 양을 늘리기보다 배운 것을 다지기 좋아 | Revisiting what you've learned can do more for you today than adding new material | 今日は新しく増やすより、学んだことを固めるのによいとき |
+| 제안·기회 | 헷갈렸던 내용 몇 가지만 다시 꺼내봐 | Revisit just a few things that confused you | 混同していた内容を、いくつか見直してみよう |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 끝낸 분량과 배운 것을 적으면 작은 진척을 알아보겠어 | A brief account of progress can make an imperfect attempt easier to learn from | 学んだ点も残すと、自分の進みを確かめられそう |
-| 문장 2 | 직접 해낸 일과 배운 점을 남기되 남의 결과만으로 가치를 재지는 마 | Write what you managed and what became clearer rather than judging only the final comparison | 終えた量と分かったことを書き、人の結果だけで良し悪しを決めないでね |
+| 분야 해석 | 예상보다 느려도 네가 익힌 만큼은 남아 있어 | What you've learned remains even when progress is slower than expected | 思ったより遅くても、覚えた分は自分に残っているよ |
+| 제안·기회 | 시간만 재기보다 혼자 할 수 있게 된 것을 살펴봐 | Notice what you can now do alone instead of measuring only time | 時間だけを測らず、ひとりでできるようになったことを見てみて |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 질문을 좁히면 짧은 시간에도 한 부분은 다룰 수 있겠어 | A definite question can make a scattered session more manageable | 今日の中心を決めれば、短い時間でも取り組めそう |
-| 문장 2 | 오늘 풀 핵심을 하나 정하되 중간마다 과제를 바꾸며 처음부터 다시 하지는 마 | Stay with that limited target long enough to see what it needs | 解きたい問いを選び、途中で課題を取り替え続けないでね |
+| 분야 해석 | 어려운 일을 혼자 책임지지 않아도 진도를 낼 수 있어 | You can make progress without taking on a difficult task alone | 難しいことを、ひとりで背負わなくても進められるよ |
+| 제안·기회 | 함께할 수 있다면 서로 도울 부분을 이야기해봐 | If you can share it, discuss where you can help each other | 一緒にできるなら、助け合える部分を話してみよう |
 
 ## 40–49점 — `category.work.d40.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 맡은 분량은 핵심부터 처리하면 필요한 범위까지 갈 수 있겠어 | The important part of the task looks manageable if its review remains included | 大事な項目を選べば、必要な分を進められそう |
-| 문장 2 | 중요한 항목에 먼저 손을 대고, 끝낸 개수와 별개로 내용을 점검해봐 | Finish the leading item without using all the available time merely to increase the amount | 仕事でも勉強でも重点から手をつけ、終える量だけで確認を抜かないでね |
+| 분야 해석 | 익숙한 일을 차근차근 이어가기 좋아 | Familiar tasks are good to continue steadily | 慣れたことを、着実に続けるのに向いているよ |
+| 제안·기회 | 새로운 방법을 찾기 전에 네게 잘 맞던 순서로 시작해봐 | Begin in the order that usually works for you before trying a new method | 新しい方法を探す前に、自分に合う順番で始めてみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 작은 조건만 놓치지 않으면 일이나 공부의 요구를 파악할 수 있겠어 | The intended answer may fit better after the conditions are read through again | 条件を読み直すと、答えの方向を確かめられそう |
-| 문장 2 | 해야 할 항목에 표시하고, 먼저 떠오른 답은 내용을 읽은 뒤 판단해봐 | Compare your intended response with the conditions before proceeding | 求められる箇所に印をつけ、全文を読む前に結論を決めないでね |
+| 분야 해석 | 눈에 띄는 성과가 없어도 익힌 내용은 차곡차곡 쌓이고 있어 | What you've learned is adding up even without an obvious achievement | 目立つ成果がなくても、学んだことは少しずつ積み重なっているよ |
+| 제안·기회 | 오늘 새로 알게 된 것 하나만 짚어봐도 네가 나아간 만큼을 알 수 있어 | Noticing one new thing you know today can show the progress you've made | 今日知ったことをひとつ挙げるだけで、進んだ分に気づけるよ |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 전에 본 내용을 점검하면 남은 빈틈을 하나 채울 수 있겠어 | A difficult detail could benefit more from review than another familiar example | 間違えやすい点を復習すると、理解を補えそう |
-| 문장 2 | 틀리기 쉬운 부분부터 다시 살피고, 잘 아는 곳만 반복해서 보지는 마 | Focus the review there rather than using the time on material already understood | 前に迷った内容も見て、得意な範囲だけを繰り返さないでね |
+| 분야 해석 | 짧게 집중한 시간도 배움에 보탬이 돼 | Even a short period of concentration contributes to learning | 短い集中も、学びの足しになるよ |
+| 제안·기회 | 남은 시간이 적다고 미루기보다 작은 부분을 마쳐봐 | Finish a small part rather than postponing because little time remains | 残り時間が少なくても、小さな部分を仕上げてみよう |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 직접 적용해보면 아는 내용과 아직 막히는 부분을 구분하겠어 | Understanding the explanation may be ready for a practical check | 自分で行うと、知っていることを確かめやすそう |
-| 문장 2 | 간단한 예를 직접 수행하고, 설명을 이해했어도 실습은 챙겨봐 | Try the action or example yourself before calling the understanding complete | 説明するだけでなく少し試し、理解済みだからと練習を飛ばさないでね |
+| 분야 해석 | 반복하던 내용에서 놓쳤던 뜻을 찾을 수 있어 | Repeated material may reveal a meaning you missed | 繰り返してきた内容に、見逃した意味があるかも |
+| 제안·기회 | 익숙한 문장이라도 왜 그런지 한번 생각해봐 | Ask why even when the sentence is familiar | 見慣れた一文でも、なぜそうなるか考えてみて |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 해야 할 내용을 나누면 과제의 순서를 잡을 수 있겠어 | The separate questions may be easier to address than the problem as a whole | 難しい課題も、問いを分ければ進めやすそう |
-| 문장 2 | 작은 질문들로 구분해보고, 전체 답을 동시에 구할 필요는 없어 | Write the questions separately so you can check each without holding everything at once | 小さな質問を順に考えて、全体の答えを一度に求めないでね |
+| 분야 해석 | 오늘은 네가 잘 이해하는 방식을 알아보기 좋아 | You can learn a little more about how you learn best today | 今日は、自分が理解しやすい方法を知るのによいとき |
+| 제안·기회 | 읽기와 말하기 중 무엇이 더 잘 남는지 살펴봐 | Notice whether reading or speaking helps it stay with you more | 読むのと話すのでは、どちらが残るか見てみよう |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 자료를 살필 땐 지금 필요한 정보를 기준으로 삼아봐 | Naming the missing fact could keep a search from growing beyond the task | 必要な情報を決めれば、調べる範囲を保てそう |
-| 문장 2 | 찾을 내용을 구체적으로 정해두고, 그 답을 얻으면 수집 범위를 닫아도 돼 | Identify that detail and check whether a source provides it before collecting more | 何を知りたいかを先に確かめ、資料集めだけを続けないでね |
+| 분야 해석 | 해야 할 것이 분명하면 시작의 부담이 줄어들어 | Knowing what needs doing makes starting less daunting | することが明確だと、始める重さが減るよ |
+| 제안·기회 | 앉기 전에 오늘 다룰 범위부터 작게 정해봐 | Choose a small section to work on before you sit down | 向き合う前に、今日の範囲を小さく決めてみて |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 실수한 곳을 다시 보면 필요한 보완을 할 수 있겠어 | The corrected answer may still need its reason made explicit | 直す理由も残せば、見つけた誤りを学びにできそう |
-| 문장 2 | 왜 수정하는지 적어두고, 답만 바꾸기 전에 이유까지 확인해봐 | Check that reasoning before moving past the changed answer | なぜ変えるかを書いて、正しい答えに入れ替えるだけでは終えないでね |
+| 분야 해석 | 꾸준히 손댄 부분은 전보다 편하게 느껴질 수 있어 | A part you've practiced consistently could feel easier than before | 続けてきた部分は、以前より楽に感じられるかも |
+| 제안·기회 | 이미 익숙해진 것은 믿고 다음 어려움에 시간을 써봐 | Trust what's familiar now and give time to the next difficulty | 慣れたところは信じて、次の難しさに時間を使おう |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 해야 할 양의 차이를 반영하면 시간 배정을 보완하겠어 | Similar-sized sections could ask for different amounts of attention | 分量に合わせて時間を置くと、無理なく進められそう |
-| 문장 2 | 분량별로 걸릴 시간을 살펴보고, 과제마다 다른 길이를 허용해봐 | Adjust the uneven parts rather than assuming similar lengths mean similar effort | 各項目に必要な長さを見て、全部を同じ枠へ当てはめないでね |
+| 분야 해석 | 함께 이야기하면 혼자 놓친 생각을 얻을 수 있어 | Talking together can offer a thought you missed alone | 話し合うと、ひとりでは気づかない考えを得られそう |
+| 제안·기회 | 완성된 의견이 아니어도 궁금한 점을 나눠봐 | Share your questions even without a finished opinion | 完成した意見でなくても、疑問を分かち合ってみて |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 질문할 부분을 좁히면 필요한 설명을 구할 수 있겠어 | A precise question may be enough to clarify the unresolved step | 止まった点を伝えれば、必要な助言を聞けそう |
-| 문장 2 | 어디서 이해가 끊기는지 구체적으로 묻고, 전체 풀이를 맡기기보다 그 부분을 확인해봐 | Check that point with someone who can help without handing over the entire task | 具体的な疑問を選んで、答え全体の代行を頼む形にはしないでね |
+| 분야 해석 | 오늘은 배운 내용을 네 말로 정리하기 좋아 | Putting new learning in your own words can be useful today | 今日は学んだことを、自分の言葉でまとめやすいとき |
+| 제안·기회 | 길게 적기보다 가장 중요했던 뜻을 짚어봐 | Identify the most important meaning instead of writing at length | 長く書くより、いちばん大事だった意味を押さえよう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 배운 내용은 이유까지 말해보면 빠진 부분을 찾을 수 있겠어 | The main point could become easier to follow when its reason is stated | 理由まで説明すれば、理解した内容を伝えやすそう |
-| 문장 2 | 핵심과 까닭을 함께 설명하되 암기한 말만 순서대로 나열하지는 마 | Make that link explicit instead of assuming familiar terms explain themselves | 核心と根拠を合わせて話し、覚えた文の並びだけで済ませないでね |
+| 분야 해석 | 작은 마무리가 다음 일을 시작할 여유를 만들어줘 | Finishing a small task makes it easier to begin the next one | 小さく終えることが、次へ向かう余裕を作るよ |
+| 제안·기회 | 거의 끝난 것이 있다면 남은 한 부분을 챙겨봐 | If something is nearly done, give attention to the part that's left | もう少しで済むものがあれば、残った一部分を仕上げてみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 초안은 핵심의 앞뒤를 잡으면 이어 쓸 수 있겠어 | A rough outline may give the draft more help than a polished opening line | 要点の順から書けば、初稿の形を作れそう |
-| 문장 2 | 중요한 순서를 먼저 적고, 첫 문장의 완성도는 뒤에 다시 봐도 돼 | Check the order of the main points instead of repeatedly rewriting the first sentence | 全体の筋を先に残して、一文目の完成ばかりを目指さないでね |
+| 분야 해석 | 질문을 정확히 알면 찾을 내용도 좁아져 | A precise question narrows what you need to look for | 質問がはっきりすると、探す内容も絞れるよ |
+| 제안·기회 | 무엇이 궁금한지 먼저 한 문장으로 적어봐 | Write what you're wondering in one sentence first | 何を知りたいか、先にひと言で書いてみよう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 제출 전 작은 조건만 챙기면 필요한 마무리를 할 수 있겠어 | The result may be nearly ready, with a required detail still worth confirming | 提出条件を確かめれば、必要な仕上げができそう |
-| 문장 2 | 요구사항을 하나씩 확인하고, 다 했다는 느낌과 실제 확인을 나눠봐 | Confirm each requirement before treating the work as ready to send | 求められた項目を順に見て、できた感覚だけで送り出さないでね |
+| 분야 해석 | 네 속도에 맞춰 이어가면 진도를 지키기 쉬워 | Your own pace makes progress easier to maintain | 自分に合う速さで続けると、進みを保ちやすいよ |
+| 제안·기회 | 주변의 양보다 오늘 집중할 수 있는 시간을 기준으로 삼아봐 | Use the time you can concentrate today as your guide rather than someone else's workload | 人の量より、今日集中できる時間を目安にしてみて |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 여러 일이나 학습 항목 중 우선할 것을 정하면 순서를 잡겠어 | The first priority could become clearer once easy tasks stop choosing the order | 優先する課題を決めると、必要なところに手が届きそう |
-| 문장 2 | 먼저 마칠 과제를 고르고, 쉬운 것만 남겨 선택하는 방식은 피해야겠어 | Mark what comes first before letting another easy item take its place | 先に終えるものを選んで、簡単なものだけを探し続けないでね |
+| 분야 해석 | 기본을 다시 보는 시간이 생각보다 도움이 될 수 있어 | Returning to the basics could help more than expected | 基本を見直す時間が、予想以上に役立つかも |
+| 제안·기회 | 새로운 내용을 늘리기 전에 자주 헷갈리는 곳을 짚어봐 | Review a frequent point of confusion before adding new material | 新しい内容を増やす前に、よく迷うところを確かめよう |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 다시 볼 수 있도록 중요한 과정만 챙기면 되겠어 | A useful process may need a brief note before the result is filed away | 大切な手順を残すと、次に同じ考え方を使いやすそう |
-| 문장 2 | 핵심 단계를 짧게 남기고, 결과와 함께 과정을 참고할 길도 지켜봐 | Check that someone returning to it could follow more than the final answer | 途中の要点を短く記録し、結果だけにして過程を捨てないでね |
+| 분야 해석 | 너무 오래 고민하지 않으면 작은 시도를 해보기 좋아 | A small attempt is easier when you don't spend too long considering it | 考え込みすぎなければ、小さく試すのに向いているよ |
+| 제안·기회 | 부담이 적은 방법부터 직접 써보고 판단해봐 | Try a simple approach you can easily change, then see how it goes | 負担の少ない方法から、実際に使って判断してみて |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 개념의 연결과 차이를 함께 보면 이해를 보완하겠어 | The connection between concepts may be sound while a distinction remains unclear | 関連する概念を並べれば、理解をつなぎやすそう |
-| 문장 2 | 관련 내용을 같이 정리하되 다른 뜻의 개념은 구분해서 남겨봐 | Check the distinction before combining them in the explanation | 共通する点を見ながら、異なる意味までひとつに合わせないでね |
+| 분야 해석 | 배운 것과 익숙한 경험을 연결하기 좋아 | You can connect new learning with familiar experience | 学んだことを、身近な経験と結びつけやすいとき |
+| 제안·기회 | 일상에서 비슷한 예를 찾으면 뜻이 더 잘 남을 수 있어 | Finding a similar everyday example may help the meaning stay with you | 日常に似た例を探すと、意味が残りやすくなるかも |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 반복 중 어려웠던 단계만 점검해도 필요한 보완을 하겠어 | A particular step could deserve more practice than another full repetition | 誤りの出た段階を練習すれば、必要な修正ができそう |
-| 문장 2 | 오류가 난 단계를 따로 연습하고, 횟수보다 그 부분이 달라졌는지 봐 | Choose the step that still causes errors and check it before counting another full repetition | そこを自分で試し、回数を達成することだけに集中しないでね |
+| 분야 해석 | 할 일을 끝낸 뒤 돌아보면 네 장점을 알아볼 수 있어 | Looking back after finishing can reveal your strengths | 終えたことを振り返ると、自分の得意な点が見えてくるよ |
+| 제안·기회 | 이번에 수월했던 부분이 무엇인지 기억해둬봐 | Remember which part felt easy this time | 今回すんなりできた部分を、覚えておこう |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 피드백의 이유를 살피면 필요한 보완을 구분하겠어 | Feedback may be easier to use once the reason for the revision is clear | 意見の理由が分かれば、直す範囲を選びやすそう |
-| 문장 2 | 의견의 근거와 고칠 부분을 확인하고, 모든 제안 때문에 전부 다시 하지는 마 | Check the reason and affected section before deciding how much to change | 根拠と修正点を確認して、全てをいちから作り直すとは決めないでね |
+| 분야 해석 | 필요한 설명을 부탁하는 것이 시간을 아껴줄 수 있어 | Asking for the explanation you need could save time | 必要な説明を頼むことが、時間の節約になりそう |
+| 제안·기회 | 질문을 어렵게 꾸미지 말고 이해 안 되는 지점을 말해봐 | Simply say where you don't understand instead of dressing up the question | 質問を難しく飾らず、わからない場所を伝えてみて |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 새로운 내용은 용어의 뜻을 확인하면 이어 읽을 수 있겠어 | The meaning of a key term could make the unfamiliar sequence easier to follow | 知らない用語を見れば、新しい内容へ入りやすそう |
-| 문장 2 | 모르는 표현부터 짚고, 의미 없이 순서만 기억하는 방식은 피해야겠어 | Check that meaning before deciding the sequence is understood | 意味を確かめてから進み、分からない言葉のまま順序だけを覚えないでね |
+| 분야 해석 | 오늘은 해오던 노력을 일정하게 이어가기 좋아 | You can keep your efforts steady without pushing for more today | 今日は、これまでの努力を無理なく続けられそう |
+| 제안·기회 | 무리해서 양을 늘리기보다 끝낼 수 있는 만큼을 정해봐 | Choose an amount you can finish rather than pushing to do more | 無理に量を増やすより、終えられる分を決めてみよう |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부에서 해낸 부분을 확인하면 다음 판단에 도움이 되겠어 | A completed section may show more progress than the broad comparison suggests | 終えたことと学びを合わせると、自分の進歩を見やすそう |
-| 문장 2 | 끝낸 것과 배운 점을 적고, 비교할 때도 다른 사람의 결과만 보지는 마 | Note the completed part and the lesson before deciding how the effort went | できた分を記録し、人の成果だけを評価の基準にしないでね |
+| 분야 해석 | 조금씩 고친 내용에서 변화가 드러날 수 있어 | Small revisions can begin to show a difference | 少しずつ直した内容に、変化が表れるかも |
+| 제안·기회 | 처음 상태와 비교하며 나아진 부분을 찾아봐 | Compare with the beginning and notice what's improved | 最初と比べて、よくなったところを探してみて |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 오늘 다룰 질문이 분명하면 한정된 시간을 맞춰 쓰겠어 | A definite question could keep the session from drifting between tasks | 核になる問いを置けば、限られた時間を使えそう |
-| 문장 2 | 핵심 질문 하나를 정해두고, 도중에 다른 과제로 자꾸 옮겨가지는 마 | Keep that question visible instead of changing tasks whenever another seems easier | 今日考える中心を選び、途中の迷いごとに課題を変えないでね |
+| 분야 해석 | 쉼을 끼워 넣으면 뒤의 집중도 챙길 수 있어 | Adding a break can help you concentrate later | 休みを挟むことで、その後の集中も大事にできるよ |
+| 제안·기회 | 지치기 전에 짧게 자리에서 일어나봐 | Briefly get up before you feel worn out | 疲れ切る前に、短く席を立ってみよう |
 
 ## 50–59점 — `category.work.d50.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부는 핵심부터 처리하면 정해둔 순서를 이어갈 수 있어 | The task you planned can move forward at a pace you can maintain | 決めた仕事や勉強を、いつもの手順で進められそう |
-| 문장 2 | 핵심부터 처리하되 분량을 채웠다는 사실만으로 확인을 끝내지는 마 | Give the important item its place and keep the review you intended | 大切な項目から取り組み、分量を終えた後の確認も残しておこう |
+| 분야 해석 | 작게 시도한 방법이 네게 맞는 해답을 찾는 데 도움이 돼 | Trying an approach on a small scale can help you find what works for you | 小さく試すことが、自分に合う解決法を見つける助けになるよ |
+| 제안·기회 | 전부 바꾸기보다 어려운 부분 하나에 먼저 써봐 | Use it on one difficult part before changing everything | 全部を変えるより、困っているところだけで試してみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 지시와 문제에 적힌 조건이 진행의 기준이 되겠어 | The stated requirements can provide a straightforward route through a task | 求められる条件を読めば、落ち着いて答えを考えられそう |
-| 문장 2 | 요구사항을 표시해두고, 읽기 전에 답을 정해 끼워 맞추는 일은 피해봐 | Read and mark them before settling on the answer or method | 必要な点へ印をつけて、読む前に答えを用意しないでね |
+| 분야 해석 | 한 번 더 읽으며 놓쳤던 뜻을 발견할 수 있어 | Another reading could reveal a meaning you missed | もう一度読むことで、見逃した意味に気づけるかも |
+| 제안·기회 | 중요하다고 느낀 대목은 네 말로 바꿔봐 | Put a section that seems important into your own words | 大事だと感じたところを、自分の言葉にしてみて |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 복습이나 재검토는 헷갈렸던 부분을 확인하는 데 맞춰봐 | Reviewing a specific weak point can make another pass useful | 学んだことを見直すと、理解を確かめやすい日 |
-| 문장 2 | 틀리기 쉬운 곳을 다시 보고, 익숙한 내용은 필요한 만큼만 훑으면 돼 | Choose what is easiest to confuse and examine it before repeating familiar sections | 間違えやすい部分も取り上げ、知っている内容だけを復習しないでね |
+| 분야 해석 | 질문을 나누면 배움의 폭을 넓히기 좋아 | Sharing questions can broaden your learning | 疑問を分かち合うと、学びを広げやすいよ |
+| 제안·기회 | 이미 아는 사람에게 어떻게 이해했는지 물어봐 | Ask someone familiar with the topic how they understood it | 知っている人に、どう理解したか尋ねてみよう |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부에서 아는 내용을 실제로 쓰는 과정을 확인해봐 | Trying the idea in practice can show how well you understand it | 知識を実際に使えば、できる範囲をつかめそう |
-| 문장 2 | 설명 대신 직접 한 번 해보고, 이미 안다는 생각으로 적용을 건너뛰지는 마 | Use it in an example instead of relying entirely on recognizing the explanation | 自分で行って確かめ、説明できるだけで実践を終えないでね |
+| 분야 해석 | 하던 일을 마무리하면 다음에 쓸 여유가 생겨 | Finishing what you're doing gives you room for what follows | 今のことを仕上げると、次に使う余裕が生まれるよ |
+| 제안·기회 | 새것을 벌이기 전에 남은 부분부터 끝내봐 | Complete the remaining part before starting something new | 新しく始める前に、残った部分を終えてみて |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 어려운 과제는 작은 질문으로 나눠 차례로 살펴봐 | Breaking the task into parts can make its order easier to follow | 大きな課題も、小さな問いなら順に考えられそう |
-| 문장 2 | 지금 답할 질문을 구분하고, 전체를 한 번에 해결하는 것만 방법으로 보지는 마 | Address the smaller questions in sequence rather than looking for the complete answer immediately | 答える部分を分けて、全部を一度で解決しようとしないでね |
+| 분야 해석 | 네 생각을 말로 꺼내며 더 분명하게 다듬을 수 있어 | Speaking your thoughts can help you make them clearer | 考えを口にすることで、さらに明確にできそう |
+| 제안·기회 | 완벽한 답이 아니어도 근거와 함께 이야기해봐 | Share your reasoning even if the answer isn't perfect | 完璧な答えでなくても、理由を添えて話してみよう |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부에 필요한 자료는 목적에 맞게 골라 쓰면 돼 | A definite question can keep the information search on track | 調べる内容が決まれば、必要な資料を探せそう |
-| 문장 2 | 찾을 정보를 먼저 정한 뒤 살피고, 수집 자체가 끝없이 이어지지 않게 해봐 | Find what the task needs rather than treating the number of sources as progress | 探す情報を先に置いて、収集する量を増やすだけにしないでね |
+| 분야 해석 | 어제보다 수월해진 부분에서 자신감을 얻을 수 있어 | Something easier than yesterday can give you confidence | 昨日より楽になった部分から、自信を得られるかも |
+| 제안·기회 | 쉬워진 것을 당연하게 넘기지 말고 네 노력으로 인정해줘 | Credit your effort instead of taking that ease for granted | 簡単になったことを当然とせず、努力の結果として認めてみて |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 틀린 부분을 고칠 때는 바뀌는 이유도 함께 남겨봐 | Recording why an error happened can give the next attempt useful guidance | 変更の理由を書けば、修正したことを理解しやすそう |
-| 문장 2 | 고칠 까닭을 한 줄 적으면 다음에 참고할 수 있고, 답만 맞추고 지나가는 일을 줄일 수 있어 | Correct the step and leave a short explanation of what needed changing | 間違いを直すときは理由も残し、答えだけを置き換えないでね |
+| 분야 해석 | 집중할 대상을 줄이면 배운 것이 더 잘 남을 수 있어 | Fewer things to focus on could help learning stay with you | 集中する対象を減らすと、学んだことが残りやすくなりそう |
+| 제안·기회 | 오늘 알고 싶은 것을 하나 정하고 깊게 살펴봐 | Choose one thing you want to know today and explore it more deeply | 今日知りたいひとつを決めて、深く見てみよう |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 시간은 분량과 난도에 따라 나눠봐 | The task or study session can fit the time you have when its amount is realistic | 量に合った時間を考えると、予定を組み立てやすい日 |
-| 문장 2 | 각 부분에 들 시간을 가늠하고, 모든 과제를 같은 시간에 끝낼 것으로 잡지는 마 | Match the allowance to each section's demands instead of using identical blocks automatically | 項目ごとの所要を見て、全て同じ長さで進めようとしないでね |
+| 분야 해석 | 다른 설명을 만나면 익숙한 내용도 새롭게 이해할 수 있어 | A different explanation can bring new understanding to a familiar subject | 別の説明に出会うと、慣れた内容も新しく理解できるかも |
+| 제안·기회 | 헷갈리던 주제를 다른 예시로 접해봐 | Meet a confusing topic through another example | 曖昧だった話題を、違う例で見てみて |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 질문은 막힌 지점을 분명히 전해봐 | Asking about the unclear part can be enough to keep the task moving | 分からない点を示せば、落ち着いて質問できそう |
-| 문장 2 | 어느 부분을 모르는지 정확히 묻고, 전체 답을 대신 받아 끝내려고 하지는 마 | Describe the exact gap so the answer helps you do the next part yourself | 止まった部分を具体的に聞き、全部の答えを代わりに頼まないでね |
+| 분야 해석 | 함께 의견을 나누기에 부담이 적은 때야 | Sharing opinions can feel less daunting now | 意見を交わすことに、負担を感じにくいとき |
+| 제안·기회 | 결론만 말하기보다 어떤 고민이 있었는지도 들려줘 | Tell the other person what you considered as well as your conclusion | 結論だけでなく、どんな迷いがあったかも話してみよう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 내용을 말로 정리할 때 이유도 함께 보여줘 | An explanation is easier to follow when the point and its reason stay together | 要点と理由をつなぐと、内容を説明しやすい日 |
-| 문장 2 | 핵심과 근거를 묶어 설명하고, 외운 표현 자체보다 뜻을 전하는 데 맞춰봐 | Use your own words rather than reciting the description exactly as you learned it | 自分の理解したことを話し、暗記した言葉だけの列にしないでね |
+| 분야 해석 | 해온 일을 돌아보면 다음에 필요한 것이 보여 | Looking back at your work can reveal what you need next | やってきたことを振り返ると、次に必要なものが見えるよ |
+| 제안·기회 | 잘된 방식은 남기고 불편했던 부분만 바꿔봐 | Keep the approach that worked and change only the awkward part | うまくいった方法は残し、不便だったところだけ変えてみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 처음 쓰는 결과물은 핵심 순서부터 정리해봐 | An outline of the main parts can give you enough direction to begin the draft | 全体の順序があれば、初稿を無理なく書けそう |
-| 문장 2 | 내용의 차례를 먼저 적어두고, 첫 문장 하나를 완벽히 고치는 데 머물지는 마 | Write the central sequence before refining its opening words | 伝えたい核から並べて、最初の一文を直すことだけに留まらないでね |
+| 분야 해석 | 짧은 복습이 새 내용을 받아들이는 데 도움이 돼 | A short review can make new material easier to take in | 短い復習が、新しい内容を受け取る助けになるよ |
+| 제안·기회 | 전에 배운 것과 어떤 점에서 이어지는지 찾아봐 | Look for how it connects with what you've learned before | 以前の学びと、どこでつながるか探してみよう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 마무리는 제출 조건에 맞춰 확인해봐 | Checking the stated requirements can show whether the task is ready to finish | 最後の確認を入れれば、落ち着いて仕上げられそう |
-| 문장 2 | 요구를 하나씩 짚고, 끝냈다는 생각만으로 점검을 건너뛰지는 마 | Use the submission conditions rather than the feeling that you have done enough | 提出に必要な条件を確かめ、終えた気分だけでそのまま出さないでね |
+| 분야 해석 | 작은 궁금증을 따라가며 배움의 재미를 느낄 수 있어 | Following a small question can make learning enjoyable | 小さな疑問をたどると、学ぶおもしろさを感じられそう |
+| 제안·기회 | 당장 필요한 답을 찾은 뒤 이유도 한 번 더 알아봐 | Once you find the answer you need, explore why a little further | 今必要な答えを見つけたら、理由ももう少し調べてみて |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부가 여러 개라면 먼저 끝낼 과제부터 골라봐 | A chosen priority can guide where your work or study time goes | 先に終えるものを選べば、いつものペースを保てそう |
-| 문장 2 | 우선 마칠 대상을 정해두고, 편한 항목만 계속 고르는 쪽으로 흐르지는 마 | Finish the chosen item rather than repeatedly selecting whichever task feels easiest | 重要な課題を決め、易しい内容ばかりを先に取り続けないでね |
+| 분야 해석 | 오늘은 노력한 만큼의 작은 진전을 알아보기 좋아 | You can more easily notice the small difference your effort has made today | 今日は努力に見合う、小さな進歩に気づきやすいよ |
+| 제안·기회 | 끝낸 양뿐 아니라 이해가 깊어진 부분도 살펴봐 | Notice deeper understanding as well as the amount completed | 終えた量だけでなく、理解が深まったところも見てみよう |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 기록은 다음에 참고할 과정을 함께 남겨봐 | A note of the useful steps can keep a process available for another attempt | 過程の短い記録が、次に使う手がかりになりそう |
-| 문장 2 | 중요한 단계를 짧게 적어두고, 결과만 기록한 채 풀이를 버리지는 마 | Write the main steps alongside the outcome without documenting every minor action | 大事な手順も残して、答えだけのメモで済ませないでね |
+| 분야 해석 | 할 수 있는 범위를 정하면 마무리까지 가기 쉬워 | Choosing an amount you can handle makes it easier to finish | できる範囲を決めると、最後まで進みやすいよ |
+| 제안·기회 | 시간 안에 꼭 담을 내용부터 골라봐 | Pick what really needs to fit within the time | 時間内に欠かせない内容から、選んでみて |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 여러 내용은 관계를 보며 함께 정리해봐 | Comparing related ideas can help you tell which belongs where | 関係する内容を並べると、つながりを理解しやすそう |
-| 문장 2 | 이어지는 개념을 묶어 살피되 서로 다른 개념까지 비슷하다고 합치지는 마 | Describe both the connection and the difference rather than calling the concepts interchangeable | 似た概念の違いも見て、全てを同じ意味にはまとめないでね |
+| 분야 해석 | 받은 의견에서 도움이 되는 부분을 찾을 수 있어 | You can find something helpful in feedback you've received | もらった意見の中に、役立つ部分を見つけられそう |
+| 제안·기회 | 모두 고치려 하기보다 가장 필요한 한 가지를 반영해봐 | Use the one point you need most instead of trying to change everything | 全部直さず、いちばん必要なひとつを取り入れてみよう |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 같은 유형을 연습할 때는 오류가 난 지점을 기준으로 삼아봐 | The useful amount of practice depends on what the repetition addresses | 間違えた段階を試し直すと、練習を役立てやすそう |
-| 문장 2 | 틀린 단계를 다시 해보되 수행 횟수를 늘리는 것만 목표로 잡지는 마 | Work on the error-prone part instead of measuring the session only by repetitions | 気になる手順を選び、回数を増やすだけの繰り返しは控えよう |
+| 분야 해석 | 네가 익숙한 경험이 새로운 생각의 출발점이 될 수 있어 | A familiar experience could be the beginning of a new idea | 慣れた経験が、新しい考えの出発点になるかも |
+| 제안·기회 | 비슷한 일을 어떻게 풀었는지 떠올려봐 | Recall how you handled something similar | 似たことをどう解いたか、思い出してみて |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 업무나 학습 결과에 대한 의견은 근거와 수정점을 함께 봐 | A targeted review can show what needs adjusting without a complete rewrite | 根拠を確かめれば、意見を必要な修正に使えそう |
-| 문장 2 | 왜 바꾸는지와 어디를 고치는지 확인하되 모든 의견에 전체를 다시 맞추지는 마 | Separate the supported correction from general preferences before revising | どこを直すか聞いて、全ての指摘で全体をやり直さないでね |
+| 분야 해석 | 배운 것을 한번 써보면 기억을 더 단단히 남길 수 있어 | Using what you've learned once can help it stay in memory | 学んだことを一度使うと、記憶を確かにできるよ |
+| 제안·기회 | 쉬운 문제나 작은 일부터 네 힘으로 해봐 | Try an easy problem or small task on your own | 簡単な問いや小さなことから、自分の力でやってみよう |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 처음 접하는 업무나 학습 내용은 용어부터 이해해봐 | Understanding the central term can give you a place to begin unfamiliar material | 用語を確かめてからなら、新しい内容も追いやすそう |
-| 문장 2 | 모르는 단어를 먼저 확인하고, 뜻을 모른 채 순서만 외우지는 마 | Understand the necessary terms rather than memorizing the order by itself | 分からない言葉を先に見て、意味を知らず動きの順だけ覚えないでね |
+| 분야 해석 | 계속 미뤘던 부분도 시작할 여유가 있어 | You can make a start on a part you've kept postponing | 延ばし続けた部分にも、取りかかる余裕がありそう |
+| 제안·기회 | 끝낼 부담 대신 잠깐 살펴본다는 마음으로 열어봐 | Open it with the intention of a brief look rather than the pressure to finish | 終えることを気負わず、少し見るつもりで開いてみて |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 해낸 분량과 배운 내용을 함께 돌아봐 | A record of what the task produced can make progress visible | 終えた分と学んだ点を、落ち着いて振り返れそう |
-| 문장 2 | 끝낸 일과 알게 된 점을 적어두고, 남의 결과 하나로 자신의 과정을 판단하지는 마 | Record what you did and learned without using another person's outcome as the only standard | 自分に残ったことを書き、周りの結果だけを見て評価しないでね |
+| 분야 해석 | 누군가에게 알려주며 네 이해도 넓힐 수 있어 | Explaining something to another person can expand your understanding too | 誰かに教えることで、自分の理解も広げられそう |
+| 제안·기회 | 어려운 말보다 간단한 예를 들어 설명해봐 | Use a simple example rather than difficult terms | 難しい言葉より、簡単な例を添えて説明してみよう |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 시간이 한정돼 있다면 오늘 풀 질문부터 정해봐 | A definite target can make the planned period of concentration useful | 今日解く問いが決まれば、使う時間をまとめられそう |
-| 문장 2 | 핵심 하나를 골라두고, 중간마다 과제를 바꾸는 흐름은 줄여봐 | Choose the question for this session and leave unrelated tasks for afterward | 中心の課題を選んで、途中で何度も取り組む先を変えないでね |
+| 분야 해석 | 네 방식과 다른 접근을 비교하기 좋아 | This is a good time to compare your way with another approach | 自分と違う取り組み方を、比べるのに向いているよ |
+| 제안·기회 | 누가 맞는지보다 각각 어떤 점이 편한지 살펴봐 | Look at what works well about each instead of deciding who's right | 正しさを競うより、それぞれのやりやすい点を見てみて |
 
 ## 60–69점 — `category.work.d60.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 중요한 부분을 먼저 잡으면 정해둔 분량도 조금 더 알차게 진행하겠어 | The leading priority may be easier to get into today | 大事な項目へ意識を向けて、決めた分を進めやすそう |
-| 문장 2 | 핵심 항목부터 해보고, 많이 했는지보다 점검까지 했는지 살펴봐 | Start there and use the opening to finish a checked portion rather than simply more pages or tasks | 仕事でも学びでも重要なことから始め、量をこなしても確認を抜かないでね |
+| 분야 해석 | 집중할 내용을 잡으면 생각보다 깊이 들어갈 수 있어 | Choosing a focus could let you explore more deeply than expected | 集中する内容を定めると、思った以上に深く取り組めそう |
+| 제안·기회 | 가장 궁금한 부분을 골라 방해받지 않을 시간을 써봐 | Give uninterrupted time to the part you're most curious about | いちばん気になる部分に、邪魔の入らない時間を使ってみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 조건을 나눠 읽으면 해결에 필요한 단서가 더 잘 보이겠어 | You may find it easier to see what an instruction is actually asking | 条件を押さえると、答えへ進む筋道が見えそう |
-| 문장 2 | 해야 할 내용을 표시한 뒤 답을 생각하는 순서로 진행해봐 | Use the marked conditions to shape your response rather than adapting them to an early guess | 必要な点を示して読み、初めから結論を決めて読み飛ばさないでね |
+| 분야 해석 | 막혔던 문제를 다시 볼 마음의 여유가 생길 수 있어 | You may feel more ready to return to a difficult problem | つまずいた問題を、見直す心の余裕が生まれるかも |
+| 제안·기회 | 전에 어렵게 느낀 곳에 한 번 더 도전해봐 | Try once more at a point that felt hard before | 前に難しかったところへ、もう一度挑んでみて |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 자주 헷갈린 부분을 다시 보면 이해가 조금 더 선명해지겠어 | You may find a previously uncertain detail easier to understand today | 間違えやすい箇所を見直すと、理解が少し深まりそう |
-| 문장 2 | 틀리기 쉬운 지점에 집중하고, 아는 내용만 보는 반복에서 벗어나봐 | Review that point and check whether you can use it without relying on the familiar parts | 前に習った内容を確かめ、慣れた部分だけの復習から先へ進もう |
+| 분야 해석 | 네 생각을 설명하며 좋은 반응을 얻을 기회가 있어 | Explaining your thoughts could bring a welcome response | 考えを説明して、よい反応を得る機会がありそう |
+| 제안·기회 | 결론과 함께 왜 그렇게 보는지도 짧게 전해봐 | Briefly share why you see it that way as well as your conclusion | 結論に添えて、そう考える理由も短く伝えてみよう |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 알고 있던 내용을 직접 적용하며 쓰임을 더 잘 찾겠어 | Putting an idea into practice may make it clearer today | 知っていることを試すと、使える手応えを得られそう |
-| 문장 2 | 작은 예를 손수 해보되 익숙한 설명만으로 실습을 대신하지는 마 | Try the relevant action and notice what you can do without looking back at the description | 説明に留めず自分で行い、分かるつもりで実践を省かないでね |
+| 분야 해석 | 꾸준히 익힌 내용이 필요한 순간에 도움이 될 수 있어 | Steady learning could help when you need it | 繰り返し学んだことが、必要な瞬間に役立つかも |
+| 제안·기회 | 낯선 일이 나와도 아는 부분부터 연결해봐 | Even with something unfamiliar, begin by connecting what you know | 見慣れないことでも、知っている部分からつなげてみて |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 과제를 나누면 막힌 부분과 바로 할 부분이 더 잘 보이겠어 | You may find it easier to see the separate questions inside a difficult task | 小さな問いへ分けると、難題に取りかかりやすそう |
-| 문장 2 | 작은 질문으로 쪼개서 다루고, 한 번에 전체를 해결하려는 부담은 줄여봐 | Start with the part that makes the next answer possible | 順に答える形を作り、全体を一度に解こうと抱えすぎないでね |
+| 분야 해석 | 다른 사람의 의견을 받아들이며 네 생각을 넓히기 좋아 | Taking in another opinion can expand your thinking | 人の意見を受け止めて、考えを広げやすいとき |
+| 제안·기회 | 처음엔 다르게 느껴지는 설명도 끝까지 들어봐 | Hear an explanation through even if it first feels different from yours | 最初は違うと感じる説明も、最後まで聞いてみよう |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 찾는 정보가 분명하면 자료에서 쓸 부분을 더 잘 가리겠어 | You may be quicker to recognize the information that matters | 必要な情報を絞れば、調べたことを課題へ生かせそう |
-| 문장 2 | 필요한 답부터 정하고, 새 자료를 계속 보태기보다 그 답이 있는지 확인해봐 | Search for the missing detail and use it before looking for additional references | 何を探すか決めて、資料を集め続けることだけで終えないでね |
+| 분야 해석 | 작은 시도가 배움에 재미를 더할 수 있어 | A small experiment can make learning more enjoyable | 小さな試みが、学ぶ楽しさを増してくれそう |
+| 제안·기회 | 늘 하던 방식에 궁금했던 방법 하나를 더해봐 | Add one method you've been curious about to your usual approach | いつものやり方に、気になった方法をひとつ足してみて |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 수정 이유를 살피면 반복하던 실수의 원인이 조금 더 보이겠어 | The distinction behind a correction may become clearer today | 修正した理由が、同じ問題を理解する手がかりに |
-| 문장 2 | 왜 고치는지 함께 적고, 새로운 답을 외우는 것으로 마무리하지는 마 | Note the distinction that matters instead of remembering only the replacement answer | 変える点と理由を記録し、答えだけ直して学びを飛ばさないでね |
+| 분야 해석 | 일의 핵심을 알아보면 힘을 쓸 곳이 분명해져 | Recognizing the main point makes where to spend your effort clearer | 大事な点がわかると、力を使う場所が明確になるよ |
+| 제안·기회 | 많이 하기보다 중요한 부분에 시간을 먼저 써봐 | Give time to what matters most before trying to do a lot | 量をこなすより、重要なところへ先に時間を取ろう |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 분량별 시간을 구분하면 빠듯했던 배정이 조금 나아지겠어 | You may find it easier to judge which part needs more attention | 分量に合う時間を置けば、取り組みを進めやすそう |
-| 문장 2 | 항목마다 필요한 시간을 가늠해보고, 균등하게 나누는 것만 기준으로 삼지는 마 | Use that distinction to assign time before beginning the full amount | 各項目の長さを見積もり、どれも同じ時間で終わるとは考えないでね |
+| 분야 해석 | 그동안 고친 부분이 결과의 차이로 드러날 수 있어 | Your revisions could begin to show in the result | 直してきた部分が、結果の違いに表れるかも |
+| 제안·기회 | 어떤 변화가 도움이 됐는지 기억해둬봐 | Remember which change made a difference | どんな変化が役立ったか、覚えておいてみて |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 모르는 지점을 구체적으로 물으면 설명을 활용하기 더 쉬워지겠어 | You may find it easier to explain what kind of help would be useful | 具体的に聞くことで、止まったところを進められそう |
-| 문장 2 | 막힌 부분을 정확히 질문하고, 완성된 답만 받는 데 목적을 두지는 마 | Ask about the specific step and try applying the response independently | 分からない箇所を示し、全部の答えを代わりに仕上げてもらわないでね |
+| 분야 해석 | 어려운 내용을 쉽게 풀어낼 실마리를 찾을 수 있어 | You can find a clue to explaining something difficult simply | 難しい内容を、わかりやすくする手掛かりが見つかりそう |
+| 제안·기회 | 익숙한 예로 바꿔보며 뜻을 설명해봐 | Use a familiar example to convey the meaning | 身近な例に置き換えて、意味を説明してみよう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심과 이유를 함께 설명하면 내용의 연결이 더 선명해지겠어 | You may find it easier to connect an idea with the reason behind it | 理由まで言葉にすれば、理解を伝える手応えがありそう |
-| 문장 2 | 중요한 점과 근거를 말로 풀고, 외운 말을 그대로 늘어놓는 방식은 벗어나봐 | Explain the link plainly and notice where you still rely on a memorized phrase | 核となる内容と根拠を話し、覚えた文だけを順に出さないでね |
+| 분야 해석 | 함께 고민하면 다음에 해볼 방법을 찾기 좋아 | Thinking together can help you find another approach to try | 一緒に考えると、次に試す方法を見つけやすいよ |
+| 제안·기회 | 막힌 곳을 혼자 오래 붙들기보다 생각을 나눠봐 | Share your thoughts rather than staying stuck alone for a long time | 同じ所で長く悩むより、考えを交わしてみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심의 순서를 잡으면 초안의 연결이 조금 더 잘 보이겠어 | You may find it easier to see how the main ideas belong together | 要点を書き出すと、初稿の輪郭をつかみやすそう |
-| 문장 2 | 중요한 차례를 먼저 적되 첫 줄만 계속 고치면서 전체를 미루지는 마 | Put that order into a rough draft and let the first sentence remain provisional | 大事な内容の順から置いて、書き出しだけを完璧に磨かないでね |
+| 분야 해석 | 오늘은 익숙한 실력을 한 단계 넓혀보기 좋아 | You can take a familiar skill a little further today | 今日は身についた力を、もう一段広げるのによいとき |
+| 제안·기회 | 평소보다 조금 어려운 부분을 골라 시도해봐 | Try a part that's slightly harder than usual | 普段より少し難しい部分を選び、試してみよう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 조건을 확인하면 마무리의 작은 빈틈을 더 잘 찾겠어 | You may find the remaining checks easier to identify today | 提出条件を見直すと、仕上げを少し良くできそう |
-| 문장 2 | 제출 항목을 차례로 점검한 뒤 넘기는 순서를 지켜봐 | Complete them individually before sending the result beyond your own review | 求められる項目を確かめ、できたという感触だけで送らないでね |
+| 분야 해석 | 해야 할 것을 분명히 정하면 마무리까지 집중하기 쉬워 | Knowing what you need to do makes concentration easier through the finish | することを明確にすれば、最後まで集中しやすいよ |
+| 제안·기회 | 중간에 떠오른 새 일은 남겨두고 지금의 것을 끝내봐 | Leave newly arising tasks for later and complete the current one | 途中で浮かぶ新しい用事は残して、今のことを終えてみて |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 우선 과제를 정하면 중요한 항목에 시간을 조금 더 쓸 수 있겠어 | You may find it easier to give attention to the task that matters | 優先する課題が見えて、そこへ先に取りかかれそう |
-| 문장 2 | 먼저 끝낼 것을 골라두되 쉬운 과제라는 이유만으로 다음을 정하지는 마 | Start with its most useful section before returning to simpler items | まず終えるものを決めて、簡単な用事だけを選び続けないでね |
+| 분야 해석 | 네가 배운 것을 누군가에게 전하기 좋은 때야 | This is a good time to share what you've learned | 学んだことを人に伝えるのに、よいタイミング |
+| 제안·기회 | 정답을 길게 말하기보다 이해를 도운 예를 나눠봐 | Offer an example that helped you understand instead of a lengthy answer | 答えを長く話すより、理解を助けた例を分かち合おう |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심 과정을 적으면 다음에 다시 쓰기 더 쉬워지겠어 | You may find it easier to recognize which part of the process is worth keeping | 過程を残せば、今回の理解を次へつなげやすそう |
-| 문장 2 | 중요한 단계를 짧게 기록하되 결과가 나왔다는 이유로 과정을 지우지는 마 | Record that point so the result remains understandable afterward | 要となる手順を短く書き、結果だけ保存して途中を捨てないでね |
+| 분야 해석 | 모호했던 차이를 알아보며 이해를 깊게 할 수 있어 | Recognizing a previously unclear difference can deepen understanding | 曖昧だった違いに気づき、理解を深められそう |
+| 제안·기회 | 비슷해서 헷갈린 두 가지를 나란히 비교해봐 | Compare two similar things that have confused you side by side | 似ていて混同したふたつを、並べて比べてみて |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 관련 개념을 나란히 정리하면 서로 영향을 주는 부분이 보이겠어 | Separate concepts may reveal a useful connection without losing their differences | 関連する概念を並べると、理解がつながり始めそう |
-| 문장 2 | 이어지는 개념을 정리하고, 닮은 부분이 있어도 다른 뜻은 구분해봐 | Arrange them together without losing the distinction that makes each useful | 共通点と違いを確かめ、似た内容を同じものに合流させないでね |
+| 분야 해석 | 미뤄둔 일에서도 시작할 계기를 찾을 수 있어 | You can find a reason to start even a postponed task | 先延ばしの用事にも、始めるきっかけが見つかるかも |
+| 제안·기회 | 지금 할 수 있는 부분을 하나 정해 바로 손대봐 | Choose one part you can do now and begin it | 今できる部分をひとつ決めて、その場で手をつけよう |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 어려웠던 단계를 연습하면 반복의 효과를 조금 더 살리겠어 | You may find it easier to notice what changes a troublesome step | つまずいた手順を練習して、動きを改善しやすそう |
-| 문장 2 | 오류가 난 부분을 골라 해보고, 전체 횟수만 늘리는 데 머물지는 마 | Practice that distinction deliberately before returning to the full exercise | 誤りの出た段階を選び、やった回数だけに満足しないでね |
+| 분야 해석 | 네가 잘하는 방식으로 풀어갈 여지가 있어 | An approach you know well could help you tackle the task | 得意なやり方で、解いていく余地がありそう |
+| 제안·기회 | 남의 순서를 그대로 따르기보다 편한 접근을 써봐 | Use an approach that comes easily to you rather than following someone else's steps | 人の順番をそのまま追わず、自分が楽な方法を使ってみて |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 피드백을 구체적으로 읽으면 결과물의 작은 개선점을 찾겠어 | You may find it easier to recognize the useful part of a comment | 指摘の理由を聞けば、役立つ修正へ進めそう |
-| 문장 2 | 근거와 수정할 곳을 확인하고, 의견 하나하나에 전부 새로 만드는 방식은 줄여봐 | Apply the change whose reason fits the task instead of acting on every opinion | 直す場所を具体的にして、全ての意見に全体の再作成で応じないでね |
+| 분야 해석 | 피드백을 받아 다음 시도를 더 낫게 만들기 좋아 | Feedback can help make your next attempt better | 意見をもらうことで、次の試みをよくしやすいよ |
+| 제안·기회 | 고칠 점 하나를 정하고 실제로 달라지는지 살펴봐 | Choose one improvement and notice whether it makes a difference | 直す点をひとつ決め、実際にどう変わるか見てみよう |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 낯선 용어를 짚으면 새 내용의 연결이 조금 더 보이겠어 | You may find an unfamiliar idea easier to follow once its terms are clear | 知らない言葉を押さえると、新しい内容が見えやすそう |
-| 문장 2 | 모르는 말부터 확인하되 순서를 외웠다고 의미도 이해한 것으로 보지는 마 | Use the meaning of the key word to explain the next step | 用語の意味から確かめ、分からないまま手順を覚えるだけにはしないでね |
+| 분야 해석 | 작은 성취가 다음 도전을 할 마음을 북돋워줘 | A small achievement can encourage the next challenge | 小さな達成が、次へ挑む気持ちを励ましてくれるよ |
+| 제안·기회 | 잘 끝낸 뒤에는 스스로 만족할 시간도 잠깐 가져봐 | Take a moment to feel satisfied after finishing well | うまく終えたら、満足する時間も少し取ってみて |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 해낸 것과 배운 것을 구분하면 자신의 진행이 더 구체적으로 보이겠어 | Your own progress may be easier to recognize when you describe what changed | 学べたことを書けば、自分の進歩を見つけやすい日 |
-| 문장 2 | 끝낸 분량과 배운 점을 기록하되 남의 결과에만 기대어 평가하지는 마 | Write the skill or understanding you used before turning to comparisons | 終えた分も合わせて残し、他人の結果だけで自分の出来を測らないでね |
+| 분야 해석 | 배운 내용을 이어 붙이며 전체를 이해하기 좋아 | You can understand the whole by connecting what you've learned | 学んだことを結びつけて、全体を理解しやすいとき |
+| 제안·기회 | 따로 외웠던 것들이 어떻게 연결되는지 찾아봐 | Find how things you memorized separately relate to each other | 別々に覚えたものが、どうつながるか探してみよう |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 질문을 좁히면 짧은 시간에도 내용에 조금 더 깊이 들어가겠어 | A definite question could hold your attention long enough for a useful attempt | 核になる問いへ絞ると、短い時間でも考えを進められそう |
-| 문장 2 | 오늘 풀 핵심 질문을 정하되 중간중간 다른 과제로 옮기지는 마 | Give it an uninterrupted portion of attention before deciding to move elsewhere | 今日の中心を決めて、途中で何度も課題を入れ替えないでね |
+| 분야 해석 | 오늘은 궁금한 것을 먼저 물어볼 용기를 내기 좋아 | You may find the courage to ask a question you've been holding back today | 今日は疑問を先に尋ねる勇気を、出しやすいよ |
+| 제안·기회 | 질문을 미뤄두지 않으면 뒤의 내용도 편해질 수 있어 | Asking sooner can make the material that follows easier too | 質問をためなければ、その先もわかりやすくなるかも |
 
 ## 70–79점 — `category.work.d70.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부에서 중요한 부분에 수고를 모으기 좋겠어 | Preparation could help the important part of a task come together | 重点へ力を向ければ、仕事や学びの進みを感じられそう |
-| 문장 2 | 핵심 항목부터 처리하고, 분량을 채운 뒤에도 확인할 시간을 남겨둬 | Give it sustained attention and include the check that makes the result useful | 大事な項目から取り組み、数を終えた後の確かめも大切にしよう |
+| 분야 해석 | 막혔던 부분에서 이해의 실마리를 찾기 좋아 | You can find a clue to understanding where you've been stuck | つまずいた部分に、理解の手掛かりを見つけやすいよ |
+| 제안·기회 | 같은 설명만 붙들기보다 다른 예시나 누군가의 설명을 들어봐 | Try another example or someone's explanation instead of staying with the same one | 同じ説明にとどまらず、別の例や人の説明を聞いてみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부에서 요구하는 핵심 조건을 구체적으로 짚기 좋겠어 | A precise reading could make the route to an answer more apparent | 要求を丁寧に読むと、答えの筋をつかみやすそう |
-| 문장 2 | 해야 할 부분부터 표시하고, 답을 먼저 정한 채 읽지는 마 | Keep the requirements visible as you choose how to address them | 必要な条件に印をつけ、読み切る前に結論を固定しないでね |
+| 분야 해석 | 집중해서 다룬 내용이 네 생각으로 또렷하게 남을 수 있어 | Something explored with concentration can remain clear in your own thinking | 集中して扱った内容が、自分の考えとしてはっきり残りそう |
+| 제안·기회 | 핵심을 이해했다면 네 말로 한번 풀어봐 | Once you understand the main idea, explain it in your words | 要点がわかったら、自分の言葉で説明してみて |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 전에 놓친 내용을 찾아 복습의 효과를 살리기 좋겠어 | Looking directly at the difficult detail could strengthen your understanding | 苦手な部分の復習が、理解を深める機会になりそう |
-| 문장 2 | 틀리기 쉬운 부분을 다시 짚고, 익숙한 설명만 읽는 데 그치지는 마 | Spend the review on what needs clarification rather than on reassuring repetition | 前に間違えた箇所を選び、慣れた内容だけの見直しで終わらないでね |
+| 분야 해석 | 준비해온 것을 보여줄 기회를 살려보기 좋아 | This is a good time to use a chance to show your preparation | 準備したことを見せる機会を、生かしやすいとき |
+| 제안·기회 | 지나치게 낮춰 말하기보다 해본 것과 알게 된 것을 전해봐 | Share what you've tried and learned without underselling it | 控えめにしすぎず、経験したことや学んだことを伝えよう |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 배운 내용을 실제로 써보며 구체적인 이해를 넓히기 좋겠어 | A direct attempt could connect what you have learned with what you can do | 自分でやってみると、知識を使う力を確かめられそう |
-| 문장 2 | 직접 적용하는 시간을 잡고, 안다고 느끼는 부분도 실습을 거쳐봐 | Apply the concept to a real example rather than stopping at the explanation | 説明だけにせず実際に試し、知っているからと実践を抜かないでね |
+| 분야 해석 | 어렵던 일을 해내며 자신감을 얻을 여지가 있어 | Accomplishing something difficult could give you confidence | 難しかったことを成し遂げて、自信を得られるかも |
+| 제안·기회 | 익숙한 곳에만 머물지 말고 한 단계 더 도전해봐 | Try one step beyond the familiar | 慣れたところだけにいず、もう一段挑んでみて |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 복잡한 과제의 구조를 작은 질문으로 풀어보기 좋겠어 | Breaking the problem down could reveal a practical route through it | 難しい課題も、小さな問いから道筋を探せそう |
-| 문장 2 | 하나씩 답할 질문으로 나누고, 전체 해결을 한꺼번에 요구하지는 마 | Resolve the important smaller questions and connect their answers afterward | 答える部分を分け、全体を一気に解き切ろうとしないでね |
+| 분야 해석 | 작은 아이디어가 하던 일을 더 편하게 만들 수 있어 | A small idea could make your current task easier | 小さなアイデアが、今の取り組みを楽にしてくれそう |
+| 제안·기회 | 떠오른 방법을 부담 없는 부분에서 먼저 써봐 | Try the idea on one easy part first | 思いついた方法を、負担の少ない部分で先に使ってみよう |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 자료를 목적에 맞춰 읽으면 일이나 공부에 쓸 근거가 보이겠어 | A precise question could lead you to a more useful set of materials | 探す情報を絞れば、課題に役立つ資料を使えそう |
-| 문장 2 | 찾을 정보를 먼저 정리하고, 필요한 내용이 모이면 수집에서 활용으로 넘어가봐 | Choose sources that address the task directly instead of continually enlarging the collection | 知りたい内容を先に定め、集めることだけで作業を増やさないでね |
+| 분야 해석 | 함께 생각을 나누면 혼자서는 놓친 답을 찾을 수 있어 | Thinking together can reveal an answer you missed alone | 考えを交わすと、ひとりでは逃した答えが見つかるかも |
+| 제안·기회 | 다른 의견을 듣고 네가 떠올린 점도 보태봐 | Hear another view and add what it brings to mind for you | 違う意見を聞いて、自分の気づきも添えてみて |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 틀린 지점의 근거를 확인해 수정의 효과를 살리기 좋겠어 | Examining an error could strengthen the next attempt | 直す理由を理解すると、間違いを次への学びにできそう |
-| 문장 2 | 고칠 이유를 구체적으로 남기고, 답만 바꾼 채 원인을 넘기지는 마 | Explain why the correction works and use that reasoning when you try the step again | 修正の意味も書いて、答えだけ置き換えた状態にはしないでね |
+| 분야 해석 | 배운 것들이 연결되며 이해가 깊어지기 좋아 | Connections between what you've learned can deepen your understanding | 学びがつながり、理解を深めやすいとき |
+| 제안·기회 | 따로 보던 내용을 한 번에 설명해보면 관계가 더 잘 보여 | Explaining previously separate ideas together can make their relationship clearer | 別々に見ていた内容を一緒に説明すると、関係が見えやすいよ |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 실제 분량에 맞춰 시간을 구체적으로 나누기 좋겠어 | A thoughtful allocation could let the important section receive the attention it needs | 量を見て時間を配れば、重要な部分を進められそう |
-| 문장 2 | 각 부분에 들 시간을 따져보되 과제마다 동일한 시간을 고집하지는 마 | Estimate by difficulty and purpose rather than dividing time equally | 項目ごとに所要を考え、全て同じ枠で済ませようとしないでね |
+| 분야 해석 | 꾸준히 다듬은 결과에서 네 노력이 드러날 수 있어 | Steady refinement could let your effort show in the result | 磨き続けた仕上がりに、努力が表れそう |
+| 제안·기회 | 마무리 전에 잘 살리고 싶은 장점을 한번 짚어봐 | Before finishing, identify the strength you'd like to preserve | 終える前に、生かしたいよさを一度確かめてみよう |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 질문의 범위를 잘 잡아 이해에 필요한 설명을 구해봐 | A well-framed question could unlock a practical next step | 的を絞った質問で、止まったところを突破しやすそう |
-| 문장 2 | 어디가 막혔는지 명확히 묻되 전체 답을 대신 요구하는 쪽으로 넓히지는 마 | State the difficulty clearly and use the explanation rather than asking for a complete answer to copy | 迷う位置を正確に聞き、全体の答えを任せる形にしないでね |
+| 분야 해석 | 오늘은 어려운 내용을 설명할 말이 떠오르기 좋아 | Words for explaining something difficult may come readily today | 今日は難しい内容を説明する言葉が、浮かびやすいよ |
+| 제안·기회 | 복잡한 표현보다 쉬운 예를 골라 전달해봐 | Choose an easy example over complicated language | 複雑な表現より、簡単な例を選んで伝えてみて |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 배운 것이나 한 일을 자기 말로 구체적으로 설명하기 좋겠어 | Putting the reasoning into your own words could deepen the explanation | 核心と理由を話すと、学んだことを伝えやすくなりそう |
-| 문장 2 | 핵심에 이유를 붙여 전하고, 외운 표현만 나열해 설명을 끝내지는 마 | State what matters and show how the supporting idea leads there | 自分が理解した筋道を使い、暗記した言葉だけを読み上げないでね |
+| 분야 해석 | 질문 하나가 막혀 있던 진도를 열어줄 수 있어 | One question could help progress resume | ひとつの質問で、止まっていた先へ進めるかも |
+| 제안·기회 | 헷갈리는 이유를 구체적으로 묻고 다음으로 이어가봐 | Ask specifically why a part confuses you, then continue | なぜわからないかを具体的に尋ね、続きを見てみよう |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 초안의 구조를 세워 중요한 내용을 이어보기 좋겠어 | A useful sequence could help the draft grow beyond its opening | 全体の筋を先に書くと、初稿を形へ進められそう |
-| 문장 2 | 핵심 순서부터 적고, 첫 문장은 전체를 본 뒤 다듬을 여지를 남겨봐 | Write the key points through before returning to polish the first line | 重要な内容の順を置き、最初の文章だけの磨き直しは切り上げよう |
+| 분야 해석 | 네게 맞는 방법을 찾으면 속도와 이해를 함께 챙길 수 있어 | The right approach can help you understand more while making quicker progress | 合う方法が見つかれば、速さと理解を両方大切にできるよ |
+| 제안·기회 | 효과가 있었던 방식을 오늘의 일에도 써봐 | Apply an approach that worked before to today's task | 効果があったやり方を、今日のことにも使ってみて |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 제출 조건을 구체적으로 살펴 결과물의 완성을 도울 수 있겠어 | A deliberate final pass could help a prepared result hold together | 条件に沿った確認が、仕上がりを支えてくれそう |
-| 문장 2 | 요구사항을 하나씩 확인하되 끝났다는 느낌으로 바로 보내지는 마 | Check the required conditions even when the task already feels finished | 提出前に必要な項目を見て、終わった気持ちだけで渡さないでね |
+| 분야 해석 | 받은 의견을 네 장점과 잘 연결하기 좋아 | You can connect feedback well with your strengths | もらった意見を、自分の長所につなげやすいとき |
+| 제안·기회 | 모든 것을 바꾸기보다 강점을 살리는 조언부터 받아봐 | Start with advice that brings out what you do well instead of changing everything | 全部を変えず、強みを生かす助言から受け取ってみよう |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 여러 과제의 우선순위를 구체적으로 잡아 진행하기 좋겠어 | A deliberate priority could turn effort into more meaningful progress | 先に終える課題を決めて、大事なところへ力を使えそう |
-| 문장 2 | 먼저 마칠 항목을 분명히 정하고, 쉬운 것만 반복해서 고르지는 마 | Give the important item enough attention instead of filling the session with easy completions | 重要なものから選び、手軽な項目ばかりを片づけて済ませないでね |
+| 분야 해석 | 하던 일을 끝까지 끌고 갈 집중력을 발휘하기 좋아 | You can draw on the concentration to carry your task through | 取り組んでいることを、最後まで続ける集中力を出しやすいよ |
+| 제안·기회 | 가장 중요한 것을 마친 뒤에 새 일을 시작해봐 | Finish what's most important before beginning something new | いちばん重要なことを終えてから、次を始めてみて |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 다음에 쓸 수 있는 과정의 요점을 골라 남기기 좋겠어 | A concise account of the process could make the work more useful beyond today | 考えた過程を残すと、次にも使える理解になりそう |
-| 문장 2 | 중요한 풀이를 짧게 적고, 결과만 남겨 경로를 잃지 않도록 해봐 | Keep the important reasoning with the result instead of letting it disappear at completion | 要の手順を短く記録し、答え以外を不要として捨てないでね |
+| 분야 해석 | 생각만 해두었던 것을 실제로 꺼내볼 기회가 있어 | There's a chance to bring out an idea you've only considered | 考えたままだったものを、実際に示す機会がありそう |
+| 제안·기회 | 거창하게 준비하기보다 작은 형태로 보여줘 | Show a simple version instead of preparing something elaborate | 準備を大がかりにせず、小さな形で見せてみよう |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 개념의 관계를 구체적으로 살펴 이해를 넓히기 좋겠어 | Connecting related concepts could deepen your understanding of the topic | 概念のつながりを見て、内容を深く理解できそう |
-| 문장 2 | 연결되는 내용을 함께 정리하되 비슷한 개념을 하나로 취급하지는 마 | Explain how they interact instead of merging them because they sound similar | 関係するものを並べながら、異なる意味まで似ているとまとめないでね |
+| 분야 해석 | 그동안 익힌 기본이 새로운 내용을 배우는 데 힘이 돼 | The basics you've learned can support new understanding | 身につけた基本が、新しい学びを支えてくれるよ |
+| 제안·기회 | 모르는 부분도 아는 것과 비교하며 접근해봐 | Approach an unfamiliar part by comparing it with what you know | 知らない部分も、知っていることと比べて近づいてみて |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 반복해서 틀린 지점을 구체적으로 다뤄보기 좋겠어 | Targeted practice could make a difficult part more reliable | 間違えた段階への練習が、確かな動きにつながりそう |
-| 문장 2 | 오류가 난 단계를 집중해 연습하고, 많이 했다는 사실만으로 판단하지는 마 | Give the weak step attention rather than using extra repetitions to rush past it | そこを繰り返して確かめ、回数を満たすことだけを目指さないでね |
+| 분야 해석 | 네 의견에 근거를 더하면 설득력을 높일 수 있어 | Giving reasons can make your opinion more persuasive | 意見に理由を添えると、説得力を高められるよ |
+| 제안·기회 | 좋다고 느낀 이유를 구체적인 예와 함께 말해봐 | Explain why it appeals to you with a specific example | よいと感じた理由を、具体的な例と一緒に話してみよう |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 의견에서 필요한 수정의 근거를 골라 쓰기 좋겠어 | Reasoned feedback could help an unfinished result take better shape | 理由のある意見を選ぶと、結果を良くする修正ができそう |
-| 문장 2 | 왜 고치는지와 바꿀 부분을 확인하되 모든 피드백에 전체를 다시 하지는 마 | Check the suggested correction and revise the relevant part with purpose | 根拠と直す箇所を聞き、全ての意見で全部を作り替えないでね |
+| 분야 해석 | 예전에는 놓쳤던 차이를 알아보며 성장을 느낄 수 있어 | Noticing a difference you once missed can show your growth | 前には逃した違いに気づき、成長を感じられるかも |
+| 제안·기회 | 어려웠던 내용을 다시 보고 달라진 점을 확인해봐 | Revisit difficult material and see what's changed | 難しかった内容を見直して、変化を確かめてみて |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 새 내용의 핵심 용어를 구체적으로 이해해보기 좋겠어 | Clarifying a term could connect the new material more naturally | 用語を理解すれば、初めての内容もつかみやすい日 |
-| 문장 2 | 모르는 표현부터 짚고, 뜻을 확인하지 않은 채 차례만 외우는 일은 줄여봐 | Check how its meaning works in the sequence instead of remembering the sequence alone | 分からない言葉を押さえ、意味を置いたまま順だけ覚えないでね |
+| 분야 해석 | 누군가를 도우며 네 이해도 더 깊어질 수 있어 | Helping someone can deepen your own understanding too | 人を助けることで、自分の理解も深まるかも |
+| 제안·기회 | 알고 있는 것을 쉽게 풀어 나누되 모르는 것은 솔직히 말해봐 | Explain what you know simply and be honest about what you don't | 知ることはわかりやすく分け合い、知らないことは素直に伝えよう |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 해낸 분량 속에서 실제로 배운 내용을 가려낼 수 있겠어 | A deliberate review could help you see the value of what you completed | できたことと学びを言葉にして、手応えを確かめられそう |
-| 문장 2 | 해낸 것과 배운 점을 적고, 다른 사람의 결과만을 기준으로 삼지는 마 | Name the progress and learning that belong to this attempt rather than someone else's result | 自分の記録を残し、人の結果だけに評価を委ねないでね |
+| 분야 해석 | 오늘의 성과를 다음 배움으로 이어가기 좋아 | Today's achievement can contribute to what you learn next | 今日の成果を、次の学びにつなげやすいとき |
+| 제안·기회 | 잘된 이유 하나를 남겨두면 나중에도 도움이 될 수 있어 | Keep one reason it went well for later use | うまくいった理由をひとつ残すと、先でも役立ちそう |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 한정된 시간에 다룰 핵심을 구체적으로 골라보기 좋겠어 | A well-chosen question could bring the session into useful focus | 中心の問いを選べば、限られた時間で理解を進められそう |
-| 문장 2 | 오늘 풀 질문 하나를 정하고, 도중마다 다른 과제를 골라 새로 시작하지는 마 | Follow it through rather than dividing the effort among newly appealing tasks | 今日解く課題を定め、途中の思いつきで対象を変え続けないでね |
+| 분야 해석 | 미뤄둔 도전을 시작할 자신감이 생길 수 있어 | You may feel ready to begin a challenge you've postponed | 延ばしていた挑戦を始める、自信が生まれるかも |
+| 제안·기회 | 잘할 수 있을지 오래 재기보다 가능한 첫 시도를 해봐 | Make a possible first attempt instead of spending too long judging whether you'll be good | 上手にできるか考え続けず、可能な最初の試みをしてみよう |
 
 ## 80–89점 — `category.work.d80.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 정해둔 분량 중 핵심 내용을 깊게 다룰 여지가 커 | The essential section may be ready to take a more complete shape | 重要な内容に力を注いで、手応えある進みを目指せそう |
-| 문장 2 | 중요한 항목을 먼저 끝내되 처리한 양에 만족해 내용 확인을 생략하지는 마 | Finish it carefully before treating additional volume as the next goal | 仕事や勉強の大事な項目から終え、量をこなしても検討を抜かないでね |
+| 분야 해석 | 그동안 들인 노력을 실력으로 보여주기 좋은 때야 | This is a good time to show the skill your effort has built | 積み重ねた努力を、実力として見せるのによいとき |
+| 제안·기회 | 준비해온 일이 있다면 자신 있게 나서되 익숙한 확인은 생략하지 마 | Step forward confidently with what you've prepared, while keeping your usual checks | 準備したことには自信を持って臨み、いつもの確認も忘れずに |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 지시나 문제의 세부 조건까지 살펴 진행 방향을 정확히 잡겠어 | The important conditions may stand out clearly from surrounding detail | 求められる条件を押さえて、筋の通った答えを考えられそう |
-| 문장 2 | 요구사항을 분명히 표시한 뒤 답을 검토하고, 읽기 전 결론은 잠시 열어둬 | Build the response around them instead of rushing to the most familiar answer | 必要な部分を確かめて読み、読む前の結論で内容を選ばないでね |
+| 분야 해석 | 어렵게 느끼던 내용이 한결 또렷해질 수 있어 | A difficult subject could become much clearer | 難しく感じた内容が、ぐっと明確になるかも |
+| 제안·기회 | 이해한 순간을 놓치지 말고 네 말로 짧게 남겨봐 | Briefly put the understanding in your own words while it's fresh | わかった瞬間を逃さず、自分の言葉で短く残してみよう |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 반복해서 헷갈렸던 내용을 깊게 재검토할 수 있겠어 | An error-prone section may become clearer under focused review | 間違えやすい点を深く見直すと、理解を確かにできそう |
-| 문장 2 | 틀리기 쉬운 부분을 충분히 다시 보되 이미 아는 곳만 되풀이하지는 마 | Work through the distinction that causes trouble and test it beyond the examples you know | 以前迷ったところを取り上げ、知っている範囲だけの復習で満足しないでね |
+| 분야 해석 | 네 아이디어를 구체적으로 펼쳐보기 좋아 | You can develop your idea in concrete terms | 自分のアイデアを、具体的に広げやすいとき |
+| 제안·기회 | 생각의 장점을 보여줄 작은 예를 함께 준비해봐 | Prepare a small example that shows its strengths | 考えのよさが伝わる、小さな例も用意してみて |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 설명과 실제 수행의 차이를 깊게 살펴볼 수 있겠어 | Prepared knowledge may be ready to show through a practical result | 知識を自分で使って、納得できる手応えを得られそう |
-| 문장 2 | 아는 내용을 직접 해보며 검증하고, 이해했다는 확신으로 실습을 빼지는 마 | Use it yourself and examine the point where the explanation becomes an action | 説明するだけで終わらず、分かることも実際に行って確かめよう |
+| 분야 해석 | 집중한 만큼 만족스러운 진전을 기대할 수 있어 | Concentrated effort can bring satisfying progress | 集中した分だけ、満足する進歩を期待できそう |
+| 제안·기회 | 가장 해결하고 싶던 부분에 좋은 시간을 먼저 써봐 | Give your best time first to the part you most want to resolve | いちばん解決したかった部分に、集中できる時間を先に使おう |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 큰 과제를 세부 질문으로 나누어 중요한 부분을 깊게 살피겠어 | The structure of a complicated task may become easier to recognize | 小さな問いをつなぐと、難しい課題の核心に近づけそう |
-| 문장 2 | 작게 답할 단위부터 정하고, 모든 문제를 동시에 해결하려고 하지는 마 | Give each necessary question a clear answer before combining them into the larger solution | 考える部分を分けて、全体の答えを一度に出すことにはこだわらないでね |
+| 분야 해석 | 익힌 것들을 함께 활용하며 실력을 넓히기 좋아 | Using what you've learned together can expand your abilities | 身につけたことを合わせて使い、実力を広げやすいよ |
+| 제안·기회 | 각각 배운 내용을 하나의 일이나 문제에 연결해봐 | Connect separately learned ideas in one task or problem | 別々に学んだ内容を、ひとつの用事や問いに結びつけてみて |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 필요한 정보를 정확히 좁혀 자료의 핵심을 깊게 살피겠어 | The relevant information may stand out from a larger body of material | 探す内容を明確にすると、情報を十分に活用できそう |
-| 문장 2 | 무엇을 찾을지 먼저 정하되, 자료를 더 모으는 데만 시간을 쓰지는 마 | Bring it into the task and check its use rather than keeping the search open indefinitely | 課題に必要なものを決め、資料の収集量だけを増やして終えないでね |
+| 분야 해석 | 설명하는 자리에서 네 이해를 잘 보여줄 수 있어 | An explanation can show your understanding well | 説明する場で、自分の理解をよく示せそう |
+| 제안·기회 | 어려운 표현을 늘리기보다 듣는 사람이 따라올 수 있게 풀어봐 | Make it easy to follow instead of adding difficult language | 難しい表現を増やさず、聞く人がついてこられるように話そう |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 실수의 이유를 깊게 살펴 다음 수행에 쓸 이해를 얻겠어 | A troublesome mistake may reveal a distinction you can now grasp | 間違いを理由から直せば、しっかりした理解へつなげられそう |
-| 문장 2 | 왜 고쳐야 하는지 충분히 적어두되 수정한 답만 기록하는 데 그치지는 마 | Record the cause and the correction together so the useful insight is not lost | なぜ変更したか記録し、答えの訂正だけで学びを閉じないでね |
+| 분야 해석 | 여러 번 고친 결과에서 완성도를 느끼기 좋아 | A result you've revised several times can feel well finished | 何度も直した結果に、仕上がりのよさを感じやすいとき |
+| 제안·기회 | 마지막 손질은 중요한 부분을 더 선명하게 하는 데 써봐 | Use the final touches to make important points clearer | 最後の手直しは、大事な部分を明確にするために使ってみて |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 분량과 걸리는 시간의 관계를 자세히 살펴 배정을 맞추겠어 | The demands of different sections may be clear enough to plan around effectively | 分量に合わせた時間が、大事なところの理解を助けそう |
-| 문장 2 | 각 항목에 필요한 시간을 충분히 가늠하고, 크기가 다른 과제에는 다른 시간을 줘봐 | Give the challenging part enough time while keeping the overall amount realistic | それぞれに要る長さを見て、全課題を同じ時間に押し込まないでね |
+| 분야 해석 | 낯선 과제에서도 네 경험이 도움이 될 수 있어 | Your experience could help even with an unfamiliar task | 初めての取り組みでも、自分の経験が助けになるかも |
+| 제안·기회 | 처음 보는 모양에 주눅 들지 말고 익숙한 원리를 찾아봐 | Look for a familiar principle instead of being discouraged by its new appearance | 見た目の違いにひるまず、知っている仕組みを探してみよう |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 정확한 질문으로 아직 모르는 부분을 깊게 확인할 수 있겠어 | A precise request may bring the information needed to work through a difficult section | 具体的な疑問から、必要な助けを十分受け取れそう |
-| 문장 2 | 막힌 지점을 구체적으로 물어보고, 도움은 전체 답보다 그 지점의 이해에 써봐 | Ask about the reasoning at the sticking point and carry it into your own attempt | つまずく箇所を正確に示し、全体の答えを代行してもらう頼み方は避けよう |
+| 분야 해석 | 함께 나눈 생각이 더 나은 답으로 이어질 수 있어 | Shared thinking could lead to a better answer | 交わした考えが、よりよい答えにつながりそう |
+| 제안·기회 | 네 의견을 보여주면서 다른 사람이 보탤 자리도 남겨줘 | Show your view and leave room for someone else to add to it | 自分の意見を見せつつ、人が付け加える余地も残してみて |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 내용의 핵심과 근거를 깊게 연결해 설명할 수 있겠어 | A difficult point may become clear enough to explain with its supporting logic | 要点と根拠を結び、理解したことをしっかり伝えられそう |
-| 문장 2 | 중요한 점과 이유를 함께 풀어내되 암기한 문장을 그대로 이어 붙이지는 마 | Use a connected account instead of listing the terms you remember | 学んだ筋道を説明して、覚えた言葉を並べただけの話にしないでね |
+| 분야 해석 | 새로운 것을 배우는 재미가 집중을 더해줄 수 있어 | The enjoyment of learning something new could help you concentrate | 新しく学ぶ楽しさが、集中を高めてくれそう |
+| 제안·기회 | 궁금한 주제를 조금 더 깊게 알아볼 시간을 가져봐 | Spend time exploring a subject you're curious about more deeply | 気になる話題を、もう少し深く知る時間を取ってみよう |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심의 앞뒤 관계를 구체적으로 잡아 초안을 깊게 펼치겠어 | The main ideas may be ready to form a coherent draft | 核心の順を先に置けば、初稿をまとまった形にできそう |
-| 문장 2 | 중요한 내용의 순서를 먼저 적되 첫 문장만 완벽하게 만드는 데 시간을 다 쓰지는 마 | Carry the sequence onto the page instead of letting the opening wording delay the rest | 全体の筋から書き、最初の一文だけを完成させることに偏らないでね |
+| 분야 해석 | 도전했던 부분에서 달라진 네 실력을 느끼기 좋아 | A challenge you've tried can reveal how your ability has changed | 挑んだ部分から、変わった実力を感じやすいとき |
+| 제안·기회 | 예전에 어려웠던 일을 다시 해보며 성장을 확인해봐 | Return to something once difficult and notice your growth | 以前難しかったことをやり直して、成長を確かめてみて |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 마지막 요구조건까지 세밀하게 확인해 완성도를 높여봐 | The work may be close enough to completion for a precise final review | 提出条件を丁寧に見れば、納得できる仕上げに近づけそう |
-| 문장 2 | 제출 항목을 하나씩 대조하고, 넘길 시점은 느낌보다 확인 여부로 정해봐 | Confirm the remaining conditions instead of letting confidence replace the check | 求められた項目を順に確かめ、できた手応えだけですぐ出さないでね |
+| 분야 해석 | 핵심을 알아보는 눈이 결과를 더 탄탄하게 만들어줘 | Recognizing the main point can make your result stronger | 要点を見抜く目が、結果をより確かなものにしてくれるよ |
+| 제안·기회 | 해야 할 것이 많아도 가장 중요한 뜻부터 챙겨봐 | Keep the essential meaning in view even with a lot to do | やることが多くても、いちばん大切な意味から押さえよう |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 중요한 과제를 먼저 골라 필요한 부분을 깊게 처리하겠어 | The leading task may be ready to receive the effort it deserves | 優先する課題に集中して、大切な分を終えられそう |
-| 문장 2 | 먼저 끝낼 대상을 정하되 난도가 낮은 항목만 연달아 선택하지는 마 | Carry its important section through before adding more comfortable tasks to the list | 先に片づけるものを選び、簡単な内容を増やすだけでは済ませないでね |
+| 분야 해석 | 네 강점을 살린 접근이 일을 풀어가는 데 도움이 돼 | An approach that uses your strengths can help you solve the task | 強みを生かす取り組み方が、解決の助けになるよ |
+| 제안·기회 | 잘하는 방식을 숨기지 말고 필요한 곳에 적극적으로 써봐 | Actively use what you do well where it's needed | 得意な方法を隠さず、必要なところで積極的に使ってみて |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 핵심 과정을 구체적으로 가려 기록하겠어 | The key steps may be clear enough to preserve in a short, useful record | 重要な過程の記録が、次に生かせる力になりそう |
-| 문장 2 | 중요한 단계를 짧게 남기되 결과만 적고 중간 과정을 없애지는 마 | Write how the result came together so you can follow it again | 考えた手順を短く残し、結果だけ書いて途中を手放さないでね |
+| 분야 해석 | 배운 내용을 실제 상황과 연결하기 좋은 때야 | This is a good time to connect learning with a real situation | 学んだことを、実際の場面につなげるのによいとき |
+| 제안·기회 | 직접 써볼 작은 기회를 찾아 이해를 넓혀봐 | Find a small chance to use it and expand your understanding | 小さく使う機会を見つけて、理解を広げてみよう |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 여러 개념이 어떻게 이어지는지 깊게 살펴볼 수 있겠어 | The links between ideas may become clearer without erasing their differences | 関連する概念を結んで、理解をさらに深められそう |
-| 문장 2 | 관련 내용을 함께 정리하고, 차이가 있는 개념은 닮았어도 경계를 지켜봐 | Use that structure to explain the topic more accurately | つながりを整理しながら、違う意味を似ているという理由で一緒にしないでね |
+| 분야 해석 | 질문을 깊게 다루며 예상보다 많은 것을 알아갈 수 있어 | Exploring a question deeply can teach you more than expected | 質問を深く考えることで、予想以上に知ることが増えそう |
+| 제안·기회 | 처음 얻은 답에서 멈추지 말고 이유를 한 번 더 물어봐 | Ask why once more instead of stopping at the first answer | 最初の答えで止まらず、理由ももう一度尋ねてみて |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 어려운 단계의 수행을 깊게 연습해 과정의 빈틈을 줄여봐 | The source of a repeated mistake may become clear enough to practice directly | つまずいた動きを練習すれば、精度を上げる手応えがありそう |
-| 문장 2 | 오류가 난 부분을 충분히 해보되 횟수를 채우는 반복으로 끝내지는 마 | Work on that point until the next attempt reflects the correction | 誤りの出た段階を試し、回数を重ねた事実だけを評価しないでね |
+| 분야 해석 | 준비한 이야기를 자신 있게 전하기 좋아 | You can confidently share what you've prepared | 用意した話を、自信を持って伝えやすいとき |
+| 제안·기회 | 충분히 아는 부분은 분명하게 말하고 모르는 것은 구분해줘 | Speak clearly about what you know well and distinguish what you don't | よく知る部分は明確に話し、わからない点とは分けてみよう |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 피드백의 근거를 깊게 살펴 결과물에 맞는 수정을 고르겠어 | A clear explanation behind the feedback may reveal a valuable improvement | 意見の根拠を見れば、内容を磨く修正を選べそう |
-| 문장 2 | 의견의 이유와 수정점을 구체적으로 확인하고, 전체 재작업은 모든 의견의 기본 답이 아니야 | Use it to refine the affected section rather than rebuilding what already works | 直す箇所を確かめて、全ての意見に全体のやり直しで応えないでね |
+| 분야 해석 | 꾸준히 이어온 시간이 오늘의 성취감으로 돌아올 수 있어 | The time you've steadily put in can give you a sense of achievement today | 続けてきた時間が、今日の達成感として返ってくるかも |
+| 제안·기회 | 잘된 결과를 운으로만 돌리지 말고 네 노력을 인정해봐 | Give your effort credit instead of attributing a good result only to luck | よい結果を運だけのせいにせず、自分の努力を認めてみて |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 낯선 용어의 의미를 깊게 살펴 새로운 내용을 연결하겠어 | The language of an unfamiliar topic may become clear enough to guide understanding | 知らない用語を理解して、新しい内容を深く追えそう |
-| 문장 2 | 모르는 말부터 정확히 확인하되 뜻 없는 순서 암기로 넘어가지는 마 | Explain the key terms as you follow the steps they support | 意味を確かめてから進み、言葉が曖昧なまま手順だけ暗記しないでね |
+| 분야 해석 | 막혔던 일을 끝내며 다음으로 나아갈 여유를 얻기 좋아 | Finishing a stalled task can leave you room to move on | 止まっていたことを終えて、次へ向かう余裕を得やすいよ |
+| 제안·기회 | 마무리한 뒤에는 남겨둔 궁금증을 새롭게 살펴봐 | Once it's done, take a fresh look at a question you set aside | 仕上げた後には、残していた疑問を新しく見てみよう |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 해낸 분량과 실제로 배운 내용을 깊게 정리할 수 있겠어 | The work you have done may show a clear development in your understanding | 終えた分と得た理解を、確かな手応えとして残せそう |
-| 문장 2 | 끝낸 일과 얻은 이해를 적어두되 남의 결과만으로 자신의 가치를 정하지는 마 | Record the result and what you learned so the progress remains visible on its own terms | できたことと学びを書き、他人の出来だけで自分の成果を判断しないでね |
+| 분야 해석 | 피드백을 반영하며 네 생각을 더 설득력 있게 만들 수 있어 | Using feedback can make your thinking more persuasive | 意見を取り入れることで、考えの説得力を高められそう |
+| 제안·기회 | 좋은 점은 지키고 설명이 부족했던 곳만 보태봐 | Keep the strong points and add only where explanation was missing | よさは保ちながら、説明の足りなかった部分だけ補ってみて |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심 질문에 시간을 모아 중요한 내용을 깊게 살피겠어 | The question you have chosen could lead into a deeper understanding of the topic | 核になる問いに力を注ぎ、限られた時間を深く使えそう |
-| 문장 2 | 오늘 풀 대상을 분명히 정하고, 중간마다 과제를 바꾸는 선택은 줄여봐 | Keep the session with that issue while its important connections are in view | 今日考える中心を決めて、途中で課題を変えることに時間を使わないでね |
+| 분야 해석 | 평소보다 조금 높은 목표에 도전해보기 좋아 | A slightly harder goal can feel worth trying today | 普段より少し高い目標へ、挑むのによいとき |
+| 제안·기회 | 한꺼번에 양을 늘리기보다 난도를 한 단계 높여봐 | Raise the difficulty one step instead of increasing the amount all at once | 一度に量を増やさず、難しさを一段上げてみよう |
 
 ## 90–100점 — `category.work.d90.general`
 
-### v01 · 정해둔 과제
-
-의미 명세: 일이나 공부의 맡은 분량
+### v01
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 핵심을 충분히 다루며 정해둔 분량을 완성해볼 만하겠어 | Your effort could show clearly in a well-finished priority task | 大事な項目へ力を集め、納得できる仕事や学びを目指せそう |
-| 문장 2 | 중요한 항목부터 깊게 처리하고, 마무리는 개수가 아닌 확인 여부로 판단해봐 | Carry the important section through its review so the result reflects more than the amount completed | 重要なところから仕上げて、分量を満たしても最後の確認を残そう |
+| 분야 해석 | 네가 쌓아온 실력을 자신 있게 펼치기 좋은 때야 | This is a good time to put the skills you've built to use | 育ててきた実力を、自信を持って発揮しやすいとき |
+| 제안·기회 | 준비해온 기회가 있다면 잘할 수 있는 부분부터 당당히 보여줘 | When a chance you've prepared for comes along, confidently show what you know best | 力を試すために準備してきたなら、得意な部分から堂々と見せてみよう |
 
-### v02 · 요구사항 읽기
-
-의미 명세: 업무 지시나 문제를 확인할 때
+### v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 요구조건을 충분히 해석해 풀이와 진행의 근거를 세울 수 있겠어 | A thorough reading could help you produce a response that fits the task closely | 求められる条件を読み取り、答えの筋をしっかり作れそう |
-| 문장 2 | 해야 할 조건부터 빠짐없이 표시하고, 답은 읽은 내용에 따라 정해봐 | Check each necessary condition before treating the solution as complete | 必要な点を示して確かめ、読む前に決めた結論へ押し込まないでね |
+| 분야 해석 | 깊이 이해한 내용이 새로운 문제를 푸는 힘이 될 수 있어 | Deep understanding can help you solve a new problem | 深く理解したことが、新しい問題を解く力になるかも |
+| 제안·기회 | 익숙한 답만 찾기보다 배운 원리를 직접 연결해봐 | Connect the principles you've learned instead of seeking only a familiar answer | 慣れた答えだけを探さず、学んだ仕組みを直接つなげてみて |
 
-### v03 · 복습과 재검토
-
-의미 명세: 전에 배운 내용을 다시 볼 때
+### v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 전에 놓친 지점을 정확히 짚어 이해의 빈틈을 줄여봐 | A careful review could turn a persistent uncertainty into something you can explain | 前につまずいた点の見直しが、確かな理解へつながりそう |
-| 문장 2 | 틀리기 쉬운 내용을 깊게 재검토하고, 익숙함보다 실제로 어려웠던 부분을 기준으로 골라봐 | Concentrate on the weak point until you can distinguish it from the familiar material around it | 間違えやすい内容にも向き合い、慣れた範囲だけの復習で終えないでね |
+| 분야 해석 | 오랫동안 다듬은 결과에서 뚜렷한 보람을 느끼기 좋아 | A result refined over time can bring a clear sense of reward | 長く磨いた仕上がりに、はっきりした手応えを感じやすいよ |
+| 제안·기회 | 완성한 뒤에는 아쉬운 점보다 이뤄낸 변화를 먼저 살펴봐 | Once it's finished, notice the change you achieved before the parts you regret | 完成したら惜しい点より、生み出した変化を先に見てみよう |
 
-### v04 · 직접 적용
-
-의미 명세: 알고 있는 것을 실제로 해볼 때
+### v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 알고 있는 내용을 충분히 적용해 실제로 쓸 수 있는 이해를 만들어봐 | A complete practical attempt could make your understanding tangible | 自分で試すことで、知識を使える力として確かめられそう |
-| 문장 2 | 설명에 그치지 않고 직접 수행하되, 익숙한 내용도 실습에서 확인해봐 | Carry the idea through an example and check why each part works instead of skipping practice | 説明だけにせず実際に行い、理解したつもりで試す過程を抜かないでね |
+| 분야 해석 | 좋은 아이디어를 실제 모습으로 만들 기회가 있어 | You have a chance to turn a good idea into something you can show | よいアイデアを、実際の形にする機会がありそう |
+| 제안·기회 | 머릿속에만 두었던 생각을 작은 예나 설명으로 꺼내봐 | Bring a thought out of your head through a small example or explanation | 頭の中に置いていた考えを、小さな例や説明にしてみて |
 
-### v05 · 문제 나누기
-
-의미 명세: 어려운 과제가 크게 느껴질 때
+### v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 과제 안에 섞인 문제를 정확히 나눠 풀이의 구조를 세워봐 | A well-divided problem could become something you can explain from beginning to end | 小さな問いの答えをつないで、難題を深く考えられそう |
-| 문장 2 | 작은 질문으로 충분히 분해하되, 전체를 단번에 해결하는 데 집착하지는 마 | Work through the essential questions and check how their answers support the whole | 課題を分けて取り組み、全部を一度に解けることだけを求めないでね |
+| 분야 해석 | 집중과 이해가 맞물리면 어려운 부분에서도 크게 나아갈 수 있어 | Concentration and understanding together can bring substantial progress in a difficult part | 集中と理解が合わさると、難所でも大きく進めそう |
+| 제안·기회 | 오늘 가장 궁금했던 문제에 시간을 충분히 써봐 | Give enough time to the question that interests you most today | 今日いちばん知りたかった問いに、十分な時間を使ってみよう |
 
-### v06 · 자료 찾기
-
-의미 명세: 과제에 필요한 정보를 구할 때
+### v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 자료에서 필요한 근거를 충분히 가려내 과제에 연결해봐 | A focused search could give a difficult task the evidence it needs | 必要な情報を定めれば、集めた資料を十分に生かせそう |
-| 문장 2 | 찾을 정보를 구체적으로 정하고, 자료의 양보다 필요한 답의 충실함을 봐 | Find and apply the relevant information, letting usefulness determine when the search is complete | 知るべき内容を先に選び、収集を続けるだけで課題を置かないでね |
+| 분야 해석 | 네 설명이 누군가의 이해를 돕는 기회가 될 수 있어 | Your explanation could help someone else understand | 自分の説明が、人の理解を助ける機会になるかも |
+| 제안·기회 | 잘 아는 내용을 쉬운 말로 나누며 네 생각도 다듬어봐 | Refine your own thinking as you share something you know well in simple words | よく知る内容を簡単な言葉で話し、自分の考えも磨いてみて |
 
-### v07 · 실수 수정
-
-의미 명세: 틀리거나 고칠 부분을 발견한 경우
+### v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 수정할 부분과 그 원인을 정확히 연결해 이해를 다져봐 | A fully understood correction could turn an error into reliable knowledge | 修正の理由まで理解して、間違いを確かな学びへ変えられそう |
-| 문장 2 | 고칠 이유를 자세히 남기고, 마무리 기준은 답의 변화뿐 아니라 이유의 이해로 잡아봐 | Explain the changed reasoning and check it in another attempt rather than keeping only the answer | 変更した根拠を残し、正答に入れ替えるだけで満足しないでね |
+| 분야 해석 | 그동안의 연습이 필요한 순간에 든든한 바탕이 돼 | Past practice can give you solid support when you need it | 重ねた練習が、必要な場面で頼もしい土台になるよ |
+| 제안·기회 | 긴장이 되더라도 익숙하게 해온 순서부터 믿고 시작해봐 | Even if you're nervous, trust a familiar sequence and begin | 緊張しても、慣れた順番を信じて始めてみよう |
 
-### v08 · 시간 배정
-
-의미 명세: 일이나 공부에 쓸 시간을 정할 때
+### v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 일이나 공부의 분량별 시간을 정확히 가늠해 계획을 다듬어봐 | A well-judged allocation could help you complete the important work with care | 分量に見合う時間を使って、必要な内容を掘り下げられそう |
-| 문장 2 | 각 부분에 들 시간을 구체적으로 잡고, 같은 시간 배정보다 실제 필요한 차이를 반영해봐 | Match time to the actual demands of each part and preserve the necessary review | 項目ごとの長さを考え、全て同じ時間で済む計画にはしないでね |
+| 분야 해석 | 한 단계 높은 도전에서 네 가능성을 알아보기 좋아 | A more advanced challenge can help you discover what you're capable of | 一段上の挑戦で、できることを確かめやすいとき |
+| 제안·기회 | 평소라면 망설였을 난도에도 차근차근 접근해봐 | Approach a difficulty you might usually hesitate over one step at a time | 普段なら迷う難しさにも、ひとつずつ近づいてみて |
 
-### v09 · 질문과 도움
-
-의미 명세: 모르는 것을 물어볼 수 있을 때
+### v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 질문할 지점을 세밀하게 짚어 설명을 자기 이해로 연결해봐 | Knowing what to ask could turn a persistent obstacle into a step you understand | 的確な質問をきっかけに、止まった内容を理解できそう |
-| 문장 2 | 막힌 부분을 정확히 질문하되 과제 전체의 답을 대신 내달라는 요구는 내려놔 | Seek the relevant explanation and complete the work yourself so the learning stays with you | 分からない部分を具体的に聞き、全体の答えは自分でも考える余地を残そう |
+| 분야 해석 | 여러 경험이 연결되며 생각의 폭을 넓힐 수 있어 | Connecting several experiences can broaden your thinking | いくつもの経験がつながり、考えの幅を広げられそう |
+| 제안·기회 | 다른 분야에서 배운 것도 지금의 고민에 가져와봐 | Bring something learned elsewhere into the question you're facing now | 別の分野で学んだことも、今の問題に生かしてみよう |
 
-### v10 · 설명하기
-
-의미 명세: 배운 것이나 한 일을 말로 정리할 때
+### v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 핵심을 왜 그렇게 이해했는지까지 충분히 설명해봐 | Your understanding could show through an explanation that others can follow | 核心と理由を結ぶ説明で、学んだことを確かに示せそう |
-| 문장 2 | 중요한 내용과 이유를 함께 전하고, 외운 말의 양보다 설명의 연결을 기준으로 삼아봐 | Present the central point and its reasons in your own words, checking the links as you go | 理解したつながりを話し、記憶した文だけを羅列して済ませないでね |
+| 분야 해석 | 함께 고민한 내용에서 혼자보다 나은 답을 기대할 수 있어 | Thinking together can produce a better answer than thinking alone | 一緒に考えた内容なら、ひとりよりよい答えを期待できそう |
+| 제안·기회 | 네 강점을 보태면서 다른 사람이 잘하는 부분도 받아들여봐 | Add your strength while welcoming what the other person does well | 自分の強みを加えながら、人の得意な部分も受け取ってみて |
 
-### v11 · 초안 작성
-
-의미 명세: 결과물을 처음 적어볼 때
+### v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 초안의 핵심 순서를 충분히 정리해 결과물의 뼈대를 세워봐 | A clear structure could help you produce a draft that expresses the whole idea | 要点の順序から書けば、伝えたい全体を初稿にできそう |
-| 문장 2 | 내용의 차례부터 적고, 첫 문장의 매끄러움보다 전체를 먼저 보도록 해봐 | Finish the central sequence and refine the beginning in light of what the draft actually says | 筋を先に置いて、書き出しの一文だけを完璧にしようとしないでね |
+| 분야 해석 | 핵심을 분명히 전달하면 네 의견이 더 잘 드러나 | A clear main point helps your opinion stand out | 要点を明確に伝えると、自分の意見がよく表れるよ |
+| 제안·기회 | 가장 말하고 싶은 뜻을 먼저 꺼내고 근거를 이어봐 | Lead with what you most want to say, then follow with the reasons | いちばん言いたいことを先に出して、理由を続けてみよう |
 
-### v12 · 최종 확인
-
-의미 명세: 제출이나 마무리 전 점검할 때
+### v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 결과물과 제출 조건을 충분히 대조하며 마무리할 수 있겠어 | A thorough last pass could let the finished result reflect the care put into it | 条件を最後まで確かめて、納得のいく提出へつなげられそう |
-| 문장 2 | 요구를 하나씩 정확히 확인하되 완료했다는 확신만으로 바로 넘기지는 마 | Verify each submission requirement before calling the task complete | 渡す前の条件を全て確かめ、終えたつもりでも未確認のまま出さないでね |
+| 분야 해석 | 막혀 있던 이유를 알아차리며 배움의 재미를 되찾기 좋아 | Discovering why you were stuck can make learning enjoyable again | つまずいた理由に気づき、学ぶ楽しさを取り戻しやすいとき |
+| 제안·기회 | 답을 얻은 뒤 왜 통했는지도 잠깐 돌아봐 | After finding the answer, briefly consider why it worked | 答えを得たら、なぜうまくいったかも少し振り返ってみて |
 
-### v13 · 우선 과제
-
-의미 명세: 여러 업무나 학습 항목이 있을 때
+### v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 여러 과제 중 먼저 완결할 것을 정확히 정해 집중해봐 | Choosing the right task could let your preparation show where it matters most | 先に終える課題を選び、重要なことへ十分な力を使えそう |
-| 문장 2 | 우선 끝낼 항목을 분명히 고르고, 선택 기준은 쉬움 하나에 두지 않도록 해봐 | Finish the priority with care instead of judging progress by the number of easy items completed | 大切な項目から取り組み、易しいものだけをこなす選び方にはしないでね |
+| 분야 해석 | 꾸준한 노력이 눈에 보이는 차이를 만들 수 있어 | Consistent effort can make a visible difference | 続けた努力が、目に見える違いを作るかも |
+| 제안·기회 | 전에 남겨둔 결과와 비교하며 얼마나 나아졌는지 느껴봐 | Compare with a previous result and notice how far you've come | 前に残した結果と比べて、進んだ分を感じてみよう |
 
-### v14 · 기록 남기기
-
-의미 명세: 다음에 참고할 풀이와 과정
+### v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 다시 활용할 과정의 핵심을 정확히 골라 기록해봐 | A well-chosen process note could turn a finished result into knowledge you can reuse | 考えた過程を記録して、今回の理解を次にも残せそう |
-| 문장 2 | 중요한 단계를 간결하게 남기고, 기록의 기준은 결과뿐 아니라 거기 이른 과정까지 잡아봐 | Record the decisive steps and their connection rather than saving the answer alone | 重要な手順を短く書き、結果のために途中の記録を捨てないでね |
+| 분야 해석 | 새로운 시도를 통해 네가 잘하는 것을 더 발견할 수 있어 | A new attempt can reveal more of what you do well | 新しく試すことで、得意なことをさらに見つけられそう |
+| 제안·기회 | 이미 익숙한 일에만 머물지 말고 관심 있던 부분을 맡아봐 | Take on a part that interests you instead of staying only with familiar tasks | 慣れたことだけでなく、関心のあった部分も引き受けてみて |
 
-### v15 · 개념 연결
-
-의미 명세: 여러 내용의 관계를 이해할 때
+### v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 개념의 연결을 정확히 짚어 전체 이해를 다져봐 | A precise connection could bring a complicated set of concepts into a coherent picture | 概念の関係を理解して、知っている内容を深く結びつけられそう |
-| 문장 2 | 이어지는 내용을 충분히 함께 정리하되 다른 개념을 비슷하다는 이유로 합치지는 마 | Show how the ideas belong together while preserving the meaning of each | 関連するものを並べ、似ていても違う意味まで統合しないでね |
+| 분야 해석 | 복잡했던 내용을 네 생각으로 정리하기 좋은 때야 | This is a good time to make complicated material clear in your own thinking | 複雑だった内容を、自分の考えとしてまとめやすいとき |
+| 제안·기회 | 외운 표현을 내려놓고 처음부터 쉽게 설명해봐 | Set memorized phrases aside and explain it simply from the beginning | 覚えた表現を離れて、最初から簡単に説明してみよう |
 
-### v16 · 반복 연습
-
-의미 명세: 같은 유형을 다시 수행할 때
+### v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 오류가 난 단계를 정확히 짚어 반복 연습을 알차게 써봐 | A carefully targeted exercise could turn a persistent error into a step you understand | 誤りの出た段階を練習し、納得できる動きを目指せそう |
-| 문장 2 | 틀린 부분을 깊게 연습하고, 기준은 횟수보다 수행이 어떻게 달라졌는지로 잡아봐 | Check the troublesome part in practice rather than treating a large repetition count as mastery | つまずいた箇所を確かめ、実行回数だけ増やして終わらないでね |
+| 분야 해석 | 준비한 것을 마무리까지 밀고 갈 자신감을 얻기 좋아 | You may find the confidence to finish what you've been preparing | 準備したことを仕上げるまで、自信を持って進めやすいよ |
+| 제안·기회 | 마지막에 마음이 급해져도 꼭 필요한 확인은 챙겨줘 | Make time for the essential final checks, even if you feel rushed | 最後に気が急いても、欠かせない確認は大切にしてね |
 
-### v17 · 중간 피드백
-
-의미 명세: 업무나 학습 결과를 확인받을 때
+### v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 의견의 근거와 실제 수정할 곳을 정확히 연결해봐 | A thoughtful response to feedback could bring the result closer to its intended purpose | 根拠を確かめた意見から、結果を磨く修正へ進めそう |
-| 문장 2 | 이유와 수정 범위를 충분히 확인하되 들은 의견마다 결과물 전체를 새로 만들지는 마 | Apply the supported correction while keeping the sound parts intact | 直す点を具体的にし、全ての感想のために全部やり直さないでね |
+| 분야 해석 | 궁금증을 끝까지 따라가며 깊은 이해를 얻을 수 있어 | Following a question all the way can bring deep understanding | 疑問を最後までたどることで、深く理解できそう |
+| 제안·기회 | 정답을 찾았더라도 아직 납득 안 되는 부분은 더 물어봐 | Keep asking about what doesn't make sense, even after finding the right answer | 答えが出ても納得できない点は、さらに尋ねてみよう |
 
-### v18 · 새 내용 이해
-
-의미 명세: 처음 접하는 업무나 학습 내용
+### v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 새로운 내용의 용어를 충분히 이해해 진행의 근거를 세워봐 | A firm grasp of the necessary terms could make the new material genuinely usable | 用語の意味から理解して、新しい内容を自分の知識にできそう |
-| 문장 2 | 모르는 표현을 먼저 짚고, 순서도 그 뜻을 이해한 뒤 연결해봐 | Connect each important meaning with the sequence rather than relying on recitation | 分からない言葉を先に押さえ、意味を知らない順序の暗記にはしないでね |
+| 분야 해석 | 네 장점을 알아보고 다음 목표를 세우기 좋아 | Recognizing your strengths can help you choose the next goal | 長所に気づき、次の目標を立てるのによいとき |
+| 제안·기회 | 잘된 이유를 살려 조금 더 해보고 싶은 것을 골라봐 | Build on what went well and pick something you'd like to take a little further | うまくいった理由を生かし、もう少し試したいことを選んでみて |
 
-### v19 · 성취 정리
-
-의미 명세: 해낸 분량과 배운 것을 돌아볼 때
+### v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 직접 해낸 것과 배운 점을 정확히 짚어 다음 진행의 근거로 써봐 | A thoughtful account of your work could reveal how much of your preparation you can now use | 終えたことと学びを整理して、自分の成果を確かめられそう |
-| 문장 2 | 완료한 분량과 얻은 이해를 충분히 기록하고, 판단의 중심을 남의 결과에만 두지는 마 | Describe what you accomplished and understood before measuring it against other outcomes | 手にした理解を書き留め、他人の結果だけを自分の評価にはしないでね |
+| 분야 해석 | 오늘의 성취가 다음 도전을 덜 두렵게 만들 수 있어 | Today's achievement could make the next challenge less daunting | 今日の達成で、次に挑む怖さが和らぐかも |
+| 제안·기회 | 해낸 것을 충분히 기뻐한 뒤 새로운 한 걸음을 생각해봐 | Fully enjoy what you've done before considering another step | できたことを十分喜んでから、新しい一歩を考えてみよう |
 
-### v20 · 집중 과제 선택
-
-의미 명세: 시간이 한정된 일이나 공부
+### v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 문장 1 | 오늘 다룰 핵심을 정확히 잡아 한정된 시간을 충분히 써봐 | Sustained attention to the right question could make a difficult topic more understandable | 中心の問いを深く考え、限られた時間を生かす好機 |
-| 문장 2 | 풀 질문 하나를 분명히 정하되 도중에 다른 과제로 계속 이동하지는 마 | Follow the main issue through its reasoning before turning to a different task | 今日解く核心を決めて、途中で対象を何度も変えずに取り組もう |
+| 분야 해석 | 배운 것을 너만의 방식으로 활용하기에 좋은 때야 | This is a good time to use learning in your own way | 学んだことを、自分なりに使うのによいとき |
+| 제안·기회 | 남의 예를 그대로 따르기보다 네 경험을 더해 완성해봐 | Add your experience instead of following another person's example exactly | 人の例をそのまま追わず、自分の経験を加えて仕上げてみて |

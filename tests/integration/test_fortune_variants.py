@@ -245,3 +245,46 @@ async def test_type_based_cursor_upgrades_once_without_resetting_categories(fort
     assert len(state['routes']) == 5
     await _reveal(db, now=NOW + timedelta(days=1), locale='ja')
     assert await _stored(db) == after
+
+
+async def test_field_copy_upgrade_preserves_today_and_continues_v2_cursor(fortune_db):
+    db = fortune_db
+    await _reveal(db)
+    state = (await _stored(db))["copy_selection"]
+    old_lines = {
+        "ko": ["이전에 저장한 애정 해석", "이전에 저장한 애정 제안"],
+        "en": ["Previously saved love reading", "Previously saved love suggestion"],
+        "ja": ["保存済みの恋愛の解釈", "保存済みの恋愛の提案"],
+    }
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        row = await session.get(DailyFortune, db.uid)
+        copies = deepcopy(row.copy_by_locale)
+        for locale, lines in old_lines.items():
+            copies[locale]["categories"]["love"]["text"] = lines
+        row.copy_by_locale = copies
+        row.copy_version = "fortune-copy.v2-day-overview.1"
+        await session.commit()
+
+    for locale, lines in old_lines.items():
+        same_day = await _reveal(db, locale=locale)
+        assert same_day["result"]["categories"]["love"]["text"] == lines
+        assert same_day["versions"]["copy"] == "fortune-copy.v2-day-overview.1"
+    assert (await _stored(db))["copy_selection"] == state
+
+    tomorrow = await _reveal(db, now=NOW + timedelta(days=1))
+    after = await _stored(db)
+    selection = after["copy_selection"]
+    assert selection["version"] == state["version"] == "fortune-selection.v2"
+    assert set(selection["routes"]) == set(state["routes"])
+    assert tomorrow["versions"]["copy"] == fortune_catalog.COPY_VERSION
+    for route, cursor in selection["routes"].items():
+        assert cursor["position"] == state["routes"][route]["position"] + 1
+    semantic = {k: v for k, v in after.items() if k != "copy_selection"}
+    for locale in old_lines:
+        result = await _reveal(db, now=NOW + timedelta(days=1), locale=locale)
+        expected = fortune_catalog.load_catalog().render(
+            semantic, locale, selected=selection["selected"],
+        )
+        for category, block in expected["categories"].items():
+            assert result["result"]["categories"][category]["text"] == block["text"]
+    assert (await _stored(db))["copy_selection"] == selection

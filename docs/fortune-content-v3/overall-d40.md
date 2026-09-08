@@ -1,11 +1,11 @@
 # 오늘의 총평 40–49점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
-크게 나쁘지도 특별히 좋지도 않은 흐름에서 작은 변화를 살피는 하루
+평온한 일상에서 작은 변화를 살피는 하루
 
 내부 계산 유형과 관계없이 이 점수 구간의 20묶음에서 선택한다
 
@@ -24,8 +24,8 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 네 리듬대로 보내기에 알맞은 날이야 | Today suits your own rhythm | 自分のリズムで過ごすのに、ちょうどいい日 |
-| 풀이 1 | 주변의 흐름을 따라가느라 무리하지 않아도 괜찮아 | You don't need to stretch yourself to match what's happening around you | 周りの流れを追おうと、無理をしなくても大丈夫 |
+| 총평 | 오늘은 네 리듬대로 보내기에 알맞은 날이야 | You can take today at your own pace | 自分のリズムで過ごすのに、ちょうどいい日 |
+| 풀이 1 | 주변이 바쁘게 움직여도 네가 무리할 필요는 없어 | People around you being busy doesn't mean you need to push yourself | 周りが忙しく動いていても、自分まで無理をしなくて大丈夫 |
 | 풀이 2 | 익숙한 순서를 지키면 마음이 덜 흔들리고 생각도 정돈돼 | A familiar order can help your mood feel steadier and your thoughts settle | いつもの順番を守ると、気持ちが揺れにくく考えもまとまりそう |
 | 풀이 3 | 괜히 속도를 높이기보다 편하게 이어가는 쪽을 택해봐 | Choose a comfortable pace instead of speeding up without a reason | むやみに速めるより、気楽に続けられるほうを選んでみよう |
 | 해볼 것 | 네게 편한 하루의 속도를 유지해봐 | Keep a daily pace that feels right for you | 心地よい一日のペースを保ってみて |
@@ -57,7 +57,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 한결같이 곁에 있는 것들이 든든하게 느껴지는 날이야 | The things that stay by your side may feel especially reassuring today | 変わらずそばにあるものが、頼もしく感じられる日 |
+| 총평 | 한결같이 곁에 있는 것들이 든든하게 느껴지는 날이야 | Familiar company and routines can feel especially reassuring today | 変わらずそばにあるものが、頼もしく感じられる日 |
 | 풀이 1 | 평소에는 당연했던 일상이 오늘의 안정감을 만들어줘 | A routine you usually take for granted can be the source of today's steadiness | 普段は当たり前の日常が、今日の安心を支えてくれそう |
 | 풀이 2 | 큰 도움보다 변함없는 태도에서 고마움을 느낄 수 있어 | Consistent care may mean more than a dramatic act of help | 大きな手助けより、いつもと同じ態度にありがたさを感じるかも |
 | 풀이 3 | 익숙하다는 이유로 놓친 마음을 한 번 돌아봐 | Notice the affection that familiarity sometimes makes easy to miss | 慣れたからこそ見逃した思いやりを、振り返ってみよう |
@@ -138,7 +138,7 @@
 | 풀이 1 | 크게 문제 삼지는 않았어도 자꾸 떠오르는 이야기가 있는 날이야 | There could be something that keeps coming to mind without feeling like a major issue | 問題にするほどではなくても、何度も浮かぶ話があるかも |
 | 풀이 2 | 부담 없는 순간에 말을 건네면 생각보다 편하게 나눌 수 있어 | A relaxed moment may make it easier to bring up than you expected | 気楽なときに声をかけると、思ったより自然に話せそう |
 | 풀이 3 | 진지한 결론보다 서로의 생각을 아는 데 뜻을 둬봐 | Aim to understand each other's thoughts rather than reach a serious conclusion | 真剣な結論より、お互いの考えを知ることを大切にしてみて |
-| 해볼 것 | 궁금했던 마음을 편한 말로 물어봐 | Ask about what's been on your mind in everyday words | 気になっていた気持ちを、普段の言葉で尋ねてみよう |
+| 해볼 것 | 궁금했던 마음을 편한 말로 물어봐 | Ask about what's been on your mind in everyday words | 気になっていたことを、普段の言葉で尋ねてみよう |
 | 조심할 것 | 대화 하나로 모든 답을 얻으려 하지 마 | Don't expect one conversation to supply every answer | 一度の会話で、すべての答えを得ようとしないで |
 
 ## v13
@@ -146,7 +146,7 @@
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
 | 총평 | 늘 하던 일에 작은 변화를 주면 기분이 환기돼 | A small change can freshen up a familiar day | いつものことを少し変えると、気分が切り替わる日 |
-| 풀이 1 | 오늘의 흐름은 크게 흔들리지 않지만 조금 단조롭게 느껴질 수 있어 | Today's course may be steady but a little repetitive | 大きな波はないけれど、少し単調に感じるかも |
+| 풀이 1 | 큰 일 없이 지나가도 늘 같은 일상에 조금 지루해질 수 있어 | Your usual day may feel a little repetitive | 大きな出来事がなくても、変わらない毎日に少し飽きるかも |
 | 풀이 2 | 순서나 장소를 살짝 바꾸는 것만으로도 느낌이 달라져 | A slight change of order or setting can make it feel different | 順番や場所を少し変えるだけでも、感触は違ってくるよ |
 | 풀이 3 | 익숙함을 버리지 않고 새로움을 더해봐 | Add a touch of novelty without giving up what you know | なじみの良さを残しながら、新しさを加えてみよう |
 | 해볼 것 | 평소와 다른 작은 선택을 해봐 | Try one small choice outside your usual habit | いつもと違う、小さな選択をしてみて |
@@ -189,7 +189,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 너와 다른 방식을 편하게 구경할 수 있는 하루야 | Someone else's way of enjoying life may open a small window today | 自分とは違うやり方も、気軽に眺められる日 |
+| 총평 | 너와 다른 방식을 편하게 구경할 수 있는 하루야 | Someone else's favorite pastime may give you an idea for your own day | 自分とは違うやり方も、気軽に眺められる日 |
 | 풀이 1 | 같은 일도 사람마다 즐기는 법이 다르다는 걸 느낄 수 있어 | You may notice how differently people enjoy the very same thing | 同じことでも、人によって楽しみ方が違うと感じられそう |
 | 풀이 2 | 굳이 네 방식과 비교해 우열을 가릴 필요는 없어 | You don't need to rank their way against yours | 自分の方法と比べて、どちらが上か決めなくていいよ |
 | 풀이 3 | 마음에 드는 부분만 가져오면 네 일상도 조금 넓어져 | Borrowing just the part you like can add something to your own day | 気に入った部分だけ取り入れれば、日常も少し広がるはず |
@@ -225,6 +225,6 @@
 | 총평 | 오늘의 만족은 멀리보다 손이 닿는 곳에 있어 | Today's enjoyment is closer than you think | 今日の満足は、遠くより手の届くところにあるよ |
 | 풀이 1 | 다음에 제대로 누리겠다고 미뤄둔 작은 즐거움이 떠오를 수 있어 | A small pleasure you've been saving for a better time may come to mind | いつか十分に楽しもうと、先送りしたことを思い出すかも |
 | 풀이 2 | 완벽한 조건을 기다리지 않아도 지금 누릴 부분은 있어 | You don't need perfect circumstances to enjoy some of it now | 理想の条件を待たなくても、今味わえる部分はありそう |
-| 풀이 3 | 네 하루에 들어올 수 있는 크기로 먼저 즐겨봐 | Try the version that fits into the day you have | 今日に収まる大きさで、先に楽しんでみよう |
+| 풀이 3 | 네 하루에 들어올 수 있는 크기로 먼저 즐겨봐 | Try the version that fits into the day you have | 今日できる分から、先に楽しんでみよう |
 | 해볼 것 | 미뤄둔 즐거움을 작게라도 시작해봐 | Make a small start on something fun you've postponed | 後回しにした楽しみを、小さく始めてみて |
 | 조심할 것 | 충분한 시간이 생길 때까지 계속 뒤로 미루지 마 | Don't keep putting it off until there's plenty of time | まとまった時間ができるまで、延ばし続けないで |

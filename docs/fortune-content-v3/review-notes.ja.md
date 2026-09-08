@@ -1,46 +1,45 @@
-> 이번 재설계의 통합 정본: `app/resources/fortune/copy.v2.ja.json`
-> 실행 자산에서 생성한 전문과 최종 테스트 결과는 [기준 문서](../DAILY-FORTUNE.md)에 정리
+# Japanese field fortune editorial review
 
-# 日本語総評の再設計・校閲記録
+2026-09-08 · `fortune-copy.v2-field-readings.1`
 
-## 方針
+Canonical asset: `app/resources/fortune/copy.v2.ja.json` · [Complete copy and final validation](../DAILY-FORTUNE.md)
 
-- 全体運を、その日の気分・出来事の受け止め方・人との関わり・選択の傾向から伝える
-- 旧来の開始／整理などの作業分類は使わず、仕事や学業に就いていることを前提にしない
-- 各スコア帯の韓国語新稿と同じ vID の運勢、場面、勧める行動、控える行動を照合する
-- 日本語では簡潔な見出しと親しみのある説明を組み合わせ、直訳調の抽象語を避ける
-- 文末の句点とピリオドは付けない
-- 低い点数で不幸を予告せず、高い点数で成功・金銭・恋愛の結果を保証しない
-- 一般論の励ましだけで終わらず、今日の傾向を先に示す
-- 各項目の文章を個別に執筆し、点数別の接頭語や強調語の差し替えで増やさない
+## Delivery
 
-## 進捗
+- Four fields × ten score bands × twenty bundles: 800 complete bundles / 1,600 sentences
+- Same score bucket and v01–v20 ID preserve the final Korean judgement, situation, and suggestion
+- All 200 overall bundles reviewed, with targeted edits to 58 fields in 50 bundles after reading all 1,200 expressions
 
-10点数帯 × 20候補 = 200束、見出し＋本文3行＋おすすめ行動＋控える行動の計1,200表現をすべて新規に執筆済み
+## Editorial decisions
 
+Each field starts with a direct judgement about closeness, everyday spending, learning/achievement, or experienced energy, then gives a fitting invitation or suggestion
 
-## 完成・自己校閲
+- Love does not presume a partner or promise reciprocation
+- Money discusses usefulness, budget, and satisfaction without predicting income or investment returns
+- Work/study covers understanding, concentration, effort, and results without requiring employment or enrollment
+- Energy describes everyday activity/rest without diagnosing or promising medical outcomes
+- Low scores describe a manageable difficulty; higher scores describe a credible opportunity, never unlimited money, attraction, or stamina
+- Sentence-final full stops `.` and `。` removed throughout
+- No category judgement ends in the overall-style `〜日`; natural `〜そう`, `〜かも`, `〜よ`, and `〜とき` remain according to meaning
+- `流れ` as an abstract fortune explanation eliminated in the overall text; the only substring in all 2,800 expressions is literal music playback `一曲流れる間`
+- Tangible purchased objects use `物`; abstract alternatives, services, and nominalized clauses use `もの` where natural
 
-- 正本は `reports/fortune-reset/ja/d00.json` 〜 `d90.json`
-- `.rows` は初稿であり、JSONへの推敲後の変更を含まないため再コンパイルしない
-- KOの同じ点数・IDの原稿と、運の方向・日常の場面・助言・注意点を照合
-- d70 v03/v13 の韓国語見出し変更を追従し、提案が必ず来るような断定を回避
-- 最低点では待ち時間、敏感さ、負担などを扱い、自責や不幸の予告を避けた
-- 中間点では好み、日常の安心、会話、小さな選択による満足を分けて描いた
-- 高い点では好反応、機会、経験に基づく自信を中心とし、成果や相手の返事の保証を避けた
-- 日本語として不自然な「分け合った考え」「開かれた反応」「自分を低くする」「人を参加しやすくする」などの直訳的な結びつきを、話し合う／前向きに聞く／卑下しない／周りも加わる等の具体的な言葉へ校閲
-- 親しみのある文体を維持しつつ、同じ助言を強調語だけ変えて増やす方法は使用していない
+## Cross-language and independent feedback
 
-## 検査結果
+- Read and matched all final Korean category manuscripts while composing new Japanese sentences directly
+- Synchronized Korean love-d80 v12 / love-d90 v05 review changes
+- Synchronized final money-d70 v10 advice: check that necessities are included before adding extras
+- Reviewed all 41 Korean overall edit locations; retained an already direct Japanese equivalent when it already matched, otherwise localized the final Korean meaning
+- Incorporated root's independent Japanese feedback on notification wording, `合う答え`, prepared opportunities, applying experience, activity/settlement phrasing
+- Existing Japanese overall copy was additionally reviewed end to end, including headline, all three explanatory sentences, do, and pause
 
-`python reports/fortune-reset/ja/check.py`
+## Checks
 
-- 200束・1,200表現、各点数20候補・各束6表現の構造一致
-- 文末ピリオド／句点、韓国語文字の残存：0
-- 全1,200表現で完全一致の重複：0
-- 同点数・同項目の候補間類似度 0.72 以上：0
+- 2,800 overall-plus-category expressions globally unique: 0 exact duplicates
+- Same route / same field SequenceMatcher threshold >= 0.72, minimum 12 characters: 0 near-duplicate pairs
+- 40 category routes × 20 IDs × 2 nonempty Japanese sentences present
+- No Korean text, terminal full stops, or category `〜日` endings
 
-上記は機械検査と担当エージェントの編集確認であり、外部の日本語母語話者の承認や実機表示検証を意味しない
+This is agent editorial and source alignment review, not a claim of human native-speaker certification or device QA
 
-
-통합 완료: 새 원고를 서버 자산에 반영하고 전체 서버 2,171개·서비스/개발 DB 6개 테스트를 통과했다. 최신 API 예시와 배포 제한은 [기준 문서](../DAILY-FORTUNE.md)에 반영했다.
+The 0.72 scan was an editorial aid, not a runtime ban on shared everyday words. Natural short suggestions may recur if the complete bundle remains distinct.

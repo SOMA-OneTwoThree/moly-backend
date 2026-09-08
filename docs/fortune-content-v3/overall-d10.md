@@ -1,6 +1,6 @@
 # 오늘의 총평 10–19점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
@@ -13,7 +13,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 마음보다 상황이 한 박자 늦게 따라오는 날이야 | The day may take a little longer to catch up with you | 気持ちより、物事がひと呼吸遅れて動く日 |
+| 총평 | 오늘은 마음보다 상황이 한 박자 늦게 따라오는 날이야 | Things may take a little longer than you'd like today | 気持ちより、物事がひと呼吸遅れて動く日 |
 | 풀이 1 | 이미 준비가 됐는데도 주변의 반응이 더뎌 답답할 수 있어 | You might be ready to go while the response around you remains slow | こちらの準備はできていても、周りの反応が鈍くてもどかしくなるかも |
 | 풀이 2 | 속도가 맞지 않는다고 네 마음까지 급하게 바꿀 필요는 없어 | A difference in timing doesn't mean you need to change your mind in a hurry | 歩調が合わないからと、自分の気持ちまで急いで変えなくていいよ |
 | 풀이 3 | 기다리는 동안 네 생활의 리듬을 지키는 게 좋아 | Keep your own daily rhythm while you wait | 待つ間も、いつもの生活のリズムは大切にしてね |
@@ -38,7 +38,7 @@
 | 총평 | 오늘은 낯선 선택보다 익숙한 쪽이 마음을 덜 쓰게 해 | Familiar choices may feel more reassuring today | 今日は、慣れた選択のほうが気楽に過ごせる日 |
 | 풀이 1 | 별다른 이유 없이 결정이 망설여질 수 있는 날이야 | You could hesitate over a decision without quite knowing why | これといった理由がなくても、決めるのをためらいやすいとき |
 | 풀이 2 | 새로움을 택해야만 의미 있는 하루가 되는 건 아니야 | A day doesn't need something new to be meaningful | 新しいことを選ばなくても、一日の意味はなくならないよ |
-| 풀이 3 | 이미 편안함을 느꼈던 선택에서 작은 안정을 얻어봐 | There is a little steadiness to be found in something you've enjoyed before | 前にも安心できた選択から、小さな落ち着きをもらってみよう |
+| 풀이 3 | 이미 편안함을 느꼈던 선택에서 작은 안정을 얻어봐 | Something you've enjoyed before can help you feel more settled | 前にも安心できた選択から、小さな落ち着きをもらってみよう |
 | 해볼 것 | 익숙해서 믿을 수 있는 쪽을 골라봐 | Choose something familiar that you know you can trust | なじみがあって信頼できるほうを選んでみて |
 | 조심할 것 | 기분 전환을 위해 감당하기 어려운 변화를 만들지 마 | Don't make an overwhelming change just to lift your mood | 気分転換のために、手に余る変化を起こさないで |
 
@@ -84,7 +84,7 @@
 | 풀이 2 | 서로 원하는 방식을 확인하면 불필요한 서운함을 줄일 수 있어 | Checking what each of you wants can prevent unnecessary hurt | お互いが望む形を確かめれば、余計な寂しさを減らせるよ |
 | 풀이 3 | 먼저 나서기 전에 지금 필요한지 물어보는 게 좋아 | Ask whether help would be welcome before stepping in | 手を貸す前に、今必要かどうか聞いてみるとよさそう |
 | 해볼 것 | 도움이 필요한지 상대의 뜻을 확인해봐 | Find out whether the other person wants a hand | 助けがほしいか、まず相手の気持ちを聞いてみて |
-| 조심할 것 | 네 방식이 상대에게도 편할 거라 짐작하지 마 | Don't assume your way feels comfortable to everyone | 自分に楽なやり方が、相手にも合うと決めないで |
+| 조심할 것 | 네 방식이 상대에게도 편할 거라 짐작하지 마 | Your way of helping won't feel comfortable to everyone | 自分に楽なやり方が、相手にも合うと決めないで |
 
 ## v08
 
@@ -137,7 +137,7 @@
 | 총평 | 해야 한다는 생각이 하고 싶은 마음을 가리기 쉬워 | What you think you should do may drown out what you want today | しなければという思いが、したい気持ちを隠しやすい日 |
 | 풀이 1 | 당연히 따라야 할 것처럼 느껴지는 일이 부담을 더할 수 있어 | An expectation that seems unquestionable could add to your burden | 当然のように求められることが、負担を増やすかも |
 | 풀이 2 | 다른 사람의 기준이 네 하루에도 꼭 맞는 건 아니야 | Someone else's standard doesn't automatically fit your day | 人の基準が、今日のあなたにも合うとは限らないよ |
-| 풀이 3 | 오늘은 꼭 필요한 것과 습관처럼 떠안은 것을 구분해봐 | Separate what is necessary from what you've taken on out of habit | 本当に必要なことと、つい背負ったことを分けてみよう |
+| 풀이 3 | 오늘은 꼭 필요한 것과 습관처럼 떠안은 것을 구분해봐 | Separate what you need to do from what you've agreed to out of habit | 本当に必要なことと、つい背負ったことを分けてみよう |
 | 해볼 것 | 스스로 정하지 않은 부담을 하나 덜어봐 | Let go of a burden you didn't choose for yourself | 自分では選んでいない負担を、ひとつ減らしてみて |
 | 조심할 것 | 남들이 한다는 이유만으로 네 몫을 늘리지 마 | Don't take on more just because everyone else does | みんながしているからと、自分の役目を増やさないで |
 
@@ -170,7 +170,7 @@
 | 총평 | 오늘은 큰 약속보다 작은 진심이 잘 맞는 날이야 | A small, sincere gesture fits today better than a big promise | 大きな約束より、小さな真心が合う日 |
 | 풀이 1 | 분위기를 좋게 하려고 감당하기 어려운 말을 할 수 있어 | You might be tempted to say more than you can manage just to lift the mood | 場を明るくしようと、引き受けきれないことまで言いがち |
 | 풀이 2 | 당장의 기대를 키우기보다 가능한 만큼 전하는 게 오래 편해 | Being honest about what's possible leaves less pressure than raising expectations | その場の期待を膨らませるより、できる分を伝えるほうが後も楽だよ |
-| 풀이 3 | 조금 소박해도 지킬 수 있는 마음을 보여줘 | Show what you can genuinely follow through on, even if it seems modest | 少し控えめでも、守れる気持ちを形にしてみよう |
+| 풀이 3 | 조금 소박해도 지킬 수 있는 마음을 보여줘 | Show what you can genuinely follow through on, even if it seems modest | 少し控えめでも、実際にできる形で気持ちを示してみよう |
 | 해볼 것 | 확실히 할 수 있는 만큼만 약속해봐 | Promise only what you're sure you can give | 確かにできる範囲だけ、約束してみて |
 | 조심할 것 | 미안함을 덜려고 미래의 부담을 늘리지 마 | Don't ease today's guilt with tomorrow's burden | 申し訳なさを消すために、先の負担を増やさないで |
 
@@ -191,7 +191,7 @@
 | --- | --- | --- | --- |
 | 총평 | 일이 풀리지 않을수록 쉬운 곳에서 다시 시작해봐 | When the day feels stuck, an easier place to begin can help | うまくいかないときは、取り組みやすいところへ戻ってみよう |
 | 풀이 1 | 막힌 부분만 바라보면 할 수 있는 일까지 멀게 느껴질 수 있어 | Staring at what isn't working may make even manageable things feel distant | 行き詰まった部分ばかり見ると、できることまで遠く感じがち |
-| 풀이 2 | 오늘의 흐름은 큰 돌파구보다 작은 안정에 가까워 | Today's relief is more likely to come from small stability than a dramatic breakthrough | 今日は大きく切り開くより、小さな安心を取り戻したい流れ |
+| 풀이 2 | 한 번에 풀려고 애쓰기보다 쉬운 것 하나를 해내는 편이 마음을 덜 쓰게 해 | Finishing one easy thing can ease your mind more than trying to solve everything at once | 一度に片づけようとするより、簡単なことをひとつ終えるほうが気持ちも楽だよ |
 | 풀이 3 | 부담이 적은 한 가지를 해내는 것부터 감각을 되찾아봐 | One undemanding thing done can help you feel capable again | 負担の少ないことをひとつ済ませて、感覚をつかみ直してみて |
 | 해볼 것 | 지금 손이 가는 작은 일을 골라봐 | Choose a small task that feels within reach | 今なら手をつけられる、小さなことを選んでみよう |
 | 조심할 것 | 어려운 것부터 해결해야 한다고 고집하지 마 | Don't insist on tackling the hardest part first | 難しいものから解決するべきだと、こだわらないで |

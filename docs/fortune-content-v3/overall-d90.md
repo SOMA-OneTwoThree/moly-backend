@@ -1,11 +1,11 @@
 # 오늘의 총평 90–100점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
-좋은 기회를 알아보고 받아들이는 태도에 운이 따르는 흐름. 결과나 외부의 호감을 보장하지 않는다
+좋은 기회를 알아보고 받아들이는 태도에 운이 따를 수 있는 하루. 결과나 외부의 호감을 보장하지 않는다
 
 내부 계산 유형과 관계없이 이 점수 구간의 20묶음에서 선택한다
 
@@ -13,9 +13,9 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 너답게 나설수록 운이 살아나는 날이야 | Today's luck comes alive when you step forward as yourself | 自分らしく振る舞うほど、運気が高まる日 |
+| 총평 | 오늘은 너답게 나설수록 운이 살아나는 날이야 | Being yourself gives today's opportunities the best chance to go well | 自分らしく振る舞うほど、運気が高まる日 |
 | 풀이 1 | 남의 방식을 따라 하기보다 네 강점을 드러낼 때 좋은 호응을 만나기 쉬워 | Showing your strengths is more likely to draw a good response than following someone else's way | 人のやり方をまねるより、自分の強みを見せると良い反応に出合いやすそう |
-| 풀이 2 | 익숙하게 잘하는 것을 자신 있게 보여줄 여지가 넓은 흐름이야 | There is room to show what you know well with confidence | 得意なことを、自信を持って人に見せられる機会がありそう |
+| 풀이 2 | 익숙하게 잘하는 것을 자신 있게 보여주기 좋은 때야 | There is room to show what you know well with confidence | 慣れた得意なことを、自信を持って見せるのによいとき |
 | 풀이 3 | 기회 앞에서 스스로를 작게 소개하지 않아도 돼 | You don't need to downplay yourself when an opportunity appears | チャンスが来たら、自分の良さを遠慮せず伝えてね |
 | 해볼 것 | 네가 잘할 수 있는 자리에 적극적으로 나서봐 | Step forward where you know you have something to offer | 得意なことを生かせる場に、積極的に出てみて |
 | 조심할 것 | 인정받고 싶은 마음에 네 방식까지 버리지 마 | Don't give up your own way in the hope of winning approval | 認めてほしくても、自分のやり方まで捨てないで |
@@ -24,7 +24,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 기회와 용기가 함께 맞물리기 좋은 하루야 | Opportunity and courage have a good chance to meet today | チャンスと勇気が、うまくかみ合いやすい一日 |
+| 총평 | 기회와 용기가 함께 맞물리기 좋은 하루야 | An opportunity may arrive just as you feel ready to take it | チャンスと勇気が、うまくかみ合いやすい一日 |
 | 풀이 1 | 마음에 두던 일에서 움직여볼 만한 계기를 발견할 수 있어 | You may find a reason to act on something you've had in mind | 心に置いていたことに、動いてみたくなるきっかけがありそう |
 | 풀이 2 | 가능한 조건을 확인했다면 지나친 망설임보다 시도가 잘 어울려 | Once you've checked what's possible, trying suits the day better than lingering hesitation | 実行できる条件を確かめたなら、迷い続けるより挑戦が似合うよ |
 | 풀이 3 | 오늘의 의욕을 실제 한 걸음으로 이어봐 | Turn today's enthusiasm into a step you can actually take | 今日の意欲を、実際の一歩につなげてみよう |
@@ -37,7 +37,7 @@
 | --- | --- | --- | --- |
 | 총평 | 네 진심이 평소보다 또렷하게 닿기 좋은 날이야 | Your sincerity can come through especially clearly today | 本当の気持ちが、いつもよりはっきり届きやすい日 |
 | 풀이 1 | 오래 품은 고마움이나 함께하고 싶은 마음을 전할 여지가 있어 | There may be room to express long-held gratitude or a wish to spend time together | 長く抱えた感謝や、一緒にいたい思いを伝える余地がありそう |
-| 풀이 2 | 꾸미지 않은 말이 좋은 대화를 여는 힘이 되는 흐름이야 | Plain, honest words can open a good conversation | 飾らない言葉が、良い会話を始める力になる流れ |
+| 풀이 2 | 꾸미지 않고 전한 마음이 좋은 대화의 시작이 될 수 있어 | Plain, honest words can open a good conversation | 飾らずに伝えた思いが、よい会話の始まりになるかも |
 | 풀이 3 | 상대의 답을 정해두지 않고 네 마음부터 솔직하게 보여줘 | Show your own feelings without deciding the other person's answer in advance | 相手の答えを決めずに、まず自分の気持ちを素直に見せてみよう |
 | 해볼 것 | 중요하게 여겨온 마음을 직접 전해봐 | Personally express a feeling that has mattered to you | 大切にしてきた思いを、直接伝えてみて |
 | 조심할 것 | 좋은 분위기를 확답에 대한 압박으로 바꾸지 마 | Don't turn a warm atmosphere into pressure for a firm answer | 雰囲気が良くても、はっきりした返事を迫らないで |
@@ -46,12 +46,12 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 새로운 가능성을 반갑게 맞이할 힘이 있어 | Today brings the confidence to welcome new possibilities | 新しい可能性を、喜んで迎える力がある日 |
+| 총평 | 오늘은 새로운 가능성을 반갑게 맞이할 힘이 있어 | Today brings the confidence to welcome new possibilities | 新しい機会を、前向きに迎えられる日 |
 | 풀이 1 | 평소라면 낯설게만 보던 일에도 해보고 싶은 마음이 먼저 들 수 있어 | Something you'd usually see as unfamiliar may first awaken the wish to try | いつもなら遠慮することにも、やってみたい気持ちが先に湧くかも |
 | 풀이 2 | 네가 움직일수록 생각보다 넓은 선택지가 눈에 들어오는 날이야 | The more you explore, the more choices you may notice | 動くほど、思っていたより広い選択肢が見えてきそう |
 | 풀이 3 | 가장 마음이 가는 기회를 골라 가까이 다가가봐 | Pick the opportunity that appeals most and move a little closer | いちばん心が向く機会を選んで、近づいてみよう |
-| 해볼 것 | 흥미로운 가능성을 실제로 알아보러 가봐 | Go and learn about a possibility that interests you | 面白そうな可能性を、実際に確かめに行ってみて |
-| 조심할 것 | 가능성이 많다고 방향 없이 모두 좇지 마 | Don't chase every option without a direction just because there are many | 可能性が多くても、方向を決めず全部を追わないで |
+| 해볼 것 | 흥미로운 가능성을 실제로 알아보러 가봐 | Go and learn about a possibility that interests you | 面白そうな機会を、実際に確かめに行ってみて |
+| 조심할 것 | 가능성이 많다고 방향 없이 모두 좇지 마 | Don't chase every option without a direction just because there are many | 選択肢が多くても、方向を決めず全部を追わないで |
 
 ## v05
 
@@ -81,7 +81,7 @@
 | --- | --- | --- | --- |
 | 총평 | 함께 나눈 생각이 더 큰 가능성으로 이어지기 좋아 | A shared idea can open a larger possibility today | 話し合った考えが、より大きな可能性につながる日 |
 | 풀이 1 | 혼자 떠올린 바람에 다른 사람의 경험이 더해지면 현실적인 길이 보일 수 있어 | Someone else's experience added to a wish of yours may reveal a practical way forward | ひとりで描いた願いに人の経験が加わると、現実の道が見えるかも |
-| 풀이 2 | 서로의 관심이 맞는 부분에서 좋은 추진력이 생기는 날이야 | There is good momentum where your interests meet | お互いの興味が重なるところに、前へ進む力が生まれやすい日 |
+| 풀이 2 | 서로의 관심이 맞는 부분에서 좋은 추진력이 생기는 날이야 | Something you both care about could give you a good reason to try it together | お互いの興味が重なるところに、前へ進む力が生まれやすい日 |
 | 풀이 3 | 네 생각을 먼저 꺼내고 함께 만들어갈 여지를 남겨봐 | Offer your thought first and leave room to shape it together | 考えを先に話し、一緒に作っていく余地を残してみよう |
 | 해볼 것 | 해보고 싶은 일을 뜻이 맞는 사람과 나눠봐 | Share something you'd like to try with a like-minded person | 試したいことを、気持ちの合う人と話してみて |
 | 조심할 것 | 호응이 좋다고 각자의 여건을 확인하지 않고 앞서가지 마 | Don't get ahead of what each person can manage because the response is eager | 反応が良くても、それぞれの事情を確かめず先へ進まないで |
@@ -92,8 +92,8 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘은 원하는 방향으로 한 걸음 넓혀볼 만해 | Today is a good time to reach a little further in your chosen direction | 望むほうへ、もう一歩広げてみたい日 |
 | 풀이 1 | 이미 해온 일에서 조금 더 나아갈 수 있는 여지가 눈에 들어올 수 있어 | You may see room to go beyond something you've already been doing | これまでしてきたことに、少し先へ進める余地が見えてきそう |
-| 풀이 2 | 무리한 도약보다 준비된 다음 걸음에 좋은 흐름이 있어 | The favorable opening is in a prepared next step, not an oversized leap | 無理な飛躍より、準備のある次の一歩に良い流れがあるよ |
-| 풀이 3 | 너무 익숙한 범위에만 머물지 말고 가능성을 살펴봐 | Explore a possibility instead of staying only with what is completely familiar | 慣れきった範囲だけにとどまらず、可能性を見てみよう |
+| 풀이 2 | 준비해온 만큼 한 단계 더 도전할 용기를 내기 좋아 | Your preparation gives you reason to try one step further | 準備した分だけ、もう一段挑む勇気を出しやすい日 |
+| 풀이 3 | 너무 익숙한 범위에만 머물지 말고 가능성을 살펴봐 | Explore a possibility instead of staying only with what is completely familiar | 慣れた範囲だけにとどまらず、次にできることを探してみよう |
 | 해볼 것 | 감당할 수 있는 다음 도전을 골라봐 | Choose a next challenge you can reasonably take on | 引き受けられる大きさの、次の挑戦を選んでみて |
 | 조심할 것 | 좋은 운을 이유로 네 한계를 무시하지 마 | Don't use good luck as a reason to ignore your limits | 運が良いからと、自分の限界を無視しないで |
 
@@ -137,7 +137,7 @@
 | 총평 | 오늘은 바라던 일에 현실적인 자신감이 붙는 날이야 | A long-held wish may feel within reach for good reason today | 望んでいたことに、地に足のついた自信が持てる日 |
 | 풀이 1 | 막연히 잘될 것 같은 기분보다 해볼 수 있는 이유가 눈에 들어와 | You may see real reasons to try, beyond a vague feeling that things will go well | 何となくうまくいきそうという気分より、試せる理由が見えてきそう |
 | 풀이 2 | 네가 가진 경험과 현재의 조건을 연결하면 길이 더 구체적으로 보여 | Connecting your experience with the current circumstances makes the way clearer | 自分の経験と今の条件を結ぶと、道が具体的になるよ |
-| 풀이 3 | 가능한 부분부터 움직이며 좋은 흐름을 받아봐 | Move with what's possible and give the favorable mood somewhere to go | できる部分から動いて、良い流れを受け取ってみよう |
+| 풀이 3 | 할 수 있는 것이 보인다면 작은 시도로 자신감을 확인해봐 | If you can see a way to try, take a small step and discover what you can do | できそうなことが見えたら、小さく試して自信につなげてみよう |
 | 해볼 것 | 할 수 있는 이유가 분명한 일에 시간을 써봐 | Give time to something you have clear reasons to believe you can do | できる理由がはっきりしたことに、時間を使ってみて |
 | 조심할 것 | 남은 어려움이 없을 거라고 단정하지 마 | Don't assume there will be no difficulties left | この先の難しさは何もないと、決めつけないで |
 
@@ -157,7 +157,7 @@
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
 | 총평 | 오늘은 네 선택을 즐길 여유가 있는 날이야 | Today leaves you room to enjoy the choices you make | 自分の選択を楽しむ、ゆとりのある日 |
-| 풀이 1 | 여러 가능성 가운데 무엇이 마음에 드는지 기분 좋게 살펴볼 수 있어 | Exploring what appeals among several options may feel pleasurable in itself | いくつかの可能性から、好きなものを気持ちよく見られそう |
+| 풀이 1 | 여러 가능성 가운데 무엇이 마음에 드는지 기분 좋게 살펴볼 수 있어 | Exploring what appeals among several options may feel pleasurable in itself | いくつかの選択肢から、好きなものを気持ちよく選べそう |
 | 풀이 2 | 정답을 놓칠까 걱정하기보다 네가 누릴 즐거움이 더 잘 보여 | What you could enjoy is easier to see than the fear of missing the right answer | 正解を逃す心配より、味わえる楽しさが目に入るよ |
 | 풀이 3 | 충분히 알아본 뒤에는 고른 경험에 마음을 실어봐 | Once you've looked into it enough, give your attention to the experience you chose | 十分に調べた後は、選んだ経験に気持ちを向けてみよう |
 | 해볼 것 | 선택한 뒤에는 그 시간을 온전히 즐겨봐 | After choosing, let yourself fully enjoy the time | 選び終えたら、その時間を存分に楽しんでみて |
@@ -169,7 +169,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오래 품은 바람을 꺼내놓기 좋은 하루야 | A wish you've held for a while is worth sharing today | 長く温めた願いを、話してみるのに良い日 |
 | 풀이 1 | 혼자만 생각하던 일을 말로 전하면 예상하지 못한 도움이나 정보를 만날 수 있어 | Saying something you've only considered alone may bring unexpected help or information | ひとりで考えたことを言葉にすると、思わぬ助けや情報に出合うかも |
-| 풀이 2 | 바람을 구체적으로 나누는 태도가 기회와 닿을 여지를 넓혀줘 | Sharing the wish in concrete terms gives it more chance to meet an opportunity | 願いを具体的に話すと、チャンスにつながるきっかけが増えそう |
+| 풀이 2 | 바람을 구체적으로 나누는 태도가 기회와 닿을 여지를 넓혀줘 | Explaining what you want makes it easier for others to recognize a suitable opportunity | 願いを具体的に話すと、チャンスにつながるきっかけが増えそう |
 | 풀이 3 | 아직 완성된 계획이 아니어도 관심을 표현해봐 | You can express interest before it becomes a finished plan | 計画がまだまとまっていなくても、やってみたい気持ちを伝えてみよう |
 | 해볼 것 | 해보고 싶은 일을 주변에 알려봐 | Let people around you know what you'd like to try | やってみたいことを、周りに話してみて |
 | 조심할 것 | 확실한 결과를 약속해야만 말할 수 있다고 생각하지 마 | Don't think you need to promise a certain outcome before mentioning it | 確かな結果を約束できなければ、話せないと思わないで |
@@ -189,20 +189,20 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 네가 즐겁게 몰입하는 모습에 좋은 기운이 모이는 날이야 | Following what you enjoy can draw good things your way today | 楽しく夢中になる姿に、良い流れが集まる日 |
+| 총평 | 좋아하는 일에 몰입할수록 네 장점이 살아나는 날이야 | Your strengths come through when you get absorbed in what you love | 好きなことに夢中になるほど、長所がよく表れる日 |
 | 풀이 1 | 좋아하는 일에 집중하다 보면 아이디어나 대화가 자연스럽게 이어질 수 있어 | Getting absorbed in something you like may naturally lead to ideas or conversation | 好きなことへ気持ちを向けると、発想や会話が自然に続くかも |
 | 풀이 2 | 성과를 의식할 때보다 흥미를 따라갈 때 네 강점이 잘 살아나 | Your strengths can come through more easily when you follow interest than when you watch the results | 成果を意識するより、興味をたどるほうが強みを生かしやすそう |
 | 풀이 3 | 오늘은 마음이 움직이는 일에 충분한 시간을 줘봐 | Give proper time to something that draws you in | 今日は心が動くことに、十分な時間をあげてみよう |
 | 해볼 것 | 정말 재미있는 일에 집중할 시간을 만들어봐 | Make time to get absorbed in something you find truly interesting | 本当に面白いことへ、集中できる時間を作ってみて |
-| 조심할 것 | 좋은 흐름을 증명하려고 즐거움을 성과로만 재지 마 | Don't measure enjoyment only in results to prove the day is going well | 好調さを示そうと、楽しみを成果だけで測らないで |
+| 조심할 것 | 즐거웠던 시간을 성과만으로 평가하지 마 | Don't judge enjoyable time only by its results | 楽しかった時間を、成果だけで評価しないで |
 
 ## v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 익숙한 경계를 조금 넘어볼 용기가 있어 | You have the courage to look beyond a familiar boundary today | なじみの境界を、少し越えてみる勇気がある日 |
+| 총평 | 오늘은 익숙한 경계를 조금 넘어볼 용기가 있어 | An opportunity that once seemed out of reach may feel worth exploring today | 慣れた範囲を、少し越えてみる勇気がある日 |
 | 풀이 1 | 전에는 네 일이 아니라고 여겼던 기회가 새롭게 보일 수 있어 | An opportunity you once considered outside your world may look different now | 前は自分に関係ないと思った機会が、新しく見えるかも |
-| 풀이 2 | 직접 알아보면 막연한 거리감보다 가능한 부분이 커질 수 있어 | Learning about it directly can reveal more possibility than the distance you imagined | 実際に調べると、漠然とした遠さより可能な部分が大きくなりそう |
+| 풀이 2 | 직접 알아보면 막연한 거리감보다 가능한 부분이 커질 수 있어 | Learning about it directly can reveal more possibility than the distance you imagined | 実際に調べると、遠く感じていたことにも自分でできる部分が見つかりそう |
 | 풀이 3 | 관심이 생긴 이유를 믿고 첫 대화를 시작해봐 | Trust the reason for your interest enough to begin a conversation | 興味が湧いた理由を信じて、初めの会話をしてみよう |
 | 해볼 것 | 멀게 느꼈던 기회의 실제 조건을 알아봐 | Find out what's actually involved in a chance that once felt remote | 遠く感じた機会の、実際の条件を調べてみて |
 | 조심할 것 | 남에게 어울리는 일이라고 먼저 선을 긋지 마 | Don't rule it out in advance as something meant for other people | 人に向くことだからと、先に自分を外さないで |
@@ -211,7 +211,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 좋은 흐름을 스스로 이어갈 감각이 살아나는 하루야 | Your sense of how to keep a good day going is coming into focus | 良い流れを自分でつなぐ感覚が、冴えてくる日 |
+| 총평 | 만족스러운 선택을 다음 경험으로 이어가기 좋은 하루야 | A satisfying choice can guide your next experience today | 満足できた選択を、次の経験につなげやすい日 |
 | 풀이 1 | 어떤 선택이 네 기분과 생활에 잘 맞는지 알아차리기 쉬워 | It may be easy to recognize which choices fit your mood and your life | どんな選択が気分や暮らしに合うか、気づきやすそう |
 | 풀이 2 | 억지로 더 많은 것을 얻으려 하지 않아도 만족을 키울 여지가 있어 | There is room to grow your satisfaction without pressing for more and more | 無理にもっと得ようとしなくても、満足を育てる余地があるよ |
 | 풀이 3 | 잘 맞는 경험에는 시간을 주고 불필요한 욕심은 덜어봐 | Give time to what suits you and let unnecessary wants fall away | しっくりくる経験には時間を使い、余計な欲張りは減らしてみよう |
@@ -224,7 +224,7 @@
 | --- | --- | --- | --- |
 | 총평 | 오늘은 기대하는 마음으로 하루를 펼쳐봐도 좋아 | Look forward to what today might bring | 今日は、楽しみな気持ちで一日を迎えてみよう |
 | 풀이 1 | 작은 시도나 열린 대화에서 반가운 순간을 만날 여지가 넓어 | A small attempt or an open conversation has plenty of room to bring a welcome moment | 少し試したり率直に話したりする中に、うれしい瞬間が見つかりやすそう |
-| 풀이 2 | 완벽한 하루가 아니어도 좋은 흐름을 느낄 만한 장면이 있어 | The day doesn't have to be perfect to offer a real sense of things going your way | 完璧な一日でなくても、良い流れを感じる場面はありそうだよ |
+| 풀이 2 | 모든 일이 잘되지 않아도 오늘을 기쁘게 기억할 순간은 충분히 있어 | Even if everything doesn't go well, there can be plenty to remember happily about today | 全部がうまくいかなくても、今日をうれしく思い出す瞬間は十分あるよ |
 | 풀이 3 | 눈앞의 기쁨을 누리며 네가 원하는 쪽으로 움직여봐 | Enjoy the pleasure in front of you while moving toward what you want | 目の前の喜びを味わいながら、望むほうへ動いてみよう |
 | 해볼 것 | 마음이 가는 일에 밝은 기대를 담아 나서봐 | Approach something that appeals to you with hopeful interest | 心が向くことへ、明るい期待を持って出てみて |
 | 조심할 것 | 작은 아쉬움 하나로 좋은 운을 전부 의심하지 마 | Don't let one small disappointment make you doubt all of today's good fortune | 小さな心残りひとつで、良い運を全部疑わないで |

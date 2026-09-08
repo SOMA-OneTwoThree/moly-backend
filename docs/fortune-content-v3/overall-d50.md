@@ -1,6 +1,6 @@
 # 오늘의 총평 50–59점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-day-overview.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
@@ -13,7 +13,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘의 운은 작은 선택에 따라 조금씩 달라져 | Today's luck shifts with the small choices you make | 今日の運は、小さな選択で少しずつ変わるよ |
+| 총평 | 오늘의 운은 작은 선택에 따라 조금씩 달라져 | A small choice can make today more satisfying | 今日の運は、小さな選択で少しずつ変わるよ |
 | 풀이 1 | 그냥 지나칠 수도 있는 순간에 네 마음을 반영할 여지가 있어 | A moment you might otherwise pass by can leave room for what you want | 何となく過ぎる瞬間にも、自分の気持ちを映す余地がありそう |
 | 풀이 2 | 거창하게 바꾸지 않아도 원하는 쪽을 고르는 기쁨이 생겨 | You don't need a sweeping change to enjoy choosing your own direction | 大きく変えなくても、望むほうを選ぶ喜びを味わえる日 |
 | 풀이 3 | 하루의 분위기를 남에게만 맡겨두지 마 | Don't leave the feel of your whole day in other people's hands | 一日の空気を、人任せにしなくてもいいんだよ |
@@ -61,7 +61,7 @@
 | 풀이 1 | 늘 고르던 쪽 말고도 네게 잘 맞는 방법이 보일 수 있어 | Something besides your usual option could turn out to suit you | いつものほう以外にも、自分に合う方法が見つかりそう |
 | 풀이 2 | 익숙함을 떠나야 한다는 부담 없이 비교해봐도 괜찮아 | You can compare without feeling obliged to leave the familiar behind | 慣れたものを離れると構えず、比べてみるだけでも大丈夫 |
 | 풀이 3 | 다른 선택을 알아보는 것만으로 마음의 여유가 생겨 | Simply knowing another choice exists can give you breathing room | ほかの選択肢を知るだけで、心にゆとりができるよ |
-| 해볼 것 | 평소와 다른 가능성을 하나 살펴봐 | Explore one possibility outside your usual approach | 普段とは違う可能性を、ひとつ見てみて |
+| 해볼 것 | 평소와 다른 가능성을 하나 살펴봐 | Explore one possibility outside your usual approach | 普段とは違う選択肢を、ひとつ見てみて |
 | 조심할 것 | 한 번 해온 방식에만 자신을 맞추지 마 | Don't make yourself fit only the way you've done it before | これまでのやり方だけに、自分を合わせないで |
 
 ## v06
@@ -69,7 +69,7 @@
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
 | 총평 | 네 마음을 알리면 하루가 조금 더 편해질 수 있어 | Letting your preference be known can make today more comfortable | 気持ちを伝えると、一日が少し楽になりそう |
-| 풀이 1 | 주변에서 정해주는 흐름도 네 한마디에 조정될 여지가 있어 | Even plans set by others may leave room for a word from you | 周りが決めた流れにも、ひと言で変わる余地がありそう |
+| 풀이 1 | 다른 사람이 정한 계획에도 네 의견을 반영할 여지가 있어 | Even plans set by others may leave room for a word from you | 人が決めた予定にも、自分の意見を入れられる余地がありそう |
 | 풀이 2 | 크게 주장하지 않아도 선호를 말하는 것으로 충분할 때야 | You may not need to argue a case, just say what you prefer | 強く主張しなくても、好みを伝えるだけで十分なとき |
 | 풀이 3 | 오늘은 작은 바람을 숨기지 않는 쪽에 만족이 있어 | There is satisfaction in not keeping a small wish hidden | 今日は小さな希望を隠さないほうに、満足があるよ |
 | 해볼 것 | 좋아하는 것과 불편한 것을 간단히 전해봐 | Briefly share what you like and what doesn't suit you | 好きなことと困ることを、簡単に伝えてみて |
@@ -101,7 +101,7 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 작은 성취가 다음 의욕으로 이어지기 좋아 | A small achievement can give today's motivation somewhere to grow | 小さな達成が、次の意欲につながりやすい日 |
+| 총평 | 오늘은 작은 성취가 다음 의욕으로 이어지기 좋아 | Finishing one small thing can help you feel more motivated today | 小さな達成が、次の意欲につながりやすい日 |
 | 풀이 1 | 멀게 느꼈던 일도 한 부분을 해보면 거리감이 줄어들어 | Something that felt distant may seem closer once you've tried one part | 遠く感じたことも、一部分を試すと身近に思えそう |
 | 풀이 2 | 크기를 줄여 시작하는 것만으로 하루의 기분이 달라질 수 있어 | Making the beginning smaller can change the mood of your day | 小さくして始めるだけで、一日の気分が変わるかも |
 | 풀이 3 | 한 번에 많이 하기보다 해냈다는 감각을 남겨봐 | Aim to finish with a sense of having done something, not of having done everything | 一度に多くするより、できた感覚を残してみよう |
@@ -150,7 +150,7 @@
 | 풀이 2 | 부담 없는 제안 하나가 평범한 시간을 더 재미있게 만들어줘 | An easy invitation may make an ordinary stretch of time more fun | 気負わない誘いひとつで、普段の時間が楽しくなりそう |
 | 풀이 3 | 반드시 함께해야 한다는 기대 없이 초대해봐 | Invite without making their company a condition for enjoying it | 必ず来てほしいと構えず、声をかけてみよう |
 | 해볼 것 | 함께하면 좋을 일을 가볍게 제안해봐 | Suggest something it would be nice to do together | 一緒なら楽しそうなことを、軽く提案してみて |
-| 조심할 것 | 한 사람이 어렵다고 계획 자체를 접지 마 | Don't abandon the whole plan because one person can't join | ひとりが難しくても、計画そのものを諦めないで |
+| 조심할 것 | 한 사람이 어렵다고 계획 자체를 접지 마 | Don't abandon the whole plan because one person can't join | 誘った人が来られなくても、計画そのものを諦めないで |
 
 ## v14
 
@@ -160,7 +160,7 @@
 | 풀이 1 | 대충 넘길 수 있는 순간을 조금 챙기면 만족이 달라져 | Giving some attention to a moment you'd usually rush through can change how satisfying it feels | 何となく過ごす瞬間も、少し手をかけると満足が変わりそう |
 | 풀이 2 | 남에게 보이기 위한 노력보다 네가 느끼는 편안함이 중요해 | Your own comfort matters more than making the effort visible to anyone else | 人に見せるためより、自分が心地よいと感じることが大切だよ |
 | 풀이 3 | 오늘은 스스로를 대하는 태도에 작은 정성을 더해봐 | Add a small measure of care to how you treat yourself | 今日は自分への接し方を、いつもより丁寧にしてみよう |
-| 해볼 것 | 평소 소홀했던 네 시간을 정성껏 챙겨봐 | Give some proper attention to time you usually neglect for yourself | 普段はおろそかにする自分の時間を、大事に過ごしてみて |
+| 해볼 것 | 평소 소홀했던 네 시간을 정성껏 챙겨봐 | Give yourself some unhurried time that you usually put off | 普段はおろそかにする自分の時間を、大事に過ごしてみて |
 | 조심할 것 | 너만 누리는 즐거움이라고 대충 넘기지 마 | Don't rush a pleasure just because only you will enjoy it | 自分だけの楽しみだからと、雑に済ませないで |
 
 ## v15

@@ -318,16 +318,6 @@ def test_authored_banner_body_is_centered_between_divider_and_visible_button():
     for banner in catalog.manifest.banners:
         for canvas in banner.canvases_by_locale.values():
             elements = {element.id: element for element in canvas.elements}
-            if banner.id == 'purple-image-test':
-                assert 'heading-divider' not in elements
-                heading = elements['heading']
-                assert heading.style.align == 'end'
-                assert heading.frame.y + heading.frame.height < .254
-                assert heading.frame.x + heading.frame.width == pytest.approx(.88)
-                body = elements['message'].frame
-                assert body.y + body.height / 2 == pytest.approx((.274 + .670) / 2)
-                assert elements['action-surface'].frame.y > .692
-                continue
             divider = elements['heading-divider'].frame
             button = elements['action-surface'].frame
             body = elements['message'].frame

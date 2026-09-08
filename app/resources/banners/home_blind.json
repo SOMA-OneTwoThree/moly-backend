@@ -619,11 +619,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-2-8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c.webp",
-              "sha256": "8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c",
-              "byte_length": 17414,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
+              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
+              "byte_length": 22826,
               "pixel_width": 1000,
-              "pixel_height": 551,
+              "pixel_height": 563,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -645,24 +645,44 @@
               "semantics_order": 0,
               "vertical_align": "center",
               "frame": {
-                "x": 0.3,
-                "y": 0.07,
-                "width": 0.58,
-                "height": 0.15
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
               },
               "text": {
                 "kind": "template",
-                "value": "Today's topic"
+                "value": "TODAY'S TOPIC"
               },
               "style": {
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
                 "color": "#000000",
-                "align": "end",
+                "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
               }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
             },
             {
               "id": "message",
@@ -671,7 +691,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.325,
+                "y": 0.326,
                 "width": 0.88,
                 "height": 0.294
               },
@@ -694,15 +714,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.704,
+                "y": 0.68,
                 "width": 0.4,
-                "height": 0.19
+                "height": 0.21
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#FFFFFF"
               },
-              "radius": 15,
+              "radius": 16.5,
               "border": {
                 "width": 0,
                 "color": "#FFFFFF"
@@ -716,7 +736,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
-                "y": 0.714,
+                "y": 0.7,
                 "width": 0.36,
                 "height": 0.17
               },
@@ -739,9 +759,9 @@
               "type": "action_region_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.704,
+                "y": 0.68,
                 "width": 0.4,
-                "height": 0.207
+                "height": 0.256
               },
               "content_ids": [
                 "action-surface",
@@ -759,11 +779,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-2-8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c.webp",
-              "sha256": "8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c",
-              "byte_length": 17414,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
+              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
+              "byte_length": 22826,
               "pixel_width": 1000,
-              "pixel_height": 551,
+              "pixel_height": 563,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -785,10 +805,10 @@
               "semantics_order": 0,
               "vertical_align": "center",
               "frame": {
-                "x": 0.3,
-                "y": 0.07,
-                "width": 0.58,
-                "height": 0.15
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
               },
               "text": {
                 "kind": "template",
@@ -799,10 +819,30 @@
                 "font_size": 12,
                 "weight": 600,
                 "color": "#000000",
-                "align": "end",
+                "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
               }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
             },
             {
               "id": "message",
@@ -811,7 +851,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.325,
+                "y": 0.326,
                 "width": 0.88,
                 "height": 0.294
               },
@@ -834,15 +874,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.704,
+                "y": 0.68,
                 "width": 0.4,
-                "height": 0.19
+                "height": 0.21
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#FFFFFF"
               },
-              "radius": 15,
+              "radius": 16.5,
               "border": {
                 "width": 0,
                 "color": "#FFFFFF"
@@ -856,7 +896,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
-                "y": 0.714,
+                "y": 0.7,
                 "width": 0.36,
                 "height": 0.17
               },
@@ -879,9 +919,9 @@
               "type": "action_region_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.704,
+                "y": 0.68,
                 "width": 0.4,
-                "height": 0.207
+                "height": 0.256
               },
               "content_ids": [
                 "action-surface",
@@ -899,11 +939,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-2-8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c.webp",
-              "sha256": "8daa0ea395d943f2e881afb674964fc9d83d9fe03fe76a842e2682f1df13ed1c",
-              "byte_length": 17414,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
+              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
+              "byte_length": 22826,
               "pixel_width": 1000,
-              "pixel_height": 551,
+              "pixel_height": 563,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -925,10 +965,10 @@
               "semantics_order": 0,
               "vertical_align": "center",
               "frame": {
-                "x": 0.3,
-                "y": 0.07,
-                "width": 0.58,
-                "height": 0.15
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
               },
               "text": {
                 "kind": "template",
@@ -939,10 +979,30 @@
                 "font_size": 12,
                 "weight": 600,
                 "color": "#000000",
-                "align": "end",
+                "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
               }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
             },
             {
               "id": "message",
@@ -951,7 +1011,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.325,
+                "y": 0.326,
                 "width": 0.88,
                 "height": 0.294
               },
@@ -974,15 +1034,15 @@
               "type": "shape_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.704,
+                "y": 0.68,
                 "width": 0.4,
-                "height": 0.19
+                "height": 0.21
               },
               "background": {
                 "type": "solid_v1",
                 "color": "#FFFFFF"
               },
-              "radius": 15,
+              "radius": 16.5,
               "border": {
                 "width": 0,
                 "color": "#FFFFFF"
@@ -996,7 +1056,7 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.32,
-                "y": 0.714,
+                "y": 0.7,
                 "width": 0.36,
                 "height": 0.17
               },
@@ -1019,9 +1079,9 @@
               "type": "action_region_v1",
               "frame": {
                 "x": 0.3,
-                "y": 0.704,
+                "y": 0.68,
                 "width": 0.4,
-                "height": 0.207
+                "height": 0.256
               },
               "content_ids": [
                 "action-surface",

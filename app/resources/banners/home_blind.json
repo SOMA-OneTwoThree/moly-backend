@@ -619,9 +619,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
-              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
-              "byte_length": 22826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
+              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
+              "byte_length": 5872,
               "pixel_width": 1000,
               "pixel_height": 563,
               "media_type": "image/webp"
@@ -779,9 +779,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
-              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
-              "byte_length": 22826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
+              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
+              "byte_length": 5872,
               "pixel_width": 1000,
               "pixel_height": 563,
               "media_type": "image/webp"
@@ -939,9 +939,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-1-075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b.webp",
-              "sha256": "075a876e98e91cf5678adcbc8af744aadddc713b3b8c77a44d217f536ad09c4b",
-              "byte_length": 22826,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
+              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
+              "byte_length": 5872,
               "pixel_width": 1000,
               "pixel_height": 563,
               "media_type": "image/webp"

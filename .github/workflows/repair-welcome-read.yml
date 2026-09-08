@@ -1,0 +1,228 @@
+name: Mark backfilled welcome diaries read (temporary)
+run-name: Welcome read repair ${{ inputs.target }} ${{ inputs.mode }}
+
+# One-time data repair. Remove after both environments verify; no application deployment needed.
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [dev, prod]
+        required: true
+      mode:
+        type: choice
+        options: [dry-run, commit, verify]
+        required: true
+      confirm_sha256:
+        description: Reviewed repair source SHA-256
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+concurrency:
+  group: ${{ inputs.target == 'prod' && 'deploy-moly-backend' || 'deploy-moly-backend-dev' }}
+  cancel-in-progress: false
+env:
+  AWS_REGION: ap-northeast-2
+  TARGET: ${{ inputs.target }}
+  MODE: ${{ inputs.mode }}
+  REPAIR_SHA: e2c165ff38de07dd86d1c6feb36fcfc41142681ac396fe7986dd241efcf1a530
+  ROLE_NAME: ${{ inputs.target == 'prod' && 'moly-github-actions-role' || 'moly-github-actions-dev-role' }}
+  SERVER_ROLE: ${{ inputs.target == 'prod' && 'moly-backend' || 'moly-backend-dev' }}
+  EXPECTED_SHA: ${{ inputs.target == 'prod' && 'dfc0e0f8061a21accde72d2f9e257b78be853149' || '6fed998140068e3a372f641abb85258aaf1c69cd' }}
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate target and reviewed source
+        env:
+          CONFIRM_SHA: ${{ inputs.confirm_sha256 }}
+        run: |
+          set -euo pipefail
+          case "$TARGET:$GITHUB_REF" in dev:refs/heads/dev|prod:refs/heads/main) ;; *) exit 1 ;; esac
+          case "$MODE" in dry-run|commit|verify) ;; *) exit 1 ;; esac
+          test "$CONFIRM_SHA" = "$REPAIR_SHA"
+      - name: Require successful dev repair with identical workflow
+        if: inputs.target == 'prod'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PYTHON'
+          import base64, json, os, subprocess
+          repo = os.environ['GITHUB_REPOSITORY']
+          path = '.github/workflows/repair-welcome-read.yml'
+          def api(path):
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/{path}']))
+          def source(ref):
+              return base64.b64decode(api(f'contents/{path}?ref={ref}')['content'])
+          expected = source(os.environ['GITHUB_SHA'])
+          runs = api('actions/workflows/repair-welcome-read.yml/runs?branch=dev&event=workflow_dispatch&status=success&per_page=100')['workflow_runs']
+          if not any(run['display_title'] == 'Welcome read repair dev commit'
+                     and source(run['head_sha']) == expected for run in runs):
+              raise SystemExit('Successful identical dev repair required')
+          PYTHON
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::676972757138:role/${{ env.ROLE_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: '676972757138'
+      - name: Select one server for the shared database
+        run: |
+          set -euo pipefail
+          ARN="$(aws sts get-caller-identity --query Arn --output text)"
+          case "$ARN" in "arn:aws:sts::676972757138:assumed-role/$ROLE_NAME/"*) ;; *) exit 1 ;; esac
+          IDS="$(aws ec2 describe-instances --filters "Name=tag:Role,Values=$SERVER_ROLE" \
+            "Name=instance-state-name,Values=running" --query 'Reservations[].Instances[].InstanceId' --output text)"
+          read -r -a instances <<< "$IDS"
+          expected=1
+          if [ "$TARGET" = prod ]; then expected=2; fi
+          test "${#instances[@]}" -eq "$expected"
+          printf 'INSTANCE_ID=%s\n' "${instances[0]}" >> "$GITHUB_ENV"
+      - name: Prepare reviewed repair
+        run: |
+          cat > /tmp/repair.py <<'REPAIR_PY'
+          """One-time repair: old missing welcomes are provisioned read; genuine welcomes stay unread."""
+          import asyncio
+          import json
+          import sys
+          from datetime import datetime, timezone
+          
+          from sqlalchemy import select, text
+          from app.core.db import get_sessionmaker
+          from app.models.profile import Profile
+          from app.models.diary import Diary
+          from app.services import diary
+          
+          CUTOFFS = {"dev": "2026-09-08T09:15:38+00:00", "prod": "2026-09-08T09:18:33+00:00"}
+          TEMPLATES = {diary._welcome_parts(lang) for lang in ("ko", "en", "ja")}
+          
+          
+          def is_backfilled_unread(entry, profile, cutoff):
+              return (
+                  entry.kind == "welcome" and entry.source == "welcome"
+                  and entry.record_status == "published" and entry.deleted_at is None
+                  and entry.first_read_at is None and entry.created_at >= cutoff
+                  and profile.created_at < cutoff
+                  and entry.occurred_at == profile.created_at
+                  and entry.published_at == profile.created_at
+                  and (entry.title, entry.content) in TEMPLATES
+              )
+          
+          
+          async def run(target, mode):
+              cutoff = datetime.fromisoformat(CUTOFFS[target])
+              maker = get_sessionmaker()
+              totals = {"missing": 0, "backfilled_unread": 0, "existing_untouched": 0, "blocked": 0}
+              cursor = None
+              while True:
+                  async with maker() as session:
+                      # Dry-run/verify never issue INSERT, UPDATE or enqueue jobs.
+                      async with session.begin():
+                          if mode != "commit":
+                              await session.execute(text("SET TRANSACTION READ ONLY"))
+                          await session.execute(text("SET LOCAL lock_timeout = '2s'"))
+                          await session.execute(text("SET LOCAL statement_timeout = '30s'"))
+                          query = select(Profile).where(Profile.created_at < cutoff).order_by(Profile.id).limit(100)
+                          if cursor is not None:
+                              query = query.where(Profile.id > cursor)
+                          if mode == "commit":
+                              query = query.with_for_update()
+                          profiles = list((await session.scalars(query)).all())
+                          if not profiles:
+                              break
+                          for profile in profiles:
+                              # Serialize with account-deletion barrier updates; never restore deleted subjects.
+                              barrier_sql = "SELECT state FROM privacy_subject_barriers WHERE user_id=:uid"
+                              if mode == "commit":
+                                  barrier_sql += " FOR SHARE"
+                              state = await session.scalar(text(barrier_sql), {"uid": profile.id})
+                              if state not in (None, "active"):
+                                  totals["blocked"] += 1
+                                  continue
+                              entry = await session.scalar(select(Diary).where(
+                                  Diary.user_id == profile.id, Diary.kind == "welcome"
+                              ).order_by(Diary.created_at).limit(1))
+                              if entry is None:
+                                  totals["missing"] += 1
+                                  if mode == "commit":
+                                      inserted = await diary.ensure_welcome(session, profile)
+                                      # A concurrent GET may have inserted it first. Re-read and apply the same guard.
+                                      entry = await session.scalar(select(Diary).where(
+                                          Diary.user_id == profile.id, Diary.kind == "welcome",
+                                          Diary.deleted_at.is_(None),
+                                      ))
+                                      if inserted is not None or (
+                                          entry is not None and is_backfilled_unread(entry, profile, cutoff)
+                                      ):
+                                          entry.first_read_at = datetime.now(timezone.utc)
+                              elif is_backfilled_unread(entry, profile, cutoff):
+                                  totals["backfilled_unread"] += 1
+                                  if mode == "commit":
+                                      entry.first_read_at = datetime.now(timezone.utc)
+                              else:
+                                  totals["existing_untouched"] += 1
+                          cursor = profiles[-1].id
+                  print(json.dumps({"target": target, "mode": mode, **totals}), flush=True)
+              print(json.dumps({"target": target, "mode": mode, "final": True, **totals}), flush=True)
+              if mode == "verify" and (totals["missing"] or totals["backfilled_unread"]):
+                  raise RuntimeError("eligible unread or missing welcomes remain")
+              if mode == "commit":
+                  await run(target, "verify")
+          
+          
+          if __name__ == "__main__":
+              target, mode = sys.argv[1:]
+              assert target in CUTOFFS and mode in ("dry-run", "commit", "verify")
+              try:
+                  asyncio.run(run(target, mode))
+              except Exception as exc:
+                  print(f"Repair failed ({type(exc).__name__}); details suppressed", flush=True)
+                  sys.exit(1)
+          
+          REPAIR_PY
+          python3 - <<'PYTHON'
+          import hashlib, json, os, shlex
+          from pathlib import Path
+          source = Path('/tmp/repair.py').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest() == os.environ['REPAIR_SHA']
+          target, mode, expected = os.environ['TARGET'], os.environ['MODE'], os.environ['EXPECTED_SHA']
+          version_check = f"from app.config import settings; assert settings.git_sha == {expected!r}"
+          commands = [
+              'set -euo pipefail',
+              'marker=prod',
+              'if [ -e /etc/moly-env ]; then marker="$(cat /etc/moly-env)"; fi',
+              f'test "$marker" = "{target}"',
+              'docker exec moly-backend python -c ' + shlex.quote(version_check),
+              'docker exec moly-backend python -m db.schema_contract',
+              f"docker exec -i moly-backend python - {target} {mode} <<'REMOTE_REPAIR'",
+              source,
+              'REMOTE_REPAIR',
+          ]
+          command = "bash <<'WELCOME_REPAIR'\n" + '\n'.join(commands) + '\nWELCOME_REPAIR\n'
+          assert len(command.encode()) < 24000
+          Path('/tmp/command.json').write_text(json.dumps({'commands': [command], 'executionTimeout': ['600']}))
+          PYTHON
+      - name: Run repair and check outcome
+        run: |
+          set -euo pipefail
+          command_id="$(aws ssm send-command --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript --parameters file:///tmp/command.json \
+            --query Command.CommandId --output text)"
+          echo "SSM command: $command_id"
+          status=Pending
+          for attempt in $(seq 1 65); do
+            sleep 10
+            if status="$(aws ssm get-command-invocation --command-id "$command_id" \
+              --instance-id "$INSTANCE_ID" --query Status --output text 2>/tmp/poll-error)"; then
+              case "$status" in Success|Failed|Cancelled|TimedOut) break ;; esac
+            elif [ "$attempt" -gt 3 ] || ! grep -q InvocationDoesNotExist /tmp/poll-error; then
+              exit 1
+            fi
+          done
+          aws ssm get-command-invocation --command-id "$command_id" --instance-id "$INSTANCE_ID" \
+            --query StandardOutputContent --output text
+          echo "Repair status: $status"
+          test "$status" = Success

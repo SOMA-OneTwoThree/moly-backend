@@ -2,6 +2,9 @@
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+from sqlalchemy.dialects import postgresql
 
 import pytest
 from fastapi.testclient import TestClient
@@ -40,6 +43,7 @@ class FakeSession:
         self.welcome_id = welcome_id
         self.committed = False
         self.executed = False
+        self.statements = []
 
     async def execute(self, stmt):
         self.executed = True
@@ -61,6 +65,7 @@ class SequentialScalarSession(FakeSession):
         self.values = iter(values)
 
     async def scalar(self, stmt):
+        self.statements.append(stmt)
         return next(self.values)
 
 
@@ -88,12 +93,13 @@ def test_welcome_content_is_placeholder_and_renders_with_josa():
     assert naming.TOKEN in tpl and "승민" not in tpl  # 저장은 토큰만
     seungmin = naming.render(tpl, "승민")
     assert seungmin.startswith("승민, 첫 만남\n\n")
-    assert "오늘 승민과 처음 대화를 나눴다." in seungmin
+    assert "오늘 새 친구 승민을 만났다." in seungmin
+    assert "오늘 새 친구 지호를 만났다." in naming.render(tpl, "지호")
     assert naming.render(tpl, "지호").startswith("지호, 첫 만남")
     assert "사용자" not in seungmin  # 화자 라벨 누출 없음
 
 
-def test_welcome_date_is_first_conversation_local_date():
+def test_welcome_date_is_signup_local_date():
     created = datetime(2026, 7, 15, 2, 0, tzinfo=timezone.utc)  # = KST 7/15 11:00 → activity_date 7/15
     assert diary_service._welcome_date(created, "Asia/Seoul") == date(2026, 7, 15)
 
@@ -105,87 +111,133 @@ def test_welcome_date_does_not_use_the_four_am_activity_boundary():
     assert diary_service._welcome_date(la, "America/Los_Angeles") == date(2026, 7, 15)
 
 
-def test_welcome_is_not_created_by_a_list_read_anymore():
-    assert not hasattr(diary_service, "ensure_welcome")
+def _profile(**over):
+    values = dict(
+        id=UID_UUID, nickname=None, language="ko", timezone="Asia/Seoul", created_at=PAST,
+        relationship_started_at=None, relationship_started_timezone=None,
+        relationship_display_date=None,
+    )
+    values.update(over)
+    return SimpleNamespace(**values)
 
 
-async def test_first_committed_turn_welcome_joins_the_callers_transaction(monkeypatch):
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+async def test_signup_welcome_without_conversation_or_nickname_joins_transaction(monkeypatch, language):
     diary_id = uuid.uuid4()
-    profile = SimpleNamespace(
-        id=UID_UUID,
-        nickname=None,
-        language="ko",
-        timezone="Asia/Seoul",
-        relationship_started_at=None,
-    )
-    session = FakeSession(get_obj=profile, welcome_id=diary_id)
+    created = datetime(2026, 7, 14, 17, tzinfo=timezone.utc)  # KST 가입일 7/15, 새벽 2시
+    profile = _profile(language=language, created_at=created)
+    session = SequentialScalarSession([None, diary_id], get_obj=profile)
+    document = AsyncMock()
+    sources = AsyncMock()
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", document)
+    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", sources)
 
-    async def _sources(*args, **kwargs):
-        return None
+    inserted = await diary_service.ensure_welcome(session, profile)
 
-    async def _document(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _sources)
-    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _document)
-    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
-        session, profile, PAST, source_message_id=11
-    )
     assert inserted == diary_id
     assert session.committed is False
+    assert profile.relationship_started_at is None
+    assert profile.relationship_started_timezone is None
+    assert profile.relationship_display_date is None
+    stmt = session.statements[1].compile(dialect=postgresql.dialect())
+    values = stmt.params
+    assert values["display_date"] == values["diary_date"] == date(2026, 7, 15)
+    assert values["activity_date"] is None  # 가입일 daily 슬롯을 차지하지 않는다.
+    assert values["occurred_at"] == values["published_at"] == created
+    assert values["occurred_timezone"] == "Asia/Seoul"
+    assert (values["title"], values["content"]) == diary_service._welcome_parts(language)
+    assert "ON CONFLICT DO NOTHING" in str(stmt)
+    sources.assert_not_awaited()
+    document.assert_awaited_once_with(session, user_id=UID_UUID, diary_id=diary_id)
+
+
+@pytest.mark.parametrize("values", [[uuid.uuid4()], [None, None]])
+async def test_existing_or_concurrently_inserted_welcome_does_not_repeat_projection(monkeypatch, values):
+    profile = _profile(timezone="America/Los_Angeles", relationship_started_at=PAST)
+    session = SequentialScalarSession(values, get_obj=profile)
+    document = AsyncMock()
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", document)
+    assert await diary_service.ensure_welcome(session, profile) is None
+    assert session.committed is False
+    document.assert_not_awaited()
+
+
+async def test_first_list_returns_signup_welcome_and_repeat_keeps_original_date(monkeypatch):
+    # 첫 조회에서는 일기가 없고, INSERT한 행을 바로 목록·상세로 읽는다. 대화 테이블은 없다.
+    profile = _profile(nickname="승민")
+    class SignupSession(FakeSession):
+        async def scalar(self, stmt):
+            if stmt.is_select:
+                return self.rows[0].id if self.rows else None
+            params = stmt.compile(dialect=postgresql.dialect()).params
+            self.rows.append(_diary(**params))
+            return self.rows[0].id
+
+        async def get(self, model, key):
+            return profile if model is diary_service.Profile else self.rows[0]
+
+    session = SignupSession()
+    document = AsyncMock()
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", document)
+    first = await diary_service.list_diaries(session, UID)
+    item = first["data"][0]
+    assert len(first["data"]) == 1
+    assert item["title"] == "승민, 첫 만남"
+    assert item["published_at"] == PAST.isoformat()
+    assert item["read"] is False
+    assert session.committed is True
+    detail = await diary_service.get_diary(session, UID, item["id"])
+    assert detail["conversation_ref"] is None
+    assert "오늘 새 친구 승민을 만났다." in detail["body"]
+
+    profile.timezone = "America/Los_Angeles"
+    profile.language = "ja"
+    profile.nickname = "지호"
+    session.committed = False
+    repeated = await diary_service.list_diaries(session, UID)
+    assert len(session.rows) == 1
+    assert repeated["data"][0]["id"] == item["id"]
+    assert repeated["data"][0]["diary_date"] == item["diary_date"]
+    assert repeated["data"][0]["title"] == "지호, 첫 만남"
+    assert session.committed is False
+    document.assert_awaited_once()
+
+
+async def test_missing_welcome_uses_signup_date_even_after_first_conversation(monkeypatch):
+    created = PAST - timedelta(days=10)
+    profile = _profile(created_at=created, relationship_started_at=PAST,
+                       relationship_started_timezone="America/Los_Angeles")
+    session = SequentialScalarSession([None, uuid.uuid4()], get_obj=profile)
+    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", AsyncMock())
+    await diary_service.list_diaries(session, UID)
+    params = session.statements[1].compile(dialect=postgresql.dialect()).params
+    assert params["occurred_at"] == created
+    assert params["occurred_timezone"] == "Asia/Seoul"
     assert profile.relationship_started_at == PAST
+    assert session.committed is True
 
 
-async def test_existing_welcome_is_a_true_noop_for_projection_hooks(monkeypatch):
-    diary_id = uuid.uuid4()
-    profile = SimpleNamespace(
-        id=UID_UUID,
-        language="ko",
-        timezone="Asia/Seoul",
-        relationship_started_timezone="America/Los_Angeles",
-        relationship_started_at=PAST,
+async def test_blocked_account_cannot_create_welcome(monkeypatch):
+    session = SequentialScalarSession([], get_obj=_profile())
+    monkeypatch.setattr(
+        diary_service.privacy, "ensure_subject_active",
+        AsyncMock(side_effect=AppError("ACCOUNT_DELETING", 409, "삭제 중")),
     )
-    session = SequentialScalarSession([None, diary_id], get_obj=profile)
-    calls = []
+    with pytest.raises(AppError, match="삭제 중"):
+        await diary_service.list_diaries(session, UID)
+    assert session.statements == []
+    assert session.committed is False
 
-    async def _called(*args, **kwargs):
-        calls.append((args, kwargs))
 
-    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _called)
-    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _called)
-    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
-        session, profile, PAST, source_message_id=None
+async def test_welcome_projection_failure_does_not_commit_partial_diary(monkeypatch):
+    session = SequentialScalarSession([None, uuid.uuid4()], get_obj=_profile())
+    monkeypatch.setattr(
+        "app.services.diary_recall_repo.upsert_diary_recall_document",
+        AsyncMock(side_effect=RuntimeError("projection failed")),
     )
-    assert inserted is None
-    assert calls == []
-
-
-async def test_missing_welcome_for_existing_relationship_uses_first_user_message(monkeypatch):
-    diary_id = uuid.uuid4()
-    profile = SimpleNamespace(
-        id=UID_UUID,
-        language="ko",
-        timezone="Asia/Seoul",
-        relationship_started_timezone="America/Los_Angeles",
-        relationship_started_at=PAST,
-    )
-    session = SequentialScalarSession([diary_id, 7], get_obj=profile)
-    observed = {}
-
-    async def _sources(*args, **kwargs):
-        observed["sources"] = kwargs
-
-    async def _document(*args, **kwargs):
-        observed["document"] = kwargs
-
-    monkeypatch.setattr("app.services.diary_recall_repo.record_diary_sources", _sources)
-    monkeypatch.setattr("app.services.diary_recall_repo.upsert_diary_recall_document", _document)
-    inserted = await diary_service.ensure_welcome_for_first_committed_turn(
-        session, profile, PAST, source_message_id=None
-    )
-    assert inserted == diary_id
-    assert observed["sources"]["message_ids"] == [7]
-    assert observed["document"]["diary_id"] == diary_id
+    with pytest.raises(RuntimeError, match="projection failed"):
+        await diary_service.list_diaries(session, UID)
+    assert session.committed is False
 
 
 def test_list_item_welcome_exposes_title_and_strips_body():

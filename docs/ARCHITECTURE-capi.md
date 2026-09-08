@@ -197,10 +197,10 @@
    확인한 뒤, 사용자 메시지보다 먼저 1건 저장한다(`turn_position=0`). 실제로 저장된 경우에만
    현재 이름으로 렌더해 응답에 함께 실어 보낸다.
 4. 사용자 메시지 저장(`turn_position=1`).
-5. **관계 시작 시각 확정과 첫 일기 생성** — `profiles.relationship_started_at` 등이 비어 있으면
-   이 턴에서 채우고, 같은 트랜잭션에서
-   `diary_service.ensure_welcome_for_first_committed_turn`이 환영 일기를 만든다. 과거 결함으로
-   환영 일기가 빠진 사용자도 같은 경로로 복구된다.
+5. **관계 시작 시각 확정** — `profiles.relationship_started_at` 등이 비어 있으면 이 턴에서 채운다.
+   첫 만남 일기는 대화와 별개로 가입 직후 첫 `GET /diaries`에서 `diary_service.ensure_welcome`이
+   생성한다. 가입일을 표시 날짜로 저장하고 회상 문서·색인 잡도 함께 커밋한다. 대화 근거는 연결하지
+   않으며, 기존 사용자에게 누락된 환영 일기도 이 조회 경로에서 복구된다.
 6. 대화 시작 지점이 바뀌었으면 저장하고, 캐피 답변을 저장한다(`turn_position=2`). 이 행에는
    **이 턴에서 일어난 모든 모델 호출의 토큰 합계**와 청구 단위를 함께 남긴다.
 7. `_record_memory_v2` — 기억 기능이 `shadow` 또는 `v2`인 사용자만, 처리 위치 번호를 전진시키고

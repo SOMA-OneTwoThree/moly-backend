@@ -83,7 +83,7 @@ _HANGUL_RE: Final = re.compile(r"[가-힣]")
 _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-COPY_VERSION = "fortune-copy.v2-field-readings.1"
+COPY_VERSION = "fortune-copy.v3-independent.1"
 CONTENT_STATUS = "approved_for_production"
 
 
@@ -144,10 +144,10 @@ def _text(value: Any, label: str, *, locale: str, overall: bool = False) -> str:
         raise FortuneCatalogError(f"{label} contains forbidden fortune wording")
     if locale == "ko" and _AWKWARD_COPY_RE.search(value):
         raise FortuneCatalogError(f"{label} contains awkward Korean fortune wording")
-    if value.endswith((".", "。")) or (
-        locale == "ko" and any(token in value for token in ("겠어", "흐름이야", "가능성이 보여", "기운이 모여"))
-    ):
-        raise FortuneCatalogError(f"{label} contains retired fortune punctuation or tone")
+    if "\n" in value or "\r" in value:
+        raise FortuneCatalogError(f"{label} must not contain forced line breaks")
+    if locale == "ko" and any(token in value for token in ("겠어", "흐름이야", "가능성이 보여", "기운이 모여")):
+        raise FortuneCatalogError(f"{label} contains retired fortune tone")
     if overall and _OVERALL_DOMAIN_BY_LOCALE[locale].search(value):
         raise FortuneCatalogError(f"{label} contains category-specific wording")
     if locale != "ko" and _HANGUL_RE.search(value):
@@ -179,8 +179,8 @@ class FortuneCatalog:
             {"schema_version", "overall", "categories", "lucky_color_key"},
             "semantic result",
         )
-        if semantic["schema_version"] != 3:
-            raise FortuneCatalogError("semantic result schema must be 3")
+        if semantic["schema_version"] not in (3, 4):
+            raise FortuneCatalogError("semantic result schema must be 3 or 4")
         overall_semantic = semantic.get("overall")
         categories_semantic = semantic.get("categories")
         color_key = semantic.get("lucky_color_key")
@@ -197,11 +197,16 @@ class FortuneCatalog:
             raise FortuneCatalogError("semantic categories must contain four categories")
         overall_score = _score(overall_semantic.get("score"), "semantic overall score")
         overall_decile = fortune_rules.decile_for(overall_score)
-        overall_reading = _overall_reading(overall_semantic.get("reading_code"))
         overall_route = overall_semantic.get("expression_route")
-        expected_route = f"overall.{overall_decile}.{overall_reading['flow']}.default"
-        if overall_reading["decile"] != overall_decile or overall_route != expected_route:
-            raise FortuneCatalogError("semantic overall score and routes do not match")
+        if semantic["schema_version"] == 4:
+            expected_route = f"overall.{overall_decile}.general"
+            if overall_semantic.get("reading_code") != expected_route or overall_route != expected_route:
+                raise FortuneCatalogError("semantic overall score and routes do not match")
+        else:
+            overall_reading = _overall_reading(overall_semantic.get("reading_code"))
+            expected_route = f"overall.{overall_decile}.{overall_reading['flow']}.default"
+            if overall_reading["decile"] != overall_decile or overall_route != expected_route:
+                raise FortuneCatalogError("semantic overall score and routes do not match")
         copy_route = overall_copy_route(overall_route)
         if copy_route not in overall_catalog:
             raise FortuneCatalogError(f"unknown overall route: {overall_route}")
@@ -240,7 +245,11 @@ class FortuneCatalog:
         if color_key not in color_catalog:
             raise FortuneCatalogError(f"unknown lucky color: {color_key}")
         color_index = min(overall_score // 10, 9)
-        expected_color = rules["lucky_color_by_flow"][overall_reading["flow"]][color_index]
+        if semantic["schema_version"] == 4:
+            from app.services.fortune_scores import COLORS
+            expected_color = COLORS[color_index]
+        else:
+            expected_color = rules["lucky_color_by_flow"][overall_reading["flow"]][color_index]
         if color_key != expected_color:
             raise FortuneCatalogError("lucky color does not match overall flow and score")
         color = color_catalog[str(color_key)]
@@ -356,7 +365,7 @@ def _validate_copy(
             _exact_keys(block, {"text"}, label)
             lines = block["text"]
             if not isinstance(lines, list) or len(lines) != 2:
-                raise FortuneCatalogError(f"{label}.text must contain exactly two sentences")
+                raise FortuneCatalogError(f"{label}.text must contain exactly two text segments")
             rendered_lines = tuple(
                 _text(line, f"{label}.text[{index}]", locale=locale)
                 for index, line in enumerate(lines)
@@ -364,7 +373,7 @@ def _validate_copy(
             # Repeated short suggestions need not be forced into awkward synonyms.
             # The interpretation and suggestion together must remain distinct.
             if rendered_lines[0] == rendered_lines[1]:
-                raise FortuneCatalogError(f"{label} must contain two distinct sentences")
+                raise FortuneCatalogError(f"{label} must contain two distinct text segments")
             expressions.append("\n".join(rendered_lines))
             variants[variant] = MappingProxyType({"text": rendered_lines})
         validated_categories[route] = MappingProxyType({"variants": MappingProxyType(variants)})
@@ -395,7 +404,7 @@ def _validate_overall_bundle(
     _exact_keys(bundle, {"headline", "flow", "do", "pause"}, route)
     flow = bundle["flow"]
     if not isinstance(flow, list) or len(flow) != 3:
-        raise FortuneCatalogError(f"{route}.flow must contain exactly three sentences")
+        raise FortuneCatalogError(f"{route}.flow must contain exactly three text segments")
     headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=True)
     rendered_flow = tuple(
         _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=True)

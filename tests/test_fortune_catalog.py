@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from difflib import SequenceMatcher
 from pathlib import Path
 import shutil
@@ -70,7 +71,7 @@ def _semantic() -> dict:
 
 def test_approved_catalog_has_complete_variant_coverage():
     catalog = load_catalog()
-    assert COPY_VERSION == "fortune-copy.v2-field-readings.1"
+    assert COPY_VERSION == "fortune-copy.v3-independent.1"
     assert CONTENT_STATUS == "approved_for_production"
     assert SUPPORTED_LOCALES == ("ko", "en", "ja")
     for locale in SUPPORTED_LOCALES:
@@ -111,8 +112,10 @@ def test_complete_day_readings_are_distinct_without_forcing_action_synonyms(loca
         for b in wrapper["variants"].values():
             assert set(b) == {"headline", "flow", "do", "pause"}
             assert len(b["flow"]) == 3
+            assert len(re.findall(r"[.!?。！？]", " ".join(b["flow"]))) == 5
+            assert all("\n" not in text and "\r" not in text for text in b["flow"])
             texts = [b["headline"], *b["flow"], b["do"], b["pause"]]
-            assert all(not text.endswith((".", "。")) for text in texts)
+            assert all(text.endswith((".", "。", "!", "?", "！", "？")) for text in texts)
             if locale == "ko":
                 assert all("겠어" not in text for text in texts)
             headlines.append(b["headline"])
@@ -130,7 +133,9 @@ def test_complete_day_readings_are_distinct_without_forcing_action_synonyms(loca
         assert len(wrapper["variants"]) == 20
         for b in wrapper["variants"].values():
             assert len(b["text"]) == 2
-            assert all(not text.endswith((".", "。")) for text in b["text"])
+            assert len(re.findall(r"[.!?。！？]", " ".join(b["text"]))) == 5
+            assert all("\n" not in text and "\r" not in text for text in b["text"])
+            assert all(text.endswith((".", "。", "!", "?", "！", "？")) for text in b["text"])
             if locale == "ko":
                 assert all(
                     not any(token in text for token in ("겠어", "흐름이야", "가능성이 보여", "기운이 모여"))
@@ -140,8 +145,8 @@ def test_complete_day_readings_are_distinct_without_forcing_action_synonyms(loca
     assert len(expressions) == 2800
 
 
-@pytest.mark.parametrize("text", ["오늘은 마음이 편해지겠어", "오늘은 한결 편안한 날이야."])
-def test_retired_overall_tone_and_terminal_period_are_rejected(tmp_path, text):
+@pytest.mark.parametrize("text", ["오늘은 마음이 편해지겠어", "오늘은 한결 편안한 흐름이야."])
+def test_retired_overall_tone_is_rejected(tmp_path, text):
     resources = _copy_resources(tmp_path)
     path = resources / "copy.v2.json"
     asset = json.loads(path.read_text())
@@ -410,7 +415,7 @@ def test_repeated_short_action_is_allowed_but_duplicate_whole_reading_is_rejecte
 
 @pytest.mark.parametrize("text", [
     "마음이 가벼워지겠어", "편하게 다가갈 수 있는 흐름이야", "좋은 가능성이 보여",
-    "기운이 모여", "서로를 알아가기 좋아.",
+    "기운이 모여", "흐름이야.",
 ])
 def test_retired_category_tone_is_rejected(tmp_path, text):
     resources = _copy_resources(tmp_path)
@@ -436,5 +441,5 @@ def test_repeated_category_suggestion_is_allowed_but_same_two_lines_are_not(tmp_
     variants["v02"]["text"][0] = variants["v02"]["text"][1]
     _write_json(path, asset)
     _refresh_manifest_hash(resources, path.name)
-    with pytest.raises(FortuneCatalogError, match="two distinct sentences"):
+    with pytest.raises(FortuneCatalogError, match="two distinct text segments"):
         load_catalog(resources)

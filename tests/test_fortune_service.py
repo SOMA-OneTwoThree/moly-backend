@@ -102,7 +102,7 @@ def test_result_build_is_deterministic_and_has_complete_localized_projections():
     )
     assert first == second
     semantic, localized = first
-    assert semantic["schema_version"] == 3
+    assert semantic["schema_version"] == 4
     assert 0 <= semantic["overall"]["score"] <= 100
     assert set(semantic["categories"]) == {"love", "money", "work", "energy"}
     assert set(localized) == {"ko", "en", "ja"}

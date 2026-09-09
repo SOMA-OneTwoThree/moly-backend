@@ -33,13 +33,11 @@ def _bundle_rows(bundles, *, overall):
     lines = ["| 구성 | 한국어 | English (US) | 日本語 |", "| --- | --- | --- | --- |"]
     if overall:
         lines.append(_row("총평", [b["headline"] for b in bundles]))
-        for i in range(3):
-            lines.append(_row(f"풀이 {i + 1}", [b["flow"][i] for b in bundles]))
+        lines.append(_row("전체 풀이", [("" if locale == "ja" else " ").join(b["flow"]) for locale, b in zip(LOCALES, bundles)]))
         lines.append(_row("해볼 것", [b["do"] for b in bundles]))
         lines.append(_row("조심할 것", [b["pause"] for b in bundles]))
     else:
-        for i, label in enumerate(("분야 해석", "제안·기회")):
-            lines.append(_row(label, [b["text"][i] for b in bundles]))
+        lines.append(_row("분야 풀이", [("" if locale == "ja" else " ").join(b["text"]) for locale, b in zip(LOCALES, bundles)]))
     return lines + [""]
 
 

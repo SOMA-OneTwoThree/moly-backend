@@ -50,6 +50,16 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Require explicitly authorized production image
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_REF: ${{ github.ref }}
+        run: |
+          test "$EVENT_NAME" = workflow_dispatch
+          test "$RUN_REF" = refs/heads/ops/enable-morning-diary-20260909
+          test "$DEPLOY_TAG" = 8ec7e210d733425c27b5fad1d98c0142c5a20127
+          test "$EXPECTED_INSTANCES" = 2
+
       # 1. 코드 체크아웃
       - name: Checkout
         uses: actions/checkout@v4
@@ -187,6 +197,19 @@ jobs:
             exit 1
           fi
 
+          # Authorized one-time production activation. Validate both hosts before changing SSM.
+          for ID in $INSTANCE_IDS; do
+            CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
+              --document-name AWS-RunShellScript --parameters '{"commands": ["docker exec moly-backend python -c '"'"'import asyncio,json\nfrom pathlib import Path\nfrom app.config import settings\nfrom app.services import push\nassert settings.environment == \"production\"\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nasync def main():\n    token=await push.prepare_access_token()\n    assert token, \"FCM authentication unavailable\"\n    print(json.dumps({\"production\":True,\"fcm_authentication\":True,\"morning_push_enabled\":settings.morning_push_enabled}))\nasyncio.run(main())'"'"'"]}' \
+              --query Command.CommandId --output text)"
+            poll_ssm "$CMD_ID" "$ID"
+          done
+          aws ssm put-parameter --region "$AWS_REGION" \
+            --name /moly/prod/morning-push-enabled --type String --value true --overwrite
+          PUSH_VALUE="$(aws ssm get-parameter --region "$AWS_REGION" \
+            --name /moly/prod/morning-push-enabled --query Parameter.Value --output text)"
+          test "$PUSH_VALUE" = true
+
           for ID in $INSTANCE_IDS; do
             echo "==> [$ID] deregister + drain 대기 (deregistration_delay 60s)"
             aws elbv2 deregister-targets --region "$AWS_REGION" \
@@ -216,6 +239,13 @@ jobs:
             aws elbv2 wait target-in-service --region "$AWS_REGION" \
               --target-group-arn "$TG_ARN" --targets Id="$ID"
             echo "==> [$ID] 롤링 완료"
+          done
+
+          for ID in $INSTANCE_IDS; do
+            CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
+              --document-name AWS-RunShellScript --parameters '{"commands": ["docker exec moly-backend python -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"' && docker exec moly-consumer python -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"'"]}' \
+              --query Command.CommandId --output text)"
+            poll_ssm "$CMD_ID" "$ID"
           done
 
           echo "==> 정합성 검증 1: 발견 인스턴스 수 == TG 등록 타깃 수"

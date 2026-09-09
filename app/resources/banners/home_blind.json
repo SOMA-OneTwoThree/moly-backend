@@ -614,9 +614,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-2-86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5.webp",
-              "sha256": "86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5",
-              "byte_length": 7484,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-3-d23ac84c7fc2b87cc0252a7444535f2bbfdee759b86d948d5a65443d2e462f1f.webp",
+              "sha256": "d23ac84c7fc2b87cc0252a7444535f2bbfdee759b86d948d5a65443d2e462f1f",
+              "byte_length": 6440,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -774,9 +774,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-2-86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5.webp",
-              "sha256": "86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5",
-              "byte_length": 7484,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-3-d23ac84c7fc2b87cc0252a7444535f2bbfdee759b86d948d5a65443d2e462f1f.webp",
+              "sha256": "d23ac84c7fc2b87cc0252a7444535f2bbfdee759b86d948d5a65443d2e462f1f",
+              "byte_length": 6440,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -934,9 +934,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-2-86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5.webp",
-              "sha256": "86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5",
-              "byte_length": 7484,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-3-d23ac84c7fc2b87cc0252a7444535f2bbfdee759b86d948d5a65443d2e462f1f.webp",
+              "sha256": "d23ac84c7fc2b87cc0252a7444535f2bbfdee759b86d948d5a65443d2e462f1f",
+              "byte_length": 6440,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"

@@ -1,11 +1,13 @@
 # 오늘의 총평 10–19점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v3-editorial.1` · 서버 자산에서 생성한 전체 전문
+> 한국어: `fortune-copy.v3-ko-editorial.1` · 영어: `fortune-copy.v3-editorial.1` · 일본어: `fortune-copy.v3-editorial.1`
+> 영어·일본어는 승인된 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·점수대·ID를 대조해 읽는다.
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
-작은 부담과 조급함을 살필 하루. 신중한 태도와 쉴 여유를 권한다
+뜻대로 되지 않는 일이나 부담이 겹치기 쉬운 구간. 계획을 줄이고 시간이나 도움을 확보하면 나아질 여지를 제시한다
 
 내부 계산 유형과 관계없이 이 점수 구간의 20묶음에서 선택한다
 
@@ -13,218 +15,178 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 마음보다 상황이 한 박자 늦게 따라오는 날이야 | Things may take a little longer than you'd like today | 気持ちより、物事がひと呼吸遅れて動く日 |
-| 풀이 1 | 이미 준비가 됐는데도 주변의 반응이 더뎌 답답할 수 있어 | You might be ready to go while the response around you remains slow | こちらの準備はできていても、周りの反応が鈍くてもどかしくなるかも |
-| 풀이 2 | 속도가 맞지 않는다고 네 마음까지 급하게 바꿀 필요는 없어 | A difference in timing doesn't mean you need to change your mind in a hurry | 歩調が合わないからと、自分の気持ちまで急いで変えなくていいよ |
-| 풀이 3 | 기다리는 동안 네 생활의 리듬을 지키는 게 좋아 | Keep your own daily rhythm while you wait | 待つ間も、いつもの生活のリズムは大切にしてね |
-| 해볼 것 | 남의 답과 관계없이 할 수 있는 일을 챙겨봐 | Do something that doesn't depend on someone else's reply | 人の返事を待たずにできることを、先にしてみよう |
-| 조심할 것 | 늦은 반응을 곧바로 거절로 받아들이지 마 | Don't mistake a slow response for rejection | 反応の遅さを、すぐに断られた意味に取らないで |
+| 총평 | 오늘은 계획을 줄여야 마음의 부담도 덜 수 있어. | A shorter to-do list could make today feel less burdensome. | 予定を減らすと、気持ちの負担も軽くなる日です。 |
+| 전체 풀이 | 해야 할 것이 한꺼번에 많아 보여 시작하기가 막막할 수 있어. 머릿속으로 모두 해결하려 하기보다 오늘 꼭 필요한 것만 골라봐. 다른 날로 옮길 수 있는 일정은 미리 바꾸는 게 좋아. 부탁받은 일이 있다면 가능한 시간을 솔직하게 알려줘. 해야 할 양을 줄이고 나면 어디서부터 할지 보일 거야. | Everything on your to-do list may feel overwhelming today, making it hard to begin. Rather than solving it all in your head, pick what really matters today. Rearrange anything that can wait for another day. If someone has asked for help, be honest about when you're available. With less to do, you'll have a clearer idea of where to start. | することが一度に多く見え、どこから始めるか途方に暮れそうです。頭の中ですべて解決しようとせず、今日必要なことだけ選びましょう。別の日に移せる予定は、早めに変えておくのがおすすめです。頼まれていることがあれば、対応できる時間を率直に伝えてください。することを減らすと、何から取りかかるか見えてきます。 |
+| 해볼 것 | 오늘 반드시 해야 할 일만 추려봐. | Keep only the things that truly need doing today. | 今日どうしても必要なことだけ選びましょう。 |
+| 조심할 것 | 미뤄도 되는 일까지 전부 떠안지 마. | Don't take on everything that could wait. | 後でもよいことまで、全部引き受けないでください。 |
 
 ## v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 작은 불편이 쌓이기 전에 네 마음을 돌봐줘 | Small irritations deserve attention before they pile up today | 小さな不快感が重なる前に、自分をいたわりたい日 |
-| 풀이 1 | 한 번쯤 넘길 만한 일도 이어지면 하루가 버겁게 느껴져 | Things you could overlook once may feel heavy when they keep happening | 一度なら流せることでも、続くと一日がつらく感じられそう |
-| 풀이 2 | 참을 수 있다는 이유로 계속 참아야 하는 건 아니야 | Being able to put up with something doesn't mean you have to keep doing so | 我慢できるからといって、ずっと耐える必要はないよ |
-| 풀이 3 | 불편한 이유를 하나씩 덜어내면 기분도 조금씩 풀려 | Removing one source of discomfort at a time can help your mood ease | 気になる原因をひとつずつ減らせば、気持ちもほどけていくはず |
-| 해볼 것 | 지금 가장 거슬리는 것부터 바꿔봐 | Change the thing that's bothering you most right now | 今いちばん気に障ることから、変えてみて |
-| 조심할 것 | 괜찮다는 말로 모든 불편을 덮지 마 | Don't cover every discomfort with an 'I'm fine' | 大丈夫のひと言で、どんな不満も隠さないで |
+| 총평 | 오늘은 기다리는 시간이 유난히 길게 느껴질 수 있어. | Waiting could feel unusually long today. | 待つ時間が、いつもより長く感じられそうです。 |
+| 전체 풀이 | 예상했던 때에 답이 오지 않으면 괜히 다른 선택까지 의심하게 돼. 연락을 확인하느라 내 시간을 모두 쓰지는 않는 게 좋아. 기다려야 할 기한이 있다면 한 번만 분명히 물어봐. 그동안 따로 할 수 있는 일을 정해두면 조급함을 덜 수 있어. 오늘은 답을 재촉하는 것보다 기다릴 방법을 정하는 편이 나아. | A delayed answer could make you start doubting unrelated choices too. Don't spend all your time checking for a reply. If you need a reply by a certain date, ask once for a clear answer about timing. Choose something you can do independently while you wait. Planning how to spend the wait will help more than chasing an answer. | 思っていたときに返事が来ないと、ほかの選択まで疑いたくなりそうです。連絡の確認だけに時間を使い切らないようにしましょう。いつまで待つ必要があるのか、一度はっきり尋ねるのがおすすめです。その間にできることを決めておけば、焦りも減らせます。今日は返事を急かすより、待つ間の過ごし方を決めるほうがよさそうです。 |
+| 해볼 것 | 확인할 시간을 정해두고 다른 일을 해봐. | Set a time to check, then get on with something else. | 確認する時間を決めて、ほかのことをしましょう。 |
+| 조심할 것 | 아무 변화가 없는데 계속 확인하지 마. | Don't keep checking when nothing has changed. | 変化がないのに、何度も確認しないでください。 |
 
 ## v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 낯선 선택보다 익숙한 쪽이 마음을 덜 쓰게 해 | Familiar choices may feel more reassuring today | 今日は、慣れた選択のほうが気楽に過ごせる日 |
-| 풀이 1 | 별다른 이유 없이 결정이 망설여질 수 있는 날이야 | You could hesitate over a decision without quite knowing why | これといった理由がなくても、決めるのをためらいやすいとき |
-| 풀이 2 | 새로움을 택해야만 의미 있는 하루가 되는 건 아니야 | A day doesn't need something new to be meaningful | 新しいことを選ばなくても、一日の意味はなくならないよ |
-| 풀이 3 | 이미 편안함을 느꼈던 선택에서 작은 안정을 얻어봐 | Something you've enjoyed before can help you feel more settled | 前にも安心できた選択から、小さな落ち着きをもらってみよう |
-| 해볼 것 | 익숙해서 믿을 수 있는 쪽을 골라봐 | Choose something familiar that you know you can trust | なじみがあって信頼できるほうを選んでみて |
-| 조심할 것 | 기분 전환을 위해 감당하기 어려운 변화를 만들지 마 | Don't make an overwhelming change just to lift your mood | 気分転換のために、手に余る変化を起こさないで |
+| 총평 | 오늘은 생각한 대로 되지 않아 짜증이 나기 쉬워. | Things not going to plan could make you irritable today. | 思いどおりに進まず、いら立ちやすい日です。 |
+| 전체 풀이 | 작은 변경도 여러 번 겹치면 평소보다 크게 불편할 수 있어. 처음 세운 순서를 꼭 지키려 하면 오히려 시간이 더 걸려. 지금 가능한 것부터 처리하고 나머지는 뒤로 옮겨봐. 함께 정한 일이 있다면 달라진 내용을 일찍 알려주는 게 좋아. 계획을 조금 고치면 남은 하루는 덜 복잡해질 거야. | Several small changes could feel more inconvenient than usual. Insisting on your original order may only make things take longer. Do what's possible now and move the rest back. Let others know early if a shared plan has changed. A small adjustment can make the rest of the day less complicated. | 小さな変更でも重なると、普段より煩わしく感じられそうです。最初に決めた順番にこだわると、かえって時間がかかります。今できることから進め、残りは後に回しましょう。誰かと決めた予定があるなら、変わったことを早めに伝えるのがおすすめです。少し計画を直せば、その後は余計に悩まず過ごせます。 |
+| 해볼 것 | 바뀐 상황에 맞춰 순서를 다시 정해봐. | Reorder your plans to fit the situation. | 状況の変化に合わせて、順番を決め直しましょう。 |
+| 조심할 것 | 처음 계획만 고집하며 시간을 보내지 마. | Don't waste time insisting on the original plan. | 最初の計画にこだわるだけで時間を使わないでください。 |
 
 ## v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 뜻을 알아주길 기다리기보다 짧게 말하는 게 좋은 날이야 | A few honest words can save you a lot of guessing today | 察してもらうより、短く言葉にしたほうがいい日 |
-| 풀이 1 | 말을 아끼다가 네 의도와 다른 반응을 만날 수 있어 | Keeping your thoughts to yourself may bring a response you didn't intend | 言わずにいると、思いと違う反応が返ってくるかも |
-| 풀이 2 | 상대가 놓친 부분이 꼭 무심해서 그런 건 아닐 수 있어 | Someone missing your meaning isn't necessarily a sign that they don't care | 相手が気づかなかったのは、気にかけていないからとは限らないよ |
-| 풀이 3 | 마음속에서 커지기 전에 필요한 말만 전해봐 | Say what needs saying before the feeling grows in your mind | 心の中で膨らむ前に、必要なひと言を伝えてみよう |
-| 해볼 것 | 바라는 점을 한 문장으로 표현해봐 | Put what you're hoping for into one clear sentence | 望んでいることを、一文にして話してみて |
-| 조심할 것 | 침묵을 알아주지 않는다고 미리 실망하지 마 | Don't expect someone to read your silence | 沈黙が伝わらないだけで、先に落ち込まないで |
+| 총평 | 오늘은 내키지 않는 부탁을 거절하기 어려울 수 있어. | Declining an unwanted request could feel difficult today. | 気の進まない頼みごとを、断りにくく感じそうです。 |
+| 전체 풀이 | 좋은 사람으로 보이고 싶은 마음 때문에 내 시간을 내주기 쉬워. 이미 부담스럽다면 더 늦기 전에 할 수 있는 만큼만 알려줘. 이유를 완벽하게 설명해야 거절할 수 있는 것은 아니야. 작은 일이라도 내 일정에 여유가 있는지 먼저 살피는 게 좋아. 오늘은 분명하게 답할수록 뒤의 부담이 줄어들어. | Wanting to seem helpful could make you give away more time than you can spare. If you're already feeling stretched, explain what you can offer before it gets harder. You don't need a perfect explanation to say no. Check your availability even for a small favor. A clear answer now will mean less pressure later. | よく思われたくて、自分の時間を差し出してしまいがちです。すでに負担なら、早いうちにできる範囲を知らせましょう。理由を完璧に説明しなければ断れないわけではありません。小さなことでも、予定に余裕があるか先に確かめるのがおすすめです。今日ははっきり答えるほど、後の負担が減ります。 |
+| 해볼 것 | 할 수 있는 범위를 먼저 정해봐. | Decide how much you can actually offer. | できる範囲を先に決めましょう。 |
+| 조심할 것 | 미안하다는 이유만으로 부탁을 전부 받지 마. | Don't accept every request out of guilt. | 申し訳なさだけで、頼まれたことをすべて受けないでください。 |
 
 ## v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 한 번의 거절이 생각보다 크게 느껴질 수 있는 하루야 | A simple no may feel more personal than it is today | 一度断られたことが、大きく心に残りやすい日 |
-| 풀이 1 | 가벼운 부탁이 받아들여지지 않아도 마음이 오래 남을 수 있어 | Even a small request being turned down could linger with you | ちょっとしたお願いでも、聞いてもらえないと引きずるかも |
-| 풀이 2 | 상대의 사정과 너에 대한 마음을 같은 것으로 보지는 마 | Someone's circumstances aren't the same thing as their feelings about you | 相手の事情と、あなたへの気持ちは分けて考えていいんだよ |
-| 풀이 3 | 오늘은 이유를 모두 알아내기보다 감정을 가라앉히는 게 먼저야 | Let the emotion settle before trying to uncover every reason | 今日は理由を突き止めるより、気持ちを落ち着かせるのが先 |
-| 해볼 것 | 거절당한 일과 네 가치를 구분해봐 | Separate the declined request from your sense of worth | 断られた内容と、自分の価値を切り離してみて |
-| 조심할 것 | 한 사람의 반응으로 자신을 평가하지 마 | Don't measure yourself by one person's reaction | ひとりの反応だけで、自分を評価しないで |
+| 총평 | 오늘은 자꾸 비교할수록 마음이 무거워질 수 있어. | Comparisons could weigh on you today. | 比べるほど、気が重くなりやすい日です。 |
+| 전체 풀이 | 남이 쉽게 해낸 일을 보면 내 속도가 유난히 느리게 느껴지기 쉬워. 하지만 보이지 않는 과정까지 같을 수는 없어. 오늘 해야 할 기준은 어제의 나와 비교해서 정해봐. 자극이 되는 소식도 부담스럽다면 잠시 보지 않아도 괜찮아. 내 일에 시간을 돌리면 불필요한 조급함을 줄일 수 있어. | Seeing someone else do something easily could make your own pace feel painfully slow. But you haven't necessarily seen all the effort behind their result. Judge what to do today against your own progress, not theirs. Even motivating updates can wait if they're making you feel pressured. Returning your attention to your own life can ease unnecessary urgency. | 人が簡単に成し遂げたことを見ると、自分だけ遅く感じられそうです。けれども、見えていない過程まで同じとは限りません。今日の目標は、昨日の自分と比べて決めてみましょう。刺激になる近況も、重荷なら少し見ないでいて大丈夫です。自分のことに時間を使えば、余計な焦りを減らせます。 |
+| 해볼 것 | 어제보다 나아진 점 하나를 찾아봐. | Notice one way you've improved since yesterday. | 昨日よりよくなった点を一つ探しましょう。 |
+| 조심할 것 | 남의 결과만 보고 내 계획을 낮춰보지 마. | Don't devalue your plans after seeing only someone else's result. | 人の結果だけを見て、自分の計画を低く評価しないでください。 |
 
 ## v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 지나간 일이 자꾸 떠오른다면 현재로 돌아올 틈을 만들어봐 | An old moment may tug at you today, so leave room for the present | 過ぎたことに心が戻るなら、今に目を向ける時間を |
-| 풀이 1 | 끝난 대화나 아쉬운 선택이 오늘의 기운까지 가져갈 수 있어 | A past conversation or regretted choice could drain energy from the day you're in | 終わった会話や惜しかった選択に、今日の元気まで取られがち |
-| 풀이 2 | 다시 생각하는 것만으로 달라지지 않는 부분도 있어 | Some parts of it won't change no matter how often you revisit them | 考え直すだけでは、変わらない部分もあるもの |
-| 풀이 3 | 눈앞의 작은 감각에 집중하면 마음이 잠시 쉬어갈 수 있어 | Noticing what's right in front of you can give your mind a short rest | 目の前で感じる小さなことに意識を向けると、心を休められるよ |
-| 해볼 것 | 주변을 천천히 둘러보며 생각을 환기해봐 | Look around and let your surroundings interrupt the replay | 周りをゆっくり見渡して、考えを切り替えてみて |
-| 조심할 것 | 같은 후회를 반복하는 시간을 늘리지 마 | Don't give the same regret more of your time | 同じ後悔を繰り返す時間を、長くしないようにね |
+| 총평 | 오늘은 마음에 걸리는 일을 혼자 키우기 쉬운 날이야. | A private worry could grow larger in your mind today. | 気にかかることを、ひとりで大きく考えやすい日です。 |
+| 전체 풀이 | 분명하지 않은 이야기를 여러 번 떠올리면 나쁜 뜻부터 생각할 수 있어. 직접 확인할 수 있는 내용이라면 짐작을 멈추고 물어봐. 당장 묻기 어렵다면 확실히 아는 사실만 따로 적어둬. 아직 답이 없다는 이유로 먼저 포기할 필요는 없어. 확인하고 나면 걱정했던 것보다 단순한 일일 수 있어. | Replaying an unclear exchange may make you assume the worst. If you can check what happened, ask instead of guessing. If asking isn't possible yet, write down only what you know for certain. A missing answer isn't a reason to give up first. The facts may turn out to be simpler than the worry. | はっきりしない話を何度も思い返すと、悪い意味から考えてしまいそうです。直接確かめられることなら、想像を止めて尋ねましょう。すぐに聞けなければ、確かにわかっていることだけ書いておくとよさそうです。まだ答えがないからと、先に諦める必要はありません。確認すれば、心配していたより単純なことかもしれません。 |
+| 해볼 것 | 마음에 걸린 부분을 구체적으로 확인해봐. | Ask specifically about what's troubling you. | 気にかかった点を具体的に確かめましょう。 |
+| 조심할 것 | 모르는 부분을 나쁜 상상으로 채우지 마. | Don't fill the gaps with worst-case guesses. | わからない部分を、悪い想像で埋めないでください。 |
 
 ## v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 좋은 뜻으로 한 일도 엇갈릴 수 있어 | Good intentions may need a little clarification today | よかれと思ったことも、行き違いになりやすい日 |
-| 풀이 1 | 도와주려던 행동이 상대에게는 부담으로 느껴질 수 있는 날이야 | Something you mean as help could feel like pressure to someone else | 助けるつもりの行動が、相手には負担になることもありそう |
-| 풀이 2 | 서로 원하는 방식을 확인하면 불필요한 서운함을 줄일 수 있어 | Checking what each of you wants can prevent unnecessary hurt | お互いが望む形を確かめれば、余計な寂しさを減らせるよ |
-| 풀이 3 | 먼저 나서기 전에 지금 필요한지 물어보는 게 좋아 | Ask whether help would be welcome before stepping in | 手を貸す前に、今必要かどうか聞いてみるとよさそう |
-| 해볼 것 | 도움이 필요한지 상대의 뜻을 확인해봐 | Find out whether the other person wants a hand | 助けがほしいか、まず相手の気持ちを聞いてみて |
-| 조심할 것 | 네 방식이 상대에게도 편할 거라 짐작하지 마 | Your way of helping won't feel comfortable to everyone | 自分に楽なやり方が、相手にも合うと決めないで |
+| 총평 | 오늘은 욕심낸 만큼 만족하기가 어려울 수 있어. | Setting your sights too high could make satisfaction hard to find today. | 欲張るほど、満足しにくくなりそうです。 |
+| 전체 풀이 | 계획을 크게 잡으면 조금 해내고도 부족하다는 생각이 들기 쉬워. 처음부터 모두 끝내려 하지 말고 오늘 가능한 분량으로 줄여봐. 추가로 해달라는 말에는 기존 일정부터 확인하는 게 좋아. 한 가지를 마쳤다면 바로 다음 일을 더하지 않아도 돼. 오늘은 끝낼 수 있는 약속을 지키는 데 의미가 있어. | An ambitious plan could leave you feeling you haven't done enough, even after making progress. Reduce it to what you can manage rather than trying to finish everything. Check existing commitments before accepting anything extra. Finishing one thing doesn't mean you must immediately add another. Keeping a manageable promise is worthwhile in itself today. | 大きな計画を立てると、少し進めても足りなく感じやすい日です。初めから全部終えようとせず、今日できる量に減らしましょう。追加の頼みごとには、先に今の予定を確かめるのがおすすめです。一つ終えた後に、すぐ次の用事を増やさなくても大丈夫です。今日は無理なく守れる約束を、きちんと果たすことが大切です。 |
+| 해볼 것 | 완료할 수 있는 만큼만 계획해봐. | Plan an amount you can actually finish. | 終えられる量だけ計画しましょう。 |
+| 조심할 것 | 조금 끝냈다고 새 일을 계속 보태지 마. | Don't keep adding more as soon as you make progress. | 少し済んだからと、新しいことを次々に足さないでください。 |
 
 ## v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 마음이 복잡할수록 선택지를 줄여보는 게 좋아 | Fewer choices can make a complicated day feel lighter | 考えがまとまらないときは、選ぶものを減らしてみよう |
-| 풀이 1 | 사소한 일까지 모두 잘 고르려다 시작부터 지칠 수 있어 | Trying to choose perfectly in every small matter may wear you out early | 小さなことまで正しく選ぼうとすると、出だしで息切れしがち |
-| 풀이 2 | 모든 선택이 오늘의 만족을 크게 바꾸는 건 아니야 | Not every decision will make a big difference to your day | どの選択も、一日の満足を大きく左右するわけではないよ |
-| 풀이 3 | 중요하지 않은 부분은 익숙한 기준에 맡겨도 괜찮아 | For the things that matter less, your usual preference is enough | 大事でない部分は、いつもの基準に任せても大丈夫 |
-| 해볼 것 | 오늘 신경 쓸 일을 몇 가지로 좁혀봐 | Narrow down what deserves your attention today | 今日は気にかけることを、いくつかに絞ってみて |
-| 조심할 것 | 작은 결정마다 가장 좋은 답을 찾으려 하지 마 | Don't search for the best possible answer to every tiny choice | 細かな決断のたびに、いちばんの答えを探さないで |
+| 총평 | 오늘은 말하지 않은 불편함이 부담으로 남기 쉬워. | Unspoken discomfort could become a burden today. | 言わずにいた不満が、負担として残りやすい日です。 |
+| 전체 풀이 | 상대가 알아줄 거라 기다리면 같은 상황을 또 겪을 수 있어. 바라는 점이 있다면 눈치로 전하기보다 간단히 말해봐. 거창한 요구가 아니어도 불편한 이유를 설명해도 돼. 한 번에 모두 바꾸려 하지 말고 가장 필요한 부분부터 이야기하는 게 좋아. 작은 조정만으로도 하루가 덜 힘들게 느껴질 수 있어. | Waiting for someone to notice may leave you facing the same situation again. Say what you'd like instead of relying on hints. A concern doesn't have to be major to deserve an explanation. Start with the change you need most rather than trying to fix everything. A small adjustment could make the day feel easier. | 気づいてもらうのを待っていると、同じことをまた繰り返しそうです。望むことがあれば、察してもらおうとせず短く伝えましょう。大きな要望でなくても、困る理由を説明して構いません。一度にすべて変えようとせず、いちばん必要なことから話すのがおすすめです。少し調整するだけでも、一日を楽に感じられるかもしれません。 |
+| 해볼 것 | 바꾸고 싶은 부분 하나를 말해봐. | Ask for one thing you'd like changed. | 変えてほしいことを一つ伝えましょう。 |
+| 조심할 것 | 상대가 먼저 알아채기만 기다리지 마. | Don't wait for someone else to notice the problem. | 相手が先に気づくのを待つだけにしないでください。 |
 
 ## v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 분위기에 휩쓸리면 뒤늦게 피로가 올 수 있어 | It's easy to get swept along and feel it later today | その場に合わせすぎると、後から疲れが出やすい日 |
-| 풀이 1 | 함께 있을 때는 괜찮다가 혼자가 되면 부담이 느껴질 수 있어 | You may feel fine in company, then notice the strain once you're alone | みんなといる間は平気でも、ひとりになると負担に気づくかも |
-| 풀이 2 | 함께 즐겁더라도 네가 머물고 싶은 시간은 따로 있어 | Even at an enjoyable gathering, your ideal time to leave may be different | 楽しい集まりでも、いたい時間は人それぞれでいいんだよ |
-| 풀이 3 | 아쉬움이 조금 남을 때 돌아오는 선택도 괜찮아 | It's okay to go while there's still a little fun left | もう少しいたいくらいで帰る選択も、今日はあり |
-| 해볼 것 | 집중이 흐려지면 쉬어갈 때인지 살펴봐 | Notice whether fading attention is your cue for a break | 気が散り始めたら、休みどきか確かめてみて |
-| 조심할 것 | 끝까지 함께해야 한다는 마음으로 버티지 마 | Don't stay until the end out of obligation | 最後まで一緒にいなければと、無理に居続けないで |
+| 총평 | 오늘은 사소한 결정에도 시간이 오래 걸릴 수 있어. | Even small decisions could take a while today. | 小さなことを決めるにも、時間がかかりそうです。 |
+| 전체 풀이 | 선택지를 계속 늘리면 마음에 드는 것이 오히려 흐려지기 쉬워. 꼭 필요한 조건을 두세 가지로 줄여서 살펴봐. 그 조건을 충족했다면 완벽한 답을 더 찾지 않아도 괜찮아. 중요하지 않은 선택은 익숙한 쪽으로 정하는 것도 방법이야. 결정을 줄이면 더 신경 써야 할 일에 여유가 생겨. | Adding more options may make it harder to see what you like. Narrow the list to two or three essential conditions. Once those are met, you don't need to keep searching for perfection. Choosing the familiar option is also fine when little is at stake. Fewer decisions leave more room for what needs your attention. | 選択肢を増やすほど、気に入ったものがわからなくなりやすい日です。欠かせない条件を二つか三つに絞って見てみましょう。条件を満たしたなら、もっと完璧な答えを探さなくても大丈夫です。重要でないことは、慣れたほうに決めるのも一つの方法です。決めることを減らせば、もっと大事なことに気を配れます。 |
+| 해볼 것 | 꼭 필요한 조건을 먼저 골라봐. | Pick the conditions that really matter. | 欠かせない条件を先に選びましょう。 |
+| 조심할 것 | 이미 괜찮은 답이 있는데 끝없이 비교하지 마. | Don't compare endlessly after finding a suitable option. | 十分な答えがあるのに、いつまでも比べ続けないでください。 |
 
 ## v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 자꾸 확인하고 싶어질수록 마음의 여백이 필요한 날이야 | The urge to keep checking may be a sign to give yourself some space | 何度も確かめたくなるときこそ、心に余白を作りたい日 |
-| 풀이 1 | 작은 변화도 놓치지 않으려다 정작 네 시간을 잃기 쉬워 | Watching for every little change can cost you time of your own | 小さな変化も逃すまいとして、自分の時間を失いやすいとき |
-| 풀이 2 | 계속 지켜본다고 결과가 더 빨리 나오는 건 아니야 | Keeping an eye on something won't make the outcome arrive sooner | 見守り続けても、結果が早まるわけではないもの |
-| 풀이 3 | 마음을 붙잡아두는 일에서 잠시 떨어져 있어봐 | Step away for a while from whatever has your attention tied up | 気持ちを縛っていることから、少し離れてみよう |
-| 해볼 것 | 확인하지 않아도 되는 시간을 정해봐 | Set aside a stretch of time when you won't check | 確認しないで過ごす時間を、決めてみて |
-| 조심할 것 | 불안할 때마다 새로운 의미를 찾아내지 마 | Don't find a new hidden meaning every time worry returns | 不安になるたびに、何かの意味を読み取ろうとしないで |
+| 총평 | 오늘은 기대했던 반응이 없어 실망하기 쉬워. | A muted response could leave you disappointed today. | 期待した反応がなく、がっかりしやすい日です。 |
+| 전체 풀이 | 내게 중요했던 일이 다른 사람에게는 가볍게 느껴질 수 있어. 반응이 작다고 내가 잘못 골랐다고 생각할 필요는 없어. 왜 마음에 들었는지 처음 이유를 다시 떠올려봐. 함께 정해야 할 일이라면 바라는 반응보다 필요한 답을 분명하게 물어보는 게 좋아. 오늘은 남의 표정으로 내 만족까지 결정하지 마. | Something important to you may seem minor to someone else. A small reaction doesn't mean you chose badly. Remember what appealed to you in the first place. If a joint decision is needed, ask for the answer you need rather than hoping for a particular reaction. Don't let someone else's expression decide how pleased you are. | 大事にしていたことも、ほかの人には軽く受け止められるかもしれません。反応が小さくても、選び間違えたと思う必要はありません。なぜ気に入ったのか、初めの理由を思い出しましょう。一緒に決めることなら、望む反応を待つより、必要な答えをはっきり尋ねるのがおすすめです。今日は人の表情だけで、自分の満足まで決めないでください。 |
+| 해볼 것 | 처음 마음에 들었던 이유를 돌아봐. | Recall what you liked in the first place. | 最初に気に入った理由を振り返りましょう。 |
+| 조심할 것 | 조용한 반응을 곧바로 거절로 받아들이지 마. | Don't immediately read a quiet response as rejection. | 反応が静かだからと、すぐ断られたと思わないでください。 |
 
 ## v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 대답보다 이해가 먼저 필요한 하루야 | Understanding matters more than having the answer today | 今日は、答えを出す前に気持ちを受け止めたい日 |
-| 풀이 1 | 누군가의 말에 바로 해결책을 보태고 싶어질 수 있어 | You may be quick to offer a solution to something someone tells you | 人の話を聞くと、すぐに解決策を添えたくなるかも |
-| 풀이 2 | 하지만 조언보다 마음을 알아주는 말이 필요한 순간도 있어 | Sometimes they need their feelings heard more than advice | でも、助言より気持ちに寄り添う言葉がほしいこともあるよ |
-| 풀이 3 | 한 번 더 들어보면 서로 엇갈리는 지점이 줄어들어 | Listening a little longer can help you stop talking past each other | もう少し聞いてみると、お互いのすれ違いを減らせるはず |
-| 해볼 것 | 상대가 어떤 기분인지 먼저 물어봐 | Ask how the other person feels first | 相手がどんな気持ちでいるのか、先に聞いてみよう |
-| 조심할 것 | 이야기가 끝나기 전에 정답을 내놓지 마 | Don't solve the problem before the story is finished | 話が終わる前に、正解を差し出さないで |
+| 총평 | 오늘은 조금만 어긋나도 전부 다시 하고 싶어질 수 있어. | A small flaw could make you want to start over today. | 少しずれただけで、全部やり直したくなりそうです。 |
+| 전체 풀이 | 마음에 들지 않는 부분이 유난히 크게 보이는 날이야. 아직 괜찮은 부분까지 바꾸면 할 일만 더 늘어날 수 있어. 무엇이 문제인지 먼저 한 가지로 좁혀봐. 혼자 구분하기 어렵다면 상황을 아는 사람에게 의견을 구해도 좋아. 필요한 부분만 손보면 처음부터 시작하지 않아도 돼. | The part you dislike may seem larger than everything else. Changing what's already fine could simply create more to do. Identify one specific problem first. Someone familiar with the situation can help if you can't separate it out. Fixing just what's necessary may save you from starting again. | 気に入らない部分が、いつもより大きく見える日です。まだ問題のないところまで変えると、することが増えてしまいそうです。まず何が困るのかを一つに絞りましょう。ひとりで分けにくければ、状況を知る人の意見を聞いても大丈夫です。必要な部分だけ直せば、最初から始め直さなくて済みます。 |
+| 해볼 것 | 바꿀 필요가 있는 부분만 따로 골라봐. | Identify only the parts that need changing. | 変える必要のあるところだけ選びましょう。 |
+| 조심할 것 | 한 가지가 아쉽다고 전부 뒤집지 마. | Don't overturn everything because of one disappointment. | 一つ気に入らないからと、すべて覆さないでください。 |
 
 ## v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 해야 한다는 생각이 하고 싶은 마음을 가리기 쉬워 | What you think you should do may drown out what you want today | しなければという思いが、したい気持ちを隠しやすい日 |
-| 풀이 1 | 당연히 따라야 할 것처럼 느껴지는 일이 부담을 더할 수 있어 | An expectation that seems unquestionable could add to your burden | 当然のように求められることが、負担を増やすかも |
-| 풀이 2 | 다른 사람의 기준이 네 하루에도 꼭 맞는 건 아니야 | Someone else's standard doesn't automatically fit your day | 人の基準が、今日のあなたにも合うとは限らないよ |
-| 풀이 3 | 오늘은 꼭 필요한 것과 습관처럼 떠안은 것을 구분해봐 | Separate what you need to do from what you've agreed to out of habit | 本当に必要なことと、つい背負ったことを分けてみよう |
-| 해볼 것 | 스스로 정하지 않은 부담을 하나 덜어봐 | Let go of a burden you didn't choose for yourself | 自分では選んでいない負担を、ひとつ減らしてみて |
-| 조심할 것 | 남들이 한다는 이유만으로 네 몫을 늘리지 마 | Don't take on more just because everyone else does | みんながしているからと、自分の役目を増やさないで |
+| 총평 | 오늘은 갑자기 들어온 제안이 하루를 복잡하게 만들 수 있어. | An unexpected request could complicate your day. | 急な提案で、予定が複雑になりやすい日です。 |
+| 전체 풀이 | 원래 하려던 일보다 새로 생긴 일이 더 급해 보이기 쉬워. 부탁한 사람의 사정과 내 우선순위가 같지는 않을 수 있어. 꼭 지금 해야 하는지 물어보고 시간을 정해봐. 기존 약속을 바꿔야 한다면 먼저 상대에게 알리는 게 좋아. 순서를 정리하면 모든 일을 동시에 신경 쓰지 않아도 돼. | A new task may look more urgent than the things you already planned. The requester's priorities aren't necessarily yours. Ask when it genuinely needs doing and agree on a time. If an existing commitment must change, tell the other person first. Sorting out the order means you don't have to worry about everything at once. | 新しく入った用事が、もともとするはずだったことより急ぎに見えそうです。頼んだ人の事情と、こちらの優先順位は同じとは限りません。今すぐ必要なのかを聞いてから、対応する時間を決めましょう。先約を変える必要があれば、まず相手に知らせるのがおすすめです。順番を整理すれば、すべてを同時に気にかけずに済みます。 |
+| 해볼 것 | 새 부탁의 실제 기한을 확인해봐. | Check when a new request actually needs to be done. | 新しい頼みごとの実際の期限を確かめましょう。 |
+| 조심할 것 | 급하다는 말만 듣고 기존 약속을 미루지 마. | Don't move an existing commitment just because someone says it's urgent. | 急ぎだと言われただけで、先約を後回しにしないでください。 |
 
 ## v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 몸의 작은 신호를 무시하지 않는 게 좋아 | Your body's small signals deserve a say in today's pace | 体からの小さな知らせを、見過ごさないほうがいい日 |
-| 풀이 1 | 마음은 서두르는데 움직임은 평소만큼 가볍지 않을 수 있어 | Your mind may be rushing while your body feels less ready to move | 気持ちは急いでも、動きはいつもほど軽くないかも |
-| 풀이 2 | 늘 하던 일도 오늘의 상태에 맞춰 양을 바꿀 수 있어 | Even your usual routine can be adjusted to how you feel today | 慣れたことでも、今日の状態に合わせて量を変えていいんだよ |
-| 풀이 3 | 버티는 힘보다 적절히 멈추는 감각이 도움이 되는 날이야 | Knowing when to stop will serve you better than simply pushing through | 我慢し続けるより、ちょうどいいところで休むほうが助けになる日 |
-| 해볼 것 | 배고픔이나 피로를 느끼면 먼저 챙겨봐 | Attend to hunger or tiredness when you notice it | 空腹や疲れに気づいたら、先にいたわってみて |
-| 조심할 것 | 일상을 지키려고 몸의 불편을 계속 미루지 마 | Don't keep putting physical discomfort behind your routine | いつも通りを守ろうと、体の不快感を後回しにしないで |
+| 총평 | 오늘은 혼자 참으려 할수록 작은 일도 버겁게 느껴져. | Trying to cope alone could make even small tasks feel difficult today. | ひとりで耐えるほど、小さなことも重く感じられます。 |
+| 전체 풀이 | 도움이 필요해도 설명하기 귀찮아 스스로 떠안을 수 있어. 지금 가장 어려운 부분부터 짧게 말해봐. 전부 대신해달라고 하지 않아도 필요한 정보만 얻으면 수월해질 수 있어. 바로 도와줄 사람이 없다면 끝낼 시간을 조금 늦추는 게 좋아. 오늘은 혼자 해결했다는 데 의미를 두지 않아도 돼. | Even when you need help, explaining it may seem more tiring than doing everything yourself. Start by briefly describing the hardest part. You may only need useful information rather than someone to take over entirely. If no one can help right away, allow yourself more time. Solving everything alone doesn't have to be today's achievement. | 助けが必要でも、説明を面倒に感じて抱え込んでしまいそうです。今いちばん難しい部分から、短く話しましょう。すべて代わってもらわなくても、必要な情報だけで楽になる場合があります。すぐ手伝える人がいなければ、終える時刻を少し遅らせるのがよさそうです。今日はひとりで解決することに、こだわらなくても大丈夫です。 |
+| 해볼 것 | 도움이 필요한 부분을 구체적으로 알려줘. | Explain exactly where you need help. | どこに助けが必要なのか、具体的に伝えましょう。 |
+| 조심할 것 | 설명하기 번거롭다고 혼자 모두 맡지 마. | Don't take it all on just to avoid explaining. | 説明が面倒だからと、全部ひとりで引き受けないでください。 |
 
 ## v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 기분이 가라앉을 때는 이유를 다 찾지 않아도 괜찮아 | You don't need a full explanation for feeling low today | 気分が沈む理由を、全部探さなくてもいい日 |
-| 풀이 1 | 뚜렷한 사건 없이도 하루가 무겁게 느껴질 수 있어 | The day may feel heavy even without a clear event behind it | 何かあったわけではなくても、一日が重く感じられるかも |
-| 풀이 2 | 마음이 처진 까닭을 설명해야만 쉴 수 있는 건 아니야 | You don't have to justify your mood before you're allowed a rest | 理由を説明できなくたって、休んでいいんだよ |
-| 풀이 3 | 분석보다 따뜻한 한 끼나 편한 시간이 먼저일 수 있어 | A warm meal or a comfortable moment may help more than another round of analysis | 分析するより、温かい食事やくつろぐ時間が必要なときもあるから |
-| 해볼 것 | 이유를 묻기 전에 자신을 편하게 해줘 | Offer yourself comfort before asking yourself why | 原因を問う前に、自分が楽になることをしてみて |
-| 조심할 것 | 가라앉은 기분을 의지 부족으로 몰아가지 마 | Don't confuse a low mood with a lack of willpower | 気分の落ち込みを、意志の弱さに結びつけないで |
+| 총평 | 오늘은 지나간 선택을 자꾸 되돌아보기 쉬워. | Past decisions could keep pulling at your attention today. | 過去の選択を、何度も振り返りやすい日です。 |
+| 전체 풀이 | 다른 방법이 더 나았을 것 같아 현재의 일에 마음이 잘 가지 않을 수 있어. 이미 바꿀 수 없는 결정이라면 비교를 잠시 멈추는 게 좋아. 그때 알고 있던 정보로 판단했다는 점도 생각해봐. 지금 고칠 수 있는 것이 있다면 작은 것부터 바꿔도 돼. 오늘은 후회하는 시간보다 앞으로 할 일을 조금씩 늘려봐. | Imagining a better alternative may make it hard to focus on what's happening now. If the decision can't be changed, give the comparisons a rest. Remember that you worked with the information you had then. Where a change is still possible, a small adjustment is enough to begin. Spend a little more time on what's next than on regret. | 別の方法がよかった気がして、今のことに気持ちが向きにくくなりそうです。もう変えられない決定なら、比べるのを少し休みましょう。そのとき知っていた情報で判断したことも、思い出してください。今から直せることがあれば、小さなところから変えて構いません。今日は後悔する時間より、これからできることを少しずつ増やしましょう。 |
+| 해볼 것 | 지금 바꿀 수 있는 행동 하나를 정해봐. | Choose one thing you can change now. | 今から変えられる行動を一つ決めましょう。 |
+| 조심할 것 | 알 수 없었던 결과로 과거의 나를 몰아붙이지 마. | Don't judge your past self by an outcome you couldn't have known. | 知りようのなかった結果で、過去の自分を責めないでください。 |
 
 ## v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 큰 약속보다 작은 진심이 잘 맞는 날이야 | A small, sincere gesture fits today better than a big promise | 大きな約束より、小さな真心が合う日 |
-| 풀이 1 | 분위기를 좋게 하려고 감당하기 어려운 말을 할 수 있어 | You might be tempted to say more than you can manage just to lift the mood | 場を明るくしようと、引き受けきれないことまで言いがち |
-| 풀이 2 | 당장의 기대를 키우기보다 가능한 만큼 전하는 게 오래 편해 | Being honest about what's possible leaves less pressure than raising expectations | その場の期待を膨らませるより、できる分を伝えるほうが後も楽だよ |
-| 풀이 3 | 조금 소박해도 지킬 수 있는 마음을 보여줘 | Show what you can genuinely follow through on, even if it seems modest | 少し控えめでも、実際にできる形で気持ちを示してみよう |
-| 해볼 것 | 확실히 할 수 있는 만큼만 약속해봐 | Promise only what you're sure you can give | 確かにできる範囲だけ、約束してみて |
-| 조심할 것 | 미안함을 덜려고 미래의 부담을 늘리지 마 | Don't ease today's guilt with tomorrow's burden | 申し訳なさを消すために、先の負担を増やさないで |
+| 총평 | 오늘은 여러 사람의 말을 듣다가 판단이 흐려질 수 있어. | Too many opinions could blur your judgment today. | 多くの人の話を聞くうちに、判断しにくくなりそうです。 |
+| 전체 풀이 | 의견을 많이 구할수록 서로 다른 답에 더 혼란스러워지기 쉬워. 누구의 말이 내 상황을 실제로 고려했는지 살펴봐. 듣고 싶은 답보다 확인할 수 있는 이유가 있는 설명을 참고하는 게 좋아. 마지막 결정은 내가 감당할 수 있는 쪽으로 내려야 해. 조언을 줄이고 조건을 정리하면 생각도 차분해질 거야. | Asking more people may bring conflicting answers rather than clarity. Notice whose advice actually takes your circumstances into account. Look for reasons you can check, not just the answer you want to hear. The final choice still needs to be one you can live with. Fewer opinions and clearer conditions can help settle your thoughts. | 意見を求めるほど、違う答えに混乱しやすい日です。誰の説明が実際の状況を考えてくれているか、確かめましょう。聞きたい答えより、理由を確認できる説明が参考になります。最後は、責任を持てるほうに決める必要があります。聞く助言を減らして条件を整理すると、落ち着いて考えられます。 |
+| 해볼 것 | 내 상황을 잘 아는 사람의 의견을 들어봐. | Ask someone who understands your situation. | 事情をよく知る人の意見を聞きましょう。 |
+| 조심할 것 | 새 의견이 나올 때마다 결론을 바꾸지 마. | Don't change your conclusion with every new opinion. | 新しい意見のたびに、結論を変えないでください。 |
 
 ## v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 눈앞의 불편을 넘기려다 더 큰 부담을 안기 쉬운 날이야 | Avoiding a brief awkward moment could leave you with a longer burden | 目先の気まずさを避けると、後が重くなりやすい日 |
-| 풀이 1 | 잠깐 어색한 상황을 피하려고 원치 않는 선택을 할 수 있어 | You may agree to something unwanted just to escape a little discomfort | 一瞬の居心地の悪さから、望まない選択をしてしまうかも |
-| 풀이 2 | 잠시 불편해도 네 입장을 밝히는 편이 뒤가 덜 무거워 | Speaking up can feel awkward now and still leave you lighter afterward | 少し気まずくても、自分の立場を伝えたほうが後を引きにくいよ |
-| 풀이 3 | 오늘은 모두를 만족시키는 답이 없어도 괜찮아 | It's okay if today's answer doesn't satisfy everyone | 今日は全員が喜ぶ答えを見つけられなくても大丈夫 |
-| 해볼 것 | 곤란한 부탁에는 생각할 시간을 달라고 해봐 | Ask for time to consider a difficult request | 困るお願いには、考える時間がほしいと伝えてみて |
-| 조심할 것 | 분위기 때문에 즉시 동의하지 마 | Don't agree on the spot to preserve the mood | その場の雰囲気だけで、すぐに同意しないで |
+| 총평 | 오늘은 준비가 덜 된 상태에서 나서면 부담이 커져. | Starting before you're ready could add pressure today. | 準備が足りないまま動くと、負担が増える日です。 |
+| 전체 풀이 | 할 수 있을 것 같아 시작했다가 예상하지 못한 조건을 만날 수 있어. 필요한 시간과 준비물을 먼저 확인해봐. 부족한 것이 있다면 일정을 조금 늦춰도 괜찮아. 혼자 알아보기 어렵다면 경험 있는 사람에게 가장 주의할 점을 물어보는 게 좋아. 작은 준비를 끝내고 나면 불필요한 걱정도 줄어들어. | Something that looks manageable may involve conditions you didn't anticipate. Check how much time and preparation it needs first. It's fine to delay if something is missing. If you're unsure, ask someone experienced what matters most. Even a little preparation can ease unnecessary worry. | できそうだと思って始めると、予想していなかった条件に出会うかもしれません。必要な時間と準備するものを、先に確かめましょう。足りないものがあれば、予定を少し遅らせても大丈夫です。ひとりで調べにくいときは、経験のある人にいちばん気をつける点を尋ねるのがおすすめです。小さな準備を済ませれば、余計な心配も減らせます。 |
+| 해볼 것 | 시작 전에 필요한 것을 확인해봐. | Find out what you need before starting. | 始める前に、必要なものを確かめましょう。 |
+| 조심할 것 | 잘될 것 같은 느낌만으로 바로 뛰어들지 마. | Don't jump in just because it feels as though it should work. | うまくいきそうな気分だけで、すぐ飛び込まないでください。 |
 
 ## v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 일이 풀리지 않을수록 쉬운 곳에서 다시 시작해봐 | When the day feels stuck, an easier place to begin can help | うまくいかないときは、取り組みやすいところへ戻ってみよう |
-| 풀이 1 | 막힌 부분만 바라보면 할 수 있는 일까지 멀게 느껴질 수 있어 | Staring at what isn't working may make even manageable things feel distant | 行き詰まった部分ばかり見ると、できることまで遠く感じがち |
-| 풀이 2 | 한 번에 풀려고 애쓰기보다 쉬운 것 하나를 해내는 편이 마음을 덜 쓰게 해 | Finishing one easy thing can ease your mind more than trying to solve everything at once | 一度に片づけようとするより、簡単なことをひとつ終えるほうが気持ちも楽だよ |
-| 풀이 3 | 부담이 적은 한 가지를 해내는 것부터 감각을 되찾아봐 | One undemanding thing done can help you feel capable again | 負担の少ないことをひとつ済ませて、感覚をつかみ直してみて |
-| 해볼 것 | 지금 손이 가는 작은 일을 골라봐 | Choose a small task that feels within reach | 今なら手をつけられる、小さなことを選んでみよう |
-| 조심할 것 | 어려운 것부터 해결해야 한다고 고집하지 마 | Don't insist on tackling the hardest part first | 難しいものから解決するべきだと、こだわらないで |
+| 총평 | 오늘은 가벼운 거절에도 마음이 크게 흔들릴 수 있어. | Even a casual refusal could shake you today. | 軽く断られただけでも、気持ちが大きく揺れそうです。 |
+| 전체 풀이 | 내 제안이 받아들여지지 않으면 나 자체가 부정당한 것처럼 느끼기 쉬워. 한 번의 답에는 그 사람의 사정도 들어 있다는 점을 기억해봐. 다시 제안할 필요가 있다면 시기나 방법을 바꾸는 게 좋아. 이유를 알 수 없다면 억지로 추측하지 않아도 돼. 제안을 거절당했다고 나까지 싫어한다고 생각하지 마. | A rejected suggestion may feel like a rejection of you as a person. Remember that the answer also reflects the other person's circumstances. If you want to suggest it again, try another time or approach. You don't need to invent an explanation when the reason is unclear. Someone declining an idea doesn't mean they dislike you. | 提案を受け入れてもらえないと、自分自身を否定されたように感じがちです。一つの返事には、相手の事情も含まれていると覚えておきましょう。もう一度提案するなら、時期や方法を変えるのがおすすめです。理由がわからなければ、無理に推測しなくても大丈夫です。提案を断られたことを、嫌われたことと同じにしないでください。 |
+| 해볼 것 | 상대에게 다른 사정은 없었는지 생각해봐. | Consider whether the other person had another reason to say no. | 相手に別の事情がなかったか、考えましょう。 |
+| 조심할 것 | 한 번의 답으로 나를 낮춰보지 마. | Don't put yourself down over one answer. | 一度の返事だけで、自分を低く評価しないでください。 |
 
 ## v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 사람 많은 곳에서 마음이 빨리 지칠 수 있어 | A crowd of voices may wear you out faster today | 人の多い場所では、心が早く消耗しやすい日 |
-| 풀이 1 | 다양한 목소리가 겹치면 네 생각이 무엇인지 흐려지기 쉬워 | With so many opinions around, it can become hard to hear your own thoughts | いろいろな声が重なると、自分の考えが見えにくくなるかも |
-| 풀이 2 | 모든 이야기에 반응하지 않아도 관계가 달라지는 건 아니야 | You don't have to respond to every story to keep a connection intact | すべての話に反応しなくても、人との仲はそれだけで変わらないよ |
-| 풀이 3 | 조용한 시간을 조금 남겨두면 네 기분이 다시 들려 | A little quiet time will let your own feelings come through again | 静かな時間を少し残せば、自分の気持ちも聞こえてくるはず |
-| 해볼 것 | 한동안 연락과 소식에서 쉬어가봐 | Take a short break from messages and updates | しばらく連絡や新しい情報から離れてみて |
-| 조심할 것 | 모든 말에 답해야 한다고 부담 갖지 마 | Don't make every comment your responsibility to answer | どの言葉にも答えなければと、重く受け止めないで |
+| 총평 | 오늘은 하루를 빽빽하게 채우면 여유가 쉽게 사라져. | A packed schedule could quickly leave you without breathing room today. | 予定を詰め込むと、余裕がなくなりやすい日です。 |
+| 전체 풀이 | 일정 사이의 작은 지연도 다음 계획에 부담을 줄 수 있어. 옮길 수 있는 약속은 미리 조정해두는 게 좋아. 새로운 일을 정할 때는 이동과 준비 시간도 함께 생각해봐. 예상보다 늦어졌다면 서두르기보다 남은 일의 순서를 바꿔도 돼. 빈 시간을 조금 남겨두면 마음이 덜 쫓길 거야. | Even a small delay may put pressure on the next thing you planned. Rearrange anything flexible in advance. Include travel and preparation when agreeing to something new. If you run late, change the order of what remains rather than rushing everything. A little empty space can help you feel less hurried. | 予定の間で少し遅れるだけでも、次の予定に余裕がなくなりそうです。動かせる約束は、早めに調整しておきましょう。新しく決めるときは、移動や準備の時間も含めて考えるのがおすすめです。思ったより遅れたら、急ぐより残りの順番を変えても構いません。空き時間を少し残せば、気持ちも追い立てられずに済みます。 |
+| 해볼 것 | 일정 사이에 여유 시간을 남겨둬. | Leave gaps between commitments. | 予定の間に余裕を残しましょう。 |
+| 조심할 것 | 계산한 시간에 모든 일이 끝날 거라 기대하지 마. | Don't assume everything will finish exactly when planned. | 計算した時間どおりに、すべて終わるとは思わないでください。 |
 
 ## v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 당장 반갑지 않은 변화에도 적응할 시간을 줘봐 | Give an unwelcome change a little time to feel less strange | うれしくない変化にも、なじむ時間をあげたい日 |
-| 풀이 1 | 예정이 바뀌면 내용보다 바뀌었다는 사실이 더 불편할 수 있어 | An altered plan may bother you more because it changed than because of the new plan itself | 予定が変わると、内容より変更そのものが気になるかも |
-| 풀이 2 | 처음의 거부감만으로 이후의 경험까지 정할 필요는 없어 | Your first resistance doesn't have to decide the whole experience | 最初の抵抗感で、その後の経験まで決めなくていいよ |
-| 풀이 3 | 오늘은 좋아하려 애쓰기보다 낯섦이 가라앉기를 기다려봐 | Let the unfamiliarity settle instead of forcing yourself to like it | 今日は好きになろうとせず、慣れない感じが薄れるのを待ってみよう |
-| 해볼 것 | 새 상황에서 덜 불편한 점을 하나 찾아봐 | Find one part of the new situation that's easier to live with | 新しい状況の中で、負担の少ないところをひとつ探してみて |
-| 조심할 것 | 첫 반응을 최종 판단으로 굳히지 마 | Don't turn your first reaction into your final judgment | 最初の反応を、最後の判断にしてしまわないで |
+| 총평 | 오늘은 답답한 마음에 필요 없는 변화를 시도하기 쉬워. | Frustration could tempt you into a change you don't really want today. | もどかしさから、必要のない変化を求めやすい日です。 |
+| 전체 풀이 | 당장 기분을 바꾸고 싶어 평소 원하지 않던 선택을 할 수 있어. 되돌리기 어려운 일은 며칠 뒤에도 같은 생각인지 확인해봐. 오늘은 장소를 바꾸거나 잠깐 다른 일을 하는 정도로도 괜찮아. 달라진 기분이 오래가지 않는다고 더 큰 변화를 만들 필요는 없어. 불편함의 이유부터 알아야 알맞은 방법을 고를 수 있어. | Trying to improve your mood right away could lead you to a choice you wouldn't normally want. Wait a few days before doing something difficult to undo. A change of scene or a brief activity may be enough for now. If the better mood doesn't last, you don't need an even bigger change. Find out what's bothering you before choosing how to address it. | すぐ気分を変えたくて、普段は望まないほうを選んでしまいそうです。元に戻しにくいことは、数日後も同じ気持ちか確かめましょう。今日は場所を変えたり、少し別のことをしたりする程度でも大丈夫です。変わった気分が長続きしなくても、もっと大きく変える必要はありません。何が不快なのかを知ることが、合う方法を選ぶ助けになります。 |
+| 해볼 것 | 답답한 이유를 먼저 살펴봐. | Look at why you're feeling frustrated. | 何にもどかしさを感じるのか、先に確かめましょう。 |
+| 조심할 것 | 기분을 바꾸려고 큰 결정을 내리지 마. | Don't make a major decision just to change your mood. | 気分を変えるために、大きな決断をしないでください。 |
 
 ## v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 하루를 잘 보내려는 마음이 오히려 짐이 될 수 있어 | Trying to make the most of today could become a burden of its own | 一日を充実させたい思いが、かえって重荷になりやすい日 |
-| 풀이 1 | 쉬는 시간마저 알차게 채우려다 여유를 놓치기 쉬운 날이야 | Filling even your downtime with something worthwhile may leave no room to relax | 休み時間まで有意義に埋めようとすると、ゆとりを逃しがち |
-| 풀이 2 | 특별한 기억을 만들지 않아도 오늘은 네 삶의 일부야 | Today belongs to your life even if it produces no special memory | 特別な思い出を作らなくても、今日も大切な毎日の一部だよ |
-| 풀이 3 | 무엇을 남겼는지보다 어떻게 쉬었는지를 챙겨봐 | Pay attention to how you rested, not just what you have to show for it | 何を残せたかより、どう休めたかに目を向けてみよう |
-| 해볼 것 | 아무 목표 없는 시간을 조금 허락해봐 | Allow yourself some time without a goal | 何も目指さず過ごす時間を、少し許してみて |
-| 조심할 것 | 평범하게 보냈다는 이유로 하루를 깎아내리지 마 | Don't dismiss the day because it was ordinary | 普通に過ごしたというだけで、今日を低く見ないで |
+| 총평 | 오늘은 기대를 한꺼번에 높이면 작은 성과도 아쉬워져. | Raising expectations suddenly could make real progress feel disappointing. | 期待を急に高めると、小さな成果も物足りなくなりそうです。 |
+| 전체 풀이 | 처음에는 괜찮았던 일도 남의 이야기를 듣고 나면 부족하게 보일 수 있어. 시작할 때 원했던 것이 무엇인지 다시 확인해봐. 이미 충분한 부분은 그대로 두고 남은 것만 챙기는 게 좋아. 오늘 안에 더 나아져야 한다고 스스로 재촉하지 않아도 돼. 처음 정한 기준으로 보면 이미 해낸 것도 눈에 들어올 거야. | Something that seemed fine may look inadequate after hearing about someone else. Revisit what you wanted when you began. Leave what's already sufficient alone and focus only on what's still needed. You don't have to demand further improvement before today ends. Your original standard may show you how much you've already done. | 最初は納得していたことも、人の話を聞くと足りなく見えるかもしれません。始めるときに何を望んでいたのか、もう一度確かめましょう。十分な部分はそのままにして、残りだけ進めるのがおすすめです。今日中にもっとよくしなければと、急かさなくても大丈夫です。最初の基準で見れば、すでにできたことにも気づけます。 |
+| 해볼 것 | 처음 정했던 목표를 다시 읽어봐. | Read through the goal you first set. | 初めに決めた目標を読み返しましょう。 |
+| 조심할 것 | 다른 사람의 결과를 보고 기준을 갑자기 높이지 마. | Don't suddenly raise the bar because of someone else's result. | 人の結果を見て、基準を急に高くしないでください。 |

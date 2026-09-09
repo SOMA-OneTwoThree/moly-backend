@@ -213,7 +213,7 @@ async def test_first_reveal_exposes_basic_copy_and_included_plan_exposes_detail(
     session = _MemorySession(profile=profile)
     value = await fortune.reveal(session, str(UID), locale="ko", now_utc=NOW)
     assert value["state"] == expected_state
-    assert value["result"]["overall"]["score"] == 47
+    assert value["result"]["overall"]["score"] == 14
     if expected_state == "locked":
         assert value["access"] == "ad_required"
         assert set(value["result"]["overall"]) == {"score", "headline", "do", "pause"}

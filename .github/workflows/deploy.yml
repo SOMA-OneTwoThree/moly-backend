@@ -17,6 +17,11 @@ on:
         description: "배포할 이미지 태그(git sha 전체). 비우면 현재 커밋을 빌드해서 배포"
         required: false
         default: ""
+      enable_morning_push:
+        description: "운영 아침 일기 푸시 활성화 (FCM 인증 확인 후 SSM 변경 및 재배포)"
+        type: boolean
+        required: false
+        default: false
       expected_instances:
         description: "예상 인스턴스 수 (1대 장애 대응 시에만 1로)"
         required: false
@@ -45,6 +50,7 @@ env:
   EXPECTED_INSTANCES: ${{ inputs.expected_instances || '2' }}
   # 배포 태그: dispatch에서 image_tag를 주면 그 태그(빌드 스킵 = 롤백), 아니면 현재 커밋
   DEPLOY_TAG: ${{ inputs.image_tag || github.sha }}
+  ENABLE_MORNING_PUSH: ${{ inputs.enable_morning_push && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && 'true' || 'false' }}
 
 jobs:
   build-and-deploy:
@@ -187,6 +193,21 @@ jobs:
             exit 1
           fi
 
+          if [ "$ENABLE_MORNING_PUSH" = true ]; then
+            # Explicit manual activation only. Validate both hosts before changing SSM.
+            for ID in $INSTANCE_IDS; do
+              CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
+                --document-name AWS-RunShellScript --parameters '{"commands": ["docker exec moly-backend python -c '"'"'import asyncio,json\nfrom pathlib import Path\nfrom app.config import settings\nfrom app.services import push\nassert settings.environment == \"production\"\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nasync def main():\n    token=await push.prepare_access_token()\n    assert token, \"FCM authentication unavailable\"\n    print(json.dumps({\"production\":True,\"fcm_authentication\":True,\"morning_push_enabled\":settings.morning_push_enabled}))\nasyncio.run(main())'"'"'"]}' \
+                --query Command.CommandId --output text)"
+              poll_ssm "$CMD_ID" "$ID"
+            done
+            aws ssm put-parameter --region "$AWS_REGION" \
+              --name /moly/prod/morning-push-enabled --type String --value true --overwrite
+            PUSH_VALUE="$(aws ssm get-parameter --region "$AWS_REGION" \
+              --name /moly/prod/morning-push-enabled --query Parameter.Value --output text)"
+            test "$PUSH_VALUE" = true
+          fi
+
           for ID in $INSTANCE_IDS; do
             echo "==> [$ID] deregister + drain 대기 (deregistration_delay 60s)"
             aws elbv2 deregister-targets --region "$AWS_REGION" \
@@ -217,6 +238,15 @@ jobs:
               --target-group-arn "$TG_ARN" --targets Id="$ID"
             echo "==> [$ID] 롤링 완료"
           done
+
+          if [ "$ENABLE_MORNING_PUSH" = true ]; then
+            for ID in $INSTANCE_IDS; do
+              CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
+                --document-name AWS-RunShellScript --parameters '{"commands": ["docker exec moly-backend python -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"' && docker exec moly-consumer python -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"'"]}' \
+                --query Command.CommandId --output text)"
+              poll_ssm "$CMD_ID" "$ID"
+            done
+          fi
 
           echo "==> 정합성 검증 1: 발견 인스턴스 수 == TG 등록 타깃 수"
           REGISTERED="$(aws elbv2 describe-target-health --region "$AWS_REGION" \

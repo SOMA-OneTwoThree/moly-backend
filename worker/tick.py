@@ -187,7 +187,7 @@ async def _process_user(
                         await session.commit()
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_morning(session, p):
+                if await notify.notify_morning(session, p, now=now):
                     out["morning"] = 1
             elif hour == EVENING_HOUR:
                 out["active_tz"] = p.timezone

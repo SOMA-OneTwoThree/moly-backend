@@ -159,7 +159,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `ad_reward_count` | smallint, default 0 | 리워드 광고 수령 횟수 — 일 최대 5회 서버 검증 (US-903). SSV 콜백은 **멱등 처리**(재전송 중복 지급 방지) + 원자 증가 |
 | `attendance_claimed_at` | timestamptz NULL | 출석 수령 시각 — NOT NULL이면 당일 수령 완료 (US-902) |
 | `routine_reward_claimed_at` | timestamptz NULL | 루틴 2개 완료 보상 수령 시각 (US-904) |
-| `morning_notified_at` | timestamptz NULL | 아침(09:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료, 재발송 차단 |
+| `morning_notified_at` | timestamptz NULL | 아침(09:00) 푸시 시도 선점 마커 — NOT NULL이면 당일 재발송 차단, 기기 수신 완료를 뜻하지 않음 |
 | `evening_notified_at` | timestamptz NULL | 저녁(20:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료 |
 
 - 유니크: `(user_id, activity_date)`.
@@ -365,7 +365,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `preset_ment_id` | uuid NULL, FK→`moly_life_ments` | `source='preset'`일 때만 |
 | `content` | text | 생성 결과 스냅샷 (preset이어도 본문 복사 저장 — 멘트 풀 수정이 과거 일기를 바꾸지 않게) |
 | `weather` | enum `diary_weather` | 마음 날씨 스탬프 `sunny` `cloudy` `rainy` `windy` — llm은 생성 결과, preset은 멘트에 지정된 값 복사 |
-| `published_at` | timestamptz | 발행 시각 — **UTC 저장, 값 = 유저 로컬 익일 09:00을 UTC로 환산**(타임존별 상이). 09:00 틱 배치가 설정. **목록·상세는 `published_at ≤ now()`만 노출**(배치 생성분 사전 노출 방지, API_SPEC 4장) |
+| `published_at` | timestamptz | 발행 시각 — **UTC 저장, 값 = 유저 로컬 익일 09:00을 UTC로 환산**(타임존별 상이). 04:00 생성 배치가 익일 09:00 공개 시각으로 설정. **목록·상세는 `published_at ≤ now()`만 노출**(배치 생성분 사전 노출 방지, API_SPEC 4장) |
 | `first_read_at` | timestamptz NULL | 열람 여부 — 아침 알림/뱃지용 |
 | `created_at` | timestamptz | |
 

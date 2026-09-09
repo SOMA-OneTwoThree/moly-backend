@@ -1058,6 +1058,134 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.chat_topic_entries.committed_message_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bigint"
+      },
+      "public.chat_topic_entries.context_revision": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.chat_topic_entries.created_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.chat_topic_entries.expires_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.chat_topic_entries.first_user_message_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bigint"
+      },
+      "public.chat_topic_entries.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.chat_topic_entries.local_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.chat_topic_entries.offer_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.chat_topic_entries.offer_sequence": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.chat_topic_entries.placement": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.chat_topic_entries.questions": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.chat_topic_entries.state": {
+        "collation": "\"default\"",
+        "default": "'pending'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.chat_topic_entries.timezone_name": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.chat_topic_entries.topic_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.chat_topic_entries.topic_revision": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.chat_topic_entries.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "public.conversation_checkpoints.activity_date_from": {
         "collation": null,
         "default": null,
@@ -1665,6 +1793,14 @@
         "identity": "",
         "not_null": true,
         "type": "timestamp with time zone"
+      },
+      "public.diary_generation_results.preset_ment_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
       },
       "public.diary_generation_results.status": {
         "collation": "\"default\"",
@@ -3122,6 +3258,14 @@
         "not_null": true,
         "type": "boolean"
       },
+      "public.moly_life_ments.sequence_no": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "integer"
+      },
       "public.moly_life_ments.weather": {
         "collation": "\"default\"",
         "default": null,
@@ -3129,6 +3273,14 @@
         "identity": "",
         "not_null": true,
         "type": "text"
+      },
+      "public.moly_life_ments.week_start_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "date"
       },
       "public.mood_entries.created_at": {
         "collation": null,
@@ -5114,6 +5266,110 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.user_topic_states.completed": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.user_topic_states.daily_open_count": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.user_topic_states.day_high_watermark": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.user_topic_states.offer_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.user_topic_states.offer_opened": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.user_topic_states.offer_sequence": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.user_topic_states.offered_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.user_topic_states.placement": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.user_topic_states.questions": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.user_topic_states.topic_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.user_topic_states.topic_revision": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.user_topic_states.updated_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.user_topic_states.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "vecs.moly_memories_v2.id": {
         "collation": "\"default\"",
         "default": null,
@@ -5511,6 +5767,77 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.chat_topic_entries.chat_topic_entries_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.chat_topic_entries.chat_topic_entries_user_id_committed_message_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id, committed_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.chat_topic_entries:17:O",
+          "public.chat_topic_entries:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
+        "validated": true
+      },
+      "public.chat_topic_entries.chat_topic_entries_user_id_first_user_message_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id, first_user_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.chat_topic_entries:17:O",
+          "public.chat_topic_entries:5:O",
+          "public.messages:17:O",
+          "public.messages:9:O"
+        ],
+        "validated": true
+      },
+      "public.chat_topic_entries.chat_topic_entries_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.chat_topic_entries:17:O",
+          "public.chat_topic_entries:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
+        "validated": true
+      },
+      "public.chat_topic_entries.topic_entry_committed_links": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((state <> 'committed'::text) OR ((committed_message_id IS NOT NULL) AND (first_user_message_id IS NOT NULL))))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.chat_topic_entries.topic_entry_expiration": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((expires_at > created_at))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.chat_topic_entries.topic_entry_pending_links": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((state <> 'pending'::text) OR ((committed_message_id IS NULL) AND (first_user_message_id IS NULL))))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.chat_topic_entries.topic_entry_state": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((state = ANY (ARRAY['pending'::text, 'committed'::text, 'superseded'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.conversation_checkpoints.conversation_checkpoints_kind_check": {
         "deferrable": false,
         "deferred": false,
@@ -5768,10 +6095,29 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.diary_generation_results.diary_generation_results_preset_ment_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preset_ment_id) REFERENCES public.moly_life_ments(id) ON DELETE RESTRICT",
+        "enforcement_triggers": [
+          "public.diary_generation_results:17:O",
+          "public.diary_generation_results:5:O",
+          "public.moly_life_ments:17:O",
+          "public.moly_life_ments:9:O"
+        ],
+        "validated": true
+      },
+      "public.diary_generation_results.diary_generation_results_preset_shape_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((status = 'preset'::text) AND (preset_ment_id IS NOT NULL)) OR ((status = 'no_entry'::text) AND (preset_ment_id IS NULL))))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.diary_generation_results.diary_generation_results_status_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((status = 'no_entry'::text))",
+        "definition": "CHECK ((status = ANY (ARRAY['no_entry'::text, 'preset'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -6412,7 +6758,7 @@
       "public.messages.messages_kind_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text])))",
+        "definition": "CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -6460,6 +6806,13 @@
         "deferrable": false,
         "deferred": false,
         "definition": "CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.moly_life_ments.moly_life_ments_week_shape_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((week_start_date IS NULL) AND (sequence_no IS NULL)) OR ((week_start_date IS NOT NULL) AND (sequence_no IS NOT NULL) AND (diary_date IS NULL) AND (EXTRACT(isodow FROM week_start_date) = (1)::numeric) AND (sequence_no > 0))))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -7505,6 +7858,53 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.user_topic_states.topic_daily_open_limit": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((daily_open_count >= 0) AND (daily_open_count <= 2)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.user_topic_states.user_topic_states_offer_id_key": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (offer_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.user_topic_states.user_topic_states_offer_sequence_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((offer_sequence > 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.user_topic_states.user_topic_states_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id, placement)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.user_topic_states.user_topic_states_placement_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((placement = 'home_blind'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.user_topic_states.user_topic_states_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.user_topic_states:17:O",
+          "public.user_topic_states:5:O"
+        ],
+        "validated": true
+      },
       "vecs.moly_memories_v2.moly_memories_v2_pkey": {
         "deferrable": false,
         "deferred": false,
@@ -7862,6 +8262,15 @@
         "unique": true,
         "valid": true
       },
+      "public.chat_topic_entries_pkey": {
+        "definition": "CREATE UNIQUE INDEX chat_topic_entries_pkey ON public.chat_topic_entries USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.chat_topic_entries",
+        "unique": true,
+        "valid": true
+      },
       "public.conversation_checkpoints_daily_uq": {
         "definition": "CREATE UNIQUE INDEX conversation_checkpoints_daily_uq ON public.conversation_checkpoints USING btree (user_id, activity_date_from) WHERE (kind = 'daily_digest'::text)",
         "exclusion": false,
@@ -8017,6 +8426,15 @@
       },
       "public.diary_generation_results_pkey": {
         "definition": "CREATE UNIQUE INDEX diary_generation_results_pkey ON public.diary_generation_results USING btree (user_id, target_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.diary_generation_results",
+        "unique": true,
+        "valid": true
+      },
+      "public.diary_generation_results_user_preset_uq": {
+        "definition": "CREATE UNIQUE INDEX diary_generation_results_user_preset_uq ON public.diary_generation_results USING btree (user_id, preset_ment_id) WHERE (status = 'preset'::text)",
         "exclusion": false,
         "options": [],
         "ready": true,
@@ -8510,6 +8928,15 @@
         "unique": true,
         "valid": true
       },
+      "public.moly_life_ments_week_sequence_uq": {
+        "definition": "CREATE UNIQUE INDEX moly_life_ments_week_sequence_uq ON public.moly_life_ments USING btree (week_start_date, sequence_no) WHERE (week_start_date IS NOT NULL)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.moly_life_ments",
+        "unique": true,
+        "valid": true
+      },
       "public.mood_entries_pkey": {
         "definition": "CREATE UNIQUE INDEX mood_entries_pkey ON public.mood_entries USING btree (user_id, entry_date)",
         "exclusion": false,
@@ -8987,6 +9414,42 @@
         "unique": false,
         "valid": true
       },
+      "public.topic_entry_expiry": {
+        "definition": "CREATE INDEX topic_entry_expiry ON public.chat_topic_entries USING btree (expires_at) WHERE (state <> 'committed'::text)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.chat_topic_entries",
+        "unique": false,
+        "valid": true
+      },
+      "public.topic_entry_offer_lookup": {
+        "definition": "CREATE INDEX topic_entry_offer_lookup ON public.chat_topic_entries USING btree (user_id, offer_id, created_at)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.chat_topic_entries",
+        "unique": false,
+        "valid": true
+      },
+      "public.topic_entry_one_answer": {
+        "definition": "CREATE UNIQUE INDEX topic_entry_one_answer ON public.chat_topic_entries USING btree (user_id, offer_id) WHERE (first_user_message_id IS NOT NULL)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.chat_topic_entries",
+        "unique": true,
+        "valid": true
+      },
+      "public.topic_entry_one_pending": {
+        "definition": "CREATE UNIQUE INDEX topic_entry_one_pending ON public.chat_topic_entries USING btree (user_id) WHERE (state = 'pending'::text)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.chat_topic_entries",
+        "unique": true,
+        "valid": true
+      },
       "public.user_daily_stats_pkey": {
         "definition": "CREATE UNIQUE INDEX user_daily_stats_pkey ON public.user_daily_stats USING btree (id)",
         "exclusion": false,
@@ -9191,6 +9654,24 @@
         "options": [],
         "ready": true,
         "table_name": "public.user_schedules",
+        "unique": true,
+        "valid": true
+      },
+      "public.user_topic_states_offer_id_key": {
+        "definition": "CREATE UNIQUE INDEX user_topic_states_offer_id_key ON public.user_topic_states USING btree (offer_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.user_topic_states",
+        "unique": true,
+        "valid": true
+      },
+      "public.user_topic_states_pkey": {
+        "definition": "CREATE UNIQUE INDEX user_topic_states_pkey ON public.user_topic_states USING btree (user_id, placement)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.user_topic_states",
         "unique": true,
         "valid": true
       },
@@ -9645,6 +10126,30 @@
         "grantable": false
       },
       "public.chat_response_references:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.chat_topic_entries:service_role:UPDATE": {
         "grantable": false
       },
       "public.conversation_checkpoints:service_role:DELETE": {
@@ -12664,6 +13169,30 @@
       },
       "public.user_schedules:service_role:UPDATE": {
         "grantable": false
+      },
+      "public.user_topic_states:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.user_topic_states:service_role:UPDATE": {
+        "grantable": false
       }
     },
     "rules": {},
@@ -12774,6 +13303,13 @@
         "relrowsecurity": true
       },
       "public.chat_response_references": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.chat_topic_entries": {
         "options": [],
         "owner": "postgres",
         "relforcerowsecurity": false,
@@ -13123,6 +13659,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.user_topic_states": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "vecs.moly_memories_v2": {
         "options": [
           "autovacuum_vacuum_scale_factor=0.02"
@@ -13168,5 +13711,5 @@
       }
     }
   },
-  "schema_sha256": "c0b7424d110e1d9fd936d764c355124e1bbad758fbb19b3e64ab80c98ad2d0fd"
+  "schema_sha256": "1caa657d04454297f0963482955b0970c41cd4b3d691d285049dd076513cdef3"
 }

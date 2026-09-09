@@ -95,5 +95,80 @@
                     code: BANNERS_UNAVAILABLE
                     message: 배너를 불러올 수 없습니다.
                     details: {}
-    description: 배포된 정의로 사용자별 카드를 구성한다. items의 각 raw JSON 값은 클라이언트가 독립적으로 검증한다. 서버는
-      카드별 strict 검증을 수행한다.
+    description: 배포된 정의로 사용자별 카드를 구성한다. items의 각 raw JSON 값은 클라이언트가 독립적으로 검증한다. 서버는 카드별 strict 검증을 수행한다.
+/banners/resolve:
+  post:
+    tags:
+    - banners
+    summary: 사용자별 홈 배너 제안 조회
+    operationId: resolveBanners
+    security:
+    - SupabaseBearer: []
+    parameters:
+    - name: x-app-locale
+      in: header
+      required: false
+      schema:
+        anyOf:
+        - type: string
+          maxLength: 64
+        - type: 'null'
+        title: X-App-Locale
+    - name: x-app-timezone
+      in: header
+      required: false
+      schema:
+        anyOf:
+        - type: string
+        - type: 'null'
+        title: X-App-Timezone
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/topics.yaml#/schemas/BannerClientContext
+    responses:
+      '200':
+        description: Successful Response
+        content:
+          application/json:
+            schema:
+              $ref: ../components/banners.yaml#/schemas/BannerFeed
+        headers:
+          Cache-Control:
+            schema:
+              type: string
+              const: private, no-store
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '409':
+        description: 현재 상태에서 요청을 처리할 수 없음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              unavailable:
+                value:
+                  error:
+                    code: ACCOUNT_DELETING
+                    message: 요청 상태를 다시 확인해 주세요.
+                    details: {}
+      '503':
+        description: 일시적으로 사용 불가
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              unavailable:
+                value:
+                  error:
+                    code: BANNERS_UNAVAILABLE
+                    message: 잠시 후 다시 시도해 주세요.
+                    details: {}
+    description: 동일 상태와 현지 날짜에서 반복 호출해도 같은 offer로 수렴한다. 완료 또는 현지 날짜 변경 시 하나만 전진한다. 구버전 GET은 주제 상태를 변경하지
+      않는다.

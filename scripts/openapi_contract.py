@@ -186,10 +186,22 @@ class ContractBundler:
                 materialized.update(siblings)
             return materialized
 
-        return {
+        result = {
             key: self._walk(item, current_file, stack)
             for key, item in value.items()
         }
+        discriminator = result.get("discriminator")
+        if isinstance(discriminator, dict) and isinstance(discriminator.get("mapping"), dict):
+            mapping = {}
+            for tag, target in discriminator["mapping"].items():
+                canonical = self._canonical_ref(target, current_file)
+                exported = self.exports.get(canonical)
+                if exported is None:
+                    raise ValueError(f"discriminator target must be an exported schema: {target}")
+                self._resolve(canonical)
+                mapping[tag] = exported
+            discriminator["mapping"] = mapping
+        return result
 
     def build(self) -> dict[str, Any]:
         bundle: dict[str, Any] = {}

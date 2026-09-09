@@ -37,8 +37,13 @@ baseline 실행을 거부한다. **`schema.sql`은 기존 DB를 갱신하는 스
 3. 환경별 `app_config`, Storage와 인증·배포 설정을 운영 계약에 따라 준비한다.
 4. 구조 검증과 가입·지급·탈퇴 동작을 확인한다.
 
-캐피 날짜별 자기일기는 `capi_diaries.csv`와 `scripts/seed_capi_diaries.py`가 관리한다.
+캐피 자기일기는 `scripts/seed_capi_diaries.py`가 날짜별/주간 CSV를 구분해 관리한다.
+주간 원고는 `week_start_date,sequence_no`로 식별하며 기존 날짜별 데이터는 보존한다.
 날짜 없는 임시 일기 풀을 새 환경에 다시 생성하지 않는다.
+
+현재 주간 일기 릴리스의 기존 DB 차이 SQL은 `changes/weekly_operator_diaries.sql`에 둔다.
+자동 적용하지 않으며 운영 머지 전에 `docs/OPERATIONS.md`의 주간 일기 전환 절차를 따른다.
+이는 이번 릴리스의 검토·인계 산출물이며 과거 마이그레이션 원장을 다시 만드는 것이 아니다.
 
 ## 구조 변경 절차
 

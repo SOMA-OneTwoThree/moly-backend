@@ -33,6 +33,8 @@ class _Session:
 
     async def execute(self, stmt, params=None):
         self.calls.append((stmt, params))
+        if "pg_advisory_xact_lock" in str(stmt):
+            return _Result()
         row = self.rows.pop(0) if self.rows else None
         return _Result(row)
 
@@ -125,6 +127,9 @@ async def test_begin_deletion_redacts_replay_and_job_copies_before_account_casca
     )
     assert counts == (2, 3, 5)
     statements = [call[0] for call in session.calls]
+    assert "pg_advisory_xact_lock" in str(statements[0])
+    assert "DELETE FROM chat_topic_entries" in str(privacy._REDACT)
+    assert "DELETE FROM user_topic_states" in str(privacy._REDACT)
     assert privacy._BEGIN in statements
     assert privacy._REDACT in statements
     assert privacy._LEDGER in statements

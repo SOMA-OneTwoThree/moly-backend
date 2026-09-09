@@ -106,6 +106,10 @@ def test_result_build_is_deterministic_and_has_complete_localized_projections():
     assert 0 <= semantic["overall"]["score"] <= 100
     assert set(semantic["categories"]) == {"love", "money", "work", "energy"}
     assert set(localized) == {"ko", "en", "ja"}
+    selection = semantic["copy_selection"]
+    assert set(selection) == {"version", "selected", "routes"}
+    assert set(selection["selected"]) == {"overall", "love", "money", "work", "energy"}
+    assert all(value in {f"v{index:02d}" for index in range(1, 21)} for value in selection["selected"].values())
     for copy in localized.values():
         assert len(copy["overall"]["flow"]) == 3
         assert all(len(value["text"]) == 2 for value in copy["categories"].values())
@@ -122,9 +126,10 @@ def test_public_result_matches_frontend_v3_schema():
     parsed = FortuneResult.model_validate(value)
     assert parsed.schema_version == 3
     assert parsed.locale == "ja"
+    assert set(value) == {"schema_version", "locale", "overall", "categories", "lucky_color"}
     assert parsed.lucky_color.name in {
         "赤",
-        "コーラル",
+        "グレー",
         "オレンジ",
         "黄色",
         "緑",
@@ -365,3 +370,41 @@ def test_response_contract_rejects_detail_in_locked_result_and_partial_revealed_
             schema.model_validate({**response, "result": leaked})
     with pytest.raises(ValidationError):
         schema.model_validate({**response, "state": "revealed", "access": "unlocked_today"})
+
+
+
+def test_existing_schema3_snapshot_stays_current_without_selection_metadata():
+    row = SimpleNamespace(
+        fortune_date=date(2026, 8, 27),
+        timezone_snapshot="Asia/Seoul",
+        profile_revision=2,
+        result_schema_version=3,
+        semantic_result={"schema_version": 3},
+        copy_by_locale={"ko": {}},
+        copy_version="fortune-copy.v2-initial.1",
+    )
+    assert fortune._current_row(
+        row, today=date(2026, 8, 27), timezone_name="Asia/Seoul", revision=2
+    )
+
+
+def test_public_projection_preserves_old_snapshot_color_and_ignores_private_metadata():
+    old = _result_wire()
+    old["lucky_color"] = {"key": "coral", "name": "코랄", "hex": "#FF7F6E"}
+    semantic = {
+        "schema_version": 3,
+        "overall": {"score": 50},
+        "categories": {key: {"score": 50} for key in ("love", "money", "work", "energy")},
+        "copy_selection": {"private": "snapshot-only"},
+    }
+    rendered = {
+        "overall": {key: value for key, value in old["overall"].items() if key != "score"},
+        "categories": {key: {"text": block["text"]} for key, block in old["categories"].items()},
+        "lucky_color": old["lucky_color"],
+    }
+    row = SimpleNamespace(semantic_result=semantic, copy_by_locale={"ko": rendered})
+    assert fortune._public_result(row, "ko") == old
+    basic = fortune._public_result(row, "ko", include_detail=False)
+    assert set(basic) == {"schema_version", "locale", "overall", "lucky_color"}
+    assert "flow" not in basic["overall"]
+    assert basic["lucky_color"] == old["lucky_color"]

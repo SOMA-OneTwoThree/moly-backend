@@ -48,7 +48,9 @@ from app.services import (
     chat_references,
     chat_turns,
     fortune_chat,
+    topic_chat,
 )
+from app.services.topic_catalog import TopicCatalog
 from app.services.account import _uid
 from app.services.agent import config as agent_config
 from app.services.agent import runtime as agent_runtime
@@ -718,6 +720,7 @@ async def post_message(
     *,
     deadline: float | None = None,
     capabilities: str | None = None,
+    topic_catalog: TopicCatalog | None = None,
 ) -> PostMessageResponse:
     """2단계 상태머신(SOMA-374) — LLM 호출 구간에 DB 트랜잭션/유저 락을 쥐지 않는다.
 
@@ -742,6 +745,8 @@ async def post_message(
             if getattr(req, "context_ref", None) is not None
             else None
         ),
+        topic_entry_id=getattr(req, "topic_entry_id", None),
+        locale=getattr(req, "locale", None),
     )
     await privacy.ensure_subject_active(session, uid)
 
@@ -811,7 +816,7 @@ async def post_message(
     # 커밋 전 스칼라 전량 캡처 — 커밋 후엔 ORM/세션 미접근(async MissingGreenlet 방지).
     ad = g.activity_date
     nick = g.profile.nickname  # 저장=placeholder / egress·LLM 투입=render 전 공용
-    language = g.profile.language
+    language = getattr(req, "locale", None) or g.profile.language
     account_timezone = getattr(g.profile, "timezone", "Asia/Seoul")
     review_prompted_at = g.profile.review_prompted_at
     review_min = g.review_min_tokens
@@ -823,6 +828,13 @@ async def post_message(
     # 현재 위기·연속 distress가 있으면 운세 참조는 DB 조회 전부터 완전히 무시한다. 안전 응답이
     # 오늘 운세의 표현에 끌리거나 stale 참조 오류로 막혀서는 안 된다.
     crisis_now = context_safety.is_continuing_distress(req.text, language)
+    topic_snapshot = None
+    if getattr(req, "topic_entry_id", None) is not None:
+        topic_snapshot = await topic_chat.load_snapshot(
+            session, user_id=uid, entry_id=req.topic_entry_id, locale=req.locale,
+            catalog=topic_catalog, now=now, context_revision=lease.base_context_revision,
+            crisis=crisis_now,
+        )
     fortune_snapshot: fortune_chat.FortuneContextSnapshot | None = None
     fortune_date = reward_date_for(now, account_timezone)
     if getattr(req, "context_ref", None) is not None and not crisis_now:
@@ -843,7 +855,7 @@ async def post_message(
     message_kind = "normal"
     if fortune_snapshot is not None:
         message_kind = "fortune_context_root"
-    elif settings.fortune_chat_enabled and not crisis_now:
+    elif settings.fortune_chat_enabled and not crisis_now and topic_snapshot is None:
         root = (
             await session.execute(
                 select(Message)
@@ -872,7 +884,7 @@ async def post_message(
                 )
                 or 0
             )
-            if following < 2:
+            if following < 2 and not await topic_chat.has_boundary_after(session, uid, root.id):
                 message_kind = "fortune_derived"
 
     ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
@@ -977,7 +989,11 @@ async def post_message(
     convo, new_anchor, lead = await _context(
         session, uid, anchor, current_text=req.text, current_date=ad, language=language
     )
-    lead_texts = [m.content for m in lead]  # placeholder 저장분(문자열) — 커밋 후 ORM 미접근
+    lead_texts = [m.content for m in lead if getattr(m, "kind", None) != "topic_opening"]
+    historical_topic_lead = [
+        f"{m.activity_date.isoformat()}: {m.content}"
+        for m in lead if getattr(m, "kind", None) == "topic_opening"
+    ]
 
     # 현재 턴 선발화(있으면) — 이번 턴 system[먼저 건넨 말]에 넣으려 읽기만. insert는 phase 2.
     greeting_content: str | None = None
@@ -1030,6 +1046,10 @@ async def post_message(
     # 대화가 그대로 캐시되고, 바뀐 이 블록과 현재 입력만 새로 쓴다.
     # role은 system이라 user 발화 권위를 갖지 않는다.
     volatile: list[str] = []
+    if historical_topic_lead:
+        volatile.append("[과거 대화 기록: 캐피의 질문, 현재 질문이 아님]\n" + "\n".join(historical_topic_lead))
+    if topic_snapshot is not None and not crisis_now:
+        volatile.append(topic_snapshot.block)
     if checkpoint_summary:
         # 기존 checkpoint(v1)에 남은 과거 위기 원문도 최근 대화가 명확히 다른 화제로 넘어간
         # 경우에만 문장 단위로 제거한다. 구형 서버 대체 문구도 함께 제거하며, 현재 위기/불명확한
@@ -1191,6 +1211,7 @@ async def post_message(
     t_phase2_0 = time.monotonic()
     await _lock_user(session, uid)
     await chat_turns.verify_publish(session, user_id=uid, lease=lease)
+    await privacy.ensure_subject_active(session, uid)
     if fortune_snapshot is not None:
         phase2_now = datetime.now(timezone.utc)
         fresh_account = await session.get(type(g.profile), uid, populate_existing=True)
@@ -1273,6 +1294,17 @@ async def post_message(
 
     # 선발화 커밋(재조회 — 여전히 유효하면). id 순서 위해 유저 메시지보다 먼저 insert.
     greeting_dto = None
+    topic_greeting_message_id = None
+    if topic_snapshot is not None and not crisis_now:
+        topic_message = Message(
+            user_id=uid, sender="moly", kind="topic_opening", content=topic_snapshot.question,
+            activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=0,
+        )
+        session.add(topic_message)
+        await session.flush()
+        topic_greeting_message_id = topic_message.id
+        greeting_dto = {"message_id": str(topic_message.id), "content": topic_snapshot.question,
+                        "created_at": _iso(now)}
     if greeting_gid is not None:
         # populate_existing=True — phase-1에서 로드한 gr가 identity map + expire_on_commit=False로
         # 남아 있어, 강제 재조회 없으면 phase-1의 stale(committed_message_id=None) 상태를 본다.
@@ -1301,6 +1333,11 @@ async def post_message(
     )
     session.add(umsg)
     await session.flush()
+    await topic_chat.publish(
+        session, user_id=uid, snapshot=topic_snapshot, catalog=topic_catalog,
+        user_message_id=umsg.id, greeting_message_id=topic_greeting_message_id,
+        now=now, crisis=crisis_now,
+    )
 
     # 관계 시작은 첫 성공 대화에서 확정한다. 가입 환영 일기의 생성과는 별개다.
     if getattr(g.profile, "relationship_started_at", None) is None:

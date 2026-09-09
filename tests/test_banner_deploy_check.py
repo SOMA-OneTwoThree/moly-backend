@@ -14,13 +14,16 @@ def test_running_catalog_must_match_image(monkeypatch, capsys, revision):
         check_running_banners.BannerCatalog, "load",
         lambda: SimpleNamespace(revision="expected"),
     )
+    monkeypatch.setattr(check_running_banners.TopicCatalog, "load",
+                        lambda: SimpleNamespace(revision="topics"))
 
     class Opener:
         def open(self, request, timeout):
             assert request.full_url == "http://127.0.0.1:8000/health/banners"
             assert request.get_header("X-health-token") == "test-only-token"
             assert timeout == 5
-            return io.BytesIO(json.dumps({"status": "ok", "revision": revision}).encode())
+            return io.BytesIO(json.dumps({"status": "ok", "revision": revision,
+                                         "topic_revision": "topics"}).encode())
 
     monkeypatch.setattr(check_running_banners.urllib.request, "build_opener", lambda _: Opener())
     if revision == "wrong":

@@ -37,12 +37,18 @@ def create_app() -> FastAPI:
     async def _lifespan(app: FastAPI):
         from app.services import usage_ledger
         from app.services.banner_catalog import BannerCatalog
+        from app.services.topic_catalog import TopicCatalog
 
         app.state.banner_catalog = None
         try:
             app.state.banner_catalog = BannerCatalog.load()
         except (OSError, ValueError) as exc:
             logging.getLogger('moly-backend').error('banner catalog unavailable: %s', type(exc).__name__)
+        app.state.topic_catalog = None
+        try:
+            app.state.topic_catalog = TopicCatalog.load()
+        except (OSError, ValueError) as exc:
+            logging.getLogger('moly-backend').error('topic catalog unavailable: %s', type(exc).__name__)
         stop = asyncio.Event()
         flusher = asyncio.ensure_future(usage_ledger.run_close_flusher(stop))
         try:
@@ -66,7 +72,7 @@ def create_app() -> FastAPI:
         # 인증 dependency와 DB 대기까지 포함한 절대 HTTP 예산의 시작점.
         request.state.started_monotonic = time.monotonic()
         response = await call_next(request)
-        if request.url.path == '/banners':
+        if request.url.path in {'/banners', '/banners/resolve', '/chat/topic-entries'}:
             response.headers['Cache-Control'] = 'private, no-store'
         return response
     # 공개(인증 불필요): 헬스체크와 설치 귀속 복호화.

@@ -60,7 +60,7 @@ async def test_diary_lease_skips_when_lock_not_acquired(monkeypatch):
 
     monkeypatch.setattr(tick.diary_generation, "generate_for_user", _gen)
     _patch_session(monkeypatch, _LeaseSession(lock_granted=False))
-    out = await tick._process_user(_NOW, PID, _CFG)
+    out = await tick._process_user(_NOW, PID, _CFG, diary_policy=tick.diary_generation.DiaryPolicy())
     assert called["gen"] is False           # LLM 호출 안 함(중복 방지)
     assert out["diary_skipped"] == 1 and out["diaries"] == 0
 
@@ -69,13 +69,14 @@ async def test_diary_lease_proceeds_and_unlocks_when_acquired(monkeypatch):
     """락을 얻으면 생성하고, 끝나면 반드시 언락한다."""
     called = {"gen": False}
 
-    async def _gen(session, p, target, cfg):
+    async def _gen(session, p, target, cfg, *, policy):
+        assert isinstance(policy, tick.diary_generation.DiaryPolicy)
         called["gen"] = True
         return {"created": True, "source": "llm", "memory_ok": 1}
 
     monkeypatch.setattr(tick.diary_generation, "generate_for_user", _gen)
     sess = _LeaseSession(lock_granted=True)
     _patch_session(monkeypatch, sess)
-    out = await tick._process_user(_NOW, PID, _CFG)
+    out = await tick._process_user(_NOW, PID, _CFG, diary_policy=tick.diary_generation.DiaryPolicy())
     assert called["gen"] is True and out["diaries"] == 1
     assert any("DELETE FROM diary_gen_claims" in s for s in sess.executed)  # 클레임 해제됨

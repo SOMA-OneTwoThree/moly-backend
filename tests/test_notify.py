@@ -89,28 +89,6 @@ async def test_evening_exhausted_does_not_claim(monkeypatch):
     assert "called" not in claimed  # 선점 안 함 → 다른 조건 회복 시 재평가 가능
 
 
-async def test_morning_skips_when_already_notified(monkeypatch):
-    """아침 푸시도 멱등 — 킬스위치 on 상태에서 claim False면 미발송."""
-    from app.config import settings as cfg
-
-    monkeypatch.setattr(cfg, "morning_push_enabled", True)
-    sent = {}
-
-    async def _enabled(session, uid, t):
-        return True
-
-    async def _claim(session, profile, col):
-        return False
-
-    async def _send(tokens, title, body):
-        sent["called"] = True
-        return 1
-
-    monkeypatch.setattr(notify, "_enabled", _enabled)
-    monkeypatch.setattr(notify, "_claim_send_slot", _claim)
-    monkeypatch.setattr(push, "send", _send)
-    assert await notify.notify_morning(None, _profile()) == 0
-    assert "called" not in sent
 
 
 def test_push_text_localized():

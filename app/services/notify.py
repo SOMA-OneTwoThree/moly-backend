@@ -14,7 +14,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.time_utils import activity_date_for, current_activity_date
+from app.core.time_utils import activity_date_for, current_activity_date, safe_zone
 from app.models.chat_context import ChatContext
 from app.models.diary import Diary
 from app.models.user_daily_stats import UserDailyStats
@@ -29,9 +29,9 @@ _log = logging.getLogger("moly-worker")
 # _EVENING은 분기 신호 조회가 실패했을 때의 **중립 폴백**이기도 하다 — 사실 주장("오랜만" 등)이
 # 없어 어떤 유저 상태에도 거짓이 되지 않는다. 폴백을 카테고리 문구로 두면 안 되는 이유다.
 _MORNING = {
-    "ko": ("캐피", "캐피가 어젯밤 일기를 남겼어요. 몰래 보러가볼까요?"),
-    "en": ("Cappy", "Cappy left a diary last night. Want to sneak a peek?"),
-    "ja": ("キャピー", "キャピーが昨夜、日記を残したよ。こっそり見に行かない？"),
+    "ko": ("캐피", "캐피의 새 일기가 도착했어"),
+    "en": ("Cappy", "Cappy’s new diary is ready to read"),
+    "ja": ("キャピー", "キャピーの新しい日記が届いたよ"),
 }
 _EVENING = {
     "ko": ("캐피", "오늘 하루는 어땠어? 나랑 같이 얘기하면서 놀자."),
@@ -78,14 +78,19 @@ async def _tokens(session: AsyncSession, uid) -> list[str]:
     )
 
 
-async def _claim_send_slot(session: AsyncSession, profile, column: str) -> bool:
+async def _claim_send_slot(
+    session: AsyncSession, profile, column: str, *, now: datetime | None = None,
+) -> bool:
     """유저×활동일당 해당 알림을 최초 1회만 '선점'(atomic upsert). 이미 발송했으면 False.
 
     발송 전에 마커를 선점(at-most-once) — 재시도·중복 실행·15분 케이던스에서 중복 푸시 방지.
     발송 실패 시 그날은 스킵되나(마커 잔존), 스팸보다 낫다(알림은 on/off 베스트에포트).
     활동일(로컬 04:00 경계) 기준 — 아침 09:00·저녁 20:00 모두 당일에 귀속된다.
     """
-    ad = current_activity_date(profile.timezone)
+    ad = (
+        activity_date_for(now, profile.timezone)
+        if now is not None else current_activity_date(profile.timezone)
+    )
     col = getattr(UserDailyStats, column)
     stmt = (
         pg_insert(UserDailyStats)
@@ -102,21 +107,63 @@ async def _claim_send_slot(session: AsyncSession, profile, column: str) -> bool:
     return claimed
 
 
-async def notify_morning(session: AsyncSession, profile) -> int:
-    # 전역 킬스위치(SOMA-338): 아침 일기 푸시 차단 → 저녁 안부만 발송. 코드·문구는 유지, 플래그로만 막는다.
+async def _morning_diary_id(session: AsyncSession, profile, now: datetime):
+    local = now.astimezone(safe_zone(profile.timezone))
+    today_start = local.replace(hour=0, minute=0, second=0, microsecond=0)
+    return (await session.execute(
+        select(Diary.id).where(
+            Diary.user_id == profile.id,
+            Diary.activity_date == activity_date_for(now, profile.timezone) - timedelta(days=1),
+            Diary.kind.in_(("shared_day", "capi_day")),
+            Diary.record_status == "published",
+            Diary.deleted_at.is_(None),
+            Diary.published_at >= today_start,
+            Diary.published_at <= now,
+            Diary.first_read_at.is_(None),
+        ).order_by(Diary.published_at.desc(), Diary.id).limit(1)
+    )).scalars().first()
+
+
+async def notify_morning(
+    session: AsyncSession, profile, *, now: datetime | None = None,
+) -> int:
     if not settings.morning_push_enabled:
         return 0
+    now = now or datetime.now(timezone.utc)
+    if now.astimezone(safe_zone(profile.timezone)).hour != 9:
+        return 0  # A delayed/manual invocation must not send a morning push at night.
     if not await _enabled(session, profile.id, "morning_diary"):
         return 0
-    if not await _claim_send_slot(session, profile, "morning_notified_at"):
-        return 0  # 오늘 이미 발송 — 멱등 스킵
-    title, body = _push_text(_MORNING, getattr(profile, "language", None))
-    tokens = await _tokens(session, profile.id)
-    # 외부 호출(FCM) 전 읽기 트랜잭션 해제 — 커넥션을 쥔 채 네트워크를 기다리지 않는다(#16+#24).
-    # (단위 테스트는 조회 전부를 mock하고 session=None을 넘긴다 — 가드.)
+    diary_id = await _morning_diary_id(session, profile, now)
+    if diary_id is None:
+        return 0
+    tokens = list(dict.fromkeys(t for t in await _tokens(session, profile.id) if t))
+    if not tokens:
+        return 0
     if session is not None:
         await session.commit()
-    return await push.send(tokens, title, body)
+    try:
+        access_token = await push.prepare_access_token()
+    except Exception:  # noqa: BLE001  # No message has been submitted, so a later tick can retry.
+        _log.warning("아침 푸시 인증 준비 실패 — 발송 슬롯 미소진(user=%s)", profile.id)
+        return 0
+    if access_token is None:
+        return 0
+    if not await _claim_send_slot(session, profile, "morning_notified_at", now=now):
+        return 0
+    # The claim commits before network I/O. An ambiguous delivery failure must
+    # not release it: FCM may already have accepted a message for another device.
+    title, body = _push_text(_MORNING, getattr(profile, "language", None))
+    expires_at = now.astimezone(safe_zone(profile.timezone)).replace(
+        hour=10, minute=0, second=0, microsecond=0,
+    ).astimezone(timezone.utc)
+    sent = await push.send(
+        tokens, title, body, data={"link": "diary", "diary_id": str(diary_id)},
+        expires_at=expires_at, access_token=access_token,
+    )
+    if not sent:
+        _log.warning("아침 일기 푸시 미전달 — 당일 재발송 생략(user=%s)", profile.id)
+    return sent
 
 
 async def _override_copy(session, profile, now: datetime) -> tuple[str, str] | None:

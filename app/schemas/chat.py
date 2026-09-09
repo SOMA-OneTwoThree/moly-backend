@@ -28,6 +28,17 @@ class PostMessageRequest(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
     greeting_id: str | None = None  # 화면에 떠 있던 미커밋 선발화(있으면 커밋)
     context_ref: DailyFortuneContextRef | None = None
+    topic_entry_id: UUID | None = None
+    locale: Locale | None = None
+
+    @model_validator(mode="after")
+    def topic_context(self):
+        if self.topic_entry_id is not None:
+            if self.locale is None:
+                raise ValueError("topic entry requires display locale")
+            if self.greeting_id is not None or self.context_ref is not None:
+                raise ValueError("topic entry cannot accompany greeting or fortune context")
+        return self
 
 
 class ChatStateResponse(StrictResponse):

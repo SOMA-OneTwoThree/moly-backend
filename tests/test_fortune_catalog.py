@@ -72,7 +72,7 @@ def _semantic() -> dict:
 
 def test_approved_catalog_has_complete_variant_coverage():
     catalog = load_catalog()
-    assert COPY_VERSION == "fortune-copy.v3-ko-editorial.1"
+    assert COPY_VERSION == "fortune-copy.v3-editorial.1"
     assert CONTENT_STATUS == "approved_for_production"
     assert SUPPORTED_LOCALES == ("ko", "en", "ja")
     for locale in SUPPORTED_LOCALES:

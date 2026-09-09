@@ -84,12 +84,12 @@ _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
 # A release bundle may contain independently edited locales. Existing snapshots
-# retain their own bundle version; a Korean edit never relabels foreign assets.
-COPY_VERSION = "fortune-copy.v3-ko-editorial.1"
+# retain their own bundle version; unchanged locales keep their asset versions.
+COPY_VERSION = "fortune-copy.v3-editorial.1"
 COPY_VERSIONS = MappingProxyType({
-    "ko": COPY_VERSION,
-    "en": "fortune-copy.v3-independent.1",
-    "ja": "fortune-copy.v3-independent.1",
+    "ko": "fortune-copy.v3-ko-editorial.1",
+    "en": COPY_VERSION,
+    "ja": COPY_VERSION,
 })
 CONTENT_STATUS = "approved_for_production"
 

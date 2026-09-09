@@ -2,7 +2,7 @@
 
 > 기준일: 2026-09-09
 >
-> 문서 상태: 독립 점수 구현 위에 한국어 승인 문체·점수대 차등화 적용 및 독립 검수 완료. 영어·일본어 이전 원고 유지, PR·서버 배포 전
+> 문서 상태: 독립 점수·승인 한국어 문체를 유지하고 영어·일본어 현지화 적용. 언어별 검수 결과는 아래 기록 참조, PR·서버 배포 전
 >
 > 공개 계약: `openapi/paths/fortune.yaml`, `openapi/components/fortune.yaml`
 >
@@ -21,7 +21,8 @@
 | `app/resources/fortune/` | 실행용 세 언어 문구·계산 규칙·manifest | 문구 원본을 수정하고 hash 갱신 |
 | `docs/fortune-content/briefs.json` | 집필·현지화 기준 | 편집 기준이 바뀔 때 수정 |
 | `docs/fortune-content/overall-*.md`, `category-*.md` | 전체 문구의 세 언어 대조표 14개 | 서버 자산 수정 후 생성기로 갱신 |
-| `docs/fortune-content/review-notes.md` | 언어별 검수 기록 | 검수 결과를 한 파일에 기록 |
+| `docs/fortune-content/*editorial-review.md` | 현행 원고의 전량 검수 기록 | 실제 검토 범위·수정 근거·검증 결과 기록 |
+| `docs/fortune-content/review-notes.md`, `*-independent-review.md` | 이전 버전 검수 이력 | 당시 기록 보존, 최신 검증과 구분 |
 | `scripts/build_fortune_copy_docs.py` | 전문 생성 및 CI 일치 검사 | `--check`로 정본과 문서 일치 확인 |
 
 집필용 중간 원고·변환 스크립트·일회성 로그는 실행 자산이나 정본 문서로 사용하지 않는다.
@@ -85,11 +86,11 @@
 
 언어별 총평 10구간 ×20묶음, 4분야 ×10구간 ×20개를 유지한다. 총평·상세·해볼 것·조심할 것은 같은 variant를 사용하며 분야는 각자의 점수대에서 선택한다. 선택 cursor는 점수 생성에 사용하지 않는다.
 
-선택 상태 `fortune-selection.v3`은 50개 경로의 bounded cursor를 유지한다. 같은 날짜에는 같은 위치, 다음 날짜 해당 경로를 사용할 때 다음 문구로 이동한다. 기존 v1/v2 cursor는 형식·날짜·선택 ID 일치를 검증한 후 새 문구 의미에 맞춰 전체 경로를 초기화한다. 알 수 없는 버전이나 깨진 상태는 조용히 초기화하지 않는다. 이미 생성된 당일 결과를 덮어쓰지는 않는다.
+선택 상태 `fortune-selection.v3`은 50개 경로의 bounded cursor를 유지한다. 같은 날짜에는 같은 위치, 다음 날짜 해당 경로를 사용할 때 다음 문구로 이동한다. 기존 v1/v2 cursor는 형식·날짜·선택 ID 일치를 검증한 후 독립 점수 경로로 최초 이관할 때 전체 경로를 초기화한다. 이번 영어·일본어 편집으로 기존 v3 cursor를 초기화하지 않는다. 알 수 없는 버전이나 깨진 상태는 조용히 초기화하지 않는다. 이미 생성된 당일 결과를 덮어쓰지는 않는다.
 
 ## 4. 문구와 표시 기준 — 2026-09-09
 
-문구 묶음 버전은 `fortune-copy.v3-ko-editorial.1`이다. 한국어는 사용자가 승인한 [5세트](fortune-content/samples/2026-09-09-editorial-pilot.md)의 문체를 전체에 적용한다. 영어·일본어는 사용자 지시대로 이전 `fortune-copy.v3-independent.1` 자산을 유지하며, 현재 한국어의 번역본이라고 표현하지 않는다. 언어별 자산 버전은 `fortune_catalog.COPY_VERSIONS`로 검증한다.
+문구 묶음 버전은 `fortune-copy.v3-editorial.1`이다. 한국어는 사용자가 승인한 [5세트](fortune-content/samples/2026-09-09-editorial-pilot.md)를 전체에 적용한 `fortune-copy.v3-ko-editorial.1` 원고를 바이트 그대로 유지한다. 영어·일본어 자산은 새 묶음 버전을 사용하며, 같은 분야·점수대·ID의 한국어 판단·조건·제안에 맞춰 현지화한다. 언어별 자산 버전은 `fortune_catalog.COPY_VERSIONS`로 검증한다.
 
 본문은 마침표와 띄어쓰기를 사용한 약 5문장의 한 문단이다. 한국어·영어는 구간 사이에 공백 하나, 일본어는 추가 공백 없이 연결한다. wire 배열인 flow=3/text=2는 문장 수가 아니라 전송 구간 수다. 고정 화면 5줄을 강제하지 않는다.
 
@@ -97,7 +98,7 @@
 
 점수 계산은 바꾸지 않는다. 낮은 점수는 구체적인 어려움과 예방, 중간 점수는 평소 수준의 만족과 작은 주의, 높은 점수는 나서볼 만한 이점과 기회를 먼저 보여준다. 열 개 구간별 강도는 [briefs.json](fortune-content/briefs.json)에 정의한다. 총평이 네 분야 전체를 대신 좋거나 나쁘다고 판정하지 않고 분야마다 자기 점수를 따른다.
 
-작성자와 판단자를 분리해 자연스러움·즉시 이해·운세 해석·점수 적합·분야 독립을 읽고 검토한다. 실제 검토 범위와 수정 근거는 [한국어 전체 검수 기록](fortune-content/ko-full-editorial-review.md)에 남긴다. 문장 수·중복·금칙 표현 검사는 형식 검사이며 자연스러움이나 원어민 검수를 증명하지 않는다. 이전 [한국어](fortune-content/ko-independent-review.md)·[일본어](fortune-content/ja-independent-review.md)·[영어](fortune-content/en-independent-review.md) 기록은 각 이전 버전의 이력이다.
+작성자와 판단자를 분리해 자연스러움·즉시 이해·운세 해석·점수 적합·분야 독립을 읽고 검토한다. 실제 검토 범위와 수정 근거는 [한국어 전체 검수 기록](fortune-content/ko-full-editorial-review.md)과 [영어·일본어 전체 검수 기록](fortune-content/multilingual-editorial-review.md)에 남긴다. 문장 수·중복·금칙 표현 검사는 형식 검사이며 자연스러움이나 원어민 검수를 증명하지 않는다. 이전 [한국어](fortune-content/ko-independent-review.md)·[일본어](fortune-content/ja-independent-review.md)·[영어](fortune-content/en-independent-review.md) 기록은 각 이전 버전의 이력이다.
 
 전체 전문은 부록 A/B의 생성 문서에서 확인한다. 생성기는 서버 자산을 한 문단으로 합쳐 3개 언어를 대조한다. 과거 검수 기록은 과거 버전의 증거이며 최신 검증 완료를 뜻하지 않는다.
 
@@ -234,7 +235,7 @@ fingerprint를 다시 검사한다. 서버가 붙이는 운세 표제도 `ko/en/
   "versions": {
     "ephemeris": "not-used.independent-v1",
     "rules": "fortune-independent.v1",
-    "copy": "fortune-copy.v3-ko-editorial.1"
+    "copy": "fortune-copy.v3-editorial.1"
   }
 }
 ```
@@ -300,9 +301,17 @@ freshness는 `fortune_date + timezone_snapshot + profile_revision + schema_versi
 - 코드·3개 언어 JSON·manifest는 함께 배포한다. 개발에서 실제 DB 검증을 마친 뒤 최종 PR을 만들며 사용자가 이번에는 PR 금지를 지시했다.
 - 이번 작업은 개발 검증 단계이며 운영 서버/DB/푸시를 변경하지 않는다. 전체 구조는 `db.verify`의 읽기 전용 검사로 확인한다.
 
-### 7.0 한국어 후속 편집
+### 영어·일본어 현지화 배포 범위
 
-이번 후속 작업은 한국어 자산·언어별 버전 검증·기준 문서만 수정한다. DB 마이그레이션, 점수 함수 변경, 선택 cursor 초기화, 당일 snapshot 재발행은 없다. 새 결과부터 새 한국어 문구를 읽고 기존 당일 결과는 언어별 저장본과 해제 상태를 그대로 제공한다. 서버 2,209개 및 개발 DB 8개 테스트가 통과했다. 문구 1,000문단의 독립 전량 검수·수정본 재독을 완료했고, 실제 범위와 수정 근거는 [한국어 전체 검수 기록](fortune-content/ko-full-editorial-review.md)에 정리했다.
+이번 후속 편집은 영어·일본어 실행 자산과 버전·manifest·검수 문서만 바꾼다. 각 언어의 총평 200묶음(제목·본문·행동·주의 포함), 애정·금전·일/학업·활력 각 200문단, 합계 1,000문단을 승인 한국어에 맞춘다. 영어는 일상적인 미국 영어와 직접적인 제안, 일본어는 자연스러운 です・ます 문체를 사용한다. 낮은 점수의 주의와 높은 점수의 기회를 번역하면서 강화하거나 약화하지 않는다.
+
+DB 마이그레이션·데이터 보충·cursor 초기화는 필요 없다. 점수 계산·선택 ID·API 필드·광고 권한·행운색은 유지한다. 기존 당일 결과는 이전 언어별 저장본 그대로 반환하고, 배포 뒤 새로 생성되는 결과부터 새 원고를 저장한다. 이전 독립 점수 버전과 한국어 단독 편집 버전의 snapshot을 모두 회귀 검증한다. 이번 서버 문구 편집은 모바일 ARB와 화면 코드를 변경하지 않는다.
+
+전량 검수 및 테스트의 실제 결과는 [영어·일본어 전체 검수 기록](fortune-content/multilingual-editorial-review.md)에 정리한다. PR 생성·원격 push·개발 API 배포는 별도 승인 후 진행한다.
+
+### 7.0 한국어 후속 편집 이력
+
+한국어 편집 당시에는 한국어 자산·언어별 버전 검증·기준 문서만 수정한다. DB 마이그레이션, 점수 함수 변경, 선택 cursor 초기화, 당일 snapshot 재발행은 없다. 새 결과부터 새 한국어 문구를 읽고 기존 당일 결과는 언어별 저장본과 해제 상태를 그대로 제공한다. 서버 2,209개 및 개발 DB 8개 테스트가 통과했다. 문구 1,000문단의 독립 전량 검수·수정본 재독을 완료했고, 실제 범위와 수정 근거는 [한국어 전체 검수 기록](fortune-content/ko-full-editorial-review.md)에 정리했다.
 
 ### 7.0.1 이전 독립 점수 구현 검증 결과 (2026-09-09)
 
@@ -418,10 +427,9 @@ snapshot의 색 이름·HEX는 기존 보존 정책에 따라 유지한다. 이�
 
 ## 부록 D. 기존 UI와 서버 운세 배너 전문
 
-### D.1 기존 ARB 33키
+### D.1 이전 UI 편집안 33키
 
-원본은 `becappy-mobile/lib/l10n/app_{ko,en,ja}.arb`. `{date}`·`{score}`는 보존한다.
-`fortuneResultGreeting`과 `fortuneSample*`의 문구는 프리뷰용이다. 서비스 결과는 4.6의 API 필드로 교체한다. 총평 프리뷰는 세 언어 모두 `overall.d70.general/v01`로 맞춰두었으며, 분야 프리뷰는 `category.love.d70.general/v01`이다. 한 샘플 분야 본문을 모든 탭에 재사용하지 않는다.
+아래 표는 이전 UI 편집안을 보존한 참고 자료이며 현재 앱 ARB 전체나 최신 운세 원고의 적용 상태를 뜻하지 않는다. 실제 UI 정본은 `becappy-mobile/lib/l10n/app_{ko,en,ja}.arb`다. 이번 영어·일본어 서버 원고 편집에서는 ARB를 변경하지 않는다. `{date}`·`{score}`는 보존한다. 프리뷰 문구를 후속 수정할 때에는 최신 서버의 같은 분야·점수대·ID를 사용하고, 서비스 결과는 API 응답을 표시한다.
 
 | 키 | 용도 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- | --- |

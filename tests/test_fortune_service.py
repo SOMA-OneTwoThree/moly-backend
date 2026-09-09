@@ -102,7 +102,7 @@ def test_result_build_is_deterministic_and_has_complete_localized_projections():
     )
     assert first == second
     semantic, localized = first
-    assert semantic["schema_version"] == 3
+    assert semantic["schema_version"] == 4
     assert 0 <= semantic["overall"]["score"] <= 100
     assert set(semantic["categories"]) == {"love", "money", "work", "energy"}
     assert set(localized) == {"ko", "en", "ja"}
@@ -373,15 +373,17 @@ def test_response_contract_rejects_detail_in_locked_result_and_partial_revealed_
 
 
 
-def test_existing_schema3_snapshot_stays_current_without_selection_metadata():
+@pytest.mark.parametrize("semantic_schema", [3, 4])
+@pytest.mark.parametrize("copy_version", ["fortune-copy.v3-independent.1", "fortune-copy.v3-ko-editorial.1"])
+def test_existing_snapshot_stays_current_after_editorial_revision(semantic_schema, copy_version):
     row = SimpleNamespace(
         fortune_date=date(2026, 8, 27),
         timezone_snapshot="Asia/Seoul",
         profile_revision=2,
         result_schema_version=3,
-        semantic_result={"schema_version": 3},
+        semantic_result={"schema_version": semantic_schema},
         copy_by_locale={"ko": {}},
-        copy_version="fortune-copy.v2-initial.1",
+        copy_version=copy_version,
     )
     assert fortune._current_row(
         row, today=date(2026, 8, 27), timezone_name="Asia/Seoul", revision=2

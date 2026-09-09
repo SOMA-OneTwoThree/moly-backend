@@ -1,11 +1,13 @@
 # 오늘의 총평 90–100점 — 20묶음 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v2-field-readings.1` · 서버 자산에서 생성한 전체 전문
+> 카탈로그 버전: `fortune-copy.v3-editorial.1` · 서버 자산에서 생성한 전체 전문
+> 한국어: `fortune-copy.v3-ko-editorial.1` · 영어: `fortune-copy.v3-editorial.1` · 일본어: `fortune-copy.v3-editorial.1`
+> 영어·일본어는 승인된 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·점수대·ID를 대조해 읽는다.
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
-좋은 기회를 알아보고 받아들이는 태도에 운이 따를 수 있는 하루. 결과나 외부의 호감을 보장하지 않는다
+가장 좋은 구간. 어려웠던 일에 한 단계 도전하거나 평소보다 좋은 결과를 기대할 만하다. 성공·호감·수익·건강을 보장하지 않는다
 
 내부 계산 유형과 관계없이 이 점수 구간의 20묶음에서 선택한다
 
@@ -13,218 +15,178 @@
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 너답게 나설수록 운이 살아나는 날이야 | Being yourself gives today's opportunities the best chance to go well | 自分らしく振る舞うほど、運気が高まる日 |
-| 풀이 1 | 남의 방식을 따라 하기보다 네 강점을 드러낼 때 좋은 호응을 만나기 쉬워 | Showing your strengths is more likely to draw a good response than following someone else's way | 人のやり方をまねるより、自分の強みを見せると良い反応に出合いやすそう |
-| 풀이 2 | 익숙하게 잘하는 것을 자신 있게 보여주기 좋은 때야 | There is room to show what you know well with confidence | 慣れた得意なことを、自信を持って見せるのによいとき |
-| 풀이 3 | 기회 앞에서 스스로를 작게 소개하지 않아도 돼 | You don't need to downplay yourself when an opportunity appears | チャンスが来たら、自分の良さを遠慮せず伝えてね |
-| 해볼 것 | 네가 잘할 수 있는 자리에 적극적으로 나서봐 | Step forward where you know you have something to offer | 得意なことを生かせる場に、積極的に出てみて |
-| 조심할 것 | 인정받고 싶은 마음에 네 방식까지 버리지 마 | Don't give up your own way in the hope of winning approval | 認めてほしくても、自分のやり方まで捨てないで |
+| 총평 | 오늘은 오래 망설였던 경험에 나서볼 만한 날이야. | An experience you've long hesitated over is worth trying today. | 長く迷っていた体験に、踏み出すのによい日です。 |
+| 전체 풀이 | 낯선 것을 해봐도 나에게 맞는 재미와 방법을 찾기 좋은 날이야. 어렵게만 느꼈던 체험이나 취미가 있다면 직접 시작해봐. 설명만 들을 때는 몰랐던 즐거움까지 발견할 만해. 궁금한 점을 물어보면 혼자 알아볼 때보다 유용한 답을 얻을 수 있어. 마음에 드는 것을 찾았다면 다음에 또 즐길 시간까지 정해봐. | Even an unfamiliar activity could reveal enjoyment and an approach that suits you. Begin a hobby or experience you've always thought would be difficult. You may discover pleasures that no explanation could convey. Asking questions could bring more useful answers than researching alone. If you find something you like, set a time to enjoy it again. | 慣れないことにも、自分に合う楽しみ方や方法を見つけやすい日です。難しいと感じていた体験や趣味があれば、実際に始めましょう。説明を聞くだけではわからなかった楽しさまで、発見できそうです。気になる点を尋ねると、一人で調べるより役立つ答えが得られます。気に入るものが見つかったら、次に楽しむ時間まで決めましょう。 |
+| 해볼 것 | 오래 궁금했던 것을 가볍게 체험해봐. | Give something you've long wondered about a brief try. | 長く気になっていたことを、気軽に体験しましょう。 |
+| 조심할 것 | 서툴 것 같다는 이유만으로 좋은 기회를 넘기지 마. | Don't pass up a good opportunity just because you might be inexperienced. | うまくできなさそうという理由だけで、よい機会を逃さないでください。 |
 
 ## v02
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 기회와 용기가 함께 맞물리기 좋은 하루야 | An opportunity may arrive just as you feel ready to take it | チャンスと勇気が、うまくかみ合いやすい一日 |
-| 풀이 1 | 마음에 두던 일에서 움직여볼 만한 계기를 발견할 수 있어 | You may find a reason to act on something you've had in mind | 心に置いていたことに、動いてみたくなるきっかけがありそう |
-| 풀이 2 | 가능한 조건을 확인했다면 지나친 망설임보다 시도가 잘 어울려 | Once you've checked what's possible, trying suits the day better than lingering hesitation | 実行できる条件を確かめたなら、迷い続けるより挑戦が似合うよ |
-| 풀이 3 | 오늘의 의욕을 실제 한 걸음으로 이어봐 | Turn today's enthusiasm into a step you can actually take | 今日の意欲を、実際の一歩につなげてみよう |
-| 해볼 것 | 준비해온 일에 구체적인 행동을 더해봐 | Add a concrete action to something you've prepared for | 準備してきたことに、具体的な行動を加えてみて |
-| 조심할 것 | 기분이 좋다고 확인할 조건까지 생략하지 마 | Don't leave out necessary checks because the mood feels good | 気分の良さで、必要な条件の確認まで省かないで |
+| 총평 | 오늘은 내 판단을 믿고 선택하기 좋은 날이야. | Your judgment is worth trusting when choosing today. | 自分の判断を信じて、選ぶのによい日です。 |
+| 전체 풀이 | 많은 정보를 보더라도 내게 필요한 것이 뚜렷하게 눈에 들어올 수 있어. 충분히 알아본 일은 자신 있게 결정해봐. 선택을 마친 뒤에는 직접 즐기며 새로운 장점도 찾을 만해. 내 이유가 분명하다면 모두의 동의를 기다릴 필요는 없어. 오늘은 오래 고민한 만큼 만족할 선택을 기대해도 좋아. | What you actually need may stand out clearly even amid plenty of information. Decide confidently on something you've researched thoroughly. After choosing, enjoy it firsthand and look for further advantages. You don't need everyone's agreement when your reasons are clear. A carefully considered choice could bring the satisfaction you've hoped for. | 多くの情報を見ても、必要なものがはっきり目に入りそうです。十分に調べたことは、自信を持って決めましょう。選んだあとは実際に楽しみながら、新しい長所も見つけられそうです。理由が明確なら、全員の同意を待つ必要はありません。長く悩んだ分、満足できる選択を期待してよさそうです。 |
+| 해볼 것 | 충분히 알아본 선택을 자신 있게 마무리해봐. | Confidently finish a decision you've researched well. | 十分に調べたなら、自信を持って決めましょう。 |
+| 조심할 것 | 이미 정한 기준을 작은 평가에 바로 바꾸지 마. | Don't overturn clear criteria over a minor comment. | 決めていた基準を、ちょっとした評価ですぐに変えないでください。 |
 
 ## v03
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 네 진심이 평소보다 또렷하게 닿기 좋은 날이야 | Your sincerity can come through especially clearly today | 本当の気持ちが、いつもよりはっきり届きやすい日 |
-| 풀이 1 | 오래 품은 고마움이나 함께하고 싶은 마음을 전할 여지가 있어 | There may be room to express long-held gratitude or a wish to spend time together | 長く抱えた感謝や、一緒にいたい思いを伝える余地がありそう |
-| 풀이 2 | 꾸미지 않고 전한 마음이 좋은 대화의 시작이 될 수 있어 | Plain, honest words can open a good conversation | 飾らずに伝えた思いが、よい会話の始まりになるかも |
-| 풀이 3 | 상대의 답을 정해두지 않고 네 마음부터 솔직하게 보여줘 | Show your own feelings without deciding the other person's answer in advance | 相手の答えを決めずに、まず自分の気持ちを素直に見せてみよう |
-| 해볼 것 | 중요하게 여겨온 마음을 직접 전해봐 | Personally express a feeling that has mattered to you | 大切にしてきた思いを、直接伝えてみて |
-| 조심할 것 | 좋은 분위기를 확답에 대한 압박으로 바꾸지 마 | Don't turn a warm atmosphere into pressure for a firm answer | 雰囲気が良くても、はっきりした返事を迫らないで |
+| 총평 | 오늘은 먼저 꺼낸 제안에서 좋은 기회를 찾을 만해. | An idea you suggest could lead to a good opportunity today. | 自分から出した提案に、よい機会を見つけられそうです。 |
+| 전체 풀이 | 생각만 하던 것을 구체적으로 말하면 실행할 방법이 보이기 좋은 날이야. 원하는 내용과 가능한 시간을 분명하게 전해봐. 다른 사람의 아이디어가 더해지면 처음보다 괜찮은 계획이 될 수 있어. 관심 있는 부분은 바로 알아보고 다음 순서를 정하면 돼. 오늘은 기다리는 것보다 직접 제안하는 쪽에 힘을 실어봐. | Stating a thought specifically may reveal how to put it into practice. Explain what you want and when you're available. Someone else's ideas could improve the plan beyond your first version. Follow up on the interesting parts and decide what comes next. Take the initiative instead of waiting for an invitation. | 考えているだけだったことも、具体的に話すと実行する方法が見えやすい日です。希望する内容と、使える時間をはっきり伝えましょう。人のアイデアが加われば、初めよりよい計画になるかもしれません。気になる部分はすぐに調べ、次の手順を決めれば大丈夫です。待つより、こちらから提案することを優先しましょう。 |
+| 해볼 것 | 해보고 싶은 일을 구체적으로 제안해봐. | Make a specific suggestion about what you'd like to do. | してみたいことを、具体的に提案しましょう。 |
+| 조심할 것 | 완벽한 계획이 완성될 때까지 기다리지 마. | Don't wait until every part of the plan is perfect. | 完璧な計画ができるまで、待たないでください。 |
 
 ## v04
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 새로운 가능성을 반갑게 맞이할 힘이 있어 | Today brings the confidence to welcome new possibilities | 新しい機会を、前向きに迎えられる日 |
-| 풀이 1 | 평소라면 낯설게만 보던 일에도 해보고 싶은 마음이 먼저 들 수 있어 | Something you'd usually see as unfamiliar may first awaken the wish to try | いつもなら遠慮することにも、やってみたい気持ちが先に湧くかも |
-| 풀이 2 | 네가 움직일수록 생각보다 넓은 선택지가 눈에 들어오는 날이야 | The more you explore, the more choices you may notice | 動くほど、思っていたより広い選択肢が見えてきそう |
-| 풀이 3 | 가장 마음이 가는 기회를 골라 가까이 다가가봐 | Pick the opportunity that appeals most and move a little closer | いちばん心が向く機会を選んで、近づいてみよう |
-| 해볼 것 | 흥미로운 가능성을 실제로 알아보러 가봐 | Go and learn about a possibility that interests you | 面白そうな機会を、実際に確かめに行ってみて |
-| 조심할 것 | 가능성이 많다고 방향 없이 모두 좇지 마 | Don't chase every option without a direction just because there are many | 選択肢が多くても、方向を決めず全部を追わないで |
+| 총평 | 오늘은 낯선 곳에서 취향에 꼭 맞는 것을 발견할 만해. | An unfamiliar place could reveal something that fits your taste remarkably well. | 初めての場所に、好みにぴったりのものが見つかりそうです。 |
+| 전체 풀이 | 평소와 다른 경험에서도 내가 좋아하는 점을 알아보기 쉬운 날이야. 궁금했던 장소나 체험에 시간을 내봐. 직접 살펴보면 설명에서 못 본 재미까지 찾을 수 있어. 마음에 드는 이유를 나누면 또 다른 정보를 얻을 기회도 생겨. 오늘은 새로운 경험을 충분히 즐겨봐. | You may readily spot what appeals to you even in a new experience. Make time for a place or activity you've been curious about. A firsthand look could reveal pleasures missing from the description. Sharing why you like it may bring further information. Give yourself enough time to enjoy the new experience. | 普段と違う体験にも、好きなところを見つけやすい日です。気になっていた場所や体験に、時間を取りましょう。実際に見ると、説明にはなかった楽しさまで発見できます。気に入った理由を話せば、別の情報を得る機会も生まれそうです。新しい体験を、十分に楽しみましょう。 |
+| 해볼 것 | 궁금했던 곳을 직접 찾아보거나 경험해봐. | Visit or try somewhere you've been curious about. | 気になっていた場所を、実際に訪ねて確かめましょう。 |
+| 조심할 것 | 익숙한 것만 골라 좋은 발견을 놓치지 마. | Don't miss a discovery by choosing only the familiar. | 慣れたものばかり選んで、よい発見を逃さないでください。 |
 
 ## v05
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 좋은 인연의 실마리를 발견하기 쉬운 하루야 | Today favors noticing the beginning of a promising connection | 良い縁のきっかけを、見つけやすい一日 |
-| 풀이 1 | 우연히 나눈 이야기에서 관심이나 생각이 잘 맞는 사람을 알아볼 수 있어 | A chance exchange may reveal someone whose thoughts or interests fit with yours | ふと交わした話に、興味や考えの合う人を見つけられそう |
-| 풀이 2 | 짧은 만남이라도 다음 대화로 이어갈 만한 반가움이 남을 수 있어 | Even a brief encounter could leave a welcome reason to talk again | 短い出会いでも、また話したくなる喜びが残るかも |
-| 풀이 3 | 부담 없이 관심을 표현하며 연결될 여지를 남겨봐 | Show interest without pressure and leave room for the connection to continue | 気負わず関心を伝えて、つながる余地を残してみよう |
-| 해볼 것 | 다시 이야기하고 싶은 마음을 자연스럽게 알려줘 | Naturally let someone know you'd enjoy talking again | また話したい気持ちを、自然に伝えてみて |
-| 조심할 것 | 첫 만남의 호감으로 상대를 모두 안다고 여기지 마 | Don't assume a good first impression tells you everything about a person | 初対面の好感だけで、相手のすべてを知ったと思わないで |
+| 총평 | 오늘은 미뤄둔 생각을 실제 계획으로 만들기 좋아. | An idea you've postponed could become a practical plan today. | 後回しにしていた考えを、実際の計画にするのによい日です。 |
+| 전체 풀이 | 막연하게 느껴졌던 일도 필요한 순서를 정하면 충분히 해볼 만해 보여. 먼저 알아봐야 할 것을 확인하고 시작할 시간을 정해봐. 경험 있는 사람의 설명에서도 내게 맞는 방법을 찾을 수 있어. 가능한 첫 단계를 밟으면 이후의 선택도 더 분명해질 거야. 오늘은 생각을 오래 다듬기보다 직접 움직여봐. | Something that seemed vague may look manageable once the necessary steps are clear. Check what you need to know and set a time to start. Someone experienced could suggest a method that fits. Taking a feasible first step may clarify the choices that follow. Act rather than endlessly polishing the idea. | 漠然としていたことも、必要な順番を決めると十分にできそうに感じられます。先に調べることを確かめ、始める時間を決めましょう。経験のある人の説明にも、合う方法が見つかりそうです。できる最初の一歩を踏み出すと、そのあとの選択もはっきりします。長く考えを練るより、実際に動きましょう。 |
+| 해볼 것 | 시작할 날짜와 첫 행동을 정해봐. | Choose a start date and a first action. | 始める日と、最初にすることを決めましょう。 |
+| 조심할 것 | 언젠가 하겠다는 말로 관심을 남겨두지 마. | Don't leave it at saying you'll try it someday. | いつかすると言うだけで、関心をそのままにしないでください。 |
 
 ## v06
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 쌓아온 것이 네 편이 되어주는 날이야 | What you've built over time is on your side today | 積み重ねてきたものが、自分の味方になる日 |
-| 풀이 1 | 평소의 경험이나 꾸준함이 필요한 순간에 든든한 바탕으로 느껴질 수 있어 | Your experience or consistency may feel like solid support at the moment you need it | 日頃の経験や続けてきたことが、必要な場面で心強く感じられそう |
-| 풀이 2 | 새로 더 갖추려 애쓰기보다 이미 가진 것을 써볼 때야 | This is a time to use what you have rather than keep trying to acquire more | 新しくそろえようとするより、今あるものを使ってみたいとき |
-| 풀이 3 | 너에게 익숙한 힘을 믿고 한 단계 넓은 시도에 나서봐 | Trust a familiar strength as you try something a little wider | 慣れたことから得た自信で、少し先の挑戦に踏み出してみよう |
-| 해볼 것 | 준비된 강점을 새로운 기회에 활용해봐 | Use a strength you've developed in a new opportunity | 備えてきた強みを、新しい機会に生かしてみて |
-| 조심할 것 | 아직 더 배워야 한다는 말로 시도를 계속 늦추지 마 | Don't keep delaying an attempt by saying you need to learn more first | もっと学んでからと、挑戦を延ばし続けないで |
+| 총평 | 오늘은 좋아하는 일을 더 깊이 즐길 수 있는 날이야. | A favorite activity could become more rewarding today. | 好きなことを、さらに深く楽しめる日です。 |
+| 전체 풀이 | 익숙한 취미에서도 평소보다 어려운 부분에 도전하고 싶은 마음이 생길 수 있어. 궁금했던 방법을 배우거나 새로운 경험을 골라봐. 처음에는 몰랐던 매력까지 발견할 만해. 좋았던 내용을 나누면 비슷한 관심을 가진 사람의 정보도 얻을 수 있어. 오늘은 좋아하는 마음을 믿고 한 단계 더 알아봐. | A familiar hobby may make you want to try a part you've previously found difficult. Learn a method you're curious about or choose a new experience. You could discover an appeal you hadn't noticed before. Sharing what you enjoyed may bring information from someone with similar interests. Follow your enthusiasm and explore a little further. | 慣れた趣味でも、普段より難しい部分に挑戦したくなりそうです。気になっていた方法を学んだり、新しい体験を選んだりしましょう。初めは知らなかった魅力まで、発見できそうです。よかったことを話すと、同じ関心を持つ人から情報も得られます。好きだという気持ちを信じて、もう一歩詳しく知るのがおすすめです。 |
+| 해볼 것 | 좋아하는 취미의 새로운 부분을 경험해봐. | Try a new aspect of a hobby you enjoy. | 好きな趣味の、新しい部分を体験しましょう。 |
+| 조심할 것 | 어렵다는 설명만 듣고 관심을 접지 마. | Don't abandon an interest only because someone says it's difficult. | 難しいという説明だけで、興味を失わないでください。 |
 
 ## v07
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 함께 나눈 생각이 더 큰 가능성으로 이어지기 좋아 | A shared idea can open a larger possibility today | 話し合った考えが、より大きな可能性につながる日 |
-| 풀이 1 | 혼자 떠올린 바람에 다른 사람의 경험이 더해지면 현실적인 길이 보일 수 있어 | Someone else's experience added to a wish of yours may reveal a practical way forward | ひとりで描いた願いに人の経験が加わると、現実の道が見えるかも |
-| 풀이 2 | 서로의 관심이 맞는 부분에서 좋은 추진력이 생기는 날이야 | Something you both care about could give you a good reason to try it together | お互いの興味が重なるところに、前へ進む力が生まれやすい日 |
-| 풀이 3 | 네 생각을 먼저 꺼내고 함께 만들어갈 여지를 남겨봐 | Offer your thought first and leave room to shape it together | 考えを先に話し、一緒に作っていく余地を残してみよう |
-| 해볼 것 | 해보고 싶은 일을 뜻이 맞는 사람과 나눠봐 | Share something you'd like to try with a like-minded person | 試したいことを、気持ちの合う人と話してみて |
-| 조심할 것 | 호응이 좋다고 각자의 여건을 확인하지 않고 앞서가지 마 | Don't get ahead of what each person can manage because the response is eager | 反応が良くても、それぞれの事情を確かめず先へ進まないで |
+| 총평 | 오늘은 복잡했던 고민을 명확하게 정리하기 좋아. | A complicated decision could become much clearer today. | 複雑だった悩みを、はっきり整理できそうです。 |
+| 전체 풀이 | 여러 조건 사이에서도 무엇을 우선해야 할지 분명하게 보일 수 있어. 오래 고민한 것이 있다면 필요한 기준부터 적어봐. 맞지 않는 선택을 덜어내면 만족할 답을 고르기 쉬워져. 결정한 이유를 설명하는 동안 내 확신도 더 또렷해질 거야. 오늘은 정보가 충분한 일부터 결론을 내려봐. | The most important priority may stand out among competing conditions. Write down the criteria for something you've considered for a long time. Removing unsuitable options can make a satisfying answer easier to find. Explaining your reasons may strengthen your confidence. Begin with decisions for which you already have enough information. | いくつもの条件があっても、何を優先すればよいか明確に見えそうです。長く悩んでいたことは、必要な基準から書きましょう。合わない選択肢を減らすと、満足できる答えを選びやすくなります。決めた理由を説明するうちに、自信もさらに確かなものになりそうです。情報が十分にあることから、結論を出しましょう。 |
+| 해볼 것 | 필요한 기준으로 선택지를 정리해봐. | Narrow the options using the criteria you need. | 必要な基準に沿って、選択肢を整理しましょう。 |
+| 조심할 것 | 불필요한 조건까지 모두 맞추려 하지 마. | Don't try to satisfy conditions that don't matter. | 必要でない条件まで、全部満たそうとしないでください。 |
 
 ## v08
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 원하는 방향으로 한 걸음 넓혀볼 만해 | Today is a good time to reach a little further in your chosen direction | 望むほうへ、もう一歩広げてみたい日 |
-| 풀이 1 | 이미 해온 일에서 조금 더 나아갈 수 있는 여지가 눈에 들어올 수 있어 | You may see room to go beyond something you've already been doing | これまでしてきたことに、少し先へ進める余地が見えてきそう |
-| 풀이 2 | 준비해온 만큼 한 단계 더 도전할 용기를 내기 좋아 | Your preparation gives you reason to try one step further | 準備した分だけ、もう一段挑む勇気を出しやすい日 |
-| 풀이 3 | 너무 익숙한 범위에만 머물지 말고 가능성을 살펴봐 | Explore a possibility instead of staying only with what is completely familiar | 慣れた範囲だけにとどまらず、次にできることを探してみよう |
-| 해볼 것 | 감당할 수 있는 다음 도전을 골라봐 | Choose a next challenge you can reasonably take on | 引き受けられる大きさの、次の挑戦を選んでみて |
-| 조심할 것 | 좋은 운을 이유로 네 한계를 무시하지 마 | Don't use good luck as a reason to ignore your limits | 運が良いからと、自分の限界を無視しないで |
+| 총평 | 오늘은 남의 눈치를 덜 보고 원하던 것을 고르기 좋은 날이야. | Choosing what you want without watching for approval could feel easier today. | 人の目を気にしすぎず、望んでいたものを選べる日です。 |
+| 전체 풀이 | 남의 평가와 상관없이 내가 좋아하는 이유를 분명히 느낄 수 있어. 마음에 두었던 것을 직접 고르거나 경험해봐. 취향을 솔직하게 말하면 도움이 될 만한 추천도 받을 수 있어. 낯선 제안에서도 내게 맞는 장점을 찾을 만해. 오늘은 좋아하는 것을 시시하게 여기지 말고 충분히 즐겨봐. | You may understand clearly why something appeals to you regardless of others' opinions. Choose or try something you've had in mind. Sharing your preferences honestly could bring useful recommendations. Even an unfamiliar suggestion may have advantages that fit. Don't dismiss an interest as trivial when you could enjoy it fully. | 人の評価に関係なく、好きな理由をはっきり感じられます。気になっていたものを、実際に選んだり体験したりしましょう。好みを素直に話すと、役立つおすすめも教えてもらえそうです。慣れない提案にも、合う長所が見つかりそうです。好きなものをつまらないと思わず、十分に楽しみましょう。 |
+| 해볼 것 | 평소 원하던 것을 내 기준으로 골라봐. | Choose something you've wanted by your own standards. | 前から望んでいたものを、自分の基準で選びましょう。 |
+| 조심할 것 | 다른 사람이 낯설어한다고 취향을 숨기지 마. | Don't hide a preference because someone else finds it unfamiliar. | 人になじみがないからと、好みを隠さないでください。 |
 
 ## v09
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 네 매력이 자연스럽게 사람들의 눈에 들어오기 좋은 날이야 | Your natural charm has room to catch people's attention today | 自然な魅力が、人の目に留まりやすい日 |
-| 풀이 1 | 좋아하는 것을 이야기하고 편하게 웃는 모습이 좋은 인상을 남길 수 있어 | Talking about what you enjoy and laughing easily can leave a warm impression | 好きな話をしたり気楽に笑ったりする姿が、良い印象を残しそう |
-| 풀이 2 | 오늘은 꾸며낸 특별함보다 네 평소 모습에 힘이 있어 | You don't need to put on an act to be interesting | 今日は特別な自分を作るより、いつもの自分でいるほうが魅力的だよ |
-| 풀이 3 | 관심을 받을 때 숨기보다 대화를 즐겨봐 | When interest comes your way, enjoy the conversation instead of hiding | 注目されたら、引っ込まずに会話を楽しんでみよう |
-| 해볼 것 | 편안한 모습으로 사람들과 어울려봐 | Spend time with people as your relaxed, familiar self | くつろいだ自分で、人と過ごしてみて |
-| 조심할 것 | 모든 사람에게 같은 호감을 얻으려 애쓰지 마 | Don't try to win the same affection from everyone | すべての人に、同じように好かれようとしないで |
+| 총평 | 오늘은 직접 확인하는 만큼 좋은 대안을 찾을 수 있어. | Asking directly could reveal a better alternative today. | 直接確かめるほど、よい別案が見つかりそうです。 |
+| 전체 풀이 | 한 가지 방법밖에 없다고 생각한 일에서도 더 편한 선택이 보일 수 있어. 원하는 조건을 알려주고 가능한 방법을 물어봐. 시간이나 순서를 바꾸면 관심 있던 경험에 참여할 여지도 생겨. 괜찮은 대안을 찾았다면 필요한 준비를 바로 해두면 돼. 오늘은 어렵다는 첫인상보다 실제 가능성을 확인해봐. | An easier choice may appear where you thought there was only one method. Explain your needs and ask what's possible. A different time or order could make room for an experience that interests you. Prepare what's necessary once you find a suitable alternative. Check what's possible instead of trusting a first impression of difficulty. | 方法が一つしかないと思っていたことにも、もっと楽な選択肢が見えそうです。希望する条件を伝え、できる方法を尋ねましょう。時間や順番を変えれば、気になっていた体験に参加する余地も生まれます。よい別案が見つかったら、必要な準備をすぐに済ませれば大丈夫です。難しそうという第一印象より、実際にできるかを確かめましょう。 |
+| 해볼 것 | 원하는 일의 다른 방법을 직접 물어봐. | Ask directly about other ways to do what you want. | したいことの別の方法を、直接尋ねましょう。 |
+| 조심할 것 | 처음 안내만 듣고 안 된다고 단정하지 마. | Don't conclude it can't happen after the first explanation. | 初めの案内だけで、できないと決めつけないでください。 |
 
 ## v10
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 작은 시작이 뜻밖에 풍성한 경험으로 이어질 수 있어 | A small beginning could lead to a surprisingly rich experience today | 小さな始まりから、思いがけず豊かな経験が広がる日 |
-| 풀이 1 | 호기심에 해본 일에서 재미와 새로운 관심을 함께 만날 수 있어 | Something tried out of curiosity may bring both enjoyment and a new interest | 好奇心で試したことに、楽しさも新しい興味も見つかるかも |
-| 풀이 2 | 처음 예상한 결과만 보지 않으면 얻어갈 것이 더 많아져 | Looking beyond the result you first expected leaves more to take away | 初めに想像した結果だけを追わなければ、受け取れるものが増えそう |
-| 풀이 3 | 열린 마음으로 경험 자체를 충분히 누려봐 | Enjoy the experience itself with an open mind | 心を開いて、体験そのものをたっぷり味わってみよう |
-| 해볼 것 | 새로운 시도에서 재미있는 부분을 따라가봐 | Follow what feels interesting within a new attempt | 新しい挑戦で、面白いと感じる部分をたどってみて |
-| 조심할 것 | 처음 정한 성과가 아니면 의미 없다고 여기지 마 | Don't call it meaningless because the result differs from your original aim | 想定した成果でなければ、意味がないと考えないで |
+| 총평 | 오늘은 솔직한 의견이 새로운 시도의 계기가 될 수 있어. | An honest opinion could lead to a new attempt today. | 素直な意見が、新しい挑戦のきっかけになりそうです。 |
+| 전체 풀이 | 평소 망설였던 생각도 말로 꺼내면 설득력 있게 정리하기 좋은 날이야. 바꾸고 싶은 점과 이유를 함께 전해봐. 다른 사람의 질문에서 더 나은 아이디어를 얻을 수 있어. 가능한 범위가 정해지면 작은 것부터 실제로 해보면 돼. 오늘은 생각을 숨기기보다 함께 살펴볼 기회를 만들어봐. | Putting a thought into words may help you make a persuasive case. Explain what you'd change and why. Another person's questions could give you a better idea. Start small once the workable scope is clear. Create a chance to examine the idea together instead of hiding it. | 普段ためらう考えも、言葉にすれば説得力のある説明にまとめやすい日です。変えたい点と理由を、一緒に伝えましょう。人の質問から、さらによいアイデアを得られます。できる範囲が決まったら、小さなことから実際に試せば大丈夫です。考えを隠すより、一緒に検討する機会をつくりましょう。 |
+| 해볼 것 | 바꾸고 싶은 점을 이유와 함께 전해봐. | Explain a change you'd like and the reason for it. | 変えたい点を、理由と一緒に伝えましょう。 |
+| 조심할 것 | 처음 의견이 달랐다고 대화를 일찍 끝내지 마. | Don't end the conversation early because the first opinions differ. | 初めに意見が違っても、早々に話を切り上げないでください。 |
 
 ## v11
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 좋은 반응을 발판 삼아 자신감을 넓힐 수 있는 하루야 | A positive response can give your confidence more room today | 良い反応を足がかりに、自信を広げられる日 |
-| 풀이 1 | 네 생각이나 행동을 반갑게 받아주는 장면을 만날 수 있어 | You may encounter a moment when your thought or action is warmly received | 考えや行動を、うれしく受け入れてもらう場面がありそう |
-| 풀이 2 | 그 반응을 가볍게 넘기지 않으면 다음 시도에도 힘이 돼 | Letting that response count can give strength to the next thing you try | その反応を流さずに受け取れば、次の挑戦の支えにもなるよ |
-| 풀이 3 | 칭찬을 받아들인 뒤 네가 하고 싶은 방향을 살펴봐 | Accept the praise, then consider the direction you want to take | 褒め言葉を受け止めてから、自分が進みたいほうを見てみよう |
-| 해볼 것 | 긍정적인 반응을 받으면 기쁘게 받아줘 | Allow yourself to be pleased by a positive response | 前向きな反応をもらったら、喜んで受け取ってみて |
-| 조심할 것 | 칭찬을 계속 얻기 위해 선택을 바꾸지 마 | Don't reshape your choices just to keep the compliments coming | 褒められ続けるために、選択を変えないで |
+| 총평 | 오늘은 새로운 정보를 내 경험으로 바꾸기 좋아. | Something you've learned about could become a rewarding firsthand experience today. | 新しく知ったことを、実際の経験に変えるのによい日です。 |
+| 전체 풀이 | 흥미롭게 들었던 이야기를 직접 해보면 기대보다 많은 것을 알 수 있어. 관심 있던 체험이나 방법을 골라 시간을 내봐. 나에게 잘 맞는 요령과 즐거운 부분을 찾을 만해. 한 번 해본 경험은 다음 선택에도 좋은 기준이 될 거야. 오늘은 알아보는 데서 멈추지 말고 직접 느껴봐. | Trying an interesting idea yourself may teach you more than expected. Choose an activity or approach you've been curious about and make time for it. You could find both enjoyment and a technique that suits you. The experience will also help you choose next time. Go beyond research and find out how it feels in practice. | 興味深く聞いたことを実際にすると、期待以上に多くを知ることができそうです。気になっていた体験や方法を選び、時間を取りましょう。合うコツや楽しいところを、見つけられそうです。一度やってみた経験は、次に選ぶときにもよい基準になります。調べるだけで終わらず、実際に感じましょう。 |
+| 해볼 것 | 관심 있던 방법을 직접 경험해봐. | Try an approach you've been interested in. | 気になっていた方法を、実際に体験しましょう。 |
+| 조심할 것 | 정보를 모으는 것만으로 시도를 대신하지 마. | Don't let collecting information replace trying it. | 情報を集めるだけで、試したつもりにならないでください。 |
 
 ## v12
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 바라던 일에 현실적인 자신감이 붙는 날이야 | A long-held wish may feel within reach for good reason today | 望んでいたことに、地に足のついた自信が持てる日 |
-| 풀이 1 | 막연히 잘될 것 같은 기분보다 해볼 수 있는 이유가 눈에 들어와 | You may see real reasons to try, beyond a vague feeling that things will go well | 何となくうまくいきそうという気分より、試せる理由が見えてきそう |
-| 풀이 2 | 네가 가진 경험과 현재의 조건을 연결하면 길이 더 구체적으로 보여 | Connecting your experience with the current circumstances makes the way clearer | 自分の経験と今の条件を結ぶと、道が具体的になるよ |
-| 풀이 3 | 할 수 있는 것이 보인다면 작은 시도로 자신감을 확인해봐 | If you can see a way to try, take a small step and discover what you can do | できそうなことが見えたら、小さく試して自信につなげてみよう |
-| 해볼 것 | 할 수 있는 이유가 분명한 일에 시간을 써봐 | Give time to something you have clear reasons to believe you can do | できる理由がはっきりしたことに、時間を使ってみて |
-| 조심할 것 | 남은 어려움이 없을 거라고 단정하지 마 | Don't assume there will be no difficulties left | この先の難しさは何もないと、決めつけないで |
+| 총평 | 오늘은 평소보다 큰 결심도 차분히 살펴볼 수 있어. | Even a bigger decision may feel manageable to consider today. | いつもより大きな決断も、落ち着いて考えられそうです。 |
+| 전체 풀이 | 하고 싶은 마음과 필요한 조건을 함께 보기 좋은 날이야. 오래 생각한 계획이 있다면 실제로 가능한 순서를 정해봐. 부족한 정보는 직접 확인하면 다음 행동이 더 분명해질 수 있어. 준비가 된 부분부터 움직여도 충분해. 오늘은 막연한 걱정보다 확인한 근거를 믿고 나서봐. | You can weigh what you want alongside what's actually required. Put the practical steps in order for a long-considered plan. Checking missing information directly may clarify what to do next. Beginning with the parts you're ready for is enough. Act on the facts you've confirmed rather than vague worries. | したい気持ちと必要な条件を、どちらも見られる日です。長く考えていた計画は、実際にできる順番を決めましょう。足りない情報を直接確かめると、次の行動がさらに明確になりそうです。準備できているところから動けば、十分です。漠然とした心配より、確認した根拠を信じて踏み出しましょう。 |
+| 해볼 것 | 준비된 부분부터 계획을 시작해봐. | Begin with the part of the plan you're ready for. | 準備できた部分から、計画を始めましょう。 |
+| 조심할 것 | 모든 불확실함이 사라져야 움직이려 하지 마. | Don't wait for every uncertainty to disappear before acting. | 不確かなことがすべてなくなるまで、動くのを待たないでください。 |
 
 ## v13
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 마음을 열수록 반가운 발견이 많아질 수 있는 하루야 | An open mind can make room for more welcome discoveries today | 心を開くほど、うれしい発見が増えそうな一日 |
-| 풀이 1 | 평소 지나쳤던 사람이나 이야기에도 네 관심과 이어지는 부분이 있어 | A person or story you'd usually pass by may connect with your interests | いつもは流していた人や話にも、興味につながるところがありそう |
-| 풀이 2 | 호기심을 따라 대화하면 생각보다 많은 즐거움을 만날 수 있어 | Following your curiosity in conversation could bring more enjoyment than expected | 好奇心のまま話すと、思った以上の楽しさに出合えるかも |
-| 풀이 3 | 처음의 인상보다 실제로 나누는 경험을 믿어봐 | Trust the experience you actually share more than your first impression | 最初の印象より、実際に一緒に過ごした感触を信じてみよう |
-| 해볼 것 | 새로운 이야기에 한 번 더 귀를 기울여봐 | Listen a little longer to an unfamiliar story | 新しい話にも、もう少し耳を傾けてみて |
-| 조심할 것 | 모든 만남에서 특별한 의미를 억지로 찾지 마 | Don't force every encounter to carry a special meaning | どの出会いにも、特別な意味を無理に探さないで |
+| 총평 | 오늘은 관심을 넓히는 경험에서 얻는 것이 많아. | Exploring beyond your usual interests could offer plenty today. | 関心を広げる体験から、多くを得られる日です。 |
+| 전체 풀이 | 평소 선택하지 않았을 이야기나 장소에서도 뜻밖의 재미를 발견할 수 있어. 눈길이 가는 것이 있다면 자세히 살펴봐. 내가 좋아하는 것과 연결되는 부분을 찾으면 더 즐거울 거야. 새로 알게 된 것은 다음에 찾아보기 쉽게 남겨둬. 오늘은 익숙하지 않은 것에도 열린 마음으로 다가가봐. | An unfamiliar story or place may bring unexpected enjoyment. Take a closer look at something that catches your eye. Finding a connection with what you already like could make it even more enjoyable. Save what you learn so you can return to it. Give unfamiliar things a fair chance to interest you. | 普段は選ばない話題や場所にも、思いがけない楽しさを発見できそうです。目を引くものがあれば、詳しく見ましょう。好きなものにつながるところを見つけると、さらに楽しくなります。新しく知ったことは、あとで探しやすく残しましょう。慣れないものにも、先入観を持たずに触れるのがおすすめです。 |
+| 해볼 것 | 평소와 다른 관심거리를 알아봐. | Explore something outside your usual interests. | 普段とは違うものに、関心を向けましょう。 |
+| 조심할 것 | 내 취향이 아닐 거라고 미리 잘라내지 마. | Don't reject it in advance as not your taste. | 好みではなさそうと、先に切り捨てないでください。 |
 
 ## v14
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 네 선택을 즐길 여유가 있는 날이야 | Today leaves you room to enjoy the choices you make | 自分の選択を楽しむ、ゆとりのある日 |
-| 풀이 1 | 여러 가능성 가운데 무엇이 마음에 드는지 기분 좋게 살펴볼 수 있어 | Exploring what appeals among several options may feel pleasurable in itself | いくつかの選択肢から、好きなものを気持ちよく選べそう |
-| 풀이 2 | 정답을 놓칠까 걱정하기보다 네가 누릴 즐거움이 더 잘 보여 | What you could enjoy is easier to see than the fear of missing the right answer | 正解を逃す心配より、味わえる楽しさが目に入るよ |
-| 풀이 3 | 충분히 알아본 뒤에는 고른 경험에 마음을 실어봐 | Once you've looked into it enough, give your attention to the experience you chose | 十分に調べた後は、選んだ経験に気持ちを向けてみよう |
-| 해볼 것 | 선택한 뒤에는 그 시간을 온전히 즐겨봐 | After choosing, let yourself fully enjoy the time | 選び終えたら、その時間を存分に楽しんでみて |
-| 조심할 것 | 다른 쪽이 더 좋았을지 계속 비교하지 마 | Don't keep comparing it with how the other option might have been | ほかのほうが良かったかと、比べ続けないで |
+| 총평 | 오늘은 내 뜻을 전하고 필요한 답을 얻기 좋은 날이야. | A clear question could bring the answer you need today. | 希望を伝え、必要な答えを得るのによい日です。 |
+| 전체 풀이 | 무엇을 원하는지 분명히 말하면 이야기가 구체적으로 이어질 수 있어. 미뤄둔 질문이나 제안이 있다면 먼저 꺼내봐. 상대가 알려준 조건에서도 내게 맞는 방법을 찾을 만해. 지금 정할 수 있는 부분은 그 자리에서 확인해두면 돼. 오늘은 혼자 짐작하기보다 직접 묻는 편이 훨씬 도움이 돼. | Saying exactly what you want may make the conversation more specific. Raise a question or suggestion you've been putting off. The other person's terms may contain an approach that fits you. Confirm anything that can be settled now. Asking directly will help more than guessing alone. | 何を望んでいるかはっきり話すと、話し合いが具体的に進みそうです。後回しにしていた質問や提案は、こちらから切り出しましょう。相手が示した条件にも、合う方法を見つけられそうです。今決められるところは、その場で確認すれば大丈夫です。一人で推測するより、直接尋ねるほうがずっと役立ちます。 |
+| 해볼 것 | 미뤄둔 질문을 구체적으로 해봐. | Ask a specific question you've delayed. | 後回しにしていた質問を、具体的にしましょう。 |
+| 조심할 것 | 상대의 답을 미리 예상하고 포기하지 마. | Don't give up because you've already imagined the reply. | 相手の答えを先に予想して、諦めないでください。 |
 
 ## v15
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오래 품은 바람을 꺼내놓기 좋은 하루야 | A wish you've held for a while is worth sharing today | 長く温めた願いを、話してみるのに良い日 |
-| 풀이 1 | 혼자만 생각하던 일을 말로 전하면 예상하지 못한 도움이나 정보를 만날 수 있어 | Saying something you've only considered alone may bring unexpected help or information | ひとりで考えたことを言葉にすると、思わぬ助けや情報に出合うかも |
-| 풀이 2 | 바람을 구체적으로 나누는 태도가 기회와 닿을 여지를 넓혀줘 | Explaining what you want makes it easier for others to recognize a suitable opportunity | 願いを具体的に話すと、チャンスにつながるきっかけが増えそう |
-| 풀이 3 | 아직 완성된 계획이 아니어도 관심을 표현해봐 | You can express interest before it becomes a finished plan | 計画がまだまとまっていなくても、やってみたい気持ちを伝えてみよう |
-| 해볼 것 | 해보고 싶은 일을 주변에 알려봐 | Let people around you know what you'd like to try | やってみたいことを、周りに話してみて |
-| 조심할 것 | 확실한 결과를 약속해야만 말할 수 있다고 생각하지 마 | Don't think you need to promise a certain outcome before mentioning it | 確かな結果を約束できなければ、話せないと思わないで |
+| 총평 | 오늘은 전에 어려워서 미뤘던 것에 도전할 만해. | Something you once found too difficult is worth attempting today. | 難しくて後回しにしたことへ、挑戦するのによい日です。 |
+| 전체 풀이 | 전에는 어렵다고 느낀 경험도 지금은 해보고 싶은 마음이 더 크게 들 수 있어. 충분히 알아본 것이 있다면 첫 시도를 해봐. 직접 해보면 생각보다 편한 부분과 더 궁금한 점을 찾을 수 있어. 처음부터 완벽하지 않아도 얻는 것이 분명할 거야. 직접 해보며 내게 잘 맞는 부분을 찾아봐. | An experience that previously seemed daunting may now make you want to try. Take a first step if you've learned enough about it. Trying could reveal both unexpectedly comfortable parts and things you'd like to explore further. You can gain something worthwhile without being perfect immediately. Find what suits you through the experience itself. | 以前は難しく感じた体験も、今は試したい気持ちのほうが大きくなりそうです。十分に調べたことがあるなら、最初の挑戦をしましょう。実際にすると、思ったより気楽なところや、もっと知りたい点が見つかります。初めから完璧でなくても、得られるものは確かにありそうです。体験しながら、合う部分を探しましょう。 |
+| 해볼 것 | 전에는 미뤘던 경험을 한 번 시도해봐. | Try an experience you previously postponed. | 以前は後回しにした体験を、一度試しましょう。 |
+| 조심할 것 | 예전의 망설임을 지금도 그대로 기준으로 삼지 마. | Don't let an old hesitation remain your standard forever. | 昔のためらいを、今もそのまま判断の基準にしないでください。 |
 
 ## v16
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 주고받는 응원에서 큰 힘을 얻기 좋아 | Encouragement shared can give you real strength today | 応援し合うことから、大きな力をもらいやすい日 |
-| 풀이 1 | 누군가의 시도를 기뻐하다 보면 네 도전에도 의욕이 생길 수 있어 | Feeling happy for someone's attempt may stir enthusiasm for a challenge of your own | 誰かの挑戦を喜ぶうちに、自分も試したくなるかも |
-| 풀이 2 | 서로의 좋은 소식을 나누기 편한 분위기가 있는 날이야 | The atmosphere is comfortable for exchanging good news | お互いの良い知らせを、気楽に分け合える雰囲気がありそう |
-| 풀이 3 | 비교하는 마음보다 함께 기뻐하는 마음에 자리를 줘봐 | Make room for celebrating together instead of measuring yourselves against each other | 比べる気持ちより、一緒に喜ぶ気持ちを大切にしてみよう |
-| 해볼 것 | 좋은 소식에는 진심으로 축하를 건네봐 | Offer sincere congratulations when good news arrives | 良い知らせには、心からお祝いを伝えてみて |
-| 조심할 것 | 남의 기쁨을 네가 뒤처졌다는 증거로 삼지 마 | Don't treat someone else's happiness as evidence you're behind | 人の喜びを、自分が遅れている証拠にしないで |
+| 총평 | 오늘은 선택을 마친 뒤의 즐거움이 더 크게 느껴질 수 있어. | You could feel especially pleased with your choice today. | 選んだあとの楽しさを、さらに大きく感じられそうです。 |
+| 전체 풀이 | 고민만 하던 일을 직접 경험하면 잘 골랐다는 만족을 기대할 만해. 필요한 정보를 이미 확인했다면 마음에 드는 쪽으로 정해봐. 실제로 즐기는 동안 예상하지 못한 좋은 점도 보일 수 있어. 다른 선택의 평가는 잠시 접어두어도 괜찮아. 오늘은 고른 것을 충분히 경험하는 데 시간을 써봐. | Trying something you've only considered may leave you pleased with your choice. Pick what appeals to you if you've already checked the necessary information. You could notice unexpected advantages while enjoying it. Put reviews of the alternatives aside for a while. Spend your time fully experiencing what you've chosen. | 迷っていたことを実際に体験すれば、よいものを選べたという満足を期待できそうです。必要な情報を確認済みなら、気に入ったほうに決めましょう。楽しんでいるうちに、予想しなかったよい点も見えてきそうです。ほかの選択肢の評価は、いったん置いて構いません。選んだものを十分に体験するために、時間を使いましょう。 |
+| 해볼 것 | 마음에 든 선택을 직접 즐겨봐. | Enjoy the choice that appealed to you firsthand. | 気に入った選択を、実際に楽しみましょう。 |
+| 조심할 것 | 경험하는 중에도 다른 답과 계속 비교하지 마. | Don't keep comparing alternatives while you're experiencing it. | 体験している間も、別の答えと比べ続けないでください。 |
 
 ## v17
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 좋아하는 일에 몰입할수록 네 장점이 살아나는 날이야 | Your strengths come through when you get absorbed in what you love | 好きなことに夢中になるほど、長所がよく表れる日 |
-| 풀이 1 | 좋아하는 일에 집중하다 보면 아이디어나 대화가 자연스럽게 이어질 수 있어 | Getting absorbed in something you like may naturally lead to ideas or conversation | 好きなことへ気持ちを向けると、発想や会話が自然に続くかも |
-| 풀이 2 | 성과를 의식할 때보다 흥미를 따라갈 때 네 강점이 잘 살아나 | Your strengths can come through more easily when you follow interest than when you watch the results | 成果を意識するより、興味をたどるほうが強みを生かしやすそう |
-| 풀이 3 | 오늘은 마음이 움직이는 일에 충분한 시간을 줘봐 | Give proper time to something that draws you in | 今日は心が動くことに、十分な時間をあげてみよう |
-| 해볼 것 | 정말 재미있는 일에 집중할 시간을 만들어봐 | Make time to get absorbed in something you find truly interesting | 本当に面白いことへ、集中できる時間を作ってみて |
-| 조심할 것 | 즐거웠던 시간을 성과만으로 평가하지 마 | Don't judge enjoyable time only by its results | 楽しかった時間を、成果だけで評価しないで |
+| 총평 | 오늘은 좋은 아이디어를 실행할 방법까지 찾기 쉬워. | A good idea could come with a practical way to try it today. | よいアイデアを実行する方法まで、見つけやすい日です。 |
+| 전체 풀이 | 떠오른 생각이 막연한 상상에 머물지 않고 구체적으로 정리될 수 있어. 무엇부터 필요한지 적고 확인할 사람에게 물어봐. 기존에 가진 것으로도 시작할 방법을 발견할 만해. 준비가 된 작은 부분을 해보면 다음 순서가 더 선명해질 거야. 오늘은 좋은 생각을 실제로 써볼 기회야. | A thought may become specific rather than remaining a vague possibility. Write down what comes first and ask whoever can clarify it. Something you already have may be enough to begin. Trying the part you're ready for can make the next step clearer. Give a useful idea a chance in practice. | 浮かんだ考えが想像だけにとどまらず、具体的にまとまりそうです。まず必要なものを書き、詳しい人に確かめましょう。すでに持っているものでも、始める方法を発見できそうです。準備できた小さな部分を試すと、次の順番がさらに明確になります。今日はよいアイデアを、実際に試しましょう。 |
+| 해볼 것 | 떠오른 아이디어의 첫 단계를 해봐. | Try the first step of an idea that's occurred to you. | 浮かんだアイデアの、最初の一段階を試しましょう。 |
+| 조심할 것 | 준비를 크게 벌여 시작할 시기를 늦추지 마. | Don't delay starting by making the preparation too elaborate. | 準備を大がかりにして、始める時期を遅らせないでください。 |
 
 ## v18
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 익숙한 경계를 조금 넘어볼 용기가 있어 | An opportunity that once seemed out of reach may feel worth exploring today | 慣れた範囲を、少し越えてみる勇気がある日 |
-| 풀이 1 | 전에는 네 일이 아니라고 여겼던 기회가 새롭게 보일 수 있어 | An opportunity you once considered outside your world may look different now | 前は自分に関係ないと思った機会が、新しく見えるかも |
-| 풀이 2 | 직접 알아보면 막연한 거리감보다 가능한 부분이 커질 수 있어 | Learning about it directly can reveal more possibility than the distance you imagined | 実際に調べると、遠く感じていたことにも自分でできる部分が見つかりそう |
-| 풀이 3 | 관심이 생긴 이유를 믿고 첫 대화를 시작해봐 | Trust the reason for your interest enough to begin a conversation | 興味が湧いた理由を信じて、初めの会話をしてみよう |
-| 해볼 것 | 멀게 느꼈던 기회의 실제 조건을 알아봐 | Find out what's actually involved in a chance that once felt remote | 遠く感じた機会の、実際の条件を調べてみて |
-| 조심할 것 | 남에게 어울리는 일이라고 먼저 선을 긋지 마 | Don't rule it out in advance as something meant for other people | 人に向くことだからと、先に自分を外さないで |
+| 총평 | 오늘은 직접 해보며 내 취향을 분명히 알기 좋은 날이야. | Firsthand experience could make your preferences especially clear today. | 実際に試しながら、好みをはっきり知るのによい日です。 |
+| 전체 풀이 | 무엇을 좋아하고 어떤 점이 불편한지 평소보다 분명히 느낄 수 있어. 관심 있는 것 두세 가지를 직접 비교해봐. 내게 맞는 이유를 알아두면 다음 선택도 훨씬 편해질 거야. 다른 사람의 추천에서도 필요한 부분을 빠르게 고를 수 있어. 오늘은 유행보다 내 반응을 믿고 충분히 경험해봐. | You may readily notice both what you enjoy and what feels inconvenient. Compare two or three things you're curious about. Knowing why something suits you can make the next choice much easier. You'll also be able to pick out useful parts of others' recommendations quickly. Trust your own response over popularity and give the experience enough time. | 何が好きで、どこが不便かを普段より明確に感じられます。気になるものを二つか三つ、実際に比べましょう。合う理由がわかれば、次の選択もずっと楽になります。人のおすすめからも、必要なところを素早く選べそうです。流行より自分の反応を信じて、十分に体験しましょう。 |
+| 해볼 것 | 궁금한 것을 직접 비교하며 경험해봐. | Compare things you're curious about by trying them. | 気になるものを、実際に比べながら体験しましょう。 |
+| 조심할 것 | 인기 있는 것만 답이라고 생각하지 마. | Don't assume the popular option is the only answer. | 人気があるものだけが、答えだと思わないでください。 |
 
 ## v19
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 만족스러운 선택을 다음 경험으로 이어가기 좋은 하루야 | A satisfying choice can guide your next experience today | 満足できた選択を、次の経験につなげやすい日 |
-| 풀이 1 | 어떤 선택이 네 기분과 생활에 잘 맞는지 알아차리기 쉬워 | It may be easy to recognize which choices fit your mood and your life | どんな選択が気分や暮らしに合うか、気づきやすそう |
-| 풀이 2 | 억지로 더 많은 것을 얻으려 하지 않아도 만족을 키울 여지가 있어 | There is room to grow your satisfaction without pressing for more and more | 無理にもっと得ようとしなくても、満足を育てる余地があるよ |
-| 풀이 3 | 잘 맞는 경험에는 시간을 주고 불필요한 욕심은 덜어봐 | Give time to what suits you and let unnecessary wants fall away | しっくりくる経験には時間を使い、余計な欲張りは減らしてみよう |
-| 해볼 것 | 만족스러웠던 선택을 오늘 한 번 더 이어봐 | Return once more to a choice that has felt satisfying today | 満足できた選択を、今日もう一度続けてみて |
-| 조심할 것 | 잘되고 있다는 이유로 원하지 않던 일까지 늘리지 마 | Don't add things you never wanted just because everything is going well | 好調だからと、望んでいないことまで増やさないで |
+| 총평 | 오늘은 새로운 제안에 응할 만한 이유를 찾기 좋아. | A new suggestion could offer a worthwhile reason to say yes today. | 新しい提案を受ける、よい理由が見つかりそうです。 |
+| 전체 풀이 | 처음 듣는 방법에서도 내가 바라던 조건을 발견할 수 있는 날이야. 관심이 가는 내용은 자세한 설명을 요청해봐. 직접 경험할 수 있다면 그 기회를 활용해도 좋아. 잘 맞는 부분과 조정할 점을 함께 살피면 만족할 선택을 기대할 만해. 오늘은 낯섦보다 실제 내용을 보고 판단해봐. | An unfamiliar approach may contain a condition you've been looking for. Ask for a detailed explanation if it interests you. If you have an opportunity to try it firsthand, take it. Checking both the good fit and the necessary adjustments could lead to a satisfying choice. Judge the actual proposal, not its unfamiliarity. | 初めて聞く方法にも、望んでいた条件を発見できる日です。気になる内容は、詳しい説明を求めましょう。実際に体験できるなら、その機会を使うのもおすすめです。合うところと調整したい点を一緒に確かめれば、満足できる選択を期待できそうです。慣れているかより、実際の内容を見て判断しましょう。 |
+| 해볼 것 | 관심 가는 제안을 자세히 확인해봐. | Ask for details about a suggestion that interests you. | 気になる提案を、詳しく確かめましょう。 |
+| 조심할 것 | 좋은 말만 듣고 필요한 조건을 넘기지 마. | Don't overlook necessary conditions after hearing something appealing. | よい話だけを聞いて、必要な条件を見落とさないでください。 |
 
 ## v20
 
 | 구성 | 한국어 | English (US) | 日本語 |
 | --- | --- | --- | --- |
-| 총평 | 오늘은 기대하는 마음으로 하루를 펼쳐봐도 좋아 | Look forward to what today might bring | 今日は、楽しみな気持ちで一日を迎えてみよう |
-| 풀이 1 | 작은 시도나 열린 대화에서 반가운 순간을 만날 여지가 넓어 | A small attempt or an open conversation has plenty of room to bring a welcome moment | 少し試したり率直に話したりする中に、うれしい瞬間が見つかりやすそう |
-| 풀이 2 | 모든 일이 잘되지 않아도 오늘을 기쁘게 기억할 순간은 충분히 있어 | Even if everything doesn't go well, there can be plenty to remember happily about today | 全部がうまくいかなくても、今日をうれしく思い出す瞬間は十分あるよ |
-| 풀이 3 | 눈앞의 기쁨을 누리며 네가 원하는 쪽으로 움직여봐 | Enjoy the pleasure in front of you while moving toward what you want | 目の前の喜びを味わいながら、望むほうへ動いてみよう |
-| 해볼 것 | 마음이 가는 일에 밝은 기대를 담아 나서봐 | Approach something that appeals to you with hopeful interest | 心が向くことへ、明るい期待を持って出てみて |
-| 조심할 것 | 작은 아쉬움 하나로 좋은 운을 전부 의심하지 마 | Don't let one small disappointment make you doubt all of today's good fortune | 小さな心残りひとつで、良い運を全部疑わないで |
+| 총평 | 오늘은 하고 싶던 것을 시작하며 하루에 만족하기 좋아. | Starting something you've wanted to do could make the day especially satisfying. | したかったことを始めると、一日に満足できそうです。 |
+| 전체 풀이 | 관심 있던 취미나 장소를 직접 경험하면 기대했던 것보다 큰 만족을 느낄 만한 날이야. 평소 미뤄뒀던 것을 즐길 시간을 따로 내봐. 내가 좋아하는 부분이 분명하게 보여 무엇을 더 해볼지 고르기도 쉬울 거야. 함께할 사람이 있다면 각자 원하는 방식을 이야기해봐. 서로 다른 취향에서 혼자서는 몰랐던 재미를 발견할 수도 있어. | Trying a hobby or visiting a place that interests you may be more satisfying than expected. Set aside time for something you've postponed. What you enjoy may stand out clearly, making it easier to choose what to explore further. If someone joins you, talk about what each of you wants to do. Different preferences could reveal enjoyment you wouldn't have discovered alone. | 気になっていた趣味や場所を体験すれば、期待以上の満足を感じられそうな日です。後回しにしていたことを楽しむ時間を、別に取りましょう。好きなところがはっきり見えて、次に何を試すかも選びやすくなります。一緒にする人がいれば、それぞれ希望する方法を話しましょう。違う好みから、一人では知らなかった楽しさを発見することもありそうです。 |
+| 해볼 것 | 지금 할 수 있는 즐거운 경험을 시작해봐. | Begin an enjoyable experience that's possible now. | 今できる楽しい体験を、始めましょう。 |
+| 조심할 것 | 더 좋은 때만 기다리며 관심을 계속 미루지 마. | Don't keep delaying an interest while waiting for a better time. | もっとよい時期を待って、気になることを延ばし続けないでください。 |

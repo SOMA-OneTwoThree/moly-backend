@@ -17,11 +17,12 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.models.fortune import DailyFortune
 from app.schemas.fortune import FortuneProfilePut
-from app.services import fortune, fortune_catalog, fortune_rules, privacy
+from app.services import fortune, fortune_catalog, fortune_scores, privacy
 from app.services.fortune_copy_selection import overall_copy_route, variant_order
 from db.envfile import assert_dev_target, load_conn
 from db.schema_contract import require_scratch
 
+_REAL_GENERATE_RESULT = fortune_scores.generate_result
 _REAL_ENSURE_ACTIVE = privacy.ensure_subject_active
 DAY = date(2026, 9, 8)
 NOW = datetime(2026, 9, 8, 10, tzinfo=timezone.utc)
@@ -67,8 +68,8 @@ async def fortune_db(monkeypatch):
     uid = uuid.uuid4()
     monkeypatch.setattr(privacy, "ensure_subject_active", _REAL_ENSURE_ACTIVE)
     monkeypatch.setattr(fortune, "_ready", lambda: True)
-    # Pin only the unchanged score calculation to revisit one route reliably.
-    monkeypatch.setattr(fortune_rules, "generate_semantic_result", lambda **_: _semantic())
+    # Pin score calculation to revisit one route reliably.
+    monkeypatch.setattr(fortune_scores, "generate_result", lambda **_: _semantic())
 
     async def included(*_args, **_kwargs):
         return "included", "monthly"
@@ -208,7 +209,7 @@ async def test_profile_deletion_cascades_cursor_with_snapshot(fortune_db):
     assert await db.conn.fetchval("SELECT count(*) FROM daily_fortunes WHERE user_id=$1", db.uid) == 0
 
 
-async def test_type_based_cursor_upgrades_once_without_resetting_categories(fortune_db):
+async def test_type_based_cursor_upgrades_once_and_resets_rewritten_categories(fortune_db):
     from hashlib import sha256
     from app.services.fortune_copy_selection import VARIANT_IDS
 
@@ -238,16 +239,16 @@ async def test_type_based_cursor_upgrades_once_without_resetting_categories(fort
     await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
     state = after['copy_selection']
-    assert state['version'] == 'fortune-selection.v2'
+    assert state['version'] == 'fortune-selection.v3'
     assert state['routes']['overall.d60.general']['position'] == 0
     for category in ('love', 'money', 'work', 'energy'):
-        assert state['routes'][f'category.{category}.d50.general']['position'] == 8
+        assert state['routes'][f'category.{category}.d50.general']['position'] == 0
     assert len(state['routes']) == 5
     await _reveal(db, now=NOW + timedelta(days=1), locale='ja')
     assert await _stored(db) == after
 
 
-async def test_field_copy_upgrade_preserves_today_and_continues_v2_cursor(fortune_db):
+async def test_copy_snapshot_preserves_today_and_continues_current_cursor(fortune_db):
     db = fortune_db
     await _reveal(db)
     state = (await _stored(db))["copy_selection"]
@@ -274,7 +275,7 @@ async def test_field_copy_upgrade_preserves_today_and_continues_v2_cursor(fortun
     tomorrow = await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
     selection = after["copy_selection"]
-    assert selection["version"] == state["version"] == "fortune-selection.v2"
+    assert selection["version"] == state["version"] == "fortune-selection.v3"
     assert set(selection["routes"]) == set(state["routes"])
     assert tomorrow["versions"]["copy"] == fortune_catalog.COPY_VERSION
     for route, cursor in selection["routes"].items():
@@ -288,3 +289,22 @@ async def test_field_copy_upgrade_preserves_today_and_continues_v2_cursor(fortun
         for category, block in expected["categories"].items():
             assert result["result"]["categories"][category]["text"] == block["text"]
     assert (await _stored(db))["copy_selection"] == selection
+
+
+async def test_real_independent_scores_preserve_old_day_and_switch_next_day(fortune_db, monkeypatch):
+    db = fortune_db
+    old_response = await _reveal(db)
+    old_snapshot = await _stored(db)
+    assert old_snapshot["schema_version"] == 3
+    monkeypatch.setattr(fortune_scores, "generate_result", _REAL_GENERATE_RESULT)
+    assert await _reveal(db) == old_response
+    assert await _stored(db) == old_snapshot
+    response = await _reveal(db, now=NOW + timedelta(days=1))
+    current = await _stored(db)
+    assert current["schema_version"] == 4
+    assert current["copy_selection"]["version"] == "fortune-selection.v3"
+    expected = _REAL_GENERATE_RESULT(birth_date=date(2002, 12, 13), local_date=DAY + timedelta(days=1))
+    assert current["overall"] == expected["overall"]
+    assert current["categories"] == expected["categories"]
+    assert response["result"]["schema_version"] == 3
+    assert await _reveal(db, now=NOW + timedelta(days=1)) == response

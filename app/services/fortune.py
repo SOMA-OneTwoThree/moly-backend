@@ -17,7 +17,7 @@ from app.core.advisory_lock import advisory_xact_lock
 from app.core.time_utils import reward_date_for, safe_zone
 from app.models.fortune import DailyFortune, FortuneAdSession, FortuneProfile
 from app.schemas.fortune import FortuneProfilePut
-from app.services import fortune_catalog, fortune_ephemeris, fortune_rules, gating, privacy
+from app.services import fortune_catalog, fortune_rules, fortune_scores, gating, privacy
 from app.services.account import _load_profile
 from app.services.fortune_copy_selection import select_variants
 
@@ -219,7 +219,7 @@ def _current_row(
         and row.timezone_snapshot == timezone_name
         and row.profile_revision == revision
         and row.result_schema_version == _RESULT_SCHEMA_VERSION
-        and row.semantic_result.get("schema_version") == _RESULT_SCHEMA_VERSION
+        and row.semantic_result.get("schema_version") in (3, 4)
         and "ko" in row.copy_by_locale
     )
 
@@ -281,21 +281,7 @@ def _build_result(
     timezone_name: str,
     previous_semantic: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    birth_positions = fortune_ephemeris.date_chart_longitudes(
-        profile.birth_date,
-        "UTC",
-        fortune_ephemeris.BIRTH_PLANET_KEYS,
-    )
-    current_positions = fortune_ephemeris.date_chart_longitudes(
-        today,
-        timezone_name,
-        fortune_ephemeris.PLANET_KEYS,
-    )
-    semantic = fortune_rules.generate_semantic_result(
-        birth_positions=birth_positions,
-        current_positions=current_positions,
-        allow_unapproved=settings.environment in {"local", "development"},
-    )
+    semantic = fortune_scores.generate_result(birth_date=profile.birth_date, local_date=today)
     selection = select_variants(semantic, today=today, previous_semantic=previous_semantic)
     copies = fortune_catalog.render_all(semantic, selected=selection["selected"])
     return {**semantic, "copy_selection": selection}, copies
@@ -350,8 +336,8 @@ async def reveal(
         row.result_schema_version = _RESULT_SCHEMA_VERSION
         row.semantic_result = semantic
         row.copy_by_locale = copies
-        row.ephemeris_version = fortune_ephemeris.EPHEMERIS_VERSION
-        row.rule_version = str(fortune_rules.load_rule_assets()["rule_version"])
+        row.ephemeris_version = fortune_scores.EPHEMERIS_VERSION
+        row.rule_version = fortune_scores.RULE_VERSION
         row.copy_version = fortune_catalog.COPY_VERSION
         row.updated_at = now
         if preserve_unlock:

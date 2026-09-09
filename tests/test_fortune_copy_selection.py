@@ -32,10 +32,7 @@ def _snapshot(semantic: dict, today: date = TODAY, previous: dict | None = None)
 
 
 def test_fixed_order_golden_is_stable_across_calls_and_cache_eviction():
-    expected = (
-        'v03', 'v13', 'v01', 'v15', 'v16', 'v11', 'v08', 'v09', 'v02', 'v05',
-        'v07', 'v18', 'v17', 'v04', 'v06', 'v20', 'v19', 'v12', 'v14', 'v10',
-    )
+    expected = ('v02', 'v11', 'v05', 'v03', 'v15', 'v08', 'v01', 'v18', 'v17', 'v19', 'v13', 'v14', 'v10', 'v12', 'v06', 'v16', 'v09', 'v04', 'v07', 'v20')
     assert selection.variant_order('overall.d50.general') == expected
     selection.variant_order.cache_clear()
     assert selection.variant_order('overall.d50.general') == expected
@@ -247,23 +244,34 @@ def _legacy_snapshot():
 
 
 @pytest.mark.parametrize('days', [-1, 0, 1])
-def test_legacy_upgrade_resets_discarded_overall_but_preserves_category_progress(days):
+def test_legacy_upgrade_validates_then_resets_all_rewritten_copy_pools(days):
+    from app.services.fortune_scores import generate_result
+
     old = _legacy_snapshot()
     original = deepcopy(old)
-    state = selection.select_variants(_semantic(), today=TODAY + timedelta(days=days), previous_semantic=old)
+    current = generate_result(birth_date=date(2002, 12, 13), local_date=TODAY + timedelta(days=days))
+    state = selection.select_variants(current, today=TODAY + timedelta(days=days), previous_semantic=old)
     assert old == original
-    assert state['version'] == 'fortune-selection.v2'
-    assert state['routes']['overall.d50.general']['position'] == 0
+    assert state['version'] == selection.SELECTION_VERSION
+    assert len(state['routes']) == 5
+    assert all(cursor['position'] == 0 for cursor in state['routes'].values())
     assert not any(route.endswith('.default') for route in state['routes'])
-    assert state['routes']['category.love.d20.general'] == old['copy_selection']['routes']['category.love.d20.general']
-    for key in selection.CATEGORY_KEYS:
-        route = f'category.{key}.d50.general'
-        position = 8 if days > 0 else 7
-        assert state['routes'][route]['position'] == position
-        assert state['routes'][route]['day'] == (TODAY + timedelta(days=max(days, 0))).isoformat()
-        assert state['selected'][key] == selection.variant_order(route)[position]
-        if days <= 0:
-            assert state['selected'][key] == old['copy_selection']['selected'][key]
+
+
+def test_v2_snapshot_upgrades_to_independent_routes_without_mutating_old_result():
+    from app.services.fortune_scores import generate_result
+    old = _semantic()
+    routes = {'overall': 'overall.d50.general', **{k: f'category.{k}.d50.general' for k in selection.CATEGORY_KEYS}}
+    positions = {r: {'day': TODAY.isoformat(), 'position': 7} for r in routes.values()}
+    chosen = {k: selection._order(r, 'fortune-selection.v1' if k != 'overall' else 'fortune-selection.v2')[7] for k, r in routes.items()}
+    old['copy_selection'] = {'version': 'fortune-selection.v2', 'selected': chosen, 'routes': positions}
+    original = deepcopy(old)
+    fresh = generate_result(birth_date=date(2002, 12, 13), local_date=TODAY + timedelta(days=1))
+    state = selection.select_variants(fresh, today=TODAY + timedelta(days=1), previous_semantic=old)
+    assert old == original
+    assert state['version'] == selection.SELECTION_VERSION
+    assert len(state['routes']) == 5
+    assert all(c['position'] == 0 for c in state['routes'].values())
 
 
 @pytest.mark.parametrize('defect', ['selected', 'position', 'missing', 'unknown_route', 'version'])
@@ -280,6 +288,6 @@ def test_corrupt_legacy_state_is_rejected_before_any_reset(defect):
     elif defect == 'unknown_route':
         state['routes']['overall.d20.invalid.default'] = {'day': TODAY.isoformat(), 'position': 0}
     else:
-        state['version'] = 'fortune-selection.v3'
+        state['version'] = 'fortune-selection.v999'
     with pytest.raises(selection.FortuneSelectionError):
         selection.select_variants(_semantic(), today=TODAY, previous_semantic=old)

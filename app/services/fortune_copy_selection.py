@@ -7,7 +7,8 @@ from functools import lru_cache
 from hashlib import sha256
 from typing import Any, Mapping
 
-SELECTION_VERSION = "fortune-selection.v2"
+SELECTION_VERSION = "fortune-selection.v3"
+_PREVIOUS_VERSION = "fortune-selection.v2"
 _LEGACY_VERSION = "fortune-selection.v1"
 VARIANT_IDS = tuple(f"v{number:02d}" for number in range(1, 21))
 CATEGORY_KEYS = ("love", "money", "work", "energy")
@@ -42,13 +43,13 @@ def _order(route: str, version: str) -> tuple[str, ...]:
 def variant_order(route: str) -> tuple[str, ...]:
     if route not in ALL_ROUTES:
         raise FortuneSelectionError("unknown fortune expression route")
-    # Category copy is unchanged: retain its original permutation and cursor.
-    version = _LEGACY_VERSION if route in CATEGORY_ROUTES else SELECTION_VERSION
-    return _order(route, version)
+    return _order(route, SELECTION_VERSION)
 
 
 def overall_copy_route(semantic_route: str) -> str:
     """Collapse calculation-only flow types into one editorial pool per score band."""
+    if isinstance(semantic_route, str) and semantic_route in OVERALL_ROUTES:
+        return semantic_route
     if not isinstance(semantic_route, str) or semantic_route not in SEMANTIC_OVERALL_ROUTES:
         raise FortuneSelectionError("invalid semantic overall route")
     return f"overall.{semantic_route.split('.')[1]}.general"
@@ -66,7 +67,9 @@ def _read_state(value: Any, *, legacy: bool) -> dict[str, dict[str, Any]]:
     if (
         not isinstance(value, Mapping)
         or set(value) != {"version", "selected", "routes"}
-        or value["version"] != (_LEGACY_VERSION if legacy else SELECTION_VERSION)
+        or value["version"] not in (
+            (_LEGACY_VERSION,) if legacy else (_PREVIOUS_VERSION, SELECTION_VERSION)
+        )
     ):
         raise FortuneSelectionError("unsupported fortune selection state")
     validate_selected(value["selected"])
@@ -101,7 +104,8 @@ def _result_routes(semantic: Mapping[str, Any], *, legacy: bool = False) -> dict
         raise FortuneSelectionError("missing fortune result routes") from exc
     if any(not isinstance(route, str) for route in routes.values()):
         raise FortuneSelectionError("invalid fortune result routes")
-    if routes["overall"] not in SEMANTIC_OVERALL_ROUTES or any(
+    allowed_overall = OVERALL_ROUTES if semantic.get("schema_version") == 4 else SEMANTIC_OVERALL_ROUTES
+    if routes["overall"] not in allowed_overall or any(
         routes[category] not in CATEGORY_ROUTES
         or not routes[category].startswith(f"category.{category}.")
         for category in CATEGORY_KEYS
@@ -131,14 +135,18 @@ def select_variants(
         legacy = isinstance(state, Mapping) and state.get("version") == _LEGACY_VERSION
         routes = _read_state(state, legacy=legacy)
         for key, route in _result_routes(previous_semantic, legacy=legacy).items():
-            order = _order(route, _LEGACY_VERSION) if legacy else variant_order(route)
+            old_version = state["version"]
+            order_version = (
+                _LEGACY_VERSION if legacy or (old_version == _PREVIOUS_VERSION and route in CATEGORY_ROUTES)
+                else old_version
+            )
+            order = _order(route, order_version)
             if route not in routes or state["selected"][key] != order[routes[route]["position"]]:
                 raise FortuneSelectionError("selected fortune variant does not match its cursor")
-        if legacy:
-            # Old overall IDs describe discarded, flow-specific copy. They have no
-            # meaningful correspondence to the new general-day readings. Reset only
-            # those pools, after validating the complete old state; keep categories.
-            routes = {route: cursor for route, cursor in routes.items() if route in CATEGORY_ROUTES}
+        if state["version"] != SELECTION_VERSION:
+            # Both overall and category prose changed. Validate the old chain
+            # before resetting its editorial cursors; never rewrite its snapshot.
+            routes = {}
     chosen_routes = _result_routes(semantic)
     selected = {}
     for key, route in chosen_routes.items():

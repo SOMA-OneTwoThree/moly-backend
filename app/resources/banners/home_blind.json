@@ -1591,386 +1591,6 @@
       }
     },
     {
-      "id": "music-daily",
-      "component": "banner_canvas_v1",
-      "layout_profile": "home_blind_v1",
-      "enabled": true,
-      "starts_at": null,
-      "ends_at": null,
-      "platforms": [
-        "ios",
-        "android"
-      ],
-      "min_app_version": null,
-      "max_app_version_exclusive": null,
-      "bindings": {
-        "track": {
-          "source": "music.daily_title",
-          "format": null
-        }
-      },
-      "when": null,
-      "canvases_by_locale": {
-        "en": {
-          "background": {
-            "type": "image_background_v1",
-            "source": {
-              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
-              "byte_length": 28240,
-              "pixel_width": 1000,
-              "pixel_height": 551,
-              "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
-            },
-            "fit": "cover",
-            "alignment": {
-              "x": 0.5,
-              "y": 0.5
-            },
-            "base_color": "#FFFFFF"
-          },
-          "radius": 16,
-          "border": {
-            "width": 0,
-            "color": "#2A1D15"
-          },
-          "elements": [
-            {
-              "id": "heading",
-              "type": "text_v1",
-              "semantics_order": 0,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "Today’s music pick"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "message",
-              "type": "text_v1",
-              "semantics_order": 1,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.06,
-                "y": 0.29,
-                "width": 0.88,
-                "height": 0.17
-              },
-              "text": {
-                "kind": "template",
-                "value": "{track}"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 16,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 2,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "action-label",
-              "type": "text_v1",
-              "semantics_order": 2,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.25,
-                "y": 0.49,
-                "width": 0.5,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "Choose music"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "primary-action",
-              "type": "action_region_v1",
-              "frame": {
-                "x": 0.1,
-                "y": 0.49,
-                "width": 0.8,
-                "height": 0.46
-              },
-              "content_ids": [
-                "action-label"
-              ],
-              "accessibility_label": "Choose music",
-              "semantics_order": 3,
-              "action": {
-                "type": "open_music"
-              }
-            }
-          ]
-        },
-        "ko": {
-          "background": {
-            "type": "image_background_v1",
-            "source": {
-              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
-              "byte_length": 28240,
-              "pixel_width": 1000,
-              "pixel_height": 551,
-              "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
-            },
-            "fit": "cover",
-            "alignment": {
-              "x": 0.5,
-              "y": 0.5
-            },
-            "base_color": "#FFFFFF"
-          },
-          "radius": 16,
-          "border": {
-            "width": 0,
-            "color": "#2A1D15"
-          },
-          "elements": [
-            {
-              "id": "heading",
-              "type": "text_v1",
-              "semantics_order": 0,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "오늘의 노래 추천"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "message",
-              "type": "text_v1",
-              "semantics_order": 1,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.06,
-                "y": 0.29,
-                "width": 0.88,
-                "height": 0.17
-              },
-              "text": {
-                "kind": "template",
-                "value": "{track}"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 16,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 2,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "action-label",
-              "type": "text_v1",
-              "semantics_order": 2,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.25,
-                "y": 0.49,
-                "width": 0.5,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "음악 선택"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "primary-action",
-              "type": "action_region_v1",
-              "frame": {
-                "x": 0.1,
-                "y": 0.49,
-                "width": 0.8,
-                "height": 0.46
-              },
-              "content_ids": [
-                "action-label"
-              ],
-              "accessibility_label": "음악 선택",
-              "semantics_order": 3,
-              "action": {
-                "type": "open_music"
-              }
-            }
-          ]
-        },
-        "ja": {
-          "background": {
-            "type": "image_background_v1",
-            "source": {
-              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
-              "byte_length": 28240,
-              "pixel_width": 1000,
-              "pixel_height": 551,
-              "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
-            },
-            "fit": "cover",
-            "alignment": {
-              "x": 0.5,
-              "y": 0.5
-            },
-            "base_color": "#FFFFFF"
-          },
-          "radius": 16,
-          "border": {
-            "width": 0,
-            "color": "#2A1D15"
-          },
-          "elements": [
-            {
-              "id": "heading",
-              "type": "text_v1",
-              "semantics_order": 0,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "今日のおすすめ曲"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "message",
-              "type": "text_v1",
-              "semantics_order": 1,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.06,
-                "y": 0.29,
-                "width": 0.88,
-                "height": 0.17
-              },
-              "text": {
-                "kind": "template",
-                "value": "{track}"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 16,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 2,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "action-label",
-              "type": "text_v1",
-              "semantics_order": 2,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.25,
-                "y": 0.49,
-                "width": 0.5,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "音楽を選ぶ"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "primary-action",
-              "type": "action_region_v1",
-              "frame": {
-                "x": 0.1,
-                "y": 0.49,
-                "width": 0.8,
-                "height": 0.46
-              },
-              "content_ids": [
-                "action-label"
-              ],
-              "accessibility_label": "音楽を選ぶ",
-              "semantics_order": 3,
-              "action": {
-                "type": "open_music"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "id": "purple-image-test",
       "component": "banner_canvas_v1",
       "layout_profile": "home_blind_v1",
@@ -2467,6 +2087,386 @@
               "semantics_order": 3,
               "action": {
                 "type": "open_topic_conversation_v1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "music-daily",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {
+        "track": {
+          "source": "music.daily_title",
+          "format": null
+        }
+      },
+      "when": null,
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
+              "byte_length": 28240,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "Today’s music pick"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.29,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "{track}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.25,
+                "y": 0.49,
+                "width": 0.5,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "Choose music"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.1,
+                "y": 0.49,
+                "width": 0.8,
+                "height": 0.46
+              },
+              "content_ids": [
+                "action-label"
+              ],
+              "accessibility_label": "Choose music",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_music"
+              }
+            }
+          ]
+        },
+        "ko": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
+              "byte_length": 28240,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 노래 추천"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.29,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "{track}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.25,
+                "y": 0.49,
+                "width": 0.5,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "음악 선택"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.1,
+                "y": 0.49,
+                "width": 0.8,
+                "height": 0.46
+              },
+              "content_ids": [
+                "action-label"
+              ],
+              "accessibility_label": "음악 선택",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_music"
+              }
+            }
+          ]
+        },
+        "ja": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "sha256": "ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a",
+              "byte_length": 28240,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp",
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/music-background-1-ae09f44301b5db41e1f7e2591246c20ec710b1e8ef42813c8b589c543389cc5a.webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "今日のおすすめ曲"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.29,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "{track}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.25,
+                "y": 0.49,
+                "width": 0.5,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "音楽を選ぶ"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.1,
+                "y": 0.49,
+                "width": 0.8,
+                "height": 0.46
+              },
+              "content_ids": [
+                "action-label"
+              ],
+              "accessibility_label": "音楽を選ぶ",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_music"
               }
             }
           ]

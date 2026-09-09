@@ -1,16 +1,34 @@
+import copy
+import json
 from datetime import date, datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
 import pytest
 
-from app.services.banner_catalog import BannerCatalog, binding_values, capabilities
+from app.services.banner_catalog import CATALOG_PATH, BannerCatalog, binding_values, capabilities
 from app.services.banner_music import MUSIC_TRACKS, daily_music_title
 from app.services.banners import list_banners
 from app.core.app_day import AppDay
 
 
+def music_test_catalog():
+    """Exercise the supported binding independently of the published banner lineup."""
+    raw = json.loads(CATALOG_PATH.read_text())
+    music = copy.deepcopy(next(b for b in raw['banners'] if b['id'] == 'mood-daily'))
+    music['id'] = 'music-daily'
+    music['bindings'] = {'track': {'source': 'music.daily_title', 'format': None}}
+    for canvas in music['canvases_by_locale'].values():
+        for element in canvas['elements']:
+            if element['id'] == 'message':
+                element['text'] = {'kind': 'template', 'value': '{track}'}
+            if element['id'] == 'primary-action':
+                element['action'] = {'type': 'open_music'}
+    raw['banners'].append(music)
+    return BannerCatalog.from_bytes(json.dumps(raw).encode())
+
+
 def test_music_is_stable_across_languages_and_covers_available_tracks():
-    banner = next(b for b in BannerCatalog.load().manifest.banners if b.id == 'music-daily')
+    banner = next(b for b in music_test_catalog().manifest.banners if b.id == 'music-daily')
     seen = set()
     for offset in range(90):
         day = date(2026, 9, 9) + timedelta(days=offset)
@@ -26,7 +44,7 @@ def test_music_is_stable_across_languages_and_covers_available_tracks():
 @pytest.mark.asyncio
 @pytest.mark.parametrize('zone', ['Asia/Seoul', 'America/Los_Angeles'])
 async def test_music_uses_local_date_and_existing_wire_dependencies_without_db(zone):
-    catalog = BannerCatalog.load()
+    catalog = music_test_catalog()
     caps = frozenset().union(*(capabilities(c) for b in catalog.manifest.banners
                               for c in b.canvases_by_locale.values())) - {'open_topic_conversation_v1'}
     now = datetime(2026, 9, 9, 15, 30, tzinfo=timezone.utc)
@@ -49,7 +67,7 @@ async def test_music_uses_local_date_and_existing_wire_dependencies_without_db(z
     assert not {'music-daily', 'mood-daily'} & {b.id for b in unsupported.items}
 
 
-def test_all_five_cards_fit_feed_budget_and_existing_dependency_contract():
+def test_current_cards_fit_feed_budget_and_existing_dependency_contract():
     from types import SimpleNamespace
     from uuid import UUID
     from app.services.banner_catalog import render_feed
@@ -63,7 +81,9 @@ def test_all_five_cards_fit_feed_budget_and_existing_dependency_contract():
                            remaining=1, topic_offer=SimpleNamespace(
                                questions={locale: 'Question?'}, offer_id=UUID(int=1),
                                offer_sequence=1, topic_id='sample', topic_revision='0' * 64))
-        assert len(feed.items) == 5
+        assert [b.id for b in feed.items] == [
+            'composed-image-test', 'mood-daily', 'shop-new-items', 'purple-image-test'
+        ]
         assert len(feed.model_dump_json().encode()) < 128 * 1024
         assert all(set(b.data_dependencies) <= {'user.local_date', 'topic.question',
                                                'routines.remaining_today'} for b in feed.items)

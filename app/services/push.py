@@ -12,7 +12,9 @@ APNs .p8는 Firebase 콘솔에 업로드됨 → Firebase가 APNs로 릴레이. �
 """
 from __future__ import annotations
 
+import asyncio
 import logging
+from datetime import datetime, timezone
 
 import httpx
 
@@ -46,11 +48,19 @@ def _access_token() -> str | None:
     return creds.token
 
 
-async def send(tokens: list[str], title: str, body: str) -> int:
+async def prepare_access_token() -> str | None:
+    # Credential refresh can perform blocking network I/O.
+    return await asyncio.to_thread(_access_token)
+
+
+async def send(
+    tokens: list[str], title: str, body: str, *, data: dict[str, str] | None = None,
+    expires_at: datetime | None = None, access_token: str | None = None,
+) -> int:
     """토큰들에 알림 발송, 성공 건수 반환. 미설정/토큰없음이면 0(no-op)."""
     if not tokens:
         return 0
-    token = _access_token()
+    token = access_token or await prepare_access_token()
     if token is None:
         _log.info("FCM 미설정 — 발송 스킵(대상 %d)", len(tokens))
         return 0
@@ -59,7 +69,21 @@ async def send(tokens: list[str], title: str, body: str) -> int:
     async with httpx.AsyncClient(timeout=10.0) as client:
         for t in tokens:
             msg = {"message": {"token": t, "notification": {"title": title, "body": body}}}
-            r = await client.post(url, headers={"Authorization": f"Bearer {token}"}, json=msg)
+            if data:
+                msg["message"]["data"] = data
+            if expires_at is not None:
+                ttl = int((expires_at - datetime.now(timezone.utc)).total_seconds())
+                if ttl <= 0:
+                    break
+                msg["message"]["android"] = {"ttl": f"{ttl}s"}
+                msg["message"]["apns"] = {
+                    "headers": {"apns-expiration": str(int(expires_at.timestamp()))},
+                }
+            try:
+                r = await client.post(url, headers={"Authorization": f"Bearer {token}"}, json=msg)
+            except httpx.RequestError:
+                _log.warning("FCM 네트워크 오류 — 해당 기기 재시도 생략")
+                continue
             if r.status_code == 200:
                 sent += 1
             else:

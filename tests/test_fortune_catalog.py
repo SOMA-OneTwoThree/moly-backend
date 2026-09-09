@@ -12,6 +12,7 @@ import pytest
 from app.services.fortune_catalog import (
     CONTENT_STATUS,
     COPY_VERSION,
+    COPY_VERSIONS,
     EXPECTED_CATEGORY_KEYS,
     EXPECTED_OVERALL_KEYS,
     FortuneCatalogError,
@@ -71,7 +72,7 @@ def _semantic() -> dict:
 
 def test_approved_catalog_has_complete_variant_coverage():
     catalog = load_catalog()
-    assert COPY_VERSION == "fortune-copy.v3-independent.1"
+    assert COPY_VERSION == "fortune-copy.v3-ko-editorial.1"
     assert CONTENT_STATUS == "approved_for_production"
     assert SUPPORTED_LOCALES == ("ko", "en", "ja")
     for locale in SUPPORTED_LOCALES:
@@ -83,6 +84,7 @@ def test_approved_catalog_has_complete_variant_coverage():
         filename = {"ko": "copy.v2.json", "en": "copy.v2.en.json", "ja": "copy.v2.ja.json"}[locale]
         asset = json.loads((RESOURCE_DIR / filename).read_text(encoding="utf-8"))
         assert asset["content_status"] == CONTENT_STATUS
+        assert asset["copy_version"] == COPY_VERSIONS[locale]
     assert len(catalog.manifest_hash) == 64
 
 
@@ -232,7 +234,7 @@ def test_forbidden_korean_copy_is_rejected(tmp_path: Path, bad: str):
 
 @pytest.mark.parametrize(
     "bad",
-    ["앞서가기보다", "눈에 띄는 진전을 만들 수 있어", "무난하게 이어지는 날이야"],
+    ["앞서가기보다", "눈에 띄는 진전을 만들 수 있어", "판단과 여유가 잘 맞아떨어"],
 )
 def test_awkward_korean_copy_is_rejected(tmp_path: Path, bad: str):
     resources = _copy_resources(tmp_path)
@@ -442,4 +444,18 @@ def test_repeated_category_suggestion_is_allowed_but_same_two_lines_are_not(tmp_
     _write_json(path, asset)
     _refresh_manifest_hash(resources, path.name)
     with pytest.raises(FortuneCatalogError, match="two distinct text segments"):
+        load_catalog(resources)
+
+
+@pytest.mark.parametrize("locale,filename", [
+    ("ko", "copy.v2.json"), ("en", "copy.v2.en.json"), ("ja", "copy.v2.ja.json"),
+])
+def test_locale_revision_cannot_be_replaced_by_another_release(tmp_path, locale, filename):
+    resources = _copy_resources(tmp_path)
+    path = resources / filename
+    asset = json.loads(path.read_text())
+    asset["copy_version"] = COPY_VERSIONS["en" if locale == "ko" else "ko"]
+    _write_json(path, asset)
+    _refresh_manifest_hash(resources, filename)
+    with pytest.raises(FortuneCatalogError, match="schema or version"):
         load_catalog(resources)

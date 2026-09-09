@@ -373,15 +373,16 @@ def test_response_contract_rejects_detail_in_locked_result_and_partial_revealed_
 
 
 
-def test_existing_schema3_snapshot_stays_current_without_selection_metadata():
+@pytest.mark.parametrize("semantic_schema", [3, 4])
+def test_existing_snapshot_stays_current_after_editorial_revision(semantic_schema):
     row = SimpleNamespace(
         fortune_date=date(2026, 8, 27),
         timezone_snapshot="Asia/Seoul",
         profile_revision=2,
         result_schema_version=3,
-        semantic_result={"schema_version": 3},
+        semantic_result={"schema_version": semantic_schema},
         copy_by_locale={"ko": {}},
-        copy_version="fortune-copy.v2-initial.1",
+        copy_version="fortune-copy.v3-independent.1",
     )
     assert fortune._current_row(
         row, today=date(2026, 8, 27), timezone_name="Asia/Seoul", revision=2

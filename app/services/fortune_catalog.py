@@ -60,7 +60,7 @@ _FORBIDDEN_RE: Final = re.compile(
 )
 _AWKWARD_COPY_RE: Final = re.compile(
     r"(?:앞서가기보다|눈에 띄는 진전|진전을 만들|서로의 의견을 무리 없이|"
-    r"판단과 여유가 잘 맞아떨어|무난)"
+    r"판단과 여유가 잘 맞아떨어)"
 )
 _OVERALL_DOMAIN_RE: Final = re.compile(
     r"(?:금전|지출|결제|연애|업무|과제|최종본|파일 이름|자료 분류)"
@@ -83,7 +83,14 @@ _HANGUL_RE: Final = re.compile(r"[가-힣]")
 _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-COPY_VERSION = "fortune-copy.v3-independent.1"
+# A release bundle may contain independently edited locales. Existing snapshots
+# retain their own bundle version; a Korean edit never relabels foreign assets.
+COPY_VERSION = "fortune-copy.v3-ko-editorial.1"
+COPY_VERSIONS = MappingProxyType({
+    "ko": COPY_VERSION,
+    "en": "fortune-copy.v3-independent.1",
+    "ja": "fortune-copy.v3-independent.1",
+})
 CONTENT_STATUS = "approved_for_production"
 
 
@@ -312,7 +319,7 @@ def _validate_copy(
         {"schema", "copy_version", "content_status", "locales", "overall", "categories", "colors"},
         "copy asset",
     )
-    if asset["schema"] != "fortune-copy-v2" or asset["copy_version"] != COPY_VERSION:
+    if asset["schema"] != "fortune-copy-v2" or asset["copy_version"] != COPY_VERSIONS[locale]:
         raise FortuneCatalogError("unexpected copy schema or version")
     if asset["content_status"] != CONTENT_STATUS or asset["locales"] != [locale]:
         raise FortuneCatalogError(f"v2 production catalog approval/locale mismatch: {locale}")

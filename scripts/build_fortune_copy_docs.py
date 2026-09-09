@@ -21,9 +21,12 @@ def _row(label: str, values: list[str]) -> str:
 
 
 def _header(title: str, version: str) -> list[str]:
+    from app.services.fortune_catalog import COPY_VERSIONS
     return [
         f"# {title}", "",
         f"> 카탈로그 버전: `{version}` · 서버 자산에서 생성한 전체 전문",
+        f"> 한국어: `{COPY_VERSIONS['ko']}` · 영어: `{COPY_VERSIONS['en']}` · 일본어: `{COPY_VERSIONS['ja']}`",
+        "> 한국어만 새 편집 기준을 적용했다. 영어·일본어는 이전 원고이며 현재 한국어의 번역본으로 간주하지 않는다.",
         "> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다", "",
         "[운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)", "",
     ]

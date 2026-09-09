@@ -290,8 +290,10 @@ async def health_synthetic(
 async def health_banners(request: Request, response: Response) -> dict[str, Any]:
     response.headers["Cache-Control"] = "no-store"
     catalog = getattr(request.app.state, "banner_catalog", None)
-    if catalog is None:
+    topics = getattr(request.app.state, "topic_catalog", None)
+    if catalog is None or topics is None:
         response.status_code = 503
         return {"status": "unavailable", "version": settings.git_sha}
     return {"status": "ok", "revision": catalog.revision,
+            "topic_revision": topics.revision,
             "enabled": catalog.manifest.enabled, "version": settings.git_sha}

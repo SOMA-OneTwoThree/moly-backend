@@ -36,11 +36,11 @@ def _render(row: DailyFortune, locale: str) -> str:
         "ko": {
             "header": "서버가 확인한 오늘의 운세 데이터",
             "fortune": "오늘의 운세",
-            "index": "행운 지수",
+            "index": "운세 점수",
             "do": "오늘 해볼 것",
             "pause": "오늘 조심할 것",
             "color": "행운색",
-            "categories": {"love": "애정", "money": "금전", "work": "일", "energy": "활력"},
+            "categories": {"love": "애정", "money": "금전", "work": "일·학업", "energy": "활력"},
         },
         "ja": {
             "header": "サーバーで確認済みの今日の運勢データ",
@@ -49,7 +49,7 @@ def _render(row: DailyFortune, locale: str) -> str:
             "do": "今日やってみること",
             "pause": "今日気をつけること",
             "color": "ラッキーカラー",
-            "categories": {"love": "恋愛", "money": "金運", "work": "仕事", "energy": "健康"},
+            "categories": {"love": "恋愛運", "money": "金運", "work": "仕事・学業", "energy": "活力"},
         },
         "en": {
             "header": "Today's verified fortune data",
@@ -58,12 +58,13 @@ def _render(row: DailyFortune, locale: str) -> str:
             "do": "Try today",
             "pause": "Watch out for",
             "color": "Lucky color",
-            "categories": {"love": "Love", "money": "Money", "work": "Work", "energy": "Energy"},
+            "categories": {"love": "Love", "money": "Money", "work": "Work & study", "energy": "Energy"},
         },
     }[result["locale"]]
     category_names = copy["categories"]
-    categories = ", ".join(
-        f"{category_names[key]} {result['categories'][key]['score']}"
+    categories = "\n".join(
+        f"{category_names[key]} {result['categories'][key]['score']}/100: "
+        + " ".join(result["categories"][key]["text"])
         for key in ("love", "money", "work", "energy")
     )
     overall = result["overall"]

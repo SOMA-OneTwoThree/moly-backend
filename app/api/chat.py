@@ -1,7 +1,7 @@
 """대화 API — 상태·이력·전송·선발화. 전 엔드포인트 Bearer 인증."""
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Any
 
 import time
@@ -20,9 +20,36 @@ from app.schemas.chat import (
     PostMessageRequest,
     PostMessageResponse,
 )
+from app.schemas.topics import PrepareTopicRequest, TopicEntryResponse
 from app.services import chat as chat_service
+from app.services import topic_entries
 
 router = APIRouter(prefix="/chat", tags=["chat"])
+
+
+@router.post("/topic-entries", response_model=TopicEntryResponse, operation_id="prepareTopicEntry")
+async def prepare_topic_entry(
+    req: PrepareTopicRequest,
+    request: Request,
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key", max_length=128),
+    x_app_timezone: str | None = Header(default=None),
+):
+    if not idempotency_key or not idempotency_key.strip():
+        raise errors.validation("Idempotency-Key 헤더가 필요해요.")
+    try:
+        result = await topic_entries.prepare(
+            session, user_id, req, idempotency_key,
+            banner_catalog=getattr(request.app.state, "banner_catalog", None),
+            topic_catalog=getattr(request.app.state, "topic_catalog", None),
+            now=datetime.now(timezone.utc), timezone_name=x_app_timezone,
+        )
+        await session.commit()
+        return result
+    except Exception:
+        await session.rollback()
+        raise
 
 
 @router.get("/state", response_model=ChatStateResponse)
@@ -72,6 +99,7 @@ async def post_message(
         idempotency_key,
         deadline=deadline,
         capabilities=capabilities,
+        topic_catalog=getattr(request.app.state, "topic_catalog", None),
     )
 
 

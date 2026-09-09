@@ -1,6 +1,7 @@
 """FCM 푸시·알림 조립 — no-op(자격증명 없음)·설정(기본 on/off)·토큰 로드(mock)."""
 import uuid
 from types import SimpleNamespace
+from datetime import datetime, timezone
 
 from app.services import notify, push
 
@@ -49,20 +50,24 @@ async def test_push_no_tokens_returns_zero():
 async def test_notify_morning_sends_when_enabled(monkeypatch):
     captured = {}
 
-    async def _fake_send(tokens, title, body):
+    async def _fake_send(tokens, title, body, **kwargs):
         captured["tokens"] = tokens
         captured["title"] = title
         return len(tokens)
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kwargs):
         return True  # 멱등 선점은 test_notify.py가 검증 — 여기선 발송 경로만
 
+    from unittest.mock import AsyncMock
+    monkeypatch.setattr(push, "prepare_access_token", AsyncMock(return_value="test-access"))
     monkeypatch.setattr(notify.settings, "morning_push_enabled", True)  # 킬스위치 해제
     monkeypatch.setattr(push, "send", _fake_send)
     monkeypatch.setattr(notify, "_claim_send_slot", _claim)
-    # 설정 행 없음(=기본 on), 토큰 2개
-    session = FakeSession([[], ["tok1", "tok2"]])
-    n = await notify.notify_morning(session, SimpleNamespace(id=UID_UUID))
+    session = FakeSession([[], [uuid.uuid4()], ["tok1", "tok2"]])
+    n = await notify.notify_morning(
+        session, SimpleNamespace(id=UID_UUID, timezone="Asia/Seoul"),
+        now=datetime(2026, 9, 9, 0, tzinfo=timezone.utc),
+    )
     assert n == 2
     assert captured["tokens"] == ["tok1", "tok2"]
 
@@ -71,7 +76,7 @@ async def test_notify_morning_blocked_by_kill_switch(monkeypatch):
     # SOMA-338: morning_push_enabled=False(기본)면 유저 설정·토큰과 무관하게 발송 안 함(저녁만).
     called = {"sent": False}
 
-    async def _fake_send(tokens, title, body):
+    async def _fake_send(tokens, title, body, **kwargs):
         called["sent"] = True
         return len(tokens)
 
@@ -86,7 +91,7 @@ async def test_notify_morning_blocked_by_kill_switch(monkeypatch):
 async def test_notify_evening_skipped_when_disabled(monkeypatch):
     called = {"sent": False}
 
-    async def _fake_send(tokens, title, body):
+    async def _fake_send(tokens, title, body, **kwargs):
         called["sent"] = True
         return 0
 
@@ -95,3 +100,41 @@ async def test_notify_evening_skipped_when_disabled(monkeypatch):
     n = await notify.notify_evening(session, SimpleNamespace(id=UID_UUID))
     assert n == 0
     assert called["sent"] is False  # 설정 off → 발송 안 함
+
+
+async def test_fcm_payload_expiry_and_network_failure_are_per_device(monkeypatch):
+    import httpx
+    from datetime import timedelta
+
+    captured = []
+    now = datetime(2026, 9, 9, 0, tzinfo=timezone.utc)
+
+    class Clock:
+        @staticmethod
+        def now(tz):
+            return now
+
+    class Client:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            captured.append(kwargs['json']['message'])
+            if len(captured) == 1:
+                raise httpx.ConnectError('test')
+            return SimpleNamespace(status_code=200)
+
+    monkeypatch.setattr(push, 'datetime', Clock)
+    monkeypatch.setattr(push, '_access_token', lambda: 'fake-token')
+    monkeypatch.setattr(push.httpx, 'AsyncClient', lambda **kwargs: Client())
+    expires = now + timedelta(minutes=45)
+    assert await push.send(['first', 'second'], 'title', 'body',
+                           data={'link': 'diary', 'diary_id': 'id'}, expires_at=expires) == 1
+    assert len(captured) == 2
+    assert captured[1]['data'] == {'link': 'diary', 'diary_id': 'id'}
+    assert captured[1]['android'] == {'ttl': '2700s'}
+    assert captured[1]['apns']['headers']['apns-expiration'] == str(int(expires.timestamp()))
+    captured.clear()
+    assert await push.send(['first'], 'title', 'body', expires_at=now) == 0
+    assert not captured
+    assert await push.send(['first', 'second'], 'evening', 'body') == 1
+    assert 'data' not in captured[1] and 'android' not in captured[1] and 'apns' not in captured[1]

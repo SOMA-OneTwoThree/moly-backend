@@ -38,14 +38,22 @@ def request_hash(
     greeting_id: str | None,
     diary_references: bool = False,
     context_ref: dict | None = None,
+    topic_entry_id: str | None = None,
+    locale: str | None = None,
 ) -> str:
-    wire = json.dumps(
-        {
+    payload = {
             "text": text_value,
             "greeting_id": greeting_id,
             "diary_references": diary_references,
             "context_ref": context_ref,
-        },
+        }
+    # Keep legacy digests byte-identical when neither additive field is present.
+    if topic_entry_id is not None:
+        payload["topic_entry_id"] = str(topic_entry_id)
+    if locale is not None:
+        payload["locale"] = locale
+    wire = json.dumps(
+        payload,
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),

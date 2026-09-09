@@ -50,6 +50,9 @@ jobs:
       - name: Lint
         run: uv run ruff check app worker scripts tests db
 
+      - name: Check generated fortune copy documents
+        run: uv run python scripts/build_fortune_copy_docs.py --check
+
       - name: Rebuild schema contract and check database behavior
         env:
           PGHOST: 127.0.0.1
@@ -63,7 +66,7 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f db/testing/supabase.sql
           uv run python -m db.schema_contract --check-generated
           psql -X -v ON_ERROR_STOP=1 -f db/seed.sql
-          uv run pytest -q tests/integration/test_schema_bootstrap_local.py tests/integration/test_memory_maintenance_local.py tests/integration/test_maintenance_enrollment_local.py
+          uv run pytest -q tests/integration/test_schema_bootstrap_local.py tests/integration/test_memory_maintenance_local.py tests/integration/test_maintenance_enrollment_local.py tests/integration/test_weekly_diary.py tests/integration/test_fortune_variants.py
 
       - name: Test (통합 테스트 제외 — 실 Supabase 필요)
         run: uv run pytest -q --ignore=tests/integration

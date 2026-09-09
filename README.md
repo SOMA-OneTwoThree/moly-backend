@@ -104,26 +104,28 @@ uv run python scripts/dev_token.py --cleanup    # 4) 끝나면 테스트 유저 
 - **09:00** — 아침 일기 FCM 푸시 · **20:00** — 저녁 안부 푸시
 - **매 틱** — RC 웹훅 inbox 드레인(pending 처리 + 미해결 failed·장기 pending Slack 재요약, SOMA-372)
 
-### 캐피 자기일기 — 날짜별 지정
+### 캐피 자기일기 — 주간 원고
 
-임계 미달·미접속 날 나가는 캐피 자기일기(`source=preset`)는 **날짜별로 직접 지정**한다.
-생성 틱은 그날 `diary_date` 지정본만 사용하며, 지정본이 없으면 그날 캐피 자기일기는 발행하지 않는다.
-
-- `diary_date` = 그 일기가 **담는 날짜**(= `diaries.diary_date`). 예) `2026-07-17` 행 = **7/17 일기 → 7/18 아침 발행**.
-- 지정본은 그날 **04:00 생성 틱 전까지** 들어가 있어야 반영된다(하루이틀 미리 채워두기). 빈 날은 랜덤 풀이 대신 나가 일기는 절대 비지 않는다.
+개인 일기 조건에 미달한 사용자는 해당 활동일이 속한 주의 미수령 운영자 원고를 순서대로 받는다.
+개인 일기를 받는 날은 원고를 소비하지 않는다. 원고가 없거나 모두 받았으면 일기를 만들지 않는다.
+주 기준은 월요일~일요일이며, 일요일 일기가 월요일 아침 공개되더라도 이전 주 원고를 사용한다.
+미수령분은 다음 주로 이월하지 않는다. 지급은 생성 커밋 시 확정하며 열람·푸시 성공과 무관하다.
 
 ```bash
-# 1) 템플릿 생성(오늘부터 30일치 — diary_date·weather 채움, content만 빈칸)
-uv run python scripts/make_capi_diary_template.py --start 2026-07-17 --days 30 --out db/capi_diaries.csv
-
-# 2) db/capi_diaries.csv 의 content 칸에 일기를 써넣는다(weather는 기본 sunny, 손 안 대도 됨)
-
-# 3) DB 반영 — content 채운 행만 업서트(멱등). 먼저 dry-run으로 확인
-uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv            # dry-run(ROLLBACK)
-uv run python scripts/seed_capi_diaries.py db/capi_diaries.csv --commit   # 실제 반영
+uv run python scripts/make_capi_diary_template.py --weekly --week-start 2026-09-14 --count 3
+# db/capi_diaries_weekly.csv의 모든 본문을 작성한다.
+uv run python scripts/seed_capi_diaries.py db/capi_diaries_weekly.csv --env dev
+uv run python scripts/seed_capi_diaries.py db/capi_diaries_weekly.csv --env dev --commit
 ```
 
-> `moly_life_ments.diary_date`는 현재 스키마에 포함된다. 새 환경은 `db/README.md` 절차로 초기화한다.
+CSV는 `week_start_date,sequence_no,weather,content`다. 같은 주/순서/내용의 재실행은 변경하지
+않으며 기존 원고 수정·재활성화는 하지 않는다. 새 원고는 기존 최대 순서 뒤로만 추가한다.
+등록 후 회수는 `is_active=false`로 처리하고 이미 지급한 일기는 유지한다.
+
+`app_config.diary_weekly_start_date`(ISO 월요일 날짜)부터 주간 선택을 사용한다. 미설정 또는
+그 이전 활동일은 기존 날짜별 CSV(`diary_date,weather,content`)를 사용한다. 잘못된 전환 설정은
+일기 생성을 중단한다. 전환 이후 주간 원고가 없다고 날짜별 원고로 돌아가지 않는다.
+DB 변경과 운영 머지 전 적용 순서는 [운영 절차](docs/OPERATIONS.md#주간-운영자-일기-db-전환)를 따른다.
 
 ## 배포 · 웹훅
 

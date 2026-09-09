@@ -182,6 +182,8 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
 ### `GET /me/notifications` · `PATCH /me/notifications`
 
 알림 = **아침 09:00(일기) · 저녁 20:00(안부) 2종 고정**, on/off만(기본 on).
+아침은 전역 활성화 후, 현지 오늘 공개된 전날 개인/운영자 일기가 아직 미독인 경우에만 발송한다.
+미발행·환영·과거 일기는 제외하며 FCM data의 `link=diary`, `diary_id`로 이동한다. 자세한 운영 기준은 [OPERATIONS](OPERATIONS.md#아침-일기-푸시--2026-09-09-구현)를 따른다.
 
 ```json
 { "morning_diary":true, "evening_chat":true }

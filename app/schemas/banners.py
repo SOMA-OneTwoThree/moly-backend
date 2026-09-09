@@ -10,6 +10,8 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.schemas.topics import TopicReference
+
 BANNER_WIDTH = 287.7
 BANNER_HEIGHT = 158.457
 PRODUCTION_ASSET_ORIGIN = "https://qkgjlgzsharnilxnkytd.supabase.co"
@@ -131,7 +133,21 @@ class BannerStyle(BannerModel):
 
 
 class BannerAction(BannerModel):
-    type: Literal["open_shop", "open_routines", "open_conversation", "open_fortune"]
+    type: Literal["open_shop", "open_routines", "open_conversation", "open_fortune",
+                  "open_diary", "open_mood", "open_timer", "open_music"]
+
+
+class BannerTopicAction(BannerModel):
+    type: Literal["open_topic_conversation_v1"]
+    topic_ref: TopicReference
+
+
+class BannerAuthoredTopicAction(BannerModel):
+    type: Literal["open_topic_conversation_v1"]
+
+
+Action = Annotated[BannerAction | BannerTopicAction, Field(discriminator="type")]
+AuthoredAction = Annotated[BannerAction | BannerAuthoredTopicAction, Field(discriminator="type")]
 
 
 def template_aliases(value: str) -> set[str]:
@@ -186,7 +202,7 @@ class BannerButton(BannerText):
     border: BannerBorder
     padding_horizontal: Annotated[Scalar, Field(ge=0, le=24)]
     padding_vertical: Annotated[Scalar, Field(ge=0, le=12)]
-    action: BannerAction
+    action: Action
 
     @model_validator(mode="after")
     def button_geometry(self):
@@ -225,6 +241,7 @@ class BannerAuthoredText(BannerText):
 
 class BannerAuthoredButton(BannerButton):
     text: TextExpression
+    action: AuthoredAction
 
 
 class BannerShape(BannerModel):
@@ -244,7 +261,11 @@ class BannerActionRegion(BannerModel):
     content_ids: Annotated[tuple[Id, ...], Field(min_length=1, max_length=10)]
     accessibility_label: Annotated[str, Field(min_length=1, max_length=120)]
     semantics_order: Annotated[int, Field(ge=0, le=11)]
-    action: BannerAction
+    action: Action
+
+
+class BannerAuthoredActionRegion(BannerActionRegion):
+    action: AuthoredAction
 
 
 Element = Annotated[
@@ -252,7 +273,7 @@ Element = Annotated[
     Field(discriminator="type"),
 ]
 AuthoredElement = Annotated[
-    BannerAuthoredText | BannerAuthoredButton | BannerImage | BannerShape | BannerActionRegion,
+    BannerAuthoredText | BannerAuthoredButton | BannerImage | BannerShape | BannerAuthoredActionRegion,
     Field(discriminator="type"),
 ]
 
@@ -308,7 +329,7 @@ class BannerAuthoredCanvas(BannerCanvas):
 
 
 class BannerBinding(BannerModel):
-    source: Literal["user.local_date", "routines.remaining_today"]
+    source: Literal["user.local_date", "routines.remaining_today", "topic.question", "music.daily_title"]
     format: Literal["month_day", "full_date"] | None
 
     @model_validator(mode="after")
@@ -375,6 +396,18 @@ class BannerDefinition(BannerModel):
             if not self.when or self.when.operator != "gt" or self.when.value != 0:
                 raise ValueError("routine-dependent banners require remaining > 0")
         for canvas in self.canvases_by_locale.values():
+            topic_actions = [e for e in canvas.elements
+                             if getattr(getattr(e, "action", None), "type", None)
+                             == "open_topic_conversation_v1"]
+            topic_aliases = {a for a, b in self.bindings.items() if b.source == "topic.question"}
+            if bool(topic_actions) != bool(topic_aliases):
+                raise ValueError("topic action and question binding must occur together")
+            if topic_aliases and not any(
+                isinstance(e, BannerAuthoredText) and isinstance(e.text, BannerTemplate)
+                and e.text.value in {"{" + alias + "}" for alias in topic_aliases}
+                for e in canvas.elements
+            ):
+                raise ValueError("topic question must be displayed verbatim")
             for element in canvas.elements:
                 if not isinstance(element, (BannerAuthoredText, BannerAuthoredButton)):
                     continue
@@ -406,7 +439,7 @@ class BannerManifest(BannerModel):
 
 
 class BannerCard(BannerModel):
-    data_dependencies: tuple[Literal["user.local_date", "routines.remaining_today"], ...]
+    data_dependencies: tuple[Literal["user.local_date", "routines.remaining_today", "topic.question"], ...]
     id: Id
     component: Literal["banner_canvas_v1"]
     layout_profile: Literal["home_blind_v1"]

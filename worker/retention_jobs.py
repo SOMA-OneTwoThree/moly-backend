@@ -66,6 +66,17 @@ WHERE ctid IN (
 )
 """)
 
+# Keep answered entries with their messages (FK cascade). Unanswered openings
+# outlive prepare-key deduplication, then can be removed without advancing offers.
+_TOPIC_ENTRIES_GC = text("""
+DELETE FROM chat_topic_entries
+WHERE ctid IN (
+  SELECT ctid FROM chat_topic_entries
+  WHERE first_user_message_id IS NULL AND expires_at < now() - interval '30 days'
+  LIMIT :n FOR UPDATE SKIP LOCKED
+)
+""")
+
 # ── 5-2: usage 원장 롤업(90일 이전분) ──────────────────────────
 # 축은 (started_at AT TIME ZONE 'Asia/Seoul')::date — activity_date는 74% NULL이라 금지.
 # ('Asia/Seoul' 리터럴 캐스트라 tick의 "이상 tz 문자열" 문제와 무관.)
@@ -245,11 +256,11 @@ def _continuation(job: ClaimedJob, job_type: str):
 
 
 async def handle_retention_idempotency(job: ClaimedJob) -> JobResult:
-    deleted, more = await _run_batches([_IDEMPOTENCY_GC])
+    deleted, more = await _run_batches([_IDEMPOTENCY_GC, _TOPIC_ENTRIES_GC])
     await _record_success(JOB_RETENTION_IDEMPOTENCY)
     return JobResult(
         result_code="ok",
-        result_detail={"deleted": deleted[0], "more": more},
+        result_detail={"deleted": deleted[0], "topic_entries_deleted": deleted[1], "more": more},
         apply_domain=_continuation(job, JOB_RETENTION_IDEMPOTENCY) if more else None,
     )
 

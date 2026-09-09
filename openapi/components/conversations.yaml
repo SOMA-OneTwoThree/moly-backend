@@ -358,11 +358,28 @@ schemas:
         - $ref: ./fortune.yaml#/schemas/DailyFortuneContextRef
         - type: 'null'
         description: 오늘 운세 결과 화면에서 대화로 넘어올 때 붙이는 일회성 참조.
+      topic_entry_id:
+        anyOf:
+        - type: string
+          format: uuid
+        - type: 'null'
+        title: Topic Entry Id
+      locale:
+        anyOf:
+        - type: string
+          enum:
+          - ko
+          - en
+          - ja
+        - type: 'null'
+        title: Locale
     additionalProperties: false
     type: object
     required:
     - text
     title: PostMessageRequest
+    description: topic_entry_id와 locale는 첫 주제 답변에 함께 지정한다. topic_entry_id는 greeting_id 및 context_ref와
+      동시 사용 불가. locale 단독 지정은 후속 일반 대화의 앱 언어를 선택한다. 새 필드가 없는 구버전 요청은 기존 동작을 유지한다.
   PostMessageResponse:
     properties:
       greeting:
@@ -429,28 +446,73 @@ schemas:
   DiaryReferenceCard:
     type: object
     additionalProperties: false
-    required: [id, kind, display_date, title, body, published_at, read]
+    required:
+    - id
+    - kind
+    - display_date
+    - title
+    - body
+    - published_at
+    - read
     properties:
-      id: {type: string, format: uuid}
-      kind: {type: string, enum: [welcome, shared_day, capi_day]}
-      author: {type: string, const: capi, default: capi}
-      display_date: {type: string, format: date}
+      id:
+        type: string
+        format: uuid
+      kind:
+        type: string
+        enum:
+        - welcome
+        - shared_day
+        - capi_day
+      author:
+        type: string
+        const: capi
+        default: capi
+      display_date:
+        type: string
+        format: date
       title:
-        anyOf: [{type: string}, {type: 'null'}]
-      body: {type: string}
-      published_at: {type: string, format: date-time}
-      read: {type: boolean}
+        anyOf:
+        - type: string
+        - type: 'null'
+      body:
+        type: string
+      published_at:
+        type: string
+        format: date-time
+      read:
+        type: boolean
   ChatReference:
     type: object
     additionalProperties: false
-    required: [reference_id, state, mode, diary]
+    required:
+    - reference_id
+    - state
+    - mode
+    - diary
     properties:
-      reference_id: {type: string, format: uuid}
-      schema: {type: string, const: diary-reference-v1, default: diary-reference-v1}
-      type: {type: string, const: diary, default: diary}
-      state: {type: string, enum: [available, unavailable]}
-      mode: {type: string, enum: [full_card, reopen_reference]}
+      reference_id:
+        type: string
+        format: uuid
+      schema:
+        type: string
+        const: diary-reference-v1
+        default: diary-reference-v1
+      type:
+        type: string
+        const: diary
+        default: diary
+      state:
+        type: string
+        enum:
+        - available
+        - unavailable
+      mode:
+        type: string
+        enum:
+        - full_card
+        - reopen_reference
       diary:
         anyOf:
         - $ref: '#/schemas/DiaryReferenceCard'
-        - {type: 'null'}
+        - type: 'null'

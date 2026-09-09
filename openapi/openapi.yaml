@@ -3,9 +3,9 @@ info:
   title: moly-backend API
   version: 1.0.0
   summary: Moly 앱 백엔드 API 계약
-  description: '이 문서는 moly-backend 공개 HTTP API의 확정 계약이다. 호환성에 영향을 주는 변경은 Semantic Versioning으로
-    관리한다. 보호 API는 Supabase access token Bearer 인증을 사용한다. `/openapi.json`과 `/docs`는 local·development에서만
-    열리고 staging·production에서는 등록되지 않는다. `/redoc`은 항상 비활성화되어 있다.
+  description: '이 문서는 moly-backend 공개 HTTP API의 확정 계약이다. 호환성에 영향을 주는 변경은 Semantic Versioning으로 관리한다. 보호
+    API는 Supabase access token Bearer 인증을 사용한다. `/openapi.json`과 `/docs`는 local·development에서만 열리고 staging·production에서는
+    등록되지 않는다. `/redoc`은 항상 비활성화되어 있다.
 
 
     애플리케이션 오류, 요청 검증 오류, 등록되지 않은 path의 404, 등록된 path의 미지원 method 405, 미처리 예외 500은 모두 `ErrorEnvelope`로
@@ -94,6 +94,10 @@ paths:
     $ref: ./paths/fortune.yaml#/~1daily-fortune~1ad-sessions
   /attribution/meta-referrer/decrypt:
     $ref: ./paths/attribution.yaml#/~1attribution~1meta-referrer~1decrypt
+  /banners/resolve:
+    $ref: ./paths/banners.yaml#/~1banners~1resolve
+  /chat/topic-entries:
+    $ref: ./paths/conversations.yaml#/~1chat~1topic-entries
 components:
   schemas:
     MoodPutRequest:
@@ -268,6 +272,20 @@ components:
       $ref: ./components/common.yaml#/schemas/ErrorBody
     ErrorEnvelope:
       $ref: ./components/common.yaml#/schemas/ErrorEnvelope
+    TopicReference:
+      $ref: ./components/topics.yaml#/schemas/TopicReference
+    BannerClientContext:
+      $ref: ./components/topics.yaml#/schemas/BannerClientContext
+    PrepareTopicRequest:
+      $ref: ./components/topics.yaml#/schemas/PrepareTopicRequest
+    PendingTopicEntry:
+      $ref: ./components/topics.yaml#/schemas/PendingTopicEntry
+    CommittedTopicEntry:
+      $ref: ./components/topics.yaml#/schemas/CommittedTopicEntry
+    SupersededTopicEntry:
+      $ref: ./components/topics.yaml#/schemas/SupersededTopicEntry
+    TopicEntryResponse:
+      $ref: ./components/topics.yaml#/schemas/TopicEntryResponse
   securitySchemes:
     SupabaseBearer:
       $ref: ./components/common.yaml#/securitySchemes/SupabaseBearer

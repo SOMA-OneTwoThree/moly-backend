@@ -489,7 +489,9 @@ CREATE TABLE public.diary_generation_results (
     target_date date NOT NULL,
     status text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    CONSTRAINT diary_generation_results_status_check CHECK ((status = 'no_entry'::text))
+    preset_ment_id uuid,
+    CONSTRAINT diary_generation_results_status_check CHECK ((status = ANY (ARRAY['no_entry'::text, 'preset'::text]))),
+    CONSTRAINT diary_generation_results_preset_shape_check CHECK ((((status = 'preset'::text) AND (preset_ment_id IS NOT NULL)) OR ((status = 'no_entry'::text) AND (preset_ment_id IS NULL))))
 );
 
 -- TABLE: public.diary_recall_documents
@@ -770,7 +772,7 @@ CREATE TABLE public.messages (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     turn_seq bigint,
     turn_position smallint,
-    CONSTRAINT messages_kind_check CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text]))),
+    CONSTRAINT messages_kind_check CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text]))),
     CONSTRAINT messages_sender_check CHECK ((sender = ANY (ARRAY['user'::text, 'moly'::text]))),
     CONSTRAINT messages_turn_position_ck CHECK ((((turn_seq IS NULL) AND (turn_position IS NULL)) OR ((turn_seq > 0) AND ((turn_position >= 0) AND (turn_position <= 2)))))
 );
@@ -793,6 +795,9 @@ CREATE TABLE public.moly_life_ments (
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     diary_date date,
+    week_start_date date,
+    sequence_no integer,
+    CONSTRAINT moly_life_ments_week_shape_check CHECK ((((week_start_date IS NULL) AND (sequence_no IS NULL)) OR ((week_start_date IS NOT NULL) AND (sequence_no IS NOT NULL) AND (diary_date IS NULL) AND (EXTRACT(isodow FROM week_start_date) = 1) AND (sequence_no > 0)))),
     CONSTRAINT moly_life_ments_weather_check CHECK ((weather = ANY (ARRAY['sunny'::text, 'cloudy'::text, 'rainy'::text, 'windy'::text])))
 );
 
@@ -1646,6 +1651,9 @@ CREATE INDEX conversation_checkpoints_live_idx ON public.conversation_checkpoint
 -- INDEX: public.conversation_checkpoints_published_window_uq
 CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text));
 
+-- INDEX: public.diary_generation_results_user_preset_uq
+CREATE UNIQUE INDEX diary_generation_results_user_preset_uq ON public.diary_generation_results USING btree (user_id, preset_ment_id) WHERE (status = 'preset'::text);
+
 -- INDEX: public.diaries_one_daily_uq
 CREATE UNIQUE INDEX diaries_one_daily_uq ON public.diaries USING btree (user_id, activity_date) WHERE ((kind = ANY (ARRAY['shared_day'::text, 'capi_day'::text])) AND (deleted_at IS NULL));
 
@@ -1753,6 +1761,9 @@ CREATE UNIQUE INDEX messages_user_id_id_uq ON public.messages USING btree (user_
 
 -- INDEX: public.messages_user_turn_position_uq
 CREATE UNIQUE INDEX messages_user_turn_position_uq ON public.messages USING btree (user_id, turn_seq, turn_position) WHERE (turn_seq IS NOT NULL);
+
+-- INDEX: public.moly_life_ments_week_sequence_uq
+CREATE UNIQUE INDEX moly_life_ments_week_sequence_uq ON public.moly_life_ments USING btree (week_start_date, sequence_no) WHERE (week_start_date IS NOT NULL);
 
 -- INDEX: public.moly_life_ments_diary_date_uq
 CREATE UNIQUE INDEX moly_life_ments_diary_date_uq ON public.moly_life_ments USING btree (diary_date) WHERE (diary_date IS NOT NULL);
@@ -1933,6 +1944,10 @@ ALTER TABLE ONLY public.diary_claim_sources
 -- FK CONSTRAINT: public.diary_claim_sources diary_claim_sources_user_id_message_id_fkey
 ALTER TABLE ONLY public.diary_claim_sources
     ADD CONSTRAINT diary_claim_sources_user_id_message_id_fkey FOREIGN KEY (user_id, message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.diary_generation_results diary_generation_results_preset_ment_id_fkey
+ALTER TABLE ONLY public.diary_generation_results
+    ADD CONSTRAINT diary_generation_results_preset_ment_id_fkey FOREIGN KEY (preset_ment_id) REFERENCES public.moly_life_ments(id) ON DELETE RESTRICT;
 
 -- FK CONSTRAINT: public.diary_generation_results diary_generation_results_user_id_fkey
 ALTER TABLE ONLY public.diary_generation_results
@@ -2711,5 +2726,65 @@ GRANT ALL ON TABLE public.user_schedules TO service_role;
 
 -- Auth signup hook (owned by this application).
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Topic offers and prepared conversation openings.
+CREATE TABLE IF NOT EXISTS public.user_topic_states (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  placement text NOT NULL CHECK (placement = 'home_blind'),
+  offer_id uuid NOT NULL UNIQUE,
+  offer_sequence bigint NOT NULL CHECK (offer_sequence > 0),
+  topic_id text NOT NULL,
+  topic_revision text NOT NULL,
+  questions jsonb NOT NULL,
+  day_high_watermark date NOT NULL,
+  completed boolean NOT NULL DEFAULT false,
+  daily_open_count smallint NOT NULL DEFAULT 0 CONSTRAINT topic_daily_open_limit CHECK (daily_open_count BETWEEN 0 AND 2),
+  offer_opened boolean NOT NULL DEFAULT false,
+  offered_at timestamptz NOT NULL,
+  updated_at timestamptz NOT NULL,
+  PRIMARY KEY (user_id, placement)
+);
+
+CREATE TABLE IF NOT EXISTS public.chat_topic_entries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  placement text NOT NULL,
+  offer_id uuid NOT NULL,
+  offer_sequence bigint NOT NULL,
+  topic_id text NOT NULL,
+  topic_revision text NOT NULL,
+  questions jsonb NOT NULL,
+  context_revision bigint NOT NULL,
+  state text NOT NULL DEFAULT 'pending',
+  timezone_name text NOT NULL,
+  local_date date NOT NULL,
+  created_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL,
+  committed_message_id bigint,
+  first_user_message_id bigint,
+  FOREIGN KEY (user_id, committed_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id, first_user_message_id) REFERENCES public.messages(user_id, id) ON DELETE CASCADE,
+  CONSTRAINT topic_entry_state CHECK (state IN ('pending','committed','superseded')),
+  CONSTRAINT topic_entry_expiration CHECK (expires_at > created_at),
+  CONSTRAINT topic_entry_committed_links CHECK (
+    state <> 'committed' OR (committed_message_id IS NOT NULL AND first_user_message_id IS NOT NULL)
+  ),
+  CONSTRAINT topic_entry_pending_links CHECK (
+    state <> 'pending' OR (committed_message_id IS NULL AND first_user_message_id IS NULL)
+  )
+);
+CREATE UNIQUE INDEX IF NOT EXISTS topic_entry_one_pending
+  ON public.chat_topic_entries(user_id) WHERE state = 'pending';
+CREATE UNIQUE INDEX IF NOT EXISTS topic_entry_one_answer
+  ON public.chat_topic_entries(user_id, offer_id) WHERE first_user_message_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS topic_entry_offer_lookup
+  ON public.chat_topic_entries(user_id, offer_id, created_at);
+CREATE INDEX IF NOT EXISTS topic_entry_expiry
+  ON public.chat_topic_entries(expires_at) WHERE state <> 'committed';
+
+ALTER TABLE public.user_topic_states ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_topic_entries ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.user_topic_states, public.chat_topic_entries FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.user_topic_states, public.chat_topic_entries TO service_role;
 
 COMMIT;

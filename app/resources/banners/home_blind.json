@@ -595,7 +595,7 @@
       }
     },
     {
-      "id": "purple-image-test",
+      "id": "mood-daily",
       "component": "banner_canvas_v1",
       "layout_profile": "home_blind_v1",
       "enabled": true,
@@ -607,23 +607,18 @@
       ],
       "min_app_version": null,
       "max_app_version_exclusive": null,
-      "bindings": {
-        "question": {
-          "source": "topic.question",
-          "format": null
-        }
-      },
+      "bindings": {},
       "when": null,
       "canvases_by_locale": {
         "en": {
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
-              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
-              "byte_length": 5872,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-2-86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5.webp",
+              "sha256": "86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5",
+              "byte_length": 7484,
               "pixel_width": 1000,
-              "pixel_height": 563,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -652,7 +647,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "TODAY'S TOPIC"
+                "value": "New feature"
               },
               "style": {
                 "font": "body",
@@ -697,7 +692,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "{question}"
+                "value": "Mood journaling is here!"
               },
               "style": {
                 "font": "body",
@@ -742,7 +737,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "Let’s talk"
+                "value": "Write a diary"
               },
               "style": {
                 "font": "body",
@@ -767,10 +762,10 @@
                 "action-surface",
                 "action-label"
               ],
-              "accessibility_label": "Let’s talk",
+              "accessibility_label": "Write a diary",
               "semantics_order": 3,
               "action": {
-                "type": "open_topic_conversation_v1"
+                "type": "open_mood"
               }
             }
           ]
@@ -779,11 +774,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
-              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
-              "byte_length": 5872,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-2-86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5.webp",
+              "sha256": "86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5",
+              "byte_length": 7484,
               "pixel_width": 1000,
-              "pixel_height": 563,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -812,7 +807,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "오늘의 대화 주제"
+                "value": "새로운 기능"
               },
               "style": {
                 "font": "body",
@@ -857,7 +852,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "{question}"
+                "value": "감정 일기 기능이 업데이트 되었어요!"
               },
               "style": {
                 "font": "body",
@@ -902,7 +897,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "대화하기"
+                "value": "일기쓰기"
               },
               "style": {
                 "font": "body",
@@ -927,10 +922,10 @@
                 "action-surface",
                 "action-label"
               ],
-              "accessibility_label": "대화하기",
+              "accessibility_label": "일기쓰기",
               "semantics_order": 3,
               "action": {
-                "type": "open_topic_conversation_v1"
+                "type": "open_mood"
               }
             }
           ]
@@ -939,11 +934,11 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
-              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
-              "byte_length": 5872,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/feature-background-2-86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5.webp",
+              "sha256": "86db0e52a31d47c7ad0ff5895cec8667b1796617032fffee6dd54deb941a96a5",
+              "byte_length": 7484,
               "pixel_width": 1000,
-              "pixel_height": 563,
+              "pixel_height": 551,
               "media_type": "image/webp"
             },
             "fit": "cover",
@@ -972,7 +967,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "今日の話題"
+                "value": "新機能"
               },
               "style": {
                 "font": "body",
@@ -1017,7 +1012,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "{question}"
+                "value": "気持ちを残せる\n日記機能が登場！"
               },
               "style": {
                 "font": "body",
@@ -1062,7 +1057,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "話してみる"
+                "value": "日記を書く"
               },
               "style": {
                 "font": "body",
@@ -1087,10 +1082,10 @@
                 "action-surface",
                 "action-label"
               ],
-              "accessibility_label": "話してみる",
+              "accessibility_label": "日記を書く",
               "semantics_order": 3,
               "action": {
-                "type": "open_topic_conversation_v1"
+                "type": "open_mood"
               }
             }
           ]
@@ -1596,504 +1591,6 @@
       }
     },
     {
-      "id": "mood-daily",
-      "component": "banner_canvas_v1",
-      "layout_profile": "home_blind_v1",
-      "enabled": true,
-      "starts_at": null,
-      "ends_at": null,
-      "platforms": [
-        "ios",
-        "android"
-      ],
-      "min_app_version": null,
-      "max_app_version_exclusive": null,
-      "bindings": {},
-      "when": null,
-      "canvases_by_locale": {
-        "en": {
-          "background": {
-            "type": "image_background_v1",
-            "source": {
-              "sha256": "cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347",
-              "byte_length": 5634,
-              "pixel_width": 1000,
-              "pixel_height": 551,
-              "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/mood-background-1-cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347.webp"
-            },
-            "fit": "cover",
-            "alignment": {
-              "x": 0.5,
-              "y": 0.5
-            },
-            "base_color": "#FFFFFF"
-          },
-          "radius": 16,
-          "border": {
-            "width": 0,
-            "color": "#2A1D15"
-          },
-          "elements": [
-            {
-              "id": "heading",
-              "type": "text_v1",
-              "semantics_order": 0,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "How are you feeling?"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "heading-divider",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.458,
-                "y": 0.254,
-                "width": 0.084,
-                "height": 0.012
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 0.9,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
-            },
-            {
-              "id": "message",
-              "type": "text_v1",
-              "semantics_order": 1,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.06,
-                "y": 0.326,
-                "width": 0.88,
-                "height": 0.294
-              },
-              "text": {
-                "kind": "template",
-                "value": "Take a moment to log your mood."
-              },
-              "style": {
-                "font": "body",
-                "font_size": 16,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 2,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "action-surface",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.3,
-                "y": 0.68,
-                "width": 0.4,
-                "height": 0.21
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 16.5,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
-            },
-            {
-              "id": "action-label",
-              "type": "text_v1",
-              "semantics_order": 2,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.32,
-                "y": 0.7,
-                "width": 0.36,
-                "height": 0.17
-              },
-              "text": {
-                "kind": "template",
-                "value": "Log mood"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 14,
-                "weight": 600,
-                "color": "#FFFFFF",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "primary-action",
-              "type": "action_region_v1",
-              "frame": {
-                "x": 0.3,
-                "y": 0.68,
-                "width": 0.4,
-                "height": 0.256
-              },
-              "content_ids": [
-                "action-surface",
-                "action-label"
-              ],
-              "accessibility_label": "Log mood",
-              "semantics_order": 3,
-              "action": {
-                "type": "open_mood"
-              }
-            }
-          ]
-        },
-        "ko": {
-          "background": {
-            "type": "image_background_v1",
-            "source": {
-              "sha256": "cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347",
-              "byte_length": 5634,
-              "pixel_width": 1000,
-              "pixel_height": 551,
-              "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/mood-background-1-cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347.webp"
-            },
-            "fit": "cover",
-            "alignment": {
-              "x": 0.5,
-              "y": 0.5
-            },
-            "base_color": "#FFFFFF"
-          },
-          "radius": 16,
-          "border": {
-            "width": 0,
-            "color": "#2A1D15"
-          },
-          "elements": [
-            {
-              "id": "heading",
-              "type": "text_v1",
-              "semantics_order": 0,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "오늘의 감정은?"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "heading-divider",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.458,
-                "y": 0.254,
-                "width": 0.084,
-                "height": 0.012
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 0.9,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
-            },
-            {
-              "id": "message",
-              "type": "text_v1",
-              "semantics_order": 1,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.06,
-                "y": 0.326,
-                "width": 0.88,
-                "height": 0.294
-              },
-              "text": {
-                "kind": "template",
-                "value": "오늘의 감정을 기록해보세요!"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 16,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 2,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "action-surface",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.3,
-                "y": 0.68,
-                "width": 0.4,
-                "height": 0.21
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 16.5,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
-            },
-            {
-              "id": "action-label",
-              "type": "text_v1",
-              "semantics_order": 2,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.32,
-                "y": 0.7,
-                "width": 0.36,
-                "height": 0.17
-              },
-              "text": {
-                "kind": "template",
-                "value": "기록하기"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 14,
-                "weight": 600,
-                "color": "#FFFFFF",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "primary-action",
-              "type": "action_region_v1",
-              "frame": {
-                "x": 0.3,
-                "y": 0.68,
-                "width": 0.4,
-                "height": 0.256
-              },
-              "content_ids": [
-                "action-surface",
-                "action-label"
-              ],
-              "accessibility_label": "기록하기",
-              "semantics_order": 3,
-              "action": {
-                "type": "open_mood"
-              }
-            }
-          ]
-        },
-        "ja": {
-          "background": {
-            "type": "image_background_v1",
-            "source": {
-              "sha256": "cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347",
-              "byte_length": 5634,
-              "pixel_width": 1000,
-              "pixel_height": 551,
-              "media_type": "image/webp",
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/mood-background-1-cd8e6d9c288d2d084149f5e9ceb1bc794b0cd21986066c101ff4156ec6417347.webp"
-            },
-            "fit": "cover",
-            "alignment": {
-              "x": 0.5,
-              "y": 0.5
-            },
-            "base_color": "#FFFFFF"
-          },
-          "radius": 16,
-          "border": {
-            "width": 0,
-            "color": "#2A1D15"
-          },
-          "elements": [
-            {
-              "id": "heading",
-              "type": "text_v1",
-              "semantics_order": 0,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.08,
-                "y": 0.09,
-                "width": 0.84,
-                "height": 0.14
-              },
-              "text": {
-                "kind": "template",
-                "value": "今日の気分は？"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 12,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "heading-divider",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.458,
-                "y": 0.254,
-                "width": 0.084,
-                "height": 0.012
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 0.9,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
-            },
-            {
-              "id": "message",
-              "type": "text_v1",
-              "semantics_order": 1,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.06,
-                "y": 0.326,
-                "width": 0.88,
-                "height": 0.294
-              },
-              "text": {
-                "kind": "template",
-                "value": "今の気持ちを残してみよう"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 16,
-                "weight": 600,
-                "color": "#000000",
-                "align": "center",
-                "max_lines": 2,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "action-surface",
-              "type": "shape_v1",
-              "frame": {
-                "x": 0.3,
-                "y": 0.68,
-                "width": 0.4,
-                "height": 0.21
-              },
-              "background": {
-                "type": "solid_v1",
-                "color": "#000000"
-              },
-              "radius": 16.5,
-              "border": {
-                "width": 0,
-                "color": "#000000"
-              },
-              "semantics_order": null
-            },
-            {
-              "id": "action-label",
-              "type": "text_v1",
-              "semantics_order": 2,
-              "vertical_align": "center",
-              "frame": {
-                "x": 0.32,
-                "y": 0.7,
-                "width": 0.36,
-                "height": 0.17
-              },
-              "text": {
-                "kind": "template",
-                "value": "記録する"
-              },
-              "style": {
-                "font": "body",
-                "font_size": 14,
-                "weight": 600,
-                "color": "#FFFFFF",
-                "align": "center",
-                "max_lines": 1,
-                "line_height": 1.15
-              }
-            },
-            {
-              "id": "primary-action",
-              "type": "action_region_v1",
-              "frame": {
-                "x": 0.3,
-                "y": 0.68,
-                "width": 0.4,
-                "height": 0.256
-              },
-              "content_ids": [
-                "action-surface",
-                "action-label"
-              ],
-              "accessibility_label": "記録する",
-              "semantics_order": 3,
-              "action": {
-                "type": "open_mood"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
       "id": "music-daily",
       "component": "banner_canvas_v1",
       "layout_profile": "home_blind_v1",
@@ -2467,6 +1964,509 @@
               "semantics_order": 3,
               "action": {
                 "type": "open_music"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "purple-image-test",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {
+        "question": {
+          "source": "topic.question",
+          "format": null
+        }
+      },
+      "when": null,
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
+              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
+              "byte_length": 5872,
+              "pixel_width": 1000,
+              "pixel_height": 563,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "TODAY'S TOPIC"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.326,
+                "width": 0.88,
+                "height": 0.294
+              },
+              "text": {
+                "kind": "template",
+                "value": "{question}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "Let’s talk"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "Let’s talk",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_topic_conversation_v1"
+              }
+            }
+          ]
+        },
+        "ko": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
+              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
+              "byte_length": 5872,
+              "pixel_width": 1000,
+              "pixel_height": 563,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 대화 주제"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.326,
+                "width": 0.88,
+                "height": 0.294
+              },
+              "text": {
+                "kind": "template",
+                "value": "{question}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "대화하기"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "대화하기",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_topic_conversation_v1"
+              }
+            }
+          ]
+        },
+        "ja": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/conversation-topic-background-3-684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef.webp",
+              "sha256": "684168436d51b8647d9d5876889a687ce08b213dbddd25d29e0a61e8ab8cddef",
+              "byte_length": 5872,
+              "pixel_width": 1000,
+              "pixel_height": 563,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FFFFFF"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "今日の話題"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.326,
+                "width": 0.88,
+                "height": 0.294
+              },
+              "text": {
+                "kind": "template",
+                "value": "{question}"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
+              "semantics_order": 2,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "話してみる"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 14,
+                "weight": 600,
+                "color": "#FFFFFF",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
+              },
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "話してみる",
+              "semantics_order": 3,
+              "action": {
+                "type": "open_topic_conversation_v1"
               }
             }
           ]

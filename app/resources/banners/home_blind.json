@@ -852,7 +852,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "감정 일기 기능이 업데이트 되었어요!"
+                "value": "감정 일기가 추가되었어요!"
               },
               "style": {
                 "font": "body",
@@ -1012,7 +1012,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "気持ちを残せる\n日記機能が登場！"
+                "value": "感情日記が登場！"
               },
               "style": {
                 "font": "body",

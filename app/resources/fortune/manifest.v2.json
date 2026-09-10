@@ -1,6 +1,9 @@
 {
   "schema": "fortune-manifest-v2",
   "assets": {
+    "rules.v2.json": {
+      "sha256": "e65b6be07b523e8b8c8e9ace4e0863d4859f2f729f2c6ec02963b1a660ff33c0"
+    },
     "copy.v2.json": {
       "sha256": "977a6afa4a4288ab8340b125de371c6f5894b83ad023b74fb765046bdc741212"
     },
@@ -10,8 +13,17 @@
     "copy.v2.ja.json": {
       "sha256": "e47c80050df6e9cb14a85b7bef8d3cd47d9f45bf410a8cbeb82082b628bd3cc4"
     },
-    "rules.v2.json": {
-      "sha256": "e65b6be07b523e8b8c8e9ace4e0863d4859f2f729f2c6ec02963b1a660ff33c0"
+    "copy.v3.json": {
+      "sha256": "93a1df8493b3c5977bb2c8b7fb610ec32a8423c6a6f38eb500652f4586b996d6"
+    },
+    "copy.v3.en.json": {
+      "sha256": "bbe7fcb3341ff7fea9f206a590dea983cb0e6bb671d191d22b10cd1685bdd06f"
+    },
+    "copy.v3.ja.json": {
+      "sha256": "516ad00c2e16fccc0c8c475db80d445b28a240b0160799f631e830b8dc7b76b5"
+    },
+    "tarot-editorial.v2.json": {
+      "sha256": "61c2ef042b08fdaecff20675809507ebb9c8b54c8512ae2390276db8f2015f8e"
     }
   }
 }

@@ -26,7 +26,7 @@ def _header(title: str, version: str) -> list[str]:
         f"# {title}", "",
         f"> 카탈로그 버전: `{version}` · 서버 자산에서 생성한 전체 전문",
         f"> 한국어: `{COPY_VERSIONS['ko']}` · 영어: `{COPY_VERSIONS['en']}` · 일본어: `{COPY_VERSIONS['ja']}`",
-        "> 영어·일본어는 승인된 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·점수대·ID를 대조해 읽는다.",
+        "> 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.",
         "> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다", "",
         "[운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)", "",
     ]
@@ -46,38 +46,37 @@ def _bundle_rows(bundles, *, overall):
 
 def render_documents() -> dict[Path, str]:
     from app.services.fortune_catalog import COPY_VERSION, load_catalog
-    from app.services.fortune_copy_selection import CATEGORY_KEYS, DECILES, VARIANT_IDS
+    from app.services.fortune_tarot import FILENAME
 
-    catalog = load_catalog()
-    briefs = json.loads((ROOT / "docs/fortune-content/briefs.json").read_text())
+    load_catalog()
+    resource_dir = ROOT / "app/resources/fortune"
+    copies = {
+        locale: json.loads((resource_dir / filename).read_text())["readings"]
+        for locale, filename in zip(LOCALES, ("copy.v3.json", "copy.v3.en.json", "copy.v3.ja.json"))
+    }
+    editorial = json.loads((resource_dir / FILENAME).read_text())["readings"]
     directory = ROOT / "docs/fortune-content"
     documents = {}
-    for decile in DECILES:
-        number = int(decile[1:])
-        upper = 100 if number == 90 else number + 9
-        route = f"overall.{decile}.general"
-        lines = _header(f"오늘의 총평 {number}–{upper}점 — 20묶음 × 3언어", COPY_VERSION)
-        lines.extend([briefs["score_bands"][decile]["direction"], "",
-                      "내부 계산 유형과 관계없이 이 점수 구간의 20묶음에서 선택한다", ""])
-        for variant in VARIANT_IDS:
-            lines.extend([f"## {variant}", ""])
-            bundles = [catalog.overall_by_locale[locale][route]["variants"][variant] for locale in LOCALES]
-            lines.extend(_bundle_rows(bundles, overall=True))
-        documents[directory / f"overall-{decile}.md"] = "\n".join(lines)
-    for category in CATEGORY_KEYS:
-        lines = _header(f"{LABELS[category]} 운세 — 10점수 구간 × 20변형 × 3언어", COPY_VERSION)
-        lines.extend([briefs["category_contracts"][category], "",
-                      "같은 분야·점수·ID의 세 언어는 같은 상황과 제안을 담는다. ID는 점수 간 고정 주제를 뜻하지 않는다.", ""])
-        for decile in DECILES:
-            number = int(decile[1:])
-            upper = 100 if number == 90 else number + 9
-            route = f"category.{category}.{decile}.general"
-            lines.extend([f"## {number}–{upper}점 — `{route}`", ""])
-            for variant in VARIANT_IDS:
-                lines.extend([f"### {variant}", ""])
-                bundles = [catalog.categories_by_locale[locale][route]["variants"][variant] for locale in LOCALES]
-                lines.extend(_bundle_rows(bundles, overall=False))
-        documents[directory / f"category-{category}.md"] = "\n".join(lines)
+    for axis in ("overall", "love", "money", "work", "energy"):
+        title = "오늘의 총평" if axis == "overall" else f"{LABELS[axis]} 운세"
+        lines = _header(f"{title} — 78장 × 정·역방향 × 3언어", COPY_VERSION)
+        lines.extend([
+            "점수와 무관하게 추첨한 카드에 해당하는 완성 문단을 사용한다. 점수대별 변형이나 요청 중 문장 조합은 없다.",
+            "", "아래 카드·방향·해석 근거는 내부 편집 자료이며 앱에는 운세 문구만 표시한다.", "",
+        ])
+        for key in sorted(k for k in editorial if k.startswith(axis + ".")):
+            source = editorial[key]
+            orientation = "정방향" if source["orientation"] == "upright" else "역방향"
+            lines.extend([
+                f"## {source['card_id']} · {orientation}", "",
+                f"내부 ID: `{key}`", "",
+                f"카드 의미: {source['meaning']}", "",
+                f"분야 해석: {source['angle']}", "",
+                "관찰: " + " / ".join(source["observations"]), "",
+            ])
+            lines.extend(_bundle_rows([copies[locale][key] for locale in LOCALES], overall=axis == "overall"))
+        name = "overall.md" if axis == "overall" else f"category-{axis}.md"
+        documents[directory / name] = "\n".join(lines)
     return documents
 
 
@@ -95,7 +94,15 @@ def main() -> int:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content)
     obsolete = set((ROOT / "docs/fortune-content").glob("overall-*.md")) - set(documents)
-    stale.extend(str(p.relative_to(ROOT)) for p in sorted(obsolete))
+    if args.check:
+        stale.extend(str(p.relative_to(ROOT)) for p in sorted(obsolete))
+    else:
+        # Only generated score-band documents are retired; review records stay intact.
+        for path in obsolete:
+            if path.stem in {f"overall-d{n:02d}" for n in range(0, 100, 10)}:
+                path.unlink()
+            else:
+                stale.append(str(path.relative_to(ROOT)))
     if stale:
         print("Fortune copy documents are stale or obsolete:\n" + "\n".join(stale))
         return 1

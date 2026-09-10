@@ -89,7 +89,7 @@ def test_birth_date_age_and_lower_bound_are_explicit():
 
 
 def test_result_build_is_deterministic_and_has_complete_localized_projections():
-    profile = SimpleNamespace(birth_date=date(2002, 12, 13))
+    profile = SimpleNamespace(birth_date=date(2002, 12, 13), user_id="00000000-0000-0000-0000-000000000001")
     first = fortune._build_result(
         profile=profile,
         today=date(2026, 8, 27),
@@ -107,9 +107,9 @@ def test_result_build_is_deterministic_and_has_complete_localized_projections():
     assert set(semantic["categories"]) == {"love", "money", "work", "energy"}
     assert set(localized) == {"ko", "en", "ja"}
     selection = semantic["copy_selection"]
-    assert set(selection) == {"version", "selected", "routes"}
-    assert set(selection["selected"]) == {"overall", "love", "money", "work", "energy"}
-    assert all(value in {f"v{index:02d}" for index in range(1, 21)} for value in selection["selected"].values())
+    assert set(selection) == {"version", "day", "cards"}
+    assert set(selection["cards"]) == {"overall", "love", "money", "work", "energy"}
+    assert len({value["card_id"] for value in selection["cards"].values()}) == 5
     for copy in localized.values():
         assert len(copy["overall"]["flow"]) == 3
         assert all(len(value["text"]) == 2 for value in copy["categories"].values())
@@ -117,7 +117,7 @@ def test_result_build_is_deterministic_and_has_complete_localized_projections():
 
 def test_public_result_matches_frontend_v3_schema():
     semantic, copies = fortune._build_result(
-        profile=SimpleNamespace(birth_date=date(2002, 12, 13)),
+        profile=SimpleNamespace(birth_date=date(2002, 12, 13), user_id="00000000-0000-0000-0000-000000000001"),
         today=date(2026, 8, 27),
         timezone_name="Asia/Seoul",
     )
@@ -374,7 +374,7 @@ def test_response_contract_rejects_detail_in_locked_result_and_partial_revealed_
 
 
 @pytest.mark.parametrize("semantic_schema", [3, 4])
-@pytest.mark.parametrize("copy_version", ["fortune-copy.v3-independent.1", "fortune-copy.v3-ko-editorial.1"])
+@pytest.mark.parametrize("copy_version", ["fortune-copy.v3-independent.1", "fortune-copy.v3-ko-editorial.1", "fortune-copy.v3-editorial.1"])
 def test_existing_snapshot_stays_current_after_editorial_revision(semantic_schema, copy_version):
     row = SimpleNamespace(
         fortune_date=date(2026, 8, 27),

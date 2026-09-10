@@ -2,6 +2,7 @@
 from datetime import date, timedelta
 from itertools import combinations
 from statistics import correlation, mean, pstdev
+from types import SimpleNamespace
 
 import pytest
 
@@ -36,14 +37,39 @@ def test_held_out_axes_do_not_follow_overall_or_collapse_to_fifty():
     columns = list(zip(*rows))
     for col in columns:
         assert col.count(50) / len(col) <= .03
-        assert pstdev(col) >= 18
-        assert min(col) == 0 and max(col) == 100
+        assert pstdev(col) >= 16
+        assert min(col) == 30 and max(col) == 100
+        assert .13 < sum(30 <= score < 40 for score in col) / len(col) < .15
     for a, b in combinations(columns, 2):
         assert abs(correlation(a, b)) < .08
     for i in range(1, 5):
-        low = [r[i] for r in rows if r[0] < 30]
+        low = [r[i] for r in rows if r[0] < 40]
         high = [r[i] for r in rows if r[0] >= 80]
         assert abs(mean(low) - mean(high)) < 3
     spreads = [max(r[1:]) - min(r[1:]) for r in rows]
     assert sum(s <= 10 for s in spreads) / len(spreads) <= .10
     assert sum(s >= 25 for s in spreads) / len(spreads) >= .65
+
+
+@pytest.mark.parametrize("raw_score", range(101))
+def test_floor_covers_every_original_score_on_every_axis(monkeypatch, raw_score):
+    # Choose a digest in the middle of each original score's inverse-CDF interval.
+    # Lock the original distribution independently of production constants.
+    weights = (1, 2, 4, 7, 12, 18, 22, 18, 11, 5)
+    band = min(raw_score // 10, 9)
+    width = 11 if band == 9 else 10
+    offset = raw_score - band * 10
+    value = ((sum(weights[:band]) * 2 * width + weights[band] * (2 * offset + 1))
+             * (1 << 256) // (100 * 2 * width))
+    monkeypatch.setattr(fortune_scores, "sha256", lambda _: SimpleNamespace(
+        digest=lambda: value.to_bytes(32, "big"),
+    ))
+    result = fortune_scores.generate_result(birth_date=date(2000, 1, 1), local_date=date(2026, 9, 10))
+    expected = 30 + raw_score // 3 if raw_score < 30 else raw_score
+    decile = min(expected // 10, 9) * 10
+    for item in [result["overall"], *result["categories"].values()]:
+        assert item["score"] == expected
+        assert f".d{decile:02d}." in item["expression_route"]
+        assert f".d{decile:02d}." in item["reading_code"]
+    if raw_score < 30:
+        assert result["lucky_color_key"] == "blue"

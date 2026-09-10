@@ -6,10 +6,12 @@ from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 import json
 import os
+import re
 from types import SimpleNamespace
 import uuid
 
 import asyncpg
+from fastapi.encoders import jsonable_encoder
 import pytest
 import pytest_asyncio
 from sqlalchemy.engine import make_url
@@ -18,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from app.models.fortune import DailyFortune
 from app.schemas.fortune import FortuneProfilePut
 from app.services import fortune, fortune_catalog, fortune_scores, privacy
-from app.services.fortune_copy_selection import overall_copy_route, variant_order
+from app.services.fortune_copy_selection import draw_cards
 from db.envfile import assert_dev_target, load_conn
 from db.schema_contract import require_scratch
 
@@ -28,7 +30,7 @@ DAY = date(2026, 9, 8)
 NOW = datetime(2026, 9, 8, 10, tzinfo=timezone.utc)
 
 
-def _semantic():
+def _legacy_semantic():
     return {
         "schema_version": 3,
         "overall": {
@@ -45,6 +47,17 @@ def _semantic():
             for category in ("love", "money", "work", "energy")
         },
         "lucky_color_key": "coral",
+    }
+
+
+def _semantic():
+    return {
+        "schema_version": 4,
+        "overall": {"score": 60, "reading_code": "overall.d60.general", "expression_route": "overall.d60.general"},
+        "categories": {axis: {"score": 50, "reading_code": f"category.{axis}.d50.general.clear",
+                              "expression_route": f"category.{axis}.d50.general"}
+                       for axis in ("love", "money", "work", "energy")},
+        "lucky_color_key": fortune_scores.COLORS[6],
     }
 
 
@@ -117,28 +130,29 @@ async def test_parallel_reveal_allocates_once_and_locale_only_changes_copy(fortu
     left, right = await asyncio.gather(_reveal(db), _reveal(db))
     assert left["result"] == right["result"]
     stored = await _stored(db)
-    assert len(stored["copy_selection"]["routes"]) == 5
-    assert all(c["position"] == 0 for c in stored["copy_selection"]["routes"].values())
-    for locale in ("en", "ja"):
+    assert stored["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY)
+    for locale in ("ko", "en", "ja"):
         result = await _reveal(db, locale=locale)
         semantic = {k: v for k, v in stored.items() if k != "copy_selection"}
-        expected = fortune_catalog.load_catalog().render(
-            semantic, locale, selected=stored["copy_selection"]["selected"],
+        expected = fortune_catalog.load_catalog().render_cards(
+            semantic, locale, selection=stored["copy_selection"],
         )
         assert result["result"]["overall"]["headline"] == expected["overall"]["headline"]
         assert await _stored(db) == stored
         assert "copy_selection" not in result["result"]
+        public_payload = json.dumps(jsonable_encoder(result), ensure_ascii=False)
+        assert not re.search(r"타로|タロット|\btarot\b|major\.[a-z_]+|(?:cups|swords|wands|pentacles)\.\d", public_payload, re.I)
+        assert not any(key in public_payload for key in ('"card_id"', '"orientation"', '"observations"', '"copy_sha256"'))
 
 
-async def test_new_date_advances_and_same_day_profile_edits_keep_position(fortune_db):
+async def test_new_date_draw_and_same_day_profile_edit_and_date_rollback(fortune_db):
     db = fortune_db
     await _reveal(db)
     first = await _stored(db)
     await _reveal(db, now=NOW + timedelta(days=1))
     second = await _stored(db)
     assert first["overall"] == second["overall"]
-    assert first["copy_selection"]["selected"] != second["copy_selection"]["selected"]
-    assert all(c["position"] == 1 for c in second["copy_selection"]["routes"].values())
+    assert second["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.put_profile(
             session, str(db.uid),
@@ -148,7 +162,7 @@ async def test_new_date_advances_and_same_day_profile_edits_keep_position(fortun
     await _reveal(db, now=NOW + timedelta(days=1))
     assert await _stored(db) == second
     await _reveal(db, now=NOW)
-    assert (await _stored(db))["copy_selection"] == second["copy_selection"]
+    assert (await _stored(db))["copy_selection"] == first["copy_selection"]
     await _reveal(db, now=NOW + timedelta(days=1))
     assert (await _stored(db))["copy_selection"] == second["copy_selection"]
 
@@ -172,12 +186,7 @@ async def test_flush_then_failed_commit_does_not_consume_a_variant(fortune_db):
     assert await _stored(db) == before
     await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
-    for key, variant in after["copy_selection"]["selected"].items():
-        route = after["overall" if key == "overall" else "categories"]
-        route = route["expression_route"] if key == "overall" else route[key]["expression_route"]
-        if key == "overall":
-            route = overall_copy_route(route)
-        assert variant == variant_order(route)[1]
+    assert after["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
 
 
 async def test_legacy_snapshot_and_coral_stay_fixed_until_new_date(fortune_db):
@@ -197,7 +206,8 @@ async def test_legacy_snapshot_and_coral_stay_fixed_until_new_date(fortune_db):
     assert result["versions"]["copy"] == "fortune-copy.v2-initial.1"
     assert "copy_selection" not in await _stored(db)
     result = await _reveal(db, now=NOW + timedelta(days=1))
-    assert result["result"]["lucky_color"] == {"key": "coral", "name": "회색", "hex": "#9E9E9E"}
+    assert result["result"]["lucky_color"]["key"] == fortune_scores.COLORS[6]
+    assert result["result"]["lucky_color"]["name"] != "코랄"
     assert "copy_selection" in await _stored(db)
 
 
@@ -215,7 +225,7 @@ async def test_type_based_cursor_upgrades_once_and_resets_rewritten_categories(f
 
     db = fortune_db
     before = await _reveal(db)
-    old = _semantic()
+    old = _legacy_semantic()
     source_routes = {'overall': old['overall']['expression_route']}
     source_routes.update({k: v['expression_route'] for k, v in old['categories'].items()})
     selected = {}
@@ -239,16 +249,13 @@ async def test_type_based_cursor_upgrades_once_and_resets_rewritten_categories(f
     await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
     state = after['copy_selection']
-    assert state['version'] == 'fortune-selection.v3'
-    assert state['routes']['overall.d60.general']['position'] == 0
-    for category in ('love', 'money', 'work', 'energy'):
-        assert state['routes'][f'category.{category}.d50.general']['position'] == 0
-    assert len(state['routes']) == 5
+    assert state == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
     await _reveal(db, now=NOW + timedelta(days=1), locale='ja')
     assert await _stored(db) == after
 
 
-async def test_copy_snapshot_preserves_today_and_continues_current_cursor(fortune_db):
+@pytest.mark.parametrize("previous_copy_version", ["fortune-copy.v2-day-overview.1", "fortune-copy.v3-editorial.1"])
+async def test_copy_snapshot_preserves_today_and_continues_current_cursor(fortune_db, previous_copy_version):
     db = fortune_db
     await _reveal(db)
     state = (await _stored(db))["copy_selection"]
@@ -263,28 +270,26 @@ async def test_copy_snapshot_preserves_today_and_continues_current_cursor(fortun
         for locale, lines in old_lines.items():
             copies[locale]["categories"]["love"]["text"] = lines
         row.copy_by_locale = copies
-        row.copy_version = "fortune-copy.v2-day-overview.1"
+        row.copy_version = previous_copy_version
         await session.commit()
 
     for locale, lines in old_lines.items():
         same_day = await _reveal(db, locale=locale)
         assert same_day["result"]["categories"]["love"]["text"] == lines
-        assert same_day["versions"]["copy"] == "fortune-copy.v2-day-overview.1"
+        assert same_day["versions"]["copy"] == previous_copy_version
     assert (await _stored(db))["copy_selection"] == state
 
     tomorrow = await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
     selection = after["copy_selection"]
-    assert selection["version"] == state["version"] == "fortune-selection.v3"
-    assert set(selection["routes"]) == set(state["routes"])
+    assert selection["version"] == state["version"] == "fortune-selection.v4"
+    assert selection == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
     assert tomorrow["versions"]["copy"] == fortune_catalog.COPY_VERSION
-    for route, cursor in selection["routes"].items():
-        assert cursor["position"] == state["routes"][route]["position"] + 1
     semantic = {k: v for k, v in after.items() if k != "copy_selection"}
     for locale in old_lines:
         result = await _reveal(db, now=NOW + timedelta(days=1), locale=locale)
-        expected = fortune_catalog.load_catalog().render(
-            semantic, locale, selected=selection["selected"],
+        expected = fortune_catalog.load_catalog().render_cards(
+            semantic, locale, selection=selection,
         )
         for category, block in expected["categories"].items():
             assert result["result"]["categories"][category]["text"] == block["text"]
@@ -295,16 +300,99 @@ async def test_real_independent_scores_preserve_old_day_and_switch_next_day(fort
     db = fortune_db
     old_response = await _reveal(db)
     old_snapshot = await _stored(db)
-    assert old_snapshot["schema_version"] == 3
+    assert old_snapshot["schema_version"] == 4
     monkeypatch.setattr(fortune_scores, "generate_result", _REAL_GENERATE_RESULT)
     assert await _reveal(db) == old_response
     assert await _stored(db) == old_snapshot
     response = await _reveal(db, now=NOW + timedelta(days=1))
     current = await _stored(db)
     assert current["schema_version"] == 4
-    assert current["copy_selection"]["version"] == "fortune-selection.v3"
+    assert current["copy_selection"]["version"] == "fortune-selection.v4"
     expected = _REAL_GENERATE_RESULT(birth_date=date(2002, 12, 13), local_date=DAY + timedelta(days=1))
     assert current["overall"] == expected["overall"]
     assert current["categories"] == expected["categories"]
     assert response["result"]["schema_version"] == 3
     assert await _reveal(db, now=NOW + timedelta(days=1)) == response
+
+
+async def test_profile_edit_recalculates_scores_preserves_prose_and_recolors(fortune_db, monkeypatch):
+    db = fortune_db
+    first = await _reveal(db)
+    before = await _stored(db)
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        row = await session.get(DailyFortune, db.uid)
+        row.copy_version = "fortune-copy.v5-saved-snapshot.1"
+        await session.commit()
+    changed = _semantic()
+    changed["overall"] = {"score": 90, "reading_code": "overall.d90.general", "expression_route": "overall.d90.general"}
+    changed["lucky_color_key"] = fortune_scores.COLORS[9]
+    monkeypatch.setattr(fortune_scores, "generate_result", lambda **_: changed)
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
+            birth_date=date(2000, 1, 1), gender="woman"), now_utc=NOW)
+    after = await _reveal(db)
+    assert (await _stored(db))["copy_selection"] == before["copy_selection"]
+    assert after["result"]["overall"]["score"] == 90
+    assert after["result"]["overall"]["flow"] == first["result"]["overall"]["flow"]
+    assert after["result"]["categories"] == first["result"]["categories"]
+    assert after["result"]["lucky_color"]["key"] == fortune_scores.COLORS[9]
+    assert after["versions"]["copy"] == "fortune-copy.v5-saved-snapshot.1"
+
+
+async def test_invalidated_legacy_profile_transitions_same_day(fortune_db):
+    db = fortune_db
+    await _reveal(db)
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        row = await session.get(DailyFortune, db.uid)
+        row.semantic_result = _legacy_semantic()
+        row.copy_version = "fortune-copy.v2-initial.1"
+        await session.commit()
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
+            birth_date=date(2000, 1, 1), gender="woman"), now_utc=NOW)
+    result = await _reveal(db)
+    assert (await _stored(db))["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY)
+    assert result["versions"]["copy"] == fortune_catalog.COPY_VERSION
+
+
+async def test_rollback_build_keeps_v4_snapshot_and_labels_new_legacy_copy(fortune_db, monkeypatch):
+    db = fortune_db
+    first = await _reveal(db)
+    initial = await _stored(db)
+    monkeypatch.setattr(fortune, "_COPY_POLICY", "legacy")
+    assert await _reveal(db) == first
+    assert await _stored(db) == initial
+    tomorrow = await _reveal(db, now=NOW + timedelta(days=1))
+    assert (await _stored(db))["copy_selection"]["version"] == "fortune-selection.v3"
+    assert tomorrow["versions"]["copy"] == fortune_catalog.LEGACY_COPY_VERSIONS["ko"]
+    monkeypatch.setattr(fortune, "_COPY_POLICY", "tarot")
+    assert await _reveal(db, now=NOW + timedelta(days=1)) == tomorrow
+    restored = await _reveal(db, now=NOW + timedelta(days=2))
+    assert (await _stored(db))["copy_selection"]["version"] == "fortune-selection.v4"
+    assert restored["versions"]["copy"] == fortune_catalog.COPY_VERSION
+
+
+async def test_timezone_changes_and_profile_recreation_keep_date_draw_contract(fortune_db):
+    db = fortune_db
+    first = await _reveal(db)
+    initial = (await _stored(db))["copy_selection"]
+    await db.conn.execute("UPDATE profiles SET timezone='Asia/Seoul' WHERE id=$1", db.uid)
+    same_date = await _reveal(db)
+    assert (await _stored(db))["copy_selection"] == initial
+    assert same_date["result"] == first["result"]
+    await db.conn.execute("UPDATE profiles SET timezone='Pacific/Kiritimati' WHERE id=$1", db.uid)
+    await _reveal(db)
+    assert (await _stored(db))["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
+    await db.conn.execute("UPDATE profiles SET timezone='UTC' WHERE id=$1", db.uid)
+    returned = await _reveal(db)
+    assert (await _stored(db))["copy_selection"] == initial
+    assert returned["result"] == first["result"]
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        await fortune.delete_profile(session, str(db.uid))
+    assert not await db.conn.fetchval("SELECT EXISTS(SELECT 1 FROM daily_fortunes WHERE user_id=$1)", db.uid)
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
+            birth_date=date(2002, 12, 13), gender="undisclosed"), now_utc=NOW)
+    recreated = await _reveal(db)
+    assert (await _stored(db))["copy_selection"] == initial
+    assert recreated["result"] == first["result"]

@@ -12,7 +12,7 @@ import pytest
 from app.services.fortune_catalog import (
     CONTENT_STATUS,
     COPY_VERSION,
-    COPY_VERSIONS,
+    LEGACY_COPY_VERSIONS,
     EXPECTED_CATEGORY_KEYS,
     EXPECTED_OVERALL_KEYS,
     FortuneCatalogError,
@@ -72,7 +72,7 @@ def _semantic() -> dict:
 
 def test_approved_catalog_has_complete_variant_coverage():
     catalog = load_catalog()
-    assert COPY_VERSION == "fortune-copy.v3-editorial.1"
+    assert COPY_VERSION == "fortune-copy.v5-editorial.1"
     assert CONTENT_STATUS == "approved_for_production"
     assert SUPPORTED_LOCALES == ("ko", "en", "ja")
     for locale in SUPPORTED_LOCALES:
@@ -84,7 +84,7 @@ def test_approved_catalog_has_complete_variant_coverage():
         filename = {"ko": "copy.v2.json", "en": "copy.v2.en.json", "ja": "copy.v2.ja.json"}[locale]
         asset = json.loads((RESOURCE_DIR / filename).read_text(encoding="utf-8"))
         assert asset["content_status"] == CONTENT_STATUS
-        assert asset["copy_version"] == COPY_VERSIONS[locale]
+        assert asset["copy_version"] == LEGACY_COPY_VERSIONS[locale]
     assert len(catalog.manifest_hash) == 64
 
 
@@ -454,7 +454,7 @@ def test_locale_revision_cannot_be_replaced_by_another_release(tmp_path, locale,
     resources = _copy_resources(tmp_path)
     path = resources / filename
     asset = json.loads(path.read_text())
-    asset["copy_version"] = COPY_VERSIONS["en" if locale == "ko" else "ko"]
+    asset["copy_version"] = "fortune-copy.v999-invalid.1"
     _write_json(path, asset)
     _refresh_manifest_hash(resources, filename)
     with pytest.raises(FortuneCatalogError, match="schema or version"):

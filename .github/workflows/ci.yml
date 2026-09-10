@@ -53,6 +53,9 @@ jobs:
       - name: Check generated fortune copy documents
         run: uv run python scripts/build_fortune_copy_docs.py --check
 
+      - name: Check fortune copy structure and reviewed content hashes
+        run: uv run python scripts/check_fortune_tarot_editorial.py
+
       - name: Rebuild schema contract and check database behavior
         env:
           PGHOST: 127.0.0.1

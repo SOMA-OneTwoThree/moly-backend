@@ -133,6 +133,9 @@ def select_variants(
     if previous_semantic is not None and "copy_selection" in previous_semantic:
         state = previous_semantic["copy_selection"]
         legacy = isinstance(state, Mapping) and state.get("version") == _LEGACY_VERSION
+        if isinstance(state, Mapping) and state.get("version") == CARD_SELECTION_VERSION:
+            validate_card_selection(state)
+            return select_variants(semantic, today=today)
         routes = _read_state(state, legacy=legacy)
         for key, route in _result_routes(previous_semantic, legacy=legacy).items():
             old_version = state["version"]
@@ -163,3 +166,81 @@ def select_variants(
         routes[route] = {"day": day, "position": position}
         selected[key] = order[position]
     return {"version": SELECTION_VERSION, "selected": selected, "routes": routes}
+
+
+CARD_SELECTION_VERSION = "fortune-selection.v4"
+
+
+def validate_card_selection(value: Any) -> dict[str, Any]:
+    """Read persisted draws strictly; unknown versions must never reset silently."""
+    from app.services.fortune_tarot import AXES, CARD_IDS
+    if not isinstance(value, Mapping) or set(value) != {"version", "day", "cards"}:
+        raise FortuneSelectionError("invalid card selection fields")
+    if value["version"] != CARD_SELECTION_VERSION:
+        raise FortuneSelectionError("unsupported card selection version")
+    try:
+        day = date.fromisoformat(value["day"])
+    except (ValueError, TypeError) as exc:
+        raise FortuneSelectionError("invalid card selection date") from exc
+    if day.isoformat() != value["day"]:
+        raise FortuneSelectionError("noncanonical card selection date")
+    cards = value["cards"]
+    if not isinstance(cards, Mapping) or set(cards) != set(AXES):
+        raise FortuneSelectionError("five card selections are required")
+    seen = set()
+    for card in cards.values():
+        if not isinstance(card, Mapping) or set(card) != {"card_id", "orientation"}:
+            raise FortuneSelectionError("invalid card selection")
+        if not isinstance(card["card_id"], str) or card["card_id"] not in CARD_IDS:
+            raise FortuneSelectionError("unknown selected card")
+        if card["orientation"] not in ("upright", "reversed"):
+            raise FortuneSelectionError("invalid selected orientation")
+        if card["card_id"] in seen:
+            raise FortuneSelectionError("duplicate selected card")
+        seen.add(card["card_id"])
+    return deepcopy(dict(value))
+
+
+def validate_previous_selection(semantic: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    if semantic is None or "copy_selection" not in semantic:
+        return None
+    state = semantic["copy_selection"]
+    if isinstance(state, Mapping) and state.get("version") == CARD_SELECTION_VERSION:
+        return validate_card_selection(state)
+    # Existing reader verifies both the legacy cursor and its selected variant.
+    select_variants(semantic, today=date.min, previous_semantic=semantic)
+    return None
+
+
+def draw_cards(*, user_id: str, today: date) -> dict[str, Any]:
+    """Score-free, versioned SHA-256 stream and unbiased Fisher-Yates draw.
+
+    Explicit byte order, deck order and rejection sampling make this independent
+    of Python's random implementation. User/date/version are the only inputs.
+    """
+    from uuid import UUID
+    from app.services.fortune_tarot import AXES, CARD_IDS
+    seed = f"{CARD_SELECTION_VERSION}|{UUID(str(user_id))}|{today.isoformat()}".encode("ascii")
+    counter = 0
+
+    def below(bound: int) -> int:
+        nonlocal counter
+        limit = (1 << 256) - ((1 << 256) % bound)
+        while True:
+            value = int.from_bytes(sha256(seed + counter.to_bytes(8, "big")).digest(), "big")
+            counter += 1
+            if value < limit:
+                return value % bound
+
+    deck = sorted(CARD_IDS)
+    for index in range(len(deck) - 1, 0, -1):
+        other = below(index + 1)
+        deck[index], deck[other] = deck[other], deck[index]
+    return {
+        "version": CARD_SELECTION_VERSION,
+        "day": today.isoformat(),
+        "cards": {
+            axis: {"card_id": deck[index], "orientation": ("upright", "reversed")[below(2)]}
+            for index, axis in enumerate(AXES)
+        },
+    }

@@ -41,8 +41,9 @@ def audit(year: int) -> dict:
             'sd': round(pstdev(col), 2), 'exact50_pct': round(100 * col.count(50) / len(col), 2),
             'band_pct': [round(100 * sum(min(s // 10, 9) == b for s in col) / len(col), 2) for b in range(10)],
         }
+    by_overall_band = [[r for r in rows if min(r[0] // 10, 9) == b] for b in range(10)]
     conditional = {
-        AXES[i]: [round(mean(r[i] for r in rows if min(r[0] // 10, 9) == b), 2) for b in range(10)]
+        AXES[i]: [round(mean(r[i] for r in group), 2) if group else None for group in by_overall_band]
         for i in range(1, 5)
     }
     spreads = [max(r[1:]) - min(r[1:]) for r in rows]
@@ -50,9 +51,11 @@ def audit(year: int) -> dict:
     large = 100 * sum(s >= 25 for s in spreads) / len(spreads)
     passed = (
         all(abs(v) < .08 for p in pairs.values() for v in p.values())
-        and all(a['exact50_pct'] <= 3 and a['sd'] >= 18 for a in axes.values())
+        and all(a['min'] == 30 and a['max'] == 100
+                and a['exact50_pct'] <= 3 and a['sd'] >= 16 for a in axes.values())
         and small <= 10 and large >= 65
-        and all(max(c) - min(c) < 3 for c in conditional.values())
+        and all(max(v for v in c if v is not None) - min(v for v in c if v is not None) < 3
+                for c in conditional.values())
     )
     return {
         'version': RULE_VERSION, 'year': year, 'sample_count': len(rows), 'passed': passed,

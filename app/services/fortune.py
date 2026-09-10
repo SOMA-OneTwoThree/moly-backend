@@ -19,10 +19,14 @@ from app.models.fortune import DailyFortune, FortuneAdSession, FortuneProfile
 from app.schemas.fortune import FortuneProfilePut
 from app.services import fortune_catalog, fortune_rules, fortune_scores, gating, privacy
 from app.services.account import _load_profile
-from app.services.fortune_copy_selection import select_variants
+from app.services.fortune_copy_selection import (
+    CARD_SELECTION_VERSION, draw_cards, select_variants, validate_previous_selection,
+)
 
 _MIN_BIRTH_DATE = date(1900, 1, 1)
 _RESULT_SCHEMA_VERSION = 3
+# Rollback builds change this constant only; existing v4 snapshots remain readable.
+_COPY_POLICY = "tarot"
 
 
 def _err(code: str, status: int, message: str) -> errors.AppError:
@@ -280,10 +284,32 @@ def _build_result(
     today: date,
     timezone_name: str,
     previous_semantic: dict[str, Any] | None = None,
+    previous_copies: dict[str, Any] | None = None,
+    copy_policy: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Construct new snapshots; the caller persists under the existing user lock.
+
+    The explicit legacy policy is a tested rollback-build seam, not an environment
+    flag or a fallback on errors. Valid current rows are always returned upstream.
+    """
+    policy = _COPY_POLICY if copy_policy is None else copy_policy
+    if policy not in {"tarot", "legacy"}:
+        raise ValueError("unsupported fortune copy policy")
     semantic = fortune_scores.generate_result(birth_date=profile.birth_date, local_date=today)
-    selection = select_variants(semantic, today=today, previous_semantic=previous_semantic)
-    copies = fortune_catalog.render_all(semantic, selected=selection["selected"])
+    previous_draw = validate_previous_selection(previous_semantic)
+    if previous_draw is not None and previous_draw["day"] == today.isoformat():
+        if previous_copies is None:
+            raise fortune_catalog.FortuneCatalogError("same-day card selection requires its stored copy snapshot")
+        selection = previous_draw
+        copies = fortune_catalog.recolor_snapshot(previous_copies, semantic)
+    elif policy == "tarot":
+        selection = draw_cards(user_id=str(profile.user_id), today=today)
+        copies = fortune_catalog.render_cards_all(semantic, selection=selection)
+    elif policy == "legacy":
+        selection = select_variants(semantic, today=today, previous_semantic=previous_semantic)
+        copies = fortune_catalog.render_all(semantic, selected=selection["selected"])
+    else:
+        raise ValueError("unsupported fortune copy policy")
     return {**semantic, "copy_selection": selection}, copies
 
 
@@ -326,10 +352,16 @@ async def reveal(
             today=today,
             timezone_name=account.timezone,
             previous_semantic=row.semantic_result if row is not None else None,
+            previous_copies=row.copy_by_locale if row is not None else None,
         )
         if row is None:
             row = DailyFortune(user_id=uid, created_at=now)
             session.add(row)
+        same_draw = bool(
+            row.copy_version and row.semantic_result
+            and row.semantic_result.get("copy_selection", {}).get("version") == CARD_SELECTION_VERSION
+            and row.semantic_result.get("copy_selection") == semantic["copy_selection"]
+        )
         row.fortune_date = today
         row.timezone_snapshot = account.timezone
         row.profile_revision = profile.revision
@@ -338,7 +370,12 @@ async def reveal(
         row.copy_by_locale = copies
         row.ephemeris_version = fortune_scores.EPHEMERIS_VERSION
         row.rule_version = fortune_scores.RULE_VERSION
-        row.copy_version = fortune_catalog.COPY_VERSION
+        if not same_draw:
+            row.copy_version = (
+                fortune_catalog.COPY_VERSION
+                if semantic["copy_selection"]["version"] == CARD_SELECTION_VERSION
+                else fortune_catalog.LEGACY_COPY_VERSIONS["ko"]
+            )
         row.updated_at = now
         if preserve_unlock:
             row.unlock_state = "unlocked"

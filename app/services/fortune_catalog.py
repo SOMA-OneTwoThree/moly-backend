@@ -12,8 +12,10 @@ from types import MappingProxyType
 from typing import Any, Final, Mapping
 import unicodedata
 
-from app.services import fortune_rules
-from app.services.fortune_copy_selection import VARIANT_IDS, overall_copy_route, validate_selected
+from app.services import fortune_rules, fortune_tarot
+from app.services.fortune_copy_selection import (
+    VARIANT_IDS, overall_copy_route, validate_selected, validate_card_selection,
+)
 
 _RESOURCE_DIR: Final = Path(__file__).resolve().parents[1] / "resources" / "fortune"
 _MANIFEST_PATH: Final = _RESOURCE_DIR / "manifest.v2.json"
@@ -83,11 +85,19 @@ _HANGUL_RE: Final = re.compile(r"[가-힣]")
 _CJK_RE: Final = re.compile(r"[\u3040-\u30ff\u3400-\u9fff]")
 _HEX_RE: Final = re.compile(r"#[0-9A-F]{6}")
 
-# A release bundle may contain independently edited locales. Existing snapshots
-# retain their own bundle version; unchanged locales keep their asset versions.
-COPY_VERSION = "fortune-copy.v3-editorial.1"
-COPY_VERSIONS = MappingProxyType({
+# All locales are revised together for this release. Existing snapshots retain
+# their original bundle version and already rendered text.
+LEGACY_COPY_VERSIONS = MappingProxyType({
     "ko": "fortune-copy.v3-ko-editorial.1",
+    "en": "fortune-copy.v3-editorial.1",
+    "ja": "fortune-copy.v3-editorial.1",
+})
+COPY_VERSION = "fortune-copy.v5-editorial.1"
+_CARD_COPY_FILENAMES = MappingProxyType({
+    "ko": "copy.v3.json", "en": "copy.v3.en.json", "ja": "copy.v3.ja.json",
+})
+COPY_VERSIONS = MappingProxyType({
+    "ko": COPY_VERSION,
     "en": COPY_VERSION,
     "ja": COPY_VERSION,
 })
@@ -171,6 +181,7 @@ class FortuneCatalog:
     colors_by_locale: Mapping[str, Mapping[str, Mapping[str, str]]]
     manifest_hash: str
     asset_hashes: Mapping[str, str]
+    readings_by_locale: Mapping[str, Mapping[str, Mapping[str, Any]]]
 
     def render(
         self, semantic: Mapping[str, Any], locale: str = "ko", *, selected: Mapping[str, str],
@@ -272,6 +283,43 @@ class FortuneCatalog:
         }
 
 
+    def render_cards(
+        self, semantic: Mapping[str, Any], locale: str, *, selection: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Render the draw directly: scores never select a reading or a route."""
+        if locale not in SUPPORTED_LOCALES:
+            raise FortuneCatalogError(f"unsupported locale: {locale}")
+        state = validate_card_selection(selection)
+        if semantic.get("schema_version") != 4:
+            raise FortuneCatalogError("card rendering requires semantic schema 4")
+        _score(semantic["overall"]["score"], "semantic overall score")
+        if set(semantic["categories"]) != set(_CATEGORIES):
+            raise FortuneCatalogError("semantic categories must contain four categories")
+        for axis in _CATEGORIES:
+            _score(semantic["categories"][axis]["score"], f"semantic category score {axis}")
+        readings = self.readings_by_locale[locale]
+        bundles = {
+            axis: readings[f"{axis}.{card['card_id']}.{card['orientation']}"]
+            for axis, card in state["cards"].items()
+        }
+        overall = bundles["overall"]
+        return {
+            "overall": {"headline": overall["headline"], "flow": list(overall["flow"]),
+                        "do": overall["do"], "pause": overall["pause"]},
+            "categories": {axis: {"text": list(bundles[axis]["text"])} for axis in _CATEGORIES},
+            "lucky_color": self.render_color(semantic, locale),
+        }
+
+    def render_color(self, semantic: Mapping[str, Any], locale: str) -> dict[str, str]:
+        from app.services.fortune_scores import COLORS
+        score = _score(semantic["overall"]["score"], "semantic overall score")
+        key = semantic["lucky_color_key"]
+        if key != COLORS[min(score // 10, 9)]:
+            raise FortuneCatalogError("lucky color does not match overall score")
+        color = self.colors_by_locale[locale][key]
+        return {"key": key, "name": color["name"], "hex": color["hex"]}
+
+
 def _score(value: Any, label: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 100:
         raise FortuneCatalogError(f"{label} must be an integer in [0, 100]")
@@ -319,7 +367,7 @@ def _validate_copy(
         {"schema", "copy_version", "content_status", "locales", "overall", "categories", "colors"},
         "copy asset",
     )
-    if asset["schema"] != "fortune-copy-v2" or asset["copy_version"] != COPY_VERSIONS[locale]:
+    if asset["schema"] != "fortune-copy-v2" or asset["copy_version"] != LEGACY_COPY_VERSIONS[locale]:
         raise FortuneCatalogError("unexpected copy schema or version")
     if asset["content_status"] != CONTENT_STATUS or asset["locales"] != [locale]:
         raise FortuneCatalogError(f"v2 production catalog approval/locale mismatch: {locale}")
@@ -431,6 +479,42 @@ def _validate_overall_bundle(
     return validated, (headline, *rendered_flow, do, pause)
 
 
+def _validate_card_copy(asset: Mapping[str, Any], *, locale: str, colors: Mapping[str, Any]) -> dict[str, Any]:
+    _exact_keys(asset, {"schema", "copy_version", "content_status", "locales", "readings", "colors"}, "card copy")
+    if asset["schema"] != "fortune-copy-v3" or asset["copy_version"] != COPY_VERSION:
+        raise FortuneCatalogError("unexpected card copy schema or version")
+    if asset["content_status"] != "agent_reviewed" or asset["locales"] != [locale]:
+        raise FortuneCatalogError("card copy review/locale mismatch")
+    if asset["colors"] != colors:
+        raise FortuneCatalogError("card copy must preserve legacy colors")
+    if not isinstance(asset["readings"], dict):
+        raise FortuneCatalogError("card readings must be an object")
+    _exact_keys(asset["readings"], set(fortune_tarot.READING_KEYS), "card readings")
+    result = {}
+    for key, bundle in asset["readings"].items():
+        if key.startswith("overall."):
+            validated, _ = _validate_overall_bundle(bundle, key, locale)
+            segments = validated["flow"]
+            expected_counts = (2, 2, 1)
+        else:
+            if not isinstance(bundle, dict):
+                raise FortuneCatalogError(f"{key}: category bundle must be an object")
+            _exact_keys(bundle, {"text"}, key)
+            if not isinstance(bundle["text"], list) or len(bundle["text"]) != 2:
+                raise FortuneCatalogError(f"{key}: two category segments required")
+            segments = tuple(_text(text, key, locale=locale) for text in bundle["text"])
+            validated = MappingProxyType({"text": segments})
+            expected_counts = (2, 3)
+        counts = tuple(len(re.findall(r"[^.!?。！？]+[.!?。！？]", text)) for text in segments)
+        if counts != expected_counts:
+            raise FortuneCatalogError(f"{key}: five complete sentences with required segment boundaries")
+        serialized = json.dumps(bundle, ensure_ascii=False)
+        if re.search(r"타로|タロット|tarot|major\.[a-z_]+|(?:cups|swords|wands|pentacles)\.\d", serialized, re.I):
+            raise FortuneCatalogError(f"{key}: internal card wording leaked")
+        result[key] = validated
+    return result
+
+
 def _load_catalog(resource_dir: Path) -> FortuneCatalog:
     manifest_path = resource_dir / _MANIFEST_PATH.name
     manifest_raw = manifest_path.read_bytes()
@@ -441,7 +525,8 @@ def _load_catalog(resource_dir: Path) -> FortuneCatalog:
     assets = manifest["assets"]
     if not isinstance(assets, dict):
         raise FortuneCatalogError("manifest assets must be an object")
-    expected_assets = {_RULES_PATH.name, *_COPY_FILENAMES.values()}
+    expected_assets = {_RULES_PATH.name, *_COPY_FILENAMES.values(),
+                       *_CARD_COPY_FILENAMES.values(), fortune_tarot.FILENAME}
     _exact_keys(assets, expected_assets, "manifest assets")
     parsed: dict[str, dict[str, Any]] = {}
     hashes: dict[str, str] = {}
@@ -464,12 +549,26 @@ def _load_catalog(resource_dir: Path) -> FortuneCatalog:
         overall_by_locale[locale] = MappingProxyType(overall)
         categories_by_locale[locale] = MappingProxyType(categories)
         colors_by_locale[locale] = MappingProxyType(colors)
+    readings_by_locale = {
+        locale: MappingProxyType(_validate_card_copy(
+            parsed[filename], locale=locale, colors=parsed[_COPY_FILENAMES[locale]]["colors"],
+        )) for locale, filename in _CARD_COPY_FILENAMES.items()
+    }
+    try:
+        fortune_tarot.validate_editorial(
+            parsed[fortune_tarot.FILENAME],
+            {locale: parsed[filename] for locale, filename in _CARD_COPY_FILENAMES.items()},
+            version=COPY_VERSION,
+        )
+    except fortune_tarot.TarotEditorialError as exc:
+        raise FortuneCatalogError(str(exc)) from exc
     return FortuneCatalog(
         overall_by_locale=MappingProxyType(overall_by_locale),
         categories_by_locale=MappingProxyType(categories_by_locale),
         colors_by_locale=MappingProxyType(colors_by_locale),
         manifest_hash=sha256(manifest_raw).hexdigest(),
         asset_hashes=MappingProxyType(hashes),
+        readings_by_locale=MappingProxyType(readings_by_locale),
     )
 
 
@@ -492,3 +591,30 @@ def render_all(
         locale: catalog.render(semantic, locale, selected=selected)
         for locale in SUPPORTED_LOCALES
     }
+
+
+def render_cards_all(
+    semantic: Mapping[str, Any], *, selection: Mapping[str, Any],
+) -> dict[str, dict[str, Any]]:
+    catalog = load_catalog()
+    return {locale: catalog.render_cards(semantic, locale, selection=selection)
+            for locale in SUPPORTED_LOCALES}
+
+
+def recolor_snapshot(
+    copies: Mapping[str, Any], semantic: Mapping[str, Any],
+) -> dict[str, dict[str, Any]]:
+    """Preserve all previously displayed prose; recompute only score-derived color."""
+    from copy import deepcopy
+    if set(copies) != set(SUPPORTED_LOCALES):
+        raise FortuneCatalogError("card snapshot requires all three locales")
+    catalog = load_catalog()
+    result = {}
+    for locale in SUPPORTED_LOCALES:
+        snapshot = copies[locale]
+        if not isinstance(snapshot, Mapping) or set(snapshot) != {"overall", "categories", "lucky_color"}:
+            raise FortuneCatalogError("invalid card copy snapshot")
+        result[locale] = {"overall": deepcopy(snapshot["overall"]),
+                          "categories": deepcopy(snapshot["categories"]),
+                          "lucky_color": catalog.render_color(semantic, locale)}
+    return result

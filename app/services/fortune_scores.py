@@ -8,7 +8,9 @@ from __future__ import annotations
 from datetime import date
 from hashlib import sha256
 
-RULE_VERSION = "fortune-independent.v1"
+RULE_VERSION = "fortune-independent.v2-floor30"
+# Keep existing draws stable: the revision only lifts scores below 30.
+_SCORE_SEED_VERSION = "fortune-independent.v1"
 EPHEMERIS_VERSION = "not-used.independent-v1"
 AXES = ("overall", "love", "money", "work", "energy")
 # Score-band probabilities in percent. They sum to 100; 90..100 includes 100.
@@ -23,7 +25,7 @@ def score_for(birth_date: date, local_date: date, axis: str) -> int:
         raise ValueError("invalid fortune birth date")
     if axis not in AXES:
         raise ValueError("unknown fortune axis")
-    seed = f"{RULE_VERSION}|{birth_date.isoformat()}|{local_date.isoformat()}|{axis}"
+    seed = f"{_SCORE_SEED_VERSION}|{birth_date.isoformat()}|{local_date.isoformat()}|{axis}"
     # Integer inverse CDF: no process-random hash, floating-point boundary,
     # shared day modifier, or post-selection adjustment between axes.
     value = int.from_bytes(sha256(seed.encode("ascii")).digest(), "big")
@@ -33,7 +35,9 @@ def score_for(birth_date: date, local_date: date, axis: str) -> int:
     for band, weight in enumerate(BAND_WEIGHTS):
         if bucket < (lower + weight) * scale:
             width = 11 if band == 9 else 10
-            return band * 10 + (bucket - lower * scale) * width // (weight * scale)
+            raw_score = band * 10 + (bucket - lower * scale) * width // (weight * scale)
+            # Spread 0..29 monotonically across 30..39, preserving every score >=30.
+            return 30 + raw_score // 3 if raw_score < 30 else raw_score
         lower += weight
     raise AssertionError("invalid score distribution")
 

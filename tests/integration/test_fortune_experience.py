@@ -105,18 +105,106 @@ async def test_first_and_regular_are_identical_between_accounts_in_all_locales(e
         assert stored[0]["experience_mode"] == ("first_visit" if offset == 0 else "regular")
 
 
-async def test_parallel_first_creation_and_profile_edit_preserve_issued_result(experience_db):
+async def test_parallel_first_creation_and_profile_edit_recalculate_issued_result(experience_db):
     db = experience_db
     uid = db.uids[0]
     results = await asyncio.gather(*[_reveal(db, uid) for _ in range(4)])
     assert all(r["result"] == results[0]["result"] for r in results)
     assert all(90 <= s <= 100 for s in _scores(results[0]))
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
-        await fortune.put_profile(session, str(uid),
+        edited = await fortune.put_profile(session, str(uid),
             FortuneProfilePut(birth_date=date(1998, 5, 21), gender="woman"), now_utc=NOW)
-    assert (await _reveal(db, uid))["result"] == results[0]["result"]
+    assert edited["result_invalidated"] is True
+    assert edited["unlock_preserved"] is True
+    recalculated = await asyncio.gather(*[_reveal(db, uid) for _ in range(4)])
+    assert all(r["result"] == recalculated[0]["result"] for r in recalculated)
+    assert recalculated[0]["result"] != results[0]["result"]
+    assert all(90 <= value <= 100 for value in _scores(recalculated[0]))
+    assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == NOW.date()
+    assert await db.conn.fetchval("SELECT count(*) FROM daily_fortunes WHERE user_id=$1", uid) == 1
     next_day = await _reveal(db, uid, now=NOW + timedelta(days=1))
     assert next_day["result"] != results[0]["result"]
+
+
+@pytest.mark.parametrize("first_visit", (True, False))
+@pytest.mark.parametrize("unlock_source", ("subscription", "rewarded_ad"))
+async def test_birth_edit_round_trip_recalculates_all_locales_and_preserves_unlock(
+    experience_db, first_visit, unlock_source,
+):
+    db = experience_db
+    uid, peer = db.uids
+    # Both accounts have the same first-use day, independently of their timezone.
+    await asyncio.gather(*[_reveal(db, user) for user in db.uids])
+    now = NOW if first_visit else NOW + timedelta(days=1)
+    locales = ("ko", "en", "ja")
+    original = {locale: (await _reveal(db, uid, now=now, locale=locale))["result"]
+                for locale in locales}
+    # Seed the existing unlock source explicitly: recalculation must preserve an
+    # earned ad unlock as well as a subscription unlock, without another reward.
+    await db.conn.execute(
+        "UPDATE daily_fortunes SET unlock_source=$2 WHERE user_id=$1", uid, unlock_source,
+    )
+    unlocked_at = await db.conn.fetchval("SELECT unlocked_at FROM daily_fortunes WHERE user_id=$1", uid)
+    marker = await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid)
+
+    async def put(user, birth):
+        async with AsyncSession(db.engine, expire_on_commit=False) as session:
+            return await fortune.put_profile(session, str(user),
+                FortuneProfilePut(birth_date=birth, gender="undisclosed"), now_utc=now)
+
+    changed = await put(uid, date(1998, 5, 21))
+    assert changed["profile"]["revision"] == 2
+    assert changed["result_invalidated"] is True
+    assert changed["unlock_preserved"] is True
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        pending = await fortune.status(session, str(uid), locale="ko", now_utc=now)
+    assert pending["state"] == "unseen"
+    assert "result" not in pending
+
+    requested_locales = locales * 2
+    recalculated = await asyncio.gather(*[
+        _reveal(db, uid, now=now, locale=locale) for locale in requested_locales
+    ])
+    by_locale = {}
+    for locale, response in zip(requested_locales, recalculated):
+        assert response["state"] == "revealed"
+        assert response["local_date"] == now.date()
+        assert response["result"] == by_locale.setdefault(locale, response["result"])
+        assert all((90 if first_visit else 60) <= score <= 100 for score in _scores(response))
+    assert by_locale != original
+    stored = await db.conn.fetchrow(
+        "SELECT profile_revision,unlock_state,unlock_source,unlocked_at,semantic_result "
+        "FROM daily_fortunes WHERE user_id=$1", uid,
+    )
+    assert stored["profile_revision"] == 2
+    assert (stored["unlock_state"], stored["unlock_source"], stored["unlocked_at"]) == (
+        "unlocked", unlock_source, unlocked_at,
+    )
+    semantic = json.loads(stored["semantic_result"])
+    assert semantic["experience_mode"] == ("first_visit" if first_visit else "regular")
+    assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == marker
+    assert await db.conn.fetchval("SELECT count(*) FROM daily_fortunes WHERE user_id=$1", uid) == 1
+
+    # Another account reaching B independently must receive precisely the same
+    # result; neither revision number nor the old A snapshot is draw entropy.
+    await put(peer, date(1998, 5, 21))
+    for locale in locales:
+        assert (await _reveal(db, peer, now=now, locale=locale))["result"] == by_locale[locale]
+
+    unchanged = await put(uid, date(1998, 5, 21))
+    assert unchanged["profile"]["revision"] == 2
+    assert unchanged["result_invalidated"] is False
+    restored = await put(uid, date(2002, 12, 13))
+    assert restored["profile"]["revision"] == 3
+    assert restored["result_invalidated"] is True
+    assert restored["unlock_preserved"] is True
+    for locale in locales:
+        assert (await _reveal(db, uid, now=now, locale=locale))["result"] == original[locale]
+    after = await db.conn.fetchrow(
+        "SELECT profile_revision,unlock_state,unlock_source,unlocked_at FROM daily_fortunes WHERE user_id=$1", uid,
+    )
+    assert tuple(after.values()) == (3, "unlocked", unlock_source, unlocked_at)
+    assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == marker
 
 
 async def test_failed_first_save_does_not_consume_first_visit(experience_db):

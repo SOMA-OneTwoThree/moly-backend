@@ -140,7 +140,11 @@ async def put_profile(
     await session.commit()
     return {
         "profile": _profile_wire(current),
-        "result_invalidated": False,  # Issued daily snapshots are immutable; edits apply next day.
+        "result_invalidated": bool(
+            daily is not None and daily.fortune_date == today
+            and not _current_row(daily, today=today, timezone_name=account.timezone,
+                                 revision=current.revision)
+        ),
         "unlock_preserved": unlock_preserved,
     }
 
@@ -219,6 +223,7 @@ def _current_row(
     return bool(
         row is not None
         and row.fortune_date == today
+        and row.profile_revision == revision
         and row.result_schema_version == _RESULT_SCHEMA_VERSION
         and row.semantic_result.get("schema_version") in (3, 4)
         and "ko" in row.copy_by_locale
@@ -362,20 +367,23 @@ async def reveal(
         timezone_name=account.timezone,
         revision=profile.revision,
     ):
+        # A changed birth date must select its own cards as well as its scores.
+        # Reuse saved copy only when rebuilding the same profile revision.
+        reuse_previous = row is not None and row.profile_revision == profile.revision
         semantic, copies = _build_result(
             profile=profile,
             today=today,
             timezone_name=account.timezone,
             first_visit=first_visit,
             experience_enabled=experience_enabled,
-            previous_semantic=row.semantic_result if row is not None else None,
-            previous_copies=row.copy_by_locale if row is not None else None,
+            previous_semantic=row.semantic_result if reuse_previous else None,
+            previous_copies=row.copy_by_locale if reuse_previous else None,
         )
         if row is None:
             row = DailyFortune(user_id=uid, created_at=now)
             session.add(row)
         same_draw = bool(
-            row.copy_version and row.semantic_result
+            reuse_previous and row.copy_version and row.semantic_result
             and row.semantic_result.get("copy_selection", {}).get("version") == CARD_SELECTION_VERSION
             and row.semantic_result.get("copy_selection") == semantic["copy_selection"]
         )

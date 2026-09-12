@@ -254,61 +254,118 @@ async def test_same_calendar_day_timezone_edit_does_not_redraw(experience_db):
     assert before["result"] == after["result"]
 
 
-async def test_production_gate_preserves_legacy_day_then_activates_without_first_bonus(experience_db, monkeypatch):
-    from app.services import config_store
+async def _seed_legacy_today(db, uid, *, marker=None, source="subscription"):
+    """An old writer's persisted row, without invoking today's new writer first."""
+    from app.models.fortune import DailyFortune
+    from app.services import fortune_scores_legacy
+    semantic, copies = fortune._build_result(
+        profile=SimpleNamespace(user_id=uid, birth_date=date(2002, 12, 13)),
+        today=NOW.date(), timezone_name="UTC", experience_enabled=False,
+    )
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        session.add(DailyFortune(
+            user_id=uid, fortune_date=NOW.date(), timezone_snapshot="UTC", profile_revision=1,
+            result_schema_version=3, semantic_result=semantic, copy_by_locale=copies,
+            unlock_state="unlocked", unlock_source=source, unlocked_at=NOW, revealed_at=NOW,
+            ephemeris_version=fortune_scores_legacy.EPHEMERIS_VERSION,
+            rule_version=fortune_scores_legacy.RULE_VERSION, copy_version="fortune-copy.before-upgrade",
+        ))
+        await session.commit()
+    await db.conn.execute("UPDATE profiles SET fortune_first_date=$2 WHERE id=$1", uid, marker)
+    return semantic
+
+
+@pytest.mark.parametrize("marker", (None, date.min))
+async def test_production_upgrades_legacy_today_without_resetting_unlock_or_first_use(
+    experience_db, monkeypatch, marker,
+):
+    from app.services import config_store, fortune_scores
     db = experience_db
-    uid = db.uids[0]
     monkeypatch.setattr(fortune.settings, "environment", "production")
-    values = {}
+
+    async def no_activation(*_args, **_kwargs):
+        return {}
+
+    monkeypatch.setattr(config_store, "get_config_values", no_activation)
+    old = []
+    for uid, source in zip(db.uids, ("subscription", "rewarded_ad")):
+        old.append(await _seed_legacy_today(db, uid, marker=marker, source=source))
+        async with AsyncSession(db.engine, expire_on_commit=False) as session:
+            status = await fortune.status(session, str(uid), locale="ko", now_utc=NOW)
+        assert status["state"] == "unseen"
+        assert "result" not in status
+        async with AsyncSession(db.engine, expire_on_commit=False) as session:
+            saved = await fortune.put_profile(session, str(uid),
+                FortuneProfilePut(birth_date=date(2002, 12, 13), gender="undisclosed"), now_utc=NOW)
+        assert saved["profile"]["revision"] == 1  # No edit; old policy alone is stale.
+        assert saved["result_invalidated"] is True
+    assert all("experience_version" not in semantic for semantic in old)
+    for locale in ("ko", "en", "ja"):
+        left, right = await asyncio.gather(*[
+            _reveal(db, uid, locale=locale) for uid in db.uids
+        ])
+        assert left["result"] == right["result"]
+        assert left["local_date"] == NOW.date()
+        assert left["state"] == right["state"] == "revealed"
+        assert left["versions"]["rules"] == fortune_scores.RULE_VERSION
+        assert all(60 <= score <= 100 for score in _scores(left))
+        assert sum(score < 70 for score in _scores(left)) <= 1
+    for uid, source, previous in zip(db.uids, ("subscription", "rewarded_ad"), old):
+        row = await db.conn.fetchrow(
+            "SELECT semantic_result,copy_version,unlock_state,unlock_source,unlocked_at "
+            "FROM daily_fortunes WHERE user_id=$1", uid,
+        )
+        semantic = json.loads(row["semantic_result"])
+        assert semantic["experience_version"] == fortune_scores.RULE_VERSION
+        assert semantic["draw_algorithm_version"] == fortune.DRAW_ALGORITHM_VERSION
+        assert semantic["experience_mode"] == "regular"
+        assert semantic["copy_selection"] != previous["copy_selection"]
+        assert row["copy_version"] != "fortune-copy.before-upgrade"
+        assert (row["unlock_state"], row["unlock_source"], row["unlocked_at"]) == (
+            "unlocked", source, NOW,
+        )
+        assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == date.min
+        assert await db.conn.fetchval("SELECT count(*) FROM daily_fortunes WHERE user_id=$1", uid) == 1
+
+
+@pytest.mark.parametrize("activation", [None, True, "bad-date", "20260912", "2099-12-31"])
+async def test_production_first_visit_is_immediate_regardless_of_old_activation_config(
+    experience_db, monkeypatch, activation,
+):
+    from app.services import config_store, fortune_scores
+    db = experience_db
+    monkeypatch.setattr(fortune.settings, "environment", "production")
 
     async def config(*_args, **_kwargs):
-        return values
-
-    monkeypatch.setattr(config_store, "get_config_values", config)
-    legacy = await _reveal(db, uid)
-    stored_before = json.loads(await db.conn.fetchval("SELECT semantic_result FROM daily_fortunes WHERE user_id=$1", uid))
-    assert "experience_version" not in stored_before
-    values["fortune_experience_start_date"] = NOW.date().isoformat()
-    assert (await _reveal(db, uid))["result"] == legacy["result"]
-    assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == date.min
-    await _reveal(db, uid, now=NOW + timedelta(days=1))
-    stored = json.loads(await db.conn.fetchval("SELECT semantic_result FROM daily_fortunes WHERE user_id=$1", uid))
-    assert stored["experience_mode"] == "regular"
-
-
-@pytest.mark.parametrize("activation", [None, True, "bad-date", "20260912", "2026-09-13"])
-async def test_production_gate_rejects_unset_malformed_and_future_dates(experience_db, monkeypatch, activation):
-    from app.services import config_store
-    db = experience_db
-    monkeypatch.setattr(fortune.settings, "environment", "production")
-
-    async def config(*_args, **_kwargs):
-        return {"fortune_experience_start_date": activation}
+        return {} if activation is None else {"fortune_experience_start_date": activation}
 
     monkeypatch.setattr(config_store, "get_config_values", config)
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
-        assert not await fortune._experience_enabled(session, NOW.date())
+        assert await fortune._experience_enabled(session, NOW.date())
+    for locale in ("ko", "en", "ja"):
+        left, right = await asyncio.gather(*[
+            _reveal(db, uid, locale=locale) for uid in db.uids
+        ])
+        assert left["result"] == right["result"]
+        assert all(90 <= score <= 100 for score in _scores(left))
+        assert left["versions"]["rules"] == fortune_scores.RULE_VERSION
+    for uid in db.uids:
+        assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == NOW.date()
 
 
-async def test_gate_off_legacy_delete_cannot_reset_first_marker(experience_db, monkeypatch):
-    from app.services import config_store
+async def test_upgraded_legacy_profile_delete_cannot_reset_first_marker(experience_db, monkeypatch):
     db = experience_db
     uid = db.uids[0]
     monkeypatch.setattr(fortune.settings, "environment", "production")
-    values = {}
-
-    async def config(*_args, **_kwargs):
-        return values
-
-    monkeypatch.setattr(config_store, "get_config_values", config)
+    await _seed_legacy_today(db, uid)
     await _reveal(db, uid)
     assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == date.min
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.delete_profile(session, str(uid))
-    values["fortune_experience_start_date"] = NOW.date().isoformat()
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.put_profile(session, str(uid),
             FortuneProfilePut(birth_date=date(2002, 12, 13), gender="undisclosed"), now_utc=NOW)
     await _reveal(db, uid)
     stored = json.loads(await db.conn.fetchval("SELECT semantic_result FROM daily_fortunes WHERE user_id=$1", uid))
     assert stored["experience_mode"] == "regular"
+    assert await db.conn.fetchval("SELECT fortune_first_date FROM profiles WHERE id=$1", uid) == date.min

@@ -143,7 +143,8 @@ async def put_profile(
         "result_invalidated": bool(
             daily is not None and daily.fortune_date == today
             and not _current_row(daily, today=today, timezone_name=account.timezone,
-                                 revision=current.revision)
+                                 revision=current.revision,
+                                 experience_enabled=await _experience_enabled(session, today))
         ),
         "unlock_preserved": unlock_preserved,
     }
@@ -219,6 +220,7 @@ def _current_row(
     today: date,
     timezone_name: str,
     revision: int,
+    experience_enabled: bool = False,
 ) -> bool:
     return bool(
         row is not None
@@ -227,6 +229,10 @@ def _current_row(
         and row.result_schema_version == _RESULT_SCHEMA_VERSION
         and row.semantic_result.get("schema_version") in (3, 4)
         and "ko" in row.copy_by_locale
+        and (not experience_enabled or (
+            row.semantic_result.get("experience_version") == fortune_scores.RULE_VERSION
+            and row.semantic_result.get("draw_algorithm_version") == DRAW_ALGORITHM_VERSION
+        ))
     )
 
 
@@ -260,6 +266,7 @@ async def status(
         today=today,
         timezone_name=account.timezone,
         revision=profile.revision,
+        experience_enabled=await _experience_enabled(session, today),
     )
     if current and daily is not None:
         detail_unlocked = daily.unlock_state == "unlocked" and daily.revealed_at is not None
@@ -366,10 +373,17 @@ async def reveal(
         today=today,
         timezone_name=account.timezone,
         revision=profile.revision,
+        experience_enabled=experience_enabled,
     ):
         # A changed birth date must select its own cards as well as its scores.
         # Reuse saved copy only when rebuilding the same profile revision.
-        reuse_previous = row is not None and row.profile_revision == profile.revision
+        reuse_previous = bool(
+            row is not None and row.profile_revision == profile.revision
+            and (not experience_enabled or (
+                row.semantic_result.get("experience_version") == fortune_scores.RULE_VERSION
+                and row.semantic_result.get("draw_algorithm_version") == DRAW_ALGORITHM_VERSION
+            ))
+        )
         semantic, copies = _build_result(
             profile=profile,
             today=today,
@@ -552,16 +566,5 @@ def result_fingerprint(row: DailyFortune, locale: str) -> str:
 
 
 async def _experience_enabled(session: AsyncSession, today: date) -> bool:
-    """Dev is the validation target; production opts in after every node is compatible."""
-    if settings.environment == "development":
-        return True
-    from app.services.config_store import get_config_values
-    key = "fortune_experience_start_date"
-    value = (await get_config_values(session, [key])).get(key)
-    if not isinstance(value, str):
-        return False
-    try:
-        starts = date.fromisoformat(value)
-    except ValueError:
-        return False
-    return value == starts.isoformat() and today >= starts
+    """The experience policy is active in every environment without a date gate."""
+    return True

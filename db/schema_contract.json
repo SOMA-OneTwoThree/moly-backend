@@ -3794,6 +3794,14 @@
         "not_null": true,
         "type": "timestamp with time zone"
       },
+      "public.profiles.fortune_first_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "date"
+      },
       "public.profiles.hay_balance": {
         "collation": null,
         "default": "0",
@@ -13711,5 +13719,5 @@
       }
     }
   },
-  "schema_sha256": "1caa657d04454297f0963482955b0970c41cd4b3d691d285049dd076513cdef3"
+  "schema_sha256": "b731c9f0223af25effb666ddde4596f22f365e91b8fac5be69238be0461604ae"
 }

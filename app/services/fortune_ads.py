@@ -118,7 +118,8 @@ async def verify_from_ssv(
     daily.unlock_state = "unlocked"
     daily.unlock_source = "rewarded_ad"
     daily.unlocked_at = now
-    # 프로필 수정과 광고 시청이 겹치면 권한만 보존한다. 새 snapshot은 다음 reveal에서 만든다.
+    # 프로필이 바뀌어도 유효한 당일 snapshot은 그대로 공개한다.
+    # 읽을 수 없는 구버전 snapshot만 권한을 보존한 채 다음 reveal에서 복구한다.
     daily.revealed_at = (
         now
         if fortune._current_row(

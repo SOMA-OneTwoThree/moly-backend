@@ -80,8 +80,24 @@ def audit() -> dict:
         asset = json.loads((ROOT / "app/resources/fortune" / filename).read_text())
         copies[locale] = asset["readings"]
         reports[locale] = audit_readings(asset["readings"], locale, complete=True)
-    review_failures = audit_review(copies, fortune_catalog.COPY_VERSION)
-    return {"version": fortune_catalog.COPY_VERSION, "locales": reports,
+    first_path = ROOT / "app/resources/fortune/first-visit.v1.json"
+    first = json.loads(first_path.read_text())
+    first_reports = {}
+    for locale in LOCALES:
+        readings = {}
+        for entry in first["sets"]:
+            copy = entry["copy_by_locale"][locale]
+            readings[f"overall.{entry['id']}"] = copy["overall"]
+            for axis, bundle in copy["categories"].items():
+                readings[f"{axis}.{entry['id']}"] = bundle
+        first_reports[locale] = audit_readings(readings, locale, complete=False)
+    record = json.loads((ROOT / "docs/fortune-content/review.json").read_text())
+    first_review = record.get("first_visit_review", {})
+    first_failures = [f for r in first_reports.values() for f in r["failures"]]
+    if first_review.get("status") != "pass" or first_review.get("sha256") != sha256(first_path.read_bytes()).hexdigest():
+        first_failures.append({"entry": "first_visit_review", "reason": "first-visit review is missing or stale"})
+    review_failures = audit_review(copies, fortune_catalog.COPY_VERSION) + first_failures
+    return {"version": fortune_catalog.COPY_VERSION, "locales": reports, "first_visit": first_reports,
             "failures": [f for report in reports.values() for f in report["failures"]] + review_failures,
             "scope": "Structural checks and review flags only; full editorial review is separate."}
 

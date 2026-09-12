@@ -1,0 +1,2320 @@
+{
+  "status": "pass",
+  "author": "design_review",
+  "independent_reviewer": "root",
+  "changes": [
+    {
+      "locale": "ko",
+      "key": "energy.cups.09.upright",
+      "field": "text",
+      "before": [
+        "좋아하는 여가를 충분히 즐겼다는 만족이 남을 수 있는 날이야. 마음에 드는 음식을 천천히 먹거나 취미에 집중하면 짧은 시간도 알차게 느껴질 거야.",
+        "바쁘게 여러 곳을 다니지 않아도 지금 편한 자리에 머무는 것만으로 반가울 수 있어. 얼마나 많이 했는지보다 제대로 즐기고 있는지 살펴봐. 이 정도면 충분하다는 느낌이 들면 다른 활동을 더 넣지 않고 기분 좋게 마무리해도 좋아."
+      ],
+      "after": [
+        "좋아하는 여가를 충분히 즐겼다는 만족이 남을 수 있는 날이야. 마음에 드는 음식을 천천히 먹거나 취미에 집중하면 짧은 시간도 알차게 느껴질 거야.",
+        "바쁘게 여러 곳을 다니지 않아도 편한 자리에 앉아 좋아하는 것을 즐기는 것만으로 충분할 거야. 얼마나 많이 했는지보다 제대로 즐기고 있는지 살펴봐. 이 정도면 충분하다는 느낌이 들면 다른 활동을 더 넣지 않고 기분 좋게 마무리해도 좋아."
+      ]
+    },
+    {
+      "locale": "ko",
+      "key": "love.cups.01.reversed",
+      "field": "text",
+      "before": [
+        "마음은 있어도 표현할 때 쑥스러움이 앞설 수 있는 날이야. 고맙거나 반가운 말을 농담으로 바꾸면 상대에게는 진심이 덜 전해질 수 있어.",
+        "호의를 받아도 바로 같은 크기로 돌려줘야 할 것 같아 어색하게 넘기기 쉬울 거야. 큰 고백을 준비하기보다 오늘 좋았던 점 하나를 짧게 말해봐. 받은 관심도 고맙게 받아들여도 되니 완벽하게 답해야 한다는 부담 때문에 대화를 피하지 마."
+      ],
+      "after": [
+        "마음은 있어도 표현할 때 쑥스러움이 앞설 수 있는 날이야. 고맙거나 반가운 말을 농담으로 바꾸면 상대에게는 진심이 덜 전해질 수 있어.",
+        "친절을 받으면 곧바로 보답해야 한다는 생각에 고맙다는 말조차 어색해질 수 있어. 큰 고백을 준비하기보다 오늘 좋았던 점 하나를 짧게 말해봐. 받은 관심도 고맙게 받아들여도 되니 완벽하게 답해야 한다는 부담 때문에 대화를 피하지 마."
+      ]
+    },
+    {
+      "locale": "ko",
+      "key": "love.pentacles.07.upright",
+      "field": "text",
+      "before": [
+        "꾸준히 관심을 나누어도 눈에 띄는 표현은 천천히 돌아올 수 있는 날이야. 큰 말을 기다리다 보면 전보다 편하게 웃거나 먼저 이야기를 꺼낸 순간을 작게 볼 수 있어.",
+        "함께한 시간이 쌓이며 달라진 부분과 아직 어색한 부분은 따로 남아 있을 거야. 당장 같은 크기의 반응을 바라기보다 서로 어떤 대화가 편해졌는지 살펴봐. 궁금한 마음은 직접 물어도 괜찮으니 기다리는 것만으로 상대의 뜻을 정하려 하지는 마."
+      ],
+      "after": [
+        "꾸준히 관심을 나누어도 눈에 띄는 표현은 천천히 돌아올 수 있는 날이야. 큰 말을 기다리다 보면 전보다 편하게 웃거나 먼저 이야기를 꺼낸 순간을 작게 볼 수 있어.",
+        "함께한 시간이 쌓이며 달라진 부분과 아직 어색한 부분은 따로 남아 있을 거야. 바로 다정한 답을 기대하기보다 전보다 편하게 나누는 이야기가 늘었는지 살펴봐. 궁금한 마음은 직접 물어도 괜찮으니 기다리는 것만으로 상대의 뜻을 정하려 하지는 마."
+      ]
+    },
+    {
+      "locale": "ko",
+      "key": "money.pentacles.01.upright",
+      "field": "text",
+      "before": [
+        "정해둔 예산 안에서 필요한 기능을 갖춘 것을 발견할 수 있는 날이야. 바로 쓸 곳이 분명한 작은 선택이라면 실제로 이용할 때도 편리한 점을 느낄 수 있어.",
+        "여러 것을 함께 갖추지 않아도 가장 불편했던 부분 하나를 해결할 방법이 보일 거야. 포함된 내용과 내게 필요한 양이 맞는지 확인해봐. 오래 쓸 것처럼 보이는 설명보다 당장 잘 사용할 이유가 분명하다면 작게 마련한 것에서도 돈을 잘 썼다는 만족을 얻을 수 있어."
+      ],
+      "after": [
+        "정해둔 예산 안에서 필요한 기능을 갖춘 물건을 발견할 수 있는 날이야. 바로 쓸 곳이 분명한 작은 선택이라면 실제로 이용할 때도 편리한 점을 느낄 수 있어.",
+        "여러 것을 함께 갖추지 않아도 가장 불편했던 부분 하나를 해결할 방법이 보일 거야. 포함된 내용과 내게 필요한 양이 맞는지 확인해봐. 오래 쓸 것처럼 보이는 설명보다 당장 잘 사용할 이유가 분명하다면 작게 마련한 것에서도 돈을 잘 썼다는 만족을 얻을 수 있어."
+      ]
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.01.reversed",
+      "field": "headline",
+      "before": "좋은 일에도 바로 반응하기 어려울 수 있어.",
+      "after": "즐거운 자리에 있어도 오늘은 조용히 쉬는 쪽이 더 편할 수 있어."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.01.reversed",
+      "field": "do",
+      "before": "지금 원하는 것을 조용히 살펴봐.",
+      "after": "잠깐 혼자 쉬면서 지금 하고 싶은 일이 있는지 생각해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.01.reversed",
+      "field": "pause",
+      "before": "즐거워야 한다며 감정을 재촉하지 마.",
+      "after": "주변이 신나 보인다고 억지로 밝게 웃으려 애쓰지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.02.reversed",
+      "field": "pause",
+      "before": "괜찮다는 답만 듣고 모두 같다고 넘기지 마.",
+      "after": "만나기로 했더라도 시간과 장소는 따로 확인하는 게 좋아."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.02.upright",
+      "field": "do",
+      "before": "내가 원하는 것과 상대의 바람을 함께 들어봐.",
+      "after": "함께할 계획을 세울 때는 각자 하고 싶은 일을 하나씩 말해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.04.reversed",
+      "field": "do",
+      "before": "다시 관심이 간 것을 작게 경험해봐.",
+      "after": "전에 지나쳤던 취미나 장소를 이번에는 가볍게 경험해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.05.reversed",
+      "field": "headline",
+      "before": "지난 아쉬움 말고 지금 반가운 것이 보일 수 있어.",
+      "after": "지난 아쉬움에서 벗어나 오늘의 즐거움을 찾기 좋은 날이야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.05.reversed",
+      "field": "do",
+      "before": "새롭게 관심이 간 것을 가볍게 경험해봐.",
+      "after": "최근에 관심이 생긴 음악이나 취미를 잠깐 즐겨봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.08.reversed",
+      "field": "headline",
+      "before": "계속하고 싶은 이유가 지금도 있는지 살펴봐.",
+      "after": "습관처럼 해온 일도 지금 즐거운지 다시 살펴볼 때야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.09.reversed",
+      "field": "do",
+      "before": "좋아 보이는 것과 실제 좋은 것을 나누어봐.",
+      "after": "남에게 멋져 보이는 일보다 내가 편하게 즐기는 일을 골라봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.09.reversed",
+      "field": "pause",
+      "before": "아쉬운 기분을 더 큰 계획으로 덮지 마.",
+      "after": "아쉬운 기분을 달래려고 더 비싸거나 거창한 계획을 잡지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.10.reversed",
+      "field": "headline",
+      "before": "좋아 보여야 한다는 마음에 내 뜻을 숨기기 쉬워.",
+      "after": "다 같이 즐거워야 한다는 부담을 내려놓으면 한결 편해질 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.11.reversed",
+      "field": "do",
+      "before": "들은 말과 내가 기대한 것을 나누어봐.",
+      "after": "상대가 실제로 한 말과 내가 기대해서 덧붙인 뜻을 구분해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.12.reversed",
+      "field": "do",
+      "before": "실제로 지킬 수 있는 계획 하나를 정해봐.",
+      "after": "해보고 싶은 계획에 필요한 시간과 준비물을 먼저 확인해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.12.reversed",
+      "field": "pause",
+      "before": "좋을 장면만 말하며 필요한 준비를 미루지 마.",
+      "after": "얼마나 재미있을지 이야기하느라 예약이나 준비를 미루지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.13.upright",
+      "field": "do",
+      "before": "조용히 내 반응을 살펴볼 시간을 가져봐.",
+      "after": "마음이 편했던 순간과 불편했던 순간을 짧게 적어봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.14.reversed",
+      "field": "pause",
+      "before": "아무렇지 않은 척 다른 선택까지 바꾸지 마.",
+      "after": "기분이 상했다는 이유로 상관없는 약속까지 취소하지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.cups.14.upright",
+      "field": "do",
+      "before": "지금 느낀 것과 실제로 일어난 것을 함께 봐줘.",
+      "after": "속상한 일이 있다면 느낀 감정과 실제로 들은 말을 따로 적어봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.emperor.reversed",
+      "field": "do",
+      "before": "바꿔도 되는 순서를 하나 골라봐.",
+      "after": "일정이 달라지면 꼭 지킬 약속만 남기고 나머지 순서는 바꿔봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.hanged_man.reversed",
+      "field": "pause",
+      "before": "달라질 이유 없이 같은 기대만 붙잡지 마.",
+      "after": "상황이 달라졌는지 확인하지 않은 채 같은 답만 기다리지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.hanged_man.upright",
+      "field": "headline",
+      "before": "잠깐 멈추면 다른 순서가 보일 수 있어.",
+      "after": "잠깐 생각을 멈추면 고민하던 일에 다른 방법이 떠오를 수 있어."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.hierophant.upright",
+      "field": "do",
+      "before": "궁금했던 방법의 이유를 물어봐.",
+      "after": "처음 하는 일이 있다면 경험 있는 사람에게 요령을 물어봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.judgement.upright",
+      "field": "do",
+      "before": "지금 알게 된 것을 다음 선택에 반영해봐.",
+      "after": "미뤄둔 결정을 다시 살펴보고 지금 달라진 조건을 반영해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.moon.reversed",
+      "field": "do",
+      "before": "직접 알게 된 내용을 기준으로 다시 봐줘.",
+      "after": "걱정하던 소식은 직접 확인한 내용을 바탕으로 다시 판단해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.star.reversed",
+      "field": "do",
+      "before": "전보다 나아진 것을 하나 찾아봐.",
+      "after": "최근에 연습하거나 꾸준히 해온 일에서 나아진 점 하나를 찾아봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.tower.upright",
+      "field": "headline",
+      "before": "예상과 다른 사실에 계획을 고칠 수 있어.",
+      "after": "새로 알게 된 사실이 계획을 더 현실적으로 고치는 데 도움이 될 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.tower.upright",
+      "field": "do",
+      "before": "새로 들은 내용이 무엇을 바꾸는지 먼저 확인해봐.",
+      "after": "예정이 달라졌다면 다시 예약하거나 연락할 곳부터 확인해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.major.world.reversed",
+      "field": "do",
+      "before": "꼭 남은 것만 확인하고 끝내봐.",
+      "after": "거의 끝낸 일은 빠진 항목만 확인하고 마무리해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.01.reversed",
+      "field": "do",
+      "before": "짧게 해보며 꼭 필요한 것을 알아봐.",
+      "after": "새 취미를 시작하기 전에 체험 수업이나 짧은 연습으로 준비물을 알아봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.01.reversed",
+      "field": "pause",
+      "before": "갖췄다는 이유만으로 바로 시작할 수 있다고 보지 마.",
+      "after": "도구를 샀다는 이유로 사용법이나 필요한 시간을 확인하지 않고 시작하지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.01.upright",
+      "field": "headline",
+      "before": "막연했던 생각을 직접 해볼 조건이 생길 수 있어.",
+      "after": "생각만 하던 일을 실제로 시작할 기회가 생길 수 있어."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.03.reversed",
+      "field": "do",
+      "before": "이미 준비된 것과 아직 맡지 않은 일을 확인해봐.",
+      "after": "함께 준비하는 일이 있다면 누가 무엇을 맡았는지 확인해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.05.reversed",
+      "field": "headline",
+      "before": "구체적인 안내가 막막하던 선택을 다시 열어줄 수 있어.",
+      "after": "도움을 구하면 막막했던 일에도 해볼 만한 방법이 보일 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.05.upright",
+      "field": "do",
+      "before": "막히는 조건을 구체적으로 말하고 대안을 알아봐.",
+      "after": "혼자 해결하기 어려운 일은 막힌 이유를 설명하고 다른 방법을 물어봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.06.upright",
+      "field": "headline",
+      "before": "필요한 도움을 주고받으며 선택이 편해질 수 있어.",
+      "after": "혼자 애쓰기보다 도움을 주고받으면 일이 한결 수월해질 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.06.upright",
+      "field": "pause",
+      "before": "받은 도움을 곧바로 같은 크기로 갚으려 애쓰지 마.",
+      "after": "도움을 받았다고 곧바로 똑같이 보답해야 한다며 무리하지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.07.upright",
+      "field": "do",
+      "before": "전보다 달라진 것과 그대로인 것을 나누어봐.",
+      "after": "꾸준히 해온 일은 시작할 때와 지금을 비교해서 달라진 점을 찾아봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.08.reversed",
+      "field": "do",
+      "before": "실제로 즐기는 데 필요한 수준부터 정해봐.",
+      "after": "계속 다듬고 있는 일이 있다면 언제 마칠지 먼저 정해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.08.reversed",
+      "field": "pause",
+      "before": "더 다듬을 수 있다는 이유로 경험을 미루지 마.",
+      "after": "더 잘할 수 있다는 생각에 준비한 것을 직접 써볼 기회를 미루지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.09.reversed",
+      "field": "do",
+      "before": "설명하지 않아도 즐거운 것을 골라봐.",
+      "after": "사진으로 멋져 보이는 곳보다 내가 편하게 쉴 수 있는 곳을 골라봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.10.upright",
+      "field": "headline",
+      "before": "오래 편하게 즐길 방법이 눈에 들어올 수 있어.",
+      "after": "한 번의 재미보다 오래 즐길 수 있는 취향을 발견하기 좋은 날이야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.10.upright",
+      "field": "do",
+      "before": "반복해서 즐길 수 있는 이유를 살펴봐.",
+      "after": "오래 즐겨온 취미에서 지금도 마음에 드는 점을 떠올려봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.11.reversed",
+      "field": "do",
+      "before": "설명을 하나 골라 실제로 짧게 경험해봐.",
+      "after": "취미나 공부를 알아보기만 했다면 쉬운 방법 하나를 직접 따라 해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.12.reversed",
+      "field": "do",
+      "before": "바꾸어도 되는 순서 하나를 골라봐.",
+      "after": "늘 같은 순서로 하던 집안일이나 취미 활동을 다른 순서로 해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.14.reversed",
+      "field": "do",
+      "before": "실제로 편할 방법을 따로 살펴봐.",
+      "after": "이름이나 가격을 보기 전에 내가 어떻게 쓸 것인지부터 생각해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.pentacles.14.upright",
+      "field": "pause",
+      "before": "보기 좋은 점만으로 오래 쓸 방법을 바꾸지 마.",
+      "after": "겉모습이 좋다는 이유만으로 잘 쓰던 물건을 바꾸지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.02.reversed",
+      "field": "headline",
+      "before": "미뤄둔 선택을 더 두기 어려워질 수 있어.",
+      "after": "미뤄둔 결정을 하나씩 내리면 마음이 한결 편해질 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.03.upright",
+      "field": "headline",
+      "before": "듣고 싶지 않은 소식에 기대가 달라질 수 있어.",
+      "after": "아쉬운 소식을 들어도 오늘 할 수 있는 일은 남아 있어."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.03.upright",
+      "field": "do",
+      "before": "확인한 사실과 앞으로 할 수 있는 일을 나누어봐.",
+      "after": "기대와 다른 소식을 들었다면 확인된 사실부터 차분히 살펴봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.05.upright",
+      "field": "headline",
+      "before": "이기는 것보다 원래 원했던 것을 먼저 생각해봐.",
+      "after": "말다툼에서 이기려 하기보다 처음 원했던 해결책을 찾는 게 좋아."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.06.reversed",
+      "field": "headline",
+      "before": "다음으로 가기 전에 남은 약속을 확인해봐.",
+      "after": "새 계획을 시작하기 전에 남은 약속부터 정리하면 편해질 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.07.upright",
+      "field": "headline",
+      "before": "혼자 준비할 것과 먼저 알릴 것을 나누어봐.",
+      "after": "조용히 준비하되 함께하는 사람에게 필요한 연락은 챙기는 게 좋아."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.08.upright",
+      "field": "headline",
+      "before": "한 가지 제약이 모든 선택을 막는 것처럼 보여.",
+      "after": "어려운 조건 하나 때문에 가능한 방법까지 놓치지 않는 게 좋아."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.09.upright",
+      "field": "headline",
+      "before": "아직 일어나지 않은 일이 크게 걱정될 수 있어.",
+      "after": "걱정이 많아질수록 실제로 확인한 사실이 마음을 가라앉혀줄 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.09.upright",
+      "field": "pause",
+      "before": "늦게 떠오른 걱정을 확실한 징조처럼 받지 마.",
+      "after": "밤에 떠오른 불안만으로 나쁜 일이 생길 거라고 단정하지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.10.reversed",
+      "field": "do",
+      "before": "끝난 일과 별개로 작은 즐거움을 골라봐.",
+      "after": "힘들었던 일이 끝났다면 쉬면서 좋아하는 음악이나 음식을 즐겨봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.10.upright",
+      "field": "headline",
+      "before": "더 이어가도 달라지지 않을 일이 보일 수 있어.",
+      "after": "잘되지 않는 일을 그만두면 다른 일에 쓸 여유가 생길 거야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.11.upright",
+      "field": "do",
+      "before": "궁금했던 차이를 직접 물어봐.",
+      "after": "설명에서 이해되지 않는 부분은 예를 들어 다시 설명해달라고 부탁해."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.12.upright",
+      "field": "do",
+      "before": "정한 것을 작게 실행하며 조건도 확인해봐.",
+      "after": "정해둔 일을 시작하기 전에 필요한 시간과 준비물을 확인해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.swords.13.upright",
+      "field": "pause",
+      "before": "좋아하는 사람이 추천해도 내 조건에 맞는지 확인해봐.",
+      "after": "좋아하는 사람이 추천했다는 이유만으로 내게도 맞을 거라고 단정하지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.01.reversed",
+      "field": "do",
+      "before": "지금 가능한 작은 방식으로 바꾸어봐.",
+      "after": "당장 크게 시작하기 어렵다면 짧게 체험할 방법부터 찾아봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.03.reversed",
+      "field": "headline",
+      "before": "기대한 답을 기다리는 동안 준비를 다시 살펴봐.",
+      "after": "기다리던 답이 늦어져도 미리 준비하며 시간을 알차게 쓸 수 있어."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.03.reversed",
+      "field": "do",
+      "before": "답을 받을 때와 먼저 해둘 것을 정해봐.",
+      "after": "기다리는 답은 언제 받을 수 있는지 묻고 먼저 할 준비를 정해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.06.reversed",
+      "field": "headline",
+      "before": "반응이 조용해도 내가 좋았던 이유는 남아 있어.",
+      "after": "칭찬이 적더라도 직접 해낸 일에서 만족을 찾을 수 있어."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.08.reversed",
+      "field": "do",
+      "before": "확정된 순서부터 다시 확인해봐.",
+      "after": "약속이 늦어지면 이미 정해진 시간과 아직 기다리는 답을 구분해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.09.upright",
+      "field": "do",
+      "before": "지금 남은 부분을 무리하지 않는 선에서 이어가봐.",
+      "after": "마무리가 남은 일은 무리하지 않고 오늘 끝낼 만큼만 정해봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.11.reversed",
+      "field": "pause",
+      "before": "새 이야기를 찾느라 첫 경험을 미루지 마.",
+      "after": "새로운 취미를 계속 검색하느라 실제로 해볼 시간을 놓치지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.13.reversed",
+      "field": "do",
+      "before": "혼자서도 즐겁던 것을 잠깐 경험해봐.",
+      "after": "다른 사람의 반응을 신경 쓰지 말고 좋아하는 취미를 잠깐 즐겨봐."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.14.upright",
+      "field": "headline",
+      "before": "원하는 경험을 말하면 준비할 순서가 보일 거야.",
+      "after": "하고 싶은 일이 분명해져 준비할 순서를 정하기 쉬운 날이야."
+    },
+    {
+      "locale": "ko",
+      "key": "overall.wands.14.upright",
+      "field": "pause",
+      "before": "다른 방법까지 모두 내 생각에 맞추지 마.",
+      "after": "함께하는 사람의 준비 방식까지 내 생각대로 바꾸려 하지 마."
+    },
+    {
+      "locale": "ko",
+      "key": "work.wands.03.upright",
+      "field": "text",
+      "before": [
+        "준비한 결과를 다른 사람에게 보여주면 새로운 관점을 얻을 수 있는 날이야. 함께 작업하던 사람은 당연하게 넘긴 부분에서도 처음 보는 사람은 유용한 질문을 할 수 있어.",
+        "그 반응을 듣고 나면 어디까지 발전시킬지 처음보다 구체적으로 떠오를 거야. 전체를 새로 만들기보다 검토받고 싶은 부분을 골라 공유해봐. 실제로 필요한 의견을 받으면 다음 작업에 더할 것과 지금 남길 것을 판단하기 수월해질 거야."
+      ],
+      "after": [
+        "준비한 결과를 다른 사람에게 보여주면 새로운 관점을 얻을 수 있는 날이야. 함께 작업하던 사람은 당연하게 넘긴 부분에서도 처음 보는 사람은 유용한 질문을 할 수 있어.",
+        "그 반응을 듣고 나면 어디까지 발전시킬지 처음보다 구체적으로 떠오를 거야. 전체를 새로 만들기보다 검토받고 싶은 부분을 골라 공유해봐. 실제로 필요한 의견을 받으면 다음에 보완할 부분과 그대로 둘 부분을 판단하기 수월해질 거야."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "energy.cups.09.upright",
+      "field": "text",
+      "before": [
+        "A favorite pastime can leave you feeling that you've had enough time to enjoy yourself. Eating something you like slowly or concentrating on a hobby may make even a short break feel well spent.",
+        "Staying somewhere comfortable can be pleasant without rushing between several places. Notice how much you're enjoying the experience rather than counting how much you've done. Once you feel satisfied, it's fine to finish on that good feeling instead of adding another activity."
+      ],
+      "after": [
+        "A favorite pastime can leave you feeling that you've had enough time to enjoy yourself. Eating something you like slowly or concentrating on a hobby may make even a short break feel well spent.",
+        "Sitting somewhere comfortable with something you enjoy can be enough, without rushing between several places. Notice how much you're enjoying the experience rather than counting how much you've done. Once you feel satisfied, it's fine to finish on that good feeling instead of adding another activity."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "energy.pentacles.12.upright",
+      "field": "text",
+      "before": [
+        "A routine you know well may make it easier to begin. Taking out what's prepared could let you move your body or hands comfortably without researching another activity.",
+        "The wish to enjoy the same amount again may feel more satisfying than a single large accomplishment. Proceed gradually within your usual manageable range today. Even with a little room to do more, a pleasant finish can help continuing a familiar pastime feel uncomplicated the next time you begin."
+      ],
+      "after": [
+        "A routine you know well may make it easier to begin. Taking out what's prepared could let you move your body or hands comfortably without researching another activity.",
+        "Finishing with the wish to do it again can feel more satisfying than doing a lot at once. Proceed gradually within your usual manageable range today. Even with a little room to do more, a pleasant finish can help continuing a familiar pastime feel uncomplicated the next time you begin."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "love.cups.01.reversed",
+      "field": "text",
+      "before": [
+        "Affection may be present even when embarrassment makes expressing it difficult. Turning appreciation into a joke can keep some of your sincerity from reaching the other person.",
+        "Receiving kindness might also feel awkward if you believe you must immediately return an equally large gesture. Begin with one thing you appreciated today instead of preparing a grand declaration. Accept the attention with thanks, without avoiding the conversation because you haven't found a perfect response."
+      ],
+      "after": [
+        "Affection may be present even when embarrassment makes expressing it difficult. Turning appreciation into a joke can keep some of your sincerity from reaching the other person.",
+        "Even saying thank you can feel awkward if you think every kindness must be repaid at once. Begin with one thing you appreciated today instead of preparing a grand declaration. Accept the attention with thanks, without avoiding the conversation because you haven't found a perfect response."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "love.pentacles.06.upright",
+      "field": "text",
+      "before": [
+        "A small request and a little help may make you feel closer. Explaining specifically what's needed could let someone comfortably say which part they can offer.",
+        "Dividing something to resolve together may make the conversation more natural than pretending you're fine alone. Briefly describe what their help made easier. Less pressure to return the same amount immediately can make both expressing thanks and relying on each other next time feel more comfortable than keeping a mental account."
+      ],
+      "after": [
+        "A small request and a little help may make you feel closer. Explaining specifically what's needed could let someone comfortably say which part they can offer.",
+        "Dividing something to resolve together may make the conversation more natural than pretending you're fine alone. Briefly describe what their help made easier. Without the pressure to repay a favor immediately, it can feel easier to say thank you and ask for help again."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "love.pentacles.07.upright",
+      "field": "text",
+      "before": [
+        "Clear signs of affection may take time to appear, even as you steadily show interest in each other. Waiting for a large declaration could make you underestimate an easier laugh or a conversation they began.",
+        "You may be more at ease in some conversations while other subjects still feel awkward. Look at which conversations have become easier rather than expecting an equally large response immediately. It's fine to ask directly about feelings, so waiting alone doesn't have to become the method you use to decide what someone means."
+      ],
+      "after": [
+        "Clear signs of affection may take time to appear, even as you steadily show interest in each other. Waiting for a large declaration could make you underestimate an easier laugh or a conversation they began.",
+        "You may be more at ease in some conversations while other subjects still feel awkward. Rather than expecting an affectionate reply right away, notice whether more conversations feel comfortable now. It's fine to ask directly about feelings, so waiting alone doesn't have to become the method you use to decide what someone means."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "money.pentacles.01.upright",
+      "field": "text",
+      "before": [
+        "You may find the feature you need within the budget you've set. A small choice with a clear immediate use could prove convenient in practice as well.",
+        "You might see a way to resolve the most troublesome part without acquiring several things together. Check that the included items match the amount you need. A clear reason for using it now can make even a modest purchase satisfying, rather than relying on a description suggesting it will last a long time."
+      ],
+      "after": [
+        "You may find an item with the features you need within the budget you've set. A small choice with a clear immediate use could prove convenient in practice as well.",
+        "You might see a way to resolve the most troublesome part without acquiring several things together. Check that the included items match the amount you need. A clear reason for using it now can make even a modest purchase satisfying, rather than relying on a description suggesting it will last a long time."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.01.reversed",
+      "field": "headline",
+      "before": "A good moment may take time to reach you.",
+      "after": "Even in good company, you may prefer some quiet time today."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.01.reversed",
+      "field": "do",
+      "before": "Notice quietly what you want right now.",
+      "after": "Take a quiet break and consider what you would actually enjoy doing."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.01.reversed",
+      "field": "pause",
+      "before": "Don't pressure yourself to feel cheerful on command.",
+      "after": "Don't force a cheerful smile just because everyone around you seems excited."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.02.reversed",
+      "field": "pause",
+      "before": "A simple yes doesn't mean every expectation is the same.",
+      "after": "Even after agreeing to meet, confirm the time and place separately."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.02.upright",
+      "field": "do",
+      "before": "Express what you want and hear the other person's preference, too.",
+      "after": "When making plans together, each suggest one thing you would enjoy."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.04.reversed",
+      "field": "do",
+      "before": "Try a small part of something that interests you again.",
+      "after": "Give a hobby or place you previously passed over a try."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.05.reversed",
+      "field": "headline",
+      "before": "A present pleasure could become clearer than an old disappointment.",
+      "after": "It's a good day to look beyond an old disappointment and enjoy something new."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.05.reversed",
+      "field": "do",
+      "before": "Try a small part of something that interests you again.",
+      "after": "Spend a little time on music or a hobby that has recently caught your interest."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.08.reversed",
+      "field": "headline",
+      "before": "Check whether your reason to continue still fits the present.",
+      "after": "It's worth checking whether an old routine is still enjoyable."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.09.reversed",
+      "field": "do",
+      "before": "Distinguish what looks appealing from what you actually enjoy.",
+      "after": "Choose something you enjoy rather than something that only looks impressive."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.09.reversed",
+      "field": "pause",
+      "before": "Don't cover disappointment with an even bigger plan.",
+      "after": "Don't make a bigger or more expensive plan just to make up for feeling disappointed."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.10.reversed",
+      "field": "headline",
+      "before": "Trying to look happy may make it harder to say what you want.",
+      "after": "Letting go of the need to keep everyone happy can make time together easier."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.11.reversed",
+      "field": "do",
+      "before": "Distinguish what was said from what you hoped it meant.",
+      "after": "Separate what someone actually said from what you hoped they meant."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.12.reversed",
+      "field": "do",
+      "before": "Choose one plan you can actually keep.",
+      "after": "Check the time and supplies needed for a plan you want to try."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.12.reversed",
+      "field": "pause",
+      "before": "Don't postpone preparations while only describing how enjoyable it will be.",
+      "after": "Don't put off booking or preparing while talking about how much fun it will be."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.13.upright",
+      "field": "do",
+      "before": "Take a quiet moment to notice your own reactions.",
+      "after": "Briefly note when you felt at ease and when you felt uncomfortable."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.14.reversed",
+      "field": "pause",
+      "before": "Don't pretend you're unaffected while changing unrelated choices.",
+      "after": "Don't cancel unrelated plans just because something has upset you."
+    },
+    {
+      "locale": "en",
+      "key": "overall.cups.14.upright",
+      "field": "do",
+      "before": "Consider both what you felt and what actually happened.",
+      "after": "If something upsets you, write down your feelings separately from what was said."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.emperor.reversed",
+      "field": "do",
+      "before": "Choose one part of the plan you can change.",
+      "after": "If plans change, keep firm commitments and rearrange the rest."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.hanged_man.reversed",
+      "field": "pause",
+      "before": "Don't hold on to the same expectation without a reason for change.",
+      "after": "Don't keep waiting for the same answer without checking whether anything has changed."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.hanged_man.upright",
+      "field": "headline",
+      "before": "A pause could reveal a different order of priorities.",
+      "after": "Taking a break could help you see another way to handle a problem."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.hierophant.upright",
+      "field": "do",
+      "before": "Ask why a method works the way it does.",
+      "after": "If you're trying something new, ask someone experienced for practical tips."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.judgement.upright",
+      "field": "do",
+      "before": "Use something you've learned in your next choice.",
+      "after": "Revisit a decision you postponed and take any changed circumstances into account."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.moon.reversed",
+      "field": "do",
+      "before": "Reconsider the situation using what you've learned directly.",
+      "after": "Reconsider worrying news using the facts you have checked yourself."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.star.reversed",
+      "field": "do",
+      "before": "Find one thing that's better than before.",
+      "after": "Find one improvement in something you have been practicing or working on."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.tower.upright",
+      "field": "headline",
+      "before": "New information could call for a change of plans.",
+      "after": "New information can help you make a more workable plan."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.tower.upright",
+      "field": "do",
+      "before": "Check what the new information actually changes.",
+      "after": "If plans have changed, check which bookings or people need an update."
+    },
+    {
+      "locale": "en",
+      "key": "overall.major.world.reversed",
+      "field": "do",
+      "before": "Check only what's unfinished, then finish it.",
+      "after": "For a nearly finished task, check what's missing and complete it."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.01.reversed",
+      "field": "do",
+      "before": "Try it briefly to learn what is essential.",
+      "after": "Before taking up a hobby, try a short lesson to learn what you actually need."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.01.reversed",
+      "field": "pause",
+      "before": "Don't assume having the supplies means you're ready to begin immediately.",
+      "after": "Don't skip checking the instructions or time needed just because you have bought the supplies."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.01.upright",
+      "field": "headline",
+      "before": "A practical chance to try a vague idea may become available.",
+      "after": "A chance to put a long-considered idea into practice could appear."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.03.reversed",
+      "field": "do",
+      "before": "Check what's ready and what has no assigned person yet.",
+      "after": "If you're preparing something together, check who is handling each task."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.05.reversed",
+      "field": "headline",
+      "before": "Specific guidance may make a difficult choice possible again.",
+      "after": "Asking for help can reveal a practical way to approach something difficult."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.05.upright",
+      "field": "do",
+      "before": "Describe the difficult condition specifically and ask about alternatives.",
+      "after": "For something you can't resolve alone, explain the obstacle and ask about alternatives."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.06.upright",
+      "field": "headline",
+      "before": "Exchanging useful help may make a choice more comfortable.",
+      "after": "Giving and accepting help can make the day easier than doing everything alone."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.06.upright",
+      "field": "pause",
+      "before": "Don't force an immediate return of help in the same amount.",
+      "after": "Don't overextend yourself trying to repay a favor immediately."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.07.upright",
+      "field": "do",
+      "before": "Separate what's changed from what remains the same.",
+      "after": "Compare where you started with where you are now in something you have kept doing."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.08.reversed",
+      "field": "do",
+      "before": "Decide the level actually needed to enjoy the experience.",
+      "after": "Set a finishing point for something you keep refining."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.08.reversed",
+      "field": "pause",
+      "before": "Don't postpone trying it merely because further refinement is possible.",
+      "after": "Don't keep postponing a chance to use what you've made because it could still be improved."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.09.reversed",
+      "field": "do",
+      "before": "Choose something enjoyable without an explanation.",
+      "after": "Choose somewhere you can relax rather than somewhere that only looks impressive in photos."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.10.upright",
+      "field": "headline",
+      "before": "You may notice a way to enjoy something comfortably over time.",
+      "after": "You could discover an interest that stays enjoyable beyond the first try."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.10.upright",
+      "field": "do",
+      "before": "Consider why an experience could remain enjoyable each time you try it.",
+      "after": "Think about what you still enjoy in a long-standing hobby."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.11.reversed",
+      "field": "do",
+      "before": "Choose one explanation and try it briefly.",
+      "after": "If you've only read about a hobby or subject, try one simple exercise yourself."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.12.reversed",
+      "field": "flow",
+      "before": [
+        "A familiar approach might feel frustrating when it doesn't fit what you currently need. Delaying the enjoyment you want first to preserve the sequence could lengthen a wait without a clear reason.",
+        "You may hesitate as though everything will change when only one adjustment is needed. Separate what must remain from what is merely habit.",
+        "A small adjustment can fit the day to your present time and taste without requiring you to change the whole familiar routine."
+      ],
+      "after": [
+        "A familiar approach might feel frustrating when it doesn't fit what you currently need. Keeping to a fixed order could leave you waiting unnecessarily to do what you actually enjoy.",
+        "You may hesitate as though everything will change when only one adjustment is needed. Separate what must remain from what is merely habit.",
+        "A small adjustment can fit the day to your present time and taste without requiring you to change the whole familiar routine."
+      ]
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.12.reversed",
+      "field": "do",
+      "before": "Choose one part of the order you can change.",
+      "after": "Try a different order for household tasks or hobby activities you usually do the same way."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.14.reversed",
+      "field": "do",
+      "before": "Look separately for the method that would actually feel comfortable.",
+      "after": "Think about how you would use something before focusing on its name or price."
+    },
+    {
+      "locale": "en",
+      "key": "overall.pentacles.14.upright",
+      "field": "pause",
+      "before": "Don't change an ongoing method solely for an attractive appearance.",
+      "after": "Don't replace something that works well just because another option looks better."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.02.reversed",
+      "field": "headline",
+      "before": "A postponed choice may become harder to leave unanswered.",
+      "after": "Making one postponed decision at a time can bring some relief."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.03.upright",
+      "field": "headline",
+      "before": "Unwelcome news may change what you've been expecting.",
+      "after": "Disappointing news does not take away everything you can do today."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.03.upright",
+      "field": "do",
+      "before": "Separate the facts you've confirmed from what you can do next.",
+      "after": "If news isn't what you hoped for, start by calmly checking the confirmed facts."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.05.upright",
+      "field": "headline",
+      "before": "Remember what you wanted before trying to win the argument.",
+      "after": "Looking for the solution you originally wanted will help more than winning an argument."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.06.reversed",
+      "field": "headline",
+      "before": "Check an earlier commitment before moving to the next plan.",
+      "after": "Settling unfinished commitments can make starting a new plan easier."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.07.upright",
+      "field": "headline",
+      "before": "Separate what you can prepare alone from what others need to know.",
+      "after": "Quiet preparation works best when others still get the updates they need."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.08.upright",
+      "field": "headline",
+      "before": "One restriction may seem to rule out every option.",
+      "after": "One difficult condition doesn't rule out every other way forward."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.09.upright",
+      "field": "headline",
+      "before": "You may spend a lot of time worrying about something that hasn't happened.",
+      "after": "When worries build up, checking the facts can help you feel calmer."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.09.upright",
+      "field": "pause",
+      "before": "Don't treat a worry that comes late at night as a reliable sign of what's coming.",
+      "after": "Don't treat a late-night worry as proof that something bad will happen."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.10.reversed",
+      "field": "do",
+      "before": "Choose a small pleasure separately from what's finished.",
+      "after": "After a difficult task is over, take a break with music or food you enjoy."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.10.upright",
+      "field": "headline",
+      "before": "You may see what further effort is unlikely to change.",
+      "after": "Ending an unproductive effort can leave you time for something else."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.11.upright",
+      "field": "do",
+      "before": "Ask directly about the difference that interests you.",
+      "after": "Ask for a concrete example of any part of an explanation you do not understand."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.12.upright",
+      "field": "do",
+      "before": "Try a small part of your decision while checking the conditions.",
+      "after": "Before starting your chosen task, check the time and supplies you will need."
+    },
+    {
+      "locale": "en",
+      "key": "overall.swords.13.upright",
+      "field": "pause",
+      "before": "Check your requirements even when someone you like recommends it.",
+      "after": "Don't assume a recommendation suits you just because it comes from someone you like."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.01.reversed",
+      "field": "do",
+      "before": "Adapt the idea to a small approach available now.",
+      "after": "If a full commitment is not possible yet, look for a brief way to try it."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.03.reversed",
+      "field": "headline",
+      "before": "While waiting for an answer, look again at your preparations.",
+      "after": "Even if a reply is delayed, you can use the wait to get ready."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.03.reversed",
+      "field": "do",
+      "before": "Ask when to expect an answer and plan what you can prepare first.",
+      "after": "Ask when you can expect a reply and decide what you can prepare meanwhile."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.06.reversed",
+      "field": "headline",
+      "before": "A quiet response doesn't remove your reasons for enjoying something.",
+      "after": "You can take satisfaction in what you have done, even without much praise."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.08.reversed",
+      "field": "do",
+      "before": "Check the confirmed sequence again first.",
+      "after": "When plans are delayed, separate confirmed arrangements from answers still pending."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.09.upright",
+      "field": "do",
+      "before": "Continue with what remains at a pace you can comfortably manage.",
+      "after": "For unfinished work, choose a manageable amount to complete today."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.11.reversed",
+      "field": "pause",
+      "before": "Don't postpone a first experience while searching for another new idea.",
+      "after": "Don't spend so long searching for a new hobby that you leave no time to try one."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.13.reversed",
+      "field": "do",
+      "before": "Briefly enjoy something you liked even on your own.",
+      "after": "Spend a little time on a hobby you enjoy without worrying about reactions."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.14.upright",
+      "field": "headline",
+      "before": "Describing the experience you want can clarify how to prepare.",
+      "after": "Knowing what you want to do can make planning the next steps easier."
+    },
+    {
+      "locale": "en",
+      "key": "overall.wands.14.upright",
+      "field": "pause",
+      "before": "Don't require every other approach to match your own.",
+      "after": "Don't insist that everyone prepares in exactly the same way you do."
+    },
+    {
+      "locale": "en",
+      "key": "work.wands.03.upright",
+      "field": "text",
+      "before": [
+        "Showing a prepared result to someone else may bring a new perspective. A first-time viewer could ask a useful question about something familiar collaborators have taken for granted.",
+        "Their response may help you picture more specifically how far to develop the work. Share the part you'd like reviewed instead of rebuilding everything first. Receiving feedback you actually need can make it easier to decide what belongs in the next task and what is worth keeping as it is."
+      ],
+      "after": [
+        "Showing a prepared result to someone else may bring a new perspective. A first-time viewer could ask a useful question about something familiar collaborators have taken for granted.",
+        "Their response may help you picture more specifically how far to develop the work. Share the part you'd like reviewed instead of rebuilding everything first. Useful feedback can help you decide which parts to improve next and which to keep as they are."
+      ]
+    },
+    {
+      "locale": "ja",
+      "key": "energy.cups.09.upright",
+      "field": "text",
+      "before": [
+        "好きな余暇を十分楽しめたという満足が残りそうです。好きな食べ物をゆっくり味わったり趣味に集中したりすると、短い時間も充実して感じられるでしょう。",
+        "忙しくあちこち回らなくても、居心地のよい場所にいるだけでうれしくなるかもしれません。どれだけたくさんのことをしたかより、ちゃんと楽しめているかを確かめるとよさそうです。もう十分だと感じたら、別の活動を足さず気分よく終えて大丈夫です。"
+      ],
+      "after": [
+        "好きな余暇を十分楽しめたという満足が残りそうです。好きな食べ物をゆっくり味わったり趣味に集中したりすると、短い時間も充実して感じられるでしょう。",
+        "忙しくあちこち回らなくても、居心地のよい場所で好きなことを楽しめば十分満足できそうです。どれだけたくさんのことをしたかより、ちゃんと楽しめているかを確かめるとよさそうです。もう十分だと感じたら、別の活動を足さず気分よく終えて大丈夫です。"
+      ]
+    },
+    {
+      "locale": "ja",
+      "key": "love.cups.01.reversed",
+      "field": "text",
+      "before": [
+        "気持ちがあっても、表すときに照れが先に立つかもしれません。感謝や喜びを冗談に変えると、本心が伝わりにくくなりそうです。",
+        "好意を受けても、すぐ同じだけ返さなければと思い、ぎこちなく流しやすいでしょう。大きな告白を用意するより、今日良かったことを一つ短く話してみましょう。受けた関心はありがたく受け取ってよいので、完璧に答えようとして会話を避けなくて大丈夫です。"
+      ],
+      "after": [
+        "気持ちがあっても、表すときに照れが先に立つかもしれません。感謝や喜びを冗談に変えると、本心が伝わりにくくなりそうです。",
+        "親切にされたらすぐお返しをしなければと思うと、お礼を言うことさえぎこちなくなりそうです。大きな告白を用意するより、今日良かったことを一つ短く話してみましょう。受けた関心はありがたく受け取ってよいので、完璧に答えようとして会話を避けなくて大丈夫です。"
+      ]
+    },
+    {
+      "locale": "ja",
+      "key": "love.pentacles.07.upright",
+      "field": "text",
+      "before": [
+        "関心を伝え続けても、はっきりした反応はゆっくり返ってきそうです。大きな言葉を待っていると、前より気楽に笑ったり相手から話し始めたりした瞬間を軽く見てしまうかもしれません。",
+        "一緒に過ごすうちに変わった部分と、まだぎこちない部分は、別々にあるでしょう。すぐ同じだけの反応を望まず、どんな会話が楽になったか振り返ってみましょう。気になることは直接聞いてもよいので、ただ待つだけで相手の気持ちを決めつけないでください。"
+      ],
+      "after": [
+        "関心を伝え続けても、はっきりした反応はゆっくり返ってきそうです。大きな言葉を待っていると、前より気楽に笑ったり相手から話し始めたりした瞬間を軽く見てしまうかもしれません。",
+        "一緒に過ごすうちに変わった部分と、まだぎこちない部分は、別々にあるでしょう。すぐに優しい返事を期待するより、前より気楽に話せることが増えたか振り返ってみましょう。気になることは直接聞いてもよいので、ただ待つだけで相手の気持ちを決めつけないでください。"
+      ]
+    },
+    {
+      "locale": "ja",
+      "key": "money.pentacles.01.upright",
+      "field": "text",
+      "before": [
+        "予算内で必要な機能のあるものを、見つけられそうです。すぐ使う場面が明確な小さな選択なら、実際に使う際も便利さを感じるでしょう。",
+        "全部揃えなくても、いちばん不便な一点を解決する方法が見えるかもしれません。含まれる内容と、自分に必要な量が合うか確かめてみましょう。長く使えそうな説明より今よく使う理由が明確なら、小さな購入でも良いお金の使い方だったと満足できそうです。"
+      ],
+      "after": [
+        "予算内で、必要な機能を備えた品物が見つかりそうです。すぐ使う場面が明確な小さな選択なら、実際に使う際も便利さを感じるでしょう。",
+        "全部揃えなくても、いちばん不便な一点を解決する方法が見えるかもしれません。含まれる内容と、自分に必要な量が合うか確かめてみましょう。長く使えそうな説明より今よく使う理由が明確なら、小さな購入でも良いお金の使い方だったと満足できそうです。"
+      ]
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.01.reversed",
+      "field": "headline",
+      "before": "うれしいことにも、すぐ反応できないかもしれません。",
+      "after": "楽しい集まりにいても、今日は静かに休むほうが心地よいかもしれません。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.01.reversed",
+      "field": "do",
+      "before": "今望んでいることを、静かに確かめましょう。",
+      "after": "少し一人で休み、今したいことがあるか考えてみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.01.reversed",
+      "field": "pause",
+      "before": "楽しまなければと、自分の感情を急かさないようにしましょう。",
+      "after": "周りが楽しそうだからと、無理に明るく振る舞わないでください。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.02.reversed",
+      "field": "pause",
+      "before": "大丈夫という返事だけで、全部同じ考えだと思わないようにしましょう。",
+      "after": "会うことが決まっても、時間と場所は別に確認しておきましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.02.upright",
+      "field": "do",
+      "before": "自分の希望を話し、相手の望みも聞いてみましょう。",
+      "after": "一緒に予定を立てるときは、それぞれしたいことを一つずつ話しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.04.reversed",
+      "field": "do",
+      "before": "再び気になったことを、少し体験してみましょう。",
+      "after": "前に見送った趣味や場所を、今回は気軽に試してみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.05.reversed",
+      "field": "headline",
+      "before": "過去の残念さとは別に、今うれしいことが見えそうです。",
+      "after": "過去の残念な気持ちから離れ、今日の楽しみに目を向けられそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.05.reversed",
+      "field": "do",
+      "before": "新しく気になったことを、気軽に体験してみましょう。",
+      "after": "最近気になった音楽や趣味を、少し楽しんでみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.08.reversed",
+      "field": "headline",
+      "before": "続けたい理由が今もあるか、見てみましょう。",
+      "after": "習慣で続けてきたことを、今も楽しめているか見直すとよさそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.09.reversed",
+      "field": "do",
+      "before": "良く見えるものと、本当に好きなものを分けて考えましょう。",
+      "after": "人によく見えることより、自分が気楽に楽しめることを選びましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.09.reversed",
+      "field": "pause",
+      "before": "物足りなさを、さらに大きな計画で埋めようとしないでおきましょう。",
+      "after": "物足りなさを埋めるために、もっと高額で大がかりな予定を立てないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.10.reversed",
+      "field": "headline",
+      "before": "楽しそうに見せようとして、本音を隠しやすい日です。",
+      "after": "みんなを楽しませなければという気負いを手放すと、気楽に過ごせそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.11.reversed",
+      "field": "do",
+      "before": "聞いた言葉と、自分の期待を分けて考えましょう。",
+      "after": "相手が実際に言ったことと、期待して受け取った意味を分けてみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.12.reversed",
+      "field": "do",
+      "before": "実際に守れる計画を、一つ決めましょう。",
+      "after": "やってみたい計画に必要な時間と準備するものを、先に確認しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.12.reversed",
+      "field": "pause",
+      "before": "楽しい場面だけを語って、必要な準備を後回しにしないようにしましょう。",
+      "after": "楽しそうだと話すだけで、予約や準備を後回しにしないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.13.upright",
+      "field": "do",
+      "before": "静かに自分の反応を振り返る時間を作りましょう。",
+      "after": "気持ちが楽だった場面と、気になった場面を短く書いてみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.14.reversed",
+      "field": "pause",
+      "before": "平気なふりをしたまま、ほかの選択まで変えないようにしましょう。",
+      "after": "気分を害したからと、関係のない約束まで取り消さないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.cups.14.upright",
+      "field": "do",
+      "before": "今の気持ちと、実際に起きたことの両方を見ましょう。",
+      "after": "嫌なことがあったら、感じたことと実際に言われたことを分けて書きましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.emperor.reversed",
+      "field": "do",
+      "before": "変えてもよい順番を一つ選んでみましょう。",
+      "after": "予定が変わったら、守るべき約束を優先して、残りの順番を変えましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.hanged_man.reversed",
+      "field": "pause",
+      "before": "変わる理由のないまま、同じ期待を抱え続けないようにしましょう。",
+      "after": "状況が変わったか確かめずに、同じ返事を待ち続けないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.hanged_man.upright",
+      "field": "headline",
+      "before": "少し立ち止まると、別の順番が見えてきそうです。",
+      "after": "少し考えるのを休むと、悩んでいたことに別の方法が浮かびそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.hierophant.upright",
+      "field": "do",
+      "before": "気になっていた方法の理由を聞いてみましょう。",
+      "after": "初めてすることは、経験のある人にコツを聞いてみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.judgement.upright",
+      "field": "do",
+      "before": "今分かったことを、次の選択に生かしましょう。",
+      "after": "保留していたことを見直し、今変わった条件を踏まえて考えましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.moon.reversed",
+      "field": "do",
+      "before": "直接分かったことをもとに、見直してみましょう。",
+      "after": "気になっていた知らせは、自分で確認した事実をもとに考え直しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.star.reversed",
+      "field": "do",
+      "before": "以前より良くなったことを、一つ探してみましょう。",
+      "after": "最近練習したことや続けてきたことから、上達した点を一つ探しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.tower.upright",
+      "field": "headline",
+      "before": "予想と違う事実から、計画を見直すことになりそうです。",
+      "after": "新しく分かったことが、無理のない計画に直す手がかりになりそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.tower.upright",
+      "field": "do",
+      "before": "新しく聞いた内容で、何が変わるか確かめましょう。",
+      "after": "予定が変わったら、予約の変更や連絡が必要なところから確認しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.major.world.reversed",
+      "field": "do",
+      "before": "必要な残りだけ確認し、終わらせてみましょう。",
+      "after": "ほぼ終わったことは、抜けた項目だけ確かめて仕上げましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.01.reversed",
+      "field": "do",
+      "before": "短く試して、欠かせないものを知りましょう。",
+      "after": "新しい趣味を始める前に、体験教室などで必要なものを確かめましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.01.reversed",
+      "field": "pause",
+      "before": "物が揃っただけで、すぐ始められると思わないようにしましょう。",
+      "after": "道具が揃っても、使い方や必要な時間を確かめずに始めないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.01.upright",
+      "field": "headline",
+      "before": "考えるだけだったことを、試す条件ができそうです。",
+      "after": "考えるだけだったことを、実際に始める機会がありそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.03.reversed",
+      "field": "do",
+      "before": "用意できているものと、まだ担当のない作業を確認しましょう。",
+      "after": "一緒に準備することがあれば、誰が何を担当するか確認しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.05.reversed",
+      "field": "headline",
+      "before": "具体的な案内で、難しかった選択をもう一度考えられそうです。",
+      "after": "助けを求めると、難しく感じたことにも取り組める方法が見つかりそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.05.upright",
+      "field": "do",
+      "before": "難しい条件を具体的に伝え、別の方法を調べましょう。",
+      "after": "一人で解決しにくいことは、困っている理由を伝えて別の方法を聞きましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.06.upright",
+      "field": "headline",
+      "before": "助け合うことで、迷っていたことを進められそうです。",
+      "after": "一人で頑張るより、助け合うことで物事を進めやすくなりそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.06.upright",
+      "field": "pause",
+      "before": "受けた助けを、すぐ同じ大きさで返そうと頑張らないでください。",
+      "after": "助けてもらったからと、すぐ同じだけ返そうと無理をしないでください。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.07.upright",
+      "field": "do",
+      "before": "前より変わったことと、そのままのことを分けましょう。",
+      "after": "続けてきたことは、始めた頃と今を比べて変わった点を探しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.08.reversed",
+      "field": "do",
+      "before": "実際に楽しむために、どこまで必要か決めましょう。",
+      "after": "何度も手直ししていることは、どこで完成とするか先に決めましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.08.reversed",
+      "field": "pause",
+      "before": "まだよくできるからと、体験を先延ばしにしないでください。",
+      "after": "もっとよくできると思っても、用意したものを実際に使う機会まで延ばさないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.09.reversed",
+      "field": "do",
+      "before": "人に説明しなくても楽しいものを選びましょう。",
+      "after": "写真映えする場所より、自分がくつろげる場所を選びましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.10.upright",
+      "field": "headline",
+      "before": "長く気楽に楽しめる方法に、目が向きそうです。",
+      "after": "一度きりの楽しさより、長く楽しめる好みが見つかりそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.10.upright",
+      "field": "do",
+      "before": "繰り返し楽しめる理由を確かめましょう。",
+      "after": "長く続けた趣味の、今も好きなところを思い出してみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.11.reversed",
+      "field": "do",
+      "before": "説明を一つ選び、短くても実際に体験しましょう。",
+      "after": "趣味や練習の方法を調べるだけだったなら、簡単なものを一つ実際に試しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.12.reversed",
+      "field": "do",
+      "before": "変えてもよい順番を一つ選びましょう。",
+      "after": "いつも同じ順番でしている家事や趣味の作業を、違う順番で試してみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.14.reversed",
+      "field": "do",
+      "before": "実際に楽にできる方法を、別に調べてみましょう。",
+      "after": "名前や値段より先に、自分がどう使うかを考えてみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.pentacles.14.upright",
+      "field": "pause",
+      "before": "見栄えだけで、長く使う方法を変えないでください。",
+      "after": "見た目がよいというだけで、使いやすいものを買い替えないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.02.reversed",
+      "field": "headline",
+      "before": "保留した選択を、これ以上延ばしにくくなりそうです。",
+      "after": "保留していたことを一つずつ決めると、気持ちが楽になりそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.03.upright",
+      "field": "headline",
+      "before": "聞きたくない知らせで、期待が変わるかもしれません。",
+      "after": "残念な知らせがあっても、今日できることは残っています。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.03.upright",
+      "field": "do",
+      "before": "確認した事実と、これからできることを分けましょう。",
+      "after": "期待と違う知らせがあったら、確認できた事実から落ち着いて見ていきましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.05.upright",
+      "field": "headline",
+      "before": "勝つことより、最初に望んだことを思い出しましょう。",
+      "after": "言い争いに勝つことより、最初に望んだ解決を目指すとよさそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.06.reversed",
+      "field": "headline",
+      "before": "次に進む前に、残る約束を確かめましょう。",
+      "after": "新しい計画の前に、残っている約束を片づけると気楽に進めそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.07.upright",
+      "field": "headline",
+      "before": "一人で準備することと、先に伝えることを分けましょう。",
+      "after": "静かに準備を進めつつ、一緒に動く人への連絡は忘れないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.08.upright",
+      "field": "headline",
+      "before": "一つの制約が、すべての選択を塞ぐように見えそうです。",
+      "after": "難しい条件が一つあっても、ほかにできる方法まで見失わないでください。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.09.upright",
+      "field": "headline",
+      "before": "まだ起きていないことが、大きな心配になりそうです。",
+      "after": "心配が膨らむときほど、事実を確かめることが落ち着く助けになりそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.09.upright",
+      "field": "pause",
+      "before": "後から浮かんだ心配を、確かな前兆と受け取らないようにしましょう。",
+      "after": "夜に浮かんだ不安だけで、悪いことが起きると決めつけないでください。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.10.reversed",
+      "field": "do",
+      "before": "終わったこととは別に、小さな楽しみを選びましょう。",
+      "after": "大変だったことが終わったら、好きな音楽や食べ物を楽しみながら休みましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.10.upright",
+      "field": "headline",
+      "before": "続けても変わりにくいことが、はっきり見えそうです。",
+      "after": "うまくいかないことに区切りをつけると、ほかのことに時間を使えそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.11.upright",
+      "field": "do",
+      "before": "気になった違いを、直接聞いてみましょう。",
+      "after": "説明で分からないところは、具体的な例を挙げてもらいましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.12.upright",
+      "field": "do",
+      "before": "決めたことを小さく実行し、条件も確かめましょう。",
+      "after": "決めたことを始める前に、必要な時間と準備するものを確認しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.swords.13.upright",
+      "field": "pause",
+      "before": "好きな人のおすすめでも、自分の条件に合うか確かめましょう。",
+      "after": "好きな人のおすすめだからと、自分にも合うと決めつけないようにしましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.01.reversed",
+      "field": "do",
+      "before": "今できる小さな方法へ、変えてみましょう。",
+      "after": "本格的に始めるのが難しければ、短く体験できる方法を探しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.03.reversed",
+      "field": "headline",
+      "before": "返事を待つ間に、準備を見直してみましょう。",
+      "after": "待っている返事が遅れても、準備を進めて時間を有効に使えそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.03.reversed",
+      "field": "do",
+      "before": "返事をもらう時期と、先にできることを決めましょう。",
+      "after": "いつ返事をもらえそうか聞いて、その間にできる準備を決めましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.06.reversed",
+      "field": "headline",
+      "before": "反応が静かでも、好きだった理由は残っています。",
+      "after": "褒め言葉が少なくても、自分でやり遂げたことに満足できそうです。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.08.reversed",
+      "field": "do",
+      "before": "確定した順番から、もう一度見ましょう。",
+      "after": "予定が遅れたら、確定した時間と返事待ちのことを分けて確認しましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.09.upright",
+      "field": "do",
+      "before": "無理のない範囲で、残っている部分を続けてみましょう。",
+      "after": "仕上げが残ったことは、無理なく今日終えられる分だけ決めましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.11.reversed",
+      "field": "pause",
+      "before": "新しい話を探すばかりで、最初の体験を延ばさないようにしましょう。",
+      "after": "新しい趣味を検索するばかりで、実際に試す時間を逃さないでください。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.13.reversed",
+      "field": "do",
+      "before": "一人でも楽しかったことを、少し体験しましょう。",
+      "after": "人の反応を気にせず、好きな趣味を少し楽しみましょう。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.14.upright",
+      "field": "headline",
+      "before": "望む体験を話すと、準備の順番が見えそうです。",
+      "after": "やりたいことがはっきりして、準備の順番を決めやすい日です。"
+    },
+    {
+      "locale": "ja",
+      "key": "overall.wands.14.upright",
+      "field": "pause",
+      "before": "方法まで全部、自分の考えに合わせようとしなくて大丈夫です。",
+      "after": "一緒に進める人の準備の仕方まで、自分に合わせようとしないでください。"
+    },
+    {
+      "locale": "ja",
+      "key": "work.wands.03.upright",
+      "field": "text",
+      "before": [
+        "準備した結果を人に見せると、新しい視点を得られそうです。一緒に作業した人が当然に思った点にも、初めて見る人は役立つ質問をするかもしれません。",
+        "反応を聞けば、どこまで発展させるかが以前より具体的に浮かぶでしょう。全体を作り直すより、見てもらいたい部分を選んで共有してみましょう。必要な意見があれば、次に加えることと今残すことを判断しやすくなります。"
+      ],
+      "after": [
+        "準備した結果を人に見せると、新しい視点を得られそうです。一緒に作業した人が当然に思った点にも、初めて見る人は役立つ質問をするかもしれません。",
+        "反応を聞けば、どこまで発展させるかが以前より具体的に浮かぶでしょう。全体を作り直すより、見てもらいたい部分を選んで共有してみましょう。役立つ意見をもらえれば、次に改善する部分とそのまま残す部分を判断しやすくなります。"
+      ]
+    }
+  ],
+  "triage": {
+    "summary": {
+      "ko": {
+        "body_count": 780,
+        "duplicate_full_bodies": 0,
+        "flags": 28
+      },
+      "en": {
+        "body_count": 780,
+        "duplicate_full_bodies": 0,
+        "flags": 15
+      },
+      "ja": {
+        "body_count": 780,
+        "duplicate_full_bodies": 0,
+        "flags": 30
+      }
+    },
+    "flags": [
+      {
+        "locale": "ko",
+        "key": "energy.cups.05.reversed",
+        "matches": [
+          "반드시"
+        ],
+        "body": "못 했던 활동을 반드시 보충해야 한다는 부담이 한결 줄어들 수 있는 날이야. 멈췄던 취미도 처음 계획한 양을 잊고 해보면 지금 재미있는 부분이 눈에 들어올 거야.예전과 다른 방식으로 즐겨도 괜찮다는 생각에 준비가 가벼워질 수 있어. 한 번에 많이 하기보다 오늘 편하게 할 수 있는 부분만 골라봐. 짧게 즐긴 뒤에도 아쉬움보다 다시 해봤다는 만족이 더 크게 남을 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "energy.swords.03.upright",
+        "matches": [
+          "무조건"
+        ],
+        "body": "마음에 걸리는 말 때문에 좋아하는 활동에도 집중하기 어려울 수 있어. 자리를 바꾸어도 같은 대화가 떠오르면 쉬는 시간이 짧게 느껴질 거야.무조건 기분이 좋아져야 한다고 생각하면 즐거운 것을 골라도 더 답답해질 수 있어. 복잡하게 준비할 필요 없는 활동을 골라 잠깐 편하게 머물러봐. 바로 기분이 나아지지 않더라도 잠깐 편하게 쉬었다면 그 시간까지 아깝게 여기지 않아도 돼."
+      },
+      {
+        "locale": "ko",
+        "key": "love.cups.01.reversed",
+        "matches": [
+          "같은 크기"
+        ],
+        "body": "마음은 있어도 표현할 때 쑥스러움이 앞설 수 있는 날이야. 고맙거나 반가운 말을 농담으로 바꾸면 상대에게는 진심이 덜 전해질 수 있어.호의를 받아도 바로 같은 크기로 돌려줘야 할 것 같아 어색하게 넘기기 쉬울 거야. 큰 고백을 준비하기보다 오늘 좋았던 점 하나를 짧게 말해봐. 받은 관심도 고맙게 받아들여도 되니 완벽하게 답해야 한다는 부담 때문에 대화를 피하지 마."
+      },
+      {
+        "locale": "ko",
+        "key": "love.major.emperor.upright",
+        "matches": [
+          "확실히"
+        ],
+        "body": "작은 약속을 지키는 모습에서 믿음이 깊어질 수 있는 날이야. 언제 연락할지 분명히 말하거나 맡았던 준비를 챙기는 행동이 다정한 말만큼 반갑게 전해질 거야.가까운 사람도 내게 기대도 되는 부분을 알면서 한층 편하게 이야기할 수 있어. 해줄 수 있는 것은 확실히 말하되 상대가 직접 정하고 싶은 것은 물어봐. 서로의 몫을 존중하며 약속을 지키면 불필요하게 마음을 떠볼 일이 줄어들 거야."
+      },
+      {
+        "locale": "ko",
+        "key": "love.major.hanged_man.reversed",
+        "matches": [
+          "무조건"
+        ],
+        "body": "내 바람을 말하지 않은 채 기다리다 지치기 쉬운 날이야. 충분히 참으면 알아줄 것이라 생각해도 상대는 무엇을 원하는지 모를 수 있어.서운함을 숨긴 시간이 길어지면 간단한 안부에도 반갑게 답하기 어려워질 거야. 기다릴 수 있는 정도와 지금 듣고 싶은 말을 구체적으로 이야기해봐. 무조건 이해해줘야 한다고 생각하기보다 서로 가능한 범위를 정하면 한쪽만 애쓰는 느낌을 줄일 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "love.major.star.reversed",
+        "matches": [
+          "가능성"
+        ],
+        "body": "상대의 호의에도 선뜻 기대하기 어려운 날이야. 반가운 말을 듣고도 그냥 예의일 것이라 생각해 내 표현을 먼저 줄일 수 있어.지난 경험이 떠오르면 지금 받은 관심보다 나중에 서운해질 가능성만 크게 보일 거야. 아직 확인하지 않은 걱정과 직접 들은 말을 나누어 생각해봐. 크게 마음을 드러내기 어렵다면 고마웠다는 말부터 건네며 지금의 대화가 어떻게 이어지는지 살펴봐도 좋아."
+      },
+      {
+        "locale": "ko",
+        "key": "love.major.strength.upright",
+        "matches": [
+          "무조건"
+        ],
+        "body": "서운한 마음도 부드럽고 분명하게 전하기 좋은 날이야. 무조건 괜찮다고 참지 않아도 어떤 말이 마음에 걸렸는지 차분히 설명할 수 있어.상대가 다른 이야기를 꺼내더라도 곧바로 맞받기보다 끝까지 듣고 싶은 여유가 생길 거야. 고치길 바라는 것이 있다면 비난보다 앞으로 해줬으면 하는 행동을 말해봐. 서로의 설명을 충분히 들으면 마음을 숨길 때보다 가까워졌다는 느낌이 남을 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "love.pentacles.02.reversed",
+        "matches": [
+          "유를 몰라"
+        ],
+        "body": "함께하고 싶은 마음과 실제로 낼 수 있는 시간이 다를 수 있는 날이야. 이것저것 챙기다 대답이 늦어지거나 약속 시간을 바꾸면 상대는 이유를 몰라 서운해할 수 있어.무리해서 괜찮다고 했다가 다시 취소하면 설명도 더 어려워질 거야. 지금 가능한 시간을 솔직히 말하고 오래 기다려야 한다면 먼저 알려줘. 짧게라도 지킬 수 있는 약속이 불확실한 긴 약속보다 서로를 편하게 해줄 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "love.pentacles.07.upright",
+        "matches": [
+          "같은 크기"
+        ],
+        "body": "꾸준히 관심을 나누어도 눈에 띄는 표현은 천천히 돌아올 수 있는 날이야. 큰 말을 기다리다 보면 전보다 편하게 웃거나 먼저 이야기를 꺼낸 순간을 작게 볼 수 있어.함께한 시간이 쌓이며 달라진 부분과 아직 어색한 부분은 따로 남아 있을 거야. 당장 같은 크기의 반응을 바라기보다 서로 어떤 대화가 편해졌는지 살펴봐. 궁금한 마음은 직접 물어도 괜찮으니 기다리는 것만으로 상대의 뜻을 정하려 하지는 마."
+      },
+      {
+        "locale": "ko",
+        "key": "money.major.emperor.reversed",
+        "matches": [
+          "무조건"
+        ],
+        "body": "엄격하게 정한 금액이 실제 필요한 지출과 맞지 않을 수 있는 날이야. 무조건 아끼려다 꼭 써야 할 곳을 미루거나 다른 항목에서 급하게 돈을 가져오게 되기 쉬워.함께 내는 비용도 한 사람이 정한 방식만 따르면 누구에게는 부담이 커질 수 있어. 전체 한도를 갑자기 늘리기보다 지금 쓰지 않는 항목과 부족한 항목을 비교해봐. 왜 바꾸는지 분명히 알고 조정하면 처음 세운 계획도 계속 활용할 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "money.major.temperance.upright",
+        "matches": [
+          "무조건"
+        ],
+        "body": "필요한 지출과 즐길 비용을 적당히 나누기 좋은 날이야. 한 항목에 돈이 더 들더라도 다른 곳을 조금 조정하면 큰 부담 없이 맞출 방법이 보일 수 있어.무조건 아껴야 한다는 생각보다 어디에 쓰면 만족스러울지 차분하게 판단할 거야. 꼭 나갈 돈을 먼저 남겨두고 나머지 지출에서 조정할 항목을 살펴봐. 작은 즐거움까지 모두 포기하지 않아도 감당할 만한 계획을 세울 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "money.pentacles.03.upright",
+        "matches": [
+          "무조건"
+        ],
+        "body": "설명을 충분히 듣고 비용을 쓰면 불필요한 지출을 줄일 수 있는 날이야. 경험 있는 사람에게 물어보면 직접 할 수 있는 부분과 도움을 맡길 부분이 나뉠 거야.함께 쓰려는 것이 있다면 이미 준비된 범위를 알아두는 것만으로도 같은 물건을 또 사지 않을 수 있어. 가격을 고르기 전에 어떤 작업이나 이용까지 포함되는지 확인해봐. 필요한 도움에 적절히 쓰는 돈은 무조건 아끼다가 다시 준비하는 것보다 실속 있을 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "money.pentacles.08.upright",
+        "matches": [
+          "반드시"
+        ],
+        "body": "꾸준히 익힌 기술이나 지식이 실제로 쓸 만한 보탬이 될 수 있는 날이야. 잘 아는 일을 부탁받거나 내 경험이 필요한 곳을 알게 되면서 작은 보상으로 이어질 여지가 있어.익숙한 분야의 설명에서는 가격만으로 알기 어려운 품질 차이도 알아보기 쉬울 거야. 내가 할 수 있는 범위와 들일 시간을 구체적으로 이야기해봐. 노력한 만큼 반드시 돌려받는 것은 아니어도 어떤 쓰임이 있는지 알면 다음에 준비할 방향을 현실적으로 정할 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "money.swords.03.upright",
+        "matches": [
+          "망할"
+        ],
+        "body": "좋게 생각했던 조건이 실제와 달라 실망할 수 있는 날이야. 기대한 기능이나 이용 범위가 빠졌다는 것을 알면 금액보다 아쉬운 마음이 먼저 커질 거야.그 기분을 만회하려고 다른 것을 더 사면 처음의 문제와 별개로 지출만 늘 수 있어. 무엇이 설명과 달랐는지 확인하고 추가 비용 없이 바꿀 수 있는 방법을 물어봐. 당장 답을 듣지 못해도 필요한 내역을 남겨두면 다음에 처리할 일을 분명히 정할 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "money.swords.05.reversed",
+        "matches": [
+          "무조건"
+        ],
+        "body": "돈을 나누며 생긴 불편도 내역을 다시 보면 조정할 방법이 보일 수 있어. 감정이 앞설 때 크게 느꼈던 차이가 실제 계산에서는 생각보다 작을 수 있어.금액 자체와 공평하다고 느끼는 기준이 달랐다는 것을 알게 될 수도 있을 거야. 각자 사용한 내용과 약속을 확인한 뒤 납득할 수 있는 분담을 이야기해봐. 무조건 손해를 받아들이지 않아도 사실에 맞춰 내 몫을 분명히 말할 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "money.wands.05.upright",
+        "matches": [
+          "반드시"
+        ],
+        "body": "함께 고를 때 서로 중요하게 보는 조건이 달라 망설일 수 있는 날이야. 한쪽은 가격을 낮추고 싶지만 다른 쪽은 기능을 더 원해 의견이 쉽게 맞지 않을 거야.각자 바라는 것을 모두 넣으면 준비할 항목이 늘면서 처음 예산을 넘길 수 있어. 반드시 필요한 것과 있으면 좋은 것을 나누어 비교해봐. 무엇을 덜어도 괜찮은지 알면 금액만 두고 다툴 때보다 서로 납득할 선택을 찾기 쉬워질 거야."
+      },
+      {
+        "locale": "ko",
+        "key": "overall.cups.08.reversed",
+        "matches": [
+          "무조건"
+        ],
+        "body": "그만두려던 일에도 아직 마음에 드는 부분이 남아 있을 수 있는 날이야. 전부 별로라고 생각했지만 잠시 거리를 두면 아쉬웠던 조건과 좋았던 경험을 따로 보게 될 거야.오래 해온 것이 아까운 마음과 지금도 원하는 마음이 섞여 결정을 늦출 수 있어. 다시 시작한다면 무엇을 바꾸고 싶은지 먼저 적어봐.그 조건으로도 해보고 싶을 때만 작게 이어가면 무조건 남거나 모두 떠나야 한다는 부담을 덜 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "overall.major.hanged_man.reversed",
+        "matches": [
+          "가능성"
+        ],
+        "body": "조금 더 기다리면 달라질 것이라는 생각에 결정을 계속 미루기 쉬운 날이야. 새로운 소식은 없는데 같은 가능성을 되짚으면 시간만 길게 느껴질 수 있어.이미 쓴 시간이 아까워 내게 맞지 않는 방식을 계속 붙잡고 싶어질 거야. 무엇이 달라져야 다시 움직일 수 있는지 먼저 정하고 직접 확인할 것을 하나 골라봐.기다릴 이유가 없다면 작은 부분부터 바꾸는 쪽이 제자리에서 고민할 때보다 덜 답답할 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "overall.major.star.reversed",
+        "matches": [
+          "망할"
+        ],
+        "body": "바라던 모습과 비교하느라 조금 달라진 것을 놓치기 쉬운 날이야. 전보다 편해진 부분이 있어도 아직 멀었다는 생각이 먼저 들어 기뻐하기 어려울 수 있어.좋은 제안에도 기대했다가 실망할까 봐 선뜻 관심을 보이지 못할 거야. 큰 변화가 있었는지만 묻지 말고 지금 덜 불편한 것이 무엇인지 살펴봐.그 한 가지를 알아보면 당장 모든 것이 달라지지 않아도 다음에 해볼 일이 조금은 보일 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "overall.major.world.reversed",
+        "matches": [
+          "반드시"
+        ],
+        "body": "대부분 해놓고도 마지막 한 가지가 마음에 남을 수 있는 날이야. 짧게 확인하면 끝날 것을 미루다 보면 이미 끝낸 부분까지 계속 신경 쓰이기 쉬워.반대로 충분히 마쳤는데 작은 흠을 고치려다 새로 할 일을 늘릴 수도 있을 거야. 반드시 필요한 마무리인지 더 완벽하게 만들고 싶은 것인지 나누어봐.남은 것만 처리한 뒤에는 끝낸 것으로 두면 같은 일을 자꾸 떠올리는 부담을 덜 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "overall.swords.06.reversed",
+        "matches": [
+          "반드시"
+        ],
+        "body": "새 계획을 잡아도 전에 해둔 약속이 마음에 걸릴 수 있는 날이야. 이미 끝났다고 여긴 준비나 대답이 남아 있어 다음 순서로 바로 넘어가기 어려울 수 있어.무엇이 아직 필요한지 알면 막연히 바꿀 수 없다고 느꼈던 이유도 구체적으로 보일 거야. 새로 시작할 것을 더 정하기 전에 남은 일부터 짧게 확인해봐.반드시 끝낼 것과 나중에 이어도 될 것을 나누면 계획을 모두 포기하지 않아도 돼."
+      },
+      {
+        "locale": "ko",
+        "key": "overall.swords.08.upright",
+        "matches": [
+          "가능성",
+          "반드시"
+        ],
+        "body": "한 가지 조건이 맞지 않아 다른 방법도 모두 막힌 것처럼 느껴질 수 있어. 정해진 방식으로만 해야 한다고 생각하면 조금 바꾸어 해볼 가능성은 눈에 잘 들어오지 않을 거야.다른 사람은 괜찮다고 해도 내게는 시작부터 부담스럽게 느껴질 수 있어. 반드시 지켜야 하는 조건인지 직접 물어보고 바꿀 수 있는 부분을 찾아봐.전부 해결하지 못하더라도 한 가지를 다르게 정하면 지금 가능한 선택이 남아 있을 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "overall.swords.13.reversed",
+        "matches": [
+          "무조건"
+        ],
+        "body": "한 번 불편했던 경험 때문에 비슷한 선택을 모두 피하고 싶어질 수 있어. 이번에는 조건이 달라도 예전과 같을 것이라 생각해 설명을 끝까지 듣지 않기 쉬워.나를 지키려던 기준이 너무 좁아지면 편하게 즐길 방법까지 놓칠 수 있을 거야. 전에 무엇이 불편했는지 구체적으로 짚고 이번에도 같은지 확인해봐.무조건 다시 해볼 필요는 없지만 다른 조건이 있다면 새로 살펴볼 여지를 남겨두어도 좋아."
+      },
+      {
+        "locale": "ko",
+        "key": "work.major.emperor.reversed",
+        "matches": [
+          "반드시"
+        ],
+        "body": "작은 부분까지 모두 확인받으려다 진행이 늦어지기 쉬운 날이야. 누가 정할 수 있는지 애매하면 이미 끝낸 내용에도 서로 다른 수정이 붙을 수 있어.혼자 공부할 때도 정한 순서를 고집하면 다른 방법으로 풀 수 있는 문제를 오래 붙잡기 쉬워. 반드시 확인이 필요한 부분과 스스로 바꿔도 되는 부분부터 구분해봐. 중간에 한 번 확인할 때를 정해두면 매번 멈추는 일을 줄일 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "work.major.high_priestess.reversed",
+        "matches": [
+          "확실히"
+        ],
+        "body": "읽을 때는 알 것 같던 내용도 직접 설명하려면 막힐 수 있는 날이야. 익숙한 자료라고 빨리 넘기면 바뀐 조건이나 중요한 예외를 놓칠 수 있어.다른 사람의 설명을 그대로 옮기는 과정에서도 뜻이 어긋날 수 있어. 확실히 아는 부분과 더 물어봐야 할 부분을 나누어 정리해봐. 모르는 지점을 먼저 밝혀두면 뒤늦게 전부 고치는 수고를 줄일 수 있을 거야."
+      },
+      {
+        "locale": "ko",
+        "key": "work.major.justice.upright",
+        "matches": [
+          "반드시"
+        ],
+        "body": "정해진 기준을 살펴보면 무엇을 고쳐야 하는지 분명해지기 좋은 날이야. 단순히 마음에 드는지보다 요구한 내용이 들어갔는지 비교할 때 수정할 곳을 쉽게 찾을 수 있어.내 생각을 설명할 때도 자료나 구체적인 예를 보태면 상대가 이해하기 수월할 거야. 받은 의견 중 개인 취향과 반드시 지킬 조건을 먼저 나누어봐. 잘된 부분은 남기고 필요한 곳만 손보면 전체를 다시 만드는 부담을 줄일 수 있어."
+      },
+      {
+        "locale": "ko",
+        "key": "work.major.wheel_of_fortune.reversed",
+        "matches": [
+          "모든 일이"
+        ],
+        "body": "같은 곳에서 지연이 반복돼 진행이 답답하게 느껴질 수 있는 날이야. 예전에는 괜찮던 순서가 지금 필요한 확인과 맞지 않아 다시 기다릴 일이 생길 수 있어.답을 재촉하는 데 시간을 쓰면 혼자 먼저 할 수 있는 부분도 늦어질 거야. 무엇을 기다리는지와 그 전에 준비할 수 있는 것을 따로 적어봐. 바뀐 요구에 맞춰 순서를 조정하면 모든 일이 풀릴 때까지 손을 놓고 있을 필요는 없어."
+      },
+      {
+        "locale": "ko",
+        "key": "work.wands.07.upright",
+        "matches": [
+          "반드시"
+        ],
+        "body": "선택한 방법에 질문을 받아도 근거를 들어 설명할 수 있는 날이야. 직접 확인한 예시가 있다면 길게 주장할 때보다 상대가 차이를 쉽게 알아볼 거야.의견이 달라도 반드시 지킬 조건과 바꿔도 될 부분은 따로 보일 수 있어. 질문을 전부 반대로 받아들이지 말고 어떤 점을 걱정하는지 먼저 들어봐. 핵심을 지키면서 세부를 조정하면 이미 해온 작업을 살리고 필요한 수정도 함께 진행할 수 있어."
+      },
+      {
+        "locale": "en",
+        "key": "energy.cups.01.upright",
+        "matches": [
+          "same amount"
+        ],
+        "body": "Nearby pleasures such as music or food could feel particularly welcome. Briefly noticing a taste or sound you usually rush past may make the same amount of time more comfortable.Finding an activity you like can bring a desire to enjoy it longer rather than to perform better. Choose something available now instead of an activity requiring extensive preparation. A short period of undivided enjoyment can leave the rest of the day feeling more pleasant."
+      },
+      {
+        "locale": "en",
+        "key": "energy.cups.03.upright",
+        "matches": [
+          "same amount"
+        ],
+        "body": "Moving and laughing with others could bring a welcome sense of liveliness. An activity that's dull alone may become easier to enjoy while sharing a light conversation.Talking about entertaining moments can also make a short session more memorable. Choose a comfortable way to participate instead of expecting everyone to do the same amount. If someone wants an earlier break, let them rest when they need to and finish the shared activity on a pleasant note."
+      },
+      {
+        "locale": "en",
+        "key": "energy.major.justice.reversed",
+        "matches": [
+          "same amount"
+        ],
+        "body": "A small amount of movement could make you judge the day too harshly. You may expect the same amount as on a leisurely day despite having much less time available.Looking only at someone else's record can also make a comfortable activity seem insignificant. Consider the time you actually had alongside how much you did. Giving yourself credit for a short, enjoyable session can reduce the urge to overdo things later just to reach a number."
+      },
+      {
+        "locale": "en",
+        "key": "energy.pentacles.12.upright",
+        "matches": [
+          "same amount"
+        ],
+        "body": "A routine you know well may make it easier to begin. Taking out what's prepared could let you move your body or hands comfortably without researching another activity.The wish to enjoy the same amount again may feel more satisfying than a single large accomplishment. Proceed gradually within your usual manageable range today. Even with a little room to do more, a pleasant finish can help continuing a familiar pastime feel uncomplicated the next time you begin."
+      },
+      {
+        "locale": "en",
+        "key": "energy.swords.14.reversed",
+        "matches": [
+          "cure"
+        ],
+        "body": "Trying to reach a fixed number may begin to obscure the pleasure of an activity. Even after enough movement, an apparently incomplete count could make finishing difficult.Applying a goal from another day unchanged may add more activity than the current time permits. Review today's energy and preparation time, then adjust the amount. If following the rule isn't your only measure of a good break, choosing an ending that suits you can become easier."
+      },
+      {
+        "locale": "en",
+        "key": "energy.wands.07.upright",
+        "matches": [
+          "same amount"
+        ],
+        "body": "You may find a pace of your own while taking part with others. Even if someone suggests doing more, you can comfortably say that you've already enjoyed enough.Taking a short rest and rejoining might also be accepted more naturally than expected. Choose a section that feels comfortable instead of expecting everyone to do the same amount from the start. Declining more doesn't mean declining shared enjoyment, and time spent participating without strain can be appreciated too."
+      },
+      {
+        "locale": "en",
+        "key": "love.cups.10.upright",
+        "matches": [
+          "cure"
+        ],
+        "body": "Talking comfortably about a small plan together can help you feel secure. The consideration someone close usually shows may feel like something to appreciate rather than take for granted.Sharing how your days went can naturally bring up ways you'd like to enjoy ordinary time together. Mention something you'd like to eat or somewhere you'd like to go without making a grand promise. Having one pleasant thing to anticipate can make the conversation you're having now feel warmer too."
+      },
+      {
+        "locale": "en",
+        "key": "love.pentacles.06.upright",
+        "matches": [
+          "same amount"
+        ],
+        "body": "A small request and a little help may make you feel closer. Explaining specifically what's needed could let someone comfortably say which part they can offer.Dividing something to resolve together may make the conversation more natural than pretending you're fine alone. Briefly describe what their help made easier. Less pressure to return the same amount immediately can make both expressing thanks and relying on each other next time feel more comfortable than keeping a mental account."
+      },
+      {
+        "locale": "en",
+        "key": "love.swords.10.upright",
+        "matches": [
+          "cure"
+        ],
+        "body": "Repeating the same argument may not bring any greater understanding. Hearing already explained words again could leave tiredness more noticeable than their content.The belief that it can end only once you've persuaded someone may obscure the feeling you originally wanted to express. Acknowledge what's difficult about the current approach and pause the conversation briefly. Rather than judging the entire relationship immediately, decide what to discuss first in a different way when you return to it."
+      },
+      {
+        "locale": "en",
+        "key": "money.cups.14.reversed",
+        "matches": [
+          "same amount"
+        ],
+        "body": "Pride or hurt feelings could change how you judge the same amount of money. An expense that seemed fine when you wanted to look generous may suddenly feel wasteful after an upsetting conversation.Who said what could become more memorable than what was actually used. Lay out the costs and the agreed limits before deciding what to pay. Discussing the emotional part separately can keep you from using a change in the amount to express how you feel."
+      },
+      {
+        "locale": "en",
+        "key": "money.major.justice.upright",
+        "matches": [
+          "same amount"
+        ],
+        "body": "Sorting out money owed or due could feel more straightforward. Comparing the records with what was agreed may show why an amount became unclear.For a shared cost, checking what each person actually used can help establish a basis everyone understands. Apply the same standard to an overlooked payment you owe as to money you should receive. Keeping a brief record of the calculation can reduce the need to explain the same amount again later."
+      },
+      {
+        "locale": "en",
+        "key": "money.major.lovers.upright",
+        "matches": [
+          "same amount"
+        ],
+        "body": "Finding an agreement about shared spending could come more easily. Even with the same amount in mind, one person may value lasting quality while another prioritizes convenience right now.Explaining what each of you needs can reveal an option that doesn't leave one person making every concession. Discuss what the money is for before settling on a price. A decision within terms you both accept can leave less reason to question the choice again later."
+      },
+      {
+        "locale": "en",
+        "key": "money.pentacles.13.reversed",
+        "matches": [
+          "cure"
+        ],
+        "body": "Preparing gifts or shared items may push everyday financial needs into the background. Individually small amounts could exceed the first budget when several people are included.Wanting to provide enough might obscure what you can actually afford. Set protected expenses aside and choose preparations within the remaining amount. Asking what someone needs may reveal a warmly received option at a modest cost, so increasing the size doesn't have to be the only way you show care."
+      },
+      {
+        "locale": "en",
+        "key": "money.swords.14.reversed",
+        "matches": [
+          "same amount",
+          "cure"
+        ],
+        "body": "An earlier basis for sharing costs may seem automatically applicable now. Changed usage or circumstances could make the same amount burdensome in different ways for each person.Repeating that it was already agreed may obscure why adjustment is necessary. Check again who uses what and how much each can comfortably pay at present. Reflecting changed conditions instead of imposing the old criterion can make it easier to agree on a division that will continue to feel acceptable."
+      },
+      {
+        "locale": "en",
+        "key": "overall.pentacles.12.reversed",
+        "matches": [
+          "everything will"
+        ],
+        "body": "A familiar approach might feel frustrating when it doesn't fit what you currently need. Delaying the enjoyment you want first to preserve the sequence could lengthen a wait without a clear reason.You may hesitate as though everything will change when only one adjustment is needed. Separate what must remain from what is merely habit.A small adjustment can fit the day to your present time and taste without requiring you to change the whole familiar routine."
+      },
+      {
+        "locale": "ja",
+        "key": "energy.swords.03.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "気にかかる言葉のために、好きな活動にも集中しにくいかもしれません。場所を変えても同じ会話が浮かぶと、休む時間が短く感じられそうです。必ず気分を良くしなければと思うと、楽しいことを選んでも余計に息苦しく感じるでしょう。複雑な準備のいらない活動を選び、少し気楽に過ごしてみましょう。すぐ気分が晴れなくても、少し楽に休めたなら、その時間まで惜しむ必要はありません。"
+      },
+      {
+        "locale": "ja",
+        "key": "energy.swords.12.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "短い時間に活動を詰め込み、移動ばかり増えるかもしれません。したいことを全部楽しもうとすると、一か所にいる時間は思ったより短いでしょう。急ぐ中で次の場所を考えると、今の活動も十分味わえなさそうです。必ずしたいことを一つ決め、残りの予定を減らしてみましょう。回る数が少なくても、楽しむ時間が残るほうが、忙しく動くだけより満足できそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "energy.wands.03.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "遠出のための時間が、予想より短くなるかもしれません。出発が遅れたり別の予定ができたりすると、移動が活動より長く感じられそうです。元の場所にこだわらなければ、近くでも望んだ体験の一部を楽しめるでしょう。必ず見たいものがあるのか、ただその場所へ行きたいのかを先に考えてみましょう。今の余裕に合わせて短く変えれば、計画が違っても楽しむ時間を守れます。"
+      },
+      {
+        "locale": "ja",
+        "key": "energy.wands.08.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "活動の間に移動を詰めると、楽しむ時間が短くなりそうです。一か所で好きなものが見つかっても、次の時刻が気になり急いで出るかもしれません。待ち時間が予想より長ければ、後の予定をこなそうと急ぐでしょう。必ず行きたい場所を残し、一つは次の機会へ移してみましょう。立ち寄る数が減っても今の体験を十分楽しめれば、帰るときは気楽に良い時間だったと思えそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "energy.wands.10.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "することを抱えすぎ、先に体が疲れやすい日です。小さなお願いも一つずつ足すと、少し休む時間までなくなるかもしれません。まだ大丈夫と思っても、あちこち移動したり長く立ったりすることが重なると、夕方には疲れが大きく残るでしょう。自分が必ずすることと分担できることを分け、一つでも減らしてみましょう。休み時間に別の用事を入れず、短くても何も担当しない時間を確保しておきましょう。"
+      },
+      {
+        "locale": "ja",
+        "key": "love.pentacles.07.reversed",
+        "matches": [
+          "価値"
+        ],
+        "body": "長い付き合いだからと、必要な話を先延ばしにしやすい日です。時間がたてば自然に合うと思っていても、今望んでいることは違うかもしれません。これまでの気遣いを振り返ることと、これからどんな関係でいたいか聞くことは別でしょう。一緒にいて心地よかった点と、まだ話したいことを正直に伝えてみましょう。過ごした時間の価値を示そうとするより、今の気持ちを聞けば、次にどう会うかも考えやすくなりそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.major.emperor.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "何にいくら使うか、整理しやすい日です。必ず払う分を先に確保すると、自由に使える金額も思った以上にはっきりするでしょう。共同で払うお金も、誰がいつ出すかを決めておけば、行き違いなく用意できそうです。新しい出費を決めるときは、今回使える上限を先に伝えてみましょう。予算内で必要なものをそろえられたら、もっと安い方法を探し続けなくても大丈夫です。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.major.temperance.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "必要な出費と楽しみに使う費用を、程よく分けやすい日です。一つに多くかかっても、ほかを少し調整すれば、大きな負担なく合わせられるかもしれません。とにかく節約しようとするより、何に使えば満足できるか、落ち着いて考えられそうです。必ず払う分を先に確保し、残りの出費で調整できる項目を見ておきましょう。小さな楽しみまで全部諦めなくても、無理のない計画を立てられそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.pentacles.05.reversed",
+        "matches": [
+          "価値"
+        ],
+        "body": "受けられる特典や、減らせる費用を新しく見つけられそうです。対象外だろうと見過ごした条件を読み直すと、問い合わせる価値のある項目が見つかるかもしれません。払い続けるものと思っていた費用も、利用方法を変えれば減らせる部分がありそうです。必要な書類と適用条件を確認し、実際にいくらになるか聞いてみましょう。まだ確定していないお金を先に使う計画さえ立てなければ、小さな節約も予算の余裕に役立ちます。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.pentacles.08.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "身につけてきた技術や知識が、実際に役立ちそうな日です。得意な仕事を頼まれたり、自分の経験を必要とする場所を知ったりして、小さな報酬につながる可能性があります。詳しい分野の説明なら、価格だけでは分からない品質の違いも見抜きやすいでしょう。できる範囲と、かかる時間を具体的に伝えてみましょう。努力が必ず報われるわけではなくても、役立つ場面が分かれば、次に何を準備するか現実的に決められそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.swords.02.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "多くの条件を比べるほど、最初の予算が曖昧になりそうです。良い点を一つずつ足すうちに、もともと不要だった機能も外しにくく感じるでしょう。決める時が近づくと、十分検討したからと負担のある金額まで受け入れやすそうです。最初の金額と必ず使う機能を、もう一度書き出してみましょう。その範囲で候補を減らせば、あらゆる条件を一度に満たそうとせず、決定をまとめられます。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.swords.02.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "長所と短所の違う条件の間で、決断を延ばしやすい日です。安くても面倒なものと、便利でも高いものが並ぶと、どちらが良いか決めにくいでしょう。すべての利点を一度に得ようとするほど、確認する項目も増えそうです。実際にいちばんよく困るのは何か、先に考えてみましょう。今回は何を必ず守るか一つ決めれば、さらに良い点を探し続けるより自分に合うほうを選びやすくなります。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.swords.06.upright",
+        "matches": [
+          "価値"
+        ],
+        "body": "払い続ける費用について、負担の少ない利用方法が見つかりそうです。時間帯や料金プランを変えると、よく使うものを残しながら不要な項目を減らせるかもしれません。変更費用も見れば、今切り替えるか待つか明確になるでしょう。新しい月額だけでなく、実際に払う総額を確かめてみましょう。調べるのに少し手間がかかっても、その後気楽に使える条件なら変更を検討する価値はありそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.swords.08.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "一つの費用が重く感じると、必要な出費まで難しく思えそうです。これから出るお金を一度に考え、今使える金額も小さく見えるでしょう。実際に必要な時期を決めないと、延ばせる費用まで今の心配になるかもしれません。予定する金額を日付ごとに分け、今必ず払うものから確かめてみましょう。一度に全部解決しようとしなければ、負担するものと少し待てるものを分けやすくなります。"
+      },
+      {
+        "locale": "ja",
+        "key": "money.wands.07.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "何度もおすすめを聞くと、不要な費用にも同意しやすい日です。外すつもりのオプションでも、説明が長いほど断る理由を探すべきだと感じそうです。加わった金額を足すと、最初の上限を超えるかもしれません。何を買うつもりだったか思い出し、今も必ず使う項目だけ残してみましょう。説明を最後まで論破しなくても、予算に合わない理由で決定を止めて大丈夫です。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.major.devil.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "気が進まないまま続けていたことを、やめる勇気が生まれそうです。必ずすべきだと思っていたことも、実は習慣だったと気づくかもしれません。小さな頼みを断ったり、いつもの選択を変えたりすると、予想より気持ちが楽になるでしょう。一度に変わろうとせず、今日はしないことを一つ決めてみましょう。またしたくなっても、先に決めた理由を思い出せば、自分の意思で選びやすくなります。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.major.emperor.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "決めたとおりに動けないと、小さな変更も気になりやすい日です。一つ順番が変わっただけで、ほかも合わせ直そうとして、かえって手間が増えそうです。一緒にいる人の別のやり方まで間違いに見えて、必要以上に説明が長くなることもあるでしょう。必ず守りたい時間と、変えてもよい部分を分けてみましょう。目的に支障がなければ、少し違うやり方でもよいと思えると、窮屈さが和らぎそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.swords.06.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "新しい計画を立てても、以前の約束が気にかかるかもしれません。終わったと思った準備や返事が残り、すぐ次へ進めない場合がありそうです。何がまだ必要か分かれば、漠然と変更できないと感じた理由も具体的に見えるでしょう。新しく始めることを増やす前に、残っていることを短く確認してみましょう。必ず終えることと後で続けてよいことを分ければ、計画を全部諦めずに済みます。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.swords.08.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "不可能と思ったことにも、条件を変える余地が見つかりそうです。必ず従うべきだと思った順番が、実は自分で決めただけと分かるかもしれません。小さな決定を自分ですると、次に何をするかも以前ほど難しく感じないでしょう。困難が全部なくなるのを待つより、今変えられることを一つ選んでみましょう。少し違う方法を試した経験があれば、前に見逃した選択肢も見直せます。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.swords.08.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "一つの条件が合わず、ほかの方法まで不可能に感じるかもしれません。決まったやり方でなければと思うと、少し変えて試す可能性は見えにくいでしょう。人は大丈夫と言っても、自分には始めることから負担に思えそうです。必ず守る条件か直接尋ね、変えられる部分を探してみましょう。全部解決できなくても、一つ違う決め方をすれば、今できる選択が残るかもしれません。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.wands.05.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "小さな決定にも、いくつもの提案が同時に出そうです。それぞれ良い理由を話すと、簡単だった選択もすぐには決まらないでしょう。違う好みを比べる中で、自分が特に大切にする点は明確になるかもしれません。全員の希望を一度に満たそうとするより、必ず守る条件から決めてみましょう。意見が違うだけで悪い場だと思わなければ、新しい楽しみを発見する余地もあります。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.wands.07.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "些細な好みまで理解してもらおうとすると、疲れる一日になりそうです。違う意見ごとに理由を足せば、実際に楽しむ時間は短くなるでしょう。ただ好みだと話してよいことにも、大切な決定と同じほど説明を頑張っているかもしれません。必ず守ることと違っても構わないことを、分けてみましょう。重要でない説明を減らせば、望んだ体験に時間を使いつつ、必要な言葉は明確に伝えられます。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.wands.09.upright",
+        "matches": [
+          "価値"
+        ],
+        "body": "以前難しかったことがあっても、望む部分を続けられそうです。どこで困ったか覚えているので、今回は必要な準備に早く気づくでしょう。ただ、似て見えるだけで役立つ提案まで断るかもしれません。確認済みのことと、今回新しく調べることを分けてみましょう。大きく再開しなくても、残る部分を落ち着いて体験すれば、今も試す価値があると感じられそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.wands.10.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "善意で引き受けたことが重なり、自分の望む時間を取りにくいかもしれません。一つずつは小さなお願いでも、全部すると短く楽しむ計画も後回しになるでしょう。これまでうまくこなしてきたことだからこそ、また自分の役目として来る場合もありそうです。自分が必ずすることと分担できることを、分けてみましょう。新しいお願いにすぐ答えず残る時間を見れば、助けながらも一日全部を譲らずに済みます。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.wands.14.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "望む方向が明確な分、別の説明を軽く済ませやすい日です。これなら大丈夫と思った時間や準備が、実際には合わないかもしれません。周りの提案を聞くと、元の計画で減らすべき部分が見えてくるでしょう。必ず楽しみたいことは残し、可能な方法から見直してみましょう。自分と違うだけで断らなければ、期待を全部捨てずに気楽な体験方法を見つけられます。"
+      },
+      {
+        "locale": "ja",
+        "key": "overall.wands.14.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "どんな時間を過ごしたいか明確になり、計画を進められそうです。いちばん楽しみなことを話せば、場所や順番を選ぶ際も大切な部分を逃さないでしょう。人の提案が加わっても、最初の希望に合うか冷静に見られそうです。細部を全部決めるより、必ず楽しみたいことから話してみましょう。各自に楽な方法を一緒に選べば、一人で全部準備しなくても期待した体験に近づけます。"
+      },
+      {
+        "locale": "ja",
+        "key": "work.major.justice.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "どの基準で直すべきか分からず、迷いやすい日です。最初の要望と後の説明が違うと、一生懸命直しても、合っているか不安になるかもしれません。もっと良くしてという曖昧な言葉だけを受け止めると、すでに良い部分まで変え続けそうです。必要な例と必ず満たす条件を、具体的に聞いてみましょう。理由のある修正と好みの違いを分ければ、今直す範囲を決めやすくなります。"
+      },
+      {
+        "locale": "ja",
+        "key": "work.major.lovers.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "同じことを始めても、それぞれが思い描く結果は違うかもしれません。理解し合えたと思った言葉も、具体例にすると別の形で表れやすい日です。どちらに合わせるか決めずに進めると、できた内容を後から直すことになりそうです。早めに短い例を見せ、必ず入れるものを確認してみましょう。考えの違いを先に伝えるほうが、後まで顔色を見ながら合わせるより役に立ちます。"
+      },
+      {
+        "locale": "ja",
+        "key": "work.major.lovers.upright",
+        "matches": [
+          "必ず"
+        ],
+        "body": "一緒に取り組む人と、大切にする点をすり合わせやすい日です。別々の方法を提案していても、目指す結果を話すと、共通の目的が見つかりそうです。得意な部分と助けが必要な部分も、素直に伝えやすいでしょう。それぞれが始める前に、必ず守る条件と変えてよい部分を決めてみましょう。同じ目的を確認すれば、お互いの担当がどうつながるかも、以前よりはっきり見えそうです。"
+      },
+      {
+        "locale": "ja",
+        "key": "work.swords.08.reversed",
+        "matches": [
+          "必ず"
+        ],
+        "body": "途方に暮れたことにも、試せる方法が見える日です。必ず守るべきだと思っていた条件を聞き直すと、自分の推測と違ったと分かるかもしれません。人の説明を聞くと、まだ学ぶこととすでにできることもはっきりするでしょう。行き詰まりを一人で隠さず、どこまで試したかを見せて尋ねてみましょう。困難がすべて消えるのを待たなくても、今できる部分から続けられます。"
+      }
+    ]
+  }
+}

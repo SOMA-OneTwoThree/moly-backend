@@ -1,0 +1,1482 @@
+{
+  "scope": "Development DB integration and synthetic distribution; development API image not deployed",
+  "distribution": {
+    "theory": {
+      "regular_non_low_mean": 88.06627169808658,
+      "regular_per_axis_mean": 88.01913915469041,
+      "regular_low_result_pct": 1,
+      "first_mean": 95.0,
+      "regular_weights": {
+        "70": 4280,
+        "71": 6912,
+        "72": 12208,
+        "73": 21120,
+        "74": 34632,
+        "75": 54656,
+        "76": 84072,
+        "77": 123120,
+        "78": 175720,
+        "79": 243136,
+        "80": 324792,
+        "81": 420080,
+        "82": 525504,
+        "83": 634560,
+        "84": 743424,
+        "85": 841312,
+        "86": 921024,
+        "87": 976128,
+        "88": 1000000,
+        "89": 991872,
+        "90": 950976,
+        "91": 882688,
+        "92": 792576,
+        "93": 687440,
+        "94": 578496,
+        "95": 469920,
+        "96": 369208,
+        "97": 280864,
+        "98": 206280,
+        "99": 146880,
+        "100": 101928
+      }
+    },
+    "results": [
+      {
+        "version": "fortune-experience.v1",
+        "year": 2026,
+        "first_visit": false,
+        "sample_count": 73000,
+        "passed": true,
+        "axes": {
+          "overall": {
+            "min": 60,
+            "max": 100,
+            "mean": 88.0384,
+            "median": 88.0,
+            "sd": 5.3708,
+            "counts": {
+              "60": 14,
+              "61": 19,
+              "62": 13,
+              "63": 9,
+              "64": 16,
+              "65": 15,
+              "66": 15,
+              "67": 20,
+              "68": 10,
+              "69": 21,
+              "70": 27,
+              "71": 44,
+              "72": 68,
+              "73": 101,
+              "74": 165,
+              "75": 297,
+              "76": 449,
+              "77": 678,
+              "78": 934,
+              "79": 1246,
+              "80": 1768,
+              "81": 2290,
+              "82": 2761,
+              "83": 3338,
+              "84": 4044,
+              "85": 4430,
+              "86": 4817,
+              "87": 5242,
+              "88": 5393,
+              "89": 5289,
+              "90": 5167,
+              "91": 4790,
+              "92": 4286,
+              "93": 3657,
+              "94": 3107,
+              "95": 2494,
+              "96": 2008,
+              "97": 1549,
+              "98": 1053,
+              "99": 797,
+              "100": 559
+            }
+          },
+          "love": {
+            "min": 60,
+            "max": 100,
+            "mean": 88.0167,
+            "median": 88.0,
+            "sd": 5.3726,
+            "counts": {
+              "60": 11,
+              "61": 12,
+              "62": 13,
+              "63": 25,
+              "64": 16,
+              "65": 9,
+              "66": 10,
+              "67": 10,
+              "68": 8,
+              "69": 16,
+              "70": 20,
+              "71": 46,
+              "72": 75,
+              "73": 120,
+              "74": 167,
+              "75": 272,
+              "76": 497,
+              "77": 709,
+              "78": 953,
+              "79": 1326,
+              "80": 1801,
+              "81": 2242,
+              "82": 2707,
+              "83": 3385,
+              "84": 3920,
+              "85": 4516,
+              "86": 4852,
+              "87": 5232,
+              "88": 5253,
+              "89": 5407,
+              "90": 5093,
+              "91": 4775,
+              "92": 4398,
+              "93": 3662,
+              "94": 3058,
+              "95": 2467,
+              "96": 1995,
+              "97": 1525,
+              "98": 1058,
+              "99": 792,
+              "100": 547
+            }
+          },
+          "money": {
+            "min": 60,
+            "max": 100,
+            "mean": 88.0211,
+            "median": 88.0,
+            "sd": 5.3795,
+            "counts": {
+              "60": 19,
+              "61": 15,
+              "62": 14,
+              "63": 16,
+              "64": 12,
+              "65": 15,
+              "66": 19,
+              "67": 14,
+              "68": 12,
+              "69": 15,
+              "70": 26,
+              "71": 38,
+              "72": 74,
+              "73": 109,
+              "74": 200,
+              "75": 296,
+              "76": 459,
+              "77": 665,
+              "78": 909,
+              "79": 1301,
+              "80": 1773,
+              "81": 2224,
+              "82": 2888,
+              "83": 3352,
+              "84": 3839,
+              "85": 4525,
+              "86": 4901,
+              "87": 5194,
+              "88": 5383,
+              "89": 5346,
+              "90": 5153,
+              "91": 4596,
+              "92": 4317,
+              "93": 3768,
+              "94": 3097,
+              "95": 2562,
+              "96": 1914,
+              "97": 1559,
+              "98": 1062,
+              "99": 772,
+              "100": 547
+            }
+          },
+          "work": {
+            "min": 60,
+            "max": 100,
+            "mean": 88.0403,
+            "median": 88.0,
+            "sd": 5.3811,
+            "counts": {
+              "60": 16,
+              "61": 12,
+              "62": 8,
+              "63": 15,
+              "64": 15,
+              "65": 17,
+              "66": 13,
+              "67": 18,
+              "68": 15,
+              "69": 15,
+              "70": 34,
+              "71": 28,
+              "72": 69,
+              "73": 105,
+              "74": 192,
+              "75": 304,
+              "76": 466,
+              "77": 657,
+              "78": 919,
+              "79": 1314,
+              "80": 1809,
+              "81": 2195,
+              "82": 2785,
+              "83": 3352,
+              "84": 3962,
+              "85": 4509,
+              "86": 4844,
+              "87": 5267,
+              "88": 5157,
+              "89": 5352,
+              "90": 5184,
+              "91": 4725,
+              "92": 4319,
+              "93": 3659,
+              "94": 3098,
+              "95": 2658,
+              "96": 1927,
+              "97": 1509,
+              "98": 1076,
+              "99": 815,
+              "100": 566
+            }
+          },
+          "energy": {
+            "min": 60,
+            "max": 100,
+            "mean": 88.015,
+            "median": 88.0,
+            "sd": 5.349,
+            "counts": {
+              "60": 10,
+              "61": 9,
+              "62": 13,
+              "63": 19,
+              "64": 5,
+              "65": 17,
+              "66": 12,
+              "67": 15,
+              "68": 11,
+              "69": 22,
+              "70": 19,
+              "71": 40,
+              "72": 74,
+              "73": 118,
+              "74": 166,
+              "75": 281,
+              "76": 443,
+              "77": 646,
+              "78": 973,
+              "79": 1297,
+              "80": 1786,
+              "81": 2237,
+              "82": 2750,
+              "83": 3441,
+              "84": 4104,
+              "85": 4445,
+              "86": 4895,
+              "87": 5288,
+              "88": 5289,
+              "89": 5302,
+              "90": 5147,
+              "91": 4695,
+              "92": 4220,
+              "93": 3750,
+              "94": 3056,
+              "95": 2608,
+              "96": 1935,
+              "97": 1464,
+              "98": 1073,
+              "99": 774,
+              "100": 551
+            }
+          }
+        },
+        "pairs": {
+          "overall/love": 0.00261,
+          "overall/money": -0.00171,
+          "overall/work": -0.00112,
+          "overall/energy": 0.00165,
+          "love/money": -0.00206,
+          "love/work": -0.00024,
+          "love/energy": 0.00017,
+          "money/work": 0.00221,
+          "money/energy": -0.0039,
+          "work/energy": 0.00365
+        },
+        "low_result_pct": 0.9726,
+        "max_low_axes_per_result": 1
+      },
+      {
+        "version": "fortune-experience.v1",
+        "year": 2026,
+        "first_visit": true,
+        "sample_count": 73000,
+        "passed": true,
+        "axes": {
+          "overall": {
+            "min": 90,
+            "max": 100,
+            "mean": 95.0053,
+            "median": 95.0,
+            "sd": 2.2964,
+            "counts": {
+              "60": 0,
+              "61": 0,
+              "62": 0,
+              "63": 0,
+              "64": 0,
+              "65": 0,
+              "66": 0,
+              "67": 0,
+              "68": 0,
+              "69": 0,
+              "70": 0,
+              "71": 0,
+              "72": 0,
+              "73": 0,
+              "74": 0,
+              "75": 0,
+              "76": 0,
+              "77": 0,
+              "78": 0,
+              "79": 0,
+              "80": 0,
+              "81": 0,
+              "82": 0,
+              "83": 0,
+              "84": 0,
+              "85": 0,
+              "86": 0,
+              "87": 0,
+              "88": 0,
+              "89": 0,
+              "90": 1656,
+              "91": 3307,
+              "92": 5824,
+              "93": 8708,
+              "94": 10893,
+              "95": 11955,
+              "96": 10966,
+              "97": 8848,
+              "98": 5948,
+              "99": 3306,
+              "100": 1589
+            }
+          },
+          "love": {
+            "min": 90,
+            "max": 100,
+            "mean": 94.9997,
+            "median": 95.0,
+            "sd": 2.3037,
+            "counts": {
+              "60": 0,
+              "61": 0,
+              "62": 0,
+              "63": 0,
+              "64": 0,
+              "65": 0,
+              "66": 0,
+              "67": 0,
+              "68": 0,
+              "69": 0,
+              "70": 0,
+              "71": 0,
+              "72": 0,
+              "73": 0,
+              "74": 0,
+              "75": 0,
+              "76": 0,
+              "77": 0,
+              "78": 0,
+              "79": 0,
+              "80": 0,
+              "81": 0,
+              "82": 0,
+              "83": 0,
+              "84": 0,
+              "85": 0,
+              "86": 0,
+              "87": 0,
+              "88": 0,
+              "89": 0,
+              "90": 1676,
+              "91": 3301,
+              "92": 5865,
+              "93": 8719,
+              "94": 11003,
+              "95": 11969,
+              "96": 10957,
+              "97": 8669,
+              "98": 5739,
+              "99": 3423,
+              "100": 1679
+            }
+          },
+          "money": {
+            "min": 90,
+            "max": 100,
+            "mean": 95.0043,
+            "median": 95.0,
+            "sd": 2.3017,
+            "counts": {
+              "60": 0,
+              "61": 0,
+              "62": 0,
+              "63": 0,
+              "64": 0,
+              "65": 0,
+              "66": 0,
+              "67": 0,
+              "68": 0,
+              "69": 0,
+              "70": 0,
+              "71": 0,
+              "72": 0,
+              "73": 0,
+              "74": 0,
+              "75": 0,
+              "76": 0,
+              "77": 0,
+              "78": 0,
+              "79": 0,
+              "80": 0,
+              "81": 0,
+              "82": 0,
+              "83": 0,
+              "84": 0,
+              "85": 0,
+              "86": 0,
+              "87": 0,
+              "88": 0,
+              "89": 0,
+              "90": 1677,
+              "91": 3282,
+              "92": 5814,
+              "93": 8767,
+              "94": 10928,
+              "95": 11912,
+              "96": 11105,
+              "97": 8656,
+              "98": 5805,
+              "99": 3372,
+              "100": 1682
+            }
+          },
+          "work": {
+            "min": 90,
+            "max": 100,
+            "mean": 95.0125,
+            "median": 95.0,
+            "sd": 2.2985,
+            "counts": {
+              "60": 0,
+              "61": 0,
+              "62": 0,
+              "63": 0,
+              "64": 0,
+              "65": 0,
+              "66": 0,
+              "67": 0,
+              "68": 0,
+              "69": 0,
+              "70": 0,
+              "71": 0,
+              "72": 0,
+              "73": 0,
+              "74": 0,
+              "75": 0,
+              "76": 0,
+              "77": 0,
+              "78": 0,
+              "79": 0,
+              "80": 0,
+              "81": 0,
+              "82": 0,
+              "83": 0,
+              "84": 0,
+              "85": 0,
+              "86": 0,
+              "87": 0,
+              "88": 0,
+              "89": 0,
+              "90": 1656,
+              "91": 3305,
+              "92": 5771,
+              "93": 8594,
+              "94": 11071,
+              "95": 11893,
+              "96": 10944,
+              "97": 8828,
+              "98": 6005,
+              "99": 3292,
+              "100": 1641
+            }
+          },
+          "energy": {
+            "min": 90,
+            "max": 100,
+            "mean": 94.9969,
+            "median": 95.0,
+            "sd": 2.3042,
+            "counts": {
+              "60": 0,
+              "61": 0,
+              "62": 0,
+              "63": 0,
+              "64": 0,
+              "65": 0,
+              "66": 0,
+              "67": 0,
+              "68": 0,
+              "69": 0,
+              "70": 0,
+              "71": 0,
+              "72": 0,
+              "73": 0,
+              "74": 0,
+              "75": 0,
+              "76": 0,
+              "77": 0,
+              "78": 0,
+              "79": 0,
+              "80": 0,
+              "81": 0,
+              "82": 0,
+              "83": 0,
+              "84": 0,
+              "85": 0,
+              "86": 0,
+              "87": 0,
+              "88": 0,
+              "89": 0,
+              "90": 1698,
+              "91": 3302,
+              "92": 5863,
+              "93": 8706,
+              "94": 11144,
+              "95": 11725,
+              "96": 11061,
+              "97": 8624,
+              "98": 5880,
+              "99": 3315,
+              "100": 1682
+            }
+          }
+        },
+        "pairs": {
+          "overall/love": 0.00313,
+          "overall/money": 0.00649,
+          "overall/work": -0.00021,
+          "overall/energy": -0.00581,
+          "love/money": -0.00127,
+          "love/work": -0.00314,
+          "love/energy": 0.00129,
+          "money/work": 0.00052,
+          "money/energy": -0.00213,
+          "work/energy": 0.00393
+        },
+        "low_result_pct": 0.0,
+        "max_low_axes_per_result": 0
+      }
+    ]
+  },
+  "integration": {
+    "passed": 25,
+    "seconds": 38.51,
+    "target": "existing development Supabase",
+    "synthetic_cleanup": "asserted for all test users",
+    "suites": [
+      "tests/integration/test_fortune_experience.py",
+      "tests/integration/test_fortune_variants.py"
+    ],
+    "copy_version": "fortune-copy.v6-fortune.1",
+    "date": "2026-09-13"
+  },
+  "static": {
+    "ruff": "pass",
+    "diff_check": "pass",
+    "generated_docs": 6,
+    "editorial": "pass including first-visit hash and full coverage",
+    "db_catalog": "pass"
+  },
+  "dev_api": {
+    "version": "1f34fe94f1a179ab238eb61606ec78ba1cd9f648",
+    "health": "ok",
+    "db": "ok",
+    "note": "Initial readiness request timed out; subsequent health and readiness returned 200. New application code not deployed.",
+    "scope_note": "Historical check before this full prose rewrite; deployed API health was not rechecked for this editorial task and no new image was deployed."
+  },
+  "not_run": [
+    "local unit pytest",
+    "Docker/local DB",
+    "CI baseline regeneration",
+    "production writes",
+    "application image deployment"
+  ],
+  "previous_integration_before_full_rewrite": {
+    "passed": 25,
+    "seconds": 38.21,
+    "target": "existing development Supabase",
+    "synthetic_cleanup": "asserted for all test users",
+    "suites": [
+      "tests/integration/test_fortune_experience.py",
+      "tests/integration/test_fortune_variants.py"
+    ]
+  },
+  "editorial_reset_v6": {
+    "status": "pass",
+    "date": "2026-09-13",
+    "copy_version": "fortune-copy.v6-fortune.1",
+    "independent_review": "review.json includes exact final hashes for 780 bundles x 3 locales x language/meaning roles, first-visit six sets x 3 locales, and nine complete rendered results",
+    "structural_audit": {
+      "version": "fortune-copy.v6-fortune.1",
+      "locales": {
+        "ko": {
+          "paragraphs": 780,
+          "by_axis": {
+            "energy": 156,
+            "love": 156,
+            "money": 156,
+            "overall": 156,
+            "work": 156
+          },
+          "sentences": 3900,
+          "min_characters": 157,
+          "max_characters": 219,
+          "repeated_sentences": [],
+          "repeated_starts": [],
+          "failures": []
+        },
+        "en": {
+          "paragraphs": 780,
+          "by_axis": {
+            "energy": 156,
+            "love": 156,
+            "money": 156,
+            "overall": 156,
+            "work": 156
+          },
+          "sentences": 3900,
+          "min_characters": 294,
+          "max_characters": 474,
+          "repeated_sentences": [],
+          "repeated_starts": [
+            {
+              "text": "You may get a chance",
+              "count": 7
+            }
+          ],
+          "failures": []
+        },
+        "ja": {
+          "paragraphs": 780,
+          "by_axis": {
+            "energy": 156,
+            "love": 156,
+            "money": 156,
+            "overall": 156,
+            "work": 156
+          },
+          "sentences": 3900,
+          "min_characters": 132,
+          "max_characters": 191,
+          "repeated_sentences": [],
+          "repeated_starts": [],
+          "failures": []
+        }
+      },
+      "first_visit": {
+        "ko": {
+          "paragraphs": 30,
+          "by_axis": {
+            "energy": 6,
+            "love": 6,
+            "money": 6,
+            "overall": 6,
+            "work": 6
+          },
+          "sentences": 150,
+          "min_characters": 162,
+          "max_characters": 209,
+          "repeated_sentences": [],
+          "repeated_starts": [],
+          "failures": []
+        },
+        "en": {
+          "paragraphs": 30,
+          "by_axis": {
+            "energy": 6,
+            "love": 6,
+            "money": 6,
+            "overall": 6,
+            "work": 6
+          },
+          "sentences": 150,
+          "min_characters": 311,
+          "max_characters": 464,
+          "repeated_sentences": [],
+          "repeated_starts": [],
+          "failures": []
+        },
+        "ja": {
+          "paragraphs": 30,
+          "by_axis": {
+            "energy": 6,
+            "love": 6,
+            "money": 6,
+            "overall": 6,
+            "work": 6
+          },
+          "sentences": 150,
+          "min_characters": 138,
+          "max_characters": 188,
+          "repeated_sentences": [],
+          "repeated_starts": [],
+          "failures": []
+        }
+      },
+      "failures": [],
+      "scope": "Structural checks and review flags only; full editorial review is separate."
+    },
+    "rewrite_and_logic_diff": {
+      "scope": "This prose rewrite only; not a distribution rerun or deployment check",
+      "locales": {
+        "ko": {
+          "bundles": 780,
+          "retained_old_bodies": [],
+          "unchanged_bundles": []
+        },
+        "en": {
+          "bundles": 780,
+          "retained_old_bodies": [],
+          "unchanged_bundles": []
+        },
+        "ja": {
+          "bundles": 780,
+          "retained_old_bodies": [],
+          "unchanged_bundles": []
+        }
+      },
+      "logic_hashes": {
+        "app/services/fortune_scores.py": {
+          "before": "497a1ff86679a75e5b8284747b22e077ba28267622b42a9b56b849ca394c99f5",
+          "after": "497a1ff86679a75e5b8284747b22e077ba28267622b42a9b56b849ca394c99f5",
+          "unchanged": true
+        },
+        "app/services/fortune_scores_legacy.py": {
+          "before": "c1c79433b5e73943fbc43de29a203a0f6f20cfaf8243f9599190307c74f8afe2",
+          "after": "c1c79433b5e73943fbc43de29a203a0f6f20cfaf8243f9599190307c74f8afe2",
+          "unchanged": true
+        },
+        "app/services/fortune_copy_selection.py": {
+          "before": "961846cc4f2b5d4e7699c6af22a0c670719e20fa6da36c1394adcf139c706122",
+          "after": "961846cc4f2b5d4e7699c6af22a0c670719e20fa6da36c1394adcf139c706122",
+          "unchanged": true
+        },
+        "app/services/fortune_ephemeris.py": {
+          "before": "ec439323b245447ce8a4719f4fc8eb9adbec4f72938cf31e98686f5269ad27ce",
+          "after": "ec439323b245447ce8a4719f4fc8eb9adbec4f72938cf31e98686f5269ad27ce",
+          "unchanged": true
+        },
+        "app/services/fortune_rules.py": {
+          "before": "c03a5600be9ed27446e9b5c211582be863d4d6d8f8b8942b948372dcda965018",
+          "after": "c03a5600be9ed27446e9b5c211582be863d4d6d8f8b8942b948372dcda965018",
+          "unchanged": true
+        },
+        "app/services/fortune.py": {
+          "before": "9ee1629b0723e0520ecd638f42f4412f8129fbdcf8966ea0a824e7ab1e81876f",
+          "after": "9ee1629b0723e0520ecd638f42f4412f8129fbdcf8966ea0a824e7ab1e81876f",
+          "unchanged": true
+        },
+        "app/models/profile.py": {
+          "before": "a8be16706354085d8302d4e986ced60063bcdbb83e09834d85c6a4cb10555cb0",
+          "after": "a8be16706354085d8302d4e986ced60063bcdbb83e09834d85c6a4cb10555cb0",
+          "unchanged": true
+        },
+        "db/schema.sql": {
+          "before": "b731c9f0223af25effb666ddde4596f22f365e91b8fac5be69238be0461604ae",
+          "after": "b731c9f0223af25effb666ddde4596f22f365e91b8fac5be69238be0461604ae",
+          "unchanged": true
+        },
+        "db/changes/fortune_positive_experience.sql": {
+          "before": "3501cc01208eee6cc5491cf3866595b5e198e7b258426953b61ac323a521ae2c",
+          "after": "3501cc01208eee6cc5491cf3866595b5e198e7b258426953b61ac323a521ae2c",
+          "unchanged": true
+        }
+      },
+      "failures": [],
+      "status": "pass"
+    },
+    "rendered_public_examples": [
+      {
+        "birth_date": "2002-12-13",
+        "fortune_date": "2026-09-13",
+        "mode": "regular",
+        "versions": {
+          "ephemeris": "astronomy-engine-2.1.19-geocentric-apparent-v1",
+          "rules": "fortune-experience.v1",
+          "copy": "fortune-copy.v6-fortune.1"
+        },
+        "public_results": {
+          "ko": {
+            "schema_version": 3,
+            "locale": "ko",
+            "overall": {
+              "score": 80,
+              "headline": "마음에 남은 오해를 풀어줄 말이 찾아올 수 있어.",
+              "do": "잘못 전한 말을 짧게 바로잡기",
+              "pause": "사과를 들은 뒤 같은 잘못만 거듭 꺼내지 않기",
+              "flow": [
+                "마음에 남아 있던 일에 설명이나 사과를 들을 기회가 생길 수 있어. 한동안 말을 아끼던 사람과 짧게 안부를 나누며 어색함이 조금 줄어들 거야.",
+                "처음 아프게 들었던 말이 실제 뜻과 달랐다는 걸 알게 될 수도 있어. 내가 잘못 전한 말이 있다면 짧게 바로잡아줘.",
+                "한 번에 예전처럼 되지는 않아도 다음에 이야기를 이어갈 여지가 생기는 날이야."
+              ]
+            },
+            "lucky_color": {
+              "key": "orange",
+              "name": "주황",
+              "hex": "#FB8C00"
+            },
+            "categories": {
+              "love": {
+                "score": 92,
+                "text": [
+                  "혼자 생각했던 상대의 모습과 실제 모습이 다르다는 걸 알 수 있어. 직접 나눈 대화에서는 기대보다 소박하지만 편안한 면이 눈에 들어올 거야.",
+                  "여러 반응을 따로 해석하던 때보다 상대가 원하는 것이 분명하게 들릴 수 있어. 좋아 보이는 답을 고르기보다 내 생각도 있는 그대로 말해봐. 상상으로 만든 설렘 대신 실제로 잘 맞는 부분을 찾는 하루가 될 수 있어."
+                ]
+              },
+              "money": {
+                "score": 90,
+                "text": [
+                  "고마운 마음을 표현하느라 예상보다 돈을 많이 쓰기 쉬운 날이야. 여러 사람의 몫을 챙기다 보면 작은 금액도 제법 커질 수 있어.",
+                  "비싼 물건보다 상대가 좋아하는 간단한 선물이 더 반갑게 전해질 거야. 선물을 고르기 전에 쓸 금액부터 정해봐. 정작 상대는 비싼 선물보다 함께 보낼 시간을 더 반가워할 수 있어."
+                ]
+              },
+              "work": {
+                "score": 84,
+                "text": [
+                  "처음 해보는 일에서도 생각보다 빠르게 요령을 잡을 수 있어. 새로운 수업이나 낯선 과제에서 남들이 지나친 질문이 떠오를 거야.",
+                  "경험이 적다는 점이 오히려 신선한 아이디어로 보일 수 있는 날이야. 모르는 것을 숨기기보다 처음 배우는 사람답게 질문해봐. 작게라도 직접 해본 경험이 다음 도전을 훨씬 편하게 만들어줄 거야."
+                ]
+              },
+              "energy": {
+                "score": 95,
+                "text": [
+                  "몸을 편하게 둘 시간이나 자리가 생겨 한숨 돌릴 수 있어. 늘 서두르던 식사도 오늘은 앉아서 천천히 먹게 될 수 있을 거야.",
+                  "누군가 잠깐 일을 대신해줘 몸을 움직이는 부담이 줄어들 수 있어. 저녁에는 아까보다 덜 긴장한 채 쉴 수 있다는 느낌이 들 거야. 쉬어도 된다는 말을 들으면 그 시간을 편하게 써줘."
+                ]
+              }
+            }
+          },
+          "en": {
+            "schema_version": 3,
+            "locale": "en",
+            "overall": {
+              "score": 80,
+              "headline": "An explanation may help clear up a lingering misunderstanding.",
+              "do": "Briefly correct something you said inaccurately",
+              "pause": "Don't keep bringing up the same mistake after an apology",
+              "flow": [
+                "You may have a chance to hear an explanation or apology about something that has stayed with you. A brief exchange with someone who's been quiet could make things less awkward.",
+                "You might also discover that words which hurt at first meant something different. Briefly correct anything you conveyed inaccurately.",
+                "Things may not return to how they were immediately, but there could be room to talk again."
+              ]
+            },
+            "lucky_color": {
+              "key": "orange",
+              "name": "Orange",
+              "hex": "#FB8C00"
+            },
+            "categories": {
+              "love": {
+                "score": 92,
+                "text": [
+                  "You may discover that the person differs from the image you've formed alone. A real conversation could show a quieter but more comfortable side than you'd expected.",
+                  "What they want may sound clearer than it did when you were interpreting every response separately. Say what you think rather than choosing the answer you believe will look best. The day could reveal genuine points of connection in place of imagined excitement."
+                ]
+              },
+              "money": {
+                "score": 90,
+                "text": [
+                  "Expressing gratitude could cost more than you expected today. Small amounts may add up when you're buying for several people.",
+                  "A simple gift the recipient actually likes could be more welcome than an expensive one. Choose a spending limit before picking a gift. They may appreciate time together more than a costly present."
+                ]
+              },
+              "work": {
+                "score": 84,
+                "text": [
+                  "You could pick up an unfamiliar task more quickly than expected. A new class or assignment may prompt a question others have overlooked.",
+                  "Having less experience could work in your favor by giving you a fresh idea. Ask as a beginner rather than hiding what you don't know. Even a small attempt can make the next challenge feel much more approachable."
+                ]
+              },
+              "energy": {
+                "score": 95,
+                "text": [
+                  "A comfortable place or time to rest could finally give you a breather. Even a meal you normally rush might be eaten slowly while sitting down today.",
+                  "Someone taking over briefly could spare you some physical effort. By evening, you may be able to rest with less tension than earlier. When someone says you can take a break, let yourself use it."
+                ]
+              }
+            }
+          },
+          "ja": {
+            "schema_version": 3,
+            "locale": "ja",
+            "overall": {
+              "score": 80,
+              "headline": "心に残った誤解を解く言葉が届くかもしれません。",
+              "do": "間違って伝えたことを短く訂正する",
+              "pause": "謝罪を聞いた後も同じ失敗ばかり持ち出さない",
+              "flow": [
+                "心に残っていたことについて、説明や謝罪を聞く機会がありそうです。しばらく言葉が少なかった人と短く近況を話し、ぎこちなさが和らぐでしょう。",
+                "最初は傷ついた言葉も、本来の意味とは違って受け取っていたと分かるかもしれません。自分が間違って伝えたことがあれば、短く訂正してみてください。",
+                "一度で以前のように戻らなくても、また話を続ける余地が生まれそうです。"
+              ]
+            },
+            "lucky_color": {
+              "key": "orange",
+              "name": "オレンジ",
+              "hex": "#FB8C00"
+            },
+            "categories": {
+              "love": {
+                "score": 92,
+                "text": [
+                  "一人で想像していた相手の姿と、実際は違うと分かるかもしれません。直接の会話では、期待より素朴でも落ち着ける一面が見えてきそうです。",
+                  "反応を一つずつ解釈していたときより、相手の望みがはっきり聞こえるでしょう。よく見えそうな答えを選ばず、自分の考えもそのまま話してみてください。想像で膨らませたときめきの代わりに、本当に合うところが見つかりそうです。"
+                ]
+              },
+              "money": {
+                "score": 90,
+                "text": [
+                  "感謝を伝えようとして、思ったよりお金を使いやすい日です。何人かの分を用意すると、小さな金額でも大きくなりそうです。",
+                  "高価な品より、相手の好きな簡単な贈り物が喜ばれるでしょう。贈り物を選ぶ前に、使う金額を決めてみましょう。相手は高いプレゼントより、一緒に過ごす時間を楽しみにしているかもしれません。"
+                ]
+              },
+              "work": {
+                "score": 84,
+                "text": [
+                  "初めて取り組むことでも、思ったより早くコツをつかめそうです。新しい授業や課題で、周りが見落とした疑問が浮かぶかもしれません。",
+                  "経験の少なさが、かえって新鮮な発想として受け取られそうな日です。知らないことを隠さず、初めて学ぶ人として質問してみましょう。小さくても実際に試した経験が、次の挑戦をずっと気楽にしてくれそうです。"
+                ]
+              },
+              "energy": {
+                "score": 95,
+                "text": [
+                  "楽に休める時間や場所ができ、ひと息つけそうです。普段は急いで済ませる食事も、今日は座ってゆっくり食べられるかもしれません。",
+                  "誰かが少し仕事を代わってくれ、体を動かす負担も減りそうです。夕方には、先ほどより緊張せずに休めると感じるでしょう。休んでよいと言われたら、その時間を気兼ねなく使ってください。"
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "birth_date": "2002-12-13",
+        "fortune_date": "2026-09-14",
+        "mode": "regular",
+        "versions": {
+          "ephemeris": "astronomy-engine-2.1.19-geocentric-apparent-v1",
+          "rules": "fortune-experience.v1",
+          "copy": "fortune-copy.v6-fortune.1"
+        },
+        "public_results": {
+          "ko": {
+            "schema_version": 3,
+            "locale": "ko",
+            "overall": {
+              "score": 97,
+              "headline": "부탁했던 일에서 오해가 생겨도, 서로 이야기하면 풀리는 날이야.",
+              "do": "부탁할 일 구체적으로 말하기",
+              "pause": "작은 호의에 큰 보답 요구하지 않기",
+              "flow": [
+                "서로 도와주기로 한 일을 다르게 이해해 잠깐 서운해질 수 있어. 가벼운 부탁으로 여긴 일이 상대에게는 제법 큰 수고였을 거야.",
+                "도움이 필요할 때는 무엇을 부탁하는지 분명히 말해줘. 구체적으로 이야기한 뒤에는 어디까지 가능한지 쉽게 정해질 수 있어.",
+                "서운했던 마음도 서로의 사정을 알게 되며 조금 풀릴 거야."
+              ]
+            },
+            "lucky_color": {
+              "key": "yellow",
+              "name": "노랑",
+              "hex": "#FDD835"
+            },
+            "categories": {
+              "love": {
+                "score": 84,
+                "text": [
+                  "익숙한 사람의 관심이 당연하게 느껴져 대답이 무심해질 수 있어. 상대는 마음을 담아 연락했는데 늘 하던 안부처럼 들릴 수 있는 날이야.",
+                  "새로운 만남에서도 처음에는 강하게 끌리지 않아 호감을 알아차리는 데 시간이 걸릴 거야. 오늘 건네받은 말 중 고마웠던 한 가지에는 답을 해줘. 뒤늦게 대화를 떠올리며 생각보다 나를 잘 챙겨준 사람이었다는 걸 느낄 수 있어."
+                ]
+              },
+              "money": {
+                "score": 95,
+                "text": [
+                  "익숙하게 내던 비용에 더 저렴한 방법이 있다는 걸 알 수 있어. 유명한 곳보다 작은 가게나 다른 판매처에서 쓸 만한 제안을 만날 거야.",
+                  "늘 포함되어 있던 항목 중 실제로는 쓰지 않던 것도 눈에 들어올 수 있어. 같은 물건의 가격을 다른 곳에서 한 번 비교해봐. 당연하다고 넘겼던 소비에서 아낄 금액이 보여 기분이 가벼워질 수 있어."
+                ]
+              },
+              "work": {
+                "score": 94,
+                "text": [
+                  "지원할 곳이나 배울 분야가 여러 가지 마음에 들어 선택이 늦어질 수 있어. 그 일을 해본 사람의 경험담을 들을 때마다 마음이 바뀌어 잠깐 혼란스러울 거야.",
+                  "오늘은 실제로 해보고 싶은 일이 무엇인지 한 가지로 말해봐. 내 취향을 이야기하는 동안 남의 기대와 다른 부분이 드러날 수 있어. 곧바로 결정하지 않아도 어떤 설명이 더 궁금한지 알게 되는 날이야."
+                ]
+              },
+              "energy": {
+                "score": 81,
+                "text": [
+                  "가라앉아 있던 기운이 조금씩 돌아와 일상이 덜 버겁게 느껴질 수 있어. 아침에는 몸이 무거워도 오후에는 가까운 곳에 다녀올 여유가 생길 거야.",
+                  "입맛이 돌아 식사를 천천히 즐기면 대충 때웠을 때보다 든든하게 느껴질 수 있어. 편해졌다고 미뤄둔 일을 한꺼번에 몰아서 하지는 마. 충분히 쉬며 보낸 저녁에는 전날보다 몸의 긴장이 덜하게 느껴질 수 있어."
+                ]
+              }
+            }
+          },
+          "en": {
+            "schema_version": 3,
+            "locale": "en",
+            "overall": {
+              "score": 97,
+              "headline": "A misunderstanding about a favor could be cleared up by talking today.",
+              "do": "Describe the help you're asking for precisely.",
+              "pause": "Don't demand a large return for a small kindness.",
+              "flow": [
+                "A different understanding of how you agreed to help each other could cause some hurt feelings. A favor that seemed small to you could have taken the other person considerable effort.",
+                "Be specific about what you're asking when you need help. Talking concretely should make it easier to agree on what's possible.",
+                "Learning each other's circumstances could ease some hurt feelings."
+              ]
+            },
+            "lucky_color": {
+              "key": "yellow",
+              "name": "Yellow",
+              "hex": "#FDD835"
+            },
+            "categories": {
+              "love": {
+                "score": 84,
+                "text": [
+                  "Familiar affection may feel so routine that you respond absentmindedly. Someone could reach out thoughtfully, while you hear it as just another check-in.",
+                  "With someone new, a quiet first impression may take longer to turn into attraction. Acknowledge one thing you appreciated in what someone said today. Looking back on the conversation, you might realize they were more attentive than you'd noticed."
+                ]
+              },
+              "money": {
+                "score": 95,
+                "text": [
+                  "You may discover a cheaper way to cover a familiar expense. A small shop or another seller could have an appealing alternative to a well-known place.",
+                  "Something you've always paid for may turn out to include an option you don't use. Compare the price of the same item somewhere else. Finding savings in a routine purchase could leave you pleasantly relieved."
+                ]
+              },
+              "work": {
+                "score": 94,
+                "text": [
+                  "Several places to apply or subjects to study could appeal, making it harder to choose. Hearing from people who've done the work may keep changing your mind and leave you briefly unsure.",
+                  "Put into words the one thing you'd actually like to do. As you explain your taste, you might notice where it differs from other people's hopes for you. Even without deciding immediately, you should learn which option you want to hear more about."
+                ]
+              },
+              "energy": {
+                "score": 81,
+                "text": [
+                  "A little energy could return and make everyday activities feel less demanding. You may feel heavy in the morning but ready for a short trip nearby by the afternoon.",
+                  "Your appetite could also return enough to enjoy a slow meal that feels more nourishing than grabbing a bite. Don't cram in everything you've postponed just because you feel better. An evening with plenty of rest may leave your body less tense than the day before."
+                ]
+              }
+            }
+          },
+          "ja": {
+            "schema_version": 3,
+            "locale": "ja",
+            "overall": {
+              "score": 97,
+              "headline": "頼み事に誤解があっても、話し合えば解けそうです",
+              "do": "頼むことを具体的に話す",
+              "pause": "小さな親切に大きなお返しを求めない",
+              "flow": [
+                "助け合う約束の内容に行き違いがあり、少し寂しく感じることがありそうです。軽い頼みと思ったことが、相手にはかなりの手間だったかもしれません。",
+                "助けが必要なときは、何を頼むのかはっきり伝えてください。具体的に話せば、どこまでできるか決めやすくなるでしょう。",
+                "お互いの事情が分かると、寂しかった気持ちも少し和らぎそうです。"
+              ]
+            },
+            "lucky_color": {
+              "key": "yellow",
+              "name": "黄色",
+              "hex": "#FDD835"
+            },
+            "categories": {
+              "love": {
+                "score": 84,
+                "text": [
+                  "なじみの人の関心を当たり前に感じて、返事がそっけなくなるかもしれません。相手は心を込めて連絡していても、いつもの挨拶に聞こえやすい日です。",
+                  "新しい出会いでも第一印象が穏やかで、好意に気づくまで少し時間がかかりそうです。今日かけてもらった言葉でありがたかったことには、一つ返事をしてみてください。後で会話を思い出し、思った以上に気遣ってくれた人だったと感じるかもしれません。"
+                ]
+              },
+              "money": {
+                "score": 95,
+                "text": [
+                  "いつも払っていた費用に、もっと安い方法があると分かりそうです。有名なお店より小さなお店や別の販売店で、よい提案に出会うでしょう。",
+                  "いつも含まれていた項目の中に、実は使わないものが見つかるかもしれません。同じ品物の値段を、別の場所で一度比べてみましょう。当たり前だった支出から節約できる分が見え、気持ちが軽くなりそうです。"
+                ]
+              },
+              "work": {
+                "score": 94,
+                "text": [
+                  "応募したいところや学びたい分野がいくつもあり、選ぶまでに時間がかかりそうです。その仕事を経験した人の話を聞くたびに気持ちが変わり、少し戸惑うかもしれません。",
+                  "今日は実際にやってみたいことを、一つ言葉にしてみてください。自分の好みを話すうちに、周りの期待と違う部分が見えてきそうです。すぐ決めなくても、どれをもっと知りたいかはわかるでしょう。"
+                ]
+              },
+              "energy": {
+                "score": 81,
+                "text": [
+                  "少しずつ元気が戻り、日常の用事が前ほど重荷に感じなくなるかもしれません。朝は体が重くても、午後には近くへ出かける余力が出てきそうです。",
+                  "食欲も戻り、ゆっくり食べると、簡単に済ませたときよりおなかが満たされそうです。楽になったからと、後回しにした用事を一度に詰め込まないようにしましょう。十分に休みながら過ごす夜は、前日より体の緊張が少なく感じられそうです。"
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "birth_date": "2002-12-13",
+        "fortune_date": "2026-09-13",
+        "mode": "first_visit",
+        "versions": {
+          "ephemeris": "astronomy-engine-2.1.19-geocentric-apparent-v1",
+          "rules": "fortune-experience.v1",
+          "copy": "fortune-copy.v6-fortune.1"
+        },
+        "public_results": {
+          "ko": {
+            "schema_version": 3,
+            "locale": "ko",
+            "overall": {
+              "score": 97,
+              "headline": "자신 있는 일에서 좋은 반응을 얻고, 새로운 제안도 받을 수 있어.",
+              "do": "자신 있는 이야기를 먼저 꺼내기",
+              "pause": "모르는 일을 안다고 말하지 않기",
+              "flow": [
+                "평소 익혀둔 재주를 보여줄 자리가 생겨 좋은 반응을 받을 수 있어. 가볍게 꺼낸 아이디어에도 함께 해보자는 사람이 나타날 거야.",
+                "필요한 물건이나 도움을 적절한 때에 만나 일이 술술 풀리는 날이야. 자신 있는 예시 하나를 짧게 보여줘.",
+                "뜻밖의 칭찬이 자신감을 북돋아 평소 망설이던 말도 편하게 꺼낼 수 있을 거야."
+              ]
+            },
+            "lucky_color": {
+              "key": "orange",
+              "name": "주황",
+              "hex": "#FB8C00"
+            },
+            "categories": {
+              "love": {
+                "score": 91,
+                "text": [
+                  "친구를 통해 새로운 사람을 알게 되거나 여러 사람 사이에서 호감을 느낄 수 있어. 처음에는 함께 웃기만 했던 상대와 따로 이야기할 기회가 생길 거야.",
+                  "가까운 친구나 연인과는 좋은 소식을 나누며 서로를 응원하는 마음이 커질 수 있어. 관심 가는 사람이 있다면 대화에 자연스럽게 한마디 보태봐. 친구처럼 편안하게 시작한 말이 다음에도 연락하고 싶은 이유가 될 수 있어."
+                ]
+              },
+              "money": {
+                "score": 95,
+                "text": [
+                  "따로 남겨둔 돈이 있다는 사실에 안심할 수 있는 날이야. 잊고 있던 잔액이나 예전에 빌려준 금액을 확인하며 내 몫을 다시 알게 될 거야.",
+                  "당장 써야 할 것 같았던 지출도 이미 마련한 것으로 해결할 수 있어. 돌려받기로 한 돈은 약속한 날짜를 한 번 살펴봐. 돈을 더 벌지 않아도 가진 것을 놓치지 않았다는 보람이 남을 거야."
+                ]
+              },
+              "work": {
+                "score": 97,
+                "text": [
+                  "반복해서 연습한 일이 손에 익어 한결 수월하게 느껴질 수 있어. 설명을 오래 보지 않아도 순서가 떠올라 일이 매끄럽게 이어질 거야.",
+                  "어려워하는 사람에게 요령을 알려주며 내 실력이 늘었다는 걸 실감할 수 있어. 정성 들인 작은 부분까지 알아주는 평가를 기대할 만한 날이야. 잘된 방법은 나중에도 쓸 수 있게 짧게 남겨둬."
+                ]
+              },
+              "energy": {
+                "score": 97,
+                "text": [
+                  "몸 상태가 고르게 유지돼 하루를 편하게 보내기 좋은 날이야. 잠깐 활동한 뒤에도 기운이 남고, 쉬는 시간에는 긴장이 잘 풀릴 수 있어.",
+                  "식사도 평소의 양에서 편하게 느껴져 과하게 먹고 싶은 마음이 덜할 거야. 오늘은 몸이 편한 속도를 그대로 지켜봐. 저녁까지 크게 지치지 않아 잠들기 전에도 한결 느긋할 수 있어."
+                ]
+              }
+            }
+          },
+          "en": {
+            "schema_version": 3,
+            "locale": "en",
+            "overall": {
+              "score": 97,
+              "headline": "Something you do confidently could get a warm response and a fresh offer.",
+              "do": "Start with a subject you know well",
+              "pause": "Avoid claiming to know something you don't",
+              "flow": [
+                "A chance to show a skill you've practiced could bring an encouraging response. Someone may offer to join in when you casually mention an idea.",
+                "Useful supplies or timely help could make things fall into place today. Show one brief example you're confident in.",
+                "An unexpected compliment may give you the confidence to say something you usually hold back."
+              ]
+            },
+            "lucky_color": {
+              "key": "orange",
+              "name": "Orange",
+              "hex": "#FB8C00"
+            },
+            "categories": {
+              "love": {
+                "score": 91,
+                "text": [
+                  "A friend could introduce you to someone new, or you may notice an attraction within a group. You may get a chance to talk one-on-one with someone you've enjoyed spending time with in a group.",
+                  "Sharing good news with a close friend or partner could strengthen your support for each other. If someone interests you, join the conversation with a natural comment. A relaxed, friendly exchange may give you a reason to keep in touch."
+                ]
+              },
+              "money": {
+                "score": 95,
+                "text": [
+                  "Knowing you have money set aside could be reassuring today. A forgotten balance or an amount you lent earlier may remind you of money that's yours.",
+                  "Something you thought you had to buy urgently could be covered by what you've already prepared. Look once at the agreed date for money you're due to get back. Even without earning more, you'll feel pleased you haven't lost track of what you have."
+                ]
+              },
+              "work": {
+                "score": 97,
+                "text": [
+                  "A task you've practiced repeatedly could feel familiar and much easier. The steps may come to mind without long checks of the instructions, keeping work smooth.",
+                  "Showing someone a useful technique could make your own improvement clear. Careful little details may also receive recognition today. Leave a brief note of a method that worked so you can use it again."
+                ]
+              },
+              "energy": {
+                "score": 97,
+                "text": [
+                  "Your physical condition could stay steady and make for a comfortable day. You'll have energy left after a little activity, and tension may ease readily during breaks.",
+                  "Your usual meal size could feel satisfying without much desire to overeat. Keep to the pace that feels comfortable for your body today. Without becoming too tired by evening, you may feel more relaxed before bed."
+                ]
+              }
+            }
+          },
+          "ja": {
+            "schema_version": 3,
+            "locale": "ja",
+            "overall": {
+              "score": 97,
+              "headline": "得意なことでよい反応をもらい、新しい誘いもありそうです。",
+              "do": "自信のある話題を先に出す",
+              "pause": "知らないことを知っていると言わない",
+              "flow": [
+                "身につけてきた特技を見せる機会があり、うれしい反応をもらえそうです。何気なく話したアイデアに、一緒にやってみたいという人が現れるかもしれません。",
+                "必要なものや助けがちょうどよく見つかり、物事がすんなり進みそうな日です。自信のある例を一つ、短く見せてみましょう。",
+                "思いがけない褒め言葉に勇気づけられ、普段はためらう話も気軽にできそうです。"
+              ]
+            },
+            "lucky_color": {
+              "key": "orange",
+              "name": "オレンジ",
+              "hex": "#FB8C00"
+            },
+            "categories": {
+              "love": {
+                "score": 91,
+                "text": [
+                  "友人を通して新しい人と知り合ったり、グループの中で誰かに惹かれたりしそうです。初めはみんなで笑っていただけの相手と、二人で話す機会ができるかもしれません。",
+                  "親しい友人や恋人とはよい知らせを分かち合い、応援する気持ちが強まりそうです。気になる人がいれば、会話に自然と一言加えてみてください。友達のように気楽に交わした言葉が、また連絡したい理由になるかもしれません。"
+                ]
+              },
+              "money": {
+                "score": 95,
+                "text": [
+                  "別に残しておいたお金があると分かり、安心できそうです。忘れていた残高や以前貸した金額を確かめ、自分のお金を思い出すでしょう。",
+                  "すぐ買う必要がありそうなものも、用意してあったもので済むかもしれません。返してもらうお金は、約束の日を一度見ておいてください。収入が増えなくても、持っているものを忘れずに済んでよかったと思えそうです。"
+                ]
+              },
+              "work": {
+                "score": 97,
+                "text": [
+                  "繰り返し練習したことが身について、ずっと楽に感じられそうです。説明を長く見なくても順番が浮かび、作業がスムーズに進むでしょう。",
+                  "苦労している人にこつを教えて、自分の上達を実感できそうです。丁寧に仕上げた細かな部分まで、評価してもらえるかもしれません。うまくいった方法は、後でも使えるよう短く残してください。"
+                ]
+              },
+              "energy": {
+                "score": 97,
+                "text": [
+                  "体調が安定し、無理なく一日を過ごせそうです。少し動いた後も元気が残り、休むときには緊張がほどけやすいでしょう。",
+                  "食事もいつもの量で心地よく、食べすぎたい気持ちは少なそうです。今日は体が楽に感じるペースを、そのまま保ってみてください。夜までひどく疲れず、寝る前もゆったり過ごせそうです。"
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    "combined_review": {
+      "status": "pass",
+      "reviewer": "sample_judge",
+      "scope": "3 production-rendered scenarios x 3 locales; public_results full combinations",
+      "file_sha256": "582072634ed9d5a1f08db0e2c87bb3a2d3f4b7b47246e0154d3bac29ddb4ff8d",
+      "read_counts": {
+        "complete_results": 9,
+        "body_paragraphs": 45,
+        "headlines": 9,
+        "do_phrases": 9,
+        "pause_phrases": 9,
+        "lucky_color_labels": 9
+      },
+      "reread_counts_after_corrections": {
+        "complete_results": 3,
+        "body_paragraphs": 15,
+        "headlines": 3,
+        "do_phrases": 3,
+        "pause_phrases": 3
+      },
+      "results": [
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-13",
+          "mode": "regular",
+          "locale": "ko",
+          "public_result_sha256": "732df1510fd102c9cc3f6033f0afb2436a95f928ce358cfc28e20c7bab1075b7",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": false
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-13",
+          "mode": "regular",
+          "locale": "en",
+          "public_result_sha256": "f1e0c7157c2274228cfbd9f748655f07bab7df6fd261530a47b400aed0e620ff",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": false
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-13",
+          "mode": "regular",
+          "locale": "ja",
+          "public_result_sha256": "ff6381fc242294d1d941a5060aaf8aac4c1f05e5166dcd4f33c5e697d8201a20",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": false
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-14",
+          "mode": "regular",
+          "locale": "ko",
+          "public_result_sha256": "ff6741d3e9dba40afc9a43170a9eaf1e9561d357e4ba93c50a7b690210e1c799",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": true
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-14",
+          "mode": "regular",
+          "locale": "en",
+          "public_result_sha256": "80549527c3ec845729f4aadff43df70766ede048b4a1f57845db61aa88966478",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": true
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-14",
+          "mode": "regular",
+          "locale": "ja",
+          "public_result_sha256": "38f1a95d9be3fdf5dd7b6e9c9757f4c72706a54368738db90d0aa7bf441bde3d",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": true
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-13",
+          "mode": "first_visit",
+          "locale": "ko",
+          "public_result_sha256": "1ec5253ce5b99e4146566a002fa5591b691b3952677778f95fe021521717d8cd",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": false
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-13",
+          "mode": "first_visit",
+          "locale": "en",
+          "public_result_sha256": "8cd6372ad34a248f4ddd75313c94b6a4e0b9c7548e0fc5addf91d31d1a0b12b3",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": false
+        },
+        {
+          "birth_date": "2002-12-13",
+          "fortune_date": "2026-09-13",
+          "mode": "first_visit",
+          "locale": "ja",
+          "public_result_sha256": "1b724654f39e1f50ccbd22ade290dcc283f341eb2dfe65b61d58e660080592b6",
+          "status": "pass",
+          "scope": "Complete public result: overall body and four category bodies, headline/do/pause, score display and lucky color",
+          "full_reread_after_correction": false
+        }
+      ],
+      "resolved_findings": [
+        {
+          "reading_key": "work.wands.02.reversed",
+          "locales": [
+            "ko",
+            "en",
+            "ja"
+          ],
+          "reason": "Added applying/study options and experienced workers to make the work domain explicit while preserving choice hesitation",
+          "identity_correction": "Initially mislabeled major.lovers from theme; corrected using actual internal selection before edits"
+        },
+        {
+          "reading_key": "love.cups.04.upright",
+          "locales": [
+            "ko"
+          ],
+          "reason": "Replaced unnatural first-impression collocation; existing EN/JA retain equivalent meaning"
+        },
+        {
+          "reading_key": "overall.pentacles.06.reversed",
+          "locales": [
+            "ko",
+            "en",
+            "ja"
+          ],
+          "reason": "Clarified mismatched understanding of mutual help in opening and headline"
+        }
+      ],
+      "remaining_blockers": [],
+      "unchanged_results_hash_verified": 6,
+      "judgment": [
+        "Every public body remains understandable independently within its own axis",
+        "Revised work paragraph now clearly refers to application/study choices",
+        "Three locales preserve events, advice and conditional relationship context",
+        "No internal card/selection/review-only fields observed inside public result schema",
+        "Ordinary localized orange/yellow labels align across locales"
+      ],
+      "limits": [
+        "Model editorial review; no claim of native-human certification",
+        "These are supplied production-function renders, not a live API or DB test by this reviewer",
+        "Score/card independence follows approved policy; this review does not introduce score-dependent prose requirements"
+      ]
+    },
+    "reference_and_method": "fortune-editorial-reset-2026-09-13.md",
+    "generated_documents": 6,
+    "manifest_assets": 9,
+    "ruff_changed_python_files": 14,
+    "dev_integration": {
+      "passed": 25,
+      "seconds": 38.51,
+      "target": "existing development Supabase",
+      "synthetic_cleanup": "asserted for all test users",
+      "suites": [
+        "tests/integration/test_fortune_experience.py",
+        "tests/integration/test_fortune_variants.py"
+      ],
+      "copy_version": "fortune-copy.v6-fortune.1",
+      "date": "2026-09-13"
+    },
+    "distribution_scope": "No distribution rerun for prose-only changes; protected score/astrology/identity/DB source hashes unchanged. Prior distribution results above are historical, not API request counts.",
+    "diff_check": "pass",
+    "generated_documents_check": "pass"
+  }
+}

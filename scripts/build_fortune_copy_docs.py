@@ -9,7 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 LOCALES = ("ko", "en", "ja")
-LABELS = {"love": "애정", "money": "금전", "work": "일·학업", "energy": "활력"}
+LABELS = {"love": "애정", "money": "금전", "work": "일·학업", "energy": "건강"}
 
 
 def _cell(value: str) -> str:
@@ -77,6 +77,16 @@ def render_documents() -> dict[Path, str]:
             lines.extend(_bundle_rows([copies[locale][key] for locale in LOCALES], overall=axis == "overall"))
         name = "overall.md" if axis == "overall" else f"category-{axis}.md"
         documents[directory / name] = "\n".join(lines)
+    first = json.loads((resource_dir / "first-visit.v1.json").read_text())
+    lines = _header("첫 방문 운세 — 6세트 × 3언어", first["version"])
+    for entry in first["sets"]:
+        lines.extend([f"## {entry['id']}", "", "내부 카드: " + json.dumps(entry["cards"], ensure_ascii=False), ""])
+        bundles = [entry["copy_by_locale"][locale] for locale in LOCALES]
+        lines.extend(_bundle_rows([b["overall"] for b in bundles], overall=True))
+        for axis in LABELS:
+            lines.extend([f"### {LABELS[axis]}", ""])
+            lines.extend(_bundle_rows([b["categories"][axis] for b in bundles], overall=False))
+    documents[directory / "first-visit.md"] = "\n".join(lines)
     return documents
 
 

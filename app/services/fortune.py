@@ -17,10 +17,10 @@ from app.core.advisory_lock import advisory_xact_lock
 from app.core.time_utils import reward_date_for, safe_zone
 from app.models.fortune import DailyFortune, FortuneAdSession, FortuneProfile
 from app.schemas.fortune import FortuneProfilePut
-from app.services import fortune_catalog, fortune_rules, fortune_scores, gating, privacy
+from app.services import fortune_catalog, fortune_rules, fortune_scores, fortune_scores_legacy, gating, privacy
 from app.services.account import _load_profile
 from app.services.fortune_copy_selection import (
-    CARD_SELECTION_VERSION, draw_cards, select_variants, validate_previous_selection,
+    CARD_SELECTION_VERSION, DRAW_ALGORITHM_VERSION, draw_cards, select_variants, validate_previous_selection,
 )
 
 _MIN_BIRTH_DATE = date(1900, 1, 1)
@@ -131,7 +131,6 @@ async def put_profile(
         current.updated_at = now
 
     daily = await session.get(DailyFortune, uid, with_for_update=True)
-    today_result_exists = bool(daily is not None and daily.fortune_date == today)
     unlock_preserved = bool(
         changed
         and daily is not None
@@ -141,7 +140,7 @@ async def put_profile(
     await session.commit()
     return {
         "profile": _profile_wire(current),
-        "result_invalidated": bool(changed and today_result_exists),
+        "result_invalidated": False,  # Issued daily snapshots are immutable; edits apply next day.
         "unlock_preserved": unlock_preserved,
     }
 
@@ -220,8 +219,6 @@ def _current_row(
     return bool(
         row is not None
         and row.fortune_date == today
-        and row.timezone_snapshot == timezone_name
-        and row.profile_revision == revision
         and row.result_schema_version == _RESULT_SCHEMA_VERSION
         and row.semantic_result.get("schema_version") in (3, 4)
         and "ko" in row.copy_by_locale
@@ -286,6 +283,8 @@ def _build_result(
     previous_semantic: dict[str, Any] | None = None,
     previous_copies: dict[str, Any] | None = None,
     copy_policy: str | None = None,
+    first_visit: bool = False,
+    experience_enabled: bool = True,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Construct new snapshots; the caller persists under the existing user lock.
 
@@ -295,7 +294,11 @@ def _build_result(
     policy = _COPY_POLICY if copy_policy is None else copy_policy
     if policy not in {"tarot", "legacy"}:
         raise ValueError("unsupported fortune copy policy")
-    semantic = fortune_scores.generate_result(birth_date=profile.birth_date, local_date=today)
+    semantic = (
+        fortune_scores.generate_result(birth_date=profile.birth_date, local_date=today, first_visit=first_visit)
+        if experience_enabled else
+        fortune_scores_legacy.generate_result(birth_date=profile.birth_date, local_date=today)
+    )
     previous_draw = validate_previous_selection(previous_semantic)
     if previous_draw is not None and previous_draw["day"] == today.isoformat():
         if previous_copies is None:
@@ -303,14 +306,18 @@ def _build_result(
         selection = previous_draw
         copies = fortune_catalog.recolor_snapshot(previous_copies, semantic)
     elif policy == "tarot":
-        selection = draw_cards(user_id=str(profile.user_id), today=today)
+        selection = (
+            draw_cards(birth_date=profile.birth_date, today=today, first_visit=first_visit)
+            if experience_enabled else draw_cards(user_id=str(profile.user_id), today=today)
+        )
         copies = fortune_catalog.render_cards_all(semantic, selection=selection)
     elif policy == "legacy":
         selection = select_variants(semantic, today=today, previous_semantic=previous_semantic)
         copies = fortune_catalog.render_all(semantic, selected=selection["selected"])
     else:
         raise ValueError("unsupported fortune copy policy")
-    return {**semantic, "copy_selection": selection}, copies
+    return {**semantic, **({"draw_algorithm_version": DRAW_ALGORITHM_VERSION} if experience_enabled else {}),
+            "copy_selection": selection}, copies
 
 
 async def reveal(
@@ -336,6 +343,14 @@ async def reveal(
     if profile is None:
         raise _err("PROFILE_REQUIRED", 404, "운세 정보를 먼저 입력해 주세요.")
     row = await session.get(DailyFortune, uid, with_for_update=True)
+    experience_enabled = await _experience_enabled(session, today)
+    # The user advisory lock serializes the marker and snapshot transaction.
+    if account.fortune_first_date is None:
+        if row is not None:
+            account.fortune_first_date = date.min
+        else:
+            account.fortune_first_date = today if experience_enabled else date.min
+    first_visit = experience_enabled and account.fortune_first_date == today
     preserve_unlock = bool(
         row is not None and row.fortune_date == today and row.unlock_state == "unlocked"
     )
@@ -351,6 +366,8 @@ async def reveal(
             profile=profile,
             today=today,
             timezone_name=account.timezone,
+            first_visit=first_visit,
+            experience_enabled=experience_enabled,
             previous_semantic=row.semantic_result if row is not None else None,
             previous_copies=row.copy_by_locale if row is not None else None,
         )
@@ -368,8 +385,9 @@ async def reveal(
         row.result_schema_version = _RESULT_SCHEMA_VERSION
         row.semantic_result = semantic
         row.copy_by_locale = copies
-        row.ephemeris_version = fortune_scores.EPHEMERIS_VERSION
-        row.rule_version = fortune_scores.RULE_VERSION
+        row.ephemeris_version = (fortune_scores.EPHEMERIS_VERSION if experience_enabled
+                                 else fortune_scores_legacy.EPHEMERIS_VERSION)
+        row.rule_version = (fortune_scores.RULE_VERSION if experience_enabled else fortune_scores_legacy.RULE_VERSION)
         if not same_draw:
             row.copy_version = (
                 fortune_catalog.COPY_VERSION
@@ -523,3 +541,19 @@ def result_fingerprint(row: DailyFortune, locale: str) -> str:
     }
     raw = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+async def _experience_enabled(session: AsyncSession, today: date) -> bool:
+    """Dev is the validation target; production opts in after every node is compatible."""
+    if settings.environment == "development":
+        return True
+    from app.services.config_store import get_config_values
+    key = "fortune_experience_start_date"
+    value = (await get_config_values(session, [key])).get(key)
+    if not isinstance(value, str):
+        return False
+    try:
+        starts = date.fromisoformat(value)
+    except ValueError:
+        return False
+    return value == starts.isoformat() and today >= starts

@@ -1,6 +1,7 @@
 """운세 광고는 서명 필드 전체를 대조하고 건초 경로와 분리한다."""
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
 import uuid
@@ -201,7 +202,7 @@ async def test_verified_ssv_immediately_unlocks_current_daily_result(monkeypatch
     assert daily.unlock_source == "rewarded_ad"
     assert daily.unlocked_at == now and daily.revealed_at == now
 
-    # 광고 재생 중 프로필이 바뀌면 공개 권한만 보존하고 다음 reveal이 새 snapshot을 만든다.
+    # 광고 재생 중 프로필이 바뀌어도 기존 당일 snapshot을 즉시 공개한다.
     sid = uuid.uuid4()
     ad = SimpleNamespace(
         session_id=sid,
@@ -215,7 +216,10 @@ async def test_verified_ssv_immediately_unlocks_current_daily_result(monkeypatch
     profile.revision = 5
     daily.unlock_state = "locked"
     daily.unlock_source = daily.unlocked_at = daily.revealed_at = None
-    stale_result = await fortune_ads.verify_from_ssv(
+    saved_semantic = deepcopy(daily.semantic_result)
+    saved_copy = deepcopy(daily.copy_by_locale)
+    session.committed = False
+    after_edit_result = await fortune_ads.verify_from_ssv(
         session,
         custom_data=f"fortune:{sid}",
         transaction_id="tx-after-profile-change",
@@ -225,8 +229,12 @@ async def test_verified_ssv_immediately_unlocks_current_daily_result(monkeypatch
         reward_amount="1",
         now_utc=now,
     )
-    assert stale_result == "verified"
-    assert daily.unlock_state == "unlocked" and daily.revealed_at is None
+    assert after_edit_result == "verified" and session.committed
+    assert ad.verified and ad.ssv_transaction_id == "tx-after-profile-change"
+    assert daily.unlock_state == "unlocked" and daily.unlock_source == "rewarded_ad"
+    assert daily.unlocked_at == now and daily.revealed_at == now
+    assert daily.profile_revision == 4
+    assert daily.semantic_result == saved_semantic and daily.copy_by_locale == saved_copy
 
 
 def test_expired_session_cleanup_is_bounded_lock_safe_and_wired_to_worker():

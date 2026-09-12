@@ -216,7 +216,11 @@ async def test_first_reveal_exposes_basic_copy_and_included_plan_exposes_detail(
     session = _MemorySession(profile=profile)
     value = await fortune.reveal(session, str(UID), locale="ko", now_utc=NOW)
     assert value["state"] == expected_state
-    assert value["result"]["overall"]["score"] == 34
+    # This returning account uses the new regular score policy. The API must
+    # expose the persisted score consistently for every subscription tier.
+    assert value["result"]["overall"]["score"] == 85
+    assert value["result"]["overall"]["score"] == session.daily.semantic_result["overall"]["score"]
+    assert session.daily.semantic_result["experience_mode"] == "regular"
     if expected_state == "locked":
         assert value["access"] == "ad_required"
         assert set(value["result"]["overall"]) == {"score", "headline", "do", "pause"}

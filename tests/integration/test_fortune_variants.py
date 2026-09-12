@@ -53,6 +53,9 @@ def _legacy_semantic():
 def _semantic():
     return {
         "schema_version": 4,
+        "experience_version": fortune_scores.RULE_VERSION,
+        "experience_mode": "regular",
+        "astrology": {"reference_timezone": "UTC", "semantic": {"lucky_color_key": fortune_scores.COLORS[6]}},
         "overall": {"score": 60, "reading_code": "overall.d60.general", "expression_route": "overall.d60.general"},
         "categories": {axis: {"score": 50, "reading_code": f"category.{axis}.d50.general.clear",
                               "expression_route": f"category.{axis}.d50.general"}
@@ -193,12 +196,12 @@ async def test_flush_then_failed_commit_does_not_consume_a_variant(fortune_db):
     assert after["copy_selection"] == draw_cards(birth_date=date(2002, 12, 13), today=DAY + timedelta(days=1))
 
 
-async def test_legacy_snapshot_and_coral_stay_fixed_until_new_date(fortune_db):
+async def test_legacy_snapshot_and_coral_upgrade_on_same_day_reveal(fortune_db):
     db = fortune_db
     await _reveal(db)
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         row = await session.get(DailyFortune, db.uid)
-        row.semantic_result = {k: v for k, v in row.semantic_result.items() if k != "copy_selection"}
+        row.semantic_result = _legacy_semantic()
         copies = deepcopy(row.copy_by_locale)
         for locale, name in (("ko", "코랄"), ("en", "Coral"), ("ja", "コーラル")):
             copies[locale]["lucky_color"] = {"key": "coral", "name": name, "hex": "#FF7F6E"}
@@ -206,13 +209,12 @@ async def test_legacy_snapshot_and_coral_stay_fixed_until_new_date(fortune_db):
         row.copy_version = "fortune-copy.v2-initial.1"
         await session.commit()
     result = await _reveal(db)
-    assert result["result"]["lucky_color"]["name"] == "코랄"
-    assert result["versions"]["copy"] == "fortune-copy.v2-initial.1"
-    assert "copy_selection" not in await _stored(db)
-    result = await _reveal(db, now=NOW + timedelta(days=1))
+    assert result["versions"]["copy"] == fortune_catalog.COPY_VERSION
     assert result["result"]["lucky_color"]["key"] == fortune_scores.COLORS[6]
     assert result["result"]["lucky_color"]["name"] != "코랄"
     assert "copy_selection" in await _stored(db)
+    assert (await _stored(db))["experience_version"] == fortune_scores.RULE_VERSION
+    assert await _reveal(db) == result
 
 
 async def test_profile_deletion_cascades_cursor_with_snapshot(fortune_db):
@@ -249,7 +251,9 @@ async def test_type_based_cursor_upgrades_once_and_resets_rewritten_categories(f
         await session.commit()
     same_day = await _reveal(db)
     assert same_day['result'] == before['result']
-    assert (await _stored(db))['copy_selection']['version'] == 'fortune-selection.v1'
+    assert (await _stored(db))['copy_selection'] == draw_cards(birth_date=date(2002, 12, 13), today=DAY)
+    assert same_day['versions']['copy'] == fortune_catalog.COPY_VERSION
+    assert await _reveal(db) == same_day
     await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
     state = after['copy_selection']
@@ -300,23 +304,29 @@ async def test_copy_snapshot_preserves_today_and_continues_current_cursor(fortun
     assert (await _stored(db))["copy_selection"] == selection
 
 
-async def test_real_independent_scores_preserve_old_day_and_switch_next_day(fortune_db, monkeypatch):
+async def test_real_experience_scores_replace_old_policy_on_same_day(fortune_db, monkeypatch):
     db = fortune_db
     old_response = await _reveal(db)
     old_snapshot = await _stored(db)
     assert old_snapshot["schema_version"] == 4
+    async with AsyncSession(db.engine, expire_on_commit=False) as session:
+        row = await session.get(DailyFortune, db.uid)
+        row.semantic_result = {k: v for k, v in old_snapshot.items()
+                               if k not in {"experience_version", "experience_mode", "astrology", "draw_algorithm_version"}}
+        row.rule_version = "fortune-independent.v2-floor30"
+        await session.commit()
     monkeypatch.setattr(fortune_scores, "generate_result", _REAL_GENERATE_RESULT)
-    assert await _reveal(db) == old_response
-    assert await _stored(db) == old_snapshot
-    response = await _reveal(db, now=NOW + timedelta(days=1))
+    response = await _reveal(db)
     current = await _stored(db)
     assert current["schema_version"] == 4
     assert current["copy_selection"]["version"] == "fortune-selection.v4"
-    expected = _REAL_GENERATE_RESULT(birth_date=date(2002, 12, 13), local_date=DAY + timedelta(days=1))
+    expected = _REAL_GENERATE_RESULT(birth_date=date(2002, 12, 13), local_date=DAY)
     assert current["overall"] == expected["overall"]
     assert current["categories"] == expected["categories"]
     assert response["result"]["schema_version"] == 3
-    assert await _reveal(db, now=NOW + timedelta(days=1)) == response
+    assert response["versions"]["rules"] == fortune_scores.RULE_VERSION
+    assert response["result"] != old_response["result"]
+    assert await _reveal(db) == response
 
 
 async def test_profile_edit_recalculates_scores_prose_and_color(fortune_db, monkeypatch):
@@ -330,6 +340,7 @@ async def test_profile_edit_recalculates_scores_prose_and_color(fortune_db, monk
     changed = _semantic()
     changed["overall"] = {"score": 90, "reading_code": "overall.d90.general", "expression_route": "overall.d90.general"}
     changed["lucky_color_key"] = fortune_scores.COLORS[9]
+    changed["astrology"]["semantic"]["lucky_color_key"] = fortune_scores.COLORS[9]
     monkeypatch.setattr(fortune_scores, "generate_result", lambda **_: changed)
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
@@ -350,7 +361,7 @@ async def test_profile_edit_recalculates_scores_prose_and_color(fortune_db, monk
     assert await _reveal(db) == after
 
 
-async def test_legacy_snapshot_stays_fixed_until_profile_edit_recalculates_it(fortune_db):
+async def test_legacy_snapshot_upgrades_before_profile_edit_then_recalculates_again(fortune_db):
     db = fortune_db
     await _reveal(db)
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
@@ -358,9 +369,10 @@ async def test_legacy_snapshot_stays_fixed_until_profile_edit_recalculates_it(fo
         row.semantic_result = _legacy_semantic()
         row.copy_version = "fortune-copy.v2-initial.1"
         await session.commit()
-    unchanged = await _reveal(db)
-    assert await _stored(db) == _legacy_semantic()
-    assert unchanged["versions"]["copy"] == "fortune-copy.v2-initial.1"
+    upgraded = await _reveal(db)
+    assert (await _stored(db))["experience_version"] == fortune_scores.RULE_VERSION
+    assert upgraded["versions"]["copy"] == fortune_catalog.COPY_VERSION
+    assert await _reveal(db) == upgraded
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
             birth_date=date(2000, 1, 1), gender="woman"), now_utc=NOW)

@@ -49,7 +49,7 @@ profiles에 nullable fortune_first_date DATE 하나를 추가한다. 최초 성�
 
 ## 배포/복구
 
-새 nullable컬럼은 선적용 가능한 additive 변경. 운영 SQL은 전달만 하고 실행하지 않는다. oldreader가 읽는 v4 카드 wire는 보존하고 새알고리즘은 별도버전 기록. oldwriter는 같은날프로필변경을 재생성하므로 혼합배포 기간에 완전한 신규 멱등성을 주장하지 않는다. 운영활성화는 모든노드 호환배포후 정해진 다음날 전환이 필요하다. 이전이미지 롤백시 새정책 최초상태/점수 보존 문제를 별도 검증한다. 새데이터를 지우거나 신규컬럼을 즉시 DROP하지 않는다.
+새 nullable컬럼은 선적용 가능한 additive 변경. 운영 SQL은 전달만 하고 실행하지 않는다. oldreader가 읽는 v4 카드 wire는 보존하고 새알고리즘은 별도버전 기록. oldwriter는 같은날프로필변경을 재생성하므로 혼합배포 기간에 완전한 신규 멱등성을 주장하지 않는다. 운영 새 정책은 배포 즉시 적용하며 다음날 전환을 요구하지 않는다. 이전이미지 롤백시 새정책 최초상태/점수 보존 문제를 별도 검증한다. 새데이터를 지우거나 신규컬럼을 즉시 DROP하지 않는다.
 
 독립 설계 검증: design_review가 기존코드와 대조. 최초일 sentinel/구writer catch-up/첫claim 조건 보완 후 구현 진행. 운영 활성 gate와 계약 생성 방식은 검증 후 결과에 별도 기록한다.
 
@@ -65,21 +65,11 @@ profiles에 nullable fortune_first_date DATE 하나를 추가한다. 최초 성�
 - 개발 DB schema.verify 통과. baseline은 한컬럼 additive수정. schema_contract는 기존계약에 실제개발카탈로그에서 읽은 신규컬럼 메타데이터를 결합하고 나머지호환대조0차이 확인으로 생성. 로컬빈DB생성은 사용자금지에 따라 수행하지 않았고 CI --check-generated가 이후독립검증한다.
 - PR/커밋/운영DB변경/개발API이미지배포 없음. 변경브랜치 feat/fortune-positive-experience. 현재 devAPI가 이작업이미지를 제공한다고 주장하지 않는다.
 
-## 운영 전달 절차 — 이번 작업에서 실행하지 않음
+## 운영 적용 — 2026-09-13 수정
 
-1. `db/changes/fortune_positive_experience.sql` 검토 SHA256 3501cc01208eee6cc5491cf3866595b5e198e7b258426953b61ac323a521ae2c. nullable컬럼추가+현재결과보유계정sentinel backfill. dev dry-run/commit 완료. 운영은 기존 db.apply --env prod 승인절차로 별도진행. 기준행수는 실행전 profiles NULL+daily EXISTS 집계하고 lock2초/statement60초 실패시 rollback.
-2. 새코드는 development에서 즉시새정책, production에서는 app_config `fortune_experience_start_date` 문자열ISO날짜가 없거나잘못되면 기존점수/UUID카드정책 유지. 새환경변수/SSM항목추가 없음. 기존정책 점수함수는 fortune_scores_legacy.py에 보존.
-3. 운영두노드가 새호환이미지임을 확인한 뒤 충분히미래의 전환일(전세계시간대에서 아직오지않은 날짜)을 app_config에 설정. 예시SQL은 아래틀의 날짜를 정한뒤 실행한다. **배포만으로 운영새점수/첫방문이 켜지지 않음.** 원고개선은 새이미지의 새결과에 적용된다.
+사용자 요청에 따라 미래 전환일과 구정책 당일 결과 유지 조건을 폐기한다. 개발·운영 모두 배포 즉시 새 점수·추첨 정책을 사용한다. 이전 정책 결과는 다음 조회에서 점수·카드·문구를 재계산하고, 광고/구독 해제 권한과 최초 이용일은 보존한다. 현재 정책 결과는 재조회에 따라 바뀌지 않는다.
 
-```sql
--- 아래 YYYY-MM-DD를 실제 승인한 미래전환일로 바꾼 뒤 실행
-INSERT INTO public.app_config(key,value)
-VALUES ('fortune_experience_start_date', to_jsonb('YYYY-MM-DD'::text))
-ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value;
-```
-
-4. 전환일은 최초생성되는 결과부터 적용하며 기존당일결과를 강제로교체하지 않음. 이전날짜구버전결과와 신규결과 사이의 동일성은 버전차이예외. 운영개별사용자실기기시험/서버배포는 아직수행하지 않음.
-5. 문제가있으면 호환이미지에서 활성일을미루거나키를해제해 미래생성만기존정책으로돌릴수 있음. 저장된새결과/marker는 삭제하지않음. 이전이미지로단순rollback하거나 컬럼DROP을복구수단으로쓰지않음. 잠금/광고상태도보존. 새날짜왕복시 과거copyversion영구복원은 최신한건저장범위밖임.
+최초 이용일 컬럼은 이미 운영에 적용됐다. 추가 스키마 변경은 없다. 모든 노드 배포 후 더 이상 참조하지 않는 `app_config.fortune_experience_start_date` 잔여 키를 제거한다. 운영 실제 API에서 신규/기존 이용자와 구점수 결과 전환, 한영일, 동시 요청, 생일 변경을 검증한다.
 
 ## 클라이언트 전달
 

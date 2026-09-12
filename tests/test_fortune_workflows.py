@@ -120,7 +120,11 @@ async def test_profile_same_put_is_noop_and_birthday_change_invalidates_result_p
         timezone_snapshot="Asia/Seoul",
         profile_revision=1,
         result_schema_version=3,
-        semantic_result={"schema_version": 3},
+        semantic_result={
+            "schema_version": 4,
+            "experience_version": fortune.fortune_scores.RULE_VERSION,
+            "draw_algorithm_version": fortune.DRAW_ALGORITHM_VERSION,
+        },
         copy_by_locale={"ko": {}},
         unlock_state="unlocked",
         unlock_source="rewarded_ad",
@@ -143,8 +147,9 @@ async def test_profile_same_put_is_noop_and_birthday_change_invalidates_result_p
     assert session.daily.unlocked_at == unlocked_at
 
 
-async def test_stale_unlocked_snapshot_status_is_unseen_with_access_preserved(enabled):
-    profile = FortuneProfile(user_id=UID, gender="woman", birth_date=date(2002, 12, 13), revision=2)
+@pytest.mark.parametrize("revision", [1, 2])
+async def test_stale_unlocked_snapshot_status_is_unseen_with_access_preserved(enabled, revision):
+    profile = FortuneProfile(user_id=UID, gender="woman", birth_date=date(2002, 12, 13), revision=revision)
     daily = DailyFortune(
         user_id=UID,
         fortune_date=TODAY,
@@ -169,12 +174,18 @@ async def test_stale_unlocked_snapshot_status_is_unseen_with_access_preserved(en
     }
 
 
-async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_again(enabled):
+@pytest.mark.parametrize("stale_reason", ["birthday_edit", "old_policy"])
+async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_again(enabled, stale_reason):
     original_unlock = datetime(2026, 8, 27, 0, 30, tzinfo=timezone.utc)
     profile = FortuneProfile(user_id=UID, gender="woman", birth_date=date(2002, 12, 13), revision=2)
-    old_profile = FortuneProfile(user_id=UID, gender="woman", birth_date=date(2000, 1, 1), revision=1)
+    old_profile = FortuneProfile(
+        user_id=UID, gender="woman",
+        birth_date=date(2000, 1, 1) if stale_reason == "birthday_edit" else profile.birth_date,
+        revision=1 if stale_reason == "birthday_edit" else profile.revision,
+    )
     old_semantic, old_copy = fortune._build_result(
         profile=old_profile, today=TODAY, timezone_name="Asia/Seoul",
+        experience_enabled=stale_reason != "old_policy",
     )
     expected_semantic, expected_copy = fortune._build_result(
         profile=profile, today=TODAY, timezone_name="Asia/Seoul",
@@ -183,11 +194,11 @@ async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_
         user_id=UID,
         fortune_date=TODAY,
         timezone_snapshot="Asia/Seoul",
-        profile_revision=1,
+        profile_revision=old_profile.revision,
         result_schema_version=3,
         semantic_result=old_semantic,
         copy_by_locale=old_copy,
-        copy_version=fortune.fortune_catalog.COPY_VERSION,
+        copy_version="fortune-copy.v5-saved-snapshot.1",
         unlock_state="unlocked",
         unlock_source="rewarded_ad",
         unlocked_at=original_unlock,
@@ -197,6 +208,7 @@ async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_
     first = await fortune.reveal(session, str(UID), locale="ko", now_utc=NOW)
     assert session.daily.semantic_result == expected_semantic
     assert session.daily.copy_by_locale == expected_copy
+    assert session.daily.copy_version == fortune.fortune_catalog.COPY_VERSION
     assert session.daily.semantic_result["copy_selection"] != old_semantic["copy_selection"]
     rebuilt_semantic = deepcopy(session.daily.semantic_result)
     rebuilt_copy = deepcopy(session.daily.copy_by_locale)

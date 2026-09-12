@@ -202,7 +202,7 @@ async def test_verified_ssv_immediately_unlocks_current_daily_result(monkeypatch
     assert daily.unlock_source == "rewarded_ad"
     assert daily.unlocked_at == now and daily.revealed_at == now
 
-    # 광고 재생 중 프로필이 바뀌어도 기존 당일 snapshot을 즉시 공개한다.
+    # 광고 재생 중 프로필이 바뀌면 권한을 보존하고 다음 reveal에서 재계산한다.
     sid = uuid.uuid4()
     ad = SimpleNamespace(
         session_id=sid,
@@ -232,7 +232,7 @@ async def test_verified_ssv_immediately_unlocks_current_daily_result(monkeypatch
     assert after_edit_result == "verified" and session.committed
     assert ad.verified and ad.ssv_transaction_id == "tx-after-profile-change"
     assert daily.unlock_state == "unlocked" and daily.unlock_source == "rewarded_ad"
-    assert daily.unlocked_at == now and daily.revealed_at == now
+    assert daily.unlocked_at == now and daily.revealed_at is None
     assert daily.profile_revision == 4
     assert daily.semantic_result == saved_semantic and daily.copy_by_locale == saved_copy
 

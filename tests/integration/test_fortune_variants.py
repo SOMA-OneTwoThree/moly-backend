@@ -155,17 +155,20 @@ async def test_new_date_draw_and_same_day_profile_edit_and_date_rollback(fortune
     assert first["overall"] == second["overall"]
     assert second["copy_selection"] == draw_cards(birth_date=date(2002, 12, 13), today=DAY + timedelta(days=1))
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
-        await fortune.put_profile(
+        updated = await fortune.put_profile(
             session, str(db.uid),
-            FortuneProfilePut(birth_date=date(2002, 12, 13), gender="woman"),
+            FortuneProfilePut(birth_date=date(2000, 1, 1), gender="woman"),
             now_utc=NOW + timedelta(days=1),
         )
+        assert updated["result_invalidated"] and updated["unlock_preserved"]
     await _reveal(db, now=NOW + timedelta(days=1))
-    assert await _stored(db) == second
+    edited = await _stored(db)
+    assert edited["copy_selection"] == draw_cards(birth_date=date(2000, 1, 1), today=DAY + timedelta(days=1))
+    assert edited["copy_selection"] != second["copy_selection"]
     await _reveal(db, now=NOW)
-    assert (await _stored(db))["copy_selection"] == first["copy_selection"]
+    assert (await _stored(db))["copy_selection"] == draw_cards(birth_date=date(2000, 1, 1), today=DAY)
     await _reveal(db, now=NOW + timedelta(days=1))
-    assert (await _stored(db))["copy_selection"] == second["copy_selection"]
+    assert await _stored(db) == edited
 
 
 async def test_flush_then_failed_commit_does_not_consume_a_variant(fortune_db):
@@ -316,7 +319,7 @@ async def test_real_independent_scores_preserve_old_day_and_switch_next_day(fort
     assert await _reveal(db, now=NOW + timedelta(days=1)) == response
 
 
-async def test_profile_edit_preserves_scores_prose_and_color(fortune_db, monkeypatch):
+async def test_profile_edit_recalculates_scores_prose_and_color(fortune_db, monkeypatch):
     db = fortune_db
     first = await _reveal(db)
     before = await _stored(db)
@@ -332,15 +335,22 @@ async def test_profile_edit_preserves_scores_prose_and_color(fortune_db, monkeyp
         await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
             birth_date=date(2000, 1, 1), gender="woman"), now_utc=NOW)
     after = await _reveal(db)
-    assert (await _stored(db))["copy_selection"] == before["copy_selection"]
-    assert after["result"] == first["result"]
-    assert after["result"]["overall"]["flow"] == first["result"]["overall"]["flow"]
-    assert after["result"]["categories"] == first["result"]["categories"]
-    assert after["result"]["lucky_color"] == first["result"]["lucky_color"]
-    assert after["versions"]["copy"] == "fortune-copy.v5-saved-snapshot.1"
+    selection = draw_cards(birth_date=date(2000, 1, 1), today=DAY)
+    assert (await _stored(db))["copy_selection"] == selection
+    assert selection != before["copy_selection"]
+    assert after["result"]["overall"]["score"] == 90
+    assert after["result"]["overall"]["score"] != first["result"]["overall"]["score"]
+    expected = fortune_catalog.load_catalog().render_cards(changed, "ko", selection=selection)
+    assert after["result"]["overall"]["flow"] == expected["overall"]["flow"]
+    for axis, bundle in expected["categories"].items():
+        assert after["result"]["categories"][axis]["text"] == bundle["text"]
+    assert after["result"]["lucky_color"] == expected["lucky_color"]
+    assert after["result"]["lucky_color"] != first["result"]["lucky_color"]
+    assert after["versions"]["copy"] == fortune_catalog.COPY_VERSION
+    assert await _reveal(db) == after
 
 
-async def test_legacy_profile_edit_preserves_issued_day(fortune_db):
+async def test_legacy_snapshot_stays_fixed_until_profile_edit_recalculates_it(fortune_db):
     db = fortune_db
     await _reveal(db)
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
@@ -348,12 +358,18 @@ async def test_legacy_profile_edit_preserves_issued_day(fortune_db):
         row.semantic_result = _legacy_semantic()
         row.copy_version = "fortune-copy.v2-initial.1"
         await session.commit()
+    unchanged = await _reveal(db)
+    assert await _stored(db) == _legacy_semantic()
+    assert unchanged["versions"]["copy"] == "fortune-copy.v2-initial.1"
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
             birth_date=date(2000, 1, 1), gender="woman"), now_utc=NOW)
     result = await _reveal(db)
-    assert await _stored(db) == _legacy_semantic()
-    assert result["versions"]["copy"] == "fortune-copy.v2-initial.1"
+    stored = await _stored(db)
+    assert stored["schema_version"] == 4
+    assert stored["copy_selection"] == draw_cards(birth_date=date(2000, 1, 1), today=DAY)
+    assert result["versions"]["copy"] == fortune_catalog.COPY_VERSION
+    assert await _reveal(db) == result
 
 
 async def test_rollback_build_keeps_v4_snapshot_and_labels_new_legacy_copy(fortune_db, monkeypatch):

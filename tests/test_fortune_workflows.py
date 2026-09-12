@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
 import uuid
@@ -102,7 +103,7 @@ def enabled(monkeypatch):
     monkeypatch.setattr(fortune, "_load_profile", account)
 
 
-async def test_profile_same_put_is_noop_and_change_preserves_result_and_unlock(enabled):
+async def test_profile_same_put_is_noop_and_birthday_change_invalidates_result_preserving_unlock(enabled):
     session = _MemorySession()
     request = FortuneProfilePut(birth_date=date(2002, 12, 13), gender="man")
     created = await fortune.put_profile(session, str(UID), request, now_utc=NOW)
@@ -133,11 +134,11 @@ async def test_profile_same_put_is_noop_and_change_preserves_result_and_unlock(e
     changed = await fortune.put_profile(
         session,
         str(UID),
-        FortuneProfilePut(birth_date=date(2002, 12, 13), gender="woman"),
+        FortuneProfilePut(birth_date=date(2000, 1, 1), gender="man"),
         now_utc=NOW,
     )
     assert changed["profile"]["revision"] == 2
-    assert not changed["result_invalidated"] and changed["unlock_preserved"]
+    assert changed["result_invalidated"] and changed["unlock_preserved"]
     assert session.daily.unlock_source == "rewarded_ad"
     assert session.daily.unlocked_at == unlocked_at
 
@@ -149,8 +150,8 @@ async def test_stale_unlocked_snapshot_status_is_unseen_with_access_preserved(en
         fortune_date=TODAY,
         timezone_snapshot="Asia/Seoul",
         profile_revision=1,
-        result_schema_version=2,
-        semantic_result={"schema_version": 2},
+        result_schema_version=3,
+        semantic_result={"schema_version": 4},
         copy_by_locale={"ko": {"old": True}},
         unlock_state="unlocked",
         unlock_source="rewarded_ad",
@@ -171,14 +172,22 @@ async def test_stale_unlocked_snapshot_status_is_unseen_with_access_preserved(en
 async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_again(enabled):
     original_unlock = datetime(2026, 8, 27, 0, 30, tzinfo=timezone.utc)
     profile = FortuneProfile(user_id=UID, gender="woman", birth_date=date(2002, 12, 13), revision=2)
+    old_profile = FortuneProfile(user_id=UID, gender="woman", birth_date=date(2000, 1, 1), revision=1)
+    old_semantic, old_copy = fortune._build_result(
+        profile=old_profile, today=TODAY, timezone_name="Asia/Seoul",
+    )
+    expected_semantic, expected_copy = fortune._build_result(
+        profile=profile, today=TODAY, timezone_name="Asia/Seoul",
+    )
     daily = DailyFortune(
         user_id=UID,
         fortune_date=TODAY,
         timezone_snapshot="Asia/Seoul",
         profile_revision=1,
-        result_schema_version=2,
-        semantic_result={"schema_version": 2},
-        copy_by_locale={"ko": {"old": True}},
+        result_schema_version=3,
+        semantic_result=old_semantic,
+        copy_by_locale=old_copy,
+        copy_version=fortune.fortune_catalog.COPY_VERSION,
         unlock_state="unlocked",
         unlock_source="rewarded_ad",
         unlocked_at=original_unlock,
@@ -186,7 +195,14 @@ async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_
     )
     session = _MemorySession(profile=profile, daily=daily)
     first = await fortune.reveal(session, str(UID), locale="ko", now_utc=NOW)
+    assert session.daily.semantic_result == expected_semantic
+    assert session.daily.copy_by_locale == expected_copy
+    assert session.daily.semantic_result["copy_selection"] != old_semantic["copy_selection"]
+    rebuilt_semantic = deepcopy(session.daily.semantic_result)
+    rebuilt_copy = deepcopy(session.daily.copy_by_locale)
     second = await fortune.reveal(session, str(UID), locale="ja", now_utc=NOW)
+    assert session.daily.semantic_result == rebuilt_semantic
+    assert session.daily.copy_by_locale == rebuilt_copy
     assert first["result"]["overall"]["score"] == second["result"]["overall"]["score"]
     assert first["state"] == "revealed" and first["access"] == "unlocked_today"
     assert first["result"]["schema_version"] == 3 and first["result"]["locale"] == "ko"
@@ -194,6 +210,8 @@ async def test_reveal_rebuilds_stale_snapshot_without_losing_unlock_or_changing_
     assert session.daily.profile_revision == 2
     assert session.daily.unlock_source == "rewarded_ad"
     assert session.daily.unlocked_at == original_unlock
+    account = await fortune._load_profile(session, str(UID))
+    assert account.fortune_first_date == date.min
 
 
 @pytest.mark.parametrize(

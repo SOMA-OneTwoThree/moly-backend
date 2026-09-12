@@ -22,6 +22,8 @@ class Profile(Base):
     timezone: Mapped[str] = mapped_column(String, server_default=text("'Asia/Seoul'"))
     hay_balance: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     trial_ends_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    # Account-scoped use marker survives fortune-profile deletion; date.min = legacy user.
+    fortune_first_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     review_prompted_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     # 관계 시작은 가입 시각이 아니라 첫 성공 대화의 Phase B에서 확정한다.
     relationship_started_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)

@@ -923,6 +923,7 @@ CREATE TABLE public.profiles (
     timezone text DEFAULT 'Asia/Seoul'::text NOT NULL,
     hay_balance integer DEFAULT 0 NOT NULL,
     trial_ends_at timestamp with time zone,
+    fortune_first_date date,
     review_prompted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,

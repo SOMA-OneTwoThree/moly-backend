@@ -92,7 +92,8 @@ LEGACY_COPY_VERSIONS = MappingProxyType({
     "en": "fortune-copy.v3-editorial.1",
     "ja": "fortune-copy.v3-editorial.1",
 })
-COPY_VERSION = "fortune-copy.v5-editorial.1"
+COPY_VERSION = "fortune-copy.v6-fortune.1"
+FIRST_VISIT_FILE = "first-visit.v1.json"
 _CARD_COPY_FILENAMES = MappingProxyType({
     "ko": "copy.v3.json", "en": "copy.v3.en.json", "ja": "copy.v3.ja.json",
 })
@@ -182,6 +183,7 @@ class FortuneCatalog:
     manifest_hash: str
     asset_hashes: Mapping[str, str]
     readings_by_locale: Mapping[str, Mapping[str, Mapping[str, Any]]]
+    first_visit_sets: tuple[Mapping[str, Any], ...]
 
     def render(
         self, semantic: Mapping[str, Any], locale: str = "ko", *, selected: Mapping[str, str],
@@ -193,7 +195,7 @@ class FortuneCatalog:
         category_catalog = self.categories_by_locale[locale]
         color_catalog = self.colors_by_locale[locale]
         _exact_keys(
-            semantic,
+            {k: v for k, v in semantic.items() if k not in {"experience_version", "experience_mode", "astrology", "draw_algorithm_version"}},
             {"schema_version", "overall", "categories", "lucky_color_key"},
             "semantic result",
         )
@@ -264,8 +266,7 @@ class FortuneCatalog:
             raise FortuneCatalogError(f"unknown lucky color: {color_key}")
         color_index = min(overall_score // 10, 9)
         if semantic["schema_version"] == 4:
-            from app.services.fortune_scores import COLORS
-            expected_color = COLORS[color_index]
+            expected_color = _expected_color(semantic)
         else:
             expected_color = rules["lucky_color_by_flow"][overall_reading["flow"]][color_index]
         if color_key != expected_color:
@@ -297,6 +298,14 @@ class FortuneCatalog:
             raise FortuneCatalogError("semantic categories must contain four categories")
         for axis in _CATEGORIES:
             _score(semantic["categories"][axis]["score"], f"semantic category score {axis}")
+        if semantic.get("experience_mode") == "first_visit":
+            from copy import deepcopy
+            matches = [entry for entry in self.first_visit_sets if entry["cards"] == state["cards"]]
+            if len(matches) != 1:
+                raise FortuneCatalogError("unknown first-visit card set")
+            result = deepcopy(matches[0]["copy_by_locale"][locale])
+            result["lucky_color"] = self.render_color(semantic, locale)
+            return result
         readings = self.readings_by_locale[locale]
         bundles = {
             axis: readings[f"{axis}.{card['card_id']}.{card['orientation']}"]
@@ -311,10 +320,8 @@ class FortuneCatalog:
         }
 
     def render_color(self, semantic: Mapping[str, Any], locale: str) -> dict[str, str]:
-        from app.services.fortune_scores import COLORS
-        score = _score(semantic["overall"]["score"], "semantic overall score")
         key = semantic["lucky_color_key"]
-        if key != COLORS[min(score // 10, 9)]:
+        if key != _expected_color(semantic):
             raise FortuneCatalogError("lucky color does not match overall score")
         color = self.colors_by_locale[locale][key]
         return {"key": key, "name": color["name"], "hex": color["hex"]}
@@ -452,7 +459,7 @@ def _validate_copy(
 
 
 def _validate_overall_bundle(
-    bundle: Any, route: str, locale: str,
+    bundle: Any, route: str, locale: str, *, fortune_tone: bool = False,
 ) -> tuple[Mapping[str, Any], tuple[str, ...]]:
     if not isinstance(bundle, dict):
         raise FortuneCatalogError(f"{route} must be an object")
@@ -460,13 +467,13 @@ def _validate_overall_bundle(
     flow = bundle["flow"]
     if not isinstance(flow, list) or len(flow) != 3:
         raise FortuneCatalogError(f"{route}.flow must contain exactly three text segments")
-    headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=True)
+    headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=not fortune_tone)
     rendered_flow = tuple(
-        _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=True)
+        _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=not fortune_tone)
         for index, sentence in enumerate(flow)
     )
-    do = _text(bundle["do"], f"{route}.do", locale=locale, overall=True)
-    pause = _text(bundle["pause"], f"{route}.pause", locale=locale, overall=True)
+    do = _text(bundle["do"], f"{route}.do", locale=locale, overall=not fortune_tone)
+    pause = _text(bundle["pause"], f"{route}.pause", locale=locale, overall=not fortune_tone)
     validated = MappingProxyType(
         {
             "headline": headline,
@@ -493,7 +500,7 @@ def _validate_card_copy(asset: Mapping[str, Any], *, locale: str, colors: Mappin
     result = {}
     for key, bundle in asset["readings"].items():
         if key.startswith("overall."):
-            validated, _ = _validate_overall_bundle(bundle, key, locale)
+            validated, _ = _validate_overall_bundle(bundle, key, locale, fortune_tone=True)
             segments = validated["flow"]
             expected_counts = (2, 2, 1)
         else:
@@ -526,7 +533,7 @@ def _load_catalog(resource_dir: Path) -> FortuneCatalog:
     if not isinstance(assets, dict):
         raise FortuneCatalogError("manifest assets must be an object")
     expected_assets = {_RULES_PATH.name, *_COPY_FILENAMES.values(),
-                       *_CARD_COPY_FILENAMES.values(), fortune_tarot.FILENAME}
+                       *_CARD_COPY_FILENAMES.values(), fortune_tarot.FILENAME, FIRST_VISIT_FILE}
     _exact_keys(assets, expected_assets, "manifest assets")
     parsed: dict[str, dict[str, Any]] = {}
     hashes: dict[str, str] = {}
@@ -569,6 +576,7 @@ def _load_catalog(resource_dir: Path) -> FortuneCatalog:
         manifest_hash=sha256(manifest_raw).hexdigest(),
         asset_hashes=MappingProxyType(hashes),
         readings_by_locale=MappingProxyType(readings_by_locale),
+        first_visit_sets=_validate_first_visit(parsed[FIRST_VISIT_FILE]),
     )
 
 
@@ -618,3 +626,64 @@ def recolor_snapshot(
                           "categories": deepcopy(snapshot["categories"]),
                           "lucky_color": catalog.render_color(semantic, locale)}
     return result
+
+
+def _expected_color(semantic: Mapping[str, Any]) -> str:
+    from app.services.fortune_scores import COLORS, RULE_VERSION
+    if "experience_version" in semantic:
+        if semantic["experience_version"] != RULE_VERSION:
+            raise FortuneCatalogError("unsupported experience version")
+        astrology = semantic.get("astrology", {})
+        if astrology.get("reference_timezone") != "UTC":
+            raise FortuneCatalogError("invalid astrology reference timezone")
+        key = astrology.get("semantic", {}).get("lucky_color_key")
+        if key not in _COLORS:
+            raise FortuneCatalogError("invalid astrology lucky color")
+        return "orange" if key == "coral" else key
+    score = _score(semantic["overall"]["score"], "semantic overall score")
+    return COLORS[min(score // 10, 9)]
+
+
+def _validate_first_visit(asset: Any) -> tuple[Mapping[str, Any], ...]:
+    _exact_keys(asset, {"version", "sets"}, "first visit")
+    if asset["version"] != "fortune-first-visit.v1" or not isinstance(asset["sets"], list) or len(asset["sets"]) < 6:
+        raise FortuneCatalogError("first visit requires six complete sets")
+    seen_ids, seen_cards = set(), set()
+    for entry in asset["sets"]:
+        _exact_keys(entry, {"id", "cards", "copy_by_locale"}, "first visit set")
+        if not isinstance(entry["id"], str) or not entry["id"] or entry["id"] in seen_ids:
+            raise FortuneCatalogError("duplicate/invalid first visit id")
+        seen_ids.add(entry["id"])
+        validate_card_selection({"version": "fortune-selection.v4", "day": "2026-09-12", "cards": entry["cards"]})
+        card_key = json.dumps(entry["cards"], sort_keys=True)
+        if card_key in seen_cards:
+            raise FortuneCatalogError("duplicate first visit card set")
+        seen_cards.add(card_key)
+        _exact_keys(entry["copy_by_locale"], set(SUPPORTED_LOCALES), "first visit locales")
+        for locale, copy in entry["copy_by_locale"].items():
+            _exact_keys(copy, {"overall", "categories"}, "first visit copy")
+            _validate_overall_bundle(copy["overall"], entry["id"], locale, fortune_tone=True)
+            _exact_keys(copy["categories"], set(_CATEGORIES), "first visit categories")
+            for axis, bundle in copy["categories"].items():
+                _exact_keys(bundle, {"text"}, "first visit category")
+                if not isinstance(bundle["text"], list) or len(bundle["text"]) != 2:
+                    raise FortuneCatalogError("first visit category requires two paragraphs")
+                for paragraph in bundle["text"]:
+                    _text(paragraph, f"{entry['id']}.{axis}", locale=locale)
+    return tuple(asset["sets"])
+
+
+def first_visit_selection(*, birth_date, today) -> dict[str, Any]:
+    from copy import deepcopy
+    from app.services.fortune_copy_selection import DRAW_ALGORITHM_VERSION
+    sets = load_catalog().first_visit_sets
+    seed = f"{DRAW_ALGORITHM_VERSION}|{birth_date.isoformat()}|{today.isoformat()}|first_visit"
+    scale = 1 << 256
+    limit = scale - scale % len(sets)
+    counter = 0
+    while True:
+        value = int.from_bytes(sha256(f"{seed}|{counter}".encode("ascii")).digest(), "big")
+        if value < limit:
+            chosen = sets[value % len(sets)]
+            return {"version": "fortune-selection.v4", "day": today.isoformat(), "cards": deepcopy(chosen["cards"])}
+        counter += 1

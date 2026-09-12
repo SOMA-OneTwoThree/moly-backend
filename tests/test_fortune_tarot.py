@@ -18,6 +18,7 @@ from app.services import fortune, fortune_catalog, fortune_copy_selection as sel
 RESOURCES = Path(__file__).resolve().parents[1] / "app/resources/fortune"
 UID = "00000000-0000-0000-0000-000000000001"
 DAY = date(2026, 9, 10)
+BIRTH = date(2002, 12, 13)
 
 
 def _save(target: Path, filename: str, value) -> None:
@@ -29,11 +30,14 @@ def _save(target: Path, filename: str, value) -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
 
 
-def _build(*, birth=date(2002, 12, 13), day=DAY, previous=None, copies=None, policy="tarot"):
+def _build(
+    *, birth=BIRTH, day=DAY, previous=None, copies=None, policy="tarot",
+    user_id=UID, timezone_name="Asia/Seoul", first_visit=False, experience_enabled=True,
+):
     return fortune._build_result(
-        profile=SimpleNamespace(user_id=uuid.UUID(UID), birth_date=birth), today=day,
-        timezone_name="Asia/Seoul", previous_semantic=previous, previous_copies=copies,
-        copy_policy=policy,
+        profile=SimpleNamespace(user_id=uuid.UUID(user_id), birth_date=birth), today=day,
+        timezone_name=timezone_name, previous_semantic=previous, previous_copies=copies,
+        copy_policy=policy, first_visit=first_visit, experience_enabled=experience_enabled,
     )
 
 
@@ -103,15 +107,51 @@ def test_every_card_and_axis_renders_without_internal_metadata(index, orientatio
         assert not any(token in payload for token in ('"card_id"', '"orientation"', '"observations"', '"meaning"'))
 
 
-def test_same_draw_is_independent_of_birth_date_scores_timezone_and_language():
-    first, copies = _build()
-    second, other_copies = _build(birth=date(1980, 3, 14))
+@pytest.mark.parametrize("first_visit", (False, True))
+def test_birth_date_mode_draw_is_identical_across_users_timezones_and_locales(first_visit):
+    first, copies = _build(first_visit=first_visit)
+    second, other_copies = _build(
+        user_id="abcdefab-cdef-abcd-efab-cdefabcdefab", timezone_name="America/New_York",
+        first_visit=first_visit,
+    )
+    # The same local date, birth and mode share the entire result, not just a score band.
+    assert second == first
+    assert other_copies == copies
+    assert set(copies) == set(fortune_catalog.SUPPORTED_LOCALES)
+    assert first["draw_algorithm_version"] == selection.DRAW_ALGORITHM_VERSION
+    expected = selection.draw_cards(birth_date=BIRTH, today=DAY, first_visit=first_visit)
+    assert first["copy_selection"] == expected
+    assert selection.draw_cards(
+        birth_date=BIRTH, today=DAY, first_visit=first_visit,
+        user_id="abcdefab-cdef-abcd-efab-cdefabcdefab",
+    ) == expected
+
+
+def test_new_draw_uses_birth_and_mode_without_score_inputs():
+    regular, _ = _build()
+    other_birth, _ = _build(birth=date(1980, 3, 14))
+    intro, _ = _build(first_visit=True)
+    assert regular["copy_selection"] != other_birth["copy_selection"]
+    assert other_birth["copy_selection"] == selection.draw_cards(
+        birth_date=date(1980, 3, 14), today=DAY, first_visit=False,
+    )
+    assert intro["copy_selection"] == fortune_catalog.first_visit_selection(birth_date=BIRTH, today=DAY)
+    assert intro["copy_selection"] != regular["copy_selection"]
+
+
+def test_legacy_uuid_draw_remains_independent_of_birth_scores_and_locale():
+    first, copies = _build(experience_enabled=False)
+    second, other_copies = _build(birth=date(1980, 3, 14), experience_enabled=False)
     assert first["copy_selection"] == second["copy_selection"]
+    assert "draw_algorithm_version" not in first
     assert first["overall"]["score"] != second["overall"]["score"] or first["categories"] != second["categories"]
     for locale in fortune_catalog.SUPPORTED_LOCALES:
         assert copies[locale]["overall"] == other_copies[locale]["overall"]
         assert copies[locale]["categories"] == other_copies[locale]["categories"]
-    assert selection.draw_cards(user_id=UID, today=DAY) == selection.draw_cards(user_id=UID.upper(), today=DAY)
+    legacy_uid = "abcdefab-cdef-abcd-efab-cdefabcdefab"
+    assert selection.draw_cards(user_id=legacy_uid, today=DAY) == selection.draw_cards(
+        user_id=legacy_uid.upper(), today=DAY,
+    )
     assert first["copy_selection"] == selection.draw_cards(user_id=UID, today=DAY)
 
 
@@ -165,23 +205,31 @@ def test_rollback_policy_reads_saved_cards_then_generates_legacy_on_next_date():
     assert tomorrow["copy_selection"]["version"] == "fortune-selection.v3"
     assert set(legacy_copies) == {"ko", "en", "ja"}
     restored, _ = _build(previous=tomorrow, day=DAY + timedelta(days=2))
-    assert restored["copy_selection"] == selection.draw_cards(user_id=UID, today=DAY + timedelta(days=2))
+    assert restored["copy_selection"] == selection.draw_cards(
+        birth_date=BIRTH, today=DAY + timedelta(days=2), first_visit=False,
+    )
 
 
 def test_new_date_and_deleted_profile_recreation_follow_deterministic_date_policy():
     first, copies = _build()
     second, _ = _build(previous=first, copies=copies, day=DAY + timedelta(days=1))
-    assert second["copy_selection"] == selection.draw_cards(user_id=UID, today=DAY + timedelta(days=1))
+    assert second["copy_selection"] == selection.draw_cards(
+        birth_date=BIRTH, today=DAY + timedelta(days=1), first_visit=False,
+    )
     recreated, _ = _build()
     assert recreated["copy_selection"] == first["copy_selection"]
 
 
-def test_card_draw_has_no_score_or_profile_parameter():
+def test_card_draw_accepts_birth_date_and_mode_but_no_score_or_locale():
     import inspect
-    assert set(inspect.signature(selection.draw_cards).parameters) == {"user_id", "today"}
+    parameters = inspect.signature(selection.draw_cards).parameters
+    assert set(parameters) == {"user_id", "today", "birth_date", "first_visit"}
+    assert all(p.kind is inspect.Parameter.KEYWORD_ONLY for p in parameters.values())
+    assert parameters["user_id"].default is None  # UUID is optional legacy compatibility only.
+    assert parameters["first_visit"].default is False
 
 
-def test_draw_distribution_has_no_missing_cards_or_persistent_orientation_bias():
+def test_legacy_uuid_draw_distribution_has_no_missing_cards_or_persistent_orientation_bias():
     from collections import Counter
     cards = Counter()
     upright = Counter()

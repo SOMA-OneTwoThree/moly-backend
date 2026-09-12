@@ -81,6 +81,7 @@ async def fortune_db(monkeypatch):
     uid = uuid.uuid4()
     monkeypatch.setattr(privacy, "ensure_subject_active", _REAL_ENSURE_ACTIVE)
     monkeypatch.setattr(fortune, "_ready", lambda: True)
+    monkeypatch.setattr(fortune.settings, "environment", "development")
     # Pin score calculation to revisit one route reliably.
     monkeypatch.setattr(fortune_scores, "generate_result", lambda **_: _semantic())
 
@@ -90,7 +91,7 @@ async def fortune_db(monkeypatch):
     monkeypatch.setattr(fortune, "_access", included)
     try:
         await conn.execute("INSERT INTO auth.users(id,created_at) VALUES($1,now())", uid)
-        await conn.execute("UPDATE profiles SET timezone='UTC',language='ko' WHERE id=$1", uid)
+        await conn.execute("UPDATE profiles SET timezone='UTC',language='ko',fortune_first_date=DATE '0001-01-01' WHERE id=$1", uid)
         async with AsyncSession(engine, expire_on_commit=False) as session:
             await fortune.put_profile(
                 session, str(uid),
@@ -130,7 +131,7 @@ async def test_parallel_reveal_allocates_once_and_locale_only_changes_copy(fortu
     left, right = await asyncio.gather(_reveal(db), _reveal(db))
     assert left["result"] == right["result"]
     stored = await _stored(db)
-    assert stored["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY)
+    assert stored["copy_selection"] == draw_cards(birth_date=date(2002, 12, 13), today=DAY)
     for locale in ("ko", "en", "ja"):
         result = await _reveal(db, locale=locale)
         semantic = {k: v for k, v in stored.items() if k != "copy_selection"}
@@ -152,7 +153,7 @@ async def test_new_date_draw_and_same_day_profile_edit_and_date_rollback(fortune
     await _reveal(db, now=NOW + timedelta(days=1))
     second = await _stored(db)
     assert first["overall"] == second["overall"]
-    assert second["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
+    assert second["copy_selection"] == draw_cards(birth_date=date(2002, 12, 13), today=DAY + timedelta(days=1))
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         await fortune.put_profile(
             session, str(db.uid),
@@ -186,7 +187,7 @@ async def test_flush_then_failed_commit_does_not_consume_a_variant(fortune_db):
     assert await _stored(db) == before
     await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
-    assert after["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
+    assert after["copy_selection"] == draw_cards(birth_date=date(2002, 12, 13), today=DAY + timedelta(days=1))
 
 
 async def test_legacy_snapshot_and_coral_stay_fixed_until_new_date(fortune_db):
@@ -249,7 +250,7 @@ async def test_type_based_cursor_upgrades_once_and_resets_rewritten_categories(f
     await _reveal(db, now=NOW + timedelta(days=1))
     after = await _stored(db)
     state = after['copy_selection']
-    assert state == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
+    assert state == draw_cards(birth_date=date(2002, 12, 13), today=DAY + timedelta(days=1))
     await _reveal(db, now=NOW + timedelta(days=1), locale='ja')
     assert await _stored(db) == after
 
@@ -283,7 +284,7 @@ async def test_copy_snapshot_preserves_today_and_continues_current_cursor(fortun
     after = await _stored(db)
     selection = after["copy_selection"]
     assert selection["version"] == state["version"] == "fortune-selection.v4"
-    assert selection == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
+    assert selection == draw_cards(birth_date=date(2002, 12, 13), today=DAY + timedelta(days=1))
     assert tomorrow["versions"]["copy"] == fortune_catalog.COPY_VERSION
     semantic = {k: v for k, v in after.items() if k != "copy_selection"}
     for locale in old_lines:
@@ -315,7 +316,7 @@ async def test_real_independent_scores_preserve_old_day_and_switch_next_day(fort
     assert await _reveal(db, now=NOW + timedelta(days=1)) == response
 
 
-async def test_profile_edit_recalculates_scores_preserves_prose_and_recolors(fortune_db, monkeypatch):
+async def test_profile_edit_preserves_scores_prose_and_color(fortune_db, monkeypatch):
     db = fortune_db
     first = await _reveal(db)
     before = await _stored(db)
@@ -332,14 +333,14 @@ async def test_profile_edit_recalculates_scores_preserves_prose_and_recolors(for
             birth_date=date(2000, 1, 1), gender="woman"), now_utc=NOW)
     after = await _reveal(db)
     assert (await _stored(db))["copy_selection"] == before["copy_selection"]
-    assert after["result"]["overall"]["score"] == 90
+    assert after["result"] == first["result"]
     assert after["result"]["overall"]["flow"] == first["result"]["overall"]["flow"]
     assert after["result"]["categories"] == first["result"]["categories"]
-    assert after["result"]["lucky_color"]["key"] == fortune_scores.COLORS[9]
+    assert after["result"]["lucky_color"] == first["result"]["lucky_color"]
     assert after["versions"]["copy"] == "fortune-copy.v5-saved-snapshot.1"
 
 
-async def test_invalidated_legacy_profile_transitions_same_day(fortune_db):
+async def test_legacy_profile_edit_preserves_issued_day(fortune_db):
     db = fortune_db
     await _reveal(db)
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
@@ -351,8 +352,8 @@ async def test_invalidated_legacy_profile_transitions_same_day(fortune_db):
         await fortune.put_profile(session, str(db.uid), FortuneProfilePut(
             birth_date=date(2000, 1, 1), gender="woman"), now_utc=NOW)
     result = await _reveal(db)
-    assert (await _stored(db))["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY)
-    assert result["versions"]["copy"] == fortune_catalog.COPY_VERSION
+    assert await _stored(db) == _legacy_semantic()
+    assert result["versions"]["copy"] == "fortune-copy.v2-initial.1"
 
 
 async def test_rollback_build_keeps_v4_snapshot_and_labels_new_legacy_copy(fortune_db, monkeypatch):
@@ -382,7 +383,7 @@ async def test_timezone_changes_and_profile_recreation_keep_date_draw_contract(f
     assert same_date["result"] == first["result"]
     await db.conn.execute("UPDATE profiles SET timezone='Pacific/Kiritimati' WHERE id=$1", db.uid)
     await _reveal(db)
-    assert (await _stored(db))["copy_selection"] == draw_cards(user_id=str(db.uid), today=DAY + timedelta(days=1))
+    assert (await _stored(db))["copy_selection"] == draw_cards(birth_date=date(2002, 12, 13), today=DAY + timedelta(days=1))
     await db.conn.execute("UPDATE profiles SET timezone='UTC' WHERE id=$1", db.uid)
     returned = await _reveal(db)
     assert (await _stored(db))["copy_selection"] == initial

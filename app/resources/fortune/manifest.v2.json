@@ -14,16 +14,19 @@
       "sha256": "e47c80050df6e9cb14a85b7bef8d3cd47d9f45bf410a8cbeb82082b628bd3cc4"
     },
     "copy.v3.json": {
-      "sha256": "93a1df8493b3c5977bb2c8b7fb610ec32a8423c6a6f38eb500652f4586b996d6"
+      "sha256": "f86047947bbb92599db94a4ae49fe4266aa65c79041672d99b6e2ca73c9f450b"
     },
     "copy.v3.en.json": {
-      "sha256": "bbe7fcb3341ff7fea9f206a590dea983cb0e6bb671d191d22b10cd1685bdd06f"
+      "sha256": "4986b6da2a8cc76d87a260a13a131ec65d1b31cb6aa2d04299df3f13881c9b49"
     },
     "copy.v3.ja.json": {
-      "sha256": "516ad00c2e16fccc0c8c475db80d445b28a240b0160799f631e830b8dc7b76b5"
+      "sha256": "b37f9acc5034272f086314c99173442303a343734e514a921edb521b3834c60f"
     },
     "tarot-editorial.v2.json": {
-      "sha256": "61c2ef042b08fdaecff20675809507ebb9c8b54c8512ae2390276db8f2015f8e"
+      "sha256": "1747d9116afc2866bae102031d60f18a86ca42b2cdf7229e0e03ca5a4bbf9e0a"
+    },
+    "first-visit.v1.json": {
+      "sha256": "04613a4657f2c2bd248e3cb8f6c3d461bf88123e35c8cd6bcb68e4026ca556f6"
     }
   }
 }

@@ -90,16 +90,19 @@ def enabled(monkeypatch):
     async def noop(*_args, **_kwargs):
         return None
 
+    stored_account = SimpleNamespace(timezone="Asia/Seoul", language="ko", fortune_first_date=date.min)
+
     async def account(*_args, **_kwargs):
-        return SimpleNamespace(timezone="Asia/Seoul", language="ko")
+        return stored_account
 
     monkeypatch.setattr(fortune, "_ready", lambda: True)
+    monkeypatch.setattr(fortune.settings, "environment", "development")
     monkeypatch.setattr(fortune.privacy, "ensure_subject_active", noop)
     monkeypatch.setattr(fortune, "advisory_xact_lock", noop)
     monkeypatch.setattr(fortune, "_load_profile", account)
 
 
-async def test_profile_same_put_is_noop_and_change_invalidates_but_preserves_unlock(enabled):
+async def test_profile_same_put_is_noop_and_change_preserves_result_and_unlock(enabled):
     session = _MemorySession()
     request = FortuneProfilePut(birth_date=date(2002, 12, 13), gender="man")
     created = await fortune.put_profile(session, str(UID), request, now_utc=NOW)
@@ -134,7 +137,7 @@ async def test_profile_same_put_is_noop_and_change_invalidates_but_preserves_unl
         now_utc=NOW,
     )
     assert changed["profile"]["revision"] == 2
-    assert changed["result_invalidated"] and changed["unlock_preserved"]
+    assert not changed["result_invalidated"] and changed["unlock_preserved"]
     assert session.daily.unlock_source == "rewarded_ad"
     assert session.daily.unlocked_at == unlocked_at
 

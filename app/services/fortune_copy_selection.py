@@ -212,7 +212,11 @@ def validate_previous_selection(semantic: Mapping[str, Any] | None) -> dict[str,
     return None
 
 
-def draw_cards(*, user_id: str, today: date) -> dict[str, Any]:
+DRAW_ALGORITHM_VERSION = "fortune-birth-draw.v1"
+
+
+def draw_cards(*, today: date, birth_date: date | None = None, first_visit: bool = False,
+               user_id: str | None = None) -> dict[str, Any]:
     """Score-free, versioned SHA-256 stream and unbiased Fisher-Yates draw.
 
     Explicit byte order, deck order and rejection sampling make this independent
@@ -220,7 +224,18 @@ def draw_cards(*, user_id: str, today: date) -> dict[str, Any]:
     """
     from uuid import UUID
     from app.services.fortune_tarot import AXES, CARD_IDS
-    seed = f"{CARD_SELECTION_VERSION}|{UUID(str(user_id))}|{today.isoformat()}".encode("ascii")
+    if birth_date is None:
+        # Historical v4 fixtures and rollback readers; the new service never uses UUID entropy.
+        seed = f"{CARD_SELECTION_VERSION}|{UUID(str(user_id))}|{today.isoformat()}".encode("ascii")
+    else:
+        if type(birth_date) is not date or type(today) is not date or not date(1900, 1, 1) <= birth_date <= today:
+            raise FortuneSelectionError("invalid birth/date draw input")
+        if type(first_visit) is not bool:
+            raise FortuneSelectionError("invalid draw mode")
+        if first_visit:
+            from app.services.fortune_catalog import first_visit_selection
+            return first_visit_selection(birth_date=birth_date, today=today)
+        seed = f"{DRAW_ALGORITHM_VERSION}|{birth_date.isoformat()}|{today.isoformat()}|regular".encode("ascii")
     counter = 0
 
     def below(bound: int) -> int:

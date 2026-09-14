@@ -412,8 +412,9 @@ async def test_purchase_already_owned(monkeypatch):
     assert e.value.code == "ALREADY_OWNED"
 
 
-async def test_purchase_success(monkeypatch):
-    it = _item(price_hay=1000)
+@pytest.mark.parametrize("timer_capable", [False, True])
+async def test_purchase_success(monkeypatch, timer_capable):
+    it = _timer_clothing() if timer_capable else _item(price_hay=1000)
     applied = {}
 
     async def _load(session, pid):
@@ -436,7 +437,8 @@ async def test_purchase_success(monkeypatch):
 
     monkeypatch.setattr(shop, "_lock_user", _lock)
     session = FakeSession()
-    out = await shop.purchase(session, UID, "x", idempotency_key="purchase-key")
+    out = await shop.purchase(session, UID, "x", idempotency_key="purchase-key",
+                              timer_capable=timer_capable)
     assert out["product_id"] == it.public_id
     assert out["price_hay"] == 1000 and out["balance_after"] == 640
     # 주문 생성(HAY·paid) + 가격 스냅샷 + 원장·인벤토리가 주문으로 연결(ERD 4.6절)
@@ -938,3 +940,35 @@ async def test_claim_routine_rejects_tz_regression(monkeypatch):
         await economy.claim_routine_reward(session, UID)
     assert e.value.code == "ALREADY_CLAIMED"
     assert session.committed is False
+
+
+def _timer_clothing():
+    item = _item(public_id="raincoat", slot="body", is_v2_only=True)
+    del item.assets["detail_url"]
+    del item.assets["upright_layer_url"]
+    item.assets["rightside"]["timer"] = {
+        key: f"https://cdn.example.com/raincoat/v1/{key}.png"
+        for key in ("body_layer_url", "hand_lowered_url", "hand_raised_url")
+    }
+    return item
+
+
+async def test_unsupported_timer_purchase_never_mutates(monkeypatch):
+    async def load(session, pid):
+        return _timer_clothing()
+    monkeypatch.setattr(shop, "_load_item", load)
+    session = FakeSession()
+    with pytest.raises(AppError) as exc:
+        await shop.purchase(session, UID, "raincoat")
+    assert exc.value.code == "NOT_FOUND"
+    assert not session.committed and not session.added and not session.deleted
+
+
+@pytest.mark.parametrize("timer", [None, {}])
+async def test_old_catalog_filters_timer_key_before_serializing(timer):
+    item = _timer_clothing()
+    item.assets["rightside"]["timer"] = timer
+    result = await shop.get_products(
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[item], []]), UID, v2=True
+    )
+    assert result["items"] == []

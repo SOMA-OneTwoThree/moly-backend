@@ -212,6 +212,8 @@ components:
       $ref: ./components/conversations.yaml#/schemas/PostMessageResponse
     ProductAssets:
       $ref: ./components/shop.yaml#/schemas/ProductAssets
+    TimerAssetsV2:
+      $ref: ./components/shop.yaml#/schemas/TimerAssetsV2
     ProductAssetsV2:
       $ref: ./components/shop.yaml#/schemas/ProductAssetsV2
     ProductsResponse:

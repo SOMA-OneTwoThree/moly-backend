@@ -697,6 +697,103 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
     }
   },
   {
+    "id": "00000000-0000-4000-8000-000000000402",
+    "product_type": "cosmetic",
+    "name": "우비",
+    "description": null,
+    "slot": "body",
+    "price_hay": 2000,
+    "is_subscriber_only": false,
+    "assets": {
+      "thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_raincoat/v3/thumb.png",
+      "rightside": {
+        "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_raincoat/v3/rightside/upright.png",
+        "timer": {
+          "body_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_raincoat/v3/rightside/timer/body.png",
+          "hand_lowered_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_raincoat/v3/rightside/timer/hand-lowered.png",
+          "hand_raised_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_raincoat/v3/rightside/timer/hand-raised.png"
+        }
+      }
+    },
+    "hay_amount": null,
+    "price_krw": null,
+    "app_store_product_id": null,
+    "is_active": true,
+    "sort_order": 2,
+    "public_id": "body_raincoat",
+    "asset_version": 3,
+    "is_v2_only": true,
+    "play_store_product_id": null,
+    "name_i18n": {
+      "ko": "우비",
+      "en": "Raincoat",
+      "ja": "レインコート"
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000403",
+    "product_type": "cosmetic",
+    "name": "화가",
+    "description": null,
+    "slot": "body",
+    "price_hay": 2000,
+    "is_subscriber_only": false,
+    "assets": {
+      "thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_painter/v3/thumb.png",
+      "rightside": {
+        "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_painter/v3/rightside/upright.png",
+        "timer": {
+          "body_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_painter/v3/rightside/timer/body.png",
+          "hand_lowered_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_painter/v3/rightside/timer/hand-lowered.png",
+          "hand_raised_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_painter/v3/rightside/timer/hand-raised.png"
+        }
+      }
+    },
+    "hay_amount": null,
+    "price_krw": null,
+    "app_store_product_id": null,
+    "is_active": true,
+    "sort_order": 3,
+    "public_id": "body_painter",
+    "asset_version": 3,
+    "is_v2_only": true,
+    "play_store_product_id": null,
+    "name_i18n": {
+      "ko": "화가",
+      "en": "Painter",
+      "ja": "画家"
+    }
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000404",
+    "product_type": "cosmetic",
+    "name": "복근",
+    "description": null,
+    "slot": "body",
+    "price_hay": 1000,
+    "is_subscriber_only": false,
+    "assets": {
+      "thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_abs/v1/thumb.png",
+      "rightside": {
+        "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_abs/v1/rightside/upright.png"
+      }
+    },
+    "hay_amount": null,
+    "price_krw": null,
+    "app_store_product_id": null,
+    "is_active": true,
+    "sort_order": 4,
+    "public_id": "body_abs",
+    "asset_version": 1,
+    "is_v2_only": true,
+    "play_store_product_id": null,
+    "name_i18n": {
+      "ko": "복근",
+      "en": "Abs",
+      "ja": "腹筋"
+    }
+  },
+  {
     "id": "725663d6-8c6e-4f4b-bc08-34c29dfcb7c8",
     "product_type": "hay_pack",
     "name": "건초 3000",

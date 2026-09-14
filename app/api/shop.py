@@ -41,9 +41,11 @@ async def purchase(
     idempotency_key: str | None = Header(
         default=None, alias="Idempotency-Key", min_length=1
     ),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
 ) -> dict[str, Any]:
     return await shop.purchase(
-        session, user_id, req.product_id, idempotency_key=idempotency_key
+        session, user_id, req.product_id, idempotency_key=idempotency_key,
+        timer_capable=shop.supports_timer_clothing(capabilities)
     )
 
 
@@ -77,24 +79,30 @@ async def put_equipment(
 async def products_v2(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
 ) -> dict[str, Any]:
-    return await shop.get_products(session, user_id, v2=True)
+    return await shop.get_products(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities)
+    )
 
 
 @router.get("/v2/inventory", response_model=InventoryResponseV2)
 async def inventory_v2(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
 ) -> dict[str, Any]:
-    return await shop.get_inventory(session, user_id, v2=True)
+    return await shop.get_inventory(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities)
+    )
 
 
 @router.get("/v2/inventory/equipment", response_model=EquipmentResponseV2)
 async def get_equipment_v2(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
 ) -> dict[str, Any]:
-    return await shop.get_equipment(session, user_id, v2=True)
+    return await shop.get_equipment(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities)
+    )
 
 
 @router.put("/v2/inventory/equipment", response_model=EquipmentResponseV2)
@@ -102,5 +110,8 @@ async def put_equipment_v2(
     req: EquipmentPutRequestV2,
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
 ) -> dict[str, Any]:
-    return await shop.put_equipment_v2(session, user_id, req)
+    return await shop.put_equipment_v2(
+        session, user_id, req, timer_capable=shop.supports_timer_clothing(capabilities)
+    )

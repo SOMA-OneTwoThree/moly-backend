@@ -17,7 +17,7 @@ import httpx
 from PIL import Image
 from pydantic import ValidationError
 
-from app.schemas.shop import ShopProduct, ShopProductV2
+from app.schemas.shop import ShopProduct, ShopProductV2, TimerAssetsV2
 from app.services.shop import legacy_asset_view, rightside_asset_view
 
 REQUIRED_DEFAULTS = {"theme_default", "theme_workout", "head_sunglasses"}
@@ -38,7 +38,15 @@ def load_products(path: Path) -> list[ShopProductV2]:
         raise ValueError("manifest root must contain a products array")
     products: list[ShopProductV2] = []
     for entry in entries:
+        entry = dict(entry)
+        v2_only = entry.pop("is_v2_only", False)
+        product_type = entry.pop("product_type", "cosmetic")
         assets = entry["assets"]
+        rightside = assets.get("rightside") or {}
+        if "timer" in rightside:
+            if product_type != "cosmetic" or entry["slot"] != "body" or not v2_only:
+                raise ValueError(f"{entry['id']}: timer requires cosmetic/body/is_v2_only")
+            TimerAssetsV2.model_validate(rightside["timer"])
         if entry["slot"] != "theme" and not (assets.get("rightside") or {}).get(
             "upright_layer_url"
         ):
@@ -46,16 +54,17 @@ def load_products(path: Path) -> list[ShopProductV2]:
         product = ShopProductV2.model_validate(
             {**entry, "assets": rightside_asset_view(assets), "owned": False, "equipped": False}
         )
-        # 레거시 투영도 반드시 유효해야 한다 — 구버전 앱이 이 응답 형태를 계속 받는다.
-        ShopProduct.model_validate(
-            {
-                **entry,
-                "slot": _legacy_slot(entry["slot"]),
-                "assets": legacy_asset_view(assets),
-                "owned": False,
-                "equipped": False,
-            }
-        )
+        # 레거시에 노출되는 상품만 구 자세 계약을 요구한다.
+        if not v2_only:
+            ShopProduct.model_validate(
+                {
+                    **entry,
+                    "slot": _legacy_slot(entry["slot"]),
+                    "assets": legacy_asset_view(assets),
+                    "owned": False,
+                    "equipped": False,
+                }
+            )
         products.append(product)
     ids = [product.id for product in products]
     if len(ids) != len(set(ids)):
@@ -80,6 +89,8 @@ def urls_for(assets: dict[str, Any]) -> list[str]:
     rightside = assets.get("rightside") or {}
     if rightside.get("upright_layer_url"):
         urls.append(rightside["upright_layer_url"])
+    if rightside.get("timer"):
+        urls.extend(rightside["timer"].values())
     scene = assets.get("scene")
     if scene:
         urls.append(scene["character_url"])
@@ -122,9 +133,11 @@ async def verify_remote(entries: list[dict[str, Any]]) -> None:
             if entry["slot"] != "theme":
                 # 구 자세와 rightside 자세 둘 다 번들 캐릭터와 정렬되는 투명 PNG여야 한다.
                 poses = {
-                    "upright": assets["upright_layer_url"],
                     "rightside": assets["rightside"]["upright_layer_url"],
                 }
+                if not entry.get("is_v2_only", False):
+                    poses["upright"] = assets["upright_layer_url"]
+                poses.update(assets["rightside"].get("timer") or {})
                 for label, url in poses.items():
                     image = await fetch_image(client, url)
                     require_transparent_png(image, UPRIGHT_LAYER_SIZE, f"{entry['id']}.{label}")

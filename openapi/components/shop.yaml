@@ -403,8 +403,24 @@ schemas:
     - night_url
     title: ThemeSceneLayer
   # ── v2: head 슬롯을 hat/glasses로 분리, 착용 아이템은 rightside 자세 레이어를 쓴다.
+  TimerAssetsV2:
+    type: object
+    additionalProperties: false
+    required: [body_layer_url, hand_lowered_url, hand_raised_url]
+    properties:
+      body_layer_url:
+        $ref: '#/schemas/HttpUrl'
+      hand_lowered_url:
+        $ref: '#/schemas/HttpUrl'
+      hand_raised_url:
+        $ref: '#/schemas/HttpUrl'
   ProductAssetsV2:
     properties:
+      timer:
+        anyOf:
+        - $ref: '#/schemas/TimerAssetsV2'
+        - type: 'null'
+        description: 타이머 옷 지원 요청에 제공하는 몸통·두 손. 기존 상품은 키 생략.
       thumbnail_url:
         $ref: '#/schemas/HttpUrl'
         title: Thumbnail Url

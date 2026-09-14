@@ -995,6 +995,64 @@ paths:
       security:
       - SupabaseBearer: []
       description: days_of_week는 ISO 월=1…일=7 중복 없는 1개 이상이며 저장 전에 정렬된다. frequency_per_week는 배열 길이로 파생된다.
+  /routines/history:
+    get:
+      tags:
+      - routine
+      summary: 날짜별 루틴 기록 조회
+      operationId: getRoutineHistory
+      responses:
+        '200':
+          description: 선택일 루틴 기록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineHistoryResponse'
+          headers:
+            X-App-Local-Date:
+              description: 실제 계산에 사용한 현지 날짜
+              schema:
+                type: string
+                format: date
+            X-App-Served-At:
+              description: 단일 요청 서버 UTC 시각
+              schema:
+                type: string
+                format: date-time
+            X-App-Day-Ends-At:
+              description: 다음 현지 달력일 자정의 UTC 시각
+              schema:
+                type: string
+                format: date-time
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
+      description: 현재 등록된 본인 루틴의 현재 설정과 선택일까지의 완료 기록을 반환한다. 삭제 루틴은 제외하며 미래 날짜는 422. 선택일 완료가 있으면 현재 반복요일과
+        무관하게 포함한다. 미완료는 현재 반복요일에 해당하고 선택일까지 생성된 루틴만 포함한다. 날짜 헤더는 선택 날짜가 아니라 요청 시점의 실제 오늘이다. 읽기 전용이며 조회
+        기간에 30일 제한이 없다.
+      parameters:
+      - name: date
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: YYYY-MM-DD 달력 날짜. 실제 오늘 이하.
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
   /routines/{routine_id}:
     patch:
       tags:
@@ -4787,6 +4845,72 @@ components:
       - completed_today
       - completed_count_today
       title: RoutineCompleteResponse
+    RoutineHistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: Routine UUID.
+        name:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Name
+          description: Routine 이름.
+        days_of_week:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+          description: ISO weekday 1=Mon…7=Sun, 중복 없이 1개 이상.
+        reminder_enabled:
+          type: boolean
+          title: Reminder Enabled
+          description: client local reminder 활성 여부.
+        reminder_time:
+          anyOf:
+          - type: string
+            pattern: ^\d{2}:\d{2}$
+          - type: 'null'
+          title: Reminder Time
+          description: HH:MM response string 또는 null.
+        completed:
+          type: boolean
+          description: 선택 날짜의 실제 완료 여부.
+        streak:
+          type: integer
+          minimum: 0
+        this_week:
+          $ref: '#/components/schemas/ThisWeekStatistics'
+          description: 선택 날짜가 속한 주의 월요일부터 선택일까지 완료 통계.
+      required:
+      - id
+      - name
+      - days_of_week
+      - reminder_enabled
+      - reminder_time
+      - completed
+      - streak
+      - this_week
+      title: RoutineHistoryItem
+    RoutineHistoryResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutineHistoryItem'
+      required:
+      - date
+      - data
+      title: RoutineHistoryResponse
     RoutineListResponse:
       properties:
         data:

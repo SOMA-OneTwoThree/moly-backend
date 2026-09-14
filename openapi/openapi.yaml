@@ -52,6 +52,8 @@ paths:
     $ref: ./paths/economy.yaml#/~1charging-station~1routine-reward
   /routines:
     $ref: ./paths/routines.yaml#/~1routines
+  /routines/history:
+    $ref: ./paths/routines.yaml#/~1routines~1history
   /routines/{routine_id}:
     $ref: ./paths/routines.yaml#/~1routines~1%7Broutine_id%7D
   /routines/{routine_id}/complete:
@@ -236,6 +238,10 @@ components:
       $ref: ./components/economy.yaml#/schemas/RewardResponse
     RoutineCompleteResponse:
       $ref: ./components/routines.yaml#/schemas/RoutineCompleteResponse
+    RoutineHistoryItem:
+      $ref: ./components/routines.yaml#/schemas/RoutineHistoryItem
+    RoutineHistoryResponse:
+      $ref: ./components/routines.yaml#/schemas/RoutineHistoryResponse
     RoutineListResponse:
       $ref: ./components/routines.yaml#/schemas/RoutineListResponse
     RoutinePairStatus:

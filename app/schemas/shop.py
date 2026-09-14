@@ -10,6 +10,7 @@ from pydantic import (
     Field,
     StringConstraints,
     model_validator,
+    model_serializer,
 )
 
 
@@ -148,6 +149,14 @@ class EquipmentPutRequest(BaseModel):
 
 # ── v2: head 슬롯을 hat/glasses로 분리, 착용 아이템은 새 자세(rightside) 레이어를 쓴다.
 #    구버전 클라이언트는 위 레거시 모델을, 신버전은 아래 v2 모델을 계약으로 삼는다.
+class TimerAssetsV2(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    body_layer_url: AnyHttpUrl
+    hand_lowered_url: AnyHttpUrl
+    hand_raised_url: AnyHttpUrl
+
+
 class ProductAssetsV2(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -155,6 +164,14 @@ class ProductAssetsV2(BaseModel):
     detail_url: AnyHttpUrl | None = None  # 테마 전용. 신버전 아이템은 detail을 쓰지 않는다.
     scene: ThemeScene | None = None
     upright_layer_url: AnyHttpUrl | None = None
+    timer: TimerAssetsV2 | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_assets(self, handler):
+        data = handler(self)
+        if self.timer is None:
+            data.pop("timer", None)
+        return data
 
 
 class ShopProductV2(BaseModel):

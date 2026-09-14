@@ -95,3 +95,61 @@ def test_manifest_rejects_wearable_without_rightside(tmp_path):
     path.write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="missing rightside"):
         load_products(path)
+
+
+def _clothing(timer=True):
+    item = _wearable("raincoat", slot="body")
+    item["is_v2_only"] = True
+    del item["assets"]["detail_url"]
+    del item["assets"]["upright_layer_url"]
+    if timer:
+        item["assets"]["rightside"]["timer"] = {
+            key: f"https://cdn.example.com/raincoat/v1/{key}.png"
+            for key in ("body_layer_url", "hand_lowered_url", "hand_raised_url")
+        }
+    return item
+
+
+def test_v2_only_clothing_needs_no_legacy_images(tmp_path):
+    manifest = _manifest()
+    manifest["products"].append(_clothing())
+    abs_item = _clothing(timer=False)
+    abs_item["id"] = "abs"
+    manifest["products"].append(abs_item)
+    path = tmp_path / "appearance.json"
+    path.write_text(json.dumps(manifest))
+    products = load_products(path)
+    assert products[-2].assets.timer is not None
+    assert "timer" not in products[-1].assets.model_dump(mode="json")
+    assert "scene" in products[-1].assets.model_dump(mode="json")
+
+
+@pytest.mark.parametrize("invalid", [None, {}, {"body_layer_url": "bad"}])
+def test_manifest_rejects_incomplete_timer(tmp_path, invalid):
+    item = _clothing()
+    item["assets"]["rightside"]["timer"] = invalid
+    path = tmp_path / "appearance.json"
+    path.write_text(json.dumps({"products": [item]}))
+    with pytest.raises(ValueError):
+        load_products(path)
+
+
+@pytest.mark.parametrize("key,value", [("slot", "hat"), ("is_v2_only", False), ("product_type", "other")])
+def test_manifest_rejects_wrong_timer_metadata(tmp_path, key, value):
+    item = _clothing()
+    item[key] = value
+    path = tmp_path / "appearance.json"
+    path.write_text(json.dumps({"products": [item]}))
+    with pytest.raises(ValueError, match="timer requires"):
+        load_products(path)
+
+
+def test_manifest_checks_timer_url_version(tmp_path):
+    manifest = _manifest()
+    item = _clothing()
+    item["assets"]["rightside"]["timer"]["hand_raised_url"] = "https://cdn.example.com/hand.png"
+    manifest["products"].append(item)
+    path = tmp_path / "appearance.json"
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="does not contain v1"):
+        load_products(path)

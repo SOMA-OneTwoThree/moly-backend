@@ -1298,6 +1298,12 @@ paths:
       summary: 꾸미기 상품 구매
       operationId: purchaseShopProduct
       parameters:
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
       - name: Idempotency-Key
         in: header
         required: false
@@ -1542,6 +1548,13 @@ paths:
       - shop
       summary: 꾸미기 상품 catalog 조회 (v2)
       operationId: listShopProductsV2
+      parameters:
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
       responses:
         '200':
           description: theme 및 wearable 상품 catalog. head 슬롯은 hat/glasses로 분리된다.
@@ -1563,6 +1576,13 @@ paths:
       - shop
       summary: 보유 꾸미기 상품 조회 (v2)
       operationId: getInventoryV2
+      parameters:
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
       responses:
         '200':
           description: 보유 상품 목록. slot은 hat/glasses로 분리된다.
@@ -1584,6 +1604,13 @@ paths:
       - shop
       summary: 현재 장착 상태 조회 (v2)
       operationId: getEquipmentV2
+      parameters:
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
       responses:
         '200':
           description: 현재 5-slot 장착 상태(theme·hat·glasses·neck·body)
@@ -1622,6 +1649,13 @@ paths:
       - shop
       summary: 장착 상태 전체 교체 (v2)
       operationId: replaceEquipmentV2
+      parameters:
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
       requestBody:
         content:
           application/json:
@@ -4328,8 +4362,27 @@ components:
           upright_layer_url:
             $ref: '#/components/schemas/HttpUrl'
       title: ProductAssets
+    TimerAssetsV2:
+      type: object
+      additionalProperties: false
+      required:
+      - body_layer_url
+      - hand_lowered_url
+      - hand_raised_url
+      properties:
+        body_layer_url:
+          $ref: '#/components/schemas/HttpUrl'
+        hand_lowered_url:
+          $ref: '#/components/schemas/HttpUrl'
+        hand_raised_url:
+          $ref: '#/components/schemas/HttpUrl'
     ProductAssetsV2:
       properties:
+        timer:
+          anyOf:
+          - $ref: '#/components/schemas/TimerAssetsV2'
+          - type: 'null'
+          description: 타이머 옷 지원 요청에 제공하는 몸통·두 손. 기존 상품은 키 생략.
         thumbnail_url:
           $ref: '#/components/schemas/HttpUrl'
           title: Thumbnail Url

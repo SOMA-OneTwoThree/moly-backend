@@ -33,6 +33,16 @@ _SLOTS_V2 = ("theme", "hat", "glasses", "neck", "body")
 _log = logging.getLogger("moly-backend")
 
 
+def supports_timer_clothing(capabilities: str | None) -> bool:
+    return "timer-clothing-v1" in {token.strip() for token in (capabilities or "").split(",")}
+
+
+def _hidden_product(product: Product, *, v2: bool, timer_capable: bool) -> bool:
+    return (not v2 and product.is_v2_only) or (
+        not timer_capable and "timer" in (product.assets.get("rightside") or {})
+    )
+
+
 def legacy_asset_view(assets: dict[str, Any]) -> dict[str, Any]:
     """레거시(구버전) 응답 — 새 자세 키를 숨겨 기존 계약 형태를 그대로 유지한다."""
     return {key: value for key, value in assets.items() if key != "rightside"}
@@ -49,6 +59,7 @@ def rightside_asset_view(assets: dict[str, Any]) -> dict[str, Any]:
     return {
         "thumbnail_url": assets["thumbnail_url"],
         "upright_layer_url": rightside.get("upright_layer_url"),
+        **({"timer": rightside["timer"]} if "timer" in rightside else {}),
     }
 
 
@@ -137,7 +148,7 @@ def _product_dto(
 
 
 async def get_products(
-    session: AsyncSession, user_id: str, *, v2: bool = False
+    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False
 ) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
@@ -156,8 +167,8 @@ async def get_products(
     themes: list[dict[str, Any]] = []
     items: list[dict[str, Any]] = []
     for product in products:
-        if not v2 and product.is_v2_only:
-            continue  # 레거시 계약에 없는 상품 — 노출 시 detail_url 부재로 500
+        if _hidden_product(product, v2=v2, timer_capable=timer_capable):
+            continue
         dto = _product_dto(
             product, owned=product.id in owned, equipped=product.id in equipped, v2=v2,
             language=profile.language,
@@ -224,6 +235,7 @@ async def purchase(
     product_id: str,
     *,
     idempotency_key: str | None = None,
+    timer_capable: bool = False,
 ) -> dict[str, Any]:
     uid = _uid(user_id)
     stored_key = (
@@ -243,6 +255,8 @@ async def purchase(
             )
 
     product = await _load_item(session, product_id)
+    if _hidden_product(product, v2=True, timer_capable=timer_capable):
+        raise errors.AppError("NOT_FOUND", 404, "상품을 찾을 수 없어요.")
     # 기본 지급 비매품도 재구매는 계약상 ALREADY_OWNED가 우선이다.
     if product.id in await _owned_ids(session, uid):
         raise errors.already_owned()
@@ -288,7 +302,7 @@ async def purchase(
 
 
 async def get_inventory(
-    session: AsyncSession, user_id: str, *, v2: bool = False
+    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False
 ) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
@@ -302,13 +316,14 @@ async def get_inventory(
             _product_dto(product, owned=True, equipped=product.id in equipped, v2=v2,
                          language=profile.language)
             for product in ordered
-            if v2 or not product.is_v2_only  # 레거시 계약에 없는 상품 제외(detail_url 부재)
+            if not _hidden_product(product, v2=v2, timer_capable=timer_capable)
         ]
     }
 
 
 def _equipment_dto(
-    rows: list[UserItem], products: dict[uuid.UUID, Product], *, v2: bool = False
+    rows: list[UserItem], products: dict[uuid.UUID, Product], *, v2: bool = False,
+    timer_capable: bool = False
 ) -> dict[str, Any]:
     by_slot: dict[str, str] = {}
     for row in rows:
@@ -317,6 +332,10 @@ def _equipment_dto(
         product = products.get(row.product_id)
         if product is None or product.public_id is None:
             raise errors.AppError("INTERNAL", 500, "장착 상품이 활성 카탈로그에 없습니다.")
+        if row.equipped_slot == "body" and _hidden_product(
+            product, v2=v2, timer_capable=timer_capable
+        ):
+            continue
         by_slot[row.equipped_slot] = product.public_id
     if "theme" not in by_slot:
         raise errors.AppError("INTERNAL", 500, "기본 테마 장착 상태가 없습니다.")
@@ -337,12 +356,14 @@ def _equipment_dto(
 
 
 async def get_equipment(
-    session: AsyncSession, user_id: str, *, v2: bool = False
+    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False
 ) -> dict[str, Any]:
     uid = _uid(user_id)
     rows = await _user_rows(session, uid)
     equipped_ids = {row.product_id for row in rows if row.equipped_slot is not None}
-    return _equipment_dto(rows, await _products_by_ids(session, equipped_ids), v2=v2)
+    return _equipment_dto(
+        rows, await _products_by_ids(session, equipped_ids), v2=v2, timer_capable=timer_capable
+    )
 
 
 async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
@@ -403,6 +424,27 @@ async def _apply_targets(
     await session.commit()
 
 
+async def _compatible_body(
+    session: AsyncSession,
+    by_slot: dict[str, UserItem],
+    targets: dict[str, Product | None],
+    *,
+    v2: bool = False,
+    timer_capable: bool = False,
+) -> str | None:
+    target = targets["body"]
+    if target is not None:
+        return None if _hidden_product(target, v2=v2, timer_capable=timer_capable) else target.public_id
+    current = by_slot.get("body")
+    if current is not None and not (v2 and timer_capable):
+        products = await _products_by_ids(session, {current.product_id})
+        product = products.get(current.product_id)
+        if product is not None and _hidden_product(product, v2=v2, timer_capable=timer_capable):
+            # 구 앱은 숨겨진 몸을 null로 돌려보낸다. 다른 슬롯만 갱신한다.
+            del targets["body"]
+    return None
+
+
 async def put_equipment(session: AsyncSession, user_id: str, req) -> dict[str, Any]:
     """레거시(구버전) 장착 — head_id는 실제 hat|glasses 슬롯으로 해석하고 나머지 head 슬롯은 해제한다."""
     uid = _uid(user_id)
@@ -428,17 +470,20 @@ async def put_equipment(session: AsyncSession, user_id: str, req) -> dict[str, A
         )
         targets[product.slot] = product
 
+    body_id = await _compatible_body(session, by_slot, targets)
     await _apply_targets(session, by_product, by_slot, targets, now)
 
     return EquipmentResponse(
         theme_id=req.theme_id,
         head_id=req.head_id,
         neck_id=req.neck_id,
-        body_id=req.body_id,
+        body_id=body_id,
     ).model_dump(mode="json")
 
 
-async def put_equipment_v2(session: AsyncSession, user_id: str, req) -> dict[str, Any]:
+async def put_equipment_v2(
+    session: AsyncSession, user_id: str, req, *, timer_capable: bool = False
+) -> dict[str, Any]:
     """v2 장착 — hat/glasses를 독립 슬롯으로 동시 착용한다."""
     uid = _uid(user_id)
     await _lock_user(session, uid)  # 사용자별 PUT 직렬화
@@ -458,6 +503,9 @@ async def put_equipment_v2(session: AsyncSession, user_id: str, req) -> dict[str
             else None
         )
 
+    body_id = await _compatible_body(
+        session, by_slot, targets, v2=True, timer_capable=timer_capable
+    )
     await _apply_targets(session, by_product, by_slot, targets, now)
 
     return EquipmentResponseV2(
@@ -465,5 +513,5 @@ async def put_equipment_v2(session: AsyncSession, user_id: str, req) -> dict[str
         hat_id=req.hat_id,
         glasses_id=req.glasses_id,
         neck_id=req.neck_id,
-        body_id=req.body_id,
+        body_id=body_id,
     ).model_dump(mode="json")

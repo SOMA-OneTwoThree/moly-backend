@@ -285,3 +285,69 @@ schemas:
     - '6'
     - '7'
     title: WeekdayCompletion
+  RoutineHistoryItem:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        title: Id
+        description: Routine UUID.
+      name:
+        type: string
+        maxLength: 50
+        minLength: 1
+        title: Name
+        description: Routine 이름.
+      days_of_week:
+        type: array
+        minItems: 1
+        maxItems: 7
+        uniqueItems: true
+        items:
+          $ref: '#/schemas/DayOfWeek'
+        description: ISO weekday 1=Mon…7=Sun, 중복 없이 1개 이상.
+      reminder_enabled:
+        type: boolean
+        title: Reminder Enabled
+        description: client local reminder 활성 여부.
+      reminder_time:
+        anyOf:
+        - type: string
+          pattern: ^\d{2}:\d{2}$
+        - type: 'null'
+        title: Reminder Time
+        description: HH:MM response string 또는 null.
+      completed:
+        type: boolean
+        description: 선택 날짜의 실제 완료 여부.
+      streak:
+        type: integer
+        minimum: 0
+      this_week:
+        $ref: '#/schemas/ThisWeekStatistics'
+        description: 선택 날짜가 속한 주의 월요일부터 선택일까지 완료 통계.
+    required:
+    - id
+    - name
+    - days_of_week
+    - reminder_enabled
+    - reminder_time
+    - completed
+    - streak
+    - this_week
+    title: RoutineHistoryItem
+  RoutineHistoryResponse:
+    type: object
+    properties:
+      date:
+        type: string
+        format: date
+      data:
+        type: array
+        items:
+          $ref: '#/schemas/RoutineHistoryItem'
+    required:
+    - date
+    - data
+    title: RoutineHistoryResponse

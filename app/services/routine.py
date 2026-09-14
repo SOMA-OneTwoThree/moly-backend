@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
 from app.core.app_day import AppDay
-from app.core.time_utils import current_reward_date
+from app.core.time_utils import current_reward_date, safe_zone
 from app.models.routine import Routine, RoutineCompletion
 from app.services import i18n
 from app.services.account import _load_profile, _uid
@@ -103,6 +103,63 @@ async def create_routine(session: AsyncSession, user_id: str, req) -> dict[str, 
     await session.commit()
     await session.refresh(r)
     return _dto(r, completed_today=False)
+
+
+async def history(
+    session: AsyncSession,
+    user_id: str,
+    selected_date: date,
+    day: AppDay,
+    timezone_name: str | None = None,
+) -> dict[str, Any]:
+    """현재 설정과 선택일까지의 완료 기록으로 구성한 읽기 전용 조회."""
+    profile = await _load_profile(session, user_id)
+    if selected_date > day.local_date:
+        raise errors.AppError("VALIDATION", 422, "미래 날짜는 조회할 수 없어요.")
+    zone = safe_zone(timezone_name or profile.timezone)
+    rows = list((await session.execute(
+        select(Routine)
+        .where(Routine.user_id == profile.id, Routine.deleted_at.is_(None))
+        .order_by(Routine.created_at, Routine.id)
+    )).scalars().all())
+    if not rows:
+        return {"date": selected_date, "data": []}
+    dates_by_id: dict[uuid.UUID, set[date]] = {r.id: set() for r in rows}
+    completions = (await session.execute(
+        select(RoutineCompletion.routine_id, RoutineCompletion.activity_date).where(
+            RoutineCompletion.user_id == profile.id,
+            RoutineCompletion.routine_id.in_(dates_by_id),
+            RoutineCompletion.activity_date <= selected_date,
+        )
+    )).all()
+    for routine_id, activity_date in completions:
+        dates_by_id[routine_id].add(activity_date)
+    week_start, _ = _week_bounds(selected_date)
+    data = []
+    for row in rows:
+        dates = dates_by_id[row.id]
+        completed = selected_date in dates
+        if not completed:
+            if selected_date.isoweekday() not in row.days_of_week:
+                continue
+            if row.created_at and row.created_at.astimezone(zone).date() > selected_date:
+                continue
+        week_dates = {d for d in dates if week_start <= d <= selected_date}
+        metadata = _dto(row, completed, profile.language)
+        data.append({
+            key: metadata[key]
+            for key in ("id", "name", "days_of_week", "reminder_enabled", "reminder_time")
+        } | {
+            "completed": completed,
+            "streak": _streak(selected_date, dates) if selected_date > date.min else int(completed),
+            "this_week": {
+                "completed_count": len(week_dates),
+                "by_weekday": {
+                    str(i): any(d.isoweekday() == i for d in week_dates) for i in range(1, 8)
+                },
+            },
+        })
+    return {"date": selected_date, "data": data}
 
 
 async def update_routine(session: AsyncSession, user_id: str, routine_id: str, req) -> None:

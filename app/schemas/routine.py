@@ -1,16 +1,26 @@
 """루틴 요청 스키마. 스케줄 = 요일별(days_of_week)만 지원."""
 from __future__ import annotations
 
+import re
 from datetime import date, time
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, StringConstraints, model_validator
 
 from app.schemas.common import StrictResponse
 
 DayOfWeek = Literal[1, 2, 3, 4, 5, 6, 7]
 ReminderTime = Annotated[str, StringConstraints(pattern=r"^\d{2}:\d{2}$")]
+
+
+def _calendar_date(value):
+    if isinstance(value, str) and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        raise ValueError("날짜는 YYYY-MM-DD 형식이어야 해요.")
+    return value
+
+
+CalendarDate = Annotated[date, BeforeValidator(_calendar_date)]
 
 
 def _valid_days(days: list[int]) -> list[int]:
@@ -80,6 +90,22 @@ class WeekdayCompletion(StrictResponse):
 class ThisWeekStatistics(StrictResponse):
     completed_count: int = Field(ge=0)
     by_weekday: WeekdayCompletion
+
+
+class RoutineHistoryItem(StrictResponse):
+    id: UUID
+    name: str = Field(min_length=1, max_length=50)
+    days_of_week: list[DayOfWeek]
+    reminder_enabled: bool
+    reminder_time: ReminderTime | None
+    completed: bool
+    streak: int = Field(ge=0)
+    this_week: ThisWeekStatistics
+
+
+class RoutineHistoryResponse(StrictResponse):
+    date: date
+    data: list[RoutineHistoryItem]
 
 
 class RoutineStatisticsResponse(StrictResponse):

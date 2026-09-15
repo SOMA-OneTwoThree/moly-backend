@@ -6,7 +6,7 @@
 여기서 지키는 것(어기면 조용히 깨진다):
 
 1. **`source_hash`는 결정적**이다. 이전 checkpoint의 `(id, source_hash)`와 이번 원본 메시지의
-   정렬된 `(id, sender, kind, content)`를 **길이-prefix**로 직렬화해 SHA-256한다. 길이 prefix가
+   정렬된 `(id, sender, kind, content)`와 v4의 `created_at`을 **길이-prefix**로 직렬화해 SHA-256한다. 길이 prefix가
    없으면 필드 경계가 모호해져 서로 다른 입력이 같은 해시를 낼 수 있다(`a|bc` vs `ab|c`).
 2. **요약 입력은 저장 표면(placeholder) 그대로**다. `naming.render`로 실명을 되살려 넣으면 그 이름이
    요약 문자열로 돌아와 저장 표면에 남는다(§0.2 실명 저장 금지). 저장 직전 `to_placeholder`를 한 번
@@ -25,6 +25,7 @@ import logging
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 from app.config import settings
 from app.services import i18n, llm, memory, naming, usage_ledger
@@ -36,7 +37,10 @@ _log = logging.getLogger("moly-backend")
 JOB_CONVERSATION_CHECKPOINT = "conversation_checkpoint"
 # v2 = payload에 `memory_generation`이 들어간다(잊어줘 이후 늦게 도착한 잡을 stale로 끊는 세대 검사).
 SCHEMA_VERSION = "conversation-checkpoint-payload-v2"
-SUMMARIZER_VERSION = "conversation-checkpoint-summary-v3"
+LEGACY_SUMMARIZER_VERSION = "conversation-checkpoint-summary-v3"
+SUMMARIZER_VERSION = "conversation-checkpoint-summary-v4"
+# Enable only after every consumer understands v4; missing/invalid config stays on v3.
+TEMPORAL_CONFIG_KEY = "context_checkpoint_temporal_enabled"
 
 # W1 회계의 호출 목적 라벨(LlmCall.purpose). 대화 턴 밖(워커)에서 도는 호출이라 chat 턴 사용량과
 # 섞이지 않게 자체 라벨을 쓴다.
@@ -76,6 +80,7 @@ class SourceMessage:
     sender: str   # user | moly
     kind: str     # normal | greeting
     content: str
+    created_at: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -148,7 +153,8 @@ def normalize_messages(messages: Sequence[SourceMessage]) -> tuple[SourceMessage
 
 
 def source_hash(
-    *, previous: Checkpoint | None, messages: Sequence[SourceMessage]
+    *, previous: Checkpoint | None, messages: Sequence[SourceMessage],
+    version: str = SUMMARIZER_VERSION,
 ) -> str:
     """`(이전 checkpoint id, 이전 source_hash)` + 이번 원본 메시지의 길이-prefix SHA-256 hex.
 
@@ -158,7 +164,7 @@ def source_hash(
     ordered = normalize_messages(messages)
     h = hashlib.sha256()
     # 개수 성분은 넣지 않는다 — 길이-prefix 직렬화가 이미 파트별 자기서술적이라(각 필드가 자기
-    # 길이를 들고 있고 메시지당 필드 수가 4로 고정) 바이트열에서 파트 분해가 유일하다. 개수를
+    # 길이를 들고 있고 메시지당 필드 수가 버전별로 고정) 바이트열에서 파트 분해가 유일하다. 개수를
     # 더해도 구분력이 늘지 않는다.
     h.update(
         _length_prefixed(
@@ -168,7 +174,18 @@ def source_hash(
     )
     for m in ordered:
         h.update(_length_prefixed(str(m.id), m.sender, m.kind, m.content or ""))
+        if version == SUMMARIZER_VERSION:
+            h.update(_length_prefixed(_source_time(m)))
     return h.hexdigest()
+
+
+def _source_time(message: SourceMessage) -> str:
+    if message.created_at is None:
+        return "time unknown"
+    at = message.created_at
+    if at.tzinfo is None:
+        at = at.replace(tzinfo=timezone.utc)
+    return at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def dedup_key(
@@ -215,6 +232,7 @@ def plan(
     keep_from_message_id: int | None = None,
     memory_generation: int = 0,
     reset_triggered: bool = False,
+    version: str = SUMMARIZER_VERSION,
 ) -> CheckpointPlan | None:
     """이번 세그먼트로 만들 checkpoint 계획. 만들 게 없으면 None.
 
@@ -255,12 +273,13 @@ def plan(
     return CheckpointPlan(
         through_message_id=head[-1].id,
         source_message_ids=tuple(m.id for m in head),
-        source_hash=source_hash(previous=previous, messages=head),
+        source_hash=source_hash(previous=previous, messages=head, version=version),
         previous_id=previous.id if previous is not None else None,
         previous_through_message_id=(
             previous.through_message_id if previous is not None else None
         ),
         memory_generation=memory_generation,
+        version=version,
     )
 
 
@@ -274,8 +293,14 @@ _LANG_RULE = {
 }
 
 
-def build_system(language: str | None) -> str:
+def build_system(language: str | None, *, version: str = SUMMARIZER_VERSION) -> str:
     """요약기 system 프롬프트. 페르소나(캐피)와 무관한 유틸리티 프롬프트다."""
+    temporal_rule = (
+        "- 시각은 발화 시각이며 사건 시각과 다를 수 있다. 일시 상태는 필요한 경우에만 "
+        "시점을 붙여 과거형으로 남긴다. 시점 없는 이전 요약을 현재 상태로 바꾸지 않는다. "
+        "이전 요약의 시점을 보존하고 상태의 지속·종료를 추측하지 않는다.\n"
+        if version == SUMMARIZER_VERSION else ""
+    )
     return (
         "너는 두 사람의 대화 기록을 뒤에 이어질 대화가 참고할 수 있게 압축하는 요약기다. "
         "대화에 답하지 말고 요약문만 출력한다.\n\n"
@@ -284,6 +309,7 @@ def build_system(language: str | None) -> str:
         "- 대화에 나온 내용만 쓴다. 추측하거나 없는 사실을 만들지 않는다.\n"
         "- 사람 이름·호칭은 쓰지 않는다. {유저이름} 같은 토큰이 보이면 그대로 둔다.\n"
         "- 이전 요약이 함께 주어지면 그 내용을 이어받아 하나의 요약으로 합친다.\n"
+        f"{temporal_rule}"
         "- 자살·자해처럼 안전 확인이 필요했던 대화가 나온 뒤 다른 화제로 명확히 넘어갔다면, "
         "해당 위기 구간과 반복된 안전 질문을 요약에 남기지 않는다. 그 일이 있었다는 대체 문장도 "
         "만들지 않는다. 구간 끝까지 위기가 이어지면 최신 위기 발화와 안전 대응에 필요한 맥락을 "
@@ -293,21 +319,25 @@ def build_system(language: str | None) -> str:
     )
 
 
-def render_conversation(messages: Sequence[SourceMessage]) -> str:
+def render_conversation(
+    messages: Sequence[SourceMessage], *, version: str = SUMMARIZER_VERSION,
+) -> str:
     """`#id [역할] 본문` 줄로 렌더. 본문은 살균해서 넣는다 — 유저가 대화 안에서 이 프레이밍을
     흉내내 지시를 위조하지 못하게(기억 추출과 같은 방어선)."""
     lines = []
     for m in normalize_messages(messages):
         role = "상대" if m.sender == "moly" else "유저"
-        lines.append(f"#{m.id} [{role}] {memory.sanitize_text(m.content or '')}")
+        stamp = f" [{_source_time(m)}]" if version == SUMMARIZER_VERSION else ""
+        lines.append(f"#{m.id}{stamp} [{role}] {memory.sanitize_text(m.content or '')}")
     return "\n".join(lines)
 
 
 def build_user_prompt(
-    messages: Sequence[SourceMessage], *, previous_summary: str | None
+    messages: Sequence[SourceMessage], *, previous_summary: str | None,
+    version: str = SUMMARIZER_VERSION,
 ) -> str:
     """이전 요약(있으면) + 이번 원본 구간. 이전 요약도 살균해서 넣는다(저장분이라 이미 마스킹됨)."""
-    convo = render_conversation(messages)
+    convo = render_conversation(messages, version=version)
     if not previous_summary:
         return f"[대화]\n{convo}"
     return f"[이전 요약]\n{memory.sanitize_text(previous_summary)}\n\n[대화]\n{convo}"
@@ -341,6 +371,7 @@ async def summarize(
     model: str | None = None,
     timeout: float | None = None,
     ledger: usage_ledger.LedgerContext | None = None,
+    version: str = SUMMARIZER_VERSION,
 ) -> tuple[str, llm.LlmCall]:
     """대화 구간 → 저장 가능한 요약 + 그 호출의 회계 단위.
 
@@ -351,8 +382,10 @@ async def summarize(
         raise CheckpointError("요약할 메시지가 없다")
     used_model = model or settings.model_utility
     result = await llm.generate(
-        build_system(language),
-        [{"role": "user", "content": build_user_prompt(ordered, previous_summary=previous_summary)}],
+        build_system(language, version=version),
+        [{"role": "user", "content": build_user_prompt(
+            ordered, previous_summary=previous_summary, version=version,
+        )}],
         model=used_model,
         max_tokens=SUMMARY_MAX_OUTPUT_TOKENS,
         timeout=timeout if timeout is not None else settings.llm_timeout_s,

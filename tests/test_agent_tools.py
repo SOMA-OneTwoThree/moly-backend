@@ -56,9 +56,9 @@ def _completion(routine, *, user_id=None, day=TODAY, seq=0):
 # =====================================================================================
 def test_registry_exposes_all_read_tools():
     names = [s["function"]["name"] for s in REGISTRY.wire_schemas()]
-    assert names == ["recall_diaries", "get_routines"]
+    assert names == ["recall_diaries", "get_routines", "get_mood_entries"]
     assert set(REGISTRY.input_models()) == {
-        "recall_diaries", "get_routines"
+        "recall_diaries", "get_routines", "get_mood_entries"
     }
 
 
@@ -303,10 +303,10 @@ async def test_run_turn_executes_the_real_registry_end_to_end(monkeypatch):
 
     assert turn.text == "응, 비 왔었지."
     assert [s["function"]["name"] for s in seen[0]["tools"]] == [
-        "recall_diaries", "get_routines", "finish_response",
+        "recall_diaries", "get_routines", "get_mood_entries", "finish_response",
     ]
     assert set(seen[0]["input_models"]) == {
-        "recall_diaries", "get_routines",
+        "recall_diaries", "get_routines", "get_mood_entries",
     }
     assert [s["function"]["name"] for s in seen[1]["tools"]] == ["finish_response"]
     assert seen[1]["tool_choice"] == {

@@ -59,7 +59,7 @@ _GENERATION_SQL = text(
 
 # 요약 대상 구간. after_id는 이전 checkpoint의 through(없으면 0) — 열린 하한, 닫힌 상한이다.
 _RANGE_SQL = text("""
-SELECT id, sender, kind, content
+SELECT id, sender, kind, content, created_at
 FROM messages
 WHERE user_id = :user_id AND id > :after_id AND id <= :through_id
   AND kind NOT IN ('fortune_context_root','fortune_derived')
@@ -154,7 +154,8 @@ async def load_range(
     ).mappings().all()
     return [
         checkpoint.SourceMessage(
-            id=int(r["id"]), sender=r["sender"], kind=r["kind"], content=r["content"] or ""
+            id=int(r["id"]), sender=r["sender"], kind=r["kind"], content=r["content"] or "",
+            created_at=r["created_at"],
         )
         for r in rows
     ]
@@ -215,6 +216,7 @@ async def maybe_enqueue(
     messages: Sequence[checkpoint.SourceMessage],
     keep_from_message_id: int | None = None,
     reset_triggered: bool = False,
+    temporal_enabled: bool = False,
 ) -> uuid.UUID | None:
     """세그먼트가 트리거에 닿았으면 요약 잡을 건다. 아니면(또는 킬스위치 off면) None.
 
@@ -242,6 +244,8 @@ async def maybe_enqueue(
         keep_from_message_id=keep_from_message_id,
         memory_generation=generation,
         reset_triggered=reset_triggered,
+        version=(checkpoint.SUMMARIZER_VERSION if temporal_enabled
+                 else checkpoint.LEGACY_SUMMARIZER_VERSION),
     )
     if plan is None:
         return None

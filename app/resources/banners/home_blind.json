@@ -697,7 +697,7 @@
                 "x": 0.06,
                 "y": 0.3,
                 "width": 0.88,
-                "height": 0.17
+                "height": 0.3
               },
               "text": {
                 "kind": "template",
@@ -717,10 +717,10 @@
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.0,
-                "y": 0.0,
-                "width": 1.0,
-                "height": 1.0
+                "x": 0.03,
+                "y": 0.03,
+                "width": 0.94,
+                "height": 0.94
               },
               "content_ids": [
                 "heading",
@@ -833,10 +833,10 @@
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.0,
-                "y": 0.0,
-                "width": 1.0,
-                "height": 1.0
+                "x": 0.03,
+                "y": 0.03,
+                "width": 0.94,
+                "height": 0.94
               },
               "content_ids": [
                 "heading",
@@ -949,10 +949,10 @@
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.0,
-                "y": 0.0,
-                "width": 1.0,
-                "height": 1.0
+                "x": 0.03,
+                "y": 0.03,
+                "width": 0.94,
+                "height": 0.94
               },
               "content_ids": [
                 "heading",

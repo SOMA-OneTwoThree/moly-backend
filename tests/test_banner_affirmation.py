@@ -105,8 +105,8 @@ def test_published_card_keeps_its_authored_shape():
         }
         region = next(e for e in canvas.elements if e.id == "primary-action")
         assert region.action.type == "open_affirmation"
-        # 별도 버튼 없이 카드 전체가 탭 영역이다.
-        assert region.frame.model_dump() == {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
+        # 별도 버튼 없이 카드 내용을 누르되, 둥근 모서리·블라인드 줄 영역을 피한다.
+        assert region.frame.model_dump() == {"x": 0.03, "y": 0.03, "width": 0.94, "height": 0.94}
         assert region.content_ids == ("heading", "heading-divider", "message")
         assert "open_affirmation" in capabilities(canvas)
         assert locale in {"en", "ko", "ja"}

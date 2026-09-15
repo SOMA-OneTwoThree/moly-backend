@@ -21,34 +21,36 @@ def _row(label: str, values: list[str]) -> str:
 
 
 def _header(title: str, version: str) -> list[str]:
-    from app.services.fortune_catalog import COPY_VERSIONS
+    from scripts.build_fortune_localized_copy import VERSION
+    COPY_VERSIONS = dict.fromkeys(LOCALES, VERSION)
     return [
         f"# {title}", "",
         f"> 카탈로그 버전: `{version}` · 서버 자산에서 생성한 전체 전문",
         f"> 한국어: `{COPY_VERSIONS['ko']}` · 영어: `{COPY_VERSIONS['en']}` · 일본어: `{COPY_VERSIONS['ja']}`",
         "> 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.",
-        "> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다", "",
+        "> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 ko-rewrite 및 localization 정본에서 하고 검수 후 자산을 다시 생성한다", "",
         "[운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)", "",
     ]
 
 
 def _bundle_rows(bundles, *, overall):
-    lines = ["| 구성 | 한국어 | English (US) | 日本語 |", "| --- | --- | --- | --- |"]
+    lines = ["| 구성 | 한국어 | English | 日本語 |", "| --- | --- | --- | --- |"]
     if overall:
         lines.append(_row("총평", [b["headline"] for b in bundles]))
-        lines.append(_row("전체 풀이", [("" if locale == "ja" else " ").join(b["flow"]) for locale, b in zip(LOCALES, bundles)]))
+        lines.append(_row("전체 풀이", ["\n\n".join(b["flow"]) for locale, b in zip(LOCALES, bundles)]))
         lines.append(_row("해볼 것", [b["do"] for b in bundles]))
         lines.append(_row("조심할 것", [b["pause"] for b in bundles]))
     else:
-        lines.append(_row("분야 풀이", [("" if locale == "ja" else " ").join(b["text"]) for locale, b in zip(LOCALES, bundles)]))
+        lines.append(_row("분야 풀이", ["\n\n".join(b["text"]) for locale, b in zip(LOCALES, bundles)]))
     return lines + [""]
 
 
 def render_documents() -> dict[Path, str]:
-    from app.services.fortune_catalog import COPY_VERSION, load_catalog
-    from app.services.fortune_tarot import FILENAME
-
-    load_catalog()
+    from scripts.build_fortune_localized_copy import VERSION as COPY_VERSION, build_outputs
+    FILENAME = "tarot-editorial.v2.json"
+    for path, expected in build_outputs(ROOT).items():
+        if path.read_bytes() != expected:
+            raise ValueError(f"Stale server asset: {path.name}")
     resource_dir = ROOT / "app/resources/fortune"
     copies = {
         locale: json.loads((resource_dir / filename).read_text())["readings"]

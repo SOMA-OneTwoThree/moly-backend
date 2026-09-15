@@ -258,7 +258,7 @@ async def test_first_reveal_exposes_basic_copy_and_included_plan_exposes_detail(
         assert session.daily.revealed_at is None
     else:
         assert value["access"] == "included"
-        assert len(value["result"]["overall"]["flow"]) == 3
+        assert len(value["result"]["overall"]["flow"]) == 2
         assert len(value["result"]["categories"]) == 4
         assert session.daily.unlock_source == "subscription"
 
@@ -315,7 +315,7 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
             assert (await client.post("/daily-fortune/reveal")).json() == basic
             assert (await client.get("/daily-fortune/status")).json()["result"] == basic["result"]
             stored_copy = session.daily.copy_by_locale[locale]
-            assert len(stored_copy["overall"]["flow"]) == 3
+            assert len(stored_copy["overall"]["flow"]) == 2
             assert len(stored_copy["categories"]) == 4
             ad = ad_response.json()
             content = urlencode({

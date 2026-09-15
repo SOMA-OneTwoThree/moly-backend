@@ -1,0 +1,98 @@
+{
+  "schema": "moly-localization-curated-samples-v1",
+  "scope": "verbatim editorial rendering, not an API or runtime draw",
+  "sets": {
+    "sun-upright": {
+      "ko": {
+        "overall.major.sun.upright": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1",
+        "love.major.sun.upright": "3d91dfb713a15bed9cf0c9608730a67a2ab148b6b10b2aa43c21ee65d479037e",
+        "money.major.sun.upright": "ce93904ecd7c02036a4ec04f55f66d1cdc89e007f51a8d466cfd1bacf7299a77",
+        "work.major.sun.upright": "0d2497f390e2a9e616965fb3e0adb27c3bf6a3f60b9a3804c55f2c407c561624",
+        "energy.major.sun.upright": "d264e8e146c737508a9582504a92cb9edaec61d74e84e9ce7a2c3ac581f79a3d"
+      },
+      "en": {
+        "overall.major.sun.upright": "edcba38b6b60fca213027a46e6c295fb937a8c0d4f9ccd9025e0966037b78a79",
+        "love.major.sun.upright": "d2f82e22672dbe03f5148e0d861d07d790515fd2799d358c4a24f6fceabfbc9a",
+        "money.major.sun.upright": "184e1022237f135fac8088e25b7e31bb3fe54dab31c4e1dd9907a4526876cd33",
+        "work.major.sun.upright": "2e2dbcc04a92dc045564b3b0ad86bd4ca5cec42a41adf0c4ca785926a44489cd",
+        "energy.major.sun.upright": "da41963acf26b5f9dfe108a2e950c607cba103eee62d938ad32d6fe2b0133565"
+      },
+      "ja": {
+        "overall.major.sun.upright": "6793272c7d64b39a856f5a59a46ac6bed93b620aac684a4e19797c0336b97987",
+        "love.major.sun.upright": "07f7f1883c75020228852fa73862d2f91115e57de10a059f782af10bc8991b5e",
+        "money.major.sun.upright": "a20de207ffdcff41c1a338021f3453718917f0650eae4404fd8d2492de117a4b",
+        "work.major.sun.upright": "119b26bdee70500ea6f99405f0dae67062b025de4c9044f12638ef030be2d3d8",
+        "energy.major.sun.upright": "27617b026031a834e5b5409a2b6a90ec2eab5617f2137a420a0ad88b1f622ac5"
+      }
+    },
+    "tower-upright": {
+      "ko": {
+        "overall.major.tower.upright": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279",
+        "love.major.tower.upright": "d7a8c0a92b6aa86586f015de7ff3d27fd89cc14f5039979a7a3f379fe155ba3a",
+        "money.major.tower.upright": "42641735e5012dff012eb6331874592e3cff6f0d4c71e084230bb11f42b1ce8a",
+        "work.major.tower.upright": "ba8492f25d2f51b19c27db88e59d1588763ba1d1318cb965764e6317d722ba1f",
+        "energy.major.tower.upright": "4b60a7d6d243384f9442e805c740ce1a9c54433e47b938e6307741225361abf1"
+      },
+      "en": {
+        "overall.major.tower.upright": "0694a743f9ab07f460b5920c9b9cb61aa41afb4eef681cf0fbcac2a74804da39",
+        "love.major.tower.upright": "d26c77777e7905b586049c27a482a4739ffbc3bf726649489b70edceea40b0ee",
+        "money.major.tower.upright": "34d99264b87ee21b186e831d77bee8730be749b252d13391a1914ed0c7f67b72",
+        "work.major.tower.upright": "79d2be4f4f030d577c8cab0aa1ca4905416670629f3a0bd30bbe90fce42eb3a1",
+        "energy.major.tower.upright": "bdc85269da2d5f143d3c0843990ea020960f17e8326cf8ca92bb5b47c71554d7"
+      },
+      "ja": {
+        "overall.major.tower.upright": "20de32178c748dbe2840e450064c50ed47a0e942a9347c5650a7191cde828a7d",
+        "love.major.tower.upright": "a344371bbadbd2f919463ecd34cdc053dbd954f3fd16380b1a36fade024e51f9",
+        "money.major.tower.upright": "da1bf57885d3f7c6b1a09d693c0d62c62cad9200b8948d32e444c089e2f8e59e",
+        "work.major.tower.upright": "b48ded2a9c170417965783b32fc0b5063a5a440486a6199a69b4b1ab51b23278",
+        "energy.major.tower.upright": "1e4e0c83b73b19074e95c908705d81cdfd67853612339c71ef108ac5798b74d4"
+      }
+    },
+    "mixed-major": {
+      "ko": {
+        "overall.major.moon.reversed": "d8c3be2a709146f56c41c7e829af96f3961d144f745c21c0a5d174586d484924",
+        "love.major.sun.upright": "3d91dfb713a15bed9cf0c9608730a67a2ab148b6b10b2aa43c21ee65d479037e",
+        "money.major.tower.reversed": "889d02f765afdb76e0daff97752ffbac7d9022dad22ce9e2d93972dac3f7d78c",
+        "work.major.chariot.reversed": "f10a94187a9b1f4e0793af05666e548cb4fc060b43d99de0de4e3afd8dd4d7fc",
+        "energy.major.temperance.reversed": "d88ca4b9187b4bcd7164404db8ac3a4f1dd21ddc3191473179e339eb71e45d5a"
+      },
+      "en": {
+        "overall.major.moon.reversed": "785813440500ba051fc8972344b25286261c9c822dcf08f1d9f7ce276d96e048",
+        "love.major.sun.upright": "d2f82e22672dbe03f5148e0d861d07d790515fd2799d358c4a24f6fceabfbc9a",
+        "money.major.tower.reversed": "43e82ec1e79d7ddaed4deff33e3465f71cc25018219f880e0c520fee4c8458ac",
+        "work.major.chariot.reversed": "8b0dbcd834a9feea6bb5bbd99a012e4fe72c42b97432ebb0f83540f61d03384d",
+        "energy.major.temperance.reversed": "4e243cfc71634c6e75044028c931559b0584fb76a4ef4c7bd8992c125e811772"
+      },
+      "ja": {
+        "overall.major.moon.reversed": "05a5351b5138f92a13f22a5bc8129592d0c28be680bdac4d3f1673bb8d2a4983",
+        "love.major.sun.upright": "07f7f1883c75020228852fa73862d2f91115e57de10a059f782af10bc8991b5e",
+        "money.major.tower.reversed": "99651b62c1a6022a460fe704c12512e52e48049ef790ed1d6b01de7df068881d",
+        "work.major.chariot.reversed": "494f72bed47ae535653aca3d67d4277f7a9e1ddce02f963704940fd243cb0927",
+        "energy.major.temperance.reversed": "da2e5d5f32392535da2b79ee0a8d2472fd3c26eca67245c7cf21f37e11ecb332"
+      }
+    },
+    "mixed-suits": {
+      "ko": {
+        "overall.cups.05.upright": "4022c678fdfba3c946e7a180e6479a91478bb28224a08c70abe3860e96e26d95",
+        "love.wands.04.reversed": "db359cbf312620d1a59d369c5a1928194795f7ac21516026fa54feaa97eeefa5",
+        "money.pentacles.09.upright": "17374e0a07c24052a83ddb8169e475599be192665d0fec20e2a15878bc543da4",
+        "work.swords.02.reversed": "31a49fda1ce628739fc2f852a88dc82607ec3668ba15eb7e2a42c3a760a46131",
+        "energy.major.strength.upright": "1427165111aa0262a73be84bdd073cf0dbbe8c238dd1165ed812713fcc8eed26"
+      },
+      "en": {
+        "overall.cups.05.upright": "d1bb8d714d9a33a491f399604cad752e5b74d61b02974e558e64323c87a310c6",
+        "love.wands.04.reversed": "25852ad6304011c9972577651ea70541e1f051b9e295cf688f8063366d134315",
+        "money.pentacles.09.upright": "3b99e522de5513c69d59277fe6a7f31717c23b4352f594bb0ea164f6914a5241",
+        "work.swords.02.reversed": "56b7e6d41e3e38667710c04b77361ec7c6c448718c3326f50778be8d2fec1965",
+        "energy.major.strength.upright": "b050a0a82720c10878ec8da5e5aeb485dae6ad26a393b1da4ae621464bada12c"
+      },
+      "ja": {
+        "overall.cups.05.upright": "f308d82ab1567849fbe6ff6b99840841dfba96c069039ae3f34ce3f8db60eb50",
+        "love.wands.04.reversed": "3651846a4c1f81e4d4a973f5360333170750774ff8b3c6b11bd097c761a7e9c2",
+        "money.pentacles.09.upright": "1ef105f902316b0effb60609187632e3f0218abc9620d9d5e1b0af65faee0afb",
+        "work.swords.02.reversed": "bffdb327644533d345fdca2d97ad764c19ff6a7d2d5a8d746a55412cca523807",
+        "energy.major.strength.upright": "d4d0a6c92d9942c0c7973d90e2c4e055c5bd9a2412302cf43dfc8bb37c10b757"
+      }
+    }
+  }
+}

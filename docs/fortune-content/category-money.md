@@ -1,9 +1,9 @@
 # 금전 운세 — 78장 × 정·역방향 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v6-fortune.1` · 서버 자산에서 생성한 전체 전문
-> 한국어: `fortune-copy.v6-fortune.1` · 영어: `fortune-copy.v6-fortune.1` · 일본어: `fortune-copy.v6-fortune.1`
+> 카탈로그 버전: `fortune-copy.v8-localized.1` · 서버 자산에서 생성한 전체 전문
+> 한국어: `fortune-copy.v8-localized.1` · 영어: `fortune-copy.v8-localized.1` · 일본어: `fortune-copy.v8-localized.1`
 > 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.
-> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
+> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 ko-rewrite 및 localization 정본에서 하고 검수 후 자산을 다시 생성한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
@@ -15,2182 +15,2182 @@
 
 내부 ID: `money.cups.01.reversed`
 
-카드 의미: 감정을 표현하거나 받아들이기 어려움. 원전의 변덕·불안정과 현대의 감정 억제를 자기 배려의 필요로 읽음.
+카드 의미: 불안정, 실망
 
-분야 해석: 기분에따른구매
+분야 해석: 받을 거라 생각했던 돈이 기대에 못 미칠 수 있어.
 
-관찰: 기분을 달래려고 고른 물건이 생각만큼 만족스럽지 않을 수 있어. / 예쁜 것을 봐도 금세 다른 것이 눈에 들어오고, 작은 결제가 여러 번 이어지기 쉬운 날이야. / 작게 나간 돈을 모아보면 생각했던 금액을 넘어 있어 놀랄 수 있어.
+관찰: 불안정 / 실망
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기분을 달래려고 고른 물건이 생각만큼 만족스럽지 않을 수 있어. 예쁜 것을 봐도 금세 다른 것이 눈에 들어오고, 작은 결제가 여러 번 이어지기 쉬운 날이야. 작게 나간 돈을 모아보면 생각했던 금액을 넘어 있어 놀랄 수 있어. 바로 사기보다 장바구니에 담아두고 잠깐 다른 일을 해봐. 다시 봤을 때 마음이 식은 물건을 빼면 필요 없는 지출을 줄일 수 있어. | Something you buy to cheer yourself up may not feel as satisfying as you'd hoped. One attractive item could soon give way to another, making several small purchases tempting. Adding them up may reveal a total higher than you'd expected. Leave things in your cart and do something else for a while before buying. When you return, removing anything you've lost interest in can cut unnecessary spending. | 気分を晴らそうと買ったものに、思ったほど満足できないかもしれません。かわいいものを見てもすぐ別のものに目移りし、小さな買い物が続きやすい日です。合計してみると、予想した金額を超えていて驚くこともありそうです。すぐに買わずカートに入れておき、しばらく別のことをしてみましょう。もう一度見て気持ちが冷めたものを外せば、必要のない出費を減らせます。 |
+| 분야 풀이 | 받을 거라 생각했던 돈이 기대에 못 미칠 수 있어. 반가운 제안처럼 보여도 실제 수입으로 이어지기까지는 시간이 더 필요할 수 있는 날이야. 아쉬운 마음에 기분을 달래는 지출까지 더하면 돈이 빠듯해지기 쉬워. 아직 확정되지 않은 수입에 맞춰 돈을 쓰지는 말아줘. | Money you expected to receive could fall short of your hopes. Even a promising offer may need more time to become actual income today. Spending to soothe the disappointment could leave money tight. Don't spend against income that hasn't been confirmed yet. | 受け取れると思っていたお金が、期待に届かないかもしれません。うれしい提案に見えても、実際の収入になるには、もう少し時間が必要そうです。残念な気分を紛らわす出費まで増やすと、やりくりが苦しくなりがちです。まだ確定していない収入をあてに、お金を使うのは控えましょう。 |
 
 ## cups.01 · 정방향
 
 내부 ID: `money.cups.01.upright`
 
-카드 의미: 감정이 열리고 기쁨을 받아들이는 시작. 원전의 충만과 마음의 만족을 작은 호의와 감각적 즐거움으로 응용.
+카드 의미: 풍요, 만족, 지원, 수입 아이디어
 
-분야 해석: 작은선물과만족스러운소비
+분야 해석: 돈이 들어올 반가운 기회가 생길 수 있어.
 
-관찰: 작은 선물이나 예상하지 못한 대접을 받아 기분 좋을 수 있는 날이야. / 큰 금액이 아니어도 내 취향을 기억해준 마음이 반갑게 느껴질 거야. / 음식이나 소소한 물건을 고를 때는 새로운 취향을 발견하며 돈 쓴 보람을 느낄 수 있어.
+관찰: 풍요 / 만족 / 지원
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 선물이나 예상하지 못한 대접을 받아 기분 좋을 수 있는 날이야. 큰 금액이 아니어도 내 취향을 기억해준 마음이 반갑게 느껴질 거야. 음식이나 소소한 물건을 고를 때는 새로운 취향을 발견하며 돈 쓴 보람을 느낄 수 있어. 마음에 드는 것이 생겨도 오늘 쓸 금액 안에서 하나만 골라봐. 비싼 것을 사지 않아도 즐거운 기억과 만족이 충분히 남을 수 있어. | A small gift or an unexpected treat could be a pleasant surprise. Even if it costs little, you'll appreciate someone remembering what you like. Choosing food or a small item may introduce you to a new favorite and feel well worth the money. If something appeals to you, pick just one thing within today's budget. You could come away with happy memories and plenty of satisfaction without buying anything expensive. | 小さな贈り物や思いがけないごちそうに、うれしくなりそうです。高価でなくても、好みを覚えていてくれたことがありがたく感じられるでしょう。食べ物やちょっとした品を選ぶときには、新たに好きなものが見つかり、お金を使ってよかったと思えそうです。気に入るものがあっても、今日の予算の中で一つだけ選んでみてください。高いものを買わなくても、楽しい思い出と十分な満足が残りそうです。 |
+| 분야 풀이 | 돈이 들어올 반가운 기회가 생길 수 있어. 뜻밖의 선물을 받거나 필요한 돈에 보탬이 되는 도움을 얻기 좋은 날이야. 새로 시작한 일이 있다면 작은 수입으로 이어질 가능성도 있어. 금액이 크지 않아도 당장 필요했던 곳에 쓸 수 있어 기분이 넉넉해질 수 있어. | A welcome chance to receive money could arise. It's a good day for an unexpected gift or help towards an amount you need. Something you've recently started may also bring a small income. Even a modest sum could feel generous if you can use it where it's needed now. | お金が入る、うれしい機会ができそうです。思いがけない贈り物や、必要な額を補う助けを得やすい日です。新しく始めたことがあれば、小さな収入につながる可能性もあります。大きな金額でなくても、ちょうど必要だったことに使えて、豊かな気分になれそうです。 |
 
 ## cups.02 · 역방향
 
 내부 ID: `money.cups.02.reversed`
 
-카드 의미: 교류가 어긋나거나 주고받는 정도가 맞지 않음. 화해 불능이 아니라 기대와 경계를 다시 확인하는 뜻.
+카드 의미: 불균형, 예산 초과
 
-분야 해석: 나눠낼금액의차이
+분야 해석: 함께 쓰는 돈에서 자신의 부담이 더 커질 수 있어.
 
-관찰: 함께 낸 돈을 정산하며 생각했던 몫이 서로 다를 수 있어. / 작은 추가 비용이 뒤늦게 보여 처음 들은 금액보다 더 내야 할 수도 있어. / 영수증이나 내역을 다시 보면 어디서 차이가 났는지 쉽게 알게 될 거야.
+관찰: 불균형 / 예산 초과
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 낸 돈을 정산하며 생각했던 몫이 서로 다를 수 있어. 작은 추가 비용이 뒤늦게 보여 처음 들은 금액보다 더 내야 할 수도 있어. 영수증이나 내역을 다시 보면 어디서 차이가 났는지 쉽게 알게 될 거야. 기분이 상하기 전에 각자 사용한 금액부터 확인해봐. 막연히 더 냈다고 느끼던 부분이 정리되면서 불필요한 오해를 줄일 수 있어. | When you settle shared expenses, your ideas about each person's share may differ. A small extra charge could appear late, leaving you with more to pay than you first heard. Looking at receipts or records again should make the source of the difference easier to find. Check what each person used before letting resentment build. Clearing up the numbers can reduce misunderstandings about who paid too much. | 共同の出費を精算するとき、考えていた負担額が違うかもしれません。小さな追加料金が後から分かり、初めに聞いた額より多く払うこともありそうです。領収書や明細を見直せば、どこで差が出たかは分かりやすいでしょう。嫌な気分になる前に、それぞれが使った金額を確かめてみてください。何となく多く払ったと感じた部分がはっきりして、余計な誤解を減らせそうです。 |
+| 분야 풀이 | 함께 쓰는 돈에서 자신의 부담이 더 커질 수 있어. 서로 생각한 금액이 달라 예상보다 많이 내거나 약속한 돈을 덜 받을 수 있는 날이야. 좋은 사이를 유지하려고 말없이 떠안으면 나중에 돈도 마음도 아쉬워지기 쉬워. 얼마를 부담하기로 했는지 결제 전에 맞춰줘. | Your share of a joint expense could become larger. Different expectations about the amount may leave you paying more or receiving less than promised today. Silently taking on the cost to keep a good relationship could lead to regret about both the money and the relationship later. Agree on each person's share before paying. | 一緒に使うお金で、こちらの負担が増えるかもしれません。互いに考えていた金額が違い、予想より多く払ったり、約束より少ない額しか受け取れなかったりしそうです。よい関係を保とうと黙って引き受けると、後で出費を悔やみ、不満も残りがちです。いくら負担する約束だったか、支払う前に確認し合いましょう。 |
 
 ## cups.02 · 정방향
 
 내부 ID: `money.cups.02.upright`
 
-카드 의미: 서로 주고받으며 인정하는 연결. 원전의 우정·호감·일치를 상호성에 근거한 협의로 사용.
+카드 의미: 조화, 균형, 재정 안정
 
-분야 해석: 납득할수있는금전협의
+분야 해석: 재물운이 안정되어 돈 때문에 곤란할 일이 적을 수 있어.
 
-관찰: 보수나 함께 낼 비용을 이야기할 때 서로 납득할 답을 찾기 좋은 날이야. / 처음 제안한 금액과 차이가 있어도 상대의 설명을 들으며 타협할 부분이 보일 거야. / 작은 부탁에 대한 답례를 받거나 전에 베푼 호의가 돌아오는 일도 있을 수 있어.
+관찰: 조화 / 균형 / 재정 안정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 보수나 함께 낼 비용을 이야기할 때 서로 납득할 답을 찾기 좋은 날이야. 처음 제안한 금액과 차이가 있어도 상대의 설명을 들으며 타협할 부분이 보일 거야. 작은 부탁에 대한 답례를 받거나 전에 베푼 호의가 돌아오는 일도 있을 수 있어. 주고받을 금액은 말이 잘 통할 때 짧게 확인해둬. 서로 기분 좋게 정한 거래가 남아 다음에도 편하게 이야기할 수 있을 거야. | Discussing payment or shared expenses could lead to an agreement you both find fair. Even if the figures differ at first, hearing their explanation may reveal room for compromise. You might receive a thank-you for a small favor, or have an earlier kindness returned. Confirm the amount while the conversation is going well. An agreement that feels good to both of you could make future discussions easier. | 報酬や共同の費用を話し合うと、互いに納得できる答えを見つけやすい日です。最初の金額に差があっても、説明を聞くうちに折り合えるところが見えてくるでしょう。ちょっとした手伝いのお礼を受け取ったり、前にした親切が返ってきたりすることもありそうです。話がよく通じるうちに、やり取りする金額を短く確認しておきましょう。気持ちよく決めた取引なら、次も気軽に相談できそうです。 |
+| 분야 풀이 | 재물운이 안정되어 돈 때문에 곤란할 일이 적을 수 있어. 들어올 돈과 쓸 돈이 잘 맞아 생활비가 부족할 걱정을 덜 수 있는 날이야. 좋은 관계로 이어온 거래가 있다면 약속한 이익을 함께 얻을 수도 있어. 무리하게 돈을 더 불리려 하지 않아도 현재 수입에서 만족을 찾을 수 있어. | Steady finances could mean little trouble over money today. Income and expenses may fit well enough to ease worry about living costs. A transaction sustained by a good relationship could also bring the agreed benefit to both sides. You may find satisfaction in current income without pushing to increase it. | 金運は安定し、お金で困ることは少なそうです。入るお金と使うお金が釣り合い、生活費が足りない心配を減らせるでしょう。よい関係で続けてきた取引があるなら、約束した利益を一緒に得ることもありそうです。無理にお金を増やそうとしなくても、今の収入に満足できるかもしれません。 |
 
 ## cups.03 · 역방향
 
 내부 ID: `money.cups.03.reversed`
 
-카드 의미: 함께함이 지나치거나 소속 압박이 즐거움을 가림. 원전의 과잉과 완료를 현대의 모임 피로로 선택.
+카드 의미: 즐김의 과도함, 모임의 불편, 과소비 경계
 
-분야 해석: 모임의추가지출
+분야 해석: 사람들과 어울리다 생각보다 많은 돈을 쓰기 쉬워.
 
-관찰: 모임이나 공동 구매에서 예상하지 못한 비용이 더해질 수 있어. / 처음에는 작은 금액이라 괜찮았어도 여러 사람의 몫을 챙기다 보면 지출이 커질 거야. / 추가 주문이나 선물 이야기가 나와 원래 생각한 예산을 넘기기 쉬운 날이야.
+관찰: 즐김의 과도함 / 모임의 불편 / 과소비 경계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 모임이나 공동 구매에서 예상하지 못한 비용이 더해질 수 있어. 처음에는 작은 금액이라 괜찮았어도 여러 사람의 몫을 챙기다 보면 지출이 커질 거야. 추가 주문이나 선물 이야기가 나와 원래 생각한 예산을 넘기기 쉬운 날이야. 다 같이 쓰는 돈은 결제 전에 총액을 한 번 확인해봐. 내가 낼 수 있는 금액을 미리 말하면 필요 이상으로 부담할 일을 줄일 수 있어. | A gathering or a group purchase may come with extra costs you didn't expect. Small amounts could become substantial as you help cover several people's shares. Extra orders or gift suggestions may push things beyond your original budget. Check the total before paying for anything shared. Saying what you can afford beforehand can keep you from taking on too much. | 集まりや共同購入に、予想していなかった費用が加わるかもしれません。最初は少額でも、何人もの分を気遣ううちに出費が増えそうです。追加注文や贈り物の話が出て、元の予算を超えやすい日です。一緒に使うお金は、支払い前に総額を確かめてみてください。出せる金額を先に伝えれば、必要以上に負担することを減らせそうです。 |
+| 분야 풀이 | 사람들과 어울리다 생각보다 많은 돈을 쓰기 쉬워. 분위기에 맞춰 고르거나 거절하기 어려워 낸 돈이 겹칠 수 있어. 즐겁게 보낸 뒤 계산할 때는 처음 생각한 금액을 넘기기 쉬운 날이야. 자신이 내기로 한 돈 이상을 즉석에서 약속하지 않는 게 좋아. | Socialising could lead to spending more than expected. Choices made to suit the mood and payments you found hard to refuse may add up. After enjoying yourself, the bill could exceed what you originally had in mind today. It's better not to promise more on the spot than your agreed share. | 人と過ごすうちに、予想より多く使いやすい日です。場の雰囲気に合わせて選んだり、断りにくくて払ったりする出費が重なるかもしれません。楽しく過ごした後の会計は、初めに考えた金額を超えがちです。払うと決めた分以上に、その場で負担を約束しないほうがよさそうです。 |
 
 ## cups.03 · 정방향
 
 내부 ID: `money.cups.03.upright`
 
-카드 의미: 함께 기뻐하고 나누는 친교. 원전의 즐거운 마무리와 축하를 일상의 작은 모임과 공동 만족으로 사용.
+카드 의미: 기쁨을 나눔, 성취의 마무리, 축하, 위안
 
-분야 해석: 축하선물과나누는혜택
+분야 해석: 기쁜 일과 함께 돈을 쓰게 될 수 있는 날이야.
 
-관찰: 축하 선물이나 함께 쓰는 혜택 덕분에 돈 쓸 부담이 줄 수 있어. / 여럿이 같이 사거나 이용하면서 혼자일 때보다 좋은 가격을 만날 수 있는 날이야. / 기분 좋은 대접을 받거나 전에 도왔던 일에 작은 답례가 돌아올 수도 있어.
+관찰: 기쁨을 나눔 / 성취의 마무리 / 축하
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 축하 선물이나 함께 쓰는 혜택 덕분에 돈 쓸 부담이 줄 수 있어. 여럿이 같이 사거나 이용하면서 혼자일 때보다 좋은 가격을 만날 수 있는 날이야. 기분 좋은 대접을 받거나 전에 도왔던 일에 작은 답례가 돌아올 수도 있어. 함께 내는 비용은 분위기가 좋을 때 미리 나눠 정해둬. 서로 무리하지 않고 즐긴 자리가 남아 지출한 금액도 아깝지 않게 느껴질 거야. | A celebratory gift or a shared offer could ease the cost of enjoying yourself. Buying or using something as a group may bring a better price than going alone. You might be treated to something nice or receive a small thank-you for an earlier favor. Agree on shared costs while everyone is in a good mood. Enjoying yourselves without anyone overspending can leave the money you did spend feeling worthwhile. | お祝いの贈り物や一緒に使える特典で、出費の負担が軽くなるかもしれません。何人かで買ったり利用したりすると、一人のときよりよい価格に出会えそうです。うれしいごちそうを受けたり、以前の手伝いに小さなお礼が返ってきたりすることもあるでしょう。共同の費用は、和やかなうちに分担を決めておきましょう。誰も無理せず楽しめた時間なら、使ったお金も惜しく感じずに済みそうです。 |
+| 분야 풀이 | 기쁜 일과 함께 돈을 쓰게 될 수 있는 날이야. 모임이나 축하할 자리가 있다면 지출은 생겨도 아깝다는 마음보다 즐거움이 클 수 있어. 함께한 일에서 성과가 났다면 보수를 나누어 받는 일도 기대해볼 만해. 기분 좋다고 모두의 비용까지 혼자 내겠다는 약속만 조심해줘. | A happy occasion could bring spending today. At a gathering or celebration, enjoyment may outweigh regret over the cost. If something you've done together has succeeded, you could also receive a share of the payment. Just be careful not to promise to cover everyone's costs because you're in a good mood. | うれしい出来事に伴って、お金を使うことがありそうです。集まりやお祝いの席では、出費があっても、お金が惜しいという気持ちより楽しさが勝ちそうです。一緒に取り組んだことに成果が出たなら、報酬を分けて受け取ることも期待できそうです。気分がよいからと、全員分の費用まで一人で払う約束には気をつけましょう。 |
 
 ## cups.04 · 역방향
 
 내부 ID: `money.cups.04.reversed`
 
-카드 의미: 멈춰 있던 관심이 다시 열리는 방향을 채택. 원전 역해석의 새 관계·새 안내를 재참여의 기회로 응용.
+카드 의미: 새로움, 새로운 가르침, 관심의 재개
 
-분야 해석: 다시발견하는쓸모
+분야 해석: 그동안 놓쳤던 수입이 생길 기회가 다시 찾아올 수 있어.
 
-관찰: 전에 지나쳤던 혜택이나 물건이 지금 필요한 것과 맞아떨어질 수 있어. / 사용하지 않던 적립금을 쓸 곳이 생기거나 미뤄둔 구매에서 괜찮은 가격을 찾을 거야. / 이미 가진 물건을 다시 쓰게 되어 새로 살 비용이 줄어들 수도 있어.
+관찰: 새로움 / 새로운 가르침 / 관심의 재개
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 전에 지나쳤던 혜택이나 물건이 지금 필요한 것과 맞아떨어질 수 있어. 사용하지 않던 적립금을 쓸 곳이 생기거나 미뤄둔 구매에서 괜찮은 가격을 찾을 거야. 이미 가진 물건을 다시 쓰게 되어 새로 살 비용이 줄어들 수도 있어. 같은 물건을 사기 전에 집에 있는 것을 한 번 확인해봐. 새 지출을 크게 늘리지 않고도 필요한 것을 갖추는 만족이 남을 수 있어. | A benefit or item you previously overlooked could fit what you need now. Unused points may finally have a purpose, or a delayed purchase might turn up at a decent price. Using something you already own again could also save the cost of buying new. Before buying a replacement, check what you have at home. You could feel satisfied at meeting your needs without adding much to your spending. | 前に見過ごした特典や品が、今の必要にぴったり合うかもしれません。使っていなかったポイントの出番ができたり、後回しにした買い物によい価格が見つかったりしそうです。持っているものをまた使えるようになり、新しく買う費用が減ることもあるでしょう。同じものを買う前に、家にあるものを一度確かめてみてください。出費を大きく増やさずに必要なものをそろえられて、満足できそうです。 |
+| 분야 풀이 | 그동안 놓쳤던 수입이 생길 기회가 다시 찾아올 수 있어. 예전에 거절한 일이나 미뤄둔 거래에서 돈을 벌 가능성이 있는 날이야. 생각보다 조건이 나아져 필요한 돈을 마련하는 데 도움이 될 수 있어. 큰돈이 아니라는 이유로 작은 보수까지 지나치지는 말아줘. | An earning opportunity you've overlooked could come around again. A job you refused before or a delayed transaction may offer money today. Better terms than expected could help you obtain what you need. Don't dismiss a small payment just because it isn't a large sum. | これまで逃していた収入の機会が、また訪れるかもしれません。以前断った仕事や、先延ばしにした取引で、お金を得る可能性がある日です。条件が予想よりよくなり、必要な額を用意する助けになることもありそうです。大金ではないからと、小さな報酬まで見過ごすのは控えましょう。 |
 
 ## cups.04 · 정방향
 
 내부 ID: `money.cups.04.upright`
 
-카드 의미: 주어진 선택에 마음이 가지 않는 권태와 재평가. 원전의 싫증·불만을 억지 만족 대신 실제 필요를 돌아보는 뜻으로 사용.
+카드 의미: 권태, 불만족, 기회에 대한 무관심
 
-분야 해석: 눈에안들어오는혜택
+분야 해석: 큰돈이 들어오는 운은 약하고, 괜찮은 금전 제안도 지나치기 쉬워.
 
-관찰: 마음에 드는 물건이 잘 보이지 않아 돈을 쓰고도 심심할 수 있는 날이야. / 새로 사기보다 늘 보던 것만 들여다보다가 이미 가진 혜택을 놓치기 쉬울 거야. / 잊고 있던 쿠폰이나 남은 적립금이 필요한 물건에 적용될 수 있어.
+관찰: 권태 / 불만족 / 기회에 대한 무관심
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 마음에 드는 물건이 잘 보이지 않아 돈을 쓰고도 심심할 수 있는 날이야. 새로 사기보다 늘 보던 것만 들여다보다가 이미 가진 혜택을 놓치기 쉬울 거야. 잊고 있던 쿠폰이나 남은 적립금이 필요한 물건에 적용될 수 있어. 오늘은 새 물건을 고르기 전에 갖고 있는 혜택부터 확인해봐. 크게 사고 싶은 것이 없을 때는 결제를 미뤄도 아쉬움이 오래 남지 않을 거야. | Nothing may particularly appeal to you, leaving spending itself feeling unexciting. You could keep browsing the same things and overlook benefits you already have. A forgotten voucher or remaining points might cover something you need. Check your existing benefits before choosing something new today. If there's nothing you really want, postponing a purchase probably won't leave you disappointed for long. | 気に入るものが見つからず、お金を使っても物足りなく感じそうです。いつも見ているものばかり眺めて、すでに持つ特典を見落としやすいでしょう。忘れていたクーポンや残りのポイントが、必要な品に使えるかもしれません。今日は新しい品を選ぶ前に、手元の特典を確かめてみてください。特に欲しいものがないなら、購入を延ばしても残念な気持ちは長く続かなさそうです。 |
+| 분야 풀이 | 큰돈이 들어오는 운은 약하고, 괜찮은 금전 제안도 지나치기 쉬워. 지금 수입에 만족하지 못하면 작은 이득을 시시하게 볼 수 있는 날이야. 새로 들은 이야기가 있다면 기대보다 적다는 이유만으로 바로 거절하지는 말아줘. 실제로 받을 수 있는 돈인지 살펴보면 뜻밖에 보탬이 될 수 있어. | A large payment is unlikely, and you may overlook a decent financial offer too. Dissatisfaction with current income could make a small gain seem uninteresting today. Don't immediately reject something you've heard about just because it offers less than you hoped. If you check that you'll actually be paid, it may turn out to be a useful amount. | 大金が入る運は弱めで、悪くないお金の提案も見過ごしやすい日です。今の収入に満足できないと、小さな利益をつまらなく感じるかもしれません。新しい話が来たら、期待より少ないだけで、すぐ断るのは控えましょう。実際に受け取れるお金かを確かめると、意外に助けになることもありそうです。 |
 
 ## cups.05 · 역방향
 
 내부 ID: `money.cups.05.reversed`
 
-카드 의미: 지난 실망을 받아들이고 남은 것을 다시 알아보는 회복을 채택. 원전의 귀환과 다른 현대적 독해임을 명시.
+카드 의미: 다시 연결, 도움 수용, 후회에서 벗어남
 
-분야 해석: 환불과남은돈회수
+분야 해석: 손해 때문에 답답했던 금전 사정이 조금 나아질 수 있어.
 
-관찰: 잊고 있던 환불이나 돌려받을 돈을 다시 확인할 기회가 있을 수 있어. / 손해라고만 생각했던 구매에서 교환할 방법을 찾거나 일부 비용을 아낄 수 있을 거야. / 이미 가진 물건으로 필요한 일을 해결해 새 지출이 줄어드는 경우도 생길 수 있어.
+관찰: 다시 연결 / 도움 수용 / 후회에서 벗어남
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 잊고 있던 환불이나 돌려받을 돈을 다시 확인할 기회가 있을 수 있어. 손해라고만 생각했던 구매에서 교환할 방법을 찾거나 일부 비용을 아낄 수 있을 거야. 이미 가진 물건으로 필요한 일을 해결해 새 지출이 줄어드는 경우도 생길 수 있어. 돌려받을 내역이 있다면 남은 기간을 확인하고 연락해봐. 큰돈이 아니어도 내 몫을 챙겼다는 안도감이 남을 수 있는 날이야. | You may get another chance to check a forgotten refund or money owed to you. A purchase you considered a loss could offer an exchange option or a way to save part of the cost. Using something you own to meet a need might reduce new spending too. If you're due money back, check how much time remains and get in touch. Even a small amount could bring relief at having claimed your share. | 忘れていた返金や返してもらうお金を、改めて確かめる機会がありそうです。損をしたとだけ思っていた買い物に交換の方法が見つかったり、一部の費用が浮いたりするかもしれません。持っているもので用が足りて、新たな出費が減ることもありそうです。返してもらうお金があれば、残りの期間を確かめて連絡してみましょう。大きな額でなくても、自分の分をきちんと受け取れた安心感が残りそうです。 |
+| 분야 풀이 | 손해 때문에 답답했던 금전 사정이 조금 나아질 수 있어. 도움을 받거나 남은 돈으로 다시 시작할 방법을 찾기 좋은 날이야. 아쉬웠던 거래를 정리하면서 더 나갈 돈이 줄 수도 있어. 한 번에 손해를 모두 되찾으려 하기보다 작은 여유부터 남겨줘. | Finances strained by a loss could improve a little. It's a good day to receive help or find a way to begin again with the money left. Ending a disappointing transaction may reduce future costs too. Keep a little money aside instead of trying to recover the whole loss at once. | 損失で苦しくなっていたやりくりが、少し楽になるかもしれません。助けを得たり、残ったお金で再び始める方法を見つけたりするのによい日です。残念な結果だった取引を終えることで、これからの出費も減らせそうです。一度に損をすべて取り戻そうとせず、少額でも余裕を残しましょう。 |
 
 ## cups.05 · 정방향
 
 내부 ID: `money.cups.05.upright`
 
-카드 의미: 뜻대로 되지 않은 것에 마음이 머물러 남은 것을 놓침. 원전 그림의 엎어진 잔과 남은 잔을 현대의 실망·후회로 해석.
+카드 의미: 기대에 못 미침, 상실, 남아 있는 것
 
-분야 해석: 아쉬운구매와남은가치
+분야 해석: 쓴 돈에 비해 돌아오는 것이 적어 아쉬울 수 있는 날이야.
 
-관찰: 기대하고 산 물건이나 쓴 돈이 생각만큼 만족스럽지 않을 수 있어. / 다른 곳의 더 나은 가격을 뒤늦게 알게 되며 조금 아까운 마음이 들 거야. / 다만 받은 물건에서 필요한 기능을 찾거나 바꿀 수 있는 방법을 알게 될 수도 있어.
+관찰: 기대에 못 미침 / 상실 / 남아 있는 것
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대하고 산 물건이나 쓴 돈이 생각만큼 만족스럽지 않을 수 있어. 다른 곳의 더 나은 가격을 뒤늦게 알게 되며 조금 아까운 마음이 들 거야. 다만 받은 물건에서 필요한 기능을 찾거나 바꿀 수 있는 방법을 알게 될 수도 있어. 아쉬워서 다른 물건을 바로 사기보다 교환 가능한지 먼저 확인해봐. 이미 쓴 돈을 전부 헛돈이라 여기지 않아도 될 만한 쓸모가 남아 있을 거야. | A purchase or expense you looked forward to may fall short of expectations. Finding a better price elsewhere afterward could sting a little. Still, you might discover a useful feature in what you bought or learn that an exchange is possible. Check the exchange options before immediately buying something else to make up for it. There may be enough usefulness left that you needn't see all the money as wasted. | 楽しみに買った品や使ったお金に、思ったほど満足できないかもしれません。後からほかの店の安い価格を知って、少し惜しく感じそうです。ただ、買った品に必要な機能が見つかったり、交換できると分かったりすることもあるでしょう。がっかりしてすぐ別のものを買うより、まず交換できるか確かめてみてください。買ったものはまだ役立ちそうなので、使ったお金がすべて無駄だったとは感じずに済むでしょう。 |
+| 분야 풀이 | 쓴 돈에 비해 돌아오는 것이 적어 아쉬울 수 있는 날이야. 바라던 수입이 줄거나 물건을 산 뒤 기대만큼 만족하지 못할 수 있어. 지나간 돈이 아깝다는 생각에 다른 곳에서 급히 만회하려 하면 또 지출이 생기기 쉬워. 오늘은 이미 쓴 돈 때문에 남은 돈까지 내놓지 않는 게 좋아. | A small return on what you've spent could disappoint you today. Expected income may shrink, or a purchase might be less satisfying than you hoped. Trying to recover spent money quickly elsewhere could lead to another expense. It's better not to give up what remains because you regret what's already gone. | 使ったお金に比べて得られるものが少なく、がっかりするかもしれません。望んでいた収入が減ったり、買い物をしても期待ほど満足できなかったりしそうです。使ったお金が惜しくて別のことで急いで取り戻そうとすると、また出費が増えがちです。今日はすでに使ったお金のために、残りまで差し出さないほうがよいでしょう。 |
 
 ## cups.06 · 역방향
 
 내부 ID: `money.cups.06.reversed`
 
-카드 의미: 과거의 이상화에서 벗어나 현재에 맞추는 독해. 원전의 미래·갱신 의미를 낡은 기대의 조정으로 채택.
+카드 의미: 미래, 갱신, 과거와 현재의 구분
 
-분야 해석: 예전가격과다른조건
+분야 해석: 익숙한 곳보다 새로운 거래에서 이익을 얻을 수 있는 날이야.
 
-관찰: 전에 샀던 가격이나 혜택이 지금은 달라져 예상보다 돈이 더 들 수 있어. / 오래 이용한 곳이라 자세히 보지 않았다가 바뀐 조건을 뒤늦게 알게 될 거야. / 지금 쓰는 방식과 맞지 않는 물건을 정리하며 불필요했던 지출도 눈에 들어올 수 있어.
+관찰: 미래 / 갱신 / 과거와 현재의 구분
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 전에 샀던 가격이나 혜택이 지금은 달라져 예상보다 돈이 더 들 수 있어. 오래 이용한 곳이라 자세히 보지 않았다가 바뀐 조건을 뒤늦게 알게 될 거야. 지금 쓰는 방식과 맞지 않는 물건을 정리하며 불필요했던 지출도 눈에 들어올 수 있어. 오늘 구매는 예전 영수증보다 현재 표시된 총액을 기준으로 확인해봐. 다른 선택지가 더 실속 있다는 걸 알게 되어 익숙한 곳만 찾던 생각이 바뀔 수 있어. | Prices or benefits you remember may have changed, bringing a higher bill than expected. Assuming a familiar place needs no close check could leave you learning the new terms late. Sorting out items that no longer suit your life may also reveal spending you didn't need. Check today's total rather than relying on an old receipt. Another option could turn out better value and change your habit of always choosing the familiar place. | 前の価格や特典が今は変わっていて、予想よりお金がかかるかもしれません。なじみの場所だからと詳しく見ず、後から条件の変更に気づきそうです。今の使い方に合わない品を整理して、必要のなかった出費が見えることもあるでしょう。今日は昔の領収書より、現在表示されている総額を確かめてみてください。別の選択肢のほうが得だと分かり、いつもの場所ばかり探す考えが変わるかもしれません。 |
+| 분야 풀이 | 익숙한 곳보다 새로운 거래에서 이익을 얻을 수 있는 날이야. 예전에 유리했던 가격이나 수입이 지금도 같지는 않아 다른 조건이 더 나을 수 있어. 오래 내던 비용을 바꾸면서 당장 나갈 돈이 줄어들 가능성도 있어. 예전 정 때문에 불리한 금액을 계속 받아들일 필요는 없어. | A new transaction may offer more profit than a familiar one today. A once-favourable price or income may have changed, making other terms better now. Changing a long-standing expense could also reduce immediate costs. You don't need to keep accepting an unfavourable amount out of loyalty to an old connection. | いつもの取引より、新しく始める取引に利益がありそうです。以前は有利だった価格や収入も、今は同じとは限らず、別の条件のほうがよさそうです。長く払い続けていた費用を見直すことで、直近の支出が減る可能性もあります。以前からの情だけで、不利な金額を受け入れ続ける必要はありません。 |
 
 ## cups.06 · 정방향
 
 내부 ID: `money.cups.06.upright`
 
-카드 의미: 익숙한 기억과 순수한 호의. 원전의 지난 즐거움과 추억을 지금의 친근함을 여는 단서로 사용.
+카드 의미: 과거의 즐거움, 추억, 익숙함, 친절
 
-분야 해석: 오래된물건과돌아온호의
+분야 해석: 익숙한 인연을 통해 돈이나 선물을 받을 수 있는 날이야.
 
-관찰: 예전에 가진 물건이나 받은 선물이 뜻밖에 도움이 될 수 있어. / 새로 사려던 것을 집에서 찾거나 오래 알던 곳에서 작은 혜택을 챙겨줄 수 있는 날이야. / 전에 도와줬던 사람이 간식이나 소소한 답례를 건네는 일도 생길 수 있어.
+관찰: 과거의 즐거움 / 추억 / 익숙함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 가진 물건이나 받은 선물이 뜻밖에 도움이 될 수 있어. 새로 사려던 것을 집에서 찾거나 오래 알던 곳에서 작은 혜택을 챙겨줄 수 있는 날이야. 전에 도와줬던 사람이 간식이나 소소한 답례를 건네는 일도 생길 수 있어. 같은 물건을 사기 전에 보관해둔 것을 한 번 찾아봐. 쓸모를 되찾은 물건 덕분에 돈도 아끼고 반가운 기억도 떠오를 거야. | An old possession or a gift you received could prove unexpectedly useful. You may find at home something you were about to buy, or a familiar shop could offer a small kindness. Someone you once helped might give you a snack or a little thank-you. Before buying another of the same thing, look through what you've stored away. Putting an item back to use can save money and bring back a pleasant memory. | 以前から持つものや、もらった贈り物が思いがけず役立ちそうです。買おうとしていたものを家で見つけたり、なじみの店が少しサービスしてくれたりするかもしれません。前に手伝った人から、お菓子やささやかなお礼を受け取ることもありそうです。同じものを買う前に、しまってあるものを一度探してみてください。また使える品のおかげで、お金も節約できて懐かしい記憶もよみがえりそうです。 |
+| 분야 풀이 | 익숙한 인연을 통해 돈이나 선물을 받을 수 있는 날이야. 가족이나 오래 알고 지낸 사람의 도움이 필요한 지출을 덜어줄 수 있어. 예전에 주고받던 돈이 있다면 다시 연락이 닿을 가능성도 있어. 고마운 마음은 전하되, 받기도 전에 큰돈이 들어올 거라고 기대해서 쓰지는 말아줘. | A familiar connection could bring money or a gift today. Help from family or someone you've known a long time may ease a necessary expense. If money was exchanged before, you could hear from that person again. Show your thanks, but don't spend in expectation of a large sum before receiving it. | なじみのある人との縁を通じて、お金や贈り物を受け取るかもしれません。家族や長く知っている人の助けが、必要な出費を軽くしてくれそうです。以前やり取りしていたお金があるなら、また連絡がつながる可能性もあります。感謝は伝えても、受け取る前から大金が入ると期待して使うのは控えましょう。 |
 
 ## cups.07 · 역방향
 
 내부 ID: `money.cups.07.reversed`
 
-카드 의미: 환상에서 현실적인 선택으로 좁혀가는 의지. 원전의 결심·목적을 채택하며 단순 흉으로 뒤집지 않음.
+카드 의미: 의지, 결정, 목표를고름
 
-분야 해석: 보수조건이명확해짐
+분야 해석: 헛된 지출이 줄어 손에 남는 돈이 늘 수 있어.
 
-관찰: 막연히 들었던 수고비나 판매 금액이 구체적으로 정해질 수 있어. / 실제로 받을 돈과 드는 비용이 나뉘면서 어떤 제안이 실속 있는지 보일 거야. / 액수는 작아도 언제 받을지 정해진 제안이 더 마음에 들 거야.
+관찰: 의지 / 결정 / 목표를고름
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 막연히 들었던 수고비나 판매 금액이 구체적으로 정해질 수 있어. 실제로 받을 돈과 드는 비용이 나뉘면서 어떤 제안이 실속 있는지 보일 거야. 액수는 작아도 언제 받을지 정해진 제안이 더 마음에 들 거야. 합의한 보수와 지급 날짜는 짧게 남겨둬. 그동안 고민만 하던 돈 이야기를 정리하고 필요한 지출을 판단하기 쉬워질 거야. | A loosely discussed fee or sale price could finally become specific. Separating what you'll receive from what it'll cost may show which offer is worthwhile. Even a smaller amount may appeal more if you know when you'll be paid. Keep a short record of the agreed payment and date. Settling a money discussion that's occupied your thoughts could make necessary spending easier to judge. | 漠然と聞いていた謝礼や売却額が、具体的に決まりそうです。受け取るお金と必要な費用が分かれ、どの提案が得か見えてくるでしょう。少額でも、いつ受け取れるか決まっている話のほうが魅力的に感じられそうです。合意した報酬と支払日を短く残しておきましょう。考えてばかりだったお金の話がまとまり、必要な出費を判断しやすくなりそうです。 |
+| 분야 풀이 | 헛된 지출이 줄어 손에 남는 돈이 늘 수 있어. 여러 돈 거래를 두고 고민했다면 이익이 없는 제안을 가려내기 좋은 날이야. 생각했던 큰돈에는 못 미쳐도 실제로 받을 금액은 분명해질 수 있어. 수익이 터무니없이 큰 제안보다 얼마를 받는지 확실한 거래를 골라줘. | Less wasteful spending could leave you with more money. If you've been weighing several transactions, it's a good day to rule out offers with no profit. The amount you can actually receive may become clearer, even if it falls short of the large sum you imagined. Choose a definite payment over an offer of implausibly high returns. | 無駄な出費が減り、手元に残るお金が増えそうです。複数の取引で迷っていたなら、利益の出ない提案を見分けやすい日です。思い描いた大金には届かなくても、実際に受け取る額ははっきりするかもしれません。途方もない利益をうたう提案より、受け取る額が確かな取引を選びましょう。 |
 
 ## cups.07 · 정방향
 
 내부 ID: `money.cups.07.upright`
 
-카드 의미: 매력적인 상상과 많은 선택지가 실제 판단을 흐림. 원전의 환상·상상을 선택의 풍부함과 불명확함으로 응용.
+카드 의미: 상상, 매력적인가능성, 실체의불확실성
 
-분야 해석: 그럴듯한수입제안
+분야 해석: 큰 이익을 말하는 제안은 많아도 실제로 받을 돈은 불분명할 수 있어.
 
-관찰: 수고에 비해 보상이 커 보이는 이야기를 여러 개 들을 수 있어. / 소개된 금액에는 실제 걸리는 시간이나 필요한 비용이 빠져 있을 수 있는 날이야. / 자세히 물어보면 돈을 받는 시점이 늦거나 생각보다 할 일이 많다는 걸 알게 될 거야.
+관찰: 상상 / 매력적인가능성 / 실체의불확실성
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 수고에 비해 보상이 커 보이는 이야기를 여러 개 들을 수 있어. 소개된 금액에는 실제 걸리는 시간이나 필요한 비용이 빠져 있을 수 있는 날이야. 자세히 물어보면 돈을 받는 시점이 늦거나 생각보다 할 일이 많다는 걸 알게 될 거야. 참여한다고 답하기 전에 보수와 맡을 일을 글로 확인해봐. 그럴듯한 숫자에 바로 움직이지 않으면 내게 맞지 않는 제안을 걸러낼 수 있어. | You may hear several offers that promise generous pay for little effort. The quoted amount could omit the time involved or the costs you'd need to cover. Further questions might reveal a later payment date or more work than you expected. Confirm the pay and duties in writing before agreeing. Avoiding a quick reaction to an attractive figure can help you filter out unsuitable offers. | 手間のわりに報酬が大きそうな話を、いくつか聞くかもしれません。紹介された金額に、実際にかかる時間や費用が含まれていないこともありそうです。詳しく尋ねると、支払いが遅かったり予想より作業が多かったりすると分かるでしょう。参加すると答える前に、報酬と担当する仕事を文章で確かめてみてください。魅力的な数字だけですぐ動かなければ、合わない提案を見分けられそうです。 |
+| 분야 풀이 | 큰 이익을 말하는 제안은 많아도 실제로 받을 돈은 불분명할 수 있어. 어느 쪽이든 쉽게 벌 것처럼 보여 판단을 서두르기 쉬운 날이야. 여러 곳에 조금씩 돈을 넣다 보면 생각보다 큰 금액이 빠져나갈 수 있어. 오늘은 상상한 수익을 가진 돈처럼 여기지 않는 게 좋아. | There may be many offers of large profits while the money you'd actually receive remains unclear. Each option could look easy to earn from, tempting you to decide too quickly today. Small amounts put into several places could add up to more than expected. Don't treat imagined returns as money you already have. | 大きな利益をうたう提案は多くても、実際に受け取れるお金は曖昧かもしれません。どれも簡単に稼げそうに見え、判断を急ぎやすい日です。いろいろな所へ少しずつお金を出すうちに、予想より多額になりそうです。今日は想像した利益を、すでに持っているお金と考えないほうがよいでしょう。 |
 
 ## cups.08 · 역방향
 
 내부 ID: `money.cups.08.reversed`
 
-카드 의미: 떠날지 머물지 망설이거나 만족을 다시 발견함. 원전 역방향의 기쁨과 현대적 변화 두려움 중 재검토의 갈림을 선택.
+카드 의미: 떠남의두려움, 머무름과변화사이의망설임
 
-분야 해석: 계속드는비용과아쉬움
+분야 해석: 끝내지 못한 금전 약속이 계속 부담으로 남을 수 있어.
 
-관찰: 그만 쓰려던 물건이나 이용처에 다시 돈을 내고 싶어질 수 있어. / 이미 쓴 비용이 아까워 남은 돈도 더 보태야 하나 망설이게 될 거야. / 실제 이용한 시간을 돌아보면 계속 쓸 부분과 이제 필요 없는 부분이 나뉠 수 있어.
+관찰: 떠남의두려움 / 머무름과변화사이의망설임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 그만 쓰려던 물건이나 이용처에 다시 돈을 내고 싶어질 수 있어. 이미 쓴 비용이 아까워 남은 돈도 더 보태야 하나 망설이게 될 거야. 실제 이용한 시간을 돌아보면 계속 쓸 부분과 이제 필요 없는 부분이 나뉠 수 있어. 새로 결제하기 전에 이번에 얼마나 이용할지 먼저 따져봐. 예전만큼 크게 돈을 쓰지 않고 필요한 부분만 고르는 방법이 보일 수 있어. | You might feel tempted to spend again on an item or place you'd decided to stop using. The money already spent could make you wonder whether to add more. Looking at how much you actually use it may reveal what to keep and what you no longer need. Before paying again, consider how much you'll use it this time. You may find a way to choose only what you need without spending as much as before. | 使うのをやめようとした品や場所に、またお金を出したくなるかもしれません。すでに払った分が惜しく、さらに追加すべきか迷いそうです。実際に利用した時間を振り返れば、続けて使う部分と不要な部分を分けられるでしょう。また支払う前に、今回はどれくらい使うか考えてみてください。以前ほど大きく使わず、必要なところだけ選ぶ方法が見つかりそうです。 |
+| 분야 풀이 | 끝내지 못한 금전 약속이 계속 부담으로 남을 수 있어. 얻는 돈은 적은데 익숙하다는 이유로 지출을 이어가기 쉬운 날이야. 손해를 인정하기 싫어서 기다리면 새로 필요한 돈까지 부족해질 수 있어. 돈을 더 보태기 전에 앞으로도 계속 내야 하는지 먼저 살펴줘. | An unfinished financial commitment could remain a burden. You may keep spending from habit while receiving little today. Waiting because you don't want to accept a loss could leave you short for a new need. Before adding money, check whether you'll have to keep paying in future too. | 終えられていないお金の取り決めが、負担として残りそうです。得られる額が少なくても、慣れているからと出費を続けやすい日です。損を認めたくなくて待ち続けると、新たに必要なお金まで足りなくなるかもしれません。追加する前に、今後も払い続ける必要があるかを先に見ましょう。 |
 
 ## cups.08 · 정방향
 
 내부 ID: `money.cups.08.upright`
 
-카드 의미: 겉으로 갖춰져 있어도 더는 만족하지 않는 것을 떠나는 선택. 원전의 쇠퇴·중요성 약화를 자발적인 우선순위 전환으로 사용.
+카드 의미: 의미를잃은것에서떠남, 관심의쇠퇴, 다른선택
 
-분야 해석: 안쓰는물건처분
+분야 해석: 이익이 적은 일을 정리하면서 돈이 나가는 것을 줄일 수 있어.
 
-관찰: 돈을 들였어도 쓰지 않는 물건을 정리하고 싶어지는 날이야. / 예전에는 꼭 필요했지만 지금은 보관만 하는 물건이 눈에 들어올 거야. / 찾는 사람에게 넘길 기회가 생기거나 중고로 팔 수 있는 금액을 알게 될 수도 있어.
+관찰: 의미를잃은것에서떠남 / 관심의쇠퇴 / 다른선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돈을 들였어도 쓰지 않는 물건을 정리하고 싶어지는 날이야. 예전에는 꼭 필요했지만 지금은 보관만 하는 물건이 눈에 들어올 거야. 찾는 사람에게 넘길 기회가 생기거나 중고로 팔 수 있는 금액을 알게 될 수도 있어. 처분하려는 물건은 현재 상태에 맞는 가격부터 확인해봐. 샀던 값 전부를 받지 못해도 자리를 비우고 일부 돈을 돌려받는 후련함이 남을 수 있어. | You may want to clear out things you paid for but no longer use. Items you once needed but now only store could catch your attention. Someone may be looking for them, or you could discover what they'd sell for secondhand. Check a price that reflects their current condition before selling. Even without recovering the full purchase price, freeing space and getting some money back could feel relieving. | お金をかけても使っていない品を、手放したくなりそうです。昔は必要でも今はしまっているだけのものが、目に入るでしょう。探している人に譲る機会があったり、中古で売れる値段が分かったりするかもしれません。手放す品は、今の状態に合う価格から確かめてみてください。買った金額を全部取り戻せなくても、場所が空いて少しお金も戻り、すっきりした気分になれそうです。 |
+| 분야 풀이 | 이익이 적은 일을 정리하면서 돈이 나가는 것을 줄일 수 있어. 오래 돈을 들였더라도 앞으로 계속 유지할 값어치가 적다면 멈춰볼 만한 날이야. 정리하는 과정에서는 당장의 수입이 줄거나 아쉬움이 남을 수 있어. 더 넣어야 하는 돈까지 생각해서 결정하면 같은 부담을 오래 끌고 가지 않을 수 있어. | Ending something with little profit could reduce outgoing costs. Even after paying into it for a long time, stopping may be worthwhile if it offers little value from now on. Ending it could reduce immediate income or leave some disappointment. Considering the extra money it would require may keep the same burden from dragging on. | 利益の少ないことを終えることで、出ていくお金を減らせそうです。長くお金をかけていても、続ける価値があまりないなら、やめることを考えてよい日です。その途中では、当面の収入が減ったり、心残りがあったりするかもしれません。追加で必要なお金まで考えて決めれば、同じ負担を長引かせずに済みそうです。 |
 
 ## cups.09 · 역방향
 
 내부 ID: `money.cups.09.reversed`
 
-카드 의미: 원했던 것을 얻어도 만족이 기대에 미치지 못함. 원전의 다양한 역해석 중 현대의 겉만 충족된 상태를 선택.
+카드 의미: 겉의성취와내면만족의차이, 불완전함, 과도한기대
 
-분야 해석: 사고난뒤의아쉬움
+분야 해석: 돈을 쓰고도 생각만큼 만족스럽지 않을 수 있어.
 
-관찰: 큰마음 먹고 쓴 돈에 비해 만족이 짧게 느껴질 수 있어. / 기대했던 물건이 손에 들어와도 다른 제품이나 더 좋은 가격이 눈에 들어올 거야. / 나를 위한 보상이라며 덧붙인 소액 결제가 생각보다 커질 수 있는 날이야.
+관찰: 겉의성취와내면만족의차이 / 불완전함 / 과도한기대
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 큰마음 먹고 쓴 돈에 비해 만족이 짧게 느껴질 수 있어. 기대했던 물건이 손에 들어와도 다른 제품이나 더 좋은 가격이 눈에 들어올 거야. 나를 위한 보상이라며 덧붙인 소액 결제가 생각보다 커질 수 있는 날이야. 오늘은 추가 구매를 멈추고 이미 산 물건부터 실제로 써봐. 광고에서 기대한 즐거움과 매일 필요한 기능이 다르다는 걸 알게 될 수 있어. | Satisfaction may fade sooner than expected after a major treat. Even once you have the item, another version or a better price could catch your eye. Small extras justified as a reward may add up more than you'd intended. Pause additional purchases and actually use what you've already bought. You may notice how the enjoyment promised in an advert differs from the function you need every day. | 思い切った出費のわりに、満足が長く続かないかもしれません。欲しかった品が手元に来ても、別の商品やより安い価格が気になりそうです。自分へのご褒美として足した少額の支払いが、思ったより増えやすい日です。今日は追加で買うのをやめ、すでに買ったものを実際に使ってみましょう。広告で期待した楽しさと、毎日必要な機能が違うと分かるかもしれません。 |
+| 분야 풀이 | 돈을 쓰고도 생각만큼 만족스럽지 않을 수 있어. 갖고 싶던 것을 사도 다른 것이 다시 눈에 들어와 지출이 이어지기 쉬운 날이야. 수입이 생기더라도 기대한 금액보다 적다고 느껴 아쉬움이 남을 수 있어. 부족한 기분을 비싼 물건으로 채우려 하지는 않는 게 좋아. | Spending may not feel as satisfying as you expected. Even after buying what you wanted, something else could catch your eye and keep you spending today. New income may also seem smaller than you hoped and leave disappointment. It's better not to try filling that sense of lack with an expensive purchase. | お金を使っても、思ったほど満足できないかもしれません。欲しかった物を買っても、また別の物が目に入り、出費が続きやすい日です。収入があっても、期待した額より少ないと感じ、物足りなさが残りそうです。満たされない気持ちを、高価な物で埋めようとしないほうがよいでしょう。 |
 
 ## cups.09 · 정방향
 
 내부 ID: `money.cups.09.upright`
 
-카드 의미: 자신이 원한 만족을 누림. 원전의 충족·안락을 외부 인정 없이 즐기는 경험으로 해석.
+카드 의미: 만족, 성취, 신체적편안함, 누림
 
-분야 해석: 자기보상과소액이득
+분야 해석: 바라던 돈이 들어와 만족하기 좋은 날이야.
 
-관찰: 기대했던 수고비나 작은 보상을 받아 기분이 좋을 수 있는 날이야. / 사고 싶던 물건을 무리 없는 금액으로 구하거나 나를 위한 소비에서 만족을 느낄 거야. / 다른 사람에게 보여주기 위한 것보다 평소 꼭 쓰고 싶던 물건이 더 반갑게 다가올 수 있어.
+관찰: 만족 / 성취 / 신체적편안함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 수고비나 작은 보상을 받아 기분이 좋을 수 있는 날이야. 사고 싶던 물건을 무리 없는 금액으로 구하거나 나를 위한 소비에서 만족을 느낄 거야. 다른 사람에게 보여주기 위한 것보다 평소 꼭 쓰고 싶던 물건이 더 반갑게 다가올 수 있어. 받은 돈을 전부 쓰기보다 필요한 금액을 남기고 작은 즐거움만 골라봐. 내 형편 안에서 누린 만족이 남아 돈을 어떻게 쓸지 정하기 한결 쉬워질 거야. | An expected fee or small reward could be a welcome boost. You may find something you've wanted at an affordable price or enjoy spending a little on yourself. An item you've genuinely wanted to use might appeal more than something meant to impress others. Set aside what you need before choosing a small treat from the money you receive. Enjoying something within your means could make future spending decisions feel easier. | 期待していた謝礼や小さな報酬を受け取り、気分がよくなるかもしれません。欲しかった品を無理のない金額で買えたり、自分のための出費に満足できたりしそうです。人に見せるためのものより、普段から使いたかった品が魅力的に映るでしょう。受け取ったお金は全部使わず、必要な分を残して小さな楽しみを選んでみてください。身の丈に合った満足が残り、お金の使い方も決めやすくなりそうです。 |
+| 분야 풀이 | 바라던 돈이 들어와 만족하기 좋은 날이야. 기다리던 보수를 받거나 뜻밖의 작은 이득을 얻을 수 있어. 돈을 모아 사고 싶었던 것이 있다면 이제 마련할 수 있을지도 몰라. 갖고 싶었던 것을 손에 넣는 기쁨이 있어도 필요 이상으로 더 사지만 말아줘. | Money you've hoped for could arrive and bring satisfaction today. You may receive awaited pay or an unexpected small gain. Something you've saved to buy might now be within reach. Enjoy finally getting what you wanted without buying more than you need. | 望んでいたお金が入り、満足しやすい日です。待っていた報酬や、思いがけない小さな利益を得られるかもしれません。貯金をして買いたかった物があれば、そろそろ手に入れられそうです。欲しかった物を買えてうれしくても、必要以上に買い足すのは控えましょう。 |
 
 ## cups.10 · 역방향
 
 내부 ID: `money.cups.10.reversed`
 
-카드 의미: 겉으로 조화로워 보여도 기대와 실제 필요가 다름. 원전의 겉 휴식과 내적 불일치를 완벽한 행복의 압박으로 응용.
+카드 의미: 가까운관계의불화, 기대차이, 겉의평화와속의불편
 
-분야 해석: 가족모임과공동비용
+분야 해석: 생활비나 가족과 관련된 지출 때문에 부담이 늘 수 있어.
 
-관찰: 가족이나 가까운 사람과 쓸 돈이 예상보다 늘어날 수 있어. / 누군가는 작은 비용이라고 생각했지만 다른 사람에게는 부담일 수 있는 날이야. / 선물이나 식사비를 누가 낼지 정하지 않아 마지막에 눈치를 보는 순간이 생길 거야.
+관찰: 가까운관계의불화 / 기대차이 / 겉의평화와속의불편
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가족이나 가까운 사람과 쓸 돈이 예상보다 늘어날 수 있어. 누군가는 작은 비용이라고 생각했지만 다른 사람에게는 부담일 수 있는 날이야. 선물이나 식사비를 누가 낼지 정하지 않아 마지막에 눈치를 보는 순간이 생길 거야. 돈을 쓰기 전에 함께 부담할 금액을 편하게 물어봐. 미리 나눈 말 덕분에 누구 한 사람만 무리하게 내는 일을 피할 수 있어. | Spending with family or someone close may rise beyond what you expected. A cost one person considers small could weigh on another. Not agreeing on who pays for a gift or meal may leave an awkward moment at the end. Ask casually about sharing the cost before spending. A conversation in advance can keep any one person from paying more than they can comfortably afford. | 家族や身近な人と使うお金が、予想より増えるかもしれません。誰かには少額でも、別の人には負担になりそうです。贈り物や食事代を誰が出すか決めず、最後に顔色をうかがう場面もあるでしょう。お金を使う前に、どれくらい分担するか気軽に尋ねてみてください。先に話しておけば、誰か一人だけが無理に払うことを避けられそうです。 |
+| 분야 풀이 | 생활비나 가족과 관련된 지출 때문에 부담이 늘 수 있어. 함께 쓰는 돈의 용도를 두고 생각이 달라 갈등이 생기기 쉬운 날이야. 모두를 만족시키려다가 자신의 형편보다 많이 내게 될 수도 있어. 평소보다 큰돈이 필요한 일이라면 혼자 약속하기 전에 함께 이야기해줘. | Living costs or family expenses could increase your burden. Different views about how shared money should be used may cause conflict today. Trying to please everyone could leave you paying more than you can afford. Talk to the others before committing to a larger expense than usual. | 生活費や家族に関する出費で、負担が増えるかもしれません。一緒に使うお金の用途で考えが違い、もめやすい日です。みんなに満足してもらおうとして、無理なく払える額を超えることもありそうです。普段より多くのお金が必要なら、一人で約束する前に、一緒に話し合いましょう。 |
 
 ## cups.10 · 정방향
 
 내부 ID: `money.cups.10.upright`
 
-카드 의미: 함께 지내는 만족과 소속감. 원전의 마음의 충족·친교를 특정 가족 형태 없이 공유하는 일상의 편안함으로 사용.
+카드 의미: 마음의평온, 사랑과우정의충만, 함께하는안정
 
-분야 해석: 가까운사이의물질적도움
+분야 해석: 생활에 필요한 돈이 마련되어 마음이 놓일 수 있는 날이야.
 
-관찰: 가까운 사람에게 필요한 물건을 받거나 함께 쓸 비용을 덜 수 있어. / 혼자 사려던 것을 같이 마련하면서 부담을 나누게 될 수 있는 날이야. / 가족이나 오래된 지인이 베푼 대접이 반가워 큰돈 없이도 넉넉한 시간을 보낼 거야.
+관찰: 마음의평온 / 사랑과우정의충만 / 함께하는안정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사람에게 필요한 물건을 받거나 함께 쓸 비용을 덜 수 있어. 혼자 사려던 것을 같이 마련하면서 부담을 나누게 될 수 있는 날이야. 가족이나 오래된 지인이 베푼 대접이 반가워 큰돈 없이도 넉넉한 시간을 보낼 거야. 공동으로 사는 물건은 누가 어떻게 사용할지만 미리 이야기해둬. 서로 필요한 것을 나눈 덕분에 돈을 쓴 뒤에도 기분 좋은 만족이 남을 수 있어. | Someone close might give you an item you need or help reduce a shared cost. Something you planned to buy alone could become a joint purchase with the expense divided. A meal offered by family or an old acquaintance may let you enjoy yourself without spending much. For a shared purchase, discuss who will use it and how before buying. Sharing what you need could leave you happy with the money spent. | 身近な人から必要な品をもらったり、共同の費用を減らせたりしそうです。一人で買うつもりのものを一緒にそろえ、負担を分けることもあるでしょう。家族や古い知人からのごちそうがうれしく、大きな出費なしに満たされた時間を過ごせそうです。共同で買うものは、誰がどう使うか先に話しておきましょう。必要なものを分かち合えたおかげで、支払った後にも心地よい満足が残りそうです。 |
+| 분야 풀이 | 생활에 필요한 돈이 마련되어 마음이 놓일 수 있는 날이야. 가족이나 가까운 사람과 함께하는 경제적인 약속도 무리 없이 이어지기 좋아. 함께 모아둔 돈이 있다면 필요한 살림을 마련하고도 생활비에 여유가 남을 수 있어. 큰 횡재보다 일상을 편하게 지탱해주는 돈에서 만족을 얻을 수 있어. | Having the money for everyday needs could bring relief today. Financial commitments shared with family or people close to you are likely to continue without strain. Joint savings may cover necessary household items and still leave extra for living costs. Money that comfortably supports daily life could be more satisfying than a large windfall. | 生活に必要なお金が用意でき、安心できそうです。家族や身近な人とのお金の約束も、無理なく続きやすい日です。一緒に貯めたお金があれば、暮らしに必要な物を買った後も、生活費に余裕が残るかもしれません。大きな臨時収入より、普段の暮らしを楽に支えるお金に、満足できそうです。 |
 
 ## cups.11 · 역방향
 
 내부 ID: `money.cups.11.reversed`
 
-카드 의미: 표현이 서툴거나 상상이 실제 반응을 앞섬. 원전의 매혹·유혹을 작은 감정의 과잉 해석으로 현대화.
+카드 의미: 서투른 감정 표현, 정서적 미성숙, 창의성 억제
 
-분야 해석: 예쁜물건의충동구매
+분야 해석: 기분에 따라 쓴 돈 때문에 후회가 남기 쉬운 날이야.
 
-관찰: 귀엽거나 예쁜 물건이 눈에 들어와 생각 없던 돈을 쓰기 쉬운 날이야. / 가격이 작다고 여러 개 고르면 합계는 예상보다 커질 수 있어. / 선물하려던 물건이 상대 취향과 달라 교환할지 고민하는 일도 생길 수 있어.
+관찰: 서투른 감정 표현 / 정서적 미성숙 / 창의성 억제
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 귀엽거나 예쁜 물건이 눈에 들어와 생각 없던 돈을 쓰기 쉬운 날이야. 가격이 작다고 여러 개 고르면 합계는 예상보다 커질 수 있어. 선물하려던 물건이 상대 취향과 달라 교환할지 고민하는 일도 생길 수 있어. 결제 전에는 내가 쓰거나 상대가 쓸 물건인지 한 번만 확인해봐. 겉모습만 보고 고른 것을 빼면 나중에 남는 아쉬움을 줄일 수 있어. | Cute or attractive items could tempt you into spending you hadn't planned. Choosing several because each seems cheap may produce a larger total than expected. A gift might turn out not to suit the recipient, leaving you considering an exchange. Before paying, check whether you or the recipient will actually use it. Removing choices based on looks alone could reduce regrets later. | かわいい品やきれいなものに目を引かれ、予定外にお金を使いそうです。一つが安いからといくつも選ぶと、合計は予想より大きくなるかもしれません。贈るつもりの品が相手の好みと違い、交換を考えることもあるでしょう。支払う前に、自分か相手が実際に使うものか一度確かめてみてください。見た目だけで選んだものを外せば、後の残念な気持ちを減らせそうです。 |
+| 분야 풀이 | 기분에 따라 쓴 돈 때문에 후회가 남기 쉬운 날이야. 귀엽거나 마음에 든다는 이유만으로 산 물건이 생각보다 필요 없을 수 있어. 가볍게 한 돈 약속도 실제로 지키려면 부담이 될 수 있어. 갖고 싶은 마음이 급해질 때는 결제를 조금 미뤄봐. | Spending according to your mood could leave regret today. Something bought just because it's cute or appealing may be less necessary than you thought. Even a casual promise involving money could be burdensome to keep. Wait a little before paying when the urge to have something grows strong. | 気分に任せた出費を、後悔しやすい日です。かわいい、気に入ったというだけで買った物は、思ったほど必要でないかもしれません。軽い気持ちでしたお金の約束も、実際に守るとなると負担になりそうです。すぐに欲しくなったときは、支払いを少し待ちましょう。 |
 
 ## cups.11 · 정방향
 
 내부 ID: `money.cups.11.upright`
 
-카드 의미: 감수성과 호기심이 전하는 작은 제안. 원전의 메시지·생각과 현대의 순수한 표현을 나이·성별 없는 태도로 사용.
+카드 의미: 새 감정의 표현, 호기심, 창의적 시작
 
-분야 해석: 정성이담긴선물
+분야 해석: 작은 선물이나 반가운 제안으로 금전적인 보탬을 얻을 수 있어.
 
-관찰: 작지만 취향에 맞는 선물이나 간식을 받을 수 있는 날이야. / 내가 전에 했던 말을 기억해 챙겨준 물건이라 값보다 마음이 더 반갑게 느껴질 거야. / 취미로 만든 것을 보여주었다가 어디서 살 수 있냐는 질문을 받는 일도 있을 수 있어.
+관찰: 새 감정의 표현 / 호기심 / 창의적 시작
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작지만 취향에 맞는 선물이나 간식을 받을 수 있는 날이야. 내가 전에 했던 말을 기억해 챙겨준 물건이라 값보다 마음이 더 반갑게 느껴질 거야. 취미로 만든 것을 보여주었다가 어디서 살 수 있냐는 질문을 받는 일도 있을 수 있어. 답례가 하고 싶다면 비싼 것보다 상대가 좋아할 만한 작은 것을 골라봐. 부담 없는 선물과 감사가 오가며 돈을 많이 쓰지 않아도 넉넉한 기분이 남을 수 있어. | A small gift or snack that suits your taste could come your way. Its thoughtfulness may matter more than its price because they remembered something you said. Showing something you made as a hobby might even prompt someone to ask where they can buy it. If you'd like to return the kindness, choose something small they'd enjoy rather than something expensive. Simple gifts and thanks could leave you feeling generously treated without much spending. | 小さくても好みに合う贈り物やお菓子をもらうかもしれません。前にした話を覚えて選んでくれたものなら、値段より気持ちがうれしく感じられるでしょう。趣味で作ったものを見せたら、どこで買えるかと聞かれることもありそうです。お返しをしたいなら、高価なものより相手が喜ぶ小さな品を選んでみてください。気軽な贈り物と感謝を交わし、大きく使わなくても豊かな気分が残りそうです。 |
+| 분야 풀이 | 작은 선물이나 반가운 제안으로 금전적인 보탬을 얻을 수 있어. 취미로 만든 것이나 새로 떠올린 아이디어가 수입으로 이어질 가능성도 있는 날이야. 처음이라 금액이 크지는 않아도 뜻밖의 즐거움을 줄 수 있어. 제안을 받았다면 얼마를 받고 무엇을 해주기로 하는지 가볍게 넘기지 말아줘. | A small gift or welcome offer could help financially. Something made as a hobby or a new idea might also bring income today. Even if the amount is small at the start, it could offer unexpected pleasure. If you receive an offer, take seriously the question of how much you'll be paid and what you'll do in return. | 小さな贈り物やうれしい提案が、お金の面で助けになりそうです。趣味で作った物や新しく浮かんだアイデアが、収入につながる可能性もあります。最初は大きな金額でなくても、思いがけない喜びがあるでしょう。提案を受けたら、いくらもらい、何を引き受けるのかを、曖昧に済ませないでください。 |
 
 ## cups.12 · 역방향
 
 내부 ID: `money.cups.12.reversed`
 
-카드 의미: 아름다운 약속에 비해 실행이 흔들리거나 기분에 따라 판단함. 원전의 속임을 타인의 악의 대신 말과 행동의 차이로 사용.
+카드 의미: 매력적 말과 실행의 차이, 변덕, 지키지 않는 약속
 
-분야 해석: 구두보수의불확실함
+분야 해석: 듣기 좋았던 돈 약속이 기대와 다르게 끝날 수 있어.
 
-관찰: 좋은 보수를 약속한 제안에서 실제 조건이 늦게 정해질 수 있어. / 말로 들은 금액에는 내 부담으로 준비할 비용이 포함되지 않았을 수 있는 날이야. / 확인해보면 지급 시점이 예상보다 멀어 당장 쓸 돈으로 생각하기는 어려울 거야.
+관찰: 매력적 말과 실행의 차이 / 변덕 / 지키지 않는 약속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋은 보수를 약속한 제안에서 실제 조건이 늦게 정해질 수 있어. 말로 들은 금액에는 내 부담으로 준비할 비용이 포함되지 않았을 수 있는 날이야. 확인해보면 지급 시점이 예상보다 멀어 당장 쓸 돈으로 생각하기는 어려울 거야. 일을 시작하기 전에 금액과 받는 날짜를 글로 남겨둬. 서로 기대한 내용이 분명해지면 괜히 먼저 지출할 일을 줄일 수 있어. | The actual terms of an offer promising good pay could take time to settle. The quoted fee may not include expenses you'd have to cover yourself. Checking might reveal a payment date too far away to treat the amount as money available now. Get the sum and payment date in writing before starting work. Clear expectations on both sides can prevent you from spending prematurely. | よい報酬を約束する話でも、実際の条件がなかなか決まらないかもしれません。聞いた金額には、自費で用意するものが含まれていないこともありそうです。確かめると支払いが思ったより先で、すぐ使えるお金とは考えにくいでしょう。仕事を始める前に、金額と受け取る日を文章に残しておきましょう。互いの期待がはっきりすれば、先走った出費を減らせそうです。 |
+| 분야 풀이 | 듣기 좋았던 돈 약속이 기대와 다르게 끝날 수 있어. 주겠다고 한 금액이 줄거나 대답이 계속 바뀌면 돈을 기다리는 시간이 길어질 수 있는 날이야. 호의로 보인 제안에 생각지 못한 비용이 붙을 수도 있어. 상대 말만 믿고 대신 돈을 내거나 비싼 물건을 사겠다고 약속하지는 말아줘. | A pleasing promise about money could end differently from what you hoped. A reduced payment or repeatedly changing answer may keep you waiting longer today. An apparently generous offer could come with an unexpected cost too. Don't pay on someone else's behalf or promise an expensive purchase on their words alone. | うれしく聞こえたお金の約束が、期待と違う結果になるかもしれません。払うと言われた額が減ったり、返事が何度も変わったりすると、待つ時間が長引きそうです。親切に見えた提案に、思わぬ費用が付くこともあります。相手の言葉だけを信じて、代わりに払ったり高価な物を買ったりする約束は控えましょう。 |
 
 ## cups.12 · 정방향
 
 내부 ID: `money.cups.12.upright`
 
-카드 의미: 마음을 담은 초대와 이상을 향한 접근. 원전의 제안·도착을 구체적으로 표현하는 감성적 추진으로 사용.
+카드 의미: 진심 어린 제안, 초대, 감정을 담은 표현
 
-분야 해석: 취향을알아준대접
+분야 해석: 마음에 드는 금전 제안을 받을 수 있는 날이야.
 
-관찰: 좋아하는 것을 함께 즐기자는 초대나 기분 좋은 대접이 있을 수 있어. / 가격보다 마음에 들었던 음식이나 경험이 기억에 남는 날이야. / 취미나 감각을 좋게 본 사람이 작은 일을 부탁하며 사례를 이야기할 수도 있어.
+관찰: 진심 어린 제안 / 초대 / 감정을 담은 표현
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋아하는 것을 함께 즐기자는 초대나 기분 좋은 대접이 있을 수 있어. 가격보다 마음에 들었던 음식이나 경험이 기억에 남는 날이야. 취미나 감각을 좋게 본 사람이 작은 일을 부탁하며 사례를 이야기할 수도 있어. 제안을 받았다면 실제로 드는 비용과 받을 금액은 먼저 물어봐. 반가운 마음과 돈 이야기를 분명히 나누면 서로 부담 없이 즐거운 거래를 할 수 있어. | An invitation to enjoy something you like or a pleasant treat may arrive. The food or experience you love could matter more in memory than its price. Someone who admires your hobby or taste might also request a small job and discuss a fee. Ask first about the actual costs and what you'll be paid if you're offered something. Keeping the pleasure of the offer separate from its financial details can make the exchange enjoyable without pressure. | 好きなことを一緒に楽しもうという誘いや、うれしいごちそうがありそうです。値段よりも気に入った料理や体験が、記憶に残る日です。趣味やセンスをよく思う人から、小さな仕事と謝礼の話が出るかもしれません。提案を受けたら、実際の費用と受け取る金額は先に尋ねてみてください。うれしい気持ちとお金の話を分ければ、互いに負担なく楽しめる取引になりそうです。 |
+| 분야 풀이 | 마음에 드는 금전 제안을 받을 수 있는 날이야. 자신이 하고 싶던 일에 보수가 붙거나 좋은 조건으로 거래할 기회가 생길 수 있어. 상대가 먼저 호의를 보이면서 부담하던 비용을 덜 수도 있어. 분위기만 좋게 끝내지 말고 주고받을 금액까지 이야기하면 실속을 챙기기 좋아. | A financial offer you like could come your way today. Something you've wanted to do may offer pay, or you could get a chance to trade on good terms. If the other person offers to help, it could reduce a cost you've been covering. Discuss the money to be exchanged as well as enjoying the conversation, so you gain something practical. | お金に関して、魅力的な提案が届くかもしれません。やりたかったことに報酬がついたり、よい条件で取引する機会ができたりしそうです。相手が先に好意を示し、負担していた費用を軽くしてくれる可能性もあります。よい雰囲気だけで終えず、支払う額や受け取る額まで話せば、実際の利益につなげやすいでしょう。 |
 
 ## cups.13 · 역방향
 
 내부 ID: `money.cups.13.reversed`
 
-카드 의미: 타인의 기분을 지나치게 받아들이거나 자신의 필요를 잊음. 원전의 불신과 다른 현대적 감정 경계의 독해를 채택.
+카드 의미: 과도한 돌봄, 예민한 반응, 자기 필요 소홀
 
-분야 해석: 거절못한금전부탁
+분야 해석: 남을 챙기느라 자신의 돈이 부족해지기 쉬운 날이야.
 
-관찰: 돈이나 물건을 빌려달라는 부탁에 쉽게 거절하기 어려울 수 있어. / 사정을 듣다 보면 원래 쓰려던 돈까지 내어줄까 고민하게 될 거야. / 조금씩 대신 낸 비용이 쌓여 내 생활에 필요한 금액이 빠듯해질 수 있는 날이야.
+관찰: 과도한 돌봄 / 예민한 반응 / 자기 필요 소홀
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돈이나 물건을 빌려달라는 부탁에 쉽게 거절하기 어려울 수 있어. 사정을 듣다 보면 원래 쓰려던 돈까지 내어줄까 고민하게 될 거야. 조금씩 대신 낸 비용이 쌓여 내 생활에 필요한 금액이 빠듯해질 수 있는 날이야. 도와주기 전에 지금 내가 부담할 수 있는 금액부터 확인해봐. 전부 대신하지 않아도 다른 방법으로 보탤 일이 있다는 걸 알게 될 수 있어. | Saying no to a request to borrow money or an item may feel difficult. Their situation could make you consider giving money you had already earmarked for something else. Small costs covered for others may add up and leave your own needs tight. Check what you can currently afford before helping. You might find another way to contribute without covering everything. | お金や品を貸してほしいという頼みを、断りにくく感じるかもしれません。事情を聞くうちに、使う予定のお金まで出そうか迷いそうです。少しずつ立て替えた費用が増え、暮らしに必要な分が厳しくなることもあるでしょう。助ける前に、今出せる金額を確かめてみてください。すべて肩代わりしなくても、別の形で手伝えることが分かりそうです。 |
+| 분야 풀이 | 남을 챙기느라 자신의 돈이 부족해지기 쉬운 날이야. 부탁을 거절하지 못하거나 미안한 마음에 더 내다 보면 필요한 생활비가 줄 수 있어. 좋은 마음으로 쓴 돈이어도 나중에는 부담과 서운함이 함께 남기 쉬워. 도울 수 없는 금액은 처음부터 솔직히 말하는 게 좋아. | Looking after others could leave you short of money today. Difficulty refusing requests or paying extra out of guilt may reduce what you need for living costs. Even well-meant spending could later bring both pressure and resentment. Be honest from the start about an amount you can't give. | 人の世話にお金を使い、手元が苦しくなりやすい日です。頼みを断れなかったり、申し訳なくて多く払ったりするうちに、必要な生活費が減るかもしれません。善意の出費でも、後には負担と不満が残りがちです。出せない金額は、最初から正直に伝えましょう。 |
 
 ## cups.13 · 정방향
 
 내부 ID: `money.cups.13.upright`
 
-카드 의미: 자기 감정을 알아차리며 타인의 마음을 듣는 돌봄. 궁정 인물은 특정 여성 아닌 공감적 태도로 해석.
+카드 의미: 세심한 공감, 돌봄, 자기 감정 이해
 
-분야 해석: 필요를알아준도움
+분야 해석: 필요할 때 따뜻한 도움을 받아 돈 걱정을 덜 수 있어.
 
-관찰: 필요한 것을 기억해준 사람에게 작은 선물이나 도움을 받을 수 있어. / 값비싼 물건이 아니어도 지금 쓰려던 것이어서 반가울 거야. / 가까운 사람의 사정을 듣고 돈보다 갖고 있는 물건으로 도울 방법이 보일 수 있어.
+관찰: 세심한 공감 / 돌봄 / 자기 감정 이해
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 필요한 것을 기억해준 사람에게 작은 선물이나 도움을 받을 수 있어. 값비싼 물건이 아니어도 지금 쓰려던 것이어서 반가울 거야. 가까운 사람의 사정을 듣고 돈보다 갖고 있는 물건으로 도울 방법이 보일 수 있어. 도움을 주고받을 때는 무엇이 실제로 필요한지 먼저 물어봐. 마음과 쓸모가 함께 전해져 크게 지출하지 않고도 만족스러운 교류를 할 수 있어. | Someone who remembers what you need could offer a small gift or help. Even if it isn't expensive, something you were about to use may be especially welcome. Hearing a close person's circumstances might reveal a way to help with an item you own rather than money. Ask what's actually needed when giving or receiving help. An exchange that is both thoughtful and useful could feel satisfying without a large expense. | 必要なものを覚えてくれた人から、小さな贈り物や助けを受けられそうです。高価でなくても、ちょうど使いたかったものならうれしいでしょう。親しい人の事情を聞き、お金より持っている品で手伝える方法が見えるかもしれません。助けをやり取りするときは、本当に何が必要か先に尋ねてみてください。気持ちと実用性が伝わり、大きく使わなくても満足できる交流になりそうです。 |
+| 분야 풀이 | 필요할 때 따뜻한 도움을 받아 돈 걱정을 덜 수 있어. 가까운 사람이 형편을 헤아려주거나 꼭 필요했던 것을 선물해줄 수 있는 날이야. 크게 벌어들이기보다는 생활에 보탬이 되는 작은 여유를 얻기 좋아. 도움을 받더라도 이후에 자신이 부담할 조건이 있는지는 차분히 확인해줘. | Kind help at the right time could ease money worries. Someone close may understand your circumstances or give you something you really need today. You're more likely to gain a little help for living costs than a large income. Even when accepting help, calmly check whether you'll have conditions to meet afterwards. | 必要なときに温かな助けがあり、お金の心配が和らぎそうです。身近な人が暮らしの事情をくんでくれたり、ちょうど必要だった物を贈ってくれたりするかもしれません。大きく稼ぐより、暮らしを助ける小さな余裕を得やすい日です。援助を受ける場合も、後から負担する条件がないか、落ち着いて確かめましょう。 |
 
 ## cups.14 · 역방향
 
 내부 ID: `money.cups.14.reversed`
 
-카드 의미: 겉으로 차분해 보여도 감정이 판단을 흔들거나 표현을 억제함. 원전의 기만은 사실 단정 없이 불투명한 대응의 경계로 응용.
+카드 의미: 감정적 통제, 기분에 휘둘리는 판단, 책임 회피
 
-분야 해석: 정때문에애매한돈약속
+분야 해석: 감정이 앞선 돈 거래에서 손해를 보기 쉬운 날이야.
 
-관찰: 정 때문에 금액이나 갚을 날짜를 분명히 말하기 어려울 수 있어. / 상대는 가벼운 도움으로 생각했는데 나는 돌려받을 돈으로 여겨 차이가 생길 거야. / 좋은 분위기에서 한 말이 나중에는 부담으로 남을 수 있는 날이야.
+관찰: 감정적 통제 / 기분에 휘둘리는 판단 / 책임 회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정 때문에 금액이나 갚을 날짜를 분명히 말하기 어려울 수 있어. 상대는 가벼운 도움으로 생각했는데 나는 돌려받을 돈으로 여겨 차이가 생길 거야. 좋은 분위기에서 한 말이 나중에는 부담으로 남을 수 있는 날이야. 돈을 보내기 전에는 빌려주는 것인지 주는 것인지 분명하게 말해줘. 서로 같은 뜻으로 이해하고 나면 감정이 상할 불필요한 여지를 줄일 수 있어. | Affection may make it hard to state an amount or repayment date clearly. They could regard money as a small gift while you expect it back, creating a mismatch. Words spoken in a warm moment may feel burdensome later. Before sending money, say clearly whether it's a loan or a gift. Understanding it the same way can reduce unnecessary room for hurt feelings. | 情があって、金額や返済日をはっきり言いにくいかもしれません。相手は返さなくてよいお金だと思っていても、こちらは貸したつもりで、話が食い違いそうです。和やかなときにした話が、後には負担に感じられることもあるでしょう。送金前に、貸すのか渡すのかをはっきり伝えてください。互いに同じ意味で理解できれば、余計に気持ちを傷つける余地を減らせそうです。 |
+| 분야 풀이 | 감정이 앞선 돈 거래에서 손해를 보기 쉬운 날이야. 기분이 상했다고 더 큰 금액을 부르거나, 상대를 달래려고 돈을 내면 일이 복잡해질 수 있어. 주겠다는 말이 자꾸 달라지는 거래도 기대만큼 이익이 남지 않을 수 있어. 화가 났거나 미안한 마음이 클 때는 큰돈이 걸린 대답을 미뤄줘. | A money decision based on emotion could lead to a loss today. Asking for more money because you're upset or paying to soothe someone else may complicate matters. A deal in which the promised payment keeps changing could also bring less profit than expected. Delay an answer involving a large sum when you're angry or feeling very guilty. | 感情が先に立つ取引では、損をしやすい日です。腹が立ったからと高い金額を要求したり、相手をなだめるために払ったりすると、話が複雑になるかもしれません。支払いの約束が何度も変わる取引も、期待ほど利益が残らない可能性があります。怒りや申し訳なさが強いときは、多額のお金に関わる返事を後にしましょう。 |
 
 ## cups.14 · 정방향
 
 내부 ID: `money.cups.14.upright`
 
-카드 의미: 감정을 억누르지 않고 다루며 균형 있게 대응하는 성숙함. 원전의 책임·친절을 안정적인 판단 태도로 사용.
+카드 의미: 감정 조절, 책임, 공감과 판단의 균형
 
-분야 해석: 차분한금전중재
+분야 해석: 돈 문제를 침착하게 풀어 실속을 지키기 좋은 날이야.
 
-관찰: 가까운 사람과 돈 이야기를 하면서도 감정이 크게 상하지 않을 수 있어. / 갚을 돈이나 나눠 낼 비용에서 의견이 달라도 설명을 듣고 조정할 여지가 보일 거야. / 믿을 만한 사람이 중간에서 합리적인 금액을 제안해줄 수 있는 날이야.
+관찰: 감정 조절 / 책임 / 공감과 판단의 균형
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사람과 돈 이야기를 하면서도 감정이 크게 상하지 않을 수 있어. 갚을 돈이나 나눠 낼 비용에서 의견이 달라도 설명을 듣고 조정할 여지가 보일 거야. 믿을 만한 사람이 중간에서 합리적인 금액을 제안해줄 수 있는 날이야. 고마운 마음과 실제로 낼 수 있는 돈은 나누어 이야기해봐. 서로 지킬 수 있는 약속을 정하며 다음에도 편하게 거래할 신뢰가 남을 수 있어. | A money discussion with someone close may stay calm rather than hurtful. Even differing views on repayment or shared costs could leave room for adjustment once explained. A trusted person might suggest a reasonable figure between you. Separate your gratitude from the money you can actually contribute. Agreeing on promises you can both keep could preserve trust for another comfortable exchange. | 身近な人とお金を話しても、大きく感情を傷つけずに済みそうです。返すお金や分担する費用の意見が違っても、説明を聞けば調整の余地が見えるでしょう。信頼できる人が間に入って、妥当な金額を提案することもありそうです。ありがたい気持ちと実際に出せるお金は、分けて話してみてください。互いに守れる約束を決めれば、次も気楽にやり取りできる信頼が残りそうです。 |
+| 분야 풀이 | 돈 문제를 침착하게 풀어 실속을 지키기 좋은 날이야. 금액을 두고 말이 오가더라도 감정적으로 맞서지 않으면 서로 받아들일 합의를 찾을 수 있어. 경험 있는 사람의 조언이 불필요한 손실을 줄여줄 수도 있어. 급한 마음에 양보하기보다 정당하게 받을 몫을 차분히 이야기해줘. | Handling money calmly could help you avoid losing out today. Even in a discussion over an amount, staying out of an emotional dispute may help you reach an agreement both can accept. Advice from someone experienced could reduce unnecessary loss too. Calmly explain the share you're rightfully owed instead of giving way in haste. | お金の問題を落ち着いて解決し、得られる利益を守りやすい日です。金額について意見を交わす場面でも、感情的に対立しなければ、互いに受け入れられる合意を見つけられそうです。経験のある人の助言で、余計な損失を減らせるかもしれません。焦って譲るより、正当に受け取るべき分を、落ち着いて伝えましょう。 |
 
 ## major.chariot · 역방향
 
 내부 ID: `money.major.chariot.reversed`
 
-카드 의미: 추진 방향을 잃거나 통제하려는 힘이 지나침. 멈춤을 패배가 아니라 방향과 속도의 조정으로 해석.
+카드 의미: 방향부족, 지나친 추진, 통제상실
 
-분야 해석: 급한거래
+분야 해석: 돈이 들어오는 것보다 나가는 속도가 빠를 수 있어.
 
-관찰: 급하게 돈을 보내거나 결제할 일만 줄이면 실수를 피하기 좋은 날이야. / 서두르는 분위기에 휩쓸리면 수량이나 금액을 잘못 볼 수 있어. / 잠깐 멈춰 확인하면 더 편한 결제 방법이나 조건이 눈에 들어올 거야.
+관찰: 방향부족 / 지나친 추진 / 통제상실
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 결제나 송금이 예상보다 늦어져 한 번 더 확인할 일이 생길 수 있어. 급하게 처리한 금액에서는 작은 입력 실수가 보일 수도 있을 거야. 다행히 다시 살피는 과정에서 불필요한 추가 비용을 찾을 수 있는 날이야. 송금 전에 받는 사람 이름과 금액을 한 번 읽어봐. 늦어져 답답했던 일이 오히려 잘못 보낼 돈을 지키는 계기가 될 수 있어. | A payment or transfer may take longer than expected and need another check. An amount entered in a hurry could contain a small error. Fortunately, looking again might also reveal an unnecessary extra charge. Read the recipient's name and amount before sending. A frustrating delay could turn out to have saved you from sending money incorrectly. | 支払いや送金に思ったより時間がかかり、もう一度確認することがありそうです。急いで入力した金額に、小さな間違いが見つかるかもしれません。見直すうちに、不要な追加費用にも気づけそうです。送る前に、相手の名前と金額を一度読んでみましょう。遅れて困ったことが、かえって誤った送金を防ぐきっかけになりそうです。 |
+| 분야 풀이 | 돈이 들어오는 것보다 나가는 속도가 빠를 수 있어. 들어올 줄 알았던 돈이 늦어지면 미리 쓰기로 한 금액이 부담이 되기 쉬워. 서둘러 만회하려고 돈을 더 넣는 일은 손실을 키울 수 있는 날이야.<br><br>오늘은 큰돈이 걸린 결정을 급하게 내리지 않는 게 좋아. 아직 받지 않은 돈까지 생각해서 약속하지 말고, 지금 가진 돈 안에서 해결해줘. | Money could leave faster than it comes in. If an expected payment is delayed, spending you've already committed to may become a burden. Putting in more money to recover a loss quickly could make that loss bigger today.<br><br>Take your time with decisions involving a large sum. Don't make commitments based on money you haven't received; work with what you have now. | お金が入るより、出ていくほうが早くなりそうです。入るはずのお金が遅れると、先に決めていた支出が負担になりがちです。急いで取り戻そうとさらにお金をつぎ込むと、損失が膨らむおそれがあります。<br><br>今日は大きなお金が動く決断を急がないほうがよさそうです。まだ受け取っていないお金を当てにして約束せず、今あるお金の範囲で対処しましょう。 |
 
 ## major.chariot · 정방향
 
 내부 ID: `money.major.chariot.upright`
 
-카드 의미: 서로 다른 힘을 한 방향으로 이끄는 의지와 전진. 원전의 승리·도움과 과신의 양면을 목적 있는 실행으로 읽음.
+카드 의미: 집중, 의지, 장애를 넘어감
 
-분야 해석: 수금정리
+분야 해석: 재물운이 좋아.
 
-관찰: 기다리던 입금이나 정산 소식이 들려 마음이 놓이는 날이야. / 오래 답이 없던 돈 문제에도 진행 상황을 알리는 연락이 올 수 있어. / 팔려고 내놓은 물건이 있다면 관심을 보이는 사람이 나타날 거야.
+관찰: 집중 / 의지 / 장애를 넘어감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다리던 입금이나 정산 소식이 들려 마음이 놓이는 날이야. 오래 답이 없던 돈 문제에도 진행 상황을 알리는 연락이 올 수 있어. 팔려고 내놓은 물건이 있다면 관심을 보이는 사람이 나타날 거야. 돈이 들어오기 전까지는 그 금액을 미리 쓰지 않는 게 좋아. 하루 안에 모두 끝나지 않더라도 언제 받을지 윤곽이 잡혀 답답함은 덜할 거야. | News of an expected payment or settlement could bring relief today. A money matter that's been quiet for a while may finally get an update. If you've listed something for sale, an interested person could appear. Avoid spending the amount before it arrives. Even if everything isn't finished today, knowing when to expect it may make the wait less frustrating. | 待っていた入金や精算の知らせが届き、安心できそうな日です。長く返事のなかったお金の件にも、進み具合を知らせる連絡がありそうです。売りに出したものがあれば、興味を示す人が現れるでしょう。入ってくるまでは、その金額を先に使わないようにしましょう。今日中に全部終わらなくても、時期が見えて待つもどかしさは減りそうです。 |
+| 분야 풀이 | 재물운이 좋아. 돈 때문에 막혀 있던 일이 풀리고, 받기로 한 돈도 손에 들어올 수 있어. 오래 공들인 일에서 수입이 생기거나 바라던 금액을 받기에도 좋은 날이야.<br><br>돈이 들어왔다고 씀씀이까지 크게 늘리면 모처럼 생긴 여유가 금방 사라질 수 있어. 기다려온 물건이 있더라도 한꺼번에 여러 가지를 사지는 말아줘. | Your money outlook is good. A money problem that's held things up could be resolved, and a payment you're owed may arrive. Something you've worked on for a long time could bring income, or you may receive the amount you'd hoped for.<br><br>Increasing your spending as soon as money comes in could quickly use up that welcome breathing room. Even if you've been waiting to buy something, don't buy several things all at once. | 金運は好調です。お金の問題で止まっていたことが進み、受け取る予定のお金も手元に届くかもしれません。長く力を注いだことから収入が生まれたり、望んでいた額を受け取れたりしそうです。<br><br>お金が入ったからと支出まで大きく増やすと、せっかくの余裕がすぐになくなりかねません。待ち望んでいた物があっても、一度にいくつも買うのは控えましょう。 |
 
 ## major.death · 역방향
 
 내부 ID: `money.major.death.reversed`
 
-카드 의미: 필요한 변화를 미루는 관성. 원전의 정지·굳어짐을 익숙함을 놓기 어려운 상태로 응용.
+카드 의미: 변화저항, 익숙한불편, 정체
 
-분야 해석: 매몰비용
+분야 해석: 그만두어야 할 지출을 끌고 가다 돈이 계속 빠져나갈 수 있어.
 
-관찰: 이미 쓴 돈이 아까워 더 비용을 보태고 싶어질 수 있어. / 수리나 추가 구매를 거듭하던 물건에 다시 돈이 들어갈 수 있는 날이야. / 앞으로 들 금액을 보니 다른 방법이 더 편하다는 걸 알게 될 거야.
+관찰: 변화저항 / 익숙한불편 / 정체
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 이미 쓴 돈이 아까워 더 비용을 보태고 싶어질 수 있어. 수리나 추가 구매를 거듭하던 물건에 다시 돈이 들어갈 수 있는 날이야. 앞으로 들 금액을 보니 다른 방법이 더 편하다는 걸 알게 될 거야. 지나간 비용보다 지금부터 필요한 금액을 한 번 계산해봐. 그만 쓰기로 정한 작은 지출 하나가 생각보다 큰 부담을 덜어줄 수 있어. | Money you've already spent may tempt you to keep paying more. An item you've repeatedly repaired or bought extras for could need another expense. Looking at future costs may reveal a more convenient alternative. Calculate what you'll need to pay from now on, rather than focusing on past costs. Choosing to stop one small expense could remove more of a burden than you expect. | すでに使ったお金が惜しくて、さらに費用をかけたくなるかもしれません。修理や買い足しを繰り返していた物に、またお金がかかりそうです。これからの費用を見ると、別の方法のほうが楽だと気づくでしょう。過去に払った額より、今後必要な金額を一度計算してみてください。やめると決めた小さな出費が、思った以上に負担を軽くしてくれそうです。 |
+| 분야 풀이 | 그만두어야 할 지출을 끌고 가다 돈이 계속 빠져나갈 수 있어. 더는 이익이 남지 않는 일에 익숙하다는 이유로 돈을 보태기 쉬운 날이야. 조금만 더 기다리면 되겠지 하는 기대가 손해를 길게 만들 수 있어.<br><br>계속 돈이 들기만 하는 일이라면 멈출 방법을 알아봐. 예전에 들인 금액보다 앞으로 더 나갈 돈을 먼저 생각하는 게 좋아. | Continuing an expense you need to stop could keep draining money. Familiarity may make you pay more into something that no longer brings a profit today. Hoping that a little more waiting will be enough could prolong the loss.<br><br>Find out how to stop something that only keeps costing you money. Give priority to what you'll spend from now on over the amount paid before. | やめるべき出費を続けて、お金が流れ出ていくかもしれません。もう利益が出ないことにも、慣れているからとお金を追加しやすい日です。もう少し待てばという期待が、損失を長引かせる可能性があります。<br><br>お金がかかる一方なら、やめる方法を調べましょう。以前出した金額より、これからさらに出ていくお金を先に考えるのがよさそうです。 |
 
 ## major.death · 정방향
 
 내부 ID: `money.major.death.upright`
 
-카드 의미: 끝난 것을 인정하며 형태를 바꾸는 전환. 원전의 종결을 실제 사망이 아닌 더는 이어갈 필요 없는 방식의 종료로 한정.
+카드 의미: 마무리, 전환, 이전방식의끝
 
-분야 해석: 불필요비용정리
+분야 해석: 익숙한 수입이 줄거나 끊길 수 있어 돈을 아껴야 하는 날이야.
 
-관찰: 더는 쓰지 않는 물건이나 비용을 정리할 계기가 생길 수 있어. / 오래 두었던 물건을 필요로 하는 사람이 나타나 작은 금액으로 바뀔 수도 있어. / 지금 생활에 맞지 않는 소비가 눈에 들어와 앞으로 나갈 돈이 줄어들 거야.
+관찰: 마무리 / 전환 / 이전방식의끝
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 더는 쓰지 않는 물건이나 비용을 정리할 계기가 생길 수 있어. 오래 두고 쓰지 않던 물건을 사겠다는 사람이 나타날 수 있어. 지금 생활에 맞지 않는 소비가 눈에 들어와 앞으로 나갈 돈이 줄어들 거야. 안 쓰는 물건 하나의 상태와 시세를 확인해봐. 크지 않은 금액이라도 묵혀둔 것을 정리한 보람이 남을 수 있는 날이야. | You could get a chance to clear out unused belongings or end an unnecessary expense. Someone may offer to buy an item that's sat unused for a long time. Spending that no longer fits your life could stand out, reducing what you'll pay in the future. Check the condition and resale price of one unused item. Even a modest amount could leave you pleased to have finally dealt with something gathering dust. | 使わなくなった物や、不要な出費を整理するきっかけがありそうです。長く使わずに置いていた物を、買いたいという人が現れるかもしれません。今の暮らしに合わない買い物にも気づき、これからの出費が減るでしょう。使っていない物を一つ、状態と相場を確かめてみてください。大きな金額でなくても、しまい込んでいた物を整理できた満足が残りそうです。 |
+| 분야 풀이 | 익숙한 수입이 줄거나 끊길 수 있어 돈을 아껴야 하는 날이야. 끝나가는 거래나 일이 있다면 다음에도 같은 돈이 들어올 거라고 기대하기는 어려워. 그동안 계속 나가던 비용도 함께 정리할 수 있어 부담을 줄일 기회는 있어.<br><br>이번으로 끝나는 수입에 맞춰 큰 지출을 약속하지 말아줘. 앞으로 들어올 돈이 정해질 때까지 필요한 생활비부터 남겨두는 게 좋아. | A regular source of income could shrink or stop, so you'll need to watch your spending today. If a deal or job is ending, you may not be able to expect the same payment next time. You could also end ongoing expenses, so there is a chance to reduce the burden.<br><br>Don't commit to large spending on income that's ending with this payment. Keep necessary living costs aside until future income is settled. | いつもの収入が減ったり途絶えたりする可能性があり、節約が必要な日です。終わりかけの取引や仕事があるなら、次も同じ額が入るとは期待しにくいでしょう。一方で、続いていた費用にも区切りをつけ、負担を減らす機会はありそうです。<br><br>今回で終わる収入をあてに、大きな支払いを約束するのは控えましょう。これから入るお金が決まるまでは、必要な生活費を先に残しておくのがよさそうです。 |
 
 ## major.devil · 역방향
 
 내부 ID: `money.major.devil.reversed`
 
-카드 의미: 구속을 알아차리고 느슨하게 만드는 현대적 독해. 원전 역해석의 무력함과 다른 선택임을 전제로 작은 해방과 재선택에 초점.
+카드 의미: 종속인식, 자유회복, 습관중단
 
-분야 해석: 지출습관정리
+분야 해석: 발목을 잡던 돈 부담에서 벗어날 기회가 생길 수 있어.
 
-관찰: 반복해서 쓰던 불필요한 돈을 줄일 계기가 생길 수 있어. / 없으면 아쉬울 줄 알았던 구매를 건너뛰어도 별로 불편하지 않을 거야. / 모아 본 내역에서 예상보다 자주 샀던 항목이 눈에 띌 수 있어.
+관찰: 종속인식 / 자유회복 / 습관중단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 반복해서 쓰던 불필요한 돈을 줄일 계기가 생길 수 있어. 없으면 아쉬울 줄 알았던 구매를 건너뛰어도 별로 불편하지 않을 거야. 모아 본 내역에서 예상보다 자주 샀던 항목이 눈에 띌 수 있어. 습관처럼 사던 간식이나 물건 하나를 오늘은 지나쳐봐. 작은 지출을 멈춘 뒤에는 다음 달에 남길 수 있는 금액도 더 분명하게 보일 거야. | You may get a chance to cut an unnecessary expense you've been repeating. Skipping a purchase you thought you'd miss could turn out to cause little inconvenience. Looking over several records may reveal an item you've bought more often than expected. Pass by one snack or item you usually buy out of habit today. Stopping a small expense could make the amount you can keep next month clearer. | 繰り返していた不要な出費を、減らすきっかけがありそうです。買わないと物足りないと思っていた物も、見送ってみるとあまり不便はないでしょう。明細をまとめて見ると、予想より何度も買っていた項目に気づくかもしれません。習慣で買うお菓子や物を、今日は一つ買わずに通り過ぎてみてください。小さな出費をやめると、来月残せる金額もはっきり見えてきそうです。 |
+| 분야 풀이 | 발목을 잡던 돈 부담에서 벗어날 기회가 생길 수 있어. 끊기 어려웠던 지출을 멈추거나 불리한 거래를 정리해 더 나갈 돈을 줄이기 좋은 날이야. 빚이 있다면 갚아갈 방법을 찾으면서 숨통이 트일 수 있어.<br><br>한 번 줄인 지출을 다시 시작하지 않는 게 좋아. 잠깐의 아쉬움보다 앞으로 남을 돈을 생각하면 결정을 지키기 수월해져. | You could find a way out of a financial burden that's held you back. It's a good day to stop a spending habit you've struggled to break or end an unfavourable deal and reduce future costs. If you have debt, finding a way to repay it may bring some relief.<br><br>It's better not to restart spending you've already cut. Thinking of the money you'll keep in future, beyond a brief disappointment now, could make the decision easier to maintain. | 重荷になっていたお金の負担から、抜け出す機会がありそうです。やめにくかった出費を止めたり、不利な取引を終えたりして、これからの支払いを減らしやすい日です。借金があるなら、返していく方法が見つかり、少し楽になれるかもしれません。<br><br>一度減らした出費は、再開しないほうがよさそうです。一時の物足りなさより、これから残るお金を考えると、決めたことを守りやすくなります。 |
 
 ## major.devil · 정방향
 
 내부 ID: `money.major.devil.upright`
 
-카드 의미: 유혹과 반복되는 집착이 선택을 좁히는 상태. 원전의 강한 욕구를 악마의 실재가 아닌 자신도 알아차릴 수 있는 습관으로 응용.
+카드 의미: 강한끌림, 종속, 과도함
 
-분야 해석: 소비유혹
+분야 해석: 쉽게 큰돈을 얻으려다가 오히려 손해가 커질 수 있어.
 
-관찰: 사고 싶게 만드는 말이나 할인 안내가 유난히 눈에 들어올 거야. / 작은 혜택을 받으려다 처음보다 큰 금액을 쓰고 싶어질 수 있어. / 멈추기 어려운 추가 구매에서는 쓰지 않을 물건도 따라올 수 있는 날이야.
+관찰: 강한끌림 / 종속 / 과도함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 사고 싶게 만드는 말이나 할인 안내가 유난히 눈에 들어올 거야. 작은 혜택을 받으려다 처음보다 큰 금액을 쓰고 싶어질 수 있어. 멈추기 어려운 추가 구매에서는 쓰지 않을 물건도 따라올 수 있는 날이야. 오늘은 사려던 물건 하나만 결제해봐. 당장의 들뜸이 지나간 뒤에는 남겨둔 돈이 오히려 든든하게 느껴질 수 있어. | Persuasive sales pitches or discount notices may catch your eye more than usual. Getting a small benefit could tempt you to spend a larger amount than planned. One tempting extra purchase may lead to another, including things you won't use. Pay only for the one item you originally intended to buy today. Once the excitement passes, the money you kept could feel more reassuring. | 買いたくなる言葉や割引の案内が、いつも以上に目に入りそうです。小さな特典をもらうために、予定より多く使いたくなるかもしれません。買い足しが止まらず、使わない物まで一緒に買いやすい日です。今日は初めに買うつもりだった物一つだけを購入してみてください。高揚感が落ち着いた後は、残ったお金のほうが心強く感じられそうです。 |
+| 분야 풀이 | 쉽게 큰돈을 얻으려다가 오히려 손해가 커질 수 있어. 눈앞의 이익이 커 보이면 빚이나 위험한 조건도 가볍게 여기기 쉬운 날이야. 한 번만 더 하면 만회할 수 있다는 생각이 돈을 계속 쓰게 만들 수 있어.<br><br>손해를 돌려받으려고 다시 돈을 걸지는 말아줘. 멈추기 어려운 지출일수록 오늘은 돈을 더 넣지 않는 것이 중요해. | Trying to gain a large sum easily could increase your losses instead. A tempting immediate profit may make debt or risky terms seem less serious today. Believing one more attempt will recover the loss could keep you spending.<br><br>Don't risk more money to recover what you've lost. The harder an expense is to stop, the more important it is not to put in more today. | 簡単に大金を得ようとして、かえって損失が大きくなるかもしれません。目の前の利益が大きく見えると、借金や危険な条件も軽く考えやすい日です。もう一度やれば取り戻せると思い、さらにお金を使ってしまうかもしれません。<br><br>損した分を取り戻そうと、またお金を賭けるのは控えましょう。やめにくい出費ほど、今日はこれ以上お金を入れないことが大切です。 |
 
 ## major.emperor · 역방향
 
 내부 ID: `money.major.emperor.reversed`
 
-카드 의미: 기준이 지나치게 경직되거나 책임의 경계가 흐려짐. 원전의 미성숙·방해를 권위와 운영 방식의 재점검으로 읽음.
+카드 의미: 경직된 권위, 책임과 통제의 혼동
 
-분야 해석: 예산수정
+분야 해석: 자신의 판단만 믿고 큰돈을 움직이면 손해를 볼 수 있어.
 
-관찰: 처음 정한 예산을 조금 고치면 오히려 생활이 편해질 수 있어. / 무조건 아끼려다 꼭 필요한 비용까지 미루고 있을 수 있는 날이야. / 쓰지 않는 항목을 줄이면 지금 필요한 곳에 보탤 여유가 보일 거야.
+관찰: 경직된 권위 / 책임과 통제의 혼동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 꼭 필요한 비용이 처음 예상보다 커져 예산을 고칠 수 있는 날이야. 공동으로 낼 돈도 한 사람이 정한 기준에 불만이 나올 수 있어. 실제 사용한 내역을 보면 줄일 항목과 더할 항목이 분명해질 거야. 금액을 정하기 전에 빠진 비용 하나가 없는지 확인해봐. 처음의 계산을 고집하지 않은 덕분에 서로 납득할 만한 정산이 가능할 수 있어. | An essential cost could turn out higher than expected and call for a budget adjustment. One person's rule for splitting a bill may also meet with objections. Looking at actual usage could clarify what needs reducing or adding. Check for an overlooked cost before fixing the amount. Being flexible about the original calculation may lead to a settlement everyone can accept. | 必要な費用が予想より大きくなり、予算を直すことがありそうです。共同で払うお金でも、一人が決めた基準に不満が出るかもしれません。実際に使った内訳を見れば、減らす項目と足す項目がはっきりするでしょう。金額を決める前に、抜けた費用がないか確認してみましょう。初めの計算にこだわらなければ、お互い納得する精算ができそうです。 |
+| 분야 풀이 | 자신의 판단만 믿고 큰돈을 움직이면 손해를 볼 수 있어. 예전에 잘됐던 거래라도 이번에는 비용이나 상대의 사정이 다를 수 있는 날이야. 돈 문제를 혼자 결정하려 하면 함께 부담하는 사람과 마찰도 생기기 쉬워.<br><br>내가 잘 안다는 이유로 확인을 빼먹지 말아줘. 다른 사람 몫까지 걸린 돈이라면 먼저 동의를 구하는 게 좋아. | Moving a large sum on your own judgement alone could lead to a loss. Even a transaction that went well before may have different costs or circumstances this time. Deciding money matters alone could also cause friction with someone sharing the expense.<br><br>Don't skip checks because you think you know enough. If someone else's share is involved, ask for their agreement first. | 自分の判断だけを頼りに大きなお金を動かすと、損をするかもしれません。以前うまくいった取引でも、今回は費用や相手の事情が違いそうです。お金のことを一人で決めようとすると、一緒に負担する人ともぶつかりやすい日です。<br><br>よく知っているからと、確認を省くのは控えましょう。ほかの人のお金にも関わるなら、先に同意を得てください。 |
 
 ## major.emperor · 정방향
 
 내부 ID: `money.major.emperor.upright`
 
-카드 의미: 지속할 구조와 책임 있는 결정. 원전의 안정·보호·이성을 타인 지배가 아닌 스스로 정한 기준으로 응용.
+카드 의미: 안정, 권위, 보호, 의지
 
-분야 해석: 예산안정
+분야 해석: 재물운이 안정적이야.
 
-관찰: 쓸 돈과 남길 돈을 분명하게 챙기기 좋은 날이야. / 계산을 해보면 막연히 걱정했던 비용도 감당할 범위가 보일 거야. / 공동으로 낼 돈은 날짜를 정해두면 서로 불편할 일이 줄어들 수 있어.
+관찰: 안정 / 권위 / 보호
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 밀려 있던 정산이나 받을 몫을 분명히 챙기기 좋은 날이야. 공동으로 낸 돈은 기록이 있어 서로 납득할 금액을 찾기 쉬울 거야. 믿을 만한 사람의 도움으로 복잡했던 비용 이야기가 정리될 수도 있어. 받을 금액과 날짜를 짧게 적어 확인해봐. 정당한 몫을 차분하게 말하는 태도가 금전 거래에서도 신뢰를 남겨줄 거야. | An overdue settlement or money owed to you could become easier to sort out. Records of a shared expense may help everyone find a fair amount. Help from someone reliable could untangle a complicated discussion about costs. Briefly note the amount due and confirm the date. Calmly stating your fair share may leave a good impression in money matters, too. | 遅れていた精算や、受け取る分を明確にしやすい日です。共同で出したお金は記録があり、お互い納得する金額を見つけやすいでしょう。頼れる人の助けで、複雑だった費用の話がまとまることもありそうです。受け取る金額と日付を短く書いて、確かめてみましょう。正当な取り分を落ち着いて伝える態度が、お金のやり取りでも信頼につながりそうです。 |
+| 분야 풀이 | 재물운이 안정적이야. 정기적으로 받는 수입이 제때 들어오고, 갑자기 큰돈을 쓸 일도 적을 수 있어. 모아둔 돈이 있다면 필요한 지출을 하고도 여유가 남기 좋은 날이야.<br><br>더 큰 수입을 바라며 익숙한 돈 거래를 급히 바꿀 필요는 없어. 지금처럼 감당할 만큼 쓰는 편이 경제적인 안정을 지키는 데 좋아. | Your finances look steady today. Regular income may arrive on time, with little need for sudden large spending. If you have savings, you could cover necessary expenses and still have some left.<br><br>There's no need to change a familiar financial arrangement in a hurry in the hope of more income. Continuing to spend within what you can manage will help preserve stability. | 金運は安定しています。定期的な収入が予定どおりに入り、急な大きな出費も少ないかもしれません。貯えがあれば、必要な支払いをしても、余裕を残しやすい日です。<br><br>もっと収入が欲しいからと、慣れたお金の取引を急いで変える必要はありません。今までどおり、無理なく払える範囲で使うことが、経済的な安定につながります。 |
 
 ## major.empress · 역방향
 
 내부 ID: `money.major.empress.reversed`
 
-카드 의미: 돌봄의 과잉과 창작의 정체를 현대적 핵심으로 선택. 원전에도 망설임과 문제의 드러남이 함께 있어 단순 흉으로 보지 않음.
+카드 의미: 지나친 돌봄, 의존, 만족의 결여
 
-분야 해석: 선물과소비
+분야 해석: 씀씀이가 커져 들어온 돈이 남지 않기 쉬운 날이야.
 
-관찰: 고마운 마음을 표현하느라 예상보다 돈을 많이 쓰기 쉬운 날이야. / 여러 사람의 몫을 챙기다 보면 작은 금액도 제법 커질 수 있어. / 비싼 물건보다 상대가 좋아하는 간단한 선물이 더 반갑게 전해질 거야.
+관찰: 지나친 돌봄 / 의존 / 만족의 결여
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 고마운 마음을 표현하느라 예상보다 돈을 많이 쓰기 쉬운 날이야. 여러 사람의 몫을 챙기다 보면 작은 금액도 제법 커질 수 있어. 비싼 물건보다 상대가 좋아하는 간단한 선물이 더 반갑게 전해질 거야. 선물을 고르기 전에 쓸 금액부터 정해봐. 정작 상대는 비싼 선물보다 함께 보낼 시간을 더 반가워할 수 있어. | Expressing gratitude could cost more than you expected today. Small amounts may add up when you're buying for several people. A simple gift the recipient actually likes could be more welcome than an expensive one. Choose a spending limit before picking a gift. They may appreciate time together more than a costly present. | 感謝を伝えようとして、思ったよりお金を使いやすい日です。何人かの分を用意すると、小さな金額でも大きくなりそうです。高価な品より、相手の好きな簡単な贈り物が喜ばれるでしょう。贈り物を選ぶ前に、使う金額を決めてみましょう。相手は高いプレゼントより、一緒に過ごす時間を楽しみにしているかもしれません。 |
+| 분야 풀이 | 씀씀이가 커져 들어온 돈이 남지 않기 쉬운 날이야. 자신을 달래려고 산 물건이나 누군가에게 잘해주려 쓴 돈이 부담으로 돌아올 수 있어. 꼭 필요해서 쓴 돈이 아니라면 만족도 오래가지 않을 수 있어.<br><br>마음이 허전할 때 비싼 물건을 사기로 결정하지 말아줘. 오늘 기분을 바꾸려고 쓰는 돈은 조금 줄이는 게 좋아. | Larger spending could leave little of your income today. Things bought to comfort yourself or money spent to please someone else may become a burden. If the spending wasn't necessary, the satisfaction may not last either.<br><br>Don't decide on an expensive purchase while feeling empty. It's better to reduce money spent just to change your mood today. | 出費が増え、入ってきたお金が残りにくい日です。気持ちを紛らわせるために買った物や、誰かに親切にしようと使ったお金が、負担になりそうです。本当に必要な出費でなければ、満足も長続きしないかもしれません。<br><br>心が満たされないときに、高価な物を買う決断は控えましょう。今日は気分を変えるための出費を、少し減らすのがよさそうです。 |
 
 ## major.empress · 정방향
 
 내부 ID: `money.major.empress.upright`
 
-카드 의미: 자라게 하는 돌봄과 감각적 풍요. 원전의 결실·행동을 일상의 즐거움과 지속적인 보살핌으로 현대화.
+카드 의미: 결실, 창조, 돌봄과 풍요
 
-분야 해석: 선물혜택
+분야 해석: 먹고사는 데 여유가 생기고 재물운도 좋은 날이야.
 
-관찰: 선물이나 대접을 받으며 쓸 돈을 아끼게 되는 날이야. / 가까운 사람이 필요한 것을 챙겨줘 작게나마 여유가 생길 수 있어. / 물건을 고를 때도 내 취향에 꼭 맞는 것을 만나 오래 쓸 기쁨이 있을 거야.
+관찰: 결실 / 창조 / 돌봄과 풍요
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 선물이나 대접을 받으며 쓸 돈을 아끼게 되는 날이야. 가까운 사람이 필요한 것을 챙겨줘 작게나마 여유가 생길 수 있어. 물건을 고를 때도 내 취향에 꼭 맞는 것을 만나 오래 쓸 기쁨이 있을 거야. 기분이 좋다고 여러 사람의 몫까지 한꺼번에 계산하지는 마. 비싼 물건을 사는 즐거움보다 누군가 나를 챙겨줬다는 기억이 더 오래 남을 거야. | A gift or a treat from someone could save you an expense today. Someone close may bring something you need and leave you a little breathing room. You could also find an item that suits your taste and brings lasting enjoyment. Don't let a good mood turn into paying for everyone at once. Being remembered by someone may stay with you longer than the pleasure of an expensive purchase. | 贈り物やごちそうのおかげで、使うはずのお金が浮きそうです。身近な人が必要なものを用意してくれ、少し余裕ができるかもしれません。買い物でも好みにぴったりの品が見つかり、長く使う楽しみがありそうです。気分がよくても、何人分もまとめて払おうとしないでください。高価な品を買う喜びより、誰かが気にかけてくれた記憶が長く残りそうです。 |
+| 분야 풀이 | 먹고사는 데 여유가 생기고 재물운도 좋은 날이야. 공들여온 일에서 수입이 늘거나 생활을 넉넉하게 해줄 돈이 들어올 수 있어. 모아온 돈이 있다면 필요한 물건을 마련하고도 든든함이 남을 수 있어.<br><br>좋은 것을 누리고 싶은 마음에 평소보다 많이 살 수 있으니 그 점만 살펴줘. 실속 있게 고르면 쓴 돈이 아깝지 않은 만족을 얻을 수 있어. | Your financial luck looks good, with more money for everyday living. Something you've worked hard on could bring more income, or money may arrive that makes life more comfortable. If you've been saving, you could buy what you need and still feel secure.<br><br>Wanting to enjoy nice things may make you buy more than usual, so keep an eye on that. Choosing for practical value could bring satisfaction that feels worth what you spent. | 暮らしに余裕が生まれ、金運もよい日です。力を入れてきた仕事の収入が増えたり、生活を豊かにするお金が入ったりしそうです。貯めてきたお金があれば、必要な物を買った後も、安心できる余裕が残るかもしれません。<br><br>よい物を楽しみたくなり、いつもより多く買いがちな点だけ、気をつけましょう。実用性も考えて選ぶと、使ったお金に見合う満足を得られそうです。 |
 
 ## major.fool · 역방향
 
 내부 ID: `money.major.fool.reversed`
 
-카드 의미: 새로움에 끌려 뒤따를 책임을 놓치거나 첫발 자체를 두려워함. 무조건 실패가 아니라 시도와 준비의 불균형.
+카드 의미: 부주의, 결과를 살피지 않은 행동
 
-분야 해석: 충동소비
+분야 해석: 생각 없이 쓴 돈 때문에 나중에 아쉬워질 수 있어.
 
-관찰: 가벼운 마음으로 시작한 소비가 생각보다 커질 수 있는 날이야. / 싸게 샀다고 좋아했는데 필요한 물건을 따로 더 사야 할 수도 있어. / 나들이 중에는 처음 보는 물건이 유난히 눈에 들어올 거야.
+관찰: 부주의 / 결과를 살피지 않은 행동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가벼운 마음으로 시작한 소비가 생각보다 커질 수 있는 날이야. 싸게 샀다고 좋아했는데 필요한 물건을 따로 더 사야 할 수도 있어. 나들이 중에는 처음 보는 물건이 유난히 눈에 들어올 거야. 마음에 드는 물건은 바로 사지 말고 한 바퀴 둘러본 뒤 다시 골라봐. 다시 봤을 때 꼭 필요하지 않다는 생각이 드는 물건도 있을 거야. | A purchase you start casually could grow more expensive than expected. What looks like a bargain may need extra items bought separately. Unfamiliar products could be especially tempting while you're out. Walk around before returning to anything that catches your eye. On a second look, some of those things may no longer seem necessary. | 気軽に始めた買い物が、思ったより高くつくかもしれません。安く買えたと思っても、必要なものを別に買い足す場合がありそうです。外出先では、初めて見る品物にいつも以上に目が向くでしょう。欲しいものはすぐ買わず、一回りしてから選んでみましょう。見直したときには、それほど必要ではないと感じるものもありそうです。 |
+| 분야 풀이 | 생각 없이 쓴 돈 때문에 나중에 아쉬워질 수 있어. 당장은 싸 보이거나 재미있어도 막상 손에 쥐고 나면 쓴 만큼 만족스럽지 않을 수 있는 날이야. 빠뜨린 비용까지 더해지면 예상보다 지출이 커질 수 있어.<br><br>오늘은 순간적인 기분으로 큰돈을 쓰지 말아줘. 결제하기 전에 최종 금액을 한 번 더 보는 게 좋아. | Money spent without thought could leave you disappointed later. Something that looks cheap or fun at first may not feel worth the price once you have it. Overlooked costs could also take spending beyond what you expected.<br><br>Don't spend a large amount on a passing feeling today. It's better to check the final total once more before paying. | 考えずにお金を使うと、後から後悔するかもしれません。その場では安く見えたり楽しそうだったりしても、手に入れると、値段ほどには満足できないかもしれません。見落としていた費用が加わり、予想より出費が増えることもありそうです。<br><br>今日は一時の気分で、大きなお金を使うのは控えましょう。支払う前に、最終的な金額をもう一度見るのがよさそうです。 |
 
 ## major.fool · 정방향
 
 내부 ID: `money.major.fool.upright`
 
-카드 의미: 정해진 경험에 매이지 않는 출발과 호기심. 원전의 무분별함 경고도 남기되 현대적 첫 시도의 뜻을 채택.
+카드 의미: 경험을 찾는 출발, 구속되지 않은 호기심
 
-분야 해석: 작은기회
+분야 해석: 뜻밖의 작은 이득을 얻을 수 있는 날이야.
 
-관찰: 새로 알게 된 곳에서 뜻밖의 혜택을 받을 수 있는 날이야. / 처음 방문한 가게에서 작은 덤을 받거나 필요한 물건을 저렴하게 구할 수 있어. / 가벼운 부탁으로 시작한 일이 소소한 수고비로 돌아올 수도 있을 거야.
+관찰: 경험을 찾는 출발 / 구속되지 않은 호기심
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 새로 알게 된 곳에서 뜻밖의 혜택을 받을 수 있는 날이야. 처음 방문한 가게에서 작은 덤을 받거나 필요한 물건을 저렴하게 구할 수 있어. 가벼운 부탁으로 시작한 일이 소소한 수고비로 돌아올 수도 있을 거야. 처음 하는 거래라면 돈을 보내기 전에 상대와 금액부터 확인해봐. 큰 이익보다는 생각지 못한 곳에서 조금씩 실속을 챙기는 재미가 있을 거야. | An unfamiliar place could offer an unexpected perk today. A first visit to a shop might bring a little extra or a useful find at a good price. A casual request could also turn into a small payment for your trouble. For a first transaction, check who you're paying and how much before sending anything. The pleasure is more likely to come from small, unexpected benefits than a large gain. | 初めて知った場所で、思いがけないサービスを受けられそうです。初来店のお店でおまけをもらったり、必要な品をお得に見つけたりするかもしれません。気軽に頼まれたことが、ささやかなお礼につながる場合もありそうです。初めての取引では、お金を送る前に相手と金額を確認しましょう。大きな利益より、意外なところで少しずつ得をする楽しみがありそうです。 |
+| 분야 풀이 | 뜻밖의 작은 이득을 얻을 수 있는 날이야. 처음 접하는 일에서 돈을 벌 기회가 생기거나 생각보다 적은 돈으로 필요한 것을 구할 수 있어. 큰돈이 아니어도 새로운 재미와 함께 얻는 것이 있어 기분이 좋을 수 있어.<br><br>새로운 기회라고 가진 돈을 전부 걸 필요는 없어. 처음 하는 거래라면 적은 금액부터 확인해보고, 생활에 쓸 돈은 남겨줘. | An unexpected small gain could come your way today. Something unfamiliar may offer a chance to earn, or you could get what you need for less than expected. Even without a large sum, gaining something alongside a new experience could feel good.<br><br>A new opportunity doesn't require risking all your money. For a first transaction, check how it goes with a small amount and keep money aside for living costs. | 思いがけず、少し得をすることがありそうです。初めて取り組むことでお金を得る機会ができたり、必要な物を予想より安く手に入れたりするかもしれません。大きな金額でなくても、新しい楽しみとともに得るものがあり、うれしくなれそうです。<br><br>新しい機会だからと、手持ちのお金をすべて賭ける必要はありません。初めての取引なら少額から確かめ、生活に使うお金は残しておきましょう。 |
 
 ## major.hanged_man · 역방향
 
 내부 ID: `money.major.hanged_man.reversed`
 
-카드 의미: 멈춤을 받아들이지 못해 제자리에서 버티거나 보상 없는 희생을 지속함. 행동을 재개할 조건과 그만둘 몫을 구분하는 뜻.
+카드 의미: 무의미한지연, 일방희생, 회피
 
-분야 해석: 대금확인
+분야 해석: 기다리는 돈은 소식이 없고 나갈 돈만 늘기 쉬워.
 
-관찰: 들어올 줄 알았던 돈의 일정이 분명하지 않아 답답할 수 있어. / 말로만 기다려달라는 설명이 길어지면 다른 지출까지 미뤄질 거야. / 직접 처리 상황을 물으면 빠져 있던 서류나 확인할 내용을 알게 될 수 있어.
+관찰: 무의미한지연 / 일방희생 / 회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 들어올 줄 알았던 돈의 일정이 분명하지 않아 답답할 수 있어. 말로만 기다려달라는 설명이 길어지면 다른 지출까지 미뤄질 거야. 직접 처리 상황을 물으면 빠져 있던 서류나 확인할 내용을 알게 될 수 있어. 받을 금액과 예정일을 함께 확인해봐. 막연하게 기다릴 때보다 지금 할 일이 보여 부담을 덜 수 있는 날이야. | An unclear date for money you're expecting could feel frustrating. Repeated requests to wait may start holding up other spending too. Asking directly about progress could reveal a missing document or detail to confirm. Check both the amount and its expected arrival date. Seeing what you can do now could feel less burdensome than waiting without an answer. | 入るはずのお金の日程がはっきりせず、もどかしいかもしれません。待ってほしいという説明が続くと、ほかの支払いまで先延ばしになりそうです。進み具合を直接聞けば、足りない書類や確認することが分かるでしょう。受け取る金額と予定日を、合わせて確かめてみてください。ただ待つよりも今できることが見えて、負担が軽くなりそうです。 |
+| 분야 풀이 | 기다리는 돈은 소식이 없고 나갈 돈만 늘기 쉬워. 계속 기다리면 나아질 거라는 생각에 불리한 거래를 붙잡을 수 있는 날이야. 이미 들인 돈이 아까워 더 보태면 빠져나오기가 어려워질 수 있어.<br><br>약속이 여러 번 미뤄진 돈이라면 언제 받을 수 있는지 분명히 물어봐. 더 기다릴 이유가 없는 일에는 새로 돈을 넣지 않는 게 좋아. | There may be no news of money you're waiting for while expenses keep growing. Hoping that a longer wait will improve things could keep you in an unfavourable deal today. Adding more because you regret what's already spent may make it harder to get out.<br><br>If a payment has been postponed several times, ask clearly when you'll receive it. It's better not to put new money into something with no reason left to keep waiting. | 待っているお金の知らせはなく、出費ばかり増えやすい日です。待ち続ければよくなるはずだと思い、不利な取引を続けてしまうかもしれません。すでに出したお金が惜しくて追加すると、抜け出しにくくなりそうです。<br><br>支払いの約束が何度も延びているなら、いつ受け取れるか、はっきり尋ねましょう。これ以上待つ理由がないことに、新たなお金を入れるのは控えたほうがよさそうです。 |
 
 ## major.hanged_man · 정방향
 
 내부 ID: `money.major.hanged_man.upright`
 
-카드 의미: 의도적인 멈춤과 다른 관점에서 얻는 이해. 원전의 지혜·희생을 손해 감수가 아니라 우선순위의 자발적 조정으로 사용.
+카드 의미: 자발적보류, 관점전환, 양보
 
-분야 해석: 결제보류
+분야 해석: 돈이 바로 들어오기보다는 기다려야 할 가능성이 큰 날이야.
 
-관찰: 구매나 지급이 잠깐 미뤄진 덕분에 다른 조건을 알게 될 수 있어. / 먼저 사지 않은 물건에 필요한 기능이 빠졌다는 걸 발견할 수도 있을 거야. / 기다리는 동안 더 편한 수령 방법이나 가격을 제안받을 여지가 있어.
+관찰: 자발적보류 / 관점전환 / 양보
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 구매나 지급이 잠깐 미뤄진 덕분에 다른 조건을 알게 될 수 있어. 먼저 사지 않은 물건에 필요한 기능이 빠졌다는 걸 발견할 수도 있을 거야. 기다리는 동안 더 편한 수령 방법이나 가격을 제안받을 여지가 있어. 당장 급하지 않은 결제는 하루 정도 생각해봐. 꼭 사야 한다고 생각한 물건도 하루가 지나면 별로 필요하지 않게 느껴질 수 있어. | A brief delay in a purchase or payment could reveal different terms. You might discover that an item you haven't yet bought lacks a feature you need. While you wait, a more convenient collection option or a better price may become available. Give a nonurgent purchase a day of thought. Something that seemed essential could feel much less necessary a day later. | 購入や支払いが少し延びたおかげで、別の条件を知ることがありそうです。先に買わなかった物に、必要な機能がないと気づくかもしれません。待つ間に、もっと便利な受け取り方や、よりよい価格を提案してもらえる余地もあります。急がない買い物は、一日ほど考えてみてください。必ず買うべきだと思っていた物も、一日たつとそれほど必要ではなく感じられそうです。 |
+| 분야 풀이 | 돈이 바로 들어오기보다는 기다려야 할 가능성이 큰 날이야. 받을 돈이나 진행 중인 거래가 멈춰 있어 마음대로 쓰기 어려울 수 있어. 억지로 서둘러 끝내려 하면 원래 받을 금액보다 적게 받게 될 수도 있어.<br><br>지금 급하지 않은 돈이라면 조건을 낮추면서까지 재촉하지 말아줘. 기다리는 동안 꼭 나가야 할 돈부터 챙기면 불필요한 손해를 줄일 수 있어. | Money is more likely to keep you waiting than arrive immediately today. A payment or transaction may be on hold, making it hard to spend as you wish. Forcing a quick finish could mean accepting less than you were originally due.<br><br>If you don't urgently need the money, don't accept worse terms just to speed up payment. Taking care of essential outgoing payments while you wait could reduce unnecessary losses. | お金を受け取るまで、待つことになりそうです。相手からの支払いや進行中の取引が止まっていて、思うように使えないかもしれません。無理に急いで終わらせると、本来受け取る額より少なくなる可能性もあります。<br><br>今すぐ必要なお金でなければ、条件を下げてまで急かすのは控えましょう。待つ間に、必ず出ていくお金を先に用意しておくと、余計な損を減らせそうです。 |
 
 ## major.hermit · 역방향
 
 내부 ID: `money.major.hermit.reversed`
 
-카드 의미: 필요한 거리두기가 고립이나 지나친 경계로 굳어짐. 원전의 근거 없는 조심성을 도움 요청과 재접촉의 필요로 응용.
+카드 의미: 지나친고립, 외로움, 좁아진관점
 
-분야 해석: 금전문의
+분야 해석: 기다린 돈이 쉽게 들어오지 않아 답답할 수 있어.
 
-관찰: 혼자 알아보던 돈 문제가 문의 한 번으로 정리될 수 있어. / 어렵게 생각했던 환급이나 취소 절차에 생각보다 간단한 방법이 있을 거야. / 주변에서는 내가 몰랐던 지원이나 혜택 소식을 전해줄 수도 있어.
+관찰: 지나친고립 / 외로움 / 좁아진관점
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 알아보던 돈 문제가 문의 한 번으로 정리될 수 있어. 어렵게 생각했던 환급이나 취소 절차에 생각보다 간단한 방법이 있을 거야. 주변에서는 내가 몰랐던 지원이나 혜택 소식을 전해줄 수도 있어. 헷갈리는 항목은 담당자에게 짧게 물어봐. 미루며 쌓였던 부담이 줄어들어 실제로 챙길 돈이 분명해질 수 있는 날이야. | One inquiry could settle a money question you've been trying to figure out alone. A refund or cancellation that seemed complicated may have a simpler process than you expected. Someone nearby could also tell you about support or a benefit you didn't know about. Ask the person responsible about the part you find confusing. As the worry you've postponed eases, the amount you can claim could become clear. | 一人で調べていたお金の疑問が、一度の問い合わせで解決しそうです。難しく考えていた返金や取り消しも、思ったより簡単に手続きできるでしょう。周りから、知らなかった支援や特典の話を教えてもらうこともありそうです。分かりにくい項目は担当者に短く尋ねてみてください。先延ばしにしていた負担が軽くなり、受け取れる金額がはっきりするでしょう。 |
+| 분야 풀이 | 기다린 돈이 쉽게 들어오지 않아 답답할 수 있어. 돈 이야기를 꺼내기 어려워 미루면 받을 시기도 더 늦어질 수 있는 날이야. 수입이 늘 기회가 있어도 혼자 걱정하다 놓칠 가능성이 있어.<br><br>필요한 금전 연락까지 피하지는 말아줘. 받을 돈은 언제 들어오는지 묻고, 수입에 관한 제안은 실제 금액을 들어본 뒤 판단해도 괜찮아. | A payment you've waited for may be slow to arrive, leaving you frustrated. Putting off an awkward money conversation could delay it further today. Worrying alone may also make you miss a chance to increase income.<br><br>Don't avoid necessary contact about money. Ask when a payment is due, and find out how much an earning opportunity would actually pay before judging it. | 待っていたお金がなかなか入らず、もどかしく感じそうです。お金の話を切り出しにくくて後回しにすると、受け取る時期がさらに遅れるかもしれません。収入を増やす機会があっても、一人で心配するうちに逃す可能性があります。<br><br>お金について必要な連絡まで、避けるのは控えましょう。いつ受け取れるか尋ね、収入についての提案は、実際の金額を聞いてから判断しても大丈夫です。 |
 
 ## major.hermit · 정방향
 
 내부 ID: `money.major.hermit.upright`
 
-카드 의미: 외부 소음에서 떨어져 살피는 신중함과 탐구. 원전의 조심스러움을 성찰·경험에서 길을 찾는 현대적 관점으로 사용.
+카드 의미: 성찰, 고요한혼자시간, 깊은탐구
 
-분야 해석: 기록발견
+분야 해석: 큰 수입이나 큰 지출 없이 돈을 차분히 지키기 좋은 날이야.
 
-관찰: 오래된 내역에서 돌려받을 돈이나 남아 있던 혜택을 찾을 수 있어. / 차분히 기록을 살펴볼 때 평소 지나쳤던 작은 금액이 눈에 들어올 거야. / 경험 있는 사람의 조용한 조언도 불필요한 비용을 줄이는 데 도움이 될 수 있어.
+관찰: 성찰 / 고요한혼자시간 / 깊은탐구
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래된 내역에서 돌려받을 돈이나 남아 있던 혜택을 찾을 수 있어. 차분히 기록을 살펴볼 때 평소 지나쳤던 작은 금액이 눈에 들어올 거야. 경험 있는 사람의 조용한 조언도 불필요한 비용을 줄이는 데 도움이 될 수 있어. 미뤄둔 영수증이나 정산 내역 하나를 확인해봐. 눈에 띄는 횡재보다 내가 챙긴 작은 몫에서 든든함을 느끼기 좋은 날이야. | An old record could reveal money you're owed or a benefit you still have. Looking through it calmly may bring a small amount to your attention that you usually overlook. Quiet advice from someone experienced could also help you avoid an unnecessary expense. Check a receipt or shared payment record you've been putting off. Claiming a small amount that's yours may feel more reassuring than a flashy windfall. | 古い明細から、返してもらえるお金や残っていた特典が見つかりそうです。記録を落ち着いて見ると、普段は見過ごす小さな金額に気づくでしょう。経験のある人のさりげない助言も、余計な出費を減らす助けになりそうです。後回しにしていた領収書や精算の明細を一つ確認してみてください。大きな臨時収入より、自分で確かめて受け取った小さなお金に安心できる日です。 |
+| 분야 풀이 | 큰 수입이나 큰 지출 없이 돈을 차분히 지키기 좋은 날이야. 평소 당연하게 쓰던 돈에서 줄여도 괜찮은 부분이 보일 수 있어. 화려한 물건보다 지금 필요한 것이 눈에 들어와 지출이 크게 늘지 않을 수 있어.<br><br>남의 수입과 비교해서 급하게 돈을 불리려 하지 않아도 돼. 오늘은 오래 쓸 수 있는 것을 신중히 고르는 편이 실속 있어. | Your money could stay steady today, without large amounts coming in or going out. You may spot everyday spending you can comfortably reduce. Necessary items could appeal more than flashy ones, keeping expenses from rising much.<br><br>You don't need to rush to increase your money because you're comparing income with others. Carefully choosing something that will last offers better value today. | 大きな収入や出費はなく、落ち着いてお金を守りやすい日です。普段当たり前に使っていたお金の中に、減らしても困らない部分が見つかりそうです。華やかな物より今必要な物に目が向き、出費が大きく増えずに済むかもしれません。<br><br>他人の収入と比べ、急いでお金を増やそうとしなくて大丈夫です。今日は長く使える物を慎重に選んだほうが、無駄のない買い物になりそうです。 |
 
 ## major.hierophant · 역방향
 
 내부 ID: `money.major.hierophant.reversed`
 
-카드 의미: 관례를 다시 묻고 자신의 기준을 만드는 현대적 독해. 원전의 지나친 호의와 집단적 화합도 무비판적 순응의 위험으로 참고.
+카드 의미: 관습을 질문, 개인기준, 규범과의 충돌
 
-분야 해석: 가격관습
+분야 해석: 남이 하라는 대로 돈을 썼다가 후회하기 쉬운 날이야.
 
-관찰: 늘 사던 곳 말고 다른 곳을 살펴보면 괜찮은 가격을 찾을 수 있어. / 유명하다는 이유로 붙은 비용이 내게 꼭 필요하지 않을 수도 있어. / 비슷한 기능의 물건을 비교하면 과하게 쓰던 항목이 눈에 들어올 거야.
+관찰: 관습을 질문 / 개인기준 / 규범과의 충돌
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 익숙하게 내던 비용에 더 저렴한 방법이 있다는 걸 알 수 있어. 유명한 곳보다 작은 가게나 다른 판매처에서 쓸 만한 제안을 만날 거야. 늘 포함되어 있던 항목 중 실제로는 쓰지 않던 것도 눈에 들어올 수 있어. 같은 물건의 가격을 다른 곳에서 한 번 비교해봐. 당연하다고 넘겼던 소비에서 아낄 금액이 보여 기분이 가벼워질 수 있어. | You may discover a cheaper way to cover a familiar expense. A small shop or another seller could have an appealing alternative to a well-known place. Something you've always paid for may turn out to include an option you don't use. Compare the price of the same item somewhere else. Finding savings in a routine purchase could leave you pleasantly relieved. | いつも払っていた費用に、もっと安い方法があると分かりそうです。有名なお店より小さなお店や別の販売店で、よい提案に出会うでしょう。いつも含まれていた項目の中に、実は使わないものが見つかるかもしれません。同じ品物の値段を、別の場所で一度比べてみましょう。当たり前だった支出から節約できる分が見え、気持ちが軽くなりそうです。 |
+| 분야 풀이 | 남이 하라는 대로 돈을 썼다가 후회하기 쉬운 날이야. 다른 사람에게 이익이 된 방법도 자신의 형편에는 부담이 될 수 있어. 익숙한 금전 약속을 갑자기 바꾸면 생각지 못한 비용이 생길 수도 있어.<br><br>주변에서 다 한다고 큰돈을 보태지는 말아줘. 지금 방법을 바꾸려면 새로 내야 할 돈부터 알아보는 게 좋아. | Spending as others tell you could lead to regret today. A method that benefited someone else may strain your own finances. Suddenly changing a familiar money agreement could bring unexpected costs too.<br><br>Don't contribute a large sum just because everyone around you is doing it. If you want to change the current approach, find out what extra payments would be needed first. | 人に言われるままお金を使うと、後悔しやすい日です。誰かが利益を得た方法でも、今の暮らしには負担になるかもしれません。慣れたお金の取り決めを急に変えると、思いがけない費用が生じることもありそうです。<br><br>周囲がみんなやっているからと、多額のお金を出すのは控えましょう。今の方法を変えるなら、まず新しく必要になる費用を調べてください。 |
 
 ## major.hierophant · 정방향
 
 내부 ID: `money.major.hierophant.upright`
 
-카드 의미: 전해진 지식과 공동체의 약속. 원전의 조언자·연합을 검증된 배움과 납득 가능한 관례로 활용.
+카드 의미: 전통적 가르침, 공동 약속, 신뢰할 조언
 
-분야 해석: 전문안내
+분야 해석: 꾸준히 들어오는 수입에는 큰 걱정이 없는 날이야.
 
-관찰: 몰라서 받지 못했던 혜택이나 돌려받을 돈을 알게 될 수 있어. / 신청 경험이 있는 사람의 설명 덕분에 복잡해 보였던 절차도 쉽게 이해될 거야. / 오래 이용해온 곳에서 단골을 위한 작은 혜택을 챙겨줄 수도 있어.
+관찰: 전통적 가르침 / 공동 약속 / 신뢰할 조언
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 몰라서 받지 못했던 혜택이나 돌려받을 돈을 알게 될 수 있어. 신청 경험이 있는 사람의 설명 덕분에 복잡해 보였던 절차도 쉽게 이해될 거야. 오래 이용해온 곳에서 단골을 위한 작은 혜택을 챙겨줄 수도 있어. 해당되는 혜택이 있다면 신청 날짜를 먼저 확인해봐. 주변에서 전해준 정보 하나가 뜻밖에 돈을 아끼는 데 도움이 되는 날이야. | You could learn about a benefit or refund you've missed simply through not knowing. Someone who's applied before may make a complicated-looking procedure easier to understand. A place you've used for a long time could also offer a little perk for a regular customer. Check the application date for any benefit that fits. A single useful tip from someone nearby could help you save money today. | 知らずに受け取れなかった特典や、戻ってくるお金について知ることがありそうです。申請した人の説明で、複雑に見えた手続きも理解しやすいでしょう。長く利用したお店から、常連向けの小さなサービスを受けるかもしれません。使える特典があれば、まず申請日を確認してみましょう。周りが教えてくれた情報一つが、思いがけず節約につながりそうな日です。 |
+| 분야 풀이 | 꾸준히 들어오는 수입에는 큰 걱정이 없는 날이야. 정해진 보수를 받거나 약속된 돈이 들어와 필요한 지출을 감당할 수 있어. 거래 중이라면 이미 합의한 금액도 무리 없이 지켜질 가능성이 있어.<br><br>새로운 횡재보다 믿고 기다린 돈에서 안심할 수 있어. 지금 거래를 두고 낯선 고수익 제안으로 급히 옮기지는 말아줘. | Regular income is unlikely to be a major worry today. Agreed pay or promised money may arrive and cover necessary spending. An amount already agreed in a transaction may also be honoured without difficulty.<br><br>Money you've been counting on could bring more reassurance than a new windfall. Don't abandon the current arrangement in a hurry for an unfamiliar offer of high returns. | 定期的な収入には、大きな心配がなさそうです。決まった報酬や約束されたお金が入り、必要な出費をまかなえるかもしれません。取引中なら、すでに合意した金額も、問題なく守られる可能性があります。<br><br>思いがけない臨時収入より、入ると信じて待っていたお金に安心できそうです。今の取引をやめて、よく知らない高収益の提案へ急いで移るのは控えましょう。 |
 
 ## major.high_priestess · 역방향
 
 내부 ID: `money.major.high_priestess.reversed`
 
-카드 의미: 내적 판단을 무시하거나 겉정보만으로 안다고 여기기 쉬움. 원전의 피상적 지식을 자기 점검의 방향으로 선택.
+카드 의미: 겉핥기 지식, 속마음 외면
 
-분야 해석: 정보확인
+분야 해석: 대충 알고 넘긴 돈 문제에서 손해가 생기기 쉬워.
 
-관찰: 소문으로 들은 혜택은 직접 확인할수록 실속을 챙기기 쉬운 날이야. / 누구에게나 적용되는 조건이라고 생각했지만 대상이 다를 수 있어. / 모호했던 금액도 판매처에 물어보면 분명한 답을 얻을 거야.
+관찰: 겉핥기 지식 / 속마음 외면
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돈과 관련해 뒤늦게 알게 되는 비용이나 조건이 있을 수 있어. 누군가 좋다고 전한 거래도 실제로는 일부 내용만 알려졌을 수 있는 날이야. 먼저 해본 사람의 설명이 빠진 금액을 알아보는 데 도움이 될 거야. 아직 전체 비용을 모른다면 송금은 잠깐 미뤄둬. 서둘러 답하지 않은 덕분에 내게 맞지 않는 제안을 가볍게 넘길 수 있어. | A cost or condition involving money may become clear only later. A deal someone praised might have been described only in part. An account from someone who's tried it could help you spot the missing amount. Hold off sending money until you know the full cost. Taking your time may let you comfortably pass on an offer that doesn't suit you. | お金に関わる費用や条件を、後になって知ることがありそうです。よいと聞いた取引も、実際には一部しか伝わっていないかもしれません。先に経験した人の説明が、抜けていた金額を知る助けになるでしょう。まだ全体の費用が分からなければ、送金は少し待ってみましょう。返事を急がなかったおかげで、合わない話を気軽に見送れそうです。 |
+| 분야 풀이 | 대충 알고 넘긴 돈 문제에서 손해가 생기기 쉬워. 남의 설명만 믿고 비용을 확인하지 않으면 예상보다 많은 돈을 낼 수 있어. 마음에 걸렸던 조건이 있다면 오늘은 그냥 지나치지 않는 게 좋아.<br><br>받는 돈과 내는 돈을 모두 알고 나서 결정해줘. 이해되지 않는 금액이 남아 있다면 먼저 물어보고 돈은 그 뒤에 보내는 게 좋아. | A money matter you've only partly understood could lead to a loss. Trusting someone else's explanation without checking costs may leave you paying more than expected. Don't brush aside a condition that's been troubling you today.<br><br>Decide once you know both what you'll receive and what you'll pay. If any amount is still unclear, ask first and send the money afterwards. | よく理解しないままにしたお金の問題で、損をしやすい日です。人の説明だけを信じて費用を確かめないと、予想より多く払うことになりそうです。気にかかっていた条件があるなら、今日は流さないほうがよいでしょう。<br><br>受け取るお金と支払うお金の両方を把握してから、決めてください。わからない金額が残っているなら、先に尋ね、送金はその後にするのがよさそうです。 |
 
 ## major.high_priestess · 정방향
 
 내부 ID: `money.major.high_priestess.upright`
 
-카드 의미: 아직 드러나지 않은 정보와 조용한 관찰. 원전의 비밀·침묵·지혜를 속단을 유보하고 내적 반응을 살피는 방향으로 응용.
+카드 의미: 지혜, 침묵, 아직 드러나지 않은 내용
 
-분야 해석: 숨은조건
+분야 해석: 큰돈을 움직이기보다 가진 돈을 지키기에 나은 날이야.
 
-관찰: 작게 적힌 조건을 살펴보다 놓칠 뻔한 혜택을 찾을 수 있어. / 반품 기간이나 적립 기준처럼 눈에 잘 띄지 않는 안내가 도움이 될 거야. / 큰 광고보다 실제 이용한 사람의 설명에서 쓸 만한 정보를 얻기 좋은 날이야.
+관찰: 지혜 / 침묵 / 아직 드러나지 않은 내용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작게 적힌 조건을 살펴보다 놓칠 뻔한 혜택을 찾을 수 있어. 반품 기간이나 적립 기준처럼 눈에 잘 띄지 않는 안내가 도움이 될 거야. 큰 광고보다 실제 이용한 사람의 설명에서 쓸 만한 정보를 얻기 좋은 날이야. 필요한 물건은 결제 전에 상세 안내를 끝까지 읽어봐. 조금 더 확인한 시간이 나중에 불필요한 비용을 줄여줄 수 있어. | Fine print could reveal a benefit you nearly missed. Less noticeable details, such as a return period or reward conditions, may prove useful. Firsthand accounts could offer better information than a prominent advertisement today. Read the detailed information before paying for something you need. A little extra checking may help you avoid an unnecessary cost later. | 小さく書かれた条件から、見逃しかけた特典が見つかりそうです。返品期間やポイントの条件など、目立たない案内が役に立つでしょう。大きな広告より、実際に利用した人の説明からよい情報を得やすい日です。必要なものは、支払う前に詳しい案内を最後まで読んでみましょう。少し長く確認した時間が、後の余分な費用を減らしてくれそうです。 |
+| 분야 풀이 | 큰돈을 움직이기보다 가진 돈을 지키기에 나은 날이야. 아직 알려지지 않은 조건이 있어 겉으로 보이는 이익만으로 판단하기는 어려워. 기다리면 거래의 실제 금액이나 비용이 더 분명해질 수 있어.<br><br>오늘 안에 결정해야 한다는 말에 서두르지 말아줘. 돈을 쓰는 이유가 충분히 납득될 때까지 보류해도 괜찮아. | It's a better day to protect your money than to move a large sum. Conditions that haven't been revealed yet may make the apparent profit hard to judge. Waiting could make the actual amount or costs of a transaction clearer.<br><br>Don't rush because someone says you must decide today. It's fine to wait until the reason for spending the money makes full sense to you. | 大きなお金を動かすより、手持ちを守るのに向いた日です。まだ知らされていない条件があり、見えている利益だけでは判断しにくいでしょう。待つことで、取引の実際の金額や費用が、もっとはっきりしそうです。<br><br>今日中に決めてほしいと言われても、急がないでください。お金を使う理由に十分納得できるまで、保留しても大丈夫です。 |
 
 ## major.judgement · 역방향
 
 내부 ID: `money.major.judgement.reversed`
 
-카드 의미: 자기비판이나 결정 회피로 필요한 응답을 미룸. 원전의 망설임을 사실에 근거한 재평가 필요로 선택.
+카드 의미: 자기회의, 과한평가, 성찰회피
 
-분야 해석: 정산미루기
+분야 해석: 받을 돈을 확인할 기회를 놓치거나 같은 지출 실수를 되풀이하기 쉬워.
 
-관찰: 예전의 돈 이야기를 꺼내기 어색해 필요한 확인까지 미룰 수 있어. / 받을 몫이 있어도 내가 먼저 말하면 불편해질까 걱정될 거야. / 막상 내역을 보여주면 상대도 잊고 있었다며 쉽게 답할 수 있는 날이야.
+관찰: 자기회의 / 과한평가 / 성찰회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전의 돈 이야기를 꺼내기 어색해 필요한 확인까지 미룰 수 있어. 받을 몫이 있어도 내가 먼저 말하면 불편해질까 걱정될 거야. 막상 내역을 보여주면 상대도 잊고 있었다며 쉽게 답할 수 있는 날이야. 감정적인 설명보다 날짜와 금액을 짧게 전해봐. 정리하지 못한 작은 비용 하나가 해결되면 생각보다 마음이 편해질 수 있어. | Feeling awkward about an old money matter may make you delay a necessary check. Even if you're owed something, you could worry that bringing it up will feel uncomfortable. Showing the record may prompt a straightforward reply that the other person had forgotten too. Share the date and amount briefly rather than giving an emotional explanation. Settling one small outstanding expense could bring more peace of mind than expected. | 昔のお金の話を出しにくくて、必要な確認まで延ばすかもしれません。受け取れる分があっても、自分から言うと気まずくならないか心配になりそうです。でも明細を見せれば、相手も忘れていたとあっさり答えるでしょう。感情を長く説明するより、日付と金額を短く伝えてみてください。残っていた小さな費用が一つ解決すると、思ったより気が楽になりそうです。 |
+| 분야 풀이 | 받을 돈을 확인할 기회를 놓치거나 같은 지출 실수를 되풀이하기 쉬워. 돈 이야기가 불편하다고 미루면 자신의 몫을 챙기기도 어려워질 수 있어. 예전에 손해 봤던 조건을 또 받아들이지 않도록 조심해야 하는 날이야.<br><br>돈과 관련해 답해야 할 연락은 지나치지 말아줘. 지난번에 무엇 때문에 손해가 났는지 떠올려보면 이번에 거절할 조건도 분명해져. | You may miss a chance to check money owed or repeat the same spending mistake. Putting off an uncomfortable money conversation could make it harder to claim your share. It's a day to be careful about accepting terms that cost you money before.<br><br>Don't overlook messages about money that need an answer. Remembering why you lost money last time could make clear which terms to refuse now. | 受け取るお金を確かめる機会を逃したり、同じ出費の失敗を繰り返したりしやすい日です。お金の話が苦手だからと後回しにすると、本来の取り分を受け取るのも難しくなるかもしれません。以前損をした条件を、また受け入れないよう注意が必要です。<br><br>お金に関して返事をするべき連絡は、見過ごさないでください。前回なぜ損をしたか振り返ると、今回は断るべき条件もはっきりするでしょう。 |
 
 ## major.judgement · 정방향
 
 내부 ID: `money.major.judgement.upright`
 
-카드 의미: 지난 선택을 돌아보고 다시 응답하는 갱신. 원전의 변화·결과를 죄책감보다 재평가와 다음 결정으로 응용.
+카드 의미: 성찰, 재선택, 갱신
 
-분야 해석: 지난돈회수
+분야 해석: 한동안 소식 없던 돈 문제가 다시 풀릴 수 있는 날이야.
 
-관찰: 예전에 신청했거나 빌려준 돈에 관한 소식을 들을 수 있어. / 놓친 줄 알았던 환급이나 보상 절차를 다시 안내받을 수도 있는 날이야. / 기록을 남겨둔 것이 내 몫을 설명하는 데 도움이 될 거야.
+관찰: 성찰 / 재선택 / 갱신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 신청했거나 빌려준 돈에 관한 소식을 들을 수 있어. 놓친 줄 알았던 환급이나 보상 절차를 다시 안내받을 수도 있는 날이야. 기록을 남겨둔 것이 내 몫을 설명하는 데 도움이 될 거야. 오래 미뤄둔 정산이 있다면 내역을 확인해 연락해봐. 작은 금액이라도 뒤늦게 챙긴 보람이 하루를 기분 좋게 만들어줄 수 있어. | You may hear news about money you applied for or lent some time ago. Instructions for a refund or compensation you thought you'd missed could arrive again. Records you kept could help you explain what you're owed. If a settlement has waited a long time, check the details and get in touch. Even a small amount claimed late could make the day feel rewarding. | 以前申し込んだお金や、貸したお金について知らせがありそうです。逃したと思っていた返金や補償の手続きを、もう一度案内してもらうかもしれません。残していた記録が、自分の受け取る分を説明する助けになるでしょう。長く後回しにした精算があれば、明細を確かめて連絡してみてください。小さな金額でも、遅れて受け取れた満足が一日を明るくしてくれそうです。 |
+| 분야 풀이 | 한동안 소식 없던 돈 문제가 다시 풀릴 수 있는 날이야. 받지 못했던 돈을 받을 기회가 생기거나 이전 거래를 다시 의논할 수 있어. 지난번보다 사정을 분명히 알고 결정할 수 있어 같은 손해를 피하기에도 좋아.<br><br>미뤄둔 금전 연락이 있다면 다시 확인해봐. 예전 약속을 그대로 반복하기보다 이번에는 받을 금액과 시기를 확실히 정하는 게 좋아. | A money matter that's been quiet for a while could start moving towards a solution today. There may be a chance to receive an unpaid amount or reopen an earlier transaction. Knowing the circumstances more clearly than before could also help you avoid the same loss.<br><br>Follow up on any money conversation you've put off. Instead of repeating the old agreement unchanged, firmly settle the amount and payment date this time. | しばらく進展のなかったお金の問題が、また動き出しそうです。受け取れなかったお金を得る機会ができたり、以前の取引を改めて話し合ったりするかもしれません。前回より事情をはっきり把握して決められ、同じ損を避けるのにもよい日です。<br><br>後回しにしたお金の連絡があれば、もう一度確認しましょう。以前の約束をそのまま繰り返すより、今回は金額と受け取る時期を明確に決めてください。 |
 
 ## major.justice · 역방향
 
 내부 ID: `money.major.justice.reversed`
 
-카드 의미: 편향된 기준이나 책임 회피를 드러내는 카드. 불공정을 단정하기보다 같은 사실을 다른 잣대로 보고 있지 않은지 확인.
+카드 의미: 편견, 불공정, 책임회피
 
-분야 해석: 계산착오
+분야 해석: 금전적인 약속이 공정하게 지켜지지 않을 수 있어.
 
-관찰: 결제 내역이나 나눠 낼 금액에서 작은 차이를 발견할 수 있어. / 누락된 비용이 뒤늦게 더해지거나 내가 낸 몫이 다르게 기억될 수 있는 날이야. / 영수증이나 기록이 있어 억울한 상황을 바로잡기 쉬울 거야.
+관찰: 편견 / 불공정 / 책임회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 결제 내역이나 나눠 낼 금액에서 작은 차이를 발견할 수 있어. 누락된 비용이 뒤늦게 더해지거나 내가 낸 몫이 다르게 기억될 수 있는 날이야. 영수증이나 기록이 있어 억울한 상황을 바로잡기 쉬울 거야. 마음으로 짐작하지 말고 실제 금액을 한 번 계산해봐. 정확히 확인한 뒤에는 서로 납득할 답을 찾으며 부담을 덜 수 있어. | You may notice a small difference in a payment record or shared bill. An omitted cost could be added late, or someone may remember your contribution differently. A receipt or record could make an unfair situation easier to correct. Calculate the actual amounts instead of going by an impression. Once the figures are clear, you could find an answer everyone accepts and feel less burdened. | 支払いの明細や割り勘の金額に、小さな違いを見つけそうです。抜けていた費用が後から加わったり、自分の払った分を違って覚えられていたりするかもしれません。領収書や記録があれば、不公平な状況を直しやすいでしょう。感覚で考えず、実際の金額を一度計算してみてください。正確に確かめた後は、お互い納得できる答えが見つかり、負担も軽くなりそうです。 |
+| 분야 풀이 | 금전적인 약속이 공정하게 지켜지지 않을 수 있어. 자신이 낼 몫보다 더 부담하거나 받기로 한 돈이 줄어들 수 있는 날이야. 작은 계산 착오를 그대로 두면 나중에 손해를 되돌리기 어려워질 수 있어.<br><br>주고받을 금액은 직접 확인해줘. 친한 사이여도 돈 이야기를 흐리게 넘기지 않는 게 좋아. | A financial agreement may not be honoured fairly. You could pay more than your share or receive less than promised today. Leaving a small calculation error uncorrected could make the loss harder to recover later.<br><br>Check the amounts to be paid and received yourself. Even between close friends, it's better not to leave money matters vague. | お金の約束が、公平に守られないかもしれません。払うべき分より多く負担したり、受け取るはずの金額が減ったりしそうです。小さな計算違いをそのままにすると、後から損を取り戻しにくくなる可能性があります。<br><br>支払う額も受け取る額も、直接確かめましょう。親しい間柄でも、お金の話を曖昧に済ませないほうがよさそうです。 |
 
 ## major.justice · 정방향
 
 내부 ID: `money.major.justice.upright`
 
-카드 의미: 사실·공정함·선택에 따르는 책임. 원전의 정당성과 균형을 자료에 근거한 판단으로 사용.
+카드 의미: 공정함, 사실, 책임
 
-분야 해석: 정산환급
+분야 해석: 받아야 할 돈을 정당하게 받기 좋은 날이야.
 
-관찰: 정산이나 환급에서 내 몫을 정확하게 확인할 수 있는 날이야. / 기록을 살펴보면 애매했던 금액이 어디서 달라졌는지 보일 거야. / 잘못 낸 비용이 있다면 설명을 듣고 바로잡을 여지도 있어.
+관찰: 공정함 / 사실 / 책임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정산이나 환급에서 내 몫을 정확하게 확인할 수 있는 날이야. 기록을 살펴보면 애매했던 금액이 어디서 달라졌는지 보일 거야. 잘못 낸 비용이 있다면 설명을 듣고 바로잡을 여지도 있어. 받을 돈과 낼 돈을 같은 기준으로 한 번 확인해봐. 차분하게 정리한 내역이 서로 불편하지 않게 돈 이야기를 마치는 데 도움이 될 거야. | You'll be able to check your exact share of a payment or refund today. The records could show where an unclear amount went wrong. An explanation may also help you correct a charge you paid by mistake. Check what you're owed and what you owe using the same standard. A clear account could help you finish the money conversation without discomfort on either side. | 精算や返金で、自分の受け取る分を正確に確かめられそうです。記録を見ると、曖昧だった金額がどこで違ったか分かるでしょう。間違えて払った費用があれば、説明を聞いて訂正できる余地もあります。受け取るお金と払うお金を、同じ基準で一度確認してみてください。明細を落ち着いて整理すれば、お互い気まずくならずにお金の話を終えられそうです。 |
+| 분야 풀이 | 받아야 할 돈을 정당하게 받기 좋은 날이야. 금액을 두고 의견이 달랐다면 약속한 내용을 바탕으로 결론을 낼 수 있어. 일을 한 만큼 보수를 받거나 잘못 계산된 돈을 돌려받을 가능성도 있어.<br><br>돈과 관련된 서류나 약속이 있다면 보관해둬. 말로만 우기기보다 실제 기록을 보여주는 편이 자신의 몫을 받는 데 좋아. | It's a good day to receive the money you're rightfully owed. If opinions differed over an amount, the original agreement could help settle it. You may be paid for the work you've done or recover money that was calculated incorrectly.<br><br>Keep any documents or agreements involving money. Showing the actual record will help you receive your share more than simply insisting you're right. | 本来もらえるはずのお金を、きちんと受け取れそうです。金額について意見が違っていたなら、約束の内容に基づいて結論を出せそうです。働いた分の報酬を得たり、計算を間違えられたお金を返してもらったりする可能性もあります。<br><br>お金に関する書類や約束の記録は、保管しておきましょう。言い張るだけでなく、実際の記録を見せたほうが、本来の取り分を受け取りやすくなります。 |
 
 ## major.lovers · 역방향
 
 내부 ID: `money.major.lovers.reversed`
 
-카드 의미: 선택 기준이나 바람이 엇갈려 합의가 어려운 상태. 관계 실패를 단정하지 않고 자기 뜻과 공동 약속의 불일치를 살핌.
+카드 의미: 불일치, 상충하는 선택, 충동
 
-분야 해석: 공동비용
+분야 해석: 돈 쓰는 생각이 서로 달라 지출이 늘거나 다툼이 생기기 쉬워.
 
-관찰: 함께 내는 돈은 금액보다 생각의 차이를 먼저 풀면 좋은 날이야. / 나는 가볍게 여긴 비용이 다른 사람에게는 부담스러울 수 있어. / 솔직히 말하면 무리하지 않고도 함께할 방법이 보일 거야.
+관찰: 불일치 / 상충하는 선택 / 충동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 낼 돈을 두고 생각보다 의견 차이가 클 수 있어. 가볍게 여긴 추가 비용이 다른 사람에게는 부담이 될 수 있는 날이야. 나중에 정하자며 넘겼던 금액이 약속 직전에 다시 이야기될 거야. 확정하기 전에 각자 편하게 낼 수 있는 금액을 말해봐. 조금 더 소박한 곳에서도 함께 즐길 방법이 보여 처음의 기대를 지킬 수 있어. | You may differ more than expected over a shared expense. An extra charge that seems minor to you could burden someone else. Money left for later discussion may come up again just before the arrangement. Say what each of you can comfortably afford before confirming. A simpler place may still let you enjoy being together and preserve what you were looking forward to. | 一緒に出すお金をめぐり、思ったより意見が違うかもしれません。小さく感じた追加費用が、相手には負担になりそうです。後で決めようとした金額が、約束の直前にまた話題になるでしょう。確定する前に、それぞれ無理なく出せる金額を伝えてみましょう。少し素朴な場所でも一緒に楽しむ方法が見つかり、楽しみにしていた時間を過ごせそうです。 |
+| 분야 풀이 | 돈 쓰는 생각이 서로 달라 지출이 늘거나 다툼이 생기기 쉬워. 상대에게 맞춰주다가 자신이 원하지 않은 비용까지 부담할 수 있는 날이야. 마음이 끌린다는 이유로 고른 물건도 가격을 생각하면 후회가 남을 수 있어.<br><br>함께 쓰는 돈이라면 사기 전에 금액부터 맞춰줘. 내키지 않는 지출에 당장 동의하지 않아도 괜찮아. | Different ideas about spending could increase expenses or cause an argument. Accommodating someone else may leave you paying costs you didn't want today. Something chosen simply because it appeals could also disappoint you when you consider the price.<br><br>For shared spending, agree on the amount before buying. It's fine not to approve an expense you're uncomfortable with immediately. | お金の使い方について考えが違い、出費が増えたり、もめたりしやすい日です。相手に合わせるうちに、望まない費用まで負担するかもしれません。気に入ったというだけで選んだ物も、価格を考えると後悔が残りそうです。<br><br>一緒に使うお金なら、買う前に金額を話し合いましょう。気の進まない出費に、すぐ同意しなくても大丈夫です。 |
 
 ## major.lovers · 정방향
 
 내부 ID: `money.major.lovers.upright`
 
-카드 의미: 호감과 합의뿐 아니라 자신이 중요하게 여기는 가치에 따른 선택. 원전의 끌림·조화를 자유로운 상호 선택으로 확장.
+카드 의미: 조화, 상호연결, 자신의가치에 따른 선택
 
-분야 해석: 공동구매
+분야 해석: 서로에게 이익이 남는 돈 거래를 하기 좋은 날이야.
 
-관찰: 함께 쓸 돈의 목적을 이야기하면 만족스러운 선택을 하기 좋아. / 가격만 비교할 때는 달랐던 의견도 필요한 기능을 말하면 가까워질 거야. / 둘 다 납득한 물건이나 장소를 고르면 돈을 쓴 뒤에도 기분이 편할 수 있어.
+관찰: 조화 / 상호연결 / 자신의가치에 따른 선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 고른 물건이나 장소가 둘 다 만족스러울 수 있는 날이야. 처음에는 달랐던 의견도 서로 원하는 기능을 말하며 가까워질 거야. 혼자 알아볼 때 몰랐던 혜택을 상대가 알려줄 수도 있어. 각자 꼭 필요한 점을 하나씩 이야기해봐. 한쪽만 양보하지 않고 고른 덕분에 돈을 쓰고 난 뒤에도 기분 좋게 이야기할 수 있을 거야. | Something you choose together could satisfy you both today. Initially different opinions may come closer as you explain the features you need. The other person could point out a benefit you missed on your own. Tell each other one thing you especially need. A choice that doesn't leave just one person giving way may feel good to talk about afterward. | 一緒に選んだ品物や場所に、お互い満足できそうです。初めは違った意見も、必要な機能を話すうちに近づくでしょう。一人では気づかなかった特典を、相手が教えてくれることもありそうです。欠かせない点を、それぞれ一つずつ話してみましょう。お互いが納得して選べれば、使った後も気持ちよく話せそうです。 |
+| 분야 풀이 | 서로에게 이익이 남는 돈 거래를 하기 좋은 날이야. 파는 사람과 사는 사람의 생각이 맞아 원하는 가격에 거래가 이뤄질 수 있어. 혼자 부담하던 일에 함께할 사람이 생기면 비용도 줄어들 수 있어.<br><br>좋은 관계가 금전적인 도움으로 이어질 수 있는 만큼 약속은 정확히 해줘. 친하다는 이유로 받을 돈까지 먼저 양보할 필요는 없어. | It's a good day for a transaction that benefits both sides. A buyer and seller may agree and complete a deal at the price you want. If someone shares a cost you've been covering alone, your expenses could fall too.<br><br>A good relationship could bring financial help, so be precise about the agreement. Being close doesn't mean you need to give up money you're owed in advance. | 互いに利益のある取引をしやすい日です。売り手と買い手の考えが合い、希望の価格で取引がまとまるかもしれません。一人で負担していたことに協力する人が現れれば、費用も減らせそうです。<br><br>よい関係が金銭面の助けにつながりそうだからこそ、約束は正確にしましょう。親しいというだけで、受け取るべきお金まで先に譲る必要はありません。 |
 
 ## major.magician · 역방향
 
 내부 ID: `money.major.magician.reversed`
 
-카드 의미: 능력을 쓰지 못하거나 말과 실제 실행이 벌어짐. 현대적 조작·과장 경계를 선택하되 타인의 악의를 사실로 만들지 않음.
+카드 의미: 외양과 실질의 차이, 쓰이지 않는 재능
 
-분야 해석: 거래과장
+분야 해석: 좋은 수입을 약속하는 말 뒤에 손해가 숨어 있을 수 있어.
 
-관찰: 설명은 그럴듯해도 실제로 손에 남는 돈은 적을 수 있는 날이야. / 보상은 크게 말하면서 필요한 비용은 뒤늦게 알려주는 제안을 만날 수 있어. / 직접 경험한 사람에게서는 광고와 다른 이야기를 듣게 될 거야.
+관찰: 외양과 실질의 차이 / 쓰이지 않는 재능
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 설명은 그럴듯해도 실제로 손에 남는 돈은 적을 수 있는 날이야. 보상은 크게 말하면서 필요한 비용은 뒤늦게 알려주는 제안을 만날 수 있어. 직접 경험한 사람에게서는 광고와 다른 이야기를 듣게 될 거야. 신청하기 전에 내 돈이 얼마나 들어가는지 먼저 물어봐. 자세히 따져본 뒤에는 처음의 좋은 조건이 그만큼 매력적이지 않을 수 있어. | A convincing offer may leave you with less money than it suggests. You could encounter a proposal that highlights the reward but reveals the costs later. Someone with firsthand experience may tell a different story from the advertisement. Ask how much of your own money is needed before applying. Once you examine the details, the attractive terms may lose some of their appeal. | 説明は魅力的でも、実際に残るお金は少ないかもしれません。報酬を大きく見せ、必要な費用は後から伝える話に出会うことがありそうです。経験した人からは、広告と違う話が聞けるでしょう。申し込む前に、自分のお金がいくら必要か尋ねてみましょう。詳しく確かめると、初めはよく見えた条件にも、それほど魅力を感じなくなるかもしれません。 |
+| 분야 풀이 | 좋은 수입을 약속하는 말 뒤에 손해가 숨어 있을 수 있어. 실제로 받는 돈보다 준비하는 데 드는 돈이 더 많아질 수 있는 날이야. 쉽게 벌 수 있다는 말에 마음이 급해지면 불리한 조건도 지나치기 쉬워.<br><br>돈을 받기 위해 먼저 큰돈을 내라는 제안은 신중히 살펴봐. 상대가 얼마나 자신 있게 말하는지보다 약속한 금액을 실제로 받을 수 있는지가 중요해. | A promise of good income could hide a loss. Getting ready may cost more than the money you actually receive today. If talk of easy earnings makes you rush, you could overlook unfavourable terms.<br><br>Look carefully at any offer asking you to pay a large sum first in order to receive money. What matters is whether the promised amount can actually be paid, more than how confidently the other person speaks. | よい収入を約束する言葉の裏に、損失が隠れているかもしれません。実際に受け取る額より、準備にかかるお金のほうが多くなる可能性があります。簡単に稼げると聞いて焦ると、不利な条件も見過ごしがちです。<br><br>お金を受け取るために、先に多額の支払いを求める提案は、慎重に見てください。相手がどれほど自信を持って話すかより、約束した金額を実際に受け取れるかが大切です。 |
 
 ## major.magician · 정방향
 
 내부 ID: `money.major.magician.upright`
 
-카드 의미: 의지와 숙련을 실제 행동으로 연결함. 원전의 기량·설득·자신감을 살려 이미 가진 자원을 활용하는 뜻.
+카드 의미: 기술, 의지, 가진 도구의 활용
 
-분야 해석: 재능보상
+분야 해석: 자신의 실력이 수입으로 이어지기 좋은 날이야.
 
-관찰: 잘하는 일이 작은 보상으로 이어질 기회를 기대해볼 만해. / 내가 익숙하게 해온 기술이나 취미를 필요로 하는 사람이 나타날 수 있어. / 물건을 고를 때도 아는 만큼 품질을 알아봐 실속을 챙기기 쉬운 날이야.
+관찰: 기술 / 의지 / 가진 도구의 활용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 잘하는 일이 작은 보상으로 이어질 기회를 기대해볼 만해. 내가 익숙하게 해온 기술이나 취미를 필요로 하는 사람이 나타날 수 있어. 물건을 고를 때도 아는 만큼 품질을 알아봐 실속을 챙기기 쉬운 날이야. 부탁을 받았다면 걸리는 시간과 받을 금액을 먼저 이야기해봐. 자신의 수고를 지나치게 낮추지 않으면 기분 좋게 주고받을 수 있어. | Something you do well could offer a chance for a small reward. Someone may need a skill or hobby you've practiced for a while. Knowing a product well can also help you recognize quality and get good value today. Before accepting a request, discuss the time involved and the payment. Not undervaluing your effort can make the exchange feel good on both sides. | 得意なことが、ささやかな報酬につながる機会がありそうです。慣れ親しんだ技術や趣味を、必要とする人が現れるかもしれません。品物を選ぶときも、知識があるほど質を見抜き、お得な選択をしやすい日です。頼まれたら、かかる時間と受け取る金額を先に話しましょう。自分の手間を安く見積もりすぎなければ、気持ちよくやり取りできそうです。 |
+| 분야 풀이 | 자신의 실력이 수입으로 이어지기 좋은 날이야. 해온 일의 값을 인정받거나 잘하는 것을 통해 돈을 벌 기회를 얻을 수 있어. 돈이 될까 망설였던 일도 구체적인 제안으로 이어질 수 있는 날이야.<br><br>거래 이야기가 오간다면 받을 금액을 처음부터 분명히 해줘. 무엇을 어디까지 해주기로 했는지 정해두면 애쓴 만큼 받는 데 도움이 돼. | It's a good day to earn through your skills. You may be paid fairly for work you've done or find a chance to earn through something you do well. You may even receive a specific offer for something you weren't sure you could earn from.<br><br>If a transaction is being discussed, make clear from the start how much you'll receive. Agreeing on the work you'll do, including how much you'll take on, can help you get paid for your effort. | 実力が収入につながりやすい日です。これまでの仕事に見合う報酬を認めてもらったり、得意なことでお金を得る機会ができたりしそうです。収入になるか迷っていたことも、具体的な提案につながるかもしれません。<br><br>取引の話が出たら、受け取る金額を最初にはっきりさせましょう。何をどこまで引き受けるか決めておくと、努力に見合った報酬を受け取りやすくなります。 |
 
 ## major.moon · 역방향
 
 내부 ID: `money.major.moon.reversed`
 
-카드 의미: 흐릿했던 정보가 일부 드러나며 추측을 줄일 수 있음. 원전의 약해진 오류를 모든 비밀이 밝혀진다는 뜻 없이 채택.
+카드 의미: 혼란완화, 사실확인, 남은추측
 
-분야 해석: 비용명확화
+분야 해석: 돈 걱정이 줄고 손해를 피할 수 있는 날이야.
 
-관찰: 헷갈리던 금액이나 거래 조건이 분명해질 수 있는 날이야. / 여러 말이 오가던 혜택도 실제 안내를 받으면 받을 몫이 보일 거야. / 잘못 알고 있던 비용이 생각보다 적어 안도할 수도 있어.
+관찰: 혼란완화 / 사실확인 / 남은추측
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 헷갈리던 금액이나 거래 조건이 분명해질 수 있는 날이야. 여러 말이 오가던 혜택도 실제 안내를 받으면 받을 몫이 보일 거야. 잘못 알고 있던 비용이 생각보다 적어 안도할 수도 있어. 확인한 내역을 기준으로 오늘 쓸 돈을 정해봐. 막연하게 걱정하던 때보다 금액이 작아도 계획을 편하게 세울 수 있을 거야. | A confusing amount or set of transaction terms could become clear today. Official details about a much-discussed benefit may show what you'll actually receive. A cost you'd misunderstood could also be smaller than expected, bringing relief. Base today's spending on the details you've confirmed. Even with a smaller amount, planning could feel easier than it did while you were worrying without clear information. | 分かりにくかった金額や取引の条件が、はっきりしそうです。いろいろな話が出ていた特典も、正式な案内をもらえば受け取れる分が分かるでしょう。誤解していた費用が思ったより少なく、安心することもありそうです。確認した明細を基準に、今日使うお金を決めてみてください。金額が小さくても、漠然と心配していたときより気楽に予定を立てられるでしょう。 |
+| 분야 풀이 | 돈 걱정이 줄고 손해를 피할 수 있는 날이야. 실제로 내야 할 금액이 생각보다 적거나, 잘못 붙은 비용이 바로잡힐 수 있어. 그동안 얼마를 받을지 몰라 답답했다면 금액이 분명해지면서 돈 쓸 계획도 세우기 편해질 수 있어.<br><br>확인된 돈보다 더 받을 거라고 기대해서 먼저 쓰지만 말아줘. 오늘은 돈 문제가 정리되는 대로 필요한 지출부터 하는 게 좋아. | Money worries could ease, with a chance to avoid a loss. What you owe may be less than expected, or an incorrect charge could be put right. If you've been unsure how much you'll receive, a clear amount may make spending easier to plan.<br><br>Don't spend ahead in the hope of getting more than the amount that's been confirmed. As money matters are settled, cover necessary expenses first. | お金の心配が減り、損失を避けられそうです。実際の支払額が思ったより少なかったり、誤って加算された費用が訂正されたりするかもしれません。いくら受け取れるか分からず困っていたなら、額がはっきりして、支出の予定も立てやすくなりそうです。<br><br>確認できた額より多く入ると期待して、先に使わないようにしましょう。今日はお金の見通しが立ったら、必要な支払いから済ませるのがよさそうです。 |
 
 ## major.moon · 정방향
 
 내부 ID: `money.major.moon.upright`
 
-카드 의미: 불확실한 정보와 상상이 판단을 흔드는 때. 원전의 오류·어둠을 숨은 적이 아닌 확인되지 않은 추측으로 응용.
+카드 의미: 모호함, 추측, 불안
 
-분야 해석: 불확실한거래
+분야 해석: 금전적인 손해를 조심해야 하는 날이야.
 
-관찰: 듣는 사람마다 다르게 설명하는 가격이나 혜택이 있을 수 있어. / 큰 이익을 이야기해도 실제 받을 금액은 분명하지 않을 거야. / 자세한 안내를 보면 처음에는 몰랐던 조건이 눈에 들어올 수 있는 날이야.
+관찰: 모호함 / 추측 / 불안
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 듣는 사람마다 다르게 설명하는 가격이나 혜택이 있을 수 있어. 큰 이익을 이야기해도 실제 받을 금액은 분명하지 않을 거야. 자세한 안내를 보면 처음에는 몰랐던 조건이 눈에 들어올 수 있는 날이야. 확인되지 않은 말만으로 돈을 보내지는 마. 오늘 결정을 늦춘 덕분에 나중에 불필요한 비용을 피했다고 느낄 수 있어. | A price or benefit may be explained differently by everyone you ask. Even talk of a large gain might leave the amount you'd actually receive unclear. Detailed information could reveal a condition you didn't know at first. Don't send money based only on an unconfirmed claim. Putting off a decision today could later feel like it saved you an unnecessary expense. | 誰に聞くかで説明の違う、値段や特典があるかもしれません。大きな利益の話でも、実際に受け取れる金額ははっきりしなさそうです。詳しい案内を見ると、初めは知らなかった条件が見つかるでしょう。確かめていない話だけで、お金を送らないでください。今日決断を延ばしたことで、後になって不要な出費を避けられたと思えるかもしれません。 |
+| 분야 풀이 | 금전적인 손해를 조심해야 하는 날이야. 겉으로는 이익이 커 보여도 실제로 내야 할 돈이 더 많을 수 있어. 듣기 좋은 말만 믿으면 받기로 한 돈이나 거래 조건이 생각과 달라질 수 있어.<br><br>설명이 분명하지 않은 곳에는 돈을 보내지 않는 게 좋아. 수익이 얼마나 큰지보다 내 돈이 어디에 쓰이는지부터 확실히 알아봐. | There's a risk of losing money today. Something that looks profitable could actually cost you more than expected. Trusting appealing promises alone may leave you with a different payment or different terms from those you had in mind.<br><br>Don't send money when the explanation is unclear. Find out exactly where your money will go before focusing on how much you might earn. | お金の損失に注意が必要な日です。利益が大きく見えても、実際には支払うお金のほうが多いかもしれません。耳に心地よい話だけを信じると、受け取る額や取引の条件が思っていたものと違いそうです。<br><br>説明がはっきりしない相手には、お金を送らないほうがよいでしょう。利益の大きさより、預けるお金が何に使われるのかを先に確かめてください。 |
 
 ## major.star · 역방향
 
 내부 ID: `money.major.star.reversed`
 
-카드 의미: 기대가 멀어 보이거나 자기 가능성을 신뢰하기 어려움. 회복 불가능이 아니라 목표와 현재 사이를 다시 좁히는 뜻.
+카드 의미: 자기불신, 희망저하, 낙담
 
-분야 해석: 보상아쉬움
+분야 해석: 기대했던 돈이 바로 들어오지 않아 실망할 수 있어.
 
-관찰: 기대했던 혜택이 생각보다 작아 아쉬울 수 있는 날이야. / 받을 줄 알았던 금액에서 조건이 빠져 실제 몫이 달라질 수 있어. / 대신 다른 안내에서 작게 보탤 수 있는 혜택을 알게 될 여지도 있어.
+관찰: 자기불신 / 희망저하 / 낙담
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 혜택이 생각보다 작아 아쉬울 수 있는 날이야. 받을 줄 알았던 금액에서 조건이 빠져 실제 몫이 달라질 수 있어. 대신 다른 안내에서 작게 보탤 수 있는 혜택을 알게 될 여지도 있어. 확인된 금액만 적어두고 오늘 쓸 돈을 정해봐. 큰 보상은 아니어도 직접 챙긴 몫이 있다는 점에서는 안도감을 느낄 수 있어. | A benefit you expected may turn out smaller than hoped today. A condition you don't meet could change the amount you'll actually receive. Another notice may reveal a small additional benefit, though. Write down only the confirmed amount before deciding what to spend today. It may not be a large reward, but claiming something you're entitled to could still bring relief. | 期待した特典が思ったより小さく、残念に感じるかもしれません。条件に合わない部分があって、実際に受け取る額が変わりそうです。一方、別の案内から、少し上乗せできる特典を知る余地もあるでしょう。確定した金額だけを書いて、今日使うお金を決めてみてください。大きな報酬でなくても、自分で確認して受け取れる分があることには安心できそうです。 |
+| 분야 풀이 | 기대했던 돈이 바로 들어오지 않아 실망할 수 있어. 바라던 수입보다 적게 받으면 앞으로도 계속 부족할 것처럼 느껴지기 쉬운 날이야. 그 마음에 계획을 모두 포기하거나 돈을 함부로 써버리는 건 조심해야 해.<br><br>오늘의 아쉬움을 달래려고 비싼 물건을 사지는 말아줘. 들어온 돈부터 지켜두면 다음에 필요한 지출을 감당하기가 한결 나아져. | Expected money may not arrive immediately, leaving you disappointed. Receiving less than you hoped could make it feel as though you'll always be short. Be careful not to give up every plan or spend carelessly because of that feeling.<br><br>Don't buy something expensive to soothe today's disappointment. Keeping the money that's arrived will make it easier to cover the next necessary expense. | 期待したお金がすぐに入らず、がっかりするかもしれません。望んだ額より少ないと、これからもずっと足りない気がしやすい日です。その気持ちから計画をすべて諦めたり、むやみにお金を使い切ったりすることには気をつけましょう。<br><br>今日の残念な気持ちを紛らわそうと、高価な物を買うのは控えてください。入ったお金をまず守れば、次に必要な出費をまかないやすくなります。 |
 
 ## major.star · 정방향
 
 내부 ID: `money.major.star.upright`
 
-카드 의미: 희망과 다시 시작할 신뢰. 원전에 함께 있는 상실과 밝은 전망 중 회복을 바라보는 독해를 선택.
+카드 의미: 희망, 영감, 편안한회복감
 
-분야 해석: 보상기대
+분야 해석: 빠듯했던 금전 사정이 나아질 수 있는 날이야.
 
-관찰: 작은 보상이나 지원 소식에 앞으로의 부담이 줄어들 수 있어. / 신청해둔 혜택의 진행 상황을 알게 되며 반가운 기대가 생길 거야. / 누군가 알려준 정보에서 내게 맞는 도움을 발견할 수도 있는 날이야.
+관찰: 희망 / 영감 / 편안한회복감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 보상이나 지원 소식에 앞으로의 부담이 줄어들 수 있어. 신청해둔 혜택의 진행 상황을 알게 되며 반가운 기대가 생길 거야. 누군가 알려준 정보에서 내게 맞는 도움을 발견할 수도 있는 날이야. 관심 가는 항목은 신청 조건과 날짜를 확인해봐. 아직 들어오지 않은 돈을 먼저 쓰지 않으면 기분 좋은 소식을 차분히 기다릴 수 있어. | News of a small reward or support could ease a future expense. Learning how an application for a benefit is progressing may give you something pleasant to anticipate. Information someone shares could reveal help that suits your situation. Check the eligibility and dates of something that interests you. Leaving money unspent until it arrives could let you wait calmly for the good news. | 小さな報酬や支援の知らせで、これからの負担が軽くなりそうです。申し込んだ特典の進み具合が分かり、楽しみに待つ気持ちが生まれるでしょう。誰かに聞いた情報から、自分に合う助けが見つかるかもしれません。気になるものは、申し込みの条件と日付を確かめてみてください。まだ入っていないお金を先に使わなければ、うれしい知らせを落ち着いて待てそうです。 |
+| 분야 풀이 | 빠듯했던 금전 사정이 나아질 수 있는 날이야. 기다리던 수입에 대한 좋은 소식이 오거나 돈 걱정을 덜어줄 도움을 받을 수 있어. 당장 모든 문제가 끝나지는 않아도 필요한 돈을 마련할 길이 보일 수 있어.<br><br>오래 바라던 일을 위해 조금씩 돈을 모으고 있다면 포기하지 않아도 괜찮아. 작은 여유부터 남겨두면 계획을 다시 이어가는 데 도움이 될 거야. | Tight finances could improve today. Good news about income you've been waiting for or help with money worries may arrive. Even if every problem isn't immediately solved, you could see a way to obtain what you need.<br><br>If you've been gradually saving for something you've long wanted, you don't have to give up. Keeping even a small amount aside could help you return to that plan. | お金のやりくりが、これまでより楽になるかもしれません。待っていた収入に関するよい知らせが届いたり、お金の心配を減らす助けが得られたりしそうです。すぐにすべては解決しなくても、必要な額を用意する道が見えてくるでしょう。<br><br>長く望んでいたことのために少しずつ貯めているなら、諦めなくても大丈夫です。少額でも手元に残しておくと、計画をまた続ける助けになるでしょう。 |
 
 ## major.strength · 역방향
 
 내부 ID: `money.major.strength.reversed`
 
-카드 의미: 자신감이 약해지거나 억눌렀던 반응이 강해질 수 있음. 부족한 의지를 탓하기보다 과한 긴장과 자기비판을 낮추는 뜻.
+카드 의미: 자기회의, 약한자제, 불안한강함
 
-분야 해석: 보상심리
+분야 해석: 순간적인 욕심에 돈이 새어나가기 쉬운 날이야.
 
-관찰: 속상한 기분에 평소보다 돈을 쉽게 쓰고 싶어질 수 있어. / 작은 위로를 찾다가 장바구니에 물건이 여러 개 쌓일 수 있는 날이야. / 잠깐 시간을 두면 꼭 갖고 싶던 것과 순간적으로 끌린 것이 다르게 보일 거야.
+관찰: 자기회의 / 약한자제 / 불안한강함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 속상한 기분에 평소보다 돈을 쉽게 쓰고 싶어질 수 있어. 작은 위로를 찾다가 장바구니에 물건이 여러 개 쌓일 수 있는 날이야. 잠깐 시간을 두면 꼭 갖고 싶던 것과 순간적으로 끌린 것이 다르게 보일 거야. 기분이 상한 직후에는 큰 결제를 미뤄둬. 이미 가진 것 중 좋아하던 물건을 다시 쓰며 의외의 만족을 느낄 수도 있어. | Feeling upset may make spending more tempting than usual. A search for a small comfort could leave several things in your cart. Give it a little time, and a lasting wish will look different from a passing impulse. Put off a large purchase right after an upsetting moment. Using a favorite thing you already own could bring more satisfaction than expected. | 嫌なことがあると、いつもより気軽にお金を使いたくなりそうです。少し気を紛らわせるつもりが、カートにいくつも物を入れてしまうかもしれません。少し時間を置くと、本当に欲しい物と、その場で惹かれただけの物を見分けられるでしょう。気分が沈んだ直後の大きな買い物は後にしてください。持っているお気に入りを久しぶりに使うと、意外な満足を味わえそうです。 |
+| 분야 풀이 | 순간적인 욕심에 돈이 새어나가기 쉬운 날이야. 참아왔던 구매를 한꺼번에 하거나 돈이 부족하다는 불안 때문에 성급한 거래를 할 수 있어. 마음이 급할수록 쓸 수 있는 금액을 실제보다 넉넉하게 보기 쉬워.<br><br>지금 사지 않으면 안 될 것 같은 물건은 잠시 내려놔줘. 지출을 결정하기 전에 시간을 조금 두면 후회할 구매를 피할 수 있어. | A sudden urge could make money slip away today. You may buy several things you've resisted at once or make a hasty deal because you're worried about having too little. The more rushed you feel, the easier it is to overestimate what you can spend.<br><br>Set aside anything that feels as though you must buy it immediately. Taking a little time before deciding on spending could help you avoid a purchase you'd regret. | その場で欲しくなった物に、お金を使いすぎやすい日です。我慢していた買い物を一度にしたり、お金が足りない不安から、取引を急いだりするかもしれません。焦るほど、使える金額を実際より多く見積もりがちです。<br><br>今すぐ買わなければと思ったら、いったん購入を待ちましょう。出費を決める前に少し時間を置くと、後悔する買い物を避けられそうです。 |
 
 ## major.strength · 정방향
 
 내부 ID: `money.major.strength.upright`
 
-카드 의미: 힘을 과시하지 않고 다룰 수 있는 용기와 인내. 원전의 담대함·관대함을 부드럽고 꾸준한 대응으로 채택.
+카드 의미: 내적용기, 인내, 온화한힘
 
-분야 해석: 가격협상
+분야 해석: 돈이 크게 늘지는 않아도 필요한 지출을 감당할 수 있는 날이야.
 
-관찰: 필요한 조건을 차분히 말하며 괜찮은 가격을 제안받을 수 있어. / 강하게 밀어붙이지 않아도 상대가 가능한 혜택을 알려줄 거야. / 충동적으로 사고 싶던 물건도 실제 쓸 곳을 생각하면 욕심이 잦아들 수 있는 날이야.
+관찰: 내적용기 / 인내 / 온화한힘
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 필요한 조건을 차분히 말하며 괜찮은 가격을 제안받을 수 있어. 강하게 밀어붙이지 않아도 상대가 가능한 혜택을 알려줄 거야. 충동적으로 사고 싶던 물건도 실제 쓸 곳을 생각하면 욕심이 잦아들 수 있는 날이야. 금액이 부담되면 가능한 범위를 솔직하게 말해봐. 무리하지 않고 고른 선택에서 오래 편하게 쓸 만족이 남을 수 있어. | Explaining what you need calmly could lead to a reasonable price. You won't have to push hard for the other person to tell you about an available offer. The urge to buy something on impulse may fade when you consider how you'd actually use it. If a price feels too high, be honest about what you can afford. Something chosen within your means could remain useful and satisfying for a long time. | 希望する条件を落ち着いて伝えると、納得できる値段を提示してもらえそうです。強く押さなくても、利用できる特典を教えてもらえるでしょう。衝動的に欲しくなった物も、実際に使う場面を考えると気持ちが落ち着きそうです。金額が負担なら、払える範囲を率直に伝えてみてください。無理なく選んだ物を長く使い、満足できるでしょう。 |
+| 분야 풀이 | 돈이 크게 늘지는 않아도 필요한 지출을 감당할 수 있는 날이야. 그동안 아껴둔 돈이 급한 비용을 메워줄 수 있어. 받을 돈 때문에 어려웠다면 서두르지 않고 협의하는 동안 해결책을 찾을 수 있어.<br><br>손실을 만회하겠다고 큰돈을 거는 일은 피해줘. 지금 가진 돈을 지키면 빠듯한 시기를 넘기는 데 도움이 돼. | Your money may not grow much, but necessary expenses look manageable today. What you've saved could cover an urgent cost. If money owed to you has caused trouble, patient discussion may help you find a solution.<br><br>Avoid staking a large sum to make up for a loss. Protecting what you have can help you get through a tight spell. | お金が大きく増えなくても、必要な出費はまかなえそうです。これまで節約して残したお金が、急な費用を補ってくれるかもしれません。受け取るお金のことで困っていたなら、急がずに話し合ううちに、解決策が見つかりそうです。<br><br>損を取り戻そうと、大きなお金を賭けるのは避けましょう。今あるお金を守ることが、余裕のない時期を乗り切る助けになります。 |
 
 ## major.sun · 역방향
 
 내부 ID: `money.major.sun.reversed`
 
-카드 의미: 기쁨이 작게 느껴지거나 기대가 경험을 가림. 원전도 같은 만족이 약한 형태라고 하므로 흉으로 반전시키지 않음.
+카드 의미: 가려진만족, 기대차이, 과신
 
-분야 해석: 기대보다작은보상
+분야 해석: 기대만큼 큰돈은 아니어도 작게 이득을 볼 수 있는 날이야.
 
-관찰: 기대했던 보상은 작아도 직접 챙길 수 있는 몫이 있는 날이야. / 할인이나 선물이 생각보다 소박해 잠깐 아쉬울 수 있어. / 실제로 써보면 부담 없이 고른 물건이 오히려 편하게 느껴질 거야.
+관찰: 가려진만족 / 기대차이 / 과신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 보상은 작아도 직접 챙길 수 있는 몫이 있는 날이야. 할인이나 선물이 생각보다 소박해 잠깐 아쉬울 수 있어. 실제로 써보면 부담 없이 고른 물건이 오히려 편하게 느껴질 거야. 남이 받은 혜택과 비교하느라 추가 구매를 하지는 마. 크지 않은 금액으로 필요한 것을 마련했다는 만족이 뒤늦게 따라올 수 있어. | A reward may be smaller than expected, but there could still be something you can claim. A modest discount or gift might briefly disappoint. Once you use it, something chosen without stretching your budget could feel especially convenient. Avoid an extra purchase just to match a benefit someone else received. Satisfaction may come later from getting what you needed for a modest amount. | 期待した報酬は小さくても、自分で受け取れる分がありそうです。割引や贈り物が思ったよりささやかで、少し残念かもしれません。実際に使うと、無理なく選んだ物のほうが便利に感じられるでしょう。ほかの人の特典と比べて、買い足さないでください。少ない金額で必要な物を用意できた満足が、後から湧いてきそうです。 |
+| 분야 풀이 | 기대만큼 큰돈은 아니어도 작게 이득을 볼 수 있는 날이야. 바랐던 금액에 못 미쳐 아쉬울 수 있지만, 돈이 들어올 기회까지 사라진 건 아니야. 작은 수입도 모이면 당장 필요한 지출에는 보탬이 될 수 있어.<br><br>더 많이 받을 거라고 예상해서 먼저 쓰면 실제로 남는 돈이 줄어들어. 받은 금액만큼만 생각하고 쓰면 괜한 돈 걱정을 늘리지 않을 수 있어. | A small financial gain could come your way, even if it's less than you'd hoped. The amount may be disappointing, but the chance of receiving money hasn't disappeared. Small payments can add up and help with immediate expenses.<br><br>Spending in advance because you expect a larger payment will leave you with less in hand. Base your spending on what you've actually received to avoid adding unnecessary money worries. | 期待した大金ではなくても、小さな利益を得られそうです。望んだ額に届かず物足りなく感じても、収入の機会までなくなったわけではありません。少額の収入も合わせれば、今必要な支払いの足しになりそうです。<br><br>もっと入るはずだと先に使うと、実際に残るお金が減ってしまいます。受け取った額をもとに使えば、余計なお金の心配を増やさずに済みそうです。 |
 
 ## major.sun · 정방향
 
 내부 ID: `money.major.sun.upright`
 
-카드 의미: 밝게 드러나는 기쁨과 솔직한 자신감. 원전의 만족을 모든 분야의 성공이 아닌 지금 경험의 명료한 즐거움으로 사용.
+카드 의미: 기쁨, 자신감, 명료함, 활기
 
-분야 해석: 기분좋은보상
+분야 해석: 재물운이 좋아.
 
-관찰: 작은 보상이나 기분 좋은 혜택을 챙길 수 있는 날이야. / 노력한 일을 알아주는 말과 함께 받을 몫이 생길 수도 있어. / 필요한 물건을 고를 때는 가격과 품질이 모두 마음에 드는 것을 만날 거야.
+관찰: 기쁨 / 자신감 / 명료함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 보상이나 기분 좋은 혜택을 챙길 수 있는 날이야. 노력한 일을 알아주는 말과 함께 받을 몫이 생길 수도 있어. 필요한 물건을 고를 때는 가격과 품질이 모두 마음에 드는 것을 만날 거야. 확인된 금액 안에서 나를 위한 작은 즐거움도 챙겨봐. 남에게 보여주려는 소비만 늘리지 않으면 돈을 잘 썼다는 만족이 남을 수 있어. | You could claim a small reward or welcome benefit today. Words recognizing your effort may come with a small payment. When choosing something you need, you could find an item whose price and quality both please you. Include a small treat for yourself within the amount you've confirmed. Without spending extra to impress others, you could feel satisfied that your money was well used. | 小さな報酬や、うれしい特典を受け取れそうな日です。努力を認める言葉と一緒に、お礼のお金を受け取ることもありそうです。必要な物を選ぶときは、値段も品質も気に入る品に出会えそうです。確定した金額の範囲で、自分への小さな楽しみも用意してみてください。人によく見せるための出費を増やさなければ、よい使い方ができたと満足できるでしょう。 |
+| 분야 풀이 | 재물운이 좋아. 그동안 애쓴 만큼 돈을 받거나 바라던 수입이 생길 수 있어. 받을 돈을 기다리고 있었다면 기분 좋은 소식이 들려올 수 있는 날이야.<br><br>돈이 넉넉해지면 꼭 필요했던 것을 마련하기에도 좋아. 남에게 잘 보이려고 쓰는 돈만 줄이면 들어온 돈을 기분 좋게 누릴 수 있어. | Money matters look promising. You could be paid fairly for your efforts or receive income you've been hoping for. If you're waiting for a payment, good news may arrive today.<br><br>With more money available, it's a good time to get something you really need. Keep spending to impress others in check so you can enjoy what comes in. | 金運は好調です。これまでの頑張りに見合うお金を受け取れたり、望んでいた収入が得られたりしそうです。入金を待っていたなら、うれしい知らせが届くかもしれません。<br><br>お金に余裕ができたら、必要だった物をそろえるのにもよい日です。人によく見られるための出費を控えれば、入ってきたお金を気持ちよく使えそうです。 |
 
 ## major.temperance · 역방향
 
 내부 ID: `money.major.temperance.reversed`
 
-카드 의미: 배분이 어긋나거나 서로 맞지 않는 선택을 한꺼번에 유지함. 원전의 불화·상충을 양과 시점의 조정 필요로 채택.
+카드 의미: 불균형, 극단, 조급함
 
-분야 해석: 지출쏠림
+분야 해석: 들어오는 돈에 비해 지출이 많아지기 쉬운 날이야.
 
-관찰: 한 가지에 돈을 많이 써 다른 비용이 빠듯하게 느껴질 수 있어. / 작다고 여긴 추가 지출이 모여 처음 생각한 금액을 넘어설 거야. / 미뤄도 되는 구매가 눈에 들어와 당장의 부담을 줄일 수 있는 날이야.
+관찰: 불균형 / 극단 / 조급함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한 가지에 돈을 많이 써 다른 비용이 빠듯하게 느껴질 수 있어. 작다고 여긴 추가 지출이 모여 처음 생각한 금액을 넘어설 거야. 미뤄도 되는 구매가 눈에 들어와 당장의 부담을 줄일 수 있는 날이야. 오늘 쓸 돈을 모두 더해보고 하나만 덜어봐. 뒤늦게라도 조정한 덕분에 꼭 필요한 비용은 편하게 챙길 수 있어. | Spending a lot on one thing could make other costs feel tight. Small extra purchases may add up to more than you first expected. You could notice something you can buy later and reduce the immediate strain. Add up today's spending and leave out one item. Even a late adjustment could let you cover what's essential comfortably. | 一つのことにお金を使いすぎて、ほかの費用が厳しく感じるかもしれません。小さいと思った追加の出費が重なり、初めの金額を超えそうです。後にできる買い物が見つかって、今の負担を減らせるでしょう。今日使うお金を全部足して、一つだけ減らしてみてください。遅くなっても調整したおかげで、必要な費用は無理なく用意できそうです。 |
+| 분야 풀이 | 들어오는 돈에 비해 지출이 많아지기 쉬운 날이야. 작은 사치가 여러 번 겹치면 생활비까지 빠듯해질 수 있어. 부족한 돈을 급히 빌려 메우려 하면 갚아야 할 부담이 더 커질 수 있어.<br><br>오늘은 꼭 필요한 돈과 갖고 싶은 것에 쓰는 돈이 섞이지 않게 해줘. 비싼 물건이 눈에 들어와도 빚을 내서까지 마련하는 건 미루는 게 좋아. | Spending could outpace income today. Several small indulgences may add up and leave everyday expenses hard to cover. Rushing to borrow the difference could create a heavier repayment burden.<br><br>Keep money for necessities separate from money for things you'd like. If an expensive item catches your eye, put it off rather than going into debt to get it. | 入ってくるお金に比べて、支出が増えやすい日です。小さなぜいたくを重ねると、生活費まで苦しくなるかもしれません。足りない分を慌てて借りると、返済の負担がさらに大きくなりそうです。<br><br>今日は、必要なお金と欲しい物に使うお金を分けて考えましょう。高価な物に惹かれても、借金をしてまで買うのは見送るほうがよさそうです。 |
 
 ## major.temperance · 정방향
 
 내부 ID: `money.major.temperance.upright`
 
-카드 의미: 다른 요소를 알맞게 섞고 조정하는 절도. 원전의 관리·절약·조화를 극단을 피하는 구체적 배합으로 사용.
+카드 의미: 조화, 적정량, 인내, 서로맞춤
 
-분야 해석: 금액조정
+분야 해석: 재물운이 무난해.
 
-관찰: 여러 비용을 무리 없이 맞출 방법이 보이는 날이야. / 한 곳에서 더 낸 돈을 다른 혜택으로 덜어내 예상보다 부담이 작을 수 있어. / 함께 쓰는 비용도 서로 납득할 중간 금액을 찾기 쉬울 거야.
+관찰: 조화 / 적정량 / 인내
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 여러 비용을 무리 없이 맞출 방법이 보이는 날이야. 한 곳에서 더 낸 돈을 다른 혜택으로 덜어내 예상보다 부담이 작을 수 있어. 함께 쓰는 비용도 서로 납득할 중간 금액을 찾기 쉬울 거야. 꼭 나갈 돈을 먼저 남기고 조정할 수 있는 항목을 봐줘. 작은 즐거움을 포기하지 않아도 예산 안에서 편하게 지낼 여지가 있어. | You may find a way to cover several costs without strain. A benefit elsewhere could offset something you paid extra for, leaving less of a burden than expected. Shared expenses may also settle at a middle ground you both accept. Set aside essential payments first, then look at the amounts you can adjust. There could be room to stay comfortably within your budget without giving up a small pleasure. | いくつかの費用を、無理なく賄う方法が見つかりそうです。一か所で多く払った分を別の特典で補えて、負担が予想より小さくなるでしょう。一緒に出す費用も、お互い納得できる金額に落ち着きそうです。必ず払うお金を先に残して、調整できる項目を見てみてください。小さな楽しみを諦めなくても、予算の中で気楽に過ごせる余地がありそうです。 |
+| 분야 풀이 | 재물운이 무난해. 필요한 돈이 제때 들어와 생활비 때문에 크게 걱정하지 않아도 될 수 있어. 갑자기 큰돈을 얻는 날은 아니지만, 평소 씀씀이를 유지하면 돈이 부족하지 않을 거야.<br><br>오래 무리 없이 이어온 저축이나 금전 약속도 그대로 지키기 좋은 날이야. 더 빨리 돈을 모으려고 생활에 필요한 돈까지 한꺼번에 묶어두지는 말아줘. | Your finances look steady. Money you need could arrive on time, easing worries about everyday expenses. A large windfall is unlikely, but your usual spending should leave you with enough.<br><br>It's a good day to maintain savings or financial commitments you've comfortably kept up. Don't tie up money you need for daily living just to reach a savings goal faster. | 金運は安定しています。必要なお金が間に合い、生活費をあまり心配せずに済むかもしれません。急に大金を得る日ではありませんが、普段どおりの使い方なら、お金に困らずに過ごせそうです。<br><br>長く無理なく続けてきた貯蓄や、お金の約束もそのまま守りやすい日です。早く貯めたいからと、生活費までまとめて貯蓄に回すのは控えましょう。 |
 
 ## major.tower · 역방향
 
 내부 ID: `money.major.tower.reversed`
 
-카드 의미: 변화를 피하며 버티거나 큰 혼란 전에 어긋남을 알아차림. 원전의 약해진 충격과 억압을 조기 조정의 가능성으로 응용.
+카드 의미: 변화회피, 조기수정여지
 
-분야 해석: 비용예방
+분야 해석: 큰돈이 나갈 뻔한 일을 미리 알아차릴 수 있는 날이야.
 
-관찰: 작은 고장이나 빠진 내역을 일찍 발견해 비용을 줄일 수 있어. / 그냥 넘겼던 안내를 다시 보니 무상으로 처리할 수 있는 부분이 있을 거야. / 주변의 경험담도 불필요하게 돈을 쓰지 않는 데 도움이 될 수 있는 날이야.
+관찰: 변화회피 / 조기수정여지
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 고장이나 빠진 내역을 일찍 발견해 비용을 줄일 수 있어. 그냥 넘겼던 안내를 다시 보니 무상으로 처리할 수 있는 부분이 있을 거야. 주변의 경험담도 불필요하게 돈을 쓰지 않는 데 도움이 될 수 있는 날이야. 보증 기간이나 교환 조건을 한 번 확인해봐. 귀찮아서 미뤄두던 문의 하나가 생각보다 실속 있는 답을 가져올 수 있어. | Spotting a minor fault or missing detail early could reduce an expense. Looking again at a notice you overlooked may reveal something that can be handled free of charge. Someone else's experience could also help you avoid unnecessary spending. Check the warranty period or exchange terms. One inquiry you've delayed because it seemed tedious could bring a surprisingly useful answer. | 小さな故障や明細の抜けを早く見つけて、費用を抑えられそうです。見過ごした案内を読み直すと、無料で対応してもらえる部分があるでしょう。周りの経験談も、余計な出費を避ける助けになりそうです。保証期間や交換の条件を、一度確かめてみてください。面倒で後回しにしていた問い合わせから、思ったより役立つ答えが返ってくるでしょう。 |
+| 분야 풀이 | 큰돈이 나갈 뻔한 일을 미리 알아차릴 수 있는 날이야. 잘못된 비용이나 불리한 조건을 지금 발견하면 손해를 줄일 수 있어. 이미 부담이 생겼더라도 더 커지기 전에 막을 방법을 찾을 수 있어.<br><br>그냥 넘어가도 괜찮겠지 싶은 금액일수록 다시 살펴봐. 고쳐야 할 문제가 보이면 미루지 않고 처리하는 편이 남은 돈을 지키는 데 좋아. | You could spot a problem before it costs you a large sum. Catching an incorrect charge or an unfavourable condition now may limit the loss. Even if a financial burden already exists, you could find a way to stop it growing.<br><br>Take another look at amounts you're tempted to overlook. Dealing with a problem as soon as you spot it can help protect the money you still have. | 大きな出費につながる問題に、先に気づけそうです。誤った請求や不利な条件を今見つければ、損失を減らせます。すでに負担が生じていても、これ以上増える前に止める方法を探せそうです。<br><br>このまま払っても大丈夫だと思う請求ほど、もう一度見直しましょう。直すべき問題が見つかったら、先延ばしにせず対処するほうが、残ったお金を守れます。 |
 
 ## major.tower · 정방향
 
 내부 ID: `money.major.tower.upright`
 
-카드 의미: 예상하지 못한 사실이 기존 가정을 흔듦. 원전의 갑작스러운 붕괴를 일상에서 계획 수정이 필요한 발견으로 제한.
+카드 의미: 전제붕괴, 갑작스러운인식
 
-분야 해석: 뜻밖의비용
+분야 해석: 예상하지 못한 지출로 돈이 빠져나가기 쉬운 날이야.
 
-관찰: 예상하지 못한 수리비나 추가 비용을 확인할 수 있는 날이야. / 좋다고 들은 조건에 빠진 항목이 있어 처음 계산과 달라질 거야. / 바로 알게 된 덕분에 더 큰 구매를 다시 생각할 여지가 생길 수 있어.
+관찰: 전제붕괴 / 갑작스러운인식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예상하지 못한 수리비나 추가 비용을 확인할 수 있는 날이야. 좋다고 들은 조건에 빠진 항목이 있어 처음 계산과 달라질 거야. 바로 알게 된 덕분에 더 큰 구매를 다시 생각할 여지가 생길 수 있어. 설명과 다른 금액은 결제 전에 확인해봐. 놀란 마음에 다른 것을 더 사지만 않으면 지금 필요한 비용부터 차분히 정리할 수 있어. | You may learn about an unexpected repair bill or extra cost today. An omitted item in an offer that sounded good could change your original calculation. Finding out promptly may give you a chance to reconsider a bigger purchase. Check any amount that differs from the explanation before paying. Without buying something else out of surprise, you'll be able to focus calmly on the costs you need to cover. | 予想外の修理代や、追加の費用が分かるかもしれません。よいと聞いていた条件に抜けた項目があり、初めの計算と変わりそうです。すぐ分かったおかげで、もっと大きな買い物を考え直せるでしょう。説明と違う金額は、払う前に確かめてください。驚いた勢いで別の物を買い足さなければ、今必要な費用から落ち着いて整理できそうです。 |
+| 분야 풀이 | 예상하지 못한 지출로 돈이 빠져나가기 쉬운 날이야. 별일 없을 줄 알았던 곳에서 비용이 생기면 다른 데 쓸 돈까지 부족해질 수 있어. 이미 손해가 난 일에 돈을 더 보태는 것도 특히 조심해야 해.<br><br>오늘은 당장 필요하지 않은 비싼 물건을 사지 말아줘. 갑자기 돈을 내야 하는 일이 생겨도 서둘러 동의하지 말고, 자신이 부담할 금액부터 확인하는 게 좋아. | Unexpected expenses could leave you with less money today. A cost where you expected none may leave too little for something else. Be especially careful about adding more money to something that's already made a loss.<br><br>Hold off on expensive things you don't need right away. Even if a request for payment comes suddenly, check how much you're responsible for before agreeing. | 予想外の支出で、お金が出ていきやすい日です。費用はかからないと思っていたところで出費があると、ほかに使うお金まで足りなくなるかもしれません。すでに損をしていることに、さらにお金をつぎ込むのも特に注意が必要です。<br><br>今すぐ必要ではない高価な物は、今日は買い控えましょう。急に支払いが必要になっても即答せず、まず負担する金額を確かめてください。 |
 
 ## major.wheel_of_fortune · 역방향
 
 내부 ID: `money.major.wheel_of_fortune.reversed`
 
-카드 의미: 변화를 거스르거나 반복되는 상황에 갇힌 느낌. 원전은 증가라는 다른 역해석도 제시하므로 오늘의 지연을 불운의 본질로 확정하지 않음.
+카드 의미: 통제밖의 변화, 지연, 기존방법의 한계
 
-분야 해석: 입금지연
+분야 해석: 들어올 돈이 늦어지거나 예상보다 지출이 늘 수 있는 날이야.
 
-관찰: 기다리던 입금이나 환급이 예상보다 늦어질 수 있어. / 할인 기간이 바뀌거나 가격이 달라져 다시 계산할 일이 생길 거야. / 당장 쓰지 않아도 되는 돈을 남겨둔 것이 이럴 때 든든하게 느껴질 수 있어.
+관찰: 통제밖의 변화 / 지연 / 기존방법의 한계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다리던 입금이나 환급이 예상보다 늦어질 수 있어. 할인 기간이 바뀌거나 가격이 달라져 다시 계산할 일이 생길 거야. 당장 쓰지 않아도 되는 돈을 남겨둔 것이 이럴 때 든든하게 느껴질 수 있어. 아직 들어오지 않은 금액은 지출 계획에서 잠깐 빼둬. 시기를 다시 확인하고 나면 막연했던 걱정도 구체적으로 정리될 거야. | A payment or refund you're waiting for could arrive later than expected. A changed promotion period or price may call for another calculation. Money you kept aside instead of spending could feel especially reassuring now. Leave money that hasn't arrived out of your immediate spending plans. Confirming the timing could turn a vague worry into something easier to understand. | 待っている入金や返金が、予想より遅れるかもしれません。割引の期間や値段が変わり、計算し直すこともありそうです。急いで使わずに残しておいたお金が、こんなときには心強く感じられるでしょう。まだ入っていない金額は、ひとまず使う予定から外してください。時期を確認すると、漠然とした心配も整理しやすくなりそうです。 |
+| 분야 풀이 | 들어올 돈이 늦어지거나 예상보다 지출이 늘 수 있는 날이야. 자신의 잘못이 아니어도 거래가 미뤄져 돈 쓸 계획이 어긋날 수 있어. 믿고 있던 수입이 제때 오지 않으면 잠깐 빠듯함을 느낄 수 있어.<br><br>늦어진 돈을 기다리는 동안 큰 지출을 더 만들지 말아줘. 급하게 손해를 만회하려는 거래는 지금의 부담을 키울 수 있어. | Money due may be delayed or expenses could exceed expectations today. A transaction might be postponed through no fault of yours and disrupt your spending plans. If income you've counted on doesn't arrive on time, things may feel tight for a while.<br><br>Don't add large expenses while waiting for a delayed payment. A rushed deal to recover a loss could increase the burden you already have. | 入るはずのお金が遅れたり、予想より出費が増えたりしそうです。こちらに落ち度がなくても取引が延び、お金を使う計画が狂うかもしれません。あてにしていた収入が予定どおりに入らないと、一時的に余裕がなくなりそうです。<br><br>遅れているお金を待つ間に、新たな大きな出費を増やすのは控えましょう。急いで損を取り戻そうとする取引は、今の負担を大きくするかもしれません。 |
 
 ## major.wheel_of_fortune · 정방향
 
 내부 ID: `money.major.wheel_of_fortune.upright`
 
-카드 의미: 상황의 순환과 뜻밖의 변동. 원전의 운·상승을 전부 통제할 수 없는 시기에 열린 기회를 알아보는 뜻으로 선택.
+카드 의미: 기회의 변화, 행운, 전환
 
-분야 해석: 뜻밖의보상
+분야 해석: 뜻밖의 돈이 들어올 수 있어.
 
-관찰: 예상하지 못한 작은 보상이나 반가운 할인 소식이 들어올 수 있어. / 잊고 있던 적립금이나 신청해둔 환급이 다시 눈에 띌 거야. / 필요한 물건의 가격이 내려가 구매 시기가 잘 맞았다는 느낌도 들 수 있어.
+관찰: 기회의 변화 / 행운 / 전환
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예상하지 못한 작은 보상이나 반가운 할인 소식이 들어올 수 있어. 잊고 있던 적립금이나 신청해둔 환급이 다시 눈에 띌 거야. 필요한 물건의 가격이 내려가 구매 시기가 잘 맞았다는 느낌도 들 수 있어. 실제로 받을 금액이 확인되면 필요한 곳에 차분히 써봐. 우연한 혜택 하나가 오늘의 소비를 한결 가볍게 만들어줄 수 있어. | An unexpected small reward or news of a useful discount could arrive. You may rediscover forgotten points or notice a refund you applied for. A lower price on something you need could make your timing feel fortunate. Once the amount you'll receive is confirmed, use it thoughtfully for something you need. A chance benefit could make today's spending feel a little easier. | 思いがけない小さな報酬や、うれしい割引の知らせがありそうです。忘れていたポイントや、申請しておいた返金に気づくでしょう。必要な物が値下がりして、ちょうどよい時期に買えたと感じるかもしれません。受け取れる金額が分かったら、必要なところに落ち着いて使ってみてください。偶然見つけた特典が、今日の出費を少し軽くしてくれそうです。 |
+| 분야 풀이 | 뜻밖의 돈이 들어올 수 있어. 예상하지 못한 이득이나 반가운 금전 소식이 찾아오기 좋은 날이야. 잘 풀리지 않던 거래가 유리해지거나 돈 때문에 막힌 일이 뜻밖의 도움으로 해결될 수도 있어.<br><br>여유가 생겼다고 더 큰 행운까지 따라올 거라 생각하지는 말아줘. 얻은 돈을 바로 다시 걸기보다 손에 남겨두는 게 좋아. | Unexpected money could arrive. It's a good day for a gain you didn't anticipate or welcome financial news. A difficult transaction may turn in your favour, or unexpected help could solve something held up by money.<br><br>Having more to spare doesn't mean even greater luck will follow. Keep what you've gained instead of immediately risking it again. | 思いがけないお金が入るかもしれません。予想外の利益や、うれしいお金の知らせが届きやすい日です。うまくいかなかった取引が有利になったり、お金が原因で止まっていたことが、意外な助けで解決したりする可能性もあります。<br><br>余裕ができても、さらに大きな幸運が続くとは考えないでください。得たお金はすぐにまた賭けるより、手元に残すのがよさそうです。 |
 
 ## major.world · 역방향
 
 내부 ID: `money.major.world.reversed`
 
-카드 의미: 완료 직전의 미완이나 끝을 인정하기 어려움. 원전의 정체를 남은 핵심과 불필요한 반복을 구별하는 뜻으로 사용.
+카드 의미: 미완성, 만족부족, 마지막과제
 
-분야 해석: 마지막비용
+분야 해석: 받을 돈이 눈앞에 있어도 마지막 절차 때문에 늦어질 수 있어.
 
-관찰: 거의 정리된 금액에 작은 잔액이나 마지막 비용이 남을 수 있어. / 결제가 끝난 줄 알았던 항목에서 확인 요청이 올 수도 있을 거야. / 내역을 맞춰보면 크게 복잡하지 않은 일이라는 걸 알 수 있는 날이야.
+관찰: 미완성 / 만족부족 / 마지막과제
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 거의 정리된 금액에 작은 잔액이나 마지막 비용이 남을 수 있어. 결제가 끝난 줄 알았던 항목에서 확인 요청이 올 수도 있을 거야. 내역을 맞춰보면 크게 복잡하지 않은 일이라는 걸 알 수 있는 날이야. 빠진 금액이나 처리 여부를 한 번 확인해봐. 마지막까지 정리한 뒤에는 같은 돈 이야기를 다시 꺼낼 부담이 줄어들 수 있어. | A nearly settled amount may still have a small balance or final cost left. You could receive a confirmation request for something you thought was paid. Matching the records may show that it's not especially complicated. Check the missing amount or whether it has been processed. Settling it fully could reduce the discomfort of needing to bring up the same money matter again. | ほぼ精算できた金額に、小さな残額や最後の費用が残るかもしれません。支払いが済んだと思っていた項目に、確認の連絡が来ることもありそうです。明細を照らし合わせると、それほど複雑ではないと分かるでしょう。抜けた金額や、処理が済んだかを一度確かめてみてください。最後まで精算すれば、同じお金の話をまた切り出す負担が減りそうです。 |
+| 분야 풀이 | 받을 돈이 눈앞에 있어도 마지막 절차 때문에 늦어질 수 있어. 거의 끝난 거래가 조금 더 이어져 예상한 때에 돈을 쓰지 못할 수 있는 날이야. 다 됐다고 생각해서 먼저 지출하면 부족한 돈을 따로 마련해야 할 수 있어.<br><br>아직 끝나지 않은 금전 약속부터 마무리해줘. 돈이 실제로 들어오기 전에는 새로 큰돈을 쓰지 않는 편이 좋아. | A final step could delay money that's nearly within reach. An almost-completed transaction may take longer, leaving you unable to spend when you expected. Spending early because you think it's all done could mean finding extra money to cover a shortfall.<br><br>Finish the financial commitments that remain unsettled first. It's better not to make a new large purchase before the money actually arrives. | もうすぐ受け取れそうなお金が、最後の手続きで遅れるかもしれません。ほぼ終わった取引がもう少し続き、予定したときにお金を使えない可能性があります。すべて済んだと思って先に使うと、不足するお金を別に用意しなければならなくなりそうです。<br><br>まだ済んでいないお金の約束を、先に片づけましょう。実際に入金されるまでは、新たに大きなお金を使わないほうがよさそうです。 |
 
 ## major.world · 정방향
 
 내부 ID: `money.major.world.upright`
 
-카드 의미: 하나의 과정을 마치고 전체를 이해하는 완결. 원전의 보상·이동을 만족스러운 마무리와 다음 시야로 사용.
+카드 의미: 완성, 만족, 소속감
 
-분야 해석: 정산완료
+분야 해석: 공들인 일이 마무리되면서 돈으로 보답받기 좋은 날이야.
 
-관찰: 미뤄둔 정산이나 계획했던 구매가 기분 좋게 마무리될 수 있어. / 지불한 비용과 받은 것을 맞춰보며 돈을 잘 썼다는 만족을 느낄 거야. / 함께 나눈 금액도 서로 확인이 끝나 더 신경 쓸 일이 줄어들 수 있어.
+관찰: 완성 / 만족 / 소속감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 미뤄둔 정산이나 계획했던 구매가 기분 좋게 마무리될 수 있어. 지불한 비용과 받은 것을 맞춰보며 돈을 잘 썼다는 만족을 느낄 거야. 함께 나눈 금액도 서로 확인이 끝나 더 신경 쓸 일이 줄어들 수 있어. 마지막 내역을 한 번 확인하고 기록을 남겨둬. 오래 마음에 걸리던 돈 이야기가 끝나며 다음 생활비도 편하게 살필 수 있는 날이야. | A postponed settlement or planned purchase could reach a satisfying finish. Comparing what you paid with what you received may leave you pleased with how you spent. Once everyone confirms a shared amount, you'll have less left to worry about. Check the final details once and keep a record. Finishing an old money conversation could make it easier to look at upcoming living costs. | 後回しにした精算や、予定していた買い物が気持ちよく終わりそうです。払った費用と受け取った物を見比べて、よい使い方をしたと満足できるでしょう。分け合った金額もお互いに確認が済み、気にすることが減りそうです。最後の明細を一度確かめて、記録を残しておいてください。長く気にかかっていたお金の話が終わり、次の生活費も落ち着いて考えられるでしょう。 |
+| 분야 풀이 | 공들인 일이 마무리되면서 돈으로 보답받기 좋은 날이야. 거래가 끝나며 대금을 받거나 오래 모아온 돈으로 목표한 금액을 채울 수 있어. 그동안의 수고를 생각하면 들어온 돈이 더욱 든든하게 느껴질 거야.<br><br>큰일이 끝났다면 받을 돈이 모두 들어왔는지 확인해줘. 마무리가 잘되면 다음 지출도 서두르지 않고 계획할 수 있어. | Finishing something you've worked hard on could bring a financial reward today. You may receive payment as a deal ends or reach a savings target you've built towards for a long time. Remembering the effort involved could make the money feel especially reassuring.<br><br>After something important is finished, check that all the money due has arrived. A successful finish can let you plan your next spending without rushing. | 力を入れてきたことが終わり、報酬を受け取りやすい日です。取引が完了して代金が入ったり、長く続けた貯蓄が目標額に届いたりするかもしれません。これまでの苦労を思うと、入ったお金がより心強く感じられるでしょう。<br><br>大きな仕事が終わったなら、受け取るべきお金がすべて入ったか確かめましょう。きちんと精算できれば、次の出費も焦らずに計画できます。 |
 
 ## pentacles.01 · 역방향
 
 내부 ID: `money.pentacles.01.reversed`
 
-카드 의미: 기회처럼 보여도 실제 조건이 부족하거나 쓰임이 불명확함. 원전의 물질적 이득의 이면과 현대적 지연을 시작 조건의 점검으로 해석.
+카드 의미: 풍족함이 실제 만족으로 이어지지 않음
 
-분야 해석: 조건이빠진혜택
+분야 해석: 돈이 들어와도 기대만큼 만족스럽지 않을 수 있어.
 
-관찰: 혜택을 받을 줄 알았는데 대상이나 신청 조건이 다를 수 있어. / 가격이 괜찮아 보인 물건에도 추가로 필요한 부품이 붙을 수 있는 날이야. / 직접 질문하면 처음 안내에서 놓쳤던 비용을 알게 될 거야.
+관찰: 풍족함이 실제 만족으로 이어지지 않음 / 돈이 들어와도 기대만큼 만족스럽지 않을 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혜택을 받을 줄 알았는데 대상이나 신청 조건이 다를 수 있어. 가격이 괜찮아 보인 물건에도 추가로 필요한 부품이 붙을 수 있는 날이야. 직접 질문하면 처음 안내에서 놓쳤던 비용을 알게 될 거야. 서두르지 않은 덕분에 불필요한 결제 전에 멈출 수 있어. 총액이 확인되기 전에는 신청을 마무리하지 않는 게 좋아. | A benefit you expected may have different eligibility rules or application requirements. An item with an attractive price could need extra parts. Asking directly should reveal costs the first explanation left out. Taking your time could help you stop before making an unnecessary payment. Wait until you know the full amount before completing the application. | 受けられると思った特典も、対象や申し込み条件が違うかもしれません。手頃に見えた品物に、別売りの部品が必要なこともありそうです。直接尋ねると、最初の案内で分からなかった費用が見つかるでしょう。急がなかったおかげで、余計な支払いの前に立ち止まれそうです。総額が分かるまでは、申し込みを完了させないでください。 |
+| 분야 풀이 | 돈이 들어와도 기대만큼 만족스럽지 않을 수 있어. 갖고 싶었던 물건을 사도 들인 돈이 아깝게 느껴질 가능성이 있어. 수입이 부족해서라기보다 바라던 즐거움이 적어 허전해지기 쉬운 날이야. 그 아쉬움을 더 비싼 물건으로 채우려 하지는 말아줘. | Money may arrive without the satisfaction you expected. Even buying something you've wanted could feel like poor value. The emptiness today may come from less enjoyment than hoped for, rather than too little income. Don't try to fill that disappointment with something even more expensive. | お金が入っても、期待ほど満足できないかもしれません。欲しかった物を買っても、使ったお金がもったいなく感じる可能性があります。収入の不足より、思ったほど楽しくないことに、むなしさを感じやすい日です。その物足りなさを、さらに高価な物で埋めようとするのは控えましょう。 |
 
 ## pentacles.01 · 정방향
 
 내부 ID: `money.pentacles.01.upright`
 
-카드 의미: 손에 잡히는 시작과 실용적인 기회. 원전의 만족·풍요를 감당할 자원으로 시작하는 구체적 기반으로 사용.
+카드 의미: 물질적 충족, 만족, 실질적인 시작
 
-분야 해석: 작은금전기회
+분야 해석: 재물운이 좋아.
 
-관찰: 소액의 보상이나 환급처럼 실제로 챙길 수 있는 소식이 들릴 수 있어. / 필요했던 물건을 부담이 덜한 가격에 만나는 일도 있을 거야. / 크지 않은 금액이어도 바로 쓸 곳이 있어 반갑게 느껴지는 날이야.
+관찰: 물질적 충족 / 만족 / 실질적인 시작
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 소액의 보상이나 환급처럼 실제로 챙길 수 있는 소식이 들릴 수 있어. 필요했던 물건을 부담이 덜한 가격에 만나는 일도 있을 거야. 신청할 수 있는 혜택이라면 마감일을 확인해둬. 크지 않은 금액이어도 바로 쓸 곳이 있어 반갑게 느껴지는 날이야. 이미 가진 것을 활용할 수 있는 제안에서는 새로 들일 돈도 줄어들 수 있어. | You could hear about a small reward or refund you can actually claim. Something you need might also turn up at a more manageable price. Check the deadline for any benefit you can apply for. Even a modest amount will feel welcome when you already have a use for it. An offer that makes use of something you own could save you another expense. | 少額の謝礼や返金など、実際に受け取れる知らせがありそうです。必要だったものが、無理のない値段で見つかることもあるでしょう。申し込める特典なら、期限を確かめておいてください。大きな金額ではなくても、すぐに使い道があってうれしくなりそうです。持っているものを使える提案なら、新たに出すお金も減らせるでしょう。 |
+| 분야 풀이 | 재물운이 좋아. 새로운 수입이 생기거나 실제로 쓸 수 있는 돈을 받을 기회가 있어. 작은 거래라도 시작이 잘 풀리면 생활에 보탬이 될 수 있는 날이야. 받은 돈을 한꺼번에 쓰기보다 일부를 남겨두면 다음에 필요한 비용도 걱정을 덜 수 있어. | Your financial luck looks good. A new source of income or a chance to receive money you can actually spend could appear. Even a small deal may help with living costs if it starts well today. Keeping part of the payment instead of spending it all could ease worry about the next necessary cost. | 金運は好調です。新しい収入が生まれたり、実際に使えるお金を受け取る機会があったりしそうです。小さな取引でも、出だしがうまくいけば、暮らしの助けになるでしょう。受け取った額を一度に使わず、一部を残すと、次に必要な費用の心配も減らせそうです。 |
 
 ## pentacles.02 · 역방향
 
 내부 ID: `money.pentacles.02.reversed`
 
-카드 의미: 동시에 감당하는 양이 많아 배분이 흔들림. 원전의 겉 즐거움과 속 부담을 실제 여력과 보이는 모습의 차이로 사용.
+카드 의미: 억지로 유지하는 즐거움, 불안정한 조율
 
-분야 해석: 결제겹침
+분야 해석: 나갈 돈이 겹쳐 생활비가 빠듯해질 수 있어.
 
-관찰: 서로 다른 결제일이 겹쳐 한 번에 나가는 돈이 크게 느껴질 수 있어. / 적게 썼다고 생각한 항목들이 모여 예상한 금액을 넘길 수도 있을 거야. / 기록을 보면 이번만 겹친 지출과 계속 나갈 돈을 구분할 수 있어.
+관찰: 억지로 유지하는 즐거움 / 불안정한 조율
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 다른 결제일이 겹쳐 한 번에 나가는 돈이 크게 느껴질 수 있어. 적게 썼다고 생각한 항목들이 모여 예상한 금액을 넘길 수도 있을 거야. 기록을 보면 이번만 겹친 지출과 계속 나갈 돈을 구분할 수 있어. 급하게 마련해야 할 줄 알았던 금액 중에는 날짜를 조정할 수 있는 것도 있을 거야. 오늘 결제할 금액부터 차분히 확인해줘. | Different bills could fall due together, making the total feel larger. Several purchases that seemed small might add up to more than you expected. Your records should show which expenses have only coincided this once and which will recur. Some of the amount you thought you needed urgently may be payable on a different date. Start by checking exactly what is due today. | 別々の支払日が重なり、一度に出るお金が多く感じられそうです。少額だと思った買い物も、合計すると予想を超えるかもしれません。記録を見れば、今回だけ重なった出費と、これからも続く支払いが分かるでしょう。急いで用意するつもりだったお金にも、日付を変えられるものがありそうです。まずは今日払う金額を、落ち着いて確かめてください。 |
+| 분야 풀이 | 나갈 돈이 겹쳐 생활비가 빠듯해질 수 있어. 들어올 돈을 기다리는 사이 먼저 내야 할 비용이 생길 가능성이 있어. 적은 금액이라도 여러 번 빠져나가면 생각보다 잔액이 빨리 줄어드는 날이야. 급한 비용을 마련했다고 미뤄둔 물건까지 한꺼번에 사지는 말아줘. | Overlapping payments could make living costs tight. Something may need paying before the income you're waiting for arrives. Even small amounts leaving repeatedly could reduce the balance faster than expected today. Covering an urgent expense isn't a reason to buy every postponed item at once too. | 出費が重なり、生活費が苦しくなるかもしれません。入金を待つ間に、先に払う費用が生じる可能性があります。少額でも何度も出ていくと、予想より早く残高が減りやすい日です。急な費用を用意できたからと、見送っていた物まで一度に買うのは控えましょう。 |
 
 ## pentacles.02 · 정방향
 
 내부 ID: `money.pentacles.02.upright`
 
-카드 의미: 여러 현실적 필요를 유연하게 조율함. 원전의 흥겨움과 복잡한 소식을 일상의 일정·자원 배분으로 현대화.
+카드 의미: 두 자원을 다루는 유연함과 즐거움
 
-분야 해석: 지출시기조정
+분야 해석: 들어오는 돈으로 급한 지출을 잘 감당할 수 있어.
 
-관찰: 들어오는 돈과 나갈 돈의 시기가 생각보다 잘 맞을 수 있어. / 작은 환급이나 정산이 필요한 지출 직전에 확인될 수도 있을 거야. / 날짜를 나눠 낼 수 있는 비용 덕분에 당장의 부담이 줄어들 수 있는 날이야.
+관찰: 두 자원을 다루는 유연함과 즐거움 / 들어오는 돈으로 급한 지출을 잘 감당할 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 들어오는 돈과 나갈 돈의 시기가 생각보다 잘 맞을 수 있어. 작은 환급이나 정산이 필요한 지출 직전에 확인될 수도 있을 거야. 날짜를 나눠 낼 수 있는 비용 덕분에 당장의 부담이 줄어들 수 있는 날이야. 확인된 입금과 납부 날짜를 함께 적어둬. 생각했던 것보다 돈을 쓸 순서가 단순해져 안심할 수 있어. | Money coming in could line up better than expected with money going out. A small refund or repayment might be confirmed just before an expense is due. A cost you can split across different dates could ease the immediate pressure. Write down the confirmed dates for incoming payments and bills together. Working out what to pay first may turn out to be simpler than you expected. | お金が入る時期と出ていく時期が、思ったよりうまく合いそうです。必要な支払いの直前に、小さな返金や立て替えたお金の入金が分かるかもしれません。支払日を分けられる費用もあり、当面の負担が軽くなりそうです。確定した入金日と支払日を、一緒に書いておいてください。何から払うかが思ったより簡単に決まり、安心できるでしょう。 |
+| 분야 풀이 | 들어오는 돈으로 급한 지출을 잘 감당할 수 있어. 여러 곳에 돈을 써야 해도 필요한 금액을 그때그때 마련할 가능성이 있어. 넉넉하게 남지는 않아도 당장 돈이 부족해 곤란할 걱정은 덜 수 있는 날이야. 한 가지 지출에 너무 많이 쓰면 다른 비용이 빠듯해질 수 있으니 나갈 돈도 함께 생각해줘. | Incoming money could cover urgent expenses well. Even with payments to several places, you may find the necessary amount as each need arises. There might be little left over, but the risk of an immediate shortage could feel less worrying today. Keep other costs in mind too, since spending too much on one could make the rest hard to cover. | 入ってくるお金で、急な出費をうまくまかなえそうです。いくつもの支払いがあっても、その都度必要な額を用意できる可能性があります。たくさんは残らなくても、すぐにお金が足りず困る心配は減らせる日です。一つの支払いに使いすぎると、ほかの費用が足りなくなるかもしれないので、残る支払いも考えておきましょう。 |
 
 ## pentacles.03 · 역방향
 
 내부 ID: `money.pentacles.03.reversed`
 
-카드 의미: 기여가 연결되지 않거나 기준 없이 각자 진행함. 원전의 평범함·약함을 사람 비난 대신 협업 방식의 문제로 현대화.
+카드 의미: 미숙함, 사소한 다툼, 부족한 완성도
 
-분야 해석: 보상의배분
+분야 해석: 들인 노력에 비해 받는 돈이 적어 아쉬울 수 있어.
 
-관찰: 같이 한 일의 대가를 두고 각자 기대한 금액이 다를 수 있어. / 눈에 잘 보이지 않는 준비에 시간을 쓴 사람의 몫이 빠지기 쉬운 날이야. / 해온 일을 나란히 이야기하면 처음 생각한 배분을 바꿀 수 있을 거야.
+관찰: 미숙함 / 사소한 다툼 / 부족한 완성도
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 같이 한 일의 대가를 두고 각자 기대한 금액이 다를 수 있어. 눈에 잘 보이지 않는 준비에 시간을 쓴 사람의 몫이 빠지기 쉬운 날이야. 해온 일을 나란히 이야기하면 처음 생각한 배분을 바꿀 수 있을 거야. 서운했던 마음도 내가 한 부분을 알아준다는 말을 듣고 조금 풀릴 수 있어. 돈을 나누기 전에는 각자 맡았던 일부터 확인해줘. | People may have different expectations about their share of payment for shared work. Time spent on less visible preparation could be overlooked. Describing everyone's contributions side by side may lead to a different division. Hearing your part acknowledged should ease some hurt feelings too. Before dividing the money, check what each person actually did. | 一緒にした仕事の報酬に、それぞれ違う金額を期待しているかもしれません。目立たない準備に時間を使った人の分が、見落とされやすそうです。してきたことを順に話すと、最初の配分を変えられるでしょう。自分の担当も認めてもらえれば、寂しかった気持ちが少し和らぎそうです。お金を分ける前に、それぞれがしたことを確かめてください。 |
+| 분야 풀이 | 들인 노력에 비해 받는 돈이 적어 아쉬울 수 있어. 마무리가 부족한 일 때문에 보수가 줄거나 돈을 받는 데 다툼이 생길 가능성이 있어. 서둘러 끝낸 거래에서도 추가로 고칠 비용이 나갈 수 있는 날이야. 돈을 받기 전에 약속한 일을 빠뜨린 곳은 없는지 살펴줘. | Pay that falls short of your effort could disappoint you. An unfinished detail may reduce your reward or cause a dispute over payment. A transaction completed in haste could also need costly corrections today. Check that nothing promised has been left out before receiving the money. | かけた労力に見合うお金を受け取れず、残念に感じるかもしれません。仕上がりが不十分な仕事で報酬が減ったり、支払いをめぐってもめたりする可能性があります。急いで終えた取引でも、修正のための追加費用がかかりそうです。受け取る前に、約束したことを忘れていないか、見ておきましょう。 |
 
 ## pentacles.03 · 정방향
 
 내부 ID: `money.pentacles.03.upright`
 
-카드 의미: 서로 다른 기술을 모아 실제 결과를 만드는 협업. 원전의 숙련과 인정은 상호 기여로 읽음.
+카드 의미: 숙련, 성실한 작업, 인정
 
-분야 해석: 함께한일의수고비
+분야 해석: 잘한 일에 대한 보수를 받기 좋은 날이야.
 
-관찰: 함께 해낸 일에서 내 몫의 수고비나 보상을 이야기할 수 있어. / 어떤 부분을 맡았는지 알고 있는 사람이 공을 분명히 인정해줄 거야. / 지인의 소개로 작은 의뢰가 이어지거나 다음에도 부탁하고 싶다는 말을 들을 수 있어.
+관찰: 숙련 / 성실한 작업 / 인정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 해낸 일에서 내 몫의 수고비나 보상을 이야기할 수 있어. 어떤 부분을 맡았는지 알고 있는 사람이 공을 분명히 인정해줄 거야. 금액이 정해지면 지급 날짜도 함께 확인해둬. 지인의 소개로 작은 의뢰가 이어지거나 다음에도 부탁하고 싶다는 말을 들을 수 있어. 혼자서는 받기 어려웠던 일을 함께 맡은 보람이 느껴지는 날이야. | You could discuss your share of the pay or reward for a joint effort. Someone who knows your contribution should give you clear credit. Once the amount is agreed, confirm the payment date too. An introduction might bring a small commission, or someone may say they'd like to ask you again. Today could show the value of sharing a job you couldn't have taken on alone. | 一緒に終えた仕事で、自分の謝礼や報酬を話し合えそうです。担当した部分を知る人が、あなたの働きをはっきり認めてくれるでしょう。金額が決まったら、支払日も一緒に確かめてください。知人の紹介で小さな依頼が来たり、また頼みたいと言われたりするかもしれません。一人では受けにくかった仕事を、協力して引き受けたかいがありそうです。 |
+| 분야 풀이 | 잘한 일에 대한 보수를 받기 좋은 날이야. 그동안 익힌 기술이나 꼼꼼하게 마친 일이 돈을 버는 데 도움이 될 수 있어. 함께 일하는 사람이 실력을 인정해 새로운 일을 맡길 가능성도 있어. 받을 돈을 두고 이야기 중이라면 자신이 해낸 일을 분명히 알려줘. | It's a good day to be paid for work you've done well. Skills you've learned or a carefully completed task could help you earn. Someone you work with may recognise your ability and give you another job too. If pay is under discussion, make clear what you've accomplished. | うまく仕上げた仕事に対して、報酬を受け取りやすい日です。身につけてきた技術や、丁寧に終えた仕事が、お金を得る助けになりそうです。一緒に働く人が実力を認め、新しい仕事を任せる可能性もあります。報酬について話しているなら、何を成し遂げたか、はっきり伝えてください。 |
 
 ## pentacles.04 · 역방향
 
 내부 ID: `money.pentacles.04.reversed`
 
-카드 의미: 붙잡던 것을 놓지만 경계까지 느슨해질 수 있음. 원전의 지연과 현대의 내려놓음·과소비 중 배분 재조정의 양면을 선택.
+카드 의미: 지연, 대기, 반대
 
-분야 해석: 묶여있던돈
+분야 해석: 기다리던 돈이 늦어져 지출을 미뤄야 할 수 있어.
 
-관찰: 한동안 묶여 있던 돈을 돌려받거나 쓸 수 있는 날짜가 정해질 수 있어. / 보관만 하던 물건을 필요한 사람에게 넘기며 작은 금액을 마련할 수도 있을 거야. / 여유가 생기자 그동안 미뤘던 지출을 모두 하고 싶은 마음이 들 수 있어.
+관찰: 지연 / 대기 / 반대
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 묶여 있던 돈을 돌려받거나 쓸 수 있는 날짜가 정해질 수 있어. 보관만 하던 물건을 필요한 사람에게 넘기며 작은 금액을 마련할 수도 있을 거야. 여유가 생기자 그동안 미뤘던 지출을 모두 하고 싶은 마음이 들 수 있어. 실제로 필요한 것을 하나 챙기는 것만으로도 충분히 만족스러운 날이야. 들어온 돈은 필요한 몫부터 따로 남겨둬. | Money tied up for a while could be returned, or a date to use it may be set. Passing an unused item to someone who needs it might bring in a small amount. With more room in your budget, you could want to make all your postponed purchases at once. Getting just one thing you actually need may be satisfying enough today. Set aside the necessary share of any money that comes in first. | しばらく使えなかったお金が戻ったり、使える日が決まったりしそうです。しまったままの品物を必要な人に譲り、少しのお金になることもあるでしょう。余裕ができると、延ばしていた買い物を全部したくなるかもしれません。実際に必要なものを一つ買うだけでも、十分満足できそうです。入ったお金から、必要な分を先に残してください。 |
+| 분야 풀이 | 기다리던 돈이 늦어져 지출을 미뤄야 할 수 있어. 돈을 받기로 한 일이 생각처럼 진행되지 않거나 상대의 반대로 거래가 멈출 가능성이 있어. 갖고 있는 돈은 있어도 당장 꺼내 쓰기 어려워 답답할 수 있는 날이야. 받을 날짜가 확실해지기 전에는 비싼 물건을 사기로 약속하지 말아줘. | An awaited payment could be delayed and force you to postpone spending. Something meant to bring money may not progress as expected, or the other person's opposition could stop a deal. Even money you have may be hard to access immediately, causing frustration today. Don't promise an expensive purchase before the payment date is certain. | 待っていたお金が遅れ、出費を後にする必要がありそうです。お金を受け取るはずの仕事が予定どおりに進まなかったり、相手の反対で取引が止まったりする可能性があります。お金はあっても、すぐに引き出して使えず、もどかしくなるかもしれません。受け取る日が確かになるまでは、高価な物を買う約束は控えましょう。 |
 
 ## pentacles.04 · 정방향
 
 내부 ID: `money.pentacles.04.upright`
 
-카드 의미: 확보한 것을 지키려는 안정 욕구. 원전의 소유를 유용한 경계와 지나친 집착의 양면으로 사용.
+카드 의미: 소유의 보호, 확실함에 대한 집착
 
-분야 해석: 지켜둔돈
+분야 해석: 모아둔 돈을 지키기 좋은 날이야.
 
-관찰: 따로 남겨둔 돈이 있다는 사실에 안심할 수 있는 날이야. / 잊고 있던 잔액이나 예전에 빌려준 금액을 확인하며 내 몫을 다시 알게 될 거야. / 당장 써야 할 것 같았던 지출도 이미 마련한 것으로 해결할 수 있어.
+관찰: 소유의 보호 / 확실함에 대한 집착
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 따로 남겨둔 돈이 있다는 사실에 안심할 수 있는 날이야. 잊고 있던 잔액이나 예전에 빌려준 금액을 확인하며 내 몫을 다시 알게 될 거야. 당장 써야 할 것 같았던 지출도 이미 마련한 것으로 해결할 수 있어. 돌려받기로 한 돈은 약속한 날짜를 한 번 살펴봐. 돈을 더 벌지 않아도 가진 것을 놓치지 않았다는 보람이 남을 거야. | Knowing you have money set aside could be reassuring today. A forgotten balance or an amount you lent earlier may remind you of money that's yours. Something you thought you had to buy urgently could be covered by what you've already prepared. Look once at the agreed date for money you're due to get back. Even without earning more, you'll feel pleased you haven't lost track of what you have. | 別に残しておいたお金があると分かり、安心できそうです。忘れていた残高や以前貸した金額を確かめ、自分のお金を思い出すでしょう。すぐ買う必要がありそうなものも、用意してあったもので済むかもしれません。返してもらうお金は、約束の日を一度見ておいてください。収入が増えなくても、持っているものを忘れずに済んでよかったと思えそうです。 |
+| 분야 풀이 | 모아둔 돈을 지키기 좋은 날이야. 수입이 크게 늘지 않아도 불필요하게 빠져나가는 돈이 적어 형편이 안정될 수 있어. 손에 있는 돈이 든든해 당장 큰돈을 벌어야 한다는 걱정도 덜할 거야. 아끼는 마음이 지나쳐 꼭 필요한 생활비까지 줄일 필요는 없어. | It's a good day to protect your savings. Income may not increase much, but fewer unnecessary outgoings could steady your finances. Money in hand may reassure you and ease the pressure to earn a large amount immediately. You don't need to cut essential living costs through excessive thrift. | 貯めてきたお金を守りやすい日です。収入が大きく増えなくても、不要な出費が少なく、家計が安定するかもしれません。手元のお金が心強く、すぐに大金を稼がなければという心配も和らぐでしょう。節約したい気持ちが強くても、必要な生活費まで減らすことはありません。 |
 
 ## pentacles.05 · 역방향
 
 내부 ID: `money.pentacles.05.reversed`
 
-카드 의미: 어려움을 혼자 감당하지 않는 통로를 찾는 현대적 회복. 원전의 혼란과 다른 선택임을 명시하고 자원의 재발견에 초점.
+카드 의미: 혼란, 불화, 낭비
 
-분야 해석: 지원받는돈
+분야 해석: 돈이 어디로 나가는지 모르는 사이 형편이 빠듯해질 수 있어.
 
-관찰: 비용을 덜어줄 지원이나 돌려받을 돈에 관한 안내를 받을 수 있어. / 몰라서 지나쳤던 조건에 내가 해당한다는 걸 알게 될 수도 있을 거야. / 가까운 사람이 필요한 정보를 찾아주거나 함께 확인해줄 수 있는 날이야.
+관찰: 혼란 / 불화 / 낭비
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 비용을 덜어줄 지원이나 돌려받을 돈에 관한 안내를 받을 수 있어. 몰라서 지나쳤던 조건에 내가 해당한다는 걸 알게 될 수도 있을 거야. 가까운 사람이 필요한 정보를 찾아주거나 함께 확인해줄 수 있는 날이야. 당장 큰돈이 생기지 않아도 부담을 줄일 방법이 있다는 사실에 안심할 거야. 해당하는 지원이 있다면 신청 기한부터 적어둬. | You could receive information about support with a cost or money you're due back. You may qualify for support you previously overlooked. Someone close could help find or check the information. Even without a large payment straight away, knowing there's a way to reduce the cost should reassure you. Write down the application deadline for any support you qualify for. | 費用を減らす支援や、戻ってくるお金の案内がありそうです。知らずに見過ごした条件に、自分も当てはまると分かるかもしれません。身近な人が必要な情報を探したり、一緒に確かめたりしてくれるでしょう。すぐ大金が入らなくても、負担を減らせる方法に安心できそうです。対象になる支援があれば、申し込み期限を先に書いてください。 |
+| 분야 풀이 | 돈이 어디로 나가는지 모르는 사이 형편이 빠듯해질 수 있어. 가까운 사람과 비용을 두고 생각이 달라 불필요한 돈을 더 쓸 가능성도 있어. 급한 마음에 이것저것 해결하려다 오히려 지출이 늘기 쉬운 날이야. 돈 문제로 다투게 되면 새로 돈을 보내기 전에 서로 무엇을 부담하는지부터 분명히 해줘. | Finances could tighten before you realise where the money is going. Disagreement with someone close over costs may lead to unnecessary extra spending. Rushing to fix several things could increase expenses instead today. If a money argument arises, clarify what each person will cover before sending anything more. | お金がどこへ出ていくかわからないうちに、やりくりが苦しくなるかもしれません。身近な人と費用について考えが違い、不要な出費が増える可能性もあります。焦ってあれもこれも解決しようとして、かえってお金を使いがちな日です。お金でもめたら、新たに送る前に、互いに何を負担するかをはっきりさせましょう。 |
 
 ## pentacles.05 · 정방향
 
 내부 ID: `money.pentacles.05.upright`
 
-카드 의미: 자원이나 소속이 부족하다고 느끼는 어려움. 원전의 물질 곤란을 실제 빈곤 단정 없이 도움과 대안이 보이지 않는 상태로 제한.
+카드 의미: 물질적 어려움, 소외, 부족한 자원
 
-분야 해석: 잠깐부족한돈
+분야 해석: 돈이 부족해 필요한 지출도 부담스럽게 느껴질 수 있어.
 
-관찰: 예상보다 일찍 낼 돈이 생겨 잠깐 여유가 부족하게 느껴질 수 있어. / 필요한 금액은 크지 않아도 다른 지출과 겹쳐 부담스러울 거야. / 전에 낸 돈에서 돌려받을 몫이나 도움받을 안내를 찾을 수 있어.
+관찰: 물질적 어려움 / 소외 / 부족한 자원
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예상보다 일찍 낼 돈이 생겨 잠깐 여유가 부족하게 느껴질 수 있어. 필요한 금액은 크지 않아도 다른 지출과 겹쳐 부담스러울 거야. 급한 비용은 납부 날짜를 바꿀 수 있는지 먼저 물어봐. 전에 낸 돈에서 돌려받을 몫이나 도움받을 안내를 찾을 수 있어. 모든 비용을 혼자 바로 마련해야 하는 상황은 아닐 수도 있는 날이야. | A payment due earlier than expected could leave you briefly short of spare money. The amount may be small but feel burdensome beside other expenses. First ask whether the date for an urgent payment can be changed. You could find money due back from an earlier payment or information about support. Today may show that you don't have to cover every expense immediately by yourself. | 予想より早く支払いが必要になり、一時的に余裕が少なく感じられそうです。金額は大きくなくても、ほかの出費と重なると負担になるでしょう。急な費用は、支払日を変えられるか先に尋ねてください。以前払ったお金の返金や、支援の案内が見つかるかもしれません。すべてを今すぐ一人で用意する必要はないと分かりそうです。 |
+| 분야 풀이 | 돈이 부족해 필요한 지출도 부담스럽게 느껴질 수 있어. 수입보다 생활에 들어가는 비용이 커 아껴둔 돈을 써야 할 가능성이 있어. 혼자 감당하려 하면 급한 비용 때문에 더 곤란해질 수 있는 날이야. 도움이 필요하다면 믿을 만한 사람에게 형편을 솔직히 말해줘. | A shortage of money could make even necessary spending burdensome. Living costs may exceed income and require you to use savings. Trying to manage alone could leave you in greater difficulty over an urgent expense today. If you need help, honestly tell someone trustworthy about your circumstances. | お金が足りず、必要な出費まで負担に感じるかもしれません。生活の費用が収入を上回り、残していたお金を使う可能性があります。一人で何とかしようとすると、急な出費でさらに困りやすい日です。助けが必要なら、信頼できる人に事情を正直に話してください。 |
 
 ## pentacles.06 · 역방향
 
 내부 ID: `money.pentacles.06.reversed`
 
-카드 의미: 도움에 조건이 붙거나 주고받는 부담이 한쪽으로 쏠림. 원전의 탐욕·질투를 금액과 기대의 비대칭으로 응용.
+카드 의미: 욕심, 질투, 환상
 
-분야 해석: 조건붙은도움
+분야 해석: 유리해 보이는 돈 거래에서 오히려 손해를 볼 수 있어.
 
-관찰: 도와주겠다는 제안에 생각하지 못한 부탁이 함께 붙을 수 있어. / 빌려주거나 보태는 금액을 서로 다르게 이해한 일도 드러날 거야. / 조건을 분명하게 들으면 받지 않는 편이 편하다는 생각이 들 수 있어.
+관찰: 욕심 / 질투 / 환상
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 도와주겠다는 제안에 생각하지 못한 부탁이 함께 붙을 수 있어. 빌려주거나 보태는 금액을 서로 다르게 이해한 일도 드러날 거야. 조건을 분명하게 들으면 받지 않는 편이 편하다는 생각이 들 수 있어. 솔직하게 말한 뒤에는 부담이 적은 다른 방법이 나올 수도 있을 거야. 돈을 주고받기 전에 돌려줘야 하는 금액인지 먼저 물어봐. | An offer of help could come with a request you hadn't expected. Different understandings of a loan or contribution may come to light. Hearing the conditions clearly might make declining feel more comfortable. Speaking honestly could bring another, less burdensome option. Before money changes hands, ask whether it must be repaid. | 助けるという提案に、思いがけない頼みがついてくるかもしれません。貸す金額や出し合う分を、お互い違って理解していたと分かりそうです。条件をはっきり聞くと、受け取らない方が気楽だと感じることもあるでしょう。素直に話した後には、負担の少ない別の方法が出てきそうです。お金をやり取りする前に、返す必要があるのか尋ねてください。 |
+| 분야 풀이 | 유리해 보이는 돈 거래에서 오히려 손해를 볼 수 있어. 도움을 준다는 말에 기대했다가 더 큰 대가를 요구받을 가능성이 있어. 남이 얻은 돈을 부러워해 같은 거래를 따라가면 불필요한 지출도 늘기 쉬운 날이야. 이유 없이 큰 이익을 약속하는 말에는 돈을 맡기지 말아줘. | A deal that looks favourable could bring a loss instead. Expected help may turn into a demand for a larger return. Envying someone else's gain and following them into the same deal could increase unnecessary expenses today. Don't entrust money to a promise of large profits with no explanation. | 有利に見える取引で、かえって損をするかもしれません。助けるという言葉に期待した後で、さらに大きな見返りを求められる可能性があります。人が得たお金をうらやんで同じ取引をすると、不要な出費も増えがちな日です。根拠もなく大きな利益を約束する相手に、お金を預けるのは控えましょう。 |
 
 ## pentacles.06 · 정방향
 
 내부 ID: `money.pentacles.06.upright`
 
-카드 의미: 주고받는 도움과 공정한 배분. 원전의 선물·주의를 일방적 시혜보다 가능한 기여의 교환으로 해석.
+카드 의미: 선물, 나눔, 도움, 현재의 만족
 
-분야 해석: 선물과도움
+분야 해석: 필요한 돈을 도움받을 수 있는 날이야.
 
-관찰: 작은 선물이나 식사 대접처럼 고마운 마음이 담긴 금전적 도움을 받을 수 있어. / 잠시 빌려준 돈을 상대가 먼저 기억해 돌려주겠다고 할 수도 있을 거야. / 함께 낸 돈에서도 서로 납득할 만큼 나누는 이야기가 쉽게 이루어질 수 있어.
+관찰: 선물 / 나눔 / 도움
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 선물이나 식사 대접처럼 고마운 마음이 담긴 금전적 도움을 받을 수 있어. 잠시 빌려준 돈을 상대가 먼저 기억해 돌려주겠다고 할 수도 있을 거야. 함께 낸 돈에서도 서로 납득할 만큼 나누는 이야기가 쉽게 이루어질 수 있어. 받은 돈은 어떤 몫인지 짧게 확인해줘. 크기보다 잊지 않고 챙겨줬다는 사실이 반갑게 느껴지는 날이야. | A small gift or a meal someone treats you to could bring welcome help with a cost. Someone may remember money you lent and offer to return it without prompting. Dividing a shared expense could also be easier when everyone finds the split fair. Briefly confirm what any money you receive is for. The thoughtfulness of remembering you may mean more than the amount. | 小さな贈り物や食事をごちそうになるなど、感謝のこもった助けがありそうです。少しの間貸したお金を相手が覚えていて、自分から返すと言ってくれることもあるでしょう。共同の支払いも、納得できる分け方を話しやすそうです。受け取ったお金が何の分なのか、短く確かめてください。金額より、忘れずに気にかけてくれたことがうれしく感じられるでしょう。 |
+| 분야 풀이 | 필요한 돈을 도움받을 수 있는 날이야. 혼자 감당하기 어려웠던 비용을 누군가 덜어주거나 고마운 마음을 담은 선물을 받을 가능성이 있어. 여유가 있다면 작은 도움을 주고도 생활에 무리가 없을 수 있어. 돈을 주거나 받는 일에서 부담을 숨기지 않으면 서로 편하게 마음을 나눌 수 있어. | You could receive help with the money you need today. Someone may reduce a cost that was difficult to cover alone, or give you a gift in thanks. If you have enough, a small offer of help may not strain your own living costs either. Being open about any burden in giving or receiving money can make the exchange more comfortable for you both. | 必要なお金について、援助を得られるかもしれません。一人では負担しきれなかった費用を誰かが軽くしてくれたり、感謝のこもった贈り物をもらったりしそうです。余裕があれば、少額の援助をしても、暮らしに無理はないかもしれません。お金を渡したり受け取ったりするとき、負担を隠さなければ、互いに気持ちよく思いを伝え合えるでしょう。 |
 
 ## pentacles.07 · 역방향
 
 내부 ID: `money.pentacles.07.reversed`
 
-카드 의미: 기다린 만큼 얻지 못하거나 비효율적인 투입을 지속함. 원전의 조바심을 앞으로의 시간과 비용을 재평가하는 뜻으로 사용.
+카드 의미: 제안된 금전 대여에 대한 걱정
 
-분야 해석: 늦어지는보수
+분야 해석: 빌려준 돈이나 빌려달라는 부탁 때문에 걱정이 생길 수 있어.
 
-관찰: 기다린 보수가 늦거나 들인 시간에 비해 금액이 작게 느껴질 수 있어. / 처음 기대했던 보상에 추가 비용이 빠져 있다는 걸 알게 될 수도 있을 거야. / 자세한 내역을 들으면 어떤 부분에 돈이 들었는지 이해할 수 있는 날이야.
+관찰: 제안된 금전 대여에 대한 걱정 / 빌려준 돈이나 빌려달라는 부탁 때문에 걱정이 생길 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다린 보수가 늦거나 들인 시간에 비해 금액이 작게 느껴질 수 있어. 처음 기대했던 보상에 추가 비용이 빠져 있다는 걸 알게 될 수도 있을 거야. 자세한 내역을 들으면 어떤 부분에 돈이 들었는지 이해할 수 있는 날이야. 다음에도 같은 일을 할지 결정할 때 실제로 남는 금액이 도움이 될 거야. 이미 쓴 돈이 아깝다는 이유로 더 넣지는 마. | A payment may be late, or the amount could feel small beside the time you gave. You might learn that extra costs weren't included in the reward you first expected. A detailed explanation should show where the money went. Knowing what actually remains will help when deciding whether to take similar work again. Don't put in more money simply because you regret what you've already spent. | 待っていた報酬が遅れたり、使った時間の割に少なく感じられたりしそうです。最初に期待した報酬には、追加の費用が含まれていなかったと分かるかもしれません。詳しい内訳を聞けば、何にお金がかかったか理解できるでしょう。次も同じ仕事をするか決めるとき、実際に残る金額が役立ちそうです。すでに使ったお金が惜しいという理由で、さらに出さないでください。 |
+| 분야 풀이 | 빌려준 돈이나 빌려달라는 부탁 때문에 걱정이 생길 수 있어. 돈을 돌려받을 시기가 불분명해 필요한 지출을 망설일 가능성이 있어. 상대가 급하다는 이유로 무리하면 자신의 생활비까지 부족해질 수 있는 날이야. 돌려받지 못했을 때 감당하기 어려운 금액은 빌려주지 말아줘. | Money you've lent or a request to borrow could cause worry. An uncertain repayment date may make you hesitate over a necessary expense. Stretching yourself because someone else is in a hurry could leave you short of living costs today. Don't lend an amount you couldn't manage without if it isn't repaid. | 貸したお金や、貸してほしいという頼みから、心配が生まれそうです。返ってくる時期がはっきりせず、必要な出費もためらうかもしれません。相手が急いでいるからと無理をすると、生活費まで足りなくなりやすい日です。戻らなかったときに困るほどの金額を、貸すのは控えましょう。 |
 
 ## pentacles.07 · 정방향
 
 내부 ID: `money.pentacles.07.upright`
 
-카드 의미: 투입한 노력의 상태를 살피는 기다림. 원전의 경작과 다양한 결과를 조급한 수확 대신 진행 점검으로 응용.
+카드 의미: 쌓인 자원의 관찰, 거래와 금전 판단
 
-분야 해석: 기다린보수
+분야 해석: 그동안 들인 돈과 노력이 조금씩 이익으로 남을 수 있어.
 
-관찰: 오래 기다린 대가가 어디까지 처리됐는지 소식을 받을 수 있어. / 예전에 해둔 일이나 맡긴 물건에서 예상하지 못한 작은 금액을 챙길 수도 있을 거야. / 바로 큰돈이 들어오지는 않아도 받을 몫이 확인되어 마음이 놓이는 날이야.
+관찰: 쌓인 자원의 관찰 / 거래와 금전 판단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 기다린 대가가 어디까지 처리됐는지 소식을 받을 수 있어. 예전에 해둔 일이나 맡긴 물건에서 예상하지 못한 작은 금액을 챙길 수도 있을 거야. 바로 큰돈이 들어오지는 않아도 받을 몫이 확인되어 마음이 놓이는 날이야. 지급 예정일은 알림으로 남겨둬. 꾸준히 마련해온 돈을 보며 한 번에 모이지 않아도 제법 쌓였다는 걸 느낄 수 있어. | You could receive an update on a payment you've been waiting for. Earlier work or an item you left with someone might bring an unexpected small amount. Even without a large payment immediately, confirmation of your share should bring reassurance. Set a reminder for the expected payment date. Looking at money you've steadily set aside could show that small amounts have added up. | 長く待った報酬について、手続きがどこまで進んだか知らせがありそうです。以前の仕事や預けた品物から、予想外の少額を受け取ることもあるでしょう。すぐに大金が入らなくても、もらえる分が分かって安心できそうです。支払予定日には、通知を設定しておいてください。少しずつ用意したお金を見て、一度にではなくてもかなり貯まったと感じるでしょう。 |
+| 분야 풀이 | 그동안 들인 돈과 노력이 조금씩 이익으로 남을 수 있어. 오래 이어온 거래가 있다면 얼마나 벌었는지 분명하게 드러나기 좋은 날이야. 큰돈이 단번에 생기기보다 차곡차곡 모인 금액에서 만족을 얻을 수 있어. 아직 돈이 들어오지 않은 일까지 잘될 거라 보고 비용을 늘리지는 말아줘. | Money and effort you've put in could gradually produce a profit. You may see more clearly today how much a long-running deal has earned you. Satisfaction is more likely to come from an amount steadily accumulated than a sudden large sum. Don't increase costs on the assumption that something unpaid will go well too. | これまでかけたお金と努力が、少しずつ利益になりそうです。長く続けた取引があれば、どれほど稼げたかがはっきり見えやすい日です。一度に大金を得るより、着実に貯まった額に満足できるでしょう。まだ入金のないことまでうまくいくと考え、費用を増やすのは控えましょう。 |
 
 ## pentacles.08 · 역방향
 
 내부 ID: `money.pentacles.08.reversed`
 
-카드 의미: 반복은 있으나 목적이나 주의가 빠진 상태. 원전의 허영·욕심을 과한 완벽주의와 형식적인 작업의 양면으로 응용.
+카드 의미: 허영, 욕심, 기술을 잔꾀로 사용
 
-분야 해석: 수고비와시간
+분야 해석: 돈을 벌려다 오히려 손해를 볼 수 있어.
 
-관찰: 처음 생각한 것보다 오래 걸리는 부탁을 받을 수 있어. / 정해둔 수고비는 같은데 고쳐야 할 부분이 하나씩 늘어날 수 있는 날이야. / 어디까지 맡은 일인지 이야기하면 추가된 부탁을 구분할 수 있어.
+관찰: 허영 / 욕심 / 기술을 잔꾀로 사용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 처음 생각한 것보다 오래 걸리는 부탁을 받을 수 있어. 정해둔 수고비는 같은데 고쳐야 할 부분이 하나씩 늘어날 수 있는 날이야. 어디까지 맡은 일인지 이야기하면 추가된 부탁을 구분할 수 있어. 분명히 설명한 뒤에는 대가를 다시 정하거나 작업을 줄일 수 있을 거야. 추가로 해달라는 일은 바로 시작하지 말고 금액부터 맞춰줘. | A request could take longer than you first expected. The agreed fee may stay the same while revisions keep appearing. Talking about what you originally took on should separate out the added requests. A clear explanation could let you adjust the pay or reduce the work. Agree on the price before starting anything extra you're asked to do. | 最初に思ったより時間のかかる頼みを受けるかもしれません。謝礼は同じでも、直す部分が一つずつ増えそうです。どこまで引き受けたか話せば、追加された頼みを分けられるでしょう。はっきり説明すると、報酬を決め直したり作業を減らしたりできそうです。追加の仕事はすぐ始めず、先に金額を合わせてください。 |
+| 분야 풀이 | 돈을 벌려다 오히려 손해를 볼 수 있어. 적은 노력으로 큰돈을 얻는다는 말에 끌리면 들인 비용을 되찾기 어려울 가능성이 있어. 실제 실력보다 겉모습을 꾸미는 데 돈을 써도 원하는 수입으로 이어지기 힘든 날이야. 수익을 장담하며 먼저 돈을 요구하는 제안은 특히 신중하게 봐줘. | Trying to earn could lead to a loss instead. An offer of a large sum for little effort may make your initial costs difficult to recover. Spending on appearances rather than actual skill may also fail to bring the income you want today. Be especially careful with offers guaranteeing profit while asking for money first. | 稼ごうとして、かえって損をするかもしれません。少ない努力で大金が得られるという言葉にひかれると、使った費用を取り戻しにくい可能性があります。実力をつけるより見栄えにお金をかけても、望む収入にはつながりにくい日です。利益を断言しながら先にお金を求める提案は、特に慎重に見てください。 |
 
 ## pentacles.08 · 정방향
 
 내부 ID: `money.pentacles.08.upright`
 
-카드 의미: 반복으로 익히는 기술과 정성. 원전의 숙련·고용을 성별이나 직업 전제 없이 실력이 실제 쓰임을 얻는 과정으로 해석.
+카드 의미: 숙련된 작업, 기술, 성실한 연습
 
-분야 해석: 솜씨의대가
+분야 해석: 꾸준히 해온 일에서 돈을 벌기 좋은 날이야.
 
-관찰: 꾸준히 익힌 솜씨를 필요로 하는 사람에게서 의뢰나 수고비 이야기가 올 수 있어. / 전에 해준 일이 마음에 들었다며 다시 부탁하는 경우도 있을 거야. / 작은 일이어도 실력을 인정받고 돈을 받는 기쁨이 생길 수 있는 날이야.
+관찰: 숙련된 작업 / 기술 / 성실한 연습
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 꾸준히 익힌 솜씨를 필요로 하는 사람에게서 의뢰나 수고비 이야기가 올 수 있어. 전에 해준 일이 마음에 들었다며 다시 부탁하는 경우도 있을 거야. 걸리는 시간과 받을 대가는 시작 전에 말해줘. 작은 일이어도 실력을 인정받고 돈을 받는 기쁨이 생길 수 있는 날이야. 정성 들인 물건이나 작업은 소개를 통해 다른 사람에게도 알려질 수 있어. | Someone who needs a skill you've steadily learned could discuss a commission or payment. A person pleased with earlier work may ask you again. Agree on the time needed and the pay before starting. Even a small job could bring the pleasure of being paid for a recognized skill. Careful work or a well-made item might reach more people through an introduction. | 磨いてきた技を必要とする人から、依頼や謝礼の話がありそうです。以前の仕事がよかったと、また頼まれることもあるでしょう。かかる時間と報酬は、始める前に伝えてください。小さな仕事でも、腕を認められてお金を受け取るうれしさがありそうです。丁寧な品物や作業は、紹介でほかの人にも知られるでしょう。 |
+| 분야 풀이 | 꾸준히 해온 일에서 돈을 벌기 좋은 날이야. 익숙한 일을 꼼꼼히 마무리하면 그만큼 보수를 받을 수 있어. 솜씨가 늘어난 덕에 다음 일이나 추가 수입으로 이어질 가능성도 있어. 빨리 더 벌려 하기보다 맡은 일을 잘 끝내는 편이 수입을 이어가는 데 좋아. | It's a good day to earn from work you've done steadily. Completing a familiar task carefully may bring pay that reflects the effort. Improved skill could lead to another job or extra income too. Finishing what's entrusted to you well will do more to sustain earnings than rushing to make more. | 続けてきた仕事で、お金を得やすい日です。慣れた仕事を丁寧に仕上げると、それに見合う報酬を受け取れそうです。腕が上がったことで、次の仕事や追加収入につながる可能性もあります。急いでもっと稼ごうとするより、引き受けた仕事をきちんと終えるほうが、収入を続ける助けになります。 |
 
 ## pentacles.09 · 역방향
 
 내부 ID: `money.pentacles.09.reversed`
 
-카드 의미: 겉으로 갖춘 모습과 실제 여유가 어긋남. 원전의 헛된 기대를 인정받기 위한 소비·성과의 부담으로 사용.
+카드 의미: 기만, 믿음의 불일치, 계획의 공허함
 
-분야 해석: 과시하는지출
+분야 해석: 겉으로 좋아 보이는 거래에서 돈을 잃기 쉬운 날이야.
 
-관찰: 다른 사람의 생활을 보며 지금보다 더 써야 할 것처럼 느껴질 수 있어. / 내가 감당할 수 있는 금액보다 모임이나 물건의 겉모습이 먼저 눈에 들어올 거야. / 실제로 남는 돈을 보면 무리하지 않고도 누릴 것이 있다는 걸 알 수 있어.
+관찰: 기만 / 믿음의 불일치 / 계획의 공허함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다른 사람의 생활을 보며 지금보다 더 써야 할 것처럼 느껴질 수 있어. 내가 감당할 수 있는 금액보다 모임이나 물건의 겉모습이 먼저 눈에 들어올 거야. 실제로 남는 돈을 보면 무리하지 않고도 누릴 것이 있다는 걸 알 수 있어. 누군가의 소박한 선택이 오히려 더 편하고 좋아 보이는 날이야. 남에게 보여줄 소비는 바로 결제하지 말고 하루 미뤄둬. | Seeing other people's lives could make you feel you ought to spend more. The appearance of an outing or item may catch your attention before what you can afford. Looking at the money actually left should reveal things you can enjoy without stretching yourself. Someone's modest choice may look more comfortable and appealing today. Leave a purchase meant to impress others until tomorrow instead of paying immediately. | 人の暮らしを見て、もっとお金を使うべきだと感じるかもしれません。出せる金額より、集まりや品物の見栄えに目が向きそうです。実際に残るお金を見れば、無理せず楽しめるものも分かるでしょう。誰かの控えめな選択が、かえって気楽ですてきに見えそうです。人に見せるための買い物は、すぐ払わず一日置いてください。 |
+| 분야 풀이 | 겉으로 좋아 보이는 거래에서 돈을 잃기 쉬운 날이야. 비싼 가격이 실제 품질을 보장하지 않아 산 뒤에 실망할 수 있어. 잘될 거라 믿은 계획도 수입 없이 비용만 늘어날 가능성이 있어. 다른 사람에게 좋아 보이려고 감당하기 어려운 물건을 사지는 말아줘. | An apparently good deal could lose you money today. A high price doesn't guarantee quality, so a purchase may disappoint. A plan you trusted could also keep adding costs without income. Don't buy something beyond your means just to impress other people. | 一見よさそうな取引で、お金を失いやすい日です。高い値段が品質を保証するわけではなく、買った後でがっかりするかもしれません。うまくいくと信じた計画も、収入がないまま費用だけ増える可能性があります。人によく見られるために、払える額を超える物を買うのは控えましょう。 |
 
 ## pentacles.09 · 정방향
 
 내부 ID: `money.pentacles.09.upright`
 
-카드 의미: 스스로 마련한 여유와 독립적인 만족. 원전의 안전·성취를 자립의 과시가 아닌 자신의 취향을 누리는 경험으로 사용.
+카드 의미: 분별, 안전, 성취, 풍요
 
-분야 해석: 스스로번돈
+분야 해석: 재물운이 좋아 모아온 돈에서 여유를 느낄 수 있어.
 
-관찰: 혼자 맡아 해낸 일의 대가를 받거나 금액이 정해질 수 있어. / 꾸준히 모은 돈을 확인하며 내가 쓸 수 있는 여유가 생겼다는 걸 느낄 거야. / 남의 도움 없이 마련했다는 사실이 물건의 크기보다 뿌듯하게 남는 날이야.
+관찰: 분별 / 안전 / 성취
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 맡아 해낸 일의 대가를 받거나 금액이 정해질 수 있어. 꾸준히 모은 돈을 확인하며 내가 쓸 수 있는 여유가 생겼다는 걸 느낄 거야. 원하던 것이 있다면 정해둔 금액 안에서 하나 골라봐. 남의 도움 없이 마련했다는 사실이 물건의 크기보다 뿌듯하게 남는 날이야. 예전에 해둔 작은 일에서도 뒤늦은 보상 소식이 올 수 있어. | Payment for a job you handled alone could arrive, or the amount may be agreed. Checking money you've steadily saved might reveal some room to spend. Choose one thing you've wanted within the amount you set aside. Providing it for yourself could feel more satisfying than the size of the purchase. Even an old small job might bring belated news of a reward. | 一人で引き受けた仕事の報酬を受け取ったり、金額が決まったりしそうです。少しずつ貯めたお金を確かめ、使える余裕ができたと感じるでしょう。欲しかったものがあれば、決めた金額の中で一つ選んでください。人に頼らず用意したことが、買ったものの大きさ以上に誇らしく残りそうです。以前の小さな仕事にも、遅れて報酬の知らせが来るかもしれません。 |
+| 분야 풀이 | 재물운이 좋아 모아온 돈에서 여유를 느낄 수 있어. 필요한 지출을 하고도 남는 돈이 있어 평소 갖고 싶었던 것을 마련하기 좋은 날이야. 스스로 벌거나 아껴온 돈인 만큼 만족도 클 수 있어. 오래 쓸 물건을 골라보면 기분 좋은 소비가 될 거야. | Good financial luck could let you enjoy the comfort of your savings. Money left after essential expenses may let you buy something you've wanted today. Having earned or saved it yourself could make the satisfaction greater. Choosing something that will last can make the purchase enjoyable. | 金運がよく、貯めてきたお金に余裕を感じられそうです。必要な出費の後にも残る分があり、以前から欲しかった物を買いやすい日です。自ら稼いだり節約したりしたお金だからこそ、満足も大きいでしょう。長く使う物を選ぶと、気持ちのよい買い物になりそうです。 |
 
 ## pentacles.10 · 역방향
 
 내부 ID: `money.pentacles.10.reversed`
 
-카드 의미: 오래된 기준이나 공동 자원에 대한 기대가 현재와 어긋남. 원전의 위험·손실을 실제 재난 아닌 지속 비용과 관례의 문제로 응용.
+카드 의미: 우연, 손실, 위험한 내기
 
-분야 해석: 공동비용의차이
+분야 해석: 큰 이익을 바란 거래에서 모아둔 돈을 잃을 수 있어.
 
-관찰: 가족이나 여러 사람이 함께 쓸 돈을 두고 생각이 다를 수 있어. / 예전에는 괜찮던 금액이 지금은 누군가에게 부담스러울 거야. / 각자의 사정을 듣고 나면 똑같이 나누는 방식이 꼭 편하지는 않다는 걸 알 수 있어.
+관찰: 우연 / 손실 / 위험한 내기
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가족이나 여러 사람이 함께 쓸 돈을 두고 생각이 다를 수 있어. 예전에는 괜찮던 금액이 지금은 누군가에게 부담스러울 거야. 각자의 사정을 듣고 나면 똑같이 나누는 방식이 꼭 편하지는 않다는 걸 알 수 있어. 필요한 항목만 남기면서 처음 예상한 지출이 줄어들 수도 있는 날이야. 돈을 걷기 전에는 각자 가능한 금액을 확인해줘. | Family or a group may have different ideas about money they'll spend together. An amount that used to be fine could now burden someone. Hearing everyone's circumstances may show that equal shares aren't always comfortable. Keeping only the necessary items could reduce the original expense. Before collecting money, check what each person can contribute. | 家族や皆で使うお金に、考えの違いがありそうです。以前は平気な金額も、今は誰かの負担になるかもしれません。それぞれの事情を聞くと、均等に分けることが楽とは限らないと分かるでしょう。必要なものだけにすると、最初の出費を減らせそうです。お金を集める前に、それぞれが出せる金額を確かめてください。 |
+| 분야 풀이 | 큰 이익을 바란 거래에서 모아둔 돈을 잃을 수 있어. 한 번의 선택으로 형편을 바꾸려 하면 생활을 지탱하던 돈까지 부족해질 가능성이 있어. 가까운 사람의 돈이 함께 걸려 있다면 손실의 부담도 커지는 날이야. 꼭 필요한 돈까지 운에 맡기는 일은 피해줘. | A deal promising a large gain could cost you your savings. Trying to change your circumstances with one choice may leave too little of the money supporting daily life. If someone close has money involved too, the burden of a loss could be greater today. Avoid leaving essential money to chance. | 大きな利益を期待した取引で、貯えを失うかもしれません。一度の選択で暮らしを変えようとすると、生活を支えるお金まで足りなくなる可能性があります。身近な人のお金も関わっているなら、損失の負担も大きくなる日です。必要なお金まで運任せにするのは避けましょう。 |
 
 ## pentacles.10 · 정방향
 
 내부 ID: `money.pentacles.10.upright`
 
-카드 의미: 오래 쓸 기반과 함께 이어가는 자원. 원전의 축적·가정을 특정 가족이나 상속 예언 없이 지속 가능한 공유로 사용.
+카드 의미: 가족, 재산, 기록, 축적된 기반
 
-분야 해석: 공동자원의도움
+분야 해석: 오랫동안 모아온 돈이 생활을 든든하게 해줄 수 있어.
 
-관찰: 가족이나 가까운 사람과 함께 마련한 돈에서 도움을 받을 수 있어. / 예전에 나눠 낸 비용이 돌아오거나 공동으로 쓸 물건이 생길 수도 있을 거야. / 혼자 새로 마련할 필요가 없어 예상한 부담이 줄어드는 날이야.
+관찰: 가족 / 재산 / 기록
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가족이나 가까운 사람과 함께 마련한 돈에서 도움을 받을 수 있어. 예전에 나눠 낸 비용이 돌아오거나 공동으로 쓸 물건이 생길 수도 있을 거야. 혼자 새로 마련할 필요가 없어 예상한 부담이 줄어드는 날이야. 함께 쓰는 돈은 어디에 사용할지 먼저 말해줘. 오래 챙겨온 작은 몫들이 실제로 도움이 된다는 걸 느낄 수 있어. | Money put together with family or someone close could offer help. An earlier shared payment might come back, or something for everyone to use may become available. Not having to provide it alone could reduce the expected burden. Explain how you want to use shared money first. Small contributions kept up over time may show their practical value. | 家族や親しい人と用意したお金が、助けになりそうです。以前出し合った費用が戻ったり、共用のものが手に入ったりするかもしれません。一人で新しく用意せずに済み、予想した負担が減るでしょう。共有のお金は、何に使うか先に話してください。少しずつ残してきたお金が、実際に役立つと感じられそうです。 |
+| 분야 풀이 | 오랫동안 모아온 돈이 생활을 든든하게 해줄 수 있어. 가족과 함께 마련한 돈이나 꾸준한 수입 덕에 큰 지출의 부담이 줄어들기 좋은 날이야. 당장 새로 버는 돈보다 이미 쌓아둔 재산에서 안심할 수 있어. 함께 쓰는 돈으로 중요한 결정을 한다면 관련된 사람과 먼저 이야기해줘. | Long-held savings could make daily life feel secure. Money gathered with family or steady income may ease the burden of a large expense today. Existing assets could offer more reassurance than new earnings right now. Discuss an important decision involving shared money with the people concerned first. | 長く貯めてきたお金が、暮らしを支えてくれそうです。家族と一緒に用意したお金や、続いている収入で、大きな支払いの負担が減りやすい日です。今すぐ新しく稼ぐ額より、すでに積み重ねた財産に安心できるでしょう。共有のお金で大切な決断をするなら、関係する人と先に話してください。 |
 
 ## pentacles.11 · 역방향
 
 내부 ID: `money.pentacles.11.reversed`
 
-카드 의미: 배우려는 뜻이 실행으로 이어지지 않거나 기초를 건너뜀. 원전의 낭비·좋지 않은 안내를 목적 없는 준비로 현대화.
+카드 의미: 낭비와 흥청거림, 즐거움이나 사치로 관심이 분산됨, 기대와 다른 소식
 
-분야 해석: 준비에드는돈
+분야 해석: 기대했던 돈 소식이 늦거나 금액이 적어 실망할 수 있어.
 
-관찰: 무언가를 배우기 전에 사야 할 것들이 자꾸 눈에 들어올 수 있어. / 이미 가진 것으로도 시작할 수 있다는 설명을 뒤늦게 듣게 될 거야. / 작은 혜택을 받으려다 오히려 준비 비용이 커지는 제안도 있을 수 있어.
+관찰: 낭비와 흥청거림 / 즐거움이나 사치로 관심이 분산됨 / 기대와 다른 소식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 무언가를 배우기 전에 사야 할 것들이 자꾸 눈에 들어올 수 있어. 이미 가진 것으로도 시작할 수 있다는 설명을 뒤늦게 듣게 될 거야. 작은 혜택을 받으려다 오히려 준비 비용이 커지는 제안도 있을 수 있어. 자세히 알아본 뒤에는 당장 필요한 돈이 생각보다 적다는 걸 느낄 거야. 새 도구는 한 번 직접 해본 뒤에 고르는 게 좋아. | Before learning something, you might keep noticing things you think you need to buy. An explanation may arrive later that you can begin with what you already have. An offer of a small benefit could actually require greater preparation costs. Learning the details should show that the money you need immediately is less than expected. Choose a new tool after you've tried the activity once. | 何かを学ぶ前に、買う必要がありそうなものが次々に気になりそうです。持っているものでも始められると、後から説明を聞くでしょう。小さな特典のために、かえって準備費用の増える提案もあるかもしれません。詳しく知れば、今必要なお金は思ったより少ないと感じられそうです。新しい道具は、一度実際に試してから選んでください。 |
+| 분야 풀이 | 기대했던 돈 소식이 늦거나 금액이 적어 실망할 수 있어. 해야 할 일을 미루면 받을 보수가 줄어들 가능성도 있어. 수입이 정해지지 않았는데 갖고 싶은 것을 먼저 사면 생활비가 빠듯해지기 쉬운 날이야. 돈이 들어올 때까지 급하지 않은 소비는 미뤄줘. | Delayed money news or a smaller amount could disappoint you. Postponing necessary work may also reduce your pay. Buying what you want before income is settled could make living costs tight today. Leave non-urgent purchases until the money arrives. | 期待したお金の知らせが遅かったり、金額が少なかったりして、がっかりするかもしれません。やるべき仕事を後回しにすると、報酬が減る可能性もあります。収入が決まっていないのに、欲しい物を先に買うと、生活費が苦しくなりやすい日です。お金が入るまでは、急がない買い物を待ちましょう。 |
 
 ## pentacles.11 · 정방향
 
 내부 ID: `money.pentacles.11.upright`
 
-카드 의미: 실용적인 배움과 차근차근 마련하는 준비. 원전의 학습·적용을 작은 경험으로 기준을 익히는 태도로 사용.
+카드 의미: 공부와 집중, 성찰과 적용, 소식과 관리
 
-분야 해석: 배움의지원
+분야 해석: 돈을 벌 새로운 기회에 관한 소식을 들을 수 있어.
 
-관찰: 배우는 일에 쓸 수 있는 지원이나 작은 장려금 소식을 들을 수 있어. / 참여한 활동의 보상이나 준비 비용을 덜어주는 안내가 반가울 거야. / 기초부터 익힌 솜씨를 작은 부탁에 써보고 대가를 받을 수도 있는 날이야.
+관찰: 공부와 집중 / 성찰과 적용 / 소식과 관리
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 배우는 일에 쓸 수 있는 지원이나 작은 장려금 소식을 들을 수 있어. 참여한 활동의 보상이나 준비 비용을 덜어주는 안내가 반가울 거야. 대상에 해당하는지 공식 안내를 한 번 확인해봐. 기초부터 익힌 솜씨를 작은 부탁에 써보고 대가를 받을 수도 있는 날이야. 크지 않은 금액이어도 계속 배워볼 힘이 될 수 있어. | You could hear about support or a small grant for learning. A reward for taking part or help with preparation costs may be welcome. Check the official guidance once to see whether you qualify. You might also use a skill learned from the basics for a small paid favor. Even a modest amount could encourage you to keep learning. | 学ぶことに使える支援や、小さな奨励金の知らせがありそうです。参加した活動の謝礼や、準備費用を減らす案内がうれしいでしょう。対象になるか、公式の案内を一度確かめてください。基礎から覚えた技を小さな頼み事に使い、報酬を受け取ることもありそうです。少額でも、学び続ける励みになるでしょう。 |
+| 분야 풀이 | 돈을 벌 새로운 기회에 관한 소식을 들을 수 있어. 아직 보수가 크지 않아도 익히고 있는 기술이나 공부가 수입으로 이어질 가능성이 있어. 조건이 분명한 작은 일을 맡으면 첫 돈을 버는 기쁨을 느낄 수 있는 날이야. 바로 큰돈을 바라기보다 약속한 보수를 제대로 받는 데 신경 써줘. | You could hear about a new chance to earn. A skill or subject you're learning may bring income even if the pay is still small. Taking a modest job with clear terms could bring the pleasure of a first payment today. Focus on receiving the agreed pay properly rather than expecting a large sum immediately. | 新しくお金を得る機会について、知らせを聞けそうです。まだ報酬は大きくなくても、学んでいる技術や勉強が、収入につながる可能性があります。条件のはっきりした小さな仕事を引き受ければ、初めての報酬に喜びを感じられるかもしれません。すぐに大金を望むより、約束した報酬をきちんと受け取ることに気を配りましょう。 |
 
 ## pentacles.12 · 역방향
 
 내부 ID: `money.pentacles.12.reversed`
 
-카드 의미: 안정된 반복이 정체되거나 완벽한 준비 때문에 진행이 느림. 원전의 나태라는 낙인을 피하고 관성과 과도한 고정으로 응용.
+카드 의미: 무기력과 정체, 게으름과 무관심, 낙담 또는 부주의
 
-분야 해석: 느려진수입
+분야 해석: 돈이 들어오는 일이 더뎌져 형편이 답답할 수 있어.
 
-관찰: 늘 비슷하게 처리되던 돈이 오늘은 한 번 늦어질 수 있어. / 같은 일을 해도 시간이 더 들어 남는 금액이 작게 느껴지는 날이야. / 연락해보면 언제 받을 수 있는지 구체적인 답을 들을 수 있어.
+관찰: 무기력과 정체 / 게으름과 무관심 / 낙담 또는 부주의
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 늘 비슷하게 처리되던 돈이 오늘은 한 번 늦어질 수 있어. 같은 일을 해도 시간이 더 들어 남는 금액이 작게 느껴지는 날이야. 연락해보면 언제 받을 수 있는지 구체적인 답을 들을 수 있어. 다음부터 바꿀 수 있는 절차를 알려주는 사람도 있을 거야. 약속한 날짜가 지났다면 조용히 기다리기만 하지 말고 한 번 물어봐. | A payment normally handled the same way could be delayed today. The same job may take longer, making the amount left feel smaller. Getting in touch could bring a specific answer about when you'll receive it. Someone might also explain a procedure you can change next time. If the agreed date has passed, ask once instead of only waiting quietly. | いつも同じように処理されるお金が、今日は少し遅れるかもしれません。同じ仕事にも時間がかかり、残る金額が少なく感じられそうです。連絡すれば、いつ受け取れるか具体的な答えが聞けるでしょう。次から変えられる手順を、教える人もいるかもしれません。約束の日を過ぎたら、黙って待つだけでなく一度尋ねてください。 |
+| 분야 풀이 | 돈이 들어오는 일이 더뎌져 형편이 답답할 수 있어. 미뤄둔 일 때문에 받을 시기가 늦어지거나 부주의한 처리로 비용이 더 들 가능성이 있어. 같은 수입을 기다리기만 하면 필요한 돈이 부족해질 수 있는 날이야. 돈을 받기 위해 마쳐야 할 일이 있다면 더 늦추지 말아줘. | Delays in receiving money could leave you frustrated with your finances. Delayed work may push back payment, or careless handling could add costs. Simply waiting for the same income may leave you short of what you need today. If there's work you must finish to get paid, don't put it off further. | 入金が遅くなり、お金のやりくりに困るかもしれません。後回しにした仕事で受け取る時期が遅れたり、不注意な対応で費用が増えたりする可能性があります。同じ収入を待つだけでは、必要な額が足りなくなりそうです。お金を受け取るために終えるべきことがあるなら、これ以上延ばすのは控えましょう。 |
 
 ## pentacles.12 · 정방향
 
 내부 ID: `money.pentacles.12.upright`
 
-카드 의미: 일정한 속도로 책임을 다하는 신뢰성. 원전의 유용함·책임을 화려함보다 꾸준한 실행으로 해석.
+카드 의미: 실용성, 책임과 정직, 느리고 꾸준한 인물
 
-분야 해석: 꾸준한보수
+분야 해석: 약속한 수입이 꾸준히 들어오기 좋은 날이야.
 
-관찰: 정해진 날의 보수나 약속한 금액이 차분히 확인될 수 있어. / 크게 늘어난 수입은 아니어도 예측할 수 있다는 점이 든든하게 느껴질 거야. / 꾸준히 맡아온 일에서는 다음에도 이어가자는 이야기를 들을 수 있어.
+관찰: 실용성 / 책임과 정직 / 느리고 꾸준한 인물
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정해진 날의 보수나 약속한 금액이 차분히 확인될 수 있어. 크게 늘어난 수입은 아니어도 예측할 수 있다는 점이 든든하게 느껴질 거야. 꾸준히 맡아온 일에서는 다음에도 이어가자는 이야기를 들을 수 있어. 확인된 돈 중 꼭 쓸 몫부터 남겨둬. 평소 지켜온 거래 약속이 서로의 신뢰를 만들어주는 날이야. | Regular pay or an agreed amount could be confirmed calmly. It may not be a bigger income, but its predictability should feel reassuring. Work you've handled consistently could bring an invitation to continue. Set aside the essential share of confirmed money first. Keeping everyday agreements could build trust on both sides today. | 決まった日の報酬や約束の金額が、落ち着いて確認できそうです。収入が大きく増えなくても、予測できることが頼もしいでしょう。続けてきた仕事では、次もお願いしたいという話がありそうです。確定したお金から、必ず使う分を残してください。普段守ってきた取引の約束が、お互いの信頼になるでしょう。 |
+| 분야 풀이 | 약속한 수입이 꾸준히 들어오기 좋은 날이야. 크게 돈이 불어나지는 않아도 맡은 일을 끝낸 만큼 보수를 받을 수 있어. 익숙한 거래에서 돈이 제때 들어와 생활비 걱정을 덜 가능성도 있어. 특별한 이익을 좇아 잘 이어온 일을 급히 바꾸지는 말아줘. | Agreed income is likely to arrive steadily today. Your money may not grow dramatically, but completing your work could bring corresponding pay. Money arriving on time from a familiar transaction may ease worry about living costs too. Don't abruptly change something that's been going well to chase an exceptional gain. | 約束された収入が、着実に入りやすい日です。大きく増えなくても、引き受けた仕事を終えた分の報酬は得られそうです。慣れた取引から予定どおりにお金が入り、生活費の心配が減る可能性もあります。特別な利益を追って、順調に続けてきた仕事を急に変えるのは控えましょう。 |
 
 ## pentacles.13 · 역방향
 
 내부 ID: `money.pentacles.13.reversed`
 
-카드 의미: 다른 사람을 챙기느라 자기 자원을 놓치거나 안락함의 외형에 몰두함. 원전의 불안·의심을 돌봄의 부담으로 현대화.
+카드 의미: 의심, 불안과 두려움, 불신
 
-분야 해석: 남을위한지출
+분야 해석: 돈을 잃을까 걱정해 필요한 지출도 망설일 수 있어.
 
-관찰: 다른 사람을 챙기는 데 쓰는 돈이 예상보다 늘어날 수 있어. / 식사나 작은 물건을 대신 사다 보니 내 몫은 뒤로 밀리는 날이야. / 상대는 내가 계속 비용을 부담했다는 사실을 모르고 있을 수 있어.
+관찰: 의심 / 불안과 두려움 / 불신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다른 사람을 챙기는 데 쓰는 돈이 예상보다 늘어날 수 있어. 식사나 작은 물건을 대신 사다 보니 내 몫은 뒤로 밀리는 날이야. 상대는 내가 계속 비용을 부담했다는 사실을 모르고 있을 수 있어. 이야기하고 나면 다음에는 나누겠다는 답을 들을 수 있을 거야. 함께 쓸 돈은 결제하기 전에 부담할 몫을 정해줘. | Spending on other people could grow beyond what you expected. Buying their meals or small items may push your own needs back. They might not realize you've kept covering the cost. Talking about it could bring an offer to share next time. Agree on each person's share of a shared expense before paying. | 人のために使うお金が、予想より増えるかもしれません。食事や小物を代わりに買ううちに、自分の分が後回しになりそうです。相手は、あなたが続けて負担していたことを知らないかもしれません。話せば、次は分けようという返事が聞けるでしょう。共用の支払いは、払う前にそれぞれの負担を決めてください。 |
+| 분야 풀이 | 돈을 잃을까 걱정해 필요한 지출도 망설일 수 있어. 당장 큰돈이 나가지 않아도 앞으로 부족해질까 불안해지기 쉬운 날이야. 함께 돈을 쓰는 사람을 의심하면 금액보다 감정 때문에 다툴 가능성도 있어. 추측으로 상대를 몰아세우기보다 실제로 얼마가 필요한지 차분히 물어봐. | Fear of losing money could make you hesitate over necessary spending. Even without a large immediate cost, worry about a future shortage may grow today. Suspicion of someone you share expenses with could start an argument driven more by feelings than amounts. Calmly ask how much is actually needed instead of confronting them on a guess. | お金を失うのが心配で、必要な出費もためらうかもしれません。今すぐ大金が出ていかなくても、将来足りなくなる不安を感じやすい日です。一緒にお金を使う人を疑うと、金額より感情からもめることもありそうです。推測で相手を責めるより、実際にいくら必要か、落ち着いて尋ねましょう。 |
 
 ## pentacles.13 · 정방향
 
 내부 ID: `money.pentacles.13.upright`
 
-카드 의미: 현실적인 돌봄과 자원의 알맞은 관리. 원전의 안락·관대함을 생활에 쓰이는 편의와 자기 여유로 해석.
+카드 의미: 풍요, 너그러움, 안전과 자유
 
-분야 해석: 살림에보태는돈
+분야 해석: 생활에 쓸 돈이 넉넉해 마음이 편해질 수 있어.
 
-관찰: 생활에 필요한 돈이나 물건을 보태주겠다는 제안을 받을 수 있어. / 함께 쓴 비용을 누군가 먼저 챙겨주거나 실용적인 선물이 들어올 수 있는 날이야. / 내가 해온 돌봄이나 수고를 기억해주는 보상이라 더 반갑게 느껴질 거야.
+관찰: 풍요 / 너그러움 / 안전과 자유
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 생활에 필요한 돈이나 물건을 보태주겠다는 제안을 받을 수 있어. 함께 쓴 비용을 누군가 먼저 챙겨주거나 실용적인 선물이 들어올 수 있는 날이야. 받은 도움은 어디에 잘 썼는지 알려줘. 내가 해온 돌봄이나 수고를 기억해주는 보상이라 더 반갑게 느껴질 거야. 이미 있는 것을 잘 쓰는 솜씨 덕분에 새로 마련할 돈도 줄어들 수 있어. | Someone may offer money or an item that helps with everyday living. They could cover a shared cost first, or a practical gift might arrive. Tell them how their help was useful. Being remembered for care or effort you've given should make it especially welcome. Your knack for using what's already there could also reduce a new expense. | 生活に必要なお金やものを、出そうという提案がありそうです。共用の費用を先に払ってくれたり、実用的な贈り物が届いたりするでしょう。受けた助けが、何に役立ったか伝えてください。続けた世話や手間を覚えてくれたお返しで、さらにうれしく感じられそうです。持っているものを上手に使い、新たに用意する費用も減るでしょう。 |
+| 분야 풀이 | 생활에 쓸 돈이 넉넉해 마음이 편해질 수 있어. 필요한 물건을 마련하거나 가까운 사람을 챙기는 데도 비용 부담이 크지 않을 수 있는 날이야. 그동안 알뜰하게 꾸려온 살림이 있다면 남겨둔 돈의 도움을 받을 수 있어. 편안하게 쓸 수 있는 범위에서 자신에게도 작은 선물을 해줘. | Having plenty of money for everyday spending could put you at ease. Necessary items or care for someone close may not cost more than you can manage today. Careful household budgeting could let you draw on money you've kept aside. Give yourself a small treat too, within what you can comfortably spend. | 生活に使うお金が十分にあり、安心できるかもしれません。必要な物をそろえたり、身近な人を気遣ったりしても、費用は大きな負担になりにくい日です。これまで節約しながら暮らしてきたなら、残したお金が助けになりそうです。無理なく使える範囲で、自分にも小さな贈り物をしてみましょう。 |
 
 ## pentacles.14 · 역방향
 
 내부 ID: `money.pentacles.14.reversed`
 
-카드 의미: 물질적 기준에 과하게 매이거나 지키려는 마음이 경직됨. 원전의 부패·악덕은 실제 인물 판정 없이 소유와 통제의 과잉으로 응용.
+카드 의미: 약점과 잘못된 욕심, 왜곡과 부패, 위험
 
-분야 해석: 금액을둘러싼고집
+분야 해석: 더 많은 돈을 욕심내다 가진 돈까지 잃을 수 있어.
 
-관찰: 돈을 내는 사람과 일하는 사람의 기대가 달라 대화가 길어질 수 있어. / 조건을 조금도 바꾸지 않으려는 말에 거래를 망설이게 되는 날이야. / 실제 시간과 비용을 함께 설명하면 왜 그 금액인지 이해받을 수 있어.
+관찰: 약점과 잘못된 욕심 / 왜곡과 부패 / 위험
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돈을 내는 사람과 일하는 사람의 기대가 달라 대화가 길어질 수 있어. 조건을 조금도 바꾸지 않으려는 말에 거래를 망설이게 되는 날이야. 실제 시간과 비용을 함께 설명하면 왜 그 금액인지 이해받을 수 있어. 같이 맞추기 어려운 제안은 거절해도 다른 이야기를 나눌 여유가 남을 거야. 분위기에 밀려 정당한 수고비를 바로 낮추지는 마. | Different expectations between the person paying and the person working could lengthen a discussion. An insistence on unchanged terms may make you hesitate about the deal. Explaining the actual time and costs together could help them understand the price. Declining an offer you can't agree on should still leave room for other conversations. Don't immediately lower fair pay for your effort under pressure. | 払う人と働く人の期待が違い、話が長くなりそうです。条件を少しも変えないという言葉に、取引を迷うかもしれません。実際の時間と費用を一緒に説明すれば、金額の理由を理解してもらえるでしょう。合わせにくい提案は断っても、別の話をする余裕は残りそうです。場の空気に押され、正当な報酬をすぐ下げないでください。 |
+| 분야 풀이 | 더 많은 돈을 욕심내다 가진 돈까지 잃을 수 있어. 이미 이익이 난 거래라도 무리하게 금액을 늘리면 부담이 커질 가능성이 있어. 돈을 많이 가진 사람의 말이라고 그대로 믿었다가 불리한 조건을 받아들일 수도 있어. 생활에 필요한 돈은 남겨두고 감당할 수 없는 거래에는 선을 그어줘. | Wanting more money could cost you what you already have. Even a profitable deal may become burdensome if you stretch to increase the amount. Taking a wealthy person's words on trust could also lead you to accept unfavourable terms. Set aside money for living costs and refuse transactions you can't afford. | もっと欲しいと求めるうちに、手持ちのお金まで失うかもしれません。すでに利益の出た取引でも、無理に金額を増やすと、負担が大きくなる可能性があります。お金を多く持つ人の言葉だからと信じ、不利な条件を受け入れることもありそうです。生活に必要なお金は残し、負担しきれない取引は、はっきり断りましょう。 |
 
 ## pentacles.14 · 정방향
 
 내부 ID: `money.pentacles.14.upright`
 
-카드 의미: 축적한 경험을 현실적으로 운용하는 안정. 원전의 사업적 기량을 부자나 남성의 출현 아닌 지속 비용을 아는 판단으로 사용.
+카드 의미: 현실화하는 지성, 실용적·수학적 능력, 능력이 쓰이는 분야에서의 성공
 
-분야 해석: 안정된거래
+분야 해석: 재물운이 좋아 실력에 걸맞은 돈을 받을 수 있어.
 
-관찰: 오래 이어온 거래나 맡아온 일에서 믿을 만한 보수 이야기를 들을 수 있어. / 전에 한 일을 좋게 본 사람이 다시 부탁하거나 다른 사람에게 소개할 거야. / 갑작스러운 큰돈보다 실제로 받을 금액이 분명해 안심하기 좋은 날이야.
+관찰: 현실화하는 지성 / 실용적·수학적 능력 / 능력이 쓰이는 분야에서의 성공
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 이어온 거래나 맡아온 일에서 믿을 만한 보수 이야기를 들을 수 있어. 전에 한 일을 좋게 본 사람이 다시 부탁하거나 다른 사람에게 소개할 거야. 갑작스러운 큰돈보다 실제로 받을 금액이 분명해 안심하기 좋은 날이야. 합의한 금액과 지급 방법은 기록으로 남겨줘. 경험을 바탕으로 적당한 대가를 말한 것이 좋은 거래로 이어질 수 있어. | You could hear of reliable pay through an established client or a job you have handled for some time. Someone pleased with your earlier work may ask again or introduce you to another person. Knowing the amount you can actually receive may be more reassuring today than a sudden large sum. Keep a record of the agreed amount and payment method. Quoting a fair fee based on experience could lead to a good agreement. | 長く続く取引や任されてきた仕事で、確かな報酬の話がありそうです。以前の仕事を評価した人が、また頼んだり誰かに紹介したりするでしょう。突然の大金より、実際にもらえる金額がはっきりして安心できそうです。合意した金額と支払方法は、記録に残してください。経験をもとに適正な報酬を伝えたことが、よい取引につながるでしょう。 |
+| 분야 풀이 | 재물운이 좋아 실력에 걸맞은 돈을 받을 수 있어. 오래 해온 일이나 잘 아는 거래에서 이익이 남을 가능성이 있어. 들어온 돈에 여유가 생기면 새로 필요한 지출도 무리 없이 감당할 수 있어. 자신이 잘 모르는 돈벌이까지 넓히기보다 믿을 만한 일을 이어가줘. | Good financial luck could bring pay that matches your ability. Work you've done for a long time or a deal you know well may leave a profit. Extra money from a payment could also cover new necessary expenses without strain. Continue with reliable work instead of expanding into ways to earn that you don't understand. | 金運がよく、実力に見合うお金を受け取れそうです。長く続けた仕事や、よく知っている取引で、利益が残る可能性があります。入金によって余裕が生まれれば、新しく必要になった支払いも、無理なくまかなえるでしょう。よく知らない方法にまで手を広げるより、信頼できる仕事を続けてください。 |
 
 ## swords.01 · 역방향
 
 내부 ID: `money.swords.01.reversed`
 
-카드 의미: 정보가 뒤섞이거나 확신에 비해 근거가 부족함. 원전의 과도한 힘을 성급한 판단·말의 날카로움으로 응용.
+카드 의미: 혼란, 의사소통 오해, 성급한 확신
 
-분야 해석: 표시금액과총액의차이
+분야 해석: 금액을 잘못 이해해 예상보다 돈이 많이 나갈 수 있어.
 
-관찰: 처음 본 가격과 실제 결제 금액이 달라 다시 살펴볼 수 있어. / 따로 붙는 비용이나 빠진 할인이 있어 예상보다 더 내야 하는 경우가 생길 거야. / 말로 안내받은 금액과 문서에 적힌 내역이 다를 수도 있는 날이야.
+관찰: 혼란 / 의사소통 오해 / 성급한 확신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 처음 본 가격과 실제 결제 금액이 달라 다시 살펴볼 수 있어. 따로 붙는 비용이나 빠진 할인이 있어 예상보다 더 내야 하는 경우가 생길 거야. 말로 안내받은 금액과 문서에 적힌 내역이 다를 수도 있는 날이야. 결제나 송금 전에는 마지막에 표시된 총액을 읽어봐. 차이를 물어볼 시간이 있어 확인하지 않고 지나갈 때보다 손해를 줄이기 쉬울 거야. | The price you first noticed may differ from the amount at checkout. Separate charges or a missing discount could mean paying more than expected. A verbally quoted figure might also differ from the written details. Read the final total before paying or transferring money. There should be time to ask about a difference and avoid paying more than you need to. | 最初に見た価格と実際の支払額が違い、見直すことがありそうです。別料金や適用されていない割引があって、予想より多く払う場合もあるでしょう。口頭の金額と書かれた明細が違うこともあるかもしれません。支払いや送金の前に、最後に表示された総額を読んでみてください。差を聞く時間があり、確認せず通り過ぎるより損を減らせそうです。 |
+| 분야 풀이 | 금액을 잘못 이해해 예상보다 돈이 많이 나갈 수 있어. 같은 가격인 줄 알았던 물건도 따로 붙는 비용이 있을 수 있는 날이야. 말로 들은 금액과 실제 결제할 금액이 다르지 않은지 조심해야 해. 모르는 비용은 넘어가지 말고 돈을 내기 전에 물어봐. | Misunderstanding an amount could make you spend more than expected. Even an item you thought cost the same as another may carry separate charges today. Watch for a difference between the price you're told and the amount you'll actually pay. Ask about unfamiliar costs before paying instead of passing over them. | 金額を誤解し、予想より出費が増えるかもしれません。同じ値段だと思った物にも、別の費用が付く可能性があります。聞いた金額と実際に払う額が違わないか、注意が必要な日です。わからない費用をそのままにせず、支払う前に尋ねましょう。 |
 
 ## swords.01 · 정방향
 
 내부 ID: `money.swords.01.upright`
 
-카드 의미: 혼란을 가르는 명료한 생각과 진실의 확인. 원전의 힘·승리를 근거와 구분이 생기는 지적 돌파로 현대화.
+카드 의미: 명료함, 진실 확인, 지적 돌파, 결단
 
-분야 해석: 분명해지는금액
+분야 해석: 거래에서 유리한 조건을 골라 이득을 볼 수 있는 날이야.
 
-관찰: 돌려받을 돈이나 내야 할 금액이 정확하게 확인될 수 있는 날이야. / 여러 내역이 섞여 헷갈렸던 비용도 하나씩 보면서 차이가 난 이유를 알게 될 거야. / 잘못 적힌 수량이나 금액을 발견해 불필요한 지출을 막을 수도 있어.
+관찰: 명료함 / 진실 확인 / 지적 돌파
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돌려받을 돈이나 내야 할 금액이 정확하게 확인될 수 있는 날이야. 여러 내역이 섞여 헷갈렸던 비용도 하나씩 보면서 차이가 난 이유를 알게 될 거야. 잘못 적힌 수량이나 금액을 발견해 불필요한 지출을 막을 수도 있어. 금액이 이상하면 넘어가지 말고 해당 항목을 한 번 물어봐. 명확한 답을 받은 뒤에는 누구에게 얼마를 주고받을지 마음 편히 정할 수 있어. | You could get precise confirmation of money due to you or an amount you owe. Looking through mixed expenses one at a time may reveal why the figures differ. You might catch an incorrect quantity or amount and prevent an unnecessary expense. Ask about the specific entry if a figure looks wrong. A clear answer could let you settle who pays whom and how much with greater ease. | 返してもらうお金や払う金額を、正確に確認できそうです。いくつもの明細が混じって分かりにくかった費用も、一つずつ見れば差の理由が分かるでしょう。誤って書かれた数量や金額を見つけ、余分な出費を防ぐこともありそうです。金額が変だと感じたら流さず、その項目を一度尋ねてみてください。明確な答えが出れば、誰といくらやり取りするか安心して決められそうです。 |
+| 분야 풀이 | 거래에서 유리한 조건을 골라 이득을 볼 수 있는 날이야. 복잡했던 금액이 분명해지면 쓸데없이 더 낼 돈을 줄일 수 있어. 돈을 두고 결정을 미뤘다면 어느 쪽이 실속 있는지도 판단하기 좋아. 최종 금액까지 비교하면 자신 있게 결정할 수 있어. | Choosing favourable terms could bring a gain from a transaction today. Once a complicated amount becomes clear, you may cut unnecessary extra payments. If you've delayed a money decision, it's a good day to judge which option offers real value. Compare final totals so you can decide confidently. | 取引で有利な条件を選び、利益を得られそうです。複雑だった金額がはっきりすると、余計に払うお金を減らせるでしょう。お金について決断を延ばしていたなら、どちらが得かを判断しやすい日です。最終的な金額まで比べると、自信を持って決められそうです。 |
 
 ## swords.02 · 역방향
 
 내부 ID: `money.swords.02.reversed`
 
-카드 의미: 피하던 선택이 드러나거나 정보가 넘쳐 균형이 깨짐. 원전의 불일치를 결정 압박과 선택 재정리로 응용.
+카드 의미: 정보와 의견 과부하, 미룬 선택 직면, 판단 곤란
 
-분야 해석: 선택을요구받는지출
+분야 해석: 돈을 어떻게 쓸지 망설이다 불리한 결정을 서두를 수 있어.
 
-관찰: 보류했던 구매나 정산에 오늘 답해달라는 말을 들을 수 있어. / 가격이나 비용 설명이 한꺼번에 들어와 급히 고르면 헷갈릴 수 있는 날이야. / 자세히 보면 꼭 지금 내야 하는 돈과 뒤로 미뤄도 되는 돈이 나뉠 거야.
+관찰: 정보와 의견 과부하 / 미룬 선택 직면 / 판단 곤란
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 보류했던 구매나 정산에 오늘 답해달라는 말을 들을 수 있어. 가격이나 비용 설명이 한꺼번에 들어와 급히 고르면 헷갈릴 수 있는 날이야. 자세히 보면 꼭 지금 내야 하는 돈과 뒤로 미뤄도 되는 돈이 나뉠 거야. 기한이 있는 금액부터 확인하고 나머지 결정은 잠깐 남겨둬. 모든 돈 문제를 한꺼번에 정리하지 않아도 급한 부담은 줄일 수 있어. | You may be asked to answer today about a purchase or payment you've put off. Several explanations of prices or charges could arrive at once and make a rushed choice confusing. A closer look should distinguish money due now from payments that can wait. Check the amounts with a deadline first and leave the other decisions for a moment. You can ease the immediate pressure without settling every money matter at once. | 保留にしていた買い物や精算について、今日返事がほしいと言われるかもしれません。値段や費用の説明が一度に届くため、急いで選ぶと混乱しやすい日です。よく見れば、今払う必要があるお金と後でよいお金が分かれてくるでしょう。期限のある金額から確かめて、ほかの判断は少し待ってみてください。お金の話をすべて一度に片づけなくても、差し迫った負担は減らせそうです。 |
+| 분야 풀이 | 돈을 어떻게 쓸지 망설이다 불리한 결정을 서두를 수 있어. 서로 다른 조언이 쏟아져 실제 받을 돈보다 기대나 걱정이 커지기 쉬운 날이야. 더 고민하기 싫어서 아무 조건이나 받아들이면 손해가 남을 수 있어. 남의 추천보다 자신이 낼 수 있는 금액을 기준으로 골라줘. | Hesitation over spending could end in a rushed, unfavourable choice. Conflicting advice may make hopes or worries loom larger than the payment you'd actually receive today. Accepting any terms just to stop thinking about it could leave a loss. Choose according to what you can pay rather than another person's recommendation. | お金の使い方を迷ううちに、不利な決断を急いでしまうかもしれません。違う助言が次々に届き、実際にいくら入るかを考えるより、期待や心配が先に立ちやすい日です。もう考えたくないと、どんな条件でも受け入れると、損が残りそうです。人の推薦より、無理なく払える額を基準に選んでください。 |
 
 ## swords.02 · 정방향
 
 내부 ID: `money.swords.02.upright`
 
-카드 의미: 팽팽한 선택 사이의 보류와 감정적 방어. 원전의 균형을 임시적인 정지로 읽고 침묵 뒤의 결정을 살핌.
+카드 의미: 균형을 유지하려는 교착, 어려운 선택, 판단에 필요한 정보 부족
 
-분야 해석: 보류되는금액협의
+분야 해석: 돈을 쓰지도 받지도 못한 채 결정이 늦어질 수 있어.
 
-관찰: 구매나 돈을 나눠 내는 일에서 결정을 잠깐 미루게 될 수 있어. / 두 가격이 비슷해 보여도 포함된 내용이 달라 쉽게 고르기 어려울 거야. / 함께 낼 금액을 상대도 생각 중이라 바로 답을 듣지 못할 수 있는 날이야.
+관찰: 균형을 유지하려는 교착 / 어려운 선택 / 판단에 필요한 정보 부족
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 구매나 돈을 나눠 내는 일에서 결정을 잠깐 미루게 될 수 있어. 두 가격이 비슷해 보여도 포함된 내용이 달라 쉽게 고르기 어려울 거야. 함께 낼 금액을 상대도 생각 중이라 바로 답을 듣지 못할 수 있는 날이야. 지금 부족한 정보가 무엇인지 하나만 정해 확인해봐. 잠시 보류한 덕분에 필요하지 않은 비용까지 떠안는 일은 피할 수 있어. | A purchase or shared expense may need to wait while you decide. Two similar prices could cover different things, making the choice less straightforward than it looks. The other person may also be considering their contribution and unable to answer immediately. Identify and check one missing piece of information. A short delay could spare you a cost you didn't need to take on. | 買い物や費用を分ける話で、決定を少し待つことになりそうです。似た値段でも含まれるものが違い、簡単には選べないかもしれません。相手も自分が出す金額を考えていて、すぐに返事をもらえないこともあるでしょう。足りない情報を一つに絞って確かめてみてください。少し待ったおかげで、不要な費用まで引き受けずに済みそうです。 |
+| 분야 풀이 | 돈을 쓰지도 받지도 못한 채 결정이 늦어질 수 있어. 두 가지 거래가 비슷해 보여 하나를 고르기 어려운 날이야. 가격만 같을 뿐 실제 부담은 다를 수 있으니 급히 결론을 낼 필요는 없어. 꼭 내야 할 돈부터 확인하고 나머지 지출은 조건이 분명해진 뒤 정해줘. | A delayed decision could leave you unable to spend or receive money. Two similar-looking deals may be difficult to choose between today. Equal prices can still mean different real costs, so there's no need to rush. Check essential payments first and decide other spending once the terms are clear. | お金を使うことも受け取ることもできないまま、決定が遅れるかもしれません。二つの取引が似て見え、どちらかを選びにくい日です。同じなのは値段だけで、実際の負担は違うかもしれないため、急いで結論を出す必要はありません。必ず払うお金を先に確かめ、ほかの出費は条件がはっきりしてから決めましょう。 |
 
 ## swords.03 · 역방향
 
 내부 ID: `money.swords.03.reversed`
 
-카드 의미: 아픈 감정을 풀어내거나 아직 남은 실망을 다룸. 원전의 혼란과 현대의 회복 중 표현을 통해 부담을 덜어내는 뜻을 선택.
+카드 의미: 서운함 수용, 용서의 여지, 감정의 부담을 내려놓음
 
-분야 해석: 아쉬운거래의후속처리
+분야 해석: 돈 때문에 생긴 다툼이 누그러지고 손해를 정리할 수 있어.
 
-관찰: 돈 때문에 불편했던 일에서 설명이나 조정안을 들을 수 있어. / 잘못 전달된 금액이 바로잡히거나 일부라도 돌려받을 방법이 생길 거야. / 처음에는 전부 잃었다고 느꼈던 지출도 다시 계산하면 남은 몫이 보일 수 있어.
+관찰: 서운함 수용 / 용서의 여지 / 감정의 부담을 내려놓음
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돈 때문에 불편했던 일에서 설명이나 조정안을 들을 수 있어. 잘못 전달된 금액이 바로잡히거나 일부라도 돌려받을 방법이 생길 거야. 처음에는 전부 잃었다고 느꼈던 지출도 다시 계산하면 남은 몫이 보일 수 있어. 합의한 내용은 금액과 날짜를 짧게 적어 확인해둬. 큰 이득은 아니어도 더 손대지 않아도 될 부분이 정해져 부담을 덜 수 있어. | An uncomfortable money matter may bring an explanation or a revised offer. An incorrectly quoted amount could be corrected, or a way to recover part of a payment may appear. Recalculating an expense that felt entirely lost could reveal something still available to you. Write down and confirm the agreed amount and date. It may not be a big gain, but knowing which part needs no further attention could ease the burden. | お金のことで気まずかった話に、説明や調整案が届くかもしれません。間違って伝わった金額が訂正されたり、一部を返してもらう方法が見つかったりしそうです。すべて失ったように感じた支出も、計算し直すと残っている分が分かるでしょう。合意した金額と日付を短く書き、確認しておいてください。大きな得ではなくても、もう対応しなくてよい部分が決まり、負担が軽くなりそうです。 |
+| 분야 풀이 | 돈 때문에 생긴 다툼이 누그러지고 손해를 정리할 수 있어. 서로 한발씩 양보하면 그동안 받지 못했던 돈의 일부라도 받을 가능성이 있어. 기대한 만큼 전부 돌아오지 않아도 오래 끌던 부담은 덜 수 있는 날이야. 합의가 된다면 실제로 주고받을 날짜까지 정해줘. | An argument over money could ease and let you settle a loss. If each side gives a little, you may receive at least part of an unpaid amount. Even without recovering everything you hoped for, a long-running burden could become lighter today. Once you agree, set the actual payment date too. | お金のもめ事が和らぎ、損失への対応も進みそうです。互いに少しずつ譲れば、これまで受け取れなかった額の、一部でも入る可能性があります。望んだ分がすべて戻らなくても、長く続いた負担を軽くしやすい日です。合意できたら、実際にやり取りする日まで決めましょう。 |
 
 ## swords.03 · 정방향
 
 내부 ID: `money.swords.03.upright`
 
-카드 의미: 아픈 사실이나 기대의 어긋남이 명확해짐. 원전의 분리·지연을 실제 상실 예언 없이 불편한 인식과 솔직함으로 사용.
+카드 의미: 아픈 진실, 기대와 현실의 차이, 실망과 분리
 
-분야 해석: 생각보다아쉬운정산
+분야 해석: 기대보다 적은 돈을 받거나 쓴 돈이 아깝게 느껴질 수 있어.
 
-관찰: 기대했던 수고비나 돌려받을 금액이 생각보다 적을 수 있어. / 처음 들은 말과 실제 계산이 달라 잠깐 실망하게 될 거야. / 지출한 내역을 확인하다 필요 없던 비용을 뒤늦게 발견할 수도 있어.
+관찰: 아픈 진실 / 기대와 현실의 차이 / 실망과 분리
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 수고비나 돌려받을 금액이 생각보다 적을 수 있어. 처음 들은 말과 실제 계산이 달라 잠깐 실망하게 될 거야. 지출한 내역을 확인하다 필요 없던 비용을 뒤늦게 발견할 수도 있어. 속상하더라도 금액이 달라진 이유부터 차분하게 물어봐. 당장 원하는 답을 받지 못해도 어디까지 확인하고 요청할지 분명해질 수 있어. | A fee or repayment you expected may be smaller than you thought. The actual calculation could differ from what you first heard and leave you disappointed. Reviewing your expenses may also uncover a cost you didn't need to pay. Even if you're upset, calmly ask why the amount changed first. You may not get the answer you want immediately, but you could see more clearly what to check and request. | 期待していた謝礼や返してもらうお金が、思ったより少ないかもしれません。最初に聞いた話と実際の計算が違い、少しがっかりしそうです。支出を見直す途中で、不要だった費用に気づくこともあるでしょう。残念でも、まず金額が変わった理由を落ち着いて尋ねてみてください。すぐに望む答えをもらえなくても、何を確かめ、どこまで頼めるかがはっきりしそうです。 |
+| 분야 풀이 | 기대보다 적은 돈을 받거나 쓴 돈이 아깝게 느껴질 수 있어. 상대와 금액을 다르게 생각했다면 서운함까지 생기기 쉬운 날이야. 돈을 돌려받으려는 이야기도 감정이 앞서면 더 어려워질 수 있어. 얼마를 약속했고 얼마를 받았는지부터 차분히 맞춰보는 게 좋아. | You may receive less than expected or regret money spent. Different ideas about an amount could also cause hurt feelings today. If you're upset while asking for money back, a resolution may be harder to reach. Calmly compare what was promised with what was actually paid first. | 期待より受け取る額が少なかったり、使ったお金を惜しく感じたりしそうです。相手と想定した金額が違っていたなら、不満も生まれやすい日です。返金を求める話も、感情が先に立つと、さらに難しくなるかもしれません。約束した額と受け取った額から、落ち着いて確かめ合いましょう。 |
 
 ## swords.04 · 역방향
 
 내부 ID: `money.swords.04.reversed`
 
-카드 의미: 멈춘 뒤 다시 움직이거나 충분히 쉬지 못한 조급함. 원전의 신중한 운영과 현대의 재활동을 작은 재개로 채택.
+카드 의미: 조심스러운 재개, 휴식 후 복귀, 조급함과 남은 피로
 
-분야 해석: 보류된정산재개
+분야 해석: 막혔던 돈 거래가 조금씩 다시 진행될 수 있어.
 
-관찰: 한동안 멈춰 있던 정산이나 환불 이야기가 다시 진행될 수 있어. / 답이 없던 곳에서 필요한 확인을 요청하거나 받을 날짜를 알려올 거야. / 미뤘던 구매에서도 이제 선택할 수 있는 조건이 분명해질 수 있어.
+관찰: 조심스러운 재개 / 휴식 후 복귀 / 조급함과 남은 피로
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 멈춰 있던 정산이나 환불 이야기가 다시 진행될 수 있어. 답이 없던 곳에서 필요한 확인을 요청하거나 받을 날짜를 알려올 거야. 미뤘던 구매에서도 이제 선택할 수 있는 조건이 분명해질 수 있어. 다시 연락이 왔다면 필요한 내역만 빠짐없이 보내줘. 멈춰 있다고 느꼈던 돈 문제 하나가 다음 단계로 넘어갈 수 있는 날이야. | A stalled repayment or refund may begin moving again. Someone who hadn't replied could ask for a necessary check or tell you when payment is expected. The details needed to choose a postponed purchase may also become clearer. If they get back in touch, send all the required details without adding unnecessary ones. One money matter that seemed stuck could move to the next stage. | しばらく止まっていた精算や返金の話が、また進みそうです。返事のなかった相手から確認を求められたり、受け取れる日を知らされたりするでしょう。延期していた買い物も、選ぶための条件がはっきりするかもしれません。再び連絡が来たら、必要な情報を漏れなく送ってください。止まっているように感じたお金の話が、一つ先へ進みそうです。 |
+| 분야 풀이 | 막혔던 돈 거래가 조금씩 다시 진행될 수 있어. 당장 큰돈이 들어오지는 않아도 수입이 끊겼던 일에서 작은 보수를 받을 가능성이 있어. 아직 형편이 넉넉하지는 않아 들어온 돈을 급하게 쓰면 다시 빠듯해질 수 있어. 쉬었던 만큼 한꺼번에 벌겠다고 큰돈을 넣지는 말아줘. | A stalled transaction could gradually resume. Even without a large immediate payment, you may receive a small amount from work that stopped bringing income. Money is still limited, so spending quickly could make things tight again. Don't put in a large sum to earn all at once what you missed during the pause. | 止まっていたお金の取引が、少しずつ再開しそうです。すぐに大金は入らなくても、収入が途絶えた仕事で、小さな報酬を得る可能性があります。まだ余裕は多くないため、入ったお金を急いで使うと、再び苦しくなるかもしれません。休んだ分を一度に稼ごうと、大金を入れるのは控えましょう。 |
 
 ## swords.04 · 정방향
 
 내부 ID: `money.swords.04.upright`
 
-카드 의미: 잠시 물러나 생각과 활동을 쉬게 하는 정지. 원전의 은둔·휴식을 일상의 회복 시간으로 읽되 질환을 전제하지 않음.
+카드 의미: 휴식, 물러남, 고요, 회복을 위한 중단
 
-분야 해석: 잠잠한지출과정산대기
+분야 해석: 재물운에 큰 변화가 없어 돈을 더 벌기보다는 쉬어가기 좋은 날이야.
 
-관찰: 새로 쓸 돈이 많지 않아 지갑이 잠깐 쉬어가는 날이야. / 진행 중인 정산이나 환불도 바로 답이 오기보다 확인할 시간이 더 필요할 수 있어. / 미뤄둔 구매는 하루 지나 다시 봐도 크게 아쉽지 않을 거야.
+관찰: 휴식 / 물러남 / 고요
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 새로 쓸 돈이 많지 않아 지갑이 잠깐 쉬어가는 날이야. 진행 중인 정산이나 환불도 바로 답이 오기보다 확인할 시간이 더 필요할 수 있어. 미뤄둔 구매는 하루 지나 다시 봐도 크게 아쉽지 않을 거야. 급하지 않은 결제는 잠시 보류하고 이미 나간 내역만 확인해봐. 당장 움직이지 않은 덕분에 돈이 어디에 남아 있는지 차분히 알 수 있을 거야. | With few new expenses, your wallet may get a breather today. A pending repayment or refund could need more time to check before an answer arrives. A purchase you've postponed may still feel easy to leave another day. Hold off on nonurgent payments and review what's already gone out. Not rushing to act could let you calmly see where your money remains. | 新しく使うお金が少なく、財布も一息つけそうな日です。進めている精算や返金は、すぐ返事が来るより確認にもう少し時間がかかるかもしれません。先延ばしにした買い物も、一日待ってみればあまり惜しくないでしょう。急がない支払いは少し待ち、すでに使った分だけを確認してみてください。すぐ動かなかったおかげで、どこにお金が残っているか落ち着いて分かりそうです。 |
+| 분야 풀이 | 재물운에 큰 변화가 없어 돈을 더 벌기보다는 쉬어가기 좋은 날이야. 서둘러 거래한다고 이익이 늘지는 않을 수 있어. 돈 걱정에 같은 계산을 되풀이하다 충동적으로 결정하면 지출만 더 생기기 쉬워. 오늘 꼭 내야 하는 돈이 아니라면 잠시 결정을 미뤄도 괜찮아. | Your financial luck may change little, making this a better day to pause than pursue more earnings. Rushing a deal may not increase profit. Repeated calculations from worry followed by an impulsive decision could only add spending. It's fine to delay a decision if the money doesn't have to be paid today. | 金運に大きな変化はなく、さらに稼ぐより、一息つくのに向いた日です。取引を急いでも、利益は増えないかもしれません。お金を心配して同じ計算を繰り返し、勢いで決めると、出費だけが増えがちです。今日必ず払うお金でなければ、少し決断を待っても大丈夫です。 |
 
 ## swords.05 · 역방향
 
 내부 ID: `money.swords.05.reversed`
 
-카드 의미: 갈등의 후유증을 인정하고 승패 집착을 덜어내는 현대적 독해. 원전의 여전한 상실도 있어 즉시 화해를 보장하지 않음.
+카드 의미: 갈등 중단, 타협, 더 큰 손실을 막는 양보
 
-분야 해석: 불편한정산의마무리
+분야 해석: 금전 다툼에서 합의점을 찾아 더 큰 손해를 막을 수 있어.
 
-관찰: 돈 때문에 불편했던 이야기를 적당한 선에서 마칠 수 있어. / 계속 맞서던 금액에 중간 답이 나오거나 서로 더 다투지 않기로 할 수 있는 날이야. / 추가로 손해 볼 비용을 막고 이미 정해진 금액만 처리하는 방법이 보일 거야.
+관찰: 갈등 중단 / 타협 / 더 큰 손실을 막는 양보
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돈 때문에 불편했던 이야기를 적당한 선에서 마칠 수 있어. 계속 맞서던 금액에 중간 답이 나오거나 서로 더 다투지 않기로 할 수 있는 날이야. 추가로 손해 볼 비용을 막고 이미 정해진 금액만 처리하는 방법이 보일 거야. 합의한 내용은 서로 같은 뜻인지 한 번 확인해둬. 모든 불만이 풀리지는 않아도 더 신경 쓸 돈 문제가 줄어들 수 있어. | An uncomfortable money discussion may reach an acceptable stopping point. A disputed amount could find a compromise, or both sides may agree not to keep arguing. You might see a way to prevent further costs and deal only with the amount already settled. Check once that you both understand the agreement the same way. Not every complaint may disappear, but there could be fewer money issues left to worry about. | お金のことで気まずかった話を、納得できるところで終えられそうです。対立していた金額に折り合いがついたり、これ以上争わないことになったりするでしょう。余分な費用を防ぎ、すでに決まった金額だけを払う方法も見えてきそうです。合意した内容を互いに同じ意味で受け取っているか、一度確認してください。すべての不満は消えなくても、気にかけるお金の問題は減らせそうです。 |
+| 분야 풀이 | 금전 다툼에서 합의점을 찾아 더 큰 손해를 막을 수 있어. 원하는 금액을 모두 얻지는 못해도 계속 나가던 비용은 줄일 수 있는 날이야. 이미 오래 끈 돈 문제라면 타협할 조건을 이야기해볼 만해. 급히 끝내고 싶더라도 이해하지 못한 금액까지 떠안지는 말아줘. | An agreement in a financial dispute could prevent a larger loss. Even without receiving the whole amount you want, ongoing costs may fall today. If a money issue has dragged on, consider discussing terms you could compromise on. Even if you want a quick end, don't take on an amount you don't understand. | お金のもめ事で妥協点を見つけ、さらに大きな損を防げそうです。希望の額をすべて得られなくても、続いていた費用を減らしやすい日です。すでに長引いている問題なら、譲れる条件を話すのもよいでしょう。早く終えたくても、理解できない金額まで負担するのは控えてください。 |
 
 ## swords.05 · 정방향
 
 내부 ID: `money.swords.05.upright`
 
-카드 의미: 이겨도 남는 불편과 갈등의 비용. 원전의 손실·모욕을 다툼에서 무엇을 지키려는지 묻는 해석으로 응용.
+카드 의미: 상처를 남기는 승리, 자존심 다툼, 소모적 대립
 
-분야 해석: 돈문제의감정다툼
+분야 해석: 돈을 더 받으려다 거래가 틀어질 수 있는 날이야.
 
-관찰: 작은 금액 차이가 기분 문제로 번질 수 있는 날이야. / 누가 더 냈는지 이야기하다 서로의 태도까지 따지게 될 수 있어. / 한 번 더 할인받아도 불편한 말이 오가 거래가 개운하지 않을 거야.
+관찰: 상처를 남기는 승리 / 자존심 다툼 / 소모적 대립
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 금액 차이가 기분 문제로 번질 수 있는 날이야. 누가 더 냈는지 이야기하다 서로의 태도까지 따지게 될 수 있어. 한 번 더 할인받아도 불편한 말이 오가 거래가 개운하지 않을 거야. 금액을 협의할 때는 실제 내역만 이야기하고 다른 불만은 섞지 마. 필요한 돈 이야기에서 멈추면 작은 차이 때문에 관계까지 어색해질 일을 줄일 수 있어. | A small difference in money could become a matter of hurt feelings today. A discussion about who paid more may slide into criticism of each other's attitude. Even another discount might not make a transaction satisfying if unpleasant words are exchanged. Stick to the actual charges when discussing the amount and leave other complaints out. Keeping to the necessary money question could prevent a small difference from making a relationship awkward. | 小さな金額の違いが、気持ちの問題に広がりやすい日です。どちらが多く払ったかを話すうちに、互いの態度まで気になるかもしれません。もう少し値引きされても、不快な言葉が交わされると取引に満足できないでしょう。金額の相談では実際の明細だけを話し、ほかの不満を混ぜないでください。必要なお金の話だけで終えれば、小さな違いで関係まで気まずくなるのを避けられそうです。 |
+| 분야 풀이 | 돈을 더 받으려다 거래가 틀어질 수 있는 날이야. 당장의 이익만 따지면 상대와 관계가 나빠져 이후의 수입에도 불리할 수 있어. 남보다 조금 더 챙기는 데 신경 쓰다 실제 남는 돈은 적어질 수 있어. 금액 차이가 크지 않다면 다툼을 오래 끌기보다 서로 받아들일 선을 찾는 게 좋아. | Trying to get more money could spoil a deal today. Focusing only on immediate profit may damage the relationship and hurt future income too. Paying attention to getting slightly more than others could leave you with less in practice. If the difference is small, look for an amount both can accept instead of prolonging the argument. | もっとお金を受け取ろうとして、取引がこじれるかもしれません。目先の利益だけを考えると、相手との関係が悪くなり、今後の収入にも不利に働きそうです。人より少し多く得ることにこだわり、実際の利益は減ることもあるでしょう。金額の差が小さいなら、争いを長引かせるより、互いが受け入れられる額を探すのがよさそうです。 |
 
 ## swords.06 · 역방향
 
 내부 ID: `money.swords.06.reversed`
 
-카드 의미: 옮기려 해도 미해결된 일이 발목을 잡음. 원전의 드러남·고백과 현대의 변화 지연을 남은 문제의 확인으로 응용.
+카드 의미: 해결되지 않은 문제, 변화 저항, 익숙한 어려움으로 되돌아감
 
-분야 해석: 끝나지않은비용처리
+분야 해석: 해결하지 못한 돈 문제가 다시 부담으로 돌아올 수 있어.
 
-관찰: 그만 쓰려던 서비스나 옮길 물건에 마지막 비용이 남아 있을 수 있어. / 이전 비용이 아직 정산되지 않아 새로운 지출과 잠깐 겹칠 수 있는 날이야. / 받아야 할 서류나 연락이 빠져 처리 날짜가 늦어질 수도 있어.
+관찰: 해결되지 않은 문제 / 변화 저항 / 익숙한 어려움으로 되돌아감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 그만 쓰려던 서비스나 옮길 물건에 마지막 비용이 남아 있을 수 있어. 이전 비용이 아직 정산되지 않아 새로운 지출과 잠깐 겹칠 수 있는 날이야. 받아야 할 서류나 연락이 빠져 처리 날짜가 늦어질 수도 있어. 바꾸기 전에 남은 금액과 처리할 곳을 한 번 확인해봐. 작은 내역 하나를 마치고 나면 같은 비용을 다시 묻는 번거로움을 줄일 수 있어. | A final cost may remain for a service you're leaving or belongings you're moving. An unsettled earlier bill could briefly overlap with a new expense. Missing paperwork or contact details might also delay the processing date. Check the remaining amount and who handles it before making the change. Settling one small item could spare you another round of questions about the same cost. | 利用を終えるサービスや移す荷物に、最後の費用が残っているかもしれません。前の費用がまだ精算されず、新しい出費と少し重なりそうです。受け取る書類や連絡が足りず、手続きの日が遅れる場合もあるでしょう。変更前に、残る金額と手続きの窓口を一度確かめてください。小さな明細を一つ片づければ、同じ費用をまた尋ねる手間を減らせそうです。 |
+| 분야 풀이 | 해결하지 못한 돈 문제가 다시 부담으로 돌아올 수 있어. 새로운 방법을 찾더라도 갚을 돈이나 남아 있는 비용까지 없어지지는 않는 날이야. 예전에 그만두려던 지출을 다시 시작하면 돈이 빠듯해지기 쉬워. 새로 쓸 돈을 정하기 전에 아직 남은 부담부터 살펴줘. | An unresolved money problem could become a burden again. A new approach won't erase repayments or remaining costs today. Restarting an expense you once intended to stop may make money tight. Look at what's still owed before deciding on new spending. | 解決していないお金の問題が、また負担になりそうです。新しい方法を見つけても、返すお金や残った費用までなくなるわけではありません。以前やめようとしていた出費を再開すると、やりくりが苦しくなりがちな日です。新たに使うお金を決める前に、まだ残っている負担を見てください。 |
 
 ## swords.06 · 정방향
 
 내부 ID: `money.swords.06.upright`
 
-카드 의미: 불편한 곳에서 더 차분한 방식으로 옮겨감. 원전의 이동을 실제 여행 확정 없이 부담을 줄이는 전환으로 응용.
+카드 의미: 부담에서 벗어나는 이동, 차분한 전환, 도움을 받음
 
-분야 해석: 비용부담을줄이는변경
+분야 해석: 돈 때문에 힘들었던 상황에서 조금 벗어날 수 있어.
 
-관찰: 돈이 많이 들던 방법 대신 부담이 적은 다른 방법을 찾을 수 있어. / 이동비나 보관 비용처럼 계속 나가던 돈을 줄일 제안을 들을 거야. / 도움을 받아 물건을 옮기거나 정리하면서 혼자 들일 비용을 덜 수 있는 날이야.
+관찰: 부담에서 벗어나는 이동 / 차분한 전환 / 도움을 받음
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 돈이 많이 들던 방법 대신 부담이 적은 다른 방법을 찾을 수 있어. 이동비나 보관 비용처럼 계속 나가던 돈을 줄일 제안을 들을 거야. 도움을 받아 물건을 옮기거나 정리하면서 혼자 들일 비용을 덜 수 있는 날이야. 바꾸기 전에는 한 번 더 드는 비용이 있는지만 확인해봐. 작은 정리가 끝나면 앞으로 매번 신경 쓸 지출이 줄어들 수 있어. | You may find a less costly alternative to something that's been expensive. A suggestion could help reduce regular costs such as travel or storage. Help moving or sorting belongings may also spare you an expense you would have faced alone. Before changing arrangements, check whether there's a one-off cost. Once that small task is settled, there could be fewer recurring expenses to think about. | 費用のかかっていた方法に代わる、負担の少ない方法が見つかりそうです。交通費や保管料など、続いていた出費を減らせる提案を聞くでしょう。荷物の移動や整理を手伝ってもらい、一人で頼む費用を抑えられる場合もありそうです。変更する前に、一度だけかかる追加費用がないか確かめてください。小さな片づけが終われば、毎回気にする出費も減らせそうです。 |
+| 분야 풀이 | 돈 때문에 힘들었던 상황에서 조금 벗어날 수 있어. 부담이 적은 방법으로 바꾸거나 도움을 받아 필요한 돈을 마련할 수 있는 날이야. 예전보다 나가는 돈이 줄면 생활에도 여유가 생길 수 있어. 이제 편해졌다고 이전의 큰 씀씀이로 바로 돌아가지만 말아줘. | You could gain a little relief from a difficult money situation. A less costly approach or someone's help may let you find what you need today. Lower outgoings than before could leave more room in daily finances. Just don't return immediately to old levels of spending because things feel easier now. | お金で苦しかった状況を、少し抜け出せそうです。負担の小さい方法へ変えたり、助けを受けたりして、必要な額を用意できるかもしれません。以前より出費が減れば、生活にも余裕が生まれそうです。楽になったからと、すぐに以前の大きな出費へ戻ることだけは控えましょう。 |
 
 ## swords.07 · 역방향
 
 내부 ID: `money.swords.07.reversed`
 
-카드 의미: 숨기거나 미뤘던 내용을 드러내고 방식을 바로잡는 선택. 원전의 조언·설명을 자기 합리화에서 벗어나는 뜻으로 응용.
+카드 의미: 솔직한 인정, 잘못 바로잡기, 조언 수용
 
-분야 해석: 잘못된내역의정정
+분야 해석: 숨겨져 있던 비용을 알아내 손해를 줄일 수 있어.
 
-관찰: 누락된 금액이나 잘못 계산한 내역이 드러나 정정할 수 있어. / 돌려받아야 할 돈을 알게 되거나 내가 덜 낸 부분을 뒤늦게 확인할 거야. / 막연히 불리하다고 느꼈던 거래도 설명을 듣고 나면 이유가 분명해질 수 있어.
+관찰: 솔직한 인정 / 잘못 바로잡기 / 조언 수용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 누락된 금액이나 잘못 계산한 내역이 드러나 정정할 수 있어. 돌려받아야 할 돈을 알게 되거나 내가 덜 낸 부분을 뒤늦게 확인할 거야. 막연히 불리하다고 느꼈던 거래도 설명을 듣고 나면 이유가 분명해질 수 있어. 확인한 차이는 영수증이나 기록을 함께 보여주며 알려줘. 모호했던 금액이 바로잡히면서 더는 같은 돈 문제로 연락할 일이 줄어들 수 있어. | A missing amount or calculation error may come to light and be corrected. You could discover money owed back to you or notice a part you underpaid. An explanation may also clarify a transaction that merely felt unfair before. Show the receipt or record when pointing out the difference you've found. Correcting the unclear amount could reduce further messages about the same money issue. | 抜けた金額や計算の間違いが見つかり、訂正できそうです。返してもらえるお金を知ったり、自分の払い足りなかった分に気づいたりするでしょう。何となく不利に感じた取引も、説明を聞けば理由がはっきりするかもしれません。分かった差額は、領収書や記録を見せながら伝えてください。曖昧だった金額が直り、同じお金の話で何度も連絡する必要が減りそうです。 |
+| 분야 풀이 | 숨겨져 있던 비용을 알아내 손해를 줄일 수 있어. 잘못 전달된 금액이나 누락된 돈이 있다면 바로잡기 좋은 날이야. 돈 문제를 솔직히 이야기하면 혼자 감당하던 부담에 도움을 받을 수도 있어. 실제 금액을 감추지 않는 것이 정리의 시작이 될 거야. | Discovering a hidden cost could reduce a loss. It's a good day to correct an amount passed on wrongly or money left out of a calculation. Speaking honestly about a money problem may also bring help with a burden you've carried alone. Revealing the actual amount can be the first step towards putting things right. | 隠れていた費用に気づき、損を減らせそうです。誤って伝わった金額や、計算に入っていないお金があれば、正しやすい日です。お金の問題を正直に話すと、一人で抱えていた問題に、周囲の助けを得られるかもしれません。実際の金額を隠さずに伝えることが、解決への最初の一歩になるでしょう。 |
 
 ## swords.07 · 정방향
 
 내부 ID: `money.swords.07.upright`
 
-카드 의미: 모든 것을 드러내지 않는 전략과 독자적 접근. 원전의 기획·불확실한 시도를 기만 단정 없이 생략과 정보 차이에 대한 경계로 사용.
+카드 의미: 전략, 우회, 신중한 정보 공개와 은폐의 구별
 
-분야 해석: 가격안내의빈틈
+분야 해석: 모르는 사이에 돈이 더 나가거나 거래에서 손해를 볼 수 있어.
 
-관찰: 처음 안내에서 빠진 비용이나 조건을 뒤늦게 발견할 수 있어. / 싼 줄 알았던 거래에 별도 비용이 붙거나 필요한 물건은 포함되지 않을 거야. / 남들이 잘 보지 않은 항목을 읽다가 오히려 아낄 수 있는 방법을 찾을 수도 있어.
+관찰: 전략 / 우회 / 신중한 정보 공개와 은폐의 구별
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 처음 안내에서 빠진 비용이나 조건을 뒤늦게 발견할 수 있어. 싼 줄 알았던 거래에 별도 비용이 붙거나 필요한 물건은 포함되지 않을 거야. 남들이 잘 보지 않은 항목을 읽다가 오히려 아낄 수 있는 방법을 찾을 수도 있어. 오늘은 표시된 가격 아래의 설명까지 한 번 확인해봐. 질문 한 번으로 내게 불리한 조건을 피하거나 다른 선택지를 알게 될 수 있어. | A cost or condition left out of the first explanation may appear later. A deal that seemed cheap could carry an extra charge or exclude something you need. Reading a detail others overlook might also reveal a way to save. Check the explanation beneath the displayed price today. One question could help you avoid an unfavorable term or learn about another option. | 最初の案内になかった費用や条件が、後から見つかるかもしれません。安いと思った取引に別料金がかかったり、必要なものが含まれていなかったりしそうです。人があまり読まない項目から、逆に節約できる方法が分かることもあるでしょう。今日は表示価格の下にある説明まで、一度確認してみてください。一つ質問するだけで、不利な条件を避けたり別の選択肢を知ったりできそうです。 |
+| 분야 풀이 | 모르는 사이에 돈이 더 나가거나 거래에서 손해를 볼 수 있어. 중요한 조건을 빼고 설명하는 상대라면 보이는 가격보다 부담이 커질 수 있는 날이야. 자신의 계산에서도 작은 비용을 여러 개 빼놓지 않도록 조심해야 해. 돈을 내기 전에 총액이 맞는지 직접 확인해줘. | You could spend more than you realise or lose money in a deal. If someone leaves out important terms, the real cost could exceed the visible price today. Take care not to omit several small charges from your own calculation either. Check the total yourself before paying. | 気づかないうちに出費が増えたり、取引で損をしたりするかもしれません。大切な条件を抜かして説明する相手なら、表示された価格より負担が大きくなりそうです。こちらの計算でも、複数の小さな費用を落とさないよう注意が必要です。支払う前に、合計額が正しいか直接確かめましょう。 |
 
 ## swords.08 · 역방향
 
 내부 ID: `money.swords.08.reversed`
 
-카드 의미: 제약을 다시 보고 스스로 선택할 몫을 찾는 현대적 해제 독해. 원전의 불안정과 다른 채택이며 불안의 심화라는 대안도 존재.
+카드 의미: 선택권 인식, 자율성, 두려움 속 작은 행동
 
-분야 해석: 예산을좁혔던부담해소
+분야 해석: 빠듯한 형편에서도 돈을 아낄 방법이 보일 수 있어.
 
-관찰: 꼭 내야 한다고 생각했던 비용에서 다른 방법을 찾을 수 있어. / 이미 낸 돈으로 이용할 수 있는 항목이 있거나 빌려 쓸 물건을 구하게 될 거야. / 당장 살 수 없다고 여겼던 것이 작은 금액 안에서도 해결될 수 있는 날이야.
+관찰: 선택권 인식 / 자율성 / 두려움 속 작은 행동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 꼭 내야 한다고 생각했던 비용에서 다른 방법을 찾을 수 있어. 이미 낸 돈으로 이용할 수 있는 항목이 있거나 빌려 쓸 물건을 구하게 될 거야. 당장 살 수 없다고 여겼던 것이 작은 금액 안에서도 해결될 수 있는 날이야. 가능한 방법을 알게 되면 실제 추가 비용만 한 번 확인해봐. 빠듯하게만 느꼈던 예산에 조금 여유가 생겨 필요한 돈을 남길 수 있어. | You may find an alternative to a cost you thought unavoidable. Something could already be covered by money you've paid, or an item may become available to borrow. A need that seemed unaffordable could be met for a small amount. Once you know the option, check its actual extra cost. A budget that felt tight could gain enough room to keep some money for essentials. | 必ず払うと思っていた費用に、別の方法が見つかりそうです。すでに払った分で使えるものがあったり、必要な品を借りられたりするでしょう。今は買えないと思ったものも、少ない金額で用意できるかもしれません。方法が分かったら、実際の追加費用だけ一度確かめてみてください。厳しく感じた予算に少し余裕ができ、必要なお金を残せそうです。 |
+| 분야 풀이 | 빠듯한 형편에서도 돈을 아낄 방법이 보일 수 있어. 바꿀 수 없다고 생각했던 비용을 조정하거나 다른 조건을 고를 수 있는 날이야. 수입이 크게 늘지 않아도 나갈 돈이 줄어 생활비에 조금 여유가 생길 수 있어. 작은 조정이 가능해졌다고 새 지출부터 늘리지는 말아줘. | Even in tight circumstances, you could see a way to save money. A cost you thought fixed may be adjusted or another set of terms could be available today. Reduced outgoings may leave a little more for living costs without a large income increase. Don't let one small adjustment lead straight to more spending. | やりくりが厳しくても、節約の方法が見つかりそうです。変えられないと思っていた費用を調整したり、別の条件を選んだりできるかもしれません。収入が大きく増えなくても、出費が減り、生活費に少し余裕が生まれそうです。少し調整できたからと、新しい出費を先に増やすのは控えましょう。 |
 
 ## swords.08 · 정방향
 
 내부 ID: `money.swords.08.upright`
 
-카드 의미: 제약이 크게 느껴져 선택권을 보기 어려움. 원전의 묶인 상태를 실제 장애와 추측을 구별하는 일상 판단으로 응용.
+카드 의미: 제약으로 느끼는 상황, 두려움에 가려진 선택, 일시적 구속
 
-분야 해석: 빠듯한예산과다른방법
+분야 해석: 꼭 나갈 돈이 많아 자유롭게 쓸 돈이 부족할 수 있어.
 
-관찰: 정해진 지출이 많아 사고 싶은 것을 바로 고르기 어려울 수 있어. / 쓸 수 있는 돈이 적다고 느껴져 필요한 물건까지 미루고 싶어질 거야. / 알아보면 빌리거나 이미 가진 것으로 대신할 수 있는 방법이 보일 수 있어.
+관찰: 제약으로 느끼는 상황 / 두려움에 가려진 선택 / 일시적 구속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정해진 지출이 많아 사고 싶은 것을 바로 고르기 어려울 수 있어. 쓸 수 있는 돈이 적다고 느껴져 필요한 물건까지 미루고 싶어질 거야. 알아보면 빌리거나 이미 가진 것으로 대신할 수 있는 방법이 보일 수 있어. 추가로 돈을 쓰기 전에 지금 가진 물건부터 확인해봐. 새 지출 없이 해결한 일이 하나 생기면 느꼈던 부담도 조금 줄어들 수 있어. | Several fixed expenses may make it hard to buy something you want straight away. Feeling short of money could make you postpone even a necessary item. Looking into it may reveal something you can borrow or replace with what you already own. Check your belongings before spending extra. Solving one need without a new expense could ease some of the pressure. | 決まった出費が多く、欲しいものをすぐには買えないかもしれません。使えるお金が少なく感じられ、必要なものまで後回しにしたくなりそうです。調べると、借りたり手持ちのもので代用したりする方法が見つかるでしょう。追加でお金を使う前に、今あるものを確かめてみてください。新しい出費なしで一つ解決すれば、感じていた負担も少し減りそうです。 |
+| 분야 풀이 | 꼭 나갈 돈이 많아 자유롭게 쓸 돈이 부족할 수 있어. 꼭 나가야 할 비용을 생각하면 아무것도 바꿀 수 없을 것 같은 날이야. 금액을 제대로 알아보기 전에 포기하면 줄일 수 있는 부담도 그대로 남을 수 있어. 조건을 바꿀 수 있는 비용이 있는지 한 가지라도 물어봐. | Many essential payments could leave little money to spend freely. Thinking about unavoidable costs may make it feel as though nothing can change today. Giving up before checking the amounts could mean missing a chance to lower what you pay. Ask about at least one expense whose terms might be changed. | 必ず払うお金が多く、自由に使える分が足りないかもしれません。必要な費用を考えると、何も変えられない気がしやすい日です。金額をよく調べる前に諦めると、減らせる負担までそのままになりそうです。条件を変えられる費用がないか、一つでも尋ねましょう。 |
 
 ## swords.09 · 역방향
 
 내부 ID: `money.swords.09.reversed`
 
-카드 의미: 걱정을 밖으로 꺼내거나 아직 남은 불안을 인정함. 원전의 의심과 현대의 부담 완화를 모두 고려해 솔직한 확인의 방향을 선택.
+카드 의미: 걱정을 털어놓음, 도움을 찾음, 감당할 문제를 구체화
 
-분야 해석: 돈걱정의실제확인
+분야 해석: 금전 걱정을 덜어줄 도움이나 설명을 얻을 수 있어.
 
-관찰: 계속 마음에 걸리던 비용을 확인하고 부담을 조금 덜 수 있어. / 중복해서 생각한 금액을 빼거나 이미 처리된 내역을 알게 될 거야. / 날짜를 조정할 수 있다는 답을 받아 당장 필요한 돈이 줄어들 수도 있어.
+관찰: 걱정을 털어놓음 / 도움을 찾음 / 감당할 문제를 구체화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 계속 마음에 걸리던 비용을 확인하고 부담을 조금 덜 수 있어. 중복해서 생각한 금액을 빼거나 이미 처리된 내역을 알게 될 거야. 날짜를 조정할 수 있다는 답을 받아 당장 필요한 돈이 줄어들 수도 있어. 확인된 지급일과 금액은 한 곳에 적어둬. 아직 쓸 돈이 남아 있어도 무엇부터 준비할지 분명해져 걱정이 덜 복잡해질 수 있어. | Checking a cost that keeps troubling you may ease some pressure. You could remove an amount counted twice or discover a payment already handled. An answer allowing a different date might also reduce what's needed immediately. Write confirmed payment dates and amounts in one place. Expenses may remain, but knowing what to prepare first could make the worry less tangled. | 気になり続けた費用を確かめ、負担を少し減らせそうです。二重に数えた金額を除いたり、すでに処理された支払いに気づいたりするでしょう。日付を変えられると分かり、すぐ必要なお金が減ることもありそうです。確かめた支払日と金額は、一か所に書いておいてください。出費は残っても、何から用意すればよいかが分かり、心配が整理されるでしょう。 |
+| 분야 풀이 | 금전 걱정을 덜어줄 도움이나 설명을 얻을 수 있어. 혼자 볼 때 막막했던 돈 문제도 이야기하고 나면 필요한 금액이 분명해질 수 있는 날이야. 모든 빚이나 비용이 사라지지는 않아도 무엇부터 갚고 낼지 정하기가 수월해져. 돈 때문에 어려운 점은 숨기지 말고 믿을 만한 사람에게 말해봐. | Help or an explanation could ease financial worries. Discussing a money problem you found overwhelming on your own may make the amount you need clearer today. Debts or costs won't all disappear, but deciding what to pay first could become easier. Tell someone trustworthy about the difficulty instead of hiding it. | お金の心配を軽くする助けや説明が得られそうです。一人では途方に暮れていた問題も、話すことで必要な額がはっきりするかもしれません。借金や費用がすべて消えなくても、何から返し、何を払うかを決めやすくなるでしょう。お金で困っていることは隠さず、信頼できる人に話してみましょう。 |
 
 ## swords.09 · 정방향
 
 내부 ID: `money.swords.09.upright`
 
-카드 의미: 걱정과 후회가 실제 사건보다 크게 느껴지는 밤의 사고. 원전의 절망을 불길한 예언이 아닌 반복되는 생각의 부담으로 제한.
+카드 의미: 반복되는 걱정, 예상과 사실의 혼동, 혼자 품는 부담
 
-분야 해석: 지출에대한불안
+분야 해석: 돈이 부족할까 걱정되어 필요한 지출도 부담스럽게 느껴질 수 있어.
 
-관찰: 앞으로 나갈 돈이 한꺼번에 생각나 실제보다 빠듯하게 느껴질 수 있어. / 작은 결제 내역도 계속 다시 보며 빼먹은 것이 없는지 신경 쓰일 거야. / 금액과 날짜를 나눠 적으면 모두 한날에 필요한 돈은 아니라는 걸 알게 될 수 있어.
+관찰: 반복되는 걱정 / 예상과 사실의 혼동 / 혼자 품는 부담
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 앞으로 나갈 돈이 한꺼번에 생각나 실제보다 빠듯하게 느껴질 수 있어. 작은 결제 내역도 계속 다시 보며 빼먹은 것이 없는지 신경 쓰일 거야. 금액과 날짜를 나눠 적으면 모두 한날에 필요한 돈은 아니라는 걸 알게 될 수 있어. 오늘 꼭 처리할 금액 하나만 먼저 확인해봐. 막연히 큰돈이라고 느꼈던 부담이 나뉘며 지금 남길 돈이 더 분명해질 거야. | Thinking of all your upcoming expenses together may make money feel tighter than it is. You could keep reviewing even small payments, concerned you've missed something. Listing amounts alongside their dates may show they aren't all due on the same day. Check just the amount that needs handling today first. Breaking up what felt like one large expense could clarify how much to keep available now. | これからの出費を一度に思い浮かべ、実際より余裕がなく感じられるかもしれません。少額の支払いも何度も見返し、忘れたものがないか気になりそうです。金額と日付を分けて書くと、全部が同じ日に必要なわけではないと分かるでしょう。まず今日払う必要がある金額を一つ確かめてみてください。大きく感じた負担が分かれ、今いくら残せばよいかがはっきりしそうです。 |
+| 분야 풀이 | 돈이 부족할까 걱정되어 필요한 지출도 부담스럽게 느껴질 수 있어. 아직 생기지 않은 비용까지 더하면 실제보다 형편이 어렵게 보이기 쉬운 날이야. 불안해서 돈을 빨리 불릴 방법을 찾으면 오히려 손해가 생길 수 있어. 지금 확정된 지출부터 보고, 걱정만으로 큰돈을 움직이지 말아줘. | Fear of running short could make even necessary spending feel burdensome. Adding costs that haven't happened may make finances look worse than they are today. Searching anxiously for a quick way to grow money could lead to a loss instead. Start with confirmed expenses and don't move a large sum from worry alone. | お金が足りなくなるのが心配で、必要な出費まで重く感じるかもしれません。まだ生じていない費用まで加えると、実際より苦しい状況に見えやすい日です。不安から急いでお金を増やす方法を探すと、かえって損をする可能性があります。今決まっている出費から見て、心配だけで大金を動かすのは控えましょう。 |
 
 ## swords.10 · 역방향
 
 내부 ID: `money.swords.10.reversed`
 
-카드 의미: 끝난 뒤에도 남은 부담을 정리하며 다시 움직일 여지. 원전의 일시적 이점과 현대의 회복을 완전 반전 없이 사용.
+카드 의미: 어려움 뒤 작은 재개, 점진적 여유, 이전 부담 반복 방지
 
-분야 해석: 손실뒤의남은돈정리
+분야 해석: 큰 부담을 겪은 뒤 금전 사정이 조금씩 나아질 수 있어.
 
-관찰: 아쉬웠던 거래에서 남은 돈이나 물건을 정리할 수 있어. / 전부 돌려받지는 못해도 더 나갈 비용이 멈추거나 일부 금액을 확인할 거야. / 새로 큰돈을 움직이지 않아도 당장 쓸 몫을 챙길 방법이 보일 수 있는 날이야.
+관찰: 어려움 뒤 작은 재개 / 점진적 여유 / 이전 부담 반복 방지
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 아쉬웠던 거래에서 남은 돈이나 물건을 정리할 수 있어. 전부 돌려받지는 못해도 더 나갈 비용이 멈추거나 일부 금액을 확인할 거야. 새로 큰돈을 움직이지 않아도 당장 쓸 몫을 챙길 방법이 보일 수 있는 날이야. 지금 남은 금액부터 적고 필요한 지출만 골라봐. 이미 끝난 비용과 앞으로 막을 수 있는 비용이 나뉘면서 부담이 덜 복잡해질 수 있어. | You may settle the money or belongings left from a disappointing transaction. Even without recovering everything, further charges could stop or part of the amount may be confirmed. You might see a way to secure what's needed now without moving a large new sum. Write down what's left and choose only necessary expenses. Separating costs already finished from those still preventable could make the burden less complicated. | 残念だった取引に残るお金や品を、整理できそうです。全部は戻らなくても、追加の費用が止まったり、一部の金額を確認できたりするでしょう。新たに大金を動かさず、今必要な分を確保する方法も見えるかもしれません。残っている金額を書き、必要な出費だけを選んでみてください。すでに終わった費用とこれから防げる費用が分かれ、負担を整理できそうです。 |
+| 분야 풀이 | 큰 부담을 겪은 뒤 금전 사정이 조금씩 나아질 수 있어. 남은 돈으로 다시 생활을 맞추거나 적은 수입부터 회복할 가능성이 있는 날이야. 이전만큼 넉넉하지 않아도 꼭 필요한 지출을 감당할 방법은 찾을 수 있어. 잃은 돈을 빨리 되찾으려는 거래보다 지금 가진 돈을 지키는 게 좋아. | Your finances could gradually improve after a period of serious financial difficulty. You may fit daily spending around the money left or begin receiving a small income again today. Even with less than before, a way to cover essential expenses could appear. Protect what you have instead of taking a deal to recover losses quickly. | 大きな負担を経験した後、お金のやりくりが少しずつ楽になるかもしれません。残ったお金で暮らしを立て直したり、少額から収入を取り戻したりする可能性があります。以前ほど余裕はなくても、必要な出費をまかなう方法は見つけられそうです。失ったお金を早く取り戻そうと取引するより、今あるお金を守りましょう。 |
 
 ## swords.10 · 정방향
 
 내부 ID: `money.swords.10.upright`
 
-카드 의미: 더 이어가기 어려운 끝을 인정함. 원전의 고통·황폐를 실제 폭력이나 재난 아닌 종료된 방식과 무리한 반복으로 제한.
+카드 의미: 소진, 종료, 더 이어가지 않을 선택
 
-분야 해석: 더회수하기어려운비용
+분야 해석: 이미 손해 난 일에 돈을 더 넣으면 남은 돈까지 잃기 쉬워.
 
-관찰: 이미 쓴 돈에서 더 돌려받기 어렵다는 답을 들을 수 있어. / 계속 기다리던 거래나 판매가 마무리되며 생각했던 금액을 다 채우지 못할 수 있는 날이야. / 남은 물건이나 실제 받은 돈을 확인하면 지금 정리할 범위는 분명해질 거야.
+관찰: 소진 / 종료 / 더 이어가지 않을 선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 이미 쓴 돈에서 더 돌려받기 어렵다는 답을 들을 수 있어. 계속 기다리던 거래나 판매가 마무리되며 생각했던 금액을 다 채우지 못할 수 있는 날이야. 남은 물건이나 실제 받은 돈을 확인하면 지금 정리할 범위는 분명해질 거야. 아쉬운 금액을 만회하려고 새로운 지출을 바로 더하지 마. 더 들 비용을 멈춘 뒤에는 같은 돈 문제를 계속 붙잡을 부담이 줄어들 수 있어. | You may hear that no more can be recovered from money already spent. A long-awaited transaction or sale could finish without reaching the amount you hoped for. Checking the belongings or money actually left may clarify what can be settled now. Don't immediately add a new expense to make up for the disappointing amount. Stopping further costs could reduce the burden of holding on to the same money issue. | すでに使ったお金は、これ以上返せないと言われるかもしれません。待ち続けた取引や売却が終わっても、希望した金額には届かないことがありそうです。残った品や実際に受け取ったお金を確認すれば、今片づけることははっきりするでしょう。残念な金額を取り戻そうと、すぐ新しい出費を足さないでください。これ以上かかる費用を止めれば、同じお金の問題を抱え続ける負担は減りそうです。 |
+| 분야 풀이 | 이미 손해 난 일에 돈을 더 넣으면 남은 돈까지 잃기 쉬워. 여기서 멈추면 아깝다는 마음이 커져 판단이 흔들릴 수 있는 날이야. 예전에 쓴 돈이 돌아오는 것과 새로 낼 돈에서 이익이 나는 것은 따로 생각해야 해. 계속해도 이득이 없다면 오늘은 더 쓰지 않는 쪽을 골라줘. | Putting more into something already losing money could cost you what remains. Regret at stopping here may cloud your judgement today. Recovering past spending and earning a return on new money are separate questions. If continuing offers no gain, choose not to spend more today. | すでに損をしたことへお金を追加すると、残りまで失いやすい日です。ここでやめるのは惜しいという気持ちが強くなり、判断が揺らぐかもしれません。以前使ったお金が戻ることと、追加するお金で利益が出ることは、分けて考える必要があります。続けても得られるものがないなら、今日はこれ以上使わない選択をしましょう。 |
 
 ## swords.11 · 역방향
 
 내부 ID: `money.swords.11.reversed`
 
-카드 의미: 확인하지 않은 말을 서둘러 전하거나 질문이 의심으로 기움. 원전의 뜻밖의 소식·준비 부족을 정보 취급의 신중함으로 응용.
+카드 의미: 준비되지 않은 상태, 예상하지 못한 측면, 관찰이 의심이나 성급한 결론으로 치우침
 
-분야 해석: 부정확한거래소식
+분야 해석: 급히 들은 금전 소식 때문에 잘못된 결정을 할 수 있어.
 
-관찰: 싸게 살 수 있다는 말이나 보수가 좋다는 이야기가 정확하지 않을 수 있어. / 예전 가격을 지금 조건으로 전했거나 필요한 비용을 빼놓은 경우가 있을 거야. / 직접 물어보면 대상이나 기간이 달라 내게는 적용되지 않는다는 걸 알 수 있어.
+관찰: 준비되지 않은 상태 / 예상하지 못한 측면 / 관찰이 의심이나 성급한 결론으로 치우침
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 싸게 살 수 있다는 말이나 보수가 좋다는 이야기가 정확하지 않을 수 있어. 예전 가격을 지금 조건으로 전했거나 필요한 비용을 빼놓은 경우가 있을 거야. 직접 물어보면 대상이나 기간이 달라 내게는 적용되지 않는다는 걸 알 수 있어. 소개받은 내용만 믿고 돈을 보내기보다 현재 금액을 확인해봐. 아직 지출하기 전이라면 조건이 맞지 않는 거래를 무리 없이 넘길 수 있을 거야. | Talk of a bargain or good pay may not be accurate. An old price could be presented as current, or a necessary cost may be omitted. Asking directly might reveal that eligibility or dates differ and the offer doesn't apply to you. Check the current amount instead of sending money based only on an introduction. If you haven't paid yet, you should be able to pass on an unsuitable deal without trouble. | 安く買えるという話や、報酬がよいという話が正確でないかもしれません。以前の価格を今の条件として伝えたり、必要な費用を省いたりしている場合もありそうです。直接尋ねると、対象や期間が違い、自分には適用されないと分かるでしょう。紹介された話だけで送金せず、現在の金額を確かめてみてください。まだ支払う前なら、条件の合わない取引を無理なく見送れそうです。 |
+| 분야 풀이 | 급히 들은 금전 소식 때문에 잘못된 결정을 할 수 있어. 가격이 오른다는 말이나 놓치면 손해라는 이야기에 서두르기 쉬운 날이야. 실제 내용을 알아보지 않고 돈을 쓰면 예상하지 못한 비용이 붙을 수 있어. 전해 들은 이야기는 원래 제안한 곳에 확인하고 판단해줘. | Money news heard in haste could lead to a wrong decision. Talk of rising prices or losing out if you miss a chance may make you rush today. Spending without checking the details could bring unexpected costs. Confirm the story with whoever made the original offer before judging it. | 急に聞いたお金の話から、判断を誤るかもしれません。値上がりする、逃すと損をするといった言葉に、焦りやすい日です。実際の内容を調べずに使うと、思いがけない費用が付く可能性があります。人づての話は、その話を出した相手に確かめてから判断しましょう。 |
 
 ## swords.11 · 정방향
 
 내부 ID: `money.swords.11.upright`
 
-카드 의미: 관찰·질문·새 정보에 대한 민첩함. 원전의 경계와 탐색을 성급한 소문 대신 검증하려는 태도로 사용.
+카드 의미: 관찰과 주의, 검토와 살핌, 민첩하게 주변을 살피는 인물
 
-분야 해석: 거래정보발견
+분야 해석: 작은 비용 차이를 발견해 돈을 아낄 수 있는 날이야.
 
-관찰: 사려던 물건이나 받을 돈에 관한 새 정보를 들을 수 있어. / 중고 가격을 비교하다 같은 상태의 물건이 생각보다 다르게 거래된다는 걸 알게 될 거야. / 작게 적힌 안내에서 지금 필요한 비용이나 기간을 확인할 수 있는 날이야.
+관찰: 관찰과 주의 / 검토와 살핌 / 민첩하게 주변을 살피는 인물
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 사려던 물건이나 받을 돈에 관한 새 정보를 들을 수 있어. 중고 가격을 비교하다 같은 상태의 물건이 생각보다 다르게 거래된다는 걸 알게 될 거야. 작게 적힌 안내에서 지금 필요한 비용이나 기간을 확인할 수 있는 날이야. 거래하기 전에는 궁금한 점 하나를 판매자나 담당자에게 물어봐. 짧은 답 하나가 가격을 정하거나 불필요한 지출을 피하는 데 도움이 될 수 있어. | You may hear new information about something you want to buy or money you're due. Comparing secondhand prices could reveal surprisingly different amounts for items in similar condition. Small print may also clarify the cost or period that matters to you now. Ask the seller or contact person one question before the transaction. One brief answer could help you set a price or avoid unnecessary spending. | 買いたい品や受け取るお金について、新しい情報を聞けそうです。中古価格を比べると、同じような状態でも取引の値段が違うと分かるでしょう。小さく書かれた案内から、今必要な費用や期間を確認できる日です。取引の前に、気になることを販売者や担当者へ一つ尋ねてみてください。短い返事が、価格を決めたり不要な出費を避けたりする助けになりそうです。 |
+| 분야 풀이 | 작은 비용 차이를 발견해 돈을 아낄 수 있는 날이야. 자세히 알아볼수록 거래에서 빠진 조건이나 자신에게 유리한 금액이 보일 수 있어. 급히 사지 않고 비교한 물건은 생각보다 싸게 구할 가능성도 있어. 소문으로 들은 가격만 믿지 말고 실제 판매 금액을 확인해줘. | Spotting a small cost difference could save money today. A closer look may reveal missing terms or a favourable amount in a transaction. Comparing prices instead of buying in haste could also help you find an item for less than expected. Check the actual selling price instead of relying on one you've heard second-hand. | 小さな費用の違いに気づき、節約できそうです。詳しく調べるほど、取引で抜けていた条件や、有利な金額が見えてくるでしょう。急いで買わずに比べた物は、予想より安く手に入る可能性もあります。うわさで聞いた価格だけを信じず、実際の販売額を確かめてください。 |
 
 ## swords.12 · 역방향
 
 내부 ID: `money.swords.12.reversed`
 
-카드 의미: 속도가 목적을 앞서 혼선이나 지연을 만듦. 원전의 무분별함을 방향을 다시 정할 필요로 해석.
+카드 의미: 신중함의 부족, 준비나 감당 능력의 부족, 과도하게 벌이거나 낭비함
 
-분야 해석: 급한송금의오류
+분야 해석: 서두른 거래로 돈이 한꺼번에 빠져나갈 수 있어.
 
-관찰: 급하게 결제하거나 돈을 보내며 숫자를 잘못 볼 수 있어. / 수량이나 수수료를 놓쳐 생각한 금액과 다른 내역이 찍힐 수 있는 날이야. / 바로 확인하면 수정할 수 있는 방법이 남아 있어 큰 번거로움을 줄일 수 있어.
+관찰: 신중함의 부족 / 준비나 감당 능력의 부족 / 과도하게 벌이거나 낭비함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 급하게 결제하거나 돈을 보내며 숫자를 잘못 볼 수 있어. 수량이나 수수료를 놓쳐 생각한 금액과 다른 내역이 찍힐 수 있는 날이야. 바로 확인하면 수정할 수 있는 방법이 남아 있어 큰 번거로움을 줄일 수 있어. 송금 버튼을 누르기 전 이름과 금액을 소리 없이 한 번 읽어봐. 짧게 멈춰 확인한 덕분에 다시 연락하고 처리할 일을 덜 수 있을 거야. | Paying or transferring money in a rush may make a number easy to misread. An overlooked quantity or fee could leave a different amount on the record than you expected. A prompt check may still reveal a way to correct it and avoid a larger hassle. Silently read the name and amount once before pressing the transfer button. That brief pause could spare you further messages and corrections. | 急いで支払ったり送金したりすると、数字を見間違えるかもしれません。数量や手数料を見落とし、思った金額と違う明細になることもありそうです。すぐ確認すれば訂正できる方法が残り、大きな手間を避けられるでしょう。送金ボタンを押す前に、名前と金額を一度目で確かめてください。少し止まって確かめれば、連絡し直したり手続きし直したりする用事を減らせそうです。 |
+| 분야 풀이 | 서두른 거래로 돈이 한꺼번에 빠져나갈 수 있어. 미처 확인하지 못한 비용이나 급하게 한 약속이 부담으로 남기 쉬운 날이야. 빨리 이익을 보려는 마음이 클수록 손실도 가볍게 생각할 수 있어. 바로 결정하라는 제안이라도 금액을 다 알기 전에는 돈을 보내지 말아줘. | A rushed deal could take a large amount of money at once. Unchecked costs or a hasty promise may leave a burden today. The stronger your wish for quick profit, the easier it is to dismiss possible losses. Even if an offer demands an immediate decision, don't send money before you know every amount involved. | 急いだ取引で、お金が一度に出ていくかもしれません。確かめきれなかった費用や、焦ってした約束が、負担になりやすい日です。早く利益を得たいほど、損失も軽く考えがちです。すぐ決めるよう求められても、金額をすべて把握するまでは、送金を控えましょう。 |
 
 ## swords.12 · 정방향
 
 내부 ID: `money.swords.12.upright`
 
-카드 의미: 빠른 판단과 직접적인 실행. 원전의 용기·돌진을 추진력과 놓치기 쉬운 세부의 양면으로 사용.
+카드 의미: 능력과 용기, 자신의 입장을 방어함, 빠른 행동과 대립의 양면
 
-분야 해석: 빠른정산과거래
+분야 해석: 미뤄왔던 돈 문제를 빠르게 처리할 수 있는 날이야.
 
-관찰: 정산이나 작은 거래가 평소보다 빠르게 진행될 수 있어. / 팔려고 내놓은 물건에 질문이 오거나 미뤄둔 비용에 답이 돌아올 거야. / 조건이 맞으면 오래 망설이던 금액도 바로 정해질 수 있는 날이야.
+관찰: 능력과 용기 / 자신의 입장을 방어함 / 빠른 행동과 대립의 양면
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정산이나 작은 거래가 평소보다 빠르게 진행될 수 있어. 팔려고 내놓은 물건에 질문이 오거나 미뤄둔 비용에 답이 돌아올 거야. 조건이 맞으면 오래 망설이던 금액도 바로 정해질 수 있는 날이야. 빨리 끝내더라도 계좌와 최종 금액은 꼭 확인해봐. 확인된 돈을 주고받고 나면 오래 신경 쓰던 일 하나를 덜 수 있어. | A repayment or small transaction may progress faster than usual. An item you've listed could attract a question, or an answer may arrive about a delayed cost. If the terms fit, an amount you've long hesitated over could be settled quickly. Check the account details and final amount even when wrapping things up fast. Once the confirmed money changes hands, you could have one less longstanding concern. | 精算や小さな取引が、いつもより早く進みそうです。売りに出した品に質問が来たり、保留だった費用に返事が届いたりするでしょう。条件が合えば、長く迷った金額もすぐ決まる日です。早く終えるときも、口座と最終金額は必ず確かめてください。確認したお金をやり取りした後は、長く気にしていたことが一つ減りそうです。 |
+| 분야 풀이 | 미뤄왔던 돈 문제를 빠르게 처리할 수 있는 날이야. 거래 조건을 분명하게 요구하면 자신의 몫을 지키기 좋아. 돈을 돌려받거나 금액을 바로잡아야 한다면 필요한 말을 꺼내볼 만해. 속도를 내더라도 상대를 몰아붙여 협의가 끊기지 않게 해줘. | You could deal quickly with a money matter you've delayed today. Asking clearly for the terms you need may help you protect your share. If you need money returned or an amount corrected, it's worth speaking up. Even while moving quickly, don't pressure the other person so much that discussions end. | 先延ばしにしていたお金の問題を、早く片づけやすい日です。取引で求める条件をはっきり伝えると、本来の取り分を守れそうです。返金や金額の訂正が必要なら、話を切り出してみるのもよいでしょう。急いでいても、相手を追い詰めて話し合いが途切れないようにしてください。 |
 
 ## swords.13 · 역방향
 
 내부 ID: `money.swords.13.reversed`
 
-카드 의미: 경험의 상처가 새로운 판단을 지나치게 엄격하게 만들 수 있음. 원전의 악의 단정을 피하고 말의 날카로움과 편향을 살핌.
+카드 의미: 편견, 악의와 날카로운 태도, 기만과 왜곡된 판단
 
-분야 해석: 지나치게엄격한거래
+분야 해석: 좋지 않은 감정 때문에 금전적으로 손해 볼 수 있어.
 
-관찰: 작은 비용 차이도 손해처럼 느껴져 협의가 까다로워질 수 있어. / 예전 거래가 떠올라 이번 제안의 설명을 끝까지 듣기 어려울 거야. / 실제로 다른 조건이 있는데도 처음 본 가격만으로 판단할 수 있는 날이야.
+관찰: 편견 / 악의와 날카로운 태도 / 기만과 왜곡된 판단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 비용 차이도 손해처럼 느껴져 협의가 까다로워질 수 있어. 예전 거래가 떠올라 이번 제안의 설명을 끝까지 듣기 어려울 거야. 실제로 다른 조건이 있는데도 처음 본 가격만으로 판단할 수 있는 날이야. 오늘은 거절하기 전에 금액에 포함된 항목을 한 번 물어봐. 차이를 알고 나면 꼭 깎아야 할 부분과 납득할 부분이 나뉠 수 있어. | Even a small cost difference may feel like a loss and complicate negotiations. Memories of an earlier transaction could make it hard to hear the full explanation of this offer. You might judge only the first price even though the terms are different. Ask what's included before declining today. Knowing the difference could separate what needs negotiating from what you can reasonably accept. | 小さな費用の差も損に感じられ、相談が難しくなるかもしれません。以前の取引が浮かび、今回の説明を最後まで聞きにくそうです。実際には条件が違っていても、最初の価格だけで判断しやすい日です。今日は断る前に、金額に含まれるものを一度尋ねてみてください。違いが分かれば、交渉する必要がある部分と納得できる部分を分けられそうです。 |
+| 분야 풀이 | 좋지 않은 감정 때문에 금전적으로 손해 볼 수 있어. 상대를 믿기 싫다는 이유로 유리한 조건을 거절하거나, 서운함을 풀려고 비싼 물건을 사기 쉬운 날이야. 돈을 주고받는 말이 날카로워지면 해결도 늦어질 수 있어. 싫고 좋은 마음과 실제 금액을 나누어 판단해줘. | Bad feelings could lead to a financial loss. You may refuse good terms because you don't want to trust someone, or buy something expensive to soothe hurt today. Sharp words over an exchange of money could delay a solution too. Judge the actual amounts separately from your likes and dislikes. | 嫌な気持ちから、お金で損をするかもしれません。相手を信じたくなくて有利な条件を断ったり、不満を晴らすために高価な物を買ったりしやすい日です。お金について話すときの言葉がきつくなると、解決も遅れそうです。好き嫌いと実際の金額を分けて、判断してください。 |
 
 ## swords.13 · 정방향
 
 내부 ID: `money.swords.13.upright`
 
-카드 의미: 경험에 근거한 독립적 판단과 분명한 경계. 원전 인물의 상실 경험을 성별 없이 명료한 말과 통찰로 현대화.
+카드 의미: 분리와 거리, 슬픔을 겪은 뒤의 태도, 감정에 휩쓸리지 않는 독립적 판단이라는 현대 해석
 
-분야 해석: 근거있는가격협의
+분야 해석: 불필요한 돈 거래를 정리해 자신의 돈을 지킬 수 있어.
 
-관찰: 물건의 상태나 실제 수고를 근거로 금액을 이야기하기 좋은 날이야. / 겉으로 비슷해 보인 거래도 어디서 차이가 나는지 분명하게 알아볼 수 있어. / 가격을 묻는 사람이 구체적인 설명을 듣고 납득할 여지가 생길 거야.
+관찰: 분리와 거리 / 슬픔을 겪은 뒤의 태도 / 감정에 휩쓸리지 않는 독립적 판단이라는 현대 해석
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 물건의 상태나 실제 수고를 근거로 금액을 이야기하기 좋은 날이야. 겉으로 비슷해 보인 거래도 어디서 차이가 나는지 분명하게 알아볼 수 있어. 가격을 묻는 사람이 구체적인 설명을 듣고 납득할 여지가 생길 거야. 서로 기분을 재기보다 금액이 정해진 이유를 한 가지 말해봐. 무리하게 깎거나 양보하지 않고도 합리적인 선에서 거래를 마칠 수 있어. | An item's condition or the effort involved may give you a sound basis for discussing an amount. You could clearly see where seemingly similar transactions differ. A concrete explanation may help someone asking about the price understand it. Give one reason for the amount instead of trying to read each other's mood. You may reach a reasonable deal without excessive haggling or concessions. | 品物の状態や実際の手間をもとに、金額を話しやすい日です。似て見える取引も、どこが違うのかはっきり分かりそうです。値段を尋ねる人も、具体的な説明を聞けば納得してくれるでしょう。互いの機嫌を探るより、その金額になった理由を一つ伝えてみてください。無理な値引きや譲歩をせず、妥当なところで取引を終えられそうです。 |
+| 분야 풀이 | 불필요한 돈 거래를 정리해 자신의 돈을 지킬 수 있어. 사정이 딱하다는 이유로 해주던 지출도 감당할 수 있는 선을 정하기 좋은 날이야. 필요한 돈과 체면 때문에 쓰는 돈을 구분하면 실제로 남는 금액이 늘 수 있어. 감당하기 어려운 돈 부탁은 미안하더라도 분명하게 거절해줘. | Ending an unnecessary financial arrangement could protect your money. It's a good day to set an affordable limit on spending you've covered out of sympathy too. Separating necessary costs from money spent to keep up appearances may leave you with more. Clearly refuse money requests you can't manage, even if you feel bad. | 不要なお金の取引を終え、手持ちを守れそうです。相手の事情が気の毒で続けていた支出にも、無理のない上限を決めやすい日です。必要な出費と体面のための出費を分ければ、実際に残る額が増えるかもしれません。負担しきれないお金の頼みは、申し訳なくても、はっきり断りましょう。 |
 
 ## swords.14 · 역방향
 
 내부 ID: `money.swords.14.reversed`
 
-카드 의미: 원칙을 내세워 타인의 사정이나 반대 근거를 지움. 원전의 권력 남용을 일상의 독단적 말과 선택으로 제한.
+카드 의미: 잔혹하거나 일방적인 태도, 권위의 왜곡, 불성실한 의도
 
-분야 해석: 기준이다른돈이야기
+분야 해석: 상대가 내세우는 말만 믿으면 불리한 금액을 떠안을 수 있어.
 
-관찰: 정해진 규칙이라는 말만 듣고도 비용의 이유를 납득하기 어려울 수 있어. / 상황이 달라졌는데 예전 금액을 그대로 요구받아 답답할 거야. / 세부 내역을 확인하면 바꿀 수 있는 부분이나 잘못 적용된 항목을 찾을 수도 있어.
+관찰: 잔혹하거나 일방적인 태도 / 권위의 왜곡 / 불성실한 의도
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정해진 규칙이라는 말만 듣고도 비용의 이유를 납득하기 어려울 수 있어. 상황이 달라졌는데 예전 금액을 그대로 요구받아 답답할 거야. 세부 내역을 확인하면 바꿀 수 있는 부분이나 잘못 적용된 항목을 찾을 수도 있어. 금액이 정해진 근거를 한 번 구체적으로 물어봐. 분명한 설명을 받으면 그대로 낼 부분과 다시 요청할 부분이 나뉠 수 있어. | Being told a charge is simply the rule may not explain it satisfactorily. An unchanged amount despite different circumstances could feel frustrating. Checking the breakdown might reveal an adjustable part or a charge applied incorrectly. Ask specifically once how the amount was set. A clear explanation could distinguish what to pay as stated from what to query again. | 規則だからと言われるだけでは、費用の理由に納得しにくいかもしれません。状況が変わっても以前の金額を求められ、もどかしくなりそうです。明細を確かめると、変えられるところや誤って適用された項目が見つかるでしょう。金額の根拠を、一度具体的に尋ねてみてください。明確な説明を聞けば、そのまま払う部分と再確認を求める部分を分けられそうです。 |
+| 분야 풀이 | 상대가 내세우는 말만 믿으면 불리한 금액을 떠안을 수 있어. 잘 아는 사람처럼 보이거나 높은 자리에 있다고 돈 약속까지 믿을 만한 것은 아닌 날이야. 이유를 설명하지 않고 부담을 강요한다면 거래를 서두르지 않는 게 좋아. 자신의 돈을 결정할 권리까지 다른 사람에게 넘기지 말아줘. | Trusting only what the other person says could leave you with an unfavourable amount to pay. Appearing knowledgeable or holding a high position doesn't make a financial promise reliable today. If they demand you take on a cost without explaining why, it's better not to rush the deal. Don't hand over the right to decide about your own money. | 相手の主張だけを信じると、不利な金額を負担するかもしれません。詳しそうに見えたり、地位が高かったりしても、お金の約束まで信頼できるとは限らない日です。理由を説明せずに支払いを迫るなら、取引を急がないほうがよいでしょう。お金の使い方を決める権利まで、人に渡すのは控えてください。 |
 
 ## swords.14 · 정방향
 
 내부 ID: `money.swords.14.upright`
 
-카드 의미: 원칙과 근거를 다루는 책임 있는 판단. 원전의 권위·지성을 사람의 지위 아닌 설명 가능한 기준으로 사용.
+카드 의미: 판단과 권위, 이성적 능력, 법과 원칙에 따른 결정
 
-분야 해석: 기록을바탕으로한정산
+분야 해석: 정해진 약속과 원칙에 따라 돈 거래가 무리 없이 진행될 수 있어.
 
-관찰: 기록이나 정해진 기준을 통해 받을 돈과 낼 돈이 분명해질 수 있어. / 복잡했던 계산도 근거를 아는 사람의 설명을 들으면 쉽게 이해할 거야. / 보수나 물건값을 협의할 때 감정보다 실제 내역이 힘을 발휘할 수 있는 날이야.
+관찰: 판단과 권위 / 이성적 능력 / 법과 원칙에 따른 결정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기록이나 정해진 기준을 통해 받을 돈과 낼 돈이 분명해질 수 있어. 복잡했던 계산도 근거를 아는 사람의 설명을 들으면 쉽게 이해할 거야. 보수나 물건값을 협의할 때 감정보다 실제 내역이 힘을 발휘할 수 있는 날이야. 합의한 금액과 날짜는 서로 볼 수 있게 남겨둬. 확인할 기록이 생겨 다음에도 같은 돈 문제를 두고 오래 이야기하지 않아도 될 거야. | Records or agreed criteria may clarify what you're owed and what you need to pay. Someone who understands the basis of a calculation could make it easy to follow. Actual details may carry more weight than feelings when discussing pay or an item's price. Leave the agreed amount and date in a place you can both see. A record to refer to could spare you another lengthy discussion about the same money issue. | 記録や決まった基準から、受け取るお金と払うお金がはっきりしそうです。複雑な計算も、その根拠を知る人に説明してもらうと簡単に分かるでしょう。報酬や品物の値段を相談するときは、気持ちより実際の明細が役立つ日です。合意した金額と日付は、互いに見られる形で残してください。確かめる記録ができれば、また同じお金のことで長く話さずに済むでしょう。 |
+| 분야 풀이 | 정해진 약속과 원칙에 따라 돈 거래가 무리 없이 진행될 수 있어. 계약이나 기록이 분명한 일에서는 받아야 할 몫을 지킬 수 있어. 금액이 복잡해도 전문가의 설명을 들으면 손익을 정확히 가리기 좋아. 새로운 약속을 할 때도 말로만 정하지 말고 내용을 남겨줘. | A transaction could proceed smoothly under clear agreements and rules. A definite contract or record may protect the share you're owed. Even with complicated amounts, an expert's explanation could help you distinguish profit from loss accurately. Record new agreements too, rather than settling them only in conversation. | 決めた約束やルールに沿って、お金の取引が無理なく進みそうです。契約や記録がはっきりしている取引なら、受け取るべき分を守れるでしょう。金額が複雑でも、専門家の説明を聞くと、損得を正確に判断しやすい日です。新しく約束するときも、言葉だけで決めず、内容を記録に残してください。 |
 
 ## wands.01 · 역방향
 
 내부 ID: `money.wands.01.reversed`
 
-카드 의미: 의욕은 있지만 시작할 조건이 맞지 않거나 관심이 오래 가지 않음. 원전의 지연과 현대적 동기 저하를 재준비로 응용.
+카드 의미: 새 출발의 지체·의욕 부족
 
-분야 해석: 초기비용
+분야 해석: 새로 기대한 수입이 당장 생기기는 어려울 수 있어.
 
-관찰: 새로운 일을 시작하며 생각지 못한 준비 비용이 보일 수 있어. / 처음 들은 금액에는 필요한 물건이나 이동 비용이 빠져 있을지도 몰라. / 당장 수입으로 이어질 줄 알았던 제안도 시간이 더 필요한 모습이야.
+관찰: 새 출발의 지체·의욕 부족 / 새로 기대한 수입이 당장 생기기는 어려울 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 새로운 일을 시작하며 생각지 못한 준비 비용이 보일 수 있어. 처음 들은 금액에는 필요한 물건이나 이동 비용이 빠져 있을지도 몰라. 당장 수입으로 이어질 줄 알았던 제안도 시간이 더 필요한 모습이야. 다행히 큰돈을 쓰기 전에 자세한 이야기를 들을 기회가 있을 거야. 시작에 들어갈 돈부터 확인한 뒤 참여를 정하는 게 좋아. | Getting something new started could reveal a preparation cost you weren't expecting. The first figure you heard may have left out supplies or travel. An offer you thought would bring quick income appears to need more time. Fortunately, there should be a chance to hear the details before spending much. Check the upfront cost before deciding to take part. | 新しいことを始める際に、予想していなかった準備費用が見えてきそうです。最初に聞いた金額には、道具や移動にかかるお金が含まれていないかもしれません。すぐ収入になると思った話も、もう少し時間が必要なようです。大きなお金を使う前に、詳しく話を聞ける機会はあるでしょう。始めるための費用を確認してから、参加を決めてください。 |
+| 분야 풀이 | 새로 기대한 수입이 당장 생기기는 어려울 수 있어. 시작하려던 일이 늦어지면 준비에 쓴 돈부터 부담스럽게 느껴질 수 있는 날이야. 관심이 식었다고 이미 마련한 것을 모두 버리고 다시 사면 지출이 커질 수 있어. 돈이 들어올 때를 확인하기 전에는 준비 비용을 더 늘리지 말아줘. | New income you've hoped for may not appear immediately. A delayed start could make money already spent on preparations feel burdensome today. Losing interest, discarding everything you've prepared and buying again may increase costs. Don't add to preparation expenses before checking when money will come in. | 新しく期待した収入は、すぐには得られないかもしれません。始めるはずだったことが遅れると、準備に使ったお金が負担に感じられそうです。関心が薄れたからと、用意した物をすべて捨てて買い直すと、出費が増えるでしょう。入金の時期を確かめるまでは、準備費用をさらに増やすのは控えてください。 |
 
 ## wands.01 · 정방향
 
 내부 ID: `money.wands.01.upright`
 
-카드 의미: 새로운 의욕과 시작의 불씨. 원전의 시작·창조를 거창한 결과보다 즉시 해보고 싶은 행동으로 사용.
+카드 의미: 창조·발상·시작할 힘
 
-분야 해석: 새로운수입제안
+분야 해석: 새로운 일에서 수입이 생길 가능성이 있는 날이야.
 
-관찰: 작은 일을 부탁받거나 새로운 수입 이야기를 들을 수 있는 날이야. / 평소 잘하던 것을 필요로 하는 사람이 가까운 곳에 있을 거야. / 처음에는 가볍게 꺼낸 말이 구체적인 보상 이야기로 이어질 수 있어.
+관찰: 창조·발상·시작할 힘 / 새로운 일에서 수입이 생길 가능성이 있는 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 일을 부탁받거나 새로운 수입 이야기를 들을 수 있는 날이야. 평소 잘하던 것을 필요로 하는 사람이 가까운 곳에 있을 거야. 처음에는 가볍게 꺼낸 말이 구체적인 보상 이야기로 이어질 수 있어. 이미 가진 기술이나 도구를 쓸 수 있어 시작 비용이 크지 않은 기회도 눈에 들어올 거야. 부탁을 받으면 일의 범위와 받을 금액을 먼저 물어봐. | A small job or news of an earning opportunity could come your way today. Someone nearby may need something you already do well. A casual suggestion could turn into a specific conversation about payment. An opportunity that uses skills or tools you already have might need little money to get started. Ask what the job includes and what it pays before agreeing. | 小さな仕事を頼まれたり、新しい収入の話を聞いたりしそうな日です。普段から得意なことを必要としている人が、身近にいるかもしれません。軽い相談から、具体的な報酬の話へ進むこともありそうです。持っている技術や道具を使えて、始める費用が少ない機会も目に留まるでしょう。頼まれたら、仕事の範囲と受け取る金額を先に聞いてみてください。 |
+| 분야 풀이 | 새로운 일에서 수입이 생길 가능성이 있는 날이야. 떠올린 아이디어나 시작하려던 일이 돈이 되는 제안으로 이어질 수 있어. 처음부터 큰돈은 아니어도 앞으로 벌어들일 가능성을 확인하기 좋아. 시작 비용이 필요한 일이라면 받을 돈보다 지출이 앞서지 않는지만 살펴줘. | Something new could bring income today. An idea or a task you've wanted to begin may lead to a paid offer. Even without much money at first, it's a good day to see whether it could earn more later. If starting costs money, check that expenses don't outrun what you'll receive. | 新しい仕事から収入が生まれる可能性がある日です。浮かんだアイデアや始めようとしていたことが、お金になる提案へつながるかもしれません。初めから大金でなくても、今後の収入につながるかを確かめやすいでしょう。始める費用が必要なら、受け取るお金より出費が先にかさまないか、見ておいてください。 |
 
 ## wands.02 · 역방향
 
 내부 ID: `money.wands.02.reversed`
 
-카드 의미: 익숙한 범위에 머물거나 계획의 세부를 보지 못함. 원전의 뜻밖의 사건과 현대의 변화 두려움을 준비의 간극으로 응용.
+카드 의미: 변화 앞의 불안·망설임
 
-분야 해석: 멀리있는혜택
+분야 해석: 새로운 거래를 망설이는 사이 돈을 쓸 시점이 어긋날 수 있어.
 
-관찰: 멀리 있는 곳의 저렴한 가격에 마음이 흔들릴 수 있어. / 이동이나 배송에 드는 돈까지 더하면 처음 생각한 차이가 줄어들 거야. / 사진으로 괜찮아 보였던 물건은 실제 크기나 사용 방식이 다를 수 있어.
+관찰: 변화 앞의 불안·망설임 / 새로운 거래를 망설이는 사이 돈을 쓸 시점이 어긋날 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 멀리 있는 곳의 저렴한 가격에 마음이 흔들릴 수 있어. 이동이나 배송에 드는 돈까지 더하면 처음 생각한 차이가 줄어들 거야. 사진으로 괜찮아 보였던 물건은 실제 크기나 사용 방식이 다를 수 있어. 결제하기 전에 집에서 쓸 자리가 있는지 확인해봐. 가까운 곳에서 직접 본 물건이 오히려 더 만족스러운 선택으로 남을 수 있어. | A low price somewhere far away could be tempting today. Travel or delivery costs may reduce the saving you first imagined. An item that looks good in photos might differ in size or how it's used. Check whether you have a place for it at home before paying. Something you've seen in person nearby could end up being the more satisfying choice. | 遠くのお店の安い値段に心が動きそうです。移動や送料まで足すと、最初に考えた差は小さくなるでしょう。写真ではよさそうな品物も、実際の大きさや使い方が違うかもしれません。支払う前に、家で使う場所があるか確認してください。近くで実物を見たもののほうが、満足できる選択になりそうです。 |
+| 분야 풀이 | 새로운 거래를 망설이는 사이 돈을 쓸 시점이 어긋날 수 있어. 준비 비용은 나갔는데 실제 시작을 못 하면 부담만 남기 쉬운 날이야. 익숙한 수입까지 버리고 바꾸기에는 아직 불확실한 점이 있을 수 있어. 오늘은 급히 큰돈을 넣기보다 바꿀 조건을 먼저 확정해줘. | Hesitation over a new transaction could upset the timing of your spending. Paying for preparations without actually starting may leave only a burden today. There could still be too much uncertainty to give up familiar income for a change. Settle the terms of that change before rushing to put in a large sum. | 新しい取引を始めるか迷う間に、お金を使うタイミングがずれるかもしれません。準備費用だけ出て、実際には始められないと、負担ばかり残りやすい日です。いつもの収入を手放して切り替えるには、まだ不確かなことがありそうです。今日は急いで大金を入れるより、変更後の条件を先に確定させましょう。 |
 
 ## wands.02 · 정방향
 
 내부 ID: `money.wands.02.upright`
 
-카드 의미: 현재 가진 기반에서 다음 방향을 바라보는 계획. 원전의 영역과 대비되는 바람을 선택지를 구체화하는 관점으로 채택.
+카드 의미: 보유한 기반과 바깥 선택지를 바라봄
 
-분야 해석: 비교구매
+분야 해석: 지금보다 많은 수입을 얻을 기회가 생길 수 있어.
 
-관찰: 비슷한 물건을 다른 곳에서 더 괜찮은 조건으로 만날 수 있어. / 배송이나 이용 기간까지 보면 처음 눈에 들어온 것보다 실속 있는 선택이 보일 거야. / 먼 곳의 상품이나 서비스에 관해서도 실제로 써본 사람의 이야기를 듣게 될 수 있어.
+관찰: 보유한 기반과 바깥 선택지를 바라봄 / 지금보다 많은 수입을 얻을 기회가 생길 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 비슷한 물건을 다른 곳에서 더 괜찮은 조건으로 만날 수 있어. 배송이나 이용 기간까지 보면 처음 눈에 들어온 것보다 실속 있는 선택이 보일 거야. 먼 곳의 상품이나 서비스에 관해서도 실제로 써본 사람의 이야기를 듣게 될 수 있어. 오늘은 선택지가 넓어지는 만큼 급하게 고르지 않아도 된다는 여유가 생길 거야. 큰 구매는 두 곳의 최종 금액만 나란히 비교해봐. | A similar item could turn up elsewhere on better terms today. Including delivery and the length of use in the comparison may reveal a better choice than the first one you noticed. You might also hear a firsthand account of a product or service from farther away. More options should give you room to choose without rushing. Compare the final prices from two places before a large purchase. | 似た品物を、別の場所でもっとよい条件で見つけられそうです。送料や使える期間まで考えると、最初に見たものより得な選択があるでしょう。遠方の商品やサービスについて、実際に使った人の話も聞けそうです。選択肢が増える分、急いで決めなくてもよいと感じられるでしょう。大きな買い物は、二か所の最終金額を並べて比べてみてください。 |
+| 분야 풀이 | 지금보다 많은 수입을 얻을 기회가 생길 수 있어. 거래할 곳을 늘리거나 새로운 곳에서 돈을 벌 제안을 받을 수 있는 날이야. 당장 손에 쥐는 돈은 적어도 앞으로 받을 보수에 관한 약속이 오갈 수 있어. 아직 들어오지 않은 돈을 믿고 생활비까지 먼저 쓰지는 말아줘. | A chance to earn more than you do now could appear. You may find more places to trade with or receive a paid offer from somewhere new today. Even with little money in hand immediately, you could reach an agreement about future pay. Don't use money needed for living costs on the strength of a payment that hasn't arrived. | 今より多くの収入を得る機会ができそうです。取引先が増えたり、新しい所から仕事の提案を受けたりするかもしれません。すぐに手に入る額は少なくても、今後の報酬について約束することがありそうです。まだ入っていないお金を頼りに、生活費まで先に使うのは控えましょう。 |
 
 ## wands.03 · 역방향
 
 내부 ID: `money.wands.03.reversed`
 
-카드 의미: 기대한 반응이나 확장이 늦어짐. 원전의 어려움 끝이라는 대안도 고려해 지연 속에서 준비를 다시 보는 뜻을 선택.
+카드 의미: 확장이 지체되어 기대와 실제 진행 사이에 차이가 생김
 
-분야 해석: 입금배송지연
+분야 해석: 바라던 거래가 늦어져 수입이 예상보다 적을 수 있어.
 
-관찰: 기다리던 입금이나 배송이 예상보다 늦어질 수 있어. / 지연 이유가 바로 보이지 않아 한동안 답답하게 느껴질 거야. / 연락이 닿고 나면 누락이 아니라 순서가 밀렸다는 설명을 들을 수도 있어.
+관찰: 확장이 지체되어 기대와 실제 진행 사이에 차이가 생김 / 바라던 거래가 늦어져 수입이 예상보다 적을 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다리던 입금이나 배송이 예상보다 늦어질 수 있어. 지연 이유가 바로 보이지 않아 한동안 답답하게 느껴질 거야. 예정된 돈을 미리 쓰기보다 도착 날짜를 한 번 확인해봐. 연락이 닿고 나면 누락이 아니라 순서가 밀렸다는 설명을 들을 수도 있어. 당장 사려던 물건도 며칠 더 기다려도 괜찮다는 생각이 들 수 있어. | A payment or delivery you're waiting for may take longer than expected. Not knowing the reason immediately could feel frustrating for a while. Check the expected arrival date instead of spending the anticipated money early. Once you reach someone, you might learn that it was delayed in the queue rather than missed. An item you planned to buy immediately may turn out to be fine to wait a few more days for. | 待っていた入金や配送が、予定より遅れるかもしれません。理由がすぐにわからず、しばらくもどかしく感じそうです。入る予定のお金を先に使わず、届く日を一度確認してみてください。連絡がつけば、抜けていたのではなく順番が遅れていたと説明されることもあるでしょう。すぐ買うつもりだった物も、あと数日なら待てると感じられそうです。 |
+| 분야 풀이 | 바라던 거래가 늦어져 수입이 예상보다 적을 수 있어. 멀리 내다보고 쓴 돈이 바로 돌아오지 않으면 당장 생활이 빠듯해지기 쉬운 날이야. 상대와 일정이 맞지 않아 추가 비용이 생길 가능성도 있어. 지금 진행하는 일의 대금을 받기 전에는 새 지출을 더 만들지 않는 게 좋아. | A delayed deal could leave income smaller than you hoped. Money spent with the long term in mind may not return immediately, making everyday finances tight today. A clash of schedules with the other person could also create extra costs. It's better not to add new spending before you're paid for what's under way. | 望んでいた取引が遅れ、収入が予想より少なくなるかもしれません。将来を見込んで出したお金がすぐに戻らないと、当面の暮らしが苦しくなりがちです。相手と予定が合わず、追加の費用がかかる可能性もあります。今進めていることの代金を受け取るまでは、新しい出費を増やさないほうがよさそうです。 |
 
 ## wands.03 · 정방향
 
 내부 ID: `money.wands.03.upright`
 
-카드 의미: 준비한 것을 밖으로 넓히며 반응을 기다림. 원전의 교류·협력을 지금 기반에서 가능한 확장으로 사용.
+카드 의미: 확립된 역량·교역·발견·협력
 
-분야 해석: 외부거래
+분야 해석: 거래가 넓어지거나 함께한 일에서 수입이 늘 수 있어.
 
-관찰: 멀리 있는 거래처나 예전에 연락한 곳에서 금액에 관한 답을 받을 수 있어. / 보내둔 물건이나 요청한 정산도 한 단계 진행됐다는 소식이 들릴 거야. / 직접 찾을 때는 몰랐던 혜택을 다른 사람의 소개로 알게 될 수 있어.
+관찰: 확립된 역량·교역·발견·협력 / 거래가 넓어지거나 함께한 일에서 수입이 늘 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 멀리 있는 거래처나 예전에 연락한 곳에서 금액에 관한 답을 받을 수 있어. 보내둔 물건이나 요청한 정산도 한 단계 진행됐다는 소식이 들릴 거야. 직접 찾을 때는 몰랐던 혜택을 다른 사람의 소개로 알게 될 수 있어. 새로 연결된 곳에서는 앞으로도 쓸 만한 정보를 얻게 되는 날이야. 확인된 금액과 지급 날짜는 따로 남겨둬. | A contact far away or someone you approached earlier could answer a question about payment. You may hear that a shipment or a requested settlement has moved a step further. Another person's introduction might reveal a benefit you hadn't found on your own. A new connection could also offer information worth using again. Keep a record of the confirmed amount and payment date. | 遠くの取引先や以前連絡したところから、金額についての返事がありそうです。送った品物やお願いした精算も、一段階進んだと聞けるでしょう。自分で探したときには知らなかった特典を、人の紹介で知ることもありそうです。新しくつながったところでは、今後も使える情報が得られるでしょう。確認できた金額と支払日は、別に記録しておいてください。 |
+| 분야 풀이 | 거래가 넓어지거나 함께한 일에서 수입이 늘 수 있어. 다른 곳에 맡겨둔 일이 좋은 결과로 돌아오면서 돈 받을 일이 생길 수 있는 날이야. 혼자 하던 것보다 협력해서 얻는 이익도 기대해볼 만해. 성과가 보이더라도 돈을 받기 전에 다음 비용부터 크게 늘리지는 말아줘. | More business or something done together could increase income. Work entrusted elsewhere may bring good results and a payment today. A shared effort could also offer more profit than working alone. Even with visible progress, don't start spending much more on the next stage before receiving the money. | 取引が広がったり、一緒に取り組んだことから収入が増えたりしそうです。別の所に任せていたことがよい結果を出し、お金を受け取る機会ができるかもしれません。一人でするより、協力して得られる利益も期待できる日です。成果が見えても、受け取る前から次の費用を大きく増やすのは控えましょう。 |
 
 ## wands.04 · 역방향
 
 내부 ID: `money.wands.04.reversed`
 
-카드 의미: 기반이나 모임의 방식이 아직 맞춰지지 않음. 원전은 정방향과 비슷한 좋음을 남기므로 기쁨 부재보다 불완전한 준비로 읽음.
+카드 의미: 행복·증가·아름다움·꾸밈, 정방향 의미 유지
 
-분야 해석: 행사추가비용
+분야 해석: 생활을 편하게 만드는 데 돈을 쓰기 좋은 날이야.
 
-관찰: 모임이나 집 안 준비에 작은 비용이 하나씩 더해질 수 있어. / 빠진 물건을 사다 보면 처음 정한 금액을 조금 넘기기 쉬운 날이야. / 다행히 가까운 사람에게 빌리거나 함께 나눠 쓸 수 있는 물건도 있을 거야.
+관찰: 행복·증가·아름다움·꾸밈 / 정방향 의미 유지
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 모임이나 집 안 준비에 작은 비용이 하나씩 더해질 수 있어. 빠진 물건을 사다 보면 처음 정한 금액을 조금 넘기기 쉬운 날이야. 다행히 가까운 사람에게 빌리거나 함께 나눠 쓸 수 있는 물건도 있을 거야. 꼭 새것을 갖추지 않아도 준비가 충분하다는 말을 들을 수 있어. 오늘만 쓸 물건은 사기 전에 빌릴 곳부터 물어봐. | Small costs could keep appearing while you prepare a gathering or something at home. Picking up missing items may put you a little over the amount you first set. Fortunately, some things could be borrowed from someone close or shared. You might hear that the preparations are enough without buying everything new. Ask about borrowing an item you'll only use today before purchasing it. | 集まりや家の準備に、小さな費用が一つずつ増えそうです。足りない物を買っているうちに、最初の予算を少し超えるかもしれません。身近な人から借りたり、分け合って使ったりできる物もありそうです。全部新品にしなくても十分だと言ってもらえるでしょう。今日だけ使う物は、買う前に借りられるところを聞いてみてください。 |
+| 분야 풀이 | 생활을 편하게 만드는 데 돈을 쓰기 좋은 날이야. 집을 꾸미거나 함께 지낼 공간을 마련하는 지출이라면 만족을 얻을 수 있어. 생활비에 큰 부담 없이 필요한 것을 마련할 수 있어. 분위기를 내려고 필요 없는 것까지 추가하지 않으면 즐겁게 쓴 돈으로 남을 수 있어. | It's a good day to spend on making daily life comfortable. Decorating your home or preparing a shared space could bring satisfaction. You may obtain what you need without putting much pressure on living costs. Leave out unnecessary extras bought only to set the mood, and the spending can remain a pleasure. | 暮らしを心地よくするために、お金を使うのによい日です。家を飾ったり、一緒に過ごす場所を用意したりする出費なら、満足できそうです。生活費に大きな負担をかけず、必要な物をそろえられるかもしれません。雰囲気づくりのために不要な物まで足さなければ、お金を使ってよかったと思えそうです。 |
 
 ## wands.04 · 정방향
 
 내부 ID: `money.wands.04.upright`
 
-카드 의미: 안정된 자리에서 나누는 기쁨과 작은 성취. 원전의 안식·조화를 부담 없는 모임과 마무리로 사용.
+카드 의미: 휴식·평화·화합·완성된 일의 기쁨
 
-분야 해석: 함께쓰는즐거움
+분야 해석: 즐거운 일을 위해 돈을 쓰고도 만족이 남을 수 있는 날이야.
 
-관찰: 함께 모이는 자리에서 비용을 나눠 내며 부담이 줄어들 수 있어. / 누군가 챙겨온 음식이나 작은 선물 덕분에 예상보다 적게 쓸 거야. / 여럿이 이용하는 혜택도 필요한 만큼 맞아 기분 좋게 챙길 수 있어.
+관찰: 휴식·평화·화합·완성된 일의 기쁨 / 즐거운 일을 위해 돈을 쓰고도 만족이 남을 수 있는 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 모이는 자리에서 비용을 나눠 내며 부담이 줄어들 수 있어. 누군가 챙겨온 음식이나 작은 선물 덕분에 예상보다 적게 쓸 거야. 여럿이 이용하는 혜택도 필요한 만큼 맞아 기분 좋게 챙길 수 있어. 공동으로 낼 돈은 계산이 끝난 뒤 바로 나눠줘. 크게 쓰지 않아도 넉넉하게 즐겼다는 만족이 남기 좋은 날이야. | Sharing the cost of a gathering could reduce the burden today. Food someone brings or a small gift may leave you spending less than expected. A group offer might also fit what you actually need. Divide shared expenses promptly once the bill is settled. You could leave feeling you've enjoyed plenty without spending much. | 集まりの費用を分け合って、負担が軽くなりそうです。誰かが持ってきた食べ物や小さな贈り物で、予定より出費が少なくなるかもしれません。複数人で使える特典も、必要な分にちょうど合いそうです。一緒に払うお金は、会計が済んだらすぐ分けてください。大きく使わなくても、十分楽しめた満足が残る日でしょう。 |
+| 분야 풀이 | 즐거운 일을 위해 돈을 쓰고도 만족이 남을 수 있는 날이야. 집이나 가까운 사람과 관련해 준비한 지출이 있다면 생각한 대로 잘 마무리될 수 있어. 함께 애쓴 일에서 돈을 받는다면 기쁨을 나누기에도 좋은 때야. 축하하는 마음에 원래 정한 금액을 크게 넘기지만 말아줘. | Money spent on something enjoyable could feel worthwhile today. A planned expense involving your home or someone close may be completed as expected. If you're paid for a shared effort, it's also a good time to celebrate together. Just don't let that happiness push spending far beyond the original amount. | 楽しいことにお金を使い、満足できそうです。家や身近な人のために予定していた出費があるなら、考えていたとおりに済ませられるかもしれません。一緒に頑張ったことからお金を受け取るなら、喜びを分かち合うのにもよい日です。お祝いの気分で、もともと決めた金額を大きく超えることだけは控えましょう。 |
 
 ## wands.05 · 역방향
 
 내부 ID: `money.wands.05.reversed`
 
-카드 의미: 불필요한 경쟁에서 벗어나거나 갈등을 덮어둠. 원전의 논쟁·기만 중 회피의 비용을 보고 협의로 옮기는 현대적 선택.
+카드 의미: 논쟁·속임·모순
 
-분야 해석: 비용합의
+분야 해석: 금액을 두고 말이 달라져 돈 문제가 복잡해질 수 있어.
 
-관찰: 서로 다르게 생각했던 비용을 두고 합의가 이루어질 수 있어. / 작은 금액 때문에 길어졌던 이야기도 한 사람이 양보하며 짧게 끝날 거야. / 놓친 할인도 다시 보면 필요 없는 물건이어서 별로 아쉽지 않을 거야.
+관찰: 논쟁·속임·모순 / 금액을 두고 말이 달라져 돈 문제가 복잡해질 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 다르게 생각했던 비용을 두고 합의가 이루어질 수 있어. 작은 금액 때문에 길어졌던 이야기도 한 사람이 양보하며 짧게 끝날 거야. 놓친 할인도 다시 보면 필요 없는 물건이어서 별로 아쉽지 않을 거야. 여럿이 쓰는 돈에서는 누가 더 냈는지보다 정리가 됐다는 안도감이 클 거야. 합의한 금액은 서로 볼 수 있게 한 번 남겨둬. | An agreement could be reached over an expense you've viewed differently. A small concession from one person may end a discussion that's gone on over a minor amount. A discount you missed might not seem regrettable once you realize you didn't need the item. With shared money, relief at having it settled may outweigh concern over who paid more. Record the agreed amount somewhere everyone involved can see it. | 意見の違った費用について、合意できそうです。少額のために長引いていた話も、一人が譲ることで短く終わるでしょう。逃した割引も、必要のない品物だったと気づけば、それほど残念ではなさそうです。共同のお金では誰が多く出したかより、話がまとまった安心感が大きいでしょう。合意した金額は、皆が見られる形で一度残してください。 |
+| 분야 풀이 | 금액을 두고 말이 달라져 돈 문제가 복잡해질 수 있어. 처음 들은 조건과 나중 설명이 맞지 않으면 손해를 누가 부담할지 다툼이 생기기 쉬운 날이야. 빨리 끝내려고 잘 모르는 비용까지 받아들이지 않는 게 좋아. 돈을 내기 전에 약속한 내용을 기록과 맞춰봐. | Different explanations of the amount could complicate a money matter. If later explanations don't match the original terms, an argument may arise over who covers the loss today. It's better not to accept costs you don't understand just to finish quickly. Compare the agreement with the records before paying. | 金額についての説明が変わり、お金の問題が複雑になるかもしれません。初めの条件と後の説明が違うと、損を誰が負担するか、もめやすい日です。早く終えようとして、よくわからない費用まで受け入れないほうがよいでしょう。払う前に、約束した内容と記録を照らし合わせてください。 |
 
 ## wands.05 · 정방향
 
 내부 ID: `money.wands.05.upright`
 
-카드 의미: 다른 의욕과 의견이 부딪치는 경쟁·연습. 원전의 힘겨루기를 파괴적 적대가 아닌 조정 가능한 마찰로 읽음.
+카드 의미: 경쟁·모의 대결·서로 다른 주장
 
-분야 해석: 가격흥정
+분야 해석: 돈을 두고 경쟁할 일이 생길 수 있어.
 
-관찰: 같은 물건을 두고 여러 가격이나 제안을 접하게 될 수 있어. / 판매하는 쪽에서 처음보다 나은 가격을 제시할 수도 있어. / 다만 다른 사람이 산다는 말에 갑자기 더 쓰고 싶은 마음이 생길 수 있어.
+관찰: 경쟁·모의 대결·서로 다른 주장 / 돈을 두고 경쟁할 일이 생길 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 같은 물건을 두고 여러 가격이나 제안을 접하게 될 수 있어. 판매하는 쪽에서 처음보다 나은 가격을 제시할 수도 있어. 흥정할 때는 실제로 낼 수 있는 금액을 분명히 말해줘. 다만 다른 사람이 산다는 말에 갑자기 더 쓰고 싶은 마음이 생길 수 있어. 경쟁하는 분위기에서 벗어나면 꼭 필요한 물건인지 다시 보일 거야. | Several prices or offers for the same item could reach you today. A seller might propose a better price than the first one mentioned. Be clear about what you can actually pay when negotiating. Hearing that someone else wants it could still tempt you to spend more suddenly. Away from the competitive atmosphere, whether you need the item should be easier to see. | 同じ品物について、いくつかの値段や提案を聞くことになりそうです。売る側が、最初よりよい価格を提示するかもしれません。交渉するときは、実際に払える金額をはっきり伝えてください。ただ、ほかの人が買うと聞いて、急に多く出したくなることもありそうです。競争する雰囲気から離れると、本当に必要か改めてわかるでしょう。 |
+| 분야 풀이 | 돈을 두고 경쟁할 일이 생길 수 있어. 서로 더 좋은 조건을 내세우면 원하는 금액을 받기가 쉽지 않을 수 있는 날이야. 이기겠다는 마음에 가격을 너무 낮추면 일이 성사돼도 남는 돈이 적어져. 받을 몫을 정해두고 그 아래로 무리하게 양보하지 말아줘. | Competition over money could arise. As people compete to offer better terms, getting the amount you want may be difficult today. Lowering your price too far to win could leave little profit even if the deal happens. Decide the share you need and don't give way beyond what you can manage. | お金をめぐって、競争する場面がありそうです。互いによりよい条件を提示すると、希望の金額を得るのは簡単ではないかもしれません。勝ちたい一心で値段を下げすぎると、成立しても残る利益は少なくなります。受け取りたい額を決め、それを下回るほど無理に譲るのは控えましょう。 |
 
 ## wands.06 · 역방향
 
 내부 ID: `money.wands.06.reversed`
 
-카드 의미: 인정이 늦거나 남의 반응에 만족을 맡김. 원전의 늦어진 기대를 스스로의 기준을 회복하는 방향으로 응용.
+카드 의미: 불안·인정이나 결과의 지연
 
-분야 해석: 보상기대차이
+분야 해석: 기대했던 보수나 보답이 늦어질 수 있는 날이야.
 
-관찰: 받을 거라 기대한 보상이 늦어지거나 생각한 크기와 다를 수 있어. / 이야기만 듣고 예상했던 금액이 실제 안내와 달라 잠깐 아쉬울 거야. / 다만 확인하고 나면 일부가 나중에 지급되거나 다른 혜택으로 포함됐다는 설명을 들을 수 있어.
+관찰: 불안·인정이나 결과의 지연 / 기대했던 보수나 보답이 늦어질 수 있는 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 받을 거라 기대한 보상이 늦어지거나 생각한 크기와 다를 수 있어. 이야기만 듣고 예상했던 금액이 실제 안내와 달라 잠깐 아쉬울 거야. 다만 확인하고 나면 일부가 나중에 지급되거나 다른 혜택으로 포함됐다는 설명을 들을 수 있어. 남의 보상과 비교할수록 내 몫이 작게 느껴지기 쉬운 날이야. 실제로 받을 금액을 확인하기 전에는 그 돈을 쓸 약속을 잡지 마. | A reward you expected may be late or smaller than you pictured. An amount imagined from an earlier conversation could differ from the actual notice. Checking might reveal that part will come later or was included as another benefit. Comparing it with someone else's reward could make your share feel smaller today. Don't commit to spending it until you know what you'll actually receive. | 期待した報酬が遅れたり、考えた大きさと違ったりするかもしれません。話から予想した金額と実際の案内が違い、少し残念に感じそうです。確認すれば、一部は後日支払われたり、別の特典に含まれたりしているとわかることもあるでしょう。人の報酬と比べるほど、自分の分が小さく見えやすい日です。実際の金額がわかる前に、そのお金を使う約束はしないでください。 |
+| 분야 풀이 | 기대했던 보수나 보답이 늦어질 수 있는 날이야. 잘했다고 생각한 일도 금액까지 만족스럽게 돌아오지는 않을 수 있어. 인정받고 싶은 마음에 원래 약속보다 많은 일을 해주면 실속이 줄어들기 쉬워. 받을 돈을 묻는 것을 부담스러워하지 말고 금액과 시기를 분명히 해줘. | Expected pay or a reward could be delayed today. Even something you believe went well may not bring a satisfying amount. Doing more than agreed to gain recognition could leave you with less for your effort. Don't feel bad about asking what you're owed; make the amount and timing clear. | 期待した報酬やお返しが、遅れるかもしれません。うまくできたと思う仕事でも、受け取る額までは満足できないことがありそうです。認めてもらいたくて、約束以上のことを引き受けると、割に合わなくなりがちです。報酬を尋ねることをためらわず、金額と時期をはっきりさせましょう。 |
 
 ## wands.06 · 정방향
 
 내부 ID: `money.wands.06.upright`
 
-카드 의미: 노력이 보이고 인정을 받는 순간. 원전의 승리와 좋은 소식을 작은 성과의 가시성으로 제한.
+카드 의미: 승리·희망의 실현·반가운 소식·인정
 
-분야 해석: 노력의보상
+분야 해석: 좋은 성과가 수입으로 돌아올 수 있어.
 
-관찰: 수고한 일에 대한 보상이나 기분 좋은 혜택 소식을 들을 수 있어. / 전에 도와준 사람이 작은 선물이나 식사로 고마움을 표현할 수도 있을 거야. / 정식 수입이 아니어도 내 노력을 기억해줬다는 기쁨이 남는 날이야.
+관찰: 승리·희망의 실현·반가운 소식·인정 / 좋은 성과가 수입으로 돌아올 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 수고한 일에 대한 보상이나 기분 좋은 혜택 소식을 들을 수 있어. 전에 도와준 사람이 작은 선물이나 식사로 고마움을 표현할 수도 있을 거야. 대가가 정해진 일이라면 받을 날짜를 확인해둬. 정식 수입이 아니어도 내 노력을 기억해줬다는 기쁨이 남는 날이야. 필요했던 물건을 좋은 조건으로 구해 작은 이득을 느낄 수도 있어. | News of a reward for your effort or a welcome benefit could arrive. Someone you've helped might express their thanks with a small gift or a meal. If payment was agreed, check when you should receive it. Even something that isn't regular income can leave you pleased that your contribution was remembered. Getting a needed item on good terms could also bring a modest saving. | 頑張ったことへの報酬や、うれしい特典の知らせがありそうです。以前助けた人が、小さな贈り物や食事でお礼を示すこともあるでしょう。対価の決まっている仕事なら、受け取る日を確認しておいてください。正式な収入でなくても、努力を覚えていてくれた喜びが残りそうです。必要な品物をよい条件で手に入れ、小さく得した気分にもなれるかもしれません。 |
+| 분야 풀이 | 좋은 성과가 수입으로 돌아올 수 있어. 노력한 일을 인정받아 보수가 늘거나 금전적인 보답을 받을 수 있는 날이야. 바라던 거래 결과를 기다린다면 자신에게 유리한 소식을 기대해볼 만해. 성과를 자랑하려고 큰돈을 쓰기보다는 받은 돈으로 필요했던 것부터 마련해줘. | A good result could bring income. Recognition of your work may lead to higher pay or a financial reward today. If you're waiting for a deal's outcome, favourable news is worth hoping for. Use the payment for things you've needed rather than to show off your success with an expensive purchase. | よい成果が、収入として返ってくるかもしれません。努力した仕事が認められ、報酬の増額など、お金の面でも応えてもらえそうです。取引の結果を待っているなら、有利な知らせを期待できる日です。成果を自慢するために大金を使うより、受け取ったお金で必要だった物を先にそろえましょう。 |
 
 ## wands.07 · 역방향
 
 내부 ID: `money.wands.07.reversed`
 
-카드 의미: 방어할 것이 너무 많아 지치거나 기준을 쉽게 내줌. 원전의 난처함을 중요도와 대응 범위 재정리로 사용.
+카드 의미: 혼란·불안·우유부단·버티는 힘의 약화
 
-분야 해석: 거절하기어려운지출
+분야 해석: 지켜야 할 돈을 남에게 양보해 손해가 남기 쉬운 날이야.
 
-관찰: 추가 구매나 돈을 보태달라는 부탁을 거절하기 어렵게 느낄 수 있어. / 이미 정한 지출에 다른 항목이 붙어 부담이 조금 커질 거야. / 다만 처음 안내를 다시 보면 꼭 내야 하는 돈은 아니라는 걸 알 수 있어.
+관찰: 혼란·불안·우유부단·버티는 힘의 약화 / 지켜야 할 돈을 남에게 양보해 손해가 남기 쉬운 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 추가 구매나 돈을 보태달라는 부탁을 거절하기 어렵게 느낄 수 있어. 이미 정한 지출에 다른 항목이 붙어 부담이 조금 커질 거야. 다만 처음 안내를 다시 보면 꼭 내야 하는 돈은 아니라는 걸 알 수 있어. 주변에서도 생각보다 쉽게 내 사정을 이해해주는 사람이 있을 거야. 오늘은 설명을 길게 하기보다 쓸 수 있는 금액만 분명히 말해줘. | Turning down an extra purchase or a request to contribute money may feel difficult today. Another item could be added to an expense you'd already settled on. Revisiting the original explanation might show that payment isn't compulsory. Someone around you could also understand your circumstances more readily than expected. State what you can spend instead of explaining at length. | 追加購入やお金を出してほしいという頼みを、断りにくく感じそうです。決めていた出費に別の項目が加わり、少し負担が増えるかもしれません。ただ、最初の案内を見直すと、必ず払うお金ではないとわかりそうです。周りにも、思ったよりすんなり事情を理解する人がいるでしょう。今日は長く説明するより、使える金額だけをはっきり伝えてください。 |
+| 분야 풀이 | 지켜야 할 돈을 남에게 양보해 손해가 남기 쉬운 날이야. 상대의 요구가 많아지면 거절하기 지쳐 예상보다 큰 비용을 떠안을 수 있어. 자신의 판단이 맞는지 망설이는 동안 금전 조건이 불리해질 수도 있어. 감당하기 어려운 금액에는 그 자리에서 대답하지 않아도 괜찮아. | Giving up money you need to keep could leave you with a loss today. More demands may wear down your ability to refuse and leave you with higher costs than expected. Doubting your judgement could also let financial terms turn against you. It's fine not to answer on the spot about an amount you can't comfortably manage. | 守るべきお金を人に譲り、損をしやすい日です。相手の要求が増えると、断ることに疲れ、予想より大きな費用を引き受けるかもしれません。判断が正しいか迷っている間に、金銭面の条件が不利になる可能性もあります。負担しきれない金額には、その場で返事をしなくても大丈夫です。 |
 
 ## wands.07 · 정방향
 
 내부 ID: `money.wands.07.upright`
 
-카드 의미: 외부 요구 앞에서 자기 자리를 지킴. 원전의 유리한 위치와 경쟁을 근거 있는 주장과 경계로 응용.
+카드 의미: 용기·유리한 입장에서 자신의 몫을 지킴·논의
 
-분야 해석: 정당한권리
+분야 해석: 자신의 몫을 지켜 금전적인 손해를 막기 좋은 날이야.
 
-관찰: 반품이나 환불처럼 내 몫을 확인하는 일에서 분명한 답을 받을 수 있어. / 처음에는 어렵다는 안내도 구매 기록을 보인 뒤 달라질 수 있는 날이야. / 함께 낸 비용에서도 누가 얼마를 부담했는지 정확히 드러날 거야.
+관찰: 용기·유리한 입장에서 자신의 몫을 지킴·논의 / 자신의 몫을 지켜 금전적인 손해를 막기 좋은 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 반품이나 환불처럼 내 몫을 확인하는 일에서 분명한 답을 받을 수 있어. 처음에는 어렵다는 안내도 구매 기록을 보인 뒤 달라질 수 있는 날이야. 함께 낸 비용에서도 누가 얼마를 부담했는지 정확히 드러날 거야. 관련 영수증이나 메시지를 먼저 찾아둬. 차분하게 사실을 전한 태도가 오히려 대화를 짧게 끝내줄 수 있어. | You could get a clear answer about something you're entitled to, such as a return or refund. An initially difficult response may change once you show the purchase record. For shared expenses, who contributed what should become clearer. Find the relevant receipt or message first. Calmly presenting the facts could actually make the conversation shorter. | 返品や返金など、自分の権利を確かめることにはっきりした答えがありそうです。最初は難しいと言われても、購入記録を見せると対応が変わるかもしれません。共同で出した費用も、誰がいくら負担したか明確になるでしょう。関係するレシートやメッセージを先に探しておいてください。落ち着いて事実を伝える姿勢が、かえって話を短く済ませてくれそうです。 |
+| 분야 풀이 | 자신의 몫을 지켜 금전적인 손해를 막기 좋은 날이야. 상대가 금액을 낮추려 해도 준비한 근거가 있다면 정당한 값을 받을 수 있어. 이미 유리한 조건으로 이야기 중인 거래라면 쉽게 양보할 필요가 없어. 다른 사람 말에 흔들리기보다 처음 합의한 금액을 차분히 확인해줘. | It's a good day to protect your share and prevent a financial loss. Even if someone tries to lower the amount, evidence you've prepared could help you get a fair price. There's no need to give way easily on a deal already being discussed on favourable terms. Calmly check the original agreed amount instead of being swayed by other people's words. | 本来の取り分を守り、金銭的な損を防ぎやすい日です。相手が金額を下げようとしても、用意した根拠があれば、正当な額を受け取れそうです。すでに有利な条件で話が進んでいる取引なら、簡単に譲る必要はありません。他人の言葉に揺れるより、最初に合意した金額を落ち着いて確かめましょう。 |
 
 ## wands.08 · 역방향
 
 내부 ID: `money.wands.08.reversed`
 
-카드 의미: 속도가 맞지 않는 지연이나 전달 혼선. 원전의 질투·논쟁보다 급한 소통의 엇갈림을 현대적으로 채택.
+카드 의미: 질투·내부 다툼·말의 충돌
 
-분야 해석: 결제착오
+분야 해석: 돈을 주고받는 과정에서 말이 엇갈리거나 입금이 늦어질 수 있어.
 
-관찰: 결제 알림이나 금액 안내가 늦게 도착해 잠깐 헷갈릴 수 있어. / 한 번 보낸 돈을 다시 보내려 하거나 중복 주문을 고민하게 되는 날이야. / 구매 기록을 확인하면 이미 처리된 일이었다는 걸 알 수 있어.
+관찰: 질투·내부 다툼·말의 충돌 / 돈을 주고받는 과정에서 말이 엇갈리거나 입금이 늦어질 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 결제 알림이나 금액 안내가 늦게 도착해 잠깐 헷갈릴 수 있어. 한 번 보낸 돈을 다시 보내려 하거나 중복 주문을 고민하게 되는 날이야. 구매 기록을 확인하면 이미 처리된 일이었다는 걸 알 수 있어. 문의에 대한 답도 조금 늦을 뿐 차례로 도착할 거야. 확인이 안 된 결제는 같은 동작을 반복하기 전에 내역부터 봐줘. | A delayed payment notice or amount confirmation could be briefly confusing. You might consider sending money again or placing a duplicate order today. Checking the purchase record may show that it was already processed. Answers to inquiries should also arrive in turn, even if a little late. Look at the record before repeating a payment that hasn't been confirmed. | 決済の通知や金額の案内が遅れ、一時的に迷いそうです。一度送ったお金を再び送ろうとしたり、重複注文を考えたりするかもしれません。購入履歴を見ると、すでに処理されていたとわかりそうです。問い合わせへの返事も、少し遅れるだけで順に届くでしょう。未確認の支払いは、同じ操作を繰り返す前に履歴を見てください。 |
+| 분야 풀이 | 돈을 주고받는 과정에서 말이 엇갈리거나 입금이 늦어질 수 있어. 서로 다른 안내를 받으면 같은 돈을 두 번 내거나 금액을 잘못 알기 쉬운 날이야. 서둘러 처리할수록 작은 착오가 커질 수 있어. 이미 보낸 돈이 있다면 다시 보내기 전에 상대에게 확인해줘. | Conflicting messages or a delayed payment could complicate an exchange of money. Different instructions may make it easy to pay twice or misunderstand the amount today. The more you rush, the larger a small mistake could become. If you've already sent money, check with the recipient before sending it again. | お金をやり取りする中で話が食い違ったり、入金が遅れたりするかもしれません。違う案内を受けると、同じお金を二度払ったり、金額を誤解したりしやすい日です。急ぐほど、小さな間違いが大きくなりそうです。すでに送ったお金があるなら、もう一度送金する前に、相手へ確かめましょう。 |
 
 ## wands.08 · 정방향
 
 내부 ID: `money.wands.08.upright`
 
-카드 의미: 소식과 행동이 빠르게 이어지는 진행. 원전의 신속함을 응답·일정이 맞물리는 순간으로 사용.
+카드 의미: 빠른 활동·전달·진전·사랑의 화살
 
-분야 해석: 빠른정산
+분야 해석: 돈에 관한 반가운 소식이 빠르게 들어올 수 있어.
 
-관찰: 신청해둔 환급이나 정산에 예상보다 빠른 답을 받을 수 있어. / 보내기로 한 금액이 확인되거나 필요한 구매가 짧은 시간에 끝날 거야. / 물건을 주고받는 거래에서도 연락이 잘 맞아 기다리는 수고가 줄어들 수 있어.
+관찰: 빠른 활동·전달·진전·사랑의 화살 / 돈에 관한 반가운 소식이 빠르게 들어올 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 신청해둔 환급이나 정산에 예상보다 빠른 답을 받을 수 있어. 보내기로 한 금액이 확인되거나 필요한 구매가 짧은 시간에 끝날 거야. 입금 알림이 오면 실제 금액을 한 번 확인해줘. 물건을 주고받는 거래에서도 연락이 잘 맞아 기다리는 수고가 줄어들 수 있어. 금방 해결된 일 덕분에 돈과 관련한 걱정 하나가 가벼워질 거야. | A refund application or requested settlement could receive an answer sooner than expected. A promised amount may be confirmed, or a needed purchase could be completed quickly. Check the actual amount when a payment notification arrives. Communication around exchanging goods may also line up, reducing the wait. A quickly resolved matter could take one money concern off your mind. | 申請していた還付や精算に、予想より早く返事がありそうです。送られる金額が確認できたり、必要な買い物が短時間で済んだりするでしょう。入金の通知が来たら、実際の金額を一度確認してください。品物を受け渡す取引でも連絡が合い、待つ手間が減りそうです。すぐ片づいたおかげで、お金の心配が一つ軽くなるでしょう。 |
+| 분야 풀이 | 돈에 관한 반가운 소식이 빠르게 들어올 수 있어. 기다리던 대금이 들어오거나 진행 중인 거래가 예상보다 빨리 끝날 수 있는 날이야. 필요한 때에 돈이 들어와 급한 지출 걱정을 덜 수도 있어. 여러 돈 이야기가 한꺼번에 오면 금액과 보내는 곳을 헷갈리지 않게 해줘. | Welcome financial news could arrive quickly. An awaited payment may come through or a transaction could finish sooner than expected today. Money arriving when needed may ease worry about urgent expenses too. If you hear about several money matters at once, take care not to mix up amounts or payment destinations. | お金に関するうれしい知らせが、早く届くかもしれません。待っていた代金が入ったり、進めている取引が予想より早く終わったりしそうです。必要なときにお金が入り、急な出費への心配が和らぐこともあるでしょう。複数のお金の話が一度に来たら、金額と送金先を混同しないようにしてください。 |
 
 ## wands.09 · 역방향
 
 내부 ID: `money.wands.09.reversed`
 
-카드 의미: 지속해야 한다는 압박이나 지나친 경계가 부담이 됨. 원전의 장애를 포기 단정 없이 범위 조정으로 사용.
+카드 의미: 장애·지나친 경계·방법의 경직
 
-분야 해석: 과한손해걱정
+분야 해석: 계속 신경 쓰던 돈 문제가 쉽게 끝나지 않을 수 있어.
 
-관찰: 예전에 아쉬웠던 거래가 떠올라 괜찮은 제안에도 조심스러울 수 있어. / 꼭 필요한 지출까지 망설이며 같은 가격을 여러 번 보게 될 거야. / 이번 조건을 직접 들으면 과거와 다른 점이 분명해질 수 있어.
+관찰: 장애·지나친 경계·방법의 경직 / 계속 신경 쓰던 돈 문제가 쉽게 끝나지 않을 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 아쉬웠던 거래가 떠올라 괜찮은 제안에도 조심스러울 수 있어. 꼭 필요한 지출까지 망설이며 같은 가격을 여러 번 보게 될 거야. 이번 조건을 직접 들으면 과거와 다른 점이 분명해질 수 있어. 믿을 만한 사람의 실제 경험도 불필요한 걱정을 덜어줄 거야. 다시 거래할 때는 최종 금액을 문자로 받아둬. | A disappointing past transaction could make even a reasonable offer feel risky. You may hesitate over a necessary expense and revisit the same price several times. Hearing the current terms directly could reveal how this occasion differs. A trustworthy person's firsthand experience might also ease an unnecessary worry. Get the final amount in writing before another transaction. | 以前残念だった取引を思い出し、よい提案にも慎重になりそうです。必要な出費まで迷って、同じ価格を何度も見るかもしれません。今回の条件を直接聞けば、過去と違う点がはっきりするでしょう。信頼できる人の実体験も、余計な心配を和らげそうです。次の取引では、最終金額をメッセージで受け取っておいてください。 |
+| 분야 풀이 | 계속 신경 쓰던 돈 문제가 쉽게 끝나지 않을 수 있어. 또 손해 볼까 걱정해서 모든 제안을 막으면 비용을 줄일 방법까지 놓치기 쉬운 날이야. 반대로 지쳤다는 이유로 아무 조건이나 받아들이면 부담은 그대로 남아. 한 번에 끝내려 하기보다 실제로 조정할 금액부터 이야기해봐. | A money matter that's kept you worried may not end easily. Rejecting every offer for fear of another loss could make you miss a way to reduce costs today. Accepting any terms out of exhaustion, on the other hand, may leave the same burden in place. Start by discussing the amount that can actually be changed instead of trying to finish everything at once. | 気にかけていたお金の問題が、なかなか終わらないかもしれません。また損をするのが怖くて、どの提案も断ると、費用を減らす方法まで逃しがちです。一方で、疲れたからとどんな条件でも受け入れると、負担は残ります。一度に終わらせようとせず、実際に調整できる金額から話しましょう。 |
 
 ## wands.09 · 정방향
 
 내부 ID: `money.wands.09.upright`
 
-카드 의미: 지친 경험이 있어도 중요한 것을 지키는 끈기와 경계. 원전의 저항력을 과로 아닌 남은 여력의 신중한 사용으로 응용.
+카드 의미: 대응 경험·반대 앞의 끈기·경계
 
-분야 해석: 지켜온여유
+분야 해석: 돈을 지키는 데 그동안의 경험이 도움이 되는 날이야.
 
-관찰: 아껴두었던 돈이 갑자기 필요한 지출에 도움이 될 수 있어. / 전에 꼼꼼히 챙긴 보증이나 구매 기록도 오늘 쓸모가 생길 거야. / 예상한 비용을 감당하고 나면 미리 대비한 보람을 느낄 수 있어.
+관찰: 대응 경험·반대 앞의 끈기·경계 / 돈을 지키는 데 그동안의 경험이 도움이 되는 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 아껴두었던 돈이 갑자기 필요한 지출에 도움이 될 수 있어. 전에 꼼꼼히 챙긴 보증이나 구매 기록도 오늘 쓸모가 생길 거야. 예상한 비용을 감당하고 나면 미리 대비한 보람을 느낄 수 있어. 사용한 돈은 얼마인지 한 번 적어둬. 남아 있는 금액을 확인하며 처음의 걱정보다 편해지는 날이야. | Money you've set aside could help with a sudden expense. A warranty or purchase record you kept carefully might also prove useful today. Covering an anticipated cost may leave you glad you prepared. Write down what you've used. Seeing the amount still available could make you more comfortable than you were at first. | 残しておいたお金が、急に必要な出費に役立ちそうです。前に大切に保管した保証や購入記録も、今日使い道が生まれるでしょう。予想した費用を払えて、備えていた甲斐を感じられそうです。使った金額は、一度書いておいてください。残高を確かめると、最初の心配より楽になれる日でしょう。 |
+| 분야 풀이 | 돈을 지키는 데 그동안의 경험이 도움이 되는 날이야. 예전에 겪었던 불리한 조건을 알아보고 같은 손해를 피할 수 있어. 지금까지 마련한 돈을 급하게 움직이지 않으면 필요한 때에 쓸 여유도 남기 좋아. 낯선 제안보다 이미 잘 알고 있는 거래부터 차분히 마무리해줘. | Past experience could help protect your money today. Recognising unfavourable terms you've seen before may let you avoid the same loss. Leaving the money you've built up where it is instead of moving it hastily could keep some available when needed. Calmly finish familiar transactions before considering an unfamiliar offer. | お金を守るうえで、これまでの経験が役立つ日です。以前経験した不利な条件に気づき、同じ損を避けられそうです。用意してきたお金を急いで動かさなければ、必要なときに使う余裕も残しやすいでしょう。よく知らない提案より、十分わかっている取引を先に、落ち着いて終えましょう。 |
 
 ## wands.10 · 역방향
 
 내부 ID: `money.wands.10.reversed`
 
-카드 의미: 필요 없는 짐을 내려놓거나 책임을 나누는 현대적 해방 독해. 원전의 장애와 달리 부담을 줄일 행동의 여지에 초점.
+카드 의미: 역할을 나누지 못한 부담·어려움
 
-분야 해석: 비용부담완화
+분야 해석: 감당하기 어려운 돈 부담을 혼자 떠안기 쉬운 날이야.
 
-관찰: 혼자 부담하던 비용을 나누거나 돌려받을 수 있는 소식을 들을 수 있어. / 함께 쓰던 것의 값을 다른 사람이 먼저 챙겨줘 여유가 생길 거야. / 이제 필요 없어진 준비물이나 약속 덕분에 예상 지출이 줄어들 수도 있어.
+관찰: 역할을 나누지 못한 부담·어려움 / 감당하기 어려운 돈 부담을 혼자 떠안기 쉬운 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 부담하던 비용을 나누거나 돌려받을 수 있는 소식을 들을 수 있어. 함께 쓰던 것의 값을 다른 사람이 먼저 챙겨줘 여유가 생길 거야. 이제 필요 없어진 준비물이나 약속 덕분에 예상 지출이 줄어들 수도 있어. 작은 금액이라도 계속 신경 쓰던 부담이 없어져 반가운 날이야. 줄어든 비용은 바로 다른 소비로 채우지 않는 게 좋아. | You could hear that an expense you've carried alone can be shared or returned. Someone may cover a shared item's cost first and leave you more room. Supplies or an arrangement no longer needed could also reduce an expected outlay. Even a small amount can be a relief when it's been on your mind. Don't immediately replace the reduced expense with another purchase. | 一人で負担していた費用を分けたり、返してもらえたりする知らせがありそうです。共同で使う物の代金を、ほかの人が先に出してくれるかもしれません。不要になった準備物や約束で、予定の出費が減ることもありそうです。少額でも、気にしていた負担がなくなるのはうれしいでしょう。減った費用をすぐ別の買い物で埋めないでください。 |
+| 분야 풀이 | 감당하기 어려운 돈 부담을 혼자 떠안기 쉬운 날이야. 여러 곳에 주겠다고 한 돈이 겹치면 당장 필요한 지출부터 막힐 수 있어. 갚을 약속을 하나 더 만드는 것으로는 빠듯한 사정이 해결되지 않을 수 있어. 지금 낼 수 없는 금액은 미리 이야기하고 새 약속은 줄여줘. | You could end up carrying an unmanageable financial burden alone today. Several promised payments coming due at once may leave you unable to cover immediate needs. Another promise to repay may not solve the shortage. Say in advance what you can't pay now and make fewer new commitments. | 負担しきれないお金の問題を、一人で抱えやすい日です。複数の支払いの約束が重なると、今必要な出費もまかなえないかもしれません。返済の約束をもう一つ増やしても、苦しいやりくりは解決しない可能性があります。今払えない金額は先に伝え、新しい約束は減らしましょう。 |
 
 ## wands.10 · 정방향
 
 내부 ID: `money.wands.10.upright`
 
-카드 의미: 많은 책임과 성취 뒤의 무거운 짐. 원전의 억압·성공의 부담을 혼자 떠안은 양의 문제로 사용.
+카드 의미: 많은 책임·성과에 따르는 무게
 
-분야 해석: 겹친청구
+분야 해석: 돈을 벌어도 책임질 비용이 많아 넉넉하게 느끼기 어려울 수 있어.
 
-관찰: 서로 다른 비용이 같은 때에 몰려 평소보다 지출이 크게 느껴질 수 있어. / 한 건씩 보면 예상했던 돈인데 합해놓으니 부담스러울 거야. / 함께 부담하기로 했던 돈에서는 내 몫보다 많이 챙긴 부분을 발견할 수 있어.
+관찰: 많은 책임·성과에 따르는 무게 / 돈을 벌어도 책임질 비용이 많아 넉넉하게 느끼기 어려울 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 다른 비용이 같은 때에 몰려 평소보다 지출이 크게 느껴질 수 있어. 한 건씩 보면 예상했던 돈인데 합해놓으니 부담스러울 거야. 오늘 낼 금액과 나중에 낼 금액을 나눠 적어봐. 함께 부담하기로 했던 돈에서는 내 몫보다 많이 챙긴 부분을 발견할 수 있어. 확인하고 나면 혼자 다 낼 필요는 없다는 걸 알게 될 거야. | Several costs may arrive together and make spending feel heavier than usual. Each might have been expected, while the total still looks daunting. Separate what needs paying today from what can wait. Among shared expenses, you could spot a part you've covered beyond your share. Checking may show that you don't have to pay it all alone. | 別々の費用が同じ時期に集まり、いつもより出費が大きく感じられそうです。一件ずつは予想内でも、合計すると負担に思えるでしょう。今日払う金額と、後で払う金額を分けて書いてください。共同負担の中で、自分の分より多く用意したところが見つかるかもしれません。確認すれば、一人で全部出す必要はないとわかるでしょう。 |
+| 분야 풀이 | 돈을 벌어도 책임질 비용이 많아 넉넉하게 느끼기 어려울 수 있어. 맡은 일이 늘면서 수입과 함께 필요한 지출도 커질 수 있는 날이야. 다른 사람 몫까지 부담하면 정작 자신에게 남는 돈이 적어져. 큰돈이 오가는 일일수록 자신이 낼 몫을 따로 계산해줘. | Even with earnings, many costs to cover may keep money from feeling plentiful. More work could bring both income and necessary expenses today. Paying someone else's share too may leave little for you. The larger the sums involved, the more carefully you should calculate your own share separately. | 稼いでも、負担する費用が多く、余裕を感じにくいかもしれません。引き受ける仕事が増えると、収入とともに必要な出費も増えそうです。ほかの人の分まで負担すると、手元に残る額は少なくなります。やり取りする金額が大きいほど、こちらが払う分を分けて計算しましょう。 |
 
 ## wands.11 · 역방향
 
 내부 ID: `money.wands.11.reversed`
 
-카드 의미: 흥미는 있지만 계획이 흩어지거나 소식의 의미를 서두름. 원전의 불안정한 안내를 시작 조건의 확인으로 사용.
+카드 의미: 불안정·우유부단·확인안된 이야기
 
-분야 해석: 불확실한보상
+분야 해석: 확실하지 않은 소문을 따라 돈을 썼다가 후회할 수 있어.
 
-관찰: 보상이 있다는 말을 듣고 관심이 생겨도 실제 조건은 다를 수 있어. / 작은 선물을 받으려면 예상보다 많은 시간을 써야 한다는 걸 알 수 있는 날이야. / 이미 참여한 사람의 설명에는 광고에서 빠졌던 내용이 있을 거야.
+관찰: 불안정·우유부단·확인안된 이야기 / 확실하지 않은 소문을 따라 돈을 썼다가 후회할 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 보상이 있다는 말을 듣고 관심이 생겨도 실제 조건은 다를 수 있어. 작은 선물을 받으려면 예상보다 많은 시간을 써야 한다는 걸 알 수 있는 날이야. 이미 참여한 사람의 설명에는 광고에서 빠졌던 내용이 있을 거야. 자세히 듣고 나면 굳이 참가하지 않아도 아쉽지 않은 제안일 수 있어. 보상만 보지 말고 해야 할 일을 먼저 확인해봐. | Hearing that a reward is offered could interest you, while the actual conditions may differ. A small gift might require more time than you expected today. Someone who's already participated could explain what the advertisement left out. After hearing the details, it may be an offer you don't mind declining. Find out what you must do before focusing on the reward. | 謝礼の話に興味を持っても、実際の条件は思ったものと違うかもしれません。小さなプレゼントをもらうために、予想以上の時間が必要だと分かりそうです。参加した人からは、広告に書かれていない話も聞けるでしょう。詳しく知れば、参加を見送っても惜しくないと感じるかもしれません。もらえるものだけでなく、何をする必要があるのか先に確かめてください。 |
+| 분야 풀이 | 확실하지 않은 소문을 따라 돈을 썼다가 후회할 수 있어. 돈이 될 거라는 말은 많아도 실제로 받는 금액은 정해지지 않을 수 있는 날이야. 준비하던 일이 자꾸 바뀌면 산 물건이나 들인 비용도 아깝게 남기 쉬워. 구체적인 약속이 생기기 전에는 큰돈을 먼저 쓰지 말아줘. | Spending on an unconfirmed rumour could lead to regret. Plenty of talk about earnings may still leave the actual payment undecided today. If preparations keep changing, purchased items and money spent could feel wasted too. Don't spend a large sum first before a specific agreement exists. | 確かでないうわさを頼りにお金を使い、後悔するかもしれません。お金になるという話は多くても、実際に受け取る金額は決まらない可能性があります。準備中の内容が何度も変わると、買った物や使った費用が無駄に感じられそうです。具体的な約束ができるまでは、先に大金を使うのは控えてください。 |
 
 ## wands.11 · 정방향
 
 내부 ID: `money.wands.11.upright`
 
-카드 의미: 새 경험을 향한 탐색과 솔직한 열의. 원전의 메시지와 현대의 모험심을 작게 알아보는 시작으로 사용.
+카드 의미: 전달되는 새로운 이야기·호기심·활기
 
-분야 해석: 체험의보상
+분야 해석: 새로운 수입에 관한 소식을 들을 수 있는 날이야.
 
-관찰: 체험이나 짧은 참여에 따른 작은 보상 소식을 들을 수 있어. / 예전에 관심을 표시한 곳에서 실제로 참여해보라는 연락이 올 수도 있을 거야. / 큰 수입은 아니어도 좋아하는 일을 해보고 받는 보상이라 반갑게 느껴질 수 있어.
+관찰: 전달되는 새로운 이야기·호기심·활기 / 새로운 수입에 관한 소식을 들을 수 있는 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 체험이나 짧은 참여에 따른 작은 보상 소식을 들을 수 있어. 예전에 관심을 표시한 곳에서 실제로 참여해보라는 연락이 올 수도 있을 거야. 큰 수입은 아니어도 좋아하는 일을 해보고 받는 보상이라 반갑게 느껴질 수 있어. 참여 전에 필요한 시간과 지급 방식을 물어봐. 준비할 것이 적은 행사라면 생각보다 가볍게 경험을 쌓는 기회가 될 거야. | News of a small reward for a trial or brief activity could reach you. A place you once showed interest in may invite you to participate. It may not be much income, but being rewarded for trying something you like could feel welcome. Ask about the time required and how payment works before joining. With little preparation needed, the event might be an easy way to gain experience. | 体験会や短時間の参加で、ちょっとした謝礼がもらえる話がありそうです。以前興味を示したところから、実際に参加してみないかと連絡が来るかもしれません。大きな収入ではなくても、好きなことを試して謝礼も受け取れるのはうれしいでしょう。参加する前に、必要な時間と謝礼の受け取り方を尋ねてください。準備の少ない催しなら、気負わず経験を増やす機会になりそうです。 |
+| 분야 풀이 | 새로운 수입에 관한 소식을 들을 수 있는 날이야. 흥미 있던 일에서 보수를 제안받거나 적은 돈으로 시작할 기회를 찾을 수 있어. 아직 확정된 수입은 아니어도 알아볼 만한 이야기가 생기기 좋아. 반가운 소식을 들었다면 준비에 얼마가 드는지까지 물어봐. | You could hear about a new source of income today. Something that interests you may come with an offer of pay, or you could find a chance to start for a small amount. Even without confirmed income yet, there may be something worth looking into. When welcome news arrives, ask how much the preparations would cost too. | 新しい収入について、知らせを聞けそうです。興味のあったことで報酬を提案されたり、少額で始める機会を見つけたりするかもしれません。まだ確定した収入ではなくても、詳しく聞く価値のある話が出やすい日です。うれしい知らせが来たら、準備にかかる額まで尋ねましょう。 |
 
 ## wands.12 · 역방향
 
 내부 ID: `money.wands.12.reversed`
 
-카드 의미: 성급한 추진과 멈춤이 교차함. 원전의 중단·분열을 열의와 지속할 조건의 불일치로 사용.
+카드 의미: 중단·분열·불화·성급함의 불안정
 
-분야 해석: 급한구매
+분야 해석: 급하게 시작한 돈 거래가 중간에 끊기면서 손해를 볼 수 있어.
 
-관찰: 지금 사야 한다는 말에 평소보다 빨리 결제하고 싶어질 수 있어. / 갑자기 떠난 외출에서는 이동비와 식비가 생각한 금액을 넘기기 쉬울 거야. / 시간이 조금 지난 뒤에는 처음만큼 갖고 싶지 않은 물건도 보일 수 있어.
+관찰: 중단·분열·불화·성급함의 불안정 / 급하게 시작한 돈 거래가 중간에 끊기면서 손해를 볼 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 지금 사야 한다는 말에 평소보다 빨리 결제하고 싶어질 수 있어. 갑자기 떠난 외출에서는 이동비와 식비가 생각한 금액을 넘기기 쉬울 거야. 시간이 조금 지난 뒤에는 처음만큼 갖고 싶지 않은 물건도 보일 수 있어. 동행한 사람이 한마디 해준 덕분에 큰 지출을 멈추게 될 수도 있을 거야. 마감 안내가 떠도 바로 결제하지 말고 잠깐 시간을 둬. | Hearing that you must buy now could make you want to pay faster than usual. A spontaneous outing may also push travel and food costs above what you pictured. After a little time, an item might no longer seem as desirable. A companion's remark could also stop a large purchase. Leave a short pause before paying even when a deadline notice appears. | 今買わなければという言葉に、いつもより急いで支払いたくなりそうです。突然の外出では、交通費や食費が予算を超えやすいかもしれません。少し時間がたつと、それほど欲しくなくなる品物もあるでしょう。同行者のひと言で、大きな買い物を思いとどまることもありそうです。締め切りの表示が出ても、すぐに支払わず少し時間を置いてください。 |
+| 분야 풀이 | 급하게 시작한 돈 거래가 중간에 끊기면서 손해를 볼 수 있어. 필요한 비용부터 냈는데 약속이 바뀌면 돌려받는 일도 번거로워질 수 있는 날이야. 잘될 것 같은 기분만으로 큰돈을 보태는 일은 조심해야 해. 서둘러 참여하라는 제안일수록 돈을 되돌릴 조건부터 확인해줘. | A hastily begun transaction could stop halfway and leave a loss. If plans change after you've paid the necessary costs, getting money back may become troublesome today. Be careful about adding a large sum just because things feel promising. The more an offer urges you to join quickly, the more you should check the refund terms first. | 急いで始めた取引が途中で止まり、損をするかもしれません。必要な費用を先に払った後で約束が変わると、返金を受けるにも手間がかかりそうです。うまくいきそうな気分だけで、大金を追加することには注意が必要です。参加を急かされる提案ほど、返金の条件を先に確かめましょう。 |
 
 ## wands.12 · 정방향
 
 내부 ID: `money.wands.12.upright`
 
-카드 의미: 뜨거운 열의와 행동으로 옮기는 이동. 원전의 출발을 실제 여행 예언 없이 활발한 참여와 성급함의 양면으로 응용.
+카드 의미: 떠남·이동·성급할 만큼 적극적인 실행
 
-분야 해석: 외출소비
+분야 해석: 활발하게 진행되는 거래에서 수입을 얻을 수 있는 날이야.
 
-관찰: 움직이는 곳마다 눈에 드는 물건이나 체험이 생길 수 있어. / 좋아하던 것을 직접 만나 예상보다 즐겁게 돈을 쓰는 날이야. / 함께 간 사람이 알려준 혜택 덕분에 비용이 줄어들 수도 있어.
+관찰: 떠남·이동·성급할 만큼 적극적인 실행 / 활발하게 진행되는 거래에서 수입을 얻을 수 있는 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 움직이는 곳마다 눈에 드는 물건이나 체험이 생길 수 있어. 좋아하던 것을 직접 만나 예상보다 즐겁게 돈을 쓰는 날이야. 외출에 쓸 금액은 나서기 전에 정해둬. 함께 간 사람이 알려준 혜택 덕분에 비용이 줄어들 수도 있어. 충동적으로 다 사지만 않으면 작은 지출로도 재미있는 경험을 남길 수 있어. | Different places you visit could offer tempting items or experiences. Coming across something you've liked in person may make spending more enjoyable than expected. Set an outing budget before leaving. A companion might point out a benefit that lowers the cost. Resisting the urge to buy everything could still leave you with an interesting experience for a small outlay. | 出かけた先で、気になる品物や体験が次々に見つかりそうです。好きだったものを実際に見て、思った以上に楽しくお金を使えるでしょう。外出で使う金額は、家を出る前に決めておいてください。一緒に行く人が教えてくれた特典で、出費が減ることもありそうです。気になるものを全部買わなければ、少しの出費でも楽しい思い出を残せるでしょう。 |
+| 분야 풀이 | 활발하게 진행되는 거래에서 수입을 얻을 수 있는 날이야. 팔려고 내놓은 물건이나 빠르게 마쳐야 하는 일이 있다면 돈으로 이어질 가능성이 있어. 진행이 빨라지는 만큼 이동이나 준비에 드는 돈도 함께 늘 수 있어. 얼마를 받는지만 보지 말고 비용을 뺀 뒤 남는 돈까지 살펴줘. | A quickly progressing transaction could bring income today. An item you've put up for sale or work that needs a fast finish may result in payment. Faster progress could also mean higher travel or preparation costs. Look at what remains after expenses as well as what you'll be paid. | 活発に進む取引で、収入を得られるかもしれません。売りに出した物や急いで仕上げる仕事があれば、お金につながる可能性があります。進みが速くなる分、移動や準備の費用も増えそうです。受け取る額だけでなく、費用を引いた後にいくら残るかまで見ましょう。 |
 
 ## wands.13 · 역방향
 
 내부 ID: `money.wands.13.reversed`
 
-카드 의미: 자신감이 타인의 시선에 흔들리거나 존재감을 과하게 보이려 함. 원전의 반대·호의의 제약을 자기 비교의 문제로 현대화.
+카드 의미: 자신감위축·요구하는태도·질투
 
-분야 해석: 보여주기소비
+분야 해석: 남에게 뒤처지기 싫어 돈을 쓰면 후회하기 쉬운 날이야.
 
-관찰: 잘 보이고 싶은 자리에서 평소보다 큰돈을 쓰고 싶어질 수 있어. / 다른 사람의 물건이 멋져 보여 꼭 필요하지 않은 구매를 고민할 거야. / 막상 집에 있는 것을 떠올리면 비슷하게 쓸 수 있는 물건이 있을 수 있어.
+관찰: 자신감위축·요구하는태도·질투 / 남에게 뒤처지기 싫어 돈을 쓰면 후회하기 쉬운 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 잘 보이고 싶은 자리에서 평소보다 큰돈을 쓰고 싶어질 수 있어. 다른 사람의 물건이 멋져 보여 꼭 필요하지 않은 구매를 고민할 거야. 막상 집에 있는 것을 떠올리면 비슷하게 쓸 수 있는 물건이 있을 수 있어. 부담 없는 선택에도 사람들의 반응은 생각보다 다르지 않을 거야. 칭찬을 기대하며 결제하기보다 하루 더 기다려봐. | Wanting to impress at a gathering could tempt you to spend more than usual. Someone else's belongings might make an unnecessary purchase appealing. Thinking about what you have at home may reveal something that already serves the same purpose. People's reactions to a modest choice could be much the same as to an expensive one. Wait another day instead of paying in the hope of a compliment. | よく見られたい場面で、いつもより多くお金を使いたくなりそうです。人の持ち物がすてきに見えて、必要ではない買い物を考えるかもしれません。家にあるものを思い出すと、似た使い方のできる品物が見つかるでしょう。無理のない値段のものを選んでも、人の反応はそれほど変わらなさそうです。褒められることを期待して買う前に、一日待ってみてください。 |
+| 분야 풀이 | 남에게 뒤처지기 싫어 돈을 쓰면 후회하기 쉬운 날이야. 멋져 보이는 물건이나 큰 선물로 자신을 드러내고 싶어질 수 있어. 실제 수입은 그대로인데 씀씀이만 커지면 생활비가 줄 수 있어. 남이 가진 것보다 지금 자신에게 필요한 것에 돈을 써줘. | Spending to keep up with others could lead to regret today. You may want to stand out through an impressive item or a large gift. If spending grows while income stays the same, there could be less for living costs. Spend on what you need now rather than what others have. | 人に負けたくない気持ちで使うお金は、後悔につながりやすい日です。見栄えのよい物や豪華な贈り物で、周囲によく見られたくなるかもしれません。実際の収入が同じなのに出費だけ増えると、生活費が減りそうです。人が持っている物より、今必要な物にお金を使いましょう。 |
 
 ## wands.13 · 정방향
 
 내부 ID: `money.wands.13.upright`
 
-카드 의미: 자연스러운 자신감과 사람을 끌어들이는 활기. 원전의 친근함을 특정 여성 아닌 솔직한 열의로 해석.
+카드 의미: 생기·친절·사랑·매력·관대한자신감
 
-분야 해석: 소개받는거래
+분야 해석: 좋은 인상과 신뢰가 금전적인 기회로 이어질 수 있어.
 
-관찰: 친근하게 나눈 대화가 작은 거래나 보상 이야기로 이어질 수 있어. / 내가 만든 것에 관심을 보이거나 어디서 살 수 있는지 묻는 사람이 있을 거야. / 가게에서도 밝게 질문한 덕분에 몰랐던 혜택을 안내받을 수 있는 날이야.
+관찰: 생기·친절·사랑·매력·관대한자신감 / 좋은 인상과 신뢰가 금전적인 기회로 이어질 수 있어.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 친근하게 나눈 대화가 작은 거래나 보상 이야기로 이어질 수 있어. 내가 만든 것에 관심을 보이거나 어디서 살 수 있는지 묻는 사람이 있을 거야. 가게에서도 밝게 질문한 덕분에 몰랐던 혜택을 안내받을 수 있는 날이야. 금액을 정할 때는 친분과 별개로 분명하게 말해줘. 기분 좋게 주고받은 거래가 다음 소개로 이어질 수 있어. | A friendly conversation could lead to a small transaction or talk of payment. Someone might take interest in something you've made or ask where to buy it. A cheerful question at a shop could also bring information about a benefit you didn't know. Be clear about the amount regardless of friendship. An exchange that feels good could lead to another introduction. | 親しみのある会話から、小さな取引や謝礼の話が生まれそうです。あなたが作ったものに興味を持ち、どこで買えるか尋ねる人がいるかもしれません。お店でも明るく質問すると、知らなかった特典を教えてもらえそうです。金額を決めるときは、親しさとは別にはっきり伝えてください。気持ちよく終えた取引が、次の紹介につながることもあるでしょう。 |
+| 분야 풀이 | 좋은 인상과 신뢰가 금전적인 기회로 이어질 수 있어. 자신의 능력을 눈여겨본 사람이 일을 제안하거나 거래에 도움을 줄 수 있는 날이야. 즐겁게 해온 일에서 수입이 생기면 돈을 버는 보람도 클 수 있어. 넉넉한 마음에 받기로 한 보수까지 먼저 깎아주지는 말아줘. | A good impression and trust could bring a financial opportunity. Someone who's noticed your abilities may offer work or help with a deal today. Income from something you've enjoyed could make earning feel especially rewarding. Generosity doesn't require reducing agreed pay before anyone asks. | よい印象と信頼が、お金を得る機会につながりそうです。能力に注目した人が仕事を提案したり、取引を助けたりしてくれるかもしれません。楽しく取り組んできたことが収入になれば、稼ぐ喜びも大きいでしょう。気前よくしたくても、受け取ると決めた報酬まで先に下げるのは控えてください。 |
 
 ## wands.14 · 역방향
 
 내부 ID: `money.wands.14.reversed`
 
-카드 의미: 큰 뜻에 비해 현실 조건이나 타인의 의견을 놓침. 원전의 엄격함을 독단과 과한 기대의 재조정으로 사용.
+카드 의미: 선하지만 엄격한 태도, 지나친 기준
 
-분야 해석: 과한약속
+분야 해석: 원하는 금액만 고집하다 괜찮은 거래를 놓칠 수 있어.
 
-관찰: 넉넉하게 쓰겠다고 한 말이 실제보다 큰 부담으로 돌아올 수 있어. / 여럿 앞에서 꺼낸 약속 때문에 예상하지 못한 비용을 맡게 될지도 몰라. / 세부 금액을 나누어 보면 전부 내가 낼 필요는 없다는 걸 알 수 있어.
+관찰: 선하지만 엄격한 태도 / 지나친 기준
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 넉넉하게 쓰겠다고 한 말이 실제보다 큰 부담으로 돌아올 수 있어. 여럿 앞에서 꺼낸 약속 때문에 예상하지 못한 비용을 맡게 될지도 몰라. 세부 금액을 나누어 보면 전부 내가 낼 필요는 없다는 걸 알 수 있어. 가능한 만큼만 다시 이야기해도 상대는 생각보다 쉽게 이해할 거야. 큰 금액을 약속하기 전에 실제 여유를 확인해줘. | A generous promise could return as a larger burden than you expected. Something said in front of a group might leave you covering an unforeseen cost. Breaking down the figures may show that you don't need to pay for everything. Others could understand more easily than expected when you restate what's affordable. Check the money available before promising a large amount. | 気前よく払うと言った言葉が、思った以上の負担になるかもしれません。皆の前でした約束で、予想外の費用を持つことになりそうです。細かく金額を分けてみると、全部を自分が払う必要はないと分かるでしょう。出せる分を伝え直しても、相手は案外すんなり理解してくれそうです。大きな金額を約束する前に、実際に使えるお金を確かめてください。 |
+| 분야 풀이 | 원하는 금액만 고집하다 괜찮은 거래를 놓칠 수 있어. 자신의 기준이 너무 높으면 실제로 얻을 수 있었던 이익까지 멀어질 수 있는 날이야. 사람을 재촉해서 일을 늘리면 비용도 함께 커질 수 있어. 큰 수입을 약속하기 전에 지금 조건으로 얼마가 남는지 다시 계산해줘. | Insisting on your preferred amount could cost you a decent deal. Standards set too high may put an attainable profit out of reach today. Pressuring people to do more could also increase costs. Before promising a large income, recalculate what would remain under the current terms. | 希望の金額にこだわり、よい取引を逃すかもしれません。基準が高すぎると、実際に得られたはずの利益も遠のきやすい日です。人を急かして仕事を増やすと、費用も一緒に増えそうです。大きな収入を約束する前に、今の条件でいくら残るか、計算し直しましょう。 |
 
 ## wands.14 · 정방향
 
 내부 ID: `money.wands.14.upright`
 
-카드 의미: 큰 방향을 제시하고 사람과 자원을 이끄는 책임. 원전의 성실·조언을 실행 가능한 비전과 주도로 응용.
+카드 의미: 정직하고 성실하며 열정적인 주도성
 
-분야 해석: 거래신뢰
+분야 해석: 주도해온 일이 돈으로 이어지기 좋은 날이야.
 
-관찰: 경험을 믿고 가격이나 거래 조건을 물어오는 사람이 생길 수 있어. / 전에 해본 일에서는 무엇에 돈이 드는지 빠르게 알아볼 거야. / 분명하게 설명한 덕분에 불필요한 흥정이 줄어들 수 있는 날이야.
+관찰: 정직하고 성실하며 열정적인 주도성 / 주도해온 일이 돈으로 이어지기 좋은 날이야.
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 경험을 믿고 가격이나 거래 조건을 물어오는 사람이 생길 수 있어. 전에 해본 일에서는 무엇에 돈이 드는지 빠르게 알아볼 거야. 금액을 이야기할 때는 해줄 수 있는 범위를 함께 적어줘. 분명하게 설명한 덕분에 불필요한 흥정이 줄어들 수 있는 날이야. 지인의 소개로 이어진 대화에서도 서로 납득하는 금액을 찾기 좋을 거야. | Someone could trust your experience enough to ask about a price or transaction. In work you've done before, you may quickly recognize where the costs lie. State what you'll provide alongside the amount. A clear explanation could reduce unnecessary bargaining today. A conversation through a friend's introduction may also lead to a price both sides understand. | あなたの経験を頼りに、値段や取引の条件を尋ねる人がいそうです。以前したことのある仕事なら、何に費用がかかるかすぐ分かるでしょう。金額を伝えるときは、引き受けられる範囲も一緒に書いてください。はっきり説明したことで、余計な値段交渉が減りそうです。知人の紹介から始まった話でも、お互いが納得する金額を見つけやすいでしょう。 |
+| 분야 풀이 | 주도해온 일이 돈으로 이어지기 좋은 날이야. 거래를 책임지고 진행했다면 그만큼의 보수나 이익을 받을 수 있어. 더 큰 일을 제안받더라도 자신의 경험 안에서 판단하면 실속을 찾기 좋아. 자신 있게 약속하되 실제로 감당할 비용을 넘기지는 말아줘. | Something you've led could bring money today. If you've taken responsibility for a deal, you may receive pay or profit that reflects your work. Even if you're offered something larger, drawing on your experience could help you choose what's worthwhile. Be confident about what you agree to do, while keeping costs within what you can actually afford. | 先頭に立って進めたことが、お金につながりやすい日です。責任を持って取引を進めてきたなら、それに見合う報酬や利益を得られそうです。さらに大きな仕事を提案されても、経験のある範囲で判断すれば、利益を確保しやすいでしょう。自信を持って約束しても、実際に払える額を超える負担は避けてください。 |

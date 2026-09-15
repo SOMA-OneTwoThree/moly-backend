@@ -3885,8 +3885,9 @@ components:
               minLength: 1
             flow:
               type: array
-              minItems: 3
+              minItems: 2
               maxItems: 3
+              description: Editorial paragraphs; legacy snapshots retain three segments.
               items:
                 type: string
             do:
@@ -3917,8 +3918,9 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
+                  description: Editorial paragraphs; legacy snapshots retain two segments.
                   items:
                     type: string
             money:
@@ -3934,8 +3936,9 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
+                  description: Editorial paragraphs; legacy snapshots retain two segments.
                   items:
                     type: string
             work:
@@ -3951,8 +3954,9 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
+                  description: Editorial paragraphs; legacy snapshots retain two segments.
                   items:
                     type: string
             energy:
@@ -3968,8 +3972,9 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
+                  description: Editorial paragraphs; legacy snapshots retain two segments.
                   items:
                     type: string
         lucky_color:

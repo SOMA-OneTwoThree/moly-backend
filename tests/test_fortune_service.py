@@ -111,8 +111,10 @@ def test_result_build_is_deterministic_and_has_complete_localized_projections():
     assert set(selection["cards"]) == {"overall", "love", "money", "work", "energy"}
     assert len({value["card_id"] for value in selection["cards"].values()}) == 5
     for copy in localized.values():
-        assert len(copy["overall"]["flow"]) == 3
-        assert all(len(value["text"]) == 2 for value in copy["categories"].values())
+        assert len(copy["overall"]["flow"]) == 2
+        assert len(copy["categories"]["love"]["text"]) == 3
+        assert len(copy["categories"]["work"]["text"]) == 2
+        assert all(1 <= len(copy["categories"][axis]["text"]) <= 2 for axis in ("money", "energy"))
 
 
 def test_public_result_matches_frontend_v3_schema():
@@ -141,8 +143,8 @@ def test_public_result_matches_frontend_v3_schema():
         "白",
         "ベージュ",
     }
-    assert len(parsed.overall.flow) == 3
-    assert len(parsed.categories.love.text) == 2
+    assert len(parsed.overall.flow) == 2
+    assert len(parsed.categories.love.text) == 3
 
 
 def test_current_row_rejects_v1_snapshot_and_accepts_matching_v3():

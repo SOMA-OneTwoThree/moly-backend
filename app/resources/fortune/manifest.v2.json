@@ -14,19 +14,19 @@
       "sha256": "e47c80050df6e9cb14a85b7bef8d3cd47d9f45bf410a8cbeb82082b628bd3cc4"
     },
     "copy.v3.json": {
-      "sha256": "f86047947bbb92599db94a4ae49fe4266aa65c79041672d99b6e2ca73c9f450b"
+      "sha256": "e69d08478f1b8f0ae1399bca77ad2504af47c7438830ce2a3a5f0f1a905c909f"
     },
     "copy.v3.en.json": {
-      "sha256": "4986b6da2a8cc76d87a260a13a131ec65d1b31cb6aa2d04299df3f13881c9b49"
+      "sha256": "25842316cb9c26606a0320c11bd608dfbb5fd8f9792a86935df7320ce1e195da"
     },
     "copy.v3.ja.json": {
-      "sha256": "b37f9acc5034272f086314c99173442303a343734e514a921edb521b3834c60f"
+      "sha256": "f97d6d00aadfad176c27360916d1477435fbc52b7e76606e9a87853a90cb203a"
     },
     "tarot-editorial.v2.json": {
-      "sha256": "1747d9116afc2866bae102031d60f18a86ca42b2cdf7229e0e03ca5a4bbf9e0a"
+      "sha256": "dc57b152d58ee6d170bb11984cc5ece9cb17b895b0cfd2deac65ed6c5eeadecf"
     },
     "first-visit.v1.json": {
-      "sha256": "04613a4657f2c2bd248e3cb8f6c3d461bf88123e35c8cd6bcb68e4026ca556f6"
+      "sha256": "0c845503745b7fea21c9ab1f42f92c76f8259e8521026763f315cc11d60a1e21"
     }
   }
 }

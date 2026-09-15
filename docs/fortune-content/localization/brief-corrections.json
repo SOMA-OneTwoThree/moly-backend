@@ -1,0 +1,825 @@
+{
+  "schema": "moly-fortune-brief-corrections-v1",
+  "status": "complete",
+  "reviewer": "card_major_writer",
+  "scope": "금전156개 meaning_choice 점검에서 23개, 별도 건강 검수 보고에서 매달린사람·완드7·펜타클7 정역 6개 메모 정리. 본문·키워드·운 판단·출처는 보존.",
+  "actual_meaning_choice_read_count": 156,
+  "corrected_count": 29,
+  "corrections": {
+    "money.major.sun.upright": {
+      "field": "meaning_choice",
+      "before": "원전역의감소된긍정성유지; 현대과신/비관은기대와실제차이로적용. 역을건강불량이나실패로강제하지않음.",
+      "after": "원전 역방향의 감소된 긍정성을 유지하고, 현대의 과신·비관은 기대한 금액과 실제 수입의 차이로 적용한다. 정방향의 만족은 수입과 필요한 물건을 마련하는 기쁨으로, 역방향은 작은 이득과 기대 이하의 수입으로 금전 분야에 적용한다. 역방향을 반드시 손실로 반전하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XIX; material happiness/contentment; reversed same in lesser degree",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-sun-meaning-major-arcana-tarot-card-meanings",
+          "section": "Upright keywords; Finances",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "78f0e3474d9c22bc2a3ac5af608cdd305b5906b7741ad5974a77235d806c3815",
+      "root_read_ko_sha256": "ce93904ecd7c02036a4ec04f55f66d1cdc89e007f51a8d466cfd1bacf7299a77"
+    },
+    "money.major.temperance.upright": {
+      "field": "meaning_choice",
+      "before": "원전중용/불화와현대과도함을합치. 건강은절제의상징과직접health의균형을일상조건으로제한.",
+      "after": "원전의 중용·관리와 역방향의 불화, 현대의 불균형·과도함을 구분해 채택한다. 정방향은 필요한 수입과 지출의 균형으로, 역방향은 수입보다 많은 소비와 차입 부담으로 금전 분야에 적용한다. 저축이나 구매를 서두르지 말라는 문장은 행동 제안이다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XIV; upright moderation/management/accommodation; reversed disunion/competing interests",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/temperance-meaning-major-arcana-tarot-card-meanings",
+          "section": "Upright keywords and Finances",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "a1edef4afc1f3633b6b6674d22419f386d9d7f75fb02aee6c70f3738a5b9ffe7",
+      "root_read_ko_sha256": "f1c50d8347bb02a758ef88b6745c34c1cf692c5bf02b2ebded17ea93c2ef782e"
+    },
+    "money.major.hanged_man.upright": {
+      "field": "meaning_choice",
+      "before": "역은 원전이기심/군중과다른 현대지연·쓸모없는희생 채택. 사랑역의재개여지는 원하는바를말하는행동으로 적용.",
+      "after": "역방향은 원전의 이기심·군중과 다른 현대의 지연·쓸모없는 희생을 채택한다. 정방향의 보류는 대금 수령을 기다리는 상황으로, 역방향의 무의미한 지연은 불리한 거래를 계속해 지출이 늘어나는 상황으로 금전 분야에 적용한다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XII; upright wisdom/discernment/trials/sacrifice; reversed selfishness/crowd",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-hanged-man-meaning-major-arcana-tarot-card-meanings",
+          "section": "Upright keywords and Finances",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "eee9db8d717ada132c07f96539a50ac00b936df90a49de5c6961a1add8637082",
+      "root_read_ko_sha256": "e924ba17aebad1391212f48c8f7578c6b2e298b2cb3d48ea8d07ee866babc2bc"
+    },
+    "money.swords.13.upright": {
+      "field": "meaning_choice",
+      "before": "정방향의 독립적 판단은 Labyrinthos에서 채택한 현대 핵심 뜻이며 Waite의 과부·불임·상실 예언과 같다고 주장하지 않는다. 건강은 거리·판단의 생활 적용이다.",
+      "after": "정방향의 독립적 판단은 Labyrinthos에서 채택한 현대 핵심 뜻이며 Waite의 과부·불임·상실 예언과 같다고 주장하지 않는다. 정방향은 불필요한 거래와 지출을 구분해 돈을 지키는 판단, 역방향은 편견과 날카로운 태도가 불리한 거래나 소비로 이어지는 가능성으로 분야 적용한다. 구체적 금전 상황은 원전의 직접 사건 예측이 아니다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/queen-of-swords",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/queen-of-swords-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "50261ce16c499906b2c1dc2f9ef4c4f138e594461984c05d4eda8c3d7e58878e",
+      "root_read_ko_sha256": "c367148167838bb1aa31aabbab571a4f62b499a22df35a191dab50282c71541f"
+    },
+    "money.swords.14.upright": {
+      "field": "meaning_choice",
+      "before": "원문의 잔혹함·악의는 일상적 강요·일방성의 주의로 제한한다. 건강은 질병 예언이 아닌 생활 규칙과 통제의 적용이다.",
+      "after": "정방향의 판단·권위·원칙은 계약과 기록으로 금전상 권리를 지키는 상황으로 적용한다. 원문 역방향의 잔혹함·악의는 일상적 강요·일방성의 주의로 제한하고, 설명 없이 불리한 금액을 떠맡기는 요구로 금전 분야에 적용한다. 직업이나 지위만으로 특정인을 판정하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/king-of-swords",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/king-of-swords-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "25bc40fed0f2af3864aa9932a7855c7be61bdd7f7ac6103738f019238295bd45",
+      "root_read_ko_sha256": "01a01c18f2922d46a2a3f03883508d17eb7aaa3deb6ed4bdb7725cd071fcff10"
+    },
+    "money.wands.07.upright": {
+      "field": "meaning_choice",
+      "before": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용. The Tarot Guide 건강은 힘을 유지/소진하는 상징만 채택하고 질병·부상·치료 예언을 모두 제외. 건강에 4개 상황해석+2개 행동문장 적용.",
+      "after": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용한다. 정방향은 이미 합의한 금액과 자신의 몫을 지키는 상황, 역방향은 요구에 흔들리거나 거절에 지쳐 불리한 비용을 부담하는 상황으로 금전 분야에 적용한다. 기록된 일반 카드 의미의 적용이며 별도 건강 해설을 금전 근거로 사용하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "waite-07",
+          "url": "https://sacred-texts.com/tarot/pkt/pktwa07.htm",
+          "section": "Divinatory Meanings / Reversed / card image",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-07",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/seven-of-wands-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword table",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "662fea539f2f4d0641d77283b8ec7f47939c3e06f2a1723815acc11105f73982",
+      "root_read_ko_sha256": "358ff4b26176ca3cdf90b79a819eef12dac80cc32b1e2f447f6f6a6807cf211d"
+    },
+    "money.wands.08.upright": {
+      "field": "meaning_choice",
+      "before": "정방향은 Waite의 전달·빠른 움직임, 역방향은 질투와 다툼을 채택. 현대 지연만을 그대로 쓰지 않아 완즈1~3 역방향과 구별. 건강은 움직임의 속도를 일상적 몸 경험으로 적용하며 직접 건강 예언이 아님.",
+      "after": "정방향은 Waite의 전달·빠른 움직임, 역방향은 질투와 다툼을 채택한다. 현대의 지연만으로 역방향을 채우지 않고, 돈을 주고받는 안내의 충돌과 처리 착오로 차별화한다. 정방향의 빠른 입금과 역방향의 중복 지급 가능성은 일반 상징을 금전 상황으로 옮긴 분야 적용이다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "waite-08",
+          "url": "https://sacred-texts.com/tarot/pkt/pktwa08.htm",
+          "section": "Divinatory Meanings / Reversed / card image",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-08",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/eight-of-wands-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword table",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "09fad70ae9ac87eb53da50101b9a2149f66374de108cd775db84651d46925b06",
+      "root_read_ko_sha256": "2eced4fdcd1e7aa41708ca2c61d5cc4a450b1fda64806753fe274b1b419a75db"
+    },
+    "money.pentacles.11.upright": {
+      "field": "meaning_choice",
+      "before": "학업은 Waite가 직접 명시한다. 현대의 미루기·집중 부족은 낭비/분산과 연결한 분야 적용으로 기록한다.",
+      "after": "Waite의 공부·집중·적용·소식을 정방향의 핵심 뜻으로, 역방향의 낭비·관심 분산·기대와 다른 소식을 채택한다. 정방향의 배우는 기술이 수입으로 이어지는 기회와 역방향의 미뤄진 일로 보수가 늦거나 줄어드는 상황은 금전 분야 적용이다. 카드가 특정 보수나 일을 직접 예언했다고 기록하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/page-of-pentacles",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/page-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "fe68c37ee8abc58ac91217d98861f6c68fcd9a36c661f95a952478e69f70c959",
+      "root_read_ko_sha256": "5b486feb1a4c99ef32cd0dd16cde6c4efda59cb13d1aa0b45f136b2252599341"
+    },
+    "money.pentacles.12.upright": {
+      "field": "meaning_choice",
+      "before": "건강 직접 절의 회복·체력은 일상 컨디션에 한정해 참고한다. 질병·부상 회복을 약속하지 않는다.",
+      "after": "원전의 실용성·책임·정직과 느린 꾸준함을 정방향의 핵심 뜻으로 채택해 약속한 보수와 지속되는 수입으로 적용한다. 역방향의 정체·무관심·부주의는 돈을 받기 위한 일이 지연되거나 처리 비용이 늘어나는 가능성으로 적용한다. 일반 카드 의미의 금전 분야 적용이며 건강 회복 해설을 근거로 쓰지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/knight-of-pentacles",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/knight-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "183b6648c0a5244d72cbce79d308c83d7ff4b95927ddf97bf85e0589a341d772",
+      "root_read_ko_sha256": "ca7ba1485131f3df32d4ea1fbb7c489d568e9d9f45761fabeb606b9b0007d658"
+    },
+    "money.pentacles.13.upright": {
+      "field": "meaning_choice",
+      "before": "현대 건강의 자기 돌봄 부족은 Waite의 불안·불신과 동일한 직접 해설이라고 하지 않고 별도 채택 뜻으로 명시한다.",
+      "after": "Waite의 정방향 풍요·너그러움·안전은 생활비와 필요한 소비를 감당하는 여유로, 역방향 의심·불안·불신은 돈이 부족해질 걱정과 공동 지출의 갈등으로 금전 분야에 적용한다. 현대 건강의 자기 돌봄 해설은 이 금전 원고의 채택 근거가 아니다. 실제 손실이나 상대의 부정을 확정하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/queen-of-pentacles",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/queen-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "5a2f58801235f042bdd44773851da6ddf0d1db7383af6c12ee774f2d99dc57bf",
+      "root_read_ko_sha256": "35cdaeeedf1df7fb0dd33190f2bfb3e38a452f7b25855b939bc8279fa5629b32"
+    },
+    "money.major.sun.reversed": {
+      "field": "meaning_choice",
+      "before": "원전역의감소된긍정성유지; 현대과신/비관은기대와실제차이로적용. 역을건강불량이나실패로강제하지않음.",
+      "after": "원전 역방향의 감소된 긍정성을 유지하고, 현대의 과신·비관은 기대한 금액과 실제 수입의 차이로 적용한다. 정방향의 만족은 수입과 필요한 물건을 마련하는 기쁨으로, 역방향은 작은 이득과 기대 이하의 수입으로 금전 분야에 적용한다. 역방향을 반드시 손실로 반전하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XIX; material happiness/contentment; reversed same in lesser degree",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-sun-meaning-major-arcana-tarot-card-meanings",
+          "section": "Reversed keywords; Finances",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "78f0e3474d9c22bc2a3ac5af608cdd305b5906b7741ad5974a77235d806c3815",
+      "root_read_ko_sha256": "51476000b1cb7ae643c5203dedf1d956562d3de0ce30ac2f33f04e4f741f0bc8"
+    },
+    "money.major.temperance.reversed": {
+      "field": "meaning_choice",
+      "before": "원전중용/불화와현대과도함을합치. 건강은절제의상징과직접health의균형을일상조건으로제한.",
+      "after": "원전의 중용·관리와 역방향의 불화, 현대의 불균형·과도함을 구분해 채택한다. 정방향은 필요한 수입과 지출의 균형으로, 역방향은 수입보다 많은 소비와 차입 부담으로 금전 분야에 적용한다. 저축이나 구매를 서두르지 말라는 문장은 행동 제안이다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XIV; upright moderation/management/accommodation; reversed disunion/competing interests",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/temperance-meaning-major-arcana-tarot-card-meanings",
+          "section": "Reversed keywords and Finances",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "a1edef4afc1f3633b6b6674d22419f386d9d7f75fb02aee6c70f3738a5b9ffe7",
+      "root_read_ko_sha256": "fbd5d9526ba02f1b85c79bcaaebfd1894ea261a989768f74d0025b465db25fc6"
+    },
+    "money.major.hanged_man.reversed": {
+      "field": "meaning_choice",
+      "before": "역은 원전이기심/군중과다른 현대지연·쓸모없는희생 채택. 사랑역의재개여지는 원하는바를말하는행동으로 적용.",
+      "after": "역방향은 원전의 이기심·군중과 다른 현대의 지연·쓸모없는 희생을 채택한다. 정방향의 보류는 대금 수령을 기다리는 상황으로, 역방향의 무의미한 지연은 불리한 거래를 계속해 지출이 늘어나는 상황으로 금전 분야에 적용한다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XII; upright wisdom/discernment/trials/sacrifice; reversed selfishness/crowd",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-hanged-man-meaning-major-arcana-tarot-card-meanings",
+          "section": "Reversed keywords and Finances",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "eee9db8d717ada132c07f96539a50ac00b936df90a49de5c6961a1add8637082",
+      "root_read_ko_sha256": "18aad71c8afbf78f36242e76275d11d499176cc3d4158ee7a95ea71512c2c70c"
+    },
+    "money.swords.13.reversed": {
+      "field": "meaning_choice",
+      "before": "정방향의 독립적 판단은 Labyrinthos에서 채택한 현대 핵심 뜻이며 Waite의 과부·불임·상실 예언과 같다고 주장하지 않는다. 건강은 거리·판단의 생활 적용이다.",
+      "after": "정방향의 독립적 판단은 Labyrinthos에서 채택한 현대 핵심 뜻이며 Waite의 과부·불임·상실 예언과 같다고 주장하지 않는다. 정방향은 불필요한 거래와 지출을 구분해 돈을 지키는 판단, 역방향은 편견과 날카로운 태도가 불리한 거래나 소비로 이어지는 가능성으로 분야 적용한다. 구체적 금전 상황은 원전의 직접 사건 예측이 아니다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/queen-of-swords",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/queen-of-swords-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "50261ce16c499906b2c1dc2f9ef4c4f138e594461984c05d4eda8c3d7e58878e",
+      "root_read_ko_sha256": "92395567241fe21678feeb7f5add4a6156ee9ca41cd820e871611de6aa987f76"
+    },
+    "money.swords.14.reversed": {
+      "field": "meaning_choice",
+      "before": "원문의 잔혹함·악의는 일상적 강요·일방성의 주의로 제한한다. 건강은 질병 예언이 아닌 생활 규칙과 통제의 적용이다.",
+      "after": "정방향의 판단·권위·원칙은 계약과 기록으로 금전상 권리를 지키는 상황으로 적용한다. 원문 역방향의 잔혹함·악의는 일상적 강요·일방성의 주의로 제한하고, 설명 없이 불리한 금액을 떠맡기는 요구로 금전 분야에 적용한다. 직업이나 지위만으로 특정인을 판정하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/king-of-swords",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/king-of-swords-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "25bc40fed0f2af3864aa9932a7855c7be61bdd7f7ac6103738f019238295bd45",
+      "root_read_ko_sha256": "4adb638931d30251588fe19c51f47a2581607e167a88d67846539c9059608ab3"
+    },
+    "money.wands.07.reversed": {
+      "field": "meaning_choice",
+      "before": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용. The Tarot Guide 건강은 힘을 유지/소진하는 상징만 채택하고 질병·부상·치료 예언을 모두 제외. 건강에 4개 상황해석+2개 행동문장 적용.",
+      "after": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용한다. 정방향은 이미 합의한 금액과 자신의 몫을 지키는 상황, 역방향은 요구에 흔들리거나 거절에 지쳐 불리한 비용을 부담하는 상황으로 금전 분야에 적용한다. 기록된 일반 카드 의미의 적용이며 별도 건강 해설을 금전 근거로 사용하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "waite-07",
+          "url": "https://sacred-texts.com/tarot/pkt/pktwa07.htm",
+          "section": "Divinatory Meanings / Reversed / card image",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-07",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/seven-of-wands-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword table",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "662fea539f2f4d0641d77283b8ec7f47939c3e06f2a1723815acc11105f73982",
+      "root_read_ko_sha256": "773a24b41a5b0f314198021ce08b41538180b84a9b18c48c7bec0fe11bf9cf40"
+    },
+    "money.wands.08.reversed": {
+      "field": "meaning_choice",
+      "before": "정방향은 Waite의 전달·빠른 움직임, 역방향은 질투와 다툼을 채택. 현대 지연만을 그대로 쓰지 않아 완즈1~3 역방향과 구별. 건강은 움직임의 속도를 일상적 몸 경험으로 적용하며 직접 건강 예언이 아님.",
+      "after": "정방향은 Waite의 전달·빠른 움직임, 역방향은 질투와 다툼을 채택한다. 현대의 지연만으로 역방향을 채우지 않고, 돈을 주고받는 안내의 충돌과 처리 착오로 차별화한다. 정방향의 빠른 입금과 역방향의 중복 지급 가능성은 일반 상징을 금전 상황으로 옮긴 분야 적용이다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "waite-08",
+          "url": "https://sacred-texts.com/tarot/pkt/pktwa08.htm",
+          "section": "Divinatory Meanings / Reversed / card image",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-08",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/eight-of-wands-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword table",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "09fad70ae9ac87eb53da50101b9a2149f66374de108cd775db84651d46925b06",
+      "root_read_ko_sha256": "84f995ddaddbc7bc83aa0fb049f6868f60d97db075bcef221d862de39259a5e4"
+    },
+    "money.pentacles.11.reversed": {
+      "field": "meaning_choice",
+      "before": "학업은 Waite가 직접 명시한다. 현대의 미루기·집중 부족은 낭비/분산과 연결한 분야 적용으로 기록한다.",
+      "after": "Waite의 공부·집중·적용·소식을 정방향의 핵심 뜻으로, 역방향의 낭비·관심 분산·기대와 다른 소식을 채택한다. 정방향의 배우는 기술이 수입으로 이어지는 기회와 역방향의 미뤄진 일로 보수가 늦거나 줄어드는 상황은 금전 분야 적용이다. 카드가 특정 보수나 일을 직접 예언했다고 기록하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/page-of-pentacles",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/page-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "fe68c37ee8abc58ac91217d98861f6c68fcd9a36c661f95a952478e69f70c959",
+      "root_read_ko_sha256": "eca0297755e14eae6f83541e8cb0439cee71a4d710c6ac51a86fd4cf5782b2bd"
+    },
+    "money.pentacles.12.reversed": {
+      "field": "meaning_choice",
+      "before": "건강 직접 절의 회복·체력은 일상 컨디션에 한정해 참고한다. 질병·부상 회복을 약속하지 않는다.",
+      "after": "원전의 실용성·책임·정직과 느린 꾸준함을 정방향의 핵심 뜻으로 채택해 약속한 보수와 지속되는 수입으로 적용한다. 역방향의 정체·무관심·부주의는 돈을 받기 위한 일이 지연되거나 처리 비용이 늘어나는 가능성으로 적용한다. 일반 카드 의미의 금전 분야 적용이며 건강 회복 해설을 근거로 쓰지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/knight-of-pentacles",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/knight-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "183b6648c0a5244d72cbce79d308c83d7ff4b95927ddf97bf85e0589a341d772",
+      "root_read_ko_sha256": "082a88b1235a710a6476af4200472f31ae01da8ebeeeb0026e5269fa43717aac"
+    },
+    "money.pentacles.13.reversed": {
+      "field": "meaning_choice",
+      "before": "현대 건강의 자기 돌봄 부족은 Waite의 불안·불신과 동일한 직접 해설이라고 하지 않고 별도 채택 뜻으로 명시한다.",
+      "after": "Waite의 정방향 풍요·너그러움·안전은 생활비와 필요한 소비를 감당하는 여유로, 역방향 의심·불안·불신은 돈이 부족해질 걱정과 공동 지출의 갈등으로 금전 분야에 적용한다. 현대 건강의 자기 돌봄 해설은 이 금전 원고의 채택 근거가 아니다. 실제 손실이나 상대의 부정을 확정하지 않는다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/queen-of-pentacles",
+          "section": "Divinatory Meanings / Reversed; card illustration description",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/queen-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed Keywords; general and domain meanings",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "5a2f58801235f042bdd44773851da6ddf0d1db7383af6c12ee774f2d99dc57bf",
+      "root_read_ko_sha256": "10968d133e8ec19d1a53f4323c7903d63d075cdc1daf043c98494854ad7e330c"
+    },
+    "money.pentacles.07.upright": {
+      "field": "meaning_choice",
+      "before": "원전은 정방향 의미 충돌을 명시함. 열매를 바라보는 도상의 진행 점검 및 금전 판단을 채택. 역방향은 대여 우려를 시간·관심·노력 투입으로 분야 적용. 현대 인내·성과 키워드는 도상 대조.",
+      "after": "원전은 정방향 의미 충돌을 명시한다. 열매를 바라보는 도상의 진행 점검과 금전 판단을 채택해 누적된 거래의 이익을 돌아보는 상황으로 적용한다. 역방향은 시간·관심·노력의 투입으로 치환하지 않고, 원전의 금전 대여 우려를 직접 금전 분야로 적용한다. 현대 인내·성과 키워드는 도상 대조에 사용한다.",
+      "reason": "다른 분야의 복사 메모를 제거하고 현행 승인 금전 본문에 맞는 적용 범위를 명시",
+      "source_basis": [
+        {
+          "id": "waite-pentacles.07",
+          "url": "https://sacred-texts.com/tarot/pkt/pktpe07.htm",
+          "section": "Card description; Divinatory Meanings; Reversed",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-pentacles.07",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/seven-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword comparison",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "현행 KO 본문·키워드·기존 출처 URL/절 기록을 직접 대조; 이번 정리에서 해당 외부 원문 전량을 새로 열람한 것은 아님",
+      "status": "pass",
+      "root_read_note_sha256": "1165dee4162037e45c22bf1c1d4d66d9f427bdc23b0a31bbb9b7b144bd4fe35a",
+      "root_read_ko_sha256": "860bef5e3b2ac9d5130156a4c5f6c30bb3d6bd714661a0ef0eb905ad36c4a147"
+    },
+    "money.major.strength.upright": {
+      "field": "meaning_choice",
+      "before": "건강정역모두좋은뜻이있음 H직접확인. 역을무조건체력저하로쓰지않음.",
+      "after": "Labyrinthos의 정방향 Finances에 있는 충동 지출 절제와 그 결과의 안정, 원전의 용기·힘을 채택. 필요한 지출을 감당함은 절약으로 남긴 돈의 분야 적용이며, 받을 돈의 차분한 협의는 인내의 저자 적용이다. 큰 수입이나 확정 수익을 뜻하지 않는다.",
+      "reason": "관련 없는 건강 메모를 실제 금전 뜻과 적용으로 교정",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "Part III §3 VIII: courage, magnanimity, power; reversed weakness, abuse of power",
+          "kind": "public_domain_comparison",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/strength-meaning-major-arcana-tarot-card-meanings",
+          "section": "Upright Meaning; Finances",
+          "kind": "modern_meaning_keywords_crosscheck",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "이번 검수에서 Labyrinthos Finances Meaning 정/역과 Waite Part III §3 VIII 외부 본문을 실제 재열람함",
+      "status": "pass",
+      "root_read_note_sha256": "b39d2a07c10699da33f54bd59b56eb6b7339ae2dd9779d332dff0ea657cfc2a4",
+      "root_read_ko_sha256": "6eadc65ec3133d0d463a79eb0d62cf081f0b50e4a586625dc74cea7fa842415f"
+    },
+    "money.major.strength.reversed": {
+      "field": "meaning_choice",
+      "before": "건강정역모두좋은뜻이있음 H직접확인. 역을무조건체력저하로쓰지않음.",
+      "after": "Labyrinthos의 역방향 Finances에 있는 충동적 지출과 실제 형편과 별개로 느끼는 금전 불안을 채택. 원전의 약화와 대조하되 건강 해석은 사용하지 않는다. 한꺼번에 구매하거나 불안 때문에 거래를 서두름은 약한 자제의 금전 분야 적용이며, 지출을 미루는 문장은 행동 제안이다.",
+      "reason": "관련 없는 건강 메모를 실제 금전 뜻과 적용으로 교정",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "Part III §3 VIII: courage, magnanimity, power; reversed weakness, abuse of power",
+          "kind": "public_domain_comparison",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/strength-meaning-major-arcana-tarot-card-meanings",
+          "section": "Reversed Meaning; Finances",
+          "kind": "modern_meaning_keywords_crosscheck",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "이번 검수에서 Labyrinthos Finances Meaning 정/역과 Waite Part III §3 VIII 외부 본문을 실제 재열람함",
+      "status": "pass",
+      "root_read_note_sha256": "82b92be270830ede93e541d70d66e0558ae53eed57bbbf4748876d6cafa5a85b",
+      "root_read_ko_sha256": "fe67351ea49d5a850409b998b4b9fd363c1b5f5156694137b741eb1d746551c2"
+    },
+    "energy.major.hanged_man.upright": {
+      "field": "meaning_choice",
+      "before": "역은 원전이기심/군중과다른 현대지연·쓸모없는희생 채택. 사랑역의재개여지는 원하는바를말하는행동으로 적용.",
+      "after": "정방향의 자발적 멈춤과 관점 전환을 일을 잠깐 멈추고 충분히 쉬는 건강 상황으로 적용한다. 지속되는 통증이나 평소와 다른 불편함을 확인하라는 행동은 일반 건강 주의이며, 카드의 질병 예언이 아니다.",
+      "reason": "건강 근거에 복사된 사랑 역방향 메모를 제거하고 승인 건강 본문의 분야 적용으로 명확화",
+      "author": "root",
+      "reported_by": "card_major_writer",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XII; upright wisdom/discernment/trials/sacrifice; reversed selfishness/crowd",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-hanged-man-meaning-major-arcana-tarot-card-meanings",
+          "section": "Upright keywords and General",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "H",
+          "url": "https://www.thetarotguide.com/the-hanged-man/",
+          "section": "Health (Upright) cached full text read; direct open may return403",
+          "kind": "health_meaning_narrowed_to_ordinary_condition",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "root가 현행 KO 전문·근거 메모·기존 출처 기록을 대조함. 이 교정에서 외부 원문을 새로 열람했다고 주장하지 않음.",
+      "status": "pass",
+      "root_read_note_sha256": "45e40b3ad892aba5680a9dd1e5f23c15bee8c71d220852e55ed29c3d764232b0",
+      "root_read_ko_sha256": "2eb3232777640fc8198aab3706adf31ff141e4030b126e3f12d9acb68f168260"
+    },
+    "energy.major.hanged_man.reversed": {
+      "field": "meaning_choice",
+      "before": "역은 원전이기심/군중과다른 현대지연·쓸모없는희생 채택. 사랑역의재개여지는 원하는바를말하는행동으로 적용.",
+      "after": "역방향은 원전의 이기심·군중 대신 기존에 채택한 현대적 지연·불필요한 희생 해석을 유지한다. 이를 휴식을 미루어 피로가 이어지는 상황과 도움을 받아 할 일을 줄이는 행동으로 건강 분야에 적용한다. 애정 분야의 관계 재개 메모는 이 본문의 근거로 사용하지 않는다.",
+      "reason": "건강 근거에 복사된 사랑 역방향 메모를 제거하고 승인 건강 본문의 분야 적용으로 명확화",
+      "author": "root",
+      "reported_by": "card_major_writer",
+      "source_basis": [
+        {
+          "id": "W",
+          "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+          "section": "XII; upright wisdom/discernment/trials/sacrifice; reversed selfishness/crowd",
+          "kind": "public_domain_card_meaning",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "L",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/the-hanged-man-meaning-major-arcana-tarot-card-meanings",
+          "section": "Reversed keywords and General",
+          "kind": "canonical_keywords_crosscheck_not_prose_translation",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "H",
+          "url": "https://www.thetarotguide.com/the-hanged-man/",
+          "section": "Health (Reversed) cached full text read; direct open may return403",
+          "kind": "health_meaning_narrowed_to_ordinary_condition",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "root가 현행 KO 전문·근거 메모·기존 출처 기록을 대조함. 이 교정에서 외부 원문을 새로 열람했다고 주장하지 않음.",
+      "status": "pass",
+      "root_read_note_sha256": "0a93ddbdd08b65cac6d10ae3fe080c12f02ee0126152c29452a32f97d00b257c",
+      "root_read_ko_sha256": "62b4528bfb796142e32ecb243517956a17ca71f9c160368c60a870727c38bfd6"
+    },
+    "energy.wands.07.upright": {
+      "field": "meaning_choice",
+      "before": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용. The Tarot Guide 건강은 힘을 유지/소진하는 상징만 채택하고 질병·부상·치료 예언을 모두 제외. 건강에 4개 상황해석+2개 행동문장 적용.",
+      "after": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용. The Tarot Guide 건강은 힘을 유지/소진하는 상징만 채택하고 질병·부상·치료 예언을 모두 제외. 문장·단락 구성은 현행 한국어 정본을 따른다.",
+      "reason": "현행 한국어 단락과 다른 종전 고정 문장 수 메모를 제거. 카드 뜻과 건강 적용은 변경하지 않음.",
+      "author": "root",
+      "reported_by": "card_major_writer",
+      "source_basis": [
+        {
+          "id": "waite-07",
+          "url": "https://sacred-texts.com/tarot/pkt/pktwa07.htm",
+          "section": "Divinatory Meanings / Reversed / card image",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-07",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/seven-of-wands-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword table",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "guide-07",
+          "url": "https://www.thetarotguide.com/seven-of-wands/",
+          "section": "Health (Upright) / Health (Reversed)",
+          "kind": "health_section_read_via_search_cache",
+          "accessed_date": "2026-09-15",
+          "excluded": "질병·부상·특정 증상·치유·임신 예언은 채택하지 않음"
+        }
+      ],
+      "verification_scope": "현행 KO 전문과 메모의 형식 불일치를 root가 직접 확인. 기존 출처 기록 유지; 외부 원문 추가 열람은 없음.",
+      "status": "pass",
+      "root_read_note_sha256": "375b3e530bfaa766693692c17a0b93af7989e1026849a271c2b92cefcb58072e",
+      "root_read_ko_sha256": "116cd94b756edd3b3a863f17008873226cdac0038883cbf4bce7f1431efb8307"
+    },
+    "energy.wands.07.reversed": {
+      "field": "meaning_choice",
+      "before": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용. The Tarot Guide 건강은 힘을 유지/소진하는 상징만 채택하고 질병·부상·치료 예언을 모두 제외. 건강에 4개 상황해석+2개 행동문장 적용.",
+      "after": "Waite의 지키는 힘과 역방향 혼란을 주근거로 사용. The Tarot Guide 건강은 힘을 유지/소진하는 상징만 채택하고 질병·부상·치료 예언을 모두 제외. 문장·단락 구성은 현행 한국어 정본을 따른다.",
+      "reason": "현행 한국어 단락과 다른 종전 고정 문장 수 메모를 제거. 카드 뜻과 건강 적용은 변경하지 않음.",
+      "author": "root",
+      "reported_by": "card_major_writer",
+      "source_basis": [
+        {
+          "id": "waite-07",
+          "url": "https://sacred-texts.com/tarot/pkt/pktwa07.htm",
+          "section": "Divinatory Meanings / Reversed / card image",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-07",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/seven-of-wands-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword table",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "guide-07",
+          "url": "https://www.thetarotguide.com/seven-of-wands/",
+          "section": "Health (Upright) / Health (Reversed)",
+          "kind": "health_section_read_via_search_cache",
+          "accessed_date": "2026-09-15",
+          "excluded": "질병·부상·특정 증상·치유·임신 예언은 채택하지 않음"
+        }
+      ],
+      "verification_scope": "현행 KO 전문과 메모의 형식 불일치를 root가 직접 확인. 기존 출처 기록 유지; 외부 원문 추가 열람은 없음.",
+      "status": "pass",
+      "root_read_note_sha256": "375b3e530bfaa766693692c17a0b93af7989e1026849a271c2b92cefcb58072e",
+      "root_read_ko_sha256": "46778b11b0e65cf98d932e567f0c9845e5b18101ef3971d90339bb655ee5ddb4"
+    },
+    "energy.pentacles.07.upright": {
+      "field": "meaning_choice",
+      "before": "원전은 정방향 의미 충돌을 명시함. 열매를 바라보는 도상의 진행 점검 및 금전 판단을 채택. 역방향은 대여 우려를 시간·관심·노력 투입으로 분야 적용. 현대 인내·성과 키워드는 도상 대조.",
+      "after": "원전은 정방향 의미 충돌을 명시함. 열매를 바라보는 도상의 진행 점검 및 금전 판단을 채택. 정방향의 진행 점검은 꾸준한 건강 관리의 변화를 살피는 상황으로, 역방향의 대여 우려는 건강 비용 부담과 지출 대비 빠른 호전을 기대하는 상황으로 적용한다. 현대 인내·성과 키워드는 도상 대조.",
+      "reason": "시간·관심·노력 투입이라는 종전 범용 메모를 승인 건강 본문의 경과 관찰·건강 비용 적용으로 명확화.",
+      "author": "root",
+      "reported_by": "card_major_writer",
+      "source_basis": [
+        {
+          "id": "waite-pentacles.07",
+          "url": "https://sacred-texts.com/tarot/pkt/pktpe07.htm",
+          "section": "Card description; Divinatory Meanings; Reversed",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-pentacles.07",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/seven-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword comparison",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "root가 현행 KO 전문과 기존 메모·출처 기록을 대조. 본문·키워드·운 판단·출처는 변경하지 않았으며 외부 원문을 추가 열람했다고 주장하지 않음.",
+      "status": "pass",
+      "root_read_note_sha256": "007ccfb5cbdaac0d781477286b2b8a87ecd733aece4adc61420d73e845ac96c5",
+      "root_read_ko_sha256": "efcecdb7f0fe9bb142ea6546021f4e33472ed57c4215b5dede7737edf3ff4c6e"
+    },
+    "energy.pentacles.07.reversed": {
+      "field": "meaning_choice",
+      "before": "원전은 정방향 의미 충돌을 명시함. 열매를 바라보는 도상의 진행 점검 및 금전 판단을 채택. 역방향은 대여 우려를 시간·관심·노력 투입으로 분야 적용. 현대 인내·성과 키워드는 도상 대조.",
+      "after": "원전은 정방향 의미 충돌을 명시함. 열매를 바라보는 도상의 진행 점검 및 금전 판단을 채택. 정방향의 진행 점검은 꾸준한 건강 관리의 변화를 살피는 상황으로, 역방향의 대여 우려는 건강 비용 부담과 지출 대비 빠른 호전을 기대하는 상황으로 적용한다. 현대 인내·성과 키워드는 도상 대조.",
+      "reason": "시간·관심·노력 투입이라는 종전 범용 메모를 승인 건강 본문의 경과 관찰·건강 비용 적용으로 명확화.",
+      "author": "root",
+      "reported_by": "card_major_writer",
+      "source_basis": [
+        {
+          "id": "waite-pentacles.07",
+          "url": "https://sacred-texts.com/tarot/pkt/pktpe07.htm",
+          "section": "Card description; Divinatory Meanings; Reversed",
+          "kind": "public_domain_primary",
+          "accessed_date": "2026-09-15"
+        },
+        {
+          "id": "modern-pentacles.07",
+          "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/seven-of-pentacles-meaning-tarot-card-meanings",
+          "section": "Upright / Reversed keyword comparison",
+          "kind": "modern_keyword_comparison",
+          "accessed_date": "2026-09-15"
+        }
+      ],
+      "verification_scope": "root가 현행 KO 전문과 기존 메모·출처 기록을 대조. 본문·키워드·운 판단·출처는 변경하지 않았으며 외부 원문을 추가 열람했다고 주장하지 않음.",
+      "status": "pass",
+      "root_read_note_sha256": "007ccfb5cbdaac0d781477286b2b8a87ecd733aece4adc61420d73e845ac96c5",
+      "root_read_ko_sha256": "32d28fcce47e70c960b93557a759647d1ef24df05d235ffbbd9ad5f02628b998"
+    }
+  },
+  "retained_policy": "원전 뜻을 채택하지 않는다는 일반적 건강·성별 등 제외 설명은 사실상 다른 분야 원고를 채택했다는 메모와 구분하여 유지. 기록된 정역 의미 채택 등의 범용 필드는 이번에 넓혀 수정하지 않음.",
+  "root_review": {
+    "reviewer": "root",
+    "human_review": false,
+    "actual_corrected_note_and_ko_read_count": 29,
+    "assessment": "금전23개 및 건강6개 수정 전후 메모와 해당 한국어 본문 전문을 읽어 분야·운 판단·행동 적용·현행 형식을 대조함. 일반 카드 뜻과 저자 적용을 구분하며 한국어 본문 변경은 없음. 모든 외부 원문을 이번에 새로 읽었다고 판정하지 않음.",
+    "additional_source_reading": [
+      {
+        "url": "https://labyrinthos.co/blogs/tarot-card-meanings-list/strength-meaning-major-arcana-tarot-card-meanings",
+        "scope": "Finances Meaning 정/역 본문 직접 확인; 지출 통제의 안정과 충동 지출·형편과 별개의 금전 불안"
+      },
+      {
+        "url": "https://sacred-texts.com/book/the-pictorial-key-to-the-tarot/shell/section-3-the-greater-arcana-and-their-divinatory-meanings",
+        "scope": "Part III §3 8.FORTITUDE 정/역 직접 확인; 힘·용기 및 역의 약화·권력 남용"
+      }
+    ]
+  },
+  "reported_health_notes_read_by_root": 6,
+  "actual_meaning_choice_read_scope": "card_major_writer의 금전156개 전수 메모 점검. 건강에서 추가 보고된6개는 root가 메모·본문 전문 대조."
+}

@@ -1,0 +1,938 @@
+{
+  "work.major.chariot.upright": {
+    "paragraphs": [
+      "Tests could give you a good chance to show what you've learned. You may solve a problem that's been difficult or receive a good assessment for a presentation you've prepared. An assignment you've put off because it seemed hard is worth another attempt today.",
+      "At work, delayed tasks could move forward and you may finish what you've been assigned. A proposal of yours could be well received when several are being considered. If you're clear on what needs doing, it's a good day to put your ideas forward with confidence."
+    ]
+  },
+  "work.major.chariot.reversed": {
+    "paragraphs": [
+      "Rushing in a test could cost you points on questions you know how to answer. Skipping part of a question or copying an answer incorrectly may lead to mistakes. Review what you've answered instead of trying to finish as quickly as possible.",
+      "At work, pushing ahead too fast could bring requests for changes or friction with colleagues. Rushing others to meet a schedule you set alone may make cooperation harder. Finish your current work before taking on more."
+    ]
+  },
+  "work.major.sun.upright": {
+    "paragraphs": [
+      "What you're learning may make more sense, with good results possible in tests. A confusing concept could become clear, making questions that require an explanation easier. Luck also favours chances to show your ability, such as a class presentation or an admissions interview.",
+      "At work, your achievements could be noticed and earn praise or a good evaluation. A report or presentation you've prepared may come across clearly and get a warm response from colleagues. Share a good result with the people who helped you."
+    ]
+  },
+  "work.major.sun.reversed": {
+    "paragraphs": [
+      "Some questions may go well thanks to your preparation, even if your grade falls a little short of your hopes. Skimming familiar material could cost you easy points. Review the questions that disappointed you without treating the parts you did well as failures.",
+      "At work, a job well done may not bring immediate praise or recognition. A quiet response doesn't mean you achieved nothing. Letting others know when the work is complete can make your contribution clearer."
+    ]
+  },
+  "work.major.tower.upright": {
+    "paragraphs": [
+      "You could get a question wrong on material you thought you knew, or be caught off guard by an unexpected question. An assignment may also need a substantial part rewritten before you submit it. If you find a mistake, check the basic explanation rather than skipping over it.",
+      "At work, a sudden change or a mistake discovered late could bring a task to a halt. Skipping checks because you think the job is finished may leave more to correct. Tell the people concerned as soon as a problem comes to light instead of hiding it."
+    ]
+  },
+  "work.major.tower.reversed": {
+    "paragraphs": [
+      "You could catch a misunderstanding before a test and avoid losing points. Looking again at an answer or part of an assignment that didn't feel right may reveal a missed error. There's time to correct it if you don't put it away just because you think you're done.",
+      "At work, noticing a small problem early could prevent a major setback. Check anything that seems wrong in a report or a task in progress. Dismissing an existing problem as harmless could leave more to fix later."
+    ]
+  },
+  "work.major.moon.upright": {
+    "paragraphs": [
+      "Confusion about what you've learned could make you change your answer on similar questions today. Misreading a word or a condition in a test may cost you points. Don't keep changing your first answer without a clear reason.",
+      "At work, unclear instructions or conflicting information could complicate a task. A brief response from your manager doesn't necessarily mean their opinion of your work has worsened. Check directly if the task or deadline is unclear."
+    ]
+  },
+  "work.major.moon.reversed": {
+    "paragraphs": [
+      "A confusing concept could become clearer, helping you understand why an answer was wrong. Hearing an explanation again may help you understand something you've only memorised. If a test is coming up, revisit the parts you often mix up.",
+      "At work, correcting something that's been passed on wrongly could reduce confusion. Finding out why a task was delayed may also clear up a misunderstanding with a colleague. Once you've checked the facts, don't add guesses about other problems."
+    ]
+  },
+  "work.major.temperance.upright": {
+    "paragraphs": [
+      "Connections between things you've learned separately could make difficult questions easier to understand. In tests, you may show your preparation across subjects rather than doing well in just one. Filling small gaps in your knowledge can help your studies continue more easily.",
+      "At work, differences of opinion may ease and shared tasks could run smoothly. Coordinating what each person handles can lighten work you've been carrying alone. Discussions could produce an agreement both sides can accept."
+    ]
+  },
+  "work.major.temperance.reversed": {
+    "paragraphs": [
+      "A test could reveal a gap between subjects you've prepared for and those you've neglected. Staying only with subjects you feel confident in may mean losing more points elsewhere than expected. Revisit some of the material you've put off today.",
+      "At work, different working speeds could throw schedules out. If one person has too much to do, even a small request may turn into an argument. Find out together who's stuck and where, instead of just pressuring everyone to meet the deadline."
+    ]
+  },
+  "work.major.fool.upright": {
+    "paragraphs": [
+      "Something you're learning for the first time may be easier to understand than expected. An unfamiliar subject or new class could help you discover a field that suits you today. Asking straight away about anything unclear will make the next stage of study easier too.",
+      "At work, you could encounter an unfamiliar task or a new suggestion. Even without experience, starting may reveal something that suits you unexpectedly well. Don't casually agree to conditions you haven't checked yet."
+    ]
+  },
+  "work.major.fool.reversed": {
+    "paragraphs": [
+      "Careless reading of an exam question or a missed assignment requirement could cost marks. Even on a familiar topic, read to the end to see what answer is required. Luck is unlikely to make up for unprepared areas today.",
+      "At work, starting without checking could bring an unexpected problem. Assuming a new task is easy may leave you asking for help just before the deadline. Find out the time and conditions needed before beginning."
+    ]
+  },
+  "work.major.magician.upright": {
+    "paragraphs": [
+      "It's a good day to apply what you've learned to a problem. Memorised material may come to mind at the right moment, and you could perform well in practical exercises or presentations you've prepared for. You could also explain an answer in your own words effectively.",
+      "At work, existing skills or experience could solve something that's stuck. A prepared demonstration or presentation is likely to receive a good assessment too. Using what you do well where it's needed may make the results clear."
+    ]
+  },
+  "work.major.magician.reversed": {
+    "paragraphs": [
+      "Material you thought you knew may be hard to recall when facing a question. If you've only looked at a solution and assumed you understood, explaining it alone could prove difficult. Check whether you can solve it yourself before the exam.",
+      "At work, you may struggle to deliver something you confidently promised. Pretending to understand unfamiliar parts to appear skilled could create more corrections. Clearly saying what you can handle will protect trust."
+    ]
+  },
+  "work.major.high_priestess.upright": {
+    "paragraphs": [
+      "Quiet study could help you understand a complicated concept deeply today. Careful reading may also reveal a hidden condition in a question. Fully understanding one problem is likely to bring more progress than rushing through many.",
+      "At work, a close look at material could reveal something others missed. Information that hasn't been released yet may delay an important decision. Separating what you know from what you guess will make your report more trustworthy."
+    ]
+  },
+  "work.major.high_priestess.reversed": {
+    "paragraphs": [
+      "You may read a sentence but miss its main meaning and answer incorrectly. Choosing an answer just because you recognise a word could make you mistake one concept for another. Don't pretend to understand a part you haven't grasped.",
+      "At work, skimming material could make you miss something important. Guessing unspoken circumstances may also lead you to misunderstand a colleague's intention. It's better not to delay a question that needs checking."
+    ]
+  },
+  "work.major.empress.upright": {
+    "paragraphs": [
+      "Assignments expressing ideas through writing or drawing could bring good results. Several ideas may come to you even on a topic you've struggled with, helping you develop the content. Carefully prepared creative work or a presentation could receive praise.",
+      "At work, a plan prepared over a long time could produce concrete results. A proposal that considers people's tastes or needs may receive a good response today. If the achievement is shared, recognise your colleagues' contributions too."
+    ]
+  },
+  "work.major.empress.reversed": {
+    "paragraphs": [
+      "Even a well-presented assignment may receive a disappointing assessment if its content is thin. Focusing on length could keep you from answering the actual question. Fill in the main explanation before improving the appearance.",
+      "At work, looking after others could make you miss your own deadline. However much you've helped, late work may lead to an assessment below your hopes. Check what's left on your own list before accepting a request."
+    ]
+  },
+  "work.major.emperor.upright": {
+    "paragraphs": [
+      "If you've mastered the basics, you're well placed for a solid exam result. Applying the principles you've learned in order may let you solve even a difficult problem without becoming unsettled. Calmly follow a familiar solution through to the end.",
+      "At work, careful completion of your responsibilities could earn trust. Tasks with clear timing and roles may proceed smoothly. If you've taken on a major responsibility, you could make the necessary decisions calmly too."
+    ]
+  },
+  "work.major.emperor.reversed": {
+    "paragraphs": [
+      "Insisting on a familiar method could leave you stuck on a new question type. If a teacher or friend offers a different explanation, hear it before deciding it's wrong. Repeating a method that doesn't fit the question is unlikely to produce the answer.",
+      "At work, one-sided instructions or excessive interference could cause delays. Competing over who's right may stop the actual work today. Even if you're in charge, listen when colleagues explain their circumstances."
+    ]
+  },
+  "work.major.hierophant.upright": {
+    "paragraphs": [
+      "A teacher's explanation or the basics in a textbook could solve a problem you're stuck on. Following the sequence you've learned may make solitary study less confusing. Good exam results are also worth hoping for if you've kept hold of the basic concepts.",
+      "At work, following established procedures could keep a task progressing steadily. An experienced colleague's advice may help with unfamiliar work. Meeting agreed standards can make a review or approval easier to obtain."
+    ]
+  },
+  "work.major.hierophant.reversed": {
+    "paragraphs": [
+      "An explanation different from the usual one could make a difficult concept clear. Even if a new method suits you, keep to the answer format required by the exam. A method isn't correct simply because it's new.",
+      "At work, a suggestion that differs from the existing approach could divide opinions. Even a necessary change may not be accepted immediately if it breaks with usual practice. A real example of what improves can help persuade people."
+    ]
+  },
+  "work.major.lovers.upright": {
+    "paragraphs": [
+      "Exchanging explanations with a study partner could make difficult material easier to understand. Making up for each other's gaps may help an assignment or presentation go well too. If you're choosing a class or subject to specialise in, a suitable option could become clear.",
+      "At work, shared intentions with colleagues could make discussions go smoothly. Combining different strengths may solve a task you couldn't handle alone. If several offers are available, you could get a chance to take on work you want."
+    ]
+  },
+  "work.major.lovers.reversed": {
+    "paragraphs": [
+      "Studying together could become more confusing if the explanations don't suit you. Different preferences for a group assignment topic may slow progress. Start by meeting the assignment's requirements instead of forcing everyone's ideas into it.",
+      "At work, different expectations for the same task could cause a clash. Even after outward agreement, working towards different outcomes may reveal a problem at the deadline. It's better to decide together what to finish first."
+    ]
+  },
+  "work.major.strength.upright": {
+    "paragraphs": [
+      "You could finally solve a problem you've struggled with for a long time today. Even in a difficult exam, staying calm may help you recall what you know. One mistake isn't a reason to abandon the whole solution.",
+      "At work, you may handle a demanding task or uncomfortable conversation without too much strain. A calm explanation could win cooperation more readily than challenging the other person's reaction. Steady work may also bring recognition for your diligence."
+    ]
+  },
+  "work.major.strength.reversed": {
+    "paragraphs": [
+      "Exam nerves could make familiar material hard to recall. Losing confidence over one difficult problem may make you rush through the next one too. Divide your time and answer what you can first.",
+      "At work, reacting sensitively to a small correction could lead to a clash with a colleague. Even if you feel your ability is being questioned, a forceful reply may cost you the chance to explain. Hear what needs changing first."
+    ]
+  },
+  "work.major.hermit.upright": {
+    "paragraphs": [
+      "Focused study on your own could bring results today. Following a difficult concept carefully may let you understand it well enough to explain to someone else. Time to work through it on your own will help more than racing through material with others.",
+      "At work, concentrating on a problem could reveal an important answer. Research or analysis requiring depth may give you a good chance to use your skills. Checking thoroughly before offering a view will make the explanation reliable."
+    ]
+  },
+  "work.major.hermit.reversed": {
+    "paragraphs": [
+      "Studying alone could leave a misunderstanding uncorrected for a long time. Without asking about what you don't know, you may keep making the same mistake. Someone else's explanation could reveal why you're stuck.",
+      "At work, keeping progress to yourself could delay cooperation. Hiding a problem because you don't want help may also reduce the time available to solve it. It's better to say where you're stuck, even briefly."
+    ]
+  },
+  "work.major.wheel_of_fortune.upright": {
+    "paragraphs": [
+      "An exam could cover familiar material, or something you've recently studied may prove useful. An explanation you happen to hear could even help you answer a difficult question. If you've done your revision, a good result is worth hoping for.",
+      "At work, an unexpected development could get a stalled task moving. You may receive a good offer or have a chance to meet someone whose help you need. With circumstances turning in your favour, it's a good time to resume a postponed discussion or application."
+    ]
+  },
+  "work.major.wheel_of_fortune.reversed": {
+    "paragraphs": [
+      "A question unlike the type you expected could catch you off guard. Relying only on selected topics may cost you marks on material you haven't prepared. Check for changes to the exam's coverage or schedule.",
+      "At work, outside circumstances may cause delays even when you've done nothing wrong. A delayed reply or change to an approval date could hold up the next task too. Don't give others a firm promise that it will happen today."
+    ]
+  },
+  "work.major.justice.upright": {
+    "paragraphs": [
+      "It's a good day for your results to reflect the studying you've done. Answers with precise reasoning and assignments that meet the requirements are likely to earn marks. Include everything you know that's relevant, in the requested format.",
+      "At work, clear facts and evidence of your results could bring recognition. You may also find a basis everyone accepts for sharing tasks or assessing performance. Accurately explaining who did what will reduce unnecessary misunderstandings."
+    ]
+  },
+  "work.major.justice.reversed": {
+    "paragraphs": [
+      "Even a carefully written answer may earn disappointing marks if it doesn't meet the marking criteria. If an assessment seems odd, check which criteria were used before challenging it in anger. Look for any requirements you may have missed too.",
+      "At work, the way tasks are shared or performance is assessed may feel unfair. If you're being held responsible for someone else's mistake, calmly explain what you actually did. Don't pass the blame to another colleague without checking the facts."
+    ]
+  },
+  "work.major.hanged_man.upright": {
+    "paragraphs": [
+      "Your studying may not show immediate results, but a different solution could help you understand. Setting aside a stubborn problem briefly and revisiting an example may reveal something you missed. Slow progress today doesn't mean you've stopped learning.",
+      "At work, an important decision may be delayed. Hearing more about the other person's circumstances could explain why discussions have stalled. Allowing the time needed may help you reach a better agreement than pressing for an answer today."
+    ]
+  },
+  "work.major.hanged_man.reversed": {
+    "paragraphs": [
+      "Long hours with a book may feel frustrating if your understanding isn't improving. Simply rereading the same explanation can leave you stuck on the same questions. Pinpoint where you're getting lost and seek a different explanation.",
+      "At work, unnecessary waiting or repeated concessions by just one side could leave a task at a standstill. If you're only told to keep waiting, it's time to ask what still needs doing. Taking on everyone else's share won't solve every problem."
+    ]
+  },
+  "work.major.death.upright": {
+    "paragraphs": [
+      "A familiar way of solving problems may stop working, prompting a change in how you study. Leaving an unproductive exercise behind and hearing a new explanation could change your understanding. If an assignment needs finishing, it's a good day to complete it and move on to the next part of your studies.",
+      "At work, a task may come to an end or your responsibilities could change. If a plan you expected to continue is closed down, you'll still need to finish the remaining details, however disappointing that feels. Find out what your next role involves instead of holding on to work that's ended."
+    ]
+  },
+  "work.major.death.reversed": {
+    "paragraphs": [
+      "Studying in the same way may do little to reduce recurring mistakes. Rereading a familiar explanation you don't understand could bring little progress for the time spent. You need to consider a different way of solving the problem.",
+      "At work, holding on to a task that should already be finished could delay the next one. Keeping the old method after its problems become clear may bring the same requests for corrections. First check how the requirements have changed."
+    ]
+  },
+  "work.major.devil.upright": {
+    "paragraphs": [
+      "Pressure to improve your marks could make even material you've studied seem confusing. Focusing on whether you've done more than others may keep you from understanding why an answer was wrong. Don't cut back on sleep to force yourself through more material.",
+      "At work, the burden could become excessive even if you're getting results. Promising more than you can handle in pursuit of success may leave you with difficulties after the initial praise. Don't give up necessary rest for a good assessment."
+    ]
+  },
+  "work.major.devil.reversed": {
+    "paragraphs": [
+      "Distractions could ease, allowing you to catch up on studying. A problem you've kept putting off may be easier than expected once you tackle it today. It's a good time to break one habit that interrupts your study.",
+      "At work, you may be able to share an unmanageable task or step away from unnecessary competition. With less extra work to carry, you could start getting results in your own role again. Explain clearly when you can't meet a request."
+    ]
+  },
+  "work.major.star.upright": {
+    "paragraphs": [
+      "You could find an answer in a subject you've struggled with and see how to improve your marks. A clear explanation may encourage you to try again at a subject you lack confidence in. Have another go at a question you got wrong before.",
+      "At work, new ideas may come easily and your suggestions could receive a positive response. You may also get another chance to have work reconsidered after a disappointing result. Address the points raised last time and put it forward again."
+    ]
+  },
+  "work.major.star.reversed": {
+    "paragraphs": [
+      "Doubting an answer you know could lead you to change it and lose marks. After a disappointing result, you may expect to get a new problem wrong before trying it. If you have sound reasoning for your answer, calmly check it again.",
+      "At work, a quiet response to a proposal may lead you to undervalue what you've achieved. Don't abandon a prepared presentation or application over one indifferent remark. Asking for specific feedback on what needs improving will help more."
+    ]
+  },
+  "work.major.judgement.upright": {
+    "paragraphs": [
+      "Trying a question you got wrong before could bring a better result. If you have a resit or a chance to revise an assignment, it's a good day to show what you can do again. Understanding the cause of a past mistake can help you avoid losing marks the same way.",
+      "At work, a delayed assessment may arrive or a resubmitted proposal could be considered. If you've fixed a previous problem, the improvement in your results may be recognised. Explain clearly what you've improved."
+    ]
+  },
+  "work.major.judgement.reversed": {
+    "paragraphs": [
+      "Without checking why an answer was wrong, you could repeat the same mistake even on a familiar question. Blaming only the questions or the marking for disappointing results may hide what you need to improve. Start by reviewing your own solution.",
+      "At work, refusing to acknowledge a past mistake could delay an assessment or discussion. Even if you dislike someone's judgement, don't reject necessary corrections too. Putting the mistake right can allow the discussion to continue."
+    ]
+  },
+  "work.major.world.upright": {
+    "paragraphs": [
+      "An exam or assignment you've prepared for over a long time could bring a satisfying result. What you've learned may fit together, making questions that combine several topics easier to understand.",
+      "At work, you could complete a long-running task and receive recognition for the result. Sharing the finished work with those involved may bring a sense of achievement. What you've completed could also lead to an offer of a new role."
+    ]
+  },
+  "work.major.world.reversed": {
+    "paragraphs": [
+      "Even material you mostly understand could leave you stuck on the last step of a solution. Rushing the final part of an exam or assignment may mean your marks don't reflect what you know. Check for unanswered questions before deciding you're done.",
+      "At work, an additional request could delay completion of a nearly finished task. If a closing report or final check is still needed, don't announce that the work is complete yet. Finishing the last details will let you show what you've achieved properly."
+    ]
+  },
+  "work.cups.01.upright": {
+    "paragraphs": [
+      "Ideas for writing or creative work may come readily, making an assignment easier. It's also a good day to understand and enjoy something you're learning for the first time. Writing down your ideas can help you see which topic to develop.",
+      "At work, a fresh suggestion could receive a good response. Even in a task you're handling for the first time, comfortable conversations with others may bring help."
+    ]
+  },
+  "work.cups.01.reversed": {
+    "paragraphs": [
+      "A lack of ideas for an assignment could delay your start. Trying to force an impressive answer may make even the basic content hard to organise. Start with a short answer to what's being asked.",
+      "At work, new ideas may be hard to find, or a suggestion could receive less enthusiasm than you hoped. Fill in what's needed first instead of trying to complete an ambitious plan in one go."
+    ]
+  },
+  "work.cups.02.upright": {
+    "paragraphs": [
+      "Explaining problems to each other as you study with a friend could help you understand faster than studying alone. Your different strengths may also complement each other in a group presentation and earn a good assessment.",
+      "At work, you and the person you're working with may want the same things, making the task easier. It's a good day to talk things through with a colleague you've disagreed with too. Discussing what you'll achieve together can make agreement easier."
+    ]
+  },
+  "work.cups.02.reversed": {
+    "paragraphs": [
+      "Disagreements over an assignment with a friend could delay completion. If only one person does the explaining or summarising, studying together may be less useful too.",
+      "At work, different goals could mean having to do the same task again. Even if you thought cooperation was going well, the other person may have understood things differently. Check directly what each of you is handling and what result you want."
+    ]
+  },
+  "work.cups.03.upright": {
+    "paragraphs": [
+      "A presentation or assignment prepared together could receive a good assessment. It's a good day to celebrate exam results with study friends or share encouraging news.",
+      "At work, a team effort could bring results and congratulations. If colleagues helped you finish a task, share the pleasure with them. The good mood may make your next collaboration easier too."
+    ]
+  },
+  "work.cups.03.reversed": {
+    "paragraphs": [
+      "An attempt to study together could turn into a long chat with little progress. If exam preparation or a group assignment still needs doing, don't put it off simply because you're meeting close friends.",
+      "At work, gossip from a gathering or people taking sides could make cooperation uncomfortable. Sharing information only with friends may leave someone else without what they need. Keep everyone involved informed about the work."
+    ]
+  },
+  "work.cups.04.upright": {
+    "paragraphs": [
+      "Boredom with studying may make it hard to remember what you've read. Tuning out a lesson because the topic seems familiar could also mean missing an explanation you need for an exam. Try a few problems yourself to check your understanding.",
+      "At work, handling a routine task without much thought could cause a small mistake. Dismissing a new proposal without interest may also mean missing an opportunity that suits you."
+    ]
+  },
+  "work.cups.04.reversed": {
+    "paragraphs": [
+      "A new explanation could make something you didn't understand before fall into place. It's a good day to return to a subject or assignment you set aside.",
+      "At work, a postponed task may resume, or you could reconsider a proposal you passed over. Benefits you didn't notice before may help you see an opportunity. Check the changed conditions before deciding whether to take part."
+    ]
+  },
+  "work.cups.05.upright": {
+    "paragraphs": [
+      "An exam or assignment result may fall short of your hopes. Getting a few questions wrong doesn't mean you're weak at the whole subject. Checking why the answers were wrong can show you what to work on next.",
+      "At work, a proposal you had hopes for may be declined, or part of a project could fall through. The entire achievement may not be lost, so check which parts can continue."
+    ]
+  },
+  "work.cups.05.reversed": {
+    "paragraphs": [
+      "A disappointing exam could help you identify what needs improving. Taking on board a teacher's or friend's explanation may make the same type of question easier than before.",
+      "At work, a way to revive something that went badly could emerge. Apologies may also clear up a conversation that went wrong with a colleague. Ask for the help you need instead of sitting alone blaming yourself."
+    ]
+  },
+  "work.cups.06.upright": {
+    "paragraphs": [
+      "Remembering something you learned before could make a problem easy to solve. Even a question you got wrong long ago may make more sense when you revisit it. Material you've revised could lead to good marks in an exam.",
+      "At work, a former colleague or familiar experience could prove helpful. Looking at a past example may reveal an approach you can use on a task that's currently stuck."
+    ]
+  },
+  "work.cups.06.reversed": {
+    "paragraphs": [
+      "A method that worked well before may not fit the question you're facing now. If the question's conditions or the material have changed, don't reach straight for the familiar answer. Checking the new explanation can reveal a difference you missed.",
+      "At work, copying a method that succeeded in the past could bring requests for changes. A method that once worked may not suit today's customers or colleagues, so hear what they need now."
+    ]
+  },
+  "work.cups.07.upright": {
+    "paragraphs": [
+      "Despite plenty of studying, you may find few questions you can solve on your own. Following only predicted exam questions could leave you stuck when a different type appears. Choose one study resource and work to understand it fully.",
+      "At work, many proposals may sound promising, but few may be ready to carry out. Check the time and conditions needed before imagining the good results."
+    ]
+  },
+  "work.cups.07.reversed": {
+    "paragraphs": [
+      "You could resolve confusion between different explanations and reach a clear understanding. Choosing a solution method that suits you may also help you answer questions faster.",
+      "At work, a decision could be made about which of several proposals to pursue. Setting aside unlikely proposals may make the results of your own work clearer. It's a good day to finish the task you've decided on."
+    ]
+  },
+  "work.cups.08.upright": {
+    "paragraphs": [
+      "The studying you've done so far may not bring the results you want. It's time to seek another explanation instead of holding on to material or classes that don't suit you. Choosing what you actually need could help you understand a difficult part.",
+      "At work, your current role may end, or you could be offered different work. If a task has continued without results, make a clear decision about whether to carry on or bring it to a close."
+    ]
+  },
+  "work.cups.08.reversed": {
+    "paragraphs": [
+      "More hours of study may not raise your marks as much as you hoped. If you're repeating the same material because you don't want to change a familiar explanation, hear a different approach too.",
+      "At work, a task you'd agreed to stop handling could return and become a burden. Waiting on a promise that things will change may leave you with the same complaints. Check whether the responsibilities can actually be shared."
+    ]
+  },
+  "work.cups.09.upright": {
+    "paragraphs": [
+      "You can hope for the result you wanted in an exam or assignment you've prepared for. Even difficult questions may go well, bringing satisfaction that reflects your studying.",
+      "At work, sustained effort could bring results and the assessment you wanted. If a proposal succeeds or your performance brings good results, let yourself enjoy it. Thanking those who helped is a good way to share the pleasure."
+    ]
+  },
+  "work.cups.09.reversed": {
+    "paragraphs": [
+      "High expectations may make you dissatisfied even with decent marks. Comparing scores with others could keep you from noticing where you've improved. Look separately at subjects that need work and those you've done well in.",
+      "At work, finishing a task or receiving praise may still disappoint you if the reward differs from what you expected. Don't expect one good assessment to change every condition to your liking."
+    ]
+  },
+  "work.cups.10.upright": {
+    "paragraphs": [
+      "Support from those around you could let you study comfortably and show what you can do. Working well together on a presentation or assignment may also bring a good result.",
+      "At work, cooperation with colleagues could produce steady results. It's a good day to receive recognition for a shared achievement and exchange happy news. Relationships in which you've regularly helped each other may feel reassuring."
+    ]
+  },
+  "work.cups.10.reversed": {
+    "paragraphs": [
+      "Different views could delay an assignment even among close friends. Assuming everyone will know what to do may leave gaps. Say clearly what you need to ask of them, even if it feels uncomfortable.",
+      "At work, complaints within the team could surface despite apparent cooperation. Covering up a problem to keep the mood pleasant may lead to another clash over the same task."
+    ]
+  },
+  "work.cups.11.upright": {
+    "paragraphs": [
+      "A new idea could make a writing or presentation assignment enjoyable. Even a seemingly odd question may offer a clue that helps you understand a concept.",
+      "At work, a small idea could attract interest, or you may be offered something you've never tried. An idea doesn't need to be perfectly developed to meet a need. A simple example will help get its meaning across."
+    ]
+  },
+  "work.cups.11.reversed": {
+    "paragraphs": [
+      "Ideas may come to you but prove hard to organise into an essay or answer. Writing down whatever comes to mind could take you away from the assignment's requirements. First check which question you're answering.",
+      "At work, an offhand remark could be misunderstood, or a proposal may be judged underdeveloped. Ask what's missing before showing your hurt at the criticism."
+    ]
+  },
+  "work.cups.12.upright": {
+    "paragraphs": [
+      "An assignment expressing ideas through speech or writing could receive a good response. In a presentation, including what listeners are likely to wonder about will help your explanation reach them.",
+      "At work, you may be offered work you're pleased to take on or invited to work together. An idea you explain sincerely could also be considered favourably. Discuss exactly what each of you expects to do."
+    ]
+  },
+  "work.cups.12.reversed": {
+    "paragraphs": [
+      "Even a beautifully written answer may earn disappointing marks if the reasoning is weak. Confidently explaining something you don't know well in a presentation could leave you stuck on follow-up questions. Start with what you actually understand.",
+      "At work, a proposal that sounded appealing may not happen, or promised support could be delayed. Don't finalise your entire schedule on the strength of the other person's words alone."
+    ]
+  },
+  "work.cups.13.upright": {
+    "paragraphs": [
+      "An explanation that addresses exactly where you're struggling could help your studies progress. Feeling comfortable asking questions may let you understand something you couldn't work out alone.",
+      "At work, you could receive a good assessment for noticing what someone wants. Conversations may go smoothly in roles involving customer contact or listening to others' views. Attending to even small difficulties can build trust."
+    ]
+  },
+  "work.cups.13.reversed": {
+    "paragraphs": [
+      "Concern about other people's moods or requests may make it hard to retain what you study. Helping with someone else's assignment at the expense of your own preparation could bring a disappointing exam result.",
+      "At work, looking after a colleague's tasks too much could delay your own. Saying you're fine when you're struggling may leave you suddenly hurt by a small remark. Be honest about how much help you can give now."
+    ]
+  },
+  "work.cups.14.upright": {
+    "paragraphs": [
+      "You could calmly show what you've practised in an exam or presentation, even if you feel nervous. Starting with what you know may help you develop an answer to a difficult question.",
+      "At work, calmly sorting through conflicting views could earn trust. Hearing the other person's circumstances while making necessary decisions without delay may make the work easier. A role with responsibility could bring a good assessment too."
+    ]
+  },
+  "work.cups.14.reversed": {
+    "paragraphs": [
+      "Assuming only your favourite subjects will go well could make your preparation uneven. Skipping an explanation of a wrong answer because you don't want to hear it may leave the same mistake uncorrected. Base your studying on which answers you actually get right, rather than how you feel.",
+      "At work, emotional remarks that dodge responsibility could complicate a discussion. Getting angry at a colleague who points out a needed correction may make the problem harder to solve."
+    ]
+  },
+  "work.wands.01.upright": {
+    "paragraphs": [
+      "A topic for a new assignment may come to you, and you could understand unfamiliar material quickly. It's a good day for progress through practical study such as writing or hands-on exercises.",
+      "At work, a chance to put a new idea into practice could appear. Someone's interest in your suggestion may make the first steps easier too. If the necessary preparations are in place, try something you've been postponing."
+    ]
+  },
+  "work.wands.01.reversed": {
+    "paragraphs": [
+      "You may start a new assignment but make slow progress because your ideas aren't clear yet. Trying to learn all the difficult material at once could make even the basics hard to retain. Follow the first explanation you need at a steady pace.",
+      "At work, something new you intended to do may not begin straight away. If preparations are incomplete or cooperation is delayed, don't push too hard to produce results today."
+    ]
+  },
+  "work.wands.02.upright": {
+    "paragraphs": [
+      "What you need to study may become clear, helping you find a direction for an assignment. If you're choosing classes or where to continue your education, it's a good time to explore options that suit your ability and interests.",
+      "At work, you could discuss future responsibilities or another opportunity in concrete terms. Showing the experience you've built may also lead to an offer of a new role. Compare the conditions carefully before saying what you'd like."
+    ]
+  },
+  "work.wands.02.reversed": {
+    "paragraphs": [
+      "Hesitating over what to study first may leave you with few questions actually answered. Spending too long choosing books or classes can reduce the time available for exam preparation. Start by trying questions on material you've already learned.",
+      "At work, indecision over starting something new could delay your response to an opportunity. Separating unverified worries from conditions that are actually difficult may make the decision easier."
+    ]
+  },
+  "work.wands.03.upright": {
+    "paragraphs": [
+      "Applying what you've learned to a new question type could broaden your understanding. Comparing other people's solutions may also reveal an answer you hadn't thought of alone.",
+      "At work, cooperation with people outside your organisation could go well and your responsibilities may expand. A reply you've been waiting for or a new offer could let you move to the next stage. Show clearly what you've already achieved."
+    ]
+  },
+  "work.wands.03.reversed": {
+    "paragraphs": [
+      "Basic questions may go well, but applying the concepts could take longer than expected. Check whether you can explain a concept when the question is phrased a little differently. Following only a memorised solution may leave you making similar mistakes.",
+      "At work, delayed cooperation or replies could make progress slower than planned. Don't make promises about someone else's contribution as though it's already confirmed."
+    ]
+  },
+  "work.wands.04.upright": {
+    "paragraphs": [
+      "You could finish an assignment you've been preparing and receive a good assessment. If an exam is approaching, it's a day when familiar study material may come to mind reliably.",
+      "At work, a shared effort could be completed and its success celebrated. Finishing something that's kept you tense for a long time may also make the atmosphere with colleagues more relaxed. Once you've checked that the work is finished, enjoy a little free time."
+    ]
+  },
+  "work.wands.04.reversed": {
+    "paragraphs": [
+      "Finishing a small assignment or some postponed studying could bring a satisfying result. Even without an imminent exam, it's a good day to understand the material properly before moving on.",
+      "At work, your tasks could reach completion smoothly, even without much fanfare. Giving and receiving help within the team may make for a comfortable working day. Check what's been completed with your colleagues."
+    ]
+  },
+  "work.wands.05.upright": {
+    "paragraphs": [
+      "You may disagree with others in a debate or while solving problems. If you've prepared the reasoning, explaining your answer can show your ability. Don't lose track of the explanation in an effort to beat the other person.",
+      "At work, competing proposals could make discussions heated. Showing what your proposal would achieve may help your assessment more than putting your effort into an argument."
+    ]
+  },
+  "work.wands.05.reversed": {
+    "paragraphs": [
+      "People may produce different versions of an assignment you'd agreed on together, leaving the result inconsistent. If accounts of who agreed to do what keep changing, check again before submission.",
+      "At work, an argument you thought was finished could start again. Agreeing openly but making different demands behind the scenes may leave people confused about the work too. Confirm what was agreed with everyone involved."
+    ]
+  },
+  "work.wands.06.upright": {
+    "paragraphs": [
+      "An exam or presentation could bring recognition for the ability you've developed through preparation. A good result is worth hoping for even in a competitive assessment. Answer confidently and remember the final check.",
+      "At work, your results may stand out and a proposal could be well received. Work you've been handling for some time may pay off, bringing a chance to take on a new role too."
+    ]
+  },
+  "work.wands.06.reversed": {
+    "paragraphs": [
+      "Even if you feel well prepared, your marks or presentation assessment may fall short of your hopes. Gaps you ignored because others praised you could become clear in an exam.",
+      "At work, recognition or a reply may be slow even when you've produced results. Don't belittle a colleague's contribution because you haven't had a response. Explain specifically what you've achieved."
+    ]
+  },
+  "work.wands.07.upright": {
+    "paragraphs": [
+      "Explaining what you've prepared could earn a good assessment even when the questions are difficult. A well-supported answer may be particularly convincing in a debate or presentation today.",
+      "At work, your proposal or results could win recognition despite opposition. Calmly show any results you already have. Accept useful suggestions instead of rejecting every different view."
+    ]
+  },
+  "work.wands.07.reversed": {
+    "paragraphs": [
+      "A series of questions during a presentation may make you sound unsure even about what you know. Someone else's firm answer isn't a reason to discard your own evidence. Take a moment to think, then start with what you're certain of.",
+      "At work, requests arriving all at once could distract you from your existing tasks. Agreeing to all of them may make it hard to finish any on time."
+    ]
+  },
+  "work.wands.08.upright": {
+    "paragraphs": [
+      "You may understand new material quickly and solve questions more easily than usual. Progress on a difficult assignment may leave you more time for exam preparation too.",
+      "At work, a reply you've been waiting for could arrive and tasks may move quickly. Smooth communication and discussion could clear several postponed tasks at once. When good news comes, follow through with the next step."
+    ]
+  },
+  "work.wands.08.reversed": {
+    "paragraphs": [
+      "Reading a question or explanation too quickly could lead to a misunderstanding and a mistake. Comparing answers with friends may become confusing even on familiar material if too many different views emerge. Check again against the conditions stated in the question.",
+      "At work, messages exchanged in a rush could cause misunderstandings and delays. Ask what was communicated differently instead of sending a curt message blaming a colleague."
+    ]
+  },
+  "work.wands.09.upright": {
+    "paragraphs": [
+      "Recognising a question type you've got wrong before could help you lose fewer marks in an exam. Even when a difficult problem returns, reading it through may reveal parts you can solve. Draw on the previous experience and work through it calmly.",
+      "At work, experience could help you respond to a problem you'd anticipated. Looking after your responsibilities to the very end can protect hard-won results."
+    ]
+  },
+  "work.wands.09.reversed": {
+    "paragraphs": [
+      "Holding on to a familiar solution could leave you stuck on the same question. Rejecting a different explanation because it's unfamiliar may reduce your chance to understand.",
+      "At work, worry about mistakes could lead you to repeat checks you've already made and take extra time. Distrusting a colleague's help may add to the burden. Separate what needs another look from what's finished."
+    ]
+  },
+  "work.wands.10.upright": {
+    "paragraphs": [
+      "Your studying may be paying off, but numerous assignments could leave you little spare time. Moving straight from one subject to preparation for another exam can be tiring. Don't increase today's workload beyond what you can manage.",
+      "At work, doing well could lead to more responsibility. If you already have a lot to do, find someone to share a new request with instead of accepting it alone."
+    ]
+  },
+  "work.wands.10.reversed": {
+    "paragraphs": [
+      "Taking on assignments all at once could mean missing a submission or leaving too little time to study. Handling other people's shares of a group assignment may also delay your own exam preparation.",
+      "At work, an excessive workload could make it hard to finish any task properly. Putting off agreed responsibilities may leave the burden piling up on one person. If it's too much to handle alone, say so before it's too late."
+    ]
+  },
+  "work.wands.11.upright": {
+    "paragraphs": [
+      "Finding something interesting in a new explanation could help you understand quickly. Asking about what you're curious about may also spark a good idea for an assignment.",
+      "At work, welcome news about a new task or training could arrive. Even a modest offer may give you a chance to show your ability. If it interests you, hear the details."
+    ]
+  },
+  "work.wands.11.reversed": {
+    "paragraphs": [
+      "Exam topics or assignment requirements passed on by a friend could be wrong. Relying on unchecked information may mean leaving out something important in your preparation. Read the actual instructions again.",
+      "At work, an offer you heard about may change, or you could pin your hopes on news that isn't confirmed yet. Don't cancel other work or arrange a new schedule before receiving a definite answer."
+    ]
+  },
+  "work.wands.12.upright": {
+    "paragraphs": [
+      "Practical exercises and solving problems yourself could bring quick progress. Material that seemed difficult when you only thought about it may make sense once you work through it on paper. Check the final answer even when you're gaining speed.",
+      "At work, going to the site or taking action yourself could get things moving quickly. A proposal that needs carrying out may offer a chance to step in promptly and show results."
+    ]
+  },
+  "work.wands.12.reversed": {
+    "paragraphs": [
+      "Answering questions quickly may still bring disappointing marks if you make many mistakes. Skipping difficult parts just to cover more material could leave you stuck again later.",
+      "At work, a task started in haste could be interrupted or revised midway. Pushing the schedule when the other person isn't ready may also cost you their cooperation. First agree on what you're going to do."
+    ]
+  },
+  "work.wands.13.upright": {
+    "paragraphs": [
+      "Expressing your ideas vividly in a presentation or debate could earn a good assessment. Explaining prepared material comfortably may also hold your listeners' interest.",
+      "At work, a task in front of others could bring recognition for your ability. A warm, confident manner may win cooperation and an enthusiastic response. Welcoming colleagues' views can make shared tasks easier too."
+    ]
+  },
+  "work.wands.13.reversed": {
+    "paragraphs": [
+      "An impressive presentation by someone else may leave you sounding unsure even about your prepared explanation. Hurriedly changing your own answer because you're comparing yourself with others could cause a mistake.",
+      "At work, seeing a colleague receive recognition may make you sensitive and your words sharp. Putting others down to draw attention to your own results won't help your assessment. Show what you've done calmly."
+    ]
+  },
+  "work.wands.14.upright": {
+    "paragraphs": [
+      "You could explain prepared material confidently and lead a group assignment well. Deciding clearly what needs doing may help your shared presentation earn a good assessment too.",
+      "At work, taking the lead on a task could bring results. Following through on what you've said may deepen colleagues' and managers' trust. If you can take responsibility for the work, make your intentions clear."
+    ]
+  },
+  "work.wands.14.reversed": {
+    "paragraphs": [
+      "Insisting on your own answer format could hide the strengths of another solution. Trying to make every part of a group assignment meet your personal standards may delay completion.",
+      "At work, excessive demands in an effort to do well could cause clashes with colleagues. Repeated changes to details may delay the finish as completed work has to be redone. Agree first on the standard the work actually needs to meet."
+    ]
+  },
+  "work.swords.01.upright": {
+    "paragraphs": [
+      "A confusing concept could become clear, helping you answer a difficult question. Exams or presentations that call for logical explanations may bring good results too.",
+      "At work, you could identify the heart of a complicated problem and make a necessary decision. A proposal backed by clear reasoning may receive a good assessment. A brief explanation of the main point first will help the other person understand."
+    ]
+  },
+  "work.swords.01.reversed": {
+    "paragraphs": [
+      "Misreading what a question means could lead to a wrong answer even on material you know. If similar concepts become mixed up, you may write confidently but use the wrong reasoning. First read carefully to see exactly what's being asked.",
+      "At work, an explanation passed on incorrectly could mean having to repeat a task. Don't report unchecked information as confirmed fact."
+    ]
+  },
+  "work.swords.02.upright": {
+    "paragraphs": [
+      "Hesitating between two answers could make a question take longer. If your memory of a concept is unclear, try to recall the reasoning instead of choosing by feel. During an exam, don't spend all your time on one question.",
+      "At work, evenly divided views may prevent a necessary decision. First ask what else needs checking before an answer can be reached."
+    ]
+  },
+  "work.swords.02.reversed": {
+    "paragraphs": [
+      "Hearing several explanations at once could make even familiar concepts confusing. If someone gives a different answer, check the question's conditions instead of changing yours to match every suggestion.",
+      "At work, postponed decisions could all become pressing at once. Different demands from each person may make it hard to satisfy anyone. Separate what you can decide now from what needs more checking."
+    ]
+  },
+  "work.swords.03.upright": {
+    "paragraphs": [
+      "You may receive lower marks than expected in an exam or assignment. Hearing about an error in something you felt confident about may hurt, but listen carefully to the explanation. Use what you've learned about the gaps in your next round of preparation.",
+      "At work, a proposal may be rejected or you could exchange uncomfortable words with a colleague. Even if the result hurts, don't respond on the spot with something hurtful."
+    ]
+  },
+  "work.swords.03.reversed": {
+    "paragraphs": [
+      "You could understand what was missing in a disappointing exam and work through the questions again. A calm look at criticism that was hard to hear may help you improve your next answers.",
+      "At work, an uncomfortable conversation could be resolved, allowing cooperation to resume. Acknowledging when you've both gone too far may also make a postponed task easier to carry on with. Don't keep bringing up the old argument."
+    ]
+  },
+  "work.swords.04.upright": {
+    "paragraphs": [
+      "You may remember little despite continuing to study, and solving problems could become slower. If you're tired, a short break can help you recall familiar material more accurately. Don't push yourself to cover too much today.",
+      "At work, a review or decision may pause for a while. While waiting for a necessary answer, handle tasks you can finish instead of staying with the same one without a break."
+    ]
+  },
+  "work.swords.04.reversed": {
+    "paragraphs": [
+      "You could return to studying you've set aside and begin with familiar questions. If it's been a while, continue with what you understand instead of expecting your old pace straight away.",
+      "At work, a suspended task may resume, or you could settle back into your responsibilities after a break. If you don't yet have the stamina for it, don't accept a lot of work at once. Finishing remaining tasks one by one may reduce the burden too."
+    ]
+  },
+  "work.swords.05.upright": {
+    "paragraphs": [
+      "An argument with a friend over who's right could use up time you need to learn the solution. Trying to embarrass someone in a debate won't help your own assessment. Keep the discussion about the reasoning behind the answer.",
+      "At work, colleagues may remain unhappy even if your proposal is chosen. Taking all the credit or mocking someone else's suggestion could make the next collaboration difficult."
+    ]
+  },
+  "work.swords.05.reversed": {
+    "paragraphs": [
+      "You could settle a disagreement during shared study with an answer you both accept. Exchanging solutions instead of dwelling on who was right first may deepen both people's understanding.",
+      "At work, ending an argument and finding a compromise could get delayed work moving. Deciding where each person can give way may also reduce unnecessary redoing of tasks. Keep to what you've agreed."
+    ]
+  },
+  "work.swords.06.upright": {
+    "paragraphs": [
+      "A different explanation could make difficult material easier to understand. Help may also let you work steadily through a problem you couldn't solve alone.",
+      "At work, you could move away from a task full of conflict or an excessive burden. A change in responsibilities or someone willing to help may make the work calmer. When help arrives, explain accurately where it's needed."
+    ]
+  },
+  "work.swords.06.reversed": {
+    "paragraphs": [
+      "Changing books or where you sit may still leave you stuck on the same material. A basic concept you haven't properly understood can make new questions feel difficult too. Return to where you got lost and hear the explanation again.",
+      "At work, old problems may repeat even after responsibilities or schedules change. Don't simply hand the task to someone else while leaving the cause untouched."
+    ]
+  },
+  "work.swords.07.upright": {
+    "paragraphs": [
+      "A different method could work on a problem that's difficult to solve directly. Letting go of a familiar sequence may reveal an answer you missed. Even with a shortcut, check why the answer is correct.",
+      "At work, reducing unnecessary repetition could save time. Withholding information your colleagues need in the name of efficiency may cause problems later."
+    ]
+  },
+  "work.swords.07.reversed": {
+    "paragraphs": [
+      "You could spot and correct something you've memorised incorrectly or a faulty solution. Acknowledging what you don't know and hearing an explanation may help you make fewer repeat mistakes today.",
+      "At work, revealing a problem you've hidden or postponed could be the start of a solution. Correcting information you've passed on wrongly may also bring help from colleagues. Explain the correction needed now before making excuses."
+    ]
+  },
+  "work.swords.08.upright": {
+    "paragraphs": [
+      "A question may seem so difficult that you struggle to write even an answer you know. Thinking you must solve the whole thing from the start can make it more daunting. Write the parts you can answer one by one.",
+      "At work, a lack of authority or information could make progress difficult. If the conditions are beyond what you can handle alone, explain why you're stuck and seek the help you need."
+    ]
+  },
+  "work.swords.08.reversed": {
+    "paragraphs": [
+      "You may spot parts you can answer in a question you thought you couldn't solve. Working through it step by step could improve your understanding of material you weren't confident about.",
+      "At work, a restriction on your authority or another obstacle could ease, allowing a task to resume. Asking about a task you thought you couldn't manage alone may reveal another approach. Starting with what's possible can bring progress today."
+    ]
+  },
+  "work.swords.09.upright": {
+    "paragraphs": [
+      "Fear of doing badly in an exam could make you keep changing answers you know. Assuming even questions you haven't tried are difficult may disrupt your concentration further. Focus first on the reasoning for the question you're reading now.",
+      "At work, worry about a poor assessment could lead you to keep revising finished work. Treating an unconfirmed fear as actual criticism may delay completion."
+    ]
+  },
+  "work.swords.09.reversed": {
+    "paragraphs": [
+      "Asking a single question could clear up material you've found difficult on your own. Saying what you don't understand can also make it clear what to study first. Looking at questions you've actually solved may ease exam worries too.",
+      "At work, a colleague's explanation or help could make something you've worried about easier. You may also find that the situation isn't as bad as you imagined on your own."
+    ]
+  },
+  "work.swords.10.upright": {
+    "paragraphs": [
+      "Studying while exhausted may leave you unable to answer questions on familiar material. Even if the result of your preparation falls far short of your hopes, don't decide today to give up all your studies. First reduce the amount you've been pushing yourself to do.",
+      "At work, a task you've kept working on could be stopped, or a proposal may be declined. If a decision has already been made to end the work, check what remains to finish instead of taking on more of it alone."
+    ]
+  },
+  "work.swords.10.reversed": {
+    "paragraphs": [
+      "Studying that hasn't gone well for a while could gradually become easier. Getting simple questions right may help you regain your confidence with the material today. Don't try to return to your previous study pace all at once.",
+      "At work, part of a suspended task may resume or you could take on a new role. With less of a burden, calmly continue with the work you can handle now."
+    ]
+  },
+  "work.swords.11.upright": {
+    "paragraphs": [
+      "Noticing a small condition in a question could help you make fewer mistakes. Asking why an answer follows may also improve your understanding of the concept.",
+      "At work, a close look could uncover an error or information you need. One question addressed in a meeting may make the next task easier too. Don't pass over something you don't understand."
+    ]
+  },
+  "work.swords.11.reversed": {
+    "paragraphs": [
+      "Choosing an answer before reading a sentence to the end could mean missing a condition. Knowing only a few memorised keywords may leave you stuck on a follow-up question. Check whether you can explain the material in your own words.",
+      "At work, deciding on the basis of partial information could mean having to do the task again. Even if something seems doubtful, ask about the facts before declaring it wrong."
+    ]
+  },
+  "work.swords.12.upright": {
+    "paragraphs": [
+      "Questions requiring logical reasoning could be quick to solve. Clear explanations of your evidence may also show your ability in a debate or presentation. Even if you've found an answer quickly, hear the other person's question to the end.",
+      "At work, you could make a quick decision and get a delayed task moving. Stating your view forcefully may speed up a necessary decision while making the conversation with colleagues harsher."
+    ]
+  },
+  "work.swords.12.reversed": {
+    "paragraphs": [
+      "Trying to finish quickly could cause mistakes in calculations or written answers. Moving to the next question without checking your solution may cost marks that would otherwise be easy to earn.",
+      "At work, pushing ahead without enough preparation could leave you stuck midway. Reaching a conclusion before hearing a colleague's explanation may create more corrections. Check the conditions needed to proceed first."
+    ]
+  },
+  "work.swords.13.upright": {
+    "paragraphs": [
+      "You could distinguish useful information in a question from unnecessary detail. Examining the reasoning instead of choosing an answer by instinct may help you understand complicated material accurately.",
+      "At work, a necessary decision made without being swayed by emotion could earn a good assessment. Clearly separating tasks to continue from those to stop may lighten the workload too. You can explain the facts without a cold tone."
+    ]
+  },
+  "work.swords.13.reversed": {
+    "paragraphs": [
+      "Prejudging a subject or explanation because you dislike it could mean missing a chance to understand. Declaring a different solution wrong may leave your own error uncorrected.",
+      "At work, cynical remarks or one-sided assessments could make cooperation uncomfortable. Even if something needs correcting, don't dismiss a colleague's entire ability. Talk about the part that actually needs changing."
+    ]
+  },
+  "work.swords.14.upright": {
+    "paragraphs": [
+      "Accurate use of concepts and principles could bring a good exam result. You may also organise a clear answer when asked to make an argument or explain your reasoning.",
+      "At work, decisions based on facts could earn trust. Explaining specialist knowledge or setting standards may also bring recognition for your ability. Apply the same standards to everyone."
+    ]
+  },
+  "work.swords.14.reversed": {
+    "paragraphs": [
+      "Insisting that only your solution is right may make it hard to accept why it's wrong. Adding conditions that aren't in the question could cost you marks. Check again how the reasoning you've learned applies to what's actually being asked.",
+      "At work, one-sided instructions or assessments could cause conflict. Even if someone speaks forcefully, explain with specific evidence when their view differs from the facts."
+    ]
+  },
+  "work.pentacles.01.upright": {
+    "paragraphs": [
+      "Getting a book you need or a chance to learn could make studying easier. Your results in practical exercises today may also reflect the preparation you've done.",
+      "At work, the conditions for a new task could fall into place, or you may receive a concrete offer. Something that has only been discussed may finally get under way. If the chance to take it on arrives, start with the necessary preparations."
+    ]
+  },
+  "work.pentacles.01.reversed": {
+    "paragraphs": [
+      "Even good books and classes may leave you struggling to retain what you've studied. New material alone won't automatically solve a difficult problem. First check whether you can explain the topic yourself.",
+      "At work, even a task with appealing conditions may bring results below your hopes. Adequate equipment or support isn't a reason to skip the preparations you actually need."
+    ]
+  },
+  "work.pentacles.02.upright": {
+    "paragraphs": [
+      "Alternating between several subjects could let you make steady progress across them. If you're stuck on one topic, solving a different problem before returning may help it make sense.",
+      "At work, you could handle your responsibilities flexibly even if the schedule changes. If you need to carry on with two tasks, adjust their order to suit the circumstances. Even on a busy day, you may keep the important work covered."
+    ]
+  },
+  "work.pentacles.02.reversed": {
+    "paragraphs": [
+      "Trying to study several subjects at once may leave you without a full understanding of any. If an assignment overlaps with exam preparation, decide which studying needs to come first.",
+      "At work, switching between tasks could mean missing an important commitment or something that needs doing. Continuing to accept work while saying you're fine may reveal the strain just before the deadline. Explain how much you're already handling."
+    ]
+  },
+  "work.pentacles.03.upright": {
+    "paragraphs": [
+      "Practical exercises or a group assignment could let you show the skills you've learned. If each person handles what they do well, the polished result may earn praise.",
+      "At work, a task that draws on your expertise could win recognition, and cooperation may go smoothly too. With the right people doing their parts, even difficult work could be completed. Clearly recognise each person's contribution."
+    ]
+  },
+  "work.pentacles.03.reversed": {
+    "paragraphs": [
+      "A skill or solution you haven't mastered could lower the quality of an assignment. In a group task, a part everyone assumed the others understood may turn out to contain an error.",
+      "At work, separate contributions may not fit together and could need revising. Arguing over a minor criticism can delay the actual correction further. Agree first on the standards you need to meet."
+    ]
+  },
+  "work.pentacles.04.upright": {
+    "paragraphs": [
+      "You could find answers reliably in familiar material. Refusing every new approach may leave you stuck on questions that require applying the concepts differently, so don't insist on using only methods you know.",
+      "At work, you may keep your existing responsibilities and work without major changes. Trying to manage everything alone can make help from colleagues harder to obtain. Don't keep information everyone needs to yourself."
+    ]
+  },
+  "work.pentacles.04.reversed": {
+    "paragraphs": [
+      "Waiting for an explanation or answer needed for an assignment could delay your studying. One unanswered question isn't a reason to stop all your study. Continue with the parts you can solve alone.",
+      "At work, delayed approval or cooperation and opposing views could put the schedule back. Don't promise completion of something that hasn't been settled yet."
+    ]
+  },
+  "work.pentacles.05.upright": {
+    "paragraphs": [
+      "Difficulty finding the material or explanation you need could hold up your studying. If you're trying alone but still don't understand, look for help from a teacher or your school.",
+      "At work, too few people or too little support may make the results you want hard to achieve. Keeping quiet about the difficulty could leave you taking on even more alone. Ask specifically for the help you need."
+    ]
+  },
+  "work.pentacles.05.reversed": {
+    "paragraphs": [
+      "Mixed explanations may leave you understanding little for the time spent studying. Unresolved differences over a shared assignment could also mean repeating the same work.",
+      "At work, disagreements over who gets limited support first could cause conflict. Duplicating tasks may leave even less staff time available. Decide together how to share the work that needs doing."
+    ]
+  },
+  "work.pentacles.06.upright": {
+    "paragraphs": [
+      "Help from someone who explains difficult material could get your studying moving. Explaining what you know to someone else may also clarify a concept you found confusing.",
+      "At work, necessary support or a colleague's cooperation could let you finish a task. Giving and receiving help may also bring a good assessment of your diligence. Discuss a task you've struggled to manage alone."
+    ]
+  },
+  "work.pentacles.06.reversed": {
+    "paragraphs": [
+      "Helping a friend study could leave you short of preparation time yourself. Repeatedly giving the answers may also leave the other person without a proper understanding. Keep time for the studying you need.",
+      "At work, help could come in exchange for excessive demands. Receiving support doesn't mean you must take responsibility for every task outside your original role."
+    ]
+  },
+  "work.pentacles.07.upright": {
+    "paragraphs": [
+      "Steady study could let you get more questions right little by little. Even if your marks don't rise sharply, the areas you understand better may become clear. Notice which question types are going well and keep going.",
+      "At work, the results of sustained effort could begin to show. Even without immediate major recognition, checking how far your tasks have actually progressed may reveal what you've achieved."
+    ]
+  },
+  "work.pentacles.07.reversed": {
+    "paragraphs": [
+      "Getting few questions right for the hours spent studying could feel frustrating. Moving between resources and studying only a little of each may have left you remembering too little. Work through one question to the end to check your actual understanding.",
+      "At work, something you've put time and care into may not produce the results you hoped for. It's time to look at why it isn't going well instead of repeating the same method even more."
+    ]
+  },
+  "work.pentacles.08.upright": {
+    "paragraphs": [
+      "A solution you've practised repeatedly may become familiar enough to reduce exam mistakes. You could also complete practical exercises and assignments requiring skill more precisely than before.",
+      "At work, skills you've steadily developed could produce a high-quality result. Careful finishing may bring a good assessment. Give even routine tasks a thorough finish."
+    ]
+  },
+  "work.pentacles.08.reversed": {
+    "paragraphs": [
+      "Pretending to understand a solution and moving on could leave you unable to solve the same question alone in an exam. Focusing only on memorising answers may leave you stuck when a condition changes slightly. Check whether you can explain it yourself.",
+      "At work, a basic error could appear even in a result you've made look impressive. Fixing what's wrong, instead of talking around it, is how you can protect trust."
+    ]
+  },
+  "work.pentacles.09.upright": {
+    "paragraphs": [
+      "You could gain a clear understanding through studying alone and show your ability in an exam. Working at a pace that suits you may bring a good result without following everyone else.",
+      "At work, finishing a task independently could earn recognition for your ability. The experience you've built may help you remain composed even when things become urgent. Describe specifically what you've done well."
+    ]
+  },
+  "work.pentacles.09.reversed": {
+    "paragraphs": [
+      "Even with plenty of organised notes, you may struggle to write a proper answer in an exam. If the appearance of preparation differs from your actual understanding, trying questions yourself will reveal the gaps.",
+      "At work, the conditions of an appealing proposal may change, or the expected results might not appear. Don't promise more than your ability allows simply because of an impressive claim. Check what can actually be done."
+    ]
+  },
+  "work.pentacles.10.upright": {
+    "paragraphs": [
+      "A strong grounding built over time could lead to steady exam marks. Help from your school or those around you may also support you in finishing an assignment.",
+      "At work, support from a familiar organisation and colleagues could help you produce results. Long-standing work may receive a good assessment and make your future role more secure. Use your accumulated experience where it's needed."
+    ]
+  },
+  "work.pentacles.10.reversed": {
+    "paragraphs": [
+      "Studying only topics you expect to come up soon could lead to uneven marks. Missing basics may cause mistakes as soon as a question changes slightly. Strengthen your understanding of the basics instead of relying on shortcuts.",
+      "At work, circumstances around you may change a task you expected to continue steadily. If you plan to keep it going for a long time, check whether the support and working conditions remain the same."
+    ]
+  },
+  "work.pentacles.11.upright": {
+    "paragraphs": [
+      "You could work steadily through newly learned material, understand it and apply it to questions. Following a class and trying the problems yourself may bring progress even in an unfamiliar subject.",
+      "At work, you may hear good news about a learning opportunity or a new task. Putting something you've just learned to use could earn trust. Start by finishing small tasks accurately."
+    ]
+  },
+  "work.pentacles.11.reversed": {
+    "paragraphs": [
+      "New books or courses may hold your interest while little of the material stays with you. Studying only the enjoyable parts could leave gaps in your exam preparation. Finish the studying you've already begun.",
+      "At work, a proposal or training news you've waited for may differ from your hopes. Promising to do something you haven't learned yet could cause difficulties after you accept the work."
+    ]
+  },
+  "work.pentacles.12.upright": {
+    "paragraphs": [
+      "You could find correct answers reliably in material you've studied steadily. Even without great speed, working through the solution step by step may reduce exam mistakes.",
+      "At work, completing as much as you've promised could earn trust. Diligent handling of recurring tasks may build a record of good assessments too. Finish today's responsibilities accurately instead of rushing to produce bigger results."
+    ]
+  },
+  "work.pentacles.12.reversed": {
+    "paragraphs": [
+      "Reading without concentrating may do little to improve your understanding. Habitually solving the same type of question could mean missing a changed condition, so check the reasoning behind the solution.",
+      "At work, putting off a routine task could make you miss the agreed deadline. Skipping a check because the task is familiar may lead to repeated small mistakes. If you're running late, let others know first."
+    ]
+  },
+  "work.pentacles.13.upright": {
+    "paragraphs": [
+      "Your study conditions may become more comfortable and help could be available. Learning the material without overdoing it can let you prepare steadily for an exam or assignment.",
+      "At work, consideration for a colleague's circumstances could bring cooperation and good results. Providing what people actually need can make shared work easier. You may also have enough time to finish your own tasks without strain."
+    ]
+  },
+  "work.pentacles.13.reversed": {
+    "paragraphs": [
+      "Doubting even material you've learned could make you change an answer several times. Switching books repeatedly out of fear of being wrong may make familiar concepts confusing too. Revisit the reasoning that led you to your own solution.",
+      "At work, checking a colleague's tasks out of suspicion could delay your own. Don't redo everything without knowing whether there's an actual problem."
+    ]
+  },
+  "work.pentacles.14.upright": {
+    "paragraphs": [
+      "Questions involving calculations or the use of principles could let you show your ability. Understanding where to apply a formula you've learned may help you solve even a difficult applied problem.",
+      "At work, practical decisions informed by experience could bring results. Identifying the conditions needed to carry out a plan may also make your proposal convincing. Taking responsibility for the task to the end can bring a good assessment too."
+    ]
+  },
+  "work.pentacles.14.reversed": {
+    "paragraphs": [
+      "Aiming only for high marks could lead to mistakes on basic questions. Solving many difficult problems doesn't mean you've finished with parts you still don't understand. Try the basic questions you got wrong again first.",
+      "At work, ambition for results could lead you to agree to more than you can deliver and land you in difficulty. Leaving out important facts to make the numbers look good may cost you trust."
+    ]
+  }
+}

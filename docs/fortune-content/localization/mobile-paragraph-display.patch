@@ -1,0 +1,137 @@
+--- a/lib/ui/fortune/widgets/fortune_result_panel.dart
++++ b/lib/ui/fortune/widgets/fortune_result_panel.dart
+@@ -30,7 +30,7 @@
+   var _selected = _FortuneCategory.love;
+
+   String _paragraph(List<String> segments) =>
+-      segments.join(widget.result.locale == 'ja' ? '' : ' ');
++      segments.join('\n\n');
+
+   @override
+   Widget build(BuildContext context) {
+--- a/test/ui/fortune/widgets/fortune_screen_test.dart
++++ b/test/ui/fortune/widgets/fortune_screen_test.dart
+@@ -247,7 +247,9 @@
+           await tester.pump(_tokens.detailReveal + _slack);
+           expect(ads.shownSessions, hasLength(1));
+           expect(find.text(l.fortuneCategoryWork), findsOneWidget);
+-          expect(find.text(l.fortuneCategoryEnergy), findsOneWidget);
++          final healthLabel = {'ko': '건강', 'en': 'Health', 'ja': '健康'}[language]!;
++          expect(l.fortuneCategoryEnergy, healthLabel);
++          expect(find.text(healthLabel), findsOneWidget);
+           expect(tester.takeException(), isNull);
+         });
+       }
+@@ -275,7 +277,7 @@
+       final l = await _localizations();
+       expect(find.byType(FortuneResultPanel), findsOneWidget);
+       expect(
+-        find.text(fortuneTestResult().details!.flow.join(' ')),
++        find.text(fortuneTestResult().details!.flow.join('\n\n')),
+         findsOneWidget,
+       );
+       expect(find.text(l.fortuneCategoryWork), findsOneWidget);
+@@ -671,7 +673,7 @@
+       findsNothing,
+     );
+     expect(
+-      find.text(fortuneTestResult().details!.flow.join(' ')),
++      find.text(fortuneTestResult().details!.flow.join('\n\n')),
+       findsOneWidget,
+     );
+   });
+@@ -685,7 +687,7 @@
+
+     expect(viewModel.isDetailUnlocked, isTrue);
+     expect(
+-      find.text(fortuneTestResult().details!.flow.join(' ')),
++      find.text(fortuneTestResult().details!.flow.join('\n\n')),
+       findsOneWidget,
+     );
+     // 카드 이름과, 고른 분야의 설명 라벨. 처음 고른 자리는 애정이다.
+--- a/lib/l10n/app_ko.arb
++++ b/lib/l10n/app_ko.arb
+@@ -364,7 +364,7 @@
+   "moodDeleteMessage": "{date}에 남긴 기분 기록이 사라져요",
+   "moodDeleteCancel": "취소",
+   "fortuneCategoryWork": "일/학업",
+-  "fortuneCategoryEnergy": "활력",
++  "fortuneCategoryEnergy": "건강",
+   "fortuneRetry": "다시 시도",
+   "fortuneUnavailable": "지금은 운세를 봐줄 수 없어.\n다음에 다시 와줘.",
+   "fortuneWatchAd": "광고 보고 자세히 보기",
+--- a/lib/l10n/app_localizations_ko.dart
++++ b/lib/l10n/app_localizations_ko.dart
+@@ -1187,7 +1187,7 @@
+   String get fortuneCategoryWork => '일/학업';
+
+   @override
+-  String get fortuneCategoryEnergy => '활력';
++  String get fortuneCategoryEnergy => '건강';
+
+   @override
+   String get fortuneRetry => '다시 시도';
+--- a/lib/l10n/app_en.arb
++++ b/lib/l10n/app_en.arb
+@@ -1591,9 +1591,9 @@
+   "@fortuneCategoryWork": {
+     "description": "Fortune category for work and study."
+   },
+-  "fortuneCategoryEnergy": "Energy",
++  "fortuneCategoryEnergy": "Health",
+   "@fortuneCategoryEnergy": {
+-    "description": "Fortune category for daily energy."
++    "description": "Fortune category for health."
+   },
+   "fortuneRetry": "Try again",
+   "@fortuneRetry": {
+--- a/lib/l10n/app_localizations_en.dart
++++ b/lib/l10n/app_localizations_en.dart
+@@ -1225,7 +1225,7 @@
+   String get fortuneCategoryWork => 'Work / study';
+
+   @override
+-  String get fortuneCategoryEnergy => 'Energy';
++  String get fortuneCategoryEnergy => 'Health';
+
+   @override
+   String get fortuneRetry => 'Try again';
+--- a/lib/l10n/app_ja.arb
++++ b/lib/l10n/app_ja.arb
+@@ -364,7 +364,7 @@
+   "moodDeleteMessage": "{date}に残した気分の記録が消えます",
+   "moodDeleteCancel": "キャンセル",
+   "fortuneCategoryWork": "仕事・学業",
+-  "fortuneCategoryEnergy": "活力",
++  "fortuneCategoryEnergy": "健康",
+   "fortuneRetry": "再試行",
+   "fortuneUnavailable": "今は占えないんだ。\nまた来てね。",
+   "fortuneWatchAd": "広告を見て詳しく見る",
+--- a/lib/l10n/app_localizations_ja.dart
++++ b/lib/l10n/app_localizations_ja.dart
+@@ -1191,7 +1191,7 @@
+   String get fortuneCategoryWork => '仕事・学業';
+
+   @override
+-  String get fortuneCategoryEnergy => '活力';
++  String get fortuneCategoryEnergy => '健康';
+
+   @override
+   String get fortuneRetry => '再試行';
+--- a/lib/l10n/app_localizations.dart
++++ b/lib/l10n/app_localizations.dart
+@@ -2284,10 +2284,10 @@
+   /// **'Work / study'**
+   String get fortuneCategoryWork;
+
+-  /// Fortune category for daily energy.
+-  ///
+-  /// In en, this message translates to:
+-  /// **'Energy'**
++  /// Fortune category for health.
++  ///
++  /// In en, this message translates to:
++  /// **'Health'**
+   String get fortuneCategoryEnergy;
+
+   /// Retry the failed fortune operation.

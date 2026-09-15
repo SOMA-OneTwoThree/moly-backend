@@ -1,9 +1,9 @@
 # 애정 운세 — 78장 × 정·역방향 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v6-fortune.1` · 서버 자산에서 생성한 전체 전문
-> 한국어: `fortune-copy.v6-fortune.1` · 영어: `fortune-copy.v6-fortune.1` · 일본어: `fortune-copy.v6-fortune.1`
+> 카탈로그 버전: `fortune-copy.v8-localized.1` · 서버 자산에서 생성한 전체 전문
+> 한국어: `fortune-copy.v8-localized.1` · 영어: `fortune-copy.v8-localized.1` · 일본어: `fortune-copy.v8-localized.1`
 > 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.
-> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
+> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 ko-rewrite 및 localization 정본에서 하고 검수 후 자산을 다시 생성한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
@@ -15,2182 +15,2182 @@
 
 내부 ID: `love.cups.01.reversed`
 
-카드 의미: 감정을 표현하거나 받아들이기 어려움. 원전의 변덕·불안정과 현대의 감정 억제를 자기 배려의 필요로 읽음.
+카드 의미: 막힌 감정, 불안감
 
-분야 해석: 표현하지못한마음
+분야 해석: 주의: 일방적인 호감과 표현의 막힘, 재회 답변의 어려움
 
-관찰: 좋아하는 마음은 있어도 말로 꺼내기 쑥스러울 수 있는 날이야. / 고마웠던 순간을 농담으로 넘기거나, 반가운 연락에도 짧게 답하고 나서 아쉬워질 수 있어. / 상대도 마음을 알아채지 못해 대화가 잠깐 어색해질 수 있지만, 작은 진심에는 따뜻한 반응이 돌아올 거야.
+관찰: 막힌 감정 / 불안감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋아하는 마음은 있어도 말로 꺼내기 쑥스러울 수 있는 날이야. 고마웠던 순간을 농담으로 넘기거나, 반가운 연락에도 짧게 답하고 나서 아쉬워질 수 있어. 상대도 마음을 알아채지 못해 대화가 잠깐 어색해질 수 있지만, 작은 진심에는 따뜻한 반응이 돌아올 거야. 아까 반가웠다는 말 한마디를 늦게라도 전해봐. 멋지게 표현하지 않아도 무심해서 그랬던 것은 아니라는 마음이 전해질 수 있어. | You may feel fond of someone but shy about putting it into words. You could joke away a moment of gratitude, or regret giving a brief reply to a message you were glad to receive. They may miss your feelings and the conversation could turn awkward for a moment, but a little honesty should be warmly received. Even if it's a bit late, tell them you were glad to hear from them. You don't need polished words to show that you weren't being indifferent. | 好意はあっても、言葉にするのが照れくさい日になりそうです。感謝する場面を冗談で流したり、うれしい連絡に短く返して後悔したりするかもしれません。相手に気持ちが伝わらず少し気まずくなっても、ささやかな本音には温かい反応が返ってきそうです。少し遅れても、さっきはうれしかったと一言伝えてみてください。上手に言えなくても、そっけないつもりではなかったことは伝わるでしょう。 |
+| 분야 풀이 | 솔로라면 마음을 전해도 기대한 답이 바로 돌아오지 않을 수 있어. 상대의 관심이 아직 분명하지 않다면 고백을 거듭하며 확인하려 하지 마.<br><br>연애 중이라면 좋아하는 마음과 달리 말이 잘 나오지 않아 서운함이 생길 수 있어. 상대가 먼저 알아주길 기다리기보다 오늘 원했던 관심을 짧게 말해줘.<br><br>이별 후라면 하고 싶은 말은 많아도 재회 대화는 쉽게 열리지 않아. 답이 없는 연락에 긴 고백을 덧붙이면 서로 부담스러워질 수 있어. 오늘은 연락을 잠시 쉬어도 괜찮아. | If you're single, sharing your feelings may not bring the answer you hope for straight away. If the other person's interest is still unclear, don't keep declaring your feelings to test it.<br><br>In a relationship, difficulty putting love into words could cause hurt feelings. Instead of waiting for your partner to understand first, briefly say what kind of attention you wanted today.<br><br>After a breakup, you may have plenty to say while a conversation about reuniting remains hard to begin. Adding a long declaration of love to an unanswered message could burden you both. It's fine to take a short break from contact today. | フリーの人は、気持ちを伝えても、期待した返事はすぐに来ないかもしれません。相手の関心がまだはっきりしないなら、告白を繰り返して確かめようとするのは控えましょう。<br><br>交際中なら、好きなのにうまく言葉にできず、互いに寂しい思いをしそうです。先に気づいてくれるのを待つより、今日はどんなふうに気にかけてほしかったか、短く伝えてください。<br><br>別れた後なら、言いたいことは多くても、復縁の話は始まりにくい日です。返事のないメッセージに長い告白を重ねると、互いの負担になるかもしれません。今日は少し連絡を休んでも大丈夫です。 |
 
 ## cups.01 · 정방향
 
 내부 ID: `love.cups.01.upright`
 
-카드 의미: 감정이 열리고 기쁨을 받아들이는 시작. 원전의 충만과 마음의 만족을 작은 호의와 감각적 즐거움으로 응용.
+카드 의미: 사랑, 새 감정, 열린 마음
 
-분야 해석: 새로운호감
+분야 해석: 좋음: 새 사랑의 시작, 애정 표현, 재대화의 따뜻한 반응
 
-관찰: 평소와 다른 설렘을 느끼거나 누군가에게 호감이 생길 수 있는 날이야. / 처음 나눈 대화가 유난히 편하게 느껴지고, 다시 이야기하고 싶은 사람이 생길 수 있어. / 가까운 사이에서는 먼저 건넨 따뜻한 말에 그동안 표현하지 못한 마음이 돌아올 거야.
+관찰: 사랑 / 새 감정 / 열린 마음
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 평소와 다른 설렘을 느끼거나 누군가에게 호감이 생길 수 있는 날이야. 처음 나눈 대화가 유난히 편하게 느껴지고, 다시 이야기하고 싶은 사람이 생길 수 있어. 가까운 사이에서는 먼저 건넨 따뜻한 말에 그동안 표현하지 못한 마음이 돌아올 거야. 좋았던 점이 있다면 꾸미지 말고 그대로 말해줘. 거창한 고백이 없어도 서로를 한 번 더 떠올리게 하는 다정한 순간이 남을 수 있어. | You could feel a new spark of excitement or find yourself drawn to someone. A first conversation may feel unusually easy, leaving you keen to talk again. With someone close, a warm word from you could bring out feelings they haven't expressed before. If you liked something about them, say so simply. You don't need a grand confession for a tender moment to leave you thinking of each other again. | いつもと違うときめきを感じたり、誰かに好意が芽生えたりしそうです。初めての会話がとても気楽で、また話したいと思う人ができるかもしれません。親しい間柄では、こちらの優しい一言に、今まで言えなかった気持ちが返ってきそうです。よかったと思うことがあれば、飾らずそのまま伝えてみてください。大げさな告白がなくても、お互いをもう一度思い出すような温かい瞬間が残りそうです。 |
+| 분야 풀이 | 솔로라면 설레는 만남이 시작되기 좋은 날이야. 처음 받은 연락이 즐거운 대화로 이어지거나 좋아하는 사람에게 다정한 답을 들을 수 있어.<br><br>연애 중이라면 평소보다 애정 표현이 잘 전해져. 고맙다는 말이나 작은 선물이 서로의 마음을 더 가깝게 해줄 수 있어.<br><br>이별 후라면 차갑게 끝났던 대화에 따뜻한 답이 돌아올 수 있어. 서로 연락할 뜻이 있다면 안부를 나누며 다시 가까워질 기회가 있어. 상대도 재회를 원하는지는 천천히 확인해봐. | If you're single, it's a good day for an exciting new connection. A first message could lead to an enjoyable conversation, or someone you like may answer warmly.<br><br>In a relationship, affection may come across better than usual. A thank-you or a small gift could make you feel closer to each other.<br><br>After a breakup, your ex could reply warmly after your last conversation ended coldly. If you both want to stay in touch, asking how each other is doing may give you a chance to grow close again. Take time to find out whether your ex wants to reunite too. | フリーの人は、心が弾む出会いが始まりやすい日です。初めて届いた連絡から楽しい会話が続いたり、好きな人から優しい返事をもらえたりしそうです。<br><br>交際中なら、いつもより愛情が伝わりやすい日です。ありがとうの一言や小さな贈り物が、二人の心を近づけてくれるでしょう。<br><br>別れた後なら、冷たく終わった会話に、温かな返事が届くかもしれません。互いに連絡を取る気があるなら、近況を話しながら、また親しくなる機会があります。相手も復縁を望んでいるかは、ゆっくり確かめましょう。 |
 
 ## cups.02 · 역방향
 
 내부 ID: `love.cups.02.reversed`
 
-카드 의미: 교류가 어긋나거나 주고받는 정도가 맞지 않음. 화해 불능이 아니라 기대와 경계를 다시 확인하는 뜻.
+카드 의미: 불균형, 의존, 일방적 양보
 
-분야 해석: 마음과표현의엇갈림
+분야 해석: 주의: 일방적 호감, 주고받는 애정의 불균형, 서로 다른 재회 의사
 
-관찰: 서로 좋아해도 연락이나 만남에서 기대하는 모습은 다를 수 있어. / 내게는 가벼운 농담이 상대에게는 서운하게 들리거나, 기다린 답이 늦어져 아쉬울 수 있는 날이야. / 얼굴을 보고 이야기하면 글로 주고받을 때보다 따뜻한 마음이 느껴질 거야.
+관찰: 불균형 / 의존 / 일방적 양보
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 좋아해도 연락이나 만남에서 기대하는 모습은 다를 수 있어. 내게는 가벼운 농담이 상대에게는 서운하게 들리거나, 기다린 답이 늦어져 아쉬울 수 있는 날이야. 얼굴을 보고 이야기하면 글로 주고받을 때보다 따뜻한 마음이 느껴질 거야. 서운했던 일은 여러 가지를 모으지 말고 한 가지씩 꺼내봐. 서로 다른 기대를 알게 되면 굳어 있던 대화도 조금씩 편해질 수 있어. | You may like each other but expect different things from messages or meetings. A joke you consider harmless could hurt their feelings, or a delayed reply may disappoint you. Seeing each other could reveal more warmth than exchanging texts. Bring up one thing that upset you at a time, rather than collecting complaints. Understanding those different expectations may help a strained conversation gradually feel easier. | 好きな気持ちがあっても、連絡や会うときに求めるものは違うかもしれません。軽い冗談が相手には寂しく聞こえたり、待つ返事が遅くて残念に感じたりしそうです。顔を見て話せば、文字のやり取りより温かさを感じられるでしょう。寂しかったことはまとめて持ち出さず、一つずつ話してみてください。期待の違いが分かると、ぎこちなかった会話も少しずつ楽になりそうです。 |
+| 분야 풀이 | 솔로라면 한쪽만 애쓰는 만남이 되기 쉬워. 먼저 연락하고 약속을 잡아도 상대가 미온적이라면 고백은 잠시 미루는 게 좋아.<br><br>연애 중이라면 늘 한 사람만 양보한다는 불만으로 다툴 수 있어. 만나러 가는 일이나 연락하는 일이 한쪽에 몰려 있다면 서로 나눌 방법을 이야기해봐.<br><br>이별 후라면 보고 싶다는 마음이 서로 같지 않을 수 있어. 한쪽만 재회를 원한다면 계속 설득해도 편안한 만남이 되기 어려워. 거절을 들었다면 더 붙잡지 마. | If you're single, you may find yourself making all the effort. If the other person remains lukewarm even when you message first and arrange meetings, it's better to wait before declaring your feelings.<br><br>In a relationship, resentment that the same person always compromises could cause an argument. If only one of you travels to meet or initiates contact, talk about how to share the effort.<br><br>After a breakup, you may not miss each other equally. If only one of you wants a reunion, repeated persuasion is unlikely to create a comfortable relationship. If you've been turned down, don't keep trying to hold on. | フリーの人は、一方だけが頑張る付き合いになりやすい日です。こちらから連絡して会う約束をしても、相手の反応が鈍いなら、告白は少し先にしたほうがよさそうです。<br><br>交際中なら、いつも一人だけが譲っているという不満から、けんかになりそうです。会いに行くのも連絡するのも片方に偏っているなら、互いにできることを話しましょう。<br><br>別れた後なら、会いたい気持ちが同じではないかもしれません。一方だけが復縁を望む場合、説得を続けても、安心できる付き合いにはなりにくいでしょう。断られたなら、それ以上引き留めるのは控えてください。 |
 
 ## cups.02 · 정방향
 
 내부 ID: `love.cups.02.upright`
 
-카드 의미: 서로 주고받으며 인정하는 연결. 원전의 우정·호감·일치를 상호성에 근거한 협의로 사용.
+카드 의미: 사랑, 우정, 조화
 
-분야 해석: 서로확인하는호감
+분야 해석: 좋음: 서로의 호감 확인, 화해, 상호 의사의 재회
 
-관찰: 말을 걸었을 때 상대도 질문을 돌려주며 관심을 보일 수 있는 날이야. / 좋아하는 음식이나 음악이 같다는 걸 알게 되면서 대화가 자연스럽게 길어질 거야. / 연인이나 가까운 친구와는 서운했던 일이 풀리고 서로의 마음을 다시 확인할 수 있어.
+관찰: 사랑 / 우정 / 조화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 말을 걸었을 때 상대도 질문을 돌려주며 관심을 보일 수 있는 날이야. 좋아하는 음식이나 음악이 같다는 걸 알게 되면서 대화가 자연스럽게 길어질 거야. 연인이나 가까운 친구와는 서운했던 일이 풀리고 서로의 마음을 다시 확인할 수 있어. 하고 싶은 것이 있다면 상대의 취향도 함께 물어봐. 한쪽만 애쓰지 않아도 웃음이 오가고, 다음에 만날 시간을 정하기 쉬워질 거야. | Someone may show interest by asking you questions in return when you start a conversation. Discovering a shared taste in food or music could keep you talking naturally. With a partner or close friend, hurt feelings may ease as you reconnect. If there's something you'd like to do, ask what they'd enjoy too. Laughter can come without one person making all the effort, and another meeting may be easier to arrange. | 話しかけると相手からも質問が返り、関心を示してもらえそうです。好きな食べ物や音楽が同じだと分かり、自然と会話が長くなるでしょう。恋人や親しい友人とは、わだかまりが解けて互いの気持ちを確かめられそうです。したいことがあれば、相手の好みも一緒に尋ねてみてください。片方だけが頑張らなくても笑い合えて、次に会う時間も決めやすくなりそうです。 |
+| 분야 풀이 | 솔로라면 좋아하는 사람도 같은 마음일 수 있어. 고백을 준비했다면 둘이 편하게 이야기할 자리를 만들어봐. 서로 사귀고 싶다는 답을 나누기 좋은 날이야.<br><br>연애 중이라면 서로의 말을 잘 받아들이고 애정도 깊어질 수 있어. 다툰 사이라면 먼저 건넨 사과가 화해로 이어지기 좋아.<br><br>이별 후라면 재회를 바라는 마음이 서로 통할 수 있어. 둘 다 다시 만나고 싶다면 얼굴을 보고 이야기할 약속을 잡아볼 만해. 이번에는 서로에게 서운했던 점도 숨기지 말고 나눠봐. | If you're single, the person you like may feel the same. If you've been preparing to share your feelings, find a setting where you can talk comfortably alone. It's a good day to tell each other you'd like to be a couple.<br><br>In a relationship, you may listen well to each other and feel your affection deepen. If you've argued, an apology from you could lead to making up.<br><br>After a breakup, your wish to reunite could be mutual. If you both want to try again, consider arranging a conversation in person. This time, share what hurt you both without hiding it. | フリーの人は、好きな相手も同じ気持ちかもしれません。告白を考えていたなら、二人で気楽に話せる場をつくりましょう。付き合いたいという気持ちを伝え合いやすい日です。<br><br>交際中なら、互いの言葉を受け入れやすく、愛情も深まりそうです。けんかをしていた二人は、先に謝ることで仲直りにつながりやすいでしょう。<br><br>別れた後なら、復縁を望む気持ちが通じ合いそうです。二人ともまた付き合いたいなら、顔を合わせて話す約束をしてみるのもよいでしょう。今度は互いに不満だったことも隠さずに伝えてください。 |
 
 ## cups.03 · 역방향
 
 내부 ID: `love.cups.03.reversed`
 
-카드 의미: 함께함이 지나치거나 소속 압박이 즐거움을 가림. 원전의 과잉과 완료를 현대의 모임 피로로 선택.
+카드 의미: 즐김의 과도함, 모임의 불편, 과소비 경계
 
-분야 해석: 주변말에흔들리는관계
+분야 해석: 주의: 모임의 말과 주변 개입으로 생기는 불편, 둘만의 약속 소홀
 
-관찰: 둘 사이의 이야기보다 주변 사람의 말이 더 크게 들릴 수 있는 날이야. / 가볍게 들은 농담이나 소문 때문에 상대를 괜히 의식하게 될 수 있어. / 여럿이 만나는 자리에서는 하고 싶던 말을 꺼내지 못해 조금 아쉬울 거야.
+관찰: 즐김의 과도함 / 모임의 불편 / 과소비 경계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 둘 사이의 이야기보다 주변 사람의 말이 더 크게 들릴 수 있는 날이야. 가볍게 들은 농담이나 소문 때문에 상대를 괜히 의식하게 될 수 있어. 여럿이 만나는 자리에서는 하고 싶던 말을 꺼내지 못해 조금 아쉬울 거야. 정말 궁금한 일은 다른 사람을 거치지 말고 직접 물어봐. 따로 나눈 짧은 대화에서 소문과 다른 모습을 확인하며 생각이 차분해질 수 있어. | Other people's comments could drown out what's actually happening between you two. An offhand joke or rumor may make you unnecessarily self-conscious around them. A group meeting might leave you disappointed that you couldn't say what you wanted. Ask them directly about anything that really matters, rather than going through someone else. A brief private conversation could reveal something different from the rumor and settle your thoughts. | 二人の話より、周りの人の言葉が気になりやすい日です。軽く聞いた冗談やうわさで、相手を必要以上に意識するかもしれません。大勢で会うと、したかった話を出せず少し残念に思いそうです。本当に知りたいことは、人づてではなく直接尋ねてみましょう。二人での短い会話にうわさとは違う一面が見えて、気持ちも落ち着きそうです。 |
+| 분야 풀이 | 솔로라면 여럿이 있는 자리에서 떠도는 말 때문에 마음이 불편해질 수 있어. 주변이 잘 어울린다고 부추겨도 상대의 호감을 직접 확인하기 전에는 고백을 서두르지 마.<br><br>연애 중이라면 친구 모임에 치우쳐 둘만의 약속을 놓치기 쉬워. 미리 정한 데이트를 가볍게 취소하면 서운함이 크게 남을 수 있어.<br><br>이별 후라면 지인에게 전해 들은 소식이 재회 기대를 흔들 수 있어. 다른 사람의 추측을 상대의 뜻으로 받아들이지 마. 둘 사이의 이야기는 여러 사람을 거치기보다 직접 나누는 게 좋아. | If you're single, talk circulating in a group could make you uncomfortable. Even if people insist you'd make a good couple, don't rush to share your feelings before checking the other person's interest yourself.<br><br>In a relationship, spending too much time with friends could make you miss a commitment to your partner. Casually cancelling a date you've already arranged could leave lasting hurt.<br><br>After a breakup, news passed on by a friend could unsettle your hopes of getting back together. Don't treat someone else's guesses as your ex's wishes. It's better to discuss matters between you directly instead of through several people. | フリーの人は、人が集まる場で飛び交う話に、嫌な気持ちになるかもしれません。周囲にお似合いだと勧められても、相手の好意を直接確かめるまでは、告白を急がないでください。<br><br>交際中なら、友人との集まりを優先して、二人の約束を忘れがちです。前から決めていたデートを軽くキャンセルすると、相手を深く傷つけるかもしれません。<br><br>別れた後なら、知人から聞いた近況で、復縁への期待が揺れそうです。他人の推測を、相手の意向として受け取るのは控えましょう。二人のことは、何人も間に挟むより、直接話したほうがよさそうです。 |
 
 ## cups.03 · 정방향
 
 내부 ID: `love.cups.03.upright`
 
-카드 의미: 함께 기뻐하고 나누는 친교. 원전의 즐거운 마무리와 축하를 일상의 작은 모임과 공동 만족으로 사용.
+카드 의미: 기쁨을 나눔, 성취의 마무리, 축하, 위안
 
-분야 해석: 친구의소개와교류
+분야 해석: 좋음: 모임의 인연, 함께 받는 축하, 편안한 재만남
 
-관찰: 친구를 통해 새로운 사람을 알게 되거나 여러 사람 사이에서 호감을 느낄 수 있어. / 처음에는 함께 웃기만 했던 상대와 따로 이야기할 기회가 생길 거야. / 가까운 친구나 연인과는 좋은 소식을 나누며 서로를 응원하는 마음이 커질 수 있어.
+관찰: 기쁨을 나눔 / 성취의 마무리 / 축하
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 친구를 통해 새로운 사람을 알게 되거나 여러 사람 사이에서 호감을 느낄 수 있어. 처음에는 함께 웃기만 했던 상대와 따로 이야기할 기회가 생길 거야. 가까운 친구나 연인과는 좋은 소식을 나누며 서로를 응원하는 마음이 커질 수 있어. 관심 가는 사람이 있다면 대화에 자연스럽게 한마디 보태봐. 친구처럼 편안하게 시작한 말이 다음에도 연락하고 싶은 이유가 될 수 있어. | A friend could introduce you to someone new, or you may notice an attraction within a group. You may get a chance to talk one-on-one with someone you've enjoyed spending time with in a group. Sharing good news with a close friend or partner could strengthen your support for each other. If someone interests you, join the conversation with a natural comment. A relaxed, friendly exchange may give you a reason to keep in touch. | 友人を通して新しい人と知り合ったり、グループの中で誰かに惹かれたりしそうです。初めはみんなで笑っていただけの相手と、二人で話す機会ができるかもしれません。親しい友人や恋人とはよい知らせを分かち合い、応援する気持ちが強まりそうです。気になる人がいれば、会話に自然と一言加えてみてください。友達のように気楽に交わした言葉が、また連絡したい理由になるかもしれません。 |
+| 분야 풀이 | 솔로라면 친구들과 어울리는 자리에서 좋은 인연을 만날 수 있어. 여럿이 웃고 이야기하다 마음이 맞는 사람과 따로 연락하게 될 수 있어.<br><br>연애 중이라면 둘의 기쁜 소식을 주변과 나누기 좋은 날이야. 함께 모임에 가거나 기념일을 보내면 애정이 더 깊어질 수 있어. 결혼을 준비하는 사이라면 반가운 축하를 받을 수 있어.<br><br>이별 후라면 공통 지인 모임에서 편하게 인사를 나눌 기회가 생길 수 있어. 둘 다 반갑게 대한다면 대화를 다시 이어갈 수 있어. 친구들에게 재회를 대신 설득해달라고 부탁하지는 마. | If you're single, spending time with friends could introduce you to someone right for you. Laughter and conversation in a group may lead to private messages with someone you connect with.<br><br>In a relationship, it's a good day to share your happy news with others. Attending a gathering together or celebrating an anniversary could deepen affection. If you're preparing for marriage, you could receive congratulations you're happy to hear.<br><br>After a breakup, a gathering of mutual friends could offer a comfortable chance to say hello. If you're both pleased to see each other, you may start talking again. Don't ask friends to persuade your ex to reunite on your behalf. | フリーの人は、友人と集まる場でよい出会いがありそうです。みんなで笑いながら話すうちに、気の合う人と個別に連絡を取り合うようになるかもしれません。<br><br>交際中なら、二人のうれしい知らせを周囲と分かち合うのによい日です。一緒に集まりへ出かけたり、記念日を過ごしたりすると、愛情がさらに深まりそうです。結婚の準備を進めている二人は、温かな祝福を受けることもあるでしょう。<br><br>別れた後なら、共通の知人が集まる場で、気楽にあいさつを交わす機会がありそうです。二人とも再会を喜んでいるなら、会話を再開できるでしょう。友人に、代わりに復縁を説得してほしいと頼むのは控えてください。 |
 
 ## cups.04 · 역방향
 
 내부 ID: `love.cups.04.reversed`
 
-카드 의미: 멈춰 있던 관심이 다시 열리는 방향을 채택. 원전 역해석의 새 관계·새 안내를 재참여의 기회로 응용.
+카드 의미: 새로움, 새로운 가르침, 관심의 재개
 
-분야 해석: 관심이다시열리는만남
+분야 해석: 회복: 새 인연에 대한 반응, 데이트 재개, 멈춘 대화의 재연결
 
-관찰: 한동안 무심했던 사람의 말이 새롭게 들릴 수 있는 날이야. / 늘 아는 모습이라고 생각했는데 뜻밖에 다정한 면을 발견할 수 있어. / 소개나 만남을 미뤄왔다면 다시 이야기해보고 싶은 상대가 생길 거야.
+관찰: 새로움 / 새로운 가르침 / 관심의 재개
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 무심했던 사람의 말이 새롭게 들릴 수 있는 날이야. 늘 아는 모습이라고 생각했는데 뜻밖에 다정한 면을 발견할 수 있어. 소개나 만남을 미뤄왔다면 다시 이야기해보고 싶은 상대가 생길 거야. 반가운 연락이 오면 간단한 안부라도 이어가봐. 억지로 친해지려 하지 않아도 대화가 전보다 자연스럽게 길어질 수 있어. | You may hear someone you've barely noticed lately in a new way. A person you thought you knew completely could show an unexpectedly tender side. If you've been postponing introductions or meetings, someone may make you want to try again. Continue a welcome message with even a simple check-in. The conversation could grow naturally, without you needing to force closeness. | しばらく気に留めていなかった人の言葉が、新しく聞こえそうです。よく知っているつもりの相手に、思いがけない優しさを見つけるかもしれません。紹介や会うことを延ばしていたなら、また話してみたい人ができそうです。うれしい連絡には、簡単な近況の話でも続けてみてください。無理に親しくなろうとしなくても、前より自然に会話が長くなるかもしれません。 |
+| 분야 풀이 | 솔로라면 전에 무심히 넘겼던 사람과 새롭게 가까워질 수 있어. 미뤄둔 소개나 모임에 나가면 예상보다 대화가 잘 통할 수 있어.<br><br>연애 중이라면 뜸했던 데이트가 다시 즐거워질 수 있어. 서로 하고 싶던 일을 함께하면 권태가 줄어들기 좋아. 상대의 제안을 한 번쯤 받아들여봐.<br><br>이별 후라면 끊겼던 안부가 다시 이어질 수 있어. 상대도 대화를 원한다면 전보다 편하게 이야기를 나눌 수 있어. 재회 생각이 없다면 새 인연을 만날 기회도 열려 있어. | If you're single, you could grow closer to someone you previously overlooked. An introduction or gathering you've put off may bring a better conversation than expected.<br><br>In a relationship, dates could become enjoyable again after a quiet spell. Doing something you've both wanted to try may ease boredom. Consider accepting your partner's suggestion.<br><br>After a breakup, you could start checking in with each other again after losing touch. If your ex wants to talk too, conversation may feel easier than before. If you aren't considering a reunion, there's also a chance to meet someone new. | フリーの人は、以前は気に留めなかった相手と、新たに親しくなれそうです。見送っていた紹介や集まりに応じると、予想以上に話が合うかもしれません。<br><br>交際中なら、しばらく減っていたデートを、また楽しめそうです。互いにやりたかったことを一緒に楽しめば、マンネリも和らぐでしょう。相手の提案に一度応じてみましょう。<br><br>別れた後なら、途切れていた連絡が、またつながるかもしれません。相手も会話を望んでいるなら、以前より気楽に話せそうです。復縁を考えていないなら、新しい出会いの機会も開かれています。 |
 
 ## cups.04 · 정방향
 
 내부 ID: `love.cups.04.upright`
 
-카드 의미: 주어진 선택에 마음이 가지 않는 권태와 재평가. 원전의 싫증·불만을 억지 만족 대신 실제 필요를 돌아보는 뜻으로 사용.
+카드 의미: 권태, 불만족, 기회에 대한 무관심
 
-분야 해석: 익숙한호의를놓침
+분야 해석: 정체: 관심이 가지 않는 소개, 데이트 권태, 재회 제안의 미온적 반응
 
-관찰: 익숙한 사람의 관심이 당연하게 느껴져 대답이 무심해질 수 있어. / 상대는 마음을 담아 연락했는데 늘 하던 안부처럼 들릴 수 있는 날이야. / 새로운 만남에서도 처음에는 강하게 끌리지 않아 호감을 알아차리는 데 시간이 걸릴 거야.
+관찰: 권태 / 불만족 / 기회에 대한 무관심
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 익숙한 사람의 관심이 당연하게 느껴져 대답이 무심해질 수 있어. 상대는 마음을 담아 연락했는데 늘 하던 안부처럼 들릴 수 있는 날이야. 새로운 만남에서도 처음에는 강하게 끌리지 않아 호감을 알아차리는 데 시간이 걸릴 거야. 오늘 건네받은 말 중 고마웠던 한 가지에는 답을 해줘. 뒤늦게 대화를 떠올리며 생각보다 나를 잘 챙겨준 사람이었다는 걸 느낄 수 있어. | Familiar affection may feel so routine that you respond absentmindedly. Someone could reach out thoughtfully, while you hear it as just another check-in. With someone new, a quiet first impression may take longer to turn into attraction. Acknowledge one thing you appreciated in what someone said today. Looking back on the conversation, you might realize they were more attentive than you'd noticed. | なじみの人の関心を当たり前に感じて、返事がそっけなくなるかもしれません。相手は心を込めて連絡していても、いつもの挨拶に聞こえやすい日です。新しい出会いでも第一印象が穏やかで、好意に気づくまで少し時間がかかりそうです。今日かけてもらった言葉でありがたかったことには、一つ返事をしてみてください。後で会話を思い出し、思った以上に気遣ってくれた人だったと感じるかもしれません。 |
+| 분야 풀이 | 솔로라면 소개가 들어와도 선뜻 마음 가는 사람이 없을 수 있어. 마음이 없는 상태에서 억지로 다음 약속을 잡으면 만남이 더 부담스러워져.<br><br>연애 중이라면 늘 비슷한 데이트가 지루하게 느껴질 수 있어. 상대가 건넨 애정 표현까지 무심하게 넘기면 서운함을 살 수 있으니 받은 마음에는 답해줘.<br><br>이별 후라면 다시 만나자는 말에도 선뜻 답이 나오지 않을 수 있어. 그리움보다 피로가 크게 남았다면 오늘 재회를 결정할 필요는 없어. 만날 뜻이 없다면 애매하게 기다리게 하지 않는 게 좋아. | If you're single, even an introduction may not bring someone you're drawn to. Forcing yourself to arrange another meeting when you aren't interested could only make it feel more burdensome.<br><br>In a relationship, dates that are always similar may feel boring. Respond to the affection your partner offers: brushing that aside too could hurt them.<br><br>After a breakup, an invitation to try again may leave you unsure how to answer. If the relationship left more exhaustion than longing, you don't need to decide on a reunion today. If you don't want to meet, it's better not to leave the other person waiting without clarity. | フリーの人は、紹介されても、すぐに気になる人はいないかもしれません。好意がないまま無理に次の約束をすると、会うことがさらに重荷になります。<br><br>交際中なら、いつも似たようなデートを退屈に感じそうです。相手からの愛情表現までそっけなく流すと、寂しい思いをさせてしまいます。伝えてくれた気持ちには応えましょう。<br><br>別れた後なら、復縁を持ちかけられても、すぐには返事ができないかもしれません。恋しさより疲れが強く残っているなら、今日決める必要はありません。会うつもりがない場合は、曖昧なまま待たせないほうがよいでしょう。 |
 
 ## cups.05 · 역방향
 
 내부 ID: `love.cups.05.reversed`
 
-카드 의미: 지난 실망을 받아들이고 남은 것을 다시 알아보는 회복을 채택. 원전의 귀환과 다른 현대적 독해임을 명시.
+카드 의미: 다시 연결, 도움 수용, 후회에서 벗어남
 
-분야 해석: 사과와화해의시작
+분야 해석: 회복: 실망 뒤 새 만남, 사과의 수용, 재회 또는 이별 정리
 
-관찰: 서운했던 사이에서 먼저 안부나 사과의 말이 오갈 수 있어. / 처음에는 조심스럽지만 지난 일을 이야기하며 서로 다르게 받아들였다는 걸 알게 될 거야. / 금세 예전처럼 웃지 못해도 전보다 편하게 말을 건넬 여지는 생길 수 있어.
+관찰: 다시 연결 / 도움 수용 / 후회에서 벗어남
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서운했던 사이에서 먼저 안부나 사과의 말이 오갈 수 있어. 처음에는 조심스럽지만 지난 일을 이야기하며 서로 다르게 받아들였다는 걸 알게 될 거야. 금세 예전처럼 웃지 못해도 전보다 편하게 말을 건넬 여지는 생길 수 있어. 미안했던 점이 있다면 길게 변명하기보다 그 부분만 인정해줘. 다시 이야기할 수 있게 됐다는 사실이 마음에 남아 관계를 천천히 풀어갈 수 있어. | A strained relationship could see a first check-in or apology. The conversation may be tentative, but discussing the past could reveal that you understood it differently. Even if you're not laughing together as before, there may be room to speak more comfortably. If you owe an apology, acknowledge the specific point rather than giving a long defense. Being able to talk again could stay with you and let the relationship mend gradually. | わだかまりのある相手と、挨拶や謝罪の言葉を交わせるかもしれません。初めは慎重でも、過去を話すうちに受け止め方が違っていたと分かりそうです。すぐ以前のように笑えなくても、前より気楽に話しかける余地はできるでしょう。申し訳なかったことがあれば、長く言い訳せずその点を認めてみてください。また話せたことが心に残り、関係を少しずつほぐしていけそうです。 |
+| 분야 풀이 | 솔로라면 실망했던 만남을 뒤로하고 새로운 소개를 받을 수 있어. 지난 상대와 비교하지 않고 대화하면 편안한 인연을 알아보기 좋아.<br><br>연애 중이라면 서운했던 일이 사과로 풀릴 수 있어. 서로 잘못을 인정하면 같은 이야기를 되풀이하던 다툼도 잦아들어.<br><br>이별 후라면 지난 상처를 조금 덜 아프게 이야기할 수 있어. 둘 다 원한다면 차분한 대화가 재회로 이어질 수 있어. 다시 만나지 않더라도 후회를 줄이며 관계를 마무리하기 좋은 날이야. | If you're single, you could leave a disappointing encounter behind and receive a new introduction. Talking without comparing them to the previous person could help you recognise a comfortable connection.<br><br>In a relationship, an apology may resolve something hurtful. If you both acknowledge your mistakes, an argument that kept repeating the same points could subside.<br><br>After a breakup, you may be able to discuss old hurt with a little less pain. If you both want to, a calm conversation could lead to getting back together. Even without reuniting, it's a good day to end the relationship with fewer regrets. | フリーの人は、がっかりした出会いを過去のものにして、新しく紹介を受けることがありそうです。前の相手と比べずに話すと、心地よく付き合える人に気づきやすいでしょう。<br><br>交際中なら、傷ついていた気持ちが、謝罪をきっかけに和らぎそうです。互いの過ちを認めれば、同じことを繰り返していたけんかも収まるでしょう。<br><br>別れた後なら、以前の傷を、少し落ち着いて話せそうです。二人とも望んでいるなら、穏やかな会話が復縁につながる可能性もあります。交際を再開しなくても、後悔を減らし、関係に区切りをつけやすい日です。 |
 
 ## cups.05 · 정방향
 
 내부 ID: `love.cups.05.upright`
 
-카드 의미: 뜻대로 되지 않은 것에 마음이 머물러 남은 것을 놓침. 원전 그림의 엎어진 잔과 남은 잔을 현대의 실망·후회로 해석.
+카드 의미: 기대에 못 미침, 상실, 남아 있는 것
 
-분야 해석: 아쉬운말과남아있는마음
+분야 해석: 주의: 기대와 다른 고백·만남, 서운함, 재회의 실망
 
-관찰: 기대했던 말이 돌아오지 않아 가까운 사람에게 서운해질 수 있어. / 다정했던 순간보다 아쉬웠던 한마디가 오래 생각날 수 있는 날이야. / 상대가 다른 방식으로 챙겨준 일이 뒤늦게 눈에 들어오며 마음이 조금 누그러질 거야.
+관찰: 기대에 못 미침 / 상실 / 남아 있는 것
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 말이 돌아오지 않아 가까운 사람에게 서운해질 수 있어. 다정했던 순간보다 아쉬웠던 한마디가 오래 생각날 수 있는 날이야. 상대가 다른 방식으로 챙겨준 일이 뒤늦게 눈에 들어오며 마음이 조금 누그러질 거야. 오늘 서운했던 점은 상대의 마음을 단정하지 말고 있었던 일 그대로 말해봐. 서로 무엇을 기대했는지 알게 되는 대화가 남아 다음 만남은 덜 어색해질 수 있어. | Not hearing the words you hoped for could leave you hurt by someone close. One disappointing comment may linger longer than their tender moments today. You might later notice another way they cared for you, softening that feeling a little. Describe what happened without deciding what it proves about their feelings. Learning what you each expected could leave your next meeting less awkward. | 期待した言葉が返ってこず、身近な人に寂しさを感じるかもしれません。優しかった場面より、残念な一言が長く気にかかりそうです。後になって別の気遣いに気づき、少し気持ちが和らぐこともあるでしょう。今日寂しかったことは、相手の気持ちを決めつけず、起きたことのまま伝えてみてください。互いに何を望んでいたか分かれば、次に会うときの気まずさは減りそうです。 |
+| 분야 풀이 | 솔로라면 기대했던 만남이나 고백이 뜻대로 되지 않아 아쉬울 수 있어. 이번 답이 좋지 않더라도 앞으로의 인연까지 없다고 생각하지 마.<br><br>연애 중이라면 상대가 잊은 약속 때문에 서운함이 커질 수 있어. 잘못한 일은 이야기하되 그동안 나눈 애정까지 모두 부정하지는 마. 진심 어린 사과가 오간다면 다툼이 더 커지기 전에 풀릴 수 있어.<br><br>이별 후라면 재회를 기대한 연락에서 원하는 답을 받기 어려울 수 있어. 이미 끝내겠다는 뜻을 들었다면 더 붙잡을수록 아쉬움이 길어져. 가까운 사람의 위로를 받으며 하루를 보내도 좋아. | If you're single, a meeting or conversation about your feelings may not go as hoped. Even if this answer disappoints you, don't assume there will be no future connections.<br><br>In a relationship, a promise your partner forgot could deepen hurt feelings. Talk about the mistake without dismissing all the affection you've shared. A sincere apology between you could settle the matter before the argument grows.<br><br>After a breakup, reaching out in hope of a reunion may not bring the answer you want. If your ex has already said it's over, holding on could prolong your disappointment. It's fine to spend the day accepting comfort from someone close. | フリーの人は、期待した出会いや告白が思いどおりにならず、残念に感じるかもしれません。今回よい返事でなくても、これからの縁までなくなったと考える必要はありません。<br><br>交際中なら、相手が約束を忘れたことで、不満が大きくなりそうです。よくなかったことは伝えても、これまで交わした愛情まで否定するのは控えましょう。心からの謝罪を伝え合えれば、けんかが大きくなる前に仲直りできそうです。<br><br>別れた後なら、復縁を期待して連絡しても、望む答えは得にくい日です。すでに終わりにしたいと伝えられているなら、引き留めるほど未練が長引くでしょう。身近な人に慰めてもらいながら過ごしてもよい日です。 |
 
 ## cups.06 · 역방향
 
 내부 ID: `love.cups.06.reversed`
 
-카드 의미: 과거의 이상화에서 벗어나 현재에 맞추는 독해. 원전의 미래·갱신 의미를 낡은 기대의 조정으로 채택.
+카드 의미: 미래, 갱신, 과거와 현재의 구분
 
-분야 해석: 지금의상대를알아감
+분야 해석: 전환: 과거와 다른 새 인연, 옛 비교에서 벗어남, 재회보다 새로운 생활
 
-관찰: 가까운 사람도 예전과 취향이나 생각이 달라졌다는 걸 알 수 있어. / 좋아할 줄 알고 건넨 제안에 다른 답이 돌아와 잠깐 멋쩍을 거야. / 왜 달라졌는지 이야기를 듣다 보면 요즘의 고민이나 관심사를 새로 알게 될 수 있어.
+관찰: 미래 / 갱신 / 과거와 현재의 구분
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사람도 예전과 취향이나 생각이 달라졌다는 걸 알 수 있어. 좋아할 줄 알고 건넨 제안에 다른 답이 돌아와 잠깐 멋쩍을 거야. 왜 달라졌는지 이야기를 듣다 보면 요즘의 고민이나 관심사를 새로 알게 될 수 있어. 기억에 맞추려 하기보다 지금 무엇을 좋아하는지 물어봐. 서로 변한 점을 자연스럽게 이야기하며 다시 가까워지는 계기가 생길 수 있어. | You may discover that even someone close has changed their tastes or views. An idea you thought they'd love could get a different answer and feel awkward for a moment. Hearing why things have changed may introduce you to their current concerns or interests. Ask what they like now rather than trying to fit them to your memories. Talking naturally about how you've both changed could be a chance to grow close again. | 親しい人でも、昔と好みや考えが変わっていると分かるかもしれません。喜ぶと思った提案に違う返事があり、一瞬戸惑いそうです。変わった理由を聞くうちに、最近の悩みや関心を新たに知ることができるでしょう。記憶に合わせようとせず、今好きなことを尋ねてみてください。お互いに変わったことを自然に話して、また近づくきっかけができそうです。 |
+| 분야 풀이 | 솔로라면 예전 이상형과 다른 사람에게 마음이 갈 수 있어. 지난 연애를 기준으로만 고르지 않으면 새로운 인연을 만나기 좋아.<br><br>연애 중이라면 예전과 달라진 서로의 취향 때문에 데이트 계획이 바뀔 수 있어. 늘 좋아하던 것이 지금도 같을 거라고 여기기보다 요즘 원하는 것을 물어봐.<br><br>이별 후라면 과거의 좋은 기억만으로 재회하기는 어렵다는 걸 알게 될 수 있어. 지금의 상대도 같은 만남을 원하는지 확인할 때야. 다시 만날 뜻이 서로 다르다면 새 인연을 향해 가기 좋아. | If you're single, someone unlike your old ideal may appeal to you. If you don't judge everyone by your last relationship, you could make a new connection.<br><br>In a relationship, changed tastes could alter your date plans. Instead of assuming they still enjoy everything they used to, ask what your partner wants these days.<br><br>After a breakup, you may realise good memories alone aren't enough to reunite. It's time to check what your ex wants now and whether you want the same kind of relationship. If your wishes about trying again differ, it's a good day to move towards new connections. | フリーの人は、以前の理想と違う人にひかれるかもしれません。過去の恋愛だけを基準に選ばなければ、新しい縁に出会いやすい日です。<br><br>交際中なら、互いの好みが以前と変わり、デートの計画を変えることになりそうです。昔から好きだったものが今も同じとは考えず、最近は何をしたいか聞きましょう。<br><br>別れた後なら、よい思い出だけで復縁するのは難しいとわかるかもしれません。今の相手も同じ付き合いを望んでいるか、確かめるときです。復縁への意向が違うなら、新しい縁に目を向けやすい日です。 |
 
 ## cups.06 · 정방향
 
 내부 ID: `love.cups.06.upright`
 
-카드 의미: 익숙한 기억과 순수한 호의. 원전의 지난 즐거움과 추억을 지금의 친근함을 여는 단서로 사용.
+카드 의미: 과거의 즐거움, 추억, 익숙함, 친절
 
-분야 해석: 오랜친구와가족의정
+분야 해석: 좋음: 익숙한 사람과의 인연, 추억으로 가까워짐, 과거 인연의 연락
 
-관찰: 오랜 친구나 가족의 한마디에 마음이 따뜻해질 수 있는 날이야. / 별말 없이도 좋아하는 것을 기억해주거나, 예전에 함께한 일을 꺼내며 웃게 될 거야. / 연인과는 처음 가까워졌을 때의 이야기를 나누며 잊고 있던 다정함을 느낄 수 있어.
+관찰: 과거의 즐거움 / 추억 / 익숙함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오랜 친구나 가족의 한마디에 마음이 따뜻해질 수 있는 날이야. 별말 없이도 좋아하는 것을 기억해주거나, 예전에 함께한 일을 꺼내며 웃게 될 거야. 연인과는 처음 가까워졌을 때의 이야기를 나누며 잊고 있던 다정함을 느낄 수 있어. 생각나는 추억이 있다면 사진이나 짧은 이야기로 전해봐. 요즘의 바쁜 사정도 자연스럽게 나누며 전보다 편하게 연락할 수 있게 될 거야. | A word from an old friend or family member could warm your heart. They may quietly remember what you like or bring up something you once shared and make you laugh. With a partner, remembering how you first grew close could bring back a tenderness you'd forgotten. Send a photo or brief story if a memory comes to mind. Talking naturally about your busy lives now could make staying in touch easier than before. | 古い友人や家族の一言に、心が温まりそうです。何も言わなくても好みを覚えてくれていたり、一緒に過ごした昔の話で笑い合えたりするでしょう。恋人とは、親しくなり始めた頃を話して忘れていた優しさを感じられそうです。思い出が浮かんだら、写真や短い話で伝えてみてください。最近の忙しい事情も自然に話せて、前より気楽に連絡を取り合えそうです。 |
+| 분야 풀이 | 솔로라면 오래 알고 지낸 사람에게 새로운 호감을 느낄 수 있어. 예전 친구에게서 연락이 오거나 추억을 나누던 대화가 데이트로 이어질 수 있어.<br><br>연애 중이라면 처음 만났을 때의 이야기가 애정을 되살려줄 수 있어. 함께 좋아했던 장소에 가면 익숙하고 편안한 시간을 보내기 좋아.<br><br>이별 후라면 옛 연인과 안부를 나눌 기회가 생길 수 있어. 좋은 기억을 함께 떠올리며 서먹함이 풀릴 수 있는 날이야. 재회는 추억이 반갑다는 마음에 더해 서로 다시 만나고 싶은지도 확인해줘. | If you're single, you may feel a new attraction to someone you've known a long time. An old friend could get in touch, or a conversation about shared memories may lead to a date.<br><br>In a relationship, stories about when you first met could renew affection. Returning to a place you both enjoyed may let you relax together in familiar surroundings.<br><br>After a breakup, you could have a chance to exchange news with an ex. Remembering good times together may ease awkwardness today. Alongside the pleasure of those memories, check whether you both want to date again before considering a reunion. | フリーの人は、長く知っている人に、新たな好意を感じそうです。昔の友人から連絡が来たり、思い出話からデートにつながったりするかもしれません。<br><br>交際中なら、出会った頃の話が愛情をよみがえらせてくれそうです。二人とも好きだった場所へ行くと、なじみのある心地よい時間を過ごせるでしょう。<br><br>別れた後なら、以前の恋人と近況を話す機会がありそうです。よい思い出を一緒に振り返ることで、ぎこちなさが和らぐかもしれません。復縁は、思い出が懐かしいだけでなく、互いにまた付き合いたいかも確かめてください。 |
 
 ## cups.07 · 역방향
 
 내부 ID: `love.cups.07.reversed`
 
-카드 의미: 환상에서 현실적인 선택으로 좁혀가는 의지. 원전의 결심·목적을 채택하며 단순 흉으로 뒤집지 않음.
+카드 의미: 의지, 결정, 목표를고름
 
-분야 해석: 상상보다실제모습
+분야 해석: 정리와 진전: 선택한 만남, 구체적 약속, 재회 여부의 판단
 
-관찰: 혼자 생각했던 상대의 모습과 실제 모습이 다르다는 걸 알 수 있어. / 직접 나눈 대화에서는 기대보다 소박하지만 편안한 면이 눈에 들어올 거야. / 여러 반응을 따로 해석하던 때보다 상대가 원하는 것이 분명하게 들릴 수 있어.
+관찰: 의지 / 결정 / 목표를고름
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 생각했던 상대의 모습과 실제 모습이 다르다는 걸 알 수 있어. 직접 나눈 대화에서는 기대보다 소박하지만 편안한 면이 눈에 들어올 거야. 여러 반응을 따로 해석하던 때보다 상대가 원하는 것이 분명하게 들릴 수 있어. 좋아 보이는 답을 고르기보다 내 생각도 있는 그대로 말해봐. 상상으로 만든 설렘 대신 실제로 잘 맞는 부분을 찾는 하루가 될 수 있어. | You may discover that the person differs from the image you've formed alone. A real conversation could show a quieter but more comfortable side than you'd expected. What they want may sound clearer than it did when you were interpreting every response separately. Say what you think rather than choosing the answer you believe will look best. The day could reveal genuine points of connection in place of imagined excitement. | 一人で想像していた相手の姿と、実際は違うと分かるかもしれません。直接の会話では、期待より素朴でも落ち着ける一面が見えてきそうです。反応を一つずつ解釈していたときより、相手の望みがはっきり聞こえるでしょう。よく見えそうな答えを選ばず、自分の考えもそのまま話してみてください。想像で膨らませたときめきの代わりに、本当に合うところが見つかりそうです。 |
+| 분야 풀이 | 솔로라면 여러 사람에게 나뉘었던 관심이 한 사람으로 좁혀질 수 있어. 실제로 대화가 잘 통하는 사람과 다음 약속을 잡기 좋은 날이야.<br><br>연애 중이라면 말로만 오가던 계획이 하나로 정해질 수 있어. 데이트나 결혼 준비에서 서로 가능한 선택을 고르면 결정이 빨라져.<br><br>이별 후라면 애매하던 재회 이야기에 분명한 답을 들을 수 있어. 상대도 같은 뜻이라면 실제로 만날 약속을 정하기 좋아. 다시 사귈 생각이 없는 상대만 기다리고 있었다면 그 기대를 접을 수 있어. | If you're single, interest spread across several people could settle on one. It's a good day to arrange another meeting with someone you actually enjoy talking to.<br><br>In a relationship, ideas you've only discussed could become one definite plan. Choosing an option you can both manage may speed up a decision about a date or wedding preparations.<br><br>After a breakup, you may get a clear answer to an uncertain discussion about reuniting. If your ex wants the same thing, it's a good day to arrange an actual meeting. If you've been waiting for someone who doesn't want to date again, you may be able to let that hope go. | フリーの人は、何人かに向いていた関心が、一人に絞られそうです。実際に話が合う人と、次の約束を決めるのによい日です。<br><br>交際中なら、話に出ていただけの計画が、一つにまとまりそうです。デートや結婚の準備で、互いに実現できるものを選ぶと、決定も早くなるでしょう。<br><br>別れた後なら、曖昧だった復縁の話に、はっきりした答えを聞けそうです。相手も同じ気持ちなら、実際に会う約束を決めやすいでしょう。交際を再開する気のない相手だけを待っていたなら、その期待に区切りをつけられそうです。 |
 
 ## cups.07 · 정방향
 
 내부 ID: `love.cups.07.upright`
 
-카드 의미: 매력적인 상상과 많은 선택지가 실제 판단을 흐림. 원전의 환상·상상을 선택의 풍부함과 불명확함으로 응용.
+카드 의미: 상상, 매력적인가능성, 실체의불확실성
 
-분야 해석: 호감을크게해석함
+분야 해석: 주의: 여러 호감과 환상, 구체화되지 않는 약속, 재회 기대의 과장
 
-관찰: 상대의 한마디가 오래 기억나며 이런저런 상상을 하게 될 수 있어. / 친절한 반응에 설레다가도 다음 말이 평범해 혼자 헷갈릴 수 있는 날이야. / 실제로 대화를 나누면 생각했던 이미지와 다른 취향이나 성격이 드러날 거야.
+관찰: 상상 / 매력적인가능성 / 실체의불확실성
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대의 한마디가 오래 기억나며 이런저런 상상을 하게 될 수 있어. 친절한 반응에 설레다가도 다음 말이 평범해 혼자 헷갈릴 수 있는 날이야. 실제로 대화를 나누면 생각했던 이미지와 다른 취향이나 성격이 드러날 거야. 마음을 짐작하는 질문보다 요즘 즐기는 일을 편하게 물어봐. 기대와 똑같지는 않아도 어떤 사람인지 알아가는 재미가 남을 수 있어. | A person's remark could linger and send your imagination in several directions. A friendly response may excite you, while an ordinary one afterward leaves you unsure. Actually talking to them could reveal tastes or traits that differ from your imagined picture. Ask casually what they enjoy these days instead of trying to read their feelings. Even if they aren't exactly as you pictured, getting to know them could be enjoyable. | 相手の一言が心に残り、いろいろ想像してしまいそうです。親切な返事にときめいても、次の言葉が普通で一人迷うかもしれません。実際に話せば、思い描いた姿とは違う好みや性格が見えてくるでしょう。気持ちを探る質問より、最近楽しんでいることを気軽に聞いてみてください。期待と同じでなくても、どんな人か知っていく面白さが残りそうです。 |
+| 분야 풀이 | 솔로라면 관심 가는 사람이 여럿 생겨도 실제 데이트는 잡히지 않을 수 있어. 사진이나 메시지만 보고 완벽한 상대라고 여기면 만났을 때 실망하기 쉬워.<br><br>연애 중이라면 함께 하고 싶은 이야기는 많아도 정해지는 일은 적을 수 있어. 여행이나 결혼 계획을 말만 하다 끝내지 않으려면 둘이 가능한 일부터 하나씩 골라봐.<br><br>이별 후라면 작은 연락에도 재회 후의 모습을 크게 기대하기 쉬워. 상대가 다시 사귀자는 뜻을 밝히지 않았다면 혼자 약속까지 잡지 마. 안부와 재회 제안은 구별해야 해. | If you're single, several people may catch your interest without an actual date being arranged. Assuming someone is perfect from photos or messages alone could make meeting them disappointing.<br><br>In a relationship, you may talk about many things you'd like to do together while settling very little. To keep travel or wedding plans from ending as talk alone, choose one thing you can both manage at a time.<br><br>After a breakup, even a brief message may make you imagine a great deal about life after reuniting. If your ex hasn't said they want to date again, don't make plans on your own. A friendly check-in and a suggestion of getting back together are different. | フリーの人は、気になる人が何人かできても、実際のデートは決まらないかもしれません。写真やメッセージだけで理想の相手だと思うと、会ったときにがっかりしがちです。<br><br>交際中なら、一緒にやりたいことの話は多くても、決まることは少なそうです。旅行や結婚の計画を話すだけで終わらせたくないなら、二人で実現できることから一つずつ選びましょう。<br><br>別れた後なら、少し連絡があっただけでも、復縁後の姿を大きく思い描きやすい日です。相手が交際を再開したいと伝えていないなら、一人で会う予定まで決めるのは控えてください。近況を尋ねる連絡と、復縁の提案は区別する必要があります。 |
 
 ## cups.08 · 역방향
 
 내부 ID: `love.cups.08.reversed`
 
-카드 의미: 떠날지 머물지 망설이거나 만족을 다시 발견함. 원전 역방향의 기쁨과 현대적 변화 두려움 중 재검토의 갈림을 선택.
+카드 의미: 떠남의두려움, 머무름과변화사이의망설임
 
-분야 해석: 멀어지려던사이의대화
+분야 해석: 주의: 불만족스러운 만남의 반복, 떠나지 못하는 관계, 망설이는 재회
 
-관찰: 연락을 줄이려던 사람의 안부에 마음이 다시 움직일 수 있어. / 반갑다가도 전에 서운했던 일이 떠올라 대답을 망설일 거야. / 짧게 이야기를 나누면서 아직 편안한 부분과 여전히 어려운 부분이 함께 보일 수 있어.
+관찰: 떠남의두려움 / 머무름과변화사이의망설임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 연락을 줄이려던 사람의 안부에 마음이 다시 움직일 수 있어. 반갑다가도 전에 서운했던 일이 떠올라 대답을 망설일 거야. 짧게 이야기를 나누면서 아직 편안한 부분과 여전히 어려운 부분이 함께 보일 수 있어. 이번 대화가 좋았다고 앞으로의 관계까지 서둘러 정하지 마. 서로 할 수 있는 연락을 솔직히 말하면 부담을 덜고 이야기를 이어갈 수 있어. | A check-in from someone you'd planned to contact less could stir your feelings again. You may be glad, then hesitate as an earlier disappointment comes to mind. A short conversation could reveal both what's still comfortable and what remains difficult. Don't decide the whole future of the relationship just because this exchange went well. Being honest about the contact you can manage may let you keep talking with less pressure. | 連絡を減らそうとしていた人からの便りに、また気持ちが動くかもしれません。うれしくても以前の寂しさが浮かび、返事を迷いそうです。短く話すうちに、今も気楽なところとまだ難しいところが両方見えてくるでしょう。今回の会話がよかったからと、今後の関係まで急いで決めないようにしましょう。無理なくできる連絡を正直に話せば、負担を減らしてやり取りを続けられそうです。 |
+| 분야 풀이 | 솔로라면 잘 맞지 않는 사람과 외로워서 계속 만나기 쉬워. 다음 소개가 없을까 봐 사귀기로 하면 불편함이 오래갈 수 있어.<br><br>연애 중이라면 헤어지자는 말과 붙잡는 말이 반복될 수 있어. 함께 있을 때 힘든 이유가 그대로라면 그 순간을 넘겨도 다툼이 다시 생겨.<br><br>이별 후라면 다시 연락이 닿아도 재회 결정은 오락가락할 수 있어. 혼자 지내기 싫다는 이유만으로 돌아가면 같은 후회가 남기 쉬워. 서로 다시 사귀고 싶은 이유를 분명히 말할 수 있을 때 만나봐. | If you're single, loneliness could keep you seeing someone who doesn't suit you. Agreeing to date because you fear there won't be another introduction may prolong the discomfort.<br><br>In a relationship, talk of breaking up and pleas to stay could keep repeating. If the reasons it's hard to be together haven't changed, getting past the moment won't prevent another argument.<br><br>After a breakup, even renewed contact may leave a decision about reuniting unsettled. Returning only because you don't want to be alone could bring the same regret. Meet when you can both clearly explain why you want to date again. | フリーの人は、寂しさから、合わない相手とも会い続けやすい日です。次に紹介される人がいないかもと不安になって交際を決めると、居心地の悪さが長引くかもしれません。<br><br>交際中なら、別れを切り出しては引き留めるやり取りが、繰り返されそうです。一緒にいてつらい理由が変わらないなら、その場を収めても、またけんかになるでしょう。<br><br>別れた後なら、連絡がつながっても、復縁するかどうかは揺れやすい日です。一人でいたくないという理由だけで戻ると、同じ後悔が残りがちです。互いにまた付き合いたい理由をはっきり伝えられるときに、会ってみましょう。 |
 
 ## cups.08 · 정방향
 
 내부 ID: `love.cups.08.upright`
 
-카드 의미: 겉으로 갖춰져 있어도 더는 만족하지 않는 것을 떠나는 선택. 원전의 쇠퇴·중요성 약화를 자발적인 우선순위 전환으로 사용.
+카드 의미: 의미를잃은것에서떠남, 관심의쇠퇴, 다른선택
 
-분야 해석: 지치는연락을줄임
+분야 해석: 정리: 만족스럽지 않은 만남 종료, 관계의 거리, 이별 수용
 
-관찰: 연락을 주고받아도 전처럼 즐겁지 않은 순간이 생길 수 있어. / 같은 이야기를 반복하거나 한쪽만 질문하는 대화에 피곤함을 느낄 거야. / 잠깐 따로 지내는 시간에는 섭섭함보다 마음이 편해지는 것을 느낄 수 있어.
+관찰: 의미를잃은것에서떠남 / 관심의쇠퇴 / 다른선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 연락을 주고받아도 전처럼 즐겁지 않은 순간이 생길 수 있어. 같은 이야기를 반복하거나 한쪽만 질문하는 대화에 피곤함을 느낄 거야. 잠깐 따로 지내는 시간에는 섭섭함보다 마음이 편해지는 것을 느낄 수 있어. 오늘은 대화를 억지로 길게 이어가기보다 인사를 하고 마쳐봐. 다음에 무슨 말을 하고 싶은지 떠오르면서 지금 필요한 거리도 알게 될 수 있어. | Exchanging messages may not feel as enjoyable as it once did. Repeating the same conversation or being the only one asking questions could become tiring. A little time apart may feel more relieving than disappointing. End with a friendly goodbye today rather than forcing the conversation to continue. As you notice what you'd like to say next time, the amount of space you need may become clearer. | 連絡を交わしても、以前ほど楽しくない瞬間があるかもしれません。同じ話を繰り返したり、片方だけが質問したりする会話に疲れそうです。少し別々に過ごすと、寂しさより気楽さを感じることもあるでしょう。今日は無理に話を延ばさず、挨拶をして切り上げてみてください。次に話したいことが浮かぶうちに、今必要な距離も分かってきそうです。 |
+| 분야 풀이 | 솔로라면 연락하던 사람과 더 만날 뜻이 없어질 수 있어. 대화가 계속 공허하다면 미안해서 약속을 이어갈 필요는 없어.<br><br>연애 중이라면 오래 참아온 불만 때문에 거리를 두게 될 수 있어. 함께 있어도 외롭다는 말이 나왔다면 가볍게 넘기지 마. 관계를 이어가려면 서로 무엇이 힘들었는지 들어야 해.<br><br>이별 후라면 재회보다 끝난 관계를 받아들이기 좋은 날이야. 답을 기다리던 연락을 정리하며 오래 이어진 미련도 줄어들 수 있어. 다시 만날 뜻이 없는 사람을 계속 붙잡지는 마. | If you're single, you may lose the wish to keep seeing someone you've been messaging. If conversation keeps feeling empty, you don't need to continue meeting out of guilt.<br><br>In a relationship, long-held complaints could make you pull away. If your partner says they feel lonely even together, don't dismiss it. Staying together requires hearing what's been difficult for each of you.<br><br>After a breakup, it's a good day to accept the relationship has ended rather than seek a reunion. Ending contact you've kept open while waiting for a reply could ease lingering attachment. Don't keep holding on to someone who doesn't want to meet again. | フリーの人は、連絡を取っていた相手に、これ以上会いたいとは思わなくなるかもしれません。話してもむなしさが続くなら、申し訳なさから約束を重ねる必要はありません。<br><br>交際中なら、長く我慢した不満から、距離を置くことになりそうです。一緒にいても寂しいと言われたら、軽く流すのは控えてください。交際を続けるには、互いに何がつらかったか聞く必要があります。<br><br>別れた後なら、復縁より、交際が終わったと受け入れやすい日です。返事を待っていた連絡に区切りをつけると、長く残っていた未練も和らぎそうです。また付き合う気のない相手を、引き留め続けるのは控えましょう。 |
 
 ## cups.09 · 역방향
 
 내부 ID: `love.cups.09.reversed`
 
-카드 의미: 원했던 것을 얻어도 만족이 기대에 미치지 못함. 원전의 다양한 역해석 중 현대의 겉만 충족된 상태를 선택.
+카드 의미: 겉의성취와내면만족의차이, 불완전함, 과도한기대
 
-분야 해석: 받아도더기대하는관심
+분야 해석: 주의: 좋은 조건에 못 미치는 만족, 과한 기대, 기대와 다른 재회
 
-관찰: 기다린 연락을 받아도 듣고 싶던 말이 빠져 조금 아쉬울 수 있어. / 상대는 다정하게 표현했는데 더 특별한 답을 기대하게 될 수 있는 날이야. / 눈에 띄는 말보다 시간을 내주거나 작은 부탁을 들어준 일이 뒤늦게 떠오를 거야.
+관찰: 겉의성취와내면만족의차이 / 불완전함 / 과도한기대
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다린 연락을 받아도 듣고 싶던 말이 빠져 조금 아쉬울 수 있어. 상대는 다정하게 표현했는데 더 특별한 답을 기대하게 될 수 있는 날이야. 눈에 띄는 말보다 시간을 내주거나 작은 부탁을 들어준 일이 뒤늦게 떠오를 거야. 추가로 마음을 확인하기보다 오늘 고마웠던 행동 하나를 말해줘. 이미 받은 관심을 알게 되면서 처음보다 편한 마음으로 대화를 마칠 수 있어. | A long-awaited message could disappoint a little if it lacks the words you hoped for. They may be affectionate while you find yourself wanting a more special response. Later, you might remember their making time for you or helping with a small request more than any striking words. Rather than asking for more reassurance, mention one thing they did that you appreciated. Recognizing the care you've already received could leave you ending the conversation more comfortably. | 待っていた連絡にも欲しかった言葉がなく、少し残念に思うかもしれません。相手は優しく伝えていても、さらに特別な返事を望みやすい日です。後になって、目立つ言葉より時間を作ってくれたことや小さな手伝いを思い出すでしょう。気持ちをもっと確かめるより、今日ありがたかった行動を一つ伝えてみてください。すでにもらった関心に気づき、初めより穏やかに会話を終えられそうです。 |
+| 분야 풀이 | 솔로라면 기대했던 사람을 만나도 생각만큼 설레지 않을 수 있어. 조건이 좋다는 이유로 다음 만남을 억지로 이어갈 필요는 없어.<br><br>연애 중이라면 멋진 데이트를 하고도 원하는 애정을 받지 못했다고 느끼기 쉬워. 선물이나 장소에 걸었던 기대가 크다면 무엇이 서운했는지 상대가 알 수 있게 말해줘.<br><br>이별 후라면 다시 만나도 상상했던 재회와 달라 아쉬울 수 있어. 예전보다 더 다정할 거라는 기대만으로 돌아가면 같은 불만이 남아. 지금 실제로 나누는 대화와 태도를 보고 판단해봐. | If you're single, meeting someone you've looked forward to may be less exciting than expected. You don't have to force another meeting just because they seem good on paper.<br><br>In a relationship, even a wonderful date may leave you feeling you didn't receive the affection you wanted. If you had high expectations of a gift or place, explain what disappointed you so your partner can understand.<br><br>After a breakup, getting back together may differ from what you imagined and leave you disappointed. Returning only because you expect greater affection than before could leave the same complaints unresolved. Judge by the conversations and behaviour you actually see now. | フリーの人は、期待していた人に会っても、思ったほど心が弾まないかもしれません。条件がよいという理由で、無理に次も会う必要はありません。<br><br>交際中なら、素敵なデートをしても、欲しかった愛情が得られなかったと感じやすい日です。贈り物や場所に大きく期待していたなら、何が寂しかったのか、相手にわかるように伝えましょう。<br><br>別れた後なら、復縁しても想像と違い、物足りなく感じるかもしれません。以前より優しくしてくれるはずだと期待するだけでは、同じ不満が残ります。今、実際に交わす会話や態度を見て判断しましょう。 |
 
 ## cups.09 · 정방향
 
 내부 ID: `love.cups.09.upright`
 
-카드 의미: 자신이 원한 만족을 누림. 원전의 충족·안락을 외부 인정 없이 즐기는 경험으로 해석.
+카드 의미: 만족, 성취, 신체적편안함, 누림
 
-분야 해석: 받고싶던관심
+분야 해석: 좋음: 바라던 고백과 데이트, 애정의 만족, 원하던 대화
 
-관찰: 듣고 싶던 말을 듣거나 기다렸던 연락이 와 기분이 좋아질 수 있어. / 관심 있는 사람의 반응에서 나를 좋게 보고 있다는 느낌을 받을 거야. / 가까운 사람과는 편하게 웃으며 보낸 시간이 특별한 약속보다 만족스럽게 남을 수 있어.
+관찰: 만족 / 성취 / 신체적편안함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 듣고 싶던 말을 듣거나 기다렸던 연락이 와 기분이 좋아질 수 있어. 관심 있는 사람의 반응에서 나를 좋게 보고 있다는 느낌을 받을 거야. 가까운 사람과는 편하게 웃으며 보낸 시간이 특별한 약속보다 만족스럽게 남을 수 있어. 반가운 반응을 받았다면 나도 좋았다는 마음을 솔직하게 전해봐. 더 많은 확인을 받지 않아도 오늘 주고받은 다정함이 오래 생각날 수 있어. | Words you've wanted to hear or a message you've been waiting for could lift your spirits. The response of someone you like may give you a sense that they think well of you too. With someone close, easy laughter together could feel more satisfying than a special arrangement. When a response makes you happy, tell them honestly that you enjoyed it too. The tenderness you've exchanged today could linger without you needing more reassurance. | 聞きたかった言葉や待っていた連絡が届き、うれしくなりそうです。気になる人の反応に、好意的に見てもらえていると感じるかもしれません。親しい人とは、特別な約束より気楽に笑った時間のほうが満足できそうです。うれしい反応があったら、こちらも楽しかったと素直に伝えてみてください。さらに確かめなくても、今日交わした優しさが長く心に残りそうです。 |
+| 분야 풀이 | 솔로라면 바라던 데이트가 성사되거나 고백에 좋은 답을 받을 수 있어. 마음에 둔 사람과 둘이 이야기할 기회가 생기면 놓치지 마.<br><br>연애 중이라면 함께 하고 싶었던 일을 즐기며 만족스러운 하루를 보낼 수 있어. 준비한 선물이나 데이트도 상대에게 좋은 반응을 얻기 쉬워.<br><br>이별 후라면 기다리던 대화가 이루어질 수 있어. 서로 재회를 바라고 있었다면 만나자는 약속까지 이어지기 좋아. 바랐던 답을 듣더라도 지난 문제가 저절로 사라진 것은 아니라는 점은 기억해줘. | If you're single, a date you've hoped for could happen or you may get a positive answer when you share your feelings. Don't miss a chance to talk alone with the person you like.<br><br>In a relationship, doing something you've wanted to enjoy together could make the day satisfying. A gift or date you've prepared is also likely to please your partner.<br><br>After a breakup, a conversation you've waited for could take place. If you've both hoped to reunite, it may lead to arranging a meeting. Even if you hear the answer you wanted, remember that past problems haven't disappeared by themselves. | フリーの人は、望んでいたデートが実現したり、告白によい返事をもらえたりしそうです。気になる人と二人で話す機会ができたら、逃さずに生かしましょう。<br><br>交際中なら、一緒にやりたかったことを楽しみ、満ち足りた一日を過ごせそうです。用意した贈り物やデートも、相手に喜んでもらいやすいでしょう。<br><br>別れた後なら、待っていた会話ができそうです。互いに復縁を望んでいたなら、会う約束にもつながりやすいでしょう。望んだ返事が聞けても、以前の問題が自然に消えたわけではないことは覚えておいてください。 |
 
 ## cups.10 · 역방향
 
 내부 ID: `love.cups.10.reversed`
 
-카드 의미: 겉으로 조화로워 보여도 기대와 실제 필요가 다름. 원전의 겉 휴식과 내적 불일치를 완벽한 행복의 압박으로 응용.
+카드 의미: 가까운관계의불화, 기대차이, 겉의평화와속의불편
 
-분야 해석: 가까운사이의역할기대
+분야 해석: 주의: 서로 다른 장기 기대, 가까운 사람을 둘러싼 불화, 불편한 재회
 
-관찰: 가까운 사이라서 당연히 알아줄 줄 알았던 일이 엇갈릴 수 있어. / 누가 먼저 연락하거나 챙겨야 하는지를 두고 작은 서운함이 생길 거야. / 겉으로는 웃고 있어도 평소 말하지 못한 부탁이 있다는 걸 알게 될 수 있어.
+관찰: 가까운관계의불화 / 기대차이 / 겉의평화와속의불편
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사이라서 당연히 알아줄 줄 알았던 일이 엇갈릴 수 있어. 누가 먼저 연락하거나 챙겨야 하는지를 두고 작은 서운함이 생길 거야. 겉으로는 웃고 있어도 평소 말하지 못한 부탁이 있다는 걸 알게 될 수 있어. 오늘은 어떤 점이 힘들었는지 한 가지만 편하게 이야기해봐. 서로 바랐던 것을 듣고 나면 무심해서 그랬다고만 생각했던 마음이 조금 풀릴 수 있어. | Something you assumed a close person would understand could turn out differently. Who should contact or look after whom may cause a little hurt. Even behind a smile, you could discover an unspoken request. Calmly bring up just one thing you've found difficult today. Hearing what each of you hoped for may soften the assumption that someone simply didn't care. | 親しいから分かってくれると思ったことに、行き違いがあるかもしれません。誰が先に連絡したり気遣ったりするかで、少し寂しく感じそうです。笑っていても、普段言えていないお願いがあると分かることもあるでしょう。今日は大変だった点を一つだけ、気楽に話してみてください。互いに望んでいたことを聞けば、無関心だっただけと思っていた気持ちも和らぎそうです。 |
+| 분야 풀이 | 솔로라면 처음에는 잘 맞아도 연애에서 바라는 것이 달라질 수 있어. 진지하게 사귀고 싶은지 알아보기 전에 주변에 관계를 확정해 말하지 마.<br><br>연애 중이라면 가족이나 앞으로의 생활 이야기가 다툼으로 번질 수 있어. 남들 앞에서는 괜찮은 척했더라도 둘 사이의 불만은 따로 풀어야 해.<br><br>이별 후라면 주변이 재회를 반겨도 두 사람은 불편할 수 있어. 예전처럼 돌아가는 모습만 바라면 헤어진 이유가 가려져. 서로 편하게 지낼 수 있는지를 먼저 이야기해봐. | If you're single, an initially good match could reveal different hopes for a relationship. Don't tell people you're definitely a couple before finding out whether you both want to date seriously.<br><br>In a relationship, talk of family or your future life could become an argument. Even if you've pretended to be fine in front of others, you still need to resolve complaints privately between you.<br><br>After a breakup, you may feel uncomfortable together even when others welcome a reunion. Focusing only on looking like the old couple again could hide the reasons you split. Start by discussing whether you can feel at ease together. | フリーの人は、初めは気が合っても、恋愛に望むことが違ってくるかもしれません。真剣に付き合いたいか確かめる前に、交際が決まったように周囲へ話すのは控えましょう。<br><br>交際中なら、家族や将来の暮らしについての話が、けんかに発展しそうです。人前では問題ないふりをしていても、二人の間の不満には別に向き合う必要があります。<br><br>別れた後なら、周囲が復縁を喜んでも、二人は気まずいままかもしれません。以前のように戻る姿だけを望むと、別れた理由が見えなくなります。互いに心地よく過ごせるか、まず話し合いましょう。 |
 
 ## cups.10 · 정방향
 
 내부 ID: `love.cups.10.upright`
 
-카드 의미: 함께 지내는 만족과 소속감. 원전의 마음의 충족·친교를 특정 가족 형태 없이 공유하는 일상의 편안함으로 사용.
+카드 의미: 마음의평온, 사랑과우정의충만, 함께하는안정
 
-분야 해석: 가족과친밀한안정감
+분야 해석: 좋음: 오래 만날 인연, 함께하는 안정, 따뜻한 재회
 
-관찰: 가족이나 가까운 사람과 서로의 편이라는 느낌을 나눌 수 있어. / 사소한 일에도 내 말을 기억해주거나 힘들었던 일을 먼저 물어주는 다정함이 있을 거야. / 연인과는 거창한 데이트보다 함께 밥을 먹고 일상을 이야기하는 시간이 더 편안할 수 있어.
+관찰: 마음의평온 / 사랑과우정의충만 / 함께하는안정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가족이나 가까운 사람과 서로의 편이라는 느낌을 나눌 수 있어. 사소한 일에도 내 말을 기억해주거나 힘들었던 일을 먼저 물어주는 다정함이 있을 거야. 연인과는 거창한 데이트보다 함께 밥을 먹고 일상을 이야기하는 시간이 더 편안할 수 있어. 평소 당연하게 여겼던 배려에 고맙다는 말을 건네봐. 함께 있는 동안 잘 보이려는 긴장이 줄고 오래 알고 지낸 사이의 든든함이 남을 거야. | Family or someone close could remind you that you're on the same side. They may remember a small detail or ask first about something you've found difficult. With a partner, eating together and talking about ordinary life could feel better than an elaborate date. Thank them for a small act of care you've tended to take for granted. Being together may ease the pressure to impress and leave the reassurance of a familiar bond. | 家族や親しい人と、味方でいてくれるという気持ちを分かち合えそうです。小さな話も覚えてくれていたり、大変だったことを先に聞いてくれたりする優しさがあるでしょう。恋人とは豪華なデートより、一緒に食べて日常を話す時間のほうが落ち着けそうです。普段当たり前に思っていた気遣いに、お礼を伝えてみてください。一緒にいる間はよく見せようとする緊張が減り、長い付き合いの心強さが残りそうです。 |
+| 분야 풀이 | 솔로라면 오래 만나고 싶은 사람과 인연이 닿을 수 있어. 함께 있을 때 편안하고 앞으로의 생활에 대한 생각도 잘 맞기 좋은 날이야.<br><br>연애 중이라면 둘의 관계가 안정되고 가까운 사람들과 기쁨을 나눌 수 있어. 결혼이나 함께 살 계획을 이야기하면 서로 바라는 모습이 비슷하다는 걸 알게 될 수 있어.<br><br>이별 후라면 다시 함께하고 싶다는 마음이 서로 통할 수 있어. 이미 재회를 논의 중이라면 따뜻한 대화가 좋은 결론으로 이어지기 좋아. 주변의 축하보다 두 사람의 뜻이 먼저라는 점은 잊지 마. | If you're single, you could meet someone you'd like to date for a long time. It's a good day to feel comfortable together and discover similar ideas about your future lives.<br><br>In a relationship, things may become more secure and you could share your happiness with people close to you. Discussing marriage or living together could reveal that you hope for similar things.<br><br>After a breakup, you could discover a shared wish to be together again. If you're already discussing a reunion, a warm conversation may lead to a good decision. Remember that what you both want matters before other people's congratulations. | フリーの人は、長く付き合いたい人と縁ができそうです。一緒にいて心地よく、これからの暮らしについても考えが合いやすい日です。<br><br>交際中なら、関係が安定し、身近な人たちと喜びを分かち合えそうです。結婚や一緒に暮らす計画を話すと、互いが望む生活は似ているとわかるかもしれません。<br><br>別れた後なら、また一緒にいたいという気持ちが通じ合いそうです。すでに復縁の話をしているなら、温かな会話がよい結論につながりやすいでしょう。周囲の祝福より、二人の意思が先であることは忘れないでください。 |
 
 ## cups.11 · 역방향
 
 내부 ID: `love.cups.11.reversed`
 
-카드 의미: 표현이 서툴거나 상상이 실제 반응을 앞섬. 원전의 매혹·유혹을 작은 감정의 과잉 해석으로 현대화.
+카드 의미: 서투른 감정 표현, 정서적 미성숙, 창의성 억제
 
-분야 해석: 서툰연락의오해
+분야 해석: 주의: 서툰 표현과 오해, 유치한 다툼, 감정적인 재연락
 
-관찰: 호감을 표현하려던 말이 어색하게 전해질 수 있는 날이야. / 농담을 건넸는데 상대가 진지하게 받아들이거나 짧은 답을 무관심으로 읽을 수 있어. / 직접 다시 말할 기회가 생기면 처음 뜻과 다르게 들렸다는 걸 알게 될 거야.
+관찰: 서투른 감정 표현 / 정서적 미성숙 / 창의성 억제
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 호감을 표현하려던 말이 어색하게 전해질 수 있는 날이야. 농담을 건넸는데 상대가 진지하게 받아들이거나 짧은 답을 무관심으로 읽을 수 있어. 직접 다시 말할 기회가 생기면 처음 뜻과 다르게 들렸다는 걸 알게 될 거야. 민망하다고 더 장난치기보다 원래 무슨 뜻이었는지 짧게 말해줘. 솔직하게 바로잡은 뒤에는 서로 웃으며 넘길 여지도 생길 수 있어. | An attempt to show affection could come out awkwardly today. A joke might be taken seriously, or a brief reply could be read as indifference. Another chance to speak directly may reveal that your meaning didn't come across. Explain briefly what you meant instead of adding more jokes out of embarrassment. Putting it right honestly could give you both room to laugh it off. | 好意を示すつもりの言葉が、不器用に伝わるかもしれません。冗談を真剣に受け取られたり、短い返事がそっけなく受け取られたりしそうです。直接言い直す機会があれば、初めの意図とは違って聞こえたと分かるでしょう。恥ずかしくてさらにふざけず、もとの意味を短く伝えてみてください。素直に直した後には、お互い笑って流せる余地もできそうです。 |
+| 분야 풀이 | 솔로라면 관심을 끌려고 한 장난이 오해를 살 수 있어. 좋아하는 사람을 놀리거나 일부러 차갑게 대하면 고백의 뜻도 제대로 전해지기 어려워.<br><br>연애 중이라면 서운함을 삐친 태도로만 보여 다툼이 길어질 수 있어. 무슨 일이 있었는지 말하지 않고 연락을 끊으면 상대도 화해하기 어려워.<br><br>이별 후라면 외로운 순간에 보낸 연락을 곧 후회할 수 있어. 답을 받으려고 질투를 유발하는 말이나 의미심장한 게시물을 올리지는 마. 재회 이야기는 차분하게 직접 나눌 수 있을 때 하는 게 좋아. | If you're single, a joke meant to attract attention could cause a misunderstanding. Teasing someone you like or acting cold on purpose may make it hard to convey your feelings clearly.<br><br>In a relationship, showing hurt only by sulking could prolong an argument. Cutting off contact without explaining what happened may make it difficult for your partner to make up with you.<br><br>After a breakup, you may soon regret a message sent in a lonely moment. Don't make remarks to provoke jealousy or post indirect hints just to get a reply. It's better to discuss a reunion when you can talk calmly and directly. | フリーの人は、気を引こうとした冗談が、誤解を招くかもしれません。好きな相手をからかったり、わざと冷たくしたりすると、告白する気持ちも伝わりにくくなります。<br><br>交際中なら、すねた態度だけで不満を示すと、けんかが長引きそうです。何があったか話さずに連絡を絶つと、相手も仲直りしにくくなります。<br><br>別れた後なら、寂しいときに送った連絡を、すぐに後悔するかもしれません。返事が欲しくても、嫉妬を誘う言葉や意味深な投稿を載せるのは控えましょう。復縁の話は、落ち着いて直接話せるときにするのがよさそうです。 |
 
 ## cups.11 · 정방향
 
 내부 ID: `love.cups.11.upright`
 
-카드 의미: 감수성과 호기심이 전하는 작은 제안. 원전의 메시지·생각과 현대의 순수한 표현을 나이·성별 없는 태도로 사용.
+카드 의미: 새 감정의 표현, 호기심, 창의적 시작
 
-분야 해석: 수줍은호감표현
+분야 해석: 좋음: 수줍은 호감 표현, 작은 사과와 선물, 다정한 안부
 
-관찰: 서툴지만 마음이 담긴 연락이나 칭찬을 받을 수 있는 날이야. / 평소 조용하던 사람이 질문을 건네거나 작은 관심을 보여줄 수 있어. / 가까운 사이에서는 장난스럽게 꺼낸 한마디가 설레는 대화로 이어질 거야.
+관찰: 새 감정의 표현 / 호기심 / 창의적 시작
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서툴지만 마음이 담긴 연락이나 칭찬을 받을 수 있는 날이야. 평소 조용하던 사람이 질문을 건네거나 작은 관심을 보여줄 수 있어. 가까운 사이에서는 장난스럽게 꺼낸 한마디가 설레는 대화로 이어질 거야. 쑥스럽더라도 반가웠다는 말을 짧게 답해줘. 대단한 고백이 없어도 서로를 조금 더 의식하게 되는 순간이 남을 수 있어. | A message or compliment may be awkwardly phrased but heartfelt. Someone usually quiet could ask you a question or show a little interest. With someone close, a playful remark may turn into a conversation that makes your heart flutter. Reply briefly that you're glad, even if you're shy. You might become a little more aware of each other without any grand confession. | 不器用でも気持ちのこもった連絡や褒め言葉を受け取れそうです。普段静かな人が質問をしたり、小さな関心を示したりするかもしれません。親しい間柄では、冗談めかした一言がときめく会話につながりそうです。照れくさくても、うれしかったと短く返してみてください。大きな告白がなくても、互いを少し意識する瞬間が残りそうです。 |
+| 분야 풀이 | 솔로라면 예상하지 못한 사람에게 호감 섞인 연락을 받을 수 있어. 수줍은 말이라도 대화를 이어가면 다음 만남으로 발전하기 좋아.<br><br>연애 중이라면 작은 선물이나 귀여운 애정 표현이 서로를 웃게 할 수 있어. 다툰 사이라면 서툴게 건넨 사과도 진심으로 받아들여지기 좋아.<br><br>이별 후라면 조심스러운 안부가 오갈 수 있어. 둘 다 반갑다면 짧은 대화부터 다시 이어갈 수 있어. 첫 연락에 재회 답까지 모두 담겨 있다고 여기지는 마. | If you're single, an unexpected person could send a message with a hint of romantic interest. Even if their words are shy, continuing the conversation could lead to another meeting.<br><br>In a relationship, a small gift or playful show of affection could make you both smile. If you've argued, even a clumsy apology may be accepted as sincere.<br><br>After a breakup, you could cautiously ask how each other is doing. If you're both pleased, a short conversation may begin again. Don't assume the first message also contains an answer about reuniting. | フリーの人は、思いがけない人から、好意を感じる連絡が届きそうです。照れくさそうな言葉でも、会話を続ければ、次に会う約束へつながりやすいでしょう。<br><br>交際中なら、小さな贈り物やかわいらしい愛情表現に、二人とも笑顔になれそうです。けんかをしていたなら、不器用な謝り方でも、気持ちは本物だと受け止めてもらいやすい日です。<br><br>別れた後なら、控えめに近況を尋ね合うことがありそうです。二人とも連絡をうれしく感じるなら、短い会話から再開できるでしょう。最初の連絡に、復縁への答えまですべて含まれているとは考えないでください。 |
 
 ## cups.12 · 역방향
 
 내부 ID: `love.cups.12.reversed`
 
-카드 의미: 아름다운 약속에 비해 실행이 흔들리거나 기분에 따라 판단함. 원전의 속임을 타인의 악의 대신 말과 행동의 차이로 사용.
+카드 의미: 매력적 말과 실행의 차이, 변덕, 지키지 않는 약속
 
-분야 해석: 다정한말과달라진일정
+분야 해석: 주의: 지켜지지 않는 달콤한 약속, 변덕, 재회 제안의 불안정
 
-관찰: 다정하게 잡은 약속이 실제 사정 때문에 바뀔 수 있어. / 곧 만나자던 사람이 시간을 바로 정하지 못해 조금 실망할 수 있는 날이야. / 다시 이야기하면 하고 싶은 마음과 실제 여유가 달랐다는 걸 알게 될 거야.
+관찰: 매력적 말과 실행의 차이 / 변덕 / 지키지 않는 약속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다정하게 잡은 약속이 실제 사정 때문에 바뀔 수 있어. 곧 만나자던 사람이 시간을 바로 정하지 못해 조금 실망할 수 있는 날이야. 다시 이야기하면 하고 싶은 마음과 실제 여유가 달랐다는 걸 알게 될 거야. 언제든 좋다고 하기보다 내가 가능한 날짜를 한두 개 알려줘. 구체적인 시간을 이야기한 뒤에는 어떤 만남이 가능한지 더 분명해질 수 있어. | An affectionately made plan may change because of practical circumstances. Someone who said they'd see you soon might struggle to choose a time, leaving you disappointed. Another conversation may show a gap between their wish to meet and their actual availability. Offer one or two dates that work for you instead of saying any time is fine. Discussing a specific time could make it clearer what meeting is possible. | 優しい言葉で決めた約束が、現実の事情で変わるかもしれません。すぐ会おうと言った人が時間を決められず、少しがっかりしそうです。改めて話せば、会いたい気持ちと実際の余裕が違っていたと分かるでしょう。いつでもよいと言うより、都合のつく日を一つか二つ伝えてみてください。具体的な時間を話すと、どんな会い方ができるか明確になりそうです。 |
+| 분야 풀이 | 솔로라면 다정한 말을 많이 들어도 데이트는 계속 미뤄질 수 있어. 고백처럼 들리는 말보다 실제로 시간을 내는지 살펴봐.<br><br>연애 중이라면 해주겠다는 약속이 지켜지지 않아 실망할 수 있어. 그때마다 선물이나 여행을 약속하며 달래기보다 이미 한 약속부터 지켜줘.<br><br>이별 후라면 다시 만나자는 말이 나왔다가 금세 달라질 수 있어. 외로울 때만 연락하는 사이라면 재회 뒤에도 불안정하기 쉬워. 한 번의 다정한 연락만으로 다시 사귀기로 정하지 마. | If you're single, a date may keep being postponed despite plenty of affectionate words. Notice whether the person actually makes time for you, beyond saying things that sound romantic.<br><br>In a relationship, an unkept promise could disappoint you. Instead of smoothing things over each time with promises of gifts or trips, keep the promises you've already made.<br><br>After a breakup, a suggestion of reuniting could quickly change. If you only contact each other when lonely, things may stay unstable after getting back together. Don't decide to date again on the strength of one affectionate message. | フリーの人は、優しい言葉をたくさんもらっても、デートは延期が続くかもしれません。告白のように聞こえる言葉より、実際に時間をつくってくれるか見ましょう。<br><br>交際中なら、やってあげるという約束が守られず、がっかりしそうです。そのたびに贈り物や旅行を約束してなだめるより、すでにした約束を守ってください。<br><br>別れた後なら、また付き合おうと言われても、すぐに話が変わるかもしれません。寂しいときだけ連絡を取る関係なら、復縁しても不安定になりがちです。一度優しい連絡があっただけで、交際の再開を決めるのは控えましょう。 |
 
 ## cups.12 · 정방향
 
 내부 ID: `love.cups.12.upright`
 
-카드 의미: 마음을 담은 초대와 이상을 향한 접근. 원전의 제안·도착을 구체적으로 표현하는 감성적 추진으로 사용.
+카드 의미: 진심 어린 제안, 초대, 감정을 담은 표현
 
-분야 해석: 데이트와호감의전달
+분야 해석: 좋음: 고백·초대, 진심을 담은 청혼과 사과, 재회 제안
 
-관찰: 마음을 담은 연락이나 데이트 제안이 오갈 수 있는 날이야. / 평소보다 다정한 말이 자연스럽게 나오고 상대도 반갑게 받아줄 수 있어. / 연인과는 함께 가보고 싶던 곳을 정하며 오랜만에 설레는 기분이 생길 거야.
+관찰: 진심 어린 제안 / 초대 / 감정을 담은 표현
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 마음을 담은 연락이나 데이트 제안이 오갈 수 있는 날이야. 평소보다 다정한 말이 자연스럽게 나오고 상대도 반갑게 받아줄 수 있어. 연인과는 함께 가보고 싶던 곳을 정하며 오랜만에 설레는 기분이 생길 거야. 전하고 싶은 말이 있다면 길게 꾸미기보다 직접 만나 짧게 이야기해봐. 솔직한 표현이 남아 다음 연락을 기다리는 마음도 한결 따뜻해질 수 있어. | A heartfelt message or date invitation could pass between you. Affectionate words may come more naturally than usual and be warmly welcomed. With a partner, choosing somewhere you've wanted to visit could bring back a little excitement. If you have something to say, try saying it briefly in person rather than dressing it up at length. An honest expression could linger and make waiting for the next message feel warmer. | 気持ちのこもった連絡やデートの誘いを交わせそうです。いつもより優しい言葉が自然に出て、相手も喜んで受け取ってくれるでしょう。恋人とは行きたかった場所を決め、久しぶりにわくわくするかもしれません。伝えたいことがあれば、長く飾らず会って短く話してみてください。素直な表現が残り、次の連絡を待つ気持ちも温かくなりそうです。 |
+| 분야 풀이 | 솔로라면 마음에 둔 사람에게 데이트 제안을 받거나 고백할 기회가 생길 수 있어. 진심이 담긴 말이 잘 전해지니 만나고 싶다면 솔직하게 표현해봐.<br><br>연애 중이라면 다정한 약속이 둘 사이를 더 가깝게 할 수 있어. 청혼을 준비했거나 사과할 말이 있다면 직접 마음을 전하기 좋은 날이야.<br><br>이별 후라면 다시 만나고 싶다는 제안이 오갈 수 있어. 둘 다 같은 마음이라면 차분히 이야기할 자리를 잡아봐. 듣기 좋은 말에 더해 예전 다툼에 대한 생각도 함께 나누는 게 좋아. | If you're single, someone you like could ask you on a date, or you may get a chance to share your feelings. Sincerity is likely to come across well, so be honest if you'd like to see them.<br><br>In a relationship, an affectionate promise could bring you closer. If you've prepared a proposal or have an apology to make, it's a good day to express your feelings directly.<br><br>After a breakup, a suggestion of meeting again could come from either of you. If you both feel the same, arrange a calm place to talk. Alongside the lovely words, share how you see the old arguments too. | フリーの人は、気になる相手からデートに誘われたり、告白する機会ができたりしそうです。心のこもった言葉が伝わりやすいので、会いたいなら素直に伝えましょう。<br><br>交際中なら、愛情のこもった約束で、二人の距離が縮まりそうです。プロポーズの準備をしていたり、謝りたいことがあったりするなら、直接気持ちを伝えるのによい日です。<br><br>別れた後なら、また付き合いたいという話が出そうです。二人とも同じ気持ちなら、落ち着いて話せる場を設けましょう。うれしい言葉だけでなく、以前のけんかをどう考えているかも、伝え合うとよさそうです。 |
 
 ## cups.13 · 역방향
 
 내부 ID: `love.cups.13.reversed`
 
-카드 의미: 타인의 기분을 지나치게 받아들이거나 자신의 필요를 잊음. 원전의 불신과 다른 현대적 감정 경계의 독해를 채택.
+카드 의미: 과도한 돌봄, 예민한 반응, 자기 필요 소홀
 
-분야 해석: 상대기분을너무살핌
+분야 해석: 주의: 지나친 맞춤과 민감한 반응, 돌봄에 따른 재회 부담
 
-관찰: 상대의 기분을 살피다가 정작 하고 싶던 말을 놓칠 수 있어. / 짧은 대답이나 피곤한 표정이 신경 쓰여 괜히 내가 잘못했나 생각하게 될 거야. / 나중에 이야기를 듣고 보면 나와 관계없는 일 때문에 말수가 적었던 것일 수 있어.
+관찰: 과도한 돌봄 / 예민한 반응 / 자기 필요 소홀
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대의 기분을 살피다가 정작 하고 싶던 말을 놓칠 수 있어. 짧은 대답이나 피곤한 표정이 신경 쓰여 괜히 내가 잘못했나 생각하게 될 거야. 나중에 이야기를 듣고 보면 나와 관계없는 일 때문에 말수가 적었던 것일 수 있어. 오늘 서운하거나 피곤한 점이 있다면 내 마음도 한 번 말해줘. 한쪽만 들어주던 대화에서 서로의 사정을 함께 이야기할 여지가 생길 수 있어. | Watching the other person's mood could make you miss the chance to say what you wanted. A brief answer or tired expression might leave you wondering unnecessarily whether you did something wrong. Later, you may learn that something unrelated to you made them quiet. Mention your own tiredness or hurt once today too. A conversation where only one person listens could become one where both share their circumstances. | 相手の機嫌を気にして、本当に話したかったことを逃すかもしれません。短い返事や疲れた顔が気になり、何か悪いことをしたかと考えそうです。後から聞くと、自分とは関係のないことで口数が少なかったのかもしれません。今日は寂しいことや疲れたことがあれば、こちらの気持ちも一度伝えてみてください。片方だけが聞く会話から、互いの事情を話す余地が生まれそうです。 |
+| 분야 풀이 | 솔로라면 상대의 기분에 맞추다가 만날수록 지칠 수 있어. 늘 눈치를 봐야 한다면 좋아한다는 마음만으로 고백을 서두르지 마.<br><br>연애 중이라면 상대의 짧은 말에도 크게 서운해질 수 있어. 무엇이 필요한지 말하지 않고 모든 일을 대신 챙기면 애정 표현도 부담으로 돌아오기 쉬워.<br><br>이별 후라면 상대가 힘들다는 말에 다시 돌봐주게 될 수 있어. 도움을 구한 것과 재회를 바라는 것은 다를 수 있어. 마음이 더 아파지는 연락이라면 잠시 멈춰도 괜찮아. | If you're single, adjusting to someone's moods may become more tiring with each meeting. If you're always watching for their reaction, liking them isn't a reason to rush to declare your feelings.<br><br>In a relationship, even a brief remark from your partner could hurt deeply. Taking care of everything without saying what you need may turn expressions of love into pressure.<br><br>After a breakup, hearing that your ex is struggling could draw you back into caring for them. Asking for help may be different from wanting to reunite. If contact only hurts you more, it's fine to pause for a while. | フリーの人は、相手の機嫌に合わせるうちに、会うほど疲れるかもしれません。いつも顔色をうかがう関係なら、好きという気持ちだけで告白を急がないでください。<br><br>交際中なら、相手の短い言葉にも、ひどく傷つきやすい日です。何をしてほしいか言わずに、相手の用事を何でも代わりに済ませていると、愛情表現も負担になりがちです。<br><br>別れた後なら、つらいという言葉を聞いて、また相手の世話をすることになりそうです。助けを求めることと、復縁を望むことは違う場合があります。連絡するほど心が痛むなら、少し休んでも大丈夫です。 |
 
 ## cups.13 · 정방향
 
 내부 ID: `love.cups.13.upright`
 
-카드 의미: 자기 감정을 알아차리며 타인의 마음을 듣는 돌봄. 궁정 인물은 특정 여성 아닌 공감적 태도로 해석.
+카드 의미: 세심한 공감, 돌봄, 자기 감정 이해
 
-분야 해석: 마음을이해받는대화
+분야 해석: 좋음: 편안히 이해받는 만남, 다정한 위로, 상처를 풀어내는 대화
 
-관찰: 말하지 못했던 속마음을 편하게 꺼낼 기회가 생길 수 있어. / 작은 표정 변화도 알아봐주는 사람이 있어 무심히 넘겼던 피로를 이야기하게 될 거야. / 연인이나 가족과는 잘못을 따지기보다 먼저 이해해주는 말이 오갈 수 있어.
+관찰: 세심한 공감 / 돌봄 / 자기 감정 이해
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 말하지 못했던 속마음을 편하게 꺼낼 기회가 생길 수 있어. 작은 표정 변화도 알아봐주는 사람이 있어 무심히 넘겼던 피로를 이야기하게 될 거야. 연인이나 가족과는 잘못을 따지기보다 먼저 이해해주는 말이 오갈 수 있어. 나도 들어주고 싶다는 마음을 짧게 전해봐. 특별한 답을 얻지 않아도 서로에게 기대어 이야기할 수 있다는 든든함이 남을 거야. | You could get a comfortable chance to share feelings you've kept to yourself. Someone noticing even a small change in your expression may help you talk about tiredness you'd brushed aside. A partner or family member could offer understanding before questioning who was at fault. Briefly let them know you're willing to listen too. Even without a particular answer, being able to confide in each other may feel reassuring. | 言えずにいた本音を、気楽に話す機会がありそうです。小さな表情の変化にも気づく人がいて、気にせずいた疲れを話せるかもしれません。恋人や家族とは、どちらが悪いかより先に理解を示す言葉を交わせそうです。こちらも聞きたいという気持ちを、短く伝えてみてください。特別な答えがなくても、互いに頼って話せる心強さが残るでしょう。 |
+| 분야 풀이 | 솔로라면 이야기를 잘 들어주고 편하게 대해주는 사람과 가까워질 수 있어. 좋아하는 마음을 조심스럽게 전해도 따뜻한 반응을 기대하기 좋아.<br><br>연애 중이라면 말하지 못한 속상함을 털어놓고 위로받을 수 있어. 서로의 사정을 이해하면서 날카로웠던 대화도 부드러워질 수 있어.<br><br>이별 후라면 상처로 남았던 이야기를 차분히 나눌 수 있어. 서로 다시 만나고 싶다면 마음을 풀며 재회를 생각해볼 만해. 공감해주는 답이 곧 사귀겠다는 뜻인지는 따로 확인해줘. | If you're single, you could grow close to someone who listens well and puts you at ease. Even a cautious expression of your feelings may be met with warmth.<br><br>In a relationship, you may share unspoken hurt and receive comfort. Understanding each other's circumstances could make a sharp conversation gentler.<br><br>After a breakup, you could calmly discuss something that left you hurt. If you both want to try again, easing those feelings may make a reunion worth considering. Check separately whether an understanding answer also means they want to date you. | フリーの人は、話をよく聞き、気楽に接してくれる人と親しくなれそうです。好きな気持ちを控えめに伝えても、温かな反応が期待できるでしょう。<br><br>交際中なら、言えなかったつらさを打ち明け、慰めてもらえそうです。互いの事情を理解するにつれて、とげのあった会話も柔らかくなるでしょう。<br><br>別れた後なら、傷として残っていたことを、落ち着いて話せそうです。互いにまた付き合いたいなら、わだかまりを和らげながら、復縁を考えてもよいでしょう。共感してくれる返事が、交際を再開する意思も意味するかは、別に確かめてください。 |
 
 ## cups.14 · 역방향
 
 내부 ID: `love.cups.14.reversed`
 
-카드 의미: 겉으로 차분해 보여도 감정이 판단을 흔들거나 표현을 억제함. 원전의 기만은 사실 단정 없이 불투명한 대응의 경계로 응용.
+카드 의미: 감정적 통제, 기분에 휘둘리는 판단, 책임 회피
 
-분야 해석: 감춘서운함
+분야 해석: 주의: 감정으로 상대를 흔드는 태도, 책임 회피, 불편한 재회
 
-관찰: 괜찮다고 넘긴 일이 뒤늦게 서운한 말로 나올 수 있는 날이야. / 상대의 대답이 짧아지거나 내 농담에 다른 반응이 돌아와 이유가 궁금해질 거야. / 조심스럽게 물어보면 처음 생각했던 일과 다른 부분이 마음에 걸렸다는 걸 알 수 있어.
+관찰: 감정적 통제 / 기분에 휘둘리는 판단 / 책임 회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 괜찮다고 넘긴 일이 뒤늦게 서운한 말로 나올 수 있는 날이야. 상대의 대답이 짧아지거나 내 농담에 다른 반응이 돌아와 이유가 궁금해질 거야. 조심스럽게 물어보면 처음 생각했던 일과 다른 부분이 마음에 걸렸다는 걸 알 수 있어. 말하지 않은 마음을 알아맞히려 하지 말고 불편했던 점을 하나씩 이야기해봐. 바로 풀리지 않아도 무엇이 서운했는지 분명해져 같은 오해를 반복할 일은 줄일 수 있어. | Something brushed aside as fine could later emerge as a hurt remark. A shorter reply or a different reaction to a joke may make you wonder why. Asking gently could reveal that a different issue was bothering them than the one you assumed. Discuss one discomfort at a time rather than trying to guess unspoken feelings. Even without an immediate resolution, knowing what hurt can reduce repeated misunderstandings. | 大丈夫と流したことが、後から寂しい言葉となって出るかもしれません。返事が短くなったり冗談への反応が変わったりして、理由が気になりそうです。そっと尋ねれば、想像していたのとは別の点が引っかかっていたと分かるでしょう。言われていない気持ちを当てようとせず、不快だったことを一つずつ話してみてください。すぐ解けなくても何が寂しかったか明確になり、同じ誤解を減らせそうです。 |
+| 분야 풀이 | 솔로라면 다정했다가 차가워지는 태도 때문에 만남이 혼란스러울 수 있어. 상대의 기분이 바뀔 때마다 자신이 잘못했다고 여기지는 마.<br><br>연애 중이라면 잘못을 이야기했는데 상대가 더 서운해하며 대화가 뒤집힐 수 있어. 미안해서 문제를 덮어두면 같은 다툼이 반복되기 쉬워.<br><br>이별 후라면 힘들다는 말로 재회를 요구하는 연락이 부담이 될 수 있어. 미안한 마음만으로 다시 사귈 필요는 없어. 자신이 원하지 않는 만남에는 분명히 답해줘. | If you're single, someone switching between warmth and coldness could make dating confusing. Don't assume you've done something wrong every time their mood changes.<br><br>In a relationship, bringing up something your partner did wrong may leave them feeling even more hurt and turn the conversation towards their feelings. Covering up the problem out of guilt could make the same argument repeat.<br><br>After a breakup, a message asking you to reunite because the other person is struggling could feel burdensome. You don't need to date again out of guilt alone. Give a clear answer if you don't want to meet. | フリーの人は、優しくされたかと思うと冷たくなる態度に、戸惑いそうです。相手の機嫌が変わるたびに、こちらが悪いと思う必要はありません。<br><br>交際中なら、相手の過ちを伝えたのに、向こうがさらに傷ついたと訴え、話がすり替わるかもしれません。申し訳なくなって問題を流すと、同じけんかを繰り返しやすい日です。<br><br>別れた後なら、つらいから復縁してほしいという連絡を、負担に感じそうです。申し訳ないという気持ちだけで、また付き合う必要はありません。望まない誘いには、はっきり答えてください。 |
 
 ## cups.14 · 정방향
 
 내부 ID: `love.cups.14.upright`
 
-카드 의미: 감정을 억누르지 않고 다루며 균형 있게 대응하는 성숙함. 원전의 책임·친절을 안정적인 판단 태도로 사용.
+카드 의미: 감정 조절, 책임, 공감과 판단의 균형
 
-분야 해석: 다정하고차분한대화
+분야 해석: 좋음: 믿음직한 애정 표현, 침착한 화해, 성숙한 재회 논의
 
-관찰: 속상한 이야기를 해도 차분하게 받아주는 사람의 다정함을 느낄 수 있어. / 상대가 바로 답을 하지 않더라도 끝까지 듣고 필요한 말을 건네줄 거야. / 가까운 사이에서는 감정이 올라왔던 일도 평소보다 담담하게 꺼낼 수 있어.
+관찰: 감정 조절 / 책임 / 공감과 판단의 균형
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 속상한 이야기를 해도 차분하게 받아주는 사람의 다정함을 느낄 수 있어. 상대가 바로 답을 하지 않더라도 끝까지 듣고 필요한 말을 건네줄 거야. 가까운 사이에서는 감정이 올라왔던 일도 평소보다 담담하게 꺼낼 수 있어. 서로 바라는 것을 한 가지씩 말하며 대화를 나눠봐. 모든 생각이 같지 않아도 관계를 소중히 여기는 마음을 확인할 수 있는 날이야. | Someone's calm response to a painful story could feel especially caring. Even without answering immediately, they may hear you out and offer the words you need. With someone close, a topic that stirred strong feelings may be easier to raise quietly today. Take turns saying one thing you'd like from each other. You may not agree on everything, but you could recognize how much you both value the relationship. | つらい話も穏やかに受け止める人に、優しさを感じそうです。すぐ答えがなくても、最後まで聞いて必要な言葉をかけてくれるでしょう。親しい間柄では、感情的になった話題もいつもより静かに出せそうです。互いに望むことを一つずつ伝えて、会話してみてください。考えがすべて同じでなくても、関係を大切にする気持ちを確かめられそうです。 |
+| 분야 풀이 | 솔로라면 말과 태도가 차분한 사람에게 믿음이 갈 수 있어. 서두르지 않고 관심을 표현하는 만남이라면 진지한 관계로 이어지기 좋아.<br><br>연애 중이라면 의견이 달라도 큰 다툼 없이 이야기할 수 있어. 서로의 감정을 받아주면서 필요한 결정도 함께 내리기 좋은 날이야. 결혼에 대한 걱정도 차분히 나눌 수 있어.<br><br>이별 후라면 감정적으로 끝났던 대화를 침착하게 다시 나눌 수 있어. 재회를 원한다면 서로의 사정과 지난 잘못을 함께 이야기해봐. 답이 달라도 상처 주는 말 없이 마무리하기 좋아. | If you're single, someone calm in both speech and manner could earn your trust. If someone shows interest without rushing things, the connection could develop into a serious relationship.<br><br>In a relationship, differing opinions needn't lead to a major argument. It's a good day to acknowledge each other's feelings and make necessary decisions together. You could calmly share worries about marriage too.<br><br>After a breakup, you may calmly resume a conversation that ended emotionally. If you want to reunite, discuss both your circumstances and past mistakes. Even if your answers differ, it's a good day to finish without hurtful words. | フリーの人は、話し方や態度が落ち着いた人を、信頼できそうです。急がずに関心を伝え合えるなら、真剣な交際につながりやすいでしょう。<br><br>交際中なら、意見が違っても、大きなけんかをせずに話せそうです。互いの感情を受け止めながら、必要なことを一緒に決めやすい日です。結婚への心配も、落ち着いて話し合えるでしょう。<br><br>別れた後なら、感情的になって終わった会話を、冷静に再開できそうです。復縁を望むなら、互いの事情と以前の過ちを一緒に話しましょう。答えが違っても、傷つける言葉を使わずに話を終えやすい日です。 |
 
 ## major.chariot · 역방향
 
 내부 ID: `love.major.chariot.reversed`
 
-카드 의미: 추진 방향을 잃거나 통제하려는 힘이 지나침. 멈춤을 패배가 아니라 방향과 속도의 조정으로 해석.
+카드 의미: 방향부족, 지나친 추진, 통제상실
 
-분야 해석: 연락재촉
+분야 해석: 주의: 성급한 고백, 일방적인 결정, 재회 대화 충돌
 
-관찰: 답을 빨리 듣고 싶어도 조금 기다려주면 좋은 날이야. / 연락이 늦다는 이유로 여러 번 묻다 보면 상대가 부담을 느낄 수 있어. / 시간이 난 뒤에는 오히려 자세한 이야기를 들을 여지도 있어.
+관찰: 방향부족 / 지나친 추진 / 통제상실
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다리는 답이 늦어지거나 만날 시간이 자꾸 엇갈릴 수 있어. 내가 연락할 때는 상대가 바쁘고, 답이 왔을 때는 내가 자리를 비울 수 있는 날이야. 다정한 마음까지 어긋난 것은 아니어서 늦게 나눈 통화는 반가울 거야. 먼저 보낸 말이 있다면 답을 재촉하지 말고 조금 기다려줘. 서로 여유가 생긴 뒤에는 짧은 대화만으로도 섭섭함이 풀릴 수 있어. | An awaited reply could be late, or finding time to meet may be difficult. You may call when they're busy and be away when the answer comes. The affection needn't be lost, so a later call could still feel welcome. Give a message you've already sent time to receive a reply. Once you're both free, even a short conversation could ease the disappointment. | 待っている返事が遅れたり、会う時間が合わなかったりしそうです。連絡したときは相手が忙しく、返事が来たときは自分が席を外しているかもしれません。優しい気持ちまで離れたわけではなく、遅くなった通話も楽しめそうです。先に送った言葉があれば、返事を急かさず少し待ちましょう。お互い余裕ができれば、短い会話でも寂しさが和らぎそうです。 |
+| 분야 풀이 | 솔로라면 서두른 고백이 상대에게 부담이 될 수 있어. 몇 번 연락이 잘됐다고 사귀는 사이처럼 행동하면 오히려 거리가 멀어지기 쉬워. 오늘은 상대가 만남을 얼마나 원하는지부터 살펴봐.<br><br>연애 중이라면 한 사람이 정한 계획 때문에 다툼이 생길 수 있어. 데이트부터 결혼 이야기까지 함께 결정해야 말이 엇갈리지 않아. 답을 재촉할수록 대화가 더 막힐 수 있어.<br><br>이별 후라면 재회를 서두르다가 다시 언성을 높일 수 있어. 연락이 닿아도 곧바로 만나자고 몰아붙이지 마. 상대가 연락을 원하지 않는다면 그 뜻을 받아들이는 게 좋아. | If you're single, revealing your feelings too soon could put someone under pressure. A few good exchanges don't mean you're a couple, and acting as though you are could push them away. First, notice how much they actually want to meet.<br><br>For couples, plans made by just one person could cause an argument. From dates to marriage, make decisions together so you don't end up with conflicting expectations. Pressing for an answer could make conversation harder.<br><br>After a breakup, rushing to get back together could lead to another heated exchange. Even if you reconnect, don't immediately push for a meeting. If your ex doesn't want contact, respect that wish. | フリーの人は、急な告白が相手の負担になりそうです。何度か連絡が弾んだからと恋人のように振る舞うと、かえって距離が開きがちです。今日は、相手がどのくらい会いたがっているかを先に確かめましょう。<br><br>交際中なら、一方だけで決めた予定がけんかの原因になりそうです。デートも結婚の話も、一緒に決めることで行き違いを防げます。返事をせかすほど、話し合いが進まなくなるかもしれません。<br><br>別れた後なら、復縁を急いでまた言い争うおそれがあります。連絡が取れても、すぐ会おうと迫らないでください。相手が連絡を望んでいないなら、その気持ちを受け止めましょう。 |
 
 ## major.chariot · 정방향
 
 내부 ID: `love.major.chariot.upright`
 
-카드 의미: 서로 다른 힘을 한 방향으로 이끄는 의지와 전진. 원전의 승리·도움과 과신의 양면을 목적 있는 실행으로 읽음.
+카드 의미: 집중, 의지, 장애를 넘어감
 
-분야 해석: 적극적초대
+분야 해석: 좋음: 만남 성사, 고백의 호응, 관계 진전과 재대화
 
-관찰: 먼저 다가갈 용기가 생겨 만남을 제안하기 좋은 날이야. / 관심 있는 사람에게 연락하면 생각보다 자연스럽게 대화가 이어질 수 있어. / 연인이나 친구와는 미뤄둔 약속을 정하며 반가운 기대가 생길 거야.
+관찰: 집중 / 의지 / 장애를 넘어감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 먼저 다가갈 용기가 생겨 만남을 제안하기 좋은 날이야. 관심 있는 사람에게 연락하면 생각보다 자연스럽게 대화가 이어질 수 있어. 연인이나 친구와는 미뤄둔 약속을 정하며 반가운 기대가 생길 거야. 상대가 답하기 편하도록 날짜 하나를 먼저 제안해봐. 내 의욕만 앞세우지 않고 일정을 물으면 기분 좋은 만남으로 이어질 수 있어. | You may feel brave enough to suggest meeting today. Contacting someone you're interested in could lead to an unexpectedly natural conversation. With a partner or friend, finally arranging a postponed outing may bring happy anticipation. Suggest one date to make it easy to answer. Checking their availability rather than letting enthusiasm lead everything could help the meeting go well. | 自分から近づく勇気が湧き、会う提案をしやすい日です。気になる人に連絡すると、思ったより自然に話が続きそうです。恋人や友人とは、延ばしていた約束を決めて楽しみが増えるでしょう。答えやすいよう、日付を一つ先に提案してみましょう。勢いだけで決めず相手の都合も聞けば、うれしい出会いにつながりそうです。 |
+| 분야 풀이 | 솔로라면 마음에 드는 사람과 만날 기회가 생길 수 있어. 연락만 주고받던 사이도 오늘은 데이트 약속을 잡기 좋아. 서로 호감을 보였다면 고백에도 좋은 답을 기대해볼 만해.<br><br>연애 중이라면 두 사람 사이를 가로막던 문제가 풀릴 수 있어. 다툰 뒤 서먹했다면 먼저 말을 건네봐. 결혼을 준비하는 사이라면 미뤄졌던 계획이 구체적으로 잡힐 수 있어.<br><br>이별 후라면 다시 대화할 기회가 찾아올 수 있어. 서로 재회를 원하고 있다면 헤어진 이유부터 풀어보는 게 좋아. 지난 다툼이 풀리면서 다시 만날 약속도 잡힐 수 있어. | If you're single, you could get a chance to meet someone you like. A connection that's only involved messages so far may turn into a date today. If you've both shown interest, you may get a warm response when you share your feelings.<br><br>For couples, a problem that's been keeping you apart could be resolved. If things have felt awkward since an argument, start a conversation. If you're preparing to marry, delayed plans could become more concrete.<br><br>After a breakup, a chance to talk again may come along. If you both want to get back together, start by addressing what caused the split. Resolving an old argument could lead to arranging another meeting. | フリーの人は、気になる相手と会う機会ができそうです。連絡だけを取り合っていた仲でも、今日はデートの約束をしやすい日です。お互いに好意を示していたなら、告白にもよい返事を期待できるでしょう。<br><br>交際中なら、二人の間を隔てていた問題が解決するかもしれません。けんかの後で気まずいなら、先に声をかけてみましょう。結婚の準備を進めている二人は、延びていた計画が具体的に決まりそうです。<br><br>別れた後なら、再び話す機会が訪れるかもしれません。お互いに復縁を望んでいるなら、別れの原因になった問題から話し合うとよさそうです。以前のけんかが収まり、また会う約束もできるでしょう。 |
 
 ## major.death · 역방향
 
 내부 ID: `love.major.death.reversed`
 
-카드 의미: 필요한 변화를 미루는 관성. 원전의 정지·굳어짐을 익숙함을 놓기 어려운 상태로 응용.
+카드 의미: 변화저항, 익숙한불편, 정체
 
-분야 해석: 지난감정
+분야 해석: 주의: 끝내지 못한 애매한 사이, 반복되는 다툼과 재결합
 
-관찰: 지나간 대화나 예전 인연이 다시 생각나는 날이야. / 이미 정리했다고 여긴 감정도 작은 소식에 잠깐 흔들릴 수 있어. / 다시 마주한 사람의 모습이 기억과 달라 지금의 마음을 알게 될 수도 있을 거야.
+관찰: 변화저항 / 익숙한불편 / 정체
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 지나간 대화나 예전 인연이 다시 생각나는 날이야. 이미 정리했다고 여긴 감정도 작은 소식에 잠깐 흔들릴 수 있어. 다시 마주한 사람의 모습이 기억과 달라 지금의 마음을 알게 될 수도 있을 거야. 추억이 반갑더라도 곧바로 큰 약속을 잡지는 마. 그리웠던 것이 그 사람인지 함께했던 시간인지 조금 더 분명해질 수 있어. | An old conversation or past connection may come to mind today. A small piece of news could briefly stir feelings you thought were settled. Seeing how someone has changed since you last met could reveal how you feel now. Even if the memories are lovely, avoid making a big commitment straight away. It may become clearer whether you missed the person or the time you once shared. | 昔の会話や、以前縁のあった人を思い出す日です。整理したはずの気持ちも、小さな知らせで少し揺れるかもしれません。再会した相手が記憶と違っていて、今の自分の気持ちが分かることもありそうです。懐かしさがうれしくても、すぐに大きな約束はしないでください。恋しかったのがその人なのか、一緒にいた時間なのか、少しはっきりするでしょう。 |
+| 분야 풀이 | 솔로라면 잘되지 않는다는 걸 알면서도 같은 사람만 기다리기 쉬워. 새로운 소개가 들어와도 지난 호감 때문에 만남을 놓칠 수 있어. 상대의 뜻이 이미 분명하다면 기대를 계속 붙잡지는 마.<br><br>연애 중이라면 끝난 줄 알았던 다툼이 다시 반복될 수 있어. 말로만 넘어간 문제가 남아 있다면 화해해도 서운함이 오래가. 무엇이 계속 되풀이되는지 함께 이야기할 때야.<br><br>이별 후라면 헤어지고 다시 연락하는 일이 반복되기 쉬워. 외로울 때만 찾고 만나면 또 다투는 사이라면 재회가 편안하지 않을 수 있어. 돌아가자는 말보다 같은 문제가 끝났는지 먼저 살펴봐. | If you're single, you may keep waiting for one person despite knowing it isn't going well. Lingering feelings could make you miss a new introduction. If the other person's wishes are already clear, don't keep holding on to the same hope.<br><br>In a relationship, an argument you thought was over could repeat itself. If words smoothed things over without solving the problem, hurt may linger even after making up. It's time to discuss what's happening again and again.<br><br>After a breakup, splitting up and getting back in touch could become a repeated pattern. If you only seek each other out when lonely and argue again when you meet, a reunion may not feel comfortable. Before agreeing to return, check whether the recurring problem has ended. | フリーの人は、うまくいかないとわかっていても、同じ人だけを待ち続けやすい日です。新しく紹介される機会があっても、以前の思いから出会いを逃すかもしれません。相手の意向がすでにはっきりしているなら、期待を抱え続けるのは控えましょう。<br><br>交際中なら、終わったと思ったけんかが、また繰り返されそうです。話しただけで解決していない問題が残ると、仲直りをしても不満が長引きます。何が繰り返されているのか、一緒に話すときです。<br><br>別れた後なら、別れては連絡を取り直すことを繰り返しやすい日です。寂しいときだけ連絡し、会えばまたけんかになるなら、復縁しても落ち着けないかもしれません。戻ろうという言葉より、同じ問題が解決したかを先に確かめましょう。 |
 
 ## major.death · 정방향
 
 내부 ID: `love.major.death.upright`
 
-카드 의미: 끝난 것을 인정하며 형태를 바꾸는 전환. 원전의 종결을 실제 사망이 아닌 더는 이어갈 필요 없는 방식의 종료로 한정.
+카드 의미: 마무리, 전환, 이전방식의끝
 
-분야 해석: 관계새시작
+분야 해석: 전환: 이어지지 않는 만남의 마무리, 낡은 다툼의 끝, 재회보다 정리
 
-관찰: 오래 끌던 서운한 이야기를 마무리하고 다르게 만나기 좋은 날이야. / 같은 문제로 다투던 사이에서도 이번에는 다른 답을 찾을 수 있어. / 예전 방식이 맞지 않았다는 걸 인정하며 서로의 바람을 새롭게 듣게 될 거야.
+관찰: 마무리 / 전환 / 이전방식의끝
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 끌던 서운한 이야기를 마무리하고 다르게 만나기 좋은 날이야. 같은 문제로 다투던 사이에서도 이번에는 다른 답을 찾을 수 있어. 예전 방식이 맞지 않았다는 걸 인정하며 서로의 바람을 새롭게 듣게 될 거야. 이미 충분히 나눈 이야기는 오늘의 다툼에 다시 보태지 마. 끝낸 이야기가 하나 생기면 가까운 사람과도 새로운 즐거움을 나눌 여유가 생길 수 있어. | You could finally settle an old hurt and find a different way to be together. Even a recurring disagreement may lead to a new answer this time. Acknowledging that the old approach didn't work could help you hear each other's wishes afresh. Don't add a matter you've already discussed enough to today's disagreement. With one old issue settled, you may have more room to enjoy something new with a close companion. | 長く残っていたわだかまりに区切りをつけ、新しい付き合い方ができそうです。同じことで言い争ってきた間柄でも、今回は違う答えが見つかるでしょう。以前のやり方が合っていなかったと認めて、お互いの望みを改めて聞けそうです。十分に話し合ったことを、今日の言い争いに加えないでください。一つ解決した話ができると、親しい相手と新しい楽しみを分かち合う余裕も生まれるでしょう。 |
+| 분야 풀이 | 솔로라면 오래 연락하던 사람과 더 이어지기 어렵다는 걸 알게 될 수 있어. 혼자 기대하던 만남을 끝내야 새 사람을 만날 기회도 열려. 이미 분명한 거절을 들었다면 더 설득하지 마.<br><br>연애 중이라면 되풀이하던 다툼을 더는 그대로 넘기기 어려워. 관계를 이어가려면 서로 힘들었던 일을 실제로 끝내야 해. 함께 바꿀 뜻이 있다면 예전과 다른 연애를 시작할 수 있어.<br><br>이별 후라면 재회보다 관계를 정리하는 쪽에 가까운 날이야. 남아 있던 물건이나 연락을 마무리하며 기다림도 끝낼 수 있어. 끝난 만남을 인정하는 만큼 다른 인연을 받아들일 자리도 생겨. | If you're single, you may realise a long-running connection is unlikely to develop further. Ending a hoped-for relationship that only you are waiting for could make room to meet someone new. If you've already had a clear refusal, don't keep trying to persuade them.<br><br>In a relationship, repeated arguments may be too difficult to brush aside any longer. Continuing together requires actually ending what's been hurting you both. If you're both willing to change, you could begin a different kind of relationship with each other.<br><br>After a breakup, the day favours ending the relationship over reuniting. Sorting out belongings and remaining contact could bring your wait to an end too. Accepting that it's over may leave more room for someone else. | フリーの人は、長く連絡を取っていた相手と、これ以上は進めないとわかるかもしれません。一人で期待していた関係を終えることで、新しい出会いの機会が開けます。すでにはっきり断られているなら、それ以上説得するのは控えてください。<br><br>交際中なら、繰り返してきたけんかを、もうそのままにはできなくなりそうです。付き合いを続けるには、互いを苦しめていたことを実際にやめる必要があります。二人で変えていく意思があれば、以前とは違う交際を始められるでしょう。<br><br>別れた後なら、復縁より、関係に区切りをつけることになりそうな日です。残っている物の受け渡しや連絡を済ませ、待つ日々も終えられそうです。交際が終わったと受け入れるほど、新しい縁を迎える余地も生まれるでしょう。 |
 
 ## major.devil · 역방향
 
 내부 ID: `love.major.devil.reversed`
 
-카드 의미: 구속을 알아차리고 느슨하게 만드는 현대적 독해. 원전 역해석의 무력함과 다른 선택임을 전제로 작은 해방과 재선택에 초점.
+카드 의미: 종속인식, 자유회복, 습관중단
 
-분야 해석: 관계부담해소
+분야 해석: 회복: 불편한 구애에서 벗어남, 간섭 완화, 힘든 관계 정리
 
-관찰: 억지로 맞춰주던 약속을 줄이며 관계가 편해질 수 있는 날이야. / 거절하면 멀어질 줄 알았는데 상대가 생각보다 쉽게 이해해줄 거야. / 서로에게 부담이던 연락 방식도 바꿔보자는 이야기가 나올 수 있어.
+관찰: 종속인식 / 자유회복 / 습관중단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 억지로 맞춰주던 약속을 줄이며 관계가 편해질 수 있는 날이야. 거절하면 멀어질 줄 알았는데 상대가 생각보다 쉽게 이해해줄 거야. 서로에게 부담이던 연락 방식도 바꿔보자는 이야기가 나올 수 있어. 혼자 참아온 불편 하나를 차분히 말해봐. 연락을 잠깐 쉬어도 상대가 편하게 기다려주는 모습에 안심할 수 있을 거야. | Reducing commitments you've been reluctantly agreeing to could make a relationship easier. You may expect a refusal to create distance, only to find the other person readily understands. You could also discuss changing a way of staying in touch that's burdened you both. Calmly mention one discomfort you've been keeping to yourself. Seeing the other person wait comfortably through a short break in messages could reassure you. | 無理に合わせていた約束を減らして、関係が楽になりそうです。断ると離れてしまうと思っていても、相手は意外とすんなり分かってくれるでしょう。お互い負担になっていた連絡の取り方も、変えようと話せるかもしれません。一人で我慢していたことを、一つ穏やかに伝えてみてください。少し連絡を休んでも相手が気楽に待ってくれて、安心できそうです。 |
+| 분야 풀이 | 솔로라면 부담스럽던 연락이나 원치 않는 구애가 정리될 수 있어. 마음이 없는데 미안해서 만나줄 필요는 없어. 뜻을 분명히 전하면 불편한 만남을 줄일 수 있어.<br><br>연애 중이라면 지나친 간섭을 줄이면서 다툼도 잦아들 수 있어. 서로의 사생활과 약속을 존중하면 함께 있는 시간이 편안해져. 바뀌지 않는 통제가 계속된다면 관계를 이어갈지 다시 생각할 수 있어.<br><br>이별 후라면 반복해서 돌아가던 만남을 끝내기 좋은 날이야. 재회 연락이 와도 예전처럼 곧바로 응하지 않을 수 있어. 다시 힘들어질 만남을 거절하면서 정리가 한결 쉬워질 거야. | If you're single, burdensome contact or unwanted romantic attention could come to an end. You don't need to see someone out of guilt when you aren't interested. Making your wishes clear could reduce uncomfortable encounters.<br><br>In a relationship, reducing excessive interference could mean fewer arguments. Respecting each other's privacy and commitments can make time together more comfortable. If controlling behaviour continues unchanged, you may reconsider staying together.<br><br>After a breakup, it's a good day to end a relationship you keep returning to. Even if your ex asks to reunite, you may not respond immediately as you once did. Turning down a meeting that would make things difficult again could help you let go. | フリーの人は、負担だった連絡や、望まないアプローチに区切りがつきそうです。好意がないのに、申し訳なさから会う必要はありません。意思をはっきり伝えると、気の進まない付き合いを減らせるでしょう。<br><br>交際中なら、過度な干渉を減らすことで、けんかも収まりそうです。互いの私生活や約束を尊重すれば、一緒にいる時間が心地よくなります。行動を制限される状況が変わらず続くなら、交際を続けるか考え直すこともできそうです。<br><br>別れた後なら、何度も戻っていた交際を終えるのによい日です。復縁を求める連絡が来ても、以前のようにすぐには応じずにいられそうです。またつらくなりそうな付き合いを断ることで、気持ちにも区切りをつけやすくなるでしょう。 |
 
 ## major.devil · 정방향
 
 내부 ID: `love.major.devil.upright`
 
-카드 의미: 유혹과 반복되는 집착이 선택을 좁히는 상태. 원전의 강한 욕구를 악마의 실재가 아닌 자신도 알아차릴 수 있는 습관으로 응용.
+카드 의미: 강한끌림, 종속, 과도함
 
-분야 해석: 강한끌림
+분야 해석: 주의를 동반한 강한 끌림: 빠른 유혹, 질투·소유욕, 불편한 재회 반복
 
-관찰: 관심 있는 사람에게 시선이 자꾸 가고 반응이 크게 신경 쓰일 수 있어. / 짧은 연락에도 설레지만 답이 늦으면 금방 서운해질 거야. / 서로의 매력이 강하게 느껴지는 만큼 질투도 쉽게 생길 수 있는 날이야.
+관찰: 강한끌림 / 종속 / 과도함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 관심 있는 사람에게 시선이 자꾸 가고 반응이 크게 신경 쓰일 수 있어. 짧은 연락에도 설레지만 답이 늦으면 금방 서운해질 거야. 서로의 매력이 강하게 느껴지는 만큼 질투도 쉽게 생길 수 있는 날이야. 상대의 일정을 확인하는 메시지는 여러 번 보내지 마. 직접 만난 자리에서는 상상보다 편한 대화가 오가며 들뜬 마음이 조금 차분해질 수 있어. | Your attention may keep returning to someone you like, with their reactions mattering more than usual. A short message could thrill you, while a slow reply may quickly disappoint. Strong attraction between you could also make jealousy easier to feel today. Avoid sending repeated messages to check the other person's schedule. Meeting in person may bring a more comfortable conversation than you imagined and settle some of the excitement. | 気になる人につい目が向き、反応がいつも以上に気になりそうです。短い連絡にもときめく一方、返事が遅いとすぐ寂しくなるかもしれません。お互いに強く惹かれる分、嫉妬も生まれやすい日です。相手の予定を確かめるメッセージは、何度も送らないでください。直接会うと想像より気楽に話せて、浮き立つ気持ちも少し落ち着くでしょう。 |
+| 분야 풀이 | 솔로라면 단번에 끌리는 사람을 만나거나 적극적인 고백을 받을 수 있어. 마음이 뜨거워도 상대가 만남을 숨기려 하거나 싫다는 말을 무시한다면 가까워지는 속도를 늦춰줘.<br><br>연애 중이라면 애정 표현은 뜨거워도 질투 때문에 다툴 수 있어. 서로의 연락을 검사하거나 친구와의 약속을 막는 행동은 관계를 더 답답하게 만들어.<br><br>이별 후라면 강한 그리움 때문에 다시 만날 수 있어. 예전에 힘들었던 간섭이나 다툼이 그대로라면 재회 뒤 같은 후회를 겪기 쉬워. 보고 싶다는 마음과 편안하게 사귈 수 있는지는 따로 생각해봐. | If you're single, you could feel an instant attraction or someone may be very direct about wanting you. Even with strong feelings, slow down if the other person wants to hide your meetings or ignores you when you say no.<br><br>In a relationship, affection may be intense while jealousy still causes arguments. Checking each other's messages or stopping plans with friends will only make the relationship feel more restrictive.<br><br>After a breakup, strong longing could bring you together again. If old interference or arguments haven't changed, the same regret may follow a reunion. Missing someone and being able to date them comfortably are separate things to consider. | フリーの人は、一目でひかれる相手に出会ったり、積極的に告白されたりしそうです。気持ちが熱くなっても、相手が会っていることを隠そうとしたり、嫌だという言葉を無視したりするなら、距離を縮めるのはゆっくりにしましょう。<br><br>交際中なら、愛情表現は熱くても、嫉妬からけんかになるかもしれません。互いのやり取りをチェックしたり、友達と会うのを止めたりすると、関係がさらに息苦しくなります。<br><br>別れた後なら、強く恋しく思うあまり、また付き合うことになりそうです。以前つらかった干渉やけんかが変わらないなら、復縁後も同じ後悔をしやすいでしょう。会いたい気持ちと、安心して付き合えるかどうかは、分けて考えてください。 |
 
 ## major.emperor · 역방향
 
 내부 ID: `love.major.emperor.reversed`
 
-카드 의미: 기준이 지나치게 경직되거나 책임의 경계가 흐려짐. 원전의 미성숙·방해를 권위와 운영 방식의 재점검으로 읽음.
+카드 의미: 경직된 권위, 책임과 통제의 혼동
 
-분야 해석: 관계주도권
+분야 해석: 주의: 일방적인 기준과 통제로 생기는 갈등
 
-관찰: 상대를 위하는 말도 지시처럼 들리지 않게 조심하면 좋은 날이야. / 만날 장소나 시간을 혼자 정하면 작은 불만이 생길 수 있어. / 선택을 맡겨보면 몰랐던 취향을 알게 되는 재미도 있을 거야.
+관찰: 경직된 권위 / 책임과 통제의 혼동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사람이 내 뜻을 먼저 정해버려 답답할 수 있는 날이야. 도와주려던 말도 간섭처럼 들려 작은 신경전이 생길 수 있어. 만날 장소나 시간을 상대에게 맡겼다가 의외의 취향을 알게 될 수도 있을 거야. 바라는 것이 있다면 돌려 말하지 말고 차분히 알려줘. 한 번 분명하게 이야기한 뒤에는 괜한 눈치 싸움이 줄어들 수 있어. | Someone close may decide what you want before asking, leaving you frustrated. An attempt to help could sound intrusive and lead to a little tension. Letting them choose a meeting place or time might also reveal a taste you didn't know about. State what you'd like calmly rather than hinting. One clear conversation could reduce unnecessary guessing between you. | 親しい人が先に意向を決めてしまい、もどかしく感じるかもしれません。助けるつもりの言葉も干渉に聞こえ、小さな張り合いになりそうです。会う場所や時間を相手に任せて、意外な好みを知る場合もあるでしょう。望みがあるなら遠回しにせず、落ち着いて伝えてみましょう。一度はっきり話した後は、余計な探り合いも減りそうです。 |
+| 분야 풀이 | 솔로라면 자기 방식만 고집하는 사람과 대화가 막힐 수 있어. 만나는 장소부터 연락 횟수까지 일방적으로 정한다면 고백을 서두르지 마. 서로의 선택을 존중하는지가 먼저야.<br><br>연애 중이라면 누가 결정하느냐를 두고 다툼이 생길 수 있어. 걱정된다는 이유로 상대의 일정이나 인간관계를 마음대로 제한하지 마. 결혼 계획도 한쪽 뜻만 밀어붙이면 합의가 어려워져.<br><br>이별 후라면 예전의 간섭이 되풀이되어 재회 대화가 틀어질 수 있어. 다시 만나려면 서로 어디까지 관여할지 합의가 필요해. 상대를 바꾸겠다는 요구만 계속된다면 관계를 되돌리기 어려워. | If you're single, conversation may stall with someone who insists on their own way. If they decide everything from where to meet to how often to message, don't rush to share romantic feelings. Respect for each other's choices comes first.<br><br>In a relationship, an argument could arise over who makes the decisions. Concern doesn't give you the right to restrict your partner's schedule or friendships as you please. Marriage plans will also be harder to agree on if one person's wishes are pushed through.<br><br>After a breakup, old interference could return and derail a conversation about getting back together. Trying again requires agreement about how much say you have in each other's lives. If the only demand is that the other person change, restoring the relationship will be difficult. | フリーの人は、自分のやり方を押し通す相手と、話が進まなくなりそうです。会う場所から連絡の回数まで一方的に決められるなら、告白を急がないでください。互いの選択を尊重できるかが先です。<br><br>交際中なら、どちらが決めるかをめぐってけんかになりそうです。心配だからと、相手の予定や人付き合いを勝手に制限するのは控えましょう。結婚の計画も、一方の考えを押し通すと合意しにくくなります。<br><br>別れた後なら、以前と同じ干渉が繰り返され、復縁の話がこじれるかもしれません。交際を再開するには、互いにどこまで口を出すのか話し合う必要があります。相手に変わることだけを求め続けるなら、関係を戻すのは難しそうです。 |
 
 ## major.emperor · 정방향
 
 내부 ID: `love.major.emperor.upright`
 
-카드 의미: 지속할 구조와 책임 있는 결정. 원전의 안정·보호·이성을 타인 지배가 아닌 스스로 정한 기준으로 응용.
+카드 의미: 안정, 권위, 보호, 의지
 
-분야 해석: 믿음약속
+분야 해석: 좋음: 믿을 만한 만남과 안정적인 약속, 책임 있는 관계 진전
 
-관찰: 작은 약속을 지키는 모습이 다정한 말보다 크게 전해지는 날이야. / 만나기로 한 시간을 챙기거나 먼저 연락하면 상대가 안심할 수 있어. / 가족이나 가까운 사람에게 든든한 편이 되어줄 기회도 생길 거야.
+관찰: 안정 / 권위 / 보호
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 약속을 지키는 모습이 다정한 말보다 크게 전해지는 날이야. 만나기로 한 시간을 챙기거나 먼저 연락하면 상대가 안심할 수 있어. 가족이나 가까운 사람에게 든든한 편이 되어줄 기회도 생길 거야. 할 수 있는 약속은 분명하게 말하고 지켜줘. 상대가 스스로 정하고 싶은 일까지 대신하지 않으면 믿음이 더 단단해질 수 있어. | Keeping a small promise could mean more than affectionate words today. Remembering a meeting time or making the first call may reassure the other person. A chance could also arise to be a dependable presence for family or someone close. Be clear about promises you can keep, then follow through. Respecting what they want to decide for themselves could make that trust stronger. | 小さな約束を守る姿が、優しい言葉より伝わりやすい日です。会う時間を守ったり先に連絡したりすると、相手も安心できそうです。家族や身近な人の、頼れる味方になる機会もあるでしょう。できる約束は明確に伝え、そのとおりにしてみましょう。相手が自分で決めたいことまで、代わりに決めなければ、信頼はさらに深まりそうです。 |
+| 분야 풀이 | 솔로라면 말보다 행동으로 믿음을 주는 사람과 인연이 닿을 수 있어. 약속 시간이나 작은 배려를 꾸준히 지키는지 눈여겨봐. 빠른 고백보다 진지한 만남을 기대하기 좋은 날이야.<br><br>연애 중이라면 두 사람의 관계가 한결 안정될 수 있어. 결혼이나 함께 살 계획을 세우고 있다면 필요한 준비를 구체적으로 정하기 좋아. 서로 맡을 일을 분명히 하면 믿음도 깊어질 거야.<br><br>이별 후라면 진지한 재회 제안이 오갈 수 있어. 서로 책임을 피하지 않고 이야기하면 다시 만나자는 약속도 이루어지기 좋아. 예전에 어겼던 약속을 이번에는 지킬 수 있는지 솔직하게 나눠봐. | If you're single, you could meet someone whose actions inspire trust more than their words. Notice whether they consistently arrive on time and show small acts of care. The day favours a serious connection more than a quick declaration of love.<br><br>In a relationship, things could feel more secure between you. If you're planning marriage or living together, it's a good day to decide the preparations in detail. Being clear about what each person will handle can deepen trust too.<br><br>After a breakup, a serious suggestion of getting back together could be discussed. If you both talk without avoiding responsibility, an agreement to try again may be easier to reach. Be honest about whether you can keep promises that were broken before. | フリーの人は、言葉より行動で信頼できる人と縁ができそうです。約束の時間を守り、小さな気遣いを続けてくれるか注目しましょう。すぐの告白より、真剣な付き合いが期待できる日です。<br><br>交際中なら、二人の関係がより安定しそうです。結婚や一緒に暮らす計画があるなら、必要な準備を具体的に決めるのに向いています。互いに何を担当するかはっきりさせると、信頼も深まるでしょう。<br><br>別れた後なら、真剣に復縁を提案し合うことがありそうです。互いに責任を避けずに話せば、もう一度付き合う約束もまとまりやすいでしょう。以前破ってしまった約束を今度は守れるのか、正直に話し合ってください。 |
 
 ## major.empress · 역방향
 
 내부 ID: `love.major.empress.reversed`
 
-카드 의미: 돌봄의 과잉과 창작의 정체를 현대적 핵심으로 선택. 원전에도 망설임과 문제의 드러남이 함께 있어 단순 흉으로 보지 않음.
+카드 의미: 지나친 돌봄, 의존, 만족의 결여
 
-분야 해석: 과잉배려
+분야 해석: 주의: 과한 보살핌과 의존이 만드는 부담, 애정의 불만족
 
-관찰: 상대를 챙기는 만큼 내 마음도 말해야 편안한 날이야. / 먼저 배려하고도 아무렇지 않은 척하면 혼자 서운해질 수 있어. / 다행히 원하는 것을 솔직히 말하면 상대도 맞춰줄 부분을 찾기 쉬울 거야.
+관찰: 지나친 돌봄 / 의존 / 만족의 결여
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 나만 챙기고 있다는 생각에 작은 말에도 서운해질 수 있어. 평소 받던 배려가 늦어지면 괜히 마음이 멀어진 것처럼 느껴질 거야. 하지만 내가 원하던 것을 상대는 아직 모르고 있을 수도 있어. 오늘은 만나고 싶은 장소나 받고 싶은 도움을 하나 말해봐. 생각보다 쉽게 맞춰주는 반응에 혼자 참았던 마음이 풀릴 수 있어. | Feeling as though you're the only one making an effort could make a small remark sting. A delay in the care you usually receive may feel like distance. The other person may simply not know what you want yet. Suggest a place you'd like to meet or one bit of help you'd appreciate. An unexpectedly willing response could ease something you've been holding in alone. | 自分ばかり気を配っている気がして、小さな言葉にも寂しくなりそうです。いつもの気遣いが遅れると、心まで離れたように感じるかもしれません。ただ、相手は何を望んでいるかまだ知らない場合もありそうです。今日は会いたい場所や頼みたいことを、一つ伝えてみましょう。思ったよりすんなり応じてもらい、一人でこらえた気持ちが和らぎそうです。 |
+| 분야 풀이 | 솔로라면 너무 많이 챙겨주다가 상대에게 부담을 줄 수 있어. 선물이나 호의를 거듭해도 원하는 고백으로 돌아오지 않을 수 있는 날이야. 상대도 만남을 위해 시간과 관심을 내는지 살펴봐.<br><br>연애 중이라면 한쪽만 애쓴다는 서운함이 커질 수 있어. 상대가 부탁하지 않은 일까지 떠맡고 같은 보답을 바라면 다툼이 나기 쉬워. 원하는 도움은 직접 부탁하고 서로 할 일을 나눠줘.<br><br>이별 후라면 돌봐주던 습관 때문에 관계를 정리하기 어려울 수 있어. 상대의 일상을 계속 챙기는 것이 재회로 이어진다고 보기는 어려워. 연락을 바라지 않는다면 도움을 핑계로 가까워지려 하지 마. | If you're single, too much care could make the other person feel pressured. Repeated gifts or favours may not bring the declaration of love you're hoping for. Notice whether they also give their time and attention to seeing you.<br><br>In a relationship, resentment about one person making all the effort could grow. Doing things your partner hasn't asked for and expecting the same in return could lead to an argument. Ask directly for the help you want and share what needs doing.<br><br>After a breakup, a habit of looking after your ex could make it hard to let go. Continuing to take care of their daily life is unlikely to lead to a reunion on its own. If they don't want contact, don't use helping as a reason to get closer. | フリーの人は、世話を焼きすぎると相手の負担になりそうです。贈り物や親切を重ねても、望んでいる告白が返ってくるとは限りません。相手も会うために時間を使い、関心を向けてくれるか見ておきましょう。<br><br>交際中なら、一方ばかりが頑張っているという不満が大きくなりそうです。頼まれていないことまで引き受け、同じだけのお返しを求めると、けんかになりがちです。手伝ってほしいことは直接頼み、互いに分担しましょう。<br><br>別れた後なら、相手の面倒を見る習慣が残り、関係に区切りをつけにくいかもしれません。別れた相手の身の回りの世話を続けても、復縁につながるとは考えにくい日です。相手が連絡を望んでいないなら、助けることを口実に近づこうとするのは控えてください。 |
 
 ## major.empress · 정방향
 
 내부 ID: `love.major.empress.upright`
 
-카드 의미: 자라게 하는 돌봄과 감각적 풍요. 원전의 결실·행동을 일상의 즐거움과 지속적인 보살핌으로 현대화.
+카드 의미: 결실, 창조, 돌봄과 풍요
 
-분야 해석: 다정한돌봄
+분야 해석: 좋음: 사랑받는 만남, 풍성한 애정, 다정한 재대화
 
-관찰: 따뜻한 관심을 주고받으며 사랑받는 기분을 느끼기 좋은 날이야. / 가까운 사람의 작은 배려가 평소보다 크게 다가올 수 있어. / 함께 먹을 것을 챙기거나 좋아하는 것을 기억해주는 행동이 마음을 부드럽게 만들 거야.
+관찰: 결실 / 창조 / 돌봄과 풍요
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 따뜻한 관심을 주고받으며 사랑받는 기분을 느끼기 좋은 날이야. 가까운 사람의 작은 배려가 평소보다 크게 다가올 수 있어. 함께 먹을 것을 챙기거나 좋아하는 것을 기억해주는 행동이 마음을 부드럽게 만들 거야. 고맙다는 말을 아끼지 말고 편하게 건네봐. 서로 잘 보이려는 긴장보다 함께 있을 때의 편안함이 더 오래 남을 수 있어. | Warm attention could leave you feeling loved today. A small act of kindness from someone close may mean more than usual. Sharing food or remembering a favorite thing could make affection easier to feel. Be generous with an honest thank-you. The comfort of being together may last longer than any effort to look impressive. | 温かな関心を交わし、愛されていると感じやすい日です。親しい人の小さな気遣いが、いつもより大きく心に届きそうです。食べ物を分け合ったり好みを覚えていたりする行動に、気持ちが和むでしょう。ありがとうを惜しまず、素直に伝えてみましょう。よく見せようとする緊張より、一緒にいる心地よさが長く残りそうです。 |
+| 분야 풀이 | 솔로라면 다정한 관심을 받거나 호감 가는 사람에게 초대받을 수 있어. 편하게 웃고 이야기하는 자리에서 서로의 매력이 잘 드러나. 고백도 따뜻한 반응을 기대하기 좋은 날이야.<br><br>연애 중이라면 작은 배려에도 서로의 사랑을 충분히 느낄 수 있어. 함께 식사하거나 쉬는 평범한 시간도 즐겁게 지나가. 오래 만난 사이라면 앞으로 함께 살 이야기도 자연스럽게 나올 수 있어.<br><br>이별 후라면 날카로웠던 대화가 부드러워질 수 있어. 재회를 원하고 서로 연락 중이라면 안부를 나누며 가까워질 기회가 있어. 다시 만나지 않더라도 서로를 탓하던 마음은 덜어낼 수 있을 거야. | If you're single, someone may show a warm interest in you or a person you like could invite you out. Relaxed conversation and laughter can let you both see each other's charm. It's also a good day to hope for a warm response when you share your feelings.<br><br>In a relationship, even small acts of care may make you feel loved. Ordinary time eating or resting together could be enjoyable. If you've been together a long time, living together in the future may come up naturally.<br><br>After a breakup, a conversation that was sharp could become gentler. If you want to get back together and you're already in touch, asking how each other is doing could bring you closer. Even if you don't reunite, you may feel less need to blame each other. | フリーの人は、優しく気にかけてもらったり、気になる人に誘われたりしそうです。気楽に笑い合って話す場で、互いの魅力が伝わります。告白にも温かな反応が期待できる日です。<br><br>交際中なら、小さな思いやりからも十分に愛情を感じられそうです。一緒に食事をしたり休んだりする、何げない時間も楽しく過ごせるでしょう。長く付き合っている二人なら、これから一緒に暮らす話も自然に出てきそうです。<br><br>別れた後なら、とげのあった会話が穏やかになりそうです。復縁を望み、互いに連絡を取っているなら、近況を話すうちに距離が縮まる機会があります。交際を再開しなくても、互いを責める気持ちは和らぐでしょう。 |
 
 ## major.fool · 역방향
 
 내부 ID: `love.major.fool.reversed`
 
-카드 의미: 새로움에 끌려 뒤따를 책임을 놓치거나 첫발 자체를 두려워함. 무조건 실패가 아니라 시도와 준비의 불균형.
+카드 의미: 부주의, 결과를 살피지 않은 행동
 
-분야 해석: 썸속도
+분야 해석: 주의: 가벼운 약속과 충동적 고백, 성급한 재회
 
-관찰: 갑자기 가까워진 사람이 생겨 마음이 조금 들뜰 수 있는 날이야. / 다정한 말은 오가도 다음 약속은 선뜻 정해지지 않을 수 있어. / 직접 만나보면 첫인상과 다른 모습이 보여 오히려 궁금해질 거야.
+관찰: 부주의 / 결과를 살피지 않은 행동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 갑자기 가까워진 사람이 생겨 마음이 조금 들뜰 수 있는 날이야. 다정한 말은 오가도 다음 약속은 선뜻 정해지지 않을 수 있어. 직접 만나보면 첫인상과 다른 모습이 보여 오히려 궁금해질 거야. 오늘은 관계를 정하는 질문보다 가벼운 이야기를 나눠봐. 몇 번 더 이야기를 나누면서 처음에는 몰랐던 성격이나 취향도 알게 될 거야. | A sudden connection could leave you a little excited today. Warm words may come easily, even if arranging another meeting takes longer. Meeting in person could reveal a side you didn't expect and make you more curious. Keep the conversation light instead of rushing to define the relationship. A few more conversations may reveal tastes or qualities you hadn't noticed at first. | 急に親しくなった人がいて、少し気持ちが弾みそうです。優しい言葉は交わせても、次に会う約束はすぐ決まらないかもしれません。実際に会うと第一印象とは違う一面が見え、かえって気になりそうです。今日は関係をはっきりさせる質問より、気軽な話をしてみましょう。何度か話すうちに、初めは知らなかった性格や好みも分かってきそうです。 |
+| 분야 풀이 | 솔로라면 분위기에 휩쓸린 고백이 민망한 결과로 돌아올 수 있어. 처음 만난 사람과 너무 많은 약속을 잡기보다 서로를 더 알아볼 시간이 필요해.<br><br>연애 중이라면 즉흥적으로 정한 일정이나 잊어버린 약속 때문에 다툴 수 있어. 장난처럼 한 이별 이야기도 상대에게는 가볍지 않을 수 있으니 말에 신경 써줘.<br><br>이별 후라면 외로운 순간에 다시 만나기로 했다가 곧 후회하기 쉬워. 헤어진 이유가 그대로인데 반갑다는 마음만으로 관계를 되돌리지는 마. 상대의 뜻을 묻지 않고 찾아가는 것도 피해줘. | If you're single, getting carried away and declaring your feelings could leave you embarrassed. Before making lots of plans with someone you've just met, give yourselves time to know each other better.<br><br>In a relationship, spur-of-the-moment plans or a forgotten commitment could cause an argument. Be careful with what you say: even a joke about breaking up may not feel light-hearted to your partner.<br><br>After a breakup, agreeing to get back together in a lonely moment could soon lead to regret. If the reasons you split haven't changed, don't restart the relationship just because you're pleased to see each other. Avoid turning up without asking what the other person wants too. | フリーの人は、その場の雰囲気に流されて告白すると、気まずい結果になるかもしれません。初めて会った人と次々に約束をするより、互いをもう少し知る時間が必要です。<br><br>交際中なら、思いつきで決めた予定や忘れていた約束がけんかの原因になりそうです。冗談のつもりで別れを口にしても、相手には軽く受け取れないことがあります。言葉に気をつけましょう。<br><br>別れた後なら、寂しさから復縁を決めて、すぐに後悔しやすい日です。別れた原因が変わらないまま、再会がうれしいという気持ちだけで交際を再開するのは控えましょう。相手の意向を聞かずに会いに行くのも避けてください。 |
 
 ## major.fool · 정방향
 
 내부 ID: `love.major.fool.upright`
 
-카드 의미: 정해진 경험에 매이지 않는 출발과 호기심. 원전의 무분별함 경고도 남기되 현대적 첫 시도의 뜻을 채택.
+카드 의미: 경험을 찾는 출발, 구속되지 않은 호기심
 
-분야 해석: 새인연
+분야 해석: 좋음: 뜻밖의 만남과 새 출발, 가벼운 데이트
 
-관찰: 새로운 인연을 편하게 만나기 좋은 날이야. / 처음 나누는 대화에서도 의외의 공통점을 발견해 웃을 일이 생길 수 있어. / 친구의 소개나 가볍게 들른 모임에서 다시 보고 싶은 사람이 눈에 들어올 거야.
+관찰: 경험을 찾는 출발 / 구속되지 않은 호기심
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 새로운 인연을 편하게 만나기 좋은 날이야. 처음 나누는 대화에서도 의외의 공통점을 발견해 웃을 일이 생길 수 있어. 친구의 소개나 가볍게 들른 모임에서 다시 보고 싶은 사람이 눈에 들어올 거야. 멋진 모습을 보여주려 애쓰기보다 궁금한 것을 솔직하게 물어봐. 짧게라도 즐겁게 이야기했다면 다음에 또 보자는 인사를 남겨도 좋아. | It's a promising day for getting to know someone new. You may discover you have something in common and find yourselves laughing together. Someone you meet through a friend or at a casual gathering may leave you wanting another conversation. Ask what genuinely interests you rather than trying to impress. If even a brief chat felt good, it's fine to suggest meeting again. | 新しい人と、気負わず知り合えそうな日です。初めての会話にも意外な共通点が見つかり、一緒に笑えそうです。友人の紹介や気軽な集まりで、また話したい人が目に留まるかもしれません。よく見せようとするより、気になったことを素直に聞いてみましょう。短くても楽しく話せたら、また会いたいと伝えてよさそうです。 |
+| 분야 풀이 | 솔로라면 평소 가지 않던 자리에서 새로운 인연을 만날 수 있어. 우연히 시작한 대화가 연락처를 주고받는 사이로 이어지기 좋은 날이야. 처음부터 먼 미래를 정하기보다 한 번 더 만날 기회를 만들어봐.<br><br>연애 중이라면 늘 하던 데이트를 벗어났을 때 즐거운 일이 생길 수 있어. 처음 가는 곳에서 함께 웃다 보면 요즘의 지루함도 줄어들 거야.<br><br>이별 후라면 예전 연애와 다른 만남이 시작될 수 있어. 재회를 기다리고 있더라도 새로운 사람을 만날 기회까지 닫아둘 필요는 없어. 다시 연락이 닿는다면 예전 관계가 저절로 돌아온다고 여기지 말고 처음부터 알아가봐. | If you're single, you could meet someone new at a gathering you wouldn't usually attend. A conversation that begins by chance may lead to exchanging contact details. Look for a chance to meet again instead of deciding your distant future from the start.<br><br>If you're in a relationship, a change from your usual dates could bring something enjoyable. Laughing together somewhere new may ease the boredom you've felt recently.<br><br>After a breakup, a connection unlike your previous relationship could begin. Even if you're hoping to get back together, you don't have to close yourself off to meeting someone new. If you reconnect with your ex, get to know each other afresh rather than assuming the old relationship will return by itself. | フリーの人は、普段行かない場所で新しい出会いがありそうです。偶然始まった会話から、連絡先を交換する仲になれるかもしれません。最初から先のことまで決めずに、もう一度会う機会をつくりましょう。<br><br>交際中なら、いつもと違うデートで楽しいことがありそうです。初めての場所で一緒に笑って過ごすと、最近のマンネリも和らぐでしょう。<br><br>別れた後なら、以前の恋とは違う出会いが始まるかもしれません。復縁を待っていても、新しい人に会う機会まで閉ざす必要はありません。元の相手と連絡が取れたときも、以前の関係が自然に戻ると思わず、初めから知り合うつもりで接しましょう。 |
 
 ## major.hanged_man · 역방향
 
 내부 ID: `love.major.hanged_man.reversed`
 
-카드 의미: 멈춤을 받아들이지 못해 제자리에서 버티거나 보상 없는 희생을 지속함. 행동을 재개할 조건과 그만둘 몫을 구분하는 뜻.
+카드 의미: 무의미한지연, 일방희생, 회피
 
-분야 해석: 기다림불균형
+분야 해석: 주의: 끝없는 기다림과 일방적 희생, 결정을 피하는 관계
 
-관찰: 나만 기다리고 있다는 생각이 들어 마음이 답답해질 수 있어. / 곧 보자는 말은 오가지만 구체적인 약속은 늦어질 수 있는 날이야. / 내 바람을 꺼내면 상대도 지금 가능한 시간을 분명히 말할 거야.
+관찰: 무의미한지연 / 일방희생 / 회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 나만 기다리고 있다는 생각이 들어 마음이 답답해질 수 있어. 곧 보자는 말은 오가지만 구체적인 약속은 늦어질 수 있는 날이야. 내 바람을 꺼내면 상대도 지금 가능한 시간을 분명히 말할 거야. 기다릴 수 있는 날짜나 시간을 솔직하게 알려줘. 막연한 기대가 정리되면 짧더라도 실제로 만날 약속을 잡기 쉬워질 수 있어. | Feeling like you're the only one waiting may become frustrating. You might keep saying you'll meet soon without settling an actual arrangement. Sharing what you'd like could prompt the other person to say clearly when they're available. Be honest about the date or time you can wait until. Once vague expectations are cleared up, it could be easier to arrange a real meeting, even a short one. | 自分ばかり待っている気がして、もどかしくなるかもしれません。近いうちに会おうとは言っても、具体的な約束はなかなか決まらなさそうです。自分の希望を伝えると、相手も今空いている時間をはっきり話してくれるでしょう。いつまでなら待てるのか、率直に伝えてみてください。曖昧な期待がなくなると、短時間でも実際に会う約束を決めやすくなりそうです。 |
+| 분야 풀이 | 솔로라면 만날 약속도 없이 연락만 이어지는 관계가 답답해질 수 있어. 상대가 계속 고백의 답을 피한다면 기다림이 더 길어질 수 있어. 언제까지나 같은 대답을 기다릴 필요는 없어.<br><br>연애 중이라면 한 사람만 양보해온 일이 다시 불만으로 터질 수 있어. 바꾸겠다는 말 뒤에도 행동이 그대로라면 다툼이 쉽게 끝나지 않아. 무조건 참는다고 관계가 좋아지는 날은 아니야.<br><br>이별 후라면 다시 만나자는 결정 없이 연락만 이어질 수 있어. 상대가 재회 이야기는 피하면서 필요할 때만 찾는다면 기대를 줄이는 게 좋아. 답 없는 기다림을 끝내고 연락을 정리하는 선택도 가능해. | If you're single, staying in touch without any plans to meet could become frustrating. If the other person keeps avoiding an answer to your feelings, the wait may grow longer. You don't have to wait indefinitely for the same answer.<br><br>In a relationship, resentment could flare up again if only one of you has been compromising. If promises of change aren't followed by different behaviour, an argument may not end easily. Simply putting up with everything won't improve the relationship today.<br><br>After a breakup, contact may continue without a decision to get back together. If your ex avoids that discussion and only comes to you when they need something, it's better to expect less. You can also choose to stop waiting for an answer and end contact. | フリーの人は、会う約束もないまま連絡だけが続く関係に、もどかしさを感じそうです。相手が告白への返事を避け続けるなら、待つ時間がさらに延びるかもしれません。いつまでも同じ答えを待ち続ける必要はありません。<br><br>交際中なら、一人ばかりが譲ってきたことへの不満が、また噴き出しそうです。変えると言っても行動が同じなら、けんかは簡単には収まりません。ただ我慢すれば関係がよくなる日ではなさそうです。<br><br>別れた後なら、復縁を決めないまま、連絡だけが続くかもしれません。相手が復縁の話を避け、必要なときだけ頼ってくるなら、期待を小さくしたほうがよさそうです。答えのない待ち時間に区切りをつけ、連絡を終える選択もできます。 |
 
 ## major.hanged_man · 정방향
 
 내부 ID: `love.major.hanged_man.upright`
 
-카드 의미: 의도적인 멈춤과 다른 관점에서 얻는 이해. 원전의 지혜·희생을 손해 감수가 아니라 우선순위의 자발적 조정으로 사용.
+카드 의미: 자발적보류, 관점전환, 양보
 
-분야 해석: 관계기다림
+분야 해석: 유보: 고백과 큰 결정 지연, 양보로 완화되는 갈등
 
-관찰: 상대의 답이 늦어도 마음을 이해할 이야기가 뒤따를 수 있어. / 내가 몰랐던 사정을 듣고 나면 섣불리 서운해하지 않은 것이 다행스럽게 느껴질 거야. / 가까운 사이에서는 서로의 입장이 바뀌어 같은 일을 다르게 보게 될 수도 있어.
+관찰: 자발적보류 / 관점전환 / 양보
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대의 답이 늦어도 마음을 이해할 이야기가 뒤따를 수 있어. 내가 몰랐던 사정을 듣고 나면 섣불리 서운해하지 않은 것이 다행스럽게 느껴질 거야. 가까운 사이에서는 서로의 입장이 바뀌어 같은 일을 다르게 보게 될 수도 있어. 오늘은 먼저 설명할 시간을 조금 줘. 서둘러 결론 내리지 않은 대화가 이전보다 깊은 이해를 남길 수 있는 날이야. | A late reply could be followed by an explanation that helps you understand the other person's feelings. Once you hear circumstances you didn't know, you may feel glad you didn't take offense too quickly. In a close relationship, a change of roles could also let you see the same issue differently. Give the other person a little time to explain first. A conversation without a rushed conclusion could leave you understanding each other more deeply. | 返事が遅くても、その後に相手の気持ちが分かる話がありそうです。知らなかった事情を聞くと、すぐに悪く受け取らなくてよかったと思えるでしょう。親しい間柄では、立場が入れ替わって同じことの見方が変わるかもしれません。今日は先に説明する時間を少しあげてください。結論を急がなかった会話が、以前より深い理解につながりそうです。 |
+| 분야 풀이 | 솔로라면 좋아하는 사람과 가까워지는 속도가 더딜 수 있어. 오늘 고백해도 생각할 시간이 필요하다는 답을 들을 수 있어. 답을 재촉하기보다 상대가 어떤 사정인지 들어봐.<br><br>연애 중이라면 미뤄둔 결정이 오늘도 바로 나지는 않을 수 있어. 한발 물러서서 상대의 이유를 들으면 다툼은 줄어들어. 결혼이나 중요한 약속은 한쪽의 희생으로 급히 정하지 않는 게 좋아.<br><br>이별 후라면 재회보다 서로를 이해하는 대화가 먼저 이어질 수 있어. 예전에는 몰랐던 사정을 듣고 원망이 줄어들 수 있는 날이야. 다시 사귀자는 답을 오늘 안에 받으려 하지는 마. | If you're single, getting closer to someone you like may take time. If you share your feelings today, they may say they need time to think. Hear about their circumstances instead of pressing for an answer.<br><br>In a relationship, a delayed decision may still not be settled today. Stepping back and listening to your partner's reasons could reduce arguments. It's better not to rush marriage or an important commitment by making only one person give something up.<br><br>After a breakup, a conversation to understand each other may come before a reunion. Hearing circumstances you didn't know before could ease resentment today. Don't try to get an answer about dating again before the day is over. | フリーの人は、好きな人との距離がなかなか縮まらないかもしれません。今日告白しても、考える時間が欲しいという返事になりそうです。答えを急かすより、相手の事情を聞きましょう。<br><br>交際中なら、先延ばしにしていたことは、今日もすぐには決まらないかもしれません。一歩引いて相手の理由を聞くと、けんかは減らせます。結婚や大切な約束を、一方の犠牲で急いで決めるのは控えましょう。<br><br>別れた後なら、復縁を決めるより先に、互いを理解する会話が始まりそうです。以前は知らなかった事情を聞き、恨む気持ちが和らぐかもしれません。付き合い直すという返事を、今日中にもらおうとするのは控えてください。 |
 
 ## major.hermit · 역방향
 
 내부 ID: `love.major.hermit.reversed`
 
-카드 의미: 필요한 거리두기가 고립이나 지나친 경계로 굳어짐. 원전의 근거 없는 조심성을 도움 요청과 재접촉의 필요로 응용.
+카드 의미: 지나친고립, 외로움, 좁아진관점
 
-분야 해석: 연락재개
+분야 해석: 주의: 외로움에 따른 맞지 않는 만남, 대화 단절과 재회 집착
 
-관찰: 연락이 뜸했던 사람과 다시 안부를 나눌 기회가 생길 수 있어. / 오랜만이라 어색해도 막상 말을 꺼내면 예전처럼 웃게 될 거야. / 혼자 지내느라 몰랐던 소식을 들으며 반가운 마음이 커질 수 있는 날이야.
+관찰: 지나친고립 / 외로움 / 좁아진관점
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 연락이 뜸했던 사람과 다시 안부를 나눌 기회가 생길 수 있어. 오랜만이라 어색해도 막상 말을 꺼내면 예전처럼 웃게 될 거야. 혼자 지내느라 몰랐던 소식을 들으며 반가운 마음이 커질 수 있는 날이야. 생각나는 사람이 있다면 짧은 인사부터 건네봐. 그동안의 빈 시간을 모두 설명하지 않아도 다시 편하게 만날 여지가 있어. | You may get a chance to reconnect with someone you haven't spoken to in a while. The first moment might feel awkward, but once you start talking, you could laugh together just as before. Hearing news you missed while keeping to yourself may make the reunion even nicer. If someone comes to mind, start with a short greeting. You don't have to explain every moment apart to enjoy each other's company again. | 連絡が途絶えがちだった人と、また近況を話す機会がありそうです。久しぶりで少し戸惑っても、話し始めれば以前のように笑えるでしょう。一人で過ごす間に知らなかった話を聞き、うれしさが増しそうです。思い浮かぶ相手がいたら、短い挨拶から声をかけてみてください。離れていた時間をすべて説明しなくても、また気楽に会えそうです。 |
+| 분야 풀이 | 솔로라면 외롭다는 이유로 맞지 않는 만남을 이어가기 쉬워. 함께 있어도 대화가 불편하다면 서둘러 사귀기로 할 필요는 없어. 반가운 연락 하나만으로 마음을 전부 주지는 마.<br><br>연애 중이라면 연락을 피한 시간이 길어져 서로 더 멀게 느껴질 수 있어. 혼자 생각을 마칠 때까지 아무 말도 하지 않으면 상대는 이유를 알 수 없어. 당장 길게 이야기하기 어렵다면 언제 연락할지라도 전해줘.<br><br>이별 후라면 외로움 때문에 재회가 꼭 필요한 것처럼 느껴질 수 있어. 연락해도 같은 서운함이 반복된다면 다시 만나는 것만으로 해결되기 어려워. 혼자 그 사람의 답만 기다리기보다 가까운 사람과 시간을 보내봐. | If you're single, loneliness could keep you seeing someone who isn't right for you. If conversation feels uncomfortable even together, you don't need to rush into a relationship. One welcome message isn't enough reason to give your whole heart.<br><br>In a relationship, a long stretch of avoiding contact could make you feel farther apart. If you say nothing until you've finished thinking alone, your partner can't know the reason. If a long conversation is too hard now, at least say when you'll be in touch.<br><br>After a breakup, loneliness may make a reunion feel essential. If getting in touch brings the same hurt again, simply dating again is unlikely to solve it. Spend time with someone close instead of waiting alone for only your ex's answer. | フリーの人は、寂しさから、合わない相手とも会い続けやすい日です。一緒にいて会話がしっくりこないなら、急いで交際を決める必要はありません。うれしい連絡が一度来ただけで、気持ちをすべて預けるのは控えましょう。<br><br>交際中なら、連絡を避ける時間が長くなり、互いをより遠く感じそうです。一人で考え終わるまで何も話さないと、相手には理由がわかりません。今は長く話せないなら、いつ連絡するかだけでも伝えてください。<br><br>別れた後なら、寂しさから、復縁がどうしても必要に思えるかもしれません。連絡しても同じ不満を繰り返すなら、付き合いを再開するだけでは解決しにくいでしょう。一人でその人の返事だけを待つより、身近な人と過ごしてみましょう。 |
 
 ## major.hermit · 정방향
 
 내부 ID: `love.major.hermit.upright`
 
-카드 의미: 외부 소음에서 떨어져 살피는 신중함과 탐구. 원전의 조심스러움을 성찰·경험에서 길을 찾는 현대적 관점으로 사용.
+카드 의미: 성찰, 고요한혼자시간, 깊은탐구
 
-분야 해석: 깊은대화
+분야 해석: 유보: 새 만남과 고백 진전이 적고 혼자 생각할 시간이 필요함
 
-관찰: 조용히 둘이 이야기할 때 속마음을 더 깊게 나눌 수 있어. / 여럿이 있을 때는 하지 못했던 말이 자연스럽게 나올 거야. / 오래 알고 지낸 사람의 새로운 고민을 들으며 한층 가까워질 수도 있어.
+관찰: 성찰 / 고요한혼자시간 / 깊은탐구
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 조용히 둘이 이야기할 때 속마음을 더 깊게 나눌 수 있어. 여럿이 있을 때는 하지 못했던 말이 자연스럽게 나올 거야. 오래 알고 지낸 사람의 새로운 고민을 들으며 한층 가까워질 수도 있어. 답을 빨리 주려 하지 말고 먼저 끝까지 들어줘. 말이 많지 않아도 이해받았다는 느낌이 오래 따뜻하게 남을 수 있는 날이야. | A quiet conversation between the two of you could make it easier to share your feelings. Something you couldn't say in a group may come out naturally. Hearing a new worry from someone you've known for years could bring you closer. Listen to the end before trying to offer an answer. Even without many words, the warmth of feeling understood could stay with you. | 二人で静かに話すと、心の内を深く分かち合えそうです。大勢の前では言えなかったことも、自然に言葉になるでしょう。長い付き合いの相手から初めて悩みを聞いて、さらに親しくなるかもしれません。すぐ答えを出そうとせず、まず最後まで聞いてみてください。言葉が多くなくても、分かってもらえた温かさが長く残りそうです。 |
+| 분야 풀이 | 솔로라면 새로운 만남이 크게 늘기보다 조용히 지나가기 쉬운 날이야. 좋아하는 사람에게 고백해도 바로 답을 받기 어려울 수 있어. 서로를 충분히 알지 못했다면 결론을 서두르지 마.<br><br>연애 중이라면 함께 있어도 각자 생각할 시간이 필요할 수 있어. 조용하다는 이유만으로 사랑이 식었다고 여기면 서운함이 커져. 중요한 결혼이나 이별 이야기는 서로 말할 준비가 된 뒤 꺼내줘.<br><br>이별 후라면 재회 소식은 더디고 혼자 지난 관계를 돌아보게 될 수 있어. 오늘 답이 없다고 연락을 거듭해도 원하는 대화가 열리기는 어려워. 기다리던 답에서 잠시 벗어나 그 만남이 자신에게 어땠는지 생각해봐. | If you're single, the day may pass quietly without many new encounters. Even if you tell someone you like them, an answer may not come immediately. Don't rush a conclusion if you don't know each other well yet.<br><br>In a relationship, you may each need time to think even when you're together. Assuming quietness means love has faded could increase hurt feelings. Save an important discussion of marriage or breaking up until you're both ready to talk.<br><br>After a breakup, you may wait a while for any word about getting back together and reflect on the relationship alone. Repeated messages because there's no answer today are unlikely to bring the conversation you want. Step back from the reply you're waiting for and consider what that relationship was like for you. | フリーの人は、新しい出会いが増えるより、静かに過ぎやすい日です。好きな人に告白しても、すぐには返事をもらえないかもしれません。互いをまだ十分に知らないなら、結論を急ぐのは控えましょう。<br><br>交際中なら、一緒にいても、それぞれに考える時間が必要になりそうです。口数が少ないだけで愛情が冷めたと思うと、不満が大きくなります。結婚や別れといった大切な話は、二人とも話す準備ができてから切り出してください。<br><br>別れた後なら、復縁に関する知らせは遅く、一人で以前の交際を振り返ることになりそうです。今日返事がないからと連絡を重ねても、望む会話は始まりにくいでしょう。待っている返事から少し意識を離し、その付き合いがどんなものだったか考えてみましょう。 |
 
 ## major.hierophant · 역방향
 
 내부 ID: `love.major.hierophant.reversed`
 
-카드 의미: 관례를 다시 묻고 자신의 기준을 만드는 현대적 독해. 원전의 지나친 호의와 집단적 화합도 무비판적 순응의 위험으로 참고.
+카드 의미: 관습을 질문, 개인기준, 규범과의 충돌
 
-분야 해석: 관계관습
+분야 해석: 혼합: 관습과 다른 만남의 기회, 주변 기준과 두 사람 뜻의 충돌
 
-관찰: 남들이 말하는 관계의 속도보다 서로 편한 방식을 찾기 좋은 날이야. / 연락 횟수나 만나는 모양이 다른 사람과 같을 필요는 없어. / 내가 원하는 것을 말하면 상대도 자신의 바람을 꺼낼 수 있을 거야.
+관찰: 관습을 질문 / 개인기준 / 규범과의 충돌
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 주변 사람이 연애나 만남에 참견해 마음이 조금 불편할 수 있어. 남들은 당연하다는 약속이 내게는 맞지 않는다는 걸 느낄 거야. 정작 당사자와 이야기하면 서로 생각이 더 비슷해 안심할 수 있는 날이야. 둘이 편한 연락이나 만남의 방식을 솔직하게 말해봐. 바깥의 평가보다 서로의 뜻을 알게 되면서 관계가 한결 편해질 수 있어. | Someone's comments about dating or relationships may make you uncomfortable. An arrangement others take for granted could feel wrong for you. Talking with the person involved may reveal that your views are closer than expected. Be honest about the kind of contact or meetings that suit you both. Understanding each other may bring more ease than listening to outside opinions. | 周りが恋愛や付き合い方に口を挟み、少し居心地が悪くなるかもしれません。人には当たり前の約束が、自分には合わないと感じそうです。当事者と話すと、むしろ考えが近くて安心できる日です。二人に心地よい連絡や会い方を、素直に話してみましょう。外からの評価より互いの希望が分かり、関係が楽になりそうです。 |
+| 분야 풀이 | 솔로라면 평소 이상형과 다른 사람에게 호감이 생기거나 예상 밖의 소개가 들어올 수 있어. 주변의 평가보다 직접 대화한 느낌이 더 잘 맞을 수 있는 날이야. 생각해둔 조건과 다르다는 이유만으로 만남을 접지는 마.<br><br>연애 중이라면 남들이 정한 연애나 결혼 방식 때문에 의견이 갈릴 수 있어. 가족이나 친구의 기준을 그대로 따르기보다 두 사람이 원하는 일정을 맞춰봐. 주변에서 결혼을 재촉해도 서로 준비된 때를 정하는 게 좋아.<br><br>이별 후라면 주변의 재회 권유가 오히려 부담이 될 수 있어. 다시 만날지는 두 사람이 헤어진 문제를 풀 수 있는지에 달려 있어. 다른 사람이 아쉬워한다는 이유로 정리한 관계를 되돌리지 마. | If you're single, you may like someone outside your usual type or receive an unexpected introduction. Your own conversation with them could be a better guide than other people's opinions. Don't give up a meeting simply because the person doesn't match the conditions you had in mind.<br><br>In a relationship, you may disagree over other people's ideas about dating or marriage. Work out the timing you both want instead of following family or friends' standards unchanged. Even if people urge you to marry, choose a time when you're both ready.<br><br>After a breakup, pressure from others to reunite could feel burdensome. Whether to try again depends on whether you can solve the issue that ended the relationship. Don't return to a relationship you've ended just because someone else regrets the breakup. | フリーの人は、いつもの理想と違う人にひかれたり、思いがけない紹介があったりしそうです。周囲の評判より、直接話したときの感覚が頼りになる日です。考えていた条件と違うだけで、会うのをやめることはありません。<br><br>交際中なら、世間で普通とされる恋愛や結婚の進め方をめぐり、意見が分かれるかもしれません。家族や友人の基準をそのまま受け入れるより、二人が望む日程をすり合わせましょう。周囲に結婚を急かされても、互いに準備ができる時期を選ぶのがよさそうです。<br><br>別れた後なら、周囲に復縁を勧められることが、かえって負担になりそうです。交際を再開できるかは、別れの原因になった問題を二人で解決できるかによります。ほかの人が残念がっているからと、区切りをつけた関係に戻るのは控えましょう。 |
 
 ## major.hierophant · 정방향
 
 내부 ID: `love.major.hierophant.upright`
 
-카드 의미: 전해진 지식과 공동체의 약속. 원전의 조언자·연합을 검증된 배움과 납득 가능한 관례로 활용.
+카드 의미: 전통적 가르침, 공동 약속, 신뢰할 조언
 
-분야 해석: 가족인연
+분야 해석: 좋음: 소개를 통한 진지한 인연, 약속과 결혼 논의
 
-관찰: 오래 알고 지낸 사람과 편안한 정을 나누기 좋은 날이야. / 가족의 안부나 예전 친구의 소식에서 반가움을 느낄 수 있어. / 처음 만나는 자리에서도 아는 사람의 소개가 긴장을 풀어줄 거야.
+관찰: 전통적 가르침 / 공동 약속 / 신뢰할 조언
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 알고 지낸 사람과 편안한 정을 나누기 좋은 날이야. 가족의 안부나 예전 친구의 소식에서 반가움을 느낄 수 있어. 처음 만나는 자리에서도 아는 사람의 소개가 긴장을 풀어줄 거야. 마음에 남아 있던 사람에게 짧게 연락해봐. 특별한 이야기가 없어도 서로의 하루를 묻는 것만으로 충분히 따뜻할 수 있어. | It's a good day for feeling comfortable with people you've known a long time. Family news or word from an old friend may be welcome. At a first meeting, an introduction from someone familiar could help ease the nerves. Send a brief greeting to someone who's been on your mind. Asking about each other's day can feel warm even without a special story to tell. | 長く知っている人と、気楽な親しさを分かち合えそうな日です。家族の近況や昔の友人の知らせが、うれしく感じられるでしょう。初めて会う場でも、知人の紹介が緊張を和らげてくれそうです。心に残っている人に、短く連絡してみましょう。特別な話がなくても、お互いの一日を聞くだけで温かく過ごせそうです。 |
+| 분야 풀이 | 솔로라면 믿을 만한 사람이 주선한 만남에서 좋은 인연을 만날 수 있어. 연애에서 중요하게 여기는 것이 비슷해 대화가 편안하게 이어져. 진지한 관계를 원하는지 서로 확인하기 좋은 날이야.<br><br>연애 중이라면 함께 지킬 약속을 정하며 관계가 깊어질 수 있어. 결혼을 생각하는 사이라면 가족에게 소개하거나 앞으로의 순서를 논의하기 좋아. 두 사람의 뜻을 먼저 맞추면 주변의 조언도 도움이 될 수 있어.<br><br>이별 후라면 믿을 만한 사람의 조언으로 헤어진 이유를 새롭게 이해할 수 있어. 재회를 논의 중이라면 서로 지킬 약속부터 확인해봐. 주변이 권한다는 이유만으로 다시 만날 필요는 없어. | If you're single, an introduction from someone you trust could bring a good connection. Similar priorities in love may make conversation feel easy. It's a good day to check whether you're both looking for something serious.<br><br>In a relationship, agreeing on commitments you'll both keep could bring you closer. If you're considering marriage, it's a good day for a family introduction or a discussion of the next steps. Advice from others may help once the two of you agree on what you want.<br><br>After a breakup, advice from someone trustworthy could help you understand the reasons differently. If you're discussing getting back together, start by checking what you'll both commit to. You don't need to reunite just because people recommend it. | フリーの人は、信頼できる人の紹介でよい出会いがありそうです。恋愛で大切にすることが似ていて、会話が心地よく続くでしょう。真剣な交際を望んでいるか、互いに確かめるのによい日です。<br><br>交際中なら、一緒に守る約束を決めることで、関係が深まりそうです。結婚を考えている二人は、家族に紹介したり、これからの段取りを話したりする好機です。二人の意向を先に合わせれば、周囲の助言も役立つでしょう。<br><br>別れた後なら、信頼できる人の助言で、別れた理由を違う角度から理解できそうです。復縁について話しているなら、互いに守れる約束をまず確かめましょう。周囲に勧められるという理由だけで、交際を再開する必要はありません。 |
 
 ## major.high_priestess · 역방향
 
 내부 ID: `love.major.high_priestess.reversed`
 
-카드 의미: 내적 판단을 무시하거나 겉정보만으로 안다고 여기기 쉬움. 원전의 피상적 지식을 자기 점검의 방향으로 선택.
+카드 의미: 겉핥기 지식, 속마음 외면
 
-분야 해석: 속마음오해
+분야 해석: 주의: 자기 기대에 치우친 해석과 말하지 않은 서운함
 
-관찰: 상대의 속마음을 혼자 추측하기보다 가볍게 묻는 편이 좋은 날이야. / 짧은 답장이 무심하게 느껴져도 단순히 바빴던 것일 수 있어. / 얼굴을 보거나 목소리를 들으면 글로는 몰랐던 다정함을 발견할 거야.
+관찰: 겉핥기 지식 / 속마음 외면
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 연락이 뜸했던 사람의 속사정을 뒤늦게 들을 수 있는 날이야. 무심하다고 여겼던 짧은 답장에도 생각지 못한 이유가 있었을 거야. 글로는 딱딱했던 말이 목소리로 들으면 한결 다정하게 느껴질 수 있어. 궁금했던 일은 따지기보다 안부와 함께 물어봐. 괜히 멀어진 줄 알았던 사람과도 다시 편하게 인사할 기회가 생길 거야. | You could finally hear why someone has been out of touch. An unexpectedly simple reason may lie behind a brief reply you found indifferent. Hearing their voice could feel much warmer than reading their words today. Ask about what puzzled you alongside a friendly greeting rather than an accusation. A chance may appear to comfortably reconnect with someone you thought had grown distant. | 連絡が途絶えがちだった人の事情を、後から聞くことがありそうです。そっけなく感じた短い返事にも、思いがけない理由があったのでしょう。声を聞くと、文字では感じなかった温かさに気づけそうな日です。気になったことは、責めるより近況を尋ねながら聞いてみましょう。疎遠になったと思っていた人とも、また気楽に挨拶する機会がありそうです。 |
+| 분야 풀이 | 솔로라면 상대가 한 말을 듣고도 원하는 뜻으로 받아들이기 쉬워. 친구로 지내고 싶다는 답을 들었다면 고백을 더 하면 달라질 거라고 기대하지 마.<br><br>연애 중이라면 괜찮다고 넘긴 일이 뒤늦게 다툼이 될 수 있어. 서운한 이유를 말하지 않고 알아주기만 기다리면 서로 답답해져. 숨겨둔 불만은 실제 있었던 일부터 차분히 꺼내줘.<br><br>이별 후라면 주변의 짐작을 믿다가 재회 여부를 잘못 판단할 수 있어. 상대가 직접 전한 말이 아니라면 확실한 뜻으로 받아들이지 마. 듣고 싶은 소식만 좇으면 정리해야 할 관계를 오래 기다리게 될 수 있어. | If you're single, you may hear what you want in someone's words. If they've said they want to stay friends, don't expect repeated declarations of love to change their answer.<br><br>In a relationship, something you dismissed as fine could become an argument later. Waiting for your partner to understand without explaining why you're hurt may frustrate you both. Calmly bring up what actually happened when you share a complaint you've kept quiet.<br><br>After a breakup, trusting other people's guesses could lead you to misjudge the chance of getting back together. Don't take anything as a definite intention unless it comes directly from your ex. Chasing only the news you want to hear could keep you waiting for a relationship you need to let go of. | フリーの人は、相手の言葉を聞いても、望んでいる意味に受け取りやすい日です。友達でいたいと答えられたなら、告白を重ねれば気が変わるとは期待しないでください。<br><br>交際中なら、大丈夫だと流したことが、後になってけんかにつながりそうです。傷ついた理由を伝えず、察してくれるのを待つだけでは、互いにもどかしくなります。隠していた不満は、実際にあった出来事から落ち着いて話しましょう。<br><br>別れた後なら、周囲の推測を信じて、復縁できるかを見誤るかもしれません。相手が直接伝えた言葉でなければ、確かな意向として受け取るのは控えましょう。聞きたい知らせばかり追うと、区切りをつけるべき関係を長く待つことになりそうです。 |
 
 ## major.high_priestess · 정방향
 
 내부 ID: `love.major.high_priestess.upright`
 
-카드 의미: 아직 드러나지 않은 정보와 조용한 관찰. 원전의 비밀·침묵·지혜를 속단을 유보하고 내적 반응을 살피는 방향으로 응용.
+카드 의미: 지혜, 침묵, 아직 드러나지 않은 내용
 
-분야 해석: 조용한호감
+분야 해석: 유보: 호감과 속마음이 드러나지 않아 관계 진전이 느림
 
-관찰: 큰 표현 없이도 서로의 마음을 알아차리기 좋은 날이야. / 전에 했던 말을 기억해주는 모습에서 조용한 관심을 느낄 수 있어. / 가까운 사람과는 말을 많이 하지 않아도 함께 있는 시간이 편안할 거야.
+관찰: 지혜 / 침묵 / 아직 드러나지 않은 내용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 큰 표현 없이도 서로의 마음을 알아차리기 좋은 날이야. 전에 했던 말을 기억해주는 모습에서 조용한 관심을 느낄 수 있어. 가까운 사람과는 말을 많이 하지 않아도 함께 있는 시간이 편안할 거야. 상대가 이야기를 꺼내면 중간에 답을 정하지 말고 끝까지 들어줘. 말을 재촉하지 않는 다정함이 관계를 한층 깊게 만들어줄 수 있어. | You may notice affection without a grand display today. Someone remembering an earlier remark could reveal a quiet interest. Being with a person close to you may feel comfortable even without much conversation. Hear them out rather than deciding on an answer while they speak. Not pressing for words could help the relationship feel a little deeper. | はっきりした言葉がなくても、お互いの気持ちに気づきやすい日です。前に話したことを覚えていてくれる姿に、静かな好意を感じそうです。親しい人とは、あまり話さなくても一緒にいる時間が心地よいでしょう。相手が話し始めたら、途中で答えを決めず最後まで聞いてみましょう。言葉を急かさない優しさが、関係をもう一歩深めてくれそうです。 |
+| 분야 풀이 | 솔로라면 상대의 호감이 겉으로 잘 드러나지 않는 날이야. 대화가 조용하다고 관심이 없다고 단정할 수는 없지만, 고백에 확답을 받기도 어려워. 오늘은 함께 있을 때 편안한지부터 알아가봐.<br><br>연애 중이라면 평소보다 말수가 줄어 애정 표현이 부족하게 느껴질 수 있어. 혼자 있을 시간이 필요하다는 말을 듣는다면 곧바로 다툼으로 이어가지 마. 잠시 혼자 생각한 뒤에는 상대도 속마음을 이야기할 수 있어.<br><br>이별 후라면 상대의 답을 기다리는 시간이 길어질 수 있어. 침묵을 재회를 바란다는 신호로 해석하지 않는 게 좋아. 직접 뜻을 밝히기 전에는 관계가 돌아온다고 기대하기 어려워. | If you're single, someone's interest may be hard to see today. Quiet conversation doesn't prove they aren't interested, but you may struggle to get a definite answer if you share your feelings. Start by finding out whether you feel comfortable together.<br><br>In a relationship, fewer words than usual could make affection feel lacking. If your partner says they need time alone, don't let that immediately become an argument. After some time to think, they may be able to tell you how they feel.<br><br>After a breakup, you could wait longer for an answer. It's best not to interpret silence as a wish to get back together. Until the other person tells you what they want, there's little basis for expecting the relationship to resume. | フリーの人は、相手の好意が表に出にくい日です。会話が静かだからといって関心がないとは限りませんが、告白してもはっきりした返事は得にくそうです。今日はまず、一緒にいて心地よいかを確かめましょう。<br><br>交際中なら、いつもより会話が少なく、愛情表現が足りないと感じるかもしれません。一人で過ごす時間が欲しいと言われても、すぐにけんかにしないでください。少し一人で考えた後なら、相手も本音を話せそうです。<br><br>別れた後なら、相手の返事を待つ時間が長くなりそうです。沈黙を、復縁したい気持ちの表れと受け取らないほうがよいでしょう。本人が意向を伝えるまでは、交際が再開するとは期待しにくい日です。 |
 
 ## major.judgement · 역방향
 
 내부 ID: `love.major.judgement.reversed`
 
-카드 의미: 자기비판이나 결정 회피로 필요한 응답을 미룸. 원전의 망설임을 사실에 근거한 재평가 필요로 선택.
+카드 의미: 자기회의, 과한평가, 성찰회피
 
-분야 해석: 지난실수의식
+분야 해석: 주의: 지난 평가에 묶인 만남, 사과의 지연, 반복되는 재회 망설임
 
-관찰: 예전에 어색했던 일이 생각나 먼저 연락하기를 망설일 수 있어. / 상대는 대수롭지 않게 여긴 일을 나만 오래 기억하고 있을 수도 있을 거야. / 다시 나눈 대화에서는 생각보다 평범하고 편한 반응을 만날 수 있는 날이야.
+관찰: 자기회의 / 과한평가 / 성찰회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 어색했던 일이 생각나 먼저 연락하기를 망설일 수 있어. 상대는 대수롭지 않게 여긴 일을 나만 오래 기억하고 있을 수도 있을 거야. 다시 나눈 대화에서는 생각보다 평범하고 편한 반응을 만날 수 있는 날이야. 긴 해명부터 하기보다 짧은 안부로 말을 꺼내봐. 그때의 장면만 떠올리던 마음이 지금의 대화를 들으며 조금 가벼워질 수 있어. | Remembering an awkward moment may make you hesitate to get in touch first. You might have held on to something the other person considered minor. Talking again could bring a response more ordinary and relaxed than expected. Start with a brief hello rather than a long explanation. Hearing today's conversation could lighten a mind that's kept returning to that old scene. | 昔の気まずい出来事を思い出し、先に連絡するのをためらうかもしれません。相手は気にしていないことを、自分だけ長く覚えている可能性もありそうです。また話すと、思ったより普段どおりの気楽な反応が返ってくるでしょう。長い説明からではなく、短い挨拶で話を始めてみてください。あの場面ばかり思い出していた気持ちも、今の会話を聞いて少し軽くなりそうです。 |
+| 분야 풀이 | 솔로라면 예전 연애와 비교하다 좋은 만남도 어색해질 수 있어. 처음 만난 사람에게 지난 상대의 잘못까지 겹쳐 보면 호감을 알아보기 어려워.<br><br>연애 중이라면 끝난 다툼을 다시 들추면서 화해가 늦어질 수 있어. 사과해야 할 일을 피하고 상대만 평가하면 대화가 더 막혀. 이번에 있었던 일부터 솔직히 말하는 게 좋아.<br><br>이별 후라면 재회를 원하면서도 지난 문제를 인정하지 않아 결정을 미루기 쉬워. 같은 탓만 되풀이된다면 다시 만나자는 답도 나오기 어려워. 그리움만으로 오늘 관계를 되돌리지는 마. | If you're single, comparisons with an old relationship could make even a good encounter awkward. Seeing a former partner's mistakes in someone you've just met may make it hard to recognise attraction.<br><br>In a relationship, reopening a settled argument could delay making up. Avoiding your own apology while judging only your partner may make conversation harder. Start by speaking honestly about what happened this time.<br><br>After a breakup, you may postpone a decision because you want a reunion without acknowledging past problems. Repeating the same blame is unlikely to bring agreement to try again. Don't restore the relationship today on longing alone. | フリーの人は、以前の恋愛と比べることで、よい出会いもぎこちなくなりそうです。初めて会う人に、前の相手の過ちまで重ねると、好意を見つけにくくなります。<br><br>交際中なら、終わったけんかを蒸し返して、仲直りが遅れるかもしれません。謝るべきことを避けて相手ばかり批判すると、ますます話が進まなくなります。まず今回あったことを、正直に話しましょう。<br><br>別れた後なら、復縁を望んでいても、以前の問題を認めず、決断を先送りしやすい日です。同じように責め続けるなら、また付き合おうという返事は得にくいでしょう。恋しさだけで、今日交際を再開するのは控えてください。 |
 
 ## major.judgement · 정방향
 
 내부 ID: `love.major.judgement.upright`
 
-카드 의미: 지난 선택을 돌아보고 다시 응답하는 갱신. 원전의 변화·결과를 죄책감보다 재평가와 다음 결정으로 응용.
+카드 의미: 성찰, 재선택, 갱신
 
-분야 해석: 재회화해
+분야 해석: 회복과 결정: 다시 주어지는 만남, 사과와 용서, 재회 논의
 
-관찰: 예전 인연의 연락이나 다시 이야기할 기회가 생길 수 있어. / 서운하게 끝났던 대화도 지금은 차분히 돌아볼 수 있는 날이야. / 서로 몰랐던 마음을 들으며 그때와 다른 생각을 하게 될 거야.
+관찰: 성찰 / 재선택 / 갱신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전 인연의 연락이나 다시 이야기할 기회가 생길 수 있어. 서운하게 끝났던 대화도 지금은 차분히 돌아볼 수 있는 날이야. 서로 몰랐던 마음을 들으며 그때와 다른 생각을 하게 될 거야. 사과하거나 고마웠다고 말하고 싶었다면 짧게 전해봐. 예전으로 돌아가야 한다는 부담 없이도 반갑게 인사할 수 있는 사이가 될 여지가 있어. | Someone from your past may get in touch, or a chance to talk again could appear. A conversation that ended with hurt feelings may be easier to look back on calmly now. Hearing feelings neither of you knew could change how you see that time. If you've wanted to apologize or say thanks, offer a few words. You could become comfortable saying hello without feeling obliged to return to the way things were. | 以前縁のあった人から連絡が来たり、また話す機会ができたりしそうです。寂しいまま終わった会話も、今なら落ち着いて振り返れるでしょう。お互い知らなかった気持ちを聞き、あの頃とは違う考えになりそうです。謝りたいことや感謝があれば、短く伝えてみてください。以前に戻るという負担なしに、気持ちよく挨拶できる間柄になる余地があります。 |
+| 분야 풀이 | 솔로라면 예전에 인연이 닿지 않았던 사람과 다시 만날 기회가 생길 수 있어. 서로 상황이 달라졌다면 미뤄뒀던 고백에 좋은 답을 들을 수도 있어.<br><br>연애 중이라면 지난 잘못을 인정하는 사과로 다툼을 끝낼 수 있어. 말하지 못했던 진심을 듣고 앞으로도 함께할지 분명히 정하기 좋은 날이야. 결혼 이야기를 다시 시작하는 계기도 생길 수 있어.<br><br>이별 후라면 재회를 이야기할 기회가 찾아올 수 있어. 서로 헤어진 이유를 이해하고 있었다면 다시 만나자는 말도 오갈 수 있어. 상대가 거절했던 관계라면 먼저 돌아올 거라고 단정하지는 마. | If you're single, you could get another chance to meet someone you didn't connect with before. If your circumstances have both changed, you may get a positive answer when you share feelings you've held back.<br><br>In a relationship, an apology that acknowledges a past mistake could end an argument. Hearing feelings that went unspoken may help you decide clearly whether to keep sharing your future. There could also be a reason to reopen a discussion of marriage.<br><br>After a breakup, a chance to discuss getting back together could arise. If you both understand why you split, you may suggest trying again. If the other person rejected the relationship, though, don't assume they'll be the one to return first. | フリーの人は、以前は縁がつながらなかった相手に、もう一度会う機会がありそうです。互いの状況が変わっているなら、見送っていた告白にも、よい返事がもらえるかもしれません。<br><br>交際中なら、過去の過ちを認めて謝ることで、けんかを終えられそうです。これまで聞けなかった本音を聞き、これからも一緒にいるか、はっきり決めやすい日です。結婚の話を再開するきっかけもあるかもしれません。<br><br>別れた後なら、復縁について話す機会が訪れそうです。互いに別れた理由を理解していれば、また付き合おうという話にもなり得ます。相手に復縁を断られた関係なら、向こうから戻ってくるとは決めつけないでください。 |
 
 ## major.justice · 역방향
 
 내부 ID: `love.major.justice.reversed`
 
-카드 의미: 편향된 기준이나 책임 회피를 드러내는 카드. 불공정을 단정하기보다 같은 사실을 다른 잣대로 보고 있지 않은지 확인.
+카드 의미: 편견, 불공정, 책임회피
 
-분야 해석: 서운한비교
+분야 해석: 주의: 섣부른 평가, 불공평한 요구, 책임을 미루는 재회 대화
 
-관찰: 누가 더 연락하고 챙겼는지를 따지며 마음이 예민해질 수 있어. / 같은 말도 내가 손해 본다는 생각이 들면 다르게 들릴 거야. / 상대의 사정을 듣고 나면 놓치고 있던 배려가 떠오를 수도 있는 날이야.
+관찰: 편견 / 불공정 / 책임회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 누가 더 연락하고 챙겼는지를 따지며 마음이 예민해질 수 있어. 같은 말도 내가 손해 본다는 생각이 들면 다르게 들릴 거야. 상대의 사정을 듣고 나면 놓치고 있던 배려가 떠오를 수도 있는 날이야. 지난 일을 모두 꺼내기보다 오늘 서운했던 한 가지만 이야기해봐. 서로 기억이 달랐다는 걸 알게 되면 억울한 마음도 조금 풀릴 수 있어. | You may feel sensitive about who has called more or shown more care. The same words could sound different when you feel you're getting less in return. Hearing the other person's circumstances may remind you of kindness you've overlooked. Talk about one thing that hurt today instead of bringing up every past incident. Discovering that you remember things differently could ease some of the unfairness you felt. | どちらが多く連絡したか、気にかけたかが気になり、敏感になりそうです。自分だけ損をしていると思うと、同じ言葉も違って聞こえるでしょう。相手の事情を聞けば、見落としていた気遣いを思い出すかもしれません。過去のことを全部持ち出さず、今日寂しかったことを一つ話してみてください。覚えていることが違うと分かるだけでも、悔しい気持ちが少し和らぎそうです。 |
+| 분야 풀이 | 솔로라면 소문이나 첫인상만으로 상대를 잘못 판단할 수 있어. 직접 만나기 전에 주변 말만 듣고 고백을 서두르거나 만남을 끊지는 마. 들은 이야기와 실제 태도가 다를 수 있는 날이야.<br><br>연애 중이라면 한쪽에만 엄격한 기준 때문에 다툼이 생길 수 있어. 자신은 어긴 약속을 상대에게만 요구하면 사과를 받아도 앙금이 남아. 같은 일에는 서로 같은 기준을 적용해줘.<br><br>이별 후라면 누구 잘못이 더 컸는지 따지다 재회 대화가 막힐 수 있어. 한 사람에게만 사과를 요구하면 다시 만나도 불만이 남기 쉬워. 서로 책임을 인정하지 않는다면 오늘 결론을 밀어붙이지 마. | If you're single, rumours or a first impression could lead you to misjudge someone. Don't rush to share your feelings or cut off a connection based only on other people's words before meeting them. Their actual behaviour may differ from what you've heard.<br><br>In a relationship, stricter standards for only one person could cause an argument. Demanding that your partner keep promises you've broken yourself may leave resentment even after an apology. Apply the same standards to both of you for the same situation.<br><br>After a breakup, arguing about who was more at fault could block a discussion of reuniting. If only one person is expected to apologise, resentment could remain even after getting back together. Don't force a decision today if you aren't both acknowledging responsibility. | フリーの人は、うわさや第一印象だけで、相手を見誤るかもしれません。直接会う前に周囲の話だけで告白を急いだり、会うのをやめたりするのは控えましょう。聞いた話と実際の態度が違うこともありそうです。<br><br>交際中なら、一方にだけ厳しい基準が、けんかの原因になりそうです。自らは破った約束を相手にだけ求めると、謝ってもらってもしこりが残ります。同じことには、互いに同じ基準で向き合いましょう。<br><br>別れた後なら、どちらの非が大きかったかを言い争い、復縁の話が進まなくなるかもしれません。一人にだけ謝罪を求めると、交際を再開しても不満が残りがちです。互いに責任を認められないなら、今日は結論を押し通すのを控えてください。 |
 
 ## major.justice · 정방향
 
 내부 ID: `love.major.justice.upright`
 
-카드 의미: 사실·공정함·선택에 따르는 책임. 원전의 정당성과 균형을 자료에 근거한 판단으로 사용.
+카드 의미: 공정함, 사실, 책임
 
-분야 해석: 서로존중
+분야 해석: 혼합: 분명한 답, 공평한 합의, 재회 또는 정리의 결론
 
-관찰: 주고받던 배려를 서로 알아주며 관계가 편안해지는 날이야. / 한쪽만 애쓴다고 느꼈던 일도 이야기를 나누면 다른 사정을 알게 될 거야. / 약속을 지키는 작은 행동에서 존중받고 있다는 느낌을 받을 수 있어.
+관찰: 공정함 / 사실 / 책임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 주고받던 배려를 서로 알아주며 관계가 편안해지는 날이야. 한쪽만 애쓴다고 느꼈던 일도 이야기를 나누면 다른 사정을 알게 될 거야. 약속을 지키는 작은 행동에서 존중받고 있다는 느낌을 받을 수 있어. 고마웠던 점과 바라는 점을 하나씩 말해봐. 누가 더 잘했는지를 따지지 않은 대화가 든든한 믿음을 남길 거야. | Recognizing each other's care could make your relationship feel more comfortable. Talking about something that felt one-sided may reveal circumstances you didn't know. A small promise kept could leave you feeling respected. Share one thing you appreciated and one thing you'd like. A conversation without keeping score could leave you with a steady sense of trust. | お互いの気遣いに気づき、関係が穏やかになりそうです。自分ばかり頑張っていると思っていたことも、話すと別の事情が分かるでしょう。小さな約束を守る姿から、大切にされていると感じられそうです。感謝していることと、これから望むことを一つずつ伝えてみてください。どちらが多く尽くしたかを比べない会話が、確かな信頼につながるでしょう。 |
+| 분야 풀이 | 솔로라면 애매하게 지내던 사람에게 분명한 답을 들을 수 있어. 서로 호감이 있다면 사귀는 사이로 정리되고, 아니라면 더 기다릴 이유도 줄어들어. 짐작보다 직접 들은 말을 믿는 게 좋아.<br><br>연애 중이라면 다툰 이유를 차근차근 이야기하며 공평한 합의를 찾을 수 있어. 서로 잘못한 부분을 인정하면 사과도 잘 받아들여져. 결혼 준비에서는 비용이나 역할을 함께 정하기 좋아.<br><br>이별 후라면 다시 만날지 정리할지 결론을 내리기 좋은 날이야. 재회를 원한다면 서로 같은 잘못을 반복하지 않을 뜻이 있는지 솔직히 말해봐. 뜻이 다르다면 빌린 물건이나 남은 약속도 차분히 정리할 수 있어. | If you're single, someone whose feelings have been unclear may give you a definite answer. Mutual interest could become a relationship; without it, there may be less reason to keep waiting. Trust what you're told directly more than your guesses.<br><br>In a relationship, talking through the cause of an argument could help you reach a fair agreement. An apology may be well received if you each acknowledge your mistakes. It's also a good day to agree on costs or responsibilities for a wedding.<br><br>After a breakup, it's a good day to decide whether to reunite or end things. If you want to try again, speak honestly about whether you both intend to avoid repeating the same mistakes. If your wishes differ, you could calmly sort out borrowed belongings and remaining commitments too. | フリーの人は、曖昧な関係だった相手から、はっきりした返事を聞けそうです。互いに好意があれば交際が始まり、そうでなければ待ち続ける理由も少なくなるでしょう。推測より、直接聞いた言葉を信じてください。<br><br>交際中なら、けんかの理由を一つずつ話し、公平な合意にたどり着けそうです。互いの落ち度を認めれば、謝罪も受け入れてもらいやすいでしょう。結婚の準備では、費用や分担を一緒に決めるのによい日です。<br><br>別れた後なら、復縁するか区切りをつけるか、結論を出しやすい日です。復縁を望むなら、互いに同じ過ちを繰り返さない意思があるか、正直に話しましょう。望むことが違うなら、借りていた物や残っている約束も、落ち着いて整理できそうです。 |
 
 ## major.lovers · 역방향
 
 내부 ID: `love.major.lovers.reversed`
 
-카드 의미: 선택 기준이나 바람이 엇갈려 합의가 어려운 상태. 관계 실패를 단정하지 않고 자기 뜻과 공동 약속의 불일치를 살핌.
+카드 의미: 불일치, 상충하는 선택, 충동
 
-분야 해석: 기대차이
+분야 해석: 주의: 호감의 온도 차이, 중요한 선택의 불일치, 일방적 재회 기대
 
-관찰: 좋아하는 마음이 있어도 기대하는 표현은 다를 수 있는 날이야. / 연락이나 약속을 두고 작은 엇갈림이 생겨도 마음이 식었다고 단정할 필요는 없어. / 직접 만나면 문자로 느꼈던 차가움과 달리 반가운 표정을 볼 수 있어.
+관찰: 불일치 / 상충하는 선택 / 충동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋아하는 마음이 있어도 기대하는 표현은 다를 수 있는 날이야. 연락이나 약속을 두고 작은 엇갈림이 생겨도 마음이 식었다고 단정할 필요는 없어. 직접 만나면 문자로 느꼈던 차가움과 달리 반가운 표정을 볼 수 있어. 서운했던 행동 하나만 구체적으로 꺼내봐. 엇갈렸던 이유를 듣고 나면 마음이 멀어진 것은 아니라는 걸 알게 될 거야. | Affection can be present even when the expressions you expect differ. A small mismatch over messages or plans needn't mean feelings have faded. In person, a welcoming face may feel quite different from a text that seemed cold. Mention one specific action that bothered you. Hearing why things got crossed could reassure you that you haven't grown apart. | 好きな気持ちがあっても、期待する表し方は違うかもしれません。連絡や約束が少しすれ違っても、気持ちが冷めたと決める必要はありません。会ってみれば、文字で感じた冷たさとは違う、うれしそうな表情が見えそうです。寂しかった行動を一つだけ、具体的に話してみましょう。すれ違った理由を聞けば、心が離れたわけではないと分かりそうです。 |
+| 분야 풀이 | 솔로라면 좋아하는 만큼 상대의 마음이 돌아오지 않아 서운할 수 있어. 한쪽은 진지하게 사귀려 하고 다른 쪽은 가볍게 알아가려 할 수 있어. 고백 전에는 서로 원하는 만남이 같은지 살펴봐.<br><br>연애 중이라면 결혼이나 앞으로의 생활을 두고 의견이 엇갈릴 수 있어. 좋아한다는 마음만으로 오늘 모든 결정이 쉽게 나지는 않아. 상대가 아직 준비되지 않았다면 답을 재촉하지 않는 게 좋아.<br><br>이별 후라면 재회를 바라는 마음이 서로 다를 수 있어. 한쪽만 과거로 돌아가고 싶다면 대화가 이어져도 다시 사귀기는 어려워. 다시 만날 뜻이 없다는 답은 그대로 받아들여줘. | If you're single, unequal feelings could leave you hurt. One person may want a serious relationship while the other wants to get to know each other casually. Before sharing your feelings, check whether you're looking for the same kind of connection.<br><br>In a relationship, opinions could differ over marriage or your future life. Loving each other won't make every decision easy today. If your partner isn't ready, it's better not to press for an answer.<br><br>After a breakup, you may not share the same wish to reunite. If only one of you wants the old relationship back, continued conversation may not lead to dating again. If the other person says they don't want to try again, accept that answer. | フリーの人は、好きな気持ちに同じように応えてもらえず、傷つくかもしれません。一方は真剣な交際を望み、もう一方は気軽に知り合いたいだけということもありそうです。告白の前に、互いが望む付き合い方を確かめましょう。<br><br>交際中なら、結婚やこれからの生活について、意見が食い違いそうです。好きという気持ちだけでは、今日すべてを簡単に決められるわけではありません。相手の準備がまだなら、答えを急かさないほうがよさそうです。<br><br>別れた後なら、復縁への思いに差がありそうです。一方だけが以前に戻りたい場合、会話が続いても交際の再開は難しいでしょう。もう一度付き合うつもりはないという返事は、そのまま受け止めてください。 |
 
 ## major.lovers · 정방향
 
 내부 ID: `love.major.lovers.upright`
 
-카드 의미: 호감과 합의뿐 아니라 자신이 중요하게 여기는 가치에 따른 선택. 원전의 끌림·조화를 자유로운 상호 선택으로 확장.
+카드 의미: 조화, 상호연결, 자신의가치에 따른 선택
 
-분야 해석: 서로끌림
+분야 해석: 좋음: 상호 호감, 고백 성사, 결혼·재회에 대한 합의
 
-관찰: 서로에게 끌리는 마음을 확인할 기회가 생길 수 있어. / 눈이 마주치거나 말을 건넬 때 평소보다 반가운 반응이 돌아올 거야. / 연인과는 같이 하고 싶은 일이 겹치며 다음 약속을 즐겁게 정할 수 있어.
+관찰: 조화 / 상호연결 / 자신의가치에 따른 선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로에게 끌리는 마음을 확인할 기회가 생길 수 있어. 눈이 마주치거나 말을 건넬 때 평소보다 반가운 반응이 돌아올 거야. 연인과는 같이 하고 싶은 일이 겹치며 다음 약속을 즐겁게 정할 수 있어. 상대가 좋아하는 것을 묻고 내 취향도 하나 이야기해봐. 한쪽만 맞추지 않는 대화가 오늘의 설렘을 더 오래 남겨줄 거야. | A chance could arise to notice that your attraction is mutual. Eye contact or a greeting may get a warmer response than usual. With a partner, shared interests could make choosing your next outing enjoyable. Ask what they like and share one preference of your own. A conversation where neither person does all the adjusting may leave the excitement lasting longer. | お互いに惹かれる気持ちを、確かめる機会がありそうです。目が合ったり声をかけたりすると、いつもよりうれしい反応が返るでしょう。恋人とは一緒にしたいことが重なり、次の約束を楽しく決められそうです。相手の好きなものを聞き、自分の好みも一つ話してみましょう。一方だけが合わせない会話が、今日のときめきを長く残してくれそうです。 |
+| 분야 풀이 | 솔로라면 좋아하는 사람과 마음이 통하기 좋은 날이야. 썸을 타고 있다면 서로 사귀고 싶다는 말을 나눌 수 있어. 처음 만난 사람과도 취향이나 생각이 잘 맞아 금세 가까워질 수 있어.<br><br>연애 중이라면 서로를 선택한 이유를 다시 느끼게 될 수 있어. 애정 표현에 따뜻한 답이 돌아오고, 앞으로의 계획에도 뜻이 잘 맞아. 청혼을 생각해왔다면 두 사람의 마음을 확인하기 좋은 날이야.<br><br>이별 후라면 서로에게 남은 애정을 확인할 수 있어. 둘 다 다시 만나길 원한다면 재회 이야기가 순조롭게 이어질 수 있어. 예전 다툼을 어떻게 끝낼지도 솔직히 나눠봐. | If you're single, it's a good day for mutual affection with someone you like. If you've been flirting, you may tell each other you'd like to be a couple. You could also quickly grow close to someone you've just met through shared tastes or ideas.<br><br>In a relationship, you could remember why you chose each other. Affection may receive a warm response, and your plans for the future could match well. If you've been thinking of proposing, it's a good day to confirm how you both feel.<br><br>After a breakup, you may discover that affection remains on both sides. If you both want to reunite, the conversation could go smoothly. Be honest about how you'll put old arguments to rest too. | フリーの人は、好きな人と気持ちが通じやすい日です。互いに意識しているなら、付き合いたいと言葉で伝え合えそうです。初めて会った人とも、好みや考え方が合い、すぐに親しくなれるかもしれません。<br><br>交際中なら、互いを選んだ理由を改めて感じられそうです。愛情を伝えると温かな言葉が返り、将来の計画でも気持ちが合うでしょう。プロポーズを考えていたなら、二人の意思を確かめるのによい日です。<br><br>別れた後なら、互いにまだ愛情があると確かめられそうです。二人とも交際の再開を望んでいるなら、復縁の話も順調に進むでしょう。以前のけんかをどう解決するかも、正直に話し合ってください。 |
 
 ## major.magician · 역방향
 
 내부 ID: `love.major.magician.reversed`
 
-카드 의미: 능력을 쓰지 못하거나 말과 실제 실행이 벌어짐. 현대적 조작·과장 경계를 선택하되 타인의 악의를 사실로 만들지 않음.
+카드 의미: 외양과 실질의 차이, 쓰이지 않는 재능
 
-분야 해석: 진심확인
+분야 해석: 주의: 말과 행동의 불일치, 지키지 않는 관계 약속
 
-관찰: 다정한 말만 늘리기보다 행동으로 마음을 보여주면 좋은 날이야. / 호감을 얻고 싶어 무리한 약속을 하면 나중에 설명이 어려워질 수 있어. / 작은 부탁을 기억해 챙기는 모습은 생각보다 따뜻하게 전해질 거야.
+관찰: 외양과 실질의 차이 / 쓰이지 않는 재능
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다정한 말과 실제 행동이 달라 고개를 갸웃할 수 있는 날이야. 잘해주겠다는 약속보다 사소한 것을 기억해준 사람에게 마음이 갈 거야. 관심을 얻으려고 꾸민 이야기는 의외로 금방 티가 날 수 있어. 말을 보태기보다 먼저 한 약속 하나를 지켜줘. 늦더라도 솔직하게 전한 마음에는 생각보다 따뜻한 답이 돌아올 수 있어. | Warm words and actual behavior may differ enough to give you pause. Someone who remembers a small detail could appeal more than someone making grand promises. An embellished story meant to impress may be easier to see through today. Keep an earlier promise rather than adding more words. Even a belated, honest expression of affection could receive a surprisingly warm answer. | 優しい言葉と行動が違って、少し首をかしげることがありそうです。大きな約束をする人より、小さなことを覚えていた人に心が向くでしょう。気を引こうと話を大げさにしても、相手にはすぐ見抜かれそうです。言葉を増やすより、先にした約束を一つ守ってみましょう。遅くなっても正直に伝えた気持ちには、思ったより温かい返事がありそうです。 |
+| 분야 풀이 | 솔로라면 듣기 좋은 말에 비해 실제 만남은 잘 잡히지 않을 수 있어. 고백을 받더라도 상대가 약속을 지키는 사람인지 살펴봐. 말만으로 진지한 관계를 기대하면 실망하기 쉬워.<br><br>연애 중이라면 해주겠다는 말만 반복한 일 때문에 신뢰가 흔들릴 수 있어. 데이트나 미래 계획을 또 미루면 상대의 서운함이 커져. 오늘 할 수 있는 일과 어려운 일을 분명히 나눠 말해줘.<br><br>이별 후라면 달라졌다는 말만 듣고 재회를 결정하기 쉬워. 예전 문제가 실제로 바뀌었는지 확인해야 같은 실망을 줄일 수 있어. 말이 계속 바뀐다면 다시 만나는 약속은 미뤄두는 게 좋아. | If you're single, arranging a meeting may be difficult despite someone's lovely words. Even if they say they have feelings for you, notice whether they keep their promises. Expecting a serious relationship on words alone could lead to disappointment.<br><br>In a relationship, repeated promises without action could weaken trust. Postponing a date or plans for the future again may leave your partner more hurt. Make clear what you can do today and what would be difficult.<br><br>After a breakup, you may be quick to agree to try again just because the other person says they've changed. Checking whether the old problem has actually improved could spare you the same disappointment. If their story keeps changing, it's better to postpone meeting again. | フリーの人は、うれしい言葉をもらっても、実際に会う約束はなかなか決まらないかもしれません。告白されても、相手が約束を守る人か見ておきましょう。言葉だけで真剣な交際を期待すると、がっかりしやすい日です。<br><br>交際中なら、やってあげると言いながら実行していないことが、信頼を揺るがしそうです。デートや将来の計画をまた先延ばしにすると、相手の不満が大きくなります。今日できることと難しいことを、はっきり分けて伝えてください。<br><br>別れた後なら、変わったという言葉だけで復縁を決めやすい日です。同じ失望を減らすには、以前の問題が実際に改善したか確かめる必要があります。話が何度も変わるなら、会う約束は先に延ばしたほうがよさそうです。 |
 
 ## major.magician · 정방향
 
 내부 ID: `love.major.magician.upright`
 
-카드 의미: 의지와 숙련을 실제 행동으로 연결함. 원전의 기량·설득·자신감을 살려 이미 가진 자원을 활용하는 뜻.
+카드 의미: 기술, 의지, 가진 도구의 활용
 
-분야 해석: 매력표현
+분야 해석: 좋음: 매력 전달과 고백의 호응, 말한 계획의 실행
 
-관찰: 평소보다 말이 자연스럽게 나와 호감을 전하기 좋은 날이야. / 가볍게 건넨 농담이나 칭찬에 상대도 편하게 웃어줄 수 있어. / 관심 있는 사람이 있다면 좋아할 만한 이야기를 꺼낼 기회가 생길 거야.
+관찰: 기술 / 의지 / 가진 도구의 활용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 평소보다 말이 자연스럽게 나와 호감을 전하기 좋은 날이야. 가볍게 건넨 농담이나 칭찬에 상대도 편하게 웃어줄 수 있어. 관심 있는 사람이 있다면 좋아할 만한 이야기를 꺼낼 기회가 생길 거야. 외워둔 멋진 말보다 실제로 궁금했던 것을 물어봐. 솔직한 관심이 담긴 대화가 화려한 표현보다 오래 기억에 남을 수 있어. | Words could come naturally today, making affection easier to express. A light joke or compliment may get a relaxed smile in return. If someone interests you, a chance to bring up something they enjoy could appear. Ask what you genuinely want to know instead of relying on a rehearsed line. Sincere interest may stay with them longer than an impressive turn of phrase. | いつもより自然に言葉が出て、好意を伝えやすい日です。軽い冗談や褒め言葉に、相手も気楽に笑ってくれそうです。気になる人がいれば、相手の好きそうな話をする機会もあるでしょう。覚えてきた言葉より、本当に気になっていたことを聞いてみましょう。素直な関心のこもった会話が、華やかな言葉より長く心に残りそうです。 |
+| 분야 풀이 | 솔로라면 대화 중에 매력이 잘 드러나 관심을 받을 수 있어. 좋아하는 사람에게 마음을 전하면 말하려던 뜻이 또렷하게 전달돼. 함께 즐길 만한 일을 제안하면 데이트로 이어질 수 있어.<br><br>연애 중이라면 말로만 하던 계획을 실제로 옮기기 좋은 날이야. 직접 준비한 데이트나 애정 표현이 상대에게 잘 전해질 수 있어. 결혼 이야기도 구체적인 계획을 곁들이면 진전이 있어.<br><br>이별 후라면 진심을 전할 대화가 성사될 수 있어. 서로 연락을 이어가는 사이라면 예전과 무엇이 달라졌는지 솔직히 말해봐. 상대도 다시 만나고 싶어 할 때 다음 약속을 정하기 좋아. | If you're single, your charm could come across in conversation and draw interest. Telling someone you like how you feel may convey exactly what you mean. Suggesting something you'd both enjoy could lead to a date.<br><br>In a relationship, it's a good day to act on plans you've only talked about. A date you've prepared yourself or a show of affection could mean a lot to your partner. A discussion of marriage may also progress if you include specific plans.<br><br>After a breakup, you may get a chance to speak sincerely. If you're still in contact, be honest about what's changed since before. It's a good day to arrange another meeting if the other person wants to get back together too. | フリーの人は、会話の中で魅力が伝わり、関心を持ってもらえそうです。好きな人に気持ちを伝えると、言いたいことがはっきり届くでしょう。一緒に楽しめることを提案すれば、デートにつながる可能性もあります。<br><br>交際中なら、話していただけの計画を実行に移す好機です。自ら用意したデートや愛情表現が、相手にしっかり伝わりそうです。結婚の話も、具体的な計画を添えると前に進むでしょう。<br><br>別れた後なら、本音を伝えるために話す機会ができそうです。互いに連絡を取り合っているなら、以前と何が変わったのか正直に話しましょう。相手もまた会いたいと思っているときは、次の約束を決めやすい日です。 |
 
 ## major.moon · 역방향
 
 내부 ID: `love.major.moon.reversed`
 
-카드 의미: 흐릿했던 정보가 일부 드러나며 추측을 줄일 수 있음. 원전의 약해진 오류를 모든 비밀이 밝혀진다는 뜻 없이 채택.
+카드 의미: 혼란완화, 사실확인, 남은추측
 
-분야 해석: 오해풀림
+분야 해석: 회복: 애매한 관계와 오해가 밝혀지고 재회 판단이 선명해짐
 
-관찰: 마음에 걸렸던 말의 뜻을 알게 되며 오해가 풀릴 수 있어. / 차갑다고 느낀 반응에도 다른 사정이 있었다는 걸 듣게 될 거야. / 괜히 연락을 아꼈던 사이에서는 먼저 웃으며 안부를 나눌 수 있는 날이야.
+관찰: 혼란완화 / 사실확인 / 남은추측
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 마음에 걸렸던 말의 뜻을 알게 되며 오해가 풀릴 수 있어. 차갑다고 느낀 반응에도 다른 사정이 있었다는 걸 듣게 될 거야. 괜히 연락을 아꼈던 사이에서는 먼저 웃으며 안부를 나눌 수 있는 날이야. 사실을 알게 됐다면 혼자 담아둔 서운함도 짧게 이야기해봐. 예전처럼 편하게 주고받는 말이 돌아와 마음이 한결 놓일 수 있어. | Understanding a remark that's bothered you could clear up a misunderstanding. You may hear that a reaction you thought cold had another explanation. If you've both been holding back on messages, you could smile and check in first. Once you know the facts, briefly share the hurt you've been keeping to yourself too. An easy exchange like the ones you used to have could leave you feeling reassured. | 気になっていた言葉の意味が分かり、誤解が解けそうです。冷たく感じた反応にも、別の事情があったと聞くでしょう。お互い連絡を控えていた間柄でも、先に笑顔で近況を話せそうです。事実が分かったら、一人で抱えていた寂しさも短く伝えてみてください。以前のような気楽なやり取りが戻って、気持ちが楽になるでしょう。 |
+| 분야 풀이 | 솔로라면 헷갈렸던 상대의 마음을 확인할 수 있어. 호감이 있었는지 단순히 친절했던 건지 알게 될 수 있는 날이야. 상대도 좋아하고 있었다면 고백으로 이어질 수 있어.<br><br>연애 중이라면 의심했던 일의 사정을 듣고 오해를 풀 수 있어. 숨겨둔 서운함도 차분히 말하면 뜻이 더 잘 전해져. 한 가지 오해가 풀렸다고 그동안 있었던 일까지 한꺼번에 캐묻지는 마.<br><br>이별 후라면 상대가 왜 연락했는지 알게 될 수 있어. 서로 다시 만나고 싶다면 헤어진 문제도 함께 이야기해봐. 단순한 안부였다는 걸 확인했다면 재회 기대를 접는 데 도움이 될 거야. | If you're single, you could find out how someone really feels. It may become clear whether they've been interested in you or simply friendly. If the attraction is mutual, you could end up sharing your feelings openly.<br><br>For couples, an explanation could clear up something you've been suspicious about. A hurt you've kept to yourself may also be easier to express calmly. Clearing up one misunderstanding isn't a reason to question your partner about everything else at once.<br><br>After a breakup, you may learn why your ex got in touch. If you both want to try again, talk about what caused the split too. If it was simply a friendly check-in, knowing that may help you let go of hopes of reconciliation. | フリーの人は、つかめなかった相手の気持ちを確かめられそうです。好意があったのか、親切だっただけなのかが分かるかもしれません。相手も好きでいてくれたなら、告白につながることも期待できます。<br><br>交際中なら、疑っていたことの事情を聞き、誤解が解けそうです。言えずにいた寂しさも、落ち着いて話すと伝わりやすくなります。一つ誤解が解けたからと、これまでのことまで一度に問いたださないでください。<br><br>別れた後なら、相手が連絡してきた理由が分かるかもしれません。お互いにやり直したいなら、別れの原因も一緒に話しましょう。近況を聞きたかっただけだと分かれば、復縁への期待に区切りをつける助けになります。 |
 
 ## major.moon · 정방향
 
 내부 ID: `love.major.moon.upright`
 
-카드 의미: 불확실한 정보와 상상이 판단을 흔드는 때. 원전의 오류·어둠을 숨은 적이 아닌 확인되지 않은 추측으로 응용.
+카드 의미: 모호함, 추측, 불안
 
-분야 해석: 연락추측
+분야 해석: 주의: 애매한 호감, 추측으로 생기는 다툼, 불분명한 재회 의사
 
-관찰: 상대의 짧은 말이나 늦은 연락이 평소보다 크게 신경 쓰일 수 있어. / 다정했던 장면과 무심했던 장면이 번갈아 떠올라 마음이 오락가락할 거야. / 직접 만나면 글로는 느끼지 못한 편안한 분위기가 있을 수 있는 날이야.
+관찰: 모호함 / 추측 / 불안
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대의 짧은 말이나 늦은 연락이 평소보다 크게 신경 쓰일 수 있어. 다정했던 장면과 무심했던 장면이 번갈아 떠올라 마음이 오락가락할 거야. 직접 만나면 글로는 느끼지 못한 편안한 분위기가 있을 수 있는 날이야. 혼자 의미를 붙이기보다 궁금한 말 하나만 물어봐. 상대의 설명이 생각보다 단순해 걱정했던 내가 멋쩍게 느껴질 수도 있어. | A brief remark or late message from the other person may matter more than usual. Memories of their warmth and apparent indifference could alternate, leaving your feelings unsettled. Meeting in person may have an ease you couldn't sense in writing. Ask about one thing you're wondering instead of trying to guess what it meant. Their explanation could be simple enough to make you feel a little sheepish about worrying. | 相手の短い言葉や遅い連絡が、いつもより気になるかもしれません。優しかった場面とそっけなかった場面を交互に思い出し、気持ちが揺れそうです。直接会うと、文章では分からなかった気楽な雰囲気があるでしょう。一人で意味を考え続けるより、気になる言葉を一つ尋ねてみてください。相手の説明が意外と単純で、心配していたのが少し気恥ずかしくなるかもしれません。 |
+| 분야 풀이 | 솔로라면 상대의 친절을 호감으로 오해하기 쉬운 날이야. 다정한 말은 오가도 실제로 만나자는 약속은 잡히지 않을 수 있어. 혼자 사귀게 될 거라고 기대하기보다 상대도 데이트를 원하는지 물어봐.<br><br>연애 중이라면 연락이 늦거나 말이 짧다는 이유로 오해가 생길 수 있어. 확인하지 않은 의심을 쏟아내면 작은 서운함이 다툼으로 번지기 쉬워. 오늘 들은 말과 혼자 짐작한 일을 구별해줘.<br><br>이별 후라면 애매한 연락 때문에 재회를 기대했다가 혼란스러울 수 있어. 그리워한다는 말만으로 다시 사귈 뜻까지 있다고 보기는 어려워. 분명한 대답이 없다면 재회 약속으로 받아들이지 않는 게 좋아. | If you're single, it may be easy to mistake friendliness for romantic interest today. Warm words might not lead to an actual date. Ask whether they want to go out rather than assuming a relationship is on the way.<br><br>For couples, a slow reply or a short message could create a misunderstanding. Voicing suspicions you haven't checked may turn a small hurt into an argument. Separate what you've actually heard today from what you've imagined.<br><br>After a breakup, an ambiguous message could raise your hopes and leave you confused. Saying they miss you doesn't necessarily mean they want a relationship again. Without a clear answer, don't take it as a promise to reunite. | フリーの人は、相手の親切を恋愛感情と取り違えやすい日です。優しい言葉は交わしても、実際に会う約束は決まらないかもしれません。一人で交際を期待する前に、相手もデートを望んでいるか聞いてみましょう。<br><br>交際中なら、連絡が遅い、返事が短いといった理由で誤解が生まれそうです。確かめていない疑いをぶつけると、小さな寂しさがけんかに発展しかねません。今日聞いたことと、頭の中で想像したことを分けて考えましょう。<br><br>別れた後なら、曖昧な連絡に復縁を期待して、戸惑うことがありそうです。恋しく思っているという言葉だけで、交際をやり直す気があるとは判断できません。はっきりした返事がないなら、復縁の約束として受け取らないほうがよいでしょう。 |
 
 ## major.star · 역방향
 
 내부 ID: `love.major.star.reversed`
 
-카드 의미: 기대가 멀어 보이거나 자기 가능성을 신뢰하기 어려움. 회복 불가능이 아니라 목표와 현재 사이를 다시 좁히는 뜻.
+카드 의미: 자기불신, 희망저하, 낙담
 
-분야 해석: 호의망설임
+분야 해석: 주의: 기대에 못 미치는 반응, 불신이 가리는 애정, 재회 낙담
 
-관찰: 반가운 말을 듣고도 예의일 뿐이라고 넘기기 쉬운 날이야. / 이전의 서운한 기억이 떠올라 내 표현을 먼저 줄일 수 있어. / 하지만 상대가 다시 말을 걸거나 작은 일을 기억해주는 모습을 보게 될 거야.
+관찰: 자기불신 / 희망저하 / 낙담
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 반가운 말을 듣고도 예의일 뿐이라고 넘기기 쉬운 날이야. 이전의 서운한 기억이 떠올라 내 표현을 먼저 줄일 수 있어. 하지만 상대가 다시 말을 걸거나 작은 일을 기억해주는 모습을 보게 될 거야. 고마웠던 말에는 짧게라도 답을 건네봐. 크게 기대하지 않더라도 오늘의 대화만큼은 편하게 즐길 수 있을 거야. | You may dismiss a welcome remark as mere politeness today. Remembering an old hurt could make you hold back first. But you may see the other person start another conversation or remember a small detail about you. Offer even a brief reply to a kind remark. Without raising your expectations too much, you can still enjoy today's conversation comfortably. | うれしい言葉を聞いても、社交辞令だと流しやすい日です。以前寂しかったことを思い出して、自分から表現を控えるかもしれません。でも、相手がまた話しかけたり、小さなことを覚えていたりする姿が見られそうです。ありがたかった言葉には、短くても返事をしてみてください。大きく期待しなくても、今日の会話は気楽に楽しめるでしょう。 |
+| 분야 풀이 | 솔로라면 기다린 연락이 기대만큼 다정하지 않아 실망할 수 있어. 한 번의 무심한 답만으로 앞으로의 만남까지 모두 포기할 필요는 없어. 상대가 실제로 만날 뜻을 보이는지 조금 더 살펴봐.<br><br>연애 중이라면 애정 표현을 받아도 예전의 서운함 때문에 믿기 어려울 수 있어. 괜찮아졌다고 넘긴 일에서 다툼이 다시 생길 수 있으니 남은 불만을 솔직하게 말해줘.<br><br>이별 후라면 재회에 대한 기대가 줄고 연락을 기다리는 일이 힘들 수 있어. 오늘 좋은 답이 오지 않더라도 자신의 매력까지 부족하다고 판단하지 마. 기다림이 지친다면 먼저 연락을 쉬어도 괜찮아. | If you're single, a message you've waited for may be less affectionate than you hoped. One indifferent answer doesn't mean you need to give up every future meeting. Look a little longer at whether the other person actually shows a wish to see you.<br><br>In a relationship, old hurt may make affection difficult to believe. An issue you thought was fine again could cause another argument, so be honest about any resentment that remains.<br><br>After a breakup, hope of a reunion may fade and waiting for contact could be hard. Even if you don't get a good answer today, don't judge yourself as less attractive. If waiting has worn you out, it's fine to take a break from reaching out. | フリーの人は、待っていた連絡が期待ほど優しくなく、がっかりするかもしれません。一度そっけない返事だっただけで、これからの出会いまで諦める必要はありません。相手が実際に会う意思を見せているか、もう少し様子を見ましょう。<br><br>交際中なら、愛情を伝えられても、以前傷ついた気持ちから信じにくいかもしれません。もう大丈夫だと流したことが、またけんかの原因になりそうです。残っている不満を正直に伝えてください。<br><br>別れた後なら、復縁への期待が薄れ、連絡を待つことがつらくなりそうです。今日よい返事が来なくても、魅力が足りないとまで考える必要はありません。待つことに疲れたなら、こちらからの連絡を休んでも大丈夫です。 |
 
 ## major.star · 정방향
 
 내부 ID: `love.major.star.upright`
 
-카드 의미: 희망과 다시 시작할 신뢰. 원전에 함께 있는 상실과 밝은 전망 중 회복을 바라보는 독해를 선택.
+카드 의미: 희망, 영감, 편안한회복감
 
-분야 해석: 설레는인연
+분야 해석: 회복과 좋음: 다정한 새 인연, 애정 회복, 이별 뒤 편안한 만남
 
-관찰: 다정한 연락이나 가벼운 초대에 설렘이 돌아올 수 있는 날이야. / 새로운 인연을 기대하지 않던 사람도 편하게 대화할 상대를 만날 수 있어. / 가까운 사이에서는 앞날의 작은 계획을 이야기하며 함께할 기대가 생길 거야.
+관찰: 희망 / 영감 / 편안한회복감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다정한 연락이나 가벼운 초대에 설렘이 돌아올 수 있는 날이야. 새로운 인연을 기대하지 않던 사람도 편하게 대화할 상대를 만날 수 있어. 가까운 사이에서는 앞날의 작은 계획을 이야기하며 함께할 기대가 생길 거야. 부담 없는 약속 하나를 제안해봐. 지금 나눈 따뜻한 말이 다음 만남까지 기분 좋게 기억에 남을 수 있어. | An affectionate message or casual invitation could bring back a little excitement. Even if you weren't expecting a new connection, you may meet someone easy to talk to. In a close relationship, discussing a small future plan could give you something to enjoy looking forward to. Suggest one simple arrangement without much pressure. The warm words you share now could remain a lovely memory until you meet again. | 優しい連絡や気軽な誘いに、ときめきが戻ってきそうです。新しい縁を期待していなかった人も、自然に話せる相手に出会うかもしれません。親しい間柄では、小さな将来の予定を話して、一緒に過ごす楽しみが生まれるでしょう。負担の少ない約束を一つ提案してみてください。今日交わした温かな言葉が、次に会うまでうれしい記憶として残りそうです。 |
+| 분야 풀이 | 솔로라면 실망했던 만남 뒤에 다정한 사람과 인연이 닿을 수 있어. 소개나 대화가 부담 없이 이어지며 다시 만나고 싶은 사람이 생기기 좋은 날이야.<br><br>연애 중이라면 서먹했던 사이에 따뜻한 말이 오갈 수 있어. 다툰 뒤 먼저 내민 손을 상대도 받아주기 좋아. 함께 하고 싶은 일을 이야기하면 예전의 즐거움을 되찾을 수 있어.<br><br>이별 후라면 날이 서 있던 대화가 편안해질 수 있어. 둘 다 원한다면 안부를 나누며 천천히 가까워질 기회가 있어. 재회가 아니더라도 다른 사람과 즐겁게 만날 일이 생길 수 있어. | If you're single, you could connect with someone kind after a disappointing encounter. An introduction or conversation may feel easy, giving you a good chance of finding someone you'd like to see again.<br><br>In a relationship, warm words could ease the distance between you. If you make the first effort to reconcile after an argument, your partner may welcome it. Talking about something you'd like to do together could bring back an old sense of enjoyment.<br><br>After a breakup, a tense conversation could become more comfortable. If you both want to, checking in with each other may give you a chance to grow closer slowly. Even without a reunion, an enjoyable meeting with someone else could come along. | フリーの人は、がっかりした出会いの後に、優しい人と縁ができそうです。紹介された人とも気負わずに話が続き、また会いたい人ができやすい日です。<br><br>交際中なら、ぎこちなかった二人の間に、温かな言葉が交わされそうです。けんかの後に歩み寄ると、相手も応じてくれやすいでしょう。一緒にやりたいことを話せば、以前の楽しさを取り戻せそうです。<br><br>別れた後なら、とげのあった会話が、気楽にできるようになりそうです。二人とも望んでいるなら、近況を話しながら少しずつ距離を縮める機会があります。復縁でなくても、別の人と楽しく会うことがあるかもしれません。 |
 
 ## major.strength · 역방향
 
 내부 ID: `love.major.strength.reversed`
 
-카드 의미: 자신감이 약해지거나 억눌렀던 반응이 강해질 수 있음. 부족한 의지를 탓하기보다 과한 긴장과 자기비판을 낮추는 뜻.
+카드 의미: 자기회의, 약한자제, 불안한강함
 
-분야 해석: 서운함예민
+분야 해석: 주의: 불안과 질투로 인한 고백 압박, 감정적 다툼
 
-관찰: 좋아하는 사람의 무심한 말에 평소보다 쉽게 서운해질 수 있어. / 나만 더 신경 쓰는 것 같아 괜히 연락을 줄이고 싶어질 거야. / 직접 만나면 글로 느꼈던 차가움과 다른 다정한 모습을 볼 수 있는 날이야.
+관찰: 자기회의 / 약한자제 / 불안한강함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋아하는 사람의 무심한 말에 평소보다 쉽게 서운해질 수 있어. 나만 더 신경 쓰는 것 같아 괜히 연락을 줄이고 싶어질 거야. 직접 만나면 글로 느꼈던 차가움과 다른 다정한 모습을 볼 수 있는 날이야. 마음이 상했을 때는 바로 긴 메시지를 보내지 마. 잠깐 시간이 지난 뒤에는 꼭 전할 말만 남아 더 편하게 이야기할 수 있어. | An offhand remark from someone you like may hurt more than usual. You might feel you're the only one making an effort and want to pull back. Meeting in person could reveal a warmth that didn't come through in their messages. Avoid sending a long message immediately after something upsets you. After a little time, you'll be able to focus on what matters and talk more easily. | 好きな人の何気ない言葉に、いつもより傷つきやすいかもしれません。自分ばかり気にかけている気がして、連絡を減らしたくなりそうです。でも、直接会うと、文章では伝わらなかった優しさに触れられるでしょう。傷ついた直後に長いメッセージを送るのは控えてください。少し時間がたてば、本当に伝えたいことだけが残り、落ち着いて話せそうです。 |
+| 분야 풀이 | 솔로라면 상대의 답이 늦을수록 말이 날카로워지기 쉬워. 확인하려고 연달아 연락하면 잘 이어지던 대화도 끊길 수 있어. 고백에 대한 대답은 상대가 생각할 시간을 주는 게 좋아.<br><br>연애 중이라면 사소한 질투가 큰 다툼으로 번질 수 있어. 화가 나서 상대를 시험하거나 헤어지자는 말을 던지지 마. 오늘은 잠깐 멈추고 이야기해야 서로에게 상처를 덜 남겨.<br><br>이별 후라면 서운함을 쏟아내다가 재회 이야기가 틀어질 수 있어. 보고 싶다는 말 뒤에 비난을 붙이면 상대도 방어적으로 답하기 쉬워. 감정이 격할 때는 연락을 미뤄두는 편이 좋아. | If you're single, a longer wait for an answer could make your words sharper. Repeated messages to check how the other person feels could stop a conversation that was going well. After sharing your feelings, give them time to decide how to respond.<br><br>In a relationship, minor jealousy could become a major argument. Don't test your partner or threaten to break up out of anger. Taking a moment before talking today could spare you both some hurt.<br><br>After a breakup, pouring out resentment could derail a discussion of reuniting. Adding accusations after saying you miss them may make the other person defensive too. It's better to put off contact while feelings are intense. | フリーの人は、相手の返事が遅いほど、言葉がきつくなりやすい日です。確かめようと続けて連絡すると、順調だった会話まで途切れるかもしれません。告白の返事は、相手に考える時間をあげましょう。<br><br>交際中なら、ささいな嫉妬が大きなけんかに発展しそうです。腹が立っても、相手の気持ちを試したり、別れを口にしたりするのは控えてください。今日は少し間を置いてから話すほうが、互いを傷つけずに済みます。<br><br>別れた後なら、不満を一気にぶつけて、復縁の話がこじれるかもしれません。会いたいという言葉に非難を続けると、相手も身構えた返事をしがちです。感情が高ぶっているときは、連絡を後にしたほうがよさそうです。 |
 
 ## major.strength · 정방향
 
 내부 ID: `love.major.strength.upright`
 
-카드 의미: 힘을 과시하지 않고 다룰 수 있는 용기와 인내. 원전의 담대함·관대함을 부드럽고 꾸준한 대응으로 채택.
+카드 의미: 내적용기, 인내, 온화한힘
 
-분야 해석: 화해대화
+분야 해석: 좋음: 서서히 깊어지는 호감과 화해, 다툼을 누그러뜨리는 대화
 
-관찰: 서운했던 마음을 부드럽게 풀고 다시 가까워질 수 있는 날이야. / 예민한 이야기도 차분히 꺼내면 상대가 끝까지 들어줄 거야. / 말로 잘 표현하지 못하던 사람의 진심이 작은 행동에서 느껴질 수 있어.
+관찰: 내적용기 / 인내 / 온화한힘
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서운했던 마음을 부드럽게 풀고 다시 가까워질 수 있는 날이야. 예민한 이야기도 차분히 꺼내면 상대가 끝까지 들어줄 거야. 말로 잘 표현하지 못하던 사람의 진심이 작은 행동에서 느껴질 수 있어. 잘못을 따지기보다 앞으로 바라는 행동 하나를 말해봐. 서로를 몰아붙이지 않은 대화가 오히려 깊은 안심을 남길 수 있어. | You could gently resolve hurt feelings and grow close again today. Even a sensitive subject can be discussed calmly, with the other person hearing you out. Someone who struggles to put affection into words may show it through a small gesture. Instead of listing their faults, tell them one thing you'd appreciate in the future. A conversation without pressure could leave you both feeling deeply reassured. | 寂しかった気持ちを穏やかに伝えて、また距離を縮められそうな日です。話しにくいことも落ち着いて切り出せば、相手が最後まで聞いてくれるでしょう。言葉にするのが苦手な人の愛情も、小さな行動から感じられそうです。間違いを責めるより、これからしてほしいことを一つ伝えてみてください。お互いを追い詰めずに話せたことが、深い安心につながりそうです。 |
+| 분야 풀이 | 솔로라면 여러 번 만난 사람과 호감이 깊어질 수 있어. 낯을 가리던 상대도 편하게 이야기를 꺼내기 좋은 날이야. 빠른 고백보다 다정한 대화가 다음 데이트로 이어질 수 있어.<br><br>연애 중이라면 예민했던 문제가 큰 다툼 없이 풀릴 수 있어. 상대의 말을 끝까지 들으면 미처 몰랐던 서운함을 이해하게 돼. 먼저 건넨 따뜻한 말에 상대도 한결 부드럽게 답할 수 있어.<br><br>이별 후라면 날카롭게 끝났던 대화가 차분히 다시 이어질 수 있어. 서로 말할 뜻이 있다면 탓하기보다 그때 못 했던 이야기를 나눠봐. 감정이 가라앉은 뒤에는 재회할지 좋게 끝낼지도 더 편하게 말할 수 있어. | If you're single, affection could deepen with someone you've met several times. A shy person may find it easier to open up today. A kind conversation could lead to another date more readily than a rushed declaration of love.<br><br>In a relationship, a sensitive issue could be resolved without a major argument. Listening until your partner finishes may help you understand hurt you hadn't noticed. A warm word from you could bring a gentler response too.<br><br>After a breakup, a conversation that ended sharply may resume calmly. If you're both willing to talk, share what you couldn't say at the time instead of placing blame. Once emotions settle, it may be easier to discuss either reuniting or ending things on good terms. | フリーの人は、何度か会った人との好意が深まりそうです。人見知りをしていた相手も、気楽に話し始めやすい日です。告白を急ぐより、優しい会話が次のデートにつながるでしょう。<br><br>交際中なら、触れにくかった問題が、大きなけんかにならずに解決しそうです。相手の話を最後まで聞くと、気づいていなかった不満を理解できるでしょう。先に温かな言葉をかければ、相手の返事も柔らかくなりそうです。<br><br>別れた後なら、険悪なまま終わった会話を、落ち着いて再開できそうです。互いに話す気があるなら、責め合うより、そのとき言えなかったことを伝えましょう。感情が静まった後は、復縁するか、穏やかに別れを受け入れるかも話しやすくなります。 |
 
 ## major.sun · 역방향
 
 내부 ID: `love.major.sun.reversed`
 
-카드 의미: 기쁨이 작게 느껴지거나 기대가 경험을 가림. 원전도 같은 만족이 약한 형태라고 하므로 흉으로 반전시키지 않음.
+카드 의미: 가려진만족, 기대차이, 과신
 
-분야 해석: 작은애정
+분야 해석: 완만한 좋음: 호감은 있지만 기대에 못 미치는 표현과 지연
 
-관찰: 기대했던 큰 표현은 없어도 가까운 사람의 다정함을 느낄 수 있어. / 화려한 약속보다 챙겨온 간식이나 짧은 안부가 마음에 남을 거야. / 남들과 비교하면 평범해 보이던 시간이 직접 만나면 충분히 즐거울 수 있는 날이야.
+관찰: 가려진만족 / 기대차이 / 과신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 큰 표현은 없어도 가까운 사람의 다정함을 느낄 수 있어. 화려한 약속보다 챙겨온 간식이나 짧은 안부가 마음에 남을 거야. 남들과 비교하면 평범해 보이던 시간이 직접 만나면 충분히 즐거울 수 있는 날이야. 상대가 해준 작은 배려에 고맙다고 말해봐. 서로 편하게 웃은 순간이 꾸며낸 특별한 장면보다 오래 기억될 수 있어. | Even without the grand gesture you hoped for, you could feel kindness from someone close. A snack they brought or a brief check-in may stay with you more than an elaborate plan. Time that seems ordinary compared with other people's experiences could feel perfectly enjoyable in person. Thank the other person for one small act of care. A moment of easy laughter together could last longer in memory than a carefully staged occasion. | 期待した大きな愛情表現がなくても、身近な人の優しさを感じられそうです。豪華な約束より、持ってきてくれたお菓子や短い気遣いが心に残るでしょう。ほかの人と比べると普通に見える時間も、直接会えば十分楽しく過ごせそうです。相手の小さな気遣いに、ありがとうと伝えてみてください。気楽に笑い合った瞬間が、特別に演出した場面より長く記憶に残るでしょう。 |
+| 분야 풀이 | 솔로라면 호감 가는 만남이 있어도 기대한 만큼 빨리 가까워지지는 않을 수 있어. 즐겁게 대화한 뒤 연락이 뜸하다고 바로 실패로 여기지 마. 다음에 만날 의사가 있는지 확인하면 관계를 더 정확히 알 수 있어.<br><br>연애 중이라면 서로 좋아하면서도 데이트나 선물에 대한 기대가 달라 서운할 수 있어. 상대가 준비한 마음까지 부족하다고 단정하면 좋은 시간을 놓치기 쉬워. 원하는 것이 있다면 구체적으로 말해줘.<br><br>이별 후라면 반가운 답장을 받아도 당장 재회까지 이어지기는 어려워. 좋은 기억을 나누는 것과 다시 사귀겠다는 약속은 달라. 서로의 뜻을 확인하며 천천히 이야기를 이어가봐. | If you're single, a promising meeting may not lead to closeness as quickly as you'd hoped. Fewer messages after an enjoyable conversation don't automatically mean it went badly. Asking whether they'd like to meet again can make things clearer.<br><br>For couples, different expectations about a date or gift could cause disappointment even when the affection is there. Assuming your partner hasn't put enough care into it could spoil a good time together. Be specific about what you'd like.<br><br>After a breakup, a friendly reply may not lead straight to getting back together. Sharing happy memories isn't the same as agreeing to date again. Take your time talking and check what you each want. | フリーの人は、好印象の出会いがあっても、期待したほど早く親しくはなれないかもしれません。楽しく話した後に連絡が少なくても、すぐに脈なしと決めつけないでください。次も会いたいか確かめると、二人の関係がつかみやすくなります。<br><br>交際中なら、好き合っていてもデートやプレゼントへの期待が違い、寂しく感じそうです。期待どおりでないからと相手の愛情まで疑うと、せっかくの時間を楽しめなくなりそうです。希望があるなら、具体的に伝えましょう。<br><br>別れた後なら、うれしい返事が来ても、すぐに復縁するのは難しそうです。よい思い出を語ることと、また付き合う約束は別のものです。お互いの気持ちを確かめながら、ゆっくり話を続けましょう。 |
 
 ## major.sun · 정방향
 
 내부 ID: `love.major.sun.upright`
 
-카드 의미: 밝게 드러나는 기쁨과 솔직한 자신감. 원전의 만족을 모든 분야의 성공이 아닌 지금 경험의 명료한 즐거움으로 사용.
+카드 의미: 기쁨, 자신감, 명료함, 활기
 
-분야 해석: 밝은호감
+분야 해석: 좋음: 서로의 호감 확인, 즐거운 데이트, 밝은 재대화
 
-관찰: 환한 표정과 편한 말투가 호감을 끌어오는 날이야. / 처음 만난 사람과도 웃을 일이 생겨 어색함이 빠르게 줄어들 수 있어. / 가까운 사이에서는 평소의 장난이나 칭찬이 유난히 다정하게 전해질 거야.
+관찰: 기쁨 / 자신감 / 명료함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 환한 표정과 편한 말투가 호감을 끌어오는 날이야. 처음 만난 사람과도 웃을 일이 생겨 어색함이 빠르게 줄어들 수 있어. 가까운 사이에서는 평소의 장난이나 칭찬이 유난히 다정하게 전해질 거야. 좋았던 점이 있다면 숨기지 말고 솔직하게 말해줘. 함께 보낸 시간이 즐거웠다는 반응에 다음 만남도 기분 좋게 기대할 수 있어. | A bright expression and relaxed way of speaking could draw people to you today. Even with someone you've just met, shared laughter may quickly ease the awkwardness. In a close relationship, a usual joke or compliment could feel especially affectionate. If you liked something, say so honestly rather than hiding it. Hearing that they enjoyed your time together could make the next meeting something lovely to anticipate. | 明るい表情と気楽な話し方が、好感を集めそうな日です。初対面でも一緒に笑うことがあり、ぎこちなさは早く薄れるでしょう。親しい間柄では、いつもの冗談や褒め言葉が、いつも以上に優しく伝わりそうです。よかったところがあれば隠さず、素直に伝えてみてください。一緒に過ごして楽しかったという反応に、次に会う日も楽しみになるでしょう。 |
+| 분야 풀이 | 솔로라면 서로 좋아한다는 걸 분명히 확인할 수 있는 날이야. 소개팅에서는 대화가 잘 통하고 다음 만남도 자연스럽게 잡힐 수 있어. 짝사랑 중이라면 상대의 반가운 반응을 기대해봐.<br><br>연애 중이라면 함께 보내는 시간이 즐겁고 애정 표현도 잘 전해져. 사소한 오해가 있었다면 웃으며 풀릴 수 있어. 청혼이나 기념일을 준비했다면 서로 오래 기억할 하루가 될 수 있어.<br><br>이별 후라면 오랜만의 대화가 예상보다 편안하게 이어질 수 있어. 둘 다 다시 만나고 싶다면 숨기지 말고 마음을 나눠봐. 재회 생각이 서로 다르더라도 안부를 나누며 좋게 마무리할 수 있어. | If you're single, you may get a clear sign that your feelings are mutual. A first date could bring easy conversation and lead naturally to another meeting. If you have a crush, a warm response could be coming your way.<br><br>For couples, time together can be enjoyable and affection is likely to come across clearly. A small misunderstanding could be cleared up with a smile. If you've planned a proposal or an anniversary celebration, it could become a day you'll both remember.<br><br>After a breakup, a conversation after time apart could feel more comfortable than expected. If you both want to try again, be open about it. Even if you want different things, a friendly catch-up could let you part on good terms. | フリーの人は、両思いだとはっきり分かることがありそうです。紹介で会う相手とは会話が弾み、次に会う約束も自然にできるでしょう。片思い中なら、相手のうれしそうな反応を期待できそうです。<br><br>交際中なら、一緒の時間を楽しめて、愛情表現もよく伝わります。小さな誤解があっても、笑顔で解けるかもしれません。プロポーズや記念日の準備をしていたなら、二人の心に長く残る一日になりそうです。<br><br>別れた後なら、久しぶりの会話が予想より気楽に続きそうです。二人ともやり直したいなら、隠さず気持ちを伝え合いましょう。復縁への考えが違っていても、近況を話して穏やかに締めくくれそうです。 |
 
 ## major.temperance · 역방향
 
 내부 ID: `love.major.temperance.reversed`
 
-카드 의미: 배분이 어긋나거나 서로 맞지 않는 선택을 한꺼번에 유지함. 원전의 불화·상충을 양과 시점의 조정 필요로 채택.
+카드 의미: 불균형, 극단, 조급함
 
-분야 해석: 연락온도차
+분야 해석: 주의: 연락과 기대의 불균형, 사소한 다툼, 재회 속도 차이
 
-관찰: 내가 반가울 때 상대는 피곤해 대화의 온도가 다르게 느껴질 수 있어. / 평소의 농담도 타이밍이 맞지 않으면 무심한 말로 들릴 거야. / 조금 시간을 두고 다시 이야기하면 처음보다 편한 반응이 돌아올 수 있는 날이야.
+관찰: 불균형 / 극단 / 조급함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 내가 반가울 때 상대는 피곤해 대화의 온도가 다르게 느껴질 수 있어. 평소의 농담도 타이밍이 맞지 않으면 무심한 말로 들릴 거야. 조금 시간을 두고 다시 이야기하면 처음보다 편한 반응이 돌아올 수 있는 날이야. 오늘은 답을 길게 받으려 하기보다 상대가 편한 때를 물어봐. 엇갈린 기분이 오래가지는 않아 늦은 안부 한마디가 다시 다정하게 느껴질 수 있어. | You may feel excited to talk when the other person is tired, creating a mismatch. Even a familiar joke could sound uncaring at the wrong moment. Trying again after a little time may bring a more relaxed response. Ask when they'd feel comfortable talking instead of pressing for a long answer. The mismatch won't have to linger, and a later hello could feel warm again. | 自分は話せてうれしくても、相手は疲れていて、温度差を感じるかもしれません。いつもの冗談も、タイミングが合わないとそっけなく聞こえそうです。少し時間を置いて話すと、初めより穏やかな反応が返ってくるでしょう。長い返事を求めるより、いつなら話しやすいか尋ねてみてください。気分のすれ違いは長引かず、遅い時間の一言もまた優しく感じられそうです。 |
+| 분야 풀이 | 솔로라면 한쪽만 연락하거나 약속을 재촉하는 사이가 되기 쉬워. 마음이 급해도 상대의 답보다 앞서 다음 만남까지 정하지 마. 고백은 서로 비슷한 관심을 보일 때 하는 편이 좋아.<br><br>연애 중이라면 만나는 횟수나 애정 표현을 두고 다툴 수 있어. 한 사람은 부족하다고 느끼고 다른 사람은 부담스러워할 수 있는 날이야. 누가 더 사랑하느냐고 따지기보다 원하는 연락과 약속을 맞춰줘.<br><br>이별 후라면 다시 만나는 속도를 두고 의견이 갈릴 수 있어. 한쪽은 안부만 나누려는데 다른 쪽이 재회를 요구하면 대화가 끊기기 쉬워. 답을 재촉하기보다 상대도 다시 사귀고 싶은지 물어봐. | If you're single, one person could end up doing all the messaging or pushing to meet. However eager you feel, don't arrange the next date before the other person has answered. Sharing your feelings is better when you're both showing a similar level of interest.<br><br>For couples, how often you meet or express affection could become a source of argument. One person may feel neglected while the other feels pressured. Discuss the contact and plans you'd each like instead of arguing about who loves the other more.<br><br>After a breakup, you may disagree about how quickly to reconnect. If one person only wants to catch up and the other pushes for a relationship, the conversation could stop. Ask whether they also want to date again rather than demanding an answer. | フリーの人は、一方だけが連絡したり、約束をせかしたりする仲になりがちです。焦っていても、返事をもらう前に次の予定まで決めないでください。告白は、お互いに同じくらい関心を示しているときがよさそうです。<br><br>交際中なら、会う回数や愛情表現をめぐってけんかになりそうです。一方は足りないと感じ、もう一方は負担に感じやすい日です。どちらがより愛しているかを争うより、望む連絡や会う頻度を話し合いましょう。<br><br>別れた後なら、再び会うまでのペースで意見が分かれそうです。一方は近況を話したいだけなのに、もう一方が復縁を求めると、会話が途切れがちです。返事をせかす前に、相手もまた付き合いたいのか聞いてみましょう。 |
 
 ## major.temperance · 정방향
 
 내부 ID: `love.major.temperance.upright`
 
-카드 의미: 다른 요소를 알맞게 섞고 조정하는 절도. 원전의 관리·절약·조화를 극단을 피하는 구체적 배합으로 사용.
+카드 의미: 조화, 적정량, 인내, 서로맞춤
 
-분야 해석: 관계화합
+분야 해석: 좋음: 편안한 만남, 타협과 화해, 점진적인 재회
 
-관찰: 서로의 속도가 달라도 편하게 맞춰갈 수 있는 날이야. / 연락이나 만남을 두고 엇갈리던 생각이 대화를 나누며 가까워질 거야. / 가까운 사람의 다른 취향에서도 재미를 발견해 함께 해보고 싶어질 수 있어.
+관찰: 조화 / 적정량 / 인내
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로의 속도가 달라도 편하게 맞춰갈 수 있는 날이야. 연락이나 만남을 두고 엇갈리던 생각이 대화를 나누며 가까워질 거야. 가까운 사람의 다른 취향에서도 재미를 발견해 함께 해보고 싶어질 수 있어. 오늘은 한쪽 방식만 고르기보다 각자 좋아하는 것을 조금씩 나눠봐. 완벽히 같지 않아도 잘 어울릴 수 있다는 안심이 남을 거야. | Even with different paces, you could find a comfortable way to meet each other halfway. Talking may bring your views on messages or meetings closer together. A close companion's different tastes could seem interesting enough to try together. Share a little of what each of you likes instead of choosing only one person's way. You'll feel reassured that you can get along without being exactly alike. | お互いのペースが違っても、無理なく合わせられそうな日です。連絡や会う頻度について違っていた考えも、話すうちに近づくでしょう。身近な人の違う好みにも楽しさを感じ、一緒に試したくなりそうです。今日は片方のやり方だけにせず、それぞれ好きなことを少しずつ分け合ってみてください。全く同じでなくても仲よくできると、安心できるでしょう。 |
+| 분야 풀이 | 솔로라면 말이 잘 통하고 편안한 사람을 만날 수 있어. 처음부터 뜨겁게 끌리지 않아도 대화를 나눌수록 서로를 더 알아가게 돼. 연락 속도를 맞춰가면 다음 만남도 순조롭게 이어질 수 있어.<br><br>연애 중이라면 의견 차이가 줄고 다툰 뒤 화해하기 좋은 날이야. 데이트나 결혼 준비에서 양쪽이 만족할 방법을 찾을 수 있어. 한 사람만 참기보다 서로 조금씩 조정해봐.<br><br>이별 후라면 차분한 대화로 남아 있던 앙금을 풀 수 있어. 서로 그리워하고 있었다면 편하게 연락을 주고받는 사이로 돌아갈 수 있어. 재회를 당장 결정하지 않아도 다시 가까워질 기회는 있어. | If you're single, you could meet someone who's easy to talk to and comfortable to be around. Even without an instant spark, conversation can help you get to know each other. If you're both comfortable with how often you message, another date could be easier to arrange.<br><br>For couples, differences may become smaller, making this a good day to make up after an argument. You could find a way to handle dates or wedding plans that works for both of you. Make small adjustments together instead of leaving one person to put up with everything.<br><br>After a breakup, a calm conversation could clear up lingering resentment. If you've missed each other, you may return to staying in touch comfortably. There's a chance to grow closer again without deciding immediately whether to reunite. | フリーの人は、話が合い、気楽に過ごせる相手と出会えそうです。最初から強く惹かれなくても、話すほどお互いを知っていけます。連絡のペースを合わせれば、次の約束も順調につながりそうです。<br><br>交際中なら、意見の違いが小さくなり、けんかの後も仲直りしやすい日です。デートや結婚の準備で、二人とも満足できる方法が見つかるかもしれません。一方だけが我慢せず、お互いに少しずつ歩み寄りましょう。<br><br>別れた後なら、穏やかに話すことで、残っていたわだかまりを解消できそうです。お互いに恋しく思っていたなら、気軽に連絡を取り合える仲に戻れるかもしれません。今すぐ復縁を決めなくても、また近づく機会はありそうです。 |
 
 ## major.tower · 역방향
 
 내부 ID: `love.major.tower.reversed`
 
-카드 의미: 변화를 피하며 버티거나 큰 혼란 전에 어긋남을 알아차림. 원전의 약해진 충격과 억압을 조기 조정의 가능성으로 응용.
+카드 의미: 변화회피, 조기수정여지
 
-분야 해석: 불편한대화
+분야 해석: 주의 속 수습: 드러난 문제를 고치면 큰 충돌 완화
 
-관찰: 작게 쌓인 서운함이 대화 중에 드러날 수 있는 날이야. / 별일 아닌 줄 알았던 말이 상대에게 오래 남아 있었다는 걸 알게 될 거야. / 지금 이야기한 덕분에 같은 상황을 반복하지 않을 여지가 생길 수 있어.
+관찰: 변화회피 / 조기수정여지
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작게 쌓인 서운함이 대화 중에 드러날 수 있는 날이야. 별일 아닌 줄 알았던 말이 상대에게 오래 남아 있었다는 걸 알게 될 거야. 지금 이야기한 덕분에 같은 상황을 반복하지 않을 여지가 생길 수 있어. 변명보다 마음에 걸렸다는 말을 먼저 받아줘. 부담스러웠던 이야기를 끝낸 뒤에는 다시 편하게 웃을 순간도 찾아올 거야. | A small hurt that's been building may surface in conversation today. You could discover that a remark you thought harmless has stayed with the other person. Talking now may help you avoid repeating the same situation. Acknowledge that it bothered them before offering an explanation. Once the difficult conversation is over, there could be another moment to laugh comfortably together. | 少しずつたまった寂しさが、会話の中で表に出るかもしれません。何でもないと思った言葉が、相手には長く残っていたと分かりそうです。今話したおかげで、同じことを繰り返さずに済む余地ができるでしょう。弁解より先に、気にしていたという言葉を受け止めてください。話しにくかったことを話し終えると、また気楽に笑える瞬間もありそうです。 |
+| 분야 풀이 | 솔로라면 불편했던 말이나 약속 문제가 다시 눈에 띌 수 있어. 좋은 만남으로 이어지려면 모른 척 넘기지 말고 그 자리에서 확인하는 게 좋아. 같은 문제가 반복된다면 고백을 서두를 때는 아니야.<br><br>연애 중이라면 쌓인 불만을 일찍 꺼내 큰 다툼을 피할 수 있어. 이미 어긴 약속이 있다면 사과만 하기보다 무엇을 바꿀지 정해줘. 아무 일 없는 듯 덮어두면 불화가 길어질 수 있어.<br><br>이별 후라면 예전 다툼이 풀리면서 다시 만날 기회가 생길 수 있어. 서로 잘못을 인정하고 사과할 때 재회 이야기도 이어지기 좋아. 같은 문제를 계속 덮어두려 한다면 다시 만나도 다툼이 반복될 수 있어. | If you're single, an uncomfortable remark or a problem with plans could come up again. Address it when it happens if you want this connection to develop well. Repeated problems are a reason to hold off on declaring your feelings.<br><br>For couples, raising a concern early could prevent a bigger argument. If a promise has already been broken, decide what will change as well as apologising. Pretending nothing happened could prolong the tension.<br><br>After a breakup, resolving an old argument could give you a chance to see each other again. If you both acknowledge your mistakes and apologise, talking about reconciliation may become easier. Covering up the same problem could mean arguing about it again if you reunite. | フリーの人は、気になっていた言葉や約束の問題が、また目につきそうです。よい出会いにつなげるには、気づかないふりをせず、その場で確かめるとよいでしょう。同じ問題が続くなら、告白を急ぐ時期ではなさそうです。<br><br>交際中なら、たまった不満を早めに話すことで、大きなけんかを避けられそうです。すでに約束を破ってしまったなら、謝るだけでなく何を変えるか決めましょう。何もなかったように済ませると、不仲が長引くおそれがあります。<br><br>別れた後なら、以前のけんかが収まり、また会う機会ができそうです。お互いの非を認めて謝れば、復縁の話も進めやすくなります。同じ問題を隠し続けるなら、やり直してもけんかを繰り返しかねません。 |
 
 ## major.tower · 정방향
 
 내부 ID: `love.major.tower.upright`
 
-카드 의미: 예상하지 못한 사실이 기존 가정을 흔듦. 원전의 갑작스러운 붕괴를 일상에서 계획 수정이 필요한 발견으로 제한.
+카드 의미: 전제붕괴, 갑작스러운인식
 
-분야 해석: 뜻밖의본심
+분야 해석: 강한 주의: 기대와 다른 사실, 갑작스러운 갈등, 재회 차질
 
-관찰: 가까운 사람의 예상 밖의 말에 잠깐 놀랄 수 있어. / 알고 있다고 여긴 마음이 달랐다는 걸 듣고 대화가 진지해질 거야. / 그동안 말하지 못했던 불편을 알게 되는 계기가 될 수 있는 날이야.
+관찰: 전제붕괴 / 갑작스러운인식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사람의 예상 밖의 말에 잠깐 놀랄 수 있어. 알고 있다고 여긴 마음이 달랐다는 걸 듣고 대화가 진지해질 거야. 그동안 말하지 못했던 불편을 알게 되는 계기가 될 수 있는 날이야. 당황해도 바로 결론을 내리지 말고 이유를 끝까지 들어줘. 진심을 나눈 뒤에는 겉으로 괜찮은 척하던 때보다 서로를 더 정확하게 알 수 있어. | An unexpected remark from someone close could briefly surprise you. Hearing that their feelings differ from what you assumed may turn the conversation serious. It could be a chance to learn about a discomfort they hadn't mentioned. Even if you're taken aback, hear their reasons before reaching a conclusion. Sharing honest feelings could help you know each other better than pretending everything was fine. | 身近な人の思いがけない言葉に、少し驚くかもしれません。分かっているつもりだった気持ちが違うと聞いて、真剣な話になりそうです。これまで言えなかった不満を知る、きっかけにもなるでしょう。戸惑ってもすぐ結論を出さず、理由を最後まで聞いてみてください。本音を話した後は、平気なふりをしていたときより、お互いを正しく知れそうです。 |
+| 분야 풀이 | 솔로라면 잘될 줄 알았던 만남이 갑자기 어긋날 수 있어. 상대가 원하는 관계가 다르다는 걸 알게 되거나 잡아둔 약속이 취소될 수 있어. 예상 밖의 말을 들었다고 그 자리에서 따지며 답을 바꾸려 하지는 마.<br><br>연애 중이라면 미뤄둔 문제가 터지면서 크게 다툴 수 있어. 서로 당연하게 여겼던 약속부터 다시 확인해야 해. 화가 난 순간에 이별이나 결혼 취소를 먼저 꺼내면 되돌리기 어려운 말이 남을 수 있어.<br><br>이별 후라면 재회를 기대하던 상황이 달라질 수 있어. 상대가 다시 만날 뜻이 없다고 밝히면 설득을 이어가지 마. 오늘은 예상과 다른 답을 받아들이고 연락을 마무리하는 편이 좋아. | If you're single, a meeting you thought would go well could suddenly fall through. You might discover that the other person wants a different kind of relationship, or a date could be cancelled. Unexpected news isn't a reason to argue on the spot and try to change their answer.<br><br>For couples, a problem you've put off addressing could erupt into a serious argument. Revisit the promises you've both taken for granted. If you bring up breaking up or cancelling the wedding in anger, you may find it hard to take back what you've said.<br><br>After a breakup, the situation you were hoping would lead to reconciliation may change. If your ex says they don't want to get back together, stop trying to persuade them. Accepting an unexpected answer and bringing the conversation to a close may be best today. | フリーの人は、うまくいくと思っていた相手と、急に話が合わなくなるかもしれません。相手が望む関係との違いが分かったり、会う約束が取り消されたりしそうです。予想外のことを言われても、その場で問い詰めて答えを変えさせようとしないでください。<br><br>交際中なら、先送りしていた問題が表に出て、大きなけんかになりかねません。お互いに当然だと思っていた約束から、もう一度確かめる必要があります。怒りに任せて別れや結婚の取りやめを切り出すと、後から撤回しても相手の心に傷が残るかもしれません。<br><br>別れた後なら、復縁を期待していた状況が変わるかもしれません。相手がやり直す気はないと伝えてきたら、説得を続けないでください。今日は予想と違う答えを受け止め、やり取りを終えるほうがよさそうです。 |
 
 ## major.wheel_of_fortune · 역방향
 
 내부 ID: `love.major.wheel_of_fortune.reversed`
 
-카드 의미: 변화를 거스르거나 반복되는 상황에 갇힌 느낌. 원전은 증가라는 다른 역해석도 제시하므로 오늘의 지연을 불운의 본질로 확정하지 않음.
+카드 의미: 통제밖의 변화, 지연, 기존방법의 한계
 
-분야 해석: 만남엇갈림
+분야 해석: 주의: 갑작스러운 일정 변경, 엇갈리는 만남, 재회 지연
 
-관찰: 서로 보고 싶은 마음과 다르게 약속 시간이 자꾸 엇갈릴 수 있어. / 갑자기 생긴 일 때문에 연락이 늦거나 만남이 미뤄질 수 있는 날이야. / 다른 날을 이야기하다 보면 오히려 더 편한 약속을 찾게 될 거야.
+관찰: 통제밖의 변화 / 지연 / 기존방법의 한계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 보고 싶은 마음과 다르게 약속 시간이 자꾸 엇갈릴 수 있어. 갑자기 생긴 일 때문에 연락이 늦거나 만남이 미뤄질 수 있는 날이야. 다른 날을 이야기하다 보면 오히려 더 편한 약속을 찾게 될 거야. 일정이 안 맞는 이유를 마음의 크기로 받아들이지는 마. 잠깐 기다린 뒤의 대화는 처음 기대했던 것만큼 반갑게 느껴질 수 있어. | You may both want to meet, yet struggle to find a time that works. An unexpected matter could delay a reply or postpone your plans. Discussing another day may actually lead to a more comfortable arrangement. Don't read a scheduling problem as a measure of someone's affection. After a brief wait, talking could feel just as lovely as you'd hoped. | お互い会いたいのに、都合のよい時間がなかなか合わないかもしれません。急な用事で返事が遅れたり、会う予定が延びたりしそうです。別の日を相談するうちに、かえって無理のない約束ができるでしょう。予定が合わないことを、気持ちが薄いせいだと受け取らないでください。少し待った後の会話は、最初に楽しみにしていたのと同じくらいうれしく感じられそうです。 |
+| 분야 풀이 | 솔로라면 기대하던 만남이 미뤄지거나 약속이 어긋날 수 있어. 상대에게 사정이 생길 수도 있으니 취소 한 번으로 호감이 없다고 단정하지 마. 다시 만날 날짜를 정할 수 있는지 살펴봐.<br><br>연애 중이라면 둘만의 계획이 주변 사정 때문에 바뀔 수 있어. 기다린 데이트가 취소되면 아쉬워도 상대 잘못으로만 돌리지 않는 게 좋아. 결혼 준비 중이라면 오늘 정하지 못한 일은 여유를 두고 다시 맞춰봐.<br><br>이별 후라면 연락할 시기가 맞지 않아 재회 대화가 늦어질 수 있어. 오늘 만나지 못했다고 같은 제안을 반복하면 부담이 커져. 서로 대화할 수 있는 때가 올지 지켜보는 편이 좋아. | If you're single, a meeting you've hoped for may be delayed or plans could go wrong. The other person may have something come up, so one cancellation doesn't prove a lack of interest. See whether you can arrange another date.<br><br>In a relationship, outside circumstances could change your plans together. Even if a cancelled date is disappointing, it's best not to put all the blame on your partner. If you're preparing for marriage, leave time to revisit anything you can't settle today.<br><br>After a breakup, poor timing could delay a conversation about getting back together. Repeating the same invitation because you can't meet today may add pressure. It's better to wait and see whether a time comes when you can both talk. | フリーの人は、楽しみにしていた出会いが延びたり、会う約束がうまくいかなかったりしそうです。相手に事情ができた可能性もあるので、一度のキャンセルで好意がないと決めつけるのは控えましょう。別の日に会う約束ができるか、確かめてください。<br><br>交際中なら、周囲の事情で二人の計画が変わるかもしれません。待っていたデートが中止になると残念ですが、相手だけのせいにしないほうがよさそうです。結婚の準備中なら、今日決まらなかったことは時間に余裕を持って改めて相談しましょう。<br><br>別れた後なら、連絡のタイミングが合わず、復縁の話が遅れそうです。今日会えなかったからと同じ誘いを繰り返すと、負担が大きくなります。互いに話せるときが来るか、様子を見たほうがよいでしょう。 |
 
 ## major.wheel_of_fortune · 정방향
 
 내부 ID: `love.major.wheel_of_fortune.upright`
 
-카드 의미: 상황의 순환과 뜻밖의 변동. 원전의 운·상승을 전부 통제할 수 없는 시기에 열린 기회를 알아보는 뜻으로 선택.
+카드 의미: 기회의 변화, 행운, 전환
 
-분야 해석: 우연한재회
+분야 해석: 좋음: 우연한 인연, 막혔던 만남의 성사, 뜻밖의 재연락
 
-관찰: 뜻밖의 장소에서 반가운 사람을 만나거나 연락을 받을 수 있어. / 한동안 소식이 없던 인연과 이야기가 다시 이어질 수도 있는 날이야. / 우연히 겹친 일정이 새로운 만남을 자연스럽게 만들어줄 거야.
+관찰: 기회의 변화 / 행운 / 전환
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 뜻밖의 장소에서 반가운 사람을 만나거나 연락을 받을 수 있어. 한동안 소식이 없던 인연과 이야기가 다시 이어질 수도 있는 날이야. 우연히 겹친 일정이 새로운 만남을 자연스럽게 만들어줄 거야. 마주친 순간에는 망설이지 말고 반갑게 인사해봐. 길지 않은 대화라도 다음에 다시 보고 싶다는 마음이 남을 수 있어. | You could meet someone you're glad to see in an unexpected place or receive a welcome message. A connection that's been quiet for some time may pick up again. Overlapping plans could naturally lead to a new meeting. When you cross paths, offer a warm hello without hesitating. Even a short conversation may leave you wanting to see each other again. | 思いがけない場所で会いたかった人に会ったり、うれしい連絡をもらったりしそうです。しばらく途絶えていたやり取りが、また始まるかもしれません。偶然予定が重なり、自然な形で新しい出会いも生まれるでしょう。顔を合わせたら、ためらわずに明るく挨拶してみてください。短い会話でも、また会いたいという気持ちが残りそうです。 |
+| 분야 풀이 | 솔로라면 우연한 자리에서 마음에 드는 사람을 만날 수 있어. 소개가 갑자기 들어오거나 자주 스치던 사람과 대화를 시작할 수 있는 날이야. 만날 기회가 왔다면 한 번쯤 응해봐.<br><br>연애 중이라면 어긋나던 일정이 맞고 함께할 시간이 생길 수 있어. 미뤄졌던 데이트가 성사되면서 서운함도 풀리기 좋아. 결혼 준비로 막힌 일이 있었다면 새로운 선택지가 나올 수 있어.<br><br>이별 후라면 뜻밖의 연락으로 다시 이야기를 나눌 수 있어. 우연히 대화가 이어졌다고 당장 재회를 뜻하는 것은 아니야. 서로 반갑고 다시 만나고 싶다면 약속을 잡아볼 만해. | If you're single, a chance encounter could introduce you to someone you like. An unexpected introduction may come along, or you could start talking to someone you often pass by. If a chance to meet arises, consider saying yes.<br><br>In a relationship, clashing schedules could finally line up and give you time together. A postponed date may happen and ease hurt feelings. If wedding preparations have stalled, a new option could appear.<br><br>After a breakup, an unexpected message could let you talk again. A conversation starting by chance doesn't immediately mean a reunion. If you're both pleased to hear from each other and want to meet again, arranging it could be worthwhile. | フリーの人は、偶然の場で気になる人と出会えそうです。急に紹介の話が来たり、よくすれ違う人と会話が始まったりするかもしれません。会う機会が来たら、一度応じてみましょう。<br><br>交際中なら、合わなかった予定がかみ合い、一緒に過ごす時間ができそうです。延期していたデートが実現し、不満も和らぎやすいでしょう。結婚の準備で行き詰まっていたことには、新しい選択肢が見つかるかもしれません。<br><br>別れた後なら、思いがけない連絡をきっかけに、また話せそうです。偶然会話が続いたからといって、すぐに復縁を意味するわけではありません。互いにうれしく、また会いたいなら、約束をしてみるのもよいでしょう。 |
 
 ## major.world · 역방향
 
 내부 ID: `love.major.world.reversed`
 
-카드 의미: 완료 직전의 미완이나 끝을 인정하기 어려움. 원전의 정체를 남은 핵심과 불필요한 반복을 구별하는 뜻으로 사용.
+카드 의미: 미완성, 만족부족, 마지막과제
 
-분야 해석: 남은한마디
+분야 해석: 유보: 마지막 고백·약속의 지연, 관계 결론의 미완성
 
-관찰: 즐겁게 만난 뒤에도 전하지 못한 말이 하나 남을 수 있어. / 고맙거나 미안한 마음을 말할 때를 놓쳐 뒤늦게 생각날 거야. / 짧은 연락을 건네면 상대도 같은 마음이었다며 답할 수 있는 날이야.
+관찰: 미완성 / 만족부족 / 마지막과제
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 즐겁게 만난 뒤에도 전하지 못한 말이 하나 남을 수 있어. 고맙거나 미안한 마음을 말할 때를 놓쳐 뒤늦게 생각날 거야. 짧은 연락을 건네면 상대도 같은 마음이었다며 답할 수 있는 날이야. 길게 꾸미지 말고 남아 있던 한마디를 전해봐. 마음에 걸리던 말이 끝나면 오늘의 만남을 더 편하게 기억할 수 있어. | Even after an enjoyable meeting, one unsaid thing may remain. You might remember later that you missed the moment to say thanks or apologize. A short message could bring a reply that the other person felt the same. Say the one thing left over without making it elaborate. Once it's said, you could remember today's meeting with greater ease. | 楽しく会った後にも、伝えそびれた言葉が一つ残るかもしれません。感謝や謝りたい気持ちを言う機会を逃して、後から思い出しそうです。短く連絡すると、相手も同じ気持ちだったと返してくれるでしょう。長く飾らず、残っていた一言を伝えてみてください。気になっていた言葉を伝え終えれば、今日会った時間をもっと気楽に思い出せそうです。 |
+| 분야 풀이 | 솔로라면 서로 호감이 있어도 사귀자는 말까지 나오지 않을 수 있어. 만남은 이어지는데 관계가 애매하다면 어떤 사이를 원하는지 한 번은 이야기할 필요가 있어.<br><br>연애 중이라면 거의 정해진 계획에 남은 문제 하나가 발목을 잡을 수 있어. 청혼이나 결혼 준비를 앞두었다면 서로 아직 답하지 못한 부분을 확인해봐. 마무리되지 않았다고 그동안의 노력을 실패로 볼 필요는 없어.<br><br>이별 후라면 재회할지 끝낼지 결론이 나지 않아 연락만 이어질 수 있어. 미련 때문에 남겨둔 약속이 있다면 서로 지킬 뜻이 있는지 물어봐. 더는 만나지 않기로 했다면 물건과 연락도 정리하기 좋아. | If you're single, mutual interest may still not lead to a suggestion of dating. If you keep meeting while the relationship remains unclear, you need to talk at least once about what kind of connection you want.<br><br>In a relationship, one remaining issue could hold up an almost-settled plan. If a proposal or wedding preparations are ahead, check what you haven't answered yet. An unfinished plan doesn't mean the effort so far has failed.<br><br>After a breakup, contact could continue without a decision to reunite or end things. If lingering feelings have kept a promise open, ask whether you both intend to keep it. If you've decided not to meet again, it's a good time to sort out any belongings and end contact too. | フリーの人は、互いに好意があっても、付き合おうという言葉までは出ないかもしれません。会い続けているのに関係が曖昧なら、どんな付き合いを望んでいるか、一度は話す必要がありそうです。<br><br>交際中なら、ほぼ決まった計画が、最後に残る一つの問題で止まるかもしれません。プロポーズや結婚の準備を控えているなら、互いにまだ答えを出せていないことを確かめましょう。完了していないからと、これまでの努力を失敗と考える必要はありません。<br><br>別れた後なら、復縁するか終えるか決まらず、連絡だけが続きそうです。未練から残している約束があれば、互いに守るつもりがあるか尋ねましょう。もう会わないと決めたなら、物の受け渡しや連絡にも区切りをつけやすい日です。 |
 
 ## major.world · 정방향
 
 내부 ID: `love.major.world.upright`
 
-카드 의미: 하나의 과정을 마치고 전체를 이해하는 완결. 원전의 보상·이동을 만족스러운 마무리와 다음 시야로 사용.
+카드 의미: 완성, 만족, 소속감
 
-분야 해석: 관계만족
+분야 해석: 좋음: 고백과 약속의 성사, 결혼 진전, 재회 또는 원만한 마무리
 
-관찰: 함께해온 시간을 돌아보며 가까운 사람의 소중함을 느낄 수 있어. / 작은 기념일이나 둘만 아는 추억이 반가운 대화로 이어질 거야. / 멀리 있는 사람과도 소식을 주고받으며 여전히 잘 통한다는 느낌을 받을 수 있어.
+관찰: 완성 / 만족 / 소속감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께해온 시간을 돌아보며 가까운 사람의 소중함을 느낄 수 있어. 작은 기념일이나 둘만 아는 추억이 반가운 대화로 이어질 거야. 멀리 있는 사람과도 소식을 주고받으며 여전히 잘 통한다는 느낌을 받을 수 있어. 기억에 남는 순간 하나를 먼저 이야기해봐. 서로의 하루를 응원하는 말이 오가며 편안하고 든든한 마음이 남을 거야. | Looking back on time together could remind you how much someone close matters. A small anniversary or a memory only you share may lead to a lovely conversation. Exchanging news with someone far away could show that you still understand each other well. Mention one moment you remember fondly first. Exchanging a few supportive words about your day could leave you feeling comfortable and supported. | 一緒に過ごした時間を振り返り、身近な人の大切さを感じられそうです。小さな記念日や二人だけの思い出が、楽しい会話につながるでしょう。遠くの人とも近況を交わし、今も気持ちが通じると感じられそうです。心に残っている場面を一つ、先に話してみてください。お互いの一日を応援する言葉が行き交い、安心と心強さが残るでしょう。 |
+| 분야 풀이 | 솔로라면 오래 이어온 호감이 고백으로 결실을 맺을 수 있어. 서로의 마음을 알고도 망설이던 사이라면 오늘부터 사귀기로 할 수 있어.<br><br>연애 중이라면 함께 준비한 일이 마무리되고 기쁨을 나눌 수 있어. 결혼을 앞두었다면 남은 준비가 정리되거나 주변의 축하를 받을 수 있어. 오래 만난 사이도 서로 곁에 있다는 든든함을 느끼기 좋은 날이야.<br><br>이별 후라면 미처 끝내지 못한 이야기를 마무리할 수 있어. 둘 다 재회를 원했다면 다시 만나기로 뜻을 모으기 좋아. 각자의 길을 택하더라도 아쉬운 말을 덜 남기고 헤어질 수 있어. | If you're single, long-standing affection could finally be expressed openly. If you've hesitated despite knowing how you both feel, you may decide to start dating today.<br><br>In a relationship, something you've prepared together could be completed and give you a reason to celebrate. If a wedding is approaching, remaining preparations may be settled or people could offer congratulations. Long-term couples may also enjoy the reassurance of having each other close.<br><br>After a breakup, you may finish a conversation left unresolved. If you've both wanted to reunite, it's a good day to agree to try again. Even if you choose separate paths, you could part with fewer words you wish you'd said differently. | フリーの人は、長く抱いてきた好意が、告白をきっかけに実りそうです。互いの気持ちを知りながら迷っていたなら、今日から付き合うことになるかもしれません。<br><br>交際中なら、一緒に準備したことがまとまり、喜びを分かち合えそうです。結婚を控えているなら、残った準備が済んだり、周囲から祝福されたりするでしょう。長く付き合っている二人も、そばにいてくれる心強さを感じやすい日です。<br><br>別れた後なら、話し終えていなかったことに区切りをつけられそうです。二人とも復縁を望んでいたなら、また付き合うことで気持ちがまとまりやすいでしょう。それぞれの道を選んでも、言い残したことへの後悔を減らして別れられそうです。 |
 
 ## pentacles.01 · 역방향
 
 내부 ID: `love.pentacles.01.reversed`
 
-카드 의미: 기회처럼 보여도 실제 조건이 부족하거나 쓰임이 불명확함. 원전의 물질적 이득의 이면과 현대적 지연을 시작 조건의 점검으로 해석.
+카드 의미: 풍족함이 실제 만족으로 이어지지 않음
 
-분야 해석: 약속실현의차이
+분야 해석: 주의: 조건과 달리 만족스럽지 않은 만남, 물질적 표현의 한계, 실속 없는 재회 약속
 
-관찰: 만나자는 말은 오갔는데 실제 준비는 조금 늦어질 수 있어. / 좋은 뜻으로 건넨 선물이 내 취향과 달라 잠깐 어색해질 수도 있을 거야. / 상대의 마음과 표현하는 방법이 꼭 같지는 않다는 걸 느끼는 날이야.
+관찰: 풍족함이 실제 만족으로 이어지지 않음 / 주의: 조건과 달리 만족스럽지 않은 만남, 물질적 표현의 한계, 실속 없는 재회 약속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 만나자는 말은 오갔는데 실제 준비는 조금 늦어질 수 있어. 좋은 뜻으로 건넨 선물이 내 취향과 달라 잠깐 어색해질 수도 있을 거야. 상대의 마음과 표현하는 방법이 꼭 같지는 않다는 걸 느끼는 날이야. 편하게 이야기하고 나면 다음에는 무엇이 더 반가울지 서로 알게 될 수 있어. 약속은 장소와 시간이 정해졌는지 한 번 확인해줘. | You've talked about meeting, but the arrangements might take a little longer. A well-meant gift that doesn't suit your taste could make for an awkward moment. Today may remind you that affection and the way someone expresses it aren't always the same thing. An easy conversation should help you both understand what would be welcome next time. Check whether the time and place for your meeting are settled. | 会おうという話はあっても、準備には少し時間がかかりそうです。好意で選んでくれた贈り物が好みと違い、少し戸惑うかもしれません。相手の気持ちと、その表し方は必ずしも同じではないと感じるでしょう。気楽に話せば、次は何がうれしいかお互いに分かりそうです。約束の場所と時間が決まっているか、一度確かめてください。 |
+| 분야 풀이 | 솔로라면 좋은 조건의 상대를 만나도 대화가 기대만큼 편하지 않을 수 있어. 멋진 장소나 선물보다 함께 있을 때 즐거운지를 살펴봐.<br><br>연애 중이라면 돈을 들인 데이트를 하고도 서로 서운할 수 있어. 바빴던 시간을 선물 하나로 모두 달래려 하면 원하는 대화가 빠지기 쉬워.<br><br>이별 후라면 다시 만나면 잘해주겠다는 약속에도 믿음이 생기지 않을 수 있어. 물질적인 보답보다 헤어졌던 문제가 달라졌는지 확인해야 재회를 생각해볼 수 있어. | If you're single, someone who seems good on paper may not be as comfortable to talk to as expected. Focus on whether you enjoy being together rather than on an impressive venue or gifts.<br><br>In a relationship, even an expensive date could leave you both hurt. Trying to make up for a busy spell with one gift may leave out the conversation you wanted.<br><br>After a breakup, a promise of better treatment if you reunite may not inspire trust. Before considering a reunion, focus on whether the problem that separated you has changed rather than on what they offer to give you. | フリーの人は、条件のよい相手に会っても、期待ほど気楽には話せないかもしれません。素敵な場所や贈り物より、一緒にいて楽しいかを見ましょう。<br><br>交際中なら、お金をかけたデートをしても、互いに不満が残りそうです。忙しくて会えなかった寂しさを贈り物一つで埋めようとすると、望んでいた会話が抜けてしまいがちです。<br><br>別れた後なら、復縁したら大切にするという約束も、信じきれないかもしれません。物で埋め合わせてもらうより、別れた原因が改善したかを確かめることで、復縁を考えられそうです。 |
 
 ## pentacles.01 · 정방향
 
 내부 ID: `love.pentacles.01.upright`
 
-카드 의미: 손에 잡히는 시작과 실용적인 기회. 원전의 만족·풍요를 감당할 자원으로 시작하는 구체적 기반으로 사용.
+카드 의미: 물질적 충족, 만족, 실질적인 시작
 
-분야 해석: 작은선물
+분야 해석: 좋음: 실제 만남의 시작, 함께할 준비의 진전, 구체적인 재회 약속
 
-관찰: 작은 선물이나 생활 속 배려에서 다정한 마음을 느낄 수 있어. / 좋아한다고 말했던 것을 기억해 챙겨주는 사람이 있을 거야. / 새로운 인연과는 거창한 약속보다 편하게 만날 장소가 정해질 수 있어.
+관찰: 물질적 충족 / 만족 / 실질적인 시작
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 선물이나 생활 속 배려에서 다정한 마음을 느낄 수 있어. 좋아한다고 말했던 것을 기억해 챙겨주는 사람이 있을 거야. 새로운 인연과는 거창한 약속보다 편하게 만날 장소가 정해질 수 있어. 함께 시간을 보내는 일이 실제로 이루어져 반가운 날이야. 받은 배려가 마음에 들었다면 어떤 점이 좋았는지 말해줘. | A small gift or an everyday kindness could make you feel cared for. Someone may remember a thing you said you liked and bring it for you. With a new connection, a comfortable place to meet could be agreed on instead of a grand promise. It will feel good to finally spend some time together. Tell them exactly what you appreciated about their kindness. | 小さな贈り物や日々の気遣いに、優しさを感じられそうです。好きだと話したものを覚えていて、用意してくれる人がいるでしょう。新しい相手とは大げさな約束より、気楽に会える場所が決まりそうです。一緒に過ごす時間が実現し、うれしくなるでしょう。うれしかった気遣いには、どんなところがよかったのか伝えてください。 |
+| 분야 풀이 | 솔로라면 연락만 하던 사람과 실제로 만날 기회가 생길 수 있어. 작은 약속을 성실히 지키는 사람이라면 오래 알아가기 좋은 인연이야.<br><br>연애 중이라면 함께 하고 싶던 일을 시작할 준비가 갖춰질 수 있어. 데이트를 예약하거나 결혼에 필요한 준비를 하나 마치며 믿음이 깊어지기 좋아.<br><br>이별 후라면 말로만 오가던 재회 이야기가 만날 약속으로 이어질 수 있어. 둘 다 같은 뜻이라면 차분히 다시 시작해볼 만해. 이번에는 약속을 지키는 행동도 함께 살펴줘. | If you're single, you could get a chance to meet someone you've only been messaging. If they reliably keep small promises, they're someone worth getting to know over time.<br><br>In a relationship, preparations may come together for something you've wanted to start as a couple. Making a date reservation or finishing one part of the wedding preparations could deepen trust.<br><br>After a breakup, talk of reuniting could lead to a meeting being arranged. If you both want the same thing, a calm new start could be worthwhile. Notice whether promises are kept in practice this time too. | フリーの人は、連絡だけだった相手に、実際に会う機会ができそうです。小さな約束を誠実に守る人なら、長く知り合っていけるよい縁でしょう。<br><br>交際中なら、一緒にやりたかったことを始める準備が整いそうです。デートの予約をしたり、結婚に必要な準備を一つ終えたりすることで、信頼も深まりやすい日です。<br><br>別れた後なら、話に出るだけだった復縁について、実際に会って話す約束ができそうです。二人とも同じ意思なら、落ち着いてやり直してみるのもよいでしょう。今回は、約束を守る行動も一緒に見ておいてください。 |
 
 ## pentacles.02 · 역방향
 
 내부 ID: `love.pentacles.02.reversed`
 
-카드 의미: 동시에 감당하는 양이 많아 배분이 흔들림. 원전의 겉 즐거움과 속 부담을 실제 여력과 보이는 모습의 차이로 사용.
+카드 의미: 억지로 유지하는 즐거움, 불안정한 조율
 
-분야 해석: 부족한시간
+분야 해석: 주의: 과한 일정으로 엇갈리는 만남, 억지로 유지하는 즐거움, 무리한 재회
 
-관찰: 챙길 일이 겹쳐 가까운 사람의 연락에 늦게 답할 수 있어. / 서로 기다리는 시간을 몰라 한쪽만 서운해지는 순간도 있을 거야. / 사정을 이야기하면 무심해서가 아니었다는 걸 이해받을 수 있는 날이야.
+관찰: 억지로 유지하는 즐거움 / 불안정한 조율
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 챙길 일이 겹쳐 가까운 사람의 연락에 늦게 답할 수 있어. 서로 기다리는 시간을 몰라 한쪽만 서운해지는 순간도 있을 거야. 사정을 이야기하면 무심해서가 아니었다는 걸 이해받을 수 있는 날이야. 약속을 짧게 바꾸어도 얼굴을 보는 반가움은 남을 거야. 바쁠 때는 나중에 언제 연락할 수 있는지만 먼저 알려줘. | Overlapping responsibilities could leave you late replying to someone close. Not knowing how long the other person has been waiting might lead to hurt feelings. Explaining what's happening should help them see it wasn't a lack of care. A shorter meeting can still bring the pleasure of seeing each other. If you're busy, first let them know when you can get back in touch. | 用事が重なり、親しい人への返事が遅れそうです。相手が待っていることに気づかず、片方だけが寂しくなることもあるでしょう。事情を話せば、関心がないわけではないと分かってもらえそうです。会う時間が短くなっても、顔を見られるうれしさは残るでしょう。忙しいときは、後でいつ連絡できるか先に知らせてください。 |
+| 분야 풀이 | 솔로라면 여러 약속을 잡았다가 연락이나 만남이 엇갈릴 수 있어. 즐겁게 보여도 상대에게 집중하기 어렵다면 만날 횟수를 줄이는 편이 좋아.<br><br>연애 중이라면 바쁜데도 괜찮다고 약속했다가 취소하며 다툴 수 있어. 억지로 시간을 내고 불만을 쌓기보다 어려운 사정을 미리 전해줘.<br><br>이별 후라면 연락을 다시 시작해도 일상과 재회를 함께 감당하기 어려울 수 있어. 당장 예전처럼 자주 만나겠다고 약속하면 서로 실망하기 쉬워. | If you're single, making several arrangements could lead to crossed messages or missed meetings. Even if it seems fun, fewer dates may be better if you can't give the other person your attention.<br><br>In a relationship, promising you're free despite being busy and then cancelling could cause an argument. Explain the difficulty in advance instead of forcing time into the day and building resentment.<br><br>After a breakup, renewed contact may make it hard to manage both everyday life and a reunion. Promising immediately to meet as often as before could disappoint you both. | フリーの人は、いくつも約束した結果、連絡や会う予定が行き違うかもしれません。楽しそうに見えても、相手に集中できないなら、会う回数を減らしたほうがよさそうです。<br><br>交際中なら、忙しくても大丈夫と約束し、後でキャンセルしてけんかになりそうです。無理に時間をつくって不満をためるより、難しい事情を先に伝えてください。<br><br>別れた後なら、連絡を再開しても、普段の生活を送りながら、復縁に向けて時間をつくるのは難しいかもしれません。すぐ以前のように頻繁に会うと約束すると、互いにがっかりしやすい日です。 |
 
 ## pentacles.02 · 정방향
 
 내부 ID: `love.pentacles.02.upright`
 
-카드 의미: 여러 현실적 필요를 유연하게 조율함. 원전의 흥겨움과 복잡한 소식을 일상의 일정·자원 배분으로 현대화.
+카드 의미: 두 자원을 다루는 유연함과 즐거움
 
-분야 해석: 바쁜중의연락
+분야 해석: 완만한 좋음: 바쁜 일정 속의 만남, 유연한 데이트 조정, 무리 없는 재대화
 
-관찰: 각자 바쁜 중에도 연락할 시간이 맞아 반가울 수 있어. / 짧게 나눈 안부가 이어져 서로의 하루를 제법 자세히 알게 될 거야. / 연인이나 친구와는 빈 시간을 맞춰 가볍게 만날 기회가 생길 수 있어.
+관찰: 두 자원을 다루는 유연함과 즐거움 / 완만한 좋음: 바쁜 일정 속의 만남, 유연한 데이트 조정, 무리 없는 재대화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 각자 바쁜 중에도 연락할 시간이 맞아 반가울 수 있어. 짧게 나눈 안부가 이어져 서로의 하루를 제법 자세히 알게 될 거야. 연인이나 친구와는 빈 시간을 맞춰 가볍게 만날 기회가 생길 수 있어. 긴 약속이 아니어도 서로 챙기고 있다는 느낌이 남는 날이야. 편한 시간을 알게 되면 그때 짧게 안부를 전해봐. | A free moment to talk could line up even while you're both busy. A brief hello might grow into a proper account of each other's day. You and a partner or friend could find a gap for a quick meeting. Even without a long outing, you'll feel that you're looking out for each other. Once you know when they're free, send a short message then. | お互い忙しくても、連絡できる時間が合ってうれしくなりそうです。短いあいさつから話が続き、相手の一日を詳しく知れるでしょう。恋人や友人とは、空いた時間を合わせて少し会えるかもしれません。長い約束でなくても、お互いを気にかけていると感じられそうです。都合のよい時間が分かったら、そのときに短く連絡してみてください。 |
+| 분야 풀이 | 솔로라면 바쁜 중에도 마음에 드는 사람과 만날 시간이 생길 수 있어. 길게 보기 어렵다면 잠깐 식사하거나 차를 마시는 약속도 좋아.<br><br>연애 중이라면 서로의 일정이 달라도 데이트를 잘 맞출 수 있어. 계획이 조금 바뀌어도 함께 가능한 시간을 찾으면 즐겁게 만날 수 있어.<br><br>이별 후라면 부담 없이 안부를 나누며 대화가 이어질 수 있어. 서로 다시 알아갈 뜻이 있다면 일상에 무리가 없는 약속부터 잡아봐. 하루 연락량만으로 재회 여부를 정하지는 마. | If you're single, you could find time for someone you like even while busy. If a long meeting is difficult, a short meal or a cup of tea together is fine too.<br><br>In a relationship, you may arrange a date successfully despite different schedules. Even with a small change of plans, finding a time that works for both could make the meeting enjoyable.<br><br>After a breakup, easy messages asking how each other is doing could keep conversation going. If you both want to get to know each other again, start with plans that fit comfortably into daily life. Don't decide whether you're reuniting based only on how much you hear from each other in one day. | フリーの人は、忙しい中でも、気になる相手と会う時間ができそうです。長く会えないなら、短い食事やお茶の約束もよいでしょう。<br><br>交際中なら、互いの予定が違っても、デートをうまく調整できそうです。計画が少し変わっても、二人とも都合のよい時間を探せば、楽しく会えるでしょう。<br><br>別れた後なら、気負わずに近況を話し、会話が続きそうです。互いにまた知り合っていく気があるなら、日常に無理のない約束から始めましょう。一日の連絡の多さだけで、復縁するかを判断するのは控えてください。 |
 
 ## pentacles.03 · 역방향
 
 내부 ID: `love.pentacles.03.reversed`
 
-카드 의미: 기여가 연결되지 않거나 기준 없이 각자 진행함. 원전의 평범함·약함을 사람 비난 대신 협업 방식의 문제로 현대화.
+카드 의미: 미숙함, 사소한 다툼, 부족한 완성도
 
-분야 해석: 배려의엇갈림
+분야 해석: 주의: 맞지 않는 협력과 서툰 약속, 사소한 다툼, 일방적 재회 노력
 
-관찰: 서로를 위해 한 일이 오히려 다시 손봐야 할 일을 만들 수 있어. / 미리 물어보지 않은 준비가 상대의 생각과 달라 잠깐 서운할 거야. / 마음을 설명하고 나면 둘 다 편하게 만나고 싶었다는 점은 같다는 걸 알게 될 수 있어.
+관찰: 미숙함 / 사소한 다툼 / 부족한 완성도
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로를 위해 한 일이 오히려 다시 손봐야 할 일을 만들 수 있어. 미리 물어보지 않은 준비가 상대의 생각과 달라 잠깐 서운할 거야. 마음을 설명하고 나면 둘 다 편하게 만나고 싶었다는 점은 같다는 걸 알게 될 수 있어. 함께 고르는 시간에는 처음보다 웃으며 이야기할 수 있을 거야. 대신 해주기 전에는 상대가 원하는 것을 한 번 물어봐. | Something done for each other could end up needing to be redone. Preparations made without asking may differ from what the other person wanted, causing a little hurt. Explaining your intentions should show that you both simply wanted a comfortable time together. Choosing things together could bring more laughter than the first attempt. Ask what the other person wants before doing something on their behalf. | お互いのためにしたことが、かえって手直しを増やすかもしれません。先に聞かずに準備したものが相手の希望と違い、少し寂しくなりそうです。気持ちを説明すれば、二人とも気楽に会いたかったのは同じだと分かるでしょう。一緒に選ぶ時間には、最初より笑顔で話せそうです。代わりにする前に、相手が何を望むか尋ねてください。 |
+| 분야 풀이 | 솔로라면 함께 활동하는 사람과 작은 일로 부딪칠 수 있어. 호감이 있더라도 상대의 의견을 무시하면 가까워지기 어려워.<br><br>연애 중이라면 같이 준비하는 일에서 역할이 엇갈려 다툴 수 있어. 서로 해줄 줄 알고 남겨둔 일이 있다면 오늘 드러날 수 있어.<br><br>이별 후라면 다시 잘해보자는 말과 달리 한 사람만 애쓸 수 있어. 상대도 실제로 시간을 내고 문제를 풀려 하는지 살펴봐. 말뿐인 재회라면 같은 서운함이 남기 쉬워. | If you're single, you could clash over something small with a person you share an activity with. Even with attraction, ignoring their opinion will make closeness difficult.<br><br>In a relationship, confusion over roles in shared preparations could cause an argument. A task each of you expected the other to handle may turn out to be unfinished today.<br><br>After a breakup, only one person may make an effort despite talk of trying again. Notice whether your ex actually gives their time and tries to solve the problem too. A reunion in words alone could leave the same hurt. | フリーの人は、一緒に活動する相手と、小さなことでぶつかるかもしれません。好意があっても、相手の意見を無視すると、親しくなりにくい日です。<br><br>交際中なら、一緒に進める準備で分担がうまくいかず、けんかになりそうです。互いに相手がしてくれると思い、残していたことがあれば、今日見つかるかもしれません。<br><br>別れた後なら、また頑張ろうという言葉とは裏腹に、一人だけが努力することになりそうです。相手も実際に時間をつくり、問題を解決しようとしているか見ましょう。言葉だけの復縁なら、同じ不満が残りやすい日です。 |
 
 ## pentacles.03 · 정방향
 
 내부 ID: `love.pentacles.03.upright`
 
-카드 의미: 서로 다른 기술을 모아 실제 결과를 만드는 협업. 원전의 숙련과 인정은 상호 기여로 읽음.
+카드 의미: 숙련, 성실한 작업, 인정
 
-분야 해석: 함께만드는시간
+분야 해석: 좋음: 함께하는 활동의 인연, 협력으로 깊어지는 애정, 문제를 함께 푸는 재회
 
-관찰: 함께 준비하거나 무언가를 만드는 동안 사이가 가까워질 수 있어. / 한쪽이 서툰 부분을 다른 사람이 자연스럽게 도와주며 웃을 일이 생길 거야. / 가까운 사이에서도 몰랐던 솜씨나 성격을 새롭게 발견할 수 있는 날이야.
+관찰: 숙련 / 성실한 작업 / 인정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 준비하거나 무언가를 만드는 동안 사이가 가까워질 수 있어. 한쪽이 서툰 부분을 다른 사람이 자연스럽게 도와주며 웃을 일이 생길 거야. 가까운 사이에서도 몰랐던 솜씨나 성격을 새롭게 발견할 수 있는 날이야. 같이 해낸 작은 일이 둘만 기억하는 이야기로 남을 거야. 도와준 모습을 당연하게 넘기지 말고 고맙다고 말해줘. | Preparing or making something together could bring you closer. One person's easy help with something the other finds tricky may give you both a reason to laugh. Even someone close could reveal a skill or a side of themselves you hadn't known. A small thing you finish together might become a story only the two of you share. Say thank you instead of taking their help for granted. | 一緒に準備したり何かを作ったりする間に、距離が縮まりそうです。片方の苦手なことをもう一人が自然に手伝い、笑顔になる場面があるでしょう。親しい相手にも、知らなかった得意なことや性格を見つけられそうです。二人で仕上げた小さなことが、二人だけの思い出になるでしょう。手伝ってくれたことを当然と思わず、お礼を伝えてください。 |
+| 분야 풀이 | 솔로라면 함께 배우거나 무언가를 준비하는 자리에서 호감이 생길 수 있어. 서로 잘하는 모습을 보며 친해져 다음 만남을 이어가기 좋아.<br><br>연애 중이라면 둘이 힘을 모은 일이 잘 풀리며 믿음이 깊어질 수 있어. 결혼 준비나 함께 세운 계획도 서로 역할을 나누면 수월하게 진행돼.<br><br>이별 후라면 예전 문제를 함께 풀자는 대화가 이루어질 수 있어. 한 사람만 애쓰던 일을 둘이 나누기로 한다면 다시 만나볼 기회가 있어. | If you're single, affection could grow while learning or preparing something together. Seeing what each person does well may help you grow close and arrange another meeting.<br><br>In a relationship, something you've worked on together could go well and deepen trust. Wedding preparations or other shared plans may progress easily when you divide the responsibilities.<br><br>After a breakup, you may discuss solving old problems together. If you agree to share something only one person handled before, there could be a chance to date again. | フリーの人は、一緒に学んだり何かを準備したりする場で、好意が生まれそうです。互いが得意なことに取り組む姿を見て親しくなり、次に会う機会へつながりやすいでしょう。<br><br>交際中なら、二人で力を合わせたことがうまくいき、信頼が深まりそうです。結婚の準備や一緒に立てた計画も、互いに役割を分ければ、スムーズに進むでしょう。<br><br>別れた後なら、以前の問題を一緒に解決しようと、話す機会がありそうです。一人だけが頑張っていたことを二人で分担すると決められれば、また付き合う機会があります。 |
 
 ## pentacles.04 · 역방향
 
 내부 ID: `love.pentacles.04.reversed`
 
-카드 의미: 붙잡던 것을 놓지만 경계까지 느슨해질 수 있음. 원전의 지연과 현대의 내려놓음·과소비 중 배분 재조정의 양면을 선택.
+카드 의미: 지연, 대기, 반대
 
-분야 해석: 마음을꺼냄
+분야 해석: 지연과 주의: 기다리는 고백의 답, 반대로 미뤄지는 계획, 더딘 재회
 
-관찰: 혼자 간직하던 이야기를 꺼내며 상대와 가까워질 수 있어. / 말하면 어색해질 줄 알았던 마음에도 의외로 따뜻한 답이 돌아올 거야. / 서로의 시간을 지나치게 확인하지 않아도 연락이 이어지는 날이야.
+관찰: 지연 / 대기 / 반대
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 간직하던 이야기를 꺼내며 상대와 가까워질 수 있어. 말하면 어색해질 줄 알았던 마음에도 의외로 따뜻한 답이 돌아올 거야. 서로의 시간을 지나치게 확인하지 않아도 연락이 이어지는 날이야. 내 뜻대로 붙잡지 않아도 상대가 먼저 찾아오는 반가움이 있을 수 있어. 그동안 아껴둔 고마운 말 하나를 전해봐. | Sharing something you've kept to yourself could bring you closer. A feeling you feared would make things awkward may receive a surprisingly warm answer. Contact could continue without either of you checking too closely on the other's time. It may be lovely to have someone seek you out without trying to keep them close. Say one thank-you you've been keeping to yourself. | 胸にしまっていた話を打ち明けて、相手と近づけそうです。気まずくなると思った気持ちにも、意外と温かい返事が返ってくるでしょう。相手の時間を細かく確かめなくても、連絡が続きそうです。引き留めなくても向こうから来てくれることが、うれしく感じられるでしょう。まだ伝えていなかったお礼を、一つ言葉にしてみてください。 |
+| 분야 풀이 | 솔로라면 만남이나 고백의 답이 예상보다 늦어질 수 있어. 확답이 나오지 않은 상태에서 사귀게 될 거라고 주변에 말하지 마.<br><br>연애 중이라면 함께 정하려던 계획이 반대나 사정 변화로 미뤄질 수 있어. 결혼이나 함께 살 문제는 오늘 한 번의 대화로 정하기 어려울 수 있어.<br><br>이별 후라면 재회를 원해도 상대의 망설임이 길어질 수 있어. 같은 답을 재촉한다고 결정이 빨라지는 날은 아니야. 만나지 않겠다는 뜻이 분명하다면 기다림을 끝내는 게 좋아. | If you're single, a meeting or an answer to your feelings could take longer than expected. Don't tell people you'll be dating before you've received a definite answer.<br><br>In a relationship, opposition or changed circumstances could delay a shared plan. Marriage or living together may be difficult to settle in one conversation today.<br><br>After a breakup, your ex may hesitate for a long time even if you want to reunite. Repeated requests for an answer won't make the decision faster today. If they clearly don't want to meet, it's better to stop waiting. | フリーの人は、会う誘いや告白への返事が、思ったより遅くなるかもしれません。はっきりした返事がないうちに、付き合うことになると周囲へ話すのは控えましょう。<br><br>交際中なら、一緒に決めるはずだった計画が、反対や事情の変化で延期されそうです。結婚や同居については、今日一度話すだけでは決めにくいかもしれません。<br><br>別れた後なら、復縁を望んでも、相手の迷いが長引きそうです。同じ答えを急かしても、決断が早まる日ではありません。会わない意思がはっきりしているなら、待つことを終えたほうがよいでしょう。 |
 
 ## pentacles.04 · 정방향
 
 내부 ID: `love.pentacles.04.upright`
 
-카드 의미: 확보한 것을 지키려는 안정 욕구. 원전의 소유를 유용한 경계와 지나친 집착의 양면으로 사용.
+카드 의미: 소유의 보호, 확실함에 대한 집착
 
-분야 해석: 변함없는다정함
+분야 해석: 주의를 동반한 안정: 조심스러운 호감, 소유욕과 간섭, 놓기 어려운 관계
 
-관찰: 늘 같은 시간에 건넨 안부나 지켜온 약속에서 애정을 느낄 수 있어. / 화려한 표현은 적어도 나를 빼놓지 않고 챙기는 사람이 있을 거야. / 가까운 사이에서는 익숙한 자리에 함께 있는 것만으로 편안해지는 날이야.
+관찰: 소유의 보호 / 확실함에 대한 집착
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 늘 같은 시간에 건넨 안부나 지켜온 약속에서 애정을 느낄 수 있어. 화려한 표현은 적어도 나를 빼놓지 않고 챙기는 사람이 있을 거야. 가까운 사이에서는 익숙한 자리에 함께 있는 것만으로 편안해지는 날이야. 다만 헤어질 시간이 되면 평소보다 조금 더 같이 있고 싶어질 수 있어. 상대가 쉬고 싶다고 하면 그 시간도 편하게 보내줘. | A regular hello or a promise consistently kept could make you feel loved. Someone may not be expressive, but they won't forget to look after you. Simply sitting together somewhere familiar could feel comfortable today. When it's time to part, you might want to stay together a little longer than usual. If the other person wants to rest, let them have that time comfortably. | いつもの時間の連絡や、守ってくれる約束に愛情を感じられそうです。派手な言葉はなくても、あなたを忘れず気にかける人がいるでしょう。親しい二人なら、慣れた場所で一緒にいるだけで落ち着けそうです。ただ、別れる時間にはいつもより長く一緒にいたくなるかもしれません。相手が休みたいと言ったら、その時間も気持ちよく取らせてあげてください。 |
+| 분야 풀이 | 솔로라면 상대의 마음을 확실히 알기 전에는 고백이 늦어질 수 있어. 상처받지 않으려고 자신의 뜻도 감추면 만남이 제자리일 수 있어.<br><br>연애 중이라면 관계는 유지돼도 지나친 간섭으로 답답해질 수 있어. 오래 함께했다는 이유로 상대의 시간까지 모두 자기 것으로 여기지는 마.<br><br>이별 후라면 끝난 관계를 놓기 어려워 연락을 계속 붙잡게 될 수 있어. 상대가 재회를 원하지 않는다면 기다리게 할 약속이나 물건을 핑계로 만남을 요구하지 마. | If you're single, you may delay sharing your feelings until you're certain of the other person's. Hiding your own wishes to avoid being hurt could keep the connection from progressing.<br><br>In a relationship, you may stay together while excessive interference makes things stifling. A long history together doesn't mean all your partner's time belongs to you.<br><br>After a breakup, difficulty letting go could keep you trying to maintain contact. If your ex doesn't want to reunite, don't use an outstanding promise or belongings as a reason to keep them waiting and demand a meeting. | フリーの人は、相手の気持ちが確実にわかるまで、告白が遅れるかもしれません。傷つかないようにこちらの意思も隠すと、関係は進まないままになりそうです。<br><br>交際中なら、関係は続いても、干渉が多すぎて息苦しくなるかもしれません。長く一緒にいるからと、相手の時間まで、すべて自分のものと考えるのは控えましょう。<br><br>別れた後なら、終わった関係を手放せず、連絡を続けることにこだわりそうです。相手が復縁を望まないなら、待たせるための約束や、残った物を口実に、会うことを求めるのは控えてください。 |
 
 ## pentacles.05 · 역방향
 
 내부 ID: `love.pentacles.05.reversed`
 
-카드 의미: 어려움을 혼자 감당하지 않는 통로를 찾는 현대적 회복. 원전의 혼란과 다른 선택임을 명시하고 자원의 재발견에 초점.
+카드 의미: 혼란, 불화, 낭비
 
-분야 해석: 다시찾은연결
+분야 해석: 주의: 어긋나는 약속, 불화와 헛된 지출, 재회 뒤의 같은 불편
 
-관찰: 한동안 연락이 뜸했던 사람과 다시 편하게 이야기할 수 있어. / 내 소식을 궁금해했다는 말을 듣고 예상보다 반가울 거야. / 혼자 신경 쓰던 일에도 같이 생각해주겠다는 사람이 생길 수 있어.
+관찰: 혼란 / 불화 / 낭비
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 연락이 뜸했던 사람과 다시 편하게 이야기할 수 있어. 내 소식을 궁금해했다는 말을 듣고 예상보다 반가울 거야. 혼자 신경 쓰던 일에도 같이 생각해주겠다는 사람이 생길 수 있어. 서로의 사정을 알게 되며 멀어진 것 같던 사이가 다시 가까워지는 날이야. 반가운 연락에는 길지 않아도 따뜻하게 답해줘. | Talking easily again with someone who's been out of touch could be possible today. Hearing that they've wondered how you are may feel unexpectedly lovely. Someone could offer to think through a concern you've been carrying alone. Learning about each other's circumstances should help a distant-feeling connection become close again. Give welcome contact a warm reply, even if it's brief. | しばらく連絡の少なかった人と、また気楽に話せそうです。あなたの近況を気にしていたと聞き、思った以上にうれしくなるでしょう。一人で気にしていたことも、一緒に考えようという人が現れそうです。お互いの事情が分かり、離れたように感じた関係がまた近づくでしょう。うれしい連絡には、短くても温かく返してください。 |
+| 분야 풀이 | 솔로라면 약속이 자주 바뀌어 만남에 시간만 들고 만족은 적을 수 있어. 상대의 뜻이 불분명한데 선물까지 준비해 마음을 사려 하지는 마.<br><br>연애 중이라면 서운함을 풀려고 돈을 썼는데 다툼은 남을 수 있어. 필요했던 것이 함께할 시간이었는지 사과였는지 직접 이야기해봐.<br><br>이별 후라면 다시 연락해도 예전의 불화가 이어질 수 있어. 외로움을 잠깐 달래는 만남이라면 재회 뒤에도 편안하기 어려워. | If you're single, frequent changes of plans may cost you time without much satisfaction. If the other person's wishes are unclear, don't try to buy affection with a gift as well.<br><br>In a relationship, spending money to ease hurt feelings could still leave the argument unresolved. Say directly whether what you needed was time together or an apology.<br><br>After a breakup, renewed contact could bring the old conflict with it. If a meeting only eases loneliness briefly, a reunion may remain uncomfortable. | フリーの人は、約束がよく変わり、会うことに時間を使っても、満足は少ないかもしれません。相手の意思が曖昧なのに、贈り物まで用意して心をつかもうとするのは控えましょう。<br><br>交際中なら、不満を和らげようとお金を使っても、けんかは残るかもしれません。必要だったのは一緒にいる時間か、謝罪だったのか、直接話しましょう。<br><br>別れた後なら、また連絡を取っても、以前の不和が続きそうです。一時的に寂しさを紛らわすための出会いなら、復縁しても心地よく過ごしにくいでしょう。 |
 
 ## pentacles.05 · 정방향
 
 내부 ID: `love.pentacles.05.upright`
 
-카드 의미: 자원이나 소속이 부족하다고 느끼는 어려움. 원전의 물질 곤란을 실제 빈곤 단정 없이 도움과 대안이 보이지 않는 상태로 제한.
+카드 의미: 물질적 어려움, 소외, 부족한 자원
 
-분야 해석: 외로운기분
+분야 해석: 주의: 만남의 여유 부족, 소외감과 관심 부족, 차가운 재회 답
 
-관찰: 가까운 사람이 바빠 평소보다 혼자 있는 시간이 길게 느껴질 수 있어. / 여럿이 즐거워 보이는 자리에서도 내 이야기를 꺼내기 망설여질 거야. / 다만 솔직한 안부를 건네면 생각보다 따뜻하게 답해주는 사람이 있을 수 있어.
+관찰: 물질적 어려움 / 소외 / 부족한 자원
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사람이 바빠 평소보다 혼자 있는 시간이 길게 느껴질 수 있어. 여럿이 즐거워 보이는 자리에서도 내 이야기를 꺼내기 망설여질 거야. 다만 솔직한 안부를 건네면 생각보다 따뜻하게 답해주는 사람이 있을 수 있어. 작은 걱정을 나누는 동안 혼자인 듯했던 기분이 덜해지는 날이야. 보고 싶은 사람이 있다면 짧게 먼저 연락해봐. | Someone close being busy could make time alone feel longer than usual. Even in a cheerful group, you might hesitate to share your own news. A sincere hello may receive a warmer reply than you expect. Sharing a small worry could help you feel less alone today. Send a short message first to someone you'd like to see. | 親しい人が忙しく、一人の時間がいつもより長く感じられそうです。皆が楽しそうな場所でも、自分の話をするのをためらうかもしれません。ただ、素直に声をかけると、思ったより温かく返す人がいるでしょう。小さな心配を分かち合ううちに、一人きりのような気分が薄れそうです。会いたい人には、短くても先に連絡してみてください。 |
+| 분야 풀이 | 솔로라면 시간이나 비용이 부담돼 새로운 만남이 줄어들 수 있어. 무리해서 비싼 데이트를 잡기보다 편하게 만날 수 있는 자리를 골라봐.<br><br>연애 중이라면 힘들 때 필요한 관심을 받지 못해 외로울 수 있어. 서로 사정이 어려워도 짧게 안부를 묻는 일까지 놓치지는 마.<br><br>이별 후라면 기대한 위로나 재회 답을 받기 어려울 수 있어. 외롭다는 이유만으로 자신을 계속 서운하게 하는 연락을 붙잡지 않는 게 좋아. | If you're single, the time or cost involved could mean fewer new meetings. Choose somewhere you can meet comfortably instead of stretching to afford an expensive date.<br><br>In a relationship, you could feel lonely if you don't receive the attention you need during a difficult time. Even if you're both struggling, don't miss the chance to ask briefly how each other is doing.<br><br>After a breakup, the comfort or answer about reuniting you hope for may be hard to get. Loneliness isn't a reason to hold on to contact that keeps leaving you hurt. | フリーの人は、時間や費用が負担になり、新しい出会いが減るかもしれません。無理をしてお金のかかるデートを計画するより、気楽に会える場所を選びましょう。<br><br>交際中なら、つらいときに必要な関心を向けてもらえず、寂しくなりそうです。互いに余裕がなくても、短く様子を尋ねることまで忘れないようにしましょう。<br><br>別れた後なら、期待した慰めや復縁への返事は、得にくいかもしれません。寂しいからと、いつもつらい気持ちになる連絡にこだわり続けないほうがよさそうです。 |
 
 ## pentacles.06 · 역방향
 
 내부 ID: `love.pentacles.06.reversed`
 
-카드 의미: 도움에 조건이 붙거나 주고받는 부담이 한쪽으로 쏠림. 원전의 탐욕·질투를 금액과 기대의 비대칭으로 응용.
+카드 의미: 욕심, 질투, 환상
 
-분야 해석: 보답의기대
+분야 해석: 주의: 대가를 바라는 호의, 불균형한 애정, 도움에 묶인 재회
 
-관찰: 상대를 챙긴 만큼 같은 표현이 돌아오지 않아 서운할 수 있어. / 나는 큰마음으로 한 일을 상대는 가볍게 받아들였을지도 몰라. / 다른 방식으로 건넨 배려를 뒤늦게 알아보고 마음이 조금 풀릴 수 있어.
+관찰: 욕심 / 질투 / 환상
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대를 챙긴 만큼 같은 표현이 돌아오지 않아 서운할 수 있어. 나는 큰마음으로 한 일을 상대는 가볍게 받아들였을지도 몰라. 다른 방식으로 건넨 배려를 뒤늦게 알아보고 마음이 조금 풀릴 수 있어. 서로 좋아하는 표현이 다르다는 걸 알게 되는 날이야. 바라는 것이 있다면 전에 해준 일을 세기보다 지금 원하는 것을 말해줘. | You might feel hurt when care isn't returned in the same form. Something you put a lot of thought into may have seemed casual to the other person. Noticing a different kindness they offered could soften that feeling. Today may show that you each value different expressions of affection. Say what you'd like now instead of counting what you've done before. | 気にかけた分と同じ表現が返らず、寂しくなるかもしれません。思いを込めたことを、相手は気軽に受け取っていた可能性もありそうです。違う形で向けられた気遣いに後から気づき、気持ちが少し和らぐでしょう。お互いにうれしい愛情表現が違うと分かりそうです。望むことがあれば、前にしたことを数えず、今の希望を伝えてください。 |
+| 분야 풀이 | 솔로라면 선물이나 호의를 받은 뒤 원하지 않는 만남을 요구받을 수 있어. 고마운 마음이 있어도 사귀거나 데이트할 의무는 없어.<br><br>연애 중이라면 누가 더 많이 해줬는지 따지면서 다툴 수 있어. 비용이나 수고를 이유로 상대의 선택까지 정하려 하면 불만이 커져.<br><br>이별 후라면 예전에 도와준 일을 내세워 재회를 요구하는 말이 나올 수 있어. 고마움과 다시 사귀고 싶은 마음은 달라. 빚진 기분만으로 관계를 되돌리지는 마. | If you're single, receiving a gift or favour could be followed by pressure for a meeting you don't want. Gratitude doesn't oblige you to date or begin a relationship.<br><br>In a relationship, counting who has done more could start an argument. Using money or effort as a reason to control your partner's choices may deepen resentment.<br><br>After a breakup, past help could be used to demand a reunion. Gratitude and wanting to date again are different. Don't restore the relationship just because you feel indebted. | フリーの人は、贈り物や親切を受けた後、望まないデートを求められるかもしれません。感謝していても、付き合ったりデートしたりする義務はありません。<br><br>交際中なら、どちらがより多くしてあげたかを言い争い、けんかになりそうです。費用や手間を理由に、相手の選択まで決めようとすると、不満が大きくなります。<br><br>別れた後なら、以前助けたことを持ち出して、復縁を求められるかもしれません。感謝と、また付き合いたい気持ちは別です。借りがあると感じるだけで、交際を再開するのは控えましょう。 |
 
 ## pentacles.06 · 정방향
 
 내부 ID: `love.pentacles.06.upright`
 
-카드 의미: 주고받는 도움과 공정한 배분. 원전의 선물·주의를 일방적 시혜보다 가능한 기여의 교환으로 해석.
+카드 의미: 선물, 나눔, 도움, 현재의 만족
 
-분야 해석: 다정함의답
+분야 해석: 좋음: 서로 챙기는 호감, 고른 배려와 애정, 따뜻한 재대화
 
-관찰: 먼저 챙겼던 작은 배려에 따뜻한 답이 돌아올 수 있어. / 내가 좋아하는 것을 기억해주거나 피곤한 날을 알아주는 사람이 있을 거야. / 상대에게 도움을 주는 일도 의무보다 기분 좋은 마음으로 느껴지는 날이야.
+관찰: 선물 / 나눔 / 도움
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 먼저 챙겼던 작은 배려에 따뜻한 답이 돌아올 수 있어. 내가 좋아하는 것을 기억해주거나 피곤한 날을 알아주는 사람이 있을 거야. 상대에게 도움을 주는 일도 의무보다 기분 좋은 마음으로 느껴지는 날이야. 한쪽만 애쓰지 않아도 연락과 만남이 이어질 수 있어. 고마운 행동을 받았다면 어떤 점이 좋았는지 이야기해줘. | A small kindness you offered could receive a warm response. Someone might remember what you like or notice you've had a tiring day. Helping them could feel like a pleasure rather than an obligation. Contact and meetings may continue without one person doing all the work. Tell them what you appreciated about a thoughtful gesture. | 先にした小さな気遣いに、温かい返事が戻ってきそうです。好きなものを覚えていたり、疲れた日に気づいたりする人がいるでしょう。相手を手伝うことも、義務よりうれしい気持ちでできそうです。片方ばかり頑張らなくても、連絡や約束が続くでしょう。うれしい行動には、どんなところがよかったか伝えてください。 |
+| 분야 풀이 | 솔로라면 작은 호의를 주고받으며 가까워지는 사람이 생길 수 있어. 먼저 챙겨준 마음에 상대도 관심을 보인다면 데이트로 이어지기 좋아.<br><br>연애 중이라면 서로 필요한 도움을 주며 사랑받는 기분을 느낄 수 있어. 한쪽이 바쁠 때 다른 쪽이 챙겨주면 평범한 하루도 든든해져.<br><br>이별 후라면 차갑던 대화에 배려가 오가며 서운함이 줄어들 수 있어. 둘 다 재회를 원한다면 편하게 다시 만날 기회가 있어. 친절하게 답했다는 이유만으로 재회를 기대하지는 마. | If you're single, exchanging small favours could bring you closer to someone. If they respond to your care with interest of their own, a date may follow.<br><br>In a relationship, giving each other needed help could make you feel loved. Even on an ordinary day, you may feel supported when one of you helps the other through a busy spell.<br><br>After a breakup, consideration in a once-cold conversation could ease hurt feelings. If you both want to reunite, there may be a chance to meet again comfortably. Don't expect a reunion just because the answer was kind. | フリーの人は、小さな親切を交わすうちに、親しくなる相手ができそうです。先に気遣ったときに、相手もこちらに関心を示してくれるなら、デートにつながりやすい日です。<br><br>交際中なら、互いに必要な助けを届け、愛されていると感じられそうです。一方が忙しいときにもう一方が気にかけると、普段の一日にも心強さが生まれるでしょう。<br><br>別れた後なら、冷たかった会話に思いやりが感じられ、不満が和らぎそうです。二人とも復縁を望むなら、気楽にまた会う機会があります。優しく返事をしてくれただけで、復縁を期待するのは控えましょう。 |
 
 ## pentacles.07 · 역방향
 
 내부 ID: `love.pentacles.07.reversed`
 
-카드 의미: 기다린 만큼 얻지 못하거나 비효율적인 투입을 지속함. 원전의 조바심을 앞으로의 시간과 비용을 재평가하는 뜻으로 사용.
+카드 의미: 진전 부족, 조급함, 노력 대비 부족한 결과
 
-분야 해석: 기대에못미친관계
+분야 해석: 주의와 정체: 애쓴 만큼 돌아오지 않는 호감, 느린 관계 진전, 결론 없는 재회
 
-관찰: 연락한 시간에 비해 사이가 그대로인 듯해 아쉬울 수 있어. / 만날 때는 반가워도 다음 약속이 늘 내 쪽에서 나오는 모습이 눈에 들어올 거야. / 서로 기대하는 관계가 다를 수 있다는 생각이 드는 날이야.
+관찰: 진전 부족 / 조급함 / 노력 대비 부족한 결과
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 연락한 시간에 비해 사이가 그대로인 듯해 아쉬울 수 있어. 만날 때는 반가워도 다음 약속이 늘 내 쪽에서 나오는 모습이 눈에 들어올 거야. 서로 기대하는 관계가 다를 수 있다는 생각이 드는 날이야. 솔직하게 이야기를 나누면 계속 궁금해하던 부분에 답을 들을 수 있어. 상대에게 바라는 만남이 어떤 것인지 한 번 물어봐. | The connection may feel unchanged despite the time you've spent in contact. Meetings could be warm, yet you might notice that suggesting the next one is always left to you. Today may raise the possibility that you expect different things from the relationship. An honest conversation could answer something you've kept wondering about. Ask what sort of time together the other person would like. | 連絡を続けた時間の割に距離が変わらず、寂しく感じるかもしれません。会えばうれしくても、次の約束はいつも自分からだと気づきそうです。お互いが期待する関係は違うのかもしれない、と考えるでしょう。素直に話せば、ずっと気になっていたことに答えが聞けそうです。相手がどのように会いたいと思っているか、一度尋ねてください。 |
+| 분야 풀이 | 솔로라면 시간과 정성을 들여도 만남이 기대만큼 진전되지 않을 수 있어. 상대가 관심을 보이지 않는다면 더 애써야 한다고 자신을 몰아붙이지 마.<br><br>연애 중이라면 오래 이야기한 계획이 그대로여서 지칠 수 있어. 결혼이나 함께할 약속이 계속 미뤄진다면 상대도 같은 미래를 원하는지 들어봐.<br><br>이별 후라면 재회를 위해 연락해도 분명한 답을 얻기 어려울 수 있어. 기다린 시간이 아깝다는 이유만으로 같은 만남을 붙잡을 필요는 없어. | If you're single, time and care may not bring the progress you hoped for. If the other person shows no interest, don't push yourself to make even more effort.<br><br>In a relationship, a long-discussed plan that hasn't progressed could become tiring. If marriage or a shared commitment keeps being postponed, ask whether your partner wants the same future.<br><br>After a breakup, reaching out in hope of reuniting may not bring a clear answer. The time you've already spent waiting isn't a reason to hold on to the same relationship. | フリーの人は、時間と気持ちをかけても、期待ほど関係が進まないかもしれません。相手が関心を示さないなら、もっと頑張らなければと追い込む必要はありません。<br><br>交際中なら、長く話してきた計画が変わらず、疲れてしまいそうです。結婚や二人の約束が延期され続けるなら、相手も同じ将来を望んでいるか聞きましょう。<br><br>別れた後なら、復縁のために連絡しても、はっきりした答えは得にくいかもしれません。待ってきた時間がもったいないというだけで、同じ関係にこだわる必要はありません。 |
 
 ## pentacles.07 · 정방향
 
 내부 ID: `love.pentacles.07.upright`
 
-카드 의미: 투입한 노력의 상태를 살피는 기다림. 원전의 경작과 다양한 결과를 조급한 수확 대신 진행 점검으로 응용.
+카드 의미: 인내, 느린 성장, 함께 쌓은 관계
 
-분야 해석: 천천히깊어짐
+분야 해석: 느린 좋음: 오래 알아온 사람과의 호감, 쌓이는 믿음, 천천히 이어지는 재회
 
-관찰: 천천히 알아온 사람에게서 전보다 편해진 태도를 느낄 수 있어. / 처음에는 조심하던 이야기까지 꺼내며 대화가 깊어지는 날이야. / 가까운 사이에서는 오랫동안 기억해준 작은 습관이 반가울 거야.
+관찰: 인내 / 느린 성장 / 함께 쌓은 관계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 천천히 알아온 사람에게서 전보다 편해진 태도를 느낄 수 있어. 처음에는 조심하던 이야기까지 꺼내며 대화가 깊어지는 날이야. 가까운 사이에서는 오랫동안 기억해준 작은 습관이 반가울 거야. 서두르지 않고 이어온 연락이 서로에게 익숙한 일상이 됐다는 걸 알 수 있어. 함께 편해진 순간이 좋았다면 그 마음을 말해줘. | Someone you've slowly got to know could seem more at ease with you. They may share things they were cautious about before, making the conversation deeper. With someone close, a small habit they've remembered for ages could feel lovely. Unhurried contact may turn out to have become a familiar part of both your days. Say so if you've enjoyed a moment of feeling more comfortable together. | 少しずつ知り合ってきた人が、以前よりくつろいで接してくれそうです。最初は控えていた話も出て、会話が深まるでしょう。親しい相手には、長く覚えていてくれた小さな習慣がうれしく感じられそうです。急がず続けた連絡が、お互いの日常になっていると分かるでしょう。一緒に気楽に過ごせてうれしかったら、その気持ちを伝えてください。 |
+| 분야 풀이 | 솔로라면 오래 알아온 사람과 조금씩 호감이 깊어질 수 있어. 오늘 바로 고백의 답이 나오지 않더라도 서로 만날 뜻이 있다면 관계는 이어질 수 있어.<br><br>연애 중이라면 평소 지켜온 약속이 믿음으로 돌아올 수 있어. 눈에 띄는 행사가 없어도 함께 지낸 시간이 든든하게 느껴지기 좋은 날이야.<br><br>이별 후라면 재회를 위한 대화가 천천히 이어질 수 있어. 둘 다 다시 만나고 싶다면 한 번의 연락보다 꾸준히 지키는 약속을 살펴봐. 상대가 거절했다면 오래 기다리는 것이 답은 아니야. | If you're single, affection could slowly deepen with someone you've known for a long time. Even without an answer to your feelings today, the connection can continue if you both want to keep meeting.<br><br>In a relationship, the promises you've regularly kept could strengthen trust. Even without a notable event, it's a good day to feel reassured by the time you've spent together.<br><br>After a breakup, a conversation about reuniting may develop slowly. If you both want to try again, pay more attention to consistently kept promises than to one message. If your ex has refused, waiting longer isn't the answer. | フリーの人は、長く知っている相手との好意が、少しずつ深まりそうです。今日すぐに告白の返事が出なくても、互いに会う意思があるなら、関係は続くでしょう。<br><br>交際中なら、普段守ってきた約束が、信頼につながりそうです。目立つ行事がなくても、一緒に過ごしてきた時間を心強く感じやすい日です。<br><br>別れた後なら、復縁に向けた会話が、ゆっくり続きそうです。二人ともまた付き合いたいなら、一度の連絡より、約束を続けて守っているかを見ましょう。相手に断られたなら、長く待つことが答えではありません。 |
 
 ## pentacles.08 · 역방향
 
 내부 ID: `love.pentacles.08.reversed`
 
-카드 의미: 반복은 있으나 목적이나 주의가 빠진 상태. 원전의 허영·욕심을 과한 완벽주의와 형식적인 작업의 양면으로 응용.
+카드 의미: 허영, 욕심, 기술을 잔꾀로 사용
 
-분야 해석: 의무같은연락
+분야 해석: 주의: 잘 보이려는 꾸밈, 보여주기식 애정, 말뿐인 재회 변화
 
-관찰: 늘 하던 연락이 습관처럼 오가며 조금 무심하게 느껴질 수 있어. / 답은 빠른데 서로 무슨 이야기를 했는지 기억이 잘 나지 않는 날이야. / 뜻밖의 질문 하나에 평소와 다른 이야기가 나올 수 있어.
+관찰: 허영 / 욕심 / 기술을 잔꾀로 사용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 늘 하던 연락이 습관처럼 오가며 조금 무심하게 느껴질 수 있어. 답은 빠른데 서로 무슨 이야기를 했는지 기억이 잘 나지 않는 날이야. 뜻밖의 질문 하나에 평소와 다른 이야기가 나올 수 있어. 같은 말을 반복하던 때보다 대화가 편하게 이어질 거야. 안부를 물을 때는 오늘 실제로 어땠는지 한 가지 더 물어봐. | Regular messages could feel a little absent-minded as they become a habit. Replies may be quick, yet neither of you remembers much of the conversation. One unexpected question could lead to a different kind of story. Talking may become easier than when you repeated the same words. When checking in, ask one more question about how today actually went. | いつもの連絡が習慣のようになり、少しそっけなく感じられそうです。返事は早くても、何を話したかお互いによく覚えていないかもしれません。思いがけない質問から、普段と違う話が出るでしょう。同じ言葉を繰り返すときより、気楽に会話が続きそうです。近況を聞くときは、今日は実際どうだったか一つ詳しく尋ねてください。 |
+| 분야 풀이 | 솔로라면 잘 보이려 꾸며낸 말이 드러나 만남이 어색해질 수 있어. 모르는 일이나 없는 경험까지 아는 척하면 다음 대화에서 부담이 커져.<br><br>연애 중이라면 남들 앞에서만 다정한 모습 때문에 서운할 수 있어. 보여주기 위한 선물보다 둘이 있을 때 나누는 대화가 필요한 날이야.<br><br>이별 후라면 달라진 모습을 보이려 애써도 재회 답은 시원하지 않을 수 있어. 겉으로 그럴듯한 말만 늘리면 예전 불신을 풀기 어려워. | If you're single, something invented to impress could come out and make a meeting awkward. Pretending to know things you don't or to have experience you lack may make the next conversation harder.<br><br>In a relationship, affection shown only in front of other people could leave you hurt. The day calls for conversation when you're alone together more than a gift for show.<br><br>After a breakup, trying to appear changed may still not bring a satisfying answer about reuniting. More impressive-sounding words alone are unlikely to resolve old distrust. | フリーの人は、よく見せようと作った話が知られ、会うのが気まずくなるかもしれません。知らないことや経験していないことまで知ったふりをすると、次の会話で負担が増します。<br><br>交際中なら、人前でだけ優しい態度に、寂しくなるかもしれません。人に見せるための贈り物より、二人きりで話すことが必要な日です。<br><br>別れた後なら、変わった姿を見せようと頑張っても、復縁へのはっきりした返事は得にくいかもしれません。聞こえのよい言葉ばかり増やすと、以前の不信感は解消しにくいでしょう。 |
 
 ## pentacles.08 · 정방향
 
 내부 ID: `love.pentacles.08.upright`
 
-카드 의미: 반복으로 익히는 기술과 정성. 원전의 숙련·고용을 성별이나 직업 전제 없이 실력이 실제 쓰임을 얻는 과정으로 해석.
+카드 의미: 숙련된 작업, 기술, 성실한 연습
 
-분야 해석: 꾸준한챙김
+분야 해석: 좋음: 꾸준한 만남으로 쌓이는 호감, 성실한 준비에 대한 애정, 재회 신뢰 회복
 
-관찰: 늘 해오던 작은 배려가 상대에게는 크게 느껴질 수 있어. / 연락을 기억하거나 필요한 것을 챙긴 일이 따뜻한 말로 돌아올 거야. / 함께 무언가를 배우는 사이에서는 성실한 모습에 새롭게 호감이 생길 수 있어.
+관찰: 숙련된 작업 / 기술 / 성실한 연습
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 늘 해오던 작은 배려가 상대에게는 크게 느껴질 수 있어. 연락을 기억하거나 필요한 것을 챙긴 일이 따뜻한 말로 돌아올 거야. 함께 무언가를 배우는 사이에서는 성실한 모습에 새롭게 호감이 생길 수 있어. 화려하지 않아도 계속 신경 써왔다는 마음이 전해지는 날이야. 상대가 해온 작은 수고 하나를 알아봐줘. | A small kindness you've always offered could mean a lot to someone. Remembering to contact them or bring what they need may earn warm words. If you're learning something together, steady effort could spark a new attraction. Your continued care should come across even without a grand gesture. Acknowledge one small effort the other person has kept making. | いつもしている小さな気遣いが、相手には大きく感じられそうです。連絡を忘れなかったことや必要なものを用意したことに、温かい言葉が返るでしょう。一緒に学ぶ間柄なら、まじめに取り組む姿に新しく好意が生まれるかもしれません。派手でなくても、ずっと気にかけていた思いが伝わりそうです。相手が続けた小さな手間を、一つ認めてあげてください。 |
+| 분야 풀이 | 솔로라면 꾸준히 연락하던 사람과 한결 가까워질 수 있어. 상대가 좋아하는 것을 기억해 대화에 보태면 관심이 잘 전해져.<br><br>연애 중이라면 정성껏 준비한 데이트가 좋은 반응을 얻을 수 있어. 평소 놓치던 작은 약속까지 챙기면 서로의 믿음도 깊어져.<br><br>이별 후라면 예전과 달라진 행동을 보며 재회를 생각할 수 있어. 둘 다 다시 만나길 원한다면 말보다 계속 지키는 약속이 믿음을 회복하는 데 도움이 될 거야. | If you're single, you could become noticeably closer to someone you've regularly messaged. Remembering what they enjoy and bringing it into conversation may make your interest clear.<br><br>In a relationship, a carefully prepared date could please your partner. Remembering even the small promises you've usually overlooked can deepen trust between you.<br><br>After a breakup, changed behaviour could make you consider a reunion. If you both want to try again, promises consistently kept may help rebuild trust more than words. | フリーの人は、続けて連絡を取っていた相手と、さらに親しくなれそうです。相手の好きなことを覚えていて会話に加えると、関心がよく伝わるでしょう。<br><br>交際中なら、心を込めて準備したデートに、よい反応をもらえそうです。普段忘れがちな小さな約束まで守ると、互いの信頼も深まります。<br><br>別れた後なら、以前と変わった行動を見て、復縁を考えるかもしれません。二人とも交際の再開を望んでいるなら、言葉より、約束を守り続けることが、信頼を取り戻す助けになるでしょう。 |
 
 ## pentacles.09 · 역방향
 
 내부 ID: `love.pentacles.09.reversed`
 
-카드 의미: 겉으로 갖춘 모습과 실제 여유가 어긋남. 원전의 헛된 기대를 인정받기 위한 소비·성과의 부담으로 사용.
+카드 의미: 기만, 믿음의 불일치, 계획의 공허함
 
-분야 해석: 잘보이려는긴장
+분야 해석: 주의: 겉모습과 실제의 불일치, 신뢰 부족, 기대만 큰 재회
 
-관찰: 편하게 만나고 싶은데 잘 보이려는 마음 때문에 준비가 길어질 수 있어. / 상대의 반응을 보느라 내가 좋아하는 이야기를 아끼게 되는 날이야. / 막상 꾸밈없는 말을 꺼냈을 때 더 자연스럽게 웃는 모습을 볼 수 있어.
+관찰: 기만 / 믿음의 불일치 / 계획의 공허함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 편하게 만나고 싶은데 잘 보이려는 마음 때문에 준비가 길어질 수 있어. 상대의 반응을 보느라 내가 좋아하는 이야기를 아끼게 되는 날이야. 막상 꾸밈없는 말을 꺼냈을 때 더 자연스럽게 웃는 모습을 볼 수 있어. 작은 실수에도 괜찮다고 해주는 다정함이 긴장을 풀어줄 거야. 오늘은 취향을 묻는 말에 남이 좋아할 답을 고르지 마. | Wanting to make a good impression could lengthen preparations for what you hoped would be an easy meeting. Watching their reactions may have you holding back your own favorite topics. Speaking without trying to impress could bring a more natural smile from them. Their kindness about a small mistake should help you relax. When asked your taste, don't choose an answer just to please someone else. | 気軽に会いたいのに、よく見せたい気持ちで準備が長くなりそうです。反応が気になり、自分の好きな話題を控えるかもしれません。飾らず話したときには、相手の笑顔がもっと自然になるでしょう。小さな失敗にも大丈夫と言う優しさに、緊張が和らぎそうです。今日は好みを聞かれたら、人が喜びそうな答えを選ばないでください。 |
+| 분야 풀이 | 솔로라면 처음 들은 이야기와 실제 모습이 달라 실망할 수 있어. 좋은 조건을 강조하는 말만으로 진지한 관계를 결정하지 마.<br><br>연애 중이라면 겉으로 괜찮아 보여도 약속을 믿기 어려운 일이 생길 수 있어. 남들 앞에서 보이는 모습보다 둘 사이에 실제로 지켜지는 말을 살펴봐.<br><br>이별 후라면 재회하면 모든 것이 좋아질 거라는 말에 기대가 커질 수 있어. 구체적으로 달라진 것이 없다면 다시 만난 뒤 같은 실망을 겪기 쉬워. | If you're single, a difference between what you first heard and what you see could disappoint you. Don't decide on a serious relationship just because someone stresses how good they look on paper.<br><br>In a relationship, something could make promises difficult to trust even if things seem fine on the surface. Look at which promises are actually kept between you, rather than how things appear in front of others.<br><br>After a breakup, promises that everything will improve if you reunite could raise your hopes. Without specific changes, dating again may bring the same disappointment. | フリーの人は、初めに聞いた話と実際の姿が違い、がっかりするかもしれません。条件のよさを強調する言葉だけで、真剣な交際を決めるのは控えましょう。<br><br>交際中なら、表面上はうまくいっていても、約束を信じにくくなる出来事がありそうです。人前での姿より、二人の間で実際に守られている言葉を見ましょう。<br><br>別れた後なら、復縁すればすべてうまくいくという言葉に、期待が膨らむかもしれません。具体的に変わったことがなければ、交際を再開しても、同じ失望をしやすい日です。 |
 
 ## pentacles.09 · 정방향
 
 내부 ID: `love.pentacles.09.upright`
 
-카드 의미: 스스로 마련한 여유와 독립적인 만족. 원전의 안전·성취를 자립의 과시가 아닌 자신의 취향을 누리는 경험으로 사용.
+카드 의미: 분별, 안전, 성취, 풍요
 
-분야 해석: 서로의여유
+분야 해석: 좋음: 여유롭고 존중받는 만남, 각자의 생활을 지키는 애정, 편안한 이별 정리
 
-관찰: 각자의 시간을 존중해주는 사람에게 편안한 호감을 느낄 수 있어. / 만나지 않는 시간에도 서로 즐겁게 지내고 있다는 소식이 반가울 거야. / 오랜만에 만난 자리에서는 각자 해온 이야기 덕분에 대화가 풍성해질 수 있어.
+관찰: 분별 / 안전 / 성취
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 각자의 시간을 존중해주는 사람에게 편안한 호감을 느낄 수 있어. 만나지 않는 시간에도 서로 즐겁게 지내고 있다는 소식이 반가울 거야. 오랜만에 만난 자리에서는 각자 해온 이야기 덕분에 대화가 풍성해질 수 있어. 혼자서도 잘 지내는 모습이 오히려 매력으로 전해지는 날이야. 상대가 좋아하는 일을 하고 있다면 즐겁게 보내라는 말을 전해줘. | You may feel drawn to someone who respects your time apart. Hearing that you're each enjoying yourselves apart may be welcome. Meeting after a while could bring a rich conversation about what you've both been doing. Being happy on your own may itself come across as attractive today. If they're doing something they love, wish them a lovely time. | 一人の時間も尊重してくれる人に、好意を抱けそうです。会わない時間もお互い楽しく過ごしていると聞き、うれしくなるでしょう。久しぶりに会うと、それぞれの話で会話が豊かになりそうです。一人でも充実している姿が、かえって魅力として伝わるでしょう。相手が好きなことをしていたら、楽しんでと伝えてください。 |
+| 분야 풀이 | 솔로라면 자신과 생활이 잘 맞는 사람을 편하게 만날 수 있어. 혼자 있는 시간을 급히 채우려 하지 않을수록 원하는 만남을 고르기 좋아.<br><br>연애 중이라면 각자의 시간을 보내도 믿음이 흔들리지 않아 편안할 수 있어. 함께 만날 때는 서로의 이야기를 즐겁게 나누며 만족스러운 데이트를 하기 좋아.<br><br>이별 후라면 재회를 기다리지 않고도 즐겁게 지낼 약속이 생길 수 있어. 다시 만나자는 연락을 받더라도 외로움에 끌려 답하기보다 정말 원하는 만남인지 보고 정해줘. | If you're single, you could feel at ease with someone whose life fits well with yours. The less you rush to fill time alone, the easier it may be to choose the kind of connection you want.<br><br>In a relationship, time apart may feel comfortable because trust remains steady. When you meet, you could enjoy each other's stories and have a satisfying date.<br><br>After a breakup, enjoyable plans may come along without waiting for a reunion. Even if your ex asks to try again, decide whether you truly want the relationship instead of answering from loneliness. | フリーの人は、暮らし方が合う相手と、気楽に会えそうです。一人の時間を急いで埋めようとしないほど、望む付き合いを選びやすい日です。<br><br>交際中なら、それぞれの時間を過ごしても信頼が揺らがず、安心していられそうです。会うときは、互いの話を楽しく交わし、満足できるデートになりやすいでしょう。<br><br>別れた後なら、復縁を待たなくても、楽しく過ごせる約束ができそうです。また付き合いたいと連絡があっても、寂しさに流されて答えるより、本当に望む関係かを見て決めてください。 |
 
 ## pentacles.10 · 역방향
 
 내부 ID: `love.pentacles.10.reversed`
 
-카드 의미: 오래된 기준이나 공동 자원에 대한 기대가 현재와 어긋남. 원전의 위험·손실을 실제 재난 아닌 지속 비용과 관례의 문제로 응용.
+카드 의미: 장기 안정 부족, 가족과의 갈등, 주변 의견에 흔들림
 
-분야 해석: 주변의기대
+분야 해석: 주의: 장기 기대의 불일치, 가족·생활 문제로 인한 다툼, 불안정한 재회
 
-관찰: 둘 사이의 일에 가족이나 주변의 기대가 더해질 수 있어. / 가볍게 생각한 약속도 다른 사람의 말 때문에 크게 느껴지는 날이야. / 둘이 따로 이야기할 때는 실제로 원하는 것이 더 단순하다는 걸 알 수 있어.
+관찰: 장기 안정 부족 / 가족과의 갈등 / 주변 의견에 흔들림
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 둘 사이의 일에 가족이나 주변의 기대가 더해질 수 있어. 가볍게 생각한 약속도 다른 사람의 말 때문에 크게 느껴지는 날이야. 둘이 따로 이야기할 때는 실제로 원하는 것이 더 단순하다는 걸 알 수 있어. 가까운 사람도 사정을 듣고 나면 처음보다 편하게 받아들일 거야. 주변의 답을 듣기 전에 함께할 사람의 생각부터 물어봐. | Family or other people's expectations could enter something between the two of you. A casual plan may feel bigger after someone else's comments. Talking alone could reveal that what you actually want is simpler. Someone close should also take it more easily once they hear the circumstances. Ask the person involved what they think before seeking everyone else's answer. | 二人のことに、家族や周りの期待が加わりそうです。軽いつもりの約束も、人の言葉で大きく感じるかもしれません。二人だけで話すと、本当に望むことはもっと単純だと分かるでしょう。親しい人も事情を聞けば、最初より気軽に受け止めてくれそうです。周りの答えを聞く前に、一緒に過ごす相手の考えを尋ねてください。 |
+| 분야 풀이 | 솔로라면 만남은 즐거워도 오래 사귈 생각은 서로 다를 수 있어. 주변이 좋은 조건이라고 해도 자신과 대화가 편한지를 먼저 살펴봐.<br><br>연애 중이라면 가족의 기대나 생활 문제 때문에 결혼 이야기가 막힐 수 있어. 두 사람의 뜻을 맞추지 않은 채 주변 요구부터 받아들이면 다툼이 커져.<br><br>이별 후라면 그리움이 남아도 다시 함께 지낼 여건은 불안정할 수 있어. 예전에 갈등을 만든 가족이나 생활 문제가 그대로라면 재회를 서두르지 마. | If you're single, an enjoyable meeting may still reveal different wishes for a lasting relationship. Even if others say the person is a good prospect, start with whether you feel comfortable talking to them.<br><br>In a relationship, family expectations or everyday difficulties could block a discussion of marriage. Accepting outside demands before agreeing between yourselves may make an argument worse.<br><br>After a breakup, longing may remain while the circumstances for sharing a life again are unstable. Don't rush a reunion if the family or everyday problems behind earlier conflict haven't changed. | フリーの人は、会うのは楽しくても、長く付き合う気持ちは違うかもしれません。周囲に条件がよいと言われても、まず気楽に話せるかを見ましょう。<br><br>交際中なら、家族の期待や生活の問題で、結婚の話が進まなくなりそうです。二人の意向を合わせる前に、周囲の要求を受け入れると、けんかが大きくなります。<br><br>別れた後なら、恋しさは残っていても、また付き合うための条件は、まだ整わないかもしれません。以前の対立を生んだ家族や生活の問題がそのままなら、復縁を急ぐのは控えましょう。 |
 
 ## pentacles.10 · 정방향
 
 내부 ID: `love.pentacles.10.upright`
 
-카드 의미: 오래 쓸 기반과 함께 이어가는 자원. 원전의 축적·가정을 특정 가족이나 상속 예언 없이 지속 가능한 공유로 사용.
+카드 의미: 가족, 재산, 기록, 축적된 기반
 
-분야 해석: 가족같은친밀함
+분야 해석: 좋음: 진지한 소개, 가족의 축하와 결혼 진전, 안정적인 재회 논의
 
-관찰: 오래 함께한 사람에게 가족처럼 편안한 정을 느낄 수 있어. / 내가 좋아하는 것과 불편한 것을 먼저 알아주는 배려가 있을 거야. / 친구나 가족이 함께 있는 자리에서도 가까운 사이를 새삼 실감할 수 있어.
+관찰: 가족 / 재산 / 기록
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 함께한 사람에게 가족처럼 편안한 정을 느낄 수 있어. 내가 좋아하는 것과 불편한 것을 먼저 알아주는 배려가 있을 거야. 친구나 가족이 함께 있는 자리에서도 가까운 사이를 새삼 실감할 수 있어. 앞으로도 함께할 일을 자연스럽게 이야기하게 되는 날이야. 익숙해서 미뤄둔 고마운 말을 하나 전해줘. | Someone you've spent a long time with could feel as comfortable as family. They may show care by anticipating what you like and what makes you uneasy. Time with friends or family could remind you how close you are. Talking about future things together may come quite naturally. Say one thank-you you've put off because the care felt familiar. | 長く一緒にいる人に、家族のような心地よい親しさを感じられそうです。好きなものや苦手なことを、先に分かって気遣ってくれるでしょう。友人や家族といる場所でも、親しい間柄をあらためて実感できそうです。これから一緒にすることも、自然に話せるでしょう。慣れているからと後回しにしたお礼を、一つ伝えてください。 |
+| 분야 풀이 | 솔로라면 가까운 사람의 소개로 진지한 인연을 만날 수 있어. 서로 앞으로의 생활을 이야기하며 오래 사귈 수 있을지 알아보기 좋아.<br><br>연애 중이라면 결혼이나 함께 살 준비가 안정적으로 진행될 수 있어. 가족에게 소개할 계획이 있었다면 따뜻한 환영을 기대해볼 만해.<br><br>이별 후라면 다시 함께 지낼 앞날을 구체적으로 이야기할 수 있어. 둘 다 재회를 원하고 예전 문제가 풀렸다면 오래 만날 약속으로 이어지기 좋아. 주변의 찬성보다 두 사람의 뜻을 먼저 확인해줘. | If you're single, an introduction from someone close could lead to a serious connection. It's a good day to discuss your future lives and explore whether a lasting relationship could work.<br><br>In a relationship, preparations for marriage or living together may progress steadily. If you've planned an introduction to family, a warm welcome is worth hoping for.<br><br>After a breakup, you could talk in detail about a future together again. If you both want to reunite and the old problems are solved, it may lead to a lasting commitment. Check your own wishes before relying on other people's approval. | フリーの人は、身近な人の紹介で、真剣な出会いがありそうです。互いのこれからの暮らしを話しながら、長く付き合えそうかを確かめるのによい日です。<br><br>交際中なら、結婚や一緒に暮らす準備が、安定して進みそうです。家族に紹介する予定があるなら、温かく迎えてもらえると期待できるでしょう。<br><br>別れた後なら、また一緒に過ごす将来を、具体的に話せそうです。二人とも復縁を望み、以前の問題も解決しているなら、長く付き合う約束につながりやすいでしょう。周囲の賛成より、二人の意思を先に確かめてください。 |
 
 ## pentacles.11 · 역방향
 
 내부 ID: `love.pentacles.11.reversed`
 
-카드 의미: 배우려는 뜻이 실행으로 이어지지 않거나 기초를 건너뜀. 원전의 낭비·좋지 않은 안내를 목적 없는 준비로 현대화.
+카드 의미: 낭비와 흥청거림, 즐거움이나 사치로 관심이 분산됨, 기대와 다른 소식
 
-분야 해석: 놓친약속
+분야 해석: 주의: 들뜬 관심과 약속 소홀, 사치성 지출로 인한 불만, 기대와 다른 재회 연락
 
-관찰: 가볍게 한 약속을 잊거나 상대가 말한 취향을 헷갈릴 수 있어. / 잘 챙겼다고 생각한 일에서도 작은 실수가 보여 머쓱해지는 날이야. / 다시 물어보는 말에는 생각보다 편하게 설명해주는 답이 돌아올 거야.
+관찰: 낭비와 흥청거림 / 즐거움이나 사치로 관심이 분산됨 / 기대와 다른 소식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가볍게 한 약속을 잊거나 상대가 말한 취향을 헷갈릴 수 있어. 잘 챙겼다고 생각한 일에서도 작은 실수가 보여 머쓱해지는 날이야. 다시 물어보는 말에는 생각보다 편하게 설명해주는 답이 돌아올 거야. 잊었다는 사실을 감추기보다 다시 묻는 태도가 더 다정하게 전해질 수 있어. 잊은 약속이 있다면 변명보다 먼저 미안하다고 말해줘. | A casual promise might slip your mind, or you could confuse something they said they liked. A small mistake in something you thought you'd handled thoughtfully may leave you embarrassed. They may be more relaxed about explaining it again than you expect. Asking again may feel warmer than trying to hide that you've forgotten. If you've forgotten a promise, apologize before making an excuse. | 何気ない約束を忘れたり、相手の好みを取り違えたりするかもしれません。気を配ったつもりのことにも小さなミスがあり、照れくさくなりそうです。聞き直すと、思ったより気軽に説明してくれるでしょう。忘れたことをごまかすより、もう一度尋ねる方が優しく伝わりそうです。忘れた約束があれば、言い訳の前に謝ってください。 |
+| 분야 풀이 | 솔로라면 연락은 활발해도 만날 약속은 제대로 지켜지지 않을 수 있어. 새로운 사람에게만 들뜨다 이미 잡은 만남을 잊지는 마.<br><br>연애 중이라면 즐길 거리에 정신이 팔려 상대의 부탁을 놓칠 수 있어. 필요 없는 선물을 사는 것보다 함께 정한 데이트 시간을 지키는 게 좋아.<br><br>이별 후라면 재회를 기대한 연락에서 다른 이야기를 듣게 될 수 있어. 가볍게 안부를 묻거나 부탁하려던 연락이라면 다시 사귀자는 뜻으로 받아들이지 마. | If you're single, frequent messages may not mean arrangements to meet are kept. Don't get so excited about someone new that you forget a meeting you've already arranged.<br><br>In a relationship, being distracted by entertainment could make you miss a request from your partner. Keeping the time you've agreed for a date will help more than buying an unnecessary gift.<br><br>After a breakup, a message you expected to be about reuniting could be about something else. If it was only a casual check-in or a request for a favour, don't take it as a wish to date again. | フリーの人は、連絡は盛んでも、会う約束はきちんと守られないかもしれません。新しい人との出会いにばかり浮かれて、すでに決めたデートを忘れるのは控えましょう。<br><br>交際中なら、楽しいことに夢中になり、相手の頼み事を忘れそうです。必要のない贈り物を買うより、一緒に決めたデートの時間を守りましょう。<br><br>別れた後なら、復縁を期待した連絡で、別の話を聞くかもしれません。軽いあいさつや頼み事のための連絡なら、また付き合いたいという意味で受け取るのは控えましょう。 |
 
 ## pentacles.11 · 정방향
 
 내부 ID: `love.pentacles.11.upright`
 
-카드 의미: 실용적인 배움과 차근차근 마련하는 준비. 원전의 학습·적용을 작은 경험으로 기준을 익히는 태도로 사용.
+카드 의미: 공부와 집중, 성찰과 적용, 소식과 관리
 
-분야 해석: 세심한관심
+분야 해석: 느린 좋음: 공통 관심사로 시작하는 만남, 배운 배려의 실천, 구체적인 재회 연락
 
-관찰: 전에 말한 취향이나 작은 약속을 기억해주는 사람에게 호감을 느낄 수 있어. / 처음에는 조용했던 상대가 구체적인 질문으로 관심을 표현할 거야. / 함께 새로운 것을 배우는 자리에서도 차근차근 가까워질 수 있는 날이야.
+관찰: 공부와 집중 / 성찰과 적용 / 소식과 관리
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 전에 말한 취향이나 작은 약속을 기억해주는 사람에게 호감을 느낄 수 있어. 처음에는 조용했던 상대가 구체적인 질문으로 관심을 표현할 거야. 함께 새로운 것을 배우는 자리에서도 차근차근 가까워질 수 있는 날이야. 짧은 만남 뒤에는 다음에 이어서 이야기할 거리가 남을 거야. 상대가 알려준 좋아하는 것 하나를 기억해줘. | Someone remembering a preference or a small promise could draw your interest. A person who was quiet at first may show interest through specific questions. Learning something new together could also bring you closer gradually. A brief meeting may leave something to continue talking about next time. Remember one favorite thing they've told you about. | 前に話した好みや小さな約束を覚える人に、好意を感じられそうです。最初は静かな相手も、具体的な質問で関心を表すでしょう。新しいことを一緒に学ぶ場でも、少しずつ近づけそうです。短く会った後には、次に続ける話題が残るでしょう。相手が教えてくれた好きなものを、一つ覚えておいてください。 |
+| 분야 풀이 | 솔로라면 함께 배우는 자리나 공통 관심사를 통해 새 인연이 생길 수 있어. 가벼운 질문이 꾸준히 연락하는 사이로 이어지기 좋아.<br><br>연애 중이라면 상대가 전에 부탁했던 일을 기억하고 챙겨 애정이 깊어질 수 있어. 작은 배려를 실제로 보여주면 말보다 잘 전해져.<br><br>이별 후라면 다시 알아가자는 조심스러운 연락이 오갈 수 있어. 서로 같은 뜻이라면 짧게 만날 약속을 잡아보기 좋아. 당장 먼 미래를 약속하기보다 오늘의 말을 지켜줘. | If you're single, you could meet someone new while learning together or through a shared interest. A casual question may lead to keeping in regular contact.<br><br>In a relationship, remembering and doing something your partner asked for before could deepen affection. Showing a small act of care in practice may say more than words.<br><br>After a breakup, cautious messages about getting to know each other again could be exchanged. If you both want the same thing, it's a good day to arrange a short meeting. Keep today's promises before making commitments far into the future. | フリーの人は、一緒に学ぶ場や共通の関心事から、新しい縁ができそうです。気軽な質問をきっかけに、続けて連絡を取り合う仲へ進みやすい日です。<br><br>交際中なら、相手が以前頼んだことを覚えていて済ませると、愛情が深まりそうです。小さな気遣いを実際に見せれば、言葉よりもよく伝わるでしょう。<br><br>別れた後なら、また知り合っていこうという、慎重な連絡が交わされそうです。互いに同じ意思なら、短く会う約束をしてみるのによい日です。すぐに遠い将来を約束するより、今日伝えたことを守ってください。 |
 
 ## pentacles.12 · 역방향
 
 내부 ID: `love.pentacles.12.reversed`
 
-카드 의미: 안정된 반복이 정체되거나 완벽한 준비 때문에 진행이 느림. 원전의 나태라는 낙인을 피하고 관성과 과도한 고정으로 응용.
+카드 의미: 무기력과 정체, 게으름과 무관심, 낙담 또는 부주의
 
-분야 해석: 익숙한만남의권태
+분야 해석: 정체와 주의: 발전 없는 연락, 데이트 무관심, 반복되는 재회 지연
 
-관찰: 늘 같은 대화와 장소가 조금 심심하게 느껴질 수 있어. / 함께 있어도 각자 다른 생각을 하며 말이 줄어드는 날이야. / 평소와 다른 이야기가 나오면 몰랐던 취향을 발견할 수 있어.
+관찰: 무기력과 정체 / 게으름과 무관심 / 낙담 또는 부주의
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 늘 같은 대화와 장소가 조금 심심하게 느껴질 수 있어. 함께 있어도 각자 다른 생각을 하며 말이 줄어드는 날이야. 평소와 다른 이야기가 나오면 몰랐던 취향을 발견할 수 있어. 작은 변화에도 상대가 반가워하는 모습을 보게 될 거야. 다음 만남에는 늘 고르던 곳 말고 다른 장소 하나를 제안해봐. | The same conversations and places could feel a little dull. You may be together yet talk less while thinking about different things. An unfamiliar topic could reveal a preference you didn't know. Even a small change might bring a pleased reaction. Suggest one different place for your next meeting instead of the usual choice. | 同じ会話や場所が、少し退屈に感じられそうです。一緒にいてもそれぞれ違うことを考え、言葉が少なくなるかもしれません。普段と違う話が出れば、知らなかった好みを見つけられるでしょう。小さな変化にも、相手がうれしそうにする姿が見られそうです。次はいつもの場所ではなく、別の場所を一つ提案してください。 |
+| 분야 풀이 | 솔로라면 연락은 이어져도 만나거나 고백할 기회가 잘 생기지 않을 수 있어. 상대가 계속 수동적이라면 혼자서 모든 약속을 끌고 갈 필요는 없어.<br><br>연애 중이라면 익숙함 때문에 데이트와 애정 표현을 소홀히 할 수 있어. 나중에 하자는 말만 반복하면 작은 서운함이 오래 남아.<br><br>이별 후라면 다시 만나자는 이야기가 진전 없이 반복될 수 있어. 예전과 같은 무관심이 보인다면 재회 뒤에도 관계가 달라지기 어려워. | If you're single, contact may continue without much chance to meet or share your feelings. If the other person stays passive, you don't need to organise every meeting alone.<br><br>In a relationship, familiarity could make you neglect dates and affection. Repeated promises to do it later may leave small hurts unresolved for a long time.<br><br>After a breakup, talk of dating again could repeat without progress. If the same indifference is visible, the relationship may be hard to change even after a reunion. | フリーの人は、連絡が続いても、会ったり告白したりする機会は、なかなかできないかもしれません。相手がずっと受け身なら、一人であらゆる約束を進める必要はありません。<br><br>交際中なら、慣れからデートや愛情表現をおろそかにしそうです。後にしようという言葉ばかり繰り返すと、小さな不満が長く残ります。<br><br>別れた後なら、また付き合おうという話だけが、進展せずに繰り返されそうです。以前と同じ無関心が見えるなら、復縁しても関係は変わりにくいでしょう。 |
 
 ## pentacles.12 · 정방향
 
 내부 ID: `love.pentacles.12.upright`
 
-카드 의미: 일정한 속도로 책임을 다하는 신뢰성. 원전의 유용함·책임을 화려함보다 꾸준한 실행으로 해석.
+카드 의미: 실용성, 책임과 정직, 느리고 꾸준한 인물
 
-분야 해석: 꾸준한연락
+분야 해석: 느리지만 안정적인 좋음: 성실한 만남, 약속 이행, 차분한 재회
 
-관찰: 늘 비슷한 시간에 찾아오는 연락이 유난히 반갑게 느껴질 수 있어. / 말수가 많지 않아도 하기로 한 약속을 지키는 사람이 있을 거야. / 천천히 가까워지는 사이에서는 불안보다 편안함이 커지는 날이야.
+관찰: 실용성 / 책임과 정직 / 느리고 꾸준한 인물
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 늘 비슷한 시간에 찾아오는 연락이 유난히 반갑게 느껴질 수 있어. 말수가 많지 않아도 하기로 한 약속을 지키는 사람이 있을 거야. 천천히 가까워지는 사이에서는 불안보다 편안함이 커지는 날이야. 반복되는 작은 배려가 내 생활을 알고 있다는 느낌을 줄 수 있어. 지켜준 약속이 고마웠다면 직접 말해줘. | Contact arriving around its usual time could feel especially welcome. Someone may say little but keep the promise they made. A slowly growing connection could bring more comfort than anxiety today. Repeated small acts of care may show how well they know your daily life. Tell them directly if you appreciated a promise they kept. | いつもの時間に届く連絡が、特にうれしく感じられそうです。口数は多くなくても、決めた約束を守る人がいるでしょう。ゆっくり近づく間柄には、不安より安心が増えそうです。繰り返す小さな気遣いに、自分の生活を知ってくれていると感じるでしょう。守ってくれた約束がうれしかったら、直接伝えてください。 |
+| 분야 풀이 | 솔로라면 서서히 친해진 사람과 안정적으로 만남을 이어갈 수 있어. 표현이 화려하지 않아도 약속을 꾸준히 지키는 사람이라면 호감을 알아가기 좋아.<br><br>연애 중이라면 평소대로 서로를 챙기며 편안한 하루를 보낼 수 있어. 오래 준비한 결혼이나 생활 계획도 서두르지 않고 하나씩 마무리하기 좋아.<br><br>이별 후라면 재회 대화가 빠르지는 않아도 차분히 이어질 수 있어. 서로 다시 만나길 원한다면 정한 약속을 지키며 믿음을 회복할 수 있어. 상대가 연락을 원하지 않는다면 기다려달라고 요구하지 마. | If you're single, you could keep steadily seeing someone you've slowly grown close to. If they consistently keep promises, it's worth seeing how your feelings develop, even without grand expressions of affection.<br><br>In a relationship, your usual care for each other could make for a comfortable day. It's a good day to complete long-planned wedding or everyday preparations one at a time without rushing.<br><br>After a breakup, a reunion discussion may continue calmly even if slowly. If you both want to date again, keeping agreed promises could restore trust. If your ex doesn't want contact, don't demand that they wait for you. | フリーの人は、少しずつ親しくなった相手と、安定して会い続けられそうです。表現が華やかでなくても、約束をきちんと守る人なら、好意を育てやすいでしょう。<br><br>交際中なら、いつもどおり互いを気遣い、心地よい一日を過ごせそうです。長く準備した結婚や暮らしの計画も、急がずに一つずつ仕上げるのによい日です。<br><br>別れた後なら、復縁の話は速くは進まなくても、穏やかに続きそうです。互いにまた付き合いたいなら、決めた約束を守ることで信頼を取り戻せるでしょう。相手が連絡を望んでいないなら、待っていてほしいと求めるのは控えてください。 |
 
 ## pentacles.13 · 역방향
 
 내부 ID: `love.pentacles.13.reversed`
 
-카드 의미: 다른 사람을 챙기느라 자기 자원을 놓치거나 안락함의 외형에 몰두함. 원전의 불안·의심을 돌봄의 부담으로 현대화.
+카드 의미: 의심, 불안과 두려움, 불신
 
-분야 해석: 지친돌봄
+분야 해석: 주의: 불안에서 생기는 의심, 간섭과 신뢰 부족, 재회 망설임
 
-관찰: 상대를 챙기는 일이 많아 내 마음을 말할 여유가 줄어들 수 있어. / 늘 괜찮다고 한 탓에 도움이 필요한 줄 몰랐다는 답을 들을 수 있는 날이야. / 조금 기대고 싶다는 이야기를 하면 의외로 바로 움직여주는 모습을 볼 수 있어.
+관찰: 의심 / 불안과 두려움 / 불신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대를 챙기는 일이 많아 내 마음을 말할 여유가 줄어들 수 있어. 늘 괜찮다고 한 탓에 도움이 필요한 줄 몰랐다는 답을 들을 수 있는 날이야. 조금 기대고 싶다는 이야기를 하면 의외로 바로 움직여주는 모습을 볼 수 있어. 내가 해주던 것을 받아보며 마음이 풀리는 순간도 있을 거야. 오늘은 필요한 것 한 가지를 솔직하게 부탁해봐. | Looking after someone could leave little room to say how you feel. They might explain they didn't know you needed help because you always said you were fine. Saying you'd like a little support may bring surprisingly prompt action. Receiving the care you usually give could offer a moment of relief. Ask honestly for one thing you need today. | 相手の世話が多く、自分の気持ちを話す余裕が減りそうです。いつも大丈夫と言っていたため、助けが必要とは知らなかったと聞くかもしれません。少し頼りたいと話せば、意外とすぐ動いてくれるでしょう。普段していた気遣いを受けることで、ほっとする瞬間もありそうです。今日は必要なことを一つ、素直に頼んでください。 |
+| 분야 풀이 | 솔로라면 조건이 좋아 보여도 상대를 믿기 어려워 만남을 망설일 수 있어. 확인할 일이 있다면 혼자 의심을 키우기보다 직접 물어봐.<br><br>연애 중이라면 연락이나 돈 쓰는 일까지 간섭하며 다툴 수 있어. 걱정된다는 이유로 상대의 선택을 모두 확인받게 하면 서로 답답해져.<br><br>이별 후라면 다시 만나고 싶어도 예전의 불신이 남을 수 있어. 대화할 때마다 같은 의심이 되풀이된다면 오늘 재회를 결정하기 어려워. | If you're single, difficulty trusting someone could make you hesitate even when they seem like a good prospect. If there's something to check, ask directly instead of letting suspicion grow alone.<br><br>In a relationship, interfering in whom your partner contacts or how they spend money could cause an argument. Making your partner get approval for every choice because you're worried will frustrate you both.<br><br>After a breakup, old distrust may remain even if you want to reunite. If the same suspicions return in every conversation, deciding to try again today could be difficult. | フリーの人は、条件がよさそうでも、相手を信じられず、会うのを迷うかもしれません。確かめたいことがあるなら、一人で疑いを膨らませるより、直接尋ねましょう。<br><br>交際中なら、連絡やお金の使い方にまで干渉し、けんかになるかもしれません。心配だからと相手が何か選ぶたびに確認を取るよう求めると、互いに息苦しくなります。<br><br>別れた後なら、復縁したくても、以前の不信感が残りそうです。話すたびに同じ疑いが出てくるなら、今日交際の再開を決めるのは難しいでしょう。 |
 
 ## pentacles.13 · 정방향
 
 내부 ID: `love.pentacles.13.upright`
 
-카드 의미: 현실적인 돌봄과 자원의 알맞은 관리. 원전의 안락·관대함을 생활에 쓰이는 편의와 자기 여유로 해석.
+카드 의미: 풍요, 너그러움, 안전과 자유
 
-분야 해석: 생활을챙기는애정
+분야 해석: 좋음: 편안하게 챙겨주는 인연, 일상 속의 다정함, 따뜻한 재대화
 
-관찰: 먹었는지 피곤하지 않은지 묻는 말에서 애정을 느낄 수 있어. / 필요한 것을 말하기 전에 챙겨주는 사람이 있어 마음이 따뜻해질 거야. / 가까운 사람과는 특별한 외출 없이도 함께 식사하는 시간이 편안할 수 있어.
+관찰: 풍요 / 너그러움 / 안전과 자유
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 먹었는지 피곤하지 않은지 묻는 말에서 애정을 느낄 수 있어. 필요한 것을 말하기 전에 챙겨주는 사람이 있어 마음이 따뜻해질 거야. 가까운 사람과는 특별한 외출 없이도 함께 식사하는 시간이 편안할 수 있어. 서로의 생활을 알고 있다는 사실이 반가운 날이야. 작은 배려에도 익숙하다는 듯 넘기지 말고 고맙다고 말해줘. | Questions about whether you've eaten or feel tired could make you feel loved. Someone providing what you need before you ask may warm your heart. With someone close, a meal together could be comfortable without a special outing. Knowing each other's daily lives should feel lovely today. Thank them for small kindnesses instead of passing over them as familiar. | 食べたか、疲れていないかという言葉に愛情を感じられそうです。必要と言う前に用意する人がいて、心が温まるでしょう。親しい人とは特別に出かけなくても、一緒の食事でくつろげそうです。お互いの生活を知っていることが、うれしく感じられるでしょう。小さな気遣いも、慣れたことと流さずお礼を伝えてください。 |
+| 분야 풀이 | 솔로라면 과장 없이 다정하게 챙겨주는 사람과 편안한 만남을 가질 수 있어. 함께 식사하며 나눈 일상 이야기에서 호감이 깊어지기 좋아.<br><br>연애 중이라면 바쁜 하루에도 서로를 챙겨주며 사랑받는 기분을 느낄 수 있어. 편한 곳에서 함께 쉬면 특별한 계획 없이도 만족스러운 시간을 보낼 수 있어.<br><br>이별 후라면 안부를 나누며 예전보다 부드럽게 대화할 수 있어. 둘 다 다시 만나고 싶다면 일상에서 편하게 볼 약속을 잡기 좋아. 배려해줬다는 이유로 재회를 요구하지는 마. | If you're single, you could enjoy a comfortable meeting with someone who shows care without making a show of it. Everyday conversation over a meal may deepen affection.<br><br>In a relationship, looking after each other even on a busy day could make you feel loved. Resting together somewhere comfortable may feel satisfying even without special plans.<br><br>After a breakup, asking how each other is doing could lead to gentler conversation than before. If you both want to meet again, it's a good day to arrange an easy meeting that fits into everyday life. Don't demand a reunion because you've shown care. | フリーの人は、気取らずに優しく気にかけてくれる相手と、心地よく会えそうです。一緒に食事をしながら日常の話をすると、好意が深まりやすいでしょう。<br><br>交際中なら、忙しい一日でも互いを思いやり、愛されていると感じられそうです。くつろげる場所で一緒に休めば、特別な計画がなくても、満足できる時間を過ごせるでしょう。<br><br>別れた後なら、近況を話しながら、以前より穏やかに会話できそうです。二人ともまた付き合いたいなら、普段の暮らしの中で気楽に会う約束を決めやすい日です。気遣ってあげたからと、復縁を要求するのは控えてください。 |
 
 ## pentacles.14 · 역방향
 
 내부 ID: `love.pentacles.14.reversed`
 
-카드 의미: 물질적 기준에 과하게 매이거나 지키려는 마음이 경직됨. 원전의 부패·악덕은 실제 인물 판정 없이 소유와 통제의 과잉으로 응용.
+카드 의미: 약점과 잘못된 욕심, 왜곡과 부패, 위험
 
-분야 해석: 배려와간섭
+분야 해석: 주의: 조건과 욕심에 치우친 만남, 물질을 앞세운 통제, 대가를 요구하는 재회
 
-관찰: 걱정해서 한 말이 상대에게는 간섭처럼 들릴 수 있어. / 선물이나 도움을 준 뒤에 내 뜻도 따라주길 기대하게 되는 날이야. / 상대의 사정을 들으면 받고 싶은 배려가 달랐다는 걸 알 수 있어.
+관찰: 약점과 잘못된 욕심 / 왜곡과 부패 / 위험
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 걱정해서 한 말이 상대에게는 간섭처럼 들릴 수 있어. 선물이나 도움을 준 뒤에 내 뜻도 따라주길 기대하게 되는 날이야. 상대의 사정을 들으면 받고 싶은 배려가 달랐다는 걸 알 수 있어. 각자 정할 일을 나눈 뒤에는 다시 편하게 이야기할 수 있을 거야. 도와주기 전에는 그 도움이 필요한지 먼저 물어봐. | A comment made from concern might sound controlling to the other person. After a gift or favor, you could find yourself expecting them to follow your wishes. Hearing their circumstances may reveal that they wanted a different kind of care. Agreeing on what each person decides could make conversation comfortable again. Ask whether help is wanted before offering it. | 心配して言った言葉が、相手には干渉と聞こえるかもしれません。贈り物や手助けの後に、自分の希望も聞いてほしくなりそうです。相手の事情を聞けば、欲しかった気遣いが違ったと分かるでしょう。それぞれが決めることを分けると、また気楽に話せそうです。助ける前に、その手助けが必要か尋ねてください。 |
+| 분야 풀이 | 솔로라면 좋은 조건을 앞세우면서 자기 뜻만 따르라는 사람을 만날 수 있어. 선물을 많이 주더라도 싫다는 말을 존중하는지 살펴봐.<br><br>연애 중이라면 돈을 더 쓰거나 준비를 많이 했다는 이유로 결정권을 독차지해 다툴 수 있어. 함께할 계획은 누가 더 많이 냈는지와 별개로 같이 정해야 해.<br><br>이별 후라면 잘해주겠다는 말에 부담스러운 요구가 붙을 수 있어. 다시 사귀는 대가로 원하지 않는 일을 받아들일 필요는 없어. 상대의 조건보다 자신의 뜻을 분명히 말해줘. | If you're single, you may meet someone who talks up what they can offer while insisting you do things their way. Even if they give plenty of gifts, notice whether they respect you when you say no.<br><br>In a relationship, insisting on making every decision because you spent or prepared more could cause an argument. Plans together need to be decided together, regardless of who contributed more.<br><br>After a breakup, a promise of good treatment could come with burdensome demands. You don't need to accept something unwanted in exchange for dating again. Make your own wishes clear instead of focusing on your ex's conditions. | フリーの人は、条件のよさを持ち出し、自分の意思だけに従ってほしいという相手に会うかもしれません。贈り物を多くくれても、嫌だという言葉を尊重するか見ましょう。<br><br>交際中なら、お金を多く出した、準備をたくさんしたという理由で、一人が決定権を握り、けんかになるかもしれません。一緒にする計画は、どちらが多く払ったかとは別に、二人で決める必要があります。<br><br>別れた後なら、大切にするという言葉に、負担の大きな要求が付いてくるかもしれません。復縁の条件として、望まないことを受け入れる必要はありません。相手の条件より、こちらの意思をはっきり伝えてください。 |
 
 ## pentacles.14 · 정방향
 
 내부 ID: `love.pentacles.14.upright`
 
-카드 의미: 축적한 경험을 현실적으로 운용하는 안정. 원전의 사업적 기량을 부자나 남성의 출현 아닌 지속 비용을 아는 판단으로 사용.
+카드 의미: 현실화하는 지성, 실용적·수학적 능력, 능력이 쓰이는 분야에서의 성공
 
-분야 해석: 든든한동행
+분야 해석: 좋음: 믿을 만한 진지한 만남, 실현되는 공동 계획, 안정적인 재회
 
-관찰: 약속을 지키고 필요한 순간에 곁에 있는 사람에게 믿음을 느낄 수 있어. / 화려한 말보다 실제로 챙겨준 행동이 크게 다가오는 날이야. / 오래 만난 사이에서는 앞으로의 생활을 자연스럽게 이야기할 수 있어.
+관찰: 현실화하는 지성 / 실용적·수학적 능력 / 능력이 쓰이는 분야에서의 성공
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 약속을 지키고 필요한 순간에 곁에 있는 사람에게 믿음을 느낄 수 있어. 화려한 말보다 실제로 챙겨준 행동이 크게 다가오는 날이야. 오래 만난 사이에서는 앞으로의 생활을 자연스럽게 이야기할 수 있어. 서로 감당할 수 있는 것을 솔직하게 말하며 편안함이 깊어질 거야. 든든했던 행동 하나를 고맙다고 직접 전해줘. | Someone keeping promises and being there when needed could earn your trust. What they've actually done for you may matter more than impressive words. A long-established relationship could include natural talk about your future daily life. Speaking honestly about what you can each manage should deepen the comfort. Thank them directly for one action that made you feel supported. | 約束を守り、必要なときにそばにいる人を信頼できそうです。立派な言葉より、実際にしてくれた行動が大きく感じられるでしょう。長くつきあう二人なら、これからの暮らしを自然に話せそうです。できることを素直に伝え合い、心地よさが深まるでしょう。頼もしかった行動について、直接ありがとうと伝えてください。 |
+| 분야 풀이 | 솔로라면 진지한 만남을 원하고 약속을 지키는 사람과 인연이 닿을 수 있어. 자신의 생활을 성실하게 꾸려가는 모습에서 호감이 깊어지기 좋아.<br><br>연애 중이라면 말로만 오가던 결혼이나 생활 계획을 실제로 진행할 수 있어. 필요한 준비가 갖춰지면서 두 사람의 관계도 더 든든해질 수 있어.<br><br>이별 후라면 다시 만나기 위해 해결해야 했던 현실적인 문제가 풀릴 수 있어. 서로 재회를 원한다면 함께 지낼 계획까지 차분히 논의하기 좋은 날이야. | If you're single, you could meet someone who wants a serious relationship and keeps promises. Seeing the care they take in managing their own life may deepen your attraction.<br><br>In a relationship, marriage or everyday plans you've only discussed could go ahead in practice. As necessary preparations fall into place, the relationship may feel more secure too.<br><br>After a breakup, a practical problem that needed solving before a reunion could be resolved. If you both want to try again, it's a good day for a calm discussion of plans to be together. | フリーの人は、真剣な交際を望み、約束を守る相手と縁ができそうです。暮らしを大切に、誠実に日々を過ごす姿から、好意が深まりやすいでしょう。<br><br>交際中なら、話すだけだった結婚や暮らしの計画を、実際に進められそうです。必要な準備が整うにつれて、二人の関係もさらに確かなものになるでしょう。<br><br>別れた後なら、復縁のために解決する必要があった、現実の問題が片づきそうです。互いに復縁を望むなら、これから一緒に過ごす計画まで、落ち着いて相談するのによい日です。 |
 
 ## swords.01 · 역방향
 
 내부 ID: `love.swords.01.reversed`
 
-카드 의미: 정보가 뒤섞이거나 확신에 비해 근거가 부족함. 원전의 과도한 힘을 성급한 판단·말의 날카로움으로 응용.
+카드 의미: 혼란, 의사소통 오해, 성급한 확신
 
-분야 해석: 날카롭게들린말
+분야 해석: 주의: 고백의 오해, 엇갈린 말, 불분명한 재회 답
 
-관찰: 솔직하게 하려던 말이 생각보다 날카롭게 들릴 수 있는 날이야. / 짧은 답장의 뜻을 서로 다르게 읽어 대화가 잠깐 어색해질 수 있어. / 직접 목소리를 듣고 나면 차갑게 말하려던 것은 아니었다는 설명을 들을 거야.
+관찰: 혼란 / 의사소통 오해 / 성급한 확신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 솔직하게 하려던 말이 생각보다 날카롭게 들릴 수 있는 날이야. 짧은 답장의 뜻을 서로 다르게 읽어 대화가 잠깐 어색해질 수 있어. 직접 목소리를 듣고 나면 차갑게 말하려던 것은 아니었다는 설명을 들을 거야. 마음에 걸리는 문장은 추측하지 말고 무슨 뜻이었는지 물어봐. 표현을 바로잡을 기회가 생겨 처음처럼 불편한 마음만 남지는 않을 수 있어. | Words meant to be honest could sound sharper than intended. Different readings of a short reply may make a conversation briefly awkward. Hearing their voice directly could bring an explanation that they weren't trying to sound cold. Ask what an unsettling phrase meant instead of guessing. A chance to correct the wording may leave less discomfort than you initially felt. | 正直に話すつもりの言葉が、思ったより鋭く聞こえるかもしれません。短い返事を違う意味に読んで、会話が少しぎこちなくなりそうです。直接声を聞けば、冷たく言うつもりではなかったという説明があるでしょう。気になる一文は推測せず、どんな意味か尋ねてみてください。表現を直す機会があり、最初のような不快な気持ちだけは残らずに済みそうです。 |
+| 분야 풀이 | 솔로라면 고백하려던 말이 농담처럼 들리거나 호의를 오해할 수 있어. 중요한 마음은 애매한 표현보다 직접 전하는 편이 좋아.<br><br>연애 중이라면 서로 다르게 기억한 약속 때문에 다툴 수 있어. 한 문장만 듣고 결론을 내리지 말고 무슨 뜻이었는지 다시 물어봐.<br><br>이별 후라면 재회를 말하는 줄 알았는데 상대 뜻은 다를 수 있어. 단편적인 메시지로 다시 사귀기로 했다고 판단하지 마. 서로 원하는 답을 정확히 나눌 때까지 결정은 미뤄줘. | If you're single, words meant to express your feelings could sound like a joke, or you may mistake kindness for attraction. It's better to express important feelings directly instead of vaguely.<br><br>In a relationship, different memories of a promise could cause an argument. Ask again what your partner meant instead of reaching a conclusion from one sentence.<br><br>After a breakup, you may think your ex means reuniting when they intend something else. Don't decide you've agreed to date again from fragments of a message. Wait to decide until you've clearly told each other what you want. | フリーの人は、告白のつもりの言葉が冗談に聞こえたり、親切を誤解したりするかもしれません。大切な気持ちは、曖昧な表現より直接伝えたほうがよさそうです。<br><br>交際中なら、約束について互いの記憶が違い、けんかになりそうです。一言だけで結論を出さず、どういう意味だったか、もう一度尋ねましょう。<br><br>別れた後なら、復縁の話だと思っても、相手の意図は違うかもしれません。断片的なメッセージから、交際の再開が決まったと考えるのは控えてください。互いに望むことを正確に伝え合うまでは、決定を待ちましょう。 |
 
 ## swords.01 · 정방향
 
 내부 ID: `love.swords.01.upright`
 
-카드 의미: 혼란을 가르는 명료한 생각과 진실의 확인. 원전의 힘·승리를 근거와 구분이 생기는 지적 돌파로 현대화.
+카드 의미: 명료함, 진실 확인, 지적 돌파, 결단
 
-분야 해석: 솔직한뜻의확인
+분야 해석: 혼합: 분명한 고백의 답, 오해 해소, 재회 여부의 결론
 
-관찰: 서로 무슨 뜻이었는지 솔직하게 이야기할 기회가 생길 수 있어. / 짧은 연락을 두고 혼자 생각했던 것과 실제 설명이 달라 오해가 풀릴 거야. / 가까운 사이에서는 원하는 만남이나 연락 방식을 분명하게 들을 수 있어.
+관찰: 명료함 / 진실 확인 / 지적 돌파
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 무슨 뜻이었는지 솔직하게 이야기할 기회가 생길 수 있어. 짧은 연락을 두고 혼자 생각했던 것과 실제 설명이 달라 오해가 풀릴 거야. 가까운 사이에서는 원하는 만남이나 연락 방식을 분명하게 들을 수 있어. 하고 싶은 말은 애매한 농담에 숨기지 말고 짧게 전해봐. 확실히 들은 말이 남아 상대의 반응을 계속 짐작하는 부담이 줄어들 수 있어. | You may get a chance to say honestly what each of you meant. An explanation could differ from your private reading of a short message and clear up a misunderstanding. With someone close, you might hear clearly what kind of contact or meetings they want. Say what you mean briefly instead of hiding it in an ambiguous joke. Definite words can reduce the burden of constantly guessing at their reactions. | 互いにどんな意味だったか、正直に話す機会がありそうです。短い連絡を一人で解釈したのとは説明が違い、誤解が解けるでしょう。親しい間柄では、望む会い方や連絡の仕方をはっきり聞けそうです。言いたいことは曖昧な冗談に隠さず、短く伝えてみてください。確かに聞いた言葉が残れば、相手の反応を推測し続ける負担も減りそうです。 |
+| 분야 풀이 | 솔로라면 애매하던 호감에 분명한 답을 들을 수 있어. 서로 좋아한다면 사귀자는 말로 이어지고, 아니라면 더 기다리지 않아도 돼.<br><br>연애 중이라면 제대로 전하지 못했던 말의 뜻이 밝혀지며 오해가 풀릴 수 있어. 중요한 약속이나 결혼 문제도 돌려 말하지 않으면 결론을 내리기 좋아.<br><br>이별 후라면 재회할 뜻이 서로 같은지 알게 될 수 있어. 좋든 아쉽든 분명한 답을 듣고 관계를 결정하기 좋은 날이야. 상대가 끝내길 원한다면 그 말을 존중해줘. | If you're single, someone whose interest has been unclear could give you a definite answer. If you like each other, it may lead to dating; if not, you don't need to keep waiting.<br><br>In a relationship, understanding what a poorly expressed remark meant could clear up a misunderstanding. An important commitment or marriage question may be easier to settle if you speak directly.<br><br>After a breakup, you may learn whether you share the same wish to reunite. Whether the answer is welcome or disappointing, it's a good day to hear it clearly and decide about the relationship. Respect it if the other person wants things to end. | フリーの人は、曖昧だった好意について、はっきりした答えを聞けそうです。互いに好きなら交際へ進み、そうでなければ、これ以上待たずに済むでしょう。<br><br>交際中なら、うまく伝わらなかった言葉の意味がわかり、誤解が解けそうです。大切な約束や結婚の問題も、遠回しに言わなければ、結論を出しやすい日です。<br><br>別れた後なら、復縁への意向が同じかどうか、わかりそうです。うれしい答えでも残念な答えでも、はっきり聞いたうえで関係を決めやすい日です。相手が終わりを望んでいるなら、その言葉を尊重してください。 |
 
 ## swords.02 · 역방향
 
 내부 ID: `love.swords.02.reversed`
 
-카드 의미: 피하던 선택이 드러나거나 정보가 넘쳐 균형이 깨짐. 원전의 불일치를 결정 압박과 선택 재정리로 응용.
+카드 의미: 정보와 의견 과부하, 미룬 선택 직면, 판단 곤란
 
-분야 해석: 피하던대화가나옴
+분야 해석: 주의: 몰리는 의견과 미룬 선택으로 인한 혼란, 성급한 관계 결정
 
-관찰: 서로 피하던 이야기가 갑자기 나와 잠깐 긴장할 수 있어. / 연락이나 만남을 어떻게 하고 싶은지 분명한 답을 듣게 될 거야. / 추측만 할 때보다 상대의 생각이 뚜렷해져 오히려 마음이 차분해질 수 있어.
+관찰: 정보와 의견 과부하 / 미룬 선택 직면 / 판단 곤란
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 피하던 이야기가 갑자기 나와 잠깐 긴장할 수 있어. 연락이나 만남을 어떻게 하고 싶은지 분명한 답을 듣게 될 거야. 추측만 할 때보다 상대의 생각이 뚜렷해져 오히려 마음이 차분해질 수 있어. 당장 결론이 어렵다면 어느 부분을 더 생각하고 싶은지 말해줘. 원하는 것이 같지 않더라도 앞으로 무엇을 이야기할지 알게 되는 날이야. | A subject you've both avoided may come up suddenly and cause a tense moment. You could hear a clear answer about how the other person wants to keep in touch or meet. Knowing their thoughts may feel calmer than having to guess. If you can't reach a conclusion yet, explain which part you want more time to consider. Even if you want different things, you may know more clearly what to discuss next. | 互いに避けていた話が急に出て、少し緊張するかもしれません。連絡や会う機会をどうしたいのか、はっきりした返事を聞くことになりそうです。想像するしかなかったときより相手の考えが分かり、かえって落ち着く場合もあるでしょう。今すぐ結論を出せなければ、どの部分をもう少し考えたいのか伝えてください。望むことが同じでなくても、これから何を話せばよいのか分かる日です。 |
+| 분야 풀이 | 솔로라면 주변의 조언이 엇갈려 누구를 만날지 더 헷갈릴 수 있어. 여러 사람의 말보다 직접 만났을 때 편했는지를 기준으로 생각해봐.<br><br>연애 중이라면 미뤄둔 결혼이나 생활 문제가 한꺼번에 다툼으로 나올 수 있어. 오늘 모든 답을 정하려 하면 서로 더 혼란스러워져.<br><br>이별 후라면 재회를 서둘러 정했다가 곧 마음이 바뀔 수 있어. 주변이 재촉하거나 상대가 바로 답하라고 해도 준비되지 않았다면 시간을 요청해도 돼. | If you're single, conflicting advice could make you more confused about whom to meet. Give more weight to whether you felt comfortable with the person yourself than to several outside opinions.<br><br>In a relationship, postponed questions about marriage or daily life could all become arguments at once. Trying to decide everything today may leave you both more confused.<br><br>After a breakup, a hasty decision to reunite could soon change. Even if people urge you on or your ex demands an immediate answer, you can ask for time if you aren't ready. | フリーの人は、周囲の助言が食い違い、誰と会うかますます迷うかもしれません。いろいろな人の言葉より、直接会ったときに心地よかったかを基準に考えましょう。<br><br>交際中なら、後回しにした結婚や生活の問題が、一度にけんかの原因として出てきそうです。今日すべての答えを出そうとすると、互いにさらに混乱してしまいます。<br><br>別れた後なら、復縁を急いで決めて、すぐに気が変わるかもしれません。周囲に急かされたり、相手にすぐ答えるよう求められたりしても、準備ができていないなら、時間が欲しいと伝えて大丈夫です。 |
 
 ## swords.02 · 정방향
 
 내부 ID: `love.swords.02.upright`
 
-카드 의미: 팽팽한 선택 사이의 보류와 감정적 방어. 원전의 균형을 임시적인 정지로 읽고 침묵 뒤의 결정을 살핌.
+카드 의미: 균형을 유지하려는 교착, 어려운 선택, 판단에 필요한 정보 부족
 
-분야 해석: 속마음을꺼내기전망설임
+분야 해석: 정체: 고백 답변 보류, 중요한 선택의 교착, 결론 없는 재회
 
-관찰: 서로 눈치를 보며 먼저 마음을 꺼내지 못할 수 있는 날이야. / 대화는 이어져도 가장 궁금한 이야기는 비켜가 조금 답답할 거야. / 마음을 묻는 질문에는 바로 답하기보다 생각할 시간이 필요하다는 말이 돌아올 수 있어.
+관찰: 균형을 유지하려는 교착 / 어려운 선택 / 판단에 필요한 정보 부족
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 눈치를 보며 먼저 마음을 꺼내지 못할 수 있는 날이야. 대화는 이어져도 가장 궁금한 이야기는 비켜가 조금 답답할 거야. 마음을 묻는 질문에는 바로 답하기보다 생각할 시간이 필요하다는 말이 돌아올 수 있어. 상대의 대답을 재촉하기보다 내 생각을 짧게 먼저 전해봐. 침묵만 이어지던 때보다 서로 무엇을 고민하는지 조금 더 알게 될 수 있어. | You may both hesitate to be the first to say how you feel today. Conversation could continue while carefully avoiding the subject you most want to discuss. A question about feelings may bring a request for time to think rather than an immediate answer. Briefly share your own thoughts before pressing for a reply. You could understand more about what's troubling each of you than you did in silence. | 互いに様子をうかがい、自分から気持ちを話せないかもしれません。会話は続いてもいちばん知りたい話には触れず、少しもどかしくなりそうです。気持ちを尋ねても、すぐには答えず考える時間がほしいと言われることもあるでしょう。返事を急がせるより、まず自分の考えを短く伝えてみてください。黙っていたときより、互いに何を悩んでいるのか少し分かるようになりそうです。 |
+| 분야 풀이 | 솔로라면 좋아하는 사람에게 고백해도 생각할 시간이 필요하다는 답을 들을 수 있어. 당장 사귀는 사이로 진전되기는 어려운 날이야.<br><br>연애 중이라면 두 사람의 의견이 팽팽해 중요한 약속을 정하기 어려울 수 있어. 다투기 싫다고 둘 다 입을 닫으면 같은 문제는 남아 있어.<br><br>이별 후라면 다시 만날지 끝낼지 결론이 쉽게 나지 않을 수 있어. 서로 망설이는 이유를 말하지 않으면 연락만 이어질 수 있어. 오늘 답을 강요하기보다 무엇이 걸리는지 들어봐. | If you're single, someone you like may ask for time to think after you share your feelings. The day is unlikely to bring an immediate relationship.<br><br>In a relationship, equally firm opposing views could make an important commitment hard to agree on. If you both go quiet to avoid an argument, the same problem will remain.<br><br>After a breakup, deciding whether to try again or end things may be difficult. Contact could simply continue if neither of you explains the hesitation. Hear what's holding the other person back instead of forcing an answer today. | フリーの人は、好きな人に告白しても、考える時間が必要だという返事になりそうです。すぐに付き合うところまで進むのは難しい日です。<br><br>交際中なら、二人の意見が対立し、大切な約束を決めにくいかもしれません。けんかを避けようと二人とも黙ったままでは、同じ問題が残ります。<br><br>別れた後なら、復縁するか終わりにするか、なかなか結論が出ないかもしれません。互いに迷う理由を話さなければ、連絡だけが続きそうです。今日中に答えを迫るより、何が引っかかっているか聞きましょう。 |
 
 ## swords.03 · 역방향
 
 내부 ID: `love.swords.03.reversed`
 
-카드 의미: 아픈 감정을 풀어내거나 아직 남은 실망을 다룸. 원전의 혼란과 현대의 회복 중 표현을 통해 부담을 덜어내는 뜻을 선택.
+카드 의미: 서운함 수용, 용서의 여지, 감정의 부담을 내려놓음
 
-분야 해석: 조심스러운화해
+분야 해석: 회복: 상처 뒤의 새 만남, 용서와 화해, 이별의 아픔 완화
 
-관찰: 서운했던 사이에서 다시 대화를 시작할 틈이 생길 수 있어. / 처음에는 말이 조심스러워도 서로에게 아팠던 부분을 차분하게 듣게 될 거야. / 이전보다 부드러운 말이 돌아와 다시 믿고 싶다는 마음이 조금씩 생길 수 있어.
+관찰: 서운함 수용 / 용서의 여지 / 감정의 부담을 내려놓음
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서운했던 사이에서 다시 대화를 시작할 틈이 생길 수 있어. 처음에는 말이 조심스러워도 서로에게 아팠던 부분을 차분하게 듣게 될 거야. 이전보다 부드러운 말이 돌아와 다시 믿고 싶다는 마음이 조금씩 생길 수 있어. 괜찮은 척 서두르기보다 아직 어려운 점이 있으면 솔직하게 말해줘. 완전히 풀리지 않은 마음까지 알게 되면 서로 무리하지 않고 연락을 이어갈 수 있어. | There may be an opening to talk again after hurt feelings. The first words could be cautious, but you may listen calmly to what hurt each of you. A gentler response could gradually make you want to trust again. Be honest about anything still difficult instead of rushing to pretend you're fine. Knowing what remains unresolved may help you stay in touch without pushing each other. | わだかまりのあった相手と、また話し始めるきっかけがありそうです。最初は慎重な言い方でも、互いにつらかったことを落ち着いて聞けるでしょう。以前より優しい返事に、もう一度信じたい気持ちも少しずつ生まれそうです。大丈夫なふりを急がず、まだ難しく感じることがあれば正直に伝えてください。残っているわだかまりも分かれば、互いに無理をせず連絡を続けられます。 |
+| 분야 풀이 | 솔로라면 지난 고백의 아쉬움을 덜고 새로운 사람과 편하게 만날 수 있어. 비슷한 일이 생길까 미리 걱정하기보다 지금의 대화를 즐겨봐.<br><br>연애 중이라면 상처 준 말에 사과가 오가며 다툼이 풀릴 수 있어. 잘못을 인정하는 진심을 들으면 오래 남았던 서운함도 줄어들기 좋아.<br><br>이별 후라면 헤어진 일을 전보다 덜 아프게 이야기할 수 있어. 서로 재회를 원한다면 화해의 대화가 이어질 수 있어. 용서했더라도 다시 사귀어야 하는 것은 아니야. | If you're single, disappointment over an earlier response to your feelings could ease, letting you feel more comfortable with someone new. Enjoy the present conversation instead of worrying in advance that the same thing will happen.<br><br>In a relationship, apologies for hurtful words could settle an argument. Hearing a sincere acknowledgement of a mistake may help long-held hurt fade.<br><br>After a breakup, discussing the separation could feel less painful than before. If you both want to reunite, a conversation to make peace may follow. Forgiveness doesn't mean you have to date again. | フリーの人は、以前の告白への未練が和らぎ、新しい相手と気楽に会えそうです。同じことが起こるかと先に心配するより、今の会話を楽しみましょう。<br><br>交際中なら、傷つけた言葉について謝り合い、仲直りできそうです。過ちを認める本音を聞けば、長く残っていた不満も和らぎやすいでしょう。<br><br>別れた後なら、別れについて、以前ほどつらくならずに話せそうです。互いに復縁を望んでいるなら、仲直りの会話が続くでしょう。許したからといって、また付き合わなければならないわけではありません。 |
 
 ## swords.03 · 정방향
 
 내부 ID: `love.swords.03.upright`
 
-카드 의미: 아픈 사실이나 기대의 어긋남이 명확해짐. 원전의 분리·지연을 실제 상실 예언 없이 불편한 인식과 솔직함으로 사용.
+카드 의미: 아픈 진실, 기대와 현실의 차이, 실망과 분리
 
-분야 해석: 아프게들린진심
+분야 해석: 주의: 아쉬운 고백의 답, 상처 주는 말과 거리, 재회 실망
 
-관찰: 상대의 솔직한 말을 듣고 잠깐 서운하거나 놀랄 수 있어. / 나는 괜찮다고 생각했던 행동이 상대에게는 마음에 남아 있었다는 걸 알게 될 거야. / 그동안 짧은 답이나 어색한 표정의 이유가 뒤늦게 이해될 수 있는 날이야.
+관찰: 아픈 진실 / 기대와 현실의 차이 / 실망과 분리
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대의 솔직한 말을 듣고 잠깐 서운하거나 놀랄 수 있어. 나는 괜찮다고 생각했던 행동이 상대에게는 마음에 남아 있었다는 걸 알게 될 거야. 그동안 짧은 답이나 어색한 표정의 이유가 뒤늦게 이해될 수 있는 날이야. 바로 반박하기보다 어떤 점이 속상했는지 끝까지 들어줘. 즐거운 대화는 아니어도 서로 피하던 일을 알게 되어 같은 오해를 줄일 수 있어. | Someone's honest words may leave you surprised or hurt for a moment. You could discover that something you thought was fine has stayed with them. Their brief replies or awkward expressions may finally make sense. Hear out what upset them before arguing your side. It may not be an enjoyable conversation, but knowing what you've both avoided could prevent the same misunderstanding. | 相手の率直な言葉に、少し寂しくなったり驚いたりするかもしれません。自分は問題ないと思っていた行動が、相手の心には残っていたと分かりそうです。そっけない返事やぎこちない表情の理由も、ようやく理解できるでしょう。すぐ反論せず、何がつらかったのか最後まで聞いてみてください。楽しい会話ではなくても、互いに避けていたことを知り、同じ誤解を減らせそうです。 |
+| 분야 풀이 | 솔로라면 좋아하는 사람이 같은 마음이 아니라는 답을 들을 수 있어. 아쉽더라도 고백을 거듭해 상대의 결정을 바꾸려 하지는 마.<br><br>연애 중이라면 듣기 힘든 말이 오가거나 잠시 거리를 둘 수 있어. 서운함을 말하더라도 상대를 일부러 아프게 하는 표현은 피해줘.<br><br>이별 후라면 재회가 어렵다는 사실을 받아들여야 할 수 있어. 분명한 답을 들었다면 다른 뜻이 숨어 있을 거라고 기대하지 않는 게 좋아. 혼자 견디기 힘들면 가까운 사람에게 마음을 털어놓아도 괜찮아. | If you're single, the person you like may tell you they don't feel the same. Even if it hurts, don't keep declaring your feelings to change their decision.<br><br>In a relationship, you could exchange painful words or spend a little time apart. When explaining your hurt, avoid expressions meant to cause pain deliberately.<br><br>After a breakup, you may need to accept that a reunion is unlikely. If you've had a clear answer, it's better not to hope for a hidden meaning. If it's hard to bear alone, it's fine to tell someone close how you feel. | フリーの人は、好きな相手から、同じ気持ちではないという返事を聞くかもしれません。残念でも、告白を繰り返して相手の決断を変えようとするのは控えましょう。<br><br>交際中なら、聞くのがつらい言葉が交わされたり、少し距離を置いたりすることがありそうです。不満を伝える場合も、わざと相手を傷つける表現は避けてください。<br><br>別れた後なら、復縁は難しいと受け入れなければならないかもしれません。はっきりした答えを聞いたなら、別の意味が隠れているとは期待しないほうがよいでしょう。一人で抱えるのがつらいときは、身近な人に気持ちを打ち明けても大丈夫です。 |
 
 ## swords.04 · 역방향
 
 내부 ID: `love.swords.04.reversed`
 
-카드 의미: 멈춘 뒤 다시 움직이거나 충분히 쉬지 못한 조급함. 원전의 신중한 운영과 현대의 재활동을 작은 재개로 채택.
+카드 의미: 조심스러운 재개, 휴식 후 복귀, 조급함과 남은 피로
 
-분야 해석: 뜸했던연락재개
+분야 해석: 조심스러운 회복: 만남 재개, 쉬었던 대화의 재연결, 급한 재회 주의
 
-관찰: 한동안 연락이 적었던 사람과 다시 이야기를 나눌 수 있어. / 바빴던 일이 지나갔다는 소식이나 짧은 안부가 먼저 전해질 거야. / 처음에는 조금 조심스러워도 대화가 이어지며 익숙한 웃음이 돌아올 수 있어.
+관찰: 조심스러운 재개 / 휴식 후 복귀 / 조급함과 남은 피로
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 연락이 적었던 사람과 다시 이야기를 나눌 수 있어. 바빴던 일이 지나갔다는 소식이나 짧은 안부가 먼저 전해질 거야. 처음에는 조금 조심스러워도 대화가 이어지며 익숙한 웃음이 돌아올 수 있어. 반가운 마음을 전하되 바로 긴 만남을 재촉하지는 마. 짧게라도 편하게 이야기했다는 경험이 남아 다음 연락은 덜 망설이게 될 수 있어. | You may talk again with someone you've heard little from lately. A brief check-in or news that a busy spell is over could arrive first. Even if you're cautious at the start, familiar laughter may return as you talk. Show you're glad to hear from them without immediately pushing for a long meeting. One comfortable conversation, however short, could make the next message easier to send. | しばらく連絡の少なかった人と、また話す機会がありそうです。忙しかったことが一段落したという知らせや、短い挨拶が先に届くでしょう。最初は少し慎重でも、話すうちにいつもの笑顔が戻るかもしれません。うれしい気持ちは伝えつつ、すぐ長く会うことをせかさないでください。短くても気楽に話せたことで、次は連絡をためらわずに済みそうです。 |
+| 분야 풀이 | 솔로라면 미뤄뒀던 소개나 데이트가 다시 잡힐 수 있어. 오랜만의 만남이라면 짧고 편한 약속부터 시작하기 좋아.<br><br>연애 중이라면 잠시 멈췄던 대화가 다시 이어질 수 있어. 아직 서운함이 남아 있다면 모든 문제를 한 번에 풀려고 하지는 마.<br><br>이별 후라면 뜸했던 연락에 답이 올 수 있어. 둘 다 말할 준비가 됐다면 안부부터 나누기 좋아. 아직 조심스러운 사이를 곧바로 예전 연애처럼 대하지는 마. | If you're single, a postponed introduction or date could be arranged again. If it's been a while, a short, relaxed meeting is a good place to start.<br><br>In a relationship, a conversation that paused could resume. If hurt remains, don't try to solve every problem at once.<br><br>After a breakup, you may receive a reply after little contact. If you're both ready to talk, it's a good day to start by asking how each other is doing. Don't treat a still-cautious connection as if the old relationship has already returned. | フリーの人は、見送っていた紹介やデートが、また決まりそうです。久しぶりに会うなら、短く気楽な約束から始めるのによい日です。<br><br>交際中なら、しばらく止まっていた会話が、再開しそうです。まだ不満が残っているなら、すべての問題を一度に解決しようとするのは控えましょう。<br><br>別れた後なら、間が空いていた連絡に、返事が来るかもしれません。二人とも話す準備ができたなら、近況から伝え合うのがよさそうです。まだ慎重な付き合いを、すぐに以前の恋人同士と同じように扱うのは控えてください。 |
 
 ## swords.04 · 정방향
 
 내부 ID: `love.swords.04.upright`
 
-카드 의미: 잠시 물러나 생각과 활동을 쉬게 하는 정지. 원전의 은둔·휴식을 일상의 회복 시간으로 읽되 질환을 전제하지 않음.
+카드 의미: 휴식, 물러남, 고요, 회복을 위한 중단
 
-분야 해석: 차분한연락간격
+분야 해석: 유보: 조용한 만남운, 다툼 뒤의 휴식, 재회 연락의 정지
 
-관찰: 연락이 평소보다 적어도 관계가 조용히 이어질 수 있는 날이야. / 각자 할 일을 하느라 긴 대화는 어렵지만 짧은 안부에는 다정한 마음이 담길 거야. / 가까운 사람과도 말없이 함께 앉아 있는 시간이 부담스럽지 않을 수 있어.
+관찰: 휴식 / 물러남 / 고요
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 연락이 평소보다 적어도 관계가 조용히 이어질 수 있는 날이야. 각자 할 일을 하느라 긴 대화는 어렵지만 짧은 안부에는 다정한 마음이 담길 거야. 가까운 사람과도 말없이 함께 앉아 있는 시간이 부담스럽지 않을 수 있어. 급한 이야기가 아니라면 오늘은 답을 재촉하지 말아줘. 서로의 시간을 존중한 뒤에는 다시 이야기할 때 자연스럽게 근황을 나눌 수 있을 거야. | A relationship may stay quietly steady even with less contact than usual. You may each be busy, but a brief check-in could still carry affection. Sitting together without talking may also feel comfortable with someone close. If the matter isn't urgent, don't press for an answer today. After giving each other time, you could naturally catch up when you speak again. | いつもより連絡が少なくても、関係は穏やかに続きそうです。互いの用事で長く話せなくても、短い挨拶には優しい気持ちがこもるでしょう。親しい人とは、黙って一緒に座っている時間も気まずくないかもしれません。急ぐ話でなければ、今日は返事をせかさずにいてください。互いの時間を尊重した後は、また自然に近況を話せそうです。 |
+| 분야 풀이 | 솔로라면 새 만남이나 고백의 진전이 적고 조용히 지나가기 쉬워. 답이 늦은 상대에게 오늘 안에 결론을 달라고 요구하지 마.<br><br>연애 중이라면 다툰 뒤 잠시 쉬어야 대화가 가라앉을 수 있어. 당장 화해하려고 같은 이야기를 계속하면 서로 더 피곤해질 수 있어.<br><br>이별 후라면 재회 연락이 잠시 멈출 수 있어. 조용한 시간을 곧바로 끝이라는 뜻이나 숨은 그리움으로 해석하지 마. 오늘은 답을 기다리던 연락에서 잠깐 벗어나도 좋아. | If you're single, the day may pass quietly with little progress in meeting someone or sharing your feelings. Don't demand an answer by the end of today from someone slow to reply.<br><br>In a relationship, a pause after an argument may be needed for conversation to calm down. Repeating the same points to make up immediately could only tire you both further.<br><br>After a breakup, messages about getting back together may pause for a while. Don't immediately interpret the quiet as either a final ending or hidden longing. It's fine to take a break from waiting for a reply today. | フリーの人は、新しい出会いや告白にあまり進展がなく、静かに過ぎやすい日です。返事が遅い相手に、今日中の結論を求めるのは控えましょう。<br><br>交際中なら、けんかの後に少し休むことで、落ち着いて話せそうです。すぐに仲直りしようと同じ話を続けると、互いにさらに疲れるかもしれません。<br><br>別れた後なら、復縁に向けた連絡が、少し止まるかもしれません。連絡がないだけで、もう終わりだと決めたり、本当は恋しく思っていると推測したりするのは控えてください。今日は返事を待っている連絡から、少し離れてもよいでしょう。 |
 
 ## swords.05 · 역방향
 
 내부 ID: `love.swords.05.reversed`
 
-카드 의미: 갈등의 후유증을 인정하고 승패 집착을 덜어내는 현대적 독해. 원전의 여전한 상실도 있어 즉시 화해를 보장하지 않음.
+카드 의미: 갈등 중단, 타협, 더 큰 손실을 막는 양보
 
-분야 해석: 다툰뒤의조심스러운접근
+분야 해석: 회복: 경쟁과 오해를 멈춤, 양보와 화해, 원만한 재회·정리
 
-관찰: 날카롭게 이야기했던 사람과 다시 말을 나눌 수 있어. / 먼저 짧은 안부를 건네거나 거친 표현이 미안했다는 말을 들을 수 있는 날이야. / 서로 기억하는 내용이 같지 않아도 더 상처 주고 싶지는 않다는 마음이 느껴질 거야.
+관찰: 갈등 중단 / 타협 / 더 큰 손실을 막는 양보
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 날카롭게 이야기했던 사람과 다시 말을 나눌 수 있어. 먼저 짧은 안부를 건네거나 거친 표현이 미안했다는 말을 들을 수 있는 날이야. 서로 기억하는 내용이 같지 않아도 더 상처 주고 싶지는 않다는 마음이 느껴질 거야. 내가 지나치게 말한 부분은 이유를 붙이지 말고 인정해줘. 당장 가까워지지 않더라도 다음 대화를 피해야 한다는 부담은 줄어들 수 있어. | You may speak again with someone after a sharp exchange. A brief check-in could come first, or you might hear an apology for harsh words. Even if you remember events differently, you could sense that neither wants to cause more hurt. Acknowledge where you went too far without adding a justification. You may not feel close straight away, but there could be less pressure to avoid the next conversation. | きつく話した相手と、再び言葉を交わせそうです。相手から短い挨拶があったり、厳しい言い方を謝られたりするかもしれません。覚えていることが違っても、これ以上傷つけたくない気持ちは伝わるでしょう。自分が言いすぎたところは、理由を添えずに認めてみてください。すぐ距離が縮まらなくても、次の会話を避けなければという負担は減りそうです。 |
+| 분야 풀이 | 솔로라면 자존심 때문에 끊겼던 대화가 다시 이어질 수 있어. 서로 떠보던 말을 줄이면 호감도 더 편하게 전해져.<br><br>연애 중이라면 누가 이겼는지 따지던 다툼을 끝낼 수 있어. 서로 지나친 말을 인정하면 먼저 건넨 사과도 받아들여지기 좋아.<br><br>이별 후라면 감정적인 말싸움을 멈추고 차분히 이야기할 수 있어. 둘 다 원한다면 화해가 재회로 이어질 수 있어. 재회 생각이 다르더라도 서로 덜 상처받으며 정리하기 좋은 날이야. | If you're single, a conversation that stopped because of pride could begin again. Less testing of each other may make it easier to express affection.<br><br>In a relationship, you could end an argument focused on who won. If you both admit when your words went too far, an apology from you may be well received.<br><br>After a breakup, you may stop an emotional argument and speak calmly. If you both want to, making peace could lead to a reunion. Even if your wishes about trying again differ, it's a good day to end things with less hurt. | フリーの人は、プライドから途切れた会話が、また続きそうです。互いを試す言葉を減らせば、好意も気楽に伝えられるでしょう。<br><br>交際中なら、どちらが勝ったかにこだわるけんかを、終えられそうです。互いに言いすぎたと認めれば、先に伝えた謝罪も受け入れてもらいやすい日です。<br><br>別れた後なら、感情的な言い争いをやめ、落ち着いて話せそうです。二人とも望むなら、仲直りから復縁へつながるかもしれません。復縁への思いが違っても、互いに傷を深めず、区切りをつけやすい日です。 |
 
 ## swords.05 · 정방향
 
 내부 ID: `love.swords.05.upright`
 
-카드 의미: 이겨도 남는 불편과 갈등의 비용. 원전의 손실·모욕을 다툼에서 무엇을 지키려는지 묻는 해석으로 응용.
+카드 의미: 상처를 남기는 승리, 자존심 다툼, 소모적 대립
 
-분야 해석: 옳고그름을다투는대화
+분야 해석: 주의: 자존심 경쟁, 상처 남기는 말다툼, 재회를 막는 비난
 
-관찰: 서운한 일을 이야기하다 누가 더 잘못했는지를 따지게 될 수 있어. / 말이 길어질수록 원래 풀고 싶던 문제보다 자존심이 더 크게 느껴질 거야. / 상대가 조용해져도 납득한 것이 아니라 더 말하기 어려웠던 것일 수 있어.
+관찰: 상처를 남기는 승리 / 자존심 다툼 / 소모적 대립
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서운한 일을 이야기하다 누가 더 잘못했는지를 따지게 될 수 있어. 말이 길어질수록 원래 풀고 싶던 문제보다 자존심이 더 크게 느껴질 거야. 상대가 조용해져도 납득한 것이 아니라 더 말하기 어려웠던 것일 수 있어. 답을 받아내려 하기보다 서로 잠깐 쉬었다가 이야기하자고 말해봐. 지금의 대화를 짧게 멈추는 것이 아끼는 사이에 날카로운 말을 덜 남길 수 있어. | Discussing hurt feelings could become an argument about who's more at fault. As the conversation grows longer, pride may overshadow the problem you meant to resolve. Silence might mean the other person finds it hard to continue, not that they agree. Suggest taking a short break together instead of trying to extract an answer. Pausing now could spare a valued relationship some harsh words. | 寂しかったことを話すうちに、どちらがより悪かったのかを争うかもしれません。話が長くなるほど、解決したかった問題より意地が大きくなりそうです。相手が黙っても、納得したのではなく話し続けるのがつらい場合もあるでしょう。答えを求め続けず、少し休んでから話そうと伝えてみてください。いったん話を止めることで、大切な相手にきつい言葉を残さずに済みそうです。 |
+| 분야 풀이 | 솔로라면 밀리지 않으려는 말 때문에 호감이 줄어들 수 있어. 좋아하는 사람 앞에서 누가 더 아쉬운지 겨루면 대화가 편하지 않아.<br><br>연애 중이라면 말싸움에서 이겨도 서로에게 상처가 남을 수 있어. 상대가 평소 신경 쓰던 단점을 들춰 말하면 화해가 더 어려워져.<br><br>이별 후라면 잘못을 인정받으려다 재회 대화가 다툼으로 끝날 수 있어. 화가 난다고 상대를 비난하는 말까지 보태지는 마. | If you're single, remarks meant to keep the upper hand could reduce attraction. Competing to show who needs the other less won't make conversation comfortable with someone you like.<br><br>In a relationship, winning a verbal argument could still leave you both hurt. Pointing out a flaw your partner already feels sensitive about may make reconciliation harder.<br><br>After a breakup, trying to make your ex admit a mistake could turn a reunion discussion into an argument. Don't add insults just because you're angry. | フリーの人は、負けたくない気持ちから出た言葉で、好意が薄れるかもしれません。好きな人の前で、どちらがより相手を求めているかを競うと、気楽には話せません。<br><br>交際中なら、言い争いに勝っても、互いに傷が残りそうです。相手が普段気にしている欠点を持ち出すと、仲直りがさらに難しくなります。<br><br>別れた後なら、相手に過ちを認めさせようとして、復縁の話がけんかで終わるかもしれません。腹が立っても、相手を非難する言葉を重ねるのは控えましょう。 |
 
 ## swords.06 · 역방향
 
 내부 ID: `love.swords.06.reversed`
 
-카드 의미: 옮기려 해도 미해결된 일이 발목을 잡음. 원전의 드러남·고백과 현대의 변화 지연을 남은 문제의 확인으로 응용.
+카드 의미: 해결되지 않은 문제, 변화 저항, 익숙한 어려움으로 되돌아감
 
-분야 해석: 다시나온지난이야기
+분야 해석: 주의: 과거 문제로 되돌아감, 끝나지 않은 갈등, 불편한 재회
 
-관찰: 이미 넘긴 줄 알았던 이야기가 다시 나올 수 있는 날이야. / 나는 괜찮아졌어도 상대는 아직 궁금한 것이 남아 있다는 걸 알게 될 거야. / 다른 장소에서 만나도 같은 말이 반복돼 무엇이 해결되지 않았는지 눈에 들어올 수 있어.
+관찰: 해결되지 않은 문제 / 변화 저항 / 익숙한 어려움으로 되돌아감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 이미 넘긴 줄 알았던 이야기가 다시 나올 수 있는 날이야. 나는 괜찮아졌어도 상대는 아직 궁금한 것이 남아 있다는 걸 알게 될 거야. 다른 장소에서 만나도 같은 말이 반복돼 무엇이 해결되지 않았는지 눈에 들어올 수 있어. 오늘은 그때 왜 그랬는지 묻는 말에 한 번 차분하게 답해줘. 남은 의문이 줄어들면 다음 만남에서는 다른 이야기를 꺼낼 여지가 생길 수 있어. | A subject you thought you'd moved past may come up again. Even if you feel fine now, you could learn that the other person still has questions. Hearing the same point in a different setting may reveal what remains unresolved. Calmly answer once when they ask why something happened. With fewer questions left hanging, the next meeting could have room for a different conversation. | もう済んだと思っていた話が、再び出るかもしれません。自分は気にしていなくても、相手にはまだ知りたいことがあると分かりそうです。別の場所で会っても同じ話になり、何が解決していないのか見えるでしょう。今日はなぜそうしたのか尋ねられたら、一度落ち着いて答えてください。疑問が減れば、次に会うときはほかの話をする余地が生まれそうです。 |
+| 분야 풀이 | 솔로라면 그만 만나려던 사람에게 다시 연락하며 같은 고민을 할 수 있어. 전에도 불편했던 점이 그대로라면 새롭게 시작하기 어려워.<br><br>연애 중이라면 이미 지나간 줄 알았던 문제가 다시 다툼이 될 수 있어. 장소를 바꾸거나 데이트를 해도 말하지 않은 불만은 저절로 사라지지 않아.<br><br>이별 후라면 재회해도 헤어진 이유가 그대로 드러날 수 있어. 외로움을 달래려고 돌아가면 같은 불편이 반복되기 쉬워. 지금도 서로 달라진 것이 없다면 다시 만나는 결정을 늦춰줘. | If you're single, reaching out again to someone you meant to stop seeing could bring the same worries back. A fresh start may be difficult if what made you uncomfortable hasn't changed.<br><br>In a relationship, a problem you thought was past could cause another argument. A different setting or a date won't make unspoken complaints disappear by themselves.<br><br>After a breakup, a reunion could expose the same reasons you separated. Returning to ease loneliness may repeat the old discomfort. If neither of you has changed, put off deciding to date again. | フリーの人は、もう会わないつもりだった相手に連絡し、また同じことで悩むかもしれません。以前嫌だった点が変わらないなら、新しく始めるのは難しそうです。<br><br>交際中なら、過ぎたと思っていた問題が、またけんかの原因になりそうです。場所を変えたりデートをしたりしても、言わずにいる不満が自然に消えるわけではありません。<br><br>別れた後なら、復縁しても、別れた原因がそのまま表に出るかもしれません。寂しさを紛らわすために戻ると、同じ居心地の悪さを繰り返しがちです。今も互いに変わっていないなら、交際を再開する決定は後にしましょう。 |
 
 ## swords.06 · 정방향
 
 내부 ID: `love.swords.06.upright`
 
-카드 의미: 불편한 곳에서 더 차분한 방식으로 옮겨감. 원전의 이동을 실제 여행 확정 없이 부담을 줄이는 전환으로 응용.
+카드 의미: 부담에서 벗어나는 이동, 차분한 전환, 도움을 받음
 
-분야 해석: 차분한만남
+분야 해석: 회복과 전환: 편한 새 인연, 갈등에서 벗어남, 이별 정리
 
-관찰: 불편했던 대화에서 한발 떨어져 편하게 만날 기회가 생길 수 있어. / 시끄러운 자리보다 함께 걷거나 조용히 앉아 있을 때 말이 부드럽게 이어질 거야. / 지난 일을 모두 풀지 않아도 지금 무엇이 필요한지는 조금씩 들을 수 있어.
+관찰: 부담에서 벗어나는 이동 / 차분한 전환 / 도움을 받음
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 불편했던 대화에서 한발 떨어져 편하게 만날 기회가 생길 수 있어. 시끄러운 자리보다 함께 걷거나 조용히 앉아 있을 때 말이 부드럽게 이어질 거야. 지난 일을 모두 풀지 않아도 지금 무엇이 필요한지는 조금씩 들을 수 있어. 꼭 결론을 내기보다 부담 없이 만날 장소를 골라봐. 서로를 재촉하지 않은 시간이 남아 다음 연락은 조금 덜 무겁게 느껴질 수 있어. | You may get a chance to meet comfortably away from an uneasy conversation. Words could come more gently while walking together or sitting somewhere quiet than in a noisy setting. Even without settling everything from the past, you may begin to hear what each person needs now. Choose a relaxed place to meet instead of insisting on a conclusion. Time without pressure could make the next message feel a little less heavy. | 気まずかった話から少し離れ、気楽に会う機会がありそうです。騒がしい場より、一緒に歩いたり静かに座ったりすると優しく話せるでしょう。過去のことをすべて解決しなくても、今何が必要なのか少しずつ聞けそうです。結論を求めるより、気負わず会える場所を選んでみてください。互いをせかさず過ごすことで、次の連絡は少し気が楽になるでしょう。 |
+| 분야 풀이 | 솔로라면 불편했던 만남에서 벗어나 대화가 편한 사람을 만날 수 있어. 다른 모임이나 소개가 지난 실망을 덜어줄 수 있어.<br><br>연애 중이라면 날카로운 다툼이 잦아들고 차분히 지낼 수 있어. 둘 다 시끄러운 자리에서 벗어나 이야기하면 서로의 말을 듣기 좋아.<br><br>이별 후라면 재회를 기다리던 시간을 지나 관계를 정리할 수 있어. 다시 만나기로 했다면 예전 갈등을 반복하지 않기로 뜻을 모으기 좋아. 혼자 감당하기 어렵던 마음도 주변의 도움으로 덜 수 있어. | If you're single, you could leave an uncomfortable connection and meet someone easier to talk to. A different group or introduction may ease past disappointment.<br><br>In a relationship, sharp arguments could become less frequent and let you spend a calmer day together. Leaving a noisy setting to talk may make it easier to hear each other.<br><br>After a breakup, you may move beyond waiting for a reunion and bring the relationship to an end. If you've decided to date again, it's a good day to agree not to repeat the old conflict. Support from people around you could ease feelings that were difficult to manage alone too. | フリーの人は、居心地の悪い付き合いを離れ、気楽に話せる人と出会えそうです。別の集まりや紹介が、以前の失望を和らげてくれるかもしれません。<br><br>交際中なら、激しいけんかが減り、穏やかに過ごせそうです。騒がしい場を二人で離れて話すと、互いの言葉に耳を傾けやすいでしょう。<br><br>別れた後なら、復縁を待つ日々を終え、関係に区切りをつけられそうです。また付き合うと決めた二人は、以前のような対立は繰り返さないと、互いに約束しやすいでしょう。一人では抱えきれなかった気持ちも、周囲の助けで軽くなりそうです。 |
 
 ## swords.07 · 역방향
 
 내부 ID: `love.swords.07.reversed`
 
-카드 의미: 숨기거나 미뤘던 내용을 드러내고 방식을 바로잡는 선택. 원전의 조언·설명을 자기 합리화에서 벗어나는 뜻으로 응용.
+카드 의미: 솔직한 인정, 잘못 바로잡기, 조언 수용
 
-분야 해석: 솔직하게꺼낸사정
+분야 해석: 회복: 숨기던 뜻의 공개, 잘못 인정과 화해, 재회 의사의 확인
 
-관찰: 말하지 않았던 사정을 듣고 상대의 행동을 이해할 수 있어. / 연락이 짧았던 이유나 약속이 바뀐 까닭이 처음 생각과 달랐을 거야. / 나도 얼버무렸던 말을 솔직하게 전할 기회가 생길 수 있는 날이야.
+관찰: 솔직한 인정 / 잘못 바로잡기 / 조언 수용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 말하지 않았던 사정을 듣고 상대의 행동을 이해할 수 있어. 연락이 짧았던 이유나 약속이 바뀐 까닭이 처음 생각과 달랐을 거야. 나도 얼버무렸던 말을 솔직하게 전할 기회가 생길 수 있는 날이야. 괜히 둘러 말하기보다 미처 전하지 못한 점을 한 번 이야기해봐. 당장 모든 마음을 알지는 못해도 확인된 말이 남아 추측은 줄어들 수 있어. | Hearing circumstances that went unmentioned may help you understand someone's behavior. The reason for brief messages or a changed plan could differ from what you first imagined. You may also get a chance to speak honestly about something you glossed over. Say what you hadn't managed to share instead of talking around it. You may not know every feeling immediately, but clear words could leave less to guess about. | 話されていなかった事情を聞き、相手の行動が理解できそうです。連絡が短かった理由や約束が変わったわけは、最初の想像と違うかもしれません。自分も曖昧にしていたことを、正直に話す機会があるでしょう。遠回しにせず、伝えそびれていたことを一度話してみてください。すぐすべての気持ちが分からなくても、確かな言葉が残り、推測することは減りそうです。 |
+| 분야 풀이 | 솔로라면 상대가 숨기던 생각을 솔직히 말해줄 수 있어. 어떤 만남을 원하는지 알게 되면서 고백하거나 마음을 접을지 정하기 좋아.<br><br>연애 중이라면 피하던 이야기를 꺼내고 잘못을 인정하며 오해를 풀 수 있어. 사실을 바로잡은 뒤에는 같은 변명을 반복하지 않는 게 좋아.<br><br>이별 후라면 왜 다시 연락했는지 분명한 말을 들을 수 있어. 서로 사과할 부분을 인정하면 재회 대화도 이어지기 좋아. 단순한 안부였다면 그 뜻대로 받아들여줘. | If you're single, someone could honestly reveal thoughts they've kept hidden. Knowing what kind of relationship they want may make it easier to decide whether to share your feelings or let them go.<br><br>In a relationship, bringing up an avoided topic and admitting a mistake could clear up a misunderstanding. Once you've corrected the facts, it's better not to repeat the same excuses.<br><br>After a breakup, you could hear a clear reason for the renewed contact. If you both acknowledge where you owe an apology, a conversation about reuniting may follow. If it was only a friendly check-in, accept that meaning. | フリーの人は、相手が隠していた考えを、正直に話してくれるかもしれません。どんな付き合いを望むかわかり、告白するか諦めるかを決めやすい日です。<br><br>交際中なら、避けていた話をし、過ちを認めて、誤解を解消できそうです。事実を正した後は、同じ言い訳を繰り返さないほうがよいでしょう。<br><br>別れた後なら、なぜまた連絡をしたのか、はっきり聞けそうです。互いに謝るべきことを認めれば、復縁の話も続きやすいでしょう。近況を尋ねただけなら、その意図のまま受け止めてください。 |
 
 ## swords.07 · 정방향
 
 내부 ID: `love.swords.07.upright`
 
-카드 의미: 모든 것을 드러내지 않는 전략과 독자적 접근. 원전의 기획·불확실한 시도를 기만 단정 없이 생략과 정보 차이에 대한 경계로 사용.
+카드 의미: 전략, 우회, 신중한 정보 공개와 은폐의 구별
 
-분야 해석: 말하지않은작은사정
+분야 해석: 주의: 속뜻이 불분명한 만남, 피하는 대화, 애매한 재연락
 
-관찰: 상대가 자세히 말하지 않은 사정이 있어 약속을 다르게 이해할 수 있어. / 숨길 마음이 없었어도 빠뜨린 설명 때문에 연락이 어색해질 수 있는 날이야. / 따로 짧게 이야기하면 여럿 앞에서는 못 했던 말이 나올 거야.
+관찰: 전략 / 우회 / 신중한 정보 공개와 은폐의 구별
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대가 자세히 말하지 않은 사정이 있어 약속을 다르게 이해할 수 있어. 숨길 마음이 없었어도 빠뜨린 설명 때문에 연락이 어색해질 수 있는 날이야. 따로 짧게 이야기하면 여럿 앞에서는 못 했던 말이 나올 거야. 궁금한 부분은 주변의 말로 채우지 말고 직접 물어봐. 전부 알아야 한다고 재촉하지 않아도 지금 필요한 이야기는 들을 수 있을 거야. | Circumstances the other person hasn't fully explained may leave you understanding a plan differently. An omitted detail could make contact awkward even if nothing was meant to be hidden. A brief private conversation may bring words they couldn't say in front of a group. Ask directly rather than filling the gap with other people's accounts. You may hear what you need to know now without insisting on knowing everything. | 相手が詳しく話していない事情があり、約束を違って受け取るかもしれません。隠すつもりがなくても、説明が抜けたために連絡がぎこちなくなりそうです。二人で短く話せば、大勢の前では言えなかったことを聞けるでしょう。分からない部分を周囲の話で埋めず、直接尋ねてみてください。すべて知りたいとせかさなくても、今必要な話は聞けそうです。 |
+| 분야 풀이 | 솔로라면 상대가 진지한 만남을 원하는지 알기 어려울 수 있어. 사귀는 사람이 있는지나 만날 뜻이 있는지처럼 중요한 질문을 계속 피한다면 고백은 서두르지 마.<br><br>연애 중이라면 불편한 이야기를 피하다 오히려 의심을 살 수 있어. 말하기 어려운 사정이 있다면 둘러대기보다 지금 이야기할 수 있는 부분을 솔직히 전해줘.<br><br>이별 후라면 연락은 와도 재회에 대한 답은 피해갈 수 있어. 상대의 속뜻을 알아내려고 몰래 근황을 뒤지기보다 직접 말한 뜻을 기준으로 판단해봐. | If you're single, it may be hard to tell whether someone wants a serious relationship. If they keep avoiding important questions, such as whether they're already dating someone or want to meet, don't rush to share your feelings.<br><br>In a relationship, avoiding an uncomfortable topic could arouse more suspicion. If something is hard to discuss, honestly share the part you can talk about now instead of making excuses.<br><br>After a breakup, your ex may contact you while avoiding an answer about reuniting. Judge by what they say directly instead of secretly searching for updates to work out their hidden intentions. | フリーの人は、相手が真剣な交際を望んでいるか、わかりにくい日です。恋人がいるか、会う気があるかなど、大切な質問を避け続けるなら、告白は急がないでください。<br><br>交際中なら、話しにくいことを避けると、かえって疑われるかもしれません。伝えにくい事情があるなら、ごまかすより、今話せることを正直に伝えましょう。<br><br>別れた後なら、連絡は来ても、復縁についての返事は避けられるかもしれません。本心を探ろうとこっそり近況を調べるより、本人が直接伝えた意向をもとに判断してください。 |
 
 ## swords.08 · 역방향
 
 내부 ID: `love.swords.08.reversed`
 
-카드 의미: 제약을 다시 보고 스스로 선택할 몫을 찾는 현대적 해제 독해. 원전의 불안정과 다른 채택이며 불안의 심화라는 대안도 존재.
+카드 의미: 선택권 인식, 자율성, 두려움 속 작은 행동
 
-분야 해석: 망설이던연락의시작
+분야 해석: 회복: 막혔던 만남 재개, 억눌린 의사 표현, 재회 대기에서 벗어남
 
-관찰: 말을 걸기 어렵던 사람과 생각보다 편하게 대화할 수 있어. / 걱정했던 질문에도 부드러운 답이 돌아와 혼자 너무 어렵게 여겼다는 걸 느낄 거야. / 가까운 사이에서는 내 의견을 말해도 괜찮다는 반응을 받게 될 수 있어.
+관찰: 선택권 인식 / 자율성 / 두려움 속 작은 행동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 말을 걸기 어렵던 사람과 생각보다 편하게 대화할 수 있어. 걱정했던 질문에도 부드러운 답이 돌아와 혼자 너무 어렵게 여겼다는 걸 느낄 거야. 가까운 사이에서는 내 의견을 말해도 괜찮다는 반응을 받게 될 수 있어. 그동안 미뤄온 작은 바람을 한 번 이야기해봐. 상대에게 맞추기만 할 때보다 서로 어떤 사이로 지내고 싶은지 알게 될 수 있어. | Talking to someone you've found hard to approach may be easier than expected. A kind answer to a question you worried about could show that you'd made it harder in your mind. Someone close may also respond in a way that welcomes your opinion. Share one small wish you've been putting off. You could learn more about how you both want the relationship to be than by always accommodating them. | 話しかけにくかった人と、思ったより気楽に会話できそうです。心配していた質問にも優しい返事があり、一人で難しく考えすぎていたと感じるでしょう。親しい相手からも、自分の意見を言ってよいと思える反応がありそうです。先延ばしにしていた小さな希望を、一度話してみてください。合わせるだけのときより、互いにどんな関係でいたいのか分かるでしょう。 |
+| 분야 풀이 | 솔로라면 어렵다고 생각했던 사람과 대화할 기회가 생길 수 있어. 먼저 건넨 인사가 예상보다 편한 만남으로 이어지기 좋아.<br><br>연애 중이라면 그동안 말하지 못한 불만을 꺼내고 답답함을 풀 수 있어. 서로의 뜻을 듣게 되면서 일방적으로 맞추던 약속도 달라질 수 있어.<br><br>이별 후라면 재회만 기다리던 상황에서 벗어날 수 있어. 연락을 정리하거나 새 소개를 받아보며 다른 만남도 가능하다는 걸 알게 될 수 있어. 다시 만날지는 상대의 요구보다 자신도 원하는지를 보고 정해줘. | If you're single, you could get a chance to talk to someone you've found hard to approach. Saying hello first may lead to a more comfortable meeting than expected.<br><br>In a relationship, voicing complaints you've kept quiet could ease frustration. Hearing each other's wishes may change arrangements where only one of you has been accommodating the other.<br><br>After a breakup, you could move beyond only waiting for a reunion. Ending contact or accepting a new introduction may show you that other connections are possible. Decide whether to try again based on what you want too, rather than just your ex's demands. | フリーの人は、話すのが難しいと思っていた相手と、会話の機会ができそうです。先にあいさつをすると、予想以上に気楽な出会いにつながりやすい日です。<br><br>交際中なら、これまで言えなかった不満を話し、息苦しさを和らげられそうです。互いの意向を知ることで、一方的に合わせていた約束も変わるかもしれません。<br><br>別れた後なら、復縁を待つだけの状況を抜け出せそうです。連絡に区切りをつけたり、新しく紹介を受けたりするうちに、ほかの人と会うこともできるとわかるでしょう。復縁するかは、相手の要求より、こちらも望んでいるかで決めてください。 |
 
 ## swords.08 · 정방향
 
 내부 ID: `love.swords.08.upright`
 
-카드 의미: 제약이 크게 느껴져 선택권을 보기 어려움. 원전의 묶인 상태를 실제 장애와 추측을 구별하는 일상 판단으로 응용.
+카드 의미: 제약으로 느끼는 상황, 두려움에 가려진 선택, 일시적 구속
 
-분야 해석: 말을꺼내기어려움
+분야 해석: 정체: 제약 많은 만남, 말하지 못한 관계 불만, 어려운 재회
 
-관찰: 상대가 어떻게 받아들일지 신경 쓰여 하고 싶은 말을 미룰 수 있어. / 거절당할까 걱정해 가벼운 연락도 보내기 어렵게 느껴질 거야. / 직접 이야기를 나누면 내가 짐작한 만큼 엄격한 분위기는 아닐 수 있어.
+관찰: 제약으로 느끼는 상황 / 두려움에 가려진 선택 / 일시적 구속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대가 어떻게 받아들일지 신경 쓰여 하고 싶은 말을 미룰 수 있어. 거절당할까 걱정해 가벼운 연락도 보내기 어렵게 느껴질 거야. 직접 이야기를 나누면 내가 짐작한 만큼 엄격한 분위기는 아닐 수 있어. 큰 마음을 확인하려 하기보다 짧은 안부부터 건네봐. 한마디 주고받은 뒤에는 말하지 못했던 때보다 상대에게 다가갈 여지가 보일 수 있어. | Concern about how someone will react may make you postpone what you want to say. Fear of rejection could make even a casual message feel difficult. A direct conversation may turn out less intimidating than you imagined. Start with a brief check-in rather than seeking a major declaration of feelings. A few exchanged words could reveal more room to approach them than silence did. | 相手の受け取り方が気になり、話したいことを先延ばしにするかもしれません。断られるのが心配で、気軽な連絡さえ難しく感じられそうです。直接話してみれば、想像したほど厳しい雰囲気ではないでしょう。相手の本心を一度に確かめようとせず、短い挨拶から始めてみてください。一言交わせば、黙っていたときより相手に近づくきっかけが見えそうです。 |
+| 분야 풀이 | 솔로라면 마음에 드는 사람이 있어도 사정이 맞지 않아 만남이 쉽지 않을 수 있어. 거절당할 걱정에 연락조차 못 했다면 가벼운 안부로 상대의 뜻을 알아봐도 돼.<br><br>연애 중이라면 불만을 말하면 헤어질까 봐 참다가 관계가 더 답답해질 수 있어. 상대에게 맞추는 것 말고도 자신의 뜻을 전할 수 있다는 걸 기억해줘.<br><br>이별 후라면 재회를 기다리는 동안 다른 만남도 미뤄질 수 있어. 상대가 분명한 답을 주지 않는다면 오늘의 계획까지 비워둘 필요는 없어. | If you're single, circumstances could make it hard to meet someone you like. If fear of rejection has stopped you even sending a message, a casual hello is one way to find out how they feel.<br><br>In a relationship, holding back complaints for fear of a breakup could make things more stifling. Remember that you can express your own wishes as well as accommodate your partner's.<br><br>After a breakup, waiting for a reunion may delay other meetings too. If your ex isn't giving a clear answer, you don't need to leave today's plans open as well. | フリーの人は、気になる相手がいても、事情が合わず、会うのは難しいかもしれません。断られる不安から連絡さえできていなかったなら、軽いあいさつで相手の気持ちを確かめてもよいでしょう。<br><br>交際中なら、不満を伝えたら別れることになりそうで我慢し、関係がさらに息苦しくなるかもしれません。相手に合わせるだけでなく、こちらの意向を伝えることもできると覚えておいてください。<br><br>別れた後なら、復縁を待つ間に、ほかの出会いまで先送りしそうです。相手がはっきり答えないなら、今日の予定まで空けておく必要はありません。 |
 
 ## swords.09 · 역방향
 
 내부 ID: `love.swords.09.reversed`
 
-카드 의미: 걱정을 밖으로 꺼내거나 아직 남은 불안을 인정함. 원전의 의심과 현대의 부담 완화를 모두 고려해 솔직한 확인의 방향을 선택.
+카드 의미: 걱정을 털어놓음, 도움을 찾음, 감당할 문제를 구체화
 
-분야 해석: 불안했던마음의설명
+분야 해석: 회복: 만남에 대한 걱정 완화, 불안을 털어놓고 오해 해소, 이별의 부담 감소
 
-관찰: 마음에 걸리던 반응에 직접 설명을 들을 수 있는 날이야. / 늦은 답장이나 어색했던 말이 생각한 뜻과 달랐다는 걸 알게 될 거야. / 내 걱정을 들은 상대가 미처 몰랐던 부분이라며 다르게 말해줄 수도 있어.
+관찰: 걱정을 털어놓음 / 도움을 찾음 / 감당할 문제를 구체화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 마음에 걸리던 반응에 직접 설명을 들을 수 있는 날이야. 늦은 답장이나 어색했던 말이 생각한 뜻과 달랐다는 걸 알게 될 거야. 내 걱정을 들은 상대가 미처 몰랐던 부분이라며 다르게 말해줄 수도 있어. 상대를 따지기보다 어떤 순간이 걱정됐는지 짧게 전해봐. 같은 이야기를 계속 확인하지 않아도 될 만큼의 안심은 얻을 수 있을 거야. | You may hear a direct explanation for a response that's been troubling you. A late reply or awkward words could turn out to mean something different from what you thought. Hearing your concern may prompt the other person to explain differently because they hadn't realized. Briefly describe the moment that worried you instead of challenging them. You could gain enough reassurance to stop checking the same point repeatedly. | 気になっていた反応について、直接説明を聞けそうです。遅い返事やぎこちなかった言葉は、思っていた意味と違ったと分かるでしょう。心配を聞いた相手が、気づかなかったと言って説明し直すこともありそうです。相手を問い詰めず、どの瞬間に心配したか短く伝えてみてください。同じことを何度も確かめなくてよいくらいの安心は得られるでしょう。 |
+| 분야 풀이 | 솔로라면 연락이 뜸했던 사정을 듣고 걱정을 덜 수 있어. 만나고 싶다는 뜻이 확인되면 불안하게 기다리던 사이도 다음 약속으로 이어질 수 있어.<br><br>연애 중이라면 혼자 품었던 걱정을 말하고 오해를 풀 수 있어. 상대의 설명을 들으면 생각했던 것만큼 나쁜 상황은 아니었다는 걸 알게 될 수 있어.<br><br>이별 후라면 가까운 사람과 이야기하며 재회에 대한 부담을 덜 수 있어. 상대의 답만 기다리는 시간이 줄고 평소의 약속을 다시 즐길 수 있는 날이야. | If you're single, learning why contact has been infrequent could ease worry. Once you know the other person wants to meet, you may arrange another date after an anxious wait.<br><br>In a relationship, sharing worries you've kept to yourself could clear up a misunderstanding. Your partner's explanation may show you the situation wasn't as bad as you thought.<br><br>After a breakup, talking to someone close could ease the pressure you feel about reuniting. It's a day when you may spend less time waiting for your ex's answer and enjoy your usual plans again. | フリーの人は、連絡が少なかった事情を聞き、心配が和らぎそうです。相手も会いたいとわかれば、不安に待つ時間が終わり、次の約束ができるかもしれません。<br><br>交際中なら、一人で抱えていた心配を話し、誤解を解消できそうです。相手の説明を聞くと、想像したほど悪い状況ではなかったとわかるかもしれません。<br><br>別れた後なら、身近な人と話すことで、復縁についての負担が軽くなりそうです。相手の返事だけを待つ時間が減り、普段の約束をまた楽しめる日です。 |
 
 ## swords.09 · 정방향
 
 내부 ID: `love.swords.09.upright`
 
-카드 의미: 걱정과 후회가 실제 사건보다 크게 느껴지는 밤의 사고. 원전의 절망을 불길한 예언이 아닌 반복되는 생각의 부담으로 제한.
+카드 의미: 반복되는 걱정, 예상과 사실의 혼동, 혼자 품는 부담
 
-분야 해석: 답장에대한걱정
+분야 해석: 주의: 연락을 둘러싼 과한 걱정, 확인 요구로 인한 다툼, 괴로운 재회 대기
 
-관찰: 답장이 늦거나 말이 짧아 상대의 마음을 걱정할 수 있어. / 전에 서운했던 장면이 떠올라 이번에도 비슷할 거라고 생각하게 될 거야. / 나중에 설명을 들으면 단순히 일정이 맞지 않았다는 걸 알게 될 수 있어.
+관찰: 반복되는 걱정 / 예상과 사실의 혼동 / 혼자 품는 부담
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 답장이 늦거나 말이 짧아 상대의 마음을 걱정할 수 있어. 전에 서운했던 장면이 떠올라 이번에도 비슷할 거라고 생각하게 될 거야. 나중에 설명을 들으면 단순히 일정이 맞지 않았다는 걸 알게 될 수 있어. 이미 연락했다면 답이 올 때까지 같은 질문을 다시 보내지는 마. 직접 확인된 말이 하나 생기면 혼자 여러 뜻을 짐작하던 부담이 조금 줄어들 거야. | A delayed or brief reply may make you worry about someone's feelings. An earlier hurt could come to mind and make you expect the same thing again. A later explanation may reveal that your schedules simply didn't match. If you've already sent a message, don't repeat the question before they answer. One clear reply could ease the pressure of imagining several meanings on your own. | 返事が遅かったり短かったりして、相手の気持ちが心配になるかもしれません。以前寂しかった場面を思い出し、今回も同じだと考えそうです。後で説明を聞けば、単に予定が合わなかっただけだと分かることもあるでしょう。すでに連絡したなら、返事が来るまで同じ質問を送り直さないでください。はっきりした言葉を一つ聞ければ、一人でいくつも意味を想像する負担が減りそうです。 |
+| 분야 풀이 | 솔로라면 답장이 늦다는 이유로 만남이 틀어졌다고 걱정하기 쉬워. 아직 거절을 듣지 않았다면 혼자 실패로 단정하거나 확인 메시지를 거듭 보내지는 마.<br><br>연애 중이라면 걱정했던 일을 사실처럼 말해 다툼이 생길 수 있어. 상대가 직접 한 말과 혼자 예상한 일을 나눠서 이야기해줘.<br><br>이별 후라면 재회 답을 기다리며 같은 생각을 되풀이하기 쉬워. 오늘 연락이 없다고 자신의 잘못만 계속 찾으면 더 힘들어져. 늦은 시간 충동적으로 긴 문자를 보내는 일은 미뤄줘. | If you're single, a late reply may make you worry that a connection has gone wrong. Unless you've actually been turned down, don't decide you've failed or send repeated messages to check.<br><br>In a relationship, describing a fear as a fact could cause an argument. Separate what your partner actually said from what you imagined might happen.<br><br>After a breakup, waiting for an answer about reuniting could leave you repeating the same thoughts. Looking only for your own mistakes because there's no contact today may make things harder. Put off sending a long, impulsive message late at night. | フリーの人は、返信が遅いというだけで、うまくいかなくなったと心配しやすい日です。まだ断られていないなら、一人で失敗と決めつけたり、確認のメッセージを繰り返したりするのは控えましょう。<br><br>交際中なら、心配していたことを事実のように話し、けんかになるかもしれません。相手が直接言ったことと、一人で想像したことを分けて話してください。<br><br>別れた後なら、復縁への返事を待ちながら、同じことばかり考えそうです。今日連絡がないからと、自分の落ち度ばかり探し続けると、さらに苦しくなります。夜遅くに勢いで長いメッセージを送るのは、後にしましょう。 |
 
 ## swords.10 · 역방향
 
 내부 ID: `love.swords.10.reversed`
 
-카드 의미: 끝난 뒤에도 남은 부담을 정리하며 다시 움직일 여지. 원전의 일시적 이점과 현대의 회복을 완전 반전 없이 사용.
+카드 의미: 어려움 뒤 작은 재개, 점진적 여유, 이전 부담 반복 방지
 
-분야 해석: 갈등후의거리조절
+분야 해석: 회복: 힘든 만남 뒤의 새 연락, 지친 관계의 작은 회복, 이별 정리
 
-관찰: 심하게 다퉜던 뒤에 조금 차분한 말이 오갈 수 있어. / 당장 예전처럼 지내지는 못해도 서로 지쳤다는 점은 이해하게 될 거야. / 연락을 잠깐 줄이거나 필요한 이야기만 나누는 방법이 정해질 수 있는 날이야.
+관찰: 어려움 뒤 작은 재개 / 점진적 여유 / 이전 부담 반복 방지
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 심하게 다퉜던 뒤에 조금 차분한 말이 오갈 수 있어. 당장 예전처럼 지내지는 못해도 서로 지쳤다는 점은 이해하게 될 거야. 연락을 잠깐 줄이거나 필요한 이야기만 나누는 방법이 정해질 수 있는 날이야. 괜찮아진 것 같다고 지난 문제를 한꺼번에 다시 꺼내지는 마. 무리 없는 거리가 생기면 다음 대화를 생각할 여유도 조금씩 돌아올 수 있어. | After a serious argument, you may exchange calmer words. Things might not return to normal immediately, but you could recognize how tired you both are. You may agree to reduce contact briefly or discuss only what's necessary. Don't reopen every past issue at once simply because things seem better. A comfortable amount of distance could gradually leave room to consider the next conversation. | 激しく言い争った後、少し落ち着いた言葉を交わせそうです。すぐ以前のようには戻れなくても、互いに疲れていることは理解できるでしょう。しばらく連絡を減らしたり、必要な話だけにしたりする方法が決まるかもしれません。よくなったように感じても、過去の問題を一度に持ち出さないでください。無理のない距離ができれば、次の会話を考える余裕も少しずつ戻りそうです。 |
+| 분야 풀이 | 솔로라면 힘들었던 만남 뒤에 편안한 대화를 나눌 사람이 생길 수 있어. 바로 사귀는 사이가 되지 않아도 반가운 연락을 주고받기 좋은 날이야.<br><br>연애 중이라면 계속되던 다툼이 잦아들고 짧게나마 편하게 이야기할 수 있어. 아직 지쳐 있다면 오늘 모든 문제를 해결하려 하지 마.<br><br>이별 후라면 끝난 관계를 떠올려도 전보다 아픔이 덜할 수 있어. 재회가 아니더라도 새로운 약속을 잡고 일상으로 돌아가기 좋아. 다시 연락이 닿는다면 같은 상처가 반복되지 않을지 살펴줘. | If you're single, you may find someone comfortable to talk to after a difficult connection. Even without immediately becoming a couple, it's a good day to exchange welcome messages.<br><br>In a relationship, ongoing arguments could ease enough for a short, comfortable conversation. If you're still tired, don't try to solve every problem today.<br><br>After a breakup, thinking about your past relationship may hurt less than before. Even without reuniting, it's a good day to make new plans and return to everyday life. If you reconnect, check whether the same hurt could happen again. | フリーの人は、つらい付き合いの後に、心地よく話せる相手ができそうです。すぐに交際が始まらなくても、うれしい連絡を交わしやすい日です。<br><br>交際中なら、続いていたけんかが減り、短い時間でも気楽に話せそうです。まだ疲れているなら、今日すべての問題を解決しようとするのは控えましょう。<br><br>別れた後なら、終わった関係を思い出しても、以前ほどつらくないかもしれません。復縁でなくても、新しい約束を入れ、日常に戻りやすい日です。また連絡が取れた場合は、同じように傷つくことを繰り返さないか、見ておきましょう。 |
 
 ## swords.10 · 정방향
 
 내부 ID: `love.swords.10.upright`
 
-카드 의미: 더 이어가기 어려운 끝을 인정함. 원전의 고통·황폐를 실제 폭력이나 재난 아닌 종료된 방식과 무리한 반복으로 제한.
+카드 의미: 소진, 종료, 더 이어가지 않을 선택
 
-분야 해석: 반복대화의한계
+분야 해석: 강한 주의와 종료: 끊기는 만남, 지친 관계의 결론, 재회보다 마무리
 
-관찰: 같은 다툼을 반복하다 오늘은 더 이야기하기 어렵다는 말을 들을 수 있어. / 서로 지친 상태에서는 좋은 뜻으로 한 설명도 길게 받아들이기 힘들 거야. / 당장 대화를 끝내고 쉬어야 한다는 점이 분명해질 수 있는 날이야.
+관찰: 소진 / 종료 / 더 이어가지 않을 선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 같은 다툼을 반복하다 오늘은 더 이야기하기 어렵다는 말을 들을 수 있어. 서로 지친 상태에서는 좋은 뜻으로 한 설명도 길게 받아들이기 힘들 거야. 당장 대화를 끝내고 쉬어야 한다는 점이 분명해질 수 있는 날이야. 답을 더 받아내려 하기보다 오늘의 대화를 여기서 마치자고 말해줘. 관계 전체를 서둘러 정하지 않아도 지금은 서로에게 시간이 필요하다는 걸 알 수 있어. | After repeating the same argument, you may hear that continuing today is too difficult. When you're both worn out, even a well-meant explanation could be hard to hear at length. The need to stop talking and rest may become clear. Suggest ending today's conversation here rather than pressing for more answers. You don't have to decide the whole relationship quickly to recognize that you both need time now. | 同じ言い争いを繰り返し、今日はもう話せないと言われるかもしれません。互いに疲れていると、善意の説明でも長く聞くのは難しいでしょう。今は話を終えて休む必要があると、はっきりする日です。さらに答えを求めず、今日の話はここまでにしようと伝えてください。関係全体を急いで決めなくても、今は互いに時間が必要だと分かりそうです。 |
+| 분야 풀이 | 솔로라면 더 이어지지 않는 연락이나 만남이 끝날 수 있어. 상대에게 이미 분명한 거절을 들었다면 계속 기다릴수록 아쉬움만 길어지기 쉬워.<br><br>연애 중이라면 반복된 다툼에 지쳐 더는 같은 말을 이어가기 어려울 수 있어. 헤어지자는 말이 나왔다면 붙잡는 말부터 쏟기보다 상대가 왜 한계에 이르렀는지 들어줘.<br><br>이별 후라면 재회보다 관계를 마무리할 때에 가까워. 다시 만날 뜻이 없다는 답이 분명하다면 연락을 멈추는 게 좋아. 끝난 만남을 되돌리려고 자신을 더 지치게 하지 마. | If you're single, contact or meetings that aren't developing further could end. If the person has already clearly refused, continuing to wait may only prolong disappointment.<br><br>In a relationship, repeated arguments could leave you too tired to keep saying the same things. If breaking up is mentioned, hear why your partner has reached their limit before pouring out pleas to stay.<br><br>After a breakup, the relationship is more likely to reach its end than to resume. If the answer that they don't want to date again is clear, it's better to stop contact. Don't exhaust yourself further trying to bring back something that's ended. | フリーの人は、進展のない連絡や出会いが、終わりを迎えるかもしれません。相手からすでにはっきり断られているなら、待ち続けるほど、未練ばかり長引きやすい日です。<br><br>交際中なら、繰り返すけんかに疲れ、同じ話をこれ以上続けにくくなるかもしれません。別れを切り出されたら、引き留める言葉を重ねる前に、なぜ相手が限界に達したのか聞いてください。<br><br>別れた後なら、復縁よりも、関係に区切りをつけることになりそうです。また付き合う気はないとはっきり答えられたなら、連絡をやめたほうがよいでしょう。終わった交際を戻そうとして、これ以上疲れ果てる必要はありません。 |
 
 ## swords.11 · 역방향
 
 내부 ID: `love.swords.11.reversed`
 
-카드 의미: 확인하지 않은 말을 서둘러 전하거나 질문이 의심으로 기움. 원전의 뜻밖의 소식·준비 부족을 정보 취급의 신중함으로 응용.
+카드 의미: 준비되지 않은 상태, 예상하지 못한 측면, 관찰이 의심이나 성급한 결론으로 치우침
 
-분야 해석: 궁금함이의심으로들림
+분야 해석: 주의: 확인 안 된 소문, 지나친 의심과 캐묻기, 재회 오해
 
-관찰: 궁금해서 한 질문이 상대에게는 의심처럼 들릴 수 있어. / 연락이 늦은 이유를 여러 번 묻다 보면 가벼운 대화가 어색해질 거야. / 주변에서 들은 이야기가 실제와 다르다는 걸 뒤늦게 알 수도 있는 날이야.
+관찰: 준비되지 않은 상태 / 예상하지 못한 측면 / 관찰이 의심이나 성급한 결론으로 치우침
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 궁금해서 한 질문이 상대에게는 의심처럼 들릴 수 있어. 연락이 늦은 이유를 여러 번 묻다 보면 가벼운 대화가 어색해질 거야. 주변에서 들은 이야기가 실제와 다르다는 걸 뒤늦게 알 수도 있는 날이야. 확인하고 싶은 일은 한 번만 묻고 상대의 답을 들어줘. 질문을 줄인 뒤에는 편하게 말하는 내용이 늘어 서로의 근황을 자연스럽게 알 수 있어. | A question asked out of curiosity may sound like distrust to the other person. Repeatedly asking why a reply was late could make a casual conversation awkward. You might also learn that something you heard from others wasn't accurate. Ask once about what you want to check and listen to the answer. Fewer questions could leave more room for relaxed talk and a natural exchange of news. | 知りたくてした質問が、相手には疑いのように聞こえるかもしれません。返事が遅い理由を何度も尋ねると、気軽な会話がぎこちなくなりそうです。周囲から聞いた話が、実際と違ったと後で分かることもあるでしょう。確かめたいことは一度だけ聞き、相手の答えを聞いてください。質問を減らすと気楽に話せることが増え、互いの近況も自然に分かりそうです。 |
+| 분야 풀이 | 솔로라면 확인되지 않은 소문 때문에 호감 가는 사람을 오해할 수 있어. 일부만 들은 이야기로 고백하거나 관계를 끊는 결정은 서두르지 마.<br><br>연애 중이라면 상대의 말을 의심하며 캐묻다가 다툴 수 있어. 연락이나 사생활을 몰래 확인한다고 오해가 잘 풀리는 것은 아니야.<br><br>이별 후라면 짧은 게시물 하나를 재회 신호로 받아들이기 쉬워. 자신에게 직접 전한 말이 아니라면 의미를 키우지 마. 상대가 다시 만나고 싶다는 뜻을 밝혔는지가 중요해. | If you're single, an unconfirmed rumour could make you misunderstand someone you like. Don't rush to share your feelings or end contact based on a story you've heard only in part.<br><br>In a relationship, suspicious questioning of your partner's words could start an argument. Secretly checking messages or private matters won't necessarily clear up a misunderstanding.<br><br>After a breakup, you may read one short post as a sign of a reunion. Don't give it extra meaning if it wasn't said directly to you. What matters is whether your ex has stated a wish to date again. | フリーの人は、確かめていないうわさで、気になる相手を誤解するかもしれません。一部だけ聞いた話から、告白するか、関係を終えるかを急いで決めるのは控えましょう。<br><br>交際中なら、相手の言葉を疑って問い詰め、けんかになりそうです。やり取りや私生活をこっそり調べても、誤解が解けやすくなるわけではありません。<br><br>別れた後なら、短い投稿一つを、復縁のサインと受け取りがちです。直接こちらに伝えた言葉でなければ、意味を膨らませるのは控えましょう。相手がまた付き合いたいと意思を示したかどうかが、大切です。 |
 
 ## swords.11 · 정방향
 
 내부 ID: `love.swords.11.upright`
 
-카드 의미: 관찰·질문·새 정보에 대한 민첩함. 원전의 경계와 탐색을 성급한 소문 대신 검증하려는 태도로 사용.
+카드 의미: 관찰과 주의, 검토와 살핌, 민첩하게 주변을 살피는 인물
 
-분야 해석: 관심있는질문
+분야 해석: 신중한 진전: 대화로 알아가는 호감, 약속 확인, 재회 의사 탐색
 
-관찰: 상대가 궁금한 것이 많아 평소보다 대화가 길어질 수 있어. / 좋아하는 일이나 최근의 경험을 묻다가 의외의 공통점을 발견할 거야. / 상대도 내 이야기에 질문을 보태며 관심을 보여줄 수 있는 날이야.
+관찰: 관찰과 주의 / 검토와 살핌 / 민첩하게 주변을 살피는 인물
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대가 궁금한 것이 많아 평소보다 대화가 길어질 수 있어. 좋아하는 일이나 최근의 경험을 묻다가 의외의 공통점을 발견할 거야. 상대도 내 이야기에 질문을 보태며 관심을 보여줄 수 있는 날이야. 질문을 연달아 하기보다 들은 답에 내 경험도 하나 보태봐. 서로를 살피던 분위기가 편한 대화로 바뀌며 다음에도 할 이야기가 남을 수 있어. | Curiosity about someone may keep the conversation going longer than usual. Questions about interests or recent experiences could reveal an unexpected connection. They may add questions about your story too, showing interest. Share one experience of your own in response instead of asking question after question. A cautious exchange could become an easy conversation with more left to discuss next time. | 相手に聞きたいことが多く、いつもより長く話せそうです。好きなことや最近の経験を尋ねるうちに、意外な共通点が見つかるでしょう。相手もこちらの話に質問を重ね、関心を示してくれるかもしれません。次々に質問するより、聞いた答えに自分の経験も一つ添えてみてください。互いの様子をうかがう空気が気楽な会話に変わり、次にも話すことが残りそうです。 |
+| 분야 풀이 | 솔로라면 질문을 주고받는 대화에서 서로에 대한 관심이 커질 수 있어. 좋아하는 것이 무엇인지 이야기하다 다음 만남을 제안하기 좋은 날이야.<br><br>연애 중이라면 말이 엇갈렸던 약속을 다시 확인하며 오해를 줄일 수 있어. 모르는 사정은 짐작하기보다 직접 물어보는 편이 대화를 편하게 해줘.<br><br>이별 후라면 다시 연락한 이유를 묻고 상대의 뜻을 들을 수 있어. 답이 아직 애매하다면 재회라고 확정하지 마. 상대 몰래 근황을 살피는 대신 직접 나눈 말을 기준으로 판단해줘. | If you're single, questions exchanged in conversation could deepen your interest in each other. Talking about what you enjoy may offer a good moment to suggest another meeting.<br><br>In a relationship, rechecking an arrangement you've understood differently could reduce misunderstanding. Asking directly about circumstances you don't know will make conversation easier than guessing.<br><br>After a breakup, you could ask why your ex got in touch again and hear what they want. If the answer is still unclear, don't treat a reunion as certain. Judge by your direct conversation instead of secretly checking on them. | フリーの人は、質問を交わす会話から、互いへの関心が高まりそうです。好きなことを話すうちに、次に会う提案をしやすい日です。<br><br>交際中なら、話が食い違っていた約束を確かめ直し、誤解を減らせそうです。知らない事情は想像するより直接尋ねたほうが、気楽に話せるでしょう。<br><br>別れた後なら、再び連絡した理由を尋ね、相手の意向を聞けそうです。答えがまだ曖昧なら、復縁と決めつけるのは控えましょう。相手に隠れて近況を探る代わりに、直接交わした言葉をもとに判断してください。 |
 
 ## swords.12 · 역방향
 
 내부 ID: `love.swords.12.reversed`
 
-카드 의미: 속도가 목적을 앞서 혼선이나 지연을 만듦. 원전의 무분별함을 방향을 다시 정할 필요로 해석.
+카드 의미: 신중함의 부족, 준비나 감당 능력의 부족, 과도하게 벌이거나 낭비함
 
-분야 해석: 성급한말과압박
+분야 해석: 주의: 준비 안 된 고백, 공격적인 말다툼, 충동적인 재회 요구
 
-관찰: 빨리 답을 듣고 싶은 마음에 말이 세게 나갈 수 있는 날이야. / 상대는 생각하는 중인데 연달아 질문하면 대화가 갑자기 짧아질 수 있어. / 나중에 다시 나눈 말에서는 서두를 만큼 급한 일이 아니었다는 걸 알 수 있어.
+관찰: 신중함의 부족 / 준비나 감당 능력의 부족 / 과도하게 벌이거나 낭비함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 빨리 답을 듣고 싶은 마음에 말이 세게 나갈 수 있는 날이야. 상대는 생각하는 중인데 연달아 질문하면 대화가 갑자기 짧아질 수 있어. 나중에 다시 나눈 말에서는 서두를 만큼 급한 일이 아니었다는 걸 알 수 있어. 오늘은 답이 늦어도 같은 질문을 여러 번 보내지 마. 말할 시간을 주고받은 뒤에는 처음보다 편하게 약속을 정할 여지가 생길 수 있어. | Wanting a quick answer may make your words sharper today. Repeated questions while the other person thinks could abruptly shorten the conversation. Talking again later may show it wasn't urgent enough to need that much haste. Don't send the same question several times even if the reply is late. Giving each other time to speak could leave room to arrange a meeting more comfortably. | 早く答えを聞きたくて、言い方が強くなりやすい日です。相手が考えている間に質問を重ねると、会話が急に短くなるかもしれません。後で話し直せば、そこまで急ぐことではなかったと分かるでしょう。今日は返事が遅くても、同じ質問を何度も送らないでください。互いに話す時間を取れば、最初より気楽に約束を決められそうです。 |
+| 분야 풀이 | 솔로라면 충분히 알지 못한 사람에게 급히 고백했다가 당황스러운 답을 들을 수 있어. 상대의 관심이 분명한지 먼저 살펴봐.<br><br>연애 중이라면 말을 끊거나 결론을 몰아붙여 크게 다툴 수 있어. 아직 정하지 않은 결혼이나 이별을 화난 순간에 선언하지 마.<br><br>이별 후라면 당장 만나자는 요구가 상대에게 부담이 될 수 있어. 답이 없는데 갑자기 찾아가면 대화가 더 어려워져. 상대가 연락하거나 만나고 싶지 않다고 했다면 그 뜻을 받아들여줘. | If you're single, rushing to share your feelings with someone you barely know could bring an embarrassing answer. Check first whether their interest is clear.<br><br>In a relationship, interruptions or pressure for a decision could cause a major argument. Don't say you're going to get married or break up in a moment of anger when you haven't actually decided.<br><br>After a breakup, demanding an immediate meeting could pressure your ex. Turning up suddenly when there's been no answer may make conversation even harder. If they've said they don't want contact or a meeting, accept that wish. | フリーの人は、まだよく知らない相手に急いで告白し、戸惑う返事を聞くかもしれません。相手の関心がはっきりしているか、まず見ておきましょう。<br><br>交際中なら、話を遮ったり結論を押しつけたりして、大きなけんかになりそうです。まだ決めていない結婚や別れを、怒った勢いで宣言するのは控えましょう。<br><br>別れた後なら、今すぐ会いたいという要求が、相手の負担になるかもしれません。返事がないのに突然訪ねると、さらに話しにくくなります。相手が連絡したくない、会いたくないと伝えたなら、その意思を受け止めてください。 |
 
 ## swords.12 · 정방향
 
 내부 ID: `love.swords.12.upright`
 
-카드 의미: 빠른 판단과 직접적인 실행. 원전의 용기·돌진을 추진력과 놓치기 쉬운 세부의 양면으로 사용.
+카드 의미: 능력과 용기, 자신의 입장을 방어함, 빠른 행동과 대립의 양면
 
-분야 해석: 직접적인만남제안
+분야 해석: 빠른 진전과 주의: 직설적 고백, 신속한 관계 결정, 성급한 재회 대화
 
-관찰: 갑작스럽게 만나자는 연락이 오거나 먼저 말을 걸 용기가 생길 수 있어. / 궁금했던 마음을 돌려 묻기보다 직접 이야기하며 답을 듣게 될 거야. / 대화가 빠르게 이어져 미뤄둔 약속을 금방 정할 수 있는 날이야.
+관찰: 능력과 용기 / 자신의 입장을 방어함 / 빠른 행동과 대립의 양면
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 갑작스럽게 만나자는 연락이 오거나 먼저 말을 걸 용기가 생길 수 있어. 궁금했던 마음을 돌려 묻기보다 직접 이야기하며 답을 듣게 될 거야. 대화가 빠르게 이어져 미뤄둔 약속을 금방 정할 수 있는 날이야. 내 말이 빨라질 때는 상대가 답할 틈도 잠깐 남겨줘. 분명하게 주고받은 말이 있어 다음 만남을 기다리는 마음도 덜 헷갈릴 수 있어. | An unexpected invitation may arrive, or you could find the courage to speak first. You may ask directly about feelings you've wondered about rather than hinting. A quick exchange could settle a plan you've put off. If your words come fast, leave a moment for the other person to answer. Clear words on both sides could make your feelings about the next meeting less uncertain. | 急に会おうと連絡が来たり、自分から話しかける勇気が出たりしそうです。気になっていた気持ちを遠回しに聞かず、直接話して返事をもらうでしょう。会話が早く進み、延ばしていた約束もすぐ決まるかもしれません。早口になったら、相手が答える間も少し残してください。はっきり言葉を交わせば、次に会うのを待つ気持ちも迷いが減りそうです。 |
+| 분야 풀이 | 솔로라면 갑작스러운 고백이나 빠른 데이트 제안이 들어올 수 있어. 자신도 마음을 전하기 좋은 날이지만 상대가 답할 시간을 빼앗지는 마.<br><br>연애 중이라면 미뤄온 이야기에 빠르게 결론이 날 수 있어. 뜻을 분명히 말하되 말투가 날카로워지면 작은 차이가 다툼으로 번지기 쉬워.<br><br>이별 후라면 재회 여부를 직접 묻는 대화가 이루어질 수 있어. 한 번에 결론을 내려고 상대의 말을 끊지는 마. 답이 다르다면 설득을 밀어붙이기보다 그 뜻을 들어줘. | If you're single, someone could suddenly share their feelings or quickly invite you on a date. It's also a good day to express your own feelings, but leave the other person time to answer.<br><br>In a relationship, a conversation you've put off could reach a quick conclusion. Say clearly what you mean, while remembering that a sharp tone may turn a small difference into an argument.<br><br>After a breakup, you may have a direct conversation about whether to reunite. Don't cut the other person off to get a conclusion all at once. If their answer differs from yours, hear their wishes instead of pushing to persuade them. | フリーの人は、突然告白されたり、すぐにデートへ誘われたりしそうです。こちらから気持ちを伝えるのにもよい日ですが、相手が返事を考える時間は残しておきましょう。<br><br>交際中なら、先延ばしにしていた話が、早くまとまりそうです。意向ははっきり伝えても、口調がきつくなると、小さな違いがけんかに発展しがちです。<br><br>別れた後なら、復縁するかどうかを、直接尋ねる会話ができそうです。一度で結論を出そうと、相手の言葉を遮るのは控えてください。答えが違うなら、強引に説得するより、その意思に耳を傾けましょう。 |
 
 ## swords.13 · 역방향
 
 내부 ID: `love.swords.13.reversed`
 
-카드 의미: 경험의 상처가 새로운 판단을 지나치게 엄격하게 만들 수 있음. 원전의 악의 단정을 피하고 말의 날카로움과 편향을 살핌.
+카드 의미: 편견, 악의와 날카로운 태도, 기만과 왜곡된 판단
 
-분야 해석: 지난경험과날카로운말
+분야 해석: 주의: 편견과 냉소, 상처 주는 평가, 비난으로 끝나는 재회
 
-관찰: 전에 서운했던 일이 떠올라 오늘의 말도 차갑게 받아들일 수 있어. / 상대가 같은 뜻으로 한 말이 아닌데도 먼저 선을 긋고 싶어질 거야. / 내 짧은 답에 상대도 말을 아껴 대화가 더 조용해질 수 있는 날이야.
+관찰: 편견 / 악의와 날카로운 태도 / 기만과 왜곡된 판단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 전에 서운했던 일이 떠올라 오늘의 말도 차갑게 받아들일 수 있어. 상대가 같은 뜻으로 한 말이 아닌데도 먼저 선을 긋고 싶어질 거야. 내 짧은 답에 상대도 말을 아껴 대화가 더 조용해질 수 있는 날이야. 지난 일까지 한꺼번에 꺼내기보다 지금 들은 말만 확인해봐. 서로 다르게 이해한 부분이 드러나면 필요 이상으로 날카로워질 일을 줄일 수 있어. | An earlier hurt may make today's words sound colder than intended. You could want to draw a line before realizing the other person means something different. Your short reply might prompt them to say less too, quietening the conversation further. Check just the words you've heard now instead of bringing up the past all at once. Discovering where your interpretations differ could prevent unnecessary harshness. | 以前寂しかったことを思い出し、今日の言葉も冷たく受け取るかもしれません。相手は同じ意味で言っていなくても、先に距離を置きたくなりそうです。こちらの短い返事で相手も言葉を控え、会話がさらに少なくなるでしょう。過去のことをまとめて持ち出さず、今聞いた言葉だけを確かめてみてください。受け取り方の違いが分かれば、必要以上にきつくなるのを避けられそうです。 |
+| 분야 풀이 | 솔로라면 지난 경험 때문에 새로 만난 사람도 차갑게 평가하기 쉬워. 몇 마디만 듣고 성격을 단정하면 괜찮은 대화도 끊길 수 있어.<br><br>연애 중이라면 옳은 말을 하더라도 비꼬는 표현 때문에 다툼이 커질 수 있어. 상대의 약점이나 과거를 끌어와 지금의 서운함을 설명하지 마.<br><br>이별 후라면 원망 섞인 말이 오가며 재회가 더 멀어질 수 있어. 상처를 돌려주려고 연락하면 서로에게 좋지 않은 말만 남기 쉬워. | If you're single, past experience may make you judge a new person coldly. Deciding what their personality is from a few words could stop an otherwise good conversation.<br><br>In a relationship, sarcasm could make an argument worse even when your point is right. Don't bring up your partner's weaknesses or past to explain your current hurt.<br><br>After a breakup, resentful exchanges could make a reunion less likely. Reaching out to hurt the other person in return may only leave you both with unpleasant words to remember. | フリーの人は、過去の経験から、新しく会った相手にも冷たい評価をしがちです。少し話しただけで性格を決めつけると、よい会話も途切れるかもしれません。<br><br>交際中なら、正しいことを言っても、皮肉な表現からけんかが大きくなりそうです。今の不満を説明するのに、相手の弱点や過去を持ち出すのは控えてください。<br><br>別れた後なら、恨みのこもった言葉が交わされ、復縁がさらに遠のくかもしれません。傷つけ返そうと連絡すると、互いに嫌な言葉ばかり残しやすい日です。 |
 
 ## swords.13 · 정방향
 
 내부 ID: `love.swords.13.upright`
 
-카드 의미: 경험에 근거한 독립적 판단과 분명한 경계. 원전 인물의 상실 경험을 성별 없이 명료한 말과 통찰로 현대화.
+카드 의미: 분리와 거리, 슬픔을 겪은 뒤의 태도, 감정에 휩쓸리지 않는 독립적 판단이라는 현대 해석
 
-분야 해석: 솔직한기준과존중
+분야 해석: 분명한 선택: 진지한 만남의 선별, 관계의 솔직한 대화, 원만한 정리
 
-관찰: 가까운 사람과도 각자 편한 방식을 분명하게 이야기할 수 있어. / 무조건 맞춰주지 않아도 상대가 내 사정을 이해해주는 반응을 보일 거야. / 연락이나 만남에서 무엇이 부담스러웠는지 솔직한 말을 듣게 될 수 있어.
+관찰: 분리와 거리 / 슬픔을 겪은 뒤의 태도 / 감정에 휩쓸리지 않는 독립적 판단이라는 현대 해석
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가까운 사람과도 각자 편한 방식을 분명하게 이야기할 수 있어. 무조건 맞춰주지 않아도 상대가 내 사정을 이해해주는 반응을 보일 거야. 연락이나 만남에서 무엇이 부담스러웠는지 솔직한 말을 듣게 될 수 있어. 표현은 부드럽게 하되 바라는 점은 애매하게 숨기지 마. 서로 지킬 수 있는 약속이 생겨 다음에 눈치를 보며 대답할 일이 줄어들 수 있어. | You may clearly discuss what feels comfortable for each of you, even with someone close. The other person could understand your circumstances without you accommodating everything. You might also hear honestly what has felt burdensome about contact or meetings. Keep your tone gentle without hiding what you want behind vague words. An agreement you can both keep could reduce the need to guess how to answer next time. | 親しい相手とも、それぞれに心地よいやり方をはっきり話せそうです。何でも合わせなくても、相手が事情を理解する反応を見せてくれるでしょう。連絡や会い方の何が負担だったのか、率直な言葉を聞くかもしれません。言い方は優しく、望むことは曖昧にせず伝えてください。互いに守れる約束ができれば、次に様子をうかがいながら答えることも減りそうです。 |
+| 분야 풀이 | 솔로라면 대화를 통해 잘 맞는 사람과 아닌 사람이 분명해질 수 있어. 마음이 없는데 예의를 지키려고 다음 만남까지 약속할 필요는 없어.<br><br>연애 중이라면 불편했던 일을 솔직히 말하며 서로 지킬 약속을 정할 수 있어. 뜻을 분명히 하되 상대의 감정까지 틀렸다고 판단하지는 마.<br><br>이별 후라면 미련 때문에 이어온 연락을 차분히 정리할 수 있어. 재회를 제안받더라도 그리움만으로 답하지 않고 지금의 관계를 보고 결정하기 좋아. | If you're single, conversation could make it clear who suits you and who doesn't. You don't need to promise another meeting just to be polite when you aren't interested.<br><br>In a relationship, honestly discussing something uncomfortable could help you agree on commitments you'll both keep. Make your wishes clear without judging your partner's feelings as wrong.<br><br>After a breakup, you could calmly end contact kept going by lingering attachment. Even if a reunion is proposed, it's a good day to judge the present relationship instead of answering on longing alone. | フリーの人は、会話を通じて、合う人と合わない人がはっきりしそうです。好意がないのに、礼儀のために次の約束までする必要はありません。<br><br>交際中なら、嫌だったことを正直に話し、互いに守る約束を決められそうです。意向は明確にしても、相手の感情まで間違いと決めるのは控えましょう。<br><br>別れた後なら、未練から続けていた連絡に、落ち着いて区切りをつけられそうです。復縁を提案されても、恋しさだけで答えず、今の関係を見て判断しやすい日です。 |
 
 ## swords.14 · 역방향
 
 내부 ID: `love.swords.14.reversed`
 
-카드 의미: 원칙을 내세워 타인의 사정이나 반대 근거를 지움. 원전의 권력 남용을 일상의 독단적 말과 선택으로 제한.
+카드 의미: 잔혹하거나 일방적인 태도, 권위의 왜곡, 불성실한 의도
 
-분야 해석: 논리만앞선대화
+분야 해석: 주의: 일방적인 평가와 통제, 불공평한 요구, 강요받는 재회
 
-관찰: 속상한 마음을 말했는데 옳고 그름의 답만 돌아와 서운할 수 있어. / 설명은 맞아도 내 기분은 이해받지 못했다는 느낌이 남을 거야. / 나도 상대의 말을 정리하려다 정작 하고 싶던 이야기를 놓칠 수 있는 날이야.
+관찰: 잔혹하거나 일방적인 태도 / 권위의 왜곡 / 불성실한 의도
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 속상한 마음을 말했는데 옳고 그름의 답만 돌아와 서운할 수 있어. 설명은 맞아도 내 기분은 이해받지 못했다는 느낌이 남을 거야. 나도 상대의 말을 정리하려다 정작 하고 싶던 이야기를 놓칠 수 있는 날이야. 지금은 해결책보다 먼저 들어주길 바란다고 짧게 말해봐. 대화에서 바라는 것이 달랐다는 걸 알게 되면 서로의 반응을 다시 이해할 수 있어. | Sharing hurt feelings may bring only an answer about right and wrong, leaving you disappointed. The explanation could be correct while your feelings still seem unheard. You might also miss what the other person really wants to say while trying to organize their points. Briefly explain that you'd like them to listen before offering solutions right now. Realizing you wanted different things from the conversation could help you understand each other's reactions again. | つらい気持ちを話しても、正しいかどうかの答えだけで寂しくなるかもしれません。説明は合っていても、気持ちは分かってもらえなかったと感じそうです。自分も相手の話を整理するうちに、本当に言いたかったことを聞き逃す場合もあるでしょう。今は解決策より先に聞いてほしいと、短く伝えてみてください。会話に求めることが違ったと分かれば、互いの反応も理解し直せそうです。 |
+| 분야 풀이 | 솔로라면 자기 말만 옳다고 하는 사람과 대화가 막힐 수 있어. 마음에 들어도 의견이 다를 때 존중해주는지 살펴봐.<br><br>연애 중이라면 한 사람이 규칙을 정하고 다른 사람은 따라야 해서 다툴 수 있어. 논리적인 설명처럼 들려도 한쪽에만 불리한 요구라면 그대로 받아들이지 마.<br><br>이별 후라면 상대가 정한 조건만 따라야 하는 재회 제안이 올 수 있어. 거절할 자유가 없는 만남이라면 다시 사귈 필요는 없어. 원하지 않는 요구에는 분명히 답해줘. | If you're single, conversation may stall with someone who insists only they are right. Even if you're attracted to them, notice whether they respect you when opinions differ.<br><br>In a relationship, an argument could arise because one person sets the rules and the other must follow. Even a logical-sounding explanation doesn't mean you have to accept a demand that's unfair to only one side.<br><br>After a breakup, you could receive an offer to reunite entirely on your ex's terms. You don't need to date again if the relationship leaves no freedom to say no. Answer clearly when you don't want what's being demanded. | フリーの人は、自分の言葉だけが正しいと主張する相手と、話が進まなくなりそうです。気に入っていても、意見が違うときに尊重してくれるか、見てください。<br><br>交際中なら、一人がルールを決め、もう一人は従うしかなく、けんかになるかもしれません。理屈が通っているように聞こえても、一方にだけ不利な要求なら、そのまま受け入れるのは控えましょう。<br><br>別れた後なら、相手の決めた条件に従うだけの復縁を、提案されるかもしれません。断る自由がない付き合いなら、再開する必要はありません。望まない要求には、はっきり答えてください。 |
 
 ## swords.14 · 정방향
 
 내부 ID: `love.swords.14.upright`
 
-카드 의미: 원칙과 근거를 다루는 책임 있는 판단. 원전의 권위·지성을 사람의 지위 아닌 설명 가능한 기준으로 사용.
+카드 의미: 판단과 권위, 이성적 능력, 법과 원칙에 따른 결정
 
-분야 해석: 분명한약속과신뢰
+분야 해석: 명료한 결정: 진지한 의사 확인, 공정한 관계 합의, 재회·정리의 결론
 
-관찰: 말뿐이 아니라 지킬 수 있는 약속을 분명하게 나눌 수 있어. / 만날 시간이나 앞으로의 계획을 이야기할 때 서로의 사정을 차분하게 듣게 될 거야. / 화려한 표현은 적어도 정한 대로 행동하는 모습에서 믿음을 느낄 수 있는 날이야.
+관찰: 판단과 권위 / 이성적 능력 / 법과 원칙에 따른 결정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 말뿐이 아니라 지킬 수 있는 약속을 분명하게 나눌 수 있어. 만날 시간이나 앞으로의 계획을 이야기할 때 서로의 사정을 차분하게 듣게 될 거야. 화려한 표현은 적어도 정한 대로 행동하는 모습에서 믿음을 느낄 수 있는 날이야. 상대가 정리해서 말하면 내 바람도 한 가지 덧붙여봐. 서로 무엇을 기대하는지 알게 되며 애매한 말 때문에 불안할 일이 줄어들 수 있어. | You may share clear promises you can keep, rather than words alone. Discussing a meeting time or future plans could give you both a calm chance to hear each other's circumstances. There may be few grand expressions, but following through on an agreement could inspire trust. When the other person sets out their thoughts, add one wish of your own. Knowing what you both expect could leave less room for anxiety over vague words. | 言葉だけでなく、守れる約束をはっきり交わせそうです。会う時間やこれからの予定を話すとき、互いの事情を落ち着いて聞けるでしょう。華やかな言葉は少なくても、約束どおり動く姿に信頼を感じられる日です。相手が考えをまとめて話したら、自分の希望も一つ添えてみてください。互いの期待が分かれば、曖昧な言葉で不安になることは減りそうです。 |
+| 분야 풀이 | 솔로라면 상대가 진지하게 사귈 생각이 있는지 분명히 들을 수 있어. 자신이 원하는 만남도 솔직히 말하면 애매하게 기다리던 사이에 결론을 낼 수 있어.<br><br>연애 중이라면 감정이 앞서 막혔던 문제에 합리적인 답을 찾을 수 있어. 결혼이나 생활 계획을 정할 때 두 사람의 사정을 함께 놓고 이야기해봐.<br><br>이별 후라면 재회할지 마무리할지 차분하게 결론을 낼 수 있어. 서로 다시 만날 뜻이 있다면 지키지 못했던 약속도 현실적으로 다시 정하기 좋아. | If you're single, someone may clearly tell you whether they want a serious relationship. Being honest about what you want too could settle an uncertain connection you've been waiting on.<br><br>In a relationship, you could find a reasonable answer to a problem that emotions have made difficult. Consider both your circumstances when discussing marriage or plans for daily life.<br><br>After a breakup, you may calmly decide whether to reunite or end things. If you both want to date again, it's a good day to revisit promises you couldn't keep and agree on what you can realistically do now. | フリーの人は、相手に真剣に付き合う気があるか、はっきり聞けそうです。こちらが望む付き合いも正直に話せば、曖昧に待っていた関係に結論を出せるでしょう。<br><br>交際中なら、感情が先に立って進まなかった問題に、筋の通った答えを見つけられそうです。結婚や生活の計画を決めるときは、二人の事情を合わせて話し合いましょう。<br><br>別れた後なら、復縁するか区切りをつけるか、落ち着いて結論を出せそうです。互いにまた付き合う意思があるなら、守れなかった約束も、実際にできる形で決め直しやすい日です。 |
 
 ## wands.01 · 역방향
 
 내부 ID: `love.wands.01.reversed`
 
-카드 의미: 의욕은 있지만 시작할 조건이 맞지 않거나 관심이 오래 가지 않음. 원전의 지연과 현대적 동기 저하를 재준비로 응용.
+카드 의미: 새 출발의 지체, 의욕 부족
 
-분야 해석: 호감의속도차
+분야 해석: 지연: 성사되지 않는 첫 만남, 식은 데이트 반응, 더딘 재회
 
-관찰: 마음은 반가운데 만날 시간이 맞지 않아 조금 아쉬울 수 있어. / 다정했던 대화 뒤에 연락이 뜸해져 상대의 생각이 궁금해질 거야. / 다만 다시 이야기를 나눌 때는 처음의 반가움이 남아 있다는 걸 느낄 수 있어.
+관찰: 새 출발의 지체 / 의욕 부족
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 마음은 반가운데 만날 시간이 맞지 않아 조금 아쉬울 수 있어. 다정했던 대화 뒤에 연락이 뜸해져 상대의 생각이 궁금해질 거야. 다만 다시 이야기를 나눌 때는 처음의 반가움이 남아 있다는 걸 느낄 수 있어. 오늘의 엇갈림은 마음보다 각자의 사정에서 비롯될 수 있어. 한 번 전한 초대는 상대가 답할 때까지 기다리는 게 좋아. | You may be glad to hear from each other, yet disappointed that your schedules don't line up. A warm conversation followed by fewer messages may leave you wondering what the other person thinks. When you do talk again, you could find that the original affection is still there. Today's missed connections may have more to do with circumstances than feelings. Give an invitation you've already sent time to receive an answer. | 気持ちはうれしくても、会う時間が合わず少し残念に感じそうです。親しく話したあとに連絡が少なくなると、相手の気持ちが気になるでしょう。ただ、また話せたときには最初の親しさが残っていると感じられそうです。今日のすれ違いは、気持ちよりそれぞれの事情によるものかもしれません。一度誘いを伝えたら、相手が返事をするまで待ってみましょう。 |
+| 분야 풀이 | 솔로라면 호감은 생겨도 만남으로 이어지기까지 시간이 걸릴 수 있어. 먼저 연락했는데 반응이 적다면 오늘 고백까지 서두르지는 마.<br><br>연애 중이라면 새로운 데이트를 제안해도 상대가 선뜻 응하지 않을 수 있어. 피곤하거나 할 일이 많다면 무심해졌다고 몰아세우기보다 날짜를 다시 정해봐.<br><br>이별 후라면 다시 시작하자는 이야기에 바로 답을 받기 어려워. 대화가 멈췄다고 같은 말을 거듭 보내면 부담이 커질 수 있어. 상대도 연락을 원할 때 이야기를 이어가는 게 좋아. | If you're single, attraction may take time to become an actual meeting. If reaching out first brings little response, don't rush to declare your feelings today.<br><br>In a relationship, your partner may hesitate over a new date idea. If they're tired or have plenty to do, try another date instead of accusing them of becoming indifferent.<br><br>After a breakup, an answer to a suggestion of starting again may be hard to get immediately. Repeating the same message because conversation has stopped could add pressure. It's better to continue when the other person wants contact too. | フリーの人は、好意が生まれても、実際に会うまでには時間がかかりそうです。連絡しても反応が少ないなら、今日のうちに告白まで急ぐのは控えましょう。<br><br>交際中なら、新しいデートを提案しても、相手はすぐには応じないかもしれません。疲れていたり、用事が多かったりするなら、冷たくなったと責めるより、別の日を相談しましょう。<br><br>別れた後なら、やり直そうと話しても、すぐに返事は得にくい日です。会話が止まったからと同じ言葉を送り続けると、負担が大きくなるかもしれません。相手も連絡を望んでいるときに、話を続けるのがよさそうです。 |
 
 ## wands.01 · 정방향
 
 내부 ID: `love.wands.01.upright`
 
-카드 의미: 새로운 의욕과 시작의 불씨. 원전의 시작·창조를 거창한 결과보다 즉시 해보고 싶은 행동으로 사용.
+카드 의미: 창조, 발상, 시작할 힘
 
-분야 해석: 새로운설렘
+분야 해석: 좋음: 빠르게 생기는 호감, 새로운 데이트, 다시 시작하는 대화
 
-관찰: 평소와 다른 모습에 눈길이 가거나 새롭게 설레는 사람이 생길 수 있어. / 가볍게 시작한 대화가 예상보다 즐거워 다음 말이 기다려질 거야. / 이미 가까운 사이에서는 오랜만에 둘이 해보고 싶은 일이 겹칠 수 있어.
+관찰: 창조 / 발상 / 시작할 힘
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 평소와 다른 모습에 눈길이 가거나 새롭게 설레는 사람이 생길 수 있어. 가볍게 시작한 대화가 예상보다 즐거워 다음 말이 기다려질 거야. 이미 가까운 사이에서는 오랜만에 둘이 해보고 싶은 일이 겹칠 수 있어. 먼저 건넨 초대에도 반가운 반응이 돌아오기 좋은 날이야. 마음이 가는 사람에게 짧게라도 먼저 말을 걸어봐. | A different side of someone could catch your eye, or a new attraction might begin. A casual conversation turns out to be more fun than expected, leaving you eager to hear more. People who are already close may discover something they both want to do, for the first time in a while. An invitation you make first is likely to get a warm response today. Say a brief hello to someone you're drawn to. | いつもと違う姿にひかれたり、新しく気になる人ができたりしそうです。何気なく始めた会話が思った以上に楽しく、次の言葉が待ち遠しくなるでしょう。すでに親しい間柄では、久しぶりに二人でやりたいことが重なるかもしれません。こちらからの誘いにも、うれしい反応が返ってきやすい日です。気になる人には、短くても自分から話しかけてみてください。 |
+| 분야 풀이 | 솔로라면 처음 본 사람과 금세 서로에게 끌릴 수 있어. 좋아하는 사람이 있다면 먼저 건넨 데이트 제안에 좋은 답을 기대해볼 만해.<br><br>연애 중이라면 새로운 데이트가 설렘을 되살려줄 수 있어. 함께 해보고 싶던 일을 제안하면 상대도 즐겁게 응하기 좋아.<br><br>이별 후라면 다시 이야기할 기회가 생기며 서로의 관심이 살아날 수 있어. 둘 다 원한다면 짧은 만남부터 시작해봐. 갑자기 가까워졌더라도 예전 다툼은 따로 풀어야 해. | If you're single, you and someone you've just met could quickly feel attracted to each other. If you already like someone, you could get a positive answer when you ask them on a date.<br><br>In a relationship, a new kind of date could bring back excitement. Your partner may gladly agree when you suggest something you've wanted to try together.<br><br>After a breakup, another chance to talk could renew your interest in each other. If you both want to, start with a short meeting. Even if you suddenly feel close again, old arguments still need resolving separately. | フリーの人は、初めて会った相手と、すぐにひかれ合うかもしれません。好きな人がいるなら、こちらからデートに誘うと、よい返事が期待できそうです。<br><br>交際中なら、新しいデートでときめきが戻りそうです。一緒に試したかったことを提案すると、相手も喜んで応じてくれやすいでしょう。<br><br>別れた後なら、また話す機会ができ、互いへの関心がよみがえるかもしれません。二人とも望むなら、短い時間会うことから始めましょう。急に距離が縮まっても、以前のけんかは別に解決する必要があります。 |
 
 ## wands.02 · 역방향
 
 내부 ID: `love.wands.02.reversed`
 
-카드 의미: 익숙한 범위에 머물거나 계획의 세부를 보지 못함. 원전의 뜻밖의 사건과 현대의 변화 두려움을 준비의 간극으로 응용.
+카드 의미: 변화 앞의 불안, 망설임
 
-분야 해석: 만남의불확실함
+분야 해석: 지연: 망설임으로 미뤄지는 만남과 큰 약속, 재회 결정 보류
 
-관찰: 만나자는 말은 반가운데 날짜가 정해지지 않아 마음이 조급해질 수 있어. / 상대가 조심스럽게 답하는 모습에 나만 기대했나 싶은 순간도 있을 거야. / 다만 서로 가능한 시간을 이야기하면 단순히 사정이 맞지 않았다는 걸 알 수 있어.
+관찰: 변화 앞의 불안 / 망설임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 만나자는 말은 반가운데 날짜가 정해지지 않아 마음이 조급해질 수 있어. 상대가 조심스럽게 답하는 모습에 나만 기대했나 싶은 순간도 있을 거야. 다만 서로 가능한 시간을 이야기하면 단순히 사정이 맞지 않았다는 걸 알 수 있어. 멀리 있는 사람이 뒤늦게 만날 날짜를 정해 연락할 수도 있어. 애매한 약속에는 편한 날짜 두 개 정도만 먼저 전해봐. | An invitation sounds lovely, but not having a date settled could make you impatient. A cautious reply might briefly leave you wondering whether you were the only one excited. Discussing when you're both available may show that your schedules simply haven't matched. Someone far away could eventually suggest a particular date. For an open-ended invitation, offer just two times that work for you. | 会おうという言葉はうれしくても、日が決まらず焦りそうです。相手の慎重な返事に、自分だけ期待していたのかと感じる場面もあるでしょう。お互いに空いている時間を話せば、単に都合が合わなかったとわかりそうです。遠くにいる人から、あとになって具体的な日を提案されることもあるかもしれません。曖昧な約束には、都合のよい日を二つほど伝えてみてください。 |
+| 분야 풀이 | 솔로라면 만나자는 말이 오가도 날짜는 쉽게 정해지지 않을 수 있어. 서로 반응만 살피다 기회를 놓치기 쉬우니 만나고 싶다면 가능한 날을 알려줘.<br><br>연애 중이라면 새로운 계획을 앞두고 걱정이 많아 결정을 미룰 수 있어. 결혼이나 함께 살 이야기는 한쪽이 준비되지 않았다면 오늘 답을 정하기 어려워.<br><br>이별 후라면 다시 만나고 싶다가도 같은 일이 생길까 봐 망설일 수 있어. 확신 없는 재회 약속을 했다가 취소하면 서로 더 서운해져. 오늘은 생각할 시간이 필요하다고 솔직히 말해줘. | If you're single, talk of meeting may not easily lead to a date being set. Waiting to see each other's reaction could cost you the chance, so say when you're free if you want to meet.<br><br>In a relationship, worries about a new plan may delay a decision. If one of you isn't ready for marriage or living together, reaching an answer today could be difficult.<br><br>After a breakup, you may want to reunite and still hesitate for fear of the same problems. Making an uncertain promise to meet and then cancelling could hurt you both more. Be honest today if you need time to think. | フリーの人は、会おうと話しても、日程はなかなか決まらないかもしれません。互いの反応をうかがうだけでは機会を逃しがちです。会いたいなら、都合のよい日を伝えましょう。<br><br>交際中なら、新しい計画を前に心配が増え、決定を先送りしそうです。結婚や一緒に暮らす話は、一方の準備がまだなら、今日答えを出すのは難しいでしょう。<br><br>別れた後なら、また付き合いたくても、同じことが起きそうで迷うかもしれません。確信のないまま復縁を約束して取り消すと、互いにさらに傷つきます。今日は考える時間が必要だと、正直に伝えましょう。 |
 
 ## wands.02 · 정방향
 
 내부 ID: `love.wands.02.upright`
 
-카드 의미: 현재 가진 기반에서 다음 방향을 바라보는 계획. 원전의 영역과 대비되는 바람을 선택지를 구체화하는 관점으로 채택.
+카드 의미: 보유한 기반과 바깥 선택지를 바라봄
 
-분야 해석: 다음만남
+분야 해석: 진전 준비: 만남 제안과 일정 논의, 장래 계획, 재회 선택
 
-관찰: 앞으로 함께할 일을 이야기하며 가까워지기 좋은 날이야. / 멀리 지내는 사람과도 다음에 만날 날짜가 화제가 될 수 있어. / 서로의 일정을 맞춰보는 대화에서 생각보다 진지한 관심을 느낄 거야.
+관찰: 보유한 기반과 바깥 선택지를 바라봄 / 진전 준비: 만남 제안과 일정 논의, 장래 계획, 재회 선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 앞으로 함께할 일을 이야기하며 가까워지기 좋은 날이야. 멀리 지내는 사람과도 다음에 만날 날짜가 화제가 될 수 있어. 같이 가보고 싶었던 곳을 하나 이야기해봐. 서로의 일정을 맞춰보는 대화에서 생각보다 진지한 관심을 느낄 거야. 아직 시작하지 않은 약속도 둘 사이에 즐거운 기대를 남길 수 있어. | Talking about something you'd like to do together could bring you closer. Even with someone who lives far away, a date for your next meeting may come up. Mention one place you've wanted to visit together. Comparing your schedules could reveal more serious interest than you expected. A meeting that hasn't happened yet can still leave you both happily anticipating it. | これから一緒にすることを話して、距離が縮まりそうです。遠くにいる人とも、次に会う日が話題になるかもしれません。一緒に行きたかった場所を一つ話してみてください。予定を合わせる会話から、思った以上に真剣な関心を感じそうです。まだ実現していない約束も、二人に楽しみを残してくれるでしょう。 |
+| 분야 풀이 | 솔로라면 관심 있던 사람과 다음 만남을 이야기할 수 있어. 서로 사는 곳이나 일정이 달라도 만날 방법을 찾기 좋은 날이야.<br><br>연애 중이라면 앞으로 함께 할 일이 구체적으로 정해질 수 있어. 여행이나 결혼 이야기를 꺼내면 서로 바라는 생활을 더 잘 알게 될 수 있어.<br><br>이별 후라면 다시 만나자는 제안을 두고 서로의 생각을 들을 수 있어. 재회를 원한다면 보고 싶다는 말과 함께 앞으로 어떻게 지낼지도 이야기해봐. 지금의 사정이 맞는지가 다시 만날지 정하는 데 중요해. | If you're single, you could discuss another meeting with someone you've been interested in. Even if you live in different places or have different schedules, it's a good day to find a way to see each other.<br><br>In a relationship, future plans together could become more specific. Bringing up travel or marriage may help you understand the life each of you wants.<br><br>After a breakup, you may hear each other's thoughts on trying again. If you want to reunite, talk about how you'd be together from now on as well as saying you miss them. Whether your current circumstances fit matters in deciding to date again. | フリーの人は、気になっていた相手と、次に会う話ができそうです。住む場所や予定が違っても、会う方法を見つけやすい日です。<br><br>交際中なら、これから一緒にすることが、具体的に決まりそうです。旅行や結婚の話をすると、互いにどんな暮らしを望んでいるか、よりよくわかるでしょう。<br><br>別れた後なら、復縁の提案について、互いの考えを聞けそうです。復縁を望むなら、会いたい気持ちとともに、これからどう付き合うかも話しましょう。今の事情が合うかどうかが、交際を再開する判断で大切になります。 |
 
 ## wands.03 · 역방향
 
 내부 ID: `love.wands.03.reversed`
 
-카드 의미: 기대한 반응이나 확장이 늦어짐. 원전의 어려움 끝이라는 대안도 고려해 지연 속에서 준비를 다시 보는 뜻을 선택.
+카드 의미: 확장이 지체되어 기대와 실제 진행 사이에 차이가 생김
 
-분야 해석: 기다리는연락
+분야 해석: 지연: 기대보다 적은 만남, 멀어지는 일정, 늦어지는 재회 약속
 
-관찰: 기대했던 연락이 늦어져 혼자 생각이 많아질 수 있어. / 상대와 시간이 맞지 않거나 전달한 말의 뜻이 한 번 어긋날 수 있는 날이야. / 다른 일을 하던 중 도착한 짧은 답장이 처음의 걱정을 덜어줄 거야.
+관찰: 확장이 지체되어 기대와 실제 진행 사이에 차이가 생김 / 지연: 기대보다 적은 만남, 멀어지는 일정, 늦어지는 재회 약속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 연락이 늦어져 혼자 생각이 많아질 수 있어. 상대와 시간이 맞지 않거나 전달한 말의 뜻이 한 번 어긋날 수 있는 날이야. 다른 일을 하던 중 도착한 짧은 답장이 처음의 걱정을 덜어줄 거야. 가까운 사람과의 대화에서는 굳이 기다릴 필요 없는 편안함도 느낄 수 있어. 답장 속도만으로 상대의 마음을 판단하지 않는 게 좋아. | A reply you're looking forward to may be late, giving you too much time to think. Your schedules could fail to match, or a remark might be understood differently than intended. A short answer arriving while you're doing something else could ease the initial worry. Conversation with someone nearby may also bring the comfort of not having to wait. Don't judge someone's feelings only by how quickly they reply. | 期待していた連絡が遅れ、一人でいろいろ考えてしまいそうです。時間が合わなかったり、伝えた言葉の意味が一度ずれたりするかもしれません。別のことをしている間に届く短い返事が、最初の心配を和らげそうです。身近な人との会話には、待たなくてよい気楽さも感じられるでしょう。返事の速さだけで、相手の気持ちを判断しないでください。 |
+| 분야 풀이 | 솔로라면 소개나 모임에 기대했던 만큼 인연이 생기지 않을 수 있어. 대화가 잘됐더라도 다음 만남까지는 조금 더 시간이 걸릴 수 있어.<br><br>연애 중이라면 함께 세운 일정이 늦어져 서운함이 생길 수 있어. 멀리서 만나기로 했다면 이동이나 시간 문제부터 확인해봐. 계획이 밀린 이유를 모른 채 애정이 부족하다고 단정하지 마.<br><br>이별 후라면 만나자는 이야기가 나와도 실제 약속은 잡히지 않을 수 있어. 상대가 계속 날짜를 피한다면 재회를 확정한 것으로 여기지 않는 게 좋아. | If you're single, an introduction or gathering may bring fewer connections than you expected. Even after a good conversation, another meeting could take a little longer.<br><br>In a relationship, delays to shared plans may cause hurt feelings. If you're travelling to meet, check transport and timing first. Don't assume affection is lacking without knowing why the plans have been delayed.<br><br>After a breakup, even talk of meeting may not lead to a definite arrangement. If your ex keeps avoiding a date, it's best not to treat the reunion as agreed. | フリーの人は、紹介や集まりで、期待ほどの出会いがないかもしれません。会話が弾んでも、次に会うまでには、もう少し時間がかかりそうです。<br><br>交際中なら、一緒に決めた予定が遅れ、不満が出てきそうです。遠くから会いに行く約束なら、まず移動や時間の問題を確かめましょう。予定が遅れた理由を知らないまま、愛情が足りないと決めつけるのは控えてください。<br><br>別れた後なら、会おうという話が出ても、実際の約束は決まらないかもしれません。相手が日程の話を避け続けるなら、復縁が決まったと考えないほうがよさそうです。 |
 
 ## wands.03 · 정방향
 
 내부 ID: `love.wands.03.upright`
 
-카드 의미: 준비한 것을 밖으로 넓히며 반응을 기다림. 원전의 교류·협력을 지금 기반에서 가능한 확장으로 사용.
+카드 의미: 확립된 역량, 교역, 발견, 협력
 
-분야 해석: 멀리있는인연
+분야 해석: 좋음: 활동 범위가 넓어지는 인연, 먼 거리의 만남 성사, 재대화 진전
 
-관찰: 떨어져 지내는 사람에게 반가운 소식이 올 수 있어. / 함께 보낼 시간을 구체적으로 이야기하며 거리보다 마음이 가까워지는 날이야. / 새로 알게 된 사람과는 서로 다른 경험 덕분에 대화가 풍성해질 거야.
+관찰: 확립된 역량 / 교역 / 발견
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 떨어져 지내는 사람에게 반가운 소식이 올 수 있어. 함께 보낼 시간을 구체적으로 이야기하며 거리보다 마음이 가까워지는 날이야. 새로 알게 된 사람과는 서로 다른 경험 덕분에 대화가 풍성해질 거야. 다음 만남을 기대하는 말이 자연스럽게 오갈 수 있어. 시간이 맞는다면 짧게라도 목소리로 안부를 나눠봐. | Someone you haven't been able to see could send welcome news. Making a visit more specific may leave you feeling emotionally closer despite the distance. With a new acquaintance, different experiences can give you plenty to talk about. Looking forward to another meeting should come up naturally. If your schedules allow, catch up by voice, even briefly. | 離れて過ごしている人から、うれしい知らせが届きそうです。一緒に過ごす時間を具体的に話して、距離よりも心の近さを感じられるでしょう。新しく知り合った人とは、違う経験のおかげで会話が豊かになりそうです。次に会うのが楽しみだという言葉も、自然に交わせるでしょう。時間が合えば、短くても声で近況を話してみてください。 |
+| 분야 풀이 | 솔로라면 다른 지역이나 새로운 모임에서 좋은 인연이 닿을 수 있어. 평소 만나지 않던 사람과도 이야기가 잘 통하고 다음 약속이 이어지기 좋아.<br><br>연애 중이라면 함께 준비하던 여행이나 만남이 순조롭게 진행될 수 있어. 멀리 떨어져 지내는 사이라면 서로 만날 날을 정하며 기다림을 덜 수 있어.<br><br>이별 후라면 재회에 대한 대화가 한 걸음 더 나아갈 수 있어. 서로 다시 만나고 싶다면 연락만 하던 사이에서 실제로 만날 약속을 잡기 좋아. 지금 떨어져 지내더라도 만날 방법이 나올 수 있어. | If you're single, a good connection could come from another area or a new group. You may talk easily with someone outside your usual circle and arrange another meeting.<br><br>In a relationship, a trip or meeting you've been preparing together could progress smoothly. If you're living far apart, setting a day to see each other may make the wait easier.<br><br>After a breakup, a discussion of getting back together could move forward. If you both want to try again, it's a good day to arrange a meeting after only messaging. Even if you're apart now, you may find a way to see each other. | フリーの人は、別の地域や新しい集まりで、よい縁ができそうです。普段会わない人とも話が合い、次の約束につながりやすい日です。<br><br>交際中なら、一緒に準備していた旅行や会う予定が、順調に進みそうです。離れて暮らす二人は、会う日が決まり、待つつらさも和らぐでしょう。<br><br>別れた後なら、復縁の話が一歩進みそうです。互いにまた付き合いたいなら、連絡だけの関係から、実際に会う約束へ進めやすい日です。今は離れて暮らしていても、会う方法が見つかるかもしれません。 |
 
 ## wands.04 · 역방향
 
 내부 ID: `love.wands.04.reversed`
 
-카드 의미: 기반이나 모임의 방식이 아직 맞춰지지 않음. 원전은 정방향과 비슷한 좋음을 남기므로 기쁨 부재보다 불완전한 준비로 읽음.
+카드 의미: 행복, 증가, 아름다움, 꾸밈; 정방향 의미 유지
 
-분야 해석: 만남준비의차이
+분야 해석: 좋음 유지: 소박한 만남의 즐거움과 관계 안정, 편한 재대화
 
-관찰: 즐겁게 만나려던 마음은 같은데 준비하는 방식에서 조금 엇갈릴 수 있어. / 한쪽은 오래 함께 있고 싶고 다른 쪽은 짧고 편한 만남을 바랄 수 있는 날이야. / 만나고 나면 사소한 불만보다 얼굴을 본 반가움이 더 크게 느껴질 거야.
+관찰: 행복 / 증가 / 아름다움
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 즐겁게 만나려던 마음은 같은데 준비하는 방식에서 조금 엇갈릴 수 있어. 한쪽은 오래 함께 있고 싶고 다른 쪽은 짧고 편한 만남을 바랄 수 있는 날이야. 만나고 나면 사소한 불만보다 얼굴을 본 반가움이 더 크게 느껴질 거야. 가까운 사이일수록 멋진 장소 없이도 이야기할 거리가 많을 수 있어. 상대가 얼마나 함께 있을 수 있는지 먼저 물어봐. | You may both want a happy meeting but differ over how to prepare for it. One person might want a long time together while the other prefers something short and easy today. Once you meet, being pleased to see each other could matter more than the small disagreement. People who are close should have plenty to discuss without an impressive venue. Ask how much time the other person can comfortably spend together. | 楽しく会いたい気持ちは同じでも、準備の仕方が少しずれそうです。一人は長く一緒にいたくて、もう一人は短く気軽に会いたいのかもしれません。会ってしまえば、小さな不満より顔を見た喜びが大きくなりそうです。親しい相手なら、立派な場所がなくても話すことはたくさんあるでしょう。相手がどれくらい一緒に過ごせるか、先に聞いてみてください。 |
+| 분야 풀이 | 솔로라면 화려한 자리보다 소박한 만남에서 호감이 깊어질 수 있어. 부담 없이 함께 식사하다 다음 약속을 잡기 좋은 날이야.<br><br>연애 중이라면 둘만 편하게 보내는 시간이 애정을 더해줄 수 있어. 큰 행사나 비싼 선물이 없어도 함께 웃고 쉬며 만족스러운 하루를 보낼 수 있어.<br><br>이별 후라면 부담 없는 대화로 서먹함이 풀릴 수 있어. 둘 다 다시 가까워지고 싶다면 가볍게 만나 안부를 나눠봐. 다른 사람에게 재회를 알리는 일은 두 사람의 마음을 먼저 정한 뒤 해도 늦지 않아. | If you're single, a simple meeting could deepen affection more than a grand occasion. It's a good day to arrange another date over a relaxed meal together.<br><br>In a relationship, relaxing with just the two of you could make you feel more affectionate. You may have a satisfying day laughing and resting without a big event or an expensive gift.<br><br>After a breakup, an undemanding conversation could ease awkwardness. If you both want to grow close again, meet casually and ask how each other is doing. There's time to tell others about a reunion after you've both decided what you want. | フリーの人は、華やかな場より、気取らない出会いで好意が深まりそうです。気楽に食事をするうちに、次の約束を決めやすい日です。<br><br>交際中なら、二人だけでくつろぐ時間に、愛情が増しそうです。大きな催しや高価な贈り物がなくても、一緒に笑って休み、満ち足りた一日を過ごせるでしょう。<br><br>別れた後なら、気負わない会話で、ぎこちなさが和らぎそうです。二人ともまた親しくなりたいなら、気軽に会って近況を話しましょう。復縁を周囲に知らせるのは、二人の気持ちを決めてからでも遅くありません。 |
 
 ## wands.04 · 정방향
 
 내부 ID: `love.wands.04.upright`
 
-카드 의미: 안정된 자리에서 나누는 기쁨과 작은 성취. 원전의 안식·조화를 부담 없는 모임과 마무리로 사용.
+카드 의미: 휴식, 평화, 화합, 완성된 일의 기쁨
 
-분야 해석: 함께하는기념일
+분야 해석: 좋음: 편안한 모임 인연, 기념과 청혼, 따뜻한 재회
 
-관찰: 함께 기뻐할 소식이 생기며 가까운 사이가 더 따뜻해질 수 있어. / 연인과는 평소 가던 곳에서도 특별한 데이트처럼 느껴지는 순간이 있을 거야. / 가족이나 친구가 건넨 초대도 편안한 만남으로 이어지기 좋은 날이야.
+관찰: 휴식 / 평화 / 화합
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 기뻐할 소식이 생기며 가까운 사이가 더 따뜻해질 수 있어. 연인과는 평소 가던 곳에서도 특별한 데이트처럼 느껴지는 순간이 있을 거야. 가족이나 친구가 건넨 초대도 편안한 만남으로 이어지기 좋은 날이야. 여러 사람이 있는 자리에서는 서로를 챙기는 모습이 자연스럽게 눈에 들어올 거야. 고마웠던 일 하나를 만나서 직접 말해줘. | News you can celebrate together could make a close relationship warmer. With a partner, even a familiar place might feel like a special date. An invitation from family or friends could also lead to an easy, enjoyable meeting. In a group, the way you look after each other may become naturally noticeable. Mention one thing you've appreciated in person. | 一緒に喜べる知らせがあり、親しい間柄がさらに温かくなりそうです。恋人とは、いつもの場所でも特別なデートのように感じる瞬間があるでしょう。家族や友人からの誘いも、気楽な時間につながりやすい日です。人が集まる場では、お互いを気遣う姿が自然に目に入りそうです。ありがたかったことを一つ、会って直接伝えてみてください。 |
+| 분야 풀이 | 솔로라면 편한 모임이나 축하 자리에서 마음에 드는 사람을 만날 수 있어. 공통으로 아는 사람이 있어 자연스럽게 대화가 이어지기 좋아.<br><br>연애 중이라면 기념일이나 함께하는 약속이 즐겁게 성사될 수 있어. 청혼이나 가족에게 소개할 계획이 있다면 따뜻한 반응을 기대해볼 만해.<br><br>이별 후라면 서먹함이 줄고 편하게 다시 만날 수 있어. 서로 재회를 원한다면 함께 지낼 앞날을 이야기하기 좋아. 주변 분위기보다 두 사람이 편안한지를 먼저 살펴줘. | If you're single, you could meet someone you like at a relaxed gathering or celebration. Knowing someone in common may let conversation begin naturally.<br><br>In a relationship, an anniversary celebration or other plans together could go ahead and bring you joy. If you're planning a proposal or a family introduction, a warm response is worth hoping for.<br><br>After a breakup, less awkwardness could make meeting again comfortable. If you both want to reunite, it's a good day to talk about your future together. Check how comfortable you both feel before taking your cue from the people around you. | フリーの人は、気楽な集まりやお祝いの席で、気になる人と出会えそうです。共通の知人がいて、自然に会話が続きやすい日です。<br><br>交際中なら、記念日を祝ったり、約束どおりに二人で過ごしたりして、楽しい時間になりそうです。プロポーズや家族への紹介を予定しているなら、温かな反応が期待できるでしょう。<br><br>別れた後なら、ぎこちなさが減り、気楽にまた会えそうです。互いに復縁を望んでいるなら、これから一緒に過ごす日々を話すのによい日です。周囲の雰囲気より、二人が心地よくいられるかを先に見てください。 |
 
 ## wands.05 · 역방향
 
 내부 ID: `love.wands.05.reversed`
 
-카드 의미: 불필요한 경쟁에서 벗어나거나 갈등을 덮어둠. 원전의 논쟁·기만 중 회피의 비용을 보고 협의로 옮기는 현대적 선택.
+카드 의미: 논쟁, 속임, 모순
 
-분야 해석: 화해대화
+분야 해석: 주의: 겉으로 덮인 불만과 모순된 말, 길어지는 재회 논쟁
 
-관찰: 티격태격하던 사람과 다시 편하게 이야기할 기회가 생길 수 있어. / 먼저 건넨 짧은 안부에도 생각보다 부드러운 답이 돌아올 거야. / 서로 고집하던 부분이 사실은 중요하지 않았다는 걸 느낄 수 있어.
+관찰: 논쟁 / 속임 / 모순
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 티격태격하던 사람과 다시 편하게 이야기할 기회가 생길 수 있어. 먼저 건넨 짧은 안부에도 생각보다 부드러운 답이 돌아올 거야. 서로 고집하던 부분이 사실은 중요하지 않았다는 걸 느낄 수 있어. 가까운 사람들 사이에서는 누군가의 농담이 어색한 분위기를 풀어줄 거야. 지난 말의 잘잘못보다 지금 반가운 마음부터 전해봐. | You could get a chance to talk comfortably again with someone you've been bickering with. A brief greeting may receive a softer answer than expected. Something you both insisted on might turn out not to matter very much. Among people who are close, someone's joke could ease an awkward atmosphere. Start with how glad you are to see them instead of reopening who was right. | 言い合いをしていた人と、また気楽に話す機会がありそうです。短いあいさつにも、思ったより柔らかな返事が返ってくるでしょう。お互いに譲らなかったことが、実は大切ではなかったと感じるかもしれません。親しい人たちの間では、誰かの冗談が気まずさをほどきそうです。前の言葉の正しさより、今会えてうれしい気持ちから伝えてください。 |
+| 분야 풀이 | 솔로라면 사람마다 전하는 이야기가 달라 만남이 혼란스러울 수 있어. 주변의 말싸움에 끼어들기보다 상대가 직접 하는 말을 들어봐.<br><br>연애 중이라면 끝난 듯 보였던 다툼에서 다른 불만이 나올 수 있어. 겉으로만 괜찮다고 하면 같은 문제로 다시 언성을 높이기 쉬워.<br><br>이별 후라면 재회를 논의하다 말이 바뀌어 갈등이 길어질 수 있어. 앞에서는 동의하고 뒤에서는 다른 요구를 하면 믿기 어려워져. 서로 바라는 답이 다르다면 오늘 억지로 합의하지 마. | If you're single, conflicting stories from different people could make dating confusing. Listen to the person directly instead of joining the arguments around you.<br><br>In a relationship, another complaint could emerge from an argument that seemed finished. Only pretending things are fine may lead to raised voices over the same issue again.<br><br>After a breakup, changing what you've said while discussing a reunion could keep the conflict going. Agreeing to someone's face and making different demands later will make trust difficult. If you want different answers, don't force an agreement today. | フリーの人は、人によって聞く話が違い、相手との付き合いに迷うかもしれません。周囲の言い争いに加わるより、相手本人の言葉を聞きましょう。<br><br>交際中なら、収まったように見えたけんかから、別の不満が出てきそうです。表面上だけ大丈夫と言っていると、同じ問題でまた声を荒らげがちです。<br><br>別れた後なら、復縁を話す途中で言い分が変わり、対立が長引くかもしれません。その場では同意し、後で別の要求を出すと、信頼しにくくなります。望む答えが違うなら、今日は無理に合意するのを控えましょう。 |
 
 ## wands.05 · 정방향
 
 내부 ID: `love.wands.05.upright`
 
-카드 의미: 다른 의욕과 의견이 부딪치는 경쟁·연습. 원전의 힘겨루기를 파괴적 적대가 아닌 조정 가능한 마찰로 읽음.
+카드 의미: 경쟁, 모의 대결, 서로 다른 주장
 
-분야 해석: 티격태격
+분야 해석: 주의: 호감 앞의 경쟁, 서로 다른 주장으로 생기는 다툼, 재회 대립
 
-관찰: 서로 장난을 주고받다가 작은 말다툼으로 번질 수 있는 날이야. / 좋아하는 음식이나 만날 장소처럼 사소한 취향 차이가 평소보다 크게 느껴질 수 있어. / 다른 사람의 관계를 보며 괜한 경쟁심이 생기는 순간도 있을 거야.
+관찰: 경쟁 / 모의 대결 / 서로 다른 주장
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 장난을 주고받다가 작은 말다툼으로 번질 수 있는 날이야. 좋아하는 음식이나 만날 장소처럼 사소한 취향 차이가 평소보다 크게 느껴질 수 있어. 다른 사람의 관계를 보며 괜한 경쟁심이 생기는 순간도 있을 거야. 그래도 함께 웃을 이야기가 나오면 어색함은 오래가지 않을 수 있어. 농담에 상대가 웃지 않으면 그 이야기는 거기서 멈춰줘. | Playful teasing could turn into a small argument today. Differences over food or where to meet may seem larger than usual. Watching another relationship might also stir up needless competitiveness. Still, a shared joke could keep the awkwardness from lasting. If the other person isn't laughing at your teasing, leave that subject there. | 冗談を言い合ううちに、小さな口げんかになるかもしれません。食べ物や待ち合わせ場所など、些細な好みの差が大きく感じられそうです。ほかの人の関係を見て、つい競争心が湧く場面もあるでしょう。それでも一緒に笑える話が出れば、気まずさは長引かずに済みそうです。冗談に相手が笑わなければ、その話はそこでやめてください。 |
+| 분야 풀이 | 솔로라면 좋아하는 사람 앞에서 다른 사람과 비교하며 경쟁하기 쉬워. 관심을 끌려고 누군가를 깎아내리면 오히려 인상이 나빠질 수 있어.<br><br>연애 중이라면 데이트를 정하는 작은 일에도 의견이 맞서기 쉬워. 각자 하고 싶은 말만 하면 사소한 차이가 큰 다툼이 될 수 있어. 서로 원하는 것부터 번갈아 들어줘.<br><br>이별 후라면 재회 이야기보다 누가 더 서운했는지 다투게 될 수 있어. 상대의 말을 반박하는 데만 힘을 쓰면 다시 만나는 답을 얻기 어려워. | If you're single, you may compare yourself with others and compete in front of someone you like. Putting another person down to gain attention could leave a worse impression instead.<br><br>In a relationship, opinions may clash even over a small choice about a date. If you each only say what you want, a minor difference could become a major argument. Take turns hearing what the other person wants first.<br><br>After a breakup, you could argue about who was more hurt instead of discussing a reunion. Putting all your effort into rebutting the other person is unlikely to bring an agreement to date again. | フリーの人は、好きな人の前でほかの人と比べ、張り合いやすい日です。気を引こうと誰かをけなすと、かえって印象が悪くなるかもしれません。<br><br>交際中なら、デートを決める小さなことでも、意見が対立しがちです。それぞれが言いたいことばかり話すと、ささいな違いが大きなけんかになりそうです。まず、互いに何をしたいか、順番に聞きましょう。<br><br>別れた後なら、復縁の話より、どちらがより傷ついたかを言い争うことになりそうです。相手への反論に力を注ぐだけでは、交際を再開しようという答えは得にくいでしょう。 |
 
 ## wands.06 · 역방향
 
 내부 ID: `love.wands.06.reversed`
 
-카드 의미: 인정이 늦거나 남의 반응에 만족을 맡김. 원전의 늦어진 기대를 스스로의 기준을 회복하는 방향으로 응용.
+카드 의미: 불안, 인정이나 결과의 지연
 
-분야 해석: 관심의차이
+분야 해석: 주의와 지연: 호응 부족, 인정받지 못한 애정 표현, 늦어지는 재회 답
 
-관찰: 기대했던 칭찬이나 관심이 돌아오지 않아 아쉬울 수 있는 날이야. / 다른 사람에게는 다정한데 내 앞에서는 조용한 모습이 유난히 눈에 들어올 거야. / 다만 둘이 이야기할 때는 여럿 앞과 다른 편한 태도를 볼 수 있어.
+관찰: 불안 / 인정이나 결과의 지연
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 칭찬이나 관심이 돌아오지 않아 아쉬울 수 있는 날이야. 다른 사람에게는 다정한데 내 앞에서는 조용한 모습이 유난히 눈에 들어올 거야. 다만 둘이 이야기할 때는 여럿 앞과 다른 편한 태도를 볼 수 있어. 가까운 사이에서는 표현하지 않아도 알아줄 거라 생각한 마음이 드러날 수 있어. 원하는 말이 있었다면 비교 없이 내 마음만 전해줘. | Not receiving a compliment or the attention you hoped for could be disappointing today. Someone's warmth toward others may stand out if they're quiet around you. Talking alone could reveal a more relaxed manner than they show in a group. With someone close, you may learn they thought you understood without needing to hear it. Mention a word you had hoped for without comparing yourself with anyone else. | 期待した褒め言葉や関心が返ってこず、残念に感じるかもしれません。ほかの人には優しいのに、自分の前では静かな姿が気になりそうです。二人で話すときには、人前とは違う気楽な態度が見られるでしょう。親しい間柄なら、言わなくてもわかると思っていた気持ちが見えてきそうです。聞きたかった言葉があるなら、人と比べず自分の気持ちだけ伝えてください。 |
+| 분야 풀이 | 솔로라면 잘될 줄 알았던 고백에 답이 늦거나 반응이 적을 수 있어. 주변의 응원만 믿고 상대도 같은 마음일 거라고 단정하지 마.<br><br>연애 중이라면 애쓴 만큼 고마움을 듣지 못해 서운할 수 있어. 칭찬을 받으려고 준비했다면 상대의 반응이 더 작게 느껴질 수 있어. 무엇이 아쉬웠는지 직접 이야기해줘.<br><br>이별 후라면 재회에 대한 긍정적인 답을 바로 받기 어려워. 자존심이 상한다고 상대를 깎아내리면 남은 대화도 끊길 수 있어. | If you're single, sharing feelings you expected to be returned may bring a late answer or little response. Other people's encouragement doesn't prove the person feels the same.<br><br>In a relationship, receiving little thanks after making an effort could leave you hurt. If you prepared something hoping for praise, your partner's response may seem even smaller. Tell them directly what disappointed you.<br><br>After a breakup, a positive answer about reuniting may not arrive immediately. Belittling the other person because your pride is hurt could end the conversation that's left. | フリーの人は、うまくいくと思っていた告白でも、返事が遅かったり、反応が薄かったりするかもしれません。周囲の応援だけを頼りに、相手も同じ気持ちだと決めつけるのは控えましょう。<br><br>交際中なら、頑張ったわりに感謝してもらえず、寂しく感じそうです。褒めてもらうつもりで準備していたなら、相手の反応がさらに小さく見えるでしょう。何が物足りなかったか、直接話してください。<br><br>別れた後なら、復縁への前向きな返事は、すぐには得にくい日です。プライドが傷ついたからと相手をけなすと、続いていた会話も途切れるかもしれません。 |
 
 ## wands.06 · 정방향
 
 내부 ID: `love.wands.06.upright`
 
-카드 의미: 노력이 보이고 인정을 받는 순간. 원전의 승리와 좋은 소식을 작은 성과의 가시성으로 제한.
+카드 의미: 승리, 희망의 실현, 반가운 소식, 인정
 
-분야 해석: 호감표현
+분야 해석: 좋음: 호감과 고백의 좋은 답, 관계의 인정, 재회 진전
 
-관찰: 평소보다 매력 있게 보인다는 말을 듣거나 눈길을 받을 수 있어. / 관심 있는 사람 앞에서도 긴장이 덜해 자연스러운 모습을 보여줄 거야. / 가까운 사람은 작은 변화까지 알아보고 다정한 말을 건넬 수 있어.
+관찰: 승리 / 희망의 실현 / 반가운 소식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 평소보다 매력 있게 보인다는 말을 듣거나 눈길을 받을 수 있어. 관심 있는 사람 앞에서도 긴장이 덜해 자연스러운 모습을 보여줄 거야. 가까운 사람은 작은 변화까지 알아보고 다정한 말을 건넬 수 있어. 여럿이 모인 자리에서는 누군가 나를 좋게 소개해주는 일도 있을 거야. 받은 호의에는 밝게 인사하며 마음을 표현해봐. | You might receive attention or hear that you're looking especially appealing today. Around someone you like, less nervousness could let your natural manner show. A person close to you may notice even a small change and say something affectionate. In a group, someone could introduce you warmly. Respond to kindness with a cheerful greeting that shows you're pleased. | いつもより魅力的だと言われたり、注目を受けたりしそうです。気になる人の前でも緊張が少なく、自然な姿を見せられるでしょう。親しい人は小さな変化にも気づき、優しい言葉をかけてくれそうです。集まりでは、誰かが好意的に紹介してくれる場面もあるかもしれません。受けた好意には、明るくあいさつして気持ちを表してみてください。 |
+| 분야 풀이 | 솔로라면 관심 있던 사람에게 좋은 반응을 얻을 수 있어. 정성껏 전한 고백이 받아들여지거나 기다린 데이트 제안이 들어오기 좋은 날이야.<br><br>연애 중이라면 서로의 자랑스러운 일을 함께 기뻐할 수 있어. 관계를 주변에 알렸다면 응원이나 축하를 받을 수 있어. 청혼을 생각하는 사이라면 긍정적인 답을 기대해볼 만해.<br><br>이별 후라면 기다리던 연락이 재회 대화로 이어질 수 있어. 둘 다 같은 뜻이었다면 다시 만나기로 결론이 나기 좋아. 이번 만남에서도 상대의 마음을 존중해줘. | If you're single, someone you've been interested in could respond positively. It's a good day for a sincere expression of your feelings to be accepted or for an awaited date invitation to arrive.<br><br>In a relationship, you could share the pleasure of something each of you is proud of. If you've told people about the relationship, you may receive support or congratulations. If a proposal is on your mind, it's worth hoping for a positive answer.<br><br>After a breakup, a message you've waited for could lead to discussing a reunion. If you both wanted the same thing, it's a good day to agree to date again. Keep respecting the other person's feelings when you meet this time too. | フリーの人は、気になっていた相手から、よい反応をもらえそうです。心を込めた告白を受け入れてもらったり、待っていたデートに誘われたりしやすい日です。<br><br>交際中なら、互いの誇らしい出来事を、一緒に喜べそうです。交際を周囲に知らせていたなら、応援や祝福を受けるかもしれません。プロポーズを考えている二人は、前向きな返事が期待できるでしょう。<br><br>別れた後なら、待っていた連絡から、復縁の話が始まりそうです。二人とも同じ意思なら、また付き合うことで話がまとまりやすい日です。今回も、相手の気持ちを尊重してください。 |
 
 ## wands.07 · 역방향
 
 내부 ID: `love.wands.07.reversed`
 
-카드 의미: 방어할 것이 너무 많아 지치거나 기준을 쉽게 내줌. 원전의 난처함을 중요도와 대응 범위 재정리로 사용.
+카드 의미: 혼란, 불안, 우유부단, 버티는 힘의 약화
 
-분야 해석: 설명에지침
+분야 해석: 주의: 주변 말에 흔들리는 호감, 지치며 미루는 합의, 재회 갈등
 
-관찰: 상대의 질문이 이어지며 작은 일도 해명하는 기분이 들 수 있어. / 서로 서운하지 않으려 고른 말이 오히려 길어지는 날이야. / 잠깐 다른 이야기를 나누면 계속 긴장할 필요는 없다는 걸 느낄 수 있어.
+관찰: 혼란 / 불안 / 우유부단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대의 질문이 이어지며 작은 일도 해명하는 기분이 들 수 있어. 서로 서운하지 않으려 고른 말이 오히려 길어지는 날이야. 잠깐 다른 이야기를 나누면 계속 긴장할 필요는 없다는 걸 느낄 수 있어. 평소 편한 친구와의 연락에서는 별다른 설명 없이도 이해받는 반가움이 있을 거야. 피곤한 상태라면 중요한 이야기는 잠깐 쉬고 나서 이어가줘. | A string of questions could make even a small matter feel like something you must defend. Words chosen to spare each other's feelings may turn into lengthy explanations today. Switching topics briefly could show there's no need to stay tense. Contact with a friend you feel at ease with may bring the comfort of being understood without explanation. If you're tired, take a short break before continuing an important conversation. | 相手からの質問が続き、小さなことまで弁明している気分になりそうです。お互いに傷つけまいと選ぶ言葉が、かえって長くなる日でしょう。少し別の話をすれば、ずっと緊張する必要はないと感じられそうです。気を許せる友人との連絡には、特に説明しなくても理解される喜びがあるでしょう。疲れているなら、大切な話は少し休んでから続けてください。 |
+| 분야 풀이 | 솔로라면 주변 말이 많아지면서 잘 이어지던 만남을 망설일 수 있어. 직접 겪지 않은 평가만으로 호감 가는 사람과 연락을 끊지는 마.<br><br>연애 중이라면 같은 문제를 설명하는 데 지쳐 대화를 피할 수 있어. 한쪽만 주변을 설득해왔다면 불만이 커지기 쉬우니 함께 이야기해야 해.<br><br>이별 후라면 다시 만나기로 한 말이 주변 반대에 흔들릴 수 있어. 한 사람만 재회를 위해 애써야 한다면 관계를 이어가기 어려워. 서로 정말 다시 만날 뜻이 있는지 차분히 확인해봐. | If you're single, more outside opinions could make you hesitate over a connection that's been going well. Don't cut off contact with someone you like based only on other people's opinions, without any experience of your own to support them.<br><br>In a relationship, explaining the same problem may become so tiring that you avoid conversation. If only one of you has been trying to persuade others, resentment could grow, so address it together.<br><br>After a breakup, opposition from others could unsettle an agreement to try again. If only one person must make the effort to reunite, keeping the relationship going will be difficult. Calmly check whether you both really want to date again. | フリーの人は、周囲からいろいろ言われ、順調だった付き合いに迷うかもしれません。直接確かめていない評判だけで、気になる人との連絡を絶つのは控えましょう。<br><br>交際中なら、同じ問題を説明するのに疲れて、会話を避けそうです。一方だけが周囲を説得してきたなら、不満が大きくなりやすいため、一緒に話す必要があります。<br><br>別れた後なら、復縁の約束が、周囲の反対で揺らぐかもしれません。一人だけが復縁のために頑張るのでは、交際を続けにくいでしょう。互いに本当にまた付き合う気があるか、落ち着いて確かめてください。 |
 
 ## wands.07 · 정방향
 
 내부 ID: `love.wands.07.upright`
 
-카드 의미: 외부 요구 앞에서 자기 자리를 지킴. 원전의 유리한 위치와 경쟁을 근거 있는 주장과 경계로 응용.
+카드 의미: 용기, 유리한 입장에서 자신의 몫을 지킴, 논의
 
-분야 해석: 관계의경계
+분야 해석: 조건부 좋음: 원하는 만남을 지킴, 주변 반대에 대한 합의, 재회 의사 확인
 
-관찰: 내가 원하는 것을 말했을 때 의외로 존중하는 반응을 받을 수 있어. / 가까운 사이에서도 각자 필요한 시간이 있다는 걸 자연스럽게 이야기하게 될 거야. / 주변의 간섭이 있었던 관계라면 둘의 생각이 같다는 사실에 안심할 수 있어.
+관찰: 용기 / 유리한 입장에서 자신의 몫을 지킴 / 논의
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 내가 원하는 것을 말했을 때 의외로 존중하는 반응을 받을 수 있어. 가까운 사이에서도 각자 필요한 시간이 있다는 걸 자연스럽게 이야기하게 될 거야. 주변의 간섭이 있었던 관계라면 둘의 생각이 같다는 사실에 안심할 수 있어. 어렵게 느낀 대화 뒤에 오히려 편안함이 남는 날이야. 중요한 바람은 농담으로 돌리지 말고 차분하게 말해줘. | Saying what you want could receive an unexpectedly respectful response. Even with someone close, the need for time of your own may come up naturally. If others have interfered in a relationship, finding that you agree could feel reassuring. A conversation you found difficult may leave you more comfortable afterward. Express an important wish calmly instead of disguising it as a joke. | 望んでいることを話したら、意外にも尊重する反応が返ってきそうです。親しい間柄でも、それぞれに必要な時間があると自然に話せるでしょう。周囲の干渉があった関係なら、二人の考えが同じだとわかり安心できそうです。難しく感じた会話のあとに、かえって気楽さが残る日でしょう。大切な願いは冗談にせず、落ち着いて伝えてください。 |
+| 분야 풀이 | 솔로라면 주변의 참견이 있어도 마음에 드는 사람과 만남을 이어갈 수 있어. 다른 사람의 평가에 흔들리기보다 직접 느낀 호감을 전해봐.<br><br>연애 중이라면 주변 의견이 달라도 두 사람이 한뜻으로 약속을 지킬 수 있어. 결혼이나 만남을 반대하는 말을 들었다면 서로의 생각부터 맞추는 게 좋아.<br><br>이별 후라면 서로 재회를 원할 때 주변의 우려를 넘어 다시 만날 수 있어. 상대의 거절까지 넘어야 할 반대로 여기지는 마. 두 사람의 뜻이 같을 때만 재회 이야기를 이어가줘. | If you're single, you may keep seeing someone you like despite other people's interference. Share the affection you've felt yourself instead of being swayed by outside judgements.<br><br>In a relationship, you could stand together and keep a promise even if others disagree. If people oppose your marriage or relationship, start by agreeing on your own wishes.<br><br>After a breakup, a shared wish to reunite could let you meet again despite other people's worries. Don't treat your ex's refusal as another obstacle to overcome. Continue discussing a reunion only when you both want it. | フリーの人は、周囲に口を出されても、好きな相手と会い続けられそうです。他人の評価に揺れるより、直接会って感じた好意を伝えましょう。<br><br>交際中なら、周囲の意見が違っても、二人の気持ちを合わせて約束を守れそうです。結婚や交際に反対されたなら、まず互いの考えをすり合わせるとよいでしょう。<br><br>別れた後なら、互いに復縁を望んでいる場合は、周囲の心配を乗り越え、また付き合えそうです。相手の拒否まで、乗り越えるべき反対と考えるのは控えてください。二人の意思が同じときだけ、復縁の話を続けましょう。 |
 
 ## wands.08 · 역방향
 
 내부 ID: `love.wands.08.reversed`
 
-카드 의미: 속도가 맞지 않는 지연이나 전달 혼선. 원전의 질투·논쟁보다 급한 소통의 엇갈림을 현대적으로 채택.
+카드 의미: 질투, 내부 다툼, 말의 충돌
 
-분야 해석: 답장오해
+분야 해석: 주의: 엇갈린 연락, 질투와 말다툼, 성급한 재회 대화
 
-관찰: 짧게 쓴 말이 의도와 다르게 읽혀 잠깐 어색해질 수 있어. / 서로 바쁜 시간에 연락이 겹치면 대화가 중간중간 끊기는 날이야. / 목소리를 듣거나 얼굴을 보면 무심해 보였던 말도 다르게 느껴질 거야.
+관찰: 질투 / 내부 다툼 / 말의 충돌
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 짧게 쓴 말이 의도와 다르게 읽혀 잠깐 어색해질 수 있어. 서로 바쁜 시간에 연락이 겹치면 대화가 중간중간 끊기는 날이야. 목소리를 듣거나 얼굴을 보면 무심해 보였던 말도 다르게 느껴질 거야. 뒤늦게 확인한 메시지에는 미처 몰랐던 다정한 설명이 들어 있을 수 있어. 서운한 말은 답을 길게 보내기 전에 뜻부터 물어봐. | A short message could be read differently than intended, causing a moment of awkwardness. Contact during busy hours may keep interrupting the conversation today. Hearing a voice or seeing a face might change how a distant-sounding remark feels. A message you notice late could contain a kind explanation you missed. Ask what a hurtful remark meant before writing a lengthy answer. | 短く書いた言葉が違う意味で読まれ、少し気まずくなるかもしれません。忙しい時間に連絡が重なり、会話が途切れがちな日です。声を聞いたり顔を見たりすると、そっけなく思えた言葉も違って感じられそうです。遅く確認したメッセージには、見落としていた優しい説明があるでしょう。傷ついた言葉には長く返す前に、意味から聞いてみてください。 |
+| 분야 풀이 | 솔로라면 연락이 엇갈리거나 성급한 메시지 때문에 오해가 생길 수 있어. 답이 늦다는 이유로 다른 사람과 만나는지 따져 묻지는 마.<br><br>연애 중이라면 짧은 답장을 주고받다 말다툼이 커질 수 있어. 질투 섞인 말을 연달아 보내면 실제로 하려던 이야기가 묻혀. 오해가 생겼다면 직접 대화하는 편이 좋아.<br><br>이별 후라면 갑자기 쏟아낸 말 때문에 재회 대화가 끊길 수 있어. 상대의 답을 기다리지 않고 결론부터 요구하지 마. | If you're single, missed messages or a hasty text could cause a misunderstanding. A late reply isn't a reason to demand to know whether the other person is seeing someone else.<br><br>In a relationship, exchanging short replies could make an argument grow. A string of jealous messages may bury what you actually wanted to discuss. If a misunderstanding arises, it's better to talk directly.<br><br>After a breakup, suddenly pouring out your thoughts could end a conversation about reuniting. Don't demand a decision before waiting for the other person's answer. | フリーの人は、連絡が行き違ったり、焦って送ったメッセージが誤解を招いたりしそうです。返事が遅いからと、ほかの人と会っているのかと問い詰めるのは控えましょう。<br><br>交際中なら、短い返信を重ねるうちに、言い争いが大きくなるかもしれません。嫉妬のこもった言葉を続けて送ると、本当に伝えたかったことが埋もれてしまいます。誤解が生まれたなら、直接話したほうがよさそうです。<br><br>別れた後なら、突然言葉をぶつけすぎて、復縁の話が途切れるかもしれません。相手の返事を待たずに、結論だけを求めるのは控えてください。 |
 
 ## wands.08 · 정방향
 
 내부 ID: `love.wands.08.upright`
 
-카드 의미: 소식과 행동이 빠르게 이어지는 진행. 원전의 신속함을 응답·일정이 맞물리는 순간으로 사용.
+카드 의미: 빠른 활동, 전달, 진전, 사랑의 화살
 
-분야 해석: 빠르게가까워짐
+분야 해석: 좋음: 빠른 연락과 고백, 급진전하는 약속, 신속한 재대화
 
-관찰: 연락을 주고받는 속도가 빨라지며 서로를 더 알고 싶어질 수 있어. / 가벼운 질문에 이야기가 길게 이어져 시간이 금방 지나갈 거야. / 갑자기 만날 시간이 맞아 짧은 데이트나 산책을 하게 될 수도 있어.
+관찰: 빠른 활동 / 전달 / 진전
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 연락을 주고받는 속도가 빨라지며 서로를 더 알고 싶어질 수 있어. 가벼운 질문에 이야기가 길게 이어져 시간이 금방 지나갈 거야. 갑자기 만날 시간이 맞아 짧은 데이트나 산책을 하게 될 수도 있어. 멀리 있던 사람의 소식도 평소보다 생생하고 가깝게 느껴지는 날이야. 마음에 드는 대답에는 짧게라도 반가움을 표현해줘. | Quicker exchanges could leave you both wanting to know more about each other. A light question may turn into a long conversation that makes time fly. Your schedules might suddenly match for a short date or walk. News from someone far away could also feel more vivid and close today. Show a little delight when an answer makes you happy. | 連絡のやり取りが速くなり、もっと相手を知りたくなりそうです。軽い質問から話が長く続いて、時間がすぐに過ぎるでしょう。急に時間が合い、短いデートや散歩ができるかもしれません。遠くの人の近況も、いつもより生き生きと身近に感じられる日です。うれしい答えには、短くても喜びを表してください。 |
+| 분야 풀이 | 솔로라면 기다리던 연락이 오고 데이트 약속도 빠르게 잡힐 수 있어. 서로 호감이 있다면 짧은 대화가 고백으로 이어지기 좋은 날이야.<br><br>연애 중이라면 미뤄진 약속이나 계획이 갑자기 진전될 수 있어. 함께 갈 곳이 정해지거나 결혼 준비에 필요한 답을 빨리 받을 수 있어.<br><br>이별 후라면 끊겼던 대화가 예상보다 빠르게 이어질 수 있어. 둘 다 만나고 싶다면 오늘 약속까지 잡힐 수 있어. 반가운 마음이 앞서도 서로 재회를 원하는지는 말로 확인해줘. | If you're single, a message you've waited for could arrive and a date may be arranged quickly. If the attraction is mutual, even a short conversation could lead to sharing your feelings.<br><br>In a relationship, postponed commitments or plans could suddenly move forward. You may decide where to go together or get a quick answer needed for wedding preparations.<br><br>After a breakup, a conversation that stopped could resume sooner than expected. If you both want to meet, you could arrange it today. Even in your excitement, confirm in words whether you both want to reunite. | フリーの人は、待っていた連絡が届き、デートもすぐに決まりそうです。互いに好意があれば、短い会話が告白へつながりやすい日です。<br><br>交際中なら、延期していた約束や計画が、急に進むかもしれません。一緒に行く場所が決まったり、結婚の準備に必要な返事が早く届いたりしそうです。<br><br>別れた後なら、途切れていた会話が、予想より早く再開するかもしれません。二人とも会いたいなら、今日のうちに約束が決まることもありそうです。うれしさが先に立っても、互いに復縁を望んでいるかは、言葉で確かめてください。 |
 
 ## wands.09 · 역방향
 
 내부 ID: `love.wands.09.reversed`
 
-카드 의미: 지속해야 한다는 압박이나 지나친 경계가 부담이 됨. 원전의 장애를 포기 단정 없이 범위 조정으로 사용.
+카드 의미: 장애, 지나친 경계, 방법의 경직
 
-분야 해석: 과한걱정
+분야 해석: 주의: 지나친 경계로 막히는 만남, 방어적인 다툼, 지치는 재회
 
-관찰: 상대의 작은 변화에도 예전의 서운한 일이 떠오를 수 있어. / 아무 뜻 없는 말이 거절처럼 들려 혼자 조심스러워지는 날이야. / 평소처럼 다정하게 건넨 안부를 듣고 나면 긴장이 조금 풀릴 거야.
+관찰: 장애 / 지나친 경계 / 방법의 경직
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대의 작은 변화에도 예전의 서운한 일이 떠오를 수 있어. 아무 뜻 없는 말이 거절처럼 들려 혼자 조심스러워지는 날이야. 평소처럼 다정하게 건넨 안부를 듣고 나면 긴장이 조금 풀릴 거야. 지금의 상대는 내가 생각한 상황을 전혀 모르고 있었을 수 있어. 걸리는 말은 지난 일까지 묶지 말고 그 말만 물어봐. | A small change in someone could bring back an old disappointment. An unintentional remark may sound like rejection and make you cautious today. An ordinary affectionate greeting could help you relax again. The person in front of you might know nothing about the situation you've imagined. Ask about the specific remark without bundling it together with past events. | 相手の小さな変化にも、昔の寂しい出来事が浮かぶかもしれません。何気ない言葉が拒絶のように聞こえ、一人で慎重になりそうです。いつもどおりの優しいあいさつを聞けば、少し緊張がほどけるでしょう。今の相手は、想像した状況を全く知らないのかもしれません。気になる言葉は過去と結びつけず、その言葉だけを尋ねてください。 |
+| 분야 풀이 | 솔로라면 상대의 평범한 질문도 의심스럽게 들려 만남이 어색해질 수 있어. 처음부터 모든 의도를 캐물으면 호감이 있어도 대화가 이어지기 어려워.<br><br>연애 중이라면 설명을 들어도 믿지 못해 같은 다툼을 반복할 수 있어. 예전 일과 오늘 있었던 일을 나눠 이야기해야 서로 지치는 말을 줄일 수 있어.<br><br>이별 후라면 다시 연락해도 불신 때문에 재회가 어렵게 느껴질 수 있어. 대화할 때마다 예전 상처만 커진다면 잠시 연락을 멈추는 편이 좋아. | If you're single, even ordinary questions may sound suspicious and make a meeting awkward. Questioning every intention from the start could make conversation difficult even with mutual interest.<br><br>In a relationship, not believing an explanation may lead you through the same argument again. Discuss the past separately from today's events to reduce exchanges that wear you both out.<br><br>After a breakup, even renewed contact could make a reunion seem difficult because of distrust. If every conversation only deepens old hurt, it's better to pause contact for a while. | フリーの人は、相手の普通の質問まで疑わしく聞こえ、会ってもぎこちなくなりそうです。初めからあらゆる意図を問いただすと、好意があっても会話が続きにくくなります。<br><br>交際中なら、説明を聞いても信じられず、同じけんかを繰り返しそうです。以前のことと今日の出来事を分けて話すと、互いを疲れさせるやり取りを減らせるでしょう。<br><br>別れた後なら、また連絡を取っても、不信感から復縁は難しいと感じそうです。話すたびに以前の傷が深くなるなら、少し連絡を休んだほうがよさそうです。 |
 
 ## wands.09 · 정방향
 
 내부 ID: `love.wands.09.upright`
 
-카드 의미: 지친 경험이 있어도 중요한 것을 지키는 끈기와 경계. 원전의 저항력을 과로 아닌 남은 여력의 신중한 사용으로 응용.
+카드 의미: 대응 경험, 반대 앞의 끈기, 경계
 
-분야 해석: 조심스러운신뢰
+분야 해석: 조심스러운 유지: 천천히 쌓이는 신뢰, 지난 문제 재발 경계, 신중한 재회
 
-관찰: 쉽게 마음을 열지 않았던 사람과 조금 더 편해질 수 있어. / 전에 했던 약속을 기억해 지키는 모습에서 믿음을 느낄 거야. / 가까운 사이에서는 긴 설명 없이도 피곤한 마음을 알아주는 순간이 있을 수 있어.
+관찰: 대응 경험 / 반대 앞의 끈기 / 경계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 쉽게 마음을 열지 않았던 사람과 조금 더 편해질 수 있어. 전에 했던 약속을 기억해 지키는 모습에서 믿음을 느낄 거야. 가까운 사이에서는 긴 설명 없이도 피곤한 마음을 알아주는 순간이 있을 수 있어. 화려한 표현보다 꾸준히 곁에 있어주는 사람이 반가운 날이야. 고마웠던 배려가 있다면 짧게라도 알아줬다고 말해줘. | You could feel more comfortable with someone you've been slow to trust. Seeing them remember and keep an earlier promise may be reassuring. A close person might recognize your tiredness without needing a long explanation. Someone who's consistently there could feel more welcome than an elaborate display today. Let them know you noticed a considerate gesture. | なかなか心を開けなかった人と、少し気楽になれそうです。前の約束を覚えて守る姿から、信頼を感じられるでしょう。親しい相手には、長く説明しなくても疲れをわかってもらえるかもしれません。華やかな表現より、変わらずそばにいる人がうれしい日です。ありがたかった気遣いには、気づいていたと短く伝えてください。 |
+| 분야 풀이 | 솔로라면 호감 가는 사람이 있어도 가까워지기까지 시간이 걸릴 수 있어. 지난 만남에서 실망했더라도 지금 상대가 약속을 지키는지 차분히 살펴봐.<br><br>연애 중이라면 예전에 다퉜던 일을 다시 조심하면서 큰 충돌을 피할 수 있어. 서로 약속을 잊지 않고 지키면 흔들렸던 믿음도 이어갈 수 있어.<br><br>이별 후라면 재회 제안에 조심스럽게 대화가 이어질 수 있어. 둘 다 달라진 모습을 보인다면 다시 만날 기회는 있어. 같은 상처가 반복될까 불안하다면 서둘러 답할 필요는 없어. | If you're single, growing close to someone you like may take time. Even after disappointment in a past connection, calmly notice whether this person keeps their promises.<br><br>In a relationship, being careful about an old source of arguments could help you avoid a major clash. Remembering and keeping your promises may sustain trust that has been shaken.<br><br>After a breakup, a suggestion of trying again could lead to a cautious conversation. If you both show that you've changed, another meeting is possible. You don't need to answer quickly if you're afraid of being hurt the same way again. | フリーの人は、気になる相手がいても、親しくなるまで時間がかかりそうです。以前の出会いでがっかりしたことがあっても、今の相手が約束を守るか、落ち着いて見ていきましょう。<br><br>交際中なら、以前けんかになったことに改めて気をつけ、大きな衝突を避けられそうです。互いに約束を忘れずに守れば、揺らいでいた信頼も保てるでしょう。<br><br>別れた後なら、復縁の提案から、慎重に会話が続きそうです。二人とも変わった姿を見せられるなら、交際を再開する機会はあります。また同じように傷つきそうで不安なら、急いで返事をする必要はありません。 |
 
 ## wands.10 · 역방향
 
 내부 ID: `love.wands.10.reversed`
 
-카드 의미: 필요 없는 짐을 내려놓거나 책임을 나누는 현대적 해방 독해. 원전의 장애와 달리 부담을 줄일 행동의 여지에 초점.
+카드 의미: 역할을 나누지 못한 부담, 어려움
 
-분야 해석: 배려를나눔
+분야 해석: 주의: 감당하지 못한 약속, 떠넘기는 부담, 같은 문제의 재회
 
-관찰: 나를 챙겨주려는 상대의 행동에 마음이 놓일 수 있어. / 늘 먼저 하던 연락이나 만남 준비를 다른 쪽에서 맡아줄 거야. / 가족이나 친구도 바쁜 사정을 알고 부담을 덜어줄 수 있는 날이야.
+관찰: 역할을 나누지 못한 부담 / 어려움
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 나를 챙겨주려는 상대의 행동에 마음이 놓일 수 있어. 늘 먼저 하던 연락이나 만남 준비를 다른 쪽에서 맡아줄 거야. 가족이나 친구도 바쁜 사정을 알고 부담을 덜어줄 수 있는 날이야. 조금 기대도 된다는 느낌 덕분에 함께 있는 시간이 더 편안해질 거야. 상대가 해주겠다는 작은 배려는 고맙게 받아줘. | Someone's effort to look after you could put your heart at ease. They may take over a message or meeting arrangement you've usually handled first. Family or friends could also recognize how busy you are and reduce the burden. Feeling that you can lean a little may make time together more comfortable. Accept a small offered kindness with thanks. | 気遣ってくれる相手の行動に、ほっとできそうです。いつも先にしていた連絡や準備を、向こうが担当してくれるかもしれません。家族や友人も忙しい事情を知り、負担を減らしてくれそうです。少し頼ってもよいと感じて、一緒の時間が楽になるでしょう。相手が申し出た小さな気遣いは、ありがたく受け取ってください。 |
+| 분야 풀이 | 솔로라면 감당하기 어렵게 잡아둔 만남을 취소할 수 있어. 상대에게 맞추겠다는 말만 하고 시간을 내지 못하면 신뢰를 잃기 쉬워.<br><br>연애 중이라면 미뤄둔 일을 서로 떠넘기다가 다툴 수 있어. 결혼 준비나 함께 정한 약속에서 누가 무엇을 할지 불분명했다면 오늘 문제가 드러날 수 있어.<br><br>이별 후라면 재회 이야기가 나오더라도 예전 부담을 누가 맡을지에서 막힐 수 있어. 한쪽에만 변화를 요구한다면 다시 만나도 편안하기 어려워. | If you're single, you may have to cancel a date because you've taken on too much. Saying you'll work around the other person's plans but never making time could cost you their trust.<br><br>In a relationship, passing delayed tasks back and forth could cause an argument. Unclear responsibilities for wedding preparations or shared commitments may become a problem today.<br><br>After a breakup, even talk of reuniting could stall over who will handle the old responsibilities. If change is demanded from only one side, dating again may not be comfortable. | フリーの人は、無理をして入れたデートを、キャンセルすることになりそうです。相手に合わせると言いながら時間をつくれないと、信頼を失いやすい日です。<br><br>交際中なら、後回しにしたことを押しつけ合い、けんかになるかもしれません。結婚の準備や二人の約束で、誰が何をするか曖昧だったなら、今日はその問題が表に出そうです。<br><br>別れた後なら、復縁の話が出ても、以前の負担を誰が引き受けるかで、話が止まるかもしれません。一方にだけ変化を求めるなら、また付き合っても落ち着いて過ごしにくいでしょう。 |
 
 ## wands.10 · 정방향
 
 내부 ID: `love.wands.10.upright`
 
-카드 의미: 많은 책임과 성취 뒤의 무거운 짐. 원전의 억압·성공의 부담을 혼자 떠안은 양의 문제로 사용.
+카드 의미: 많은 책임, 성과에 따르는 무게
 
-분야 해석: 관계의부담
+분야 해석: 주의: 바쁨으로 인한 만남 부족, 한쪽에 몰린 관계 책임, 부담스러운 재회
 
-관찰: 좋아하는 사람을 챙기느라 내 바람은 뒤로 밀릴 수 있어. / 만남을 준비하거나 연락을 이어가는 일을 한쪽에서 더 많이 하게 되는 날이야. / 상대는 내가 생각보다 바쁘고 피곤하다는 걸 모르고 있을 수 있어.
+관찰: 많은 책임 / 성과에 따르는 무게
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋아하는 사람을 챙기느라 내 바람은 뒤로 밀릴 수 있어. 만남을 준비하거나 연락을 이어가는 일을 한쪽에서 더 많이 하게 되는 날이야. 상대는 내가 생각보다 바쁘고 피곤하다는 걸 모르고 있을 수 있어. 솔직한 이야기를 듣고 나면 함께 맡겠다는 반응이 돌아올 거야. 오늘 필요한 도움 한 가지는 직접 말해줘. | Looking after someone you love could push your own wishes into the background. One side may do more of the arranging or keeping in touch today. The other person might not realize how busy and tired you actually are. Once they hear honestly, they could offer to share the effort. State one kind of help you need today. | 好きな人を気遣うあまり、自分の望みが後回しになるかもしれません。会う準備や連絡を、一方が多く担当しそうな日です。相手は、思った以上に忙しく疲れていることを知らないのかもしれません。正直な話を聞けば、一緒に引き受けるという反応が返りそうです。今日必要な助けを一つ、直接伝えてください。 |
+| 분야 풀이 | 솔로라면 할 일이 많아 좋은 소개가 와도 만날 시간을 내기 어려울 수 있어. 여러 약속을 잡기보다 실제로 만날 수 있는 날짜를 전해줘.<br><br>연애 중이라면 데이트나 결혼 준비를 한쪽이 떠맡아 지칠 수 있어. 함께할 일까지 혼자 처리하면 서운함이 쌓이니 서로 나누는 게 좋아.<br><br>이별 후라면 재회하더라도 예전의 부담을 다시 떠안을까 망설일 수 있어. 한 사람만 연락하고 약속을 잡아야 한다면 다시 만남을 이어가기 어려워. | If you're single, plenty to do may make it hard to find time even for a promising introduction. Say when you can actually meet instead of making several arrangements.<br><br>In a relationship, one person could become tired from handling all the date or wedding preparations. Doing even shared tasks alone may build resentment, so it's better to divide them.<br><br>After a breakup, you may hesitate over reuniting for fear of taking on the old burden again. If one person must always initiate contact and arrange meetings, keeping the renewed relationship going will be hard. | フリーの人は、やることが多く、よい紹介があっても会う時間をつくりにくい日です。いくつも約束するより、実際に会える日を伝えましょう。<br><br>交際中なら、デートや結婚の準備を一方が引き受け、疲れてしまいそうです。一緒にすることまで一人で済ませると、不満がたまります。互いに分担するのがよさそうです。<br><br>別れた後なら、復縁しても以前の負担をまた背負うのではと、迷うかもしれません。一人だけが連絡し、会う約束を決めなければならないなら、交際を続けるのは難しそうです。 |
 
 ## wands.11 · 역방향
 
 내부 ID: `love.wands.11.reversed`
 
-카드 의미: 흥미는 있지만 계획이 흩어지거나 소식의 의미를 서두름. 원전의 불안정한 안내를 시작 조건의 확인으로 사용.
+카드 의미: 불안정, 우유부단, 확인안된 이야기
 
-분야 해석: 서툰표현
+분야 해석: 주의: 불분명한 관심과 확인 안 된 말, 취소되는 제안, 애매한 재연락
 
-관찰: 호감을 표현하려던 말이 장난처럼 들려 뜻이 잘 전해지지 않을 수 있어. / 상대가 웃고 넘기는 반응에 조금 머쓱해지는 날이야. / 뒤늦게 진심이었다는 이야기를 나누면 반가운 놀라움이 돌아올 수 있어.
+관찰: 불안정 / 우유부단 / 확인안된 이야기
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 호감을 표현하려던 말이 장난처럼 들려 뜻이 잘 전해지지 않을 수 있어. 상대가 웃고 넘기는 반응에 조금 머쓱해지는 날이야. 뒤늦게 진심이었다는 이야기를 나누면 반가운 놀라움이 돌아올 수 있어. 처음부터 말을 잘하지 않아도 서툰 모습을 귀엽게 봐주는 사람이 있을 거야. 중요한 마음은 농담 뒤에 숨기지 말고 짧게 말해줘. | A remark intended to show affection might sound like a joke and fail to convey your feelings. The other person's laughter could leave you a little embarrassed today. Explaining later that you meant it may bring a pleasantly surprised response. Someone could find a clumsy attempt endearing even without polished words. State an important feeling briefly instead of hiding it behind humor. | 好意を伝えたつもりの言葉が、冗談だと思われてしまうかもしれません。笑って流されて、少し照れくさくなることもありそうです。後から本気だったと伝えると、相手がうれしそうに驚くこともあるでしょう。うまく話せなくても、その不器用さを愛おしく思ってくれる人がいそうです。大切な気持ちは冗談に隠さず、短い言葉で伝えてみてください。 |
+| 분야 풀이 | 솔로라면 만나자는 말은 들어도 상대의 관심이 일정하지 않을 수 있어. 전해 들은 호감만 믿기보다 직접 약속을 지키는지 살펴봐.<br><br>연애 중이라면 즉흥적으로 꺼낸 계획이 바뀌어 서운할 수 있어. 아직 알아보지 않은 일을 확실히 된 것처럼 말하지 않는 게 좋아.<br><br>이별 후라면 재회를 뜻하는지 알기 어려운 연락이 올 수 있어. 주변이 대신 전한 말이라면 더 크게 기대하지 마. 상대가 직접 다시 만나자고 말하는지 들어봐. | If you're single, someone may suggest meeting while their interest remains inconsistent. Notice whether they actually keep arrangements instead of trusting what others say about their feelings.<br><br>In a relationship, changes to a plan suggested on impulse could leave you hurt. It's better not to describe something as certain before you've looked into it.<br><br>After a breakup, a message may leave you unsure whether it means a reunion. Don't build greater hopes on words passed through someone else. Listen for your ex to say directly that they want to meet again. | フリーの人は、会おうと誘われても、相手の関心が安定しないかもしれません。人づてに聞いた好意を信じるより、本人が約束を守るか見ましょう。<br><br>交際中なら、思いつきで話した計画が変わり、残念な気持ちになりそうです。まだ調べていないことを、確定したように伝えるのは控えたほうがよいでしょう。<br><br>別れた後なら、復縁を意味するのかわかりにくい連絡が来るかもしれません。周囲が代わりに伝えた言葉なら、期待を膨らませるのは控えましょう。相手本人が、また付き合いたいと言っているか確かめてください。 |
 
 ## wands.11 · 정방향
 
 내부 ID: `love.wands.11.upright`
 
-카드 의미: 새 경험을 향한 탐색과 솔직한 열의. 원전의 메시지와 현대의 모험심을 작게 알아보는 시작으로 사용.
+카드 의미: 전달되는 새로운 이야기, 호기심, 활기
 
-분야 해석: 장난스러운호감
+분야 해석: 좋음: 반가운 새 연락, 가벼운 데이트 제안, 호기심으로 이어지는 재대화
 
-관찰: 가벼운 농담이나 뜻밖의 질문에서 새로운 호감이 시작될 수 있어. / 처음에는 별생각 없이 나눈 말이 계속 떠올라 웃게 될 거야. / 관심 있는 사람에게서 취향을 묻는 연락이 올 수도 있는 날이야.
+관찰: 전달되는 새로운 이야기 / 호기심 / 활기
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 가벼운 농담이나 뜻밖의 질문에서 새로운 호감이 시작될 수 있어. 처음에는 별생각 없이 나눈 말이 계속 떠올라 웃게 될 거야. 관심 있는 사람에게서 취향을 묻는 연락이 올 수도 있는 날이야. 친구처럼 편하게 이야기하는 동안 서로를 더 알고 싶어질 수 있어. 마음에 든 이야기가 있다면 다음 대화에서 다시 꺼내봐. | A light joke or an unexpected question could spark a new attraction. Something said without much thought at first may keep returning to make you smile. A person you're interested in might message to ask about your tastes. Talking comfortably as friends could leave you wanting to know each other better. Return to a part of the conversation you enjoyed next time you talk. | 何気ない冗談や思いがけない質問から、恋が始まるかもしれません。その場では気に留めなかった言葉を思い出し、笑顔になることがありそうです。気になる人から、好みを尋ねる連絡が来ることもあるでしょう。友達のように気楽に話すうちに、お互いをもっと知りたくなりそうです。印象に残った話を、次の会話でもう一度持ち出してみてください。 |
+| 분야 풀이 | 솔로라면 새로운 사람에게서 반가운 연락을 받을 수 있어. 취미나 관심사를 이야기하다 만나자는 제안으로 이어지기 좋아.<br><br>연애 중이라면 처음 해보는 데이트가 즐거운 이야깃거리를 만들어줄 수 있어. 서로 궁금했던 곳을 제안하면 가볍게 떠날 약속이 잡힐 수 있어.<br><br>이별 후라면 잘 지내는지 묻는 연락이 오갈 수 있어. 서로 반갑다면 대화가 다시 활발해질 수 있어. 아직은 안부를 나누는 사이일 수 있으니 곧바로 재회라고 여기지는 마. | If you're single, a welcome message could come from someone new. Talking about hobbies or interests is likely to lead to a suggestion of meeting.<br><br>In a relationship, a date doing something new could give you enjoyable stories to share. Suggesting somewhere you've both been curious about may lead to plans for a casual outing.<br><br>After a breakup, you could exchange messages asking how each other is doing. If you're both pleased, conversation may become lively again. You might still only be catching up, so don't immediately assume you're reuniting. | フリーの人は、新しく知り合った人から、うれしい連絡が届くかもしれません。趣味や関心のあることを話すうちに、会おうという誘いにつながりやすい日です。<br><br>交際中なら、初めて試すデートで、楽しい話題ができそうです。互いに気になっていた場所を提案すると、気軽なお出かけの約束が決まるかもしれません。<br><br>別れた後なら、元気かどうか尋ねる連絡がありそうです。二人とも喜んでいるなら、会話がまた弾むでしょう。まだ近況を伝え合うだけの関係かもしれないので、すぐに復縁と考えるのは控えてください。 |
 
 ## wands.12 · 역방향
 
 내부 ID: `love.wands.12.reversed`
 
-카드 의미: 성급한 추진과 멈춤이 교차함. 원전의 중단·분열을 열의와 지속할 조건의 불일치로 사용.
+카드 의미: 중단, 분열, 불화, 성급함의 불안정
 
-분야 해석: 들쑥날쑥한연락
+분야 해석: 주의: 성급한 접근과 갑작스러운 중단, 불안정한 만남, 재회 번복
 
-관찰: 반갑게 연락했다가 갑자기 조용해지는 모습에 헷갈릴 수 있어. / 만나자는 말이 빨리 나와도 실제 약속은 몇 번 바뀔 수 있는 날이야. / 순간의 들뜬 마음과 계속 만날 수 있는 사정이 다른 사람도 있을 거야.
+관찰: 중단 / 분열 / 불화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 반갑게 연락했다가 갑자기 조용해지는 모습에 헷갈릴 수 있어. 만나자는 말이 빨리 나와도 실제 약속은 몇 번 바뀔 수 있는 날이야. 순간의 들뜬 마음과 계속 만날 수 있는 사정이 다른 사람도 있을 거야. 차분히 이야기할 시간이 생기면 처음보다 현실적인 날짜가 정해질 수 있어. 급하게 정한 만남은 나서기 전에 한 번 더 확인해줘. | Warm contact followed by sudden silence could leave you puzzled. An invitation might come quickly while the actual meeting changes several times today. Someone's immediate excitement may differ from the circumstances that allow regular meetings. A calmer conversation could eventually settle a more realistic date. Confirm a hastily arranged meeting once more before heading out. | 楽しそうに連絡してきた相手が急に静かになり、戸惑うかもしれません。会おうという話は早くても、日時は何度か変わりそうです。その場の勢いと、実際に会える余裕が釣り合っていない人もいるでしょう。落ち着いて話せる時間ができれば、無理のない日程が決まりそうです。急に決まった約束は、出かける前にもう一度確かめてください。 |
+| 분야 풀이 | 솔로라면 급하게 가까워졌다가 연락이 뜸해질 수 있어. 강한 호감 표현만 믿고 곧바로 진지한 사이가 됐다고 여기지는 마.<br><br>연애 중이라면 일방적으로 바꾼 일정 때문에 다툴 수 있어. 갑자기 오라고 하거나 이미 잡은 약속을 취소하면 상대가 존중받지 못한다고 느끼기 쉬워.<br><br>이별 후라면 다시 만나자는 말이 금세 번복될 수 있어. 반가운 순간에만 내린 결정이라면 같은 이별을 반복하기 쉬워. 오늘은 서둘러 사귀기로 답하지 않는 게 좋아. | If you're single, you could grow close quickly and then hear from the person less often. Strong expressions of interest alone don't mean you're already in a serious relationship.<br><br>In a relationship, changing plans without agreement could cause an argument. Suddenly telling your partner to come over or cancelling an existing arrangement may make them feel disrespected.<br><br>After a breakup, a suggestion of trying again could quickly be withdrawn. A decision made only because you're pleased to see each other may lead to the same breakup again. It's better not to rush into agreeing to date today. | フリーの人は、急に親しくなった後、連絡が減るかもしれません。強い好意を示されたからと、すぐに真剣な交際が始まったと考えるのは控えましょう。<br><br>交際中なら、一方的に変えた予定が、けんかの原因になりそうです。急に来てほしいと言ったり、すでに決めた約束を取り消したりすると、相手は尊重されていないと感じがちです。<br><br>別れた後なら、また付き合おうという話が、すぐに撤回されるかもしれません。再会がうれしい瞬間だけで決めると、同じ別れを繰り返しやすい日です。今日は復縁すると急いで答えないほうがよさそうです。 |
 
 ## wands.12 · 정방향
 
 내부 ID: `love.wands.12.upright`
 
-카드 의미: 뜨거운 열의와 행동으로 옮기는 이동. 원전의 출발을 실제 여행 예언 없이 활발한 참여와 성급함의 양면으로 응용.
+카드 의미: 떠남, 이동, 성급할 만큼 적극적인 실행
 
-분야 해석: 적극적인만남
+분야 해석: 강한 진전: 적극적인 구애와 이동, 즉흥 데이트, 빠른 재만남
 
-관찰: 갑작스러운 초대나 솔직한 호감 표현에 마음이 들뜰 수 있어. / 평소보다 적극적인 상대의 모습에 서로 빠르게 가까워질 거야. / 이미 가까운 사이라면 늘 가던 곳을 벗어나 새로운 데이트 이야기가 나올 수 있어.
+관찰: 떠남 / 이동 / 성급할 만큼 적극적인 실행
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 갑작스러운 초대나 솔직한 호감 표현에 마음이 들뜰 수 있어. 평소보다 적극적인 상대의 모습에 서로 빠르게 가까워질 거야. 이미 가까운 사이라면 늘 가던 곳을 벗어나 새로운 데이트 이야기가 나올 수 있어. 함께 움직이는 동안 장난과 웃음이 많아지는 날이야. 반가운 마음을 표현하되 상대가 편한 시간도 물어봐. | A sudden invitation or open expression of interest could excite you today. Someone being more forthcoming than usual might help you grow closer quickly. People already close could discuss a new date beyond their usual places. Being out together may bring more teasing and laughter. Show your delight while also asking what time is comfortable for them. | 突然のお誘いや率直な好意に、心が弾みそうです。いつもより積極的な相手に応じるうちに、距離がぐっと縮まるでしょう。親しい二人なら、いつもと違う場所へのデートの話が出るかもしれません。一緒に出かけている間は、冗談や笑いが増えそうです。うれしい気持ちを伝えながら、相手の都合のよい時間も尋ねてください。 |
+| 분야 풀이 | 솔로라면 적극적으로 다가오는 사람과 빠르게 가까워질 수 있어. 즉흥적인 데이트 제안도 들어올 수 있으니 자신도 원하는 만남인지 살펴봐.<br><br>연애 중이라면 갑자기 떠난 나들이나 직접 찾아간 데이트가 설렘을 더해줄 수 있어. 서로 시간이 맞는지 먼저 물으면 즐거운 만남이 될 수 있어.<br><br>이별 후라면 보고 싶다는 말이 빠른 만남으로 이어질 수 있어. 다시 사귀는 결정까지 그 자리에서 서두를 필요는 없어. 예전 문제가 남아 있는지 차분히 이야기해봐. | If you're single, you could quickly grow close to someone who pursues you openly. A spontaneous date invitation may arrive too, so check that it's a meeting you want as well.<br><br>In a relationship, a spontaneous outing or a visit to see your partner could add excitement. Asking first whether you're both free may make it an enjoyable meeting.<br><br>After a breakup, saying you miss each other could lead to meeting quickly. You don't have to decide to date again on the spot. Calmly discuss whether the old problems remain. | フリーの人は、積極的に近づいてくる相手と、すぐに親しくなれそうです。思いつきでデートに誘われることもあるので、こちらも望む出会いかを確かめましょう。<br><br>交際中なら、急なお出かけや、会いに出向くデートで、ときめきが増しそうです。先に互いの都合を聞いておけば、楽しい時間になるでしょう。<br><br>別れた後なら、会いたいという言葉から、すぐに会うことになりそうです。その場で交際の再開まで急いで決める必要はありません。以前の問題が残っていないか、落ち着いて話しましょう。 |
 
 ## wands.13 · 역방향
 
 내부 ID: `love.wands.13.reversed`
 
-카드 의미: 자신감이 타인의 시선에 흔들리거나 존재감을 과하게 보이려 함. 원전의 반대·호의의 제약을 자기 비교의 문제로 현대화.
+카드 의미: 자신감위축, 요구하는태도, 질투
 
-분야 해석: 비교와질투
+분야 해석: 주의: 비교와 질투가 가리는 호감, 애정 확인 요구, 불편한 재연락
 
-관찰: 다른 사람에게 향한 관심이 괜히 크게 보여 서운해질 수 있어. / 평소 같으면 웃고 넘겼을 칭찬도 나와 비교하는 말처럼 들릴 거야. / 둘이 편하게 이야기하는 자리에서는 내게 향한 다정함을 다시 느낄 수 있어.
+관찰: 자신감위축 / 요구하는태도 / 질투
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다른 사람에게 향한 관심이 괜히 크게 보여 서운해질 수 있어. 평소 같으면 웃고 넘겼을 칭찬도 나와 비교하는 말처럼 들릴 거야. 둘이 편하게 이야기하는 자리에서는 내게 향한 다정함을 다시 느낄 수 있어. 상대는 내가 신경 쓰던 장면을 대수롭지 않게 여겼을 수도 있는 날이야. 서운한 마음은 다른 사람을 깎아내리지 않고 전해줘. | Attention directed at someone else could seem larger than it is and leave you hurt. A compliment you'd usually laugh off might sound like a comparison today. Talking comfortably alone could help you notice the affection directed toward you again. The other person may have thought little of the moment that's been on your mind. Explain the disappointment without putting another person down. | 相手がほかの人に向ける関心が大きく見えて、寂しくなるかもしれません。いつもなら気にしない褒め言葉も、自分と比べているように聞こえそうです。二人で落ち着いて話すと、あなたへの優しさをあらためて感じるでしょう。あなたが気にしていた場面を、相手は何気ないことだと思っていたのかもしれません。寂しかった気持ちは、ほかの人を悪く言わずに伝えてください。 |
+| 분야 풀이 | 솔로라면 다른 사람이 더 관심받는 것 같아 말이 날카로워질 수 있어. 좋아하는 사람 앞에서 경쟁 상대를 흉보면 좋은 인상을 잃기 쉬워.<br><br>연애 중이라면 누가 더 소중한지 확인하려는 질문이 다툼으로 번질 수 있어. 애정을 증명하라고 상대의 약속을 취소시키지는 마.<br><br>이별 후라면 상대의 새 소식을 듣고 충동적으로 연락하기 쉬워. 질투를 풀려고 보낸 메시지는 재회에 도움이 되기 어려워. 연락을 원하지 않는 사람의 근황을 계속 찾아보지는 마. | If you're single, feeling that someone else gets more attention could make your words sharp. Criticising a romantic rival in front of the person you like could spoil their impression of you.<br><br>In a relationship, questions meant to test who matters more could turn into an argument. Don't make your partner cancel plans to prove their love.<br><br>After a breakup, news about your ex could prompt an impulsive message. Contact meant to vent jealousy is unlikely to help a reunion. Don't keep searching for updates about someone who doesn't want contact. | フリーの人は、ほかの人のほうが注目されている気がして、言葉がきつくなるかもしれません。好きな人の前でライバルを悪く言うと、よい印象を失いやすい日です。<br><br>交際中なら、誰が一番大事なのかを確かめる質問が、けんかに発展しそうです。愛情を証明してほしいからと、相手に約束をキャンセルさせるのは控えてください。<br><br>別れた後なら、相手の近況を聞き、衝動的に連絡しやすい日です。嫉妬を晴らすためのメッセージは、復縁には役立ちにくいでしょう。連絡を望んでいない相手の近況を、探し続けるのは控えましょう。 |
 
 ## wands.13 · 정방향
 
 내부 ID: `love.wands.13.upright`
 
-카드 의미: 자연스러운 자신감과 사람을 끌어들이는 활기. 원전의 친근함을 특정 여성 아닌 솔직한 열의로 해석.
+카드 의미: 생기, 친절, 사랑, 매력, 관대한자신감
 
-분야 해석: 자연스러운매력
+분야 해석: 좋음: 눈에 띄는 매력과 인기, 따뜻하고 활기 있는 애정, 재대화의 호응
 
-관찰: 밝게 웃거나 좋아하는 이야기를 할 때 호감을 얻기 좋은 날이야. / 잘 보이려 준비한 모습보다 자연스러운 반응에 상대가 더 관심을 보일 거야. / 새로운 자리에서는 먼저 다가와 말을 거는 사람도 있을 수 있어.
+관찰: 생기 / 친절 / 사랑
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 밝게 웃거나 좋아하는 이야기를 할 때 호감을 얻기 좋은 날이야. 잘 보이려 준비한 모습보다 자연스러운 반응에 상대가 더 관심을 보일 거야. 새로운 자리에서는 먼저 다가와 말을 거는 사람도 있을 수 있어. 가까운 사이에서는 함께 웃는 시간이 늘어 오랜만에 설레는 느낌을 받을 거야. 좋아하는 것을 묻는 말에 내 취향을 솔직하게 이야기해봐. | A bright smile or a subject you love could make you especially appealing today. Someone may be more interested in your natural response than in the impression you've prepared. A new gathering might bring a person who approaches you first. With someone close, more shared laughter could revive a little excitement. Answer a question about what you like honestly. | 明るく笑ったり好きなことを話したりする姿に、好意が集まりそうです。よく見せようと用意した姿より、自然な反応に相手は興味を持つでしょう。初めての集まりでは、向こうから話しかけてくれる人もいそうです。親しい二人には一緒に笑う時間が増え、久しぶりにときめく瞬間が訪れるかもしれません。好きなものを聞かれたら、自分の好みを素直に話してみてください。 |
+| 분야 풀이 | 솔로라면 모임에서 눈에 띄고 먼저 말을 걸어오는 사람이 생길 수 있어. 좋아하는 사람과도 밝고 편안하게 대화가 이어져 고백할 기회를 잡기 좋아.<br><br>연애 중이라면 서로를 칭찬하고 즐겁게 어울리며 애정이 깊어질 수 있어. 함께 사람들을 만나는 자리에서도 서로 다정하게 챙겨주기 좋아.<br><br>이별 후라면 오랜만의 대화에서 반가운 반응을 얻을 수 있어. 둘 다 다시 만나길 원한다면 편한 약속부터 잡아봐. 지난 만남에 머무르지 않고 새로운 인연을 만나기에도 좋은 날이야. | If you're single, you could stand out at a gathering and have someone approach you first. Bright, comfortable conversation with someone you like may give you a good chance to share your feelings.<br><br>In a relationship, compliments and enjoyable time together could deepen affection. It's also a good day to look after each other warmly while meeting other people.<br><br>After a breakup, a conversation after a long time apart could bring a welcome response. If you both want to meet again, start with a casual meeting. It's also a good day to meet someone new instead of staying focused on the old relationship. | フリーの人は、集まりで目を引き、先に話しかけてくれる人が現れそうです。好きな相手とも明るく気楽に会話が続き、告白の機会をつかみやすい日です。<br><br>交際中なら、互いを褒め、楽しく過ごすことで、愛情が深まりそうです。一緒に人と会う場でも、互いを優しく気遣いやすいでしょう。<br><br>別れた後なら、久しぶりに話した相手から、再会を喜ぶ反応がもらえそうです。二人ともまた付き合いたいなら、気負わずに会う約束をしましょう。以前の交際にとどまらず、新しい出会いを探すのにもよい日です。 |
 
 ## wands.14 · 역방향
 
 내부 ID: `love.wands.14.reversed`
 
-카드 의미: 큰 뜻에 비해 현실 조건이나 타인의 의견을 놓침. 원전의 엄격함을 독단과 과한 기대의 재조정으로 사용.
+카드 의미: 선하지만 엄격한 태도, 지나친 기준
 
-분야 해석: 일방적인결정
+분야 해석: 주의: 지나치게 엄격한 기준, 일방적 계획, 조건 많은 재회
 
-관찰: 좋은 뜻으로 정한 약속이 상대에게는 부담스럽게 느껴질 수 있어. / 미리 물어보지 않은 일에 왜 혼자 정했냐는 말을 들을 수도 있는 날이야. / 이유를 듣고 나면 서로 기대한 만남이 달랐다는 걸 알게 될 거야.
+관찰: 선하지만 엄격한 태도 / 지나친 기준
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋은 뜻으로 정한 약속이 상대에게는 부담스럽게 느껴질 수 있어. 미리 물어보지 않은 일에 왜 혼자 정했냐는 말을 들을 수도 있는 날이야. 이유를 듣고 나면 서로 기대한 만남이 달랐다는 걸 알게 될 거야. 계획을 조금 바꾸자고 말하면 상대도 더 편하게 자기 뜻을 이야기할 수 있어. 오늘은 확정하기 전에 함께할 사람에게 먼저 물어봐. | An arrangement made with good intentions might feel burdensome to the other person. You could hear why they wanted to be asked before it was settled. Listening may reveal that you pictured different kinds of meetings. Suggesting an adjustment could make them more comfortable sharing what they want. Ask the person joining you before confirming anything today. | よかれと思って決めた約束が、相手には負担になるかもしれません。先に聞かなかったことで、なぜ一人で決めたのかと尋ねられそうです。理由を聞くと、二人が期待していた過ごし方の違いが分かるでしょう。予定を少し変えようと話せば、相手も希望を言いやすくなりそうです。今日は確定する前に、一緒に過ごす人に尋ねてください。 |
+| 분야 풀이 | 솔로라면 자기 기준에 꼭 맞춰야 한다는 사람과 대화가 불편해질 수 있어. 호감이 있어도 상대를 평가하거나 가르치려는 말은 거리를 벌리기 쉬워.<br><br>연애 중이라면 좋은 뜻으로 세운 계획도 일방적으로 밀어붙이면 다툼이 될 수 있어. 결혼 준비에서 한쪽 기준만 정답으로 삼지 않는 게 좋아.<br><br>이별 후라면 상대에게 바라는 조건이 많아 재회 이야기가 막힐 수 있어. 한 사람만 고쳐야 한다는 말이 계속된다면 다시 만나기 어려워. 서로 받아들일 수 없는 요구는 분명히 말해줘. | If you're single, conversation could become uncomfortable with someone who demands that you meet their exact standards. Even with attraction, judging or lecturing the other person can create distance.<br><br>In a relationship, a well-meant plan could become an argument if it's pushed through by one person. It's better not to treat only one person's standards as correct during wedding preparations.<br><br>After a breakup, too many conditions for the other person could block a discussion of reuniting. If one of you keeps insisting that only the other person must change, dating again will be difficult. Clearly state any demands either of you can't accept. | フリーの人は、自分の基準に必ず合わせてほしいという相手との会話に、居心地の悪さを感じそうです。好意があっても、相手を評価したり教え諭したりする言葉は、距離を広げがちです。<br><br>交際中なら、よかれと思った計画でも、一方的に押し通すとけんかになりそうです。結婚の準備では、一方の基準だけを正解にしないほうがよいでしょう。<br><br>別れた後なら、相手に求める条件が多く、復縁の話が止まるかもしれません。一人だけが変わるべきだという話を続けるなら、交際の再開は難しそうです。互いに受け入れられない要求は、はっきり伝えましょう。 |
 
 ## wands.14 · 정방향
 
 내부 ID: `love.wands.14.upright`
 
-카드 의미: 큰 방향을 제시하고 사람과 자원을 이끄는 책임. 원전의 성실·조언을 실행 가능한 비전과 주도로 응용.
+카드 의미: 정직하고 성실하며 열정적인 주도성
 
-분야 해석: 든든한제안
+분야 해석: 좋음: 분명한 고백과 약속, 관계 계획의 실천, 책임 있는 재회
 
-관찰: 먼저 꺼낸 만남이나 약속에 믿음직하다는 반응을 얻을 수 있어. / 상대가 망설이던 일을 함께하자고 말하며 가까워질 수 있는 날이야. / 가족이나 친구에게도 필요한 순간에 의지가 되는 사람이 될 거야.
+관찰: 정직하고 성실하며 열정적인 주도성 / 좋음: 분명한 고백과 약속, 관계 계획의 실천, 책임 있는 재회
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 먼저 꺼낸 만남이나 약속에 믿음직하다는 반응을 얻을 수 있어. 상대가 망설이던 일을 함께하자고 말하며 가까워질 수 있는 날이야. 가족이나 친구에게도 필요한 순간에 의지가 되는 사람이 될 거야. 나를 믿고 자기 이야기를 꺼내는 모습에서 관계의 깊이를 느낄 수 있어. 함께할 약속에는 상대가 원하는 것도 하나 넣어줘. | An invitation or arrangement you propose could be seen as reassuringly dependable. Offering to do something together may bring you closer to a person who's been hesitant. Family or friends could also count on you at a needed moment. Seeing someone trust you with their own story may show the depth of the relationship. Include one thing the other person wants in a shared plan. | 自分から提案したデートや約束に、頼もしさを感じてもらえそうです。相手が迷っていたことを一緒にしようと誘うと、距離が縮まるでしょう。家族や友人にも、必要な場面で頼りにされそうです。あなたを信じて胸の内を話してくれる姿に、親しさを感じるでしょう。一緒の約束には、相手がしたいことも一つ入れてください。 |
+| 분야 풀이 | 솔로라면 마음을 분명히 표현하는 사람과 좋은 만남을 시작할 수 있어. 자신도 호감이 있다면 돌려 말하기보다 언제 만나고 싶은지 전해봐.<br><br>연애 중이라면 둘이 정한 계획을 실제로 진행하기 좋은 날이야. 결혼이나 중요한 약속도 한 사람이 앞장서고 다른 사람이 뜻을 보태면 수월하게 정해질 수 있어.<br><br>이별 후라면 진지하게 다시 만나자는 제안이 오갈 수 있어. 서로의 뜻이 같다면 미뤄온 대화가 실제 만남으로 이어지기 좋아. 책임질 수 있는 말인지도 함께 살펴줘. | If you're single, you could begin a good connection with someone who makes their feelings clear. If you're interested too, say when you'd like to meet instead of speaking indirectly.<br><br>In a relationship, it's a good day to act on plans you've agreed on. Marriage or an important commitment may be easier to settle when one person takes the lead and the other offers support.<br><br>After a breakup, a serious suggestion to reunite could come from either of you. If you both want the same thing, a delayed conversation may become an actual meeting. Check whether the promises being made are ones you can keep too. | フリーの人は、気持ちをはっきり伝える相手と、よい付き合いを始められそうです。こちらも好意があるなら、遠回しにせず、いつ会いたいか伝えてください。<br><br>交際中なら、二人で決めた計画を実行に移すのによい日です。結婚や大切な約束も、一人が先に動き、もう一人も賛同すれば、スムーズに決まりそうです。<br><br>別れた後なら、真剣にまた付き合いたいという提案がありそうです。互いの意思が同じなら、先延ばしにしていた会話から、実際に会う約束へ進みやすいでしょう。その言葉に責任を持てるかも、一緒に確かめてください。 |

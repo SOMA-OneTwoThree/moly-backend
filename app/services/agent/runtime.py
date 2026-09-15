@@ -489,6 +489,17 @@ def apply_result_budget(results: Sequence[ToolResult], budget: int) -> list[Tool
     out: list[ToolResult] = []
     remaining = budget
     for r in results:
+        if r.tool_name == "get_mood_entries" and r.status == "ok":
+            # Generic string clipping would corrupt dates and leave stale returned_count.
+            fitted = _fit_mood_result(r, min(480, remaining))
+            if fitted is not None:
+                remaining -= _cost(fitted)
+                out.append(fitted)
+            else:
+                out.append(replace(
+                    r, status="unavailable", data=None, error_code="budget_exceeded", truncated=True,
+                ))
+            continue
         cost = _cost(r)
         if cost <= remaining:
             remaining -= cost
@@ -521,6 +532,29 @@ def apply_result_budget(results: Sequence[ToolResult], budget: int) -> list[Tool
         remaining -= _cost(shrunk)
         out.append(shrunk)
     return out
+
+
+def _fit_mood_result(result: ToolResult, budget: int) -> ToolResult | None:
+    """Keep dates/counts intact; shorten excerpts before dropping older rows."""
+    if _cost(result) <= budget:
+        return result
+    data = dict(result.data)
+    items = [dict(item) for item in data["items"]]
+    data["items"] = items
+    candidate = replace(result, data=data, truncated=True)
+    for cap in (100, 50, 25, 0):
+        for item in items:
+            if len(item["note"]) > cap:
+                item["note"] = item["note"][:cap] + ("…" if cap else "")
+        if _cost(candidate) <= budget:
+            return candidate
+    while len(items) > 1:
+        items.pop()
+        data["returned_count"] = len(items)
+        data["has_more"] = True
+        if _cost(candidate) <= budget:
+            return candidate
+    return None
 
 
 def _candidate_refs(data: Any) -> set[tuple[str, str]]:

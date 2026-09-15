@@ -219,7 +219,9 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         messages = await _load_sources(session, req, previous)
         if not messages:
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
-        if checkpoint.source_hash(previous=previous, messages=messages) != req.source_hash:
+        if checkpoint.source_hash(
+            previous=previous, messages=messages, version=req.version,
+        ) != req.source_hash:
             # 같은 id 목록이라도 본문이 바뀌었다 = 이 요약의 전제가 깨졌다.
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
 
@@ -264,6 +266,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             previous_summary=previous_summary,
             language=language,
             nickname=nickname,
+            version=req.version,
             ledger=usage_ledger.LedgerContext(
                 lane=usage_ledger.LANE_BACKGROUND, purpose="context_summary",
                 user_id=job.user_id, job_id=job.id, attempt=job.attempt,

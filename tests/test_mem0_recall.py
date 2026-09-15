@@ -37,7 +37,7 @@ class _Adapter:
 
 
 class _Session:
-    """registry 조회를 흉내낸다. `rows`는 (pid, status, occurred_at, group) 튜플."""
+    """Registry rows; older fixtures omit the final time-basis/precision columns."""
 
     def __init__(self, rows, boom=False):
         self._rows, self._boom = rows, boom
@@ -47,7 +47,7 @@ class _Session:
         if self._boom:
             raise RuntimeError("db down")
         self.params = params
-        return _Result(self._rows)
+        return _Result([(*r, "event", None) if len(r) == 4 else r for r in self._rows])
 
 
 class _Result:
@@ -71,6 +71,21 @@ async def test_active_memory_is_returned():
     s = _Session([("p1", "active", None, None)])
     got = await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed)
     assert [g.text for g in got] == ["회사에 다닌다"]
+
+
+async def test_source_time_is_a_mention_and_keeps_local_calendar_minute():
+    at = datetime(2026, 9, 14, 15, 1, tzinfo=timezone.utc)
+    session = _Session([("p1", "active", at, None, "mentioned", None)])
+    got = await mr.recall(session, UID, query="아까", adapter=_Adapter([_hit("p1")]),
+                          embed_query=_embed)
+    block = mr.render_block(got, language="ko", today=date(2026, 9, 15), tz_name="Asia/Seoul")
+    assert "2026-09-15T00:01+09:00 언급" in block
+
+
+def test_future_event_and_missing_time_are_not_today():
+    future = datetime(2026, 9, 16, tzinfo=timezone.utc)
+    assert mr._when_label(future, date(2026, 9, 15), "Asia/Seoul", "ko") == "미래 2026-09-16"
+    assert "오늘" not in mr._when_label(None, date(2026, 9, 15), "Asia/Seoul", "ko")
 
 
 @pytest.mark.parametrize("status", ["superseded", "duplicate", "pending", "excluded",

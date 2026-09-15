@@ -48,7 +48,7 @@ async def build_context(
     session: AsyncSession,
     profile: Profile,
     *,
-    is_first_today: bool,
+    is_first_today: bool | None,
     now_utc: datetime,
 ) -> CurrentTurnContext:
     """DB 조회로 채운 CurrentTurnContext(chat.py 배선 단계가 호출 → render()에 전달).
@@ -220,7 +220,7 @@ _TIME_BUCKET_TEXT = {
 }
 _LAST_ACTIVE_TEXT = {
     "just_now": {"ko": "방금 옴", "en": "just arrived", "ja": "たった今来た"},
-    "today": {"ko": "오늘 다녀감", "en": "active today", "ja": "今日活動あり"},
+    "today": {"ko": "24시간 안에 다녀감", "en": "active within 24 hours", "ja": "24時間以内に活動あり"},
     "recent": {"ko": "최근에 다녀감", "en": "active recently", "ja": "最近活動あり"},
     "long": {"ko": "오랜만에 옴", "en": "long time no see", "ja": "久しぶりに来た"},
 }

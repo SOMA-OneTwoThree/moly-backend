@@ -1,6 +1,6 @@
 """프롬프트 캐싱 핵심 — billable(원가 가중), 앵커 리셋, 블록 조립."""
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 from types import SimpleNamespace
 
 from app.services import chat as c
@@ -18,6 +18,7 @@ def _msg(i, sender, content="안녕", activity_date=None):
     return SimpleNamespace(
         id=i, sender=sender, content=content,
         activity_date=activity_date or date(2026, 7, 15),
+        created_at=datetime.combine(activity_date or date(2026, 7, 15), time(3), timezone.utc),
     )
 
 
@@ -56,9 +57,9 @@ def test_date_marker_on_day_change():
     msgs = [_msg(1, "user", activity_date=d14), _msg(2, "moly", activity_date=d14),
             _msg(3, "user", activity_date=d15)]
     c._mark_dates(convo, msgs)
-    assert convo[0]["content"].startswith("[7월 14일 화요일]\n")  # 그룹 첫 메시지
+    assert convo[0]["content"].startswith("[2026-07-14T12:00+09:00]\n")  # 그룹 첫 메시지
     assert convo[1]["content"] == "그래"                          # 같은 날 → 표식 없음
-    assert convo[2]["content"].startswith("[7월 15일 수요일]\n")  # 날 바뀜 → 새 표식
+    assert convo[2]["content"].startswith("[2026-07-15T12:00+09:00]\n")  # 날 바뀜 → 새 표식
 
 
 def test_date_marker_single_day_labels_first_only():
@@ -67,8 +68,8 @@ def test_date_marker_single_day_labels_first_only():
     msgs = [_msg(1, "user", activity_date=date(2026, 7, 15)),
             _msg(2, "moly", activity_date=date(2026, 7, 15))]
     c._mark_dates(convo, msgs)
-    assert convo[0]["content"].startswith("[7월 15일")  # 오늘 며칠인지 항상 보이게
-    assert "[7월" not in convo[1]["content"]
+    assert convo[0]["content"].startswith("[2026-07-15")  # 오늘 며칠인지 항상 보이게
+    assert "[2026-07" not in convo[1]["content"]
 
 
 async def test_context_marks_first_surviving_message_after_greeting_pop():
@@ -78,7 +79,7 @@ async def test_context_marks_first_surviving_message_after_greeting_pop():
     desc = [_msg(2, "user", "답", activity_date=d), _msg(1, "moly", "인사", activity_date=d)]
     convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
     assert [m.content for m in lead] == ["인사"]           # 선발화는 system으로
-    assert convo[0]["content"].startswith("[7월 15일")     # 남은 첫 메시지에 표식
+    assert convo[0]["content"].startswith("[2026-07-15")     # 남은 첫 메시지에 표식
 
 
 # --- 대사 정제(페르소나만으론 안 잡히는 것들을 코드로 확정) ---

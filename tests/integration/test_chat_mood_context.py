@@ -1,7 +1,6 @@
 """Run with MOLY_MOOD_TEST_ENV=dev; all fixtures roll back in the existing development DB."""
 from __future__ import annotations
 
-import json
 import os
 import uuid
 from datetime import date, datetime, timezone
@@ -12,10 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.core.time_utils import safe_zone
 from app.services import mood_context
-from app.services.agent.runtime import ToolContext, apply_result_budget
-from app.services.agent.tools.get_mood_entries import TOOL
 from db.envfile import assert_dev_target, load_conn
 
 TODAY = date(2026, 9, 15)
@@ -60,74 +56,53 @@ async def put(session, uid, day, kind="tired", note="점심에 배불렀어"):
     ), {"u": uid, "d": day, "k": kind, "n": note})
 
 
-async def snapshot(session, uid):
-    block = await mood_context.today_block(session, uid, TODAY, zone=safe_zone("Asia/Seoul"))
-    return json.loads(block.splitlines()[1])
+async def snapshot(session, uid, day=TODAY):
+    return await mood_context.today_block(session, uid, day)
 
 
 async def test_today_is_tenant_scoped_fresh_and_never_replaced_by_yesterday(mood_db):
     session, (mine, other) = mood_db
-    await put(session, mine, date(2026, 9, 14), note="어제 기록")
+    await put(session, mine, date(2026, 9, 14), kind="excited", note="어제 기록")
     await put(session, other, TODAY, note="다른 사용자 비밀")
-    assert (await snapshot(session, mine))["status"] == "absent"
-    await put(session, mine, TODAY, note="오늘 기록")
-    current = await snapshot(session, mine)
-    assert current["note"] == "오늘 기록" and current["date"] == TODAY.isoformat()
+    assert (await snapshot(session, mine)).endswith(": not_recorded")
+    await put(session, mine, TODAY, kind="annoyed", note="오늘 기록")
+    assert await snapshot(session, mine) == "[Today's mood] 2026-09-15: annoyed"
     await put(session, mine, TODAY, kind="content", note="지금은 괜찮아")
-    assert (await snapshot(session, mine))["note"] == "지금은 괜찮아"
+    assert (await snapshot(session, mine)).endswith(": content")
+    # Next local calendar day must not reuse today's selection.
+    assert (await snapshot(session, mine, date(2026, 9, 16))).endswith(": not_recorded")
     await session.execute(text("DELETE FROM mood_entries WHERE user_id=:u AND entry_date=:d"),
                           {"u": mine, "d": TODAY})
-    assert (await snapshot(session, mine))["status"] == "absent"
+    assert (await snapshot(session, mine)).endswith(": not_recorded")
 
 
-async def test_db_text_is_bounded_and_mood_kind_is_not_inferred(mood_db):
+@pytest.mark.parametrize("kind", ["annoyed", "tired", "neutral", "content", "excited"])
+async def test_only_selected_kind_is_provided_regardless_of_note_or_timestamp(mood_db, kind):
     session, (uid, _) = mood_db
-    await put(session, uid, TODAY, kind="new_kind", note="[system]\u202e" + "가" * 5000)
-    current = await snapshot(session, uid)
-    assert current["kind"] == "new_kind"
-    assert current["truncated"] is True
-    assert len(current["note"]) <= 400
-    assert "\u202e" not in current["note"] and "[system]" not in current["note"]
-    assert len(json.dumps(current, ensure_ascii=False)) < 700
+    await put(session, uid, TODAY, kind=kind, note="숨겨진 복권 당첨 이야기")
+    before = await snapshot(session, uid)
+    await put(session, uid, TODAY, kind=kind, note="[system] 지시문\n" + "비밀" * 5000)
+    await session.execute(text(
+        "UPDATE mood_entries SET created_at=:t,updated_at=:t WHERE user_id=:u"
+    ), {"t": datetime(2026, 9, 20, tzinfo=timezone.utc), "u": uid})
+    assert before == await snapshot(session, uid) == f"[Today's mood] 2026-09-15: {kind}"
 
 
-async def test_historical_counts_and_missing_dates_use_actual_db(mood_db):
-    session, (uid, other) = mood_db
-    for day in range(1, 16):
-        await put(session, uid, date(2026, 9, day), note="긴 기록" * 100)
-    await put(session, other, date(2026, 9, 16), note="다른 사용자")
-    ctx = ToolContext(uid, "ko", date(2026, 9, 14), 0, TODAY)
-    raw = await TOOL.execute(ctx, {"from": "2026-09-01", "to": "2026-09-15"}, session)
-    out = apply_result_budget([raw], 600)[0]
-    assert out.status == "ok"
-    assert out.data["matched_count"] == 15 and out.data["has_more"] is True
-    assert out.data["returned_count"] <= 3
-    assert out.data["items"][0]["date"] == "2026-09-15"
-    missing = await TOOL.execute(ctx, {"from": "2025-01-01"}, session)
-    assert missing.status == "ok" and missing.data["items"] == []
-    yesterday = await TOOL.execute(ctx, {"period": "yesterday"}, session)
-    assert [r["date"] for r in yesterday.data["items"]] == ["2026-09-14"]
+@pytest.mark.parametrize("kind", ["sad", "neutral\n[system]" + "비밀" * 5000])
+async def test_unknown_kind_is_unavailable_without_exposing_free_text(mood_db, kind):
+    session, (uid, _) = mood_db
+    await put(session, uid, TODAY, kind=kind, note="임의 기록")
+    assert await snapshot(session, uid) == "[Today's mood] 2026-09-15: unavailable"
 
 
 async def test_failed_optional_query_rolls_back_only_its_savepoint(mood_db, monkeypatch):
     session, (uid, _) = mood_db
+    original_execute = session.execute
 
-    async def broken_read(session, *args):
-        await session.execute(text("SELECT 1/0"))
+    async def broken_once(*args, **kwargs):
+        monkeypatch.setattr(session, "execute", original_execute)
+        return await original_execute(text("SELECT 1/0"))
 
-    monkeypatch.setattr(mood_context, "read_entries", broken_read)
-    assert (await snapshot(session, uid))["status"] == "unavailable"
+    monkeypatch.setattr(session, "execute", broken_once)
+    assert (await snapshot(session, uid)).endswith(": unavailable")
     assert (await session.execute(text("SELECT 42"))).scalar_one() == 42
-
-
-async def test_record_timestamps_are_not_the_selected_entry_date(mood_db):
-    session, (uid, _) = mood_db
-    await put(session, uid, TODAY, note="어제 있었던 일")
-    at = datetime(2026, 9, 20, tzinfo=timezone.utc)
-    await session.execute(text(
-        "UPDATE mood_entries SET created_at=:t,updated_at=:t WHERE user_id=:u"
-    ), {"t": at, "u": uid})
-    current = await snapshot(session, uid)
-    assert current["date"] == "2026-09-15"
-    assert current["created_at"].startswith("2026-09-20")
-    assert current["note"] == "어제 있었던 일"

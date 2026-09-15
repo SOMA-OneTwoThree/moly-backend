@@ -80,9 +80,10 @@ class RecallDiariesOut(BaseModel):
 class RecallDiariesTool(BaseTool):
     name = "recall_diaries"
     description = (
-        "Recall the user's published diaries conversationally. Returns counts, coverage, titles, "
+        "Recall Cappy-authored published diaries for this user, never the user's mood selections or notes. "
+        "Returns counts, coverage, titles, "
         "dates, excerpts, and full bodies in one call. "
-        "For 'show me my diary' style requests call it with no arguments except need, which "
+        "For requests to show Cappy's diary, call it with no arguments except need, which "
         "returns the most recent diaries. Only set query when searching for specific content. "
         "Each item says whether it actually matched the query: when content_match is false the "
         "diary is simply a recent one, not an answer to what was asked, so do not present it as "

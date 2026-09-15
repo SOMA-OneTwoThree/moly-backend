@@ -58,7 +58,7 @@ class GetMoodEntriesTool(BaseTool):
         "Read the user's own mood journal (feeling and note), not Cappy's diaries. "
         "Only when the user asks to look up or compare their mood records. "
         "Never call proactively or infer a journal topic from a vague feeling. "
-        "Today's entry is already provided; use it when available. Defaults to the last 7 days. "
+        "Today's entry is already provided; do not query it again when available. Defaults to the last 7 days. "
         "Use period for today/yesterday, or exact from/to (up to 31 days, including older dates). "
         "Return at most 5 excerpts; limit must not exceed 5. Missing dates stay missing. "
         "Results may be partial; never infer a whole period from excerpts."

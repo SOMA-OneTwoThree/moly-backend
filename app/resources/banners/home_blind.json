@@ -611,6 +611,10 @@
         "acknowledged": {
           "source": "affirmation.acknowledged_today",
           "format": null
+        },
+        "sentence": {
+          "source": "affirmation.text",
+          "format": null
         }
       },
       "when": {
@@ -656,7 +660,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "Daily affirmation"
+                "value": "Today's sentence"
               },
               "style": {
                 "font": "body",
@@ -695,13 +699,13 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.3,
+                "y": 0.326,
                 "width": 0.88,
-                "height": 0.3
+                "height": 0.294
               },
               "text": {
                 "kind": "template",
-                "value": "Reveal your daily affirmation"
+                "value": "{sentence}"
               },
               "style": {
                 "font": "body",
@@ -714,23 +718,46 @@
               }
             },
             {
+              "id": "check-image",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.4295,
+                "y": 0.68,
+                "width": 0.141,
+                "height": 0.256
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/daily-sentence-check-9cc85344c086539133cac6215dbe38c496a544a1b73ff6d892642730d0793525.png",
+                "sha256": "9cc85344c086539133cac6215dbe38c496a544a1b73ff6d892642730d0793525",
+                "byte_length": 62783,
+                "pixel_width": 512,
+                "pixel_height": 501,
+                "media_type": "image/png"
+              },
+              "fit": "contain",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.03,
-                "y": 0.03,
-                "width": 0.94,
-                "height": 0.94
+                "x": 0.4295,
+                "y": 0.68,
+                "width": 0.141,
+                "height": 0.256
               },
               "content_ids": [
-                "heading",
-                "heading-divider",
-                "message"
+                "check-image"
               ],
-              "accessibility_label": "Reveal today's affirmation",
+              "accessibility_label": "Mark today's sentence as read",
               "semantics_order": 2,
               "action": {
-                "type": "open_affirmation"
+                "type": "acknowledge_affirmation_v1"
               }
             }
           ]
@@ -772,7 +799,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "오늘의 글귀"
+                "value": "오늘의 문장"
               },
               "style": {
                 "font": "body",
@@ -811,13 +838,13 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.3,
+                "y": 0.326,
                 "width": 0.88,
-                "height": 0.17
+                "height": 0.294
               },
               "text": {
                 "kind": "template",
-                "value": "오늘의 글귀를 확인해 보세요"
+                "value": "{sentence}"
               },
               "style": {
                 "font": "body",
@@ -830,23 +857,46 @@
               }
             },
             {
+              "id": "check-image",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.4295,
+                "y": 0.68,
+                "width": 0.141,
+                "height": 0.256
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/daily-sentence-check-9cc85344c086539133cac6215dbe38c496a544a1b73ff6d892642730d0793525.png",
+                "sha256": "9cc85344c086539133cac6215dbe38c496a544a1b73ff6d892642730d0793525",
+                "byte_length": 62783,
+                "pixel_width": 512,
+                "pixel_height": 501,
+                "media_type": "image/png"
+              },
+              "fit": "contain",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.03,
-                "y": 0.03,
-                "width": 0.94,
-                "height": 0.94
+                "x": 0.4295,
+                "y": 0.68,
+                "width": 0.141,
+                "height": 0.256
               },
               "content_ids": [
-                "heading",
-                "heading-divider",
-                "message"
+                "check-image"
               ],
-              "accessibility_label": "오늘의 글귀 보기",
+              "accessibility_label": "오늘의 문장 확인",
               "semantics_order": 2,
               "action": {
-                "type": "open_affirmation"
+                "type": "acknowledge_affirmation_v1"
               }
             }
           ]
@@ -888,7 +938,7 @@
               },
               "text": {
                 "kind": "template",
-                "value": "今日のことば"
+                "value": "今日のひとこと"
               },
               "style": {
                 "font": "body",
@@ -927,13 +977,13 @@
               "vertical_align": "center",
               "frame": {
                 "x": 0.06,
-                "y": 0.3,
+                "y": 0.326,
                 "width": 0.88,
-                "height": 0.17
+                "height": 0.294
               },
               "text": {
                 "kind": "template",
-                "value": "今日のことばを見てみよう"
+                "value": "{sentence}"
               },
               "style": {
                 "font": "body",
@@ -946,23 +996,46 @@
               }
             },
             {
+              "id": "check-image",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.4295,
+                "y": 0.68,
+                "width": 0.141,
+                "height": 0.256
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/daily-sentence-check-9cc85344c086539133cac6215dbe38c496a544a1b73ff6d892642730d0793525.png",
+                "sha256": "9cc85344c086539133cac6215dbe38c496a544a1b73ff6d892642730d0793525",
+                "byte_length": 62783,
+                "pixel_width": 512,
+                "pixel_height": 501,
+                "media_type": "image/png"
+              },
+              "fit": "contain",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.03,
-                "y": 0.03,
-                "width": 0.94,
-                "height": 0.94
+                "x": 0.4295,
+                "y": 0.68,
+                "width": 0.141,
+                "height": 0.256
               },
               "content_ids": [
-                "heading",
-                "heading-divider",
-                "message"
+                "check-image"
               ],
-              "accessibility_label": "今日のことばを見る",
+              "accessibility_label": "今日のひとことを確認",
               "semantics_order": 2,
               "action": {
-                "type": "open_affirmation"
+                "type": "acknowledge_affirmation_v1"
               }
             }
           ]

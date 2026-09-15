@@ -34,7 +34,7 @@
 | 배치 규칙 | `home_blind_v1`: 고정 카드 크기·폰트 매핑·배율·터치 제약 |
 | 요소 | `text_v1`, `button_v1`, `image_v1`, `shape_v1`, `action_region_v1` |
 | 배경 | `solid_v1`, `linear_gradient_v1`, `image_background_v1` |
-| action | `open_fortune`, `open_shop`, `open_conversation`, `open_routines`, `open_affirmation`, `open_topic_conversation_v1` |
+| action | `open_fortune`, `open_shop`, `open_conversation`, `open_routines`, `acknowledge_affirmation_v1`, `open_topic_conversation_v1` |
 
 - 내부 `frame={x,y,width,height}`는 **카드 전체 기준** 0..1 좌표다. x/y≥0, width/height>0, x+width/y+height≤1, 모두 유한수다.
   이 frame은 내부 요소에만 존재한다. canvas 최상위에는 크기/위치 필드를 두지 않는다.
@@ -127,7 +127,7 @@ prod 배포 검증기는 개발 origin 참조를 거부한다. 기존 운영 `sh
 
 필수 필드와 타입은 서버 `app/schemas/banners.py`, HTTP 입력/응답은 `openapi/paths/banners.yaml` 및 `openapi/components/banners.yaml`을 따른다. 완성 응답 예시는 양 레포의 `tests/fixtures/banners/composed_feed.json`(클라: `test/fixtures/banners/composed_feed.json`)을 참조한다. 서버 파일의 template 선언과 API 응답의 완성 문자열을 혼동하지 않는다.
 
-data_dependencies는 카드의 런타임 의존성 중복 없는 목록(user.local_date / routines.remaining_today / topic.question / affirmation.acknowledged_today, 정적 카드는 빈 배열)이다.
+data_dependencies는 카드의 런타임 의존성 중복 없는 목록(user.local_date / routines.remaining_today / topic.question / affirmation.acknowledged_today / affirmation.text, 정적 카드는 빈 배열)이다.
 앱은 이 값으로 저장 중 루틴 의존 카드를 무효화한다. 서버가 binding에서 자동 도출하며 카드 ID나 문구로 추측하지 않는다.
 응답의 valid_until은 nullable이며 필수 필드 여부는 스키마를 따른다. 필수 필드 누락을 Flutter 기본값으로 채우지 않는다.
 카드/요소 id는 `[a-z0-9][a-z0-9_-]{0,63}`, 각각 목록/카드 안에서 고유하다.
@@ -142,7 +142,8 @@ revision은 **배포된 정의 파일의 원본 UTF-8 bytes SHA256**이며 `[a-f
 | user.local_date | 검증한 X-App-Timezone(생략만 profiles.timezone) + 요청의 단일 서버 UTC clock. 현지 달력일, 다음 현지 자정까지 |
 | routines.remaining_today | 본인·삭제되지 않음·오늘 ISO 요일 예정·현지 오늘 미완료. **0개면 의존 루틴 배너 숨김**. 다음 현지 자정까지 |
 | music.daily_title (서버 작성 전용) | 앱 내장 6곡의 제목 중 현지 날짜 기준으로 고른 곡. 같은 날짜·언어 변경·서버 재시작에 유지. 응답은 완성 문자열이며 의존성은 기존 `user.local_date`, 유효 기한은 다음 현지 자정. `open_music`은 음악 선택 화면만 열며 곡을 자동 선택·재생하지 않음 |
-| affirmation.acknowledged_today | 요청 사용자가 현지 오늘 오늘의 글귀를 확인했으면 1, 아니면 0. `when`은 `eq 0` 필수라 **확인한 날에는 의존 카드 제외**. 확인은 `POST /daily-affirmation/acknowledge`, 문장은 `GET /daily-affirmation`이며 문장 자체는 배너에 넣지 않음. 다음 현지 자정까지 |
+| affirmation.acknowledged_today | 요청 사용자가 현지 오늘 문장을 확인했으면 1, 아니면 0. `when`은 `eq 0` 필수. 확인한 날에는 카드 제외. 다음 현지 자정까지 |
+| affirmation.text | 기존 문장 catalog에서 현지 날짜로 선택한 문장. ko/en/ja 완성 문자열로 배너에 직접 표시. 다음 현지 자정까지 |
 | topic.question | 사용자별 현재 offer의 고정된 locale 질문. 다음 현지 자정까지; 첫 답변 성공 시에도 해당 offer 카드 무효화 |
 
 서버가 binding/조건을 실행하고 완성 문자열만 응답한다. 앱은 날짜/count를 다시 계산하지 않는다.
@@ -169,12 +170,12 @@ count는 조회 시점 값이며 타 기기의 즉시 변경을 보장하지 않
 | open_mood | 기존 감정 기록 팝업. 달력·첫 진입 안내·작성/수정/삭제 흐름 유지. 자동 기록 없음 |
 | open_timer | 기존 타이머 설정. 자동 시작 없음 |
 | open_music | 기존 음악 선택. 자동 재생 없음 |
-| open_affirmation | 오늘의 글귀 팝업. 확인 후 당일 카드 제외 |
+| acknowledge_affirmation_v1 | 체크한 문장의 `local_date`로 `POST /daily-affirmation/acknowledge` 호출. 캐피 탭과 동일한 진동, 성공 시 당일 카드 제외. 팝업 없음 |
 | open_conversation | 기존 대화 진입, chatEnabled 등 접근 제한 유지 |
 | open_fortune | 기존 운세 화면으로 이동/복귀. 운세 실제 API 연동 완료를 뜻하지 않음 |
 | open_topic_conversation_v1 | `topic_ref`로 클릭한 질문을 준비한 뒤 기존 대화에 연결 |
 
-주제 이외의 아홉 action은 매개변수 없음. 각 action 이름의 capability가 있어야 해당 카드를 제공한다. 신규 주제 action만 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
+`acknowledge_affirmation_v1`은 서버가 응답에 `local_date`(YYYY-MM-DD)를 채운다. 작성 파일에는 type만 쓴다. 클라이언트는 표시 날짜를 그대로 저장 요청에 보내며 날짜 만료(409)는 새 카드 재조회로 처리한다. 기존 `open_affirmation`은 구형 schema 호환만 남으며 새 클라이언트는 지원하지 않는다. 체크·주제 이외의 action은 매개변수 없음. 각 action 이름의 capability가 있어야 해당 카드를 제공한다. 주제 action은 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
 새 의미/매개변수는 별도 action 계약이 필요하다. 버튼 없는 안내형 카드도 허용한다.
 
 ## 5. 갱신·실패·호환성

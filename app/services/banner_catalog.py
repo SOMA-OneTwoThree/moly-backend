@@ -24,6 +24,7 @@ from app.schemas.banners import (
 )
 from app.schemas.topics import TopicReference
 from app.services.banner_music import daily_music_title
+from app.services.affirmation import daily_affirmation
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "resources/banners/home_blind.json"
 MAX_MANIFEST_BYTES = 256 * 1024
@@ -75,7 +76,7 @@ class BannerCatalog:
                 for count in (0, 1, 999999999):
                     values = binding_values(banner, locale, date(2026, 12, 31), count,
                                             topic_question="Question?", acknowledged=0)
-                    compile_canvas(canvas, values, topic_ref=TopicReference(
+                    compile_canvas(canvas, values, local_date=date(2026, 12, 31), topic_ref=TopicReference(
                         offer_id=UUID(int=1), offer_sequence=1, topic_id="validation",
                         topic_revision="0" * 64, locale=locale,
                     ))
@@ -146,6 +147,10 @@ def binding_values(
             if acknowledged is None:
                 raise ValueError("affirmation binding unavailable")
             values[alias] = acknowledged
+        elif binding.source == "affirmation.text":
+            if local_date is None:
+                raise ValueError("affirmation date unavailable")
+            values[alias] = daily_affirmation(local_date).text.for_locale(locale)
         elif binding.source == "music.daily_title":
             if local_date is None:
                 raise ValueError("music date unavailable")
@@ -184,10 +189,14 @@ def binding_values(
 
 def compile_canvas(
     canvas: BannerAuthoredCanvas, values: Mapping[str, str | int],
-    *, topic_ref: TopicReference | None = None,
+    *, topic_ref: TopicReference | None = None, local_date: date | None = None,
 ) -> BannerCanvas:
     raw = canvas.model_dump(mode="json")
     for element in raw["elements"]:
+        if element.get("action", {}).get("type") == "acknowledge_affirmation_v1":
+            if local_date is None:
+                raise ValueError("affirmation action date unavailable")
+            element["action"]["local_date"] = local_date.isoformat()
         if element.get("action", {}).get("type") == "open_topic_conversation_v1":
             if topic_ref is None:
                 raise ValueError("topic reference unavailable")
@@ -246,7 +255,7 @@ def render_feed(
                 layout_profile=banner.layout_profile,
                 locale=locale,
                 valid_until=deadline,
-                canvas=compile_canvas(canvas, values, topic_ref=topic_ref),
+                canvas=compile_canvas(canvas, values, topic_ref=topic_ref, local_date=local_date),
             )
             cards.append(card)
         except (ValueError, KeyError, ValidationError):

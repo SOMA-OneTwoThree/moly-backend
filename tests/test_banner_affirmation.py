@@ -101,14 +101,14 @@ def test_published_card_keeps_its_authored_shape():
     assert banner.when.operator == "eq" and banner.when.value == 0
     for locale, canvas in banner.canvases_by_locale.items():
         assert {e.id for e in canvas.elements} == {
-            "heading", "heading-divider", "message", "primary-action"
+            "heading", "heading-divider", "message", "check-image", "primary-action"
         }
         region = next(e for e in canvas.elements if e.id == "primary-action")
-        assert region.action.type == "open_affirmation"
-        # 별도 버튼 없이 카드 내용을 누르되, 둥근 모서리·블라인드 줄 영역을 피한다.
-        assert region.frame.model_dump() == {"x": 0.03, "y": 0.03, "width": 0.94, "height": 0.94}
-        assert region.content_ids == ("heading", "heading-divider", "message")
-        assert "open_affirmation" in capabilities(canvas)
+        assert region.action.type == "acknowledge_affirmation_v1"
+        # 체크 이미지만 버튼이다. 카드 본문은 액션 영역에 포함하지 않는다.
+        assert region.frame.model_dump() == {"x": 0.4295, "y": 0.68, "width": 0.141, "height": 0.256}
+        assert region.content_ids == ("check-image",)
+        assert "acknowledge_affirmation_v1" in capabilities(canvas)
         assert locale in {"en", "ko", "ja"}
 
 
@@ -133,4 +133,27 @@ async def test_list_banners_reads_the_daily_marker(acknowledged_at, present):
     if present:
         card = next(card for card in feed.items if card.id == "affirmation-daily")
         assert card.valid_until == AppDay.at(NOW, "Asia/Seoul").ends_at
-        assert card.data_dependencies == ("affirmation.acknowledged_today",)
+        assert card.data_dependencies == ("affirmation.acknowledged_today", "affirmation.text")
+
+
+def test_inline_sentence_contains_displayed_date_and_requires_new_capability():
+    from app.services.affirmation import daily_affirmation
+
+    raw = affirmation_manifest()
+    banner = raw["banners"][0]
+    banner["bindings"]["sentence"] = {"source": "affirmation.text", "format": None}
+    canvas = banner["canvases_by_locale"]["en"]
+    canvas["elements"][1]["text"] = {"kind": "template", "value": "{sentence}"}
+    canvas["elements"][2]["action"] = {"type": "acknowledge_affirmation_v1"}
+    feed = feed_for(0, raw)
+    card = feed.items[0]
+    assert card.canvas.elements[1].text == daily_affirmation(NOW.date()).text.en
+    assert card.canvas.elements[2].action.local_date == NOW.date()
+    assert "affirmation.text" in card.data_dependencies
+    assert not feed_for(1, raw).items
+    catalog = load(raw)
+    supported = capabilities(catalog.manifest.banners[0].canvases_by_locale["en"])
+    assert not select_candidates(
+        catalog, now=NOW, platform="ios", app_version="1.0.0", locale="en",
+        supported=(supported - {"acknowledge_affirmation_v1"}) | {"open_affirmation"},
+    )

@@ -62,7 +62,7 @@ async def put(session, uid, day, kind="tired", note="점심에 배불렀어"):
 
 async def snapshot(session, uid):
     block = await mood_context.today_block(session, uid, TODAY, zone=safe_zone("Asia/Seoul"))
-    return json.loads(block.split("\n", 1)[1])
+    return json.loads(block.splitlines()[1])
 
 
 async def test_today_is_tenant_scoped_fresh_and_never_replaced_by_yesterday(mood_db):

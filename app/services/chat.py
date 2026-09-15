@@ -993,7 +993,9 @@ async def post_message(
     # Phase 1(락+커넥션 보유) 안에서 끝내야 한다 — 커밋 뒤 LLM 구간엔 DB 커넥션 0(SOMA-374 불변식).
     # 실패해도 대화가 죽으면 안 되므로 fail-open(빈 블록)하고 경고만 남긴다.
     resident_block = ""
-    mood_block = await mood_context.today_block(session, uid, local_calendar_date, zone=zone)
+    mood_block = await mood_context.today_block(
+        session, uid, local_calendar_date, zone=zone, language=language,
+    )
     context_ms = 0.0
     if settings.current_turn_context_enabled:
         t_context0 = time.monotonic()

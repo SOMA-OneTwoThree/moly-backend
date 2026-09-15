@@ -77,4 +77,10 @@ async def today_block(
     except Exception:  # noqa: BLE001 — optional context must not prevent a reply
         _log.warning("Today's mood read unavailable user=%s", user_id)
         data = {"date": today.isoformat(), "status": "unavailable"}
-    return "[User mood entry]\n" + json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    label = "[User mood entry]"
+    if data["status"] == "present":
+        label += (
+            " Private background. Do not volunteer journal-only details. "
+            "Use only within what the user explicitly raises or asks to read."
+        )
+    return label + "\n" + json.dumps(data, ensure_ascii=False, separators=(",", ":"))

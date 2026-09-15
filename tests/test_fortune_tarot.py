@@ -266,7 +266,7 @@ def test_new_paragraph_assets_preserve_every_approved_source_paragraph():
     root = Path(__file__).resolve().parents[1]
     catalog = fortune_catalog.load_catalog()
     for locale in ("ko", "en", "ja"):
-        directory = root / "docs/fortune-content" / ("ko-rewrite" if locale == "ko" else f"localization/{locale}")
+        directory = root / "docs/fortune-content" / ("ko-plain-voice" if locale == "ko" else f"localization/{locale}")
         for axis in fortune_tarot.AXES:
             for key, source in json.loads((directory / f"{axis}.json").read_text()).items():
                 field = "flow" if axis == "overall" else "text"

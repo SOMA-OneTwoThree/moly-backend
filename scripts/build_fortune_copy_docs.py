@@ -27,8 +27,8 @@ def _header(title: str, version: str) -> list[str]:
         f"# {title}", "",
         f"> 카탈로그 버전: `{version}` · 서버 자산에서 생성한 전체 전문",
         f"> 한국어: `{COPY_VERSIONS['ko']}` · 영어: `{COPY_VERSIONS['en']}` · 일본어: `{COPY_VERSIONS['ja']}`",
-        "> 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.",
-        "> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 ko-rewrite 및 localization 정본에서 하고 검수 후 자산을 다시 생성한다", "",
+        "> 한국어는 ko-plain-voice의 후속 교정본이다. 영어·일본어는 v8-localized.2의 검수본을 유지하며 새 한국어와의 현지화 등가 검수를 뜻하지 않는다.",
+        "> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 한국어 원고는 ko-plain-voice, 기존 현지화 원고와 근거는 ko-rewrite 및 localization에서 관리한다", "",
         "[운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)", "",
     ]
 

@@ -1,0 +1,790 @@
+{
+  "reviewer": "card_major_writer",
+  "review_kind": "independent",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_read_count": 156,
+  "readings": {
+    "work.major.fool.upright": {
+      "read_bundle_sha256": "1072c9af7f5ba8a1d22a5fb3792ceff3b8eaa0497a1d7c1b9dd2a45f16ad324a",
+      "status": "pass",
+      "judgment": "수정된 전문 재독: 잘 맞는 대상이 새로 배우는 과목으로 분명해짐"
+    },
+    "work.major.fool.reversed": {
+      "read_bundle_sha256": "0c77a23cb45f5e948f2682f588a47b86c0804b0d7cb13249371283248100c3c7",
+      "status": "pass",
+      "judgment": "부주의한 독해와 준비 없는 업무의 두 결과가 직접 읽힘"
+    },
+    "work.major.magician.upright": {
+      "read_bundle_sha256": "0550023ee19a546b4d2369a597ffd7bc001c5d682ba72c1f45dccc47db41a877",
+      "status": "pass",
+      "judgment": "배운 실력을 활용하는 뜻을 실습과 업무 기술로 구분"
+    },
+    "work.major.magician.reversed": {
+      "read_bundle_sha256": "d2f8d0b186a0cf1756b8e06f20391f336a7e9d79abdaa92936d3171848de774b",
+      "status": "pass",
+      "judgment": "겉으로 아는 것과 혼자 실행하는 능력의 차이 명료"
+    },
+    "work.major.high_priestess.upright": {
+      "read_bundle_sha256": "49878fed78a876b7d1aa71749dc123e9453715a9cb469d5cf0d73a34839c9023",
+      "status": "pass",
+      "judgment": "깊게 읽는 공부와 숨은 사정을 확인하는 업무가 침묵 뜻과 맞음"
+    },
+    "work.major.high_priestess.reversed": {
+      "read_bundle_sha256": "e98fbf0b97291fa09f286a03d3741e74ed90a5c66ca9d2946eaed4f3385180cd",
+      "status": "pass",
+      "judgment": "겉핥기 독해와 자료 누락을 쉬운 말로 전달"
+    },
+    "work.major.empress.upright": {
+      "read_bundle_sha256": "7eed6bfc009b481c9ae43fbcbd847ad76cea2c64cef3243e94f16a71e8a79165",
+      "status": "pass",
+      "judgment": "표현 과제의 창조와 준비한 기획의 결실 의미 명료"
+    },
+    "work.major.empress.reversed": {
+      "read_bundle_sha256": "22e9b3aec0638a19d2c0fefd56b34f7d1f9aae4c3fae9047b8ccdc136c5bfb27",
+      "status": "pass",
+      "judgment": "겉꾸밈과 과잉 돌봄을 각각 공부와 업무에 연결"
+    },
+    "work.major.emperor.upright": {
+      "read_bundle_sha256": "890a526837b5cfc245de87087f1924988fcd3f0f2ca69c8355a2cc643a3439c7",
+      "status": "pass",
+      "judgment": "기본 원칙과 책임 있는 일 처리로 안정 의미 보존"
+    },
+    "work.major.emperor.reversed": {
+      "read_bundle_sha256": "7ecb8b9692174cec2dff3d710ccdcded06448a561f787fa59484d2b5b334b41a",
+      "status": "pass",
+      "judgment": "고집한 풀이와 일방 지시의 경직됨을 구분"
+    },
+    "work.major.hierophant.upright": {
+      "read_bundle_sha256": "d0b78305fbc8219307ea64730d8f3c5b9879faa45ece989cd3211a66cd1feb35",
+      "status": "pass",
+      "judgment": "기본 설명과 절차를 따르는 배움의 뜻 유지"
+    },
+    "work.major.hierophant.reversed": {
+      "read_bundle_sha256": "78ed9a462093c3f233be5060d6abd332ebc15f140f19566f3b37d3129ed70bed",
+      "status": "pass",
+      "judgment": "다른 풀이와 방식 변경 제안의 관습 질문 의미 확인"
+    },
+    "work.major.lovers.upright": {
+      "read_bundle_sha256": "9cdbf795e88111be90016176079fd5a4a40c33486e932a980ef5710e4fe18d51",
+      "status": "pass",
+      "judgment": "상호 설명과 역할 협력의 조화를 명확하게 전달"
+    },
+    "work.major.lovers.reversed": {
+      "read_bundle_sha256": "b66fcb52ff13d6d11f43a839659b51dc52eec833eab3e6fb715b4dc11bb9d6bf",
+      "status": "pass",
+      "judgment": "설명과 결과 기대가 어긋나는 불일치 뜻 확인"
+    },
+    "work.major.chariot.upright": {
+      "read_bundle_sha256": "a49e828ec239cfade3a51e6e1748a3b77808927fb22191bf48cd8177eabd6940",
+      "status": "pass",
+      "judgment": "문제 극복과 지연된 일 마무리가 추진 의미에 맞음"
+    },
+    "work.major.chariot.reversed": {
+      "read_bundle_sha256": "4ca5f714ae5202447993eafaece82d53b9a321b96336dc8a7d60b2d88cf3fa31",
+      "status": "pass",
+      "judgment": "서두른 시험과 밀어붙인 업무의 실수 경고 연결"
+    },
+    "work.major.strength.upright": {
+      "read_bundle_sha256": "14dbff6268a887efd790a5d9de2f327d8c710657b68a2b32f533ebe1b67b846f",
+      "status": "pass",
+      "judgment": "인내로 어려운 문제를 풀고 차분히 설명하는 뜻 유지"
+    },
+    "work.major.strength.reversed": {
+      "read_bundle_sha256": "af62291d4faf33a92b51e5190cd8f327667f583d462c1a2fcf9e2306d2aedc2f",
+      "status": "pass",
+      "judgment": "긴장 때문에 회상이 어렵고 예민하게 맞서는 자제 주의"
+    },
+    "work.major.hermit.upright": {
+      "read_bundle_sha256": "3f10d51b23f56681e89ed19f37f03687165f35343823ade5dee18d7a96c83db4",
+      "status": "pass",
+      "judgment": "혼자 깊게 공부하고 조사하는 탐구 뜻 유지"
+    },
+    "work.major.hermit.reversed": {
+      "read_bundle_sha256": "d9b22780865e8582ce0015ef937fd40e94e8a24e6d299e18862c4b851a460569",
+      "status": "pass",
+      "judgment": "혼자 오해하거나 진행을 숨기는 고립 주의 명료"
+    },
+    "work.major.wheel_of_fortune.upright": {
+      "read_bundle_sha256": "8d528355c6b6596946dd35c229692ff1e61a2e5c43193847c705b7a11fea4744",
+      "status": "pass",
+      "judgment": "뜻밖에 도움되는 내용과 업무 계기를 행운으로 적용"
+    },
+    "work.major.wheel_of_fortune.reversed": {
+      "read_bundle_sha256": "f0035930bce1c3511b6b7c986de62a00f8171dd946da671209b2320cc0eddcb9",
+      "status": "pass",
+      "judgment": "예상 밖 문제와 외부 지연을 통제 밖 변화로 유지"
+    },
+    "work.major.justice.upright": {
+      "read_bundle_sha256": "7a816a49e81f68c124a08c9d9d1892198dd19f90afef909f49712519c4a73d9c",
+      "status": "pass",
+      "judgment": "실제 실력과 일의 평가를 공정함으로 해석"
+    },
+    "work.major.justice.reversed": {
+      "read_bundle_sha256": "a762258bbefee125e853f622325a172ddb1fb9958f747ceceb8a1141e38139af",
+      "status": "pass",
+      "judgment": "채점 조건과 불공평한 평가의 차이 명료"
+    },
+    "work.major.hanged_man.upright": {
+      "read_bundle_sha256": "f162c8eff5d4f743734fb6ee1b651b1ca1435509a91a7e982b923d6b53a115c3",
+      "status": "pass",
+      "judgment": "성적 지연과 상대 사정 이해의 보류 뜻 확인"
+    },
+    "work.major.hanged_man.reversed": {
+      "read_bundle_sha256": "26379f3617c29d973cf48665be8a67e8c13d77fd3b9997ed3db5654ec3753306",
+      "status": "pass",
+      "judgment": "오래 기다려도 나아지지 않는 공부와 업무 정체 뜻 유지"
+    },
+    "work.major.death.upright": {
+      "read_bundle_sha256": "a91436c909eda261998d1d61448f4057d70777d5cf94ddfcd12883fa28e2f9eb",
+      "status": "pass",
+      "judgment": "공부 방법 종료와 업무 변경이 마무리 뜻에 맞고 쉬움"
+    },
+    "work.major.death.reversed": {
+      "read_bundle_sha256": "84b56fc3ebddb930054616b44b7371281db203f353b42a5ca41ef92e99367f50",
+      "status": "pass",
+      "judgment": "익숙한 방법을 못 놓는 공부와 반복 수정 정체가 연결"
+    },
+    "work.major.temperance.upright": {
+      "read_bundle_sha256": "f7571227df401c5084e2189aa980276ededeefcfa3468052479954fcd1110914",
+      "status": "pass",
+      "judgment": "따로 배운 내용의 연결과 협의의 조화를 명료하게 전달"
+    },
+    "work.major.temperance.reversed": {
+      "read_bundle_sha256": "08763197131bcd9dd3777500741039182fa681edb7666d65d8d27a3b96bd5661",
+      "status": "pass",
+      "judgment": "공부 편중과 일 속도 차이의 불균형이 구분됨"
+    },
+    "work.major.devil.upright": {
+      "read_bundle_sha256": "2d709eae9ecabe00945c9c6acd38947702b028e88e84118ca2197db6218301c1",
+      "status": "pass",
+      "judgment": "성과 집착과 감당 못 할 업무 부담이 과도함 뜻에 맞음"
+    },
+    "work.major.devil.reversed": {
+      "read_bundle_sha256": "47bc9ea79fc02f1b3250fa5db732240547da3044662edc65e24cd08dc43bcfea",
+      "status": "pass",
+      "judgment": "방해와 과한 부담에서 벗어나는 방향이 정방향과 구별됨"
+    },
+    "work.major.tower.upright": {
+      "read_bundle_sha256": "77a04d33a97cfbdbe6ef954da67a25d0d7d033a57a6054c99ec00b66e6d0becb",
+      "status": "pass",
+      "judgment": "잘못 알던 내용과 업무의 갑작스러운 중단 주의 명료"
+    },
+    "work.major.tower.reversed": {
+      "read_bundle_sha256": "fa0d1a05833ced62f63aeff40aec9baa13d70e346e93d99b028d06984f33b61e",
+      "status": "pass",
+      "judgment": "오류를 일찍 찾아 차질을 줄이는 수습 의미 유지"
+    },
+    "work.major.star.upright": {
+      "read_bundle_sha256": "d23e75d8ca69ffeafe60f5eb22ec4f1072680474daf6ae91dcfc30b118a6bb57",
+      "status": "pass",
+      "judgment": "이해가 돌아오는 공부와 다시 제안하는 희망 연결"
+    },
+    "work.major.star.reversed": {
+      "read_bundle_sha256": "a1a3e8fa2734a506871bd788a5fd0ce564adbaf9d8bc7198149b69d3d2d55e3e",
+      "status": "pass",
+      "judgment": "자기불신으로 답을 바꾸거나 일을 낮게 보는 뜻 유지"
+    },
+    "work.major.moon.upright": {
+      "read_bundle_sha256": "3f51baea95cf55cbe8003aa1173ec1b0f23eac746db04de46058a46b616979dd",
+      "status": "pass",
+      "judgment": "헷갈린 조건과 애매한 업무 지시가 모호함에 맞음"
+    },
+    "work.major.moon.reversed": {
+      "read_bundle_sha256": "a605b2a21ffdb96568d0fa6dee26031ac4c965600ca4b9e3365482dc04568e9f",
+      "status": "pass",
+      "judgment": "개념과 전달 오해가 풀리되 추가 추측은 주의"
+    },
+    "work.major.sun.upright": {
+      "read_bundle_sha256": "85c370b79f596eee8fef0315b25680b1766a595022b9e8075b8b8ccb2dcdc7bb",
+      "status": "pass",
+      "judgment": "공부 이해와 성과 인정을 모두 밝게 직접 서술"
+    },
+    "work.major.sun.reversed": {
+      "read_bundle_sha256": "3c42388ced3b6ecb18ee6baf798af8d51a35c33262b2cb20d4c2fa10772e1ed4",
+      "status": "pass",
+      "judgment": "긍정 결과와 기대보다 작은 만족이 혼동 없이 전달"
+    },
+    "work.major.judgement.upright": {
+      "read_bundle_sha256": "3f2295e8c86c759ad1093f68b372a6452922c1de74aa4fd102537474fcab07c7",
+      "status": "pass",
+      "judgment": "실수를 고친 재도전과 제안의 재평가 뜻 유지"
+    },
+    "work.major.judgement.reversed": {
+      "read_bundle_sha256": "7c3ccd04823e923167d686a2296ddccc168d871e4eaffb0235c16106bc1052a2",
+      "status": "pass",
+      "judgment": "성찰하지 않아 같은 실수가 남는 뜻을 쉬운 말로 표현"
+    },
+    "work.major.world.upright": {
+      "read_bundle_sha256": "deb0cf1b6111a5653d6ff2307f8b6213e65ec19f45356fc0a007708a768acdb3",
+      "status": "pass",
+      "judgment": "오래 준비한 공부와 업무 완수의 만족 유지"
+    },
+    "work.major.world.reversed": {
+      "read_bundle_sha256": "4786d559d01dda9b75a6cc7734e18a4b0cd39a2c03477e3274a87a4bb2f9165a",
+      "status": "pass",
+      "judgment": "마지막 풀이와 요청이 남아 늦어지는 미완성 뜻 유지"
+    },
+    "work.cups.01.upright": {
+      "read_bundle_sha256": "dd2a918202c9d6c315ee3437d95b53f9b978373a3273cc2eb15174656f9f25d9",
+      "status": "pass",
+      "judgment": "창의적 과제와 새로운 제안의 호응 구분"
+    },
+    "work.cups.01.reversed": {
+      "read_bundle_sha256": "c29d27920a76168f78c980fd6cbf83e8b463ee85260245aeb7c767683d138a0b",
+      "status": "pass",
+      "judgment": "아이디어가 막힌 공부와 기획에 필요한 내용부터 채움"
+    },
+    "work.cups.02.upright": {
+      "read_bundle_sha256": "924c35c702995b26210884b6bb7d441756f2c5c0b8c6ba63697fab8cf3ead080",
+      "status": "pass",
+      "judgment": "서로 설명하는 공부와 뜻 맞는 협업의 친화 유지"
+    },
+    "work.cups.02.reversed": {
+      "read_bundle_sha256": "ed316008a0c6e3a1bf78caa9924328650c0870410d287fa3aa6e0c82518b12d6",
+      "status": "pass",
+      "judgment": "의견과 목표 불일치가 공동 과제와 일 반복으로 연결"
+    },
+    "work.cups.03.upright": {
+      "read_bundle_sha256": "17b04d9f20ce6d065b758d77dc8ad0ec668026555fea41a1ce7199f54ca8d6ba",
+      "status": "pass",
+      "judgment": "함께 준비한 성과를 축하하는 뜻이 두 단락에 명확"
+    },
+    "work.cups.03.reversed": {
+      "read_bundle_sha256": "b0941a0fd896c5ba36384efc012d8fc0aed04958bf8cf199f2773bb031d9d5f0",
+      "status": "pass",
+      "judgment": "과한 잡담과 편 가르기가 공동 활동을 방해하는 뜻 유지"
+    },
+    "work.cups.04.upright": {
+      "read_bundle_sha256": "b51226e088b419cfa34bface7dffd3da01d072b965300c4b1ed64d3fea11586e",
+      "status": "pass",
+      "judgment": "권태와 제안 외면이 이해 저하와 기회 상실로 연결"
+    },
+    "work.cups.04.reversed": {
+      "read_bundle_sha256": "05a47b1a9cc6559a00e0f7a31db3638693e4f6fce822da26747222e574c934c8",
+      "status": "pass",
+      "judgment": "새 가르침과 관심 재개가 다시 시작하는 결과로 전달"
+    },
+    "work.cups.05.upright": {
+      "read_bundle_sha256": "6f01e71e72919db0391da1808f4289d2fd939610375bd7d2477e1e09f347562d",
+      "status": "pass",
+      "judgment": "기대 이하 결과와 남은 일이 모두 실패한 것은 아닌 뜻 구분"
+    },
+    "work.cups.05.reversed": {
+      "read_bundle_sha256": "6264d85d9d765d65a949270ecd9f5d255cf10889c4e0a477a6fda6bcc0fc28aa",
+      "status": "pass",
+      "judgment": "다시 설명을 듣거나 도움받아 회복하는 뜻 유지"
+    },
+    "work.cups.06.upright": {
+      "read_bundle_sha256": "42d8a118775cb75779d7a5f9c50216a61a51aa09ff1f4eea21d13c708a063c34",
+      "status": "pass",
+      "judgment": "지난 학습 기억과 옛 경험이 도움이 되는 방향 명료"
+    },
+    "work.cups.06.reversed": {
+      "read_bundle_sha256": "1194043b626128babca0f110c0ead5a73b72e93c1b6162addcba0c08845e3eff",
+      "status": "pass",
+      "judgment": "이전 방식이 현재 조건과 다른 점을 구체적으로 전달"
+    },
+    "work.cups.07.upright": {
+      "read_bundle_sha256": "0a110ae9c805954f24180f3e918b8d75b32929f135b86bea08d90217642d735f",
+      "status": "pass",
+      "judgment": "상상과 실제 이해·실행의 차이를 공부와 제안에 적용"
+    },
+    "work.cups.07.reversed": {
+      "read_bundle_sha256": "33c73ac86ac2b3a95fe97a0c028daaa1895f8120a5a690ae7895e8ddaac4dad4",
+      "status": "pass",
+      "judgment": "목표를 선택한 뒤 문제 풀이와 일이 진전되는 뜻 유지"
+    },
+    "work.cups.08.upright": {
+      "read_bundle_sha256": "0c5f26049ba2dd3025d82d8d5c2821a4e3d9e4497d254ed0473158113e9fbce0",
+      "status": "pass",
+      "judgment": "도움 안 되는 공부나 업무를 떠나는 선택 명료"
+    },
+    "work.cups.08.reversed": {
+      "read_bundle_sha256": "87343ac3c175182897e1a1fc735398ff9bd82f59401c30896ef33d780d2b6bbc",
+      "status": "pass",
+      "judgment": "익숙한 방법과 돌아오는 일에서 변화 망설임 드러남"
+    },
+    "work.cups.09.upright": {
+      "read_bundle_sha256": "6952137f2b584773d14749e36b4bf46047748ba4e292c893ced7e924e5022b90",
+      "status": "pass",
+      "judgment": "준비한 결과와 성과 만족을 직접 쉽게 전달"
+    },
+    "work.cups.09.reversed": {
+      "read_bundle_sha256": "5e3d9994df2e5a56993c185a1a5616ff23c0e62049eec063ff20d83347c03543",
+      "status": "pass",
+      "judgment": "결과는 나쁘지 않지만 기대가 높아 서운한 뜻 유지"
+    },
+    "work.cups.10.upright": {
+      "read_bundle_sha256": "55b4977cd58b03eee0f26305cbac1a4e1c6011e599f9d872507717fd31b96480",
+      "status": "pass",
+      "judgment": "도움과 협력으로 안정적인 결과를 내는 뜻 명료"
+    },
+    "work.cups.10.reversed": {
+      "read_bundle_sha256": "27bea6245679931aa37ee872e632782c479ee8539f49dbb7ec70972467d2fa2c",
+      "status": "pass",
+      "judgment": "가까운 사람과의 과제도 기대가 달라 불편한 뜻 유지"
+    },
+    "work.cups.11.upright": {
+      "read_bundle_sha256": "821bf6c9dddd88ba45a66c137930fbf3fc77ccd74c29606abb83bf1fa54fe907",
+      "status": "pass",
+      "judgment": "호기심과 작은 아이디어의 창의적 출발이 분명"
+    },
+    "work.cups.11.reversed": {
+      "read_bundle_sha256": "5e590c13b81dc5b1cbfa37ba21a7e74731168b113e9046042406c4e4de12af9e",
+      "status": "pass",
+      "judgment": "생각을 답안과 제안으로 다듬지 못하는 서툰 표현 유지"
+    },
+    "work.cups.12.upright": {
+      "read_bundle_sha256": "61138cb3c92e0d9e8885c26e4107b8cd88635ea1be7e98d1a6922ec803b271b7",
+      "status": "pass",
+      "judgment": "진심 있는 표현과 함께 일하자는 제안의 뜻 유지"
+    },
+    "work.cups.12.reversed": {
+      "read_bundle_sha256": "fd5a1b4d1cc6f5db1165e4c3f314ed726000a197f4e57e47775530e53c745080",
+      "status": "pass",
+      "judgment": "그럴듯한 답과 실제 근거, 제안과 실행의 차이 명료"
+    },
+    "work.cups.13.upright": {
+      "read_bundle_sha256": "f5b65ae239ee09f31852f506a9930e8ddfcc4a52013b2b6a30f74ec6aa01d9a4",
+      "status": "pass",
+      "judgment": "공감이 맞춤 설명과 사람 상대 업무에 도움되는 뜻 유지"
+    },
+    "work.cups.13.reversed": {
+      "read_bundle_sha256": "55bcb59f294f3ae2d053ca08a8eead43fa7a581140561028f1597082ba59b238",
+      "status": "pass",
+      "judgment": "남을 지나치게 챙겨 자기 준비가 밀리는 뜻 연결"
+    },
+    "work.cups.14.upright": {
+      "read_bundle_sha256": "e23e109143850538563a1294dd2a8d1abf5e7620fc8fd964adaa8301688650f3",
+      "status": "pass",
+      "judgment": "감정 조절로 발표와 갈등 대응을 잘하는 뜻 유지"
+    },
+    "work.cups.14.reversed": {
+      "read_bundle_sha256": "23f91c3aa62a3a80f728da5404f2223c1a6352ba2d15c932e0a114a0dd869331",
+      "status": "pass",
+      "judgment": "불편한 평가를 피하고 책임을 미루는 감정 조절 주의"
+    },
+    "work.wands.01.upright": {
+      "read_bundle_sha256": "ef2f2b8b3441655b79624222c032cbc553f6d0d524836a4e39624299745f2760",
+      "status": "pass",
+      "judgment": "교정된 두 단락 재독: 생각을 실제로 해보는 행동으로 목적어가 자연스러워짐"
+    },
+    "work.wands.01.reversed": {
+      "read_bundle_sha256": "ccda3e6137c7e1333e83b852a07b93f1ab1ac91160b4e0333acd5af71bae0b11",
+      "status": "pass",
+      "judgment": "새 과제와 업무 시작의 지체를 쉬운 말로 표현"
+    },
+    "work.wands.02.upright": {
+      "read_bundle_sha256": "dec966e2660fde8a02992cf1714e6e9c136c13f35cd8e0cb66d8d6e76ea3d95d",
+      "status": "pass",
+      "judgment": "현재 능력에 맞춘 배움과 앞으로 맡을 일의 선택 명료"
+    },
+    "work.wands.02.reversed": {
+      "read_bundle_sha256": "5926e0f76913975413886cf299e2466826611e8f1b8a7fd7085bd9f1a706097e",
+      "status": "pass",
+      "judgment": "변화 망설임이 문제 풀이와 새 업무를 늦추는 뜻 유지"
+    },
+    "work.wands.03.upright": {
+      "read_bundle_sha256": "e1559483067598a971c3987366f16508f460bb777bc6ae7b1af353b408523263",
+      "status": "pass",
+      "judgment": "배운 내용 응용과 외부 협력의 기회를 함께 전달"
+    },
+    "work.wands.03.reversed": {
+      "read_bundle_sha256": "3f87be212c45bc5922604bd1639dc197cbe1b4fd2069129a075d4348ad8d29e6",
+      "status": "pass",
+      "judgment": "기본 이후 응용과 외부 도움의 지연이 구별됨"
+    },
+    "work.wands.04.upright": {
+      "read_bundle_sha256": "53f1619aaa95d8e0fad91c5e188cbd093f8329555357b7d49e269b55dfcbd892",
+      "status": "pass",
+      "judgment": "완성된 과제와 공동 업무의 기쁨을 직접 말함"
+    },
+    "work.wands.04.reversed": {
+      "read_bundle_sha256": "d904ad3b921131ff300b55f990aa9f64186c04c7e4384eacb1fbdc499ed0c950",
+      "status": "pass",
+      "judgment": "역방향도 행복을 유지하되 작은 마무리로 구별"
+    },
+    "work.wands.05.upright": {
+      "read_bundle_sha256": "48d716e55b188e5ac13cd84f25d7be59ca4bb4e854b0a5a0e6ed0716f12f8ecd",
+      "status": "pass",
+      "judgment": "서로 맞서는 주장과 제안 경쟁이 모의 대결 의미에 맞음"
+    },
+    "work.wands.05.reversed": {
+      "read_bundle_sha256": "9f83ea64e0b6f82d5b03b8cfb91a6148c6b641b026a5f9ed38507dc303afb75f",
+      "status": "pass",
+      "judgment": "서로 다르게 이해한 약속과 끝나지 않은 논쟁 구분"
+    },
+    "work.wands.06.upright": {
+      "read_bundle_sha256": "0a690a7b9aaea617b5b29de48ba396738002194bb32524207b89a595a0b0c366",
+      "status": "pass",
+      "judgment": "준비된 실력이 인정받고 역할 기회가 생기는 승리 뜻 유지"
+    },
+    "work.wands.06.reversed": {
+      "read_bundle_sha256": "f387c2cd19bf99c6b4bb49c0d353e4a9c8080e7bfdfde0c4caef9f9098dc4336",
+      "status": "pass",
+      "judgment": "결과와 인정 지연을 실제 성과 부정 없이 표현"
+    },
+    "work.wands.07.upright": {
+      "read_bundle_sha256": "f6279d7373835e56df646f853ecab7ad34d6532beabf1fad234674ae781f19d7",
+      "status": "pass",
+      "judgment": "근거와 성과를 설명해 입장을 지키는 뜻 명료"
+    },
+    "work.wands.07.reversed": {
+      "read_bundle_sha256": "af601b71b2b828cba392e0d0de7382f652046a9912fa110534fe22d2c4a12890",
+      "status": "pass",
+      "judgment": "질문과 요구에 흔들려 맡은 일을 놓치는 뜻 유지"
+    },
+    "work.wands.08.upright": {
+      "read_bundle_sha256": "d9bceb8b9dabf7171c35a45c98edea20e9da810e43f42530475b1bb1c3ad55e6",
+      "status": "pass",
+      "judgment": "이해 속도와 빠른 답변의 진전이 선명"
+    },
+    "work.wands.08.reversed": {
+      "read_bundle_sha256": "e3e88c8b2feaf14cbd2b6389350354dbd89a0cdc08e727c6ff5d3bb0107a828f",
+      "status": "pass",
+      "judgment": "말을 급히 전달해 오해가 생기는 충돌 뜻 명료"
+    },
+    "work.wands.09.upright": {
+      "read_bundle_sha256": "37b478ee8b49a63980ef842681c3572e47a0681be9f658aa7e8379c667f65b2b",
+      "status": "pass",
+      "judgment": "지난 실수와 경험으로 결과를 지키는 뜻 유지"
+    },
+    "work.wands.09.reversed": {
+      "read_bundle_sha256": "8cfe7f96ef781359e1cb750eb165ee02b03895c59a9e3501f5f4a7d98be8394b",
+      "status": "pass",
+      "judgment": "과한 경계 때문에 확인을 반복하고 도움 못 믿는 뜻 연결"
+    },
+    "work.wands.10.upright": {
+      "read_bundle_sha256": "9e71e03cdaa7fa650dea807ad67efed47baa11bbeee8f4d0587ed1e41e34a8d0",
+      "status": "pass",
+      "judgment": "성과와 함께 책임이 늘어 지치는 정방향 의미 유지"
+    },
+    "work.wands.10.reversed": {
+      "read_bundle_sha256": "3bbe12183c51698d0cd37ec080360eafbc0456e05a06e6474743b76bc0d29a23",
+      "status": "pass",
+      "judgment": "분담 못 해 일이 몰리고 마치지 못하는 역방향 의미 유지"
+    },
+    "work.wands.11.upright": {
+      "read_bundle_sha256": "0f2e53342926a41e32fe85b3b697550b0c155838f05ca081ed0e69afb106cd20",
+      "status": "pass",
+      "judgment": "호기심과 외부 소식이 새로운 배움과 제안으로 적용"
+    },
+    "work.wands.11.reversed": {
+      "read_bundle_sha256": "8b4dd18ea9608e6a0d4b74f14d95d3a6d79fec1b520a2f5935b394213608b29e",
+      "status": "pass",
+      "judgment": "확인 안 된 안내와 달라지는 제안의 불안정 유지"
+    },
+    "work.wands.12.upright": {
+      "read_bundle_sha256": "28bb252a3def7a7b354d7bc60446888869bca4a80854d96fea20311a21d76419",
+      "status": "pass",
+      "judgment": "적극적으로 해보며 성과를 내는 실행 뜻 유지"
+    },
+    "work.wands.12.reversed": {
+      "read_bundle_sha256": "910fd6511708a9f38bcc9f4f9d96302a308148d4ef23d9320db6c58471cf581b",
+      "status": "pass",
+      "judgment": "성급한 시작 뒤 실수와 중단이 발생하는 뜻 유지"
+    },
+    "work.wands.13.upright": {
+      "read_bundle_sha256": "6ac120fbaa69c9b39d243bf7931369d186451d06ed7b30a3bd8dee3d8a64c517",
+      "status": "pass",
+      "judgment": "매력과 자신감이 발표와 대인 업무에 도움되는 뜻"
+    },
+    "work.wands.13.reversed": {
+      "read_bundle_sha256": "fe1507275e47d7034f8d8a4573fff7466e8ddd2187050d6814aa19606dc4a2d2",
+      "status": "pass",
+      "judgment": "비교와 질투로 위축되거나 날카로워지는 방향 명료"
+    },
+    "work.wands.14.upright": {
+      "read_bundle_sha256": "800f7d5e553d1278b37890726e8a683999cf1b15b237844ecacc7cd757ab291c",
+      "status": "pass",
+      "judgment": "책임 있게 이끌고 약속을 지켜 얻는 신뢰 유지"
+    },
+    "work.wands.14.reversed": {
+      "read_bundle_sha256": "174ea28b54f85069e6c19e0206b84bc669a5c17775d832fe743cd8949f3d0fac",
+      "status": "pass",
+      "judgment": "지나친 기준과 일방 요구가 함께하는 일을 늦추는 뜻"
+    },
+    "work.swords.01.upright": {
+      "read_bundle_sha256": "06a5b902655c8259dbc24e76d7a6b36d836390bdaa207e305994dc4364be547e",
+      "status": "pass",
+      "judgment": "개념의 이해와 업무의 핵심 파악이 명료함에 맞음"
+    },
+    "work.swords.01.reversed": {
+      "read_bundle_sha256": "d6c5d20537a821fd35e05055cd67d161374ec18c948fd790eb6e52ff34bcb442",
+      "status": "pass",
+      "judgment": "뜻의 오해와 잘못 전달한 말의 재작업이 분명"
+    },
+    "work.swords.02.upright": {
+      "read_bundle_sha256": "6e9f1c64d676b743053ebb4698ea2869361b0cfa2b894544e9ad3a280f5727b4",
+      "status": "pass",
+      "judgment": "답과 의견 사이 교착이 시간을 늘리는 뜻 유지"
+    },
+    "work.swords.02.reversed": {
+      "read_bundle_sha256": "232a6785f18af166f185ce68807c069b97b595aa82832c3d09cb4ca8e09e8a54",
+      "status": "pass",
+      "judgment": "정보 과부하와 미룬 판단으로 급해지는 뜻 구분"
+    },
+    "work.swords.03.upright": {
+      "read_bundle_sha256": "d0deffb504e5b1ac17d269313b24c634e2d6085f04b6ac5fcbfea9fa534fefa9",
+      "status": "pass",
+      "judgment": "아픈 평가와 불편한 대화의 실망을 원뜻에 맞게 전달"
+    },
+    "work.swords.03.reversed": {
+      "read_bundle_sha256": "9017606d0b760bc65f74712b6c4a28d5d14977d46f19d9365664a940475587dd",
+      "status": "pass",
+      "judgment": "서운한 평가 수용과 관계 회복이 정방향과 구별됨"
+    },
+    "work.swords.04.upright": {
+      "read_bundle_sha256": "722f0d79a00d9b608a74784cc576327a48f799297683d579e5aaac811c852228",
+      "status": "pass",
+      "judgment": "지친 공부의 휴식과 업무 결정 보류가 중단 뜻에 맞음"
+    },
+    "work.swords.04.reversed": {
+      "read_bundle_sha256": "f3727bc7100cc372d986c117b22cbc801b2367f88749f7b01075c499f5937ba3",
+      "status": "pass",
+      "judgment": "무리 없는 재개와 남은 피로 조건이 직접 읽힘"
+    },
+    "work.swords.05.upright": {
+      "read_bundle_sha256": "991f253854706f9449c2f35b4b1615770613d5d725f2a4a4158f60db1ca4e6d9",
+      "status": "pass",
+      "judgment": "이기더라도 관계 상처가 남는 경쟁을 명확히 표현"
+    },
+    "work.swords.05.reversed": {
+      "read_bundle_sha256": "dd5b45bb4a50e1ab92259804cb17a018e82e04abafea4dd5fd45e06696e15614",
+      "status": "pass",
+      "judgment": "교정된 두 단락 재독: 수고가 줄어든다는 우회형 없이 같은 일을 반복하지 않는 결과를 말함"
+    },
+    "work.swords.06.upright": {
+      "read_bundle_sha256": "3c06d442cd203b1275e9479f87921d856d6d353f111c1b6dc00909b7838ce44d",
+      "status": "pass",
+      "judgment": "다른 설명과 도움으로 과한 부담에서 벗어나는 뜻 유지"
+    },
+    "work.swords.06.reversed": {
+      "read_bundle_sha256": "e9e7cc6745bcc24b00f84d22f508ccf4dc2335997b02c34eeb1d57f9419a749b",
+      "status": "pass",
+      "judgment": "조건을 바꿔도 기본 문제가 남는 뜻을 공부와 업무에 적용"
+    },
+    "work.swords.07.upright": {
+      "read_bundle_sha256": "f8e9de00d16522c913a30d786ed809445d72e274cff6daa5aad2c65a3e25f8c8",
+      "status": "pass",
+      "judgment": "전략적인 새 풀이와 불필요한 반복 줄이되 사실 은폐 경계"
+    },
+    "work.swords.07.reversed": {
+      "read_bundle_sha256": "90e537801f78b568b2f4932e32be6afc00ddd8b9e82fa16db0d40de138afc7d4",
+      "status": "pass",
+      "judgment": "잘못 인정과 정보 수정으로 도움받는 의미 명료"
+    },
+    "work.swords.08.upright": {
+      "read_bundle_sha256": "d35d4fc22ec2d82be0a54053ac3bde82620740b8af846011395814d30f5e9fad",
+      "status": "pass",
+      "judgment": "두려움과 실제 제약으로 멈추는 상황을 구분"
+    },
+    "work.swords.08.reversed": {
+      "read_bundle_sha256": "387df15131b80cd3590a47f7634914064ed7bde3f333dfe450f4958066bda1c5",
+      "status": "pass",
+      "judgment": "선택권 회복과 가능한 부분 발견으로 진전되는 뜻 유지"
+    },
+    "work.swords.09.upright": {
+      "read_bundle_sha256": "c741e632c5d6df4ae2421306124fb9a617afae9f79a576959f8488a52e5680c8",
+      "status": "pass",
+      "judgment": "걱정과 사실을 구별하며 답/일을 반복 수정하는 주의 유지"
+    },
+    "work.swords.09.reversed": {
+      "read_bundle_sha256": "e6d9329b1683f6300de3f3f2948420716e41bc4cb008ec628077febc5bf35eae",
+      "status": "pass",
+      "judgment": "교정된 두 단락 재독: 물어보면 이해한다는 행동과 결과가 직접 이어짐"
+    },
+    "work.swords.10.upright": {
+      "read_bundle_sha256": "78f0b8f0049aacd874422bb3796b65c2299aaa09722459190f4f6f757a958911",
+      "status": "pass",
+      "judgment": "소진과 일의 종료를 극단적인 실패 확정 없이 전달"
+    },
+    "work.swords.10.reversed": {
+      "read_bundle_sha256": "c0f77ee5827d333f71396eeca914e5a045c600b5ff1326d6f551af9ff1e5e277",
+      "status": "pass",
+      "judgment": "어려움 뒤 일부 재개와 감을 되찾는 점진적 회복 유지"
+    },
+    "work.swords.11.upright": {
+      "read_bundle_sha256": "9174c30886861cd8949abd3e40d64d313e582bd7aaa0e213414ab3e7652b535f",
+      "status": "pass",
+      "judgment": "관찰과 질문으로 조건 및 정보 오류를 찾는 뜻 명료"
+    },
+    "work.swords.11.reversed": {
+      "read_bundle_sha256": "422bd8f0230606933bf2f81160659094533d20e4eedd9d697fd0a9c9c6e174c3",
+      "status": "pass",
+      "judgment": "일부 독해와 청취로 성급하게 판단하는 주의 유지"
+    },
+    "work.swords.12.upright": {
+      "read_bundle_sha256": "7be5d547f49e2ef3e326af97dc4783bcb0d28dae55bbe8f2a289aa8ce60662f1",
+      "status": "pass",
+      "judgment": "빠른 능력 발휘와 대립의 양면을 함께 유지"
+    },
+    "work.swords.12.reversed": {
+      "read_bundle_sha256": "4d3b2292c17b46548c0d9395d3b80bdf573daf1b76864f1e95910915caddc7b0",
+      "status": "pass",
+      "judgment": "속도보다 준비와 조건 확인이 필요한 역방향 의미 유지"
+    },
+    "work.swords.13.upright": {
+      "read_bundle_sha256": "d8d613b01527d36518c712ac69d075c2377f9b0d57b1d534ca8f4be6aacfe804",
+      "status": "pass",
+      "judgment": "감정과 별개로 정보 구별하는 독립적 판단 유지"
+    },
+    "work.swords.13.reversed": {
+      "read_bundle_sha256": "090c3f80ddbe7834fdedd2d823b102c886691089e70dc0e15493e4362829709e",
+      "status": "pass",
+      "judgment": "편견과 비꼬는 말이 배움과 협업을 막는 뜻 유지"
+    },
+    "work.swords.14.upright": {
+      "read_bundle_sha256": "75d6df879ea492257af23bd5552ddc06d4d6d3b359abe72d6c24c67634c43650",
+      "status": "pass",
+      "judgment": "원리에 맞는 답과 동일 기준의 이성적 판단 유지"
+    },
+    "work.swords.14.reversed": {
+      "read_bundle_sha256": "1f28c4a726b37927d65295816c99b1f85d493ff98207ea5f603e30fd5bd28151",
+      "status": "pass",
+      "judgment": "일방적인 풀이와 지시의 권위 왜곡을 직접 말함"
+    },
+    "work.pentacles.01.upright": {
+      "read_bundle_sha256": "4727cf2b2a5115906c8013e78c3ad2285273f11f4bc26c56bc068baffb052293",
+      "status": "pass",
+      "judgment": "필요한 교재와 준비를 얻어 실제로 시작하는 뜻 명료"
+    },
+    "work.pentacles.01.reversed": {
+      "read_bundle_sha256": "4bf6eb5d2f9ac3b562e33db158959e9dc01a5d290e0c9fa400d856a6c05b420e",
+      "status": "pass",
+      "judgment": "좋은 여건과 실제 활용 결과의 차이를 선명히 전달"
+    },
+    "work.pentacles.02.upright": {
+      "read_bundle_sha256": "bc433ca0b3e7bfdd80ad3ff41a65c1cf21a83f685f7c588f683ee41f4663450c",
+      "status": "pass",
+      "judgment": "여러 과목과 바뀐 일정에 유연하게 대응하는 뜻 유지"
+    },
+    "work.pentacles.02.reversed": {
+      "read_bundle_sha256": "3e5bcf917e59d864013725e35be72277ab5bdabe8696f0b7dd7b65e063f3cbb1",
+      "status": "pass",
+      "judgment": "여러 일을 억지로 맡아 이해와 약속이 빠지는 주의"
+    },
+    "work.pentacles.03.upright": {
+      "read_bundle_sha256": "e59948333a1be4223944a92fff2aafa402fcd9f15303c0f86e603089b04e0747",
+      "status": "pass",
+      "judgment": "숙련된 역할과 협력을 통해 인정받는 결과 유지"
+    },
+    "work.pentacles.03.reversed": {
+      "read_bundle_sha256": "182334653bc5d2ea08c7da0a2e4c14c1dddebfc39653888d12783a438d30b016",
+      "status": "pass",
+      "judgment": "합본 추가 지적 수정본 두 단락 재독: 이해할 대상이 풀이, 업무 불일치는 서로 다른 기준으로 밝혀져 바로 읽힘. 미숙함과 공동 결과 수정의 뜻 유지."
+    },
+    "work.pentacles.04.upright": {
+      "read_bundle_sha256": "d6e401764021c44986750fefea9bcf2e8cf118eb88e3b30628ea8f80a61a303e",
+      "status": "pass",
+      "judgment": "익숙한 능력 유지와 과한 통제의 양면을 함께 표현"
+    },
+    "work.pentacles.04.reversed": {
+      "read_bundle_sha256": "d2125401b5451f3132707842d903ceceb436876a451cb8e3278c0818a8ac7d97",
+      "status": "pass",
+      "judgment": "설명과 승인 지연으로 기다리는 원전 역뜻 보존"
+    },
+    "work.pentacles.05.upright": {
+      "read_bundle_sha256": "1314a18d375493af8dc01d0ecf0232672f3662538cef9d4d0ba94568c0e40326",
+      "status": "pass",
+      "judgment": "학습 자료와 업무 지원 부족을 필요한 도움 요청으로 연결"
+    },
+    "work.pentacles.05.reversed": {
+      "read_bundle_sha256": "42feb5816aaabc8856293d8ce35a2227670c00504b25503ef0636b6580ab3bf8",
+      "status": "pass",
+      "judgment": "혼란과 한정된 자원 때문에 다투는 역방향 의미 유지"
+    },
+    "work.pentacles.06.upright": {
+      "read_bundle_sha256": "9a031d90b00f504f4aea514eaf73724e77f3a9bacf4b12b135f3126f8c69b79d",
+      "status": "pass",
+      "judgment": "설명과 업무 도움을 주고받는 나눔의 뜻 유지"
+    },
+    "work.pentacles.06.reversed": {
+      "read_bundle_sha256": "4d6f07102711c08537ab577af51f3b3c115a2a34ee42552a743875272e346244",
+      "status": "pass",
+      "judgment": "도움의 균형이 무너져 자기 준비와 역할에 부담 남는 뜻"
+    },
+    "work.pentacles.07.upright": {
+      "read_bundle_sha256": "405bde17241312132957e6758c366f3e4a9e555b4363d970a06c54650a0c61d0",
+      "status": "pass",
+      "judgment": "공부와 오래 한 일의 느린 성과를 인내와 연결"
+    },
+    "work.pentacles.07.reversed": {
+      "read_bundle_sha256": "6790a24aa13d4c99254c8d0735153410a2968c71acfd12a4085ad6c938386ae3",
+      "status": "pass",
+      "judgment": "노력 대비 결과가 적어 방법 확인이 필요하다는 뜻"
+    },
+    "work.pentacles.08.upright": {
+      "read_bundle_sha256": "e9a165d496ed9e46da588b0d7c3ebf48723b078e756c642f323036d629ddf436",
+      "status": "pass",
+      "judgment": "성실하게 연습한 기술이 실제 성과로 이어지는 뜻"
+    },
+    "work.pentacles.08.reversed": {
+      "read_bundle_sha256": "75a14ec5c7028f1107c0d66e3bb2fd4a45f6c0cb8cbf25d92c862d6d6a2fd7e4",
+      "status": "pass",
+      "judgment": "이해와 완성도 대신 꾸미는 허영의 오류를 지적"
+    },
+    "work.pentacles.09.upright": {
+      "read_bundle_sha256": "a1ecf4229629ee8542e4bab639397b8280ce2fb1909c6eeaf0906d758aea07f6",
+      "status": "pass",
+      "judgment": "쌓은 능력으로 혼자 마치며 인정받는 성취 유지"
+    },
+    "work.pentacles.09.reversed": {
+      "read_bundle_sha256": "2c2c574d4564888d7b90489a96c64c9f74d475426cba6ea44c1c3e8866764a6e",
+      "status": "pass",
+      "judgment": "겉으로 준비된 모습과 실제 답/성과의 불일치 명료"
+    },
+    "work.pentacles.10.upright": {
+      "read_bundle_sha256": "c9373508a86526fda1e1c8f90a08f8ea96706d39820de0e6a3162d90c2335ada",
+      "status": "pass",
+      "judgment": "축적된 기본기와 조직 도움의 안정된 성과 유지"
+    },
+    "work.pentacles.10.reversed": {
+      "read_bundle_sha256": "6edcdad48f5949092e438db73bc7181c8380312f6e56d8e8f40d1511fcca0c05",
+      "status": "pass",
+      "judgment": "단기 예상만 믿는 공부와 오래갈 업무 조건 불안정 구분"
+    },
+    "work.pentacles.11.upright": {
+      "read_bundle_sha256": "99d854663d1b5610fdd8208e1f7cf103434dbfa4551d8006ffa8c9b75e9ad72f",
+      "status": "pass",
+      "judgment": "배우고 적용하는 지성과 새 업무 소식의 뜻 유지"
+    },
+    "work.pentacles.11.reversed": {
+      "read_bundle_sha256": "181ec661fb67d9cad2ef68aaeb8aa25e838dd9171ec4c7a6d7839dc1ceede237",
+      "status": "pass",
+      "judgment": "관심 분산으로 공부가 남지 않고 기대와 다른 소식 유지"
+    },
+    "work.pentacles.12.upright": {
+      "read_bundle_sha256": "a874463c89c41f1964890eee839242ca90cb06517b4aa5e1c292fe197fd3f88b",
+      "status": "pass",
+      "judgment": "느리지만 꾸준한 정확성과 책임 있는 완료 뜻 유지"
+    },
+    "work.pentacles.12.reversed": {
+      "read_bundle_sha256": "fb08292b6ac33b51fd7aca6dfa91b50dd2ab33769e2dad574b456347880e3d52",
+      "status": "pass",
+      "judgment": "관심 없이 넘기는 공부와 미루는 업무의 부주의 유지"
+    },
+    "work.pentacles.13.upright": {
+      "read_bundle_sha256": "2c346a2b9ae9fbd85944bb3d00c6d61dab79e31692d1d46625a35cf2b2b255a1",
+      "status": "pass",
+      "judgment": "돌봄과 도움 덕에 편안하게 준비하고 마치는 풍요 유지"
+    },
+    "work.pentacles.13.reversed": {
+      "read_bundle_sha256": "36d2b1a6b81930cc3cdd25dc32afd613925e29e169800d4919c3720f55333d68",
+      "status": "pass",
+      "judgment": "배운 내용과 동료에 대한 불신으로 재확인하는 주의"
+    },
+    "work.pentacles.14.upright": {
+      "read_bundle_sha256": "f6a9e952bf7d64e78eb6e0d28015a7253d26c3588b7b1c4448d57b0cdb6a2429",
+      "status": "pass",
+      "judgment": "실용적 지성과 응용 능력을 계산 및 실제 업무 성과로 연결"
+    },
+    "work.pentacles.14.reversed": {
+      "read_bundle_sha256": "5a579995afa34a1e740316ea540cc92bfb2f2155c153869e90f0f3ec1f57a290",
+      "status": "pass",
+      "judgment": "결과 욕심에 기본을 놓치고 사실을 왜곡하는 주의 유지"
+    }
+  },
+  "scope": "새 한국어 두 단락 전문과 기존 카드 키워드·분야 적용 메모를 실제 읽고 대조. 출처 사이트 전량 재열람이나 화면 렌더 검증은 수행하지 않음. 수정 요청 5개는 현행 전문 재독으로 해소."
+}

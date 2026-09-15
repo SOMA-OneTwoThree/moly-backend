@@ -171,8 +171,9 @@ def audit() -> dict:
     except (ValueError, KeyError, TypeError, OSError) as exc:
         pending.append({"reason": "generation_gate", "detail": str(exc)})
     return {"schema": "moly-fortune-localization-validation-v1",
-            "scope": "Static source structure and recorded exact-text review proofs; no app or API execution",
-            "copy_version": builder.VERSION, "counts": counts, "source_hashes": source_hashes,
+            "scope": "Static baseline localization proofs; retained EN/JA refer to baseline Korean, not the later Korean override. No app or API execution",
+            "copy_version": builder.BASELINE_VERSION, "target_catalog_version": builder.VERSION,
+            "counts": counts, "source_hashes": source_hashes,
             "errors": errors, "pending": pending, "repetition_for_review": repetition,
             "repetition_sha256": builder.digest(repetition),
             "status": "pass" if not errors and not pending else "incomplete"}

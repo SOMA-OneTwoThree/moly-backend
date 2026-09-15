@@ -1,0 +1,895 @@
+{
+  "reviewer": "/root",
+  "review_kind": "independent",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_read_count": 156,
+  "human_review": false,
+  "readings": {
+    "energy.major.chariot.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4385d435f54aeabf073ecffd3bb10ad6996dc8b64d5003aec489119a902c1d0b",
+      "judgment": "몸이 잘 움직인다는 결합을 덜고 힘이 있어도 서두르지 않는 부상 주의로 명확히 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "ea8938fca2c467611b633274892dbe6155ce8180bfbab2b95f94dbef0a0f261f",
+          "judgment": "서두르는 부상 주의는 맞으나 몸이 잘 움직인다는 어색한 표현을 고친다."
+        }
+      ]
+    },
+    "energy.major.chariot.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fd4b6f91937074c1770ed0aa0c2faece763ff1c9221446f0bc8ab4c710cfdb18",
+      "judgment": "아픈 동작 대신 움직일 때 아프면 멈추는 행동으로 직접 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "85a42de18705af31595f9143778301aee4d51d782468d5a957697b010b75bcba",
+          "judgment": "무리와 속도 주의는 맞으나 아픈 동작이라는 결합을 고친다."
+        }
+      ]
+    },
+    "energy.major.sun.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a08a7b6c5e22b60e73a1bd3301df4d37491e987158aa63e0b314489be124ab08",
+      "judgment": "편한 몸 상태를 먼저 말하고 평소보다 무리하지 않는 조언을 잇는다."
+    },
+    "energy.major.sun.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ac9e8b2f16a7abaeb913ac69ebc45452a8013b1e07e58f3561463aae485ee507",
+      "judgment": "조금 나아진 상태와 과한 활동의 주의를 구분해 설명한다."
+    },
+    "energy.major.moon.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "bdd0b63842a4466d9944cabbd2efb66044e6fc9f2de84bc690244e19581c8e48",
+      "judgment": "인터넷 경험을 지어내던 문장을 없애고 몸의 불편함과 걱정 확인을 잇는다."
+    },
+    "energy.major.moon.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "03b48e4d0e71961596753a2eecae302ab92972ce5c399b8d19a0472158839ce7",
+      "judgment": "불안 완화를 확인과 설명으로 연결하고 남은 불편함을 무시하지 않도록 쓴다."
+    },
+    "energy.major.tower.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6c2c8a1b78fc4bb118b8b4e00a18c9025fc06249bf79b679ff781a060078b558",
+      "judgment": "갑작스러운 무리와 부상 예방을 일상 행동으로 표현한다."
+    },
+    "energy.major.tower.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "943a9191520b947da7fd7ec5a94e860cbaeebbb6f89cab1e9abe0b237a13610c",
+      "judgment": "일찍 멈추는 조언이 더 커지는 불편을 막는 뜻과 이어진다."
+    },
+    "energy.major.temperance.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "47668962cdb3cae13b59bb4298d8b826104dabe9f68d70ac0601b02d42eafa37",
+      "judgment": "무난한 건강 상태를 규칙적으로 먹고 쉬는 일상과 연결한다."
+    },
+    "energy.major.temperance.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e914fe06dfa9e355faf441eb3ba8a1da35a62ae3dbb9fd8429691038c68b3894",
+      "judgment": "과한 식사와 활동의 주의를 굶거나 더 운동하는 만회로 뒤집지 않는다."
+    },
+    "energy.major.fool.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9ce4e0098274c3822e7964a8d4beb51f4c7ecbe4c4ca3a788d3a16eae8bd3137",
+      "judgment": "낯선 곳의 위생 주의를 평소 쓰는 말로 직접 설명한다."
+    },
+    "energy.major.fool.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "be97bf3f8607eacacee4290f147443814a7bc072b5979c0fd1e627e269bed1eb",
+      "judgment": "주의 분산과 서두름을 걷는 동안 다치지 않는 행동으로 설명한다."
+    },
+    "energy.major.magician.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "744c5d1a7772bec1e5cb072ce4fd613f63604ae126f4a7cb6f8e9627eab94ed5",
+      "judgment": "몸에 맞는 도움과 관리의 뜻을 설명하며 약의 양을 임의로 늘리지 않도록 쓴다."
+    },
+    "energy.major.magician.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9fb2628a342d0d3af56ca42457b2e3c21fe5429f6aa99af2e49c1552e1de900b",
+      "judgment": "남에게 건강해 보이려는 동기를 없애고 느끼는 불편함과 쉬는 행동으로 연결했다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "ea57746d34382a07eb595055234b76cb33080c297708d65cbd1f6ed9ff66c2d9",
+          "judgment": "회복을 서두르지 않는 뜻은 맞으나 남에게 건강해 보이려는 동기를 덧붙인 문장은 고친다."
+        }
+      ]
+    },
+    "energy.major.high_priestess.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a3f9c0b9076b4b714e22816dcbfab1f147675524191aeca2745e0d368b436fd1",
+      "judgment": "조용한 휴식과 잠을 다루며 걱정을 모두 해결해야 한다는 부담을 덜어낸다."
+    },
+    "energy.major.high_priestess.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "1effab32901714bb69d83c4172a29b6efa47449fd53a808e65c5dd8b9e84c17e",
+      "judgment": "놓친 피곤함과 오래가는 불편을 말하고 무리하지 않는 조언을 잇는다."
+    },
+    "energy.major.empress.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1b5704edeaf7d2364fea22accfbd5a086d7845fa15b8009781fd0bea7d8318e3",
+      "judgment": "돌봄과 식사의 만족을 과식 없이 먹는 조언과 연결한다."
+    },
+    "energy.major.empress.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "3eb9be529c582c9f3b92e9ddcc6343307606707e8063f3655b3d8aba11d71d9b",
+      "judgment": "남을 챙기다 먹고 쉬는 일을 놓치는 뜻을 직접 설명한다."
+    },
+    "energy.major.emperor.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "954f3f2db3996f5dfc1133737405bb2f046722c11d87909791a050c947c16b53",
+      "judgment": "규칙적인 생활의 편안함을 잠을 줄이지 않는 행동으로 잇는다."
+    },
+    "energy.major.emperor.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fab04b8bbab48f9f77baa982d845f0d1c6525315765982ae0f7eadda48406a08",
+      "judgment": "정한 양을 고집하는 무리를 몸 상태에 맞춰 줄이는 행동으로 설명한다."
+    },
+    "energy.major.hierophant.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3c017a0f017ddf95c6d5ee2037b24a7b4c25fa84af5c1fcd1f4251857a9794ee",
+      "judgment": "믿을 만한 설명과 도움을 받는 뜻을 필요한 관리와 연결한다."
+    },
+    "energy.major.hierophant.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "387166fd9b09e836ae1599e55b333cc77e9ab499484a811831c125899e8fc089",
+      "judgment": "남이 좋다는 방법과 자기 몸의 차이를 직접 설명한다."
+    },
+    "energy.major.lovers.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "76c2291695a421c2d275f167f64049307c98fd9734f55e25a4e1cc8c0030ee5b",
+      "judgment": "함께 지내는 사람과 위생·휴식을 챙기는 내용이며 관계를 이미 단정하지 않는다."
+    },
+    "energy.major.lovers.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c46cccdb00900b30909477b51f30044046b2fe2e31d0c13fbfe64964d7029684",
+      "judgment": "다른 사람에게 맞추느라 무리하는 주의를 먼저 쉬는 행동과 연결한다."
+    },
+    "energy.major.strength.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "97c91dd49080c9e0f7492da48da2e2700b120148ca4c2d74f03bcbfdd6477140",
+      "judgment": "다이어트 사연을 추가하지 않고 기운이 돌아와도 무리하지 않는 뜻을 남겼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "7f6556d1146353e39188b55a4d8232821433d27c3e8391c3e26e3ec4146bf2df",
+          "judgment": "몸의 회복은 맞으나 몸을 바꾸려고 식사를 줄였다는 불필요한 다이어트 사연은 반려한다."
+        }
+      ]
+    },
+    "energy.major.strength.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4d04db0dc2ea1528dde67f415262af204f9ac46dc6f97238ebb5f6bdbec95ce7",
+      "judgment": "기대와 몸 상태의 차이를 급히 운동·관리를 늘리는 주의로 설명한다."
+    },
+    "energy.major.hermit.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "06552df9c4f60f461b59e51b931dae7d9abdad64b9096bc875e1d626bb35f986",
+      "judgment": "고요한 휴식과 수면을 일상 말로 직접 쓴다."
+    },
+    "energy.major.hermit.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4712a4ede6904a2801bf82b8c2ba22160eb6ce64d948abf5449560efbb49c39a",
+      "judgment": "고립으로 몸 챙김을 미루는 주의와 도움 요청이 이어진다."
+    },
+    "energy.major.wheel_of_fortune.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "7f126025059db13e592ddce90932365831b0b27b6a0e10f13342f095f8860027",
+      "judgment": "쉴 시간이 생기며 나아지는 몸 상태와 수면을 챙기는 조언이 이어진다."
+    },
+    "energy.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "48ac041c64e84274c46ae1bf11e7f2cedcb71bf2c2319e146cfdce63958a05e1",
+      "judgment": "기대한 대로 몸이 따라주지 않는 뜻을 활동량 조절과 연결한다."
+    },
+    "energy.major.justice.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "bd758add5cbb933ca8c7f6eeb6630c3d018ec7e71db703ae04657b67c6833992",
+      "judgment": "괜찮아 보이려는 동기를 덜고 느낀 통증을 그대로 이야기하는 행동으로 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "7003ef63bdfa17db3e7abdadaf3c7fd3505931f313025ee31e69f378f56576d9",
+          "judgment": "몸 상태를 확인하는 뜻은 맞으나 괜찮아 보이려고 증상을 줄여 말한다는 동기는 덜어낸다."
+        }
+      ]
+    },
+    "energy.major.justice.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ff189f7798d7692ffe1d2aea748886d55fac2568c914dfb2fbab6b2a11ceaaff",
+      "judgment": "불편함을 무시하는 것과 혼자 단정하는 것을 구별해 확인을 권한다."
+    },
+    "energy.major.hanged_man.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c3297eef2dac768c991c09f93c48d6ebb67ae7644687b6b3e9a8b43a0669bdcb",
+      "judgment": "더 활동하기보다 쉬어야 하는 상태를 직접 설명한다."
+    },
+    "energy.major.hanged_man.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fd9ded29f35ed0d54a18bb8073b08ea4193194c1d771b656fe077645bc922aa7",
+      "judgment": "쉬는 것을 미뤄 오래가는 피곤함과 도움을 받아 일을 줄이는 행동이 이어진다."
+    },
+    "energy.major.death.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "cdf73cc3216c4f95f441bd844231a0684e37c1a059fc19601c5ce400d6cf1662",
+      "judgment": "익숙한 무리한 생활을 끝내는 뜻을 쉬운 건강 행동으로 옮긴다."
+    },
+    "energy.major.death.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2d99ff948aeaa83ba8e352429cd0d4a72ad023c7b1a2730b1c449b2f37eb8f4c",
+      "judgment": "불편함을 알면서 반복하는 생활과 확인을 미루는 주의가 이어진다."
+    },
+    "energy.major.devil.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "bd49488208e865b9b1725b4dc94d0bc390bf622108ae71e990862aeda0df5ced",
+      "judgment": "많이 먹고 마시며 무리하는 뜻을 끝낼 때를 정하는 행동과 연결한다."
+    },
+    "energy.major.devil.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0ed0c6659901534e3794a3a7efba23111c97a9cc393df1ddb3df804d153c3570",
+      "judgment": "과한 먹고 마심을 줄이는 뜻을 다른 과식으로 대체하지 않게 쓴다."
+    },
+    "energy.major.star.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "14c458d475e9cbb799c4bb4fce74176e0f0b2b04768924d45613f7fe0e6094fd",
+      "judgment": "편한 회복과 잠의 뜻을 차분한 휴식에 연결한다."
+    },
+    "energy.major.star.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2553de402b4c355317d5ace3cb6af2c39da9c4162c5fc908fbba6fa2acdb7416",
+      "judgment": "느린 회복의 답답함과 성급한 관리 변경 주의를 직접 말한다."
+    },
+    "energy.major.judgement.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e59eb3318bc073a0ce05c429d566a323cd81c2bfa88bbb5b791898b58c9cc3a9",
+      "judgment": "미뤄둔 건강 확인을 다시 하는 뜻과 안내를 살피는 행동이 이어진다."
+    },
+    "energy.major.judgement.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "355be0ae913d328c24a2b09fa8a82f45fb5d0992cd57310ca25dc651e19dcdc7",
+      "judgment": "자책이나 두려움 때문에 확인을 미루는 뜻을 직접 설명한다."
+    },
+    "energy.major.world.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "37965aab2f69d7cfbf9277565d72cb2067707a7cd6c3a2d2ad143837b81a6911",
+      "judgment": "관리 후 안정과 필요한 확인을 마치는 뜻이 연결된다."
+    },
+    "energy.major.world.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "bcd31e13dffede46ab2bba2496556e8db4ba4f5b879c018de0bfd5fb8227e265",
+      "judgment": "거의 나아져도 남은 불편함과 관리를 끝내는 뜻이 이어진다."
+    },
+    "energy.cups.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "fc596ca3dba8a061612152ce3accaf66ce9bfffb2fd1fdaed1ad3cab679d8de8",
+      "judgment": "영양과 만족을 식사를 즐기되 급하게 많이 먹지 않는 조언으로 옮긴다."
+    },
+    "energy.cups.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2a89056dde8471170246fd303f438037cf22e902d15c0ce2e2d1f4f3a2a43705",
+      "judgment": "돌봄의 공백을 끼니와 휴식을 놓치는 주의로 설명한다."
+    },
+    "energy.cups.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6a0903a80b20b871334e77609b4aed8ee714b8e884ae0fc45e44a044930d6374",
+      "judgment": "일을 나누어준다는 모호한 동사를 함께해주는 도움으로 바꿨다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "09842885bfeeda65e4b32abfd9fec2809653ac90790f66496f18c85f5fdbb265",
+          "judgment": "서로 돕는 뜻은 맞으나 일을 나누어준다는 동사가 추가 배정처럼 읽혀 고친다."
+        }
+      ]
+    },
+    "energy.cups.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d8ee19dd1311501bf425c287faf7c507bf3adbb3aa066b366c91cc0ac36efd84",
+      "judgment": "상대에게 과하게 맞추는 뜻을 몸에 맞는 양을 지키는 조언으로 옮긴다."
+    },
+    "energy.cups.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "50269856c62a0b3959651545b9723ba4806eae43ba442a5bf0c340628d2b9289",
+      "judgment": "즐거운 모임과 몸의 편안함을 과식·음주 뒤 운전 주의와 연결한다."
+    },
+    "energy.cups.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b13354759191f822958e7f791466ef39cbc06b664cc340c4f2ba891a3ed41a20",
+      "judgment": "과한 모임을 무리하기 전에 쉬는 행동으로 직접 표현한다."
+    },
+    "energy.cups.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f53616fe08b076762aa9520ee0ba7487bc21765fcb1e19d60ee51a0715379a86",
+      "judgment": "건강을 돌보기 귀찮은 상태를 식사·위생과 계속되는 불편 확인에 연결한다."
+    },
+    "energy.cups.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ac06f0b63a5bd525b4ad1db192ffa2185129c78870ec038ec8067a4e3e1b30f6",
+      "judgment": "새 안내에 관심을 갖는 뜻을 미뤄둔 건강 확인과 연결한다."
+    },
+    "energy.cups.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "7ef04425cb966dce44cecc01cf9374991ab6b8806793c028c648f1e56bf3fb78",
+      "judgment": "기대보다 느린 회복과 지금 몸에 맞는 도움을 연결한다."
+    },
+    "energy.cups.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "26ee464023447076718cd4027239fb7a12bafa07af46adcd5848786aa79a3594",
+      "judgment": "혼자 참던 불편함을 말하고 돌봄을 받는 뜻을 쉽게 쓴다."
+    },
+    "energy.cups.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ae98ad8241961b8a22c90c8656b44a9ce78006e2f887937ed58af48123f254f8",
+      "judgment": "익숙한 음식과 오래된 기억만 믿는 주의를 구별해 설명한다."
+    },
+    "energy.cups.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d30e6760692dd365427c27275c5900f941e971e6f60dd1ee60a92e9b95844802",
+      "judgment": "예전과 지금의 몸 상태를 구별하고 무리하지 않는 행동을 잇는다."
+    },
+    "energy.cups.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b23e631b92660c36b39c1bc9a81d5121a03290084f2d12e4b9f5ab326ef5bc1a",
+      "judgment": "여러 방법의 실체를 모르는 상태에서 무리한 추가를 하지 않게 쓴다."
+    },
+    "energy.cups.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "058fdf80d9628eddd563745d9437e7703c0d5cf5fdddf9f7c6e7af09a6511d3e",
+      "judgment": "필요한 관리를 고르되 처방약을 마음대로 중단하지 않도록 구별한다."
+    },
+    "energy.cups.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "cea5a58867ed36adeebcdbbacbcc6f85ef28178e764af45180ae62b0be919c56",
+      "judgment": "맞지 않는 생활을 바꾸는 뜻과 계속 불편한 상태 확인이 이어진다."
+    },
+    "energy.cups.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "facab4e0ab5629557375928c381ac1321b156783585e9285773c82a8c3f51a97",
+      "judgment": "익숙한 무리를 그만두기 어려운 상태를 직접 설명한다."
+    },
+    "energy.cups.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c53eece1497c39894932147405f36abf96e7f74920433f3399344a6c120dc21e",
+      "judgment": "먹는 만족과 과식을 멈추는 행동이 연결된다."
+    },
+    "energy.cups.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "62c19618ae8318df4c24a0784b697a8988d7410ae8f58cacf7f9e1ec4e217688",
+      "judgment": "더 즐기려다 몸이 불편해지는 주의가 분명하다."
+    },
+    "energy.cups.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2599cd59ffa1d3db5604b978807f266654f4e3a86c70a20cf3b1b30dbfee2388",
+      "judgment": "편한 집과 휴식의 뜻을 일을 나누고 잠을 챙기는 조언으로 옮긴다."
+    },
+    "energy.cups.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b721ca21a29bddbd223abdf67b5ede760ab0b7abf03b390262f8490c00c51aa3",
+      "judgment": "가까운 사람과 생활 시간이 맞지 않는 불편을 말하도록 쓴다."
+    },
+    "energy.cups.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0d77cc6f901c430f5f0967824be950e3f6f0ba4987ef4df0d3454e1d628b96f6",
+      "judgment": "건강의 궁금한 점과 작은 불편함을 말하는 행동이 이어진다."
+    },
+    "energy.cups.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "603d14671d6c0f0a895343b328fd43f74bfcb1d7ad2c83848547e3d7ae42da71",
+      "judgment": "불편함을 전하기 어려운 뜻을 짧게라도 말하는 행동으로 설명한다."
+    },
+    "energy.cups.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c22385601ebc9cdcfe982d3815f3f1b016180296afd97a7ce145bf07638cedea",
+      "judgment": "몸을 챙겨주는 호의와 몸에 맞지 않는 음식을 억지로 먹지 않는 뜻을 구별한다."
+    },
+    "energy.cups.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4181642f1190589e5070ef34ac0420711b9c8f1026f9d54d045ef9be05a62a94",
+      "judgment": "기분에 따라 돌봄을 미루는 주의와 일정 조정이 이어진다."
+    },
+    "energy.cups.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e076d590cda3898f41fa352967d9daaee53d6d58bd862971dc8c910dede6206c",
+      "judgment": "세심한 도움을 받고 필요한 것을 말하는 뜻을 직접 쓴다."
+    },
+    "energy.cups.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c1159413c2ef76fb1f804abd5f0b9e109784071ce0d7d85694558857138a5b8d",
+      "judgment": "과한 돌봄으로 자신의 몸이 지치는 뜻을 일을 나누는 행동으로 쓴다."
+    },
+    "energy.cups.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2ead26b3924830350a9e88e6c5836f0e7592fa609fb5b207b690092a5188dc66",
+      "judgment": "건강 걱정을 차분히 확인하는 뜻과 안내를 지키는 행동이 이어진다."
+    },
+    "energy.cups.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7fc9d7cf3e49df4453c9a0ff502d5317f4f38e8e42b34d1e02668c8aa8f1d5e6",
+      "judgment": "감춘 불편함 때문에 도움이 늦어지는 뜻을 솔직하게 말하기로 잇는다."
+    },
+    "energy.swords.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "47035b01c4bcdd26e44ceb5f952cf7357d66f9ca7a184b01bb13a1975393a9f7",
+      "judgment": "불편함의 이유를 분명히 설명 듣는 뜻을 진료 때 질문하는 행동과 연결한다."
+    },
+    "energy.swords.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4d63b426aca5fe477552a51e3ece2d468b8a85e066c2c9e1bde36271742bb5e9",
+      "judgment": "정보 혼란을 약 이름·복용량에 대한 확인으로 직접 쓴다."
+    },
+    "energy.swords.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "aff07bb30a896d8caa2e81a14e478bddf7797a2cabbc1f841099027888df73d7",
+      "judgment": "선택하기 어려워도 우선 불편함을 말할 수 있다는 조언이 이어진다."
+    },
+    "energy.swords.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "faf098b0317ba662803d702ba86b9f6e1d53a2b48a2714bb3cc18eb053c526eb",
+      "judgment": "서로 다른 정보로 방법을 반복해서 바꾸는 주의를 쉽게 설명한다."
+    },
+    "energy.swords.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d3b91fad7ba018b71f87e22a293e1b2bc86a7ca3f931631d1ce233343f915e98",
+      "judgment": "속상한 마음에 식사·잠을 놓치는 뜻을 기본 돌봄과 연결한다."
+    },
+    "energy.swords.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fe6ace125ae3bac106eb107abd2494a4381f647e69a20645fac387fdce1665ec",
+      "judgment": "긴장이 풀린 뒤에도 쉬는 시간을 지키는 조언이 같은 문맥이다."
+    },
+    "energy.swords.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5fd09efc77fb0250e09f7512bec014b0490b070302769ae8b2e3b0694b1d19c1",
+      "judgment": "쉬어야 하는 상태와 졸음을 참는 위험한 활동의 주의를 직접 말한다."
+    },
+    "energy.swords.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0b691ec81a17ff40db1f0e03dc5bbad2f0b6032c40490e93bce1391cc1c7f60e",
+      "judgment": "쉬었어도 피로가 남는 뜻을 긴 활동을 서두르지 않도록 쓴다."
+    },
+    "energy.swords.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4ba8001652cd678a9f111357a88f8e71cc01b42eea59705d28317c29491bf31c",
+      "judgment": "자존심의 경쟁을 무리한 동작과 부상 예방에 연결한다."
+    },
+    "energy.swords.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "41d39cefb8076ccb95255219eeb1b958f279a8ca5f01a683697b3d81835d9f7e",
+      "judgment": "경쟁에서 물러나는 뜻을 무리한 활동을 줄이는 행동으로 쓴다."
+    },
+    "energy.swords.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9ff738915c4574c5c4e1c41b9039a819dbc7931c28b00d70384b0e7fdc94eb63",
+      "judgment": "편히 쉴 곳으로 이동하는 뜻과 무거운 짐의 부담을 덜어내는 조언이 이어진다."
+    },
+    "energy.swords.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "87b6618600d302d73850cfab70a3358625953617730081591a87532e2aa470ed",
+      "judgment": "되돌아오는 불편을 그냥 넘기지 않고 확인하도록 직접 설명한다."
+    },
+    "energy.swords.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c66f594bb7e3749c1268c20ce22a9ab2923a5b45b0e5d9097f734d37f47af325",
+      "judgment": "확인을 건너뛰는 주의를 도구와 안전 장비를 챙기는 행동으로 쓴다."
+    },
+    "energy.swords.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ab47b4b3f730e31eff6a88b08898a64d1065fea21e2012078f73c8d1d0d0c579",
+      "judgment": "숨긴 불편함이나 복용 상황을 알리는 행동이 솔직한 인정과 맞는다."
+    },
+    "energy.swords.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4e6911fd22f90fbccf1beac6876a32bda4f104b952b210ef7ad5e37246c01a7d",
+      "judgment": "움직임의 불편을 억지 활동이 아닌 허용되는 자세 변경과 확인으로 구별한다."
+    },
+    "energy.swords.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "05391fd042c2f6dc2b8b2f83116814fce3eaee73e166534aae8b935a4f4795a6",
+      "judgment": "제약이 줄어 몸을 챙길 기회를 도움 요청과 휴식에 연결한다."
+    },
+    "energy.swords.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0904c2443a9c99b1c7bab9175ec6cbe493d70ce408e95c1f6e6c4d0b54cda1fa",
+      "judgment": "반복되는 걱정과 잠을 설치는 상태를 직접 말한다."
+    },
+    "energy.swords.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a0a41444e22ee1b1e8f03563db81f9cb900d350f87310309f9a86c42c507df94",
+      "judgment": "밤새 증상을 찾는 사연을 덜고 걱정을 말하고 확인하는 뜻으로 단순화했다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "7ffc525ea3eaa1016db6f1bab3476a10668428af451ce639a62ecc291241f9b1",
+          "judgment": "걱정을 말하는 뜻은 맞으나 밤새 증상을 검색하는 사연을 추가해 고친다."
+        }
+      ]
+    },
+    "energy.swords.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "54966fbb32c1b27518c405d5e92c1fae1a9fc3d649577fa4a15b14c3823fffbb",
+      "judgment": "더 버티기 어려운 지침을 멈추고 도움받는 행동으로 쓴다."
+    },
+    "energy.swords.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "1a00b05ca36b10b277de82e3f93246407bb4726fcd98af454a176a152c95a040",
+      "judgment": "점진적 회복을 서두르지 않고 일상을 되찾는 뜻으로 옮긴다."
+    },
+    "energy.swords.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a088eef87dca90cdb5b5041cff0d959614703afff932af7bdb9bad6425845b2d",
+      "judgment": "주변을 관찰해 부상을 피하는 뜻을 바닥과 걸림을 살피는 행동으로 쓴다."
+    },
+    "energy.swords.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b0e69be306b4ddfbcfb50f13846c96e2e8b33aa75aab948574141de6b368593b",
+      "judgment": "영상 시청이라는 불필요한 상황을 걷고 모르는 활동의 안전 확인을 직접 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "8c3f34395d305094d9068bc9359fa22501905549e727d0ade6d5de07927aa26b",
+          "judgment": "준비 부족의 뜻은 맞으나 영상을 본 상황을 덧붙여 단순화해야 한다."
+        }
+      ]
+    },
+    "energy.swords.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5617701dd6a35b65894d0b3d37cc27a6de79ab751fd8ac10e0449d7f47de720b",
+      "judgment": "급한 움직임의 부상 주의를 계단과 주변 확인으로 직접 쓴다."
+    },
+    "energy.swords.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "775c9a4d2a1811808eecc09af516b63b3bd7dcf452809c64c999427fe5e18839",
+      "judgment": "감당하지 못하는 활동의 주의를 무리하지 않는 일정과 연결한다."
+    },
+    "energy.swords.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d59bff767e035c85adc94f2f853405b6596baf24f216d0ad9264e1c4fe25f38b",
+      "judgment": "몸에 부담이 되는 부탁을 분명히 거절하는 행동이 독립적인 판단과 맞는다."
+    },
+    "energy.swords.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "59453e15da1fd15a1bce189dcbef78108533bf949197519a642fbc736b9fde5f",
+      "judgment": "예전 불편한 경험만으로 현재 도움을 거절하지 않게 설명한다."
+    },
+    "energy.swords.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3f53ac2e06f0069169cfbc19093ebe416c464a294b38a6be4955638dfa3eb201",
+      "judgment": "몸 상태를 분명히 설명 듣고 복용하는 것을 알리는 뜻이 이어진다."
+    },
+    "energy.swords.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d60aa7400631c413481ec82e75deb0c6949a81afb547e78b43ef62d9436ec972",
+      "judgment": "판매 재촉 상황을 없애고 건강 정보가 자기 몸에 맞는지 묻는 뜻을 남겼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "eb37bf0deeb465bfc853163eb6429aa7b9b0f480dd41064b915de874c62926d6",
+          "judgment": "잘못된 권위의 뜻은 맞으나 판매 재촉 장면이 건강에서 벗어나므로 고친다."
+        }
+      ]
+    },
+    "energy.wands.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "faab326fd867d7eedd69beda7e207fb9dc25d6e777fb8af8a19121059ebf3d8c",
+      "judgment": "새 활동의 힘을 먼저 말하고 사용법을 배우는 부상 예방 조언을 잇는다."
+    },
+    "energy.wands.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0b39abe8278d3cf2365b56ddadc11d03d170c0e7c6d5bb576c4aafea3b4b3799",
+      "judgment": "몸이 따라주지 않는 지연을 무리한 시작을 미루는 행동으로 쓴다."
+    },
+    "energy.wands.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "891fba90270b2b0da399cb5d04ecbb55b3140f60d99ede71b959791d62315e12",
+      "judgment": "새 활동의 선택을 지금 몸에 맞는 범위에서 살피도록 쓴다."
+    },
+    "energy.wands.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e22974d9357e23dc3f71115b23366c5e7c8be98ec6dcd5eba9de81337130a81c",
+      "judgment": "낯선 활동의 긴장을 배우고 천천히 하는 행동으로 연결한다."
+    },
+    "energy.wands.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1c8bb0c5679c2c8f2bc0f8ae4d305a21bf575a8e5d4d86b2b3e572cfcf3c59cb",
+      "judgment": "도움을 받는 뜻과 이동할 때 먹고 쉬는 시간을 챙기는 조언이 이어진다."
+    },
+    "energy.wands.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "bfff8fb5084a4666b382576688968cd1699bffcb6fef6f741ad38c7c32871a6f",
+      "judgment": "회복과 일정의 지연을 무리한 이동을 줄이는 행동으로 옮긴다."
+    },
+    "energy.wands.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c797e292879c59758a33ddee29422da6875504078d7e787158c845f305071bd2",
+      "judgment": "일을 마친 뒤 편안한 휴식을 누리는 뜻이 분명하다."
+    },
+    "energy.wands.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "88af70cd9cf5a6a43326ce6143ee78f2d86127f9d6f3e68e3ff8d4dfce9005d6",
+      "judgment": "역방향도 편안함의 뜻을 유지하며 익숙한 휴식과 무리한 정리의 주의를 잇는다."
+    },
+    "energy.wands.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9534389d4ed88a03ad38e0554e100e87876294b83732ab399fcebcf7931632ef",
+      "judgment": "몸을 쓰는 경쟁에서 부상을 피하는 주의가 규칙과 보호 장비로 이어진다."
+    },
+    "energy.wands.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "cc8b211b255c4c530361a90697b253fae29e8a86a0c986eb1c36e5757d8873ed",
+      "judgment": "다툼으로 주의가 흐트러지는 뜻을 위험한 작업을 멈추는 행동으로 설명한다."
+    },
+    "energy.wands.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8b086470e41d01df61142d4963bb020cd385865872ec42e8bc21873acafc5d92",
+      "judgment": "남에게 모습을 보이려는 동기를 없애고 회복 평가와 실제 무리의 차이를 말한다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "71ccd0e4f03489bbfd8a932278984bd07e46d781381306005eee20d390bb80a1",
+          "judgment": "회복은 맞으나 남에게 좋아진 모습을 보여주려는 동기는 덜어낸다."
+        }
+      ]
+    },
+    "energy.wands.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "63f2172a40bac6f38a2db18d9dee5fe89ee33adbb38b320e1a1f0abace666ca9",
+      "judgment": "남에게 칭찬을 얻으려는 이유를 덜고 느린 회복에 조급해 무리하는 주의를 직접 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "fa8016652f4d94e27098547bf218aa1f60b218559d61ed4642ef7b6aa5e9dd90",
+          "judgment": "느린 회복은 맞으나 남에게 칭찬받으려는 동기를 독자에게 붙여 고친다."
+        }
+      ]
+    },
+    "energy.wands.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "20982619e41f21e302075b4ec2b98619a4dbf5816b9a329ef70c5b6d45f55c1f",
+      "judgment": "아픈 동작을 움직일 때 아프면 멈추는 직접적인 말로 고쳤다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "be635044bebae8166bc395a5bb12372829f9f5af411a17cf18e7742abd25e82d",
+          "judgment": "몸을 지키는 뜻은 맞으나 아픈 동작이라는 어색한 결합을 고친다."
+        }
+      ]
+    },
+    "energy.wands.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "58eb34e41039f73efa4b34b25881c51be76eb8fefdc678597a262eee2422c17f",
+      "judgment": "부탁에 밀려 쉬지 못하는 부담을 어려운 일을 미리 말하는 행동으로 잇는다."
+    },
+    "energy.wands.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "cf14c07795d0bc10112aaffedce74e612a36dadbaa5bdac4c5e299514031b417",
+      "judgment": "빠른 움직임의 부상 주의를 멈춰서 연락을 확인하는 행동으로 직접 쓴다."
+    },
+    "energy.wands.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "56093bed04f3a10b6f0f98f285ae488e6c9c5bcc27700f15b1bb4ebe7cf447ce",
+      "judgment": "말이 엇갈릴 때 부딪칠 수 있는 주의를 움직이기 전 대화로 설명한다."
+    },
+    "energy.wands.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c0157dc77d150ba4fcffab02271ec1f2e57402b2e750cb2486bd91fc05366e6e",
+      "judgment": "전에 불편했던 경험을 기억하며 무리한 반복을 피하는 뜻이 이어진다."
+    },
+    "energy.wands.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "19d360b62807c980f35e6561a6b31201085141a5cc201efd9cfcf5fa2a29050b",
+      "judgment": "과한 긴장을 움직일 수 있는 범위 확인으로 직접 설명한다."
+    },
+    "energy.wands.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a30da3a33dc47afa638a1a3011452bebc55cd9e0869dbe440147158f89710153",
+      "judgment": "많은 일의 신체 부담을 짐과 자세·일 나누기로 풀어 쓴다."
+    },
+    "energy.wands.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fdcfb87cda7ad2b9bd06dac61c13395cf0f7cf78cf4fa2a72eb3fc543d716f25",
+      "judgment": "혼자 떠안는 부담을 일을 줄이고 멈추는 행동으로 옮긴다."
+    },
+    "energy.wands.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e7b42ecab9ccea0d09f18c153bb67f0bc284c561bcbee32767742c7edb087734",
+      "judgment": "배운 활동을 사용법부터 익히는 뜻이 새로운 건강 배움과 이어진다."
+    },
+    "energy.wands.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2af40eaa6b31cc755921c407ed0cbec99abf7dff75ea6506f09cc61bc3995064",
+      "judgment": "영상을 본 사연을 없애고 모르는 동작은 설명을 듣는 행동으로 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "bf49277b818fe703c66c784a1e5830c85e56355ba569b607fe81058f872fc6c2",
+          "judgment": "확인 안 된 방법을 조심하는 뜻은 맞으나 영상 시청 상황은 불필요해 고친다."
+        }
+      ]
+    },
+    "energy.wands.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "37fec2571a48ab284560fa424c5c4ab54b7e81063290f1173e35a432967e49d2",
+      "judgment": "이동의 서두름과 피로를 안전하게 쉬는 행동과 연결한다."
+    },
+    "energy.wands.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a8934fe326eae3f90e7b6313d5379553cd690ef0c706ecbcf523d191123beef1",
+      "judgment": "중간에 멈추는 활동을 아픈 몸으로 억지로 이어가지 않게 쓴다."
+    },
+    "energy.wands.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ebadaa53a67c7198f21b3cb7518f82a11c989b4f05385c6153aa1c5a8b911777",
+      "judgment": "가벼운 바깥 활동을 날씨·물·휴식의 일상 돌봄과 연결한다."
+    },
+    "energy.wands.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "98d60f2811a94b2ab47215b6a77815a7449e63cf6c047c432f4d1dea924666b8",
+      "judgment": "외양 비교 때문에 몸에 무리하는 주의를 충분히 먹고 상태를 살피는 행동으로 쓴다."
+    },
+    "energy.wands.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "123df44ca6ce74db896cb5304c09d8a10390b86de7db47ed3dd0d0a2ed76f21c",
+      "judgment": "자신이 맡은 일이 많아도 휴식을 지키는 뜻을 쉬운 말로 설명한다."
+    },
+    "energy.wands.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "19d67df46bc96db51f6e55f8a3d378eca07341b1802a9ebe395b8397976ab9b9",
+      "judgment": "지나치게 엄격한 건강 목표가 몸에 부담이 되는 주의가 직접 읽힌다."
+    },
+    "energy.pentacles.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "cd13c3c3dfd02ffacab25957b91ded98d4e23df596665587d735a898c18dbc00",
+      "judgment": "먹고 쉴 여유의 뜻과 식사를 챙기는 행동을 연결한다."
+    },
+    "energy.pentacles.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e13be5ef995a22f3f0773ae134eb0700ad502bb3637445083cd97c73dbde2d04",
+      "judgment": "값비싼 것이 반드시 몸에 맞는 것은 아니라는 차이를 직접 설명한다."
+    },
+    "energy.pentacles.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "cbb94a8c8f2888d3287f54429a7d1745fe03bb6fe13759d8680356bf094c20ba",
+      "judgment": "바빠도 먹고 쉬는 시간을 맞추는 뜻을 자세·휴식 조언과 잇는다."
+    },
+    "energy.pentacles.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "10a7d368080b2feb9f51c3eeef253ad0cb537ac92d610a90d497d5ff724b0ef8",
+      "judgment": "여러 일 때문에 식사·잠을 놓치는 주의를 약속을 줄이는 행동과 연결한다."
+    },
+    "energy.pentacles.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8089acfa94ec9cea6b9d77dc3e5499de02951204748ce770f1635275b4f3f9cd",
+      "judgment": "잘 아는 설명을 듣고 자세를 배우는 뜻이 숙련과 맞는다."
+    },
+    "energy.pentacles.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5c72d731ebf2e5f9db7ab538b0e71cdb4543d1690340f1950fd7f76e7c5513fd",
+      "judgment": "합본에서 발견한 갑작스러운 공동 운반 전제를 교정한 문단 전문을 다시 읽었다. 미숙한 동작과 부상 주의에서 불편한 자세를 고치고 배운 뒤 시작하라는 조언으로 자연스럽게 이어진다. 특정 작업 상황을 더 이상 전제하지 않는다.",
+      "history": [
+        {
+          "status": "pass",
+          "read_bundle_sha256": "b7389e67f70647ac244aad78cff5cb109a843599732c46efabc51a318f6d8045",
+          "judgment": "미숙한 사용법의 부상 주의를 배우고 맞춰 움직이는 행동으로 옮긴다."
+        }
+      ]
+    },
+    "energy.pentacles.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "428b02f8be953bb819672a1ddb0121d6dbe691e177a7472218dd39a11458531d",
+      "judgment": "몸을 지키려는 과한 긴장과 움직여도 되는 범위 확인을 구별한다."
+    },
+    "energy.pentacles.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b76d50e37edea84411a564e9767e6db1bbd6afc98b942ea41c6d8cc4ae577e16",
+      "judgment": "진료를 기다리는 지연과 심해진 불편함을 참지 않는 주의가 이어진다."
+    },
+    "energy.pentacles.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "bc82383fe4e84d25dd0a35cd4db227088da04589de25c48660407704b5f5370f",
+      "judgment": "돈·시간 부족으로 돌봄이 어려운 상황을 도움 찾기로 연결한다."
+    },
+    "energy.pentacles.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "94c6ee636d56e2f13f5de392e240eef796fca924add2178139b293dae1a81f6e",
+      "judgment": "혼란스러운 여러 방법을 무작정 따르지 않고 알리는 행동으로 쓴다."
+    },
+    "energy.pentacles.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4ddc1f37eab05b095dfeecb5b449bd43504984397367c9171e510d88ce7a68e4",
+      "judgment": "필요한 돌봄을 받고 즉시 갚으려 무리하지 않는 뜻이 이어진다."
+    },
+    "energy.pentacles.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "75d57dd7fba503c51e742554c29cac34989643e263846d1c9e899d79b2bebc45",
+      "judgment": "다른 사람의 건강 비결을 무조건 따라 하는 주의를 자기 몸에 맞는 확인과 잇는다."
+    },
+    "energy.pentacles.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e2a1d119e00945dd12350173c8045d80f044f3e930c285b184b45b8390c5f223",
+      "judgment": "꾸준히 쌓인 변화 확인을 단기 변화만으로 판단하지 않는 뜻으로 옮긴다."
+    },
+    "energy.pentacles.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5201232687758a1df5e604fc3767eb702ca649aec4d903a9d8c96d6e18fa72cb",
+      "judgment": "건강 비용의 걱정과 성급한 고액 결정을 구별해 설명한다."
+    },
+    "energy.pentacles.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "20f403276d02a4a78123393b3db99c8d3b75e0fd1a1a2b116e30a4a926e605bc",
+      "judgment": "반복되는 자세를 바르게 배우되 아픈데 횟수를 채우지 않도록 쓴다."
+    },
+    "energy.pentacles.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f10bd074cc49ff1ceeef9c2de470ffd083cb58a9cd79ad419179af408b43f519",
+      "judgment": "겉의 빠른 변화에 집착하는 뜻을 몸의 불편함을 먼저 살피는 주의로 설명한다."
+    },
+    "energy.pentacles.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "80b9c99a2262f7c9b8572556fec5254cdd91d6fb394177cdfd01d294574aa061",
+      "judgment": "혼자 편히 돌볼 여유와 자기 몸에 맞는 식사·휴식을 연결한다."
+    },
+    "energy.pentacles.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "cafb0d7431a25b0535a0ebd2b8492938da05c1998a01b7617c3d32a5f2045ecb",
+      "judgment": "잘 지내 보이려는 동기를 빼고 겉으로 보이는 것과 실제 불편함의 차이를 직접 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "c9319fc7ff14f1c38cbad8cbf1c59d1e7987cd4423369ddb5b25d10dede45d7b",
+          "judgment": "겉과 실제 건강의 차이는 맞으나 남에게 잘 지내 보이려는 동기는 덜어낸다."
+        }
+      ]
+    },
+    "energy.pentacles.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "15624fdbc449b8be8adc6ccf8f0b5b756a7bb3a3c22006b5cc9390b9de01d414",
+      "judgment": "가족의 기반을 몸 챙김의 도움으로 연결하고 약 공유를 구별한다."
+    },
+    "energy.pentacles.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "53d4ca10514533a750b5edcf06318d19578b1dfa66b932d55eb7ddb641845042",
+      "judgment": "한 번의 무리한 선택을 먹을 것과 활동의 상태 확인으로 옮긴다."
+    },
+    "energy.pentacles.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e2240ade3bf226067a590cdd64fb63608f8ec5c943381cc3e51cf0f39e3c71b4",
+      "judgment": "배움과 집중을 건강 안내와 복용법의 질문으로 직접 쓴다."
+    },
+    "energy.pentacles.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "dc57dab69328123dae632ac81d93634f503ab3de50e6e23d198d2750068ce628",
+      "judgment": "즐거움에 주의가 쏠려 건강을 놓치는 뜻을 식사·수면 시간과 잇는다."
+    },
+    "energy.pentacles.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3b42d5dd68e648e697188b47fd9e5bb8167765f7b120614b084fd2c42b405b93",
+      "judgment": "꾸준한 돌봄으로 편안해지는 뜻과 필요했던 확인을 지속하는 조언이 이어진다."
+    },
+    "energy.pentacles.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "009a09601ae04a722a6d6500a9c0f376c1f9ec10d7c640014143bfad0e4349a0",
+      "judgment": "무관심과 미룸을 기본 위생·오래가는 불편 확인으로 설명한다."
+    },
+    "energy.pentacles.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "719b0c1b6c58edf071b95bab6d2f66e5f4d4d24b135b87d3bc8dee53aa07bdef",
+      "judgment": "먹고 쉬는 환경의 풍요와 자신도 챙기는 돌봄을 연결한다."
+    },
+    "energy.pentacles.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d0ee8e41acfe21d2f28c91ad5d5de479284edef043c60804109c07bd0a8b89e2",
+      "judgment": "의심과 걱정으로 음식을 무작정 빼는 주의를 확인과 연결한다."
+    },
+    "energy.pentacles.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "776a282aefc14df907d881606619f06f6c159ff79acc220f1f3555d2fa3a583d",
+      "judgment": "실제 도움이 된 관리를 과하게 늘리지 않는 뜻으로 설명한다."
+    },
+    "energy.pentacles.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ab1b85520d5dbc9aaf204dac6c3e36f32ffdffdc5e7546b57579ce8ad2a35cc0",
+      "judgment": "좋다는 것을 과하게 더하는 욕심의 주의를 성분과 적합성 확인에 잇는다."
+    }
+  }
+}

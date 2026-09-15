@@ -12,11 +12,13 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import re
+import runpy
 import tempfile
 import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "fortune-copy.v8-localized.2"
+BASELINE_VERSION = "fortune-copy.v8-localized.2"
+VERSION = "fortune-copy.v8-localized.3"
 FIRST_VISIT_IDENTITY_HASH = "e588974413014dad1c44c07c297043af28dcccbbe41b8eba15b548aa68117bed"
 MAJORS = ("fool", "magician", "high_priestess", "empress", "emperor", "hierophant", "lovers",
           "chariot", "strength", "hermit", "wheel_of_fortune", "justice", "hanged_man", "death",
@@ -79,6 +81,28 @@ def to_wire(key: str, bundle: dict) -> dict:
     return {"text": list(bundle["paragraphs"])}
 
 
+def reviewed_korean_override(root: Path, baseline: dict) -> dict:
+    """Validate new Korean separately; translations retain their baseline proofs."""
+    directory = root / "docs/fortune-content/ko-plain-voice"
+    review_builder = runpy.run_path(str(directory / "build_review.py"))
+    artifacts, report = review_builder["build"]()
+    if report["static_errors"]:
+        raise ValueError("Korean plain-voice review is incomplete or stale")
+    if any(not path.exists() or path.read_text(encoding="utf-8") != content
+           for path, content in artifacts.items()):
+        raise ValueError("Korean plain-voice review artifacts are stale")
+    readings = {}
+    for axis in AXES:
+        for key, bundle in read_json(directory / f"{axis}.json").items():
+            validate_bundle(key, bundle, "ko")
+            if key not in baseline or len(bundle["paragraphs"]) != len(baseline[key]["paragraphs"]):
+                raise ValueError(f"{key}: Korean override changed identity or paragraph count")
+            readings[key] = bundle
+    if set(readings) != set(baseline):
+        raise ValueError("Korean override must cover all 780 readings")
+    return readings
+
+
 def build_outputs(root: Path = ROOT) -> dict[Path, bytes]:
     resource = root / "app/resources/fortune"
     ko_dir = root / "docs/fortune-content/ko-rewrite"
@@ -114,7 +138,7 @@ def build_outputs(root: Path = ROOT) -> dict[Path, bytes]:
         raise ValueError("Korean independent review is incomplete")
     review = read_json(localized / "review.json")
     if (review.get("schema") != "moly-fortune-localization-review-v1"
-            or review.get("status") != "complete" or review.get("copy_version") != VERSION
+            or review.get("status") != "complete" or review.get("copy_version") != BASELINE_VERSION
             or review.get("reviewer") != "root" or review.get("human_review") is not False
             or set(review.get("locales", {})) != {"en", "ja"}):
         raise ValueError("localized independent review is incomplete")
@@ -141,6 +165,9 @@ def build_outputs(root: Path = ROOT) -> dict[Path, bytes]:
         if (author.get("status") != "complete" or author.get("read_bundle_sha256") != expected
                 or author.get("actual_self_read_count") != 780):
             raise ValueError(f"{locale}: incomplete or stale author review")
+    # Keep all previous KO/EN/JA source and review checks above intact. The new
+    # Korean prose is independently reviewed, not a newly certified EN/JA source.
+    editorial["ko"] = reviewed_korean_override(root, editorial["ko"])
     outputs = {}
     copies = {}
     for locale in LOCALES:

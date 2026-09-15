@@ -1,7 +1,8 @@
 {
   "schema": "moly-fortune-localization-validation-v1",
-  "scope": "Static source structure and recorded exact-text review proofs; no app or API execution",
+  "scope": "Static baseline localization proofs; retained EN/JA refer to baseline Korean, not the later Korean override. No app or API execution",
   "copy_version": "fortune-copy.v8-localized.2",
+  "target_catalog_version": "fortune-copy.v8-localized.3",
   "counts": {
     "en": {
       "by_axis": {

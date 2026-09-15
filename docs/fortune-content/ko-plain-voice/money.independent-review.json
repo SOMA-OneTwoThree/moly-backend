@@ -1,0 +1,789 @@
+{
+  "reviewer": "ko_overall_writer",
+  "review_kind": "independent",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_read_count": 156,
+  "readings": {
+    "money.major.sun.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8614538d08c98cb7d1098aa902260b3b9527ca471f5184918c63bb53f1cf664a",
+      "judgment": "기쁨과 수입의 좋은 결과에서 필요한 소비로 이어져 직접 이해된다."
+    },
+    "money.major.sun.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7cb95e7e97fa7889b4ce2d9ee4b8133245f1da5fa27187e566724352520194b8",
+      "judgment": "줄어든 긍정의 작은 이득을 남기고 예상 수입의 선지출을 경계해 정역 차이가 분명하다."
+    },
+    "money.pentacles.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "14c6a991ab992563ada401badb027dc6dbdf4bb8f8b4ded6db0660853e16c5a9",
+      "judgment": "숙련과 협력의 인정이 돈으로 이어져 금전 분야와 카드 뜻을 유지한다."
+    },
+    "money.pentacles.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4456cf698ead665d9ae52bcb416a8f40a952054aca7341a937c5becbb0836832",
+      "judgment": "받는 돈 부족과 재작업 비용을 미숙함에 연결하고 마무리 조언도 자연스럽다."
+    },
+    "money.major.chariot.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2574307c295c3d1d4db6063d6cf0596d6e625fd6a6d9852e11c2de3977801aed",
+      "judgment": "장애 극복을 받을 돈과 지출 여유로 풀고 충동구매 주의가 같은 돈 문제에 이어진다."
+    },
+    "money.major.chariot.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "1d6876e388261f660f79a12337ee6c4411b0c58ffd13a3e0a869a42d91702809",
+      "judgment": "유출과 지연으로 생긴 부담을 직접 말하고 만회 소비 경고가 자연스럽다."
+    },
+    "money.major.moon.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5e565406ff763aab5892d0a6df3c15a85336de99cfa2f64b8aa5c99ca866ce1f",
+      "judgment": "모호한 조건이 손해로 이어질 가능성을 말하고 송금 전 용도 확인으로 이어진다."
+    },
+    "money.major.moon.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a3ea636884e186eef9d3941ea8cc0532f457da4427cf9c79182862a7e9c23bd3",
+      "judgment": "금액이 분명해져 걱정이 줄지만 아직 모르는 부분을 남겨 완전 해결로 과장하지 않는다."
+    },
+    "money.major.tower.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9c7a04da3149ec942e18bc7fe8f5c2d0437147865b42e7ba74a90204fa4cb9e8",
+      "judgment": "갑작스러운 지출과 부족해진 돈을 직접 말하며 급한 지급과 추가 손실 주의가 이어진다."
+    },
+    "money.major.tower.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b52d9b735c0e4da57e412107d15a2d688f4d92d156dfae0c8f5a1501eeffe837",
+      "judgment": "충격을 미리 줄일 수 있는 역방향을 금액 오류와 불리한 조건 발견으로 자연스럽게 썼다."
+    },
+    "money.major.temperance.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ea25dd04450eaddd6011a303633484190dc820634d1ac87030b701a244aef576",
+      "judgment": "돈 약속이라는 조합을 없애 정기적으로 받을 돈과 생활비를 남기는 균형을 직접 말했다."
+    },
+    "money.major.temperance.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "90afc5d055364d5c586e109170e767d2c83c728ee1aded401e9fd579fe9cdbc3",
+      "judgment": "수입보다 많은 지출과 차입 부담이 같은 불균형 뜻으로 이어져 이해된다."
+    },
+    "money.major.fool.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "92fc322677df8ebda498c9494d1abf2864c902899076e9e2117d18a56dcdf58b",
+      "judgment": "새로운 기회의 작은 이득을 남기고 감당 가능한 시도로 한정해 무모함을 권하지 않는다."
+    },
+    "money.major.fool.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fbfa25ab006712917a0964afe5e58926a1ca9d4df1288841badcb5f4f7548989",
+      "judgment": "부주의한 소비의 후회와 추가 비용을 직접 설명하고 총액 확인으로 이어진다."
+    },
+    "money.major.magician.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6e444b326a9140c529217c363c950f280ee1423691add08998028c11e5c0eeda",
+      "judgment": "기술의 수입화와 해야 할 일의 확인이 자연스럽게 연결된다."
+    },
+    "money.major.magician.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "aa73acd37b0b4c59965326dbed67549dcbae1dcaebe4ae85bef679836cae7089",
+      "judgment": "외양과 실제의 차이가 먼저 내는 돈과 받을 돈으로 직접 드러난다."
+    },
+    "money.major.high_priestess.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "921db9ebdeb3a373388d0818e0f8d3ca24d8a1f934a175002abcbeb2f0314402",
+      "judgment": "아직 드러나지 않은 비용에 대한 신중함을 유지하고 알아본 뒤 결정하는 조언이 자연스럽다."
+    },
+    "money.major.high_priestess.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "52400cc8dee0eedd043bfa0f9f6da40d8506906b7cae61bf478423024f0ce0a2",
+      "judgment": "겉으로만 아는 조건에서 생기는 손실을 직접 말하고 금액 확인을 연결했다."
+    },
+    "money.major.empress.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "84115594141e465e3f0c322ffe31800daee3d0db10ab96d1fc5a4526ab12af63",
+      "judgment": "풍요와 수입 증가를 생활의 여유로 풀었고 필요 없는 구매 주의도 이어진다."
+    },
+    "money.major.empress.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "418e39deb09e8651054fc21fabbbb29e562c4007333e0ec4597dd13178c2d965",
+      "judgment": "같은 소비 경고의 반복을 덜고 허전해서 비싼 물건을 사는 주의와 필요한 돈을 남기는 행동을 구분했다."
+    },
+    "money.major.emperor.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "17b0db09f80ca5f2c9b0242d969e2832f90a595d5bd549d29ba63fa805e4f739",
+      "judgment": "안정적인 수입과 적은 큰 지출이 카드 뜻에 맞고 무리한 변경을 피하는 조언도 이해된다."
+    },
+    "money.major.emperor.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7f00258f6913aab8a6132780096717ae5384ee4028127fb0bf4c3cbf2d610ec4",
+      "judgment": "경직된 자기 판단이 공동 지출의 다툼으로 이어져 일방적인 결정 주의가 자연스럽다."
+    },
+    "money.major.hierophant.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "18d5adfd0118525fc0dff35d5e1e6489ce62063121e3377db1c35237a1bf4932",
+      "judgment": "공동 약속과 신뢰를 예정된 수입으로 풀어 쉽고 분명하다."
+    },
+    "money.major.hierophant.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e991a140938af4a8c0c72525f287f0f0085d3bc4f5576bd4b7a52957a2a009cc",
+      "judgment": "남의 방식에 따르는 소비 후회와 자신의 형편 확인이 같은 의미로 이어진다."
+    },
+    "money.major.lovers.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "268d8f814a88eee1b15bd9f9f1ae343fbc045feb7e905a60a6e702933e85cf38",
+      "judgment": "상호 조화가 금액 합의와 공동 부담 감소로 이어져 금전성이 분명하다."
+    },
+    "money.major.lovers.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0c25fc21e81c2e3e4fbdc59f76dca5d01e97e3870d557681e1dfaeca216c24a5",
+      "judgment": "불일치와 충동이 지출 후회 및 다툼으로 연결돼 카드 역방향을 유지한다."
+    },
+    "money.major.strength.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "949a1794ee3ebf49e4fe1e132261448d45de5a57effe8e4746ee4317a43d67f3",
+      "judgment": "없던 손실 만회 상황을 덜었다. 필요한 돈을 마련하는 운과 위험을 무릅쓰지 않는 절제가 자연스럽게 이어진다."
+    },
+    "money.major.strength.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e14f610067bc5ab874a2cdc509113f006ddcac4fdd146d36284b286cea6d5d0a",
+      "judgment": "충동적 지출과 금전 불안을 직접 말하고 구매 전 가능한 금액을 확인해 자연스럽다."
+    },
+    "money.major.hermit.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6c72d2fce9960daba772391e541fdd751de3eb58295faa0a96f065fa6e8bc60d",
+      "judgment": "신중함을 적은 수입·지출과 절약으로 풀어 금전성이 유지된다."
+    },
+    "money.major.hermit.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c92d0d51b26b442df2e2132e7039c71ff14a9dca3a55ef52e5a1a6e7d431133a",
+      "judgment": "고립과 연락 회피를 받을 돈의 지연에 연결하고 지급 시점 확인으로 이어진다."
+    },
+    "money.major.wheel_of_fortune.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b0a225ca61b31f27aa1314561cccdb6feff1d79f3d44adc3e0673330bb913901",
+      "judgment": "행운과 유리한 조건을 직접 말하고 우연한 이득을 다시 걸지 않는 조언이 자연스럽다."
+    },
+    "money.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "24b61d6c05ef3751baf218d0472028f6a197870c47260ed35c52f3c956e68fc7",
+      "judgment": "통제 밖 지연을 자신의 잘못과 분리하고 수입 전 지출 주의로 이어진다."
+    },
+    "money.major.justice.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "744c108432f0236d5ee507a91659db9ce1b4a3ba2838f8e8ee3544d595d7da84",
+      "judgment": "공정함과 계산 정정을 받을 돈에 연결하고 약속을 확인하는 행동이 명료하다."
+    },
+    "money.major.justice.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0bec443f75b49a6153579fa9771dccec7568532b37853b29a9e7494bb82074c9",
+      "judgment": "공평하지 않은 금액과 직접 확인의 조언이 카드 뜻에 맞게 이어진다."
+    },
+    "money.major.hanged_man.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c49d3bc8247a5692eac9cc97077aa6623df374cb90e3b828f9dcb5cf59f704d5",
+      "judgment": "보류를 묶인 돈과 수령 지연으로 풀고 성급한 감액을 피하도록 해 이해된다."
+    },
+    "money.major.hanged_man.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "70c997f2f5ee93b2bb5f72341709fa70ef3072da658daa955deab90facdf57b2",
+      "judgment": "기다리는 수입과 늘어나는 지출을 밝힌 뒤 지급 시기를 묻고 추가 지출을 멈추는 행동으로 이어진다."
+    },
+    "money.major.death.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5ec0a7077edcdda9f49e2b2c4bce64acac655ffc06e656bc19a9fafb9abdaa66",
+      "judgment": "종료에 따른 수입 단절과 지출 감소를 함께 남겨 카드 전환의 양면을 유지했다."
+    },
+    "money.major.death.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fd85eb8a62bc11576e22ed05fd700b8b20d8052a105803eb0de3ba7b3decc867",
+      "judgment": "변화 저항을 이익 없는 지출의 지속으로 풀고 이미 쓴 돈과 추가 지출을 구분했다."
+    },
+    "money.major.devil.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2fb90b0d01414dd377fdd0f2606ee6eaca60f3773e8c2e51b62bc7499c5e5441",
+      "judgment": "집착과 강한 유혹이 손실과 재베팅에 직접 연결돼 같은 맥락에서 도움을 권한다."
+    },
+    "money.major.devil.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "43c77a46df5366a33db27deb8e22730187db8345872350013e9eec45546a07cf",
+      "judgment": "구속에서 벗어남을 지출 중단과 채무 부담 완화로 풀어 자연스럽다."
+    },
+    "money.major.star.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f573c2d48e5a633faebd0e5058e104ff8cbca6394f2fdc2deef0ff9e7e539402",
+      "judgment": "희망을 실제 수입과 필요한 돈 마련으로 말하고 전면 해결로 확정하지 않았다."
+    },
+    "money.major.star.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "70cdd37b5713fc023b434b6049d1f4011228ad60865c5bd3a6f6882bd1a25f3d",
+      "judgment": "수입 지연과 낙담을 설명하고 감정 소비를 경계해 금전 분야 안에서 이어진다."
+    },
+    "money.major.judgement.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e67f3142f3fb971650c40efbb13f3aa2cf880c97c0b699f065324e0dad8e78da",
+      "judgment": "재선택을 받지 못한 돈의 새로운 기회로 풀고 이전 손실의 교훈을 남겼다."
+    },
+    "money.major.judgement.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7fcb6737912616898b13b3ed83c0dfdbe3336d296386859bb27a85e82fa8ea43",
+      "judgment": "성찰 회피와 반복 실수를 지급 연락과 불리한 조건에 연결했다."
+    },
+    "money.major.world.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3875918384ba38319ca4539b6e24157316c9d847b326af7642eaed4b74265213",
+      "judgment": "완성과 만족을 수입·저축 목표 달성으로 직접 설명했다."
+    },
+    "money.major.world.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5ffbfd4fff132963798927c080372aef478c446d3764f4c0091737507d920d0d",
+      "judgment": "마지막 수입 지연과 남은 일을 직접 확인하는 행동이 분명하다. 돈 약속이라는 압축 표현을 없앴다."
+    },
+    "money.cups.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a77f6d9df0b8b0f50f4612905ee3f4e1ea6f7a9915333866ca1aaa55544ecc8d",
+      "judgment": "새로운 풍요를 선물과 작은 수입으로 풀고 규모를 과장하지 않았다."
+    },
+    "money.cups.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "75fd2265c0adb6dcdd5736291e2ae9281534e9a17c0260a79655a51b091c74bd",
+      "judgment": "기대에 못 미친 수입과 선지출 위험이 자연스럽게 연결된다."
+    },
+    "money.cups.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3a34d1a6930cc784fa92b41d47fc7f99d556e0009ce26ba5a7acc3faccc073ee",
+      "judgment": "상호 조화가 생활비 균형과 약속한 이익으로 드러나 금전 해석이 분명하다."
+    },
+    "money.cups.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "bc54acc3d03b5ee31fa5c6292849d28ee5d37d921c46e6c06c633a961a8463ef",
+      "judgment": "함께 쓰는 돈의 불균형을 서로 정할 금액의 대화로 풀어 자연스럽다."
+    },
+    "money.cups.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8001d7c27f9739effb74ba1940be97fa42917f58996b9d250503a6579e6e68b4",
+      "judgment": "공동 축하를 만족스러운 지출과 공동 이익에 연결하고 남의 몫을 떠안지 않도록 썼다."
+    },
+    "money.cups.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fe55ca048a84397f6d7d031d0cedbdcae00b24ff158f6e8371a940ed0599a847",
+      "judgment": "과도한 모임의 소비를 계산 때 부담과 즉석 지출 약속으로 직접 설명한다."
+    },
+    "money.cups.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5e6794eceddd450e214e2e6fe484497c7f1224f5cf5f96b7713d7c7873368c6e",
+      "judgment": "큰 수입의 약세와 기회 무관심을 직접 말하고 실제 받을 금액을 살피는 조언이 연결된다."
+    },
+    "money.cups.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "1e7ed2b17a6873d4128af591a6dfa91808737b4ce95be94d43abf7d795057096",
+      "judgment": "지나쳤던 수입 기회와 나아진 조건을 다시 확인하는 뜻이 자연스럽다."
+    },
+    "money.cups.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9596735b8fb564913c03d9be98b0f9568d434455e6eec63ea22d9c32746a99f3",
+      "judgment": "겹친 부정을 없애 기대에 못 미친 수입과 여전히 남은 돈을 직접 말했다. 손실을 만회하려는 추가 지출 주의가 한 번만 나오며 앞의 실망과 이어진다."
+    },
+    "money.cups.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "602f9ba1cad37796d57e55bcb435301110e6ca903475420ffa2a9c578b376f20",
+      "judgment": "실망 뒤 금전 회복을 지출 감소와 남은 돈으로 설명하고 전면 만회를 보장하지 않았다."
+    },
+    "money.cups.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0b0db568ae39a8a73f9c3e5d86d3cd6c7e93f50f4fd6e20f6512bcf8f1d7151e",
+      "judgment": "익숙한 인연의 친절을 선물과 생활 지원으로 풀고 받기 전 선지출 주의가 이어진다."
+    },
+    "money.cups.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0b3de9fd67deee2d344cf007db5d94a8598e0b9baf2e22cb7f2a3bf68348c8f3",
+      "judgment": "과거와 현재의 차이를 새로운 거래 조건으로 풀어 이익 판단이 분명하다."
+    },
+    "money.cups.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "065fcb4b9505ec3c0d105814dda4a67ccc6957336b70a2f4dda38f8bdc7e6749",
+      "judgment": "보기 좋은 가능성과 불확실한 금액을 구분해 예상 수입을 미리 쓰지 않는 조언이 자연스럽다."
+    },
+    "money.cups.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "dd466dbd457dfb8bcee3962705d09b404adb348475c5c9886e4c6ec6ed5d47b1",
+      "judgment": "제안을 걸러 실제 이익을 분명하게 보는 뜻을 유지해 금전 판단과 행동이 연결된다."
+    },
+    "money.cups.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6dfc0280c6511e4b88d374a0ca5d91add03dd6be5e686065ff154675b13f8250",
+      "judgment": "이익이 적은 일을 떠나는 뜻을 지출 감소와 전환 중 수입 감소로 균형 있게 썼다."
+    },
+    "money.cups.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "35425f1f59db0fef7fc404bf9db081f5fe8cfd237ffb269df99371c725d40adb",
+      "judgment": "손해인 줄 알아도 멈추지 못하는 뜻을 반복 지출과 대기 부담으로 설명한다."
+    },
+    "money.cups.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9605c9870ec89e3726d236032e441b59dfebcfed4b9080ec7b0233e95c375d6c",
+      "judgment": "수입 예고의 반복을 줄이고 원하는 것을 마련한 만족과 추가 구매 주의를 자연스럽게 연결했다."
+    },
+    "money.cups.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "8458dcb37de8e18986d858cf04d7a540072e13fb641ea6e079871151aefe2bb0",
+      "judgment": "얻은 것과 만족의 차이를 구매 후 허전함과 계속되는 욕심으로 쉽게 풀었다."
+    },
+    "money.cups.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0018c01c447f3245cedfe2596b19eb11cd7af8569631b9a13da7f5329d742013",
+      "judgment": "가까운 관계의 안정과 여유를 필요한 생활비 확보로 직접 말한다."
+    },
+    "money.cups.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d9a3deb62d06ab1968a10eeda9a934afe5ae5b21b59c1ae71312311d340493bd",
+      "judgment": "공동체의 다른 기대를 생활 지출의 부담과 대화로 풀어 자연스럽다."
+    },
+    "money.cups.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "67623de14c8020827b3451cf129d52eb9e3a9770501a0d191b15344e0696cd15",
+      "judgment": "새로운 생각과 작은 호의를 수입·선물로 연결하고 금액 확인도 맥락에 맞는다."
+    },
+    "money.cups.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9809ede4a17eff36c0292f6b71d28549d5c91e0c26eb94be7ebf3d9f60091882",
+      "judgment": "기분에 따른 소비와 가벼운 금전 약속의 부담을 말해 서투른 감정 표현 뜻이 유지된다."
+    },
+    "money.cups.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "961b600dc553d2f403b3ab9ee53c42cfde1a305b87bc155c90a4f07aca13e23f",
+      "judgment": "진심 어린 제안을 수입과 호의의 지출 절감으로 풀고 금액 대화도 자연스럽다."
+    },
+    "money.cups.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9561ed5d15937a44a80ca565bac8924c49ac379510fd6642d33bbec884d785b9",
+      "judgment": "지켜지지 않는 약속과 숨은 비용을 말하고 선지출 경계가 같은 문제에 이어진다."
+    },
+    "money.cups.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b5ddde7095767b4c73e98c0a53f288965cc2da52d6534f2fb77c193f9229f5ff",
+      "judgment": "세심한 배려를 생활에 필요한 지원으로 구체화하고 감사 표현이 이어진다."
+    },
+    "money.cups.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2a32e6f2c722ebe7a2f7cde3a6df64be3ba97e7ecf7c5587f316f6accd0adf60",
+      "judgment": "부담의 원인과 생활비를 지킬 필요가 명확하며 돈을 내기 어렵다고 말하는 행동도 바로 이해된다."
+    },
+    "money.cups.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9fc818c9dca9b19b3b2ce58f8a93ddf4617c2e99788050cb2c80465670fb3635",
+      "judgment": "차분한 판단과 공감이 금액 협의와 손해 감소로 이어져 이해된다."
+    },
+    "money.cups.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "8a3fc5272cf69f9ecfca42f54be7cd680a6cf6e545738515b3ec96dab1199ff2",
+      "judgment": "감정적 통제와 변덕이 가격 변경과 과한 부담으로 이어져 같은 맥락의 대답 유보를 권한다."
+    },
+    "money.swords.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "67ae4a93c4d336c976bf1b0642ad4e34f88245bf4b606377d65a6b746d8bb072",
+      "judgment": "명료한 비교와 결단이 전체 비용을 파악하는 행동으로 직접 연결된다."
+    },
+    "money.swords.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c84b0b2c5931c0acff915a0c153333f8071a08c4a20602e7946a728f9e97c8a8",
+      "judgment": "가격 오해와 추가 비용을 설명하고 지급 전 묻는 행동이 자연스럽다."
+    },
+    "money.swords.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5a6a5f47df909306b73085acf4d94090c23a8c17f12d41037909d7e96b6501c1",
+      "judgment": "정보 부족으로 결정이 늦는 뜻을 비슷한 가격과 실제 비용 차이로 풀었다."
+    },
+    "money.swords.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e5876836d832d1a3365505268cb3f9e1f7e2a89cb0b861f4bbbc61fd47ea4dea",
+      "judgment": "의견 과부하와 성급한 선택의 위험을 자신의 형편 확인으로 연결한다."
+    },
+    "money.swords.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9009c101325c71b4ab050c1f5a9a0a300735a067e5f9eddd890011f101ef663a",
+      "judgment": "기대와 다른 금액의 실망을 사실 확인으로 이어가 말뜻이 명확하다."
+    },
+    "money.swords.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0f1484ed9beb5c097e34f2bfbe88f86b146ee6393a215a17f8a5fc19509a2525",
+      "judgment": "갈등 완화를 일부 수령과 부담 감소로 한정해 전면 회수를 보장하지 않는다."
+    },
+    "money.swords.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "bba65f279185e0dba3d61927b946e65e4fe59c7741167c6723f46aa16461e1fe",
+      "judgment": "계산하다 조급해져 소비한다는 별도 사연이 사라졌다. 재물운의 정체와 쉬어 가는 판단이 같은 뜻을 따른다."
+    },
+    "money.swords.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7904f9b6022d939555333b71a885b41fc73c15b58fcefda10e1c160b36a798b1",
+      "judgment": "조심스러운 재개를 작은 수입과 남아 있는 빠듯함으로 설명한다."
+    },
+    "money.swords.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0305c717b9a690164f369670e3be80ce5b0f5c7e28c99a74e3820a211eba9e1b",
+      "judgment": "이득을 고집하다 관계를 잃는 카드 핵심을 거래 다툼으로 유지했다."
+    },
+    "money.swords.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "54f7491f4be2dc974157bda93d30feee830e8535f6c529571065e1807c196e26",
+      "judgment": "타협을 통한 더 큰 손실 방지와 모르는 금액을 떠안지 않는 조언이 자연스럽다."
+    },
+    "money.swords.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "042b64c57a33334866542525fe3c91bc428c876c3af940374713f3342146136b",
+      "judgment": "부담을 벗어나는 뜻을 지출 감소와 도움으로 풀고 이전 소비를 경계한다."
+    },
+    "money.swords.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "82e5bf89a05ec8d2bd4a3bbce24478cb2c529b9169c29c244f39aa59f210db23",
+      "judgment": "미해결 비용과 다시 시작한 지출을 연결해 문제 재발의 뜻이 분명하다."
+    },
+    "money.swords.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e78ad147039738052783f48ccde4d31f01cd15cc835f7f72ea66061823adc51d",
+      "judgment": "은폐된 정보의 손실을 누락 비용으로 풀고 자신의 계산도 확인하도록 썼다."
+    },
+    "money.swords.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "02ea3e4b0a39b766894c862048adffd453e0c93ce58066f786b6310278519333",
+      "judgment": "부담에 도움을 받는 어색한 결합을 없앴고 금액을 바로잡는 일과 솔직한 공개의 도움이 분명하다."
+    },
+    "money.swords.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4fa267f88dd26d7eef4c884868068087fe49c0cbfe1a7497e0b689b464e161f4",
+      "judgment": "제약된 지출과 아직 바꿀 수 있는 조건을 함께 남겨 전면 불가능으로 말하지 않는다."
+    },
+    "money.swords.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d64baa23f74282b7afc9da1e20b4e072357612bb87bb09ca0aa22da383994128",
+      "judgment": "조건의 변화가 수입 증가 없이도 지출 여유를 만드는 뜻으로 자연스럽다."
+    },
+    "money.swords.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f11d469c2c101d440ae549657b77c00e689558d6d744454625f9a6ec23ea236e",
+      "judgment": "걱정과 실제 지출을 구별해 아직 없는 손실을 확정하지 않는다."
+    },
+    "money.swords.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "3d3270af3c5024ffcd1e2ae8744f9fac55270ae2638f1e9977abd36435143d63",
+      "judgment": "혼자 지닌 부담을 말해 도움과 구체적인 금액을 얻는 뜻이 유지된다."
+    },
+    "money.swords.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8f56d1c0d98276699b9e91d91b03e55b25a5524c845043807cc11d30245ec06f",
+      "judgment": "회수와 이익을 비교하던 교훈을 덜고 이미 생긴 손해와 추가 손실을 멈추는 하나의 주의에 집중했다."
+    },
+    "money.swords.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e946ab3c910b96f7eaa936a3d13be4ead240f1925062b1f4cac4b3e3e305045f",
+      "judgment": "종료 뒤의 작은 회복을 적은 수입과 필요한 지출 감당으로 한정했다."
+    },
+    "money.swords.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0a23e0c3887bba4060a8bb1293c248ff22d1c5be4052dbf32e3e9dbd97c001cf",
+      "judgment": "세밀한 관찰을 가격 차이와 조건 비교로 풀어 구체적이고 자연스럽다."
+    },
+    "money.swords.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7ca58dc05204cfae8c91ecaef4308166edc932f6c82f1f0d070f748a9d2130d9",
+      "judgment": "미확인 가격 소식과 성급한 판단의 비용을 말하고 원래 안내 확인으로 이어진다."
+    },
+    "money.swords.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "37f056229a41399d41b46aa1d43a5138fa1889a2c09f103dd72e448383743419",
+      "judgment": "빠른 실행과 대립의 양면을 금액 협의와 상대 답을 기다리는 행동으로 연결했다."
+    },
+    "money.swords.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d9e180f75c2d294fd314599ef66a6ca72163ca7e65996507e265120337ce92de",
+      "judgment": "성급한 거래와 준비 부족의 부담을 실제 금액 확인에 이어 썼다."
+    },
+    "money.swords.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "356985346e9fb81f77c082534a4e498b35e70fa525a9e722b1af4ba4d400ef46",
+      "judgment": "독립적인 판단을 불필요한 지출과 감당할 만큼의 지원으로 풀었다."
+    },
+    "money.swords.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "6c8abc0e8d1f0c47a0eab1412a0df18057ee36c283de8f0b7d42509a90149307",
+      "judgment": "선입견과 감정의 소비를 금액 판단과 구분하도록 해 카드 뜻이 분명하다."
+    },
+    "money.swords.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4e5f6d7b8e01144f5f99e6002682c6534b471130faa62477cbb0713f881be56e",
+      "judgment": "원칙과 권위를 계약 및 기록에 따른 지급 보호로 적어 금전성이 있다."
+    },
+    "money.swords.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2e79b0789523b0fd8adf65596b13c175fc977471f8d19db1ad22cb183bdbb957",
+      "judgment": "돈을 잘 아는 사람이라는 뜻을 명시해 친분과 혼동되지 않는다. 강요받는 거래와 결정권 주의도 이어진다."
+    },
+    "money.wands.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "114bb35c6e774797d007478670fe87aacefdd91e5470e8d31341165f0e3187b9",
+      "judgment": "새로운 발상이 수입 제안이 되는 뜻을 유지하고 준비 비용과 대가를 비교하도록 썼다."
+    },
+    "money.wands.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "185982ed927c390bb7a27607fff41720c491a40ef7c197a8f3bab2f30e027931",
+      "judgment": "재구매라는 별도 상황을 덜고 시작 지연 때문에 준비비를 더 쓰지 않는다는 뜻을 직접 설명했다."
+    },
+    "money.wands.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0262ec8f778eb861d6b42a6ddbe4e1a5a9ddb281c030732a9981b8e409fad928",
+      "judgment": "현재 기반 밖의 기회를 새로운 수입 제안으로 풀고 미수입 선지출을 경계해 자연스럽다."
+    },
+    "money.wands.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "633808998ed6c769f57ae47c79ab7be85a05a7ba9da72e4d144a1ca4a2828246",
+      "judgment": "변화 앞 망설임이 준비 지출과 수입 지연으로 연결돼 금전성이 유지된다."
+    },
+    "money.wands.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "39f6270f3e613381fd2fc3ee5b275d4689af99546505bb0e3c175ef4f5330329",
+      "judgment": "협력과 교역의 확대를 수입 증가와 비용 확대의 균형으로 썼다."
+    },
+    "money.wands.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "079d8ba801b64943ccdf5932ab70f8afc22164708b2bdbe4b33b789d8f5f8766",
+      "judgment": "확장 지체를 늦은 거래와 비용 부담으로 풀고 새 지출을 미루도록 이어간다."
+    },
+    "money.wands.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f3e34713e5b5488646ea395ef482d701467862f220cd1e385210acc37ac393ac",
+      "judgment": "공동 완성의 기쁨을 만족스러운 지출과 축하로 연결했다."
+    },
+    "money.wands.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2c44e21df651b1fa9f3fd397d4bae792a5b7d041de7ee19328bc12b98da77cb0",
+      "judgment": "역방향도 유지되는 행복과 꾸밈을 생활 편의의 소비로 풀어 부정 반전을 하지 않았다."
+    },
+    "money.wands.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "bf02f46266ee8042aa35ed10ace70a902564c63293b69307770072fd3c82feb7",
+      "judgment": "경쟁의 가격 인하가 실제 수익을 줄이는 뜻을 남겨 카드의 대립이 금전에 직접 연결된다."
+    },
+    "money.wands.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "054dd49e6203360eb8349e67aa6694ce513494207ec177193e4038e34bfac765",
+      "judgment": "모순된 조건과 비용 책임의 다툼을 약속 및 금액 확인으로 풀어 이해된다."
+    },
+    "money.wands.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a57c5bb26ecbbd57565b50b4d8206def89ac7a8e5b2134675e313c29b1bb2577",
+      "judgment": "성과와 인정이 수입과 고마움의 표시로 이어지고 과시 지출 주의도 자연스럽다."
+    },
+    "money.wands.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7704d460dae44b9e08b3936841cfe0cd6c890977845e10d23eea0820fc666989",
+      "judgment": "인정과 보답의 지연을 약속 이상으로 일해주는 부담과 연결했다."
+    },
+    "money.wands.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "7a3bd6e5985100c4e56a2b5e8547507224c3f0cfce20f55ab9696c6e77cc05b7",
+      "judgment": "유리한 입장에서 자신의 몫을 지키는 뜻을 금액 협의에 직접 적용했다."
+    },
+    "money.wands.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "833e18c088ad7d41b927cbfb9e14194a1060e8f00276293745e7705504189c0f",
+      "judgment": "금액이 어렵다는 표현을 내기 부담스러운 돈으로 풀어 양보와 압박에 대한 주의가 분명하다."
+    },
+    "money.wands.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ef66f6c1efe111549aa64733da077a852278afc6de25d508289d86e6bd512c48",
+      "judgment": "전달 속도를 입금과 거래 종료로 풀고 여러 지급 건의 확인으로 이어간다."
+    },
+    "money.wands.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "86363e9cffff8ee40e73e58c491e6aa276f8dbc5dacc2e3ba29ff3aa55a55ff0",
+      "judgment": "안내 충돌과 처리 착오를 중복 지급 주의에 연결해 막연한 지연으로 축소하지 않았다."
+    },
+    "money.wands.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "275e68396d7c34d2522acc7f908905f2e81cf4453655ab2e346eeb3bc7222be6",
+      "judgment": "과거 대응 경험을 손실 방지에 적용하고 사용자 이력을 조건으로만 남겼다."
+    },
+    "money.wands.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "cca862ec1e675d2f3c00a84962ff2cf94c373912eca98783bb4e59deb942944d",
+      "judgment": "지나친 경계와 피로의 양면을 제안 거절 및 무심한 수락으로 구분해 이해된다."
+    },
+    "money.wands.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "96dbdfb9323569278c1e51f0cc8f756fecc04ceb77d6bcf6553a44c19aba55a7",
+      "judgment": "성과와 함께 큰 책임을 수입과 지출의 동반 증가로 직접 말했다."
+    },
+    "money.wands.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5b5496d55eb82e1a0abec6511c84441cf1db5dc0e180221c475ace8739263c0c",
+      "judgment": "부담 분배 실패를 혼자 낼 돈과 추가 차입의 위험으로 풀었다."
+    },
+    "money.wands.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8d314f4fde7af53cd4e5a07a2a30cd2c479d5abbfc0cbb194794f950ff4190e3",
+      "judgment": "새 외부 소식의 수입 기회를 아직 미확정임과 함께 적어 과장하지 않았다."
+    },
+    "money.wands.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "73417feb82172d54b31df780e5ec3d07a683931f4b4c959efb5f7d6ce3c60f97",
+      "judgment": "불안정한 소식과 준비 변경의 지출을 구체적 약속 전 비용 주의로 연결했다."
+    },
+    "money.wands.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "26159297737c39540343d75453e8ebcb0fde710efba3f80a1fed67f84db51633",
+      "judgment": "빠른 실행을 거래 수입과 이동·준비 비용으로 풀어 실수령액 확인이 자연스럽다."
+    },
+    "money.wands.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f9de5dd8ebc0344d3dbfd6f788d63fb2c4803661abb9190a48ad88111865e924",
+      "judgment": "성급한 거래의 중단을 선지급과 반환 어려움에 이어 썼다."
+    },
+    "money.wands.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4278b841dcaee55406d1564a3b2935c2b7c5ab210c7cf189c5c3085201d0d3d4",
+      "judgment": "호응과 신뢰가 수입 제안으로 이어지고 과한 감액 양보를 피하도록 썼다."
+    },
+    "money.wands.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9c105285b0a05cd7e1f6c26034dea8662af60234b2c68ee4db389bf6e91def9c",
+      "judgment": "비교와 질투가 과시 소비 및 생활비 부족으로 이어져 같은 금전 맥락을 유지한다."
+    },
+    "money.wands.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4bf40b9fce1076111c2824d90cbf4e4ae5ec7e00ea6180f94aa4ad48a9127033",
+      "judgment": "책임 있는 실행의 보수를 감당 가능한 거래 제안으로 연결했다."
+    },
+    "money.wands.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5d1c871d49c2c31c95e6f9e5ebc575cf25dc52a8db87dee5c2c45312415c5495",
+      "judgment": "받을 금액을 고집하는 하나의 입장에서 제안을 듣고 이익을 계산하는 행동까지 일관되게 이어진다."
+    },
+    "money.pentacles.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e34ffd0d36a31cb9697737e73c67c4e634cd13b97b3b914eb17715325cff26ea",
+      "judgment": "물질적 충족과 실질적인 시작을 지금 쓸 돈과 새로운 수입으로 풀어 직접 이해된다."
+    },
+    "money.pentacles.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9239383b18df2810c41fe58e13c5f3dd0269770cdbd57493cbb14e073a086063",
+      "judgment": "풍족해도 만족이 다를 수 있다는 역방향을 유지하고 수입 부족으로 단정하지 않는다."
+    },
+    "money.pentacles.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b80bb219268605c4e1d8056d67df11f468cb62cdd171891dba89486fc70b8688",
+      "judgment": "두 자원의 유연함을 급한 지출을 때에 맞춰 감당하는 뜻으로 유지했다."
+    },
+    "money.pentacles.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b3bb268f4a2da23e43624379a9c0ea5fb76fd913b3244c9ee3fc956cf4043a57",
+      "judgment": "지출의 겹침과 수입 대기를 말하고 급한 돈 마련 후 추가 구매를 경계한다."
+    },
+    "money.pentacles.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d9ff8d83e28e8eb3a5e30a7ca07de5248a456e9b0056a1bdbc9fca8ccf48530b",
+      "judgment": "소유의 안정과 과한 절약의 양면을 필요한 생활비까지 줄이지 않는 조언으로 연결했다."
+    },
+    "money.pentacles.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9f1973fb1c324aa3a9541618a7c575a1aa9142324fe3208f5f3297d5e468fa52",
+      "judgment": "지연과 반대를 받을 돈과 꺼내 쓰기 어려운 돈으로 풀어 원전 역방향을 유지했다."
+    },
+    "money.pentacles.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "371b62814c9646096382151a3e180a8d8f1a7068543e1a2c64fb370a73ab722f",
+      "judgment": "부족한 자원을 실제 생활비 부담으로 말하고 혼자 감당하지 않도록 도움을 권한다."
+    },
+    "money.pentacles.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c199ca1207f19ab358212955a0672555ea72b0593d56807c559fd0bb2f6f910d",
+      "judgment": "비용 다툼과 빠듯한 생활을 직접 설명하며, 비용을 혼자 내기 전에 부담할 사람을 정하는 행동이 구체적이다."
+    },
+    "money.pentacles.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8813f4e72822f214bd09e091f563795492b978c247047a64e9d7cf9d9543d4d2",
+      "judgment": "나눔과 필요한 때의 도움을 비용 분담과 선물로 풀어 자연스럽다."
+    },
+    "money.pentacles.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "719ecca22bbb750967c060221e402ecce62e3a5e0766b5ae63aa244f9eaf1c08",
+      "judgment": "욕심과 질투 및 환상을 조건부 대가와 따라가는 소비로 구분해 금전 뜻을 유지했다."
+    },
+    "money.pentacles.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "90695a585be83837b3db410c011f323139323e61f3aede8f8764f7d886608fb5",
+      "judgment": "쌓인 자원 관찰을 누적 이익과 받은 돈 확인으로 풀고 미수입 확대를 경계한다."
+    },
+    "money.pentacles.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e6c793bb6064e2a373bedb555797b49b4c335aa3a9f06bb4326cb45a4df2e3a1",
+      "judgment": "대여에 대한 걱정을 실제 대출 부탁과 반환 시점으로 적용해 원전 선택에 맞는다."
+    },
+    "money.pentacles.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0306bf636ad50e1a10b2bb76a9e1d0687b358b8bdf6469311d107d3c05ea0cb4",
+      "judgment": "성실한 기술이 수입으로 이어지고 맡은 일의 마무리를 권해 자연스럽다."
+    },
+    "money.pentacles.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "134832408828c9244b9c2902baaf279e5d893db298f0a7826923328b1503a2d2",
+      "judgment": "무엇의 겉모습인지 모호한 문장을 덜었다. 쉽게 큰돈을 벌려는 기대와 적은 실제 수입, 선지출 주의가 연결된다."
+    },
+    "money.pentacles.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c0c1d00dc589504556aef0ff2dff8afa1651875047609754ac745bcc473f955f",
+      "judgment": "성취와 풍요를 스스로 모은 돈과 필요한 구매의 만족으로 풀었다."
+    },
+    "money.pentacles.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "6bbdd1fe2314df1cf65875384eff37005eb6d42a504130678eab15a4a1c9a6e3",
+      "judgment": "보이는 상태와 실제 품질·수입의 차이를 말해 특정 사기로 확정하지 않는다."
+    },
+    "money.pentacles.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "633618ea96814cc22ae178a08dfded86875ad5003c191c83b8140188fd33cf77",
+      "judgment": "축적된 공동 기반이 큰 생활 지출의 부담을 덜고 공동 결정으로 이어져 자연스럽다."
+    },
+    "money.pentacles.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "67494f9ac8cd9835b1c81adc7cf2b673763491127948d0e6d72efc37c64e0168",
+      "judgment": "큰 우연에 기대 기반을 잃는 위험을 필수 돈과 공동 자금의 주의로 한정한다."
+    },
+    "money.pentacles.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ba791646d4f9dbdb20f7789196396a0b5dcfd637d75fd36f754516603871aac8",
+      "judgment": "배움과 새 소식을 작은 수입 기회로 풀고 지급 금액을 챙기는 행동이 이어진다."
+    },
+    "money.pentacles.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d0fdd7ccf5ef5e0fc5b4f7f04a6e86cdeede9633f58546b7396a0493e3a7926c",
+      "judgment": "관심 분산과 기대 이하 소식이 지급 감소 및 선구매 부담으로 연결된다."
+    },
+    "money.pentacles.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "89a99c0415ce15d67b05f524ed25ab3d3586283a81ddeaa9e03d07e80a1400a0",
+      "judgment": "책임 있는 꾸준함을 약속된 수입과 익숙한 거래로 적어 정방향이 분명하다."
+    },
+    "money.pentacles.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e8acffec1b03446f88e5dfbc7cb312e276b1ac71462a5fe393d50d1581df9389",
+      "judgment": "잘못 처리한 비용이라는 조합을 실수를 고치느라 드는 돈으로 풀어 수입 지연과 추가 비용이 쉽게 읽힌다."
+    },
+    "money.pentacles.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ef4dd24419c23328938d8debfa5f384ce6d40427907c3d2ed7e88ecdad9c576b",
+      "judgment": "너그러움과 안전을 감당 가능한 생활비와 선물 소비로 풀어 자연스럽다."
+    },
+    "money.pentacles.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9667ee12b6d31b9017e4ce6392105920027d4403319554647eab70fb6ef43f66",
+      "judgment": "불신과 불안을 필요한 지출의 망설임으로 적고 실제 손실로 확정하지 않는다."
+    },
+    "money.pentacles.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6e7b4e00750a9d2db6e5373e0e54ae2f868d3d1b076f73cbc6a93a50bd019e0a",
+      "judgment": "실용적인 능력과 성과의 보상을 수입과 이익으로 직접 설명했다."
+    },
+    "money.pentacles.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ebf9d5762550c03f87c3400639ccb48f5a5dac11ea811496fd154eb8215c3fc8",
+      "judgment": "새로 넣을 돈이라고 대상을 밝혀 이익 뒤의 과욕과 생활비를 지키는 주의가 분명하다."
+    }
+  }
+}

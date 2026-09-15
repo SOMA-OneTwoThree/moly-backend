@@ -73,8 +73,8 @@ def test_elapsed_time_uses_real_minutes_across_midnight_and_dst():
 
 async def test_mood_changes_only_the_volatile_system_slot(monkeypatch):
     block = AsyncMock(side_effect=[
-        "[Today's mood] 2026-09-15: excited",
-        "[Today's mood] 2026-09-15: not_recorded",
+        "[User mood selection] 2026-09-15: 신남",
+        "[User mood selection] 2026-09-15: unknown",
     ])
     monkeypatch.setattr(mood_context, "today_block", block)
     before, after = {}, {}
@@ -82,12 +82,12 @@ async def test_mood_changes_only_the_volatile_system_slot(monkeypatch):
     await _post(first_session, monkeypatch, capture=before)
     await _post(FakeSession(), monkeypatch, capture=after)
     assert before["system"] == after["system"]
-    assert "excited" not in "\n".join(before["system"])
+    assert "신남" not in "\n".join(before["system"])
     assert before["convo"][-2]["role"] == "system"
-    assert "excited" in before["convo"][-2]["content"]
-    assert "excited" not in after["convo"][-2]["content"]
-    assert "excited" not in before["convo"][-1]["content"]
-    assert all("excited" not in (getattr(row, "content", "") or "")
+    assert "신남" in before["convo"][-2]["content"]
+    assert "신남" not in after["convo"][-2]["content"]
+    assert "신남" not in before["convo"][-1]["content"]
+    assert all("신남" not in (getattr(row, "content", "") or "")
                for row in first_session.added)
     assert block.await_count == 2
 
@@ -109,7 +109,7 @@ def test_checkpoint_time_affects_v4_hash_but_not_pending_v3_jobs():
 async def test_today_lookup_failure_does_not_claim_no_record():
     # Missing begin_nested simulates failure before querying; the prompt reports unavailability.
     block = await mood_context.today_block(None, UID, TODAY)
-    assert block == "[Today's mood] 2026-09-15: unavailable"
+    assert block == "[User mood selection] 2026-09-15: unknown"
 
 
 async def test_today_query_never_selects_notes_or_record_timestamps():
@@ -121,7 +121,7 @@ async def test_today_query_never_selects_notes_or_record_timestamps():
         begin_nested=savepoint,
         execute=AsyncMock(return_value=SimpleNamespace(scalar_one_or_none=lambda: "neutral")),
     )
-    assert await mood_context.today_block(session, UID, TODAY) == "[Today's mood] 2026-09-15: neutral"
+    assert await mood_context.today_block(session, UID, TODAY) == "[User mood selection] 2026-09-15: 평범"
     stmt = session.execute.call_args.args[0].compile(dialect=postgresql.dialect())
     sql = str(stmt)
     assert all(name not in sql for name in ("note", "created_at", "updated_at"))

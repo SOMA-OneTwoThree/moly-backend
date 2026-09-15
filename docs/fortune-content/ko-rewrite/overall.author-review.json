@@ -31,7 +31,7 @@
   "meaning_source_scope": "source-briefs.json의 overall 156개 핵심 의미·정역 차이·source id를 읽음. 이전 angle·observations 원고를 집필 원문으로 사용하지 않음. 원전 링크를 이번에 재열람했다고 주장하지 않음.",
   "reviewed_bundles": {
     "overall.major.chariot.upright": {
-      "sha256": "e75b5d9cfcfcb6cd2235227706404beac1f7255875c7b7f1b86b1500987e41a1",
+      "sha256": "88744bb2c672b2ef107cbf5d894b9713fdbe2330ec262c804afae1b35825f4e3",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -39,10 +39,11 @@
         "do",
         "pause"
       ],
-      "judgment": "초고를 전부 읽고 운의 직접성·문맥·카드 의미·반말·행동 연결을 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "e75b5d9cfcfcb6cd2235227706404beac1f7255875c7b7f1b86b1500987e41a1"
     },
     "overall.major.chariot.reversed": {
-      "sha256": "3efe99e84ad4eb0a1da093216e04713ad622d87641228f96ae57d3dfd1441567",
+      "sha256": "552e01035ba802582751d66441ac98888503892a2dc692ac59f437b6cf8c24f0",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -50,10 +51,11 @@
         "do",
         "pause"
       ],
-      "judgment": "초고를 전부 읽고 운의 직접성·문맥·카드 의미·반말·행동 연결을 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "3efe99e84ad4eb0a1da093216e04713ad622d87641228f96ae57d3dfd1441567"
     },
     "overall.major.sun.upright": {
-      "sha256": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1",
+      "sha256": "f7b369da038d89425249f761860e89db33f20095b7b241552106e79532093ab9",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -61,10 +63,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 첫 표본 반려를 받아 새 본문 전체 및 짧은 필드를 다시 읽음. 운의 직접성·생활 결과·문맥 연결 확인. root 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1"
     },
     "overall.major.sun.reversed": {
-      "sha256": "c6c36d59fa57075c599f694cd48c72bd52b2b27163458edfbdf8d81ce850b057",
+      "sha256": "3eb31ab9f8bea1aa926661e705f682c8b0fea43ff9764e0a628c51e7c68caf33",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -72,10 +75,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "c6c36d59fa57075c599f694cd48c72bd52b2b27163458edfbdf8d81ce850b057"
     },
     "overall.major.moon.upright": {
-      "sha256": "3ff47d0cd559ee22bdf5e4e78952e345f54451552dc63701f5f0fe5d65b5fb14",
+      "sha256": "e2fe471f38709eea9785c2ab9314d95d34ae6f36195c9ca9c077411e83c511e2",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -83,10 +87,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "3ff47d0cd559ee22bdf5e4e78952e345f54451552dc63701f5f0fe5d65b5fb14"
     },
     "overall.major.moon.reversed": {
-      "sha256": "d8c3be2a709146f56c41c7e829af96f3961d144f745c21c0a5d174586d484924",
+      "sha256": "3242a0e623829c2e4830a086324f753c886c0fd35192cfa2c2b029e75c7e5386",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -94,10 +99,11 @@
         "do",
         "pause"
       ],
-      "judgment": "초고를 전부 읽고 운의 직접성·문맥·카드 의미·반말·행동 연결을 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "d8c3be2a709146f56c41c7e829af96f3961d144f745c21c0a5d174586d484924"
     },
     "overall.major.tower.upright": {
-      "sha256": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279",
+      "sha256": "8da6ceb0d607d68a089dd86e2fb930cddfc609623243698336959336aeb3229a",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -105,10 +111,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279"
     },
     "overall.major.tower.reversed": {
-      "sha256": "0b6f78468b6f2afec1ff11db0fd880bc8ddafc392e30db8816633eff93846236",
+      "sha256": "fce2b545e956181ef0e861e35f86f08fce5fefb1c0134eb458a604cb1589948c",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -116,10 +123,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "0b6f78468b6f2afec1ff11db0fd880bc8ddafc392e30db8816633eff93846236"
     },
     "overall.major.temperance.upright": {
-      "sha256": "2fa991d273c43cac08be42f4d00711f8d2adb962859c2a6619ce7b1d31056b1c",
+      "sha256": "779760a7aefa9da6d74beca628c4702e199f185ff0200707077163273ff5d74c",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -127,10 +135,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "2fa991d273c43cac08be42f4d00711f8d2adb962859c2a6619ce7b1d31056b1c"
     },
     "overall.major.temperance.reversed": {
-      "sha256": "1e13fa287690a534c41c5205699ed330c361aaf06c617ffd7b38b2c3fe4f4e3b",
+      "sha256": "01c7137b3757b5185f1d7fd5bc8d307524729229a99e3e473566849ef8227035",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -138,10 +147,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 첫 표본 반려를 받아 새 본문 전체 및 짧은 필드를 다시 읽음. 운의 직접성·생활 결과·문맥 연결 확인. root 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "1e13fa287690a534c41c5205699ed330c361aaf06c617ffd7b38b2c3fe4f4e3b"
     },
     "overall.major.fool.upright": {
-      "sha256": "836ba1ed360787222bcf71767b601631c5244cee18a251f2f7e53cb06dea5c23",
+      "sha256": "ba9d49577c1bde56c99690ca4e63f0d19ea03e843561760686bca43dd098d09e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -149,10 +159,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "836ba1ed360787222bcf71767b601631c5244cee18a251f2f7e53cb06dea5c23"
     },
     "overall.major.fool.reversed": {
-      "sha256": "dcacad27461b8cb982ddfb9f5e3c283c8061c268e4dde2f59dd43379d8692c9f",
+      "sha256": "e51c946c62b356b20c07a448b6e262d54fa3056d2c690a8508b1f1dc5fa99b9d",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -160,10 +171,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "dcacad27461b8cb982ddfb9f5e3c283c8061c268e4dde2f59dd43379d8692c9f"
     },
     "overall.major.magician.upright": {
-      "sha256": "fb9bed58631ef4cbc262a2b0a29cde785bc0fa36c4b458ae12edaab565bc4690",
+      "sha256": "cccb49105fb0a8fb618dbe26345ffdca3aa36378c3d114a77943f860b50cedfd",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -171,10 +183,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "fb9bed58631ef4cbc262a2b0a29cde785bc0fa36c4b458ae12edaab565bc4690"
     },
     "overall.major.magician.reversed": {
-      "sha256": "4b9feff7d604085af0ec712d3a923cd3500ca41f704bcd4625683443a5e04beb",
+      "sha256": "10eab940a6e921c490a33e9abe138b74d1ff098ee7d83f319a7de57b2d4560cb",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -182,10 +195,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "4b9feff7d604085af0ec712d3a923cd3500ca41f704bcd4625683443a5e04beb"
     },
     "overall.major.high_priestess.upright": {
-      "sha256": "ecf49e1288bf863e869e40cfea1221aa6b930b59eb42eb21738c4217a50487c6",
+      "sha256": "b7e671d2b96b72d2ffafd6eb17dbb7c5a71b69f9aad17f1a1d05bdefcf621deb",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -193,10 +207,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "ecf49e1288bf863e869e40cfea1221aa6b930b59eb42eb21738c4217a50487c6"
     },
     "overall.major.high_priestess.reversed": {
-      "sha256": "fad5c422f19332cb31d8a2ce4b66cc6bcd425abefd46fcd8e8d1d72af6c4dcef",
+      "sha256": "10cd65e727dee8d9dfb4347b55870c1cb8522812268402d5526b164a847e1765",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -204,10 +219,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "fad5c422f19332cb31d8a2ce4b66cc6bcd425abefd46fcd8e8d1d72af6c4dcef"
     },
     "overall.major.empress.upright": {
-      "sha256": "7301eaa857239e04f8be90cf14cbcec8fd1e3e130ba638d30b429fe016210fd0",
+      "sha256": "04f1ebecb4aa151f27218d98c6295bf5a0bc0b3219ad9c398e3391e46aad4040",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -215,10 +231,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "7301eaa857239e04f8be90cf14cbcec8fd1e3e130ba638d30b429fe016210fd0"
     },
     "overall.major.empress.reversed": {
-      "sha256": "3ddc6aee0da7e1265df5efa60555476f1d91539947c78c9b7dcc7398c3b6f89f",
+      "sha256": "a37298da9616bda4d3de878fbe62a1d32babc27a2f1df05e893f63f2e74697b5",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -226,10 +243,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "3ddc6aee0da7e1265df5efa60555476f1d91539947c78c9b7dcc7398c3b6f89f"
     },
     "overall.major.emperor.upright": {
-      "sha256": "0a9de448ef4ad59add53f7580fae6ab18c9f4d7d2d1c6f60c3e541323e6fce0e",
+      "sha256": "6e200b529a985bea706c20ae7529a01ef83da7fa1f2c2e1c21687d688e4e2713",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -237,10 +255,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "0a9de448ef4ad59add53f7580fae6ab18c9f4d7d2d1c6f60c3e541323e6fce0e"
     },
     "overall.major.emperor.reversed": {
-      "sha256": "ff475594f4de42f462776b1f27c3b4ac09e9a4fc6f39f494236abef9c313787d",
+      "sha256": "36544988f97e45d2645979e56955e8651802c10ce475d811a16f5d07733a1d2b",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -248,10 +267,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "ff475594f4de42f462776b1f27c3b4ac09e9a4fc6f39f494236abef9c313787d"
     },
     "overall.major.hierophant.upright": {
-      "sha256": "410b40d133cc6095392760d93d0f6b9685e23cbe8615eb550ff4f6a156954aa7",
+      "sha256": "bfa08fd4d2a2435619b8ae5e6c88a5cbd270fd5ad953cde1c5669fc039e900df",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -259,10 +279,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "410b40d133cc6095392760d93d0f6b9685e23cbe8615eb550ff4f6a156954aa7"
     },
     "overall.major.hierophant.reversed": {
-      "sha256": "1b38e6fd69aa96b07883de5501dcee8b43d158d736b62a498ed78d7dcd0ded78",
+      "sha256": "dc336373e3e1f2bd7fca55e8e609dba7c1f3e8798e10d8a24d57d87dc21e1648",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -270,10 +291,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "1b38e6fd69aa96b07883de5501dcee8b43d158d736b62a498ed78d7dcd0ded78"
     },
     "overall.major.lovers.upright": {
-      "sha256": "442c8c6afd01ab56314e0bdc7a2c7253de8af0b11f55227b241455ba14e7752e",
+      "sha256": "0a78c6f839e9099269d90792dcd6aab33a8b0e75a2b96f9c50dbcb5fc1097733",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -281,10 +303,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "442c8c6afd01ab56314e0bdc7a2c7253de8af0b11f55227b241455ba14e7752e"
     },
     "overall.major.lovers.reversed": {
-      "sha256": "8a21eab1add8eed68277a1127608c91a2db95cdbaed98ff9794dc9eda53a143f",
+      "sha256": "0e27ff5038a73bd210032498ade9481003e78cc370320f7e06678763bcdb2ccf",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -292,10 +315,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "8a21eab1add8eed68277a1127608c91a2db95cdbaed98ff9794dc9eda53a143f"
     },
     "overall.major.strength.upright": {
-      "sha256": "fed488f02d70bbcc163066ec090b8a59df0dabebe7d5163913c917da95934fdb",
+      "sha256": "4b5fd78087fb8856a51986282d7f619c31c8dd5d2308f4471ffe03eafd6500ed",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -303,10 +327,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "fed488f02d70bbcc163066ec090b8a59df0dabebe7d5163913c917da95934fdb"
     },
     "overall.major.strength.reversed": {
-      "sha256": "b838919ab8e79b2461dfedf0dc54a6aa6815794d3ddd2d2e726f63c949027c10",
+      "sha256": "c218fb8cb37f922070a4a68747c29fb879f64e39818e09eb9f3e5254594becd2",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -314,10 +339,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "b838919ab8e79b2461dfedf0dc54a6aa6815794d3ddd2d2e726f63c949027c10"
     },
     "overall.major.hermit.upright": {
-      "sha256": "228f02ce19349d29b568f54a5dd0908c2588910e9b3d361df4d892430bab7513",
+      "sha256": "6b6c3e37aaa5615f7c2a0496c0fa5733b95cbdd41027260cab0cd3ab082d0696",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -325,10 +351,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "228f02ce19349d29b568f54a5dd0908c2588910e9b3d361df4d892430bab7513"
     },
     "overall.major.hermit.reversed": {
-      "sha256": "81c6e8cd4d245fc97b187bf6cb3aad4b428f6c08076d408b3cd1269c234021c8",
+      "sha256": "87876c47d6ef727548c5094f65d35582f8558a854f14f7053f13202a1f34fbfb",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -336,10 +363,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "81c6e8cd4d245fc97b187bf6cb3aad4b428f6c08076d408b3cd1269c234021c8"
     },
     "overall.major.wheel_of_fortune.upright": {
-      "sha256": "2ab90e8ac883581d55f39c89e3c51f0eb57be0c8ef96844f8768246485e97f20",
+      "sha256": "c134936f31ca7a6c68f9408ac32d8737c651148ccd10e5476dc1ad1b9d05ea58",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -347,10 +375,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "2ab90e8ac883581d55f39c89e3c51f0eb57be0c8ef96844f8768246485e97f20"
     },
     "overall.major.wheel_of_fortune.reversed": {
-      "sha256": "34a16ed62789aefe7169cf8978721ee75bd689c6ff26b835d9a6d8fb62892631",
+      "sha256": "0c36b90cceb8942dbf8a250dd947aaed212abcf320be09fcf42adb11b5774f40",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -358,10 +387,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "34a16ed62789aefe7169cf8978721ee75bd689c6ff26b835d9a6d8fb62892631"
     },
     "overall.major.justice.upright": {
-      "sha256": "6dcc4ad914a565092bcfd6f1e37c454eeb4281c75299ccd2cce4798e19c68246",
+      "sha256": "e952d20a2ec361783f3268247fa3cba9640198efe30757f34886495d95ae4e8b",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -369,10 +399,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "6dcc4ad914a565092bcfd6f1e37c454eeb4281c75299ccd2cce4798e19c68246"
     },
     "overall.major.justice.reversed": {
-      "sha256": "29cc22545de992e68dafeed376dfbbe227fe25f73ce743cd11bb05777c8b2e80",
+      "sha256": "7221380154b96d90c03309ad3519f867b1c5a35143847ea6b435ff1be43c4dcd",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -380,10 +411,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "29cc22545de992e68dafeed376dfbbe227fe25f73ce743cd11bb05777c8b2e80"
     },
     "overall.major.hanged_man.upright": {
-      "sha256": "d04da9fdec307daea687082554f2ae66a21fd746d08f312943729751bcb4e8d5",
+      "sha256": "8d23add289548488ffe4e3342b069391537bf929fd19200cc7b120a39778d128",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -391,10 +423,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "d04da9fdec307daea687082554f2ae66a21fd746d08f312943729751bcb4e8d5"
     },
     "overall.major.hanged_man.reversed": {
-      "sha256": "1a1fa4a43e4d1fe3000fb9ce3bb81bd1deeae6fea5ea3739bef0c685dd740c73",
+      "sha256": "001401e2a3037a8076420338db34ba2ff37eecf8aa414f3d76e54ddfb76d1d4e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -402,10 +435,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "1a1fa4a43e4d1fe3000fb9ce3bb81bd1deeae6fea5ea3739bef0c685dd740c73"
     },
     "overall.major.death.upright": {
-      "sha256": "acf32b24bf3e9d64d2ccd60e0575b0df7280a331fba38ea801bf0dcb21a90eed",
+      "sha256": "4c29205245a12e3f6bfad6b41a1d8980fc431a5065b116558327042bea8d5f50",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -413,10 +447,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "acf32b24bf3e9d64d2ccd60e0575b0df7280a331fba38ea801bf0dcb21a90eed"
     },
     "overall.major.death.reversed": {
-      "sha256": "b75509650404e81f4652f06647102cad65a5b121b7d91da5df2c2cd8d60b863c",
+      "sha256": "d1b1b906fc48030058eb05302b878b7bb3d2116a64b0572ca58773e97313abdf",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -424,10 +459,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "b75509650404e81f4652f06647102cad65a5b121b7d91da5df2c2cd8d60b863c"
     },
     "overall.major.devil.upright": {
-      "sha256": "d5878f9c24c38628ed784e987d21f03d032ae2fce0346122f16c74e83dd73f7d",
+      "sha256": "299ceba56b4f605e6ed6cb45ad38bae51704a62ee21c5692b024f8bbcb2b403d",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -435,10 +471,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "d5878f9c24c38628ed784e987d21f03d032ae2fce0346122f16c74e83dd73f7d"
     },
     "overall.major.devil.reversed": {
-      "sha256": "ea3ecb8038060bd93a0ef488a55054c83daf221620f68d996c78544504baf94d",
+      "sha256": "12d818ef10b4fadb02f628c5c6a640c11225b1f5553b3604d09c5b2a8667d397",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -446,10 +483,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "ea3ecb8038060bd93a0ef488a55054c83daf221620f68d996c78544504baf94d"
     },
     "overall.major.star.upright": {
-      "sha256": "c18aa89aae75794162a16890f6df965a6fe7c3108a5bd445259b8830c3b8a9f7",
+      "sha256": "1bb988c7f63ae6daf2944baad3e9660162eb5455950b0c72a11e2bc2cf343950",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -457,10 +495,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "c18aa89aae75794162a16890f6df965a6fe7c3108a5bd445259b8830c3b8a9f7"
     },
     "overall.major.star.reversed": {
-      "sha256": "78cf1070eea2546506724bff0cf5ce9bcb6bfb53778afd1168221b080d61e32c",
+      "sha256": "b6061c7f0c1de2ba222416d150c37454858f094d7de8d3345e9c1938c7479067",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -468,10 +507,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "78cf1070eea2546506724bff0cf5ce9bcb6bfb53778afd1168221b080d61e32c"
     },
     "overall.major.judgement.upright": {
-      "sha256": "07a51818cd6f3a32e70549498a5393127255e739d9bf25fddcd10ef7787880d6",
+      "sha256": "66506c589fc81539027064ea9552bbcc3b7b6629ce75e855321402ffc91ec7e6",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -479,10 +519,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "07a51818cd6f3a32e70549498a5393127255e739d9bf25fddcd10ef7787880d6"
     },
     "overall.major.judgement.reversed": {
-      "sha256": "9217d0986be10ba550ef31dffe544a3ebbb641d3702767e4b57dd9eb5b990958",
+      "sha256": "1b4bf50ef3d6d586b045744f902a4f0bc61592580efbcb029f72a9e91d76d126",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -490,10 +531,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "9217d0986be10ba550ef31dffe544a3ebbb641d3702767e4b57dd9eb5b990958"
     },
     "overall.major.world.upright": {
-      "sha256": "20f0faed8eb38775b163d1a2f2ca0b26e86e80bb1817422f42632c560c96ea81",
+      "sha256": "ab6d6e2cbd4866cc05aa7d62c3573aacd30dff7881ea401b1325a5c3b5dd5944",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -501,10 +543,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "20f0faed8eb38775b163d1a2f2ca0b26e86e80bb1817422f42632c560c96ea81"
     },
     "overall.major.world.reversed": {
-      "sha256": "4e566bc32d6fc88e9597aa6e6b3e0297adba38207b5d60b67bd8bf15b10d9704",
+      "sha256": "454285f7783299d370a01089efb01e83b8e92e98be357372d2bc87c79e6accb3",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -512,10 +555,11 @@
         "do",
         "pause"
       ],
-      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "4e566bc32d6fc88e9597aa6e6b3e0297adba38207b5d60b67bd8bf15b10d9704"
     },
     "overall.cups.01.upright": {
-      "sha256": "694ea7e9ef187957d35e7e37e55178724d7e5c733ca143fd1b1b7f3d7922d9fa",
+      "sha256": "d89953b91963b8b9b492254a3aa260fa1b848bbbc12604dcd232d274258213a8",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -523,10 +567,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "694ea7e9ef187957d35e7e37e55178724d7e5c733ca143fd1b1b7f3d7922d9fa"
     },
     "overall.cups.01.reversed": {
-      "sha256": "ee8d1c6f10e4a3a5966126e9238a04fd63580cc4a4fa2fdfa344db8d2633205a",
+      "sha256": "e75f9254c2f9da1781a314e887dcb90f1d95acc11892048ab0b3031c43124e94",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -534,10 +579,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "ee8d1c6f10e4a3a5966126e9238a04fd63580cc4a4fa2fdfa344db8d2633205a"
     },
     "overall.cups.02.upright": {
-      "sha256": "c85252e862a2baf3a5d13cc8a8487d5c117863fd2e969e0f80ae518f7c7e067a",
+      "sha256": "365f700f488dd07a13255f67609174539b9b9329ba83bf43e3588b3e6e110bae",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -545,10 +591,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "c85252e862a2baf3a5d13cc8a8487d5c117863fd2e969e0f80ae518f7c7e067a"
     },
     "overall.cups.02.reversed": {
-      "sha256": "7cb7ec2625806aeb7adaa807e5081a80cc7fa78f35bd2e7f8bba1bbbd68fc377",
+      "sha256": "f2a1fa2603a4ac3f65456505cb5e9f5a143804cc86507581c94ad80177d22849",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -556,10 +603,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "7cb7ec2625806aeb7adaa807e5081a80cc7fa78f35bd2e7f8bba1bbbd68fc377"
     },
     "overall.cups.03.upright": {
-      "sha256": "be726ab12eab0cbc03aec128e215c9006d35eca601a3fdd9fcdf17697d618485",
+      "sha256": "3ed72ee4a6b6c0fddc6271cf89d14d53774382fb586e8a6b689391dfc8c97ec0",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -567,10 +615,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "be726ab12eab0cbc03aec128e215c9006d35eca601a3fdd9fcdf17697d618485"
     },
     "overall.cups.03.reversed": {
-      "sha256": "9afd09c7164b83c1c439e56eaef3575a54d1ca816090106c28a065a7143570ca",
+      "sha256": "ab44a0bf2627c3ee6b23e845f4ea1bc786766667304a52a6e97b5ed6beda5762",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -578,10 +627,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "9afd09c7164b83c1c439e56eaef3575a54d1ca816090106c28a065a7143570ca"
     },
     "overall.cups.04.upright": {
-      "sha256": "7aedbba033dcb993f5d13b2f92858ab688deec821dc70b6a93964645c6c556af",
+      "sha256": "8fce16dcd270ef66ae05456033213ec31f2ae43d823a4dce0e9f924836555c25",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -589,10 +639,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "7aedbba033dcb993f5d13b2f92858ab688deec821dc70b6a93964645c6c556af"
     },
     "overall.cups.04.reversed": {
-      "sha256": "65867eef2bf3a022219e73c2be37fb3f54a58b25c612c80297ce49efefa06d04",
+      "sha256": "feddfdeae0d41a8c4ea66befb5bb55f6c56a2fbe0dd04567602d287d62b53580",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -600,10 +651,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "65867eef2bf3a022219e73c2be37fb3f54a58b25c612c80297ce49efefa06d04"
     },
     "overall.cups.05.upright": {
-      "sha256": "4022c678fdfba3c946e7a180e6479a91478bb28224a08c70abe3860e96e26d95",
+      "sha256": "551a04040f694152d4ce637d4dcc87a503cc7334e1537b687c8aa752e23a735e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -611,10 +663,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "4022c678fdfba3c946e7a180e6479a91478bb28224a08c70abe3860e96e26d95"
     },
     "overall.cups.05.reversed": {
-      "sha256": "c90142394fc2822d91148dee63ea6367860e73ef8f3dea3affebf3e73f446b6b",
+      "sha256": "9720053799006513aabac299a6c7a42e0cedd96c746035ff4f2bf3a72fef0684",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -622,10 +675,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "c90142394fc2822d91148dee63ea6367860e73ef8f3dea3affebf3e73f446b6b"
     },
     "overall.cups.06.upright": {
-      "sha256": "7ac5f856b7616c1a83d1093eb6dd27e3e3458747ada3630e46cebc71856f4fd1",
+      "sha256": "1a4011e06f044499d0bb1de28d1d1cdf295c9ab1a69b759455e3fbe2d39c3253",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -633,10 +687,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "7ac5f856b7616c1a83d1093eb6dd27e3e3458747ada3630e46cebc71856f4fd1"
     },
     "overall.cups.06.reversed": {
-      "sha256": "abfa83fe2ad1a7fac6ab5b6014dd967872277aedc5ffe702b7ac93c888a847bd",
+      "sha256": "015e42d0f7537745a5836cdbc2d8af994ccbc826de59e8cfd2fb67cae8e226ae",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -644,10 +699,11 @@
         "do",
         "pause"
       ],
-      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "abfa83fe2ad1a7fac6ab5b6014dd967872277aedc5ffe702b7ac93c888a847bd"
     },
     "overall.cups.07.upright": {
-      "sha256": "5a87a3af74ec092cf84f74917c0566db0fa29f8cc2315856f666f3f390e09f31",
+      "sha256": "dc24a47bf50fa99a4d72e3c0619cd4c26a85bea05dd061ce6af5f2c59673ba3e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -655,10 +711,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "5a87a3af74ec092cf84f74917c0566db0fa29f8cc2315856f666f3f390e09f31"
     },
     "overall.cups.07.reversed": {
-      "sha256": "56db881cc1654be698cd522d4ff1feb61e0c34ff744ea433ead8fb05ad943208",
+      "sha256": "b7fa23654e35e0afe58ba3a33f67385f573f7fcaad2fc4f58ff917740d8ab5fd",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -666,10 +723,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "56db881cc1654be698cd522d4ff1feb61e0c34ff744ea433ead8fb05ad943208"
     },
     "overall.cups.08.upright": {
-      "sha256": "f3f64a658640614ede141288fad40b08c79ed207abbcd9d9b4a7451145c4074f",
+      "sha256": "8a19b80c0cbe58f7d78b90b01093034bd360811de0a00bd1b0d45534c85a36ec",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -677,10 +735,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "f3f64a658640614ede141288fad40b08c79ed207abbcd9d9b4a7451145c4074f"
     },
     "overall.cups.08.reversed": {
-      "sha256": "b2c4baff0c8ff85651d0c2183f7a10477b9345e1126434961cf61420912226ee",
+      "sha256": "9d5d5c277b85aaca6d2e884b27dd0ad6d475791383e3e2799a4b859bb1aa2b3d",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -688,10 +747,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "b2c4baff0c8ff85651d0c2183f7a10477b9345e1126434961cf61420912226ee"
     },
     "overall.cups.09.upright": {
-      "sha256": "72b358c88c460edbb931ec352f293c00bf3481cb82dba59d6447384537ab3406",
+      "sha256": "98c5b8d86ffcd698139217a438b7a6f69fff8f492733ef272b2707840e29a9f3",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -699,10 +759,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "72b358c88c460edbb931ec352f293c00bf3481cb82dba59d6447384537ab3406"
     },
     "overall.cups.09.reversed": {
-      "sha256": "acc1db87d1a33b11e35a1915ac81c6773fb1136a13d85104007888593cffe142",
+      "sha256": "2c9a3c9b6e073557ba875d658f3cc9e0b373335cc5c37ce483b0cb65b4e38ff6",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -710,10 +771,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "acc1db87d1a33b11e35a1915ac81c6773fb1136a13d85104007888593cffe142"
     },
     "overall.cups.10.upright": {
-      "sha256": "2eb5cc09b5852544bcdada3c034777c3a4a8a937254880ea1d7bfb0cd1958bfd",
+      "sha256": "ecf7bfa3b79ca0678703e4a3d0e6b90622efe36535f84e8e741d997d716bb368",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -721,10 +783,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "2eb5cc09b5852544bcdada3c034777c3a4a8a937254880ea1d7bfb0cd1958bfd"
     },
     "overall.cups.10.reversed": {
-      "sha256": "70949d5b42f0c329818929bdad16c0aae976bc1946c2de92f60fbc8b654af93d",
+      "sha256": "e53ee97297b9dbb862bf4e4fa63647bb11f5ac5c3bc09f5adbae6f8590e6b2c7",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -732,10 +795,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "70949d5b42f0c329818929bdad16c0aae976bc1946c2de92f60fbc8b654af93d"
     },
     "overall.cups.11.upright": {
-      "sha256": "2ba5505f1e7a23fe5f68ccc89dc1ee371dfcb7e82f437b7d4b07c41a3924e882",
+      "sha256": "99d6ee055fb4d096c184071657dd788326e2e00030041d918d53a4401345ac93",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -743,10 +807,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "2ba5505f1e7a23fe5f68ccc89dc1ee371dfcb7e82f437b7d4b07c41a3924e882"
     },
     "overall.cups.11.reversed": {
-      "sha256": "23d3fce527a3f529b8dea06d910bd6c0fbed6da193dc4a7b59a87ccba2ee552b",
+      "sha256": "9d481406916eeb1904a594dee75372d726ca5bc962ab8557988fecd883e4f576",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -754,10 +819,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "23d3fce527a3f529b8dea06d910bd6c0fbed6da193dc4a7b59a87ccba2ee552b"
     },
     "overall.cups.12.upright": {
-      "sha256": "291ca97bace8e5e519326888b0dd496dd65b78565932a3f83c78c7c1cd4e1acf",
+      "sha256": "12ecfd154329b6c85a77724b5a1502ddf15fffbcf568eea9eac82528c0733b69",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -765,10 +831,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "291ca97bace8e5e519326888b0dd496dd65b78565932a3f83c78c7c1cd4e1acf"
     },
     "overall.cups.12.reversed": {
-      "sha256": "24665bcbd93e83985352b3e8ec178755136834a2a35e232d536ce7fdf5c8e583",
+      "sha256": "5b52a856b1681dee8209c06dc24ba8282934afac4d7fae0b7d4fbf4854396d4c",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -776,10 +843,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "24665bcbd93e83985352b3e8ec178755136834a2a35e232d536ce7fdf5c8e583"
     },
     "overall.cups.13.upright": {
-      "sha256": "cac90b5ccb8497f5f66116b863dd0f16b1ae97c93697a333c6b2d37c3733468f",
+      "sha256": "d7068a7ff3adea92383f0685a1563e7ab0fce98560a43266f0bfb788b480b6e4",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -787,10 +855,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "cac90b5ccb8497f5f66116b863dd0f16b1ae97c93697a333c6b2d37c3733468f"
     },
     "overall.cups.13.reversed": {
-      "sha256": "1fd4dc1fd13c68cce4ebfb1b4c28ca59ceb2637c3e5be0148648395822260f43",
+      "sha256": "746fd7ee53393cdb80d779f253212bc10c88ea12af173c76035a4db82f0361c4",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -798,10 +867,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "1fd4dc1fd13c68cce4ebfb1b4c28ca59ceb2637c3e5be0148648395822260f43"
     },
     "overall.cups.14.upright": {
-      "sha256": "b97e96db4721eb2a2db461b99661de6f97ed801115a11e8d1fc9ac772f666957",
+      "sha256": "eb31ffaf3c4b84bac07aa6d5c34b3d04c90c5f0bbdd0229b6793f88f1e77355b",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -809,10 +879,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "b97e96db4721eb2a2db461b99661de6f97ed801115a11e8d1fc9ac772f666957"
     },
     "overall.cups.14.reversed": {
-      "sha256": "e1a6c9c591623a587816ed36cfb2eb9fa8fb611857bcf4e4a06aa894433c16c7",
+      "sha256": "44e6340633ef463f58680f1adf22cd4ed59450f9875464f121faa83c03772931",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -820,10 +891,11 @@
         "do",
         "pause"
       ],
-      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/major-cups.author-review.json",
+      "previous_bundle_sha256": "e1a6c9c591623a587816ed36cfb2eb9fa8fb611857bcf4e4a06aa894433c16c7"
     },
     "overall.swords.01.upright": {
-      "sha256": "2dfaa39fbb82a448218beac687b4cc7f8da1a8bd42e8f6633085ee9ccc68dac8",
+      "sha256": "3098aaeb218d70fd04f1b522591b256cbde1c6e569417833eb4bcfbd95cd2221",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -831,10 +903,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "2dfaa39fbb82a448218beac687b4cc7f8da1a8bd42e8f6633085ee9ccc68dac8"
     },
     "overall.swords.01.reversed": {
-      "sha256": "128f5affe6dd08268947dbf06a6d0e4d4faea85369c4855cb98c6d713b82b76e",
+      "sha256": "9ee103bc2a83b8a75ea56ddac2e423deeb4b322805d808d37750debcc5230113",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -842,10 +915,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "128f5affe6dd08268947dbf06a6d0e4d4faea85369c4855cb98c6d713b82b76e"
     },
     "overall.swords.02.upright": {
-      "sha256": "507a57cadd752e57041bf317ae935b330b68201dd257255f4bb40b9aee9e340c",
+      "sha256": "c07ee0a3b5724a3d74ee6ef9cb5ff8f7965b46e8e1aefc3f111c87182a32b100",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -853,10 +927,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "507a57cadd752e57041bf317ae935b330b68201dd257255f4bb40b9aee9e340c"
     },
     "overall.swords.02.reversed": {
-      "sha256": "016dd0b4f942d18afecf91c444550629d3cb726b1e09ad4a137dee40e47f0cbf",
+      "sha256": "56ef61c89786598846ed2e66d2cd753f8f0d3a2396086fc59c804b7f2c8cee6f",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -864,10 +939,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "016dd0b4f942d18afecf91c444550629d3cb726b1e09ad4a137dee40e47f0cbf"
     },
     "overall.swords.03.upright": {
-      "sha256": "126fe5b3b2d90df8d37f0ba11b4bf44d38e67e8540d4d6d80de7e137874dff0b",
+      "sha256": "0f8b6a900a3424e856829675f2153f5d35f8ee47008aa1ace8e6d24a453c6b49",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -875,10 +951,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "126fe5b3b2d90df8d37f0ba11b4bf44d38e67e8540d4d6d80de7e137874dff0b"
     },
     "overall.swords.03.reversed": {
-      "sha256": "2f9540ddcb547ac35a84d7d63dda8170e0a1f8095e9487bb5a6fa53ee711e805",
+      "sha256": "4d1c4f2ddc25c687625be9ae0d63d272ae67fa2a9e6ee0c57e35119cf22e49c5",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -886,10 +963,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "2f9540ddcb547ac35a84d7d63dda8170e0a1f8095e9487bb5a6fa53ee711e805"
     },
     "overall.swords.04.upright": {
-      "sha256": "18a4d5f05eb2ce64f6b8b8a860b8e33da4ecde1dff1556000dd2c359953fe9ab",
+      "sha256": "1a668531aaba1238a25fe70aa465ccb16dd1c76fee5668afa2887a0300f63593",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -897,10 +975,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "18a4d5f05eb2ce64f6b8b8a860b8e33da4ecde1dff1556000dd2c359953fe9ab"
     },
     "overall.swords.04.reversed": {
-      "sha256": "3f9ec26530134d4e9407d36086636ac27f8f2d8a32bdf9d8ea47dcf150decf22",
+      "sha256": "a9bc355faf83ef431be0c4180aee7291661aa51233a95df07257c8814cdfefc1",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -908,10 +987,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "3f9ec26530134d4e9407d36086636ac27f8f2d8a32bdf9d8ea47dcf150decf22"
     },
     "overall.swords.05.upright": {
-      "sha256": "b154b663814cf2795bf7f139ee78a4aca17eee42497cbb11c425e2b76fa89493",
+      "sha256": "ae0f0fa483caf076928a5f6e274614cc99439627eb2985b31130ac1c37234a2e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -919,10 +999,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "b154b663814cf2795bf7f139ee78a4aca17eee42497cbb11c425e2b76fa89493"
     },
     "overall.swords.05.reversed": {
-      "sha256": "40a2368c3eba4ddeb0ff18c905f38707b8be6815ca358ba75697c95580f70d07",
+      "sha256": "ac9979349da49f11079d77130c571e97b5decf6acce4600b61b66c4fea74b0e0",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -930,10 +1011,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "40a2368c3eba4ddeb0ff18c905f38707b8be6815ca358ba75697c95580f70d07"
     },
     "overall.swords.06.upright": {
-      "sha256": "02cf578ad51e31726ebe9fb9996ac3c513a9a3775d4d8d1b894852ee8734f6ee",
+      "sha256": "a6c7b81564e468fe7033f7abf525af995852364eb18f880962c23dfeb8f2c002",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -941,10 +1023,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "02cf578ad51e31726ebe9fb9996ac3c513a9a3775d4d8d1b894852ee8734f6ee"
     },
     "overall.swords.06.reversed": {
-      "sha256": "8e0a66f6e5b49ecb3cce361d1081004cca8cafae5941a931bbb1ac70505c8424",
+      "sha256": "941c5177bb4dcc809323630197222ebbdd4105a6638052342823a92ef26991ac",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -952,10 +1035,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "8e0a66f6e5b49ecb3cce361d1081004cca8cafae5941a931bbb1ac70505c8424"
     },
     "overall.swords.07.upright": {
-      "sha256": "fde88a3009d4cabcef10c97f4671d50cc0065496ba0e2d724f98f866722ed148",
+      "sha256": "86c306e028d7e0f818f55f0256e1e70861b076116f439ade9bf3bee835c9fc66",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -963,10 +1047,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "fde88a3009d4cabcef10c97f4671d50cc0065496ba0e2d724f98f866722ed148"
     },
     "overall.swords.07.reversed": {
-      "sha256": "0ddec3242c011d7ff9f42b3b6ab8cb084d01b14ddab7be48f54c91983ad39ca9",
+      "sha256": "da812f220c7de5cfc716e90a8db2ff10affa8a52defcac3a77e90874708152ba",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -974,10 +1059,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "0ddec3242c011d7ff9f42b3b6ab8cb084d01b14ddab7be48f54c91983ad39ca9"
     },
     "overall.swords.08.upright": {
-      "sha256": "275c0d08c71dabf3bc8ce968009a925a007afa8d43ac66139ea3117cc77909b0",
+      "sha256": "da0a7ae676a5e6d1f512c06359a954c4fb1e7b73ec799cb11cfa1bc161f14d97",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -985,10 +1071,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "275c0d08c71dabf3bc8ce968009a925a007afa8d43ac66139ea3117cc77909b0"
     },
     "overall.swords.08.reversed": {
-      "sha256": "a5a4506b1d6ed9c7d33a8a9904fcc514ca2f7418a8efb6313dfd0f17910e386b",
+      "sha256": "72a28ac25c714dd2fac5e4540332bc961109dc32e39ffa61eb62bb1f338c52c1",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -996,10 +1083,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "a5a4506b1d6ed9c7d33a8a9904fcc514ca2f7418a8efb6313dfd0f17910e386b"
     },
     "overall.swords.09.upright": {
-      "sha256": "4f03ff7c3461738b160e8c3de227759dbc4f6261612a66aff6e917ecf13ebdc7",
+      "sha256": "a5c75ec4d97b5ffb0b1cb2c16bf2b88b95bafd8eb9b8372b5b58c222d6abd9b6",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1007,10 +1095,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "4f03ff7c3461738b160e8c3de227759dbc4f6261612a66aff6e917ecf13ebdc7"
     },
     "overall.swords.09.reversed": {
-      "sha256": "3c3277d45bc2d57a88afd8456fa1c590c25db436b1867b104ad554c08327df74",
+      "sha256": "65f946f49f09a22b0c888fd1189281201424f014a9cf5d0567df3fc94c2953cc",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1018,10 +1107,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "3c3277d45bc2d57a88afd8456fa1c590c25db436b1867b104ad554c08327df74"
     },
     "overall.swords.10.upright": {
-      "sha256": "3f1e9f17540e5921d007b514c096c569e540e88955ae21e43791c0a2a2c15920",
+      "sha256": "05a94c165ef00ba63b506e585557f1d64a94ee5635d4abb51e1f66a90778a286",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1029,10 +1119,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "3f1e9f17540e5921d007b514c096c569e540e88955ae21e43791c0a2a2c15920"
     },
     "overall.swords.10.reversed": {
-      "sha256": "ed234d1726554cdd7b6588363f612a646b62552f06e6fea634d53d53cfb89601",
+      "sha256": "fac5153c2a5e0affa33fa2e8ea64e5afd8e3bb8c8cad08ca873864dff11b0356",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1040,10 +1131,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "ed234d1726554cdd7b6588363f612a646b62552f06e6fea634d53d53cfb89601"
     },
     "overall.swords.11.upright": {
-      "sha256": "adb50239ca0799146ad9dc73ac6e0d2ee904ae43c945412fdc74f4d9024aa713",
+      "sha256": "9fbbf0d12835c2ab4b62b7e9f0af6910ffc23bd6c872373a08102e0744340314",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1051,10 +1143,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "adb50239ca0799146ad9dc73ac6e0d2ee904ae43c945412fdc74f4d9024aa713"
     },
     "overall.swords.11.reversed": {
-      "sha256": "7f6a47874754b15cea2e5921999ce8d9d453900b9fd9869106087b2a0813d6f1",
+      "sha256": "be865d3d8f5d6226fadc74af42e2a599cbaded56d480bb32503042a2834237aa",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1062,10 +1155,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "7f6a47874754b15cea2e5921999ce8d9d453900b9fd9869106087b2a0813d6f1"
     },
     "overall.swords.12.upright": {
-      "sha256": "9af0ca4b901770a87668c39a3c1807f5145673464add87673b03e99ab99b3085",
+      "sha256": "01bd6753010fc5cde93752f02383b4d64dfa21790e582599ebe373366ed4733a",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1073,10 +1167,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 소드 검수 반려를 반영하고 번들 전체 재독. 지시 대상과 주체를 명확히 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "9af0ca4b901770a87668c39a3c1807f5145673464add87673b03e99ab99b3085"
     },
     "overall.swords.12.reversed": {
-      "sha256": "7887574ab1c0440b4fa942000a044624a08f85aa0f08178c943e2d8937f0e5b6",
+      "sha256": "968d52276b283a1456ce4f33ef2c71e4c489e9afdac1279c64f12eaf3bbae437",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1084,10 +1179,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "7887574ab1c0440b4fa942000a044624a08f85aa0f08178c943e2d8937f0e5b6"
     },
     "overall.swords.13.upright": {
-      "sha256": "de2fa1f9a7681768728421ad570dad908ee25c1cf61148be1d8e14d08ca5b0a3",
+      "sha256": "34e9f889aa8165b6cb59d79f0c284c66750c95d6be1703f62f8b6b6ea43450de",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1095,10 +1191,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "de2fa1f9a7681768728421ad570dad908ee25c1cf61148be1d8e14d08ca5b0a3"
     },
     "overall.swords.13.reversed": {
-      "sha256": "d99d9c4951f9d845fdbbcf59775dbe1ad6b7bb54950e0537750612ef21c11aef",
+      "sha256": "3c041939d0722c7f2add3bf3c82b7c0f1f9d234fe42e3b3dcb4d21b63a34edf0",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1106,10 +1203,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 소드 검수 반려를 반영하고 번들 전체 재독. 지시 대상과 주체를 명확히 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "d99d9c4951f9d845fdbbcf59775dbe1ad6b7bb54950e0537750612ef21c11aef"
     },
     "overall.swords.14.upright": {
-      "sha256": "ef24dedfb7e278745f0af37b975457736eeb1bb683f1fc9569ec63ecabf90416",
+      "sha256": "9a525839dbbf3a6ba17f393dd0979e1bcd33e6ef3a0e41b2964223617818e682",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1117,10 +1215,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "ef24dedfb7e278745f0af37b975457736eeb1bb683f1fc9569ec63ecabf90416"
     },
     "overall.swords.14.reversed": {
-      "sha256": "fa424a22887105cd34dd9cfaa0cc408f5998a3dd9e53c140089dba5985e2cb84",
+      "sha256": "db018eff9af6b8a814a06c5f525204e075d9c598383e7bb33949ede83b3fce1a",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1128,10 +1227,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "fa424a22887105cd34dd9cfaa0cc408f5998a3dd9e53c140089dba5985e2cb84"
     },
     "overall.wands.01.upright": {
-      "sha256": "3072f5e9c71d7f515832530252d2150fd2416e054362463dcc6bc020b05eeb4a",
+      "sha256": "166bdae6fa3a16671dbf79fd8d31834be36db3b92620705e1f6163597f2e57d4",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1139,10 +1239,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "3072f5e9c71d7f515832530252d2150fd2416e054362463dcc6bc020b05eeb4a"
     },
     "overall.wands.01.reversed": {
-      "sha256": "6dd840fb63be0041249f3f583316596d6a81acc406060d7cc6a3be7bb0eafd73",
+      "sha256": "6505691a8b10d7ca73de93b8c6261a99f1d525fbd7b87d72f10030699c56cb29",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1150,10 +1251,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "6dd840fb63be0041249f3f583316596d6a81acc406060d7cc6a3be7bb0eafd73"
     },
     "overall.wands.02.upright": {
-      "sha256": "fc452bf0b383a2a344647f20579006e97e55b30c1a14b6e6718076026857187e",
+      "sha256": "86c34ddc1243480aa171d63bbd91f4c654f5fae24000956700e8bcdc83b7ed8f",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1161,10 +1263,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "fc452bf0b383a2a344647f20579006e97e55b30c1a14b6e6718076026857187e"
     },
     "overall.wands.02.reversed": {
-      "sha256": "d2817033721ac0f5d11d04e64ef7d41a779b03422447fa9f510e166b9073e225",
+      "sha256": "b67668fb3a2300e3acbace7d2cd1ec3959e38478630b70e449d5e99dc04adb92",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1172,10 +1275,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "d2817033721ac0f5d11d04e64ef7d41a779b03422447fa9f510e166b9073e225"
     },
     "overall.wands.03.upright": {
-      "sha256": "eb4ff64379967be8b4fe529fb8d7caf3913b0bea285c2e4760d913a459347bd3",
+      "sha256": "4d9c6a6096977cdfe256ba4ed33a7b3d22081f585a2a9ba97c618ceff0c99b2e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1183,10 +1287,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "eb4ff64379967be8b4fe529fb8d7caf3913b0bea285c2e4760d913a459347bd3"
     },
     "overall.wands.03.reversed": {
-      "sha256": "30b16ba1deebd3b3ae85f9fb53e3776fe96a6b8e0b3b59fece952cff95c61efb",
+      "sha256": "371c50229e91c4bfa54ae9159da23ae9721a503e4ea01127b42634a06c76771b",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1194,10 +1299,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 완드1~7 검수 반영 후 전체 번들 재독. 목적어 결합과 행정적 표현 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "30b16ba1deebd3b3ae85f9fb53e3776fe96a6b8e0b3b59fece952cff95c61efb"
     },
     "overall.wands.04.upright": {
-      "sha256": "939dd36a1ef422f599a336589eddcbdec7fd8ec7b0beac25f1fd58ddadf47a48",
+      "sha256": "4bae83d62371326bdc89c88d561d5ed7e8119bbc273df858bb1312035a0beb15",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1205,10 +1311,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "939dd36a1ef422f599a336589eddcbdec7fd8ec7b0beac25f1fd58ddadf47a48"
     },
     "overall.wands.04.reversed": {
-      "sha256": "3b12dbb8af6f5577df026ea73b4df2d1aed60fe2c6307567dd7e0492f6bd8fca",
+      "sha256": "f5ada2bd2969e4d497463175f796ffcb981cfd15ad12dbd3f3c8eaf16bc6e8aa",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1216,10 +1323,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "3b12dbb8af6f5577df026ea73b4df2d1aed60fe2c6307567dd7e0492f6bd8fca"
     },
     "overall.wands.05.upright": {
-      "sha256": "845943d6a3d1f3fea9d3ed2c7218c830d029c047f8035102cd696b74e264c1fb",
+      "sha256": "a397de1c79f1d57552c53ca8d3c350b1db4a8975f94e57dd1aba02c93b5efaf8",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1227,10 +1335,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "845943d6a3d1f3fea9d3ed2c7218c830d029c047f8035102cd696b74e264c1fb"
     },
     "overall.wands.05.reversed": {
-      "sha256": "2dc0896802dac790fcaf0f5189710c03bfff4d3ac795b90497fcaef4d9b885fb",
+      "sha256": "559d124381ca83c69da97bd6c2364d50e39d16744b9444c19321551b67363472",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1238,10 +1347,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "2dc0896802dac790fcaf0f5189710c03bfff4d3ac795b90497fcaef4d9b885fb"
     },
     "overall.wands.06.upright": {
-      "sha256": "bc4b49cbdf0ef9815b349b3fcbc815144fc65369d79de98448a88a35adb363de",
+      "sha256": "552ce3d637e2efc5d0c7827bb92b2a5d9495a100ee33671209660ad35cf6d27b",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1249,10 +1359,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "bc4b49cbdf0ef9815b349b3fcbc815144fc65369d79de98448a88a35adb363de"
     },
     "overall.wands.06.reversed": {
-      "sha256": "ca89364796047cec66ad90ecd99cd1450850397c521631eff26fe290262bee50",
+      "sha256": "3711a43f15dfad97f31a01e7f06d94e52556b62322874e6dd4c7a130ddeaaaaa",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1260,10 +1371,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "ca89364796047cec66ad90ecd99cd1450850397c521631eff26fe290262bee50"
     },
     "overall.wands.07.upright": {
-      "sha256": "04fb835dba398d7684b57eec3edd6e80eb63dc63f402f9b60db9294aa11eb06c",
+      "sha256": "b3380ef03e9f7146bb9902cd08effb9b47a9e920f5dabe6cc5bac989a5e6dcb3",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1271,10 +1383,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "04fb835dba398d7684b57eec3edd6e80eb63dc63f402f9b60db9294aa11eb06c"
     },
     "overall.wands.07.reversed": {
-      "sha256": "69cab86e174f26e3f4828c65f92faa9be488044f62204e09114aed9d3cfbd6c5",
+      "sha256": "95fe04747677beeecdac55d0045f049c4c4b62e9b128f03b598768b1b87a289a",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1282,10 +1395,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "69cab86e174f26e3f4828c65f92faa9be488044f62204e09114aed9d3cfbd6c5"
     },
     "overall.wands.08.upright": {
-      "sha256": "db048b22217d7fd725f6064b402c5ef2d16aec0777c6edaf2e686a019db3bdb8",
+      "sha256": "328394f73f19ea122e0e215f86016fed76e43942dad35e624a76e74727e1ab93",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1293,10 +1407,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "db048b22217d7fd725f6064b402c5ef2d16aec0777c6edaf2e686a019db3bdb8"
     },
     "overall.wands.08.reversed": {
-      "sha256": "050e31ef4dd6c3369e182072b928ec9dcc1db7e683c1a42dde30535ba4811ab8",
+      "sha256": "ed533cf063be20a6d14898de5bebdf53392b248e3c29a8f3af8d808453a9464f",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1304,10 +1419,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "050e31ef4dd6c3369e182072b928ec9dcc1db7e683c1a42dde30535ba4811ab8"
     },
     "overall.wands.09.upright": {
-      "sha256": "ea61c1edf60c0a1e103fb80a20ea0202659e7f985e26425ca648bb87fd6cd76a",
+      "sha256": "015be7d1cfe2918331c1084dd11fe139ce2363d3a0ed3650de2192b0a2272e2f",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1315,10 +1431,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "ea61c1edf60c0a1e103fb80a20ea0202659e7f985e26425ca648bb87fd6cd76a"
     },
     "overall.wands.09.reversed": {
-      "sha256": "ed87914bc3840c41cbba97bd6251b711f583528fa15730ac485243d4a4d1a168",
+      "sha256": "97c20334ff825c40472cb269b3012ddf1a0fa9e7ac12c2697fe07fb5e7b93fa1",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1326,10 +1443,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "ed87914bc3840c41cbba97bd6251b711f583528fa15730ac485243d4a4d1a168"
     },
     "overall.wands.10.upright": {
-      "sha256": "5d329c185bc857dd1de5ce230bfc0c09ef122ffd8ce7b6276a0fd25589812158",
+      "sha256": "e2cdbfca59e44ad61385ef729449961a92e99a95cb18e3e4e9f71879d0fad826",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1337,10 +1455,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "5d329c185bc857dd1de5ce230bfc0c09ef122ffd8ce7b6276a0fd25589812158"
     },
     "overall.wands.10.reversed": {
-      "sha256": "d68f9b0d5604acbb6c6e3a8391172f657d5b0cf6172995435fb3df624cf94fdf",
+      "sha256": "fca88f1745b0a20d4cbf6516a6d85addb2372eda38ca514ef32f1ba1c9bb4812",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1348,10 +1467,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "d68f9b0d5604acbb6c6e3a8391172f657d5b0cf6172995435fb3df624cf94fdf"
     },
     "overall.wands.11.upright": {
-      "sha256": "172b4009807fe7b4e886da611e70c8f2d96b2b16f540ea663509a1010fda8e2b",
+      "sha256": "fa634ab51040d187c1816ac45e6b4b7507a33d34fc211c9712ccda38fbc9dd0b",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1359,10 +1479,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "172b4009807fe7b4e886da611e70c8f2d96b2b16f540ea663509a1010fda8e2b"
     },
     "overall.wands.11.reversed": {
-      "sha256": "d99567c26f25e85e8c0dc536a2c1e8022fbbdd949a5bccacd70b9bf4b8908032",
+      "sha256": "0eaf66ecbcbe6ca26f966aada404e2ada4e61fcd87c32cfde330830a11e68686",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1370,10 +1491,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "d99567c26f25e85e8c0dc536a2c1e8022fbbdd949a5bccacd70b9bf4b8908032"
     },
     "overall.wands.12.upright": {
-      "sha256": "312964cf9f41c159a2ce56d9a8a3c2d2487f9ce5503d31ffd346dca825bc9ffe",
+      "sha256": "6bde6895d36eb8a3e305e0802a284b6f1486c1868159158a10e520e1ba37ed42",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1381,10 +1503,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "312964cf9f41c159a2ce56d9a8a3c2d2487f9ce5503d31ffd346dca825bc9ffe"
     },
     "overall.wands.12.reversed": {
-      "sha256": "d89088d85df66665c38da735fafdf05a0b00f32f2b571d2135204d850fb0abd2",
+      "sha256": "e8f4f7668e5c792f03fac0f47f4e1c51f5793773cdff6eadf10a7d708c2cca93",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1392,10 +1515,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "d89088d85df66665c38da735fafdf05a0b00f32f2b571d2135204d850fb0abd2"
     },
     "overall.wands.13.upright": {
-      "sha256": "13904906e6032ce6049c10dae98b478eecfc9f16a6f5a5a434264ffa00fea3bf",
+      "sha256": "d59c0f94acd1e2da12145c31ed80cfa0b063ffe03ed7954045218a9dd84caaf8",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1403,10 +1527,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "13904906e6032ce6049c10dae98b478eecfc9f16a6f5a5a434264ffa00fea3bf"
     },
     "overall.wands.13.reversed": {
-      "sha256": "725eab55afc2f0470505fc2bb490e0e1a4e023efaa639d2799a8f899fd6065ee",
+      "sha256": "4fb8e3a6e59cc47e3e41663bbabd784d9983f629fe90234cac516ec2e20bc6ef",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1414,10 +1539,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "725eab55afc2f0470505fc2bb490e0e1a4e023efaa639d2799a8f899fd6065ee"
     },
     "overall.wands.14.upright": {
-      "sha256": "314f35b306cb3605dca70154b82d75afe4fa76705a2169964a6aa56f2af134cd",
+      "sha256": "e2ac410a1df001a3b1c35273dce11303eb31bb9a0cf4dc6f54bb758a3a3a52c5",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1425,10 +1551,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "314f35b306cb3605dca70154b82d75afe4fa76705a2169964a6aa56f2af134cd"
     },
     "overall.wands.14.reversed": {
-      "sha256": "973de92a278fe73362bc15d61b9ce9eda732a8791085f24829566d41eeeaf7f2",
+      "sha256": "f2e73a8eb5fcddeaadbabeb1dd5eb5818584a35529935491faaccbbd8dac148c",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1436,10 +1563,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "973de92a278fe73362bc15d61b9ce9eda732a8791085f24829566d41eeeaf7f2"
     },
     "overall.pentacles.01.upright": {
-      "sha256": "11fa7b4a19c126fc4242cf6f2556471192d0853c1af7d74d02ed636a0709969e",
+      "sha256": "20340470eef28bc72fd1cde95dffb4155558318d69d0ca5668c3fd3af2ac13d5",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1447,10 +1575,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "11fa7b4a19c126fc4242cf6f2556471192d0853c1af7d74d02ed636a0709969e"
     },
     "overall.pentacles.01.reversed": {
-      "sha256": "f72dcd92cf7f968582852d641185f48df732e1f7e85fee400e20ab1c340e3fd0",
+      "sha256": "8b3dc980eaee1e731574af66f76e8fe6e710436dac97c26dc0813cc71bf59af5",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1458,10 +1587,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "f72dcd92cf7f968582852d641185f48df732e1f7e85fee400e20ab1c340e3fd0"
     },
     "overall.pentacles.02.upright": {
-      "sha256": "c811465d70dd4d53da7cc934be2d8b5b81a73c6e9cc9cb50e688ee370f843e7f",
+      "sha256": "8ceb021375b45608830c4e60d70f23fa680ca8e0f56774348843c4186629b295",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1469,10 +1599,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "c811465d70dd4d53da7cc934be2d8b5b81a73c6e9cc9cb50e688ee370f843e7f"
     },
     "overall.pentacles.02.reversed": {
-      "sha256": "9714797c4c380336bd9620d2a168d0b2a6a6715f724c1c2aa6a01a7721f8cb4f",
+      "sha256": "388ddc6874ce3eb75fbec186f8c1f3676a6a79954b28f9387a8d3e55747c9bcf",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1480,10 +1611,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "9714797c4c380336bd9620d2a168d0b2a6a6715f724c1c2aa6a01a7721f8cb4f"
     },
     "overall.pentacles.03.upright": {
-      "sha256": "21be107ea79672bd6c4e4e0b7dcd21cae32cd4096c96960937393d03fe06db58",
+      "sha256": "32dc888a9df25c7db9c132f73f748dd416dea144a6440e2a76b2541e35106c26",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1491,10 +1623,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "21be107ea79672bd6c4e4e0b7dcd21cae32cd4096c96960937393d03fe06db58"
     },
     "overall.pentacles.03.reversed": {
-      "sha256": "56ae30b4120ead962e6ba1521dcd72b2bdfc888435fa246b4c014fc601cd4467",
+      "sha256": "460bbde64620d8c87bc64bbd8fed12d22c2391aaaefc3b6a2502b4a09c785c8a",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1502,10 +1635,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "56ae30b4120ead962e6ba1521dcd72b2bdfc888435fa246b4c014fc601cd4467"
     },
     "overall.pentacles.04.upright": {
-      "sha256": "d21f2448df8d9d9e2b89a92274b2e5378e97872a15bbde37224e924f374824b7",
+      "sha256": "b0ed6c0ee200094c3b42af06f58470a43f29c70c81a9e606a76614dc38e9c676",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1513,10 +1647,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "d21f2448df8d9d9e2b89a92274b2e5378e97872a15bbde37224e924f374824b7"
     },
     "overall.pentacles.04.reversed": {
-      "sha256": "a6bfae29c27228855a2fccc604344e2cd83ac7e1a81fd0ca386f957ce8c2ba2e",
+      "sha256": "17ad43841c5ae2fb14614c7c0a01ca8c999613ef4630f53abfa47e1a86180576",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1524,10 +1659,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "a6bfae29c27228855a2fccc604344e2cd83ac7e1a81fd0ca386f957ce8c2ba2e"
     },
     "overall.pentacles.05.upright": {
-      "sha256": "76192ea84ca4637d6c60ee0d4c52ad65507081750e0327d766e2cb7afb416bd0",
+      "sha256": "7f5020d386ecb4ad209491c09e718857baaac883a7775d8dd3f96ae4d55f1797",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1535,10 +1671,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "76192ea84ca4637d6c60ee0d4c52ad65507081750e0327d766e2cb7afb416bd0"
     },
     "overall.pentacles.05.reversed": {
-      "sha256": "932e14df2c20644151142e802ccc544dc20dce4d01adcb379e477f1922782bb5",
+      "sha256": "4c39ccfe903d4aa085b31b9894b267b168ab84154f537c69a05e221c834cf8a1",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1546,10 +1683,11 @@
         "do",
         "pause"
       ],
-      "judgment": "최종 배치 교정 후 headline·본문 두 단락·do·pause 전체를 다시 읽고 문맥 및 명확성 확인."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "932e14df2c20644151142e802ccc544dc20dce4d01adcb379e477f1922782bb5"
     },
     "overall.pentacles.06.upright": {
-      "sha256": "7986e9a11c8f9ef85a294f4f022d7fdefaf5a47d5c59c507f70df9a4938cb359",
+      "sha256": "1a0fbe4a8ffd6e2b8abff4955e6dfc0a49c80cd280dc72c231f513d6663433f1",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1557,10 +1695,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "7986e9a11c8f9ef85a294f4f022d7fdefaf5a47d5c59c507f70df9a4938cb359"
     },
     "overall.pentacles.06.reversed": {
-      "sha256": "fc12cb692e74330bd0f071117c7851022f947ed00f91703003642feb6da20a8c",
+      "sha256": "2ffbe7189e5fc7a77c986d30747342b532045bbac68b970f3e9cd0bb9430799b",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1568,10 +1707,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "fc12cb692e74330bd0f071117c7851022f947ed00f91703003642feb6da20a8c"
     },
     "overall.pentacles.07.upright": {
-      "sha256": "26829b2ee7b4608444c745efd15ed92dafdcc4dda7518aa19bb26cd32f0610ca",
+      "sha256": "150607abe72a32e2113728a8c5389539ab84a7ba8cabcb6395b4b93212593b33",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1579,10 +1719,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "26829b2ee7b4608444c745efd15ed92dafdcc4dda7518aa19bb26cd32f0610ca"
     },
     "overall.pentacles.07.reversed": {
-      "sha256": "edd1c448c89c6ee8112a69c26634dc6594506231413bcbebe3095b93043ddec3",
+      "sha256": "c8ff622f7e0d1ef61e7d18b8e29efdde815bc43edbad094e2b63c46c5f4c66d4",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1590,10 +1731,11 @@
         "do",
         "pause"
       ],
-      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "edd1c448c89c6ee8112a69c26634dc6594506231413bcbebe3095b93043ddec3"
     },
     "overall.pentacles.08.upright": {
-      "sha256": "1ffb9bff68e972fc4071949fa7ecc3c5a682ec3ca210d8e57be1183d206d7685",
+      "sha256": "0acf84c68fedbf0eb18860194ef68df3b5cbc53a5e44f5729bbbaa7e5b49854e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1601,10 +1743,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "1ffb9bff68e972fc4071949fa7ecc3c5a682ec3ca210d8e57be1183d206d7685"
     },
     "overall.pentacles.08.reversed": {
-      "sha256": "a9855c3b7b9e9b43bfc6dd4c58e41455b7e5aa7d0a80e34668045b963bb3755b",
+      "sha256": "4690450f6b2c131fb030496e321acd45d53ccf1b90ded4b2a0d9b6a1b014cc59",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1612,10 +1755,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "a9855c3b7b9e9b43bfc6dd4c58e41455b7e5aa7d0a80e34668045b963bb3755b"
     },
     "overall.pentacles.09.upright": {
-      "sha256": "27d857b1582671ffc0ce27f13a53e2499bc5ce5812e406a0111e7b03056344f6",
+      "sha256": "0025b4234662fa816fc7ec10be5049886e038c729b7bc279140c12d7f5bee6ea",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1623,10 +1767,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "27d857b1582671ffc0ce27f13a53e2499bc5ce5812e406a0111e7b03056344f6"
     },
     "overall.pentacles.09.reversed": {
-      "sha256": "9cff7772be836af5647f6c78462bf32cb38d8ad24a224a25a81e1d406ae45a4c",
+      "sha256": "e8b68c0bcb41c191708596789c44398314b1e30e3953e3393a133c87ecd6fe88",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1634,10 +1779,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "9cff7772be836af5647f6c78462bf32cb38d8ad24a224a25a81e1d406ae45a4c"
     },
     "overall.pentacles.10.upright": {
-      "sha256": "9dca9f9cec2c42acee4b6cdfd6273f962e0c0999259c800c46c826ce7979ae93",
+      "sha256": "5c83a42876647420ad29330fef2095bf04919c8c961737f5b2f3598abeef9bea",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1645,10 +1791,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "9dca9f9cec2c42acee4b6cdfd6273f962e0c0999259c800c46c826ce7979ae93"
     },
     "overall.pentacles.10.reversed": {
-      "sha256": "5618e61efc002e07c7d8b67cbf4b9a1c8046cb7fc82def7533d79ace52354b27",
+      "sha256": "0651936821dff154979bedced9ff14fe9d0b1a79326c16518dc6190fb2a0f523",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1656,10 +1803,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "5618e61efc002e07c7d8b67cbf4b9a1c8046cb7fc82def7533d79ace52354b27"
     },
     "overall.pentacles.11.upright": {
-      "sha256": "f510d0d0b5115020fbbd85424e58d997262db2c0cbdf7b99e3ed90e2155adbbd",
+      "sha256": "37aeb868f6a8b547ee0163d8355ba7e943da8286373802a03e56a4f046584f4e",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1667,10 +1815,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "f510d0d0b5115020fbbd85424e58d997262db2c0cbdf7b99e3ed90e2155adbbd"
     },
     "overall.pentacles.11.reversed": {
-      "sha256": "24ec5a085caed49f4b1d09bda68da0c490307361ac8bd031a96f40ea9a010e19",
+      "sha256": "eefcc4fd45907623d0f7906dfc8cccdfa0430f373e204d096181d7bdc0a53199",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1678,10 +1827,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "24ec5a085caed49f4b1d09bda68da0c490307361ac8bd031a96f40ea9a010e19"
     },
     "overall.pentacles.12.upright": {
-      "sha256": "fe9aa220a6d9223777ee6a51899a070e1949111a417b7beb811ea9381f2c2737",
+      "sha256": "6a144d3c8c5ab23bb1c96b5dd237861082fb6248b03a82315ed7f4b4b4d972c9",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1689,10 +1839,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "fe9aa220a6d9223777ee6a51899a070e1949111a417b7beb811ea9381f2c2737"
     },
     "overall.pentacles.12.reversed": {
-      "sha256": "20d0de78f522dc201588c90cf955e5bbad75a3b8b6419f78bf1d0e76b54987b2",
+      "sha256": "d11e28ff3f9c15459d50439e1e9fcc01e80d0ddd3e8c94897839663485800b13",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1700,10 +1851,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "20d0de78f522dc201588c90cf955e5bbad75a3b8b6419f78bf1d0e76b54987b2"
     },
     "overall.pentacles.13.upright": {
-      "sha256": "3c4ff7f44e0027a54d45d989da8ca8b5975438403b4af274c9a672620706f40a",
+      "sha256": "63432c70c1c10643c09c9960589b050dc091760b40fb9c77f3c22380b65d2fab",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1711,10 +1863,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 최종14개 반려 후 해당 번들 전체 재독. 부자연스러운 명사 결합을 구체 생활 결과로 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "3c4ff7f44e0027a54d45d989da8ca8b5975438403b4af274c9a672620706f40a"
     },
     "overall.pentacles.13.reversed": {
-      "sha256": "8b70c6ca5f280b4c87d1eeb972895aac4647fb35f6f857bc4be16efd8751a34a",
+      "sha256": "06d4bb6f857792217aa23d4bcfdf99a2cb515afffed711fd2cbf70763751ae2a",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1722,10 +1875,11 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "8b70c6ca5f280b4c87d1eeb972895aac4647fb35f6f857bc4be16efd8751a34a"
     },
     "overall.pentacles.14.upright": {
-      "sha256": "12a305dff2f0d6b17e4f9ccc147b5804ac353db217260c0aa4f9a2244dbe6a54",
+      "sha256": "a4509a95a60da242c84625f61a50c787b9568001f4274ec3b2c237b487baa241",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1733,10 +1887,11 @@
         "do",
         "pause"
       ],
-      "judgment": "root 최종14개 반려 후 해당 번들 전체 재독. 부자연스러운 명사 결합을 구체 생활 결과로 교정."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "12a305dff2f0d6b17e4f9ccc147b5804ac353db217260c0aa4f9a2244dbe6a54"
     },
     "overall.pentacles.14.reversed": {
-      "sha256": "7b7e93ba6d41a323cb7d6310d5ff43f278f51c358512896db3f6c032c0317e8e",
+      "sha256": "d48b65066b61181f7e43b7548852c659f5954c72e4d738497fcb38f477a6f8fd",
       "read_scope": [
         "headline",
         "paragraphs[0]",
@@ -1744,7 +1899,8 @@
         "do",
         "pause"
       ],
-      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+      "judgment": "ko-actions.r2 작성자가 기존 본문과 새 두 행동을 실제 재독한 기록: ../ko-actions/minor-actions.author-review.json",
+      "previous_bundle_sha256": "7b7e93ba6d41a323cb7d6310d5ff43f278f51c358512896db3f6c032c0317e8e"
     }
   },
   "revision_log": [
@@ -2001,5 +2157,17 @@
     ]
   },
   "root_review_reference": "review.json:axes.overall (root가 현행 156개 전부 읽고 수용함. 작성자 검토와 별개 기록.)",
-  "final_self_read_scope": "총운 156개 각각의 headline·본문 두 단락·do·pause. 작성 시 전체 문장 읽기, root 반려 수정 시 번들 전체 재독. 현재 156개 해시와 root 현행 읽기 해시의 일치를 정적으로 확인함."
+  "final_self_read_scope": "총운 156개 각각의 headline·본문 두 단락·do·pause. 작성 시 전체 문장 읽기, root 반려 수정 시 번들 전체 재독. 현재 156개 해시와 root 현행 읽기 해시의 일치를 정적으로 확인함.",
+  "action_revision": {
+    "version": "fortune-copy.v8-localized.2",
+    "authors": [
+      "ko_overall_writer",
+      "ko_love_writer"
+    ],
+    "actual_pair_reads": 156,
+    "references": [
+      "../ko-actions/major-cups.author-review.json",
+      "../ko-actions/minor-actions.author-review.json"
+    ]
+  }
 }

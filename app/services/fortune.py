@@ -197,13 +197,13 @@ def _public_result(
         "overall": {
             "score": int(semantic["overall"]["score"]),
             "headline": rendered["overall"]["headline"],
+            "flow": list(rendered["overall"]["flow"]),
             "do": rendered["overall"]["do"],
             "pause": rendered["overall"]["pause"],
         },
         "lucky_color": dict(rendered["lucky_color"]),
     }
     if include_detail:
-        result["overall"]["flow"] = list(rendered["overall"]["flow"])
         result["categories"] = {
             category: {
                 "score": int(semantic["categories"][category]["score"]),

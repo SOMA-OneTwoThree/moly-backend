@@ -20,9 +20,9 @@
 
 기다리던 기회가 온다면 미루지 말고 받아들여봐. 좋은 결과가 난 일은 함께 기뻐해줄 사람에게 알려도 좋아.
 
-해볼 것: 기다리던 기회 받아들이기
+해볼 것: 오래 애쓴 일에서 좋은 결과를 얻었다면, 함께 기뻐해줄 가까운 사람에게 어떻게 됐는지 알려봐.
 
-조심할 것: 좋은 제안의 답을 계속 미루기
+조심할 것: 기다리던 제안이 왔을 때 답을 계속 미루지는 마. 받아들이고 싶은 마음이 있다면 상대에게 뜻을 분명하게 전해줘.
 
 **애정 · major.sun.upright**
 
@@ -80,9 +80,9 @@ Things could go smoothly today, with good news to match. Long-standing efforts m
 
 If a long-awaited opportunity comes along, take it without putting it off. Share a good result with someone who'll be pleased for you.
 
-해볼 것: Take an opportunity you've been waiting for
+해볼 것: If something you've worked on for a long time has gone well, tell someone close to you who will be happy to celebrate it with you.
 
-조심할 것: Putting off your reply to a good offer
+조심할 것: Don't keep putting off a reply when an offer you've been waiting for arrives. If you'd like to accept, make that clear to the other person.
 
 **애정 · major.sun.upright**
 
@@ -140,9 +140,9 @@ Feeling well doesn't mean you need to exercise longer than usual. Keeping your b
 
 待っていた機会が来たら、先延ばしにせず受け入れましょう。よい結果は、一緒に喜んでくれる人に伝えてもよさそうです。
 
-해볼 것: 待っていた機会を受け入れる
+해볼 것: 長く頑張ったことでよい結果が出たら、一緒に喜んでくれる身近な人に、どうなったか知らせてみましょう。
 
-조심할 것: よい提案への返事を先延ばしにし続ける
+조심할 것: 待っていた提案が来たら、返事を延ばし続けないようにしましょう。受けたい気持ちがあるなら、その意思を相手にはっきり伝えてください。
 
 **애정 · major.sun.upright**
 
@@ -202,9 +202,9 @@ Feeling well doesn't mean you need to exercise longer than usual. Keeping your b
 
 갑자기 상황이 바뀌면 잠깐 시간을 두고 결정해줘. 화가 난 채로 따지기보다 실제로 어떻게 된 일인지 설명부터 들어봐.
 
-해볼 것: 놀란 상태에서는 답을 잠시 미루기
+해볼 것: 뜻밖의 소식을 들었다면 바로 결론을 내리기 전에 무슨 사정이 있었는지 설명을 충분히 들어봐.
 
-조심할 것: 놀라거나 화난 채로 바로 따지기
+조심할 것: 놀라거나 화가 난 채로 곧바로 답하지는 마. 따지고 싶은 말이 떠올라도 잠깐 시간을 두면 후회할 말을 줄일 수 있어.
 
 **애정 · major.tower.upright**
 
@@ -262,9 +262,9 @@ Something that was going well could suddenly go wrong today. Plans you thought w
 
 Give yourself a moment before deciding what to do when circumstances change. Hear what actually happened before demanding answers in anger.
 
-해볼 것: Wait a moment before replying to surprising news
+해볼 것: If unexpected news arrives, hear the full explanation of what happened before jumping to a conclusion.
 
-조심할 것: Demanding answers while shocked or angry
+조심할 것: Don't reply immediately while shocked or angry. Even if you feel like arguing, a brief pause can help you avoid words you'll regret.
 
 **애정 · major.tower.upright**
 
@@ -322,9 +322,9 @@ If something feels wrong physically, stop instead of forcing yourself to finish 
 
 急に状況が変わったときは、少し時間を置いてから決めましょう。怒ったまま問い詰めず、実際に何があったのか、まず説明を聞いてください。
 
-해볼 것: 驚いているときは返事を少し待つ
+해볼 것: 思いがけない知らせを聞いたら、すぐに結論を出す前に、どんな事情があったのか十分に説明を聞きましょう。
 
-조심할 것: 驚きや怒りのまま、すぐに問い詰める
+조심할 것: 驚いたり腹を立てたりしたまま、すぐに返事をしないようにしましょう。問い詰めたくなっても、少し時間を置けば、後悔する一言を減らせます。
 
 **애정 · major.tower.upright**
 
@@ -384,9 +384,9 @@ If something feels wrong physically, stop instead of forcing yourself to finish 
 
 새로 확인한 내용을 기준으로 계획을 고쳐봐. 아직 답을 듣지 못한 부분까지 다 해결됐다고 여기지는 말아줘.
 
-해볼 것: 확인된 내용으로 계획 고치기
+해볼 것: 그동안 헷갈렸던 일의 사정을 알게 됐다면, 새로 확인한 내용에 맞춰 계획을 고쳐봐.
 
-조심할 것: 모르는 부분까지 짐작해 결론 내리기
+조심할 것: 오해가 풀렸다고 아직 듣지 못한 답까지 좋을 거라고 단정하지 마. 확인된 부분과 더 기다려야 할 부분은 구분해줘.
 
 **애정 · major.sun.upright**
 
@@ -442,9 +442,9 @@ An explanation may finally arrive for something that's left you puzzled. It's a 
 
 Adjust your plans to reflect what you've confirmed. Don't assume unanswered questions have been settled as well.
 
-해볼 것: Update your plans with confirmed information
+해볼 것: If you've learned what was behind a confusing situation, revise your plans to reflect the information you've now confirmed.
 
-조심할 것: Filling in what you don't know with guesses
+조심할 것: Don't assume the answers you're still waiting for will be good just because one misunderstanding has cleared up. Separate what's confirmed from what's still pending.
 
 **애정 · major.sun.upright**
 
@@ -500,9 +500,9 @@ Eating too much or overdoing physical activity could leave you uncomfortable tod
 
 新しく確認できたことに合わせて、計画を見直しましょう。まだ答えを得ていないことまで、すべて解決したとは考えないでください。
 
-해볼 것: 確認できたことに合わせて計画を直す
+해볼 것: よく分からずにいたことの事情が分かったら、新しく確認できた内容に合わせて、計画を見直してみましょう。
 
-조심할 것: 分からない部分まで推測して結論を出す
+조심할 것: 誤解が解けたからと、まだ聞いていない返事までよい内容だと決めつけないでください。確かめられたことと、まだ待つ必要があることを分けて考えましょう。
 
 **애정 · major.sun.upright**
 
@@ -560,9 +560,9 @@ Eating too much or overdoing physical activity could leave you uncomfortable tod
 
 아직 가능한 일과 이미 끝난 일을 구분해봐. 곁에서 도우려는 사람에게까지 차갑게 답하면 남아 있는 도움도 멀어질 수 있어.
 
-해볼 것: 지금 받을 수 있는 도움 살펴보기
+해볼 것: 기대한 일이 어긋났다면 다른 소식에도 귀를 기울여봐. 실망한 일만 생각하다가 아직 받을 수 있는 도움을 놓칠 수 있어.
 
-조심할 것: 실망한 마음을 도우려는 사람에게 쏟기
+조심할 것: 일이 잘 안됐다고 도와주려는 사람에게까지 화풀이하지는 마. 차갑게 대하면 받을 수 있던 도움도 놓칠 수 있어.
 
 **애정 · wands.04.reversed**
 
@@ -616,9 +616,9 @@ Not getting the result you expected may leave you disappointed today. Something 
 
 Separate what's still possible from what's already over. Responding coldly to someone who's trying to help could put the remaining support out of reach too.
 
-해볼 것: Look at the help still available to you
+해볼 것: If something you hoped for has gone wrong, keep listening for other news. Focusing only on the disappointment could make you miss help that's still available.
 
-조심할 것: Taking disappointment out on someone who's trying to help
+조심할 것: When things go wrong, don't take your frustration out on someone who's trying to help. A cold response could cost you support you could still receive.
 
 **애정 · wands.04.reversed**
 
@@ -672,9 +672,9 @@ You could gradually feel stronger after being worn out. If you've been sharply r
 
 まだできることと、すでに終わったことを分けてみましょう。助けようとしてくれる人にまで冷たく答えると、残っている助けも失いかねません。
 
-해볼 것: 今受けられる助けを確かめる
+해볼 것: 期待していたことがうまくいかなかったら、ほかの知らせにも耳を傾けてみましょう。残念だったことばかり考えていると、まだ受けられる助けを見逃すかもしれません。
 
-조심할 것: 助けようとしてくれる人に失望をぶつける
+조심할 것: 物事がうまくいかなくても、助けようとしてくれる人に八つ当たりしないでください。冷たく接すると、受けられたはずの助けまで失いかねません。
 
 **애정 · wands.04.reversed**
 

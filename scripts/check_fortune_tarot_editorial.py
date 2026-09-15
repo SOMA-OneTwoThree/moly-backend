@@ -106,7 +106,7 @@ def audit_localized() -> dict:
 
 def audit() -> dict:
     version = json.loads((ROOT / "app/resources/fortune/copy.v3.json").read_text()).get("copy_version", "")
-    if version == "fortune-copy.v8-localized.1":
+    if version.startswith("fortune-copy.v8-localized."):
         return audit_localized()
     from app.services import fortune_catalog
     fortune_catalog.load_catalog()

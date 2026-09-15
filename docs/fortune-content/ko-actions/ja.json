@@ -1,0 +1,1094 @@
+{
+  "overall.cups.01.reversed": {
+    "do": "気の進まない誘いを受けたら、正直な気持ちを伝えてみましょう。相手に合わせて、うれしいふりをして引き受ける必要はありません。",
+    "pause": "明るく声をかけたのに反応が薄くても、相手に悪気があると決めつけないでください。そっけない返事だけでは、相手の気持ちは分かりません。",
+    "source_ko_actions_sha256": "281d0344a78ee979c6b9d2f549a56bda09bef0ec0973d1d9f8402bf69486e63f",
+    "source_locale_bundle_sha256": "232826519ecb24c161ecf6a194633667fd4ad3ae9f856e6636035f98100d61dd",
+    "rationale": "내키지 않는 초대의 거절 허용과 약한 반응의 해석 유보를 구별했다."
+  },
+  "overall.cups.01.upright": {
+    "do": "行きたいと思えるお誘いには、その気持ちを伝えてみましょう。誘ってくれたことへのお礼も添えるとよさそうです。",
+    "pause": "初めて会った人に親切にしてもらったら、何も言わずに済ませないようにしましょう。短くてもお礼を伝えると、次も気軽に話しやすくなります。",
+    "source_ko_actions_sha256": "387888b0d272d295cec821a86e31e7be1e4ef8d93333a57046f7437505f53255",
+    "source_locale_bundle_sha256": "7f19769488005b378d945f744820fed5d6d7ee3b0a8bf41132a0d7f3b28a8ec7",
+    "rationale": "초대 참여 의사와 감사, 새 사람 친절에 답하는 이유를 유지했다."
+  },
+  "overall.cups.02.reversed": {
+    "do": "頼んだことが違う意味で伝わっていたら、もう一度説明しましょう。何をどうしてほしいのか、具体的に伝えてみてください。",
+    "pause": "頼み事で自分ばかり譲ったと感じても、不満を皮肉で伝えないようにしましょう。本当に望んでいることが、かえって伝わりにくくなります。",
+    "source_ko_actions_sha256": "06786fae07bf6be4e0225263f4873a003d47affe28b15213ad829303d345bcc7",
+    "source_locale_bundle_sha256": "cbc689ecfbf0d04d67f30ca171b904fbc7d52c9a2bdacb0ae67589d3b7fcae06",
+    "rationale": "요청의 내용·방법과 비꼼에 따른 전달 저하를 직접 연결했다."
+  },
+  "overall.cups.02.upright": {
+    "do": "助けてもらったら、自分にできることで感謝を伝えてみましょう。相手が何を必要としているか聞いて、できる範囲で手伝ってみてください。",
+    "pause": "気が合う相手でも、必要な助けまで察してくれるとは限りません。してほしいことがあれば、言葉でもはっきり伝えましょう。",
+    "source_ko_actions_sha256": "0562913abafb4dbac869e860face8ccc3f41ecd10961d552c8c74acbe12b9c80",
+    "source_locale_bundle_sha256": "b9addc09eff7e128f9514ae1858ab61678cad6392b966f2ce1b02e13ac8e1e0d",
+    "rationale": "상호 도움과 상대의 눈치에만 기대하지 않는 주의를 구분했다."
+  },
+  "overall.cups.03.reversed": {
+    "do": "集まりが続いていても気が進まなければ、予定していた時間に先に帰って大丈夫です。みんなに合わせて、最後まで付き合う必要はありません。",
+    "pause": "みんなが笑っていても、人の悪口に便乗しないようにしましょう。軽く言った冗談も、後から陰口として受け取られるかもしれません。",
+    "source_ko_actions_sha256": "d04e2b039e4e05e4ce46d6838c70b62361fcc7af988d255f3631cbfdae28ed62",
+    "source_locale_bundle_sha256": "e8b4981eef864a63676fa412d8b44ff497d28757b215ba3607ce0bf28ae93339",
+    "rationale": "모임은 계속되지만 본인이 떠나는 주어를 명시했다. 농담과 뒷말의 결과를 유지했다."
+  },
+  "overall.cups.03.upright": {
+    "do": "お祝い事があった人には、その知らせを聞いてうれしかったと、短くても伝えてみましょう。",
+    "pause": "お祝いの席では、場を盛り上げようとして人の悪口を言わないようにしましょう。",
+    "source_ko_actions_sha256": "967f288fac7fa3700f612c519258d3797154a6bf0ddc766679bb040b9e9e2403",
+    "source_locale_bundle_sha256": "3913beb8e76db978f3a6aa9ddf6da019d7aa3dd32fa09789a0a261c69cfe7903",
+    "rationale": "축하받는 사람에게 반가움을 전하는 뜻과 모임의 흉보기 주의를 각각 한 문장으로 완결했다."
+  },
+  "overall.cups.04.reversed": {
+    "do": "長く悩んでいたことに新しい知らせが届いたら、内容を確かめてみましょう。以前は思いつかなかった方法や選択肢がないか、探してみてください。",
+    "pause": "以前気に入らなかった提案でも、すぐに断らないようにしましょう。当時とは違い、今の事情には合うかもしれません。",
+    "source_ko_actions_sha256": "39b9fd23a26efc64eae4868296255b9c96a53fde8e2df70110eb6111c00feacd",
+    "source_locale_bundle_sha256": "883a7dd9c1a3f86abbf918929dd222cd663f22f654e523e48d4156f125d89136",
+    "rationale": "새 소식 확인은 다른 선택지 탐색으로 연결하고 재제안은 현재 사정으로 판단하게 했다."
+  },
+  "overall.cups.04.upright": {
+    "do": "新しい提案がつまらなく感じても、内容を見てみましょう。第一印象だけで見送ると、後から惜しくなるかもしれません。",
+    "pause": "待っていた知らせがまだ来ないという理由だけで、新しく届く提案をすべて断らないようにしましょう。",
+    "source_ko_actions_sha256": "8f05486a7c827b47fa5e7eaf49f69f605e26c52db6f9b750c62de72824a86fc0",
+    "source_locale_bundle_sha256": "db45ffd839d01e69a24531807372d11eb288861e218b0303af5e7db16063284f",
+    "rationale": "첫인상 판단과 기다림 때문에 모든 제안을 거절하는 행동을 구분했다."
+  },
+  "overall.cups.05.reversed": {
+    "do": "一度諦めたことを手伝うと言ってくれる人がいたら、話を聞いてみましょう。その助けがあれば、止まっていたことをどこから再開できるか、一緒に考えてみてください。",
+    "pause": "わだかまりのあった相手とまた話せたら、過去の失敗ばかり責め続けないようにしましょう。何を直せばよいか話し合う機会を逃しかねません。",
+    "source_ko_actions_sha256": "5fa3d1adc71975b561dbe171388b66a7bdd869024621e0b65fdd178185214101",
+    "source_locale_bundle_sha256": "4a41a72b4b43e9f8dcb0f75806f1747059173c5ff99f2366a3d0559c5f05523f",
+    "rationale": "재개 가능한 지점 찾기와 과거 비난이 수습 논의를 막는 관계를 유지했다."
+  },
+  "overall.cups.05.upright": {
+    "do": "期待していたことがうまくいかなかったら、ほかの知らせにも耳を傾けてみましょう。残念だったことばかり考えていると、まだ受けられる助けを見逃すかもしれません。",
+    "pause": "物事がうまくいかなくても、助けようとしてくれる人に八つ当たりしないでください。冷たく接すると、受けられたはずの助けまで失いかねません。",
+    "source_ko_actions_sha256": "2b950ae257ca452cd0f989cbc1a1f7d5022f7ad6f531c06cd9a61e538921db44",
+    "source_locale_bundle_sha256": "f308d82ab1567849fbe6ff6b99840841dfba96c069039ae3f34ce3f8db60eb50",
+    "rationale": "다른 소식에 주의하기와 조력자에게 화풀이하지 않기의 서로 다른 행동을 유지했다."
+  },
+  "overall.cups.06.reversed": {
+    "do": "以前うまくいかなかったことに再挑戦するなら、今の条件を確かめてみましょう。前に難しかった点が変わったかどうかも、確認してみてください。",
+    "pause": "以前うまくいったからと、今回も同じ結果になると決めつけないでください。今は当時と事情が違うかもしれません。",
+    "source_ko_actions_sha256": "48cf66b2b3e4b80717208d0e1aef1522bebde814b858afd48ed40680cd7d1d67",
+    "source_locale_bundle_sha256": "a88a8ce7252487696876676f95b0899686b5c21dfab80e010a35aa08fad0c710",
+    "rationale": "과거 실패의 조건 재확인과 과거 성공의 재현 단정 금지를 구별했다."
+  },
+  "overall.cups.06.upright": {
+    "do": "ふと思い出す昔からの知り合いがいたら、気軽に連絡してみましょう。どんなことをして過ごしていたか、お互いに話してみるのもよさそうです。",
+    "pause": "久しぶりに連絡した相手に、最初から頼み事ばかりしないようにしましょう。近況を話し合うと、必要な話も気楽に切り出せます。",
+    "source_ko_actions_sha256": "c1e33619a9dec69cc11ed2c08cfca78571c676316435419f7b087f653c003fff",
+    "source_locale_bundle_sha256": "19fd6ae02492705803091ba259bc4c83b916dd3ed60d373cb5934bb352a40269",
+    "rationale": "옛 지인과의 안부 교류에서 부탁 대화로 자연스럽게 넘어가는 이유를 유지했다."
+  },
+  "overall.cups.07.reversed": {
+    "do": "いくつかの提案から気に入るものを選べたら、心の中で決めるだけでなく、参加したいと返事をしましょう。",
+    "pause": "条件を十分に確かめて決めた後も、新しい提案ばかり探し続けないようにしましょう。内容が変わっていないのに比べ続けると、始めるのが遅れてしまいます。",
+    "source_ko_actions_sha256": "864ab3758c10b6e5cba7fc5603776746770f0c9219bc6754b8ed638d42bd7a97",
+    "source_locale_bundle_sha256": "3a914bdc7a41c5569ba75395b524321c5d97fd6aff2cd923f8a30ab29df33fe8",
+    "rationale": "선택 후 참여 회신과 조건 변화 없는 비교 중단을 구별했다."
+  },
+  "overall.cups.07.upright": {
+    "do": "いくつかの提案を比べるなら、実際に何が得られるのか確かめましょう。まだ決まっていない話は、確定した条件と分けて考えてみてください。",
+    "pause": "魅力的な提案をどれも逃したくないからと、一度にすべて引き受けないようにしましょう。見た目はよくても、期待したほど得られないかもしれません。",
+    "source_ko_actions_sha256": "5efa99b84b7ac3b753c98d288587486e019e04d913da0510c4502409f85498d0",
+    "source_locale_bundle_sha256": "d678100397082173492f7c7333ea2b705eed9c7f16bebe6934f8a7b03bf11343",
+    "rationale": "미확정 조건 구분과 동시 수락의 기대 미달 위험을 유지했다."
+  },
+  "overall.cups.08.reversed": {
+    "do": "不満のあったことをもう少し続けるつもりなら、同じ問題を繰り返さないために何を変えてほしいのか、相手に伝えましょう。",
+    "pause": "やめたいことを、慣れているというだけで引き受け続けないようにしましょう。また同じ不満を抱えることになりかねません。",
+    "source_ko_actions_sha256": "1988d03304e1ff8a84cb7327ca37b0e74617906a6f3303d1ffb7be5dd2f0b76d",
+    "source_locale_bundle_sha256": "d383b3ebb0ae060ccc02fce8580177252a175d76557acaedd950d5b13121f526",
+    "rationale": "계속할 경우 변경 조건 요청과 익숙함 때문에 반복 수락하는 주의를 분리했다."
+  },
+  "overall.cups.08.upright": {
+    "do": "これ以上続ける理由がないことは、まだ果たしていない約束を済ませてから、区切りをつけましょう。",
+    "pause": "費やした時間が惜しいからと、望まないことをさらに引き受けないようにしましょう。これからも続けたい理由があるか、考えてみてください。",
+    "source_ko_actions_sha256": "89ffc8d38fcb5727ecc05fc81663703694c83a93a23105645da52b8dcf20bf2a",
+    "source_locale_bundle_sha256": "391a8487c31f03ae1addd3006c24fed838360ef607d47fa2eb8b5d80c0b499a0",
+    "rationale": "남은 약속 이행 후 종료와 과거 시간 대신 향후 지속 이유 판단을 유지했다."
+  },
+  "overall.cups.09.reversed": {
+    "do": "望んだ結果を得ても物足りないなら、実際に不便な点や、予想より手間のかかるところがないか見てみましょう。",
+    "pause": "結果に満足できないからと、新しいことをいくつも始めないようにしましょう。物足りなさを埋めようと始めたことが、負担を増やすだけになるかもしれません。",
+    "source_ko_actions_sha256": "d776e49da1ac0c804e13f23bbaaf0dff0b0434cf2b38afa729dec9db8d78e32b",
+    "source_locale_bundle_sha256": "7596689a6caf9f4c392d572876ff62f1d6850457a36a7776d334318923f3ef1d",
+    "rationale": "얻은 결과의 실제 불편 확인과 아쉬움을 메우려 벌이는 일의 부담을 연결했다."
+  },
+  "overall.cups.09.upright": {
+    "do": "待っていたことが望みどおりになったら、何が一番うれしいか思い浮かべながら、自分が成し遂げたことを祝いましょう。",
+    "pause": "よい結果が出たばかりなのに、もっと大きな成果を求めて次を急がないようにしましょう。すでに成し遂げたことを喜ぶ時間があっても大丈夫です。",
+    "source_ko_actions_sha256": "97f53398c0b32711477d64e1391f64811dd27974be68ae0098556e7d326ef274",
+    "source_locale_bundle_sha256": "3f0cc7e9775e8efdb6c813a1674f97bf2612288cba4b12dace63f76e9df8c677",
+    "rationale": "자기 축하의 목적을 유지하며 타인 자랑의 이야기를 추가하지 않았다."
+  },
+  "overall.cups.10.reversed": {
+    "do": "一緒に決めることがあるなら、親しい相手にも希望を聞いてみましょう。いつも大丈夫と言う人でも、今回は考えが違うかもしれません。",
+    "pause": "誰も不満を言わないからと、全員が気に入っていると決めつけないでください。表面上は静かでも、それぞれ期待していたことは違うかもしれません。",
+    "source_ko_actions_sha256": "24203de400c2d52fd073521933eb7cfc03efc0ce80b5ffe918880b25be0d4bf4",
+    "source_locale_bundle_sha256": "3667a7bf2a09ec0bdc9f834e3c553cd56f8e5e549187e604909c0b44c590e3bc",
+    "rationale": "공동 결정 의견 확인과 침묵을 만족으로 단정하는 위험을 유지했다."
+  },
+  "overall.cups.10.upright": {
+    "do": "身近な人と近況を話す時間をつくってみましょう。特別な予定を立てなくても、一緒に食事をしながら話せます。",
+    "pause": "いつも一緒にいる人がよい知らせをくれたら、聞き流さないようにしましょう。親しい間柄でも、うれしい気持ちは言葉で伝えてみてください。",
+    "source_ko_actions_sha256": "dd525837951106c3d7aec5e4c4064f67060191d6461f90c17712dab86396df10",
+    "source_locale_bundle_sha256": "515186ab4f1cace03897fdc18284babf37f549e478adcad3b97dbf9ab7cbe982",
+    "rationale": "식사 중 안부라는 방법과 익숙한 사람의 좋은 소식에 말로 답하는 행동을 구분했다."
+  },
+  "overall.cups.11.reversed": {
+    "do": "頼み事や謝りたいことがあるなら、本気で伝えていると分かるように話しましょう。冗談めかして遠回しに言うと、軽い一言だと誤解されるかもしれません。",
+    "pause": "待っていた返事が遅くても、すねた言葉を先に口にしないようにしましょう。相手の反応を探ろうとして、かえって意図が違って伝わるかもしれません。",
+    "source_ko_actions_sha256": "43771aff300b8782ec2e08dfaa13fbae61ebee52a64937861321349db1ef228e",
+    "source_locale_bundle_sha256": "9b14dc871c832b63a6366a16c4a88778a23a76cb71e687a79b04684e0b8ff638",
+    "rationale": "전달 수단을 메시지로 한정하지 않고 진지한 요청과 반응 떠보기의 오해를 유지했다."
+  },
+  "overall.cups.11.upright": {
+    "do": "一緒にやってみたいことがあれば、気軽に誘ってみましょう。相手も興味を示したら、いつ、どんなふうにやるか話してみるのもよさそうです。",
+    "pause": "初めてでうまく話せそうにないと感じても、挨拶の機会まで先延ばしにしないようにしましょう。話すことを完璧に準備しなくても、好意的に受け止めてくれる人はいるかもしれません。",
+    "source_ko_actions_sha256": "d2ffed55edb513eabcbc5da264f57a7b6663db0b89d4d5556ab56836c4ea93a9",
+    "source_locale_bundle_sha256": "b80ca9d3171d55b4eee250c55113b565e3892cd964618f825e5e41f55c6c37b5",
+    "rationale": "상대 관심 후 구체화 조건과 완벽 준비 없이 인사하는 뜻을 유지했다."
+  },
+  "overall.cups.12.reversed": {
+    "do": "必ずやると約束してくれた人には、いつ何ができるのか聞いてみましょう。うれしい言葉と、実際に決まった内容を分けておくとよさそうです。",
+    "pause": "相手からいつ何をしてくれるのか確かな返事がないうちは、その約束のためにほかの機会をすべて諦めないようにしましょう。",
+    "source_ko_actions_sha256": "b5bd9e72dbafe28481b6178ab48ff39d1e4918902d772dc788ec50e62d894f23",
+    "source_locale_bundle_sha256": "baaae0ce0cb7d59446acd123aafc7277c0a4546b7df1e5bf523994b43e5c15c5",
+    "rationale": "구체적 이행 시점·내용 확인과 미확답 약속 때문에 다른 기회 포기하는 주의를 구분했다."
+  },
+  "overall.cups.12.upright": {
+    "do": "助けをお願いしたいことがあれば、何が必要なのか丁寧に伝えてみましょう。一人では難しいところから説明しても大丈夫です。",
+    "pause": "行きたいと思うお誘いに、興味がないような曖昧な返事をしないようにしましょう。参加する気持ちが分かれば、相手も予定を決めやすくなります。",
+    "source_ko_actions_sha256": "dee5656f834a44d412748f9dcf46b44a84b06459f6e676f01f6c8956704ca632",
+    "source_locale_bundle_sha256": "f3cd1201cbefc21630879dd4ec14c97113a73fb6ce006017c4e97c38c8c9d39d",
+    "rationale": "도움 요청의 설명 방법과 초대 참여 의사를 밝혀 일정 결정 돕는 이유를 유지했다."
+  },
+  "overall.cups.13.reversed": {
+    "do": "手伝いを頼まれたら、自分の用事を終える時間も残して、どこまでならできるか先に伝えましょう。",
+    "pause": "相手の機嫌に合わせようと、すでに負担に感じる頼み事まで笑顔で引き受けないようにしましょう。断りにくくても、難しい点はその場で伝えてください。",
+    "source_ko_actions_sha256": "ab985aee7570c12e3e2fd5f6b3efea51bae6523f719e14ffc99f9d58955c8603",
+    "source_locale_bundle_sha256": "e040298d684fb09b526d6073a22dd5ad7a86757171cda51cce6c7602b23a93f1",
+    "rationale": "자기 일을 위한 시간과 도울 범위, 웃으며 수락하기 전 어려움 전달을 유지했다."
+  },
+  "overall.cups.13.upright": {
+    "do": "一人で悩んでいたことがあるなら、信頼して話せる人に事情を聞いてもらいましょう。つらかったことから話しても大丈夫です。",
+    "pause": "事情を打ち明けたからと、相手にすべて解決してもらおうとしないようにしましょう。一人では難しいところだけお願いしても、助けてもらえます。",
+    "source_ko_actions_sha256": "ee7849ed2f2fef09d762b96aac7ed328aea93d4e7f7a4e0d2dd7d8af61e268ab",
+    "source_locale_bundle_sha256": "ef0058242e30749b077a50133922101cd05e9f10e3f0b32b6f5a2800907f9e8f",
+    "rationale": "사정 설명 시작점과 도움을 요청할 범위를 유지했다."
+  },
+  "overall.cups.14.reversed": {
+    "do": "相手が気分を害したと言って約束を変えるなら、もともと決めていた内容をもう一度確かめましょう。何が嫌だったのかと、約束を守れるかどうかは、分けて話してみてください。",
+    "pause": "腹が立ったからと、すでに引き受けたことを急に投げ出したり、交わした約束を覆したりしないようにしましょう。",
+    "source_ko_actions_sha256": "e4cbca070b48569a1911805d51fde978bbbea8d06869772a6e0801c9b3c284a8",
+    "source_locale_bundle_sha256": "9aa79767413532274a306e01701eef6a4c5b0fd352449c8b3306f335e8fe886a",
+    "rationale": "상대의 약속 변경과 자신의 감정적 약속 파기를 구분하고 이행 여부를 논의하게 했다."
+  },
+  "overall.cups.14.upright": {
+    "do": "難しい問題で助けを求めるなら、何をしてほしいのか具体的に伝えましょう。必要なことが分かれば、相手も手伝う方法を考えやすくなります。",
+    "pause": "意見がぶつかっているときは、先に聞いた話だけで一方の味方をしないようにしましょう。それぞれ何に困っているのか、両方の話を聞いてみてください。",
+    "source_ko_actions_sha256": "6afa96265a9e65ebc9d02af08a099ad739293178bebad6507cd0bed0a2d582ec",
+    "source_locale_bundle_sha256": "0c3ee254762610e17121b7882a10f5339fe1cb908bb8b2f8441650a1cfad1d6c",
+    "rationale": "도움의 내용 설명과 갈등 양측의 사정 확인을 구별했다."
+  },
+  "overall.major.chariot.reversed": {
+    "do": "進めていたことが止まったら、急いで押し進める前に、どこで行き詰まったのか確かめましょう。",
+    "pause": "引き受けたことが遅れているからと、別のことまで始めて取り戻そうとしないようにしましょう。いくつも同時に進めると、約束の時間にも間に合わなくなるかもしれません。",
+    "source_ko_actions_sha256": "1e21b6c78cb7f3e099a11a5ff896aa44bbdd250667008de693599895d67c84aa",
+    "source_locale_bundle_sha256": "61b34d1220192017b4a5a7ef7bac30d2be6dbeac9ea415fc5066589ea66747d2",
+    "rationale": "중단 지점 확인과 지연을 새 일로 만회하려다 약속 시간 놓치는 인과를 유지했다."
+  },
+  "overall.major.chariot.upright": {
+    "do": "以前うまくいかず後回しにしていたことがあれば、もう一度挑戦してみましょう。前に行き詰まったところを確かめながら、再開してもよさそうです。",
+    "pause": "新しくやってみたいことができても、今取り組んでいることを終えられるなら、途中で止めて別のことを始めないようにしましょう。",
+    "source_ko_actions_sha256": "a2d39372bd044fc8f0d22efd021c680c80e131a6144711af1c3e1982807dea87",
+    "source_locale_bundle_sha256": "22f8c7ae3cc153307b2d78256cca1095c92267dd276ad2fc702e348bf90b9b18",
+    "rationale": "재도전과 현재 일을 끝낼 수 있다는 중단 금지 조건을 보존했다."
+  },
+  "overall.major.death.reversed": {
+    "do": "もう続けるつもりがないことは、やめる意思をはっきり伝えましょう。後なら引き受けるかもしれないと、期待を持たせないほうがよさそうです。",
+    "pause": "同じ問題が続いているなら、慣れているというだけで、これまでのやり方にこだわらないようにしましょう。",
+    "source_ko_actions_sha256": "3246c19a20351a6b7f5fae91cbccf333ff4c3c52a6be671319c44227559e71b3",
+    "source_locale_bundle_sha256": "0fe9ede6e95887122ae3a21072f3888ceee91a10c68b9518dc620be41544c161",
+    "rationale": "종료 의사와 재수락 여지 제거, 반복 문제에서 익숙한 방법 고집 금지를 유지했다."
+  },
+  "overall.major.death.upright": {
+    "do": "長く続けたことが終わったら、まだ済んでいない挨拶や片づけまで終わらせましょう。",
+    "pause": "長く頑張ったことの結末が残念でも、すでに終わったことを以前の状態に戻そうと、こだわり続けないようにしましょう。",
+    "source_ko_actions_sha256": "1885669a2366b804141ce32a25ca3c436e698d9c44a61b8303cc9a660fff97d2",
+    "source_locale_bundle_sha256": "68e15ebcde9d1b0d41b6a7ed55800ddc20803b05512a2c03652e4659593e15f6",
+    "rationale": "종료 후 남은 인사·정리와 아쉬워도 끝난 일 복원에 매달리지 않음을 구분했다."
+  },
+  "overall.major.devil.reversed": {
+    "do": "負担の大きい頼み事をもう引き受けたくないなら、長く遠回しに話さず、断る意思をはっきり伝えましょう。",
+    "pause": "もう引き受けないと決めた頼み事を、申し訳なさからまた受け入れないようにしましょう。一度だけ手伝うつもりが、同じ負担を抱え続けることになりかねません。",
+    "source_ko_actions_sha256": "6841c98e63f0868fd347dfca797111587e05b1430ee6e17c109dee187482d67e",
+    "source_locale_bundle_sha256": "ca3dbe6412484c471f26c4d0ec20a863976de10e90c31e103795a8746a8dc1f7",
+    "rationale": "거절 의사 전달과 거절 후 죄책감 재수락의 반복 부담을 시간상 구분했다."
+  },
+  "overall.major.devil.upright": {
+    "do": "魅力的な提案を受けたら、得られるものだけでなく、自分が何をする必要があるのかも聞いてみましょう。得られるものに比べて、要求が大きいかもしれません。",
+    "pause": "やめたいと思っていたことを、今回だけと言われてまた引き受けないようにしましょう。今断りにくくても、後でどんな負担が残るか考えてみてください。",
+    "source_ko_actions_sha256": "b68c73d9588cc2844666b894298e7bfc2954a9b35b7807dbaa28a32f55ea19a7",
+    "source_locale_bundle_sha256": "24b1d96c9963ff7d83c01175a93f1d8497e94c76297fb8d40837836a556d0195",
+    "rationale": "이익과 대가 확인, 즉시 거절의 어려움보다 나중 부담 고려를 유지했다."
+  },
+  "overall.major.emperor.reversed": {
+    "do": "決めていた約束を変えたいと言われたら、どんな事情が変わったのか聞いてみましょう。もとの約束と照らし合わせて、変更する必要があるか考えてみてください。",
+    "pause": "決定権が自分にあっても、ほかの人の事情を無視しないようにしましょう。一緒に取り組む人の話を聞くと、協力も頼みやすくなります。",
+    "source_ko_actions_sha256": "4e61485f250e754f8952726568b438393eacab136176f9b47f7bf624b1f4fc56",
+    "source_locale_bundle_sha256": "76b387f1585a5638fa7c266f93ad9e4817ff6a45b116350aded246e0bf2b92cf",
+    "rationale": "변경된 사유와 기존 약속 비교, 권한이 있어도 함께할 이들의 사정 듣기를 분리했다."
+  },
+  "overall.major.emperor.upright": {
+    "do": "一人では引き受けきれない頼み事が来たら、似た経験のある人に相談してみましょう。自分だけでは決めにくい点を挙げて話してみてください。",
+    "pause": "すでに手伝ってくれる人がいるなら、その人に任せたことまで、すべて一人で抱え込もうとしないでください。",
+    "source_ko_actions_sha256": "418c2348c820dbab203c5e1218a30ebd1e8bba1b005dbb730cf38264e43227fb",
+    "source_locale_bundle_sha256": "d40c48e8a7bdeab85001037db8d3c1cc23daea9283adbe364adebdf0b38b810f",
+    "rationale": "경험자에게 설명할 판단 지점과 이미 맡긴 일을 다시 혼자 하지 않는 주의를 유지했다."
+  },
+  "overall.major.empress.reversed": {
+    "do": "人を十分に手伝ったのに自分の用事が遅れているなら、先に自分のことを終わらせましょう。手伝っていたことの残りは、相手に任せても大丈夫です。",
+    "pause": "お礼を言ってもらえなかったからと、相手の分までさらに引き受けないようにしましょう。もっと頑張っても、期待した反応が返ってこないかもしれません。",
+    "source_ko_actions_sha256": "cbc2d7c71b50f6cf6c99281345c4bb62f407fb0265265e86b3010a62dbdfe08f",
+    "source_locale_bundle_sha256": "1c6a492587b71142edafeb7e7fd8089fa02b74349f0608e2db611d2bf896384f",
+    "rationale": "충분히 도운 뒤 자기 일 처리와 감사 반응을 얻으려 과잉 도움 금지를 구별했다."
+  },
+  "overall.major.empress.upright": {
+    "do": "一緒に頑張ったことがうまくいったら、手伝ってくれた人にもよい結果を知らせましょう。お礼とともに、喜びを分かち合ってみてください。",
+    "pause": "周りがよく助けてくれるからと、当然のように手伝いを求めないようにしましょう。相手がかけてくれる時間や手間にも目を向けてみてください。",
+    "source_ko_actions_sha256": "023a0e7a474ade173268bc7e0e8d2568a43cb0c4a4bc1824cea7ed8826c6470d",
+    "source_locale_bundle_sha256": "ae4511b183fc6769e3645694c226978bfc01a642bad2b100bff4ef52ce03473c",
+    "rationale": "결과 공유와 감사라는 연결, 도움 요구 시 상대 시간·수고 고려를 보존했다."
+  },
+  "overall.major.fool.reversed": {
+    "do": "初めて行く場所なら、出発前に利用時間と持ち物を確かめましょう。軽く考えて出かけると、無駄足になるかもしれません。",
+    "pause": "すぐ終わりそうだからと、その直後に次の約束を入れないようにしましょう。予想より長引いて、次の約束にも遅れるかもしれません。",
+    "source_ko_actions_sha256": "45d5254801a721571676c314d52478a9bd60d4ef5a1fdfb373936422b8c74359",
+    "source_locale_bundle_sha256": "31b6c65f4cb4b92e2dad9dcf58faeb23ebbad571883e5a01636dff4da476ba04",
+    "rationale": "헛걸음 방지의 준비물·시간 확인과 연속 일정 지연 위험을 유지했다."
+  },
+  "overall.major.fool.upright": {
+    "do": "始めるか迷っていた活動があれば、一日ほど体験してみましょう。実際にやってみると、自分に合うか判断しやすくなります。",
+    "pause": "新しい活動は、体験する前から長く通うと決めないようにしましょう。続けるかどうかは、一日でも試してから決めてください。",
+    "source_ko_actions_sha256": "100f84281a936e3b226d101c7e4c72bc5b262e00c819dbe170efa70f64eeb169",
+    "source_locale_bundle_sha256": "40c9245320ee0759890b8902e8689ad1baf0bb0c3b8f1bbdf66c806819b99adc",
+    "rationale": "체험 후 적합성 판단과 체험 전 장기 참여 확정을 분리했다."
+  },
+  "overall.major.hanged_man.reversed": {
+    "do": "返事が来ないまま待ち続けるより、いつまでに答えてもらえるか、相手にはっきり聞いてみましょう。",
+    "pause": "自分ばかり譲ってきたことなら、今回も無条件で待つと約束しないようにしましょう。また同じ負担を抱えることになりかねません。",
+    "source_ko_actions_sha256": "3d6ae34bb2d5e7a298b5f0b69501af7f0a9db9cced9408ee21bc34a10f66e285",
+    "source_locale_bundle_sha256": "390b1daa6f44845b39217d3a31c5a9465758d74f96e7758c8ea21475b44a62d4",
+    "rationale": "답변 시점 문의와 일방 양보 반복 조건을 유지했다."
+  },
+  "overall.major.hanged_man.upright": {
+    "do": "待っている返事が遅れているなら、相手の理由を聞いてみましょう。知らなかった事情が分かると、別の方法を考えられるかもしれません。",
+    "pause": "今日中に終える必要がないことは、今すぐ結論を出すよう急かさないでください。もう少し時間を置くと、よりよい返事をもらえるかもしれません。",
+    "source_ko_actions_sha256": "5bd25b89b19cfbf6cbcfda0be212e952e313ec9c3bca197e07441d07ccfd5b3d",
+    "source_locale_bundle_sha256": "60bc4a862e0ae65a148c93ef7ac89fa6f22c4b3cb91141dd2e8d5de2ec43ccb6",
+    "rationale": "오늘 안에 끝낼 필요 없다는 조건과 지연 사유에서 대안을 찾는 뜻을 보존했다."
+  },
+  "overall.major.hermit.reversed": {
+    "do": "一人では解決できなかったことがあれば、どんな助けが必要か具体的に伝えましょう。どこまで試して、何が残っているのか話してもよさそうです。",
+    "pause": "しばらく連絡がないからと、助けを求めても無駄だと決めつけないでください。まだ話していなければ、相手は何があったのか知らないかもしれません。",
+    "source_ko_actions_sha256": "2d7e75a20b5aa64ebd8b8993372b6cc896d2e93940f62ddc18b3deb33ef446df",
+    "source_locale_bundle_sha256": "d3a7b0691ee9df634c27a26509a63c922b23834cfeabed72eb0f04041b0b5c28",
+    "rationale": "도움 설명 범위를 구체화하고 연락 단절과 도움 무용을 동일시하지 않게 했다."
+  },
+  "overall.major.hermit.upright": {
+    "do": "長く悩んでいることに助言が欲しいなら、静かな場所で話してみましょう。大勢の前より、気になることを落ち着いて聞きやすくなります。",
+    "pause": "早く答えを見つけたいからと、聞いた意見すべてに従おうとしないでください。いくつかの助言から、自分の問題に必要な内容を選んで考えてみましょう。",
+    "source_ko_actions_sha256": "d85ce1ff249e22b8f0d583bd14e4e86ecff4290ee912dbaa09003b65f223a0ca",
+    "source_locale_bundle_sha256": "d602ce1f8b2ad26f1bc52cff7bea0924e293a3f40b0ee0499648c2539449bc48",
+    "rationale": "조용한 자리의 질문 이유와 모든 의견 대신 자기 문제에 필요한 조언 선택을 유지했다."
+  },
+  "overall.major.hierophant.reversed": {
+    "do": "勧められた方法が今の事情に合わなければ、どんな点が難しいのか伝えてみましょう。そのまま従うしかないと思わず、別の方法を相談してみてください。",
+    "pause": "いつもそうしてきたからと、うまくいかないやり方にこだわらないようにしましょう。今の状況にも合う方法か、確かめてみてください。",
+    "source_ko_actions_sha256": "0ccc6a8d2c3722ce1b769db2503517902503ff821ac59da55d721f4883dc6d8f",
+    "source_locale_bundle_sha256": "f7e8c9fab2feea51e55a116897ccb2eef853ca923368bea60ec32986105795c4",
+    "rationale": "권유받은 방법의 어려움에서 대안 논의로 연결하고 관습만으로 고집하지 않도록 했다."
+  },
+  "overall.major.hierophant.upright": {
+    "do": "不慣れなことを控えているなら、案内を読んで、分からない点を経験者に聞いてみましょう。先に経験した人から、見落としやすい点を教えてもらえるかもしれません。",
+    "pause": "面倒に見えても、必要な手続きを勝手に省かないようにしましょう。実績のある手順に沿うほうが、やり直す手間を減らせそうです。",
+    "source_ko_actions_sha256": "2f692aaf1672a71d67ff839d8c6a18d5f3bb966887f9c2db2bd11126b4d35ba0",
+    "source_locale_bundle_sha256": "e618403a05ade6ce9c4cf9abfc4ac6664249e95ea2c55cc27d2ec3a8fed28d73",
+    "rationale": "안내·경험자 질문과 검증 절차에 따른 재작업 감소 이유를 유지했다."
+  },
+  "overall.major.high_priestess.reversed": {
+    "do": "誰かを手伝うつもりなら、まず事情をよく聞いてみましょう。大まかな推測だけで動くと、本当に必要な助けにならないかもしれません。",
+    "pause": "直接聞いた話に、自分の推測を混ぜて伝えないようにしましょう。はっきり分からない点は分からないと伝えると、誤解を減らせます。",
+    "source_ko_actions_sha256": "7c74e158a54d2709e3930f0a307dd1ef0794c5a821151211a9b9bcda7049b400",
+    "source_locale_bundle_sha256": "65f11d38442b0b7182c430b4841c1ba75709255c5b06cd642b748f97b9a0fd94",
+    "rationale": "도움 전 사정 청취와 전달 시 추측 구분을 분리했다."
+  },
+  "overall.major.high_priestess.upright": {
+    "do": "説明を最後まで聞いても分からない点があれば、質問してみましょう。理解しきれなかったところに、問題を解く手がかりがあるかもしれません。",
+    "pause": "欲しい返事が遅いからと、今知っていることだけで急いで決めないようにしましょう。まだ聞いていない大事な話があるかもしれません。",
+    "source_ko_actions_sha256": "02ccc2900d685df6b11bdd714f73eaba388944ee0bc027e66018027c007d57c6",
+    "source_locale_bundle_sha256": "cd8bb8ed7a8c4243fd0b86cf38614d945b83297fc3dd01f031b49f5989d41ae7",
+    "rationale": "설명 후 모르는 부분의 단서와 미공개 중요 정보 때문에 성급한 판단 유보를 보존했다."
+  },
+  "overall.major.judgement.reversed": {
+    "do": "返事をする必要があるなら、いつまでに決めればよいか確かめましょう。気持ちが決まるのを待つうちに、期限を過ぎないようにしてください。",
+    "pause": "周りの全員によく思われようとして、決断を延ばさないようにしましょう。すべての意見に合わせようとすると、得意なことに取り組む機会まで逃しかねません。",
+    "source_ko_actions_sha256": "9b02baf1d487017fab23fe75d27ed0988ed0bf52168ce607c0c572094ba53ce0",
+    "source_locale_bundle_sha256": "3b099212d547c828d8aafeff5cb5fd20535d27da83e965a56887595fd8fc0a2a",
+    "rationale": "결정 시한과 타인 평가를 모두 만족시키려는 지체를 구별했다."
+  },
+  "overall.major.judgement.upright": {
+    "do": "再挑戦の機会が来たら、前にうまくいかなかった点を直し、同じ失敗を繰り返さないよう準備しましょう。",
+    "pause": "長く返事を延ばしていた提案を受けるかどうか決めたなら、もう先延ばしにせず、その意思をはっきり伝えましょう。",
+    "source_ko_actions_sha256": "fc900f4e4164b469fde3471c6fcf625d3d140a672cf979b68e50bbe527fb08c6",
+    "source_locale_bundle_sha256": "aae83f0a82f98e10d7b0eb83caed49dad3d20b1936e0d73a4536080dd85bad65",
+    "rationale": "재도전 준비와 이미 결정한 제안의 응답 지연 금지를 구별했다."
+  },
+  "overall.major.justice.reversed": {
+    "do": "間違って伝わった話で誤解されたら、事実と違う点を挙げて、落ち着いて説明しましょう。",
+    "pause": "悔しくても、確かでない話まで加えて言い返さないようにしましょう。事実を伝えた部分まで、疑われるかもしれません。",
+    "source_ko_actions_sha256": "035aa9324687aa8d54e1ae0acb84daa7df530b1865ac48f2d233d37b4042ddf0",
+    "source_locale_bundle_sha256": "8473746914c154490c665a88d9e55f4953cfd1bb00eadae757dbfe84b19b93e0",
+    "rationale": "오해의 사실 정정과 확인 안 된 부연이 사실 신뢰까지 떨어뜨리는 이유를 유지했다."
+  },
+  "overall.major.justice.upright": {
+    "do": "約束の記憶が食い違うなら、当時の記録を一緒に確かめましょう。どちらが自信を持っているかより、実際に何を決めたかが大切です。",
+    "pause": "自分の取り分を求めるとき、不利な事実だけを伏せないようにしましょう。不利な点も伝えてこそ、相手にも事実どおり話すよう求められます。",
+    "source_ko_actions_sha256": "6e9fa4e9ed534bd963a2a897c127219a989be6e09ae5af5ddb5667e24f6718ce",
+    "source_locale_bundle_sha256": "f18bb142f4a31a67d17330894f071b024f3bbb6aa3a2767243c33390734706c9",
+    "rationale": "기억 확신 대신 기록, 불리한 사실도 밝힌 뒤 상호 정직 요구를 유지했다."
+  },
+  "overall.major.lovers.reversed": {
+    "do": "一緒に取り組む約束があるなら、それぞれ何を期待しているか先に話してみましょう。同じ約束でも、違う意味で受け取っているかもしれません。",
+    "pause": "場の空気を壊したくないからと、気に入らない条件まで受け入れないようにしましょう。気まずい話を後回しにすると、後で言い争いが大きくなりかねません。",
+    "source_ko_actions_sha256": "80e27fd4c38ac59897c3ece19a0bc3d5f5a20e208b5df51af363fe784ad4b6b7",
+    "source_locale_bundle_sha256": "343cc0ef445508164789f931960121795994cdc57a1c78687cc59fa9919b4c72",
+    "rationale": "같은 약속 기대 차이와 당장 분위기 때문에 조건 수락하는 위험을 유지했다."
+  },
+  "overall.major.lovers.upright": {
+    "do": "一緒に決めることがあるなら、相手に合わせる前に、それぞれ譲れない希望を話してみましょう。",
+    "pause": "見た目の好条件だけで、気の進まない選択に同意しないようにしましょう。後で心に引っかからないよう、自分も納得できるか確かめてください。",
+    "source_ko_actions_sha256": "d77e385fda5c9638cde74ab2ffd80a30a569cac7e589a553180045c6ba65d69d",
+    "source_locale_bundle_sha256": "04d7f3d19a9626d6b82e02e37ede0975ddca0921444869ffb13e68809fd14439",
+    "rationale": "각자 꼭 원하는 조건을 밝히고 자신이 납득할 수 있는 선택인지 확인하게 했다."
+  },
+  "overall.major.magician.reversed": {
+    "do": "簡単にできるという提案を受けたら、相手が何を準備しているか聞いてみましょう。説明から抜けている条件がないかも確かめてください。",
+    "pause": "相手を安心させようと、まだやり方も分からないことまでできると約束しないでください。実際にできる範囲で伝えましょう。",
+    "source_ko_actions_sha256": "213630139f21b07115df0a49de51ba7c5c97bc8b706f9ae075aaf3ee98f08129",
+    "source_locale_bundle_sha256": "926cd552b6a275871690c571396c7df116c43ac251accd18175682e44018af3a",
+    "rationale": "준비 실체 확인과 아직 할 줄 모르는 일의 약속 금지를 유지했다."
+  },
+  "overall.major.magician.upright": {
+    "do": "解決できずにいる問題があれば、以前覚えた方法の中から今使えるものを選んで、試してみましょう。",
+    "pause": "もっと学ぶ必要があるからと、準備済みのことまで延ばさないようにしましょう。今できることで始められないか、先に確かめてみてください。",
+    "source_ko_actions_sha256": "101ce72c5a58d502a4ed67185b3dcc4efa8359e143eaee5d55ee4e5bca04be55",
+    "source_locale_bundle_sha256": "b4c06cdbff27b3448e8c0a30a4892f1d9ca0e96ffd310c2da2cb68d6a85501be",
+    "rationale": "기존 배움의 현재 문제 적용과 추가 공부 때문에 준비된 일 지연 금지를 유지했다."
+  },
+  "overall.major.moon.reversed": {
+    "do": "よく分からずにいたことの事情が分かったら、新しく確認できた内容に合わせて、計画を見直してみましょう。",
+    "pause": "誤解が解けたからと、まだ聞いていない返事までよい内容だと決めつけないでください。確かめられたことと、まだ待つ必要があることを分けて考えましょう。",
+    "source_ko_actions_sha256": "f68ec6e00999678052b941a185373bed989922cb76bd1f87b0756c7a61073a00",
+    "source_locale_bundle_sha256": "05a5351b5138f92a13f22a5bc8129592d0c28be680bdac4d3f1673bb8d2a4983",
+    "rationale": "오해 해소 후 확인한 정보와 미확답 영역을 명시적으로 분리했다."
+  },
+  "overall.major.moon.upright": {
+    "do": "大切な決断を控えているなら、人づてに聞いた話が正しいか、直接確かめてみましょう。",
+    "pause": "心配な話を聞いても、すぐに相手を問い詰めないようにしましょう。実際より悪く受け取り、誤解しているのかもしれません。",
+    "source_ko_actions_sha256": "344a41df05744d51537a3093d6eef2d9f422ada76a3f7ede8df45a10a27efe3b",
+    "source_locale_bundle_sha256": "b4f6e31a2609949e882da3f18507774e3faa684c8bb9422a6bf2dfdcac2b9efc",
+    "rationale": "전언 진위 직접 확인과 실제보다 나쁘게 해석했을 수 있다는 주의를 유지했다."
+  },
+  "overall.major.star.reversed": {
+    "do": "待っていた知らせが遅れているなら、どこまで進んでいるか聞いてみましょう。まだ結論が出ていないのか、実際に難しくなっているのか確かめておくとよさそうです。",
+    "pause": "期待したほどよくならないからと、必要な連絡を絶ったり、助けまで断ったりしないようにしましょう。がっかりして途切れさせた会話は、後から再開しにくくなるかもしれません。",
+    "source_ko_actions_sha256": "63f7dd514dd88bb3ecbb62e0f2ad1187ccf80670cda9b5b6ca966ea9d1f6a2fa",
+    "source_locale_bundle_sha256": "fe58873fe5bf8c96bdffc4fe58ae5d77498036432fb90ed27538a8cae41a72ba",
+    "rationale": "미결정과 실제 차질 구별, 실망한 마음으로 대화 중단 시 재개 어려움을 유지했다."
+  },
+  "overall.major.star.upright": {
+    "do": "うまくいかず一度止めたことがあれば、今できる部分から再開してみましょう。すぐに大きな結果まで出す必要はありません。",
+    "pause": "助けが必要なのに、手伝うと言ってくれる人へ大丈夫とだけ答えないようにしましょう。難しい点を伝えれば、相手も何ができるか分かります。",
+    "source_ko_actions_sha256": "04c1f4241ca5bbff3d7cc90d823a5fc6ea77bf5b6545fba95af11c38735ae70c",
+    "source_locale_bundle_sha256": "0aaeca0e99c74b02ead8ce3e71094b663b5dda05389575988277239944610f8f",
+    "rationale": "작은 재개의 범위와 조력자에게 필요한 도움을 알려야 한다는 이유를 유지했다."
+  },
+  "overall.major.strength.reversed": {
+    "do": "取り組んでいることで何度も行き詰まるところがあれば、助けを求めてみましょう。どこが難しいか説明し、その部分から一緒に解決してみてください。",
+    "pause": "人の言葉に腹が立っても、取り組んでいたことを全部やめないようにしましょう。気持ちが落ち着いてからもやめたいか、確かめて決めてください。",
+    "source_ko_actions_sha256": "4283a198022ded3dc856207e1c6f2b3e2328eb4d005045cc27ddcd8df7455688",
+    "source_locale_bundle_sha256": "75cee15ef3dc51c8ec1b1010a8256de9fc25d4a735b3af0a26b564c317f49371",
+    "rationale": "막힌 부분부터 도움받기와 화난 상태의 중단 판단을 나중에 재확인하는 뜻을 유지했다."
+  },
+  "overall.major.strength.upright": {
+    "do": "長く頑張ったことがなかなか進まなくても、すぐ結果が見えないからと止めず、これまでどおり続けてみましょう。",
+    "pause": "頼み事の返事が遅くても、大声で迫らないようにしましょう。焦りをぶつけるより、なぜその助けが必要か落ち着いて説明してみてください。",
+    "source_ko_actions_sha256": "f592ab2d7d6f87a58bebb200fc1284eb358d0a3b0b4f69945465a007be71fe90",
+    "source_locale_bundle_sha256": "9021fdf6563ca68156f48039ab9ebebfe41bd0842f3b232850772c7d6ef2bad8",
+    "rationale": "인내의 지속과 답변 재촉 대신 부탁 필요성 설명을 구별했다."
+  },
+  "overall.major.sun.reversed": {
+    "do": "期待に届かなくても、うまくいったことは喜びましょう。物足りないからと、頑張って得た成果までなかったことにする必要はありません。",
+    "pause": "まだ結果が出ていないことは、もう少し待ちましょう。知らせが遅いことと悪い結果が出たことは違うので、先に失敗と決めつけないでください。",
+    "source_ko_actions_sha256": "5b3a8f0b657fda7f7242e9cf9d4438697bddb83ba817b7549b1b9ba90676afa5",
+    "source_locale_bundle_sha256": "9fe1fc724e2ee81de82ea5f230adef5a9d948a372934a0f36b8dfc4914582653",
+    "rationale": "부분 성과의 인정과 아직 안 나온 결과의 실패 단정을 분리했다."
+  },
+  "overall.major.sun.upright": {
+    "do": "長く頑張ったことでよい結果が出たら、一緒に喜んでくれる身近な人に、どうなったか知らせてみましょう。",
+    "pause": "待っていた提案が来たら、返事を延ばし続けないようにしましょう。受けたい気持ちがあるなら、その意思を相手にはっきり伝えてください。",
+    "source_ko_actions_sha256": "15cb5ad73d7c1832e310e0e85e006af122a3ff16c08ee25cae78e473f62814fe",
+    "source_locale_bundle_sha256": "6793272c7d64b39a856f5a59a46ac6bed93b620aac684a4e19797c0336b97987",
+    "rationale": "공동 기쁨의 결과 알림과 수락 의사가 있을 때 답변 전달을 유지했다."
+  },
+  "overall.major.temperance.reversed": {
+    "do": "物事が遅れているなら、今終えられる部分から片づけましょう。遅れを一度に取り戻そうと、計画全体を変える必要はありません。",
+    "pause": "思いどおりに進まなくても、人の何気ない一言に声を荒らげないようにしましょう。普段なら気にせずにいられる言葉か、考えてから答えてください。",
+    "source_ko_actions_sha256": "b7b55c0c6a4125310d1a60bfdf8aab5717f8f85f8dc07a5f2ad0738505ef0e48",
+    "source_locale_bundle_sha256": "122be09809536efc50737937036cb5aaba8a6dd51537732132e5e096c095d50c",
+    "rationale": "현재 가능한 처리 범위와 평소 반응 대조 후 답하기를 구별했다."
+  },
+  "overall.major.temperance.upright": {
+    "do": "助けてもらって物事が進んだら、そのままにせず、どんな点がありがたかったか相手に伝えてみましょう。",
+    "pause": "問題が少しずつ解決しているなら、きちんと手伝ってくれている人に、もっと早く終えるよう急かさないでください。",
+    "source_ko_actions_sha256": "6177f6588425e53f00fceb59d7599797618144bb3ade913f0c7f348d2e6325bd",
+    "source_locale_bundle_sha256": "d011cf035e7ac5152ca9040c2bcf89918d1a934a734074c35b4888baf8a1fe7d",
+    "rationale": "구체적 감사와 점진 해결 중 도움 주는 사람 재촉 금지를 유지했다."
+  },
+  "overall.major.tower.reversed": {
+    "do": "自分の間違いが明らかになったら、関係する人に事情を正直に伝えましょう。今認めるほうが、後から対処する負担を減らせそうです。",
+    "pause": "心配していたことが穏やかに済んでも、すでに分かった問題まで軽く流さないようにしましょう。まだ直せるうちに確かめてください。",
+    "source_ko_actions_sha256": "71b175a45a02af07ac8e38e89c126f6e74528830f8719011f743cb967c7c30ab",
+    "source_locale_bundle_sha256": "0ca3a798ba83e743b6fc9f9783600b6185f11b7b85325a53e20026f4bb15de49",
+    "rationale": "공개된 실수 인정과 큰 고비가 줄어도 남은 문제 교정을 구분했다."
+  },
+  "overall.major.tower.upright": {
+    "do": "思いがけない知らせを聞いたら、すぐに結論を出す前に、どんな事情があったのか十分に説明を聞きましょう。",
+    "pause": "驚いたり腹を立てたりしたまま、すぐに返事をしないようにしましょう。問い詰めたくなっても、少し時間を置けば、後悔する一言を減らせます。",
+    "source_ko_actions_sha256": "1b90c535f3e232619d82d80462a29ed4d19b8c2b3e4c77a2981638dbfaf4bc13",
+    "source_locale_bundle_sha256": "20de32178c748dbe2840e450064c50ed47a0e942a9347c5650a7191cde828a7d",
+    "rationale": "뜻밖의 소식 설명 청취와 감정적 답변 보류의 이유를 유지했다."
+  },
+  "overall.major.wheel_of_fortune.reversed": {
+    "do": "待っていたことが遅れたら、変わった事情を確かめて、それが終わる時期に合わせて立てていた予定も調整しましょう。",
+    "pause": "今日中に終わるという予想だけで、次の約束まで確定しないようにしましょう。自分に落ち度がなくても、外部の事情でもう少し待つことがありそうです。",
+    "source_ko_actions_sha256": "ebd2ec96d18ddfdce4b24649caee13d2e721a3df327c218be30585cccda673ca",
+    "source_locale_bundle_sha256": "79de17f33c034de3b8d95bc6cbb43ebcb16689f6b35ab25eed34341926d13cfb",
+    "rationale": "해당 일 종료에 의존하는 계획과 외부 지연 조건을 보존했다."
+  },
+  "overall.major.wheel_of_fortune.upright": {
+    "do": "うれしい提案が来たら、参加できる時期を確かめ、返事を延ばして機会を逃さないよう気持ちを伝えましょう。",
+    "pause": "以前うまくいかなかったからと、再挑戦の機会まですぐに見送らないようにしましょう。前と変わった事情があるか聞いてから判断してください。",
+    "source_ko_actions_sha256": "17a06d4f28e5192b2d42565314412ab8d3d9c5ac21be00418c234ca85362752a",
+    "source_locale_bundle_sha256": "e5eddfe09baeedd3c20dc3f701b14c051ad6d2a1c97e2979cca54061ac4b1fce",
+    "rationale": "참여 시기 확인 후 회신과 전번 대비 사정 변화 청취를 유지했다."
+  },
+  "overall.major.world.reversed": {
+    "do": "ほぼ終わったことに連絡や確認が残っているなら、最後まで済ませましょう。あと少しだからと延ばすと、ずっと気にかかるかもしれません。",
+    "pause": "仕上げが遅れたからと、ここまでしたことを全部失敗だと思わないでください。残っていることと、すでにうまく終えた部分は分けて考えましょう。",
+    "source_ko_actions_sha256": "eb6f752cab26abb5cdd207c93e6e19a6008e421ab9c5b1a275c391593c38b4cb",
+    "source_locale_bundle_sha256": "a56d368c89ff38ea3c8a20b7b752d941807c50ce325f17045ef369af952fd189",
+    "rationale": "남은 확인 처리와 미완을 전체 실패로 보지 않는 주의를 구별했다."
+  },
+  "overall.major.world.upright": {
+    "do": "長く取り組んだことを無事に終えたら、一緒に頑張った人たちへ、どんな助けがありがたかったか伝えてみましょう。",
+    "pause": "長く続けたことが終わってすぐ、次のことまで引き受けないようにしましょう。無事に終えた喜びを味わう間もなく、急ぐ必要はありません。",
+    "source_ko_actions_sha256": "86a375e8e3b40a5f7b8c15f6a80ee541e2f3a66c15eed771ce6f5811b2844779",
+    "source_locale_bundle_sha256": "81ad465a79e85eb02400ef56c02bf1908df0baf9ae0c6ac7db60f77b7235cd68",
+    "rationale": "완료 후 감사할 도움 구체화와 곧바로 새 부담 맡지 않는 이유를 유지했다."
+  },
+  "overall.pentacles.01.reversed": {
+    "do": "新しく受け取ったものが多くても、今やる必要のあることに使えるか確かめましょう。量が十分にあることと、必要なものがそろっていることは別です。",
+    "pause": "よいと聞いただけで、すでに持っているものと似た物を増やさないようにしましょう。使い道の決まらないものまで集める必要はありません。",
+    "source_ko_actions_sha256": "5369797db93283b442e2060fb98a1eb04b579ef5245fd6d9efce14e03354ec3d",
+    "source_locale_bundle_sha256": "e6366c7d6764cf82141a5c1b3c75e55ca3ec27f8240c09dc263a202819ec7e93",
+    "rationale": "수량과 실제 필요 충족의 차이, 사용처 없는 유사 물건 수집 주의를 유지했다."
+  },
+  "overall.pentacles.01.upright": {
+    "do": "始めたいことにまだ必要な物や場所があるなら、今手に入るか、利用できるか調べてみましょう。",
+    "pause": "もっとよい条件を待つあまり、すでに用意した物や場所を使うべき時期を逃さないようにしましょう。",
+    "source_ko_actions_sha256": "f004104bab40475a10a5a68d454232e0e229b0647131d5210ff29f46096cab97",
+    "source_locale_bundle_sha256": "a0b2417886eb64ba02b66079cef3e742bc6bb22e4894eb6b34e7b49e3ec447f4",
+    "rationale": "확보 전 자원 탐색과 확보 후 사용 시기 주의를 구별했다."
+  },
+  "overall.pentacles.02.reversed": {
+    "do": "約束の時間が重なるなら、遅れる前にどちらを変更できるか聞いてみましょう。一人で何とかしようとして遅れるより、早めに事情を伝えるほうがよさそうです。",
+    "pause": "後回しにしたことが残っているなら、急用が済んだからと、すぐに新しい約束を入れないようにしましょう。残りを終える時間まで足りなくなるかもしれません。",
+    "source_ko_actions_sha256": "36f3362778a99cc6b7c229b8325d0591730b878db86d7a986237235c9a362ebc",
+    "source_locale_bundle_sha256": "b06eb0921b44f849acc312829fcc7fead9129ac31551edeef0e2aea32d7ea043",
+    "rationale": "겹친 일정 사전 조정과 남은 일 시간 보존의 조건을 유지했다."
+  },
+  "overall.pentacles.02.upright": {
+    "do": "先にするべきことが変わったら、残りの時間を見直し、一緒に取り組む相手に都合のつく時間を知らせましょう。",
+    "pause": "時間の重なる頼み事に、両方できると答えないようにしましょう。どちらを先にする必要があるかと、実際に対応できる時間を正直に伝えてください。",
+    "source_ko_actions_sha256": "f1a62ec7e048d078053aa361c51b603a87eb1a27a0c7403a0bc70d43e65a3522",
+    "source_locale_bundle_sha256": "bd42ef73c37eee5d06c23ee2c1cd683d3c7d04e0b1183d9f5b8256358970f6ac",
+    "rationale": "우선순위 변경 후 가능 시간 전달과 중복 수락 대신 순서·시간 안내를 유지했다."
+  },
+  "overall.pentacles.03.reversed": {
+    "do": "不慣れなことを終えたら、経験者に抜けがないか聞いてみましょう。一人では見落とした点も、説明を聞けば直せます。",
+    "pause": "不十分な点を指摘されても、すぐに言い訳をして言い争いにしないようにしましょう。直すべきところを聞くと、同じことをやり直す手間を減らせます。",
+    "source_ko_actions_sha256": "ce50ca88fdfa5479db28fddc082c408124d7319d11f02670706bec3c321653c8",
+    "source_locale_bundle_sha256": "2fe5ac2c40503f40d581aa790aeb88f39fc71ee409c654e82cdf6eaa4a4154b7",
+    "rationale": "경험자 설명으로 누락 수정, 지적을 변명으로 다툼화하지 않는 이유를 유지했다."
+  },
+  "overall.pentacles.03.upright": {
+    "do": "一緒に取り組むことがあるなら、どの部分が得意か先に伝えて、その部分を担当してみましょう。",
+    "pause": "相手のほうが詳しい部分まで、一人でやり方を決めようとしないでください。その方法を勧める理由を聞いて任せると、一人より楽に進められるかもしれません。",
+    "source_ko_actions_sha256": "dd10709fa2fed5efb551485cc6ed5d592deb47b7f7b8b9f1102fdbaffae6f79a",
+    "source_locale_bundle_sha256": "0cbf53d4c85db9aa69079a91478d66e7251412e013bdc66ffc1702ca331072e3",
+    "rationale": "잘하는 부분 분담과 상대 전문 부분 위임 이유를 유지했다."
+  },
+  "overall.pentacles.04.reversed": {
+    "do": "希望したことを断られたり延期されたりしたら、まず理由を聞きましょう。条件を変えられるなら、いつ改めてできるかも確かめてみてください。",
+    "pause": "相手が難しいと言った条件を変えずに、同じ要求ばかり繰り返さないようにしましょう。急かし続けると、同意を得るまでさらに時間がかかるかもしれません。",
+    "source_ko_actions_sha256": "f448ed145a3e855ffb4519dec476b2ef6d1a4cbd2ce5b82ebac6040d23e63e2a",
+    "source_locale_bundle_sha256": "a344a049b60c033cd8fe110d87457175253a911eefae6a40882c70e8f59160d0",
+    "rationale": "거절 이유 후 조건 변경 가능한 경우의 재시점 문의를 유지했다."
+  },
+  "overall.pentacles.04.upright": {
+    "do": "何か新しく用意しようと思ったら、すでに持っているもので同じ用途に使えるものがないか、探してみましょう。",
+    "pause": "少し手伝ってほしいと言われたら、内容も聞かずに断らないようにしましょう。何を頼みたいのか聞いてから、できるか決めても大丈夫です。",
+    "source_ko_actions_sha256": "d593f344a5d89d4eafe4be385cb9afe0f9835c69c572478044bfe53049553d83",
+    "source_locale_bundle_sha256": "61e94d256f3a87f94ba3e71222c2b3f644a58ecb5f1d8361e2cfe0378d4ac6dc",
+    "rationale": "동일 용도 소유물 확인과 작은 도움의 내용 듣기 전 거절 금지를 구분했다."
+  },
+  "overall.pentacles.05.reversed": {
+    "do": "一緒に進めていたことがこじれたら、それぞれどこまで終えたか先に確かめて、済んだことをやり直さずに済むようにしましょう。",
+    "pause": "腹が立ったからと、人に任せたことまで引き取らないようにしましょう。その分一人ですることが増え、終えるまでにも時間がかかるかもしれません。",
+    "source_ko_actions_sha256": "a7c96aa883dbc54231f29230763aa1ed74a6e54697a3a9e1747a0a7cab5808ed",
+    "source_locale_bundle_sha256": "0364e5ed91d921b28dd841cfc9ee7ff6c994ca2472ba1191ffa5d02e1dc5ca81",
+    "rationale": "공동 작업 완료 지점 확인과 도로 맡아서 혼자 할 일이 늘어나는 실제 결과를 유지했다."
+  },
+  "overall.pentacles.05.upright": {
+    "do": "一人でするには大変なことがあるなら、どの部分を手伝ってほしいか具体的に伝えてみましょう。",
+    "pause": "助けを求めるとき、ほかの人はうまくいっているという話ばかり繰り返さないようにしましょう。それだけでは、今何が足りないのか相手に伝わりにくくなります。",
+    "source_ko_actions_sha256": "d26824a4b7526eb073962ea9fc173861bfbfdb8144cdbb1c84bf562a881d9500",
+    "source_locale_bundle_sha256": "c432142be448e6e6818fa0570cd7f71b679db73890f0d76e2b6fe6342dfdf6db",
+    "rationale": "도움의 구체적 대상과 비교 발언만으로 필요한 도움 전달 안 되는 인과를 유지했다."
+  },
+  "overall.pentacles.06.reversed": {
+    "do": "手伝うと言ってもらったら、代わりに求められることがないか先に聞いてみましょう。受け入れにくい条件なら、助けてもらう前にはっきり伝えてください。",
+    "pause": "助けてくれた人に、ほかの人はもっと多くもらったと不満ばかり言わないようにしましょう。同じ比較を繰り返すと、お互いに気まずくなるかもしれません。",
+    "source_ko_actions_sha256": "a1992377ae8e313896c3bb8035c1e653f43fe3a2a37c606bfda047c81718d4e0",
+    "source_locale_bundle_sha256": "dc0c4cf140a681b78f6d09cc40dc1b6d3824e975ecb7182d96c4782a83263cd0",
+    "rationale": "몫을 깎아내리는 직역 대신 다른 사람 양과 비교한 불만 발언을 명시했다."
+  },
+  "overall.pentacles.06.upright": {
+    "do": "必要なときに助けてもらったら、どんな点が楽になったか話しながら、お礼を伝えましょう。",
+    "pause": "誰かの力になりたくても、何を必要としているか聞かずに手助けを押し付けないようにしましょう。よい意図でも、相手が望む助けとは違うかもしれません。",
+    "source_ko_actions_sha256": "08afb13c2c82df5f9dd00f6ffaa7a2deb68286444054e86bf3786fbd3ca68e0c",
+    "source_locale_bundle_sha256": "2d798c00d22c4b32c10164a9fb8bbaf1d2d3f272be99b47e4eb7a17d28c4d910",
+    "rationale": "감사 내용 구체화와 상대가 필요한 도움 확인 없는 강요를 구별했다."
+  },
+  "overall.pentacles.07.reversed": {
+    "do": "もう少し時間を取ってほしいと頼まれたら、いつ終わるのか先に聞いてみましょう。はっきりしなければ、今できる分だけ手伝うと伝えてください。",
+    "pause": "これまで費やした時間が惜しいという理由だけで、いつ終わるか分からないことに、ずっと時間を使うと約束しないようにしましょう。",
+    "source_ko_actions_sha256": "331de1dc270c6e7b62f7f352c319dd4b29a9609598f5687fbb6946eb3dac5d77",
+    "source_locale_bundle_sha256": "a45449b1f6ce5aad2d91ad6b9a17a10d8382e84d9fa5f77f38b03a5e10f7c871",
+    "rationale": "추가 도움의 종료 시점과 끝없는 시간 약속의 매몰 비용 이유를 유지했다."
+  },
+  "overall.pentacles.07.upright": {
+    "do": "続けてきたことは、前よりよくなった点と残っている部分を見て、さらに続ける価値があるか考えてみましょう。",
+    "pause": "続けてきたことを早く終えたくても、必要な手順を飛ばさないようにしましょう。ここまでの努力を無駄にしないために、残りもきちんと進めてください。",
+    "source_ko_actions_sha256": "8a2a5d2c21034bd7cfb7e38166a97b52fe9d0461fd813e09a2362cc17129067c",
+    "source_locale_bundle_sha256": "0b5bd6cb0e1e1dab9ef15c8445b4ed737628caf355b5afcae7ecbfb5b352f83e",
+    "rationale": "성과 점검에 따른 지속 판단과 필수 과정 생략 주의를 분리했다."
+  },
+  "overall.pentacles.08.reversed": {
+    "do": "慣れたことでも、確認せずに済ませた部分があれば見直しましょう。抜けが見つかったら、終わったと伝える前に直してください。",
+    "pause": "仕上げたものに不十分な点が見つかっても、もっともらしい言葉で取り繕わないようにしましょう。実際に直さなければ、後でやり直すことになり、信頼も失いかねません。",
+    "source_ko_actions_sha256": "c85b586262e960984cf5eb7c70c307eb4d4f0d74812113347efb7752626903de",
+    "source_locale_bundle_sha256": "b7af77d22bcedc2cecf45b03966e253f07aff2e32e26e5cd9304365dc35e0dbe",
+    "rationale": "완료 전 누락 확인과 결함을 말로 덮어 신뢰 잃는 인과를 유지했다."
+  },
+  "overall.pentacles.08.upright": {
+    "do": "練習した方法でできることが残っているなら、その方法を使って最後まで終えてみましょう。",
+    "pause": "慣れた繰り返しの作業でも、細かいところを雑に済ませないようにしましょう。得意なことでも、仕上げをおろそかにすると結果に心残りが生じるかもしれません。",
+    "source_ko_actions_sha256": "b718759d716b4283f98ac9220bebf5fef1336b5eec8acf1963b0006babf209f7",
+    "source_locale_bundle_sha256": "576e8522731891296bec4dde054d77856fb10c170a34a1ffc0c02c0dd71fcc31",
+    "rationale": "연습 방법을 적용 가능한 일에 쓰기와 반복 작업 마무리 품질 주의를 유지했다."
+  },
+  "overall.pentacles.09.reversed": {
+    "do": "新しく利用する場所や参加する予定があれば、必要なものが実際にそろっているか、自分で確かめてみましょう。",
+    "pause": "見た目がよいからと、人にもよい場所だと断言しないようにしましょう。実際に使って不便な点がないか調べてから話してください。",
+    "source_ko_actions_sha256": "e01d347c77dc4eff55d2e6b888a8a9e6783c3a602038af90cb6bcd0d426808f4",
+    "source_locale_bundle_sha256": "9e19e8544c4ae34cbcf8d7b702e42c60af39501a9ead72504abd9a980180e77a",
+    "rationale": "실제 이용 조건 확인과 타인에게 미확인 장담 금지를 구별했다."
+  },
+  "overall.pentacles.09.upright": {
+    "do": "無事にやり終えたお祝いに、やりたかったのに時間がなくてできなかったことを、試してみましょう。",
+    "pause": "人に充実した暮らしを見せようとして、あまり行きたくない集まりにまで無理に出かけないようにしましょう。",
+    "source_ko_actions_sha256": "73cc5f948bd5fccee446cf641f8577e9f6bb591b91ac35cf74e0cb9d5a6bb1da",
+    "source_locale_bundle_sha256": "265057239106c2ba1f3cbc502e24ac2d943cce95c807be51e31694f5a30fa22d",
+    "rationale": "사용자 승인 문맥대로 축하 목적을 먼저 두고 시간 없어 못한 활동, 남에게 보이려 원치 않는 자리 참석 금지를 유지했다."
+  },
+  "overall.pentacles.10.reversed": {
+    "do": "今うまくいっていることを新しい方法に変えたいなら、全体を変える前に、小さな部分で試してみましょう。",
+    "pause": "結果待ちのことがうまくいかなければ守れない約束を、いくつも入れないようにしましょう。予想と違う結果になれば、その約束も守りにくくなります。",
+    "source_ko_actions_sha256": "721a2fe11b87064c5af0e7298c36c11c1f80dfb52ad8a6833b49a3e3a0f1c75e",
+    "source_locale_bundle_sha256": "b0219829168830337f94bc767d425837a7add680fc35f36f21a82130f2308005",
+    "rationale": "소규모 시험과 한 결과 성공에 의존하는 여러 약속의 위험을 유지했다."
+  },
+  "overall.pentacles.10.upright": {
+    "do": "新しく解決する必要があることには、以前まとめた内容から役立つものを探してみましょう。長く残してきた記録に、今必要な答えがあるかもしれません。",
+    "pause": "長い付き合いの人に助けを頼めるなら、分からないことを一からすべて自分で調べようとしなくても大丈夫です。",
+    "source_ko_actions_sha256": "5c8ad8039853e9c15760843724e35c9e9a284e2fff4acba818f9bfcd8f4acebe",
+    "source_locale_bundle_sha256": "c9b4b7a36f204269143223e9b68bec115d9ddb0d71c797154d5acd34036afa4f",
+    "rationale": "축적 기록 활용과 도움 가능한 오랜 지인이 있을 때 혼자 모두 조사하지 않아도 됨을 유지했다."
+  },
+  "overall.pentacles.11.reversed": {
+    "do": "ほかのことに時間を使う前に、読むのを後回しにした案内で、今返事や対応が必要な内容を確かめましょう。",
+    "pause": "始めたばかりのことにすぐ飽きても、必要な手順を終える前に、つまらないと決めつけてやめないようにしましょう。",
+    "source_ko_actions_sha256": "3d5c712e7d3deaaedd5d196187b4f408e2be7b2d188ae1552fc6919d08e48eaf",
+    "source_locale_bundle_sha256": "bbe1b74253dd242ea4e9e654d47fda29c4f5cac88330b09a0b672f4bad7670e9",
+    "rationale": "안내에서 응답 필요한 내용이라는 대상을 밝히고 첫 지루함으로 필요한 과정 전 포기 금지를 유지했다."
+  },
+  "overall.pentacles.11.upright": {
+    "do": "新しく学んだ方法があれば、その方法を使えることの中から、簡単なものを実際にやってみましょう。",
+    "pause": "知っている内容のように聞こえても、説明を途中で聞き流さないようにしましょう。その先に、まだ知らなかった話が続くかもしれません。",
+    "source_ko_actions_sha256": "4d76e33738969764e347c74302ba932ab815c0e4a0f91b569c4aa3af4eac6890",
+    "source_locale_bundle_sha256": "b3de094abe6f464dd551ed62f3e964bba37d5016c37f79b27d3ef1d0339784c7",
+    "rationale": "새 방법 적용 대상과 설명 뒤의 미지 내용 때문에 끝까지 들어야 하는 이유를 유지했다."
+  },
+  "overall.pentacles.12.reversed": {
+    "do": "長く後回しにしていることがあれば、どこまで済んでいるか見直しましょう。終わったと思っていた部分にも、抜けが見つかるかもしれません。",
+    "pause": "後でまとめてやるからと、延ばしていたことをまた先送りしないようにしましょう。時間がたつと、どこまで進めたか確かめ直すにも手間がかかります。",
+    "source_ko_actions_sha256": "5444f0adb8aaa6afdeff44754c35772339afa1bef5d29e093e5173a8499fe916",
+    "source_locale_bundle_sha256": "ab63523c913471bfcf67957cf7013c836bae7d4b81c34e9c9cc5bfdf0c359fe2",
+    "rationale": "진행 상태 확인의 누락 발견과 장기 미룸 후 재파악 시간의 이유를 유지했다."
+  },
+  "overall.pentacles.12.upright": {
+    "do": "慣れたことはいつもの順番で一つずつ進めて、約束したことを漏れなく終えたかどうかも確かめましょう。",
+    "pause": "ほかの人が早く終えたからと、うまくできている方法まで急に変えないようにしましょう。慣れた順番で終えられるなら、人の速さに合わせる必要はありません。",
+    "source_ko_actions_sha256": "e568783e5c54d3b85b2fb237e533becb226e1093d6b98d0ecda1973438ed0239",
+    "source_locale_bundle_sha256": "7f6b1b98e8744299e4bee308b9e8d589ad3cfb6eedf03b30ba92cef54f567d1a",
+    "rationale": "익숙한 순서와 약속 누락 확인, 남의 속도로 잘하는 방법 변경 금지를 유지했다."
+  },
+  "overall.pentacles.13.reversed": {
+    "do": "決断を前に安心できないなら、気になる条件を具体的に尋ね、その答えをもとに決めてみましょう。",
+    "pause": "根拠もなく、助けようとしてくれる人の本心をしつこく問いたださないようにしましょう。疑う言葉ばかりでは、どんな助けを受けるか話し合うことも難しくなります。",
+    "source_ko_actions_sha256": "9215e388d52dcdebb258ae664fbb843f02359bcd48a3995bfe991115610c23fc",
+    "source_locale_bundle_sha256": "5a4fea4985e5ae6f74fa6db538f69694f61d036d1c3c5bc6ea241d330d70a7c8",
+    "rationale": "결정 앞둔 조건 질문과 근거 없는 의심이 실제 도움 논의를 막는 이유를 유지했다."
+  },
+  "overall.pentacles.13.upright": {
+    "do": "物が十分にあるなら、必要な人に分けてみてもよさそうです。自分が使う分を残しても、無理なく渡せるものから探してみましょう。",
+    "pause": "誰かの世話をするために、自分の用事まで後回しにしないようにしましょう。終えるべきことも考えて、無理なく手伝える範囲だけで十分です。",
+    "source_ko_actions_sha256": "e8e0d3bfe1fef826e4d0d7591c1dc2f284943bed16ee79a3252c127276471813",
+    "source_locale_bundle_sha256": "2290a5685f1505027c9159ae2b7b5af66e6acfe4296629aa2f9ab20f46995ef8",
+    "rationale": "자기 사용분 남긴 물건 나눔과 자기 일 밀리지 않는 도움 범위를 유지했다."
+  },
+  "overall.pentacles.14.reversed": {
+    "do": "満足できる条件を得たなら、さらに要求を増やすより、その条件で話をまとめてみましょう。",
+    "pause": "人に有能だと思われようと、こなしきれないことまで引き受けないようにしましょう。それを終える時間や力があるか、先に考えてください。",
+    "source_ko_actions_sha256": "b61f6dbfd26db0f77897bf7af9d34162fcc75c918fa34c202dcc7441135195f8",
+    "source_locale_bundle_sha256": "428cab4a4e2e0c1993d8462669fb0d75a11a8c346dd45a08f7d311d318498203",
+    "rationale": "충분한 조건의 협의 마무리와 체면 때문에 과도 수락하지 않는 뜻을 유지했다."
+  },
+  "overall.pentacles.14.upright": {
+    "do": "複雑なことを解決するなら、前に効果のあった方法の中から今も使えるものを選び、試してみましょう。",
+    "pause": "目新しい方法でも、自分で試していないなら、効果を確認したかのように、うまくいくと断言しないでください。",
+    "source_ko_actions_sha256": "901305ea07c0201e13865427b5497812b8f36e2f9fbf3bb697c6b84466c70590",
+    "source_locale_bundle_sha256": "7e9b83634d8c0ca1efe31bfb275f0cb7e4604938f1e18e25cd19ada1ac7d6573",
+    "rationale": "경험상 효과 있는 방법 적용과 미경험 방법 보증 금지를 유지했다."
+  },
+  "overall.swords.01.reversed": {
+    "do": "大事な話を伝えたら、相手がどんな意味で受け取ったか聞いてみましょう。はっきり話したつもりでも、違う意味に取られたかもしれません。",
+    "pause": "間違った内容を伝えたと気づいたら、先に長い言い訳をしないようにしましょう。誤りをまず訂正すれば、相手が判断を間違えるのを防げます。",
+    "source_ko_actions_sha256": "53d1d6aa68ed39f7687bd0c843fadebaabe85dd7344d9df7d0b67900efba02ef",
+    "source_locale_bundle_sha256": "a9910ca3205342be6d0e2c3f3a49c899a7cbba39f451ad5a63fe19e3a1ae1ec9",
+    "rationale": "의미 전달 확인과 상대 판단 착오 막기 위한 정정 우선을 구별했다."
+  },
+  "overall.swords.01.upright": {
+    "do": "問題が起きた理由が分からなければ、食い違う説明の中で、実際に確かめられた事実を比べてみましょう。",
+    "pause": "分かったことを伝えるとき、周辺の話ばかり長く続けないようにしましょう。相手が知るべき事実から話すと、結論まではっきり伝えられます。",
+    "source_ko_actions_sha256": "95f42710ad300cbf6093851edcfd0a671e3ade829c6e08950bb616bd2eae91f9",
+    "source_locale_bundle_sha256": "f9d639053789c5d35d7a3c3447bba0d27360fa093294087c8ce9576553832c74",
+    "rationale": "상충 설명의 확인 사실 비교와 핵심 사실 우선 전달의 이유를 유지했다."
+  },
+  "overall.swords.02.reversed": {
+    "do": "人によって話が違うなら、今決める必要のあることだけを、当事者に直接聞いてみましょう。",
+    "pause": "複雑な話を早く終えたいからと、適当に選ばないようにしましょう。理解できていない条件を受け入れると、後で解決すべきことが残るかもしれません。",
+    "source_ko_actions_sha256": "ee7750ceb320b7561e04dd7ea6e8eccdcf1b36549992acc5d405a672297b1bb4",
+    "source_locale_bundle_sha256": "e95aa49b05915833057d62579ffa3e3b21363ab48cee1a834e727fefc37d95b1",
+    "rationale": "당사자에게 지금 결정할 사안만 확인하고 미이해 조건 수락의 뒷수습 위험을 유지했다."
+  },
+  "overall.swords.02.upright": {
+    "do": "何を選ぶか迷っているなら、決めるためにまだ分からないことを、事情を知る人に聞いてみましょう。",
+    "pause": "返事を急かされても、事情を十分に知る前にはっきり約束しないようにしましょう。いつまで待ってもらえるか聞いて、考える時間を求めてみてください。",
+    "source_ko_actions_sha256": "f09fd981c8e702a54ccb38892f26365e264eea8d2eed342b5dcca74abf709831",
+    "source_locale_bundle_sha256": "08c4a041e17a038ebe4786e6795cf3da739c75876aef7bc92a633759f130b704",
+    "rationale": "선택에 필요한 미지 정보와 확답 전 생각할 시간 요청을 유지했다."
+  },
+  "overall.swords.03.reversed": {
+    "do": "わだかまりが解けたら、これからどう付き合っていきたいか話してみましょう。すぐに以前のように親しくするのが難しければ、その気持ちも正直に伝えて大丈夫です。",
+    "pause": "お互いに説明して終えた争いを、まだ気持ちが晴れないという理由だけで蒸し返して責めないようにしましょう。",
+    "source_ko_actions_sha256": "7125253dbea6ab666ef79be4c6b24bdb91c3409814f7dc9903ad6b5d8b988b76",
+    "source_locale_bundle_sha256": "08c4389704793088934c8a462f69ca026ba7fb89dedd923f6b9bceac9ba2c0ad",
+    "rationale": "해소 후 관계 방식 논의와 즉각 가까워질 의무 없음, 끝난 다툼 반복 주의를 유지했다."
+  },
+  "overall.swords.03.upright": {
+    "do": "望んだ返事でなくても、そうなった理由は最後まで聞いてみましょう。今知るべき事実を確かめると、次に何をするか決める助けになります。",
+    "pause": "残念な知らせを聞いても、その件と関係のない人にまできつく話さないようにしましょう。つらさをぶつけると、気まずい相手がさらに増えるかもしれません。",
+    "source_ko_actions_sha256": "ee8c7628e18b48bf1f35c4e64a55f7674d595b07fb9723d61892ce8a369962ed",
+    "source_locale_bundle_sha256": "030875e30c1b9f25424c362e8bcccfa670fefa9eea085e1ba3d0e7d279965ce1",
+    "rationale": "원치 않는 답의 이유에서 다음 행동 결정, 무관한 이에게 화풀이의 관계 악화 결과를 유지했다."
+  },
+  "overall.swords.04.reversed": {
+    "do": "しばらく手を止めていたことを再開するなら、たまった頼み事をすべて引き受けるより、最も急ぐものから選びましょう。",
+    "pause": "再開したばかりで、すぐ以前と同じだけこなそうと無理をしないでください。慣れる時間を取りながら、少しずつ増やしても大丈夫です。",
+    "source_ko_actions_sha256": "a68e4cdaa3c10b33335b89fddd37283ec4b1ab07e24635fc4192c18533058ab0",
+    "source_locale_bundle_sha256": "298245179f6a518199a9d24b454bba1f15a78241a20802e74f4684c27d45d1a2",
+    "rationale": "재개 시 급한 일 선택과 즉시 이전 분량 복귀 대신 점진 증가를 구분했다."
+  },
+  "overall.swords.04.upright": {
+    "do": "急いで返事をしたり手を加えたりする必要がなければ、後でもよいことはしばらく置いて、静かに休んでみましょう。",
+    "pause": "終わった争いを持ち出して、どちらが悪かったかまた問い詰めないようにしましょう。言わなくてよい言葉まで交わすうちに、またお互いに気まずくなるかもしれません。",
+    "source_ko_actions_sha256": "f9b7f4c1e04215e1fe11ea9f88f905c6a75b328d55ccb57856ea86b59ccfd650",
+    "source_locale_bundle_sha256": "56fbd1a3b5ad5810c2189002db35345093d7f4dbeafee26f54a764de0506f691",
+    "rationale": "급한 일 없는 조건의 휴식과 끝난 다툼의 불필요한 발언으로 재불화되는 이유를 유지했다."
+  },
+  "overall.swords.05.reversed": {
+    "do": "気まずかった相手と歩み寄る機会が来たら、どこまで譲れるか先に伝えてみましょう。考えがすべて同じにならなくても、争いを終える方法は探せます。",
+    "pause": "謝罪や合意を受けた後で、以前の言葉の是非をまた問いたださないようにしましょう。お互いに引くと決めた後に、どちらがより悪いかを争うと、対立が続きかねません。",
+    "source_ko_actions_sha256": "1517d1ff5ab67d2ae00765efb2416918cb1c434cc84b7ee4b356552681192bd5",
+    "source_locale_bundle_sha256": "abe9b8edeb4048fe1b3671ada0d2bf0aa0c13bc74702cd3c2dd3c53be9401376",
+    "rationale": "양보로 다툼 종료 가능성과 합의 후 잘잘못 재판정의 대립 지속을 유지했다."
+  },
+  "overall.swords.05.upright": {
+    "do": "言い争いで必要なことを伝えたなら、それ以上責めずに止めてみましょう。最後までどちらが悪いか決着をつけようとすると、助け合ってきた仲まで遠ざかりかねません。",
+    "pause": "主張を通そうとして、相手を見下す言い方をしないようにしましょう。言い負かしても、残った反感で次に協力しにくくなるかもしれません。",
+    "source_ko_actions_sha256": "da226b4899e1d357fc09aba4e75eaf0c274c811eba031a8e4bf12c46524526b4",
+    "source_locale_bundle_sha256": "f9e1bc6117206f844a17d72a56bba460818709fc5f00622224e8c72064a83215",
+    "rationale": "필요한 말 후 중단과 상대를 낮춰 말한 반감이 후속 협력에 미치는 결과를 유지했다."
+  },
+  "overall.swords.06.reversed": {
+    "do": "解決したと思った問題が繰り返されるなら、最初の原因にまだ対処できていない点がないか、確かめてみましょう。",
+    "pause": "今だけ逃れたいからと、未解決のことを人に押し付けないようにしましょう。原因が残れば、後で同じ問題をまた説明することになりかねません。",
+    "source_ko_actions_sha256": "bd6a22a654737521a8fe01e41dca84dad0cfd6512cfdf5ae3bae32bfa28f82a9",
+    "source_locale_bundle_sha256": "b137c9681b0a9894178b4f2f84b4ce759efb4403e77d78778820ae89a65412bc",
+    "rationale": "재발 원인의 미해결 부분과 원인 없이 떠넘기는 경우 반복 설명을 유지했다."
+  },
+  "overall.swords.06.upright": {
+    "do": "一人では難しかったことを楽に進める方法を教えてくれる人がいたら、説明を聞いて助けを借りてみましょう。",
+    "pause": "もっと楽に過ごせる場所があるなら、慣れているというだけで、居心地の悪い場所にとどまらないようにしましょう。",
+    "source_ko_actions_sha256": "0a1537f09f278cd20c108a33dd61f51832a47365a7c17e5a652827907b560d77",
+    "source_locale_bundle_sha256": "7d9bd310061ee5f57bf17278ac2f773fa8013b9343b1e72085f4cb3d076a4a27",
+    "rationale": "도움받는 다른 처리 방법과 더 수월한 장소가 있는 경우의 이동 선택을 유지했다."
+  },
+  "overall.swords.07.reversed": {
+    "do": "ミスに一人で対処するのが難しければ、関係する人に、どこで間違えたのか先に伝えましょう。",
+    "pause": "すでに分かったミスを、もっともらしい言い訳で隠そうとしないでください。説明を何度も変えると、小さな間違いでも対処に時間がかかりかねません。",
+    "source_ko_actions_sha256": "d8c07edf5c889daff333edf5dbe0032816424cb78096366f802eb6a29e0e73c8",
+    "source_locale_bundle_sha256": "4642b228a069ec90fdf27618cabd465e26195b04cfba4b22eafdf973ed751433",
+    "rationale": "관련자에게 실수 지점 설명과 번복된 핑계가 수습 시간 늘리는 인과를 유지했다."
+  },
+  "overall.swords.07.upright": {
+    "do": "簡単には解決しないことは、事情を知る人だけにそっと尋ねて、別の解決方法を探してみましょう。",
+    "pause": "相手の同意が必要なことでは、大事な条件を伏せて話さないようにしましょう。計画をすべて明かさなくても、相手の判断に必要な事実は伝えてください。",
+    "source_ko_actions_sha256": "93722cb339c125dd93c17340572674a9d3d4ea587420a5c124d677692b2d8122",
+    "source_locale_bundle_sha256": "63ece6b929d7acc60e7ce3710ee7a5057477dceab97487c36a74b1e54055fef7",
+    "rationale": "신중한 정보 공개와 동의에 필요한 중요 조건 은폐를 분리했다."
+  },
+  "overall.swords.08.reversed": {
+    "do": "行き詰まっていたことに別の方法が見つかったら、その方法で今できる部分から試してみましょう。",
+    "pause": "条件が変わって再挑戦できるなら、以前できないと言われたことだけを思い出して、今回の試みまで諦めないようにしましょう。",
+    "source_ko_actions_sha256": "a8e2c0a5d67ec733cbe9798f95409f15a39a854a02c43214c74d367f1dc67898",
+    "source_locale_bundle_sha256": "442e7afec4003305624c041f7b6b78679fafd13aac8c7826b24f1d46b4747ad3",
+    "rationale": "새 방법의 동일 일 적용과 변경 조건 후 과거 거절만으로 포기 금지를 유지했다."
+  },
+  "overall.swords.08.upright": {
+    "do": "やりたいことができないと言われたら、どの条件が理由なのか直接聞いてみましょう。本当に制限されている点が分かれば、別の方法も探せます。",
+    "pause": "一つの方法が使えないからと、まだ調べていないほかの方法まで、すべて無理だと決めつけないでください。",
+    "source_ko_actions_sha256": "062a4903f4faded31b7b11a9fa3c275fbce2059c631895642b5499491bc70898",
+    "source_locale_bundle_sha256": "8a4b215f647196075ccbab7aa1939d0f97fc3e97181c204cae139a2b35e4cc43",
+    "rationale": "실제 제한의 확인과 미확인 대안을 모두 불가능으로 넓히지 않는 뜻을 유지했다."
+  },
+  "overall.swords.09.reversed": {
+    "do": "一人で心配していることがあれば、信頼できる人に、何が起きて何が心配なのか具体的に話してみましょう。",
+    "pause": "助けを得て安心しても、まだ解決すべきことを放っておかないようにしましょう。今何をするべきか教えてもらったなら、そこから取りかかってください。",
+    "source_ko_actions_sha256": "8dbc3234d44d00631f62533e38146e78e752f297956456cf124acb93c6f6e136",
+    "source_locale_bundle_sha256": "270c547dde9869ebd21def4d96ae5621786ead248fe2dceaf264fcacaebc0de4",
+    "rationale": "걱정의 사실·지점 설명과 안심 뒤 남은 해결 착수의 대상을 유지했다."
+  },
+  "overall.swords.09.upright": {
+    "do": "返事が遅く、悪い結果を心配しているなら、その結果を実際に聞いたのか、自分で想像したのか、分けて考えてみましょう。",
+    "pause": "結果が出る前に、失敗したと伝えたり約束を取り消したりしないようにしましょう。心配したとおりに終わったかどうかは、まだ分かりません。",
+    "source_ko_actions_sha256": "36f28f3b978e957c2c216b3f157ecea8e16878f3bae8c22c50907e0220363506",
+    "source_locale_bundle_sha256": "54672a52fb457424c9b8feed37ec54968600157abab4f41ca466145e0c5b9dac",
+    "rationale": "사용자 교정된 그 나쁜 결과라는 판단 대상을 명시하고 미확정 실패 행동을 주의했다."
+  },
+  "overall.swords.10.reversed": {
+    "do": "難しかったことに再挑戦できるなら、今無理なく終えられるよう、前より少ない量から引き受けてみましょう。",
+    "pause": "機会が戻ってきても、以前つらかった条件までそのまま受け入れないようにしましょう。何が大変だったのか振り返り、同じ負担が生まれないか確かめてください。",
+    "source_ko_actions_sha256": "9c0679ca5515ed2e40de7590e2a0f79e2ef07b84cc7c4eeaa2c41a1208cfa307",
+    "source_locale_bundle_sha256": "3f666640b9fc9aa5219f30af54632adf51ed52886c5197d9e7abacc1063522ed",
+    "rationale": "재개 분량 제한과 이전 부담 조건 반복을 분리했다."
+  },
+  "overall.swords.10.upright": {
+    "do": "これ以上続けにくくなったことは、終えるために必要な片づけだけ済ませて、それ以上手を加えなくても大丈夫です。",
+    "pause": "残念な結果をすぐに取り戻そうと、新しいことを引き受けないようにしましょう。増やす前に、今残っていることをこなせるか確かめてみてください。",
+    "source_ko_actions_sha256": "a448df9bc90d9f37c0d8afb1a0cfd5e0ddf146688bbea241c08091a3ce9b5132",
+    "source_locale_bundle_sha256": "a8e04736e688492f6f1034aee4df03d1515b97e6fa914cb35afa30a147b509cc",
+    "rationale": "필수 정리 뒤 중단 순서와 새 일 맡기 전 남은 일 감당 판단을 유지했다."
+  },
+  "overall.swords.11.reversed": {
+    "do": "知らないことを質問されたら、推測ですぐ答えず、確認する時間をもらってから正確な内容を調べましょう。",
+    "pause": "初めて聞いた話が怪しくても、すぐに相手を責め立てないようにしましょう。まだ知らない事情があるかもしれないので、事実を確かめてから話してください。",
+    "source_ko_actions_sha256": "44ae6d0f4dc0023c59988283fcb26dc12c0b9210374d7519453a84c0a9a38c3d",
+    "source_locale_bundle_sha256": "f81ea529deaa197910d6e28b1ff36fb460a395f2cc4e8233e615f0e8632492f2",
+    "rationale": "질문 즉답 대신 조사와 미확인 사정 때문에 상대 비난 보류를 유지했다."
+  },
+  "overall.swords.11.upright": {
+    "do": "初めて見る案内は小さな文字まで読み、理解できない点は直接尋ねて、意味を確かめましょう。",
+    "pause": "新しく分かった話を伝えるとき、確認した事実に推測まで混ぜて、確かなことのように話さないようにしましょう。",
+    "source_ko_actions_sha256": "e3bd238d307d66b085fcf673313e6b24e1cb01eac64d5fac7260ecdcd9169abb",
+    "source_locale_bundle_sha256": "5f64a3aa4383720b6118df2738b676550a1a98d74255eb8e2562cf3cf92725ab",
+    "rationale": "안내 읽기 후 의문 질문, 사실과 추측 혼합 전달 금지를 유지했다."
+  },
+  "overall.swords.12.reversed": {
+    "do": "出かけた先ですることがあるなら、必要な持ち物をそろえたか、出発前に確かめましょう。忘れ物で引き返す手間を減らせます。",
+    "pause": "早く答えるよう求められても、今終えられないことをすぐにやると引き受けないようにしましょう。急かされるまま答えず、実際にできる時期を伝えてください。",
+    "source_ko_actions_sha256": "5afa00877b08629c8ff0830db8c700f17a004d3795c11cc6952fb48b88980739",
+    "source_locale_bundle_sha256": "a0e5fbbca48d2c519b57bed0b74b3b241b5369b8af8faaa287b895d240a3cda6",
+    "rationale": "외출지 할 일을 위한 준비물과 재촉에 못 할 일 즉시 수락하지 않는 대안을 유지했다."
+  },
+  "overall.swords.12.upright": {
+    "do": "長く延びていたことで何をするか決めたなら、一緒に取り組む人にその決定を伝えて、できる部分から始めましょう。",
+    "pause": "速く進んでいても、必要な説明を飛ばして一人で先走らないようにしましょう。相手が何をするべきか理解する時間も残してください。",
+    "source_ko_actions_sha256": "20612cfd65c74b25bdfe072fdbc5269d08c38e4e90053008f8af374d5b193ab7",
+    "source_locale_bundle_sha256": "1157e5654e17f1278a9f0744e9c910395f8d744c41ba3cac7a2ba31f0ffbd47b",
+    "rationale": "결정 공유 후 시작과 설명 생략으로 상대 이해 시간 빼앗지 않는 뜻을 유지했다."
+  },
+  "overall.swords.13.reversed": {
+    "do": "一方の説明しか聞いていないなら、まだ知らない事情がないか確かめましょう。もう一方の話も聞いてから、何があったのか判断してください。",
+    "pause": "普段苦手に感じる相手だからと、事実か確かめもせず、その人の話をすべて無視しないようにしましょう。",
+    "source_ko_actions_sha256": "03b5bc2c42fbd49bfc89b665fa4d03c7f7eb75a5fd6a13b2bd11bebcbbcf735a",
+    "source_locale_bundle_sha256": "b1a60e5e4415a8f4cc5b7a2845a0665c0af47e201e2afe197ec611ea545791a3",
+    "rationale": "양측 설명 청취와 인물 선입견으로 말의 사실성 무시하지 않는 뜻을 유지했다."
+  },
+  "overall.swords.13.upright": {
+    "do": "長い付き合いの人からの頼み事でも、条件が合わなければ、どんな点が難しいのか短く伝えましょう。",
+    "pause": "条件が合わずに断るときは、相手の性格や欠点まで持ち出さず、受け入れられない条件だけを話しましょう。",
+    "source_ko_actions_sha256": "a296c887eeb7efce9c7d2fc472d9d5fa8f121d30a37293c78c5f5d6b771abb67",
+    "source_locale_bundle_sha256": "df3a09ed3a736282698502dedc72172e0ed83ec600ed048f13b8b815e941a55a",
+    "rationale": "거절 조건 명시와 성격·인격 비판을 분리했다."
+  },
+  "overall.swords.14.reversed": {
+    "do": "強く要求されても、すぐに答えにくいなら、内容を確かめてから決める時間をもらいましょう。",
+    "pause": "何かを決めるとき、相手の説明を途中で遮らないようにしましょう。事情を十分に聞かずに結論を出すと、不当だと感じる人がいるかもしれません。",
+    "source_ko_actions_sha256": "396104de07dca349cbe0eb7e923791865250653f077c5ef7697f9cfe75565e7d",
+    "source_locale_bundle_sha256": "a59703f28838cad6ffcd7f06dd364e0cdd09e61fd584483de612ca22fa6afb37",
+    "rationale": "압박받는 상황과 자신이 결정하는 상황의 주어를 명료하게 구별했다."
+  },
+  "overall.swords.14.upright": {
+    "do": "大事な決断に意見を伝えるときは、なぜそう考えるのか、ほかの人も確かめられる事実をもとに説明しましょう。",
+    "pause": "自分に有利な結論を出そうと、その都度基準を変えないようにしましょう。同じ状況には同じ原則を当てはめると、お互いに納得できる判断につながります。",
+    "source_ko_actions_sha256": "3dfc83a521a6ad8457e65adc73a662bae49acbb8883baabfed08a3d8545d3b93",
+    "source_locale_bundle_sha256": "35ef621a011eae7cfe487202108cc9d8fc4900032904517d5c348df05e01ea79",
+    "rationale": "의견의 확인 가능 근거와 같은 상황 같은 원칙 적용 이유를 유지했다."
+  },
+  "overall.wands.01.reversed": {
+    "do": "始めたいことの準備が足りないなら、不足している点を見て、今できることから先に済ませておきましょう。",
+    "pause": "今すぐ機会がないというだけで、やってみたかったこと自体を諦めないようにしましょう。今は時期が合わないことと、これからもできないことは別です。",
+    "source_ko_actions_sha256": "6d332018498be31aab1e68d69582e3150ed3f644e070580f1ac034c66689e059",
+    "source_locale_bundle_sha256": "bd2e2a3240d14ce8d96675c23ad90619572a17452e603a86893a7b1867d03374",
+    "rationale": "현재 준비와 현재 시기 부적합을 영구 불가능과 구분하는 뜻을 유지했다."
+  },
+  "overall.wands.01.upright": {
+    "do": "やろうと思いながら延ばしていたことがあれば、今できる部分から始めてみましょう。試しながら、次に必要なことを知っていっても大丈夫です。",
+    "pause": "新しく始めることを、最初から広げすぎないようにしましょう。こなせる範囲で試すほうが、途中で止めずに続けられます。",
+    "source_ko_actions_sha256": "450f902df49a3739d8c2352e5f247f22dbdedb7a52e2a287007a2ea9c490a99c",
+    "source_locale_bundle_sha256": "d0aeae4d916b6cea1e5c57998965a9720664ee684ea3aac8f8ee2d83e17459ce",
+    "rationale": "진행하며 필요한 것 학습과 지속 가능한 시작 분량을 구별했다."
+  },
+  "overall.wands.02.reversed": {
+    "do": "新しい選択を前に迷っているなら、一番心配な条件を直接聞いてみましょう。ただ不慣れで不安なのか、実際に難しい点があるのか分かりそうです。",
+    "pause": "新しく試すことを決めるとき、すべての心配が消えるまで返事を延ばさないようにしましょう。比べ続けるうちに、参加できる時期を過ぎるかもしれません。",
+    "source_ko_actions_sha256": "becd360fccda6698ae7e416c0710afd8e6602bc7594b1caffa1044ecc05aa37a",
+    "source_locale_bundle_sha256": "8e0a573ef1f272c0d6b968eafe582449f4fa662c9ac1afb8b54ff3b6e5245931",
+    "rationale": "막연한 불안과 실제 조건 차이, 완전 확실성 대기의 기회 지연을 유지했다."
+  },
+  "overall.wands.02.upright": {
+    "do": "続けていることを別の場所でも試したいなら、実際にできるか、今よりよい点があるか調べてみましょう。",
+    "pause": "新しく試すことがよさそうでも、先に今していることをやめないようにしましょう。実際に始められると分かるまでは、これまでのことを続けてください。",
+    "source_ko_actions_sha256": "bb1a6c8fc5e9c138fab4e47fe73c5a444b4d51992e46ed56cd51753fb0bfb5ac",
+    "source_locale_bundle_sha256": "ebc158b3ca890474e3fdef17e17a6f7e82b9817b42092a8ab3de2eb7215780d4",
+    "rationale": "하던 일의 다른 장소 확장과 실제 새 시작 가능 전 기존 일 유지 조건을 보존했다."
+  },
+  "overall.wands.03.reversed": {
+    "do": "待っていた返事が遅れているなら、その返事がなくても進められることから取りかかりましょう。",
+    "pause": "待っていることがすぐにうまくいくと考えて、新しいことまで引き受けないようにしましょう。予想より遅れると、二つのことを同時に終える必要が生じ、負担が増えかねません。",
+    "source_ko_actions_sha256": "9400c5c5296219cf98c79fada17fb460e3503f74225b32437646ed3901ecffdb",
+    "source_locale_bundle_sha256": "4795d6ba355be8cb97fe9dd24350a8124f76d78ab4ba83271f3819c9bf4ea652",
+    "rationale": "返事待ちに依存しない仕事と、遅延時の重複負担を区別"
+  },
+  "overall.wands.03.upright": {
+    "do": "続けてきたことによい反応があったら、次に一緒にできることを提案してみましょう。相手が関心を示した点から話を続けるとよさそうです。",
+    "pause": "いつも付き合いのあるところではないというだけで、一緒に取り組もうという誘いをすぐ断らないようにしましょう。どんな助けを互いに得られるか、聞いてから決めても大丈夫です。",
+    "source_ko_actions_sha256": "ca3827a1d5dab2d0d3ff3c85215aff0b782e2975357d225b84b20e87257bda4b",
+    "source_locale_bundle_sha256": "5287250fdf83e5e6952359c89a1ba7c2a6b202a97221053f060722f99e0b4a1c",
+    "rationale": "好反応後の提案と不慣れな相手の誘いを聞く判断"
+  },
+  "overall.wands.04.reversed": {
+    "do": "小さなことでもうまくいったら、身近な人に話して、一緒に喜んでみましょう。",
+    "pause": "準備が期待どおりに整わなかったからと、楽しみな約束まで取り消さないようにしましょう。ささやかな集まりでも、気楽な仲間と笑って過ごせます。",
+    "source_ko_actions_sha256": "4754fbfaabb7b086d0244a1c1e3ca2779172c24ed448a9ac21c7626a69712ba5",
+    "source_locale_bundle_sha256": "b2c06d9e6b5371e645a33f23ae58640bd021861cc31e8295598e024db07dcb3d",
+    "rationale": "小さな成果共有と準備不足だけで集まりをやめない注意"
+  },
+  "overall.wands.04.upright": {
+    "do": "一緒に頑張った人に、無事に終わったことを伝えましょう。これまで苦労したことを話しながら、一緒に喜んでもよさそうです。",
+    "pause": "うまく終えたことを、もっと立派に見せようとやり直さないようにしましょう。必要な仕上げが済んだら、休む時間も取ってください。",
+    "source_ko_actions_sha256": "638f99f0eb2103dbc7c33985e99289a33604ce3accd476fb552d75f4001df56c",
+    "source_locale_bundle_sha256": "21c364d868b7a16f740d9ab1d13556014d6c1a49bffb049d1b8cc976265323e1",
+    "rationale": "共同作業の完了共有と不要なやり直しの区別"
+  },
+  "overall.wands.05.reversed": {
+    "do": "同じ出来事について説明が食い違うなら、誰が何をしたのか、確かめられる事実から見てみましょう。",
+    "pause": "人の争いに、一方の話だけを聞いて加わらないようにしましょう。よく知らない事情について代わりに問い詰めると、自分まで困ることになりかねません。",
+    "source_ko_actions_sha256": "35221ea08eb559e40b0f5f49c956645ef90c63811f9e3c5265dcf95920ef99d0",
+    "source_locale_bundle_sha256": "fadfd40aa5b279f36356b3048b921fd201aa900b68a3bac30906a5e20f852fb8",
+    "rationale": "事実確認と代理で争う不利益のつながり"
+  },
+  "overall.wands.05.upright": {
+    "do": "どの方法がよいか意見が分かれたら、互いに提案した方法を比べてみましょう。話だけでは判断しにくければ、それぞれ試してから選んでもよさそうです。",
+    "pause": "違う方法を主張されても、相手の話を途中で遮らないようにしましょう。その方法を選んだ理由を聞けば、同じ言い分を繰り返す争いを減らせます。",
+    "source_ko_actions_sha256": "74e4edae859d283fe3bc6e307837b5dbcd1c064a8d6870fe96cd7f026d5947a2",
+    "source_locale_bundle_sha256": "da7299740a4f57defb058d2d72082c9b3da8cb884e458dbc0e3443c0291115a4",
+    "rationale": "方法比較と理由を聞く行動を分ける"
+  },
+  "overall.wands.06.reversed": {
+    "do": "待っている結果がまだ出ていなければ、正式な発表を待ちましょう。反応が遅いというだけで、これまでの取り組みを失敗と考える必要はありません。",
+    "pause": "褒めてもらいたくて、実際に成し遂げたことを大きく話さないようにしましょう。後で話と実際にしたことの違いが分かると、困ることになりかねません。",
+    "source_ko_actions_sha256": "016e3ee3079d94a74317b86c7226ce7d0dfc4148fea08317c4967a158a0f7c6b",
+    "source_locale_bundle_sha256": "df3a60e1587516da48468d6efbdd92b0553a2b0060cae77c4c3f23cd62a20cc8",
+    "rationale": "遅い反応は失敗の確定でない点と誇張発覚時の不利益"
+  },
+  "overall.wands.06.upright": {
+    "do": "よい結果をお祝いしてもらったら、誰がどんな手助けをしてくれたかも話して、感謝を伝えましょう。",
+    "pause": "よい結果を自慢するときに、人が成し遂げたことをけなさないようにしましょう。誰より優れていたか比べなくても、頑張って得た結果を喜べます。",
+    "source_ko_actions_sha256": "448e4833887ab646c5a54b7a8868acaba4f2fef989cdff0964c3ccc26695d27b",
+    "source_locale_bundle_sha256": "8d0e463919f52d8b4c0ffc7e3eb015b72f9adb89c7a4bb50216ea028c0e39e39",
+    "rationale": "助けの具体的共有と他者比較なしの喜び"
+  },
+  "overall.wands.07.reversed": {
+    "do": "何人もの人から頼まれたら、すぐに返事をせず、考える時間をもらいましょう。引き受けられることを決めてから、どこまでできるか伝えてください。",
+    "pause": "断るのが気まずいからと、望まない条件まで受け入れないようにしましょう。その場は楽になっても、後で引き受けることが増えかねません。",
+    "source_ko_actions_sha256": "e3f717e18d9ad5ebe770f7455c9749f0447d791a6c0515ae5b0710358f463620",
+    "source_locale_bundle_sha256": "4722f9efe99a7cff5e880f1831ea62aec186a7852fb00c7dc8a13db116cf0bda",
+    "rationale": "返答猶予から受諾範囲の提示へ一つの手順"
+  },
+  "overall.wands.07.upright": {
+    "do": "受け入れにくい要求があれば、どの点を譲れないのか、理由とともに落ち着いて伝えましょう。",
+    "pause": "要求に答える途中で気に障ることを言われても、すべてに言い返さないようにしましょう。細かな言葉遣いを問い詰めていると、肝心の受け入れられない条件を話しにくくなります。",
+    "source_ko_actions_sha256": "f3ef862ff685246a355d071f50094852f1d74b86e78aa95cf48c013b0521274c",
+    "source_locale_bundle_sha256": "82b17bc74b77f0e285112caae3178f40350ceef41a8ce6ad94ea350e371cdaad",
+    "rationale": "譲れない条件説明と枝葉の表現への反撃の区別"
+  },
+  "overall.wands.08.reversed": {
+    "do": "言われたことが気に障ったら、どんな意味で言ったのか、直接尋ねてみましょう。誤解したまま返事をして、言い争うことを減らせます。",
+    "pause": "人から聞いた話を、確かめずに何人にも伝えないようにしましょう。伝えるうちに意味が変わると、一緒に取り組む人同士にも誤解が生じかねません。",
+    "source_ko_actions_sha256": "0174168c87bf6c013d57540af99c09863d15b27d9fd847bcfaeacaa376c68342",
+    "source_locale_bundle_sha256": "10089abfff27a8e5d8106a28d5869e96e73c26c2cc990c437520304be2010fe1",
+    "rationale": "口頭も含む言葉の意味確認と伝言変質への注意"
+  },
+  "overall.wands.08.upright": {
+    "do": "待っていた知らせが届いたら、内容を確かめて、必要な返事を遅れずにしましょう。続けて日程を決める話なら、都合のよい時間も伝えるとよさそうです。",
+    "pause": "案内が続けて届いても、確認していない内容にまで同意しないようにしましょう。速く進んでいるときも、何に同意するのか一つずつ確かめてください。",
+    "source_ko_actions_sha256": "0e23b31fc545f37642a1983a8b62fd7b7c053160875107abd8ba7b38994b6be0",
+    "source_locale_bundle_sha256": "18831392b46edde0a9037f7f97582b689ea497dd492c5342eb86d4806c26b35b",
+    "rationale": "日程の話なら空き時間を添える条件を維持"
+  },
+  "overall.wands.09.reversed": {
+    "do": "同じ方法で何度もつまずくなら、そのことを経験した人に、どこでうまくいかなかったか説明して、別の方法を聞いてみましょう。",
+    "pause": "以前助けてもらったときにうまくいかなかったからと、新たに手を貸そうとする人まで遠ざけないようにしましょう。今回はどんな手助けをしてくれるのか、まず聞いてみてください。",
+    "source_ko_actions_sha256": "5fefa8a00b29984e5bf8984ad4b3307b4d095c3be480972e87deb6e2f3478d66",
+    "source_locale_bundle_sha256": "b8acca8fbaf997522d816e577cff9fa5585d2a0cfbe2db3d93ea371546580e30",
+    "rationale": "同じ方法の行き詰まりを経験者に説明し、前回と今回の助けを区別"
+  },
+  "overall.wands.09.upright": {
+    "do": "以前経験した問題がまた起きたら、どう解決したか思い出してみましょう。効果のあった方法をもう一度使えば、同じ問題に対処しやすくなります。",
+    "pause": "ほぼ終わったからと、最後の点検を省かないようにしましょう。残りの部分まで確かめれば、同じことをやり直す手間を減らせます。",
+    "source_ko_actions_sha256": "0758d59f30e1d1143cb821c7a76f246bc7d2839cfcb6b7044d6265a401d27feb",
+    "source_locale_bundle_sha256": "fd01e541ea2fa0250fac929ba5e957f3748d55e587d5cf59519f06472b03feef",
+    "rationale": "以前の解決方法と最後の確認、それぞれ理由を明示"
+  },
+  "overall.wands.10.reversed": {
+    "do": "一人では終えるのが難しいことがあれば、どの部分を分担してほしいか、今伝えましょう。早めに話せば、一緒に取り組む人も手伝う時間を作れます。",
+    "pause": "すでに引き受けたことで手いっぱいなら、担当の決まっていないことまで黙って引き受けないようにしましょう。周りには、まだ余裕があると思われかねません。",
+    "source_ko_actions_sha256": "115f221ca37a6c2d76b7a3f25b4e243cbeb2223300ffb8e4c4bbf4e2e73277f8",
+    "source_locale_bundle_sha256": "5baf60a2448dada9201598e88203ccd43686429cc0d2d7a7948b3135d03dd0a4",
+    "rationale": "分担を頼む時期と無言の引受が作る誤認"
+  },
+  "overall.wands.10.upright": {
+    "do": "すでに多くのことを引き受けているところに新しく頼まれたら、残りを終えるまでにかかる時間を考えて、いつから手伝えるか伝えましょう。",
+    "pause": "得意なことだからと、すべて引き受けようとしないでください。一つずつは慣れていても、重なると先に約束した大事なことまで遅れかねません。",
+    "source_ko_actions_sha256": "282408b3a606b2dcba633022980d47f589095c2c28dd41b8accbfda296e99afa",
+    "source_locale_bundle_sha256": "a81770ce49983cf13951522e92e1c332abe4cab4104ec940956e1d93c8369cf2",
+    "rationale": "既存仕事を終える時間に基づく開始時期提示"
+  },
+  "overall.wands.11.reversed": {
+    "do": "新しい活動に参加できると聞いたら、正式な案内でも、実際に参加できるか確かめてみましょう。",
+    "pause": "まだ確かでない話を、よい機会だからと人に勧めないようにしましょう。一緒に参加すると決めた後で内容が変われば、相手も戸惑ってしまいます。",
+    "source_ko_actions_sha256": "742af36c1de152d8ac53c98499b088b5fc4be7e350352770872a6057f4ba72f0",
+    "source_locale_bundle_sha256": "bb88f003f401985b879d16c5d14bbd7baed08045729860d9a8a776a97f5953b4",
+    "rationale": "参加可否の公式確認と未確認勧誘の結果"
+  },
+  "overall.wands.11.upright": {
+    "do": "面白そうな活動の話を聞いたら、自分でも体験できるように、どこでどう参加できるか尋ねてみましょう。",
+    "pause": "興味のある活動を、初めからうまくやらなければと考えて、先延ばしにしないようにしましょう。まだ慣れていなくても、初めて試す楽しさを味わえます。",
+    "source_ko_actions_sha256": "3695015d15a6c110bd3e32587dc908a67055e33b7a2bd8abd3a8e1920f42dd82",
+    "source_locale_bundle_sha256": "2026130e46bc5d7fffd299e29a7dfe775ed1dff7a026e9d2e226f1fabaa92380",
+    "rationale": "参加方法を聞く行動と熟達を待つ先延ばしの注意"
+  },
+  "overall.wands.12.reversed": {
+    "do": "人と会ったり訪ねたりする約束があれば、出発前に、予定どおりでよいか相手に確かめてみましょう。",
+    "pause": "約束が取り消されたからと、慌てて別の約束を入れないようにしましょう。相手の都合も聞いてから決めれば、新しい予定まで変更になることを減らせます。",
+    "source_ko_actions_sha256": "55b86466c6e025b920740bc962724777fb2cba5a30c71424b300f318be5f3f70",
+    "source_locale_bundle_sha256": "0c2365f443fb33d767d19e22b9b5feecf2f0a7b344d477e5d21f96f32be549c2",
+    "rationale": "出発前の確認と代替予定の相手都合確認"
+  },
+  "overall.wands.12.upright": {
+    "do": "行ってみたかった場所があれば、行ける時間を調べて、実際に訪ねてみましょう。",
+    "pause": "楽しくても、一日に訪ねる場所を増やしすぎないようにしましょう。次の場所へ移動するのに忙しいと、その場にいて楽しむ時間が短くなってしまいます。",
+    "source_ko_actions_sha256": "6ed77ddb81d3ae00a9dda400f1d3038a4e0996b1284d276391b45558ca899609",
+    "source_locale_bundle_sha256": "1b467445551ff35ad0971ac99fc477ffcda73a1cf236d943eb4811b8e25e6782",
+    "rationale": "訪問と移動を詰め込みすぎる結果の区別"
+  },
+  "overall.wands.13.reversed": {
+    "do": "自分の話をした後は、さらに話を重ねるより、相手にも話す機会を作って、最後まで聞いてみましょう。",
+    "pause": "誰かが褒められている席で、その人の欠点を付け足さないようにしましょう。一緒に聞いている人には、相手をおとしめようとしているように見えかねません。",
+    "source_ko_actions_sha256": "0d0c512b94869bae9d3dff6781e905c7cf408bad641315314717fafc2fd27760",
+    "source_locale_bundle_sha256": "28273c5c24cab7298a1ac73ec7e9a5e6036fa8df40dc02b45d25e4aade3fc863",
+    "rationale": "話す順番を譲る動作と称賛の場での欠点指摘の印象"
+  },
+  "overall.wands.13.upright": {
+    "do": "何人かで集まっているときに話したいことがあれば、気楽に自分から切り出してみましょう。",
+    "pause": "よい反応があっても、自分の話ばかり長く続けないようにしましょう。ほかの人も話せるよう少し待つと、もっと楽しく過ごせます。",
+    "source_ko_actions_sha256": "8957e0e9bee2510260826a7de8c00fd5171380720b473e1fbadde9b6df664aeb",
+    "source_locale_bundle_sha256": "66451ca501ea2fc168dd815303876cee78f1a3f8b224554342a1468915ae4c69",
+    "rationale": "自発的な話題提示と他者の発話余地"
+  },
+  "overall.wands.14.reversed": {
+    "do": "進めていることに満足できなければ、どこをさらに直したいのか、見てみましょう。必ずしも必要な修正でなければ、そのまま仕上げても大丈夫です。",
+    "pause": "自分のやり方と少し違うというだけで、うまくできた部分までやり直させないようにしましょう。要求が多すぎると、熱心に手伝ってくれた人も、一緒に続けにくくなります。",
+    "source_ko_actions_sha256": "a965fdc162f6f517740fa019ff005309bb239165ffe87e2aaa34994ac6baf149",
+    "source_locale_bundle_sha256": "fec31230bf3d51e14c27a068ad6bf961a41d9258a2123b80c883e5df4ff2b8b0",
+    "rationale": "修正の必要性を考える動作と相手への過剰要求"
+  },
+  "overall.wands.14.upright": {
+    "do": "一緒に始めることを任されたら、それぞれが得意なことを先に聞いて、それに合わせて分担しましょう。",
+    "pause": "率先して始めた後で、残りは人がやってくれると期待しないようにしましょう。得意な部分を分担しても、引き受けた自分の分は最後までやり遂げてください。",
+    "source_ko_actions_sha256": "de7d4217eb9dfbc50a3bc79779cce3a9759f9d729cef718e1967927ffaade349",
+    "source_locale_bundle_sha256": "586c9aadf09b82343c63c669b9b607779becd271eeb6022af63216bbef723de0",
+    "rationale": "得意分野による分担と自分の担当を最後まで行う責任"
+  }
+}

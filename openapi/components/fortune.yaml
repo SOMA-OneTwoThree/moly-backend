@@ -42,10 +42,11 @@ schemas:
   FortuneBasicOverallResult:
     type: object
     additionalProperties: false
-    required: [score, headline, do, pause]
+    required: [score, headline, flow, do, pause]
     properties:
       score: {type: integer, minimum: 0, maximum: 100}
       headline: {type: string, minLength: 1}
+      flow: {type: array, minItems: 2, maxItems: 3, description: "Public editorial paragraphs; legacy snapshots retain three segments.", items: {type: string}}
       do: {type: string, minLength: 1}
       pause: {type: string, minLength: 1}
   FortuneOverallResult:
@@ -55,7 +56,7 @@ schemas:
     properties:
       score: {type: integer, minimum: 0, maximum: 100}
       headline: {type: string, minLength: 1}
-      flow: {type: array, minItems: 2, maxItems: 3, description: "Editorial paragraphs; legacy snapshots retain three segments.", items: {type: string}}
+      flow: {type: array, minItems: 2, maxItems: 3, description: "Public editorial paragraphs; legacy snapshots retain three segments.", items: {type: string}}
       do: {type: string, minLength: 1}
       pause: {type: string, minLength: 1}
   FortuneCategoryResult:
@@ -86,7 +87,7 @@ schemas:
       hex: {type: string, pattern: '^#[0-9A-F]{6}$'}
   FortuneBasicResult:
     type: object
-    description: 광고 없이 제공하는 기본 정보. overall.flow와 categories는 포함하지 않는다.
+    description: 잠금 상태에서도 제공하는 기본 정보. overall.flow를 포함하며 categories는 잠금 해제 후 제공한다.
     additionalProperties: false
     required: [schema_version, locale, overall, lucky_color]
     properties:

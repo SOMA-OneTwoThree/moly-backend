@@ -1,0 +1,1094 @@
+{
+  "overall.major.fool.upright": {
+    "do": "If you've been considering an activity, try it for a day. Firsthand experience can make it easier to decide whether it suits you.",
+    "pause": "Don't commit to an activity long term before you've tried it. Give it at least a day before deciding whether to keep going.",
+    "source_ko_actions_sha256": "100f84281a936e3b226d101c7e4c72bc5b262e00c819dbe170efa70f64eeb169",
+    "source_locale_bundle_sha256": "047efc5f9a68ae8f1fea1affc5728e8fcdd85efc5e1979b1dfbd7f69090aee7f",
+    "rationale": "A one-day trial helps assess fit; the separate caution limits long-term commitment before experience."
+  },
+  "overall.major.fool.reversed": {
+    "do": "Before going somewhere for the first time, check the opening hours and what you need to bring. Setting off unprepared could mean a wasted trip.",
+    "pause": "Even if you expect something to be quick, don't arrange your next appointment straight after it. It could take longer and make you late for that appointment.",
+    "source_ko_actions_sha256": "45d5254801a721571676c314d52478a9bd60d4ef5a1fdfb373936422b8c74359",
+    "source_locale_bundle_sha256": "14dcea2615ab6e4ce3b17b79559353ae2ffd95b6804392db3b450fc5c7284167",
+    "rationale": "Preparation prevents an unproductive visit; leaving time between commitments addresses an overrun."
+  },
+  "overall.major.magician.upright": {
+    "do": "If you're stuck on a problem, choose a method you've already learned that could help with it, and give it a try.",
+    "pause": "Don't put off something you've prepared for just because there's more to learn. First see whether you can start with what you already know.",
+    "source_ko_actions_sha256": "101ce72c5a58d502a4ed67185b3dcc4efa8359e143eaee5d55ee4e5bca04be55",
+    "source_locale_bundle_sha256": "8a6fe559bb1ff023729c410d2e85393048ebf096a078d2f438319cc5af28b2e5",
+    "rationale": "Apply a suitable learned method to the problem; check existing ability before delaying for more learning."
+  },
+  "overall.major.magician.reversed": {
+    "do": "If someone proposes something they say will be easy, ask what they've already prepared. Check whether their explanation leaves out any conditions.",
+    "pause": "Don't promise you can do something you haven't learned to do just to reassure someone. Be clear about what you can actually offer.",
+    "source_ko_actions_sha256": "213630139f21b07115df0a49de51ba7c5c97bc8b706f9ae075aaf3ee98f08129",
+    "source_locale_bundle_sha256": "26a289d1df2c5f52e63e657660e558c4793da7b5c48daab6aadb54c0f89e4da6",
+    "rationale": "Ask about preparation and omitted conditions in an offer; keep personal promises within actual ability."
+  },
+  "overall.major.high_priestess.upright": {
+    "do": "After hearing the full explanation, ask about anything you still don't understand. That part may hold a clue to solving the problem.",
+    "pause": "Don't rush a decision based only on what you know because the answer you want is taking time. Important information may still be missing.",
+    "source_ko_actions_sha256": "02ccc2900d685df6b11bdd714f73eaba388944ee0bc027e66018027c007d57c6",
+    "source_locale_bundle_sha256": "814f5ab15c69201bbf06d1562240afc6e54447eea1eafefc6619fa8ee01c2dd7",
+    "rationale": "Clarify the part not understood to find a clue; a delayed answer is not a reason to decide with missing information."
+  },
+  "overall.major.high_priestess.reversed": {
+    "do": "Before helping someone, ask enough to understand their situation. Acting on a rough guess could mean offering the wrong kind of help.",
+    "pause": "Don't mix your own assumptions into an account of what you've heard. Saying when you don't know something for sure can reduce misunderstandings.",
+    "source_ko_actions_sha256": "7c74e158a54d2709e3930f0a307dd1ef0794c5a821151211a9b9bcda7049b400",
+    "source_locale_bundle_sha256": "21fb8ec299e10333c2d0da11e9b1c6e067a55e696798c95cc9ac503c8c548c43",
+    "rationale": "Understand the situation before offering help; distinguish an account from assumptions when passing it on."
+  },
+  "overall.major.empress.upright": {
+    "do": "If a shared effort has gone well, let the people who helped know the good news. Share the celebration and thank them for their part.",
+    "pause": "Don't assume people owe you help just because they've been supportive. Consider the time and effort it takes them to help.",
+    "source_ko_actions_sha256": "023a0e7a474ade173268bc7e0e8d2568a43cb0c4a4bc1824cea7ed8826c6470d",
+    "source_locale_bundle_sha256": "afc1ff536d864a17149f426e48aca9113537971540a4a84a73ccdfe99be5cd58",
+    "rationale": "Share a successful result and thanks with contributors; respect the time behind their support."
+  },
+  "overall.major.empress.reversed": {
+    "do": "If you've helped someone enough and your own work is falling behind, finish yours first. You can leave them to complete the rest of theirs.",
+    "pause": "Don't do even more for someone because they haven't thanked you. Extra effort may still not bring the response you're hoping for.",
+    "source_ko_actions_sha256": "cbc2d7c71b50f6cf6c99281345c4bb62f407fb0265265e86b3010a62dbdfe08f",
+    "source_locale_bundle_sha256": "f7e6eed79276cf46f064491d3522c47322e6e60599fef4dbc8aa276f93956a36",
+    "rationale": "Return to delayed personal work after sufficient help; doing more is not assured to win gratitude."
+  },
+  "overall.major.emperor.upright": {
+    "do": "If a request feels too much to handle, discuss it with someone who's dealt with something similar. Explain which parts are difficult to decide on alone.",
+    "pause": "If someone has already agreed to help, don't take back everything you've left them to do and try to handle it all yourself.",
+    "source_ko_actions_sha256": "418c2348c820dbab203c5e1218a30ebd1e8bba1b005dbb730cf38264e43227fb",
+    "source_locale_bundle_sha256": "ddbb230c38dc5a1772321f60fbf85defad0c53e8840194bfe24c2173dcfbc01b",
+    "rationale": "Consult relevant experience on a hard request, naming the difficult decisions; leave agreed help with the helper."
+  },
+  "overall.major.emperor.reversed": {
+    "do": "If someone wants to change an agreement, ask what's changed in their circumstances. Compare that with the original agreement to see whether a change is needed.",
+    "pause": "Don't disregard other people's circumstances just because the decision is yours. Listening to the people involved can make it easier to get their cooperation.",
+    "source_ko_actions_sha256": "4e61485f250e754f8952726568b438393eacab136176f9b47f7bf624b1f4fc56",
+    "source_locale_bundle_sha256": "84086c3d82be204417cc646b60fe0e5acdae8f45af84cafd34565296feb21f2d",
+    "rationale": "Assess the reason for a proposed change against the agreement; decision-making authority does not replace listening."
+  },
+  "overall.major.hierophant.upright": {
+    "do": "Before tackling something unfamiliar, read the guidance and ask someone experienced about anything unclear. They may point out details that are easy to miss.",
+    "pause": "Don't skip required steps just because they seem inconvenient. Following a proven order can reduce the chance of having to do things again.",
+    "source_ko_actions_sha256": "2f692aaf1672a71d67ff839d8c6a18d5f3bb966887f9c2db2bd11126b4d35ba0",
+    "source_locale_bundle_sha256": "a03a547fe78904602daa6f7972bcfe0fbfd0e8a1b30e3e1de5715110126f6631",
+    "rationale": "Guidance plus relevant experience helps explain unfamiliar steps; skipping required steps may create repeat work."
+  },
+  "overall.major.hierophant.reversed": {
+    "do": "If a suggested approach doesn't fit your circumstances, explain what makes it difficult. Discuss another way instead of assuming you have to follow it exactly.",
+    "pause": "Don't stick with an approach that isn't working just because it's how you've always done things. Check whether it still fits the situation.",
+    "source_ko_actions_sha256": "0ccc6a8d2c3722ce1b769db2503517902503ff821ac59da55d721f4883dc6d8f",
+    "source_locale_bundle_sha256": "0909122e097ff10903a6ba4d532ccd763179bc57d4627cfc450f99a61899ab08",
+    "rationale": "Explain why a recommendation is difficult and discuss an alternative; habit alone does not justify an ineffective method."
+  },
+  "overall.major.lovers.upright": {
+    "do": "If you're making a decision together, discuss what matters most to each of you before trying to accommodate the other person.",
+    "pause": "Don't agree to a choice you're uncomfortable with just because the terms look good. Check whether you can accept it so it doesn't trouble you later.",
+    "source_ko_actions_sha256": "d77e385fda5c9638cde74ab2ffd80a30a569cac7e589a553180045c6ba65d69d",
+    "source_locale_bundle_sha256": "d33ce98b996962ea16c58987e3398ec3eee13eeb65061aae97b6c460714e8a0a",
+    "rationale": "Establish individual wishes before accommodation; appealing terms are insufficient without personal acceptance."
+  },
+  "overall.major.lovers.reversed": {
+    "do": "If you've agreed to do something together, discuss what each of you expects beforehand. You may understand the same agreement differently.",
+    "pause": "Don't accept terms you dislike just to avoid spoiling the mood. Putting off an uncomfortable conversation could lead to a bigger argument later.",
+    "source_ko_actions_sha256": "80e27fd4c38ac59897c3ece19a0bc3d5f5a20e208b5df51af363fe784ad4b6b7",
+    "source_locale_bundle_sha256": "c6b1917355ee4427246f19da6e60580789fccfd8796977d335c5eff4a8727af6",
+    "rationale": "Discuss expectations within an existing agreement; avoiding discomfort now can enlarge a later dispute."
+  },
+  "overall.major.chariot.upright": {
+    "do": "If you've put something off since an earlier attempt failed, give it another try. Start by looking at the part that held you up last time.",
+    "pause": "Even if something new catches your interest, don't abandon what you're doing to start it if you can finish the current task first.",
+    "source_ko_actions_sha256": "a2d39372bd044fc8f0d22efd021c680c80e131a6144711af1c3e1982807dea87",
+    "source_locale_bundle_sha256": "6d66eafd4588dadc5663098a602a9f5cd0e7b0efeb63ab0d36b848ac0fc004c7",
+    "rationale": "Retry an earlier failure from the obstacle encountered; avoid interrupting a task that can be completed."
+  },
+  "overall.major.chariot.reversed": {
+    "do": "If something you're working on has stopped progressing, find out where it's stuck before rushing to push ahead again.",
+    "pause": "Don't try to make up for falling behind by starting more things. Juggling them could also make you miss the deadline you agreed to.",
+    "source_ko_actions_sha256": "1e21b6c78cb7f3e099a11a5ff896aa44bbdd250667008de693599895d67c84aa",
+    "source_locale_bundle_sha256": "7903ac92674c0a90f14372b0e9269dae4f414cbd64ff38576962bbce0ced22c2",
+    "rationale": "Locate the blockage before renewed effort; extra starts can compromise an existing completion commitment."
+  },
+  "overall.major.strength.upright": {
+    "do": "If something you've worked at for a long time is still difficult, keep going as you have been instead of stopping just because results aren't visible yet.",
+    "pause": "Don't raise your voice or pressure someone because they're slow to answer a request. Calmly explain why you need their help instead of letting urgency take over.",
+    "source_ko_actions_sha256": "f592ab2d7d6f87a58bebb200fc1284eb358d0a3b0b4f69945465a007be71fe90",
+    "source_locale_bundle_sha256": "905c55dbd2704fc8bb89f77f0c62aa0a319fbdebc61e5b0e1c22b36830eb7504",
+    "rationale": "Continue sustained effort without immediate visible results; explain the need for a request without pressure."
+  },
+  "overall.major.strength.reversed": {
+    "do": "If you keep getting stuck on part of a task, ask for help. Explain where you're struggling and work through that part together.",
+    "pause": "Don't give up everything you're doing because someone's words made you angry. Wait until you've calmed down, then decide whether you still want to stop.",
+    "source_ko_actions_sha256": "4283a198022ded3dc856207e1c6f2b3e2328eb4d005045cc27ddcd8df7455688",
+    "source_locale_bundle_sha256": "9a8e08ace8c62a7d27c66d057f7609d6f14c4289556a88bddbede1f97652a776",
+    "rationale": "Seek help with the specific difficulty; postpone an anger-driven decision to abandon the whole effort."
+  },
+  "overall.major.hermit.upright": {
+    "do": "If you need advice on something you've been thinking about for a long time, talk it over somewhere quiet. It can be easier to ask your questions calmly away from a group.",
+    "pause": "Don't try to follow every opinion you hear just because you want a quick answer. Pick out the advice relevant to your problem and consider that first.",
+    "source_ko_actions_sha256": "d85ce1ff249e22b8f0d583bd14e4e86ecff4290ee912dbaa09003b65f223a0ca",
+    "source_locale_bundle_sha256": "5e4f16fea53bd096f728f0a66b3040e72d9da2ac56efa688a541ce922b633460",
+    "rationale": "A quiet conversation supports focused questions; select relevant advice rather than following all opinions."
+  },
+  "overall.major.hermit.reversed": {
+    "do": "If you haven't been able to solve something alone, explain exactly what help you need. You can describe what you've tried and what remains to be done.",
+    "pause": "Don't assume asking for help is pointless just because you haven't heard from someone in a while. If you haven't told them, they may not know what's going on.",
+    "source_ko_actions_sha256": "2d7e75a20b5aa64ebd8b8993372b6cc896d2e93940f62ddc18b3deb33ef446df",
+    "source_locale_bundle_sha256": "ab5f34dd13a25c11c17a628568663a4f4860049ad83213485211e632c3d2e746",
+    "rationale": "Make a help request specific through attempts and remaining difficulty; silence may reflect lack of information."
+  },
+  "overall.major.wheel_of_fortune.upright": {
+    "do": "If you receive a welcome offer, check when you can take part and reply before a delay costs you the opportunity.",
+    "pause": "Don't immediately dismiss another chance at something because it didn't work out before. Hear what's changed since last time before deciding.",
+    "source_ko_actions_sha256": "17a06d4f28e5192b2d42565314412ab8d3d9c5ac21be00418c234ca85362752a",
+    "source_locale_bundle_sha256": "8a1e83974261fd233b755aa4baef6b2e326cae227dd5fb9664727d707995b845",
+    "rationale": "Check available timing and respond to a welcome offer; consider changed circumstances after past failure."
+  },
+  "overall.major.wheel_of_fortune.reversed": {
+    "do": "If something you're waiting for is delayed, find out what's changed and adjust any plans that depend on when it finishes.",
+    "pause": "Don't confirm your next commitment simply because you expect the current one to finish today. Outside circumstances could keep you waiting even if you've done nothing wrong.",
+    "source_ko_actions_sha256": "ebd2ec96d18ddfdce4b24649caee13d2e721a3df327c218be30585cccda673ca",
+    "source_locale_bundle_sha256": "c3f7143802d9c6ab3244ee65e1130962f74d841e455f9b2efbe1aae11c9472af",
+    "rationale": "Adjust dependent plans after updated information; avoid committing on an unconfirmed completion assumption."
+  },
+  "overall.major.justice.upright": {
+    "do": "If you remember an agreement differently, look at the record of it together. What you actually agreed matters more than who feels more certain.",
+    "pause": "Don't leave out inconvenient facts when asking for your fair share. Be open about those too if you're asking the other person to tell the whole truth.",
+    "source_ko_actions_sha256": "6e9fa4e9ed534bd963a2a897c127219a989be6e09ae5af5ddb5667e24f6718ce",
+    "source_locale_bundle_sha256": "44f8ab075ca0a0aae3ca0dd03561390de47017389a76d9dc449aa83207260798",
+    "rationale": "Use the original record to resolve differing memories; reciprocal honesty requires disclosing unfavourable facts."
+  },
+  "overall.major.justice.reversed": {
+    "do": "If an inaccurate account has led to a misunderstanding about you, calmly point out and explain the parts that aren't true.",
+    "pause": "Don't add claims you're unsure of when responding to unfair treatment. People could then doubt even the truthful parts of what you say.",
+    "source_ko_actions_sha256": "035aa9324687aa8d54e1ae0acb84daa7df530b1865ac48f2d233d37b4042ddf0",
+    "source_locale_bundle_sha256": "1e62b338c8ad8de1e392807b6cbcef8a72011a4c71e71f71558ac1d0822f5cf8",
+    "rationale": "Correct the specific inaccuracies behind a misunderstanding; unsupported counterclaims can undermine true statements."
+  },
+  "overall.major.hanged_man.upright": {
+    "do": "If an answer is taking longer than expected, hear the other person's reasons. Understanding circumstances you've missed may help you think of another approach.",
+    "pause": "If something doesn't have to be finished today, don't press for an immediate decision. Giving it more time could bring a better answer.",
+    "source_ko_actions_sha256": "5bd25b89b19cfbf6cbcfda0be212e952e313ec9c3bca197e07441d07ccfd5b3d",
+    "source_locale_bundle_sha256": "957db6181fbfc88c8c8845fa4b97c8fa2e94c8fb2820991c127eec8107dd40d5",
+    "rationale": "Understand the reason for delay to find another approach; patience is conditional on no same-day requirement."
+  },
+  "overall.major.hanged_man.reversed": {
+    "do": "If you've had no answer, ask the other person clearly when they can reply instead of simply continuing to wait.",
+    "pause": "If you've been the only one making concessions, don't promise to keep waiting unconditionally again. You could end up carrying the same burden.",
+    "source_ko_actions_sha256": "3d6ae34bb2d5e7a298b5f0b69501af7f0a9db9cced9408ee21bc34a10f66e285",
+    "source_locale_bundle_sha256": "9f8140715b285e8e849f7b6e5d4fa4cb6f604bdb68316a92c9a72360fd5d48c3",
+    "rationale": "Ask for a clear response time; avoid repeating unconditional concessions in an already one-sided situation."
+  },
+  "overall.major.death.upright": {
+    "do": "If something you've been involved in for a long time has ended, say any goodbyes you still need to and tie up the remaining loose ends.",
+    "pause": "Even if you're disappointed by how a long effort ended, don't keep clinging to something that's over in an attempt to make it the way it was.",
+    "source_ko_actions_sha256": "1885669a2366b804141ce32a25ca3c436e698d9c44a61b8303cc9a660fff97d2",
+    "source_locale_bundle_sha256": "9e2b3ef4223d057157571b508e3a49259378cbb61d8d26f91737e45137babbba",
+    "rationale": "Complete the remaining closure after an ending; avoid trying to restore an already concluded matter."
+  },
+  "overall.major.death.reversed": {
+    "do": "If you don't intend to continue something, say clearly that you're stopping. Avoid leaving the impression that you might do it later.",
+    "pause": "If the same problem keeps recurring, don't insist on using the same method simply because it's familiar.",
+    "source_ko_actions_sha256": "3246c19a20351a6b7f5fae91cbccf333ff4c3c52a6be671319c44227559e71b3",
+    "source_locale_bundle_sha256": "c376fc18618a5054af5fa2d75e6175308b04a550b487084c3a782545b4e56c92",
+    "rationale": "Communicate a decided ending without implying later availability; repeated problems call familiar methods into question."
+  },
+  "overall.major.temperance.upright": {
+    "do": "If someone's help has made things work out, tell them what you appreciated instead of letting it pass without thanks.",
+    "pause": "If a problem is gradually being resolved with someone's help, don't push them to finish even faster.",
+    "source_ko_actions_sha256": "6177f6588425e53f00fceb59d7599797618144bb3ade913f0c7f348d2e6325bd",
+    "source_locale_bundle_sha256": "aff55be1c9c37ca4c8c820a9efc0640d635badb41c4e21779272c380396d5eff",
+    "rationale": "Name what was appreciated after effective help; allow gradual improvement without pushing the helper."
+  },
+  "overall.major.temperance.reversed": {
+    "do": "If things are running late, finish the parts you can complete now. You don't need to change the whole plan to catch up all at once.",
+    "pause": "Don't raise your voice over a small remark because things aren't going your way. Before replying, consider whether it's something you'd normally let pass.",
+    "source_ko_actions_sha256": "b7b55c0c6a4125310d1a60bfdf8aab5717f8f85f8dc07a5f2ad0738505ef0e48",
+    "source_locale_bundle_sha256": "fd3b8b5aa28557e16973b5083436bc123962e63bf6f3658879fda027434e0e42",
+    "rationale": "Complete the feasible part of delayed work; distinguish frustration with progress from the importance of a remark."
+  },
+  "overall.major.devil.upright": {
+    "do": "If an offer is tempting, ask what you'd have to do in return as well as what you'd gain. The demands could be large compared with the benefit.",
+    "pause": "Don't agree to do something you've wanted to stop just because you're asked for one more time. Even if saying no feels difficult now, consider what you'd be left having to do later.",
+    "source_ko_actions_sha256": "b68c73d9588cc2844666b894298e7bfc2954a9b35b7807dbaa28a32f55ea19a7",
+    "source_locale_bundle_sha256": "5f338abfb40f42af857f24f2062f44628fa9cc6822e3dd3048161bcc9d981c9c",
+    "rationale": "Check obligations relative to an appealing benefit; consider later demands before repeating an unwanted commitment."
+  },
+  "overall.major.devil.reversed": {
+    "do": "If you no longer want to do a favour that's become a burden, say no clearly instead of giving a long, indirect explanation.",
+    "pause": "Don't do the same favour again out of guilt after deciding to stop. Helping once more could leave you doing it repeatedly.",
+    "source_ko_actions_sha256": "6841c98e63f0868fd347dfca797111587e05b1430ee6e17c109dee187482d67e",
+    "source_locale_bundle_sha256": "80acccc2a51d46efed8f1a56697eff423200aff3a3a0b7fd4f517a4060a9dd5e",
+    "rationale": "Make an intended refusal direct; accepting again out of guilt can restart repeated demands."
+  },
+  "overall.major.tower.upright": {
+    "do": "If unexpected news arrives, hear the full explanation of what happened before jumping to a conclusion.",
+    "pause": "Don't reply immediately while shocked or angry. Even if you feel like arguing, a brief pause can help you avoid words you'll regret.",
+    "source_ko_actions_sha256": "1b90c535f3e232619d82d80462a29ed4d19b8c2b3e4c77a2981638dbfaf4bc13",
+    "source_locale_bundle_sha256": "0694a743f9ab07f460b5920c9b9cb61aa41afb4eef681cf0fbcac2a74804da39",
+    "rationale": "Understand circumstances before concluding; pause an emotionally charged reply to reduce regret."
+  },
+  "overall.major.tower.reversed": {
+    "do": "If a mistake you've made has come to light, be honest about it with the people involved. Acknowledging it now can mean less to sort out later.",
+    "pause": "Don't dismiss a known problem just because a situation you feared has passed without trouble. Look into it while it can still be put right.",
+    "source_ko_actions_sha256": "71b175a45a02af07ac8e38e89c126f6e74528830f8719011f743cb967c7c30ab",
+    "source_locale_bundle_sha256": "f293be6ac62bedda54b81696653ce1ad81437c96b46848f301e4908990bf030a",
+    "rationale": "Disclose a revealed mistake to those involved; a milder outcome is not a reason to ignore a correctable problem."
+  },
+  "overall.major.star.upright": {
+    "do": "If you've paused something because it wasn't going well, resume the part you can do now. You don't need a major result straight away.",
+    "pause": "Don't just say you're fine when someone offers help you need. Explain what's difficult so they can understand what to do for you.",
+    "source_ko_actions_sha256": "04c1f4241ca5bbff3d7cc90d823a5fc6ea77bf5b6545fba95af11c38735ae70c",
+    "source_locale_bundle_sha256": "f427596cb23b2ee5ec9a87ae576a0ec978539afa39058fd391ba6543b83c2f45",
+    "rationale": "Resume a feasible part without demanding an immediate large result; make difficulties clear when help is offered."
+  },
+  "overall.major.star.reversed": {
+    "do": "If news you're waiting for is late, ask how things are progressing. Find out whether a decision is still pending or something has actually become more difficult.",
+    "pause": "Don't cut off needed contact or refuse help because things aren't improving as much as you'd hoped. A conversation ended in disappointment can be hard to restart.",
+    "source_ko_actions_sha256": "63f7dd514dd88bb3ecbb62e0f2ad1187ccf80670cda9b5b6ca966ea9d1f6a2fa",
+    "source_locale_bundle_sha256": "1031bf5ce8d8a22c9191ed4b4b22c70d7ebbc5422705e527b5c0e0733e97679d",
+    "rationale": "Check the actual state behind delayed news; disappointment-driven withdrawal can obstruct later communication."
+  },
+  "overall.major.moon.upright": {
+    "do": "Before an important decision, check for yourself whether what you've heard secondhand is true.",
+    "pause": "Don't immediately confront someone over a worrying story you've heard. You may have misunderstood it or taken it to be worse than it is.",
+    "source_ko_actions_sha256": "344a41df05744d51537a3093d6eef2d9f422ada76a3f7ede8df45a10a27efe3b",
+    "source_locale_bundle_sha256": "cd24d5e3528168b8cd8ebde3ed2a411f388176447ca9de0f3fe9263685d4c464",
+    "rationale": "Verify secondhand information before deciding; a worrying account may be misunderstood rather than grounds for confrontation."
+  },
+  "overall.major.moon.reversed": {
+    "do": "If you've learned what was behind a confusing situation, revise your plans to reflect the information you've now confirmed.",
+    "pause": "Don't assume the answers you're still waiting for will be good just because one misunderstanding has cleared up. Separate what's confirmed from what's still pending.",
+    "source_ko_actions_sha256": "f68ec6e00999678052b941a185373bed989922cb76bd1f87b0756c7a61073a00",
+    "source_locale_bundle_sha256": "785813440500ba051fc8972344b25286261c9c822dcf08f1d9f7ce276d96e048",
+    "rationale": "Use newly confirmed facts in plans; keep remaining unanswered matters separate from resolved misunderstanding."
+  },
+  "overall.major.sun.upright": {
+    "do": "If something you've worked on for a long time has gone well, tell someone close to you who will be happy to celebrate it with you.",
+    "pause": "Don't keep putting off a reply when an offer you've been waiting for arrives. If you'd like to accept, make that clear to the other person.",
+    "source_ko_actions_sha256": "15cb5ad73d7c1832e310e0e85e006af122a3ff16c08ee25cae78e473f62814fe",
+    "source_locale_bundle_sha256": "edcba38b6b60fca213027a46e6c295fb937a8c0d4f9ccd9025e0966037b78a79",
+    "rationale": "Share an earned result with someone close; communicate intended acceptance of an awaited offer."
+  },
+  "overall.major.sun.reversed": {
+    "do": "Enjoy what went well even if it fell short of your hopes. Disappointment doesn't mean you need to dismiss what your effort has achieved.",
+    "pause": "Wait for results that haven't come in yet. Delayed news isn't the same as a bad result, so don't call it a failure before you know.",
+    "source_ko_actions_sha256": "5b3a8f0b657fda7f7242e9cf9d4438697bddb83ba817b7549b1b9ba90676afa5",
+    "source_locale_bundle_sha256": "923b217bad84930cfb0fcdb64e51315e5782d99d70fdb81fd008e5d9e8c5af88",
+    "rationale": "Acknowledge a smaller achievement; distinguish a delayed result from confirmed failure."
+  },
+  "overall.major.judgement.upright": {
+    "do": "If you get another chance, correct what went wrong last time as you prepare so you don't repeat the same mistake.",
+    "pause": "If you've decided whether to accept an offer you've long left unanswered, make your answer clear instead of putting it off again.",
+    "source_ko_actions_sha256": "fc900f4e4164b469fde3471c6fcf625d3d140a672cf979b68e50bbe527fb08c6",
+    "source_locale_bundle_sha256": "9d4237f26e296e5d9f3cdfa360fc9569e75857a874a875fef48da43b2cdeaf17",
+    "rationale": "Prepare a retry by correcting earlier problems; communicate an already reached decision on a postponed offer."
+  },
+  "overall.major.judgement.reversed": {
+    "do": "If you owe someone an answer, check when you need to decide. Don't let the deadline pass while you wait to feel certain.",
+    "pause": "Don't delay a decision in an effort to win everyone's approval. Trying to follow everyone's advice could make you miss a chance to do something you're good at.",
+    "source_ko_actions_sha256": "9b02baf1d487017fab23fe75d27ed0988ed0bf52168ce607c0c572094ba53ce0",
+    "source_locale_bundle_sha256": "b60446e8220de0028993d57541e1d4379b5f4bffb9e75712cca8012eda27d4c0",
+    "rationale": "Establish the decision deadline; trying to satisfy all opinions can obstruct a suitable opportunity."
+  },
+  "overall.major.world.upright": {
+    "do": "If you've successfully finished something you worked on for a long time, tell the people involved what you appreciated about their help.",
+    "pause": "Don't take on something new the moment you finish a long-running task. There's no need to rush past the chance to enjoy having done it well.",
+    "source_ko_actions_sha256": "86a375e8e3b40a5f7b8c15f6a80ee541e2f3a66c15eed771ce6f5811b2844779",
+    "source_locale_bundle_sha256": "17d1e1bff7e6891ad794603ef82f8337510241133ca6f5184d0ce0eed7345107",
+    "rationale": "Thank contributors specifically after completion; allow time to enjoy the result before the next commitment."
+  },
+  "overall.major.world.reversed": {
+    "do": "If a nearly finished task still needs a final conversation or check, complete it. Putting it off because so little remains could leave it on your mind.",
+    "pause": "Don't treat all your effort as a failure because the finish is delayed. Look separately at what remains and what you've already completed well.",
+    "source_ko_actions_sha256": "eb6f752cab26abb5cdd207c93e6e19a6008e421ab9c5b1a275c391593c38b4cb",
+    "source_locale_bundle_sha256": "6a99f011f07422d94216d6114481ec4972723c9c8fb523f26792e70023239b0b",
+    "rationale": "Complete residual contact or checks to avoid lingering concern; a delayed finish does not erase completed success."
+  },
+  "overall.cups.01.upright": {
+    "do": "If an invitation appeals to you, let the person know you'd like to go. You can thank them for inviting you at the same time.",
+    "pause": "Don't overlook a kindness from someone you've just met. Even a brief thank-you can make your next conversation more comfortable.",
+    "source_ko_actions_sha256": "387888b0d272d295cec821a86e31e7be1e4ef8d93333a57046f7437505f53255",
+    "source_locale_bundle_sha256": "6137ff6a02bfff5445d2f0df171fbe22b293a72aa1d3670e53264b9b3a49a78a",
+    "rationale": "Accept an appealing invitation with thanks; acknowledge a new acquaintance’s kindness to ease later conversation."
+  },
+  "overall.cups.01.reversed": {
+    "do": "If someone suggests plans you don't want, be honest about how you feel. You don't have to pretend you're pleased and agree just to keep them happy.",
+    "pause": "Don't assume bad intentions because a cheerful remark gets little response. A blunt reply alone can't tell you everything the other person feels.",
+    "source_ko_actions_sha256": "281d0344a78ee979c6b9d2f549a56bda09bef0ec0973d1d9f8402bf69486e63f",
+    "source_locale_bundle_sha256": "440119dc00ecf2e7816df7701e3dddf8037bfc3eca6b7af246e98faf19ef765a",
+    "rationale": "Decline unwanted plans honestly without performing enthusiasm; a limited reaction does not establish intent."
+  },
+  "overall.cups.02.upright": {
+    "do": "If someone has helped you, show your thanks by offering help you can give in return. Ask what they need and do what you can manage.",
+    "pause": "Don't expect someone to know what help you need just because you understand each other well. Say clearly what you're hoping for.",
+    "source_ko_actions_sha256": "0562913abafb4dbac869e860face8ccc3f41ecd10961d552c8c74acbe12b9c80",
+    "source_locale_bundle_sha256": "5d3c5de247bc804485381a91b3c18e5fc218826e015946c80471d967cdaafe8b",
+    "rationale": "Return help within ability after asking what is needed; mutual understanding does not replace an explicit request."
+  },
+  "overall.cups.02.reversed": {
+    "do": "If someone understood your request differently, explain it again. Be specific about what you'd like them to do and how.",
+    "pause": "Even if you feel you've made all the concessions over a request, don't express your hurt through sarcasm. It can make what you actually want harder to understand.",
+    "source_ko_actions_sha256": "06786fae07bf6be4e0225263f4873a003d47affe28b15213ad829303d345bcc7",
+    "source_locale_bundle_sha256": "5d27941425145b74fcc3f0c3c2c3bf85dbb03c9aac6bd947fe43ff5f64027ab2",
+    "rationale": "Clarify the requested action; sarcasm over unequal concessions can obscure the desired help."
+  },
+  "overall.cups.03.upright": {
+    "do": "If someone has something to celebrate, let them know you were pleased to hear the news, even if you only say a few words.",
+    "pause": "At a gathering to celebrate, don't speak badly of someone else in an effort to liven things up.",
+    "source_ko_actions_sha256": "967f288fac7fa3700f612c519258d3797154a6bf0ddc766679bb040b9e9e2403",
+    "source_locale_bundle_sha256": "74b54a1f6ccc0625e87bc5d15377607c3effe820c6217b591f7b8e9d587fe349",
+    "rationale": "Offer a brief sincere congratulations; do not use criticism of others as entertainment at a celebration."
+  },
+  "overall.cups.03.reversed": {
+    "do": "If a gathering keeps going but you don't want to stay, it's fine to leave when you planned. You don't need to stay until the end just to keep everyone happy.",
+    "pause": "Don't add to unkind talk about someone just because everyone is laughing. An offhand joke could later be repeated as gossip.",
+    "source_ko_actions_sha256": "d04e2b039e4e05e4ce46d6838c70b62361fcc7af988d255f3631cbfdae28ed62",
+    "source_locale_bundle_sha256": "762972b55f9edd89f77a64328381d9f4e340fb80729fea68b080958ca6533fc7",
+    "rationale": "Leave at the intended time when further participation is unwanted; group laughter does not remove the consequences of gossip."
+  },
+  "overall.cups.04.upright": {
+    "do": "Look at the details of a new offer even if it seems uninteresting. Dismissing it on first impressions could leave you regretting it later.",
+    "pause": "Don't turn down every new offer simply because the news you're waiting for hasn't arrived yet.",
+    "source_ko_actions_sha256": "8f05486a7c827b47fa5e7eaf49f69f605e26c52db6f9b750c62de72824a86fc0",
+    "source_locale_bundle_sha256": "55336dc75d51755de72f3af77196b607cbb24ff6ba55ee6df3ca6c6394a7c962",
+    "rationale": "Examine an initially unappealing offer; waiting for one outcome need not exclude all other offers."
+  },
+  "overall.cups.04.reversed": {
+    "do": "If fresh news arrives about a long-standing dilemma, look into it. Check for an approach or option you hadn't considered before.",
+    "pause": "Don't immediately refuse an offer again just because you disliked it before. It may fit your circumstances better now.",
+    "source_ko_actions_sha256": "39b9fd23a26efc64eae4868296255b9c96a53fde8e2df70110eb6111c00feacd",
+    "source_locale_bundle_sha256": "0e27404549d8c247420abef84df919a8185dd1352b7aebe4abacd18e35c36eec",
+    "rationale": "Explore new information for another option; reassess old impressions against present circumstances."
+  },
+  "overall.cups.05.upright": {
+    "do": "If something you hoped for has gone wrong, keep listening for other news. Focusing only on the disappointment could make you miss help that's still available.",
+    "pause": "When things go wrong, don't take your frustration out on someone who's trying to help. A cold response could cost you support you could still receive.",
+    "source_ko_actions_sha256": "2b950ae257ca452cd0f989cbc1a1f7d5022f7ad6f531c06cd9a61e538921db44",
+    "source_locale_bundle_sha256": "d1bb8d714d9a33a491f399604cad752e5b74d61b02974e558e64323c87a310c6",
+    "rationale": "Remain receptive to other news after disappointment; a hostile response can drive away available help."
+  },
+  "overall.cups.05.reversed": {
+    "do": "If someone offers help with something you gave up on, hear them out. Look together at where that help would let you pick things up again.",
+    "pause": "If you're talking again with someone who hurt your feelings, don't keep arguing only about past mistakes. You could miss the chance to discuss what needs putting right.",
+    "source_ko_actions_sha256": "5fa3d1adc71975b561dbe171388b66a7bdd869024621e0b65fdd178185214101",
+    "source_locale_bundle_sha256": "56f04719ac8595fe1c27764edcc613e1f4dcfa2539d1c723cf0ce690232c5803",
+    "rationale": "Consider how offered help permits resumption; repeated blame can prevent discussion of repair."
+  },
+  "overall.cups.06.upright": {
+    "do": "If an old acquaintance comes to mind, get in touch to say hello. You can catch up on what you've both been doing.",
+    "pause": "Don't open with nothing but requests when contacting someone after a long time. Catching up first can make it easier to discuss what you need.",
+    "source_ko_actions_sha256": "c1e33619a9dec69cc11ed2c08cfca78571c676316435419f7b087f653c003fff",
+    "source_locale_bundle_sha256": "c762d43dc5be1c063cf3314ae438f54a891abd9461614325416c5c58194abb00",
+    "rationale": "Reconnect through mutual updates; avoid making a renewed conversation only a request for help."
+  },
+  "overall.cups.06.reversed": {
+    "do": "Before retrying something that didn't work out before, check the current conditions. See whether the difficulties you faced last time have changed.",
+    "pause": "Don't assume a past success means the same result this time. The circumstances may be different now.",
+    "source_ko_actions_sha256": "48cf66b2b3e4b80717208d0e1aef1522bebde814b858afd48ed40680cd7d1d67",
+    "source_locale_bundle_sha256": "f4c3156d33256dbb30aa0fb3011ec1cc0269f2b564bd0753f72e023a094236dc",
+    "rationale": "Check changed conditions before retrying an earlier failure; past success does not guarantee repetition."
+  },
+  "overall.cups.07.upright": {
+    "do": "When comparing offers, check what you can actually receive. Keep unsettled details separate from confirmed terms.",
+    "pause": "Don't accept every tempting offer at once for fear of missing out. They may look good without delivering as much as you expect.",
+    "source_ko_actions_sha256": "5efa99b84b7ac3b753c98d288587486e019e04d913da0510c4502409f85498d0",
+    "source_locale_bundle_sha256": "16c834eed4d36a070a8485268b34d16cce1d8f6a6c14f1d6176f40d55b5729b6",
+    "rationale": "Distinguish concrete terms from unsettled promises; accepting all appealing offers risks disappointing returns."
+  },
+  "overall.cups.07.reversed": {
+    "do": "If you've chosen the offer that suits you, tell the person you'd like to take part instead of keeping the decision to yourself.",
+    "pause": "Don't keep searching for new offers after checking the terms and making your choice. If nothing has changed, more comparisons could simply delay your start.",
+    "source_ko_actions_sha256": "864ab3758c10b6e5cba7fc5603776746770f0c9219bc6754b8ed638d42bd7a97",
+    "source_locale_bundle_sha256": "e071c8205899011e94ac6a7f7ce82c88ae8a29d375689e0d1dfe2306dde11946",
+    "rationale": "Communicate a selected offer’s acceptance; further comparison without changed facts can delay execution."
+  },
+  "overall.cups.08.upright": {
+    "do": "If you have no reason to continue something, keep the commitments you've already made, then bring it to an end.",
+    "pause": "Don't take on more of something you don't want just because the time you've spent feels too precious to waste. Consider whether you have a reason to keep doing it from now on.",
+    "source_ko_actions_sha256": "89ffc8d38fcb5727ecc05fc81663703694c83a93a23105645da52b8dcf20bf2a",
+    "source_locale_bundle_sha256": "ebdd4b1979e16744664d06efb5cd54a31ed8608546f0fb3976bfc558cd9d7633",
+    "rationale": "Close responsibly by fulfilling remaining commitments; already spent time does not supply a future reason to continue."
+  },
+  "overall.cups.08.reversed": {
+    "do": "If you want to keep trying something that's been uncomfortable, tell the other person what needs to change so the same problem doesn't recur.",
+    "pause": "Don't keep accepting something you want to stop simply because it's familiar. You could face the same discomfort again.",
+    "source_ko_actions_sha256": "1988d03304e1ff8a84cb7327ca37b0e74617906a6f3303d1ffb7be5dd2f0b76d",
+    "source_locale_bundle_sha256": "ddd64d0b318ef93ed41942e3a1810232b2544b578e4313b30f6f4ed20d9c5e2a",
+    "rationale": "Set explicit changes when choosing to continue; familiarity alone can perpetuate unwanted commitments."
+  },
+  "overall.cups.09.upright": {
+    "do": "If something you've waited for has gone your way, celebrate it by taking a moment to think about what makes you happiest about the result.",
+    "pause": "Don't rush into the next thing to achieve even more as soon as you get a good result. It's fine to give yourself time to be satisfied with what you've done.",
+    "source_ko_actions_sha256": "97f53398c0b32711477d64e1391f64811dd27974be68ae0098556e7d326ef274",
+    "source_locale_bundle_sha256": "ceea13ca43322b1063b8e0185e6864da6e794a86b588f2fa05b63e40adb32e18",
+    "rationale": "Reflect on the part of a welcome result that brings most joy; allow satisfaction before pursuing a larger achievement."
+  },
+  "overall.cups.09.reversed": {
+    "do": "If you've got the result you wanted but still feel disappointed, look for anything that's actually inconvenient or more trouble than you expected.",
+    "pause": "Don't start lots of new things because a result feels disappointing. What you start to soothe that disappointment could simply leave you with more to handle.",
+    "source_ko_actions_sha256": "d776e49da1ac0c804e13f23bbaaf0dff0b0434cf2b38afa729dec9db8d78e32b",
+    "source_locale_bundle_sha256": "03e9a17b20e9ae3427059dc652859c4afd7bbac004b5081ae5386ae3b8726d60",
+    "rationale": "Examine practical dissatisfaction despite receiving a desired outcome; compensatory new starts can increase demands."
+  },
+  "overall.cups.10.upright": {
+    "do": "Make time to catch up with someone close to you. You can talk over a meal without making elaborate plans.",
+    "pause": "Don't give a half-hearted response when someone you often spend time with shares good news. Say you're pleased for them, even though you know each other well.",
+    "source_ko_actions_sha256": "dd525837951106c3d7aec5e4c4064f67060191d6461f90c17712dab86396df10",
+    "source_locale_bundle_sha256": "0cb72dfd8f8bbd5bdc427522c60e3679a0c7044dceb9e779d2ddc38f9a1b4f3f",
+    "rationale": "A simple meal offers time for a catch-up; familiar company still merits an expressed response to good news."
+  },
+  "overall.cups.10.reversed": {
+    "do": "When making a shared decision, ask what the other person wants even if you're close. Someone who usually agrees may think differently this time.",
+    "pause": "Don't assume everyone is happy with a choice just because no one complains. People can have different expectations even when they say little.",
+    "source_ko_actions_sha256": "24203de400c2d52fd073521933eb7cfc03efc0ce80b5ffe918880b25be0d4bf4",
+    "source_locale_bundle_sha256": "15100793fcc34e1806550bdea6c9562cefcdc8cab8301264cd278105d840e2e7",
+    "rationale": "Ask familiar people rather than presuming agreement; a quiet response does not establish shared satisfaction."
+  },
+  "overall.cups.11.upright": {
+    "do": "If there's something you'd like to do together, suggest it casually. If the other person is interested too, you can discuss when and how to try it.",
+    "pause": "Don't put off saying hello because you think you'll be awkward the first time. Someone may respond warmly even if you haven't prepared the perfect words.",
+    "source_ko_actions_sha256": "d2ffed55edb513eabcbc5da264f57a7b6663db0b89d4d5556ab56836c4ea93a9",
+    "source_locale_bundle_sha256": "772a8f34f3619c09ad20246741494555a3a895bcc2b7b264a15338e9cb94ecfa",
+    "rationale": "Offer a shared activity and discuss details only with mutual interest; a first greeting need not be perfectly rehearsed."
+  },
+  "overall.cups.11.reversed": {
+    "do": "If you need to ask a favour or apologise, make your sincerity clear. Hinting through jokes could make it sound as though you don't mean it seriously.",
+    "pause": "Don't make a sulky remark because an answer you're hoping for is late. Trying to test the other person's reaction could give them the wrong idea about what you mean.",
+    "source_ko_actions_sha256": "43771aff300b8782ec2e08dfaa13fbae61ebee52a64937861321349db1ef228e",
+    "source_locale_bundle_sha256": "15c5c28fdb3a31982a9d54687a46bb5314a0b21eb127bc8e55570ee755789315",
+    "rationale": "Keep a request or apology sincere rather than jokingly indirect; testing a late respondent can miscommunicate intent."
+  },
+  "overall.cups.12.upright": {
+    "do": "If you need to ask for help, gently explain what you need. You can begin with the part that's difficult to manage alone.",
+    "pause": "If you like an invitation, don't give a vague reply that makes you sound uninterested. Letting the person know whether you'd like to join makes it easier for them to arrange it.",
+    "source_ko_actions_sha256": "dee5656f834a44d412748f9dcf46b44a84b06459f6e676f01f6c8956704ca632",
+    "source_locale_bundle_sha256": "ef039de4152879d40e01b00cc110e759832a86db46a5c821446841de430d5cde",
+    "rationale": "Explain the difficult part when seeking help; clarify interest so an invitation can become an arrangement."
+  },
+  "overall.cups.12.reversed": {
+    "do": "If someone promises they'll do something for you, ask exactly what they can do and when. Distinguish encouraging words from definite arrangements.",
+    "pause": "If someone hasn't clearly said what they'll do and when, don't give up all your other opportunities for that promise.",
+    "source_ko_actions_sha256": "b5bd9e72dbafe28481b6178ab48ff39d1e4918902d772dc788ec50e62d894f23",
+    "source_locale_bundle_sha256": "e0a142e943de6850b5172f7d87e522ae96dce0c1d691af588a1635b6c24374e9",
+    "rationale": "Pin down the action and timing of a promise; preserve alternatives until the answer is definite."
+  },
+  "overall.cups.13.upright": {
+    "do": "If you've been worrying about something alone, tell someone you trust what's happening. You can start with what upset you.",
+    "pause": "Don't ask someone to solve the whole problem just because you've opened up to them. You can ask for help with just the part that's hard to handle alone.",
+    "source_ko_actions_sha256": "ee7849ed2f2fef09d762b96aac7ed328aea93d4e7f7a4e0d2dd7d8af61e268ab",
+    "source_locale_bundle_sha256": "300ec8986d4951397d85cff9b1e2c95aa43a839e6d19a66d1789e3df532d5f40",
+    "rationale": "Share personal circumstances with a trusted listener; request limited assistance rather than complete responsibility."
+  },
+  "overall.cups.13.reversed": {
+    "do": "If someone asks for help, leave time to finish your own tasks and tell them at the start how much you can do.",
+    "pause": "Don't smile and accept an already burdensome request just to keep the other person happy. Even if refusing is difficult, say what would be hard for you then and there.",
+    "source_ko_actions_sha256": "ab985aee7570c12e3e2fd5f6b3efea51bae6523f719e14ffc99f9d58955c8603",
+    "source_locale_bundle_sha256": "087266983da9156396ba573bf903b377e61cdc9debc4d79a249e015d6ffb0f81",
+    "rationale": "Define feasible help while reserving time for personal tasks; be direct about difficulty instead of performing willing acceptance."
+  },
+  "overall.cups.14.upright": {
+    "do": "When asking for help with a difficult problem, be specific about what you'd like the person to do. Knowing what you need makes it easier for them to find a way to help.",
+    "pause": "In a disagreement, don't take sides based on the first account you hear. Listen to what each person is finding difficult.",
+    "source_ko_actions_sha256": "6afa96265a9e65ebc9d02af08a099ad739293178bebad6507cd0bed0a2d582ec",
+    "source_locale_bundle_sha256": "05c3f1b37691e00dbd3b5b624f536de9794a7e8575a8fa479d86ed4f0edbd95d",
+    "rationale": "Specify requested help so the helper can act; hear both sides before siding in a conflict."
+  },
+  "overall.cups.14.reversed": {
+    "do": "If someone changes an agreement because they're upset, remind them what was originally agreed. Discuss why they're hurt separately from whether they can keep the agreement.",
+    "pause": "Don't suddenly abandon something you've taken on or go back on a promise simply because you're angry.",
+    "source_ko_actions_sha256": "e4cbca070b48569a1911805d51fde978bbbea8d06869772a6e0801c9b3c284a8",
+    "source_locale_bundle_sha256": "40dbfd8430eb5cf880c2041df58a42f64fbb92e63a3e9d790f57bf67a89a7add",
+    "rationale": "Separate an upset person’s feelings from an existing agreement; anger alone does not justify abandoning a commitment."
+  },
+  "overall.wands.01.upright": {
+    "do": "If you've put off something you wanted to try, start with the part you can do now. It's fine to learn what you'll need next by doing it.",
+    "pause": "Don't take on too much at the start of something new. Keeping it manageable gives you a better chance of continuing without having to stop partway.",
+    "source_ko_actions_sha256": "450f902df49a3739d8c2352e5f247f22dbdedb7a52e2a287007a2ea9c490a99c",
+    "source_locale_bundle_sha256": "cfa5f088e824e65d8975d5cc3673f7f972c7ac5911fcaa0764435eec12ff0beb",
+    "rationale": "Start with feasible action and learn subsequent needs; limit the initial amount to support continuation."
+  },
+  "overall.wands.01.reversed": {
+    "do": "If you're not fully prepared for something you meant to start, check what's missing and do the preparation you can manage now.",
+    "pause": "Don't give up the whole idea just because there's no opening right now. The timing being wrong today doesn't mean you'll never be able to do it.",
+    "source_ko_actions_sha256": "6d332018498be31aab1e68d69582e3150ed3f644e070580f1ac034c66689e059",
+    "source_locale_bundle_sha256": "2ebd38b096ad6e56e8fae3a7dc37738b7bab43eab9dbf3ef03eb5a831c6aeb2b",
+    "rationale": "Complete available preparation when a start is delayed; current lack of opportunity does not establish permanent inability."
+  },
+  "overall.wands.02.upright": {
+    "do": "If you'd like to do what you're already doing somewhere else, find out whether it's possible and what would be better than where you are now.",
+    "pause": "Don't give up what you're doing just because a new option looks appealing. Keep it going until you've checked that you can actually start the new one.",
+    "source_ko_actions_sha256": "bb1a6c8fc5e9c138fab4e47fe73c5a444b4d51992e46ed56cd51753fb0bfb5ac",
+    "source_locale_bundle_sha256": "d2006130434e325b49ad70ba4838b2a6255029f14cf0034e8a29032351eb10dd",
+    "rationale": "Investigate feasibility and comparative benefit elsewhere; preserve current activity until the alternative is confirmed."
+  },
+  "overall.wands.02.reversed": {
+    "do": "If you're hesitant about a new option, ask directly about the condition that worries you most. You may find out whether it's just unfamiliar or presents a real difficulty.",
+    "pause": "Don't put off your answer about something new until every worry is gone. The chance to take part could pass while you're still comparing options.",
+    "source_ko_actions_sha256": "becd360fccda6698ae7e416c0710afd8e6602bc7594b1caffa1044ecc05aa37a",
+    "source_locale_bundle_sha256": "762c454efc508805171c02d23d93f74f625760ada5a840a3d918c25d1851dbaf",
+    "rationale": "Ask about the actual source of hesitation; waiting for complete reassurance risks missing the available time."
+  },
+  "overall.wands.03.upright": {
+    "do": "If something you've been doing gets a good response, suggest what you could do together next. Build the conversation around the part that interested the other person.",
+    "pause": "Don't immediately reject an offer to work together just because it comes from somewhere unfamiliar. Hear how you could help each other before deciding.",
+    "source_ko_actions_sha256": "ca3827a1d5dab2d0d3ff3c85215aff0b782e2975357d225b84b20e87257bda4b",
+    "source_locale_bundle_sha256": "08c779de0ef9f21a6853f12400dd739d7fcea31dd8e988d685d58bdc5d7dc6d2",
+    "rationale": "Follow a positive response with a relevant shared proposal; unfamiliar origin alone is insufficient to reject collaboration."
+  },
+  "overall.wands.03.reversed": {
+    "do": "If an answer you're waiting for is late, start with tasks you can handle without that answer.",
+    "pause": "Don't take on something new on the assumption that what you're waiting for will soon work out. If it takes longer, you could have to finish both at once and struggle with the extra work.",
+    "source_ko_actions_sha256": "9400c5c5296219cf98c79fada17fb460e3503f74225b32437646ed3901ecffdb",
+    "source_locale_bundle_sha256": "3976d1bff005c2d7da423e0c646e89715bfc0b8af580cbed3e8e07f9cc30603f",
+    "rationale": "Use waiting time for independent tasks; taking on more before a reply can make unfinished commitments overlap."
+  },
+  "overall.wands.04.upright": {
+    "do": "Tell the people who worked alongside you that things have ended well. You can look back on the effort it took and enjoy the result together.",
+    "pause": "Don't rework something you've finished well just to make it look more impressive. If everything necessary is done, leave yourself time to rest too.",
+    "source_ko_actions_sha256": "638f99f0eb2103dbc7c33985e99289a33604ce3accd476fb552d75f4001df56c",
+    "source_locale_bundle_sha256": "f294bc764d82a4ebbd1cadf71a7fe9896f75fa1b3f63667277317d9ad50539c4",
+    "rationale": "Share successful completion with contributors; avoid unnecessary rework that crowds out rest."
+  },
+  "overall.wands.04.reversed": {
+    "do": "If something has gone well, however small it is, tell someone close to you and enjoy it together.",
+    "pause": "Don't cancel enjoyable plans because the preparations fell short of your hopes. A simple gathering can still mean laughter with people you feel comfortable around.",
+    "source_ko_actions_sha256": "4754fbfaabb7b086d0244a1c1e3ca2779172c24ed448a9ac21c7626a69712ba5",
+    "source_locale_bundle_sha256": "150cffcff3e4cfa6de55dddcab230b880bd50aa0ad557d19fcb51d10783820c6",
+    "rationale": "Share a small success; imperfect preparations do not remove the possibility of an enjoyable gathering."
+  },
+  "overall.wands.05.upright": {
+    "do": "If you disagree about the best method, compare what each person has suggested. If talking isn't enough to judge, try the methods before choosing.",
+    "pause": "Don't interrupt the other person just because you favour different methods. Hearing why they chose theirs can help you avoid an argument that keeps going over the same ground.",
+    "source_ko_actions_sha256": "74e4edae859d283fe3bc6e307837b5dbcd1c064a8d6870fe96cd7f026d5947a2",
+    "source_locale_bundle_sha256": "b47e254c38bfabb84880f713ef13e38b423bd04377eec28263dda6f469b473ce",
+    "rationale": "Compare proposed methods through trials when needed; hearing reasons can prevent repetitive argument."
+  },
+  "overall.wands.05.reversed": {
+    "do": "If accounts of the same event differ, start with facts you can check about who did what.",
+    "pause": "Don't step into someone else's dispute after hearing only one side. Arguing on their behalf without knowing the circumstances could get you into trouble too.",
+    "source_ko_actions_sha256": "35221ea08eb559e40b0f5f49c956645ef90c63811f9e3c5265dcf95920ef99d0",
+    "source_locale_bundle_sha256": "4011b2eef4718f349267326a131ed92807e8e007dcbf83e70ef140c87094dd01",
+    "rationale": "Establish verifiable actions behind conflicting accounts; avoid becoming involved without the full circumstances."
+  },
+  "overall.wands.06.upright": {
+    "do": "When people congratulate you on a good result, thank those who helped and explain what they contributed.",
+    "pause": "Don't put down someone else's achievement while sharing your own good result. You can enjoy what your effort has brought without deciding who did better.",
+    "source_ko_actions_sha256": "448e4833887ab646c5a54b7a8868acaba4f2fef989cdff0964c3ccc26695d27b",
+    "source_locale_bundle_sha256": "19a663493f58d4b44cd523aa1ba4d52ca173cb13b1814ab3a657027d16717e8a",
+    "rationale": "Credit specific contributions when praised; enjoy success without diminishing other achievements."
+  },
+  "overall.wands.06.reversed": {
+    "do": "If the result you're waiting for isn't out yet, wait for a definite announcement. A slow response doesn't mean the work you've done was a failure.",
+    "pause": "Don't exaggerate what you've achieved to win praise. It could put you in a difficult position later if people discover that your claims don't match what you actually did.",
+    "source_ko_actions_sha256": "016e3ee3079d94a74317b86c7226ce7d0dfc4148fea08317c4967a158a0f7c6b",
+    "source_locale_bundle_sha256": "15b888ca565efb4dc93218091e2b7708a24d9da8456955e70baa1318de5fb281",
+    "rationale": "Await confirmed results without assuming failure; inflated claims can later be exposed by actual work."
+  },
+  "overall.wands.07.upright": {
+    "do": "If a demand is difficult to accept, calmly explain which points you can't compromise on and why.",
+    "pause": "Don't argue back at every irritating remark while responding to a demand. Picking over minor wording can make it harder to discuss the conditions you can't accept.",
+    "source_ko_actions_sha256": "f3ef862ff685246a355d071f50094852f1d74b86e78aa95cf48c013b0521274c",
+    "source_locale_bundle_sha256": "c0d1a454d6a8bd3f1ea1c93d57fa79cb69f82e9f586e37e9789460c0c5394b71",
+    "rationale": "State the non-negotiable points and their reasons; debating each remark can displace the substantive conditions."
+  },
+  "overall.wands.07.reversed": {
+    "do": "If several people are asking for favours, ask for time to think instead of replying straight away. Decide what you can take on, then tell them how much you can do.",
+    "pause": "Don't accept conditions you don't want just because refusing feels awkward. You may feel better in the moment but end up with more to do later.",
+    "source_ko_actions_sha256": "e3f717e18d9ad5ebe770f7455c9749f0447d791a6c0515ae5b0710358f463620",
+    "source_locale_bundle_sha256": "780dfd68c8c0be6176bfd018ed777104f59f95de81df8b03ddf6c260be67c2d4",
+    "rationale": "Allow time to establish capacity before replying to multiple requests; momentary relief can create later obligations."
+  },
+  "overall.wands.08.upright": {
+    "do": "When the news you've been waiting for arrives, check the details and give any needed reply on time. If the conversation moves on to arranging a time, say when you're available too.",
+    "pause": "Don't agree to details you haven't checked just because updates are coming one after another. Even when things move quickly, check each thing you're agreeing to.",
+    "source_ko_actions_sha256": "0e23b31fc545f37642a1983a8b62fd7b7c053160875107abd8ba7b38994b6be0",
+    "source_locale_bundle_sha256": "17bd526b1b9f4137c872837c2ed648cdcf8936f349774fdc3884865c99b18c53",
+    "rationale": "Reply after checking the news, with availability only if scheduling arises; rapid updates do not justify unchecked agreement."
+  },
+  "overall.wands.08.reversed": {
+    "do": "If something someone says bothers you, ask them directly what they meant. Asking first can help you avoid an argument over a misunderstanding.",
+    "pause": "Don't repeat something you've heard to several people without checking it. If its meaning changes in the telling, misunderstandings could arise among the people involved.",
+    "source_ko_actions_sha256": "0174168c87bf6c013d57540af99c09863d15b27d9fd847bcfaeacaa376c68342",
+    "source_locale_bundle_sha256": "c84b555ab0231be41bb1d2c1a06c6096f1088dc134413f88b783d5ce39d6c08d",
+    "rationale": "Clarify spoken meaning before responding; avoid spreading unverified words whose meaning can change in retelling."
+  },
+  "overall.wands.09.upright": {
+    "do": "If a familiar problem returns, think back to how you solved it. Trying the method that worked before could make the same problem easier to resolve.",
+    "pause": "Don't skip the final check because something is almost finished. Looking over what remains can reduce the chance of having to work on it again.",
+    "source_ko_actions_sha256": "0758d59f30e1d1143cb821c7a76f246bc7d2839cfcb6b7044d6265a401d27feb",
+    "source_locale_bundle_sha256": "69ed8961fd228656ed519470b07e00108777745a5ca3ed1654fcf6ac18f769c4",
+    "rationale": "Reuse an effective response to a recurring problem; final checks can prevent repeat work."
+  },
+  "overall.wands.09.reversed": {
+    "do": "If the same method keeps getting you stuck, explain what hasn't worked to someone with experience and ask about another approach.",
+    "pause": "Don't push away someone offering help because a previous experience of receiving help went badly. First hear what they could do for you this time.",
+    "source_ko_actions_sha256": "5fefa8a00b29984e5bf8984ad4b3307b4d095c3be480972e87deb6e2f3478d66",
+    "source_locale_bundle_sha256": "6ba1b87069465f01ef4f3b9d78267c56628d68b2ed21b0ac502007cb1bf3ae15",
+    "rationale": "Seek an alternative from someone experienced, explaining the failed method; assess fresh help independently of earlier disappointment."
+  },
+  "overall.wands.10.upright": {
+    "do": "If a new request comes in when you already have plenty to do, work out how long the remaining tasks will take and say when you could start helping.",
+    "pause": "Don't agree to everything just because you can do each task well. Even familiar tasks can overlap and delay an important commitment you made first.",
+    "source_ko_actions_sha256": "282408b3a606b2dcba633022980d47f589095c2c28dd41b8accbfda296e99afa",
+    "source_locale_bundle_sha256": "acc591998b29c549647f938b4f6988e863318ac2ef869d86068c506607a86ac6",
+    "rationale": "Base new availability on existing work; individual competence does not prevent overlapping tasks from causing delays."
+  },
+  "overall.wands.10.reversed": {
+    "do": "If you can't finish something alone, say now which part you'd like someone else to take on. Asking early lets them set aside time to help.",
+    "pause": "If your current tasks are too much, don't silently pick up work that hasn't been assigned to anyone. Others may assume you're comfortable taking on more.",
+    "source_ko_actions_sha256": "115f221ca37a6c2d76b7a3f25b4e243cbeb2223300ffb8e4c4bbf4e2e73277f8",
+    "source_locale_bundle_sha256": "9e7b41006faa06a4c40a0a410cc6ed02be1e48c88f0bd46ba9b9aa774f1e2aa3",
+    "rationale": "Request a specific share early enough for others to make time; silent extra work can hide existing overload."
+  },
+  "overall.wands.11.upright": {
+    "do": "If you hear about an interesting activity, ask where and how you can take part so you can try it for yourself.",
+    "pause": "Don't keep putting off an activity because you feel you need to be good at it from the start. You can enjoy trying it for the first time without being skilled at it.",
+    "source_ko_actions_sha256": "3695015d15a6c110bd3e32587dc908a67055e33b7a2bd8abd3a8e1920f42dd82",
+    "source_locale_bundle_sha256": "8a786e4cf3895d812c5bf32d9588d5a51470336b1b9d01776a689cb2c9ba1949",
+    "rationale": "Ask participation details to enable a new experience; enjoyment need not wait for competence."
+  },
+  "overall.wands.11.reversed": {
+    "do": "If you've heard that you can join a new activity, check the official information to confirm that you actually can.",
+    "pause": "Don't recommend an opportunity to others while the details are still unconfirmed. If you agree to join together and the details change, they could be caught off guard too.",
+    "source_ko_actions_sha256": "742af36c1de152d8ac53c98499b088b5fc4be7e350352770872a6057f4ba72f0",
+    "source_locale_bundle_sha256": "301b40c2e0b2b24c20230111639329eb69ffc4c6ab0c27576b06d973cd2915d4",
+    "rationale": "Verify participation through official information; recommending before confirmation can involve others in changed plans."
+  },
+  "overall.wands.12.upright": {
+    "do": "If there's somewhere you've wanted to visit, find out when you can go and make the trip.",
+    "pause": "Don't plan too many stops in one day just because you're excited. Rushing to the next place could leave you less time to stay and enjoy where you are.",
+    "source_ko_actions_sha256": "6ed77ddb81d3ae00a9dda400f1d3038a4e0996b1284d276391b45558ca899609",
+    "source_locale_bundle_sha256": "cd771bf378ff20288526702bc6bf97f5d5835f0d30f409bf3775eab042c25377",
+    "rationale": "Turn a desired visit into action after checking timing; too many stops can crowd out enjoyment at each place."
+  },
+  "overall.wands.12.reversed": {
+    "do": "If you've arranged to meet someone or visit them, check with them before setting off that it's still going ahead.",
+    "pause": "Don't rush to make another arrangement just because one was cancelled. Checking that the other person is available before deciding can reduce the chance of changing the new plan too.",
+    "source_ko_actions_sha256": "55b86466c6e025b920740bc962724777fb2cba5a30c71424b300f318be5f3f70",
+    "source_locale_bundle_sha256": "40366eeecf8b78f76c4c05939ee16797469ff4960d0ecf2a643d4e9c56b2f6ac",
+    "rationale": "Reconfirm an existing meeting before travelling; a replacement also needs mutual availability before commitment."
+  },
+  "overall.wands.13.upright": {
+    "do": "If there's something you'd like to share while spending time with a group, feel free to bring it up first.",
+    "pause": "Don't keep talking only about yourself because people are responding well. Pausing to let others join in can make the conversation more enjoyable.",
+    "source_ko_actions_sha256": "8957e0e9bee2510260826a7de8c00fd5171380720b473e1fbadde9b6df664aeb",
+    "source_locale_bundle_sha256": "cf3b880d236c5d65e924c56f87005a0f12f349f9f31114456cac53ddd8a84115",
+    "rationale": "Introduce the intended topic in a group; leave room for others after positive reception."
+  },
+  "overall.wands.13.reversed": {
+    "do": "After you've shared your thoughts, give the other person a chance to speak and hear them out instead of adding more of your own.",
+    "pause": "Don't add a criticism when someone else is being praised. People listening may see it as an attempt to put that person down.",
+    "source_ko_actions_sha256": "0d0c512b94869bae9d3dff6781e905c7cf408bad641315314717fafc2fd27760",
+    "source_locale_bundle_sha256": "1a864fec3f857da62d4c6841f03f0500d57731c2c1b83cbe2c10ebb4f491c994",
+    "rationale": "Listen fully after speaking; adding faults during praise can appear disparaging."
+  },
+  "overall.wands.14.upright": {
+    "do": "If you're in charge of something you're starting together, first ask what each person does well, then divide the work accordingly.",
+    "pause": "Don't get things started and expect others to sort out everything that follows. Even when you've divided the work by ability, follow through on the part you promised to do.",
+    "source_ko_actions_sha256": "de7d4217eb9dfbc50a3bc79779cce3a9759f9d729cef718e1967927ffaade349",
+    "source_locale_bundle_sha256": "f2a8f26a4300ddecc23bdc9b77ec1afd006c5a01e4236ab6db382826b43be92d",
+    "rationale": "Allocate work according to stated strengths; leading a start does not remove responsibility for one’s own agreed share."
+  },
+  "overall.wands.14.reversed": {
+    "do": "If a result doesn't satisfy you, look at the parts you want changed. If those changes aren't necessary, it's fine to call it finished.",
+    "pause": "Don't make someone redo parts they've done well just because they're slightly different from your way. Excessive demands could make it hard for even a willing helper to continue.",
+    "source_ko_actions_sha256": "a965fdc162f6f517740fa019ff005309bb239165ffe87e2aaa34994ac6baf149",
+    "source_locale_bundle_sha256": "b5c7df05e8a5723d3bed2d85df860bf5dc52588b2ae7dba844ab89260869fbc7",
+    "rationale": "Distinguish necessary revisions from preference; avoid imposing rework over harmless differences."
+  },
+  "overall.swords.01.upright": {
+    "do": "If you don't know what caused a problem, compare the facts you've confirmed from the different accounts.",
+    "pause": "Don't dwell on background details when sharing what you've found out. Start with the facts the other person needs so your conclusion comes across clearly.",
+    "source_ko_actions_sha256": "95f42710ad300cbf6093851edcfd0a671e3ade829c6e08950bb616bd2eae91f9",
+    "source_locale_bundle_sha256": "ce2134b2117e2405be1e6725c8cf7078baafd97feaa54d0129ed05c77a00a259",
+    "rationale": "Compare verified facts to identify the cause; state important facts before surrounding detail when communicating the conclusion."
+  },
+  "overall.swords.01.reversed": {
+    "do": "After saying something important, ask what the other person understood you to mean. They may have taken it differently even if you thought you were clear.",
+    "pause": "If you discover you've passed on something incorrect, don't begin with a long defence of yourself. Correcting the error first can keep the other person from making a mistaken decision.",
+    "source_ko_actions_sha256": "53d1d6aa68ed39f7687bd0c843fadebaabe85dd7344d9df7d0b67900efba02ef",
+    "source_locale_bundle_sha256": "5ef6ccf6296f7372dd11e35e9e748c7e31c4abc40f0c30971821e86e7dd9c6d6",
+    "rationale": "Check the listener’s interpretation; correcting misinformation takes priority over excuses to prevent further error."
+  },
+  "overall.swords.02.upright": {
+    "do": "If you don't know which option to choose, ask someone familiar with the situation about the information you still need to decide.",
+    "pause": "Don't give a definite answer before you understand the circumstances just because you're being rushed. Ask how long they can wait and request time to think.",
+    "source_ko_actions_sha256": "f09fd981c8e702a54ccb38892f26365e264eea8d2eed342b5dcca74abf709831",
+    "source_locale_bundle_sha256": "cbb79f102e03a59894d02926d5b50b5373a15160efd46899ff8be8d4fe123cc0",
+    "rationale": "Ask a relevant person for missing decision information; request thinking time rather than yielding to pressure."
+  },
+  "overall.swords.02.reversed": {
+    "do": "If several people's accounts differ, ask the person directly involved specifically about the issue you need to decide now.",
+    "pause": "Don't pick any option just to get a complicated discussion over with. Accepting terms you don't understand could leave you with more to sort out later.",
+    "source_ko_actions_sha256": "ee7750ceb320b7561e04dd7ea6e8eccdcf1b36549992acc5d405a672297b1bb4",
+    "source_locale_bundle_sha256": "a4308d96b085a9a2d8430bff7b38d80882a39d3243177c87a55c82f27a6889c8",
+    "rationale": "Focus the direct enquiry on the immediate decision; arbitrary acceptance can leave unresolved conditions."
+  },
+  "overall.swords.03.upright": {
+    "do": "Even if you didn't get the answer you wanted, hear the reasons in full. Knowing the relevant facts can help you decide what to do next.",
+    "pause": "Don't speak sharply to people who had nothing to do with disappointing news. Taking your hurt out on them could make those relationships uncomfortable too.",
+    "source_ko_actions_sha256": "ee8c7628e18b48bf1f35c4e64a55f7674d595b07fb9723d61892ce8a369962ed",
+    "source_locale_bundle_sha256": "e976c46fb600e5b3b2904f37d0cc249643a1b0f3023d9d008b8c1235735e3567",
+    "rationale": "Hear unwelcome reasons to inform a next decision; displaced anger can create additional tension with uninvolved people."
+  },
+  "overall.swords.03.reversed": {
+    "do": "If something hurtful has been resolved, discuss how you'd like to get along from here. It's fine to say if you can't be as close as before straight away.",
+    "pause": "Don't reopen an argument you've both explained and settled simply because you still feel uneasy about it.",
+    "source_ko_actions_sha256": "7125253dbea6ab666ef79be4c6b24bdb91c3409814f7dc9903ad6b5d8b988b76",
+    "source_locale_bundle_sha256": "41b1b9405bba18cdb795586405221bb99fdfcee548cee70d67d4f062ecd97b85",
+    "rationale": "Discuss future interaction after resolution without forcing immediate closeness; lingering discomfort alone need not reopen a settled dispute."
+  },
+  "overall.swords.04.upright": {
+    "do": "If there's no urgent reply or further action needed, set aside anything that can wait and take a quiet break.",
+    "pause": "Don't reopen a finished argument to go over who was right or wrong. Exchanging words that don't need saying could make things uncomfortable between you again.",
+    "source_ko_actions_sha256": "f9b7f4c1e04215e1fe11ea9f88f905c6a75b328d55ccb57856ea86b59ccfd650",
+    "source_locale_bundle_sha256": "bcb7ece5bc4862825e6dc065b724b585794e11b4b0cd3bd29f212307ca207314",
+    "rationale": "Rest when no urgent action remains; relitigating a finished dispute can recreate unnecessary tension."
+  },
+  "overall.swords.04.reversed": {
+    "do": "If you're returning to something you've set aside for a while, choose the most urgent request first instead of taking on everything that's piled up.",
+    "pause": "Don't push yourself to do as much as before immediately when you restart. It's fine to build up gradually while you get used to it again.",
+    "source_ko_actions_sha256": "a68e4cdaa3c10b33335b89fddd37283ec4b1ab07e24635fc4192c18533058ab0",
+    "source_locale_bundle_sha256": "a11e428435e77ae20d59482ea2abb87679d2de91c87e3973862d39015999e867",
+    "rationale": "Choose the urgent request on resumption; allow gradual return instead of demanding immediate previous capacity."
+  },
+  "overall.swords.05.upright": {
+    "do": "Once you've said what needed saying in an argument, try stopping there. Continuing to argue over who's right could harm a relationship where you help each other.",
+    "pause": "Don't belittle someone to make them accept your view. Even if you win the argument, the resentment left behind could make it hard to do things together later.",
+    "source_ko_actions_sha256": "da226b4899e1d357fc09aba4e75eaf0c274c811eba031a8e4bf12c46524526b4",
+    "source_locale_bundle_sha256": "735a089b404edc701c8da673186fb83241e52e19106452d964d55570f1f0b27a",
+    "rationale": "Stop after communicating the necessary point to protect mutual support; belittling can harm later cooperation despite winning."
+  },
+  "overall.swords.05.reversed": {
+    "do": "If a chance to compromise comes up with someone you're on uneasy terms with, say first where you're willing to give way. You may find a way to end the argument without agreeing on everything.",
+    "pause": "Don't go back over who was wrong after an apology or agreement. Deciding who was more at fault after you've agreed to step back could keep the argument going.",
+    "source_ko_actions_sha256": "1517d1ff5ab67d2ae00765efb2416918cb1c434cc84b7ee4b356552681192bd5",
+    "source_locale_bundle_sha256": "3f258b655a896f148e7c6bde2a0dfbb7f5c07e3bea17d41c5df5f83a74d2f2a4",
+    "rationale": "Offer feasible concessions to end conflict without total agreement; renewed blame can undo de-escalation."
+  },
+  "overall.swords.06.upright": {
+    "do": "If someone explains an easier way to handle something you've struggled with alone, hear them out and accept their help.",
+    "pause": "If there's somewhere you could be more at ease, don't keep staying in an uncomfortable place just because it's familiar.",
+    "source_ko_actions_sha256": "0a1537f09f278cd20c108a33dd61f51832a47365a7c17e5a652827907b560d77",
+    "source_locale_bundle_sha256": "71cbdb562577b2b4731422cb18cc832a41a7919fd009e0d43ba6795bff2d5176",
+    "rationale": "Accept guidance that eases an unresolved task; familiar surroundings need not be retained when an easier alternative exists."
+  },
+  "overall.swords.06.reversed": {
+    "do": "If a problem you thought was solved keeps returning, check whether any of its original causes still need to be addressed.",
+    "pause": "Don't pass an unresolved problem to someone else just to escape it for now. If the cause remains, you may have to explain the same problem all over again later.",
+    "source_ko_actions_sha256": "bd6a22a654737521a8fe01e41dca84dad0cfd6512cfdf5ae3bae32bfa28f82a9",
+    "source_locale_bundle_sha256": "ed002d527fa16e16f4a747d31ac503e720bf937114c5a62670c748e98fb963b7",
+    "rationale": "Investigate unresolved causes of recurrence; transferring responsibility without addressing the cause can lead to renewed explanation."
+  },
+  "overall.swords.07.upright": {
+    "do": "For something that's hard to resolve, look for another approach by quietly asking only people who know the circumstances.",
+    "pause": "Don't leave out important conditions when you need someone's agreement. You don't have to reveal every plan, but do tell them the facts they need to decide.",
+    "source_ko_actions_sha256": "93722cb339c125dd93c17340572674a9d3d4ea587420a5c124d677692b2d8122",
+    "source_locale_bundle_sha256": "1ec4e4cc2fc24596e2e43638074199467e43d5c6d5f65ec1b59e36192fdb6426",
+    "rationale": "Limit enquiries to relevant people; discretion must not hide facts necessary for another person’s informed agreement."
+  },
+  "overall.swords.07.reversed": {
+    "do": "If a mistake is difficult to put right alone, tell the people involved what went wrong before trying to handle it all yourself.",
+    "pause": "Don't use a convincing excuse to cover up a mistake that's already come to light. Changing your explanation repeatedly could make even a small error take longer to sort out.",
+    "source_ko_actions_sha256": "d8c07edf5c889daff333edf5dbe0032816424cb78096366f802eb6a29e0e73c8",
+    "source_locale_bundle_sha256": "87b321076d0c622f50080aff978b8970c9d203b8c8eeb808327f225ccb4a53c8",
+    "rationale": "Disclose the mistake to relevant people when help is needed; shifting excuses can delay resolution."
+  },
+  "overall.swords.08.upright": {
+    "do": "If you're told you can't do something you want, ask directly which condition prevents it. Understanding the actual restriction can help you look for another approach.",
+    "pause": "Don't assume every untried method is impossible just because one approach hasn't worked.",
+    "source_ko_actions_sha256": "062a4903f4faded31b7b11a9fa3c275fbce2059c631895642b5499491bc70898",
+    "source_locale_bundle_sha256": "13548e0e7ebf41fb364c9e1e93608febce7d47fd88f926e157589c4f2687f64d",
+    "rationale": "Identify the actual restriction before seeking alternatives; one blocked method does not establish impossibility of all others."
+  },
+  "overall.swords.08.reversed": {
+    "do": "If another way to tackle something that's been stuck becomes available, use it to try the part you can do now.",
+    "pause": "If changed conditions let you try again, don't give up this attempt just because you were told no in the past.",
+    "source_ko_actions_sha256": "a8e2c0a5d67ec733cbe9798f95409f15a39a854a02c43214c74d367f1dc67898",
+    "source_locale_bundle_sha256": "d3b1f0bc43b48f1f9ec3bf5b9b2e18359313de58f55341fdf1acdd59d0cd4c25",
+    "rationale": "Act on a newly feasible method; changed conditions distinguish this attempt from a past refusal."
+  },
+  "overall.swords.09.upright": {
+    "do": "If a late answer has you fearing a bad result, ask yourself whether you've actually been told that result or are only assuming it.",
+    "pause": "Don't announce a failure or cancel plans before the result arrives. You don't yet know whether things have ended the way you fear.",
+    "source_ko_actions_sha256": "36f28f3b978e957c2c216b3f157ecea8e16878f3bae8c22c50907e0220363506",
+    "source_locale_bundle_sha256": "df604ed3928716324615fc1a337c516b61484768c239b852fc5c39b2e72f47ae",
+    "rationale": "Distinguish a specific feared result from reported fact; avoid acting on an assumed failure before the result."
+  },
+  "overall.swords.09.reversed": {
+    "do": "If you've been worrying about something alone, tell someone you trust exactly what happened and what worries you about it.",
+    "pause": "Don't ignore what still needs to be done just because someone's help has reassured you. If you've learned what needs doing now, start with that.",
+    "source_ko_actions_sha256": "8dbc3234d44d00631f62533e38146e78e752f297956456cf124acb93c6f6e136",
+    "source_locale_bundle_sha256": "2876c139f1f8d6371a384689cadc386bd6808a506db7870da0dccc48d462718f",
+    "rationale": "Explain the event and specific concern to a trusted person; reassurance still leaves identified practical action to take."
+  },
+  "overall.swords.10.upright": {
+    "do": "If something has become too difficult to continue, finish only the necessary final tasks and leave it there.",
+    "pause": "Don't take on something new to make up for a disappointing result immediately. First check whether you can manage what you still have to do.",
+    "source_ko_actions_sha256": "a448df9bc90d9f37c0d8afb1a0cfd5e0ddf146688bbea241c08091a3ce9b5132",
+    "source_locale_bundle_sha256": "ea9dc5d1ee4e87150923ab8d26c8690e8ff90ff84178a9ab1a55ede707572d9f",
+    "rationale": "Complete only essential closure; assess remaining capacity before taking on compensatory work."
+  },
+  "overall.swords.10.reversed": {
+    "do": "If you get another chance at something that was difficult, take on less than before so you can finish it without overdoing it now.",
+    "pause": "Don't accept the same conditions that overwhelmed you before just because another chance has arrived. Check what made it difficult and whether those demands would return.",
+    "source_ko_actions_sha256": "9c0679ca5515ed2e40de7590e2a0f79e2ef07b84cc7c4eeaa2c41a1208cfa307",
+    "source_locale_bundle_sha256": "2ffb31fcb6adb6d8b8d296ea1b433ac6d09bcbfdb5a1a6855aead22b495b1c8c",
+    "rationale": "Resume with a smaller feasible amount; review prior difficult conditions to avoid repeating them."
+  },
+  "overall.swords.11.upright": {
+    "do": "When reading unfamiliar instructions, check even the small print and ask directly about anything you don't understand.",
+    "pause": "When sharing something you've discovered, don't mix guesses with facts you've checked and present it all as certain.",
+    "source_ko_actions_sha256": "e3bd238d307d66b085fcf673313e6b24e1cb01eac64d5fac7260ecdcd9169abb",
+    "source_locale_bundle_sha256": "fc0c8fb3e6196f27ebd6936aab4faa0667decaf788d150c68b9e5ce2e8ffc8c6",
+    "rationale": "Read details and clarify unfamiliar guidance; keep assumptions separate when sharing newly learned information."
+  },
+  "overall.swords.11.reversed": {
+    "do": "If you're asked about something you don't know, ask for time to check and find an accurate answer instead of replying with a guess.",
+    "pause": "Don't confront someone immediately because a story you've just heard sounds suspicious. There may be circumstances you haven't checked, so find out the facts before discussing it.",
+    "source_ko_actions_sha256": "44ae6d0f4dc0023c59988283fcb26dc12c0b9210374d7519453a84c0a9a38c3d",
+    "source_locale_bundle_sha256": "675dd7c2932e7df2527e59636f30b2ad02cdfd70a49113599af8ae4b2e316f25",
+    "rationale": "Request verification time for an unknown answer; initial suspicion does not establish the facts needed for confrontation."
+  },
+  "overall.swords.12.upright": {
+    "do": "If you've decided what to do about a long-delayed matter, tell the people involved your decision and start with the part you can do first.",
+    "pause": "Don't push ahead alone and skip necessary explanations because things are moving quickly. Give the people involved time to understand what they need to do.",
+    "source_ko_actions_sha256": "20612cfd65c74b25bdfe072fdbc5269d08c38e4e90053008f8af374d5b193ab7",
+    "source_locale_bundle_sha256": "88fb0353a09e7ac180bfd452b99071276a4f453398b0daea5b250929e2013693",
+    "rationale": "Communicate a reached decision before starting feasible action; pace must allow others to understand their roles."
+  },
+  "overall.swords.12.reversed": {
+    "do": "If you're going somewhere to do something, check before leaving that you've packed what you'll need. It can save you a return trip for something you've forgotten.",
+    "pause": "Even if someone wants a quick answer, don't promise to do something immediately when you can't finish it now. Say when you'll actually be able to do it.",
+    "source_ko_actions_sha256": "5afa00877b08629c8ff0830db8c700f17a004d3795c11cc6952fb48b88980739",
+    "source_locale_bundle_sha256": "be802915e3c1a0caae38571e28a6edb50e243560b0b7aa9737ef0bc8ca6f7b00",
+    "rationale": "Check necessary items before a purposeful trip; give feasible timing rather than accepting an immediate demand."
+  },
+  "overall.swords.13.upright": {
+    "do": "Even if a request comes from someone you've known a long time, briefly explain why you can't accept it if the conditions don't suit you.",
+    "pause": "When refusing because the conditions don't suit you, discuss those conditions without bringing up the person's character or faults.",
+    "source_ko_actions_sha256": "a296c887eeb7efce9c7d2fc472d9d5fa8f121d30a37293c78c5f5d6b771abb67",
+    "source_locale_bundle_sha256": "b5e0d3537d7ecd82834bf22c9d406fcb4c414cbf8b20ec962ce20083e2b95394",
+    "rationale": "State a concise reason for declining unsuitable terms despite familiarity; keep refusal about conditions rather than personal criticism."
+  },
+  "overall.swords.13.reversed": {
+    "do": "If you've heard only one side, consider what circumstances you haven't heard about yet. Listen to the other person's account before judging what happened.",
+    "pause": "Don't dismiss everything someone says without checking whether it's true just because you usually feel uncomfortable around them.",
+    "source_ko_actions_sha256": "03b5bc2c42fbd49bfc89b665fa4d03c7f7eb75a5fd6a13b2bd11bebcbbcf735a",
+    "source_locale_bundle_sha256": "81746d2e7548a240fdfce5751739a533c7907276fbf07f4005058c1ae8a07b35",
+    "rationale": "Complete a one-sided account before judging; prior discomfort does not determine whether current statements are true."
+  },
+  "overall.swords.14.upright": {
+    "do": "When giving your view before an important decision, explain your reasons using facts that other people can check too.",
+    "pause": "Don't keep changing the standard to get a result that favours you. Applying the same agreed principles to the same circumstances helps you reach a decision people can accept.",
+    "source_ko_actions_sha256": "3dfc83a521a6ad8457e65adc73a662bae49acbb8883baabfed08a3d8545d3b93",
+    "source_locale_bundle_sha256": "ff2528bd98ba98305c20bd50f32e17345dcad673df1d1ffed9fd6e03f3219213",
+    "rationale": "Support a position with checkable facts; consistent principles support a mutually acceptable judgement."
+  },
+  "overall.swords.14.reversed": {
+    "do": "If you can't answer immediately, ask for time to check the details and decide, even if the other person is pressing hard.",
+    "pause": "Don't interrupt someone's explanation when you're making a decision. Reaching a conclusion before hearing the full circumstances could leave someone feeling unfairly treated.",
+    "source_ko_actions_sha256": "396104de07dca349cbe0eb7e923791865250653f077c5ef7697f9cfe75565e7d",
+    "source_locale_bundle_sha256": "99390851a0a3bd514bcdbefd500964c4e57315738a5aa3efe72eee0451f34048",
+    "rationale": "Request time under pressure; a decision-maker should hear full explanations to avoid unfair conclusions."
+  },
+  "overall.pentacles.01.upright": {
+    "do": "If you still need an item or a place for something you want to start, find out whether you can get or use it now.",
+    "pause": "Don't wait so long for better conditions that you miss your chance to use the items or space you've already secured.",
+    "source_ko_actions_sha256": "f004104bab40475a10a5a68d454232e0e229b0647131d5210ff29f46096cab97",
+    "source_locale_bundle_sha256": "3b6cac069d0ae96d27a0a075470db3d2a88b0147fb34fee994a84218b14a50cc",
+    "rationale": "Seek still-missing practical resources; separately, protect the useful time for resources already obtained."
+  },
+  "overall.pentacles.01.reversed": {
+    "do": "Even if you've received plenty of new things, check whether they help with what you need to do now. Having plenty isn't the same as having what you need.",
+    "pause": "Don't collect more items like those you already have just because you've heard they're good. There's no need to add things you haven't found a use for.",
+    "source_ko_actions_sha256": "5369797db93283b442e2060fb98a1eb04b579ef5245fd6d9efce14e03354ec3d",
+    "source_locale_bundle_sha256": "3cbcdc567e51d091b4c64bb082db0f4063ec1ae540924996507dc2eab88c47f8",
+    "rationale": "Check practical usefulness despite abundance; avoid accumulating similar items with no intended use."
+  },
+  "overall.pentacles.02.upright": {
+    "do": "If what needs doing first has changed, look again at the time you have left and tell the person you're making plans with when you're available.",
+    "pause": "Don't say yes to two requests that need you at the same time. Be honest about which must come first and when you can actually help.",
+    "source_ko_actions_sha256": "f1a62ec7e048d078053aa361c51b603a87eb1a27a0c7403a0bc70d43e65a3522",
+    "source_locale_bundle_sha256": "e55c04131f3de5057a46d3441a1ff1ebeb20fbaf607f76dbaa7f610549773ce1",
+    "rationale": "Update shared availability when priorities change; avoid incompatible simultaneous promises."
+  },
+  "overall.pentacles.02.reversed": {
+    "do": "If appointments clash, ask which one can be changed before you're late. Explaining early is better than trying to fit them both in and falling behind.",
+    "pause": "If you've postponed other tasks, don't book something new as soon as the urgent one is done. You could leave too little time for what's still waiting.",
+    "source_ko_actions_sha256": "36f3362778a99cc6b7c229b8325d0591730b878db86d7a986237235c9a362ebc",
+    "source_locale_bundle_sha256": "d9206413cb4c1cc8d1574cae2f6291f87f119df1197dc629301f3c5e510ff571",
+    "rationale": "Rearrange clashes before lateness; completing urgent work does not remove postponed tasks from the schedule."
+  },
+  "overall.pentacles.03.upright": {
+    "do": "If you're doing something together, say which part you can do well and offer to take it on.",
+    "pause": "Don't decide the method alone for parts the other person knows better. Hearing their reasons and leaving those parts to them could make things easier than doing it all yourself.",
+    "source_ko_actions_sha256": "dd10709fa2fed5efb551485cc6ed5d592deb47b7f7b8b9f1102fdbaffae6f79a",
+    "source_locale_bundle_sha256": "5d304e3f06a3584ef3322e02c60b0d1e41d29efe8d8047803adc7efda5694049",
+    "rationale": "Offer a specific strength in shared work; let relevant expertise guide parts the other person knows better."
+  },
+  "overall.pentacles.03.reversed": {
+    "do": "If you've finished an unfamiliar task, ask someone who's done it before whether you've missed anything. Their explanation can help you correct what you overlooked on your own.",
+    "pause": "Don't turn a correction into an argument by immediately making excuses. Hearing what needs fixing can reduce the chance of having to do the same work again.",
+    "source_ko_actions_sha256": "ce50ca88fdfa5479db28fddc082c408124d7319d11f02670706bec3c321653c8",
+    "source_locale_bundle_sha256": "04a1ea78fdc0f7950b8be365ecf883606b2890c630e0649fb50f665e2c1eaf93",
+    "rationale": "Get an experienced check after an unfamiliar task; listening to corrections can prevent further repeat work."
+  },
+  "overall.pentacles.04.upright": {
+    "do": "Before getting something new, look through what you already have for anything that could serve the same purpose.",
+    "pause": "Don't refuse a request for a little help before hearing what it involves. Find out what's needed, then decide whether you can do it.",
+    "source_ko_actions_sha256": "d593f344a5d89d4eafe4be385cb9afe0f9835c69c572478044bfe53049553d83",
+    "source_locale_bundle_sha256": "dab96a879e56c562080f7df0f83f9558bf93ba5c2f31c0f6e5dd19b80051842d",
+    "rationale": "Check existing resources before acquiring more; assess a small request before rejecting it automatically."
+  },
+  "overall.pentacles.04.reversed": {
+    "do": "If something you want to do is refused or postponed, ask why first. If the conditions can change, find out when you might be able to try again.",
+    "pause": "Don't repeat the same demand while leaving the conditions the other person finds difficult unchanged. Continued pressure may only make agreement take longer.",
+    "source_ko_actions_sha256": "f448ed145a3e855ffb4519dec476b2ef6d1a4cbd2ce5b82ebac6040d23e63e2a",
+    "source_locale_bundle_sha256": "0430b2ea45280011f41ba99b186da640ee15dd0382bede346491760a9465144b",
+    "rationale": "Investigate refusal and ask timing only if conditions can change; repeated unchanged demands can prolong disagreement."
+  },
+  "overall.pentacles.05.upright": {
+    "do": "If what you have to do alone feels like too much, say specifically which part you'd like help with.",
+    "pause": "When asking for help, don't just keep saying that everyone else is doing well. That alone makes it hard for the other person to understand what you're missing right now.",
+    "source_ko_actions_sha256": "d26824a4b7526eb073962ea9fc173861bfbfdb8144cdbb1c84bf562a881d9500",
+    "source_locale_bundle_sha256": "7a7be141944cefc3d3c3106e902c42552589d803b0786de5c5d07a6f462780a0",
+    "rationale": "Identify the task needing assistance; comparison with others does not communicate the actual shortage."
+  },
+  "overall.pentacles.05.reversed": {
+    "do": "If a shared task has gone wrong, check what each person has finished first so you don't repeat work that's already done.",
+    "pause": "Don't take back work you've left to someone else just because you're angry. You'll have more to do alone, and finishing could take longer too.",
+    "source_ko_actions_sha256": "a7c96aa883dbc54231f29230763aa1ed74a6e54697a3a9e1747a0a7cab5808ed",
+    "source_locale_bundle_sha256": "d897a6e5a9307232e0c0073772875272393cb1a66669391bcc9c0e293ef34d91",
+    "rationale": "Check completed portions to avoid duplicated effort; taking back assigned work increases one’s workload and completion time."
+  },
+  "overall.pentacles.06.upright": {
+    "do": "If you received help when you needed it, thank the person and explain what became easier because of it.",
+    "pause": "Don't insist on helping without asking what the person needs first. Even with good intentions, it may not be the help they want.",
+    "source_ko_actions_sha256": "08afb13c2c82df5f9dd00f6ffaa7a2deb68286444054e86bf3786fbd3ca68e0c",
+    "source_locale_bundle_sha256": "b32fe3656894bc8aa0f9c73e52146f49750808dcbf88c42fda54e8a127b3baa0",
+    "rationale": "Make thanks specific to the benefit received; good intentions do not replace asking about the recipient’s needs."
+  },
+  "overall.pentacles.06.reversed": {
+    "do": "If someone offers help, first ask whether you'd be expected to do anything in return. If a condition is difficult to accept, say so before receiving the help.",
+    "pause": "When talking to someone who's helped you, don't just complain that others received more. Repeating the comparison could make things uncomfortable between you.",
+    "source_ko_actions_sha256": "a1992377ae8e313896c3bb8035c1e653f43fe3a2a37c606bfda047c81718d4e0",
+    "source_locale_bundle_sha256": "d39f127a671eaef94223b87c66270109aa39f9f98aedf0c40837d418b8ba8b1e",
+    "rationale": "Check obligations before accepting help; repeated distribution complaints can strain relations with the helper."
+  },
+  "overall.pentacles.07.upright": {
+    "do": "For something you've worked at steadily, look at what's improved and what remains to judge whether it's worth continuing.",
+    "pause": "When you've been working steadily on something, don't skip necessary steps to finish sooner. Complete what's left so your earlier work doesn't go to waste.",
+    "source_ko_actions_sha256": "8a2a5d2c21034bd7cfb7e38166a97b52fe9d0461fd813e09a2362cc17129067c",
+    "source_locale_bundle_sha256": "64a8f2eefe795f95dafeb9681e480a48ecfe7cfcbf3442382981621cf6df8c2c",
+    "rationale": "Assess improvement and remaining work before continuation; necessary steps protect earlier effort."
+  },
+  "overall.pentacles.07.reversed": {
+    "do": "If you're asked to spend more time helping with something, first ask when it could be finished. If the end is unclear, say you'll help only as much as you can manage now.",
+    "pause": "Don't promise to keep giving time to something with no clear end simply because you don't want the time you've already spent to go to waste.",
+    "source_ko_actions_sha256": "331de1dc270c6e7b62f7f352c319dd4b29a9609598f5687fbb6946eb3dac5d77",
+    "source_locale_bundle_sha256": "981c9ce7b61cbd6cf7cb4484288e8c4a2c8bcc9dac6e709287190e20456556ca",
+    "rationale": "Check the end point before more help and limit an unclear commitment; sunk time does not justify indefinite additional time."
+  },
+  "overall.pentacles.08.upright": {
+    "do": "If there's work left that you can do with a method you've practised, use that method to finish it.",
+    "pause": "Don't neglect small details because a task is familiar and repetitive. A careless finish can leave you disappointed even with something you do well.",
+    "source_ko_actions_sha256": "b718759d716b4283f98ac9220bebf5fef1336b5eec8acf1963b0006babf209f7",
+    "source_locale_bundle_sha256": "eea78c2506cba10bb617f18aad5bf0f67f1826ed54bb2ea6c3bbae2dfe13b64f",
+    "rationale": "Apply a practised method to applicable remaining work; familiarity does not remove the need for care at completion."
+  },
+  "overall.pentacles.08.reversed": {
+    "do": "Even on a task you know well, revisit any part you didn't check. If you find something missing, fix it before saying you're done.",
+    "pause": "Don't try to gloss over flaws in what you've done with a convincing explanation. Without actually fixing them, you may have to redo the work later and lose people's trust.",
+    "source_ko_actions_sha256": "c85b586262e960984cf5eb7c70c307eb4d4f0d74812113347efb7752626903de",
+    "source_locale_bundle_sha256": "5bc64242fae9670875511d61e5c2805cd5f85ea30bbb4c3516af556f05f0812b",
+    "rationale": "Recheck skipped portions and correct omissions before completion; persuasive explanation cannot replace repairing a known flaw."
+  },
+  "overall.pentacles.09.upright": {
+    "do": "Celebrate finishing something well by doing what you've wanted to do but haven't had time for.",
+    "pause": "Don't force yourself to attend something you don't want to just to show other people you're doing well.",
+    "source_ko_actions_sha256": "73cc5f948bd5fccee446cf641f8577e9f6bb591b91ac35cf74e0cb9d5a6bb1da",
+    "source_locale_bundle_sha256": "445fc1df3ed52380d960483c2bde6a3cdeb85e5657eef975f405742c484dd934",
+    "rationale": "Celebrate completion with a desired activity previously limited by time; avoid unwanted attendance for appearances."
+  },
+  "overall.pentacles.09.reversed": {
+    "do": "If you're going to use a new place or take part in something, check for yourself that what you'll need is actually available.",
+    "pause": "Don't assure others that a place is good just because it looks appealing. Find out whether it's inconvenient to use before recommending it.",
+    "source_ko_actions_sha256": "e01d347c77dc4eff55d2e6b888a8a9e6783c3a602038af90cb6bcd0d426808f4",
+    "source_locale_bundle_sha256": "c03268f69e7eb22a814fe3e4a97fc843818f6d5fc4c520dad61657083ac16d41",
+    "rationale": "Inspect actual preparation before use or participation; verify practical usability before vouching for a place."
+  },
+  "overall.pentacles.10.upright": {
+    "do": "If you have a new problem to solve, look back through information you've organised before for something useful. Records you've kept over time may already contain the answer you need.",
+    "pause": "If someone you've known a long time can help, don't struggle to work out everything unfamiliar from scratch on your own.",
+    "source_ko_actions_sha256": "5c8ad8039853e9c15760843724e35c9e9a284e2fff4acba818f9bfcd8f4acebe",
+    "source_locale_bundle_sha256": "78a53753c7274d00b658def5047303a5c8e003ecbed4efa2c96441a0303776f6",
+    "rationale": "Seek an answer in accumulated records; available experienced help can spare a complete solitary restart."
+  },
+  "overall.pentacles.10.reversed": {
+    "do": "If you want to change the method for something that's going well, test the new one on a small part before changing the whole thing.",
+    "pause": "Don't make several commitments you can only keep if a result you're waiting for goes well. If it turns out differently, those promises could become difficult to keep too.",
+    "source_ko_actions_sha256": "721a2fe11b87064c5af0e7298c36c11c1f80dfb52ad8a6833b49a3e3a0f1c75e",
+    "source_locale_bundle_sha256": "4b9c62f50944e211693639067e2d35cc399675210f7344499b3afe598547ccac",
+    "rationale": "Test a new method within the existing task; avoid making multiple promises depend on a single uncertain result."
+  },
+  "overall.pentacles.11.upright": {
+    "do": "If you've learned a new method, start by trying one of the simpler tasks it can be used for.",
+    "pause": "Don't stop listening to an explanation because it sounds familiar. The rest may include something you don't yet know.",
+    "source_ko_actions_sha256": "4d76e33738969764e347c74302ba932ab815c0e4a0f91b569c4aa3af4eac6890",
+    "source_locale_bundle_sha256": "99a6f319db0476e70441b1d2679de7ab18f49ddf89742d78eeb66dab793944b0",
+    "rationale": "Apply the learned method to a simple relevant task; familiar opening content does not mean the rest is known."
+  },
+  "overall.pentacles.11.reversed": {
+    "do": "Before spending time on other things, check the information you've put off reading for anything you need to answer or deal with now.",
+    "pause": "Don't dismiss a new activity as pointless and give it up before completing the necessary steps just because it soon feels uninteresting.",
+    "source_ko_actions_sha256": "3d5c712e7d3deaaedd5d196187b4f408e2be7b2d188ae1552fc6919d08e48eaf",
+    "source_locale_bundle_sha256": "4cab7256c075cca0bf670ee6ca1344e84904a0d51a04fe84c692fcf071acbacf",
+    "rationale": "Prioritise immediate action required by unread guidance; a quick loss of interest is not enough to dismiss an uncompleted activity."
+  },
+  "overall.pentacles.12.upright": {
+    "do": "Finish familiar tasks one by one in your usual order, checking that you've completed everything you promised.",
+    "pause": "Don't abruptly change a method that's been working because someone else finished faster. If your usual order lets you finish, you don't need to match their pace.",
+    "source_ko_actions_sha256": "e568783e5c54d3b85b2fb237e533becb226e1093d6b98d0ecda1973438ed0239",
+    "source_locale_bundle_sha256": "8771f64524b31f750a3acf359e1f03c685f70ff2865def22934e129a67f725cb",
+    "rationale": "Complete promised tasks in the established order; another person’s speed need not trigger a working method’s replacement."
+  },
+  "overall.pentacles.12.reversed": {
+    "do": "If you've put a task off for a long time, check how far you got. You may find something missing even in parts you thought were done.",
+    "pause": "Don't put off an unfinished task again by telling yourself you'll do it all at once later. Leaving it longer can mean spending time working out where you left off.",
+    "source_ko_actions_sha256": "5444f0adb8aaa6afdeff44754c35772339afa1bef5d29e093e5173a8499fe916",
+    "source_locale_bundle_sha256": "dd9c8d3741fa33b35d449f556da7d7ae40040697686f4cffac5efced25b61932",
+    "rationale": "Review the actual state of postponed work for omissions; further delay can add time reconstructing progress."
+  },
+  "overall.pentacles.13.upright": {
+    "do": "If you have plenty of an item, it's fine to share it with someone who needs it. Start with what you can easily give while keeping enough for your own use.",
+    "pause": "Don't postpone your own tasks to look after someone else. Consider what you need to finish and offer only as much help as you can comfortably give.",
+    "source_ko_actions_sha256": "e8e0d3bfe1fef826e4d0d7591c1dc2f284943bed16ee79a3252c127276471813",
+    "source_locale_bundle_sha256": "9ec3835aaddfa1405e1cac20ea9bdd1edb86a4a1f6b076206a0b08a15fb3ab36",
+    "rationale": "Share surplus while preserving personal needs; caring for another need not displace personal completion."
+  },
+  "overall.pentacles.13.reversed": {
+    "do": "If you're uneasy about a decision ahead, ask specifically about the conditions worrying you and decide based on the answer.",
+    "pause": "Don't keep questioning why someone wants to help when you have no reason to distrust them. If you only question their intentions, it can be hard to talk about the help they could actually give.",
+    "source_ko_actions_sha256": "9215e388d52dcdebb258ae664fbb843f02359bcd48a3995bfe991115610c23fc",
+    "source_locale_bundle_sha256": "9b7f4b815dccd592cd74439fd1493d33b12fc2f0a1a45648973a80a0b0cf763e",
+    "rationale": "Ask the concrete condition relevant to a decision; unsupported questioning of motives can block practical discussion."
+  },
+  "overall.pentacles.14.upright": {
+    "do": "If you need to solve a complicated problem, choose a method that worked before and still fits, then try it.",
+    "pause": "Even if a new method looks impressive, don't promise it will work as though you've confirmed its results when you've never tried it.",
+    "source_ko_actions_sha256": "901305ea07c0201e13865427b5497812b8f36e2f9fbf3bb697c6b84466c70590",
+    "source_locale_bundle_sha256": "b522fe331b6d072143b6251583f855b863b23efb395bc084e7966de8cbc5d6b5",
+    "rationale": "Use relevant proven experience; do not present an untried method’s success as verified."
+  },
+  "overall.pentacles.14.reversed": {
+    "do": "If you've received terms you're satisfied with, settle on those instead of adding demands to get more.",
+    "pause": "Don't accept more than you can handle just to show others how capable you are. First consider whether you have the time and energy to finish the task.",
+    "source_ko_actions_sha256": "b61f6dbfd26db0f77897bf7af9d34162fcc75c918fa34c202dcc7441135195f8",
+    "source_locale_bundle_sha256": "a44dcf9453176a87e2ff427000949dd6cdc913079fd72f13e4648b3137b1ecce",
+    "rationale": "Conclude on satisfactory terms rather than expanding demands; assess time and capacity before accepting for appearances."
+  }
+}

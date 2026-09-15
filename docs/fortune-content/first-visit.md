@@ -1,7 +1,7 @@
 # 첫 방문 운세 — 6세트 × 3언어
 
 > 카탈로그 버전: `fortune-first-visit.v1` · 서버 자산에서 생성한 전체 전문
-> 한국어: `fortune-copy.v8-localized.1` · 영어: `fortune-copy.v8-localized.1` · 일본어: `fortune-copy.v8-localized.1`
+> 한국어: `fortune-copy.v8-localized.2` · 영어: `fortune-copy.v8-localized.2` · 일본어: `fortune-copy.v8-localized.2`
 > 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 ko-rewrite 및 localization 정본에서 하고 검수 후 자산을 다시 생성한다
 
@@ -15,8 +15,8 @@
 | --- | --- | --- | --- |
 | 총평 | 기쁜 소식이 들리고 하는 일이 잘 풀리는 날이야. | Good news could arrive as things go your way. | うれしい知らせが届き、物事も順調に進みそうです。 |
 | 전체 풀이 | 오늘은 하는 일이 잘 풀리고 좋은 소식도 들려올 수 있어. 오래 애쓴 일에서 보람을 얻고, 걱정하던 일도 별 탈 없이 지나가기 좋은 날이야. 주변 사람에게 축하받을 일이 생길 수도 있어.<br><br>기다리던 기회가 온다면 미루지 말고 받아들여봐. 좋은 결과가 난 일은 함께 기뻐해줄 사람에게 알려도 좋아. | Things could go smoothly today, with good news to match. Long-standing efforts may bring satisfaction, and something you've worried about could pass without trouble. There may even be a reason for people around you to congratulate you.<br><br>If a long-awaited opportunity comes along, take it without putting it off. Share a good result with someone who'll be pleased for you. | 今日は物事がうまく進み、よい知らせも届きそうです。長く頑張ってきたことに喜びを感じられ、心配していたことも無事に済むかもしれません。周りからお祝いされるようなことも期待できます。<br><br>待っていた機会が来たら、先延ばしにせず受け入れましょう。よい結果は、一緒に喜んでくれる人に伝えてもよさそうです。 |
-| 해볼 것 | 기다리던 기회 받아들이기 | Take an opportunity you've been waiting for | 待っていた機会を受け入れる |
-| 조심할 것 | 좋은 제안의 답을 계속 미루기 | Putting off your reply to a good offer | よい提案への返事を先延ばしにし続ける |
+| 해볼 것 | 오래 애쓴 일에서 좋은 결과를 얻었다면, 함께 기뻐해줄 가까운 사람에게 어떻게 됐는지 알려봐. | If something you've worked on for a long time has gone well, tell someone close to you who will be happy to celebrate it with you. | 長く頑張ったことでよい結果が出たら、一緒に喜んでくれる身近な人に、どうなったか知らせてみましょう。 |
+| 조심할 것 | 기다리던 제안이 왔을 때 답을 계속 미루지는 마. 받아들이고 싶은 마음이 있다면 상대에게 뜻을 분명하게 전해줘. | Don't keep putting off a reply when an offer you've been waiting for arrives. If you'd like to accept, make that clear to the other person. | 待っていた提案が来たら、返事を延ばし続けないようにしましょう。受けたい気持ちがあるなら、その意思を相手にはっきり伝えてください。 |
 
 ### 애정
 
@@ -50,8 +50,8 @@
 | --- | --- | --- | --- |
 | 총평 | 준비해온 일을 시작하면 성과를 낼 수 있어. | Putting your preparation to use could bring results. | 準備してきたことを始めれば、成果を出せそうです。 |
 | 전체 풀이 | 오늘은 준비해둔 것을 실제로 써먹을 기회가 생길 수 있어. 생각만 하던 계획을 시작하거나, 잘하는 일로 막힌 문제를 해결하기 좋은 날이야. 직접 해본 일이 말로만 설명할 때보다 좋은 반응을 얻을 수 있어.<br><br>배워둔 방법이 있다면 필요한 곳에 써봐. 더 배워야 한다며 미루기보다 지금 할 줄 아는 것부터 시작해도 괜찮아. | A chance to use what you've prepared may come along today. It's a good time to start a plan you've only thought about, or use a skill to solve a stubborn problem. Doing something in practice could get a better response than simply explaining it.<br><br>Try a method you've learned where it's needed. It's fine to begin with what you already know instead of putting it off to learn more. | 準備していたものを、実際に使う機会がありそうです。考えるだけだった計画を始めたり、得意なことで問題を解決したりしやすい日です。言葉だけで説明するより、実際にやって見せるほうがよい反応を得られるでしょう。<br><br>覚えた方法があるなら、必要な場面で使いましょう。もっと学ぶ必要があると延ばすより、今できることから始めて大丈夫です。 |
-| 해볼 것 | 배워둔 방법 직접 써보기 | Put a method you've learned into practice | 覚えた方法を実際に使う |
-| 조심할 것 | 준비만 늘리며 시작 미루기 | Preparing more and more while delaying the start | 準備ばかり増やして始めるのを延ばす |
+| 해볼 것 | 풀리지 않는 문제가 있다면, 예전에 배운 방법 중 지금 문제에 쓸 수 있는 것을 골라 직접 해봐. | If you're stuck on a problem, choose a method you've already learned that could help with it, and give it a try. | 解決できずにいる問題があれば、以前覚えた方法の中から今使えるものを選んで、試してみましょう。 |
+| 조심할 것 | 더 배워야 한다는 이유로 이미 준비한 일까지 미루지는 마. 지금 할 줄 아는 것으로 시작할 수 있는지 먼저 살펴줘. | Don't put off something you've prepared for just because there's more to learn. First see whether you can start with what you already know. | もっと学ぶ必要があるからと、準備済みのことまで延ばさないようにしましょう。今できることで始められないか、先に確かめてみてください。 |
 
 ### 애정
 
@@ -85,8 +85,8 @@
 | --- | --- | --- | --- |
 | 총평 | 막막했던 일에 희망적인 소식이 들릴 수 있어. | Encouraging news could arrive about something that felt hopeless. | 先が見えなかったことに、希望の持てる知らせがありそうです。 |
 | 전체 풀이 | 오늘은 잘 안되던 일에서도 나아질 기미를 볼 수 있어. 도움을 주겠다는 사람이 나타나거나 오래 기다린 연락이 와서 한시름 덜 수 있는 날이야. 바로 큰 결과가 나지는 않아도 다시 기대할 이유가 생길 수 있어.<br><br>잠시 미뤄둔 계획이 있다면 지금 가능한 것부터 다시 이어가봐. 도움을 주겠다는 말에는 필요한 것이 무엇인지 솔직하게 답해도 괜찮아. | A situation that hasn't been going well could show signs of improvement today. An offer of help or a long-awaited message may ease one of your worries. A major result may still take time, but there could be a reason to hope again.<br><br>Restart a postponed plan with whatever is possible now. When someone offers help, it's fine to say honestly what you need. | うまくいかなかったことにも、よくなる兆しが見えそうです。助けを申し出る人が現れたり、長く待った連絡が来たりして、ほっとできるかもしれません。大きな結果はすぐ出なくても、また期待できる理由が見つかりそうです。<br><br>一度止めた計画があるなら、今できることから再開しましょう。助けたいと言ってもらえたら、何が必要なのかを率直に答えて大丈夫です。 |
-| 해볼 것 | 미뤘던 일 하나 다시 이어가기 | Resume one thing you've put off | 後回しにしていたことを一つ再開する |
-| 조심할 것 | 도움을 받을 때도 괜찮다고만 하기 | Insisting you're fine when help is offered | 助けを申し出られても大丈夫とだけ答える |
+| 해볼 것 | 잘 풀리지 않아 잠시 멈춘 일이 있다면 지금 다시 할 수 있는 부분부터 이어가봐. 곧바로 큰 결과까지 낼 필요는 없어. | If you've paused something because it wasn't going well, resume the part you can do now. You don't need a major result straight away. | うまくいかず一度止めたことがあれば、今できる部分から再開してみましょう。すぐに大きな結果まで出す必要はありません。 |
+| 조심할 것 | 도움이 필요한데도 도와주겠다는 사람에게 괜찮다고만 답하지는 마. 어려운 부분을 알려줘야 상대도 무엇을 해줄지 알 수 있어. | Don't just say you're fine when someone offers help you need. Explain what's difficult so they can understand what to do for you. | 助けが必要なのに、手伝うと言ってくれる人へ大丈夫とだけ答えないようにしましょう。難しい点を伝えれば、相手も何ができるか分かります。 |
 
 ### 애정
 
@@ -120,8 +120,8 @@
 | --- | --- | --- | --- |
 | 총평 | 새로 시작하는 일에 좋은 기회가 따르는 날이야. | A new beginning could bring a welcome opportunity. | 新しく始めることに、よい機会がありそうです。 |
 | 전체 풀이 | 오늘은 처음 해보는 일에서 뜻밖의 즐거움이나 기회를 얻을 수 있어. 익숙한 곳을 벗어나면 유용한 정보를 듣거나 좋은 인연을 만날 수 있는 날이야. 오래 고민만 했던 일도 가볍게 시도해볼 만해.<br><br>관심 있던 활동을 시작한다면 하루 체험부터 해봐. 직접 해보기도 전에 오래 다니겠다고 정할 필요는 없어. | Trying something for the first time could bring unexpected enjoyment or a useful opportunity today. Going somewhere unfamiliar may lead to helpful information or a good connection. Something you've spent a long time considering is worth a small first try.<br><br>If you're interested in an activity, start with a one-day trial. You don't need to commit to going regularly before you've tried it. | 初めて試すことから、思いがけない楽しさや機会を得られそうです。慣れた場所を離れると、役立つ話を聞けたり、よい縁に出会えたりするかもしれません。長く考えるだけだったことも、気軽に試す価値があります。<br><br>気になっていた活動を始めるなら、まず一日体験で試しましょう。実際にやる前から、長く通うと決める必要はありません。 |
-| 해볼 것 | 궁금했던 일 직접 체험하기 | Try something you've been curious about | 気になっていたことを実際に体験する |
-| 조심할 것 | 체험도 없이 장기 참여 약속하기 | Committing long term before trying an activity | 体験せずに長期の参加を約束する |
+| 해볼 것 | 시작할지 고민만 하던 활동이 있다면 하루 정도 직접 해봐. 직접 경험하면 나와 잘 맞는 활동인지 판단하기 쉬워. | If you've been considering an activity, try it for a day. Firsthand experience can make it easier to decide whether it suits you. | 始めるか迷っていた活動があれば、一日ほど体験してみましょう。実際にやってみると、自分に合うか判断しやすくなります。 |
+| 조심할 것 | 새로 해보려는 활동은 직접 경험하기도 전에 오래 다니겠다고 정하지는 마. 계속할지는 하루라도 해본 뒤 결정해줘. | Don't commit to an activity long term before you've tried it. Give it at least a day before deciding whether to keep going. | 新しい活動は、体験する前から長く通うと決めないようにしましょう。続けるかどうかは、一日でも試してから決めてください。 |
 
 ### 애정
 
@@ -155,8 +155,8 @@
 | --- | --- | --- | --- |
 | 총평 | 오래 해온 일을 만족스럽게 끝낼 수 있어. | Something you've worked on for a long time could end well. | 長く続けてきたことを、満足して終えられそうです。 |
 | 전체 풀이 | 오늘은 하던 일이 잘 마무리되고 뿌듯한 결과를 얻을 수 있어. 오래 걸린 문제에 끝이 보이고, 함께한 사람들과도 좋은 마음으로 마칠 수 있는 날이야. 기다린 연락이 와서 마지막 걱정을 덜 수도 있어.<br><br>끝낸 일은 제대로 기뻐해도 좋아. 바로 다음 부담을 떠맡기보다 도와준 사람에게 고맙다는 말을 먼저 전해줘. | A task could reach a satisfying finish today. A long-running problem may be nearing its end, and you could finish on good terms with the people involved. A message you've been waiting for might remove the last worry.<br><br>Take time to be pleased with what you've finished. Thank the people who helped before immediately taking on another burden. | 取り組んでいることが無事に終わり、誇らしく感じる結果を得られそうです。長くかかった問題にも終わりが見え、一緒に取り組んだ人とも気持ちよく締めくくれるでしょう。待っていた連絡が来て、最後の心配がなくなるかもしれません。<br><br>終えたことを、しっかり喜んで大丈夫です。すぐに次の負担を引き受ける前に、助けてくれた人へ感謝を伝えましょう。 |
-| 해볼 것 | 마무리를 함께 축하하기 | Celebrate finishing something together | 一緒に完了を祝う |
-| 조심할 것 | 끝내자마자 새 부담 떠맡기 | Taking on a new burden as soon as you finish | 終えたばかりで新たな負担を引き受ける |
+| 해볼 것 | 오래 해온 일을 잘 끝냈다면, 함께 애쓴 사람들에게 어떤 도움이 고마웠는지 이야기해봐. | If you've successfully finished something you worked on for a long time, tell the people involved what you appreciated about their help. | 長く取り組んだことを無事に終えたら、一緒に頑張った人たちへ、どんな助けがありがたかったか伝えてみましょう。 |
+| 조심할 것 | 오래 하던 일을 끝내자마자 새로운 일까지 맡지는 마. 잘 마친 일을 기뻐할 틈도 없이 서두를 필요는 없어. | Don't take on something new the moment you finish a long-running task. There's no need to rush past the chance to enjoy having done it well. | 長く続けたことが終わってすぐ、次のことまで引き受けないようにしましょう。無事に終えた喜びを味わう間もなく、急ぐ必要はありません。 |
 
 ### 애정
 
@@ -190,8 +190,8 @@
 | --- | --- | --- | --- |
 | 총평 | 뜻밖의 기회로 막혔던 일이 풀릴 수 있어. | An unexpected opening could get things moving again. | 思いがけない機会で、行き詰まっていたことが進みそうです。 |
 | 전체 풀이 | 오늘은 운 좋게 일이 풀릴 수 있는 날이야. 오래 기다리던 순서가 돌아오거나, 우연히 들은 소식이 꼭 필요한 도움이 될 수 있어. 한동안 잘 안되던 일도 다시 해볼 기회가 생길 수 있어.<br><br>반가운 제안이 오면 가능한 때를 놓치지 않게 답해줘. 전에 안됐다는 이유만으로 이번 기회까지 넘기지는 않아도 돼. | Luck could help things go your way today. Your turn may finally come after a long wait, or news you happen to hear could provide just the help you need. Something that hasn't worked out for a while may offer another chance.<br><br>Reply to a welcome offer before the opportunity passes. A previous failure doesn't mean you need to turn this chance down too. | 今日は運よく物事が進むかもしれません。長く待っていた順番が回ってきたり、偶然聞いた話が必要な助けになったりしそうです。しばらくうまくいかなかったことにも、もう一度試す機会がありそうです。<br><br>うれしい提案が来たら、間に合ううちに返事をしましょう。前にうまくいかなかったからと、今回の機会まで見送る必要はありません。 |
-| 해볼 것 | 좋은 제안에 제때 답하기 | Reply to a good offer in time | よい提案に間に合うよう返事をする |
-| 조심할 것 | 지난 실패만 생각하며 기회 넘기기 | Passing up a chance because of a past failure | 以前の失敗だけを考えて機会を見送る |
+| 해볼 것 | 반가운 제안을 받았다면 참여할 수 있는 때를 확인하고, 답을 미루다 기회를 놓치지 않게 뜻을 전해줘. | If you receive a welcome offer, check when you can take part and reply before a delay costs you the opportunity. | うれしい提案が来たら、参加できる時期を確かめ、返事を延ばして機会を逃さないよう気持ちを伝えましょう。 |
+| 조심할 것 | 전에 잘 안됐던 일이라고 다시 해볼 기회까지 바로 넘기지는 마. 지난번과 달라진 사정이 있는지 듣고 판단해줘. | Don't immediately dismiss another chance at something because it didn't work out before. Hear what's changed since last time before deciding. | 以前うまくいかなかったからと、再挑戦の機会まですぐに見送らないようにしましょう。前と変わった事情があるか聞いてから判断してください。 |
 
 ### 애정
 

@@ -1,5 +1,7 @@
 # 오늘의 운세
 
+> **2026-09-16 행동 문구·기본 공개 범위 변경:** 세 언어의 `do`·`pause`를 카드별 156쌍씩 다듬고 `fortune-copy.v8-localized.2`로 연결한다. `locked`에서도 `overall.flow`를 필수로 반환하고 `categories`만 잠근다. 기존 2~3단락, 당일 snapshot·해금 권한을 유지하며 DB 마이그레이션은 없다. [행동 문구 기준과 검수](fortune-content/ko-actions/README.md).
+
 > **2026-09-15 현지화·서버 연결 준비 완료:** 승인한 한국어 780개 본문과 짧은 문구 468개를 기준으로 일본어·영어 작성과 별도 전수 독해 검수를 마쳤다. 새 문구 버전 `fortune-copy.v8-localized.1`의 세 언어 자산·문서 생성 및 정적 검사도 통과했다. [한국어 정본](fortune-content/ko-rewrite/README.md) · [세 언어 연결·검수 결과](fortune-content/localization/README.md). 후속 승인 범위는 dev PR·머지·개발 배포·검증이며 CI와 실제 API 검증 결과는 해당 PR에 기록한다.
 
 현재 작업의 실행 검증 여부는 현지화 기록을 따른다. 아래 이전 버전의 테스트·DB·배포 이력은 새 원고와 새 코드의 검증 결과가 아니다.
@@ -104,7 +106,7 @@
 
 ## 4. 문구와 표시 기준 — 2026-09-15
 
-새 문구 버전은 `fortune-copy.v8-localized.1`이다. 카드 78종 × 정역 2종 × 분야 5종 = 언어별 780개 본문, 세 언어 2,340개다. 총운에는 각각 총평·해볼 것·조심할 것 156개씩, 언어별 468개 짧은 문구도 있다. 점수대에 따른 문구 분기는 없다.
+현재 문구 버전은 `fortune-copy.v8-localized.2`다. 카드 78종 × 정역 2종 × 분야 5종 = 언어별 780개 본문, 세 언어 2,340개다. 총운에는 각각 총평·해볼 것·조심할 것 156개씩, 언어별 468개 짧은 문구도 있다. 점수대에 따른 문구 분기는 없다.
 
 새 `overall.flow`는 2단락이다. 애정 `text`는 솔로·연애 중·이별 후의 3단락, 학업·직장은 2단락이며 상황 소제목을 붙이지 않는다. 금전·건강은 카드별 한국어 정본과 같은 1~2단락이다. 각 언어가 단락 개수와 순서를 보존한다. 한 문장을 여러 조각으로 쪼개거나 고정 5문장·화면 5줄에 맞추지 않는다.
 
@@ -178,8 +180,8 @@ revealed ── 프로필 수정 ──> unseen       (unlock 권한은 유지)
 - `access`: `included | ad_required | unlocked_today`
 - `available=false`: 기능 플래그 또는 승인 상태 문제이므로 운세 탭을 비활성화한다.
 - 기능이 꺼져 있으면 프로필 GET·PUT·DELETE도 `FEATURE_UNAVAILABLE`로 DB 접근 전에 종료한다.
-- `locked`는 상세 잠금이다. `result`는 `FortuneBasicResult`로 종합 점수·총평·행동·행운색만
-  포함하고 `versions`도 반환한다. `overall.flow`와 `categories`는 빈 값 대신 필드 자체를 생략한다.
+- `locked`는 카테고리 잠금이다. `result`는 `FortuneBasicResult`로 종합 점수·총평·총운 설명(`overall.flow`)·행동·행운색을
+  포함하고 `versions`도 반환한다. `categories`만 필드 자체를 생략한다. `overall.flow`는 잠금 상태에도 필수이며 기존 저장본과의 호환을 위해 2~3단락을 수용한다.
 - `revealed`는 상세까지 공개된 상태이며 `FortuneResult` 전체를 반환한다.
 - 정책 변경 전에 체험 혜택으로 얻은 당일 해금도 유지하고 다음 현지 날짜부터 광고를 요구한다.
 - `status`는 읽기 전용이다. 현재 snapshot이 없으면 `unseen`을 반환하고 앱이 `reveal`을 호출한다.

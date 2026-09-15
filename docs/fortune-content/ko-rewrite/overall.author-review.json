@@ -1,0 +1,2005 @@
+{
+  "axis": "overall",
+  "status": "self_reviewed",
+  "review_type": "author_self_read_not_independent",
+  "korean_style_sources": [
+    {
+      "url": "https://m.fortune.nate.com/today/todayAstrology.nate?astro=2&contsCd=CT000137&dateparam=",
+      "opened_on": "2026-09-15",
+      "page_date": "2026-09-15",
+      "read_scope": "양자리 실제 총운·애정·재물운 본문 20~22행",
+      "access_result": "success",
+      "use": "운의 판단 다음에 구체 상황을 이어 쓰는 구성을 참고. 문구 복사 없음."
+    },
+    {
+      "url": "https://fortune.nate.com/contents/freeunse/todayunse.nate",
+      "opened_on": "2026-09-15",
+      "page_date": "2026-09-11",
+      "read_scope": "경쟁하는 날 제목과 실제 본문 11~14행",
+      "access_result": "success; 제공된 페이지 날짜는 9월 11일",
+      "use": "사건과 결과를 직접 말하는 어법만 참고. 적대·확정적 위험이나 문구는 채택하지 않음."
+    },
+    {
+      "url": "https://www.fortunade.com/unse/free/star/daily.php?gtype=2",
+      "opened_on": "2026-09-15",
+      "page_date": "2026-09-15",
+      "read_scope": "양자리부터 물고기자리까지 12별자리 실제 운세 본문 109~193행",
+      "access_result": "success",
+      "use": "짧은 판단과 생활 상황을 잇는 구성을 확인. 추상적인 자기관리 표현이나 원문은 채택하지 않음."
+    }
+  ],
+  "meaning_source_scope": "source-briefs.json의 overall 156개 핵심 의미·정역 차이·source id를 읽음. 이전 angle·observations 원고를 집필 원문으로 사용하지 않음. 원전 링크를 이번에 재열람했다고 주장하지 않음.",
+  "reviewed_bundles": {
+    "overall.major.chariot.upright": {
+      "sha256": "e75b5d9cfcfcb6cd2235227706404beac1f7255875c7b7f1b86b1500987e41a1",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "초고를 전부 읽고 운의 직접성·문맥·카드 의미·반말·행동 연결을 확인. root 검수 대기."
+    },
+    "overall.major.chariot.reversed": {
+      "sha256": "3efe99e84ad4eb0a1da093216e04713ad622d87641228f96ae57d3dfd1441567",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "초고를 전부 읽고 운의 직접성·문맥·카드 의미·반말·행동 연결을 확인. root 검수 대기."
+    },
+    "overall.major.sun.upright": {
+      "sha256": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 첫 표본 반려를 받아 새 본문 전체 및 짧은 필드를 다시 읽음. 운의 직접성·생활 결과·문맥 연결 확인. root 재검수 대기."
+    },
+    "overall.major.sun.reversed": {
+      "sha256": "c6c36d59fa57075c599f694cd48c72bd52b2b27163458edfbdf8d81ce850b057",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.moon.upright": {
+      "sha256": "3ff47d0cd559ee22bdf5e4e78952e345f54451552dc63701f5f0fe5d65b5fb14",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.moon.reversed": {
+      "sha256": "d8c3be2a709146f56c41c7e829af96f3961d144f745c21c0a5d174586d484924",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "초고를 전부 읽고 운의 직접성·문맥·카드 의미·반말·행동 연결을 확인. root 검수 대기."
+    },
+    "overall.major.tower.upright": {
+      "sha256": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.tower.reversed": {
+      "sha256": "0b6f78468b6f2afec1ff11db0fd880bc8ddafc392e30db8816633eff93846236",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.temperance.upright": {
+      "sha256": "2fa991d273c43cac08be42f4d00711f8d2adb962859c2a6619ce7b1d31056b1c",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.temperance.reversed": {
+      "sha256": "1e13fa287690a534c41c5205699ed330c361aaf06c617ffd7b38b2c3fe4f4e3b",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 첫 표본 반려를 받아 새 본문 전체 및 짧은 필드를 다시 읽음. 운의 직접성·생활 결과·문맥 연결 확인. root 재검수 대기."
+    },
+    "overall.major.fool.upright": {
+      "sha256": "836ba1ed360787222bcf71767b601631c5244cee18a251f2f7e53cb06dea5c23",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.fool.reversed": {
+      "sha256": "dcacad27461b8cb982ddfb9f5e3c283c8061c268e4dde2f59dd43379d8692c9f",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+    },
+    "overall.major.magician.upright": {
+      "sha256": "fb9bed58631ef4cbc262a2b0a29cde785bc0fa36c4b458ae12edaab565bc4690",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.magician.reversed": {
+      "sha256": "4b9feff7d604085af0ec712d3a923cd3500ca41f704bcd4625683443a5e04beb",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.high_priestess.upright": {
+      "sha256": "ecf49e1288bf863e869e40cfea1221aa6b930b59eb42eb21738c4217a50487c6",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.high_priestess.reversed": {
+      "sha256": "fad5c422f19332cb31d8a2ce4b66cc6bcd425abefd46fcd8e8d1d72af6c4dcef",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+    },
+    "overall.major.empress.upright": {
+      "sha256": "7301eaa857239e04f8be90cf14cbcec8fd1e3e130ba638d30b429fe016210fd0",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.empress.reversed": {
+      "sha256": "3ddc6aee0da7e1265df5efa60555476f1d91539947c78c9b7dcc7398c3b6f89f",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.emperor.upright": {
+      "sha256": "0a9de448ef4ad59add53f7580fae6ab18c9f4d7d2d1c6f60c3e541323e6fce0e",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.emperor.reversed": {
+      "sha256": "ff475594f4de42f462776b1f27c3b4ac09e9a4fc6f39f494236abef9c313787d",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.hierophant.upright": {
+      "sha256": "410b40d133cc6095392760d93d0f6b9685e23cbe8615eb550ff4f6a156954aa7",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+    },
+    "overall.major.hierophant.reversed": {
+      "sha256": "1b38e6fd69aa96b07883de5501dcee8b43d158d736b62a498ed78d7dcd0ded78",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 2차 반려에 따라 수정 후 headline·두 단락·do·pause를 모두 다시 읽음. 재검수 대기."
+    },
+    "overall.major.lovers.upright": {
+      "sha256": "442c8c6afd01ab56314e0bdc7a2c7253de8af0b11f55227b241455ba14e7752e",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+    },
+    "overall.major.lovers.reversed": {
+      "sha256": "8a21eab1add8eed68277a1127608c91a2db95cdbaed98ff9794dc9eda53a143f",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들의 모든 문장을 읽고 운 판단·연결·정역 의미·독립 분야 경계를 확인. root 검수 대기."
+    },
+    "overall.major.strength.upright": {
+      "sha256": "fed488f02d70bbcc163066ec090b8a59df0dabebe7d5163913c917da95934fdb",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.strength.reversed": {
+      "sha256": "b838919ab8e79b2461dfedf0dc54a6aa6815794d3ddd2d2e726f63c949027c10",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.hermit.upright": {
+      "sha256": "228f02ce19349d29b568f54a5dd0908c2588910e9b3d361df4d892430bab7513",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.hermit.reversed": {
+      "sha256": "81c6e8cd4d245fc97b187bf6cb3aad4b428f6c08076d408b3cd1269c234021c8",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.wheel_of_fortune.upright": {
+      "sha256": "2ab90e8ac883581d55f39c89e3c51f0eb57be0c8ef96844f8768246485e97f20",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.wheel_of_fortune.reversed": {
+      "sha256": "34a16ed62789aefe7169cf8978721ee75bd689c6ff26b835d9a6d8fb62892631",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.justice.upright": {
+      "sha256": "6dcc4ad914a565092bcfd6f1e37c454eeb4281c75299ccd2cce4798e19c68246",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.justice.reversed": {
+      "sha256": "29cc22545de992e68dafeed376dfbbe227fe25f73ce743cd11bb05777c8b2e80",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.hanged_man.upright": {
+      "sha256": "d04da9fdec307daea687082554f2ae66a21fd746d08f312943729751bcb4e8d5",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.hanged_man.reversed": {
+      "sha256": "1a1fa4a43e4d1fe3000fb9ce3bb81bd1deeae6fea5ea3739bef0c685dd740c73",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.death.upright": {
+      "sha256": "acf32b24bf3e9d64d2ccd60e0575b0df7280a331fba38ea801bf0dcb21a90eed",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.death.reversed": {
+      "sha256": "b75509650404e81f4652f06647102cad65a5b121b7d91da5df2c2cd8d60b863c",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.devil.upright": {
+      "sha256": "d5878f9c24c38628ed784e987d21f03d032ae2fce0346122f16c74e83dd73f7d",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.devil.reversed": {
+      "sha256": "ea3ecb8038060bd93a0ef488a55054c83daf221620f68d996c78544504baf94d",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.star.upright": {
+      "sha256": "c18aa89aae75794162a16890f6df965a6fe7c3108a5bd445259b8830c3b8a9f7",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.star.reversed": {
+      "sha256": "78cf1070eea2546506724bff0cf5ce9bcb6bfb53778afd1168221b080d61e32c",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.judgement.upright": {
+      "sha256": "07a51818cd6f3a32e70549498a5393127255e739d9bf25fddcd10ef7787880d6",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.judgement.reversed": {
+      "sha256": "9217d0986be10ba550ef31dffe544a3ebbb641d3702767e4b57dd9eb5b990958",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.world.upright": {
+      "sha256": "20f0faed8eb38775b163d1a2f2ca0b26e86e80bb1817422f42632c560c96ea81",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.major.world.reversed": {
+      "sha256": "4e566bc32d6fc88e9597aa6e6b3e0297adba38207b5d60b67bd8bf15b10d9704",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "모든 문장을 직접 읽고 운의 판단·문맥·분야 경계·정역 의미·행동 연결 확인. root 검수 대기."
+    },
+    "overall.cups.01.upright": {
+      "sha256": "694ea7e9ef187957d35e7e37e55178724d7e5c733ca143fd1b1b7f3d7922d9fa",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.01.reversed": {
+      "sha256": "ee8d1c6f10e4a3a5966126e9238a04fd63580cc4a4fa2fdfa344db8d2633205a",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.02.upright": {
+      "sha256": "c85252e862a2baf3a5d13cc8a8487d5c117863fd2e969e0f80ae518f7c7e067a",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.02.reversed": {
+      "sha256": "7cb7ec2625806aeb7adaa807e5081a80cc7fa78f35bd2e7f8bba1bbbd68fc377",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.03.upright": {
+      "sha256": "be726ab12eab0cbc03aec128e215c9006d35eca601a3fdd9fcdf17697d618485",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.03.reversed": {
+      "sha256": "9afd09c7164b83c1c439e56eaef3575a54d1ca816090106c28a065a7143570ca",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.04.upright": {
+      "sha256": "7aedbba033dcb993f5d13b2f92858ab688deec821dc70b6a93964645c6c556af",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.04.reversed": {
+      "sha256": "65867eef2bf3a022219e73c2be37fb3f54a58b25c612c80297ce49efefa06d04",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.05.upright": {
+      "sha256": "4022c678fdfba3c946e7a180e6479a91478bb28224a08c70abe3860e96e26d95",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.05.reversed": {
+      "sha256": "c90142394fc2822d91148dee63ea6367860e73ef8f3dea3affebf3e73f446b6b",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.06.upright": {
+      "sha256": "7ac5f856b7616c1a83d1093eb6dd27e3e3458747ada3630e46cebc71856f4fd1",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.06.reversed": {
+      "sha256": "abfa83fe2ad1a7fac6ab5b6014dd967872277aedc5ffe702b7ac93c888a847bd",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "본문과 짧은 필드를 전부 읽고 카드 고유의 생활 결과·운 판단·문맥·반복 여부 확인. root 검수 대기."
+    },
+    "overall.cups.07.upright": {
+      "sha256": "5a87a3af74ec092cf84f74917c0566db0fa29f8cc2315856f666f3f390e09f31",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+    },
+    "overall.cups.07.reversed": {
+      "sha256": "56db881cc1654be698cd522d4ff1feb61e0c34ff744ea433ead8fb05ad943208",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+    },
+    "overall.cups.08.upright": {
+      "sha256": "f3f64a658640614ede141288fad40b08c79ed207abbcd9d9b4a7451145c4074f",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.08.reversed": {
+      "sha256": "b2c4baff0c8ff85651d0c2183f7a10477b9345e1126434961cf61420912226ee",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.09.upright": {
+      "sha256": "72b358c88c460edbb931ec352f293c00bf3481cb82dba59d6447384537ab3406",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+    },
+    "overall.cups.09.reversed": {
+      "sha256": "acc1db87d1a33b11e35a1915ac81c6773fb1136a13d85104007888593cffe142",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.10.upright": {
+      "sha256": "2eb5cc09b5852544bcdada3c034777c3a4a8a937254880ea1d7bfb0cd1958bfd",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.10.reversed": {
+      "sha256": "70949d5b42f0c329818929bdad16c0aae976bc1946c2de92f60fbc8b654af93d",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.11.upright": {
+      "sha256": "2ba5505f1e7a23fe5f68ccc89dc1ee371dfcb7e82f437b7d4b07c41a3924e882",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+    },
+    "overall.cups.11.reversed": {
+      "sha256": "23d3fce527a3f529b8dea06d910bd6c0fbed6da193dc4a7b59a87ccba2ee552b",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.12.upright": {
+      "sha256": "291ca97bace8e5e519326888b0dd496dd65b78565932a3f83c78c7c1cd4e1acf",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.12.reversed": {
+      "sha256": "24665bcbd93e83985352b3e8ec178755136834a2a35e232d536ce7fdf5c8e583",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+    },
+    "overall.cups.13.upright": {
+      "sha256": "cac90b5ccb8497f5f66116b863dd0f16b1ae97c93697a333c6b2d37c3733468f",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+    },
+    "overall.cups.13.reversed": {
+      "sha256": "1fd4dc1fd13c68cce4ebfb1b4c28ca59ceb2637c3e5be0148648395822260f43",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.cups.14.upright": {
+      "sha256": "b97e96db4721eb2a2db461b99661de6f97ed801115a11e8d1fc9ac772f666957",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 컵 검수 반려 후 해당 번들 전체를 다시 읽음. 명사·서술어 결합과 독립 행동 의미 교정."
+    },
+    "overall.cups.14.reversed": {
+      "sha256": "e1a6c9c591623a587816ed36cfb2eb9fa8fb611857bcf4e4a06aa894433c16c7",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "원고를 각각 전부 읽고 첫 판단·정역 차이·상황 연결·행동 필드·과장 여부 확인. root 검수 대기."
+    },
+    "overall.swords.01.upright": {
+      "sha256": "2dfaa39fbb82a448218beac687b4cc7f8da1a8bd42e8f6633085ee9ccc68dac8",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.01.reversed": {
+      "sha256": "128f5affe6dd08268947dbf06a6d0e4d4faea85369c4855cb98c6d713b82b76e",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.02.upright": {
+      "sha256": "507a57cadd752e57041bf317ae935b330b68201dd257255f4bb40b9aee9e340c",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.02.reversed": {
+      "sha256": "016dd0b4f942d18afecf91c444550629d3cb726b1e09ad4a137dee40e47f0cbf",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.03.upright": {
+      "sha256": "126fe5b3b2d90df8d37f0ba11b4bf44d38e67e8540d4d6d80de7e137874dff0b",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.03.reversed": {
+      "sha256": "2f9540ddcb547ac35a84d7d63dda8170e0a1f8095e9487bb5a6fa53ee711e805",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.04.upright": {
+      "sha256": "18a4d5f05eb2ce64f6b8b8a860b8e33da4ecde1dff1556000dd2c359953fe9ab",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.04.reversed": {
+      "sha256": "3f9ec26530134d4e9407d36086636ac27f8f2d8a32bdf9d8ea47dcf150decf22",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.05.upright": {
+      "sha256": "b154b663814cf2795bf7f139ee78a4aca17eee42497cbb11c425e2b76fa89493",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.05.reversed": {
+      "sha256": "40a2368c3eba4ddeb0ff18c905f38707b8be6815ca358ba75697c95580f70d07",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.06.upright": {
+      "sha256": "02cf578ad51e31726ebe9fb9996ac3c513a9a3775d4d8d1b894852ee8734f6ee",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.06.reversed": {
+      "sha256": "8e0a66f6e5b49ecb3cce361d1081004cca8cafae5941a931bbb1ac70505c8424",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.07.upright": {
+      "sha256": "fde88a3009d4cabcef10c97f4671d50cc0065496ba0e2d724f98f866722ed148",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.07.reversed": {
+      "sha256": "0ddec3242c011d7ff9f42b3b6ab8cb084d01b14ddab7be48f54c91983ad39ca9",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성 본문·짧은 필드 전부 읽고 운 판단·자연스러움·카드별 차이·단락 연결 확인. root 검수 대기."
+    },
+    "overall.swords.08.upright": {
+      "sha256": "275c0d08c71dabf3bc8ce968009a925a007afa8d43ac66139ea3117cc77909b0",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.08.reversed": {
+      "sha256": "a5a4506b1d6ed9c7d33a8a9904fcc514ca2f7418a8efb6313dfd0f17910e386b",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.09.upright": {
+      "sha256": "4f03ff7c3461738b160e8c3de227759dbc4f6261612a66aff6e917ecf13ebdc7",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.09.reversed": {
+      "sha256": "3c3277d45bc2d57a88afd8456fa1c590c25db436b1867b104ad554c08327df74",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.10.upright": {
+      "sha256": "3f1e9f17540e5921d007b514c096c569e540e88955ae21e43791c0a2a2c15920",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.10.reversed": {
+      "sha256": "ed234d1726554cdd7b6588363f612a646b62552f06e6fea634d53d53cfb89601",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.11.upright": {
+      "sha256": "adb50239ca0799146ad9dc73ac6e0d2ee904ae43c945412fdc74f4d9024aa713",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.11.reversed": {
+      "sha256": "7f6a47874754b15cea2e5921999ce8d9d453900b9fd9869106087b2a0813d6f1",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.12.upright": {
+      "sha256": "9af0ca4b901770a87668c39a3c1807f5145673464add87673b03e99ab99b3085",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 소드 검수 반려를 반영하고 번들 전체 재독. 지시 대상과 주체를 명확히 교정."
+    },
+    "overall.swords.12.reversed": {
+      "sha256": "7887574ab1c0440b4fa942000a044624a08f85aa0f08178c943e2d8937f0e5b6",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.13.upright": {
+      "sha256": "de2fa1f9a7681768728421ad570dad908ee25c1cf61148be1d8e14d08ca5b0a3",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.13.reversed": {
+      "sha256": "d99d9c4951f9d845fdbbcf59775dbe1ad6b7bb54950e0537750612ef21c11aef",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 소드 검수 반려를 반영하고 번들 전체 재독. 지시 대상과 주체를 명확히 교정."
+    },
+    "overall.swords.14.upright": {
+      "sha256": "ef24dedfb7e278745f0af37b975457736eeb1bb683f1fc9569ec63ecabf90416",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.swords.14.reversed": {
+      "sha256": "fa424a22887105cd34dd9cfaa0cc408f5998a3dd9e53c140089dba5985e2cb84",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 원고를 전부 읽고 오늘의 결과·카드 의미·모호한 결합·짧은 행동의 독립 이해 여부 확인. root 검수 대기."
+    },
+    "overall.wands.01.upright": {
+      "sha256": "3072f5e9c71d7f515832530252d2150fd2416e054362463dcc6bc020b05eeb4a",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.01.reversed": {
+      "sha256": "6dd840fb63be0041249f3f583316596d6a81acc406060d7cc6a3be7bb0eafd73",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.02.upright": {
+      "sha256": "fc452bf0b383a2a344647f20579006e97e55b30c1a14b6e6718076026857187e",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.02.reversed": {
+      "sha256": "d2817033721ac0f5d11d04e64ef7d41a779b03422447fa9f510e166b9073e225",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.03.upright": {
+      "sha256": "eb4ff64379967be8b4fe529fb8d7caf3913b0bea285c2e4760d913a459347bd3",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.03.reversed": {
+      "sha256": "30b16ba1deebd3b3ae85f9fb53e3776fe96a6b8e0b3b59fece952cff95c61efb",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 완드1~7 검수 반영 후 전체 번들 재독. 목적어 결합과 행정적 표현 교정."
+    },
+    "overall.wands.04.upright": {
+      "sha256": "939dd36a1ef422f599a336589eddcbdec7fd8ec7b0beac25f1fd58ddadf47a48",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.04.reversed": {
+      "sha256": "3b12dbb8af6f5577df026ea73b4df2d1aed60fe2c6307567dd7e0492f6bd8fca",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.05.upright": {
+      "sha256": "845943d6a3d1f3fea9d3ed2c7218c830d029c047f8035102cd696b74e264c1fb",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.05.reversed": {
+      "sha256": "2dc0896802dac790fcaf0f5189710c03bfff4d3ac795b90497fcaef4d9b885fb",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.06.upright": {
+      "sha256": "bc4b49cbdf0ef9815b349b3fcbc815144fc65369d79de98448a88a35adb363de",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.06.reversed": {
+      "sha256": "ca89364796047cec66ad90ecd99cd1450850397c521631eff26fe290262bee50",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.07.upright": {
+      "sha256": "04fb835dba398d7684b57eec3edd6e80eb63dc63f402f9b60db9294aa11eb06c",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.07.reversed": {
+      "sha256": "69cab86e174f26e3f4828c65f92faa9be488044f62204e09114aed9d3cfbd6c5",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 번들 전체를 읽고 시작·확장·완성·경쟁의 차이, 역방향 원전 채택, 연결과 자연스러움 확인. root 검수 대기."
+    },
+    "overall.wands.08.upright": {
+      "sha256": "db048b22217d7fd725f6064b402c5ef2d16aec0777c6edaf2e686a019db3bdb8",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.08.reversed": {
+      "sha256": "050e31ef4dd6c3369e182072b928ec9dcc1db7e683c1a42dde30535ba4811ab8",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.09.upright": {
+      "sha256": "ea61c1edf60c0a1e103fb80a20ea0202659e7f985e26425ca648bb87fd6cd76a",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.09.reversed": {
+      "sha256": "ed87914bc3840c41cbba97bd6251b711f583528fa15730ac485243d4a4d1a168",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.10.upright": {
+      "sha256": "5d329c185bc857dd1de5ce230bfc0c09ef122ffd8ce7b6276a0fd25589812158",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.10.reversed": {
+      "sha256": "d68f9b0d5604acbb6c6e3a8391172f657d5b0cf6172995435fb3df624cf94fdf",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.11.upright": {
+      "sha256": "172b4009807fe7b4e886da611e70c8f2d96b2b16f540ea663509a1010fda8e2b",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.11.reversed": {
+      "sha256": "d99567c26f25e85e8c0dc536a2c1e8022fbbdd949a5bccacd70b9bf4b8908032",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.12.upright": {
+      "sha256": "312964cf9f41c159a2ce56d9a8a3c2d2487f9ce5503d31ffd346dca825bc9ffe",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.12.reversed": {
+      "sha256": "d89088d85df66665c38da735fafdf05a0b00f32f2b571d2135204d850fb0abd2",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.13.upright": {
+      "sha256": "13904906e6032ce6049c10dae98b478eecfc9f16a6f5a5a434264ffa00fea3bf",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.13.reversed": {
+      "sha256": "725eab55afc2f0470505fc2bb490e0e1a4e023efaa639d2799a8f899fd6065ee",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.14.upright": {
+      "sha256": "314f35b306cb3605dca70154b82d75afe4fa76705a2169964a6aa56f2af134cd",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.wands.14.reversed": {
+      "sha256": "973de92a278fe73362bc15d61b9ce9eda732a8791085f24829566d41eeeaf7f2",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 번들 전체 실제 읽기 완료. 신속 진행·경계·책임·소식·이동·호응·주도의 뜻과 결과 구별 확인. root 검수 대기."
+    },
+    "overall.pentacles.01.upright": {
+      "sha256": "11fa7b4a19c126fc4242cf6f2556471192d0853c1af7d74d02ed636a0709969e",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.01.reversed": {
+      "sha256": "f72dcd92cf7f968582852d641185f48df732e1f7e85fee400e20ab1c340e3fd0",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.02.upright": {
+      "sha256": "c811465d70dd4d53da7cc934be2d8b5b81a73c6e9cc9cb50e688ee370f843e7f",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.02.reversed": {
+      "sha256": "9714797c4c380336bd9620d2a168d0b2a6a6715f724c1c2aa6a01a7721f8cb4f",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.03.upright": {
+      "sha256": "21be107ea79672bd6c4e4e0b7dcd21cae32cd4096c96960937393d03fe06db58",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.03.reversed": {
+      "sha256": "56ae30b4120ead962e6ba1521dcd72b2bdfc888435fa246b4c014fc601cd4467",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.04.upright": {
+      "sha256": "d21f2448df8d9d9e2b89a92274b2e5378e97872a15bbde37224e924f374824b7",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.04.reversed": {
+      "sha256": "a6bfae29c27228855a2fccc604344e2cd83ac7e1a81fd0ca386f957ce8c2ba2e",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.05.upright": {
+      "sha256": "76192ea84ca4637d6c60ee0d4c52ad65507081750e0327d766e2cb7afb416bd0",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.05.reversed": {
+      "sha256": "932e14df2c20644151142e802ccc544dc20dce4d01adcb379e477f1922782bb5",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "최종 배치 교정 후 headline·본문 두 단락·do·pause 전체를 다시 읽고 문맥 및 명확성 확인."
+    },
+    "overall.pentacles.06.upright": {
+      "sha256": "7986e9a11c8f9ef85a294f4f022d7fdefaf5a47d5c59c507f70df9a4938cb359",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.06.reversed": {
+      "sha256": "fc12cb692e74330bd0f071117c7851022f947ed00f91703003642feb6da20a8c",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.07.upright": {
+      "sha256": "26829b2ee7b4608444c745efd15ed92dafdcc4dda7518aa19bb26cd32f0610ca",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.07.reversed": {
+      "sha256": "edd1c448c89c6ee8112a69c26634dc6594506231413bcbebe3095b93043ddec3",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "각 본문과 짧은 필드 전부 읽기. 원전·현대 분기와 물질 상징의 총운 적용 경계, 결과·문맥·자연스러움 확인. root 검수 대기."
+    },
+    "overall.pentacles.08.upright": {
+      "sha256": "1ffb9bff68e972fc4071949fa7ecc3c5a682ec3ca210d8e57be1183d206d7685",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.08.reversed": {
+      "sha256": "a9855c3b7b9e9b43bfc6dd4c58e41455b7e5aa7d0a80e34668045b963bb3755b",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.09.upright": {
+      "sha256": "27d857b1582671ffc0ce27f13a53e2499bc5ce5812e406a0111e7b03056344f6",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.09.reversed": {
+      "sha256": "9cff7772be836af5647f6c78462bf32cb38d8ad24a224a25a81e1d406ae45a4c",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.10.upright": {
+      "sha256": "9dca9f9cec2c42acee4b6cdfd6273f962e0c0999259c800c46c826ce7979ae93",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.10.reversed": {
+      "sha256": "5618e61efc002e07c7d8b67cbf4b9a1c8046cb7fc82def7533d79ace52354b27",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.11.upright": {
+      "sha256": "f510d0d0b5115020fbbd85424e58d997262db2c0cbdf7b99e3ed90e2155adbbd",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.11.reversed": {
+      "sha256": "24ec5a085caed49f4b1d09bda68da0c490307361ac8bd031a96f40ea9a010e19",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.12.upright": {
+      "sha256": "fe9aa220a6d9223777ee6a51899a070e1949111a417b7beb811ea9381f2c2737",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.12.reversed": {
+      "sha256": "20d0de78f522dc201588c90cf955e5bbad75a3b8b6419f78bf1d0e76b54987b2",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.13.upright": {
+      "sha256": "3c4ff7f44e0027a54d45d989da8ca8b5975438403b4af274c9a672620706f40a",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 최종14개 반려 후 해당 번들 전체 재독. 부자연스러운 명사 결합을 구체 생활 결과로 교정."
+    },
+    "overall.pentacles.13.reversed": {
+      "sha256": "8b70c6ca5f280b4c87d1eeb972895aac4647fb35f6f857bc4be16efd8751a34a",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    },
+    "overall.pentacles.14.upright": {
+      "sha256": "12a305dff2f0d6b17e4f9ccc147b5804ac353db217260c0aa4f9a2244dbe6a54",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "root 최종14개 반려 후 해당 번들 전체 재독. 부자연스러운 명사 결합을 구체 생활 결과로 교정."
+    },
+    "overall.pentacles.14.reversed": {
+      "sha256": "7b7e93ba6d41a323cb7d6310d5ff43f278f51c358512896db3f6c032c0317e8e",
+      "read_scope": [
+        "headline",
+        "paragraphs[0]",
+        "paragraphs[1]",
+        "do",
+        "pause"
+      ],
+      "judgment": "작성한 원고·headline·do·pause 전부 읽음. 기술·자율 성취·공동 기반·정보·성실·돌봄·실용의 정역 대비와 운 판단 확인. root 검수 대기."
+    }
+  },
+  "revision_log": [
+    {
+      "key": "overall.major.sun.upright",
+      "reason": "root: 총운이 일정·계획·결과물 절차 안내로 좁아짐. 하루 운과 생활 결과를 앞세워 재집필.",
+      "previous_sha256": "3db2a9020e1dc28b25697c251895168aa20dbde84b4c38f50981e4284e48269c",
+      "reread_sha256": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1"
+    },
+    {
+      "key": "overall.major.sun.reversed",
+      "reason": "root: 총운이 일정·계획·결과물 절차 안내로 좁아짐. 하루 운과 생활 결과를 앞세워 재집필.",
+      "previous_sha256": "2f1cca52c286a04a81fce309d6e9aae7e6de23cabae2575e8580aa77714c76bc",
+      "reread_sha256": "2ef2c21cb02a12d45c471c6ce0662ea2d9b9b1161fd2815c54ff69f32550860d"
+    },
+    {
+      "key": "overall.major.moon.upright",
+      "reason": "root: 총운이 일정·계획·결과물 절차 안내로 좁아짐. 하루 운과 생활 결과를 앞세워 재집필.",
+      "previous_sha256": "fc30ceedcd37f94819edf316f70dd243d6a5a073b43f4e65853792be6cb25cfc",
+      "reread_sha256": "b97347b21f3af253ee7267bd39586d65f8b5f9b8b949faac5520dc13c3304006"
+    },
+    {
+      "key": "overall.major.tower.upright",
+      "reason": "root: 총운이 일정·계획·결과물 절차 안내로 좁아짐. 하루 운과 생활 결과를 앞세워 재집필.",
+      "previous_sha256": "451a60248a393313a162d8740d911bb73ffe423deee014474febe0481f20c308",
+      "reread_sha256": "f4aa252249e5fa73c764a12dd41ab120f16811ca0b6b7d122c276c10ce1a1239"
+    },
+    {
+      "key": "overall.major.tower.reversed",
+      "reason": "root: 총운이 일정·계획·결과물 절차 안내로 좁아짐. 하루 운과 생활 결과를 앞세워 재집필.",
+      "previous_sha256": "9c3bdad4f3dbe2aef8b542c48776b8f6cc250f512a309ae1e20c445277005493",
+      "reread_sha256": "5f260ea30c626b82ce759999c5e6ee74255ba1ad8704c5486cf7803c7337f164"
+    },
+    {
+      "key": "overall.major.temperance.upright",
+      "reason": "root: 총운이 일정·계획·결과물 절차 안내로 좁아짐. 하루 운과 생활 결과를 앞세워 재집필.",
+      "previous_sha256": "5ddfc475f6fb61f0c7c104854a17d64ae2d16c5de8dc7d682802f0cc433ef723",
+      "reread_sha256": "2cdd9ad214cc9d12768e3714a77e01a2abcf90a2d1f15dc5340ff6a700d17674"
+    },
+    {
+      "key": "overall.major.temperance.reversed",
+      "reason": "root: 총운이 일정·계획·결과물 절차 안내로 좁아짐. 하루 운과 생활 결과를 앞세워 재집필.",
+      "previous_sha256": "38494a64394f9c8a6b23cad3a70cda17c40b2f110a6bf7375cea477275f7370c",
+      "reread_sha256": "1e13fa287690a534c41c5205699ed330c361aaf06c617ffd7b38b2c3fe4f4e3b"
+    },
+    {
+      "key": "overall.major.sun.reversed",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "2ef2c21cb02a12d45c471c6ce0662ea2d9b9b1161fd2815c54ff69f32550860d",
+      "reread_sha256": "c6c36d59fa57075c599f694cd48c72bd52b2b27163458edfbdf8d81ce850b057"
+    },
+    {
+      "key": "overall.major.moon.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "b97347b21f3af253ee7267bd39586d65f8b5f9b8b949faac5520dc13c3304006",
+      "reread_sha256": "3ff47d0cd559ee22bdf5e4e78952e345f54451552dc63701f5f0fe5d65b5fb14"
+    },
+    {
+      "key": "overall.major.tower.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "f4aa252249e5fa73c764a12dd41ab120f16811ca0b6b7d122c276c10ce1a1239",
+      "reread_sha256": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279"
+    },
+    {
+      "key": "overall.major.tower.reversed",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "5f260ea30c626b82ce759999c5e6ee74255ba1ad8704c5486cf7803c7337f164",
+      "reread_sha256": "0b6f78468b6f2afec1ff11db0fd880bc8ddafc392e30db8816633eff93846236"
+    },
+    {
+      "key": "overall.major.temperance.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "2cdd9ad214cc9d12768e3714a77e01a2abcf90a2d1f15dc5340ff6a700d17674",
+      "reread_sha256": "2fa991d273c43cac08be42f4d00711f8d2adb962859c2a6619ce7b1d31056b1c"
+    },
+    {
+      "key": "overall.major.fool.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "c4eb2f9332fc9bd47620a78c900d031f42ad60d14a6255f6e55e3cd73c2473a7",
+      "reread_sha256": "836ba1ed360787222bcf71767b601631c5244cee18a251f2f7e53cb06dea5c23"
+    },
+    {
+      "key": "overall.major.magician.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "d031531f7c982dac05b677a35b3b19a0e0e131e69e1b190d43fbe084bd7f141b",
+      "reread_sha256": "fb9bed58631ef4cbc262a2b0a29cde785bc0fa36c4b458ae12edaab565bc4690"
+    },
+    {
+      "key": "overall.major.magician.reversed",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "8889f6b30310551bd9de1a0cd6bdd6c63b001a8b7e91f32f62cc910bce39ab56",
+      "reread_sha256": "4b9feff7d604085af0ec712d3a923cd3500ca41f704bcd4625683443a5e04beb"
+    },
+    {
+      "key": "overall.major.high_priestess.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "ce2f8eafd440552a95fe7a8b37d528ad8dc42e71bf5876d779a2146f4bd2dcb9",
+      "reread_sha256": "ecf49e1288bf863e869e40cfea1221aa6b930b59eb42eb21738c4217a50487c6"
+    },
+    {
+      "key": "overall.major.empress.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "08109bbebfe1912e6fab6f49628f22a8d38baedddbf9d7579ad813770a0d8efa",
+      "reread_sha256": "7301eaa857239e04f8be90cf14cbcec8fd1e3e130ba638d30b429fe016210fd0"
+    },
+    {
+      "key": "overall.major.empress.reversed",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "e6e2488301d5f4ad2d2415acc62772b37264acd24ff174c69232969ae7eae3e1",
+      "reread_sha256": "3ddc6aee0da7e1265df5efa60555476f1d91539947c78c9b7dcc7398c3b6f89f"
+    },
+    {
+      "key": "overall.major.emperor.upright",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "1591fa43c98d517a24528c8ff61ff0008fef5c74cee51ce04331c60d08dda649",
+      "reread_sha256": "0a9de448ef4ad59add53f7580fae6ab18c9f4d7d2d1c6f60c3e541323e6fce0e"
+    },
+    {
+      "key": "overall.major.emperor.reversed",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "c1d5844b322d01d2520519b1e49b2bbdd58547fdd1f0809d529d6590bb7be004",
+      "reread_sha256": "ff475594f4de42f462776b1f27c3b4ac09e9a4fc6f39f494236abef9c313787d"
+    },
+    {
+      "key": "overall.major.hierophant.reversed",
+      "reason": "root 2차: 어색한 결합·불명확한 행동·업무 절차 편중 교정.",
+      "previous_sha256": "aeb9eab48fce1fa95563e78311b93ec7a52d47579cc1f149a2fc409e93c696e1",
+      "reread_sha256": "1b38e6fd69aa96b07883de5501dcee8b43d158d736b62a498ed78d7dcd0ded78"
+    },
+    {
+      "key": "overall.cups.07.upright",
+      "reason": "root 컵 검수: 어색한 결합 및 불명확한 짧은 행동 수정.",
+      "previous_sha256": "f498c873688389c22dea721c14dee633684ed9ad2887e5e414f778d73974746c",
+      "reread_sha256": "5a87a3af74ec092cf84f74917c0566db0fa29f8cc2315856f666f3f390e09f31"
+    },
+    {
+      "key": "overall.cups.07.reversed",
+      "reason": "root 컵 검수: 어색한 결합 및 불명확한 짧은 행동 수정.",
+      "previous_sha256": "5d21895b7472d1795602764a1269286da082d0c110a2eb3a7b88342cf726ed97",
+      "reread_sha256": "56db881cc1654be698cd522d4ff1feb61e0c34ff744ea433ead8fb05ad943208"
+    },
+    {
+      "key": "overall.cups.09.upright",
+      "reason": "root 컵 검수: 어색한 결합 및 불명확한 짧은 행동 수정.",
+      "previous_sha256": "48f744798e7b489c02f5464807d7bb0ddea45804b6421aca0819e977045d01f0",
+      "reread_sha256": "72b358c88c460edbb931ec352f293c00bf3481cb82dba59d6447384537ab3406"
+    },
+    {
+      "key": "overall.cups.11.upright",
+      "reason": "root 컵 검수: 어색한 결합 및 불명확한 짧은 행동 수정.",
+      "previous_sha256": "f2786dd71f41cc66e57180cc62503a7c5f5a961d23d5a665aa8ca490dee19677",
+      "reread_sha256": "2ba5505f1e7a23fe5f68ccc89dc1ee371dfcb7e82f437b7d4b07c41a3924e882"
+    },
+    {
+      "key": "overall.cups.12.reversed",
+      "reason": "root 컵 검수: 어색한 결합 및 불명확한 짧은 행동 수정.",
+      "previous_sha256": "9c586939f6366276009dbaf50073a6f7d52e8432a5b475b21e946fa73e00034f",
+      "reread_sha256": "24665bcbd93e83985352b3e8ec178755136834a2a35e232d536ce7fdf5c8e583"
+    },
+    {
+      "key": "overall.cups.13.upright",
+      "reason": "root 컵 검수: 어색한 결합 및 불명확한 짧은 행동 수정.",
+      "previous_sha256": "86685dcc5feaf5ad0a50a8c03ee686b6b119545aea2432db50183636118d06a6",
+      "reread_sha256": "cac90b5ccb8497f5f66116b863dd0f16b1ae97c93697a333c6b2d37c3733468f"
+    },
+    {
+      "key": "overall.cups.14.upright",
+      "reason": "root 컵 검수: 어색한 결합 및 불명확한 짧은 행동 수정.",
+      "previous_sha256": "5442d2d31fdfef2277af498fbc7eed94d45107b3ffc8c224eaa1e87b1ea4810c",
+      "reread_sha256": "b97e96db4721eb2a2db461b99661de6f97ed801115a11e8d1fc9ac772f666957"
+    },
+    {
+      "key": "overall.swords.12.upright",
+      "reason": "불명확한 지시 대상·주체 교정",
+      "previous_sha256": "e4875159226863c9493e6e4593eb8d3f9d8ff3ac0018117e7405371b2cb40e04",
+      "reread_sha256": "9af0ca4b901770a87668c39a3c1807f5145673464add87673b03e99ab99b3085"
+    },
+    {
+      "key": "overall.swords.13.reversed",
+      "reason": "불명확한 지시 대상·주체 교정",
+      "previous_sha256": "ed91a9c16ae4e8684f2dd1ae2931b68d1061aba2f700e797c6ec33b6ec6072cc",
+      "reread_sha256": "d99d9c4951f9d845fdbbcf59775dbe1ad6b7bb54950e0537750612ef21c11aef"
+    },
+    {
+      "key": "overall.wands.03.reversed",
+      "reason": "내보낸 일의 답·참여 범위를 평범한 한국어로 교정",
+      "previous_sha256": "7a6231a534e3cd865db81b9ebc38cd9579b8690519d0cec489f0cce39484956b",
+      "reread_sha256": "30b16ba1deebd3b3ae85f9fb53e3776fe96a6b8e0b3b59fece952cff95c61efb"
+    },
+    {
+      "key": "overall.pentacles.05.reversed",
+      "reason": "root: 부족한 것·대체한 것의 모호한 지시를 제거하고 불화·낭비의 하루 결과를 직접 재집필",
+      "previous_sha256": "3ee1e8975902c6b25eb5f80d9bbf24165188cb57ff7a0cf8cb1aa1f572421cbe",
+      "reread_sha256": "932e14df2c20644151142e802ccc544dc20dce4d01adcb379e477f1922782bb5"
+    },
+    {
+      "key": "overall.pentacles.14.upright",
+      "reason": "자체: 안정되게라는 어색한 표현을 일반 어법으로 교정",
+      "previous_sha256": "2ee4c8b0de7916859a4edba942d5ae6c6a8507be9d3a3f5a2d58895d3a362a0f",
+      "reread_sha256": "739e4d912100cf886cb48d3a4d90b195f4f09b17d15ed7c03cf476f9a5a90e34"
+    },
+    {
+      "key": "overall.pentacles.13.upright",
+      "reason": "root 최종검수: 생활의 일·든든하게 일을 하는 사람 표현 교정",
+      "previous_sha256": "460ce3211f4d78c3943310ad8e606be10e6e30b78bb8c209c47f5a6bbed5e24a",
+      "reread_sha256": "3c4ff7f44e0027a54d45d989da8ca8b5975438403b4af274c9a672620706f40a"
+    },
+    {
+      "key": "overall.pentacles.14.upright",
+      "reason": "root 최종검수: 생활의 일·든든하게 일을 하는 사람 표현 교정",
+      "previous_sha256": "739e4d912100cf886cb48d3a4d90b195f4f09b17d15ed7c03cf476f9a5a90e34",
+      "reread_sha256": "12a305dff2f0d6b17e4f9ccc147b5804ac353db217260c0aa4f9a2244dbe6a54"
+    }
+  ],
+  "bundle_count": 156,
+  "short_field_count": 468,
+  "read_completion_note": "156개를 배치별 작성 직후 본문 두 단락과 headline/do/pause를 각각 실제 읽었으며 root 반려 수정본은 번들 전체를 재독했다. 읽기와 수정 내역은 아래 key별 현행 sha256 및 revision_log에 기록했다. 자동 검사로 자연스러움이나 독립 감수를 주장하지 않는다.",
+  "hash_convention": "sha256(UTF-8 json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(comma,colon)))",
+  "static_checks": {
+    "expected_keys": 156,
+    "actual_keys": 156,
+    "missing_keys": [],
+    "unknown_keys": [],
+    "brief_key_match": true,
+    "author_review_key_match": true,
+    "format_and_phrase_issues": [],
+    "duplicate_full_bodies": [],
+    "duplicate_paragraphs": [],
+    "duplicate_sentences": [],
+    "repeated_short_fields": {
+      "headline": [],
+      "do": [
+        {
+          "text": "받은 도움에 고마움 전하기",
+          "keys": [
+            "overall.major.empress.upright",
+            "overall.cups.02.upright"
+          ]
+        }
+      ],
+      "pause": []
+    },
+    "not_language_quality_certification": true,
+    "repeated_short_field_disposition": [
+      {
+        "field": "do",
+        "text": "받은 도움에 고마움 전하기",
+        "keys": [
+          "overall.major.empress.upright",
+          "overall.cups.02.upright"
+        ],
+        "decision": "root가 풍요·호의 카드의 자연스러운 행동으로 허용. 반복목록은 삭제하지 않음."
+      }
+    ]
+  },
+  "root_review_reference": "review.json:axes.overall (root가 현행 156개 전부 읽고 수용함. 작성자 검토와 별개 기록.)",
+  "final_self_read_scope": "총운 156개 각각의 headline·본문 두 단락·do·pause. 작성 시 전체 문장 읽기, root 반려 수정 시 번들 전체 재독. 현재 156개 해시와 root 현행 읽기 해시의 일치를 정적으로 확인함."
+}

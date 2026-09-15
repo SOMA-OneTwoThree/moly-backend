@@ -1,0 +1,1926 @@
+{
+  "schema": "moly-fortune-short-fields-review-v1",
+  "locale": "en",
+  "reviewer": "card_major_writer",
+  "status": "complete",
+  "scope": "Only headline/do/pause were directly read for standalone clarity and collocations. Bundle hashes identify containing snapshot, not full-body reading. No full-reading or KO parity certification.",
+  "entries": {
+    "overall.major.chariot.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "6d66eafd4588dadc5663098a602a9f5cd0e7b0efeb63ab0d36b848ac0fc004c7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b9fd8f315495437a47c54bb37ad431194e9331995c86220d834a9be8011f3111",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.chariot.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "7903ac92674c0a90f14372b0e9269dae4f414cbd64ff38576962bbce0ced22c2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "eae83fc30a6a6698b746f29c3cac61a6d98bf9acfa2f8a4d924d6636b6404786",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.sun.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "edcba38b6b60fca213027a46e6c295fb937a8c0d4f9ccd9025e0966037b78a79",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4a056b5d97fb602f5e63793b74ad4ebc391905d824bbd98f3b41478586958ab6",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.sun.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "923b217bad84930cfb0fcdb64e51315e5782d99d70fdb81fd008e5d9e8c5af88",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b5beddd179576eaa335fed2bb05e395a7bcc4e24c948c57fa013260b27d677aa",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.tower.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "0694a743f9ab07f460b5920c9b9cb61aa41afb4eef681cf0fbcac2a74804da39",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ebfd325ec2cb58254c44df7903ce25b1675077d0a100ef320ff3da0bb970bd2c",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.tower.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "f293be6ac62bedda54b81696653ce1ad81437c96b46848f301e4908990bf030a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "979f53e7214b350d69b68e1495960e1c14f84bf1a2d72ecf4680f2c83545d619",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.moon.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "cd24d5e3528168b8cd8ebde3ed2a411f388176447ca9de0f3fe9263685d4c464",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "db502c93a41050c4202a6de5b5707c9e67dab4583029a9d8bd6a84238d93b454",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.moon.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "785813440500ba051fc8972344b25286261c9c822dcf08f1d9f7ce276d96e048",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f37ca073c91e7c25be9ece55b9ac6e0158c73e55347cc1002db16003823c649b",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.temperance.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "aff55be1c9c37ca4c8c820a9efc0640d635badb41c4e21779272c380396d5eff",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "57d968814ec39cc068f7a547bb78f40be01ea726b1f446283b3214b267c0fdf7",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.temperance.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "fd3b8b5aa28557e16973b5083436bc123962e63bf6f3658879fda027434e0e42",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8bddfd66a162c5c9f30c4b0fb651ad6d77cd42a81fac983bdb65109697931fcd",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.fool.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "047efc5f9a68ae8f1fea1affc5728e8fcdd85efc5e1979b1dfbd7f69090aee7f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3bb9b1455736e88ec70f8fa55229fb9c3854b768d4feb95e96f6fd729c16efee",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.fool.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "14dcea2615ab6e4ce3b17b79559353ae2ffd95b6804392db3b450fc5c7284167",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c4abc8bd4c68226dcaa4e63e4aecf6a2f4264bca890b20e3bc971a9e53019a2f",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.magician.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8a6fe559bb1ff023729c410d2e85393048ebf096a078d2f438319cc5af28b2e5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1abe987eae2a65d33f6fc2e4ac7a6a6235f06cd43f7f8bc71fb1ce2ebdcf4c4c",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.magician.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "26a289d1df2c5f52e63e657660e558c4793da7b5c48daab6aadb54c0f89e4da6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c812e302685b9e97b648812ecb3eb9df4c8a9d71bc875e4e876fac02a4f0364b",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.high_priestess.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "814f5ab15c69201bbf06d1562240afc6e54447eea1eafefc6619fa8ee01c2dd7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7647ad54ae6e2e6d7b2ac020b48fc12535096fec5a54f401609dd8c8a8137bdc",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.high_priestess.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "21fb8ec299e10333c2d0da11e9b1c6e067a55e696798c95cc9ac503c8c548c43",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "32038b7937c7110cbbd6078adaa1e24b8230fab18666b0cb88a6090543169263",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.empress.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "afc1ff536d864a17149f426e48aca9113537971540a4a84a73ccdfe99be5cd58",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "0f80e31b8bdf9c64018b72df2b7a75967bdb85d04d1a93bedaa0a0299c4b7bb4",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.empress.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "f7e6eed79276cf46f064491d3522c47322e6e60599fef4dbc8aa276f93956a36",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8753f106c1005e836670738e552f0c4ae80875c60ab08ab0245d7217673ededb",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.emperor.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ddbb230c38dc5a1772321f60fbf85defad0c53e8840194bfe24c2173dcfbc01b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e55d74b1a08b1722e21237148c24e89678b70e8af5272538917645d1d94f65fe",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.emperor.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "84086c3d82be204417cc646b60fe0e5acdae8f45af84cafd34565296feb21f2d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b6300dffecce331684e855fc3b119d973b05331a681cebfa7af4b146bf78dd06",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.hierophant.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "a03a547fe78904602daa6f7972bcfe0fbfd0e8a1b30e3e1de5715110126f6631",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2132f22e1198f783226a9fd2d7d6c85e583916acbc434ffd9c632bc57a2a933a",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.hierophant.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "0909122e097ff10903a6ba4d532ccd763179bc57d4627cfc450f99a61899ab08",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f89892a294e50fe80c3978474b125bfd05171fae0850d79e16359f5d2fdb04c2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.lovers.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "d33ce98b996962ea16c58987e3398ec3eee13eeb65061aae97b6c460714e8a0a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "510140ceff7bf5cb4718c8278469562da2c38170d5777daa16c3ad75f593a1e2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.lovers.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "c6b1917355ee4427246f19da6e60580789fccfd8796977d335c5eff4a8727af6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1d564e45fd835f0cb1f967a126a1e11e0758bc4a49e869c09876792541382123",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.strength.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "905c55dbd2704fc8bb89f77f0c62aa0a319fbdebc61e5b0e1c22b36830eb7504",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2c490237a4c5ce167207196bfed777978b7797e8a4a1d97786fec1db4449bf41",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.strength.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "9a8e08ace8c62a7d27c66d057f7609d6f14c4289556a88bddbede1f97652a776",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2c8e72b5e5cfd3281bea9f964a2f9c7d9985931e2545e909722b48c72ee8def3",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.hermit.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "5e4f16fea53bd096f728f0a66b3040e72d9da2ac56efa688a541ce922b633460",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7a75f4a699429ccdedf649e4f323221c7563d8a17f74be9ddfdad13b0769eb6d",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.hermit.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ab5f34dd13a25c11c17a628568663a4f4860049ad83213485211e632c3d2e746",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8a9c083e2773c7509ebd80066496d5786369d1123b4561784c27a60df1655483",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.wheel_of_fortune.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8a1e83974261fd233b755aa4baef6b2e326cae227dd5fb9664727d707995b845",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b43859f81bc63031e9bb2f2acac08cb8922c021b3dc4f000b1d7aad2784fb1d7",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "c3f7143802d9c6ab3244ee65e1130962f74d841e455f9b2efbe1aae11c9472af",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ef99ac18ee9d0957807831ab3db9fad618ac49217fafbc30575c5564b8ed1359",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.justice.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "44f8ab075ca0a0aae3ca0dd03561390de47017389a76d9dc449aa83207260798",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f66e82962c5924b9378c7e6c668fdfb9dbea7127348d8f8b543cede09b40ebf3",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.justice.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "1e62b338c8ad8de1e392807b6cbcef8a72011a4c71e71f71558ac1d0822f5cf8",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "60519d5aa3ec86330e42b8b4907c6274c7b2168eabe49594a2f7f34f13d06455",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.hanged_man.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "957db6181fbfc88c8c8845fa4b97c8fa2e94c8fb2820991c127eec8107dd40d5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1a9cd2ac4270d34a5a83bd62ceea74b5f9b7c76ba96fc3e015f8310b9720ff35",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.hanged_man.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "9f8140715b285e8e849f7b6e5d4fa4cb6f604bdb68316a92c9a72360fd5d48c3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "97267d0d6dd2d877b7df8eefb2d7821ea8e7e0b419e2d53634d05b057a92e990",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.death.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "9e2b3ef4223d057157571b508e3a49259378cbb61d8d26f91737e45137babbba",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "bf1d6b6fd073939093ebb08998f490417d582f9abfd4e6dd0eb94a5f722de030",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.death.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "c376fc18618a5054af5fa2d75e6175308b04a550b487084c3a782545b4e56c92",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b05b58fb45ad0e77649957f7c35f851d309243ce2ef902b5cd8912cd95caffce",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.devil.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "5f338abfb40f42af857f24f2062f44628fa9cc6822e3dd3048161bcc9d981c9c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "966c9d8fadb93344c1dba8ae06ba722b860c3e68d60831f0309ae01fc2b044c1",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.devil.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "80acccc2a51d46efed8f1a56697eff423200aff3a3a0b7fd4f517a4060a9dd5e",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "0c657f9c9778ce86dc6e900c7d37b7b935c1dcf7fc7095ffcf1580ea2f28766c",
+      "assessment": "All three short fields re-read after correction. Clear action/fortune without body; no full-body proof asserted.",
+      "round": 2
+    },
+    "overall.major.star.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "f427596cb23b2ee5ec9a87ae576a0ec978539afa39058fd391ba6543b83c2f45",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1af1c29c0e7d4fee3d2cf57529c79d153b1318052731674d74498003e55f648f",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.star.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "1031bf5ce8d8a22c9191ed4b4b22c70d7ebbc5422705e527b5c0e0733e97679d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "5f7833b045d2f3f9a9b58981c6d62bbc9c31f2bbc68df69be488e46a51d349d3",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.judgement.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "9d4237f26e296e5d9f3cdfa360fc9569e75857a874a875fef48da43b2cdeaf17",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b97624336920f6c367ec2eef8ef122933bc417714e708b10a39d765115e99ccf",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.judgement.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "b60446e8220de0028993d57541e1d4379b5f4bffb9e75712cca8012eda27d4c0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d8de7cf715878afac288a6cd44650a9bfcd153e5381782770279229bd6765bb8",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.world.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "17d1e1bff7e6891ad794603ef82f8337510241133ca6f5184d0ce0eed7345107",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "5886060a962ce668dfa37368b0bd46c20467cfe152b4b272fa372587a1ace9c8",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.major.world.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "6a99f011f07422d94216d6114481ec4972723c9c8fb523f26792e70023239b0b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "727b9076804f1e0303e4c35cdb3a0c2624781f3af1687b8350b51457c7a422de",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "6137ff6a02bfff5445d2f0df171fbe22b293a72aa1d3670e53264b9b3a49a78a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "16beb952eaa59f772f521a6d4fffa77d164da8504c676338467dcf0fe72f7ab5",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "440119dc00ecf2e7816df7701e3dddf8037bfc3eca6b7af246e98faf19ef765a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c5dbe5a2268c9d552479addbbc3b850676f60c52c4dc2bf7b5e1aa4693f541e2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "5d3c5de247bc804485381a91b3c18e5fc218826e015946c80471d967cdaafe8b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "00e5d3ac9c6436d153aea6075294ff7eb8e089436f89bd5b4d0fe3bf30455d50",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "5d27941425145b74fcc3f0c3c2c3bf85dbb03c9aac6bd947fe43ff5f64027ab2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f0d4cc88944dbfb2aab86e281b29c4e7a6ef9ab26dd1dab0b8acab429365ba8b",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "74b54a1f6ccc0625e87bc5d15377607c3effe820c6217b591f7b8e9d587fe349",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "67b16ce929a2796c9340803b6f53775c848735aaabe0bdd2657343469dfc9482",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "762972b55f9edd89f77a64328381d9f4e340fb80729fea68b080958ca6533fc7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f8e7d56c1c51baaeabdf8cfcee2fe2dbb17f7ba289f1d44264fdd1b36957c45e",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "55336dc75d51755de72f3af77196b607cbb24ff6ba55ee6df3ca6c6394a7c962",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8226a54eb00c9a0bf2b97d4733289c941f80bd04a0e01eb8a338c222a4c8ce60",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "0e27404549d8c247420abef84df919a8185dd1352b7aebe4abacd18e35c36eec",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8c0c4550c87334fb8193ed6174e94909bb9b1d7902fcf23ab677655ff1700c68",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "d1bb8d714d9a33a491f399604cad752e5b74d61b02974e558e64323c87a310c6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1bbdb66ff55137cdd24c5787a576e45da41fd4ced76b3f06597d5e242d71c8bb",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "56f04719ac8595fe1c27764edcc613e1f4dcfa2539d1c723cf0ce690232c5803",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b9cf9e5728a1b2b6975e7563f4bda224b2f4526cc3632720c65ac2ebb490dac8",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "c762d43dc5be1c063cf3314ae438f54a891abd9461614325416c5c58194abb00",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f3743e6a89c9c334c3d6d959e079e9c837792249d08932a198ca8fe27b12e9a4",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "f4c3156d33256dbb30aa0fb3011ec1cc0269f2b564bd0753f72e023a094236dc",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ebf55544035ecdba3f1ba9731fd48c8708cb74ac71aba6e4e92edb3ffd565f3d",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "16c834eed4d36a070a8485268b34d16cce1d8f6a6c14f1d6176f40d55b5729b6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "64e95a4032367aecf1b8de29c0d17b4d0503742067c6e92eb311cb8421cfc171",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "e071c8205899011e94ac6a7f7ce82c88ae8a29d375689e0d1dfe2306dde11946",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b0fb46e6f52618a2d51ef38d25f4df5b3b089435307b16e10eb43151ca6de495",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ebdd4b1979e16744664d06efb5cd54a31ed8608546f0fb3976bfc558cd9d7633",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "0d1e6e4493bb2ccca3984e0e9479528be3c0a14021befcaf5ec9857a7b1bfee6",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ddd64d0b318ef93ed41942e3a1810232b2544b578e4313b30f6f4ed20d9c5e2a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "915811a3a83370dc0404f9b9ca2706ecd84c0d7b81b8f9e8c12b69c39cc1937a",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ceea13ca43322b1063b8e0185e6864da6e794a86b588f2fa05b63e40adb32e18",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "635167ca031120f0a24adc853c1f96528fb44c8bd7138a9b5a8f3fcbbe9a5c20",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "03e9a17b20e9ae3427059dc652859c4afd7bbac004b5081ae5386ae3b8726d60",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4b7747c3d8e69a4fe8f657fdb6fc2266f9d82cc831c2072b1512b4b7fe9ba8c7",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "0cb72dfd8f8bbd5bdc427522c60e3679a0c7044dceb9e779d2ddc38f9a1b4f3f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1e10cccca0c7aed834be5d8248cb63120b20cd85511b83ab1588a754860acc71",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "15100793fcc34e1806550bdea6c9562cefcdc8cab8301264cd278105d840e2e7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4122d000e479bef7e2074eb65e4d4b7bc88b3413668ac76aa571fc860b1d8cb6",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "772a8f34f3619c09ad20246741494555a3a895bcc2b7b264a15338e9cb94ecfa",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3b382c6981e55c09e79388c6d3a35b95ae3766b8a7d8a5b9f5f17fded9cf67bb",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "15c5c28fdb3a31982a9d54687a46bb5314a0b21eb127bc8e55570ee755789315",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6a48eaaf7791ef38a3b408083631036bac152f8e1841143b15b295709221fb0c",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ef039de4152879d40e01b00cc110e759832a86db46a5c821446841de430d5cde",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b9ed65e46af1f851a33a55ee823f0561b9968cfba54e1135d0bb3f806ae86338",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "e0a142e943de6850b5172f7d87e522ae96dce0c1d691af588a1635b6c24374e9",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "19c9ad53d4bc8d3fca1a539ad8da5057c2031f73a90ee8cf6a2d2b75c03de1ed",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "300ec8986d4951397d85cff9b1e2c95aa43a839e6d19a66d1789e3df532d5f40",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1ff8db91962cbdbff368353a8dce0dcf7838dc47ab66b8d6da4781a37f4a297a",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "087266983da9156396ba573bf903b377e61cdc9debc4d79a249e015d6ffb0f81",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "728da1c4d2003f28c3b2af5b776f53b10b99e2377055896317a04b49e1ebe151",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "05c3f1b37691e00dbd3b5b624f536de9794a7e8575a8fa479d86ed4f0edbd95d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "00bf1f865eb4dcf967a69939520189ea326b0c893ea16ecfbcbf29a5f7dff78e",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.cups.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "40dbfd8430eb5cf880c2041df58a42f64fbb92e63a3e9d790f57bf67a89a7add",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1e97b6e7a7438ab4c1de0694d8321b19aba0e56720f0d1b0f74005fa7d70c5fc",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "cfa5f088e824e65d8975d5cc3673f7f972c7ac5911fcaa0764435eec12ff0beb",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6eb614b494bb4a55ceca531eb95654ba0d4e34a71cb9b53d161e6b8ba23ffae4",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "2ebd38b096ad6e56e8fae3a7dc37738b7bab43eab9dbf3ef03eb5a831c6aeb2b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "518093c07fa9c5b0ed2d61ebe03718b8f53401af7ab0ff0b0bfefc485286b81b",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "d2006130434e325b49ad70ba4838b2a6255029f14cf0034e8a29032351eb10dd",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e2e00281661073649666131a3bc40d8a47ea406bff587d1d696760c6f0a64811",
+      "assessment": "All three short fields re-read after correction. Clear action/fortune without body; no full-body proof asserted.",
+      "round": 2
+    },
+    "overall.wands.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "762c454efc508805171c02d23d93f74f625760ada5a840a3d918c25d1851dbaf",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "cc53548937755ac5dfcbbd8eb4cf35328a5d43e3bdc83b224d1c4f5365ffdf13",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "08c779de0ef9f21a6853f12400dd739d7fcea31dd8e988d685d58bdc5d7dc6d2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "abb9c24a28bace552530197f59bb1d1d5e1ddbded712026d6c63a2a1e8004ec1",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "3976d1bff005c2d7da423e0c646e89715bfc0b8af580cbed3e8e07f9cc30603f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "22b6ebcfa4233aaf8f2c4491c84ff6ad3a7c17b01e9777cf4ef2a1278a312cb9",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "f294bc764d82a4ebbd1cadf71a7fe9896f75fa1b3f63667277317d9ad50539c4",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9b7e3bb09ac5713404f0a26c54d6c9f18433bdf3b48ec406e14949c518d0a461",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "150cffcff3e4cfa6de55dddcab230b880bd50aa0ad557d19fcb51d10783820c6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "682d50fa34f8f2d13c12c3f3b2eb065bac6803e0fb85231388845aae53a4079f",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b47e254c38bfabb84880f713ef13e38b423bd04377eec28263dda6f469b473ce",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b860053db575650b28d7feb56eff047ad7b0a21d995c8659d5c2be1d86c3c243",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "4011b2eef4718f349267326a131ed92807e8e007dcbf83e70ef140c87094dd01",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e69cbc8de0166da7c6bc3aa03c68493a6c58b6376cad688486da0f43e26f3a91",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "19a663493f58d4b44cd523aa1ba4d52ca173cb13b1814ab3a657027d16717e8a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "29d1f0751a9704f2d555c77e45ab9659618c0400cdd789d91993bf2698c2ef56",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "15b888ca565efb4dc93218091e2b7708a24d9da8456955e70baa1318de5fb281",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "35bc76efa896f39c8df9fe98c322fe0fbe6d63109cdcf8072e2316189ff4e656",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "c0d1a454d6a8bd3f1ea1c93d57fa79cb69f82e9f586e37e9789460c0c5394b71",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7747a734316268ee550e8d84ce302e226234b9fe302f0eebffd212e384f759f5",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "780dfd68c8c0be6176bfd018ed777104f59f95de81df8b03ddf6c260be67c2d4",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "360393a4d3b554242d050066370d637dc695736b36f1676c6f5dda5d4118362f",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "17bd526b1b9f4137c872837c2ed648cdcf8936f349774fdc3884865c99b18c53",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1c36e5ec0e46614625f6eaf50b1f77c6152b423257acdbb147f2ca1631e06691",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "c84b555ab0231be41bb1d2c1a06c6096f1088dc134413f88b783d5ce39d6c08d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f5c4381a2ec353518298f25126f2c4f4bbdf40231db5c09309bed16f142d118f",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "69ed8961fd228656ed519470b07e00108777745a5ca3ed1654fcf6ac18f769c4",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6afbaca3f7c10676f22c1aca1d38725b1322ac6c5f464f6bc725d5469ce431e6",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "6ba1b87069465f01ef4f3b9d78267c56628d68b2ed21b0ac502007cb1bf3ae15",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "040951583c405a47ca2f56fc124ba5d2c70b45ba3795b8315c0d0de1a326e2a3",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "acc591998b29c549647f938b4f6988e863318ac2ef869d86068c506607a86ac6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "0c4cbb7af7dbac2a36f0fc889ca6caefd089c1529f17987703ce3421c91cf220",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "9e7b41006faa06a4c40a0a410cc6ed02be1e48c88f0bd46ba9b9aa774f1e2aa3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1a5d61ffbf2a3e6a26ea22d7df7b1ccdd9622be47fd228f8c4782ff2f953b3e1",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8a786e4cf3895d812c5bf32d9588d5a51470336b1b9d01776a689cb2c9ba1949",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "0fdbca1fea52463da288d0fbeb60b233c7da3865e26d7e8d75edd8d9a9f51762",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "301b40c2e0b2b24c20230111639329eb69ffc4c6ab0c27576b06d973cd2915d4",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c9bd7a1b762d268b362bfa701ec0d513a5b36eaae5d86f65ed65a510bace03a5",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "cd771bf378ff20288526702bc6bf97f5d5835f0d30f409bf3775eab042c25377",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "207ca54cdb28848fc27b7e9623b93d5959f73ee3a3bc4577c9d58e6bf1ce7054",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "40366eeecf8b78f76c4c05939ee16797469ff4960d0ecf2a643d4e9c56b2f6ac",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "51326472340852ca9f805903e4e7e61c78139dd59b4cf0243c3ce85d3434ea81",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "cf3b880d236c5d65e924c56f87005a0f12f349f9f31114456cac53ddd8a84115",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a1059927d051c89c3550dc758c871137937d2d869bdb2a9af90f9f5b12299847",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "1a864fec3f857da62d4c6841f03f0500d57731c2c1b83cbe2c10ebb4f491c994",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "713df71cb29e9ea7e22d550a78bb1cde764325011e2bf4c98c933229c08f2b12",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "f2a8f26a4300ddecc23bdc9b77ec1afd006c5a01e4236ab6db382826b43be92d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "fe7eaa99893d488dc64bf7f04c00da6dbdb3a246a0b367e8cc11345f53e21164",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.wands.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "b5c7df05e8a5723d3bed2d85df860bf5dc52588b2ae7dba844ab89260869fbc7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3bc7d8289fca6240057f6920400334235e331e7011a7c065a50291108ded6973",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ce2134b2117e2405be1e6725c8cf7078baafd97feaa54d0129ed05c77a00a259",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a991cf0078b0e4e873d24e8a1d5c731ef6539088845689502a96a8368e2b9baf",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "5ef6ccf6296f7372dd11e35e9e748c7e31c4abc40f0c30971821e86e7dd9c6d6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "464238d2c10f64fc43ae58af846b277592da27ae5e8d3f6963cf120a527b3d5e",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "cbb79f102e03a59894d02926d5b50b5373a15160efd46899ff8be8d4fe123cc0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "67d923e77b10b049b2463003427f7b85d023874743b702409e1993d9656d05cb",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "a4308d96b085a9a2d8430bff7b38d80882a39d3243177c87a55c82f27a6889c8",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "5344e0219b70b62691eb37a0875eaf730c57788375fe14ed226f3bd5b800ef41",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "e976c46fb600e5b3b2904f37d0cc249643a1b0f3023d9d008b8c1235735e3567",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2d578fb60ff87e7e4a1215bcffe44b185c8090bd5490ab7829deea240745d51d",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "41b1b9405bba18cdb795586405221bb99fdfcee548cee70d67d4f062ecd97b85",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "bb2d0fb5843aa4d92c5f357c51421523538953643ca2a25366aff851711cc390",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "bcb7ece5bc4862825e6dc065b724b585794e11b4b0cd3bd29f212307ca207314",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "426db926d3a1f4fd881128209dae1801964d944bb001d4b4e3811f5048c3fa2d",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "a11e428435e77ae20d59482ea2abb87679d2de91c87e3973862d39015999e867",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "386dc283e8ca33b287361a32fd079b3f912e513c25150715d9ecbe0a917697d0",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "735a089b404edc701c8da673186fb83241e52e19106452d964d55570f1f0b27a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1f27ca5d80005f924d68eab0f539f7e3b70098243f72222f0c45729a6b600c67",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "3f258b655a896f148e7c6bde2a0dfbb7f5c07e3bea17d41c5df5f83a74d2f2a4",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "10eda500ab3796dcb823d1dec6b09f37bd411bc17e5dd4c1321cc3d0f7e445f2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "71cbdb562577b2b4731422cb18cc832a41a7919fd009e0d43ba6795bff2d5176",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1576e1dbef0873f42c61158647940c7d988c30353f6ce196f64fbcce74fd0b90",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ed002d527fa16e16f4a747d31ac503e720bf937114c5a62670c748e98fb963b7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "29c562ade3b690c75b8ad996acc7deb1895d3366a728aeee76254f7ded3c0173",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "1ec4e4cc2fc24596e2e43638074199467e43d5c6d5f65ec1b59e36192fdb6426",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a75aea400ab752a5d02055f7f7cbec8b14247431d392f39b3bdd747ad9d08143",
+      "assessment": "All three short fields re-read after correction. Clear action/fortune without body; no full-body proof asserted.",
+      "round": 2
+    },
+    "overall.swords.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "87b321076d0c622f50080aff978b8970c9d203b8c8eeb808327f225ccb4a53c8",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "44cdab14a9abfcd26647e53128b7e222003d679bcdb3755a2d75b109ed1072a2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "13548e0e7ebf41fb364c9e1e93608febce7d47fd88f926e157589c4f2687f64d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e275f924a655146f5399632bb5960303597099a15a6fbb79cccb123e525d5a49",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d3b1f0bc43b48f1f9ec3bf5b9b2e18359313de58f55341fdf1acdd59d0cd4c25",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "bb9c330e1c7454eb7af03951bcba55484245246056ab0cf75b0a7b5913a06647",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "df604ed3928716324615fc1a337c516b61484768c239b852fc5c39b2e72f47ae",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "676edffc895d1fbb54807e4b2b85ca6682915c476d55fac027498eea0000655c",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "2876c139f1f8d6371a384689cadc386bd6808a506db7870da0dccc48d462718f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4ca3e9d7ca6d3f4bb646b9bf7186d111485cf91ef5effec1170d469a5e031b11",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ea9dc5d1ee4e87150923ab8d26c8690e8ff90ff84178a9ab1a55ede707572d9f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d55e9f34cea54e60d5e6fec55f6edcd0b5463cf3af09671a9a58080349b28c1b",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "2ffb31fcb6adb6d8b8d296ea1b433ac6d09bcbfdb5a1a6855aead22b495b1c8c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1e9d36f35cdf47c68a3af541a3d4bc6a14163a3cc32fce42a569e5d78049e5b7",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "fc0c8fb3e6196f27ebd6936aab4faa0667decaf788d150c68b9e5ce2e8ffc8c6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "79b812abeac94199f5160d6bc2fa1b7b5de7e201d8041afa68e36152ef92f9fa",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "675dd7c2932e7df2527e59636f30b2ad02cdfd70a49113599af8ae4b2e316f25",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2ca3222a6820d10674a4000ce5c7ae03ea09e874e4c9915b5de4ba9cb0ba56e2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "88fb0353a09e7ac180bfd452b99071276a4f453398b0daea5b250929e2013693",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "378a8c8573ea6175f8892b23b1dd8445e27c1d9a633e221ae272fd223dc57fd7",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "be802915e3c1a0caae38571e28a6edb50e243560b0b7aa9737ef0bc8ca6f7b00",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "dbd6bed6ca38b81eb221c6b5e3b0080a884ee4653c6d7017d598adb506605829",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b5e0d3537d7ecd82834bf22c9d406fcb4c414cbf8b20ec962ce20083e2b95394",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e61a2214595fc6c2dd8cae6624eb8fde745341b3a90070022805af6869b7ed29",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "81746d2e7548a240fdfce5751739a533c7907276fbf07f4005058c1ae8a07b35",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9361f5cefd9723e0309596ea8c80d883382db74bd8978dce4274817cf0a631c7",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ff2528bd98ba98305c20bd50f32e17345dcad673df1d1ffed9fd6e03f3219213",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "fcc5e96ccca1f6b02e1b3b5ee606ce1073c78759c27f9a6f6662aff26d86ebd9",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.swords.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "99390851a0a3bd514bcdbefd500964c4e57315738a5aa3efe72eee0451f34048",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ae4007f198dcca050c7bd31873fac8519186f63738469a483d6843d0ac0b05eb",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3b6cac069d0ae96d27a0a075470db3d2a88b0147fb34fee994a84218b14a50cc",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "026f188730a101f66d9ba0f2468ce3d295cbbb26058e3a9fa3de697a192573d7",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "3cbcdc567e51d091b4c64bb082db0f4063ec1ae540924996507dc2eab88c47f8",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "37062b64f751f2f9de6d443609b8345e228cde3347cdd6af45d9d0aeb8d5fd66",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "e55c04131f3de5057a46d3441a1ff1ebeb20fbaf607f76dbaa7f610549773ce1",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ae480fb8870891950ed91af63f37ba0921392b23e00adaee93cb37491b18b448",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d9206413cb4c1cc8d1574cae2f6291f87f119df1197dc629301f3c5e510ff571",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7cfed01419b6a6501b2ec660f739fdf2f085a1290bd5ce01ad5916582810e926",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "5d304e3f06a3584ef3322e02c60b0d1e41d29efe8d8047803adc7efda5694049",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ba5b938ff37c6d8902a2e5098771ea3b20fa3c5afdd63103494e01e49daa2100",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "04a1ea78fdc0f7950b8be365ecf883606b2890c630e0649fb50f665e2c1eaf93",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3977f9baa946af229f1469ed857a139a08b5db9672ef80723482f406b61689d2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "dab96a879e56c562080f7df0f83f9558bf93ba5c2f31c0f6e5dd19b80051842d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "731435f9f84f5f9f75fe844055176fd621aac7f0025ce33a1c3feab257e3656c",
+      "assessment": "All three revised short fields re-read alone: concrete referents, task completion meaning, and resources instead of ambiguous room confirmed. No body reading asserted.",
+      "round": 2
+    },
+    "overall.pentacles.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "0430b2ea45280011f41ba99b186da640ee15dd0382bede346491760a9465144b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "943ac15508b4860b97c26c429d7f991a499f508d2ef551d2673eaf27deed81e8",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "7a7be141944cefc3d3c3106e902c42552589d803b0786de5c5d07a6f462780a0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4394cd22cdb28acb7c3f5528204e89c59b2f3755912a219be450112b024d1e6e",
+      "assessment": "All three revised short fields re-read alone: concrete referents, task completion meaning, and resources instead of ambiguous room confirmed. No body reading asserted.",
+      "round": 2
+    },
+    "overall.pentacles.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d897a6e5a9307232e0c0073772875272393cb1a66669391bcc9c0e293ef34d91",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a30451ac4474c1f55f5b880753d68df93daa627ee30f8fc4dca3fd1b11de654e",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b32fe3656894bc8aa0f9c73e52146f49750808dcbf88c42fda54e8a127b3baa0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9421b28e754175582eff40f74059e946ab661594528deaff140d680c04a70e36",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d39f127a671eaef94223b87c66270109aa39f9f98aedf0c40837d418b8ba8b1e",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "840b46938a248dc88bc6dac6ca3ee4d3f303ff13f735e94fcce5cd23ca40a4f2",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "64a8f2eefe795f95dafeb9681e480a48ecfe7cfcbf3442382981621cf6df8c2c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9877c7306469bf4ee4ab461a3d9432cfb6b99760c19237b069cbcfb7e6bcca2c",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "981c9ce7b61cbd6cf7cb4484288e8c4a2c8bcc9dac6e709287190e20456556ca",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2951493d3f0dfb5864f09d17038e21377a8b884fc09838e187bbccf808b65149",
+      "assessment": "All three revised short fields re-read alone: concrete referents, task completion meaning, and resources instead of ambiguous room confirmed. No body reading asserted.",
+      "round": 2
+    },
+    "overall.pentacles.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "eea78c2506cba10bb617f18aad5bf0f67f1826ed54bb2ea6c3bbae2dfe13b64f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a6caaf9c1c45bef7873b6cc7b4bf1cceab38992d613005456a82643eccfdb022",
+      "assessment": "All three revised short fields re-read alone: concrete referents, task completion meaning, and resources instead of ambiguous room confirmed. No body reading asserted.",
+      "round": 2
+    },
+    "overall.pentacles.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "5bc64242fae9670875511d61e5c2805cd5f85ea30bbb4c3516af556f05f0812b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c6434be61eb14b3e32fd879fc47942956cfae0657cc3aba4ec8d22e5b6e6b3a4",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "445fc1df3ed52380d960483c2bde6a3cdeb85e5657eef975f405742c484dd934",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ecedd334385a7bd7513d56681281039b7fed5bd0136046dc9c2128b1e5972c82",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "c03268f69e7eb22a814fe3e4a97fc843818f6d5fc4c520dad61657083ac16d41",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a13b1519ecbce810a5617e3cdb4f79ce3bd0c097724e936e254f072e715e7d20",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "78a53753c7274d00b658def5047303a5c8e003ecbed4efa2c96441a0303776f6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "319a52a3a980fb46892cd308f1ab5e57c613bb1147fd442c42ab49393f62c2c9",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "4b9c62f50944e211693639067e2d35cc399675210f7344499b3afe598547ccac",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b058197f8bb6de5b628f23f571cb3fe973eb509a9ddafb0d03c52ab59ffcd446",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "99a6f319db0476e70441b1d2679de7ab18f49ddf89742d78eeb66dab793944b0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f34bdb63342a08de2c22f6f290cf2361773b485930569e47d8c742d968c3866d",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "4cab7256c075cca0bf670ee6ca1344e84904a0d51a04fe84c692fcf071acbacf",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d4e3a4c5ffe935f7a18d7d672578bbbfc995cfb8db6492af2c83bfda08eaeca0",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8771f64524b31f750a3acf359e1f03c685f70ff2865def22934e129a67f725cb",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7637171fca89530f86e4ce57ab8c17b437ac461ac1cf0aa173d05745b76ba943",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "dd9c8d3741fa33b35d449f556da7d7ae40040697686f4cffac5efced25b61932",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6c27d9ed7076f9412289569ab7fe26bf9cc58db5f0b2eda04c7e4ef0c7392955",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "9ec3835aaddfa1405e1cac20ea9bdd1edb86a4a1f6b076206a0b08a15fb3ab36",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a65248737b1d167e7f234fd5b10743cd9767fe9689cddfba5cb61072ba1684b4",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "9b7f4b815dccd592cd74439fd1493d33b12fc2f0a1a45648973a80a0b0cf763e",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "723f8c36f9de1fbed3da2a4580931bd3ac47fff0618e736b7178c39877ce1898",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b522fe331b6d072143b6251583f855b863b23efb395bc084e7966de8cbc5d6b5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "12234c533210ac3f5e5ecb77066a05c7973cec26b790214277e22df72665ef79",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    },
+    "overall.pentacles.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "a44dcf9453176a87e2ff427000949dd6cdc913079fd72f13e4648b3137b1ecce",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "303a6ee6bc3f7eca86ed9d622ac1df67ee40149b779200c35cdc2bc215f84c31",
+      "assessment": "Three short fields read alone; action and daily judgment comprehensible without body.",
+      "round": 1
+    }
+  },
+  "findings": [
+    {
+      "key": "overall.major.devil.reversed",
+      "status": "resolved",
+      "reason": "settled request collocation unclear",
+      "resolution": "Re-read all three corrected short fields"
+    },
+    {
+      "key": "overall.wands.02.upright",
+      "status": "resolved",
+      "reason": "terms at a place unclear collocation",
+      "resolution": "Re-read all three corrected short fields"
+    },
+    {
+      "key": "overall.swords.07.upright",
+      "status": "resolved",
+      "reason": "necessary person (already identified by root)",
+      "resolution": "Re-read all three corrected short fields"
+    },
+    {
+      "key": "overall.pentacles.04.upright",
+      "status": "resolved",
+      "reason": "do it has no standalone referent",
+      "resolution": "Three current short fields re-read"
+    },
+    {
+      "key": "overall.pentacles.05.upright",
+      "status": "resolved",
+      "reason": "room to spare ambiguous (root already requested)",
+      "resolution": "Three current short fields re-read"
+    },
+    {
+      "key": "overall.pentacles.07.reversed",
+      "status": "resolved",
+      "reason": "do it has no standalone referent",
+      "resolution": "Three current short fields re-read"
+    },
+    {
+      "key": "overall.pentacles.08.upright",
+      "status": "resolved",
+      "reason": "Finish using reads as stopping method usage rather than finishing task",
+      "resolution": "Three current short fields re-read"
+    }
+  ],
+  "actual_short_field_read_count": 468
+}

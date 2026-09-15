@@ -92,8 +92,9 @@ LEGACY_COPY_VERSIONS = MappingProxyType({
     "en": "fortune-copy.v3-editorial.1",
     "ja": "fortune-copy.v3-editorial.1",
 })
-COPY_VERSION = "fortune-copy.v6-fortune.1"
+COPY_VERSION = "fortune-copy.v8-localized.1"
 FIRST_VISIT_FILE = "first-visit.v1.json"
+FIRST_VISIT_IDENTITY_HASH = "e588974413014dad1c44c07c297043af28dcccbbe41b8eba15b548aa68117bed"
 _CARD_COPY_FILENAMES = MappingProxyType({
     "ko": "copy.v3.json", "en": "copy.v3.en.json", "ja": "copy.v3.ja.json",
 })
@@ -151,14 +152,15 @@ def _exact_keys(value: Mapping[str, Any], expected: set[str], label: str) -> Non
         )
 
 
-def _text(value: Any, label: str, *, locale: str, overall: bool = False) -> str:
+def _text(value: Any, label: str, *, locale: str, overall: bool = False,
+          legacy_tone: bool = True) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
         raise FortuneCatalogError(f"{label} must be a trimmed non-empty string")
     if unicodedata.normalize("NFC", value) != value:
         raise FortuneCatalogError(f"{label} must use NFC normalization")
     if _PLACEHOLDER_RE.search(value):
         raise FortuneCatalogError(f"{label} contains a placeholder")
-    if locale == "ko" and _FORBIDDEN_RE.search(value):
+    if legacy_tone and locale == "ko" and _FORBIDDEN_RE.search(value):
         raise FortuneCatalogError(f"{label} contains forbidden fortune wording")
     if locale == "ko" and _AWKWARD_COPY_RE.search(value):
         raise FortuneCatalogError(f"{label} contains awkward Korean fortune wording")
@@ -460,20 +462,22 @@ def _validate_copy(
 
 def _validate_overall_bundle(
     bundle: Any, route: str, locale: str, *, fortune_tone: bool = False,
+    paragraph_copy: bool = False,
 ) -> tuple[Mapping[str, Any], tuple[str, ...]]:
     if not isinstance(bundle, dict):
         raise FortuneCatalogError(f"{route} must be an object")
     _exact_keys(bundle, {"headline", "flow", "do", "pause"}, route)
     flow = bundle["flow"]
-    if not isinstance(flow, list) or len(flow) != 3:
-        raise FortuneCatalogError(f"{route}.flow must contain exactly three text segments")
-    headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=not fortune_tone)
+    expected = 2 if paragraph_copy else 3
+    if not isinstance(flow, list) or len(flow) != expected:
+        raise FortuneCatalogError(f"{route}.flow must contain exactly {'two' if paragraph_copy else 'three'} text segments")
+    headline = _text(bundle["headline"], f"{route}.headline", locale=locale, overall=not fortune_tone, legacy_tone=not paragraph_copy)
     rendered_flow = tuple(
-        _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=not fortune_tone)
+        _text(sentence, f"{route}.flow[{index}]", locale=locale, overall=not fortune_tone, legacy_tone=not paragraph_copy)
         for index, sentence in enumerate(flow)
     )
-    do = _text(bundle["do"], f"{route}.do", locale=locale, overall=not fortune_tone)
-    pause = _text(bundle["pause"], f"{route}.pause", locale=locale, overall=not fortune_tone)
+    do = _text(bundle["do"], f"{route}.do", locale=locale, overall=not fortune_tone, legacy_tone=not paragraph_copy)
+    pause = _text(bundle["pause"], f"{route}.pause", locale=locale, overall=not fortune_tone, legacy_tone=not paragraph_copy)
     validated = MappingProxyType(
         {
             "headline": headline,
@@ -499,22 +503,24 @@ def _validate_card_copy(asset: Mapping[str, Any], *, locale: str, colors: Mappin
     _exact_keys(asset["readings"], set(fortune_tarot.READING_KEYS), "card readings")
     result = {}
     for key, bundle in asset["readings"].items():
-        if key.startswith("overall."):
-            validated, _ = _validate_overall_bundle(bundle, key, locale, fortune_tone=True)
+        axis = key.split(".", 1)[0]
+        if axis == "overall":
+            validated, _ = _validate_overall_bundle(
+                bundle, key, locale, fortune_tone=True, paragraph_copy=True,
+            )
             segments = validated["flow"]
-            expected_counts = (2, 2, 1)
         else:
             if not isinstance(bundle, dict):
                 raise FortuneCatalogError(f"{key}: category bundle must be an object")
             _exact_keys(bundle, {"text"}, key)
-            if not isinstance(bundle["text"], list) or len(bundle["text"]) != 2:
-                raise FortuneCatalogError(f"{key}: two category segments required")
-            segments = tuple(_text(text, key, locale=locale) for text in bundle["text"])
+            lines = bundle["text"]
+            allowed = {3} if axis == "love" else {2} if axis == "work" else {1, 2}
+            if not isinstance(lines, list) or len(lines) not in allowed:
+                raise FortuneCatalogError(f"{key}: invalid editorial paragraph count")
+            segments = tuple(_text(text, key, locale=locale, legacy_tone=False) for text in lines)
             validated = MappingProxyType({"text": segments})
-            expected_counts = (2, 3)
-        counts = tuple(len(re.findall(r"[^.!?。！？]+[.!?。！？]", text)) for text in segments)
-        if counts != expected_counts:
-            raise FortuneCatalogError(f"{key}: five complete sentences with required segment boundaries")
+        if any(not paragraph.endswith((".", "!", "?", "。", "！", "？")) for paragraph in segments):
+            raise FortuneCatalogError(f"{key}: paragraphs must end with sentence punctuation")
         serialized = json.dumps(bundle, ensure_ascii=False)
         if re.search(r"타로|タロット|tarot|major\.[a-z_]+|(?:cups|swords|wands|pentacles)\.\d", serialized, re.I):
             raise FortuneCatalogError(f"{key}: internal card wording leaked")
@@ -576,7 +582,7 @@ def _load_catalog(resource_dir: Path) -> FortuneCatalog:
         manifest_hash=sha256(manifest_raw).hexdigest(),
         asset_hashes=MappingProxyType(hashes),
         readings_by_locale=MappingProxyType(readings_by_locale),
-        first_visit_sets=_validate_first_visit(parsed[FIRST_VISIT_FILE]),
+        first_visit_sets=_validate_first_visit(parsed[FIRST_VISIT_FILE], readings_by_locale),
     )
 
 
@@ -644,9 +650,11 @@ def _expected_color(semantic: Mapping[str, Any]) -> str:
     return COLORS[min(score // 10, 9)]
 
 
-def _validate_first_visit(asset: Any) -> tuple[Mapping[str, Any], ...]:
+def _validate_first_visit(
+    asset: Any, readings_by_locale: Mapping[str, Mapping[str, Any]],
+) -> tuple[Mapping[str, Any], ...]:
     _exact_keys(asset, {"version", "sets"}, "first visit")
-    if asset["version"] != "fortune-first-visit.v1" or not isinstance(asset["sets"], list) or len(asset["sets"]) < 6:
+    if asset["version"] != "fortune-first-visit.v1" or not isinstance(asset["sets"], list) or len(asset["sets"]) != 6:
         raise FortuneCatalogError("first visit requires six complete sets")
     seen_ids, seen_cards = set(), set()
     for entry in asset["sets"]:
@@ -662,14 +670,19 @@ def _validate_first_visit(asset: Any) -> tuple[Mapping[str, Any], ...]:
         _exact_keys(entry["copy_by_locale"], set(SUPPORTED_LOCALES), "first visit locales")
         for locale, copy in entry["copy_by_locale"].items():
             _exact_keys(copy, {"overall", "categories"}, "first visit copy")
-            _validate_overall_bundle(copy["overall"], entry["id"], locale, fortune_tone=True)
+            _validate_overall_bundle(copy["overall"], entry["id"], locale, fortune_tone=True, paragraph_copy=True)
             _exact_keys(copy["categories"], set(_CATEGORIES), "first visit categories")
-            for axis, bundle in copy["categories"].items():
-                _exact_keys(bundle, {"text"}, "first visit category")
-                if not isinstance(bundle["text"], list) or len(bundle["text"]) != 2:
-                    raise FortuneCatalogError("first visit category requires two paragraphs")
-                for paragraph in bundle["text"]:
-                    _text(paragraph, f"{entry['id']}.{axis}", locale=locale)
+            for axis, card in entry["cards"].items():
+                key = f"{axis}.{card['card_id']}.{card['orientation']}"
+                canonical = readings_by_locale[locale][key]
+                actual = copy["overall"] if axis == "overall" else copy["categories"][axis]
+                expected = {name: list(value) if isinstance(value, tuple) else value
+                            for name, value in canonical.items()}
+                if actual != expected:
+                    raise FortuneCatalogError(f"{entry['id']}/{locale}/{axis}: first visit differs from canonical copy")
+    identity = [{"id": entry["id"], "cards": entry["cards"]} for entry in asset["sets"]]
+    if sha256(json.dumps(identity, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest() != FIRST_VISIT_IDENTITY_HASH:
+        raise FortuneCatalogError("first visit identities differ from the approved six sets")
     return tuple(asset["sets"])
 
 

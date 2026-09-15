@@ -250,3 +250,39 @@ def test_invalid_prior_selection_never_resets_into_new_card_draw(invalid):
     previous["copy_selection"] = invalid
     with pytest.raises(selection.FortuneSelectionError):
         _build(previous=previous, day=DAY + timedelta(days=1))
+
+
+def test_first_visit_text_must_match_the_selected_canonical_readings(tmp_path):
+    target = tmp_path / "fortune"
+    shutil.copytree(RESOURCES, target)
+    first = json.loads((target / "first-visit.v1.json").read_text())
+    first["sets"][0]["copy_by_locale"]["en"]["categories"]["love"]["text"][0] = "Changed independently."
+    _save(target, "first-visit.v1.json", first)
+    with pytest.raises(fortune_catalog.FortuneCatalogError, match="canonical copy"):
+        fortune_catalog.load_catalog(target)
+
+
+def test_new_paragraph_assets_preserve_every_approved_source_paragraph():
+    root = Path(__file__).resolve().parents[1]
+    catalog = fortune_catalog.load_catalog()
+    for locale in ("ko", "en", "ja"):
+        directory = root / "docs/fortune-content" / ("ko-rewrite" if locale == "ko" else f"localization/{locale}")
+        for axis in fortune_tarot.AXES:
+            for key, source in json.loads((directory / f"{axis}.json").read_text()).items():
+                field = "flow" if axis == "overall" else "text"
+                assert list(catalog.readings_by_locale[locale][key][field]) == source["paragraphs"]
+
+
+def test_new_copy_allows_approved_korean_fortune_tone_but_legacy_still_rejects_it():
+    assert fortune_catalog._text("재물운이 좋아.", "new", locale="ko", legacy_tone=False) == "재물운이 좋아."
+    with pytest.raises(fortune_catalog.FortuneCatalogError, match="forbidden"):
+        fortune_catalog._text("재물운이 좋아.", "legacy", locale="ko")
+
+
+def test_response_accepts_old_snapshots_and_new_paragraphs_without_schema_change():
+    from app.schemas.fortune import FortuneCategoryResult, FortuneOverallResult
+    common = {"score": 90, "headline": "A good day.", "do": "Finish one task", "pause": "Rushing"}
+    assert FortuneOverallResult(**common, flow=["One.", "Two.", "Three."]).flow == ["One.", "Two.", "Three."]
+    assert FortuneOverallResult(**common, flow=["One paragraph.", "Another paragraph."]).flow == ["One paragraph.", "Another paragraph."]
+    for count in (1, 2, 3):
+        assert len(FortuneCategoryResult(score=90, text=["A paragraph."] * count).text) == count

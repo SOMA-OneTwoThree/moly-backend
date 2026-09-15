@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter, defaultdict
 from hashlib import sha256
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -16,7 +17,7 @@ AXES = ("overall", "love", "money", "work", "energy")
 INTERNAL = re.compile(r"타로|タロット|\btarot\b|major\.[a-z_]+|(?:cups|swords|wands|pentacles)\.\d", re.I)
 
 
-def audit_readings(readings: dict, locale: str, *, complete: bool) -> dict:
+def audit_readings(readings: dict, locale: str, *, complete: bool, paragraph_copy: bool = False) -> dict:
     failures = []
     paragraphs: dict[str, list[str]] = defaultdict(list)
     sentences: dict[str, list[str]] = defaultdict(list)
@@ -29,17 +30,18 @@ def audit_readings(readings: dict, locale: str, *, complete: bool) -> dict:
         chunks = bundle.get("flow" if axis == "overall" else "text", [])
         label = f"{locale}/{key}"
         expected_fields = {"headline", "flow", "do", "pause"} if axis == "overall" else {"text"}
-        if set(bundle) != expected_fields or len(chunks) != (3 if axis == "overall" else 2):
+        allowed = ({2} if axis in {"overall", "work"} else {3} if axis == "love" else {1, 2}) if paragraph_copy else ({3} if axis == "overall" else {2})
+        if set(bundle) != expected_fields or len(chunks) not in allowed:
             failures.append({"entry": label, "reason": "invalid complete bundle shape"})
         if not chunks or not all(isinstance(x, str) and x.strip() == x and x for x in chunks):
             failures.append({"entry": label, "reason": "empty or malformed paragraph"})
             continue
         paragraph = ("" if locale == "ja" else " ").join(chunks)
         parts = [s.strip() for s in re.split(r"[.!?。！？]", paragraph) if s.strip()]
-        if len(parts) != 5:
+        if not paragraph_copy and len(parts) != 5:
             failures.append({"entry": label, "reason": "expected five complete sentences"})
         expected_chunk_sentences = [2, 2, 1] if axis == "overall" else [2, 3]
-        if [len(re.findall(r"[.!?。！？]", chunk)) for chunk in chunks] != expected_chunk_sentences:
+        if not paragraph_copy and [len(re.findall(r"[.!?。！？]", chunk)) for chunk in chunks] != expected_chunk_sentences:
             failures.append({"entry": label, "reason": "sentence split differs from wire contract"})
         texts = [*chunks, *(bundle[k] for k in ("headline", "do", "pause") if k in bundle)]
         for value in texts:
@@ -71,7 +73,41 @@ def audit_readings(readings: dict, locale: str, *, complete: bool) -> dict:
     }
 
 
+def audit_localized() -> dict:
+    """Static asset/source/review comparison; does not import application code."""
+    from scripts.build_fortune_localized_copy import VERSION, build_outputs, encode, read_json
+    failures = []
+    try:
+        expected = build_outputs(ROOT)
+        for path, raw in expected.items():
+            if not path.exists() or path.read_bytes() != raw:
+                failures.append({"entry": str(path.relative_to(ROOT)), "reason": "stale generated asset"})
+        directory = ROOT / "docs/fortune-content/localization"
+        spec = importlib.util.spec_from_file_location("fortune_localization_validation", directory / "validate.py")
+        validator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validator)
+        supplemental = validator.audit()
+        if supplemental["status"] != "pass":
+            failures.append({"entry": "supplemental editorial proofs", "reason": "incomplete or stale localization review",
+                             "errors": supplemental["errors"], "pending": supplemental["pending"]})
+        artifact = directory / "validation.json"
+        if not artifact.exists() or artifact.read_bytes() != encode(supplemental):
+            failures.append({"entry": "localization/validation.json", "reason": "stale validation artifact"})
+    except (ValueError, KeyError, TypeError, OSError) as exc:
+        return {"version": VERSION, "failures": [{"entry": "source/review", "reason": str(exc)}]}
+    reports = {}
+    for locale, filename in zip(LOCALES, ("copy.v3.json", "copy.v3.en.json", "copy.v3.ja.json")):
+        asset = read_json(ROOT / "app/resources/fortune" / filename)
+        reports[locale] = audit_readings(asset["readings"], locale, complete=True, paragraph_copy=True)
+        failures.extend(reports[locale]["failures"])
+    return {"version": VERSION, "locales": reports, "failures": failures,
+            "scope": "Static exact generated assets, canonical first-visit copy, independent and supplemental review hashes; no API execution."}
+
+
 def audit() -> dict:
+    version = json.loads((ROOT / "app/resources/fortune/copy.v3.json").read_text()).get("copy_version", "")
+    if version == "fortune-copy.v8-localized.1":
+        return audit_localized()
     from app.services import fortune_catalog
     fortune_catalog.load_catalog()
     reports = {}
@@ -143,8 +179,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staging", type=Path, help="audit a partial authored file without loading runtime assets")
     parser.add_argument("--locale", choices=LOCALES, default="ko")
+    parser.add_argument("--assets-only", action="store_true", help="statically verify v8 assets and review provenance")
     args = parser.parse_args()
-    if args.staging:
+    if args.assets_only:
+        report = audit_localized()
+    elif args.staging:
         asset = json.loads(args.staging.read_text())
         report = audit_readings(asset["readings"], args.locale, complete=False)
     else:

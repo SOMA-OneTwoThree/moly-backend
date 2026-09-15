@@ -1,0 +1,110 @@
+{
+  "schema": "moly-ko-editorial-static-validation-v1",
+  "status": "pass",
+  "scope": "Editorial files only; no app imports, API, DB, deployment, or language-quality certification.",
+  "static_success_is_not_editorial_approval": true,
+  "expected_total": 780,
+  "actual_total": 780,
+  "expected_overall_short_fields": 468,
+  "actual_overall_short_fields": 468,
+  "expected_cards": 78,
+  "expected_orientations_per_card": 2,
+  "axes": {
+    "overall": {
+      "expected": 156,
+      "copy": 156,
+      "briefs": 156,
+      "author_hashes": 156,
+      "root_current_pass": 156
+    },
+    "love": {
+      "expected": 156,
+      "copy": 156,
+      "briefs": 156,
+      "author_hashes": 156,
+      "root_current_pass": 156
+    },
+    "money": {
+      "expected": 156,
+      "copy": 156,
+      "briefs": 156,
+      "author_hashes": 156,
+      "root_current_pass": 156
+    },
+    "work": {
+      "expected": 156,
+      "copy": 156,
+      "briefs": 156,
+      "author_hashes": 156,
+      "root_current_pass": 156
+    },
+    "energy": {
+      "expected": 156,
+      "copy": 156,
+      "briefs": 156,
+      "author_hashes": 156,
+      "root_current_pass": 156
+    }
+  },
+  "errors": [],
+  "pending": [],
+  "warnings": [],
+  "duplicate_full_bodies": [],
+  "duplicate_sentences": [
+    {
+      "text": "재물운이 좋아.",
+      "occurrences": [
+        {
+          "key": "money.major.chariot.upright",
+          "paragraph": 1
+        },
+        {
+          "key": "money.major.sun.upright",
+          "paragraph": 1
+        },
+        {
+          "key": "money.pentacles.01.upright",
+          "paragraph": 1
+        }
+      ]
+    }
+  ],
+  "repeated_short_fields": {
+    "headline": [],
+    "do": [
+      {
+        "text": "받은 도움에 고마움 전하기",
+        "occurrences": [
+          {
+            "key": "overall.major.empress.upright"
+          },
+          {
+            "key": "overall.cups.02.upright"
+          }
+        ]
+      }
+    ],
+    "pause": []
+  },
+  "input_file_sha256": {
+    "build_review_artifacts.py": "8d48470be47cb15fe5a094efb38038255af98be1bd917c95f31d94ff53e95f1e",
+    "energy.author-review.json": "788760c9936ef825da21b6f3640f7673d82c640bfc26d8f5fa9adb517cbedfc5",
+    "energy.briefs.json": "15e29221749c77249317967db58057e1d70f73ea121023729c12677d97ec08f8",
+    "energy.json": "95fed9389ba19fc58ea76e9aece4cedc87715320597c9ff9196dfe31a8a6f63d",
+    "love.author-review.json": "268a679288d0968ce0a1cdd1b480b07d20b6cd1787bde6952026a8cbefd019ea",
+    "love.briefs.json": "9ae6d2d125c00afc4da80feca3aa3fed1b47e477907b83c72ce64ede027903b1",
+    "love.json": "7f534b6322daf7cd4d7df569def134adf7938a1f43edf9d1c667f86510a50192",
+    "money.author-review.json": "7dbed13a83d42e2ea50b6c45388c187042da135ae402f4b548c8b383505fcb81",
+    "money.briefs.json": "338f404a99e3bc5597f2d44610eeb976ca34c93b53e514e5bf7901bbeef7daaa",
+    "money.json": "b45b8dbde8f732df820389e8f43162aa61bca8fb5030e7b6696b92e7afe6d702",
+    "overall.author-review.json": "02d94c3f1757f3479da80f748249632c67fa9b04676fa4ba0c8d98aec7ff2a02",
+    "overall.briefs.json": "95c1362df3086a50db97cf65e3ca6ab2a3a3fa6b08ff328ce84ab68f040c6ab3",
+    "overall.json": "41f8ffb4cc293568720c158a414aa6fe35f1944757c9dd43c7f652695e11b0f3",
+    "review.json": "8fdc22cdaf876ca052b1992b0b39e22965e5110d076009f2834ff40cb3529296",
+    "source-briefs.json": "6fab560cecac4c60732fafe7bb5ab9a8b472f580a5baae4c820e6f54cd45f332",
+    "work.author-review.json": "ac0711e572ac5fd582b332423a31b502402b9f9151aabe7891da5f945b9c3cdf",
+    "work.briefs.json": "3c68a52a3ca74ae1d849f3e8d7b48376bdb5795183fc1e3716025dba102b1db1",
+    "work.json": "229819f8012eeb5a03de3d2c9fbf1f1ef262a25cd32dae9bd4c53b92e6dde2b5"
+  },
+  "bundle_hash_convention": "sha256(UTF-8 JSON, ensure_ascii=False, sort_keys=True, separators=(',', ':'))"
+}

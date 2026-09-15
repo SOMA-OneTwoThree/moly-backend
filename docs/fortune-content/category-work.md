@@ -1,9 +1,9 @@
 # 일·학업 운세 — 78장 × 정·역방향 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v6-fortune.1` · 서버 자산에서 생성한 전체 전문
-> 한국어: `fortune-copy.v6-fortune.1` · 영어: `fortune-copy.v6-fortune.1` · 일본어: `fortune-copy.v6-fortune.1`
+> 카탈로그 버전: `fortune-copy.v8-localized.1` · 서버 자산에서 생성한 전체 전문
+> 한국어: `fortune-copy.v8-localized.1` · 영어: `fortune-copy.v8-localized.1` · 일본어: `fortune-copy.v8-localized.1`
 > 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.
-> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 서버 JSON에서 한다
+> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 ko-rewrite 및 localization 정본에서 하고 검수 후 자산을 다시 생성한다
 
 [운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
 
@@ -15,2182 +15,2182 @@
 
 내부 ID: `work.cups.01.reversed`
 
-카드 의미: 감정을 표현하거나 받아들이기 어려움. 원전의 변덕·불안정과 현대의 감정 억제를 자기 배려의 필요로 읽음.
+카드 의미: 창의성의 막힘, 의욕 부족
 
-분야 해석: 표현이막히는날
+분야 해석: 주의: 창작 발상의 막힘, 아이디어 업무의 부진과 적은 반응
 
-관찰: 생각은 있는데 첫 문장이 잘 나오지 않아 시작이 더딜 수 있는 날이야. / 말하고 싶은 느낌과 실제로 쓴 글이 달라 몇 번을 지우고 싶어질 수 있어. / 다른 사람에게 설명하다 보면 혼자서는 찾지 못한 쉬운 표현이 나올 거야.
+관찰: 창의성의 막힘 / 의욕 부족
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 생각은 있는데 첫 문장이 잘 나오지 않아 시작이 더딜 수 있는 날이야. 말하고 싶은 느낌과 실제로 쓴 글이 달라 몇 번을 지우고 싶어질 수 있어. 다른 사람에게 설명하다 보면 혼자서는 찾지 못한 쉬운 표현이 나올 거야. 완성하려 애쓰기 전에 전하고 싶은 말을 한 줄만 적어봐. 대강이라도 뜻을 꺼내고 나면 막막했던 시작이 조금 수월해질 수 있어. | You may have an idea but struggle with the first sentence, making it hard to get started. What you write could feel different from what you mean, tempting you to erase it repeatedly. Explaining it to someone else should help you find simpler words you couldn't find on your own. Before trying to finish anything, write just one line saying what you mean. Getting even a rough version out can make the beginning feel less daunting. | 考えはあっても最初の一文が出てこず、取りかかるのが遅くなりそうです。伝えたい感じと実際の文章が違って、何度も消したくなるかもしれません。人に説明しているうちに、一人では見つからなかった簡単な言葉が出てくるでしょう。完成を目指す前に、言いたいことを一行だけ書いてみてください。大まかでも言葉にできれば、難しく感じていた書き出しが少し楽になりそうです。 |
+| 분야 풀이 | 과제에 쓸 생각이 잘 떠오르지 않아 시작이 늦어질 수 있어. 억지로 멋진 답을 만들려 하면 기본 내용도 정리하기 어려워. 묻는 내용부터 짧게 적어보는 게 좋아.<br><br>직장에서는 새 아이디어가 잘 나오지 않거나 제안의 반응이 기대에 못 미칠 수 있어. 오늘은 큰 기획을 한 번에 완성하려 하기보다 필요한 부분부터 채워줘. | A lack of ideas for an assignment could delay your start. Trying to force an impressive answer may make even the basic content hard to organise. Start with a short answer to what's being asked.<br><br>At work, new ideas may be hard to find, or a suggestion could receive less enthusiasm than you hoped. Fill in what's needed first instead of trying to complete an ambitious plan in one go. | 課題のアイデアがなかなか浮かばず、取りかかるのが遅れそうです。無理に見事な答えを作ろうとすると、基本の内容もまとめにくくなります。まず問われたことに、短く答えてみましょう。<br><br>職場では、新しいアイデアが出なかったり、提案への反応が期待に届かなかったりするかもしれません。今日は大きな企画を一度に完成させようとせず、必要な部分から埋めていきましょう。 |
 
 ## cups.01 · 정방향
 
 내부 ID: `work.cups.01.upright`
 
-카드 의미: 감정이 열리고 기쁨을 받아들이는 시작. 원전의 충만과 마음의 만족을 작은 호의와 감각적 즐거움으로 응용.
+카드 의미: 창의성, 새로운 관심
 
-분야 해석: 새로운아이디어와공감
+분야 해석: 좋음: 창작 과제의 발상, 새로운 업무와 제안의 호응
 
-관찰: 글이나 발표에 담고 싶은 생각이 떠오르기 좋은 날이야. / 평소 지나쳤던 이야기에서 흥미로운 소재를 찾고, 배우는 내용에도 새삼 관심이 생길 수 있어. / 내 생각을 들은 사람이 비슷한 경험을 보태며 이야기를 더 풍성하게 해줄 거야.
+관찰: 창의성 / 새로운 관심
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 글이나 발표에 담고 싶은 생각이 떠오르기 좋은 날이야. 평소 지나쳤던 이야기에서 흥미로운 소재를 찾고, 배우는 내용에도 새삼 관심이 생길 수 있어. 내 생각을 들은 사람이 비슷한 경험을 보태며 이야기를 더 풍성하게 해줄 거야. 떠오른 생각 하나를 짧게 적어 가까운 사람에게 보여줘. 혼자 고민하던 때보다 표현이 자연스러워지고, 무엇을 전하고 싶은지도 선명해질 수 있어. | Ideas for your writing or a presentation could come readily today. A story you'd normally overlook may give you an interesting subject, or spark fresh interest in what you're learning. Someone who hears your idea could add a similar experience that gives you more to say. Briefly write down one idea and show it to someone you know well. You may find the words more easily than when you were thinking alone, and see more clearly what you want to convey. | 文章や発表に盛り込みたいアイデアが浮かびやすい日です。いつもなら聞き流す話から面白い題材が見つかったり、学んでいる内容に新たな関心が湧いたりしそうです。考えを聞いた人が似た経験を話してくれて、内容がさらに豊かになるでしょう。思いついたことを一つ短く書き、親しい人に見せてみてください。一人で考えていたときより言葉が自然に出て、伝えたいこともはっきりしてきそうです。 |
+| 분야 풀이 | 글이나 작품에 담을 생각이 잘 떠올라 과제가 수월하게 풀릴 수 있어. 새로 배우는 내용도 흥미롭게 이해하기 좋은 날이야. 떠오른 생각을 직접 써보면 완성할 주제가 보일 거야.<br><br>직장에서는 신선한 제안에 좋은 반응을 얻을 수 있어. 처음 맡은 일에서도 사람들과 편하게 이야기하며 도움을 받을 수 있어. | Ideas for writing or creative work may come readily, making an assignment easier. It's also a good day to understand and enjoy something you're learning for the first time. Writing down your ideas can help you see which topic to develop.<br><br>At work, a fresh suggestion could receive a good response. Even in a task you're handling for the first time, comfortable conversations with others may bring help. | 文章や作品に込める考えが浮かび、課題を順調に進められそうです。新しく学ぶことも、興味を持って理解しやすい日です。思いついたことを実際に書くと、仕上げたいテーマが見えてくるでしょう。<br><br>職場では、新鮮な提案によい反応を得られそうです。初めての仕事でも、周囲と気軽に話しながら、助けを受けられるかもしれません。 |
 
 ## cups.02 · 역방향
 
 내부 ID: `work.cups.02.reversed`
 
-카드 의미: 교류가 어긋나거나 주고받는 정도가 맞지 않음. 화해 불능이 아니라 기대와 경계를 다시 확인하는 뜻.
+카드 의미: 협력의 불일치, 서로 다른 목표
 
-분야 해석: 협업의작은엇박자
+분야 해석: 주의: 협동 과제의 의견 차이, 맞지 않는 협업 목표와 부담
 
-관찰: 함께하는 사람과 설명을 다르게 이해해 손발이 어긋날 수 있는 날이야. / 나는 마쳤다고 생각한 일에서 상대는 아직 필요한 것이 있다고 말할 수 있어. / 처음에는 답답해도 예시를 함께 보면 빠진 부분이 무엇인지 분명해질 거야.
+관찰: 협력의 불일치 / 서로 다른 목표
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께하는 사람과 설명을 다르게 이해해 손발이 어긋날 수 있는 날이야. 나는 마쳤다고 생각한 일에서 상대는 아직 필요한 것이 있다고 말할 수 있어. 처음에는 답답해도 예시를 함께 보면 빠진 부분이 무엇인지 분명해질 거야. 같이 시작하기 전에 누가 무엇을 맡는지 한 번 확인해봐. 서로 못한 일을 따지기보다 필요한 일을 나누면 오후에는 진행이 한결 편해질 수 있어. | You and a collaborator may fall out of step after understanding an explanation differently. Something you consider finished may still be missing a part they need. It could be frustrating at first, but looking at an example together should clarify the gap. Before getting started together, confirm who is handling what. Dividing up what remains, instead of arguing over what went wrong, may make the afternoon's work easier. | 同じ説明を違って受け取り、一緒にする作業がかみ合わないかもしれません。終わったと思った仕事に、相手はまだ必要なものがあると言うこともありそうです。初めはもどかしくても、例を一緒に見れば不足が何かはっきりするでしょう。始める前に、誰が何を担当するか一度確かめてみてください。互いの不備を責めるより必要な仕事を分ければ、午後は進めやすくなりそうです。 |
+| 분야 풀이 | 친구와 함께하는 과제에서 의견이 엇갈려 결과가 늦어질 수 있어. 한 사람만 설명하거나 정리해주면 함께 공부한 효과도 줄어들어.<br><br>직장에서는 서로 다른 목표로 일해 같은 업무를 다시 해야 할 수 있어. 협조가 잘된다고 생각했더라도 상대가 이해한 내용은 다를 수 있어. 맡은 부분과 원하는 결과를 직접 확인해줘. | Disagreements over an assignment with a friend could delay completion. If only one person does the explaining or summarising, studying together may be less useful too.<br><br>At work, different goals could mean having to do the same task again. Even if you thought cooperation was going well, the other person may have understood things differently. Check directly what each of you is handling and what result you want. | 友人と取り組む課題で意見が食い違い、結果が出るまで時間がかかるかもしれません。一人だけが説明やまとめをすると、一緒に学ぶ効果も薄れてしまいます。<br><br>職場では、互いに違う目標で働き、同じ業務をやり直すことになりそうです。協力できていると思っていても、相手の理解は違うかもしれません。担当する部分と目指す結果を、直接確かめてください。 |
 
 ## cups.02 · 정방향
 
 내부 ID: `work.cups.02.upright`
 
-카드 의미: 서로 주고받으며 인정하는 연결. 원전의 우정·호감·일치를 상호성에 근거한 협의로 사용.
+카드 의미: 친화, 결합
 
-분야 해석: 동료와의호흡
+분야 해석: 좋음: 서로 설명하며 높아지는 이해, 협력자의 합의와 공동 성과
 
-관찰: 함께 일하거나 공부하는 사람과 호흡이 잘 맞는 날이야. / 막힌 부분을 설명하면 상대가 바로 알아듣고 필요한 도움을 보태줄 수 있어. / 혼자 오래 붙잡던 문제도 서로의 풀이를 듣다가 쉽게 풀릴 거야.
+관찰: 친화 / 결합
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 일하거나 공부하는 사람과 호흡이 잘 맞는 날이야. 막힌 부분을 설명하면 상대가 바로 알아듣고 필요한 도움을 보태줄 수 있어. 혼자 오래 붙잡던 문제도 서로의 풀이를 듣다가 쉽게 풀릴 거야. 의견을 나누기 전에 지금 가장 궁금한 점을 하나 말해봐. 내가 잘하는 부분도 상대에게 도움이 되어 서로 믿고 맡길 일이 생길 수 있어. | You could work particularly well with a colleague or study partner today. When you explain where you're stuck, they may quickly understand and offer the help you need. A problem you've spent ages on alone could become simpler when you hear each other's approach. Before comparing ideas, say which question matters most to you right now. Something you're good at could help them too, giving you reasons to trust each other with more. | 一緒に働く人や学ぶ人と、呼吸が合いやすい日です。つまずいたところを説明すると、すぐに分かって必要な助けを添えてくれそうです。一人では長く悩んだ問題も、互いの解き方を聞くうちに簡単に解けるでしょう。意見を交わす前に、今一番知りたいことを一つ伝えてみてください。得意なことが相手の役にも立ち、信頼して任せ合えることが増えそうです。 |
+| 분야 풀이 | 친구와 문제를 설명해주며 공부하면 혼자 할 때보다 이해가 빨라질 수 있어. 조별 발표에서도 서로 잘하는 부분이 맞아 좋은 평가를 받을 수 있어.<br><br>직장에서는 협력할 사람과 뜻이 잘 맞아 일이 수월하게 진행될 수 있어. 의견이 달랐던 동료와도 대화가 풀리기 좋은 날이야. 함께 얻을 결과를 이야기하면 협의가 더 쉬워져. | Explaining problems to each other as you study with a friend could help you understand faster than studying alone. Your different strengths may also complement each other in a group presentation and earn a good assessment.<br><br>At work, you and the person you're working with may want the same things, making the task easier. It's a good day to talk things through with a colleague you've disagreed with too. Discussing what you'll achieve together can make agreement easier. | 友人と問題を説明し合って勉強すると、一人のときより理解が速くなりそうです。グループ発表でも、互いの得意なことを組み合わせ、よい評価を得られるかもしれません。<br><br>職場では、協力する人と考えが合い、仕事が楽に進みそうです。意見の違った同僚とも、話が通じやすい日です。一緒に目指す成果を話すと、相談もまとまりやすくなります。 |
 
 ## cups.03 · 역방향
 
 내부 ID: `work.cups.03.reversed`
 
-카드 의미: 함께함이 지나치거나 소속 압박이 즐거움을 가림. 원전의 과잉과 완료를 현대의 모임 피로로 선택.
+카드 의미: 즐김의 과도함, 모임의 불편, 과소비 경계
 
-분야 해석: 수다와역할누락
+분야 해석: 주의: 모임으로 흐트러지는 학습, 직장 내 잡담과 편 가르기
 
-관찰: 함께하는 자리에서 잡담이 길어져 해야 할 일이 밀릴 수 있어. / 모두 아는 이야기라고 넘긴 부분이 실제로는 아무도 맡지 않은 일일 수 있는 날이야. / 뒤늦게 누락을 알아도 필요한 사람끼리 짧게 모이면 해결할 방법은 보일 거야.
+관찰: 즐김의 과도함 / 모임의 불편 / 과소비 경계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께하는 자리에서 잡담이 길어져 해야 할 일이 밀릴 수 있어. 모두 아는 이야기라고 넘긴 부분이 실제로는 아무도 맡지 않은 일일 수 있는 날이야. 뒤늦게 누락을 알아도 필요한 사람끼리 짧게 모이면 해결할 방법은 보일 거야. 오늘 안에 누가 무엇을 끝낼지만 한 번 분명하게 정해봐. 이야기만 많았던 시간 뒤에 작은 결과라도 나오면 남은 작업은 덜 어수선할 거야. | Chatting during a shared task could go on long enough to delay the work. Something everyone assumes is covered may turn out to have no one assigned to it. Even if you notice late, a quick discussion with the people involved could reveal a way forward. Be clear about who will finish what today. Producing even a small result after all the talk can leave the remaining work less chaotic. | 一緒に作業する場で雑談が長くなり、仕事が遅れるかもしれません。みんな分かっていると思っていたことを、実は誰も担当していない場合もありそうです。遅く気づいても、関係する人で短く話せば解決の方法は見えてくるでしょう。今日中に誰が何を終えるか、はっきり決めてみてください。話ばかりだった時間の後に少しでも成果が出れば、残りの作業は混乱せずに進められそうです。 |
+| 분야 풀이 | 함께 공부하려다 잡담이 길어져 진도가 거의 나가지 않을 수 있어. 시험 준비나 조별 과제가 남았다면 친한 사람들끼리 모였다고 일을 뒤로 미루지는 마.<br><br>직장에서는 모임의 뒷말이나 편 가르기가 협업을 불편하게 만들 수 있어. 친분에 따라 정보를 나누면 필요한 일을 놓치는 사람이 생겨. 업무 이야기는 관련된 사람 모두에게 전해줘. | An attempt to study together could turn into a long chat with little progress. If exam preparation or a group assignment still needs doing, don't put it off simply because you're meeting close friends.<br><br>At work, gossip from a gathering or people taking sides could make cooperation uncomfortable. Sharing information only with friends may leave someone else without what they need. Keep everyone involved informed about the work. | 一緒に勉強するつもりが、おしゃべりが長くなり、ほとんど進まないかもしれません。試験の準備やグループ課題が残っているなら、親しい人同士だからと後回しにするのは控えましょう。<br><br>職場では、集まりでの陰口や派閥づくりが、協力を難しくするかもしれません。親しさで情報を伝える相手を選ぶと、必要な仕事を見落とす人が出てしまいます。業務の話は、関係する人全員に伝えてください。 |
 
 ## cups.03 · 정방향
 
 내부 ID: `work.cups.03.upright`
 
-카드 의미: 함께 기뻐하고 나누는 친교. 원전의 즐거운 마무리와 축하를 일상의 작은 모임과 공동 만족으로 사용.
+카드 의미: 기쁨을 나눔, 성취의 마무리, 축하, 위안
 
-분야 해석: 함께받는좋은평가
+분야 해석: 좋음: 함께 준비한 과제의 성과와 축하, 동료와 누리는 성취
 
-관찰: 함께 준비한 일에서 좋은 반응을 얻고 성과를 나눌 수 있는 날이야. / 한 사람의 의견에 다른 사람이 생각을 보태며 혼자 낸 답보다 재미있는 결과가 나올 거야. / 공부 모임에서는 웃으며 나눈 예시가 오래 기억에 남을 수 있어.
+관찰: 기쁨을 나눔 / 성취의 마무리 / 축하
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 준비한 일에서 좋은 반응을 얻고 성과를 나눌 수 있는 날이야. 한 사람의 의견에 다른 사람이 생각을 보태며 혼자 낸 답보다 재미있는 결과가 나올 거야. 공부 모임에서는 웃으며 나눈 예시가 오래 기억에 남을 수 있어. 도움을 받았다면 누가 어떤 부분을 보태줬는지 함께 이야기해줘. 서로 인정받았다는 기분이 남아 다음에 같이하자는 제안도 생길 수 있어. | Something you've prepared together could get a positive response and give you a shared achievement. One person's idea may inspire another, producing a more interesting result than working alone. An example discussed with laughter in a study group could be especially memorable. If others helped, mention who contributed what. Feeling recognized could lead to another suggestion to work together. | 一緒に準備したことが好評で、成果を喜び合えそうです。一人の意見にほかの人が考えを足すと、単独では出せない面白い結果が生まれるでしょう。勉強会では、笑いながら話した例が長く記憶に残りそうです。手伝ってもらったなら、誰がどこを担当したかも伝えてください。お互いに認められたと感じて、次も一緒にやろうという提案が出るかもしれません。 |
+| 분야 풀이 | 함께 준비한 발표나 과제가 좋은 평가를 받을 수 있어. 공부한 친구들과 시험 결과를 기뻐하거나 서로에게 힘이 되는 소식을 나누기 좋아.<br><br>직장에서는 팀이 준비한 일이 성과를 내고 축하받을 수 있어. 동료의 도움으로 끝낸 업무라면 함께 기쁨을 나눠봐. 좋은 분위기 속에서 다음 협력도 수월해질 수 있어. | A presentation or assignment prepared together could receive a good assessment. It's a good day to celebrate exam results with study friends or share encouraging news.<br><br>At work, a team effort could bring results and congratulations. If colleagues helped you finish a task, share the pleasure with them. The good mood may make your next collaboration easier too. | 一緒に準備した発表や課題が、よい評価を受けそうです。勉強仲間と試験結果を喜んだり、互いの励みになる知らせを伝え合ったりするのによい日です。<br><br>職場では、チームで準備した仕事が成果を上げ、祝ってもらえるかもしれません。同僚に助けてもらって終えた仕事なら、一緒に喜びましょう。よい雰囲気の中で、次の協力も進めやすくなりそうです。 |
 
 ## cups.04 · 역방향
 
 내부 ID: `work.cups.04.reversed`
 
-카드 의미: 멈춰 있던 관심이 다시 열리는 방향을 채택. 원전 역해석의 새 관계·새 안내를 재참여의 기회로 응용.
+카드 의미: 새로움, 새로운 가르침, 관심의 재개
 
-분야 해석: 되살아나는학습관심
+분야 해석: 회복: 새 설명으로 이해 재개, 미뤘던 업무와 기회의 진전
 
-관찰: 한동안 손이 가지 않던 일에 다시 관심이 생길 수 있는 날이야. / 전에 이해하지 못한 설명이 쉽게 들리거나, 익숙한 과제에서 해보고 싶은 방법이 떠오를 거야. / 동료나 선생님의 한마디가 막혀 있던 시작을 도와줄 수 있어.
+관찰: 새로움 / 새로운 가르침 / 관심의 재개
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 손이 가지 않던 일에 다시 관심이 생길 수 있는 날이야. 전에 이해하지 못한 설명이 쉽게 들리거나, 익숙한 과제에서 해보고 싶은 방법이 떠오를 거야. 동료나 선생님의 한마디가 막혀 있던 시작을 도와줄 수 있어. 다시 궁금해진 부분을 미루지 말고 한 번 직접 해봐. 처음보다 수월하게 풀리는 문제가 있어 배우는 재미를 조금씩 되찾을 수 있어. | Interest could return to work you've struggled to start for a while. An explanation you didn't understand before may click, or a familiar assignment could suggest a method you'd like to try. A remark from a colleague or teacher might help you get past the starting point. Try the part that has caught your interest again rather than postponing it. Solving something more easily than before could gradually bring back the pleasure of learning. | しばらく手がつかなかった仕事に、また関心が湧きそうです。前は分からなかった説明がすんなり理解できたり、いつもの課題に試したい方法が浮かんだりするかもしれません。同僚や先生の一言が、取りかかれずにいたところを助けてくれそうです。再び気になった部分を先延ばしにせず、一度やってみてください。以前より楽に解ける問題があって、学ぶ面白さを少しずつ取り戻せるでしょう。 |
+| 분야 풀이 | 전에 이해하지 못한 내용이 새로운 설명을 듣고 풀릴 수 있어. 손을 놓았던 과목이나 과제를 다시 시작하기 좋은 날이야.<br><br>직장에서는 미뤄뒀던 일이 다시 진행되거나 한 번 넘겼던 제안을 새롭게 검토할 수 있어. 전에는 눈에 띄지 않았던 장점이 보여 기회를 잡을 수 있어. 바뀐 조건을 확인한 뒤 참여할지 정해봐. | A new explanation could make something you didn't understand before fall into place. It's a good day to return to a subject or assignment you set aside.<br><br>At work, a postponed task may resume, or you could reconsider a proposal you passed over. Benefits you didn't notice before may help you see an opportunity. Check the changed conditions before deciding whether to take part. | 前にわからなかった内容が、新しい説明を聞いて理解できそうです。手を止めていた科目や課題を、再び始めるのによい日です。<br><br>職場では、保留にした仕事が動きだしたり、一度見送った提案を改めて検討したりできそうです。以前は気づかなかった長所が見え、機会をつかめるかもしれません。条件の変化を確かめてから、参加するか決めましょう。 |
 
 ## cups.04 · 정방향
 
 내부 ID: `work.cups.04.upright`
 
-카드 의미: 주어진 선택에 마음이 가지 않는 권태와 재평가. 원전의 싫증·불만을 억지 만족 대신 실제 필요를 돌아보는 뜻으로 사용.
+카드 의미: 권태, 불만족, 기회에 대한 무관심
 
-분야 해석: 반복학습의권태
+분야 해석: 정체와 주의: 권태로 인한 이해 저하, 익숙한 업무의 실수와 기회 외면
 
-관찰: 반복하는 일이나 공부가 지루해 집중이 쉽게 끊길 수 있어. / 알고 있는 내용이라 생각해 지나친 부분에서 작은 실수가 나올 수도 있는 날이야. / 동료나 친구의 다른 풀이를 듣고 나면 익숙한 문제에도 새로 볼 점이 생길 거야.
+관찰: 권태 / 불만족 / 기회에 대한 무관심
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 반복하는 일이나 공부가 지루해 집중이 쉽게 끊길 수 있어. 알고 있는 내용이라 생각해 지나친 부분에서 작은 실수가 나올 수도 있는 날이야. 동료나 친구의 다른 풀이를 듣고 나면 익숙한 문제에도 새로 볼 점이 생길 거야. 계속 같은 곳을 읽고 있다면 짧은 문제 하나를 직접 풀어봐. 정작 헷갈렸던 부분을 발견하며 남은 공부에 다시 관심이 생길 수 있어. | Repetitive work or study may feel dull and make your concentration drift. You could skim something you think you know, then make a small mistake. A colleague's or friend's different approach may reveal something new in a familiar problem. If you keep reading the same passage, try answering one short question yourself. Noticing what actually confused you could renew your interest in the rest of the lesson. | 繰り返す仕事や勉強が退屈で、集中が途切れやすいかもしれません。知っていると思って飛ばしたところで、小さな間違いが出ることもありそうです。同僚や友人の別の解き方を聞けば、見慣れた問題にも新しく考える点が見つかるでしょう。同じところばかり読んでいたら、短い問題を一つ実際に解いてみてください。本当に迷っていた点に気づき、残りの勉強にもまた関心が湧くかもしれません。 |
+| 분야 풀이 | 공부가 지루하게 느껴져 읽은 내용이 잘 남지 않을 수 있어. 아는 부분이라고 수업을 흘려들으면 시험에 필요한 설명도 놓치기 쉬워. 짧게라도 직접 문제를 풀며 이해를 확인해봐.<br><br>직장에서는 늘 하던 일을 무심하게 처리하다 작은 실수가 날 수 있어. 새로운 제안도 관심 없이 넘기면 자신에게 맞는 기회를 놓칠 수 있어. | Boredom with studying may make it hard to remember what you've read. Tuning out a lesson because the topic seems familiar could also mean missing an explanation you need for an exam. Try a few problems yourself to check your understanding.<br><br>At work, handling a routine task without much thought could cause a small mistake. Dismissing a new proposal without interest may also mean missing an opportunity that suits you. | 勉強を退屈に感じ、読んだ内容が記憶に残りにくいかもしれません。知っている部分だと授業を聞き流すと、試験に必要な説明まで逃しがちです。少しでも実際に問題を解いて、理解を確かめましょう。<br><br>職場では、いつもの仕事を何となくこなし、小さなミスをするかもしれません。新しい提案も関心を持たずに流すと、合う機会を逃す可能性があります。 |
 
 ## cups.05 · 역방향
 
 내부 ID: `work.cups.05.reversed`
 
-카드 의미: 지난 실망을 받아들이고 남은 것을 다시 알아보는 회복을 채택. 원전의 귀환과 다른 현대적 독해임을 명시.
+카드 의미: 다시 연결, 도움 수용, 후회에서 벗어남
 
-분야 해석: 실수뒤의다시도전
+분야 해석: 회복: 실점 원인의 이해와 도움, 실망 뒤의 업무 재개·화해
 
-관찰: 한번 틀린 문제나 지적받은 일을 다시 해볼 기회가 생길 수 있어. / 처음에는 어렵게 들렸던 설명도 다시 읽으면 무엇을 바꿔야 할지 쉽게 보일 거야. / 이전에 도와줬던 사람이 기억나는 예시를 보태줘 자신감을 되찾을 수 있어.
+관찰: 다시 연결 / 도움 수용 / 후회에서 벗어남
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한번 틀린 문제나 지적받은 일을 다시 해볼 기회가 생길 수 있어. 처음에는 어렵게 들렸던 설명도 다시 읽으면 무엇을 바꿔야 할지 쉽게 보일 거야. 이전에 도와줬던 사람이 기억나는 예시를 보태줘 자신감을 되찾을 수 있어. 고치고 싶었던 부분을 오늘 한 번 다시 풀어봐. 전에는 막혔던 곳을 지나며 실수한 경험도 도움이 됐다는 걸 느낄 수 있어. | You could have another chance at a question you got wrong or work that received criticism. An explanation that seemed difficult the first time may now make the necessary change obvious. Someone who helped before could add a memorable example and rebuild your confidence. Try the part you've wanted to correct once more today. Getting past where you previously stalled could show you how the mistake helped you learn. | 一度間違えた問題や指摘を受けた仕事に、再び取り組む機会がありそうです。初めは難しく聞こえた説明も、読み直せば変えるところが分かりやすいでしょう。以前助けてくれた人が覚えやすい例を添えて、自信を取り戻せるかもしれません。直したかった部分を、今日もう一度解いてみてください。前につまずいたところを越えて、間違えた経験も役立ったと感じられそうです。 |
+| 분야 풀이 | 아쉬웠던 시험에서 무엇을 보완해야 할지 알게 될 수 있어. 선생님이나 친구의 설명을 받아들이면 같은 유형의 문제도 전보다 수월하게 풀릴 수 있어.<br><br>직장에서는 결과가 좋지 않았던 일을 다시 살릴 방법이 나올 수 있어. 동료와 어긋났던 대화도 사과를 나누며 풀릴 수 있어. 혼자 자책하기보다 필요한 도움을 요청해봐. | A disappointing exam could help you identify what needs improving. Taking on board a teacher's or friend's explanation may make the same type of question easier than before.<br><br>At work, a way to revive something that went badly could emerge. Apologies may also clear up a conversation that went wrong with a colleague. Ask for the help you need instead of sitting alone blaming yourself. | 満足できなかった試験から、補うべきことが見つかりそうです。先生や友人の説明を受け入れると、同じ形式の問題も、以前より楽に解けるかもしれません。<br><br>職場では、結果のよくなかった仕事を立て直す方法が出てきそうです。同僚とのすれ違いも、互いに謝ることで解けるかもしれません。一人で自分を責め続けるより、必要な助けを求めましょう。 |
 
 ## cups.05 · 정방향
 
 내부 ID: `work.cups.05.upright`
 
-카드 의미: 뜻대로 되지 않은 것에 마음이 머물러 남은 것을 놓침. 원전 그림의 엎어진 잔과 남은 잔을 현대의 실망·후회로 해석.
+카드 의미: 기대에 못 미침, 상실, 남아 있는 것
 
-분야 해석: 기대한평가와차이
+분야 해석: 주의: 기대 이하의 성적과 평가, 일부 손실과 남은 성과
 
-관찰: 기대했던 칭찬보다 고칠 점을 먼저 들어 조금 실망할 수 있어. / 공부에서는 아는 문제를 틀려 실제보다 실력이 부족하게 느껴질 수도 있어. / 다시 살펴보면 잘한 부분은 남아 있고, 반복해서 놓친 실수도 분명해질 거야.
+관찰: 기대에 못 미침 / 상실 / 남아 있는 것
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 칭찬보다 고칠 점을 먼저 들어 조금 실망할 수 있어. 공부에서는 아는 문제를 틀려 실제보다 실력이 부족하게 느껴질 수도 있어. 다시 살펴보면 잘한 부분은 남아 있고, 반복해서 놓친 실수도 분명해질 거야. 오늘은 지적받은 내용 중 한 가지부터 고쳐봐. 작게라도 수정한 결과를 보고 나면 처음 들었을 때만큼 막막하지는 않을 거야. | Hearing what needs fixing before the praise you expected could be disappointing. In your studies, getting a familiar question wrong might make you feel less capable than you are. A second look should reveal both what you did well and the mistake you keep missing. Start by correcting just one point that was raised today. Seeing even a small improvement may leave the feedback feeling less daunting than it first did. | 期待した褒め言葉より先に修正点を聞き、少しがっかりするかもしれません。勉強では、知っている問題を間違えて実際より力不足に感じることもありそうです。見直せばよくできた部分も残っていて、繰り返す間違いもはっきりするでしょう。今日は指摘されたところを一つから直してみてください。少しでも直した結果を見ると、初めに聞いたときほど難しく感じなくなりそうです。 |
+| 분야 풀이 | 시험이나 과제의 결과가 기대에 못 미쳐 아쉬울 수 있어. 몇 문제를 틀렸다고 전체 실력이 부족하다고 단정하지 마. 틀린 이유를 확인하면 다음 공부에서 보완할 부분을 알 수 있어.<br><br>직장에서는 기대하던 제안이 받아들여지지 않거나 일의 일부가 무산될 수 있어. 전체 성과가 모두 사라진 것은 아닐 수 있으니 계속할 수 있는 부분을 확인해줘. | An exam or assignment result may fall short of your hopes. Getting a few questions wrong doesn't mean you're weak at the whole subject. Checking why the answers were wrong can show you what to work on next.<br><br>At work, a proposal you had hopes for may be declined, or part of a project could fall through. The entire achievement may not be lost, so check which parts can continue. | 試験や課題の結果が期待に届かず、残念に感じるかもしれません。何問か間違えただけで、全体的に実力が足りないと決めつけることはありません。間違いの理由を確かめると、次の勉強で補う部分がわかるでしょう。<br><br>職場では、期待した提案が受け入れられなかったり、仕事の一部がなくなったりするかもしれません。すべての成果が失われたわけではない可能性もあるので、続けられる部分を確かめてください。 |
 
 ## cups.06 · 역방향
 
 내부 ID: `work.cups.06.reversed`
 
-카드 의미: 과거의 이상화에서 벗어나 현재에 맞추는 독해. 원전의 미래·갱신 의미를 낡은 기대의 조정으로 채택.
+카드 의미: 미래, 갱신, 과거와 현재의 구분
 
-분야 해석: 오래된방식의한계
+분야 해석: 전환과 주의: 바뀐 출제·학습 내용, 오래된 관행과 현재 업무의 차이
 
-관찰: 예전에 통하던 답이나 방식이 이번에는 잘 맞지 않을 수 있어. / 익숙해서 빠르게 끝낸 일에서 바뀐 내용이 빠져 다시 살펴볼 거야. / 새로 배운 사람의 질문이 오히려 지금 필요한 기준을 분명하게 해줄 수 있어.
+관찰: 미래 / 갱신 / 과거와 현재의 구분
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 통하던 답이나 방식이 이번에는 잘 맞지 않을 수 있어. 익숙해서 빠르게 끝낸 일에서 바뀐 내용이 빠져 다시 살펴볼 거야. 새로 배운 사람의 질문이 오히려 지금 필요한 기준을 분명하게 해줄 수 있어. 기억대로 하기 전에 최신 예시 하나를 확인해봐. 처음에는 낯설어도 달라진 방법이 더 간단하다는 걸 알게 될 수 있는 날이야. | An answer or method that worked before may not fit this time. Something you finished quickly from habit could need revisiting because an update was missed. A question from a newer learner may actually make the current requirements clearer. Check one recent example before proceeding from memory. A changed method could turn out simpler, even if it first feels unfamiliar. | 以前通用した答えや方法が、今回は合わないかもしれません。慣れで早く終えた仕事に変更点が抜けていて、見直すことになりそうです。学び始めたばかりの人の質問が、かえって今の基準を明確にしてくれるでしょう。記憶のまま進める前に、新しい例を一つ確かめてみてください。初めは不慣れでも、変わった方法のほうが簡単だと分かるかもしれません。 |
+| 분야 풀이 | 예전에 잘 풀던 방법이 지금 문제에는 맞지 않을 수 있어. 출제 조건이나 배운 내용이 바뀌었다면 익숙한 답부터 고르지 마. 새 설명을 확인하면 놓친 차이를 이해할 수 있어.<br><br>직장에서는 과거의 성공 사례를 그대로 적용했다가 수정 요청을 받을 수 있어. 예전에는 통했던 방식도 지금의 고객이나 동료에게는 다를 수 있으니 현재 요구를 들어봐. | A method that worked well before may not fit the question you're facing now. If the question's conditions or the material have changed, don't reach straight for the familiar answer. Checking the new explanation can reveal a difference you missed.<br><br>At work, copying a method that succeeded in the past could bring requests for changes. A method that once worked may not suit today's customers or colleagues, so hear what they need now. | 以前うまく解けた方法が、今の問題には合わないかもしれません。出題条件や学ぶ内容が変わったなら、見慣れた答えをすぐ選ぶのは控えましょう。新しい説明を確かめると、見落とした違いを理解できそうです。<br><br>職場では、過去の成功例をそのまま使い、修正を求められるかもしれません。前に通用した方法も、今の顧客や同僚には合わない可能性があるので、現在の要望を聞いてください。 |
 
 ## cups.06 · 정방향
 
 내부 ID: `work.cups.06.upright`
 
-카드 의미: 익숙한 기억과 순수한 호의. 원전의 지난 즐거움과 추억을 지금의 친근함을 여는 단서로 사용.
+카드 의미: 과거의 즐거움, 추억, 익숙함, 친절
 
-분야 해석: 기억해낸배움
+분야 해석: 좋음: 예전에 배운 내용의 재활용, 익숙한 동료와 경험의 도움
 
-관찰: 예전에 배운 내용이 떠올라 막힌 문제를 푸는 데 도움이 될 수 있어. / 한동안 쓰지 않았던 방법도 다시 해보면 생각보다 익숙하게 손에 잡힐 거야. / 오래 함께한 동료나 친구가 당시의 예시를 기억해줘 설명이 쉬워질 수 있어.
+관찰: 과거의 즐거움 / 추억 / 익숙함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 배운 내용이 떠올라 막힌 문제를 푸는 데 도움이 될 수 있어. 한동안 쓰지 않았던 방법도 다시 해보면 생각보다 익숙하게 손에 잡힐 거야. 오래 함께한 동료나 친구가 당시의 예시를 기억해줘 설명이 쉬워질 수 있어. 지금 문제와 비슷했던 예전 풀이를 한 번 찾아봐. 새로 배울 내용에서도 아는 것과 연결되는 부분을 발견해 기억하기 편해질 거야. | Something you learned long ago could come back and help solve a problem. A method you haven't used in a while may feel surprisingly familiar once you try it again. A longtime colleague or friend could recall an example that makes the explanation easier. Look up an earlier solution similar to the problem you have now. Finding links between new material and what you already know could make it easier to remember. | 昔学んだことを思い出し、行き詰まった問題を解く助けになりそうです。しばらく使っていない方法も、再び試すと意外に手になじむでしょう。長い付き合いの同僚や友人が当時の例を覚えていて、説明が分かりやすくなるかもしれません。今の問題に似た昔の解き方を、一度探してみてください。新しく学ぶことにも知っている内容とのつながりが見つかり、覚えやすくなりそうです。 |
+| 분야 풀이 | 예전에 배운 내용이 떠올라 문제를 쉽게 풀 수 있어. 오래전에 틀렸던 문제도 다시 보면 이해가 달라져 있을 수 있어. 복습해둔 내용이 시험에서 좋은 점수로 이어질 수 있어.<br><br>직장에서는 전에 함께 일한 사람이나 익숙한 경험이 도움이 될 수 있어. 예전 사례를 살펴보면 지금 막힌 업무에도 적용할 방법을 찾을 수 있어. | Remembering something you learned before could make a problem easy to solve. Even a question you got wrong long ago may make more sense when you revisit it. Material you've revised could lead to good marks in an exam.<br><br>At work, a former colleague or familiar experience could prove helpful. Looking at a past example may reveal an approach you can use on a task that's currently stuck. | 以前学んだ内容を思い出し、問題を楽に解けそうです。昔間違えた問題も、見直すと理解が変わっているかもしれません。復習しておいたことが、試験でよい点につながりそうです。<br><br>職場では、以前一緒に働いた人や、過去の経験が力になりそうです。前の事例を調べれば、今止まっている業務にも、使える方法が見つかるかもしれません。 |
 
 ## cups.07 · 역방향
 
 내부 ID: `work.cups.07.reversed`
 
-카드 의미: 환상에서 현실적인 선택으로 좁혀가는 의지. 원전의 결심·목적을 채택하며 단순 흉으로 뒤집지 않음.
+카드 의미: 의지, 결정, 목표를고름
 
-분야 해석: 선택한과제에집중
+분야 해석: 진전: 선택한 공부의 이해, 정해지는 과제·업무와 실제 결과
 
-관찰: 여러 생각 중 실제로 해낼 수 있는 답이 분명해질 수 있어. / 혼자 멋지게 상상한 방법보다 간단히 시도한 풀이에서 좋은 결과가 나올 거야. / 발표나 면접 준비에서도 꼭 말해야 할 경험을 골라내기 쉬운 날이야.
+관찰: 의지 / 결정 / 목표를고름
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 여러 생각 중 실제로 해낼 수 있는 답이 분명해질 수 있어. 혼자 멋지게 상상한 방법보다 간단히 시도한 풀이에서 좋은 결과가 나올 거야. 발표나 면접 준비에서도 꼭 말해야 할 경험을 골라내기 쉬운 날이야. 가장 설득력 있는 예시 하나를 끝까지 다듬어봐. 불필요한 내용을 덜어낸 설명이 상대에게는 오히려 명료하게 전달될 수 있어. | One workable answer could stand out from several ideas. A simple approach you actually try may work better than an elaborate one imagined alone. Preparing for a presentation or interview could also make it easier to select the experience you most need to mention. Refine the single example that makes your case best. Leaving out unnecessary material may make your explanation clearer to the other person. | いくつかの案から、実際にできる答えがはっきりしてきそうです。一人で立派に思い描いた方法より、簡単に試した解き方がよい結果につながるでしょう。発表や面接の準備でも、必ず話したい経験を選びやすい日です。一番説得力のある例を一つ、最後まで磨いてみてください。余計な内容を減らした説明のほうが、相手には明確に伝わるかもしれません。 |
+| 분야 풀이 | 여러 설명 사이에서 헷갈리던 내용을 하나로 정리할 수 있어. 자신에게 맞는 풀이를 고르면 문제를 푸는 속도도 빨라질 수 있어.<br><br>직장에서는 여러 안건 중 진행할 일이 정해질 수 있어. 가능성이 낮은 제안을 덜어내면 맡은 업무의 성과가 분명해져. 결정한 일부터 실제로 끝내보기 좋은 날이야. | You could resolve confusion between different explanations and reach a clear understanding. Choosing a solution method that suits you may also help you answer questions faster.<br><br>At work, a decision could be made about which of several proposals to pursue. Setting aside unlikely proposals may make the results of your own work clearer. It's a good day to finish the task you've decided on. | いくつもの説明の間で混乱していた内容を、一つに整理できそうです。合う解き方を選べば、問題を解く速さも上がるかもしれません。<br><br>職場では、複数の案件から、進める仕事が決まりそうです。実現しにくい提案を減らすと、担当業務の成果がはっきりします。決めた仕事から実際に終えるのによい日です。 |
 
 ## cups.07 · 정방향
 
 내부 ID: `work.cups.07.upright`
 
-카드 의미: 매력적인 상상과 많은 선택지가 실제 판단을 흐림. 원전의 환상·상상을 선택의 풍부함과 불명확함으로 응용.
+카드 의미: 상상, 매력적인가능성, 실체의불확실성
 
-분야 해석: 아이디어는많고진행은더딤
+분야 해석: 주의: 여러 자료와 예상에 치우친 학습, 실체가 부족한 아이디어와 제안
 
-관찰: 해보고 싶은 아이디어가 많아 하나를 고르는 데 시간이 걸릴 수 있어. / 발표나 과제의 모습은 멋지게 떠오르지만 실제로 시작하면 필요한 일이 더 많을 거야. / 선생님이나 동료의 질문을 듣고 나서야 빠져 있던 핵심이 보일 수 있어.
+관찰: 상상 / 매력적인가능성 / 실체의불확실성
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 해보고 싶은 아이디어가 많아 하나를 고르는 데 시간이 걸릴 수 있어. 발표나 과제의 모습은 멋지게 떠오르지만 실제로 시작하면 필요한 일이 더 많을 거야. 선생님이나 동료의 질문을 듣고 나서야 빠져 있던 핵심이 보일 수 있어. 오늘은 떠오른 생각 중 직접 보여줄 수 있는 예시 하나만 만들어봐. 작게 시험한 결과에서 계속할 아이디어와 미뤄둘 아이디어가 나뉠 수 있어. | So many ideas may appeal to you that choosing one takes time. A presentation or assignment could look impressive in your mind but need more work once you start. A teacher's or colleague's question may reveal a crucial part you've missed. Make just one example you can actually show today. A small trial could distinguish the idea worth continuing from those to leave for later. | 試したいアイデアが多く、一つを選ぶのに時間がかかりそうです。頭の中では立派な発表や課題を思い描いていても、実際に始めると必要な作業の多さに気づくかもしれません。先生や同僚の質問を聞いて、初めて大事な点の不足に気づくこともあるでしょう。今日は浮かんだ案から、実際に見せられる例を一つだけ作ってみてください。小さく試した結果から、続ける案と後に回す案を分けられそうです。 |
+| 분야 풀이 | 공부한 양에 비해 스스로 풀 수 있는 문제가 적을 수 있어. 예상 문제만 따라가면 시험에서 다른 유형을 만났을 때 막히기 쉬워. 고른 자료 하나를 끝까지 이해해보는 게 좋아.<br><br>직장에서는 그럴듯한 제안이 많아도 바로 실행할 수 있는 일은 적을 수 있어. 좋은 결과를 상상하기 전에 필요한 시간과 조건을 확인해줘. | Despite plenty of studying, you may find few questions you can solve on your own. Following only predicted exam questions could leave you stuck when a different type appears. Choose one study resource and work to understand it fully.<br><br>At work, many proposals may sound promising, but few may be ready to carry out. Check the time and conditions needed before imagining the good results. | 勉強した量のわりに、自力で解ける問題が少ないかもしれません。予想問題だけを追うと、試験で別の形式に出会ったとき、行き詰まりやすくなります。教材を一つ選び、最後まで理解するように取り組みましょう。<br><br>職場では、魅力的な提案が多くても、すぐ実行できることは少ないかもしれません。よい結果を想像する前に、必要な時間と条件を確かめてください。 |
 
 ## cups.08 · 역방향
 
 내부 ID: `work.cups.08.reversed`
 
-카드 의미: 떠날지 머물지 망설이거나 만족을 다시 발견함. 원전 역방향의 기쁨과 현대적 변화 두려움 중 재검토의 갈림을 선택.
+카드 의미: 떠남의두려움, 머무름과변화사이의망설임
 
-분야 해석: 다시살펴보는작업
+분야 해석: 정체: 효과 없는 공부의 지속, 벗어나지 못한 업무와 반복되는 불만
 
-관찰: 접어두려던 작업에서 아직 쓸 만한 부분이 발견될 수 있어. / 전부 다시 해야 한다고 생각했는데 일부를 고치면 이어갈 수 있다는 말을 들을 거야. / 반대로 익숙한 방법 때문에 같은 문제를 반복했다는 점도 눈에 들어올 수 있어.
+관찰: 떠남의두려움 / 머무름과변화사이의망설임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 접어두려던 작업에서 아직 쓸 만한 부분이 발견될 수 있어. 전부 다시 해야 한다고 생각했는데 일부를 고치면 이어갈 수 있다는 말을 들을 거야. 반대로 익숙한 방법 때문에 같은 문제를 반복했다는 점도 눈에 들어올 수 있어. 다시 시작하기 전에 살릴 부분 하나와 바꿀 부분 하나를 적어봐. 막연히 포기하거나 붙잡고 있던 때보다 다음 할 일이 분명해질 수 있어. | Work you were ready to abandon could still contain something useful. You may hear that changing a few parts would let you continue, rather than starting everything again. At the same time, you might see how sticking to a familiar method has repeated the same problem. Before restarting, note one part to keep and one to change. That could make the next step clearer than either holding on or giving up without examining it. | やめようとしていた作業に、まだ使える部分が見つかるかもしれません。全部やり直すと思っていたのに、一部を直せば続けられると聞きそうです。反対に、慣れた方法のせいで同じ問題を繰り返していたことにも気づくでしょう。再開する前に、生かす部分と変える部分を一つずつ書いてみてください。漠然と諦めたり手放せずにいたりしたときより、次にすることがはっきりしそうです。 |
+| 분야 풀이 | 공부한 시간은 늘어도 성적은 기대만큼 오르지 않을 수 있어. 익숙한 설명을 바꾸기 싫어 같은 부분만 반복하고 있다면 다른 풀이도 들어봐.<br><br>직장에서는 그만 맡기로 했던 일이 다시 돌아와 부담이 될 수 있어. 바뀔 거라는 말만 믿고 기다리면 같은 불만이 이어지기 쉬워. 실제로 역할을 나눌 수 있는지 확인해줘. | More hours of study may not raise your marks as much as you hoped. If you're repeating the same material because you don't want to change a familiar explanation, hear a different approach too.<br><br>At work, a task you'd agreed to stop handling could return and become a burden. Waiting on a promise that things will change may leave you with the same complaints. Check whether the responsibilities can actually be shared. | 勉強の時間が増えても、成績は思ったほど上がらないかもしれません。慣れた解説を変えたくなくて、同じ部分ばかり繰り返しているなら、別の解き方も聞いてみましょう。<br><br>職場では、担当を外れるはずだった仕事が戻り、負担になるかもしれません。変わるという言葉だけを信じて待つと、同じ不満が続きがちです。実際に役割を分けられるか、確かめてください。 |
 
 ## cups.08 · 정방향
 
 내부 ID: `work.cups.08.upright`
 
-카드 의미: 겉으로 갖춰져 있어도 더는 만족하지 않는 것을 떠나는 선택. 원전의 쇠퇴·중요성 약화를 자발적인 우선순위 전환으로 사용.
+카드 의미: 의미를잃은것에서떠남, 관심의쇠퇴, 다른선택
 
-분야 해석: 오래맡은일의마무리
+분야 해석: 전환: 맞지 않는 공부에서 성과 부족, 역할·업무의 마무리와 이동
 
-관찰: 오래 맡아온 일이 끝나거나 듣던 수업을 마무리할 수 있어. / 익숙한 과제를 더 하지 않아도 된다는 후련함과 아쉬움이 함께 들 거야. / 새로 맡을 일이나 다른 배움에 관한 소개를 받아 다음을 생각하게 될 수 있어.
+관찰: 의미를잃은것에서떠남 / 관심의쇠퇴 / 다른선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 맡아온 일이 끝나거나 듣던 수업을 마무리할 수 있어. 익숙한 과제를 더 하지 않아도 된다는 후련함과 아쉬움이 함께 들 거야. 새로 맡을 일이나 다른 배움에 관한 소개를 받아 다음을 생각하게 될 수 있어. 끝내기 전에 나중에도 필요한 내용만 짧게 남겨둬. 이미 배운 것이 새 일에서도 도움이 될 수 있다는 말을 들으며 한결 편하게 다음을 바라볼 거야. | A task you've handled for a long time or a course you're taking could finish. Relief at no longer repeating a familiar assignment may come with a little sadness. An introduction to new work or another learning opportunity could turn your thoughts to what's next. Before finishing, keep a brief note of anything you'll need again. Hearing that what you've learned can help in the next task may make moving on feel easier. | 長く担当した仕事や受けていた授業が、終わることがありそうです。慣れた課題をもうしなくてよい気楽さと、名残惜しさを両方感じるでしょう。次に担当する仕事や別の学びを紹介され、先のことを考えるかもしれません。終わる前に、後でも必要な内容だけ短く残しておきましょう。学んだことが新しい仕事でも役立つと聞き、次に進む気持ちが楽になりそうです。 |
+| 분야 풀이 | 지금까지 해온 공부가 원하는 결과로 이어지지 않아 아쉬울 수 있어. 잘 맞지 않는 자료나 수업을 계속 붙잡기보다 다른 설명을 찾아볼 때야. 자신에게 필요한 내용을 다시 고르면 막혔던 부분도 이해할 수 있어.<br><br>직장에서는 맡던 역할을 끝내거나 다른 일을 제안받을 수 있어. 성과 없이 이어온 업무라면 계속할지 마무리할지 분명히 정하는 게 좋아. | The studying you've done so far may not bring the results you want. It's time to seek another explanation instead of holding on to material or classes that don't suit you. Choosing what you actually need could help you understand a difficult part.<br><br>At work, your current role may end, or you could be offered different work. If a task has continued without results, make a clear decision about whether to carry on or bring it to a close. | これまでの勉強が望む結果につながらず、がっかりするかもしれません。合わない教材や授業にこだわるより、別の説明を探すときです。必要な内容を選び直すと、行き詰まった部分も理解できそうです。<br><br>職場では、今の役割を終えたり、別の仕事を提案されたりするかもしれません。成果のないまま続いた業務なら、続けるか終えるか、はっきり決めるとよさそうです。 |
 
 ## cups.09 · 역방향
 
 내부 ID: `work.cups.09.reversed`
 
-카드 의미: 원했던 것을 얻어도 만족이 기대에 미치지 못함. 원전의 다양한 역해석 중 현대의 겉만 충족된 상태를 선택.
+카드 의미: 겉의성취와내면만족의차이, 불완전함, 과도한기대
 
-분야 해석: 칭찬과완성도의차이
+분야 해석: 주의: 성과와 만족의 차이, 과한 기대에 따른 평가 실망
 
-관찰: 좋은 평가를 들어도 스스로 아쉬운 부분이 남을 수 있는 날이야. / 결과는 괜찮아 보이지만 설명을 해보면 정확히 모르는 내용이 드러날 거야. / 반대로 혼자 크게 신경 쓴 작은 실수는 상대에게 중요한 문제가 아니었을 수도 있어.
+관찰: 겉의성취와내면만족의차이 / 불완전함 / 과도한기대
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋은 평가를 들어도 스스로 아쉬운 부분이 남을 수 있는 날이야. 결과는 괜찮아 보이지만 설명을 해보면 정확히 모르는 내용이 드러날 거야. 반대로 혼자 크게 신경 쓴 작은 실수는 상대에게 중요한 문제가 아니었을 수도 있어. 칭찬이나 아쉬움만 붙잡기보다 실제로 더 배울 부분 하나를 골라봐. 평가와 별개로 필요한 공부를 알게 되면 다음 목표는 더 분명해질 수 있어. | Even good feedback may leave you aware of something you wish were better. A result can look fine while explaining it reveals a gap in your understanding. On the other hand, a small mistake that bothers you may not matter much to the person reviewing it. Choose one thing you actually need to learn, rather than dwelling on praise or disappointment. Understanding what to study regardless of the evaluation can make your next goal clearer. | よい評価を聞いても、自分には気になるところが残りそうです。結果はよく見えても、説明すると正確には分かっていない内容が見えるかもしれません。反対に、一人で気にした小さなミスは相手には重要でなかった場合もあるでしょう。褒め言葉や残念な気持ちばかり考えず、実際に学びたい点を一つ選んでみてください。評価とは別に必要な勉強が分かれば、次の目標もはっきりしそうです。 |
+| 분야 풀이 | 성적이 나쁘지 않아도 기대가 커서 만족하기 어려울 수 있어. 남의 점수와 비교하느라 자신의 실력이 늘어난 부분을 놓치기 쉬워. 부족한 과목과 잘한 과목을 따로 살펴봐.<br><br>직장에서는 일을 끝내거나 칭찬을 받아도 기대했던 보상과 달라 아쉬울 수 있어. 좋은 평가 하나가 원하는 모든 조건을 바꿔줄 거라고 기대하지는 마. | High expectations may make you dissatisfied even with decent marks. Comparing scores with others could keep you from noticing where you've improved. Look separately at subjects that need work and those you've done well in.<br><br>At work, finishing a task or receiving praise may still disappoint you if the reward differs from what you expected. Don't expect one good assessment to change every condition to your liking. | 成績は悪くなくても、期待が大きく、満足しにくいかもしれません。人の点数と比べるうちに、実力が伸びた部分を見落としがちです。理解が足りない科目とよくできた科目を、分けて見てみましょう。<br><br>職場では、仕事を終えたり褒められたりしても、思っていた報酬と違い、残念に感じるかもしれません。一度の高評価だけで、望む条件がすべてかなうと期待するのは控えましょう。 |
 
 ## cups.09 · 정방향
 
 내부 ID: `work.cups.09.upright`
 
-카드 의미: 자신이 원한 만족을 누림. 원전의 충족·안락을 외부 인정 없이 즐기는 경험으로 해석.
+카드 의미: 만족, 성취, 신체적편안함, 누림
 
-분야 해석: 기대했던칭찬
+분야 해석: 좋음: 바라던 성적과 과제 결과, 만족스러운 실적과 인정
 
-관찰: 준비해온 일에서 좋은 반응을 얻어 뿌듯함을 느낄 수 있어. / 어렵게 풀던 문제를 맞히거나 다듬었던 발표에 칭찬이 돌아올 거야. / 남에게 인정받는 기쁨뿐 아니라 스스로도 잘해냈다는 느낌이 분명한 날이야.
+관찰: 만족 / 성취 / 신체적편안함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 준비해온 일에서 좋은 반응을 얻어 뿌듯함을 느낄 수 있어. 어렵게 풀던 문제를 맞히거나 다듬었던 발표에 칭찬이 돌아올 거야. 남에게 인정받는 기쁨뿐 아니라 스스로도 잘해냈다는 느낌이 분명한 날이야. 마친 일은 더 고치기 전에 빠진 것이 없는지만 한 번 확인해봐. 하나를 끝냈다는 만족이 남아 다음 공부나 작업에도 편하게 손이 갈 수 있어. | A good response to work you've prepared could leave you proud. You may solve a difficult question or receive praise for a presentation you've refined. Alongside recognition from others, you could clearly feel that you did well. Before revising finished work again, simply check whether anything is missing. The satisfaction of completing one thing may make starting the next lesson or task feel easier. | 準備してきたことに好反応があり、誇らしく感じられそうです。難しかった問題に正解したり、磨いてきた発表を褒めてもらえたりするでしょう。人に認められるだけでなく、自分でもよくできたと実感できる日です。終えた仕事はさらに直す前に、抜けがないかだけ一度確かめてみてください。一つ終えた満足が残り、次の勉強や仕事にも気楽に取りかかれそうです。 |
+| 분야 풀이 | 준비한 시험이나 과제에서 바라던 결과를 기대할 수 있어. 어려워했던 문제도 잘 풀리고 공부한 만큼 만족을 느낄 수 있는 날이야.<br><br>직장에서는 애써온 일이 성과를 내고 원하는 평가를 받을 수 있어. 제안이나 실적의 결과가 좋다면 충분히 기뻐해도 돼. 함께 도와준 사람에게 고마움을 전하면 기쁨을 나누기 좋아. | You can hope for the result you wanted in an exam or assignment you've prepared for. Even difficult questions may go well, bringing satisfaction that reflects your studying.<br><br>At work, sustained effort could bring results and the assessment you wanted. If a proposal succeeds or your performance brings good results, let yourself enjoy it. Thanking those who helped is a good way to share the pleasure. | 準備してきた試験や課題では、望んだ結果を期待できそうです。苦戦していた問題もよく解け、勉強した分の満足を感じられる日です。<br><br>職場では、力を注いだ仕事が成果を上げ、望む評価を受けられそうです。提案や実績がよい結果につながったなら、十分喜んでください。力になってくれた人に感謝を伝えると、喜びを分かち合いやすいでしょう。 |
 
 ## cups.10 · 역방향
 
 내부 ID: `work.cups.10.reversed`
 
-카드 의미: 겉으로 조화로워 보여도 기대와 실제 필요가 다름. 원전의 겉 휴식과 내적 불일치를 완벽한 행복의 압박으로 응용.
+카드 의미: 가까운관계의불화, 기대차이, 겉의평화와속의불편
 
-분야 해석: 편한팀의숨은부담
+분야 해석: 주의: 가까운 사람 사이의 기대 차이, 겉의 협조와 다른 업무 불화
 
-관찰: 겉으로 잘 맞는 팀에서도 맡은 일의 양이 다르다는 문제가 드러날 수 있어. / 말없이 챙기던 사람이 바빠지며 전에 보이지 않던 빈자리가 눈에 들어올 거야. / 부탁을 꺼내기 미안해서 혼자 하던 일도 함께 이야기하면 나눌 방법이 생길 수 있어.
+관찰: 가까운관계의불화 / 기대차이 / 겉의평화와속의불편
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 겉으로 잘 맞는 팀에서도 맡은 일의 양이 다르다는 문제가 드러날 수 있어. 말없이 챙기던 사람이 바빠지며 전에 보이지 않던 빈자리가 눈에 들어올 거야. 부탁을 꺼내기 미안해서 혼자 하던 일도 함께 이야기하면 나눌 방법이 생길 수 있어. 오늘은 각자 남은 일이 무엇인지 짧게 확인해봐. 서로의 부담을 알게 되면 누구를 탓하지 않고도 다음 역할을 다시 정할 수 있어. | Even a team that seems harmonious could discover an uneven workload. When someone who quietly handles things gets busy, gaps may appear that no one noticed before. Work you've done alone because asking felt awkward could be shared once discussed. Briefly check what each person has left today. Understanding the load could let you redistribute roles without blaming anyone. | 一見うまくいくチームにも、担当する仕事量の差が見えてくるかもしれません。黙って支えていた人が忙しくなり、それまで見えなかった不足が分かりそうです。頼むのが申し訳なくて一人でしていたことも、話せば分ける方法が見つかるでしょう。今日はそれぞれ何が残っているか、短く確かめてみてください。互いの負担を知れば、誰も責めずに次の役割を決め直せそうです。 |
+| 분야 풀이 | 친한 사람들과 맡은 과제라도 생각이 달라 결과가 늦어질 수 있어. 서로 알아서 할 거라고 기대하면 빠진 부분이 생기기 쉬워. 불편해도 필요한 부탁은 분명히 말해줘.<br><br>직장에서는 겉으로 협조하는 듯해도 팀 안의 불만이 드러날 수 있어. 좋은 분위기를 유지하려고 문제를 덮으면 같은 업무에서 다시 부딪치기 쉬워. | Different views could delay an assignment even among close friends. Assuming everyone will know what to do may leave gaps. Say clearly what you need to ask of them, even if it feels uncomfortable.<br><br>At work, complaints within the team could surface despite apparent cooperation. Covering up a problem to keep the mood pleasant may lead to another clash over the same task. | 親しい人と担当する課題でも、考えが違い、結果が遅れるかもしれません。互いに任せておけば大丈夫と思うと、抜けが出やすくなります。言いにくくても、必要な頼みははっきり伝えてください。<br><br>職場では、表面上は協力していても、チームの中から不満が出るかもしれません。雰囲気を守るために問題を隠すと、同じ業務でまたぶつかりやすくなります。 |
 
 ## cups.10 · 정방향
 
 내부 ID: `work.cups.10.upright`
 
-카드 의미: 함께 지내는 만족과 소속감. 원전의 마음의 충족·친교를 특정 가족 형태 없이 공유하는 일상의 편안함으로 사용.
+카드 의미: 마음의평온, 사랑과우정의충만, 함께하는안정
 
-분야 해석: 팀의안정감과격려
+분야 해석: 좋음: 편안한 학습 환경과 공동 성과, 동료의 지지와 안정적인 업무
 
-관찰: 함께하는 사람들의 응원이 있어 어려운 일도 덜 부담스럽게 느껴질 수 있어. / 막힌 부분을 말했을 때 탓하기보다 도와주려는 답이 돌아올 거야. / 한동안 맞지 않던 역할이 제자리를 찾아 각자 맡은 일을 편하게 해낼 수 있어.
+관찰: 마음의평온 / 사랑과우정의충만 / 함께하는안정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께하는 사람들의 응원이 있어 어려운 일도 덜 부담스럽게 느껴질 수 있어. 막힌 부분을 말했을 때 탓하기보다 도와주려는 답이 돌아올 거야. 한동안 맞지 않던 역할이 제자리를 찾아 각자 맡은 일을 편하게 해낼 수 있어. 오늘 도움을 받았다면 끝난 뒤에 짧게 고마움을 전해줘. 함께 끝냈다는 뿌듯함이 남아 다음 일도 믿고 나눌 수 있게 될 거야. | Support from the people around you could make a difficult task feel less intimidating. Saying where you're stuck may bring offers of help instead of blame. Roles that haven't quite fitted could settle into place and make everyone's work easier. If someone helps today, thank them briefly once you're done. The pride of finishing together could build trust for sharing the next task too. | 一緒に働く人たちの応援があり、難しい仕事も負担が軽く感じられそうです。困ったところを話すと、責めるより手伝おうという返事が来るでしょう。しばらく合わなかった役割も落ち着き、それぞれの仕事を進めやすくなりそうです。今日助けてもらったなら、終えた後に短くお礼を伝えてください。一緒に終えた誇らしさが残り、次の仕事も信頼して分け合えそうです。 |
+| 분야 풀이 | 주변의 도움을 받으며 편안하게 공부하고 실력을 보여줄 수 있어. 함께 준비하는 발표나 과제도 서로 잘 맞아 좋은 결과를 기대할 수 있어.<br><br>직장에서는 동료들과 협력하며 안정적인 성과를 낼 수 있어. 함께 해낸 일을 인정받고 기쁜 소식을 나누기 좋은 날이야. 평소 도움을 주고받던 관계가 든든하게 느껴질 수 있어. | Support from those around you could let you study comfortably and show what you can do. Working well together on a presentation or assignment may also bring a good result.<br><br>At work, cooperation with colleagues could produce steady results. It's a good day to receive recognition for a shared achievement and exchange happy news. Relationships in which you've regularly helped each other may feel reassuring. | 周囲の助けを受けて、落ち着いて勉強し、実力を示せそうです。一緒に準備する発表や課題でも、息が合い、よい結果を期待できるでしょう。<br><br>職場では、同僚と協力しながら、安定した成果を出せそうです。一緒に成し遂げた仕事を認められ、うれしい知らせを分かち合いやすい日です。普段から助け合ってきた関係が、心強く感じられるかもしれません。 |
 
 ## cups.11 · 역방향
 
 내부 ID: `work.cups.11.reversed`
 
-카드 의미: 표현이 서툴거나 상상이 실제 반응을 앞섬. 원전의 매혹·유혹을 작은 감정의 과잉 해석으로 현대화.
+카드 의미: 서투른 감정 표현, 정서적 미성숙, 창의성 억제
 
-분야 해석: 생각과설명의차이
+분야 해석: 주의: 미완성 생각과 표현의 실수, 감정적인 반응과 제안의 부진
 
-관찰: 머릿속에서 재미있던 생각이 막상 설명하면 잘 전달되지 않을 수 있어. / 짧게 보여준 예시를 상대가 다른 뜻으로 받아들여 다시 묻는 일이 생길 거야. / 질문을 듣고 나면 빠진 설명이 어디인지 생각보다 쉽게 보일 수 있어.
+관찰: 서투른 감정 표현 / 정서적 미성숙 / 창의성 억제
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 머릿속에서 재미있던 생각이 막상 설명하면 잘 전달되지 않을 수 있어. 짧게 보여준 예시를 상대가 다른 뜻으로 받아들여 다시 묻는 일이 생길 거야. 질문을 듣고 나면 빠진 설명이 어디인지 생각보다 쉽게 보일 수 있어. 오늘은 멋진 표현보다 실제 예시 하나를 먼저 보여줘. 뜻이 전달된 뒤에는 처음 의견에도 쓸 만한 부분이 있다는 반응을 들을 수 있어. | An idea that seemed interesting in your head may be harder to explain. Someone could interpret a brief example differently and ask you to clarify. Their question may make it surprisingly easy to spot what's missing. Show one practical example before reaching for impressive words. Once the meaning is clear, you could hear that the original idea does contain something useful. | 頭の中では面白かった考えが、説明すると伝わりにくいかもしれません。短く示した例を相手が別の意味に受け取り、聞き返すことがありそうです。質問を聞けば、足りない説明がどこか案外簡単に分かるでしょう。今日は巧みな表現より、実際の例を一つ先に見せてみてください。意味が伝われば、初めの意見にも使えるところがあるという反応を得られそうです。 |
+| 분야 풀이 | 생각은 떠올라도 글이나 답안으로 정리하기 어려울 수 있어. 떠오른 말을 그대로 적으면 과제에서 요구한 내용과 멀어지기 쉬워. 먼저 어떤 질문에 답하는지 확인해봐.<br><br>직장에서는 가볍게 한 말이 오해를 사거나 제안이 미숙하다는 평가를 받을 수 있어. 지적을 듣고 서운함부터 드러내기보다 무엇이 부족한지 물어봐. | Ideas may come to you but prove hard to organise into an essay or answer. Writing down whatever comes to mind could take you away from the assignment's requirements. First check which question you're answering.<br><br>At work, an offhand remark could be misunderstood, or a proposal may be judged underdeveloped. Ask what's missing before showing your hurt at the criticism. | 考えは浮かんでも、文章や答案にまとめにくいかもしれません。思いつくまま書くと、課題で求められた内容から離れがちです。どの問いに答えるのか、先に確かめましょう。<br><br>職場では、軽く口にしたことが誤解されたり、提案が未熟だと評価されたりするかもしれません。指摘にすぐ不満を示すより、何が足りないかを聞いてみてください。 |
 
 ## cups.11 · 정방향
 
 내부 ID: `work.cups.11.upright`
 
-카드 의미: 감수성과 호기심이 전하는 작은 제안. 원전의 메시지·생각과 현대의 순수한 표현을 나이·성별 없는 태도로 사용.
+카드 의미: 새 감정의 표현, 호기심, 창의적 시작
 
-분야 해석: 감각적인새발상
+분야 해석: 좋음: 신선한 표현과 배움의 발상, 작지만 반가운 업무 제안
 
-관찰: 뜻밖의 이야기나 이미지에서 쓸 만한 아이디어가 떠오를 수 있어. / 어려워 보이던 주제도 내가 좋아하는 것과 연결되며 흥미롭게 들릴 거야. / 짧게 낸 의견을 주변에서 재미있게 받아줘 계속 설명할 용기가 생길 수 있어.
+관찰: 새 감정의 표현 / 호기심 / 창의적 시작
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 뜻밖의 이야기나 이미지에서 쓸 만한 아이디어가 떠오를 수 있어. 어려워 보이던 주제도 내가 좋아하는 것과 연결되며 흥미롭게 들릴 거야. 짧게 낸 의견을 주변에서 재미있게 받아줘 계속 설명할 용기가 생길 수 있어. 기억이 흐려지기 전에 떠오른 생각을 한 줄 남겨둬. 처음에는 작은 발상이었어도 발표나 과제의 시작으로 쓸 만한 내용이 될 수 있어. | An unexpected story or image could give you a useful idea. A difficult-looking topic may become interesting when it connects with something you love. Others might enjoy a brief suggestion you make, giving you the confidence to explain more. Write the thought in one line before it fades. What starts as a small idea could become a useful beginning for a presentation or assignment. | 思いがけない話や画像から、役立つアイデアが浮かびそうです。難しく見えた題材も、好きなこととつながれば面白く聞こえるでしょう。短く出した意見を周りが楽しんでくれて、さらに説明する勇気が湧くかもしれません。忘れる前に、浮かんだことを一行残しておきましょう。初めは小さな発想でも、発表や課題の出発点になる内容に育ちそうです。 |
+| 분야 풀이 | 새로운 생각이 떠올라 글쓰기나 발표 과제가 즐겁게 풀릴 수 있어. 엉뚱해 보였던 질문에서도 개념을 이해할 실마리를 찾기 좋아.<br><br>직장에서는 작은 아이디어가 관심을 받거나 처음 해볼 일을 제안받을 수 있어. 완벽하게 준비된 생각이 아니어도 필요한 곳에 쓰일 수 있어. 간단한 예시로 보여주면 뜻이 더 잘 전해져. | A new idea could make a writing or presentation assignment enjoyable. Even a seemingly odd question may offer a clue that helps you understand a concept.<br><br>At work, a small idea could attract interest, or you may be offered something you've never tried. An idea doesn't need to be perfectly developed to meet a need. A simple example will help get its meaning across. | 新しい考えが浮かび、作文や発表の課題を楽しく進められそうです。突飛に思えた質問からも、概念を理解する手がかりを見つけやすいでしょう。<br><br>職場では、小さなアイデアに関心が集まったり、初めての仕事を提案されたりするかもしれません。完全に練り上げた考えでなくても、役に立つ場面はありそうです。簡単な例を示すと、意図が伝わりやすくなります。 |
 
 ## cups.12 · 역방향
 
 내부 ID: `work.cups.12.reversed`
 
-카드 의미: 아름다운 약속에 비해 실행이 흔들리거나 기분에 따라 판단함. 원전의 속임을 타인의 악의 대신 말과 행동의 차이로 사용.
+카드 의미: 매력적 말과 실행의 차이, 변덕, 지키지 않는 약속
 
-분야 해석: 제안의실행부족
+분야 해석: 주의: 멋진 표현과 부족한 근거, 지키지 않는 업무 약속
 
-관찰: 멋지게 들린 계획이 실제 작업으로 넘어가며 빠진 부분을 드러낼 수 있어. / 발표에서는 반응이 좋았지만 질문을 받자 바로 답할 예시가 부족할 거야. / 말로 가능한 일과 정해진 시간에 끝낼 수 있는 일의 차이가 눈에 들어올 수 있어.
+관찰: 매력적 말과 실행의 차이 / 변덕 / 지키지 않는 약속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 멋지게 들린 계획이 실제 작업으로 넘어가며 빠진 부분을 드러낼 수 있어. 발표에서는 반응이 좋았지만 질문을 받자 바로 답할 예시가 부족할 거야. 말로 가능한 일과 정해진 시간에 끝낼 수 있는 일의 차이가 눈에 들어올 수 있어. 이번에는 설명을 늘리기보다 작은 결과 하나를 직접 보여줘. 시험해본 부분이 생기면 무엇을 약속할 수 있는지도 더 정확하게 말할 수 있을 거야. | An impressive-sounding plan could reveal gaps when the actual work starts. A presentation may be well received, yet leave you short of examples when questions come. The difference between what's possible in words and what's achievable in the allotted time could become clear. Show one small, real result instead of expanding the explanation this time. Having tested a part should help you say more accurately what you can promise. | 立派に聞こえた計画も、実際の作業になると不足が見えそうです。発表では好評でも、質問にすぐ答える例が足りないかもしれません。口ではできることと、限られた時間で終えられることの差が分かるでしょう。今回は説明を増やさず、まず一部を仕上げて見せてみてください。試した部分ができれば、何を約束できるかも正確に話せそうです。 |
+| 분야 풀이 | 답안을 멋지게 써도 근거가 부족해 점수가 아쉬울 수 있어. 발표에서 잘 모르는 내용을 자신 있게 설명하면 추가 질문에 막히기 쉬워. 실제로 이해한 내용부터 말해줘.<br><br>직장에서는 듣기 좋았던 제안이 실행되지 않거나 약속한 지원이 늦어질 수 있어. 상대의 말만 믿고 자신의 일정을 모두 확정하지는 마. | Even a beautifully written answer may earn disappointing marks if the reasoning is weak. Confidently explaining something you don't know well in a presentation could leave you stuck on follow-up questions. Start with what you actually understand.<br><br>At work, a proposal that sounded appealing may not happen, or promised support could be delayed. Don't finalise your entire schedule on the strength of the other person's words alone. | 答案を立派に書いても、根拠が足りず、点数にがっかりするかもしれません。よくわからない内容を発表で自信たっぷりに話すと、追加の質問に詰まりがちです。実際に理解した内容から伝えてください。<br><br>職場では、聞こえのよかった提案が実行されなかったり、約束の支援が遅れたりするかもしれません。相手の言葉だけを頼りに、予定をすべて確定するのは控えましょう。 |
 
 ## cups.12 · 정방향
 
 내부 ID: `work.cups.12.upright`
 
-카드 의미: 마음을 담은 초대와 이상을 향한 접근. 원전의 제안·도착을 구체적으로 표현하는 감성적 추진으로 사용.
+카드 의미: 진심 어린 제안, 초대, 감정을 담은 표현
 
-분야 해석: 발표와제안의호응
+분야 해석: 좋음: 표현 과제와 발표의 호응, 제안·초대와 원만한 협의
 
-관찰: 마음을 담아 준비한 발표나 제안이 좋은 반응을 얻을 수 있어. / 숫자나 설명만 늘어놓을 때보다 실제 경험을 이야기할 때 상대가 더 집중할 거야. / 글이나 면접 답변에서도 전하고 싶은 이유가 분명해져 말이 자연스럽게 이어질 수 있어.
+관찰: 진심 어린 제안 / 초대 / 감정을 담은 표현
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 마음을 담아 준비한 발표나 제안이 좋은 반응을 얻을 수 있어. 숫자나 설명만 늘어놓을 때보다 실제 경험을 이야기할 때 상대가 더 집중할 거야. 글이나 면접 답변에서도 전하고 싶은 이유가 분명해져 말이 자연스럽게 이어질 수 있어. 좋은 평가를 받고 싶은 마음보다 실제로 해본 이야기를 하나 골라봐. 상대의 공감을 얻은 대목에서 다음 질문이 이어져 대화가 한결 편해질 수 있어. | A presentation or proposal you've prepared with care could be well received. People may listen more closely to a real experience than to a list of figures or explanations. Knowing why you want to say something could also make writing or interview answers flow more naturally. Choose one genuine experience rather than concentrating on making a good impression. A point that resonates may prompt the next question and make the conversation easier. | 心を込めて準備した発表や提案に、よい反応がありそうです。数字や説明を並べるより、実体験を話すと相手がよく聞いてくれるでしょう。文章や面接の答えでも、伝えたい理由がはっきりして言葉が自然に続きそうです。よい評価を求める気持ちより、実際にした経験を一つ選んでみてください。共感してもらえた点から次の質問が出て、会話が気楽になりそうです。 |
+| 분야 풀이 | 생각을 말이나 글로 전달하는 과제에서 좋은 반응을 얻을 수 있어. 발표에서는 듣는 사람이 궁금해할 내용을 담으면 설명이 더 잘 전해져.<br><br>직장에서는 반가운 업무 제안이나 함께 일하자는 연락을 받을 수 있어. 진심을 담아 설명한 아이디어도 긍정적으로 검토될 수 있어. 서로 기대하는 일을 구체적으로 나눠봐. | An assignment expressing ideas through speech or writing could receive a good response. In a presentation, including what listeners are likely to wonder about will help your explanation reach them.<br><br>At work, you may be offered work you're pleased to take on or invited to work together. An idea you explain sincerely could also be considered favourably. Discuss exactly what each of you expects to do. | 言葉や文章で考えを伝える課題に、よい反応を得られそうです。発表では、聞く人が知りたいことを入れると、説明が伝わりやすくなります。<br><br>職場では、うれしい仕事の提案や、一緒に働こうという連絡があるかもしれません。心を込めて説明したアイデアも、前向きに検討されそうです。互いに期待する仕事について、具体的に話しましょう。 |
 
 ## cups.13 · 역방향
 
 내부 ID: `work.cups.13.reversed`
 
-카드 의미: 타인의 기분을 지나치게 받아들이거나 자신의 필요를 잊음. 원전의 불신과 다른 현대적 감정 경계의 독해를 채택.
+카드 의미: 과도한 돌봄, 예민한 반응, 자기 필요 소홀
 
-분야 해석: 남의일을챙기는부담
+분야 해석: 주의: 주변 기분에 흔들리는 학습, 과한 돌봄과 감정적인 업무 반응
 
-관찰: 다른 사람의 일을 도와주느라 내 공부나 작업이 늦어질 수 있어. / 설명만 잠깐 해주려다가 마무리까지 맡게 되는 일이 생길 거야. / 정작 내 차례가 되면 집중할 기운이 줄어 작은 실수가 나올 수도 있어.
+관찰: 과도한 돌봄 / 예민한 반응 / 자기 필요 소홀
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다른 사람의 일을 도와주느라 내 공부나 작업이 늦어질 수 있어. 설명만 잠깐 해주려다가 마무리까지 맡게 되는 일이 생길 거야. 정작 내 차례가 되면 집중할 기운이 줄어 작은 실수가 나올 수도 있어. 도움을 줄 때는 지금 어디까지 할 수 있는지 먼저 말해줘. 역할을 분명히 한 뒤에는 상대도 스스로 할 부분을 찾아 내 일을 할 시간이 생길 수 있어. | Helping others could delay your own study or work. What starts as a quick explanation might turn into finishing the task for them. When you return to your own work, lower concentration could lead to a small mistake. Say how much you can do before you begin helping. Once the roles are clear, they may find what they can handle themselves and free time for your work. | 人の仕事を手伝って、自分の勉強や作業が遅れるかもしれません。少し説明するつもりが、最後まで引き受けることもありそうです。自分の番になって集中力が減り、小さな間違いが出るかもしれません。手伝うときは、今どこまでできるか先に伝えてみてください。分担が明確になれば相手も自分でする部分を見つけ、こちらの仕事に使う時間ができそうです。 |
+| 분야 풀이 | 주변의 기분이나 부탁에 신경 쓰다가 공부가 잘 남지 않을 수 있어. 다른 사람의 과제를 도와주느라 자신의 준비를 놓치면 시험에서 아쉬움이 생기기 쉬워.<br><br>직장에서는 동료의 일을 지나치게 챙기다 자신의 업무가 밀릴 수 있어. 힘든데도 괜찮다고 하다가 작은 말에 서운함이 터질 수 있어. 지금 도와줄 수 있는 범위를 솔직히 말해줘. | Concern about other people's moods or requests may make it hard to retain what you study. Helping with someone else's assignment at the expense of your own preparation could bring a disappointing exam result.<br><br>At work, looking after a colleague's tasks too much could delay your own. Saying you're fine when you're struggling may leave you suddenly hurt by a small remark. Be honest about how much help you can give now. | 周囲の機嫌や頼みを気にして、勉強したことが記憶に残りにくいかもしれません。人の課題を手伝ううちに、自分の準備をおろそかにすると、試験で後悔しやすい日です。<br><br>職場では、同僚の仕事を気にかけすぎて、自分の業務が遅れるかもしれません。つらくても大丈夫と言い続けると、小さな一言で不満があふれることもありそうです。今助けられる範囲を、正直に話してください。 |
 
 ## cups.13 · 정방향
 
 내부 ID: `work.cups.13.upright`
 
-카드 의미: 자기 감정을 알아차리며 타인의 마음을 듣는 돌봄. 궁정 인물은 특정 여성 아닌 공감적 태도로 해석.
+카드 의미: 세심한 공감, 돌봄, 자기 감정 이해
 
-분야 해석: 공감하는설명
+분야 해석: 좋음: 이해하기 쉬운 설명의 도움, 상대 요구를 헤아린 업무의 호평
 
-관찰: 상대가 어디서 어려워하는지 알아채 설명을 잘해줄 수 있는 날이야. / 발표나 면접에서는 준비한 말만 이어갈 때보다 질문의 뜻을 듣고 답할 때 반응이 좋을 거야. / 함께 배우는 사람의 예시에서 내 설명에 빠진 부분을 발견할 수도 있어.
+관찰: 세심한 공감 / 돌봄 / 자기 감정 이해
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 상대가 어디서 어려워하는지 알아채 설명을 잘해줄 수 있는 날이야. 발표나 면접에서는 준비한 말만 이어갈 때보다 질문의 뜻을 듣고 답할 때 반응이 좋을 거야. 함께 배우는 사람의 예시에서 내 설명에 빠진 부분을 발견할 수도 있어. 의견을 말하기 전에는 상대가 무엇을 궁금해하는지 끝까지 들어봐. 차분하게 나눈 질문과 답이 남아 서로 도움을 청하기 더 편해질 수 있어. | You may notice where someone is struggling and explain things well. In a presentation or interview, responding to the meaning of a question could work better than continuing a prepared script. Another learner's example might reveal a part your own explanation lacks. Hear what the other person wants to know before offering your opinion. Calm questions and answers could make asking each other for help easier. | 相手が困るところに気づき、分かりやすく説明できそうです。発表や面接では用意した言葉を続けるより、質問の意味を聞いて答えると好反応があるでしょう。一緒に学ぶ人の例から、自分の説明に足りない部分を発見することもありそうです。意見を出す前に、相手が何を知りたいか最後まで聞いてみてください。落ち着いて質問や答えを交わすことで、互いに助けを求めやすくなりそうです。 |
+| 분야 풀이 | 자신이 어려워하는 부분을 잘 짚어주는 설명 덕분에 공부가 풀릴 수 있어. 모르는 점을 편하게 물으면 혼자 헤맸던 내용도 이해하기 좋아.<br><br>직장에서는 상대가 원하는 점을 잘 알아차려 좋은 평가를 받을 수 있어. 사람을 응대하거나 의견을 듣는 업무에서도 대화가 부드럽게 이어져. 작은 불편까지 챙겨주면 믿음을 얻을 수 있어. | An explanation that addresses exactly where you're struggling could help your studies progress. Feeling comfortable asking questions may let you understand something you couldn't work out alone.<br><br>At work, you could receive a good assessment for noticing what someone wants. Conversations may go smoothly in roles involving customer contact or listening to others' views. Attending to even small difficulties can build trust. | 苦手な点を的確に説明してもらい、勉強が進みそうです。わからないことを気軽に聞くと、一人で悩んでいた内容も理解しやすくなるでしょう。<br><br>職場では、相手の望むことによく気づき、よい評価を受けられそうです。人に対応したり意見を聞いたりする業務でも、会話が穏やかに続くでしょう。小さな不便にも気を配ると、信頼を得られそうです。 |
 
 ## cups.14 · 역방향
 
 내부 ID: `work.cups.14.reversed`
 
-카드 의미: 겉으로 차분해 보여도 감정이 판단을 흔들거나 표현을 억제함. 원전의 기만은 사실 단정 없이 불투명한 대응의 경계로 응용.
+카드 의미: 감정적 통제, 기분에 휘둘리는 판단, 책임 회피
 
-분야 해석: 감정에흔들리는피드백
+분야 해석: 주의: 기분에 따른 학습 판단, 책임을 피하는 대화와 동료 갈등
 
-관찰: 평소 같으면 넘길 의견이 오늘은 유난히 날카롭게 들릴 수 있어. / 괜찮다고 답해놓고도 마음에 남아 다음 설명이 짧아지거나 어색해질 거야. / 내용을 다시 읽으면 나에 대한 평가와 작업에 필요한 수정이 다르다는 걸 알 수 있어.
+관찰: 감정적 통제 / 기분에 휘둘리는 판단 / 책임 회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 평소 같으면 넘길 의견이 오늘은 유난히 날카롭게 들릴 수 있어. 괜찮다고 답해놓고도 마음에 남아 다음 설명이 짧아지거나 어색해질 거야. 내용을 다시 읽으면 나에 대한 평가와 작업에 필요한 수정이 다르다는 걸 알 수 있어. 바로 반박하기보다 고쳐야 할 부분이 어디인지 먼저 물어봐. 실제로 필요한 답을 받고 나면 감정 때문에 복잡했던 일을 조금씩 정리할 수 있어. | An opinion you'd normally brush off could sound especially harsh today. Even after saying it's fine, you may dwell on it and make your next explanation shorter or awkward. Reading it again could show the difference between an assessment of you and a correction the work needs. Ask which part needs changing before immediately arguing back. A practical answer may gradually untangle a task that emotion had made complicated. | 普段なら気にしない意見が、今日は特に厳しく聞こえるかもしれません。大丈夫と返しても心に残り、次の説明が短くなったりぎこちなくなったりしそうです。読み直せば、自分への評価と仕事に必要な修正が違うと分かるでしょう。すぐ反論せず、直すところはどこか先に尋ねてみてください。必要な答えをもらえば、感情で複雑になった仕事も少しずつ整理できそうです。 |
+| 분야 풀이 | 좋아하는 과목만 잘될 거라고 생각하다 준비가 치우칠 수 있어. 틀린 문제의 설명이 듣기 싫어도 넘기면 같은 실수가 남아. 기분보다 실제로 맞힌 답을 기준으로 공부해줘.<br><br>직장에서는 감정적으로 책임을 피하는 말 때문에 대화가 꼬일 수 있어. 일에서 고칠 점을 말해준 동료에게 화부터 내면 문제도 해결하기 어려워. | Assuming only your favourite subjects will go well could make your preparation uneven. Skipping an explanation of a wrong answer because you don't want to hear it may leave the same mistake uncorrected. Base your studying on which answers you actually get right, rather than how you feel.<br><br>At work, emotional remarks that dodge responsibility could complicate a discussion. Getting angry at a colleague who points out a needed correction may make the problem harder to solve. | 好きな科目だけはうまくいくと思い、準備が偏るかもしれません。間違えた問題の説明は、聞きたくなくても飛ばすと、同じミスが残ります。気分より、実際に正解できたかをもとに勉強しましょう。<br><br>職場では、感情的に責任を避ける発言から、話がこじれるかもしれません。仕事で直す点を教えてくれた同僚に、まず怒ってしまうと、問題も解決しにくくなります。 |
 
 ## cups.14 · 정방향
 
 내부 ID: `work.cups.14.upright`
 
-카드 의미: 감정을 억누르지 않고 다루며 균형 있게 대응하는 성숙함. 원전의 책임·친절을 안정적인 판단 태도로 사용.
+카드 의미: 감정 조절, 책임, 공감과 판단의 균형
 
-분야 해석: 긴급한일에도침착함
+분야 해석: 좋음: 긴장 속의 안정된 실력, 침착한 협의와 신뢰 있는 판단
 
-관찰: 급한 요청을 받아도 차분하게 필요한 일을 가려낼 수 있는 날이야. / 주변이 서두를 때 핵심을 짚어 말하면 혼란이 줄어들 거야. / 발표나 면접에서도 예상 밖의 질문에 생각을 정리할 여유가 생길 수 있어.
+관찰: 감정 조절 / 책임 / 공감과 판단의 균형
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 급한 요청을 받아도 차분하게 필요한 일을 가려낼 수 있는 날이야. 주변이 서두를 때 핵심을 짚어 말하면 혼란이 줄어들 거야. 발표나 면접에서도 예상 밖의 질문에 생각을 정리할 여유가 생길 수 있어. 바로 답이 나오지 않는 질문에는 잠깐 생각한 뒤 차근차근 말해봐. 흔들리지 않고 대화를 이어간 모습이 상대에게 믿음직한 인상을 남길 수 있어. | An urgent request may still leave you able to calmly identify what needs doing. While others rush, pointing out the key issue could reduce confusion. An unexpected presentation or interview question may also give you enough space to gather your thoughts. If an answer isn't immediate, pause briefly and explain it step by step. Your steady way of continuing the discussion could leave a dependable impression. | 急ぎの依頼にも、落ち着いて必要な仕事を見分けられそうです。周りが急ぐ中で要点を伝えると、混乱を減らせるでしょう。発表や面接でも、予想外の質問に考えをまとめる余裕がありそうです。すぐ答えが出なければ、少し考えてから順に話してみてください。落ち着いて会話を続ける姿が、頼れる印象を残しそうです。 |
+| 분야 풀이 | 시험이나 발표에서 긴장이 생겨도 준비한 실력을 차분히 보여줄 수 있어. 어려운 질문을 받아도 아는 내용부터 설명하면 답을 이어가기 좋아.<br><br>직장에서는 의견이 부딪쳐도 침착하게 정리하며 신뢰를 얻을 수 있어. 상대의 사정을 듣되 필요한 결정은 미루지 않으면 일이 수월해져. 책임 있는 역할에서도 좋은 평가를 기대할 수 있어. | You could calmly show what you've practised in an exam or presentation, even if you feel nervous. Starting with what you know may help you develop an answer to a difficult question.<br><br>At work, calmly sorting through conflicting views could earn trust. Hearing the other person's circumstances while making necessary decisions without delay may make the work easier. A role with responsibility could bring a good assessment too. | 試験や発表で緊張しても、準備してきた実力を落ち着いて示せそうです。難しい質問にも、知っている内容から説明すると、その先も落ち着いて答えられそうです。<br><br>職場では、意見が衝突しても、冷静に話をまとめ、信頼を得られそうです。相手の事情を聞きながら、必要な決定を先延ばしにしなければ、仕事は進めやすくなります。責任のある役割でも、よい評価を期待できるでしょう。 |
 
 ## major.chariot · 역방향
 
 내부 ID: `work.major.chariot.reversed`
 
-카드 의미: 추진 방향을 잃거나 통제하려는 힘이 지나침. 멈춤을 패배가 아니라 방향과 속도의 조정으로 해석.
+카드 의미: 방향부족, 지나친 추진, 통제상실
 
-분야 해석: 집중분산
+분야 해석: 주의: 급한 풀이로 인한 실점, 무리한 추진과 업무 충돌
 
-관찰: 서두르던 일을 잠깐 멈추면 어디서 꼬였는지 보일 수 있어. / 질문에 답하면서 다른 일을 함께하면 작은 내용이 빠지기 쉬운 날이야. / 가장 급한 것 하나를 끝내면 다시 집중할 여유가 생길 거야.
+관찰: 방향부족 / 지나친 추진 / 통제상실
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 동시에 들어온 요청 때문에 집중하던 일이 끊길 수 있는 날이야. 끝날 줄 알았던 작업에 답변이 더 필요해 속도가 늦어질 거야. 혼자 먼저 마칠 수 있는 부분에서는 생각보다 진도가 나갈 수 있어. 지금 가장 급한 일 하나만 남기고 나머지는 잠깐 닫아둬. 기다리던 답이 돌아오면 막힌 곳도 풀려 마지막에는 한숨 돌릴 수 있을 거야. | Several requests at once could interrupt something you're concentrating on. Work you thought was nearly finished may slow down while awaiting another answer. A part you can finish alone could still move further than expected. Keep the most urgent task open and set the others briefly aside. When the awaited reply comes, the stuck part may clear and give you some relief. | いくつも同時に頼まれ、集中していたことが途切れそうです。終わると思った作業にも返事が必要になり、進みが遅れるかもしれません。一人で先に終えられる部分には、思ったより進展がありそうです。いちばん急ぐことだけ残し、ほかの作業はいったん後にしましょう。待っていた答えが戻れば、行き詰まりも解けてひと息つけそうです。 |
+| 분야 풀이 | 시험에서 서두르다가 아는 문제를 틀리기 쉬운 날이야. 문제를 끝까지 읽지 않거나 답을 옮겨 적을 때 실수가 날 수 있어. 빨리 끝내려 하기보다 풀어둔 답을 한 번 더 살펴봐.<br><br>직장에서는 일을 급하게 밀어붙이다 수정 요청을 받거나 동료와 부딪칠 수 있어. 혼자 정한 일정으로 다른 사람까지 재촉하면 협조를 얻기 어려워. 일을 더 받기 전에 지금 맡은 업무부터 끝내는 게 좋아. | Rushing in a test could cost you points on questions you know how to answer. Skipping part of a question or copying an answer incorrectly may lead to mistakes. Review what you've answered instead of trying to finish as quickly as possible.<br><br>At work, pushing ahead too fast could bring requests for changes or friction with colleagues. Rushing others to meet a schedule you set alone may make cooperation harder. Finish your current work before taking on more. | 試験で急いでしまい、分かる問題を間違えやすい日です。問題を最後まで読まなかったり、答えを書き写すときに間違えたりするかもしれません。早く終えようとせず、書いた答えをもう一度見直しましょう。<br><br>職場では仕事を急いで進めた結果、修正を求められたり、同僚とぶつかったりしそうです。一人で決めた予定で周りまでせかすと、協力を得にくくなります。さらに引き受ける前に、今任されている仕事から終えるとよさそうです。 |
 
 ## major.chariot · 정방향
 
 내부 ID: `work.major.chariot.upright`
 
-카드 의미: 서로 다른 힘을 한 방향으로 이끄는 의지와 전진. 원전의 승리·도움과 과신의 양면을 목적 있는 실행으로 읽음.
+카드 의미: 집중, 의지, 장애를 넘어감
 
-분야 해석: 집중완수
+분야 해석: 좋음: 어려운 문제 해결과 시험 성과, 막힌 업무 진전과 경쟁 우세
 
-관찰: 집중력이 좋아 평소 오래 걸리던 일도 빠르게 해낼 수 있어. / 시험이나 발표에서는 초반의 긴장이 풀리면서 준비한 것이 떠오를 거야. / 경쟁하는 자리에서도 남의 속도에 밀리지 않고 내 실력을 보여주기 좋아.
+관찰: 집중 / 의지 / 장애를 넘어감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 집중력이 좋아 평소 오래 걸리던 일도 빠르게 해낼 수 있어. 시험이나 발표에서는 초반의 긴장이 풀리면서 준비한 것이 떠오를 거야. 경쟁하는 자리에서도 남의 속도에 밀리지 않고 내 실력을 보여주기 좋아. 다 끝냈다고 서둘러 내지 말고 빠진 답이 없는지 한 번만 살펴봐. 그동안 노력한 만큼 진도가 나가 오랜만에 성취감을 느낄 거야. | Good concentration could help you finish something that usually takes longer. In a test or presentation, prepared material may come to mind once the early nerves settle. A competitive setting could let you show your ability without being rushed by other people's pace. Before handing anything in, check once for a missing answer. Progress that reflects your effort could bring a welcome sense of achievement. | 集中力があり、普段時間のかかることも早くこなせそうです。試験や発表では、初めの緊張がほぐれると準備した内容が浮かぶでしょう。競う場でも人のペースに押されず、自分の力を見せやすい日です。終わっても急いで出さず、答えの抜けがないか一度見てみましょう。努力した分だけ進み、久しぶりの達成感を味わえそうです。 |
+| 분야 풀이 | 공부한 실력을 시험에서 보여주기 좋은 날이야. 풀리지 않던 문제도 답을 찾고, 준비한 발표에서도 좋은 평가를 받을 수 있어. 어렵다고 미뤄둔 과제가 있다면 오늘 다시 해볼 만해.<br><br>직장에서는 지연되던 일이 풀리고 맡은 업무를 마무리할 수 있어. 여러 제안을 심사하는 자리에서도 좋은 평가를 기대해봐. 해야 할 일이 분명하다면 자신 있게 의견을 내기 좋은 날이야. | Tests could give you a good chance to show what you've learned. You may solve a problem that's been difficult or receive a good assessment for a presentation you've prepared. An assignment you've put off because it seemed hard is worth another attempt today.<br><br>At work, delayed tasks could move forward and you may finish what you've been assigned. A proposal of yours could be well received when several are being considered. If you're clear on what needs doing, it's a good day to put your ideas forward with confidence. | 勉強で身につけた実力を、試験で発揮しやすい日です。解けなかった問題の答えが見つかり、準備した発表でもよい評価を得られそうです。難しくて後回しにした課題があるなら、今日もう一度取り組む価値があります。<br><br>職場では遅れていたことが進み、任された仕事を終えられそうです。複数の提案が審査される場でも、よい評価を期待できるでしょう。やるべきことがはっきりしているなら、自信を持って意見を伝えられる日です。 |
 
 ## major.death · 역방향
 
 내부 ID: `work.major.death.reversed`
 
-카드 의미: 필요한 변화를 미루는 관성. 원전의 정지·굳어짐을 익숙함을 놓기 어려운 상태로 응용.
+카드 의미: 변화저항, 익숙한불편, 정체
 
-분야 해석: 낡은방식
+분야 해석: 정체: 바꾸지 않은 학습 오류, 끝내지 못한 업무와 반복 부담
 
-관찰: 예전에는 잘되던 방식이 오늘의 요구와 맞지 않을 수 있어. / 이미 만든 것이 아까워 수정하기를 망설이면 같은 질문이 다시 돌아올 거야. / 바꿔본 작은 예에서는 의외로 좋은 반응이 나올 수 있는 날이야.
+관찰: 변화저항 / 익숙한불편 / 정체
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에는 잘되던 방식이 오늘의 요구와 맞지 않을 수 있어. 이미 만든 것이 아까워 수정하기를 망설이면 같은 질문이 다시 돌아올 거야. 바꿔본 작은 예에서는 의외로 좋은 반응이 나올 수 있는 날이야. 전부 지키려 하기보다 지금 필요한 부분 하나만 새로 해봐. 오래 해온 경험까지 사라지는 것은 아니라는 걸 알며 변화가 덜 부담스러워질 수 있어. | An approach that worked before may not suit what's being asked today. If you hesitate to change something because of the effort already spent, the same question could return. A small revised example may receive a surprisingly good response. Instead of trying to preserve everything, try one fresh version of the part needed now. Realizing that your years of experience aren't lost could make change feel less daunting. | 以前うまくいった方法が、今日求められることには合わないかもしれません。作った物を惜しんで直すのをためらうと、同じ質問がまた来そうです。少し変えた例を見せると、意外によい反応をもらえるでしょう。全部残そうとせず、今必要な部分を一つ新しくしてみてください。これまでの経験まで失うわけではないと分かり、変える負担も軽くなりそうです。 |
+| 분야 풀이 | 같은 방법으로 공부해도 틀리던 문제가 쉽게 줄지 않을 수 있어. 익숙하다는 이유로 이해가 안 되는 설명만 계속 읽으면 시간에 비해 성과가 적어. 다른 풀이를 받아들일 필요가 있어.<br><br>직장에서는 이미 끝내야 할 일을 붙잡아 다음 업무가 밀릴 수 있어. 예전 방식의 문제가 드러나도 그대로 두면 같은 수정 요청을 받기 쉬워. 바뀐 요구가 무엇인지 먼저 확인해봐. | Studying in the same way may do little to reduce recurring mistakes. Rereading a familiar explanation you don't understand could bring little progress for the time spent. You need to consider a different way of solving the problem.<br><br>At work, holding on to a task that should already be finished could delay the next one. Keeping the old method after its problems become clear may bring the same requests for corrections. First check how the requirements have changed. | 同じ方法で勉強しても、間違いがなかなか減らないかもしれません。慣れているからと理解できない解説を読み続けても、かけた時間に見合う成果は得にくいでしょう。別の解き方も受け入れる必要がありそうです。<br><br>職場では、もう終えるべき仕事を手放せず、次の業務が遅れるかもしれません。従来の方法に問題が出ても変えなければ、同じ修正を求められがちです。要求がどう変わったのか、先に確かめましょう。 |
 
 ## major.death · 정방향
 
 내부 ID: `work.major.death.upright`
 
-카드 의미: 끝난 것을 인정하며 형태를 바꾸는 전환. 원전의 종결을 실제 사망이 아닌 더는 이어갈 필요 없는 방식의 종료로 한정.
+카드 의미: 마무리, 전환, 이전방식의끝
 
-분야 해석: 업무전환
+분야 해석: 전환: 효과 없는 풀이의 끝, 과제 마무리와 업무 역할의 변경
 
-관찰: 오래 맡던 일이 마무리되고 다른 일을 배울 기회가 생길 수 있어. / 익숙한 방식이 바뀌며 처음에는 낯설어도 내게 맞는 장점을 찾게 될 거야. / 미뤄둔 공부를 끝낸 뒤 새로운 분야에 관심이 갈 수도 있는 날이야.
+관찰: 마무리 / 전환 / 이전방식의끝
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 맡던 일이 마무리되고 다른 일을 배울 기회가 생길 수 있어. 익숙한 방식이 바뀌며 처음에는 낯설어도 내게 맞는 장점을 찾게 될 거야. 미뤄둔 공부를 끝낸 뒤 새로운 분야에 관심이 갈 수도 있는 날이야. 끝낸 내용은 간단히 남기고 다음에 필요한 것부터 살펴봐. 그동안 쌓은 경험이 다른 곳에서도 쓰일 수 있다는 자신감이 생길 거야. | A responsibility you've had for a long time may finish, bringing a chance to learn something different. A change to a familiar method could feel strange at first, but you'll find an advantage that suits you. Finishing some postponed studying may also spark interest in a new field. Make a brief record of what you've finished, then look at what you'll need next. You'll gain confidence that the experience you've built can be useful elsewhere too. | 長く担当していたことが終わり、別のことを学ぶ機会がありそうです。慣れた方法が変わっても、戸惑った後には自分に合うよさを見つけられるでしょう。後回しにしていた勉強を終えて、新しい分野に興味が湧くかもしれません。終えた内容を簡単に残し、次に必要なことから見てみてください。積み重ねた経験はほかでも生かせると、自信がつきそうです。 |
+| 분야 풀이 | 익숙한 풀이가 더는 통하지 않아 공부 방법을 바꾸게 될 수 있어. 성과 없이 반복하던 부분을 멈추고 새 설명을 들으면 이해가 달라질 수 있어. 끝내야 할 과제가 있다면 오늘 마무리하고 다음 공부로 넘어가기 좋아.<br><br>직장에서는 맡던 업무가 끝나거나 담당하는 일이 바뀔 수 있어. 계속될 줄 알았던 계획이 종료되면 아쉬워도 남은 정리는 필요한 날이야. 끝난 일에 매달리기보다 다음에 맡을 역할을 확인해줘. | A familiar way of solving problems may stop working, prompting a change in how you study. Leaving an unproductive exercise behind and hearing a new explanation could change your understanding. If an assignment needs finishing, it's a good day to complete it and move on to the next part of your studies.<br><br>At work, a task may come to an end or your responsibilities could change. If a plan you expected to continue is closed down, you'll still need to finish the remaining details, however disappointing that feels. Find out what your next role involves instead of holding on to work that's ended. | 慣れた解き方が通用しなくなり、勉強の方法を変えることになるかもしれません。成果のない繰り返しをやめ、新しい説明を聞けば、理解が変わりそうです。終えるべき課題があるなら、今日仕上げて、次の勉強へ進むのによい日です。<br><br>職場では、担当してきた業務が終わったり、受け持つ仕事が変わったりしそうです。続くと思っていた計画が終われば、残念でも、残った片づけは必要になります。終わった仕事にこだわるより、次に担う役割を確かめてください。 |
 
 ## major.devil · 역방향
 
 내부 ID: `work.major.devil.reversed`
 
-카드 의미: 구속을 알아차리고 느슨하게 만드는 현대적 독해. 원전 역해석의 무력함과 다른 선택임을 전제로 작은 해방과 재선택에 초점.
+카드 의미: 종속인식, 자유회복, 습관중단
 
-분야 해석: 과한책임해소
+분야 해석: 회복: 공부 방해 요인 감소, 과한 업무 부담과 경쟁에서 벗어남
 
-관찰: 혼자 다 맡아야 한다고 여겼던 일을 나눌 기회가 생길 수 있어. / 도움을 구하자 의외로 쉽게 맡아주는 사람이 나타날 거야. / 반복하던 불필요한 작업도 빼도 된다는 답을 들을 수 있는 날이야.
+관찰: 종속인식 / 자유회복 / 습관중단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 다 맡아야 한다고 여겼던 일을 나눌 기회가 생길 수 있어. 도움을 구하자 의외로 쉽게 맡아주는 사람이 나타날 거야. 반복하던 불필요한 작업도 빼도 된다는 답을 들을 수 있는 날이야. 부담되는 분량을 구체적으로 말해봐. 시간이 조금 비면 정말 배우고 싶던 내용에 다시 눈길이 갈 수 있어. | You could get a chance to share something you thought you had to handle alone. Asking for help may bring someone who takes it on more readily than expected. You might also hear that a repetitive, unnecessary task can be left out. Describe exactly how much work feels burdensome. A little free time could draw you back to something you've truly wanted to learn. | 一人で全部するべきだと思っていたことを、分担する機会がありそうです。助けを求めると、意外と気軽に引き受けてくれる人が現れるでしょう。繰り返していた不要な作業も、省いてよいと聞けるかもしれません。負担になっている量を、具体的に伝えてみてください。少し時間が空くと、本当に学びたかったことにまた興味が向きそうです。 |
+| 분야 풀이 | 집중을 빼앗던 일이 줄고 밀렸던 공부가 다시 진행될 수 있어. 계속 미루던 문제도 붙잡으면 생각보다 수월하게 풀릴 수 있는 날이야. 공부를 방해하던 습관 하나를 끊어보기 좋아.<br><br>직장에서는 감당하기 어려웠던 일을 나누거나 불필요한 경쟁에서 벗어날 수 있어. 떠맡던 부담이 줄면 본래 업무에서도 다시 성과를 낼 수 있어. 할 수 없는 요구에는 사정을 분명히 말해줘. | Distractions could ease, allowing you to catch up on studying. A problem you've kept putting off may be easier than expected once you tackle it today. It's a good time to break one habit that interrupts your study.<br><br>At work, you may be able to share an unmanageable task or step away from unnecessary competition. With less extra work to carry, you could start getting results in your own role again. Explain clearly when you can't meet a request. | 集中を妨げることが減り、遅れていた勉強が再び進みそうです。後回しにしていた問題も、取り組めば思ったより楽に解けるかもしれません。勉強を邪魔していた習慣を、一つやめてみるのによい日です。<br><br>職場では、負担しきれなかった仕事を分けたり、不要な競争から離れたりできそうです。抱えていた負担が減れば、本来の業務でも再び成果を出せるでしょう。応じられない要求には、事情をはっきり伝えてください。 |
 
 ## major.devil · 정방향
 
 내부 ID: `work.major.devil.upright`
 
-카드 의미: 유혹과 반복되는 집착이 선택을 좁히는 상태. 원전의 강한 욕구를 악마의 실재가 아닌 자신도 알아차릴 수 있는 습관으로 응용.
+카드 의미: 강한끌림, 종속, 과도함
 
-분야 해석: 일과몰입
+분야 해석: 주의: 성적 집착과 무리로 인한 실수, 실적 부담과 과도한 경쟁
 
-관찰: 쉬는 시간을 잊을 만큼 일이나 공부에 빠져들 수 있는 날이야. / 성과를 더 내고 싶은 마음에 이미 충분한 부분도 계속 붙잡을 거야. / 주변의 경쟁적인 말이 평소보다 신경 쓰여 속도를 올리고 싶어질 수 있어.
+관찰: 강한끌림 / 종속 / 과도함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 쉬는 시간을 잊을 만큼 일이나 공부에 빠져들 수 있는 날이야. 성과를 더 내고 싶은 마음에 이미 충분한 부분도 계속 붙잡을 거야. 주변의 경쟁적인 말이 평소보다 신경 쓰여 속도를 올리고 싶어질 수 있어. 오늘 마칠 시간을 미리 정하고 한 번은 자리에서 일어나봐. 끝없이 비교할 때보다 내 몫을 마친 순간에 실제 성취가 더 또렷하게 느껴질 거야. | You could become so absorbed in work or study that you forget to take a break. Wanting more achievement may keep you focused on a part that's already good enough. Competitive remarks around you could matter more than usual and make you want to speed up. Decide your finishing time in advance and get up from your seat at least once. Finishing your own share could make your achievement feel clearer than endless comparison does. | 休憩を忘れるほど、仕事や勉強に入り込むかもしれません。もっと成果を出したくて、十分できている部分にも時間をかけ続けそうです。周りの競争を意識する言葉が気になり、ペースを上げたくなるでしょう。今日は終わる時間を先に決め、一度は席を立ってみてください。比べ続けるより、自分の担当を終えたときに達成したことを実感できそうです。 |
+| 분야 풀이 | 성적을 올려야 한다는 압박 때문에 공부한 내용도 헷갈릴 수 있어. 남보다 많이 했는지만 따지면 틀린 이유를 제대로 보지 못하기 쉬워. 잠을 줄여 억지로 진도를 늘리지는 마.<br><br>직장에서는 실적을 내더라도 일의 부담이 지나치게 커질 수 있어. 성과 욕심에 감당 못 할 약속을 하면 당장의 칭찬 뒤에 어려움이 남아. 좋은 평가를 받으려고 필요한 휴식까지 포기하지는 마. | Pressure to improve your marks could make even material you've studied seem confusing. Focusing on whether you've done more than others may keep you from understanding why an answer was wrong. Don't cut back on sleep to force yourself through more material.<br><br>At work, the burden could become excessive even if you're getting results. Promising more than you can handle in pursuit of success may leave you with difficulties after the initial praise. Don't give up necessary rest for a good assessment. | 成績を上げなければという重圧で、勉強した内容まで混乱するかもしれません。人より多く勉強したかばかり考えると、間違えた理由を見落としがちです。睡眠を削って、無理に先へ進めるのは控えてください。<br><br>職場では、実績を上げても、仕事の負担が大きくなりすぎるかもしれません。成果を求めて無理な約束をすると、その場で褒められても、後で苦労が残ります。よい評価のために、必要な休みまで諦めるのは控えましょう。 |
 
 ## major.emperor · 역방향
 
 내부 ID: `work.major.emperor.reversed`
 
-카드 의미: 기준이 지나치게 경직되거나 책임의 경계가 흐려짐. 원전의 미성숙·방해를 권위와 운영 방식의 재점검으로 읽음.
+카드 의미: 경직된 권위, 책임과 통제의 혼동
 
-분야 해석: 권위갈등
+분야 해석: 주의: 고집한 풀이의 한계, 일방적인 지시와 협업 충돌
 
-관찰: 다른 방법을 받아들이면 막힌 일이 예상보다 쉽게 풀릴 수 있어. / 윗사람의 말이나 정해진 방식이 답답하게 느껴질 수 있는 날이야. / 이유를 묻고 이야기하면 꼭 지킬 부분과 바꿔도 될 부분이 분명해질 거야.
+관찰: 경직된 권위 / 책임과 통제의 혼동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 지시가 바뀌거나 서로 다른 요구를 받아 잠깐 혼란스러울 수 있어. 이미 끝낸 일에 다시 손을 대야 해 답답한 마음도 들 거야. 경험 있는 동료가 중간에서 설명해주면 꼭 필요한 수정이 분명해질 수 있어. 어느 요구를 먼저 따라야 하는지 짧게 확인해봐. 내가 모두 해결하려 하지 않아도 맡을 몫이 정리되면서 한숨 돌릴 수 있을 거야. | Changed instructions or conflicting requests could create some confusion. Having to revisit completed work may also feel frustrating. An experienced colleague could explain what matters and clarify the necessary changes. Briefly ask which request takes priority. Once responsibilities are clear, you may get some relief from feeling you must solve everything yourself. | 指示が変わったり違う要望を受けたりして、少し混乱しそうです。終えたことにまた手を入れる必要があり、もどかしく感じるでしょう。経験のある同僚が間で説明してくれれば、必要な修正が明確になりそうです。どの要望を優先するか、短く確かめてみましょう。自分が全部解決しなくても、役割が決まりひと息つけそうです。 |
+| 분야 풀이 | 익숙한 풀이만 고집하면 새로운 유형에서 막힐 수 있어. 선생님이나 친구가 다른 설명을 해준다면 틀렸다고 단정하기 전에 들어봐. 문제에 맞지 않는 방법을 계속 써도 답은 잘 나오지 않아.<br><br>직장에서는 일방적인 지시나 지나친 간섭 때문에 일이 늦어질 수 있어. 누가 맞는지 겨루느라 실제 업무가 멈추기 쉬운 날이야. 책임을 맡았더라도 함께 일하는 사람의 사정을 들어줘. | Insisting on a familiar method could leave you stuck on a new question type. If a teacher or friend offers a different explanation, hear it before deciding it's wrong. Repeating a method that doesn't fit the question is unlikely to produce the answer.<br><br>At work, one-sided instructions or excessive interference could cause delays. Competing over who's right may stop the actual work today. Even if you're in charge, listen when colleagues explain their circumstances. | 慣れた解き方にこだわると、新しい形式の問題で行き詰まるかもしれません。先生や友人が別の説明をしてくれたら、間違いと決める前に聞いてみましょう。問題に合わない方法を続けても、答えはなかなか出てきません。<br><br>職場では、一方的な指示や過度な干渉で、仕事が遅れるかもしれません。どちらが正しいかを争い、実際の業務が止まりやすい日です。責任者であっても、一緒に働く人の事情に耳を傾けてください。 |
 
 ## major.emperor · 정방향
 
 내부 ID: `work.major.emperor.upright`
 
-카드 의미: 지속할 구조와 책임 있는 결정. 원전의 안정·보호·이성을 타인 지배가 아닌 스스로 정한 기준으로 응용.
+카드 의미: 안정, 권위, 보호, 의지
 
-분야 해석: 책임인정
+분야 해석: 좋음: 기본기가 받치는 안정된 성적, 체계 있는 업무와 책임의 인정
 
-관찰: 중요한 일을 믿고 맡길 만한 사람이라는 평가를 받는 날이야. / 여럿이 우왕좌왕하는 자리에서 내 설명이 방향을 잡아줄 수 있어. / 시험에서는 익숙하게 연습한 유형을 만나 차분하게 풀어나갈 거야.
+관찰: 안정 / 권위 / 보호
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 중요한 일을 믿고 맡길 만한 사람이라는 평가를 받는 날이야. 여럿이 우왕좌왕하는 자리에서 내 설명이 방향을 잡아줄 수 있어. 시험에서는 익숙하게 연습한 유형을 만나 차분하게 풀어나갈 거야. 자신 있는 부분부터 답하고 어려운 문제는 잠깐 뒤로 남겨둬. 화려하게 나서지 않아도 끝까지 책임지는 모습이 눈에 띌 거야. | You could be seen as someone trustworthy enough to handle an important task. Your explanation may give direction when a group is unsure what to do. In an exam, familiar question types could let you work calmly. Answer the parts you know well first, leaving difficult questions briefly aside. Following through to the end could get noticed even without a showy performance. | 大切な仕事を安心して任せられる人だと、評価されそうな日です。みんなが迷う場で、自分の説明が方向を示すこともあるでしょう。試験では練習した形式の問題に出会い、落ち着いて解けそうです。自信のあるところから答え、難しい問題は少し後に残してみましょう。華やかに出なくても、最後まで責任を持つ姿が目に留まりそうです。 |
+| 분야 풀이 | 기본기를 잘 익혔다면 시험에서 안정적인 결과를 기대할 수 있어. 배운 원칙을 순서대로 적용하면 어려운 문제도 흔들리지 않고 풀기 좋아. 익숙한 풀이를 차분히 끝까지 이어가봐.<br><br>직장에서는 맡은 일을 꼼꼼히 마무리해 신뢰를 얻을 수 있어. 일정과 역할이 분명한 업무는 순조롭게 진행될 수 있어. 책임이 큰 일을 맡았다면 필요한 결정도 차분히 내릴 수 있어. | If you've mastered the basics, you're well placed for a solid exam result. Applying the principles you've learned in order may let you solve even a difficult problem without becoming unsettled. Calmly follow a familiar solution through to the end.<br><br>At work, careful completion of your responsibilities could earn trust. Tasks with clear timing and roles may proceed smoothly. If you've taken on a major responsibility, you could make the necessary decisions calmly too. | 基礎をしっかり身につけていれば、試験で安定した結果を期待できそうです。習った原則を順に当てはめると、難しい問題も落ち着いて解きやすいでしょう。慣れた解き方で、焦らず最後まで進めてください。<br><br>職場では、任された仕事を丁寧に仕上げ、信頼を得られそうです。日程と役割が明確な業務は、順調に進むかもしれません。責任の重い仕事を任されているなら、必要な決断も落ち着いてできるでしょう。 |
 
 ## major.empress · 역방향
 
 내부 ID: `work.major.empress.reversed`
 
-카드 의미: 돌봄의 과잉과 창작의 정체를 현대적 핵심으로 선택. 원전에도 망설임과 문제의 드러남이 함께 있어 단순 흉으로 보지 않음.
+카드 의미: 지나친 돌봄, 의존, 만족의 결여
 
-분야 해석: 완성부담
+분야 해석: 주의: 겉의 꾸밈과 낮은 완성도, 남을 챙기다 지연되는 자기 업무
 
-관찰: 예쁘고 완벽하게 만들려는 욕심을 줄이면 일이 한결 잘 풀릴 거야. / 작은 표현을 계속 고치느라 정작 전하고 싶은 말을 놓칠 수 있어. / 이미 괜찮은 부분은 다른 사람의 눈에 더 쉽게 보일 수 있는 날이야.
+관찰: 지나친 돌봄 / 의존 / 만족의 결여
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정성 들인 부분보다 다른 곳을 고쳐달라는 말을 들을 수 있어. 표현을 꾸미느라 핵심이 눈에 잘 들어오지 않았다는 걸 알게 될 거야. 가볍게 보여준 초안에서는 오히려 좋은 아이디어라는 반응이 나올 수 있는 날이야. 더 붙이기 전에 가장 전하고 싶은 말 하나를 남겨봐. 완성도에 대한 부담을 덜면 처음의 재미와 자신감도 다시 돌아올 수 있어. | You may be asked to change something other than the part you've carefully polished. Decorative details could have made the main point harder to notice. A casually shared draft, meanwhile, may get praise for its idea today. Before adding more, keep the one thing you most want to say clear. Easing the pressure to perfect everything could bring back some of the original enjoyment and confidence. | 手をかけた部分とは違うところを、直してほしいと言われるかもしれません。表現を飾るうちに、大事なことが見えにくくなっていたと気づきそうです。気軽に見せた下書きには、かえってよいアイデアだという反応があるでしょう。さらに足す前に、いちばん伝えたいことを一つ残してみましょう。完璧にする重荷が減ると、初めの楽しさや自信も戻ってきそうです。 |
+| 분야 풀이 | 과제를 보기 좋게 꾸며도 내용이 부족해 평가가 아쉬울 수 있어. 분량을 늘리는 데 치우치면 묻는 말에 제대로 답하지 못하기 쉬워. 겉모양보다 핵심 설명을 먼저 채워줘.<br><br>직장에서는 다른 사람을 챙기다가 자신의 마감이 밀릴 수 있어. 도와준 일이 많아도 맡은 업무가 늦어지면 평가가 기대에 못 미칠 수 있어. 부탁을 받기 전에 지금 남은 일을 살펴봐. | Even a well-presented assignment may receive a disappointing assessment if its content is thin. Focusing on length could keep you from answering the actual question. Fill in the main explanation before improving the appearance.<br><br>At work, looking after others could make you miss your own deadline. However much you've helped, late work may lead to an assessment below your hopes. Check what's left on your own list before accepting a request. | 課題の見栄えを整えても、内容が足りず、評価に物足りなさを感じるかもしれません。分量を増やすことに偏ると、問われたことに答えられなくなりがちです。見た目より、要点の説明を先に充実させましょう。<br><br>職場では、人の面倒を見ているうちに、自分の仕事が締め切りに間に合わなくなるかもしれません。たくさん助けていても、担当の仕事が遅れると、評価は期待に届かない可能性があります。頼みを引き受ける前に、今残っている仕事を見ておきましょう。 |
 
 ## major.empress · 정방향
 
 내부 ID: `work.major.empress.upright`
 
-카드 의미: 자라게 하는 돌봄과 감각적 풍요. 원전의 결실·행동을 일상의 즐거움과 지속적인 보살핌으로 현대화.
+카드 의미: 결실, 창조, 돌봄과 풍요
 
-분야 해석: 창의력
+분야 해석: 좋음: 풍부한 발상과 과제 성과, 창작 업무의 결실과 호응
 
-관찰: 감각과 아이디어가 살아나 표현하는 일에서 좋은 반응을 얻기 쉬워. / 글을 쓰거나 그림을 고를 때 평소보다 어울리는 조합이 잘 떠오를 거야. / 배우는 자리에서도 재미를 느낀 내용을 빠르게 기억할 수 있어.
+관찰: 결실 / 창조 / 돌봄과 풍요
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 감각과 아이디어가 살아나 표현하는 일에서 좋은 반응을 얻기 쉬워. 글을 쓰거나 그림을 고를 때 평소보다 어울리는 조합이 잘 떠오를 거야. 배우는 자리에서도 재미를 느낀 내용을 빠르게 기억할 수 있어. 떠오른 생각은 짧은 문장이나 그림으로 남겨봐. 혼자 보기 아까운 결과가 있다면 주변에 보여주며 의견을 들어도 좋아. | Creative instincts could bring an encouraging response to something you express. Writing or choosing images may feel easier as appealing combinations come to mind. Material you enjoy learning could also be particularly memorable. Save an idea in a brief sentence or sketch. If you've made something you'd like others to see, sharing it could invite useful reactions. | 感覚やアイデアが冴え、表現することによい反応がありそうです。文章を書いたり絵を選んだりするとき、似合う組み合わせがいつもより浮かぶでしょう。学ぶ場でも、面白いと感じた内容は早く覚えられそうです。思いついたことを、短い文や絵に残してみましょう。見せたいものができたら、周りに見てもらい感想を聞くのもよさそうです。 |
+| 분야 풀이 | 글이나 그림으로 생각을 표현하는 과제에서 좋은 결과를 기대할 수 있어. 막혔던 주제에도 여러 생각이 떠올라 내용을 풍성하게 채우기 좋아. 정성껏 준비한 작품이나 발표가 칭찬받을 수 있어.<br><br>직장에서는 오래 준비한 기획이 구체적인 결과로 이어질 수 있어. 사람의 취향이나 필요를 헤아린 제안에 반응이 좋을 수 있는 날이야. 함께 만든 성과라면 동료의 기여도 인정해줘. | Assignments expressing ideas through writing or drawing could bring good results. Several ideas may come to you even on a topic you've struggled with, helping you develop the content. Carefully prepared creative work or a presentation could receive praise.<br><br>At work, a plan prepared over a long time could produce concrete results. A proposal that considers people's tastes or needs may receive a good response today. If the achievement is shared, recognise your colleagues' contributions too. | 文章や絵で考えを表す課題では、よい結果を期待できそうです。行き詰まっていたテーマにもアイデアが浮かび、内容を充実させやすいでしょう。丁寧に準備した作品や発表が、褒められるかもしれません。<br><br>職場では、長く準備してきた企画が、具体的な成果につながりそうです。人の好みや必要としていることを考えた提案には、よい反応が得られるかもしれません。一緒に出した成果なら、同僚の貢献も認めましょう。 |
 
 ## major.fool · 역방향
 
 내부 ID: `work.major.fool.reversed`
 
-카드 의미: 새로움에 끌려 뒤따를 책임을 놓치거나 첫발 자체를 두려워함. 무조건 실패가 아니라 시도와 준비의 불균형.
+카드 의미: 부주의, 결과를 살피지 않은 행동
 
-분야 해석: 초보실수
+분야 해석: 주의: 부주의한 답안과 과제 누락, 준비 없는 업무 착수
 
-관찰: 쉬워 보였던 문제에서 뜻밖에 막히거나 첫 시도가 기대와 다를 수 있어. / 설명을 건너뛴 부분이 뒤늦게 필요해 처음으로 돌아갈 수도 있을 거야. / 반면 먼저 해본 사람에게는 간단한 요령이 있어 오래 헤맬 일은 아니야.
+관찰: 부주의 / 결과를 살피지 않은 행동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 쉬워 보였던 문제에서 뜻밖에 막히거나 첫 시도가 기대와 다를 수 있어. 설명을 건너뛴 부분이 뒤늦게 필요해 처음으로 돌아갈 수도 있을 거야. 반면 먼저 해본 사람에게는 간단한 요령이 있어 오래 헤맬 일은 아니야. 모르는 부분은 바로 물어보고 시작해봐. 한 번 직접 겪은 실수는 기억에 남아 다음번에는 훨씬 능숙하게 해낼 수 있어. | An apparently easy problem could catch you out, or a first attempt may differ from what you expected. A skipped instruction might turn out to matter and send you back to the start. Someone who's done it before may have a simple tip, so you needn't stay stuck for long. Ask about anything unclear before getting underway. A mistake you've experienced firsthand could be easy to remember and avoid next time. | 簡単そうな問題で意外につまずいたり、初めての挑戦が予想と違ったりしそうです。読み飛ばした説明が後から必要になり、最初に戻ることもあるでしょう。経験のある人には簡単なコツがあり、長く悩まずに済みそうです。分からない点は、始める前に聞いてみましょう。一度経験した失敗は記憶に残り、次はずっと上手にできそうです。 |
+| 분야 풀이 | 시험에서 문제를 대충 읽거나 과제 조건을 놓쳐 점수를 잃기 쉬워. 잘 아는 내용이어도 요구한 답이 무엇인지 끝까지 읽어봐. 준비하지 않은 부분을 운으로 넘기기는 어려운 날이야.<br><br>직장에서는 확인 없이 시작한 일에서 예상하지 못한 문제가 생길 수 있어. 처음 맡는 업무를 쉽다고 여기면 마감 직전에 도움을 구하게 될 수 있어. 시작 전에 필요한 시간과 조건을 알아봐줘. | Careless reading of an exam question or a missed assignment requirement could cost marks. Even on a familiar topic, read to the end to see what answer is required. Luck is unlikely to make up for unprepared areas today.<br><br>At work, starting without checking could bring an unexpected problem. Assuming a new task is easy may leave you asking for help just before the deadline. Find out the time and conditions needed before beginning. | 試験で問題をざっと読んだり、課題の条件を見落としたりして、点を落としやすい日です。よく知っている内容でも、何を答えるよう求められているか、最後まで読んでください。準備していない部分を、運だけで乗り切るのは難しそうです。<br><br>職場では、確かめずに始めた仕事で、予想外の問題が起こるかもしれません。初めての業務を簡単だと思うと、締め切り直前に助けを求めることもありそうです。始める前に、必要な時間と条件を調べましょう。 |
 
 ## major.fool · 정방향
 
 내부 ID: `work.major.fool.upright`
 
-카드 의미: 정해진 경험에 매이지 않는 출발과 호기심. 원전의 무분별함 경고도 남기되 현대적 첫 시도의 뜻을 채택.
+카드 의미: 경험을 찾는 출발, 구속되지 않은 호기심
 
-분야 해석: 첫도전
+분야 해석: 새 기회와 좋음: 낯선 내용의 이해, 새로운 업무의 시작과 기회
 
-관찰: 처음 해보는 일에서도 생각보다 빠르게 요령을 잡을 수 있어. / 새로운 수업이나 낯선 과제에서 남들이 지나친 질문이 떠오를 거야. / 경험이 적다는 점이 오히려 신선한 아이디어로 보일 수 있는 날이야.
+관찰: 경험을 찾는 출발 / 구속되지 않은 호기심
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 처음 해보는 일에서도 생각보다 빠르게 요령을 잡을 수 있어. 새로운 수업이나 낯선 과제에서 남들이 지나친 질문이 떠오를 거야. 경험이 적다는 점이 오히려 신선한 아이디어로 보일 수 있는 날이야. 모르는 것을 숨기기보다 처음 배우는 사람답게 질문해봐. 작게라도 직접 해본 경험이 다음 도전을 훨씬 편하게 만들어줄 거야. | You could pick up an unfamiliar task more quickly than expected. A new class or assignment may prompt a question others have overlooked. Having less experience could work in your favor by giving you a fresh idea. Ask as a beginner rather than hiding what you don't know. Even a small attempt can make the next challenge feel much more approachable. | 初めて取り組むことでも、思ったより早くコツをつかめそうです。新しい授業や課題で、周りが見落とした疑問が浮かぶかもしれません。経験の少なさが、かえって新鮮な発想として受け取られそうな日です。知らないことを隠さず、初めて学ぶ人として質問してみましょう。小さくても実際に試した経験が、次の挑戦をずっと気楽にしてくれそうです。 |
+| 분야 풀이 | 처음 배우는 내용이 생각보다 쉽게 이해될 수 있어. 낯선 과목이나 새로운 수업에서 자신에게 맞는 분야를 발견하기 좋은 날이야. 모르는 점을 바로 물으면 다음 공부도 수월해져.<br><br>직장에서는 처음 해보는 업무나 새로운 제안을 만날 수 있어. 익숙하지 않아도 시작해보면 뜻밖에 잘 맞는 일이 있을 거야. 아직 확인하지 못한 조건까지 가볍게 약속하지는 마. | Something you're learning for the first time may be easier to understand than expected. An unfamiliar subject or new class could help you discover a field that suits you today. Asking straight away about anything unclear will make the next stage of study easier too.<br><br>At work, you could encounter an unfamiliar task or a new suggestion. Even without experience, starting may reveal something that suits you unexpectedly well. Don't casually agree to conditions you haven't checked yet. | 初めて学ぶ内容を、思ったよりすんなり理解できそうです。なじみのない科目や新しい授業で、合う分野を見つけやすい日です。わからない点をその場で聞くと、次の勉強も進めやすくなります。<br><br>職場では、初めての業務や新しい提案に出会うかもしれません。慣れていなくても始めてみると、意外に向いている仕事がありそうです。まだ確かめていない条件まで、軽く約束するのは控えましょう。 |
 
 ## major.hanged_man · 역방향
 
 내부 ID: `work.major.hanged_man.reversed`
 
-카드 의미: 멈춤을 받아들이지 못해 제자리에서 버티거나 보상 없는 희생을 지속함. 행동을 재개할 조건과 그만둘 몫을 구분하는 뜻.
+카드 의미: 무의미한지연, 일방희생, 회피
 
-분야 해석: 정체확인
+분야 해석: 정체와 주의: 성과 없는 공부 반복, 불필요한 대기와 일방적 부담
 
-관찰: 진행 중인 일이 같은 곳에서 멈춰 다시 확인할 필요가 생길 수 있어. / 허락이나 답을 기다리는 시간이 길어져 다른 일까지 늦어질 거야. / 담당자에게 물으면 생각과 달리 내가 먼저 해도 되는 부분을 알 수 있어.
+관찰: 무의미한지연 / 일방희생 / 회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 진행 중인 일이 같은 곳에서 멈춰 다시 확인할 필요가 생길 수 있어. 허락이나 답을 기다리는 시간이 길어져 다른 일까지 늦어질 거야. 담당자에게 물으면 생각과 달리 내가 먼저 해도 되는 부분을 알 수 있어. 무엇이 완료되어야 다음으로 갈 수 있는지 짧게 물어봐. 기다리는 이유가 분명해진 뒤에는 혼자 먼저 마칠 일도 보일 수 있는 날이야. | Something in progress may stop at the same point again and need checking. A long wait for permission or a reply could delay other things as well. Asking the person responsible may reveal parts you can begin without waiting. Ask briefly what needs to be completed before the next step. Once the reason for the wait is clear, you could spot something you can finish yourself. | 進めていることが同じところで止まり、もう一度確認する必要がありそうです。許可や返事を待つ時間が長くなり、ほかのことも遅れるかもしれません。担当者に聞くと、思っていたのと違い、先に進めてよい部分が分かるでしょう。何が終われば次へ進めるのか、短く尋ねてみてください。待つ理由がはっきりすれば、一人で先に終えられることも見えてきそうです。 |
+| 분야 풀이 | 오래 책을 붙잡아도 이해가 늘지 않아 답답할 수 있어. 같은 설명을 반복해서 읽기만 하면 틀리던 문제도 그대로 남기 쉬워. 어디부터 모르는지 짚고 다른 설명을 구해봐.<br><br>직장에서는 필요 없는 대기나 한쪽의 양보 때문에 일이 제자리일 수 있어. 계속 기다리라는 말만 듣고 있다면 무엇이 남았는지 확인할 때야. 다른 사람의 몫까지 혼자 떠안는다고 업무가 모두 풀리지는 않아. | Long hours with a book may feel frustrating if your understanding isn't improving. Simply rereading the same explanation can leave you stuck on the same questions. Pinpoint where you're getting lost and seek a different explanation.<br><br>At work, unnecessary waiting or repeated concessions by just one side could leave a task at a standstill. If you're only told to keep waiting, it's time to ask what still needs doing. Taking on everyone else's share won't solve every problem. | 長く本を読んでも理解が進まず、もどかしくなるかもしれません。同じ解説を繰り返し読むだけでは、間違えていた問題も解けないままになりがちです。どこからわからないかを確かめ、別の説明を求めてみましょう。<br><br>職場では、不要な待ち時間や一方だけの譲歩で、仕事が進まないかもしれません。待つように言われ続けているなら、何が残っているのか確かめるときです。人の分まで一人で引き受けても、すべてが解決するわけではありません。 |
 
 ## major.hanged_man · 정방향
 
 내부 ID: `work.major.hanged_man.upright`
 
-카드 의미: 의도적인 멈춤과 다른 관점에서 얻는 이해. 원전의 지혜·희생을 손해 감수가 아니라 우선순위의 자발적 조정으로 사용.
+카드 의미: 자발적보류, 관점전환, 양보
 
-분야 해석: 관점전환
+분야 해석: 유보와 이해의 전환: 느린 성과, 다른 관점으로 풀리는 문제와 협의
 
-관찰: 막혔던 문제를 다른 방향에서 이해할 기회가 생길 수 있어. / 잠깐 쉬고 돌아오면 계속 놓치던 문장이나 조건이 눈에 들어올 거야. / 다른 사람의 설명에서는 내가 당연하게 여긴 전제가 다르게 들릴 수 있어.
+관찰: 자발적보류 / 관점전환 / 양보
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 막혔던 문제를 다른 방향에서 이해할 기회가 생길 수 있어. 잠깐 쉬고 돌아오면 계속 놓치던 문장이나 조건이 눈에 들어올 거야. 다른 사람의 설명에서는 내가 당연하게 여긴 전제가 다르게 들릴 수 있어. 한 가지 방법으로만 풀리지 않는다면 잠시 다른 예를 봐줘. 한 번 이해한 원리는 비슷한 문제를 풀 때도 쉽게 떠오를 거야. | You may get a chance to understand a difficult problem from another angle. Returning after a short break could draw your attention to a sentence or condition you kept missing. Someone else's explanation may challenge an assumption you'd taken for granted. If one approach isn't working, look at a different example for a moment. Once you understand the principle, it will come back readily in similar problems. | つまずいていた問題を、別の角度から理解する機会がありそうです。少し休んで戻ると、何度も見落としていた一文や条件に気づくでしょう。誰かの説明から、当たり前だと思っていた前提が違って聞こえることもありそうです。一つの解き方で進まなければ、少し別の例を見てみてください。一度理解した原理は、似た問題を解くときにもすぐ思い出せるでしょう。 |
+| 분야 풀이 | 공부한 결과가 바로 나타나지는 않아도 다른 풀이에서 이해가 트일 수 있어. 계속 막히던 문제를 잠시 놓고 예시를 다시 보면 놓친 뜻이 보일 수 있어. 오늘 진도가 느리다고 실력이 멈췄다고 여기지는 마.<br><br>직장에서는 중요한 결정이 늦어질 수 있어. 상대의 사정을 다시 들으면 왜 협의가 막혔는지 알게 될 수 있어. 오늘 답을 밀어붙이기보다 필요한 시간을 두면 더 나은 합의를 찾기 좋아. | Your studying may not show immediate results, but a different solution could help you understand. Setting aside a stubborn problem briefly and revisiting an example may reveal something you missed. Slow progress today doesn't mean you've stopped learning.<br><br>At work, an important decision may be delayed. Hearing more about the other person's circumstances could explain why discussions have stalled. Allowing the time needed may help you reach a better agreement than pressing for an answer today. | 勉強の成果がすぐに出なくても、別の解き方から理解が進むかもしれません。解けない問題から少し離れ、例を見直すと、見落とした意味に気づけそうです。今日は進みが遅くても、実力が伸びていないと決めつけることはありません。<br><br>職場では、大切な決定が遅れるかもしれません。相手の事情をもう一度聞くと、話し合いが止まった理由がわかりそうです。今日の返答を無理に求めるより、必要な時間を置くほうが、よい合意にたどり着きやすいでしょう。 |
 
 ## major.hermit · 역방향
 
 내부 ID: `work.major.hermit.reversed`
 
-카드 의미: 필요한 거리두기가 고립이나 지나친 경계로 굳어짐. 원전의 근거 없는 조심성을 도움 요청과 재접촉의 필요로 응용.
+카드 의미: 지나친고립, 외로움, 좁아진관점
 
-분야 해석: 도움학습
+분야 해석: 주의: 혼자 품은 오개념, 부족한 소통으로 인한 업무 차질
 
-관찰: 혼자 오래 붙잡던 문제가 다른 사람의 설명으로 풀릴 수 있어. / 내가 어려워한 부분을 주변에서도 겪었다는 걸 알게 될 거야. / 잠깐 의견을 나누는 자리에서 새로운 공부 방법이나 기회 소식이 들어올 수 있어.
+관찰: 지나친고립 / 외로움 / 좁아진관점
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 오래 붙잡던 문제가 다른 사람의 설명으로 풀릴 수 있어. 내가 어려워한 부분을 주변에서도 겪었다는 걸 알게 될 거야. 잠깐 의견을 나누는 자리에서 새로운 공부 방법이나 기회 소식이 들어올 수 있어. 어디까지 해봤는지 보여주고 막힌 부분을 물어봐. 도움을 받는 시간이 혼자 헤매던 시간보다 훨씬 알차게 느껴질 거야. | Someone else's explanation could unlock a problem you've been struggling with alone. You may discover that people around you have found the same part difficult. A brief exchange could bring a new study method or news of an opportunity. Show what you've tried and ask about the point where you're stuck. A little time spent getting help could feel far more useful than hours spent going in circles. | 一人で長く悩んでいた問題が、誰かの説明で解けそうです。自分が難しく感じたところは、周りの人も経験していたと分かるでしょう。少し意見を交わすだけで、新しい勉強法や機会の話も聞けそうです。どこまで試したかを見せて、つまずいたところを尋ねてみてください。助けを借りる時間のほうが、一人で迷っていた時間よりずっと充実しそうです。 |
+| 분야 풀이 | 혼자 공부하며 잘못 이해한 내용이 오래 남을 수 있어. 모르는 점을 물어보지 않으면 같은 문제에서 계속 틀리기 쉬워. 다른 사람의 설명을 들어보면 막힌 이유가 드러날 수 있어.<br><br>직장에서는 진행 상황을 혼자만 알고 있어 협업이 늦어질 수 있어. 도움을 구하기 싫어 문제를 감추면 해결할 시간도 줄어들어. 어디에서 막혔는지 짧게라도 알리는 게 좋아. | Studying alone could leave a misunderstanding uncorrected for a long time. Without asking about what you don't know, you may keep making the same mistake. Someone else's explanation could reveal why you're stuck.<br><br>At work, keeping progress to yourself could delay cooperation. Hiding a problem because you don't want help may also reduce the time available to solve it. It's better to say where you're stuck, even briefly. | 一人で勉強していると、誤解した内容が長く残るかもしれません。わからない点を聞かずにいると、同じ問題で間違え続けやすくなります。人の説明を聞けば、行き詰まった理由が見えてきそうです。<br><br>職場では、進み具合を周囲に伝えていないために、共同作業が遅れるかもしれません。助けを求めたくなくて問題を隠すと、解決する時間も減ってしまいます。どこで困っているか、短くても伝えるとよさそうです。 |
 
 ## major.hermit · 정방향
 
 내부 ID: `work.major.hermit.upright`
 
-카드 의미: 외부 소음에서 떨어져 살피는 신중함과 탐구. 원전의 조심스러움을 성찰·경험에서 길을 찾는 현대적 관점으로 사용.
+카드 의미: 성찰, 고요한혼자시간, 깊은탐구
 
-분야 해석: 집중학습
+분야 해석: 좋음: 혼자 깊이 이해하는 공부, 세밀한 전문 업무의 성과
 
-관찰: 혼자 깊게 살펴본 내용에서 중요한 답을 얻기 좋은 날이야. / 익숙한 문제도 차분히 다시 읽으면 놓친 원리가 보일 거야. / 겉으로는 진도가 느려 보여도 이해한 내용은 오래 기억에 남을 수 있어.
+관찰: 성찰 / 고요한혼자시간 / 깊은탐구
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 깊게 살펴본 내용에서 중요한 답을 얻기 좋은 날이야. 익숙한 문제도 차분히 다시 읽으면 놓친 원리가 보일 거야. 겉으로는 진도가 느려 보여도 이해한 내용은 오래 기억에 남을 수 있어. 오늘은 한 가지 주제를 조용히 끝까지 살펴봐. 나중에 질문을 받았을 때 또렷하게 설명할 수 있다는 자신감이 생길 거야. | Taking a close look at something on your own could lead to an important answer. Reading a familiar problem slowly may reveal a principle you missed. Your progress might look slow from the outside, but what you understand could stay with you for a long time. Give one subject your quiet attention from start to finish today. You'll gain confidence that you can explain it clearly when someone asks later. | 一人でじっくり調べたことから、大事な答えを見つけられそうです。見慣れた問題も落ち着いて読み直すと、見落としていた原理が分かるでしょう。進み方はゆっくりに見えても、理解したことは長く記憶に残りそうです。今日は一つのテーマを、静かに最後まで掘り下げてみてください。後で質問されたときにも、はっきり説明できる自信がつくでしょう。 |
+| 분야 풀이 | 혼자 깊이 파고드는 공부에서 성과가 나기 좋은 날이야. 어려운 개념을 차분히 따라가면 남에게 설명할 만큼 이해할 수 있어. 함께 빠르게 진도를 나가기보다 혼자 확인할 시간이 도움이 돼.<br><br>직장에서는 집중해서 살핀 문제에서 중요한 답을 찾을 수 있어. 조사나 분석처럼 깊이 알아야 하는 업무에 실력을 발휘하기 좋아. 의견을 내기 전 충분히 확인하면 신뢰할 만한 설명이 될 거야. | Focused study on your own could bring results today. Following a difficult concept carefully may let you understand it well enough to explain to someone else. Time to work through it on your own will help more than racing through material with others.<br><br>At work, concentrating on a problem could reveal an important answer. Research or analysis requiring depth may give you a good chance to use your skills. Checking thoroughly before offering a view will make the explanation reliable. | 一人でじっくり掘り下げる勉強に、成果が出やすい日です。難しい概念も、落ち着いてたどれば、人に説明できるほど理解できそうです。皆と速く先へ進むより、一人で確かめる時間が役に立ちます。<br><br>職場では、集中して調べた問題から、大切な答えを見つけられそうです。調査や分析など、深い理解が必要な仕事で、実力を発揮しやすいでしょう。意見を出す前に十分確かめると、信頼できる説明になります。 |
 
 ## major.hierophant · 역방향
 
 내부 ID: `work.major.hierophant.reversed`
 
-카드 의미: 관례를 다시 묻고 자신의 기준을 만드는 현대적 독해. 원전의 지나친 호의와 집단적 화합도 무비판적 순응의 위험으로 참고.
+카드 의미: 관습을 질문, 개인기준, 규범과의 충돌
 
-분야 해석: 독창성
+분야 해석: 혼합: 새로운 설명의 효과, 익숙한 규칙과의 충돌, 제안의 의견 차이
 
-관찰: 익숙한 답에서 벗어난 생각이 주목받을 수 있는 날이야. / 다른 풀이를 시도하거나 발표 방식을 바꾸면 새로운 장점이 드러날 거야. / 모두가 같은 방법을 쓴다고 해서 내 생각을 감출 필요는 없어.
+관찰: 관습을 질문 / 개인기준 / 규범과의 충돌
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 익숙한 답에서 벗어난 생각이 주목받을 수 있는 날이야. 다른 풀이를 시도하거나 발표 방식을 바꾸면 새로운 장점이 드러날 거야. 모두가 같은 방법을 쓴다고 해서 내 생각을 감출 필요는 없어. 왜 더 편한지 작은 예시로 보여줘. 기본 조건만 지킨다면 나만의 시도가 괜찮은 평가로 이어질 수 있어. | An idea outside the familiar answer could attract attention today. Trying a different solution or presentation style may reveal a new strength. Everyone using the same approach doesn't mean your idea needs to stay hidden. Show a small example of why it works better. If the essential requirements are met, an approach of your own could earn a good response. | 見慣れた答えとは違う発想が、注目されそうな日です。別の解き方や発表の仕方を試すと、新しい良さが表れるでしょう。みんなが同じ方法でも、自分の考えを隠す必要はありません。なぜやりやすいか、小さな例で見せてみましょう。基本の条件を守れば、自分らしい試みがよい評価につながりそうです。 |
+| 분야 풀이 | 늘 보던 설명과 다른 풀이에서 어려운 개념이 이해될 수 있어. 새로운 방법이 잘 맞더라도 시험에서 요구하는 답안 형식은 지켜줘. 방법이 새롭다는 이유만으로 정답인 것은 아니야.<br><br>직장에서는 기존 방식과 다른 제안을 두고 의견이 갈릴 수 있어. 필요한 변화여도 관행과 다르면 바로 받아들여지기 어려워. 무엇이 더 나아지는지 실제 사례로 보여주면 설득에 도움이 돼. | An explanation different from the usual one could make a difficult concept clear. Even if a new method suits you, keep to the answer format required by the exam. A method isn't correct simply because it's new.<br><br>At work, a suggestion that differs from the existing approach could divide opinions. Even a necessary change may not be accepted immediately if it breaks with usual practice. A real example of what improves can help persuade people. | いつもと違う解説や解き方から、難しい概念を理解できるかもしれません。新しい方法が合っていても、試験で求められる解答形式は守ってください。新しいというだけで、正しい方法とは限りません。<br><br>職場では、従来と異なる提案をめぐり、意見が分かれるかもしれません。必要な変化でも、慣例と違うとすぐには受け入れられにくいでしょう。何がよくなるのか、実例で示すことが説得に役立ちます。 |
 
 ## major.hierophant · 정방향
 
 내부 ID: `work.major.hierophant.upright`
 
-카드 의미: 전해진 지식과 공동체의 약속. 원전의 조언자·연합을 검증된 배움과 납득 가능한 관례로 활용.
+카드 의미: 전통적 가르침, 공동 약속, 신뢰할 조언
 
-분야 해석: 배움멘토
+분야 해석: 좋음: 기본 교육과 조언을 통한 이해, 절차를 지킨 업무의 인정
 
-관찰: 좋은 설명을 만나 배움이 한결 쉬워질 수 있는 날이야. / 혼자 풀리지 않던 문제도 선생님이나 선배의 예시를 들으면 이해가 될 거야. / 기초를 다시 보는 시간이 새로운 내용을 익히는 데도 도움이 될 수 있어.
+관찰: 전통적 가르침 / 공동 약속 / 신뢰할 조언
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 좋은 설명을 만나 배움이 한결 쉬워질 수 있는 날이야. 혼자 풀리지 않던 문제도 선생님이나 선배의 예시를 들으면 이해가 될 거야. 기초를 다시 보는 시간이 새로운 내용을 익히는 데도 도움이 될 수 있어. 어디서 헷갈렸는지 짧게 적어 질문해봐. 이미 안다고 넘기지 않으면 오래 써먹을 요령을 하나 얻을 거야. | A clear explanation could make learning much easier today. A teacher's or mentor's example may help you understand a problem you couldn't solve alone. Revisiting the basics could also make new material easier to absorb. Write down where you got confused and ask about it. Not dismissing something as familiar may leave you with a tip you'll use for a long time. | よい説明に出会い、学ぶことがぐっと楽になりそうです。一人では解けなかった問題も、先生や先輩の例を聞くと理解できるでしょう。基礎を見直す時間が、新しい内容を覚える助けにもなりそうです。どこで迷ったか短く書いて、質問してみましょう。知っていると流さなければ、長く使えるコツを一つ得られそうです。 |
+| 분야 풀이 | 선생님의 설명이나 교재의 기본 내용을 통해 막힌 문제가 풀릴 수 있어. 배운 순서를 따라가면 혼자 헤매던 공부가 한결 수월해져. 시험에서도 기본 개념을 놓치지 않았다면 좋은 결과를 기대할 수 있어.<br><br>직장에서는 정해진 절차를 지킨 일이 안정적으로 진행될 수 있어. 익숙하지 않은 업무는 경험 있는 동료의 조언이 도움이 될 거야. 함께 정한 기준을 맞추면 검토나 승인을 받기 수월해져. | A teacher's explanation or the basics in a textbook could solve a problem you're stuck on. Following the sequence you've learned may make solitary study less confusing. Good exam results are also worth hoping for if you've kept hold of the basic concepts.<br><br>At work, following established procedures could keep a task progressing steadily. An experienced colleague's advice may help with unfamiliar work. Meeting agreed standards can make a review or approval easier to obtain. | 先生の説明や教材の基礎に戻ると、解けなかった問題が解決しそうです。習った順序をたどれば、一人で迷っていた勉強も進めやすくなります。試験でも、基本の概念を押さえていれば、よい結果を期待できるでしょう。<br><br>職場では、決められた手順を守った仕事が、安定して進みそうです。慣れない業務では、経験のある同僚の助言が役に立つでしょう。一緒に決めた基準を満たすと、確認や承認も受けやすくなります。 |
 
 ## major.high_priestess · 역방향
 
 내부 ID: `work.major.high_priestess.reversed`
 
-카드 의미: 내적 판단을 무시하거나 겉정보만으로 안다고 여기기 쉬움. 원전의 피상적 지식을 자기 점검의 방향으로 선택.
+카드 의미: 겉핥기 지식, 속마음 외면
 
-분야 해석: 질문학습
+분야 해석: 주의: 겉핥기 이해와 잘못 짚은 답, 확인 없는 추측과 업무 누락
 
-관찰: 중요한 안내가 늦게 전달돼 준비한 것을 조금 고쳐야 할 수 있어. / 제출 방식이나 시험 범위를 다르게 알고 있던 사람이 나뿐만은 아닐 거야. / 친구나 동료가 알려준 소식 덕분에 뒤늦게 다시 할 수고를 줄일 수 있어.
+관찰: 겉핥기 지식 / 속마음 외면
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 중요한 안내가 늦게 전달돼 준비한 것을 조금 고쳐야 할 수 있어. 제출 방식이나 시험 범위를 다르게 알고 있던 사람이 나뿐만은 아닐 거야. 친구나 동료가 알려준 소식 덕분에 뒤늦게 다시 할 수고를 줄일 수 있어. 전해 들은 말이 있다면 담당자가 올린 안내와 한 번 대조해봐. 혼자 고민하던 부분도 사정을 알고 나면 생각보다 쉽게 정리될 거야. | Late instructions could mean adjusting something you've prepared. You may not be the only person who misunderstood a submission method or exam topic. News from a friend or colleague could save you from having to redo things later. Compare anything you heard secondhand with the official instructions. Knowing the circumstances may make something you've been puzzling over easier to sort out. | 大切な案内が遅れて届き、準備したものを少し直すことになりそうです。提出方法や試験範囲を違って理解していたのは、自分だけではないでしょう。友人や同僚の知らせで、後からやり直す手間を減らせそうです。人づてに聞いたことは、担当者の案内と一度照らし合わせましょう。一人で悩んでいた部分も、事情が分かれば思ったより簡単に整理できそうです。 |
+| 분야 풀이 | 문장을 읽고도 핵심 뜻을 놓쳐 문제를 잘못 풀 수 있어. 익숙한 단어가 보인다는 이유만으로 답을 고르면 비슷한 개념에 속기 쉬워. 이해하지 못한 부분은 아는 척 넘기지 마.<br><br>직장에서는 자료를 겉으로만 훑어 중요한 내용을 빠뜨릴 수 있어. 말하지 않은 사정을 혼자 짐작하면 동료의 의도도 잘못 이해하기 쉬워. 확인할 질문을 미루지 않는 게 좋아. | You may read a sentence but miss its main meaning and answer incorrectly. Choosing an answer just because you recognise a word could make you mistake one concept for another. Don't pretend to understand a part you haven't grasped.<br><br>At work, skimming material could make you miss something important. Guessing unspoken circumstances may also lead you to misunderstand a colleague's intention. It's better not to delay a question that needs checking. | 文章を読んでも要点をつかめず、答えを間違えるかもしれません。見慣れた言葉があるだけで答えを選ぶと、似た概念に惑わされやすい日です。理解できない部分は、わかったふりで済ませないようにしましょう。<br><br>職場では、資料を表面だけ見て、大切な内容を落とすかもしれません。話されていない事情を一人で推測すると、同僚の意図も誤解しやすくなります。確かめたいことは、質問を後回しにせず聞いてください。 |
 
 ## major.high_priestess · 정방향
 
 내부 ID: `work.major.high_priestess.upright`
 
-카드 의미: 아직 드러나지 않은 정보와 조용한 관찰. 원전의 비밀·침묵·지혜를 속단을 유보하고 내적 반응을 살피는 방향으로 응용.
+카드 의미: 지혜, 침묵, 아직 드러나지 않은 내용
 
-분야 해석: 이해통찰
+분야 해석: 차분한 좋음과 유보: 깊은 이해, 세밀한 업무 검토, 늦게 드러나는 정보
 
-관찰: 한동안 이해되지 않던 내용에서 중요한 뜻을 알아차릴 수 있어. / 조용히 읽거나 혼자 풀어볼 때 생각이 평소보다 깊어지는 날이야. / 발표를 듣는 자리에서도 남들이 지나친 질문이 떠오를 거야.
+관찰: 지혜 / 침묵 / 아직 드러나지 않은 내용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 이해되지 않던 내용에서 중요한 뜻을 알아차릴 수 있어. 조용히 읽거나 혼자 풀어볼 때 생각이 평소보다 깊어지는 날이야. 발표를 듣는 자리에서도 남들이 지나친 질문이 떠오를 거야. 눈에 띈 문장이나 의문은 짧게 메모해둬. 바로 답이 나오지 않아도 그 질문이 다음 배움을 훨씬 쉽게 만들어줄 수 있어. | An important meaning could emerge from something you've struggled to understand. Reading quietly or working through a problem alone may let your thoughts go deeper. Listening to a presentation could also spark a question others miss. Make a brief note of a striking sentence or question. Even if the answer isn't immediate, the question could make later learning much easier. | 長く分からなかった内容から、大切な意味を読み取れそうです。静かに読んだり一人で解いたりすると、いつもより深く考えられる日です。発表を聞く場でも、周りが見過ごした疑問が浮かぶかもしれません。気になった文章や疑問を、短くメモしておきましょう。すぐ答えが出なくても、その質問が次の学びを楽にしてくれそうです。 |
+| 분야 풀이 | 조용히 공부할 때 복잡한 개념을 깊이 이해하기 좋은 날이야. 문제 속에 숨어 있던 조건도 차근차근 읽으면 알아챌 수 있어. 빨리 많이 풀기보다 한 문제를 끝까지 이해하는 데 성과가 있어.<br><br>직장에서는 자세히 살핀 자료에서 남들이 놓친 내용을 발견할 수 있어. 아직 공개되지 않은 정보가 있어 중요한 결정은 늦어질 수 있어. 아는 내용과 짐작을 나눠 말하면 보고의 신뢰가 높아져. | Quiet study could help you understand a complicated concept deeply today. Careful reading may also reveal a hidden condition in a question. Fully understanding one problem is likely to bring more progress than rushing through many.<br><br>At work, a close look at material could reveal something others missed. Information that hasn't been released yet may delay an important decision. Separating what you know from what you guess will make your report more trustworthy. | 静かに勉強すると、複雑な概念を深く理解しやすい日です。問題に隠れた条件も、順を追って読めば気づけそうです。急いで多く解くより、一問を最後まで理解するほうが、勉強の成果を得られそうです。<br><br>職場では、詳しく調べた資料から、人が見落とした内容を見つけられるかもしれません。まだ公表されていない情報があり、大切な決定は遅れる可能性があります。わかっていることと推測を分けて話すと、報告の信頼性が高まります。 |
 
 ## major.judgement · 역방향
 
 내부 ID: `work.major.judgement.reversed`
 
-카드 의미: 자기비판이나 결정 회피로 필요한 응답을 미룸. 원전의 망설임을 사실에 근거한 재평가 필요로 선택.
+카드 의미: 자기회의, 과한평가, 성찰회피
 
-분야 해석: 실수부담
+분야 해석: 주의: 잘못을 돌아보지 않아 반복하는 실점, 평가 불만과 재검토 지연
 
-관찰: 한 번 틀렸던 기억 때문에 아는 답에도 확신이 줄어들 수 있어. / 제안을 받고도 아직 준비가 덜 됐다고 생각해 답을 늦출 거야. / 직접 해보면 지난번보다 나아진 부분이 생각보다 많다는 걸 알 수 있어.
+관찰: 자기회의 / 과한평가 / 성찰회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한 번 틀렸던 기억 때문에 아는 답에도 확신이 줄어들 수 있어. 제안을 받고도 아직 준비가 덜 됐다고 생각해 답을 늦출 거야. 직접 해보면 지난번보다 나아진 부분이 생각보다 많다는 걸 알 수 있어. 작은 예시 하나부터 다시 시도해봐. 이번의 결과가 예전의 인상을 바꿔주며 다음 도전을 덜 부담스럽게 만들 수 있어. | Remembering a past wrong answer may weaken your confidence even in something you know. An offer could leave you delaying a reply because you think you're not prepared enough. Actually trying may reveal more improvement since last time than you expected. Start by trying one small example again. This result could change your old impression and make another attempt feel less daunting. | 一度間違えた記憶から、知っている答えにも自信が持てなくなるかもしれません。提案をもらっても、まだ準備不足だと思い、返事が遅れそうです。実際に試すと、前よりよくなったところが思った以上に見つかるでしょう。小さな例を一つ、もう一度試してみてください。今回の結果が以前の印象を変え、次の挑戦を少し気楽にしてくれそうです。 |
+| 분야 풀이 | 틀린 이유를 확인하지 않으면 익숙한 문제에서도 같은 실수가 반복될 수 있어. 성적이 기대에 못 미쳤다고 문제나 채점만 탓하면 보완할 점을 놓치기 쉬워. 자신의 풀이부터 다시 살펴봐.<br><br>직장에서는 지난 실수를 인정하지 않아 평가나 협의가 늦어질 수 있어. 다른 사람의 판단이 마음에 들지 않더라도 필요한 수정까지 거부하지 마. 잘못을 바로잡을 때 다음 이야기가 이어질 수 있어. | Without checking why an answer was wrong, you could repeat the same mistake even on a familiar question. Blaming only the questions or the marking for disappointing results may hide what you need to improve. Start by reviewing your own solution.<br><br>At work, refusing to acknowledge a past mistake could delay an assessment or discussion. Even if you dislike someone's judgement, don't reject necessary corrections too. Putting the mistake right can allow the discussion to continue. | 間違えた理由を確かめなければ、慣れた問題でも同じミスを繰り返すかもしれません。成績が期待に届かず、問題や採点だけを責めると、直すべき点を見逃しがちです。まず解き方を振り返ってみましょう。<br><br>職場では、以前のミスを認めないために、評価や話し合いが遅れるかもしれません。人の判断に納得できなくても、必要な修正まで拒むのは控えてください。間違いを直すと、次の話へ進める可能性があります。 |
 
 ## major.judgement · 정방향
 
 내부 ID: `work.major.judgement.upright`
 
-카드 의미: 지난 선택을 돌아보고 다시 응답하는 갱신. 원전의 변화·결과를 죄책감보다 재평가와 다음 결정으로 응용.
+카드 의미: 성찰, 재선택, 갱신
 
-분야 해석: 재평가기회
+분야 해석: 회복과 좋은 평가: 다시 도전한 시험·과제 성과, 재검토와 성과 인정
 
-관찰: 예전에 해둔 일이나 지원했던 곳에서 다시 기회가 올 수 있어. / 처음에는 주목받지 못한 경험이 이번에는 필요한 강점으로 보일 거야. / 다시 시험하거나 도전하는 일에서도 무엇을 고쳐야 할지 분명한 날이야.
+관찰: 성찰 / 재선택 / 갱신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 해둔 일이나 지원했던 곳에서 다시 기회가 올 수 있어. 처음에는 주목받지 못한 경험이 이번에는 필요한 강점으로 보일 거야. 다시 시험하거나 도전하는 일에서도 무엇을 고쳐야 할지 분명한 날이야. 전에 받은 의견 중 한 가지를 반영해 보여줘. 이미 겪어본 덕분에 이번에는 더 차분한 모습으로 평가를 받을 수 있어. | Past work or a place you previously applied to could bring another opportunity. Experience that went unnoticed the first time may now look like a needed strength. If you're taking a test or trying again, what to improve could be clear today. Show one change based on feedback you received before. Your previous experience could help you face the assessment with greater composure this time. | 以前取り組んだことや応募した先から、再び機会がありそうです。初めは注目されなかった経験が、今回は必要な強みに見えるでしょう。試験や挑戦をやり直すときも、何を直せばよいかはっきりする日です。前にもらった意見を一つ反映して、見せてみてください。一度経験しているおかげで、今回はより落ち着いた姿で評価を受けられそうです。 |
+| 분야 풀이 | 한 번 틀렸던 문제를 다시 풀면 전보다 나은 결과를 얻을 수 있어. 재시험이나 과제 수정 기회가 있다면 실력을 다시 보여주기 좋은 날이야. 지난 실수의 이유를 알고 들어가면 같은 실점을 줄일 수 있어.<br><br>직장에서는 미뤄졌던 평가가 나오거나 다시 낸 제안이 검토될 수 있어. 예전의 문제를 고쳤다면 달라진 성과를 인정받을 수 있어. 자신이 무엇을 보완했는지 분명히 설명해줘. | Trying a question you got wrong before could bring a better result. If you have a resit or a chance to revise an assignment, it's a good day to show what you can do again. Understanding the cause of a past mistake can help you avoid losing marks the same way.<br><br>At work, a delayed assessment may arrive or a resubmitted proposal could be considered. If you've fixed a previous problem, the improvement in your results may be recognised. Explain clearly what you've improved. | 一度間違えた問題を解き直すと、前よりよい結果を得られそうです。再試験や課題の修正ができるなら、実力をもう一度示しやすい日です。前のミスの理由をわかってから臨むと、同じ失点を減らせるでしょう。<br><br>職場では、延期されていた評価が出たり、出し直した提案が検討されたりしそうです。以前の問題を直していれば、改善した成果を認められるかもしれません。何を補ったのか、はっきり説明してください。 |
 
 ## major.justice · 역방향
 
 내부 ID: `work.major.justice.reversed`
 
-카드 의미: 편향된 기준이나 책임 회피를 드러내는 카드. 불공정을 단정하기보다 같은 사실을 다른 잣대로 보고 있지 않은지 확인.
+카드 의미: 편견, 불공정, 책임회피
 
-분야 해석: 평가기준변화
+분야 해석: 주의: 이해와 평가 기준의 불일치, 불공평한 업무 분담·책임 전가
 
-관찰: 처음 들은 기준과 다른 평가를 받아 당황할 수 있어. / 열심히 고친 부분에 또 다른 의견이 붙어 억울한 마음도 들 거야. / 구체적인 예를 듣고 나면 취향의 차이인지 필요한 수정인지 구분할 수 있어.
+관찰: 편견 / 불공정 / 책임회피
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 처음 들은 기준과 다른 평가를 받아 당황할 수 있어. 열심히 고친 부분에 또 다른 의견이 붙어 억울한 마음도 들 거야. 구체적인 예를 듣고 나면 취향의 차이인지 필요한 수정인지 구분할 수 있어. 무엇이 달라져야 하는지 한 가지만 정확히 물어봐. 기준이 분명해진 뒤에는 이미 잘한 부분까지 다시 손댈 필요가 줄어들 거야. | An assessment that differs from the criteria you first heard could catch you off guard. Another comment on something you've worked hard to improve may feel unfair. A concrete example could reveal whether it's a matter of preference or a necessary change. Ask precisely what one thing needs to be different. Once the standard is clear, you'll have less reason to redo parts that already work well. | 最初に聞いた基準とは違う評価を受け、戸惑うかもしれません。一生懸命直したところに別の意見が出て、悔しく感じることもありそうです。具体例を聞けば、好みの違いなのか必要な修正なのか分かるでしょう。何を変える必要があるのか、一つだけ正確に尋ねてみてください。基準が明らかになると、うまくできた部分までやり直す必要が減りそうです。 |
+| 분야 풀이 | 열심히 쓴 답안도 채점 기준과 어긋나면 점수가 아쉬울 수 있어. 평가가 이상하다면 기분대로 따지기보다 어떤 기준이 적용됐는지 확인해봐. 빠뜨린 조건이 없는지도 함께 살펴줘.<br><br>직장에서는 일을 나누거나 성과를 평가하는 과정에서 불공평함을 느낄 수 있어. 다른 사람의 실수까지 떠맡게 된다면 실제로 한 일을 차분히 설명하는 게 좋아. 확인하지 않은 잘못을 또 다른 동료에게 돌리지는 마. | Even a carefully written answer may earn disappointing marks if it doesn't meet the marking criteria. If an assessment seems odd, check which criteria were used before challenging it in anger. Look for any requirements you may have missed too.<br><br>At work, the way tasks are shared or performance is assessed may feel unfair. If you're being held responsible for someone else's mistake, calmly explain what you actually did. Don't pass the blame to another colleague without checking the facts. | 一生懸命書いた答案でも、採点基準に合わなければ、点数にがっかりするかもしれません。評価に疑問があれば、感情のまま抗議するより、使われた基準を確かめましょう。条件を見落としていないかも、合わせて見てください。<br><br>職場では、仕事の分担や成果の評価に、不公平さを感じるかもしれません。ほかの人のミスまで負わされるなら、実際にしたことを落ち着いて説明するとよさそうです。確かめていない落ち度を、別の同僚のせいにするのは控えましょう。 |
 
 ## major.justice · 정방향
 
 내부 ID: `work.major.justice.upright`
 
-카드 의미: 사실·공정함·선택에 따르는 책임. 원전의 정당성과 균형을 자료에 근거한 판단으로 사용.
+카드 의미: 공정함, 사실, 책임
 
-분야 해석: 정당한평가
+분야 해석: 좋음과 명확한 평가: 준비에 따른 성적, 정확한 업무에 대한 인정
 
-관찰: 준비한 만큼 평가받고 강점을 인정받기 좋은 날이야. / 시험에서는 문제를 정확히 읽은 노력이 답을 찾는 데 도움이 될 거야. / 설명이나 발표에서는 분명한 근거가 상대의 신뢰를 얻을 수 있어.
+관찰: 공정함 / 사실 / 책임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 준비한 만큼 평가받고 강점을 인정받기 좋은 날이야. 시험에서는 문제를 정확히 읽은 노력이 답을 찾는 데 도움이 될 거야. 설명이나 발표에서는 분명한 근거가 상대의 신뢰를 얻을 수 있어. 자신 있는 주장에는 직접 확인한 예시를 하나 붙여봐. 화려한 표현보다 정확한 내용이 더 좋은 인상을 남기는 날이야. | Your preparation could receive fair recognition, along with your strengths. In an exam, taking care to read the question accurately will help you find the answer. Clear evidence in an explanation or presentation could earn someone's trust. Support a point you're confident about with one example you've checked yourself. Accurate content will leave a better impression than elaborate phrasing today. | 準備した分を評価され、得意なところも認めてもらえそうです。試験では、問題を正確に読んだことが答えを見つける助けになるでしょう。説明や発表では、はっきりした根拠が相手の信頼につながりそうです。自信のある主張には、自分で確かめた例を一つ添えてみてください。華やかな言い回しより、正確な内容がよい印象を残す日です。 |
+| 분야 풀이 | 공부한 만큼 실력을 평가받기 좋은 날이야. 근거를 정확히 쓴 답안이나 조건을 지킨 과제에서 점수를 얻기 쉬워. 아는 내용도 요구한 형식으로 빠짐없이 적어줘.<br><br>직장에서는 사실과 실적을 분명히 보여준 일이 인정받을 수 있어. 업무를 나누거나 평가를 논의할 때도 서로 납득할 기준을 찾기 좋아. 누가 무엇을 했는지 정확히 말하면 불필요한 오해를 줄일 수 있어. | It's a good day for your results to reflect the studying you've done. Answers with precise reasoning and assignments that meet the requirements are likely to earn marks. Include everything you know that's relevant, in the requested format.<br><br>At work, clear facts and evidence of your results could bring recognition. You may also find a basis everyone accepts for sharing tasks or assessing performance. Accurately explaining who did what will reduce unnecessary misunderstandings. | 勉強した分だけ、実力を評価されやすい日です。根拠を正確に書いた答案や、条件を守った課題で、点を得やすいでしょう。知っている内容も、求められた形式で漏れなく書いてください。<br><br>職場では、事実と実績をはっきり示した仕事が、認められそうです。業務を分担したり評価を話し合ったりするときも、互いに納得できる基準を見つけやすいでしょう。誰が何をしたかを正確に伝えると、不要な誤解を減らせます。 |
 
 ## major.lovers · 역방향
 
 내부 ID: `work.major.lovers.reversed`
 
-카드 의미: 선택 기준이나 바람이 엇갈려 합의가 어려운 상태. 관계 실패를 단정하지 않고 자기 뜻과 공동 약속의 불일치를 살핌.
+카드 의미: 불일치, 상충하는 선택, 충동
 
-분야 해석: 목표차이
+분야 해석: 주의: 맞지 않는 공부·의견 차이, 협업 목표 불일치와 결정 지연
 
-관찰: 같은 일을 하더라도 생각한 완성 모습은 다를 수 있는 날이야. / 좋다고 들은 설명을 각자 다르게 받아들였을 가능성이 있어. / 짧은 예시를 보여주면 큰 수정을 하기 전에 차이를 알아차릴 거야.
+관찰: 불일치 / 상충하는 선택 / 충동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 같은 설명을 듣고도 서로 다른 결과를 준비할 수 있는 날이야. 완성한 뒤 보여주면 예상과 다르다는 말을 들어 멋쩍을 수 있어. 일찍 나눈 예시 하나가 이런 차이를 줄이는 데 도움이 될 거야. 시작할 때 무엇을 기대하는지 짧게 맞춰봐. 서로의 생각을 알게 되면 혼자 끙끙대던 부분도 나눠 맡을 수 있을 거야. | The same explanation could send people toward different results today. Showing only the finished work may bring an awkward comment that it wasn't what they expected. A small example shared early could reduce the mismatch. Briefly agree on what is expected before you begin. Once you understand each other's thinking, you may be able to share a task you've been struggling with alone. | 同じ説明を聞いても、違う完成形を用意することがありそうです。できてから見せると、予想と違うと言われて戸惑うかもしれません。早めに見せた短い例が、そんな違いを減らす助けになるでしょう。始めるときに、仕上がりのイメージを手短に確かめてみましょう。考えが分かれば、一人で悩んだところも分担できそうです。 |
+| 분야 풀이 | 함께 공부해도 설명 방식이 맞지 않아 더 헷갈릴 수 있어. 조별 과제에서는 서로 원하는 주제가 달라 진행이 늦어질 수 있어. 모두의 의견을 억지로 넣기보다 과제에서 요구한 내용을 먼저 맞춰봐.<br><br>직장에서는 같은 일을 두고 서로 기대하는 결과가 달라 충돌할 수 있어. 겉으로 동의했더라도 각자 다른 방향으로 일하면 마감 때 문제가 드러나. 무엇을 먼저 끝낼지 함께 정하는 게 좋아. | Studying together could become more confusing if the explanations don't suit you. Different preferences for a group assignment topic may slow progress. Start by meeting the assignment's requirements instead of forcing everyone's ideas into it.<br><br>At work, different expectations for the same task could cause a clash. Even after outward agreement, working towards different outcomes may reveal a problem at the deadline. It's better to decide together what to finish first. | 一緒に勉強しても、説明の仕方が合わず、余計に混乱するかもしれません。グループ課題では、希望するテーマが違って、進みが遅くなりそうです。全員の意見を無理に入れるより、まず課題の要件を満たしましょう。<br><br>職場では、同じ仕事に期待する結果が互いに違い、衝突するかもしれません。表面上は同意していても、別々の方向へ進めると、締め切りの頃に問題が表れます。何を先に終えるか、一緒に決めておくとよさそうです。 |
 
 ## major.lovers · 정방향
 
 내부 ID: `work.major.lovers.upright`
 
-카드 의미: 호감과 합의뿐 아니라 자신이 중요하게 여기는 가치에 따른 선택. 원전의 끌림·조화를 자유로운 상호 선택으로 확장.
+카드 의미: 조화, 상호연결, 자신의가치에 따른 선택
 
-분야 해석: 협업호흡
+분야 해석: 좋음: 잘 맞는 설명과 협동 학습, 협업의 합의와 선택
 
-관찰: 함께하는 사람과 손발이 잘 맞아 일과 공부가 수월한 날이야. / 혼자 어려워하던 부분을 상대가 쉽게 풀어줘 반가울 거야. / 내가 설명해준 내용도 상대에게 도움이 돼 서로 믿고 맡길 일이 생길 수 있어.
+관찰: 조화 / 상호연결 / 자신의가치에 따른 선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께하는 사람과 손발이 잘 맞아 일과 공부가 수월한 날이야. 혼자 어려워하던 부분을 상대가 쉽게 풀어줘 반가울 거야. 내가 설명해준 내용도 상대에게 도움이 돼 서로 믿고 맡길 일이 생길 수 있어. 같이 공부하거나 일할 기회가 있다면 편하게 참여해봐. 여럿이 낸 의견에서 좋은 답이 나와 혼자 했을 때보다 만족스러울 거야. | Getting along well with someone could make work or study easier today. They may easily explain a part you found difficult alone. Your explanation could help them in return and build trust in sharing responsibilities. If an opportunity to study or work together comes up, join in. Ideas from several people could produce an answer more satisfying than working alone. | 一緒に取り組む人と息が合い、仕事や勉強がはかどりそうです。一人で難しく感じたところを、相手が簡単に解いてくれるでしょう。自分の説明も相手の助けになり、信じて任せ合うことが増えそうです。一緒に学んだり働いたりする機会があれば、気軽に加わってみましょう。みんなの意見からよい答えが出て、一人のときより満足できそうです。 |
+| 분야 풀이 | 함께 공부하는 사람과 설명을 주고받으면 어려운 내용이 잘 이해될 수 있어. 서로 부족한 부분을 채워주며 과제나 발표도 좋은 결과를 내기 좋아. 수업이나 전공을 고르는 중이라면 잘 맞는 선택이 분명해질 수 있어.<br><br>직장에서는 함께 일하는 사람과 뜻이 맞아 협의가 순조롭게 이루어질 수 있어. 서로 다른 장점을 합치면 혼자 풀지 못한 업무에도 답이 나와. 선택할 제안이 여러 개라면 원하는 일을 맡을 기회도 있어. | Exchanging explanations with a study partner could make difficult material easier to understand. Making up for each other's gaps may help an assignment or presentation go well too. If you're choosing a class or subject to specialise in, a suitable option could become clear.<br><br>At work, shared intentions with colleagues could make discussions go smoothly. Combining different strengths may solve a task you couldn't handle alone. If several offers are available, you could get a chance to take on work you want. | 一緒に勉強する人と説明し合うと、難しい内容も理解しやすくなりそうです。互いに苦手を補えば、課題や発表でもよい結果を出しやすいでしょう。授業や専攻を選んでいるなら、合う選択がはっきりするかもしれません。<br><br>職場では、一緒に働く人と考えが合い、話し合いが順調に進みそうです。それぞれの長所を合わせると、一人では解決できなかった仕事にも答えが見つかるでしょう。複数の提案から選べるなら、望む仕事を担当する機会もありそうです。 |
 
 ## major.magician · 역방향
 
 내부 ID: `work.major.magician.reversed`
 
-카드 의미: 능력을 쓰지 못하거나 말과 실제 실행이 벌어짐. 현대적 조작·과장 경계를 선택하되 타인의 악의를 사실로 만들지 않음.
+카드 의미: 외양과 실질의 차이, 쓰이지 않는 재능
 
-분야 해석: 실력점검
+분야 해석: 주의: 아는 것과 설명·실행의 차이, 실력보다 큰 약속과 신뢰 하락
 
-관찰: 설명할 때 막히는 부분을 발견하면 오히려 실력을 다질 기회가 될 거야. / 읽을 때는 쉬웠던 내용도 직접 말하려면 헷갈릴 수 있는 날이야. / 빈틈을 숨기기보다 확인하면 나중에 같은 질문을 받아도 덜 당황할 거야.
+관찰: 외양과 실질의 차이 / 쓰이지 않는 재능
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 익숙한 내용에 예상 밖의 질문을 받아 잠깐 말이 막힐 수 있어. 자신 있게 시작한 설명에서 정확히 모르는 부분이 드러나는 날이야. 다행히 옆 사람의 예시가 이해를 도와 다음에는 더 분명하게 말할 수 있을 거야. 모르는 부분은 아는 척하지 말고 확인할 시간을 구해봐. 솔직하게 바로잡는 태도가 처음의 작은 실수보다 좋은 인상을 남길 수 있어. | An unexpected question about a familiar subject could briefly leave you lost for words. A gap in your knowledge may emerge in an explanation you began confidently. Fortunately, someone else's example could help you understand and explain it more clearly next time. Ask for time to check rather than pretending to know. Your willingness to correct yourself may leave a better impression than the small mistake. | 慣れた内容でも、予想外の質問に少し言葉が詰まるかもしれません。自信を持って始めた説明から、正確には知らない部分が見えてきそうです。そばにいる人の例で理解が進み、次はもっと明確に話せるでしょう。分からないところは知ったふりをせず、確認する時間をもらいましょう。素直に訂正する姿勢が、初めの小さな失敗よりよい印象を残しそうです。 |
+| 분야 풀이 | 알고 있다고 생각한 내용이 막상 문제에서는 잘 떠오르지 않을 수 있어. 풀이를 보기만 하고 이해했다고 넘겼다면 혼자 설명할 때 막히기 쉬워. 시험 전에는 스스로 풀 수 있는지 확인해봐.<br><br>직장에서는 자신 있게 약속한 일을 실제로 처리하지 못해 곤란할 수 있어. 능숙해 보이려 모르는 부분까지 아는 척하면 수정할 일이 늘어나. 할 수 있는 범위를 분명히 말하는 게 신뢰를 지켜줘. | Material you thought you knew may be hard to recall when facing a question. If you've only looked at a solution and assumed you understood, explaining it alone could prove difficult. Check whether you can solve it yourself before the exam.<br><br>At work, you may struggle to deliver something you confidently promised. Pretending to understand unfamiliar parts to appear skilled could create more corrections. Clearly saying what you can handle will protect trust. | わかっていると思った内容が、問題を前にすると出てこないかもしれません。解説を見ただけで理解したつもりになると、一人で説明するときに詰まりやすくなります。試験前には、自力で解けるか確かめましょう。<br><br>職場では、自信を持って約束したことを実行できず、困るかもしれません。慣れているように見せたくて、わからないことまで知ったふりをすると、修正が増えてしまいます。できる範囲をはっきり伝えることが、信頼を守ってくれます。 |
 
 ## major.magician · 정방향
 
 내부 ID: `work.major.magician.upright`
 
-카드 의미: 의지와 숙련을 실제 행동으로 연결함. 원전의 기량·설득·자신감을 살려 이미 가진 자원을 활용하는 뜻.
+카드 의미: 기술, 의지, 가진 도구의 활용
 
-분야 해석: 발표설득
+분야 해석: 좋음: 배운 지식의 활용과 발표·실습 성과, 능력을 인정받는 업무
 
-관찰: 알고 있는 것을 또렷하게 설명해 실력을 인정받기 좋은 날이야. / 발표나 면접에서는 외운 말보다 직접 해본 경험이 힘을 발휘할 거야. / 익숙한 도구를 쓰면 떠오른 아이디어도 빠르게 시험해볼 수 있어.
+관찰: 기술 / 의지 / 가진 도구의 활용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 알고 있는 것을 또렷하게 설명해 실력을 인정받기 좋은 날이야. 발표나 면접에서는 외운 말보다 직접 해본 경험이 힘을 발휘할 거야. 익숙한 도구를 쓰면 떠오른 아이디어도 빠르게 시험해볼 수 있어. 가장 자신 있는 예시 하나를 먼저 보여줘. 짧더라도 구체적인 설명이 상대의 질문을 좋은 대화로 이어줄 거야. | Explaining what you know clearly could earn recognition today. In a presentation or interview, firsthand experience may carry more weight than memorized lines. A familiar tool could also help you try an idea quickly. Lead with one example you know especially well. A short, specific explanation may turn a question into a productive conversation. | 知っていることを分かりやすく説明し、実力を認めてもらえそうです。発表や面接では、覚えた言葉より実際の経験が力になるでしょう。使い慣れた道具があれば、思いついたアイデアもすぐ試せそうです。いちばん自信のある例を一つ、先に見せてみましょう。短くても具体的な説明が、相手の質問をよい対話へつなげそうです。 |
+| 분야 풀이 | 배운 지식을 문제에 적용하기 좋은 날이야. 외워둔 내용이 적절히 떠오르고 실습이나 발표에서도 준비한 것을 잘 보여줄 수 있어. 설명이 필요한 문제도 자신의 말로 풀어보기 좋아.<br><br>직장에서는 갖고 있던 기술이나 경험으로 막힌 일을 해결할 수 있어. 준비한 시연이나 발표에서도 좋은 평가를 받기 쉬워. 자신이 잘하는 일을 필요한 곳에 쓰면 성과가 또렷해질 거야. | It's a good day to apply what you've learned to a problem. Memorised material may come to mind at the right moment, and you could perform well in practical exercises or presentations you've prepared for. You could also explain an answer in your own words effectively.<br><br>At work, existing skills or experience could solve something that's stuck. A prepared demonstration or presentation is likely to receive a good assessment too. Using what you do well where it's needed may make the results clear. | 学んだ知識を、問題を解くためにうまく使えそうです。覚えた内容を必要な場面で思い出せて、実習や発表でも準備したことを発揮できるでしょう。説明を求められる問題は、自分の言葉で答えてみましょう。<br><br>職場では、持っている技術や経験で、行き詰まった仕事を解決できそうです。準備してきた実演や発表も、よい評価を受けやすいでしょう。得意なことを必要とされる場面で生かすと、成果がはっきり表れそうです。 |
 
 ## major.moon · 역방향
 
 내부 ID: `work.major.moon.reversed`
 
-카드 의미: 흐릿했던 정보가 일부 드러나며 추측을 줄일 수 있음. 원전의 약해진 오류를 모든 비밀이 밝혀진다는 뜻 없이 채택.
+카드 의미: 혼란완화, 사실확인, 남은추측
 
-분야 해석: 이해명료화
+분야 해석: 회복: 개념 혼란 해소, 업무 오해와 불확실한 정보의 정리
 
-관찰: 헷갈리던 설명이 정리되고 문제의 뜻이 또렷해질 수 있어. / 앞뒤가 맞지 않던 내용도 빠진 조건을 듣고 나면 자연스럽게 이어질 거야. / 함께하는 사람의 생각을 알게 되며 불필요하게 고칠 일이 줄어들 수 있는 날이야.
+관찰: 혼란완화 / 사실확인 / 남은추측
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 헷갈리던 설명이 정리되고 문제의 뜻이 또렷해질 수 있어. 앞뒤가 맞지 않던 내용도 빠진 조건을 듣고 나면 자연스럽게 이어질 거야. 함께하는 사람의 생각을 알게 되며 불필요하게 고칠 일이 줄어들 수 있는 날이야. 새로 확인한 점은 짧게 공유해줘. 모두 같은 내용을 알게 된 뒤에는 질문과 대답도 한결 편하게 오갈 수 있어. | A confusing explanation could become clear, along with the meaning of a question. Hearing a missing condition may make details that seemed inconsistent fit together. Understanding a teammate's intention could reduce unnecessary revisions. Briefly share what you've just confirmed. Once everyone has the same information, questions and answers may come more easily. | 分かりにくかった説明が整理され、問題の意味が明確になりそうです。つじつまの合わなかった内容も、抜けていた条件を聞くと自然につながるでしょう。一緒に取り組む人の考えが分かり、不要な修正も減りそうです。新しく確かめたことを、短く共有してみてください。皆が同じ内容を知れば、質問も返事も気楽に交わせるでしょう。 |
+| 분야 풀이 | 헷갈리던 개념이 정리되고 틀린 문제의 이유를 알게 될 수 있어. 막연히 외웠던 내용도 설명을 다시 들으면 이해하기 좋아. 시험을 앞두었다면 자주 혼동하던 부분을 확인해봐.<br><br>직장에서는 잘못 전해진 말이 바로잡히며 업무 혼선이 줄어들 수 있어. 왜 일이 늦어졌는지 알게 되면 동료와의 오해도 풀릴 수 있어. 사실을 확인한 뒤에는 추측으로 다른 문제까지 덧붙이지 마. | A confusing concept could become clearer, helping you understand why an answer was wrong. Hearing an explanation again may help you understand something you've only memorised. If a test is coming up, revisit the parts you often mix up.<br><br>At work, correcting something that's been passed on wrongly could reduce confusion. Finding out why a task was delayed may also clear up a misunderstanding with a colleague. Once you've checked the facts, don't add guesses about other problems. | 曖昧だった考え方が整理され、問題を間違えた理由が分かりそうです。何となく暗記していたことも、説明をもう一度聞くと理解しやすくなります。試験を控えているなら、よく混同していた部分を確かめましょう。<br><br>職場では間違って伝わっていた話が訂正され、仕事の混乱が減りそうです。遅れた理由が分かれば、同僚との誤解も解けるかもしれません。事実を確かめた後は、推測で別の問題まで付け加えないでください。 |
 
 ## major.moon · 정방향
 
 내부 ID: `work.major.moon.upright`
 
-카드 의미: 불확실한 정보와 상상이 판단을 흔드는 때. 원전의 오류·어둠을 숨은 적이 아닌 확인되지 않은 추측으로 응용.
+카드 의미: 모호함, 추측, 불안
 
-분야 해석: 모호한지시
+분야 해석: 주의: 헷갈리는 개념·출제 조건, 불명확한 지시와 평가 추측
 
-관찰: 설명을 들어도 요구하는 것이 분명하지 않아 잠깐 헤맬 수 있어. / 같은 말을 사람마다 다르게 이해해 혼자만 헷갈린 것이 아니라는 걸 알게 될 거야. / 낯선 질문에서는 아는 내용도 선뜻 떠오르지 않을 수 있는 날이야.
+관찰: 모호함 / 추측 / 불안
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 설명을 들어도 요구하는 것이 분명하지 않아 잠깐 헤맬 수 있어. 같은 말을 사람마다 다르게 이해해 혼자만 헷갈린 것이 아니라는 걸 알게 될 거야. 낯선 질문에서는 아는 내용도 선뜻 떠오르지 않을 수 있는 날이야. 추측해서 진행하기 전에 구체적인 예를 하나 요청해봐. 분명한 예시를 본 뒤에는 막연했던 문제가 생각보다 쉽게 정리될 수 있어. | An explanation may still leave the requirements unclear and make you hesitate. Different interpretations of the same words could show that you're not the only one confused. An unfamiliar question may also make something you know hard to recall immediately. Ask for one concrete example before proceeding on a guess. Seeing a clear example could make the vague problem easier to understand than expected. | 説明を聞いても求められることが曖昧で、少し迷うかもしれません。同じ言葉を人によって違って受け取り、自分だけが戸惑っていたのではないと分かりそうです。見慣れない質問では、知っていることもすぐ浮かばないことがあるでしょう。推測で進める前に、具体例を一つお願いしてみてください。はっきりした例を見た後は、曖昧だった問題も思ったより簡単に理解できそうです。 |
+| 분야 풀이 | 배운 내용이 헷갈려 비슷한 문제에서 답을 바꾸기 쉬운 날이야. 시험에서는 단어 하나나 조건을 잘못 읽어 실점할 수 있어. 확실히 아는 근거 없이 처음 고른 답을 계속 바꾸지는 마.<br><br>직장에서는 지시가 애매하거나 들은 소식이 달라 업무가 꼬일 수 있어. 상사의 짧은 반응만 보고 평가가 나빠졌다고 짐작하지 마. 해야 할 일과 마감이 불분명하다면 직접 확인해줘. | Confusion about what you've learned could make you change your answer on similar questions today. Misreading a word or a condition in a test may cost you points. Don't keep changing your first answer without a clear reason.<br><br>At work, unclear instructions or conflicting information could complicate a task. A brief response from your manager doesn't necessarily mean their opinion of your work has worsened. Check directly if the task or deadline is unclear. | 学んだ内容が曖昧になり、似た問題で答えを変えやすい日です。試験では一つの言葉や条件を読み違えて、点を落とすおそれがあります。確かな根拠もなく、最初に選んだ答えを何度も変えないようにしましょう。<br><br>職場では指示が曖昧だったり、聞く話が食い違ったりして、仕事が混乱しそうです。上司の短い返事だけで、評価が下がったと考えないでください。やるべきことや締め切りがはっきりしないなら、直接確かめましょう。 |
 
 ## major.star · 역방향
 
 내부 ID: `work.major.star.reversed`
 
-카드 의미: 기대가 멀어 보이거나 자기 가능성을 신뢰하기 어려움. 회복 불가능이 아니라 목표와 현재 사이를 다시 좁히는 뜻.
+카드 의미: 자기불신, 희망저하, 낙담
 
-분야 해석: 성과아쉬움
+분야 해석: 주의: 낙담으로 흔들리는 답, 작은 반응에 위축되는 발표와 업무
 
-관찰: 노력한 만큼 칭찬이 돌아오지 않아 아쉬울 수 있는 날이야. / 작게 나아진 부분보다 아직 부족한 곳이 먼저 눈에 들어올 거야. / 하지만 가까이서 지켜본 사람은 내가 달라진 점을 알아봐줄 수 있어.
+관찰: 자기불신 / 희망저하 / 낙담
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 노력한 만큼 칭찬이 돌아오지 않아 아쉬울 수 있는 날이야. 작게 나아진 부분보다 아직 부족한 곳이 먼저 눈에 들어올 거야. 하지만 가까이서 지켜본 사람은 내가 달라진 점을 알아봐줄 수 있어. 받은 의견 중 실제로 좋아졌다는 부분도 남겨둬. 당장 눈에 띄는 성과가 없어도 다음 기회에 보탤 경험은 차곡차곡 남을 거야. | Receiving less praise than your effort seemed to deserve may feel disappointing. What still needs improvement could stand out before the progress you've made. But someone who has watched closely may recognize how you've changed. Keep the parts of the feedback that mention an actual improvement too. Even without an obvious achievement yet, you'll be gathering experience for another opportunity. | 努力したほど褒められず、少し残念に感じるかもしれません。少しよくなった部分より、まだ足りないところに先に目が向きそうです。でも、近くで見ていた人は、変わったところに気づいてくれるでしょう。もらった意見のうち、実際によくなったという部分も残しておいてください。今は目立つ成果がなくても、次の機会に生かせる経験は積み重なりそうです。 |
+| 분야 풀이 | 아는 답도 자신이 없어 바꾸다가 점수를 놓칠 수 있어. 지난 성적이 아쉬웠다면 새 문제에서도 미리 틀릴 거라고 생각하기 쉬워. 풀어낸 근거가 있다면 그 답을 다시 차분히 확인해봐.<br><br>직장에서는 제안에 반응이 적어 성과까지 낮게 평가하기 쉬워. 한 번의 무심한 말 때문에 준비한 발표나 지원을 모두 접지는 마. 부족한 부분에 대한 구체적인 답을 듣는 편이 도움이 돼. | Doubting an answer you know could lead you to change it and lose marks. After a disappointing result, you may expect to get a new problem wrong before trying it. If you have sound reasoning for your answer, calmly check it again.<br><br>At work, a quiet response to a proposal may lead you to undervalue what you've achieved. Don't abandon a prepared presentation or application over one indifferent remark. Asking for specific feedback on what needs improving will help more. | わかっている答えも、自信がなくて変えてしまい、点を落とすかもしれません。前の成績にがっかりしていたなら、新しい問題も解く前から間違えると思いがちです。答えを出した根拠があるなら、落ち着いてもう一度確かめてください。<br><br>職場では、提案への反応が少なく、成果まで低く見積もりやすい日です。一度そっけないことを言われただけで、準備した発表や応募を全部やめることはありません。何が足りないか、具体的な返答を聞くほうが役に立ちます。 |
 
 ## major.star · 정방향
 
 내부 ID: `work.major.star.upright`
 
-카드 의미: 희망과 다시 시작할 신뢰. 원전에 함께 있는 상실과 밝은 전망 중 회복을 바라보는 독해를 선택.
+카드 의미: 희망, 영감, 편안한회복감
 
-분야 해석: 미래기회
+분야 해석: 회복과 좋음: 막힌 공부의 이해, 새 발상과 업무 기회
 
-관찰: 배우고 싶던 분야나 지원한 곳에서 반가운 소식을 들을 수 있어. / 잘하고 있다는 격려가 평소보다 오래 힘이 되는 날이야. / 실패했던 시도에도 다른 방법이 보이며 다시 해볼 의욕이 생길 거야.
+관찰: 희망 / 영감 / 편안한회복감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 배우고 싶던 분야나 지원한 곳에서 반가운 소식을 들을 수 있어. 잘하고 있다는 격려가 평소보다 오래 힘이 되는 날이야. 실패했던 시도에도 다른 방법이 보이며 다시 해볼 의욕이 생길 거야. 마음에 남은 기회가 있다면 짧게 문의해봐. 오늘의 작은 답이 다음에 무엇을 준비할지 구체적으로 알려줄 수 있어. | Good news could come from a field you've wanted to study or a place you've applied to. Encouragement that you're doing well may support you longer than usual today. A new approach to a failed attempt could also make you want to try again. Send a brief inquiry about an opportunity still on your mind. Today's small answer could show you specifically what to prepare next. | 学びたかった分野や応募した先から、うれしい知らせがありそうです。うまくできているという励ましが、今日はいつもより長く支えになるでしょう。失敗した試みも別の方法が見えて、また挑戦する気力が湧きそうです。気になっている機会があれば、短く問い合わせてみてください。今日の短い返事が、次に何を準備すればよいか具体的に教えてくれるでしょう。 |
+| 분야 풀이 | 막혀 있던 공부에서 답을 찾고 성적을 회복할 단서가 생길 수 있어. 이해하기 쉬운 설명을 만나면 자신 없던 과목도 다시 풀어보기 좋아. 전에 틀린 문제에 다시 도전해봐.<br><br>직장에서는 새로운 생각이 잘 떠오르고 제안에 긍정적인 반응을 얻을 수 있어. 결과가 아쉬웠던 일도 다시 검토받을 기회가 생길 수 있어. 지난번 지적받은 부분을 고쳐서 다시 제안해봐. | You could find an answer in a subject you've struggled with and see how to improve your marks. A clear explanation may encourage you to try again at a subject you lack confidence in. Have another go at a question you got wrong before.<br><br>At work, new ideas may come easily and your suggestions could receive a positive response. You may also get another chance to have work reconsidered after a disappointing result. Address the points raised last time and put it forward again. | 行き詰まっていた勉強に答えが見つかり、成績を取り戻す手がかりも得られそうです。わかりやすい説明に出会えば、苦手な科目にも再び取り組みやすくなるでしょう。以前間違えた問題を、もう一度解いてみてください。<br><br>職場では、新しい考えが浮かび、提案によい反応を得られそうです。結果に満足できなかった仕事も、再び検討してもらう機会が生まれるかもしれません。前に指摘された点を直して、改めて提案してみましょう。 |
 
 ## major.strength · 역방향
 
 내부 ID: `work.major.strength.reversed`
 
-카드 의미: 자신감이 약해지거나 억눌렀던 반응이 강해질 수 있음. 부족한 의지를 탓하기보다 과한 긴장과 자기비판을 낮추는 뜻.
+카드 의미: 자기회의, 약한자제, 불안한강함
 
-분야 해석: 평가긴장
+분야 해석: 주의: 긴장으로 인한 실력 저하, 예민한 대응과 동료 갈등
 
-관찰: 평가받는 자리에서 평소보다 긴장해 익숙한 말도 꼬일 수 있어. / 작은 실수 뒤에 다음 내용을 놓쳐 아쉬워질 수 있는 날이야. / 하지만 질문을 다시 듣고 나면 알고 있던 답이 돌아올 거야.
+관찰: 자기회의 / 약한자제 / 불안한강함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 평가받는 자리에서 평소보다 긴장해 익숙한 말도 꼬일 수 있어. 작은 실수 뒤에 다음 내용을 놓쳐 아쉬워질 수 있는 날이야. 하지만 질문을 다시 듣고 나면 알고 있던 답이 돌아올 거야. 막히면 잠깐 숨을 고르고 처음 문장부터 천천히 말해봐. 끝까지 침착하게 마친 태도가 순간의 실수보다 좋은 인상을 남길 수 있어. | Being assessed may make you more nervous than usual, and even familiar words could get tangled. A small mistake might distract you from what comes next. But hearing the question again could bring back an answer you already know. If you get stuck, take a breath and start your first sentence slowly. The composure you show in finishing could leave a stronger impression than a brief slip. | 評価される場面ではいつもより緊張して、言い慣れた言葉がつかえるかもしれません。小さな失敗が気になり、次の話を聞き逃しやすい日です。でも、質問をもう一度聞くと、知っていた答えが戻ってきそうです。詰まったら一呼吸置き、最初の一文からゆっくり話してみてください。最後まで落ち着いて終えた姿が、一瞬の失敗よりよい印象を残すでしょう。 |
+| 분야 풀이 | 시험에서 긴장하면 아는 내용도 잘 떠오르지 않을 수 있어. 어려운 한 문제에 막혀 자신감을 잃으면 다음 문제까지 서두르기 쉬워. 풀 수 있는 것부터 답하며 시간을 나눠줘.<br><br>직장에서는 작은 지적에도 예민하게 반응해 동료와 부딪칠 수 있어. 능력을 의심받는 기분이 들어도 곧바로 강하게 말하면 설명할 기회를 놓쳐. 무엇을 고쳐달라는지 먼저 듣는 게 좋아. | Exam nerves could make familiar material hard to recall. Losing confidence over one difficult problem may make you rush through the next one too. Divide your time and answer what you can first.<br><br>At work, reacting sensitively to a small correction could lead to a clash with a colleague. Even if you feel your ability is being questioned, a forceful reply may cost you the chance to explain. Hear what needs changing first. | 試験で緊張すると、知っていることも思い出しにくくなるかもしれません。難しい一問で自信をなくすと、次の問題まで急ぎがちです。解けるものから答え、時間を配分しましょう。<br><br>職場では、小さな指摘にも敏感に反応し、同僚とぶつかるかもしれません。能力を疑われた気がしても、すぐに強く言い返すと、説明する機会を逃してしまいます。何を直してほしいのか、先に聞くとよさそうです。 |
 
 ## major.strength · 정방향
 
 내부 ID: `work.major.strength.upright`
 
-카드 의미: 힘을 과시하지 않고 다룰 수 있는 용기와 인내. 원전의 담대함·관대함을 부드럽고 꾸준한 대응으로 채택.
+카드 의미: 내적용기, 인내, 온화한힘
 
-분야 해석: 압박대응
+분야 해석: 좋음: 끈기 있게 푸는 어려운 문제, 차분한 대응으로 성과와 협조 확보
 
-관찰: 어려운 질문을 받아도 침착하게 답하며 실력을 보여줄 수 있어. / 시험이나 발표에서 처음의 긴장이 풀리면 알고 있던 내용이 차분히 떠오를 거야. / 다른 사람이 급해지는 순간에도 내 속도를 지키는 모습이 믿음을 줄 수 있어.
+관찰: 내적용기 / 인내 / 온화한힘
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 어려운 질문을 받아도 침착하게 답하며 실력을 보여줄 수 있어. 시험이나 발표에서 처음의 긴장이 풀리면 알고 있던 내용이 차분히 떠오를 거야. 다른 사람이 급해지는 순간에도 내 속도를 지키는 모습이 믿음을 줄 수 있어. 바로 떠오르지 않는 답은 잠깐 생각할 시간을 구해봐. 서두르지 않은 설명이 오히려 가장 또렷하게 기억에 남을 수 있는 날이야. | You'll be able to answer a difficult question calmly and show what you know. Once the initial nerves settle during an exam or presentation, familiar information will come back to you. Keeping your own pace while others rush could earn their trust. Ask for a moment to think if an answer doesn't come straight away. Your unhurried explanation could be the one people remember most clearly. | 難しい質問にも落ち着いて答え、実力を示せそうです。試験や発表では、最初の緊張が解けると覚えていたことが自然に浮かぶでしょう。周りが急いでいても自分のペースを保つ姿に、信頼が集まりそうです。すぐ答えが出ないときは、少し考える時間をもらってください。急がずにした説明が、いちばんはっきり印象に残るかもしれません。 |
+| 분야 풀이 | 오래 막혔던 문제를 끝까지 풀어낼 수 있는 날이야. 어려운 시험에서도 당황하지 않으면 알고 있는 내용부터 차분히 떠올릴 수 있어. 한 번 틀렸다고 풀이 전체를 포기하지 마.<br><br>직장에서는 까다로운 업무나 불편한 대화를 무리 없이 풀어낼 수 있어. 상대의 반응에 맞서기보다 차분히 설명하면 협조를 얻을 수 있어. 꾸준히 맡아온 일에서도 성실함을 인정받을 수 있어. | You could finally solve a problem you've struggled with for a long time today. Even in a difficult exam, staying calm may help you recall what you know. One mistake isn't a reason to abandon the whole solution.<br><br>At work, you may handle a demanding task or uncomfortable conversation without too much strain. A calm explanation could win cooperation more readily than challenging the other person's reaction. Steady work may also bring recognition for your diligence. | 長く解けなかった問題も、最後まで解き切れそうな日です。難しい試験でも、慌てなければ、知っている内容から落ち着いて思い出せるでしょう。一度間違えただけで、解くこと自体を諦めないようにしてください。<br><br>職場では、難しい業務や気まずい話し合いも、穏やかに解決できそうです。相手の反応に対抗せず、落ち着いて説明すると、協力を得られるかもしれません。続けて担当してきた仕事でも、誠実さを認められそうです。 |
 
 ## major.sun · 역방향
 
 내부 ID: `work.major.sun.reversed`
 
-카드 의미: 기쁨이 작게 느껴지거나 기대가 경험을 가림. 원전도 같은 만족이 약한 형태라고 하므로 흉으로 반전시키지 않음.
+카드 의미: 가려진만족, 기대차이, 과신
 
-분야 해석: 조용한성과
+분야 해석: 완만한 좋음: 성과는 있으나 높은 기대·과신으로 아쉬움, 인정의 지연
 
-관찰: 성과가 나도 기대한 만큼 크게 주목받지는 않을 수 있어. / 평소보다 나아진 점을 내가 먼저 알아보는 날이야. / 가까이서 지켜본 사람은 작은 변화에도 따뜻한 반응을 보여줄 거야.
+관찰: 가려진만족 / 기대차이 / 과신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 성과가 나도 기대한 만큼 크게 주목받지는 않을 수 있어. 평소보다 나아진 점을 내가 먼저 알아보는 날이야. 가까이서 지켜본 사람은 작은 변화에도 따뜻한 반응을 보여줄 거야. 칭찬이 적다고 잘 마친 일까지 다시 고치지는 마. 조용히 남긴 결과가 나중에 다른 기회를 이야기할 때 쓸 만한 근거가 될 수 있어. | An achievement might receive less attention than you hoped. You may be the first to notice how you've improved today. Someone watching closely could still respond warmly to a small change. Don't redo something you've finished well just because the praise was quiet. A result recorded without fanfare could become useful evidence when discussing another opportunity later. | 成果が出ても、期待したほど大きく注目されないかもしれません。以前よりよくなったところに、自分が先に気づく日です。近くで見ていた人は、小さな変化にも温かな反応をくれるでしょう。称賛が少ないからと、うまく終えたことまで直さないでください。静かに残した成果が、後で別の機会を相談するときの材料になりそうです。 |
+| 분야 풀이 | 공부한 만큼 풀리는 문제는 있어도 성적이 기대에 조금 못 미칠 수 있어. 익숙한 내용이라고 대충 읽으면 쉬운 문제에서 점수를 놓치기 쉬워. 잘한 부분까지 실패로 여기지 말고 아쉬운 문제만 다시 짚어봐.<br><br>직장에서는 일을 잘 마쳐도 칭찬이나 평가가 바로 돌아오지 않을 수 있어. 반응이 작다고 성과가 없었다고 판단할 필요는 없어. 마무리 보고를 빠뜨리지 않으면 자신의 기여가 더 분명하게 전해져. | Some questions may go well thanks to your preparation, even if your grade falls a little short of your hopes. Skimming familiar material could cost you easy points. Review the questions that disappointed you without treating the parts you did well as failures.<br><br>At work, a job well done may not bring immediate praise or recognition. A quiet response doesn't mean you achieved nothing. Letting others know when the work is complete can make your contribution clearer. | 勉強した分だけ解ける問題はあっても、成績は期待に少し届かないかもしれません。知っている内容だと読み流すと、簡単な問題で点を落としがちです。よくできた部分まで失敗と考えず、惜しかった問題だけを見直しましょう。<br><br>職場では仕事をうまく終えても、すぐに褒められたり評価されたりはしないかもしれません。反応が薄いからと、成果がなかったと考える必要はありません。完了の報告を忘れなければ、果たした役割がよりはっきり伝わります。 |
 
 ## major.sun · 정방향
 
 내부 ID: `work.major.sun.upright`
 
-카드 의미: 밝게 드러나는 기쁨과 솔직한 자신감. 원전의 만족을 모든 분야의 성공이 아닌 지금 경험의 명료한 즐거움으로 사용.
+카드 의미: 기쁨, 자신감, 명료함, 활기
 
-분야 해석: 인정칭찬
+분야 해석: 좋음: 이해와 시험 성과, 발표·성과의 인정과 축하
 
-관찰: 준비한 실력이 눈에 띄며 칭찬이나 좋은 반응을 받을 수 있어. / 발표할 때 말이 자연스럽게 나오고 질문에도 자신 있게 답할 거야. / 어렵게 익힌 내용이 시험이나 실제 일에서 도움이 될 수 있는 날이야.
+관찰: 기쁨 / 자신감 / 명료함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 준비한 실력이 눈에 띄며 칭찬이나 좋은 반응을 받을 수 있어. 발표할 때 말이 자연스럽게 나오고 질문에도 자신 있게 답할 거야. 어렵게 익힌 내용이 시험이나 실제 일에서 도움이 될 수 있는 날이야. 잘한 부분은 겸손하게 숨기기보다 구체적으로 보여줘. 함께 기뻐해주는 사람 덕분에 다음 일에도 의욕이 붙을 수 있어. | The skills you've practiced could stand out and earn praise or a good response. Words may come naturally in a presentation, and you could answer questions confidently. Something difficult you've learned may prove useful in an exam or actual task. Show specifically what you've done well instead of hiding it out of modesty. People who celebrate with you could make you eager for your next task too. | 磨いてきた力が目に留まり、褒められたりよい反応をもらえたりしそうです。発表では自然に言葉が出て、質問にも自信を持って答えられるでしょう。苦労して覚えたことが、試験や実際の仕事に役立つ日です。うまくできたところは謙遜して隠さず、具体的に見せてみてください。一緒に喜んでくれる人のおかげで、次にも意欲が湧きそうです。 |
+| 분야 풀이 | 배운 내용이 잘 이해되고 시험에서도 좋은 결과를 기대할 수 있어. 헷갈렸던 개념이 분명해져 설명하는 문제도 수월하게 풀릴 수 있어. 수업 발표나 진학 면접처럼 실력을 보여주는 자리에도 운이 따라.<br><br>직장에서는 성과가 눈에 띄고 칭찬이나 좋은 평가를 받을 수 있어. 준비한 보고나 발표가 잘 전달돼 함께 일하는 사람들의 호응을 얻을 수 있어. 좋은 결과가 나왔다면 도움 준 동료와 기쁨을 나눠봐. | What you're learning may make more sense, with good results possible in tests. A confusing concept could become clear, making questions that require an explanation easier. Luck also favours chances to show your ability, such as a class presentation or an admissions interview.<br><br>At work, your achievements could be noticed and earn praise or a good evaluation. A report or presentation you've prepared may come across clearly and get a warm response from colleagues. Share a good result with the people who helped you. | 学んだ内容をよく理解でき、試験でもよい結果を期待できそうです。曖昧だった考え方がはっきりして、説明を求められる問題も解きやすくなるでしょう。授業の発表や進学の面接など、実力を見せる場にも運が味方しそうです。<br><br>職場では成果が目に留まり、褒められたり、高く評価されたりしそうです。準備した報告や発表がよく伝わり、一緒に働く人から好意的な反応を得られるでしょう。よい結果が出たら、助けてくれた同僚と喜びを分かち合いましょう。 |
 
 ## major.temperance · 역방향
 
 내부 ID: `work.major.temperance.reversed`
 
-카드 의미: 배분이 어긋나거나 서로 맞지 않는 선택을 한꺼번에 유지함. 원전의 불화·상충을 양과 시점의 조정 필요로 채택.
+카드 의미: 불균형, 극단, 조급함
 
-분야 해석: 협업속도
+분야 해석: 주의: 편중된 공부와 성적 차이, 일정·업무량의 불균형
 
-관찰: 함께하는 사람과 진행 속도가 달라 답답할 수 있는 날이야. / 너무 자세히 설명한 부분보다 급하게 넘긴 곳에서 질문이 들어올 거야. / 잠깐 맞춰보는 시간이 생기면 서로 어디서 기다렸는지 알게 될 수 있어.
+관찰: 불균형 / 극단 / 조급함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께하는 사람과 진행 속도가 달라 답답할 수 있는 날이야. 너무 자세히 설명한 부분보다 급하게 넘긴 곳에서 질문이 들어올 거야. 잠깐 맞춰보는 시간이 생기면 서로 어디서 기다렸는지 알게 될 수 있어. 완료한 것과 아직 필요한 것을 짧게 알려줘. 엇갈린 이유가 분명해진 뒤에는 괜히 재촉하던 말도 줄어들 수 있을 거야. | Working at a different pace from a teammate could feel frustrating. Questions may arise about a part you rushed, rather than the one you explained in great detail. A brief check-in could show where each of you has been waiting. Say briefly what's finished and what's still needed. Once the mismatch is clear, unnecessary reminders to hurry could become less frequent. | 一緒に取り組む人と進む速さが違い、もどかしくなるかもしれません。詳しく説明したところより、急いで済ませたところに質問が来そうです。少し確認する時間があれば、お互いどこで待っていたのか分かるでしょう。終わったことと、まだ必要なことを短く伝えてみてください。すれ違った理由が分かれば、むやみに急かす言葉も減りそうです。 |
+| 분야 풀이 | 공부한 부분과 부족한 부분의 차이가 시험에서 드러날 수 있어. 자신 있는 과목만 붙잡고 있으면 다른 과목에서 예상보다 점수를 잃기 쉬워. 오늘은 미뤄둔 내용도 조금씩 확인하는 게 좋아.<br><br>직장에서는 사람마다 일하는 속도가 달라 일정이 어긋날 수 있어. 한쪽에만 일이 몰려 있으면 사소한 부탁도 다툼으로 번지기 쉬워. 마감부터 재촉하기보다 누가 어디에서 막혔는지 함께 살펴봐. | A test could reveal a gap between subjects you've prepared for and those you've neglected. Staying only with subjects you feel confident in may mean losing more points elsewhere than expected. Revisit some of the material you've put off today.<br><br>At work, different working speeds could throw schedules out. If one person has too much to do, even a small request may turn into an argument. Find out together who's stuck and where, instead of just pressuring everyone to meet the deadline. | よく勉強した部分と準備不足の部分の差が、試験に表れそうです。得意な科目にばかり取り組むと、ほかの科目で予想以上に点を落としかねません。今日は後回しにしていた内容も、少しずつ確かめるとよさそうです。<br><br>職場では人によって仕事のペースが違い、予定がずれるかもしれません。一方に仕事が集中していると、小さな頼み事もけんかになりがちです。締め切りをせかす前に、誰がどこで困っているのか、一緒に確かめましょう。 |
 
 ## major.temperance · 정방향
 
 내부 ID: `work.major.temperance.upright`
 
-카드 의미: 다른 요소를 알맞게 섞고 조정하는 절도. 원전의 관리·절약·조화를 극단을 피하는 구체적 배합으로 사용.
+카드 의미: 조화, 적정량, 인내, 서로맞춤
 
-분야 해석: 조율성공
+분야 해석: 좋음: 고른 이해와 안정적 실력 발휘, 협업의 합의와 원활한 진행
 
-관찰: 서로 다른 생각을 잘 이어주며 도움 되는 역할을 할 수 있어. / 어색하던 협업에서도 말이 잘 통해 마무리가 한결 수월해질 거야. / 새로 배운 내용이 알고 있던 것과 연결돼 이해가 깊어질 수 있는 날이야.
+관찰: 조화 / 적정량 / 인내
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 다른 생각을 잘 이어주며 도움 되는 역할을 할 수 있어. 어색하던 협업에서도 말이 잘 통해 마무리가 한결 수월해질 거야. 새로 배운 내용이 알고 있던 것과 연결돼 이해가 깊어질 수 있는 날이야. 상대가 중요하게 보는 부분을 먼저 한 번 물어봐. 한쪽만 양보하지 않은 답이 나와 함께한 사람들의 만족이 오래 남을 거야. | Bringing different ideas together could make you especially helpful today. Communication may improve in an awkward collaboration, making it easier to finish. Something new you've learned could connect with what you already know and deepen your understanding. Ask first which part matters most to the other person. An answer that doesn't require just one side to give way could leave everyone satisfied. | 異なる考えをうまくつなぎ、周りの役に立てそうです。ぎこちなかった共同作業でも話が通じ、仕上げが楽になるでしょう。新しく学んだことが知っていた内容と結びつき、理解も深まりそうです。相手が大事にしているところを、先に一度聞いてみてください。双方が納得できる答えが出て、一緒に取り組んだ人たちの満足も続くでしょう。 |
+| 분야 풀이 | 따로 배웠던 내용이 연결되면서 어려운 문제도 이해하기 쉬운 날이야. 시험에서는 한 과목에만 치우치지 않고 준비한 실력을 고르게 보여줄 수 있어. 부족한 부분을 조금씩 보완하면 공부가 수월하게 이어져.<br><br>직장에서는 의견 차이가 줄고 함께하는 일이 순조롭게 진행될 수 있어. 서로 맡은 일을 맞춰가면 혼자 끌어안았던 업무도 덜어낼 수 있어. 협의가 필요한 자리에서는 양쪽이 받아들일 결론을 찾기 좋아. | Connections between things you've learned separately could make difficult questions easier to understand. In tests, you may show your preparation across subjects rather than doing well in just one. Filling small gaps in your knowledge can help your studies continue more easily.<br><br>At work, differences of opinion may ease and shared tasks could run smoothly. Coordinating what each person handles can lighten work you've been carrying alone. Discussions could produce an agreement both sides can accept. | 別々に学んだことが結びつき、難しい問題も理解しやすい日です。試験では一つの科目だけでなく、準備してきた力をまんべんなく発揮できそうです。足りない部分を少しずつ補えば、勉強も進めやすくなります。<br><br>職場では意見の違いが小さくなり、一緒に取り組む仕事が順調に進みそうです。お互いの担当を調整すれば、一人で抱えていた仕事も減らせるでしょう。話し合いが必要な場では、双方が受け入れられる結論を見つけやすい日です。 |
 
 ## major.tower · 역방향
 
 내부 ID: `work.major.tower.reversed`
 
-카드 의미: 변화를 피하며 버티거나 큰 혼란 전에 어긋남을 알아차림. 원전의 약해진 충격과 억압을 조기 조정의 가능성으로 응용.
+카드 의미: 변화회피, 조기수정여지
 
-분야 해석: 오류발견
+분야 해석: 주의 속 수습: 실점 전 오류 발견, 큰 문제로 번지기 전 수정
 
-관찰: 작은 오류를 일찍 발견해 뒤늦게 곤란할 일을 줄일 수 있어. / 익숙하게 쓰던 설명이나 계산에 빠진 부분이 눈에 들어올 거야. / 질문을 해준 사람 덕분에 제출 전에 바로잡을 기회가 생길 수도 있어.
+관찰: 변화회피 / 조기수정여지
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 오류를 일찍 발견해 뒤늦게 곤란할 일을 줄일 수 있어. 익숙하게 쓰던 설명이나 계산에 빠진 부분이 눈에 들어올 거야. 질문을 해준 사람 덕분에 제출 전에 바로잡을 기회가 생길 수도 있어. 오늘 마친 것은 한 번 소리 내어 읽거나 다시 계산해봐. 짧은 확인이 끝나고 나면 남은 일을 더 편하게 이어갈 수 있는 날이야. | Finding a small error early could save you trouble later. An omission in a familiar explanation or calculation may stand out. Someone asking a question could also give you a chance to correct it before submission. Read what you've finished aloud once, or check the calculation again. After that brief check, you may feel more comfortable continuing with what remains. | 小さな間違いを早く見つけて、後で困ることを減らせそうです。慣れた説明や計算に、抜けた部分が見えてくるでしょう。質問してくれた人のおかげで、提出前に直す機会ができるかもしれません。今日終えたものを一度声に出して読むか、計算し直してみてください。短い確認が終われば、残りにも落ち着いて取り組めそうです。 |
+| 분야 풀이 | 시험 전에 잘못 이해한 부분을 발견해 실점을 줄일 수 있어. 제출할 답이나 과제에서 찜찜했던 대목을 다시 보면 놓친 오류가 보일 수 있어. 다 끝냈다고 덮어두지만 않으면 고칠 시간이 있어.<br><br>직장에서는 작은 문제를 일찍 알아차려 큰 차질을 막을 수 있어. 보고 내용이나 진행 중인 일에서 이상한 점이 보이면 바로 확인해줘. 이미 생긴 문제를 괜찮다고 넘기면 나중에 수정할 일이 늘어날 수 있어. | You could catch a misunderstanding before a test and avoid losing points. Looking again at an answer or part of an assignment that didn't feel right may reveal a missed error. There's time to correct it if you don't put it away just because you think you're done.<br><br>At work, noticing a small problem early could prevent a major setback. Check anything that seems wrong in a report or a task in progress. Dismissing an existing problem as harmless could leave more to fix later. | 試験の前に誤解していた部分が見つかり、失点を減らせそうです。提出する答えや課題で気になっていた箇所を見直すと、見落とした間違いに気づくかもしれません。もう終わったと片づけてしまわなければ、直す時間はあります。<br><br>職場では小さな問題に早く気づき、大きな支障を防げそうです。報告内容や進めている仕事におかしな点があれば、すぐに確かめましょう。すでに起きた問題を大丈夫だと流すと、後で直すことが増えかねません。 |
 
 ## major.tower · 정방향
 
 내부 ID: `work.major.tower.upright`
 
-카드 의미: 예상하지 못한 사실이 기존 가정을 흔듦. 원전의 갑작스러운 붕괴를 일상에서 계획 수정이 필요한 발견으로 제한.
+카드 의미: 전제붕괴, 갑작스러운인식
 
-분야 해석: 요구급변
+분야 해석: 강한 주의: 예상 밖의 문제와 재작성, 갑작스러운 변경·실수 발견
 
-관찰: 진행하던 일이 갑자기 바뀌어 처음의 생각을 다시 볼 수 있어. / 발표 순서나 요구 내용이 달라져 잠깐 당황할 수 있는 날이야. / 하지만 초반에 놓친 문제를 지금 발견한 것이 나중에는 도움이 될 거야.
+관찰: 전제붕괴 / 갑작스러운인식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 진행하던 일이 갑자기 바뀌어 처음의 생각을 다시 볼 수 있어. 발표 순서나 요구 내용이 달라져 잠깐 당황할 수 있는 날이야. 하지만 초반에 놓친 문제를 지금 발견한 것이 나중에는 도움이 될 거야. 바뀐 요구 중 오늘 꼭 반영할 한 가지부터 확인해봐. 새로 고친 부분에서는 오히려 전보다 분명한 설명이나 좋은 반응을 얻을 수 있어. | A sudden change in something you're doing may prompt you to revisit your first idea. A changed presentation order or requirement could briefly catch you off guard. Still, noticing a problem missed early on could prove useful later. Check the one changed requirement that needs to be reflected today. A revision could lead to a clearer explanation or a better response than before. | 進めていたことが急に変わり、初めの考えを見直す場面がありそうです。発表の順番や求められる内容が変わって、少し戸惑うかもしれません。でも、初めに見落とした問題を今見つけたことが、後で役立つでしょう。変わった条件のうち、今日反映する必要があることを一つ確かめてみてください。直した部分には、以前より明確な説明や、よい反応が生まれそうです。 |
+| 분야 풀이 | 잘 안다고 생각했던 내용에서 틀리거나 예상 밖의 문제가 나와 당황할 수 있어. 제출할 과제도 중요한 부분을 다시 써야 할 수 있는 날이야. 틀린 점을 발견했다면 넘기지 말고 기본 설명부터 확인해줘.<br><br>직장에서는 갑작스러운 변경이나 뒤늦게 발견한 실수로 일이 중단될 수 있어. 이미 끝난 업무라고 확인을 생략하면 수정할 일이 더 커질 수 있어. 문제가 드러났을 때는 숨기기보다 관련된 사람에게 바로 알려줘. | You could get a question wrong on material you thought you knew, or be caught off guard by an unexpected question. An assignment may also need a substantial part rewritten before you submit it. If you find a mistake, check the basic explanation rather than skipping over it.<br><br>At work, a sudden change or a mistake discovered late could bring a task to a halt. Skipping checks because you think the job is finished may leave more to correct. Tell the people concerned as soon as a problem comes to light instead of hiding it. | よく知っていると思った内容を間違えたり、予想外の問題に戸惑ったりしそうです。提出する課題も、大事な部分を書き直す必要があるかもしれません。間違いに気づいたらそのままにせず、基本の説明から確かめましょう。<br><br>職場では急な変更や遅れて見つかったミスで、仕事が止まるおそれがあります。終わった仕事だからと確認を省くと、修正が大がかりになりかねません。問題が分かったときは隠さず、関係する人にすぐ伝えてください。 |
 
 ## major.wheel_of_fortune · 역방향
 
 내부 ID: `work.major.wheel_of_fortune.reversed`
 
-카드 의미: 변화를 거스르거나 반복되는 상황에 갇힌 느낌. 원전은 증가라는 다른 역해석도 제시하므로 오늘의 지연을 불운의 본질로 확정하지 않음.
+카드 의미: 통제밖의 변화, 지연, 기존방법의 한계
 
-분야 해석: 외부변경
+분야 해석: 주의와 지연: 예상과 다른 출제·일정, 외부 사정으로 인한 업무 변경
 
-관찰: 내가 잘못한 것이 없어도 일정이나 요구가 바뀔 수 있어. / 기다리던 답이 늦어져 먼저 준비한 일이 잠깐 멈출 거야. / 대신 미처 살피지 못했던 부분을 고칠 시간이 생길 수 있는 날이야.
+관찰: 통제밖의 변화 / 지연 / 기존방법의 한계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 내가 잘못한 것이 없어도 일정이나 요구가 바뀔 수 있어. 기다리던 답이 늦어져 먼저 준비한 일이 잠깐 멈출 거야. 대신 미처 살피지 못했던 부분을 고칠 시간이 생길 수 있는 날이야. 혼자 진행할 수 있는 일부터 하나 마쳐봐. 늦어진 소식이 돌아온 뒤에는 오히려 덜 서두르고 대응할 수 있을 거야. | A schedule or requirement may change even though you've done nothing wrong. A delayed reply could briefly put something you've prepared on hold. The pause may also give you time to improve a part you hadn't looked at closely. Finish one thing you can handle on your own first. Once the delayed news arrives, you could be better able to respond without rushing. | 自分に落ち度がなくても、日程や求められることが変わるかもしれません。待っていた返事が遅れ、先に準備したことが少し止まりそうです。その分、まだ見直せていなかったところを直す時間ができるでしょう。一人で進められることから、一つ終えてみてください。遅れていた知らせが届く頃には、かえって慌てずに対応できそうです。 |
+| 분야 풀이 | 예상했던 유형과 다른 문제가 나와 당황할 수 있어. 골라 공부한 부분만 믿으면 준비하지 못한 내용에서 점수를 놓치기 쉬워. 시험 범위와 일정에 달라진 점이 없는지 확인해봐.<br><br>직장에서는 자신의 잘못이 없어도 외부 사정으로 업무가 늦어질 수 있어. 기다리던 답이나 승인 일정이 바뀌면 다음 일도 밀리기 쉬워. 오늘 안에 될 거라고 다른 사람에게 확답하지는 마. | A question unlike the type you expected could catch you off guard. Relying only on selected topics may cost you marks on material you haven't prepared. Check for changes to the exam's coverage or schedule.<br><br>At work, outside circumstances may cause delays even when you've done nothing wrong. A delayed reply or change to an approval date could hold up the next task too. Don't give others a firm promise that it will happen today. | 予想と違う形式の問題が出て、戸惑うかもしれません。選んで勉強した部分だけを頼りにすると、準備できていない内容で点を落としがちです。試験範囲や日程に変更がないか、確かめましょう。<br><br>職場では、落ち度がなくても、外部の事情で仕事が遅れるかもしれません。待っている返事や承認の日程が変わると、次の業務もずれ込みやすくなります。今日中にできると、ほかの人に言い切るのは控えてください。 |
 
 ## major.wheel_of_fortune · 정방향
 
 내부 ID: `work.major.wheel_of_fortune.upright`
 
-카드 의미: 상황의 순환과 뜻밖의 변동. 원전의 운·상승을 전부 통제할 수 없는 시기에 열린 기회를 알아보는 뜻으로 선택.
+카드 의미: 기회의 변화, 행운, 전환
 
-분야 해석: 기회소식
+분야 해석: 좋음: 익숙한 출제와 뜻밖의 학습 도움, 업무 기회와 상황 호전
 
-관찰: 기다리던 기회가 예상하지 못한 경로로 들어올 수 있어. / 아는 사람이 전한 채용이나 수업 소식에 관심이 갈 거야. / 일정이 바뀐 덕분에 참여할 수 없던 자리에 나서게 될 수도 있어.
+관찰: 기회의 변화 / 행운 / 전환
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다리던 기회가 예상하지 못한 경로로 들어올 수 있어. 아는 사람이 전한 채용이나 수업 소식에 관심이 갈 거야. 일정이 바뀐 덕분에 참여할 수 없던 자리에 나서게 될 수도 있어. 연락이 오면 필요한 내용을 확인하고 답을 남겨봐. 그동안 준비한 것이 뜻밖의 순간에 쓰이며 자신감을 얻을 수 있는 날이야. | An opportunity you've been waiting for could reach you through an unexpected source. A job opening or class mentioned by someone you know may catch your interest. A schedule change could let you attend something you couldn't join before. When a message comes, check the details you need and send a reply. Being able to use your preparation at an unexpected moment could boost your confidence. | 待っていた機会が、思いがけないところから届きそうです。知り合いに聞いた求人や講座の話に、興味が湧くでしょう。日程が変わったおかげで、参加を諦めていた場に出られるかもしれません。連絡が来たら、必要なことを確認して返事をしてみてください。準備してきたことを意外な場面で生かせて、自信がつきそうです。 |
+| 분야 풀이 | 시험에서 익숙한 내용이 나오거나 최근 공부한 부분이 도움이 될 수 있어. 우연히 들은 설명 덕분에 어려운 문제의 답을 찾을 수도 있어. 복습해둔 내용이 있다면 좋은 결과를 기대해볼 만해.<br><br>직장에서는 막혀 있던 일이 뜻밖의 계기로 풀릴 수 있어. 좋은 제안을 받거나 필요한 사람과 연결될 기회도 있어. 상황이 유리해졌다면 미뤄둔 협의나 지원을 진행하기 좋아. | An exam could cover familiar material, or something you've recently studied may prove useful. An explanation you happen to hear could even help you answer a difficult question. If you've done your revision, a good result is worth hoping for.<br><br>At work, an unexpected development could get a stalled task moving. You may receive a good offer or have a chance to meet someone whose help you need. With circumstances turning in your favour, it's a good time to resume a postponed discussion or application. | 試験で見慣れた内容が出たり、最近勉強した部分が役に立ったりしそうです。たまたま聞いた説明から、難しい問題の答えが見つかるかもしれません。復習してきたことがあるなら、よい結果を期待できそうです。<br><br>職場では、行き詰まった仕事が、思いがけないきっかけで進むかもしれません。よい提案を受けたり、力になってくれる人とつながったりする機会もありそうです。状況が有利になったなら、見送っていた話し合いや応募を進めてみましょう。 |
 
 ## major.world · 역방향
 
 내부 ID: `work.major.world.reversed`
 
-카드 의미: 완료 직전의 미완이나 끝을 인정하기 어려움. 원전의 정체를 남은 핵심과 불필요한 반복을 구별하는 뜻으로 사용.
+카드 의미: 미완성, 만족부족, 마지막과제
 
-분야 해석: 마무리누락
+분야 해석: 지연: 마지막 이해와 제출의 미완성, 마무리되지 않은 업무
 
-관찰: 거의 다 해놓은 일에 작은 누락이 있어 마지막 확인이 필요할 수 있어. / 내용은 괜찮아도 제출이나 전달이 남아 마음이 쓰일 거야. / 조금만 고치면 끝날 것을 크게 다시 만들 필요는 없는 날이야.
+관찰: 미완성 / 만족부족 / 마지막과제
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 거의 다 해놓은 일에 작은 누락이 있어 마지막 확인이 필요할 수 있어. 내용은 괜찮아도 제출이나 전달이 남아 마음이 쓰일 거야. 조금만 고치면 끝날 것을 크게 다시 만들 필요는 없는 날이야. 꼭 남은 항목을 적고 하나씩 마쳐봐. 완료했다는 답을 받고 나면 오래 붙잡던 일에서 편하게 손을 뗄 수 있을 거야. | A small omission in something nearly done may require a final check. The content could be fine while a pending submission or handoff keeps it on your mind. Something needing only a small correction won't need to be rebuilt today. Write down the essential remaining items and finish them one by one. Receiving confirmation that it's complete could let you comfortably put down something you've held on to for a long time. | ほとんど終えたことに小さな抜けがあり、最後の確認が必要かもしれません。内容はよくても、提出や引き渡しが残って気にかかりそうです。少し直せば終わるものを、大きく作り直す必要はないでしょう。残っている必須の項目を書き、一つずつ終えてみてください。完了したという返事をもらえば、長く抱えていたことから安心して手を離せそうです。 |
+| 분야 풀이 | 거의 이해한 내용에서도 마지막 풀이가 막힐 수 있어. 시험이나 과제에서 끝부분을 대충 넘기면 아는 내용에 비해 점수가 아쉬워져. 다 했다고 덮기 전에 남은 질문을 확인해봐.<br><br>직장에서는 대부분 끝낸 일에 추가 요청이 붙어 완료가 늦어질 수 있어. 마무리 보고나 최종 확인이 남았다면 아직 끝난 일로 알리지 마. 마지막 부분까지 처리하면 그동안의 성과를 제대로 보여줄 수 있어. | Even material you mostly understand could leave you stuck on the last step of a solution. Rushing the final part of an exam or assignment may mean your marks don't reflect what you know. Check for unanswered questions before deciding you're done.<br><br>At work, an additional request could delay completion of a nearly finished task. If a closing report or final check is still needed, don't announce that the work is complete yet. Finishing the last details will let you show what you've achieved properly. | ほぼ理解した内容でも、解き方の最後の部分で詰まるかもしれません。試験や課題の終わりを雑に済ませると、わかっている内容のわりに点が伸びにくくなります。できたと本を閉じる前に、残っている問いを確かめましょう。<br><br>職場では、大半を終えた仕事に追加の依頼が入り、完了が遅れるかもしれません。最後の報告や確認が残っているなら、まだ終わったと伝えるのは控えてください。最後まで対応すれば、これまでの成果をきちんと示せるでしょう。 |
 
 ## major.world · 정방향
 
 내부 ID: `work.major.world.upright`
 
-카드 의미: 하나의 과정을 마치고 전체를 이해하는 완결. 원전의 보상·이동을 만족스러운 마무리와 다음 시야로 사용.
+카드 의미: 완성, 만족, 소속감
 
-분야 해석: 완성인정
+분야 해석: 좋음: 학습 마무리와 만족스러운 결과, 완수한 업무의 인정
 
-관찰: 오래 준비한 일을 마치고 성취감을 느끼기 좋은 날이야. / 공부한 범위를 끝내거나 보여줄 결과가 생겨 노력한 시간이 뿌듯할 거야. / 주변에서도 그동안의 수고를 알아주며 다음 기회를 이야기할 수 있어.
+관찰: 완성 / 만족 / 소속감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 준비한 일을 마치고 성취감을 느끼기 좋은 날이야. 공부한 범위를 끝내거나 보여줄 결과가 생겨 노력한 시간이 뿌듯할 거야. 주변에서도 그동안의 수고를 알아주며 다음 기회를 이야기할 수 있어. 마지막 확인을 마쳤다면 완성한 것으로 내보여줘. 계속 부족한 곳을 찾을 때보다 마친 결과에서 내 실력이 더 분명하게 보일 거야. | Finishing something you've prepared for a long time could bring a sense of achievement. Completing a stretch of study or having a result to show may make you proud of the time you put in. Others could recognize your effort and mention another opportunity. Once you've done the final check, present it as finished. The completed result may show your ability more clearly than a continuing search for flaws. | 長く準備したことを終えて、達成感を味わえそうな日です。勉強の範囲を終えたり、見せられる成果ができたりして、努力した時間を誇らしく思うでしょう。周りもこれまでの苦労を認め、次の機会を話してくれるかもしれません。最後の確認が済んだら、完成したものとして見せてみてください。不足を探し続けるより、出来上がった成果のほうに実力がはっきり表れるでしょう。 |
+| 분야 풀이 | 오래 준비한 시험이나 과제에서 만족스러운 결과를 얻을 수 있어. 배운 것들이 하나로 연결돼 종합 문제도 이해하기 쉬워.<br><br>직장에서는 오래 맡아온 일을 끝내고 성과를 인정받을 수 있어. 함께 일한 사람들과 완료한 결과를 나누며 보람을 느낄 수 있어. 마무리한 일을 바탕으로 다음 역할을 제안받을 수도 있어. | An exam or assignment you've prepared for over a long time could bring a satisfying result. What you've learned may fit together, making questions that combine several topics easier to understand.<br><br>At work, you could complete a long-running task and receive recognition for the result. Sharing the finished work with those involved may bring a sense of achievement. What you've completed could also lead to an offer of a new role. | 長く準備した試験や課題で、満足できる結果を得られそうです。学んだことがつながり、総合問題も理解しやすくなるでしょう。<br><br>職場では、長く担当した仕事を終え、成果を認められそうです。一緒に働いた人と仕事の成果を喜び合い、やりがいを感じられるかもしれません。仕上げた仕事をもとに、次の役割を提案される可能性もあります。 |
 
 ## pentacles.01 · 역방향
 
 내부 ID: `work.pentacles.01.reversed`
 
-카드 의미: 기회처럼 보여도 실제 조건이 부족하거나 쓰임이 불명확함. 원전의 물질적 이득의 이면과 현대적 지연을 시작 조건의 점검으로 해석.
+카드 의미: 풍족함이 실제 만족으로 이어지지 않음
 
-분야 해석: 준비물누락
+분야 해석: 주의: 좋은 자료·환경과 별개인 낮은 이해, 조건에 못 미치는 업무 성과
 
-관찰: 시작하려던 일에 필요한 도구나 안내가 아직 도착하지 않을 수 있어. / 설명만 들었을 때보다 준비할 것이 많다는 걸 알게 되는 날이야. / 다행히 시작 전에 빠진 것을 알아 나중에 다시 하는 수고를 줄일 수 있어.
+관찰: 풍족함이 실제 만족으로 이어지지 않음 / 주의: 좋은 자료·환경과 별개인 낮은 이해, 조건에 못 미치는 업무 성과
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 시작하려던 일에 필요한 도구나 안내가 아직 도착하지 않을 수 있어. 설명만 들었을 때보다 준비할 것이 많다는 걸 알게 되는 날이야. 다행히 시작 전에 빠진 것을 알아 나중에 다시 하는 수고를 줄일 수 있어. 지금 없는 것이 무엇인지 한 번 정리해 물어봐. 뒤늦게 준비가 갖춰지면 처음 걱정한 것보다 쉽게 따라갈 수 있을 거야. | The tools or instructions you need to start might not have arrived yet. There could be more to get ready than the explanation suggested. Fortunately, noticing what's missing now should save you from repeating work later. Make a short list of what you still need and ask about it. Once everything arrives, you may find it easier to catch up than you feared. | 始めるために必要な道具や案内が、まだ届いていないかもしれません。説明で聞いたより、準備するものが多いと分かりそうです。幸い、始める前に不足に気づき、後でやり直す手間は減らせるでしょう。今足りないものを短くまとめて尋ねてください。準備がそろえば、最初に心配したより楽についていけそうです。 |
+| 분야 풀이 | 좋은 교재를 쓰고 수업을 들어도 공부한 내용이 잘 남지 않을 수 있어. 자료를 새로 구하는 것만으로 막힌 문제가 저절로 풀리지는 않아. 직접 설명할 수 있는지 먼저 확인해봐.<br><br>직장에서는 조건이 좋아 보이는 일을 맡아도 성과가 기대에 못 미칠 수 있어. 장비나 지원이 충분하다고 실제로 필요한 준비까지 생략하지 마. | Even good books and classes may leave you struggling to retain what you've studied. New material alone won't automatically solve a difficult problem. First check whether you can explain the topic yourself.<br><br>At work, even a task with appealing conditions may bring results below your hopes. Adequate equipment or support isn't a reason to skip the preparations you actually need. | よい教材を使い授業を受けても、勉強したことが記憶に残りにくいかもしれません。新しい教材を手に入れるだけで、解けない問題が自然に解決するわけではありません。自力で説明できるか、先に確かめましょう。<br><br>職場では、条件のよさそうな仕事を引き受けても、成果が期待に届かないかもしれません。設備や支援が十分でも、実際に必要な準備まで省くのは控えてください。 |
 
 ## pentacles.01 · 정방향
 
 내부 ID: `work.pentacles.01.upright`
 
-카드 의미: 손에 잡히는 시작과 실용적인 기회. 원전의 만족·풍요를 감당할 자원으로 시작하는 구체적 기반으로 사용.
+카드 의미: 물질적 충족, 만족, 실질적인 시작
 
-분야 해석: 실제업무기회
+분야 해석: 좋음: 필요한 학습 여건의 확보, 실제로 시작되는 업무 기회
 
-관찰: 배운 것을 직접 써볼 기회나 작은 역할을 제안받을 수 있어. / 처음에는 규모가 작아도 무엇을 해야 하는지 분명해 시작하기 편할 거야. / 필요한 도구나 자료를 건네받으며 막연했던 일이 구체적으로 보일 수 있어.
+관찰: 물질적 충족 / 만족 / 실질적인 시작
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 배운 것을 직접 써볼 기회나 작은 역할을 제안받을 수 있어. 처음에는 규모가 작아도 무엇을 해야 하는지 분명해 시작하기 편할 거야. 필요한 도구나 자료를 건네받으며 막연했던 일이 구체적으로 보일 수 있어. 직접 해본 뒤에는 어느 부분이 내게 잘 맞는지도 알게 될 거야. 맡기로 한 일은 첫 번째 할 일을 확인해줘. | You could be offered a small role or a chance to use something you've learned. It may be modest, but knowing exactly what's needed should make it easy to begin. Receiving the tools or information you need could make an unfamiliar task feel much more concrete. Once you've tried it, you'll know which parts suit you. Confirm the first task for anything you agree to take on. | 学んだことを試す機会や、小さな役割を任されそうです。規模は小さくても、何をするかがはっきりしていて始めやすいでしょう。必要な道具や資料を受け取ると、ぼんやりしていた仕事の内容が具体的に分かりそうです。実際に取り組んだ後には、自分に合う部分も見えてくるでしょう。引き受けた仕事は、最初にすることを確かめてください。 |
+| 분야 풀이 | 필요했던 교재나 배울 기회를 얻어 공부가 수월해질 수 있어. 직접 익히는 실습에서도 준비한 만큼 결과를 낼 수 있는 날이야.<br><br>직장에서는 새 업무를 시작할 조건이 갖춰지거나 구체적인 제안을 받을 수 있어. 말로만 오가던 일이 실제 진행으로 이어질 수 있어. 맡을 기회가 왔다면 필요한 준비부터 챙겨봐. | Getting a book you need or a chance to learn could make studying easier. Your results in practical exercises today may also reflect the preparation you've done.<br><br>At work, the conditions for a new task could fall into place, or you may receive a concrete offer. Something that has only been discussed may finally get under way. If the chance to take it on arrives, start with the necessary preparations. | 必要だった教材や学ぶ機会を得て、勉強が進めやすくなりそうです。実習など、体験しながら学ぶ場面でも、準備した分の成果を出せる日です。<br><br>職場では、新しい業務を始める条件が整ったり、具体的な提案を受けたりしそうです。話だけだった仕事が、実行に移るかもしれません。担当する機会が来たら、必要な準備を進めましょう。 |
 
 ## pentacles.02 · 역방향
 
 내부 ID: `work.pentacles.02.reversed`
 
-카드 의미: 동시에 감당하는 양이 많아 배분이 흔들림. 원전의 겉 즐거움과 속 부담을 실제 여력과 보이는 모습의 차이로 사용.
+카드 의미: 억지로 유지하는 즐거움, 불안정한 조율
 
-분야 해석: 동시작업혼선
+분야 해석: 주의: 편중된 공부와 과제 누락, 일정 혼선과 무리한 업무 병행
 
-관찰: 여러 일을 번갈아 하다 같은 부분을 두 번 확인하게 될 수 있어. / 서로 다른 요청을 섞어 기억하며 설명이 잠깐 엇갈리는 날이야. / 한 가지가 끝나고 나면 밀린 것이 처음 생각만큼 많지는 않다는 걸 알 수 있어.
+관찰: 억지로 유지하는 즐거움 / 불안정한 조율
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 여러 일을 번갈아 하다 같은 부분을 두 번 확인하게 될 수 있어. 서로 다른 요청을 섞어 기억하며 설명이 잠깐 엇갈리는 날이야. 지금 가장 급한 일 하나만 먼저 마쳐줘. 한 가지가 끝나고 나면 밀린 것이 처음 생각만큼 많지는 않다는 걸 알 수 있어. 순서를 기다려준 사람과는 짧은 대화로 남은 일을 정리할 수 있을 거야. | Switching between tasks could have you checking the same part twice. Different requests may get mixed up in your memory, causing a brief misunderstanding. Finish the single most urgent task first. Once it's done, the remaining work may turn out to be less than you thought. A short conversation with someone who's waited their turn should help settle what's left. | いくつもの仕事を交互に進めて、同じ部分を二度確かめることになりそうです。別々の依頼を混同して覚え、説明が一時的に食い違うかもしれません。今一番急ぐことを、一つだけ先に終えてください。一つ片づくと、残りは最初に思ったほど多くないと分かるでしょう。待ってくれた人とは、短い会話で残りの仕事を整理できそうです。 |
+| 분야 풀이 | 여러 과목을 한꺼번에 붙잡으면 어느 내용도 충분히 이해하지 못할 수 있어. 과제와 시험 준비가 겹친다면 먼저 필요한 공부를 정해줘.<br><br>직장에서는 여러 일을 오가다 중요한 약속이나 처리를 빠뜨릴 수 있어. 괜찮다고 계속 일을 받으면 마감 직전에 무리가 드러나. 지금 맡은 양부터 알리는 게 좋아. | Trying to study several subjects at once may leave you without a full understanding of any. If an assignment overlaps with exam preparation, decide which studying needs to come first.<br><br>At work, switching between tasks could mean missing an important commitment or something that needs doing. Continuing to accept work while saying you're fine may reveal the strain just before the deadline. Explain how much you're already handling. | 複数の科目に一度に取り組むと、どの内容も十分に理解できないかもしれません。課題と試験の準備が重なるなら、先に必要な勉強を決めてください。<br><br>職場では、いくつもの仕事を行き来するうちに、大切な約束や作業を忘れるかもしれません。大丈夫と言って引き受け続けると、締め切り直前に無理が表れます。今抱えている仕事量を、先に伝えるとよさそうです。 |
 
 ## pentacles.02 · 정방향
 
 내부 ID: `work.pentacles.02.upright`
 
-카드 의미: 여러 현실적 필요를 유연하게 조율함. 원전의 흥겨움과 복잡한 소식을 일상의 일정·자원 배분으로 현대화.
+카드 의미: 두 자원을 다루는 유연함과 즐거움
 
-분야 해석: 역할전환
+분야 해석: 완만한 좋음: 여러 과목의 고른 진행, 바쁜 일정 속의 유연한 업무 처리
 
-관찰: 서로 다른 일을 오가도 생각보다 요령 있게 해낼 수 있어. / 한 일을 기다리는 동안 다른 과제의 답이 떠오르는 날이야. / 동료나 함께 공부하는 사람과 순서를 맞추면 겹치는 수고도 줄어들 거야.
+관찰: 두 자원을 다루는 유연함과 즐거움 / 완만한 좋음: 여러 과목의 고른 진행, 바쁜 일정 속의 유연한 업무 처리
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 다른 일을 오가도 생각보다 요령 있게 해낼 수 있어. 한 일을 기다리는 동안 다른 과제의 답이 떠오르는 날이야. 동료나 함께 공부하는 사람과 순서를 맞추면 겹치는 수고도 줄어들 거야. 작은 변경에도 당황하지 않는 모습을 보고 믿고 맡기는 사람이 있을 수 있어. 중간에 멈춘 곳은 짧게 표시해둬. | You could switch between different tasks more capably than you expected. While waiting on one thing, an answer to another assignment might come to you. Coordinating the order with a colleague or study partner should save you both repeated effort. Someone may trust you with more after seeing you handle a small change calmly. Leave a quick note marking where you stopped. | 違う仕事を行き来しても、思ったより要領よくこなせそうです。一つの返事を待つ間に、別の課題の答えが浮かぶかもしれません。同僚や勉強仲間と順番を合わせると、同じ手間をかけずに済むでしょう。小さな変更にも落ち着いて対応する姿を見て、信頼して任せる人がいそうです。途中で止めた場所には、短く印を残してください。 |
+| 분야 풀이 | 여러 과목을 번갈아 공부해도 진도를 고르게 나갈 수 있어. 한 내용에서 막혔다가 다른 문제를 풀고 돌아오면 이해가 쉬워질 수 있어.<br><br>직장에서는 일정이 바뀌어도 맡은 일을 유연하게 처리할 수 있어. 두 가지 일을 함께 진행해야 한다면 상황에 맞게 순서를 조정해봐. 바쁜 하루에도 중요한 업무는 놓치지 않을 수 있어. | Alternating between several subjects could let you make steady progress across them. If you're stuck on one topic, solving a different problem before returning may help it make sense.<br><br>At work, you could handle your responsibilities flexibly even if the schedule changes. If you need to carry on with two tasks, adjust their order to suit the circumstances. Even on a busy day, you may keep the important work covered. | 複数の科目を交互に勉強しても、偏りなく進められそうです。一つの内容で詰まっても、別の問題を解いて戻ると、理解しやすくなるかもしれません。<br><br>職場では、日程が変わっても、担当の仕事を柔軟にこなせそうです。二つの仕事を並行するなら、状況に合わせて順番を調整しましょう。忙しい一日でも、大切な業務は逃さずに済むかもしれません。 |
 
 ## pentacles.03 · 역방향
 
 내부 ID: `work.pentacles.03.reversed`
 
-카드 의미: 기여가 연결되지 않거나 기준 없이 각자 진행함. 원전의 평범함·약함을 사람 비난 대신 협업 방식의 문제로 현대화.
+카드 의미: 미숙함, 사소한 다툼, 부족한 완성도
 
-분야 해석: 역할누락
+분야 해석: 주의: 미숙한 과제와 협업 오류, 역할 불일치로 낮아지는 완성도
 
-관찰: 여럿이 하는 일에서 한 부분이 빠지거나 같은 일을 두 번 할 수 있어. / 완성 모습을 서로 다르게 생각해 수정이 생기는 날이야. / 실제로 보여주며 이야기하면 말만 할 때보다 차이를 빨리 알게 될 거야.
+관찰: 미숙함 / 사소한 다툼 / 부족한 완성도
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 여럿이 하는 일에서 한 부분이 빠지거나 같은 일을 두 번 할 수 있어. 완성 모습을 서로 다르게 생각해 수정이 생기는 날이야. 실제로 보여주며 이야기하면 말만 할 때보다 차이를 빨리 알게 될 거야. 지금 맡을 사람과 마칠 시간을 함께 적어줘. 서로 할 일이 분명해진 뒤에는 처음보다 수월하게 진행할 수 있을 거야. | A group task could have a missing part or a piece done twice. Different pictures of the finished work may lead to revisions. Showing an actual example should reveal the difference faster than talking alone. Write down who will take it on now and when they'll finish. Once each person's work is clear, things could move more easily than before. | 皆でする仕事に抜けがあったり、同じことを二度したりしそうです。完成した姿のイメージが違い、修正が必要になるかもしれません。実物を見せて話せば、言葉だけより早く違いに気づくでしょう。今から担当する人と、終える時間を一緒に書いてください。それぞれの仕事がはっきりすると、最初より進めやすくなりそうです。 |
+| 분야 풀이 | 충분히 익히지 않은 기술이나 풀이 때문에 과제의 완성도가 낮아질 수 있어. 조별 과제에서는 서로 아는 줄 알고 넘긴 부분이 오류로 드러나기 쉬워.<br><br>직장에서는 각자 맡은 일이 잘 맞지 않아 다시 손봐야 할 수 있어. 사소한 지적을 두고 다투면 실제 수정은 더 늦어져. 필요한 기준을 먼저 맞춰줘. | A skill or solution you haven't mastered could lower the quality of an assignment. In a group task, a part everyone assumed the others understood may turn out to contain an error.<br><br>At work, separate contributions may not fit together and could need revising. Arguing over a minor criticism can delay the actual correction further. Agree first on the standards you need to meet. | 十分に身につけていない技術や解き方のために、課題の完成度が下がるかもしれません。グループ課題では、互いにわかっていると思って済ませた部分から、誤りが出やすいでしょう。<br><br>職場では、それぞれの仕事がうまくかみ合わず、手直しが必要になるかもしれません。小さな指摘をめぐって争うと、実際の修正はさらに遅れます。必要な基準を、先にすり合わせてください。 |
 
 ## pentacles.03 · 정방향
 
 내부 ID: `work.pentacles.03.upright`
 
-카드 의미: 서로 다른 기술을 모아 실제 결과를 만드는 협업. 원전의 숙련과 인정은 상호 기여로 읽음.
+카드 의미: 숙련, 성실한 작업, 인정
 
-분야 해석: 협업의성과
+분야 해석: 좋음: 실습·과제의 완성도와 인정, 전문성으로 얻는 협업 성과
 
-관찰: 서로 다른 장점이 맞아 함께하는 일이 잘 풀릴 수 있어. / 내가 막힌 부분을 누군가 쉽게 설명하고 반대로 내가 도와줄 일도 생길 거야. / 실습이나 발표에서는 역할을 나눈 준비가 좋은 평가를 받을 수 있어.
+관찰: 숙련 / 성실한 작업 / 인정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 서로 다른 장점이 맞아 함께하는 일이 잘 풀릴 수 있어. 내가 막힌 부분을 누군가 쉽게 설명하고 반대로 내가 도와줄 일도 생길 거야. 실습이나 발표에서는 역할을 나눈 준비가 좋은 평가를 받을 수 있어. 혼자 할 때는 몰랐던 요령을 배우는 재미도 있는 날이야. 잘해준 부분은 그 자리에서 구체적으로 칭찬해줘. | Different strengths could fit together and help shared work go well. Someone may explain a part you were stuck on, while you find something to help them with. Preparation with clearly divided roles could earn a good response in a practical task or presentation. There should also be pleasure in learning a technique you wouldn't have found alone. Give a specific compliment as soon as someone does something well. | 違う長所がうまく合い、共同作業が順調に進みそうです。困った部分を誰かが簡単に説明してくれ、反対にあなたが助けることもあるでしょう。実習や発表では、役割を分けた準備がよい評価につながりそうです。一人では知らなかったこつを学ぶ楽しさもあるでしょう。よかったところは、その場で具体的に褒めてください。 |
+| 분야 풀이 | 실습이나 조별 과제에서 자신이 익힌 능력을 잘 보여줄 수 있어. 서로 잘하는 부분을 맡으면 완성도 높은 결과로 칭찬받을 수 있어.<br><br>직장에서는 전문성을 발휘한 일이 인정받고 협업도 순조롭게 진행될 수 있어. 필요한 사람이 제 역할을 해주면 어려운 업무도 마무리할 수 있어. 서로의 기여를 분명히 인정해줘. | Practical exercises or a group assignment could let you show the skills you've learned. If each person handles what they do well, the polished result may earn praise.<br><br>At work, a task that draws on your expertise could win recognition, and cooperation may go smoothly too. With the right people doing their parts, even difficult work could be completed. Clearly recognise each person's contribution. | 実習やグループ課題で、身につけた力を十分に示せそうです。それぞれ得意な部分を担当すると、完成度の高い成果を褒められるかもしれません。<br><br>職場では、専門性を生かした仕事が認められ、協力も順調に進みそうです。協力する人がそれぞれ役割を果たすと、難しい業務も仕上げられるでしょう。互いの貢献を、はっきり認めてください。 |
 
 ## pentacles.04 · 역방향
 
 내부 ID: `work.pentacles.04.reversed`
 
-카드 의미: 붙잡던 것을 놓지만 경계까지 느슨해질 수 있음. 원전의 지연과 현대의 내려놓음·과소비 중 배분 재조정의 양면을 선택.
+카드 의미: 지연, 대기, 반대
 
-분야 해석: 방법을나눔
+분야 해석: 지연: 답을 기다리는 학습·과제, 반대와 대기로 늦어지는 업무
 
-관찰: 혼자 갖고 있던 자료나 요령을 나누며 일이 더 편해질 수 있어. / 다른 사람이 보탠 설명에서 내가 몰랐던 방법을 알게 될 거야. / 조금 다르게 해도 결과가 괜찮다는 걸 직접 확인할 수 있는 날이야.
+관찰: 지연 / 대기 / 반대
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 갖고 있던 자료나 요령을 나누며 일이 더 편해질 수 있어. 다른 사람이 보탠 설명에서 내가 몰랐던 방법을 알게 될 거야. 오래 고집하던 방식 중 한 부분은 다른 제안도 들어봐. 조금 다르게 해도 결과가 괜찮다는 걸 직접 확인할 수 있는 날이야. 함께할 수 있는 일이 늘어나며 혼자 챙기던 부담도 줄어들 수 있어. | Sharing notes or techniques you've kept to yourself could make work easier. Another person's explanation may introduce a method you didn't know. Hear out a different suggestion for one part you've always done the same way. You could see for yourself that a small change still produces a good result. Having more to work on together may ease the burden you've carried alone. | 自分だけで持っていた資料やこつを共有すると、仕事が楽になりそうです。相手の説明から、知らなかった方法を学べるでしょう。長く続けたやり方も、一部分は別の提案を聞いてみてください。少し変えてもよい結果になると、自分で確かめられそうです。一緒にできることが増え、一人で抱えていた負担も減るでしょう。 |
+| 분야 풀이 | 과제에 필요한 설명이나 답을 기다리느라 공부가 늦어질 수 있어. 한 문제의 답이 오지 않는다고 전체 공부를 멈추지는 마. 혼자 풀 수 있는 부분부터 이어가줘.<br><br>직장에서는 승인이나 협조가 늦고 반대 의견으로 일정이 밀릴 수 있어. 아직 정해지지 않은 일을 완료할 수 있다고 확답하지 않는 게 좋아. | Waiting for an explanation or answer needed for an assignment could delay your studying. One unanswered question isn't a reason to stop all your study. Continue with the parts you can solve alone.<br><br>At work, delayed approval or cooperation and opposing views could put the schedule back. Don't promise completion of something that hasn't been settled yet. | 課題に必要な説明や答えを待ち、勉強が遅れるかもしれません。一つの問題について返答がないだけで、勉強をすべて止めることはありません。一人で解ける部分から、続けてください。<br><br>職場では、承認や協力が遅れ、反対意見によって日程もずれ込むかもしれません。まだ決まっていない仕事を、完了できると言い切るのは控えましょう。 |
 
 ## pentacles.04 · 정방향
 
 내부 ID: `work.pentacles.04.upright`
 
-카드 의미: 확보한 것을 지키려는 안정 욕구. 원전의 소유를 유용한 경계와 지나친 집착의 양면으로 사용.
+카드 의미: 소유의 보호, 확실함에 대한 집착
 
-분야 해석: 익힌기술
+분야 해석: 안정과 주의: 익숙한 지식의 유지, 새 방법을 막는 고집과 업무 독점
 
-관찰: 오래 익힌 방법이 필요한 순간에 든든한 도움이 될 수 있어. / 처음 보는 문제에서도 아는 부분을 발견해 침착하게 시작할 거야. / 함께하는 사람이 내 설명이나 정리해둔 내용을 찾는 일도 있을 수 있어.
+관찰: 소유의 보호 / 확실함에 대한 집착
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 익힌 방법이 필요한 순간에 든든한 도움이 될 수 있어. 처음 보는 문제에서도 아는 부분을 발견해 침착하게 시작할 거야. 함께하는 사람이 내 설명이나 정리해둔 내용을 찾는 일도 있을 수 있어. 꾸준히 챙긴 기록 덕분에 같은 일을 다시 할 수고가 줄어드는 날이야. 도움이 되는 자료는 필요한 사람에게 한 번 공유해줘. | A method you've practiced for a long time could help when you need it. Even an unfamiliar problem may contain something you recognize, letting you begin calmly. Someone working with you could ask for your explanation or notes. Records you've kept consistently should save you from repeating work. Share a helpful resource with someone who needs it. | 長く身につけてきた方法が、必要なときに頼りになりそうです。初めての問題にも知っている部分があり、落ち着いて始められるでしょう。仲間から、説明やまとめていた内容を求められることもありそうです。こまめに残した記録のおかげで、同じ作業をやり直さずに済むでしょう。役立つ資料は、必要な人に共有してください。 |
+| 분야 풀이 | 익숙한 내용에서는 안정적으로 답을 찾을 수 있어. 새로운 풀이를 전혀 받아들이지 않으면 응용 문제에서 막힐 수 있으니 아는 방법만 고집하지 마.<br><br>직장에서는 지금 맡은 업무를 지키며 큰 변화 없이 일할 수 있어. 일을 모두 혼자 관리하려 하면 동료의 도움을 받기 어려워져. 함께 알아야 할 내용까지 혼자 쥐고 있지는 마. | You could find answers reliably in familiar material. Refusing every new approach may leave you stuck on questions that require applying the concepts differently, so don't insist on using only methods you know.<br><br>At work, you may keep your existing responsibilities and work without major changes. Trying to manage everything alone can make help from colleagues harder to obtain. Don't keep information everyone needs to yourself. | 慣れた内容なら、安定して答えを見つけられそうです。新しい解き方をまったく受け入れないと、応用問題で詰まるかもしれないので、知っている方法にこだわりすぎないようにしましょう。<br><br>職場では、今の担当業務を保ち、大きな変化なく働けそうです。すべて一人で管理しようとすると、同僚の助けを受けにくくなります。皆で共有すべき情報まで、一人で抱えるのは控えてください。 |
 
 ## pentacles.05 · 역방향
 
 내부 ID: `work.pentacles.05.reversed`
 
-카드 의미: 어려움을 혼자 감당하지 않는 통로를 찾는 현대적 회복. 원전의 혼란과 다른 선택임을 명시하고 자원의 재발견에 초점.
+카드 의미: 혼란, 불화, 낭비
 
-분야 해석: 배움의도움
+분야 해석: 주의: 혼란스러운 공부와 공동 과제, 부족한 자원을 둘러싼 업무 불화
 
-관찰: 어렵게 느낀 과제에 도움을 줄 사람이나 자료를 찾을 수 있어. / 놓쳤던 안내가 다시 오거나 함께 배우자는 제안을 받을 수도 있을 거야. / 차근차근 설명을 듣다 보면 어디서 막혔는지 알게 되는 날이야.
+관찰: 혼란 / 불화 / 낭비
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 어렵게 느낀 과제에 도움을 줄 사람이나 자료를 찾을 수 있어. 놓쳤던 안내가 다시 오거나 함께 배우자는 제안을 받을 수도 있을 거야. 차근차근 설명을 듣다 보면 어디서 막혔는지 알게 되는 날이야. 도움을 받을 때는 가장 헷갈리는 부분부터 보여줘. 혼자 힘들어하던 때보다 다음에 할 일이 단순하게 느껴질 수 있어. | You could find a person or resource to help with an assignment that felt difficult. Missed guidance might arrive again, or someone may suggest learning together. A patient explanation should reveal where you got stuck. Show the most confusing part first when receiving help. The next step could feel much simpler than it did while you struggled alone. | 難しく感じた課題に、助けてくれる人や資料が見つかりそうです。見逃した案内がもう一度届いたり、一緒に学ぼうと誘われたりするかもしれません。順に説明を聞くと、どこでつまずいたか分かるでしょう。助けてもらうときは、一番分からない部分から見せてください。一人で困っていたときより、次にすることが簡単に感じられそうです。 |
+| 분야 풀이 | 여러 설명이 뒤섞여 공부한 시간에 비해 이해가 적을 수 있어. 함께 준비하는 과제에서도 의견이 정리되지 않아 같은 일을 반복할 수 있어.<br><br>직장에서는 부족한 지원을 서로 먼저 쓰려 하며 불화가 생길 수 있어. 같은 일을 중복해서 처리하면 사람과 시간도 더 부족해져. 필요한 일을 함께 나눠 정하는 게 좋아. | Mixed explanations may leave you understanding little for the time spent studying. Unresolved differences over a shared assignment could also mean repeating the same work.<br><br>At work, disagreements over who gets limited support first could cause conflict. Duplicating tasks may leave even less staff time available. Decide together how to share the work that needs doing. | いくつもの説明が混ざり、勉強した時間のわりに理解が進まないかもしれません。共同の課題でも意見がまとまらず、同じ作業を繰り返すことがありそうです。<br><br>職場では、限られた支援を先に使おうとして、対立が起こるかもしれません。同じ仕事を重複してこなすと、人手も時間もさらに足りなくなります。必要な仕事をどう分けるか、一緒に決めましょう。 |
 
 ## pentacles.05 · 정방향
 
 내부 ID: `work.pentacles.05.upright`
 
-카드 의미: 자원이나 소속이 부족하다고 느끼는 어려움. 원전의 물질 곤란을 실제 빈곤 단정 없이 도움과 대안이 보이지 않는 상태로 제한.
+카드 의미: 물질적 어려움, 소외, 부족한 자원
 
-분야 해석: 모르는부분의도움
+분야 해석: 주의: 부족한 학습 여건, 지원·인력 부족으로 생기는 업무 차질
 
-관찰: 익숙하지 않은 내용 앞에서 나만 뒤처진 듯 느껴질 수 있어. / 주변이 쉽게 해내는 모습에 질문할 말을 고르게 되는 날이야. / 실제로 물어보면 다른 사람도 비슷한 곳에서 막혔다는 걸 알 수 있어.
+관찰: 물질적 어려움 / 소외 / 부족한 자원
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 익숙하지 않은 내용 앞에서 나만 뒤처진 듯 느껴질 수 있어. 주변이 쉽게 해내는 모습에 질문할 말을 고르게 되는 날이야. 실제로 물어보면 다른 사람도 비슷한 곳에서 막혔다는 걸 알 수 있어. 짧게 들은 설명이 혼자 오래 붙잡은 문제를 푸는 데 도움이 될 거야. 모르는 한 부분은 숨기지 말고 질문해봐. | Unfamiliar material could make you feel as though you're the only one falling behind. Watching others seem to manage easily might leave you choosing your question carefully. Asking could reveal that someone else got stuck in much the same place. A short explanation may help solve a problem you've spent a long time on alone. Ask about one part you don't understand instead of hiding it. | 慣れない内容を前に、自分だけ遅れているように感じるかもしれません。周りが簡単にこなす姿を見て、質問の言葉を選びそうです。実際に聞くと、ほかの人も似たところで困ったと分かるでしょう。短い説明が、一人で長く考えた問題を解く助けになりそうです。分からないところを一つ、隠さず質問してください。 |
+| 분야 풀이 | 필요한 자료나 설명을 구하기 어려워 공부가 막힐 수 있어. 혼자 해결하려 애쓰는데 이해가 안 된다면 선생님이나 학교의 도움을 찾아봐.<br><br>직장에서는 사람이나 지원이 부족해 원하는 성과를 내기 어려울 수 있어. 힘든 사정을 말하지 않으면 혼자 더 많은 일을 떠안기 쉬워. 필요한 도움을 구체적으로 요청해줘. | Difficulty finding the material or explanation you need could hold up your studying. If you're trying alone but still don't understand, look for help from a teacher or your school.<br><br>At work, too few people or too little support may make the results you want hard to achieve. Keeping quiet about the difficulty could leave you taking on even more alone. Ask specifically for the help you need. | 必要な教材や説明を得られず、勉強が止まるかもしれません。一人で頑張っても理解できないなら、先生や学校に助けを求めてみましょう。<br><br>職場では、人手や支援が足りず、望む成果を出しにくいかもしれません。大変な事情を話さずにいると、一人でさらに多くの仕事を抱えがちです。必要な助けを、具体的に頼んでください。 |
 
 ## pentacles.06 · 역방향
 
 내부 ID: `work.pentacles.06.reversed`
 
-카드 의미: 도움에 조건이 붙거나 주고받는 부담이 한쪽으로 쏠림. 원전의 탐욕·질투를 금액과 기대의 비대칭으로 응용.
+카드 의미: 욕심, 질투, 환상
 
-분야 해석: 한쪽으로쏠린수고
+분야 해석: 주의: 일방적인 학습 도움, 불공평한 지원·업무 부담
 
-관찰: 작은 도움으로 시작한 일이 어느새 내 몫처럼 느껴질 수 있어. / 다른 사람의 일을 챙기다 내 과제에 쓸 시간이 줄어드는 날이야. / 상대도 어디부터 직접 해야 하는지 알게 되며 오히려 대화가 짧아질 수 있어.
+관찰: 욕심 / 질투 / 환상
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 도움으로 시작한 일이 어느새 내 몫처럼 느껴질 수 있어. 다른 사람의 일을 챙기다 내 과제에 쓸 시간이 줄어드는 날이야. 오늘 도와줄 수 있는 곳까지 분명하게 말해줘. 상대도 어디부터 직접 해야 하는지 알게 되며 오히려 대화가 짧아질 수 있어. 자기 일을 마친 뒤에는 아까보다 편하게 도움을 주고받을 수 있을 거야. | A task that began as a small favor may start feeling like your responsibility. Looking after someone else's work could leave less time for your own. State clearly how much you can help with today. Once they know where to take over, the conversation may actually get shorter. After finishing your own task, giving and receiving help should feel easier. | 小さな手伝いで始めたことが、いつの間にか自分の仕事に感じられそうです。人の仕事を気にかけて、自分の課題に使う時間が減るかもしれません。今日はどこまで手伝えるか、はっきり伝えてください。相手もどこから自分でするか分かり、かえって話が短く済みそうです。自分の仕事を終えると、先ほどより気楽に助け合えるでしょう。 |
+| 분야 풀이 | 친구의 공부를 도와주다가 자신의 준비가 부족해질 수 있어. 답을 알려주는 일만 반복하면 상대도 제대로 이해하지 못할 수 있어. 자신에게 필요한 공부 시간을 남겨줘.<br><br>직장에서는 도움을 받는 대신 과한 요구를 떠안을 수 있어. 지원을 받았다는 이유만으로 원래 맡지 않은 일을 모두 책임질 필요는 없어. | Helping a friend study could leave you short of preparation time yourself. Repeatedly giving the answers may also leave the other person without a proper understanding. Keep time for the studying you need.<br><br>At work, help could come in exchange for excessive demands. Receiving support doesn't mean you must take responsibility for every task outside your original role. | 友人の勉強を手伝ううちに、自分の準備が足りなくなるかもしれません。答えだけを教え続けても、相手は十分に理解できない可能性があります。必要な勉強の時間は、自分のために残してください。<br><br>職場では、助けを受ける代わりに、過度な要求を引き受けるかもしれません。支援されたからと、もともと担当していない仕事まで、すべて責任を負う必要はありません。 |
 
 ## pentacles.06 · 정방향
 
 내부 ID: `work.pentacles.06.upright`
 
-카드 의미: 주고받는 도움과 공정한 배분. 원전의 선물·주의를 일방적 시혜보다 가능한 기여의 교환으로 해석.
+카드 의미: 선물, 나눔, 도움, 현재의 만족
 
-분야 해석: 요령을나눔
+분야 해석: 좋음: 가르침과 자료 도움으로 이해, 협조와 지원으로 나는 성과
 
-관찰: 전에 도와준 사람이 이번에는 내 일을 챙겨줄 수 있어. / 설명하기 어려웠던 부분을 대신 보여주거나 필요한 자료를 먼저 건넬 거야. / 내가 아는 내용을 다른 사람에게 알려주며 자신감이 붙는 일도 있을 수 있어.
+관찰: 선물 / 나눔 / 도움
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 전에 도와준 사람이 이번에는 내 일을 챙겨줄 수 있어. 설명하기 어려웠던 부분을 대신 보여주거나 필요한 자료를 먼저 건넬 거야. 내가 아는 내용을 다른 사람에게 알려주며 자신감이 붙는 일도 있을 수 있어. 도움을 주고받는 동안 서로의 장점을 알아보는 날이야. 배운 요령이 도움이 됐다면 나중에 어떻게 썼는지 알려줘. | Someone you helped before could look out for your work today. They might demonstrate a difficult point for you or offer a resource before you ask. Teaching something you know could also build your confidence. Exchanging help should let you see each other's strengths. If a tip was useful, tell them later how you used it. | 以前助けた人が、今度はあなたの仕事を気にかけてくれそうです。説明しにくい部分を代わりに見せたり、必要な資料を先に渡したりするでしょう。知っていることを人に教えて、自信がつくこともありそうです。助け合う間に、お互いの長所が分かるでしょう。教わったこつが役立ったら、後でどう使ったか伝えてください。 |
+| 분야 풀이 | 어려운 내용을 알려주는 사람의 도움으로 공부가 풀릴 수 있어. 자신이 아는 것을 설명해주다 보면 헷갈렸던 개념도 더 분명해질 수 있어.<br><br>직장에서는 필요한 지원이나 동료의 협조를 얻어 일을 마칠 수 있어. 도움을 주고받는 과정에서 자신의 성실함도 좋은 평가를 받을 수 있어. 혼자 해결하기 어려웠던 일은 함께 이야기해봐. | Help from someone who explains difficult material could get your studying moving. Explaining what you know to someone else may also clarify a concept you found confusing.<br><br>At work, necessary support or a colleague's cooperation could let you finish a task. Giving and receiving help may also bring a good assessment of your diligence. Discuss a task you've struggled to manage alone. | 難しい内容を教えてくれる人のおかげで、勉強が進みそうです。知っていることを人に説明するうちに、曖昧だった概念も明確になるかもしれません。<br><br>職場では、必要な支援や同僚の協力を受け、仕事を終えられそうです。助け合う中で、誠実さもよく評価されるでしょう。一人では難しかった仕事について、周囲と話してみましょう。 |
 
 ## pentacles.07 · 역방향
 
 내부 ID: `work.pentacles.07.reversed`
 
-카드 의미: 기다린 만큼 얻지 못하거나 비효율적인 투입을 지속함. 원전의 조바심을 앞으로의 시간과 비용을 재평가하는 뜻으로 사용.
+카드 의미: 성과 부족, 정체, 노력 대비 적은 결과
 
-분야 해석: 노력과방법
+분야 해석: 정체: 노력 대비 적은 이해·성적, 오래 들인 업무의 미미한 결과
 
-관찰: 시간을 들였는데도 같은 부분에서 막혀 답답할 수 있어. / 많이 읽은 내용이 막상 문제에서는 잘 떠오르지 않는 날이야. / 방법을 바꾼 뒤에는 오래 걸리던 이유가 의외로 간단했다는 걸 알 수 있어.
+관찰: 성과 부족 / 정체 / 노력 대비 적은 결과
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 시간을 들였는데도 같은 부분에서 막혀 답답할 수 있어. 많이 읽은 내용이 막상 문제에서는 잘 떠오르지 않는 날이야. 자주 틀리는 한 부분을 다른 설명으로 다시 들어봐. 방법을 바꾼 뒤에는 오래 걸리던 이유가 의외로 간단했다는 걸 알 수 있어. 오늘의 질문 하나가 다음에 반복할 수고를 줄여줄 수 있을 거야. | Getting stuck in the same place after putting in time could be frustrating. Material you've read often may not come to mind when facing a question. Hear a different explanation of one part you often get wrong. Changing the method could reveal a surprisingly simple reason it took so long. One question today may save you repeated effort next time. | 時間をかけても同じところでつまずき、もどかしくなりそうです。何度も読んだ内容が、問題を前にするとうまく浮かばないかもしれません。よく間違えるところを一つ、違う説明でもう一度聞いてください。方法を変えると、時間がかかった理由は意外と単純だと分かるでしょう。今日の一つの質問が、次に繰り返す手間を減らしてくれそうです。 |
+| 분야 풀이 | 공부한 시간에 비해 맞히는 문제가 적어 답답할 수 있어. 여러 자료를 오가며 조금씩만 공부했다면 내용이 충분히 남지 않았을 수 있어. 실제로 이해했는지 한 문제를 끝까지 풀어봐.<br><br>직장에서는 오래 공들인 일이 기대만큼 성과를 내지 못할 수 있어. 같은 방법을 더 반복하기보다 일이 잘되지 않는 이유부터 살펴볼 때야. | Getting few questions right for the hours spent studying could feel frustrating. Moving between resources and studying only a little of each may have left you remembering too little. Work through one question to the end to check your actual understanding.<br><br>At work, something you've put time and care into may not produce the results you hoped for. It's time to look at why it isn't going well instead of repeating the same method even more. | 勉強した時間のわりに正解が少なく、もどかしくなるかもしれません。複数の教材を少しずつ勉強していたなら、内容が十分に残っていない可能性があります。本当に理解したか、一問を最後まで解いてみましょう。<br><br>職場では、長く力を注いだ仕事が、期待ほどの成果を出さないかもしれません。同じ方法を繰り返すより、うまくいかない理由を見るときです。 |
 
 ## pentacles.07 · 정방향
 
 내부 ID: `work.pentacles.07.upright`
 
-카드 의미: 투입한 노력의 상태를 살피는 기다림. 원전의 경작과 다양한 결과를 조급한 수확 대신 진행 점검으로 응용.
+카드 의미: 느린 진전, 성장, 인내
 
-분야 해석: 쌓인실력
+분야 해석: 느린 좋음: 쌓이는 이해와 점진적 성적 향상, 꾸준한 업무의 성과
 
-관찰: 반복해서 익힌 내용이 전보다 자연스럽게 떠오를 수 있어. / 예전에는 오래 걸린 문제를 더 짧게 풀며 연습한 보람을 느낄 거야. / 아직 완성하지 않은 일에서도 잘된 부분을 알아주는 말을 들을 수 있어.
+관찰: 느린 진전 / 성장 / 인내
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 반복해서 익힌 내용이 전보다 자연스럽게 떠오를 수 있어. 예전에는 오래 걸린 문제를 더 짧게 풀며 연습한 보람을 느낄 거야. 아직 완성하지 않은 일에서도 잘된 부분을 알아주는 말을 들을 수 있어. 눈에 띄게 달라진 한 부분이 남은 공부에도 힘을 주는 날이야. 전에 해둔 것과 오늘 한 것을 나란히 살펴봐. | Something you've practiced repeatedly could come to mind more naturally. Solving an old type of problem faster may make the practice feel worthwhile. Even unfinished work could receive a comment recognizing what went well. One noticeable improvement should encourage you with the learning still ahead. Look at an earlier attempt alongside what you did today. | 繰り返し学んだ内容が、以前より自然に思い出せそうです。前は時間がかかった問題を早く解けて、練習したかいを感じるでしょう。まだ完成していない仕事にも、よいところを認める言葉がありそうです。はっきり変わった一部分が、残りの勉強の励みになるでしょう。以前したものと今日したものを、並べて見てください。 |
+| 분야 풀이 | 꾸준히 공부한 내용에서 조금씩 더 많은 문제를 맞힐 수 있어. 성적이 한 번에 크게 오르지 않아도 전보다 이해한 부분은 분명해질 수 있어. 잘 풀린 유형을 살펴보며 이어가봐.<br><br>직장에서는 오래 해온 일의 결과가 조금씩 드러날 수 있어. 큰 평가가 바로 나오지 않더라도 맡은 업무가 실제로 얼마나 진행됐는지 확인하면 성과를 알아볼 수 있어. | Steady study could let you get more questions right little by little. Even if your marks don't rise sharply, the areas you understand better may become clear. Notice which question types are going well and keep going.<br><br>At work, the results of sustained effort could begin to show. Even without immediate major recognition, checking how far your tasks have actually progressed may reveal what you've achieved. | 勉強を続けた内容で、少しずつ正解が増えそうです。成績が一度に大きく伸びなくても、以前より理解できた部分は、はっきりするかもしれません。うまく解けた形式を見ながら、続けていきましょう。<br><br>職場では、長く取り組んだ仕事の結果が、少しずつ見えそうです。すぐに高評価を受けなくても、実際にどこまで進んだかを確かめると、成果に気づけるでしょう。 |
 
 ## pentacles.08 · 역방향
 
 내부 ID: `work.pentacles.08.reversed`
 
-카드 의미: 반복은 있으나 목적이나 주의가 빠진 상태. 원전의 허영·욕심을 과한 완벽주의와 형식적인 작업의 양면으로 응용.
+카드 의미: 허영, 욕심, 기술을 잔꾀로 사용
 
-분야 해석: 반복의실수
+분야 해석: 주의: 아는 척한 내용의 한계, 겉모양과 실력이 다른 결과
 
-관찰: 익숙한 답을 먼저 떠올리다 바뀐 조건을 놓칠 수 있어. / 여러 번 한 작업에서도 오늘은 작은 누락이 생기기 쉬운 날이야. / 다른 사람의 질문 덕분에 잘못 이해한 부분을 빨리 찾을 수 있어.
+관찰: 허영 / 욕심 / 기술을 잔꾀로 사용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 익숙한 답을 먼저 떠올리다 바뀐 조건을 놓칠 수 있어. 여러 번 한 작업에서도 오늘은 작은 누락이 생기기 쉬운 날이야. 다른 사람의 질문 덕분에 잘못 이해한 부분을 빨리 찾을 수 있어. 같은 일을 오래 했다면 잠깐 멈추고 다시 읽어봐. 짧게 쉬고 난 뒤에는 막연히 계속할 때보다 빠르게 끝낼 수 있을 거야. | Reaching for a familiar answer could make you miss a changed condition. Even work you've done many times may contain a small omission today. Another person's question could quickly reveal a misunderstanding. If you've repeated the task for a long time, pause and read it again. A short rest might help you finish faster than simply carrying on. | 慣れた答えを先に思い浮かべ、変わった条件を見落とすかもしれません。何度もした作業にも、今日は小さな抜けが出やすそうです。人からの質問で、勘違いした部分を早く見つけられるでしょう。同じ仕事を長くしていたら、少し止まって読み直してください。短く休んだ後は、ただ続けるより早く終えられそうです。 |
+| 분야 풀이 | 풀이를 이해한 척 넘기면 시험에서 같은 문제도 혼자 풀기 어려울 수 있어. 답을 외우는 데만 힘쓰면 조건이 조금 바뀌었을 때 막히기 쉬워. 직접 설명할 수 있는지를 확인해봐.<br><br>직장에서는 결과를 멋지게 보이게 했어도 기본적인 오류가 드러날 수 있어. 부족한 부분을 말로만 덮기보다 실제로 고쳐야 신뢰를 지킬 수 있어. | Pretending to understand a solution and moving on could leave you unable to solve the same question alone in an exam. Focusing only on memorising answers may leave you stuck when a condition changes slightly. Check whether you can explain it yourself.<br><br>At work, a basic error could appear even in a result you've made look impressive. Fixing what's wrong, instead of talking around it, is how you can protect trust. | 解き方を理解したふりで済ませると、試験で同じ問題も一人では解けないかもしれません。答えを覚えることばかり頑張ると、条件が少し変わっただけで詰まりがちです。自力で説明できるか、確かめてみましょう。<br><br>職場では、成果を立派に見せても、基本的な誤りが表れるかもしれません。足りない部分を言葉で取り繕わず、実際に直すことが、信頼を守るために必要です。 |
 
 ## pentacles.08 · 정방향
 
 내부 ID: `work.pentacles.08.upright`
 
-카드 의미: 반복으로 익히는 기술과 정성. 원전의 숙련·고용을 성별이나 직업 전제 없이 실력이 실제 쓰임을 얻는 과정으로 해석.
+카드 의미: 숙련된 작업, 기술, 성실한 연습
 
-분야 해석: 숙련의보람
+분야 해석: 좋음: 반복 연습의 숙련과 성적, 완성도 있는 업무의 인정
 
-관찰: 반복해서 연습한 일이 손에 익어 한결 수월하게 느껴질 수 있어. / 설명을 오래 보지 않아도 순서가 떠올라 일이 매끄럽게 이어질 거야. / 어려워하는 사람에게 요령을 알려주며 내 실력이 늘었다는 걸 실감할 수 있어.
+관찰: 숙련된 작업 / 기술 / 성실한 연습
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 반복해서 연습한 일이 손에 익어 한결 수월하게 느껴질 수 있어. 설명을 오래 보지 않아도 순서가 떠올라 일이 매끄럽게 이어질 거야. 어려워하는 사람에게 요령을 알려주며 내 실력이 늘었다는 걸 실감할 수 있어. 정성 들인 작은 부분까지 알아주는 평가를 기대할 만한 날이야. 잘된 방법은 나중에도 쓸 수 있게 짧게 남겨둬. | A task you've practiced repeatedly could feel familiar and much easier. The steps may come to mind without long checks of the instructions, keeping work smooth. Showing someone a useful technique could make your own improvement clear. Careful little details may also receive recognition today. Leave a brief note of a method that worked so you can use it again. | 繰り返し練習したことが身について、ずっと楽に感じられそうです。説明を長く見なくても順番が浮かび、作業がスムーズに進むでしょう。苦労している人にこつを教えて、自分の上達を実感できそうです。丁寧に仕上げた細かな部分まで、評価してもらえるかもしれません。うまくいった方法は、後でも使えるよう短く残してください。 |
+| 분야 풀이 | 반복해서 연습한 풀이가 익숙해져 시험에서 실수를 줄일 수 있어. 실습이나 기술이 필요한 과제도 전보다 정교하게 해낼 수 있어.<br><br>직장에서는 꾸준히 익힌 능력으로 완성도 높은 결과를 낼 수 있어. 세밀하게 마무리한 일이 좋은 평가로 돌아올 수 있어. 늘 하던 일도 꼼꼼하게 끝내줘. | A solution you've practised repeatedly may become familiar enough to reduce exam mistakes. You could also complete practical exercises and assignments requiring skill more precisely than before.<br><br>At work, skills you've steadily developed could produce a high-quality result. Careful finishing may bring a good assessment. Give even routine tasks a thorough finish. | 繰り返し練習した解き方が身につき、試験でミスを減らせそうです。実習や技術を使う課題も、以前より精密に仕上げられるでしょう。<br><br>職場では、着実に身につけた能力で、完成度の高い成果を出せそうです。細部まで仕上げた仕事が、よい評価につながるかもしれません。いつもの仕事も、丁寧に終えてください。 |
 
 ## pentacles.09 · 역방향
 
 내부 ID: `work.pentacles.09.reversed`
 
-카드 의미: 겉으로 갖춘 모습과 실제 여유가 어긋남. 원전의 헛된 기대를 인정받기 위한 소비·성과의 부담으로 사용.
+카드 의미: 기만, 믿음의 불일치, 계획의 공허함
 
-분야 해석: 평가를의식함
+분야 해석: 주의: 겉으로만 갖춘 학습 준비, 믿기 어려운 제안과 공허한 성과
 
-관찰: 잘한다는 인상을 주고 싶어 작은 부분을 지나치게 고칠 수 있어. / 이미 괜찮은 내용인데도 남의 결과와 비교하며 아쉬워지는 날이야. / 직접 피드백을 받으면 내가 신경 쓴 것과 다른 장점을 칭찬받을 수 있어.
+관찰: 기만 / 믿음의 불일치 / 계획의 공허함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 잘한다는 인상을 주고 싶어 작은 부분을 지나치게 고칠 수 있어. 이미 괜찮은 내용인데도 남의 결과와 비교하며 아쉬워지는 날이야. 직접 피드백을 받으면 내가 신경 쓴 것과 다른 장점을 칭찬받을 수 있어. 오늘은 믿을 만한 사람에게 한 번만 보여줘. 어디가 좋은지 알게 된 뒤에는 불필요한 수정에 덜 매달릴 수 있을 거야. | Wanting to look capable could have you adjusting small details too much. Comparing with someone else's work may leave you dissatisfied with something already good. Direct feedback could praise a strength different from the part you've worried about. Show it to someone you trust just once today. Knowing what's good may help you leave unnecessary revisions alone. | できる人と思われたくて、細かなところを直しすぎるかもしれません。すでによい内容でも、人の成果と比べると物足りなく感じそうです。直接意見を聞けば、気にしていた点とは違う長所を褒められるでしょう。今日は信頼できる人に、一度だけ見せてください。よいところが分かると、余計な修正にこだわらずに済みそうです。 |
+| 분야 풀이 | 정리한 노트가 많아도 시험에서 답을 제대로 쓰지 못할 수 있어. 준비한 모습과 실제 이해가 다르다면 문제를 직접 풀 때 부족한 부분이 드러나.<br><br>직장에서는 좋아 보였던 제안의 조건이 달라지거나 기대한 성과가 나오지 않을 수 있어. 겉으로 내세운 말만 믿고 자신의 능력보다 큰 결과를 약속하지 마. 실제로 가능한 일을 확인해줘. | Even with plenty of organised notes, you may struggle to write a proper answer in an exam. If the appearance of preparation differs from your actual understanding, trying questions yourself will reveal the gaps.<br><br>At work, the conditions of an appealing proposal may change, or the expected results might not appear. Don't promise more than your ability allows simply because of an impressive claim. Check what can actually be done. | まとめたノートは多くても、試験で答えをきちんと書けないかもしれません。準備したように見えても理解が伴わなければ、実際に問題を解くと不足が表れます。<br><br>職場では、よさそうだった提案の条件が変わったり、期待した成果が出なかったりするかもしれません。表向きの言葉だけを信じて、能力を超える成果を約束するのは控えましょう。実際にできることを、確かめてください。 |
 
 ## pentacles.09 · 정방향
 
 내부 ID: `work.pentacles.09.upright`
 
-카드 의미: 스스로 마련한 여유와 독립적인 만족. 원전의 안전·성취를 자립의 과시가 아닌 자신의 취향을 누리는 경험으로 사용.
+카드 의미: 분별, 안전, 성취, 풍요
 
-분야 해석: 혼자해낸실력
+분야 해석: 좋음: 스스로 해내는 학습 성과, 독립적 업무 능력과 여유
 
-관찰: 혼자 맡은 일을 끝내며 내 실력을 믿게 되는 순간이 생길 수 있어. / 누가 옆에서 알려주지 않아도 익힌 방법이 자연스럽게 떠오를 거야. / 작은 성과를 보고 다른 사람이 내게 의견을 묻는 일도 있을 수 있어.
+관찰: 분별 / 안전 / 성취
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자 맡은 일을 끝내며 내 실력을 믿게 되는 순간이 생길 수 있어. 누가 옆에서 알려주지 않아도 익힌 방법이 자연스럽게 떠오를 거야. 작은 성과를 보고 다른 사람이 내게 의견을 묻는 일도 있을 수 있어. 그동안 스스로 해온 공부가 실제로 도움이 됐다는 걸 느끼는 날이야. 잘 끝난 예시는 다음에도 볼 수 있게 남겨둬. | Finishing a task on your own could give you a moment of trust in your ability. A method you've learned may come naturally without someone explaining beside you. A small achievement could prompt another person to ask your opinion. Today may show that the studying you've done independently has real use. Keep a successful example to look at next time. | 一人で任された仕事を終え、自分の力を信じられる瞬間がありそうです。隣で教えてもらわなくても、覚えた方法が自然に浮かぶでしょう。小さな成果を見て、意見を尋ねる人もいるかもしれません。自分で続けた勉強が、実際に役立ったと感じられそうです。うまく終えた例は、次も見られるよう残してください。 |
+| 분야 풀이 | 혼자 공부한 내용을 정확히 이해하고 시험에서도 실력을 보여줄 수 있어. 자신에게 맞는 속도로 풀면 다른 사람을 따라가지 않아도 좋은 결과를 기대할 수 있어.<br><br>직장에서는 스스로 맡은 일을 마쳐 능력을 인정받을 수 있어. 그동안 쌓은 경험 덕분에 급한 상황에서도 여유를 지킬 수 있어. 잘 해낸 부분을 구체적으로 전해줘. | You could gain a clear understanding through studying alone and show your ability in an exam. Working at a pace that suits you may bring a good result without following everyone else.<br><br>At work, finishing a task independently could earn recognition for your ability. The experience you've built may help you remain composed even when things become urgent. Describe specifically what you've done well. | 一人で勉強した内容を正確に理解し、試験でも実力を示せそうです。合うペースで解けば、人に合わせなくても、よい結果を期待できるでしょう。<br><br>職場では、担当の仕事を自力で終え、能力を認められそうです。積み重ねた経験のおかげで、急いで対応する場面でも余裕を保てるかもしれません。うまくできた部分を、具体的に伝えてください。 |
 
 ## pentacles.10 · 역방향
 
 내부 ID: `work.pentacles.10.reversed`
 
-카드 의미: 오래된 기준이나 공동 자원에 대한 기대가 현재와 어긋남. 원전의 위험·손실을 실제 재난 아닌 지속 비용과 관례의 문제로 응용.
+카드 의미: 기반의 불안정, 짧은 성과, 주변 여건의 변화
 
-분야 해석: 관례와현재
+분야 해석: 주의: 단기 요령과 불안정한 학습 결과, 업무 여건 변화와 계획 차질
 
-관찰: 오래 쓰던 방법이 이번 일에는 잘 맞지 않을 수 있어. / 처음 안내와 지금 필요한 조건이 달라 중간에 확인이 생기는 날이야. / 최근에 해본 사람의 설명에서 바뀐 부분을 알 수 있어.
+관찰: 기반의 불안정 / 짧은 성과 / 주변 여건의 변화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 쓰던 방법이 이번 일에는 잘 맞지 않을 수 있어. 처음 안내와 지금 필요한 조건이 달라 중간에 확인이 생기는 날이야. 예전 자료를 그대로 쓰기 전에 날짜와 기준을 살펴봐. 최근에 해본 사람의 설명에서 바뀐 부분을 알 수 있어. 한 가지를 고치고 나면 익숙한 경험을 버리지 않고도 일을 이어갈 수 있을 거야. | An old method may not fit this particular task. If today's requirements differ from the original guidance, you may need to check partway through. Look at the date and criteria before reusing old material. Someone who's done it recently may explain what's changed. One adjustment could let you continue without discarding familiar experience. | 長く使った方法が、今回の仕事には合わないかもしれません。最初の案内と今必要な条件が違い、途中で確認が入りそうです。以前の資料をそのまま使う前に、日付と基準を見てください。最近経験した人の説明で、変わった部分が分かるでしょう。一つ直せば、慣れた経験を捨てずに続けられそうです。 |
+| 분야 풀이 | 당장 나올 것 같은 내용만 골라 공부하면 성적이 불안정할 수 있어. 기초가 빠진 부분은 문제가 조금만 달라져도 틀리기 쉬워. 요령에 기대기보다 부족한 개념을 채워줘.<br><br>직장에서는 안정적으로 이어질 줄 알았던 일이 주변 사정으로 바뀔 수 있어. 오래 계속할 계획이라면 지원이나 업무 조건이 그대로인지 확인할 필요가 있어. | Studying only topics you expect to come up soon could lead to uneven marks. Missing basics may cause mistakes as soon as a question changes slightly. Strengthen your understanding of the basics instead of relying on shortcuts.<br><br>At work, circumstances around you may change a task you expected to continue steadily. If you plan to keep it going for a long time, check whether the support and working conditions remain the same. | すぐ出題されそうな内容だけ選んで勉強すると、成績が不安定になるかもしれません。基礎の抜けた部分は、問題が少し変わるだけでも間違えがちです。要領に頼るより、理解が足りない概念を学び直しましょう。<br><br>職場では、安定して続くはずの仕事が、周囲の事情で変わるかもしれません。長く続ける計画なら、支援や業務の条件が変わっていないか、確かめる必要がありそうです。 |
 
 ## pentacles.10 · 정방향
 
 내부 ID: `work.pentacles.10.upright`
 
-카드 의미: 오래 쓸 기반과 함께 이어가는 자원. 원전의 축적·가정을 특정 가족이나 상속 예언 없이 지속 가능한 공유로 사용.
+카드 의미: 가족, 재산, 기록, 축적된 기반
 
-분야 해석: 이어받는경험
+분야 해석: 좋음: 쌓인 기본기와 주변 지원, 안정적인 업무 기반과 장기 성과
 
-관찰: 오래 쌓인 자료나 경험을 이어받아 일을 쉽게 시작할 수 있어. / 먼저 해본 사람의 짧은 설명이 시행착오를 줄여줄 거야. / 내가 정리해둔 내용도 다른 사람에게 필요해지는 날이야.
+관찰: 가족 / 재산 / 기록
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 쌓인 자료나 경험을 이어받아 일을 쉽게 시작할 수 있어. 먼저 해본 사람의 짧은 설명이 시행착오를 줄여줄 거야. 내가 정리해둔 내용도 다른 사람에게 필요해지는 날이야. 함께 쌓아온 방식이 있어 혼자 알아볼 때보다 든든하게 느껴질 수 있어. 도움받은 기록은 다음 사람도 볼 수 있게 남겨줘. | Resources or experience passed down over time could help you start easily. A short explanation from someone who's done it before may save trial and error. Something you've written up could become useful to another person too. Having a shared method to draw on may feel more reassuring than researching alone. Leave the helpful record where the next person can find it. | 積み重ねてきた資料や経験を受け継ぎ、仕事を始めやすそうです。先に経験した人の短い説明が、試行錯誤を減らしてくれるでしょう。あなたがまとめた内容も、誰かに必要とされそうです。一緒につくった方法があり、一人で調べるより安心できるでしょう。役立った記録は、次の人も見られるよう残してください。 |
+| 분야 풀이 | 오래 쌓은 기본기가 시험에서 안정적인 성적으로 이어질 수 있어. 학교나 주변에서 받은 도움도 과제를 끝내는 데 힘이 될 수 있어.<br><br>직장에서는 익숙한 조직과 동료의 지원 속에서 성과를 낼 수 있어. 오래 이어온 업무가 좋은 평가를 받고 앞으로의 역할도 안정될 수 있어. 쌓아온 경험을 필요한 일에 활용해봐. | A strong grounding built over time could lead to steady exam marks. Help from your school or those around you may also support you in finishing an assignment.<br><br>At work, support from a familiar organisation and colleagues could help you produce results. Long-standing work may receive a good assessment and make your future role more secure. Use your accumulated experience where it's needed. | 長く積み重ねた基礎が、試験で安定した成績につながりそうです。学校や周囲の助けも、課題を終える力になるかもしれません。<br><br>職場では、慣れた組織や同僚の支援を受け、成果を出せそうです。長く続けた業務がよい評価を受け、今後の役割も安定するかもしれません。積み重ねた経験を、必要な仕事に生かしてみましょう。 |
 
 ## pentacles.11 · 역방향
 
 내부 ID: `work.pentacles.11.reversed`
 
-카드 의미: 배우려는 뜻이 실행으로 이어지지 않거나 기초를 건너뜀. 원전의 낭비·좋지 않은 안내를 목적 없는 준비로 현대화.
+카드 의미: 낭비와 흥청거림, 즐거움이나 사치로 관심이 분산됨, 기대와 다른 소식
 
-분야 해석: 기초의빈틈
+분야 해석: 주의: 관심 분산과 미완성 학습, 기대와 다른 업무 소식
 
-관찰: 어려운 내용을 먼저 보다가 기본적인 부분에서 막힐 수 있어. / 읽은 양은 많은데 직접 풀 때는 첫 단계가 떠오르지 않는 날이야. / 쉬운 예시로 돌아오면 놓쳤던 뜻을 알게 될 거야.
+관찰: 낭비와 흥청거림 / 즐거움이나 사치로 관심이 분산됨 / 기대와 다른 소식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 어려운 내용을 먼저 보다가 기본적인 부분에서 막힐 수 있어. 읽은 양은 많은데 직접 풀 때는 첫 단계가 떠오르지 않는 날이야. 쉬운 예시로 돌아오면 놓쳤던 뜻을 알게 될 거야. 모르는 용어 하나는 정확히 물어봐. 기초가 연결된 뒤에는 아까 어렵던 설명도 덜 낯설게 느껴질 수 있어. | Starting with difficult material could leave you stuck on a basic point. You may have read plenty, yet struggle to recall the first step when solving something. Returning to an easy example should reveal the meaning you missed. Ask precisely about one unfamiliar term. Once the basics connect, the earlier explanation could feel less unfamiliar. | 難しい内容から読み始めて、基本の部分で止まるかもしれません。たくさん読んでも、自分で解くと最初の段階が浮かばなさそうです。簡単な例に戻ると、見落とした意味が分かるでしょう。知らない用語を一つ、正確に尋ねてください。基礎がつながれば、先ほど難しかった説明も分かりやすくなりそうです。 |
+| 분야 풀이 | 새 교재나 강의에만 관심이 가고 배운 내용은 잘 남지 않을 수 있어. 재미있는 부분만 골라 공부하면 시험 준비에서 빠지는 내용이 생겨. 이미 시작한 공부부터 마무리해봐.<br><br>직장에서는 기다린 제안이나 교육 소식이 기대와 다를 수 있어. 아직 배우지 않은 일을 할 수 있다고 약속하면 업무를 맡은 뒤 곤란해질 수 있어. | New books or courses may hold your interest while little of the material stays with you. Studying only the enjoyable parts could leave gaps in your exam preparation. Finish the studying you've already begun.<br><br>At work, a proposal or training news you've waited for may differ from your hopes. Promising to do something you haven't learned yet could cause difficulties after you accept the work. | 新しい教材や講義ばかり気になり、学んだ内容が残りにくいかもしれません。面白い部分だけ勉強すると、試験の準備に抜けが出ます。すでに始めた勉強から、仕上げてみましょう。<br><br>職場では、待っていた提案や研修の知らせが、期待と違うかもしれません。まだ習っていない仕事をできると約束すると、任された後で困る可能性があります。 |
 
 ## pentacles.11 · 정방향
 
 내부 ID: `work.pentacles.11.upright`
 
-카드 의미: 실용적인 배움과 차근차근 마련하는 준비. 원전의 학습·적용을 작은 경험으로 기준을 익히는 태도로 사용.
+카드 의미: 공부와 집중, 성찰과 적용, 소식과 관리
 
-분야 해석: 차근차근익힘
+분야 해석: 좋음: 차분한 학습 이해와 적용, 교육·새 업무의 반가운 소식
 
-관찰: 처음 접한 내용을 하나씩 이해하며 배우는 재미를 느낄 수 있어. / 바로 써보는 예시에서 설명만 들을 때보다 빠르게 감을 잡을 거야. / 작은 질문을 꼼꼼하게 한 덕분에 놓칠 뻔한 요령을 알게 될 수 있어.
+관찰: 공부와 집중 / 성찰과 적용 / 소식과 관리
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 처음 접한 내용을 하나씩 이해하며 배우는 재미를 느낄 수 있어. 바로 써보는 예시에서 설명만 들을 때보다 빠르게 감을 잡을 거야. 작은 질문을 꼼꼼하게 한 덕분에 놓칠 뻔한 요령을 알게 될 수 있어. 열심히 해보는 모습에 다음 단계도 알려주겠다는 사람이 있을 거야. 오늘 알게 된 방법을 짧게 한 번 따라 해봐. | Understanding unfamiliar material one piece at a time could make learning enjoyable. An example you try directly may make sense faster than an explanation alone. Careful small questions could reveal a technique you nearly missed. Someone seeing your effort may offer to show you the next step. Try out today's new method briefly once. | 初めての内容を一つずつ理解し、学ぶ楽しさを感じられそうです。実際に試す例なら、説明だけより早くこつをつかめるでしょう。細かな質問を丁寧にしたおかげで、見落としかけた方法が分かりそうです。熱心な姿を見て、次の段階も教えようという人がいるでしょう。今日知った方法を、短く一度試してください。 |
+| 분야 풀이 | 새로 배운 내용을 차분히 이해하고 문제에 적용할 수 있어. 수업을 따라가며 직접 풀어보면 익숙하지 않은 과목에서도 성과가 생길 수 있어.<br><br>직장에서는 배울 기회나 새로운 업무에 관한 좋은 소식을 들을 수 있어. 처음 익힌 것을 실제 일에 써보며 신뢰를 얻을 수 있어. 작은 일부터 정확히 마무리해줘. | You could work steadily through newly learned material, understand it and apply it to questions. Following a class and trying the problems yourself may bring progress even in an unfamiliar subject.<br><br>At work, you may hear good news about a learning opportunity or a new task. Putting something you've just learned to use could earn trust. Start by finishing small tasks accurately. | 新しく学んだ内容を落ち着いて理解し、問題を解くために使えそうです。授業に沿って実際に解くと、慣れない科目でも成果が出るかもしれません。<br><br>職場では、学ぶ機会や新しい業務について、よい知らせを聞けそうです。覚えたばかりのことを実際の仕事に使い、信頼を得られるかもしれません。小さな仕事から、正確に仕上げてください。 |
 
 ## pentacles.12 · 역방향
 
 내부 ID: `work.pentacles.12.reversed`
 
-카드 의미: 안정된 반복이 정체되거나 완벽한 준비 때문에 진행이 느림. 원전의 나태라는 낙인을 피하고 관성과 과도한 고정으로 응용.
+카드 의미: 무기력과 정체, 게으름과 무관심, 낙담 또는 부주의
 
-분야 해석: 지나친확인
+분야 해석: 정체와 주의: 무심한 반복으로 적은 이해, 미루는 일과 놓친 약속
 
-관찰: 거의 끝난 일인데도 확인을 반복하며 시간이 길어질 수 있어. / 작은 차이를 계속 고치다 처음의 설명보다 복잡해지는 날이야. / 다른 사람의 눈에는 충분히 괜찮다는 답을 들을 수 있어.
+관찰: 무기력과 정체 / 게으름과 무관심 / 낙담 또는 부주의
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 거의 끝난 일인데도 확인을 반복하며 시간이 길어질 수 있어. 작은 차이를 계속 고치다 처음의 설명보다 복잡해지는 날이야. 이미 확인한 부분에는 표시를 남겨줘. 다른 사람의 눈에는 충분히 괜찮다는 답을 들을 수 있어. 끝내도 된다는 말을 듣고 나면 생각보다 빨리 다음 일로 넘어갈 수 있을 거야. | Repeated checks could lengthen a task that's almost done. Adjusting tiny differences may make it more complicated than the original explanation. Mark the parts you've already checked. Someone else may tell you it's perfectly good as it is. Hearing that you can finish could help you move on faster than expected. | ほぼ終わった仕事も、何度も確認して時間が長くなりそうです。小さな違いを直すうちに、最初の説明より複雑になるかもしれません。確認した部分には、印を残してください。人から見れば十分によいという答えが聞けるでしょう。終えてよいと分かると、思ったより早く次に進めそうです。 |
+| 분야 풀이 | 책을 읽어도 집중하지 않으면 이해가 거의 늘지 않을 수 있어. 같은 문제를 습관적으로 풀다가 바뀐 조건을 놓칠 수 있으니 풀이 이유를 확인해봐.<br><br>직장에서는 늘 하던 일을 미루다가 약속한 시간을 놓칠 수 있어. 익숙하다는 이유로 확인을 생략하면 작은 실수가 반복돼. 늦어지고 있다면 먼저 상황을 알려줘. | Reading without concentrating may do little to improve your understanding. Habitually solving the same type of question could mean missing a changed condition, so check the reasoning behind the solution.<br><br>At work, putting off a routine task could make you miss the agreed deadline. Skipping a check because the task is familiar may lead to repeated small mistakes. If you're running late, let others know first. | 本を読んでも集中していなければ、理解はほとんど進まないかもしれません。習慣で同じ問題を解くと、条件の変化を見落としやすいので、その解き方を使う理由を確かめましょう。<br><br>職場では、いつもの仕事を後回しにして、約束の時間に遅れるかもしれません。慣れているからと確認を省くと、小さなミスが続きます。遅れているなら、先に状況を伝えてください。 |
 
 ## pentacles.12 · 정방향
 
 내부 ID: `work.pentacles.12.upright`
 
-카드 의미: 일정한 속도로 책임을 다하는 신뢰성. 원전의 유용함·책임을 화려함보다 꾸준한 실행으로 해석.
+카드 의미: 실용성, 책임과 정직, 느리고 꾸준한 인물
 
-분야 해석: 꾸준한완수
+분야 해석: 좋음: 꾸준한 공부의 안정된 성적, 책임 있게 완수하는 업무
 
-관찰: 매일 해온 일이 쌓여 오늘 맡은 일도 차분히 끝낼 수 있어. / 익숙한 순서를 알고 있어 갑자기 질문을 받아도 당황이 덜할 거야. / 함께하는 사람은 눈에 띄지 않게 제 몫을 하는 모습을 믿고 있을 수 있어.
+관찰: 실용성 / 책임과 정직 / 느리고 꾸준한 인물
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 매일 해온 일이 쌓여 오늘 맡은 일도 차분히 끝낼 수 있어. 익숙한 순서를 알고 있어 갑자기 질문을 받아도 당황이 덜할 거야. 함께하는 사람은 눈에 띄지 않게 제 몫을 하는 모습을 믿고 있을 수 있어. 큰 발표보다 실제로 마친 내용에서 좋은 평가를 얻는 날이야. 완료한 것은 상대가 알 수 있게 짧게 알려줘. | Daily experience could help you finish today's task steadily. Knowing the usual sequence should leave you less flustered by a sudden question. Someone working with you may trust the quiet way you do your part. Completed work rather than a big announcement could receive a good assessment. Send a brief update so the other person knows what's finished. | 毎日の経験が積み重なり、今日の仕事も落ち着いて終えられそうです。慣れた順番が分かるので、急な質問にも慌てにくいでしょう。仲間は、目立たず自分の役割を果たす姿を信頼していそうです。大きな発表より、実際に終えた仕事が評価されるでしょう。完了したことは、相手に分かるよう短く知らせてください。 |
+| 분야 풀이 | 꾸준히 익혀온 내용에서 안정적으로 정답을 찾을 수 있어. 속도가 빠르지 않아도 풀이를 차근차근 이어가면 시험에서 실수를 줄일 수 있어.<br><br>직장에서는 맡은 일을 약속한 만큼 끝내 신뢰를 얻을 수 있어. 반복되는 업무도 성실하게 해내면 좋은 평가가 쌓일 수 있어. 성과를 급히 키우기보다 오늘 맡은 일을 정확히 마무리해줘. | You could find correct answers reliably in material you've studied steadily. Even without great speed, working through the solution step by step may reduce exam mistakes.<br><br>At work, completing as much as you've promised could earn trust. Diligent handling of recurring tasks may build a record of good assessments too. Finish today's responsibilities accurately instead of rushing to produce bigger results. | 着実に学んできた内容なら、安定して正解を見つけられそうです。速くなくても、順を追って解けば、試験でミスを減らせるでしょう。<br><br>職場では、約束した分の仕事を終え、信頼を得られそうです。繰り返す業務も誠実にこなせば、よい評価が積み重なるかもしれません。急いで成果を大きくしようとせず、今日任された仕事を正確に終えましょう。 |
 
 ## pentacles.13 · 역방향
 
 내부 ID: `work.pentacles.13.reversed`
 
-카드 의미: 다른 사람을 챙기느라 자기 자원을 놓치거나 안락함의 외형에 몰두함. 원전의 불안·의심을 돌봄의 부담으로 현대화.
+카드 의미: 의심, 불안과 두려움, 불신
 
-분야 해석: 보이지않는추가업무
+분야 해석: 주의: 불안으로 흔들리는 답, 과한 확인과 불신으로 늦어지는 업무
 
-관찰: 다른 사람의 준비까지 챙기며 내 일이 늘어날 수 있어. / 작은 수정이나 확인이 계속 붙어 원래 할 일을 늦게 시작하게 될 거야. / 함께한 사람에게 말하면 그만큼 맡고 있는 줄 몰랐다는 반응이 올 수 있어.
+관찰: 의심 / 불안과 두려움 / 불신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다른 사람의 준비까지 챙기며 내 일이 늘어날 수 있어. 작은 수정이나 확인이 계속 붙어 원래 할 일을 늦게 시작하게 될 거야. 함께한 사람에게 말하면 그만큼 맡고 있는 줄 몰랐다는 반응이 올 수 있어. 새 부탁을 받으면 지금 하고 있는 일부터 알려줘. 하나씩 나눈 뒤에는 내 과제에도 다시 집중할 시간이 생길 거야. | Taking care of other people's preparation could add to your workload. Small revisions and checks may keep delaying your original task. A colleague hearing about it might say they hadn't known you were handling so much. Explain your current work when a new request arrives. Dividing things up should bring time to focus on your own assignment again. | 人の準備まで気にかけて、自分の仕事が増えそうです。小さな修正や確認が続き、本来の仕事を始めるのが遅れるでしょう。仲間に話すと、そんなに担当していたとは知らなかったという反応がありそうです。新しい頼みを受けたら、今の仕事から伝えてください。一つずつ分けた後には、自分の課題に集中する時間が戻るでしょう。 |
+| 분야 풀이 | 배운 내용도 확신하지 못해 답을 여러 번 바꿀 수 있어. 틀릴까 걱정하며 책을 계속 바꾸면 익숙한 개념도 헷갈리기 쉬워. 직접 풀어낸 근거를 다시 살펴봐.<br><br>직장에서는 동료가 맡은 일까지 의심하며 확인하다 자신의 업무가 밀릴 수 있어. 실제 문제가 있는지 모른 채 모든 일을 다시 하지는 마. | Doubting even material you've learned could make you change an answer several times. Switching books repeatedly out of fear of being wrong may make familiar concepts confusing too. Revisit the reasoning that led you to your own solution.<br><br>At work, checking a colleague's tasks out of suspicion could delay your own. Don't redo everything without knowing whether there's an actual problem. | 習った内容にも確信が持てず、答えを何度も変えるかもしれません。間違いを恐れて教材を変え続けると、慣れた概念まで混乱しがちです。自力で答えを出した根拠を、見直しましょう。<br><br>職場では、同僚の仕事まで疑って確認し、自分の業務が遅れるかもしれません。本当に問題があるかわからないまま、全部やり直すのは控えてください。 |
 
 ## pentacles.13 · 정방향
 
 내부 ID: `work.pentacles.13.upright`
 
-카드 의미: 현실적인 돌봄과 자원의 알맞은 관리. 원전의 안락·관대함을 생활에 쓰이는 편의와 자기 여유로 해석.
+카드 의미: 풍요, 너그러움, 안전과 자유
 
-분야 해석: 빈틈을챙기는솜씨
+분야 해석: 좋음: 편안한 학습 여건과 도움, 현실적인 배려로 얻는 업무 성과
 
-관찰: 사람들이 놓친 작은 준비를 챙기며 도움을 줄 수 있어. / 필요한 것이 제때 마련되어 전체 일이 편하게 진행되는 날이야. / 내가 해둔 정리 덕분에 시간을 아꼈다는 말을 들을 수 있어.
+관찰: 풍요 / 너그러움 / 안전과 자유
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 사람들이 놓친 작은 준비를 챙기며 도움을 줄 수 있어. 필요한 것이 제때 마련되어 전체 일이 편하게 진행되는 날이야. 내가 해둔 정리 덕분에 시간을 아꼈다는 말을 들을 수 있어. 눈에 잘 띄지 않던 수고도 가까이서 일한 사람은 알아줄 거야. 알려주면 편해질 정보는 필요한 사람에게 먼저 전해줘. | Catching a small preparation others missed could let you help. Having what's needed ready on time should make the whole task easier. Someone may say your organizing saved them time. Even less visible effort could be noticed by a person working nearby. Offer a useful piece of information first to the person who needs it. | 皆が見落とした小さな準備を整えて、助けになれそうです。必要なものが時間に間に合い、全体の仕事が楽に進むでしょう。あなたの整理で時間が節約できたと、言ってもらえるかもしれません。目立たない手間も、近くで働く人は分かってくれそうです。知れば楽になる情報は、必要な人に先に伝えてください。 |
+| 분야 풀이 | 공부할 여건이 편안해지고 필요한 도움도 받을 수 있어. 무리하지 않고 배운 내용을 익히면 시험이나 과제를 안정적으로 준비할 수 있어.<br><br>직장에서는 동료의 사정을 헤아린 배려가 협조와 좋은 결과로 돌아올 수 있어. 실제로 필요한 것을 챙겨주면 함께하는 일이 수월해져. 자신의 업무도 무리 없이 마칠 여유가 생길 수 있어. | Your study conditions may become more comfortable and help could be available. Learning the material without overdoing it can let you prepare steadily for an exam or assignment.<br><br>At work, consideration for a colleague's circumstances could bring cooperation and good results. Providing what people actually need can make shared work easier. You may also have enough time to finish your own tasks without strain. | 勉強しやすい環境が整い、必要な助けも受けられそうです。無理をせず、習った内容を身につけると、試験や課題の準備を落ち着いて進められるでしょう。<br><br>職場では、同僚の事情を考えた気遣いが、協力やよい結果につながりそうです。本当に必要なものを用意すると、一緒にする仕事が楽になります。自分の業務も、無理なく終える余裕が生まれるかもしれません。 |
 
 ## pentacles.14 · 역방향
 
 내부 ID: `work.pentacles.14.reversed`
 
-카드 의미: 물질적 기준에 과하게 매이거나 지키려는 마음이 경직됨. 원전의 부패·악덕은 실제 인물 판정 없이 소유와 통제의 과잉으로 응용.
+카드 의미: 약점과 잘못된 욕심, 왜곡과 부패, 위험
 
-분야 해석: 굳어진기준
+분야 해석: 주의: 성적 욕심으로 놓치는 기본, 실적에 치우친 무리한 약속과 신뢰 하락
 
-관찰: 예전에 잘된 방식이 이번에도 맞는지 다시 확인할 일이 생길 수 있어. / 다른 사람의 제안이 처음에는 번거롭게 들려 받아들이기 어려울 거야. / 실제로 쓰는 모습을 보고 나면 바꿀 만한 이유를 알 수 있어.
+관찰: 약점과 잘못된 욕심 / 왜곡과 부패 / 위험
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 예전에 잘된 방식이 이번에도 맞는지 다시 확인할 일이 생길 수 있어. 다른 사람의 제안이 처음에는 번거롭게 들려 받아들이기 어려울 거야. 작은 예시 하나는 직접 보고 판단해줘. 실제로 쓰는 모습을 보고 나면 바꿀 만한 이유를 알 수 있어. 경험을 고집으로 만들지 않았을 때 함께하는 사람의 신뢰도 이어질 거야. | You may need to check whether a method that worked before fits again. Another person's suggestion could sound troublesome at first and be hard to accept. Look at one small example before judging it. Seeing it used may reveal a reason to change. Being willing to adapt an approach you know well could preserve your colleagues' trust. | 前にうまくいった方法が今回も合うか、確かめ直すことになりそうです。人の提案が最初は面倒に聞こえ、受け入れにくいかもしれません。小さな例を一つ、実際に見てから判断してください。使う様子を見れば、変える理由が分かるでしょう。経験に固執しなければ、一緒に働く人の信頼も続きそうです。 |
+| 분야 풀이 | 높은 점수만 바라다가 기본 문제에서 실수할 수 있어. 어려운 문제를 많이 풀었다고 이해하지 못한 부분까지 끝냈다고 여기지는 마. 틀린 기본 문제부터 다시 풀어봐.<br><br>직장에서는 실적 욕심에 감당할 수 없는 조건을 약속해 곤란해질 수 있어. 숫자를 좋게 보이게 하려고 중요한 사실을 빼면 신뢰를 잃을 수 있어. | Aiming only for high marks could lead to mistakes on basic questions. Solving many difficult problems doesn't mean you've finished with parts you still don't understand. Try the basic questions you got wrong again first.<br><br>At work, ambition for results could lead you to agree to more than you can deliver and land you in difficulty. Leaving out important facts to make the numbers look good may cost you trust. | 高い点数ばかり求めて、基本問題でミスをするかもしれません。難しい問題を多く解いても、理解できていない部分まで終わったとは考えないようにしましょう。間違えた基本問題から、解き直してみてください。<br><br>職場では、実績を求めて無理な条件を約束し、困るかもしれません。数字をよく見せるために大切な事実を省くと、信頼を失う可能性があります。 |
 
 ## pentacles.14 · 정방향
 
 내부 ID: `work.pentacles.14.upright`
 
-카드 의미: 축적한 경험을 현실적으로 운용하는 안정. 원전의 사업적 기량을 부자나 남성의 출현 아닌 지속 비용을 아는 판단으로 사용.
+카드 의미: 현실화하는 지성, 실용적·수학적 능력, 능력이 쓰이는 분야에서의 성공
 
-분야 해석: 경험의평가
+분야 해석: 좋음: 수리·응용 능력의 성과, 경험과 실용적 판단에 따른 업무 성공
 
-관찰: 쌓아온 경험 덕분에 현실적인 답을 내놓을 수 있는 날이야. / 새로운 제안에서도 실제로 어디가 어려운지 빠르게 알아볼 거야. / 함께하는 사람은 막연한 설명보다 내 구체적인 예시를 믿고 따를 수 있어.
+관찰: 현실화하는 지성 / 실용적·수학적 능력 / 능력이 쓰이는 분야에서의 성공
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 쌓아온 경험 덕분에 현실적인 답을 내놓을 수 있는 날이야. 새로운 제안에서도 실제로 어디가 어려운지 빠르게 알아볼 거야. 함께하는 사람은 막연한 설명보다 내 구체적인 예시를 믿고 따를 수 있어. 전에 마친 일을 보고 또 맡기고 싶다는 이야기가 나올 수 있어. 도움을 줄 때는 지금 바로 쓸 수 있는 방법 하나로 말해줘. | Experience you've built could help you give a practical answer today. Even a new proposal may quickly reveal where the real difficulty lies. People working with you could trust a specific example more than a vague explanation. An earlier completed job may lead someone to want to ask you again. When helping, explain one method they can use straight away. | 積み重ねた経験で、現実的な答えを出せそうです。新しい提案にも、実際に難しい部分がすぐ分かるでしょう。仲間は曖昧な説明より、あなたの具体例を信頼しそうです。以前終えた仕事を見て、また任せたいという話が出るかもしれません。助けるときは、今すぐ使える方法を一つ伝えてください。 |
+| 분야 풀이 | 계산이나 원리를 적용하는 문제에서 실력을 발휘할 수 있어. 배운 공식을 어디에 쓰는지 이해하면 어려운 응용 문제도 풀릴 수 있어.<br><br>직장에서는 경험을 현실적인 판단에 써서 성과를 낼 수 있어. 계획을 실행할 조건까지 잘 짚으면 자신의 제안이 신뢰를 얻을 수 있어. 맡은 일을 끝까지 책임지면 좋은 평가도 기대할 수 있어. | Questions involving calculations or the use of principles could let you show your ability. Understanding where to apply a formula you've learned may help you solve even a difficult applied problem.<br><br>At work, practical decisions informed by experience could bring results. Identifying the conditions needed to carry out a plan may also make your proposal convincing. Taking responsibility for the task to the end can bring a good assessment too. | 計算や原理を使う問題で、実力を発揮できそうです。習った公式をどこで使うか理解すれば、難しい応用問題も解けるかもしれません。<br><br>職場では、経験を現実的な判断に生かし、成果を出せそうです。計画を実行する条件まで的確に押さえると、提案も信頼を得られるでしょう。担当の仕事に最後まで責任を持てば、よい評価も期待できます。 |
 
 ## swords.01 · 역방향
 
 내부 ID: `work.swords.01.reversed`
 
-카드 의미: 정보가 뒤섞이거나 확신에 비해 근거가 부족함. 원전의 과도한 힘을 성급한 판단·말의 날카로움으로 응용.
+카드 의미: 혼란, 의사소통 오해, 성급한 확신
 
-분야 해석: 문제조건의오독
+분야 해석: 주의: 잘못 읽은 문제와 혼동, 부정확한 전달로 인한 수정
 
-관찰: 알고 있는 문제도 질문을 다르게 읽어 답이 어긋날 수 있어. / 익숙한 단어를 보고 바로 풀었다가 끝에 붙은 조건을 놓치게 될 거야. / 다시 설명을 듣고 나면 어려워서가 아니라 질문의 뜻을 잘못 잡았다는 걸 알 수 있어.
+관찰: 혼란 / 의사소통 오해 / 성급한 확신
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 알고 있는 문제도 질문을 다르게 읽어 답이 어긋날 수 있어. 익숙한 단어를 보고 바로 풀었다가 끝에 붙은 조건을 놓치게 될 거야. 다시 설명을 듣고 나면 어려워서가 아니라 질문의 뜻을 잘못 잡았다는 걸 알 수 있어. 풀기 전에 무엇을 묻는지 한 줄로 정리해봐. 정확한 질문을 확인한 뒤에는 알고 있던 방법을 제대로 써먹을 수 있을 거야. | Even a familiar question could lead to the wrong answer if you misread it. Recognizing a term may make you start solving before noticing a condition at the end. Another explanation could show that the problem was misreading the question, not its difficulty. Sum up what the question asks in one line before solving. Once the actual question is clear, you may be able to use the method you already know properly. | 知っている問題でも、質問を違って読んで答えがずれるかもしれません。見慣れた単語ですぐ解き始め、最後の条件を見落としそうです。説明を聞き直すと、難しさではなく質問の捉え違いだったと分かるでしょう。解く前に、何を聞いているか一行にまとめてみてください。質問が正確に分かれば、知っている方法をきちんと使えそうです。 |
+| 분야 풀이 | 문제의 뜻을 잘못 짚어 알고 있는 내용도 틀릴 수 있어. 비슷한 개념이 섞이면 답을 자신 있게 써도 근거가 맞지 않을 수 있어. 무엇을 묻는지 먼저 정확히 읽어봐.<br><br>직장에서는 설명이 잘못 전달돼 일을 다시 해야 할 수 있어. 아직 확인하지 않은 내용을 확정된 사실처럼 보고하지 마. | Misreading what a question means could lead to a wrong answer even on material you know. If similar concepts become mixed up, you may write confidently but use the wrong reasoning. First read carefully to see exactly what's being asked.<br><br>At work, an explanation passed on incorrectly could mean having to repeat a task. Don't report unchecked information as confirmed fact. | 問題の意味を取り違え、知っている内容でも間違えるかもしれません。似た概念が混ざると、自信を持って書いた答えでも、根拠が合わない可能性があります。何を問われているか、まず正確に読みましょう。<br><br>職場では、説明が誤って伝わり、仕事をやり直すかもしれません。まだ確かめていないことを、確定した事実として報告するのは控えてください。 |
 
 ## swords.01 · 정방향
 
 내부 ID: `work.swords.01.upright`
 
-카드 의미: 혼란을 가르는 명료한 생각과 진실의 확인. 원전의 힘·승리를 근거와 구분이 생기는 지적 돌파로 현대화.
+카드 의미: 명료함, 진실 확인, 지적 돌파, 결단
 
-분야 해석: 이해와기억의돌파
+분야 해석: 좋음: 분명한 이해와 정답 발견, 핵심을 짚는 판단과 발표
 
-관찰: 한동안 이해되지 않던 문제에서 핵심을 짚어낼 수 있어. / 설명이 길게 느껴졌던 내용도 중요한 원리를 알게 되며 쉽게 연결될 거야. / 발표나 면접에서는 질문의 뜻을 빠르게 알아듣고 또렷하게 답할 수 있는 날이야.
+관찰: 명료함 / 진실 확인 / 지적 돌파
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한동안 이해되지 않던 문제에서 핵심을 짚어낼 수 있어. 설명이 길게 느껴졌던 내용도 중요한 원리를 알게 되며 쉽게 연결될 거야. 발표나 면접에서는 질문의 뜻을 빠르게 알아듣고 또렷하게 답할 수 있는 날이야. 새로 이해한 내용을 내 말로 한 번 짧게 적어봐. 막연히 외울 때보다 오래 기억에 남아 비슷한 문제에도 자신 있게 접근할 수 있어. | You may grasp the central idea in a problem that's puzzled you for a while. Once a key principle clicks, a lengthy explanation could become easier to follow. In a presentation or interview, you may understand a question quickly and answer clearly. Briefly write down your new understanding in your own words. It could stay with you longer than rote learning and help you approach a similar question confidently. | 長く分からなかった問題の、核心をつかめそうです。説明が長く感じた内容も、大切な原理が分かると理解しやすくなるでしょう。発表や面接では質問の意味をすぐ理解して、明確に答えられそうです。新しく分かったことを、自分の言葉で短く書いてみてください。ただ覚えるより長く記憶に残り、似た問題にも自信を持って取り組めそうです。 |
+| 분야 풀이 | 헷갈리던 개념이 분명해지고 어려운 문제의 답을 찾을 수 있어. 생각을 논리적으로 설명하는 시험이나 발표에서도 좋은 결과를 기대할 수 있어.<br><br>직장에서는 복잡한 문제의 핵심을 짚어 필요한 결정을 내릴 수 있어. 근거가 분명한 제안은 좋은 평가를 받을 수 있어. 핵심부터 짧게 말하면 상대도 이해하기 쉬워. | A confusing concept could become clear, helping you answer a difficult question. Exams or presentations that call for logical explanations may bring good results too.<br><br>At work, you could identify the heart of a complicated problem and make a necessary decision. A proposal backed by clear reasoning may receive a good assessment. A brief explanation of the main point first will help the other person understand. | 曖昧だった概念がはっきりし、難しい問題の答えを見つけられそうです。考えを論理的に説明する試験や発表でも、よい結果を期待できるでしょう。<br><br>職場では、複雑な問題の要点をつかみ、必要な決断を下せそうです。根拠の明確な提案は、よい評価を受けるかもしれません。要点から短く話すと、相手も理解しやすくなります。 |
 
 ## swords.02 · 역방향
 
 내부 ID: `work.swords.02.reversed`
 
-카드 의미: 피하던 선택이 드러나거나 정보가 넘쳐 균형이 깨짐. 원전의 불일치를 결정 압박과 선택 재정리로 응용.
+카드 의미: 정보와 의견 과부하, 미룬 선택 직면, 판단 곤란
 
-분야 해석: 새정보로정해지는일
+분야 해석: 주의: 많은 정보 속의 판단 혼란, 미룬 결정으로 인한 업무 압박
 
-관찰: 막혔던 방향을 정할 새 정보가 들어올 수 있어. / 답을 미루던 사람이 의견을 전하며 다음에 할 일이 분명해질 거야. / 처음 생각과 다른 결론이라 잠깐 당황해도 오래 논의하던 시간은 줄어들 수 있어.
+관찰: 정보와 의견 과부하 / 미룬 선택 직면 / 판단 곤란
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 막혔던 방향을 정할 새 정보가 들어올 수 있어. 답을 미루던 사람이 의견을 전하며 다음에 할 일이 분명해질 거야. 처음 생각과 다른 결론이라 잠깐 당황해도 오래 논의하던 시간은 줄어들 수 있어. 정해진 내용 중 내가 할 일을 한 번 짧게 확인해봐. 불확실한 채로 기다리던 때보다 실제 작업이나 공부를 시작하기 수월해질 거야. | New information could help settle a direction that has been stuck. Someone who delayed their answer may finally share a view and clarify what comes next. The conclusion might surprise you, but it could bring a lengthy discussion to an end. Briefly confirm which of the agreed tasks are yours. Starting the actual work or study should feel easier than waiting without knowing what will happen. | 決められずにいた方向を定める、新しい情報が届きそうです。返事を延ばしていた人から意見があり、次にすることがはっきりするでしょう。予想と違う結論に戸惑っても、長く話し合い続ける時間は減らせそうです。決まった内容のうち、自分がすることを短く確認してみてください。先が分からず待っていたときより、実際の作業や勉強に取りかかりやすくなります。 |
+| 분야 풀이 | 여러 설명을 한꺼번에 듣다가 알고 있던 개념도 헷갈릴 수 있어. 답이 다르다는 말을 듣더라도 모두 따라 바꾸지 말고 문제의 조건을 확인해줘.<br><br>직장에서는 미뤄둔 결정이 한꺼번에 몰려 판단이 급해질 수 있어. 사람마다 다른 요구를 하면 어느 쪽도 만족시키기 어려워. 지금 결정할 내용과 더 확인할 내용을 나눠봐. | Hearing several explanations at once could make even familiar concepts confusing. If someone gives a different answer, check the question's conditions instead of changing yours to match every suggestion.<br><br>At work, postponed decisions could all become pressing at once. Different demands from each person may make it hard to satisfy anyone. Separate what you can decide now from what needs more checking. | いくつもの説明を一度に聞き、わかっていた概念まで混乱するかもしれません。答えが違うと言われても、そのたびに変えず、問題の条件を確かめてください。<br><br>職場では、後回しにした決定が一度に重なり、判断を急ぎやすい日です。人によって要求が違うと、どちらにも満足してもらいにくくなります。今決めることと、さらに確かめることを分けましょう。 |
 
 ## swords.02 · 정방향
 
 내부 ID: `work.swords.02.upright`
 
-카드 의미: 팽팽한 선택 사이의 보류와 감정적 방어. 원전의 균형을 임시적인 정지로 읽고 침묵 뒤의 결정을 살핌.
+카드 의미: 균형을 유지하려는 교착, 어려운 선택, 판단에 필요한 정보 부족
 
-분야 해석: 정해지지않은방향
+분야 해석: 정체: 헷갈리는 선택과 답, 결정되지 않는 업무 안건
 
-관찰: 두 가지 의견이 맞서 작업 방향이 바로 정해지지 않을 수 있어. / 어느 답도 근거가 있어 회의나 공부 토론이 잠깐 길어질 거야. / 지금 받은 정보만으로는 결론을 내리기 어렵다는 점이 분명해질 수 있어.
+관찰: 균형을 유지하려는 교착 / 어려운 선택 / 판단에 필요한 정보 부족
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 두 가지 의견이 맞서 작업 방향이 바로 정해지지 않을 수 있어. 어느 답도 근거가 있어 회의나 공부 토론이 잠깐 길어질 거야. 지금 받은 정보만으로는 결론을 내리기 어렵다는 점이 분명해질 수 있어. 무작정 기다리기보다 결정에 꼭 필요한 자료 하나를 요청해봐. 답이 오는 동안 어느 쪽에도 쓸 수 있는 부분을 먼저 준비할 여유가 생길 수 있어. | Two opposing views may leave the next step undecided. Both could have evidence behind them, extending a meeting or study discussion. It may become clear that the information available isn't enough to reach a conclusion. Request one piece of information essential to the decision instead of simply waiting. While the reply is pending, you could have time to prepare something useful whichever option is chosen. | 二つの意見が対立し、作業の方向がすぐには決まらないかもしれません。どちらにも根拠があり、会議や勉強の話し合いが少し長くなりそうです。今ある情報だけでは結論を出せないことが、はっきりする場合もあるでしょう。ただ待つのではなく、決めるために必要な資料を一つ頼んでみてください。返事を待つ間に、どちらになっても使える部分を準備する余裕ができそうです。 |
+| 분야 풀이 | 두 답 사이에서 망설여 문제를 푸는 시간이 길어질 수 있어. 기억이 애매한 개념은 느낌으로 고르기보다 근거를 다시 떠올려봐. 시험 중이라면 한 문제에 시간을 모두 쓰지는 마.<br><br>직장에서는 의견이 팽팽해 필요한 결정이 나지 않을 수 있어. 무엇이 더 확인돼야 답을 정할 수 있는지 먼저 물어보는 게 좋아. | Hesitating between two answers could make a question take longer. If your memory of a concept is unclear, try to recall the reasoning instead of choosing by feel. During an exam, don't spend all your time on one question.<br><br>At work, evenly divided views may prevent a necessary decision. First ask what else needs checking before an answer can be reached. | 二つの答えで迷い、問題を解く時間が長くなりそうです。曖昧に覚えている概念は、感覚で選ぶより、根拠を思い出してみましょう。試験中なら、一問に時間をすべて使うのは控えてください。<br><br>職場では、意見が対立したまま、必要な決定が出ないかもしれません。結論を決めるために、あと何を確かめる必要があるか、先に聞くとよさそうです。 |
 
 ## swords.03 · 역방향
 
 내부 ID: `work.swords.03.reversed`
 
-카드 의미: 아픈 감정을 풀어내거나 아직 남은 실망을 다룸. 원전의 혼란과 현대의 회복 중 표현을 통해 부담을 덜어내는 뜻을 선택.
+카드 의미: 서운함 수용, 용서의 여지, 감정의 부담을 내려놓음
 
-분야 해석: 지적을반영한진전
+분야 해석: 회복: 지적을 이해하며 나아지는 학습, 갈등을 푼 협업과 업무 재개
 
-관찰: 받아들이기 어려웠던 지적이 이제는 구체적으로 이해될 수 있어. / 다시 고친 답이나 발표에서 전보다 나아졌다는 반응을 들을 거야. / 실수를 설명하는 자리에서도 변명보다 배운 점을 말하기 쉬워질 수 있어.
+관찰: 서운함 수용 / 용서의 여지 / 감정의 부담을 내려놓음
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 받아들이기 어려웠던 지적이 이제는 구체적으로 이해될 수 있어. 다시 고친 답이나 발표에서 전보다 나아졌다는 반응을 들을 거야. 실수를 설명하는 자리에서도 변명보다 배운 점을 말하기 쉬워질 수 있어. 바꾼 부분을 한 번 직접 보여주고 확인을 받아봐. 처음의 아쉬움과 별개로 내 실력이 조금씩 나아지고 있다는 근거가 남을 수 있어. | Criticism that was hard to accept may now make more concrete sense. A revised answer or presentation could bring a response that it's better than before. Explaining a mistake may also feel easier when you can describe what you learned rather than make excuses. Show the change you've made and ask someone to check it. Alongside the earlier disappointment, you could now have evidence that your skills are improving. | 受け入れにくかった指摘の意味が、今なら具体的に分かりそうです。直した答えや発表に、前より良くなったという反応をもらえるでしょう。失敗を説明するときも、言い訳より学んだことを話しやすくなりそうです。変えた部分を実際に見せて、確認してもらってください。最初の残念な気持ちとは別に、実力が少しずつ伸びていると分かる材料が残るでしょう。 |
+| 분야 풀이 | 아쉬웠던 성적에서 무엇이 부족했는지 이해하고 다시 풀어낼 수 있어. 듣기 힘들었던 지적도 차분히 살펴보면 다음 답안을 고치는 데 도움이 될 거야.<br><br>직장에서는 불편했던 대화가 풀리고 협업을 다시 이어갈 수 있어. 서로 지나친 말을 인정하면 미뤄진 일도 진행하기 쉬워져. 과거의 다툼을 계속 들추지는 마. | You could understand what was missing in a disappointing exam and work through the questions again. A calm look at criticism that was hard to hear may help you improve your next answers.<br><br>At work, an uncomfortable conversation could be resolved, allowing cooperation to resume. Acknowledging when you've both gone too far may also make a postponed task easier to carry on with. Don't keep bringing up the old argument. | 期待に届かなかった成績を振り返ると、足りなかった点がわかり、問題を解き直せそうです。聞くのがつらかった指摘も、落ち着いて見ると、次の答案を直す助けになるでしょう。<br><br>職場では、気まずかったやり取りが解決し、再び協力できそうです。互いに言いすぎを認めると、遅れていた仕事も進めやすくなります。過去の争いを、何度も持ち出すのは控えましょう。 |
 
 ## swords.03 · 정방향
 
 내부 ID: `work.swords.03.upright`
 
-카드 의미: 아픈 사실이나 기대의 어긋남이 명확해짐. 원전의 분리·지연을 실제 상실 예언 없이 불편한 인식과 솔직함으로 사용.
+카드 의미: 아픈 진실, 기대와 현실의 차이, 실망과 분리
 
-분야 해석: 따끔한평가
+분야 해석: 주의: 기대 이하의 성적과 지적, 아쉬운 평가·협업의 단절
 
-관찰: 준비한 일에서 예상보다 엄격한 평가를 받을 수 있어. / 열심히 한 부분보다 빠진 내용이 먼저 언급돼 기운이 빠질 거야. / 다시 읽거나 풀어보면 무엇을 잘못 이해했는지 분명하게 드러날 수 있어.
+관찰: 아픈 진실 / 기대와 현실의 차이 / 실망과 분리
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 준비한 일에서 예상보다 엄격한 평가를 받을 수 있어. 열심히 한 부분보다 빠진 내용이 먼저 언급돼 기운이 빠질 거야. 다시 읽거나 풀어보면 무엇을 잘못 이해했는지 분명하게 드러날 수 있어. 지적받은 말 전체를 붙잡기보다 실제로 고칠 한 곳부터 확인해봐. 당장은 아쉬워도 다음에 같은 실수를 하지 않을 구체적인 기준은 남을 수 있어. | Something you've prepared may receive a stricter assessment than expected. Hearing about omissions before the parts you worked hard on could be discouraging. Reading it again or retrying the question may reveal exactly what you misunderstood. Focus on one part you can correct instead of dwelling on every word of the criticism. Even with the disappointment, you could leave with a clear way to avoid repeating the mistake. | 準備したことに、予想より厳しい評価を受けるかもしれません。頑張った部分より足りない点を先に言われ、気落ちしそうです。もう一度読んだり解いたりすると、何を理解し違えていたかが見えてくるでしょう。指摘された言葉すべてを気にするより、直せるところを一つ確かめてみてください。今は残念でも、次に同じ間違いを避けるための具体的な手がかりが残りそうです。 |
+| 분야 풀이 | 시험이나 과제에서 기대보다 낮은 평가를 받을 수 있어. 자신 있던 부분의 오류를 지적받으면 속상해도 정확히 들을 필요가 있어. 부족한 점을 알게 된 만큼 다음 준비에 반영해줘.<br><br>직장에서는 제안이 거절되거나 동료와 불편한 말을 주고받을 수 있어. 서운한 결과를 듣더라도 그 자리에서 상처 주는 말로 답하지 마. | You may receive lower marks than expected in an exam or assignment. Hearing about an error in something you felt confident about may hurt, but listen carefully to the explanation. Use what you've learned about the gaps in your next round of preparation.<br><br>At work, a proposal may be rejected or you could exchange uncomfortable words with a colleague. Even if the result hurts, don't respond on the spot with something hurtful. | 試験や課題で、期待より低い評価を受けるかもしれません。自信のあった部分の間違いを指摘されたら、つらくても正確に聞く必要があります。足りない点がわかった分、次の準備に生かしてください。<br><br>職場では、提案を断られたり、同僚と気まずい言葉を交わしたりしそうです。残念な結果を聞いても、その場で傷つける言葉を返すのは控えましょう。 |
 
 ## swords.04 · 역방향
 
 내부 ID: `work.swords.04.reversed`
 
-카드 의미: 멈춘 뒤 다시 움직이거나 충분히 쉬지 못한 조급함. 원전의 신중한 운영과 현대의 재활동을 작은 재개로 채택.
+카드 의미: 조심스러운 재개, 휴식 후 복귀, 조급함과 남은 피로
 
-분야 해석: 쉬던과제재시작
+분야 해석: 조심스러운 회복: 멈춘 학습 재개, 복귀와 업무 진행
 
-관찰: 잠시 멈췄던 과제나 공부를 다시 시작할 기회가 생길 수 있어. / 처음에는 손이 느려도 예전에 해둔 내용을 보며 금세 기억나는 부분이 있을 거야. / 필요한 답이나 검토 의견이 도착해 다음에 할 일이 정해질 수도 있어.
+관찰: 조심스러운 재개 / 휴식 후 복귀 / 조급함과 남은 피로
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 잠시 멈췄던 과제나 공부를 다시 시작할 기회가 생길 수 있어. 처음에는 손이 느려도 예전에 해둔 내용을 보며 금세 기억나는 부분이 있을 거야. 필요한 답이나 검토 의견이 도착해 다음에 할 일이 정해질 수도 있어. 밀린 분량을 한꺼번에 끝내려 하지 말고 짧은 것 하나부터 마쳐봐. 작게 다시 해낸 결과가 생기면 다음 작업도 전보다 편하게 이어갈 수 있어. | You may have a chance to return to an assignment or studying you've paused. Starting might be slow, but looking at earlier work could quickly bring some of it back. A needed reply or review may also arrive and settle the next task. Finish one short piece instead of trying to clear the whole backlog at once. A small completed task could make continuing with the next one more comfortable. | しばらく止めていた課題や勉強を、再開する機会がありそうです。最初は手が進まなくても、以前の内容を見るとすぐ思い出せる部分があるでしょう。必要な返事や確認の意見が届き、次にすることが決まる場合もありそうです。たまった分を一度に終えようとせず、短いものを一つ仕上げてみてください。小さくてもまた一つできれば、次の作業にも前より気楽に取りかかれます。 |
+| 분야 풀이 | 손을 놓았던 공부를 다시 시작하고 익숙한 문제부터 풀 수 있어. 오랜만에 공부한다면 예전 속도를 바로 내기보다 이해되는 범위부터 이어가봐.<br><br>직장에서는 중단됐던 일이 다시 진행되거나 쉬었다 맡은 업무에 적응할 수 있어. 아직 처리할 힘이 충분하지 않다면 한꺼번에 일을 받아오지는 마. 남은 업무를 차례로 끝내면 부담도 줄어들 수 있어. | You could return to studying you've set aside and begin with familiar questions. If it's been a while, continue with what you understand instead of expecting your old pace straight away.<br><br>At work, a suspended task may resume, or you could settle back into your responsibilities after a break. If you don't yet have the stamina for it, don't accept a lot of work at once. Finishing remaining tasks one by one may reduce the burden too. | 止めていた勉強を再開し、慣れた問題から解けそうです。久しぶりに勉強するなら、すぐに以前の速さに戻そうとせず、理解できる範囲から続けてみましょう。<br><br>職場では、中断した仕事が動きだしたり、休みの後に担当した業務になじめたりしそうです。まだ十分な力が戻っていないなら、一度に仕事を引き受けるのは控えてください。残った業務を順に終えると、負担も減るかもしれません。 |
 
 ## swords.04 · 정방향
 
 내부 ID: `work.swords.04.upright`
 
-카드 의미: 잠시 물러나 생각과 활동을 쉬게 하는 정지. 원전의 은둔·휴식을 일상의 회복 시간으로 읽되 질환을 전제하지 않음.
+카드 의미: 휴식, 물러남, 고요, 회복을 위한 중단
 
-분야 해석: 중간휴식과검토시간
+분야 해석: 유보: 피로로 더딘 학습, 잠시 멈추는 업무와 결정
 
-관찰: 달려오던 작업이 잠시 검토나 답을 기다리는 단계에 들어갈 수 있어. / 계속 풀던 문제도 잠깐 덮고 돌아오면 잘못 읽은 부분이 눈에 들어올 거야. / 새로운 일을 더 받기보다 이미 배운 내용을 정리할 여유가 생길 수 있는 날이야.
+관찰: 휴식 / 물러남 / 고요
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 달려오던 작업이 잠시 검토나 답을 기다리는 단계에 들어갈 수 있어. 계속 풀던 문제도 잠깐 덮고 돌아오면 잘못 읽은 부분이 눈에 들어올 거야. 새로운 일을 더 받기보다 이미 배운 내용을 정리할 여유가 생길 수 있는 날이야. 한참 붙잡던 문제는 잠깐 쉬었다가 다시 읽어봐. 무리해서 이어가던 때보다 짧은 설명이 더 또렷하게 이해될 수 있어. | Work you've been pushing ahead with may reach a pause for review or a reply. Returning to a question after putting it aside could reveal something you misread. There may be time to go over what you've learned instead of taking on more. Take a short break from a problem you've been stuck on before rereading it. A brief explanation could then make more sense than it did while you were forcing yourself to continue. | 急いで進めていた作業が、確認や返事を待つ段階に入りそうです。解き続けていた問題も、一度離れて戻ると読み違いに気づくでしょう。新しい仕事を増やすより、すでに学んだ内容を整理する余裕ができるかもしれません。長く悩んでいた問題は、少し休んでから読み直してみてください。無理に続けていたときより、短い説明がすっと理解できそうです。 |
+| 분야 풀이 | 계속 공부해도 내용이 잘 남지 않고 문제풀이가 느려질 수 있어. 지친 상태라면 짧게 쉬어야 아는 내용도 더 정확히 떠올릴 수 있어. 오늘은 진도를 무리하게 늘리지 마.<br><br>직장에서는 검토나 결정이 잠시 멈출 수 있어. 쉬지 않고 같은 일을 붙잡기보다 필요한 답이 올 때까지 끝낼 수 있는 일부터 처리해줘. | You may remember little despite continuing to study, and solving problems could become slower. If you're tired, a short break can help you recall familiar material more accurately. Don't push yourself to cover too much today.<br><br>At work, a review or decision may pause for a while. While waiting for a necessary answer, handle tasks you can finish instead of staying with the same one without a break. | 勉強を続けても記憶に残りにくく、問題を解く速さが落ちるかもしれません。疲れているなら、少し休むことで、知っている内容も正確に思い出しやすくなります。今日は無理に先へ進めないようにしましょう。<br><br>職場では、検討や決定が一時止まるかもしれません。休まず同じ仕事に取り組むより、必要な返事を待つ間、終えられるものから対応してください。 |
 
 ## swords.05 · 역방향
 
 내부 ID: `work.swords.05.reversed`
 
-카드 의미: 갈등의 후유증을 인정하고 승패 집착을 덜어내는 현대적 독해. 원전의 여전한 상실도 있어 즉시 화해를 보장하지 않음.
+카드 의미: 갈등 중단, 타협, 더 큰 손실을 막는 양보
 
-분야 해석: 경쟁뒤의협업회복
+분야 해석: 회복: 답을 다투던 갈등의 해소, 타협으로 진행되는 업무
 
-관찰: 의견이 부딪혔던 사람과 다시 필요한 일을 나눌 수 있어. / 강하게 말했던 부분을 서로 조금씩 고치며 작업 자체로 이야기가 돌아올 거야. / 끝까지 내 방법을 고집할 때보다 두 의견을 나눠 쓰는 결과가 나을 수 있는 날이야.
+관찰: 갈등 중단 / 타협 / 더 큰 손실을 막는 양보
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 의견이 부딪혔던 사람과 다시 필요한 일을 나눌 수 있어. 강하게 말했던 부분을 서로 조금씩 고치며 작업 자체로 이야기가 돌아올 거야. 끝까지 내 방법을 고집할 때보다 두 의견을 나눠 쓰는 결과가 나을 수 있는 날이야. 오늘은 누가 맞았는지보다 먼저 끝낼 일을 정해봐. 작은 협조가 이루어지면 다음에 말을 꺼낼 때의 불편도 조금 줄어들 수 있어. | You may share necessary tasks again with someone you've disagreed with. As each of you adjusts a strongly expressed view, the conversation could return to the work itself. Using parts of both suggestions may work better than insisting entirely on your own method. Decide what to finish first rather than who was right. A small act of cooperation could make the next conversation less uncomfortable. | 意見がぶつかった相手と、また必要な仕事を分けられそうです。強く主張した部分を互いに少し直し、話が作業そのものへ戻るでしょう。自分の方法だけにこだわるより、両方の意見を取り入れたほうがよい結果になるかもしれません。今日は誰が正しかったかではなく、先に終えることを決めてみてください。小さな協力ができれば、次に話しかけるときの気まずさも少し減りそうです。 |
+| 분야 풀이 | 함께 공부하며 다퉜던 내용에 서로 납득할 답을 찾을 수 있어. 누가 먼저 맞혔는지보다 풀이를 나누면 둘 다 이해가 깊어질 수 있어.<br><br>직장에서는 말다툼을 멈추고 타협하면서 늦어졌던 일이 진행될 수 있어. 서로 양보할 부분이 정해지면 불필요하게 다시 하는 일도 줄어들어. 합의한 내용을 지켜주는 게 좋아. | You could settle a disagreement during shared study with an answer you both accept. Exchanging solutions instead of dwelling on who was right first may deepen both people's understanding.<br><br>At work, ending an argument and finding a compromise could get delayed work moving. Deciding where each person can give way may also reduce unnecessary redoing of tasks. Keep to what you've agreed. | 一緒に勉強して争った内容に、互いに納得できる答えを見つけられそうです。どちらが先に正解したかにこだわらず、解き方を伝え合うと、二人とも理解が深まるでしょう。<br><br>職場では、口論をやめて折り合うことで、遅れていた仕事が進みそうです。互いに譲る部分が決まると、不要なやり直しも減ります。合意した内容を守ってください。 |
 
 ## swords.05 · 정방향
 
 내부 ID: `work.swords.05.upright`
 
-카드 의미: 이겨도 남는 불편과 갈등의 비용. 원전의 손실·모욕을 다툼에서 무엇을 지키려는지 묻는 해석으로 응용.
+카드 의미: 상처를 남기는 승리, 자존심 다툼, 소모적 대립
 
-분야 해석: 경쟁적인평가
+분야 해석: 주의: 정답 경쟁으로 인한 갈등, 성과를 두고 남는 불만
 
-관찰: 회의나 공부 모임에서 의견을 겨루듯 말하는 사람이 있을 수 있어. / 맞는 답을 찾는 일보다 누가 먼저 알아냈는지가 중요하게 다뤄져 피곤할 거야. / 내 설명이 받아들여져도 함께하는 사람의 기분이 상해 다음 협조가 어려울 수 있어.
+관찰: 상처를 남기는 승리 / 자존심 다툼 / 소모적 대립
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 회의나 공부 모임에서 의견을 겨루듯 말하는 사람이 있을 수 있어. 맞는 답을 찾는 일보다 누가 먼저 알아냈는지가 중요하게 다뤄져 피곤할 거야. 내 설명이 받아들여져도 함께하는 사람의 기분이 상해 다음 협조가 어려울 수 있어. 다른 의견을 바로 꺾기보다 지금 풀어야 할 문제로 이야기를 돌려봐. 승패를 남기지 않은 짧은 토론이 실제 작업에는 더 도움이 될 수 있어. | Someone in a meeting or study group may treat differing opinions as a contest. It could be tiring when who found the answer first matters more than finding the right answer. Even if your explanation is accepted, hurt feelings might make future cooperation harder. Bring the discussion back to the problem instead of immediately dismissing another view. A short debate without winners and losers could be more useful to the actual work. | 会議や勉強会に、意見を競い合うように話す人がいるかもしれません。正しい答えより誰が先に気づいたかが重視され、疲れそうです。自分の説明が認められても、相手が傷ついて次の協力を頼みにくくなることもあるでしょう。別の意見をすぐ否定せず、今解くべき問題へ話を戻してみてください。勝ち負けを残さない短い議論のほうが、実際の作業には役立ちそうです。 |
+| 분야 풀이 | 친구와 누가 맞는지 다투다가 정작 풀이를 배울 시간을 놓칠 수 있어. 토론에서 상대를 곤란하게 만드는 말은 자신의 평가에도 도움이 되지 않아. 답의 근거로 이야기해줘.<br><br>직장에서는 자신의 안이 채택돼도 동료 사이에 불만이 남을 수 있어. 공을 독차지하거나 다른 사람의 제안을 비웃으면 다음 협업이 어려워져. | An argument with a friend over who's right could use up time you need to learn the solution. Trying to embarrass someone in a debate won't help your own assessment. Keep the discussion about the reasoning behind the answer.<br><br>At work, colleagues may remain unhappy even if your proposal is chosen. Taking all the credit or mocking someone else's suggestion could make the next collaboration difficult. | 友人とどちらが正しいか争い、解き方を学ぶ時間を逃すかもしれません。議論で相手を困らせる発言は、よい評価にもつながりません。答えの根拠をもとに、話してください。<br><br>職場では、提案が採用されても、同僚に不満が残るかもしれません。手柄を独り占めしたり、人の提案をあざ笑ったりすると、次の協力が難しくなります。 |
 
 ## swords.06 · 역방향
 
 내부 ID: `work.swords.06.reversed`
 
-카드 의미: 옮기려 해도 미해결된 일이 발목을 잡음. 원전의 드러남·고백과 현대의 변화 지연을 남은 문제의 확인으로 응용.
+카드 의미: 해결되지 않은 문제, 변화 저항, 익숙한 어려움으로 되돌아감
 
-분야 해석: 인수인계의빠진부분
+분야 해석: 정체: 남은 오개념의 반복, 바뀌지 않은 업무 문제
 
-관찰: 다음 일로 넘어가려는데 앞 작업의 빠진 내용이 드러날 수 있어. / 넘겨받은 설명이 짧아 전에 했던 사람에게 다시 묻는 일이 생길 거야. / 기억으로 메운 부분보다 기록이 없는 부분에서 시간이 더 걸릴 수 있는 날이야.
+관찰: 해결되지 않은 문제 / 변화 저항 / 익숙한 어려움으로 되돌아감
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다음 일로 넘어가려는데 앞 작업의 빠진 내용이 드러날 수 있어. 넘겨받은 설명이 짧아 전에 했던 사람에게 다시 묻는 일이 생길 거야. 기억으로 메운 부분보다 기록이 없는 부분에서 시간이 더 걸릴 수 있는 날이야. 오늘은 다음으로 가기 전에 가장 헷갈리는 한 가지부터 물어봐. 미뤘던 답을 받아두면 같은 자리로 되돌아오는 일을 줄일 수 있어. | Just as you're ready to move on, an omission in earlier work may come to light. A brief handover could leave you needing to ask the previous person again. Missing records may take more time than a part you can fill in from memory. Ask about the one most confusing detail before going further today. Getting the delayed answer could keep you from having to return to the same point. | 次の仕事へ移ろうとしたところで、前の作業の抜けが見つかるかもしれません。引き継ぎの説明が短く、前の担当者にもう一度聞くことになりそうです。記憶で補えるところより、記録のないところに時間がかかるでしょう。今日は先へ進む前に、いちばん分かりにくいことを一つ尋ねてください。後回しになった返事を聞ければ、同じところへ戻る用事を減らせそうです。 |
+| 분야 풀이 | 교재나 자리를 바꿔도 같은 내용에서 계속 막힐 수 있어. 제대로 이해하지 못한 기본 개념이 남았다면 새로운 문제도 어렵게 느껴져. 막힌 지점으로 돌아가 설명을 다시 들어봐.<br><br>직장에서는 담당이나 일정이 바뀌어도 예전 문제가 반복될 수 있어. 원인을 그대로 둔 채 다른 사람에게 일만 넘기지는 마. | Changing books or where you sit may still leave you stuck on the same material. A basic concept you haven't properly understood can make new questions feel difficult too. Return to where you got lost and hear the explanation again.<br><br>At work, old problems may repeat even after responsibilities or schedules change. Don't simply hand the task to someone else while leaving the cause untouched. | 教材や場所を変えても、同じ内容で行き詰まるかもしれません。十分に理解していない基礎が残っていると、新しい問題も難しく感じます。詰まった部分に戻り、説明を聞き直しましょう。<br><br>職場では、担当や日程が変わっても、以前の問題が繰り返されるかもしれません。原因を残したまま、仕事だけを人に渡すのは控えてください。 |
 
 ## swords.06 · 정방향
 
 내부 ID: `work.swords.06.upright`
 
-카드 의미: 불편한 곳에서 더 차분한 방식으로 옮겨감. 원전의 이동을 실제 여행 확정 없이 부담을 줄이는 전환으로 응용.
+카드 의미: 부담에서 벗어나는 이동, 차분한 전환, 도움을 받음
 
-분야 해석: 도움을받아넘어감
+분야 해석: 회복과 이동: 더 쉬운 설명으로 이해, 어려운 업무 상황에서 벗어남
 
-관찰: 막힌 일을 혼자 붙잡기보다 다른 사람의 도움으로 넘길 기회가 생길 수 있어. / 복잡했던 설명이 쉬운 예시로 바뀌며 공부가 조금 덜 어렵게 느껴질 거야. / 팀에서는 일을 넘겨받거나 전달하는 과정에서 필요한 내용이 차분하게 정리될 수 있어.
+관찰: 부담에서 벗어나는 이동 / 차분한 전환 / 도움을 받음
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 막힌 일을 혼자 붙잡기보다 다른 사람의 도움으로 넘길 기회가 생길 수 있어. 복잡했던 설명이 쉬운 예시로 바뀌며 공부가 조금 덜 어렵게 느껴질 거야. 팀에서는 일을 넘겨받거나 전달하는 과정에서 필요한 내용이 차분하게 정리될 수 있어. 다음 사람이 알아야 할 점은 짧게 남겨줘. 모든 일이 끝나지 않아도 가장 어려웠던 구간을 지나 다시 진도를 낼 여유가 생길 수 있어. | Someone's help may let you get past a task you've been struggling with alone. A simple example could replace a complicated explanation and make studying feel less difficult. A team handover may also bring the necessary details into order. Leave a brief note of what the next person needs to know. Even if everything isn't finished, you could be past the hardest part and ready to make progress again. | 一人で悩んでいた作業を、誰かの助けで進める機会がありそうです。複雑な説明を簡単な例で聞けて、勉強でつまずいていたところも理解しやすくなるでしょう。チームでは引き継ぎの途中で、必要な情報が落ち着いて整理されそうです。次の人が知っておくべきことは、短く書き残してください。すべて終わらなくても、いちばん難しかった部分を抜けて、また進める余裕ができるでしょう。 |
+| 분야 풀이 | 이해하기 어려웠던 내용이 다른 설명을 만나 수월하게 풀릴 수 있어. 혼자 헤매던 문제도 도움을 받아 차근차근 넘어갈 수 있는 날이야.<br><br>직장에서는 갈등이 심했던 일이나 과한 부담에서 벗어날 수 있어. 담당을 조정하거나 협조할 사람이 생기면서 업무가 한결 차분해질 수 있어. 도움을 받았다면 필요한 상황을 정확히 알려줘. | A different explanation could make difficult material easier to understand. Help may also let you work steadily through a problem you couldn't solve alone.<br><br>At work, you could move away from a task full of conflict or an excessive burden. A change in responsibilities or someone willing to help may make the work calmer. When help arrives, explain accurately where it's needed. | わかりにくかった内容も、別の説明に出会い、理解が進みそうです。一人で迷っていた問題も、助けを借りて一つずつ解決できる日です。<br><br>職場では、対立の激しい仕事や重すぎる負担から、離れられるかもしれません。担当の調整や協力者のおかげで、落ち着いて働けるようになりそうです。助けを受けるなら、どんな状況で困っているか、正確に伝えてください。 |
 
 ## swords.07 · 역방향
 
 내부 ID: `work.swords.07.reversed`
 
-카드 의미: 숨기거나 미뤘던 내용을 드러내고 방식을 바로잡는 선택. 원전의 조언·설명을 자기 합리화에서 벗어나는 뜻으로 응용.
+카드 의미: 솔직한 인정, 잘못 바로잡기, 조언 수용
 
-분야 해석: 누락인정과수정
+분야 해석: 회복: 잘못 알던 풀이의 수정, 사실을 밝히며 해결되는 업무
 
-관찰: 미처 알리지 않은 내용이나 빠진 작업이 드러날 수 있어. / 처음에는 민망해도 사실대로 이야기하면 필요한 도움을 받기 쉬울 거야. / 혼자 임시로 처리했던 부분이 다른 사람의 검토를 거치며 더 정확해질 수 있는 날이야.
+관찰: 솔직한 인정 / 잘못 바로잡기 / 조언 수용
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 미처 알리지 않은 내용이나 빠진 작업이 드러날 수 있어. 처음에는 민망해도 사실대로 이야기하면 필요한 도움을 받기 쉬울 거야. 혼자 임시로 처리했던 부분이 다른 사람의 검토를 거치며 더 정확해질 수 있는 날이야. 잘못된 점을 발견하면 감추지 말고 바로 알려줘. 작을 때 고친 오류가 남아 뒤의 큰 수정을 피할 수 있을 거야. | An unshared detail or unfinished part may come to light. It could be embarrassing at first, but explaining honestly may make it easier to get help. Someone else's review could improve a temporary fix you made alone. Report an error as soon as you find it instead of hiding it. Correcting it while it's small could spare you a larger revision later. | 伝え忘れた内容や、抜けていた作業が見つかるかもしれません。最初は気まずくても、事実を話せば必要な助けを得やすいでしょう。一人で仮に済ませた部分も、ほかの人が確認することで正確になりそうです。間違いを見つけたら、隠さずすぐ知らせてください。小さいうちに直しておけば、後で大がかりな修正をせずに済みそうです。 |
+| 분야 풀이 | 잘못 외웠던 내용이나 틀린 풀이를 발견해 고칠 수 있어. 모르는 점을 인정하고 설명을 들으면 같은 실수를 줄일 수 있는 날이야.<br><br>직장에서는 숨기거나 미뤘던 문제를 밝히면서 해결이 시작될 수 있어. 잘못 전한 내용을 바로잡으면 동료의 도움도 받을 수 있어. 변명보다 지금 필요한 수정을 먼저 말해줘. | You could spot and correct something you've memorised incorrectly or a faulty solution. Acknowledging what you don't know and hearing an explanation may help you make fewer repeat mistakes today.<br><br>At work, revealing a problem you've hidden or postponed could be the start of a solution. Correcting information you've passed on wrongly may also bring help from colleagues. Explain the correction needed now before making excuses. | 間違って覚えた内容や解き方に気づき、修正できそうです。わからないことを認めて説明を聞くと、同じミスを減らせる日です。<br><br>職場では、隠したり先送りにしたりした問題を明らかにすると、解決が始まりそうです。誤って伝えた内容を直せば、同僚の助けも得られるかもしれません。言い訳より、今必要な修正を先に話してください。 |
 
 ## swords.07 · 정방향
 
 내부 ID: `work.swords.07.upright`
 
-카드 의미: 모든 것을 드러내지 않는 전략과 독자적 접근. 원전의 기획·불확실한 시도를 기만 단정 없이 생략과 정보 차이에 대한 경계로 사용.
+카드 의미: 전략, 우회, 신중한 정보 공개와 은폐의 구별
 
-분야 해석: 혼자찾는다른풀이
+분야 해석: 신중한 진전과 주의: 다른 풀이의 효과, 불필요한 일을 줄이는 판단과 정보 공유
 
-관찰: 남들이 쓰는 방법과 다르게 접근해 일을 빨리 풀 수 있어. / 혼자 조용히 살펴본 부분에서 빠진 정보나 지름길이 눈에 들어올 거야. / 설명을 생략한 채 결과만 보여주면 상대가 어떻게 된 일인지 헷갈릴 수 있어.
+관찰: 전략 / 우회 / 신중한 정보 공개와 은폐의 구별
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 남들이 쓰는 방법과 다르게 접근해 일을 빨리 풀 수 있어. 혼자 조용히 살펴본 부분에서 빠진 정보나 지름길이 눈에 들어올 거야. 설명을 생략한 채 결과만 보여주면 상대가 어떻게 된 일인지 헷갈릴 수 있어. 다른 방법을 썼다면 중요한 과정 한 가지만 함께 알려줘. 능숙하게 끝낸 일도 납득할 설명이 붙으면서 더 좋은 평가를 받을 수 있어. | A different approach from everyone else's may help you solve a task quickly. Quietly examining a part on your own could reveal missing information or a shortcut. Showing only the result without explaining might leave others unsure how it happened. If you used a different method, share one important step as well. A clear explanation could bring a better assessment of work you already completed skillfully. | 周りとは違う方法で取り組み、仕事を早く解決できそうです。一人で静かに調べたところから、足りない情報や近道に気づくでしょう。説明を省いて結果だけ見せると、相手はどう進めたのか分からないかもしれません。別の方法を使ったなら、大事な手順を一つ添えて伝えてください。手際よく終えた仕事に分かりやすい説明も加わり、さらによい評価をもらえそうです。 |
+| 분야 풀이 | 정면으로 풀기 어렵던 문제에서 다른 풀이가 통할 수 있어. 익숙한 순서만 고집하지 않으면 놓쳤던 답을 발견할 수 있어. 요령을 쓰더라도 정답의 근거는 확인해줘.<br><br>직장에서는 불필요하게 반복하던 일을 줄여 처리 시간을 아낄 수 있어. 효율을 높인다고 동료가 꼭 알아야 할 내용까지 숨기면 뒤에 문제가 생길 수 있어. | A different method could work on a problem that's difficult to solve directly. Letting go of a familiar sequence may reveal an answer you missed. Even with a shortcut, check why the answer is correct.<br><br>At work, reducing unnecessary repetition could save time. Withholding information your colleagues need in the name of efficiency may cause problems later. | 普通の方法では難しかった問題に、別の解き方が通用するかもしれません。慣れた順序にこだわらなければ、見落とした答えを発見できそうです。工夫をするときも、正解の根拠は確かめてください。<br><br>職場では、不要な繰り返しを減らし、作業の時間を節約できそうです。効率のためでも、同僚が知るべきことまで隠すと、後で問題になるかもしれません。 |
 
 ## swords.08 · 역방향
 
 내부 ID: `work.swords.08.reversed`
 
-카드 의미: 제약을 다시 보고 스스로 선택할 몫을 찾는 현대적 해제 독해. 원전의 불안정과 다른 채택이며 불안의 심화라는 대안도 존재.
+카드 의미: 선택권 인식, 자율성, 두려움 속 작은 행동
 
-분야 해석: 어렵던문제의첫해결
+분야 해석: 회복: 풀 수 있는 문제의 발견, 제약이 줄며 재개되는 업무
 
-관찰: 혼자서는 못 풀 줄 알았던 문제에서 첫 답을 찾을 수 있어. / 당연히 안 된다고 생각한 방법이 허용된다는 설명을 들을 수도 있는 날이야. / 필요한 질문을 한 뒤에는 이미 알고 있던 내용을 써먹을 곳이 보일 거야.
+관찰: 선택권 인식 / 자율성 / 두려움 속 작은 행동
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 혼자서는 못 풀 줄 알았던 문제에서 첫 답을 찾을 수 있어. 당연히 안 된다고 생각한 방법이 허용된다는 설명을 들을 수도 있는 날이야. 필요한 질문을 한 뒤에는 이미 알고 있던 내용을 써먹을 곳이 보일 거야. 풀린 부분을 바탕으로 다음 한 단계만 이어가봐. 작은 결과가 쌓이면서 실제로 어려운 부분과 괜히 겁냈던 부분이 나뉠 수 있어. | You may find the first answer to a problem you thought you couldn't solve alone. You might also learn that a method you'd assumed forbidden is allowed. Asking the necessary question could reveal where your existing knowledge helps. Use the part you've solved to take just the next step. Small results may distinguish what is truly difficult from what you were simply afraid to try. | 一人では解けないと思った問題に、最初の答えが見つかりそうです。当然使えないと思っていた方法も、認められると聞くかもしれません。必要な質問をすれば、すでに知っていることを使える部分が見えるでしょう。解けたところから、次の一段階だけ進めてみてください。小さな結果が重なると、本当に難しい部分と怖がりすぎていた部分が分かりそうです。 |
+| 분야 풀이 | 못 풀 거라고 생각했던 문제에서도 답할 수 있는 부분이 보일 수 있어. 차근차근 풀다 보면 자신 없던 내용도 전보다 잘 이해할 수 있어.<br><br>직장에서는 막혔던 권한이나 조건이 풀려 일을 다시 진행할 수 있어. 혼자 안 된다고 여겼던 일도 물어보면 다른 방법이 나올 수 있어. 가능한 부분부터 시작하면 진도를 낼 수 있는 날이야. | You may spot parts you can answer in a question you thought you couldn't solve. Working through it step by step could improve your understanding of material you weren't confident about.<br><br>At work, a restriction on your authority or another obstacle could ease, allowing a task to resume. Asking about a task you thought you couldn't manage alone may reveal another approach. Starting with what's possible can bring progress today. | 解けないと思っていた問題にも、答えられる部分が見えてきそうです。順を追って解くと、自信のなかった内容も、前よりよく理解できるでしょう。<br><br>職場では、権限や条件の制約が解け、仕事を再開できそうです。一人では無理と思ったことも、尋ねると別の方法が出るかもしれません。できる部分から始めれば、先へ進める日です。 |
 
 ## swords.08 · 정방향
 
 내부 ID: `work.swords.08.upright`
 
-카드 의미: 제약이 크게 느껴져 선택권을 보기 어려움. 원전의 묶인 상태를 실제 장애와 추측을 구별하는 일상 판단으로 응용.
+카드 의미: 제약으로 느끼는 상황, 두려움에 가려진 선택, 일시적 구속
 
-분야 해석: 못할것같은과제
+분야 해석: 정체와 주의: 어렵다는 판단에 막힌 풀이, 제약으로 늦어지는 업무
 
-관찰: 낯선 과제나 어려운 문제가 실제보다 크게 느껴질 수 있어. / 무엇부터 해야 할지 몰라 이미 아는 방법도 쉽게 떠오르지 않을 거야. / 질문을 나눠 듣고 나면 혼자 풀 수 있는 작은 부분이 드러날 수 있어.
+관찰: 제약으로 느끼는 상황 / 두려움에 가려진 선택 / 일시적 구속
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 낯선 과제나 어려운 문제가 실제보다 크게 느껴질 수 있어. 무엇부터 해야 할지 몰라 이미 아는 방법도 쉽게 떠오르지 않을 거야. 질문을 나눠 듣고 나면 혼자 풀 수 있는 작은 부분이 드러날 수 있어. 전체를 다 끝내려 하지 말고 지금 이해한 한 단계만 써봐. 눈앞에 나온 첫 답이 생기며 막혔다고 느낀 곳을 다시 볼 수 있을 거야. | An unfamiliar assignment or difficult question may seem bigger than it is. Not knowing where to begin could make even familiar methods hard to recall. Hearing the question broken down may reveal a small part you can solve yourself. Write out just the step you understand now instead of trying to finish everything. That first answer on the page could help you reconsider the part that felt blocked. | 慣れない課題や難しい問題が、実際以上に大変に感じられるかもしれません。何から始めるか分からず、知っている方法も思い出しにくそうです。質問を分けて説明してもらうと、自分で解ける小さな部分が見えてくるでしょう。全部終えようとせず、今分かった一段階だけを書いてみてください。最初の答えが目の前にできれば、行き詰まったところも見直せそうです。 |
+| 분야 풀이 | 문제가 어렵게 느껴져 아는 답도 제대로 쓰지 못할 수 있어. 처음부터 전부 풀어야 한다고 생각하면 더 막막해져. 답할 수 있는 부분부터 하나씩 적어봐.<br><br>직장에서는 권한이나 정보가 부족해 일을 진행하기 어려울 수 있어. 혼자 풀 수 없는 조건이라면 막힌 이유를 알리고 필요한 도움을 구해줘. | A question may seem so difficult that you struggle to write even an answer you know. Thinking you must solve the whole thing from the start can make it more daunting. Write the parts you can answer one by one.<br><br>At work, a lack of authority or information could make progress difficult. If the conditions are beyond what you can handle alone, explain why you're stuck and seek the help you need. | 問題を難しく感じ、知っている答えもうまく書けないかもしれません。最初から全部解こうとすると、さらに途方に暮れやすくなります。答えられる部分から、一つずつ書いてみましょう。<br><br>職場では、権限や情報が足りず、仕事を進めにくいかもしれません。一人では解決できない条件なら、止まっている理由を伝え、必要な助けを求めてください。 |
 
 ## swords.09 · 역방향
 
 내부 ID: `work.swords.09.reversed`
 
-카드 의미: 걱정을 밖으로 꺼내거나 아직 남은 불안을 인정함. 원전의 의심과 현대의 부담 완화를 모두 고려해 솔직한 확인의 방향을 선택.
+카드 의미: 걱정을 털어놓음, 도움을 찾음, 감당할 문제를 구체화
 
-분야 해석: 실력확인과도움
+분야 해석: 회복: 질문으로 풀리는 학습 불안, 도움과 설명으로 줄어드는 업무 부담
 
-관찰: 걱정하던 과제나 공부를 누군가와 확인할 기회가 생길 수 있어. / 틀릴 줄 알았던 답이 맞거나 설명이 괜찮다는 말을 들을 거야. / 실제 부족한 부분도 한두 곳으로 좁혀져 처음보다 덜 막막할 수 있어.
+관찰: 걱정을 털어놓음 / 도움을 찾음 / 감당할 문제를 구체화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 걱정하던 과제나 공부를 누군가와 확인할 기회가 생길 수 있어. 틀릴 줄 알았던 답이 맞거나 설명이 괜찮다는 말을 들을 거야. 실제 부족한 부분도 한두 곳으로 좁혀져 처음보다 덜 막막할 수 있어. 혼자 반복해서 읽던 부분을 다른 사람에게 한 번 설명해봐. 잘 아는 내용과 다시 볼 내용을 나누면서 다음 준비가 한결 수월해질 거야. | You may have a chance to check an assignment or study material with someone. An answer you expected to be wrong could be right, or you may hear that your explanation works. The actual gaps might narrow to one or two places and feel less daunting. Explain once to someone else the part you've repeatedly read alone. Separating what you know from what needs another look could make the next preparation easier. | 心配していた課題や勉強を、誰かと確認する機会がありそうです。間違いだと思った答えが合っていたり、説明はそれでよいと言われたりするでしょう。本当に足りない部分も一、二か所に絞られ、前ほど途方に暮れずに済みそうです。一人で繰り返し読んだところを、誰かに一度説明してみてください。分かっている内容と見直す内容が分かれ、次の準備が楽になるでしょう。 |
+| 분야 풀이 | 혼자 어렵게 생각했던 내용이 질문 한 번으로 풀릴 수 있어. 모르는 부분을 말하면 무엇부터 공부해야 할지도 분명해져. 시험 걱정도 실제로 풀어본 문제를 보며 덜 수 있어.<br><br>직장에서는 동료의 설명이나 도움으로 걱정하던 일이 수월해질 수 있어. 혼자 예상한 만큼 상황이 나쁘지 않다는 걸 알게 될 수도 있어. | Asking a single question could clear up material you've found difficult on your own. Saying what you don't understand can also make it clear what to study first. Looking at questions you've actually solved may ease exam worries too.<br><br>At work, a colleague's explanation or help could make something you've worried about easier. You may also find that the situation isn't as bad as you imagined on your own. | 一人で難しく考えていた内容が、一度の質問で理解できるかもしれません。わからない部分を伝えると、どこから勉強すべきかも明確になります。実際に解いた問題を見れば、試験の心配も減らせそうです。<br><br>職場では、同僚の説明や助けで、心配していた仕事が楽になるかもしれません。一人で予想したほど、状況は悪くないとわかることもありそうです。 |
 
 ## swords.09 · 정방향
 
 내부 ID: `work.swords.09.upright`
 
-카드 의미: 걱정과 후회가 실제 사건보다 크게 느껴지는 밤의 사고. 원전의 절망을 불길한 예언이 아닌 반복되는 생각의 부담으로 제한.
+카드 의미: 반복되는 걱정, 예상과 사실의 혼동, 혼자 품는 부담
 
-분야 해석: 평가를앞둔걱정
+분야 해석: 주의: 걱정에 따른 집중 저하와 답 변경, 불안한 판단으로 늦어지는 업무
 
-관찰: 발표나 시험을 앞두고 실수할 장면이 자꾸 떠오를 수 있어. / 충분히 본 내용도 자신이 없어 같은 부분을 반복해서 확인하게 될 거야. / 직접 풀거나 말해보면 걱정한 것보다 알고 있는 내용이 많다는 걸 느낄 수 있어.
+관찰: 반복되는 걱정 / 예상과 사실의 혼동 / 혼자 품는 부담
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 발표나 시험을 앞두고 실수할 장면이 자꾸 떠오를 수 있어. 충분히 본 내용도 자신이 없어 같은 부분을 반복해서 확인하게 될 거야. 직접 풀거나 말해보면 걱정한 것보다 알고 있는 내용이 많다는 걸 느낄 수 있어. 눈으로 계속 읽기보다 짧은 문제 하나를 실제로 풀어봐. 완벽하지 않아도 확인한 답이 남아 막연히 못할 것 같던 마음을 조금 덜 수 있어. | You may keep picturing mistakes before a presentation or exam. Even familiar material could feel uncertain and prompt repeated checking. Trying a question or speaking aloud may reveal that you know more than you feared. Solve one short question instead of continually rereading. It doesn't need to be perfect for a checked answer to ease some of the fear that you can't do it. | 発表や試験の前に、失敗する場面が何度も浮かぶかもしれません。十分見た内容にも自信が持てず、同じところを繰り返し確認しそうです。実際に解いたり話したりすると、心配したより知っていることが多いと分かるでしょう。読み続けるより、短い問題を一つ解いてみてください。完璧でなくても確かめた答えが残り、できない気がする不安を少し減らせそうです。 |
+| 분야 풀이 | 시험을 망칠까 걱정하다 아는 답도 자꾸 바꿀 수 있어. 아직 풀지 않은 문제까지 어렵다고 단정하면 집중이 더 흐트러져. 지금 읽는 문제의 근거에만 먼저 집중해봐.<br><br>직장에서는 나쁜 평가를 받을까 걱정해 끝낸 일을 계속 고칠 수 있어. 확인되지 않은 불안을 실제 지적처럼 받아들이면 마무리가 늦어질 수 있어. | Fear of doing badly in an exam could make you keep changing answers you know. Assuming even questions you haven't tried are difficult may disrupt your concentration further. Focus first on the reasoning for the question you're reading now.<br><br>At work, worry about a poor assessment could lead you to keep revising finished work. Treating an unconfirmed fear as actual criticism may delay completion. | 試験で失敗するのが心配で、知っている答えまで何度も変えるかもしれません。まだ解いていない問題も難しいと決めつけると、さらに集中が乱れます。まず、今読んでいる問題で、答えの根拠を確かめることに集中しましょう。<br><br>職場では、悪い評価が怖くて、終わった仕事を直し続けるかもしれません。未確認の不安を、実際に受けた指摘のように考えると、仕上げが遅れそうです。 |
 
 ## swords.10 · 역방향
 
 내부 ID: `work.swords.10.reversed`
 
-카드 의미: 끝난 뒤에도 남은 부담을 정리하며 다시 움직일 여지. 원전의 일시적 이점과 현대의 회복을 완전 반전 없이 사용.
+카드 의미: 어려움 뒤 작은 재개, 점진적 여유, 이전 부담 반복 방지
 
-분야 해석: 끝난작업의재활용
+분야 해석: 회복: 부진 뒤 다시 풀리는 공부, 중단 후 작은 업무 재개
 
-관찰: 끝낸 일에서 다음에 살려 쓸 부분을 발견할 수 있어. / 아쉬웠던 결과도 다시 보면 쓸 만한 예시나 익힌 방법이 남아 있을 거야. / 처음부터 다시 하라는 말보다 일부만 보완하자는 제안을 받을 수 있는 날이야.
+관찰: 어려움 뒤 작은 재개 / 점진적 여유 / 이전 부담 반복 방지
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 끝낸 일에서 다음에 살려 쓸 부분을 발견할 수 있어. 아쉬웠던 결과도 다시 보면 쓸 만한 예시나 익힌 방법이 남아 있을 거야. 처음부터 다시 하라는 말보다 일부만 보완하자는 제안을 받을 수 있는 날이야. 다시 시작한다면 가장 필요한 한 부분부터 고쳐봐. 전부 실패였다고 느꼈던 때보다 지금 할 수 있는 작업이 분명하게 보일 수 있어. | You may discover a part of finished work useful for next time. Even a disappointing result could contain a good example or a method you've learned. A suggestion may call for improving just one part rather than starting from scratch. If you begin again, correct the most necessary part first. What you can do now could become clearer than when the whole effort felt like a failure. | 終えた仕事の中に、次にも使える部分が見つかりそうです。残念だった結果も見直せば、役立つ例や覚えた方法が残っているでしょう。最初からやり直すより、一部だけ直そうという提案を受けるかもしれません。再開するなら、いちばん必要な一か所から直してみてください。全部失敗したように感じたときより、今できる作業がはっきり見えそうです。 |
+| 분야 풀이 | 한동안 잘 안 되던 공부가 조금씩 다시 풀릴 수 있어. 쉬운 문제부터 맞혀가며 잃었던 감을 되찾을 수 있는 날이야. 한 번에 예전 진도를 따라잡으려 하지는 마.<br><br>직장에서는 중단된 일의 일부가 다시 진행되거나 새로운 역할을 맡을 수 있어. 부담이 줄어든 만큼 지금 할 수 있는 업무부터 차분히 이어가봐. | Studying that hasn't gone well for a while could gradually become easier. Getting simple questions right may help you regain your confidence with the material today. Don't try to return to your previous study pace all at once.<br><br>At work, part of a suspended task may resume or you could take on a new role. With less of a burden, calmly continue with the work you can handle now. | しばらく進まなかった勉強が、少しずつはかどりそうです。簡単な問題から正解を重ね、失っていた感覚を取り戻せる日です。一度に勉強の遅れを取り戻そうとするのは控えましょう。<br><br>職場では、中断した仕事の一部が再開したり、新しい役割を任されたりするかもしれません。負担が減った分、今できる業務から落ち着いて続けてみましょう。 |
 
 ## swords.10 · 정방향
 
 내부 ID: `work.swords.10.upright`
 
-카드 의미: 더 이어가기 어려운 끝을 인정함. 원전의 고통·황폐를 실제 폭력이나 재난 아닌 종료된 방식과 무리한 반복으로 제한.
+카드 의미: 소진, 종료, 더 이어가지 않을 선택
 
-분야 해석: 마감과작업종료
+분야 해석: 강한 주의와 종료: 지친 공부의 한계, 중단·반려되는 업무
 
-관찰: 오래 하던 과제나 작업을 더 고치지 못하고 마무리할 수 있어. / 준비한 것에 아쉬움이 남아도 제출이나 종료의 때가 분명해질 거야. / 끝까지 버티느라 놓친 피로가 일을 넘긴 뒤에 느껴질 수 있는 날이야.
+관찰: 소진 / 종료 / 더 이어가지 않을 선택
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 하던 과제나 작업을 더 고치지 못하고 마무리할 수 있어. 준비한 것에 아쉬움이 남아도 제출이나 종료의 때가 분명해질 거야. 끝까지 버티느라 놓친 피로가 일을 넘긴 뒤에 느껴질 수 있는 날이야. 마지막에는 새 내용을 넣기보다 빠진 제출 항목만 확인해봐. 완벽하지 않더라도 끝낸 결과가 남아 다음에 보완할 점을 따로 볼 수 있을 거야. | A long-running assignment or task may have to finish without another revision. You may still see shortcomings, but the time to submit or stop could become clear. Fatigue overlooked while pushing through may catch up once you hand it over. Check only for missing submission requirements instead of adding new content at the end. An imperfect but finished result could let you separately identify what to improve next time. | 長く取り組んだ課題や仕事を、これ以上直さず終えることになりそうです。準備に心残りがあっても、提出や終了の時がはっきりするでしょう。最後まで頑張って気づかなかった疲れが、引き渡した後に出るかもしれません。最後は新しい内容を足さず、提出する項目に抜けがないかだけ確かめてください。完璧でなくても終えたものが残り、次に補う点を改めて見られそうです。 |
+| 분야 풀이 | 지친 상태로 공부를 이어가면 아는 내용도 풀지 못할 수 있어. 준비한 결과가 기대에 크게 못 미쳤더라도 오늘 모든 공부를 포기한다고 정하지 마. 우선 무리하던 분량을 줄여야 해.<br><br>직장에서는 계속 붙잡던 일이 중단되거나 제안이 받아들여지지 않을 수 있어. 이미 끝내기로 한 일이라면 혼자 더 떠안기보다 남은 마무리를 확인해줘. | Studying while exhausted may leave you unable to answer questions on familiar material. Even if the result of your preparation falls far short of your hopes, don't decide today to give up all your studies. First reduce the amount you've been pushing yourself to do.<br><br>At work, a task you've kept working on could be stopped, or a proposal may be declined. If a decision has already been made to end the work, check what remains to finish instead of taking on more of it alone. | 疲れたまま勉強を続けると、知っている内容も解けなくなるかもしれません。準備の結果が期待を大きく下回っても、今日すべての勉強を諦めると決めるのは控えましょう。まず、無理をしていた勉強の量を減らす必要があります。<br><br>職場では、取り組み続けた仕事が中断したり、提案が受け入れられなかったりしそうです。すでに終えると決まった仕事なら、一人でさらに抱え込まず、残った片づけを確かめてください。 |
 
 ## swords.11 · 역방향
 
 내부 ID: `work.swords.11.reversed`
 
-카드 의미: 확인하지 않은 말을 서둘러 전하거나 질문이 의심으로 기움. 원전의 뜻밖의 소식·준비 부족을 정보 취급의 신중함으로 응용.
+카드 의미: 준비되지 않은 상태, 예상하지 못한 측면, 관찰이 의심이나 성급한 결론으로 치우침
 
-분야 해석: 문제급히읽는실수
+분야 해석: 주의: 충분히 읽지 않은 답의 오류, 불확실한 정보와 섣부른 판단
 
-관찰: 설명을 끝까지 듣기 전에 답이 떠올라 중요한 조건을 놓칠 수 있어. / 잘 아는 내용이라고 생각한 부분에서 실수가 나와 다시 확인할 거야. / 질문이 너무 빠르면 상대도 어떤 도움이 필요한지 알아듣기 어려울 수 있는 날이야.
+관찰: 준비되지 않은 상태 / 예상하지 못한 측면 / 관찰이 의심이나 성급한 결론으로 치우침
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 설명을 끝까지 듣기 전에 답이 떠올라 중요한 조건을 놓칠 수 있어. 잘 아는 내용이라고 생각한 부분에서 실수가 나와 다시 확인할 거야. 질문이 너무 빠르면 상대도 어떤 도움이 필요한지 알아듣기 어려울 수 있는 날이야. 내가 이해한 내용을 한 문장으로 말한 뒤 맞는지 물어봐. 엇갈린 부분이 드러나면 같은 설명을 반복해서 들을 시간을 줄일 수 있어. | An answer may occur to you before the explanation ends, making an important condition easy to miss. An error in something you thought familiar could send you back to check. A question asked too quickly might also leave the other person unsure what help you need. Summarize your understanding in one sentence and ask whether it's right. Spotting where you differ could reduce time spent hearing the same explanation again. | 説明が終わる前に答えが浮かび、大事な条件を見落とすかもしれません。よく知っていると思ったところで間違いが出て、確認し直しそうです。質問が早すぎると、相手もどんな助けが必要か分からないでしょう。理解したことを一文で話してから、合っているか尋ねてみてください。食い違いが分かれば、同じ説明を繰り返し聞く時間を減らせそうです。 |
+| 분야 풀이 | 문장을 끝까지 읽지 않고 답을 고르면 조건을 빠뜨릴 수 있어. 몇 가지 키워드만 외워둔 내용은 추가 질문에서 막히기 쉬워. 자신의 말로 설명할 수 있는지 확인해봐.<br><br>직장에서는 일부 정보만 듣고 판단했다가 일을 다시 할 수 있어. 의심되는 점이 있어도 바로 잘못이라고 단정하지 말고 실제 내용을 물어봐. | Choosing an answer before reading a sentence to the end could mean missing a condition. Knowing only a few memorised keywords may leave you stuck on a follow-up question. Check whether you can explain the material in your own words.<br><br>At work, deciding on the basis of partial information could mean having to do the task again. Even if something seems doubtful, ask about the facts before declaring it wrong. | 文章を最後まで読まずに答えを選ぶと、条件を見落とすかもしれません。いくつかのキーワードだけ覚えた内容は、追加の質問で詰まりやすくなります。自分の言葉で説明できるか、確かめましょう。<br><br>職場では、一部の情報だけで判断し、仕事をやり直すかもしれません。疑問があっても、すぐに間違いと決めつけず、実際の内容を聞いてください。 |
 
 ## swords.11 · 정방향
 
 내부 ID: `work.swords.11.upright`
 
-카드 의미: 관찰·질문·새 정보에 대한 민첩함. 원전의 경계와 탐색을 성급한 소문 대신 검증하려는 태도로 사용.
+카드 의미: 관찰과 주의, 검토와 살핌, 민첩하게 주변을 살피는 인물
 
-분야 해석: 질문과학습집중
+분야 해석: 좋음: 세밀하게 읽어 줄이는 실수, 관찰과 질문으로 발견하는 업무 오류
 
-관찰: 새로운 내용을 빠르게 받아들이고 질문할 점을 잘 찾을 수 있어. / 설명 중 작은 차이를 알아채 남들이 지나친 문제를 짚어낼 거야. / 시험 공부에서는 비슷한 개념을 비교하다 왜 답이 다른지 이해할 수 있는 날이야.
+관찰: 관찰과 주의 / 검토와 살핌 / 민첩하게 주변을 살피는 인물
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 새로운 내용을 빠르게 받아들이고 질문할 점을 잘 찾을 수 있어. 설명 중 작은 차이를 알아채 남들이 지나친 문제를 짚어낼 거야. 시험 공부에서는 비슷한 개념을 비교하다 왜 답이 다른지 이해할 수 있는 날이야. 떠오른 질문을 미루지 말고 짧게 적어 확인해봐. 알게 된 이유가 분명해져 외우던 내용도 더 오래 기억에 남을 수 있어. | You may take in new material quickly and spot useful questions. A small difference in an explanation could help you identify an issue others passed over. Comparing similar concepts while studying may reveal why the answers differ. Write down and check a question while it's fresh. Understanding the reason clearly could help previously memorized material stay with you longer. | 新しい内容を早く理解し、質問する点も見つけやすい日です。説明の小さな違いに気づき、ほかの人が見過ごした問題を指摘できるでしょう。試験勉強では似た概念を比べると、答えが違う理由が分かりそうです。浮かんだ質問は後回しにせず、短く書いて確かめてみてください。理由がはっきりすることで、暗記していた内容も長く覚えていられそうです。 |
+| 분야 풀이 | 문제 속 작은 조건을 잘 알아차려 실수를 줄일 수 있어. 왜 그런 답이 나오는지 질문하면 개념도 더 정확히 이해할 수 있어.<br><br>직장에서는 자세히 살핀 내용에서 오류나 필요한 정보를 발견할 수 있어. 회의에서도 짚고 넘어간 질문 하나가 다음 일을 쉽게 만들 수 있어. 모르는 점을 그대로 넘기지 마. | Noticing a small condition in a question could help you make fewer mistakes. Asking why an answer follows may also improve your understanding of the concept.<br><br>At work, a close look could uncover an error or information you need. One question addressed in a meeting may make the next task easier too. Don't pass over something you don't understand. | 問題の小さな条件によく気づき、ミスを減らせそうです。なぜその答えになるか質問すると、概念もさらに正確に理解できるでしょう。<br><br>職場では、詳しく調べた内容から、誤りや必要な情報を見つけられそうです。会議でも、一つの確認が、その先の仕事を楽にするかもしれません。わからないことは、そのままにせず聞いてください。 |
 
 ## swords.12 · 역방향
 
 내부 ID: `work.swords.12.reversed`
 
-카드 의미: 속도가 목적을 앞서 혼선이나 지연을 만듦. 원전의 무분별함을 방향을 다시 정할 필요로 해석.
+카드 의미: 신중함의 부족, 준비나 감당 능력의 부족, 과도하게 벌이거나 낭비함
 
-분야 해석: 속도때문에생긴재작업
+분야 해석: 주의: 성급한 답과 부족한 검증, 무리한 업무 추진·수정
 
-관찰: 빠르게 끝낸 일에서 작은 누락이 나와 다시 손볼 수 있어. / 질문을 듣는 동시에 답하다가 상대가 묻지 않은 내용을 설명하게 될 거야. / 한꺼번에 여러 일을 시작하면 가장 급한 일도 마무리가 늦어질 수 있는 날이야.
+관찰: 신중함의 부족 / 준비나 감당 능력의 부족 / 과도하게 벌이거나 낭비함
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 빠르게 끝낸 일에서 작은 누락이 나와 다시 손볼 수 있어. 질문을 듣는 동시에 답하다가 상대가 묻지 않은 내용을 설명하게 될 거야. 한꺼번에 여러 일을 시작하면 가장 급한 일도 마무리가 늦어질 수 있는 날이야. 오늘은 시작한 한 가지를 끝낸 뒤 다음으로 넘어가봐. 실제 끝낸 결과가 생기면 바쁘게 움직이기만 하던 때보다 진도가 분명해질 수 있어. | A small omission in quickly finished work may need another edit. Answering while the question is still being asked could lead you to explain something else. Starting several tasks together might delay even the most urgent one. Finish the task you've begun before moving to the next today. One completed result could make progress clearer than merely staying busy. | 急いで終えた仕事に小さな抜けがあり、直すことになりそうです。質問を聞きながら答えて、相手が聞いていないことを説明するかもしれません。いくつも同時に始めると、いちばん急ぐ仕事まで終わるのが遅くなるでしょう。今日は始めた一つを終えてから、次へ進んでみてください。実際に終えたものができれば、忙しく動くだけのときより進んだことが分かりそうです。 |
+| 분야 풀이 | 빨리 끝내려다 계산이나 답안 작성에서 실수가 날 수 있어. 풀이를 확인하지 않고 다음 문제로 넘어가면 쉬운 점수도 잃기 쉬워.<br><br>직장에서는 준비가 덜 된 일을 밀어붙이다 중간에 막힐 수 있어. 동료의 설명을 듣지 않고 결론부터 내리면 수정할 일이 늘어나. 진행에 필요한 조건부터 확인해줘. | Trying to finish quickly could cause mistakes in calculations or written answers. Moving to the next question without checking your solution may cost marks that would otherwise be easy to earn.<br><br>At work, pushing ahead without enough preparation could leave you stuck midway. Reaching a conclusion before hearing a colleague's explanation may create more corrections. Check the conditions needed to proceed first. | 速く終えようとして、計算や答案の記入でミスをするかもしれません。解き方を確かめず次へ進むと、取れるはずの点も落としがちです。<br><br>職場では、準備不足の仕事を押し進め、途中で詰まるかもしれません。同僚の説明を聞かずに結論を出すと、修正する仕事が増えます。進めるために必要な条件から、確かめてください。 |
 
 ## swords.12 · 정방향
 
 내부 ID: `work.swords.12.upright`
 
-카드 의미: 빠른 판단과 직접적인 실행. 원전의 용기·돌진을 추진력과 놓치기 쉬운 세부의 양면으로 사용.
+카드 의미: 능력과 용기, 자신의 입장을 방어함, 빠른 행동과 대립의 양면
 
-분야 해석: 빠른이해와실행
+분야 해석: 빠른 좋음과 주의: 신속한 문제풀이와 논증, 빠른 업무 결정과 의견 충돌
 
-관찰: 질문의 핵심을 빠르게 잡아 답하거나 일을 추진할 수 있어. / 어렵게 보이던 과제도 먼저 손을 대면 생각보다 금세 진도가 나갈 거야. / 발표나 토론에서는 분명한 의견이 주목받아 다음 질문을 이어 받을 수 있는 날이야.
+관찰: 능력과 용기 / 자신의 입장을 방어함 / 빠른 행동과 대립의 양면
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 질문의 핵심을 빠르게 잡아 답하거나 일을 추진할 수 있어. 어렵게 보이던 과제도 먼저 손을 대면 생각보다 금세 진도가 나갈 거야. 발표나 토론에서는 분명한 의견이 주목받아 다음 질문을 이어 받을 수 있는 날이야. 빠르게 마친 부분은 보내기 전에 한 번만 다시 읽어봐. 속도에 정확함이 더해지면 맡겨도 되겠다는 좋은 평가를 받을 수 있어. | You may quickly grasp a question's main point and answer or move work forward. Starting a difficult-looking assignment could bring progress sooner than expected. A clear view in a presentation or discussion may attract attention and follow-up questions. Reread a quickly finished piece once before sending it. Accuracy alongside speed could earn confidence that work is safe in your hands. | 質問の要点を早くつかみ、答えたり仕事を進めたりできそうです。難しそうな課題も手をつければ、思ったより早く進むでしょう。発表や議論では明確な意見が注目され、次の質問につながるかもしれません。早く終えた部分は、送る前に一度だけ読み直してください。速さに正確さも加われば、安心して任せられると評価されそうです。 |
+| 분야 풀이 | 논리적으로 따지는 문제가 빠르게 풀릴 수 있어. 토론이나 발표에서도 자신의 근거를 분명히 말해 실력을 보여줄 수 있어. 답을 빨리 찾았더라도 상대의 질문은 끝까지 들어줘.<br><br>직장에서는 지체된 일을 빠르게 판단하고 진행할 수 있어. 의견을 강하게 말하면 필요한 결정은 빨라져도 동료와의 대화가 거칠어질 수 있어. | Questions requiring logical reasoning could be quick to solve. Clear explanations of your evidence may also show your ability in a debate or presentation. Even if you've found an answer quickly, hear the other person's question to the end.<br><br>At work, you could make a quick decision and get a delayed task moving. Stating your view forcefully may speed up a necessary decision while making the conversation with colleagues harsher. | 論理的に考える問題が、速く解けそうです。議論や発表でも、根拠をはっきり話し、実力を示せるでしょう。答えをすぐ見つけても、相手の質問は最後まで聞いてください。<br><br>職場では、遅れている仕事について素早く判断し、進められそうです。意見を強く言うと、必要な決定は速くなっても、同僚とのやり取りは険しくなるかもしれません。 |
 
 ## swords.13 · 역방향
 
 내부 ID: `work.swords.13.reversed`
 
-카드 의미: 경험의 상처가 새로운 판단을 지나치게 엄격하게 만들 수 있음. 원전의 악의 단정을 피하고 말의 날카로움과 편향을 살핌.
+카드 의미: 편견, 악의와 날카로운 태도, 기만과 왜곡된 판단
 
-분야 해석: 날카로운지적과위축
+분야 해석: 주의: 선입견으로 놓치는 설명, 날카로운 평가와 협업 악화
 
-관찰: 작은 실수에 엄격한 말을 듣거나 내 피드백이 차갑게 전해질 수 있어. / 정확한 내용을 말해도 표현 때문에 상대가 설명을 더 하지 않으려 할 거야. / 뒤늦게 이유를 들으면 놓친 조건이 있었다는 걸 알게 될 수 있는 날이야.
+관찰: 편견 / 악의와 날카로운 태도 / 기만과 왜곡된 판단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 작은 실수에 엄격한 말을 듣거나 내 피드백이 차갑게 전해질 수 있어. 정확한 내용을 말해도 표현 때문에 상대가 설명을 더 하지 않으려 할 거야. 뒤늦게 이유를 들으면 놓친 조건이 있었다는 걸 알게 될 수 있는 날이야. 지적하기 전에 어떻게 생각했는지 한 번 물어봐. 풀이를 들은 뒤에는 무조건 틀렸다고 보던 부분에도 고칠 방향이 분명해질 수 있어. | A small error may draw strict words, or your feedback could come across coldly. Even accurate points might make someone reluctant to explain further because of the tone. A later explanation could reveal a condition you'd missed. Ask how they approached it before criticizing. Hearing their reasoning may clarify how to correct a part you'd dismissed as simply wrong. | 小さな間違いに厳しい言葉を受けたり、自分の指摘が冷たく伝わったりしそうです。内容は正しくても、言い方で相手が説明を続けたくなくなるかもしれません。後で理由を聞くと、見落としていた条件があったと分かるでしょう。指摘する前に、どう考えたのか一度尋ねてみてください。考え方を聞けば、ただ間違いだと思った部分も、どう直すかはっきりしそうです。 |
+| 분야 풀이 | 싫어하는 과목이나 설명이라고 미리 판단하면 이해할 기회를 놓칠 수 있어. 다른 풀이가 나왔을 때 틀렸다고 단정하면 자신의 오류도 남아 있어.<br><br>직장에서는 냉소적인 말이나 일방적인 평가로 협업이 불편해질 수 있어. 지적할 점이 있더라도 동료의 능력 전체를 낮춰 말하지 마. 실제로 고칠 부분에 대해 이야기해줘. | Prejudging a subject or explanation because you dislike it could mean missing a chance to understand. Declaring a different solution wrong may leave your own error uncorrected.<br><br>At work, cynical remarks or one-sided assessments could make cooperation uncomfortable. Even if something needs correcting, don't dismiss a colleague's entire ability. Talk about the part that actually needs changing. | 嫌いな科目や解説だと先に決めつけると、理解する機会を逃すかもしれません。別の解き方をすぐ間違いだと考えると、自分の誤りも残ってしまいます。<br><br>職場では、皮肉な言葉や一方的な評価で、協力しにくくなるかもしれません。指摘する点があっても、同僚の能力すべてを否定するような言い方は控えてください。実際に直す部分について話しましょう。 |
 
 ## swords.13 · 정방향
 
 내부 ID: `work.swords.13.upright`
 
-카드 의미: 경험에 근거한 독립적 판단과 분명한 경계. 원전 인물의 상실 경험을 성별 없이 명료한 말과 통찰로 현대화.
+카드 의미: 분리와 거리, 슬픔을 겪은 뒤의 태도, 감정에 휩쓸리지 않는 독립적 판단이라는 현대 해석
 
-분야 해석: 명료한분석과피드백
+분야 해석: 좋음: 핵심을 구별하는 이해, 명확한 판단과 필요한 업무 선택
 
-관찰: 복잡한 설명에서 중요한 부분을 골라내기 쉬운 날이야. / 그럴듯해 보이는 답에서도 근거가 부족한 곳을 알아차릴 수 있어. / 발표나 검토 자리에서는 짧고 정확한 의견이 도움이 된다는 말을 들을 거야.
+관찰: 분리와 거리 / 슬픔을 겪은 뒤의 태도 / 감정에 휩쓸리지 않는 독립적 판단이라는 현대 해석
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 복잡한 설명에서 중요한 부분을 골라내기 쉬운 날이야. 그럴듯해 보이는 답에서도 근거가 부족한 곳을 알아차릴 수 있어. 발표나 검토 자리에서는 짧고 정확한 의견이 도움이 된다는 말을 들을 거야. 고칠 점을 말할 때는 어떤 부분인지 예시 하나를 함께 보여줘. 명확한 피드백 덕분에 상대도 해야 할 일을 빠르게 이해할 수 있을 거야. | Picking out what matters in a complicated explanation may come easily today. You could spot weak evidence even in an answer that sounds convincing. A presentation or review may bring recognition that your brief, accurate view helps. Show one example when explaining what needs correcting. Clear feedback could help the other person quickly understand what to do. | 複雑な説明から、大事な部分を見つけやすい日です。もっともらしい答えでも、根拠の足りないところに気づけるでしょう。発表や確認の場では、短く正確な意見が役立つと言われそうです。直す点を伝えるときは、具体例を一つ一緒に見せてください。明確な助言で、相手も何をすればよいか早く理解できるでしょう。 |
+| 분야 풀이 | 문제에서 필요한 정보와 불필요한 내용을 잘 구별할 수 있어. 감으로 답을 고르기보다 근거를 따지면 복잡한 내용도 정확히 이해하기 좋아.<br><br>직장에서는 감정에 치우치지 않고 필요한 판단을 내려 좋은 평가를 받을 수 있어. 계속할 일과 그만둘 일을 분명히 나누면 업무도 가벼워질 수 있어. 사실을 설명하되 말투까지 차갑게 할 필요는 없어. | You could distinguish useful information in a question from unnecessary detail. Examining the reasoning instead of choosing an answer by instinct may help you understand complicated material accurately.<br><br>At work, a necessary decision made without being swayed by emotion could earn a good assessment. Clearly separating tasks to continue from those to stop may lighten the workload too. You can explain the facts without a cold tone. | 問題に必要な情報と、不要な内容をうまく区別できそうです。感覚で答えを選ぶより、根拠を考えると、複雑な内容も正確に理解しやすいでしょう。<br><br>職場では、感情に偏らず必要な判断をし、よい評価を受けられそうです。続ける仕事とやめる仕事を明確に分ければ、業務も軽くなるかもしれません。事実を伝えるときも、口調まで冷たくする必要はありません。 |
 
 ## swords.14 · 역방향
 
 내부 ID: `work.swords.14.reversed`
 
-카드 의미: 원칙을 내세워 타인의 사정이나 반대 근거를 지움. 원전의 권력 남용을 일상의 독단적 말과 선택으로 제한.
+카드 의미: 잔혹하거나 일방적인 태도, 권위의 왜곡, 불성실한 의도
 
-분야 해석: 엄격한기준과다른근거
+분야 해석: 주의: 왜곡된 판단과 고집, 일방적인 평가·지시의 갈등
 
-관찰: 정답이나 정해진 방식만 강조하는 말에 의견을 내기 어려울 수 있어. / 상황이 달라졌다는 설명이 빠져 처음 정한 방법이 잘 맞지 않을 거야. / 구체적인 예시를 보면 다른 사람도 바꿔야 할 부분을 알아차릴 수 있는 날이야.
+관찰: 잔혹하거나 일방적인 태도 / 권위의 왜곡 / 불성실한 의도
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 정답이나 정해진 방식만 강조하는 말에 의견을 내기 어려울 수 있어. 상황이 달라졌다는 설명이 빠져 처음 정한 방법이 잘 맞지 않을 거야. 구체적인 예시를 보면 다른 사람도 바꿔야 할 부분을 알아차릴 수 있는 날이야. 반대하는 이유는 길게 말하기보다 실제 문제 한 가지로 보여줘. 누가 더 옳은지보다 무엇이 작동하지 않는지 분명해지면 수정할 여지가 생길 수 있어. | Insistence on one correct answer or fixed method may make offering a view difficult. Without explaining that circumstances have changed, the original method might no longer fit. A concrete example could help others notice what needs changing too. Show one actual problem instead of giving a long explanation of your objection. Clarifying what doesn't work rather than who's more right could leave room for revision. | 正解や決まった方法だけを強調され、意見を出しにくいかもしれません。事情が変わったという説明がなく、最初の方法が合わなくなりそうです。具体例を見れば、ほかの人も変えるべきところに気づくでしょう。反対の理由を長く話すより、実際の問題を一つ示してみてください。誰がより正しいかではなく、何がうまくいかないか分かれば、修正の余地が生まれそうです。 |
+| 분야 풀이 | 자신의 풀이만 맞다고 고집하면 틀린 이유를 받아들이기 어려울 수 있어. 문제에 없는 조건을 덧붙여 답을 정하면 점수를 잃기 쉬워. 배운 근거와 실제 질문을 다시 맞춰봐.<br><br>직장에서는 일방적인 지시나 평가 때문에 갈등이 생길 수 있어. 강하게 말하는 사람의 의견이라도 사실과 다르다면 구체적인 근거를 들어 설명해줘. | Insisting that only your solution is right may make it hard to accept why it's wrong. Adding conditions that aren't in the question could cost you marks. Check again how the reasoning you've learned applies to what's actually being asked.<br><br>At work, one-sided instructions or assessments could cause conflict. Even if someone speaks forcefully, explain with specific evidence when their view differs from the facts. | 自分の解き方だけが正しいと思い込むと、間違えた理由を受け入れにくいかもしれません。問題にない条件を加えて答えを決めると、点を落としがちです。習った根拠と実際の問いを、もう一度照らし合わせましょう。<br><br>職場では、一方的な指示や評価から、対立が生まれるかもしれません。強く主張する人の意見でも、事実と違うなら、具体的な根拠を挙げて説明してください。 |
 
 ## swords.14 · 정방향
 
 내부 ID: `work.swords.14.upright`
 
-카드 의미: 원칙과 근거를 다루는 책임 있는 판단. 원전의 권위·지성을 사람의 지위 아닌 설명 가능한 기준으로 사용.
+카드 의미: 판단과 권위, 이성적 능력, 법과 원칙에 따른 결정
 
-분야 해석: 논리적인설명과평가
+분야 해석: 좋음: 논리와 원칙에 따른 정답, 전문적인 판단과 공정한 평가
 
-관찰: 근거를 들어 설명하는 능력이 눈에 띄는 날이야. / 어려운 질문에도 알고 있는 것과 더 확인할 것을 나누어 답하기 쉬울 거야. / 시험 공부에서는 원리를 분명하게 이해해 비슷한 문제를 비교하는 속도가 붙을 수 있어.
+관찰: 판단과 권위 / 이성적 능력 / 법과 원칙에 따른 결정
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 근거를 들어 설명하는 능력이 눈에 띄는 날이야. 어려운 질문에도 알고 있는 것과 더 확인할 것을 나누어 답하기 쉬울 거야. 시험 공부에서는 원리를 분명하게 이해해 비슷한 문제를 비교하는 속도가 붙을 수 있어. 자신 있는 주장에는 실제 예시 하나를 덧붙여봐. 말의 길이보다 정확한 이유가 신뢰를 주며 좋은 평가로 이어질 수 있어. | Your ability to explain with evidence may stand out today. Even a difficult question could be easier to answer by separating what you know from what needs checking. A clear understanding of principles may help you compare similar exam questions more quickly. Add one real example to a point you're confident about. An accurate reason rather than a long explanation could build trust and lead to positive feedback. | 根拠を示して説明する力が、目に留まりやすい日です。難しい質問にも、知っていることと確認が必要なことを分けて答えやすいでしょう。試験勉強では原理がはっきり分かり、似た問題を比べるのも速くなりそうです。自信のある意見には、実例を一つ添えてみてください。長い話より正確な理由が信頼され、よい評価につながるでしょう。 |
+| 분야 풀이 | 개념과 원칙을 정확히 적용하면 시험에서 좋은 결과를 기대할 수 있어. 논증하거나 판단 이유를 쓰는 문제에서도 답이 분명하게 정리될 수 있어.<br><br>직장에서는 사실을 바탕으로 내린 결정이 신뢰를 얻을 수 있어. 전문 지식을 설명하거나 기준을 세우는 업무에서도 능력을 인정받을 수 있어. 모두에게 같은 기준을 적용해줘. | Accurate use of concepts and principles could bring a good exam result. You may also organise a clear answer when asked to make an argument or explain your reasoning.<br><br>At work, decisions based on facts could earn trust. Explaining specialist knowledge or setting standards may also bring recognition for your ability. Apply the same standards to everyone. | 概念と原則を正確に当てはめると、試験でよい結果を期待できそうです。論証や判断の理由を書く問題でも、答えが明確にまとまるでしょう。<br><br>職場では、事実をもとにした決定が、信頼を得られそうです。専門知識を説明したり、基準を定めたりする業務でも、能力を認められるかもしれません。誰に対しても、同じ基準を使ってください。 |
 
 ## wands.01 · 역방향
 
 내부 ID: `work.wands.01.reversed`
 
-카드 의미: 의욕은 있지만 시작할 조건이 맞지 않거나 관심이 오래 가지 않음. 원전의 지연과 현대적 동기 저하를 재준비로 응용.
+카드 의미: 새 출발의 지체, 의욕 부족
 
-분야 해석: 착수지연
+분야 해석: 지연: 시작이 막힌 과제와 이해 부진, 늦어지는 새 업무
 
-관찰: 시작을 기다리던 일에 안내가 늦어지거나 필요한 자료가 빠질 수 있어. / 의욕은 있는데 바로 손댈 수 없어 오전에는 조금 답답할 거야. / 뒤늦게 전달된 설명 덕분에 첫 단계는 금방 따라갈 수 있을 거야.
+관찰: 새 출발의 지체 / 의욕 부족
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 시작을 기다리던 일에 안내가 늦어지거나 필요한 자료가 빠질 수 있어. 의욕은 있는데 바로 손댈 수 없어 오전에는 조금 답답할 거야. 뒤늦게 전달된 설명 덕분에 첫 단계는 금방 따라갈 수 있을 거야. 주변에서 먼저 해본 예시를 보여줘 감을 잡게 되는 일도 있을 거야. 빠진 것이 무엇인지 담당자에게 한 번 확인해봐. | Instructions may arrive late for something you're ready to begin, or a necessary file could be missing. Having the enthusiasm but no way to start may make the morning feel frustrating. Once the explanation arrives, the first step should be easy enough to follow. Someone who's already tried it might show you an example that helps. Ask the person responsible about what's missing. | 始めるのを待っていたことの案内が遅れたり、必要な資料が足りなかったりしそうです。意欲があってもすぐ取りかかれず、午前中は少しもどかしいでしょう。遅れて届いた説明のおかげで、最初の段階はすぐつかめそうです。先に経験した人が見本を見せてくれて、要領がわかることもあるでしょう。足りないものについて、担当の人に一度確認してみてください。 |
+| 분야 풀이 | 새 과제를 시작해도 생각이 정리되지 않아 진도가 더딜 수 있어. 어려운 내용부터 한꺼번에 익히려 하면 기본 개념도 잘 남지 않아. 처음 필요한 설명부터 천천히 따라가봐.<br><br>직장에서는 새로 하려던 일이 바로 시작되지 않을 수 있어. 준비가 덜 됐거나 협조가 늦는다면 오늘 안에 성과를 내겠다고 무리하지 마. | You may start a new assignment but make slow progress because your ideas aren't clear yet. Trying to learn all the difficult material at once could make even the basics hard to retain. Follow the first explanation you need at a steady pace.<br><br>At work, something new you intended to do may not begin straight away. If preparations are incomplete or cooperation is delayed, don't push too hard to produce results today. | 新しい課題を始めても、考えがまとまらず、進みが遅くなるかもしれません。難しい内容から一度に覚えようとすると、基礎も記憶に残りにくくなります。最初に必要な説明から、ゆっくりたどってみましょう。<br><br>職場では、新しく始めるはずの仕事が、すぐには動かないかもしれません。準備が足りなかったり、協力が遅れていたりするなら、今日中に成果を出そうと無理をするのは控えてください。 |
 
 ## wands.01 · 정방향
 
 내부 ID: `work.wands.01.upright`
 
-카드 의미: 새로운 의욕과 시작의 불씨. 원전의 시작·창조를 거창한 결과보다 즉시 해보고 싶은 행동으로 사용.
+카드 의미: 창조, 발상, 시작할 힘
 
-분야 해석: 새과제아이디어
+분야 해석: 좋음: 새로운 과제의 발상과 이해, 기획의 시작과 실행
 
-관찰: 낯선 과제에서 의외로 재미있는 생각이 떠오르는 날이야. / 처음 듣는 주제도 익숙한 경험과 연결되며 빠르게 이해될 수 있어. / 가볍게 낸 의견에 좋은 반응이 돌아와 다음 내용을 설명할 자신감도 붙을 거야.
+관찰: 창조 / 발상 / 시작할 힘
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 낯선 과제에서 의외로 재미있는 생각이 떠오르는 날이야. 처음 듣는 주제도 익숙한 경험과 연결되며 빠르게 이해될 수 있어. 가볍게 낸 의견에 좋은 반응이 돌아와 다음 내용을 설명할 자신감도 붙을 거야. 새 수업이나 모집 소식에서는 도전해보고 싶은 분야가 눈에 들어올 수 있어. 생각이 떠오른 순간 짧게 적어두는 게 좋아. | An unfamiliar assignment could spark a surprisingly interesting idea today. A new subject may connect with something you've experienced, making it quicker to understand. A suggestion you make casually could get a good response and give you confidence to explain more. News of a class or an opening might also introduce a field you'd like to try. Write down the idea while it's fresh. | 慣れない課題から、思いがけず面白い考えが浮かびそうな日です。初めて聞く内容も、自分の経験と結びついて早く理解できるかもしれません。何気なく出した意見への反応がよく、続きを説明する自信もつきそうです。新しい講座や募集の知らせには、挑戦したくなる分野が見つかるでしょう。思いついたことは、その場で短く書き留めておいてください。 |
+| 분야 풀이 | 새 과제의 주제가 떠오르고 처음 배우는 내용도 빠르게 이해할 수 있어. 글쓰기나 실습처럼 직접 해보는 공부에서 성과가 나기 좋은 날이야.<br><br>직장에서는 새 아이디어를 실제로 시작할 기회가 생길 수 있어. 제안한 일에 관심을 보이는 사람이 있어 첫 진행도 수월해질 수 있어. 필요한 준비가 갖춰졌다면 미뤄둔 시도를 해봐. | A topic for a new assignment may come to you, and you could understand unfamiliar material quickly. It's a good day for progress through practical study such as writing or hands-on exercises.<br><br>At work, a chance to put a new idea into practice could appear. Someone's interest in your suggestion may make the first steps easier too. If the necessary preparations are in place, try something you've been postponing. | 新しい課題のテーマが浮かび、初めて学ぶことも速く理解できそうです。作文や実習など、実際に手を動かす勉強で、成果が出やすい日です。<br><br>職場では、新しいアイデアを実行に移す機会がありそうです。提案した仕事に関心を持つ人がいて、最初の段階も進めやすくなるかもしれません。必要な準備ができたなら、見送っていたことを試してみましょう。 |
 
 ## wands.02 · 역방향
 
 내부 ID: `work.wands.02.reversed`
 
-카드 의미: 익숙한 범위에 머물거나 계획의 세부를 보지 못함. 원전의 뜻밖의 사건과 현대의 변화 두려움을 준비의 간극으로 응용.
+카드 의미: 변화 앞의 불안, 망설임
 
-분야 해석: 진로망설임
+분야 해석: 지연과 주의: 선택을 미루는 학습과 준비 부족, 망설이는 업무 결정
 
-관찰: 지원할 곳이나 배울 분야가 여러 가지 마음에 들어 선택이 늦어질 수 있어. / 그 일을 해본 사람의 경험담을 들을 때마다 마음이 바뀌어 잠깐 혼란스러울 거야. / 내 취향을 이야기하는 동안 남의 기대와 다른 부분이 드러날 수 있어.
+관찰: 변화 앞의 불안 / 망설임
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 지원할 곳이나 배울 분야가 여러 가지 마음에 들어 선택이 늦어질 수 있어. 그 일을 해본 사람의 경험담을 들을 때마다 마음이 바뀌어 잠깐 혼란스러울 거야. 오늘은 실제로 해보고 싶은 일이 무엇인지 한 가지로 말해봐. 내 취향을 이야기하는 동안 남의 기대와 다른 부분이 드러날 수 있어. 곧바로 결정하지 않아도 어떤 설명이 더 궁금한지 알게 되는 날이야. | Several places to apply or subjects to study could appeal, making it harder to choose. Hearing from people who've done the work may keep changing your mind and leave you briefly unsure. Put into words the one thing you'd actually like to do. As you explain your taste, you might notice where it differs from other people's hopes for you. Even without deciding immediately, you should learn which option you want to hear more about. | 応募したいところや学びたい分野がいくつもあり、選ぶまでに時間がかかりそうです。その仕事を経験した人の話を聞くたびに気持ちが変わり、少し戸惑うかもしれません。今日は実際にやってみたいことを、一つ言葉にしてみてください。自分の好みを話すうちに、周りの期待と違う部分が見えてきそうです。すぐ決めなくても、どれをもっと知りたいかはわかるでしょう。 |
+| 분야 풀이 | 무엇부터 공부할지 망설이다 실제로 푸는 문제가 적을 수 있어. 교재나 수업 선택만 오래 고민하면 시험 준비 시간이 줄어들어. 이미 배운 내용부터 다시 풀어봐.<br><br>직장에서는 새 일을 시작할지 정하지 못해 기회를 미룰 수 있어. 확인하지 않은 걱정과 실제로 어려운 조건을 나눠보면 판단하기 수월해져. | Hesitating over what to study first may leave you with few questions actually answered. Spending too long choosing books or classes can reduce the time available for exam preparation. Start by trying questions on material you've already learned.<br><br>At work, indecision over starting something new could delay your response to an opportunity. Separating unverified worries from conditions that are actually difficult may make the decision easier. | 何から勉強するか迷い、実際に解く問題が少なくなるかもしれません。教材や授業を選ぶことばかり考えていると、試験の準備に使える時間が減ってしまいます。すでに習った内容から、解き直してみましょう。<br><br>職場では、新しい仕事を始めるか決められず、機会を先送りにするかもしれません。まだ確かめていない心配と、実際に難しい条件を分けると、判断しやすくなります。 |
 
 ## wands.02 · 정방향
 
 내부 ID: `work.wands.02.upright`
 
-카드 의미: 현재 가진 기반에서 다음 방향을 바라보는 계획. 원전의 영역과 대비되는 바람을 선택지를 구체화하는 관점으로 채택.
+카드 의미: 보유한 기반과 바깥 선택지를 바라봄
 
-분야 해석: 지원기회
+분야 해석: 진전: 필요한 공부의 선택과 과제 계획, 장래 업무의 구체화
 
-관찰: 지원하고 싶던 곳이나 새로운 수업에 관한 소식을 들을 수 있어. / 내가 해온 경험이 생각보다 여러 분야에 쓰인다는 걸 알게 될 거야. / 먼저 도전한 사람의 이야기도 막연했던 궁금증을 풀어줄 수 있어.
+관찰: 보유한 기반과 바깥 선택지를 바라봄 / 진전: 필요한 공부의 선택과 과제 계획, 장래 업무의 구체화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 지원하고 싶던 곳이나 새로운 수업에 관한 소식을 들을 수 있어. 내가 해온 경험이 생각보다 여러 분야에 쓰인다는 걸 알게 될 거야. 먼저 도전한 사람의 이야기도 막연했던 궁금증을 풀어줄 수 있어. 익숙한 선택만 생각하던 때보다 앞으로 하고 싶은 일이 구체적으로 떠오를 거야. 관심 있는 모집의 마감일을 한 번 적어둬. | News could arrive about somewhere you'd like to apply or a new course. You may discover that your experience is useful in more fields than you thought. Someone who's already taken the step could also answer a question you've had. What you'd like to do next should become more specific than when you considered only familiar options. Make a note of the deadline for an opening that interests you. | 応募したいところや、新しい講座についての知らせがありそうです。これまでの経験が、思ったより多くの分野で役立つとわかるでしょう。先に挑戦した人の話も、漠然とした疑問を解いてくれそうです。慣れた選択だけを考えていたときより、次にやりたいことが具体的になるでしょう。気になる募集の締め切りを一度書き留めてください。 |
+| 분야 풀이 | 어떤 공부가 필요한지 분명해지고 과제의 방향도 잡힐 수 있어. 수업이나 진학을 고르는 중이라면 자신의 실력과 관심에 맞는 선택을 알아보기 좋아.<br><br>직장에서는 앞으로 맡을 일이나 다른 기회를 구체적으로 논의할 수 있어. 지금까지 쌓은 경험을 보여주면 새로운 역할을 제안받을 수도 있어. 조건을 충분히 비교한 뒤 뜻을 전해봐. | What you need to study may become clear, helping you find a direction for an assignment. If you're choosing classes or where to continue your education, it's a good time to explore options that suit your ability and interests.<br><br>At work, you could discuss future responsibilities or another opportunity in concrete terms. Showing the experience you've built may also lead to an offer of a new role. Compare the conditions carefully before saying what you'd like. | 必要な勉強がはっきりし、課題の方向も決まりそうです。授業や進学先を選んでいるなら、実力と関心に合う選択肢を調べるのによい日です。<br><br>職場では、今後担当する仕事や別の機会を、具体的に話し合えそうです。積み重ねた経験を示すと、新しい役割を提案されるかもしれません。条件を十分に比べてから、考えを伝えましょう。 |
 
 ## wands.03 · 역방향
 
 내부 ID: `work.wands.03.reversed`
 
-카드 의미: 기대한 반응이나 확장이 늦어짐. 원전의 어려움 끝이라는 대안도 고려해 지연 속에서 준비를 다시 보는 뜻을 선택.
+카드 의미: 확장이 지체되어 기대와 실제 진행 사이에 차이가 생김
 
-분야 해석: 응답을기다리는일
+분야 해석: 지연: 응용 문제의 어려움, 기대와 다른 협업 진행
 
-관찰: 제출한 일의 답이나 평가가 늦어져 진도가 멈춘 듯 느껴질 수 있어. / 다른 사람의 확인을 기다리는 시간이 예상보다 길어질 거야. / 대신 앞서 해둔 부분에서 손볼 곳을 발견해 나중의 수고를 줄일 수 있어.
+관찰: 확장이 지체되어 기대와 실제 진행 사이에 차이가 생김 / 지연: 응용 문제의 어려움, 기대와 다른 협업 진행
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 제출한 일의 답이나 평가가 늦어져 진도가 멈춘 듯 느껴질 수 있어. 다른 사람의 확인을 기다리는 시간이 예상보다 길어질 거야. 대신 앞서 해둔 부분에서 손볼 곳을 발견해 나중의 수고를 줄일 수 있어. 오늘 늦게라도 연락이 닿으면 다음 단계가 무엇인지 분명해질 거야. 답을 기다리는 동안 지금 확인할 수 있는 부분만 살펴봐. | A response or assessment of something you've submitted may be late, making progress feel stalled. Waiting for someone else's confirmation could take longer than expected. Meanwhile, you might spot a detail in earlier work that saves effort later. Even a late conversation today could clarify the next step. While waiting, look only at the parts you can check for yourself now. | 提出したものへの返事や評価が遅れ、進んでいないように感じるかもしれません。ほかの人の確認を待つ時間が、予想より長くなりそうです。その間に前に済ませた部分の直しどころが見つかり、後の手間を減らせるでしょう。今日遅くにでも連絡がつけば、次の段階がはっきりしそうです。待つ間は、今自分で確認できるところだけ見ておいてください。 |
+| 분야 풀이 | 기본 문제는 풀려도 응용 문제에서 예상보다 오래 막힐 수 있어. 개념을 조금 바꿔 물었을 때 설명할 수 있는지 확인해봐. 외운 풀이만 따라가면 비슷한 실수가 남기 쉬워.<br><br>직장에서는 기다리던 협조나 답이 늦어 일이 계획보다 더뎌질 수 있어. 다른 사람이 해줄 부분을 확정된 것처럼 약속하지 않는 게 좋아. | Basic questions may go well, but applying the concepts could take longer than expected. Check whether you can explain a concept when the question is phrased a little differently. Following only a memorised solution may leave you making similar mistakes.<br><br>At work, delayed cooperation or replies could make progress slower than planned. Don't make promises about someone else's contribution as though it's already confirmed. | 基本問題は解けても、応用問題で思ったより長く止まるかもしれません。少し角度を変えて聞かれても、その概念を説明できるか確かめましょう。覚えた解き方をなぞるだけでは、似たミスが残りやすくなります。<br><br>職場では、待っている協力や返事が遅れ、仕事が計画よりゆっくり進むかもしれません。人にしてもらう部分まで、決まったこととして約束するのは控えましょう。 |
 
 ## wands.03 · 정방향
 
 내부 ID: `work.wands.03.upright`
 
-카드 의미: 준비한 것을 밖으로 넓히며 반응을 기다림. 원전의 교류·협력을 지금 기반에서 가능한 확장으로 사용.
+카드 의미: 확립된 역량, 교역, 발견, 협력
 
-분야 해석: 넓은무대
+분야 해석: 좋음: 배운 내용을 넓혀 이해함, 외부 협력과 업무 확대
 
-관찰: 준비해온 실력을 더 넓은 곳에 보여줄 기회가 생길 수 있어. / 지원하고 싶던 곳의 소식이나 새로운 배움의 기회에서 반가운 발견이 있을 거야. / 내가 당연하게 여긴 경험을 다른 사람이 특별한 강점으로 봐줄 수 있어.
+관찰: 확립된 역량 / 교역 / 발견
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 준비해온 실력을 더 넓은 곳에 보여줄 기회가 생길 수 있어. 지원하고 싶던 곳의 소식이나 새로운 배움의 기회에서 반가운 발견이 있을 거야. 내가 당연하게 여긴 경험을 다른 사람이 특별한 강점으로 봐줄 수 있어. 멀리 있는 사람과의 대화에서도 앞으로 해볼 만한 일이 구체적으로 떠오를 거야. 기다리는 답이 있다면 정중하게 진행 상황을 물어봐. | A chance to show your skills to a wider audience could appear today. News from somewhere you'd like to apply, or an opportunity to learn, may bring a welcome discovery. An experience you take for granted might look like a particular strength to someone else. A conversation with someone far away could also make a future possibility more specific. If you're waiting for an answer, send a polite inquiry about its progress. | 磨いてきた力を、もっと広いところで見せる機会がありそうです。応募したかったところの知らせや、新しい学びにはうれしい発見があるでしょう。当たり前と思っていた経験を、ほかの人が特別な強みと見てくれるかもしれません。遠くの人との会話でも、これからできそうなことが具体的になりそうです。返事を待っていることがあれば、丁寧に状況を尋ねてみてください。 |
+| 분야 풀이 | 배운 내용을 새로운 유형에 적용하며 이해를 넓힐 수 있어. 다른 사람의 풀이를 비교하면 혼자 생각하지 못한 답도 발견할 수 있어.<br><br>직장에서는 외부와의 협력이 잘되고 맡은 일이 더 넓어질 수 있어. 기다리던 답이나 새로운 제안이 들어와 다음 단계로 진행할 기회가 있어. 기존에 해낸 성과를 분명히 보여줘. | Applying what you've learned to a new question type could broaden your understanding. Comparing other people's solutions may also reveal an answer you hadn't thought of alone.<br><br>At work, cooperation with people outside your organisation could go well and your responsibilities may expand. A reply you've been waiting for or a new offer could let you move to the next stage. Show clearly what you've already achieved. | 習ったことを新しい形式の問題に使い、理解を広げられそうです。人の解き方と比べると、一人では思いつかなかった答えも見つかるかもしれません。<br><br>職場では、外部との協力が進み、担当する仕事が広がりそうです。待っていた返事や新しい提案が届き、次の段階へ進む機会もあるでしょう。これまで上げた成果を、はっきり示してください。 |
 
 ## wands.04 · 역방향
 
 내부 ID: `work.wands.04.reversed`
 
-카드 의미: 기반이나 모임의 방식이 아직 맞춰지지 않음. 원전은 정방향과 비슷한 좋음을 남기므로 기쁨 부재보다 불완전한 준비로 읽음.
+카드 의미: 행복, 증가, 아름다움, 꾸밈; 정방향 의미 유지
 
-분야 해석: 마무리의지연
+분야 해석: 좋음 유지: 작은 과제의 성취, 조용히 안정되는 업무
 
-관찰: 끝났다고 생각한 일에 확인할 것이 하나 남을 수 있어. / 다른 사람의 승인을 기다리느라 축하가 조금 늦어질 수 있는 날이야. / 이미 해낸 부분에 대해서는 주변에서도 수고를 알아줄 거야.
+관찰: 행복 / 증가 / 아름다움
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 끝났다고 생각한 일에 확인할 것이 하나 남을 수 있어. 다른 사람의 승인을 기다리느라 축하가 조금 늦어질 수 있는 날이야. 마지막에 필요한 확인이 무엇인지 한 번만 물어봐. 이미 해낸 부분에 대해서는 주변에서도 수고를 알아줄 거야. 작은 절차가 남았다고 처음부터 다시 해야 하는 상황은 아닐 수 있어. | Something you thought was finished could still need one final check. Waiting for approval may delay the celebration a little today. Ask once what confirmation is still needed. People should still recognize the work you've already done. Having a small procedure left doesn't necessarily mean starting over. | 終わったと思ったことに、確認が一つ残っているかもしれません。誰かの承認を待つため、お祝いが少し遅れそうです。最後に必要な確認は何か、一度だけ聞いてみてください。すでにできた部分の努力は、周りにも伝わっているでしょう。小さな手続きが残っていても、最初からやり直す状況とは限りません。 |
+| 분야 풀이 | 작은 과제나 미뤄둔 공부를 마치며 만족스러운 결과를 얻을 수 있어. 당장 시험이 없더라도 배운 내용을 제대로 이해하고 넘어가기 좋은 날이야.<br><br>직장에서는 요란한 칭찬이 없어도 맡은 일이 무리 없이 끝날 수 있어. 팀 안에서 도움을 주고받으며 편안하게 일할 수 있어. 해낸 일은 동료와 함께 확인해줘. | Finishing a small assignment or some postponed studying could bring a satisfying result. Even without an imminent exam, it's a good day to understand the material properly before moving on.<br><br>At work, your tasks could reach completion smoothly, even without much fanfare. Giving and receiving help within the team may make for a comfortable working day. Check what's been completed with your colleagues. | 小さな課題や後回しにしていた勉強を終え、満足できる結果を得られそうです。すぐに試験がなくても、学んだ内容をしっかり理解してから次へ進むのによい日です。<br><br>職場では、大きく褒められなくても、任された仕事を無理なく終えられそうです。チームで助け合い、落ち着いて働けるかもしれません。できたことを、同僚と一緒に確かめてください。 |
 
 ## wands.04 · 정방향
 
 내부 ID: `work.wands.04.upright`
 
-카드 의미: 안정된 자리에서 나누는 기쁨과 작은 성취. 원전의 안식·조화를 부담 없는 모임과 마무리로 사용.
+카드 의미: 휴식, 평화, 화합, 완성된 일의 기쁨
 
-분야 해석: 작은완료축하
+분야 해석: 좋음: 준비한 학습과 과제의 완성, 팀의 성취와 축하
 
-관찰: 함께 해온 일이 마무리되거나 통과 소식을 나누며 분위기가 밝아질 수 있어. / 주변에서 수고했다는 말을 듣고 그동안의 긴장이 풀릴 거야. / 공부 모임이나 동료들 사이에서도 서로의 작은 성과를 알아주는 날이야.
+관찰: 휴식 / 평화 / 화합
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 함께 해온 일이 마무리되거나 통과 소식을 나누며 분위기가 밝아질 수 있어. 주변에서 수고했다는 말을 듣고 그동안의 긴장이 풀릴 거야. 공부 모임이나 동료들 사이에서도 서로의 작은 성과를 알아주는 날이야. 끝난 일을 돌아보며 다음에도 함께하고 싶다는 마음이 생길 수 있어. 도와준 사람에게 짧게라도 감사 인사를 전해줘. | Finishing something together or sharing news of a successful stage could brighten the atmosphere. Hearing that you've worked hard may release some of the tension you've carried. A study group or colleagues could recognize one another's small achievements today. Looking back on the finished work may make you want to team up again. Send a brief thank-you to someone who helped. | 一緒に進めてきたことが終わったり、通過の知らせを喜び合ったりできそうです。ねぎらいの言葉を聞いて、これまでの緊張がほどけるでしょう。勉強仲間や同僚同士でも、小さな成果を認め合えそうな日です。終えたことを振り返り、次も一緒にやりたいと感じるかもしれません。助けてくれた人には、短くてもお礼を伝えてください。 |
+| 분야 풀이 | 준비해온 과제를 끝내고 좋은 평가를 받을 수 있어. 시험을 앞두었다면 익숙하게 공부한 내용을 안정적으로 떠올릴 수 있는 날이야.<br><br>직장에서는 함께 준비한 일이 마무리되고 성과를 축하할 수 있어. 오래 긴장했던 일이 끝나면서 동료와의 분위기도 편안해질 수 있어. 끝낸 일을 확인한 뒤 잠깐 여유를 즐겨봐. | You could finish an assignment you've been preparing and receive a good assessment. If an exam is approaching, it's a day when familiar study material may come to mind reliably.<br><br>At work, a shared effort could be completed and its success celebrated. Finishing something that's kept you tense for a long time may also make the atmosphere with colleagues more relaxed. Once you've checked that the work is finished, enjoy a little free time. | 準備してきた課題を終え、よい評価を受けられそうです。試験を控えているなら、繰り返し勉強した内容を、落ち着いて思い出せる日です。<br><br>職場では、一緒に準備した仕事が終わり、成果を祝えそうです。長く気を張っていた仕事が片づき、同僚との雰囲気も和らぐかもしれません。完了を確かめたら、少し余裕を楽しみましょう。 |
 
 ## wands.05 · 역방향
 
 내부 ID: `work.wands.05.reversed`
 
-카드 의미: 불필요한 경쟁에서 벗어나거나 갈등을 덮어둠. 원전의 논쟁·기만 중 회피의 비용을 보고 협의로 옮기는 현대적 선택.
+카드 의미: 논쟁, 속임, 모순
 
-분야 해석: 협의성사
+분야 해석: 주의: 말이 맞지 않는 공동 과제, 반복 논쟁과 불분명한 책임
 
-관찰: 계속 엇갈리던 의견이 정리되며 함께할 방법이 보일 수 있어. / 각자 주장하던 답에도 공통점이 있다는 걸 알게 될 거야. / 경쟁하던 사람이 의외로 필요한 정보를 알려주는 일도 있을 수 있어.
+관찰: 논쟁 / 속임 / 모순
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 계속 엇갈리던 의견이 정리되며 함께할 방법이 보일 수 있어. 각자 주장하던 답에도 공통점이 있다는 걸 알게 될 거야. 경쟁하던 사람이 의외로 필요한 정보를 알려주는 일도 있을 수 있어. 상대의 도움이 쓸 만했다면 고맙다고 말해줘. 누가 먼저 맞혔는지보다 함께 해결했다는 기분이 오래 남을 거야. | Opinions that kept clashing could settle into a workable way forward together. You may find common ground in the answers each person has defended. Someone you've competed with might unexpectedly share useful information. Thank them if their help is worthwhile. The satisfaction of solving it together could outlast concern over who got there first. | 食い違っていた意見がまとまり、一緒に進める方法が見つかりそうです。それぞれが主張した答えにも、共通点があるとわかるでしょう。競っていた人が、意外にも役立つ情報を教えてくれるかもしれません。助けが役立ったなら、お礼を伝えてください。誰が先に正解したかより、一緒に解決した気分が長く残りそうです。 |
+| 분야 풀이 | 함께 정한 과제 내용이 사람마다 달라져 결과가 어긋날 수 있어. 서로 무엇을 하기로 했는지 말이 바뀐다면 제출 전에 다시 확인해야 해.<br><br>직장에서는 끝난 줄 알았던 논쟁이 다시 시작될 수 있어. 앞에서는 동의하고 뒤에서는 다른 요구를 하면 업무도 혼란스러워져. 약속한 내용은 관련된 사람들과 함께 확인해줘. | People may produce different versions of an assignment you'd agreed on together, leaving the result inconsistent. If accounts of who agreed to do what keep changing, check again before submission.<br><br>At work, an argument you thought was finished could start again. Agreeing openly but making different demands behind the scenes may leave people confused about the work too. Confirm what was agreed with everyone involved. | 一緒に決めた課題の内容が人によって変わり、仕上がりにずれが出るかもしれません。互いに何をするか話が変わっているなら、提出前に確かめ直す必要があります。<br><br>職場では、終わったと思った論争が、再び始まるかもしれません。その場では同意しても、後で別の要求をすると、業務も混乱してしまいます。約束した内容を、関係する人と一緒に確かめましょう。 |
 
 ## wands.05 · 정방향
 
 내부 ID: `work.wands.05.upright`
 
-카드 의미: 다른 의욕과 의견이 부딪치는 경쟁·연습. 원전의 힘겨루기를 파괴적 적대가 아닌 조정 가능한 마찰로 읽음.
+카드 의미: 경쟁, 모의 대결, 서로 다른 주장
 
-분야 해석: 토론경쟁
+분야 해석: 경쟁과 주의: 토론·문제풀이 경쟁, 여러 의견이 맞서는 업무
 
-관찰: 질문과 의견이 활발하게 오가며 실력을 시험해볼 기회가 생길 수 있어. / 경쟁하는 사람의 좋은 답이 자극이 되어 평소보다 머리가 빠르게 돌아갈 거야. / 토론에서는 처음 생각하지 못한 반론도 들을 수 있는 날이야.
+관찰: 경쟁 / 모의 대결 / 서로 다른 주장
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 질문과 의견이 활발하게 오가며 실력을 시험해볼 기회가 생길 수 있어. 경쟁하는 사람의 좋은 답이 자극이 되어 평소보다 머리가 빠르게 돌아갈 거야. 토론에서는 처음 생각하지 못한 반론도 들을 수 있는 날이야. 의견이 달라도 내용을 따라가다 보면 새로 배운 것이 남을 거야. 내 차례에는 가장 자신 있는 근거 하나로 이야기해봐. | Active questions and discussion could give you a chance to test your skills. A good answer from someone competing with you might get you thinking faster than usual. A debate could bring an objection you hadn't considered today. Following an opinion you disagree with may still leave you having learned something. When it's your turn, speak from one piece of evidence you know well. | 質問や意見が活発に飛び交い、力を試す機会がありそうです。競う相手のよい答えに刺激され、いつもより頭がよく働くでしょう。討論では、考えていなかった反論も聞けそうな日です。意見が違っても内容を追えば、新しく学べることが残るでしょう。自分の番には、一番自信のある根拠を一つ挙げて話してみてください。 |
+| 분야 풀이 | 토론이나 문제풀이에서 다른 사람과 의견이 맞설 수 있어. 준비한 근거가 있다면 자신의 답을 설명하며 실력을 보여줄 수 있어. 상대를 이기려다 설명을 놓치지는 마.<br><br>직장에서는 여러 제안이 경쟁하며 협의가 시끄러워질 수 있어. 말싸움에 힘을 쓰기보다 자신의 안이 어떤 결과를 낼지 보여주면 평가에 도움이 돼. | You may disagree with others in a debate or while solving problems. If you've prepared the reasoning, explaining your answer can show your ability. Don't lose track of the explanation in an effort to beat the other person.<br><br>At work, competing proposals could make discussions heated. Showing what your proposal would achieve may help your assessment more than putting your effort into an argument. | 議論や問題を解く場面で、人と意見がぶつかるかもしれません。準備した根拠があれば、答えを説明して実力を示せそうです。勝つことに気を取られて、説明を忘れないようにしましょう。<br><br>職場では、複数の提案が競い合い、話し合いが騒がしくなるかもしれません。口論に力を使うより、提案でどんな成果を出せるか示すことが、評価に役立ちます。 |
 
 ## wands.06 · 역방향
 
 내부 ID: `work.wands.06.reversed`
 
-카드 의미: 인정이 늦거나 남의 반응에 만족을 맡김. 원전의 늦어진 기대를 스스로의 기준을 회복하는 방향으로 응용.
+카드 의미: 불안, 인정이나 결과의 지연
 
-분야 해석: 평가대기
+분야 해석: 주의와 지연: 기대보다 적은 평가, 늦어지는 성과 인정
 
-관찰: 기대했던 평가가 늦거나 내 수고가 한눈에 드러나지 않을 수 있어. / 남의 결과를 먼저 듣고 괜히 조급해지는 순간도 있을 거야. / 직접 이야기하는 자리에서는 숫자로 보이지 않던 장점을 알아주는 말을 들을 수 있어.
+관찰: 불안 / 인정이나 결과의 지연
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기대했던 평가가 늦거나 내 수고가 한눈에 드러나지 않을 수 있어. 남의 결과를 먼저 듣고 괜히 조급해지는 순간도 있을 거야. 직접 이야기하는 자리에서는 숫자로 보이지 않던 장점을 알아주는 말을 들을 수 있어. 궁금한 평가 기준은 한 가지만 구체적으로 물어봐. 어디가 좋았는지 알게 되면 다음 시도에서 살릴 부분도 분명해질 거야. | An assessment may take longer than hoped, or your effort might not be immediately visible. Hearing about someone else's outcome first could make you unnecessarily impatient. A direct conversation may bring praise for a strength that a number didn't show. Ask one specific question about the criteria you're unsure of. Knowing what was good gives you something clear to use in your next attempt. | 待っていた評価が遅れたり、努力が一目では伝わらなかったりしそうです。人の結果を先に聞いて、つい焦る場面もあるでしょう。直接話す場では、数字に出ない長所を認める言葉が聞けそうです。気になる評価基準を、一つだけ具体的に聞いてみてください。よかった点がわかれば、次の挑戦で生かす部分もはっきりするでしょう。 |
+| 분야 풀이 | 잘 준비했다고 느껴도 성적이나 발표 평가가 기대에 못 미칠 수 있어. 다른 사람의 칭찬만 믿고 부족한 부분을 넘겼다면 시험에서 드러나기 쉬워.<br><br>직장에서는 성과를 내도 인정이나 답이 늦게 돌아올 수 있어. 반응이 없다는 이유로 동료의 기여를 낮춰 말하지 마. 자신이 해낸 일을 구체적으로 전하는 게 좋아. | Even if you feel well prepared, your marks or presentation assessment may fall short of your hopes. Gaps you ignored because others praised you could become clear in an exam.<br><br>At work, recognition or a reply may be slow even when you've produced results. Don't belittle a colleague's contribution because you haven't had a response. Explain specifically what you've achieved. | 十分準備したつもりでも、成績や発表の評価が期待に届かないかもしれません。人の褒め言葉だけを頼りに、足りない部分を見過ごしていたなら、試験で明らかになりやすいでしょう。<br><br>職場では、成果を出しても、認められたり返事が来たりするまで時間がかかるかもしれません。反応がないからと、同僚の貢献を小さく見せるような言い方をするのは控えてください。実際に成し遂げたことを、具体的に伝えるとよさそうです。 |
 
 ## wands.06 · 정방향
 
 내부 ID: `work.wands.06.upright`
 
-카드 의미: 노력이 보이고 인정을 받는 순간. 원전의 승리와 좋은 소식을 작은 성과의 가시성으로 제한.
+카드 의미: 승리, 희망의 실현, 반가운 소식, 인정
 
-분야 해석: 성과인정
+분야 해석: 좋음: 시험·발표의 좋은 결과, 경쟁과 실적에서의 인정
 
-관찰: 평가나 발표에서 그동안의 노력을 알아주는 반응을 기대할 만한 날이야. / 어렵게 익힌 부분을 잘 설명해 주목받는 순간이 생길 수 있어. / 함께 일하는 사람에게서는 맡겨도 되겠다는 신뢰를 얻을 거야.
+관찰: 승리 / 희망의 실현 / 반가운 소식
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 평가나 발표에서 그동안의 노력을 알아주는 반응을 기대할 만한 날이야. 어렵게 익힌 부분을 잘 설명해 주목받는 순간이 생길 수 있어. 함께 일하는 사람에게서는 맡겨도 되겠다는 신뢰를 얻을 거야. 시험을 준비해왔다면 익숙하게 풀리는 문제에서 자신감을 느낄 수 있어. 좋은 반응을 얻은 부분은 다음에도 쓸 수 있게 남겨둬. | An assessment or presentation could bring recognition for your effort today. Explaining something you've worked hard to learn may draw favorable attention. People working with you could feel more confident about entrusting you with a task. If you've prepared for an exam, familiar questions may give you reassurance. Keep a record of the part that received a good response so you can use it again. | 評価や発表で、これまでの努力を認めてもらえそうな日です。苦労して覚えたことをうまく説明し、注目される瞬間があるでしょう。一緒に働く人から、任せても大丈夫という信頼も得られそうです。試験の準備をしてきたなら、慣れた問題を解いて自信を感じられるかもしれません。よい反応があった部分は、次にも使えるよう残しておいてください。 |
+| 분야 풀이 | 시험이나 발표에서 준비한 실력을 인정받을 수 있어. 경쟁이 있는 평가에서도 좋은 결과를 기대해볼 만해. 자신 있게 답하되 마지막 확인까지 잊지 마.<br><br>직장에서는 실적이 눈에 띄고 제안이 좋은 평가를 받을 수 있어. 그동안 맡아온 일이 성과로 돌아오며 새로운 역할을 맡을 기회도 생길 수 있어. | An exam or presentation could bring recognition for the ability you've developed through preparation. A good result is worth hoping for even in a competitive assessment. Answer confidently and remember the final check.<br><br>At work, your results may stand out and a proposal could be well received. Work you've been handling for some time may pay off, bringing a chance to take on a new role too. | 試験や発表で、準備してきた実力を認められそうです。競争のある評価でも、よい結果を期待できるでしょう。自信を持って答えながら、最後の確認も忘れないでください。<br><br>職場では、実績が目に留まり、提案もよい評価を受けそうです。続けて担当した仕事が成果になり、新たな役割を任される機会もあるかもしれません。 |
 
 ## wands.07 · 역방향
 
 내부 ID: `work.wands.07.reversed`
 
-카드 의미: 방어할 것이 너무 많아 지치거나 기준을 쉽게 내줌. 원전의 난처함을 중요도와 대응 범위 재정리로 사용.
+카드 의미: 혼란, 불안, 우유부단, 버티는 힘의 약화
 
-분야 해석: 질문과부하
+분야 해석: 주의: 질문과 의견에 흔들리는 답, 압박으로 미루는 업무와 요구 수용
 
-관찰: 여러 질문을 한꺼번에 받으며 알고 있던 내용도 잠깐 헷갈릴 수 있어. / 내 설명이 잘못됐다기보다 서로 궁금한 부분이 달라 대화가 길어지는 날이야. / 차례를 나눠 이야기하면 생각보다 간단한 질문이었다는 걸 알 수 있어.
+관찰: 혼란 / 불안 / 우유부단
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 여러 질문을 한꺼번에 받으며 알고 있던 내용도 잠깐 헷갈릴 수 있어. 내 설명이 잘못됐다기보다 서로 궁금한 부분이 달라 대화가 길어지는 날이야. 차례를 나눠 이야기하면 생각보다 간단한 질문이었다는 걸 알 수 있어. 동료나 함께 배우는 사람이 한 부분을 맡아줘 부담이 줄어들 수도 있어. 한 번에 답하기 어렵다면 질문을 하나씩 받아줘. | Several questions at once could briefly confuse you about something you know. The conversation may run long because people want to understand different parts, rather than because your explanation was wrong. Taking turns could reveal that the questions were simpler than they sounded. A colleague or fellow learner might take one part and reduce the pressure. Ask to handle one question at a time if answering everything is difficult. | 一度にいくつも質問され、知っている内容でも少し混乱するかもしれません。説明が間違っているというより、皆の知りたい部分が違うため話が長くなりそうです。順番に話せば、思ったより単純な質問だったとわかるでしょう。同僚や一緒に学ぶ人が一部を引き受け、負担が軽くなることもありそうです。一度に答えにくければ、質問を一つずつ受けてください。 |
+| 분야 풀이 | 발표 중 질문이 이어지면 아는 내용도 자신 없이 말할 수 있어. 다른 사람의 답이 단호하다고 자신의 근거까지 버리지는 마. 잠시 생각한 뒤 확실한 내용부터 설명해줘.<br><br>직장에서는 요구가 한꺼번에 들어와 원래 하던 일을 놓칠 수 있어. 모두 받아주겠다고 답하면 어느 일도 제때 마치기 어려워. | A series of questions during a presentation may make you sound unsure even about what you know. Someone else's firm answer isn't a reason to discard your own evidence. Take a moment to think, then start with what you're certain of.<br><br>At work, requests arriving all at once could distract you from your existing tasks. Agreeing to all of them may make it hard to finish any on time. | 発表中に質問が続くと、知っている内容まで自信なさそうに話すかもしれません。人の答えが断定的でも、持っている根拠まで捨てることはありません。少し考えてから、確かなことを説明しましょう。<br><br>職場では、要求が一度に来て、もとの仕事を見落とすかもしれません。すべて引き受けると答えると、どの仕事も期限どおりには終えにくくなります。 |
 
 ## wands.07 · 정방향
 
 내부 ID: `work.wands.07.upright`
 
-카드 의미: 외부 요구 앞에서 자기 자리를 지킴. 원전의 유리한 위치와 경쟁을 근거 있는 주장과 경계로 응용.
+카드 의미: 용기, 유리한 입장에서 자신의 몫을 지킴, 논의
 
-분야 해석: 의견의설득력
+분야 해석: 좋음: 어려운 질문에 실력 유지, 반대 속에서도 인정받는 제안
 
-관찰: 내 의견에 질문이 들어와도 근거를 설명하며 좋은 인상을 남길 수 있어. / 준비해온 부분에서는 예상 밖의 질문에도 답이 떠오를 거야. / 비슷한 생각을 가진 사람이 말을 보태줘 혼자 나선 부담이 줄어들 수 있어.
+관찰: 용기 / 유리한 입장에서 자신의 몫을 지킴 / 논의
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 내 의견에 질문이 들어와도 근거를 설명하며 좋은 인상을 남길 수 있어. 준비해온 부분에서는 예상 밖의 질문에도 답이 떠오를 거야. 비슷한 생각을 가진 사람이 말을 보태줘 혼자 나선 부담이 줄어들 수 있어. 경쟁하는 자리에서는 평소의 꾸준함이 눈에 띄는 날이야. 답할 때는 가장 확실히 아는 근거 하나부터 꺼내봐. | Questions about your opinion could become a chance to make a good impression with your reasoning. On something you've prepared, an answer may come even to an unexpected question. A person with similar thoughts could speak up, easing the burden of standing alone. In a competitive setting, your steady effort is likely to be noticeable today. Begin your answer with the evidence you know best. | 自分の意見に質問が来ても、根拠を説明してよい印象を残せそうです。準備してきた部分なら、予想外の問いにも答えが浮かぶでしょう。似た考えの人が言葉を添えてくれて、一人で出る負担が軽くなるかもしれません。競う場では、普段の地道さが目立つ日です。答えるときは、一番確かにわかる根拠から話してみてください。 |
+| 분야 풀이 | 어려운 질문을 받아도 준비한 내용을 설명해 좋은 평가를 받을 수 있어. 토론이나 발표에서는 근거를 갖춘 답이 힘을 얻는 날이야.<br><br>직장에서는 반대 의견이 있어도 자신의 제안이나 성과를 인정받을 수 있어. 이미 해낸 결과가 있다면 차분히 보여줘. 다른 의견까지 무조건 막기보다 필요한 부분은 받아들이는 게 좋아. | Explaining what you've prepared could earn a good assessment even when the questions are difficult. A well-supported answer may be particularly convincing in a debate or presentation today.<br><br>At work, your proposal or results could win recognition despite opposition. Calmly show any results you already have. Accept useful suggestions instead of rejecting every different view. | 難しい質問にも、準備した内容を説明し、よい評価を受けられそうです。議論や発表では、根拠のある答えに説得力が生まれる日です。<br><br>職場では、反対意見があっても、提案や成果を認められそうです。すでに上げた成果があるなら、落ち着いて示してください。別の意見をすべて退けず、必要な部分は受け入れるとよさそうです。 |
 
 ## wands.08 · 역방향
 
 내부 ID: `work.wands.08.reversed`
 
-카드 의미: 속도가 맞지 않는 지연이나 전달 혼선. 원전의 질투·논쟁보다 급한 소통의 엇갈림을 현대적으로 채택.
+카드 의미: 질투, 내부 다툼, 말의 충돌
 
-분야 해석: 전달누락
+분야 해석: 주의: 급한 풀이와 설명 혼선, 엇갈린 메시지와 동료 다툼
 
-관찰: 급하게 전달된 말에서 중요한 조건이 하나 빠질 수 있어. / 서로 다른 설명을 듣고 시작해 중간에 방향을 다시 맞추는 일도 생길 거야. / 원래 안내를 찾아보면 누구의 실수인지 따지지 않고도 답을 찾을 수 있어.
+관찰: 질투 / 내부 다툼 / 말의 충돌
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 급하게 전달된 말에서 중요한 조건이 하나 빠질 수 있어. 서로 다른 설명을 듣고 시작해 중간에 방향을 다시 맞추는 일도 생길 거야. 원래 안내를 찾아보면 누구의 실수인지 따지지 않고도 답을 찾을 수 있어. 의미가 분명하지 않은 요청은 짧게 다시 물어봐. 처음에 잠깐 확인한 덕분에 뒤에서는 오히려 빠르게 진행할 수 있을 거야. | A hurried instruction could leave out one important condition. People might begin from different explanations and need to adjust midway. Finding the original notice may provide an answer without deciding whose mistake it was. Ask briefly about a request that isn't clear. A short check at the start could actually make the later work faster. | 急いで伝えられた話から、大切な条件が一つ抜けるかもしれません。違う説明を聞いて始め、途中で方向を合わせ直すこともありそうです。元の案内を探せば、誰のミスか争わずに答えが見つかるでしょう。意味がはっきりしない依頼は、短く聞き直してください。最初に少し確認したおかげで、後はかえって速く進めそうです。 |
+| 분야 풀이 | 서둘러 읽은 문제나 설명을 잘못 이해해 실수할 수 있어. 친구와 답을 맞추다 다른 말이 많아지면 아는 내용도 헷갈리기 쉬워. 문제에 적힌 조건을 기준으로 다시 확인해봐.<br><br>직장에서는 급히 주고받은 연락이 오해를 만들어 일이 늦어질 수 있어. 짧은 말로 동료를 탓하기보다 무엇이 다르게 전달됐는지 물어봐. | Reading a question or explanation too quickly could lead to a misunderstanding and a mistake. Comparing answers with friends may become confusing even on familiar material if too many different views emerge. Check again against the conditions stated in the question.<br><br>At work, messages exchanged in a rush could cause misunderstandings and delays. Ask what was communicated differently instead of sending a curt message blaming a colleague. | 問題や説明を急いで読み、誤解からミスをするかもしれません。友人と答えを合わせる中で違う説明が増えると、知っている内容まで混乱しがちです。問題に書かれた条件をもとに、確かめ直しましょう。<br><br>職場では、急いで交わした連絡から誤解が生まれ、仕事が遅れるかもしれません。短い言葉で同僚を責めるより、何が違って伝わったか、聞いてみてください。 |
 
 ## wands.08 · 정방향
 
 내부 ID: `work.wands.08.upright`
 
-카드 의미: 소식과 행동이 빠르게 이어지는 진행. 원전의 신속함을 응답·일정이 맞물리는 순간으로 사용.
+카드 의미: 빠른 활동, 전달, 진전, 사랑의 화살
 
-분야 해석: 신속한진행
+분야 해석: 좋음: 빠른 이해와 문제풀이, 신속한 연락과 업무 진전
 
-관찰: 기다리던 피드백이 빠르게 돌아와 멈춘 일을 이어갈 수 있어. / 여러 사람의 일정이 맞아 짧은 회의에서도 결정이 나는 날이야. / 시험공부에서는 앞서 익힌 내용이 연결돼 문제를 푸는 속도가 붙을 수 있어.
+관찰: 빠른 활동 / 전달 / 진전
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 기다리던 피드백이 빠르게 돌아와 멈춘 일을 이어갈 수 있어. 여러 사람의 일정이 맞아 짧은 회의에서도 결정이 나는 날이야. 시험공부에서는 앞서 익힌 내용이 연결돼 문제를 푸는 속도가 붙을 수 있어. 질문을 보낸 곳에서도 핵심을 바로 짚어주는 답을 받을 거야. 속도가 붙더라도 제출 전 마지막 확인은 남겨둬. | Quick feedback could let you return to something that had stopped. Several schedules may align well enough for even a brief meeting to reach a decision. In exam study, earlier learning could connect and make answers come faster. A reply to a question may also get straight to the useful point. Leave time for a final check before submitting, even while things are moving quickly. | 待っていた意見が早く返り、止まっていたことを続けられそうです。皆の予定が合い、短い会議でも決定できる日でしょう。試験勉強では前に覚えた内容が結びつき、解く速さが上がるかもしれません。質問した先からも、要点をすぐ示す返事がありそうです。速く進んでも、提出前の最後の確認は残してください。 |
+| 분야 풀이 | 새 내용을 빠르게 이해하고 문제도 평소보다 수월하게 풀 수 있어. 막혀 있던 과제가 풀리면서 시험 준비에도 여유가 생길 수 있어.<br><br>직장에서는 기다리던 답이 오고 일이 빠르게 진행될 수 있어. 연락과 협의가 잘 이어져 미뤄둔 업무도 한꺼번에 풀릴 수 있어. 좋은 소식을 받았다면 다음에 할 일을 바로 이어가봐. | You may understand new material quickly and solve questions more easily than usual. Progress on a difficult assignment may leave you more time for exam preparation too.<br><br>At work, a reply you've been waiting for could arrive and tasks may move quickly. Smooth communication and discussion could clear several postponed tasks at once. When good news comes, follow through with the next step. | 新しい内容を速く理解し、問題も普段より楽に解けそうです。行き詰まっていた課題が進み、試験の準備にも余裕が生まれるかもしれません。<br><br>職場では、待っていた返事が届き、仕事が速く進みそうです。連絡と相談が順調につながり、滞っていた業務も一気に片づくかもしれません。よい知らせを受けたら、次の仕事へすぐに進んでみましょう。 |
 
 ## wands.09 · 역방향
 
 내부 ID: `work.wands.09.reversed`
 
-카드 의미: 지속해야 한다는 압박이나 지나친 경계가 부담이 됨. 원전의 장애를 포기 단정 없이 범위 조정으로 사용.
+카드 의미: 장애, 지나친 경계, 방법의 경직
 
-분야 해석: 지친집중력
+분야 해석: 주의: 경직된 풀이로 인한 정체, 과도한 경계와 반복 업무
 
-관찰: 익숙한 일인데도 집중이 끊겨 같은 부분을 다시 읽을 수 있어. / 이미 고친 곳을 또 의심하며 시간이 오래 걸리는 날이야. / 다른 사람의 눈으로 확인받으면 괜찮은 부분을 다시 손댔다는 걸 알 수 있어.
+관찰: 장애 / 지나친 경계 / 방법의 경직
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 익숙한 일인데도 집중이 끊겨 같은 부분을 다시 읽을 수 있어. 이미 고친 곳을 또 의심하며 시간이 오래 걸리는 날이야. 다른 사람의 눈으로 확인받으면 괜찮은 부분을 다시 손댔다는 걸 알 수 있어. 잠깐 쉬고 돌아온 뒤에는 처음에 안 보이던 답이 떠오를 수도 있을 거야. 오늘은 같은 내용을 끝없이 고치기보다 한 번만 확인받아봐. | Concentration could break during familiar work, leaving you rereading the same part. Doubting a correction you've already made may take extra time today. Another pair of eyes could show that you've been reworking something already fine. An answer you couldn't see earlier might also come after a break. Ask for one check instead of revising the same material endlessly. | 慣れた作業でも集中が切れ、同じところを読み直しそうです。直したところをまた疑って、時間がかかりやすい日でしょう。人に確認してもらうと、よい部分まで直していたとわかるかもしれません。少し休んで戻れば、最初は見えなかった答えも浮かびそうです。今日は同じ内容を際限なく直すより、一度だけ見てもらってください。 |
+| 분야 풀이 | 익숙한 풀이를 버리지 못해 같은 문제에서 계속 막힐 수 있어. 다른 설명이 낯설다고 거부하면 이해할 기회도 줄어들어.<br><br>직장에서는 실수를 걱정해 이미 확인한 일까지 반복하며 시간이 걸릴 수 있어. 동료의 도움도 믿지 못하면 부담이 더 커져. 반드시 다시 볼 부분과 끝낸 부분을 나눠줘. | Holding on to a familiar solution could leave you stuck on the same question. Rejecting a different explanation because it's unfamiliar may reduce your chance to understand.<br><br>At work, worry about mistakes could lead you to repeat checks you've already made and take extra time. Distrusting a colleague's help may add to the burden. Separate what needs another look from what's finished. | 慣れた解き方を手放せず、同じ問題で詰まり続けるかもしれません。別の説明を、なじみがないからと拒むと、理解する機会も減ってしまいます。<br><br>職場では、ミスを心配して、すでに確認した作業まで繰り返し、時間がかかるかもしれません。同僚の助けも信じられないと、負担はさらに大きくなります。必ず見直す部分と、終わった部分を分けてください。 |
 
 ## wands.09 · 정방향
 
 내부 ID: `work.wands.09.upright`
 
-카드 의미: 지친 경험이 있어도 중요한 것을 지키는 끈기와 경계. 원전의 저항력을 과로 아닌 남은 여력의 신중한 사용으로 응용.
+카드 의미: 대응 경험, 반대 앞의 끈기, 경계
 
-분야 해석: 마지막끈기
+분야 해석: 조심스러운 좋음: 경험으로 줄이는 실점, 장애에 대응하며 마무리하는 업무
 
-관찰: 오래 붙잡던 문제의 끝부분을 해결할 수 있는 날이야. / 전에 틀렸던 부분이 다시 나와도 이번에는 이유를 알고 넘어갈 거야. / 지치지 않고 해온 연습이 뜻밖의 질문 앞에서 도움이 될 수 있어.
+관찰: 대응 경험 / 반대 앞의 끈기 / 경계
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 오래 붙잡던 문제의 끝부분을 해결할 수 있는 날이야. 전에 틀렸던 부분이 다시 나와도 이번에는 이유를 알고 넘어갈 거야. 지치지 않고 해온 연습이 뜻밖의 질문 앞에서 도움이 될 수 있어. 작은 진전이라도 기다리던 만큼 뿌듯하게 느껴질 거야. 남은 한 부분을 끝낸 뒤에는 잠깐 쉬어줘. | You could solve the final part of a question you've worked on for a long time. A point you've missed before may return, but this time you'll understand why. Persistent practice could help with an unexpected question. Even a small advance may feel especially satisfying after the wait. Finish the remaining part, then take a short break. | 長く取り組んだ問題の、最後の部分を解決できそうな日です。前に間違えたところが出ても、今回は理由がわかるでしょう。続けてきた練習が、予想外の質問にも役立つかもしれません。小さな進歩でも、待っていた分うれしく感じられそうです。残りの一部分を終えたら、少し休んでください。 |
+| 분야 풀이 | 전에 틀렸던 유형을 알아보고 시험에서 실점을 줄일 수 있어. 어려운 문제가 다시 나와도 끝까지 살펴보면 해결할 수 있는 부분이 보여. 지난 경험을 떠올리며 차분히 풀어봐.<br><br>직장에서는 예상했던 문제가 생겨도 경험을 바탕으로 대응할 수 있어. 마지막까지 맡은 일을 챙기면 어렵게 쌓은 성과를 지킬 수 있어. | Recognising a question type you've got wrong before could help you lose fewer marks in an exam. Even when a difficult problem returns, reading it through may reveal parts you can solve. Draw on the previous experience and work through it calmly.<br><br>At work, experience could help you respond to a problem you'd anticipated. Looking after your responsibilities to the very end can protect hard-won results. | 前に間違えた形式だと気づき、試験で失点を減らせそうです。難しい問題が再び出ても、最後まで読むと、解決できる部分が見えてくるでしょう。過去の経験を思い出し、落ち着いて解いてみましょう。<br><br>職場では、予想していた問題が起きても、経験を生かして対応できそうです。最後まで担当の仕事に気を配ると、苦労して積み重ねた成果を守れるでしょう。 |
 
 ## wands.10 · 역방향
 
 내부 ID: `work.wands.10.reversed`
 
-카드 의미: 필요 없는 짐을 내려놓거나 책임을 나누는 현대적 해방 독해. 원전의 장애와 달리 부담을 줄일 행동의 여지에 초점.
+카드 의미: 역할을 나누지 못한 부담, 어려움
 
-분야 해석: 업무분담
+분야 해석: 주의: 감당하지 못한 과제 누락, 역할 분담 실패로 지연되는 업무
 
-관찰: 한 사람이 다 하던 일을 나눠 맡으며 진행이 편해질 수 있어. / 묻기 어려웠던 부분에 다른 사람이 먼저 도움을 건넬 거야. / 불필요한 절차가 줄거나 제출 범위가 간단해지는 소식도 기대할 만해.
+관찰: 역할을 나누지 못한 부담 / 어려움
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 한 사람이 다 하던 일을 나눠 맡으며 진행이 편해질 수 있어. 묻기 어려웠던 부분에 다른 사람이 먼저 도움을 건넬 거야. 불필요한 절차가 줄거나 제출 범위가 간단해지는 소식도 기대할 만해. 넘겨줄 일은 어디까지 했는지 짧게 적어줘. 혼자 고생하던 때보다 내용에 집중할 여유가 생기는 날이야. | Dividing work one person used to handle could make progress easier. Someone may offer help with a part you've found difficult to ask about. A removed procedure or simpler submission requirement could also bring welcome news. Briefly note how far you've reached when handing something over. More room to focus on the content should follow once you aren't struggling alone. | 一人でしていたことを分け合い、進めやすくなりそうです。聞きにくかったところに、先に助けを差し出してもらえるでしょう。余計な手順が減ったり、提出範囲が簡単になったりする知らせも期待できそうです。渡す仕事には、どこまで済んだか短く書いてください。苦労を一人で抱えていたときより、内容に集中する余裕が生まれるでしょう。 |
+| 분야 풀이 | 과제를 한꺼번에 떠안으면 제출을 놓치거나 공부가 부족해질 수 있어. 조별 과제에서 다른 사람의 몫까지 맡고 있다면 자신의 시험 준비도 밀리기 쉬워.<br><br>직장에서는 일이 과하게 몰려 어느 업무도 제대로 끝내기 어려울 수 있어. 서로 맡기로 한 일을 미루면 한쪽에 부담이 쌓여. 혼자 해결하기 힘든 양이라면 늦기 전에 알려줘. | Taking on assignments all at once could mean missing a submission or leaving too little time to study. Handling other people's shares of a group assignment may also delay your own exam preparation.<br><br>At work, an excessive workload could make it hard to finish any task properly. Putting off agreed responsibilities may leave the burden piling up on one person. If it's too much to handle alone, say so before it's too late. | 課題を一度に抱え込むと、提出を忘れたり、勉強が足りなくなったりするかもしれません。グループ課題で人の分まで担っているなら、試験の準備も遅れがちです。<br><br>職場では、仕事が集中しすぎて、どの業務もきちんと終えにくくなりそうです。それぞれ担当すると決めた仕事を延ばすと、一方に負担がたまってしまいます。一人でこなせない量なら、早めに伝えてください。 |
 
 ## wands.10 · 정방향
 
 내부 ID: `work.wands.10.upright`
 
-카드 의미: 많은 책임과 성취 뒤의 무거운 짐. 원전의 억압·성공의 부담을 혼자 떠안은 양의 문제로 사용.
+카드 의미: 많은 책임, 성과에 따르는 무게
 
-분야 해석: 일의집중
+분야 해석: 성과와 부담: 많은 과제와 학습량, 성과에 따라 늘어난 책임
 
-관찰: 여러 일이 한꺼번에 들어와 나를 찾는 사람이 많을 수 있어. / 믿고 맡긴다는 말은 반갑지만 실제로 해야 할 양은 만만하지 않을 거야. / 다른 사람을 돕다 내 과제가 늦어지는 순간도 있을 수 있어.
+관찰: 많은 책임 / 성과에 따르는 무게
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 여러 일이 한꺼번에 들어와 나를 찾는 사람이 많을 수 있어. 믿고 맡긴다는 말은 반갑지만 실제로 해야 할 양은 만만하지 않을 거야. 다른 사람을 돕다 내 과제가 늦어지는 순간도 있을 수 있어. 일의 양을 이야기하면 함께할 사람이나 바꿀 기한이 보일 거야. 지금 끝낼 수 있는 양을 숨기지 말고 알려줘. | Several tasks could arrive at once, with more people looking for your help. Being trusted is welcome, though the actual amount of work may be substantial. Helping others could delay your own assignment. Discussing the workload may reveal someone who can join in or a deadline that can move. Say honestly how much you can finish now. | いくつもの仕事が一度に来て、頼りにする人が増えそうです。信頼して任せると言われるのはうれしくても、量は少なくないでしょう。人を助けている間に、自分の課題が遅れることもありそうです。量を話せば、一緒にする人や変えられる期限が見つかるかもしれません。今終えられる量を、隠さず伝えてください。 |
+| 분야 풀이 | 공부한 성과는 있어도 과제가 많아 여유가 부족할 수 있어. 한 과목을 마친 뒤 바로 다른 시험 준비가 이어지면 지치기 쉬워. 오늘 끝낼 분량을 무리하게 늘리지는 마.<br><br>직장에서는 일을 잘한 만큼 더 많은 책임을 맡을 수 있어. 이미 할 일이 많다면 새 부탁까지 혼자 받기보다 나눌 사람을 찾아봐. | Your studying may be paying off, but numerous assignments could leave you little spare time. Moving straight from one subject to preparation for another exam can be tiring. Don't increase today's workload beyond what you can manage.<br><br>At work, doing well could lead to more responsibility. If you already have a lot to do, find someone to share a new request with instead of accepting it alone. | 勉強の成果はあっても、課題が多く、余裕が足りないかもしれません。一科目を終えた直後に別の試験の準備が続くと、疲れやすくなります。今日終える量を、無理に増やすのは控えましょう。<br><br>職場では、仕事をよくこなした分、さらに多くの責任を任されるかもしれません。すでに仕事が多いなら、新しい頼みまで一人で引き受けず、分担できる人を探しましょう。 |
 
 ## wands.11 · 역방향
 
 내부 ID: `work.wands.11.reversed`
 
-카드 의미: 흥미는 있지만 계획이 흩어지거나 소식의 의미를 서두름. 원전의 불안정한 안내를 시작 조건의 확인으로 사용.
+카드 의미: 불안정, 우유부단, 확인안된 이야기
 
-분야 해석: 들뜨는관심
+분야 해석: 주의: 확인 안 된 학습 정보, 바뀌는 업무 소식과 계획
 
-관찰: 흥미로운 소식이 많아 공부나 일에서 관심이 자꾸 옮겨갈 수 있어. / 새로 시작한 것이 금방 어려워져 다른 방법을 찾고 싶어지는 날이야. / 설명으로 들을 때와 실제로 할 때의 차이를 알게 될 거야.
+관찰: 불안정 / 우유부단 / 확인안된 이야기
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 흥미로운 소식이 많아 공부나 일에서 관심이 자꾸 옮겨갈 수 있어. 새로 시작한 것이 금방 어려워져 다른 방법을 찾고 싶어지는 날이야. 오늘은 궁금한 것 중 하나만 직접 해봐. 설명으로 들을 때와 실제로 할 때의 차이를 알게 될 거야. 짧게 경험한 뒤에는 계속 배우고 싶은 내용이 무엇인지 더 분명해질 수 있어. | Plenty of interesting news could keep shifting your attention between subjects or tasks. Something newly begun may quickly feel difficult and make another method appealing today. Try just one thing you're curious about. Doing it could show the difference between hearing an explanation and having a go yourself. A short experience may make clearer what you'd actually like to keep learning. | 面白そうな話が多く、仕事や勉強への関心が次々に移りそうです。始めたばかりのことが難しく感じられ、別の方法を探したくなるかもしれません。今日は気になることを一つだけ、実際に試してみてください。説明を聞くのと自分でやるのとでは、違うことに気づくでしょう。短い体験を通じて、続けて学びたいものがはっきりしてきそうです。 |
+| 분야 풀이 | 친구에게 전해 들은 시험 범위나 과제 조건이 틀릴 수 있어. 확인하지 않은 정보만 믿고 준비하면 중요한 내용을 빠뜨리기 쉬워. 실제 안내를 다시 읽어봐.<br><br>직장에서는 들었던 제안이 달라지거나 아직 정해지지 않은 소식에 기대할 수 있어. 확답을 받기 전에 다른 일을 취소하거나 새 일정부터 잡지는 마. | Exam topics or assignment requirements passed on by a friend could be wrong. Relying on unchecked information may mean leaving out something important in your preparation. Read the actual instructions again.<br><br>At work, an offer you heard about may change, or you could pin your hopes on news that isn't confirmed yet. Don't cancel other work or arrange a new schedule before receiving a definite answer. | 友人から聞いた試験範囲や課題の条件が、間違っているかもしれません。未確認の情報だけを信じて準備すると、大切な内容を抜かしがちです。実際の案内を、もう一度読んでください。<br><br>職場では、聞いていた提案が変わったり、未確定の知らせに期待したりするかもしれません。確かな返事を受ける前に、ほかの仕事を取りやめたり、新しい予定を決めたりするのは控えましょう。 |
 
 ## wands.11 · 정방향
 
 내부 ID: `work.wands.11.upright`
 
-카드 의미: 새 경험을 향한 탐색과 솔직한 열의. 원전의 메시지와 현대의 모험심을 작게 알아보는 시작으로 사용.
+카드 의미: 전달되는 새로운 이야기, 호기심, 활기
 
-분야 해석: 배움의흥미
+분야 해석: 좋음: 새로운 배움의 이해, 반가운 소식과 작은 업무 기회
 
-관찰: 새로운 과목이나 기술에서 의외의 재미를 발견할 수 있어. / 궁금해서 던진 질문에 설명이 이어져 시간 가는 줄 모르고 듣게 될 거야. / 처음 해본 과제에서도 잘 맞는 부분이 보여 자신감이 붙을 수 있어.
+관찰: 전달되는 새로운 이야기 / 호기심 / 활기
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 새로운 과목이나 기술에서 의외의 재미를 발견할 수 있어. 궁금해서 던진 질문에 설명이 이어져 시간 가는 줄 모르고 듣게 될 거야. 처음 해본 과제에서도 잘 맞는 부분이 보여 자신감이 붙을 수 있어. 열심히 묻는 모습을 좋게 보고 다른 기회를 알려주는 사람도 있을 거야. 가장 궁금했던 내용은 짧게라도 직접 해봐. | A new subject or skill could turn out to be unexpectedly enjoyable. An explanation prompted by curiosity may hold your attention until you lose track of time. A first assignment might also reveal something that suits you and builds confidence. Someone who appreciates your questions could point you toward another opportunity. Try a small part of what interested you most. | 新しい科目や技術に、思いがけない面白さを見つけられそうです。何気なくした質問から説明が広がり、時間を忘れて聞き入るかもしれません。初めての課題にも得意と感じる部分があり、自信がつくでしょう。熱心に質問する姿を見て、別の学ぶ機会を教えてくれる人もいそうです。一番気になったことを、短時間でも実際に試してみてください。 |
+| 분야 풀이 | 새로 듣는 설명에서 흥미로운 점을 발견하며 이해가 빨라질 수 있어. 궁금한 것을 물어보다 과제에 쓸 좋은 생각도 떠오를 수 있어.<br><br>직장에서는 새 업무나 교육에 관한 반가운 소식을 받을 수 있어. 아직 작은 제안이어도 자신의 능력을 보여줄 기회가 될 수 있어. 관심 있는 일이라면 내용을 자세히 들어봐. | Finding something interesting in a new explanation could help you understand quickly. Asking about what you're curious about may also spark a good idea for an assignment.<br><br>At work, welcome news about a new task or training could arrive. Even a modest offer may give you a chance to show your ability. If it interests you, hear the details. | 新しい説明に面白さを見つけ、理解が速くなりそうです。気になることを聞くうちに、課題に使えるよい考えも浮かぶかもしれません。<br><br>職場では、新しい業務や研修について、うれしい知らせを受けそうです。まだ小さな提案でも、能力を示す機会になるかもしれません。関心のある仕事なら、詳しく聞いてみましょう。 |
 
 ## wands.12 · 역방향
 
 내부 ID: `work.wands.12.reversed`
 
-카드 의미: 성급한 추진과 멈춤이 교차함. 원전의 중단·분열을 열의와 지속할 조건의 불일치로 사용.
+카드 의미: 중단, 분열, 불화, 성급함의 불안정
 
-분야 해석: 성급한진행
+분야 해석: 주의: 성급한 풀이와 중단, 급한 업무의 수정·충돌
 
-관찰: 일을 빨리 시작했는데 중간에 빠진 설명을 듣고 멈출 수 있어. / 서로 서두르는 분위기에서 맡을 부분이 겹치는 일도 생길 거야. / 처음부터 다시 하기보다 한 부분만 맞추면 이어갈 수 있는 상황일 수 있어.
+관찰: 중단 / 분열 / 불화
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 일을 빨리 시작했는데 중간에 빠진 설명을 듣고 멈출 수 있어. 서로 서두르는 분위기에서 맡을 부분이 겹치는 일도 생길 거야. 처음부터 다시 하기보다 한 부분만 맞추면 이어갈 수 있는 상황일 수 있어. 하던 곳을 표시하고 필요한 설명부터 들어줘. 급하게 말한 의견도 차분히 다시 전하면 더 좋은 반응을 받을 수 있어. | You might begin quickly, then stop when a missing instruction arrives midway. A hurried atmosphere could also leave people's roles overlapping. It may take an adjustment to only one part rather than a complete restart. Mark where you stopped and hear the explanation you need first. An opinion voiced hastily could receive a better response when you explain it calmly again. | すぐに始めた仕事で、後から説明が加わり手を止めることがありそうです。皆が急いでいると、担当が重なることもあるでしょう。最初からやり直すほどではなく、一か所を合わせれば続けられるかもしれません。どこまで進んだか印をつけて、必要な説明を聞いてください。急いで伝えた意見も、落ち着いて話し直すと受け入れてもらいやすそうです。 |
+| 분야 풀이 | 문제를 빨리 풀어도 실수가 많아 점수가 기대에 못 미칠 수 있어. 어려운 대목을 건너뛰며 진도만 늘리면 뒤에서 다시 막히기 쉬워.<br><br>직장에서는 서둘러 시작한 일이 중간에 멈추거나 수정될 수 있어. 상대가 준비되지 않았는데 일정을 밀어붙이면 협조도 끊기기 쉬워. 진행하기로 한 내용을 먼저 맞춰줘. | Answering questions quickly may still bring disappointing marks if you make many mistakes. Skipping difficult parts just to cover more material could leave you stuck again later.<br><br>At work, a task started in haste could be interrupted or revised midway. Pushing the schedule when the other person isn't ready may also cost you their cooperation. First agree on what you're going to do. | 問題を速く解いても、ミスが多く、点数が期待に届かないかもしれません。難しい部分を飛ばして先へ進むと、後で再び詰まりやすくなります。<br><br>職場では、急いで始めた仕事が、途中で止まったり修正になったりしそうです。相手の準備ができていないのに日程を押し通すと、協力も得られなくなりがちです。進めると決めた内容を、先にすり合わせましょう。 |
 
 ## wands.12 · 정방향
 
 내부 ID: `work.wands.12.upright`
 
-카드 의미: 뜨거운 열의와 행동으로 옮기는 이동. 원전의 출발을 실제 여행 예언 없이 활발한 참여와 성급함의 양면으로 응용.
+카드 의미: 떠남, 이동, 성급할 만큼 적극적인 실행
 
-분야 해석: 빠른도전
+분야 해석: 빠른 진전: 실습·문제풀이의 실행, 적극적인 업무 처리와 이동
 
-관찰: 새로운 일을 맡거나 직접 해보라는 제안을 받을 수 있어. / 오래 망설이던 것에도 오늘은 먼저 손을 들어보고 싶어질 거야. / 발표나 실습에서는 활기 있는 태도가 좋은 반응을 얻을 수 있는 날이야.
+관찰: 떠남 / 이동 / 성급할 만큼 적극적인 실행
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 새로운 일을 맡거나 직접 해보라는 제안을 받을 수 있어. 오래 망설이던 것에도 오늘은 먼저 손을 들어보고 싶어질 거야. 발표나 실습에서는 활기 있는 태도가 좋은 반응을 얻을 수 있는 날이야. 준비한 말이 조금 달라져도 경험을 떠올리며 자연스럽게 이어갈 수 있어. 속도를 내기 전에 꼭 지킬 조건 하나만 확인해둬. | You could be offered a new task or a chance to try something directly. Even something you've hesitated over for a long time might make you want to volunteer today. An energetic manner could get a good response during a presentation or practical exercise. If your prepared words change, experience may help you continue naturally. Check one essential requirement before picking up speed. | 新しい仕事を任されたり、やってみないかと声をかけられたりしそうです。長く迷っていたことにも、今日は自分から手を挙げたくなるでしょう。発表や実習では、生き生きとした態度に好感が集まりそうです。用意した言葉どおりでなくても、自分の経験から自然に話を続けられるでしょう。勢いよく始める前に、必ず守る条件を一つ確かめておいてください。 |
+| 분야 풀이 | 직접 해보는 실습이나 문제풀이에서 빠르게 성과를 낼 수 있어. 생각만 할 때 어렵던 내용도 손으로 풀면 이해가 따라올 수 있어. 속도가 붙어도 마지막 답은 확인해줘.<br><br>직장에서는 현장에 가거나 직접 움직였을 때 일이 빨리 풀릴 수 있어. 실행이 필요한 제안이라면 빠르게 맡아 성과를 보여줄 기회가 있어. | Practical exercises and solving problems yourself could bring quick progress. Material that seemed difficult when you only thought about it may make sense once you work through it on paper. Check the final answer even when you're gaining speed.<br><br>At work, going to the site or taking action yourself could get things moving quickly. A proposal that needs carrying out may offer a chance to step in promptly and show results. | 実習や問題演習など、実際に取り組む勉強で、速く成果を出せそうです。考えるだけでは難しかった内容も、手を動かして解くと、理解が追いつくかもしれません。勢いがついても、最後の答えは確かめてください。<br><br>職場では、現場へ行ったり直接動いたりすると、仕事が速く進みそうです。実行が必要な提案なら、すぐ引き受けて成果を示す機会があるでしょう。 |
 
 ## wands.13 · 역방향
 
 내부 ID: `work.wands.13.reversed`
 
-카드 의미: 자신감이 타인의 시선에 흔들리거나 존재감을 과하게 보이려 함. 원전의 반대·호의의 제약을 자기 비교의 문제로 현대화.
+카드 의미: 자신감위축, 요구하는태도, 질투
 
-분야 해석: 비교로긴장
+분야 해석: 주의: 비교로 흔들리는 발표, 질투와 과한 요구로 인한 협업 불화
 
-관찰: 다른 사람의 능숙한 모습을 보며 내 실력을 작게 느낄 수 있어. / 말할 차례가 오기 전에는 준비한 내용도 갑자기 부족해 보일 거야. / 막상 설명을 시작하면 내가 잘 아는 부분에서는 말이 이어질 수 있어.
+관찰: 자신감위축 / 요구하는태도 / 질투
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 다른 사람의 능숙한 모습을 보며 내 실력을 작게 느낄 수 있어. 말할 차례가 오기 전에는 준비한 내용도 갑자기 부족해 보일 거야. 막상 설명을 시작하면 내가 잘 아는 부분에서는 말이 이어질 수 있어. 나중에 받은 질문을 통해 상대가 생각보다 관심 있게 들었다는 걸 알게 될 거야. 발표 직전에는 남의 자료보다 내 첫 문장만 읽어봐. | Someone else's ease could make your own ability feel smaller today. Before your turn to speak, even prepared material might suddenly seem inadequate. Once you begin, words may come readily on the parts you know well. A later question could show they listened more closely than you thought. Read your own opening sentence before presenting instead of studying someone else's material. | 人の慣れた様子を見て、自分の力を低く見積もってしまいそうです。話す順番を待つ間は、準備した内容まで物足りなく感じるかもしれません。実際に説明を始めれば、よく知っている部分は言葉が続くでしょう。後から質問を受けて、相手が思った以上に興味を持って聞いていたと分かりそうです。発表の直前は、人の資料ではなく自分の最初の一文を読んでみてください。 |
+| 분야 풀이 | 다른 사람의 발표가 좋아 보여 준비한 설명까지 자신 없이 말할 수 있어. 남과 비교하느라 자신의 답을 급히 바꾸면 실수가 생기기 쉬워.<br><br>직장에서는 동료가 인정받는 모습에 예민해져 말이 날카로워질 수 있어. 자신의 성과를 알아달라고 다른 사람을 낮추면 평가에도 도움이 되지 않아. 해낸 일을 차분히 보여줘. | An impressive presentation by someone else may leave you sounding unsure even about your prepared explanation. Hurriedly changing your own answer because you're comparing yourself with others could cause a mistake.<br><br>At work, seeing a colleague receive recognition may make you sensitive and your words sharp. Putting others down to draw attention to your own results won't help your assessment. Show what you've done calmly. | 人の発表がよく見えて、準備した説明まで自信なく話すかもしれません。比較に気を取られて答えを急に変えると、ミスが出やすくなります。<br><br>職場では、同僚が認められる姿に敏感になり、言葉がきつくなるかもしれません。成果に気づいてほしくて人をけなしても、評価には役立ちません。成し遂げた仕事を、落ち着いて示してください。 |
 
 ## wands.13 · 정방향
 
 내부 ID: `work.wands.13.upright`
 
-카드 의미: 자연스러운 자신감과 사람을 끌어들이는 활기. 원전의 친근함을 특정 여성 아닌 솔직한 열의로 해석.
+카드 의미: 생기, 친절, 사랑, 매력, 관대한자신감
 
-분야 해석: 발표의호응
+분야 해석: 좋음: 발표의 호응과 실력 표현, 사람을 이끄는 업무의 성과
 
-관찰: 발표나 설명을 들은 사람에게서 적극적인 반응을 받을 수 있어. / 좋아하는 주제를 말할 때 평소보다 표현이 자연스럽게 나올 거야. / 질문을 받아도 당황하기보다 대화를 이어가는 재미가 생길 수 있는 날이야.
+관찰: 생기 / 친절 / 사랑
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 발표나 설명을 들은 사람에게서 적극적인 반응을 받을 수 있어. 좋아하는 주제를 말할 때 평소보다 표현이 자연스럽게 나올 거야. 질문을 받아도 당황하기보다 대화를 이어가는 재미가 생길 수 있는 날이야. 함께하는 사람도 내 의욕에 자극받아 먼저 의견을 보탤 거야. 좋은 반응이 돌아오면 상대의 질문에도 충분히 귀 기울여줘. | A presentation or explanation could receive an engaged response today. A topic you enjoy may make your words come more naturally than usual. Questions could become a conversation you like rather than a reason to panic. People working with you might also be encouraged by your enthusiasm to offer their own ideas. Give their questions your attention when a good response comes. | 発表や説明を聞いた人から、積極的な反応が返ってきそうです。好きなテーマを話すときは、いつもより自然に言葉が出るでしょう。質問にも慌てず、やり取りを楽しめそうです。一緒にいる人もあなたの熱意に刺激を受け、自分から意見を加えてくれるでしょう。よい反応が返ってきたときこそ、相手の質問にも十分耳を傾けてください。 |
+| 분야 풀이 | 발표나 토론에서 자신의 생각을 생생하게 전달해 좋은 평가를 받을 수 있어. 준비한 내용을 편하게 설명하면 듣는 사람의 관심도 따라올 수 있어.<br><br>직장에서는 사람들 앞에 나서는 일에서 능력을 인정받을 수 있어. 다정하고 자신 있는 태도가 협조와 호응을 이끌어줄 수 있어. 동료의 의견도 받아주면 함께할 일이 더 수월해져. | Expressing your ideas vividly in a presentation or debate could earn a good assessment. Explaining prepared material comfortably may also hold your listeners' interest.<br><br>At work, a task in front of others could bring recognition for your ability. A warm, confident manner may win cooperation and an enthusiastic response. Welcoming colleagues' views can make shared tasks easier too. | 発表や議論で考えを生き生きと伝え、よい評価を受けられそうです。準備した内容を気負わず説明すると、聞く人の関心も引きつけられるかもしれません。<br><br>職場では、人前に立つ仕事で、能力を認められそうです。親しみやすく自信のある態度が、協力や好意的な反応につながるでしょう。同僚の意見も受け入れると、一緒にする仕事がさらに進めやすくなります。 |
 
 ## wands.14 · 역방향
 
 내부 ID: `work.wands.14.reversed`
 
-카드 의미: 큰 뜻에 비해 현실 조건이나 타인의 의견을 놓침. 원전의 엄격함을 독단과 과한 기대의 재조정으로 사용.
+카드 의미: 선하지만 엄격한 태도, 지나친 기준
 
-분야 해석: 높은기대
+분야 해석: 주의: 지나친 기준과 고집, 엄격한 지시로 늦어지는 협업
 
-관찰: 쉽게 끝날 줄 알았던 일에 다른 사람은 시간이 더 필요할 수 있어. / 내가 익숙한 방식을 그대로 설명해도 상대가 바로 따라오지 못하는 날이야. / 구체적으로 어디서 막혔는지 들으면 이유가 분명해질 거야.
+관찰: 선하지만 엄격한 태도 / 지나친 기준
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 쉽게 끝날 줄 알았던 일에 다른 사람은 시간이 더 필요할 수 있어. 내가 익숙한 방식을 그대로 설명해도 상대가 바로 따라오지 못하는 날이야. 구체적으로 어디서 막혔는지 들으면 이유가 분명해질 거야. 빨리하라는 말 대신 처음 단계 하나를 같이 확인해줘. 기대했던 속도를 조금 늦춘 뒤에는 질문도 더 편하게 오갈 수 있어. | A task you expected to finish easily might need more time for someone else. Explaining a familiar method could fail to make it immediately clear to them today. Hearing exactly where they became stuck should make the reason understandable. Check the first step together instead of telling them to hurry. With the expected pace relaxed a little, questions could become easier to exchange. | すぐ終わると思ったことも、ほかの人には時間が必要かもしれません。自分の慣れたやり方をそのまま説明しても、相手はすぐにはついてこられなさそうです。どこで困っているのか聞くと、理由がはっきりするでしょう。急かす代わりに、最初の一段階を一緒に確かめてください。期待する速さを少し緩めると、質問もしやすくなりそうです。 |
+| 분야 풀이 | 자신이 정한 답안 방식만 고집하면 다른 풀이의 장점을 놓칠 수 있어. 조별 과제에서 모든 것을 자신의 기준에 맞추려 하면 완성이 늦어질 수 있어.<br><br>직장에서는 잘하려는 요구가 지나쳐 동료와 충돌할 수 있어. 세부 사항을 계속 바꾸면 이미 해낸 일도 다시 고치느라 마무리가 늦어져. 실제로 필요한 수준부터 함께 정해줘. | Insisting on your own answer format could hide the strengths of another solution. Trying to make every part of a group assignment meet your personal standards may delay completion.<br><br>At work, excessive demands in an effort to do well could cause clashes with colleagues. Repeated changes to details may delay the finish as completed work has to be redone. Agree first on the standard the work actually needs to meet. | 決めた解答の仕方にこだわると、別の方法のよさを見落とすかもしれません。グループ課題ですべてを自分の基準に合わせようとすると、完成が遅れそうです。<br><br>職場では、よくしたいという要求が強すぎて、同僚と衝突するかもしれません。細部を変え続けると、できた仕事まで直すことになり、仕上がりが遅れます。まず実際に必要な水準を、一緒に決めてください。 |
 
 ## wands.14 · 정방향
 
 내부 ID: `work.wands.14.upright`
 
-카드 의미: 큰 방향을 제시하고 사람과 자원을 이끄는 책임. 원전의 성실·조언을 실행 가능한 비전과 주도로 응용.
+카드 의미: 정직하고 성실하며 열정적인 주도성
 
-분야 해석: 리더십
+분야 해석: 좋음: 과제·발표를 이끄는 실력, 주도한 업무의 성과와 신뢰
 
-관찰: 사람들이 내 의견을 기다리거나 진행을 맡아달라고 할 수 있어. / 경험을 바탕으로 설명한 내용이 복잡한 문제를 정리하는 데 도움이 될 거야. / 함께하는 사람의 장점을 알아보고 일을 나눌 기회도 생길 수 있어.
+관찰: 정직하고 성실하며 열정적인 주도성 / 좋음: 과제·발표를 이끄는 실력, 주도한 업무의 성과와 신뢰
 
-| 구성 | 한국어 | English (US) | 日本語 |
+| 구성 | 한국어 | English | 日本語 |
 | --- | --- | --- | --- |
-| 분야 풀이 | 사람들이 내 의견을 기다리거나 진행을 맡아달라고 할 수 있어. 경험을 바탕으로 설명한 내용이 복잡한 문제를 정리하는 데 도움이 될 거야. 함께하는 사람의 장점을 알아보고 일을 나눌 기회도 생길 수 있어. 결과뿐 아니라 같이 일하기 편했다는 평가를 듣기 좋은 날이야. 맡아준 사람이 있다면 중간에 고마운 말을 한 번 전해줘. | People may wait for your opinion or ask you to lead the work. An explanation grounded in experience could help make a complicated question manageable. You might also get a chance to recognize others' strengths and divide tasks accordingly. Being easy to work with could earn praise alongside the outcome today. Thank someone midway if they've taken on a part. | あなたの意見を待つ人や、進行を任せたいという人が現れそうです。経験に基づいた説明が、複雑な問題を整理する助けになるでしょう。仲間の得意なことを見て、仕事を分担する機会もありそうです。成果だけでなく、一緒に働きやすかったと評価されるでしょう。引き受けてくれた人には、途中で一度お礼を伝えてください。 |
+| 분야 풀이 | 준비한 내용을 자신 있게 설명하고 조별 과제를 잘 이끌 수 있어. 해야 할 일을 분명히 정하면 함께 만든 발표에서도 좋은 평가를 받을 수 있어.<br><br>직장에서는 앞장서 맡은 일이 성과로 이어질 수 있어. 말한 내용을 실제로 지키면 동료와 상사의 신뢰도 깊어져. 책임질 수 있는 일이라면 자신의 뜻을 분명히 전해봐. | You could explain prepared material confidently and lead a group assignment well. Deciding clearly what needs doing may help your shared presentation earn a good assessment too.<br><br>At work, taking the lead on a task could bring results. Following through on what you've said may deepen colleagues' and managers' trust. If you can take responsibility for the work, make your intentions clear. | 準備した内容を自信を持って説明し、グループ課題も上手にまとめられそうです。すべきことを明確にすると、皆で作った発表もよい評価を受けるかもしれません。<br><br>職場では、先頭に立って担当した仕事が、成果につながりそうです。言ったことを実際に守れば、同僚や上司の信頼も深まるでしょう。責任を持てる仕事なら、考えをはっきり伝えてみましょう。 |

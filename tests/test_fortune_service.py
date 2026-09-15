@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
 
@@ -17,6 +18,9 @@ from app.main import app
 from app.schemas.fortune import (
     DailyFortuneRevealResponse,
     DailyFortuneStatusResponse,
+    FortuneBasicOverallResult,
+    FortuneBasicResult,
+    FortuneOverallResult,
     FortuneProfilePut,
     FortuneResult,
 )
@@ -60,7 +64,6 @@ def _result_wire() -> dict:
 
 def _basic_result_wire() -> dict:
     result = _result_wire()
-    del result["overall"]["flow"]
     del result["categories"]
     return result
 
@@ -205,9 +208,8 @@ def test_fortune_routes_normalize_supported_locale_headers(
 
     async def fake_service(_session, _user_id, *, locale):
         captured.append(locale)
-        if service_name == "status":
-            return {"available": False}
         return {
+            **({"available": True} if service_name == "status" else {}),
             "state": "locked",
             "access": "ad_required",
             "local_date": "2026-09-05",
@@ -226,9 +228,10 @@ def test_fortune_routes_normalize_supported_locale_headers(
 
     assert response.status_code == 200
     assert captured == [normalized_locale]
+    assert response.json()["result"] == _basic_result_wire()
 
 
-@pytest.mark.parametrize("sent_locale", ["jp", "zh-Hant-TW", "ko_kr", "ko-"])
+@pytest.mark.parametrize("sent_locale", ["jp", "zh-Hant-TW", "ko_kr", "ko-", "private-input"])
 @pytest.mark.parametrize(
     ("method", "path"),
     [
@@ -260,6 +263,55 @@ def test_fortune_routes_reject_unsupported_or_malformed_locale_headers(
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VALIDATION"
+    errors = response.json()["error"]["details"]["errors"]
+    assert all(error["loc"] == ["header", "X-App-Locale"] for error in errors)
+    assert all(set(error) == {"loc", "type", "msg"} for error in errors)
+    assert sent_locale not in response.text
+
+
+@pytest.mark.parametrize("invalid_result", ["missing_flow", "locked_categories"])
+@pytest.mark.parametrize(
+    ("method", "path", "service_name"),
+    [
+        ("GET", "/daily-fortune/status", "status"),
+        ("POST", "/daily-fortune/reveal", "reveal"),
+    ],
+)
+def test_fortune_response_validation_does_not_leak_snapshot_or_internal_paths(
+    monkeypatch, invalid_result, method, path, service_name
+):
+    async def invalid_service(_session, _user_id, *, locale):
+        result = _basic_result_wire()
+        result["overall"]["headline"] = "private-fortune-snapshot"
+        if invalid_result == "missing_flow":
+            del result["overall"]["flow"]
+        else:
+            result["categories"] = _result_wire()["categories"]
+        return {
+            **({"available": True} if service_name == "status" else {}),
+            "state": "locked",
+            "access": "ad_required",
+            "local_date": "2026-09-05",
+            "result": result,
+            "versions": {"ephemeris": "e", "rules": "r", "copy": "c"},
+        }
+
+    monkeypatch.setattr(fortune, service_name, invalid_service)
+    app.dependency_overrides[get_current_user] = lambda: _USER_ID
+    app.dependency_overrides[get_session] = _dummy_session
+    try:
+        response = TestClient(app, raise_server_exceptions=False).request(method, path)
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "error": {
+            "code": "INTERNAL",
+            "message": "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
+            "details": {},
+        }
+    }
 
 
 @pytest.mark.asyncio
@@ -352,26 +404,42 @@ def test_status_and_reveal_schemas_reject_impossible_state_combinations():
 
 
 @pytest.mark.parametrize("schema", [DailyFortuneStatusResponse, DailyFortuneRevealResponse])
-def test_response_contract_rejects_detail_in_locked_result_and_partial_revealed_result(schema):
+@pytest.mark.parametrize("paragraph_count", [2, 3])
+def test_response_contract_keeps_flow_public_and_categories_locked(schema, paragraph_count):
+    basic = _basic_result_wire()
+    basic["overall"]["flow"] = basic["overall"]["flow"][:paragraph_count]
     response = {
         "state": "locked", "access": "ad_required", "local_date": "2026-08-27",
         "versions": {"ephemeris": "e", "rules": "r", "copy": "c"},
-        "result": _basic_result_wire(),
+        "result": basic,
     }
     if schema is DailyFortuneStatusResponse:
         response["available"] = True
     parsed = schema.model_validate(response)
+    assert type(parsed.result) is FortuneBasicResult
     assert parsed.model_dump(mode="json", by_alias=True, exclude_none=True) == response
-    for detail in ("flow", "categories", "both"):
-        leaked = _basic_result_wire()
-        if detail in ("flow", "both"):
-            leaked["overall"]["flow"] = _result_wire()["overall"]["flow"]
-        if detail in ("categories", "both"):
-            leaked["categories"] = _result_wire()["categories"]
-        with pytest.raises(ValidationError):
-            schema.model_validate({**response, "result": leaked})
+    full = {**basic, "categories": _result_wire()["categories"]}
+    with pytest.raises(ValidationError):
+        schema.model_validate({**response, "result": full})
     with pytest.raises(ValidationError):
         schema.model_validate({**response, "state": "revealed", "access": "unlocked_today"})
+    revealed = schema.model_validate({
+        **response, "state": "revealed", "access": "unlocked_today", "result": full,
+    })
+    assert type(revealed.result) is FortuneResult
+    assert revealed.result.overall.flow == basic["overall"]["flow"]
+
+
+@pytest.mark.parametrize("schema", [FortuneBasicOverallResult, FortuneOverallResult])
+@pytest.mark.parametrize("paragraph_count", [None, 0, 1, 4])
+def test_basic_and_detailed_overall_require_two_or_three_paragraphs(schema, paragraph_count):
+    overall = _result_wire()["overall"]
+    if paragraph_count is None:
+        del overall["flow"]
+    else:
+        overall["flow"] = ["A paragraph."] * paragraph_count
+    with pytest.raises(ValidationError):
+        schema.model_validate(overall)
 
 
 
@@ -392,8 +460,11 @@ def test_existing_snapshot_stays_current_after_editorial_revision(semantic_schem
     )
 
 
-def test_public_projection_preserves_old_snapshot_color_and_ignores_private_metadata():
+@pytest.mark.parametrize("locale", ["ko", "en", "ja"])
+@pytest.mark.parametrize("paragraph_count", [2, 3])
+def test_public_projection_preserves_snapshot_and_locale_fallback(locale, paragraph_count):
     old = _result_wire()
+    old["overall"]["flow"] = old["overall"]["flow"][:paragraph_count]
     old["lucky_color"] = {"key": "coral", "name": "코랄", "hex": "#FF7F6E"}
     semantic = {
         "schema_version": 3,
@@ -407,8 +478,14 @@ def test_public_projection_preserves_old_snapshot_color_and_ignores_private_meta
         "lucky_color": old["lucky_color"],
     }
     row = SimpleNamespace(semantic_result=semantic, copy_by_locale={"ko": rendered})
-    assert fortune._public_result(row, "ko") == old
-    basic = fortune._public_result(row, "ko", include_detail=False)
+    saved = deepcopy(row.copy_by_locale)
+    full = fortune._public_result(row, locale)
+    assert full == old
+    basic = fortune._public_result(row, locale, include_detail=False)
     assert set(basic) == {"schema_version", "locale", "overall", "lucky_color"}
-    assert "flow" not in basic["overall"]
+    assert basic["locale"] == "ko"
+    assert basic["overall"] == old["overall"]
     assert basic["lucky_color"] == old["lucky_color"]
+    basic["overall"]["flow"].append("Response-only change.")
+    full["overall"]["flow"].clear()
+    assert row.copy_by_locale == saved

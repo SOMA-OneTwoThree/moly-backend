@@ -90,5 +90,5 @@ def test_current_cards_fit_feed_budget_and_existing_dependency_contract():
         assert len(feed.model_dump_json().encode()) < 128 * 1024
         assert all(set(b.data_dependencies) <= {'user.local_date', 'topic.question',
                                                'routines.remaining_today',
-                                               'affirmation.acknowledged_today'}
+                                               'affirmation.acknowledged_today', 'affirmation.text'}
                    for b in feed.items)

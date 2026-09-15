@@ -250,15 +250,16 @@ async def test_first_reveal_exposes_basic_copy_and_included_plan_exposes_detail(
     # expose the persisted score consistently for every subscription tier.
     assert value["result"]["overall"]["score"] == 85
     assert value["result"]["overall"]["score"] == session.daily.semantic_result["overall"]["score"]
+    assert value["result"]["overall"]["flow"] == session.daily.copy_by_locale["ko"]["overall"]["flow"]
+    assert len(value["result"]["overall"]["flow"]) == 2
     assert session.daily.semantic_result["experience_mode"] == "regular"
     if expected_state == "locked":
         assert value["access"] == "ad_required"
-        assert set(value["result"]["overall"]) == {"score", "headline", "do", "pause"}
+        assert set(value["result"]["overall"]) == {"score", "headline", "flow", "do", "pause"}
         assert set(value["result"]) == {"schema_version", "locale", "overall", "lucky_color"}
         assert session.daily.revealed_at is None
     else:
         assert value["access"] == "included"
-        assert len(value["result"]["overall"]["flow"]) == 2
         assert len(value["result"]["categories"]) == 4
         assert session.daily.unlock_source == "subscription"
 
@@ -303,7 +304,7 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
             assert basic["state"] == "locked" and basic["access"] == "ad_required"
             assert basic["result"]["locale"] == locale
             assert set(basic["result"]) == {"schema_version", "locale", "overall", "lucky_color"}
-            assert set(basic["result"]["overall"]) == {"score", "headline", "do", "pause"}
+            assert set(basic["result"]["overall"]) == {"score", "headline", "flow", "do", "pause"}
             assert (await client.get("/daily-fortune/status")).json() == {
                 "available": True, **basic,
             }
@@ -315,6 +316,8 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
             assert (await client.post("/daily-fortune/reveal")).json() == basic
             assert (await client.get("/daily-fortune/status")).json()["result"] == basic["result"]
             stored_copy = session.daily.copy_by_locale[locale]
+            snapshot = deepcopy((session.daily.semantic_result, session.daily.copy_by_locale))
+            assert basic["result"]["overall"]["flow"] == stored_copy["overall"]["flow"]
             assert len(stored_copy["overall"]["flow"]) == 2
             assert len(stored_copy["categories"]) == 4
             ad = ad_response.json()
@@ -351,6 +354,7 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
             )
             assert full["lucky_color"] == basic["result"]["lucky_color"]
             assert (await client.post("/daily-fortune/reveal")).json()["result"] == full
+            assert (session.daily.semantic_result, session.daily.copy_by_locale) == snapshot
     finally:
         app.dependency_overrides.clear()
 
@@ -359,8 +363,73 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
         session, str(UID), locale=locale, now_utc=NOW + timedelta(days=1),
     )
     assert tomorrow["state"] == "locked" and tomorrow["access"] == "ad_required"
-    assert "flow" not in tomorrow["result"]["overall"]
+    assert tomorrow["result"]["overall"]["flow"] == (
+        session.daily.copy_by_locale[locale]["overall"]["flow"]
+    )
     assert "categories" not in tomorrow["result"]
+
+
+@pytest.mark.parametrize("paragraph_count", [2, 3])
+@pytest.mark.parametrize("unlocked", [False, True])
+async def test_current_saved_snapshot_exposes_flow_without_rebuilding_or_changing_unlock(
+    enabled, monkeypatch, paragraph_count, unlocked
+):
+    async def free_plan(*_args, **_kwargs):
+        return "free"
+
+    monkeypatch.setattr(fortune.gating, "resolve_plan", free_plan)
+    profile = FortuneProfile(user_id=UID, gender="man", birth_date=date(2002, 12, 13), revision=1)
+    semantic, copies = fortune._build_result(
+        profile=profile, today=TODAY, timezone_name="Asia/Seoul",
+    )
+    # Only the saved Korean locale is available in this older snapshot.
+    saved_copy = deepcopy(copies["ko"])
+    saved_copy["overall"]["flow"] = [f"저장된 총운 {index}." for index in range(paragraph_count)]
+    saved_copy["lucky_color"] = {"key": "coral", "name": "코랄", "hex": "#FF7F6E"}
+    original_unlock = NOW - timedelta(minutes=10) if unlocked else None
+    daily = DailyFortune(
+        user_id=UID,
+        fortune_date=TODAY,
+        timezone_snapshot="Asia/Seoul",
+        profile_revision=1,
+        result_schema_version=3,
+        semantic_result=semantic,
+        copy_by_locale={"ko": saved_copy},
+        ephemeris_version="saved-ephemeris",
+        rule_version="saved-rules",
+        copy_version="fortune-copy.v6-editorial.1",
+        unlock_state="unlocked" if unlocked else "locked",
+        unlock_source="rewarded_ad" if unlocked else None,
+        unlocked_at=original_unlock,
+        revealed_at=original_unlock,
+    )
+    session = _MemorySession(profile=profile, daily=daily)
+    snapshot = deepcopy((daily.semantic_result, daily.copy_by_locale))
+
+    def must_not_rebuild(**_kwargs):  # pragma: no cover - snapshot must stay current
+        raise AssertionError("current snapshot was rebuilt to expose overall.flow")
+
+    monkeypatch.setattr(fortune, "_build_result", must_not_rebuild)
+    for action in (fortune.status, fortune.reveal, fortune.status, fortune.reveal):
+        value = await action(session, str(UID), locale="ja", now_utc=NOW)
+        assert value["state"] == ("revealed" if unlocked else "locked")
+        assert value["access"] == ("unlocked_today" if unlocked else "ad_required")
+        assert value["result"]["locale"] == "ko"
+        assert value["result"]["overall"] == {
+            "score": semantic["overall"]["score"], **saved_copy["overall"],
+        }
+        assert value["result"]["lucky_color"] == saved_copy["lucky_color"]
+        assert ("categories" in value["result"]) is unlocked
+        assert value["versions"] == {
+            "ephemeris": "saved-ephemeris", "rules": "saved-rules",
+            "copy": "fortune-copy.v6-editorial.1",
+        }
+    assert (daily.semantic_result, daily.copy_by_locale) == snapshot
+    assert daily.unlock_state == ("unlocked" if unlocked else "locked")
+    assert daily.unlock_source == ("rewarded_ad" if unlocked else None)
+    assert daily.unlocked_at == daily.revealed_at == original_unlock
+    account = await fortune._load_profile(session, str(UID))
+    assert account.fortune_first_date == date.min
 
 
 async def test_ad_session_client_request_id_is_idempotent(enabled, monkeypatch):

@@ -1,0 +1,3983 @@
+{
+  "criteria_version": "ko-actions.r2-localization",
+  "reviewer": "root",
+  "human_review": false,
+  "status": "complete",
+  "actual_read_count": 156,
+  "entries": {
+    "overall.major.fool.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "d84c598c1620ac86d26260524a0f8201dc38aef3297b78126297b082275bfb88",
+      "source_ko_actions_sha256": "100f84281a936e3b226d101c7e4c72bc5b262e00c819dbe170efa70f64eeb169",
+      "source_locale_bundle_sha256": "047efc5f9a68ae8f1fea1affc5728e8fcdd85efc5e1979b1dfbd7f69090aee7f",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "생각하던 활동을 하루 시도한다",
+          "connection": "직접 해보는 것이 적합 여부를 판단하는 방법이다"
+        },
+        "pause": {
+          "action": "경험 전에 오래 하기로 약속하지 않는다",
+          "connection": "하루 경험 후 지속 여부를 정하라는 같은 범위 안내다"
+        }
+      },
+      "assessment": "시도와 장기 확약을 구분하고 강요 없이 조건을 유지했다"
+    },
+    "overall.major.fool.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "4b7d8e5449aeb380789ca88382089d0ad726968b45d2c1ba72a113a4e8b067dc",
+      "source_ko_actions_sha256": "45d5254801a721571676c314d52478a9bd60d4ef5a1fdfb373936422b8c74359",
+      "source_locale_bundle_sha256": "14dcea2615ab6e4ce3b17b79559353ae2ffd95b6804392db3b450fc5c7284167",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "처음 가는 곳의 시간과 준비물을 확인한다",
+          "connection": "헛걸음할 수 있다는 이유가 같은 방문과 연결된다"
+        },
+        "pause": {
+          "action": "짧게 끝날 예상만으로 바로 다음 약속을 잡지 않는다",
+          "connection": "길어지면 다음 약속에 늦는다는 시간 관계가 명료하다"
+        }
+      },
+      "assessment": "수정본은 straight after it 앞에 선행 일이 나오므로 시간 지시가 이해된다"
+    },
+    "overall.major.magician.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "2daadb9eaddb4c256d65284963c392ea4934cc358b99f0d8ac96f1a3a5c5a179",
+      "source_ko_actions_sha256": "101ce72c5a58d502a4ed67185b3dcc4efa8359e143eaee5d55ee4e5bca04be55",
+      "source_locale_bundle_sha256": "8a6fe559bb1ff023729c410d2e85393048ebf096a078d2f438319cc5af28b2e5",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "막힌 문제에 배운 방법을 골라 써본다",
+          "connection": "해결에 맞는 방법이라는 조건 안에서 한 문장으로 끝난다"
+        },
+        "pause": {
+          "action": "배울 것이 더 있다는 이유만으로 준비한 일을 미루지 않는다",
+          "connection": "현재 아는 것으로 시작 가능한지 살피는 범위를 제안한다"
+        }
+      },
+      "assessment": "능력 활용과 끝없는 준비의 구별이 자연스럽다"
+    },
+    "overall.major.magician.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "099080ce8d550d8d6336b3068226dec59164005639f251608246f12bc1fdae36",
+      "source_ko_actions_sha256": "213630139f21b07115df0a49de51ba7c5c97bc8b706f9ae075aaf3ee98f08129",
+      "source_locale_bundle_sha256": "26a289d1df2c5f52e63e657660e558c4793da7b5c48daab6aadb54c0f89e4da6",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "쉽다는 제안의 실제 준비를 묻는다",
+          "connection": "설명에서 빠진 조건을 확인하는 같은 검증 방법이다"
+        },
+        "pause": {
+          "action": "안심시키려고 배우지 않은 일을 할 수 있다고 약속하지 않는다",
+          "connection": "실제로 가능한 범위를 말하라는 대안이 이어진다"
+        }
+      },
+      "assessment": "타인의 제안과 본인의 약속을 따로 다뤄 방향이 선명하다"
+    },
+    "overall.major.high_priestess.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "b041695d7c9bfe7faa8f2b01f1ac1d34f53f7446d316a28e94e07e4c7a34fcf9",
+      "source_ko_actions_sha256": "02ccc2900d685df6b11bdd714f73eaba388944ee0bc027e66018027c007d57c6",
+      "source_locale_bundle_sha256": "814f5ab15c69201bbf06d1562240afc6e54447eea1eafefc6619fa8ee01c2dd7",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "설명을 다 듣고도 모르는 것을 묻는다",
+          "connection": "이해하지 못한 부분이 해결의 단서일 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "기다리는 답이 늦다고 기존 정보만으로 서둘러 정하지 않는다",
+          "connection": "중요 정보 누락 가능성이 기다릴 이유가 된다"
+        }
+      },
+      "assessment": "문장은 다소 길어도 기다리는 정보와 판단 시점이 분명하고 단정하지 않는다"
+    },
+    "overall.major.high_priestess.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "e3a22da8bd29b42e396f66062ece6730c7191e7299e4151985b18e9e8971583f",
+      "source_ko_actions_sha256": "7c74e158a54d2709e3930f0a307dd1ef0794c5a821151211a9b9bcda7049b400",
+      "source_locale_bundle_sha256": "21fb8ec299e10333c2d0da11e9b1c6e067a55e696798c95cc9ac503c8c548c43",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "돕기 전에 사정을 충분히 묻는다",
+          "connection": "짐작한 도움은 맞지 않을 수 있다는 설명이다"
+        },
+        "pause": {
+          "action": "들은 말에 자신의 추측을 섞어 전달하지 않는다",
+          "connection": "불확실함을 밝히는 것이 오해를 줄인다는 같은 전달 원칙이다"
+        }
+      },
+      "assessment": "도움의 전제 확인과 사실 전달의 구별을 보존했다"
+    },
+    "overall.major.empress.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "5d7b522af38939ea11ba251167a52579c9bd3e12a9e9c40f151bc2313d9eaa94",
+      "source_ko_actions_sha256": "023a0e7a474ade173268bc7e0e8d2568a43cb0c4a4bc1824cea7ed8826c6470d",
+      "source_locale_bundle_sha256": "afc1ff536d864a17149f426e48aca9113537971540a4a84a73ccdfe99be5cd58",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "함께한 일의 좋은 소식을 도움 준 이들에게 알린다",
+          "connection": "같이 축하하고 감사를 전하는 동일한 공유 행동이다"
+        },
+        "pause": {
+          "action": "늘 도와줬다고 도움을 의무처럼 여기지 않는다",
+          "connection": "상대의 시간과 노력을 고려하라는 이유와 태도다"
+        }
+      },
+      "assessment": "대상인 도움 준 사람들이 문장 사이에서 유지된다"
+    },
+    "overall.major.empress.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "a22080fd0e6ad29959d8dd9a695bce2feb2a226dcb1e97d542225f7fa513f68b",
+      "source_ko_actions_sha256": "cbc2d7c71b50f6cf6c99281345c4bb62f407fb0265265e86b3010a62dbdfe08f",
+      "source_locale_bundle_sha256": "f7e6eed79276cf46f064491d3522c47322e6e60599fef4dbc8aa276f93956a36",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "충분히 도운 뒤 밀린 자기 일을 먼저 끝낸다",
+          "connection": "남은 상대 일은 맡겨도 된다는 범위를 설명한다"
+        },
+        "pause": {
+          "action": "감사를 못 받았다고 더 많이 해주지 않는다",
+          "connection": "더 해도 원하는 반응이 없을 수 있다는 같은 동기의 경계다"
+        }
+      },
+      "assessment": "yours와 theirs가 각자의 일을 명확히 지시하고 감사를 보장하지 않는다"
+    },
+    "overall.major.emperor.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "0c5a8a03a2f45ec6c7afa8585c216c5237b883329cc81e7302411d48cf9179d2",
+      "source_ko_actions_sha256": "418c2348c820dbab203c5e1218a30ebd1e8bba1b005dbb730cf38264e43227fb",
+      "source_locale_bundle_sha256": "ddbb230c38dc5a1772321f60fbf85defad0c53e8840194bfe24c2173dcfbc01b",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "버거운 부탁을 비슷한 경험이 있는 이와 상의한다",
+          "connection": "혼자 판단하기 어려운 부분을 설명하는 방법이다"
+        },
+        "pause": {
+          "action": "이미 도와주기로 한 사람의 일을 모두 다시 가져오지 않는다",
+          "connection": "맡긴 일을 혼자 떠안을 행동이 한 문장에 완결된다"
+        }
+      },
+      "assessment": "도움을 구하는 일과 위임을 지키는 일의 차이가 살아 있다"
+    },
+    "overall.major.emperor.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "3a4cf318361a1993d949d6c7eda3977ac9bb7e91db790b09ac4430d5939b843f",
+      "source_ko_actions_sha256": "4e61485f250e754f8952726568b438393eacab136176f9b47f7bf624b1f4fc56",
+      "source_locale_bundle_sha256": "84086c3d82be204417cc646b60fe0e5acdae8f45af84cafd34565296feb21f2d",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "합의 변경 요청에 사정이 달라졌는지 묻는다",
+          "connection": "기존 합의와 비교해 변경 필요를 판단한다"
+        },
+        "pause": {
+          "action": "결정권이 있다고 다른 사람 사정을 무시하지 않는다",
+          "connection": "당사자 의견을 들으면 협조에 도움이 될 수 있다는 이유다"
+        }
+      },
+      "assessment": "변경 사유 확인을 협조의 조건과 혼동하지 않고 상황별로 설명한다"
+    },
+    "overall.major.hierophant.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "b5a75f3f779dc874263f69bea675f3441d75145ed69958a1e345397e2c49484c",
+      "source_ko_actions_sha256": "2f692aaf1672a71d67ff839d8c6a18d5f3bb966887f9c2db2bd11126b4d35ba0",
+      "source_locale_bundle_sha256": "a03a547fe78904602daa6f7972bcfe0fbfd0e8a1b30e3e1de5715110126f6631",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "익숙하지 않은 일의 안내를 읽고 모르는 것을 경험자에게 묻는다",
+          "connection": "경험자가 놓치기 쉬운 점을 알려줄 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "번거롭다는 이유로 필요한 단계를 생략하지 않는다",
+          "connection": "검증된 순서가 재작업을 줄일 수 있다는 실질적 이유다"
+        }
+      },
+      "assessment": "절차와 조언이 추상적인 전통 존중 대신 실제 행동으로 읽힌다"
+    },
+    "overall.major.hierophant.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "079d401782775a2db3ddef4087b8b05c16a9df2b810316e200a5f59349caf1ef",
+      "source_ko_actions_sha256": "0ccc6a8d2c3722ce1b769db2503517902503ff821ac59da55d721f4883dc6d8f",
+      "source_locale_bundle_sha256": "0909122e097ff10903a6ba4d532ccd763179bc57d4627cfc450f99a61899ab08",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "맞지 않는 권장 방법의 어려움을 설명한다",
+          "connection": "그대로 따라야 한다는 가정 대신 다른 방법을 논의한다"
+        },
+        "pause": {
+          "action": "익숙하다는 이유로 효과 없는 방법을 고집하지 않는다",
+          "connection": "현재 상황과의 적합성을 다시 살피는 제안이다"
+        }
+      },
+      "assessment": "대상인 방법이 계속 유지돼 둘째 문장의 목적이 튀지 않는다"
+    },
+    "overall.major.lovers.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "99af254f86f7d74ff116896d1ff6cd7969b962c3a923313a18c8a1fe4bb6dff1",
+      "source_ko_actions_sha256": "d77e385fda5c9638cde74ab2ffd80a30a569cac7e589a553180045c6ba65d69d",
+      "source_locale_bundle_sha256": "d33ce98b996962ea16c58987e3398ec3eee13eeb65061aae97b6c460714e8a0a",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "함께 정할 때 각자가 중요하게 여기는 조건을 먼저 말한다",
+          "connection": "상대를 맞추기 전에 자기 의사를 확인하는 한 문장이다"
+        },
+        "pause": {
+          "action": "겉 조건만 보고 내키지 않는 선택에 동의하지 않는다",
+          "connection": "나중의 불편을 피하도록 납득 여부를 살핀다"
+        }
+      },
+      "assessment": "상호 의사라는 카드 뜻이 강요 없이 유지됐다"
+    },
+    "overall.major.lovers.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "ae585a930484530d633d09b2f2d714aef376b161c8c19377acf567711ab1619c",
+      "source_ko_actions_sha256": "80e27fd4c38ac59897c3ece19a0bc3d5f5a20e208b5df51af363fe784ad4b6b7",
+      "source_locale_bundle_sha256": "c6b1917355ee4427246f19da6e60580789fccfd8796977d335c5eff4a8727af6",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "함께할 약속의 기대를 먼저 나눈다",
+          "connection": "같은 약속을 다르게 이해할 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "분위기를 위해 싫은 조건을 받아들이지 않는다",
+          "connection": "불편한 대화 회피가 더 큰 다툼으로 이어질 수 있음을 설명한다"
+        }
+      },
+      "assessment": "약속의 해석과 갈등 회피라는 다른 행동이 본문과 맞는다"
+    },
+    "overall.major.chariot.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "06c8b9d8e2c1d412abc96e673d26c0f376f7120d3d0c0e2a4650e2e8865fa353",
+      "source_ko_actions_sha256": "a2d39372bd044fc8f0d22efd021c680c80e131a6144711af1c3e1982807dea87",
+      "source_locale_bundle_sha256": "6d66eafd4588dadc5663098a602a9f5cd0e7b0efeb63ab0d36b848ac0fc004c7",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "한 번 실패해 미룬 일을 재시도한다",
+          "connection": "지난번 막힌 부분을 살피라는 시작 방법이다"
+        },
+        "pause": {
+          "action": "지금 일을 끝낼 수 있는데 새 흥미로 중단하지 않는다",
+          "connection": "완료할 수 있다는 한정 조건을 보존한 한 문장이다"
+        }
+      },
+      "assessment": "결과 보장 없이 재도전과 마무리의 조건을 분명히 썼다"
+    },
+    "overall.major.chariot.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "e8570bdfca028711b3295302a39c35887cbae8b79a7c441c9807e24ab727dff2",
+      "source_ko_actions_sha256": "1e21b6c78cb7f3e099a11a5ff896aa44bbdd250667008de693599895d67c84aa",
+      "source_locale_bundle_sha256": "7903ac92674c0a90f14372b0e9269dae4f414cbd64ff38576962bbce0ced22c2",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "진행이 멈춘 지점을 확인한다",
+          "connection": "서둘러 밀기 전에 원인을 찾는 한 문장이다"
+        },
+        "pause": {
+          "action": "뒤처짐을 만회하려고 더 시작하지 않는다",
+          "connection": "병행이 약속한 완료시점을 놓칠 수 있다는 이유다"
+        }
+      },
+      "assessment": "지연과 무리한 병행을 구별하고 마감시점 표현을 자연화했다"
+    },
+    "overall.major.strength.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "30ccdda803ff730fce026e32385665134d473eef25a7724fbc6424002f7f52a4",
+      "source_ko_actions_sha256": "f592ab2d7d6f87a58bebb200fc1284eb358d0a3b0b4f69945465a007be71fe90",
+      "source_locale_bundle_sha256": "905c55dbd2704fc8bb89f77f0c62aa0a319fbdebc61e5b0e1c22b36830eb7504",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "오래 해도 어렵다면 즉각적 결과가 없다고 멈추지 않는다",
+          "connection": "기존의 꾸준한 시도를 유지하라는 조건부 제안이다"
+        },
+        "pause": {
+          "action": "답이 늦다고 소리 높이거나 압박하지 않는다",
+          "connection": "왜 도움이 필요한지 차분히 말하는 대안을 설명한다"
+        }
+      },
+      "assessment": "긴 문장이나 과도한 예측 없이 인내의 행동이 직접 드러난다"
+    },
+    "overall.major.strength.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "4cbcbad0f0d8bb0655577ca045213cb06a125bd41e9f2cc636c862466835011c",
+      "source_ko_actions_sha256": "4283a198022ded3dc856207e1c6f2b3e2328eb4d005045cc27ddcd8df7455688",
+      "source_locale_bundle_sha256": "9a8e08ace8c62a7d27c66d057f7609d6f14c4289556a88bddbede1f97652a776",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "반복해서 막히는 부분은 도움을 청한다",
+          "connection": "막힌 지점을 설명하고 함께 푸는 방법이다"
+        },
+        "pause": {
+          "action": "한마디에 화났다고 하던 일을 전부 포기하지 않는다",
+          "connection": "가라앉은 뒤에도 포기할지 판단하는 시점을 제시한다"
+        }
+      },
+      "assessment": "함께 푸는 대상과 감정에 따른 중단의 범위가 명확하다"
+    },
+    "overall.major.hermit.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "d4231da73753879b6d7ef5d9b9387f4e9e4fa67e2775807434ffe69405d570bd",
+      "source_ko_actions_sha256": "d85ce1ff249e22b8f0d583bd14e4e86ecff4290ee912dbaa09003b65f223a0ca",
+      "source_locale_bundle_sha256": "5e4f16fea53bd096f728f0a66b3040e72d9da2ac56efa688a541ce922b633460",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "오래 고민한 조언은 조용한 곳에서 나눈다",
+          "connection": "여럿 앞에서보다 질문을 차분히 할 수 있는 이유다"
+        },
+        "pause": {
+          "action": "빨리 답을 얻으려고 모든 의견을 따르지 않는다",
+          "connection": "자기 문제에 맞는 조언을 골라 생각하는 방법이다"
+        }
+      },
+      "assessment": "quiet와 away from a group이 같은 대화 상황으로 이어진다"
+    },
+    "overall.major.hermit.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "d534b63efff6cae5f74e55d90f773d11517c03e03b6f2d1cc96428f4c232639b",
+      "source_ko_actions_sha256": "2d7e75a20b5aa64ebd8b8993372b6cc896d2e93940f62ddc18b3deb33ef446df",
+      "source_locale_bundle_sha256": "ab5f34dd13a25c11c17a628568663a4f4860049ad83213485211e632c3d2e746",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "혼자 못 푼 일에 어떤 도움이 필요한지 말한다",
+          "connection": "시도한 것과 남은 일을 설명하는 방법을 더한다"
+        },
+        "pause": {
+          "action": "연락이 뜸했다고 도움 요청이 무용하다고 단정하지 않는다",
+          "connection": "말하지 않았다면 사정을 모를 수 있다는 같은 조건이다"
+        }
+      },
+      "assessment": "응답 부재를 거절로 확대하지 않고 요청의 전제를 유지했다"
+    },
+    "overall.major.wheel_of_fortune.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "6a93986bb15af7d2012ad59902241f0d142474011ccd4de42891d8eae288a832",
+      "source_ko_actions_sha256": "17a06d4f28e5192b2d42565314412ab8d3d9c5ac21be00418c234ca85362752a",
+      "source_locale_bundle_sha256": "8a1e83974261fd233b755aa4baef6b2e326cae227dd5fb9664727d707995b845",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "반가운 제안의 참여시점을 확인하고 답한다",
+          "connection": "지연으로 기회를 놓치지 말라는 목적이 한 문장에 붙는다"
+        },
+        "pause": {
+          "action": "과거 실패만으로 다시 온 기회를 넘기지 않는다",
+          "connection": "달라진 사정을 듣고 판단하는 방법이다"
+        }
+      },
+      "assessment": "첫 시도 성공을 보장하지 않고 기회의 조건을 직접 전한다"
+    },
+    "overall.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "57877ca787c5637cbbaf93576968656f7efb97ac9e2cdde767d102e3df676fe4",
+      "source_ko_actions_sha256": "ebd2ec96d18ddfdce4b24649caee13d2e721a3df327c218be30585cccda673ca",
+      "source_locale_bundle_sha256": "c3f7143802d9c6ab3244ee65e1130962f74d841e455f9b2efbe1aae11c9472af",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "기다리던 일이 늦으면 사정을 확인하고 연동 계획을 조정한다",
+          "connection": "그 일의 종료시점에 의존하는 계획이라는 대상이 선명하다"
+        },
+        "pause": {
+          "action": "오늘 끝날 예상만으로 다음 약속을 확정하지 않는다",
+          "connection": "잘못 없어도 외부 사정으로 지연될 수 있다는 이유다"
+        }
+      },
+      "assessment": "외부 지연과 후속 약속을 직관적으로 이어 썼다"
+    },
+    "overall.major.justice.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "c2c33fc3267c00fc0c8e4d42a28b0093a778a74f02882590fe8972d46b7cf945",
+      "source_ko_actions_sha256": "6e9fa4e9ed534bd963a2a897c127219a989be6e09ae5af5ddb5667e24f6718ce",
+      "source_locale_bundle_sha256": "44f8ab075ca0a0aae3ca0dd03561390de47017389a76d9dc449aa83207260798",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "기억이 다른 합의를 기록으로 함께 확인한다",
+          "connection": "확신보다 실제 합의가 중요하다는 판단 근거다"
+        },
+        "pause": {
+          "action": "자기 몫을 요구하며 불리한 사실을 빼지 않는다",
+          "connection": "상대에게 사실 공개를 요구할 때 자신도 공개해야 한다는 호혜 원칙이다"
+        }
+      },
+      "assessment": "정의의 확인과 공정한 요구를 같은 상황에서 이해할 수 있다"
+    },
+    "overall.major.justice.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "ed58d3a8db580b3694500b5450b0e19c716a89759f53e206a7c06d43a97e028b",
+      "source_ko_actions_sha256": "035aa9324687aa8d54e1ae0acb84daa7df530b1865ac48f2d233d37b4042ddf0",
+      "source_locale_bundle_sha256": "1e62b338c8ad8de1e392807b6cbcef8a72011a4c71e71f71558ac1d0822f5cf8",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "부정확한 이야기로 생긴 오해의 틀린 부분을 설명한다",
+          "connection": "차분히 바로잡는 행동이 한 문장으로 끝난다"
+        },
+        "pause": {
+          "action": "억울하다고 불확실한 주장을 보태지 않는다",
+          "connection": "사실인 나머지 말까지 의심받을 수 있다는 이유다"
+        }
+      },
+      "assessment": "자기 억울함을 사실 왜곡의 근거로 삼지 않는 KO조건을 유지했다"
+    },
+    "overall.major.hanged_man.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "0a4f688861eee354e16e7b8dbb11ab6145022469c14aee991c430706bd3be668",
+      "source_ko_actions_sha256": "5bd25b89b19cfbf6cbcfda0be212e952e313ec9c3bca197e07441d07ccfd5b3d",
+      "source_locale_bundle_sha256": "957db6181fbfc88c8c8845fa4b97c8fa2e94c8fb2820991c127eec8107dd40d5",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "늦는 답의 이유를 듣는다",
+          "connection": "몰랐던 사정을 알면 다른 방법을 생각할 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "오늘 마칠 필요 없으면 즉각 결론을 재촉하지 않는다",
+          "connection": "시간을 더 주면 나은 답이 나올 수 있다는 조건부 이유다"
+        }
+      },
+      "assessment": "기다리는 상대의 사정과 필요성을 분리하고 무조건적 대기를 강요하지 않는다"
+    },
+    "overall.major.hanged_man.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "881af2a2ae6fefff1573646f484fdaa2c3f30db7dd3051cf38f8c455d4ee6b57",
+      "source_ko_actions_sha256": "3d6ae34bb2d5e7a298b5f0b69501af7f0a9db9cced9408ee21bc34a10f66e285",
+      "source_locale_bundle_sha256": "9f8140715b285e8e849f7b6e5d4fa4cb6f604bdb68316a92c9a72360fd5d48c3",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "답 없는 상대에게 답 가능한 시점을 직접 묻는다",
+          "connection": "계속 기다리는 대신 기대시점을 정하는 한 문장이다"
+        },
+        "pause": {
+          "action": "혼자 양보해왔다면 다시 무조건 기다린다고 약속하지 않는다",
+          "connection": "반복되는 부담이 같은 일에 돌아올 수 있다는 이유다"
+        }
+      },
+      "assessment": "양보해온 조건을 보존하며 강한 거절이나 관계단절로 확대하지 않았다"
+    },
+    "overall.major.death.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "a5ce53cebdc54869cf938935afe1b5706d385fcd429ce617b10b9a7ab51216cc",
+      "source_ko_actions_sha256": "1885669a2366b804141ce32a25ca3c436e698d9c44a61b8303cc9a660fff97d2",
+      "source_locale_bundle_sha256": "9e2b3ef4223d057157571b508e3a49259378cbb61d8d26f91737e45137babbba",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "오래 한 일이 끝나면 인사와 남은 정리를 끝낸다",
+          "connection": "이미 종료된 일에 필요한 마무리를 한 문장에 제시한다"
+        },
+        "pause": {
+          "action": "아쉬운 결말을 예전으로 되돌리려 붙들지 않는다",
+          "connection": "오래 애쓴 일이라도 끝났다는 조건 안에서 완결된다"
+        }
+      },
+      "assessment": "일의 종료를 죽음이나 새 손실의 예언으로 옮기지 않았다"
+    },
+    "overall.major.death.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "a20e9134b6dc7cff70273903365085d7505bc8c17f394c73a2a77cc3e65f9b59",
+      "source_ko_actions_sha256": "3246c19a20351a6b7f5fae91cbccf333ff4c3c52a6be671319c44227559e71b3",
+      "source_locale_bundle_sha256": "c376fc18618a5054af5fa2d75e6175308b04a550b487084c3a782545b4e56c92",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "더 안 할 일이면 그만둔다고 분명히 말한다",
+          "connection": "나중에는 하겠다는 오해를 남기지 않는 표현 범위다"
+        },
+        "pause": {
+          "action": "문제 반복에도 익숙한 방법만 고집하지 않는다",
+          "connection": "익숙함이라는 이유를 한정한 한 문장 경계다"
+        }
+      },
+      "assessment": "상대에게 종료 의사를 어떻게 전달할지가 독립적으로 이해된다"
+    },
+    "overall.major.temperance.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "f0a424ace68b1c02247448d354afb3de425a10630852cc8a108d9115b3201ec5",
+      "source_ko_actions_sha256": "6177f6588425e53f00fceb59d7599797618144bb3ade913f0c7f348d2e6325bd",
+      "source_locale_bundle_sha256": "aff55be1c9c37ca4c8c820a9efc0640d635badb41c4e21779272c380396d5eff",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "도움으로 일이 풀리면 고마웠던 점을 말한다",
+          "connection": "그냥 넘어가지 말고 구체적으로 감사하라는 한 문장이다"
+        },
+        "pause": {
+          "action": "조금씩 해결되는 중 도와주는 사람을 재촉하지 않는다",
+          "connection": "이미 도움으로 나아지는 조건이 붙은 완결된 주의다"
+        }
+      },
+      "assessment": "짧지만 대상과 이유가 충분해 길이를 억지로 늘리지 않았다"
+    },
+    "overall.major.temperance.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "a1e2169d19fe8fc939cfa21b3760df589f4b4fa70ae4b49b7cd6c65c76ec7310",
+      "source_ko_actions_sha256": "b7b55c0c6a4125310d1a60bfdf8aab5717f8f85f8dc07a5f2ad0738505ef0e48",
+      "source_locale_bundle_sha256": "fd3b8b5aa28557e16973b5083436bc123962e63bf6f3658879fda027434e0e42",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "늦는 일에서 지금 끝낼 부분을 마친다",
+          "connection": "한꺼번에 따라잡으려 전체 계획을 바꿀 필요 없다는 범위다"
+        },
+        "pause": {
+          "action": "일이 안 된다고 사소한 말에 언성을 높이지 않는다",
+          "connection": "평소 넘길 말인지 답하기 전에 살핀다는 방법이다"
+        }
+      },
+      "assessment": "일의 지연과 말에 대한 반응을 서로 다른 행동으로 유지했다"
+    },
+    "overall.major.devil.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "431c9f3e8ba270f33b3d9f3b1af7de9309d6dd794d2453fde1060b01cb21454b",
+      "source_ko_actions_sha256": "b68c73d9588cc2844666b894298e7bfc2954a9b35b7807dbaa28a32f55ea19a7",
+      "source_locale_bundle_sha256": "5f338abfb40f42af857f24f2062f44628fa9cc6822e3dd3048161bcc9d981c9c",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "솔깃한 제안의 이익과 반대급부를 묻는다",
+          "connection": "이익에 비해 요구가 클 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "한 번 더 해달라는 말로 그만둘 일을 다시 맡지 않는다",
+          "connection": "지금 거절의 어려움보다 나중의 부담을 살피라는 같은 선택 기준이다"
+        }
+      },
+      "assessment": "보상 기대만 보지 않도록 실제 요구를 묻는 뜻을 보존했다"
+    },
+    "overall.major.devil.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "f3d913d4e806387e9992a5b01e88185891c6b6797bfe5f98daa76a91519e67e0",
+      "source_ko_actions_sha256": "6841c98e63f0868fd347dfca797111587e05b1430ee6e17c109dee187482d67e",
+      "source_locale_bundle_sha256": "80acccc2a51d46efed8f1a56697eff423200aff3a3a0b7fd4f517a4060a9dd5e",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "부담스러운 부탁을 더 할 뜻이 없으면 분명히 거절한다",
+          "connection": "돌려 설명하지 않는 거절 방법이 한 문장에 나온다"
+        },
+        "pause": {
+          "action": "그만두기로 했는데 죄책감으로 다시 도와주지 않는다",
+          "connection": "한 번 더 돕다가 반복되는 부담이 생길 수 있다는 이유다"
+        }
+      },
+      "assessment": "favour의 동사 결합을 수정한 뒤 거절과 번복의 차이가 직접 읽힌다"
+    },
+    "overall.major.tower.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "45e0a1b0191ecc7d35d284c2b7c046e34ca742aa0bf50ee4ebe059c8c47b067b",
+      "source_ko_actions_sha256": "1b90c535f3e232619d82d80462a29ed4d19b8c2b3e4c77a2981638dbfaf4bc13",
+      "source_locale_bundle_sha256": "0694a743f9ab07f460b5920c9b9cb61aa41afb4eef681cf0fbcac2a74804da39",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "예상 밖 소식에는 결론 전 사정을 충분히 듣는다",
+          "connection": "이유를 알아보는 선행 행동으로 한 문장 완결이다"
+        },
+        "pause": {
+          "action": "놀람과 분노 상태에서 즉답하지 않는다",
+          "connection": "시간을 두면 후회할 말을 피할 수 있는 같은 대답의 이유다"
+        }
+      },
+      "assessment": "충격을 과장하지 않고 설명 청취와 응답 시점을 구별했다"
+    },
+    "overall.major.tower.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "9bc1c4cc28d129aa3d5a9651899b354085fdc4bddae4136e818455992924654d",
+      "source_ko_actions_sha256": "71b175a45a02af07ac8e38e89c126f6e74528830f8719011f743cb967c7c30ab",
+      "source_locale_bundle_sha256": "f293be6ac62bedda54b81696653ce1ad81437c96b46848f301e4908990bf030a",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "드러난 실수를 관련 사람들에게 솔직히 말한다",
+          "connection": "즉시 인정하면 나중 수습할 것이 줄어든다는 이유다"
+        },
+        "pause": {
+          "action": "두려운 일이 무사히 지나가도 알려진 문제를 무시하지 않는다",
+          "connection": "고칠 수 있을 때 살피는 동일 문제의 범위다"
+        }
+      },
+      "assessment": "조용히 지나가는 상황의 직역을 풀고 별 탈 없는 경과를 명시했다"
+    },
+    "overall.major.star.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "be87b95f533278858439ba3fb975f9e4328d90cfcdb115d10f406c98b6d695a2",
+      "source_ko_actions_sha256": "04c1f4241ca5bbff3d7cc90d823a5fc6ea77bf5b6545fba95af11c38735ae70c",
+      "source_locale_bundle_sha256": "f427596cb23b2ee5ec9a87ae576a0ec978539afa39058fd391ba6543b83c2f45",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "안 돼서 멈춘 일을 가능한 부분부터 재개한다",
+          "connection": "당장 큰 결과까지 낼 필요 없다는 기대 범위다"
+        },
+        "pause": {
+          "action": "도움이 필요한데 괜찮다는 말만 하지 않는다",
+          "connection": "어려움을 설명해야 상대도 도울 내용을 안다는 이유다"
+        }
+      },
+      "assessment": "재개 규모와 도움 요청 대상을 명확히 하며 막연한 낙관을 보태지 않는다"
+    },
+    "overall.major.star.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "0535b8a38cdf110f185ca22bc0ad7400de2e1fa3e4f36080fb7cc680c7fedf2b",
+      "source_ko_actions_sha256": "63f7dd514dd88bb3ecbb62e0f2ad1187ccf80670cda9b5b6ca966ea9d1f6a2fa",
+      "source_locale_bundle_sha256": "1031bf5ce8d8a22c9191ed4b4b22c70d7ebbc5422705e527b5c0e0733e97679d",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "늦는 소식의 진행상태를 묻는다",
+          "connection": "미결인지 실제로 어려워졌는지 구별하는 질문 목적이다"
+        },
+        "pause": {
+          "action": "기대보다 안 나아져도 필요한 연락과 도움을 끊지 않는다",
+          "connection": "실망해서 닫은 대화는 재개가 어려울 수 있다는 이유다"
+        }
+      },
+      "assessment": "뉴스 지연을 확정 실패로 단정하지 않고 확인할 내용을 구체화했다"
+    },
+    "overall.major.moon.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "42c04df17bdd5b719cd491a89dea69f6c4ac24dab14d39a3f92e4f5b40af37eb",
+      "source_ko_actions_sha256": "344a41df05744d51537a3093d6eef2d9f422ada76a3f7ede8df45a10a27efe3b",
+      "source_locale_bundle_sha256": "cd24d5e3528168b8cd8ebde3ed2a411f388176447ca9de0f3fe9263685d4c464",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "중요 결정을 앞두고 전해 들은 사실을 직접 확인한다",
+          "connection": "간접 정보라는 조건을 명시한 한 문장이다"
+        },
+        "pause": {
+          "action": "걱정스러운 이야기를 듣자마자 따지지 않는다",
+          "connection": "오해하거나 더 나쁘게 받아들였을 수 있다는 이유다"
+        }
+      },
+      "assessment": "불확실한 말의 확인과 감정적 반응을 분리했다"
+    },
+    "overall.major.moon.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "9f94ee5071746f486065f302643d85a77bdd1efda9a46e7858f7e0c04c4aa377",
+      "source_ko_actions_sha256": "f68ec6e00999678052b941a185373bed989922cb76bd1f87b0756c7a61073a00",
+      "source_locale_bundle_sha256": "785813440500ba051fc8972344b25286261c9c822dcf08f1d9f7ce276d96e048",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "헷갈렸던 사정을 알면 확인한 정보에 맞춰 계획을 고친다",
+          "connection": "새로 확인했다는 근거 안에서 행동을 완결한다"
+        },
+        "pause": {
+          "action": "오해가 풀렸다고 기다리는 나머지 답도 좋다고 보지 않는다",
+          "connection": "확인된 것과 미결된 것을 나누라는 판단 방법이다"
+        }
+      },
+      "assessment": "밝혀진 부분의 긍정을 전체 결과 보장으로 확대하지 않았다"
+    },
+    "overall.major.sun.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "e9ec8228a6e630817a9d9ef6ff73c1a95b4be26b43a004275b972ca51015901d",
+      "source_ko_actions_sha256": "15cb5ad73d7c1832e310e0e85e006af122a3ff16c08ee25cae78e473f62814fe",
+      "source_locale_bundle_sha256": "edcba38b6b60fca213027a46e6c295fb937a8c0d4f9ccd9025e0966037b78a79",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "오랜 노력의 결과가 좋으면 함께 기뻐할 가까운 사람에게 알린다",
+          "connection": "받을 반응을 요구하지 않고 공유 대상을 명시한다"
+        },
+        "pause": {
+          "action": "기다린 제안의 답을 계속 미루지 않는다",
+          "connection": "수락하고 싶을 때 그 뜻을 명확히 말하는 범위다"
+        }
+      },
+      "assessment": "a long effort 대신 실제로 오래 해온 일이라는 자연스러운 주어로 읽힌다"
+    },
+    "overall.major.sun.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "ec89f6d4bae5aaaf2c28b997cecbed4dcfa30f46994bbeac9f38408bf763782f",
+      "source_ko_actions_sha256": "5b3a8f0b657fda7f7242e9cf9d4438697bddb83ba817b7549b1b9ba90676afa5",
+      "source_locale_bundle_sha256": "923b217bad84930cfb0fcdb64e51315e5782d99d70fdb81fd008e5d9e8c5af88",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "기대보다 작아도 잘된 일을 기뻐한다",
+          "connection": "아쉽다는 이유로 성취를 무효로 볼 필요 없다는 같은 결과 해석이다"
+        },
+        "pause": {
+          "action": "아직 안 온 결과를 기다린다",
+          "connection": "소식 지연과 실패는 다르다는 판단 근거가 이어진다"
+        }
+      },
+      "assessment": "unfinished matters를 결과 기다림으로 분명히 하여 행동 목적을 유지했다"
+    },
+    "overall.major.judgement.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "82cfd13b141a27b7ef60d28bf5808b0854f492c6529d143efe90165b87f91387",
+      "source_ko_actions_sha256": "fc900f4e4164b469fde3471c6fcf625d3d140a672cf979b68e50bbe527fb08c6",
+      "source_locale_bundle_sha256": "9d4237f26e296e5d9f3cdfa360fc9569e75857a874a875fef48da43b2cdeaf17",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "재도전 기회에는 지난 실수부터 고친다",
+          "connection": "동일 실수를 피할 준비라는 하나의 목적이다"
+        },
+        "pause": {
+          "action": "오래 미룬 제안의 수락 여부를 정했으면 답한다",
+          "connection": "다시 미루지 말고 뜻을 밝히는 같은 행동으로 완결한다"
+        }
+      },
+      "assessment": "재시도의 준비와 이미 정한 답의 전달을 혼동하지 않는다"
+    },
+    "overall.major.judgement.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "9a0ffb877d6c124b2828c268d75146306fbef8e571655ff5150ced0966b836a6",
+      "source_ko_actions_sha256": "9b02baf1d487017fab23fe75d27ed0988ed0bf52168ce607c0c572094ba53ce0",
+      "source_locale_bundle_sha256": "b60446e8220de0028993d57541e1d4379b5f4bffb9e75712cca8012eda27d4c0",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "줘야 할 답의 결정기한을 확인한다",
+          "connection": "확신이 생길 때까지 기다리다 마감 놓치지 않는 이유다"
+        },
+        "pause": {
+          "action": "모두의 평가를 얻으려 결정을 미루지 않는다",
+          "connection": "의견을 다 맞추다 잘할 기회를 놓칠 수 있는 이유다"
+        }
+      },
+      "assessment": "외부 승인 추구가 갑자기 들어온 부연이 아니라 처음부터 경계 대상이다"
+    },
+    "overall.major.world.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "237f23d8b5fa70474e852dc2c9300556a659040f03f922fc5253f566a208ce69",
+      "source_ko_actions_sha256": "86a375e8e3b40a5f7b8c15f6a80ee541e2f3a66c15eed771ce6f5811b2844779",
+      "source_locale_bundle_sha256": "17d1e1bff7e6891ad794603ef82f8337510241133ca6f5184d0ce0eed7345107",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "오래한 일을 잘 끝내면 도운 이에게 어떤 도움이 고마웠는지 말한다",
+          "connection": "성공한 일과 감사 대상이 한 문장에서 유지된다"
+        },
+        "pause": {
+          "action": "오랜 일을 마치자마자 새 일을 맡지 않는다",
+          "connection": "잘 마친 일을 즐길 틈을 없앨 필요 없다는 이유다"
+        }
+      },
+      "assessment": "축하에 남의 반응이나 과시 목적을 보태지 않았다"
+    },
+    "overall.major.world.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "b9c00edb10c3800b551034daac9d93efa39294dede368378ef06bbefdad4be02",
+      "source_ko_actions_sha256": "eb6f752cab26abb5cdd207c93e6e19a6008e421ab9c5b1a275c391593c38b4cb",
+      "source_locale_bundle_sha256": "6a99f011f07422d94216d6114481ec4972723c9c8fb523f26792e70023239b0b",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "거의 끝난 일의 마지막 연락이나 확인을 마친다",
+          "connection": "얼마 안 남았다고 미루면 계속 신경 쓰일 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "마무리 지연을 전부 실패로 취급하지 않는다",
+          "connection": "남은 일과 이미 마친 성과를 구별하는 방법이다"
+        }
+      },
+      "assessment": "잔여 일과 기존 성취를 분명히 가리켜 대상이 흐리지 않는다"
+    },
+    "overall.cups.01.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "650f38927bfe9a72cd69c8824a941f9432adc5cb66edf6d9f4c2d4600c57fe69",
+      "source_ko_actions_sha256": "387888b0d272d295cec821a86e31e7be1e4ef8d93333a57046f7437505f53255",
+      "source_locale_bundle_sha256": "6137ff6a02bfff5445d2f0df171fbe22b293a72aa1d3670e53264b9b3a49a78a",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "좋은 초대에 가고 싶다고 답한다",
+          "connection": "초대에 대한 감사를 함께 전하는 같은 답의 내용이다"
+        },
+        "pause": {
+          "action": "처음 만난 이의 친절을 무심하게 넘기지 않는다",
+          "connection": "짧은 감사가 다음 대화를 편하게 만들 수 있다는 이유다"
+        }
+      },
+      "assessment": "초대 응답과 친절에 대한 감사 모두 상황 없이도 이해된다"
+    },
+    "overall.cups.01.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "c9d39b60370aa4102ef34afc275e6eaa6383e27983cac0ec33d8d9ae91d3b026",
+      "source_ko_actions_sha256": "281d0344a78ee979c6b9d2f549a56bda09bef0ec0973d1d9f8402bf69486e63f",
+      "source_locale_bundle_sha256": "440119dc00ecf2e7816df7701e3dddf8037bfc3eca6b7af246e98faf19ef765a",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "싫은 계획 제안에는 솔직히 마음을 말한다",
+          "connection": "기분 맞추려고 즐거운 척 수락할 필요 없다는 범위다"
+        },
+        "pause": {
+          "action": "반응이 작다고 상대의 뜻을 나쁘게 보지 않는다",
+          "connection": "무뚝뚝한 답만으로 마음 전부를 알 수 없다는 이유다"
+        }
+      },
+      "assessment": "거절 허용과 상대 반응의 해석을 각자 명료하게 안내한다"
+    },
+    "overall.cups.02.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "954bf6e18fdd668b2ef8e5ecff6af6176ccd61bbcbd0e0484f16dfc7d428fdd0",
+      "source_ko_actions_sha256": "0562913abafb4dbac869e860face8ccc3f41ecd10961d552c8c74acbe12b9c80",
+      "source_locale_bundle_sha256": "5d3c5de247bc804485381a91b3c18e5fc218826e015946c80471d967cdaafe8b",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "도움을 받으면 가능한 도움으로 감사를 전한다",
+          "connection": "필요를 묻고 감당 가능한 만큼 도우라는 방법이다"
+        },
+        "pause": {
+          "action": "잘 통한다고 필요한 도움까지 알아줄 것을 기대하지 않는다",
+          "connection": "바라는 것을 직접 말하는 대안이다"
+        }
+      },
+      "assessment": "가능한 만큼이라는 KO 제한을 유지하고 보답의 의무를 과장하지 않는다"
+    },
+    "overall.cups.02.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "1b512fbbb835d07b6443dce3c53a061f713ed9c73c73137ed8aa39f522eaa0bc",
+      "source_ko_actions_sha256": "06786fae07bf6be4e0225263f4873a003d47affe28b15213ad829303d345bcc7",
+      "source_locale_bundle_sha256": "5d27941425145b74fcc3f0c3c2c3bf85dbb03c9aac6bd947fe43ff5f64027ab2",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "상대가 요청을 다르게 알았다면 다시 설명한다",
+          "connection": "무엇을 어떻게 원하는지 구체화하는 방법이다"
+        },
+        "pause": {
+          "action": "혼자 양보했다고 비꼬아 서운함을 전하지 않는다",
+          "connection": "그 말투가 원래 바람의 전달을 어렵게 하는 이유다"
+        }
+      },
+      "assessment": "서운함을 무조건 억누르라는 조언이 아니라 전달 방식을 구분했다"
+    },
+    "overall.cups.03.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "ffc59c11e0fa108c5dc5f1453287c9beec1331392c3abe04e1b3c413e4a0248b",
+      "source_ko_actions_sha256": "967f288fac7fa3700f612c519258d3797154a6bf0ddc766679bb040b9e9e2403",
+      "source_locale_bundle_sha256": "74b54a1f6ccc0625e87bc5d15377607c3effe820c6217b591f7b8e9d587fe349",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "축하할 사람에게 소식이 반가웠다고 전한다",
+          "connection": "짧은 말로도 충분하다는 범위를 포함한 한 문장이다"
+        },
+        "pause": {
+          "action": "축하 자리의 분위기를 띄우려 남의 흉을 보지 않는다",
+          "connection": "자리가 축하 목적임을 밝혀 주의 행동을 직접 제시한다"
+        }
+      },
+      "assessment": "사소한 소재를 추가하지 않고 축하 소식에 대한 반응을 썼다"
+    },
+    "overall.cups.03.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "89b3c8e6faee124a55d82d33aef01da2bb7ccb82daba55ca8384b3428cfc56b2",
+      "source_ko_actions_sha256": "d04e2b039e4e05e4ce46d6838c70b62361fcc7af988d255f3631cbfdae28ed62",
+      "source_locale_bundle_sha256": "762972b55f9edd89f77a64328381d9f4e340fb80729fea68b080958ca6533fc7",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "더 있고 싶지 않으면 생각한 시간에 자리를 떠난다",
+          "connection": "모두 기분을 맞추려고 끝까지 있을 필요 없다는 이유다"
+        },
+        "pause": {
+          "action": "웃는 분위기에 남을 헐뜯는 말을 보태지 않는다",
+          "connection": "가벼운 농담이 뒷말로 전달될 수 있다는 이유다"
+        }
+      },
+      "assessment": "머물 의사와 험담 참여를 다른 행동으로 이해할 수 있다"
+    },
+    "overall.cups.04.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "7c99b32dc603a1d0218ac32c7acf82eae2a400511836c90fb25b2e51120b9898",
+      "source_ko_actions_sha256": "8f05486a7c827b47fa5e7eaf49f69f605e26c52db6f9b750c62de72824a86fc0",
+      "source_locale_bundle_sha256": "55336dc75d51755de72f3af77196b607cbb24ff6ba55ee6df3ca6c6394a7c962",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "시시해 보이는 새 제안도 내용을 살핀다",
+          "connection": "첫인상만으로 넘기면 후회할 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "기다리는 소식이 없다고 모든 새 제안을 거절하지 않는다",
+          "connection": "기존 대기와 새 제안을 구분하는 한 문장이다"
+        }
+      },
+      "assessment": "무조건 제안을 수락하라는 뜻으로 바꾸지 않고 확인에 머문다"
+    },
+    "overall.cups.04.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "63f8866952529ce3689965eac249ed3886680764ed9c3b893d8b126ce9b9bba8",
+      "source_ko_actions_sha256": "39b9fd23a26efc64eae4868296255b9c96a53fde8e2df70110eb6111c00feacd",
+      "source_locale_bundle_sha256": "0e27404549d8c247420abef84df919a8185dd1352b7aebe4abacd18e35c36eec",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "오래 고민한 일의 새 소식을 살핀다",
+          "connection": "전에 고려 못 한 방법이나 선택지를 찾는 내용이다"
+        },
+        "pause": {
+          "action": "전에 싫었던 제안을 즉시 다시 거절하지 않는다",
+          "connection": "달라진 현재 사정에는 맞을 수 있다는 이유다"
+        }
+      },
+      "assessment": "fresh news의 대상이 같은 고민으로 유지돼 행동이 튀지 않는다"
+    },
+    "overall.cups.05.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "bb5bfb2e7ac6d28ec24d448545cda023434ed6a77f1d3799fc755cf3f87b9e87",
+      "source_ko_actions_sha256": "2b950ae257ca452cd0f989cbc1a1f7d5022f7ad6f531c06cd9a61e538921db44",
+      "source_locale_bundle_sha256": "d1bb8d714d9a33a491f399604cad752e5b74d61b02974e558e64323c87a310c6",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "기대가 어긋나도 다른 소식을 듣는다",
+          "connection": "실망에만 주목하면 남은 도움을 놓칠 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "일의 좌절을 도움 주려는 사람에게 풀지 않는다",
+          "connection": "차가운 반응으로 받을 지원을 잃을 수 있다는 같은 상황 설명이다"
+        }
+      },
+      "assessment": "아직 가능한 지원 조건을 유지하며 도움을 확정적으로 보장하지 않는다"
+    },
+    "overall.cups.05.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "b66bbb7a1966c9da39b0114fe729d6d5d44251f7e2566d04bfc76f1336b2ea62",
+      "source_ko_actions_sha256": "5fa3d1adc71975b561dbe171388b66a7bdd869024621e0b65fdd178185214101",
+      "source_locale_bundle_sha256": "56f04719ac8595fe1c27764edcc613e1f4dcfa2539d1c723cf0ce690232c5803",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "포기한 일의 도움 제안을 듣는다",
+          "connection": "어디부터 다시 할 수 있는지 함께 살피는 방법이다"
+        },
+        "pause": {
+          "action": "다시 대화하는 사람의 과거 잘못만 계속 따지지 않는다",
+          "connection": "바로잡을 일을 논의할 기회를 잃을 수 있다는 이유다"
+        }
+      },
+      "assessment": "화해를 강요하지 않고 대화가 다시 시작된 조건을 유지한다"
+    },
+    "overall.cups.06.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "e5860ad6919e1a71839600fb9acf2d03aded8abb959943b7a979c530beaf71c4",
+      "source_ko_actions_sha256": "c1e33619a9dec69cc11ed2c08cfca78571c676316435419f7b087f653c003fff",
+      "source_locale_bundle_sha256": "c762d43dc5be1c063cf3314ae438f54a891abd9461614325416c5c58194abb00",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "떠오른 옛 지인에게 안부를 전한다",
+          "connection": "서로의 근황을 나누는 같은 대화 방법이다"
+        },
+        "pause": {
+          "action": "오랜만의 연락을 부탁만으로 시작하지 않는다",
+          "connection": "근황을 나누면 필요한 말도 편해진다는 이유다"
+        }
+      },
+      "assessment": "실제로 쓰는 catch up과 get in touch로 번역투 없이 설명한다"
+    },
+    "overall.cups.06.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "646b8773746a53657595168cae0695506581685ef8046a0c15c547c1d0d138b8",
+      "source_ko_actions_sha256": "48cf66b2b3e4b80717208d0e1aef1522bebde814b858afd48ed40680cd7d1d67",
+      "source_locale_bundle_sha256": "f4c3156d33256dbb30aa0fb3011ec1cc0269f2b564bd0753f72e023a094236dc",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "실패한 일을 재시도하기 전 현재 조건을 확인한다",
+          "connection": "지난 장애가 바뀌었는지 살피는 질문 내용이다"
+        },
+        "pause": {
+          "action": "과거 성공이 이번 동일 결과를 보장한다고 여기지 않는다",
+          "connection": "현재 사정이 다를 수 있다는 이유다"
+        }
+      },
+      "assessment": "과거 실패와 성공을 각각 다른 확인 대상으로 구분했다"
+    },
+    "overall.cups.07.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "e71e5b5aa75223ac9f0c0cbdeb3f13e187892e78d16ae1d7f6f5d630a5823694",
+      "source_ko_actions_sha256": "5efa99b84b7ac3b753c98d288587486e019e04d913da0510c4502409f85498d0",
+      "source_locale_bundle_sha256": "16c834eed4d36a070a8485268b34d16cce1d8f6a6c14f1d6176f40d55b5729b6",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "제안 비교 시 실제 받을 내용을 확인한다",
+          "connection": "미확정과 확정 조건을 나누라는 방법이다"
+        },
+        "pause": {
+          "action": "놓칠까 봐 여러 제안을 한꺼번에 받지 않는다",
+          "connection": "보기 좋아도 기대한 만큼 안 줄 수 있다는 이유다"
+        }
+      },
+      "assessment": "terms와 details가 앞의 offers를 명확히 이어받는다"
+    },
+    "overall.cups.07.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "571658ddc1f7f685a2947923432533f7fa93207b530d39dd6f734461c4ee1f8e",
+      "source_ko_actions_sha256": "864ab3758c10b6e5cba7fc5603776746770f0c9219bc6754b8ed638d42bd7a97",
+      "source_locale_bundle_sha256": "e071c8205899011e94ac6a7f7ce82c88ae8a29d375689e0d1dfe2306dde11946",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "맞는 제안을 골랐으면 참여 의사를 전한다",
+          "connection": "혼자 마음속으로만 결정하지 않는 전달 행동이다"
+        },
+        "pause": {
+          "action": "조건 확인 뒤에도 새 제안만 계속 찾지 않는다",
+          "connection": "달라진 것 없을 때 비교가 시작을 늦출 수 있다는 이유다"
+        }
+      },
+      "assessment": "이미 충분히 확인한 조건이 살아 있어 검토 자체를 금하지 않는다"
+    },
+    "overall.cups.08.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "06c466142e1a130e47c206adcd4cecbbfe843a19bc0a20de6fe22a03ac760575",
+      "source_ko_actions_sha256": "89ffc8d38fcb5727ecc05fc81663703694c83a93a23105645da52b8dcf20bf2a",
+      "source_locale_bundle_sha256": "ebdd4b1979e16744664d06efb5cd54a31ed8608546f0fb3976bfc558cd9d7633",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "계속할 이유 없으면 기존 약속을 지키고 끝낸다",
+          "connection": "잔여 의무만 마친다는 종료 범위를 한 문장으로 설명한다"
+        },
+        "pause": {
+          "action": "쓴 시간이 아깝다고 원치 않는 일을 더 맡지 않는다",
+          "connection": "앞으로 계속할 이유가 있는지 살피는 동일 판단 기준이다"
+        }
+      },
+      "assessment": "시간이 아깝다는 표현은 길지만 통상적인 sunk cost 설명으로 이해된다"
+    },
+    "overall.cups.08.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "3fd32ee39e57a5d67d960cd71c8dbd095ec2ee00f988ad900ef55dcd06712744",
+      "source_ko_actions_sha256": "1988d03304e1ff8a84cb7327ca37b0e74617906a6f3303d1ffb7be5dd2f0b76d",
+      "source_locale_bundle_sha256": "ddd64d0b318ef93ed41942e3a1810232b2544b578e4313b30f6f4ed20d9c5e2a",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "불편했던 일을 계속하려면 달라질 점을 말한다",
+          "connection": "같은 문제가 반복되지 않도록 한다는 목적을 명시한다"
+        },
+        "pause": {
+          "action": "익숙해서 그만둘 일을 계속 받아주지 않는다",
+          "connection": "같은 불편을 다시 겪을 수 있다는 이유다"
+        }
+      },
+      "assessment": "계속할 조건 협의와 원치 않는 지속을 구별해 읽힌다"
+    },
+    "overall.cups.09.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "b34f28d30a936b5d4cbaf4e23ee9ba026ede8f1d08f2085dd7ebfc06a610440d",
+      "source_ko_actions_sha256": "97f53398c0b32711477d64e1391f64811dd27974be68ae0098556e7d326ef274",
+      "source_locale_bundle_sha256": "ceea13ca43322b1063b8e0185e6864da6e794a86b588f2fa05b63e40adb32e18",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "뜻대로 된 결과의 가장 기쁜 점을 떠올리며 축하한다",
+          "connection": "생각할 대상이 그 결과로 명시돼 축하 방법이 같은 문장에 이어진다"
+        },
+        "pause": {
+          "action": "좋은 결과 직후 더 이루려고 다음 일을 서두르지 않는다",
+          "connection": "지금 한 일에 만족할 시간을 주어도 된다는 이유다"
+        }
+      },
+      "assessment": "성과 축하 뒤에 타인 시선이나 별개 활동이 붙지 않는다"
+    },
+    "overall.cups.09.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "9e6e52c8e0b24e6b27e330b15944e28fc28723dc99606c6973709f3ee1160bf3",
+      "source_ko_actions_sha256": "d776e49da1ac0c804e13f23bbaaf0dff0b0434cf2b38afa729dec9db8d78e32b",
+      "source_locale_bundle_sha256": "03e9a17b20e9ae3427059dc652859c4afd7bbac004b5081ae5386ae3b8726d60",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "원하는 결과여도 아쉬우면 실제 불편을 살핀다",
+          "connection": "예상보다 번거로운 점이라는 점검 대상이 한 문장이다"
+        },
+        "pause": {
+          "action": "아쉬움을 달래려고 새 일을 잔뜩 시작하지 않는다",
+          "connection": "새 일이 감당할 것을 늘릴 수 있다는 같은 동기의 결과다"
+        }
+      },
+      "assessment": "좋은 결과를 강제로 좋아하라는 조언 대신 불편을 인정한다"
+    },
+    "overall.cups.10.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "22ae238591060c47912f1eedc568c51c4172584a5fea0bf0adc7fb4412101dba",
+      "source_ko_actions_sha256": "dd525837951106c3d7aec5e4c4064f67060191d6461f90c17712dab86396df10",
+      "source_locale_bundle_sha256": "0cb72dfd8f8bbd5bdc427522c60e3679a0c7044dceb9e779d2ddc38f9a1b4f3f",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "가까운 이와 안부를 나눌 시간을 낸다",
+          "connection": "거창한 계획 없이 식사 중 이야기하는 방법이다"
+        },
+        "pause": {
+          "action": "자주 보는 사람의 기쁜 소식에 건성으로 답하지 않는다",
+          "connection": "익숙한 사이여도 기쁨을 말로 전하는 방법이다"
+        }
+      },
+      "assessment": "추가 관계나 상황을 만들지 않고 일상적 대화로 설명한다"
+    },
+    "overall.cups.10.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "768b0bd628be6fe4992d49a540ea3a78d3bd0a5ff7c60f6885dab4da0d0fc120",
+      "source_ko_actions_sha256": "24203de400c2d52fd073521933eb7cfc03efc0ce80b5ffe918880b25be0d4bf4",
+      "source_locale_bundle_sha256": "15100793fcc34e1806550bdea6c9562cefcdc8cab8301264cd278105d840e2e7",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "공동 결정에서는 가까운 사람의 바람도 묻는다",
+          "connection": "늘 동의하던 사람의 뜻도 달라질 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "아무 불평 없다고 모두 만족한다고 단정하지 않는다",
+          "connection": "조용한 반응과 기대의 차이를 구별하는 이유다"
+        }
+      },
+      "assessment": "가까움과 침묵을 동의로 단정하지 않는 의미가 직접적이다"
+    },
+    "overall.cups.11.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "61bb18132e296aa566684d90d3cebb31435a2f8dfaa155a5c03506ecb99b647a",
+      "source_ko_actions_sha256": "d2ffed55edb513eabcbc5da264f57a7b6663db0b89d4d5556ab56836c4ea93a9",
+      "source_locale_bundle_sha256": "772a8f34f3619c09ad20246741494555a3a895bcc2b7b264a15338e9cb94ecfa",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "같이 하고 싶은 일을 가볍게 제안한다",
+          "connection": "상대도 관심 있을 때 시점과 방법을 논의하는 범위다"
+        },
+        "pause": {
+          "action": "처음의 어색함 때문에 인사를 미루지 않는다",
+          "connection": "완벽한 준비가 없어도 따뜻한 반응이 가능하다는 이유다"
+        }
+      },
+      "assessment": "서로의 관심 조건과 반응의 가능성을 유지하고 호응을 보장하지 않는다"
+    },
+    "overall.cups.11.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "9468d549a8a16f22de0c7850ee80c9db0fb9c10b7f0f926697d859d7b519fd74",
+      "source_ko_actions_sha256": "43771aff300b8782ec2e08dfaa13fbae61ebee52a64937861321349db1ef228e",
+      "source_locale_bundle_sha256": "15c5c28fdb3a31982a9d54687a46bb5314a0b21eb127bc8e55570ee755789315",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "부탁이나 사과의 진지함을 분명하게 전한다",
+          "connection": "농담으로 돌리면 진지하지 않다고 오해할 수 있다는 이유다"
+        },
+        "pause": {
+          "action": "기다리는 답이 늦다고 삐친 말을 하지 않는다",
+          "connection": "상대 반응을 시험하다 자신의 뜻을 잘못 전할 수 있다는 이유다"
+        }
+      },
+      "assessment": "요청/사과의 뜻 전달과 답 기다림의 태도가 각각 명확하다"
+    },
+    "overall.cups.12.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "ef7812a0e0550fcc19277e341fa1160b1ff18a46ea0c58102c5b1cfce8be9f02",
+      "source_ko_actions_sha256": "dee5656f834a44d412748f9dcf46b44a84b06459f6e676f01f6c8956704ca632",
+      "source_locale_bundle_sha256": "ef039de4152879d40e01b00cc110e759832a86db46a5c821446841de430d5cde",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "도움이 필요하면 필요한 내용을 조심스럽게 말한다",
+          "connection": "혼자 어려운 부분부터 설명하는 방법이다"
+        },
+        "pause": {
+          "action": "좋은 초대에 관심 없어 보이도록 모호하게 답하지 않는다",
+          "connection": "참여 뜻을 알려야 상대가 약속을 정하기 쉽다는 이유다"
+        }
+      },
+      "assessment": "어색한 복합 수식어를 보통 조건문으로 바꿔 호응의 뜻을 명료화했다"
+    },
+    "overall.cups.12.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "2d9be63182a5369ded9ad0e2da35d1a60196027c6eb95dd6a57a91928360074e",
+      "source_ko_actions_sha256": "b5bd9e72dbafe28481b6178ab48ff39d1e4918902d772dc788ec50e62d894f23",
+      "source_locale_bundle_sha256": "e0a142e943de6850b5172f7d87e522ae96dce0c1d691af588a1635b6c24374e9",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "도와준다는 약속의 내용과 시점을 묻는다",
+          "connection": "반가운 말과 확정 내용을 구분하는 확인 방법이다"
+        },
+        "pause": {
+          "action": "도움 내용과 시간이 불확실하면 다른 모든 기회를 포기하지 않는다",
+          "connection": "확답 부재라는 조건을 붙여 한 문장으로 끝낸다"
+        }
+      },
+      "assessment": "약속을 무조건 의심하지 않고 확인한 범위에 따라 판단한다"
+    },
+    "overall.cups.13.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "5303ec6dcdd3ec9eb50f1539d08f7cf2210843dc8a44514d24bc4fd3f2631acc",
+      "source_ko_actions_sha256": "ee7849ed2f2fef09d762b96aac7ed328aea93d4e7f7a4e0d2dd7d8af61e268ab",
+      "source_locale_bundle_sha256": "300ec8986d4951397d85cff9b1e2c95aa43a839e6d19a66d1789e3df532d5f40",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "혼자 고민한 사정을 믿는 사람에게 말한다",
+          "connection": "속상했던 부분부터 말할 수 있다는 시작 방법이다"
+        },
+        "pause": {
+          "action": "털어놓은 일을 전부 해결해달라고 요구하지 않는다",
+          "connection": "혼자 어려운 부분에 한해 도움을 청하는 대안이다"
+        }
+      },
+      "assessment": "asking about을 asking for help with로 고쳐 단순 질문과 실제 도움을 혼동하지 않는다"
+    },
+    "overall.cups.13.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "eb29dde448d55667fcf5cdc78bb4f44f73e02d823e4a07c91770651e9e022991",
+      "source_ko_actions_sha256": "ab985aee7570c12e3e2fd5f6b3efea51bae6523f719e14ffc99f9d58955c8603",
+      "source_locale_bundle_sha256": "087266983da9156396ba573bf903b377e61cdc9debc4d79a249e015d6ffb0f81",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "자기 일을 마칠 시간도 남기고 도울 범위를 먼저 말한다",
+          "connection": "도움 요청을 받은 상황과 가능한 범위가 한 문장이다"
+        },
+        "pause": {
+          "action": "상대 기분을 위해 이미 부담스러운 부탁까지 수락하지 않는다",
+          "connection": "거절 어려워도 힘든 부분을 즉시 말하라는 방법이다"
+        }
+      },
+      "assessment": "then and there가 부탁 받은 자리의 시점을 자연스럽게 지시한다"
+    },
+    "overall.cups.14.upright": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "289f4a3acf6fa334ee96ed5512467afc28a287ea85b7f5c5b09ea004647a4d8f",
+      "source_ko_actions_sha256": "6afa96265a9e65ebc9d02af08a099ad739293178bebad6507cd0bed0a2d582ec",
+      "source_locale_bundle_sha256": "05c3f1b37691e00dbd3b5b624f536de9794a7e8575a8fa479d86ed4f0edbd95d",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "어려운 문제의 구체적 도움을 요청한다",
+          "connection": "내용을 알아야 도울 방법을 찾는다는 이유다"
+        },
+        "pause": {
+          "action": "먼저 들은 쪽의 말만으로 편들지 않는다",
+          "connection": "양쪽의 어려움을 듣는 대안이다"
+        }
+      },
+      "assessment": "중재나 협력을 추상어 대신 실제 요청과 청취로 드러냈다"
+    },
+    "overall.cups.14.reversed": {
+      "status": "pass",
+      "reviewer": "root",
+      "read_action_sha256": "87aa3af779f9c0f81c07eb2f11044237fa4df0a53298a56feaa8e36f89e99124",
+      "source_ko_actions_sha256": "e4cbca070b48569a1911805d51fde978bbbea8d06869772a6e0801c9b3c284a8",
+      "source_locale_bundle_sha256": "40dbfd8430eb5cf880c2041df58a42f64fbb92e63a3e9d790f57bf67a89a7add",
+      "scores": {
+        "naturalness": 5,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "기분 때문에 바뀐 합의의 원래 내용을 다시 짚는다",
+          "connection": "속상한 이유와 약속 이행을 별개로 논의하는 방법이다"
+        },
+        "pause": {
+          "action": "화났다고 맡은 일이나 약속을 갑자기 뒤집지 않는다",
+          "connection": "이미 맡았다는 조건과 금할 행동이 한 문장에 완결된다"
+        }
+      },
+      "assessment": "상대의 변심과 본인의 감정적 번복을 구분해 읽힌다"
+    },
+    "overall.pentacles.01.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "2bed5443aeefc3f8efdbe472d290cea6f05a7cc7b507ae904246be28602bf4b4",
+      "source_ko_actions_sha256": "5369797db93283b442e2060fb98a1eb04b579ef5245fd6d9efce14e03354ec3d",
+      "source_locale_bundle_sha256": "3cbcdc567e51d091b4c64bb082db0f4063ec1ae540924996507dc2eab88c47f8",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "받은 물건의 현재 쓸모 확인",
+          "connection": "수량과 필요한 물건 보유를 구분하는 이유"
+        },
+        "pause": {
+          "action": "비슷한 물건 추가 수집 자제",
+          "connection": "용도 없는 물건 증가를 막는 같은 목적"
+        }
+      },
+      "assessment": "수량과 필요한 물건 보유를 구분하는 이유 / 용도 없는 물건 증가를 막는 같은 목적; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.01.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "39a2acbe3950c28dcd4c261f03b685105295cdb0d0de7aa069d9372826e2609f",
+      "source_ko_actions_sha256": "f004104bab40475a10a5a68d454232e0e229b0647131d5210ff29f46096cab97",
+      "source_locale_bundle_sha256": "3b6cac069d0ae96d27a0a075470db3d2a88b0147fb34fee994a84218b14a50cc",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "시작에 필요한 물건이나 장소 확보 가능성 문의",
+          "connection": "부족한 자원이라는 조건과 한 행동으로 완결"
+        },
+        "pause": {
+          "action": "더 좋은 조건을 기다리며 확보한 자원의 사용 기회 놓치지 않기",
+          "connection": "기다림이 활용 시기를 지나치게 한다는 한 문장"
+        }
+      },
+      "assessment": "부족한 자원이라는 조건과 한 행동으로 완결 / 기다림이 활용 시기를 지나치게 한다는 한 문장; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.02.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "c7e69ca6cb47afcf7c4ecfba93710ba60f406d24919ee50ee56f0cae56e5ab76",
+      "source_ko_actions_sha256": "36f3362778a99cc6b7c229b8325d0591730b878db86d7a986237235c9a362ebc",
+      "source_locale_bundle_sha256": "d9206413cb4c1cc8d1574cae2f6291f87f119df1197dc629301f3c5e510ff571",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "겹친 약속 중 변경 가능한 쪽을 미리 묻기",
+          "connection": "혼자 맞추다 늦는 것보다 조기 설명이 낫다는 이유"
+        },
+        "pause": {
+          "action": "미뤄둔 일이 있으면 새 약속 자제",
+          "connection": "남은 일을 처리할 시간 부족으로 연결"
+        }
+      },
+      "assessment": "혼자 맞추다 늦는 것보다 조기 설명이 낫다는 이유 / 남은 일을 처리할 시간 부족으로 연결; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.02.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "4810ffd2a7e7965d2c126a1fee3e29360f05c342e1ff1ba90a75bb68e6ce6def",
+      "source_ko_actions_sha256": "f1a62ec7e048d078053aa361c51b603a87eb1a27a0c7403a0bc70d43e65a3522",
+      "source_locale_bundle_sha256": "e55c04131f3de5057a46d3441a1ff1ebeb20fbaf607f76dbaa7f610549773ce1",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "우선순위 변경 후 가능한 시간 알리기",
+          "connection": "남은 시간 계산과 상대 안내가 한 절차"
+        },
+        "pause": {
+          "action": "같은 시간의 두 부탁 수락하지 않기",
+          "connection": "실제 우선순위와 가능 시간 고지가 방법"
+        }
+      },
+      "assessment": "남은 시간 계산과 상대 안내가 한 절차 / 실제 우선순위와 가능 시간 고지가 방법; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.03.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "9c1b94e008748230fd37d3b23da50e34188723a93b4c36fa3356ad6d6519a0eb",
+      "source_ko_actions_sha256": "ce50ca88fdfa5479db28fddc082c408124d7319d11f02670706bec3c321653c8",
+      "source_locale_bundle_sha256": "04a1ea78fdc0f7950b8be365ecf883606b2890c630e0649fb50f665e2c1eaf93",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "익숙하지 않은 작업의 누락을 경험자에게 묻기",
+          "connection": "설명을 통해 혼자 놓친 점 수정"
+        },
+        "pause": {
+          "action": "지적에 변명하며 다투지 않기",
+          "connection": "수정할 점을 들어 재작업 감소"
+        }
+      },
+      "assessment": "설명을 통해 혼자 놓친 점 수정 / 수정할 점을 들어 재작업 감소; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.03.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "c52d1fba88a80cae60940481a7e3e800ad63395d4b5f461a85ec96503c137ba1",
+      "source_ko_actions_sha256": "dd10709fa2fed5efb551485cc6ed5d592deb47b7f7b8b9f1102fdbaffae6f79a",
+      "source_locale_bundle_sha256": "5d304e3f06a3584ef3322e02c60b0d1e41d29efe8d8047803adc7efda5694049",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "자신의 능숙한 부분을 말하고 담당 제안",
+          "connection": "공동 작업 조건과 하나의 자원 배분 행동"
+        },
+        "pause": {
+          "action": "상대 전문 부분까지 혼자 결정하지 않기",
+          "connection": "이유를 듣고 맡기는 방식이 협업 수월함으로 연결"
+        }
+      },
+      "assessment": "공동 작업 조건과 하나의 자원 배분 행동 / 이유를 듣고 맡기는 방식이 협업 수월함으로 연결; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.04.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "02289b33b96460b4b4e22ffd02f7a2d18202b4dc17cf4390c89a708cebbacb60",
+      "source_ko_actions_sha256": "f448ed145a3e855ffb4519dec476b2ef6d1a4cbd2ce5b82ebac6040d23e63e2a",
+      "source_locale_bundle_sha256": "0430b2ea45280011f41ba99b186da640ee15dd0382bede346491760a9465144b",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "거절 이유를 묻고 조건 변경 가능하면 재시도 시점 확인",
+          "connection": "확인 결과에 따른 조건부 다음 단계"
+        },
+        "pause": {
+          "action": "상대가 어렵다는 조건 유지한 채 반복 요구 자제",
+          "connection": "압박이 동의를 지연시킬 수 있다는 이유"
+        }
+      },
+      "assessment": "확인 결과에 따른 조건부 다음 단계 / 압박이 동의를 지연시킬 수 있다는 이유; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.04.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "557948f7ae7bd27c14e26914e3d8febecdd9124c541589442a4076cda32c72f6",
+      "source_ko_actions_sha256": "d593f344a5d89d4eafe4be385cb9afe0f9835c69c572478044bfe53049553d83",
+      "source_locale_bundle_sha256": "dab96a879e56c562080f7df0f83f9558bf93ba5c2f31c0f6e5dd19b80051842d",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "새 물건 마련 전 기존 물건의 같은 용도 확인",
+          "connection": "조건과 대상이 한 문장에 완결"
+        },
+        "pause": {
+          "action": "도움 요청 내용을 듣기 전 거절하지 않기",
+          "connection": "필요 내용 확인 후 가능한지 판단하는 절차"
+        }
+      },
+      "assessment": "조건과 대상이 한 문장에 완결 / 필요 내용 확인 후 가능한지 판단하는 절차; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.05.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "6bbb43671678c7f5f351b4d0a0e75120a11183d60053eb30f5aa1e4ebcbccea0",
+      "source_ko_actions_sha256": "a7c96aa883dbc54231f29230763aa1ed74a6e54697a3a9e1747a0a7cab5808ed",
+      "source_locale_bundle_sha256": "d897a6e5a9307232e0c0073772875272393cb1a66669391bcc9c0e293ef34d91",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "꼬인 공동 작업에서 각자 완료한 범위 확인",
+          "connection": "완료 작업을 반복하지 않는 목적이 직접 이어짐"
+        },
+        "pause": {
+          "action": "화 때문에 맡긴 일을 회수하지 않기",
+          "connection": "혼자 할 일이 늘어 완료 지연"
+        }
+      },
+      "assessment": "완료 작업을 반복하지 않는 목적이 직접 이어짐 / 혼자 할 일이 늘어 완료 지연; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.05.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "b2239e501412a33c84d9b4cca40deb717ef25c34fe623499833f9e01412f2feb",
+      "source_ko_actions_sha256": "d26824a4b7526eb073962ea9fc173861bfbfdb8144cdbb1c84bf562a881d9500",
+      "source_locale_bundle_sha256": "7a7be141944cefc3d3c3106e902c42552589d803b0786de5c5d07a6f462780a0",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "버거운 일의 도움이 필요한 부분 명시",
+          "connection": "부담 조건과 구체적 요청으로 완결"
+        },
+        "pause": {
+          "action": "도움 청하며 남과 비교만 하지 않기",
+          "connection": "비교만으로 부족한 부분을 상대가 이해하기 어렵다는 이유"
+        }
+      },
+      "assessment": "부담 조건과 구체적 요청으로 완결 / 비교만으로 부족한 부분을 상대가 이해하기 어렵다는 이유; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.06.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "f9381968b7d08061d70e2396168786d721c37e0e573a2e126f7224ae5b895201",
+      "source_ko_actions_sha256": "a1992377ae8e313896c3bb8035c1e653f43fe3a2a37c606bfda047c81718d4e0",
+      "source_locale_bundle_sha256": "d39f127a671eaef94223b87c66270109aa39f9f98aedf0c40837d418b8ba8b1e",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "도움의 대가 조건 확인 후 어려운 조건 미리 밝히기",
+          "connection": "받기 전 확인과 의사 전달 순서"
+        },
+        "pause": {
+          "action": "도와준 사람에게 남보다 적다며 불평만 하지 않기",
+          "connection": "반복 비교가 관계 불편함으로 이어짐"
+        }
+      },
+      "assessment": "받기 전 확인과 의사 전달 순서 / 반복 비교가 관계 불편함으로 이어짐; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.06.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "7f7a5d13b952beea6f6b48ce5a840869282edfa6e3f8c5e72b2aea10a3cb26b4",
+      "source_ko_actions_sha256": "08afb13c2c82df5f9dd00f6ffaa7a2deb68286444054e86bf3786fbd3ca68e0c",
+      "source_locale_bundle_sha256": "b32fe3656894bc8aa0f9c73e52146f49750808dcbf88c42fda54e8a127b3baa0",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "도움으로 편해진 점을 설명하며 감사",
+          "connection": "도움 받은 조건과 감사 내용이 한 문장"
+        },
+        "pause": {
+          "action": "필요를 묻지 않고 도움 밀어붙이지 않기",
+          "connection": "선의와 원하는 도움의 차이를 이유로 제시"
+        }
+      },
+      "assessment": "도움 받은 조건과 감사 내용이 한 문장 / 선의와 원하는 도움의 차이를 이유로 제시; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인"
+    },
+    "overall.pentacles.07.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "96c628fa61ef79bec041b2ff7d5416bbdbcb0af7d6c96bb535bfe2774d657424",
+      "source_ko_actions_sha256": "331de1dc270c6e7b62f7f352c319dd4b29a9609598f5687fbb6946eb3dac5d77",
+      "source_locale_bundle_sha256": "981c9ce7b61cbd6cf7cb4484288e8c4a2c8bcc9dac6e709287190e20456556ca",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "추가 도움의 종료 시점 문의",
+          "connection": "불명확할 때 현재 가능한 범위만 제안"
+        },
+        "pause": {
+          "action": "매몰된 시간 때문에 끝없는 도움 약속하지 않기",
+          "connection": "과거 투자와 미래 약속을 분리하는 한 문장"
+        }
+      },
+      "assessment": "불명확할 때 현재 가능한 범위만 제안 / 과거 투자와 미래 약속을 분리하는 한 문장; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.07.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "175653b0057f8d8e2d3a6038138a08247a0553cbb05657dea743ffccc72cf538",
+      "source_ko_actions_sha256": "8a2a5d2c21034bd7cfb7e38166a97b52fe9d0461fd813e09a2362cc17129067c",
+      "source_locale_bundle_sha256": "64a8f2eefe795f95dafeb9681e480a48ecfe7cfcbf3442382981621cf6df8c2c",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "진행해온 일의 개선과 잔여 부분으로 지속 가치 판단",
+          "connection": "비교할 두 대상과 판단 목적이 명확"
+        },
+        "pause": {
+          "action": "빨리 끝내려고 필요 과정 생략하지 않기",
+          "connection": "이전 수고를 살리는 잔여 과정 완료"
+        }
+      },
+      "assessment": "비교할 두 대상과 판단 목적이 명확 / 이전 수고를 살리는 잔여 과정 완료; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.08.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "dd1b7e8f908f83c7b11b255d287df86517e37871a52d1bc6ff972cdd8eb77de1",
+      "source_ko_actions_sha256": "c85b586262e960984cf5eb7c70c307eb4d4f0d74812113347efb7752626903de",
+      "source_locale_bundle_sha256": "5bc64242fae9670875511d61e5c2805cd5f85ea30bbb4c3516af556f05f0812b",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "능숙한 작업의 미확인 부분 재점검 및 누락 수정",
+          "connection": "완료 선언 전에 실제 고치는 순서"
+        },
+        "pause": {
+          "action": "결함을 말로 얼버무리지 않기",
+          "connection": "실제 수정 없으면 재작업과 신뢰 손실"
+        }
+      },
+      "assessment": "완료 선언 전에 실제 고치는 순서 / 실제 수정 없으면 재작업과 신뢰 손실; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.08.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "cc24c01f03577fce0c81cacd8d221641b0cdaf62c019a6e47ae0a13e52f4c134",
+      "source_ko_actions_sha256": "b718759d716b4283f98ac9220bebf5fef1336b5eec8acf1963b0006babf209f7",
+      "source_locale_bundle_sha256": "eea78c2506cba10bb617f18aad5bf0f67f1826ed54bb2ea6c3bbae2dfe13b64f",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "연습한 방법을 남은 작업에 적용해 완료",
+          "connection": "실행 가능한 남은 일 조건을 유지"
+        },
+        "pause": {
+          "action": "익숙한 일의 작은 부분 소홀히 하지 않기",
+          "connection": "부주의한 마무리가 결과 아쉬움으로 연결"
+        }
+      },
+      "assessment": "실행 가능한 남은 일 조건을 유지 / 부주의한 마무리가 결과 아쉬움으로 연결; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.09.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "5001715374bcb333613b8a70c7dba41a0ac1c9e4cf9e004d3401579506fe1600",
+      "source_ko_actions_sha256": "e01d347c77dc4eff55d2e6b888a8a9e6783c3a602038af90cb6bcd0d426808f4",
+      "source_locale_bundle_sha256": "c03268f69e7eb22a814fe3e4a97fc843818f6d5fc4c520dad61657083ac16d41",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "새 장소 활동의 필요한 준비 직접 확인",
+          "connection": "외형이 아닌 실제 이용 조건 확인"
+        },
+        "pause": {
+          "action": "보기 좋다는 이유로 남에게 보장하지 않기",
+          "connection": "이용 불편 확인 뒤 추천하는 절차"
+        }
+      },
+      "assessment": "외형이 아닌 실제 이용 조건 확인 / 이용 불편 확인 뒤 추천하는 절차; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.09.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "393b71252ececa6281f03dee7452d72d99902956342b2cc12607af01f41bf2d5",
+      "source_ko_actions_sha256": "73cc5f948bd5fccee446cf641f8577e9f6bb591b91ac35cf74e0cb9d5a6bb1da",
+      "source_locale_bundle_sha256": "445fc1df3ed52380d960483c2bde6a3cdeb85e5657eef975f405742c484dd934",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "잘 끝낸 일을 기념해 시간 없어 못한 일 하기",
+          "connection": "보상 목적과 구체적 미실행 이유로 완결"
+        },
+        "pause": {
+          "action": "잘 지냄을 보이려 원치 않는 자리 참석하지 않기",
+          "connection": "남의 시선에 따른 불필요한 참석을 단독으로 명시"
+        }
+      },
+      "assessment": "보상 목적과 구체적 미실행 이유로 완결 / 남의 시선에 따른 불필요한 참석을 단독으로 명시; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.10.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "c09e0ef418f172e4a17154828ccd73dbdc66672fe0289611c8d7f532385b35ca",
+      "source_ko_actions_sha256": "721a2fe11b87064c5af0e7298c36c11c1f80dfb52ad8a6833b49a3e3a0f1c75e",
+      "source_locale_bundle_sha256": "4b9c62f50944e211693639067e2d35cc399675210f7344499b3afe598547ccac",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "잘되는 일의 새 방법을 작은 범위에서 시험",
+          "connection": "전체 변경 전에 시험한다는 순서"
+        },
+        "pause": {
+          "action": "기다리는 결과에 달린 약속 여러 개 잡지 않기",
+          "connection": "결과가 다르면 약속 이행도 어려운 인과"
+        }
+      },
+      "assessment": "전체 변경 전에 시험한다는 순서 / 결과가 다르면 약속 이행도 어려운 인과; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.10.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "8d18e66bc568a55098f72a15e5ddc3e0a2df2bdc5e8fcc6490c5b77a3c478f99",
+      "source_ko_actions_sha256": "5c8ad8039853e9c15760843724e35c9e9a284e2fff4acba818f9bfcd8f4acebe",
+      "source_locale_bundle_sha256": "78a53753c7274d00b658def5047303a5c8e003ecbed4efa2c96441a0303776f6",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "새 문제의 답을 기존 정리 기록에서 찾기",
+          "connection": "축적 기록의 유용성이 이유"
+        },
+        "pause": {
+          "action": "오래 아는 사람 도움 가능하면 혼자 전부 알아내려 하지 않기",
+          "connection": "도움 가능 조건이 한 문장에 포함"
+        }
+      },
+      "assessment": "축적 기록의 유용성이 이유 / 도움 가능 조건이 한 문장에 포함; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.11.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "d572b1602b2b71d54540d0b589df5ba5577fb9b8404291521adb18699fb31740",
+      "source_ko_actions_sha256": "3d5c712e7d3deaaedd5d196187b4f408e2be7b2d188ae1552fc6919d08e48eaf",
+      "source_locale_bundle_sha256": "4cab7256c075cca0bf670ee6ca1344e84904a0d51a04fe84c692fcf071acbacf",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "미뤄둔 안내에서 당장 처리할 항목 확인",
+          "connection": "다른 일보다 먼저 볼 행동과 대상이 명시"
+        },
+        "pause": {
+          "action": "금방 재미없다고 필요 과정 전 중단하지 않기",
+          "connection": "흥미 감소만으로 가치 판단하지 않는 한 문장이며 약간 길어도 해독 가능"
+        }
+      },
+      "assessment": "다른 일보다 먼저 볼 행동과 대상이 명시 / 흥미 감소만으로 가치 판단하지 않는 한 문장이며 약간 길어도 해독 가능; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.11.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "5785b79ac5b1fe60a629df0a068e51685c472211e7649935182cdcf7b8f984c9",
+      "source_ko_actions_sha256": "4d76e33738969764e347c74302ba932ab815c0e4a0f91b569c4aa3af4eac6890",
+      "source_locale_bundle_sha256": "99a6f319db0476e70441b1d2679de7ab18f49ddf89742d78eeb66dab793944b0",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "새 방법을 간단한 적용 대상에 직접 시도",
+          "connection": "방법과 실행 대상을 같은 문장에 명시"
+        },
+        "pause": {
+          "action": "익숙하게 들려도 설명 중간에 넘기지 않기",
+          "connection": "남은 설명의 새로운 내용 가능성"
+        }
+      },
+      "assessment": "방법과 실행 대상을 같은 문장에 명시 / 남은 설명의 새로운 내용 가능성; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.12.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "cf0294741b06e1c98d05db4e0d12dc6de8550c9403ce47e74a8a253955a2de04",
+      "source_ko_actions_sha256": "5444f0adb8aaa6afdeff44754c35772339afa1bef5d29e093e5173a8499fe916",
+      "source_locale_bundle_sha256": "dd9c8d3741fa33b35d449f556da7d7ae40040697686f4cffac5efced25b61932",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "미뤄둔 작업의 진행 범위 확인",
+          "connection": "완료로 생각한 부분의 누락 가능성"
+        },
+        "pause": {
+          "action": "나중에 몰아서 한다며 재차 미루지 않기",
+          "connection": "오래 두면 진행 위치 확인에도 시간 필요"
+        }
+      },
+      "assessment": "완료로 생각한 부분의 누락 가능성 / 오래 두면 진행 위치 확인에도 시간 필요; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.12.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "4eb897ca4902233104a52b7f10debfceaa6381e2d2fe9ef7a5c868bf5309fc6b",
+      "source_ko_actions_sha256": "e568783e5c54d3b85b2fb237e533becb226e1093d6b98d0ecda1973438ed0239",
+      "source_locale_bundle_sha256": "8771f64524b31f750a3acf359e1f03c685f70ff2865def22934e129a67f725cb",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "익숙한 순서대로 끝내며 약속 누락 확인",
+          "connection": "마감과 확인을 한 절차로 연결"
+        },
+        "pause": {
+          "action": "남이 빠르다고 성공 중인 방법 급변하지 않기",
+          "connection": "자신의 방법으로 완료 가능하면 비교 속도 불필요"
+        }
+      },
+      "assessment": "마감과 확인을 한 절차로 연결 / 자신의 방법으로 완료 가능하면 비교 속도 불필요; KO 및 기존 영어 본문 의미 일치"
+    },
+    "overall.pentacles.13.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "219b139f153e68fe80cfa49ad13cb1591391f6e4a20a3ead417bcec734eedf96",
+      "source_ko_actions_sha256": "9215e388d52dcdebb258ae664fbb843f02359bcd48a3995bfe991115610c23fc",
+      "source_locale_bundle_sha256": "9b7f4b815dccd592cd74439fd1493d33b12fc2f0a1a45648973a80a0b0cf763e",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "불안한 결정 조건을 구체적으로 묻고 답에 따라 결정",
+          "connection": "질문과 답을 사용하는 하나의 판단 절차"
+        },
+        "pause": {
+          "action": "근거 없이 도움 의도 캐묻지 않기",
+          "connection": "의심 반복이 실제 도움 논의 막음"
+        }
+      },
+      "assessment": "질문과 답을 사용하는 하나의 판단 절차 / 의심 반복이 실제 도움 논의 막음; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.pentacles.13.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "e8db02a8f84403a8c3f29584babac98115ea9aeaffafa91bd17fe360b15996bf",
+      "source_ko_actions_sha256": "e8e0d3bfe1fef826e4d0d7591c1dc2f284943bed16ee79a3252c127276471813",
+      "source_locale_bundle_sha256": "9ec3835aaddfa1405e1cac20ea9bdd1edb86a4a1f6b076206a0b08a15fb3ab36",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "여분 물건을 필요한 사람과 나누기",
+          "connection": "자신의 사용량 남긴 뒤 쉽게 줄 수 있는 것 확인"
+        },
+        "pause": {
+          "action": "남 챙기느라 자기 일 미루지 않기",
+          "connection": "완료할 일을 고려해 도움 범위 제한"
+        }
+      },
+      "assessment": "자신의 사용량 남긴 뒤 쉽게 줄 수 있는 것 확인 / 완료할 일을 고려해 도움 범위 제한; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.pentacles.14.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "fcb9e11a9e4c600cb44dee2437ae9a949a0cb7ebb87bc12dd5b25b24f48ccd8d",
+      "source_ko_actions_sha256": "b61f6dbfd26db0f77897bf7af9d34162fcc75c918fa34c202dcc7441135195f8",
+      "source_locale_bundle_sha256": "a44dcf9453176a87e2ff427000949dd6cdc913079fd72f13e4648b3137b1ecce",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "만족스러운 조건으로 마무리",
+          "connection": "충분한 조건 뒤 추가 요구 중단이라는 완결 행동"
+        },
+        "pause": {
+          "action": "유능함 보이려고 감당 넘는 일 수락하지 않기",
+          "connection": "완료에 필요한 시간과 힘 확인이 방법"
+        }
+      },
+      "assessment": "충분한 조건 뒤 추가 요구 중단이라는 완결 행동 / 완료에 필요한 시간과 힘 확인이 방법; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.pentacles.14.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "37ce166fe056b3d6df1742351da6cae31d6cc3768933ff741a1bae4b921353d2",
+      "source_ko_actions_sha256": "901305ea07c0201e13865427b5497812b8f36e2f9fbf3bb697c6b84466c70590",
+      "source_locale_bundle_sha256": "b522fe331b6d072143b6251583f855b863b23efb395bc084e7966de8cbc5d6b5",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "복잡한 문제에 지금 맞는 기존 성공 방법 적용",
+          "connection": "과거 성공과 현재 적합성 두 조건 유지"
+        },
+        "pause": {
+          "action": "미사용 새 방법의 효과를 확인한 듯 보장하지 않기",
+          "connection": "눈에 띔과 검증 여부 구분하는 한 문장"
+        }
+      },
+      "assessment": "과거 성공과 현재 적합성 두 조건 유지 / 눈에 띔과 검증 여부 구분하는 한 문장; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.01.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "5a0901aef3e825d7ba14036e7403fbc3b5ef319ab54c124e68b11657d49a835c",
+      "source_ko_actions_sha256": "53d1d6aa68ed39f7687bd0c843fadebaabe85dd7344d9df7d0b67900efba02ef",
+      "source_locale_bundle_sha256": "5ef6ccf6296f7372dd11e35e9e748c7e31c4abc40f0c30971821e86e7dd9c6d6",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "중요한 전달 뒤 상대가 이해한 뜻 확인",
+          "connection": "명확히 말했다는 생각과 실제 해석 차이"
+        },
+        "pause": {
+          "action": "잘못 전달한 사실에 긴 변명부터 하지 않기",
+          "connection": "먼저 정정해야 상대 오판 방지"
+        }
+      },
+      "assessment": "명확히 말했다는 생각과 실제 해석 차이 / 먼저 정정해야 상대 오판 방지; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.01.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "e479eab1d62a79a66dae267620030d7642b196acf9e31f59932fa45829f6850f",
+      "source_ko_actions_sha256": "95f42710ad300cbf6093851edcfd0a671e3ade829c6e08950bb616bd2eae91f9",
+      "source_locale_bundle_sha256": "ce2134b2117e2405be1e6725c8cf7078baafd97feaa54d0129ed05c77a00a259",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "다른 설명 중 확인된 사실 비교",
+          "connection": "원인 불명 상황의 확인 자료 비교로 완결"
+        },
+        "pause": {
+          "action": "결론 전달에 주변 이야기 늘이지 않기",
+          "connection": "필수 사실 우선으로 결론 명료화"
+        }
+      },
+      "assessment": "원인 불명 상황의 확인 자료 비교로 완결 / 필수 사실 우선으로 결론 명료화; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.02.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "b480558693be0ba56f11040e536b44dcf9792c303043387da4b59870a60684fd",
+      "source_ko_actions_sha256": "ee7750ceb320b7561e04dd7ea6e8eccdcf1b36549992acc5d405a672297b1bb4",
+      "source_locale_bundle_sha256": "a4308d96b085a9a2d8430bff7b38d80882a39d3243177c87a55c82f27a6889c8",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "엇갈린 말 속 당장 결정할 점을 당사자에게 문의",
+          "connection": "질문 범위와 상대가 직접 지정됨"
+        },
+        "pause": {
+          "action": "논의 끝내려 아무 선택 하지 않기",
+          "connection": "미이해 조건 수용이 후속 문제를 남김"
+        }
+      },
+      "assessment": "질문 범위와 상대가 직접 지정됨 / 미이해 조건 수용이 후속 문제를 남김; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.02.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "d7d3b53dc863b155a27e8fac7c7cbdb4b68d789899587cd52bacb456a12011f3",
+      "source_ko_actions_sha256": "f09fd981c8e702a54ccb38892f26365e264eea8d2eed342b5dcca74abf709831",
+      "source_locale_bundle_sha256": "cbb79f102e03a59894d02926d5b50b5373a15160efd46899ff8be8d4fe123cc0",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "결정에 필요한 미확인 점을 사정 아는 이에게 질문",
+          "connection": "없는 정보 확보라는 하나의 행동"
+        },
+        "pause": {
+          "action": "재촉 때문에 사정 모른 채 확답하지 않기",
+          "connection": "답변 기한 묻고 숙고 시간 확보"
+        }
+      },
+      "assessment": "없는 정보 확보라는 하나의 행동 / 답변 기한 묻고 숙고 시간 확보; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.03.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "62ae8541fea8767bb90f5ee753505477879eca9a2a2ee2e5ab4e2136d6af1294",
+      "source_ko_actions_sha256": "7125253dbea6ab666ef79be4c6b24bdb91c3409814f7dc9903ad6b5d8b988b76",
+      "source_locale_bundle_sha256": "41b1b9405bba18cdb795586405221bb99fdfcee548cee70d67d4f062ecd97b85",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "풀린 서운함 뒤 앞으로 관계 방식 이야기",
+          "connection": "즉시 가까워지기 어려움도 솔직히 표현 가능"
+        },
+        "pause": {
+          "action": "불편함만으로 정리된 다툼 다시 따지지 않기",
+          "connection": "상호 설명 완료 조건을 한 문장에 유지"
+        }
+      },
+      "assessment": "즉시 가까워지기 어려움도 솔직히 표현 가능 / 상호 설명 완료 조건을 한 문장에 유지; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.03.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "71a600ed1ed5159ab31c63a4113bcaafa9d10fbc00a2447dde082d455e737149",
+      "source_ko_actions_sha256": "ee8c7628e18b48bf1f35c4e64a55f7674d595b07fb9723d61892ce8a369962ed",
+      "source_locale_bundle_sha256": "e976c46fb600e5b3b2904f37d0cc249643a1b0f3023d9d008b8c1235735e3567",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "원치 않은 답의 이유를 끝까지 듣기",
+          "connection": "다음 행동 판단에 필요한 사실 확보"
+        },
+        "pause": {
+          "action": "관계없는 사람에게 날카롭게 말하지 않기",
+          "connection": "감정 표출이 다른 관계까지 불편하게 함"
+        }
+      },
+      "assessment": "다음 행동 판단에 필요한 사실 확보 / 감정 표출이 다른 관계까지 불편하게 함; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.04.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "9a80883b4e578b3b59d1c54968ecfb543b09670ebc3723b4ee77cfa5952ec5ae",
+      "source_ko_actions_sha256": "a68e4cdaa3c10b33335b89fddd37283ec4b1ab07e24635fc4192c18533058ab0",
+      "source_locale_bundle_sha256": "a11e428435e77ae20d59482ea2abb87679d2de91c87e3973862d39015999e867",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "재시작 시 가장 급한 부탁부터 선택",
+          "connection": "누적 부탁 모두 수락하는 대신 우선순위 설정"
+        },
+        "pause": {
+          "action": "재시작 즉시 예전 분량 무리하지 않기",
+          "connection": "다시 익숙해지는 동안 점진적 증가"
+        }
+      },
+      "assessment": "누적 부탁 모두 수락하는 대신 우선순위 설정 / 다시 익숙해지는 동안 점진적 증가; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.04.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "22935227e48479528bb69bc96fc62da55ece422d174e570262bd21590d81015a",
+      "source_ko_actions_sha256": "f9b7f4c1e04215e1fe11ea9f88f905c6a75b328d55ccb57856ea86b59ccfd650",
+      "source_locale_bundle_sha256": "bcb7ece5bc4862825e6dc065b724b585794e11b4b0cd3bd29f212307ca207314",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "긴급 답변이나 추가 작업 없을 때 쉬기",
+          "connection": "미뤄도 되는 일만 잠시 남겨두는 조건 유지"
+        },
+        "pause": {
+          "action": "끝난 다툼의 시비 재론 자제",
+          "connection": "불필요한 말 교환이 다시 관계 불편하게 함"
+        }
+      },
+      "assessment": "미뤄도 되는 일만 잠시 남겨두는 조건 유지 / 불필요한 말 교환이 다시 관계 불편하게 함; 원문 조건과 기존 영어 본문 유지"
+    },
+    "overall.swords.05.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "4cd8fda23fa5995c78e26ed413de6a9b4f5977ddb006a29feca4e1ba16eff0f4",
+      "source_ko_actions_sha256": "1517d1ff5ab67d2ae00765efb2416918cb1c434cc84b7ee4b356552681192bd5",
+      "source_locale_bundle_sha256": "3f258b655a896f148e7c6bde2a0dfbb7f5c07e3bea17d41c5df5f83a74d2f2a4",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "타협 기회에 양보 가능 범위 먼저 제시",
+          "connection": "생각 전체가 같지 않아도 다툼 종결 가능"
+        },
+        "pause": {
+          "action": "사과 합의 뒤 다시 잘잘못 따지지 않기",
+          "connection": "물러서기로 한 뒤 책임 비교하면 다툼 지속"
+        }
+      },
+      "assessment": "생각 전체가 같지 않아도 다툼 종결 가능 / 물러서기로 한 뒤 책임 비교하면 다툼 지속; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.05.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "d54c3077b85e9c20f14230103ad12a3c32ba92a5aa49daddc816fe67a1335181",
+      "source_ko_actions_sha256": "da226b4899e1d357fc09aba4e75eaf0c274c811eba031a8e4bf12c46524526b4",
+      "source_locale_bundle_sha256": "735a089b404edc701c8da673186fb83241e52e19106452d964d55570f1f0b27a",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "필요한 말 이후 말다툼 중단",
+          "connection": "끝까지 시비 가림이 상호 도움 관계 훼손"
+        },
+        "pause": {
+          "action": "주장 수용시키려 상대 비하하지 않기",
+          "connection": "승리 뒤 반감이 미래 협력 막음"
+        }
+      },
+      "assessment": "끝까지 시비 가림이 상호 도움 관계 훼손 / 승리 뒤 반감이 미래 협력 막음; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.06.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "22a708fb182fb8d9c84ceaef05c8e1e5c70a3d44c28579dcfa00b6c4d9687b33",
+      "source_ko_actions_sha256": "bd6a22a654737521a8fe01e41dca84dad0cfd6512cfdf5ae3bae32bfa28f82a9",
+      "source_locale_bundle_sha256": "ed002d527fa16e16f4a747d31ac503e720bf937114c5a62670c748e98fb963b7",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "반복 문제의 원래 원인 미해결 부분 확인",
+          "connection": "재발 조건에 원인 대조 한 행동"
+        },
+        "pause": {
+          "action": "당장 피하려 미해결 문제 전가하지 않기",
+          "connection": "원인이 남으면 설명부터 반복 필요"
+        }
+      },
+      "assessment": "재발 조건에 원인 대조 한 행동 / 원인이 남으면 설명부터 반복 필요; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.06.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "8160347649ec4c2369619e5e56859d7133a50da6663cb233c8026d7d8656c716",
+      "source_ko_actions_sha256": "0a1537f09f278cd20c108a33dd61f51832a47365a7c17e5a652827907b560d77",
+      "source_locale_bundle_sha256": "71cbdb562577b2b4731422cb18cc832a41a7919fd009e0d43ba6795bff2d5176",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "쉬운 처리법을 아는 사람 설명 듣고 도움 수락",
+          "connection": "혼자 어려웠던 일이라는 조건 유지"
+        },
+        "pause": {
+          "action": "더 편한 곳 있다면 익숙한 불편한 곳에 고집해 머물지 않기",
+          "connection": "대안 존재 조건과 선택의 이유를 한 문장 유지"
+        }
+      },
+      "assessment": "혼자 어려웠던 일이라는 조건 유지 / 대안 존재 조건과 선택의 이유를 한 문장 유지; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.07.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "5ba8601e82df36544a6d89334470da6aa6f382bbe858d7fd10b7d064bda9423a",
+      "source_ko_actions_sha256": "d8c07edf5c889daff333edf5dbe0032816424cb78096366f802eb6a29e0e73c8",
+      "source_locale_bundle_sha256": "87b321076d0c622f50080aff978b8970c9d203b8c8eeb808327f225ccb4a53c8",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "혼자 수습 어려운 실수의 잘못된 점 관계자에게 먼저 알리기",
+          "connection": "임의 확대 없이 선행 공유의 뜻 유지"
+        },
+        "pause": {
+          "action": "확인된 실수 핑계로 은폐하지 않기",
+          "connection": "설명 변화 반복이 수습 지연"
+        }
+      },
+      "assessment": "임의 확대 없이 선행 공유의 뜻 유지 / 설명 변화 반복이 수습 지연; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.07.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "8c66855d98d5464d15dc9f3fa5bf16a019dbd49cb8041e1ec20f88b99a342ad4",
+      "source_ko_actions_sha256": "93722cb339c125dd93c17340572674a9d3d4ea587420a5c124d677692b2d8122",
+      "source_locale_bundle_sha256": "1ec4e4cc2fc24596e2e43638074199467e43d5c6d5f65ec1b59e36192fdb6426",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "사정 아는 사람에게 조용히 대안 문의",
+          "connection": "질문 상대와 해결 목적 연결"
+        },
+        "pause": {
+          "action": "동의에 필요한 조건 생략하지 않기",
+          "connection": "전체 계획 공개와 필수 판단 사실 제공을 구분"
+        }
+      },
+      "assessment": "질문 상대와 해결 목적 연결 / 전체 계획 공개와 필수 판단 사실 제공을 구분; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.08.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "fc20ea8689de12436005061eef8872e4b4026715e9fa919d087dc4a1ec127d43",
+      "source_ko_actions_sha256": "a8e2c0a5d67ec733cbe9798f95409f15a39a854a02c43214c74d367f1dc67898",
+      "source_locale_bundle_sha256": "d3b1f0bc43b48f1f9ec3bf5b9b2e18359313de58f55341fdf1acdd59d0cd4c25",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "새 방법으로 지금 가능한 부분 시도",
+          "connection": "새 대안 발생과 현재 실행 조건"
+        },
+        "pause": {
+          "action": "조건 바뀐 재시도를 과거 거절만으로 포기하지 않기",
+          "connection": "현재 조건 변화와 과거 답을 분리"
+        }
+      },
+      "assessment": "새 대안 발생과 현재 실행 조건 / 현재 조건 변화와 과거 답을 분리; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.08.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "1e95d58cb506bdbd076e11e4bb093e5af147af8ced015f6bc602479b5b26c505",
+      "source_ko_actions_sha256": "062a4903f4faded31b7b11a9fa3c275fbce2059c631895642b5499491bc70898",
+      "source_locale_bundle_sha256": "13548e0e7ebf41fb364c9e1e93608febce7d47fd88f926e157589c4f2687f64d",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "불가능한 이유의 제한 조건 직접 문의",
+          "connection": "실제 제약 확인이 대안 탐색에 필요"
+        },
+        "pause": {
+          "action": "한 방법 실패로 미조사 방법 전부 단정하지 않기",
+          "connection": "시도 범위와 결론 범위 차이를 단독으로 설명"
+        }
+      },
+      "assessment": "실제 제약 확인이 대안 탐색에 필요 / 시도 범위와 결론 범위 차이를 단독으로 설명; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.09.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "0080eeed1c968208f6958bd17d52a8adca9d0c25601631af8a3ab05151c1eb28",
+      "source_ko_actions_sha256": "8dbc3234d44d00631f62533e38146e78e752f297956456cf124acb93c6f6e136",
+      "source_locale_bundle_sha256": "2876c139f1f8d6371a384689cadc386bd6808a506db7870da0dccc48d462718f",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "신뢰하는 이에게 사건과 걱정점 구체적으로 설명",
+          "connection": "실제 상황과 감정을 나란히 설명하는 하나의 행동"
+        },
+        "pause": {
+          "action": "안심됐다고 잔여 문제 방치하지 않기",
+          "connection": "당장 해야 할 일 알면 그 일부터 실행"
+        }
+      },
+      "assessment": "실제 상황과 감정을 나란히 설명하는 하나의 행동 / 당장 해야 할 일 알면 그 일부터 실행; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.09.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "de1d391a4d2af2d5290e4f436bb2db5b566a33ef855b884c72a468d6836c7ffd",
+      "source_ko_actions_sha256": "36f28f3b978e957c2c216b3f157ecea8e16878f3bae8c22c50907e0220363506",
+      "source_locale_bundle_sha256": "df604ed3928716324615fc1a337c516b61484768c239b852fc5c39b2e72f47ae",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "늦은 답에 부정적 결과가 사실인지 추측인지 확인",
+          "connection": "구분 대상이 그 결과로 직접 지정"
+        },
+        "pause": {
+          "action": "결과 전 실패 발표나 약속 취소 자제",
+          "connection": "우려대로 끝난 것인지 아직 모른다는 이유"
+        }
+      },
+      "assessment": "구분 대상이 그 결과로 직접 지정 / 우려대로 끝난 것인지 아직 모른다는 이유; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.10.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "9d6abbb347c54176d2d522dd02e1fc879b7a95b7d2f8af62243899ab7f676f0b",
+      "source_ko_actions_sha256": "9c0679ca5515ed2e40de7590e2a0f79e2ef07b84cc7c4eeaa2c41a1208cfa307",
+      "source_locale_bundle_sha256": "2ffb31fcb6adb6d8b8d296ea1b433ac6d09bcbfdb5a1a6855aead22b495b1c8c",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "재기회에 예전보다 적은 분량 담당",
+          "connection": "현재 무리 없이 완료할 목적"
+        },
+        "pause": {
+          "action": "이전 버거운 조건 그대로 수락하지 않기",
+          "connection": "과거 어려움과 같은 부담 재발 여부 확인"
+        }
+      },
+      "assessment": "현재 무리 없이 완료할 목적 / 과거 어려움과 같은 부담 재발 여부 확인; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.10.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "33b44e65117a7862a137e4a1b19a6cdb0225a4cfc57d9d00707ebe59e3b36a59",
+      "source_ko_actions_sha256": "a448df9bc90d9f37c0d8afb1a0cfd5e0ddf146688bbea241c08091a3ce9b5132",
+      "source_locale_bundle_sha256": "ea9dc5d1ee4e87150923ab8d26c8690e8ff90ff84178a9ab1a55ede707572d9f",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "계속 어려운 일의 필수 마무리만 하고 멈추기",
+          "connection": "최소 정리와 추가 중단을 한 행동으로 연결"
+        },
+        "pause": {
+          "action": "만회 위해 즉시 새 일 수락하지 않기",
+          "connection": "먼저 남은 일 감당 가능성 확인"
+        }
+      },
+      "assessment": "최소 정리와 추가 중단을 한 행동으로 연결 / 먼저 남은 일 감당 가능성 확인; 두 항목 단독 후 KO 및 영어 본문 대조"
+    },
+    "overall.swords.11.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "fe772340e0c8fa2de561b05368ff16cc0ef86bb0b81ef6ff0a1743e3b0239b01",
+      "source_ko_actions_sha256": "44ae6d0f4dc0023c59988283fcb26dc12c0b9210374d7519453a84c0a9a38c3d",
+      "source_locale_bundle_sha256": "675dd7c2932e7df2527e59636f30b2ad02cdfd70a49113599af8ae4b2e316f25",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "모르는 질문의 확인 시간을 요청하고 정확한 답 찾기",
+          "connection": "추측 답변 대신 확인 순서"
+        },
+        "pause": {
+          "action": "수상한 새 이야기에 즉시 상대 몰아세우지 않기",
+          "connection": "미확인 사정 가능성 때문에 사실 확인 우선"
+        }
+      },
+      "assessment": "추측 답변 대신 확인 순서 / 미확인 사정 가능성 때문에 사실 확인 우선; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.swords.11.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "28e27c74e05ca9aec0fd86aeb84f3a31a2f8fc133c1256dc4055d4bf38ddf7a2",
+      "source_ko_actions_sha256": "e3bd238d307d66b085fcf673313e6b24e1cb01eac64d5fac7260ecdcd9169abb",
+      "source_locale_bundle_sha256": "fc0c8fb3e6196f27ebd6936aab4faa0667decaf788d150c68b9e5ce2e8ffc8c6",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "새 안내의 작은 글씨와 미이해 내용 확인",
+          "connection": "읽기와 직접 질문으로 이해 확인"
+        },
+        "pause": {
+          "action": "사실과 추측 섞어 확정처럼 전달하지 않기",
+          "connection": "정보 확실성의 경계를 한 문장으로 표현"
+        }
+      },
+      "assessment": "읽기와 직접 질문으로 이해 확인 / 정보 확실성의 경계를 한 문장으로 표현; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.swords.12.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "467208e4f65046882fe61ace1d4ba90ac86286f879d79b3bfd67b76059a97c7a",
+      "source_ko_actions_sha256": "5afa00877b08629c8ff0830db8c700f17a004d3795c11cc6952fb48b88980739",
+      "source_locale_bundle_sha256": "be802915e3c1a0caae38571e28a6edb50e243560b0b7aa9737ef0bc8ca6f7b00",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "외출 전에 필요한 준비물 챙김 확인",
+          "connection": "누락으로 돌아오는 수고 감소"
+        },
+        "pause": {
+          "action": "재촉받아 지금 못 끝낼 일 즉시 약속하지 않기",
+          "connection": "실제 가능한 시간 알리는 대안"
+        }
+      },
+      "assessment": "누락으로 돌아오는 수고 감소 / 실제 가능한 시간 알리는 대안; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.swords.12.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "d534890c7bb148eb30478aacfebe26ff1d65e53407456b0a94768c3fbfd02ec9",
+      "source_ko_actions_sha256": "20612cfd65c74b25bdfe072fdbc5269d08c38e4e90053008f8af374d5b193ab7",
+      "source_locale_bundle_sha256": "88fb0353a09e7ac180bfd452b99071276a4f453398b0daea5b250929e2013693",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "결정된 일을 협업자에게 알리고 가능한 부분 시작",
+          "connection": "공유 이후 실행 순서가 한 행동"
+        },
+        "pause": {
+          "action": "빠른 진행 중 필요한 설명 생략하지 않기",
+          "connection": "상대가 역할 이해할 시간 확보"
+        }
+      },
+      "assessment": "공유 이후 실행 순서가 한 행동 / 상대가 역할 이해할 시간 확보; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.swords.13.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "3a104e2373ba2750f7dbc22f827d99a602c338c55dd2b998066d823b70d3608e",
+      "source_ko_actions_sha256": "03b5bc2c42fbd49bfc89b665fa4d03c7f7eb75a5fd6a13b2bd11bebcbbcf735a",
+      "source_locale_bundle_sha256": "81746d2e7548a240fdfce5751739a533c7907276fbf07f4005058c1ae8a07b35",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "한쪽 설명 밖 사정과 상대 이야기 듣고 판단",
+          "connection": "빠진 관점 확인 후 결론"
+        },
+        "pause": {
+          "action": "불편한 사람 말이라며 사실 확인 없이 전부 무시하지 않기",
+          "connection": "평소 감정과 이번 사실 여부 분리"
+        }
+      },
+      "assessment": "빠진 관점 확인 후 결론 / 평소 감정과 이번 사실 여부 분리; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.swords.13.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "b2458e0431e045fd3344af06411215303dcd766ef3c988b64e52a6f8b3af714e",
+      "source_ko_actions_sha256": "a296c887eeb7efce9c7d2fc472d9d5fa8f121d30a37293c78c5f5d6b771abb67",
+      "source_locale_bundle_sha256": "b5e0d3537d7ecd82834bf22c9d406fcb4c414cbf8b20ec962ce20083e2b95394",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "오랜 사이도 조건 안 맞으면 짧게 거절 이유 설명",
+          "connection": "관계의 오래됨보다 조건 적합성 기준"
+        },
+        "pause": {
+          "action": "거절할 때 인격이나 흠 들추지 않기",
+          "connection": "받아들일 수 없는 조건에만 논점 한정"
+        }
+      },
+      "assessment": "관계의 오래됨보다 조건 적합성 기준 / 받아들일 수 없는 조건에만 논점 한정; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.swords.14.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "c15c7fb93704ebfdd999c590076d80a7508debc7633dd7b864f1ec34d4f6b479",
+      "source_ko_actions_sha256": "396104de07dca349cbe0eb7e923791865250653f077c5ef7697f9cfe75565e7d",
+      "source_locale_bundle_sha256": "99390851a0a3bd514bcdbefd500964c4e57315738a5aa3efe72eee0451f34048",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "강한 요구에도 확인 후 판단 시간 요청",
+          "connection": "즉답 어려운 조건 유지"
+        },
+        "pause": {
+          "action": "결정 중 남 설명 끊지 않기",
+          "connection": "상황 듣기 전 결론이 억울함 남김"
+        }
+      },
+      "assessment": "즉답 어려운 조건 유지 / 상황 듣기 전 결론이 억울함 남김; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.swords.14.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "1e56310e149ad277e6faccc6ca73513efc908d3e4f76e6a94654c3cdc761d14f",
+      "source_ko_actions_sha256": "3dfc83a521a6ad8457e65adc73a662bae49acbb8883baabfed08a3d8545d3b93",
+      "source_locale_bundle_sha256": "ff2528bd98ba98305c20bd50f32e17345dcad673df1d1ffed9fd6e03f3219213",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "결정 의견을 타인도 확인 가능한 사실로 설명",
+          "connection": "증거 접근성이 직접 드러남"
+        },
+        "pause": {
+          "action": "유리한 결론 위해 기준 수시 변경하지 않기",
+          "connection": "동일 상황 동일 원칙으로 납득 가능 판단"
+        }
+      },
+      "assessment": "증거 접근성이 직접 드러남 / 동일 상황 동일 원칙으로 납득 가능 판단; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.wands.01.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "6f6f7ec1ea37b450d076a715c140033ac73b34c4238e21e1f7d183897657c1ff",
+      "source_ko_actions_sha256": "6d332018498be31aab1e68d69582e3150ed3f644e070580f1ac034c66689e059",
+      "source_locale_bundle_sha256": "2ebd38b096ad6e56e8fae3a7dc37738b7bab43eab9dbf3ef03eb5a831c6aeb2b",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "부족한 준비 확인하고 지금 가능한 준비 실행",
+          "connection": "상태 점검과 실행이 한 목적"
+        },
+        "pause": {
+          "action": "현재 기회 없다고 아이디어 전부 포기하지 않기",
+          "connection": "지금 부적기와 영구 불가능 구분"
+        }
+      },
+      "assessment": "상태 점검과 실행이 한 목적 / 지금 부적기와 영구 불가능 구분; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.wands.01.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "3bb0a34710e70e77508169566517e1761951d910d38a1993ac5cfb17413979bb",
+      "source_ko_actions_sha256": "450f902df49a3739d8c2352e5f247f22dbdedb7a52e2a287007a2ea9c490a99c",
+      "source_locale_bundle_sha256": "cfa5f088e824e65d8975d5cc3673f7f972c7ac5911fcaa0764435eec12ff0beb",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "미뤄둔 일의 가능한 부분 시작",
+          "connection": "해보며 다음 준비를 배우는 방식"
+        },
+        "pause": {
+          "action": "처음부터 과다하게 벌이지 않기",
+          "connection": "감당 가능 범위가 지속성 높임"
+        }
+      },
+      "assessment": "해보며 다음 준비를 배우는 방식 / 감당 가능 범위가 지속성 높임; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.wands.02.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "63e0ccf9a44c297876f839cc986db55679c3a25d6e796702413491f82c3a4008",
+      "source_ko_actions_sha256": "becd360fccda6698ae7e416c0710afd8e6602bc7594b1caffa1044ecc05aa37a",
+      "source_locale_bundle_sha256": "762c454efc508805171c02d23d93f74f625760ada5a840a3d918c25d1851dbaf",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "망설임의 가장 걱정되는 조건 문의",
+          "connection": "낯섦과 실질 어려움 구분 목적"
+        },
+        "pause": {
+          "action": "걱정 완전 소멸까지 답 미루지 않기",
+          "connection": "비교 지속으로 참여 시기 놓칠 가능성"
+        }
+      },
+      "assessment": "낯섦과 실질 어려움 구분 목적 / 비교 지속으로 참여 시기 놓칠 가능성; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.wands.02.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "96a73a3088fec51c33ea15087379c6c99ec7b0e79ad215519bbda79b2d55f2fd",
+      "source_ko_actions_sha256": "bb1a6c8fc5e9c138fab4e47fe73c5a444b4d51992e46ed56cd51753fb0bfb5ac",
+      "source_locale_bundle_sha256": "d2006130434e325b49ad70ba4838b2a6255029f14cf0034e8a29032351eb10dd",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "하던 일의 다른 장소 가능성과 장점 확인",
+          "connection": "기존 활동을 다른 곳에서 하는 대상 유지"
+        },
+        "pause": {
+          "action": "새 일 매력 때문에 기존 일 먼저 중단하지 않기",
+          "connection": "실제 새 시작 가능 확인 전 유지"
+        }
+      },
+      "assessment": "기존 활동을 다른 곳에서 하는 대상 유지 / 실제 새 시작 가능 확인 전 유지; 독립 행동과 이유가 단독 이해되고 원문 조건 유지"
+    },
+    "overall.wands.03.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "49910506e49d1d8f254f3ff742874c382df77dbb8b2f47696055db666f9bfa3f",
+      "source_ko_actions_sha256": "9400c5c5296219cf98c79fada17fb460e3503f74225b32437646ed3901ecffdb",
+      "source_locale_bundle_sha256": "3976d1bff005c2d7da423e0c646e89715bfc0b8af580cbed3e8e07f9cc30603f",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "늦는 답 없이 가능한 일부터 처리",
+          "connection": "기다리는 답에 의존하지 않는 대상 명시"
+        },
+        "pause": {
+          "action": "곧 잘될 것이라 가정해 새 일 맡지 않기",
+          "connection": "지연되면 두 일 동시 마감 부담"
+        }
+      },
+      "assessment": "기다리는 답에 의존하지 않는 대상 명시 / 지연되면 두 일 동시 마감 부담; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.03.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "685a6e78876860ebde58cf85918d52b657a1aca4279490b9b67f8f12eb520e24",
+      "source_ko_actions_sha256": "ca3827a1d5dab2d0d3ff3c85215aff0b782e2975357d225b84b20e87257bda4b",
+      "source_locale_bundle_sha256": "08c779de0ef9f21a6853f12400dd739d7fcea31dd8e988d685d58bdc5d7dc6d2",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "좋은 반응 뒤 다음 공동 활동 제안",
+          "connection": "관심 보인 부분으로 대화 계속하는 방법"
+        },
+        "pause": {
+          "action": "낯선 곳 제안 즉시 거절하지 않기",
+          "connection": "상호 도움 가능성 듣고 결정"
+        }
+      },
+      "assessment": "관심 보인 부분으로 대화 계속하는 방법 / 상호 도움 가능성 듣고 결정; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.04.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "89b56fb14200e0eafcfe6edf8c6ec2182d3ecbcfe7354abafccbaead12cb36b4",
+      "source_ko_actions_sha256": "4754fbfaabb7b086d0244a1c1e3ca2779172c24ed448a9ac21c7626a69712ba5",
+      "source_locale_bundle_sha256": "150cffcff3e4cfa6de55dddcab230b880bd50aa0ad557d19fcb51d10783820c6",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "작은 성과 가까운 사람과 공유",
+          "connection": "소식 전달과 함께 기뻐함을 한 문장"
+        },
+        "pause": {
+          "action": "준비 부족으로 즐거운 약속 취소하지 않기",
+          "connection": "소박한 자리도 편한 이들과 즐길 수 있음"
+        }
+      },
+      "assessment": "소식 전달과 함께 기뻐함을 한 문장 / 소박한 자리도 편한 이들과 즐길 수 있음; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.04.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "ae9c26b135bd8fa7a7db5098e9fbed28b0fa86df41601692043e2b184fd8403c",
+      "source_ko_actions_sha256": "638f99f0eb2103dbc7c33985e99289a33604ce3accd476fb552d75f4001df56c",
+      "source_locale_bundle_sha256": "f294bc764d82a4ebbd1cadf71a7fe9896f75fa1b3f63667277317d9ad50539c4",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "함께 애쓴 사람에게 좋은 마무리 알리기",
+          "connection": "그간 노력 회고와 결과 기쁨이 같은 목적"
+        },
+        "pause": {
+          "action": "더 인상적으로 만들려 완료 일 재작업하지 않기",
+          "connection": "필수 마무리 끝나면 쉴 시간 확보"
+        }
+      },
+      "assessment": "그간 노력 회고와 결과 기쁨이 같은 목적 / 필수 마무리 끝나면 쉴 시간 확보; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.05.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "fec6a52b9d1a89d779fd4c89b6477af7fe9cc3024d0d27926d4fd11de7f33b6c",
+      "source_ko_actions_sha256": "35221ea08eb559e40b0f5f49c956645ef90c63811f9e3c5265dcf95920ef99d0",
+      "source_locale_bundle_sha256": "4011b2eef4718f349267326a131ed92807e8e007dcbf83e70ef140c87094dd01",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "상반된 설명에서 누가 무엇 했는지 확인",
+          "connection": "검증 가능한 사실과 행동 주체 명확"
+        },
+        "pause": {
+          "action": "한쪽 말만 듣고 타인 다툼 개입하지 않기",
+          "connection": "모르는 사정 대리 다툼이 본인 곤란"
+        }
+      },
+      "assessment": "검증 가능한 사실과 행동 주체 명확 / 모르는 사정 대리 다툼이 본인 곤란; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.05.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "dfc11d74f0bee38c827302c23325eb0031665bc14e3532851e55c29071d42c83",
+      "source_ko_actions_sha256": "74e4edae859d283fe3bc6e307837b5dbcd1c064a8d6870fe96cd7f026d5947a2",
+      "source_locale_bundle_sha256": "b47e254c38bfabb84880f713ef13e38b423bd04377eec28263dda6f469b473ce",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "제안된 방법 비교하고 필요하면 시험",
+          "connection": "말로 부족하면 실제 비교하는 순서"
+        },
+        "pause": {
+          "action": "방법 다르다고 상대 말 끊지 않기",
+          "connection": "선택 이유 듣기 통해 반복 논쟁 감소"
+        }
+      },
+      "assessment": "말로 부족하면 실제 비교하는 순서 / 선택 이유 듣기 통해 반복 논쟁 감소; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.06.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "0ff58ddb30540194e0bc8d8a1453cc8600e4c86902752fd59fb07fc30d1d6906",
+      "source_ko_actions_sha256": "016e3ee3079d94a74317b86c7226ce7d0dfc4148fea08317c4967a158a0f7c6b",
+      "source_locale_bundle_sha256": "15b888ca565efb4dc93218091e2b7708a24d9da8456955e70baa1318de5fb281",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "미발표 결과 확정 발표 기다리기",
+          "connection": "느린 반응과 실패 확정을 구분"
+        },
+        "pause": {
+          "action": "칭찬 위해 성과 과장하지 않기",
+          "connection": "주장과 실제 행동 차이 발각의 어려움"
+        }
+      },
+      "assessment": "느린 반응과 실패 확정을 구분 / 주장과 실제 행동 차이 발각의 어려움; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.06.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "1bf5524df59b7d894f3c3435d5c195528069054a92393c160f9897bd1da316e3",
+      "source_ko_actions_sha256": "448e4833887ab646c5a54b7a8868acaba4f2fef989cdff0964c3ccc26695d27b",
+      "source_locale_bundle_sha256": "19a663493f58d4b44cd523aa1ba4d52ca173cb13b1814ab3a657027d16717e8a",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "축하 받을 때 도움 준 사람 기여와 감사 알리기",
+          "connection": "감사 대상을 실제 기여로 설명"
+        },
+        "pause": {
+          "action": "성과 공유하며 남 성과 비하하지 않기",
+          "connection": "누가 더 잘했는지 비교 없이 기쁨 가능"
+        }
+      },
+      "assessment": "감사 대상을 실제 기여로 설명 / 누가 더 잘했는지 비교 없이 기쁨 가능; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.07.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "6ba1d61fbc7cc3e7a07bd737c6c4d5bb324b95ca11b2efaeeb700b1313aa49b9",
+      "source_ko_actions_sha256": "e3f717e18d9ad5ebe770f7455c9749f0447d791a6c0515ae5b0710358f463620",
+      "source_locale_bundle_sha256": "780dfd68c8c0be6176bfd018ed777104f59f95de81df8b03ddf6c260be67c2d4",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "다수 부탁에 생각 시간 요청 후 범위 전달",
+          "connection": "즉답 대신 맡을 범위 결정하는 순서"
+        },
+        "pause": {
+          "action": "어색해서 원치 않는 조건 수락하지 않기",
+          "connection": "당장 편안함과 이후 부담 차이"
+        }
+      },
+      "assessment": "즉답 대신 맡을 범위 결정하는 순서 / 당장 편안함과 이후 부담 차이; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.07.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "759ceb21f86d1bac719c0d0d0acbe6b3e8a93e634f670434cfdf9cd70554d244",
+      "source_ko_actions_sha256": "f3ef862ff685246a355d071f50094852f1d74b86e78aa95cf48c013b0521274c",
+      "source_locale_bundle_sha256": "c0d1a454d6a8bd3f1ea1c93d57fa79cb69f82e9f586e37e9789460c0c5394b71",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "수용 어려운 요구에 양보 불가 점과 이유 설명",
+          "connection": "조건과 근거를 함께 밝히는 한 행동"
+        },
+        "pause": {
+          "action": "거슬린 말 모두 맞받아치지 않기",
+          "connection": "말투에 집착하면 핵심 조건 논의 어려움"
+        }
+      },
+      "assessment": "조건과 근거를 함께 밝히는 한 행동 / 말투에 집착하면 핵심 조건 논의 어려움; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.08.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "7ea84d72296e649fa04f43528527a2d2049543aac5901eae89fb85336cb6e616",
+      "source_ko_actions_sha256": "0174168c87bf6c013d57540af99c09863d15b27d9fd847bcfaeacaa376c68342",
+      "source_locale_bundle_sha256": "c84b555ab0231be41bb1d2c1a06c6096f1088dc134413f88b783d5ce39d6c08d",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "불편한 말의 뜻 직접 문의",
+          "connection": "오해한 채 다투는 결과 방지"
+        },
+        "pause": {
+          "action": "미확인 말을 여러 사람에게 옮기지 않기",
+          "connection": "전달 과정 의미 변화가 주변 오해로 연결"
+        }
+      },
+      "assessment": "오해한 채 다투는 결과 방지 / 전달 과정 의미 변화가 주변 오해로 연결; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.08.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "b579de1cd68d1a1d4c685939621c0436bde5d18ab1d5c61231d42200121f1f18",
+      "source_ko_actions_sha256": "0e23b31fc545f37642a1983a8b62fd7b7c053160875107abd8ba7b38994b6be0",
+      "source_locale_bundle_sha256": "17bd526b1b9f4137c872837c2ed648cdcf8936f349774fdc3884865c99b18c53",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "기다린 소식 확인하고 제때 답변",
+          "connection": "일정 대화일 때 가능 시간도 알리는 조건부 방법"
+        },
+        "pause": {
+          "action": "연속 안내에도 미확인 내용 동의하지 않기",
+          "connection": "빠른 진행에서도 개별 확인 필요"
+        }
+      },
+      "assessment": "일정 대화일 때 가능 시간도 알리는 조건부 방법 / 빠른 진행에서도 개별 확인 필요; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음"
+    },
+    "overall.wands.09.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "267f9afb813eb646ddb6e7dd5af34d95bd69fbafe1c162912232a067c53bc6e7",
+      "source_ko_actions_sha256": "5fefa8a00b29984e5bf8984ad4b3307b4d095c3be480972e87deb6e2f3478d66",
+      "source_locale_bundle_sha256": "6ba1b87069465f01ef4f3b9d78267c56628d68b2ed21b0ac502007cb1bf3ae15",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "같은 방법의 실패 부분을 경험자에게 설명하고 대안 질문",
+          "connection": "실패 내용 설명이 맞는 조언 얻는 절차"
+        },
+        "pause": {
+          "action": "이전 도움 경험 나빴다고 새 도움 거절하지 않기",
+          "connection": "이번 도움 내용 듣고 과거와 구분"
+        }
+      },
+      "assessment": "실패 내용 설명이 맞는 조언 얻는 절차 / 이번 도움 내용 듣고 과거와 구분"
+    },
+    "overall.wands.09.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "8d5ce895aab49c01c0c6e9df9920e6643170962c94ad4a8b814c020fabd77451",
+      "source_ko_actions_sha256": "0758d59f30e1d1143cb821c7a76f246bc7d2839cfcb6b7044d6265a401d27feb",
+      "source_locale_bundle_sha256": "69ed8961fd228656ed519470b07e00108777745a5ca3ed1654fcf6ac18f769c4",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "재발 문제의 이전 해결법 회상해 적용",
+          "connection": "효과 본 방법 재사용의 이유 명시"
+        },
+        "pause": {
+          "action": "거의 완료라고 마지막 확인 생략하지 않기",
+          "connection": "남은 점검으로 재작업 감소"
+        }
+      },
+      "assessment": "효과 본 방법 재사용의 이유 명시 / 남은 점검으로 재작업 감소"
+    },
+    "overall.wands.10.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "9e13716113c277028f593f1168b3c7ae868e8e0f69d7702c62b48d9bdfaa063d",
+      "source_ko_actions_sha256": "115f221ca37a6c2d76b7a3f25b4e243cbeb2223300ffb8e4c4bbf4e2e73277f8",
+      "source_locale_bundle_sha256": "9e7b41006faa06a4c40a0a410cc6ed02be1e48c88f0bd46ba9b9aa774f1e2aa3",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "혼자 어려운 일의 분담할 부분 지금 요청",
+          "connection": "일찍 말해야 타인이 도울 시간 마련"
+        },
+        "pause": {
+          "action": "버거울 때 미배정 일까지 묵묵히 맡지 않기",
+          "connection": "주변이 추가 여유 있다고 오해할 가능성"
+        }
+      },
+      "assessment": "일찍 말해야 타인이 도울 시간 마련 / 주변이 추가 여유 있다고 오해할 가능성"
+    },
+    "overall.wands.10.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "b35787b587dae55f7b7b4bfedb12a3ae0ffbe8cf6e2ed88d2607ad8d1e27dc37",
+      "source_ko_actions_sha256": "282408b3a606b2dcba633022980d47f589095c2c28dd41b8accbfda296e99afa",
+      "source_locale_bundle_sha256": "acc591998b29c549647f938b4f6988e863318ac2ef869d86068c506607a86ac6",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "현재 일 마칠 시간 계산 후 도움 시작 시점 알리기",
+          "connection": "새 요청과 기존 업무 시간의 관계 명확"
+        },
+        "pause": {
+          "action": "잘하는 일이라고 모두 수락하지 않기",
+          "connection": "익숙해도 중첩되면 선약 지연"
+        }
+      },
+      "assessment": "새 요청과 기존 업무 시간의 관계 명확 / 익숙해도 중첩되면 선약 지연"
+    },
+    "overall.wands.11.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "bc1c17acf3b1007bb7cf395d62b86a937fc6fe3f2413cbadbcf7f887dfbed79b",
+      "source_ko_actions_sha256": "742af36c1de152d8ac53c98499b088b5fc4be7e350352770872a6057f4ba72f0",
+      "source_locale_bundle_sha256": "301b40c2e0b2b24c20230111639329eb69ffc4c6ab0c27576b06d973cd2915d4",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "참여 가능 소문의 정식 안내 확인",
+          "connection": "실제 참여 가능 여부에 질문 집중"
+        },
+        "pause": {
+          "action": "미확인 기회 다른 이에게 추천하지 않기",
+          "connection": "함께 결정 뒤 내용 변경이 당황 유발"
+        }
+      },
+      "assessment": "실제 참여 가능 여부에 질문 집중 / 함께 결정 뒤 내용 변경이 당황 유발"
+    },
+    "overall.wands.11.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "e39f24a25c0b2658adb242f93acb6e07c1d60cf0b1a462251a8198e52958bab2",
+      "source_ko_actions_sha256": "3695015d15a6c110bd3e32587dc908a67055e33b7a2bd8abd3a8e1920f42dd82",
+      "source_locale_bundle_sha256": "8a786e4cf3895d812c5bf32d9588d5a51470336b1b9d01776a689cb2c9ba1949",
+      "scores": {
+        "naturalness": 4,
+        "readability": 5,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "흥미 활동 참여 장소와 방법 질문",
+          "connection": "직접 경험하기 위한 구체적 문의"
+        },
+        "pause": {
+          "action": "처음부터 잘해야 한다고 미루지 않기",
+          "connection": "처음부터 잘해야 한다는 요구를 명시한 뒤, 능숙하지 않아도 첫 경험의 즐거움을 얻는 이유로 자연스럽게 연결"
+        }
+      },
+      "assessment": "feel you need to로 처음부터 능숙해야 한다는 자기 요구가 명확해졌다. 두 필드와 KO/기존 영어 두 단락을 실제 재독했고 지적 해소."
+    },
+    "overall.wands.12.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "e59263df2d2c57596d9a7e2bc0241479f4859fc4e057661711d962ee987d7a2b",
+      "source_ko_actions_sha256": "55b86466c6e025b920740bc962724777fb2cba5a30c71424b300f318be5f3f70",
+      "source_locale_bundle_sha256": "40366eeecf8b78f76c4c05939ee16797469ff4960d0ecf2a643d4e9c56b2f6ac",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "만남 방문 출발 전 그대로 진행 확인",
+          "connection": "상대에게 직접 확인하는 대상 유지"
+        },
+        "pause": {
+          "action": "취소 뒤 급하게 대체 약속 잡지 않기",
+          "connection": "상대 가능성 확인이 재변경 감소"
+        }
+      },
+      "assessment": "상대에게 직접 확인하는 대상 유지 / 상대 가능성 확인이 재변경 감소"
+    },
+    "overall.wands.12.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "083d74eda44f6f4e3fb4d1a4d0540ce417954f240465378c763bd7df4ec02668",
+      "source_ko_actions_sha256": "6ed77ddb81d3ae00a9dda400f1d3038a4e0996b1284d276391b45558ca899609",
+      "source_locale_bundle_sha256": "cd771bf378ff20288526702bc6bf97f5d5835f0d30f409bf3775eab042c25377",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "가보고 싶던 곳의 가능 시간 확인 후 방문",
+          "connection": "장소와 실행이 한 문장"
+        },
+        "pause": {
+          "action": "흥분해 하루 방문지 과다 지정하지 않기",
+          "connection": "이동 시간이 실제 즐길 체류 시간 줄임"
+        }
+      },
+      "assessment": "장소와 실행이 한 문장 / 이동 시간이 실제 즐길 체류 시간 줄임"
+    },
+    "overall.wands.13.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "fcb04a1079cfbef086c284611a067044aa780e4c85f14ccf5d28bb29434435ac",
+      "source_ko_actions_sha256": "0d0c512b94869bae9d3dff6781e905c7cf408bad641315314717fafc2fd27760",
+      "source_locale_bundle_sha256": "1a864fec3f857da62d4c6841f03f0500d57731c2c1b83cbe2c10ebb4f491c994",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "자기 발언 후 상대 차례 주고 끝까지 듣기",
+          "connection": "추가 발언 대신 경청하는 같은 목적"
+        },
+        "pause": {
+          "action": "칭찬 자리에서 상대 흠 추가하지 않기",
+          "connection": "청중에게 비하로 보이는 결과"
+        }
+      },
+      "assessment": "추가 발언 대신 경청하는 같은 목적 / 청중에게 비하로 보이는 결과"
+    },
+    "overall.wands.13.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "2b10ed7ab764b677f3cd82b22e8e0c30a11f1fc0b11e9df58c6fe6a74acd49fb",
+      "source_ko_actions_sha256": "8957e0e9bee2510260826a7de8c00fd5171380720b473e1fbadde9b6df664aeb",
+      "source_locale_bundle_sha256": "cf3b880d236c5d65e924c56f87005a0f12f349f9f31114456cac53ddd8a84115",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "여럿이 있을 때 나눌 이야기 먼저 꺼내기",
+          "connection": "모임 조건과 자발적 발언의 한 문장"
+        },
+        "pause": {
+          "action": "반응 좋아도 자기 이야기만 이어가지 않기",
+          "connection": "상대 참여 시간으로 대화 즐거움 증가"
+        }
+      },
+      "assessment": "모임 조건과 자발적 발언의 한 문장 / 상대 참여 시간으로 대화 즐거움 증가"
+    },
+    "overall.wands.14.reversed": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "e2b1db8dbe04dcf5966aed30e9e3b1bff26a38f7936dba221ab64dd534c98273",
+      "source_ko_actions_sha256": "a965fdc162f6f517740fa019ff005309bb239165ffe87e2aaa34994ac6baf149",
+      "source_locale_bundle_sha256": "b5c7df05e8a5723d3bed2d85df860bf5dc52588b2ae7dba844ab89260869fbc7",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "불만족한 결과의 수정 부분과 필요성 판단",
+          "connection": "불필요하면 그대로 마무리 허용"
+        },
+        "pause": {
+          "action": "자기 방식과 다르다고 좋은 부분 재작업 요구하지 않기",
+          "connection": "지나친 요구로 도움 지속 어려움"
+        }
+      },
+      "assessment": "불필요하면 그대로 마무리 허용 / 지나친 요구로 도움 지속 어려움"
+    },
+    "overall.wands.14.upright": {
+      "status": "pass",
+      "reviewer": "card_major_writer",
+      "read_action_sha256": "90c3d8783bae6463fff6ec2f106af833871e039f908f4c7f3519339c9b083de5",
+      "source_ko_actions_sha256": "de7d4217eb9dfbc50a3bc79779cce3a9759f9d729cef718e1967927ffaade349",
+      "source_locale_bundle_sha256": "f2a8f26a4300ddecc23bdc9b77ec1afd006c5a01e4236ab6db382826b43be92d",
+      "scores": {
+        "naturalness": 4,
+        "readability": 4,
+        "axis_specificity": 4,
+        "meaning_parity": 5,
+        "calibrated_confidence": 5
+      },
+      "logic_readback": {
+        "do": {
+          "action": "공동 시작 담당 시 강점 듣고 분담",
+          "connection": "역할 배분의 기준과 순서 유지"
+        },
+        "pause": {
+          "action": "시작만 하고 남이 이후 다 하길 기대하지 않기",
+          "connection": "분담해도 약속한 자기 몫 끝까지 수행"
+        }
+      },
+      "assessment": "역할 배분의 기준과 순서 유지 / 분담해도 약속한 자기 몫 끝까지 수행"
+    }
+  },
+  "findings": [
+    {
+      "key": "overall.major.fool.reversed",
+      "field": "pause",
+      "before_excerpt": "immediately afterward",
+      "reason": "선행 활동 뒤의 연속 약속임을 먼저 밝혀 시간 지시와 영국식 표현을 정리",
+      "status": "resolved",
+      "reread_action_sha256": "4b7d8e5449aeb380789ca88382089d0ad726968b45d2c1ba72a113a4e8b067dc"
+    },
+    {
+      "key": "overall.major.sun.upright",
+      "field": "do",
+      "before_excerpt": "a long effort has brought a good result",
+      "reason": "오래 해온 일을 주어로 쓰도록 명사구 직역을 정리",
+      "status": "resolved",
+      "reread_action_sha256": "e9ec8228a6e630817a9d9ef6ff73c1a95b4be26b43a004275b972ca51015901d"
+    },
+    {
+      "key": "overall.major.chariot.reversed",
+      "field": "pause",
+      "before_excerpt": "miss the time you agreed to finish",
+      "reason": "약속한 마감시점을 놓친다는 자연스러운 동사 목적어 결합으로 교정",
+      "status": "resolved",
+      "reread_action_sha256": "e8570bdfca028711b3295302a39c35887cbae8b79a7c441c9807e24ab727dff2"
+    },
+    {
+      "key": "overall.major.devil.reversed",
+      "field": "do/pause",
+      "before_excerpt": "take on a burdensome favour / take a favour back on",
+      "reason": "부탁을 해주다/다시 해주다의 일상적인 동사 결합으로 교정",
+      "status": "resolved",
+      "reread_action_sha256": "f3d913d4e806387e9992a5b01e88185891c6b6797bfe5f98daa76a91519e67e0"
+    },
+    {
+      "key": "overall.major.tower.reversed",
+      "field": "pause",
+      "before_excerpt": "something you feared is passing quietly",
+      "reason": "별 탈 없이 지나간 상황이라는 조건으로 직역을 풀어 씀",
+      "status": "resolved",
+      "reread_action_sha256": "9bc1c4cc28d129aa3d5a9651899b354085fdc4bddae4136e818455992924654d"
+    },
+    {
+      "key": "overall.major.sun.reversed",
+      "field": "pause",
+      "before_excerpt": "Give unfinished matters more time",
+      "reason": "미완료 작업을 더 하라는 오독을 막고 결과를 기다리는 행동을 명시",
+      "status": "resolved",
+      "reread_action_sha256": "ec89f6d4bae5aaaf2c28b997cecbed4dcfa30f46994bbeac9f38408bf763782f"
+    },
+    {
+      "key": "overall.cups.12.upright",
+      "field": "pause",
+      "before_excerpt": "vague, uninterested-sounding reply",
+      "reason": "과한 복합 수식어를 관심 없는 것처럼 읽히는 모호한 답이라는 보통 문장으로 수정",
+      "status": "resolved",
+      "reread_action_sha256": "ef7812a0e0550fcc19277e341fa1160b1ff18a46ea0c58102c5b1cfce8be9f02"
+    },
+    {
+      "key": "overall.cups.13.upright",
+      "field": "pause",
+      "before_excerpt": "asking only about the part",
+      "reason": "단순 질문으로 좁혀지지 않게 부분적인 도움 요청으로 명시",
+      "status": "resolved",
+      "reread_action_sha256": "5303ec6dcdd3ec9eb50f1539d08f7cf2210843dc8a44514d24bc4fd3f2631acc"
+    },
+    {
+      "key": "overall.wands.11.upright",
+      "field": "pause",
+      "reason": "expect to be good는 능숙해야 한다는 요구보다 잘할 예상으로 읽혀 미룸 이유 모호",
+      "status": "resolved",
+      "resolution": "수정된 쌍 전문과 KO/기존 영어 본문 재독 후 현행 해시에 pass 기록"
+    }
+  ],
+  "scope": "English independent reads: root major/cups 72 and card_major_writer minor 84. Per-entry reviewer preserves actual reader identity; aggregate is not a claim that root read all 156."
+}

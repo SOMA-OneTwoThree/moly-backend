@@ -16,7 +16,7 @@ import tempfile
 import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "fortune-copy.v8-localized.1"
+VERSION = "fortune-copy.v8-localized.2"
 FIRST_VISIT_IDENTITY_HASH = "e588974413014dad1c44c07c297043af28dcccbbe41b8eba15b548aa68117bed"
 MAJORS = ("fool", "magician", "high_priestess", "empress", "emperor", "hierophant", "lovers",
           "chariot", "strength", "hermit", "wheel_of_fortune", "justice", "hanged_man", "death",

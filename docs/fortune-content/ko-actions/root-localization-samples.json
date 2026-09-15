@@ -1,0 +1,75 @@
+{
+  "reviewer": "root",
+  "human_review": false,
+  "status": "complete",
+  "actual_full_overall_bundles_read": 12,
+  "scope": "Four curated overall selections in three locales; unchanged category combination reviews retained separately. Not a new full 60-bundle reread.",
+  "entries": {
+    "ko": {
+      "overall.major.sun.upright": {
+        "read_bundle_sha256": "f7b369da038d89425249f761860e89db33f20095b7b241552106e79532093ab9",
+        "status": "pass",
+        "assessment": "좋은 결과 공유와 기다린 제안의 답변이라는 두 행동이 구별된다. 세 언어 모두 수락 의사가 있을 때라는 조건을 유지한다."
+      },
+      "overall.major.tower.upright": {
+        "read_bundle_sha256": "8da6ceb0d607d68a089dd86e2fb930cddfc609623243698336959336aeb3229a",
+        "status": "pass",
+        "assessment": "사정 듣기와 흥분한 즉답 피하기가 같은 돌발 소식의 서로 다른 행동으로 읽히며, 결과를 추가 보장하지 않는다."
+      },
+      "overall.major.moon.reversed": {
+        "read_bundle_sha256": "3242a0e623829c2e4830a086324f753c886c0fd35192cfa2c2b029e75c7e5386",
+        "status": "pass",
+        "assessment": "확인된 정보로 계획을 고치되 미확정 답은 분리하는 같은 판단 범위를 유지한다."
+      },
+      "overall.cups.05.upright": {
+        "read_bundle_sha256": "551a04040f694152d4ce637d4dcc87a503cc7334e1537b687c8aa752e23a735e",
+        "status": "pass",
+        "assessment": "좌절에만 매이지 말고 남은 소식을 듣기, 도울 사람에게 화풀이하지 않기의 이유가 각각 분명하다."
+      }
+    },
+    "en": {
+      "overall.major.sun.upright": {
+        "read_bundle_sha256": "3d17ab535f0cc7fecc043e381c964fd8c70661ba6f0668b4a975dd4c8eeb1409",
+        "status": "pass",
+        "assessment": "좋은 결과 공유와 기다린 제안의 답변이라는 두 행동이 구별된다. 세 언어 모두 수락 의사가 있을 때라는 조건을 유지한다."
+      },
+      "overall.major.tower.upright": {
+        "read_bundle_sha256": "c46ed6d9b2e76301e5e0e02010ea8333090cdd7c5776864b969282b935e30445",
+        "status": "pass",
+        "assessment": "사정 듣기와 흥분한 즉답 피하기가 같은 돌발 소식의 서로 다른 행동으로 읽히며, 결과를 추가 보장하지 않는다."
+      },
+      "overall.major.moon.reversed": {
+        "read_bundle_sha256": "98a5e4dbd879e2839e3b8b92630e774fe3bc5a3a9b2debe1c5ac056bb7e414ab",
+        "status": "pass",
+        "assessment": "확인된 정보로 계획을 고치되 미확정 답은 분리하는 같은 판단 범위를 유지한다."
+      },
+      "overall.cups.05.upright": {
+        "read_bundle_sha256": "8887634340e3f5d420faf65c98d2d8c125933df5d85daeb2da65944ed5dd94f1",
+        "status": "pass",
+        "assessment": "좌절에만 매이지 말고 남은 소식을 듣기, 도울 사람에게 화풀이하지 않기의 이유가 각각 분명하다."
+      }
+    },
+    "ja": {
+      "overall.major.sun.upright": {
+        "read_bundle_sha256": "86f556e2cfcd6981c61d023417a525ccd2ddcf5bad728ad744d0f41c3135c612",
+        "status": "pass",
+        "assessment": "좋은 결과 공유와 기다린 제안의 답변이라는 두 행동이 구별된다. 세 언어 모두 수락 의사가 있을 때라는 조건을 유지한다."
+      },
+      "overall.major.tower.upright": {
+        "read_bundle_sha256": "cdde5e530873779576a3ffb7135ded07e6b715e570515465b5c53a9a98094daf",
+        "status": "pass",
+        "assessment": "사정 듣기와 흥분한 즉답 피하기가 같은 돌발 소식의 서로 다른 행동으로 읽히며, 결과를 추가 보장하지 않는다."
+      },
+      "overall.major.moon.reversed": {
+        "read_bundle_sha256": "91783a7a1ca9760b2efecc4bcda193a4ad65489097608521d370df57772acdc5",
+        "status": "pass",
+        "assessment": "확인된 정보로 계획을 고치되 미확정 답은 분리하는 같은 판단 범위를 유지한다."
+      },
+      "overall.cups.05.upright": {
+        "read_bundle_sha256": "6d694fd69f8e5a3afae84ed3dcd2286153a00405524a2e22ca84704889bc8365",
+        "status": "pass",
+        "assessment": "좌절에만 매이지 말고 남은 소식을 듣기, 도울 사람에게 화풀이하지 않기의 이유가 각각 분명하다."
+      }
+    }
+  }
+}

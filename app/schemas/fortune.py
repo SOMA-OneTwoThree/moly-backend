@@ -71,12 +71,17 @@ class FortuneProfilePutResponse(FortuneProfileResponse):
 class FortuneBasicOverallResult(StrictResponse):
     score: int = Field(ge=0, le=100)
     headline: str = Field(min_length=1)
+    flow: list[str] = Field(
+        min_length=2,
+        max_length=3,
+        description="Public editorial paragraphs; legacy snapshots retain three segments.",
+    )
     do: str = Field(min_length=1)
     pause: str = Field(min_length=1)
 
 
 class FortuneOverallResult(FortuneBasicOverallResult):
-    flow: list[str] = Field(min_length=2, max_length=3, description="Editorial paragraphs; legacy snapshots retain three segments.")
+    pass
 
 
 class FortuneCategoryResult(StrictResponse):

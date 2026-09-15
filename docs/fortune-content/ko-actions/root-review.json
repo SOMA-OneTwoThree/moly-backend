@@ -1,0 +1,598 @@
+{
+  "status": "complete_for_recorded_scope",
+  "criteria_version": "ko-actions.r2",
+  "reviewer": "root",
+  "human_review": false,
+  "actual_reviewed_pairs": 84,
+  "scope": "ko-actions.r2 기준으로 84쌍의 두 행동과 총평·본문을 실제 읽고, 대상·목적·연결·표현을 검토했다. 수정 요청한 항목은 현행 수정본을 재독했다. 여기 기록은 root의 표본 범위이며 156쌍 전수 독립 판정은 review.json에 별도 기록한다.",
+  "entries": {
+    "overall.wands.08.reversed": {
+      "status": "pass",
+      "read_action_sha256": "0174168c87bf6c013d57540af99c09863d15b27d9fd847bcfaeacaa376c68342",
+      "source_ko_sha256": "050e31ef4dd6c3369e182072b928ec9dcc1db7e683c1a42dde30535ba4811ab8",
+      "source_brief_sha256": "a0e3f4d1c9f67e7fb9f30f17f64c1ed497160125cd04537f72f2e361752c3f87",
+      "notes": "받은 말의 뜻을 확인하는 이유는 잘못 알고 답해 다투는 일을 줄이기 위함이다. pause의 겹친 사람 수식 수정도 읽었고 전언의 뜻 변화로 생길 오해가 평이하게 설명된다."
+    },
+    "overall.pentacles.09.upright": {
+      "status": "pass",
+      "read_action_sha256": "73cc5f948bd5fccee446cf641f8577e9f6bb591b91ac35cf74e0cb9d5a6bb1da",
+      "source_ko_sha256": "27d857b1582671ffc0ce27f13a53e2499bc5ce5812e406a0111e7b03056344f6",
+      "source_brief_sha256": "bf35a10113c0d0f25860eb4b9b39962500048446b0f16758f8ea24016dd24222",
+      "notes": "do는 일을 마친 기념이라는 목적과 시간이 없어 못했던 활동이 한 문장으로 연결된다. pause도 남에게 보이려는 목적 때문에 내키지 않는 자리에 억지로 나가는 행동을 바로 지목해 추상적인 여유 소비 표현을 없앴다."
+    },
+    "overall.major.chariot.upright": {
+      "status": "pass",
+      "read_action_sha256": "a2d39372bd044fc8f0d22efd021c680c80e131a6144711af1c3e1982807dea87",
+      "source_ko_sha256": "e75b5d9cfcfcb6cd2235227706404beac1f7255875c7b7f1b86b1500987e41a1",
+      "source_brief_sha256": "7ac865d006c990a0cf0eba9c0b7d92cdedbda3a287bd3b9b90bcee9097296ea6",
+      "notes": "재도전은 지난번 막힌 곳부터 살피는 방법으로 이어진다. 주의는 새 일에 끌려 마칠 수 있는 기존 일을 중단하는 행동이다."
+    },
+    "overall.major.chariot.reversed": {
+      "status": "pass",
+      "read_action_sha256": "1e21b6c78cb7f3e099a11a5ff896aa44bbdd250667008de693599895d67c84aa",
+      "source_ko_sha256": "3efe99e84ad4eb0a1da093216e04713ad622d87641228f96ae57d3dfd1441567",
+      "source_brief_sha256": "5044d76b1038347a31197db2198c34cc1ca653c8b3587da728b29caa8f172706",
+      "notes": "막힌 곳을 살피라는 한 문장이 완결된다. 다른 일을 추가해 만회하면 약속까지 늦을 수 있다는 주의의 원인이 분명하다."
+    },
+    "overall.major.sun.upright": {
+      "status": "pass",
+      "read_action_sha256": "15cb5ad73d7c1832e310e0e85e006af122a3ff16c08ee25cae78e473f62814fe",
+      "source_ko_sha256": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1",
+      "source_brief_sha256": "0980687a9e91497d90e8faeec22b2fbac8b7e063e1cc61fe6a2ac907d3e469e6",
+      "notes": "좋은 결과를 가까운 사람에게 알리는 행동을 한 문장으로 정리했다. 원하는 제안에 답을 미루는 주의도 독립적으로 읽힌다."
+    },
+    "overall.major.sun.reversed": {
+      "status": "pass",
+      "read_action_sha256": "5b3a8f0b657fda7f7242e9cf9d4438697bddb83ba817b7549b1b9ba90676afa5",
+      "source_ko_sha256": "c6c36d59fa57075c599f694cd48c72bd52b2b27163458edfbdf8d81ce850b057",
+      "source_brief_sha256": "f445f60c68797c739df037c061f3b3163027eddaf38ecd3c547a432f65ed3732",
+      "notes": "기대 미달과 이미 얻은 성과를 구별한다. 결과 지연과 실패를 동일시하지 말라는 주의의 이유가 이어진다."
+    },
+    "overall.major.tower.upright": {
+      "status": "pass",
+      "read_action_sha256": "1b90c535f3e232619d82d80462a29ed4d19b8c2b3e4c77a2981638dbfaf4bc13",
+      "source_ko_sha256": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279",
+      "source_brief_sha256": "1d392ff82dda5bde8f7d2fcd139b89465eebfee18af2af137d35f36ecfe0916e",
+      "notes": "설명을 들을 행동이 한 문장으로 완결된다. 감정이 격한 답변을 늦추면 후회할 말을 줄인다는 직접적인 이유다."
+    },
+    "overall.major.moon.upright": {
+      "status": "pass",
+      "read_action_sha256": "344a41df05744d51537a3093d6eef2d9f422ada76a3f7ede8df45a10a27efe3b",
+      "source_ko_sha256": "3ff47d0cd559ee22bdf5e4e78952e345f54451552dc63701f5f0fe5d65b5fb14",
+      "source_brief_sha256": "f1d7b1a0dbfea2fd80c712a21b4048030f8a33983d0e0987b78cafb48c581728",
+      "notes": "중요한 결정 전에 전해 들은 말을 직접 확인한다는 행동이다. 상대에게 따지기 전 오해 가능성을 살피라는 주의가 이해된다."
+    },
+    "overall.major.moon.reversed": {
+      "status": "pass",
+      "read_action_sha256": "f68ec6e00999678052b941a185373bed989922cb76bd1f87b0756c7a61073a00",
+      "source_ko_sha256": "d8c3be2a709146f56c41c7e829af96f3961d144f745c21c0a5d174586d484924",
+      "source_brief_sha256": "829e398b136856c9095ace29e2f4ccb5fcc6e7b6ebcea22097f21668d39b168c",
+      "notes": "알게 된 사정에 따라 기존 계획을 고친다는 한 문장이다. 일부 오해가 풀려도 아직 안 들은 답까지 단정하지 말라는 범위가 분명하다."
+    },
+    "overall.major.tower.reversed": {
+      "status": "pass",
+      "read_action_sha256": "71b175a45a02af07ac8e38e89c126f6e74528830f8719011f743cb967c7c30ab",
+      "source_ko_sha256": "0b6f78468b6f2afec1ff11db0fd880bc8ddafc392e30db8816633eff93846236",
+      "source_brief_sha256": "af7cac34ccc8bb5f83dec2a5c5f04b19c6a5be516e3303048f9ed246e3730a12",
+      "notes": "드러난 잘못의 사정을 솔직히 알려 뒤늦은 수습 부담을 줄인다. 주의도 남은 문제를 바로잡을 때 넘기지 말라는 뜻으로 이어진다."
+    },
+    "overall.major.temperance.upright": {
+      "status": "pass",
+      "read_action_sha256": "6177f6588425e53f00fceb59d7599797618144bb3ade913f0c7f348d2e6325bd",
+      "source_ko_sha256": "2fa991d273c43cac08be42f4d00711f8d2adb962859c2a6619ce7b1d31056b1c",
+      "source_brief_sha256": "125e3facbbf8b921d46c6baac82f68a090ab0e9c518c657a7d1bb403cae4b459",
+      "notes": "도움을 준 사람에게 구체적인 고마움을 전한다. 잘 돕고 있는 사람을 재촉하는 주의는 조건이 한 문장에 명시됐다."
+    },
+    "overall.major.temperance.reversed": {
+      "status": "pass",
+      "read_action_sha256": "b7b55c0c6a4125310d1a60bfdf8aab5717f8f85f8dc07a5f2ad0738505ef0e48",
+      "source_ko_sha256": "1e13fa287690a534c41c5205699ed330c361aaf06c617ffd7b38b2c3fe4f4e3b",
+      "source_brief_sha256": "aa3eeae2299407995d95bfab055ac04978768628f74f86f146426ae69ca1b3cf",
+      "notes": "현재 마칠 수 있는 부분을 끝내라는 행동에 전체 계획을 바꿀 필요는 없다는 범위 설명이 붙는다. 언성을 높이기 전 평소 반응을 돌아보라는 제안도 이어진다."
+    },
+    "overall.major.fool.reversed": {
+      "status": "pass",
+      "read_action_sha256": "45d5254801a721571676c314d52478a9bd60d4ef5a1fdfb373936422b8c74359",
+      "source_ko_sha256": "dcacad27461b8cb982ddfb9f5e3c283c8061c268e4dde2f59dd43379d8692c9f",
+      "source_brief_sha256": "e98895da087fdf0890b265a356fe9446b7645a1830cc46323d626ea473d93c10",
+      "notes": "이용 시간과 준비물을 확인할 이유가 헛걸음 가능성으로 설명된다. 약속을 연달아 잡을 때 시간 지연의 영향도 직접 연결된다."
+    },
+    "overall.major.magician.upright": {
+      "status": "pass",
+      "read_action_sha256": "101ce72c5a58d502a4ed67185b3dcc4efa8359e143eaee5d55ee4e5bca04be55",
+      "source_ko_sha256": "fb9bed58631ef4cbc262a2b0a29cde785bc0fa36c4b458ae12edaab565bc4690",
+      "source_brief_sha256": "d22eea82247db95b250646baf215d2c967665b5676b1fdb1b212bb4ff8a77de4",
+      "notes": "문제에 맞는 배운 방법을 써보라는 행동으로 완결되고 남의 반응이라는 다른 목적을 붙이지 않았다. 준비한 일의 연기를 막는 주의도 이해된다."
+    },
+    "overall.major.magician.reversed": {
+      "status": "pass",
+      "read_action_sha256": "213630139f21b07115df0a49de51ba7c5c97bc8b706f9ae075aaf3ee98f08129",
+      "source_ko_sha256": "4b9feff7d604085af0ec712d3a923cd3500ca41f704bcd4625683443a5e04beb",
+      "source_brief_sha256": "929aa567cb0ed6213104a09dcfab0f10d5717193a068920af49d1b1665988d80",
+      "notes": "상대의 실제 준비와 제안 조건을 함께 확인한다. 할 줄 모르는 일의 약속을 피하고 가능 범위만 말하는 주의는 같은 대상을 다룬다."
+    },
+    "overall.major.high_priestess.upright": {
+      "status": "pass",
+      "read_action_sha256": "02ccc2900d685df6b11bdd714f73eaba388944ee0bc027e66018027c007d57c6",
+      "source_ko_sha256": "ecf49e1288bf863e869e40cfea1221aa6b930b59eb42eb21738c4217a50487c6",
+      "source_brief_sha256": "eac9efdd20bf897491e2926ebaf8a30e8c8f333cc99b2d18d0cc096a49b2d799",
+      "notes": "설명에서 이해하지 못한 것을 묻는 행동과 놓칠 단서에 대한 이유가 이어진다. 아직 정보가 없을 때 결정을 서두르는 주의도 카드의 정보 부족과 맞는다."
+    },
+    "overall.major.high_priestess.reversed": {
+      "status": "pass",
+      "read_action_sha256": "7c74e158a54d2709e3930f0a307dd1ef0794c5a821151211a9b9bcda7049b400",
+      "source_ko_sha256": "fad5c422f19332cb31d8a2ce4b66cc6bcd425abefd46fcd8e8d1d72af6c4dcef",
+      "source_brief_sha256": "8614c105cf697096f2cfafe8914f381cc6d2a120362124acdc5323b9772854c8",
+      "notes": "도우려는 대상의 사정을 먼저 묻는 행동과 맞지 않는 도움을 피할 이유가 명료하다. 들은 말과 추측을 섞어 전하지 않는 주의가 구별된다."
+    },
+    "overall.major.empress.upright": {
+      "status": "pass",
+      "read_action_sha256": "023a0e7a474ade173268bc7e0e8d2568a43cb0c4a4bc1824cea7ed8826c6470d",
+      "source_ko_sha256": "7301eaa857239e04f8be90cf14cbcec8fd1e3e130ba638d30b429fe016210fd0",
+      "source_brief_sha256": "945018fddda673ccc4fe0ba88669f68002899950b0bf5ca1d51a195948389fe2",
+      "notes": "함께한 사람에게 결과를 알리고 고마움을 전하는 연결이 자연스럽다. 도움을 요구할 때 상대 수고도 살피라는 주의의 이유가 이어진다."
+    },
+    "overall.major.empress.reversed": {
+      "status": "pass",
+      "read_action_sha256": "cbc2d7c71b50f6cf6c99281345c4bb62f407fb0265265e86b3010a62dbdfe08f",
+      "source_ko_sha256": "3ddc6aee0da7e1265df5efa60555476f1d91539947c78c9b7dcc7398c3b6f89f",
+      "source_brief_sha256": "671e714aacd07a446437adbf20dbb191c605b6eeb818c25674a599bbffc1a06e",
+      "notes": "자기 일과 도와주던 남의 일을 구분해 지시 대상 혼선을 고쳤다. 고마움을 못 들었다고 더 대신하는 행동의 기대와 결과 차이가 설명된다."
+    },
+    "overall.major.fool.upright": {
+      "status": "pass",
+      "read_action_sha256": "100f84281a936e3b226d101c7e4c72bc5b262e00c819dbe170efa70f64eeb169",
+      "source_ko_sha256": "836ba1ed360787222bcf71767b601631c5244cee18a251f2f7e53cb06dea5c23",
+      "source_brief_sha256": "25132b3aa1545025bcdb4b21a0e6315be00f46de3e8337f854d71931ffa301d1",
+      "notes": "하루 체험과 나에게 맞는지 판단할 이유가 연결된다. 체험 전에 장기 참여를 정하는 부담을 피하라는 주의는 완결된다."
+    },
+    "overall.wands.01.reversed": {
+      "status": "pass",
+      "read_action_sha256": "6d332018498be31aab1e68d69582e3150ed3f644e070580f1ac034c66689e059",
+      "source_ko_sha256": "6dd840fb63be0041249f3f583316596d6a81acc406060d7cc6a3be7bb0eafd73",
+      "source_brief_sha256": "22a614df2a8cb9094293fdf87175dae4e0b37668c57d2210071ad1c3ccfd57f8",
+      "notes": "준비 부족 상황에서 부족한 것을 살펴 지금 가능한 준비를 해두라는 한 문장으로 채우다/챙기다 결합을 고쳤다. 두 항목과 본문을 다시 읽었다."
+    },
+    "overall.wands.03.reversed": {
+      "status": "pass",
+      "read_action_sha256": "9400c5c5296219cf98c79fada17fb460e3503f74225b32437646ed3901ecffdb",
+      "source_ko_sha256": "30b16ba1deebd3b3ae85f9fb53e3776fe96a6b8e0b3b59fece952cff95c61efb",
+      "source_brief_sha256": "334a6eaede5652caf96425ec0f3f486d33941e4cd243f4cde271dfb8e2266a0f",
+      "notes": "답과 무관하게 처리할 일을 한다는 행동은 한 문장에 완결된다. 예상보다 지연되면 추가로 맡은 일까지 겹쳐 부담이 커진다는 주의의 이유도 분명하다."
+    },
+    "overall.wands.04.reversed": {
+      "status": "pass",
+      "read_action_sha256": "4754fbfaabb7b086d0244a1c1e3ca2779172c24ed448a9ac21c7626a69712ba5",
+      "source_ko_sha256": "3b12dbb8af6f5577df026ea73b4df2d1aed60fe2c6307567dd7e0492f6bd8fca",
+      "source_brief_sha256": "624e141b5bf3b0a6d933383e097a13442c35b68f96c9af31639fb4169b670dc3",
+      "notes": "작은 성과를 가까운 사람과 나눈다는 한 행동이다. 완벽한 준비가 없어도 만남을 즐길 수 있다는 이유가 약속 취소를 피하는 행동과 이어진다."
+    },
+    "overall.wands.06.reversed": {
+      "status": "pass",
+      "read_action_sha256": "016e3ee3079d94a74317b86c7226ce7d0dfc4148fea08317c4967a158a0f7c6b",
+      "source_ko_sha256": "ca89364796047cec66ad90ecd99cd1450850397c521631eff26fe290262bee50",
+      "source_brief_sha256": "7363b89ffe4f9e0b0008146d6f9473db5d4e93611a0a880331c63768d89ee30d",
+      "notes": "과장한 말과 실제 한 일의 차이가 드러나 곤란해지는 이유가 명시돼 설명 어려움의 숨은 전제를 풀었다. 두 항목과 본문을 다시 읽었다."
+    },
+    "overall.wands.07.upright": {
+      "status": "pass",
+      "read_action_sha256": "f3ef862ff685246a355d071f50094852f1d74b86e78aa95cf48c013b0521274c",
+      "source_ko_sha256": "04fb835dba398d7684b57eec3edd6e80eb63dc63f402f9b60db9294aa11eb06c",
+      "source_brief_sha256": "08a0c4ad5cc11fc39e370f118ed9a11b622d788206abd4b2a64e827f118ddef7",
+      "notes": "양보할 수 없는 조건과 이유를 말하는 한 문장이다. 사소한 말에 맞받아치면 중요한 조건 이야기를 놓칠 수 있다는 원인이 직접 이어진다."
+    },
+    "overall.wands.09.upright": {
+      "status": "pass",
+      "read_action_sha256": "0758d59f30e1d1143cb821c7a76f246bc7d2839cfcb6b7044d6265a401d27feb",
+      "source_ko_sha256": "ea61c1edf60c0a1e103fb80a20ea0202659e7f985e26425ca648bb87fd6cd76a",
+      "source_brief_sha256": "0d66490e8baa0cf2fe558869aec4c9714065136ef23cc3eabd4ea4672ca26bfc",
+      "notes": "반복된 그때를 줄인 문장도 옛 해결 방법 재활용과 수월한 해결 이유가 이어진다. 두 항목과 본문을 다시 읽었다."
+    },
+    "overall.wands.10.reversed": {
+      "status": "pass",
+      "read_action_sha256": "115f221ca37a6c2d76b7a3f25b4e243cbeb2223300ffb8e4c4bbf4e2e73277f8",
+      "source_ko_sha256": "d68f9b0d5604acbb6c6e3a8391172f657d5b0cf6172995435fb3df624cf94fdf",
+      "source_brief_sha256": "1fa0e3946e9918b71013a39b29a2e7313f6c6110f40e4157d3d2efeb3dd7646c",
+      "notes": "일을 나눠 달라고 미리 말해야 상대도 시간을 낼 수 있다는 이유가 이어진다. 과부하를 말하지 않고 추가 일을 가져오면 감당할 수 있다고 오해받는 주의도 분명하다."
+    },
+    "overall.major.emperor.reversed": {
+      "status": "pass",
+      "read_action_sha256": "4e61485f250e754f8952726568b438393eacab136176f9b47f7bf624b1f4fc56",
+      "source_ko_sha256": "ff475594f4de42f462776b1f27c3b4ac09e9a4fc6f39f494236abef9c313787d",
+      "source_brief_sha256": "e17388f834a1fb143b7319a695a31591cfcdf085d160db471fc257dd729d8aab",
+      "notes": "바뀐 사정을 물어 원래 약속을 바꿀 필요가 있는지 판단한다. 권한만 앞세우지 말라는 주의는 협조를 구할 이유와 연결된다."
+    },
+    "overall.major.hierophant.upright": {
+      "status": "pass",
+      "read_action_sha256": "2f692aaf1672a71d67ff839d8c6a18d5f3bb966887f9c2db2bd11126b4d35ba0",
+      "source_ko_sha256": "410b40d133cc6095392760d93d0f6b9685e23cbe8615eb550ff4f6a156954aa7",
+      "source_brief_sha256": "d34168e84774c072b47ee917bbfd1c8e3ac37ceba3a3e2b21283797f64ccaf9c",
+      "notes": "경험자에게 질문해 놓치기 쉬운 정보를 듣는 행동과 이유가 같다. 필요한 절차를 지키면 재작업을 줄인다는 주의도 이어진다."
+    },
+    "overall.major.lovers.reversed": {
+      "status": "pass",
+      "read_action_sha256": "80e27fd4c38ac59897c3ece19a0bc3d5f5a20e208b5df51af363fe784ad4b6b7",
+      "source_ko_sha256": "8a21eab1add8eed68277a1127608c91a2db95cdbaed98ff9794dc9eda53a143f",
+      "source_brief_sha256": "93ee3ef0d724295c52523592ba9601248c54f4857b62b79553c0f53c262394b6",
+      "notes": "각자의 기대를 미리 말하는 이유가 약속을 다르게 이해할 수 있기 때문이라고 드러난다. 동의 전에 불편함을 말하는 주의도 갈등을 키우지 않을 이유와 맞는다."
+    },
+    "overall.major.hermit.reversed": {
+      "status": "pass",
+      "read_action_sha256": "2d7e75a20b5aa64ebd8b8993372b6cc896d2e93940f62ddc18b3deb33ef446df",
+      "source_ko_sha256": "81c6e8cd4d245fc97b187bf6cb3aad4b428f6c08076d408b3cd1269c234021c8",
+      "source_brief_sha256": "0af59201ed5a43ee064c5593a31b33f500ee2d73631482e945a1c11f8d8ed8a9",
+      "notes": "해본 일과 남은 일을 설명하는 것이 필요한 도움을 말하는 방법이다. 말하지 않으면 상대가 모를 수 있다는 주의의 이유도 분명하다."
+    },
+    "overall.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "read_action_sha256": "ebd2ec96d18ddfdce4b24649caee13d2e721a3df327c218be30585cccda673ca",
+      "source_ko_sha256": "34a16ed62789aefe7169cf8978721ee75bd689c6ff26b835d9a6d8fb62892631",
+      "source_brief_sha256": "0d7f1bafff791809cd1893a3a0481d77182928a78dfeb424a26ba848bda9f603",
+      "notes": "늦어진 일이 끝날 때에 맞춰 잡은 계획이라는 대상이 명시된다. 외부 사정으로 더 지연될 수 있어 후속 약속 확정을 조심하는 이유가 이어진다."
+    },
+    "overall.major.justice.reversed": {
+      "status": "pass",
+      "read_action_sha256": "035aa9324687aa8d54e1ae0acb84daa7df530b1865ac48f2d233d37b4042ddf0",
+      "source_ko_sha256": "29cc22545de992e68dafeed376dfbbe227fe25f73ce743cd11bb05777c8b2e80",
+      "source_brief_sha256": "e503ec30ed026681a1f62a47402c2985948bcdb5ad4ed0b160f0a56fb5c5871a",
+      "notes": "잘못 알려진 사실을 짚어 설명한다는 한 행동이다. 모르는 이야기를 보태면 맞게 말한 사실도 의심받을 수 있다는 이유가 직접 읽힌다."
+    },
+    "overall.major.hanged_man.reversed": {
+      "status": "pass",
+      "read_action_sha256": "3d6ae34bb2d5e7a298b5f0b69501af7f0a9db9cced9408ee21bc34a10f66e285",
+      "source_ko_sha256": "1a1fa4a43e4d1fe3000fb9ce3bb81bd1deeae6fea5ea3739bef0c685dd740c73",
+      "source_brief_sha256": "205980016b8366e568d2d425f58cda7ff6ac32bb60bb9e1086dabae01cbb1a37",
+      "notes": "상대에게 답을 줄 기한을 묻는 한 문장으로 지시 대상 혼선을 해결했다. 무조건 기다려주는 약속의 부담은 같은 조건 아래 이어진다."
+    },
+    "overall.major.death.upright": {
+      "status": "pass",
+      "read_action_sha256": "1885669a2366b804141ce32a25ca3c436e698d9c44a61b8303cc9a660fff97d2",
+      "source_ko_sha256": "acf32b24bf3e9d64d2ccd60e0575b0df7280a331fba38ea801bf0dcb21a90eed",
+      "source_brief_sha256": "949118916bfcc2c88597efbaa99fbd95b03fec65475be8b9661466f86b7221fb",
+      "notes": "끝난 일의 인사와 정리를 마치는 한 행동이다. 아쉬운 결론 때문에 이미 끝난 일을 되돌리려 매달리지 말라는 주의가 별개 숙제로 넘어가지 않는다."
+    },
+    "overall.wands.13.upright": {
+      "status": "pass",
+      "read_action_sha256": "8957e0e9bee2510260826a7de8c00fd5171380720b473e1fbadde9b6df664aeb",
+      "source_ko_sha256": "13904906e6032ce6049c10dae98b478eecfc9f16a6f5a5a434264ffa00fea3bf",
+      "source_brief_sha256": "2e2164829c88336d8eea8a18d0a5d58e256427d8a79bb4affda024e11141583a",
+      "notes": "함께한 자리에서 이야기를 꺼내는 한 행동으로 마쳤다. 함께할 일 제안으로 바뀌던 주제 전환을 없앴고 주의는 상대 발언 기회를 기다려준다."
+    },
+    "overall.swords.01.upright": {
+      "status": "pass",
+      "read_action_sha256": "95f42710ad300cbf6093851edcfd0a671e3ade829c6e08950bb616bd2eae91f9",
+      "source_ko_sha256": "2dfaa39fbb82a448218beac687b4cc7f8da1a8bd42e8f6633085ee9ccc68dac8",
+      "source_brief_sha256": "56ec276aecd05c322d80e9bf7b15d071edfc3103c38ae1e54735d4be34c4d493",
+      "notes": "서로 다른 설명에서 확인한 사실을 비교해 원인을 찾는 행동이다. 알아낸 내용을 전할 때 핵심을 먼저 말할 이유가 분명하다."
+    },
+    "overall.swords.04.upright": {
+      "status": "pass",
+      "read_action_sha256": "f9b7f4c1e04215e1fe11ea9f88f905c6a75b328d55ccb57856ea86b59ccfd650",
+      "source_ko_sha256": "18a4d5f05eb2ce64f6b8b8a860b8e33da4ecde1dff1556000dd2c359953fe9ab",
+      "source_brief_sha256": "c24e5fa2cdfd49b723888f55e345a52517bcfd9e2e7588c0f22e38638ff35227",
+      "notes": "수정된 pause는 끝난 다툼을 다시 꺼내 불필요한 말을 주고받으면 서로 불편해지는 직접 원인만 남겼다. 두 항목과 본문을 재독해 모호한 사이 수식 해소를 확인했다."
+    },
+    "overall.swords.05.upright": {
+      "status": "pass",
+      "read_action_sha256": "da226b4899e1d357fc09aba4e75eaf0c274c811eba031a8e4bf12c46524526b4",
+      "source_ko_sha256": "b154b663814cf2795bf7f139ee78a4aca17eee42497cbb11c425e2b76fa89493",
+      "source_brief_sha256": "925dcb157a2c6cfb6c301e87e99b3ebbf8e8d76bbc9eadd890b5d57d88ff404b",
+      "notes": "필요한 말을 한 후 멈추지 않으면 관계가 멀어질 수 있다는 이유가 직접 이어진다. 상대를 낮춰 말하는 주의는 남을 반감과 연결된다."
+    },
+    "overall.swords.06.upright": {
+      "status": "pass",
+      "read_action_sha256": "0a1537f09f278cd20c108a33dd61f51832a47365a7c17e5a652827907b560d77",
+      "source_ko_sha256": "02cf578ad51e31726ebe9fb9996ac3c513a9a3775d4d8d1b894852ee8734f6ee",
+      "source_brief_sha256": "8ff11f3f1150efa1de528d0e1d199673c362b081458b55c871dbda5bb1e5143c",
+      "notes": "해결 방법을 알려주는 사람의 설명을 듣고 도움받는 행동으로 통일했다. 불편한 익숙한 곳을 고집하지 말라는 주의도 대안이 있다는 조건이 붙는다."
+    },
+    "overall.swords.07.upright": {
+      "status": "pass",
+      "read_action_sha256": "93722cb339c125dd93c17340572674a9d3d4ea587420a5c124d677692b2d8122",
+      "source_ko_sha256": "fde88a3009d4cabcef10c97f4671d50cc0065496ba0e2d724f98f866722ed148",
+      "source_brief_sha256": "2a5900e364f9bf4e0f1caaad0b8629b2f16ccdb9e7776ac92f7eed3bd63e105f",
+      "notes": "사정을 아는 사람에게 조용히 다른 방법을 묻는 행동이다. 계획 공개의 범위와 상대 판단에 필요한 조건을 숨기지 말라는 주의가 구별된다."
+    },
+    "overall.major.devil.reversed": {
+      "status": "pass",
+      "read_action_sha256": "6841c98e63f0868fd347dfca797111587e05b1430ee6e17c109dee187482d67e",
+      "source_ko_sha256": "ea3ecb8038060bd93a0ef488a55054c83daf221620f68d996c78544504baf94d",
+      "source_brief_sha256": "a8dd49fdf26639fce7d79395947187f0dd612f7bb10af582e4a8aa861efb39fc",
+      "notes": "더 맡기 싫은 부탁을 분명히 거절하는 방법을 한 문장에 담았다. 미안해서 다시 받아주면 같은 부담을 질 수 있다는 이유가 직접 이어진다."
+    },
+    "overall.major.judgement.reversed": {
+      "status": "pass",
+      "read_action_sha256": "9b02baf1d487017fab23fe75d27ed0988ed0bf52168ce607c0c572094ba53ce0",
+      "source_ko_sha256": "9217d0986be10ba550ef31dffe544a3ebbb641d3702767e4b57dd9eb5b990958",
+      "source_brief_sha256": "469e315a49ab978498ddf1f5af326ad30e21d90f69eb361854fa0e4a82c81d51",
+      "notes": "결정 기한을 묻는 이유는 마음이 정해지길 기다리다 기한을 넘기는 것을 피하려는 것이다. 모두의 평가를 맞추려 결정을 미루는 주의도 원인과 결과가 이어진다."
+    },
+    "overall.major.star.upright": {
+      "status": "pass",
+      "read_action_sha256": "04c1f4241ca5bbff3d7cc90d823a5fc6ea77bf5b6545fba95af11c38735ae70c",
+      "source_ko_sha256": "c18aa89aae75794162a16890f6df965a6fe7c3108a5bd445259b8830c3b8a9f7",
+      "source_brief_sha256": "28aba5c9d8fa2f91f3601ea3dd401e00878294a012e2753fc01dba17390ea74b",
+      "notes": "멈춘 일에서 가능한 부분부터 이어가라는 행동에 즉각 큰 결과가 필요하지 않다는 범위를 덧붙인다. 도움받을 어려움을 말해야 상대도 알 수 있다는 이유가 분명하다."
+    },
+    "overall.major.world.reversed": {
+      "status": "pass",
+      "read_action_sha256": "eb6f752cab26abb5cdd207c93e6e19a6008e421ab9c5b1a275c391593c38b4cb",
+      "source_ko_sha256": "4e566bc32d6fc88e9597aa6e6b3e0297adba38207b5d60b67bd8bf15b10d9704",
+      "source_brief_sha256": "671b5c49b7293ca113d28da5b7dcc536724d2df8b4aa146ed9327668d7a49d98",
+      "notes": "남은 마무리를 미루면 마음에 걸릴 수 있다는 이유다. 늦어진 마무리와 이미 잘 끝낸 부분을 구별해 전체 실패로 보지 말라는 주의가 이어진다."
+    },
+    "overall.cups.03.upright": {
+      "status": "pass",
+      "read_action_sha256": "967f288fac7fa3700f612c519258d3797154a6bf0ddc766679bb040b9e9e2403",
+      "source_ko_sha256": "be726ab12eab0cbc03aec128e215c9006d35eca601a3fdd9fcdf17697d618485",
+      "source_brief_sha256": "ffff456745728109a43013699202ca03b3721ec2c5e860582d3a6d7f45dbf36e",
+      "notes": "축하할 사람에게 마음을 전하는 한 행동으로 대상 전환을 없앴다. pause의 흉보기 주의는 기존 원고의 pause와 근거에도 있음을 별도로 확인했다."
+    },
+    "overall.cups.03.reversed": {
+      "status": "pass",
+      "read_action_sha256": "d04e2b039e4e05e4ce46d6838c70b62361fcc7af988d255f3631cbfdae28ed62",
+      "source_ko_sha256": "9afd09c7164b83c1c439e56eaef3575a54d1ca816090106c28a065a7143570ca",
+      "source_brief_sha256": "1e5fa7bfabf0fe10705a26759962471b982617f5552f718e81f4ee62e9318b8b",
+      "notes": "본인이 먼저 떠나는 행동을 명시해 모임 전체를 종료하는 것으로 오독되지 않는다. 모두의 기분을 맞추려 끝까지 따를 필요가 없다는 이유도 연결된다."
+    },
+    "overall.cups.04.reversed": {
+      "status": "pass",
+      "read_action_sha256": "39b9fd23a26efc64eae4868296255b9c96a53fde8e2df70110eb6111c00feacd",
+      "source_ko_sha256": "65867eef2bf3a022219e73c2be37fb3f54a58b25c612c80297ce49efefa06d04",
+      "source_brief_sha256": "7bdde2f895ae128409285d70a86adfa50322871a0269bd574bde51bb55872fec",
+      "notes": "오래 고민한 일의 새 소식에서 다른 방법을 살피는 행동으로 대상이 분명해졌다. 과거에 내키지 않던 제안도 지금 사정과 다를 수 있다는 이유가 이어진다."
+    },
+    "overall.cups.05.upright": {
+      "status": "pass",
+      "read_action_sha256": "2b950ae257ca452cd0f989cbc1a1f7d5022f7ad6f531c06cd9a61e538921db44",
+      "source_ko_sha256": "4022c678fdfba3c946e7a180e6479a91478bb28224a08c70abe3860e96e26d95",
+      "source_brief_sha256": "6f0b102db14bca1dfa94192e1689ef57287e3d5bafc6c28acb099ceea3cb00b3",
+      "notes": "다른 소식을 듣는 이유는 실망한 일에 매달려 남은 도움을 놓치지 않으려는 것이다. 도움 주려는 사람에게 화풀이하지 말라는 주의도 관계와 기회 상실로 직접 연결된다."
+    },
+    "overall.cups.06.reversed": {
+      "status": "pass",
+      "read_action_sha256": "48cf66b2b3e4b80717208d0e1aef1522bebde814b858afd48ed40680cd7d1d67",
+      "source_ko_sha256": "abfa83fe2ad1a7fac6ab5b6014dd967872277aedc5ffe702b7ac93c888a847bd",
+      "source_brief_sha256": "178b3824976124dbb59a2b57d0d3efe77560c9abff2bea59dc64f8ae57b351ed",
+      "notes": "현재 조건과 지난 어려움의 변화를 확인하는 방법이 이어진다. 과거 성공과 이번 성공을 동일시하지 말라는 주의도 시점과 사정 차이를 설명한다."
+    },
+    "overall.cups.07.upright": {
+      "status": "pass",
+      "read_action_sha256": "5efa99b84b7ac3b753c98d288587486e019e04d913da0510c4502409f85498d0",
+      "source_ko_sha256": "5a87a3af74ec092cf84f74917c0566db0fa29f8cc2315856f666f3f390e09f31",
+      "source_brief_sha256": "6e007a0bd57ae3b0004387947860d17e1edf7192842cce373de81de47f1bc9ce",
+      "notes": "실제로 받을 것과 아직 미정인 조건을 구분해 제안을 비교한다. 보기 좋은 제안을 모두 받으면 기대만큼 실속이 없을 수 있다는 주의의 이유가 읽힌다."
+    },
+    "overall.cups.09.upright": {
+      "status": "pass",
+      "read_action_sha256": "97f53398c0b32711477d64e1391f64811dd27974be68ae0098556e7d326ef274",
+      "source_ko_sha256": "72b358c88c460edbb931ec352f293c00bf3481cb82dba59d6447384537ab3406",
+      "source_brief_sha256": "ee1b3bf1e0547639c37147c09207d3b9319fd49472aed26d7e0b857cc7655a53",
+      "notes": "수정본은 기다린 결과에서 기쁜 점을 돌아보며 자신을 축하하는 한 문장으로 묶었다. 타인에게 자랑하기로 넘어가는 별도 행동을 없앤 두 항목과 본문을 다시 읽었다."
+    },
+    "overall.cups.09.reversed": {
+      "status": "pass",
+      "read_action_sha256": "d776e49da1ac0c804e13f23bbaaf0dff0b0434cf2b38afa729dec9db8d78e32b",
+      "source_ko_sha256": "acc1db87d1a33b11e35a1915ac81c6773fb1136a13d85104007888593cffe142",
+      "source_brief_sha256": "36124513ca50e80dd1d496e5751f99bb436a64340f3665e36c3c06b13599d9f5",
+      "notes": "원하던 결과의 아쉬움을 실제 불편과 번거로움에서 살피도록 대상을 명시했다. 아쉬움을 새 일로 달래다가 부담을 늘리는 주의도 직접 이어진다."
+    },
+    "overall.swords.09.upright": {
+      "status": "pass",
+      "read_action_sha256": "36f28f3b978e957c2c216b3f157ecea8e16878f3bae8c22c50907e0220363506",
+      "source_ko_sha256": "4f03ff7c3461738b160e8c3de227759dbc4f6261612a66aff6e917ecf13ebdc7",
+      "source_brief_sha256": "e24e8520753a1df217ce28a3187001ce843faaeffe4f0fbdc8465e95587e654d",
+      "notes": "구분할 대상을 걱정 중인 나쁜 결과로 명시해 누락을 고쳤다. 두 행동과 본문을 읽어 사실과 추측을 구별하는 의미를 확인했다."
+    },
+    "overall.swords.10.upright": {
+      "status": "pass",
+      "read_action_sha256": "a448df9bc90d9f37c0d8afb1a0cfd5e0ddf146688bbea241c08091a3ce9b5132",
+      "source_ko_sha256": "3f1e9f17540e5921d007b514c096c569e540e88955ae21e43791c0a2a2c15920",
+      "source_brief_sha256": "103dfeefc14e08ea222fc53f9a77b48ddc32c53b2c2c48e6471cc13b1e3433ec",
+      "notes": "필요한 정리를 마친 뒤 더 손대지 않는 순서로 마치기/남기기 혼선을 없앴다. 새 일을 떠맡기 전 남은 부담을 살피라는 주의가 이어진다."
+    },
+    "overall.swords.12.reversed": {
+      "status": "pass",
+      "read_action_sha256": "5afa00877b08629c8ff0830db8c700f17a004d3795c11cc6952fb48b88980739",
+      "source_ko_sha256": "7887574ab1c0440b4fa942000a044624a08f85aa0f08178c943e2d8937f0e5b6",
+      "source_brief_sha256": "f73557b3d9ba677edd68a97833d1d1d952fd7791487adb3d773a1cc7a10019dd",
+      "notes": "가서 할 일이 있을 때 준비물을 챙기는 행동에 되돌아올 수고를 줄일 이유가 붙는다. 재촉 때문에 불가능한 일을 맡지 말라는 주의의 대응 방법도 명료하다."
+    },
+    "overall.swords.14.upright": {
+      "status": "pass",
+      "read_action_sha256": "3dfc83a521a6ad8457e65adc73a662bae49acbb8883baabfed08a3d8545d3b93",
+      "source_ko_sha256": "ef24dedfb7e278745f0af37b975457736eeb1bb683f1fc9569ec63ecabf90416",
+      "source_brief_sha256": "b477edf96f57a65e5fae8be97acc09fa310d8c7df81e2fba88fe4cca4f0b6f2f",
+      "notes": "확인 가능한 사실로 자기 의견의 이유를 설명하는 한 행동이다. 원칙을 자기 이익에 따라 바꾸면 상대가 납득하지 못할 이유가 이어진다."
+    },
+    "overall.pentacles.03.reversed": {
+      "status": "pass",
+      "read_action_sha256": "ce50ca88fdfa5479db28fddc082c408124d7319d11f02670706bec3c321653c8",
+      "source_ko_sha256": "56ae30b4120ead962e6ba1521dcd72b2bdfc888435fa246b4c014fc601cd4467",
+      "source_brief_sha256": "9dc2bb7c716bd0f9dfd5f618c873b4087efbdb1fec4b42e417167bc01faead58",
+      "notes": "해본 사람에게 누락을 물어 고치는 한 행동으로 통일돼 공동 역할 이야기로 넘어가지 않는다. 지적에 변명하는 대신 설명을 들으면 재작업을 줄인다는 이유도 맞는다."
+    },
+    "overall.cups.10.reversed": {
+      "status": "pass",
+      "read_action_sha256": "24203de400c2d52fd073521933eb7cfc03efc0ce80b5ffe918880b25be0d4bf4",
+      "source_ko_sha256": "70949d5b42f0c329818929bdad16c0aae976bc1946c2de92f60fbc8b654af93d",
+      "source_brief_sha256": "446eed767bec3edf67b2c214c8c6c8e14aabfefe627fd7b70b9d3d44c97de983",
+      "notes": "가까운 사람에게도 원하는 것을 물어야 하는 이유는 이번 생각이 평소와 다를 수 있기 때문이다. 조용함을 만족으로 단정하지 말라는 주의도 기대 차이를 설명한다."
+    },
+    "overall.cups.12.upright": {
+      "status": "pass",
+      "read_action_sha256": "dee5656f834a44d412748f9dcf46b44a84b06459f6e676f01f6c8956704ca632",
+      "source_ko_sha256": "291ca97bace8e5e519326888b0dd496dd65b78565932a3f83c78c7c1cd4e1acf",
+      "source_brief_sha256": "2af3dc796adecd53db2dc917816ab017ab16f4406ec325097da9b6b02e8b7b6a",
+      "notes": "필요한 도움을 말하는 방법으로 혼자 해결하기 어려운 부분부터 설명하도록 이어진다. 초대에 참여할 뜻을 알려야 상대도 약속을 정한다는 주의의 이유가 분명하다."
+    },
+    "overall.cups.13.reversed": {
+      "status": "pass",
+      "read_action_sha256": "ab985aee7570c12e3e2fd5f6b3efea51bae6523f719e14ffc99f9d58955c8603",
+      "source_ko_sha256": "1fd4dc1fd13c68cce4ebfb1b4c28ca59ceb2637c3e5be0148648395822260f43",
+      "source_brief_sha256": "6a75247f255c7c15d573c0a4b2cd6399a95868b7699acaa1d50bfb25573ff01f",
+      "notes": "자기 일을 마칠 시간을 확보하며 도울 범위를 알리는 한 행동이다. 부담스러운데 수락하는 행동을 피하고 어려움을 바로 말하는 방법이 이어진다."
+    },
+    "overall.cups.14.reversed": {
+      "status": "pass",
+      "read_action_sha256": "e4cbca070b48569a1911805d51fde978bbbea8d06869772a6e0801c9b3c284a8",
+      "source_ko_sha256": "e1a6c9c591623a587816ed36cfb2eb9fa8fb611857bcf4e4a06aa894433c16c7",
+      "source_brief_sha256": "7b6cd3c492391caffb4eaf6ec0d4d2745bc2545192a06e141676f75019c62418",
+      "notes": "기분 때문에 바꾼 약속의 내용을 다시 확인하고 감정과 이행 여부를 구별해 이야기한다. 주의는 본인도 화 때문에 이미 한 약속을 뒤집지 않는 한 행동이다."
+    },
+    "overall.pentacles.01.upright": {
+      "status": "pass",
+      "read_action_sha256": "f004104bab40475a10a5a68d454232e0e229b0647131d5210ff29f46096cab97",
+      "source_ko_sha256": "11fa7b4a19c126fc4242cf6f2556471192d0853c1af7d74d02ed636a0709969e",
+      "source_brief_sha256": "9d86502c3d33834e13de0441ce6e1d768649405ebcdf1ae727f4ee2122efcea3",
+      "notes": "do는 아직 필요한 물건과 장소를 확보할 수 있는지 알아본다. pause는 이미 갖춘 것을 더 좋은 조건 기다리다 쓸 때를 놓치는 주의다. 확보와 활용 시기로 나뉘어 단순 시작/미루지 말기 반복을 해소했다."
+    },
+    "overall.pentacles.04.upright": {
+      "status": "pass",
+      "read_action_sha256": "d593f344a5d89d4eafe4be385cb9afe0f9835c69c572478044bfe53049553d83",
+      "source_ko_sha256": "d21f2448df8d9d9e2b89a92274b2e5378e97872a15bbde37224e924f374824b7",
+      "source_brief_sha256": "145b26299dd1942d81615d0ef7ead38e838e29b84466e12dea8ad064e691dff1",
+      "notes": "새로 구하기 전에 같은 용도로 쓸 보유 물건을 확인한다는 행동의 대상이 분명하다. 도움 요청을 듣고 가능 여부를 정하는 주의의 순서가 자연스럽다."
+    },
+    "overall.pentacles.04.reversed": {
+      "status": "pass",
+      "read_action_sha256": "f448ed145a3e855ffb4519dec476b2ef6d1a4cbd2ce5b82ebac6040d23e63e2a",
+      "source_ko_sha256": "a6bfae29c27228855a2fccc604344e2cd83ac7e1a81fd0ca386f957ce8c2ba2e",
+      "source_brief_sha256": "9ad86420379628bf462f0352035c1509254a91e4e3542f080fb4f8fe4c715884",
+      "notes": "거절과 지연 이유를 묻고 조건 변경이 가능할 때 재시도 시점을 알아본다. 조건을 고수하며 재촉하면 동의를 얻기 어렵다는 주의도 이어진다."
+    },
+    "overall.pentacles.05.upright": {
+      "status": "pass",
+      "read_action_sha256": "d26824a4b7526eb073962ea9fc173861bfbfdb8144cdbb1c84bf562a881d9500",
+      "source_ko_sha256": "76192ea84ca4637d6c60ee0d4c52ad65507081750e0327d766e2cb7afb416bd0",
+      "source_brief_sha256": "75993f3ac7a9d0735791957c31b508e06943be3ff117ac403d77753a40aa161c",
+      "notes": "버거운 일의 어떤 부분을 도울지 말하는 행동이다. 도움 요청 상황에서 남과 비교하는 말만 하면 필요한 것이 전달되지 않는다는 구체 이유가 이어진다."
+    },
+    "overall.pentacles.05.reversed": {
+      "status": "pass",
+      "read_action_sha256": "a7c96aa883dbc54231f29230763aa1ed74a6e54697a3a9e1747a0a7cab5808ed",
+      "source_ko_sha256": "932e14df2c20644151142e802ccc544dc20dce4d01adcb379e477f1922782bb5",
+      "source_brief_sha256": "f06617eb08dea60b0ab147d2c10b22a95246eb7ef4258e98475317011767c8bb",
+      "notes": "수정된 pause는 맡긴 일을 도로 가져오면 혼자 할 일이 늘어 마무리 시간이 길어질 수 있다는 실제 결과를 밝힌다. 두 행동과 본문을 다시 읽어 추상 명사 결합 해소를 확인했다."
+    },
+    "overall.pentacles.06.upright": {
+      "status": "pass",
+      "read_action_sha256": "08afb13c2c82df5f9dd00f6ffaa7a2deb68286444054e86bf3786fbd3ca68e0c",
+      "source_ko_sha256": "7986e9a11c8f9ef85a294f4f022d7fdefaf5a47d5c59c507f70df9a4938cb359",
+      "source_brief_sha256": "5fb98bb54f0f783d6ccb141cd7567817a68bf61e75a17f6f29e59b87bbbb77a7",
+      "notes": "도움 덕분에 수월해진 점을 말하며 고마움을 표현하는 한 행동이다. 도움을 주기 전에 필요를 물어야 상대에게 맞는 도움을 줄 이유도 분명하다."
+    },
+    "overall.pentacles.06.reversed": {
+      "status": "pass",
+      "read_action_sha256": "a1992377ae8e313896c3bb8035c1e653f43fe3a2a37c606bfda047c81718d4e0",
+      "source_ko_sha256": "fc12cb692e74330bd0f071117c7851022f947ed00f91703003642feb6da20a8c",
+      "source_brief_sha256": "5b6593e00830ef6c06a27252eb49e0a48df24aad8a975dd0ac94aaf8508adefb",
+      "notes": "수정된 pause는 도움 준 사람에게 남과 받은 양을 비교하며 불만만 말하는 행동을 직접 명시했다. 두 행동과 본문을 다시 읽어 몫을 깎아내린다는 모호함 해소를 확인했다."
+    },
+    "overall.pentacles.07.upright": {
+      "status": "pass",
+      "read_action_sha256": "8a2a5d2c21034bd7cfb7e38166a97b52fe9d0461fd813e09a2362cc17129067c",
+      "source_ko_sha256": "26829b2ee7b4608444c745efd15ed92dafdcc4dda7518aa19bb26cd32f0610ca",
+      "source_brief_sha256": "4dc31a74c405986625f8f1bf1f08ba41d4bf4d7a416dc30215d6a1a69f027ed4",
+      "notes": "이어온 일의 진전과 남은 부분을 살펴 지속 여부를 판단하는 한 문장이다. 빨리 끝내려 필수 과정을 건너뛰지 말라는 주의도 같은 목적에 맞는다."
+    },
+    "overall.pentacles.07.reversed": {
+      "status": "pass",
+      "read_action_sha256": "331de1dc270c6e7b62f7f352c319dd4b29a9609598f5687fbb6946eb3dac5d77",
+      "source_ko_sha256": "edd1c448c89c6ee8112a69c26634dc6594506231413bcbebe3095b93043ddec3",
+      "source_brief_sha256": "dbff4ef9f88fd12667715b3505a49765b9bd0645aaf77d1da26e18ca57de0fe4",
+      "notes": "부탁의 종료 시점을 묻고 불명확하면 도울 범위를 제한하는 방법이 이어진다. 이미 들인 시간이 아까워 무기한 더 약속하는 행동을 피하는 주의가 읽힌다."
+    },
+    "overall.pentacles.08.upright": {
+      "status": "pass",
+      "read_action_sha256": "b718759d716b4283f98ac9220bebf5fef1336b5eec8acf1963b0006babf209f7",
+      "source_ko_sha256": "1ffb9bff68e972fc4071949fa7ecc3c5a682ec3ca210d8e57be1183d206d7685",
+      "source_brief_sha256": "d635dac7b8eaaff58cbc0b499393ad962521920d4918aefec63a82705a1a54a0",
+      "notes": "연습한 방법으로 할 수 있는 남은 일을 마치는 한 행동으로 솜씨 지시를 바꿨다. 반복 작업의 마무리를 소홀히 하면 아쉬움이 남을 이유도 이어진다."
+    },
+    "overall.pentacles.08.reversed": {
+      "status": "pass",
+      "read_action_sha256": "c85b586262e960984cf5eb7c70c307eb4d4f0d74812113347efb7752626903de",
+      "source_ko_sha256": "a9855c3b7b9e9b43bfc6dd4c58e41455b7e5aa7d0a80e34668045b963bb3755b",
+      "source_brief_sha256": "5f08561d6e96afc7601f801985b2b1e07c82a0d416a132215e3fdfcaada7c866",
+      "notes": "확인하지 않은 부분에서 누락을 발견하면 고치는 방법이 이어진다. 말로 덮으면 재작업과 신뢰 손실이 생길 수 있다는 구체 이유가 붙는다."
+    },
+    "overall.pentacles.09.reversed": {
+      "status": "pass",
+      "read_action_sha256": "e01d347c77dc4eff55d2e6b888a8a9e6783c3a602038af90cb6bcd0d426808f4",
+      "source_ko_sha256": "9cff7772be836af5647f6c78462bf32cb38d8ad24a224a25a81e1d406ae45a4c",
+      "source_brief_sha256": "3497c196edf6828e9ca2260290c2a4ea1d5992ff0ea69bb724e397eb7215bead",
+      "notes": "새로 이용할 곳 또는 참여할 일의 실제 준비를 살피는 행동으로 대상을 구분했다. 겉모습만 보고 타인에게 장담하기 전 실제 불편을 알아볼 주의도 분명하다."
+    },
+    "overall.pentacles.10.upright": {
+      "status": "pass",
+      "read_action_sha256": "5c8ad8039853e9c15760843724e35c9e9a284e2fff4acba818f9bfcd8f4acebe",
+      "source_ko_sha256": "9dca9f9cec2c42acee4b6cdfd6273f962e0c0999259c800c46c826ce7979ae93",
+      "source_brief_sha256": "14ea492e2160187128d040b11f8576338dacb0f48bc7fca1882e8bacca3a8cf5",
+      "notes": "기존 기록에서 답을 찾는 이유와 오래 아는 사람에게 도움받을 때 혼자 전부 다시 알아낼 필요가 없다는 주의가 각각 완결된다."
+    },
+    "overall.pentacles.10.reversed": {
+      "status": "pass",
+      "read_action_sha256": "721a2fe11b87064c5af0e7298c36c11c1f80dfb52ad8a6833b49a3e3a0f1c75e",
+      "source_ko_sha256": "5618e61efc002e07c7d8b67cbf4b9a1c8046cb7fc82def7533d79ace52354b27",
+      "source_brief_sha256": "4ba47d83c9d8048a2954d9b3834abbffff43531749e5dcd1a831110721936c75",
+      "notes": "새 방법을 작은 범위에서 시험하는 행동이다. 기다리는 일이 성공해야만 지킬 약속을 여러 개 만들면 결과가 달라질 때 못 지킬 수 있다는 관계가 명시됐다."
+    },
+    "overall.pentacles.11.upright": {
+      "status": "pass",
+      "read_action_sha256": "4d76e33738969764e347c74302ba932ab815c0e4a0f91b569c4aa3af4eac6890",
+      "source_ko_sha256": "f510d0d0b5115020fbbd85424e58d997262db2c0cbdf7b99e3ed90e2155adbbd",
+      "source_brief_sha256": "38b5ae8d545824cef4684c0a1dce07d3b00010516c6baada4c66b513f4c0d293",
+      "notes": "배운 방법으로 간단한 일부터 해보는 한 행동이다. 설명을 끝까지 들어야 아직 모르는 내용을 놓치지 않는 이유로 별개 질문 추가를 없앴다."
+    },
+    "overall.pentacles.11.reversed": {
+      "status": "pass",
+      "read_action_sha256": "3d5c712e7d3deaaedd5d196187b4f408e2be7b2d188ae1552fc6919d08e48eaf",
+      "source_ko_sha256": "24ec5a085caed49f4b1d09bda68da0c490307361ac8bd031a96f40ea9a010e19",
+      "source_brief_sha256": "6cfdaeb5221fed9ee1e42537066eac92695aa2059dc81e28141fca018a60ed03",
+      "notes": "안내에서 현재 처리하거나 답할 내용을 확인하는 한 행동이다. 새 일의 필요한 과정을 마치기 전에 재미없다고 접는 주의도 명료하다."
+    },
+    "overall.pentacles.12.upright": {
+      "status": "pass",
+      "read_action_sha256": "e568783e5c54d3b85b2fb237e533becb226e1093d6b98d0ecda1973438ed0239",
+      "source_ko_sha256": "fe9aa220a6d9223777ee6a51899a070e1949111a417b7beb811ea9381f2c2737",
+      "source_brief_sha256": "31c4aba76258eea523c6107963987221d1f1beb1e5d1587c885d5c09750c1e8b",
+      "notes": "하던 순서대로 마치며 약속한 것의 누락을 확인한다. 남이 빠르다고 익숙한 방법까지 바꿀 필요가 없다는 주의의 범위가 이어진다."
+    },
+    "overall.pentacles.12.reversed": {
+      "status": "pass",
+      "read_action_sha256": "5444f0adb8aaa6afdeff44754c35772339afa1bef5d29e093e5173a8499fe916",
+      "source_ko_sha256": "20d0de78f522dc201588c90cf955e5bbad75a3b8b6419f78bf1d0e76b54987b2",
+      "source_brief_sha256": "1631baba7484c987386b59064e5baac9152d2f8702300a77dece58061530d3a9",
+      "notes": "오래 미룬 일의 진행 상태를 확인하면 누락을 찾을 수 있다는 이유다. 더 미루면 상태 확인부터 다시 시간이 든다는 주의가 구체적으로 읽힌다."
+    },
+    "overall.pentacles.13.upright": {
+      "status": "pass",
+      "read_action_sha256": "e8e0d3bfe1fef826e4d0d7591c1dc2f284943bed16ee79a3252c127276471813",
+      "source_ko_sha256": "3c4ff7f44e0027a54d45d989da8ca8b5975438403b4af274c9a672620706f40a",
+      "source_brief_sha256": "f5a3e4931eaa88ef6677073c0e527e607deadcca9f9885e37b7e50a0edb0e931",
+      "notes": "자기가 쓸 만큼 두고 나눌 물건을 살피는 방법이 이어진다. 자기 일까지 미루지 않도록 가능한 만큼 돕는 주의의 범위도 분명하다."
+    },
+    "overall.pentacles.13.reversed": {
+      "status": "pass",
+      "read_action_sha256": "9215e388d52dcdebb258ae664fbb843f02359bcd48a3995bfe991115610c23fc",
+      "source_ko_sha256": "8b70c6ca5f280b4c87d1eeb972895aac4647fb35f6f857bc4be16efd8751a34a",
+      "source_brief_sha256": "5b7ddc119cea7fd118fcfab8d10a671744d511848ba91fde91e939028e469a48",
+      "notes": "결정을 앞둔 상황을 밝혀 걱정 조건을 물은 답으로 결정하라는 대상 누락을 고쳤다. 상대의 숨은 의도만 캐물으면 도움 내용을 못 나눌 이유도 이어진다."
+    },
+    "overall.pentacles.14.upright": {
+      "status": "pass",
+      "read_action_sha256": "901305ea07c0201e13865427b5497812b8f36e2f9fbf3bb697c6b84466c70590",
+      "source_ko_sha256": "12a305dff2f0d6b17e4f9ccc147b5804ac353db217260c0aa4f9a2244dbe6a54",
+      "source_brief_sha256": "808811e1a4457fb7d1bab69391c41e68c4ac3b7fe1363abf972e5e34ad49977f",
+      "notes": "과거 효과를 본 방법 중 현재 쓸 것을 고르는 한 행동으로 갑작스러운 준비 지시를 없앴다. 직접 경험하지 않은 효과를 확인한 듯 장담하는 주의도 한 문장으로 완결된다."
+    },
+    "overall.pentacles.14.reversed": {
+      "status": "pass",
+      "read_action_sha256": "b61f6dbfd26db0f77897bf7af9d34162fcc75c918fa34c202dcc7441135195f8",
+      "source_ko_sha256": "7b7e93ba6d41a323cb7d6310d5ff43f278f51c358512896db3f6c032c0317e8e",
+      "source_brief_sha256": "baef0be9c2b1483135c09d8f8240965a6cdd6481c62e679fb41cf45853b4c08a",
+      "notes": "만족할 조건에서 요구를 더하지 않고 마무리하는 한 행동이다. 감당 못할 일을 맡기 전 끝낼 시간과 힘을 살피는 주의도 같은 대상을 설명한다."
+    }
+  }
+}

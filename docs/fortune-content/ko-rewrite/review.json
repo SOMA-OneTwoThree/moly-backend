@@ -1884,939 +1884,1407 @@
     "overall": {
       "overall.major.chariot.upright": {
         "status": "pass",
-        "read_bundle_sha256": "e75b5d9cfcfcb6cd2235227706404beac1f7255875c7b7f1b86b1500987e41a1",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "88744bb2c672b2ef107cbf5d894b9713fdbe2330ec262c804afae1b35825f4e3",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "e75b5d9cfcfcb6cd2235227706404beac1f7255875c7b7f1b86b1500987e41a1",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.chariot.upright",
+        "assessment": "전에 막힌 부분부터 살펴보라는 재시도의 출발 방법이다 / 끝낼 수 있다는 조건과 피할 행동이 한 문장으로 끝난다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.chariot.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "3efe99e84ad4eb0a1da093216e04713ad622d87641228f96ae57d3dfd1441567",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "552e01035ba802582751d66441ac98888503892a2dc692ac59f437b6cf8c24f0",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3efe99e84ad4eb0a1da093216e04713ad622d87641228f96ae57d3dfd1441567",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.chariot.reversed",
+        "assessment": "무작정 밀어붙이기 전에 확인하라는 순서를 한 문장에 담았다 / 일을 겹쳐 맡으면 약속 시간도 놓칠 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.sun.upright": {
         "status": "pass",
-        "read_bundle_sha256": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "f7b369da038d89425249f761860e89db33f20095b7b241552106e79532093ab9",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "37213ff45066c853da9ce3f406be3cc5d387ac68195318cbeacd9f29c52448f1",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.sun.upright",
+        "assessment": "성과를 얻은 조건과 함께 기뻐할 상대 및 전달 행동을 한 문장에 밝혔다 / 받고 싶은 제안에는 의사를 분명히 전하라는 대안 행동이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.sun.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "c6c36d59fa57075c599f694cd48c72bd52b2b27163458edfbdf8d81ce850b057",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "3eb31ab9f8bea1aa926661e705f682c8b0fea43ff9764e0a628c51e7c68caf33",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "c6c36d59fa57075c599f694cd48c72bd52b2b27163458edfbdf8d81ce850b057",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.sun.reversed",
+        "assessment": "아쉬움 때문에 이미 얻은 성과까지 지워버릴 필요는 없다는 이유다 / 늦은 소식과 실패는 다르다는 판단 근거로 기다림을 설명한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.moon.upright": {
         "status": "pass",
-        "read_bundle_sha256": "3ff47d0cd559ee22bdf5e4e78952e345f54451552dc63701f5f0fe5d65b5fb14",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e2fe471f38709eea9785c2ab9314d95d34ae6f36195c9ca9c077411e83c511e2",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3ff47d0cd559ee22bdf5e4e78952e345f54451552dc63701f5f0fe5d65b5fb14",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.moon.upright",
+        "assessment": "결정을 앞둔 상황에서 확인할 대상과 행동이 한 문장으로 명료하다 / 실제보다 나쁘게 해석했을 수 있으므로 즉시 따지지 말라는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.moon.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "d8c3be2a709146f56c41c7e829af96f3961d144f745c21c0a5d174586d484924",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "3242a0e623829c2e4830a086324f753c886c0fd35192cfa2c2b029e75c7e5386",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d8c3be2a709146f56c41c7e829af96f3961d144f745c21c0a5d174586d484924",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.moon.reversed",
+        "assessment": "혼란이 풀린 조건과 새 정보로 계획을 고치는 행동이 한 문장에 이어진다 / 확인된 것과 기다릴 답을 구별하는 방법으로 성급한 확대 판단을 막는다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.tower.upright": {
         "status": "pass",
-        "read_bundle_sha256": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "8da6ceb0d607d68a089dd86e2fb930cddfc609623243698336959336aeb3229a",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "e51bd78043e5a23e2411d3bdf884215686d7b13c60efdff5484fca8594948279",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.tower.upright",
+        "assessment": "듣기 전에 판단하지 않는다는 상황과 순서가 한 문장으로 완결된다 / 잠깐 멈추면 후회할 말을 줄일 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.tower.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "0b6f78468b6f2afec1ff11db0fd880bc8ddafc392e30db8816633eff93846236",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "fce2b545e956181ef0e861e35f86f08fce5fefb1c0134eb458a604cb1589948c",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "0b6f78468b6f2afec1ff11db0fd880bc8ddafc392e30db8816633eff93846236",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.tower.reversed",
+        "assessment": "일찍 인정하면 뒤늦은 수습 부담이 줄 수 있다는 이유다 / 바로잡을 여지가 남았을 때 살피라는 대응 시점을 덧붙였다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.temperance.upright": {
         "status": "pass",
-        "read_bundle_sha256": "2fa991d273c43cac08be42f4d00711f8d2adb962859c2a6619ce7b1d31056b1c",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "779760a7aefa9da6d74beca628c4702e199f185ff0200707077163273ff5d74c",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "2fa991d273c43cac08be42f4d00711f8d2adb962859c2a6619ce7b1d31056b1c",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.temperance.upright",
+        "assessment": "도움이 있었다는 조건과 구체적으로 감사할 내용을 한 문장으로 밝혔다 / 진행이 개선 중이라는 조건을 명시한 단일 주의다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.temperance.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "1e13fa287690a534c41c5205699ed330c361aaf06c617ffd7b38b2c3fe4f4e3b",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "01c7137b3757b5185f1d7fd5bc8d307524729229a99e3e473566849ef8227035",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "1e13fa287690a534c41c5205699ed330c361aaf06c617ffd7b38b2c3fe4f4e3b",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.temperance.reversed",
+        "assessment": "한꺼번에 만회하려 계획 전부를 바꿀 필요 없다는 범위를 정한다 / 평소에도 화낼 말이었는지 생각하고 답하는 자제 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.fool.upright": {
         "status": "pass",
-        "read_bundle_sha256": "836ba1ed360787222bcf71767b601631c5244cee18a251f2f7e53cb06dea5c23",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "ba9d49577c1bde56c99690ca4e63f0d19ea03e843561760686bca43dd098d09e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "836ba1ed360787222bcf71767b601631c5244cee18a251f2f7e53cb06dea5c23",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.fool.upright",
+        "assessment": "경험하면 자신에게 맞는지 판단할 수 있다는 체험 목적이다 / 하루라도 해본 뒤 결정하라는 장기 약속의 순서를 제시한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.fool.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "dcacad27461b8cb982ddfb9f5e3c283c8061c268e4dde2f59dd43379d8692c9f",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e51c946c62b356b20c07a448b6e262d54fa3056d2c690a8508b1f1dc5fa99b9d",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "dcacad27461b8cb982ddfb9f5e3c283c8061c268e4dde2f59dd43379d8692c9f",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.fool.reversed",
+        "assessment": "준비 없이 가면 헛걸음할 수 있다는 직접적인 이유다 / 소요 시간이 늘면 다음 약속도 늦는다는 결과를 설명한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.magician.upright": {
         "status": "pass",
-        "read_bundle_sha256": "fb9bed58631ef4cbc262a2b0a29cde785bc0fa36c4b458ae12edaab565bc4690",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "cccb49105fb0a8fb618dbe26345ffdca3aa36378c3d114a77943f860b50cedfd",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fb9bed58631ef4cbc262a2b0a29cde785bc0fa36c4b458ae12edaab565bc4690",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.magician.upright",
+        "assessment": "미해결 문제와 알고 있는 방법의 실제 적용을 한 문장으로 연결했다 / 현재 능력으로 시작 가능한지 먼저 살피라는 실행 판단 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.magician.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "4b9feff7d604085af0ec712d3a923cd3500ca41f704bcd4625683443a5e04beb",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "10eab940a6e921c490a33e9abe138b74d1ff098ee7d83f319a7de57b2d4560cb",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "4b9feff7d604085af0ec712d3a923cd3500ca41f704bcd4625683443a5e04beb",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.magician.reversed",
+        "assessment": "준비뿐 아니라 설명에서 누락된 조건도 확인하라는 검토 범위다 / 실제 해줄 수 있는 범위만 말하라는 약속의 기준이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.high_priestess.upright": {
         "status": "pass",
-        "read_bundle_sha256": "ecf49e1288bf863e869e40cfea1221aa6b930b59eb42eb21738c4217a50487c6",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "b7e671d2b96b72d2ffafd6eb17dbb7c5a71b69f9aad17f1a1d05bdefcf621deb",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ecf49e1288bf863e869e40cfea1221aa6b930b59eb42eb21738c4217a50487c6",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.high_priestess.upright",
+        "assessment": "이해가 부족한 곳에 해결 단서가 있을 수 있다는 질문 이유다 / 아직 중요한 이야기가 남아 있을 수 있다는 보류 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.high_priestess.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "fad5c422f19332cb31d8a2ce4b66cc6bcd425abefd46fcd8e8d1d72af6c4dcef",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "10cd65e727dee8d9dfb4347b55870c1cb8522812268402d5526b164a847e1765",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fad5c422f19332cb31d8a2ce4b66cc6bcd425abefd46fcd8e8d1d72af6c4dcef",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.high_priestess.reversed",
+        "assessment": "대충 추측하면 필요한 도움을 못 줄 수 있다는 이유다 / 모르는 부분을 명시하면 오해를 줄인다는 전달 방법과 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.empress.upright": {
         "status": "pass",
-        "read_bundle_sha256": "7301eaa857239e04f8be90cf14cbcec8fd1e3e130ba638d30b429fe016210fd0",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "04f1ebecb4aa151f27218d98c6295bf5a0bc0b3219ad9c398e3391e46aad4040",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7301eaa857239e04f8be90cf14cbcec8fd1e3e130ba638d30b429fe016210fd0",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.empress.upright",
+        "assessment": "결과를 알리면서 감사도 전하라는 같은 대화의 내용이다 / 상대도 시간과 수고를 들인다는 고려 이유를 덧붙였다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.empress.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "3ddc6aee0da7e1265df5efa60555476f1d91539947c78c9b7dcc7398c3b6f89f",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "a37298da9616bda4d3de878fbe62a1d32babc27a2f1df05e893f63f2e74697b5",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3ddc6aee0da7e1265df5efa60555476f1d91539947c78c9b7dcc7398c3b6f89f",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.empress.reversed",
+        "assessment": "남은 상대 일은 상대가 맡게 하라는 자기 일을 마칠 방법이다 / 더 도와도 원한 반응이 오지 않을 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.emperor.upright": {
         "status": "pass",
-        "read_bundle_sha256": "0a9de448ef4ad59add53f7580fae6ab18c9f4d7d2d1c6f60c3e541323e6fce0e",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "6e200b529a985bea706c20ae7529a01ef83da7fa1f2c2e1c21687d688e4e2713",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "0a9de448ef4ad59add53f7580fae6ab18c9f4d7d2d1c6f60c3e541323e6fce0e",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.emperor.upright",
+        "assessment": "상의할 때 혼자 결정하기 어려운 지점을 설명하는 방법이다 / 이미 지원이 있는 조건과 피할 행동이 한 문장이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.emperor.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "ff475594f4de42f462776b1f27c3b4ac09e9a4fc6f39f494236abef9c313787d",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "36544988f97e45d2645979e56955e8651802c10ce475d811a16f5d07733a1d2b",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ff475594f4de42f462776b1f27c3b4ac09e9a4fc6f39f494236abef9c313787d",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.emperor.reversed",
+        "assessment": "원래 약속과 비교해 변경 필요성을 살피는 후속 판단이다 / 함께할 사람 말을 들어야 협조도 얻기 쉽다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.hierophant.upright": {
         "status": "pass",
-        "read_bundle_sha256": "410b40d133cc6095392760d93d0f6b9685e23cbe8615eb550ff4f6a156954aa7",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "bfa08fd4d2a2435619b8ae5e6c88a5cbd270fd5ad953cde1c5669fc039e900df",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "410b40d133cc6095392760d93d0f6b9685e23cbe8615eb550ff4f6a156954aa7",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.hierophant.upright",
+        "assessment": "경험자는 놓치기 쉬운 점을 알려줄 수 있다는 질문 이유다 / 검증된 순서가 재작업을 줄인다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.hierophant.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "1b38e6fd69aa96b07883de5501dcee8b43d158d736b62a498ed78d7dcd0ded78",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "dc336373e3e1f2bd7fca55e8e609dba7c1f3e8798e10d8a24d57d87dc21e1648",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "1b38e6fd69aa96b07883de5501dcee8b43d158d736b62a498ed78d7dcd0ded78",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.hierophant.reversed",
+        "assessment": "그대로 따르는 대신 다른 방법을 함께 의논하는 대안이다 / 현재 상황과 맞는지 확인하라는 재검토 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.lovers.upright": {
         "status": "pass",
-        "read_bundle_sha256": "442c8c6afd01ab56314e0bdc7a2c7253de8af0b11f55227b241455ba14e7752e",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0a78c6f839e9099269d90792dcd6aab33a8b0e75a2b96f9c50dbcb5fc1097733",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "442c8c6afd01ab56314e0bdc7a2c7253de8af0b11f55227b241455ba14e7752e",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.lovers.upright",
+        "assessment": "상대에게 맞추기 전에 자기 조건을 밝히는 순서가 한 문장이다 / 자신이 납득하는지 살펴 후회를 줄이라는 판단 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.lovers.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "8a21eab1add8eed68277a1127608c91a2db95cdbaed98ff9794dc9eda53a143f",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0e27ff5038a73bd210032498ade9481003e78cc370320f7e06678763bcdb2ccf",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "8a21eab1add8eed68277a1127608c91a2db95cdbaed98ff9794dc9eda53a143f",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.lovers.reversed",
+        "assessment": "같은 약속도 이해가 다를 수 있다는 확인 이유다 / 불편한 이야기를 미루면 다툼이 커질 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.strength.upright": {
         "status": "pass",
-        "read_bundle_sha256": "fed488f02d70bbcc163066ec090b8a59df0dabebe7d5163913c917da95934fdb",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4b5fd78087fb8856a51986282d7f619c31c8dd5d2308f4471ffe03eafd6500ed",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fed488f02d70bbcc163066ec090b8a59df0dabebe7d5163913c917da95934fdb",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.strength.upright",
+        "assessment": "어려움과 가시적 결과 지연을 이유로 중단하지 않는 한 문장이다 / 필요한 이유를 차분히 설명하라는 대안 대응이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.strength.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "b838919ab8e79b2461dfedf0dc54a6aa6815794d3ddd2d2e726f63c949027c10",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "c218fb8cb37f922070a4a68747c29fb879f64e39818e09eb9f3e5254594becd2",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "b838919ab8e79b2461dfedf0dc54a6aa6815794d3ddd2d2e726f63c949027c10",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.strength.reversed",
+        "assessment": "어려운 지점을 설명하고 그 부분부터 함께 해결하는 방법이다 / 감정이 가라앉은 후에도 그만둘 생각인지 확인하는 판단 시점이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.hermit.upright": {
         "status": "pass",
-        "read_bundle_sha256": "228f02ce19349d29b568f54a5dd0908c2588910e9b3d361df4d892430bab7513",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "6b6c3e37aaa5615f7c2a0496c0fa5733b95cbdd41027260cab0cd3ab082d0696",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "228f02ce19349d29b568f54a5dd0908c2588910e9b3d361df4d892430bab7513",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.hermit.upright",
+        "assessment": "여럿 앞보다 질문을 차분히 할 수 있다는 자리 선택 이유다 / 자기 문제에 필요한 내용을 고르라는 조언 활용 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.hermit.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "81c6e8cd4d245fc97b187bf6cb3aad4b428f6c08076d408b3cd1269c234021c8",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "87876c47d6ef727548c5094f65d35582f8558a854f14f7053f13202a1f34fbfb",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "81c6e8cd4d245fc97b187bf6cb3aad4b428f6c08076d408b3cd1269c234021c8",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.hermit.reversed",
+        "assessment": "시도한 것과 남은 것을 알리는 설명 방법이다 / 사정을 먼저 말하지 않았다면 상대가 모를 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.wheel_of_fortune.upright": {
         "status": "pass",
-        "read_bundle_sha256": "2ab90e8ac883581d55f39c89e3c51f0eb57be0c8ef96844f8768246485e97f20",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "c134936f31ca7a6c68f9408ac32d8737c651148ccd10e5476dc1ad1b9d05ea58",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "2ab90e8ac883581d55f39c89e3c51f0eb57be0c8ef96844f8768246485e97f20",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.wheel_of_fortune.upright",
+        "assessment": "시기를 놓치지 않도록 답하라는 목적과 행동이 한 문장이다 / 지난번과 달라진 사정을 듣고 결정하라는 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.wheel_of_fortune.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "34a16ed62789aefe7169cf8978721ee75bd689c6ff26b835d9a6d8fb62892631",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0c36b90cceb8942dbf8a250dd947aaed212abcf320be09fcf42adb11b5774f40",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "34a16ed62789aefe7169cf8978721ee75bd689c6ff26b835d9a6d8fb62892631",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.wheel_of_fortune.reversed",
+        "assessment": "기다리는 일의 종료에 연결된 계획이라는 대상이 한 문장에 명시된다 / 자기 잘못 없이도 외부 사정으로 더 지연될 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.justice.upright": {
         "status": "pass",
-        "read_bundle_sha256": "6dcc4ad914a565092bcfd6f1e37c454eeb4281c75299ccd2cce4798e19c68246",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e952d20a2ec361783f3268247fa3cba9640198efe30757f34886495d95ae4e8b",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "6dcc4ad914a565092bcfd6f1e37c454eeb4281c75299ccd2cce4798e19c68246",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.justice.upright",
+        "assessment": "확신의 크기보다 실제 약속이 중요하다는 확인 기준이다 / 자신도 사실을 밝혀야 상대에게 같은 요구를 할 수 있다는 공정성 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.justice.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "29cc22545de992e68dafeed376dfbbe227fe25f73ce743cd11bb05777c8b2e80",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "7221380154b96d90c03309ad3519f867b1c5a35143847ea6b435ff1be43c4dcd",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "29cc22545de992e68dafeed376dfbbe227fe25f73ce743cd11bb05777c8b2e80",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.justice.reversed",
+        "assessment": "오해 상황과 바로잡을 대상을 한 문장으로 밝혔다 / 사실인 부분마저 의심받을 수 있다는 위험이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.hanged_man.upright": {
         "status": "pass",
-        "read_bundle_sha256": "d04da9fdec307daea687082554f2ae66a21fd746d08f312943729751bcb4e8d5",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "8d23add289548488ffe4e3342b069391537bf929fd19200cc7b120a39778d128",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d04da9fdec307daea687082554f2ae66a21fd746d08f312943729751bcb4e8d5",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.hanged_man.upright",
+        "assessment": "몰랐던 사정을 알면 대안을 생각할 수 있다는 이유다 / 시간을 더 주면 나은 답을 들을 수 있다는 기다림 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.hanged_man.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "1a1fa4a43e4d1fe3000fb9ce3bb81bd1deeae6fea5ea3739bef0c685dd740c73",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "001401e2a3037a8076420338db34ba2ff37eecf8aa414f3d76e54ddfb76d1d4e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "1a1fa4a43e4d1fe3000fb9ce3bb81bd1deeae6fea5ea3739bef0c685dd740c73",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.hanged_man.reversed",
+        "assessment": "계속 기다림 대신 기한 확인이라는 한 문장 행동이다 / 같은 부담이 반복될 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.death.upright": {
         "status": "pass",
-        "read_bundle_sha256": "acf32b24bf3e9d64d2ccd60e0575b0df7280a331fba38ea801bf0dcb21a90eed",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4c29205245a12e3f6bfad6b41a1d8980fc431a5065b116558327042bea8d5f50",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "acf32b24bf3e9d64d2ccd60e0575b0df7280a331fba38ea801bf0dcb21a90eed",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.death.upright",
+        "assessment": "완료된 일이라는 조건 아래 잔여 마무리를 한 문장으로 밝혔다 / 노력이 길었어도 이미 끝났다는 조건과 경계를 한 문장으로 정했다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.death.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "b75509650404e81f4652f06647102cad65a5b121b7d91da5df2c2cd8d60b863c",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "d1b1b906fc48030058eb05302b878b7bb3d2116a64b0572ca58773e97313abdf",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "b75509650404e81f4652f06647102cad65a5b121b7d91da5df2c2cd8d60b863c",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.death.reversed",
+        "assessment": "나중에 할 수도 있다는 여지를 없애는 의사 표현 방법이다 / 반복 문제와 익숙함이라는 동기를 밝힌 한 문장 경계다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.devil.upright": {
         "status": "pass",
-        "read_bundle_sha256": "d5878f9c24c38628ed784e987d21f03d032ae2fce0346122f16c74e83dd73f7d",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "299ceba56b4f605e6ed6cb45ad38bae51704a62ee21c5692b024f8bbcb2b403d",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d5878f9c24c38628ed784e987d21f03d032ae2fce0346122f16c74e83dd73f7d",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.devil.upright",
+        "assessment": "이익에 비해 요구가 클 수 있어 확인한다 / 지금 거절의 불편과 뒤에 남을 부담을 비교한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.devil.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "ea3ecb8038060bd93a0ef488a55054c83daf221620f68d996c78544504baf94d",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "12d818ef10b4fadb02f628c5c6a640c11225b1f5553b3604d09c5b2a8667d397",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ea3ecb8038060bd93a0ef488a55054c83daf221620f68d996c78544504baf94d",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.devil.reversed",
+        "assessment": "조건과 전달 방법을 한 문장에 담았다 / 일회 도움으로 생각해도 반복 부담으로 이어질 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.star.upright": {
         "status": "pass",
-        "read_bundle_sha256": "c18aa89aae75794162a16890f6df965a6fe7c3108a5bd445259b8830c3b8a9f7",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "1bb988c7f63ae6daf2944baad3e9660162eb5455950b0c72a11e2bc2cf343950",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "c18aa89aae75794162a16890f6df965a6fe7c3108a5bd445259b8830c3b8a9f7",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.star.upright",
+        "assessment": "즉시 큰 성과까지 요구하지 않는 범위를 정한다 / 어려움을 말해야 도울 사람이 무엇을 할지 안다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.star.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "78cf1070eea2546506724bff0cf5ce9bcb6bfb53778afd1168221b080d61e32c",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "b6061c7f0c1de2ba222416d150c37454858f094d7de8d3345e9c1938c7479067",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "78cf1070eea2546506724bff0cf5ce9bcb6bfb53778afd1168221b080d61e32c",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.star.reversed",
+        "assessment": "미결정인지 실제 문제가 생긴 것인지 확인 대상을 명시한다 / 끊은 대화를 다시 시작하기 어려울 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.judgement.upright": {
         "status": "pass",
-        "read_bundle_sha256": "07a51818cd6f3a32e70549498a5393127255e739d9bf25fddcd10ef7787880d6",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "66506c589fc81539027064ea9552bbcc3b7b6629ce75e855321402ffc91ec7e6",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "07a51818cd6f3a32e70549498a5393127255e739d9bf25fddcd10ef7787880d6",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.judgement.upright",
+        "assessment": "같은 실수 방지라는 목적까지 한 문장으로 완결된다 / 답의 대상과 결정 완료 조건이 있어 독립적으로 이해된다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.judgement.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "9217d0986be10ba550ef31dffe544a3ebbb641d3702767e4b57dd9eb5b990958",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "1b4bf50ef3d6d586b045744f902a4f0bc61592580efbcb029f72a9e91d76d126",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "9217d0986be10ba550ef31dffe544a3ebbb641d3702767e4b57dd9eb5b990958",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.judgement.reversed",
+        "assessment": "마음만 기다리다 기한을 넘기지 않기 위해서다 / 상충하는 평가를 다 따르려다 가능한 기회를 놓친다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.world.upright": {
         "status": "pass",
-        "read_bundle_sha256": "20f0faed8eb38775b163d1a2f2ca0b26e86e80bb1817422f42632c560c96ea81",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "ab6d6e2cbd4866cc05aa7d62c3573aacd30dff7881ea401b1325a5c3b5dd5944",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "20f0faed8eb38775b163d1a2f2ca0b26e86e80bb1817422f42632c560c96ea81",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.world.upright",
+        "assessment": "종료 조건과 감사 대상을 한 문장에 명시한다 / 성과를 기뻐할 시간도 확보하라는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.major.world.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "4e566bc32d6fc88e9597aa6e6b3e0297adba38207b5d60b67bd8bf15b10d9704",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "454285f7783299d370a01089efb01e83b8e92e98be357372d2bc87c79e6accb3",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "4e566bc32d6fc88e9597aa6e6b3e0297adba38207b5d60b67bd8bf15b10d9704",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.major.world.reversed",
+        "assessment": "남은 양이 작아도 미루면 계속 신경 쓰인다 / 남은 부분과 완료한 부분을 나눠 판단하는 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.01.upright": {
         "status": "pass",
-        "read_bundle_sha256": "694ea7e9ef187957d35e7e37e55178724d7e5c733ca143fd1b1b7f3d7922d9fa",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "d89953b91963b8b9b492254a3aa260fa1b848bbbc12604dcd232d274258213a8",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "694ea7e9ef187957d35e7e37e55178724d7e5c733ca143fd1b1b7f3d7922d9fa",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.01.upright",
+        "assessment": "초대에 대한 감사를 같은 답변에 덧붙인다 / 감사를 표현하면 후속 대화가 편해질 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.01.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "ee8d1c6f10e4a3a5966126e9238a04fd63580cc4a4fa2fdfa344db8d2633205a",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e75f9254c2f9da1781a314e887dcb90f1d95acc11892048ab0b3031c43124e94",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ee8d1c6f10e4a3a5966126e9238a04fd63580cc4a4fa2fdfa344db8d2633205a",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.01.reversed",
+        "assessment": "상대 기분 때문에 즐거운 척 수락할 의무는 없다는 설명이다 / 짧고 무뚝뚝한 답만으로 속마음을 알 수 없어서다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.02.upright": {
         "status": "pass",
-        "read_bundle_sha256": "c85252e862a2baf3a5d13cc8a8487d5c117863fd2e969e0f80ae518f7c7e067a",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "365f700f488dd07a13255f67609174539b9b9329ba83bf43e3588b3e6e110bae",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "c85252e862a2baf3a5d13cc8a8487d5c117863fd2e969e0f80ae518f7c7e067a",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.02.upright",
+        "assessment": "상대에게 필요한 일을 물어보는 실행 방법이다 / 필요를 말로 전달하라는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.02.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "7cb7ec2625806aeb7adaa807e5081a80cc7fa78f35bd2e7f8bba1bbbd68fc377",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "f2a1fa2603a4ac3f65456505cb5e9f5a143804cc86507581c94ad80177d22849",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7cb7ec2625806aeb7adaa807e5081a80cc7fa78f35bd2e7f8bba1bbbd68fc377",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.02.reversed",
+        "assessment": "원하는 일과 방식을 구체화한다 / 비꼼은 원하는 내용의 전달을 어렵게 한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.03.upright": {
         "status": "pass",
-        "read_bundle_sha256": "be726ab12eab0cbc03aec128e215c9006d35eca601a3fdd9fcdf17697d618485",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "3ed72ee4a6b6c0fddc6271cf89d14d53774382fb586e8a6b689391dfc8c97ec0",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "be726ab12eab0cbc03aec128e215c9006d35eca601a3fdd9fcdf17697d618485",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.03.upright",
+        "assessment": "축하 대상이 남이며 연락 내용까지 한 문장에 명시된다 / 상황과 피할 행동이 한 문장에 완결된다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.03.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "9afd09c7164b83c1c439e56eaef3575a54d1ca816090106c28a065a7143570ca",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "ab44a0bf2627c3ee6b23e845f4ea1bc786766667304a52a6e97b5ed6beda5762",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "9afd09c7164b83c1c439e56eaef3575a54d1ca816090106c28a065a7143570ca",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.03.reversed",
+        "assessment": "타인의 기분을 맞추려 끝까지 남을 의무는 없다는 이유다 / 가벼운 농담이 뒷말로 남을 위험 때문이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.04.upright": {
         "status": "pass",
-        "read_bundle_sha256": "7aedbba033dcb993f5d13b2f92858ab688deec821dc70b6a93964645c6c556af",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "8fce16dcd270ef66ae05456033213ec31f2ae43d823a4dce0e9f924836555c25",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7aedbba033dcb993f5d13b2f92858ab688deec821dc70b6a93964645c6c556af",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.04.upright",
+        "assessment": "첫인상만으로 넘기면 나중에 아쉬울 수 있어서다 / 기다림과 일괄 거절을 연결하지 말라는 한 문장이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.04.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "65867eef2bf3a022219e73c2be37fb3f54a58b25c612c80297ce49efefa06d04",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "feddfdeae0d41a8c4ea66befb5bb55f6c56a2fbe0dd04567602d287d62b53580",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "65867eef2bf3a022219e73c2be37fb3f54a58b25c612c80297ce49efefa06d04",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.04.reversed",
+        "assessment": "새 방법이나 선택지를 찾는 확인 범위를 제시한다 / 현재 사정에는 달리 맞을 수 있어서다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.05.upright": {
         "status": "pass",
-        "read_bundle_sha256": "4022c678fdfba3c946e7a180e6479a91478bb28224a08c70abe3860e96e26d95",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "551a04040f694152d4ce637d4dcc87a503cc7334e1537b687c8aa752e23a735e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "4022c678fdfba3c946e7a180e6479a91478bb28224a08c70abe3860e96e26d95",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.05.upright",
+        "assessment": "실망에만 집중하면 아직 가능한 도움을 놓친다 / 차갑게 대하면 받을 도움도 끊길 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.05.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "c90142394fc2822d91148dee63ea6367860e73ef8f3dea3affebf3e73f446b6b",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "9720053799006513aabac299a6c7a42e0cedd96c746035ff4f2bf3a72fef0684",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "c90142394fc2822d91148dee63ea6367860e73ef8f3dea3affebf3e73f446b6b",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.05.reversed",
+        "assessment": "도움으로 재개할 지점을 함께 찾는 후속 방법이다 / 바로잡을 방안을 논의할 기회를 잃을 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.06.upright": {
         "status": "pass",
-        "read_bundle_sha256": "7ac5f856b7616c1a83d1093eb6dd27e3e3458747ada3630e46cebc71856f4fd1",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "1a4011e06f044499d0bb1de28d1d1cdf295c9ab1a69b759455e3fbe2d39c3253",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7ac5f856b7616c1a83d1093eb6dd27e3e3458747ada3630e46cebc71856f4fd1",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.06.upright",
+        "assessment": "서로 무엇을 하며 지냈는지 대화 내용을 구체화한다 / 근황 교류 후 필요한 말을 하면 더 편하다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.06.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "abfa83fe2ad1a7fac6ab5b6014dd967872277aedc5ffe702b7ac93c888a847bd",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "015e42d0f7537745a5836cdbc2d8af994ccbc826de59e8cfd2fb67cae8e226ae",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "abfa83fe2ad1a7fac6ab5b6014dd967872277aedc5ffe702b7ac93c888a847bd",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.06.reversed",
+        "assessment": "지난번 어려움의 변화 여부를 확인 대상으로 제시한다 / 현재 사정이 다를 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.07.upright": {
         "status": "pass",
-        "read_bundle_sha256": "5a87a3af74ec092cf84f74917c0566db0fa29f8cc2315856f666f3f390e09f31",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "dc24a47bf50fa99a4d72e3c0619cd4c26a85bea05dd061ce6af5f2c59673ba3e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "5a87a3af74ec092cf84f74917c0566db0fa29f8cc2315856f666f3f390e09f31",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.07.upright",
+        "assessment": "확정과 미확정 조건을 나누는 비교 방법이다 / 겉모습과 실제 얻을 몫이 다를 수 있어서다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.07.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "56db881cc1654be698cd522d4ff1feb61e0c34ff744ea433ead8fb05ad943208",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "b7fa23654e35e0afe58ba3a33f67385f573f7fcaad2fc4f58ff917740d8ab5fd",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "56db881cc1654be698cd522d4ff1feb61e0c34ff744ea433ead8fb05ad943208",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.07.reversed",
+        "assessment": "마음속 결정에서 상대에게 답하는 실행까지 한 문장이다 / 조건 변화 없는 비교는 시작만 지연시킨다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.08.upright": {
         "status": "pass",
-        "read_bundle_sha256": "f3f64a658640614ede141288fad40b08c79ed207abbcd9d9b4a7451145c4074f",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "8a19b80c0cbe58f7d78b90b01093034bd360811de0a00bd1b0d45534c85a36ec",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "f3f64a658640614ede141288fad40b08c79ed207abbcd9d9b4a7451145c4074f",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.08.upright",
+        "assessment": "종료 조건과 남은 책임을 한 문장으로 연결한다 / 미래에도 계속할 이유를 따져보는 판단 기준이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.08.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "b2c4baff0c8ff85651d0c2183f7a10477b9345e1126434961cf61420912226ee",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "9d5d5c277b85aaca6d2e884b27dd0ad6d475791383e3e2799a4b859bb1aa2b3d",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "b2c4baff0c8ff85651d0c2183f7a10477b9345e1126434961cf61420912226ee",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.08.reversed",
+        "assessment": "문제 반복을 막기 위한 요청을 한 문장에 담았다 / 같은 불편이 되풀이될 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.09.upright": {
         "status": "pass",
-        "read_bundle_sha256": "72b358c88c460edbb931ec352f293c00bf3481cb82dba59d6447384537ab3406",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "98c5b8d86ffcd698139217a438b7a6f69fff8f492733ef272b2707840e29a9f3",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "72b358c88c460edbb931ec352f293c00bf3481cb82dba59d6447384537ab3406",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.09.upright",
+        "assessment": "조건과 축하 방법이 한 문장으로 모여 자랑 여부로 주제가 이동하지 않는다 / 이미 이룬 결과에 만족할 시간을 주는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.09.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "acc1db87d1a33b11e35a1915ac81c6773fb1136a13d85104007888593cffe142",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "2c9a3c9b6e073557ba875d658f3cc9e0b373335cc5c37ce483b0cb65b4e38ff6",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "acc1db87d1a33b11e35a1915ac81c6773fb1136a13d85104007888593cffe142",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.09.reversed",
+        "assessment": "아쉬움을 느끼는 조건과 확인할 실질 대상을 한 문장에 쓴다 / 만족 대신 부담이 늘어날 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.10.upright": {
         "status": "pass",
-        "read_bundle_sha256": "2eb5cc09b5852544bcdada3c034777c3a4a8a937254880ea1d7bfb0cd1958bfd",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "ecf7bfa3b79ca0678703e4a3d0e6b90622efe36535f84e8e741d997d716bb368",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "2eb5cc09b5852544bcdada3c034777c3a4a8a937254880ea1d7bfb0cd1958bfd",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.10.upright",
+        "assessment": "별도 큰 약속보다 식사 중 대화하는 방법이다 / 반가움을 말로 전하는 대응 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.10.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "70949d5b42f0c329818929bdad16c0aae976bc1946c2de92f60fbc8b654af93d",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e53ee97297b9dbb862bf4e4fa63647bb11f5ac5c3bc09f5adbae6f8590e6b2c7",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "70949d5b42f0c329818929bdad16c0aae976bc1946c2de92f60fbc8b654af93d",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.10.reversed",
+        "assessment": "평소 찬성했던 사람도 이번 의견은 다를 수 있다 / 표현 없는 상태에도 기대 차이가 있을 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.11.upright": {
         "status": "pass",
-        "read_bundle_sha256": "2ba5505f1e7a23fe5f68ccc89dc1ee371dfcb7e82f437b7d4b07c41a3924e882",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "99d6ee055fb4d096c184071657dd788326e2e00030041d918d53a4401345ac93",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "2ba5505f1e7a23fe5f68ccc89dc1ee371dfcb7e82f437b7d4b07c41a3924e882",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.11.upright",
+        "assessment": "상대 관심 확인 뒤 시간과 방법을 구체화하는 후속 단계다 / 완벽한 준비 없이도 호의적 반응을 받을 수 있어서다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.11.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "23d3fce527a3f529b8dea06d910bd6c0fbed6da193dc4a7b59a87ccba2ee552b",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "9d481406916eeb1904a594dee75372d726ca5bc962ab8557988fecd883e4f576",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "23d3fce527a3f529b8dea06d910bd6c0fbed6da193dc4a7b59a87ccba2ee552b",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.11.reversed",
+        "assessment": "농담으로 돌리면 가벼운 말로 오해될 수 있다 / 떠보는 표현이 의도 전달을 흐릴 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.12.upright": {
         "status": "pass",
-        "read_bundle_sha256": "291ca97bace8e5e519326888b0dd496dd65b78565932a3f83c78c7c1cd4e1acf",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "12ecfd154329b6c85a77724b5a1502ddf15fffbcf568eea9eac82528c0733b69",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "291ca97bace8e5e519326888b0dd496dd65b78565932a3f83c78c7c1cd4e1acf",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.12.upright",
+        "assessment": "혼자 어려운 부분부터 설명하는 방법이다 / 참여 의사를 알아야 상대가 약속을 정한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.12.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "24665bcbd93e83985352b3e8ec178755136834a2a35e232d536ce7fdf5c8e583",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "5b52a856b1681dee8209c06dc24ba8282934afac4d7fae0b7d4fbf4854396d4c",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "24665bcbd93e83985352b3e8ec178755136834a2a35e232d536ce7fdf5c8e583",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.12.reversed",
+        "assessment": "반가운 표현과 확정 사항을 나누어 확인한다 / 약속의 불확실성과 포기할 대상을 한 문장에 담았다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.13.upright": {
         "status": "pass",
-        "read_bundle_sha256": "cac90b5ccb8497f5f66116b863dd0f16b1ae97c93697a333c6b2d37c3733468f",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "d7068a7ff3adea92383f0685a1563e7ab0fce98560a43266f0bfb788b480b6e4",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "cac90b5ccb8497f5f66116b863dd0f16b1ae97c93697a333c6b2d37c3733468f",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.13.upright",
+        "assessment": "속상한 지점부터 설명하는 구체적 시작 방법이다 / 혼자 어려운 부분만 부탁하는 범위를 제시한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.13.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "1fd4dc1fd13c68cce4ebfb1b4c28ca59ceb2637c3e5be0148648395822260f43",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "746fd7ee53393cdb80d779f253212bc10c88ea12af173c76035a4db82f0361c4",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "1fd4dc1fd13c68cce4ebfb1b4c28ca59ceb2637c3e5be0148648395822260f43",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.13.reversed",
+        "assessment": "도움과 자기 일 시간 확보가 한 문장에 연결된다 / 거절이 어려워도 힘든 부분은 즉시 말하는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.14.upright": {
         "status": "pass",
-        "read_bundle_sha256": "b97e96db4721eb2a2db461b99661de6f97ed801115a11e8d1fc9ac772f666957",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "eb31ffaf3c4b84bac07aa6d5c34b3d04c90c5f0bbdd0229b6793f88f1e77355b",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "b97e96db4721eb2a2db461b99661de6f97ed801115a11e8d1fc9ac772f666957",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.14.upright",
+        "assessment": "필요를 알아야 상대도 도움 방법을 찾는다 / 양쪽 어려움을 듣는 판단 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.cups.14.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "e1a6c9c591623a587816ed36cfb2eb9fa8fb611857bcf4e4a06aa894433c16c7",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "44e6340633ef463f58680f1adf22cd4ed59450f9875464f121faa83c03772931",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "e1a6c9c591623a587816ed36cfb2eb9fa8fb611857bcf4e4a06aa894433c16c7",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.cups.14.reversed",
+        "assessment": "속상한 사유와 실제 이행 가능성을 따로 논의한다 / 감정 조건과 피할 책임 회피 행동이 한 문장에 명확하다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.01.upright": {
         "status": "pass",
-        "read_bundle_sha256": "2dfaa39fbb82a448218beac687b4cc7f8da1a8bd42e8f6633085ee9ccc68dac8",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "3098aaeb218d70fd04f1b522591b256cbde1c6e569417833eb4bcfbd95cd2221",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "2dfaa39fbb82a448218beac687b4cc7f8da1a8bd42e8f6633085ee9ccc68dac8",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.01.upright",
+        "assessment": "원인을 찾으려는 목적과 비교 대상을 한 문장으로 밝혔다 / 필요한 사실을 먼저 말해야 결론을 잘 전달한다는 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.01.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "128f5affe6dd08268947dbf06a6d0e4d4faea85369c4855cb98c6d713b82b76e",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "9ee103bc2a83b8a75ea56ddac2e423deeb4b322805d808d37750debcc5230113",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "128f5affe6dd08268947dbf06a6d0e4d4faea85369c4855cb98c6d713b82b76e",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.01.reversed",
+        "assessment": "명확히 말했다고 여겨도 상대의 이해는 다를 수 있다는 이유다 / 정정을 먼저 해야 상대의 잘못된 판단을 막는다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.02.upright": {
         "status": "pass",
-        "read_bundle_sha256": "507a57cadd752e57041bf317ae935b330b68201dd257255f4bb40b9aee9e340c",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "c07ee0a3b5724a3d74ee6ef9cb5ff8f7965b46e8e1aefc3f111c87182a32b100",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "507a57cadd752e57041bf317ae935b330b68201dd257255f4bb40b9aee9e340c",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.02.upright",
+        "assessment": "못 고르는 상황에서 무엇을 누구에게 물을지 한 문장으로 정했다 / 상대가 기다릴 기한을 물어 생각할 시간을 얻는 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.02.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "016dd0b4f942d18afecf91c444550629d3cb726b1e09ad4a137dee40e47f0cbf",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "56ef61c89786598846ed2e66d2cd753f8f0d3a2396086fc59c804b7f2c8cee6f",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "016dd0b4f942d18afecf91c444550629d3cb726b1e09ad4a137dee40e47f0cbf",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.02.reversed",
+        "assessment": "과도한 정보에서 확인 범위를 좁힌 한 문장이다 / 모르는 조건을 수용하면 나중에 해결할 일이 남는다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.03.upright": {
         "status": "pass",
-        "read_bundle_sha256": "126fe5b3b2d90df8d37f0ba11b4bf44d38e67e8540d4d6d80de7e137874dff0b",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0f8b6a900a3424e856829675f2153f5d35f8ee47008aa1ace8e6d24a453c6b49",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "126fe5b3b2d90df8d37f0ba11b4bf44d38e67e8540d4d6d80de7e137874dff0b",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.03.upright",
+        "assessment": "그 사실이 다음 결정에 필요하다는 청취 이유다 / 불편한 관계가 더 늘 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.03.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "2f9540ddcb547ac35a84d7d63dda8170e0a1f8095e9487bb5a6fa53ee711e805",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4d1c4f2ddc25c687625be9ae0d63d272ae67fa2a9e6ee0c57e35119cf22e49c5",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "2f9540ddcb547ac35a84d7d63dda8170e0a1f8095e9487bb5a6fa53ee711e805",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.03.reversed",
+        "assessment": "당장 가까워지기 어렵다는 마음도 말해도 된다는 대화 범위다 / 아직 불편하다는 이유만으로 재론하지 않는 한 문장 경계다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.04.upright": {
         "status": "pass",
-        "read_bundle_sha256": "18a4d5f05eb2ce64f6b8b8a860b8e33da4ecde1dff1556000dd2c359953fe9ab",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "1a668531aaba1238a25fe70aa465ccb16dd1c76fee5668afa2887a0300f63593",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "18a4d5f05eb2ce64f6b8b8a860b8e33da4ecde1dff1556000dd2c359953fe9ab",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.04.upright",
+        "assessment": "급하지 않은 조건과 휴식 방법이 한 문장에 완결된다 / 불필요한 말을 주고받아 다시 불편해질 수 있다는 명확한 결과다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.04.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "3f9ec26530134d4e9407d36086636ac27f8f2d8a32bdf9d8ea47dcf150decf22",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "a9bc355faf83ef431be0c4180aee7291661aa51233a95df07257c8814cdfefc1",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3f9ec26530134d4e9407d36086636ac27f8f2d8a32bdf9d8ea47dcf150decf22",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.04.reversed",
+        "assessment": "재개 상황의 수락 범위를 한 문장에 제한했다 / 다시 익숙해진 뒤 차차 늘리는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.05.upright": {
         "status": "pass",
-        "read_bundle_sha256": "b154b663814cf2795bf7f139ee78a4aca17eee42497cbb11c425e2b76fa89493",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "ae0f0fa483caf076928a5f6e274614cc99439627eb2985b31130ac1c37234a2e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "b154b663814cf2795bf7f139ee78a4aca17eee42497cbb11c425e2b76fa89493",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.05.upright",
+        "assessment": "끝까지 따지면 상호 도움을 주던 관계가 멀어질 수 있다는 이유다 / 이겨도 반감 때문에 다음 협력이 어려울 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.05.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "40a2368c3eba4ddeb0ff18c905f38707b8be6815ca358ba75697c95580f70d07",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "ac9979349da49f11079d77130c571e97b5decf6acce4600b61b66c4fea74b0e0",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "40a2368c3eba4ddeb0ff18c905f38707b8be6815ca358ba75697c95580f70d07",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.05.reversed",
+        "assessment": "생각이 전부 같지 않아도 종결 가능하다는 양보 이유다 / 누가 더 틀렸는지 다투면 갈등이 계속된다는 결과다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.06.upright": {
         "status": "pass",
-        "read_bundle_sha256": "02cf578ad51e31726ebe9fb9996ac3c513a9a3775d4d8d1b894852ee8734f6ee",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "a6c7b81564e468fe7033f7abf525af995852364eb18f880962c23dfeb8f2c002",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "02cf578ad51e31726ebe9fb9996ac3c513a9a3775d4d8d1b894852ee8734f6ee",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.06.upright",
+        "assessment": "혼자 어려운 문제와 구체적인 제안을 들을 조건을 한 문장에 썼다 / 더 수월한 곳이 있다는 조건과 피할 선택이 완결된다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.06.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "8e0a66f6e5b49ecb3cce361d1081004cca8cafae5941a931bbb1ac70505c8424",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "941c5177bb4dcc809323630197222ebbdd4105a6638052342823a92ef26991ac",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "8e0a66f6e5b49ecb3cce361d1081004cca8cafae5941a931bbb1ac70505c8424",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.06.reversed",
+        "assessment": "처리한 줄 알았던 문제의 미해결 지점을 한 문장으로 특정했다 / 원인이 남으면 다시 같은 문제를 설명해야 한다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.07.upright": {
         "status": "pass",
-        "read_bundle_sha256": "fde88a3009d4cabcef10c97f4671d50cc0065496ba0e2d724f98f866722ed148",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "86c306e028d7e0f818f55f0256e1e70861b076116f439ade9bf3bee835c9fc66",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fde88a3009d4cabcef10c97f4671d50cc0065496ba0e2d724f98f866722ed148",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.07.upright",
+        "assessment": "막힌 일의 우회 방법을 찾는 목적과 질문 상대가 한 문장이다 / 전부 공개할 필요와 상대 판단에 필수인 사실 공개를 구별한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.07.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "0ddec3242c011d7ff9f42b3b6ab8cb084d01b14ddab7be48f54c91983ad39ca9",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "da812f220c7de5cfc716e90a8db2ff10affa8a52defcac3a77e90874708152ba",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "0ddec3242c011d7ff9f42b3b6ab8cb084d01b14ddab7be48f54c91983ad39ca9",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.07.reversed",
+        "assessment": "알릴 대상과 내용이 한 문장에 들어 있다 / 설명이 번복되면 작은 잘못도 수습에 시간이 더 든다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.08.upright": {
         "status": "pass",
-        "read_bundle_sha256": "275c0d08c71dabf3bc8ce968009a925a007afa8d43ac66139ea3117cc77909b0",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "da0a7ae676a5e6d1f512c06359a954c4fb1e7b73ec799cb11cfa1bc161f14d97",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "275c0d08c71dabf3bc8ce968009a925a007afa8d43ac66139ea3117cc77909b0",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.08.upright",
+        "assessment": "실제 제한을 알아야 다른 방법을 찾을 수 있다 / 판단 범위를 확인한 방법 하나에 한정하라는 완결 문장이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.08.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "a5a4506b1d6ed9c7d33a8a9904fcc514ca2f7418a8efb6313dfd0f17910e386b",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "72a28ac25c714dd2fac5e4540332bc961109dc32e39ffa61eb62bb1f338c52c1",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "a5a4506b1d6ed9c7d33a8a9904fcc514ca2f7418a8efb6313dfd0f17910e386b",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.08.reversed",
+        "assessment": "같은 일에 새 방법을 적용하는 한 문장이다 / 조건의 변화와 재시도 판단을 한 문장에 연결한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.09.upright": {
         "status": "pass",
-        "read_bundle_sha256": "4f03ff7c3461738b160e8c3de227759dbc4f6261612a66aff6e917ecf13ebdc7",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "a5c75ec4d97b5ffb0b1cb2c16bf2b88b95bafd8eb9b8372b5b58c222d6abd9b6",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "4f03ff7c3461738b160e8c3de227759dbc4f6261612a66aff6e917ecf13ebdc7",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.09.upright",
+        "assessment": "그 결과라는 지시 대상이 앞에 명시되어 독자가 보충하지 않아도 된다 / 걱정한 결과가 실제로 났는지 아직 몰라 보류한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.09.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "3c3277d45bc2d57a88afd8456fa1c590c25db436b1867b104ad554c08327df74",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "65f946f49f09a22b0c888fd1189281201424f014a9cf5d0567df3fc94c2953cc",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3c3277d45bc2d57a88afd8456fa1c590c25db436b1867b104ad554c08327df74",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.09.reversed",
+        "assessment": "말할 상대와 설명 내용을 한 문장에 제시한다 / 안내받은 당장의 일을 처리하는 방법으로 이어진다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.10.upright": {
         "status": "pass",
-        "read_bundle_sha256": "3f1e9f17540e5921d007b514c096c569e540e88955ae21e43791c0a2a2c15920",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "05a94c165ef00ba63b506e585557f1d64a94ee5635d4abb51e1f66a90778a286",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3f1e9f17540e5921d007b514c096c569e540e88955ae21e43791c0a2a2c15920",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.10.upright",
+        "assessment": "끝내기 위한 정리와 그 뒤 중단 순서가 명확하다 / 남은 일의 감당 가능성부터 살피라는 판단 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.10.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "ed234d1726554cdd7b6588363f612a646b62552f06e6fea634d53d53cfb89601",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "fac5153c2a5e0affa33fa2e8ea64e5afd8e3bb8c8cad08ca873864dff11b0356",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ed234d1726554cdd7b6588363f612a646b62552f06e6fea634d53d53cfb89601",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.10.reversed",
+        "assessment": "무리 없이 마치려는 분량 제한이다 / 과거 부담 원인이 재현될지 확인하는 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.11.upright": {
         "status": "pass",
-        "read_bundle_sha256": "adb50239ca0799146ad9dc73ac6e0d2ee904ae43c945412fdc74f4d9024aa713",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "9fbbf0d12835c2ab4b62b7e9f0af6910ffc23bd6c872373a08102e0744340314",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "adb50239ca0799146ad9dc73ac6e0d2ee904ae43c945412fdc74f4d9024aa713",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.11.upright",
+        "assessment": "읽기에서 남은 의문을 질문으로 확인하는 순서다 / 전달 시 피할 사실과 추측의 혼동을 한 문장에 명시한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.11.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "7f6a47874754b15cea2e5921999ce8d9d453900b9fd9869106087b2a0813d6f1",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "be865d3d8f5d6226fadc74af42e2a599cbaded56d480bb32503042a2834237aa",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7f6a47874754b15cea2e5921999ce8d9d453900b9fd9869106087b2a0813d6f1",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.11.reversed",
+        "assessment": "즉답 대신 확인 후 답할 순서를 제시한다 / 모르는 사정이 있을 수 있어 사실 확인부터 한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.12.upright": {
         "status": "pass",
-        "read_bundle_sha256": "9af0ca4b901770a87668c39a3c1807f5145673464add87673b03e99ab99b3085",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "01bd6753010fc5cde93752f02383b4d64dfa21790e582599ebe373366ed4733a",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "9af0ca4b901770a87668c39a3c1807f5145673464add87673b03e99ab99b3085",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.12.upright",
+        "assessment": "공유와 착수의 순서가 한 문장으로 완결된다 / 상대가 할 일을 이해할 시간을 남기는 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.12.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "7887574ab1c0440b4fa942000a044624a08f85aa0f08178c943e2d8937f0e5b6",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "968d52276b283a1456ce4f33ef2c71e4c489e9afdac1279c64f12eaf3bbae437",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7887574ab1c0440b4fa942000a044624a08f85aa0f08178c943e2d8937f0e5b6",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.12.reversed",
+        "assessment": "누락으로 되돌아오는 수고를 막기 위해서다 / 실제 가능한 시간을 전달하는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.13.upright": {
         "status": "pass",
-        "read_bundle_sha256": "de2fa1f9a7681768728421ad570dad908ee25c1cf61148be1d8e14d08ca5b0a3",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "34e9f889aa8165b6cb59d79f0c284c66750c95d6be1703f62f8b6b6ea43450de",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "de2fa1f9a7681768728421ad570dad908ee25c1cf61148be1d8e14d08ca5b0a3",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.13.upright",
+        "assessment": "친분과 조건을 분리하는 한 문장이다 / 거절 이유인 조건만 말하는 범위를 정한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.13.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "d99d9c4951f9d845fdbbcf59775dbe1ad6b7bb54950e0537750612ef21c11aef",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "3c041939d0722c7f2add3bf3c82b7c0f1f9d234fe42e3b3dcb4d21b63a34edf0",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d99d9c4951f9d845fdbbcf59775dbe1ad6b7bb54950e0537750612ef21c11aef",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.13.reversed",
+        "assessment": "상대 설명을 듣고 사건을 판단하는 방법이다 / 사람의 인상과 말의 진위를 분리한 한 문장이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.14.upright": {
         "status": "pass",
-        "read_bundle_sha256": "ef24dedfb7e278745f0af37b975457736eeb1bb683f1fc9569ec63ecabf90416",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "9a525839dbbf3a6ba17f393dd0979e1bcd33e6ef3a0e41b2964223617818e682",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ef24dedfb7e278745f0af37b975457736eeb1bb683f1fc9569ec63ecabf90416",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.14.upright",
+        "assessment": "다른 사람도 확인할 수 있다는 근거의 성격을 명시한다 / 같은 상황에 같은 원칙이 납득 가능한 판단을 만든다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.swords.14.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "fa424a22887105cd34dd9cfaa0cc408f5998a3dd9e53c140089dba5985e2cb84",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "db018eff9af6b8a814a06c5f525204e075d9c598383e7bb33949ede83b3fce1a",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fa424a22887105cd34dd9cfaa0cc408f5998a3dd9e53c140089dba5985e2cb84",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.swords.14.reversed",
+        "assessment": "즉답 어려운 조건과 응답 방법이 한 문장이다 / 사정을 다 듣지 않으면 억울한 판단이 될 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.01.upright": {
         "status": "pass",
-        "read_bundle_sha256": "3072f5e9c71d7f515832530252d2150fd2416e054362463dcc6bc020b05eeb4a",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "166bdae6fa3a16671dbf79fd8d31834be36db3b92620705e1f6163597f2e57d4",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3072f5e9c71d7f515832530252d2150fd2416e054362463dcc6bc020b05eeb4a",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.01.upright",
+        "assessment": "시도하면서 다음 준비를 알아가도 된다는 진행 방법이다 / 감당 가능한 양이어야 지속할 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.01.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "6dd840fb63be0041249f3f583316596d6a81acc406060d7cc6a3be7bb0eafd73",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "6505691a8b10d7ca73de93b8c6261a99f1d525fbd7b87d72f10030699c56cb29",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "6dd840fb63be0041249f3f583316596d6a81acc406060d7cc6a3be7bb0eafd73",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.01.reversed",
+        "assessment": "준비가 덜 된 조건에서 보충할 범위를 한 문장에 정했다 / 현재의 시기 문제와 앞으로의 불가능을 구별하는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.02.upright": {
         "status": "pass",
-        "read_bundle_sha256": "fc452bf0b383a2a344647f20579006e97e55b30c1a14b6e6718076026857187e",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "86c34ddc1243480aa171d63bbd91f4c654f5fae24000956700e8bcdc83b7ed8f",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fc452bf0b383a2a344647f20579006e97e55b30c1a14b6e6718076026857187e",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.02.upright",
+        "assessment": "확장을 원하는 상황과 비교할 대상이 한 문장에 명료하다 / 새 시작이 가능한지 확인할 때까지 기존 일을 유지하라는 범위다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.02.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "d2817033721ac0f5d11d04e64ef7d41a779b03422447fa9f510e166b9073e225",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "b67668fb3a2300e3acbace7d2cd1ec3959e38478630b70e449d5e99dc04adb92",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d2817033721ac0f5d11d04e64ef7d41a779b03422447fa9f510e166b9073e225",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.02.reversed",
+        "assessment": "막연한 낯섦인지 실제 어려움인지 가려보려는 질문 목적이다 / 비교만 하다가 참여할 시기를 놓칠 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.03.upright": {
         "status": "pass",
-        "read_bundle_sha256": "eb4ff64379967be8b4fe529fb8d7caf3913b0bea285c2e4760d913a459347bd3",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4d9c6a6096977cdfe256ba4ed33a7b3d22081f585a2a9ba97c618ceff0c99b2e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "eb4ff64379967be8b4fe529fb8d7caf3913b0bea285c2e4760d913a459347bd3",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.03.upright",
+        "assessment": "상대가 관심 보인 부분부터 이야기하라는 제안 방법이다 / 주고받을 도움을 들은 다음 결정하라는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.03.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "30b16ba1deebd3b3ae85f9fb53e3776fe96a6b8e0b3b59fece952cff95c61efb",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "371c50229e91c4bfa54ae9159da23ae9721a503e4ea01127b42634a06c76771b",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "30b16ba1deebd3b3ae85f9fb53e3776fe96a6b8e0b3b59fece952cff95c61efb",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.03.reversed",
+        "assessment": "지연된 답에 의존하지 않는 일을 고르라는 한 문장 지시다 / 지연되면 두 일이 겹쳐 부담이 커진다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.04.upright": {
         "status": "pass",
-        "read_bundle_sha256": "939dd36a1ef422f599a336589eddcbdec7fd8ec7b0beac25f1fd58ddadf47a48",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4bae83d62371326bdc89c88d561d5ed7e8119bbc273df858bb1312035a0beb15",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "939dd36a1ef422f599a336589eddcbdec7fd8ec7b0beac25f1fd58ddadf47a48",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.04.upright",
+        "assessment": "함께했던 고생을 이야기하며 기쁨을 나누는 대화 방법이다 / 필요한 마무리가 끝나면 쉬어도 된다는 종료 후 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.04.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "3b12dbb8af6f5577df026ea73b4df2d1aed60fe2c6307567dd7e0492f6bd8fca",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "f5ada2bd2969e4d497463175f796ffcb981cfd15ad12dbd3f3c8eaf16bc6e8aa",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3b12dbb8af6f5577df026ea73b4df2d1aed60fe2c6307567dd7e0492f6bd8fca",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.04.reversed",
+        "assessment": "성과가 작아도 알리고 함께 기뻐하라는 단일 행동이다 / 소박한 모임도 즐거울 수 있다는 취소하지 않을 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.05.upright": {
         "status": "pass",
-        "read_bundle_sha256": "845943d6a3d1f3fea9d3ed2c7218c830d029c047f8035102cd696b74e264c1fb",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "a397de1c79f1d57552c53ca8d3c350b1db4a8975f94e57dd1aba02c93b5efaf8",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "845943d6a3d1f3fea9d3ed2c7218c830d029c047f8035102cd696b74e264c1fb",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.05.upright",
+        "assessment": "말로 판단하기 어려우면 각각 해보라는 비교 방법이다 / 선택 이유를 들어야 반복되는 말다툼을 줄인다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.05.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "2dc0896802dac790fcaf0f5189710c03bfff4d3ac795b90497fcaef4d9b885fb",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "559d124381ca83c69da97bd6c2364d50e39d16744b9444c19321551b67363472",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "2dc0896802dac790fcaf0f5189710c03bfff4d3ac795b90497fcaef4d9b885fb",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.05.reversed",
+        "assessment": "설명이 다르다는 조건과 사실 확인 대상이 한 문장에 있다 / 모르는 사정을 대신 따지면 자신도 곤란해질 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.06.upright": {
         "status": "pass",
-        "read_bundle_sha256": "bc4b49cbdf0ef9815b349b3fcbc815144fc65369d79de98448a88a35adb363de",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "552ce3d637e2efc5d0c7827bb92b2a5d9495a100ee33671209660ad35cf6d27b",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "bc4b49cbdf0ef9815b349b3fcbc815144fc65369d79de98448a88a35adb363de",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.06.upright",
+        "assessment": "성과를 나누는 자리에서 누구의 어떤 도움인지 밝히는 한 문장이다 / 우열을 따지지 않고도 자신의 성취를 즐길 수 있다는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.06.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "ca89364796047cec66ad90ecd99cd1450850397c521631eff26fe290262bee50",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "3711a43f15dfad97f31a01e7f06d94e52556b62322874e6dd4c7a130ddeaaaaa",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ca89364796047cec66ad90ecd99cd1450850397c521631eff26fe290262bee50",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.06.reversed",
+        "assessment": "늦은 반응을 실패로 볼 필요 없다는 이유다 / 과장과 실제의 차이가 드러나 곤란해진다는 인과가 명시됐다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.07.upright": {
         "status": "pass",
-        "read_bundle_sha256": "04fb835dba398d7684b57eec3edd6e80eb63dc63f402f9b60db9294aa11eb06c",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "b3380ef03e9f7146bb9902cd08effb9b47a9e920f5dabe6cc5bac989a5e6dcb3",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "04fb835dba398d7684b57eec3edd6e80eb63dc63f402f9b60db9294aa11eb06c",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.07.upright",
+        "assessment": "요구에 답할 구체적인 내용을 한 문장으로 밝혔다 / 표현 시비가 중요한 조건 설명을 방해한다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.07.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "69cab86e174f26e3f4828c65f92faa9be488044f62204e09114aed9d3cfbd6c5",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "95fe04747677beeecdac55d0045f049c4c4b62e9b128f03b598768b1b87a289a",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "69cab86e174f26e3f4828c65f92faa9be488044f62204e09114aed9d3cfbd6c5",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.07.reversed",
+        "assessment": "맡을 수 있는 범위를 정해서 알리라는 유예 시간의 사용 방법이다 / 당장 편해도 나중에 맡을 일이 늘 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.08.upright": {
         "status": "pass",
-        "read_bundle_sha256": "db048b22217d7fd725f6064b402c5ef2d16aec0777c6edaf2e686a019db3bdb8",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "328394f73f19ea122e0e215f86016fed76e43942dad35e624a76e74727e1ab93",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "db048b22217d7fd725f6064b402c5ef2d16aec0777c6edaf2e686a019db3bdb8",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.08.upright",
+        "assessment": "일정에 관한 대화라면 가능한 시간도 알리라는 조건부 답변 방법이다 / 속도가 빨라도 동의 대상은 하나씩 확인하라는 대안 행동이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.08.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "050e31ef4dd6c3369e182072b928ec9dcc1db7e683c1a42dde30535ba4811ab8",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "ed533cf063be20a6d14898de5bebdf53392b248e3c29a8f3af8d808453a9464f",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "050e31ef4dd6c3369e182072b928ec9dcc1db7e683c1a42dde30535ba4811ab8",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.08.reversed",
+        "assessment": "오해한 대답 때문에 다투는 일을 줄인다는 질문 이유다 / 전달 중 의미가 달라져 오해가 퍼질 수 있다는 결과로 연결된다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.09.upright": {
         "status": "pass",
-        "read_bundle_sha256": "ea61c1edf60c0a1e103fb80a20ea0202659e7f985e26425ca648bb87fd6cd76a",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "015be7d1cfe2918331c1084dd11fe139ce2363d3a0ed3650de2192b0a2272e2f",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ea61c1edf60c0a1e103fb80a20ea0202659e7f985e26425ca648bb87fd6cd76a",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.09.upright",
+        "assessment": "효과 있던 방법을 재사용하라는 다음 단계다 / 재작업 수고를 줄인다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.09.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "ed87914bc3840c41cbba97bd6251b711f583528fa15730ac485243d4a4d1a168",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "97c20334ff825c40472cb269b3012ddf1a0fa9e7ac12c2697fe07fb5e7b93fa1",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "ed87914bc3840c41cbba97bd6251b711f583528fa15730ac485243d4a4d1a168",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.09.reversed",
+        "assessment": "안 된 지점을 설명하고 대안을 묻는 절차가 한 문장에 완결된다 / 이번 사람이 줄 수 있는 도움부터 들어보라는 판단 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.10.upright": {
         "status": "pass",
-        "read_bundle_sha256": "5d329c185bc857dd1de5ce230bfc0c09ef122ffd8ce7b6276a0fd25589812158",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e2cdbfca59e44ad61385ef729449961a92e99a95cb18e3e4e9f71879d0fad826",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "5d329c185bc857dd1de5ce230bfc0c09ef122ffd8ce7b6276a0fd25589812158",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.10.upright",
+        "assessment": "기존 일에 필요한 시간을 계산해 가능한 때를 알리는 한 문장이다 / 익숙해도 겹치면 앞선 중요한 약속이 늦어질 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.10.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "d68f9b0d5604acbb6c6e3a8391172f657d5b0cf6172995435fb3df624cf94fdf",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "fca88f1745b0a20d4cbf6516a6d85addb2372eda38ca514ef32f1ba1c9bb4812",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d68f9b0d5604acbb6c6e3a8391172f657d5b0cf6172995435fb3df624cf94fdf",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.10.reversed",
+        "assessment": "미리 요청해야 상대도 도울 시간을 낸다는 시점의 이유다 / 말없이 가져오면 주변이 여유가 있다고 오인할 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.11.upright": {
         "status": "pass",
-        "read_bundle_sha256": "172b4009807fe7b4e886da611e70c8f2d96b2b16f540ea663509a1010fda8e2b",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "fa634ab51040d187c1816ac45e6b4b7507a33d34fc211c9712ccda38fbc9dd0b",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "172b4009807fe7b4e886da611e70c8f2d96b2b16f540ea663509a1010fda8e2b",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.11.upright",
+        "assessment": "직접 경험하고 싶은 목적과 질문 대상이 한 문장이다 / 능숙하지 않아도 새 경험의 재미가 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.11.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "d99567c26f25e85e8c0dc536a2c1e8022fbbdd949a5bccacd70b9bf4b8908032",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0eaf66ecbcbe6ca26f966aada404e2ada4e61fcd87c32cfde330830a11e68686",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d99567c26f25e85e8c0dc536a2c1e8022fbbdd949a5bccacd70b9bf4b8908032",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.11.reversed",
+        "assessment": "들은 정보와 확인 경로를 한 문장으로 특정했다 / 함께 정한 후 내용이 바뀌면 상대가 당황한다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.12.upright": {
         "status": "pass",
-        "read_bundle_sha256": "312964cf9f41c159a2ce56d9a8a3c2d2487f9ce5503d31ffd346dca825bc9ffe",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "6bde6895d36eb8a3e305e0802a284b6f1486c1868159158a10e520e1ba37ed42",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "312964cf9f41c159a2ce56d9a8a3c2d2487f9ce5503d31ffd346dca825bc9ffe",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.12.upright",
+        "assessment": "가고 싶은 곳이라는 대상과 방문 방법이 한 문장이다 / 이동 때문에 각 장소를 즐길 시간이 줄어든다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.12.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "d89088d85df66665c38da735fafdf05a0b00f32f2b571d2135204d850fb0abd2",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e8f4f7668e5c792f03fac0f47f4e1c51f5793773cdff6eadf10a7d708c2cca93",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d89088d85df66665c38da735fafdf05a0b00f32f2b571d2135204d850fb0abd2",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.12.reversed",
+        "assessment": "만남이나 방문 약속을 확인하는 시점과 대상이 명료하다 / 상대의 가능 여부를 확인해야 또 바뀌는 일을 줄인다는 방법이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.13.upright": {
         "status": "pass",
-        "read_bundle_sha256": "13904906e6032ce6049c10dae98b478eecfc9f16a6f5a5a434264ffa00fea3bf",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "d59c0f94acd1e2da12145c31ed80cfa0b063ffe03ed7954045218a9dd84caaf8",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "13904906e6032ce6049c10dae98b478eecfc9f16a6f5a5a434264ffa00fea3bf",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.13.upright",
+        "assessment": "상황과 말 꺼내는 행동을 한 문장으로 끝냈다 / 남도 말할 기회를 주면 함께 즐길 수 있다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.13.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "725eab55afc2f0470505fc2bb490e0e1a4e023efaa639d2799a8f899fd6065ee",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4fb8e3a6e59cc47e3e41663bbabd784d9983f629fe90234cac516ec2e20bc6ef",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "725eab55afc2f0470505fc2bb490e0e1a4e023efaa639d2799a8f899fd6065ee",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.13.reversed",
+        "assessment": "자기 말 추가 대신 차례를 주는 단일 행동이다 / 청자에게 남을 깎아내리는 모습으로 보인다는 결과다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.14.upright": {
         "status": "pass",
-        "read_bundle_sha256": "314f35b306cb3605dca70154b82d75afe4fa76705a2169964a6aa56f2af134cd",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e2ac410a1df001a3b1c35273dce11303eb31bb9a0cf4dc6f54bb758a3a3a52c5",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "314f35b306cb3605dca70154b82d75afe4fa76705a2169964a6aa56f2af134cd",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.14.upright",
+        "assessment": "주도하는 상황에서 역할 분담 방법을 한 문장으로 썼다 / 역할을 나눴어도 자기 약속은 끝내라는 책임 범위다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.wands.14.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "973de92a278fe73362bc15d61b9ce9eda732a8791085f24829566d41eeeaf7f2",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "f2e73a8eb5fcddeaadbabeb1dd5eb5818584a35529935491faaccbbd8dac148c",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "973de92a278fe73362bc15d61b9ce9eda732a8791085f24829566d41eeeaf7f2",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.wands.14.reversed",
+        "assessment": "꼭 필요한 수정이 아니면 마무리해도 된다는 종료 기준이다 / 지나친 요구가 도와주던 사람의 참여를 어렵게 한다는 이유다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.01.upright": {
         "status": "pass",
-        "read_bundle_sha256": "11fa7b4a19c126fc4242cf6f2556471192d0853c1af7d74d02ed636a0709969e",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "20340470eef28bc72fd1cde95dffb4155558318d69d0ca5668c3fd3af2ac13d5",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "11fa7b4a19c126fc4242cf6f2556471192d0853c1af7d74d02ed636a0709969e",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.01.upright",
+        "assessment": "시작 준비에 필요한 자원을 구할 수 있는지 묻는 한 문장이다 / 확보 전 알아보기와 달리 이미 준비된 경우의 시기 판단이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.01.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "f72dcd92cf7f968582852d641185f48df732e1f7e85fee400e20ab1c340e3fd0",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "8b3dc980eaee1e731574af66f76e8fe6e710436dac97c26dc0813cc71bf59af5",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "f72dcd92cf7f968582852d641185f48df732e1f7e85fee400e20ab1c340e3fd0",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.01.reversed",
+        "assessment": "수량이 많아도 필요한 자원이 다 갖춰졌다는 뜻은 아니다 / 사용처 없는 물건까지 늘리지 않는 범위다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.02.upright": {
         "status": "pass",
-        "read_bundle_sha256": "c811465d70dd4d53da7cc934be2d8b5b81a73c6e9cc9cb50e688ee370f843e7f",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "8ceb021375b45608830c4e60d70f23fa680ca8e0f56774348843c4186629b295",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "c811465d70dd4d53da7cc934be2d8b5b81a73c6e9cc9cb50e688ee370f843e7f",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.02.upright",
+        "assessment": "바뀐 일정에 가능한 시간을 전하는 순서다 / 순서와 실제 가능 시간을 솔직히 말하는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.02.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "9714797c4c380336bd9620d2a168d0b2a6a6715f724c1c2aa6a01a7721f8cb4f",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "388ddc6874ce3eb75fbec186f8c1f3676a6a79954b28f9387a8d3e55747c9bcf",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "9714797c4c380336bd9620d2a168d0b2a6a6715f724c1c2aa6a01a7721f8cb4f",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.02.reversed",
+        "assessment": "혼자 해결하려다 늦기 전에 사정을 알린다 / 잔여 일을 할 시간이 부족해질 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.03.upright": {
         "status": "pass",
-        "read_bundle_sha256": "21be107ea79672bd6c4e4e0b7dcd21cae32cd4096c96960937393d03fe06db58",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "32dc888a9df25c7db9c132f73f748dd416dea144a6440e2a76b2541e35106c26",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "21be107ea79672bd6c4e4e0b7dcd21cae32cd4096c96960937393d03fe06db58",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.03.upright",
+        "assessment": "장점 전달이 역할 분담으로 이어지는 한 문장이다 / 설명 듣고 맡기면 혼자보다 수월하다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.03.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "56ae30b4120ead962e6ba1521dcd72b2bdfc888435fa246b4c014fc601cd4467",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "460bbde64620d8c87bc64bbd8fed12d22c2391aaaefc3b6a2502b4a09c785c8a",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "56ae30b4120ead962e6ba1521dcd72b2bdfc888435fa246b4c014fc601cd4467",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.03.reversed",
+        "assessment": "못 본 부분도 설명 듣고 고칠 수 있어서다 / 수정할 내용을 들어야 반복 작업을 줄인다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.04.upright": {
         "status": "pass",
-        "read_bundle_sha256": "d21f2448df8d9d9e2b89a92274b2e5378e97872a15bbde37224e924f374824b7",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "b0ed6c0ee200094c3b42af06f58470a43f29c70c81a9e606a76614dc38e9c676",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "d21f2448df8d9d9e2b89a92274b2e5378e97872a15bbde37224e924f374824b7",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.04.upright",
+        "assessment": "새로 필요한지 판단하는 목적과 확인 대상을 한 문장에 썼다 / 부탁 내용을 알고 가능 여부를 정하는 순서다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.04.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "a6bfae29c27228855a2fccc604344e2cd83ac7e1a81fd0ca386f957ce8c2ba2e",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "17ad43841c5ae2fb14614c7c0a01ca8c999613ef4630f53abfa47e1a86180576",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "a6bfae29c27228855a2fccc604344e2cd83ac7e1a81fd0ca386f957ce8c2ba2e",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.04.reversed",
+        "assessment": "조건 변경 가능할 경우 재시도 시점을 알아보는 후속 확인이다 / 재촉만 하면 동의를 얻는 시간이 더 길어질 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.05.upright": {
         "status": "pass",
-        "read_bundle_sha256": "76192ea84ca4637d6c60ee0d4c52ad65507081750e0327d766e2cb7afb416bd0",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "7f5020d386ecb4ad209491c09e718857baaac883a7775d8dd3f96ae4d55f1797",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "76192ea84ca4637d6c60ee0d4c52ad65507081750e0327d766e2cb7afb416bd0",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.05.upright",
+        "assessment": "혼자 어려운 조건과 도울 대상을 한 문장에 담았다 / 비교만으로는 실제 부족한 도움의 내용이 전달되지 않는다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.05.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "932e14df2c20644151142e802ccc544dc20dce4d01adcb379e477f1922782bb5",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4c39ccfe903d4aa085b31b9894b267b168ab84154f537c69a05e221c834cf8a1",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "932e14df2c20644151142e802ccc544dc20dce4d01adcb379e477f1922782bb5",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.05.reversed",
+        "assessment": "완료한 것을 중복 처리하지 않으려는 목적이다 / 혼자 할 일이 늘어 끝내는 시간도 늘어난다는 실제 결과로 명확해졌다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.06.upright": {
         "status": "pass",
-        "read_bundle_sha256": "7986e9a11c8f9ef85a294f4f022d7fdefaf5a47d5c59c507f70df9a4938cb359",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "1a0fbe4a8ffd6e2b8abff4955e6dfc0a49c80cd280dc72c231f513d6663433f1",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7986e9a11c8f9ef85a294f4f022d7fdefaf5a47d5c59c507f70df9a4938cb359",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.06.upright",
+        "assessment": "감사 표현에 어떤 도움이 유용했는지 담는 한 문장이다 / 좋은 의도와 상대가 필요한 도움은 다를 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.06.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "fc12cb692e74330bd0f071117c7851022f947ed00f91703003642feb6da20a8c",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "2ffbe7189e5fc7a77c986d30747342b532045bbac68b970f3e9cd0bb9430799b",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fc12cb692e74330bd0f071117c7851022f947ed00f91703003642feb6da20a8c",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.06.reversed",
+        "assessment": "받기 어려운 조건은 수락 전에 밝히는 방법이다 / 비교 발언을 반복하면 서로 불편해진다는 직접적인 관계 결과다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.07.upright": {
         "status": "pass",
-        "read_bundle_sha256": "26829b2ee7b4608444c745efd15ed92dafdcc4dda7518aa19bb26cd32f0610ca",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "150607abe72a32e2113728a8c5389539ab84a7ba8cabcb6395b4b93212593b33",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "26829b2ee7b4608444c745efd15ed92dafdcc4dda7518aa19bb26cd32f0610ca",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.07.upright",
+        "assessment": "진행 상태 관찰을 다음 선택에 연결한다 / 기존 수고를 헛되게 하지 않으려 남은 필수 과정도 한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.07.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "edd1c448c89c6ee8112a69c26634dc6594506231413bcbebe3095b93043ddec3",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "c8ff622f7e0d1ef61e7d18b8e29efdde815bc43edbad094e2b63c46c5f4c66d4",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "edd1c448c89c6ee8112a69c26634dc6594506231413bcbebe3095b93043ddec3",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.07.reversed",
+        "assessment": "불명확하면 현재 가능한 범위만 약속하는 대안이다 / 매몰된 시간과 추가 수락을 연결하지 않는 완결 문장이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.08.upright": {
         "status": "pass",
-        "read_bundle_sha256": "1ffb9bff68e972fc4071949fa7ecc3c5a682ec3ca210d8e57be1183d206d7685",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0acf84c68fedbf0eb18860194ef68df3b5cbc53a5e44f5729bbbaa7e5b49854e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "1ffb9bff68e972fc4071949fa7ecc3c5a682ec3ca210d8e57be1183d206d7685",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.08.upright",
+        "assessment": "사용할 방법과 적용할 일의 관계가 같은 문장에 있다 / 마무리를 소홀히 하면 잘한 결과에도 아쉬움이 남는다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.08.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "a9855c3b7b9e9b43bfc6dd4c58e41455b7e5aa7d0a80e34668045b963bb3755b",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "4690450f6b2c131fb030496e321acd45d53ccf1b90ded4b2a0d9b6a1b014cc59",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "a9855c3b7b9e9b43bfc6dd4c58e41455b7e5aa7d0a80e34668045b963bb3755b",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.08.reversed",
+        "assessment": "누락 발견 시 완료 전에 고치는 후속 방법이다 / 실제 수정 없이는 재작업과 신뢰 손실이 생길 수 있다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.09.upright": {
         "status": "pass",
-        "read_bundle_sha256": "27d857b1582671ffc0ce27f13a53e2499bc5ce5812e406a0111e7b03056344f6",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0025b4234662fa816fc7ec10be5049886e038c729b7bc279140c12d7f5bee6ea",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "27d857b1582671ffc0ce27f13a53e2499bc5ce5812e406a0111e7b03056344f6",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.09.upright",
+        "assessment": "하고 싶은 활동의 대상은 사용자가 고를 수 있도록 열어 두면서도 왜 미뤘는지 명시했다. 첫 구절에 기념의 목적을 밝혀 활동 뒤 축하로 넘어가던 목적 점프가 해소됐다. 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.09.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "9cff7772be836af5647f6c78462bf32cb38d8ad24a224a25a81e1d406ae45a4c",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "e8b68c0bcb41c191708596789c44398314b1e30e3953e3393a133c87ecd6fe88",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "9cff7772be836af5647f6c78462bf32cb38d8ad24a224a25a81e1d406ae45a4c",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.09.reversed",
+        "assessment": "참여 전 필요한 것의 실제 구비 여부를 확인하는 한 문장이다 / 실제 이용 불편을 알아본 뒤 말하는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.10.upright": {
         "status": "pass",
-        "read_bundle_sha256": "9dca9f9cec2c42acee4b6cdfd6273f962e0c0999259c800c46c826ce7979ae93",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "5c83a42876647420ad29330fef2095bf04919c8c961737f5b2f3598abeef9bea",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "9dca9f9cec2c42acee4b6cdfd6273f962e0c0999259c800c46c826ce7979ae93",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.10.upright",
+        "assessment": "축적된 기록에 지금 필요한 답이 있을 수 있다 / 도움 가능 조건과 피할 중복 수고를 한 문장에 담았다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.10.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "5618e61efc002e07c7d8b67cbf4b9a1c8046cb7fc82def7533d79ace52354b27",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "0651936821dff154979bedced9ff14fe9d0b1a79326c16518dc6190fb2a0f523",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "5618e61efc002e07c7d8b67cbf4b9a1c8046cb7fc82def7533d79ace52354b27",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.10.reversed",
+        "assessment": "전체 변경 전 부분 시험이라는 범위가 명료하다 / 예상과 다른 결과가 그 약속들의 이행도 어렵게 한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.11.upright": {
         "status": "pass",
-        "read_bundle_sha256": "f510d0d0b5115020fbbd85424e58d997262db2c0cbdf7b99e3ed90e2155adbbd",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "37aeb868f6a8b547ee0163d8355ba7e943da8286373802a03e56a4f046584f4e",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "f510d0d0b5115020fbbd85424e58d997262db2c0cbdf7b99e3ed90e2155adbbd",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.11.upright",
+        "assessment": "방법과 실제 적용 대상의 관계가 한 문장에 있다 / 뒤에 모르는 내용이 이어질 수 있어 끝까지 듣는다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.11.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "24ec5a085caed49f4b1d09bda68da0c490307361ac8bd031a96f40ea9a010e19",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "eefcc4fd45907623d0f7906dfc8cccdfa0430f373e204d096181d7bdc0a53199",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "24ec5a085caed49f4b1d09bda68da0c490307361ac8bd031a96f40ea9a010e19",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.11.reversed",
+        "assessment": "다른 일 전이라는 우선순위와 볼 내용이 명시된다 / 시시하다는 첫 느낌과 중단 결정을 분리하는 한 문장이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.12.upright": {
         "status": "pass",
-        "read_bundle_sha256": "fe9aa220a6d9223777ee6a51899a070e1949111a417b7beb811ea9381f2c2737",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "6a144d3c8c5ab23bb1c96b5dd237861082fb6248b03a82315ed7f4b4b4d972c9",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "fe9aa220a6d9223777ee6a51899a070e1949111a417b7beb811ea9381f2c2737",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.12.upright",
+        "assessment": "완수와 최종 확인이 같은 일을 끝내는 순서다 / 자기 순서로 완수 가능하면 남의 속도를 좇을 필요 없다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.12.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "20d0de78f522dc201588c90cf955e5bbad75a3b8b6419f78bf1d0e76b54987b2",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "d11e28ff3f9c15459d50439e1e9fcc01e80d0ddd3e8c94897839663485800b13",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "20d0de78f522dc201588c90cf955e5bbad75a3b8b6419f78bf1d0e76b54987b2",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.12.reversed",
+        "assessment": "끝냈다고 생각한 부분에도 누락이 있을 수 있다 / 시간이 지나면 진행 상태를 다시 알아보는 시간도 든다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.13.upright": {
         "status": "pass",
-        "read_bundle_sha256": "3c4ff7f44e0027a54d45d989da8ca8b5975438403b4af274c9a672620706f40a",
-        "round": 2,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "63432c70c1c10643c09c9960589b050dc091760b40fb9c77f3c22380b65d2fab",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "3c4ff7f44e0027a54d45d989da8ca8b5975438403b4af274c9a672620706f40a",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.13.upright",
+        "assessment": "자기 사용분을 남기고 쉽게 건넬 물건을 고르는 범위다 / 자기 일도 고려해 가능한 만큼 돕는 대안이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.13.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "8b70c6ca5f280b4c87d1eeb972895aac4647fb35f6f857bc4be16efd8751a34a",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "06d4bb6f857792217aa23d4bcfdf99a2cb515afffed711fd2cbf70763751ae2a",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "8b70c6ca5f280b4c87d1eeb972895aac4647fb35f6f857bc4be16efd8751a34a",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.13.reversed",
+        "assessment": "결정 상황이 먼저 있어 뒤의 정한다는 행동이 떠 있지 않다 / 의심만 주고받으면 구체적 도움을 논의하기 어려워진다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.14.upright": {
         "status": "pass",
-        "read_bundle_sha256": "12a305dff2f0d6b17e4f9ccc147b5804ac353db217260c0aa4f9a2244dbe6a54",
-        "round": 3,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "a4509a95a60da242c84625f61a50c787b9568001f4274ec3b2c237b487baa241",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "12a305dff2f0d6b17e4f9ccc147b5804ac353db217260c0aa4f9a2244dbe6a54",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.14.upright",
+        "assessment": "복잡한 문제 해결이라는 목적과 방법 선택이 한 문장이다 / 미경험 조건과 피할 보증 행동을 명시한다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       },
       "overall.pentacles.14.reversed": {
         "status": "pass",
-        "read_bundle_sha256": "7b7e93ba6d41a323cb7d6310d5ff43f278f51c358512896db3f6c032c0317e8e",
-        "round": 1,
-        "assessment": "전문 재독: 직접적인 운세 판단, 문맥과 한국어, 분야별 단락 및 카드 의미를 확인"
+        "read_bundle_sha256": "d48b65066b61181f7e43b7548852c659f5954c72e4d738497fcb38f477a6f8fd",
+        "round": "ko-actions.r2",
+        "reviewer": "card_major_writer",
+        "previous_bundle_sha256": "7b7e93ba6d41a323cb7d6310d5ff43f278f51c358512896db3f6c032c0317e8e",
+        "action_review_reference": "../ko-actions/review.json#entries/overall.pentacles.14.reversed",
+        "assessment": "충분한 조건을 얻은 경우의 종료 판단이다 / 그 일을 끝낼 시간과 힘을 확인하는 판단 기준이다 두 행동의 개별 독해와 기존 총평·두 단락 대조 후 통과. 본문 자체는 이전 승인본과 동일."
       }
     },
     "energy": {
@@ -5923,5 +6391,13 @@
     "reviewer_role": "root: 집필하지 않고 기준 설정·전문 읽기·반려·수정본 재독·근거와 최종 기록 정리",
     "author_role": "분야별 담당 에이전트가 원고 작성과 교정 및 자체 읽기",
     "scope_limit": "한국어 편집 정본의 에이전트 검수. 서버 반영·API/DB 검증·EN/JA 검수·인간 감수 인증은 포함하지 않음."
+  },
+  "action_revision": {
+    "version": "fortune-copy.v8-localized.2",
+    "review_reference": "../ko-actions/review.json",
+    "independent_pairs": 156,
+    "root_sample_reference": "../ko-actions/root-review.json",
+    "root_sample_pairs": 84,
+    "scope": "변경 두 필드는 새 검수, 유지한 headline/paragraphs 및 다른 네 분야는 기존 승인 기록 유지"
   }
 }

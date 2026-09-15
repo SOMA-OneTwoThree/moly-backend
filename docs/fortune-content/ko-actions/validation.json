@@ -1,0 +1,47 @@
+{
+  "status": "pass",
+  "criteria_version": "ko-actions.r2",
+  "scope": "Korean action editorial and static proof checks; API verification is separate",
+  "pairs": 156,
+  "fields": 312,
+  "independent_current_passes": 156,
+  "revised_pairs": 127,
+  "revised_fields": 183,
+  "lengths": {
+    "do": {
+      "before_mean": 15.4,
+      "after_mean": 59.7,
+      "after_min": 39,
+      "after_max": 82
+    },
+    "pause": {
+      "before_mean": 17.0,
+      "after_mean": 65.7,
+      "after_min": 44,
+      "after_max": 84
+    }
+  },
+  "errors": [],
+  "pending": [],
+  "warnings": [
+    {
+      "key": "overall.wands.10.reversed",
+      "field": "do",
+      "reason": "outside reference length",
+      "characters": 82
+    },
+    {
+      "key": "overall.wands.14.reversed",
+      "field": "pause",
+      "reason": "outside reference length",
+      "characters": 81
+    },
+    {
+      "key": "overall.pentacles.08.reversed",
+      "field": "pause",
+      "reason": "outside reference length",
+      "characters": 84
+    }
+  ],
+  "duplicates": []
+}

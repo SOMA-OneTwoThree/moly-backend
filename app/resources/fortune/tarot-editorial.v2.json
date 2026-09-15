@@ -1,6 +1,6 @@
 {
   "schema": "fortune-tarot-editorial-v2",
-  "copy_version": "fortune-copy.v8-localized.1",
+  "copy_version": "fortune-copy.v8-localized.2",
   "source": "https://sacred-texts.com/tarot/pkt/index.htm",
   "policy": "independent-card-draw-complete-paragraphs",
   "readings": {
@@ -7855,9 +7855,9 @@
         "감정의 막힘"
       ],
       "copy_sha256": {
-        "ko": "f44c3a987e85d91c22737e2793460cb929b169f1b919e7c52ab88e41ebf172cf",
-        "en": "5112c0dbc929e22e4984b6d070dc9d0253b7d0af1a7bd473cdab67832ed0bf9d",
-        "ja": "f4bf750e242e7ec5fd6dd3c9bb55c5a2c3e580d52aae8c24ca57ef324aff5e7d"
+        "ko": "6c74376dc0d5b9f13ec585ee73fc376e84131442b38e2e6fc768c014854074e2",
+        "en": "0e94712ef160f705d10e098cca28b3e10e7f26526024c4f87da922ace15064e8",
+        "ja": "9027a45f20f210512e3ae407260ca276f9343844bfed70b1dc83cbccb0b81b4e"
       }
     },
     "overall.cups.01.upright": {
@@ -7872,9 +7872,9 @@
         "새로움"
       ],
       "copy_sha256": {
-        "ko": "46c802b11e3103c20efeda6916d0ceb9b107a4d63836700ab9c08a0547f9ac03",
-        "en": "58078d190a0b88a9e4681991d26f5b0cb9e0aa5e356ad9886635884cc3b20bf4",
-        "ja": "69dd1011625cfe085cc452d37e73a5a8906b6950e4e9a9d44a42b6dd10517150"
+        "ko": "23153535dd1caaa613d1dc0c937d1ed9968ad51a02908890ee8e955f4f15da5f",
+        "en": "98bae6aa694f2082aec4b8774a3dc6fe13beb5148e38dfca1194b958481e3467",
+        "ja": "6bdbfd607b5ef1bb0cc8a3f7a13a6574ec575857a43ee2a55eac068dbf3d532f"
       }
     },
     "overall.cups.02.reversed": {
@@ -7889,9 +7889,9 @@
         "소통단절"
       ],
       "copy_sha256": {
-        "ko": "49aa5d57ee2a2f61b27f83bc4dc0903a4b03ab359f181142829a6dce15d3791e",
-        "en": "9af35631a6899dedb15846d5c5f4a979ef24cfe67d24a28ddfc7be825d6af812",
-        "ja": "f931a123e48b07ae3ce3208b65c19d71d83d4937298b6de66ec2d25258485296"
+        "ko": "4eaa24020b6415c4e5b633a25747c3552d9b1c395a50391774d8e422cdcf848b",
+        "en": "6bac5a5e54b5c68a2efebc14f905282eefeac86eaceba972951155aff9c09c39",
+        "ja": "899f603232e66ae2e5fe10b9f2daf5517eb6bf6009f94b92cc6ae667680a5152"
       }
     },
     "overall.cups.02.upright": {
@@ -7906,9 +7906,9 @@
         "친화"
       ],
       "copy_sha256": {
-        "ko": "d2777da7b4f60f7877448fbd318d737098abd4e30da5e64c4e52fa3b1847e072",
-        "en": "dc8916040ac36e04cf62a42994d6d1bf16f4ccf37f6e428b67bcc1f1d2178ab3",
-        "ja": "75b85dd180cbe35b7b6bb4788c83316c814767bfd05dc5644828225065fdad03"
+        "ko": "08a16116f4536e5cd90678cd911937c321cc8c4e02d10c5f4b1fa3a68e86bedc",
+        "en": "e6f4cf99e82a8d87278ebd72c585638b907af56ed7d2a7b763efbb8f184e8530",
+        "ja": "c59d6234002669d727e54db1db6181afdb6b13ebb4a1a828672466a9e40fd766"
       }
     },
     "overall.cups.03.reversed": {
@@ -7923,9 +7923,9 @@
         "과소비 경계"
       ],
       "copy_sha256": {
-        "ko": "5b31e8a9b72e13130f94f52bc33f6ef44601148edf8655807a56584cfc176eac",
-        "en": "99630c9e83a7a80c956261f19047e97a224414cca3f01c353710c7def3f822c8",
-        "ja": "c9c342f456c4efa6ef1a59eacac1196d46942d34ede6fc6e1c8381102bf67cc9"
+        "ko": "026f928f0f232be7192b9edf11a63d063bc2498c14ddedf40d5fd2fb7af34441",
+        "en": "de3365bb8925c09dcb999c31451955ec3ca15296f74037d6bd4e64fa82c43705",
+        "ja": "22ca5779ad9d95388e2db1f15b0bfdebc3ff3d136164bb6b953981c2bcf50dff"
       }
     },
     "overall.cups.03.upright": {
@@ -7940,9 +7940,9 @@
         "축하"
       ],
       "copy_sha256": {
-        "ko": "1cfd34aef2efd7781183764b58e578ffde1d6850fe0c0039c902667a5645c2fe",
-        "en": "f64d707c34141e9aada38fbd1b3550ef61a511fa652429ffb1d3b59a6d1ff728",
-        "ja": "bd108a9f529a0fd5693f0cc6abf7bc5a69826dd9f28e0a933e0a1ceb03985072"
+        "ko": "1b8c8c802d618cd4fb708b135fb75f2912d0e0e93618197d6ccaa4817482a207",
+        "en": "62da411879412eea405119cb83b3a198b912acda08f60c503a19ab7fc909a97b",
+        "ja": "7187046b5b8c2deb9186bfe9a2aa65bbf3cbf0a1057eb0caf43007a2c12ac9a1"
       }
     },
     "overall.cups.04.reversed": {
@@ -7957,9 +7957,9 @@
         "관심의 재개"
       ],
       "copy_sha256": {
-        "ko": "b505608dbcc6a914c292d18eeab2c7048cf2ea3bdb48431cd5bbb86de2ff9e31",
-        "en": "0cbcb0549f1ce196dd6b9b5a6a019c9e6f4603142abcf6f1a7bb813a307ebe02",
-        "ja": "f283663dc6e6a56849f15fe927a649a6539325a0ed2effdf3610464fcd1dceb7"
+        "ko": "e117e96faf0bbd85a10fb46d239382f3491d098d99ca5efbe826d7b57619d60c",
+        "en": "f93e640596d1a793c2749ee9e36a49e294f9ee3354628d8aad65b602da293496",
+        "ja": "31f23427815d8040840b91e94fd89cd9017a201238e86e28e088d133f5b245c1"
       }
     },
     "overall.cups.04.upright": {
@@ -7974,9 +7974,9 @@
         "기회에 대한 무관심"
       ],
       "copy_sha256": {
-        "ko": "9b939cb92b9f85757ee3ac473b878c5890c4f01b2314ddee40bf72235103f80e",
-        "en": "097fe4aaf2809a9a584489a7529735ef85dd20c34ab900c70a2ff499ab85f2a7",
-        "ja": "0ac32aebfd88ca55dec442c511ddbfb946d25fd69f84bca1ce047d5cca02fa85"
+        "ko": "acf4396ec9186a5d75c8580d79ccb85200232aee6b6d4d7a26f4301fae49a5f3",
+        "en": "9db246c0c3a736d85b6a851377c84bee4af2de74e7f03ca90c212dd45bea0f76",
+        "ja": "49ee4d95cc235bb3e3fec40cd02fd85f50a90a0d7bc9809041a5bd8dfbf2d428"
       }
     },
     "overall.cups.05.reversed": {
@@ -7991,9 +7991,9 @@
         "후회에서 벗어남"
       ],
       "copy_sha256": {
-        "ko": "ce2ea7963065ca15c9bd8eefd1a5904c77d52ed79bd3fa27a28495e2a6dfa134",
-        "en": "5f523404a0a6ca98c9914d644461ba326bc44f6bebee6cfe7b5290d23a31f2c4",
-        "ja": "b6d693712a0d8210fd12fed1f6553c004b06cfea48ce077077eac7226abd3de9"
+        "ko": "a1bb6fe649105595d30e87d43ff50e7f45898948c42b9a94e073eee95dd61fc8",
+        "en": "16b3ae09a4a1a628896d535caaaf11095ba65b1125b3f2893a102ecc81dcdaeb",
+        "ja": "49ee1e5b02584b88ef04d84cff024002c4f95625c9eab9bab5ca526211e96f1c"
       }
     },
     "overall.cups.05.upright": {
@@ -8008,9 +8008,9 @@
         "남아 있는 것"
       ],
       "copy_sha256": {
-        "ko": "a9b07312d41d7dd83ae2d20cb8c2617c4ef2eac269b6d9aef764a14daf355187",
-        "en": "7084baae173499bfecefc0067e573e6c6a7513740a9885b95367538192261f92",
-        "ja": "dca63d5c7f1811e76e9fce2216cb59894fcac2802cb35facd4d4cd273a06bf96"
+        "ko": "06bb29e38fc13d23a0a85c2c61656e7b410f1964d41c4dd215f799928f5a299b",
+        "en": "c6ba5de0e46f1cab28a2bad0b20784164496824b7d8ea562a52a72d6db20bb9c",
+        "ja": "edee6288d900aed6d161dd318fa5da88008128f5f465b72155be80e3b10a07d0"
       }
     },
     "overall.cups.06.reversed": {
@@ -8025,9 +8025,9 @@
         "과거와 현재의 구분"
       ],
       "copy_sha256": {
-        "ko": "a41884e0cc2b85547d437e3c8d360cb87071c4cfd8785296589973a79218019f",
-        "en": "4183c370ef8865ac0d57927e7e7f3748c17d058cc58d433e72f58de49ba4b06b",
-        "ja": "4280233cdf143681dfa41c0dd0fa02a0ac57c4cbb24ca89c5901183845b091f8"
+        "ko": "d86ecb14b4019463888c7d3b1e8a531a0135493e8785eaa7fffbf7bae7e75c3d",
+        "en": "2043aae3f57a36dbc2286279d1fd5d31c716a09c2a3da37b4cbb68a219bedf2f",
+        "ja": "17c453ac16afa943b70951b01f6a5ca21f8f75f6919dff60f4dc8c878dbc87f6"
       }
     },
     "overall.cups.06.upright": {
@@ -8042,9 +8042,9 @@
         "익숙함"
       ],
       "copy_sha256": {
-        "ko": "d0e88c80ef62c4ee179c1c64b86311ae7e1f259839df6c6a4033906291d21a5f",
-        "en": "8c1ba11e8c77be81800f4bbd157de14cd28a698d2c33cf5825731f7697ac5c80",
-        "ja": "6c09f5f90be8e0098a663e7c1923d2cdb6593a2893268aea221ae9af17be69bd"
+        "ko": "e0ac160c32464d36670a4db14895796b91f236fbb85781b9edba1c8c01afd8c1",
+        "en": "a7ad120701e26a5f730f732a5df3acafafd54c569104e8103b040fc1ef1d9333",
+        "ja": "53f1a90ddae86639ddbfcf565aad2a09ba56f217e5f04b3e504b737e7d5e3245"
       }
     },
     "overall.cups.07.reversed": {
@@ -8059,9 +8059,9 @@
         "목표를고름"
       ],
       "copy_sha256": {
-        "ko": "b7de303b04506e0022cf5056ed2e4936204808f3c56484d9d052a9a06df77170",
-        "en": "6cd2db0fd32305bf47fa7d26ec702363d6244ed5b3739c603d10db138790e6fa",
-        "ja": "fd193bb7444993915e237be79ea1a6087035067e6a4f56fc1cec653bb3754deb"
+        "ko": "36fce4ad8099002f72ede398c2d99bf6acf3671f4aa118930e89b383aeb40380",
+        "en": "69e61326c45d2be9983c8eced4be397ace1dfb17d5a4b55b9deb9a194f525d9b",
+        "ja": "853a2200504a34abf6ae96a40abec11d1f057ad4cbdeb633b650fb71959cecfc"
       }
     },
     "overall.cups.07.upright": {
@@ -8076,9 +8076,9 @@
         "실체의불확실성"
       ],
       "copy_sha256": {
-        "ko": "d082f1aa0f7a829966424d6d9078726a63e72fa89425758f42231a36ffbcadd6",
-        "en": "3c989e2ad0ceaa7555563fa2c38e975a42f3eaa5b44c6470da0e6f71e4813c37",
-        "ja": "6351df3df4d8bec73b75b1d675fda398ae37607d1c5ff591cb0c6aca946614c5"
+        "ko": "b42ffc10f4267970f4b11a51bd9c81ee00bc8ba1c57b9730ced773ef5815a4e6",
+        "en": "7ef876ae9ee06f10bacc6925826286c811017914cc37c55342e2f19fec2f9fb0",
+        "ja": "a63e7e3262e97eb63926ede1ed69d4cfb21ac0754383500b2fc43b7f974d3384"
       }
     },
     "overall.cups.08.reversed": {
@@ -8092,9 +8092,9 @@
         "머무름과변화사이의망설임"
       ],
       "copy_sha256": {
-        "ko": "3e86619db26e5ccda3b445f957522ca14e7a20ac97b6c9726ef9e5607970a668",
-        "en": "e75db22aa17b6561ab93bcc86e8118bb5b7cf50dd961dafee8f29e38c0f5192e",
-        "ja": "0de7a53de472faea33bbc30d2f646867e884c0f11c9e3f12bf58479f7006ba7a"
+        "ko": "f65174ed74bd8bc002cdb6810b0c12d7c816fcda9e0b0827772f6f396577e082",
+        "en": "e006a1273eb44239cb97bd8e119b15fc4bfd0ba95ba6b7f2d1b18ea83aa6d08c",
+        "ja": "746bd1ac9bb7bf8ab4437d302fc7d16c61e7af1af3e3fc4dba86d1d011891e6d"
       }
     },
     "overall.cups.08.upright": {
@@ -8109,9 +8109,9 @@
         "다른선택"
       ],
       "copy_sha256": {
-        "ko": "10c955c4f59ce92899c40bb5fd8ab6df7e1d526c08090c3369eeda55df43f926",
-        "en": "db99d6799b3258999e414fb813c1a70f7b3da1a2d05bc8ef6667c4ead91726b3",
-        "ja": "07f11a5422d26af8a7e952d09a6fb6f20ba7efdadfd996aeab75af1005f3df8b"
+        "ko": "2dd64399e3a12ad1c3ee957a5a7d3549d240a26e936ed7c8c1d0ccf3955b9d95",
+        "en": "27e664984698e56eaea3b1c1c603863e69c70828e8fa26115fe590d0275971c5",
+        "ja": "3045e0fd43d7247abaf213101a89347145c535287b42412ed6bade76c5e64361"
       }
     },
     "overall.cups.09.reversed": {
@@ -8126,9 +8126,9 @@
         "과도한기대"
       ],
       "copy_sha256": {
-        "ko": "3532e793741d67420fcb31b2b5bb257b627dbdf0ded353e8852cb735df346c40",
-        "en": "614ca0763c0201e4da7710d5105597e3d576c8469c4a7c82b018a7c67228d806",
-        "ja": "c08940b837f0f9a2b967685b0d7de93752b8e6cad6252582f927693522e77711"
+        "ko": "142b0ff4f206c46ab1b986765db3486c849b08ad56401bd0e29560bba8f90240",
+        "en": "52813342db1834d8fb0bca582fb35e54c322a501bd15df91f07fa02b5deafacf",
+        "ja": "f47a15ad4adb281c1644c5265e227fd698213e30796e4034ad218dd57c624a08"
       }
     },
     "overall.cups.09.upright": {
@@ -8143,9 +8143,9 @@
         "신체적편안함"
       ],
       "copy_sha256": {
-        "ko": "64df12e85356d248f560695542e032a2687df29b1786b29b2c7a6aa23625fa5b",
-        "en": "6fb838b6914c87b2e953df07d000aa5684a9c294c8abaad1bf0e3bb5d2de10ed",
-        "ja": "62ff56aa9bb9d4e996dbbd70bbf6c1b84d7a1a5e3bd26531d25898e485590ce6"
+        "ko": "13a94a0ed31f731e45593f8fd1d549ac2e2eb3812e32c1ad00129c05503e815c",
+        "en": "edeaaa0d623ad4e5c116ca3ee4c14dfaa03e140aa798a8465435ba25163a78c8",
+        "ja": "97101e545d447aff8b38a0c943acbd4367e98b5e73ff5ba7490a47fa06bfd482"
       }
     },
     "overall.cups.10.reversed": {
@@ -8160,9 +8160,9 @@
         "겉의평화와속의불편"
       ],
       "copy_sha256": {
-        "ko": "60ebdeaf5ffa0eb82b974202e8c5c163d89322b12a6c9b45824996eab108faf5",
-        "en": "cd001fa2ae24298989e4a58bfb5b03fa20b9489ffe136a369ac9a1430337c944",
-        "ja": "97303ff4569bc74893ca3fbe462515c2ec04f5a99f6d2c8f90ff9baa92c5d53a"
+        "ko": "a1dab2d81bae84829ce912bbcda20e30dc47a6937c71fec91db6cc81c20ba41b",
+        "en": "ab2cc327129b14f9613e5c7297958c8a43f8fce7ab7cd15c8c468228f789df7f",
+        "ja": "173e6f4413e0503e5e9b830e389f21143ae20a882ace5c443c8665654222a2a3"
       }
     },
     "overall.cups.10.upright": {
@@ -8177,9 +8177,9 @@
         "함께하는안정"
       ],
       "copy_sha256": {
-        "ko": "2960652c0f2218d58beb50e4b22a09e02c1eb1df8155cb6c4bb4a2fb2c8c6ad8",
-        "en": "436e039582a0ee4d856dda7d89137e3bab03791f1087001a65610fdf8ebd1db3",
-        "ja": "cbb6f3d213a74f845c31b3dd09bf2b2fad7285c208aebfa3b572608ea8186d7a"
+        "ko": "b6e87364a6c32bb829a9b7818987cb5003abc524078221e38bd1d32526aa4860",
+        "en": "a59d6124b147b85796113c177429672a8b71ccf0bb1b58cae025e359d18ba3a5",
+        "ja": "7dd576d8600e284a77bdaf290f5d75e8d061ae95cde06ea07e6a428832e61d82"
       }
     },
     "overall.cups.11.reversed": {
@@ -8194,9 +8194,9 @@
         "창의성 억제"
       ],
       "copy_sha256": {
-        "ko": "7982f65df5f54d1eb34928cdce7fab4ce96dd64bbf0a2c21d3f123cfdddc1ab6",
-        "en": "4fb3170b1a69244bbf6260fea2e9032b6a00fefa8eda1c08e34f6b3bee3ac4de",
-        "ja": "d6ec958ad820ccf94dec4bca10b645bc903f453ad963f01d07360b2ce88386de"
+        "ko": "e0f789255867d865a166690bc95fe461499403eb157907fc671c0fba0982bf4f",
+        "en": "55f1ea03d2cefcc506588b275acfbb0165d8ddf889b4eabb8071dd809a5b054e",
+        "ja": "024c65a65e1981d70cefc2b7acc3da11fb0b234b436e19c6cdf241c1da03b78b"
       }
     },
     "overall.cups.11.upright": {
@@ -8211,9 +8211,9 @@
         "창의적 시작"
       ],
       "copy_sha256": {
-        "ko": "e897cca1fd4348c003c3e893134832051f3baefc9d2bfcf9c0b749ac30154cc8",
-        "en": "e5785e7528010c5b07f5bec9ff94ddd4bc44244d0959e80b5fbf4cc7484c8a34",
-        "ja": "60879f83b27bbffceb90ca22f21b695218e7bd464b599e9d23d9df9749390131"
+        "ko": "1429c09109dabd44ff6642d2dae793ed5cb378aa28f6039cbca6204b68ac4356",
+        "en": "20d511836ded36e383e2e2367e3513b117587eeba0f7e4f76de8dfa4a01eced9",
+        "ja": "20661045df344d16ded75feb4c80df60d2aa95234583e020d04c8e0ae5e1897f"
       }
     },
     "overall.cups.12.reversed": {
@@ -8228,9 +8228,9 @@
         "지키지 않는 약속"
       ],
       "copy_sha256": {
-        "ko": "d2b1c5d3ac50673a076367576f6c960aeda75a725ee7f20831ff3a9e0427ce81",
-        "en": "297fa33a2ee7f47a465fc3fa0c91ce0365a9e1f78a62090d6ed1d9681da61f81",
-        "ja": "4e95f67942b2add0fd156366dc49ef6c3c201849ce0dcbf33984c8e9db83e5bd"
+        "ko": "4c8ef6117d74b46060f4c24c08dcd7bc232d9f6b07b2ee5a228bc83b881aecbd",
+        "en": "b77be767f5ac3a2bc607956d71b8bb38ee630e04bf9ef2ad29d73ee1bea83f1c",
+        "ja": "342059c922274b1a0fbb319a5920318c19ee5993433a583dd90b2d1a7a955494"
       }
     },
     "overall.cups.12.upright": {
@@ -8245,9 +8245,9 @@
         "감정을 담은 표현"
       ],
       "copy_sha256": {
-        "ko": "ac5544abc245be9a1eaa4de170468cc255eebed2567401a9c8e8dc9be9b22540",
-        "en": "d94ba674cefc709e11697e818d9c548dea433171aff76a42a23e4ed5e1fcd4c5",
-        "ja": "b7c33098fa38ea5c3b54298a982f4f9fa7e403e248db923fa710a95064316721"
+        "ko": "4b26d5ad6007de153c76d94cf611d76aca957dd57ebc99b2424f8120e652be8d",
+        "en": "030867c7640a2dc73c86e110bb5a58d090a489988f919d43df368b048a380848",
+        "ja": "db26327d3df78af77073c0dd424723b27d6b2f25c8dc1e8ab9e35ce8194337e3"
       }
     },
     "overall.cups.13.reversed": {
@@ -8262,9 +8262,9 @@
         "자기 필요 소홀"
       ],
       "copy_sha256": {
-        "ko": "ec48d5b4b4a7dfff17a570c57428b8d80fe11a62309596d0eef827e2db225dfb",
-        "en": "b370874cdc6a3aeaa3c9b88c24e0c814ffadbfb1262f8907fcb6cbdf37ca6a73",
-        "ja": "a78d6b82b4a673d11182e4d60247eccdb81e4d4d65593eab5846798cc3b57c2d"
+        "ko": "920157486552f0e216ea1529fad76a4d27423223153e3917fb2f974e85b76e63",
+        "en": "787ae26766e7175206366cf302ef73659e8ab4fa21096788556bec45a06d7949",
+        "ja": "60d46490b47e9ad0076b5f89f63a3e39d1fdfb81f1900258aa6830e459f16af6"
       }
     },
     "overall.cups.13.upright": {
@@ -8279,9 +8279,9 @@
         "자기 감정 이해"
       ],
       "copy_sha256": {
-        "ko": "14c117050ee2b871adef432d7bd5e5cc0b2b42e44b2e16a826468dd93fb2af0b",
-        "en": "49b19db6e66c3573d8f1142a17ef0cc7f7bd074eac4c7f45c71566f430acbf20",
-        "ja": "dc8a7d084430ee0a0a692d562ee91b7cb1dd82acc011468366a7be55bd22a720"
+        "ko": "8acf459d782d197187a85459376be74131ca638461317cf184474c44d819a95d",
+        "en": "6b94d04d5e0c900919331185c428f7f0f5c31204abc9c90905452ed9b036dca6",
+        "ja": "32206aa61aec462d49f8bc36c3e49a4d76094c99b1e982560d1b89b1a9c5a319"
       }
     },
     "overall.cups.14.reversed": {
@@ -8296,9 +8296,9 @@
         "책임 회피"
       ],
       "copy_sha256": {
-        "ko": "c91981ef0302c3ef33507c17191a2c9386aa20f58db130bc12d3cc9b85fb59ae",
-        "en": "717858dc0e062a9ad70dc31017312d441320e02e3d2457207203e4785b7f09e3",
-        "ja": "32bdc44795648d5c4af2d943e89077e9b7875ac48d22b1d565def20c6a5e3bdf"
+        "ko": "d98ca380f28195915ca626269ec7d62acf6d411c1f2995fea9c6e1971ed259d1",
+        "en": "190d7066e5d4555e65ecc349f1dcbcb3b50d4c03a08a68e7a5edeecc0247a961",
+        "ja": "20690c083062bb1d343f2fb886d6bacf5dd227e0c618f6d5fab2d41d15f6c901"
       }
     },
     "overall.cups.14.upright": {
@@ -8313,9 +8313,9 @@
         "공감과 판단의 균형"
       ],
       "copy_sha256": {
-        "ko": "4d2bd0d8927b7100036c03812d4a6fe2fda71a8f74c008856d575ab803afd85e",
-        "en": "c77d904909a3339cee370b2cc3708ca6530ed3b554fd9a5436e7a517f352c842",
-        "ja": "1eb35d265be5b8e5656f441eab05bc9ad1f0b5eb00fc34f97c75930eef7e2b26"
+        "ko": "8470d6d1aceadef3d51555d414b60455217a060609a2ec50d3880ff176dc3e17",
+        "en": "0e01a2ad90c8ab4e605ebf6d66c360ab0aacd79adc8fea6b279d4a682630736b",
+        "ja": "ec2c8a6e74904495983c96cbb446acc7d885070a779d3c21ed84869896acb4eb"
       }
     },
     "overall.major.chariot.reversed": {
@@ -8330,9 +8330,9 @@
         "통제상실"
       ],
       "copy_sha256": {
-        "ko": "36ba18d5678892b78306ef484316b8db0cb307bdcc23ba83013bed97d6c2dc5e",
-        "en": "8fc7c7559e669c2678724335bc3475e3a73314f5941d338dbff13ce43e189865",
-        "ja": "545e79fe94d5bc220a1b473a136ad5a9900f1e7bae11286473ba5f45f480dbec"
+        "ko": "f475a35ae8d0bee72d3430df0212e0f8fabdd4c569651eb28833f4a060aac6ab",
+        "en": "d64d0e99e23f311f1d63a4d12764d5417b726a4d327a848b3aeed4f6d9b1e949",
+        "ja": "5734b486803b95c3d24514ebacd103caa2e00c18ef5f3123cb455093fb024585"
       }
     },
     "overall.major.chariot.upright": {
@@ -8347,9 +8347,9 @@
         "장애를 넘어감"
       ],
       "copy_sha256": {
-        "ko": "0476736085e7f6401ea9c00b66a8ffa408c82c670f57f42ff81437b812cecdb7",
-        "en": "25cac278b54f9e5c6537e855f9584795ba5d3694f016447b9448afc0a8434b4e",
-        "ja": "e75ed9b8a3153a014982668b0b106b010ce34d1ba615f4922897a2ca9d890953"
+        "ko": "11e56506fc7964861be0833bd8c78df7b62b3eda376e124e4ccd55b4726700f9",
+        "en": "8193b33f4bbc5766f733692f04d10f35b1dde27714bea358a0c40520a99ea014",
+        "ja": "4373a64f74baf3417a194f11fa36ff57e9fc0a0d0cca4c7271577c9c191a5662"
       }
     },
     "overall.major.death.reversed": {
@@ -8364,9 +8364,9 @@
         "정체"
       ],
       "copy_sha256": {
-        "ko": "a0846148bf4851e047fdeb034f1bb113d99e806d2136b2980f0e4e504e45a32b",
-        "en": "c5a3cbb0b32d0f3ffbc599a1c366e3a794efc1f04e8dfa6cb253430185b1ad90",
-        "ja": "c80677e680890969e98ca24dcbbc4d5933c75c3948612d3b777e3f30377d5814"
+        "ko": "d8b9929081679b12570ea9a9385e9b3a72b4f3fad89a25adc05f045512a53700",
+        "en": "165054c10437523f0a2f3af3a0775b6c034f02fc04ad7ee04031cc4a5828a30e",
+        "ja": "37dc6707a559aef8a2b54c3940deaa9375e9c52e766f95b1def82f82a919b26b"
       }
     },
     "overall.major.death.upright": {
@@ -8381,9 +8381,9 @@
         "이전방식의끝"
       ],
       "copy_sha256": {
-        "ko": "9129f557b0f11c4897b887cd0c8ff5ba85972b00bde6fd65538bc87d326caeb9",
-        "en": "26bd2bcd94e35884f460c1a8e3c60991dab0469c38d2579c0f229ac574babb44",
-        "ja": "4c16734f389596e4e297dc950c142af1d6e3d2d9d5084d766f06611f0211060f"
+        "ko": "2ddd7c93977fbdea3020c1d5837581a8000351efffe3d039b72d87570a382f38",
+        "en": "d763c5f4400ef3546b0b2b72d461b8cf7509c8a26cc84e98bb694d90307d3631",
+        "ja": "7edb013937e7b4c64a1a8f3f15231c2c1fcb53302765ff05e0a3eb618efaa65b"
       }
     },
     "overall.major.devil.reversed": {
@@ -8398,9 +8398,9 @@
         "습관중단"
       ],
       "copy_sha256": {
-        "ko": "2c6410d806129a678b87301963778ae66dd4650fc353d8df9f76fef9a30b41f0",
-        "en": "c64e10734eee74a7ec663df17f9c6cd07850e15f67b8c12d1ff6e981e981ce8a",
-        "ja": "27751b23ec2742862f230b7972b8fb02e43d8d23734854d55bcbc5e8affca245"
+        "ko": "9a639e8f3ce336692a57f6666d30a30e9cec496e48217f70b7e1136be082ad00",
+        "en": "39cb61c4a1c3013360d8e04f4235dd4a82b0b10af3e0d4c50d97f2e7bcf35c00",
+        "ja": "0e5ec2315f046216244d7ea5f541c19454bad9c0e26d91cf7f4153b86d13228f"
       }
     },
     "overall.major.devil.upright": {
@@ -8415,9 +8415,9 @@
         "과도함"
       ],
       "copy_sha256": {
-        "ko": "041a9171feefc6734f4d8e5e4ad2e43bc92c70eb729b2d2f425f70829e63eb1a",
-        "en": "3831deeb4377bb6cfca9aec68bba6bcd09c7431038a30908226b8000f4ab1885",
-        "ja": "b56cdcaf310e77d9a08dd00b45c9470fd55ce0c4aeeaa40ceffe8f3de0695f56"
+        "ko": "86907d8a22893b42fbc96493261da4c8a8585355f999d8f3f1cc6162f3ddb053",
+        "en": "9845c5c042c684a54858b67d8207ae5119ed80b8a07ae2f9a77c80dcd14ed441",
+        "ja": "c9008a336571472c1589eef5a8561f915e87b7c4c6382f8b124bdd768f05c549"
       }
     },
     "overall.major.emperor.reversed": {
@@ -8431,9 +8431,9 @@
         "책임과 통제의 혼동"
       ],
       "copy_sha256": {
-        "ko": "f00bd4c1a9747022b85bd8d3b710aff75af9a5161c1be0488ffc127b26d5bdd6",
-        "en": "ae45588f6fd0b80dd91c671257c6ff534c6cacc9d405a634cbe40386690de739",
-        "ja": "0152420a2e08a45b23cb49be8c5726d9472051e35df553840ebf49d60f770715"
+        "ko": "5d14c65dedaa41241e544d3475e73323586fdbee42996cf4a72f9eed40124199",
+        "en": "c1fd7c95f03edd3d84c87ba8b8835d5aecf039755d95ae665681e117fa8725f5",
+        "ja": "edf20301a7fef8cbb8e9a6d167f9c6d7326ce69fcbd6ac6cb952f4a7bf9a83bb"
       }
     },
     "overall.major.emperor.upright": {
@@ -8448,9 +8448,9 @@
         "보호"
       ],
       "copy_sha256": {
-        "ko": "2fb2d0cb09c012f1a1cab5956935bfdb2fa8916d458a8b5a9a701c06e5a61a5f",
-        "en": "7bdd08ddc585b522072540988cf95c134332e06900843e8af85b251955c9751b",
-        "ja": "cce3a1e86b109d8762471e09a07f2fee6a75db092a378201f9b40ae86ad1ab20"
+        "ko": "58025c712d265b9b8afb3ac08a5865b6a5501709661f6510887c722ff3413ab2",
+        "en": "6bf2e62435be483a3eb954da5e40e40e1f70573cc499135e1ded0014cc6a347e",
+        "ja": "195aeaa9200cbd0e34e274e08d989eb1d587e5f44390aaa40397d76690a4817d"
       }
     },
     "overall.major.empress.reversed": {
@@ -8465,9 +8465,9 @@
         "만족의 결여"
       ],
       "copy_sha256": {
-        "ko": "c15453dca6ba16e664d2f6c641db5c723214e8bb22e8ac8780c4b1387cc5755d",
-        "en": "699998232fae8d75915c5f58e590133ffa598c1250405b5739a429a596d7b3aa",
-        "ja": "11aa0dc9b7730f92397df1d6c057335f827c763de1caa786a14499b0264f2678"
+        "ko": "41e2ea5bef640601071d64284a64e5e4c0655dfb954bc170d6313eee86ff0f6c",
+        "en": "2c4e20b4743fe28eacf04a862d24ec5cf2b288172780cbe812b21fbe5983dc08",
+        "ja": "4f44c23b98c9498157fb9cdefc52361e9517f927ded5bc73c8a313da51fa0314"
       }
     },
     "overall.major.empress.upright": {
@@ -8482,9 +8482,9 @@
         "돌봄과 풍요"
       ],
       "copy_sha256": {
-        "ko": "6281043a4f8e0154ed49a63082d9d4dac4aeb24820cfd74687abbc1763ff0622",
-        "en": "caace8a393005100068c5ac0d8a5538c95e29932bf6c595cc54efb9839e6b025",
-        "ja": "1ba5de95f13459e3af307632e0be5ea40acc34b7baeff9d34cf2e57c75b78768"
+        "ko": "91bb2ea0dffb5806bcbaf83e9e8818e47c429cf0e79eb85a2576d94cab0be93a",
+        "en": "9417a21ceec278cb6f1078168a0e20186eaa552deceddb9918d9c38c4f757739",
+        "ja": "15f1f7211d816554ba7364955c03f2876821d0f76bf52d4551f976650fff54f6"
       }
     },
     "overall.major.fool.reversed": {
@@ -8498,9 +8498,9 @@
         "결과를 살피지 않은 행동"
       ],
       "copy_sha256": {
-        "ko": "0d8097a1f48215069b1daa284b831ce6f009fe41f3256ba0ed19be39927fc92b",
-        "en": "55ac323d1343c498e2d99f8ce99eea49177bb7a7722207a139db44dfcc914d4c",
-        "ja": "afbe07ca7c747c61b454536991c6d813b68fc06e22690f635e587460943aef23"
+        "ko": "d411d4a9fb375b0846c64f0302ff5da7d05f532154acccb52165479c4dadb4d8",
+        "en": "eb11961d6f1110d68a48b434d39039e957073220d00cbc901158fe3ae2a11666",
+        "ja": "426fb6a9e91095c3923d6bb78820e41e5333708abb19de846f5d1f75a302e26f"
       }
     },
     "overall.major.fool.upright": {
@@ -8514,9 +8514,9 @@
         "구속되지 않은 호기심"
       ],
       "copy_sha256": {
-        "ko": "fe4c349a2e756cf0ab30962e76c70d9cb733f3f5942e360f67b94edd0257db72",
-        "en": "7d056554bc43068e1a7baebb01028a9ca5c394d8eadbf89348e46178c67c8fba",
-        "ja": "85456cafdb924466dc1a88a550783fc4e92dc77fd6ae67b9266395c5c66b0235"
+        "ko": "8ad0df6c7201889c077eed7bcd3e3d96916f5d73dcc17645421afaebc588a997",
+        "en": "77b57bb067f0a5b4770680bb7607032917c318405bb9e88a73e4efc863b2206a",
+        "ja": "05737a99369c53de37c2365c0b22826a39690ac0b3984fd9755d4428b5b6c487"
       }
     },
     "overall.major.hanged_man.reversed": {
@@ -8531,9 +8531,9 @@
         "회피"
       ],
       "copy_sha256": {
-        "ko": "7be015ee081fba58f15bf7d4a7116877d713b511b5f04c49524ed042edc5562a",
-        "en": "ef484d3dff785238f821d6a572c117290d9e70fa22e697db9514241bfd6b03f5",
-        "ja": "bc9aa81bd76dff153ae44d176b07dcb766fbacf99c930b2f5e6ecf50a218c27b"
+        "ko": "2f1a2885f382f97ff77b90f233105b0e563e9202aea49636bd709d299d9e9943",
+        "en": "2f7d106ee8bb4ba230be747ed713b1a153b694aeb679d2405abf5ce5a5ca2917",
+        "ja": "e501ef3249773750f4d97a28b0686657d4aaf633ec0a2df64d7c412b2917180a"
       }
     },
     "overall.major.hanged_man.upright": {
@@ -8548,9 +8548,9 @@
         "양보"
       ],
       "copy_sha256": {
-        "ko": "57b2aba9d9b00c5e5a9b07cf211df3fc3d16efa25d3c91c123e8ec5211659ae1",
-        "en": "8484f399d7e208c41ed324810c1ce38a6f7c7c548b30ad2f3006a215d205f99a",
-        "ja": "cca371ade01ba6b0d60c081946afd145e2efe47507f6d0b2e31d6e0fdc176ba6"
+        "ko": "eb955502b104fcba7098a24b4132636fb52fac91eb169b4e02ee57748f3c9678",
+        "en": "5fa251e1658b90f5a55657e6f01ed1b79a5b3656f095d4dcda984d08dc63946b",
+        "ja": "9ee3a096c5269691806057adc7a4fd59756b06d099866aa8e78bbb1528b1dd59"
       }
     },
     "overall.major.hermit.reversed": {
@@ -8565,9 +8565,9 @@
         "좁아진관점"
       ],
       "copy_sha256": {
-        "ko": "f79223b4b27d6db20abe6b5ef0244e626b3dfe5859c931a2147ee5bafa9749d9",
-        "en": "077f5ee969f9757732599a272e54c97b5fb582ea663f445b81654c7565d0572d",
-        "ja": "f0194cc3fd97e3e6471436c891edc1a77f2f9f9813063d62812a62f2e12165a7"
+        "ko": "16a1cb4f20fc32130258736fd94bd37b7da4e52864edcb125d0a8f1139502541",
+        "en": "eadb701655f959b6fc5b435e123b800a3418b0674d98ace6df4664c49fa7729b",
+        "ja": "3335abc7b3bff0aab5a227cb166108f417f887c07bb94fb7a54cfd865919f7fd"
       }
     },
     "overall.major.hermit.upright": {
@@ -8582,9 +8582,9 @@
         "깊은탐구"
       ],
       "copy_sha256": {
-        "ko": "a95222d6161fa977c06ba92d9f905ea5628f80979ffb23f9111ca23ec9219bca",
-        "en": "25dc6b66b435cc8b3ddb2b2b0d337a06e41121aa4bcb4f81c516ad45fdf02bcb",
-        "ja": "8e56227479f6d965ce6cc901fdcded263bd3e9078f1c7d62524fcace6d072398"
+        "ko": "94c01cb4d0a7300ebd03f763e8e5b4ae436bda063f162bdb6ccfb2fd323ac6b9",
+        "en": "0660d954a0a3d76c7fb50da46e90a92fe9d7050e16b3a00f439d6a403ce3c00a",
+        "ja": "74d998836d4c927dd131f3eb5a404bf3f20cab5cba3ed297dc523d36f166f17c"
       }
     },
     "overall.major.hierophant.reversed": {
@@ -8599,9 +8599,9 @@
         "규범과의 충돌"
       ],
       "copy_sha256": {
-        "ko": "d37248d2ec561ee09de17fdc5a0aa7fe2cd94e430d613aefe8dce253d51e9d99",
-        "en": "eb8fe9f6b92a39738bf7e5a98b32778a0b97b524075f0215d27f94fd54d2055c",
-        "ja": "1496be302442b26f439a35ba31cc104dcf464b8a14c040bfdf7f07260bd4d5f9"
+        "ko": "ad313c7138b464bc5a235da8bb0306d1830000e810bb0235c04b3c6a727658bc",
+        "en": "2bbd113894067763646a6517b680d69c249ac19372dac3eac846ee32041afe15",
+        "ja": "14f9a0751412051fccf87f2dff6ac4ad893669102190cb9260df797be77cb4c0"
       }
     },
     "overall.major.hierophant.upright": {
@@ -8616,9 +8616,9 @@
         "신뢰할 조언"
       ],
       "copy_sha256": {
-        "ko": "25d8231758ea20c74be6638ca611dde3b73c0b34d287357046fce1f138410f7c",
-        "en": "832ca9d2b0312e29e2eee579cb47735de5388c9dd139900ca91c724cbcb9c52f",
-        "ja": "5df6a8dd5ea697b370bd495185ee816851ae755c74534c0f30fb6eb5c886ab81"
+        "ko": "3c5f2df798884247101067b64399ed49d5354ac98208bf5586fb55fd41b60387",
+        "en": "53bcb206757ce0badab58b5b0c31927d2b4e505234909960c46b9bc179db1894",
+        "ja": "aee25d8e196e5fb5069923122b4fa1db127d737df0e5fd52bcb172f3034d03c5"
       }
     },
     "overall.major.high_priestess.reversed": {
@@ -8632,9 +8632,9 @@
         "속마음 외면"
       ],
       "copy_sha256": {
-        "ko": "e438bc14ca465b6dba105c31627a63f1c3eece54e2bea12a981d0cb80fd82800",
-        "en": "4a70b06e0a0a537fa720ff05624ea0b3a29ba3f4bd8dbc1cb0990df7884e32f9",
-        "ja": "d776d277df41e1eabaf9dae0e85a777bc92408b3e2ffbe3423797164a9741cc5"
+        "ko": "cbfdefe067a82a8c02dd1cf30a810f85dfe4dcca86f6f7d11f4edaeae3ec3efd",
+        "en": "c400a4a80b05d8d8812587255839d1fb4576c4bf6fcd1d1a6c806c81d79090e6",
+        "ja": "d4ba9d52fbfb2089082c7915fc0892e42954bc992540d0f35b4a06e3502b2b50"
       }
     },
     "overall.major.high_priestess.upright": {
@@ -8649,9 +8649,9 @@
         "아직 드러나지 않은 내용"
       ],
       "copy_sha256": {
-        "ko": "cdb20e169cb0917bbb6656cca2d026d4855a2feb53e34a7c033c9a61a4dfd2c4",
-        "en": "eccd6025dc0cae54644675aef5bd9c6e3feb01dae07186cc4eafbe59d55c09fc",
-        "ja": "0ea2a307d6a1b1fbb175d69bae9e549639a537f607830cf72d7620525881cda6"
+        "ko": "38a5738c403a1458be4c5ecb8d74166b51c6acb7f7a3868284b823d932e3abe2",
+        "en": "154a6ce7f6fa6dbbfa66388956e995bd00cc0a189cb5be221bc9b3caa6b73e99",
+        "ja": "55f77b04f6bf66b576ed2951cb57154d807bdd70b4130720463969db645b80e8"
       }
     },
     "overall.major.judgement.reversed": {
@@ -8666,9 +8666,9 @@
         "성찰회피"
       ],
       "copy_sha256": {
-        "ko": "6a856bea7c52fbe66a88fcffc41b0643b8d2af65b558e1184f2f960c757fbc8d",
-        "en": "a2da7e4db930c02f01c3559e2d47f52885cd1bf0084c6431a82322f98afc7b68",
-        "ja": "be07cf7862cd593524fff0b7d743225aba744cd95e96621e4cd0f644f7eee4a2"
+        "ko": "28b9fd7d2d3d8093b70af9e4a40a9bc59da16a1e869ec86d79a6dd9ce1d07aed",
+        "en": "6026ef1878b44f7852dacafa7e5f08640067b4eb08a9e5803c8c6923daa60a80",
+        "ja": "bcde454b3b64be4930d62aca7659f40a97964f1ee46fbd92e8654459cf564f7f"
       }
     },
     "overall.major.judgement.upright": {
@@ -8683,9 +8683,9 @@
         "갱신"
       ],
       "copy_sha256": {
-        "ko": "0753acfadb1ee32324526a72cb3f2026ad15fce46878f4f085471911cc2ca695",
-        "en": "58e37a30d270ccead7e3815e5062680b06f54f5f64ba0f13c829ba52cc09ee8b",
-        "ja": "89a04d1a3e45e1f895854dd5325fe40bfcef8f15876363bc5e9e29905af1cd38"
+        "ko": "62b38866e761cd31c7a85fa1f8850a85c861e27e08f5c662d00a8055d6ed9b46",
+        "en": "55cc73f67059864db2f850c15c2ac39821fb54f7bbf0e40d611a53269ddba88b",
+        "ja": "ee6368e25d0ca5fc5ff937f7fcde2390c4555a2813b2c33446dedb0081cc345e"
       }
     },
     "overall.major.justice.reversed": {
@@ -8700,9 +8700,9 @@
         "책임회피"
       ],
       "copy_sha256": {
-        "ko": "69708d73e61b87ab82c74df86b47d0938a229bb95533f2abcd241cdcb6a4b5d8",
-        "en": "e5523dd10ed9c9f54e7272ed16b78f6506e99b073e2645acb983dc94686e0105",
-        "ja": "7410120bb499db39eed6297e1ac93a5f379f006a3869f8f5b899f3c818dbc5a0"
+        "ko": "b91001eccb220430d5593106cdd79551241f13eb3c9c34b42fdb710df35e64a6",
+        "en": "72695368183e1cd8a6a350b3ed5b90865c3ca97df5e3e26bfa1b021aa4ad86b8",
+        "ja": "f9dec3ecf9e7752d9826df9129c9bb25d0dea3081aac7d6d05e29ec8145db953"
       }
     },
     "overall.major.justice.upright": {
@@ -8717,9 +8717,9 @@
         "책임"
       ],
       "copy_sha256": {
-        "ko": "fae51977dd94ad783906e424ce2db9be45e4cd2a424eed652e13b2922da303c4",
-        "en": "49f2de7027a94fec328e260fe8237657f71ec0eac958889fe1f47b52e6fcc188",
-        "ja": "7a3b5bbd9cc9dfd483dcc5ef8508424b5f86e0d829019fff6957c7f753ba3799"
+        "ko": "3e92f3447ab1a6327e53a193ca6e08b51ef3bb2ba2097ca73ff66a9d2b1d20be",
+        "en": "8ef55973d510cfbf1670d01dd0a7edb4ff8812b67b205a7d0c5d8c35e1fa2df1",
+        "ja": "abdc4eded3b6f338681c6d10e96997c44443580d568c29a3b0f7b71cb7804125"
       }
     },
     "overall.major.lovers.reversed": {
@@ -8734,9 +8734,9 @@
         "충동"
       ],
       "copy_sha256": {
-        "ko": "36613c511d614f0b5380b3c9164ca3cf9541a92be90f74fcaa1f865fc4849fb3",
-        "en": "cbdfb72642fa29733e3beec8026a235ecefae0f8fb350cc0b343fbfd18bf2c61",
-        "ja": "c9014f1f46d1d83bef0945f51e3f80648021e360a4dbdf0a2ba1a2c706b0c16a"
+        "ko": "151d0432132a7794deb88bac977370a8c650fb72b5aa62fe0a402e6d032d93b7",
+        "en": "6f2f58732e04492124ead76a8005ae3f37b3787ff84b694e0a1276e89b9555fc",
+        "ja": "703d6abc6b7d5a2bd1bd4a4f464ac7d2ff61bfc3946b751814153a147b43a4e3"
       }
     },
     "overall.major.lovers.upright": {
@@ -8751,9 +8751,9 @@
         "자신의가치에 따른 선택"
       ],
       "copy_sha256": {
-        "ko": "bdcf1b9b07611a205d2e0ccf6a0494faa137c4a5075eef08976817571006a7af",
-        "en": "8d0449864aa46f938692a725d89009685de2ecb55d9c5d6f358dd6b1a6e49620",
-        "ja": "0c43ad7899e7755820f40035e04d4ec5287737dc4426b46b04464e2446d6dc04"
+        "ko": "8c8dc44ceeba7810079456a0d4bab66681bb82ac1aaa67da1d84f7fbbd47e89d",
+        "en": "909a4647131fd728fba9b6429a011e9d062e07ae1ca64b9c896efabafc2980bf",
+        "ja": "19158b07ba7f72f459d8ecdef360a7469dff37fb15227578ecc935873c137921"
       }
     },
     "overall.major.magician.reversed": {
@@ -8767,9 +8767,9 @@
         "쓰이지 않는 재능"
       ],
       "copy_sha256": {
-        "ko": "d8127c2e3949c8b2cb3c1c8aec6e543e36296a2c7de40ee1f7eee6b4f191502a",
-        "en": "815f319bb34cec3e6a25b623e01b3ba36ada83f4290b10f0a046ac4f6488e961",
-        "ja": "6910a2cd1f0263d8b2cc944cdf6465cd87570a1d419a1ce94a0c69aa3adf7a21"
+        "ko": "fde556df481979381d9f7c4fdf5123de4ac7d47716300ab1c3450ae46f9afb4c",
+        "en": "6f1ab7cf7d7e9ca67da0ef14376e9e45f598deabd5f305024c75cae8105c1987",
+        "ja": "e3e437ee948d81f743917e0c102fd59f030b382e6b2e7c0cb637ef5f5ec8bab5"
       }
     },
     "overall.major.magician.upright": {
@@ -8784,9 +8784,9 @@
         "가진 도구의 활용"
       ],
       "copy_sha256": {
-        "ko": "60d012795f3f9d731ebb43e0eabfbcfb3d669e4bb23bfec04510b71bb361eab9",
-        "en": "7d5fb7bbd45995a4b5ba637169b2c270d202ef8fa78632799665aa4e809319c0",
-        "ja": "19d856bd1f71ac6f216070a9618992d024122b33e7eef932e57c39233d917d2e"
+        "ko": "3d2e4a232b1d24ffbe5984465e41cdee21c107fca25c4ddcb52e64be5f5e533f",
+        "en": "a78716607578cfaf4d3d976bae8f84760030566081751e560f7857c09320de9c",
+        "ja": "559f66251535c4c30f60cb25b8faa68c91583b79367ce0479ab609fb4e0dc76a"
       }
     },
     "overall.major.moon.reversed": {
@@ -8801,9 +8801,9 @@
         "남은추측"
       ],
       "copy_sha256": {
-        "ko": "ac350d7c8368ea92649e70cb3243f97b2b86cd53654d2516d2f0439c0004dac8",
-        "en": "9563fb34e72296393d57549dd76a59b617e8fbf906247d918cedc1e3e5a19396",
-        "ja": "f99d60e6d2471e9e7e13d95bb0b30c3c2ebeb132f6644aa28a1102fc75995746"
+        "ko": "e8fbb05db6768576dfd7eed7ebbbf409b393ee72a5f41ae2abac9395dc5380b3",
+        "en": "bb7b7b4d688634f0cf47358917b3fb8abe1429201245d2cf27698a27f218a801",
+        "ja": "ee01f67d8b97b44374274159bce3f0fa7e13abe5dc574de51714d6acf9211b7d"
       }
     },
     "overall.major.moon.upright": {
@@ -8818,9 +8818,9 @@
         "불안"
       ],
       "copy_sha256": {
-        "ko": "84a5f9ee530af519d80f4afbdb88f75cf04c565a544a8df0f9b728d9d1fcd52e",
-        "en": "787444a8f4396433043d2e02d608906452fbd0f1e5ec50e15c5aa3ce0ca9d0ea",
-        "ja": "1cfbc8462f0fa03f7e8d2c93158ddacc924fca6defefd15733e993a03a959501"
+        "ko": "869c33a91b33635938cd2110fe13bf8c14a2105232674ac1c1b404eb93a13b91",
+        "en": "14c0fb1e445407f0b1370f512eda9e94b0e3546a369d4c46a67af9e21d163144",
+        "ja": "3e55bae6bfc4ee7da5d554f0f303a853f28491d4156aa001cc3c6f204801b1fb"
       }
     },
     "overall.major.star.reversed": {
@@ -8835,9 +8835,9 @@
         "낙담"
       ],
       "copy_sha256": {
-        "ko": "fede3c3177761416ed13197b7c0b76b092ba9829fa5ac92c53f66a64807d4973",
-        "en": "1c793874fbc8ca8f48d6a99233b77d219cd843258139ee07fb717881e3519bd4",
-        "ja": "36aea5acab1a5cf29104a1b36da0e128b85fa04917f7d23fc6ff9cca3a17e6ce"
+        "ko": "b064d324d82cac809e2bd56eff44c293ca0eb5091240ee6101c7ab7f0ad1424e",
+        "en": "1a070d17f6138d459993e6d9ead40d768a6b4b654e3858f1a93b8ad102b54430",
+        "ja": "ab58373a6e7d95c080cdb57ed920b14ea8d7be1edf3ffa052d546e80a137a58c"
       }
     },
     "overall.major.star.upright": {
@@ -8852,9 +8852,9 @@
         "편안한회복감"
       ],
       "copy_sha256": {
-        "ko": "306e2963e2f2533b66cc225b7f871fdc6e2951b695868f37cc520b6bd70fe097",
-        "en": "e7b9bcec7049127ce148dee812d22f7b0f27bfbf188b5328afc2e5ec6afb79c2",
-        "ja": "fe2373d6108d46a463f369dc205a38f857426f2dd837cf465d47afc5369c135f"
+        "ko": "83c918dc09c481d04f7f4f57a098bc7ec7f30f0ed1bc0d2109de8993117fcc8b",
+        "en": "b0d1f6c0c2787892c5d1b85228e8012d714a6cef7881cee9a23faa01edaaedb8",
+        "ja": "a7b85ecbb7b67297a04d130cd5c06e263cdf7a2d2e3d9ffe9ba11fd86c3da342"
       }
     },
     "overall.major.strength.reversed": {
@@ -8869,9 +8869,9 @@
         "불안한강함"
       ],
       "copy_sha256": {
-        "ko": "de86adc095164c2439257e364c47024c5d583e8f5f139c4e31ae361ccaabdab3",
-        "en": "9451ea4cdd72df70cb48bda46513d083fb1eabc5f88361327474e74af9171b94",
-        "ja": "50197895f901e6f8581b160e6dda9e493e0814f034ac6924ac7f39bd84e15088"
+        "ko": "ee0dfce19498fe8f7dbdf143d28b9469dfcd1d32f9e93c69479289f2dfe94d34",
+        "en": "94ddcc93e47c379438a87042367fd4444042e435a3c929b15f120b1ff497e9d8",
+        "ja": "6e3f2e34edc0b9c699b9ec76ad95d8c20b9c58e3caafc80686bfcdfa1ce404f3"
       }
     },
     "overall.major.strength.upright": {
@@ -8886,9 +8886,9 @@
         "온화한힘"
       ],
       "copy_sha256": {
-        "ko": "15ce124168f0e252cb677cf935e8913c399638613828752e642901f915ba279b",
-        "en": "e9d75f1365c9c91f90bac86c714fffdee71e811c2af7cb43aa75e2390ac82f7b",
-        "ja": "fa0d1d395d12cb22106fed85cc565a5479faaf97cb074860e57f568c94bff3a9"
+        "ko": "dc6523ba5e87e442e740630a4511da1b435f557995768521200cde1603ef27c9",
+        "en": "fad212d3b08fc33a30d53016da10ae91a91a9e3e6b1d321c9b9d445071ed9911",
+        "ja": "5afac575d95a4b3ad4204fe5003a881f8bba91045fbff3a2adc902765416fc1f"
       }
     },
     "overall.major.sun.reversed": {
@@ -8903,9 +8903,9 @@
         "과신"
       ],
       "copy_sha256": {
-        "ko": "f6daee3fb05df81cfab6648699a4bd6a098965e7971b09d41d6fe4b234ead763",
-        "en": "a8d0a8574b17531f82f451f4b7c0fa86814b685ea40567e5096245b4c44305fd",
-        "ja": "998811c99f8ecdf371261fa022f65a16d39c738f8491347594504012243c8cf0"
+        "ko": "9ce7bf7e8dc3540b6e33e22f2d0068ea2a5d6dae9279118e4f25735aa61724a5",
+        "en": "b4ac981b47baeead955593a0e99be030642f6bd69440ac3d30b1d194eb7a4b7b",
+        "ja": "312a51bf54a98b8676c12792891580a2c35085cd3935cf2718f6b5d72b607c6c"
       }
     },
     "overall.major.sun.upright": {
@@ -8920,9 +8920,9 @@
         "명료함"
       ],
       "copy_sha256": {
-        "ko": "baf8946bbfc10bb2f63dfec4bebe9beaba9bba487317f382dedbeef3f4988224",
-        "en": "7a09aa068c71118119e5e628f587d95af99955d6697d343d400c169dafaac271",
-        "ja": "f4f951a57ff1503fcc2e0dd3a2dda8ecf17403f9c64a7ee30208f2c9254cac0d"
+        "ko": "9116f3115320e320a9afeb48d0e9f8d386e499671cb0a3563a162bfa19f6e0e4",
+        "en": "aeba0ff49ece81f7387a24cf43dff889a66a33c6b58733c1fa1dfa485b67ad2d",
+        "ja": "8b6b661d5dbc39fcb846a50dbb556e66f5bb4c21136afd50f90cfa285db26496"
       }
     },
     "overall.major.temperance.reversed": {
@@ -8937,9 +8937,9 @@
         "조급함"
       ],
       "copy_sha256": {
-        "ko": "c6feba42246a6b7eac7fd636143feb462f706c955cf5375333e14d761a94b262",
-        "en": "a3a2e0ea76237bfb4949d250ab5f1c1bb6339f227f2543096d21fab90da434b9",
-        "ja": "2c78960eb6eb9947c448869ac77c48ddfbfb073411e4b025f71cc61567a5fa33"
+        "ko": "e1081885ff8fe47c34a2322735a950287d1c9592b45eacd4075a41f066a5142f",
+        "en": "d56bb8cbe997f48dd0ace1ed00b4560e9fb939a396481c5fc2d06f3d27651b67",
+        "ja": "e067d13d7f98d670ae2d5c194ed28c4cb713fe01223eb3777f803d769156e2f0"
       }
     },
     "overall.major.temperance.upright": {
@@ -8954,9 +8954,9 @@
         "인내"
       ],
       "copy_sha256": {
-        "ko": "2c71cb5f875f892991b51d19342a760b197232f60e7d53efcfe7238870668a50",
-        "en": "4abb1c175912cef726b4fc52a0e4c528c1a9014b2e5c09d196a86833a06fd2db",
-        "ja": "08dd5618e118c4b9454ba54efe5a42ce6e861f79fa509743038f26135bc0518a"
+        "ko": "e5b126b564ca95b52e865d9701398a318c856f66481253aaf5766b26d70bb526",
+        "en": "a4e9922124894a07f28ede027c093d268a433ead37ecff4824eeccc6767080d8",
+        "ja": "e7e00e549d167b16fbf55ad182e23af51c56d608d197a0de739de2d8ebc7581d"
       }
     },
     "overall.major.tower.reversed": {
@@ -8970,9 +8970,9 @@
         "조기수정여지"
       ],
       "copy_sha256": {
-        "ko": "3a231a1570104f9f435a26283fb15078182d840cc33df9588b8bedf68f5c25fe",
-        "en": "0045203987032a162fcfd2fc1783d8dc1b4673aff44549ffa9f1ad45ab9b5406",
-        "ja": "ea638430cfd48a35bfc944397971bc75b59e4da7a0c34b15ea48da06ae20a833"
+        "ko": "4a6f5549fee527bf50672c3eafae8837bd0366da6c55f47359ade819cdc06e2c",
+        "en": "14bffb7e00753d87f3912521c79272ca72e27d48d610af37cabf1646c0046256",
+        "ja": "328cecc59691ab2f8af1f14b4ad91d88f4a72e188db816476cca51460063eced"
       }
     },
     "overall.major.tower.upright": {
@@ -8986,9 +8986,9 @@
         "갑작스러운인식"
       ],
       "copy_sha256": {
-        "ko": "d2f8a0ebd75c70f82dc2433be3dd1f69dcece7d4cbbc642acef0ff837b318e24",
-        "en": "d600bdbc0b9f5457b056b4332bc49d9d4b145e7c179ca29df84acb2d731dc07e",
-        "ja": "b5272022b3f804c812f72ca8d96d4fce468f3088aead2de0fcf095a8eeb69dc2"
+        "ko": "2571f581cf59de88b14435732cb961e7917f0692057ef963766963978b236f9a",
+        "en": "00b006ca96aac6882d81e28f4930c5f61f3a8a9d55dee5e657d2dab4b6376600",
+        "ja": "720973a3f8ec4a9e691887657056ec85ac47378ebf6d9f32c67b76d23bbd5ee4"
       }
     },
     "overall.major.wheel_of_fortune.reversed": {
@@ -9003,9 +9003,9 @@
         "기존방법의 한계"
       ],
       "copy_sha256": {
-        "ko": "6625283170dec1003851b47cb875de9aa14a627bc36cab6f4837e4eba6af7dae",
-        "en": "eaa2f8d1587612124dc3487885f80679b7d37ded8bfcc9694a14434773e1037b",
-        "ja": "f6426a81f25300293b6f424b6403b58d848a0daa7105390e0e39d11e68afaaa5"
+        "ko": "525bc276058c1948c6fe515a859a71cb958f39ebc20f636adff61217d1025f1a",
+        "en": "b600169e5739c370731552b031da729e01a534129f91d9d8c4e1987fc3b65f57",
+        "ja": "649292826e38054b0f6737fd10532d560ed633e65a17805a89a9fbe642bab895"
       }
     },
     "overall.major.wheel_of_fortune.upright": {
@@ -9020,9 +9020,9 @@
         "전환"
       ],
       "copy_sha256": {
-        "ko": "6e9cfa3e042069998affe6e58478459d7ef82a5a1b44e5296ecebe855ff144ae",
-        "en": "b6b6914c05aa230d6b3ac64306f1c477597761c8f3ce0b6e06e81f51235a560b",
-        "ja": "30ed327ca46d3528d77c8112f6c6e99425c034ca21d9250cc0ad583b966afa12"
+        "ko": "2440c7ead38e92af9492d5ccc84c7b48a1a0cd69dcac5576f999d02ecf440aaa",
+        "en": "d0c8c6163643238b21f43ff4121b1014feddb7214592deca4dbfe16ed2438518",
+        "ja": "3425ace6d73ef32892b2303913e2202c1f942aa5e4e292b1f1f086fe0eb15769"
       }
     },
     "overall.major.world.reversed": {
@@ -9037,9 +9037,9 @@
         "마지막과제"
       ],
       "copy_sha256": {
-        "ko": "7a4b72cc285fd0a88c19585540c31846d0ab276689d21a7f930601becda8d957",
-        "en": "8957702e26ff72194564259f058db6d493c82ce2fdcf7c8acc9c38cafd2ef10c",
-        "ja": "eb25bfcf4b7fb86610abb72e8f02074ca443e348cfb625867e2070b07b83ff11"
+        "ko": "f1fd0b52a40df74c51bf84561386a34efb61c73eeeeb27213d6331e35c744251",
+        "en": "929baf64d91d7abc6ca17d8d34e24d778c46bca52628febcc17d36d8dc1a3bac",
+        "ja": "211e12205afe23b0772a78680eb3f3f7943c061925d20e6cb2f1cb67310e9260"
       }
     },
     "overall.major.world.upright": {
@@ -9054,9 +9054,9 @@
         "소속감"
       ],
       "copy_sha256": {
-        "ko": "1ad194ec2d58f77c9bb041728defdfdbfd9ecbacaf268fc59a081417edb11284",
-        "en": "0dcc0c2e6a0d366723cff24c7f12a132ec793d3f397d6f3d2f7a61c2ed3a739b",
-        "ja": "5800f9d9990e2a261395b78dfd8d40b00a9f47e2a09a44fa3c3a8b973836b593"
+        "ko": "228cd362d3e33d628460690df5cea11432d64566534bed32bee7441213d9ef6b",
+        "en": "ea9bb98f56618db17cca3702171647827659810319249ea51827873d6b6ce001",
+        "ja": "0b99eb1c19d3fbb5352799d4ed7f0f466e3c7b94413f4245a95767e091c2976c"
       }
     },
     "overall.pentacles.01.reversed": {
@@ -9070,9 +9070,9 @@
         "오늘은 겉으로 좋은 조건이 실제로는 큰 도움이 되지 않을 수 있어."
       ],
       "copy_sha256": {
-        "ko": "86f51b2edeacaa27e5a6d3eee286cd9c60da64c8ab8f797463368af4cb747583",
-        "en": "295e0b8b0b4cde75c5a8b524e19b75c101039da44f89fd9151ded78c6ae518d1",
-        "ja": "1e5ed1c4350920b68a71af04793cadd463b55751fc005c28f6d6b94d7b6a5b2c"
+        "ko": "8a1dc7f872040f178cc534a42f8a4df79410f7441f41f3f3432275622b2b44bc",
+        "en": "c85ffc3d53e0019576e89a683176afb15c33cb7ed28a83593d017e496742c8ed",
+        "ja": "539b58c0f057f48f76384036126c3812fa6363a92e9bddb14aaca78cd48d6a06"
       }
     },
     "overall.pentacles.01.upright": {
@@ -9087,9 +9087,9 @@
         "실질적인 시작"
       ],
       "copy_sha256": {
-        "ko": "27aea9304bdfc6eefc6f8f9cf3a14b8958c09b46674c441325c1bc7c275f8b73",
-        "en": "fc2c081b5f0802975207bffe1479b906936bf63bab54448ab24d77b0bbfed122",
-        "ja": "43782156eb8aa73a1c6d56420fdc5cc74821bcd6aef4bbc4d44af232fd92b41f"
+        "ko": "26cc64eb3c90085caab6033d09737d683b287b14348c0d18dba2abb0cde2b496",
+        "en": "4875e4335c2be5f81d0fdb76e85359c673c32f446562494edfaf517d882ef217",
+        "ja": "cc7fcad0e6473a70e5cdc6fe23d8bf5fb4dd60718a3e75674ad9f4e12b4d9dd2"
       }
     },
     "overall.pentacles.02.reversed": {
@@ -9103,9 +9103,9 @@
         "불안정한 조율"
       ],
       "copy_sha256": {
-        "ko": "93c29f60fd392c32bb49027cad3fd01e7a3136d2da776c4d68ee75c6d086f0c4",
-        "en": "e025553b17e89a0c9dae2b0bf8476c427f481bfa19c54fc41de03e6c7f4ba2da",
-        "ja": "b4d946a3f467b96b62239c9f11e74701cb405b7802a03c50c5ac3cd10e8776d9"
+        "ko": "1bf36a3fc356760d754c81adccdb9f10be7043f4aa3b6d756f3a310fdec5ba11",
+        "en": "3f6205fd43c86bca175dc8c407db2d4f8fe6318a4b08a32beccb80b2b582a0f7",
+        "ja": "8de922bb74cb1fd88ba4e2e8d992ea5367b8f226fdd8bb0c0fd7c0d7ede047ff"
       }
     },
     "overall.pentacles.02.upright": {
@@ -9119,9 +9119,9 @@
         "오늘은 해야 할 일이 겹쳐도 잘 풀어갈 수 있는 날이야."
       ],
       "copy_sha256": {
-        "ko": "15ac9782bac558060d134a42baf9ce66d1f2669005716e8581adae1b65cbc601",
-        "en": "dd9db0ff6dad62b7d215d907d69955a3f43b2f4398a5076afc2bfea6b470dc75",
-        "ja": "cb59da96eb95e04191b472f0b036c15c90cac0e05c89f0a81c4e3947be1a31c3"
+        "ko": "6db2aa71beb9cfc90680b2c8e16edd162fef528a5d1b399a2af3aa461536fba9",
+        "en": "4875c79a619d82b2c516c410c09a4d8dc21273611b3953604648d50bbc90b9dd",
+        "ja": "fc894f83cb49a7baf6607b50281fdae092601b1b395ad93688b3b57ca1c7dbc7"
       }
     },
     "overall.pentacles.03.reversed": {
@@ -9136,9 +9136,9 @@
         "부족한 완성도"
       ],
       "copy_sha256": {
-        "ko": "cf8215eb7c99b0f46afdb5e96669794b3008f78c7d60c897b210e821fd232b1f",
-        "en": "d77e5e0f3c1636ae1b0d622534e20e66f33821804e5249dcbb6678715a67b69b",
-        "ja": "737726e435595e9bcfe05fe6d0863d43960d21e27af4a78804cb1ce0f5f28c70"
+        "ko": "fc1e753a9dfaa76c91ac137bfd61dba79b5894baaa1f324278553a1f748bc6fa",
+        "en": "b2a516112b3214579100e60983ad2f983d5d29454d5b3c347c36bf332d586302",
+        "ja": "debee5983ee90f36057ad1d33c839c0b0ed19c6499f878611437b3bc4b2b1327"
       }
     },
     "overall.pentacles.03.upright": {
@@ -9153,9 +9153,9 @@
         "인정"
       ],
       "copy_sha256": {
-        "ko": "c6139abe44354d6677a6b104c9bf18bbbff0260550f52fb3e502045cdbb537bd",
-        "en": "b607dfe22edd8caffcd57674d78db05ce7ca228804f67d0ed0a2411b247b26dd",
-        "ja": "e91c64f5495de3e679eecc89262bfdf0ac301ec2f5f108c84778f16c469ce720"
+        "ko": "2c0cd8b68117ced5bc8560e4019d66130144ce368590893356a724df137f9b08",
+        "en": "143f9101a8e9b3f50ce6a81b62bc0388a9de8dab3c4baf4cb72829dac2787bdb",
+        "ja": "5373b550ee22828cffe3e1e723cbcadb9cb1ecc7c6c6e2bcee0e4418f7f777aa"
       }
     },
     "overall.pentacles.04.reversed": {
@@ -9170,9 +9170,9 @@
         "반대"
       ],
       "copy_sha256": {
-        "ko": "b83105cf70855f7cbf75307fc7a510558c869278de9a9e1b5ae09d3a0ff83acc",
-        "en": "88d913a83f008b38e003fb3ec18acf8e3e36d53586e4a81e6cadc245e14ab50f",
-        "ja": "0b1c3ac018eb87503892ece460177c810d51fcd6ccea718d0716fafa2866ab62"
+        "ko": "013b65be62cbaefc8193d2412593edef0b1f06d76d0244c9484a940a38e8fbfa",
+        "en": "6353c8a5c36505ae8165a1a360e0e2bb799eb625d7432fcafc30f8486dfe1eb8",
+        "ja": "b77e7324b486814dc346e84e01b80e5d9487fe65852811a92dc13c325dd896da"
       }
     },
     "overall.pentacles.04.upright": {
@@ -9186,9 +9186,9 @@
         "확실함에 대한 집착"
       ],
       "copy_sha256": {
-        "ko": "990c15197bc8ed7f515a98cb0b2e203fd29989c1981c1b4dfeced61f13011445",
-        "en": "f990e1950dc2b0f0a279cd52679cec8800c2d6146563b3113115bf4f173c88c4",
-        "ja": "0a0713837c3a8622d49e190ed42952ecc31bb4738bd59cf85d98c8804764631c"
+        "ko": "8bd7febaa37a5da1fccf8e429eea16707e418d43a088fe1e93146e8514f6d160",
+        "en": "e0d74cd7ce57d458319abce175c0386d90fbe59d4024cab67faa2c377880af43",
+        "ja": "d76c77e58aaa9d0865daa429cf1c5ce0576b92635d10c4eaa951dfb16c29da00"
       }
     },
     "overall.pentacles.05.reversed": {
@@ -9203,9 +9203,9 @@
         "낭비"
       ],
       "copy_sha256": {
-        "ko": "b63f0ee50dacda246d948c1b0bf52c5522e3a8f981baeb9867a08f273be2fcb3",
-        "en": "45b0f33931bce414d7193ff43f32ef371a7e972b4bfaebbaece5dfd638861692",
-        "ja": "4d9e80f7af2ee78d19ff1046823ac0184a3d59258d2fe9a87790909f89a314ea"
+        "ko": "7e352593eadc317aba5bea03076a5d32d5dc1e14c119e4f7c9c44392d20ca668",
+        "en": "a216d6bc2615cf9d07cd2f13a549611fe1481052fdafa398d499db8b6a7af78d",
+        "ja": "13949de52838e36ac1b0568718e999a25d050456dca280eb4bbeb3eefbbcfa4e"
       }
     },
     "overall.pentacles.05.upright": {
@@ -9220,9 +9220,9 @@
         "부족한 자원"
       ],
       "copy_sha256": {
-        "ko": "75e4ab52fa0cd53ed5a88d0eefc605e6ecd2fe2454891813b6031bcbdbccbed6",
-        "en": "d1a7fd9850c3d8e0f51cd09e9a50f28b01bd6a3741c575a3454fd12b8513a860",
-        "ja": "03d8c6f9fbb8f6ecca2d329433ad82317e87749ef4859898f7ced8b230c7073a"
+        "ko": "d540c096d8be2655cd93a0fe91d691f65e964d26d59b54d8aa95981f25fe683d",
+        "en": "ba16c0715e899d42cfa5fc2df5a624e323ee4275a650b9d19ff620242bc3372a",
+        "ja": "98b9a6681f814a94b08415d688cb42ea076f18f72cff92338bcf50cc85a4aaac"
       }
     },
     "overall.pentacles.06.reversed": {
@@ -9237,9 +9237,9 @@
         "환상"
       ],
       "copy_sha256": {
-        "ko": "edcc9701ba4b4bd1feb78789f5895dc1e94446037e939de59c1be84af916a3ba",
-        "en": "1013656bf415eaaea9e523df5629909a8313c91ca89cdffcf08d25d3fda42228",
-        "ja": "2573697df9c7279cafd5a1b3088b91b2fd80dce205400617dc01c65d34d6eed3"
+        "ko": "d4dff33bb840d2d582178ce873533adb4ef7f3d055d2e202af4890a401759675",
+        "en": "04554f4d5f733226439a28d762b036a15e0c3a626c9bf480b273c2f95ecd00f8",
+        "ja": "884bcfeb0d12444d3eeaa25c3bebcc90704e49344668e805a4c47065ac2ac360"
       }
     },
     "overall.pentacles.06.upright": {
@@ -9254,9 +9254,9 @@
         "도움"
       ],
       "copy_sha256": {
-        "ko": "37674d9c4a8755e3f12e1dbfef8191357494d5d9fca5391bc70770b9916ca4c7",
-        "en": "aaa762ddc8281189f26bda9917ea6dd67023eb4a771e54d5504c96760024bfef",
-        "ja": "4ca1bbc89d3e0d7134bc96648095349ac215f9d8a53d864ab398d7d34d43d59e"
+        "ko": "ed75ef61eb2cc8c9b0692071d61a9e66e85d463f64d29e10e163aa69bb81c294",
+        "en": "8e57fb631ad417a52a3544c9d6b76c0e70e6997332bff2f3897033c1e3145728",
+        "ja": "3e836d2c1307279eef5af2383b77c7b79c33b1c531f4edd7d0452874ea59464b"
       }
     },
     "overall.pentacles.07.reversed": {
@@ -9270,9 +9270,9 @@
         "오늘은 시간과 수고를 더 들여도 바로 보람을 얻기 어려울 수 있어."
       ],
       "copy_sha256": {
-        "ko": "7cd3babaa4b81ebb6134879d57b79be1d17f72938dda07f24166e780e783d06f",
-        "en": "bc4a04a3e580467ec2805735acf98729066a26cddedd1bc191e0f67b9e426b42",
-        "ja": "e76386cb2eedee990fb2dd39435d93b264cbc765b1db74b14a75535ebd01586e"
+        "ko": "7ab5bd7c28f48c0faa76debd7715a28a78cac387bcf4a98cb091e3e5f0e80f70",
+        "en": "0a3e9d6869bfb936dd1b41a9fd78e95ac15024b0018968405298579c7398bc2a",
+        "ja": "d6065ecfe38d24a63c9c03c2cfa96c16573e20237c85e92c2a5606306a9dfffb"
       }
     },
     "overall.pentacles.07.upright": {
@@ -9286,9 +9286,9 @@
         "거래와 금전 판단"
       ],
       "copy_sha256": {
-        "ko": "b98185c312e4bb0a416d2783826210d8907a2f188d6935617f13f5e1da340e5c",
-        "en": "d16640fc906ec4f6e42b087d1915bacba58ecc5038840457375e212bac8c5797",
-        "ja": "f94c633bb77c9f2c0e503a8654746c8f5df4981289c1515abb07d45b0d996722"
+        "ko": "c8de9c86c9ea1296df383ed689ab374b946bd87f0d46057686f1d72b131bfd4a",
+        "en": "51ff3af294451e763c874591972538ae15cefe269a57cb78ab26d0c153a6dc37",
+        "ja": "931bef2d2fedd9f986f9160d49d8fd5e6cfdfa6a500d2d49ea1eda1975e02e25"
       }
     },
     "overall.pentacles.08.reversed": {
@@ -9303,9 +9303,9 @@
         "기술을 잔꾀로 사용"
       ],
       "copy_sha256": {
-        "ko": "ab6acacc5f96840378e8354f79aed1eb0075968fbcce45c20f8a4a2404b98932",
-        "en": "113b91aef2369b7eadb66eebd59af44c045a735eaf919ff5a04b153b5a6b984d",
-        "ja": "d0666363c4c9c8fef0d8cffb91e7257f88158519e7b72b9d0935ad158e55d32d"
+        "ko": "06cf62d16ab8d8885a751a4e6c5d5eb3b9bce1eac5e6fc4954f1d20de6b965ff",
+        "en": "5f4487ac2f53013ddf2ae809b83010dcfe786a83535575ac74a9efdc53bf4065",
+        "ja": "5f845b7a381266964758d6d61df068bc36307508f09ae4f1f07f2c2629fab4ce"
       }
     },
     "overall.pentacles.08.upright": {
@@ -9320,9 +9320,9 @@
         "성실한 연습"
       ],
       "copy_sha256": {
-        "ko": "a88c313626a9a04bde1e9d1d178c7f55f192e5471c99fd7c65ebac0c1e191bb0",
-        "en": "fe8a72eaf14140d7ece3c5601cf6ff32f5bef997640e7f178b511d21699f6533",
-        "ja": "ee0c3a836e98ed0ba8047f3b08107c047eec420238a4dab9d39da83b530b0785"
+        "ko": "ac3d6e8585b0880b3704f6838e402a2d4782b403437b7746eacff61971b84da5",
+        "en": "edef5957404ca2ce97d3ed5f65a2ce55d6a0a4485f057fb08162d18cbbb21af8",
+        "ja": "4ba0728834a024f8d8d81e3aab08525dc3e31cb4b02106b102ce19af23701673"
       }
     },
     "overall.pentacles.09.reversed": {
@@ -9337,9 +9337,9 @@
         "계획의 공허함"
       ],
       "copy_sha256": {
-        "ko": "fc797f1eb3ec021803c9349b1b5e3ce0568acea5add21fedd740e52d639371b1",
-        "en": "8892069ddfb7d5c6881be0bbfe0852e964afa515111884f12050c8ae839b3cc4",
-        "ja": "86ad8ee4f17a0a5d11ea762b9f678b069c976e414b9e8295c77bfc28e28603c7"
+        "ko": "1ef4b723f91e081ba98f2675582618789c0b7f67c7396b2e3e8fffe3e60a402c",
+        "en": "b18d3b54ba125d22173a9b9136e99e8394936ea5abe8b2cf4cc6ac62438f26b0",
+        "ja": "15db435d091fc2f5acddc8679c26aa4bdc47d04b3b55eecf17d3c65ede338e3e"
       }
     },
     "overall.pentacles.09.upright": {
@@ -9354,9 +9354,9 @@
         "성취"
       ],
       "copy_sha256": {
-        "ko": "4dcc1ae289a0bc4ba7859c54d6ed3ac095f89e2cd717ed79c50986902b965e09",
-        "en": "4911a9edb12732ad770ebeed899bc35cac9199347f7293e3954754b00beb2d12",
-        "ja": "ce879e8eabd13675314244edbc96cc5630946a7b55b5bb01ac7bdf1571667afa"
+        "ko": "7022aab9e915f9ff09b0b65fcc77062f1ae96a33e026a5bd88bcc79798080886",
+        "en": "2bc8ed9ec6c30dcea3498f64d3d3f50f4efaf352ec0353ca8655f1cab6e96906",
+        "ja": "b4716328e5cf06fee9a71dc917dc8c5716d9aa1645b30710d4e1694e9e45b370"
       }
     },
     "overall.pentacles.10.reversed": {
@@ -9371,9 +9371,9 @@
         "위험한 내기"
       ],
       "copy_sha256": {
-        "ko": "d2f178ed1a262582f2b5cdd2a0d190945382559c6dac5ef0fba56c5fbfa7d7c4",
-        "en": "13565548227d7cd83c90f73cca93b55d313e843f629f1b772638159065f34b3a",
-        "ja": "1b1dba2b186da75c9b06788b20485175ce8048df1ba2fcc8539de946ef1c1335"
+        "ko": "79e323708d4541ae3c2f3babf568edfe5268400a072007f334341504714f7934",
+        "en": "e2d133e17d9e4f816b26e19f05cea29573f69d2e3e794f9ab810aca8cd2aaaf5",
+        "ja": "645d6d6b4266ad8b4b07a01a585416ab07475be2f8539d49442868609ed6e8fc"
       }
     },
     "overall.pentacles.10.upright": {
@@ -9388,9 +9388,9 @@
         "기록"
       ],
       "copy_sha256": {
-        "ko": "6c1c9c81b5be43eb2e89eb5536408e064062855303b6fdb0a0183919c41d7454",
-        "en": "aef2c1783fb6ebef6d0130accc9a7fad8c8084fbdc8a4bfb874d2d46786fd727",
-        "ja": "a74edbdf42eaa85d342a429a4aa1f43b580f00781363a897ab9f2c4d4749df62"
+        "ko": "fca28d502b07101bcae829e2abe37ddec0437068291aea4e6a36d0de12466dec",
+        "en": "64777df402d22e4e044163bc12e3e902572bbbb6eebbab37dbe821a292d6b8e7",
+        "ja": "9bb0689214afba2e5c272e5ae28a0ecdc624c174c829c41304277628ded2433f"
       }
     },
     "overall.pentacles.11.reversed": {
@@ -9405,9 +9405,9 @@
         "기대와 다른 소식"
       ],
       "copy_sha256": {
-        "ko": "5f28d8cf7b8e05cc4fc3e038d7912b1b4c3688e3bb08dce8e31b77f1b34d4a85",
-        "en": "2cde5b8ea7123d6212e84d297e92587491b8f8cd973f1d4c49ef35d2255227c9",
-        "ja": "adc3642e839ad94e7a1c5dbc00c3559f4faaf92aeb38377b3a1e2964c393c5bf"
+        "ko": "3810c39b08c73d3df2b893edaea3a3d4eb11183ff1e556fe6ba6462e3d4dd8b4",
+        "en": "f154265ab3ad044926cb3120ae8986df51cfbf26fea05959789cab89baa25bbb",
+        "ja": "9fcfd9cf0e21e3d4d914d3f6bd9a2bc72ea2afdf542ba4c5c583d03b850fad2a"
       }
     },
     "overall.pentacles.11.upright": {
@@ -9422,9 +9422,9 @@
         "소식과 관리"
       ],
       "copy_sha256": {
-        "ko": "e64eace2fa1115a1c301c97fbe1cc78ebcc95d51e6c0179802b0f33c864c9dcc",
-        "en": "aaf96dea8b3fe7223435cdfa035d4785a60c9943b1066502e47f8c4985e5a9ec",
-        "ja": "a69612de1340c186f050d68572aba29784c0c68409cbc46f9c2f4c8a4c1fcb8a"
+        "ko": "7e7ce1498d733cc17386541570c2042759d3852a4efcd5d7c93194e1c5693c37",
+        "en": "f4c9e5eea5dc528475076231300be435caeb667dafb7b4341879db05d9d31b21",
+        "ja": "61e9a8f73113a9c76a61a197fd861fd45931b85c44564041df0379a3fdeb232f"
       }
     },
     "overall.pentacles.12.reversed": {
@@ -9439,9 +9439,9 @@
         "낙담 또는 부주의"
       ],
       "copy_sha256": {
-        "ko": "60ea6c93b395b1344191dacd683b79123afd9ed7ac82faa37728b4be32a597d4",
-        "en": "8f717790cab7f24bd3feda6b407ec5fe6d87445356a6f4ed43d8fe49a46cd280",
-        "ja": "7ecfdd3136cfdac1a98c77e0aeeac8b5ebee89e2066042793dbd3659479fba32"
+        "ko": "160b5e078a4948b89cc7f7a11cb07c153213ef20edbd2c1617d3981a56a37389",
+        "en": "39127efef8d4fe15bf7ab4dc15100ba868646ce40161139453b7e686bde56c27",
+        "ja": "c2b025a49a07865af3d2f206d5a912c2207a872199315a16de07a61716fec57f"
       }
     },
     "overall.pentacles.12.upright": {
@@ -9456,9 +9456,9 @@
         "느리고 꾸준한 인물"
       ],
       "copy_sha256": {
-        "ko": "fbaea071c2a5f796892cb3f3d0f372359ef57d1755258663c829297586003dd1",
-        "en": "ad0fe1a59ff5e497a9ab87e9d9b5c49fa3befefce3f2bff23f37b8538d10dcc6",
-        "ja": "0547da7e8aaeb0460de35a70106cbabb897d196d2534873efd0ee0c686a39915"
+        "ko": "d6089f33779422450f7a18b55b38416c050d7b68fd9a8a0a73d4b65509b002ab",
+        "en": "e0294f1994d9c0706853e26b2a019834ac8e688fcab7dddcbfd2c5162b492fd9",
+        "ja": "d25b91b5935a490e2a47139b399ea43d7d2a0008f73ad6ce764725654960bcec"
       }
     },
     "overall.pentacles.13.reversed": {
@@ -9473,9 +9473,9 @@
         "불신"
       ],
       "copy_sha256": {
-        "ko": "53486f2ec296bebb1ffc10d26d3f22eb5c21b0f13ed95e96a1f75f90fcf785a9",
-        "en": "6c37e3ab30ef52273ed0be443ad420a7634bd8ebaddc4a3009d3d71e8edd0574",
-        "ja": "d5b08a34da7bf75f92fcd15d8f5f106fec1988a8ff5f1a9cb6f10dcb20e59675"
+        "ko": "91f9b8cd6a273df7967206eb406d945dc379c1b89fc1d6c1b5e4497de5c2b941",
+        "en": "74e36311ed65fa1350c93ce807648ba5f5840a69c3d06fb46661b0b0475bd07d",
+        "ja": "11d18d61e51c637bae738dd938c6a407ceb9d75ca805331a0a06fcfe914ba3f0"
       }
     },
     "overall.pentacles.13.upright": {
@@ -9490,9 +9490,9 @@
         "안전과 자유"
       ],
       "copy_sha256": {
-        "ko": "8d97ddfe70ded5847715e392f7ba99c2d89cf84c36240210e4b899b9dfc1c7f3",
-        "en": "f3b5726e284b49f8ade6e30e04a86112e147b652eeabb979b84c80b41a3eb14e",
-        "ja": "4067187733237066291faf30f37d30a7a51882527b6e66c9023fe9795e6203fd"
+        "ko": "b5b53a7184aa8308d2d84b757f5df892c40d7ca1730cc201b08d485e0f044a74",
+        "en": "ba828237d4e0762cc6aa4b6f52bd2d4fc7be3a1f65dfafcefc1682c3bae56b29",
+        "ja": "06f93d8e7fa12bd189ce755aeb06a9c9226c4fc943f5874824861896fa7b5a3c"
       }
     },
     "overall.pentacles.14.reversed": {
@@ -9507,9 +9507,9 @@
         "위험"
       ],
       "copy_sha256": {
-        "ko": "acda3051ed9477fb5c1ba84b29e8a79925ce9589090207a692388e38f8b93682",
-        "en": "e4a2831ef6112a44eaef627b74ff9ebff631debd23224f57da0e7b40ca1dc0ec",
-        "ja": "7a8138c52323a2d68d15ac839aefaaaec33f13d4982e9dbdb227138309573ae0"
+        "ko": "cb7cc1b6993ac768d3860ae89740f9481aad493daf0ff07cdca13734ad985325",
+        "en": "0d3a3c1d2be6d6dec21afd6e27b9b6b7e49948ec9bc4017dc3b96237780633ed",
+        "ja": "cf3827dc60135269836ea57244b6ff4755da399d0833a08f9632a73af027315d"
       }
     },
     "overall.pentacles.14.upright": {
@@ -9524,9 +9524,9 @@
         "수학적 능력"
       ],
       "copy_sha256": {
-        "ko": "208ec63be1c58edaab268d7fea42b5b959e739b48baa555ae7636da34ec8cb81",
-        "en": "c6bc2ccb5438b5bc9d4e0be0172f82643cc9ad021b82a11b591696d44010ab1b",
-        "ja": "6256c0d9ecc84e0d7c3f5a2f5755a89817b56031580e927ae98ff5e273917d7f"
+        "ko": "3c9a30b60a03feb66e95c6b513255ebaceb7b673743cf1b166d4517fa0845f9e",
+        "en": "6c7e241d7404d2e0321ae9609fc943f616d89c831e3591bec70ba311b574994c",
+        "ja": "9e2b34c4ee1a0cc5f11a76ce29acda7a322a3da1717f206978e1fc360b857eb8"
       }
     },
     "overall.swords.01.reversed": {
@@ -9541,9 +9541,9 @@
         "성급한 확신"
       ],
       "copy_sha256": {
-        "ko": "405b5572bed8df303b908d898d0797f6b95de84e812a0ae94d152269eb49cf9e",
-        "en": "d46df87badb386976a0223b474f9b2d6c137c75cd601e50d1fd37faada1ccb42",
-        "ja": "3e46fa8081460d632317569fa82c69ac36f52e2982745839c14acfbd474d7083"
+        "ko": "4acd02e361e811eb5371394fca16709bd8146bb3070414bb127b0f8786f5dc85",
+        "en": "78867fad1cacc6d618055a960e411303dd12c42f9a0b2ebc74a3523322b7d91d",
+        "ja": "65cbbb405c0074227f9816a96fc0a2d617d575d51b4c5f053809956446e2d7ab"
       }
     },
     "overall.swords.01.upright": {
@@ -9558,9 +9558,9 @@
         "지적 돌파"
       ],
       "copy_sha256": {
-        "ko": "6db3fb3766277ef91a0795ff6d3a12d760c48f0c27b620b73ae6d22543d462ec",
-        "en": "368eb0793d96601b4ef8ece1ecceb4b06fbb4257066013310c1b9420da6f284f",
-        "ja": "790c2a30f27b8a5797a7260bace4b58d916acc129beede19b6573879e1abbfe5"
+        "ko": "c16f5e1020203e959b26f91ad8fd545587211cda784cad1e8771e263211bd9a8",
+        "en": "791b4a677d61128bd6ae1aa7c421ed4251e17fe7eef9b85f8e54062efdbae224",
+        "ja": "68580ec5d203a18b84adfe926b2a62df4e8f43ca5f86e663b37cb0ba16a035ef"
       }
     },
     "overall.swords.02.reversed": {
@@ -9575,9 +9575,9 @@
         "판단 곤란"
       ],
       "copy_sha256": {
-        "ko": "612a5c68e721b7fd8fd1560095f55ce91339bb78d055cb76f6b6b0b13c9e671a",
-        "en": "c540568f3c8bf6b9d00d54f6c0ff3db74016e1483ec94539d50a5fddaec937b3",
-        "ja": "103d6aa0de15e927e57e88a28e809d318c5df926b8e2ca389fd578bb3b425af4"
+        "ko": "a725c39c783b9d24ddbe1d493e39756acf8ecfff5058f971fa4adef1b65378dd",
+        "en": "d9a688c3a29c7adb4ff114c335451405ac55225d38b08e16ee7a4e99dd1f61ca",
+        "ja": "ef61a8fce06dc5c4e9a9ef71212eecc637e21796c52f94d1bce124982ea97926"
       }
     },
     "overall.swords.02.upright": {
@@ -9592,9 +9592,9 @@
         "판단에 필요한 정보 부족"
       ],
       "copy_sha256": {
-        "ko": "3ddd62b101e7635f9bae382e06f51fcc681a339a3f955d8e2af9ba75c28c84fa",
-        "en": "83c670f9793064968c6aed2395052dea0e35a4022ec40847107278d9b287fd20",
-        "ja": "717ae38f3b32e2292dc8259f437cc8ad523dff85c56a4a83cbd664d7699b27d0"
+        "ko": "fd93f6643206cf6d3f7d95b8a36581e0a72bba10c80bd96b6ffae842f0c30a26",
+        "en": "026ac8ceecb824dacc608732499bbbeabe6a018ccca9ab70da40dcf3bd40a625",
+        "ja": "205326524f5c5438c86b5daf61ddea107066548b63daccd5d2161de9d8ba25f0"
       }
     },
     "overall.swords.03.reversed": {
@@ -9609,9 +9609,9 @@
         "감정의 부담을 내려놓음"
       ],
       "copy_sha256": {
-        "ko": "d75777e8347990272c06490db6c1749af6eb7a99dcc8dd1309ea0741523f8430",
-        "en": "fadbde9086157dd6acec2e40caf8633c51c21ec59ff755d2933c34fc6e51971f",
-        "ja": "cb897f44831fef0f485f4d9da8e8f2772d08e0481e28e40a0676f89cafbe2e34"
+        "ko": "da7cfcd5045d95cd9902340daf9c7b5c6a14b7290224a60ebb37b8f75edd500a",
+        "en": "00e1ea3fcf3e7175fc4eba6dc9568705cc238dc83c54eceef4f6a181b052e9b7",
+        "ja": "7529c02fd1a60f1247503d3d6462a1152d6081cc55568eb7b9cf93abca94fec5"
       }
     },
     "overall.swords.03.upright": {
@@ -9626,9 +9626,9 @@
         "실망과 분리"
       ],
       "copy_sha256": {
-        "ko": "772a66b14cf6743e05ec981a2263c305c441f721aa131d394b53060fb796ea2e",
-        "en": "5fceccb2b8ad93a47b6f57732f271d1b62e60998f1f55d486f3d7a5708e0e185",
-        "ja": "9cb5839f8c7644c232bba28a33f44e4782986b80cafe97fdb9a79bbd33bb93f4"
+        "ko": "34c4f48939a7d29314d2e4262d3d031e8d40b4c2be7ec2422a4701c4bc90524f",
+        "en": "530acae331436575717484a96c4a82a9aaeb715cd1d4063f2bf90dfa2407979c",
+        "ja": "5cece8fafbfbf8c6abcd0ad0d34d6f39e2a5df5d22a3ca9f4c813c32d2ecd42b"
       }
     },
     "overall.swords.04.reversed": {
@@ -9643,9 +9643,9 @@
         "조급함과 남은 피로"
       ],
       "copy_sha256": {
-        "ko": "8b8b24794fa55b001d9b27e3fdc5ad9be606a141d7c43325de5d23461d4f6671",
-        "en": "c1b9eb09b1953e1fe5d7090bbb4ab8b901a682388eefc35b58fc9073a2ad64d1",
-        "ja": "91a6081cbbb6d523af68e29451a796b9f4299f7573dc52fb33a400c834ab7048"
+        "ko": "a815bfc30b5a14fde5032c8f8ddab61f86b4aa46210af8f3541943b851772df6",
+        "en": "a19b05b122d9d2478514f1e6baa4bef641def237d40572c7976b25dbe605f587",
+        "ja": "584aeb6e9ccde69079082ffda13ead3628831e43e4b713dfa9c7e17ff0d54dc6"
       }
     },
     "overall.swords.04.upright": {
@@ -9660,9 +9660,9 @@
         "고요"
       ],
       "copy_sha256": {
-        "ko": "a9e37929688dde6c0fcadebcae773db04ac2c40394e3d8fb0687fdc10e565eb8",
-        "en": "18242bd77c1f5fbb338fe55c02953b872464b2aa71b0bb41164623c5f9df047c",
-        "ja": "39ed7d08189ae915933fb443304fbb7fdd7637b0b998d69ac42698221b4df7f3"
+        "ko": "5c208b4a45eda8e2de52578cf0eb1d623aba1710ce57d2cd19445b72a3428821",
+        "en": "fd44399d183d396fb0257bbf385bcfc93a2dbeaa54a698b974fd26e02badde62",
+        "ja": "dd4c116eab1ccab6532896876e88d13d24c85dcc7b555eb5f0019f77aa69b6af"
       }
     },
     "overall.swords.05.reversed": {
@@ -9677,9 +9677,9 @@
         "더 큰 손실을 막는 양보"
       ],
       "copy_sha256": {
-        "ko": "696b830a4bef6b87d0fb49ba80dbecc1eb7d0b90ad07a7000b2e10a300b9593c",
-        "en": "789b0ac4a65e67f946daf9d41b40d3d6610e5a21ed65437a17edc6c5ffe3fb7d",
-        "ja": "86f1f593dc38c5fcbaef91eb9b7da197581b8b5bf3526dae4c6fa03cc71023af"
+        "ko": "37bb108acfce45e7b020746eaaaec7428738157783565ac239b59866e9e6790b",
+        "en": "5d357c5d4b2662f21f5330d189f041af43cb8fcf2a36f399e328c4f03625d68c",
+        "ja": "aeb0d2cb9336f3586e64a33765d64243799eca254a42e86935fb9ff3c9663e43"
       }
     },
     "overall.swords.05.upright": {
@@ -9694,9 +9694,9 @@
         "소모적 대립"
       ],
       "copy_sha256": {
-        "ko": "793145f97de677ed60cfd7377b4352ef6dbd75f32410067d86b10ea4fab7de7c",
-        "en": "b64346a51b063f4e851a48aa8802b2f0188da6e5bba04be8631a4de08f05fbaa",
-        "ja": "49cda8eb384bcc3ccd458a4d1ea112911406c9778201510a6112679fbe3ba697"
+        "ko": "0892fc4f80abaaa8648a3b58678509637b20aa7b09804ff6067eb6e394308074",
+        "en": "0dd7f536d42dd07a27a7792fa842f3ae722d1052529db79b1f05ef53b0a7ee40",
+        "ja": "044bb4376be215653f6dc9fd169376aee40c4146d35dda119f5abe4d747aed90"
       }
     },
     "overall.swords.06.reversed": {
@@ -9711,9 +9711,9 @@
         "익숙한 어려움으로 되돌아감"
       ],
       "copy_sha256": {
-        "ko": "285a40a54c003080c1e3a8d90da1dc5a01ea9e6b04e4be89fd6a9fc052d1a45f",
-        "en": "e04480ca106273f2e7f8dff326c1155c743c02a3f15de173d83225e9a2c3ee49",
-        "ja": "21cc69dcc00ff6dd6c4cb123127eb61bca51bbf9ab0f314fa55aeb31d3c89679"
+        "ko": "68c94e37c0e78551c96c4d55ae1791a43094a7c062603ad3b9ec397ea5b15eb4",
+        "en": "3b22d63981194c6b5362b2395a53765118083f1365cffa30066482807ec2a693",
+        "ja": "479824eb8139b0f661beb03d3eb873f2bdc77f21d2dacd4cc5f0af6393e1e1e8"
       }
     },
     "overall.swords.06.upright": {
@@ -9728,9 +9728,9 @@
         "도움을 받음"
       ],
       "copy_sha256": {
-        "ko": "cfc90416809635651e4f069abdf0d9fc9d521fb026264bf044523f8c6e514642",
-        "en": "c8d5a956cf8020cb8cc2e7deccc6954178dcb48bc8a215a6e9d94b6512a4ba91",
-        "ja": "81b31cdc80feefc76db4fa9259eafb79e086d7bab30d95ef36e7188efdfd1033"
+        "ko": "2da89a41d4541685e55e4d3e49d35425f2863629a9eb912fc542a111a15c2cf0",
+        "en": "22629b335a2490a6e6ae289ae476d526a177a20d00196f65f6724eca3b28206d",
+        "ja": "dcd80d8d14aee426edd321286d0271c8dd0001add2276858952d3aaacabe5467"
       }
     },
     "overall.swords.07.reversed": {
@@ -9745,9 +9745,9 @@
         "조언 수용"
       ],
       "copy_sha256": {
-        "ko": "39c141803c24759b716f0c659d9f7c71431751df8166b9e3269833332ab05bda",
-        "en": "fe7a4ed55479eadaeabb49d2ba151b53d3598224487f283abb049646c61f75c6",
-        "ja": "177da1a38d8cd138d0d22b8a1c35df876b9c15f91029b95c8dd9eb6efd646855"
+        "ko": "9a22143e26281f97a7c31096c81bd922a5c5f535c3e1af1c6e5b60235312129f",
+        "en": "94fa748dea6517a071416b1775dd1290f559f8ce4a7b0f2065c641f0c73d9949",
+        "ja": "6ddc4203c436ca394c561b1e22e0699f68b538dd72996e3767b83a7573424e09"
       }
     },
     "overall.swords.07.upright": {
@@ -9762,9 +9762,9 @@
         "신중한 정보 공개와 은폐의 구별"
       ],
       "copy_sha256": {
-        "ko": "eeff6197e1a91e83e64344db0105337d3e22c1ba744f9fbf650242f9389b1207",
-        "en": "0707896b46b2b7d1d0292a8a57b57b40b9aeca3c05b5571d2a3b53433effff9a",
-        "ja": "2fc4932b754accd4a40596004c8293dadc8371f8eb67b9a9b2cc768666bbbfaa"
+        "ko": "da51e6034367577abc2a36a0878d295c835ca8f9c85adfa911672e18c47837e5",
+        "en": "f1da4599c10eb91901f59a5578a0b987b2fa36240793d4980ca88e829b990b18",
+        "ja": "94c4d834a28434ae5329f99ae54d4ecc3f332dd7a389cc3ddd0282a500706c85"
       }
     },
     "overall.swords.08.reversed": {
@@ -9779,9 +9779,9 @@
         "두려움 속 작은 행동"
       ],
       "copy_sha256": {
-        "ko": "6ba069210f72f65422a7bd31a8780032af128fbc43ceba6e95dcc9b7f5cd5af2",
-        "en": "f8b37a0d9cf49cb5e48651b705fcfd78f7d1157e0fc7e9a1a9be53aa4d222db0",
-        "ja": "1bc615fce4277c2ca0376b86d9aa07d5cd7aab1104fa2c7a74853b07a27654d1"
+        "ko": "421c05f0291cca3652773d9dfa979ebe4ba7ba7d46c13dab7e2dd88ae97205f9",
+        "en": "abc76b6fd3a52a0841305e36e789a238f752b9843676d64cade37635163a94c3",
+        "ja": "82f77d050ce3e0512b50c928e017cad8f0cb9fab544da4ee06bcb606d93a0857"
       }
     },
     "overall.swords.08.upright": {
@@ -9796,9 +9796,9 @@
         "일시적 구속"
       ],
       "copy_sha256": {
-        "ko": "68a590aad7b1e9f2c9d32a6e369ab0b45c1f7650d6a2d8668291e6b7ae9e86d9",
-        "en": "f70449a7b027224d48d225c38b4f575f78b70a55f64d78cb7f31787d2099e8e4",
-        "ja": "e9665ac007d8f1d6774eaeccc25e9065222c678500f0c2808deed536bb004041"
+        "ko": "849c158f77788ae6e49d189c0b8928be6df43f21852453b5656cf1d8abebff79",
+        "en": "5a3b234227ef91927cf2e830beacd8243fcac158fd6a55ed0e0cc84b64f04eb3",
+        "ja": "696fa67242373658266398e34506e35e9ff44cece99845d0f6e780ed8c73c119"
       }
     },
     "overall.swords.09.reversed": {
@@ -9813,9 +9813,9 @@
         "감당할 문제를 구체화"
       ],
       "copy_sha256": {
-        "ko": "25223b6b5445e9c0c22388f6d7babed9273caf00e48e69367694769385f3a78b",
-        "en": "e62a22e37b523ff480c86783c0fb3909a339344869ef5fce682b317883fc5779",
-        "ja": "d5e7b4f2f9679b4e1c84f377e00be157021e75c0a72226a6d468d7b82f7fb880"
+        "ko": "138157ebbe8d2a912d5c70bc8738230ff22afda9156f6eb6ef3383b9a654e018",
+        "en": "06ffce33cc49a7e6cd1ea1e363bc89e58f920e3e2b67b97551c35256914b1ea3",
+        "ja": "9a2f6f62c63fde58d00225b78d0a0464e48c652557f4ce531b34db0233adb2b1"
       }
     },
     "overall.swords.09.upright": {
@@ -9830,9 +9830,9 @@
         "혼자 품는 부담"
       ],
       "copy_sha256": {
-        "ko": "b6526e516a42a4ad17147f348b4b91a9b705d8c338cb0cacc6d9503647c4363b",
-        "en": "d6c30f6d47ae5d9120b410ff4958b92cd480d2ee0de3dbf835f1a28ef70f19e4",
-        "ja": "6f4983314a0d1b9ebcd2fd947645b206f39306ddb6c51fedec5018f985828300"
+        "ko": "0f672c87ad447de9633d2f180ecfeaa79a9cd0594f55ab67468cf1dfb5625f32",
+        "en": "be48f2b6b3ffb34b8052338d501747e31d215ae8ad7aaa053ad3baefee1c1da1",
+        "ja": "edf0e1fa4891c904e5f070406619ccb7f5b3361bc5e838ac1ae8ad199a0a5457"
       }
     },
     "overall.swords.10.reversed": {
@@ -9847,9 +9847,9 @@
         "이전 부담 반복 방지"
       ],
       "copy_sha256": {
-        "ko": "dc0925dd8403bec3cccd39c4ac78cbe8cf05785d9f30519987a518c979d1e34d",
-        "en": "140afbca842d6c3c9267c9c7b6111a272119cef02df468f958fd364e8cf5061e",
-        "ja": "47f1844a4ecd71e66858ce5d70e1cc39ad208be7541dd1606305cec89679045d"
+        "ko": "85e66844046c2cf2bf8630a6094151c688d9af10750e796f752dcade72dd886d",
+        "en": "fec910dbbe63e2009e15db07c3355e206956d6489d8afcf5d14a3744048fc12e",
+        "ja": "c96e553ba0a6795f3b375605533015d7828181920bf3c17959f05f017699a30d"
       }
     },
     "overall.swords.10.upright": {
@@ -9864,9 +9864,9 @@
         "더 이어가지 않을 선택"
       ],
       "copy_sha256": {
-        "ko": "b9998da5132371de0e913d12d132e350073e391f4af09dc27fb1a132e50d8ecd",
-        "en": "4831591dafac1b417f776954971c1703ef17f2640c22eea513bf144478622a0e",
-        "ja": "2496df0bb727c6571e166c4751de620b476d54a97304574ee9466a58f0ff5830"
+        "ko": "e08c79bfba813c3c583535557772c2250453d3604c8adbf79d79dc34e5a46d2a",
+        "en": "e3c8786a6314cf957f23404fdaa7587b37101f0ddbc8dd8e41c8e7f84707aa97",
+        "ja": "f7aefefea525edd60e345385d1f5290f371491fba86dc48969379f13f335d4db"
       }
     },
     "overall.swords.11.reversed": {
@@ -9881,9 +9881,9 @@
         "관찰이 의심이나 성급한 결론으로 치우침"
       ],
       "copy_sha256": {
-        "ko": "49d5529413e191925317872c0200a8f5dc0339cf25c9d5a35a71f9a19f3d9c67",
-        "en": "a1fed37e2f1913ef2b0e10592f0330e10310019d15d90ba7c91c128c520cd5ac",
-        "ja": "99750bceb0101f868f94b04295ea342c77b0a8ff20fe09c43f0d34a3576b6fa3"
+        "ko": "fe7ca36b08601e974e08adebbec80114357511f2436ac0042ebe143ce1f242c1",
+        "en": "df5ac213509081ba9e977fee031c9e8432c952ee59f3812615b5e965c13849fd",
+        "ja": "0f609094a8730c7814b3d68d8b2f99f63e789b5bc53a97f108b897d8771b6f50"
       }
     },
     "overall.swords.11.upright": {
@@ -9898,9 +9898,9 @@
         "민첩하게 주변을 살피는 인물"
       ],
       "copy_sha256": {
-        "ko": "ecbbaa19f3d19340a6117d16970d269fa9db46641262fe21be99700ce99fa03d",
-        "en": "e8c406709a107111249529ab5355141b605587ed4dd076cd3243f142e61f09d0",
-        "ja": "5015f55dfc4a669c1cfd9d450d945922f0c0a72c89af98f3c1aff89bea22ca45"
+        "ko": "5c16e69ead12e8ea44daef3c328e0b25a823a68fb223d9f15dabcee8317b54df",
+        "en": "1a93486b8f86d9207901d9cf772f101d8bf4d8a646e2c2718e9b0b1980199beb",
+        "ja": "9834f577e8f37532e09cfe84d116dac9746d091443093b5a1c473d8080018969"
       }
     },
     "overall.swords.12.reversed": {
@@ -9915,9 +9915,9 @@
         "과도하게 벌이거나 낭비함"
       ],
       "copy_sha256": {
-        "ko": "c427f7b8cb29958b08c2ca13659f65d6a5ec89afdb8be5280bbfb7698b1bb56c",
-        "en": "cf1be52cf27b28cf2021701fdd3c3dc5542d9aed6cf1f4367f094eeba2323791",
-        "ja": "141e1be9f308cc8b4459b3b902d682f5a5b98f4011bc5141261825b55807c7f3"
+        "ko": "6a73c8d9272cbc3d651fbfeda49a7c1e27236ba81657df22f21c2a984901983e",
+        "en": "558cd6a387d9d0ba8ff0d117a315ff7c37f722bfd2fbdb6903181fdd0e65d28c",
+        "ja": "8150ddf4b1afd2be8cdebf47e7a52a1af1c1c3466ea4e0e632e0e1aee8cb18cb"
       }
     },
     "overall.swords.12.upright": {
@@ -9932,9 +9932,9 @@
         "빠른 행동과 대립의 양면"
       ],
       "copy_sha256": {
-        "ko": "4402bfc845d696394d2088d8c7ea5bbb85437dd655c516642139c9a7cd138635",
-        "en": "2dbfc58992a8186137d54c16ad14b192b5745b137aa64fa22ae718c3e98b4dab",
-        "ja": "4878b5fbeb54ce2dc00d4f04a53aad80c53fc2d0da345b364a7999cf390544f0"
+        "ko": "279ef2116e88d6af46be5444fea3b8cdc50028e95726e794900f76c220ff2d7a",
+        "en": "f0d03ac23b6711b3c8926c4cb88c3bbcafcb101f1b5964fefb9d010bac21053d",
+        "ja": "4d558d1385dc6ca888e07d00a2723a64f763e463054aae045d5e129d154948e0"
       }
     },
     "overall.swords.13.reversed": {
@@ -9949,9 +9949,9 @@
         "기만과 왜곡된 판단"
       ],
       "copy_sha256": {
-        "ko": "d9cdec60d83404da6a8e3906da424aeb4107b61fd30b197004a80f219523a4a7",
-        "en": "b8ace02ebafb1239154f89457618845ed709ea2ac6440699bb3c1b79757381e0",
-        "ja": "6bac9e01fd5b756fc3e687528698faa4cbc24bac603a76c013f9c8d4af8d1f44"
+        "ko": "9d8d2d522dd1f2d4844280552cf46263b05f4ea3d36d2ff9792c0c6fb9376866",
+        "en": "3ebc6e9af98c12c4cb782fb6d31a67bafb3c0020669fcdbdca581a77e250f0f3",
+        "ja": "05beced962b678131e86d774b777d390f8da5835ee78704ee062dbc1ac8de8b0"
       }
     },
     "overall.swords.13.upright": {
@@ -9966,9 +9966,9 @@
         "감정에 휩쓸리지 않는 독립적 판단이라는 현대 해석"
       ],
       "copy_sha256": {
-        "ko": "f99bf778fa831a20bda56dee01e60d8b03c74b9d77ca85052ae8f42316c065da",
-        "en": "6c5424770fd4586f163e9100530283eec3ff178b9b5a38d0fa2adf7056da50ba",
-        "ja": "252eea1ab92732bd7804bd08e722952a5fcf6907242cdb0ebc677cb0f85214bb"
+        "ko": "395c0e9f4ab77c4b42f9b842aef2320b243c13233e21b440bc7c23d866862d65",
+        "en": "a16e772784ec07c9842dea8b6903d940024b35a29f5d5cb17b7dd1ddb73de881",
+        "ja": "0854eeb8b69fecbd7b9cb5957a8b79cea4c7dde719c8575c0170d1faf2ae1d55"
       }
     },
     "overall.swords.14.reversed": {
@@ -9983,9 +9983,9 @@
         "불성실한 의도"
       ],
       "copy_sha256": {
-        "ko": "add04f0b709de38f12e34ad045c7f39b5c60ce0a40f505bc53f739bb8549510d",
-        "en": "ffe6d1b7403173f124179138ecdbb419d8ba85c605a4f6323223a6fb81438220",
-        "ja": "bb21009cf9956ea4d761acb5aa8da15d15085a74caa786ea5ec0d1d173b0b33e"
+        "ko": "c760748fdeee31f77a6417009aac4724fb876815a477f83a4cc75697b8c3b6df",
+        "en": "16983557b422a096c6da0fbbfd43dd79c487fecac3358864e817009e696019a0",
+        "ja": "ee2b100b8f4a12f6d8d0d3b4c767f08ba2add4bfecde5bb28bbc8932977aa734"
       }
     },
     "overall.swords.14.upright": {
@@ -10000,9 +10000,9 @@
         "법과 원칙에 따른 결정"
       ],
       "copy_sha256": {
-        "ko": "9e6c474ca457735b9328ca9e38a2dc6283bafe56358ba4a90b2f7d96a09fe88d",
-        "en": "d149568b5dae83defb031236469e9140dfeb7c10f1138eecd5808477692982ee",
-        "ja": "9cc1052d058a12f38922cad9bc8d7cefda055d7ca73cc0ab1e99dce3156f2d5e"
+        "ko": "ba9293a0555db3e1b3243cd622f9232f767de14658d5b95e86ad851614efca4a",
+        "en": "da652c8abaa9ab716f245c48b4e886bcb4eac20157a1688d1f004c14efee8adb",
+        "ja": "306d9a25c363d8a15c36666c7837ee791ff27c62ba1f2ab55c721eff2e5a1b7e"
       }
     },
     "overall.wands.01.reversed": {
@@ -10016,9 +10016,9 @@
         "의욕 부족"
       ],
       "copy_sha256": {
-        "ko": "40d71886cacff9be42db5bd9b317c80a80a503436fd67289136bdd72fb207285",
-        "en": "a7e8aaf42bc6b132d7c17b7c149b596f89866234739be9f7e9503ecfa8633b86",
-        "ja": "825e0e5c1eeeb3ec2996de8e27d936fc5f4375266beb017e9abf769c28b865b4"
+        "ko": "db83a939853ab4dcfec38b10c65a57e0c0772d378304261225065a0a768c3272",
+        "en": "77c3d892f2d25b0da2bc815953e86a32e6eb72cf1bd56150c5e5395978d6c4ae",
+        "ja": "49ae03761a53d87428742c36f4f72b47fef83910be1e21aae00067a7bfcde8bc"
       }
     },
     "overall.wands.01.upright": {
@@ -10033,9 +10033,9 @@
         "시작할 힘"
       ],
       "copy_sha256": {
-        "ko": "7f26ca61b0c63259cee693a688b20f5ad1e27196cf5d1d090d177b5a932c97b7",
-        "en": "45a3defaa03d0a9d9ffb736957dfadf45c4594ad0934ff1e837d9a86bb44e2b2",
-        "ja": "c54de60e3294cd917ead737a5a24313caf179d4e0689362fe547a007581d5126"
+        "ko": "c4d10e6a15d8cd0775e2c1052ce3b4128599aa7491b2c1ec33ba67942d589068",
+        "en": "af3072b53e36f346688234bbc58253c48bf198d610e39ba21cd1d8e597d8c97b",
+        "ja": "2e6bf31736b177f7f8621cf2a8f5db877d3d58a74e3fca7c88cc9e0df89b6b13"
       }
     },
     "overall.wands.02.reversed": {
@@ -10049,9 +10049,9 @@
         "망설임"
       ],
       "copy_sha256": {
-        "ko": "8404c4baf36583846ab174a0c2893a8dd21393fc4c94c05d1fda90a6dcba027f",
-        "en": "e6ea3eec9189dd78afc6b7bcc3923cd11bd7d107380fc48a3b787bd26ace608d",
-        "ja": "4379e52ea7a399d7d85d1dbc48a7fca4016bd749ae6d281b9e259070bed662c4"
+        "ko": "be8e54b4edb63f892f0346619def007ca88db836ab9212f5321f1b2ec3f9a105",
+        "en": "0552216598a030a1c3336edf8edccab0c6c84726ca21a7e7fe99c50dfc14149d",
+        "ja": "544acaea026a763860cfee301d4fab3728b0c98b9afafe908cfb790881efc1d5"
       }
     },
     "overall.wands.02.upright": {
@@ -10065,9 +10065,9 @@
         "오늘은 하던 일을 더 넓게 이어갈 기회가 보일 수 있어."
       ],
       "copy_sha256": {
-        "ko": "8dff741ec94a45e2442d57dfb6731d36e02ab6b770e97179023e74ddc04b1346",
-        "en": "35221233dbd12c82256a5e510287be7073b8c42390d15f60669c96f07ca25ad6",
-        "ja": "f856013a5c09e271142bc85c065dcc89e25d97b8f8d1722a93ffe72814c35517"
+        "ko": "b9b4357a002b8c8f52443e6d7255485c4a3def54bb15a621bf2174e7772b781a",
+        "en": "bf6750d67805b473544413a0a07a3499fbe988b9f26fddaca8f884b749e2ffcc",
+        "ja": "fc22cd8f4eca6091ee272043d53e41d554980098c34657bf8a54dfc8d3ca1c13"
       }
     },
     "overall.wands.03.reversed": {
@@ -10081,9 +10081,9 @@
         "오늘은 기대한 소식이 늦어져 일이 더딜 수 있어."
       ],
       "copy_sha256": {
-        "ko": "9b4e7882dca198ab2d26457f466c4fbfde015b5725a240a331510b064c1a7100",
-        "en": "cc7d0586300dd0d8fa48a15c3bfdc8397dec51c971a87d89168361a696c25a58",
-        "ja": "d73c6514e1cac6118698a60e930b42deb485b4b7080bf4860628b5b57d68b00d"
+        "ko": "c37c711a6d3cd623039dbf15123eda0fe597d35285f4da186b51866c6aac2c54",
+        "en": "a41532223164ee460e50e9e31dd4fd03059576a69f85e59053e84b12c91d5dec",
+        "ja": "d59b617e40358c01361ef439667c9fd98c96f5a400400f1482beab74cc70c0c3"
       }
     },
     "overall.wands.03.upright": {
@@ -10098,9 +10098,9 @@
         "발견"
       ],
       "copy_sha256": {
-        "ko": "9f8a3bedb7b5625a6d1772acea0b813efb449d48c42b89c7de2e3d86cb5e0bf6",
-        "en": "3dbb5b138b49fb681a1104bc5db2b7e8a42674fff16a30dfbf1cd1f3629ffaa9",
-        "ja": "ed267585c840162f4704d05bbf3d3c5273f4ae17809b517d715aae8220a1f61b"
+        "ko": "f4ab2fb330bb3e75ed68421c0fb631ee4e7a48dff4d7b0a3c82c89141fa04eef",
+        "en": "ea75ba231f0b125f673bc5070828dd27f5ed88f2c458693dba17ec52d49eb5ff",
+        "ja": "cf2d20e183323fedf428b15f69d70d1ff2f3b2ae0ade2801e49ccddcf7a7e62c"
       }
     },
     "overall.wands.04.reversed": {
@@ -10115,9 +10115,9 @@
         "아름다움"
       ],
       "copy_sha256": {
-        "ko": "57db909dbeb69de86410ebbe6672a8991be7240391d99d852463d6f99984ebf5",
-        "en": "45db0b725d1e389f0af42e8a47e49d1cbd19050c4f21ac2551e8191f61ceeac1",
-        "ja": "4962605a7a7c95531038bf95dbbdf5702f4cc8aab0c2cf7bfcedb67b666a3eaf"
+        "ko": "23d562895ea74075aa76f718df796e7500e01bbb37100404d839bca83002d3c2",
+        "en": "8167fa5f8855d6679a3aa779e61d6e8fd2d65529e8ad7d1065dea61c3245eb74",
+        "ja": "3082eabbd2d528ed992d26d96b8e041ad86abb13ad5019ded4644c5f3bc2e791"
       }
     },
     "overall.wands.04.upright": {
@@ -10132,9 +10132,9 @@
         "화합"
       ],
       "copy_sha256": {
-        "ko": "afd3fe9a6ae6ab207d48e1de7b624961164d1ff536b2cd856fb4626d35cad92c",
-        "en": "74e754e3ec9535df56525ed50b99a23e26948e7daf3ea18f83438f0f4d762f90",
-        "ja": "e95336789c0a42ebe0ce59dc502930b240df65b1a52bc33b4251901d120ac4ae"
+        "ko": "bc48ea908ef1e945904109b4f206d37039ef196bd25c4c46b768945d613c88c2",
+        "en": "2ec4e3cea938eb1f4895ac7ebf4ff8d9538f522d2cbb29fa89eab6ceb8ed335d",
+        "ja": "ab578f8def05eb535bb0a33e87f2abf140ebd91ad548e97fafa15c3daca69561"
       }
     },
     "overall.wands.05.reversed": {
@@ -10149,9 +10149,9 @@
         "모순"
       ],
       "copy_sha256": {
-        "ko": "ba767d24f84751b77bca7126d8370a3d283c57425f9ec5cbccdf19e1626ec7c9",
-        "en": "b06de785ebc39b97736c3ddfda8f5ca9babc38b90442c515103fa357b4762341",
-        "ja": "25bfbb631a32128908d0f29c797b610399f49235457b614e6ed04300fa98364e"
+        "ko": "3905bcf5b2281dcc4ff4ee7dbe445dfd687cad3b33b00e082e8c8ea6af3bb96e",
+        "en": "e7b3091d5e1a861fa3e978dd50efa45b1257a485f842cbc7068b230b0a22db1e",
+        "ja": "0a5feb848ad0278080c910da3cce684b637fb486808008dcdf3db8fec84245f6"
       }
     },
     "overall.wands.05.upright": {
@@ -10166,9 +10166,9 @@
         "서로 다른 주장"
       ],
       "copy_sha256": {
-        "ko": "5bad1d1e6ce9d694a0ae00bb8cc3939a3bdfa7d0b960f6849857d1e882a52f28",
-        "en": "8520bcf9463f41a664a86183e886b6a0cfd685351bb8e9a169d38872ee0a4132",
-        "ja": "d93173c2f47c0c72e69ff3d6416c21ccb92b1d0408261f7c31df0898e87a8b74"
+        "ko": "fd20938ac8496d086b21efd37c28761ef1a21a709722544ceec9be056f49cdd9",
+        "en": "8a73ab00a5ae0f094bc30e7e50c73a0570b3edc12d779f47db9cdb5c2ac421e5",
+        "ja": "f827df440d557787d3e5e0f2c0d05c2b5472664b3c098ccae46d0ae81573bb83"
       }
     },
     "overall.wands.06.reversed": {
@@ -10182,9 +10182,9 @@
         "인정이나 결과의 지연"
       ],
       "copy_sha256": {
-        "ko": "1f3c4bb5652e4643785d08cbc50c48d71f0d9b1668e88e6f33132190b448187b",
-        "en": "3e24f48b7c0f646c5e3d08b7dcd665b54f584fd6824adfdaeb8bf37e6a9280a6",
-        "ja": "3525f93597629d230d4ec60bc61118766dcc349e76900e4b6e1e4d169f791bbd"
+        "ko": "d516959a83113ed3271593dc7522fef2c5fe5f2d8879eea2068916455a765347",
+        "en": "b64cda6b7233476241b66bc9c347b2e5531b8a191249fdf9d3144f2daa922538",
+        "ja": "dcd4b3ced45618a8ef034567962169d105cd1eed2899d8c5fb83f54c0e61a058"
       }
     },
     "overall.wands.06.upright": {
@@ -10199,9 +10199,9 @@
         "반가운 소식"
       ],
       "copy_sha256": {
-        "ko": "1d641cd8b504c29a1cb232341cacd8558f05ad82e75282b05a62eafa4486ba76",
-        "en": "a9c19dc3d6f7d678b29fbee0ef60d74789a4d88f40a6173bb6889e4a305638ea",
-        "ja": "c048bb9e871caa15fddf1ea6a5ae13c43f32c8719bc6fc26ae96c9ddfdb1b950"
+        "ko": "381d361780d442512fc13ac77cbfef5f04fb6b15b437ae3916f208b70777a4b8",
+        "en": "4d2b488b6943ba413cfd1beeff748a6251d1bb922b90d54b5bfc308405eec7aa",
+        "ja": "bbfda8a235d224b101a7e17aa502e3f0a8c3914ebabfd65623157d107e5d8927"
       }
     },
     "overall.wands.07.reversed": {
@@ -10216,9 +10216,9 @@
         "우유부단"
       ],
       "copy_sha256": {
-        "ko": "53c2828c55160190d0beb98de117b098be05ec85bc883f94264b55e059deb06d",
-        "en": "5e6a2f66de41e7d369e1969be7258d3417f3f1fe6793f63701e30d02071d10d7",
-        "ja": "feba44caa2e354e3e6962b3140862ad19302f98d143bb5df673455b85b3836af"
+        "ko": "8bfe660158438112696818897b621736675ad80bc3b9b2538069ea41fafe4b2e",
+        "en": "50c093c25b779ac445ef8c06c646154df2d24c84e9ed8755132397a0a778fcd5",
+        "ja": "2f58ae8de29b3360997fa3bd84c999cde27388e0377ed21733e5c269a9d3539c"
       }
     },
     "overall.wands.07.upright": {
@@ -10233,9 +10233,9 @@
         "논의"
       ],
       "copy_sha256": {
-        "ko": "9e7cc68ce1a10afe33a2e313ca60b9dd7e6554c775a4aaee0ce13a3d4e440fa6",
-        "en": "c27d2ceaa8e71eb14e5448f2b7140d7b53f7d37456f95c29218e0f8b3f8a6651",
-        "ja": "27d6b79206280cc629b0f1c20e85f4a281d04fcd6983d8b67a36f2faebdc25c6"
+        "ko": "2c2863b555af6f1f34d6a6d16fc93100e0a4f5264789bc6bf4f0b0335ef243a0",
+        "en": "12c6418066d03215e16791043161199bff7b7c7a680b8fd35f61264071002968",
+        "ja": "2178bbb0953ac5499bed408f1b11c047c530980c45b1bce191f6e7061a5ec086"
       }
     },
     "overall.wands.08.reversed": {
@@ -10250,9 +10250,9 @@
         "말의 충돌"
       ],
       "copy_sha256": {
-        "ko": "63947068538eef3d931c591c9a8eec55463c09cce6a4fe568f1192824da72075",
-        "en": "b2620ce7a3ae6ba41e4b4109e6bb431c3ca40b47351674e9bdc57b465a019e5a",
-        "ja": "e5898f2073594da2c6c1e439a58e2601d40ba949b76e86d59cd1feb2c485d476"
+        "ko": "6e15756b1078f159451d4d469f9da22947d8257793056cf308cbb9832e092de3",
+        "en": "34eefb14adc6501f2723152c3a13f42d06bc4d4dbc2959475cbc37f70c198c0c",
+        "ja": "9df7bde012442169d47caca5caf8f5f55339f49caeb182da78b7e1164c777ed6"
       }
     },
     "overall.wands.08.upright": {
@@ -10267,9 +10267,9 @@
         "진전"
       ],
       "copy_sha256": {
-        "ko": "da7609a82b6a31d955af930e94813903f1a5aaef5e5fa53a79b46a7ac1b10236",
-        "en": "d0129b026793ddf62e68a913f53203e37510e0e2d04817c9b731ca92d806dff3",
-        "ja": "c5a0a3491f1b26bb575f0fbfbbd6141941e0a6031e6e6d78c051ff448cac4024"
+        "ko": "0920146807eae69aa26fb31ba951d76f844b93fbb416b2494300312672a032c5",
+        "en": "8016580204729887e7db9d2b60d6d54f6f6d19e232263495ac73a6ffbfac3776",
+        "ja": "1a4ccfaceb9b9a72cb060a48d90d780c61b6c0615cd525a26094ec0b6a00a630"
       }
     },
     "overall.wands.09.reversed": {
@@ -10284,9 +10284,9 @@
         "방법의 경직"
       ],
       "copy_sha256": {
-        "ko": "a5fcd5a33ed298dec0376379ce171234d8a9fd254b639692f1d970034943a02a",
-        "en": "d1ade99522a3f4fabccbe2dab676fe6410c3be9bd7e6e76253853eef592894ac",
-        "ja": "156299a0079cc4d08cdbfa000fa78a0eeb5c6e9c93d548497564699b7ff2ac64"
+        "ko": "18b23261d433e84ac2e6b71c7356959ba6f9bcdcb846ae0883396c173d39870f",
+        "en": "d03c3fba0d7ea3e7a59d133a4a5b90b783a29ad63c92ac4994602cad95d4c962",
+        "ja": "cebd0d62745a2f53112cbb071795ba7c25750768325c16aca7a65b36ed5e555f"
       }
     },
     "overall.wands.09.upright": {
@@ -10301,9 +10301,9 @@
         "경계"
       ],
       "copy_sha256": {
-        "ko": "499e78d7a34ef22acc71ef36ecf69f5f0270ffeddebcde695e4c014fcd1d0527",
-        "en": "3cc4545e6916a21f3f738fad6a7e2b794255fd72b8b3e9640f2b248821378347",
-        "ja": "f78aa59b5905099a2c19af95120f6e209b8677722e51b2c1e5cef7eca17e930c"
+        "ko": "b7489caa9da6ad07c046dec216f144b06dcb7b626286ebc1f43073d399df4a3d",
+        "en": "0fd1262e0a67753b1abbfddb127f4cd14a950c0c4d4c517759261d70d95a2782",
+        "ja": "bf05c6ba891ceb4b3d5ffee5a348565e9bbd5967ee3af206240ec05a49d08b03"
       }
     },
     "overall.wands.10.reversed": {
@@ -10317,9 +10317,9 @@
         "어려움"
       ],
       "copy_sha256": {
-        "ko": "45a1513675d5f70216fc9edcbe2ce3700d1c654c0b2438b18302a6f9a9f713d7",
-        "en": "b9cea609a6d7360e25556d431d03ed6aa48563153aa788ba8757d14b6b6bc355",
-        "ja": "2a82a3f1b13097a46292d93179e0d5eca3e7a003ff369215611e142260f0404e"
+        "ko": "9852bff8eb44967fe6152667b98e8782efc52d8ebb86c06d3ccdbfffebdb84de",
+        "en": "9169214a942071ea050d507cd9724788d97400d7a617f7f22150f4048d941896",
+        "ja": "6d1c6e20920d0686394032f8c35d5deb9114315b06d1a496068443df71f18418"
       }
     },
     "overall.wands.10.upright": {
@@ -10333,9 +10333,9 @@
         "성과에 따르는 무게"
       ],
       "copy_sha256": {
-        "ko": "8c32cad5f9a2f5b79d68c8962d57e86170f2251875e28aa75939b3b31a99f929",
-        "en": "57c676f56df2571a3a34e37de291b16397bc4057318c5b8d38974dec351dde18",
-        "ja": "17875962ed6b1263c3c41d748810ef3a358fdc1cf0c2959f3ad7f33c7d325c00"
+        "ko": "10393caf9f0a918e37b6d96f0d1d96f7366ba2fe775a911ace10be62e874ad1b",
+        "en": "6562502f2f4e00e88d5ddbaa380b9167ce288fea5a7094cbb13cebf56b08a5d0",
+        "ja": "4557fc06d5daa1e78cf0e8e6e082785ccc2077a87c69f44d5fb5dcf6b787c37f"
       }
     },
     "overall.wands.11.reversed": {
@@ -10350,9 +10350,9 @@
         "확인안된 이야기"
       ],
       "copy_sha256": {
-        "ko": "7387eb3d4253a55579dfd24e918a201a3ad7ffa6fde840743dae03ce5e21efaa",
-        "en": "72e3793b8763276b61dd8c09c8ceee66a2d62991633c071a13ea8653df287f80",
-        "ja": "2e8247ccf0e1cb85dbdd3ca64fa0dfea33eb2c063b4776fc7503dd69201535ab"
+        "ko": "5ebced6dcc986e55d82d430dd6db374f3b9eb08e8fb04f1a503de0f7671e8f00",
+        "en": "2bd348af1502d2ab6538d248a85040f85a12b2d9b92e5498c3f7fb316d2d6e2f",
+        "ja": "9a441a575d243c45271cf75022dbd8c4d1ce1bfc1c4cb185df8dd36ed031e160"
       }
     },
     "overall.wands.11.upright": {
@@ -10367,9 +10367,9 @@
         "활기"
       ],
       "copy_sha256": {
-        "ko": "2010aa94ae463889d57f7bac4771b23b03e0d7b852101a4d7832ca0905a94d48",
-        "en": "0b4f8bd2774e7696f6f328f87b4495067a812b741df7004a2d76cc2f8c495def",
-        "ja": "f7f94fc5381d869a6abec670528564f1d536ea9e1bd511070434f29e77992668"
+        "ko": "ae538681f06bdba3ba5d4735dfcf5f21e97b3125ca077fba45718d261986f907",
+        "en": "8c1d511971f622053a0432c22702b52fabb5e7cfdadb2e3860cdd25bb662c0c1",
+        "ja": "9cef9c11fde04d69b48f6c0d0bb48076d6312ea8624db182189f29986f0b63c7"
       }
     },
     "overall.wands.12.reversed": {
@@ -10384,9 +10384,9 @@
         "불화"
       ],
       "copy_sha256": {
-        "ko": "95a9d30005fd123557006bceeff21e6dcea9d1d9d576f53c65d983742014db86",
-        "en": "115631f3d231b846cd2ed627d194c8ee578b606f06b8fdcd898f49d01face26d",
-        "ja": "1345172899aea42efb6b7cd7f68cfa0ca67fa6aa0a3dcec6fb14661e8efcec1d"
+        "ko": "45eb24ebf784508b2deca952e98ae26dee1f090446e0631691b4218472fd97b0",
+        "en": "32d836bd52e08252ee8548a51a3cf795f6aa9d32bb245ecc4033cc020699f03b",
+        "ja": "4c63d1eb6d403e68d297c40dfd00784ca0dbae515bd3645f90577733a5721f6d"
       }
     },
     "overall.wands.12.upright": {
@@ -10401,9 +10401,9 @@
         "성급할 만큼 적극적인 실행"
       ],
       "copy_sha256": {
-        "ko": "42baa3d8f691891549b89acebfb3c9be51f84d98595675c2964cc88ee1550280",
-        "en": "daac5c21824b53bc7cfaebc675c30522f3bbf5c2f67e1ec1c815684482e9adb4",
-        "ja": "9ba9c067e7246afe60a5918aaf2f573020db183c2062041dc8d07c7c5e40698e"
+        "ko": "47a373da277a653fe3fdddf8e8d134eb54f371801f4b041586db8b08a2ad1b75",
+        "en": "b260bc5a80a3e3edf1f9bb347a86e4ff9628fd8a4c71c32393419c0bfd7b1a48",
+        "ja": "152d1849ca25285192253a97b58a56c13e87e1a616486cdf96ff46a12ba151cb"
       }
     },
     "overall.wands.13.reversed": {
@@ -10418,9 +10418,9 @@
         "질투"
       ],
       "copy_sha256": {
-        "ko": "5602dccc4f332f5b7e482f2ff3a036b191a5e977a2b541d60907340a50f537f5",
-        "en": "cc27256985cc8caa14af9e6ac2576cd02d4a03ec1cfc96f7b2cb4e7ca37fe96f",
-        "ja": "0e3cba57c0801fe15dd038cd679c5073f1eb261c46503811296a517fdc6b29ad"
+        "ko": "3a626833d030ff3a095b41b424ccd55006652767a81cbc34bec32dccc2b955b7",
+        "en": "ae84f0ce01b3cfd450f602d949a3495f32885b7bcc20f49279dae038dce130cf",
+        "ja": "55977c0c789baf8792f656f85f49fd2fc145a923719aebb6b7ddc830c114b1fc"
       }
     },
     "overall.wands.13.upright": {
@@ -10435,9 +10435,9 @@
         "사랑"
       ],
       "copy_sha256": {
-        "ko": "523362fe194569bc08f5e36d2730bb596ca275159d37afba12d7ac769e2760d8",
-        "en": "a81aca1d101e17a183b3d2706c9566c1412e0112e18cb2a425098fe51a4be6c9",
-        "ja": "aec50ccb3e449b0174338d031b6447418a4e4bf90a1f91941df34a1ba045dd3a"
+        "ko": "b8a167ed33042e65e45c97890f0c84294cfd13ab24d0c62ff6682f30f4a7c4c9",
+        "en": "a85a6404589fad4fd0ac5ab3dbfdfae6d4df6904617c5a755521afe2388fba23",
+        "ja": "e75cc40ac36f21f2df4ebf9fb8002ace96139062217ced820402566e8b420f47"
       }
     },
     "overall.wands.14.reversed": {
@@ -10451,9 +10451,9 @@
         "지나친 기준"
       ],
       "copy_sha256": {
-        "ko": "a1a2770d188afb87d4d5aec210020f3808985b3088fd7dd5053ec0838a2854fa",
-        "en": "04004d8d3c19cf5b9b40bd3abfda1d59d128a6cb28de312b166a758f4d6b3167",
-        "ja": "acfadf6b3a9f6110ffbd90f277109f32d581747cf088b3e4e0449310a7ec94fa"
+        "ko": "a9b0abebb7ba0bb5f0cf9619cd6e676ba228506fb217880558cc3f98df7a5d62",
+        "en": "cc7824dd59263ce819a0cab172e38b69b84eab743340e41ba4962f2e00842d41",
+        "ja": "5e68622a8b5e595d03ce11b9115f8e769e3a7edf123929de7f87d687359902b1"
       }
     },
     "overall.wands.14.upright": {
@@ -10467,9 +10467,9 @@
         "오늘은 앞장선 일이 좋은 방향으로 진행될 수 있어."
       ],
       "copy_sha256": {
-        "ko": "e5e3e3cc468830d43460fe7242fab52c940e10da38aefef853e71edc4b971e22",
-        "en": "c64f7aa0630ab5e32d94460b987cd5e58c11d9ab2775abf2d51fbec85ae632dd",
-        "ja": "44823d93f5e2900d6d22efe7b0d740052379ef77a68d61b94445d69aa06d8de9"
+        "ko": "b4c179fb7235dd648556d03355a897f2cd6bc38bf625d6dc0368687d2ca77f81",
+        "en": "8267e6b45f9e765f12be5c95c10c71b9e58574735e25827d9951f4df9c995f4d",
+        "ja": "aaafa20962e0e874b65c1a59f29d3bc0bffd84ad7f95c60bb453c39697b6b0b4"
       }
     },
     "work.cups.01.reversed": {

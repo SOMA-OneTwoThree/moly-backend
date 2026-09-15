@@ -48,7 +48,1220 @@
   },
   "errors": [],
   "pending": [],
-  "warnings": [],
+  "warnings": [
+    {
+      "code": "long_short_field",
+      "key": "overall.major.fool.upright",
+      "field": "do",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.fool.upright",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.fool.reversed",
+      "field": "do",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.fool.reversed",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.magician.upright",
+      "field": "pause",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.magician.reversed",
+      "field": "do",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.magician.reversed",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.high_priestess.upright",
+      "field": "do",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.high_priestess.upright",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.high_priestess.reversed",
+      "field": "do",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.high_priestess.reversed",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.empress.upright",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.empress.reversed",
+      "field": "do",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.empress.reversed",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.emperor.upright",
+      "field": "do",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.emperor.reversed",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.emperor.reversed",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hierophant.upright",
+      "field": "do",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hierophant.upright",
+      "field": "pause",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hierophant.reversed",
+      "field": "do",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hierophant.reversed",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.lovers.upright",
+      "field": "pause",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.lovers.reversed",
+      "field": "do",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.lovers.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.chariot.reversed",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.strength.upright",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.strength.reversed",
+      "field": "do",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.strength.reversed",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hermit.upright",
+      "field": "do",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hermit.upright",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hermit.reversed",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hermit.reversed",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.wheel_of_fortune.upright",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.wheel_of_fortune.reversed",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.justice.upright",
+      "field": "do",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.justice.upright",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hanged_man.upright",
+      "field": "do",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hanged_man.upright",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.hanged_man.reversed",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.death.reversed",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.temperance.reversed",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.temperance.reversed",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.devil.upright",
+      "field": "do",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.devil.upright",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.devil.reversed",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.tower.upright",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.tower.reversed",
+      "field": "do",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.tower.reversed",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.star.upright",
+      "field": "do",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.star.upright",
+      "field": "pause",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.star.reversed",
+      "field": "do",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.star.reversed",
+      "field": "pause",
+      "length": 79
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.moon.reversed",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.sun.upright",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.sun.reversed",
+      "field": "do",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.sun.reversed",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.judgement.reversed",
+      "field": "do",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.judgement.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.world.reversed",
+      "field": "do",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.major.world.reversed",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.01.upright",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.01.upright",
+      "field": "pause",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.01.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.02.upright",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.02.reversed",
+      "field": "do",
+      "length": 76
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.02.reversed",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.03.upright",
+      "field": "do",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.03.upright",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.03.reversed",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.04.reversed",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.05.upright",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.05.upright",
+      "field": "pause",
+      "length": 76
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.05.reversed",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.06.upright",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.06.reversed",
+      "field": "do",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.06.reversed",
+      "field": "pause",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.07.upright",
+      "field": "pause",
+      "length": 77
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.07.reversed",
+      "field": "do",
+      "length": 73
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.07.reversed",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.08.upright",
+      "field": "do",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.08.upright",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.08.reversed",
+      "field": "do",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.08.reversed",
+      "field": "pause",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.09.upright",
+      "field": "do",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.09.upright",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.09.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.10.upright",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.10.upright",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.10.reversed",
+      "field": "do",
+      "length": 82
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.10.reversed",
+      "field": "pause",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.11.upright",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.11.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.12.upright",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.12.reversed",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.13.upright",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.13.reversed",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.14.upright",
+      "field": "pause",
+      "length": 76
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.14.reversed",
+      "field": "do",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.wands.14.reversed",
+      "field": "pause",
+      "length": 81
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.01.upright",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.01.reversed",
+      "field": "do",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.01.reversed",
+      "field": "pause",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.02.upright",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.02.upright",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.02.reversed",
+      "field": "do",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.02.reversed",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.03.reversed",
+      "field": "do",
+      "length": 73
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.03.reversed",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.04.reversed",
+      "field": "do",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.04.reversed",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.05.upright",
+      "field": "do",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.05.upright",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.05.reversed",
+      "field": "do",
+      "length": 79
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.05.reversed",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.06.upright",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.06.reversed",
+      "field": "do",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.07.upright",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.07.upright",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.07.reversed",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.08.upright",
+      "field": "pause",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.09.upright",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.09.reversed",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.10.upright",
+      "field": "do",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.10.upright",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.10.reversed",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.10.reversed",
+      "field": "pause",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.11.upright",
+      "field": "do",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.11.upright",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.11.reversed",
+      "field": "do",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.11.reversed",
+      "field": "pause",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.12.upright",
+      "field": "pause",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.12.reversed",
+      "field": "do",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.13.upright",
+      "field": "do",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.13.upright",
+      "field": "pause",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.13.reversed",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.14.upright",
+      "field": "do",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.14.upright",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.cups.14.reversed",
+      "field": "do",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.01.upright",
+      "field": "pause",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.01.reversed",
+      "field": "do",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.01.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.02.upright",
+      "field": "pause",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.02.reversed",
+      "field": "pause",
+      "length": 78
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.03.upright",
+      "field": "do",
+      "length": 77
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.03.upright",
+      "field": "pause",
+      "length": 78
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.03.reversed",
+      "field": "do",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.04.upright",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.04.reversed",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.05.upright",
+      "field": "do",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.05.upright",
+      "field": "pause",
+      "length": 73
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.05.reversed",
+      "field": "do",
+      "length": 78
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.05.reversed",
+      "field": "pause",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.06.reversed",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.07.upright",
+      "field": "pause",
+      "length": 76
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.07.reversed",
+      "field": "pause",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.08.upright",
+      "field": "do",
+      "length": 79
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.09.upright",
+      "field": "pause",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.09.reversed",
+      "field": "do",
+      "length": 61
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.09.reversed",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.10.upright",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.10.reversed",
+      "field": "pause",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.11.reversed",
+      "field": "pause",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.12.upright",
+      "field": "do",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.12.upright",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.12.reversed",
+      "field": "do",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.12.reversed",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.13.reversed",
+      "field": "do",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.13.reversed",
+      "field": "pause",
+      "length": 62
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.14.upright",
+      "field": "do",
+      "length": 64
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.14.upright",
+      "field": "pause",
+      "length": 76
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.swords.14.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.01.reversed",
+      "field": "do",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.01.reversed",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.02.upright",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.02.reversed",
+      "field": "do",
+      "length": 73
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.02.reversed",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.03.upright",
+      "field": "pause",
+      "length": 73
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.03.reversed",
+      "field": "do",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.03.reversed",
+      "field": "pause",
+      "length": 76
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.04.upright",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.04.reversed",
+      "field": "do",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.04.reversed",
+      "field": "pause",
+      "length": 69
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.05.upright",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.05.reversed",
+      "field": "pause",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.06.upright",
+      "field": "pause",
+      "length": 70
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.06.reversed",
+      "field": "do",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.06.reversed",
+      "field": "pause",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.07.upright",
+      "field": "pause",
+      "length": 65
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.07.reversed",
+      "field": "do",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.08.upright",
+      "field": "pause",
+      "length": 74
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.08.reversed",
+      "field": "do",
+      "length": 66
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.08.reversed",
+      "field": "pause",
+      "length": 84
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.09.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.10.upright",
+      "field": "do",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.10.reversed",
+      "field": "pause",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.12.upright",
+      "field": "pause",
+      "length": 75
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.12.reversed",
+      "field": "do",
+      "length": 63
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.12.reversed",
+      "field": "pause",
+      "length": 67
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.13.upright",
+      "field": "do",
+      "length": 68
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.13.upright",
+      "field": "pause",
+      "length": 71
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.13.reversed",
+      "field": "pause",
+      "length": 72
+    },
+    {
+      "code": "long_short_field",
+      "key": "overall.pentacles.14.reversed",
+      "field": "pause",
+      "length": 64
+    }
+  ],
   "duplicate_full_bodies": [],
   "duplicate_sentences": [
     {
@@ -71,19 +1284,7 @@
   ],
   "repeated_short_fields": {
     "headline": [],
-    "do": [
-      {
-        "text": "받은 도움에 고마움 전하기",
-        "occurrences": [
-          {
-            "key": "overall.major.empress.upright"
-          },
-          {
-            "key": "overall.cups.02.upright"
-          }
-        ]
-      }
-    ],
+    "do": [],
     "pause": []
   },
   "input_file_sha256": {
@@ -97,10 +1298,10 @@
     "money.author-review.json": "7dbed13a83d42e2ea50b6c45388c187042da135ae402f4b548c8b383505fcb81",
     "money.briefs.json": "338f404a99e3bc5597f2d44610eeb976ca34c93b53e514e5bf7901bbeef7daaa",
     "money.json": "b45b8dbde8f732df820389e8f43162aa61bca8fb5030e7b6696b92e7afe6d702",
-    "overall.author-review.json": "02d94c3f1757f3479da80f748249632c67fa9b04676fa4ba0c8d98aec7ff2a02",
+    "overall.author-review.json": "1452f5237f910bd06768fa8aa13e366aaabcd46c3e9dbce3559d71d47255cf42",
     "overall.briefs.json": "95c1362df3086a50db97cf65e3ca6ab2a3a3fa6b08ff328ce84ab68f040c6ab3",
-    "overall.json": "41f8ffb4cc293568720c158a414aa6fe35f1944757c9dd43c7f652695e11b0f3",
-    "review.json": "8fdc22cdaf876ca052b1992b0b39e22965e5110d076009f2834ff40cb3529296",
+    "overall.json": "273cb1be81c4824e7f921865925d45808dd853705f81db081348c677c7cad339",
+    "review.json": "15b2d3d72cb79d91194d8196c10a23894325f9486ea7d924869b5322d0e23707",
     "source-briefs.json": "6fab560cecac4c60732fafe7bb5ab9a8b472f580a5baae4c820e6f54cd45f332",
     "work.author-review.json": "ac0711e572ac5fd582b332423a31b502402b9f9151aabe7891da5f945b9c3cdf",
     "work.briefs.json": "3c68a52a3ca74ae1d849f3e8d7b48376bdb5795183fc1e3716025dba102b1db1",

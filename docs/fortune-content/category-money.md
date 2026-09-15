@@ -1,7 +1,7 @@
 # 금전 운세 — 78장 × 정·역방향 × 3언어
 
-> 카탈로그 버전: `fortune-copy.v8-localized.1` · 서버 자산에서 생성한 전체 전문
-> 한국어: `fortune-copy.v8-localized.1` · 영어: `fortune-copy.v8-localized.1` · 일본어: `fortune-copy.v8-localized.1`
+> 카탈로그 버전: `fortune-copy.v8-localized.2` · 서버 자산에서 생성한 전체 전문
+> 한국어: `fortune-copy.v8-localized.2` · 영어: `fortune-copy.v8-localized.2` · 일본어: `fortune-copy.v8-localized.2`
 > 영어·일본어는 검수한 한국어 원고의 해석·조건·제안을 각 언어에 맞게 현지화했다. 같은 분야·카드·정역방향을 대조해 읽는다.
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 본문 수정은 ko-rewrite 및 localization 정본에서 하고 검수 후 자산을 다시 생성한다
 

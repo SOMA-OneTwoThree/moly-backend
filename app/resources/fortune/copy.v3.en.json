@@ -1,6 +1,6 @@
 {
   "schema": "fortune-copy-v3",
-  "copy_version": "fortune-copy.v8-localized.1",
+  "copy_version": "fortune-copy.v8-localized.2",
   "content_status": "agent_reviewed",
   "locales": [
     "en"
@@ -2712,8 +2712,8 @@
         "An anticipated pleasure could leave you disappointed today. A gathering you expected to enjoy may feel awkward, or a cheerful remark could receive a blunt reply. When your feelings don't come across, even a small incident may hurt.",
         "Don't assume the worst about someone just because they don't respond straight away. You also don't have to cheerfully accept plans you don't want."
       ],
-      "do": "Be honest about plans you don't want",
-      "pause": "Judging someone by one small reaction"
+      "do": "If someone suggests plans you don't want, be honest about how you feel. You don't have to pretend you're pleased and agree just to keep them happy.",
+      "pause": "Don't assume bad intentions because a cheerful remark gets little response. A blunt reply alone can't tell you everything the other person feels."
     },
     "overall.cups.01.upright": {
       "headline": "Something you enjoy could make the day a happy one.",
@@ -2721,8 +2721,8 @@
         "Small things could bring you pleasure today. A welcome message may arrive, or you might find something you like somewhere you stop by chance. Someone you've just met could also show unexpected kindness.",
         "Accept an invitation that appeals to you. Saying thank you can make it easier to talk comfortably next time."
       ],
-      "do": "Accept an invitation you like",
-      "pause": "Replying indifferently to a welcome offer"
+      "do": "If an invitation appeals to you, let the person know you'd like to go. You can thank them for inviting you at the same time.",
+      "pause": "Don't overlook a kindness from someone you've just met. Even a brief thank-you can make your next conversation more comfortable."
     },
     "overall.cups.02.reversed": {
       "headline": "Different expectations could disrupt even a simple agreement.",
@@ -2730,8 +2730,8 @@
         "You may disagree with someone you thought you understood well today. A casual request could mean different things to each of you, or one person may feel they're making most of the concessions. Something meant to be easier together could become more complicated than doing it alone.",
         "Explain the part you've assumed the other person already knows. Expressing hurt through sarcasm could obscure the original request as well."
       ],
-      "do": "Make the meaning of your request clear",
-      "pause": "Using sarcasm to show that you're hurt"
+      "do": "If someone understood your request differently, explain it again. Be specific about what you'd like them to do and how.",
+      "pause": "Even if you feel you've made all the concessions over a request, don't express your hurt through sarcasm. It can make what you actually want harder to understand."
     },
     "overall.cups.02.upright": {
       "headline": "Mutual understanding could help even a difficult request go well.",
@@ -2739,8 +2739,8 @@
         "Other people could make things easier for you today. A request for help may be warmly received, or you could solve something together that would be difficult alone. Conversation with someone you've felt awkward around may be easier than expected.",
         "Return the favour in a way you can manage. Being honest about what you both want can make it easier to keep working together without pressure."
       ],
-      "do": "Thank someone for their help",
-      "pause": "Waiting for someone to know what you need without being told"
+      "do": "If someone has helped you, show your thanks by offering help you can give in return. Ask what they need and do what you can manage.",
+      "pause": "Don't expect someone to know what help you need just because you understand each other well. Say clearly what you're hoping for."
     },
     "overall.cups.03.reversed": {
       "headline": "A gathering you expected to enjoy could become a headache.",
@@ -2748,8 +2748,8 @@
         "Spending time with others could prove more troublesome than expected today. A light joke may turn into gossip, or trying to please everyone could lead you somewhere you don't want to be. Getting carried away could mean saying something you regret once you're home.",
         "If an uncomfortable conversation starts, you don't have to add anything. It's fine to leave at the time you'd originally planned."
       ],
-      "do": "Step away from uncomfortable gossip",
-      "pause": "Joining in gossip because everyone else is doing it"
+      "do": "If a gathering keeps going but you don't want to stay, it's fine to leave when you planned. You don't need to stay until the end just to keep everyone happy.",
+      "pause": "Don't add to unkind talk about someone just because everyone is laughing. An offhand joke could later be repeated as gossip."
     },
     "overall.cups.03.upright": {
       "headline": "There could be good news to share and a reason to celebrate.",
@@ -2757,8 +2757,8 @@
         "Happy news or plenty of shared laughter could brighten the day. Something several people have worked on may end well, and you could get a chance to meet people you're pleased to see. Others may include you in something enjoyable you'd have missed alone.",
         "Send your congratulations, even if it's only a short message. Remembering everyone who joined the gathering can make the day enjoyable for all."
       ],
-      "do": "Contact someone you want to congratulate",
-      "pause": "Criticising someone at a happy gathering"
+      "do": "If someone has something to celebrate, let them know you were pleased to hear the news, even if you only say a few words.",
+      "pause": "At a gathering to celebrate, don't speak badly of someone else in an effort to liven things up."
     },
     "overall.cups.04.reversed": {
       "headline": "An opportunity you overlooked could prove useful now.",
@@ -2766,8 +2766,8 @@
         "Fresh news could arrive about something that's been frustratingly quiet. An offer that didn't interest you before may fit now, or trying something without high expectations could be surprisingly enjoyable. A new option might also help with a long-standing dilemma.",
         "Look again at a message or notice you previously passed over. There's no need to judge it exactly as you did before just because it didn't appeal then."
       ],
-      "do": "Revisit an offer you passed over",
-      "pause": "Rejecting something again based only on an old impression"
+      "do": "If fresh news arrives about a long-standing dilemma, look into it. Check for an approach or option you hadn't considered before.",
+      "pause": "Don't immediately refuse an offer again just because you disliked it before. It may fit your circumstances better now."
     },
     "overall.cups.04.upright": {
       "headline": "Things may be uneventful without feeling very satisfying.",
@@ -2775,8 +2775,8 @@
         "A day that goes reasonably well could still leave you wanting more. The news you're waiting for may not arrive, while other offers seem uninteresting. Something you dismiss as insignificant could be a source of regret later.",
         "Take one look at the details even if an offer doesn't immediately appeal. Waiting for one thing doesn't mean you need to refuse everything else."
       ],
-      "do": "Read the details of a new offer",
-      "pause": "Refusing to hear an offer because it seems uninteresting"
+      "do": "Look at the details of a new offer even if it seems uninteresting. Dismissing it on first impressions could leave you regretting it later.",
+      "pause": "Don't turn down every new offer simply because the news you're waiting for hasn't arrived yet."
     },
     "overall.cups.05.reversed": {
       "headline": "You could put things right after a setback and carry on.",
@@ -2784,8 +2784,8 @@
         "Something that went wrong once could be easier to sort out today. You may be able to talk with someone you're hurt by, or find different support for something you've given up on. A matter stalled by a previous result could gradually get going again.",
         "Hear out someone who reaches out first. Repeatedly bringing up old mistakes could cost you a chance to start again."
       ],
-      "do": "Hear out a renewed offer of help",
-      "pause": "Repeatedly arguing over past mistakes"
+      "do": "If someone offers help with something you gave up on, hear them out. Look together at where that help would let you pick things up again.",
+      "pause": "If you're talking again with someone who hurt your feelings, don't keep arguing only about past mistakes. You could miss the chance to discuss what needs putting right."
     },
     "overall.cups.05.upright": {
       "headline": "Something you've hoped for could fall through.",
@@ -2793,8 +2793,8 @@
         "Not getting the result you expected may leave you disappointed today. Something you've been waiting for could be cancelled, or help you were counting on may not come. One setback might make it hard to notice other good news.",
         "Separate what's still possible from what's already over. Responding coldly to someone who's trying to help could put the remaining support out of reach too."
       ],
-      "do": "Look at the help still available to you",
-      "pause": "Taking disappointment out on someone who's trying to help"
+      "do": "If something you hoped for has gone wrong, keep listening for other news. Focusing only on the disappointment could make you miss help that's still available.",
+      "pause": "When things go wrong, don't take your frustration out on someone who's trying to help. A cold response could cost you support you could still receive."
     },
     "overall.cups.06.reversed": {
       "headline": "Moving beyond an old approach could bring a better result.",
@@ -2802,8 +2802,8 @@
         "Something that didn't work before could turn out differently today. Changed circumstances may make it easier than expected, or someone new could help more than an old contact. A choice based only on fond memories may not live up to them.",
         "Check the current conditions before trying again. You don't need to dismiss a new offer solely because of what happened in the past."
       ],
-      "do": "Check how the conditions have changed",
-      "pause": "Judging a current situation only by past experience"
+      "do": "Before retrying something that didn't work out before, check the current conditions. See whether the difficulties you faced last time have changed.",
+      "pause": "Don't assume a past success means the same result this time. The circumstances may be different now."
     },
     "overall.cups.06.upright": {
       "headline": "An old connection could bring welcome, dependable help.",
@@ -2811,8 +2811,8 @@
         "Good things may come through familiar people or places today. Hearing from someone after a long time could be a pleasure, and an established connection may provide help you need. An earlier experience could also be useful in solving something that's stuck.",
         "If someone comes to mind, send a friendly greeting. Catching up on how you've both been before asking for help can make the conversation more comfortable."
       ],
-      "do": "Check in with an old acquaintance",
-      "pause": "Reconnecting after a long time only to ask a favour"
+      "do": "If an old acquaintance comes to mind, get in touch to say hello. You can catch up on what you've both been doing.",
+      "pause": "Don't open with nothing but requests when contacting someone after a long time. Catching up first can make it easier to discuss what you need."
     },
     "overall.cups.07.reversed": {
       "headline": "Clearer information could help you reach a decision.",
@@ -2820,8 +2820,8 @@
         "Several uncertain possibilities could begin to sort themselves out today. Confusing terms may become clear, making it easier to rule out offers that don't suit you. It's a good day to find a practical answer to something you've considered for a long time.",
         "Once you've chosen, make the necessary contact. Looking for more offers when the confirmed conditions haven't changed could simply delay the start."
       ],
-      "do": "Reply to accept the offer you've chosen",
-      "pause": "Collecting more offers after making a decision"
+      "do": "If you've chosen the offer that suits you, tell the person you'd like to take part instead of keeping the decision to yourself.",
+      "pause": "Don't keep searching for new offers after checking the terms and making your choice. If nothing has changed, more comparisons could simply delay your start."
     },
     "overall.cups.07.upright": {
       "headline": "Appealing opportunities may offer less than they seem.",
@@ -2829,8 +2829,8 @@
         "Several attractive offers could make it hard to choose one with real value today. Impressive terms may leave something out, or what you can actually receive may differ from your hopes. Taking everything at once for fear of missing out could lead to regret.",
         "Start with facts you can check now when comparing offers. Don't commit on the strength of every appealing detail that hasn't yet been settled."
       ],
-      "do": "Compare what's actually available",
-      "pause": "Accepting every offer that looks appealing"
+      "do": "When comparing offers, check what you can actually receive. Keep unsettled details separate from confirmed terms.",
+      "pause": "Don't accept every tempting offer at once for fear of missing out. They may look good without delivering as much as you expect."
     },
     "overall.cups.08.reversed": {
       "headline": "Hesitating over whether to leave could prolong the same discomfort.",
@@ -2838,8 +2838,8 @@
         "A problem you thought was over could return today. You may keep accepting something you dislike, or a decision to change things could be postponed again. Staying because it's familiar may leave the frustration unchanged.",
         "If you want to try a little longer, say clearly what needs to change. If you agree to do it again without any conditions, the other person may see no reason to change."
       ],
-      "do": "Be clear about your conditions for continuing",
-      "pause": "Accepting the same request with no promise of change"
+      "do": "If you want to keep trying something that's been uncomfortable, tell the other person what needs to change so the same problem doesn't recur.",
+      "pause": "Don't keep accepting something you want to stop simply because it's familiar. You could face the same discomfort again."
     },
     "overall.cups.08.upright": {
       "headline": "Leaving something behind could reveal another opportunity.",
@@ -2847,8 +2847,8 @@
         "Something you've worked at for a long time may have little more to offer today. A long-awaited result could be unsatisfying, or continuing may no longer be as enjoyable as it was. Bringing it to an end could let you consider another opportunity you've postponed.",
         "If there's no reason to continue, honour the remaining commitments and finish. Time already spent isn't a reason to take on more of something you don't want."
       ],
-      "do": "Finish the remaining commitments before leaving",
-      "pause": "Continuing only because of the time already spent"
+      "do": "If you have no reason to continue something, keep the commitments you've already made, then bring it to an end.",
+      "pause": "Don't take on more of something you don't want just because the time you've spent feels too precious to waste. Consider whether you have a reason to keep doing it from now on."
     },
     "overall.cups.09.reversed": {
       "headline": "Getting what you wanted may not feel as satisfying as expected.",
@@ -2856,8 +2856,8 @@
         "Even if things go well, one part of the outcome could disappoint you today. The result you wanted may not fit your circumstances, or something you expected to enjoy could prove inconvenient. You don't have to love it just because others envy it.",
         "Consider both the benefits and the difficulties of what you've received. Taking on unnecessary new things to make up for disappointment may only add to the burden."
       ],
-      "do": "Check whether the result actually suits you",
-      "pause": "Starting lots of new things to offset disappointment"
+      "do": "If you've got the result you wanted but still feel disappointed, look for anything that's actually inconvenient or more trouble than you expected.",
+      "pause": "Don't start lots of new things because a result feels disappointing. What you start to soothe that disappointment could simply leave you with more to handle."
     },
     "overall.cups.09.upright": {
       "headline": "A wish could come true and leave you feeling satisfied.",
@@ -2865,8 +2865,8 @@
         "The result you want could make this an enjoyable day. A long-awaited opportunity may arrive, or something you've waited on could be decided in your favour. There may be something to feel proud of even without telling everyone about it.",
         "Give yourself time to enjoy a good result. You don't have to rush into the next thing because you feel you should achieve something bigger immediately."
       ],
-      "do": "Enjoy what you've achieved",
-      "pause": "Wanting the next thing before enjoying what you have"
+      "do": "If something you've waited for has gone your way, celebrate it by taking a moment to think about what makes you happiest about the result.",
+      "pause": "Don't rush into the next thing to achieve even more as soon as you get a good result. It's fine to give yourself time to be satisfied with what you've done."
     },
     "overall.cups.10.reversed": {
       "headline": "Something small could cause tension with someone close.",
@@ -2874,8 +2874,8 @@
         "Different expectations may hurt even in a comfortable relationship today. Complaints could arise about something you thought would be fun together, or someone who's always said things were fine may speak up unexpectedly. A quiet atmosphere doesn't necessarily mean everyone is satisfied.",
         "Ask what each person wants when making plans together. Deciding first and announcing it because you're close could turn a small hurt into a bigger one."
       ],
-      "do": "Ask what someone close to you thinks",
-      "pause": "Deciding for someone just because you're close"
+      "do": "When making a shared decision, ask what the other person wants even if you're close. Someone who usually agrees may think differently this time.",
+      "pause": "Don't assume everyone is happy with a choice just because no one complains. People can have different expectations even when they say little."
     },
     "overall.cups.10.upright": {
       "headline": "A comfortable, enjoyable day with people close to you is possible.",
@@ -2883,8 +2883,8 @@
         "Relations with people around you could be warm, and shared plans may go smoothly today. You might celebrate someone's good news or receive help after sharing a worry you've kept to yourself. A familiar setting could give you a welcome sense of belonging and reassurance.",
         "Make a little time for the people you usually see. A meal together or a simple check-in could bring a pleasant conversation without elaborate plans."
       ],
-      "do": "Catch up with someone close to you",
-      "pause": "Half-listening to someone because you know them well"
+      "do": "Make time to catch up with someone close to you. You can talk over a meal without making elaborate plans.",
+      "pause": "Don't give a half-hearted response when someone you often spend time with shares good news. Say you're pleased for them, even though you know each other well."
     },
     "overall.cups.11.reversed": {
       "headline": "A casual remark could be misunderstood.",
@@ -2892,8 +2892,8 @@
         "Even a well-meant comment may come across wrongly today. An answer you're hoping for might not arrive, or a playful remark could hurt someone's feelings. Trying to test their reaction may keep you from saying what you actually mean.",
         "Make a request or apology directly rather than mixing it with a joke. Sending a sulky message because a reply is late could make things harder to resolve."
       ],
-      "do": "Say something important without joking",
-      "pause": "Sending a sulky message to test someone's reaction"
+      "do": "If you need to ask a favour or apologise, make your sincerity clear. Hinting through jokes could make it sound as though you don't mean it seriously.",
+      "pause": "Don't make a sulky remark because an answer you're hoping for is late. Trying to test the other person's reaction could give them the wrong idea about what you mean."
     },
     "overall.cups.11.upright": {
       "headline": "An unexpected friendly message could brighten your day.",
@@ -2901,8 +2901,8 @@
         "A small suggestion or a greeting could be the start of something good today. Someone unexpected may approach you, or a casual attempt could receive a warm response. People may be welcoming even if you're new and a little awkward.",
         "If there's something you'd like to try, suggest doing it together. If the other person is interested too, you can discuss it in more detail."
       ],
-      "do": "Casually suggest something you're curious about",
-      "pause": "Putting off even a greeting for fear of being awkward"
+      "do": "If there's something you'd like to do together, suggest it casually. If the other person is interested too, you can discuss when and how to try it.",
+      "pause": "Don't put off saying hello because you think you'll be awkward the first time. Someone may respond warmly even if you haven't prepared the perfect words."
     },
     "overall.cups.12.reversed": {
       "headline": "Warm words may not lead to a promise being kept.",
@@ -2910,8 +2910,8 @@
         "A welcome offer may fail to turn into anything today. Someone who promised to help could change their mind, or plans you thought were settled may fade away. The more you pin your hopes on it, the more disappointing it could feel.",
         "Ask specifically what the person can do and when. You don't need to give up every other opportunity before getting a definite answer."
       ],
-      "do": "Confirm the date and details of a promise",
-      "pause": "Cancelling other plans for a promise with no action behind it"
+      "do": "If someone promises they'll do something for you, ask exactly what they can do and when. Distinguish encouraging words from definite arrangements.",
+      "pause": "If someone hasn't clearly said what they'll do and when, don't give up all your other opportunities for that promise."
     },
     "overall.cups.12.upright": {
       "headline": "A kind offer could arrive and a request may be warmly received.",
@@ -2919,8 +2919,8 @@
         "Someone's sincere approach could help things work out today. A welcome invitation may arrive, or someone might offer help before you've asked. Even a request you raise cautiously could get a kind answer.",
         "Be clear about your interest in an invitation. Expressing your appreciation can help the other person see what else they could do for you."
       ],
-      "do": "Show your interest in a welcome invitation",
-      "pause": "Giving a vague answer when you're interested"
+      "do": "If you need to ask for help, gently explain what you need. You can begin with the part that's difficult to manage alone.",
+      "pause": "If you like an invitation, don't give a vague reply that makes you sound uninterested. Letting the person know whether you'd like to join makes it easier for them to arrange it."
     },
     "overall.cups.13.reversed": {
       "headline": "Looking after other people could delay your own tasks.",
@@ -2928,8 +2928,8 @@
         "Doing someone a kindness may still leave you feeling uncomfortable today. Agreeing to too many favours could stop you finishing your own tasks, and a lack of thanks may leave you hurt. It's difficult to keep everyone happy.",
         "Say how much help you can offer at the start. If a request already feels like too much, it's fine to say so then instead of smiling through it and struggling later."
       ],
-      "do": "Say how much help you can offer",
-      "pause": "Smiling and accepting everything despite the burden"
+      "do": "If someone asks for help, leave time to finish your own tasks and tell them at the start how much you can do.",
+      "pause": "Don't smile and accept an already burdensome request just to keep the other person happy. Even if refusing is difficult, say what would be hard for you then and there."
     },
     "overall.cups.13.upright": {
       "headline": "Someone who understands your circumstances could ease a worry.",
@@ -2937,8 +2937,8 @@
         "Kind help may be available even if things are difficult today. Someone could notice what you need before you've fully explained, or talking about an upsetting experience may bring a better response than expected. A conversation that's been hard to have could become more comfortable.",
         "Gently raise a worry you've been keeping to yourself with someone you feel at ease with. Explaining your situation doesn't mean asking them to solve all of it."
       ],
-      "do": "Tell someone you trust what's happening",
-      "pause": "Pretending you're fine and refusing help you need"
+      "do": "If you've been worrying about something alone, tell someone you trust what's happening. You can start with what upset you.",
+      "pause": "Don't ask someone to solve the whole problem just because you've opened up to them. You can ask for help with just the part that's hard to handle alone."
     },
     "overall.cups.14.reversed": {
       "headline": "Someone's mood could cause a decision to be reversed.",
@@ -2946,8 +2946,8 @@
         "An answer you've already received could change easily and cause difficulty today. Someone who agreed to help might withdraw because they're upset, or an important discussion could turn into an emotional argument. Trying to accommodate every mood may lead to more demands.",
         "Keep the person's feelings separate from what was actually agreed when you talk. Don't suddenly abandon something you've taken on just because you're angry either."
       ],
-      "do": "Calmly confirm what was agreed",
-      "pause": "Reversing a promise because you're upset"
+      "do": "If someone changes an agreement because they're upset, remind them what was originally agreed. Discuss why they're hurt separately from whether they can keep the agreement.",
+      "pause": "Don't suddenly abandon something you've taken on or go back on a promise simply because you're angry."
     },
     "overall.cups.14.upright": {
       "headline": "Even a difficult matter could be settled calmly.",
@@ -2955,8 +2955,8 @@
         "Something that's caused hurt feelings could be resolved without a major argument today. A person who understands the circumstances may help mediate, or a difficult request could receive a practical answer. Even without agreement at first, you have a good chance of reaching a conclusion both sides accept.",
         "Be specific about the help you want when discussing the problem. Find out what's difficult for everyone rather than hearing only one side."
       ],
-      "do": "Calmly explain the help you need",
-      "pause": "Taking sides after hearing only one account"
+      "do": "When asking for help with a difficult problem, be specific about what you'd like the person to do. Knowing what you need makes it easier for them to find a way to help.",
+      "pause": "In a disagreement, don't take sides based on the first account you hear. Listen to what each person is finding difficult."
     },
     "overall.major.chariot.reversed": {
       "headline": "Rushing could leave you with more problems to sort out.",
@@ -2964,8 +2964,8 @@
         "Things may not go the way you'd hoped today. A task you meant to finish quickly could run into trouble, and taking on several at once may make you miss a deadline. Pushing harder won't necessarily get you further today.",
         "If progress has stopped, find out what's holding things up. Starting something else before solving the first problem could leave you with even more to sort out."
       ],
-      "do": "Find out what's holding things up",
-      "pause": "Taking on several things at once"
+      "do": "If something you're working on has stopped progressing, find out where it's stuck before rushing to push ahead again.",
+      "pause": "Don't try to make up for falling behind by starting more things. Juggling them could also make you miss the deadline you agreed to."
     },
     "overall.major.chariot.upright": {
       "headline": "Things are likely to go your way today.",
@@ -2973,8 +2973,8 @@
         "Something you've been worrying about could be resolved, and the news you've been waiting for may be good. An attempt that failed once could be worth another try. Something you refused to give up on may finally pay off.",
         "Finishing what you've started will make the next task easier. Tackle unfinished business before starting several new things."
       ],
-      "do": "Finish one task you've put off",
-      "pause": "Starting something new before finishing what you're doing"
+      "do": "If you've put something off since an earlier attempt failed, give it another try. Start by looking at the part that held you up last time.",
+      "pause": "Even if something new catches your interest, don't abandon what you're doing to start it if you can finish the current task first."
     },
     "overall.major.death.reversed": {
       "headline": "Putting off an ending could bring the same problem back.",
@@ -2982,8 +2982,8 @@
         "An old problem could hold you up again today. Something you've hoped would change may remain the same, and a request you thought was settled could return. Sticking only to familiar methods may keep things frustrating.",
         "Be clear when you don't intend to continue something. Leaving the possibility open out of guilt may stop the other person realising it's over."
       ],
-      "do": "Give a clear answer about something you want to end",
-      "pause": "Continuing to put off a refusal"
+      "do": "If you don't intend to continue something, say clearly that you're stopping. Avoid leaving the impression that you might do it later.",
+      "pause": "If the same problem keeps recurring, don't insist on using the same method simply because it's familiar."
     },
     "overall.major.death.upright": {
       "headline": "A long-running matter could end and leave room for something else.",
@@ -2991,8 +2991,8 @@
         "Something you've been holding on to for a while could come to an end today. Even if the outcome is disappointing, you may no longer have to wait or keep trying. Another opportunity could take its place, or you may be free to start something you've postponed.",
         "Once a matter is over, say any goodbyes and finish tidying up. It's time to see what's now possible instead of trying to restore things to how they were."
       ],
-      "do": "Tie up the loose ends of something that's over",
-      "pause": "Forcing something that's ended to return to how it was"
+      "do": "If something you've been involved in for a long time has ended, say any goodbyes you still need to and tie up the remaining loose ends.",
+      "pause": "Even if you're disappointed by how a long effort ended, don't keep clinging to something that's over in an attempt to make it the way it was."
     },
     "overall.major.devil.reversed": {
       "headline": "You could get a chance to leave a burdensome situation.",
@@ -3000,8 +3000,8 @@
         "It's a good day to step away from something you've wanted to stop. You may stop doing a favour you've found hard to refuse, or a situation where you've felt pushed around could end. Getting back what's rightfully yours may carry fewer consequences than you feared.",
         "Say briefly and clearly that you won't keep taking it on. Agreeing to help again out of guilt after stopping could bring the same burden back."
       ],
-      "do": "Clearly decline a burdensome request",
-      "pause": "Doing a favour again out of guilt after you've stopped"
+      "do": "If you no longer want to do a favour that's become a burden, say no clearly instead of giving a long, indirect explanation.",
+      "pause": "Don't do the same favour again out of guilt after deciding to stop. Helping once more could leave you doing it repeatedly."
     },
     "overall.major.devil.upright": {
       "headline": "Giving in to temptation could leave you with a burden.",
@@ -3009,8 +3009,8 @@
         "Something that feels enjoyable today could cause trouble later. An offer may be hard to refuse, or you could be drawn back into something you've been trying to stop. What looks like an easy benefit may come with substantial demands.",
         "The more appealing the offer, the more useful it is to hear what's expected of you first. If it's something you've wanted to leave behind, you can keep your distance even when asked for just one more time."
       ],
-      "do": "Check what an offer requires of you",
-      "pause": "Taking on a burden 'just this once'"
+      "do": "If an offer is tempting, ask what you'd have to do in return as well as what you'd gain. The demands could be large compared with the benefit.",
+      "pause": "Don't agree to do something you've wanted to stop just because you're asked for one more time. Even if saying no feels difficult now, consider what you'd be left having to do later."
     },
     "overall.major.emperor.reversed": {
       "headline": "A one-sided decision could hold things up.",
@@ -3018,8 +3018,8 @@
         "Rigid demands or stubbornness may delay things today. Someone could try to change an agreement, or you may wait a long time because one person controls every decision. Trying to force progress could make cooperation even harder.",
         "Check both the original agreement and the reason for changing it. If you're making the decision, listen to what the others are dealing with before deciding."
       ],
-      "do": "Check the original agreement and the reason for a change",
-      "pause": "Deciding without listening to other people's circumstances"
+      "do": "If someone wants to change an agreement, ask what's changed in their circumstances. Compare that with the original agreement to see whether a change is needed.",
+      "pause": "Don't disregard other people's circumstances just because the decision is yours. Listening to the people involved can make it easier to get their cooperation."
     },
     "overall.major.emperor.upright": {
       "headline": "Reliable support could help things run smoothly.",
@@ -3027,8 +3027,8 @@
         "Plans have a good chance of going ahead without major disruption today. Someone experienced may help you make a decision that's difficult to reach alone. Getting the permission or support you need could finally let you move ahead.",
         "Discuss a request you can't manage alone with someone you trust. If someone has already agreed to help, you don't have to take all the work back."
       ],
-      "do": "Discuss a difficult request with someone experienced",
-      "pause": "Taking everything on alone when help is available"
+      "do": "If a request feels too much to handle, discuss it with someone who's dealt with something similar. Explain which parts are difficult to decide on alone.",
+      "pause": "If someone has already agreed to help, don't take back everything you've left them to do and try to handle it all yourself."
     },
     "overall.major.empress.reversed": {
       "headline": "The results may feel small compared with the effort you've put in.",
@@ -3036,8 +3036,8 @@
         "A task you've cared about may not produce as much as you'd hoped today. Looking after other people's work could delay your own, without bringing the thanks you'd expect for your effort. Doing more won't necessarily improve things.",
         "If you've already helped enough, leave the other person to finish their part. You don't need to postpone your own work to keep doing theirs."
       ],
-      "do": "Finish your own work first",
-      "pause": "Continuing to do someone else's share"
+      "do": "If you've helped someone enough and your own work is falling behind, finish yours first. You can leave them to complete the rest of theirs.",
+      "pause": "Don't do even more for someone because they haven't thanked you. Extra effort may still not bring the response you're hoping for."
     },
     "overall.major.empress.upright": {
       "headline": "Care and effort could bring satisfying results and support.",
@@ -3045,8 +3045,8 @@
         "Something you've put care into for a long time could bring a satisfying result today. Help may arrive for something you've struggled with alone, and people around you could be generous with their care. Steady effort is likely to be more rewarding than something hastily started.",
         "Share a good result with the people involved. Thank anyone who's helped, and let them know you can return the favour another time."
       ],
-      "do": "Thank someone for their help",
-      "pause": "Taking someone's help for granted"
+      "do": "If a shared effort has gone well, let the people who helped know the good news. Share the celebration and thank them for their part.",
+      "pause": "Don't assume people owe you help just because they've been supportive. Consider the time and effort it takes them to help."
     },
     "overall.major.fool.reversed": {
       "headline": "Starting unprepared could mean doing the job twice.",
@@ -3054,8 +3054,8 @@
         "Something you've taken lightly could be a source of mistakes today. You might leave without something you need or get into difficulty over a commitment you haven't properly checked. Relying on luck is less likely to work than usual.",
         "If you're going somewhere for the first time, check the opening hours and what to bring. A quick errand could take longer than expected, so leave space before your next appointment."
       ],
-      "do": "Check the time and what to bring",
-      "pause": "Agreeing on the spot to something you don't understand"
+      "do": "Before going somewhere for the first time, check the opening hours and what you need to bring. Setting off unprepared could mean a wasted trip.",
+      "pause": "Even if you expect something to be quick, don't arrange your next appointment straight after it. It could take longer and make you late for that appointment."
     },
     "overall.major.fool.upright": {
       "headline": "A new beginning could bring a welcome opportunity.",
@@ -3063,8 +3063,8 @@
         "Trying something for the first time could bring unexpected enjoyment or a useful opportunity today. Going somewhere unfamiliar may lead to helpful information or a good connection. Something you've spent a long time considering is worth a small first try.",
         "If you're interested in an activity, start with a one-day trial. You don't need to commit to going regularly before you've tried it."
       ],
-      "do": "Try something you've been curious about",
-      "pause": "Committing long term before trying an activity"
+      "do": "If you've been considering an activity, try it for a day. Firsthand experience can make it easier to decide whether it suits you.",
+      "pause": "Don't commit to an activity long term before you've tried it. Give it at least a day before deciding whether to keep going."
     },
     "overall.major.hanged_man.reversed": {
       "headline": "Waiting without a clear end could waste the day.",
@@ -3072,8 +3072,8 @@
         "Things may stay where they are without rewarding your patience today. Holding on for an answer that isn't coming could make you miss another opportunity. If you're the only one who keeps giving way, the same burden may fall on you again.",
         "Ask clearly when you can expect an answer. You don't need to promise to keep waiting without an agreed end point."
       ],
-      "do": "Set a time by which you'll get an answer",
-      "pause": "Agreeing to wait indefinitely"
+      "do": "If you've had no answer, ask the other person clearly when they can reply instead of simply continuing to wait.",
+      "pause": "If you've been the only one making concessions, don't promise to keep waiting unconditionally again. You could end up carrying the same burden."
     },
     "overall.major.hanged_man.upright": {
       "headline": "Waiting may take longer, but rushing is unlikely to help.",
@@ -3081,8 +3081,8 @@
         "The result you want is unlikely to arrive immediately today. An answer may be delayed, and progress could feel slow compared with your effort. During the pause, you may notice circumstances you've missed and find another approach.",
         "Hear the other person's reasons instead of insisting on a conclusion straight away. If it doesn't have to be finished today, giving it more time could bring a better answer."
       ],
-      "do": "Hear why something is delayed",
-      "pause": "Demanding an answer before it's ready"
+      "do": "If an answer is taking longer than expected, hear the other person's reasons. Understanding circumstances you've missed may help you think of another approach.",
+      "pause": "If something doesn't have to be finished today, don't press for an immediate decision. Giving it more time could bring a better answer."
     },
     "overall.major.hermit.reversed": {
       "headline": "A problem you're handling alone could stay stuck longer.",
@@ -3090,8 +3090,8 @@
         "Lack of the help you need may slow things down today. A problem kept to yourself could go round in circles, while putting off contact may mean hearing important news late. Simply waiting won't let anyone else know what's going on.",
         "Explain what you need instead of assuming that speaking up won't help. Checking in or asking for help could restart a conversation that's gone quiet."
       ],
-      "do": "Be specific about the help you need",
-      "pause": "Keeping a troubling situation entirely to yourself"
+      "do": "If you haven't been able to solve something alone, explain exactly what help you need. You can describe what you've tried and what remains to be done.",
+      "pause": "Don't assume asking for help is pointless just because you haven't heard from someone in a while. If you haven't told them, they may not know what's going on."
     },
     "overall.major.hermit.upright": {
       "headline": "A quiet look at a problem could reveal a long-awaited answer.",
@@ -3099,8 +3099,8 @@
         "It's a good day to solve something you've thought about for a long time. An answer you couldn't find by asking around may appear when you examine it slowly on your own. Quick updates or major lucky breaks may be scarce, but one difficult issue could become clear.",
         "Have an important conversation somewhere quiet instead of in front of a crowd. One piece of advice you really need may help more than adding lots of comments."
       ],
-      "do": "Listen to useful advice somewhere quiet",
-      "pause": "Trying to follow several opinions at once"
+      "do": "If you need advice on something you've been thinking about for a long time, talk it over somewhere quiet. It can be easier to ask your questions calmly away from a group.",
+      "pause": "Don't try to follow every opinion you hear just because you want a quick answer. Pick out the advice relevant to your problem and consider that first."
     },
     "overall.major.hierophant.reversed": {
       "headline": "A different approach could work where the usual one fails.",
@@ -3108,8 +3108,8 @@
         "Your usual way of doing things may not work well today. An old rule might no longer fit the situation, or advice that suits others could be difficult in your circumstances. A change of method may lead to a surprisingly simple solution.",
         "When someone recommends something, explain why it would be difficult for you. Following along just because everyone else does it could leave you struggling with something that doesn't fit."
       ],
-      "do": "Explain why a recommendation would be difficult for you",
-      "pause": "Following along just because everyone else does"
+      "do": "If a suggested approach doesn't fit your circumstances, explain what makes it difficult. Discuss another way instead of assuming you have to follow it exactly.",
+      "pause": "Don't stick with an approach that isn't working just because it's how you've always done things. Check whether it still fits the situation."
     },
     "overall.major.hierophant.upright": {
       "headline": "Advice from someone experienced could solve a stubborn problem.",
@@ -3117,8 +3117,8 @@
         "A reliable answer to something you've been worrying over alone could arrive today. Someone who's been through it before may explain the necessary steps or point out something you've missed. Agreements made by a group also have a good chance of being kept.",
         "If you're facing something unfamiliar, read the official guidance and listen to someone with experience. Following a method that has worked before can spare you unnecessary trial and error."
       ],
-      "do": "Ask someone experienced about an unfamiliar step",
-      "pause": "Skipping required steps on your own"
+      "do": "Before tackling something unfamiliar, read the guidance and ask someone experienced about anything unclear. They may point out details that are easy to miss.",
+      "pause": "Don't skip required steps just because they seem inconvenient. Following a proven order can reduce the chance of having to do things again."
     },
     "overall.major.high_priestess.reversed": {
       "headline": "Something you think you know could lead to a mistake.",
@@ -3126,8 +3126,8 @@
         "Information you thought was correct may turn out to be wrong and disrupt your plans today. It's easy to miss an important explanation or judge a situation by its most obvious cause. Stepping in before you understand the circumstances could mean offering the wrong kind of help.",
         "Ask again about any part you couldn't confidently explain. Separating what you've heard from what you've assumed can prevent unnecessary misunderstandings."
       ],
-      "do": "Ask again about what you don't understand",
-      "pause": "Passing off a guess as a fact"
+      "do": "Before helping someone, ask enough to understand their situation. Acting on a rough guess could mean offering the wrong kind of help.",
+      "pause": "Don't mix your own assumptions into an account of what you've heard. Saying when you don't know something for sure can reduce misunderstandings."
     },
     "overall.major.high_priestess.upright": {
       "headline": "An answer may take time, but an important clue could emerge.",
@@ -3135,8 +3135,8 @@
         "The answer you want may be slow to arrive today. Important information is still missing, so deciding immediately could mean overlooking something. A matter you've been examining carefully may yield a clue that helps solve the problem.",
         "Listen to the whole explanation and ask about anything you don't understand. Acting as though you already know the answer could make you miss what you need to hear."
       ],
-      "do": "Listen to the full explanation",
-      "pause": "Drawing a conclusion before hearing the whole account"
+      "do": "After hearing the full explanation, ask about anything you still don't understand. That part may hold a clue to solving the problem.",
+      "pause": "Don't rush a decision based only on what you know because the answer you want is taking time. Important information may still be missing."
     },
     "overall.major.judgement.reversed": {
       "headline": "Delaying a decision could cost you a second chance.",
@@ -3144,8 +3144,8 @@
         "Hesitation may make you late even for something you could do well today. A past result could hold you back from answering, or magnifying your own shortcomings might make you pass up an opening. Trying to win everyone's approval will make deciding harder.",
         "First, find out when an answer is needed. Focus on what needs correcting from the previous mistake, then consider this opportunity on its own."
       ],
-      "do": "Check when you need to give an answer",
-      "pause": "Delaying a reply because of an old mistake"
+      "do": "If you owe someone an answer, check when you need to decide. Don't let the deadline pass while you wait to feel certain.",
+      "pause": "Don't delay a decision in an effort to win everyone's approval. Trying to follow everyone's advice could make you miss a chance to do something you're good at."
     },
     "overall.major.judgement.upright": {
       "headline": "A second chance could bring a better result.",
@@ -3153,8 +3153,8 @@
         "Another attempt at something you've missed out on could become possible today. You may hear about a matter that's gone quiet or receive belated recognition for past effort. Showing what's changed since then could get a better response.",
         "Before trying again, correct whatever held you back last time. It's also a good day to give a clear answer you've long postponed."
       ],
-      "do": "Fix what fell short and try again",
-      "pause": "Repeating the same mistake with the same preparation"
+      "do": "If you get another chance, correct what went wrong last time as you prepare so you don't repeat the same mistake.",
+      "pause": "If you've decided whether to accept an offer you've long left unanswered, make your answer clear instead of putting it off again."
     },
     "overall.major.justice.reversed": {
       "headline": "You could face unfair criticism despite doing things properly.",
@@ -3162,8 +3162,8 @@
         "Not getting recognition for your efforts could be upsetting today. A comment from someone who doesn't know the circumstances may cause a misunderstanding, or you could be judged by a different standard from the one agreed. Arguing without evidence may obscure important facts.",
         "Calmly correct anything that's been passed on wrongly. Adding claims you can't check because you're hurt could undermine trust in what you say."
       ],
-      "do": "Correct information that's been passed on wrongly",
-      "pause": "Exaggerating in response to unfair treatment"
+      "do": "If an inaccurate account has led to a misunderstanding about you, calmly point out and explain the parts that aren't true.",
+      "pause": "Don't add claims you're unsure of when responding to unfair treatment. People could then doubt even the truthful parts of what you say."
     },
     "overall.major.justice.upright": {
       "headline": "A fair result could reflect the effort you've made.",
@@ -3171,8 +3171,8 @@
         "An unfair situation could be put right, giving you a chance to receive your fair share today. Where accounts have differed, checking the facts may lead to a conclusion that makes sense. Keeping your promises faithfully could bring a good result.",
         "For an important conversation, check what's recorded rather than relying on memory. Being open about facts that don't favour you lets you ask the other person to do the same."
       ],
-      "do": "Check what you've both agreed to",
-      "pause": "Presenting only the facts that favour you"
+      "do": "If you remember an agreement differently, look at the record of it together. What you actually agreed matters more than who feels more certain.",
+      "pause": "Don't leave out inconvenient facts when asking for your fair share. Be open about those too if you're asking the other person to tell the whole truth."
     },
     "overall.major.lovers.reversed": {
       "headline": "Different wishes could make a decision difficult.",
@@ -3180,8 +3180,8 @@
         "Things may go awry because people want different outcomes today. Even plans you thought were settled could reveal different expectations once you discuss them closely. A choice made on a passing impulse may bring regret later.",
         "Make your own conditions clear before agreeing. Avoiding an awkward conversation now could lead to a bigger argument once things are under way."
       ],
-      "do": "Check where your expectations differ in advance",
-      "pause": "Agreeing because you feel swept along"
+      "do": "If you've agreed to do something together, discuss what each of you expects beforehand. You may understand the same agreement differently.",
+      "pause": "Don't accept terms you dislike just to avoid spoiling the mood. Putting off an uncomfortable conversation could lead to a bigger argument later."
     },
     "overall.major.lovers.upright": {
       "headline": "Working with someone who wants the same things could go well.",
@@ -3189,8 +3189,8 @@
         "Someone may join you in tackling something you've been considering alone. With your wishes closely matched, making plans could be easy, and it's a good day to choose an option you like. Agreement may come without either of you having to force it.",
         "Before deciding together, say what each of you wants. Choosing something you both understand and accept, instead of terms that merely look good, can mean fewer complaints afterwards."
       ],
-      "do": "Say what each of you wants",
-      "pause": "Agreeing to terms you don't actually want"
+      "do": "If you're making a decision together, discuss what matters most to each of you before trying to accommodate the other person.",
+      "pause": "Don't agree to a choice you're uncomfortable with just because the terms look good. Check whether you can accept it so it doesn't trouble you later."
     },
     "overall.major.magician.reversed": {
       "headline": "Convincing promises may not produce real results.",
@@ -3198,8 +3198,8 @@
         "Something you've been led to expect could turn out to be disappointing today. A supposedly ready plan may prove poorly prepared once it starts, or an easy-sounding explanation may leave out important conditions. Deciding on appearances alone could be difficult to undo.",
         "When an offer comes in, check what's actually been done and what preparation is still needed. Don't promise you can do something you're not yet able to deliver yourself."
       ],
-      "do": "Ask what backs up a claim that something can be done",
-      "pause": "Promising something is possible without checking"
+      "do": "If someone proposes something they say will be easy, ask what they've already prepared. Check whether their explanation leaves out any conditions.",
+      "pause": "Don't promise you can do something you haven't learned to do just to reassure someone. Be clear about what you can actually offer."
     },
     "overall.major.magician.upright": {
       "headline": "Putting your preparation to use could bring results.",
@@ -3207,8 +3207,8 @@
         "A chance to use what you've prepared may come along today. It's a good time to start a plan you've only thought about, or use a skill to solve a stubborn problem. Doing something in practice could get a better response than simply explaining it.",
         "Try a method you've learned where it's needed. It's fine to begin with what you already know instead of putting it off to learn more."
       ],
-      "do": "Put a method you've learned into practice",
-      "pause": "Preparing more and more while delaying the start"
+      "do": "If you're stuck on a problem, choose a method you've already learned that could help with it, and give it a try.",
+      "pause": "Don't put off something you've prepared for just because there's more to learn. First see whether you can start with what you already know."
     },
     "overall.major.moon.reversed": {
       "headline": "A confusing situation could become clearer and ease your worries.",
@@ -3216,8 +3216,8 @@
         "An explanation may finally arrive for something that's left you puzzled. It's a good day for clearing up needless misunderstandings and correcting a story that's been passed on incorrectly. You may find the situation isn't as bad as you feared.",
         "Adjust your plans to reflect what you've confirmed. Don't assume unanswered questions have been settled as well."
       ],
-      "do": "Update your plans with confirmed information",
-      "pause": "Filling in what you don't know with guesses"
+      "do": "If you've learned what was behind a confusing situation, revise your plans to reflect the information you've now confirmed.",
+      "pause": "Don't assume the answers you're still waiting for will be good just because one misunderstanding has cleared up. Separate what's confirmed from what's still pending."
     },
     "overall.major.moon.upright": {
       "headline": "Uncertain information could lead you to the wrong conclusion.",
@@ -3225,8 +3225,8 @@
         "Reliable answers may be hard to get, slowing things down today. Something you were told was fine could change, or it may be unclear whose account is right. A worry could also seem worse than the actual situation.",
         "Base important decisions on what you've checked for yourself. Reacting straight away to something you've heard secondhand could create a misunderstanding or an unnecessary argument."
       ],
-      "do": "Check an important story firsthand",
-      "pause": "Confronting someone as soon as you hear a rumour"
+      "do": "Before an important decision, check for yourself whether what you've heard secondhand is true.",
+      "pause": "Don't immediately confront someone over a worrying story you've heard. You may have misunderstood it or taken it to be worse than it is."
     },
     "overall.major.star.reversed": {
       "headline": "Delayed news could leave you disappointed.",
@@ -3234,8 +3234,8 @@
         "Things may not improve as much as you'd hoped today. Something you expected to go well could still lack a clear answer, and small progress may seem unimpressive. Don't treat an unfinished matter as a failure.",
         "Check where things stand if they're still in progress. Cutting off contact or refusing help because you're disappointed could make it harder to get going again."
       ],
-      "do": "Ask for an update on what you're waiting for",
-      "pause": "Cutting off useful contact out of disappointment"
+      "do": "If news you're waiting for is late, ask how things are progressing. Find out whether a decision is still pending or something has actually become more difficult.",
+      "pause": "Don't cut off needed contact or refuse help because things aren't improving as much as you'd hoped. A conversation ended in disappointment can be hard to restart."
     },
     "overall.major.star.upright": {
       "headline": "Encouraging news could arrive about something that felt hopeless.",
@@ -3243,8 +3243,8 @@
         "A situation that hasn't been going well could show signs of improvement today. An offer of help or a long-awaited message may ease one of your worries. A major result may still take time, but there could be a reason to hope again.",
         "Restart a postponed plan with whatever is possible now. When someone offers help, it's fine to say honestly what you need."
       ],
-      "do": "Resume one thing you've put off",
-      "pause": "Insisting you're fine when help is offered"
+      "do": "If you've paused something because it wasn't going well, resume the part you can do now. You don't need a major result straight away.",
+      "pause": "Don't just say you're fine when someone offers help you need. Explain what's difficult so they can understand what to do for you."
     },
     "overall.major.strength.reversed": {
       "headline": "Even a small obstacle could bring things to a stop.",
@@ -3252,8 +3252,8 @@
         "Something you've been determined to finish may get stuck partway today. You could make a mistake in a task you usually handle well, or feel like giving up because of a remark from someone nearby. A decision made in anger is likely to leave disappointment.",
         "It's fine to get help finishing the difficult part. A brief setback doesn't mean you need to abandon everything you've done so far."
       ],
-      "do": "Ask for help with the difficult part",
-      "pause": "Quitting everything you're doing in anger"
+      "do": "If you keep getting stuck on part of a task, ask for help. Explain where you're struggling and work through that part together.",
+      "pause": "Don't give up everything you're doing because someone's words made you angry. Wait until you've calmed down, then decide whether you still want to stop."
     },
     "overall.major.strength.upright": {
       "headline": "A difficult task could finally bring a good result.",
@@ -3261,8 +3261,8 @@
         "Something you've worked at for a long time could work out today. It may seem difficult at first, but continuing as you have been could get you through the hard part. Someone might also notice effort that hasn't drawn attention until now.",
         "If a request is proving difficult, explain the circumstances calmly. The patience you've already shown is more likely to help you get a good answer than loudly demanding one."
       ],
-      "do": "Explain a difficult request calmly",
-      "pause": "Pressuring someone for a quick answer"
+      "do": "If something you've worked at for a long time is still difficult, keep going as you have been instead of stopping just because results aren't visible yet.",
+      "pause": "Don't raise your voice or pressure someone because they're slow to answer a request. Calmly explain why you need their help instead of letting urgency take over."
     },
     "overall.major.sun.reversed": {
       "headline": "Good things may happen on a smaller scale than you'd hoped.",
@@ -3270,8 +3270,8 @@
         "Even when things go well, the results may feel a little disappointing today. You could receive good news and still wish it had been better. Some things are moving slowly, so you may not get every answer today.",
         "Don't treat a lack of news as a failure. Enjoy what you've achieved while giving the remaining results a little more time."
       ],
-      "do": "Give yourself credit for what went well",
-      "pause": "Dismissing a success because it fell short of expectations"
+      "do": "Enjoy what went well even if it fell short of your hopes. Disappointment doesn't mean you need to dismiss what your effort has achieved.",
+      "pause": "Wait for results that haven't come in yet. Delayed news isn't the same as a bad result, so don't call it a failure before you know."
     },
     "overall.major.sun.upright": {
       "headline": "Good news could arrive as things go your way.",
@@ -3279,8 +3279,8 @@
         "Things could go smoothly today, with good news to match. Long-standing efforts may bring satisfaction, and something you've worried about could pass without trouble. There may even be a reason for people around you to congratulate you.",
         "If a long-awaited opportunity comes along, take it without putting it off. Share a good result with someone who'll be pleased for you."
       ],
-      "do": "Take an opportunity you've been waiting for",
-      "pause": "Putting off your reply to a good offer"
+      "do": "If something you've worked on for a long time has gone well, tell someone close to you who will be happy to celebrate it with you.",
+      "pause": "Don't keep putting off a reply when an offer you've been waiting for arrives. If you'd like to accept, make that clear to the other person."
     },
     "overall.major.temperance.reversed": {
       "headline": "A series of small setbacks could make the day frustrating.",
@@ -3288,8 +3288,8 @@
         "Things may take more than one attempt to sort out today. Small setbacks could add up to delays, and a remark you'd normally overlook might lead to raised voices. Trying to make up for lost time in a hurry could disrupt what you're already doing.",
         "With anything that's running late, finish as much as you reasonably can now. Changing all your plans or pushing other people to hurry could leave everyone more worn out."
       ],
-      "do": "Finish what you can complete right now",
-      "pause": "Rushing other people because things are running late"
+      "do": "If things are running late, finish the parts you can complete now. You don't need to change the whole plan to catch up all at once.",
+      "pause": "Don't raise your voice over a small remark because things aren't going your way. Before replying, consider whether it's something you'd normally let pass."
     },
     "overall.major.temperance.upright": {
       "headline": "Things can go smoothly as your worries begin to ease.",
@@ -3297,8 +3297,8 @@
         "The day looks manageable, with things going well without much strain. A stubborn problem could gradually improve, and conversation may become easier with someone you've felt awkward around. Your good luck is more likely to mean fewer worries than a dramatic stroke of luck.",
         "There's no need to hurry something that's already going well. Thank someone for what they've done instead of asking them to finish even faster."
       ],
-      "do": "Thank someone who's helped you",
-      "pause": "Rushing someone who's already doing a good job"
+      "do": "If someone's help has made things work out, tell them what you appreciated instead of letting it pass without thanks.",
+      "pause": "If a problem is gradually being resolved with someone's help, don't push them to finish even faster."
     },
     "overall.major.tower.reversed": {
       "headline": "A difficult situation you've feared could pass without major trouble.",
@@ -3306,8 +3306,8 @@
         "Something you've been dreading may turn out less dramatically than expected. Even if a problem arises, you could have a chance to stop it before it becomes hard to undo. A situation that's kept you on edge may finally offer some relief.",
         "Acknowledging a mistake now can spare you a bigger cleanup later. Tell the people who need to know rather than covering it up because it's uncomfortable."
       ],
-      "do": "Acknowledge a mistake that's come to light",
-      "pause": "Hiding a problem you know about"
+      "do": "If a mistake you've made has come to light, be honest about it with the people involved. Acknowledging it now can mean less to sort out later.",
+      "pause": "Don't dismiss a known problem just because a situation you feared has passed without trouble. Look into it while it can still be put right."
     },
     "overall.major.tower.upright": {
       "headline": "An unexpected setback could catch you off guard.",
@@ -3315,8 +3315,8 @@
         "Something that was going well could suddenly go wrong today. Plans you thought were definite may be cancelled, or new information could mean things won't work out as you'd hoped. An immediate response to unexpected news may leave you with regrets.",
         "Give yourself a moment before deciding what to do when circumstances change. Hear what actually happened before demanding answers in anger."
       ],
-      "do": "Wait a moment before replying to surprising news",
-      "pause": "Demanding answers while shocked or angry"
+      "do": "If unexpected news arrives, hear the full explanation of what happened before jumping to a conclusion.",
+      "pause": "Don't reply immediately while shocked or angry. Even if you feel like arguing, a brief pause can help you avoid words you'll regret."
     },
     "overall.major.wheel_of_fortune.reversed": {
       "headline": "Unexpected circumstances could cause a delay.",
@@ -3324,8 +3324,8 @@
         "Even careful preparation may not prevent outside circumstances from slowing things down today. An answer could be postponed, or something you thought was settled may develop a complication. You might have to wait again despite having done nothing wrong.",
         "Don't arrange the next commitment on the assumption that this will be finished today. Respond to the latest information instead of overdoing things to make up for a delay."
       ],
-      "do": "Check the latest news before acting",
-      "pause": "Making follow-up commitments before the result arrives"
+      "do": "If something you're waiting for is delayed, find out what's changed and adjust any plans that depend on when it finishes.",
+      "pause": "Don't confirm your next commitment simply because you expect the current one to finish today. Outside circumstances could keep you waiting even if you've done nothing wrong."
     },
     "overall.major.wheel_of_fortune.upright": {
       "headline": "An unexpected opening could get things moving again.",
@@ -3333,8 +3333,8 @@
         "Luck could help things go your way today. Your turn may finally come after a long wait, or news you happen to hear could provide just the help you need. Something that hasn't worked out for a while may offer another chance.",
         "Reply to a welcome offer before the opportunity passes. A previous failure doesn't mean you need to turn this chance down too."
       ],
-      "do": "Reply to a good offer in time",
-      "pause": "Passing up a chance because of a past failure"
+      "do": "If you receive a welcome offer, check when you can take part and reply before a delay costs you the opportunity.",
+      "pause": "Don't immediately dismiss another chance at something because it didn't work out before. Hear what's changed since last time before deciding."
     },
     "overall.major.world.reversed": {
       "headline": "There may be one final task before you're done.",
@@ -3342,8 +3342,8 @@
         "Something you thought was complete could need your attention again today. The result may be fine, but a remaining check or a delayed ending could leave you feeling unsettled. Leaving that small last task undone might keep it on your mind.",
         "Finish the remaining message or check first. Not having reached the very end doesn't make everything you've done well a failure."
       ],
-      "do": "Complete the final check",
-      "pause": "Leaving the last step undone because you're nearly finished"
+      "do": "If a nearly finished task still needs a final conversation or check, complete it. Putting it off because so little remains could leave it on your mind.",
+      "pause": "Don't treat all your effort as a failure because the finish is delayed. Look separately at what remains and what you've already completed well."
     },
     "overall.major.world.upright": {
       "headline": "Something you've worked on for a long time could end well.",
@@ -3351,8 +3351,8 @@
         "A task could reach a satisfying finish today. A long-running problem may be nearing its end, and you could finish on good terms with the people involved. A message you've been waiting for might remove the last worry.",
         "Take time to be pleased with what you've finished. Thank the people who helped before immediately taking on another burden."
       ],
-      "do": "Celebrate finishing something together",
-      "pause": "Taking on a new burden as soon as you finish"
+      "do": "If you've successfully finished something you worked on for a long time, tell the people involved what you appreciated about their help.",
+      "pause": "Don't take on something new the moment you finish a long-running task. There's no need to rush past the chance to enjoy having done it well."
     },
     "overall.pentacles.01.reversed": {
       "headline": "Something good could have little immediate use for you.",
@@ -3360,8 +3360,8 @@
         "An apparently good offer may not be much help in practice today. You could receive more than you need without getting what you actually want, or a new opportunity may be difficult to use right now. Getting plenty doesn't necessarily mean you'll feel satisfied.",
         "First consider whether it's something you need now. Instead of collecting more similar things because you've heard they're good, check how you can use what you already have."
       ],
-      "do": "Check whether you need what you've received now",
-      "pause": "Collecting more similar things because they look good"
+      "do": "Even if you've received plenty of new things, check whether they help with what you need to do now. Having plenty isn't the same as having what you need.",
+      "pause": "Don't collect more items like those you already have just because you've heard they're good. There's no need to add things you haven't found a use for."
     },
     "overall.pentacles.01.upright": {
       "headline": "It's a good day to get what you need and start something new.",
@@ -3369,8 +3369,8 @@
         "An opportunity that offers practical help may come your way today. You could find an item you need or have the place and preparations ready for something you've wanted to start. Having the means to try an idea in practice could feel satisfying.",
         "Once the opportunity is there, put whatever you can to use. Leaving it untouched while waiting for something better could mean missing the moment you need it."
       ],
-      "do": "Put a new opportunity to use",
-      "pause": "Waiting for something better when you already have what you can use"
+      "do": "If you still need an item or a place for something you want to start, find out whether you can get or use it now.",
+      "pause": "Don't wait so long for better conditions that you miss your chance to use the items or space you've already secured."
     },
     "overall.pentacles.02.reversed": {
       "headline": "Trying to do several things at once could make you miss a commitment.",
@@ -3378,8 +3378,8 @@
         "Things you thought you could manage may overlap and cause trouble today. A mistake in timing could make you late, or dealing with something urgent may make you forget another task. Pretending everything is fine and carrying on with it all could leave more to sort out later.",
         "If two arrangements clash, ask in advance to change one of them. Don't squeeze another commitment into a day that's already tight."
       ],
-      "do": "Rearrange clashing commitments in advance",
-      "pause": "Adding another commitment to a full schedule"
+      "do": "If appointments clash, ask which one can be changed before you're late. Explaining early is better than trying to fit them both in and falling behind.",
+      "pause": "If you've postponed other tasks, don't book something new as soon as the urgent one is done. You could leave too little time for what's still waiting."
     },
     "overall.pentacles.02.upright": {
       "headline": "You could manage several things well even on a busy day.",
@@ -3387,8 +3387,8 @@
         "You may handle overlapping tasks successfully today. Even if something unexpected comes up, changing the timing could solve it, and keeping two things going may bring good results. Things don't have to happen exactly as planned to stay manageable.",
         "If your priorities change, look again at the time you have left. Being honest about when you're available will make it easier for other people to adjust too."
       ],
-      "do": "Rearrange your time to fit changed plans",
-      "pause": "Agreeing to two things at the same time"
+      "do": "If what needs doing first has changed, look again at the time you have left and tell the person you're making plans with when you're available.",
+      "pause": "Don't say yes to two requests that need you at the same time. Be honest about which must come first and when you can actually help."
     },
     "overall.pentacles.03.reversed": {
       "headline": "A lack of experience could mean doing something again.",
@@ -3396,8 +3396,8 @@
         "You may spot shortcomings in something you thought was finished today. People could understand their parts differently, or you might miss something while trying to finish an unfamiliar task alone. Treating a small correction as an argument could delay the finish further.",
         "Ask someone experienced to check the parts you don't know well. Pride doesn't have to stop you accepting a useful explanation."
       ],
-      "do": "Ask someone experienced about an unfamiliar part",
-      "pause": "Making excuses as soon as a mistake is pointed out"
+      "do": "If you've finished an unfamiliar task, ask someone who's done it before whether you've missed anything. Their explanation can help you correct what you overlooked on your own.",
+      "pause": "Don't turn a correction into an argument by immediately making excuses. Hearing what needs fixing can reduce the chance of having to do the same work again."
     },
     "overall.pentacles.03.upright": {
       "headline": "Your work could earn recognition and improve with help from others.",
@@ -3405,8 +3405,8 @@
         "Something you've put care into may receive a good response today. Someone could recognise what you do well, while another person's help may make up for what's missing. Combining what each of you has done could bring a more satisfying finish than working alone.",
         "If you're doing something together, start by saying what you do well. It's fine to hear the other person's explanation and leave the parts they know better to them."
       ],
-      "do": "Share the work according to what each person does well",
-      "pause": "Trying to decide every method alone"
+      "do": "If you're doing something together, say which part you can do well and offer to take it on.",
+      "pause": "Don't decide the method alone for parts the other person knows better. Hearing their reasons and leaving those parts to them could make things easier than doing it all yourself."
     },
     "overall.pentacles.04.reversed": {
       "headline": "Opposition could delay things longer than expected.",
@@ -3414,8 +3414,8 @@
         "You may find it hard to go ahead with what you want today. The agreement you need could be withheld, or a longer queue may mean waiting again. Insisting on your own way may not persuade the other person to change their answer.",
         "Find out why the answer is no first. If the conditions can change a little, ask when it might be possible again."
       ],
-      "do": "Ask why you were refused and when it may be possible",
-      "pause": "Repeating the same demand to hurry someone along"
+      "do": "If something you want to do is refused or postponed, ask why first. If the conditions can change, find out when you might be able to try again.",
+      "pause": "Don't repeat the same demand while leaving the conditions the other person finds difficult unchanged. Continued pressure may only make agreement take longer."
     },
     "overall.pentacles.04.upright": {
       "headline": "It's a good day to keep what you've achieved without major changes.",
@@ -3423,8 +3423,8 @@
         "Something familiar could continue steadily today. What you already have may be enough to deal with what's needed, without a hurried change. You're more likely to find satisfaction in what's going well now than in an uncertain offer.",
         "Look at what you already have before deciding whether you need something new. A brief request for help doesn't have to make you fear you'll lose everything."
       ],
-      "do": "Solve a problem with what you already have",
-      "pause": "Automatically refusing even a small request for help"
+      "do": "Before getting something new, look through what you already have for anything that could serve the same purpose.",
+      "pause": "Don't refuse a request for a little help before hearing what it involves. Find out what's needed, then decide whether you can do it."
     },
     "overall.pentacles.05.reversed": {
       "headline": "Disagreements could leave you with more work to do.",
@@ -3432,8 +3432,8 @@
         "Even small things may be difficult because people can't agree today. Something you intended to solve together could turn into an argument, or doing the same thing separately may waste time. Rushing to put things right could mean redoing something already finished.",
         "When things become tangled, finish what's under way before starting more. Taking back work you've given someone else because you're angry could only add to your own load."
       ],
-      "do": "Finish the tasks that have gone wrong one at a time",
-      "pause": "Taking over someone else's work out of anger"
+      "do": "If a shared task has gone wrong, check what each person has finished first so you don't repeat work that's already done.",
+      "pause": "Don't take back work you've left to someone else just because you're angry. You'll have more to do alone, and finishing could take longer too."
     },
     "overall.pentacles.05.upright": {
       "headline": "A shortage of help or resources could make the day difficult.",
@@ -3441,8 +3441,8 @@
         "Things may feel harder to manage than usual today. Something you need could be difficult to find, or a person you expected to help may be unable to join you. Seeing others appear to do well while your own affairs are stuck could also feel upsetting.",
         "Say specifically what you need right now. Feeling bad about accepting help doesn't mean you have to struggle alone with something essential."
       ],
-      "do": "Ask specifically for the help you need now",
-      "pause": "Refusing necessary help because you feel bad accepting it"
+      "do": "If what you have to do alone feels like too much, say specifically which part you'd like help with.",
+      "pause": "When asking for help, don't just keep saying that everyone else is doing well. That alone makes it hard for the other person to understand what you're missing right now."
     },
     "overall.pentacles.06.reversed": {
       "headline": "You may feel that what people receive isn't fairly shared.",
@@ -3450,8 +3450,8 @@
         "Receiving less help than you expected could leave you disappointed today. You may feel that others are getting more, or something given as a favour could come with an unexpected demand. Dwelling on comparisons may make things uncomfortable with the person who helped too.",
         "Speak up about any conditions you find hard to accept. Disappointment in your own share doesn't mean you need to belittle what someone else received."
       ],
-      "do": "Check the conditions attached to help first",
-      "pause": "Belittling what someone else received"
+      "do": "If someone offers help, first ask whether you'd be expected to do anything in return. If a condition is difficult to accept, say so before receiving the help.",
+      "pause": "When talking to someone who's helped you, don't just complain that others received more. Repeating the comparison could make things uncomfortable between you."
     },
     "overall.pentacles.06.upright": {
       "headline": "An unexpected gift or helping hand could make the day easier.",
@@ -3459,8 +3459,8 @@
         "Someone may do you a favour just when you need it today. They could share something you've been looking for or help with a difficult task. If you have room to give, a small offer of help from you could be warmly received too.",
         "Thank the person who helped you. Before helping someone else, ask what they actually need."
       ],
-      "do": "Thank someone for their help",
-      "pause": "Insisting on helping without asking whether it's needed"
+      "do": "If you received help when you needed it, thank the person and explain what became easier because of it.",
+      "pause": "Don't insist on helping without asking what the person needs first. Even with good intentions, it may not be the help they want."
     },
     "overall.pentacles.07.reversed": {
       "headline": "It may be hard to tell whether more effort will improve the result.",
@@ -3468,8 +3468,8 @@
         "Putting in more time and effort may not bring an immediate reward today. After a long wait, you could be asked to wait again, or have to decide whether to keep helping. Taking on more just because you don't want earlier effort to go to waste could prolong the burden.",
         "Before giving more time, ask when it will be finished. If there's no clear end, it's fine to offer only what you can manage right now."
       ],
-      "do": "Ask when the work ends before taking on more",
-      "pause": "Accepting more just to justify the time already spent"
+      "do": "If you're asked to spend more time helping with something, first ask when it could be finished. If the end is unclear, say you'll help only as much as you can manage now.",
+      "pause": "Don't promise to keep giving time to something with no clear end simply because you don't want the time you've already spent to go to waste."
     },
     "overall.pentacles.07.upright": {
       "headline": "Steady effort could show a small result.",
@@ -3477,8 +3477,8 @@
         "The time and work you've put in may begin to show today. Even if you aren't finished, you could see an improvement and judge whether it's worth continuing. Something you've kept working on may give you more than a hurried new start.",
         "Take a calm look at what's done and what remains. Skipping necessary steps to see a result sooner could waste the work you've already put in."
       ],
-      "do": "Check what you've completed so far",
-      "pause": "Skipping necessary steps to finish quickly"
+      "do": "For something you've worked at steadily, look at what's improved and what remains to judge whether it's worth continuing.",
+      "pause": "When you've been working steadily on something, don't skip necessary steps to finish sooner. Complete what's left so your earlier work doesn't go to waste."
     },
     "overall.pentacles.08.reversed": {
       "headline": "Something you tried to finish easily could create more trouble.",
@@ -3486,8 +3486,8 @@
         "A shortcut you relied on could reveal a problem today. Something finished only well enough to look convincing may need redoing, and skipping a check because you're skilled could expose an omission. Clearing up afterwards may take longer than the quick finish saved.",
         "Complete the necessary checks even on something you do well. Actually correcting a shortcoming will protect trust better than explaining it away."
       ],
-      "do": "Complete a check you skipped",
-      "pause": "Using fine words to cover up a shortcoming"
+      "do": "Even on a task you know well, revisit any part you didn't check. If you find something missing, fix it before saying you're done.",
+      "pause": "Don't try to gloss over flaws in what you've done with a convincing explanation. Without actually fixing them, you may have to redo the work later and lose people's trust."
     },
     "overall.pentacles.08.upright": {
       "headline": "Practice could give you a chance to show your skill.",
@@ -3495,8 +3495,8 @@
         "You could finish a familiar task skilfully today. Something that used to take a long time may become easier, and a method you've practised could prove useful. The results may not look spectacular, but your effort is likely to bring a clear return.",
         "Keep using the method that's working and finish what's left. Rushing through something because it's boring could leave you disappointed with a small detail."
       ],
-      "do": "Finish the task with a familiar method",
-      "pause": "Doing a careless job because the task is repetitive"
+      "do": "If there's work left that you can do with a method you've practised, use that method to finish it.",
+      "pause": "Don't neglect small details because a task is familiar and repetitive. A careless finish can leave you disappointed even with something you do well."
     },
     "overall.pentacles.09.reversed": {
       "headline": "Something that looks well prepared could prove lacking.",
@@ -3504,8 +3504,8 @@
         "A difference between the terms you trusted and the reality could disappoint you today. A place that looked well equipped may lack something necessary, or something described as ready could fall short when it begins. An impressive-looking choice may be inconvenient in your own daily life.",
         "Before using something or taking part, inspect whatever you can yourself. Don't confidently recommend it to others on appearances alone."
       ],
-      "do": "Inspect the conditions you can see for yourself",
-      "pause": "Assuring others something is good based only on appearances"
+      "do": "If you're going to use a new place or take part in something, check for yourself that what you'll need is actually available.",
+      "pause": "Don't assure others that a place is good just because it looks appealing. Find out whether it's inconvenient to use before recommending it."
     },
     "overall.pentacles.09.upright": {
       "headline": "You could enjoy the comfort you've worked to secure.",
@@ -3513,8 +3513,8 @@
         "What you've done could help you have a satisfying day. You may finish what you need easily on your own and have enough available that you don't need to wait for help. It's a good day to make time for something enjoyable you've put off.",
         "If you've finished something well, mark it in a way you enjoy. There's no need to attend something you don't want to just to impress other people."
       ],
-      "do": "Celebrate an achievement by doing something you enjoy",
-      "pause": "Going somewhere you don't want to just to impress others"
+      "do": "Celebrate finishing something well by doing what you've wanted to do but haven't had time for.",
+      "pause": "Don't force yourself to attend something you don't want to just to show other people you're doing well."
     },
     "overall.pentacles.10.reversed": {
       "headline": "One overambitious choice could disrupt things that were going well.",
@@ -3522,8 +3522,8 @@
         "A decision based on luck alone could bring unexpected setbacks today. Abruptly changing something familiar that works or making several commitments depend on one result may cause a series of problems. Choose carefully so you don't lose everything you've built up at once.",
         "Try something new on a small scale while keeping what you're already doing. You don't need to change everything just because someone says it will go well."
       ],
-      "do": "Try a new method while keeping the current one",
-      "pause": "Changing everything on the assumption of one success"
+      "do": "If you want to change the method for something that's going well, test the new one on a small part before changing the whole thing.",
+      "pause": "Don't make several commitments you can only keep if a result you're waiting for goes well. If it turns out differently, those promises could become difficult to keep too."
     },
     "overall.pentacles.10.upright": {
       "headline": "Long-standing connections and experience could give you solid support.",
@@ -3531,8 +3531,8 @@
         "Things may go steadily when you're with familiar people today. Old records or experience could supply information you don't know, and people around you may help with a difficulty. What you've built up could prove useful without a fresh effort from scratch.",
         "Look for information you organised before or draw on the experience of someone you've known a long time. With reliable help available, you don't need to start everything over."
       ],
-      "do": "Look up information you organised before",
-      "pause": "Throwing away records that are still useful"
+      "do": "If you have a new problem to solve, look back through information you've organised before for something useful. Records you've kept over time may already contain the answer you need.",
+      "pause": "If someone you've known a long time can help, don't struggle to work out everything unfamiliar from scratch on your own."
     },
     "overall.pentacles.11.reversed": {
       "headline": "A distraction could make you miss an opportunity you need.",
@@ -3540,8 +3540,8 @@
         "Tasks may slip behind and expected news could disappoint you today. Spending time on something fun may make you read an important notice late, or a new activity could quickly seem uninteresting. You may make a mistake that a little more checking would have prevented.",
         "Read the notices that need attention now first. If there's something you've wanted to try, complete the necessary first steps before deciding it's boring."
       ],
-      "do": "Read a notice you've put off",
-      "pause": "Postponing necessary tasks to chase only what's fun"
+      "do": "Before spending time on other things, check the information you've put off reading for anything you need to answer or deal with now.",
+      "pause": "Don't dismiss a new activity as pointless and give it up before completing the necessary steps just because it soon feels uninteresting."
     },
     "overall.pentacles.11.upright": {
       "headline": "Something you learn could prove useful in practice.",
@@ -3549,8 +3549,8 @@
         "Looking into something carefully could give you a useful answer today. You may learn a method and use it straight away or hear news containing information you need. Even if the first step is small, the day favours steady progress.",
         "Try a newly learned method on something simple. Don't dismiss an explanation as something you already know before you've heard it all."
       ],
-      "do": "Try a method you've just learned",
-      "pause": "Skipping an explanation because it sounds familiar"
+      "do": "If you've learned a new method, start by trying one of the simpler tasks it can be used for.",
+      "pause": "Don't stop listening to an explanation because it sounds familiar. The rest may include something you don't yet know."
     },
     "overall.pentacles.12.reversed": {
       "headline": "Postponed tasks could make even small things troublesome.",
@@ -3558,8 +3558,8 @@
         "Something you've been doing may make little progress today. Neglecting a familiar task could lead to omissions, or restarting something you've put off may take time. Your usual method may no longer fit the current situation either.",
         "Check how things stand with one task you haven't touched for a while. Repeatedly putting things aside to do all at once later could leave even more unfinished."
       ],
-      "do": "Check one task you've put off for a long time",
-      "pause": "Putting something off again to do it all later"
+      "do": "If you've put a task off for a long time, check how far you got. You may find something missing even in parts you thought were done.",
+      "pause": "Don't put off an unfinished task again by telling yourself you'll do it all at once later. Leaving it longer can mean spending time working out where you left off."
     },
     "overall.pentacles.12.upright": {
       "headline": "You could finish what you set out to do, even at a slow pace.",
@@ -3567,8 +3567,8 @@
         "It's a good day to handle familiar tasks reliably. You may not see a dramatic change, but you could deliver what you promised and earn trust through steady work. You should be able to finish what's needed today without rushing.",
         "Finish things one by one in the order you've been following. Abruptly changing methods because someone else finished faster could create extra trouble."
       ],
-      "do": "Finish one thing at a time in your usual order",
-      "pause": "Changing methods in a hurry because someone else is faster"
+      "do": "Finish familiar tasks one by one in your usual order, checking that you've completed everything you promised.",
+      "pause": "Don't abruptly change a method that's been working because someone else finished faster. If your usual order lets you finish, you don't need to match their pace."
     },
     "overall.pentacles.13.reversed": {
       "headline": "Unnecessary suspicion could create more work for you.",
@@ -3576,8 +3576,8 @@
         "Even something that's fine may feel hard to trust today, making things more troublesome. Repeated questions about a confirmed fact or doubts about someone's offer of help could stall a conversation. Changing your choice without a clear reason may leave things less convenient than before.",
         "Check specifically what's worrying you. Once you've had an answer, decide on the basis of what you've confirmed instead of repeating the same suspicion."
       ],
-      "do": "Check the condition you're worried about once",
-      "pause": "Doubting someone offering help without any evidence"
+      "do": "If you're uneasy about a decision ahead, ask specifically about the conditions worrying you and decide based on the answer.",
+      "pause": "Don't keep questioning why someone wants to help when you have no reason to distrust them. If you only question their intentions, it can be hard to talk about the help they could actually give."
     },
     "overall.pentacles.13.upright": {
       "headline": "Having what you need could make the day comfortable.",
@@ -3585,8 +3585,8 @@
         "Other people's consideration could help the day pass smoothly. You may find a necessary item or place without difficulty and finish delayed household chores more easily than expected. You could even have enough time or resources to look after someone else.",
         "If you have more than enough of something, share it with someone who needs it. Help you can give easily is enough, without doing so much that you can't finish your own tasks."
       ],
-      "do": "Share items you have to spare",
-      "pause": "Putting off your own tasks to look after others"
+      "do": "If you have plenty of an item, it's fine to share it with someone who needs it. Start with what you can easily give while keeping enough for your own use.",
+      "pause": "Don't postpone your own tasks to look after someone else. Consider what you need to finish and offer only as much help as you can comfortably give."
     },
     "overall.pentacles.14.reversed": {
       "headline": "Wanting more could cost you something you've already gained.",
@@ -3594,8 +3594,8 @@
         "Chasing better terms could make things go wrong today. You may add demands after receiving a satisfactory answer or accept something beyond your means to keep up appearances. Choosing what looks successful over what actually benefits you could leave a burden behind.",
         "Once the terms are good enough, decide where to stop. Don't tell people you can do something beyond your ability just to impress them."
       ],
-      "do": "Decide which terms to accept and when to stop",
-      "pause": "Accepting something you can't do to save face"
+      "do": "If you've received terms you're satisfied with, settle on those instead of adding demands to get more.",
+      "pause": "Don't accept more than you can handle just to show others how capable you are. First consider whether you have the time and energy to finish the task."
     },
     "overall.pentacles.14.upright": {
       "headline": "A choice based on experience could bring a satisfying result.",
@@ -3603,8 +3603,8 @@
         "Something you know how to do in practice could bring good results today. Experience may help you solve a seemingly complicated problem and get what you need to finish without strain. An experienced person could offer specific help too.",
         "Start with a method you've used before instead of making bold promises. A proven approach may suit the situation better than an eye-catching new one."
       ],
-      "do": "Use a method that has worked before",
-      "pause": "Guaranteeing success with a method you've never tried"
+      "do": "If you need to solve a complicated problem, choose a method that worked before and still fits, then try it.",
+      "pause": "Even if a new method looks impressive, don't promise it will work as though you've confirmed its results when you've never tried it."
     },
     "overall.swords.01.reversed": {
       "headline": "A message passed on incorrectly could send things the wrong way.",
@@ -3612,8 +3612,8 @@
         "A small misunderstanding could complicate things today. Something you thought you'd said clearly may be passed on with a different meaning, or you may need to recheck instructions you've misunderstood. A conclusion reached too quickly may be overturned.",
         "For an important message, ask whether the other person understood what you meant. If you discover an error, correcting it before explaining yourself could save trouble."
       ],
-      "do": "Ask whether the other person understood your meaning",
-      "pause": "Jumping to a conclusion before fully understanding"
+      "do": "After saying something important, ask what the other person understood you to mean. They may have taken it differently even if you thought you were clear.",
+      "pause": "If you discover you've passed on something incorrect, don't begin with a long defence of yourself. Correcting the error first can keep the other person from making a mistaken decision."
     },
     "overall.swords.01.upright": {
       "headline": "Something confusing could become clear and a difficult problem could be solved.",
@@ -3621,8 +3621,8 @@
         "It's a good day to discover why something has been troubling you. Sorting through conflicting accounts could reveal the facts and make a difficult decision easier. You may get a clear answer to a problem that's dragged on.",
         "Once you know the conclusion, tell the people who need it clearly. Start with the facts you've confirmed, instead of adding so much explanation that the main point gets lost."
       ],
-      "do": "State the confirmed facts clearly first",
-      "pause": "Talking around the issue without giving the main point"
+      "do": "If you don't know what caused a problem, compare the facts you've confirmed from the different accounts.",
+      "pause": "Don't dwell on background details when sharing what you've found out. Start with the facts the other person needs so your conclusion comes across clearly."
     },
     "overall.swords.02.reversed": {
       "headline": "Conflicting accounts could lead you to make the wrong judgement.",
@@ -3630,8 +3630,8 @@
         "Listening to several people could make things more complicated today. You may be asked to make a decision you've put off, only for new information to contradict what you've heard. Choosing anything just to get it over with could leave problems to deal with afterwards.",
         "Ask specifically about the part that needs a decision now. Checking with the person involved will be less confusing than asking more people about the same story."
       ],
-      "do": "Check which question needs an answer now",
-      "pause": "Picking any option because things are complicated"
+      "do": "If several people's accounts differ, ask the person directly involved specifically about the issue you need to decide now.",
+      "pause": "Don't pick any option just to get a complicated discussion over with. Accepting terms you don't understand could leave you with more to sort out later."
     },
     "overall.swords.02.upright": {
       "headline": "An uncertain choice could delay a decision.",
@@ -3639,8 +3639,8 @@
         "Something important may be hard to settle today. Either of two options could leave you disappointed, or not knowing the other person's answer may make it difficult to act first. If a necessary fact is missing, thinking longer may not produce an answer.",
         "Start by checking one piece of information you need for the decision. Instead of letting someone rush you into choosing, it's fine to ask how long you can wait."
       ],
-      "do": "Ask for the information needed to decide",
-      "pause": "Taking sides without knowing the circumstances"
+      "do": "If you don't know which option to choose, ask someone familiar with the situation about the information you still need to decide.",
+      "pause": "Don't give a definite answer before you understand the circumstances just because you're being rushed. Ask how long they can wait and request time to think."
     },
     "overall.swords.03.reversed": {
       "headline": "Resolving something hurtful could make the day a little easier.",
@@ -3648,8 +3648,8 @@
         "Something that's been weighing on your mind could trouble you less today. You may correct a story that was passed on wrongly or receive an apology for something that hurt you. Things can become less uncomfortable even if you don't return to how you were straight away.",
         "If the other person wants to explain, hear as much as you feel able to. Decide how to proceed instead of arguing again about something you've already resolved."
       ],
-      "do": "Discuss what you need to agree on from now on",
-      "pause": "Bringing up a settled argument again"
+      "do": "If something hurtful has been resolved, discuss how you'd like to get along from here. It's fine to say if you can't be as close as before straight away.",
+      "pause": "Don't reopen an argument you've both explained and settled simply because you still feel uneasy about it."
     },
     "overall.swords.03.upright": {
       "headline": "An answer you didn't want could leave you disappointed.",
@@ -3657,8 +3657,8 @@
         "Something you've hoped for may not go your way today. A statement you trusted could turn out to be untrue, or you may be turned down for something you thought was certain. Even if you don't want to hear the answer, you need to know it before making your next decision.",
         "Hear the reasons in full before challenging the answer. Taking your hurt out on people who weren't involved could only make more things uncomfortable."
       ],
-      "do": "Hear the reasons behind an unwanted answer",
-      "pause": "Taking your anger out on someone uninvolved"
+      "do": "Even if you didn't get the answer you wanted, hear the reasons in full. Knowing the relevant facts can help you decide what to do next.",
+      "pause": "Don't speak sharply to people who had nothing to do with disappointing news. Taking your hurt out on them could make those relationships uncomfortable too."
     },
     "overall.swords.04.reversed": {
       "headline": "Something that was on hold could start again and keep you busy.",
@@ -3666,8 +3666,8 @@
         "You may hear news again about something that's been quiet. A delayed request could receive an answer, or you may get a chance to return to something you set aside for a while. Trying to do as much as before all at once could be harder than you expect.",
         "When you start again, take on the most urgent thing first. A long absence doesn't mean you have to answer every request immediately."
       ],
-      "do": "Choose one thing to resume first",
-      "pause": "Taking on all the requests that have piled up"
+      "do": "If you're returning to something you've set aside for a while, choose the most urgent request first instead of taking on everything that's piled up.",
+      "pause": "Don't push yourself to do as much as before immediately when you restart. It's fine to build up gradually while you get used to it again."
     },
     "overall.swords.04.upright": {
       "headline": "The day is likely to pass quietly without much trouble.",
@@ -3675,8 +3675,8 @@
         "Your luck favours an uneventful day more than a new achievement. Something that's caused a stir may settle down, or there could be fewer demands for an urgent answer. A result you're waiting for may take a little longer, but there may not be much you need to do about it right now.",
         "It's fine to leave something alone for a while if there's no rush. Bringing up a settled matter just because things are quiet could start an unnecessary exchange."
       ],
-      "do": "Take your time with an answer that isn't urgent",
-      "pause": "Reopening an argument that has quietened down"
+      "do": "If there's no urgent reply or further action needed, set aside anything that can wait and take a quiet break.",
+      "pause": "Don't reopen a finished argument to go over who was right or wrong. Exchanging words that don't need saying could make things uncomfortable between you again."
     },
     "overall.swords.05.reversed": {
       "headline": "You could put an end to a long-running argument.",
@@ -3684,8 +3684,8 @@
         "There may be a chance to compromise with someone you've been uncomfortable around. If each of you gives a little, you could end the dispute without further loss. You don't have to agree on everything to stop the constant arguing.",
         "Say where you're willing to give way first. Revisiting old remarks after an apology or agreement could restart an argument you've worked hard to end."
       ],
-      "do": "Say where you're willing to compromise",
-      "pause": "Debating blame again after reaching an agreement"
+      "do": "If a chance to compromise comes up with someone you're on uneasy terms with, say first where you're willing to give way. You may find a way to end the argument without agreeing on everything.",
+      "pause": "Don't go back over who was wrong after an apology or agreement. Deciding who was more at fault after you've agreed to step back could keep the argument going."
     },
     "overall.swords.05.upright": {
       "headline": "Winning an argument could still leave you feeling uncomfortable.",
@@ -3693,8 +3693,8 @@
         "You may argue over something small or hear an unfair remark today. Even if your view is accepted, the other person could remain resentful, leaving you with more lost than won. Insisting on deciding who's right to the bitter end could distance someone you might need help from.",
         "Once you've made your point, stop pressing the other person. You don't need a final remark just to get the better of them."
       ],
-      "do": "Make your point and stop the argument",
-      "pause": "Ending an argument by belittling the other person"
+      "do": "Once you've said what needed saying in an argument, try stopping there. Continuing to argue over who's right could harm a relationship where you help each other.",
+      "pause": "Don't belittle someone to make them accept your view. Even if you win the argument, the resentment left behind could make it hard to do things together later."
     },
     "overall.swords.06.reversed": {
       "headline": "A problem you thought was solved could come back.",
@@ -3702,8 +3702,8 @@
         "Something you've been trying to leave behind may last longer than expected today. Even with a different approach, an overlooked problem could return, or you may have to take on an old request again. Merely changing where you are could bring the same trouble with you.",
         "Look at the original cause of a problem that returns. Passing it to someone else just to get away for now could mean having to explain it all again later."
       ],
-      "do": "Check the cause of a recurring problem",
-      "pause": "Leaving the situation without addressing its cause"
+      "do": "If a problem you thought was solved keeps returning, check whether any of its original causes still need to be addressed.",
+      "pause": "Don't pass an unresolved problem to someone else just to escape it for now. If the cause remains, you may have to explain the same problem all over again later."
     },
     "overall.swords.06.upright": {
       "headline": "Getting out of a difficult situation could give you some relief.",
@@ -3711,8 +3711,8 @@
         "You may be able to leave an uncomfortable situation today. Someone could help with a problem you couldn't solve alone, or moving somewhere else may reduce the trouble you're dealing with. Not every problem has to be over for things to feel easier than before.",
         "If someone can explain an easier way to move elsewhere, hear them out. It's fine to choose somewhere different if the familiar place has been uncomfortable."
       ],
-      "do": "Try a different approach with someone's help",
-      "pause": "Staying somewhere uncomfortable because it's familiar"
+      "do": "If someone explains an easier way to handle something you've struggled with alone, hear them out and accept their help.",
+      "pause": "If there's somewhere you could be more at ease, don't keep staying in an uncomfortable place just because it's familiar."
     },
     "overall.swords.07.reversed": {
       "headline": "You could put something right and get the help you need.",
@@ -3720,8 +3720,8 @@
         "Previously hidden circumstances could come to light and help solve a problem today. Speaking honestly about something you've struggled on with alone may make it easier to put right than you expect. Another person's advice could also clear up something you've misunderstood.",
         "If you've made a mistake, tell the people who need to know first. Making excuses for something that's already come out could keep even a small problem going."
       ],
-      "do": "Tell the relevant person about a mistake first",
-      "pause": "Adding excuses to a confirmed mistake"
+      "do": "If a mistake is difficult to put right alone, tell the people involved what went wrong before trying to handle it all yourself.",
+      "pause": "Don't use a convincing excuse to cover up a mistake that's already come to light. Changing your explanation repeatedly could make even a small error take longer to sort out."
     },
     "overall.swords.07.upright": {
       "headline": "A different approach could solve something that's been stuck.",
@@ -3729,8 +3729,8 @@
         "You may see another way to handle something that's been difficult to tackle directly. You could get the help you need without a confrontation, or information you've quietly gathered may save you trouble. You don't have to reveal every plan in advance.",
         "For something you haven't decided yet, ask only the people you need to. Don't hide an important condition that could lead someone else to make the wrong decision."
       ],
-      "do": "Ask only the people who need to be involved",
-      "pause": "Getting agreement while hiding an important condition"
+      "do": "For something that's hard to resolve, look for another approach by quietly asking only people who know the circumstances.",
+      "pause": "Don't leave out important conditions when you need someone's agreement. You don't have to reveal every plan, but do tell them the facts they need to decide."
     },
     "overall.swords.08.reversed": {
       "headline": "Something you thought was impossible could become worth trying.",
@@ -3738,8 +3738,8 @@
         "You may get a chance to move beyond something that's held you back. A condition you thought was essential might not be required, or you could discover another option. Something you've put off for a long time may be easier to start than before.",
         "If you've found a new way to do it, try a small part yourself. A refusal in the past doesn't mean you have to give up this chance too."
       ],
-      "do": "Try a newly available approach",
-      "pause": "Giving up another attempt because of a past refusal"
+      "do": "If another way to tackle something that's been stuck becomes available, use it to try the part you can do now.",
+      "pause": "If changed conditions let you try again, don't give up this attempt just because you were told no in the past."
     },
     "overall.swords.08.upright": {
       "headline": "Restrictions could make it hard to do what you want.",
@@ -3747,8 +3747,8 @@
         "Even small things may not go your way today, leaving you frustrated. You could be left waiting because you haven't received permission or have fewer options available. Assuming that methods you haven't checked won't work either could make things seem even more hopeless.",
         "Check the conditions yourself to see whether something really is impossible. One blocked route doesn't mean you have to give up every other approach."
       ],
-      "do": "Check the condition that's preventing you",
-      "pause": "Giving up every approach after one setback"
+      "do": "If you're told you can't do something you want, ask directly which condition prevents it. Understanding the actual restriction can help you look for another approach.",
+      "pause": "Don't assume every untried method is impossible just because one approach hasn't worked."
     },
     "overall.swords.09.reversed": {
       "headline": "A reassuring answer could ease something you've worried about alone.",
@@ -3756,8 +3756,8 @@
         "A problem you've feared may turn out to be less difficult than you expected today. Explaining it could bring help, or you may hear a specific answer to a vague worry. Even if everything isn't solved, what to do right now could become clear.",
         "Tell someone you trust what actually happened. If you only say you're fine, they may find it hard to give you the help you need."
       ],
-      "do": "Explain specifically why you're worried",
-      "pause": "Only saying you're fine when someone asks"
+      "do": "If you've been worrying about something alone, tell someone you trust exactly what happened and what worries you about it.",
+      "pause": "Don't ignore what still needs to be done just because someone's help has reassured you. If you've learned what needs doing now, start with that."
     },
     "overall.swords.09.upright": {
       "headline": "Worry could slow down even familiar tasks.",
@@ -3765,8 +3765,8 @@
         "Waiting for something may make it hard to feel at ease today. You could expect the worst from an unanswered question or see a small mistake as a major problem. If that worry carries over into other things, you may overlook something.",
         "Separate what you're afraid of from what you've actually been told. There's no need to announce a failure or cancel plans before you have the result."
       ],
-      "do": "Separate confirmed facts from worries",
-      "pause": "Giving up early because you expect a bad result"
+      "do": "If a late answer has you fearing a bad result, ask yourself whether you've actually been told that result or are only assuming it.",
+      "pause": "Don't announce a failure or cancel plans before the result arrives. You don't yet know whether things have ended the way you fear."
     },
     "overall.swords.10.reversed": {
       "headline": "A difficult spell could pass and let you start again.",
@@ -3774,8 +3774,8 @@
         "Something that's gone badly for a while may improve a little today. You could find a remaining chance in something you thought was over, or a responsibility that's been too much may become lighter. Things may not return to normal straight away, but there could be something you can try again.",
         "When you start something new, take on only as much as you can finish comfortably. Accepting the same conditions that were difficult before could bring back the same burden."
       ],
-      "do": "Start again with less to do than before",
-      "pause": "Accepting the same conditions that made things difficult"
+      "do": "If you get another chance at something that was difficult, take on less than before so you can finish it without overdoing it now.",
+      "pause": "Don't accept the same conditions that overwhelmed you before just because another chance has arrived. Check what made it difficult and whether those demands would return."
     },
     "overall.swords.10.upright": {
       "headline": "Something that's dragged on could come to a disappointing end.",
@@ -3783,8 +3783,8 @@
         "There may be something you can't continue today. An answer you've hoped for until the end may not arrive, or you could have to stop something you've worked hard on. Trying to force it back to the way it was could make even your remaining tasks hard to manage.",
         "Take care of only what needs clearing up after it's over. Instead of taking on something new to make up for it immediately, keep only what you must finish today."
       ],
-      "do": "Finish clearing up after something that's ended",
-      "pause": "Taking on something new to make up for a failure"
+      "do": "If something has become too difficult to continue, finish only the necessary final tasks and leave it there.",
+      "pause": "Don't take on something new to make up for a disappointing result immediately. First check whether you can manage what you still have to do."
     },
     "overall.swords.11.reversed": {
       "headline": "Something you haven't checked could catch you off guard.",
@@ -3792,8 +3792,8 @@
         "Unexpected information may disrupt things today. You could believe something too quickly when you first hear it or struggle with a question you aren't prepared for. Passing on an uncertain story could leave you having to explain it yourself.",
         "If you don't know, say you'll check before answering. Even if you're suspicious, don't confront the other person before finding out the facts."
       ],
-      "do": "Check an answer you don't know before passing it on",
-      "pause": "Accusing someone before checking the facts"
+      "do": "If you're asked about something you don't know, ask for time to check and find an accurate answer instead of replying with a guess.",
+      "pause": "Don't confront someone immediately because a story you've just heard sounds suspicious. There may be circumstances you haven't checked, so find out the facts before discussing it."
     },
     "overall.swords.11.upright": {
       "headline": "An overlooked fact could help you avoid a mistake.",
@@ -3801,8 +3801,8 @@
         "Something you nearly passed over could reveal an important fact today. Reading unfamiliar instructions carefully may save unnecessary effort and help you spot incorrect information early. A question asked out of curiosity could help solve something that's been stuck.",
         "Read even the small print when the information is new to you. When passing on what you've learned, stick to what you've checked yourself."
       ],
-      "do": "Read the small print in the instructions",
-      "pause": "Presenting guesses as confirmed facts"
+      "do": "When reading unfamiliar instructions, check even the small print and ask directly about anything you don't understand.",
+      "pause": "When sharing something you've discovered, don't mix guesses with facts you've checked and present it all as certain."
     },
     "overall.swords.12.reversed": {
       "headline": "Something started in haste could stop halfway through.",
@@ -3810,8 +3810,8 @@
         "Mistakes may arise in something you're trying to finish quickly today. You could set off unprepared and have to turn back, or start more than you can manage and fail to finish. Answering quickly because someone is rushing you may create more trouble.",
         "Check you have what you need before setting off. For something you can't finish now, say when you can do it instead of promising you can."
       ],
-      "do": "Check you have what you need before leaving",
-      "pause": "Hastily accepting more than you can manage"
+      "do": "If you're going somewhere to do something, check before leaving that you've packed what you'll need. It can save you a return trip for something you've forgotten.",
+      "pause": "Even if someone wants a quick answer, don't promise to do something immediately when you can't finish it now. Say when you'll actually be able to do it."
     },
     "overall.swords.12.upright": {
       "headline": "Something delayed could reach a quick conclusion.",
@@ -3819,8 +3819,8 @@
         "A matter that's dragged on could be resolved sooner than expected today. Stating your wishes clearly may get you the answer you want, and acting promptly could bring progress. Keeping up with the speed of events may make it easy to skip a necessary explanation.",
         "Go ahead with what you've decided, but check that the people involved understand too. If you set off without explaining, they may be slow to follow because they don't know what to do."
       ],
-      "do": "Explain the decision clearly before starting",
-      "pause": "Pushing ahead without an explanation"
+      "do": "If you've decided what to do about a long-delayed matter, tell the people involved your decision and start with the part you can do first.",
+      "pause": "Don't push ahead alone and skip necessary explanations because things are moving quickly. Give the people involved time to understand what they need to do."
     },
     "overall.swords.13.reversed": {
       "headline": "A hasty judgement could lead to an unfair misunderstanding.",
@@ -3828,8 +3828,8 @@
         "One bad impression could lead you to judge wrongly today. You may reach a conclusion before hearing the other person's circumstances, or someone who knows nothing about your situation could misunderstand you. A sharp reply may leave you with even less chance to explain the facts.",
         "When you first hear a story, check whether anything is missing. Disliking someone doesn't mean what they're saying this time must be wrong."
       ],
-      "do": "Check what's missing from one person's account",
-      "pause": "Ignoring everything someone says because you dislike them"
+      "do": "If you've heard only one side, consider what circumstances you haven't heard about yet. Listen to the other person's account before judging what happened.",
+      "pause": "Don't dismiss everything someone says without checking whether it's true just because you usually feel uncomfortable around them."
     },
     "overall.swords.13.upright": {
       "headline": "You could sort out something that's become complicated.",
@@ -3837,8 +3837,8 @@
         "It's a good day to find the answer you need without being swayed by confusing accounts. You may recognise unsuitable conditions even when dealing with someone you've known a long time, or bring something unnecessary to a clean end. Some disappointment may remain, but you could make fewer decisions you'll regret later.",
         "If you need to refuse, give a brief reason. Stating the facts doesn't require judging the other person or adding criticism."
       ],
-      "do": "Give a brief reason for saying no",
-      "pause": "Pointing out someone's faults while refusing them"
+      "do": "Even if a request comes from someone you've known a long time, briefly explain why you can't accept it if the conditions don't suit you.",
+      "pause": "When refusing because the conditions don't suit you, discuss those conditions without bringing up the person's character or faults."
     },
     "overall.swords.14.reversed": {
       "headline": "One-sided demands could put you in a difficult position.",
@@ -3846,8 +3846,8 @@
         "You may meet someone unwilling to listen even when you explain your circumstances today. You could be pushed to accept unsuitable terms or feel unfairly treated by a decision based on only one account. Agreeing immediately because the other person intimidates you may be hard to undo.",
         "For something important, ask for time to check before answering. When you're the one making a decision, let others finish their explanations too."
       ],
-      "do": "Ask for time to check before answering",
-      "pause": "Agreeing as soon as someone applies pressure"
+      "do": "If you can't answer immediately, ask for time to check the details and decide, even if the other person is pressing hard.",
+      "pause": "Don't interrupt someone's explanation when you're making a decision. Reaching a conclusion before hearing the full circumstances could leave someone feeling unfairly treated."
     },
     "overall.swords.14.upright": {
       "headline": "Clear rules could settle something that was uncertain.",
@@ -3855,8 +3855,8 @@
         "Even a much-debated issue may reach a conclusion based on clear standards today. Evidence could settle an argument over who's right, and you may receive a judgement you can trust. If you've prepared your facts properly, you'll be well placed to explain your position.",
         "For an important decision, present information that can be checked instead of relying on a feeling. Trying to change the rules to suit yourself could make a sound judgement harder to reach."
       ],
-      "do": "Check the evidence supporting your position",
-      "pause": "Changing the rules only when it benefits you"
+      "do": "When giving your view before an important decision, explain your reasons using facts that other people can check too.",
+      "pause": "Don't keep changing the standard to get a result that favours you. Applying the same agreed principles to the same circumstances helps you reach a decision people can accept."
     },
     "overall.wands.01.reversed": {
       "headline": "Something you want to start may not get going straight away.",
@@ -3864,8 +3864,8 @@
         "A new venture could start later than expected today. You may be missing some preparation, or have a good idea without a chance to try it yet. Rushing into it could mean stopping soon afterwards to prepare again.",
         "Check what's preventing the start, one thing at a time. Unhelpful timing doesn't mean you have to discard the whole idea."
       ],
-      "do": "Check what preparation is still missing",
-      "pause": "Setting off before you're ready"
+      "do": "If you're not fully prepared for something you meant to start, check what's missing and do the preparation you can manage now.",
+      "pause": "Don't give up the whole idea just because there's no opening right now. The timing being wrong today doesn't mean you'll never be able to do it."
     },
     "overall.wands.01.upright": {
       "headline": "A new start could receive a good response.",
@@ -3873,8 +3873,8 @@
         "Something you begin today could go better than expected. Trying out an idea may reveal a useful method, and an activity you're interested in could offer a chance to return. Luck also favours starting something you've postponed for a long time.",
         "Begin with the first step you can take now. Learn what you'll need next by trying it, rather than taking on a great deal at once."
       ],
-      "do": "Take the first step in something you've postponed",
-      "pause": "Taking on more than you can manage on the first day"
+      "do": "If you've put off something you wanted to try, start with the part you can do now. It's fine to learn what you'll need next by doing it.",
+      "pause": "Don't take on too much at the start of something new. Keeping it manageable gives you a better chance of continuing without having to stop partway."
     },
     "overall.wands.02.reversed": {
       "headline": "Hesitation could delay a change you wanted to make.",
@@ -3882,8 +3882,8 @@
         "A good option may be available, but you could find it hard to act on it today. Worries about somewhere unfamiliar may keep you from replying, or you could spend so long comparing that you miss your chance. The day may pass with neither the old plan nor the new one settled.",
         "Check whether the worry holding you back comes from a practical restriction. Ask about what you need to know first, rather than waiting until everything is certain."
       ],
-      "do": "Check one reason you're hesitating",
-      "pause": "Putting off an answer until everything is certain"
+      "do": "If you're hesitant about a new option, ask directly about the condition that worries you most. You may find out whether it's just unfamiliar or presents a real difficulty.",
+      "pause": "Don't put off your answer about something new until every worry is gone. The chance to take part could pass while you're still comparing options."
     },
     "overall.wands.02.upright": {
       "headline": "You could find a better opportunity beyond familiar places.",
@@ -3891,8 +3891,8 @@
         "There may be a chance to take something you're already doing further. Looking somewhere different could reveal a better offer or help you decide what to try next. Even if you don't make a change straight away, comparing your options will make the choice easier.",
         "If somewhere interests you, find out whether you can actually go there or use what it offers. Check the new option before giving up what you're doing now."
       ],
-      "do": "Check what a place requires before you can use it",
-      "pause": "Giving up what you have before finding somewhere new"
+      "do": "If you'd like to do what you're already doing somewhere else, find out whether it's possible and what would be better than where you are now.",
+      "pause": "Don't give up what you're doing just because a new option looks appealing. Keep it going until you've checked that you can actually start the new one."
     },
     "overall.wands.03.reversed": {
       "headline": "A delayed result could hold up what comes next.",
@@ -3900,8 +3900,8 @@
         "News you're expecting may arrive late, slowing things down today. A promising proposal could stall, or something may not grow as much as you'd hoped. Trying to meet the date you originally had in mind could put you under too much pressure.",
         "While you wait, take care of what you can do now. Don't take on anything else when you still haven't had a definite answer."
       ],
-      "do": "Recheck plans made without a definite answer",
-      "pause": "Adding more to do before an answer arrives"
+      "do": "If an answer you're waiting for is late, start with tasks you can handle without that answer.",
+      "pause": "Don't take on something new on the assumption that what you're waiting for will soon work out. If it takes longer, you could have to finish both at once and struggle with the extra work."
     },
     "overall.wands.03.upright": {
       "headline": "Your preparations could bring results and open up more opportunities.",
@@ -3909,8 +3909,8 @@
         "Something you've already started could make further progress today. A response you've been waiting for may arrive, or an invitation to work together could come from a place you haven't considered before. With another person's help, you may be able to do more with something you've managed alone.",
         "If someone responds well, suggest what you could do together next. Once what you've started is becoming established, an offer from outside your usual circle is worth considering too."
       ],
-      "do": "Suggest a next step to someone who responded well",
-      "pause": "Turning down every offer from outside familiar places"
+      "do": "If something you've been doing gets a good response, suggest what you could do together next. Build the conversation around the part that interested the other person.",
+      "pause": "Don't immediately reject an offer to work together just because it comes from somewhere unfamiliar. Hear how you could help each other before deciding."
     },
     "overall.wands.04.reversed": {
       "headline": "Something simple could bring you pleasure and satisfaction.",
@@ -3918,8 +3918,8 @@
         "It could be a pleasant day even without a major event. You may celebrate a small achievement or share a laugh with people you feel comfortable around. Things may look a little different from what you expected and still give you plenty to enjoy.",
         "Share something that's gone well with someone close to you. You don't need to cancel a happy occasion just because the preparations aren't perfect."
       ],
-      "do": "Celebrate a small achievement",
-      "pause": "Cancelling a happy occasion because it isn't perfect"
+      "do": "If something has gone well, however small it is, tell someone close to you and enjoy it together.",
+      "pause": "Don't cancel enjoyable plans because the preparations fell short of your hopes. A simple gathering can still mean laughter with people you feel comfortable around."
     },
     "overall.wands.04.upright": {
       "headline": "You could finish something successfully and have time to enjoy yourself.",
@@ -3927,8 +3927,8 @@
         "Something you've worked hard on may come to a satisfactory end today. You could have a reason to celebrate with the people involved or enjoy yourself somewhere familiar. Finishing something that's been on your mind may let you relax for a while.",
         "Share the good news with the people who have been waiting for it to be finished. There's no need to start over just to make something you've completed more impressive."
       ],
-      "do": "Celebrate finishing something together",
-      "pause": "Changing something that's already finished well"
+      "do": "Tell the people who worked alongside you that things have ended well. You can look back on the effort it took and enjoy the result together.",
+      "pause": "Don't rework something you've finished well just to make it look more impressive. If everything necessary is done, leave yourself time to rest too."
     },
     "overall.wands.05.reversed": {
       "headline": "You could get caught in an argument where the story keeps changing.",
@@ -3936,8 +3936,8 @@
         "The more you argue about something, the more tangled it may become today. Different accounts of the same event or attempts to pass the blame could get you into trouble you didn't expect. If you focus on winning the argument, you may miss the facts you need.",
         "Start with information that can establish who did what. Don't join someone else's dispute after hearing only one side."
       ],
-      "do": "Check the facts behind conflicting accounts",
-      "pause": "Joining an argument after hearing only one side"
+      "do": "If accounts of the same event differ, start with facts you can check about who did what.",
+      "pause": "Don't step into someone else's dispute after hearing only one side. Arguing on their behalf without knowing the circumstances could get you into trouble too."
     },
     "overall.wands.05.upright": {
       "headline": "Clashing opinions could make things noisy and unsettled.",
@@ -3945,8 +3945,8 @@
         "Competition or a difference of opinion may make it hard to reach a decision today. Even over something minor, several people may want to take charge or insist on different methods. There may be plenty of talk, but trying the suggestions will let you compare them.",
         "Once you've shared your view, listen to the other person's reasons too. Trying one suggestion at a time before choosing could reduce arguments better than everyone talking at once."
       ],
-      "do": "Compare the methods people have suggested",
-      "pause": "Interrupting before someone has finished speaking"
+      "do": "If you disagree about the best method, compare what each person has suggested. If talking isn't enough to judge, try the methods before choosing.",
+      "pause": "Don't interrupt the other person just because you favour different methods. Hearing why they chose theirs can help you avoid an argument that keeps going over the same ground."
     },
     "overall.wands.06.reversed": {
       "headline": "Recognition for your efforts could take a little longer.",
@@ -3954,8 +3954,8 @@
         "The praise or result you're hoping for may not arrive straight away. Something you thought you'd done well could receive little response, or someone else's good news may make your own achievement seem small. A late answer doesn't have to mean failure.",
         "Wait for the announcement if the result hasn't been confirmed yet. Exaggerating what you've achieved to get a better response could leave you struggling to explain it later."
       ],
-      "do": "Wait for the confirmed result",
-      "pause": "Exaggerating an achievement to gain recognition"
+      "do": "If the result you're waiting for isn't out yet, wait for a definite announcement. A slow response doesn't mean the work you've done was a failure.",
+      "pause": "Don't exaggerate what you've achieved to win praise. It could put you in a difficult position later if people discover that your claims don't match what you actually did."
     },
     "overall.wands.06.upright": {
       "headline": "Your efforts could earn recognition and bring good news.",
@@ -3963,8 +3963,8 @@
         "A good result may give people a reason to congratulate you today. Something you've waited a long time for could be decided in your favour, or people may notice the work you've quietly put in. You can also hope for a favourable answer where you're competing for something.",
         "If you get a good result, give credit to the people who helped. Enjoy what went well without comparing it with someone else's result when you share the news."
       ],
-      "do": "Give credit to the people who helped",
-      "pause": "Boasting by putting down someone else's result"
+      "do": "When people congratulate you on a good result, thank those who helped and explain what they contributed.",
+      "pause": "Don't put down someone else's achievement while sharing your own good result. You can enjoy what your effort has brought without deciding who did better."
     },
     "overall.wands.07.reversed": {
       "headline": "Several demands at once could make you give up an important condition.",
@@ -3972,8 +3972,8 @@
         "Pressure from several people may lead you to take on something you don't want today. You could find yourself agreeing to a request you meant to refuse or accepting without an important condition. Trying to escape an uncomfortable moment may leave you with more to do later.",
         "If you can't answer straight away, ask for time to think. Make clear what you can take on now, instead of trying to hear several requests at once."
       ],
-      "do": "Take time to think before answering",
-      "pause": "Agreeing to every demand to escape discomfort"
+      "do": "If several people are asking for favours, ask for time to think instead of replying straight away. Decide what you can take on, then tell them how much you can do.",
+      "pause": "Don't accept conditions you don't want just because refusing feels awkward. You may feel better in the moment but end up with more to do later."
     },
     "overall.wands.07.upright": {
       "headline": "You could stand your ground despite difficult demands.",
@@ -3981,8 +3981,8 @@
         "Obstacles may not be enough to push you aside today. What you've already done can support your case, and stating your wishes clearly could help you resist an unfair demand. Holding your position may take effort at first, but you're well placed to reach an acceptable outcome.",
         "Calmly explain which points you can't give up. Describing the conditions you need to keep will help more than answering every remark with a challenge."
       ],
-      "do": "State the conditions you need to keep",
-      "pause": "Arguing back over every minor remark"
+      "do": "If a demand is difficult to accept, calmly explain which points you can't compromise on and why.",
+      "pause": "Don't argue back at every irritating remark while responding to a demand. Picking over minor wording can make it harder to discuss the conditions you can't accept."
     },
     "overall.wands.08.reversed": {
       "headline": "Conflicting messages could delay something that was going well.",
@@ -3990,8 +3990,8 @@
         "People who spend time or work closely together may clash over what's been said today. The same instructions could be passed on differently, or a message sent in haste because of someone else's reaction could start an argument. Something you expected to move quickly may need another explanation.",
         "If a message upsets you, ask what the person meant first. Passing someone else's words on to several people could spread a misunderstanding even faster."
       ],
-      "do": "Ask directly what an upsetting remark meant",
-      "pause": "Passing unconfirmed information on to several people"
+      "do": "If something someone says bothers you, ask them directly what they meant. Asking first can help you avoid an argument over a misunderstanding.",
+      "pause": "Don't repeat something you've heard to several people without checking it. If its meaning changes in the telling, misunderstandings could arise among the people involved."
     },
     "overall.wands.08.upright": {
       "headline": "News you've been waiting for could arrive and bring quick progress.",
@@ -3999,8 +3999,8 @@
         "Several things that have been held up could get moving at once today. Delayed replies may come through quickly, with the next plans settled soon after. Anything that needs you to go somewhere or act in person could also be easier than you expect.",
         "Check what's being asked and send the necessary reply on time. A series of messages doesn't mean you need to agree to them all before you've read them."
       ],
-      "do": "Reply promptly once you've checked the details",
-      "pause": "Agreeing to instructions you haven't read"
+      "do": "When the news you've been waiting for arrives, check the details and give any needed reply on time. If the conversation moves on to arranging a time, say when you're available too.",
+      "pause": "Don't agree to details you haven't checked just because updates are coming one after another. Even when things move quickly, check each thing you're agreeing to."
     },
     "overall.wands.09.reversed": {
       "headline": "The same problem could hold you up again.",
@@ -4008,8 +4008,8 @@
         "Your usual approach may not work today, leaving you frustrated. An old difficulty could return, or you may be so cautious that you miss help you need. Simply holding on could leave a fixable problem unresolved for longer.",
         "If the same method has failed twice, hear out a different approach. Don't turn away someone offering fresh help just because things went badly before."
       ],
-      "do": "Listen to another way of solving a repeated problem",
-      "pause": "Refusing new help because of a bad experience"
+      "do": "If the same method keeps getting you stuck, explain what hasn't worked to someone with experience and ask about another approach.",
+      "pause": "Don't push away someone offering help because a previous experience of receiving help went badly. First hear what they could do for you this time."
     },
     "overall.wands.09.upright": {
       "headline": "You could protect what you've worked on through another difficulty.",
@@ -4017,8 +4017,8 @@
         "Perseverance could pay off even if something takes a while to finish today. A familiar problem may return, but you could get past it more easily this time. Even if a final check remains, the work you've done so far hasn't been wasted.",
         "For a familiar problem, look at how you solved it before. Skipping a check because you're nearly done could make you repeat the same mistake."
       ],
-      "do": "Revisit a method that solved the problem before",
-      "pause": "Skipping the final check because you're nearly done"
+      "do": "If a familiar problem returns, think back to how you solved it. Trying the method that worked before could make the same problem easier to resolve.",
+      "pause": "Don't skip the final check because something is almost finished. Looking over what remains can reduce the chance of having to work on it again."
     },
     "overall.wands.10.reversed": {
       "headline": "Without sharing the work, you could miss something you need to finish.",
@@ -4026,8 +4026,8 @@
         "Several responsibilities may make it hard to finish things today. You could end up doing someone else's share, or a task nobody was assigned may fall to you at the last minute. Unless you say it's too much, others may assume you can keep taking on more.",
         "Ask now for help with the parts you can't finish alone. Waiting until you're already late to say you can't do it will give the people involved less time to help."
       ],
-      "do": "Ask early to share work you can't finish alone",
-      "pause": "Taking everything on alone until you reach your limit"
+      "do": "If you can't finish something alone, say now which part you'd like someone else to take on. Asking early lets them set aside time to help.",
+      "pause": "If your current tasks are too much, don't silently pick up work that hasn't been assigned to anyone. Others may assume you're comfortable taking on more."
     },
     "overall.wands.10.upright": {
       "headline": "You may get results while having a busy day with plenty to do.",
@@ -4035,8 +4035,8 @@
         "More things to do could leave you short of time today. Doing well may bring requests to take on more, or several finishing touches could pile up on something almost done. Getting results may leave you with less time to yourself.",
         "If you already have plenty to do, tell anyone making a new request when you'd be available. Accepting everything because you can do it well could delay something important too."
       ],
-      "do": "Say when you'd be available for a new request",
-      "pause": "Accepting every task because you can do it well"
+      "do": "If a new request comes in when you already have plenty to do, work out how long the remaining tasks will take and say when you could start helping.",
+      "pause": "Don't agree to everything just because you can do each task well. Even familiar tasks can overlap and delay an important commitment you made first."
     },
     "overall.wands.11.reversed": {
       "headline": "Unconfirmed news could raise your hopes and lead to a wasted trip.",
@@ -4044,8 +4044,8 @@
         "Something you set out to do with excitement may fall short of expectations today. What you heard could be inaccurate, or a chance to take part may not have been confirmed yet. Changing your mind partway through could also surprise someone who agreed to join you.",
         "When you first hear about an opportunity, check for an official announcement. Don't recommend it to other people as good news before it's confirmed."
       ],
-      "do": "Check the official announcement for new information",
-      "pause": "Recommending something before checking it"
+      "do": "If you've heard that you can join a new activity, check the official information to confirm that you actually can.",
+      "pause": "Don't recommend an opportunity to others while the details are still unconfirmed. If you agree to join together and the details change, they could be caught off guard too."
     },
     "overall.wands.11.upright": {
       "headline": "Something you hear about could become an unexpected opportunity.",
@@ -4053,8 +4053,8 @@
         "A new piece of information may give you something worth trying today. You could hear useful news at a gathering you casually joined or get a chance to try an activity you've been curious about. Something small at first could become an enjoyable interest.",
         "If something catches your interest, ask where and how you can try it. You don't have to put off starting because you think you should be good at it from the beginning."
       ],
-      "do": "Ask how to join an activity that interests you",
-      "pause": "Delaying a start because you expect to be good immediately"
+      "do": "If you hear about an interesting activity, ask where and how you can take part so you can try it for yourself.",
+      "pause": "Don't keep putting off an activity because you feel you need to be good at it from the start. You can enjoy trying it for the first time without being skilled at it."
     },
     "overall.wands.12.reversed": {
       "headline": "A sudden change of mind could interrupt your plans.",
@@ -4062,8 +4062,8 @@
         "Something you start may be difficult to see through today. Someone who agreed to join you could drop out, or a hastily arranged visit may be cancelled, leaving you with a wasted trip. Arranging something else on the spot to make up for it could go wrong again.",
         "Before setting off, check that things are still going ahead. If you can no longer go yourself, let the other person know straight away."
       ],
-      "do": "Check things are going ahead before setting off",
-      "pause": "Making another arrangement without checking"
+      "do": "If you've arranged to meet someone or visit them, check with them before setting off that it's still going ahead.",
+      "pause": "Don't rush to make another arrangement just because one was cancelled. Checking that the other person is available before deciding can reduce the chance of changing the new plan too."
     },
     "overall.wands.12.upright": {
       "headline": "Taking action yourself could bring quick progress.",
@@ -4071,8 +4071,8 @@
         "Getting out and doing something could be rewarding today. A visit you've put off or a new activity may go better than expected, and you could settle in quickly somewhere unfamiliar and enjoy the experience. Trying something you've spent a long time considering may make the answer clearer.",
         "If there's somewhere you've wanted to visit, check when you can go and make the trip. Planning too many stops in your excitement could leave you little time to enjoy them."
       ],
-      "do": "Visit somewhere you've wanted to go",
-      "pause": "Scheduling too many visits in one day"
+      "do": "If there's somewhere you've wanted to visit, find out when you can go and make the trip.",
+      "pause": "Don't plan too many stops in one day just because you're excited. Rushing to the next place could leave you less time to stay and enjoy where you are."
     },
     "overall.wands.13.reversed": {
       "headline": "Worrying about people's reactions could make things uncomfortable.",
@@ -4080,8 +4080,8 @@
         "People may be less receptive to what you want than usual today. Someone else getting more attention could hurt your feelings, or a quiet response may make your tone sharper. Trying too hard to gain recognition could leave people even less interested.",
         "After speaking, give the other person time to share their thoughts too. Pointing out faults when someone is being praised could leave others with a worse impression of you."
       ],
-      "do": "Listen to the other person until they've finished",
-      "pause": "Adding criticism when someone is being praised"
+      "do": "After you've shared your thoughts, give the other person a chance to speak and hear them out instead of adding more of your own.",
+      "pause": "Don't add a criticism when someone else is being praised. People listening may see it as an attempt to put that person down."
     },
     "overall.wands.13.upright": {
       "headline": "People could respond warmly and make the day enjoyable.",
@@ -4089,8 +4089,8 @@
         "You may find a welcoming face wherever you go today. Something you bring up could draw interest, and an invitation to do something together is likely to receive a good response. You may have a chance to show what you do well without having to force it.",
         "If there's something you'd like to say to a group, feel free to bring it up. Give others time to join in too, so everyone can enjoy the conversation."
       ],
-      "do": "Bring up something you'd like to share with the group",
-      "pause": "Keeping the whole conversation about yourself"
+      "do": "If there's something you'd like to share while spending time with a group, feel free to bring it up first.",
+      "pause": "Don't keep talking only about yourself because people are responding well. Pausing to let others join in can make the conversation more enjoyable."
     },
     "overall.wands.14.reversed": {
       "headline": "Standards that are too high could hold things up.",
@@ -4098,8 +4098,8 @@
         "You may find it hard to finish because even a good result doesn't satisfy you today. Asking too much of the people involved or focusing on a minor shortcoming could delay a decision. Even a well-meant comment may sound like too much interference.",
         "Separate what must be corrected from what can stay as it is. Insisting on your own way could make it hard for people who've been helpful to keep contributing."
       ],
-      "do": "Point out only what needs correcting",
-      "pause": "Demanding revisions over every small difference"
+      "do": "If a result doesn't satisfy you, look at the parts you want changed. If those changes aren't necessary, it's fine to call it finished.",
+      "pause": "Don't make someone redo parts they've done well just because they're slightly different from your way. Excessive demands could make it hard for even a willing helper to continue."
     },
     "overall.wands.14.upright": {
       "headline": "Taking the lead could bring support and good results.",
@@ -4107,8 +4107,8 @@
         "Something you lead could go well today. Explain clearly what you want to do and people may join you, helping something you've hesitated over get past its first difficulty. Doing what you said you would can earn people's trust.",
         "Start by keeping the commitments you said you could manage. Giving the people who joined you the parts they do well could make it easier to finish."
       ],
-      "do": "Do what you said you would",
-      "pause": "Announcing a start and leaving the rest to others"
+      "do": "If you're in charge of something you're starting together, first ask what each person does well, then divide the work accordingly.",
+      "pause": "Don't get things started and expect others to sort out everything that follows. Even when you've divided the work by ability, follow through on the part you promised to do."
     },
     "work.cups.01.reversed": {
       "text": [

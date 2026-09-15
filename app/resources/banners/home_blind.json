@@ -623,9 +623,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-585960ff7ec86ffc3993f888815aca12bc77859b5e737ccc89edb100bc449b42.webp",
-              "sha256": "585960ff7ec86ffc3993f888815aca12bc77859b5e737ccc89edb100bc449b42",
-              "byte_length": 3576,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
+              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
+              "byte_length": 10684,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -635,7 +635,7 @@
               "x": 0.5,
               "y": 0.5
             },
-            "base_color": "#C86BB8"
+            "base_color": "#FEEFDE"
           },
           "radius": 16,
           "border": {
@@ -662,7 +662,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -679,12 +679,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -707,7 +707,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 2,
                 "line_height": 1.15
@@ -723,9 +723,9 @@
                 "height": 0.363
               },
               "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-991861122256bb431f7c92883a247d11ada1f4123d4375238188cd6d6d904fdb.webp",
-                "sha256": "991861122256bb431f7c92883a247d11ada1f4123d4375238188cd6d6d904fdb",
-                "byte_length": 3790,
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
+                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
+                "byte_length": 5142,
                 "pixel_width": 240,
                 "pixel_height": 240,
                 "media_type": "image/webp"
@@ -762,9 +762,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-585960ff7ec86ffc3993f888815aca12bc77859b5e737ccc89edb100bc449b42.webp",
-              "sha256": "585960ff7ec86ffc3993f888815aca12bc77859b5e737ccc89edb100bc449b42",
-              "byte_length": 3576,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
+              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
+              "byte_length": 10684,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -774,7 +774,7 @@
               "x": 0.5,
               "y": 0.5
             },
-            "base_color": "#C86BB8"
+            "base_color": "#FEEFDE"
           },
           "radius": 16,
           "border": {
@@ -801,7 +801,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -818,12 +818,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -846,7 +846,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 2,
                 "line_height": 1.15
@@ -862,9 +862,9 @@
                 "height": 0.363
               },
               "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-991861122256bb431f7c92883a247d11ada1f4123d4375238188cd6d6d904fdb.webp",
-                "sha256": "991861122256bb431f7c92883a247d11ada1f4123d4375238188cd6d6d904fdb",
-                "byte_length": 3790,
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
+                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
+                "byte_length": 5142,
                 "pixel_width": 240,
                 "pixel_height": 240,
                 "media_type": "image/webp"
@@ -901,9 +901,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-585960ff7ec86ffc3993f888815aca12bc77859b5e737ccc89edb100bc449b42.webp",
-              "sha256": "585960ff7ec86ffc3993f888815aca12bc77859b5e737ccc89edb100bc449b42",
-              "byte_length": 3576,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
+              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
+              "byte_length": 10684,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -913,7 +913,7 @@
               "x": 0.5,
               "y": 0.5
             },
-            "base_color": "#C86BB8"
+            "base_color": "#FEEFDE"
           },
           "radius": 16,
           "border": {
@@ -940,7 +940,7 @@
                 "font": "body",
                 "font_size": 12,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
@@ -957,12 +957,12 @@
               },
               "background": {
                 "type": "solid_v1",
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "radius": 0.9,
               "border": {
                 "width": 0,
-                "color": "#FFFFFF"
+                "color": "#000000"
               },
               "semantics_order": null
             },
@@ -985,7 +985,7 @@
                 "font": "body",
                 "font_size": 16,
                 "weight": 600,
-                "color": "#FFFFFF",
+                "color": "#000000",
                 "align": "center",
                 "max_lines": 2,
                 "line_height": 1.15
@@ -1001,9 +1001,9 @@
                 "height": 0.363
               },
               "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-991861122256bb431f7c92883a247d11ada1f4123d4375238188cd6d6d904fdb.webp",
-                "sha256": "991861122256bb431f7c92883a247d11ada1f4123d4375238188cd6d6d904fdb",
-                "byte_length": 3790,
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
+                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
+                "byte_length": 5142,
                 "pixel_width": 240,
                 "pixel_height": 240,
                 "media_type": "image/webp"

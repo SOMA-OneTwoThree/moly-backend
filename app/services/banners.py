@@ -1,5 +1,6 @@
 """Authenticated, request-scoped banner selection and data binding."""
 
+import logging
 from datetime import datetime
 
 from sqlalchemy import exists, func, select
@@ -16,6 +17,8 @@ from app.services.i18n import resolve
 from app.services.topic_catalog import TopicCatalog
 from app.services.topic_state import resolve_offer
 from app.services import privacy
+
+_log = logging.getLogger("moly-backend")
 
 
 async def remaining_today(session: AsyncSession, user_id: str, day: AppDay) -> int:
@@ -118,6 +121,8 @@ async def list_banners(
         except DBAPIError as exc:
             if exc.connection_invalidated:
                 raise
+            # 조회 실패는 의존 카드만 제외한다. 사용자 데이터 없이 예외 종류만 남긴다.
+            _log.warning("affirmation marker unavailable: %s", type(exc).__name__)
     return render_feed(
         catalog,
         candidates,

@@ -32,4 +32,4 @@ class DailyAffirmationAcknowledgeRequest(BaseModel):
 
 class DailyAffirmationAcknowledgeResponse(StrictResponse):
     local_date: date
-    acknowledged: bool
+    acknowledged: Literal[True]

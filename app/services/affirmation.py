@@ -1,7 +1,7 @@
 """오늘의 글귀 — 현지 날짜로 고르는 공용 문장과 사용자별 확인 상태.
 
-문장 선택은 DB·배치·LLM 없이 현지 날짜 SHA256으로 계산하므로 같은 날짜에는 모든 사용자가
-같은 문장을 본다(`banner_music.daily_music_title`과 같은 방식). 사용자별로 저장하는 값은
+문장 선택은 DB·배치·LLM 없이 현지 날짜 서수로 계산하므로 같은 날짜에는 모든 사용자가
+같은 문장을 본다(주기별 고정 순열, `daily_affirmation` 참고). 사용자별로 저장하는 값은
 `user_daily_stats.affirmation_acknowledged_at` 하나이며 배너 당일 숨김 판정에 쓴다.
 """
 
@@ -77,11 +77,32 @@ def load_catalog(path: Path = CATALOG_PATH) -> AffirmationManifest:
     return load_manifest(path.read_bytes())
 
 
+def _shuffled(cycle: int, items: tuple[AffirmationItem, ...]) -> list[AffirmationItem]:
+    """주기별 고정 순열 — 같은 주기·같은 카탈로그면 언제나 같은 순서다."""
+    return sorted(items, key=lambda item: hashlib.sha256(
+        f"daily-affirmation-v1:{cycle}:{item.id}".encode()
+    ).digest())
+
+
+def _cycle_order(cycle: int, items: tuple[AffirmationItem, ...]) -> list[AffirmationItem]:
+    order = _shuffled(cycle, items)
+    # 주기 경계에서 같은 문장이 이틀 연속 나오지 않게 앞 두 개를 바꾼다. 3개 이상이면 이 교환이
+    # 마지막 항목을 건드리지 않으므로 이전 주기의 끝을 순열만으로 판정할 수 있다. 2개 이하는
+    # 어떤 순열로도 경계 반복을 없앨 수 없어 교환하지 않는다.
+    if len(items) > 2 and order[0].id == _shuffled(cycle - 1, items)[-1].id:
+        order[0], order[1] = order[1], order[0]
+    return order
+
+
 def daily_affirmation(local_date: date) -> AffirmationItem:
-    """같은 현지 날짜에는 사용자·언어·재시작과 무관하게 같은 문장을 고른다."""
+    """같은 현지 날짜에는 사용자·언어·재시작과 무관하게 같은 문장을 고른다.
+
+    날짜를 카탈로그 크기로 나눠 주기와 위치를 얻고, 주기마다 고정된 순열에서 그 위치를 읽는다.
+    한 주기(=문장 수) 안에서 모든 문장이 정확히 한 번씩 나오므로 근접 반복이 없다.
+    """
     items = load_catalog().items
-    digest = hashlib.sha256(f"daily-affirmation-v1:{local_date.isoformat()}".encode()).digest()
-    return items[int.from_bytes(digest[:8], "big") % len(items)]
+    cycle, position = divmod(local_date.toordinal(), len(items))
+    return _cycle_order(cycle, items)[position]
 
 
 async def _day(
@@ -137,7 +158,6 @@ async def acknowledge(
     now_utc: datetime | None = None,
 ) -> dict[str, Any]:
     uid = _uid(user_id)
-    await privacy.ensure_subject_active(session, uid)
     now = now_utc or datetime.now(timezone.utc)
     day = await _day(session, user_id, timezone_name, now)
     if local_date != day.local_date:
@@ -145,7 +165,10 @@ async def acknowledge(
         raise AppError(
             "DAILY_AFFIRMATION_STALE", 409, "날짜가 바뀌었어요. 오늘의 글귀를 다시 확인해 주세요."
         )
-    await advisory_xact_lock(session, uid)  # lock → _daily → mutation → commit
+    # lock → 장벽 확인 → _daily → mutation → commit. 삭제 장벽 판정을 락 뒤에서 읽어야
+    # 탈퇴 진행과 동시 요청이 엇갈리지 않는다(topic_entries·diary_generation과 같은 순서).
+    await advisory_xact_lock(session, uid)
+    await privacy.ensure_subject_active(session, uid)
     stats = await _daily(session, uid, day.local_date)
     if stats.affirmation_acknowledged_at is None:  # 재호출도 200(멱등)
         stats.affirmation_acknowledged_at = now

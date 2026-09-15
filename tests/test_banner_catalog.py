@@ -334,3 +334,20 @@ def test_authored_banner_body_is_centered_between_divider_and_visible_button():
             if 'date' in elements:
                 assert elements['date'].vertical_align == 'center'
                 assert elements['date'].frame.height == body.height
+
+
+def test_enabled_banner_count_stays_within_the_published_feed_budget():
+    from app.services.banner_catalog import MAX_FEED_CARDS
+    from scripts.validate_banners import enabled_banners
+
+    catalog = BannerCatalog.load()
+    assert enabled_banners(catalog) == sum(b.enabled for b in catalog.manifest.banners)
+    raw = manifest()
+    for index in range(MAX_FEED_CARDS):
+        extra = copy.deepcopy(raw["banners"][0])
+        extra["id"] = f"extra-{index}"
+        raw["banners"].append(extra)
+    with pytest.raises(ValueError, match="exceed the 5 card feed budget"):
+        enabled_banners(load(raw))
+    raw["banners"][-1]["enabled"] = False
+    assert enabled_banners(load(raw)) == MAX_FEED_CARDS

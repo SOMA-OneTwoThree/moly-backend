@@ -39,6 +39,21 @@ def test_every_item_appears_within_ninety_consecutive_days():
     assert seen == {item.id for item in load_catalog().items}
 
 
+def test_no_sentence_repeats_on_consecutive_days_over_a_year():
+    start = date(2026, 1, 1)
+    picked = [daily_affirmation(start + timedelta(days=offset)).id for offset in range(365)]
+    assert all(before != after for before, after in zip(picked, picked[1:]))
+
+
+def test_each_cycle_window_uses_every_sentence_exactly_once():
+    size = len(load_catalog().items)
+    first = date(2026, 1, 1).toordinal() // size
+    for cycle in range(first, first + 12):
+        window = [date.fromordinal(cycle * size + position) for position in range(size)]
+        picked = [daily_affirmation(day).id for day in window]
+        assert sorted(picked) == sorted(item.id for item in load_catalog().items)
+
+
 @pytest.mark.parametrize(
     "mutation",
     [

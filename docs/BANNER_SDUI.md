@@ -83,7 +83,9 @@ PY_IMAGE
 | `routines.remaining_today` | 본인·오늘 요일 예정·미삭제·현지 오늘 미완료 루틴 수. format은 null. 0개면 의존 배너 숨김 |
 | `affirmation.acknowledged_today` | 요청 사용자가 오늘 현지 날짜에 오늘의 글귀를 확인했으면 1, 아니면 0. format은 null. `when`은 `eq 0` 필수이므로 확인한 날에는 카드가 빠진다. 확인은 `POST /daily-affirmation/acknowledge`, 문장은 `GET /daily-affirmation`이 담당하며 문장 자체는 배너 문구에 넣지 않는다 |
 
-오늘의 글귀 문장의 편집 원본은 [app/resources/affirmations.json](../app/resources/affirmations.json)이며 ko·en·ja를 함께 적는다. 문장은 현지 날짜 SHA256으로 고르므로 같은 날짜에는 전원이 같은 문장을 받고 DB·배치·LLM을 쓰지 않는다.
+`routines.remaining_today`와 `affirmation.acknowledged_today`는 각각 `remaining > 0`과 `acknowledged == 0`이라는 서로 다른 `when` 조건을 요구하므로 한 카드에 함께 쓸 수 없다.
+
+오늘의 글귀 문장의 편집 원본은 [app/resources/affirmations.json](../app/resources/affirmations.json)이며 ko·en·ja를 함께 적는다. 문장은 현지 날짜 서수를 문장 수로 나눈 주기마다 고정 순열을 돌려 고르므로(한 주기 안에서 모든 문장이 한 번씩, 이틀 연속 같은 문장 없음) 같은 날짜에는 전원이 같은 문장을 받고 DB·배치·LLM을 쓰지 않는다.
 
 음악 곡 ID·제목은 클라 `BgmTrack` 및 각 언어 ARB와 일치시킨다. 현재 6곡의 제목은 모든 언어에서 동일한 영문 고유 제목이다. 음악 추천은 `data_dependencies: ["user.local_date"]`와 다음 현지 자정 `valid_until`을 사용하므로 기존 앱의 날짜 갱신 규약을 재사용한다. `open_music`에는 곡 ID를 전달하지 않으며 자동 선택·재생하지 않는다.
 

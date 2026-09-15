@@ -1,6 +1,6 @@
 {
   "schema": "fortune-copy-v3",
-  "copy_version": "fortune-copy.v8-localized.2",
+  "copy_version": "fortune-copy.v8-localized.3",
   "content_status": "agent_reviewed",
   "locales": [
     "ja"

@@ -1,0 +1,45 @@
+{
+  "reviewer": "/root",
+  "review_kind": "final-combination",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_set_count": 3,
+  "actual_bundle_read_count": 15,
+  "human_review": false,
+  "scope": "각 카드 한 장의 다섯 분야를 함께 읽는 원고 검토. 780개 분야별 독립 검수에 더하는 고유 원고 수가 아니며 점수·추첨·실제 API·모바일 렌더링을 검증한 기록이 아니다.",
+  "readings": {
+    "major.sun.upright": {
+      "status": "pass",
+      "judgment": "총평은 즐거운 하루를 바로 말하고 행동구는 기쁜 소식을 나누거나 좋은 제안의 답을 미루는 행동으로 읽힌다. 다섯 분야가 기쁨과 자신감이라는 카드 뜻을 유지하며 애정의 세 상황, 수입, 학업과 직장 성과, 편한 몸 상태를 각각 말한다. 다른 분야 본문을 읽어야 뜻이 밝혀지는 요약이나 특정 사용자 사연을 넣지 않았다.",
+      "read_bundle_sha256": {
+        "overall.major.sun.upright": "f7dfce81ed7a779c3ab9f28054bc5ea0251f5d2783c697b177a4d7d070d00ec8",
+        "love.major.sun.upright": "d588ad6fece189bee9d8f880a7b0ea7359a7cdf9ed913fb3bfb94abc36ef91fa",
+        "money.major.sun.upright": "8614538d08c98cb7d1098aa902260b3b9527ca471f5184918c63bb53f1cf664a",
+        "work.major.sun.upright": "85c370b79f596eee8fef0315b25680b1766a595022b9e8075b8b8ccb2dcdc7bb",
+        "energy.major.sun.upright": "a08a7b6c5e22b60e73a1bd3301df4d37491e987158aa63e0b314489be124ab08"
+      }
+    },
+    "pentacles.03.reversed": {
+      "status": "pass",
+      "judgment": "총평과 두 행동구가 사용자의 실수·물어보기·변명하기 예시처럼 바로 읽힌다. 미숙함과 협력 부족의 의미를 분야별로 구분했다. 추가 교정 후 학업은 풀이 이해, 직장은 서로 다른 작업 기준으로 대상을 밝혔고 건강은 갑자기 등장하던 공동 운반 전제를 덜어냈다. 교정된 전문을 포함해 다섯 분야를 함께 다시 읽었다.",
+      "read_bundle_sha256": {
+        "overall.pentacles.03.reversed": "ebc11b32eab145d38dd1cd615a78908ced3e1686b34d12ea3af32dcba681984d",
+        "love.pentacles.03.reversed": "b79ceac9ee6eaef6e5c14c9a300f675557e0b1d4ad30a8109a100fefbe9c30eb",
+        "money.pentacles.03.reversed": "4456cf698ead665d9ae52bcb416a8f40a952054aca7341a937c5becbb0836832",
+        "work.pentacles.03.reversed": "182334653bc5d2ea08c7da0a2e4c14c1dddebfc39653888d12783a438d30b016",
+        "energy.pentacles.03.reversed": "5c72d731ebf2e5f9db7ab538b0e71cdb4543d1690340f1950fd7f76e7c5513fd"
+      }
+    },
+    "major.tower.upright": {
+      "status": "pass",
+      "judgment": "갑작스러운 어긋남이라는 카드 뜻이 총운, 관계 갈등, 예상 밖 지출, 공부와 업무 차질, 부상 주의로 이어진다. 짧은 행동구의 대상이 분명하고 애정의 세 상황도 구분된다. 특정 사고나 질병을 확정하지 않으면서 좋지 않은 날의 해석을 읽을 수 있다.",
+      "read_bundle_sha256": {
+        "overall.major.tower.upright": "0239398345c9f69026b355387436d7a287daf1e2bc113642eb816e9c41d534ad",
+        "love.major.tower.upright": "288b7c85d4e56d7d4958bc43d4011891ebcc295860d60afd3512aea96df7e4bc",
+        "money.major.tower.upright": "9c7a04da3149ec942e18bc7fe8f5c2d0437147865b42e7ba74a90204fa4cb9e8",
+        "work.major.tower.upright": "77a04d33a97cfbdbe6ef954da67a25d0d7d033a57a6054c99ec00b66e6d0becb",
+        "energy.major.tower.upright": "6c2c8a1b78fc4bb118b8b4e00a18c9025fc06249bf79b679ff781a060078b558"
+      }
+    }
+  }
+}

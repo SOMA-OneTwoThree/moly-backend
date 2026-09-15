@@ -1,0 +1,789 @@
+{
+  "reviewer": "ko_overall_writer",
+  "review_kind": "independent",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_read_count": 156,
+  "readings": {
+    "love.major.sun.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d588ad6fece189bee9d8f880a7b0ea7359a7cdf9ed913fb3bfb94abc36ef91fa",
+      "judgment": "서로의 호감과 즐거운 교류를 세 상황에서 밝게 말한다. 재회는 양쪽의 뜻을 전제로 해 태양의 긍정을 과하게 확정하지 않는다."
+    },
+    "love.major.sun.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "26b17cf91d3b655520805f2840f2f63ff2acbd0b49f126a2d4a79c455469cd71",
+      "judgment": "호감 자체는 남겨 두면서 표현 부족과 재회 지연을 분리해 태양 역방향의 기대 차이를 쉽게 읽을 수 있다."
+    },
+    "love.pentacles.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1f4a78b27758928250e63cbf7bef675607125e1dacb997e44bb1b15dd990faf7",
+      "judgment": "잘하는 모습을 보고 생기는 호감, 협력의 믿음, 함께 문제를 푸는 재회가 숙련과 협력의 의미에 맞는다."
+    },
+    "love.pentacles.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b79ceac9ee6eaef6e5c14c9a300f675557e0b1d4ad30a8109a100fefbe9c30eb",
+      "judgment": "작은 다툼과 일방적인 노력을 세 상황에 각각 적용해 손발이 맞지 않는다는 뜻이 분명하다."
+    },
+    "love.major.fool.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "773902e3f3faefefc7afcbe421d4d0d95037bb5187d60c39991afdf8c392f1d5",
+      "judgment": "뜻밖의 인연과 새 데이트, 새로운 호감을 가볍게 제안하며 장기 약속을 성급하게 보장하지 않는다."
+    },
+    "love.major.fool.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "995d6c6dfa65e1ce0c55f48940edf8c63dd83c89639226f8ceef200b01d2f146",
+      "judgment": "충동적인 고백과 가벼운 약속, 외로워 서두르는 재회가 부주의의 뜻과 이어진다."
+    },
+    "love.major.magician.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5185facc7af9a655006eb788334c654e29817fa1b38bdb7242e289b418d15b01",
+      "judgment": "대화로 드러나는 매력과 약속의 실행을 관계별로 쉽게 설명했다. 재회 약속은 양쪽 의사에 따른다."
+    },
+    "love.major.magician.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "50b5944136871ea123a9d61fccfe6c3f34cb7c265506b3074111528e5048b29d",
+      "judgment": "좋은 말과 실제 행동의 차이를 일관되게 짚고 빈 약속과 변화 여부를 확인할 이유가 분명하다."
+    },
+    "love.major.high_priestess.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b882a5e1c3779d7369a5fc34528a95e883a644b4d4d86dcc29a1708eb95c152a",
+      "judgment": "마음을 알기 어려운 침묵을 그대로 유지한다. 이별 후 연락이 없는 것을 남은 애정으로 단정하지 않는다."
+    },
+    "love.major.high_priestess.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "920bb1fc15633a1604d9707180a17c60c44528abb9d0928b755ad5a5e7e14a43",
+      "judgment": "자기 기대대로 듣는 문제와 숨긴 서운함을 직접 말한다. 주변의 짐작보다 상대의 말을 확인하는 조언이 맞는다."
+    },
+    "love.major.empress.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b77e341874678ac328ba7760206cb05c4af5695bf0dd70cdaa0d5b221a7e4376",
+      "judgment": "관심받는 만남과 배려에서 느끼는 애정, 다정한 재대화를 돌봄과 풍요에 맞춰 쉽게 전달한다."
+    },
+    "love.major.empress.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a65e64f484e4c04c206bedaee607a92310cbc9372deddc509f7a5a4e2a81eca9",
+      "judgment": "세 단락을 다시 읽었다. 연락을 원치 않는 주체를 상대라고 밝혀 과한 돌봄과 일방적인 연락의 주의가 명확해졌다."
+    },
+    "love.major.emperor.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a3555d573d2d0ef65f7d737e822188a6d030c892f5d25adc6ccc09c9cc3da723",
+      "judgment": "약속을 지키는 사람과 안정된 관계, 책임 있는 재회 대화가 일관되며 보호를 통제로 바꾸지 않는다."
+    },
+    "love.major.emperor.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c3a68a52d5601cecaa304fc84548da0c7c98551f9e610c1e004cc5ced45e715a",
+      "judgment": "자기 뜻만 고집하는 만남과 일방적인 결정, 간섭으로 인한 재회 갈등을 분명하게 말한다."
+    },
+    "love.major.hierophant.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8c2fb569ece6b1018974cf99b8d7d859cc24c48e90002989d4cbb35b1f15bbb8",
+      "judgment": "소개와 진지한 약속, 믿는 사람의 조언으로 전통과 신뢰의 뜻을 살렸다. 주변 권유만으로 재회하지 않는 구분도 분명하다."
+    },
+    "love.major.hierophant.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d5a7d08b8590a5890570b2e788235afd036f103e380f6b2425406b6c512f8b14",
+      "judgment": "이상형 밖의 만남과 외부 기준으로 인한 갈등을 함께 보여 관습을 벗어나는 카드의 양면이 남아 있다."
+    },
+    "love.major.lovers.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2916919bb0d7a19c1c141d5a9f4d5f26c45b87d24cdadb49304bc1a218aa7f31",
+      "judgment": "서로의 호감과 잘 맞는 계획을 직접 말하며 재회도 양쪽의 마음이 맞는 경우로 한정했다. 길이 추가 재독: 146자는 호감·함께할 계획·양쪽이 원하는 재회를 각각 밝힌 분량으로, 별도 사연이나 채우기 문장이 없다."
+    },
+    "love.major.lovers.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f0a7768203d36272dcd38b9a7469759e09b081b9f47d78ef418cbe26efcdf5b2",
+      "judgment": "서로 다른 애정과 앞날의 생각을 구분해 읽기 쉽다. 일방적인 재회 기대를 거절 수용과 연결했다."
+    },
+    "love.major.chariot.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0ef1c0635cb31200b6d065900d55b43a00f2842dba40b8b9f909fd41060836b9",
+      "judgment": "만남과 화해의 진전을 짧게 보여준다. 재대화 뒤 이별의 이유를 푸는 조언도 전진의 뜻과 맞는다."
+    },
+    "love.major.chariot.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e657b52ea15c54d90d3fc0e336f23f7688976cf6e19efff4ea2c9249838ebf51",
+      "judgment": "서두르는 고백과 일방적인 계획이 갈등을 부른다는 흐름이 세 상황에서 일관된다."
+    },
+    "love.major.strength.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b66c85e3a295750acc1d0da0c2442a2863c79a20a0a3f74449c6518d4934c5e3",
+      "judgment": "천천히 깊어지는 호감과 부드러운 화해를 온화함과 인내에 맞춰 직접 설명했다."
+    },
+    "love.major.strength.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "733ba18ea880e479673ee4c2cae27ba24670bd6537e7161cec9158d9fe54e75f",
+      "judgment": "답을 재촉하는 불안과 질투, 서운함을 쏟는 다툼이 자제 부족의 뜻을 유지한다."
+    },
+    "love.major.hermit.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "af757d369ab22d7facd61fb00d7fc47d8bf78810297566b00bdfe62bad636e3c",
+      "judgment": "세 단락을 다시 읽었다. 소식 도착이라는 우회 표현을 재회가 늦어지는 판단으로 바꿔 조용한 정체의 뜻이 직접 전달된다."
+    },
+    "love.major.hermit.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e2d4f31176045ae3e4eeee397d9b548fbb4346aa270ef2eecaf2c21c504a4a60",
+      "judgment": "외로워 맞지 않는 만남을 서두르는 일과 연락 회피를 구분했다. 고립으로 관계가 멀어지는 뜻이 쉽게 읽힌다."
+    },
+    "love.major.wheel_of_fortune.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3be9afb52d2e2b7f242b70fb963e045abf41aaceba592c13e397c27740f3a41d",
+      "judgment": "우연한 인연과 미뤄진 데이트의 성사, 뜻밖의 연락을 행운의 전환으로 직접 나타낸다."
+    },
+    "love.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0601dc5c53b5d02a40bd0494be9a8811dd8d8be93938c5232927c4f971841688",
+      "judgment": "일정 변경과 재회 지연을 외부 사정으로 표현해 상대의 악의나 애정 부재를 단정하지 않는다."
+    },
+    "love.major.justice.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "086a1bc02b7db813844a2bced20cc8afea51454c6748064050bf3acc175d1460",
+      "judgment": "분명한 답과 상호 책임을 보여 준다. 재회와 마무리 중 어느 하나를 무조건 좋은 결과로 확정하지 않는다."
+    },
+    "love.major.justice.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "957a01686ed6863e94456e5a6ae46ddc253bca463fade49e5ee7f09d6414b115",
+      "judgment": "세 단락을 다시 읽었다. 직접 만나 어떤 사람인지 알아보는 행동으로 풀어 소문과 실제 판단의 차이가 자연스러워졌다."
+    },
+    "love.major.hanged_man.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "7db2031756cc4c17757f3b3b05b954cc0ba83699aa89b50c3649dea76d597f95",
+      "judgment": "고백과 중요한 결정의 기다림을 양보 및 새로 알게 된 사정과 연결해 자발적 보류의 뜻이 명확하다."
+    },
+    "love.major.hanged_man.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "683976aedabe55a08c3f4dca64fdc71e67861e4164864b80e4f09898481bd5f1",
+      "judgment": "세 단락을 다시 읽었다. 재회 이야기를 피하는 주체를 연락해 온 상대라고 밝혀 연락하는 사람과 기다리는 사람이 바뀌는 혼동이 사라졌다. 상대의 속마음까지 재회 의사 없음으로 확정하지 않아 회피와 지연의 뜻을 유지한다."
+    },
+    "love.major.death.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8fd1a1784148804434dc46a0d6838f9858e361d14fa56c6c55c3c3dab5bd3d69",
+      "judgment": "이어지지 않는 만남의 마무리와 반복 다툼을 끝내는 뜻이 구분된다. 모든 커플의 이별을 예언하지 않는다. 길이 추가 재독: 148자는 만남 종료와 반복 갈등의 변화, 이별 정리를 구분한 분량이다. 모든 커플의 이별로 단정하지 않는 문장을 유지했다."
+    },
+    "love.major.death.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "3e88ed16cbf3eaff4a307ad9e64540572d18c6586a88b7ea3b672d696353b21a",
+      "judgment": "세 단락을 다시 읽었다. 사람 자체가 잘되지 않는다는 조합을 관계가 나아지지 않는다는 뜻으로 고쳐 변화 저항이 분명하다. 약147자는 세 상황의 반복 문제와 재회 전 해결 필요를 담은 분량이다."
+    },
+    "love.major.temperance.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ba11c90f920f107e8520c80e240f1c6a9b8fb474cb97bae8e069970e6966a7a6",
+      "judgment": "말이 통하는 만남과 화해, 천천히 가까워지는 재회를 조화와 인내의 뜻에 맞게 보여 준다."
+    },
+    "love.major.temperance.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2db46350488f348049fe455ac2ce2e09a96cc3ee9ae30084ad6bd64fa165d80a",
+      "judgment": "관심과 애정 표현의 불균형, 다시 만날 시점의 차이가 각각 직접적으로 드러난다."
+    },
+    "love.major.devil.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b96c67c244b19af9ba51029ffe46cbfece6fbb6feb7f9b75f62f0439c7551b67",
+      "judgment": "강한 끌림과 질투 및 간섭을 함께 다뤄 열정을 좋은 관계의 보장으로 바꾸지 않았다."
+    },
+    "love.major.devil.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "38ab7002239e3d33d85256feea46a802ff2f0799e61dccc2968df1c6d5dd3eff",
+      "judgment": "부담스러운 관계에서 벗어나고 간섭을 줄이는 뜻을 세 상황에서 직접 말해 자유 회복이 분명하다. 길이 추가 재독: 147자는 부담스러운 만남과 간섭에서 벗어나고 재회 제안을 거절할 선택을 각각 밝힌 분량이다."
+    },
+    "love.major.tower.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "288b7c85d4e56d7d4958bc43d4011891ebcc295860d60afd3512aea96df7e4bc",
+      "judgment": "세 단락을 다시 읽었다. 기대와 어긋나는 만남부터 큰 다툼, 재회 차질까지 의미가 유지됐다. 거절한 사람이 상대임을 밝혔으며 약150자는 이 주체와 세 상황의 주의를 생략하지 않은 분량이다."
+    },
+    "love.major.tower.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4e2ac7f8d06941e782b26f980519a7de8d6a23d426ebf3c61d980e7c9978c96b",
+      "judgment": "불편한 말을 덮지 않는 행동과 문제를 일찍 인정하는 화해가 큰 충돌을 줄이는 역방향 뜻과 맞는다."
+    },
+    "love.major.star.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8920313b37a262fb3570e428fb96a7aee1fd99d9533c4d3522f54cc19e48110c",
+      "judgment": "실망 뒤 다정한 만남과 애정 회복을 실제 관계의 좋은 변화로 설명해 마음가짐 조언에 머물지 않는다."
+    },
+    "love.major.star.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "733043bcd489769089f19d9fa0b4021702c9393d8f60e93e584aaefa2eaac8aa",
+      "judgment": "기대에 못 미친 답과 불신, 재회 기다림의 낙담을 설명하며 과도한 자기 비난을 덜도록 이어진다."
+    },
+    "love.major.moon.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6abfb72ee26dac6ab13e67354477201b321e8777403aab3bae53344db4c7853e",
+      "judgment": "친절과 호감, 그리움과 재회 의사를 구분해 모호함을 상대의 배신으로 확대하지 않는다."
+    },
+    "love.major.moon.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "224f7f2401bf3382aef1ec330a45a0e19346c7333cb9e4cfdbad1ff4fcce9823",
+      "judgment": "상대의 뜻과 오해가 밝혀지는 회복을 말하며 확인되는 답이 무조건 호감이나 재회라고 보장하지 않는다."
+    },
+    "love.major.judgement.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1a88e368b188fdc4d47fe1da0451fbc6f6901e91b8dd5fa617c4618127d791dc",
+      "judgment": "예전 인연과 사과, 재회 기회를 갱신과 재선택에 맞게 설명했다. 이별 원인을 이해하는 대화가 자연스럽다."
+    },
+    "love.major.judgement.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "6604073804426ad928bebaa61187ccb3a37518612bfb97248d4b68d782d8d9b1",
+      "judgment": "지난 평가와 다툼을 되풀이하는 모습이 자기 성찰을 피하는 뜻과 연결되고 상대 비난을 권하지 않는다. 길이 추가 재독: 146자는 예전 연애와 비교하는 만남, 반복되는 다툼, 책임을 미루는 재회를 구분한 분량이다."
+    },
+    "love.major.world.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "05931775063fc586f4a1e3d005cd8aa135c3d097ee3a4dcac7ed9a8730e78aab",
+      "judgment": "만남의 성사와 함께 마치는 기쁨, 서로 납득하는 재회 또는 마무리가 완성의 뜻을 유지한다."
+    },
+    "love.major.world.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "fd08239f92602066f06689c368154aa146f991283519626510c6670610065ab5",
+      "judgment": "사귀자는 말과 남은 결정의 지연, 결론 없는 연락이 미완성이라는 뜻을 직접 보여 준다. 길이 추가 재독: 146자는 사귈지의 결정과 함께할 계획, 재회 여부를 각각 미정으로 보여 주어 세 상황의 혼동이 없다."
+    },
+    "love.cups.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "970b7a36ec695266def32a8e65c9c7581cb19673405acf3de71673292dda780f",
+      "judgment": "새로운 설렘과 애정 전달, 따뜻한 재대화를 새 감정의 시작으로 쉽게 설명한다."
+    },
+    "love.cups.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b16a88b380a23c0106f7eb3511daa797aed06fb0e0514dc1a83765a50ac1ac97",
+      "judgment": "늦은 답과 어려운 표현을 감정의 막힘으로 보여 준다. 반응을 재촉하는 연락을 줄이는 조언과 이어진다."
+    },
+    "love.cups.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1948452d201ea25ee6e8cb13de81f51d98478936917e89bf25e3734038a68942",
+      "judgment": "서로 같은 호감과 깊어지는 이해를 분명히 말한다. 이별 뒤 재회는 양쪽의 마음이 통하는 경우로 남긴다."
+    },
+    "love.cups.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0a4cd2cc9ef93e66bf90042229f07122a15d8781ea8bcba3869ebcd77d3a0e29",
+      "judgment": "한쪽만 애쓰고 양보하는 불균형을 재회 의사의 차이까지 일관되게 설명했다."
+    },
+    "love.cups.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5002ce96b7f89182d49d58d28920a684e69313bc537c3ae982f2ca4f363c6f3c",
+      "judgment": "친구 모임의 인연과 함께 받는 축하, 편한 재만남을 공동의 기쁨으로 적용했다."
+    },
+    "love.cups.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "dd28d316826d9a20eef03d377c92659a2b4ce1e20f2ff0571360b8a0923e899c",
+      "judgment": "주변의 말과 모임 때문에 소홀해지는 약속을 나누어 모임의 과도함과 참견의 문제를 쉽게 읽을 수 있다."
+    },
+    "love.cups.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "132dff13309896a27fd208f0d99ecd9df24726a10a2d1ea39368c4c9373c22ea",
+      "judgment": "소개와 데이트에 마음이 가지 않는 권태를 직접 말하고, 재회 제안도 원하지 않을 수 있다는 선택을 남긴다."
+    },
+    "love.cups.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4df08b69884066c1b917700c5773d04c1e9d5e251268b735c5a6533129f1a378",
+      "judgment": "세 단락을 다시 읽었다. 끊긴 대상을 연락으로 명시해 다시 시작되는 관심과 대화가 바로 이해된다."
+    },
+    "love.cups.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0bb223b926bf72eb9758b85c881c331af3f10d3aada746ada79cbe3286100a1f",
+      "judgment": "고백과 재회의 실망을 직접 말하되 미래의 모든 만남이나 기존 애정까지 부정하지 않는 구분이 있다."
+    },
+    "love.cups.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "09719861ddba631dbdcefbe79b1f3b42a62ee1cb5f044036b6e1aa6729ad2d34",
+      "judgment": "실망 뒤의 새 인연과 사과 수용, 상처를 풀어 말하는 재회 또는 마무리로 회복의 뜻을 살렸다."
+    },
+    "love.cups.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "00546229d64d61b3513706e57f5fc1bf82e0901b78b47ba65be4c3d563c39166",
+      "judgment": "오래 알던 사람과 옛 추억의 친밀함을 쉽게 설명한다. 안부와 같은 재회 의사를 구분해 뜻이 분명하다."
+    },
+    "love.cups.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "8883096c1d16441b4e301d2ec278776a7021c44875a4281ba6afbc77d147b514",
+      "judgment": "예전 취향과 현재의 마음을 나누어 새 인연과 관계 변화를 설명한다. 추억만으로 재회를 보장하지 않는다."
+    },
+    "love.cups.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "fb6788c22def71c4dfc7d86d358e7c040b7b0b92187d42720b4d52eb25260ff5",
+      "judgment": "호감과 상상에 비해 잡히지 않는 약속을 대비해 불확실한 가능성의 뜻을 직접 보여 준다."
+    },
+    "love.cups.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d5a791cf273931e9c18fd9760367e55cf415be22b7369e30604304824bc84b11",
+      "judgment": "만날 사람과 계획을 정하고 재회 여부를 묻는 결과로 결정과 선택의 뜻이 명확하다."
+    },
+    "love.cups.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "18513d24a79e41fce4cd2aae742ccbffa49ca1d659ee53dcd6291316f11257e2",
+      "judgment": "관심이 줄어든 만남과 쌓인 불만, 끝난 만남의 수용을 떠남의 의미 안에서 자연스럽게 연결한다."
+    },
+    "love.cups.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5424046cfbc69012668da925b8db6fdab81b27b547e266e0fe99cfef82b30692",
+      "judgment": "혼자 남기 두려워 반복하는 만남과 이별을 두고 흔들리는 마음을 재회 망설임까지 일관되게 설명한다."
+    },
+    "love.cups.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ad1074cb22f2274723ea87b1190dc454139d51b4fb74634e713008a28ac96793",
+      "judgment": "바라던 데이트와 고백, 원하던 대화의 성사를 만족의 운으로 직접 말하며 재회는 서로의 뜻에 따른다."
+    },
+    "love.cups.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "55fa386f1b0b64ae15c9b7219721c2752259ee57c2f56cf7e75a73d2d23373e9",
+      "judgment": "좋은 조건이나 실제 만남에도 남는 아쉬움을 설명해 성취와 만족의 차이가 쉽게 읽힌다."
+    },
+    "love.cups.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "72af7a69af5f559fa101e3b1720fc362d8cc2d8683784ddde1a49d83684934ff",
+      "judgment": "오래 함께할 인연과 편안한 애정, 공동생활 계획의 조화를 안정과 충만의 뜻에 맞춰 보여 준다."
+    },
+    "love.cups.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "663bd60ba91676c3071e7f178e48131d8b785624b4c6514d775ea53af42337a1",
+      "judgment": "세 단락을 다시 읽었다. 사귀는 척 말하는 별도 상황을 덜고 어떤 관계를 바라는지 묻는 행동으로 기대 차이와 연결했다. 약146자는 솔로의 기대 차이와 커플·재회의 불편함을 각각 구분한 분량이다."
+    },
+    "love.cups.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6cd75aa8edc7d79055533a167edb0f4f1f609fce03cf2659c3c48e32fdc2729a",
+      "judgment": "수줍은 연락과 작은 표현, 조심스러운 안부를 순수한 감정 표현에 맞게 설명하며 첫 연락을 재회 확정으로 바꾸지 않는다."
+    },
+    "love.cups.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "728715eac1a810854760a5d5257d6f060043b3a99892ced451b5840468fde479",
+      "judgment": "장난과 침묵 때문에 생기는 오해를 구체적인 행동으로 말하고 감정적인 재연락의 주의와 연결한다."
+    },
+    "love.cups.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f4bae153c39ca9e424ad0ecbd32bd89cd786ea626451e8dde59ecc6a4b7308a3",
+      "judgment": "세 단락을 다시 읽었다. 다정한 약속이라는 조합을 진심을 전하는 행동으로 고쳐 고백과 사과, 재회 제안의 의미가 분명해졌다."
+    },
+    "love.cups.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a1e8514b1de4f41e9ff0fde565fa6868f48b66a4d63f7338beb3d42deee1c84b",
+      "judgment": "말은 다정하지만 늦어지는 만남과 지켜지지 않는 약속을 통해 말과 실행의 차이가 분명하다."
+    },
+    "love.cups.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "453cf16391059896e1210d685e9d177ce53d83ab7b19cab6750e7a51a6aff81e",
+      "judgment": "잘 들어주는 상대와 위로, 상처를 이야기하는 대화를 공감의 뜻으로 보여 주고 재회 의사와는 구분한다."
+    },
+    "love.cups.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b491ab0db3e5457e972251263769f5a5800e9ef3af3ac07f007bea7a459fc815",
+      "judgment": "눈치를 보며 맞추는 피로와 돌봄의 부담을 설명한다. 도움 요청만으로 재회라고 해석하지 않는 조언이 자연스럽다."
+    },
+    "love.cups.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "98e5e857ead48ffcbf8532598a5ea97c69e79581046946d18db80dce277b2f14",
+      "judgment": "차분한 신뢰와 침착한 의견 조율을 보여 주며 재회 대화의 답이 달라도 상처 주지 않고 마무리할 가능성을 남긴다."
+    },
+    "love.cups.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7a86634e9f5c92ec7b5d86c344bbc3384552c6ef4daa6051f7daec44606c5b5d",
+      "judgment": "바뀌는 태도와 책임을 피하는 서운함을 설명하고 죄책감으로 재회하는 부담을 감정적 통제에 맞게 다룬다. 길이 추가 재독: 146자는 기분에 따른 태도와 책임 회피, 죄책감을 주는 재회 요구를 나눠 설명한 분량이다."
+    },
+    "love.wands.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e63a297c5fe26e76d5856760fc6d66c0bd04084d3161192cdaba9c12095845e2",
+      "judgment": "빠른 호감과 새로운 데이트, 되살아난 관심을 시작의 뜻으로 직접 말하고 예전 다툼은 따로 풀 필요를 남긴다."
+    },
+    "love.wands.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d4e50e9f787ba25a433d770d3e3cd49e6b0ed1dfe9bb512b6381758ea809931d",
+      "judgment": "세 단락을 다시 읽었다. 반응의 양 대신 상대가 선뜻 답하지 않는 모습으로 풀어 만남이 늦어지는 뜻이 직접 전달된다. 약146자는 지연과 조급한 연락 주의를 세 상황에 나눠 쓴 분량이다."
+    },
+    "love.wands.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "7b12dbef4cb95de4f2e41939372ec9b0bfdb5b79c966eef6b18509fcbfc3eabe",
+      "judgment": "다음 만남과 함께할 앞날을 이야기하는 준비를 보여 주며 재회도 현재 사정과 함께 판단하도록 한다."
+    },
+    "love.wands.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "48f4036f727618f520e7ea4d6f74e59c816f541cd1f737837e93c409ac4f6966",
+      "judgment": "만날 날짜와 큰 결정을 못 정하는 망설임이 재회 보류까지 이어지고 생각할 시간의 필요를 직접 말한다."
+    },
+    "love.wands.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2814becab6dcb270f91d535ec78077c7ef50da9263d8b532f35fad1a43ff8b64",
+      "judgment": "새 모임과 거리 밖의 만남, 연락에서 실제 약속으로 이어지는 진전으로 확장의 뜻이 쉽게 드러난다."
+    },
+    "love.wands.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e41fe33b8c710bd02ccf18e07d2f7335ef89b9cc18fdd8048ea404e1dc312be4",
+      "judgment": "소개와 함께할 일정이 늦어지는 뜻을 유지한다. 만남 지연만으로 애정 부재나 재회 확정을 단정하지 않는다."
+    },
+    "love.wands.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "dd1d927d8693f2655ec65326408ee904caf26ba4c7fb14a3cbd60822884b0bea",
+      "judgment": "편한 모임과 함께하는 축하, 청혼의 좋은 답을 평화와 완성의 기쁨으로 전달한다."
+    },
+    "love.wands.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "bdfac2164e6c03d658fa71ff408e89d34466115496f06d60ec936d422b640784",
+      "judgment": "역방향도 좋은 뜻이라는 해석을 지켜 소박한 만남과 둘만의 휴식, 서먹함을 푸는 즐거움을 직접 말한다."
+    },
+    "love.wands.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "262cc49e144b1ff008b72f140cf223dab15011081803bc8c7a10c126edf54a3e",
+      "judgment": "호감 앞의 경쟁과 서로 다른 주장을 구분하고 상대를 이기는 일보다 말을 듣는 행동으로 연결했다."
+    },
+    "love.wands.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f2bb4c9e62c7c7a694d560baebd0b831bc23f6d91ccb932ffa7e07e97e4e01d1",
+      "judgment": "다른 말과 숨은 불만, 길어지는 재회 논쟁을 설명해 역방향을 단순 화해로 뒤집지 않는다."
+    },
+    "love.wands.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e1bfb65a8f2b21296885a7d32811e85031da40d9127564f2c793bdba41759a7d",
+      "judgment": "고백의 좋은 답과 주변의 축하, 재회 진전이 인정과 바람의 실현이라는 뜻에 맞는다."
+    },
+    "love.wands.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4e1b42f91ea9ee98fcba22170d841f3bc18d79846013c750643559ee48f3a319",
+      "judgment": "세 단락을 다시 읽었다. 고백에 시큰둥하거나 답이 늦다는 행동으로 풀어 원하는 호응을 못 받는 뜻이 자연스럽게 전달된다."
+    },
+    "love.wands.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2376a7d4f11e66cad8fb075969c0182de384ed11bec4b33a19431cbf638aa4dc",
+      "judgment": "주변의 참견에도 만남과 약속을 지키는 힘을 보여 준다. 상대의 거절까지 극복 대상으로 바꾸지 않는다."
+    },
+    "love.wands.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "575400aeed4c41f4fb1375e6888e51ba61b1940b7d2a7077719d696e9b0c13d6",
+      "judgment": "세 단락을 다시 읽었다. 전해 들은 말이라고 출처를 밝혀 주변의 말에 흔들리는 뜻과 직접 겪은 판단이 혼동되지 않는다."
+    },
+    "love.wands.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6451cd74d4964cb9b62518521e74976435520bfb2ec00e6bc8be9b3740ee82e9",
+      "judgment": "빠른 연락과 정해지는 계획, 다시 이어지는 대화가 모두 신속한 진전이라는 뜻을 직접 말한다."
+    },
+    "love.wands.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b0186ce26535fe168dda648ac519a03859f0951a5d0eccd240c2f3b5ac3d0ae5",
+      "judgment": "엇갈린 연락과 질투 섞인 말이 다툼으로 커지는 뜻을 유지한다. 말을 몰아 보내지 않는 조언도 이어진다."
+    },
+    "love.wands.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4554df20a4b5e23feda53e3e481adfea16f553852d98077e9ee366e1a7c8cfc0",
+      "judgment": "늦게 쌓이는 신뢰와 지난 문제의 재발 경계를 구분해 조심스럽게 유지하는 관계의 뜻이 분명하다."
+    },
+    "love.wands.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "65b686f2eaf372947b96a95dee46f7b70dd1dde5f164dc50ff5a737efc17e931",
+      "judgment": "평범한 질문도 의심하고 설명을 믿지 않는 과한 경계가 반복 갈등으로 이어진다는 뜻이 쉽게 읽힌다. 길이 추가 재독: 147자는 과한 경계가 만남·다툼·재회에 미치는 결과와 그에 맞는 대화 조언을 각각 담았다."
+    },
+    "love.wands.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "7f41a33a73ab5f62c5687044f726be3e6f6698813f23c93a669cee3c2aecc3d2",
+      "judgment": "많은 일 때문에 시간이 부족하고 준비가 한쪽에 몰리는 부담을 재회 망설임까지 일관되게 설명한다."
+    },
+    "love.wands.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "68baf3896eb56755f300072cfc6c90a2bffbfb5176af29d84129c4d121470066",
+      "judgment": "많이 잡은 약속과 떠넘기는 준비, 한 사람에게만 바라는 변화를 통해 분담 실패의 어려움을 유지한다."
+    },
+    "love.wands.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f8775a0340522d659acb7919b954f1e0b910b9e1316e43d23b762688d68f8b2c",
+      "judgment": "새로운 연락과 관심사, 처음 하는 데이트를 호기심의 좋은 진전으로 말하며 안부를 재회로 확정하지 않는다."
+    },
+    "love.wands.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2821a9248f0855d1fc7c3c6eb9eea2b2e0d71f37973cf1f7a8e562a26495a90b",
+      "judgment": "오락가락하는 관심과 바뀌는 계획, 뜻이 애매한 연락을 실행과 의사를 확인하는 조언으로 연결한다. 길이 추가 재독: 146자는 오락가락하는 관심과 불확실한 약속, 애매한 재연락을 구분해 속뜻을 단정하지 않는다."
+    },
+    "love.wands.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "af79bf9f4a0437c5fa9eee07f19d6e911f5bce350ba1593822dc92bc180c6f3d",
+      "judgment": "빠르게 가까워지는 만남과 즉흥적인 나들이를 강한 진전으로 설명한다. 재회의 장기 지속을 보장하지 않는다."
+    },
+    "love.wands.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "234f9a911f00aa73d847c19a9708bf5d7f9487b1dfcbd789bcd73813615f507e",
+      "judgment": "성급한 접근 뒤 뜸해지는 연락과 바뀌는 재회 제안을 불안정과 중단의 뜻으로 직접 나타낸다."
+    },
+    "love.wands.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "91bf1e27247f31496026cf9bbd066459020317aa2386ab782eb2299f751d17fb",
+      "judgment": "눈에 띄는 매력과 먼저 받는 관심, 즐거운 교류가 생기와 친절이라는 뜻을 자연스럽게 보여 준다."
+    },
+    "love.wands.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "059b09ee9b36aa11d80adad58feb23a5f5a2cd4ea24725c6ed7e4d6f4bebf821",
+      "judgment": "비교와 질투 때문에 날카로워지는 말과 강요를 설명하고 상대가 원치 않는 접촉은 존중하도록 한다. 길이 추가 재독: 146자는 비교·애정 강요·질투의 행동을 세 상황에 구분하고 원치 않는 연락을 존중하는 뜻을 남겼다."
+    },
+    "love.wands.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e0a269a75a4e51f871dd7636b5072c09b90d2a607a768294d162e1d32cd1a875",
+      "judgment": "마음을 분명히 전하는 만남과 실행하는 계획, 지킬 수 있는 재회 약속이 책임 있는 주도성에 맞는다."
+    },
+    "love.wands.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d1e38b43ec5989bccd2244ccd50bf80910c7a7fd497d84be2f4d50e4a8c2daeb",
+      "judgment": "세 단락을 다시 읽었다. 정답이라는 추상명사를 덜고 상대의 생각을 듣고 결정하는 행동으로 계획과 조언이 바로 연결됐다."
+    },
+    "love.swords.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a0f18177ce4fdd0cb43a609d62817861a429c40a40e3aa0a89f7f807464e0ec7",
+      "judgment": "분명한 고백의 답과 오해 해소, 재회 여부를 구분해 원하는 답만을 보장하지 않는 명료함을 유지한다."
+    },
+    "love.swords.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4ce8939a5015c42b1ef390ce36911ce214ae15a5013a5af826f5d42ca6612189",
+      "judgment": "고백이 농담으로 들리는 오해와 다르게 기억하는 약속을 재회 의사 차이까지 일관되게 설명한다."
+    },
+    "love.swords.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "04b7486ddd564ae4edb23d359af952bd3d5b53b2e5eadc923ecc02cabd27d6e4",
+      "judgment": "고백의 보류와 의견이 맞서 정하지 못하는 약속, 늦은 재회 결론으로 교착의 뜻이 분명하다."
+    },
+    "love.swords.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "88953be80a6070642e5040cd66c175b844da134986fb23e8a44435ee1579d7d7",
+      "judgment": "세 단락을 다시 읽었다. 미뤄둔 문제를 한꺼번에 이야기하다 다툰다고 풀어 문제와 다툼의 어색한 결합을 없앴다. 늘어난 글자는 다툼을 일으키는 행동을 분명히 한 데 쓰였다."
+    },
+    "love.swords.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a473757c20f91d9fffa4fc2e49006d0f1484a22f51f63a1ce9fe863c15f0dd03",
+      "judgment": "같지 않은 호감과 아픈 말, 재회의 실망을 직접 설명하며 모든 관계가 끝난다고 확정하지 않는다. 길이 추가 재독: 147자는 같은 마음이 아닌 고백의 답과 상처 주는 다툼, 재회가 어려운 상황을 분리해 과한 이별 단정을 피했다."
+    },
+    "love.swords.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d9b34cd01093c5daa45dc4f4771aec8ba4b8f47d77e2e730a8efb236f5dc4d8d",
+      "judgment": "실망 뒤 새 만남과 사과를 통한 화해를 보여 준다. 용서와 재회를 구분하는 마지막 문장도 뜻이 명확하다."
+    },
+    "love.swords.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8b160816c8e26397cf9edb2036d66e9d3e1284c7ca9b8fb7122d94b338a0696c",
+      "judgment": "조용한 만남운과 다툼 뒤 휴식, 잠시 멈춘 연락이 회복을 위한 중단의 뜻을 유지한다."
+    },
+    "love.swords.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9d9773e7be7c2507a011832a13ae2e6cf386599f30bb6c06903e95c052a64285",
+      "judgment": "미뤄진 만남과 대화의 조심스러운 재개를 보여 주며 쉬었다 곧바로 예전 관계로 돌아간다고 단정하지 않는다."
+    },
+    "love.swords.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "42292825d0bb34d6785e855ed79c640875608396aa2862d80532dfa1a27d71b8",
+      "judgment": "세 단락을 다시 읽었다. 상대에게 잘못을 인정하라고 한다는 주체를 명시해 자기 잘못을 인정받으려 한다는 오독을 없앴다."
+    },
+    "love.swords.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ab49f2115556cc80d93411ffc9af77435cd06104bcfb088d8aa1d2dbe7dceda6",
+      "judgment": "자존심 다툼을 멈추고 사과하는 회복을 재회 또는 원만한 마무리로 연결해 타협의 의미가 분명하다."
+    },
+    "love.swords.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "fc2a88be17e9a1541b737f108e1b46cae85e809e882c4c6240a6777c89010761",
+      "judgment": "힘든 관계에서 편한 만남으로 바뀌는 흐름과 줄어드는 갈등, 이별 정리를 부담에서 벗어나는 뜻으로 직접 말한다."
+    },
+    "love.swords.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a5cec5a73fbdb304902aefe8d02dd36a91fc48a985acffeb2193503426995e6c",
+      "judgment": "세 단락을 다시 읽었다. 예전 사람과 다시 연락하며 예전 문제로 고민한다는 뜻을 직접 말해 서로 같은 고민을 한다는 혼동이 사라졌다."
+    },
+    "love.swords.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d67f2cd7ea795b439cd35f0752eee1014d2214533724dd755c7fecb1bc50cade",
+      "judgment": "세 단락을 다시 읽었다. 연락하는 사람과 다시 사귈지 답하지 않는 사람을 상대라고 명시해 속뜻을 피하는 뜻이 직접 전달된다."
+    },
+    "love.swords.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "29385ac18dc4648743bc59a61ddbc23dfbcd375c160754bd7ac2878c0c01851e",
+      "judgment": "숨긴 마음과 잘못을 인정하는 대화가 확인되는 뜻으로 이어진다. 안부를 재회로 과장하지 않는다."
+    },
+    "love.swords.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0132814e6998aa7f9ac45125db261bf5b01a5c1a362566e8dd5c97076e3dbe07",
+      "judgment": "걱정과 참는 불만으로 막히는 만남을 설명한다. 재회만 기다리며 모든 일정을 비울 필요가 없다는 조언도 선택의 여지가 남아 있음을 보여 준다."
+    },
+    "love.swords.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ebd97919829a3414a91d45898eb6127bff155e5f4932da5735aaa73601199845",
+      "judgment": "세 단락을 다시 읽었다. 때에서 벗어난다는 조합을 덜고 재회만 기다리는 대신 다른 만남도 선택할 수 있다는 자율성을 직접 나타냈다."
+    },
+    "love.swords.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "38c3cd7687447a8780f76eb8855e3d107287426c1f1fe4ce9ec4d744b3a32df4",
+      "judgment": "늦은 답을 혼자 나쁘게 해석하고 짐작을 사실로 말하는 걱정을 설명하며 확인 전 단정을 피한다."
+    },
+    "love.swords.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b3d2234d3e2ab9442a08066dbda2892f6c6bfa1611f602788cf0f92eea9af1c0",
+      "judgment": "연락이 뜸한 이유와 상대의 설명을 듣고 걱정이 줄어드는 회복을 직접 말한다. 이별의 부담 완화도 주변 도움과 연결된다."
+    },
+    "love.swords.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3017a218b8898bade81545885b512ba3c354d7839159e98846b26dcd90f3eca5",
+      "judgment": "세 단락을 다시 읽었다. 다시 만나기 싫다는 의사를 말하는 사람이 상대임을 밝혀 연락을 멈추는 조건이 명확하다. 주체와 거절 존중을 남기느라 분량이 소폭 길어진 것은 허용한다."
+    },
+    "love.swords.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4a44dc22504020259268cb6996f2139607d12277efe70b1b20dfc639b685e95f",
+      "judgment": "힘든 만남 뒤 편한 대화와 조금 줄어드는 이별의 아픔으로 점진적 회복을 유지하며 당일 완전 회복을 확정하지 않는다. 길이 추가 재독: 147자는 만남과 대화의 점진적 회복을 설명하고 남은 피로 때문에 서두르지 않는 뜻을 유지했다."
+    },
+    "love.swords.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ba633d3c4467ebbe62e14bc652a157ab3635b4455ba0ab1b5b4eb046005a2546",
+      "judgment": "대화로 알아가는 관심과 약속 확인, 연락 의사 탐색이 사생활 조사 없이 신중하게 살피는 뜻에 맞는다."
+    },
+    "love.swords.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "86d2d72ec2dac2846e0bba43e639680133c1d0b740e61a093cef1dc36acf3b43",
+      "judgment": "소문과 일부만 들은 말, 지나친 질문으로 생기는 오해를 설명하고 몰래 사생활을 확인하는 행동은 주의한다."
+    },
+    "love.swords.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "34cfaa2954db22c023f51d8edf707f333ab8c50ed723c8d42b00f370f28e07af",
+      "judgment": "빠르게 오는 제안과 결론을 보여 주면서 상대의 답할 시간과 말을 들을 필요를 남겨 빠른 행동의 양면이 분명하다."
+    },
+    "love.swords.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5f2e5ca4a2a0a8720aa5cd88ed623638cfc5ba29873bf23fb0ab038c867265b4",
+      "judgment": "급한 고백과 몰아붙이는 결론, 당장 만나라는 요구를 신중함 부족의 갈등으로 일관되게 설명한다."
+    },
+    "love.swords.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "eed08a60e4c19dcce8bd159ef14816b6baa67cb17c736ddb4baae6bdb742b109",
+      "judgment": "잘 맞는 사람을 가리고 불편한 일을 말하며 미련으로 이어진 연락을 정리하는 선택이 독립적인 판단에 맞는다. 길이 추가 재독: 150자는 예의나 미련만으로 관계를 지속하지 않는 선택과 커플의 솔직한 대화를 각각 구분한 분량이다."
+    },
+    "love.swords.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "658c379aae715397c6421b2f1a332eb0ef1adbe27c76a4d8f0a95c54e4cb3c8c",
+      "judgment": "과거에 따른 편견과 비꼬는 말, 원망으로 멀어지는 재회를 날카로운 태도의 뜻으로 직접 나타낸다."
+    },
+    "love.swords.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8e1d05c8e1802ed3537597c2c89da919610dd3d631d621f86a6c1d207dfade50",
+      "judgment": "진지한 의사와 서로의 사정을 확인해 관계 문제와 재회 결론을 정하는 모습이 이성적인 합의에 맞는다."
+    },
+    "love.swords.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "595b26fcc1629a8b6751057fbb9f07584a23bd1b59b91d7bb17c7b8de1d76ede",
+      "judgment": "자기 말만 옳다는 태도와 일방적인 규칙, 상대 조건만 따르라는 재회 제안을 왜곡된 통제의 뜻으로 쉽게 설명한다. 길이 추가 재독: 149자는 일방적인 의견과 규칙, 조건을 강요하는 재회를 구분하고 원치 않으면 따를 의무가 없다는 뜻을 남겼다."
+    },
+    "love.pentacles.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "3e9747da8bb92d95bd73a0e3c588bc69d163b5e2126c7f72301bdd34110f8170",
+      "judgment": "연락에서 실제 만남으로 이어지는 시작과 함께하는 일의 진전을 보여 준다. 재회도 말에 그치지 않는 약속으로 설명한다."
+    },
+    "love.pentacles.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4fc2634088107d4200875090c45636b93c0c782abb739d793253f5281de55515",
+      "judgment": "세 단락을 다시 읽었다. 예전 문제를 어떻게 풀지 이야기하는 행동으로 바꿔 다른 문제로 변한다는 오독 없이 해결의 필요가 전달된다."
+    },
+    "love.pentacles.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "fae5249f3ed03c03c79cea1d7856d509a508c901b1e02af7acdbd72867c8b4cc",
+      "judgment": "바쁜 일정에도 만날 시간을 찾고 계획이 바뀌면 다시 맞추는 유연함을 직접 보여 준다."
+    },
+    "love.pentacles.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7490b9e3fffdc9b188f67b6be392bfe86d949acd52f2a868d903a1acb395d6e9",
+      "judgment": "너무 많이 잡은 약속과 무리한 재회로 생기는 부담을 설명하며 억지로 감당하려는 행동을 주의한다."
+    },
+    "love.pentacles.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5e41c063b60e1a7415d4fdaec5a93be28ecf3f2631c1b6a2f9aeb9806983f9ba",
+      "judgment": "조심스러운 고백과 소유욕의 간섭, 놓기 어려운 만남을 안정 욕구가 과해지는 뜻으로 구분한다."
+    },
+    "love.pentacles.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9c2ab2a4bf1e66b20b8ce1733e773ff6485d1e392f48813a1220f3000ec1e562",
+      "judgment": "답과 계획, 상대의 망설임이 늦어지는 해석을 유지해 역방향을 무조건 집착 해소로 바꾸지 않았다."
+    },
+    "love.pentacles.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "da4eb9d6473d3ac17b4b52785c8895ec5448938b2da5c541bef9da34f0e9e20d",
+      "judgment": "세 단락을 다시 읽었다. 연락할 때마다 서운하다면 멈춘다고 직접 설명해 연락을 붙잡는다는 추상적인 표현을 없앴다."
+    },
+    "love.pentacles.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "bf0601a4891b0957047741173b9880baace5db830e4b20d4617a74f28298027c",
+      "judgment": "세 단락을 다시 읽었다. 갑작스러운 선물 이야기를 덜고 바뀌는 약속 때문에 실제 만날 뜻을 묻는 행동으로 연결했다."
+    },
+    "love.pentacles.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "79befc0d2700e22fac04492be2d61bd0b802be76b3c49cd00f1d7dc6e48159db",
+      "judgment": "서로 챙기고 돕는 배려와 따뜻한 답을 설명한다. 친절과 재회 의사를 나누어 보답을 강요하지 않는다."
+    },
+    "love.pentacles.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "00ba1a1db60327dab2dc1ff73b6ece8e7e916bc9562bd21d3f6fdfd442795580",
+      "judgment": "세 단락을 다시 읽었다. 도와줬던 상대가 그 일을 내세워 재회를 요구한다고 주체를 밝혀 도움과 요구의 방향이 분명해졌다. 약150자는 이 주체와 교제 의무가 없다는 뜻을 남긴 분량이다."
+    },
+    "love.pentacles.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e1f6298b6980acf69d1e44d2363d40f3329b8d0e3f82f502265d5fefd25d20b0",
+      "judgment": "오래 알아가는 만남과 지킨 약속으로 쌓이는 믿음을 느린 성장으로 설명하며 재회를 급히 확정하지 않는다."
+    },
+    "love.pentacles.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "15d8adbb6129282a592ee30364d050bc3ded1a2ef6259ab41230b4b9029f55ce",
+      "judgment": "세 단락을 다시 읽었다. 혼자만 더 노력해야 한다고 생각하지 말라는 자기 판단으로 풀어 누구를 몰아붙이는지의 혼동을 없앴다."
+    },
+    "love.pentacles.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "bce2d11db3f4a85672653a849938fcea6d8a384b060282dd48fbb0522eff4cd9",
+      "judgment": "꾸준한 연락과 정성스러운 준비, 달라진 행동으로 회복하는 믿음이 성실한 실천의 뜻과 맞는다."
+    },
+    "love.pentacles.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f6642fd0eb51c4f0e1c9eec7e5b8c3286a047161c3d3e8de4a862d8b2e8c53e9",
+      "judgment": "세 단락을 다시 읽었다. 자신이 달라진 척하는 행동과 말로만 믿음을 되찾으려는 행동을 한 관점으로 이어 보여주기식 변화의 뜻이 분명하다."
+    },
+    "love.pentacles.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f2b5692ded207d67ae6181a51776caa5c5edab4fe47cd816643279e1a8c05b1e",
+      "judgment": "생활이 맞고 각자의 시간을 존중하는 여유를 설명한다. 재회 없이도 즐거울 수 있어 독립성과 풍요의 의미가 남아 있다."
+    },
+    "love.pentacles.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b3891b9439a291cdc9953a73e63bb73ad276b13d4e25e9ab70bdc0187e26d97a",
+      "judgment": "들은 이야기와 실제 모습, 지켜지지 않는 약속의 차이를 통해 믿음의 불일치를 직접 드러낸다."
+    },
+    "love.pentacles.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1380513a28da2b79f30facb78d94367e098d8999e4a0c3df9cab1a201a781bbd",
+      "judgment": "진지한 소개와 가족의 환영, 결혼 준비 및 안정적인 재회를 오래 쌓은 기반의 뜻으로 쉽게 보여 준다."
+    },
+    "love.pentacles.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "502a63bdbb68c8ac497e17247cb3d65a5fa48322461179c03bda2b0a3d9e0c4e",
+      "judgment": "다른 장기 기대와 가족 및 생활 갈등을 설명하고 그리움만으로 예전 문제를 해결했다고 보지 않는다."
+    },
+    "love.pentacles.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "7f3821f4ed139755267f1378dcd3f008564fe1f2f6bdc998ee77c880e2a3757d",
+      "judgment": "공통 관심사와 기억한 배려를 실제 행동으로 옮기는 모습이 공부와 적용의 관계 해석에 맞는다."
+    },
+    "love.pentacles.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "b0c3981923e23a35c7b1f6c9cc6ba506ea4c89a9941db55df587f1d920cc4a84",
+      "judgment": "세 단락을 다시 읽었다. 관심이 분산되어 부탁을 놓치는 일에서 상대의 말을 듣는 행동으로 이어져 선물과 데이트로의 갑작스러운 전환이 사라졌다."
+    },
+    "love.pentacles.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ed9dffb1d50d55d824bcbe0385d430cb75035ce2db1b659d602bca5fed7f5a53",
+      "judgment": "세 단락을 다시 읽었다. 일반적인 일 마무리 조언을 덜어 꾸준한 만남과 평소의 배려, 약속으로 쌓는 재회 신뢰에 집중했다. 약129자 안에서도 세 상황과 카드의 책임감이 분명하다."
+    },
+    "love.pentacles.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "74bc5e48203d5905571d43ed120454faf95245f56998f59f0f4a5e29502896ad",
+      "judgment": "연락만 이어지는 만남과 미루는 애정 표현, 진전 없는 재회 대화가 무관심과 정체의 뜻을 유지한다."
+    },
+    "love.pentacles.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "8db44f9042af4e03a2d1a9e1c5933648dd9cb75b7464a62db17bca1af74780c0",
+      "judgment": "일상의 돌봄과 함께 쉬는 안정, 부드러운 대화를 너그러움의 뜻으로 표현하며 배려의 보답으로 재회를 요구하지 않는다."
+    },
+    "love.pentacles.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "8386e7c2127394c8839d1c0bd3b58a465430f68d5b9c15c3a7b7113980c43549",
+      "judgment": "혼자 의심하는 만남과 연락 및 소비에 대한 간섭이 신뢰 부족으로 이어지는 뜻을 직접 말한다."
+    },
+    "love.pentacles.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "30dab73858093bebbacb60bdf7932506fa52c87b5a567dc215cdf8e7eba97ef0",
+      "judgment": "성실한 인연과 실행되는 생활 계획, 재회를 막던 문제의 해결을 실현 능력과 성공의 뜻으로 설명한다."
+    },
+    "love.pentacles.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "377a6848047ba247f500c8c43f93a6f513c82f1b2e0a8c7b8298ec12fd31f71c",
+      "judgment": "조건과 경제적 우위를 내세운 일방적인 결정을 보여 주며 부담스러운 재회 요구까지 같은 통제의 뜻을 유지한다. 길이 추가 재독: 146자는 물질적 조건으로 상대를 통제하는 만남·커플·재회의 차이를 설명하고 거절을 존중할 필요를 남겼다."
+    }
+  }
+}

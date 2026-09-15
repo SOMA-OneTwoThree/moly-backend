@@ -1,0 +1,804 @@
+{
+  "criteria": "ko-plain-voice.1",
+  "scope": "korean-manuscript-only",
+  "static_errors": [],
+  "reference_flags": [
+    {
+      "key": "overall.major.chariot.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 109
+    },
+    {
+      "key": "overall.major.sun.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 94
+    },
+    {
+      "key": "overall.major.magician.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 107
+    },
+    {
+      "key": "overall.major.moon.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 107
+    },
+    {
+      "key": "overall.major.justice.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 108
+    },
+    {
+      "key": "overall.swords.02.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "overall.swords.07.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "overall.swords.10.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 144
+    },
+    {
+      "key": "overall.wands.01.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "overall.wands.02.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 144
+    },
+    {
+      "key": "overall.wands.06.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 144
+    },
+    {
+      "key": "overall.wands.10.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "overall.wands.12.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "overall.wands.13.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "overall.pentacles.01.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "overall.pentacles.02.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "overall.pentacles.04.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "overall.pentacles.05.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "overall.pentacles.07.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "overall.pentacles.07.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "overall.pentacles.08.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "overall.pentacles.10.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "overall.pentacles.12.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "overall.pentacles.13.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "overall.pentacles.14.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "axis": "overall",
+      "field": "do",
+      "kind": "duplicate_reference",
+      "count": 2,
+      "text": "잘된 일 기뻐하기."
+    },
+    {
+      "axis": "overall",
+      "field": "do",
+      "kind": "duplicate_reference",
+      "count": 3,
+      "text": "잘 모르는 부분 물어보기."
+    },
+    {
+      "axis": "overall",
+      "field": "do",
+      "kind": "duplicate_reference",
+      "count": 2,
+      "text": "도와준 사람에게 고맙다고 말하기."
+    },
+    {
+      "axis": "overall",
+      "field": "do",
+      "kind": "duplicate_reference",
+      "count": 2,
+      "text": "서로 다른 말이 사실인지 확인하기."
+    },
+    {
+      "key": "love.major.fool.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.major.magician.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.major.magician.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.major.high_priestess.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.major.high_priestess.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.major.empress.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.major.hierophant.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.major.lovers.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.major.lovers.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.major.hermit.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.major.wheel_of_fortune.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.major.justice.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.major.justice.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.major.hanged_man.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 149
+    },
+    {
+      "key": "love.major.death.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 148
+    },
+    {
+      "key": "love.major.death.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 147
+    },
+    {
+      "key": "love.major.devil.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 144
+    },
+    {
+      "key": "love.major.devil.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 147
+    },
+    {
+      "key": "love.major.tower.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 150
+    },
+    {
+      "key": "love.major.star.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.major.star.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.major.moon.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.major.moon.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.major.judgement.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.major.world.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 144
+    },
+    {
+      "key": "love.major.world.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.cups.05.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.cups.06.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.cups.07.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.cups.07.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.cups.08.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.cups.08.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.cups.09.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.cups.09.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.cups.10.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.cups.11.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.cups.12.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 144
+    },
+    {
+      "key": "love.cups.13.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.cups.14.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.wands.01.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.wands.03.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.wands.03.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.wands.05.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.wands.06.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.wands.06.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.wands.07.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.wands.08.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.wands.09.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.wands.09.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 147
+    },
+    {
+      "key": "love.wands.10.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.wands.11.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.wands.12.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.wands.13.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "love.wands.14.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 144
+    },
+    {
+      "key": "love.wands.14.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.swords.01.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.swords.02.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.swords.03.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 147
+    },
+    {
+      "key": "love.swords.03.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.swords.04.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.swords.05.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.swords.06.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.swords.07.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.swords.08.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.swords.09.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.swords.10.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.swords.10.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 147
+    },
+    {
+      "key": "love.swords.12.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.swords.13.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 150
+    },
+    {
+      "key": "love.swords.13.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.swords.14.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.swords.14.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 149
+    },
+    {
+      "key": "love.pentacles.01.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.pentacles.02.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.pentacles.02.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.pentacles.04.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.pentacles.05.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.pentacles.05.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    },
+    {
+      "key": "love.pentacles.06.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 152
+    },
+    {
+      "key": "love.pentacles.08.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.pentacles.11.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.pentacles.13.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 143
+    },
+    {
+      "key": "love.pentacles.13.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 142
+    },
+    {
+      "key": "love.pentacles.14.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 145
+    },
+    {
+      "key": "love.pentacles.14.reversed",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 146
+    },
+    {
+      "key": "work.major.magician.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 109
+    },
+    {
+      "key": "work.pentacles.13.upright",
+      "field": "paragraphs",
+      "kind": "body_length_reference",
+      "characters": 141
+    }
+  ],
+  "axes": {
+    "overall": {
+      "bundles": 156,
+      "changed_bundles": 156,
+      "changed_fields": {
+        "headline": 152,
+        "paragraphs": 156,
+        "do": 156,
+        "pause": 156
+      },
+      "source_sha256": "ff23fc90c1158a9a33250b7fdf48c12f850bc2b00e78f931def6ef3cdd4adf4f",
+      "manuscript_sha256": "2067bd01045f32a7a235c04174969fe8d933285c446f5c365c8f59343ccf7850",
+      "reviewers": {
+        "author": "ko_overall_writer",
+        "independent": "/root"
+      },
+      "body_characters_including_spaces": {
+        "min": 94,
+        "median": 133.0,
+        "max": 146
+      }
+    },
+    "love": {
+      "bundles": 156,
+      "changed_bundles": 156,
+      "changed_fields": {
+        "paragraphs": 156
+      },
+      "source_sha256": "26f15d8c00548fbe815ebbdd9e573f5664b7ce294dab7c69a707124d6c3c9bbb",
+      "manuscript_sha256": "b93c897552004548889da1bf0df5cbfe8cca993d42b6e626f36dc0073f18e33b",
+      "reviewers": {
+        "author": "/root/ko_love_writer",
+        "independent": "ko_overall_writer"
+      },
+      "body_characters_including_spaces": {
+        "min": 130,
+        "median": 141.0,
+        "max": 152
+      }
+    },
+    "money": {
+      "bundles": 156,
+      "changed_bundles": 156,
+      "changed_fields": {
+        "paragraphs": 156
+      },
+      "source_sha256": "440da985e7e4f5a461242f99a3fbeea3470b179ea2fd1dc5063331a3a99b0529",
+      "manuscript_sha256": "8a7ac4f4e5839c84fd034f43e81fb66538073459d4f59c337dbdef14745797cb",
+      "reviewers": {
+        "author": "card_major_writer",
+        "independent": "ko_overall_writer"
+      },
+      "body_characters_including_spaces": {
+        "min": 110,
+        "median": 123.0,
+        "max": 134
+      }
+    },
+    "work": {
+      "bundles": 156,
+      "changed_bundles": 156,
+      "changed_fields": {
+        "paragraphs": 156
+      },
+      "source_sha256": "f04675947a4cff63149bdb992289ec45fc14417f24c647d08795f59e489afb88",
+      "manuscript_sha256": "5b7af7bab1c090a9476bacff67b0d01037b1e79fa5bf07bccbd297d7ffbe6522",
+      "reviewers": {
+        "author": "/root/ko_love_writer",
+        "independent": "card_major_writer"
+      },
+      "body_characters_including_spaces": {
+        "min": 109,
+        "median": 131.0,
+        "max": 141
+      }
+    },
+    "energy": {
+      "bundles": 156,
+      "changed_bundles": 156,
+      "changed_fields": {
+        "paragraphs": 156
+      },
+      "source_sha256": "7aede3caa1946b80b073fe9983c1d965e9a632941663c3ccd39fd232d49bec1a",
+      "manuscript_sha256": "b94ec77841d2407171ad750cd17d7255b48623975ddd3653fe00deff006b0f98",
+      "reviewers": {
+        "author": "card_major_writer",
+        "independent": "/root"
+      },
+      "body_characters_including_spaces": {
+        "min": 112,
+        "median": 124.0,
+        "max": 132
+      }
+    }
+  },
+  "human_review": false,
+  "note": "Hash checks verify recorded reads, not language quality. Reference flags require editorial judgment."
+}

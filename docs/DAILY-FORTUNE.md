@@ -1,5 +1,7 @@
 # 오늘의 운세
 
+> **2026-09-16 한국어 후속 교정 연결:** 쉬운 총평·직접적인 행동 문구와 본문 4~5줄 목표를 반영한 [새 한국어 원고와 검수](fortune-content/ko-plain-voice/README.md)를 `fortune-copy.v8-localized.3`에 연결한다. 본문 780개와 총평·행동 468개를 전수 검수했다. 영어·일본어 원문은 v8-localized.2를 유지하며 첫 방문 한국어도 동일 정본을 사용한다. 당일 저장본·점수·카드 추첨은 유지하고 DB 마이그레이션은 없다. 사용자 승인 범위는 개발 서버 반영·검증까지다.
+
 > **2026-09-16 행동 문구·기본 공개 범위 변경:** 세 언어의 `do`·`pause`를 카드별 156쌍씩 다듬고 `fortune-copy.v8-localized.2`로 연결한다. `locked`에서도 `overall.flow`를 필수로 반환하고 `categories`만 잠근다. 기존 2~3단락, 당일 snapshot·해금 권한을 유지하며 DB 마이그레이션은 없다. [행동 문구 기준과 검수](fortune-content/ko-actions/README.md).
 
 > **2026-09-15 현지화·서버 연결 준비 완료:** 승인한 한국어 780개 본문과 짧은 문구 468개를 기준으로 일본어·영어 작성과 별도 전수 독해 검수를 마쳤다. 새 문구 버전 `fortune-copy.v8-localized.1`의 세 언어 자산·문서 생성 및 정적 검사도 통과했다. [한국어 정본](fortune-content/ko-rewrite/README.md) · [세 언어 연결·검수 결과](fortune-content/localization/README.md). 후속 승인 범위는 dev PR·머지·개발 배포·검증이며 CI와 실제 API 검증 결과는 해당 PR에 기록한다.

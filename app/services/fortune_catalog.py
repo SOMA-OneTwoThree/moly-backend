@@ -92,7 +92,7 @@ LEGACY_COPY_VERSIONS = MappingProxyType({
     "en": "fortune-copy.v3-editorial.1",
     "ja": "fortune-copy.v3-editorial.1",
 })
-COPY_VERSION = "fortune-copy.v8-localized.2"
+COPY_VERSION = "fortune-copy.v8-localized.3"
 FIRST_VISIT_FILE = "first-visit.v1.json"
 FIRST_VISIT_IDENTITY_HASH = "e588974413014dad1c44c07c297043af28dcccbbe41b8eba15b548aa68117bed"
 _CARD_COPY_FILENAMES = MappingProxyType({

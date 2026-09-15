@@ -319,7 +319,7 @@ def test_authored_banner_body_is_centered_between_divider_and_visible_button():
     catalog = BannerCatalog.load()
     for banner in catalog.manifest.banners:
         if banner.id in {"music-daily", "affirmation-daily"}:
-            continue  # Both use an image play button instead of the standard shape button.
+            continue  # music uses an image play button; affirmation makes the whole card tappable.
         for canvas in banner.canvases_by_locale.values():
             elements = {element.id: element for element in canvas.elements}
             divider = elements['heading-divider'].frame

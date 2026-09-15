@@ -623,9 +623,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
-              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
-              "byte_length": 10684,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-2-89c4269979f94315746c8ff6b83af1860b707e29ca7568c49a9b9930a17a3cb1.webp",
+              "sha256": "89c4269979f94315746c8ff6b83af1860b707e29ca7568c49a9b9930a17a3cb1",
+              "byte_length": 10880,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -714,41 +714,18 @@
               }
             },
             {
-              "id": "play-button",
-              "type": "image_v1",
-              "frame": {
-                "x": 0.4,
-                "y": 0.55,
-                "width": 0.2,
-                "height": 0.363
-              },
-              "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
-                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
-                "byte_length": 5142,
-                "pixel_width": 240,
-                "pixel_height": 240,
-                "media_type": "image/webp"
-              },
-              "fit": "contain",
-              "alignment": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "accessibility_label": null,
-              "semantics_order": null
-            },
-            {
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.3,
-                "y": 0.5,
-                "width": 0.4,
-                "height": 0.46
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1.0,
+                "height": 1.0
               },
               "content_ids": [
-                "play-button"
+                "heading",
+                "heading-divider",
+                "message"
               ],
               "accessibility_label": "Reveal today's affirmation",
               "semantics_order": 2,
@@ -762,9 +739,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
-              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
-              "byte_length": 10684,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-2-89c4269979f94315746c8ff6b83af1860b707e29ca7568c49a9b9930a17a3cb1.webp",
+              "sha256": "89c4269979f94315746c8ff6b83af1860b707e29ca7568c49a9b9930a17a3cb1",
+              "byte_length": 10880,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -853,41 +830,18 @@
               }
             },
             {
-              "id": "play-button",
-              "type": "image_v1",
-              "frame": {
-                "x": 0.4,
-                "y": 0.55,
-                "width": 0.2,
-                "height": 0.363
-              },
-              "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
-                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
-                "byte_length": 5142,
-                "pixel_width": 240,
-                "pixel_height": 240,
-                "media_type": "image/webp"
-              },
-              "fit": "contain",
-              "alignment": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "accessibility_label": null,
-              "semantics_order": null
-            },
-            {
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.3,
-                "y": 0.5,
-                "width": 0.4,
-                "height": 0.46
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1.0,
+                "height": 1.0
               },
               "content_ids": [
-                "play-button"
+                "heading",
+                "heading-divider",
+                "message"
               ],
               "accessibility_label": "오늘의 글귀 보기",
               "semantics_order": 2,
@@ -901,9 +855,9 @@
           "background": {
             "type": "image_background_v1",
             "source": {
-              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
-              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
-              "byte_length": 10684,
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-2-89c4269979f94315746c8ff6b83af1860b707e29ca7568c49a9b9930a17a3cb1.webp",
+              "sha256": "89c4269979f94315746c8ff6b83af1860b707e29ca7568c49a9b9930a17a3cb1",
+              "byte_length": 10880,
               "pixel_width": 1000,
               "pixel_height": 551,
               "media_type": "image/webp"
@@ -992,41 +946,18 @@
               }
             },
             {
-              "id": "play-button",
-              "type": "image_v1",
-              "frame": {
-                "x": 0.4,
-                "y": 0.55,
-                "width": 0.2,
-                "height": 0.363
-              },
-              "source": {
-                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
-                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
-                "byte_length": 5142,
-                "pixel_width": 240,
-                "pixel_height": 240,
-                "media_type": "image/webp"
-              },
-              "fit": "contain",
-              "alignment": {
-                "x": 0.5,
-                "y": 0.5
-              },
-              "accessibility_label": null,
-              "semantics_order": null
-            },
-            {
               "id": "primary-action",
               "type": "action_region_v1",
               "frame": {
-                "x": 0.3,
-                "y": 0.5,
-                "width": 0.4,
-                "height": 0.46
+                "x": 0.0,
+                "y": 0.0,
+                "width": 1.0,
+                "height": 1.0
               },
               "content_ids": [
-                "play-button"
+                "heading",
+                "heading-divider",
+                "message"
               ],
               "accessibility_label": "今日のことばを見る",
               "semantics_order": 2,

@@ -101,16 +101,13 @@ def test_published_card_keeps_its_authored_shape():
     assert banner.when.operator == "eq" and banner.when.value == 0
     for locale, canvas in banner.canvases_by_locale.items():
         assert {e.id for e in canvas.elements} == {
-            "heading", "heading-divider", "message", "play-button", "primary-action"
+            "heading", "heading-divider", "message", "primary-action"
         }
         region = next(e for e in canvas.elements if e.id == "primary-action")
-        image = next(e for e in canvas.elements if e.id == "play-button")
-        message = next(e for e in canvas.elements if e.id == "message")
         assert region.action.type == "open_affirmation"
-        assert region.content_ids == ("play-button",)
-        assert image.accessibility_label is None and image.semantics_order is None
-        # 본문은 클릭 영역 위쪽에 머문다(48px 확장 hit rect와 겹치지 않도록).
-        assert message.frame.y + message.frame.height <= region.frame.y
+        # 별도 버튼 없이 카드 전체가 탭 영역이다.
+        assert region.frame.model_dump() == {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
+        assert region.content_ids == ("heading", "heading-divider", "message")
         assert "open_affirmation" in capabilities(canvas)
         assert locale in {"en", "ko", "ja"}
 

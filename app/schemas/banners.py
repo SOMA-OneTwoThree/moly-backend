@@ -134,7 +134,7 @@ class BannerStyle(BannerModel):
 
 class BannerAction(BannerModel):
     type: Literal["open_shop", "open_routines", "open_conversation", "open_fortune",
-                  "open_diary", "open_mood", "open_timer", "open_music"]
+                  "open_diary", "open_mood", "open_timer", "open_music", "open_affirmation"]
 
 
 class BannerTopicAction(BannerModel):
@@ -329,13 +329,14 @@ class BannerAuthoredCanvas(BannerCanvas):
 
 
 class BannerBinding(BannerModel):
-    source: Literal["user.local_date", "routines.remaining_today", "topic.question", "music.daily_title"]
+    source: Literal["user.local_date", "routines.remaining_today", "topic.question",
+                    "music.daily_title", "affirmation.acknowledged_today"]
     format: Literal["month_day", "full_date"] | None
 
     @model_validator(mode="after")
     def source_format(self):
         if (self.source == "user.local_date") != (self.format is not None):
-            raise ValueError("date requires format; count requires null format")
+            raise ValueError("date requires format; other sources require null format")
         return self
 
 
@@ -390,11 +391,22 @@ class BannerDefinition(BannerModel):
                 raise ValueError("invalid binding alias")
         if self.when:
             bound = self.bindings.get(self.when.binding)
-            if not bound or bound.source != "routines.remaining_today":
+            if not bound or bound.source not in {
+                "routines.remaining_today", "affirmation.acknowledged_today"
+            }:
                 raise ValueError("condition requires integer binding")
         if any(b.source == "routines.remaining_today" for b in self.bindings.values()):
             if not self.when or self.when.operator != "gt" or self.when.value != 0:
                 raise ValueError("routine-dependent banners require remaining > 0")
+        if any(b.source == "affirmation.acknowledged_today" for b in self.bindings.values()):
+            # 확인한 날에는 카드를 숨기는 조건만 허용한다(다른 조건은 당일 재노출로 이어진다).
+            if (
+                not self.when
+                or self.when.operator != "eq"
+                or self.when.value != 0
+                or self.bindings[self.when.binding].source != "affirmation.acknowledged_today"
+            ):
+                raise ValueError("affirmation-dependent banners require acknowledged == 0")
         for canvas in self.canvases_by_locale.values():
             topic_actions = [e for e in canvas.elements
                              if getattr(getattr(e, "action", None), "type", None)
@@ -439,7 +451,8 @@ class BannerManifest(BannerModel):
 
 
 class BannerCard(BannerModel):
-    data_dependencies: tuple[Literal["user.local_date", "routines.remaining_today", "topic.question"], ...]
+    data_dependencies: tuple[Literal["user.local_date", "routines.remaining_today",
+                                     "topic.question", "affirmation.acknowledged_today"], ...]
     id: Id
     component: Literal["banner_canvas_v1"]
     layout_profile: Literal["home_blind_v1"]

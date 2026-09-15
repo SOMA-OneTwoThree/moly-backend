@@ -72,7 +72,7 @@ class BannerCatalog:
             for locale, canvas in banner.canvases_by_locale.items():
                 for count in (0, 1, 999999999):
                     values = binding_values(banner, locale, date(2026, 12, 31), count,
-                                            topic_question="Question?")
+                                            topic_question="Question?", acknowledged=0)
                     compile_canvas(canvas, values, topic_ref=TopicReference(
                         offer_id=UUID(int=1), offer_sequence=1, topic_id="validation",
                         topic_revision="0" * 64, locale=locale,
@@ -132,7 +132,7 @@ def select_candidates(
 
 def binding_values(
     banner: BannerDefinition, locale: str, local_date: date | None, remaining: int | None,
-    *, topic_question: str | None = None,
+    *, topic_question: str | None = None, acknowledged: int | None = None,
 ) -> dict[str, str | int]:
     values = {}
     for alias, binding in banner.bindings.items():
@@ -140,6 +140,10 @@ def binding_values(
             if remaining is None:
                 raise ValueError("routine binding unavailable")
             values[alias] = remaining
+        elif binding.source == "affirmation.acknowledged_today":
+            if acknowledged is None:
+                raise ValueError("affirmation binding unavailable")
+            values[alias] = acknowledged
         elif binding.source == "music.daily_title":
             if local_date is None:
                 raise ValueError("music date unavailable")
@@ -205,6 +209,7 @@ def render_feed(
     day_ends_at: datetime | None,
     remaining: int | None,
     topic_offer=None,
+    acknowledged: int | None = None,
 ) -> BannerFeed:
     cards = []
     for banner, locale, canvas in candidates:
@@ -212,6 +217,7 @@ def render_feed(
             values = binding_values(
                 banner, locale, local_date, remaining,
                 topic_question=topic_offer.questions[locale] if topic_offer else None,
+                acknowledged=acknowledged,
             )
             topic_ref = TopicReference(
                 offer_id=topic_offer.offer_id, offer_sequence=topic_offer.offer_sequence,

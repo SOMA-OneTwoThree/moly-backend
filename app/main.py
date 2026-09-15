@@ -6,6 +6,7 @@ import time
 from fastapi import FastAPI, Request
 
 from app.api.ads import router as ads_router
+from app.api.affirmation import router as affirmation_router
 from app.api.attribution import router as attribution_router
 from app.api.banners import router as banners_router
 from app.api.chat import router as chat_router
@@ -72,7 +73,8 @@ def create_app() -> FastAPI:
         # 인증 dependency와 DB 대기까지 포함한 절대 HTTP 예산의 시작점.
         request.state.started_monotonic = time.monotonic()
         response = await call_next(request)
-        if request.url.path in {'/banners', '/banners/resolve', '/chat/topic-entries'}:
+        if request.url.path in {'/banners', '/banners/resolve', '/chat/topic-entries',
+                                '/daily-affirmation', '/daily-affirmation/acknowledge'}:
             response.headers['Cache-Control'] = 'private, no-store'
         return response
     # 공개(인증 불필요): 헬스체크와 설치 귀속 복호화.
@@ -92,6 +94,7 @@ def create_app() -> FastAPI:
     app.include_router(review_router)
     app.include_router(feedback_router)
     app.include_router(fortune_router)
+    app.include_router(affirmation_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
     # 로컬/격리 개발 서버 전용: 워커·회상·모델 평가를 Swagger에서 손으로 검증한다.

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.app_day import AppDay, validate_app_timezone
 from app.core.advisory_lock import advisory_xact_lock
 from app.models.routine import Routine, RoutineCompletion
+from app.models.user_daily_stats import UserDailyStats
 from app.services.account import _load_profile, _uid
 from app.services.banner_catalog import BannerCatalog, render_feed, select_candidates
 from app.services.i18n import resolve
@@ -38,6 +39,16 @@ async def remaining_today(session: AsyncSession, user_id: str, day: AppDay) -> i
     )
     async with session.begin_nested():
         return (await session.execute(query)).scalar_one()
+
+
+async def acknowledged_today(session: AsyncSession, user_id: str, day: AppDay) -> int:
+    """오늘의 글귀를 현지 오늘 확인했으면 1, 아니면 0. 행이 없어도 만들지 않는다."""
+    query = select(UserDailyStats.affirmation_acknowledged_at).where(
+        UserDailyStats.user_id == _uid(user_id),
+        UserDailyStats.activity_date == day.local_date,
+    )
+    async with session.begin_nested():
+        return int((await session.execute(query)).scalar() is not None)
 
 
 async def list_banners(
@@ -72,6 +83,11 @@ async def list_banners(
         for banner, _, _ in candidates
         for binding in banner.bindings.values()
     )
+    needs_acknowledged = any(
+        binding.source == "affirmation.acknowledged_today"
+        for banner, _, _ in candidates
+        for binding in banner.bindings.values()
+    )
     day = None
     if needs_day:
         if timezone_name is None:
@@ -79,6 +95,7 @@ async def list_banners(
             timezone_name = profile.timezone
         day = AppDay.at(now, timezone_name)
     remaining = None
+    acknowledged = None
     topic_offer = None
     if topic_catalog is not None and any(
         binding.source == "topic.question"
@@ -95,6 +112,12 @@ async def list_banners(
             # begin_nested has restored the transaction; a lost connection cannot be isolated.
             if exc.connection_invalidated:
                 raise
+    if needs_acknowledged:
+        try:
+            acknowledged = await acknowledged_today(session, user_id, day)
+        except DBAPIError as exc:
+            if exc.connection_invalidated:
+                raise
     return render_feed(
         catalog,
         candidates,
@@ -103,4 +126,5 @@ async def list_banners(
         day_ends_at=day.ends_at if day else None,
         remaining=remaining,
         topic_offer=topic_offer,
+        acknowledged=acknowledged,
     )

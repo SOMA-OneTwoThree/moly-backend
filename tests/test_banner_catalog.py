@@ -297,7 +297,9 @@ def test_composed_action_rejects_shared_visual_ownership():
         load(raw)
 
 
-@pytest.mark.parametrize("action", ["open_diary", "open_mood", "open_timer", "open_music"])
+@pytest.mark.parametrize(
+    "action", ["open_diary", "open_mood", "open_timer", "open_music", "open_affirmation"]
+)
 def test_navigation_capability_filters_old_clients(action):
     raw = manifest()
     raw["banners"][0]["canvases_by_locale"]["en"]["elements"][-1]["action"] = {"type": action}
@@ -316,8 +318,8 @@ def test_navigation_capability_filters_old_clients(action):
 def test_authored_banner_body_is_centered_between_divider_and_visible_button():
     catalog = BannerCatalog.load()
     for banner in catalog.manifest.banners:
-        if banner.id == "music-daily":
-            continue  # Music has image playback controls instead of the standard divider/button.
+        if banner.id in {"music-daily", "affirmation-daily"}:
+            continue  # Both use an image play button instead of the standard shape button.
         for canvas in banner.canvases_by_locale.values():
             elements = {element.id: element for element in canvas.elements}
             divider = elements['heading-divider'].frame

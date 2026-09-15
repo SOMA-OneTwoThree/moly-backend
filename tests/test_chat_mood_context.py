@@ -1,20 +1,16 @@
-"""Current mood freshness, compact temporal context, and bounded historical reads."""
+"""Only today's selected mood is transient context; temporal history stays stable."""
 from __future__ import annotations
 
-import json
 import uuid
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
+from sqlalchemy.dialects import postgresql
 
-from app.core.time_utils import safe_zone
 from app.services import chat, checkpoint, mood_context
-from app.services.agent import runtime
-from app.services.agent.tools.base import InvalidArguments
-from app.services.agent.tools.get_mood_entries import GetMoodEntriesArgs, TOOL
-from app.services.llm import ToolResult
 from tests.test_chat import FakeSession
 from tests.test_chat_turn_context_wiring import _post
 
@@ -77,8 +73,8 @@ def test_elapsed_time_uses_real_minutes_across_midnight_and_dst():
 
 async def test_mood_changes_only_the_volatile_system_slot(monkeypatch):
     block = AsyncMock(side_effect=[
-        '[User mood entry]\n{"status":"present","note":"아침에 속상했어"}',
-        '[User mood entry]\n{"status":"absent"}',
+        "[Today's mood] 2026-09-15: excited",
+        "[Today's mood] 2026-09-15: not_recorded",
     ])
     monkeypatch.setattr(mood_context, "today_block", block)
     before, after = {}, {}
@@ -86,72 +82,14 @@ async def test_mood_changes_only_the_volatile_system_slot(monkeypatch):
     await _post(first_session, monkeypatch, capture=before)
     await _post(FakeSession(), monkeypatch, capture=after)
     assert before["system"] == after["system"]
-    assert "아침에 속상했어" not in "\n".join(before["system"])
+    assert "excited" not in "\n".join(before["system"])
     assert before["convo"][-2]["role"] == "system"
-    assert "아침에 속상했어" in before["convo"][-2]["content"]
-    assert "아침에 속상했어" not in after["convo"][-2]["content"]
-    assert "아침에 속상했어" not in before["convo"][-1]["content"]
-    assert all("아침에 속상했어" not in (getattr(row, "content", "") or "")
+    assert "excited" in before["convo"][-2]["content"]
+    assert "excited" not in after["convo"][-2]["content"]
+    assert "excited" not in before["convo"][-1]["content"]
+    assert all("excited" not in (getattr(row, "content", "") or "")
                for row in first_session.added)
     assert block.await_count == 2
-
-
-@pytest.mark.parametrize("args,expected", [
-    ({"period": "today"}, (TODAY, TODAY)),
-    ({"period": "yesterday"}, (TODAY - timedelta(days=1), TODAY - timedelta(days=1))),
-    ({}, (TODAY - timedelta(days=6), TODAY)),
-    ({"from": "2025-01-01"}, (date(2025, 1, 1), date(2025, 1, 1))),
-    ({"to": "2025-01-01"}, (date(2025, 1, 1), date(2025, 1, 1))),
-    ({"from": "2025-01-01", "to": "2025-01-31"}, (date(2025, 1, 1), date(2025, 1, 31))),
-])
-def test_mood_dates_are_exact_and_bounded(args, expected):
-    assert GetMoodEntriesArgs.model_validate(args).dates(TODAY) == expected
-
-
-@pytest.mark.parametrize("args", [
-    {"period": "yesterday", "from": "2025-01-01"},
-    {"from": "2025-01-02", "to": "2025-01-01"},
-    {"from": "2025-01-01", "to": "2025-02-01"},
-    {"to": "2026-09-16"},
-])
-def test_invalid_mood_ranges_are_rejected(args):
-    with pytest.raises(InvalidArguments):
-        GetMoodEntriesArgs.model_validate(args).dates(TODAY)
-
-
-async def test_yesterday_missing_never_falls_back_to_recent_entries(monkeypatch):
-    read = AsyncMock(return_value=[])
-    monkeypatch.setattr(mood_context, "read_entries", read)
-    ctx = runtime.ToolContext(UID, "ko", TODAY - timedelta(days=1), 0, TODAY)
-    out = await TOOL.execute(ctx, {"period": "yesterday"}, None)
-    assert out.status == "ok" and out.data["matched_count"] == 0
-    assert out.data["items"] == []
-    assert read.call_args.args[1:] == (UID, date(2026, 9, 14), date(2026, 9, 14))
-
-
-@pytest.mark.parametrize("budget", [600, 300, 180, 1])
-def test_tool_budget_preserves_dates_and_counts_and_does_not_mutate_raw_results(budget):
-    data = {
-        "from_date": "2026-08-16", "to_date": "2026-09-15", "matched_count": 31,
-        "returned_count": 5, "has_more": True,
-        "items": [{"date": f"2026-09-{15-i:02}", "kind": "tired", "note": "기분" * 100}
-                  for i in range(5)],
-    }
-    raw = ToolResult(call_id="c1", tool_name=TOOL.name, status="ok", data=data)
-    saved = json.dumps(data)
-    out = runtime.apply_result_budget([raw], budget)[0]
-    assert json.dumps(raw.data) == saved
-    if out.status == "ok":
-        assert runtime._cost(out) <= min(480, budget)
-        assert out.data["from_date"] == "2026-08-16"
-        assert out.data["to_date"] == "2026-09-15"
-        assert out.data["matched_count"] == 31
-        assert out.data["returned_count"] == len(out.data["items"])
-        assert out.data["has_more"] is True
-        for item in out.data["items"]:
-            date.fromisoformat(item["date"])
-    else:
-        assert out.error_code == "budget_exceeded" and out.data is None
 
 
 def test_checkpoint_time_affects_v4_hash_but_not_pending_v3_jobs():
@@ -170,5 +108,25 @@ def test_checkpoint_time_affects_v4_hash_but_not_pending_v3_jobs():
 
 async def test_today_lookup_failure_does_not_claim_no_record():
     # Missing begin_nested simulates failure before querying; the prompt reports unavailability.
-    block = await mood_context.today_block(None, UID, TODAY, zone=safe_zone("Asia/Seoul"))
-    assert json.loads(block.split("\n", 1)[1])["status"] == "unavailable"
+    block = await mood_context.today_block(None, UID, TODAY)
+    assert block == "[Today's mood] 2026-09-15: unavailable"
+
+
+async def test_today_query_never_selects_notes_or_record_timestamps():
+    @asynccontextmanager
+    async def savepoint():
+        yield
+
+    session = SimpleNamespace(
+        begin_nested=savepoint,
+        execute=AsyncMock(return_value=SimpleNamespace(scalar_one_or_none=lambda: "neutral")),
+    )
+    assert await mood_context.today_block(session, UID, TODAY) == "[Today's mood] 2026-09-15: neutral"
+    stmt = session.execute.call_args.args[0].compile(dialect=postgresql.dialect())
+    sql = str(stmt)
+    assert all(name not in sql for name in ("note", "created_at", "updated_at"))
+    assert "mood_entries.user_id =" in sql and "mood_entries.entry_date =" in sql
+    assert set(next(value for value in stmt.params.values() if isinstance(value, list))) == {
+        "annoyed", "tired", "neutral", "content", "excited",
+    }
+    assert UID in stmt.params.values() and TODAY in stmt.params.values()

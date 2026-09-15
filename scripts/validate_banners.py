@@ -11,10 +11,18 @@ from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.services.banner_catalog import BannerCatalog  # noqa: E402
+from app.services.banner_catalog import MAX_FEED_CARDS, BannerCatalog  # noqa: E402
 from app.services.banner_catalog import binding_values, compile_canvas  # noqa: E402
 from app.services.topic_catalog import TopicCatalog  # noqa: E402
 from app.schemas.topics import TopicReference  # noqa: E402
+
+
+def enabled_banners(catalog: BannerCatalog) -> int:
+    """노출 후보 수. 응답 상한을 넘으면 뒤쪽 카드가 조용히 잘리므로 배포 전에 막는다."""
+    count = sum(1 for banner in catalog.manifest.banners if banner.enabled)
+    if count > MAX_FEED_CARDS:
+        raise ValueError(f"enabled banners ({count}) exceed the {MAX_FEED_CARDS} card feed budget")
+    return count
 
 
 def validate_topics(catalog: BannerCatalog, topics: TopicCatalog) -> int:
@@ -25,7 +33,8 @@ def validate_topics(catalog: BannerCatalog, topics: TopicCatalog) -> int:
         for (topic_id, revision), questions in topics.versions.items():
             for locale, canvas in banner.canvases_by_locale.items():
                 values = binding_values(banner, locale, date(2026, 12, 31), 999,
-                                        topic_question=getattr(questions, locale))
+                                        topic_question=getattr(questions, locale),
+                                        acknowledged=0)
                 compile_canvas(canvas, values, topic_ref=TopicReference(
                     offer_id=UUID(int=1), offer_sequence=1, topic_id=topic_id,
                     topic_revision=revision, locale=locale,
@@ -80,6 +89,7 @@ def main() -> None:
     if args.allow_topic_reorder and not args.previous_topics:
         parser.error("--allow-topic-reorder requires --previous-topics")
     catalog = BannerCatalog.load()
+    enabled = enabled_banners(catalog)
     topics = TopicCatalog.load()
     if args.previous_topics:
         topics.validate_update(TopicCatalog.load(args.previous_topics),
@@ -93,6 +103,7 @@ def main() -> None:
                 "revision": catalog.revision,
                 "enabled": catalog.manifest.enabled,
                 "banners": len(catalog.manifest.banners),
+                "enabled_banners": enabled,
                 "verified_assets": count,
                 "topic_revision": topics.revision,
                 "topic_variants": topic_variants,

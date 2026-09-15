@@ -297,7 +297,9 @@ def test_composed_action_rejects_shared_visual_ownership():
         load(raw)
 
 
-@pytest.mark.parametrize("action", ["open_diary", "open_mood", "open_timer", "open_music"])
+@pytest.mark.parametrize(
+    "action", ["open_diary", "open_mood", "open_timer", "open_music", "open_affirmation"]
+)
 def test_navigation_capability_filters_old_clients(action):
     raw = manifest()
     raw["banners"][0]["canvases_by_locale"]["en"]["elements"][-1]["action"] = {"type": action}
@@ -316,8 +318,8 @@ def test_navigation_capability_filters_old_clients(action):
 def test_authored_banner_body_is_centered_between_divider_and_visible_button():
     catalog = BannerCatalog.load()
     for banner in catalog.manifest.banners:
-        if banner.id == "music-daily":
-            continue  # Music has image playback controls instead of the standard divider/button.
+        if banner.id in {"music-daily", "affirmation-daily"}:
+            continue  # Both use an image play button instead of the standard shape button.
         for canvas in banner.canvases_by_locale.values():
             elements = {element.id: element for element in canvas.elements}
             divider = elements['heading-divider'].frame
@@ -332,3 +334,20 @@ def test_authored_banner_body_is_centered_between_divider_and_visible_button():
             if 'date' in elements:
                 assert elements['date'].vertical_align == 'center'
                 assert elements['date'].frame.height == body.height
+
+
+def test_enabled_banner_count_stays_within_the_published_feed_budget():
+    from app.services.banner_catalog import MAX_FEED_CARDS
+    from scripts.validate_banners import enabled_banners
+
+    catalog = BannerCatalog.load()
+    assert enabled_banners(catalog) == sum(b.enabled for b in catalog.manifest.banners)
+    raw = manifest()
+    for index in range(MAX_FEED_CARDS):
+        extra = copy.deepcopy(raw["banners"][0])
+        extra["id"] = f"extra-{index}"
+        raw["banners"].append(extra)
+    with pytest.raises(ValueError, match="exceed the 5 card feed budget"):
+        enabled_banners(load(raw))
+    raw["banners"][-1]["enabled"] = False
+    assert enabled_banners(load(raw)) == MAX_FEED_CARDS

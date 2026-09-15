@@ -28,6 +28,8 @@ from app.services.banner_music import daily_music_title
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "resources/banners/home_blind.json"
 MAX_MANIFEST_BYTES = 256 * 1024
 MAX_FEED_BYTES = 128 * 1024
+# 한 응답이 전달하는 카드 수 상한. BannerFeed.items의 max_length와 같은 값을 공유한다.
+MAX_FEED_CARDS = 5
 
 
 def _unique_object(pairs):
@@ -72,7 +74,7 @@ class BannerCatalog:
             for locale, canvas in banner.canvases_by_locale.items():
                 for count in (0, 1, 999999999):
                     values = binding_values(banner, locale, date(2026, 12, 31), count,
-                                            topic_question="Question?")
+                                            topic_question="Question?", acknowledged=0)
                     compile_canvas(canvas, values, topic_ref=TopicReference(
                         offer_id=UUID(int=1), offer_sequence=1, topic_id="validation",
                         topic_revision="0" * 64, locale=locale,
@@ -132,7 +134,7 @@ def select_candidates(
 
 def binding_values(
     banner: BannerDefinition, locale: str, local_date: date | None, remaining: int | None,
-    *, topic_question: str | None = None,
+    *, topic_question: str | None = None, acknowledged: int | None = None,
 ) -> dict[str, str | int]:
     values = {}
     for alias, binding in banner.bindings.items():
@@ -140,6 +142,10 @@ def binding_values(
             if remaining is None:
                 raise ValueError("routine binding unavailable")
             values[alias] = remaining
+        elif binding.source == "affirmation.acknowledged_today":
+            if acknowledged is None:
+                raise ValueError("affirmation binding unavailable")
+            values[alias] = acknowledged
         elif binding.source == "music.daily_title":
             if local_date is None:
                 raise ValueError("music date unavailable")
@@ -205,6 +211,7 @@ def render_feed(
     day_ends_at: datetime | None,
     remaining: int | None,
     topic_offer=None,
+    acknowledged: int | None = None,
 ) -> BannerFeed:
     cards = []
     for banner, locale, canvas in candidates:
@@ -212,6 +219,7 @@ def render_feed(
             values = binding_values(
                 banner, locale, local_date, remaining,
                 topic_question=topic_offer.questions[locale] if topic_offer else None,
+                acknowledged=acknowledged,
             )
             topic_ref = TopicReference(
                 offer_id=topic_offer.offer_id, offer_sequence=topic_offer.offer_sequence,
@@ -243,7 +251,7 @@ def render_feed(
             cards.append(card)
         except (ValueError, KeyError, ValidationError):
             continue
-        if len(cards) == 5:
+        if len(cards) == MAX_FEED_CARDS:
             break
     result = BannerFeed(
         schema_version=1,

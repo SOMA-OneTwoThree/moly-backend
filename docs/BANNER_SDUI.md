@@ -2,7 +2,7 @@
 
 배너의 디자인·문구·노출 조건은 서버 파일이, 이미지 파일은 Supabase Storage가 소유한다. 앱은 공통 규약에 따라 그리며 등록된 화면으로 이동한다. 필드·제약·호환성의 원본은 [공동 규약](BANNER_SDUI_CONTRACT.md)이다.
 
-`open_topic_conversation_v1`은 배너에 보인 질문으로 대화를 준비한다. [주제 대화](BANNER_TOPICS_DESIGN.md)에 선택·첫 답변·복구·콘텐츠 운영 규칙을 둔다. `open_conversation`은 일반 대화 진입이며 답변하지 않고 나간 주제 질문을 복원하지 않는다. 캐피의 일기 목록·감정 기록·루틴·타이머 설정·음악 선택 이동도 지원하며 action 이름은 공동 규약을 따른다. 새 action을 지원하지 않는 앱에는 해당 카드를 제공하지 않는다.
+`open_topic_conversation_v1`은 배너에 보인 질문으로 대화를 준비한다. [주제 대화](BANNER_TOPICS_DESIGN.md)에 선택·첫 답변·복구·콘텐츠 운영 규칙을 둔다. `open_conversation`은 일반 대화 진입이며 답변하지 않고 나간 주제 질문을 복원하지 않는다. 캐피의 일기 목록·감정 기록·루틴·타이머 설정·음악 선택 이동도 지원하며 action 이름은 공동 규약을 따른다. `open_affirmation`은 오늘의 글귀 팝업을 열며 `open_affirmation` 지원 클라 빌드가 필요하다. 새 action을 지원하지 않는 앱에는 해당 카드를 제공하지 않는다.
 
 ## 배너를 바꾸는 순서
 
@@ -45,7 +45,7 @@
 
 이미지 버튼은 `image_v1` + 필요 시 `text_v1`/`shape_v1` + `action_region_v1`로 구성한다. 클릭 영역의 `content_ids`에 시각 요소의 ID를 연결하고, 영역 안에 해당 요소의 전체 frame이 들어오도록 편집한다. 시각 요소와 클릭 영역을 각각 옮겨야 하며 자동으로 따라 움직이는 부모·자식 좌표계는 없다.
 
-이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·기능 업데이트(감정 기록)·상점·대화 주제 순서로 배경, 제목, 본문과 `shape_v1` + `text_v1` + `action_region_v1` 버튼을 정의한다. 운세 날짜는 `date` 요소의 `{day}`로 요청 시간대의 오늘을 표시하고, 질문은 `message` 요소로 분리해 굵기를 각각 조절한다. 버튼은 각각 기존 운세 화면, 감정 기록 팝업, 상점 화면, 주제 준비를 거친 대화 화면으로 이동한다. 음악 추천 카드는 현재 제공하지 않는다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
+이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·오늘의 글귀·기능 업데이트(감정 기록)·상점·대화 주제 순서로 배경, 제목, 본문과 버튼을 정의한다. 운세 날짜는 `date` 요소의 `{day}`로 요청 시간대의 오늘을 표시하고, 질문은 `message` 요소로 분리해 굵기를 각각 조절한다. 오늘의 글귀 카드만 `shape_v1` 버튼 대신 `image_v1` 원형 재생 버튼과 `action_region_v1`을 쓰고 문장 자체는 배너에 넣지 않는다. 나머지 카드는 `shape_v1` + `text_v1` + `action_region_v1` 버튼이다. 버튼은 각각 기존 운세 화면, 오늘의 글귀 팝업, 감정 기록 팝업, 상점 화면, 주제 준비를 거친 대화 화면으로 이동한다. 음악 추천 카드는 현재 제공하지 않는다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
 
 ## 이미지 준비
 
@@ -81,10 +81,15 @@ PY_IMAGE
 | `music.daily_title` | `app/services/banner_music.py`의 앱 내장 6곡 중 현지 날짜를 SHA256으로 결정한 추천 곡명. format null. 같은 현지 날짜에는 사용자·언어·재시작과 무관하게 유지하며, 다음 날 재선정 시 같은 곡이 나올 수도 있다. DB·배치·LLM 없이 계산한다 |
 | `topic.question` | 현재 offer의 질문 원문. format null, text에는 `{question}` 단독 사용 |
 | `routines.remaining_today` | 본인·오늘 요일 예정·미삭제·현지 오늘 미완료 루틴 수. format은 null. 0개면 의존 배너 숨김 |
+| `affirmation.acknowledged_today` | 요청 사용자가 오늘 현지 날짜에 오늘의 글귀를 확인했으면 1, 아니면 0. format은 null. `when`은 `eq 0` 필수이므로 확인한 날에는 카드가 빠진다. 확인은 `POST /daily-affirmation/acknowledge`, 문장은 `GET /daily-affirmation`이 담당하며 문장 자체는 배너 문구에 넣지 않는다 |
+
+`routines.remaining_today`와 `affirmation.acknowledged_today`는 각각 `remaining > 0`과 `acknowledged == 0`이라는 서로 다른 `when` 조건을 요구하므로 한 카드에 함께 쓸 수 없다.
+
+오늘의 글귀 문장의 편집 원본은 [app/resources/affirmations.json](../app/resources/affirmations.json)이며 ko·en·ja를 함께 적는다. 문장은 현지 날짜 서수를 문장 수로 나눈 주기마다 고정 순열을 돌려 고르므로(한 주기 안에서 모든 문장이 한 번씩, 이틀 연속 같은 문장 없음) 같은 날짜에는 전원이 같은 문장을 받고 DB·배치·LLM을 쓰지 않는다.
 
 음악 곡 ID·제목은 클라 `BgmTrack` 및 각 언어 ARB와 일치시킨다. 현재 6곡의 제목은 모든 언어에서 동일한 영문 고유 제목이다. 음악 추천은 `data_dependencies: ["user.local_date"]`와 다음 현지 자정 `valid_until`을 사용하므로 기존 앱의 날짜 갱신 규약을 재사용한다. `open_music`에는 곡 ID를 전달하지 않으며 자동 선택·재생하지 않는다.
 
-문구는 `{"kind":"template","value":"오늘은 {day}"}`처럼 작성한다. `{day}`는 등록한 binding alias이며 literal 중괄호는 `{{`/`}}`로 쓴다. `count_cases`는 0/1/그 외 문구를 선택한다. `when`은 binding의 `eq` 또는 `gt` 조건이며 루틴 배너에는 `remaining > 0` 조건을 둔다.
+문구는 `{"kind":"template","value":"오늘은 {day}"}`처럼 작성한다. `{day}`는 등록한 binding alias이며 literal 중괄호는 `{{`/`}}`로 쓴다. `count_cases`는 0/1/그 외 문구를 선택한다. `when`은 binding의 `eq` 또는 `gt` 조건이며 루틴 배너에는 `remaining > 0`, 오늘의 글귀 배너에는 `acknowledged == 0` 조건을 둔다.
 
 `ko`, `en`, `ja` 등 언어별 canvas를 저장한다. 요청 언어가 없으면 영어 canvas 전체를 사용한다. 서버가 사용된 capability를 자동 수집하므로 지원하지 않는 앱에는 해당 카드를 보내지 않는다.
 

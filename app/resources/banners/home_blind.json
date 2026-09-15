@@ -595,6 +595,450 @@
       }
     },
     {
+      "id": "affirmation-daily",
+      "component": "banner_canvas_v1",
+      "layout_profile": "home_blind_v1",
+      "enabled": true,
+      "starts_at": null,
+      "ends_at": null,
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "min_app_version": null,
+      "max_app_version_exclusive": null,
+      "bindings": {
+        "acknowledged": {
+          "source": "affirmation.acknowledged_today",
+          "format": null
+        }
+      },
+      "when": {
+        "binding": "acknowledged",
+        "operator": "eq",
+        "value": 0
+      },
+      "canvases_by_locale": {
+        "en": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
+              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
+              "byte_length": 10684,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FEEFDE"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "Daily affirmation"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.3,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "Reveal your daily affirmation"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "play-button",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.4,
+                "y": 0.55,
+                "width": 0.2,
+                "height": 0.363
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
+                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
+                "byte_length": 5142,
+                "pixel_width": 240,
+                "pixel_height": 240,
+                "media_type": "image/webp"
+              },
+              "fit": "contain",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.5,
+                "width": 0.4,
+                "height": 0.46
+              },
+              "content_ids": [
+                "play-button"
+              ],
+              "accessibility_label": "Reveal today's affirmation",
+              "semantics_order": 2,
+              "action": {
+                "type": "open_affirmation"
+              }
+            }
+          ]
+        },
+        "ko": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
+              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
+              "byte_length": 10684,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FEEFDE"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 글귀"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.3,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "오늘의 글귀를 확인해 보세요"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "play-button",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.4,
+                "y": 0.55,
+                "width": 0.2,
+                "height": 0.363
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
+                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
+                "byte_length": 5142,
+                "pixel_width": 240,
+                "pixel_height": 240,
+                "media_type": "image/webp"
+              },
+              "fit": "contain",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.5,
+                "width": 0.4,
+                "height": 0.46
+              },
+              "content_ids": [
+                "play-button"
+              ],
+              "accessibility_label": "오늘의 글귀 보기",
+              "semantics_order": 2,
+              "action": {
+                "type": "open_affirmation"
+              }
+            }
+          ]
+        },
+        "ja": {
+          "background": {
+            "type": "image_background_v1",
+            "source": {
+              "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-background-1-807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78.webp",
+              "sha256": "807e9d8641d6ac31c6ca5f6a5fe210cc246d2218be6d6456ae97a0ae0f8eec78",
+              "byte_length": 10684,
+              "pixel_width": 1000,
+              "pixel_height": 551,
+              "media_type": "image/webp"
+            },
+            "fit": "cover",
+            "alignment": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "base_color": "#FEEFDE"
+          },
+          "radius": 16,
+          "border": {
+            "width": 0,
+            "color": "#2A1D15"
+          },
+          "elements": [
+            {
+              "id": "heading",
+              "type": "text_v1",
+              "semantics_order": 0,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.08,
+                "y": 0.09,
+                "width": 0.84,
+                "height": 0.14
+              },
+              "text": {
+                "kind": "template",
+                "value": "今日のことば"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 12,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 1,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "heading-divider",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.458,
+                "y": 0.254,
+                "width": 0.084,
+                "height": 0.012
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#000000"
+              },
+              "radius": 0.9,
+              "border": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "message",
+              "type": "text_v1",
+              "semantics_order": 1,
+              "vertical_align": "center",
+              "frame": {
+                "x": 0.06,
+                "y": 0.3,
+                "width": 0.88,
+                "height": 0.17
+              },
+              "text": {
+                "kind": "template",
+                "value": "今日のことばを見てみよう"
+              },
+              "style": {
+                "font": "body",
+                "font_size": 16,
+                "weight": 600,
+                "color": "#000000",
+                "align": "center",
+                "max_lines": 2,
+                "line_height": 1.15
+              }
+            },
+            {
+              "id": "play-button",
+              "type": "image_v1",
+              "frame": {
+                "x": 0.4,
+                "y": 0.55,
+                "width": 0.2,
+                "height": 0.363
+              },
+              "source": {
+                "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/banner-assets/affirmation-play-1-5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f.webp",
+                "sha256": "5a0adfc4aff7a963307c26899b1270bec8af9ca7e83fcd0db8568ba32e7fd47f",
+                "byte_length": 5142,
+                "pixel_width": 240,
+                "pixel_height": 240,
+                "media_type": "image/webp"
+              },
+              "fit": "contain",
+              "alignment": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "accessibility_label": null,
+              "semantics_order": null
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.5,
+                "width": 0.4,
+                "height": 0.46
+              },
+              "content_ids": [
+                "play-button"
+              ],
+              "accessibility_label": "今日のことばを見る",
+              "semantics_order": 2,
+              "action": {
+                "type": "open_affirmation"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "mood-daily",
       "component": "banner_canvas_v1",
       "layout_profile": "home_blind_v1",

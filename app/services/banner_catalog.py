@@ -193,7 +193,7 @@ def compile_canvas(
 ) -> BannerCanvas:
     raw = canvas.model_dump(mode="json")
     for element in raw["elements"]:
-        if element.get("action", {}).get("type") == "acknowledge_affirmation_v1":
+        if element.get("action", {}).get("type") in {"acknowledge_affirmation_v1", "open_affirmation_screen_v1"}:
             if local_date is None:
                 raise ValueError("affirmation action date unavailable")
             element["action"]["local_date"] = local_date.isoformat()

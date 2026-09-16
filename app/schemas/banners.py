@@ -147,12 +147,12 @@ class BannerAuthoredTopicAction(BannerModel):
 
 
 class BannerAffirmationAction(BannerModel):
-    type: Literal["acknowledge_affirmation_v1"]
+    type: Literal["acknowledge_affirmation_v1", "open_affirmation_screen_v1"]
     local_date: date
 
 
 class BannerAuthoredAffirmationAction(BannerModel):
-    type: Literal["acknowledge_affirmation_v1"]
+    type: Literal["acknowledge_affirmation_v1", "open_affirmation_screen_v1"]
 
 
 Action = Annotated[BannerAction | BannerTopicAction | BannerAffirmationAction, Field(discriminator="type")]
@@ -424,6 +424,11 @@ class BannerDefinition(BannerModel):
                 b.source for b in self.bindings.values()
             }:
                 raise ValueError("affirmation check requires text and acknowledgement bindings")
+            if any(getattr(getattr(e, "action", None), "type", None)
+                   == "open_affirmation_screen_v1" for e in canvas.elements) and not any(
+                       b.source == "affirmation.acknowledged_today" for b in self.bindings.values()
+                   ):
+                raise ValueError("affirmation screen requires acknowledgement binding")
             topic_actions = [e for e in canvas.elements
                              if getattr(getattr(e, "action", None), "type", None)
                              == "open_topic_conversation_v1"]

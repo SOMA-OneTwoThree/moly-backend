@@ -34,7 +34,7 @@
 | 배치 규칙 | `home_blind_v1`: 고정 카드 크기·폰트 매핑·배율·터치 제약 |
 | 요소 | `text_v1`, `button_v1`, `image_v1`, `shape_v1`, `action_region_v1` |
 | 배경 | `solid_v1`, `linear_gradient_v1`, `image_background_v1` |
-| action | `open_fortune`, `open_shop`, `open_conversation`, `open_routines`, `acknowledge_affirmation_v1`, `open_topic_conversation_v1` |
+| action | `open_fortune`, `open_shop`, `open_conversation`, `open_routines`, `open_affirmation_screen_v1`, `acknowledge_affirmation_v1`, `open_topic_conversation_v1` |
 
 - 내부 `frame={x,y,width,height}`는 **카드 전체 기준** 0..1 좌표다. x/y≥0, width/height>0, x+width/y+height≤1, 모두 유한수다.
   이 frame은 내부 요소에만 존재한다. canvas 최상위에는 크기/위치 필드를 두지 않는다.
@@ -170,12 +170,13 @@ count는 조회 시점 값이며 타 기기의 즉시 변경을 보장하지 않
 | open_mood | 기존 감정 기록 팝업. 달력·첫 진입 안내·작성/수정/삭제 흐름 유지. 자동 기록 없음 |
 | open_timer | 기존 타이머 설정. 자동 시작 없음 |
 | open_music | 기존 음악 선택. 자동 재생 없음 |
+| open_affirmation_screen_v1 | 오늘의 문장 전체화면으로 이동. 배너 버튼은 조회만 수행하며 확인 저장은 전체화면 버튼에서 수행 |
 | acknowledge_affirmation_v1 | 체크한 문장의 `local_date`로 `POST /daily-affirmation/acknowledge` 호출. 캐피 탭과 동일한 진동, 성공 시 당일 카드 제외. 팝업 없음 |
 | open_conversation | 기존 대화 진입, chatEnabled 등 접근 제한 유지 |
 | open_fortune | 기존 운세 화면으로 이동/복귀. 운세 실제 API 연동 완료를 뜻하지 않음 |
 | open_topic_conversation_v1 | `topic_ref`로 클릭한 질문을 준비한 뒤 기존 대화에 연결 |
 
-`acknowledge_affirmation_v1`은 서버가 응답에 `local_date`(YYYY-MM-DD)를 채운다. 작성 파일에는 type만 쓴다. 클라이언트는 표시 날짜를 그대로 저장 요청에 보내며 날짜 만료(409)는 새 카드 재조회로 처리한다. 기존 `open_affirmation`은 구형 schema 호환만 남으며 새 클라이언트는 지원하지 않는다. 체크·주제 이외의 action은 매개변수 없음. 각 action 이름의 capability가 있어야 해당 카드를 제공한다. 주제 action은 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
+`open_affirmation_screen_v1`과 `acknowledge_affirmation_v1`은 서버가 응답에 `local_date`(YYYY-MM-DD)를 채운다. 작성 파일에는 type만 쓴다. 클라이언트는 표시 날짜를 그대로 저장 요청에 보내며 날짜 만료(409)는 새 카드 재조회로 처리한다. 기존 `open_affirmation`은 구형 schema 호환만 남으며 새 클라이언트는 지원하지 않는다. 문장 전체화면·체크·주제 이외의 action은 매개변수 없음. 각 action 이름의 capability가 있어야 해당 카드를 제공한다. 주제 action은 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
 새 의미/매개변수는 별도 action 계약이 필요하다. 버튼 없는 안내형 카드도 허용한다.
 
 ## 5. 갱신·실패·호환성
@@ -243,3 +244,5 @@ manifest 문법·wire schema·layout profile의 의미를 별도로 버전 관�
 3. 필드 정의·예시를 여러 문서에 복제하지 않는다. 팀 공유본은 입문용이며 최신 상세는 레포 문서를 따른다.
 4. 필드/동작 변경 시 schema·fixture·관련 구현/검증 기준을 함께 갱신한다. 새 독립 책임이 생긴 경우에만 절을 추가한다.
 5. 변경 완료 전 링크·예시·명령·양쪽 사본·실제 구현과의 일치를 확인한다. 문서 사본 동기화는 자동 CI 기능으로 가정하지 않는다.
+
+문장 전체화면 진입 카드는 안내 문구만 표시하며 `affirmation.acknowledged_today` binding을 필수로 갖는다. 전체화면은 GET `/daily-affirmation`으로 현재 날짜·문장을 조회하고 확인 버튼에서 응답의 날짜를 POST한다. `open_affirmation_screen_v1` capability가 없는 기존 앱에 새 진입 카드를 제공하지 않는다.

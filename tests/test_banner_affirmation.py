@@ -101,14 +101,13 @@ def test_published_card_keeps_its_authored_shape():
     assert banner.when.operator == "eq" and banner.when.value == 0
     for locale, canvas in banner.canvases_by_locale.items():
         assert {e.id for e in canvas.elements} == {
-            "heading", "heading-divider", "message", "check-image", "primary-action"
+            "heading", "heading-divider", "message", "primary-action"
         }
         region = next(e for e in canvas.elements if e.id == "primary-action")
-        assert region.action.type == "acknowledge_affirmation_v1"
-        # 체크 이미지만 버튼이다. 카드 본문은 액션 영역에 포함하지 않는다.
-        assert region.frame.model_dump() == {"x": 0.4295, "y": 0.68, "width": 0.141, "height": 0.256}
-        assert region.content_ids == ("check-image",)
-        assert "acknowledge_affirmation_v1" in capabilities(canvas)
+        assert region.action.type == "open_affirmation_screen_v1"
+        assert region.frame.model_dump() == {"x": 0.26, "y": 0.68, "width": 0.48, "height": 0.256}
+        assert "open_affirmation_screen_v1" in capabilities(canvas)
+        assert "affirmation.text" not in {b.source for b in banner.bindings.values()}
         assert locale in {"en", "ko", "ja"}
 
 
@@ -133,7 +132,7 @@ async def test_list_banners_reads_the_daily_marker(acknowledged_at, present):
     if present:
         card = next(card for card in feed.items if card.id == "affirmation-daily")
         assert card.valid_until == AppDay.at(NOW, "Asia/Seoul").ends_at
-        assert card.data_dependencies == ("affirmation.acknowledged_today", "affirmation.text")
+        assert card.data_dependencies == ("affirmation.acknowledged_today",)
 
 
 def test_inline_sentence_contains_displayed_date_and_requires_new_capability():
@@ -157,3 +156,20 @@ def test_inline_sentence_contains_displayed_date_and_requires_new_capability():
         catalog, now=NOW, platform="ios", app_version="1.0.0", locale="en",
         supported=(supported - {"acknowledge_affirmation_v1"}) | {"open_affirmation"},
     )
+
+
+def test_fullscreen_entry_requires_its_own_capability_and_does_not_acknowledge():
+    catalog = BannerCatalog.load()
+    banner = next(b for b in catalog.manifest.banners if b.id == "affirmation-daily")
+    canvas = banner.canvases_by_locale["ko"]
+    caps = capabilities(canvas)
+    def candidates(supported):
+        return select_candidates(catalog, now=NOW, platform="ios", app_version="1.1.7",
+                                 locale="ko", supported=supported)
+    assert not any(b.id == "affirmation-daily" for b, _ in candidates(
+        (caps - {"open_affirmation_screen_v1"}) | {"acknowledge_affirmation_v1"}))
+    feed = render_feed(catalog, candidates(caps), now=NOW, local_date=NOW.date(),
+                       day_ends_at=NOW, remaining=None, acknowledged=0)
+    card = next(c for c in feed.items if c.id == "affirmation-daily")
+    assert next(e for e in card.canvas.elements if e.id == "message").text == "오늘의 문장을 확인하세요!"
+    assert card.canvas.elements[-1].action.local_date == NOW.date()

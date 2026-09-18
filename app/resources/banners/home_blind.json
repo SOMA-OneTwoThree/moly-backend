@@ -714,15 +714,35 @@
               }
             },
             {
-              "id": "primary-action",
-              "type": "button_v1",
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.25,
+                "y": 0.68,
+                "width": 0.5,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#2A1D15"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#2A1D15"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
               "semantics_order": 2,
               "vertical_align": "center",
               "frame": {
-                "x": 0.26,
-                "y": 0.68,
-                "width": 0.48,
-                "height": 0.256
+                "x": 0.27,
+                "y": 0.7,
+                "width": 0.46,
+                "height": 0.17
               },
               "text": {
                 "kind": "template",
@@ -736,15 +756,23 @@
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.25,
+                "y": 0.68,
+                "width": 0.5,
+                "height": 0.256
               },
-              "background_color": "#2A1D15",
-              "radius": 18,
-              "border": {
-                "width": 0,
-                "color": "#2A1D15"
-              },
-              "padding_horizontal": 8,
-              "padding_vertical": 2,
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "Read sentence",
+              "semantics_order": 3,
               "action": {
                 "type": "open_affirmation_screen_v1"
               }
@@ -846,15 +874,35 @@
               }
             },
             {
-              "id": "primary-action",
-              "type": "button_v1",
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#2A1D15"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#2A1D15"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
               "semantics_order": 2,
               "vertical_align": "center",
               "frame": {
-                "x": 0.26,
-                "y": 0.68,
-                "width": 0.48,
-                "height": 0.256
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
               },
               "text": {
                 "kind": "template",
@@ -868,15 +916,23 @@
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
               },
-              "background_color": "#2A1D15",
-              "radius": 18,
-              "border": {
-                "width": 0,
-                "color": "#2A1D15"
-              },
-              "padding_horizontal": 8,
-              "padding_vertical": 2,
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "문장 보기",
+              "semantics_order": 3,
               "action": {
                 "type": "open_affirmation_screen_v1"
               }
@@ -978,19 +1034,39 @@
               }
             },
             {
-              "id": "primary-action",
-              "type": "button_v1",
+              "id": "action-surface",
+              "type": "shape_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.21
+              },
+              "background": {
+                "type": "solid_v1",
+                "color": "#2A1D15"
+              },
+              "radius": 16.5,
+              "border": {
+                "width": 0,
+                "color": "#2A1D15"
+              },
+              "semantics_order": null
+            },
+            {
+              "id": "action-label",
+              "type": "text_v1",
               "semantics_order": 2,
               "vertical_align": "center",
               "frame": {
-                "x": 0.26,
-                "y": 0.68,
-                "width": 0.48,
-                "height": 0.256
+                "x": 0.32,
+                "y": 0.7,
+                "width": 0.36,
+                "height": 0.17
               },
               "text": {
                 "kind": "template",
-                "value": "ひとことを見る"
+                "value": "文を読む"
               },
               "style": {
                 "font": "body",
@@ -1000,15 +1076,23 @@
                 "align": "center",
                 "max_lines": 1,
                 "line_height": 1.15
+              }
+            },
+            {
+              "id": "primary-action",
+              "type": "action_region_v1",
+              "frame": {
+                "x": 0.3,
+                "y": 0.68,
+                "width": 0.4,
+                "height": 0.256
               },
-              "background_color": "#2A1D15",
-              "radius": 18,
-              "border": {
-                "width": 0,
-                "color": "#2A1D15"
-              },
-              "padding_horizontal": 8,
-              "padding_vertical": 2,
+              "content_ids": [
+                "action-surface",
+                "action-label"
+              ],
+              "accessibility_label": "今日のひとことを読む",
+              "semantics_order": 3,
               "action": {
                 "type": "open_affirmation_screen_v1"
               }

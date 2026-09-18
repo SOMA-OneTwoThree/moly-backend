@@ -101,11 +101,15 @@ def test_published_card_keeps_its_authored_shape():
     assert banner.when.operator == "eq" and banner.when.value == 0
     for locale, canvas in banner.canvases_by_locale.items():
         assert {e.id for e in canvas.elements} == {
-            "heading", "heading-divider", "message", "primary-action"
+            "heading", "heading-divider", "message", "action-surface", "action-label", "primary-action"
         }
         region = next(e for e in canvas.elements if e.id == "primary-action")
         assert region.action.type == "open_affirmation_screen_v1"
-        assert region.frame.model_dump() == {"x": 0.26, "y": 0.68, "width": 0.48, "height": 0.256}
+        fortune = next(b for b in catalog.manifest.banners if b.id == "composed-image-test")
+        reference = {e.id: e for e in fortune.canvases_by_locale[locale].elements}
+        for element_id in ("action-surface", "action-label", "primary-action"):
+            element = next(e for e in canvas.elements if e.id == element_id)
+            assert element.frame == reference[element_id].frame
         assert "open_affirmation_screen_v1" in capabilities(canvas)
         assert "affirmation.text" not in {b.source for b in banner.bindings.values()}
         assert locale in {"en", "ko", "ja"}

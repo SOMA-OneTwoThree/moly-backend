@@ -359,8 +359,8 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 
 ```json
 { "plans":[
-  { "product_id":"app.moly.sub.monthly","period":"monthly","hay_grant":1000 },
-  { "product_id":"app.moly.sub.yearly","period":"yearly","hay_grant":4000 }
+  { "product_id":"com.geniusjun.moly.plus.monthly","period":"monthly","hay_grant":1000 },
+  { "product_id":"com.geniusjun.moly.plus.yearly","period":"yearly","hay_grant":4000 }
 ], "benefits":["대화 한도 확장","개인 일기 발행","배너 광고 제거","건초 증정"] }
 ```
 

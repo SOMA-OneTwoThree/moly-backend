@@ -138,7 +138,7 @@ ROUTINE = {
             SubscriptionPlansResponse,
             {
                 "plans": [
-                    {"product_id": "app.moly.sub.monthly", "period": "monthly", "hay_grant": 1000}
+                    {"product_id": "com.geniusjun.moly.plus.monthly", "period": "monthly", "hay_grant": 1000}
                 ],
                 "benefits": ["대화 한도 확장"],
             },

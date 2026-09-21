@@ -164,7 +164,7 @@ def _rc_event(**over):
         "id": "evt-1",
         "type": "INITIAL_PURCHASE",
         "app_user_id": UID,
-        "product_id": "app.moly.sub.monthly",
+        "product_id": "com.geniusjun.moly.plus.monthly",
         "original_transaction_id": "o-rc-1",
         "transaction_id": "t-rc-1",
         "expiration_at_ms": 1_900_000_000_000,
@@ -578,8 +578,8 @@ async def test_rc_product_change_no_state_or_plan_change(monkeypatch):
     monkeypatch.setattr(subscription, "_by_original_tx", _by)
     s = FakeSession(exec_results=[[]])  # Apple 상품(config 미조회)
     res = await subscription.handle_revenuecat_event(
-        s, _rc_event(type="PRODUCT_CHANGE", product_id="app.moly.sub.monthly",
-                     new_product_id="app.moly.sub.yearly"))
+        s, _rc_event(type="PRODUCT_CHANGE", product_id="com.geniusjun.moly.plus.monthly",
+                     new_product_id="com.geniusjun.moly.plus.yearly"))
     assert res.outcome == HANDLED
     assert sub.plan == "monthly"  # 미변경
     assert not any(getattr(o, "store_transaction_id", None) for o in s.added)  # 결제 기록 없음
@@ -830,6 +830,27 @@ async def test_rc_google_base_plan_suffix_normalized(monkeypatch):
     await subscription.handle_revenuecat_event(
         s, _rc_event(product_id="moly_sub_monthly:monthly-autorenew"))
     assert next(o for o in s.added if getattr(o, "status", None) == "active").plan == "monthly"
+
+
+async def test_rc_google_catalog_product_maps_without_config(monkeypatch):
+    """Google Play도 카탈로그와 같은 상품ID — basePlan 접미사가 붙어도 config 매핑 없이 요금제 결정."""
+    async def _by(session, otx, lock=False):
+        return None
+
+    async def _pe(session, tx):
+        return True
+
+    async def _grant(session, uid, plan):
+        return True
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    monkeypatch.setattr(subscription.payment, "payment_exists", _pe)
+    monkeypatch.setattr(subscription, "_grant_exists", _grant)
+    s = FakeSession(exec_results=[_cfg_row({})])
+    res = await subscription.handle_revenuecat_event(
+        s, _rc_event(product_id="com.geniusjun.moly.plus.yearly:yearly", store="PLAY_STORE"))
+    sub_added = next(o for o in s.added if getattr(o, "status", None) == "active")
+    assert sub_added.plan == "yearly" and res.outcome == HANDLED
 
 
 async def test_rc_unmapped_product_permanent_failure(monkeypatch):

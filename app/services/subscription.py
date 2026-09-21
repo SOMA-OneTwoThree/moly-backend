@@ -49,15 +49,15 @@ _ENV_CAP = 32      # environment 등 외부 짧은 문자열 저장 상한
 
 HAY_GRANT = {"monthly": 1000, "yearly": 4000}
 _VALID_PLANS = frozenset(HAY_GRANT)  # 내부 요금제 화이트리스트(config 오값 방어)
-# 구독 상품 카탈로그(클라 노출·매핑 단일 소스). Apple 상품ID는 확정(코드 소스).
+# 구독 상품 카탈로그(클라 노출·매핑 단일 소스). 상품ID는 App Store·Google Play 동일(코드 소스).
 _PLANS = [
-    {"product_id": "app.moly.sub.monthly", "period": "monthly", "hay_grant": 1000},
-    {"product_id": "app.moly.sub.yearly", "period": "yearly", "hay_grant": 4000},
+    {"product_id": "com.geniusjun.moly.plus.monthly", "period": "monthly", "hay_grant": 1000},
+    {"product_id": "com.geniusjun.moly.plus.yearly", "period": "yearly", "hay_grant": 4000},
 ]
-# Apple 상품ID → 내부 요금제. _PLANS에서 파생(단일 소스).
-_APPLE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS}
-# Google Play 상품ID → 내부 요금제. Play Console 확정 후 app_config로 주입(코드 재배포 없이).
-# 형식: {"<구독ID>[:<basePlanId>]": "monthly"|"yearly"}. 미설정 시 Google 구독 이벤트는
+# 스토어 상품ID → 내부 요금제. _PLANS에서 파생(단일 소스).
+_STORE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS}
+# 추가 Google Play 상품ID → 내부 요금제(코드 카탈로그 외 ID 보강용). app_config로 주입(코드 재배포 없이).
+# 형식: {"<구독ID>[:<basePlanId>]": "monthly"|"yearly"}. 카탈로그에도 매핑에도 없는 상품은
 # "미등록 상품"으로 관측(혜택 미지급). SOMA-341.
 _GOOGLE_PRODUCTS_KEY = "google_play_subscription_products"
 _BENEFITS = {
@@ -100,8 +100,8 @@ async def _resolve_plan(
     """RC 이벤트 상품ID → 내부 요금제(스토어 무관). 반환 = (plan, 유효 상품ID).
 
     - PRODUCT_CHANGE는 변경 후 상품(new_product_id)을 기준으로 요금제 결정.
-    - Apple(코드 소스) 우선 조회 → 없으면 Google(app_config) 조회. Apple 상품이면
-      config 조회 없이 반환(핫패스·기존 동작 보존).
+    - 코드 카탈로그(양 스토어 공통 ID) 우선 조회 → 없으면 Google(app_config) 조회.
+      카탈로그 상품이면 config 조회 없이 반환(핫패스).
     - Google Play 구독은 '구독ID:basePlanId' 형태로 올 수 있어, 전체 일치 실패 시
       ':' 앞 구독ID로 재시도.
     """
@@ -110,14 +110,14 @@ async def _resolve_plan(
         pid = event.get("new_product_id") or pid
     if not pid:
         return None, pid
-    plan = _APPLE_PRODUCTS.get(pid)
+    plan = _STORE_PRODUCTS.get(pid)
     if plan is not None:
         return plan, pid
     google = await _google_products(session)
     plan = google.get(pid)
     if plan is None and ":" in pid:  # Google base plan 접미사 정규화
         base = pid.split(":", 1)[0]
-        plan = _APPLE_PRODUCTS.get(base) or google.get(base)
+        plan = _STORE_PRODUCTS.get(base) or google.get(base)
     if plan is not None and plan not in _VALID_PLANS:  # config 오타·비정상 값 방어
         _log.warning("RC 웹훅: 유효하지 않은 plan 매핑값(%r) — product=%r", plan, pid)
         plan = None

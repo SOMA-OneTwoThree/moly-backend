@@ -78,3 +78,10 @@ schema_contract.json을 재생성한다. 기존 환경에는 `db/changes/remote_
 - 공개 URL 7개 모두 HTTP 200, redirect 없음, MIME·크기·SHA256 검증 후 트랜잭션으로 활성화. 기존 내장 6곡은 유지한다.
 - 원본 간 음량 차이 및 일부 반복 경계의 저레벨 구간/샘플 불연속을 발견했다. 사용자가 원본으로 폰에서 들어본 뒤 보정 여부를 결정하기로 했다.
 - 개발 DB만 변경했다. 운영 DB·Storage에는 등록하지 않았다.
+
+### 2026-09-23 영어 제목 통일
+
+사용자 요청에 따라 백색 소음 7개도 Lo-fi처럼 모든 앱 언어에서 영어 제목을 사용한다.
+Light Rain, Heavy Rain, Ocean Waves, Forest Sounds, City Sounds, Crackling Fire, White Noise 순서다.
+개발 DB의 title과 ko/en/ja title_i18n만 변경했다. 파일 URL·revision·hash·정렬은 그대로다.
+한·영·일 카탈로그 서비스 응답을 개발 DB에서 읽어 7개 게시 metadata와 일치함을 확인했다.

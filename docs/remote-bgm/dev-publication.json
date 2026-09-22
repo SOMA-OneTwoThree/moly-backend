@@ -3,7 +3,7 @@
     "track": {
       "id": "light-rain",
       "category": "white_noise",
-      "title": "잔잔한 빗소리",
+      "title": "Light Rain",
       "source": "remote",
       "revision": "v1-49a9bb800098820a",
       "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/light-rain/v1-49a9bb800098820a/audio.wav",
@@ -13,9 +13,9 @@
       "sort_order": 0
     },
     "title_i18n": {
-      "ko": "잔잔한 빗소리",
+      "ko": "Light Rain",
       "en": "Light Rain",
-      "ja": "小雨の音"
+      "ja": "Light Rain"
     },
     "original": "1.light_rain.wav",
     "object_path": "light-rain/v1-49a9bb800098820a/audio.wav"
@@ -24,7 +24,7 @@
     "track": {
       "id": "heavy-rain",
       "category": "white_noise",
-      "title": "거센 빗소리",
+      "title": "Heavy Rain",
       "source": "remote",
       "revision": "v1-0cdc3c7a7ce744d7",
       "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/heavy-rain/v1-0cdc3c7a7ce744d7/audio.mp3",
@@ -34,9 +34,9 @@
       "sort_order": 1
     },
     "title_i18n": {
-      "ko": "거센 빗소리",
+      "ko": "Heavy Rain",
       "en": "Heavy Rain",
-      "ja": "大雨の音"
+      "ja": "Heavy Rain"
     },
     "original": "2. heavy_rain.mp3",
     "object_path": "heavy-rain/v1-0cdc3c7a7ce744d7/audio.mp3"
@@ -45,7 +45,7 @@
     "track": {
       "id": "ocean-waves",
       "category": "white_noise",
-      "title": "파도 소리",
+      "title": "Ocean Waves",
       "source": "remote",
       "revision": "v1-35d4152492836aef",
       "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/ocean-waves/v1-35d4152492836aef/audio.wav",
@@ -55,9 +55,9 @@
       "sort_order": 2
     },
     "title_i18n": {
-      "ko": "파도 소리",
+      "ko": "Ocean Waves",
       "en": "Ocean Waves",
-      "ja": "波の音"
+      "ja": "Ocean Waves"
     },
     "original": "3.wave",
     "object_path": "ocean-waves/v1-35d4152492836aef/audio.wav"
@@ -66,7 +66,7 @@
     "track": {
       "id": "forest",
       "category": "white_noise",
-      "title": "숲속 소리",
+      "title": "Forest Sounds",
       "source": "remote",
       "revision": "v1-2c19c3b536593305",
       "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/forest/v1-2c19c3b536593305/audio.wav",
@@ -76,9 +76,9 @@
       "sort_order": 3
     },
     "title_i18n": {
-      "ko": "숲속 소리",
+      "ko": "Forest Sounds",
       "en": "Forest Sounds",
-      "ja": "森の音"
+      "ja": "Forest Sounds"
     },
     "original": "4. Forest.wav",
     "object_path": "forest/v1-2c19c3b536593305/audio.wav"
@@ -87,7 +87,7 @@
     "track": {
       "id": "city",
       "category": "white_noise",
-      "title": "도시 소리",
+      "title": "City Sounds",
       "source": "remote",
       "revision": "v1-758d0a12ea04c2d6",
       "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/city/v1-758d0a12ea04c2d6/audio.mp3",
@@ -97,9 +97,9 @@
       "sort_order": 4
     },
     "title_i18n": {
-      "ko": "도시 소리",
+      "ko": "City Sounds",
       "en": "City Sounds",
-      "ja": "街の音"
+      "ja": "City Sounds"
     },
     "original": "5. city.mp3",
     "object_path": "city/v1-758d0a12ea04c2d6/audio.mp3"
@@ -108,7 +108,7 @@
     "track": {
       "id": "fire",
       "category": "white_noise",
-      "title": "불 타는 소리",
+      "title": "Crackling Fire",
       "source": "remote",
       "revision": "v1-8c7824d9350481a9",
       "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/fire/v1-8c7824d9350481a9/audio.wav",
@@ -118,9 +118,9 @@
       "sort_order": 5
     },
     "title_i18n": {
-      "ko": "불 타는 소리",
+      "ko": "Crackling Fire",
       "en": "Crackling Fire",
-      "ja": "火の音"
+      "ja": "Crackling Fire"
     },
     "original": "6.fire.wav",
     "object_path": "fire/v1-8c7824d9350481a9/audio.wav"
@@ -129,7 +129,7 @@
     "track": {
       "id": "white-noise",
       "category": "white_noise",
-      "title": "백색 소음",
+      "title": "White Noise",
       "source": "remote",
       "revision": "v1-20adcf7d57614dee",
       "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/white-noise/v1-20adcf7d57614dee/audio.mp3",
@@ -139,9 +139,9 @@
       "sort_order": 6
     },
     "title_i18n": {
-      "ko": "백색 소음",
+      "ko": "White Noise",
       "en": "White Noise",
-      "ja": "ホワイトノイズ"
+      "ja": "White Noise"
     },
     "original": "7.original white noise.mp3",
     "object_path": "white-noise/v1-20adcf7d57614dee/audio.mp3"

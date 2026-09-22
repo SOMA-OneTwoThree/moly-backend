@@ -86,6 +86,7 @@ async def products_v2(
 ) -> dict[str, Any]:
     return await shop.get_products(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities),
         bundled_themes=shop.bundled_theme_ids(bundled_themes),
+        subscriber_capable=shop.supports_subscriber_only(capabilities),
     )
 
 
@@ -110,6 +111,7 @@ async def get_equipment_v2(
 ) -> dict[str, Any]:
     return await shop.get_equipment(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities),
         bundled_themes=shop.bundled_theme_ids(bundled_themes),
+        subscriber_capable=shop.supports_subscriber_only(capabilities),
     )
 
 

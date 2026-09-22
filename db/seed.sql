@@ -31,72 +31,16 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 393,
               "height": 852
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/background-day.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/detail.png",
             "z_index": 0
-          },
-          {
-            "id": "player",
-            "frame": {
-              "x": 255.5,
-              "y": 330.1,
-              "width": 137.2,
-              "height": 128.8
-            },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/player-day.png",
-            "z_index": 10
-          },
-          {
-            "id": "sofa",
-            "frame": {
-              "x": 3.7,
-              "y": 341.4,
-              "width": 268.5,
-              "height": 129.3
-            },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/sofa-day.png",
-            "z_index": 20
-          },
-          {
-            "id": "table",
-            "frame": {
-              "x": 38,
-              "y": 543,
-              "width": 318.3,
-              "height": 145.3
-            },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/table-day.png",
-            "z_index": 30
-          },
-          {
-            "id": "clock",
-            "frame": {
-              "x": 74.2,
-              "y": 157.3,
-              "width": 63.7,
-              "height": 64.6
-            },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/clock-day.png",
-            "z_index": 40
-          },
-          {
-            "id": "window",
-            "frame": {
-              "x": 200,
-              "y": 111.6,
-              "width": 151.1,
-              "height": 157
-            },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/window-day.png",
-            "z_index": 50,
-            "night_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/window-night.png"
           }
         ],
-        "character_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/character.png",
+        "character_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/thumb.png",
         "character_frame": {
-          "x": 51,
-          "y": 338.8,
-          "width": 171,
-          "height": 85.2
+          "x": 172,
+          "y": 415,
+          "width": 185,
+          "height": 89
         }
       },
       "detail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/detail.png",

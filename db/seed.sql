@@ -11,7 +11,7 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
   {
     "id": "00000000-0000-4000-8000-000000000101",
     "product_type": "cosmetic",
-    "name": "집",
+    "name": "오두막집",
     "description": null,
     "slot": "theme",
     "price_hay": null,
@@ -31,7 +31,7 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 393,
               "height": 852
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/background-day.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/background-day.png",
             "z_index": 0
           },
           {
@@ -42,7 +42,7 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 137.2,
               "height": 128.8
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/player-day.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/player-day.png",
             "z_index": 10
           },
           {
@@ -53,7 +53,7 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 268.5,
               "height": 129.3
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/sofa-day.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/sofa-day.png",
             "z_index": 20
           },
           {
@@ -64,7 +64,7 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 318.3,
               "height": 145.3
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/table-day.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/table-day.png",
             "z_index": 30
           },
           {
@@ -75,7 +75,7 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 63.7,
               "height": 64.6
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/clock-day.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/clock-day.png",
             "z_index": 40
           },
           {
@@ -86,12 +86,12 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 151.1,
               "height": 157
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/window-day.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/window-day.png",
             "z_index": 50,
-            "night_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/window-night.png"
+            "night_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/window-night.png"
           }
         ],
-        "character_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/character.png",
+        "character_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/character.png",
         "character_frame": {
           "x": 51,
           "y": 338.8,
@@ -99,8 +99,8 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
           "height": 85.2
         }
       },
-      "detail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/detail.png",
-      "thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v1/thumb.png"
+      "detail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/detail.png",
+      "thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_default/v2/thumb.png"
     },
     "hay_amount": null,
     "price_krw": null,
@@ -108,13 +108,13 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
     "is_active": true,
     "sort_order": 1,
     "public_id": "theme_default",
-    "asset_version": 1,
+    "asset_version": 2,
     "is_v2_only": false,
     "play_store_product_id": null,
     "name_i18n": {
-      "en": "Home",
-      "ja": "おうち",
-      "ko": "집"
+      "en": "Cabin",
+      "ja": "山小屋",
+      "ko": "오두막집"
     }
   },
   {

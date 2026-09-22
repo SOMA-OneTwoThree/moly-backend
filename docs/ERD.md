@@ -182,7 +182,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `environment` | text | `Production` / `Sandbox` |
 | `created_at` / `updated_at` | timestamptz | |
 
-- **환불(`revoked`) 처리**: 혜택 즉시 회수(증정 건초 회수) — `refund_revoke` 원장 기록, **잔액 하한 0**, 멱등은 `subscription_hay_grants.revoked_at`(4.4절). 증정 이력은 유지 → 재구독해도 재지급 없음 (구독→증정 소비→환불→재구독 루프 차단). 구독 전용 cosmetic 폐지(appearance_v2)로 장착 해제 처리 불필요.
+- **환불(`revoked`) 처리**: 혜택 즉시 회수(증정 건초 회수) — `refund_revoke` 원장 기록, **잔액 하한 0**, 멱등은 `subscription_hay_grants.revoked_at`(4.4절). 증정 이력은 유지 → 재구독해도 재지급 없음 (구독→증정 소비→환불→재구독 루프 차단). 구독 전용 cosmetic 장착은 조회 시 활성 구독 여부로 투영하므로 별도 해제 처리가 없다.
 - **복원 충돌**: `original_transaction_id`는 Apple ID(기기 결제 계정) 소유라 소셜 로그인 계정과 독립 — 다른 소셜 계정으로 로그인 후 복원하면 이미 매핑된 UNIQUE 키와 충돌한다. 처리(RC 전환 후) = **서버가 해당 웹훅을 무시**(다른 계정 소유 구독 스킵) — 원 계정의 구독 상태 유지.
 
 ### 4.4 `subscription_hay_grants` — 구독 건초 증정 이력 (US-704)
@@ -207,7 +207,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `public_id` | text UNIQUE NULL | **cosmetic에서 사용** — API 노출용 안정 문자열 식별자. 외부에 노출되는 키는 `id`(uuid) 대신 이 값을 사용 |
 | `slot` | text NULL | **cosmetic 전용** — `theme`(테마/배경) \| `hat`(모자) \| `glasses`(안경) \| `neck`(목) \| `body`(몸). 장착 부위이자 상점 탭 분류. 기존 `background`·`head` enum이 `theme`·`hat`/`glasses`로 분리됨(appearance_v2 이후) |
 | `price_hay` | int NULL | **cosmetic 전용** — 서버가 원본 (US-801). **NULL = 구매 불가(기본 지급품 등)**. 판매 상품이면 `≥ 1` 강제(0원 구매는 원장 CHECK `amount≠0`와 충돌하므로 금지). 정책(최소 1,000, 200단위)은 운영·앱 검증 |
-| `is_subscriber_only` | bool NOT NULL default false | **항상 false — 구독 전용 cosmetic 폐지(appearance_v2).** 구독 전용 장착 사용권 방식 폐기 → 모든 cosmetic은 구독 여부 무관하게 HAY 구매 가능(가격 정책으로 조절). cosmetic CHECK로 `false` 강제 |
+| `is_subscriber_only` | bool NOT NULL default false | 구독 전용 cosmetic. 활성 구독(체험·런칭 무료 제외) 중에만 구매 없이 장착하며 `price_hay`는 NULL이다(cosmetic CHECK). 구독이 끝나면 조회 응답에서 theme은 `theme_default`, wearable은 해제로 보인다 |
 | `asset_version` | int NULL | **cosmetic에서 사용** — 에셋 구조 버전. 활성 cosmetic은 `≥ 1` 필수(inactive 상태로만 준비 가능) |
 | `assets` | jsonb NULL | **cosmetic 전용** — v2 구조: `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url` |
 | `is_v2_only` | bool NOT NULL default false | **cosmetic 전용** — `true`이면 rightside(v2) 자세 계약에만 노출. 레거시 카탈로그·인벤토리 조회에서 제외 |
@@ -217,7 +217,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `play_store_product_id` | text UNIQUE NULL | **hay_pack 전용** — Google Play 상품 ID(Play Console 확정 후 주입, NULL 허용) |
 | `is_active` / `sort_order` | | |
 
-- **타입별 CHECK**: `hay_pack`은 hay_amount·app_store_product_id가 필수이고 slot·price_hay·assets는 NULL, is_subscriber_only는 false다. **public_id·asset_version을 NULL로 강제하지 않는다.** `cosmetic`은 public_id·slot이 필수이고 hay_amount·app_store_product_id·play_store_product_id·price_krw는 NULL, is_subscriber_only는 false다. 활성 cosmetic만 asset_version ≥ 1·assets가 필수다. 비활성 준비 상품의 NULL을 일괄 보정하지 않는다.
+- **타입별 CHECK**: `hay_pack`은 hay_amount·app_store_product_id가 필수이고 slot·price_hay·assets는 NULL, is_subscriber_only는 false다. **public_id·asset_version을 NULL로 강제하지 않는다.** `cosmetic`은 public_id·slot이 필수이고 hay_amount·app_store_product_id·play_store_product_id·price_krw는 NULL, is_subscriber_only이면 price_hay가 NULL이다. 활성 cosmetic만 asset_version ≥ 1·assets가 필수다. 비활성 준비 상품의 NULL을 일괄 보정하지 않는다.
 - UNIQUE `(id, slot)` — `user_items` 장착 슬롯 일치 복합 FK 대상.
 - `theme_default`는 가격 NULL인 기본 지급 상품이다. 가입 시 자동 지급·장착한다. 테마 장착 행이 없는 사용자는 앱의 기본 상태로 표시한다(4.8절).
 
@@ -266,7 +266,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `id` | uuid PK | |
 | `user_id` | uuid FK→`profiles` | |
 | `product_id` | uuid FK→`products` | cosmetic만 |
-| `source` | enum `user_item_source` | `purchase`(주문 구매) / `subscription`(구독 연동 지급 — 현재 미사용, 구독 전용 cosmetic 폐지로 사실상 레거시) / `admin_grant`(운영 무상 지급) |
+| `source` | enum `user_item_source` | `purchase`(주문 구매) / `subscription`(구독 전용 cosmetic 장착 행 — 소유 아님, 해제 시 삭제) / `admin_grant`(운영 무상 지급) |
 | `order_id` | uuid FK→`orders` NULL | `purchase`는 주문 연결, 그 외 NULL |
 | `equipped_slot` | text NULL | **NULL = 미장착**. 값 있으면 그 슬롯에 장착 중 — (구)user_equipment 역할. 허용값: `theme` \| `hat` \| `glasses` \| `neck` \| `body` |
 | `equipped_at` | timestamptz NULL | 장착 시기 트래킹 |
@@ -450,7 +450,7 @@ subscriber : subscriptions에 status IN ('active','grace_period') AND expires_at
 trial      : 위가 아니고 now() < profiles.trial_ends_at  (가입 후 2일)
 free       : 그 외
 ```
-- **체험(trial)은 구독과 동일 혜택** — 단 한 가지 제외: 건초 증정 없음(구독 전용 아이템·테마 폐지됨, appearance_v2 이후 모든 cosmetic은 HAY 구매 가능).
+- **체험(trial)은 구독과 동일 혜택** — 제외: 건초 증정 없음, 구독 전용 cosmetic 장착 불가.
 - 티어별 게이팅: 일일 토큰 한도(`app_config` — trial은 subscriber와 동일 수준), 배너 광고(**free만 노출**), 건초 증정(subscriber 결제 시, 플랜별 최초 1회).
 - **일기 분기는 티어가 아니라 사용자 메시지 문자 수 기준**이다. 개인 조건 미달 시 운영 원고가 있을 때만 지급한다.
 
@@ -936,9 +936,9 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | 15 낮/밤 | `products.assets` v2 구조 — `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url`. 전환 시각 = Firebase(클라 원격 설정) |
 | 16 장착 해제 | `user_items.equipped_slot` NULL — 장착 없음 = 기본. `theme` 슬롯은 가입 시 bootstrap_user가 자동 장착 |
 | 17 장착 규칙 (슬롯당 1개) | `user_items` 부분 UNIQUE(user_id, equipped_slot) — 같은 슬롯 장착 = 기존 자동 해제. 슬롯 일치는 복합 FK로 DB 강제 |
-| 18 구독 전용 cosmetic 폐지 | `products.is_subscriber_only` 항상 `false`(appearance_v2 이후 CHECK 강제) — 구독 전용 장착 사용권 방식 폐기. 모든 cosmetic은 HAY 구매 가능 |
+| 18 구독 전용 cosmetic | `products.is_subscriber_only=true` 상품은 비매품(`price_hay` NULL)이며 활성 구독 중에만 장착한다. 장착은 `source='subscription'` 행으로 두고, 구독이 끝나면 조회 응답이 기본 테마·해제로 투영한다 |
 | 19 토큰 정의 (입력+출력 합산) | `messages.input_tokens + output_tokens` → `user_daily_stats.tokens_used` (응답 후 집계, 초과 상태에서 다음 요청 차단) |
-| 20 환불 처리 | `subscriptions.status='revoked'` + `hay_transactions(refund_revoke)` 잔액 하한 0. 멱등 = `grants.revoked_at`, 이력 유지 → 재지급 없음. 구독 전용 cosmetic 폐지로 장착 정리 불필요 |
+| 20 환불 처리 | `subscriptions.status='revoked'` + `hay_transactions(refund_revoke)` 잔액 하한 0. 멱등 = `grants.revoked_at`, 이력 유지 → 재지급 없음. 구독 전용 cosmetic 장착은 조회 시 투영하므로 정리 불필요 |
 
 **TBD여도 스키마가 안 흔들리는 것**: 토큰 수치 전부, 알림 문구, 멘트 풀 내용, 경고 임계치 → 전부 `app_config`(서버)·Firebase(클라)/운영 데이터.
 **TBD 확정 시 스키마 영향 가능**: 메시지 보관 기간(파티셔닝), 탈퇴 후 재가입 어뷰징 정책(식별자 보관 테이블 추가 가능성). ~~알림 발송 방식~~(서버 푸시 확정) · ~~일기 열람~~(항상 무료 확정) · ~~복원 충돌~~(RC 웹훅 무시 처리 확정)은 종결.

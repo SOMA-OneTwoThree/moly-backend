@@ -907,7 +907,7 @@ CREATE TABLE public.products (
     is_v2_only boolean DEFAULT false NOT NULL,
     play_store_product_id text,
     name_i18n jsonb,
-    CONSTRAINT products_cosmetic_ck CHECK (((product_type <> 'cosmetic'::text) OR ((public_id IS NOT NULL) AND (slot IS NOT NULL) AND (hay_amount IS NULL) AND (app_store_product_id IS NULL) AND (price_krw IS NULL) AND (play_store_product_id IS NULL) AND (is_subscriber_only = false) AND ((is_active = false) OR ((asset_version IS NOT NULL) AND (asset_version >= 1) AND (assets IS NOT NULL)))))),
+    CONSTRAINT products_cosmetic_ck CHECK (((product_type <> 'cosmetic'::text) OR ((public_id IS NOT NULL) AND (slot IS NOT NULL) AND (hay_amount IS NULL) AND (app_store_product_id IS NULL) AND (price_krw IS NULL) AND (play_store_product_id IS NULL) AND ((is_subscriber_only = false) OR (price_hay IS NULL)) AND ((is_active = false) OR ((asset_version IS NOT NULL) AND (asset_version >= 1) AND (assets IS NOT NULL)))))),
     CONSTRAINT products_hay_pack_ck CHECK (((product_type <> 'hay_pack'::text) OR ((hay_amount IS NOT NULL) AND (app_store_product_id IS NOT NULL) AND (slot IS NULL) AND (price_hay IS NULL) AND (assets IS NULL) AND (is_subscriber_only = false)))),
     CONSTRAINT products_name_i18n_obj_ck CHECK (((name_i18n IS NULL) OR (jsonb_typeof(name_i18n) = 'object'::text))),
     CONSTRAINT products_price_hay_positive_ck CHECK ((price_hay >= 1)),

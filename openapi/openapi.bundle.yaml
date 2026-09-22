@@ -1548,7 +1548,7 @@ paths:
       security:
       - SupabaseBearer: []
       description: 4 slot을 하나의 transaction으로 전체 교체한다. 네 field 모두 필수이고 theme은 null 불가다. wearable null은
-        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다. 구독 전용 상품은 소유 대신 활성 구독을 요구한다.
   /v2/shop/products:
     get:
       tags:
@@ -1756,7 +1756,8 @@ paths:
       security:
       - SupabaseBearer: []
       description: 5 slot을 하나의 transaction으로 전체 교체한다. 다섯 field 모두 필수이고 theme은 null 불가다. wearable null은
-        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다. 구독 전용 상품은 소유 대신 활성 구독을 요구하고,
+        구독이 끝나면 조회 응답에서 theme은 theme_default, wearable은 null로 돌아간다.
   /review/prompted:
     post:
       tags:
@@ -4939,7 +4940,11 @@ components:
         equipped:
           type: boolean
           title: Equipped
-          description: 현재 장착 row 여부.
+          description: 현재 장착 row 여부. 구독이 끝난 구독 전용 상품은 false다.
+        subscriber_only:
+          type: boolean
+          title: Subscriber Only
+          description: 활성 구독 중에만 구매 없이 장착할 수 있는 상품. price_hay는 항상 null이다.
         asset_version:
           type: integer
           minimum: 1
@@ -4956,6 +4961,7 @@ components:
       - price_hay
       - owned
       - equipped
+      - subscriber_only
       - asset_version
       - assets
       title: ShopProductV2

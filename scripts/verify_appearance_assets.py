@@ -41,6 +41,7 @@ def load_products(path: Path) -> list[ShopProductV2]:
         entry = dict(entry)
         v2_only = entry.pop("is_v2_only", False)
         product_type = entry.pop("product_type", "cosmetic")
+        subscriber_only = entry.pop("is_subscriber_only", False)
         assets = entry["assets"]
         rightside = assets.get("rightside") or {}
         if "timer" in rightside:
@@ -52,7 +53,13 @@ def load_products(path: Path) -> list[ShopProductV2]:
         ):
             raise ValueError(f"{entry['id']}: wearable is missing rightside.upright_layer_url")
         product = ShopProductV2.model_validate(
-            {**entry, "assets": rightside_asset_view(assets), "owned": False, "equipped": False}
+            {
+                **entry,
+                "assets": rightside_asset_view(assets),
+                "owned": False,
+                "equipped": False,
+                "subscriber_only": subscriber_only,
+            }
         )
         # 레거시에 노출되는 상품만 구 자세 계약을 요구한다.
         if not v2_only:

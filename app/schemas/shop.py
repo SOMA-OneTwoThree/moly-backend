@@ -183,6 +183,7 @@ class ShopProductV2(BaseModel):
     price_hay: int | None = Field(ge=1)
     owned: bool
     equipped: bool
+    subscriber_only: bool
     asset_version: int = Field(ge=1)
     assets: ProductAssetsV2
 

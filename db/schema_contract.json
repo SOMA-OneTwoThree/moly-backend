@@ -7037,7 +7037,7 @@
       "public.products.products_cosmetic_ck": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK (((product_type <> 'cosmetic'::text) OR ((public_id IS NOT NULL) AND (slot IS NOT NULL) AND (hay_amount IS NULL) AND (app_store_product_id IS NULL) AND (price_krw IS NULL) AND (play_store_product_id IS NULL) AND (is_subscriber_only = false) AND ((is_active = false) OR ((asset_version IS NOT NULL) AND (asset_version >= 1) AND (assets IS NOT NULL))))))",
+        "definition": "CHECK (((product_type <> 'cosmetic'::text) OR ((public_id IS NOT NULL) AND (slot IS NOT NULL) AND (hay_amount IS NULL) AND (app_store_product_id IS NULL) AND (price_krw IS NULL) AND (play_store_product_id IS NULL) AND ((is_subscriber_only = false) OR (price_hay IS NULL)) AND ((is_active = false) OR ((asset_version IS NOT NULL) AND (asset_version >= 1) AND (assets IS NOT NULL))))))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -13719,5 +13719,5 @@
       }
     }
   },
-  "schema_sha256": "b731c9f0223af25effb666ddde4596f22f365e91b8fac5be69238be0461604ae"
+  "schema_sha256": "495e1d5cf88c8561813f82349d2cd5695adc4f1f834a79de66c3e85edb2e4c8a"
 }

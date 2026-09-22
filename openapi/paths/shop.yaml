@@ -274,7 +274,7 @@
     security:
     - SupabaseBearer: []
     description: 4 slot을 하나의 transaction으로 전체 교체한다. 네 field 모두 필수이고 theme은 null 불가다. wearable null은 해제다.
-      active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+      active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다. 구독 전용 상품은 소유 대신 활성 구독을 요구한다.
 /v2/shop/products:
   get:
     tags:
@@ -478,4 +478,5 @@
     security:
     - SupabaseBearer: []
     description: 5 slot을 하나의 transaction으로 전체 교체한다. 다섯 field 모두 필수이고 theme은 null 불가다. wearable null은
-      해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+      해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다. 구독 전용 상품은 소유 대신 활성 구독을
+      요구하고, 구독이 끝나면 조회 응답에서 theme은 theme_default, wearable은 null로 돌아간다.

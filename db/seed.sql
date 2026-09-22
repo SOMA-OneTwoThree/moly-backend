@@ -197,8 +197,8 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
     "name": "온천",
     "description": null,
     "slot": "theme",
-    "price_hay": 4000,
-    "is_subscriber_only": false,
+    "price_hay": null,
+    "is_subscriber_only": true,
     "assets": {
       "bundled": true,
       "scene": {
@@ -489,8 +489,8 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
     "name": "수건",
     "description": null,
     "slot": "hat",
-    "price_hay": 1000,
-    "is_subscriber_only": false,
+    "price_hay": null,
+    "is_subscriber_only": true,
     "assets": {
       "rightside": {
         "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_towel/v1/rightside/upright.png"
@@ -734,8 +734,8 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
     "name": "화가",
     "description": null,
     "slot": "body",
-    "price_hay": 2000,
-    "is_subscriber_only": false,
+    "price_hay": null,
+    "is_subscriber_only": true,
     "assets": {
       "thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/body_painter/v3/thumb.png",
       "rightside": {

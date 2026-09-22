@@ -42,10 +42,12 @@ async def purchase(
         default=None, alias="Idempotency-Key", min_length=1
     ),
     capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
+    bundled_themes: str | None = Header(default=None, alias="X-Moly-Bundled-Themes"),
 ) -> dict[str, Any]:
     return await shop.purchase(
         session, user_id, req.product_id, idempotency_key=idempotency_key,
-        timer_capable=shop.supports_timer_clothing(capabilities)
+        timer_capable=shop.supports_timer_clothing(capabilities),
+        bundled_themes=shop.bundled_theme_ids(bundled_themes),
     )
 
 
@@ -80,8 +82,10 @@ async def products_v2(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
+    bundled_themes: str | None = Header(default=None, alias="X-Moly-Bundled-Themes"),
 ) -> dict[str, Any]:
-    return await shop.get_products(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities)
+    return await shop.get_products(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities),
+        bundled_themes=shop.bundled_theme_ids(bundled_themes),
     )
 
 
@@ -90,8 +94,10 @@ async def inventory_v2(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
+    bundled_themes: str | None = Header(default=None, alias="X-Moly-Bundled-Themes"),
 ) -> dict[str, Any]:
-    return await shop.get_inventory(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities)
+    return await shop.get_inventory(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities),
+        bundled_themes=shop.bundled_theme_ids(bundled_themes),
     )
 
 
@@ -100,8 +106,10 @@ async def get_equipment_v2(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
+    bundled_themes: str | None = Header(default=None, alias="X-Moly-Bundled-Themes"),
 ) -> dict[str, Any]:
-    return await shop.get_equipment(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities)
+    return await shop.get_equipment(session, user_id, v2=True, timer_capable=shop.supports_timer_clothing(capabilities),
+        bundled_themes=shop.bundled_theme_ids(bundled_themes),
     )
 
 
@@ -111,7 +119,9 @@ async def put_equipment_v2(
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
+    bundled_themes: str | None = Header(default=None, alias="X-Moly-Bundled-Themes"),
 ) -> dict[str, Any]:
     return await shop.put_equipment_v2(
-        session, user_id, req, timer_capable=shop.supports_timer_clothing(capabilities)
+        session, user_id, req, timer_capable=shop.supports_timer_clothing(capabilities),
+        bundled_themes=shop.bundled_theme_ids(bundled_themes),
     )

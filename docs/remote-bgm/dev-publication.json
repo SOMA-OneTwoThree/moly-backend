@@ -1,0 +1,149 @@
+[
+  {
+    "track": {
+      "id": "light-rain",
+      "category": "white_noise",
+      "title": "잔잔한 빗소리",
+      "source": "remote",
+      "revision": "v1-49a9bb800098820a",
+      "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/light-rain/v1-49a9bb800098820a/audio.wav",
+      "sha256": "49a9bb800098820aa5999cff23d3c0c5111df6934609f41f6e10e01f6fd7edd2",
+      "size_bytes": 11520044,
+      "mime_type": "audio/wav",
+      "sort_order": 0
+    },
+    "title_i18n": {
+      "ko": "잔잔한 빗소리",
+      "en": "Light Rain",
+      "ja": "小雨の音"
+    },
+    "original": "1.light_rain.wav",
+    "object_path": "light-rain/v1-49a9bb800098820a/audio.wav"
+  },
+  {
+    "track": {
+      "id": "heavy-rain",
+      "category": "white_noise",
+      "title": "거센 빗소리",
+      "source": "remote",
+      "revision": "v1-0cdc3c7a7ce744d7",
+      "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/heavy-rain/v1-0cdc3c7a7ce744d7/audio.mp3",
+      "sha256": "0cdc3c7a7ce744d7b330cf02f4feab770fa80ade384af7ab95017424f0d89574",
+      "size_bytes": 1342464,
+      "mime_type": "audio/mpeg",
+      "sort_order": 1
+    },
+    "title_i18n": {
+      "ko": "거센 빗소리",
+      "en": "Heavy Rain",
+      "ja": "大雨の音"
+    },
+    "original": "2. heavy_rain.mp3",
+    "object_path": "heavy-rain/v1-0cdc3c7a7ce744d7/audio.mp3"
+  },
+  {
+    "track": {
+      "id": "ocean-waves",
+      "category": "white_noise",
+      "title": "파도 소리",
+      "source": "remote",
+      "revision": "v1-35d4152492836aef",
+      "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/ocean-waves/v1-35d4152492836aef/audio.wav",
+      "sha256": "35d4152492836aefad103484e1777f00f5d34e29a01aba428458eabdfcd3f1d9",
+      "size_bytes": 11520044,
+      "mime_type": "audio/wav",
+      "sort_order": 2
+    },
+    "title_i18n": {
+      "ko": "파도 소리",
+      "en": "Ocean Waves",
+      "ja": "波の音"
+    },
+    "original": "3.wave",
+    "object_path": "ocean-waves/v1-35d4152492836aef/audio.wav"
+  },
+  {
+    "track": {
+      "id": "forest",
+      "category": "white_noise",
+      "title": "숲속 소리",
+      "source": "remote",
+      "revision": "v1-2c19c3b536593305",
+      "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/forest/v1-2c19c3b536593305/audio.wav",
+      "sha256": "2c19c3b536593305aff5d2ce1feaf433b032166891952397d69c3265ffbb2458",
+      "size_bytes": 11520044,
+      "mime_type": "audio/wav",
+      "sort_order": 3
+    },
+    "title_i18n": {
+      "ko": "숲속 소리",
+      "en": "Forest Sounds",
+      "ja": "森の音"
+    },
+    "original": "4. Forest.wav",
+    "object_path": "forest/v1-2c19c3b536593305/audio.wav"
+  },
+  {
+    "track": {
+      "id": "city",
+      "category": "white_noise",
+      "title": "도시 소리",
+      "source": "remote",
+      "revision": "v1-758d0a12ea04c2d6",
+      "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/city/v1-758d0a12ea04c2d6/audio.mp3",
+      "sha256": "758d0a12ea04c2d64021ae7277adae18a8d70c97b2e5bdb5eade8d974bdd5c0a",
+      "size_bytes": 7361280,
+      "mime_type": "audio/mpeg",
+      "sort_order": 4
+    },
+    "title_i18n": {
+      "ko": "도시 소리",
+      "en": "City Sounds",
+      "ja": "街の音"
+    },
+    "original": "5. city.mp3",
+    "object_path": "city/v1-758d0a12ea04c2d6/audio.mp3"
+  },
+  {
+    "track": {
+      "id": "fire",
+      "category": "white_noise",
+      "title": "불 타는 소리",
+      "source": "remote",
+      "revision": "v1-8c7824d9350481a9",
+      "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/fire/v1-8c7824d9350481a9/audio.wav",
+      "sha256": "8c7824d9350481a969fad85982318c62c6e52199e347332815628acb41480988",
+      "size_bytes": 11520044,
+      "mime_type": "audio/wav",
+      "sort_order": 5
+    },
+    "title_i18n": {
+      "ko": "불 타는 소리",
+      "en": "Crackling Fire",
+      "ja": "火の音"
+    },
+    "original": "6.fire.wav",
+    "object_path": "fire/v1-8c7824d9350481a9/audio.wav"
+  },
+  {
+    "track": {
+      "id": "white-noise",
+      "category": "white_noise",
+      "title": "백색 소음",
+      "source": "remote",
+      "revision": "v1-20adcf7d57614dee",
+      "url": "https://wywzjslvxwttxkecbyis.supabase.co/storage/v1/object/public/bgm-assets/white-noise/v1-20adcf7d57614dee/audio.mp3",
+      "sha256": "20adcf7d57614dee15146f1d8370f72c8ae12916b98375a73b56eb19e135d562",
+      "size_bytes": 9601358,
+      "mime_type": "audio/mpeg",
+      "sort_order": 6
+    },
+    "title_i18n": {
+      "ko": "백색 소음",
+      "en": "White Noise",
+      "ja": "ホワイトノイズ"
+    },
+    "original": "7.original white noise.mp3",
+    "object_path": "white-noise/v1-20adcf7d57614dee/audio.mp3"
+  }
+]

@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from app.api.ads import router as ads_router
 from app.api.attribution import router as attribution_router
 from app.api.banners import router as banners_router
+from app.api.bgm import router as bgm_router
 from app.api.chat import router as chat_router
 from app.api.diary import router as diary_router
 from app.api.economy import router as economy_router
@@ -88,6 +89,7 @@ def create_app() -> FastAPI:
     app.include_router(economy_router)
     app.include_router(routine_router)
     app.include_router(banners_router)
+    app.include_router(bgm_router)
     app.include_router(shop_router)
     app.include_router(review_router)
     app.include_router(feedback_router)

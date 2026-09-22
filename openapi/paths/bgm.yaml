@@ -1,0 +1,25 @@
+/bgm/tracks:
+  get:
+    tags: [bgm]
+    operationId: getBgmTracks
+    summary: 활성 배경음악 전체 목록
+    description: >-
+      완전한 snapshot이며 정상 응답에서 사라진 곡은 제거 대상이다. 조회 실패는 삭제 신호가 아니다.
+      revision은 현지화된 응답 목록의 SHA256이다. bundled는 설치 파일, remote는 검증 후 로컬 다운로드 재생한다.
+      remote_bgm_v1 음악추천 capability는 이 목록을 지원하는 앱에서만 전송한다.
+    parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        schema: {type: string}
+    security: [{SupabaseBearer: []}]
+    responses:
+      '200':
+        description: 전체 활성 곡 목록. remote 메타데이터는 모두 필수이며 bundled에서는 null.
+        headers:
+          Cache-Control:
+            schema: {type: string, const: 'private, no-store'}
+        content:
+          application/json:
+            schema: {$ref: ../components/bgm.yaml#/schemas/BgmTracksResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}

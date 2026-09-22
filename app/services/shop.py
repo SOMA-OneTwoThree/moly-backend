@@ -37,15 +37,27 @@ def supports_timer_clothing(capabilities: str | None) -> bool:
     return "timer-clothing-v1" in {token.strip() for token in (capabilities or "").split(",")}
 
 
-def _hidden_product(product: Product, *, v2: bool, timer_capable: bool) -> bool:
-    return (not v2 and product.is_v2_only) or (
-        not timer_capable and "timer" in (product.assets.get("rightside") or {})
+DEFAULT_THEME_PUBLIC_ID = "theme_default"
+
+
+def bundled_theme_ids(header: str | None) -> frozenset[str]:
+    return frozenset(token.strip() for token in (header or "").split(",") if token.strip())
+
+
+def _hidden_product(
+    product: Product, *, v2: bool, timer_capable: bool,
+    bundled_themes: frozenset[str] = frozenset(),
+) -> bool:
+    return (
+        (not v2 and product.is_v2_only)
+        or (not timer_capable and "timer" in (product.assets.get("rightside") or {}))
+        or (bool(product.assets.get("bundled")) and product.public_id not in bundled_themes)
     )
 
 
 def legacy_asset_view(assets: dict[str, Any]) -> dict[str, Any]:
     """레거시(구버전) 응답 — 새 자세 키를 숨겨 기존 계약 형태를 그대로 유지한다."""
-    return {key: value for key, value in assets.items() if key != "rightside"}
+    return {key: value for key, value in assets.items() if key not in ("rightside", "bundled")}
 
 
 def rightside_asset_view(assets: dict[str, Any]) -> dict[str, Any]:
@@ -148,7 +160,8 @@ def _product_dto(
 
 
 async def get_products(
-    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False
+    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False,
+    bundled_themes: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
@@ -167,7 +180,7 @@ async def get_products(
     themes: list[dict[str, Any]] = []
     items: list[dict[str, Any]] = []
     for product in products:
-        if _hidden_product(product, v2=v2, timer_capable=timer_capable):
+        if _hidden_product(product, v2=v2, timer_capable=timer_capable, bundled_themes=bundled_themes):
             continue
         dto = _product_dto(
             product, owned=product.id in owned, equipped=product.id in equipped, v2=v2,
@@ -236,6 +249,7 @@ async def purchase(
     *,
     idempotency_key: str | None = None,
     timer_capable: bool = False,
+    bundled_themes: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     uid = _uid(user_id)
     stored_key = (
@@ -255,7 +269,7 @@ async def purchase(
             )
 
     product = await _load_item(session, product_id)
-    if _hidden_product(product, v2=True, timer_capable=timer_capable):
+    if _hidden_product(product, v2=True, timer_capable=timer_capable, bundled_themes=bundled_themes):
         raise errors.AppError("NOT_FOUND", 404, "상품을 찾을 수 없어요.")
     # 기본 지급 비매품도 재구매는 계약상 ALREADY_OWNED가 우선이다.
     if product.id in await _owned_ids(session, uid):
@@ -302,7 +316,8 @@ async def purchase(
 
 
 async def get_inventory(
-    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False
+    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False,
+    bundled_themes: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
@@ -316,14 +331,15 @@ async def get_inventory(
             _product_dto(product, owned=True, equipped=product.id in equipped, v2=v2,
                          language=profile.language)
             for product in ordered
-            if not _hidden_product(product, v2=v2, timer_capable=timer_capable)
+            if not _hidden_product(product, v2=v2, timer_capable=timer_capable, bundled_themes=bundled_themes)
         ]
     }
 
 
 def _equipment_dto(
     rows: list[UserItem], products: dict[uuid.UUID, Product], *, v2: bool = False,
-    timer_capable: bool = False
+    timer_capable: bool = False,
+    bundled_themes: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     by_slot: dict[str, str] = {}
     for row in rows:
@@ -333,8 +349,13 @@ def _equipment_dto(
         if product is None or product.public_id is None:
             raise errors.AppError("INTERNAL", 500, "장착 상품이 활성 카탈로그에 없습니다.")
         if row.equipped_slot == "body" and _hidden_product(
-            product, v2=v2, timer_capable=timer_capable
+            product, v2=v2, timer_capable=timer_capable, bundled_themes=bundled_themes
         ):
+            continue
+        if row.equipped_slot == "theme" and _hidden_product(
+            product, v2=v2, timer_capable=timer_capable, bundled_themes=bundled_themes
+        ):
+            by_slot["theme"] = DEFAULT_THEME_PUBLIC_ID
             continue
         by_slot[row.equipped_slot] = product.public_id
     if "theme" not in by_slot:
@@ -356,13 +377,15 @@ def _equipment_dto(
 
 
 async def get_equipment(
-    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False
+    session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False,
+    bundled_themes: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     uid = _uid(user_id)
     rows = await _user_rows(session, uid)
     equipped_ids = {row.product_id for row in rows if row.equipped_slot is not None}
     return _equipment_dto(
-        rows, await _products_by_ids(session, equipped_ids), v2=v2, timer_capable=timer_capable
+        rows, await _products_by_ids(session, equipped_ids), v2=v2, timer_capable=timer_capable,
+        bundled_themes=bundled_themes,
     )
 
 
@@ -431,15 +454,21 @@ async def _compatible_body(
     *,
     v2: bool = False,
     timer_capable: bool = False,
+    bundled_themes: frozenset[str] = frozenset(),
 ) -> str | None:
     target = targets["body"]
     if target is not None:
-        return None if _hidden_product(target, v2=v2, timer_capable=timer_capable) else target.public_id
+        hidden = _hidden_product(
+            target, v2=v2, timer_capable=timer_capable, bundled_themes=bundled_themes
+        )
+        return None if hidden else target.public_id
     current = by_slot.get("body")
     if current is not None and not (v2 and timer_capable):
         products = await _products_by_ids(session, {current.product_id})
         product = products.get(current.product_id)
-        if product is not None and _hidden_product(product, v2=v2, timer_capable=timer_capable):
+        if product is not None and _hidden_product(
+            product, v2=v2, timer_capable=timer_capable, bundled_themes=bundled_themes
+        ):
             # 구 앱은 숨겨진 몸을 null로 돌려보낸다. 다른 슬롯만 갱신한다.
             del targets["body"]
     return None
@@ -482,7 +511,8 @@ async def put_equipment(session: AsyncSession, user_id: str, req) -> dict[str, A
 
 
 async def put_equipment_v2(
-    session: AsyncSession, user_id: str, req, *, timer_capable: bool = False
+    session: AsyncSession, user_id: str, req, *, timer_capable: bool = False,
+    bundled_themes: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     """v2 장착 — hat/glasses를 독립 슬롯으로 동시 착용한다."""
     uid = _uid(user_id)
@@ -504,7 +534,8 @@ async def put_equipment_v2(
         )
 
     body_id = await _compatible_body(
-        session, by_slot, targets, v2=True, timer_capable=timer_capable
+        session, by_slot, targets, v2=True, timer_capable=timer_capable,
+        bundled_themes=bundled_themes,
     )
     await _apply_targets(session, by_product, by_slot, targets, now)
 

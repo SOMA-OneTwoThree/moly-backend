@@ -1304,6 +1304,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       - name: Idempotency-Key
         in: header
         required: false
@@ -1555,6 +1562,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       responses:
         '200':
           description: theme 및 wearable 상품 catalog. head 슬롯은 hat/glasses로 분리된다.
@@ -1583,6 +1597,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       responses:
         '200':
           description: 보유 상품 목록. slot은 hat/glasses로 분리된다.
@@ -1611,6 +1632,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       responses:
         '200':
           description: 현재 5-slot 장착 상태(theme·hat·glasses·neck·body)
@@ -1656,6 +1684,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       requestBody:
         content:
           application/json:

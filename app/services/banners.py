@@ -123,6 +123,24 @@ async def list_banners(
                 raise
             # 조회 실패는 의존 카드만 제외한다. 사용자 데이터 없이 예외 종류만 남긴다.
             _log.warning("affirmation marker unavailable: %s", type(exc).__name__)
+    music_title = None
+    if "remote_bgm_v1" in capabilities and any(
+        binding.source == "music.daily_title"
+        for banner, _, _ in candidates for binding in banner.bindings.values()
+    ):
+        from app.services.bgm import list_tracks
+        from app.services.banner_music import pick_music_title
+        try:
+            async with session.begin_nested():
+                snapshot = await list_tracks(session, locale)
+                music_title = pick_music_title(day.local_date, snapshot.tracks)
+        except (DBAPIError, ValueError) as exc:
+            if isinstance(exc, DBAPIError) and exc.connection_invalidated:
+                raise
+            _log.warning("BGM recommendation unavailable: %s", type(exc).__name__)
+            candidates = tuple(c for c in candidates if not any(
+                b.source == "music.daily_title" for b in c[0].bindings.values()
+            ))
     return render_feed(
         catalog,
         candidates,
@@ -132,4 +150,5 @@ async def list_banners(
         remaining=remaining,
         topic_offer=topic_offer,
         acknowledged=acknowledged,
+        music_title=music_title,
     )

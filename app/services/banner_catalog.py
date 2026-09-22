@@ -136,6 +136,7 @@ def select_candidates(
 def binding_values(
     banner: BannerDefinition, locale: str, local_date: date | None, remaining: int | None,
     *, topic_question: str | None = None, acknowledged: int | None = None,
+    music_title: str | None = None,
 ) -> dict[str, str | int]:
     values = {}
     for alias, binding in banner.bindings.items():
@@ -154,7 +155,7 @@ def binding_values(
         elif binding.source == "music.daily_title":
             if local_date is None:
                 raise ValueError("music date unavailable")
-            values[alias] = daily_music_title(local_date)
+            values[alias] = music_title or daily_music_title(local_date)
         elif binding.source == "topic.question":
             if topic_question is None:
                 raise ValueError("topic binding unavailable")
@@ -221,6 +222,7 @@ def render_feed(
     remaining: int | None,
     topic_offer=None,
     acknowledged: int | None = None,
+    music_title: str | None = None,
 ) -> BannerFeed:
     cards = []
     for banner, locale, canvas in candidates:
@@ -228,7 +230,7 @@ def render_feed(
             values = binding_values(
                 banner, locale, local_date, remaining,
                 topic_question=topic_offer.questions[locale] if topic_offer else None,
-                acknowledged=acknowledged,
+                acknowledged=acknowledged, music_title=music_title,
             )
             topic_ref = TopicReference(
                 offer_id=topic_offer.offer_id, offer_sequence=topic_offer.offer_sequence,

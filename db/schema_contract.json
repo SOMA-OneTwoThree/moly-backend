@@ -746,6 +746,102 @@
         "not_null": false,
         "type": "uuid"
       },
+      "public.bgm_tracks.category": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.bgm_tracks.id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.bgm_tracks.is_active": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.bgm_tracks.mime_type": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.bgm_tracks.revision": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.bgm_tracks.sha256": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.bgm_tracks.size_bytes": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bigint"
+      },
+      "public.bgm_tracks.sort_order": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
+      "public.bgm_tracks.source": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.bgm_tracks.title": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.bgm_tracks.title_i18n": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
+      },
+      "public.bgm_tracks.url": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
       "public.chat_active_turns.base_context_revision": {
         "collation": null,
         "default": null,
@@ -5651,6 +5747,90 @@
         ],
         "validated": true
       },
+      "public.bgm_tracks.bgm_source_metadata": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((source = 'bundled'::text) AND (category = 'lofi'::text) AND (id = ANY (ARRAY['felt-piano-memories'::text, 'night-rain-on-tokyo'::text, 'midnight-tokyo-rain'::text, 'midnight-tokyo-rain-2'::text, 'neon-rain'::text, 'fading-static'::text])) AND (url IS NULL) AND (sha256 IS NULL) AND (size_bytes IS NULL) AND (mime_type IS NULL)) OR ((source = 'remote'::text) AND (url IS NOT NULL) AND (sha256 IS NOT NULL) AND (size_bytes IS NOT NULL) AND (mime_type IS NOT NULL))))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_category_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((category = ANY (ARRAY['lofi'::text, 'white_noise'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_id_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((id ~ '^[a-z0-9][a-z0-9-]{0,63}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_mime_type_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((mime_type = ANY (ARRAY['audio/mp4'::text, 'audio/mpeg'::text, 'audio/wav'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_revision_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((revision ~ '^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_sha256_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((sha256 ~ '^[a-f0-9]{64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_size_bytes_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((size_bytes > 0) AND (size_bytes <= 104857600)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_sort_order_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((sort_order >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_source_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((source = ANY (ARRAY['bundled'::text, 'remote'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_title_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((length(title) >= 1) AND (length(title) <= 120)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.bgm_tracks.bgm_tracks_title_i18n_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((jsonb_typeof(title_i18n) = 'object'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.chat_active_turns.chat_active_turns_pkey": {
         "deferrable": false,
         "deferred": false,
@@ -8233,6 +8413,15 @@
         "unique": false,
         "valid": true
       },
+      "public.bgm_tracks_pkey": {
+        "definition": "CREATE UNIQUE INDEX bgm_tracks_pkey ON public.bgm_tracks USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.bgm_tracks",
+        "unique": true,
+        "valid": true
+      },
       "public.chat_active_turns_key_uq": {
         "definition": "CREATE UNIQUE INDEX chat_active_turns_key_uq ON public.chat_active_turns USING btree (user_id, idempotency_key)",
         "exclusion": false,
@@ -10070,6 +10259,30 @@
         "grantable": false
       },
       "public.async_jobs:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.bgm_tracks:service_role:UPDATE": {
         "grantable": false
       },
       "public.chat_active_turns:service_role:DELETE": {
@@ -13304,6 +13517,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.bgm_tracks": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.chat_active_turns": {
         "options": [],
         "owner": "postgres",
@@ -13727,5 +13947,5 @@
       }
     }
   },
-  "schema_sha256": "997a60778e1cb8b6152ed0ac8450c5d00572fba7503fbbd81b44b03910ea323b"
+  "schema_sha256": "8989e38831c7e9f8880d0df0ebc53a91714cbbbbfd1854fa0700b528bc5651e1"
 }

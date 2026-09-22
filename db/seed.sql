@@ -825,4 +825,14 @@ SELECT * FROM json_populate_recordset(NULL::public.ai_price_catalog, $catalog$
   }
 ]
 $catalog$);
+-- Preserve the installed mobile bundled IDs; no placeholder remote audio.
+INSERT INTO public.bgm_tracks (id, category, title, source, revision, sort_order, is_active) VALUES
+('felt-piano-memories', 'lofi', 'Soft Piano', 'bundled', 'bundled-v1', 0, true),
+('night-rain-on-tokyo', 'lofi', 'Tokyo Nights', 'bundled', 'bundled-v1', 1, true),
+('midnight-tokyo-rain', 'lofi', 'Midnight Drizzle', 'bundled', 'bundled-v1', 2, true),
+('midnight-tokyo-rain-2', 'lofi', 'Before Dawn', 'bundled', 'bundled-v1', 3, true),
+('neon-rain', 'lofi', 'Neon Streets', 'bundled', 'bundled-v1', 4, true),
+('fading-static', 'lofi', 'Old Radio', 'bundled', 'bundled-v1', 5, true)
+ON CONFLICT (id) DO NOTHING;
+
 COMMIT;

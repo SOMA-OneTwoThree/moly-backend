@@ -18,6 +18,8 @@ info:
 
     local·development 환경의 명시 플래그로만 등록되는 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
 paths:
+  /bgm/tracks:
+    $ref: ./paths/bgm.yaml#/~1bgm~1tracks
   /banners:
     $ref: ./paths/banners.yaml#/~1banners
   /health:
@@ -106,6 +108,10 @@ paths:
     $ref: ./paths/conversations.yaml#/~1chat~1topic-entries
 components:
   schemas:
+    BgmTrack:
+      $ref: ./components/bgm.yaml#/schemas/BgmTrack
+    BgmTracksResponse:
+      $ref: ./components/bgm.yaml#/schemas/BgmTracksResponse
     MoodPutRequest:
       $ref: ./components/mood.yaml#/schemas/MoodPutRequest
     MoodEntryResponse:

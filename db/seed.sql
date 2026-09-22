@@ -271,12 +271,11 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
               "width": 393,
               "height": 852
             },
-            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_onsen/v1/background-day.png",
-            "night_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_onsen/v1/background-night.png",
+            "day_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_onsen/v1/detail.png",
             "z_index": 0
           }
         ],
-        "character_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_onsen/v1/character.png",
+        "character_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/theme_onsen/v1/thumb.png",
         "character_frame": {
           "x": 190.5,
           "y": 424.75,

@@ -717,14 +717,19 @@ async def test_v2_get_equipment_drops_subscriber_only_after_expiry():
     ]
     expired = await shop.get_equipment(
         FakeSession(exec_results=[rows, [onsen, painter], _NO_SUBSCRIPTION]), UID, v2=True,
-        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}),
+        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
     )
     assert expired["theme_id"] == "theme_default" and expired["body_id"] is None
     active = await shop.get_equipment(
         FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
-        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}),
+        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
     )
     assert active["theme_id"] == "theme_onsen" and active["body_id"] == "body_painter"
+    old_app = await shop.get_equipment(
+        FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
+        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}),
+    )
+    assert old_app["theme_id"] == "theme_default" and old_app["body_id"] is None
 
 
 async def test_v2_catalog_marks_subscriber_only_and_unequips_after_expiry():
@@ -736,7 +741,7 @@ async def test_v2_catalog_marks_subscriber_only_and_unequips_after_expiry():
     ]
     out = await shop.get_products(
         FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[theme, onsen], rows, _NO_SUBSCRIPTION]),
-        UID, v2=True,
+        UID, v2=True, subscriber_capable=True,
     )
     by_id = {product["id"]: product for product in out["themes"]}
     assert by_id["theme_onsen"]["subscriber_only"] is True
@@ -744,6 +749,24 @@ async def test_v2_catalog_marks_subscriber_only_and_unequips_after_expiry():
     assert by_id["theme_onsen"]["owned"] is False and by_id["theme_onsen"]["equipped"] is False
     assert by_id["theme_default"]["subscriber_only"] is False
     assert by_id["theme_default"]["equipped"] is True
+
+
+async def test_catalog_hides_subscriber_only_from_apps_without_capability():
+    theme = _theme()
+    onsen = _theme(public_id="theme_onsen", price_hay=None, is_subscriber_only=True)
+    towel = _item(slot="hat", public_id="head_towel", price_hay=None, is_subscriber_only=True)
+    rows = [
+        _row(theme.id, source="admin_grant"),
+        _row(onsen.id, source="subscription", equipped_slot="theme"),
+    ]
+    for v2 in (True, False):
+        out = await shop.get_products(
+            FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[theme, onsen, towel], rows]),
+            UID, v2=v2,
+        )
+        assert [product["id"] for product in out["themes"]] == ["theme_default"]
+        assert out["themes"][0]["equipped"] is True
+        assert out["items"] == []
 
 
 async def test_inventory_excludes_subscription_rows(monkeypatch):

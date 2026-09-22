@@ -37,6 +37,10 @@ def supports_timer_clothing(capabilities: str | None) -> bool:
     return "timer-clothing-v1" in {token.strip() for token in (capabilities or "").split(",")}
 
 
+def supports_subscriber_only(capabilities: str | None) -> bool:
+    return "subscriber-only-v1" in {token.strip() for token in (capabilities or "").split(",")}
+
+
 DEFAULT_THEME_PUBLIC_ID = "theme_default"
 
 
@@ -169,7 +173,7 @@ def _product_dto(
 
 async def get_products(
     session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False,
-    bundled_themes: frozenset[str] = frozenset(),
+    bundled_themes: frozenset[str] = frozenset(), subscriber_capable: bool = False,
 ) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
     uid = profile.id
@@ -185,9 +189,9 @@ async def get_products(
     rows = await _user_rows(session, uid)
     owned = {row.product_id for row in rows if row.source != "subscription"}
     equipped = _equipped_product_ids(rows, v2=v2)
-    # 구독이 끝났으면 구독 전용 장착은 풀린 것으로 보인다. 테마 자리는 기본 테마가 채운다.
+    # 구독이 끝났거나 구독 전용을 모르는 앱이면 그 장착은 풀린 것으로 보인다. 테마 자리는 기본 테마가 채운다.
     locked = [product for product in products if product.is_subscriber_only and product.id in equipped]
-    if locked and not await _subscribed(session, user_id):
+    if locked and not (subscriber_capable and await _subscribed(session, user_id)):
         equipped -= {product.id for product in locked}
         if any(product.slot == "theme" for product in locked):
             equipped |= {product.id for product in products if product.public_id == DEFAULT_THEME_PUBLIC_ID}
@@ -195,6 +199,8 @@ async def get_products(
     items: list[dict[str, Any]] = []
     for product in products:
         if _hidden_product(product, v2=v2, timer_capable=timer_capable, bundled_themes=bundled_themes):
+            continue
+        if product.is_subscriber_only and not subscriber_capable:
             continue
         dto = _product_dto(
             product, owned=product.id in owned, equipped=product.id in equipped, v2=v2,
@@ -354,7 +360,7 @@ def _equipment_dto(
     rows: list[UserItem], products: dict[uuid.UUID, Product], *, v2: bool = False,
     timer_capable: bool = False,
     bundled_themes: frozenset[str] = frozenset(),
-    subscribed: bool = True,
+    subscriber_only_usable: bool = True,
 ) -> dict[str, Any]:
     by_slot: dict[str, str] = {}
     for row in rows:
@@ -363,7 +369,7 @@ def _equipment_dto(
         product = products.get(row.product_id)
         if product is None or product.public_id is None:
             raise errors.AppError("INTERNAL", 500, "장착 상품이 활성 카탈로그에 없습니다.")
-        if product.is_subscriber_only and not subscribed:
+        if product.is_subscriber_only and not subscriber_only_usable:
             if row.equipped_slot == "theme":
                 by_slot["theme"] = DEFAULT_THEME_PUBLIC_ID
             continue
@@ -397,7 +403,7 @@ def _equipment_dto(
 
 async def get_equipment(
     session: AsyncSession, user_id: str, *, v2: bool = False, timer_capable: bool = False,
-    bundled_themes: frozenset[str] = frozenset(),
+    bundled_themes: frozenset[str] = frozenset(), subscriber_capable: bool = False,
 ) -> dict[str, Any]:
     uid = _uid(user_id)
     rows = await _user_rows(session, uid)
@@ -407,7 +413,9 @@ async def get_equipment(
     return _equipment_dto(
         rows, products, v2=v2, timer_capable=timer_capable,
         bundled_themes=bundled_themes,
-        subscribed=not locked or await _subscribed(session, user_id),
+        subscriber_only_usable=not locked or (
+            subscriber_capable and await _subscribed(session, user_id)
+        ),
     )
 
 

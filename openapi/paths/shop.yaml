@@ -287,7 +287,7 @@
       required: false
       schema:
         type: string
-      description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존. subscriber-only-v1이 없으면 구독 전용 상품 비노출, 장착 중이면 theme_default·해제로 응답.
     - name: X-Moly-Bundled-Themes
       in: header
       required: false
@@ -355,7 +355,7 @@
       required: false
       schema:
         type: string
-      description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존. subscriber-only-v1이 없으면 구독 전용 상품 비노출, 장착 중이면 theme_default·해제로 응답.
     - name: X-Moly-Bundled-Themes
       in: header
       required: false

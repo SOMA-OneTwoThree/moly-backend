@@ -6,6 +6,7 @@ Every test rolls back its rows. No production or remote DSN is accepted.
 from datetime import datetime, timezone
 from decimal import Decimal
 import os
+from pathlib import Path
 import uuid
 
 import asyncpg
@@ -158,3 +159,21 @@ async def test_deferred_cleanup_allows_atomic_owner_reassignment(connection):
     await connection.execute('UPDATE public.subscriptions SET user_id=$1 WHERE id=$2', new_owner, sub_id)
     await connection.execute('SET CONSTRAINTS ALL IMMEDIATE')
     assert await connection.fetchval('SELECT user_id FROM public.subscriptions WHERE id=$1', sub_id) == new_owner
+
+
+async def test_cleanup_trigger_drops_supabase_default_service_role_execute(connection):
+    # Supabase grants service_role EXECUTE by default, unlike a plain PostgreSQL fixture.
+    await connection.execute('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO service_role')
+    await connection.execute('DROP FUNCTION public.cleanup_unowned_subscription() CASCADE')
+    migration = (Path(__file__).parents[2] / 'db/changes/subscription_transfer.sql').read_text()
+    # Keep this test's rollback boundary; execute the actual migration body within it.
+    body = migration.split('\nBEGIN;\n', 1)[1].rsplit('\nCOMMIT;', 1)[0]
+    await connection.execute(body)
+    for role in ('anon', 'authenticated', 'service_role'):
+        assert not await connection.fetchval(
+            "SELECT has_function_privilege($1,'public.cleanup_unowned_subscription()','EXECUTE')", role,
+        )
+    owner = await signup(connection)
+    sub_id = await create_subscription(connection, owner)
+    await delete_user(connection, owner)
+    assert not await connection.fetchval('SELECT EXISTS(SELECT 1 FROM public.subscriptions WHERE id=$1)', sub_id)

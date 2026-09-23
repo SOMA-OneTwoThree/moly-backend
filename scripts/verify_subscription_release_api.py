@@ -48,7 +48,7 @@ async def run(args):
     assert_dev_target(args.env_file, dsn)
     conn = await asyncpg.connect(dsn, statement_cache_size=0, timeout=10, command_timeout=20)
     users = []
-    report = {"api": API, "auth": AUTH, "checks": [], "chat_usage": {}}
+    report = {"api": API, "auth": AUTH, "checks": [], "chat_usage": {}, "chat_samples": {}, "status": "running"}
     saved = {r["key"]: r["value"] for r in await conn.fetch(
         "SELECT key,value FROM public.app_config WHERE key=ANY($1::text[])",
         ["subscription_launch", "free_launch_until"])}
@@ -115,18 +115,25 @@ async def run(args):
                 duration = await conn.fetchval("SELECT app_trial_ends_at-app_trial_started_at FROM public.profiles WHERE id=$1", u["id"])
                 assert duration == timedelta(hours=48)
                 assert (await request(u["api"], "GET", "/chat/state"))["daily_token_limit"] == paid
-                await request(u["api"], "PUT", "/daily-fortune/profile", json={"birth_date": "2002-12-13", "gender": "man"})
+                await request(u["api"], "PUT", "/fortune-profile", json={"birth_date": "2002-12-13", "gender": "man"})
                 fortune = await request(u["api"], "POST", "/daily-fortune/reveal")
                 assert fortune["state"] == "revealed" and fortune["access"] == "included"
                 assert len(fortune["result"]["categories"]) == 4
             passed("all locales: signup trial equals paid allowance, retry preserves 48h, fortune needs no ad")
             for u in users:
                 deltas = []
+                report["chat_samples"][u["lang"]] = []
                 for index in range(args.turns):
                     before = await request(u["api"], "GET", "/chat/state")
                     key = "subscription-test-" + uuid.uuid4().hex
                     body = {"text": TEXT[u["lang"]][index % 4]}
                     response = await request(u["api"], "POST", "/chat/messages", headers={"Idempotency-Key": key}, json=body)
+                    reply = response["reply"]["content"]
+                    assert reply.strip(), "Empty chat reply"
+                    report["chat_samples"][u["lang"]].append({"user": body["text"], "reply": reply})
+                    if index % 4 == 3:
+                        term = {"en": "presentation", "ko": "발표", "ja": "発表"}[u["lang"]]
+                        assert term in reply.lower(), "Same-session factual recall failed"
                     after = await request(u["api"], "GET", "/chat/state")
                     delta = after["tokens_used"] - before["tokens_used"]
                     assert delta > 0
@@ -181,7 +188,10 @@ async def run(args):
                 AND (price_catalog_version IS DISTINCT FROM 20260923 OR cost_micro_usd IS NULL)""", [u["id"] for u in users])
             assert missing_prices == 0
             passed("deployed chat ledger confirms GPT-6 Luna and completed usage records")
+            report["status"] = "passed"
     finally:
+        if report["status"] != "passed":
+            report["status"] = "failed"
         for key, value in written.items():
             actual = await conn.fetchval("SELECT value FROM public.app_config WHERE key=$1", key)
             if actual is None or json.loads(actual) != value:

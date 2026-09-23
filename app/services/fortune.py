@@ -19,6 +19,8 @@ from app.models.fortune import DailyFortune, FortuneAdSession, FortuneProfile
 from app.schemas.fortune import FortuneProfilePut
 from app.services import fortune_catalog, fortune_rules, fortune_scores, fortune_scores_legacy, gating, privacy
 from app.services.account import _load_profile
+from app.services.entitlement import subscription_policy_active
+from app.services.limits import effective_token_config
 from app.services.fortune_copy_selection import (
     CARD_SELECTION_VERSION, DRAW_ALGORITHM_VERSION, draw_cards, select_variants, validate_previous_selection,
 )
@@ -174,7 +176,12 @@ async def _access(
     if daily is not None and daily.fortune_date == today and daily.unlock_state == "unlocked":
         return "unlocked_today", "free"
     plan = await gating.resolve_plan(session, user_id, now, profile=account)
-    return ("included" if plan in {"monthly", "yearly"} else "ad_required"), plan
+    included = plan in {"monthly", "yearly"}
+    if plan == "trial":
+        # Existing launch-free access stays unchanged until the global cutoff.
+        # After launch, signup trials have the same ad-free fortune as paid plans.
+        included = subscription_policy_active(await effective_token_config(session), now)
+    return ("included" if included else "ad_required"), plan
 
 
 def _versions(row: DailyFortune) -> dict[str, str]:

@@ -120,7 +120,9 @@ async def get_state(session: AsyncSession, user_id: str) -> dict[str, Any]:
         "daily_token_limit": ent["daily_token_limit"],
         "tokens_remaining": remaining,
         "warning_threshold": g.warning_threshold,
-        "personal_diary_eligible": user_chars >= g.diary_min_user_chars,
+        "personal_diary_eligible": (
+            ent["personal_diary_eligible"] and user_chars >= g.diary_min_user_chars
+        ),
         "limit_reached": remaining == 0,
     }
 
@@ -499,7 +501,7 @@ def _clean_reply(text: str, nickname: str | None = None, language: str | None = 
 
 
 def _billable(r: llm.LLMResult) -> int:
-    """실비용 가중 청구 토큰 = billable × 입력단가 = 실제 청구액(정확). 한도가 달러예산에 직결.
+    """사용자 한도용 가중 토큰. 모델의 실제 USD 원가는 usage_ledger에서 별도로 계산한다.
 
     provider마다 단가비율이 달라 가중치를 model prefix로 선택한다(OpenAI out 6.0·read 0.1·write 1.25 /
     Anthropic out 5.0·read 0.1·write 1.25). write는 cold 턴이 실제 더 비싸니 그만큼 더 셈.

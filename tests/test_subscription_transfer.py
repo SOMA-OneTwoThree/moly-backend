@@ -111,7 +111,9 @@ class ReconciliationSession:
         self.owner = owner
         self.added = []
 
-    async def execute(self, statement):
+    async def execute(self, statement, params=None):
+        if "pg_advisory_xact_lock" in str(statement):
+            return Rows([])
         entity = statement.column_descriptions[0]['entity']
         if entity is Subscription:
             return Rows([self.chain])

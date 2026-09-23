@@ -84,6 +84,14 @@ def compute_cost(
         if rate is None:
             return None  # 없는 요금을 0으로 접지 않는다(불변식 4)
         total += tokens * rate
+    # GPT-5.6/6의 Standard 긴 입력 요금은 요청 전체에 적용한다.
+    prompt_tokens = input_tokens + cached_input_tokens + cache_write_tokens
+    if price.provider == "openai" and price.model.startswith(("gpt-5.6-", "gpt-6-")) and prompt_tokens > 272_000:
+        output_cost = output_tokens * (price.output_micro_usd or 0)
+        embedding_cost = embedding_tokens * (price.embedding_micro_usd or 0)
+        input_cost = total - output_cost - embedding_cost
+        # 1.5 배도 정수 연산으로 보존하고 마지막에 한 번 올림한다.
+        return ceil((4 * input_cost + 3 * output_cost + 2 * embedding_cost) / (2 * _PER_TOKENS))
     # 나눗셈은 마지막에 한 번 — 항목별로 나누면 절삭 오차가 누적된다. 올림으로 과소집계를 피한다.
     return ceil(total / _PER_TOKENS)
 

@@ -97,6 +97,10 @@
 - 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도 150,000**. `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
 - 종료일 `app_config.free_launch_until`·한도 `free_launch_token_limit` → **재배포 없이 조정**. 종료 시 자동으로 정상 등급 복귀.
 
+구독 전환 예약(`subscription_launch.enabled=true`, `existing_user_cutoff=T`)이 있으면 T부터 기존 런칭 설정보다 전환 정책을 우선한다. 저장된 계정 언어 기준으로 무료는 영어 40,000·한국어 50,000·일본어 60,000, 구독·가입 체험·스토어 체험은 영어 300,000·한국어 400,000·일본어 550,000이며, 전환이나 결제 시 당일 사용량을 초기화하지 않는다. T 이전 가입자에게 새 48시간 체험을 시작하지 않는다. T 이후 가입자의 체험은 최초 가입 시각 +48시간으로 고정된다. 기존에 발급한 체험과 이미 받은 일기는 유지한다.
+
+`entitlement_source`는 통계와 상태 구분용이며 `plan`의 기존 열거값은 유지한다. `/me.entitlement.personal_diary_eligible`은 등급 조건만, `/chat/state.personal_diary_eligible`은 현재 등급과 대화량 조건을 함께 나타낸다. 최종 발행은 해당 활동일 종료(다음날 로컬 04:00 직전)를 기준으로 판정한다. 무료는 운영자 일기를 받을 수 있고, 해당 주의 미수령 원고가 없으면 미발행한다. 상세 전환·검증 절차는 [구독 전환 구현 문서](SUBSCRIPTION-POLICY-IMPLEMENTATION.md)를 따른다.
+
 ### 시간·하루 경계
 
 - 절대시각 = ISO 8601 UTC. 대화 한도·일기 귀속의 `activity_date`는 유저 로컬 **04:00** 경계다.
@@ -152,13 +156,15 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
   "profile": { "nickname":"지우", "timezone":"Asia/Seoul", "language":"ko", "onboarded":true },
   "entitlement": {
     "plan":"trial",                       // trial | free | monthly | yearly
+    "entitlement_source":"launch",        // launch | signup_trial | store_trial | subscription | free
+    "personal_diary_eligible":true,         // 등급상 발행 대상 여부. 실제 발행은 대화량 조건도 필요
     "is_subscriber":false,                // monthly·yearly만 true
     "trial_ends_at":"2026-10-01T04:00:00+09:00",  // trial 아니면 null
     "ads_removed":true,                   // 배너 광고 숨김
     "subscriber_theme_unlocked":false,    // 호환 필드. 현재 꾸미기 접근 제어에는 사용하지 않음
     "daily_token_limit":150000,
     "tokens_used":1200,
-    "tokens_remaining":48800,
+    "tokens_remaining":148800,
     "personal_diary_token_threshold":2000 // 개인 일기 참고 지표(토큰) — 실제 발행 분기는 문자수(1장)
   },
   "wallet": { "balance":640 },

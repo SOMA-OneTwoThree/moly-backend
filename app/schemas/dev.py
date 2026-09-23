@@ -103,7 +103,7 @@ class ChatEvalRequest(BaseModel):
         json_schema_extra={
             "example": {
                 "provider": "openai",
-                "model": "gpt-5.6-luna",
+                "model": "gpt-6-luna",
                 "messages": [{"role": "user", "content": "안녕 캐피 오늘 뭐했어?"}],
                 "use_persona": True,
                 "language": "ko",
@@ -139,7 +139,7 @@ class ChatCompareRequest(BaseModel):
     messages: list[EvalMessage] = Field(min_length=1, max_length=50)
     models: list[ModelRef] | None = Field(
         default=None, max_length=10,
-        description="비교할 모델 목록. 생략 시 기본 셋(현행 Sonnet + 후보 4종).",
+        description="비교할 모델 목록. 생략 시 GPT-5.6 Luna/Terra와 GPT-6 Luna/Sol.",
     )
     use_persona: bool = True
     language: str = "ko"
@@ -155,8 +155,13 @@ class EvalResultOut(StrictResponse):
     latency_ms: int
     input_tokens: int
     output_tokens: int
-    est_cost_usd: float
+    est_cost_usd: float | None
     error: str | None
+    cached_input_tokens: int = 0
+    cache_write_tokens: int = 0
+    cache_write_estimated: bool = False
+    finish_reason: str = ""
+    model_snapshot: str = ""
 
 
 class ChatCompareResponse(StrictResponse):

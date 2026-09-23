@@ -1,4 +1,4 @@
-"""Account-scoped pre-release enrollment, tested only on disposable local PostgreSQL."""
+"""Retired test allowlists must never bypass the scheduled subscription rollout."""
 from datetime import datetime, timedelta, timezone
 import json
 import os
@@ -47,15 +47,14 @@ async def access(conn, uid):
 
 
 @pytest.mark.parametrize('mode', ['regular', 'legacy_offer'])
-async def test_explicit_account_mode_and_self_trial(connection, mode):
+async def test_explicit_account_mode_cannot_enable_trial_before_global_rollout(connection, mode):
     uid = await configure(connection, mode)
-    assert await access(connection, uid) == {'enabled': True, 'legacy_offer_eligible': mode == 'legacy_offer'}
+    assert await access(connection, uid) == {'enabled': False, 'legacy_offer_eligible': False}
     assert (await access(connection, uuid.uuid4()))['enabled'] is False
-    await connection.execute('SELECT public.start_subscription_trial($1)', uid)
-    first = await connection.fetchrow('SELECT app_trial_started_at,app_trial_ends_at FROM public.profiles WHERE id=$1', uid)
-    assert first['app_trial_ends_at'] - first['app_trial_started_at'] == timedelta(hours=48)
-    await connection.execute('SELECT public.start_subscription_trial($1)', uid)
-    assert await connection.fetchval('SELECT app_trial_started_at FROM public.profiles WHERE id=$1', uid) == first['app_trial_started_at']
+    with pytest.raises(asyncpg.RaiseError):
+        async with connection.transaction():
+            await connection.execute('SELECT public.start_subscription_trial($1)', uid)
+    assert await connection.fetchval('SELECT app_trial_started_at FROM public.profiles WHERE id=$1', uid) is None
     status = json.loads(await connection.fetchval('SELECT public.subscription_offer_status($1)', uid))
     assert not status['ios_offer_ready'] and not status['android_offer_ready']
 

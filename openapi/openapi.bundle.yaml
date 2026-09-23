@@ -3096,7 +3096,8 @@ components:
         personal_diary_eligible:
           type: boolean
           title: Personal Diary Eligible
-          description: 개인 일기 threshold가 있고 사용량이 도달했는지 여부.
+          description: 현재 개인 일기 대상 등급이며 당일 일반 대화의 사용자 글자 수 기준을 충족했는지 여부. 구독 전환 후 무료 등급은 false. 최종 발행은
+            활동일 종료 시점의 등급과 대화량으로 판정한다.
         limit_reached:
           type: boolean
           title: Limit Reached

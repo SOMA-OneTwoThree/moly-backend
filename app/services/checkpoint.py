@@ -353,7 +353,7 @@ async def summarize(
     result = await llm.generate(
         build_system(language),
         [{"role": "user", "content": build_user_prompt(ordered, previous_summary=previous_summary)}],
-        model=used_model,
+        model=used_model, reasoning_effort="none",
         max_tokens=SUMMARY_MAX_OUTPUT_TOKENS,
         timeout=timeout if timeout is not None else settings.llm_timeout_s,
         ledger=usage_ledger.with_purpose(ledger, "context_summary"),

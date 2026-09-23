@@ -59,7 +59,9 @@ class FakeSession:
         self.committed = False
         self.rolled_back = False
 
-    async def execute(self, stmt):
+    async def execute(self, stmt, params=None):
+        if "pg_advisory_xact_lock" in str(stmt):
+            return _Result([])
         return _Result(self.exec_results.pop(0) if self.exec_results else [])
 
     def add(self, obj):

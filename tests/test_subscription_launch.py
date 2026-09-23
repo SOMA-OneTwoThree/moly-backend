@@ -278,7 +278,7 @@ def test_unmigrated_account_keeps_legacy_launch_after_rollout_enabled():
     assert result["subscriber_theme_unlocked"] is False
 
 
-def test_issued_app_trial_does_not_revert_to_legacy_when_rollout_paused():
+def test_prepared_rollout_keeps_former_test_accounts_in_launch_without_reissuing_trial():
     now = datetime.now(timezone.utc)
     profile = SimpleNamespace(
         trial_ends_at=now + timedelta(days=10),
@@ -295,16 +295,20 @@ def test_issued_app_trial_does_not_revert_to_legacy_when_rollout_paused():
         },
         now,
     )
-    assert result["plan"] == "free" and result["trial_ends_at"] is None
+    assert result["plan"] == "trial" and result["entitlement_source"] == "launch"
+    assert profile.app_trial_ends_at == now - timedelta(days=1)
 
 
 async def test_store_trial_marks_existing_claim_even_if_enrollment_is_paused():
     session = AsyncMock()
-    await subscription._mark_store_trial_offer_redeemed(session, UID_UUID)
+    await subscription._mark_store_trial_offer_redeemed(session, UID_UUID, {
+        "offer_code": "legacy-month", "product_id": "monthly", "store": "APP_STORE",
+    })
     sql = session.execute.await_args.args[0]
     assert "UPDATE public.subscription_offer_claims" in str(sql)
     assert "redeemed_at IS NULL" in str(sql)
-    assert sql.compile().params == {"uid": UID_UUID}
+    assert sql.compile().params == {"uid": UID_UUID, "offer": "legacy-month",
+                                    "product": "monthly", "store": "APP_STORE"}
 
 
 @pytest.mark.parametrize("period", ["TRIAL", "INTRO", "NORMAL"])
@@ -316,13 +320,14 @@ async def test_zero_price_store_period_consumes_offer_and_reports_trial(monkeypa
             super().__init__()
             self.statements = []
 
-        async def execute(self, statement):
+        async def execute(self, statement, params=None):
             self.statements.append(str(statement))
-            return await super().execute(statement)
+            return await super().execute(statement, params)
 
     session = CaptureSession()
     result = await subscription.handle_revenuecat_event(
-        session, _rc_event(period_type=period, price_in_purchased_currency=0)
+        session, _rc_event(period_type=period, price_in_purchased_currency=0,
+                           offer_code="legacy-month", store="APP_STORE")
     )
     assert result.outcome == subscription.HANDLED
     sub = next(row for row in session.added if isinstance(row, Subscription))
@@ -401,3 +406,13 @@ async def test_ads_return_when_paid_or_store_trial_subscription_expires(plan, st
             assert result["plan"] == (plan if offset_us < 0 else "free")
             assert result["ads_removed"] is (offset_us < 0)
     engine.dispose()
+
+
+@pytest.mark.parametrize("event", [
+    {}, {"offer_code": None, "product_id": "monthly", "store": "APP_STORE"},
+    {"offer_code": "legacy", "product_id": "monthly", "store": "STRIPE"},
+])
+async def test_unattributed_free_period_never_consumes_campaign(event):
+    session = AsyncMock()
+    await subscription._mark_store_trial_offer_redeemed(session, UID_UUID, event)
+    session.execute.assert_not_awaited()

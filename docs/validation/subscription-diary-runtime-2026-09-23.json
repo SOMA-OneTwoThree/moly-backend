@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "results": [
+    {
+      "language": "ko",
+      "personal_eligible": true,
+      "created": true,
+      "idempotent": true,
+      "calls": 2
+    },
+    {
+      "language": "ko",
+      "personal_eligible": false,
+      "created": false,
+      "idempotent": true,
+      "calls": 0
+    },
+    {
+      "language": "ja",
+      "personal_eligible": true,
+      "created": true,
+      "idempotent": true,
+      "calls": 2
+    },
+    {
+      "language": "ja",
+      "personal_eligible": false,
+      "created": false,
+      "idempotent": true,
+      "calls": 0
+    },
+    {
+      "language": "en",
+      "personal_eligible": true,
+      "created": true,
+      "idempotent": true,
+      "calls": 2
+    },
+    {
+      "language": "en",
+      "personal_eligible": false,
+      "created": false,
+      "idempotent": true,
+      "calls": 0
+    }
+  ],
+  "workflow": "https://github.com/SOMA-OneTwoThree/moly-backend/actions/runs/35848155059",
+  "deployed_commit": "88426e74e1a58ce50cd533323f3b4052609e6a77"
+}

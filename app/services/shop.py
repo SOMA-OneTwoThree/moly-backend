@@ -110,8 +110,16 @@ async def _owned_ids(session: AsyncSession, uid: uuid.UUID) -> set[uuid.UUID]:
 
 
 async def _subscribed(session: AsyncSession, user_id: str) -> bool:
-    """구독 전용 상품의 사용권. 체험·런칭 무료 기간은 포함하지 않는다."""
-    return await _load_active_subscription(session, user_id, datetime.now(timezone.utc)) is not None
+    """구독 및 출시 후 앱 체험의 임시 사용권. 영구 소유/건초 지급과 분리한다."""
+    now = datetime.now(timezone.utc)
+    if await _load_active_subscription(session, user_id, now) is not None:
+        return True
+    profile = await session.get(Profile, _uid(user_id))
+    trial_end = getattr(profile, "app_trial_ends_at", None)
+    return (
+        getattr(profile, "app_trial_started_at", None) is not None
+        and trial_end is not None and now < trial_end
+    )
 
 
 async def _products_by_ids(

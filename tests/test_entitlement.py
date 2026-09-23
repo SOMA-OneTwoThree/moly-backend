@@ -2,6 +2,8 @@
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
+import pytest
+
 from app.services.entitlement import derive_entitlement
 
 NOW = datetime(2026, 7, 7, 12, 0, tzinfo=timezone.utc)
@@ -41,7 +43,7 @@ def test_trial():
 def test_free_when_trial_expired():
     e = derive_entitlement(_profile(NOW - timedelta(days=1)), None, 500, CONFIG, NOW)
     assert e["plan"] == "free"
-    assert e["ads_removed"] is True  # 배너 광고 미출시 — 전 등급 항상 True(2026-07-09)
+    assert e["ads_removed"] is False
     assert e["subscriber_theme_unlocked"] is False
     assert e["daily_token_limit"] == 1000
     assert e["tokens_remaining"] == 500
@@ -92,3 +94,21 @@ def test_launch_bad_config_is_off_failsafe():
     cfg = {**CONFIG, "free_launch_until": "not-a-date", "free_launch_token_limit": 50_000}
     e = derive_entitlement(_profile(None), None, 300, cfg, NOW)
     assert e["plan"] == "free" and e["daily_token_limit"] == 1000
+
+
+@pytest.mark.parametrize("trial_kind", ["signup", "app", "launch"])
+@pytest.mark.parametrize("offset_us", [-1, 0, 1])
+def test_ads_return_at_trial_expiry(trial_kind, offset_us):
+    end = NOW + timedelta(days=1)
+    profile = _profile(end if trial_kind == "signup" else None)
+    config = dict(CONFIG)
+    if trial_kind == "app":
+        profile.app_trial_started_at = end - timedelta(hours=48)
+        profile.app_trial_ends_at = end
+        profile.trial_ends_at = end + timedelta(days=30)
+        config["free_launch_until"] = (end + timedelta(days=30)).isoformat()
+    elif trial_kind == "launch":
+        config["free_launch_until"] = end.isoformat()
+    result = derive_entitlement(profile, None, 0, config, end + timedelta(microseconds=offset_us))
+    assert result["plan"] == ("trial" if offset_us < 0 else "free")
+    assert result["ads_removed"] is (offset_us < 0)

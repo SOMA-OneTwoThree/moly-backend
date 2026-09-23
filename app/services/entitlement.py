@@ -51,13 +51,20 @@ def derive_entitlement(
     """entitlement 블록 생성. active_sub는 '유효한(active/grace + 미만료)' 구독만 넘어옴(없으면 None)."""
     # 런칭 무료 기간: 구독 없이 전원 무료(구독급 경험, 단 토큰은 별도 런칭 한도).
     # 실제 구독자(active_sub)는 항상 우선 — 증정 등 정상. 기간 지나면 자동으로 정상 등급 복귀.
-    launch_until = _parse_dt(config.get("free_launch_until"))
+    # Issued app trials remain authoritative even if new enrollment is paused.
+    # Accounts that have not entered the updated flow retain the legacy launch policy.
+    has_app_trial = getattr(profile, "app_trial_started_at", None) is not None
+    launch_until = None if has_app_trial else _parse_dt(config.get("free_launch_until"))
+    personal_trial_end = (
+        getattr(profile, "app_trial_ends_at", None) if has_app_trial else profile.trial_ends_at
+    )
     in_launch = active_sub is None and launch_until is not None and now < launch_until
 
     if active_sub is not None:
         plan = active_sub.plan  # monthly | yearly
         is_subscriber = True
-        trial_ends_at = None
+        store_trial_end = getattr(active_sub, "store_trial_ends_at", None)
+        trial_ends_at = store_trial_end if store_trial_end and now < store_trial_end else None
         subscriber_theme_unlocked = True
     elif in_launch:
         # plan은 클라 호환 위해 'trial' 재사용(새 값 도입 안 함). trial_ends_at=런칭 종료로 "무료 ~까지" 표시.
@@ -65,11 +72,11 @@ def derive_entitlement(
         is_subscriber = False
         trial_ends_at = launch_until
         subscriber_theme_unlocked = False
-    elif profile.trial_ends_at is not None and now < profile.trial_ends_at:
+    elif personal_trial_end is not None and now < personal_trial_end:
         plan = "trial"
         is_subscriber = False
-        trial_ends_at = profile.trial_ends_at
-        subscriber_theme_unlocked = False
+        trial_ends_at = personal_trial_end
+        subscriber_theme_unlocked = has_app_trial
     else:
         plan = "free"
         is_subscriber = False
@@ -90,9 +97,8 @@ def derive_entitlement(
         "plan": plan,
         "is_subscriber": is_subscriber,
         "trial_ends_at": trial_ends_at,
-        # 배너 광고 미출시 결정(2026-07-09) — 항상 True. 도입 시 plan != "free"로 복원.
-        "ads_removed": True,
-        "subscriber_theme_unlocked": subscriber_theme_unlocked,  # 구독만(체험 제외)
+        "ads_removed": plan != "free",
+        "subscriber_theme_unlocked": subscriber_theme_unlocked,
         "daily_token_limit": limit,
         "tokens_used": tokens_used,
         "tokens_remaining": tokens_remaining,

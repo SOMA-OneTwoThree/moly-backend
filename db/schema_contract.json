@@ -3786,6 +3786,22 @@
         "not_null": true,
         "type": "integer"
       },
+      "public.profiles.app_trial_ends_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.profiles.app_trial_started_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
       "public.profiles.created_at": {
         "collation": null,
         "default": "now()",
@@ -4570,6 +4586,142 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.subscription_offer_claims.base_plan_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.subscription_offer_claims.campaign_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.subscription_offer_claims.claimed_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.subscription_offer_claims.code_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
+      "public.subscription_offer_claims.offer_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.subscription_offer_claims.plan": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.subscription_offer_claims.platform": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.subscription_offer_claims.product_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.subscription_offer_claims.redeemed_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.subscription_offer_claims.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.subscription_trial_codes.campaign_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.subscription_trial_codes.claimed_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.subscription_trial_codes.claimed_by": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
+      "public.subscription_trial_codes.code": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.subscription_trial_codes.expires_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.subscription_trial_codes.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.subscription_trial_codes.plan": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
       "public.subscriptions.auto_renew_enabled": {
         "collation": null,
         "default": "true",
@@ -4657,6 +4809,14 @@
         "identity": "",
         "not_null": true,
         "type": "text"
+      },
+      "public.subscriptions.store_trial_ends_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
       },
       "public.subscriptions.updated_at": {
         "collation": null,
@@ -7458,6 +7618,98 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.subscription_offer_claims.subscription_offer_claims_code_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (code_id) REFERENCES public.subscription_trial_codes(id)",
+        "enforcement_triggers": [
+          "public.subscription_offer_claims:17:O",
+          "public.subscription_offer_claims:5:O",
+          "public.subscription_trial_codes:17:O",
+          "public.subscription_trial_codes:9:O"
+        ],
+        "validated": true
+      },
+      "public.subscription_offer_claims.subscription_offer_claims_code_id_key": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (code_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.subscription_offer_claims.subscription_offer_claims_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.subscription_offer_claims.subscription_offer_claims_plan_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((plan = ANY (ARRAY['monthly'::text, 'yearly'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.subscription_offer_claims.subscription_offer_claims_platform_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((platform = ANY (ARRAY['ios'::text, 'android'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.subscription_offer_claims.subscription_offer_claims_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.subscription_offer_claims:17:O",
+          "public.subscription_offer_claims:5:O"
+        ],
+        "validated": true
+      },
+      "public.subscription_trial_codes.subscription_trial_codes_claimed_by_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (claimed_by) REFERENCES public.profiles(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.subscription_trial_codes:17:O",
+          "public.subscription_trial_codes:5:O"
+        ],
+        "validated": true
+      },
+      "public.subscription_trial_codes.subscription_trial_codes_claimed_by_key": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (claimed_by)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.subscription_trial_codes.subscription_trial_codes_code_key": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (code)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.subscription_trial_codes.subscription_trial_codes_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.subscription_trial_codes.subscription_trial_codes_plan_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((plan = ANY (ARRAY['monthly'::text, 'yearly'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.subscriptions.subscriptions_original_transaction_id_key": {
         "deferrable": false,
         "deferred": false,
@@ -7925,6 +8177,9 @@
       "public.bootstrap_user(uuid,timestamp with time zone):service_role:EXECUTE": {
         "grantable": false
       },
+      "public.claim_subscription_offer(uuid,text,text):service_role:EXECUTE": {
+        "grantable": false
+      },
       "public.create_privacy_barrier_for_profile():PUBLIC:EXECUTE": {
         "grantable": false
       },
@@ -7999,11 +8254,21 @@
       },
       "public.set_updated_at():service_role:EXECUTE": {
         "grantable": false
+      },
+      "public.start_subscription_trial(uuid):service_role:EXECUTE": {
+        "grantable": false
+      },
+      "public.subscription_offer_status(uuid):service_role:EXECUTE": {
+        "grantable": false
       }
     },
     "functions": {
       "public.bootstrap_user(uuid,timestamp with time zone)": {
         "definition": "CREATE OR REPLACE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone DEFAULT now())\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_required_count integer;\n  v_profile_created integer;\nBEGIN\n  SELECT count(*) INTO v_required_count\n  FROM public.products\n  WHERE product_type = 'cosmetic' AND is_active = true\n    AND (\n      (public_id = 'theme_default' AND slot = 'theme')\n      OR (public_id = 'head_sunglasses' AND slot = 'glasses')\n    );\n  IF v_required_count <> 2 THEN\n    RAISE EXCEPTION 'appearance bootstrap products are not ready';\n  END IF;\n\n  INSERT INTO public.profiles (id, trial_ends_at)\n  VALUES (p_user_id, p_created_at + interval '48 hours')\n  ON CONFLICT (id) DO NOTHING;\n  GET DIAGNOSTICS v_profile_created = ROW_COUNT;\n\n  INSERT INTO public.user_items (user_id, product_id, source)\n  SELECT p_user_id, p.id, 'admin_grant'\n  FROM public.products p\n  WHERE p.product_type = 'cosmetic' AND p.is_active = true\n    AND (\n      (p.public_id = 'theme_default' AND p.slot = 'theme')\n      OR (p.public_id = 'head_sunglasses' AND p.slot = 'glasses')\n    )\n  ON CONFLICT (user_id, product_id) DO NOTHING;\n\n  UPDATE public.user_items default_item\n  SET equipped_slot = 'theme', equipped_at = COALESCE(default_item.equipped_at, now())\n  FROM public.products default_product\n  WHERE default_item.user_id = p_user_id\n    AND default_item.product_id = default_product.id\n    AND default_product.public_id = 'theme_default'\n    AND NOT EXISTS (\n      SELECT 1 FROM public.user_items equipped\n      WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'\n    );\n\n  IF v_profile_created = 1 THEN\n    INSERT INTO public.routines (user_id, name, name_i18n, frequency_per_week, days_of_week, reminder_enabled)\n    VALUES\n      (p_user_id, '이불 정리하기',\n       '{\"ko\":\"이불 정리하기\",\"en\":\"Make the bed\",\"ja\":\"布団を整える\"}'::jsonb,\n       7, '{1,2,3,4,5,6,7}', false),\n      (p_user_id, '물 마시기',\n       '{\"ko\":\"물 마시기\",\"en\":\"Drink water\",\"ja\":\"水を飲む\"}'::jsonb,\n       7, '{1,2,3,4,5,6,7}', false);\n  END IF;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.claim_subscription_offer(uuid,text,text)": {
+        "definition": "CREATE OR REPLACE FUNCTION public.claim_subscription_offer(p_user_id uuid, p_platform text, p_plan text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_offer jsonb;\n  v_claim public.subscription_offer_claims%ROWTYPE;\n  v_code public.subscription_trial_codes%ROWTYPE;\n  v_created_at timestamptz;\n  v_cutoff timestamptz;\n  v_offer_expires_at timestamptz;\n  v_status jsonb;\nBEGIN\n  IF p_platform NOT IN ('ios', 'android') OR p_plan NOT IN ('monthly', 'yearly') THEN RAISE EXCEPTION 'invalid offer selection'; END IF;\n  PERFORM 1 FROM public.profiles WHERE id = p_user_id AND nickname IS NOT NULL FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  BEGIN\n    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;\n    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;\n  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN\n    RAISE EXCEPTION 'offer unavailable';\n  END;\n  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;\n  IF v_cutoff IS NULL OR v_created_at IS NULL OR v_created_at >= v_cutoff\n    OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)\n    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff\n    THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  IF EXISTS (SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id\n    AND status IN ('active', 'grace_period') AND expires_at > statement_timestamp()) THEN RAISE EXCEPTION 'already subscribed'; END IF;\n  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;\n  IF FOUND AND (v_claim.platform <> p_platform OR (p_platform = 'ios' AND v_claim.plan <> p_plan)\n    OR v_claim.campaign_id <> v_config->>'campaign_id' OR v_claim.redeemed_at IS NOT NULL) THEN RAISE EXCEPTION 'offer already selected'; END IF;\n  v_status := public.subscription_offer_status(p_user_id);\n  IF (v_status->(p_platform || '_offer_ready')) IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  v_offer := v_config #> ARRAY['offers', p_platform, p_plan];\n  IF v_claim.user_id IS NOT NULL AND p_platform = 'android' THEN\n    UPDATE public.subscription_offer_claims SET plan = p_plan, product_id = v_offer->>'product_id',\n      base_plan_id = v_offer->>'base_plan_id', offer_id = v_offer->>'offer_id'\n    WHERE user_id = p_user_id RETURNING * INTO v_claim;\n  END IF;\n  IF v_claim.user_id IS NULL THEN\n    IF p_platform = 'ios' THEN\n      SELECT * INTO v_code FROM public.subscription_trial_codes\n      WHERE campaign_id = v_config->>'campaign_id' AND plan = p_plan\n        AND claimed_at IS NULL AND expires_at > statement_timestamp()\n      ORDER BY expires_at, id LIMIT 1 FOR UPDATE SKIP LOCKED;\n      IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n      UPDATE public.subscription_trial_codes SET claimed_by = p_user_id, claimed_at = statement_timestamp() WHERE id = v_code.id;\n    END IF;\n    INSERT INTO public.subscription_offer_claims(user_id, campaign_id, platform, plan, code_id, product_id, base_plan_id, offer_id)\n    VALUES(p_user_id, v_config->>'campaign_id', p_platform, p_plan, v_code.id,\n      v_offer->>'product_id', v_offer->>'base_plan_id', v_offer->>'offer_id') RETURNING * INTO v_claim;\n  END IF;\n  IF p_platform = 'ios' THEN\n    SELECT * INTO v_code FROM public.subscription_trial_codes WHERE id = v_claim.code_id;\n    IF v_code.expires_at <= statement_timestamp() THEN RAISE EXCEPTION 'offer expired'; END IF;\n    RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan,\n      'apple_app_id', v_config->>'apple_app_id', 'code', v_code.code);\n  END IF;\n  RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan, 'product_id', v_claim.product_id,\n    'base_plan_id', v_claim.base_plan_id, 'offer_id', v_claim.offer_id);\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.create_privacy_barrier_for_profile()": {
@@ -8032,6 +8297,14 @@
       },
       "public.set_updated_at()": {
         "definition": "CREATE OR REPLACE FUNCTION public.set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n  NEW.updated_at = now();\n  RETURN NEW;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.start_subscription_trial(uuid)": {
+        "definition": "CREATE OR REPLACE FUNCTION public.start_subscription_trial(p_user_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_profile public.profiles%ROWTYPE;\n  v_config jsonb;\n  v_cutoff timestamptz;\n  v_now timestamptz := statement_timestamp();\nBEGIN\n  SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'profile not found'; END IF;\n  -- Retry always preserves the original interval, even after expiry or deactivation.\n  IF v_profile.app_trial_started_at IS NOT NULL THEN RETURN; END IF;\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  BEGIN\n    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;\n  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN\n    RAISE EXCEPTION 'trial unavailable';\n  END;\n  IF v_cutoff IS NULL OR (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb\n    OR v_profile.nickname IS NULL THEN\n    RAISE EXCEPTION 'trial unavailable';\n  END IF;\n  IF EXISTS (\n    SELECT 1 FROM public.subscriptions\n    WHERE user_id = p_user_id AND status IN ('active', 'grace_period')\n      AND expires_at > v_now\n  ) THEN RETURN; END IF;\n  UPDATE public.profiles\n  SET app_trial_started_at = v_now, app_trial_ends_at = v_now + interval '48 hours'\n  WHERE id = p_user_id;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.subscription_offer_status(uuid)": {
+        "definition": "CREATE OR REPLACE FUNCTION public.subscription_offer_status(p_user_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_cutoff timestamptz;\n  v_offer_expires_at timestamptz;\n  v_claim public.subscription_offer_claims%ROWTYPE;\n  v_platform text;\n  v_plan text;\n  v_offer jsonb;\n  v_ready boolean;\n  v_result jsonb := '{\"ios_offer_ready\":false,\"android_offer_ready\":false,\"claimed_offer\":null,\"offer_redeemed\":false}'::jsonb;\nBEGIN\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;\n  IF FOUND THEN\n    v_result := jsonb_set(v_result, '{claimed_offer}', jsonb_build_object('platform', v_claim.platform, 'plan', v_claim.plan));\n    v_result := jsonb_set(v_result, '{offer_redeemed}', to_jsonb(v_claim.redeemed_at IS NOT NULL));\n  END IF;\n  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb\n    OR NULLIF(v_config->>'campaign_id', '') IS NULL OR v_claim.redeemed_at IS NOT NULL\n    OR (v_claim.user_id IS NOT NULL AND v_claim.campaign_id <> v_config->>'campaign_id') THEN RETURN v_result; END IF;\n  BEGIN\n    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;\n    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;\n  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN RETURN v_result; END;\n  IF v_cutoff IS NULL OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)\n    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff\n    THEN RETURN v_result; END IF;\n  FOREACH v_platform IN ARRAY ARRAY['ios', 'android'] LOOP\n    v_ready := true;\n    FOREACH v_plan IN ARRAY ARRAY['monthly', 'yearly'] LOOP\n      -- An allocated iOS code fixes its plan; retries do not need unclaimed inventory.\n      IF v_claim.user_id IS NOT NULL AND (v_platform <> v_claim.platform OR (v_platform = 'ios' AND v_plan <> v_claim.plan)) THEN CONTINUE; END IF;\n      v_offer := v_config #> ARRAY['offers', v_platform, v_plan];\n      IF (v_offer->'ready') IS DISTINCT FROM 'true'::jsonb OR NULLIF(v_offer->>'product_id', '') IS NULL THEN\n        v_ready := false;\n      ELSIF v_platform = 'ios' THEN\n        IF COALESCE(v_config->>'apple_app_id', '') !~ '^[0-9]+$' OR NOT EXISTS (\n          SELECT 1 FROM public.subscription_trial_codes\n          WHERE campaign_id = v_config->>'campaign_id' AND plan = v_plan\n            AND expires_at > statement_timestamp()\n            AND ((v_claim.user_id IS NULL AND claimed_at IS NULL)\n              OR (id = v_claim.code_id AND claimed_by = p_user_id))\n        ) THEN v_ready := false; END IF;\n      ELSIF NULLIF(v_offer->>'base_plan_id', '') IS NULL OR NULLIF(v_offer->>'offer_id', '') IS NULL THEN\n        v_ready := false;\n      END IF;\n    END LOOP;\n    IF v_claim.user_id IS NOT NULL AND v_platform <> v_claim.platform THEN v_ready := false; END IF;\n    v_result := jsonb_set(v_result, ARRAY[v_platform || '_offer_ready'], to_jsonb(v_ready));\n  END LOOP;\n  RETURN v_result;\nEND;\n$function$\n",
         "owner": "postgres"
       }
     },
@@ -9392,6 +9665,51 @@
         "options": [],
         "ready": true,
         "table_name": "public.subscription_hay_grants",
+        "unique": true,
+        "valid": true
+      },
+      "public.subscription_offer_claims_code_id_key": {
+        "definition": "CREATE UNIQUE INDEX subscription_offer_claims_code_id_key ON public.subscription_offer_claims USING btree (code_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.subscription_offer_claims",
+        "unique": true,
+        "valid": true
+      },
+      "public.subscription_offer_claims_pkey": {
+        "definition": "CREATE UNIQUE INDEX subscription_offer_claims_pkey ON public.subscription_offer_claims USING btree (user_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.subscription_offer_claims",
+        "unique": true,
+        "valid": true
+      },
+      "public.subscription_trial_codes_claimed_by_key": {
+        "definition": "CREATE UNIQUE INDEX subscription_trial_codes_claimed_by_key ON public.subscription_trial_codes USING btree (claimed_by)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.subscription_trial_codes",
+        "unique": true,
+        "valid": true
+      },
+      "public.subscription_trial_codes_code_key": {
+        "definition": "CREATE UNIQUE INDEX subscription_trial_codes_code_key ON public.subscription_trial_codes USING btree (code)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.subscription_trial_codes",
+        "unique": true,
+        "valid": true
+      },
+      "public.subscription_trial_codes_pkey": {
+        "definition": "CREATE UNIQUE INDEX subscription_trial_codes_pkey ON public.subscription_trial_codes USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.subscription_trial_codes",
         "unique": true,
         "valid": true
       },
@@ -12551,6 +12869,54 @@
       "public.subscription_hay_grants:service_role:UPDATE": {
         "grantable": false
       },
+      "public.subscription_offer_claims:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.subscription_offer_claims:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.subscription_offer_claims:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.subscription_offer_claims:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.subscription_offer_claims:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.subscription_offer_claims:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.subscription_offer_claims:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.subscription_offer_claims:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.subscription_trial_codes:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.subscriptions:anon:DELETE": {
         "grantable": false
       },
@@ -13604,6 +13970,20 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.subscription_offer_claims": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.subscription_trial_codes": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.subscriptions": {
         "options": [],
         "owner": "postgres",
@@ -13719,5 +14099,5 @@
       }
     }
   },
-  "schema_sha256": "495e1d5cf88c8561813f82349d2cd5695adc4f1f834a79de66c3e85edb2e4c8a"
+  "schema_sha256": "8e80199ecce7298133f79c5a2c3714e5620ff917901f3aa19c378f0490c365c0"
 }

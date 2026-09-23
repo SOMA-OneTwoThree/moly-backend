@@ -171,6 +171,9 @@ def _rc_event(**over):
         "event_timestamp_ms": 1_800_000_000_000,
         "environment": "PRODUCTION",
         "store": "APP_STORE",
+        "period_type": "NORMAL",
+        "price_in_purchased_currency": 5900,
+        "currency": "KRW",
     }
     e.update(over)
     return e

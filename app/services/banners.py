@@ -1,5 +1,6 @@
 """Authenticated, request-scoped banner selection and data binding."""
 
+import logging
 from datetime import datetime
 
 from sqlalchemy import exists, func, select
@@ -15,6 +16,8 @@ from app.services.i18n import resolve
 from app.services.topic_catalog import TopicCatalog
 from app.services.topic_state import resolve_offer
 from app.services import privacy
+
+_log = logging.getLogger("moly-backend")
 
 
 async def remaining_today(session: AsyncSession, user_id: str, day: AppDay) -> int:
@@ -95,6 +98,24 @@ async def list_banners(
             # begin_nested has restored the transaction; a lost connection cannot be isolated.
             if exc.connection_invalidated:
                 raise
+    music_title = None
+    if "remote_bgm_v1" in capabilities and any(
+        binding.source == "music.daily_title"
+        for banner, _, _ in candidates for binding in banner.bindings.values()
+    ):
+        from app.services.bgm import list_tracks
+        from app.services.banner_music import pick_music_title
+        try:
+            async with session.begin_nested():
+                snapshot = await list_tracks(session, locale)
+                music_title = pick_music_title(day.local_date, snapshot.tracks)
+        except (DBAPIError, ValueError) as exc:
+            if isinstance(exc, DBAPIError) and exc.connection_invalidated:
+                raise
+            _log.warning("BGM recommendation unavailable: %s", type(exc).__name__)
+            candidates = tuple(c for c in candidates if not any(
+                b.source == "music.daily_title" for b in c[0].bindings.values()
+            ))
     return render_feed(
         catalog,
         candidates,
@@ -103,4 +124,5 @@ async def list_banners(
         day_ends_at=day.ends_at if day else None,
         remaining=remaining,
         topic_offer=topic_offer,
+        music_title=music_title,
     )

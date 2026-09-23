@@ -28,6 +28,8 @@ from app.services.banner_music import daily_music_title
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "resources/banners/home_blind.json"
 MAX_MANIFEST_BYTES = 256 * 1024
 MAX_FEED_BYTES = 128 * 1024
+# 한 응답이 전달하는 카드 수 상한. BannerFeed.items의 max_length와 같은 값을 공유한다.
+MAX_FEED_CARDS = 5
 
 
 def _unique_object(pairs):
@@ -133,6 +135,7 @@ def select_candidates(
 def binding_values(
     banner: BannerDefinition, locale: str, local_date: date | None, remaining: int | None,
     *, topic_question: str | None = None,
+    music_title: str | None = None,
 ) -> dict[str, str | int]:
     values = {}
     for alias, binding in banner.bindings.items():
@@ -143,7 +146,7 @@ def binding_values(
         elif binding.source == "music.daily_title":
             if local_date is None:
                 raise ValueError("music date unavailable")
-            values[alias] = daily_music_title(local_date)
+            values[alias] = music_title or daily_music_title(local_date)
         elif binding.source == "topic.question":
             if topic_question is None:
                 raise ValueError("topic binding unavailable")
@@ -205,6 +208,7 @@ def render_feed(
     day_ends_at: datetime | None,
     remaining: int | None,
     topic_offer=None,
+    music_title: str | None = None,
 ) -> BannerFeed:
     cards = []
     for banner, locale, canvas in candidates:
@@ -212,6 +216,7 @@ def render_feed(
             values = binding_values(
                 banner, locale, local_date, remaining,
                 topic_question=topic_offer.questions[locale] if topic_offer else None,
+                music_title=music_title,
             )
             topic_ref = TopicReference(
                 offer_id=topic_offer.offer_id, offer_sequence=topic_offer.offer_sequence,
@@ -243,7 +248,7 @@ def render_feed(
             cards.append(card)
         except (ValueError, KeyError, ValidationError):
             continue
-        if len(cards) == 5:
+        if len(cards) == MAX_FEED_CARDS:
             break
     result = BannerFeed(
         schema_version=1,

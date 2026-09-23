@@ -18,6 +18,36 @@ info:
 
     local·development 환경의 명시 플래그로만 등록되는 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
 paths:
+  /bgm/tracks:
+    get:
+      tags:
+      - bgm
+      operationId: getBgmTracks
+      summary: 활성 배경음악 전체 목록
+      description: 완전한 snapshot이며 정상 응답에서 사라진 곡은 제거 대상이다. 조회 실패는 삭제 신호가 아니다. revision은 현지화된 응답 목록의 SHA256이다.
+        bundled는 설치 파일, remote는 검증 후 로컬 다운로드 재생한다. remote_bgm_v1 음악추천 capability는 이 목록을 지원하는 앱에서만 전송한다.
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        schema:
+          type: string
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 전체 활성 곡 목록. remote 메타데이터는 모두 필수이며 bundled에서는 null.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BgmTracksResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /banners:
     get:
       tags:
@@ -2665,6 +2695,99 @@ paths:
         키 중복 방지는 30일 동안 유지된다. pending의 content만 화면에 표시하고, 첫 사용자 답변에 topic_entry_id와 locale를 보낸다.
 components:
   schemas:
+    BgmTrack:
+      additionalProperties: false
+      properties:
+        id:
+          pattern: ^[a-z0-9][a-z0-9-]{0,63}$
+          title: Id
+          type: string
+        category:
+          enum:
+          - lofi
+          - white_noise
+          title: Category
+          type: string
+        title:
+          maxLength: 120
+          minLength: 1
+          title: Title
+          type: string
+        source:
+          enum:
+          - bundled
+          - remote
+          title: Source
+          type: string
+        revision:
+          pattern: ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$
+          title: Revision
+          type: string
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        sha256:
+          anyOf:
+          - pattern: ^[a-f0-9]{64}$
+            type: string
+          - type: 'null'
+          title: Sha256
+        size_bytes:
+          anyOf:
+          - exclusiveMinimum: 0
+            maximum: 104857600
+            type: integer
+          - type: 'null'
+          title: Size Bytes
+        mime_type:
+          anyOf:
+          - enum:
+            - audio/mp4
+            - audio/mpeg
+            - audio/wav
+            type: string
+          - type: 'null'
+          title: Mime Type
+        sort_order:
+          minimum: 0
+          title: Sort Order
+          type: integer
+      required:
+      - id
+      - category
+      - title
+      - source
+      - revision
+      - url
+      - sha256
+      - size_bytes
+      - mime_type
+      - sort_order
+      title: BgmTrack
+      type: object
+    BgmTracksResponse:
+      properties:
+        schema_version:
+          const: 1
+          default: 1
+          title: Schema Version
+          type: integer
+        revision:
+          pattern: ^[a-f0-9]{64}$
+          title: Revision
+          type: string
+        tracks:
+          items:
+            $ref: '#/components/schemas/BgmTrack'
+          title: Tracks
+          type: array
+      required:
+      - revision
+      - tracks
+      title: BgmTracksResponse
+      type: object
     MoodPutRequest:
       type: object
       required:

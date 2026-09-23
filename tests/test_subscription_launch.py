@@ -62,6 +62,7 @@ async def test_unverified_payment_amount_never_grants_hay(monkeypatch, amount):
 
 @pytest.mark.parametrize("period", ["NORMAL", "INTRO", "PROMOTIONAL"])
 async def test_paid_trial_conversion_records_payment_and_clears_trial(monkeypatch, period):
+    monkeypatch.setattr(subscription, "_bonus_review", AsyncMock(return_value="eligible"))
     sub = _sub(store_trial_ends_at=datetime(2030, 1, 1, tzinfo=timezone.utc))
     monkeypatch.setattr(subscription, "_by_original_tx", AsyncMock(return_value=sub))
     grant = AsyncMock()

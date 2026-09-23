@@ -15,6 +15,14 @@ UID = "11111111-1111-1111-1111-111111111111"
 UID_UUID = uuid.UUID(UID)
 
 
+@pytest.fixture(autouse=True)
+def verified_bonus_history(monkeypatch):
+    # These existing cases isolate payment/grant mechanics. Provider proof is
+    # covered separately in test_subscription_bonus_history.py.
+    from unittest.mock import AsyncMock
+    monkeypatch.setattr(subscription, "_bonus_review", AsyncMock(return_value="eligible"))
+
+
 class _Scalars:
     def __init__(self, items):
         self._items = items
@@ -51,7 +59,9 @@ class FakeSession:
         self.committed = False
         self.rolled_back = False
 
-    async def execute(self, stmt):
+    async def execute(self, stmt, params=None):
+        if "pg_advisory_xact_lock" in str(stmt):
+            return _Result([])
         return _Result(self.exec_results.pop(0) if self.exec_results else [])
 
     def add(self, obj):
@@ -145,7 +155,6 @@ from app.services.subscription import (  # noqa: E402
     HANDLED,
     NO_OP,
     PERMANENT_FAILURE,
-    TRANSFER_MANUAL,
 )
 
 SUB_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
@@ -171,6 +180,9 @@ def _rc_event(**over):
         "event_timestamp_ms": 1_800_000_000_000,
         "environment": "PRODUCTION",
         "store": "APP_STORE",
+        "period_type": "NORMAL",
+        "price_in_purchased_currency": 5900,
+        "currency": "KRW",
     }
     e.update(over)
     return e
@@ -242,8 +254,9 @@ async def test_rc_renewal_no_regrant(monkeypatch):
 async def test_rc_refund_subscription_clawback(monkeypatch):
     """CUSTOMER_SUPPORT 환불 → Payment 기준 대상 유저·구독 revoke + 실 증정 원장액 음수 회수."""
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=None, subscription_id=SUB_ID, status="paid")
-    sub = _sub(status="active")
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")
     grant = SimpleNamespace(id=uuid.uuid4(), revoked_at=None, clawback_hay_transaction_id=None,
                             hay_transaction_id=99)
     grant_tx = SimpleNamespace(amount=1000)
@@ -268,8 +281,9 @@ async def test_rc_refund_subscription_clawback(monkeypatch):
 async def test_rc_refund_clawback_idempotent(monkeypatch):
     """이미 회수(revoked_at NOT NULL) → 원장 재차감 없음 — 환불 웹훅 재수신 멱등."""
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=None, subscription_id=SUB_ID, status="refunded")
-    sub = _sub(status="revoked")
+    sub = _sub(status="revoked", latest_transaction_id="t-rc-1")
     grant = SimpleNamespace(id=uuid.uuid4(), revoked_at="2026-07-01T00:00:00Z",
                             clawback_hay_transaction_id=7, hay_transaction_id=99)
 
@@ -290,8 +304,9 @@ async def test_rc_refund_missing_grant_permanent_failure(monkeypatch):
     (구독 결제가 있는데 증정 원장이 없다는 건 이상 상황 — 조용히 성공 처리하면 은폐된다, §4·§11.2.)
     """
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=None, subscription_id=SUB_ID, status="paid")
-    sub = _sub(status="active")
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")
 
     async def _apply(*a, **k):
         raise AssertionError("증정 없이 회수하면 안 됨")
@@ -306,8 +321,9 @@ async def test_rc_refund_missing_grant_permanent_failure(monkeypatch):
 async def test_rc_refund_zero_ledger_amount_permanent_failure(monkeypatch):
     """증정 원장액이 없음/0/음수면 성공 no-op 금지 — permanent_failure(관측)."""
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=None, subscription_id=SUB_ID, status="paid")
-    sub = _sub(status="active")
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")
     grant = SimpleNamespace(id=uuid.uuid4(), revoked_at=None, clawback_hay_transaction_id=None,
                             hay_transaction_id=None)  # 원장 연결 없음 → 회수량 불명
 
@@ -332,6 +348,7 @@ async def test_rc_refund_payment_missing_dependency(monkeypatch):
 async def test_rc_refund_both_ids_rejected(monkeypatch):
     """Payment의 order_id·subscription_id 양쪽 설정(payments_target_ck OR 허점) → 실오류 failed."""
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=ORD_ID, subscription_id=SUB_ID, status="paid")
     s = FakeSession(exec_results=[[pay]])
     res = await subscription.handle_revenuecat_event(
@@ -388,8 +405,9 @@ async def test_rc_refund_reversed_pack_restore(monkeypatch):
 async def test_rc_refund_reversed_subscription_restore(monkeypatch):
     """REFUND_REVERSED(구독) → 반대부호 복구 + revoked_at 해제 + status/payment 복구."""
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=None, subscription_id=SUB_ID, status="refunded")
-    sub = _sub(status="revoked")
+    sub = _sub(status="revoked", latest_transaction_id="t-rc-1")
     grant = SimpleNamespace(id=uuid.uuid4(), revoked_at="2026-07-01T00:00:00Z",
                             clawback_hay_transaction_id=7, hay_transaction_id=99)
     grant_tx = SimpleNamespace(amount=1000)
@@ -413,8 +431,9 @@ async def test_rc_refund_reversed_subscription_restore(monkeypatch):
 async def test_rc_refund_reversed_missing_grant_permanent_failure(monkeypatch):
     """복구인데 증정 자체가 없음 → 성공 no-op 금지: permanent_failure(관측)."""
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=None, subscription_id=SUB_ID, status="refunded")
-    sub = _sub(status="revoked")
+    sub = _sub(status="revoked", latest_transaction_id="t-rc-1")
 
     async def _apply(*a, **k):
         raise AssertionError("증정 없이 복구하면 안 됨")
@@ -431,8 +450,9 @@ async def test_rc_refund_reversed_not_clawed_dependency(monkeypatch):
     이전 코드는 NO_OP로 조용히 처리해 복구를 흘렸다 — 이제 pending으로 두어 회수 후 재수렴.
     """
     pay = SimpleNamespace(store_transaction_id="t-rc-1", user_id=UID_UUID,
+                          subscription_plan="monthly", subscription_hay_grant_id=SUB_ID, subscription_bonus_review="granted",
                           order_id=None, subscription_id=SUB_ID, status="refunded")
-    sub = _sub(status="revoked")
+    sub = _sub(status="revoked", latest_transaction_id="t-rc-1")
     grant = SimpleNamespace(id=uuid.uuid4(), revoked_at=None,  # 아직 회수 안 됨
                             clawback_hay_transaction_id=None, hay_transaction_id=99)
 
@@ -680,7 +700,7 @@ async def test_record_subscription_payment_precheck_reuse_permanent():
 
     (payment_exists 조기반환이 우회하던 경로 — 이제 결제 없이 증정으로 넘어가지 못한다, §6.)
     """
-    sub = _sub(status="active")  # id=SUB_ID, user_id=UID_UUID
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")  # id=SUB_ID, user_id=UID_UUID
     other_pay = SimpleNamespace(user_id=uuid.uuid4(), order_id=None, subscription_id=uuid.uuid4())
     s = FakeSession(exec_results=[[other_pay]])  # _payment_by_tx 사전 재조회 → 다른 유저 결제
     with pytest.raises(subscription._HandlerSignal) as e:
@@ -691,7 +711,7 @@ async def test_record_subscription_payment_precheck_reuse_permanent():
 
 async def test_record_subscription_payment_precheck_same_owner_idempotent():
     """사전 재조회에서 같은 유저·구독 결제가 이미 있으면 멱등 no-op(재기록 없음)."""
-    sub = _sub(status="active")
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")
     same_pay = SimpleNamespace(user_id=UID_UUID, order_id=None, subscription_id=SUB_ID)
     s = FakeSession(exec_results=[[same_pay]])
     await subscription._record_subscription_payment(s, sub, _rc_event())  # 예외 없이 멱등
@@ -703,7 +723,7 @@ async def test_record_subscription_payment_precheck_both_targets_permanent():
 
     DB CHECK는 OR라 둘 다 set을 못 막는다 — 폴백 조회가 다른 거래를 오환불할 위험을 런타임 XOR로 차단.
     """
-    sub = _sub(status="active")
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")
     corrupt = SimpleNamespace(user_id=UID_UUID, order_id=ORD_ID, subscription_id=SUB_ID)
     s = FakeSession(exec_results=[[corrupt]])
     with pytest.raises(subscription._HandlerSignal) as e:
@@ -715,7 +735,7 @@ async def test_record_subscription_payment_precheck_both_targets_permanent():
 async def test_record_subscription_payment_tx_reuse_permanent():
     """결제 UNIQUE 충돌(경쟁) 후 기존 결제가 다른 유저/구독이면 permanent_failure(오환불·위조 방지)."""
     from sqlalchemy.exc import IntegrityError
-    sub = _sub(status="active")  # id=SUB_ID, user_id=UID_UUID
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")  # id=SUB_ID, user_id=UID_UUID
     other_pay = SimpleNamespace(user_id=uuid.uuid4(), order_id=None, subscription_id=uuid.uuid4())
 
     class _S(FakeSession):
@@ -733,7 +753,7 @@ async def test_record_subscription_payment_tx_reuse_permanent():
 async def test_record_subscription_payment_tx_reuse_same_owner_idempotent():
     """결제 UNIQUE 충돌(경쟁)이지만 기존 결제가 같은 유저·구독이면 멱등(no raise)."""
     from sqlalchemy.exc import IntegrityError
-    sub = _sub(status="active")
+    sub = _sub(status="active", latest_transaction_id="t-rc-1")
     same_pay = SimpleNamespace(user_id=UID_UUID, order_id=None, subscription_id=SUB_ID)
 
     class _S(FakeSession):
@@ -745,8 +765,8 @@ async def test_record_subscription_payment_tx_reuse_same_owner_idempotent():
     await subscription._record_subscription_payment(s, sub, _rc_event())  # 예외 없이 멱등 반환
 
 
-# --- TRANSFER(§5): SANDBOX no-op / PRODUCTION 수동, 둘 다 경제·구독·결제 무변경 ---
-async def test_rc_sandbox_transfer_no_op_no_change():
+# --- TRANSFER without app-profile UUIDs cannot grant app access or money. ---
+async def test_rc_sandbox_transfer_without_app_account_no_op():
     """TestFlight/Sandbox 계정 이동은 inbox processed로 수렴하되 사용자 자산은 무변경."""
     s = FakeSession()
     res = await subscription.handle_revenuecat_event(
@@ -760,11 +780,11 @@ async def test_rc_sandbox_transfer_no_op_no_change():
         ),
     )
     assert res.outcome == NO_OP
-    assert "SANDBOX TRANSFER" in (res.reason or "")
+    assert "앱 계정 식별자 없음" in (res.reason or "")
     assert s.added == [] and s.committed is False and s.rolled_back is False
 
 
-async def test_rc_production_transfer_manual_no_change():
+async def test_rc_production_transfer_without_app_account_no_op():
     s = FakeSession()
     res = await subscription.handle_revenuecat_event(
         s,
@@ -773,19 +793,19 @@ async def test_rc_production_transfer_manual_no_change():
             transferred_from=["a"], transferred_to=["b"],
         ),
     )
-    assert res.outcome == TRANSFER_MANUAL
-    assert "PRODUCTION" in (res.reason or "")
+    assert res.outcome == NO_OP
+    assert "앱 계정 식별자 없음" in (res.reason or "")
     assert s.added == [] and s.committed is False and s.rolled_back is False
 
 
-async def test_rc_transfer_missing_environment_stays_manual():
-    """환경 누락을 SANDBOX로 추정하지 않는 fail-closed 회귀."""
+async def test_rc_transfer_without_app_account_and_environment_no_op():
+    """환경에 관계없이 앱 계정 식별자 없는 이벤트는 경제 변경 없음."""
     s = FakeSession()
     event = _rc_event(type="TRANSFER", transferred_from=["a"], transferred_to=["b"])
     event.pop("environment")
     res = await subscription.handle_revenuecat_event(s, event)
-    assert res.outcome == TRANSFER_MANUAL
-    assert "UNKNOWN" in (res.reason or "")
+    assert res.outcome == NO_OP
+    assert "앱 계정 식별자 없음" in (res.reason or "")
     assert s.added == []
 
 

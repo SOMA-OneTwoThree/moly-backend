@@ -22,6 +22,8 @@ class Profile(Base):
     timezone: Mapped[str] = mapped_column(String, server_default=text("'Asia/Seoul'"))
     hay_balance: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     trial_ends_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    app_trial_started_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    app_trial_ends_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     # Account-scoped use marker survives fortune-profile deletion; date.min = legacy user.
     fortune_first_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     review_prompted_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)

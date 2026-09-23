@@ -31,11 +31,11 @@ class Settings(BaseSettings):
 
     # --- 대화·일기·utility LLM 모델 ---
     # provider는 model-id 프리픽스로 라우팅(llm.py): gpt-* → OpenAI, claude-* → Anthropic.
-    # 활성 = OpenAI GPT-5.6(2026-07 전환): chat=luna(가성비, 품질 terra급) / diary=terra(품질 고정) / utility=luna.
+    # 기본 모델 = GPT-6: 대화·utility는 Luna, 개인 일기는 Sol. MODEL_* 환경변수로 복구 가능.
     # 대화·일기 모델은 분리한다(일기는 핵심 훅=열람율이라 대화 모델에 딸려 내려가면 안 됨).
-    model_chat: str = "gpt-5.6-luna"
-    model_diary: str = "gpt-5.6-terra"
-    model_utility: str = "gpt-5.6-luna"
+    model_chat: str = "gpt-6-luna"
+    model_diary: str = "gpt-6-sol"
+    model_utility: str = "gpt-6-luna"
     # dormant(Anthropic 복귀·재사용용) — model_* 를 claude-* 로 되돌리면 prefix 라우팅이
     # _generate_anthropic 경로로 자동 복귀한다(코드 변경 없이 config만으로 왕복). SSM 오버라이드 가능.
     anthropic_api_key: str = ""
@@ -79,10 +79,9 @@ class Settings(BaseSettings):
     bill_weight_output: float = 5.0        # 출력 $15 / 입력 $3
     bill_weight_cache_read: float = 0.1    # 캐시 읽기 $0.30 / 입력 $3
     bill_weight_cache_write: float = 1.25  # 캐시 쓰기(5m) $3.75 / 입력 $3
-    # OpenAI(GPT-5.6 공식 요금표 2026-08-03, Standard·short context). 전 tier 입력 대비 비율 동일 —
-    # 출력 6.0 / 캐시 읽기 0.1 / 캐시 쓰기 1.25. 예: luna $0.20·$0.02·$0.25·$1.20, terra는 ×10.
-    # (캐시 쓰기는 무료가 아니다. 다만 API가 쓰기 토큰을 안 주므로 llm.py가 추정한다 — 그 주석 참조.)
-    bill_weight_output_openai: float = 6.0        # 출력 $1.20 / 입력 $0.20 (luna), 전 tier 동일 비율
+    # GPT-5.6 시점에 확정한 사용자 차감 정책. GPT-6 단가가 낮아져도 이 비율은 유지한다.
+    # 회사 USD 원가는 ai_price_catalog와 provider usage로 별도 계산한다.
+    bill_weight_output_openai: float = 6.0        # 기존 사용자 차감 정책 유지. 모델 실제 USD 원가와 독립
     bill_weight_cache_read_openai: float = 0.1    # 캐시 읽기 = 입력 단가의 10%(90% 할인)
     # GPT-5.6부터 OpenAI도 캐시 쓰기에 1.25× 프리미엄을 받는다(그 이전 모델군은 무료였다).
     # ⚠️ "OpenAI는 캐시 쓰기가 공짜"는 5.6 이전 기준이다 — 이 값을 1.0으로 되돌리지 마라.
@@ -214,6 +213,8 @@ class Settings(BaseSettings):
     # --- RevenueCat --- 구독·IAP 진실 소스. 대시보드 Integrations→Webhooks의 Authorization
     # 헤더 값(공유 시크릿). 요청 Authorization 헤더와 일치해야 처리(미설정 시 fail-closed 거부).
     revenuecat_webhook_auth: str = ""
+    revenuecat_api_v2_key: str = ""
+    revenuecat_project_id: str = ""
 
     # --- Meta 설치 귀속 --- Google Play 설치 리퍼러 utm_content의 AES-256-GCM 암호문 복호화 키.
     # Events Manager의 앱 설정에서 발급하는 64자 hex 문자열. 비면 복호화 엔드포인트가 503으로

@@ -1392,6 +1392,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       - name: Idempotency-Key
         in: header
         required: false
@@ -1629,7 +1636,7 @@ paths:
       security:
       - SupabaseBearer: []
       description: 4 slot을 하나의 transaction으로 전체 교체한다. 네 field 모두 필수이고 theme은 null 불가다. wearable null은
-        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다. 구독 전용 상품은 소유 대신 활성 구독을 요구한다.
   /v2/shop/products:
     get:
       tags:
@@ -1642,7 +1649,15 @@ paths:
         required: false
         schema:
           type: string
-        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존. subscriber-only-v1이
+          없으면 구독 전용 상품 비노출, 장착 중이면 theme_default·해제로 응답.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       responses:
         '200':
           description: theme 및 wearable 상품 catalog. head 슬롯은 hat/glasses로 분리된다.
@@ -1671,6 +1686,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       responses:
         '200':
           description: 보유 상품 목록. slot은 hat/glasses로 분리된다.
@@ -1698,7 +1720,15 @@ paths:
         required: false
         schema:
           type: string
-        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+        description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존. subscriber-only-v1이
+          없으면 구독 전용 상품 비노출, 장착 중이면 theme_default·해제로 응답.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       responses:
         '200':
           description: 현재 5-slot 장착 상태(theme·hat·glasses·neck·body)
@@ -1744,6 +1774,13 @@ paths:
         schema:
           type: string
         description: 쉼표 구분 지원 토큰. timer-clothing-v1이 없으면 타이머 옷 비노출·신규 구매 불가, 숨겨진 몸 null 제출은 보존.
+      - name: X-Moly-Bundled-Themes
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표 구분 앱 번들 테마 public_id. assets.bundled 테마는 여기 없으면 비노출·신규 구매 불가, 장착 중이면 theme_default로
+          응답.
       requestBody:
         content:
           application/json:
@@ -1809,7 +1846,8 @@ paths:
       security:
       - SupabaseBearer: []
       description: 5 slot을 하나의 transaction으로 전체 교체한다. 다섯 field 모두 필수이고 theme은 null 불가다. wearable null은
-        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다.
+        해제다. active cosmetic, slot 일치, source!=subscription인 본인 소유를 요구한다. 구독 전용 상품은 소유 대신 활성 구독을 요구하고,
+        구독이 끝나면 조회 응답에서 theme은 theme_default, wearable은 null로 돌아간다.
   /review/prompted:
     post:
       tags:
@@ -3116,7 +3154,8 @@ components:
         personal_diary_eligible:
           type: boolean
           title: Personal Diary Eligible
-          description: 개인 일기 threshold가 있고 사용량이 도달했는지 여부.
+          description: 현재 개인 일기 대상 등급이며 당일 일반 대화의 사용자 글자 수 기준을 충족했는지 여부. 구독 전환 후 무료 등급은 false. 최종 발행은
+            활동일 종료 시점의 등급과 대화량으로 판정한다.
         limit_reached:
           type: boolean
           title: Limit Reached
@@ -5164,7 +5203,11 @@ components:
         equipped:
           type: boolean
           title: Equipped
-          description: 현재 장착 row 여부.
+          description: 현재 장착 row 여부. 구독이 끝난 구독 전용 상품은 false다.
+        subscriber_only:
+          type: boolean
+          title: Subscriber Only
+          description: 활성 구독 중에만 구매 없이 장착할 수 있는 상품. price_hay는 항상 null이다.
         asset_version:
           type: integer
           minimum: 1
@@ -5181,6 +5224,7 @@ components:
       - price_hay
       - owned
       - equipped
+      - subscriber_only
       - asset_version
       - assets
       title: ShopProductV2

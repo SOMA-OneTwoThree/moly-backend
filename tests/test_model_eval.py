@@ -5,20 +5,20 @@ from app.services import model_eval
 
 
 def test_cost_known_model():
-    # gpt-5.6-luna = ($1 in / $6 out) per 1M. 1000 in + 500 out.
-    assert model_eval._cost("gpt-5.6-luna", 1000, 500) == pytest.approx(0.001 + 0.003)
+    # gpt-5.6-luna = ($0.2 in / $1.2 out) per 1M. 1000 in + 500 out.
+    assert model_eval._cost("gpt-5.6-luna", 1000, 500) == pytest.approx(0.0002 + 0.0006)
     # gemini-3.5-flash-lite = ($0.30 / $2.50)
     assert model_eval._cost("gemini-3.5-flash-lite", 2000, 1000) == pytest.approx(0.0006 + 0.0025)
 
 
-def test_cost_unknown_model_is_zero():
-    assert model_eval._cost("mystery-model", 1000, 1000) == 0.0
+def test_cost_unknown_model_is_unknown():
+    assert model_eval._cost("mystery-model", 1000, 1000) is None
 
 
 async def test_run_eval_unknown_provider_returns_error_not_raise():
     r = await model_eval.run_eval("bogus", "x", "sys", [{"role": "user", "content": "안녕"}])
     assert r.error is not None and "provider" in r.error
-    assert r.text is None and r.est_cost_usd == 0.0
+    assert r.text is None and r.est_cost_usd is None
 
 
 async def test_run_eval_dispatches_and_computes_cost(monkeypatch):
@@ -33,7 +33,7 @@ async def test_run_eval_dispatches_and_computes_cost(monkeypatch):
     assert r.error is None
     assert r.text == "응답이야"
     assert r.input_tokens == 1000 and r.output_tokens == 500
-    assert r.est_cost_usd == pytest.approx(0.004)
+    assert r.est_cost_usd == pytest.approx(0.0008)
     assert r.latency_ms >= 0
 
 

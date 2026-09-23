@@ -18,7 +18,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from sqlalchemy import case, select, update
+from sqlalchemy import case, select, text, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,7 +33,7 @@ from app.models.subscription_hay_grant import SubscriptionHayGrant
 from app.services import hay_ledger, i18n, payment
 from app.services.account import _load_profile
 from app.services.config_store import get_config_values
-from app.services.entitlement import _parse_dt
+from app.services.entitlement import derive_entitlement
 from app.services.limits import effective_token_config
 
 _log = logging.getLogger("moly-backend")
@@ -128,6 +128,10 @@ async def _latest_sub(session: AsyncSession, uid) -> Subscription | None:
     return (
         await session.execute(
             select(Subscription).where(Subscription.user_id == uid).order_by(
+                case((
+                    Subscription.status.in_(_ACTIVE)
+                    & (Subscription.expires_at > datetime.now(timezone.utc)), 0
+                ), else_=1),
                 Subscription.expires_at.desc().nullslast()
             ).limit(1)
         )
@@ -136,19 +140,13 @@ async def _latest_sub(session: AsyncSession, uid) -> Subscription | None:
 
 async def get_subscription(session: AsyncSession, user_id: str) -> dict[str, Any]:
     profile = await _load_profile(session, user_id)
+    config = await effective_token_config(session)
     sub = await _latest_sub(session, profile.id)
     now = datetime.now(timezone.utc)
-    # 무료 체험 표시(entitlement와 일관): 활성 구독자=체험 아님 / 런칭 기간=런칭 종료까지 / 아니면 실제 2일.
     active = sub is not None and sub.status in _ACTIVE and sub.expires_at is not None and sub.expires_at > now
-    launch_until = _parse_dt((await effective_token_config(session)).get("free_launch_until"))
-    if active:
-        in_trial, trial_ends = False, None
-    elif launch_until is not None and now < launch_until:
-        in_trial, trial_ends = True, launch_until
-    elif profile.trial_ends_at is not None and now < profile.trial_ends_at:
-        in_trial, trial_ends = True, profile.trial_ends_at
-    else:
-        in_trial, trial_ends = False, None
+    entitlement = derive_entitlement(profile, sub if active else None, 0, config, now)
+    trial_ends = entitlement["trial_ends_at"]
+    in_trial = trial_ends is not None
     if sub is None:
         return {
             "status": "none", "plan": None, "auto_renew_enabled": False, "expires_at": None,
@@ -188,8 +186,15 @@ def _event_money(event: dict) -> tuple[Decimal | None, str | None]:
         amount = Decimal(str(price)) if price is not None else None
     except (TypeError, ValueError, InvalidOperation):
         amount = None
+    if amount is not None and not amount.is_finite():
+        amount = None
     currency = event.get("currency")
     return amount, (str(currency)[:10] if currency else None)  # 통화 길이 캡(오염 방어)
+
+
+def _free_subscription_period(event: dict) -> bool:
+    amount, _ = _event_money(event)
+    return event.get("period_type") == "TRIAL" or amount == 0
 
 
 # RevenueCat store 값 → payments.store 정규화. 미확인 스토어는 소문자 원값, 누락은 경고.
@@ -478,18 +483,36 @@ async def _handle_active(
             session, uid, plan, original_tx, latest_tx, expires, event, event_ts
         )
     else:
-        _apply_active_state(sub, etype, plan, expires, latest_tx, event_ts)
+        _apply_active_state(sub, etype, plan, expires, latest_tx, event_ts, event.get("period_type"), _free_subscription_period(event))
 
     # 재무는 상태와 분리(옛 이벤트여도 멱등 처리) — 결제 기록·증정은 INITIAL_PURCHASE/RENEWAL만(새 과금).
     if etype in ("INITIAL_PURCHASE", "RENEWAL"):
+        if _free_subscription_period(event):
+            await _mark_store_trial_offer_redeemed(session, uid)
+            return HandlerResult(HANDLED, "무료 구독 기간: 결제 원장·건초 지급 없음")
+        amount, _ = _event_money(event)
+        if amount is None or amount < 0:
+            # Access can be valid even when financial data is missing. Preserve the raw
+            # event + durable reason for review; never invent revenue or grant a bonus.
+            return HandlerResult(HANDLED, "구독 상태만 적용: 결제 금액 미확인, 원장·건초 보류")
         await _record_subscription_payment(session, sub, event)
         await _grant_if_first(session, uid, plan)
     return HandlerResult(HANDLED, None)
 
 
+async def _mark_store_trial_offer_redeemed(session: AsyncSession, uid: uuid.UUID) -> None:
+    # Previously issued offers can be redeemed after enrollment is paused. No claim
+    # is created here; replay cannot change the first redemption time.
+    await session.execute(text(
+        "UPDATE public.subscription_offer_claims SET redeemed_at = now() "
+        "WHERE user_id = :uid AND redeemed_at IS NULL"
+    ).bindparams(uid=uid))
+
+
 def _apply_active_state(
     sub: Subscription, etype: str, plan: str, expires: datetime | None,
-    latest_tx: str | None, event_ts: datetime | None,
+    latest_tx: str | None, event_ts: datetime | None, period_type: str | None = None,
+    in_free_period: bool | None = None,
 ) -> None:
     """상태 단조 + 단조 연장 예외로 status/plan/expires/auto_renew 적용. PRODUCT_CHANGE는 상태·plan 미변경."""
     applies = _state_applies(sub, event_ts)
@@ -511,6 +534,9 @@ def _apply_active_state(
     sub.plan = plan
     sub.status = "active"
     sub.expires_at = expires
+    free_period = period_type == "TRIAL" if in_free_period is None else in_free_period
+    if period_type is not None and (applies or (extend and not free_period)):
+        sub.store_trial_ends_at = expires if free_period else None
     sub.auto_renew_enabled = True
     _bump_last_event(sub, event_ts)
 
@@ -524,6 +550,7 @@ async def _create_or_get_subscription(
         id=uuid.uuid4(), user_id=uid, plan=plan, status="active",
         original_transaction_id=original_tx, latest_transaction_id=latest_tx,
         expires_at=expires, auto_renew_enabled=True,
+        store_trial_ends_at=expires if _free_subscription_period(event) else None,
         environment=_capped(event.get("environment"), _ENV_CAP), last_event_at=event_ts,
     )
     try:
@@ -540,7 +567,7 @@ async def _create_or_get_subscription(
         # 기존행 의미 재검증(§6) — 동시 생성 충돌 후 소유자 불일치면 멱등 수렴이 아니라 실오류.
         if existing.user_id != uid:
             raise _permanent(f"다른 계정 소유 구독 {original_tx}")
-        _apply_active_state(existing, event.get("type"), plan, expires, latest_tx, event_ts)
+        _apply_active_state(existing, event.get("type"), plan, expires, latest_tx, event_ts, event.get("period_type"), _free_subscription_period(event))
         return existing
 
 
@@ -650,12 +677,36 @@ async def _handle_refund(
     if not tx_id:
         raise _permanent("환불 이벤트 거래 ID 없음")
     pay = await _payment_by_tx(session, tx_id)
+    if pay is None and _free_subscription_period(event):
+        return await _free_period_refund_state(session, event, event_ts, revoked=True)
     if pay is None:
         raise _dependency(f"환불 대상 결제 없음 tx={tx_id}")  # pending 수렴
     kind = _validated_kind(pay)
     if kind == "subscription":
         return await _refund_subscription(session, pay, event_ts)
     return await _refund_pack(session, pay)
+
+
+async def _free_period_refund_state(
+    session: AsyncSession, event: dict, event_ts: datetime | None, *, revoked: bool,
+) -> HandlerResult:
+    """Free periods have no Payment or hay grant. Only their own current access changes."""
+    original_tx = _txn_id(
+        event.get("original_transaction_id") or event.get("transaction_id"),
+        field="original_transaction_id",
+    )
+    sub = await _by_original_tx(session, original_tx, lock=True)
+    if sub is None:
+        raise _dependency("무료 구독 환불 대상 없음")
+    if str(sub.user_id) != str(event.get("app_user_id")):
+        raise _permanent("무료 구독 환불 계정 불일치")
+    if sub.latest_transaction_id != event.get("transaction_id"):
+        return HandlerResult(NO_OP, "지난 무료 기간 환불: 이후 구독 기간 유지")
+    if not _state_applies(sub, event_ts):
+        return HandlerResult(NO_OP, "무료 기간 환불: 이전 상태 이벤트")
+    sub.status = "revoked" if revoked else "active"
+    _bump_last_event(sub, event_ts)
+    return HandlerResult(HANDLED, "무료 기간 환불 상태 반영: 원장·건초 변경 없음")
 
 
 async def _refund_subscription(
@@ -723,6 +774,8 @@ async def _handle_refund_reversed(
     if not tx_id:
         raise _permanent("복구 이벤트 거래 ID 없음")
     pay = await _payment_by_tx(session, tx_id)
+    if pay is None and _free_subscription_period(event):
+        return await _free_period_refund_state(session, event, event_ts, revoked=False)
     if pay is None:
         raise _dependency(f"복구 대상 결제 없음 tx={tx_id}")
     kind = _validated_kind(pay)
@@ -824,5 +877,8 @@ async def _handle_billing_issue(
     if not _state_applies(sub, event_ts):
         return HandlerResult(NO_OP, "옛 상태 이벤트(billing_issue) skip")
     sub.status = "grace_period"  # 유예 — 혜택 유지
+    grace_end = _ms_to_dt(event.get("grace_period_expiration_at_ms"))
+    if grace_end is not None and (sub.expires_at is None or grace_end > sub.expires_at):
+        sub.expires_at = grace_end
     _bump_last_event(sub, event_ts)
     return HandlerResult(HANDLED, None)

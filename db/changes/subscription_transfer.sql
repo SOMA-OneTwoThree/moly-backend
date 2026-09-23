@@ -57,7 +57,7 @@ BEGIN
   RETURN NULL;
 END;
 $$;
-REVOKE ALL ON FUNCTION public.cleanup_unowned_subscription() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.cleanup_unowned_subscription() FROM PUBLIC, anon, authenticated, service_role;
 DROP TRIGGER IF EXISTS subscriptions_cleanup_unowned ON public.subscriptions;
 CREATE CONSTRAINT TRIGGER subscriptions_cleanup_unowned
   AFTER UPDATE OF user_id ON public.subscriptions

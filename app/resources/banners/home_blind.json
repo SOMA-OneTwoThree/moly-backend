@@ -598,7 +598,7 @@
       "id": "affirmation-daily",
       "component": "banner_canvas_v1",
       "layout_profile": "home_blind_v1",
-      "enabled": true,
+      "enabled": false,
       "starts_at": null,
       "ends_at": null,
       "platforms": [

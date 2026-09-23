@@ -1,3 +1,5 @@
+import json
+
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -7,6 +9,7 @@ import pytest
 from app.core.app_day import AppDay
 from app.services.banner_catalog import (
     BannerCatalog,
+    CATALOG_PATH,
     binding_values,
     capabilities,
     render_feed,
@@ -41,6 +44,13 @@ def affirmation_manifest():
     canvas["elements"][1]["text"] = {"kind": "template", "value": "Reveal your daily affirmation"}
     canvas["elements"][2]["action"] = {"type": "open_affirmation"}
     return raw
+
+
+def enabled_affirmation_catalog():
+    """Exercise the optional card contract independently of the deployed lineup."""
+    raw = json.loads(CATALOG_PATH.read_bytes())
+    next(b for b in raw["banners"] if b["id"] == "affirmation-daily")["enabled"] = True
+    return BannerCatalog.from_bytes(json.dumps(raw).encode())
 
 
 def feed_for(acknowledged, raw=None):
@@ -121,7 +131,7 @@ def test_published_card_keeps_its_authored_shape():
     [(None, True), (datetime(2026, 9, 9, 1, tzinfo=timezone.utc), False)],
 )
 async def test_list_banners_reads_the_daily_marker(acknowledged_at, present):
-    catalog = BannerCatalog.load()
+    catalog = enabled_affirmation_catalog()
     caps = frozenset().union(*(capabilities(c) for b in catalog.manifest.banners
                                for c in b.canvases_by_locale.values()))
     session = AsyncMock()
@@ -163,7 +173,7 @@ def test_inline_sentence_contains_displayed_date_and_requires_new_capability():
 
 
 def test_fullscreen_entry_requires_its_own_capability_and_does_not_acknowledge():
-    catalog = BannerCatalog.load()
+    catalog = enabled_affirmation_catalog()
     banner = next(b for b in catalog.manifest.banners if b.id == "affirmation-daily")
     canvas = banner.canvases_by_locale["ko"]
     caps = capabilities(canvas)

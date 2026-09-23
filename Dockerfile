@@ -11,7 +11,7 @@ RUN uv sync --frozen --no-dev
 COPY app ./app
 COPY worker ./worker
 COPY db/catalog.py db/schema_contract.py db/schema_contract.json db/schema.sql ./db/
-COPY scripts/validate_banners.py scripts/check_running_banners.py ./scripts/
+COPY scripts/validate_banners.py scripts/check_running_banners.py scripts/verify_subscription_diary_runtime.py ./scripts/
 RUN .venv/bin/python scripts/validate_banners.py
 
 EXPOSE 8000

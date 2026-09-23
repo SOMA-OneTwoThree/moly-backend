@@ -246,7 +246,7 @@ async def test_process_event_sandbox_transfer_is_processed_without_economy_chang
     assert await subscription.process_event(s, "evt-1") == NO_OP
     assert row.status == "processed"
     assert row.processed_at is not None
-    assert "SANDBOX TRANSFER" in (row.last_error or "")
+    assert "앱 계정 식별자 없음" in (row.last_error or "")
     assert s.rolled_back == 0 and s.committed == 1
 
 

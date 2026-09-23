@@ -20,7 +20,9 @@ class Subscription(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
     )  # flush 전 id 참조가 필요한 곳(RC 웹훅 결제 기록)은 생성자에서 id 명시 — default는 안전망
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
+    rc_subscription_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    ownership_changed_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     plan: Mapped[str] = mapped_column(String)  # monthly | yearly
     status: Mapped[str] = mapped_column(String)  # active | grace_period | expired | revoked
     original_transaction_id: Mapped[str] = mapped_column(String, unique=True)

@@ -28,6 +28,9 @@ class Payment(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     order_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     subscription_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    subscription_plan: Mapped[str | None] = mapped_column(String, nullable=True)
+    subscription_hay_grant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    subscription_bonus_review: Mapped[str | None] = mapped_column(String, nullable=True)
     store: Mapped[str] = mapped_column(String)  # 실제 스토어(app_store|play_store|…). 기록 시 항상 명시
     store_transaction_id: Mapped[str] = mapped_column(String, unique=True)
     # 결제금액(원통화·무손실 numeric). 이벤트에 없으면 NULL.

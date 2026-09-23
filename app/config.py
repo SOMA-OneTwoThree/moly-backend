@@ -214,6 +214,8 @@ class Settings(BaseSettings):
     # --- RevenueCat --- 구독·IAP 진실 소스. 대시보드 Integrations→Webhooks의 Authorization
     # 헤더 값(공유 시크릿). 요청 Authorization 헤더와 일치해야 처리(미설정 시 fail-closed 거부).
     revenuecat_webhook_auth: str = ""
+    revenuecat_api_v2_key: str = ""
+    revenuecat_project_id: str = ""
 
     # --- Meta 설치 귀속 --- Google Play 설치 리퍼러 utm_content의 AES-256-GCM 암호문 복호화 키.
     # Events Manager의 앱 설정에서 발급하는 64자 hex 문자열. 비면 복호화 엔드포인트가 503으로

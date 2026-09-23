@@ -96,10 +96,6 @@ paths:
     $ref: ./paths/fortune.yaml#/~1daily-fortune~1reveal
   /daily-fortune/ad-sessions:
     $ref: ./paths/fortune.yaml#/~1daily-fortune~1ad-sessions
-  /daily-affirmation:
-    $ref: ./paths/affirmation.yaml#/~1daily-affirmation
-  /daily-affirmation/acknowledge:
-    $ref: ./paths/affirmation.yaml#/~1daily-affirmation~1acknowledge
   /attribution/meta-referrer/decrypt:
     $ref: ./paths/attribution.yaml#/~1attribution~1meta-referrer~1decrypt
   /banners/resolve:
@@ -136,14 +132,6 @@ components:
       $ref: ./components/conversations.yaml#/schemas/ChatReference
     ChatStateResponse:
       $ref: ./components/conversations.yaml#/schemas/ChatStateResponse
-    DailyAffirmationItem:
-      $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationItem
-    DailyAffirmationResponse:
-      $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationResponse
-    DailyAffirmationAcknowledgeRequest:
-      $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationAcknowledgeRequest
-    DailyAffirmationAcknowledgeResponse:
-      $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationAcknowledgeResponse
     DailyFortuneContextRef:
       $ref: ./components/fortune.yaml#/schemas/DailyFortuneContextRef
     DailyFortuneRevealResponse:
@@ -370,8 +358,6 @@ tags:
   description: 구독 조회, 고정 플랜, RevenueCat webhook
 - name: fortune
   description: 운세 프로필, 당일 결과, 공개용 광고 세션
-- name: affirmation
-  description: 오늘의 글귀 조회와 당일 확인 기록
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

@@ -298,7 +298,7 @@ def test_composed_action_rejects_shared_visual_ownership():
 
 
 @pytest.mark.parametrize(
-    "action", ["open_diary", "open_mood", "open_timer", "open_music", "open_affirmation"]
+    "action", ["open_diary", "open_mood", "open_timer", "open_music"]
 )
 def test_navigation_capability_filters_old_clients(action):
     raw = manifest()
@@ -318,8 +318,8 @@ def test_navigation_capability_filters_old_clients(action):
 def test_authored_banner_body_is_centered_between_divider_and_visible_button():
     catalog = BannerCatalog.load()
     for banner in catalog.manifest.banners:
-        if banner.id in {"music-daily", "affirmation-daily"}:
-            continue  # music uses an image play button; affirmation makes the whole card tappable.
+        if banner.id in {"music-daily"}:
+            continue  # music uses an image play button.
         for canvas in banner.canvases_by_locale.values():
             elements = {element.id: element for element in canvas.elements}
             divider = elements['heading-divider'].frame

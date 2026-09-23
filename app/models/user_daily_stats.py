@@ -35,5 +35,3 @@ class UserDailyStats(Base):
     # 알림 발송 멱등 마커(유저×활동일 1회) — 재실행·15분 케이던스 중복 푸시 방지. SOMA-348.
     morning_notified_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     evening_notified_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
-    # 오늘의 글귀 확인 시각 — 배너 당일 숨김 판정.
-    affirmation_acknowledged_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)

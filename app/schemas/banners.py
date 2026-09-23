@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from string import Formatter
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
@@ -134,7 +134,7 @@ class BannerStyle(BannerModel):
 
 class BannerAction(BannerModel):
     type: Literal["open_shop", "open_routines", "open_conversation", "open_fortune",
-                  "open_diary", "open_mood", "open_timer", "open_music", "open_affirmation"]
+                  "open_diary", "open_mood", "open_timer", "open_music"]
 
 
 class BannerTopicAction(BannerModel):
@@ -146,17 +146,8 @@ class BannerAuthoredTopicAction(BannerModel):
     type: Literal["open_topic_conversation_v1"]
 
 
-class BannerAffirmationAction(BannerModel):
-    type: Literal["acknowledge_affirmation_v1", "open_affirmation_screen_v1"]
-    local_date: date
-
-
-class BannerAuthoredAffirmationAction(BannerModel):
-    type: Literal["acknowledge_affirmation_v1", "open_affirmation_screen_v1"]
-
-
-Action = Annotated[BannerAction | BannerTopicAction | BannerAffirmationAction, Field(discriminator="type")]
-AuthoredAction = Annotated[BannerAction | BannerAuthoredTopicAction | BannerAuthoredAffirmationAction, Field(discriminator="type")]
+Action = Annotated[BannerAction | BannerTopicAction, Field(discriminator="type")]
+AuthoredAction = Annotated[BannerAction | BannerAuthoredTopicAction, Field(discriminator="type")]
 
 
 def template_aliases(value: str) -> set[str]:
@@ -338,14 +329,13 @@ class BannerAuthoredCanvas(BannerCanvas):
 
 
 class BannerBinding(BannerModel):
-    source: Literal["user.local_date", "routines.remaining_today", "topic.question",
-                    "music.daily_title", "affirmation.acknowledged_today", "affirmation.text"]
+    source: Literal["user.local_date", "routines.remaining_today", "topic.question", "music.daily_title"]
     format: Literal["month_day", "full_date"] | None
 
     @model_validator(mode="after")
     def source_format(self):
         if (self.source == "user.local_date") != (self.format is not None):
-            raise ValueError("date requires format; other sources require null format")
+            raise ValueError("date requires format; count requires null format")
         return self
 
 
@@ -400,35 +390,12 @@ class BannerDefinition(BannerModel):
                 raise ValueError("invalid binding alias")
         if self.when:
             bound = self.bindings.get(self.when.binding)
-            if not bound or bound.source not in {
-                "routines.remaining_today", "affirmation.acknowledged_today"
-            }:
+            if not bound or bound.source != "routines.remaining_today":
                 raise ValueError("condition requires integer binding")
         if any(b.source == "routines.remaining_today" for b in self.bindings.values()):
             if not self.when or self.when.operator != "gt" or self.when.value != 0:
                 raise ValueError("routine-dependent banners require remaining > 0")
-        if any(b.source == "affirmation.acknowledged_today" for b in self.bindings.values()):
-            # 확인한 날에는 카드를 숨기는 조건만 허용한다(다른 조건은 당일 재노출로 이어진다).
-            if (
-                not self.when
-                or self.when.operator != "eq"
-                or self.when.value != 0
-                or self.bindings[self.when.binding].source != "affirmation.acknowledged_today"
-            ):
-                raise ValueError("affirmation-dependent banners require acknowledged == 0")
         for canvas in self.canvases_by_locale.values():
-            affirmation_actions = [e for e in canvas.elements
-                                   if getattr(getattr(e, "action", None), "type", None)
-                                   == "acknowledge_affirmation_v1"]
-            if affirmation_actions and not {"affirmation.text", "affirmation.acknowledged_today"} <= {
-                b.source for b in self.bindings.values()
-            }:
-                raise ValueError("affirmation check requires text and acknowledgement bindings")
-            if any(getattr(getattr(e, "action", None), "type", None)
-                   == "open_affirmation_screen_v1" for e in canvas.elements) and not any(
-                       b.source == "affirmation.acknowledged_today" for b in self.bindings.values()
-                   ):
-                raise ValueError("affirmation screen requires acknowledgement binding")
             topic_actions = [e for e in canvas.elements
                              if getattr(getattr(e, "action", None), "type", None)
                              == "open_topic_conversation_v1"]
@@ -472,8 +439,7 @@ class BannerManifest(BannerModel):
 
 
 class BannerCard(BannerModel):
-    data_dependencies: tuple[Literal["user.local_date", "routines.remaining_today",
-                                     "topic.question", "affirmation.acknowledged_today", "affirmation.text"], ...]
+    data_dependencies: tuple[Literal["user.local_date", "routines.remaining_today", "topic.question"], ...]
     id: Id
     component: Literal["banner_canvas_v1"]
     layout_profile: Literal["home_blind_v1"]

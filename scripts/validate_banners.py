@@ -33,8 +33,7 @@ def validate_topics(catalog: BannerCatalog, topics: TopicCatalog) -> int:
         for (topic_id, revision), questions in topics.versions.items():
             for locale, canvas in banner.canvases_by_locale.items():
                 values = binding_values(banner, locale, date(2026, 12, 31), 999,
-                                        topic_question=getattr(questions, locale),
-                                        acknowledged=0)
+                                        topic_question=getattr(questions, locale))
                 compile_canvas(canvas, values, topic_ref=TopicReference(
                     offer_id=UUID(int=1), offer_sequence=1, topic_id=topic_id,
                     topic_revision=revision, locale=locale,

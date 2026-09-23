@@ -636,6 +636,139 @@ async def test_v2_put_equips_hat_and_glasses_together(monkeypatch):
     }
 
 
+_ACTIVE_SUBSCRIPTION = [SimpleNamespace(plan="monthly")]
+_NO_SUBSCRIPTION: list = []
+
+
+async def test_v2_put_subscriber_only_equips_without_ownership(monkeypatch):
+    theme = _theme()
+    onsen = _theme(public_id="theme_onsen", is_subscriber_only=True)
+    towel = _item(slot="hat", public_id="head_towel", price_hay=None, is_subscriber_only=True)
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
+    products = {p.public_id: p for p in (theme, onsen, towel)}
+
+    async def _load(session, pid):
+        return products[pid]
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(
+        get_obj=SimpleNamespace(id=UID_UUID),
+        exec_results=[[theme_row], _ACTIVE_SUBSCRIPTION, _ACTIVE_SUBSCRIPTION],
+    )
+    req = EquipmentPutRequestV2(
+        theme_id="theme_onsen", hat_id="head_towel", glasses_id=None, neck_id=None, body_id=None,
+    )
+    out = await shop.put_equipment_v2(s, UID, req)
+    assert theme_row.equipped_slot is None
+    assert {(row.product_id, row.source, row.equipped_slot) for row in s.added} == {
+        (onsen.id, "subscription", "theme"),
+        (towel.id, "subscription", "hat"),
+    }
+    assert out["theme_id"] == "theme_onsen" and out["hat_id"] == "head_towel"
+
+
+async def test_v2_put_subscriber_only_requires_active_subscription(monkeypatch):
+    theme = _theme()
+    towel = _item(slot="hat", public_id="head_towel", price_hay=None, is_subscriber_only=True)
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
+    products = {p.public_id: p for p in (theme, towel)}
+
+    async def _load(session, pid):
+        return products[pid]
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(
+        get_obj=SimpleNamespace(id=UID_UUID), exec_results=[[theme_row], _NO_SUBSCRIPTION],
+    )
+    req = EquipmentPutRequestV2(
+        theme_id=theme.public_id, hat_id="head_towel", glasses_id=None, neck_id=None, body_id=None,
+    )
+    with pytest.raises(AppError) as e:
+        await shop.put_equipment_v2(s, UID, req)
+    assert e.value.code == "NOT_OWNED" and s.added == [] and s.committed is False
+
+
+async def test_v2_put_unequips_subscriber_only_by_deleting_its_row(monkeypatch):
+    theme = _theme()
+    towel = _item(slot="hat", public_id="head_towel", price_hay=None, is_subscriber_only=True)
+    theme_row = _row(theme.id, source="admin_grant", equipped_slot="theme")
+    towel_row = _row(towel.id, source="subscription", equipped_slot="hat")
+
+    async def _load(session, pid):
+        return theme
+
+    monkeypatch.setattr(shop, "_load_item", _load)
+    s = FakeSession(get_obj=SimpleNamespace(id=UID_UUID), exec_results=[[theme_row, towel_row]])
+    req = EquipmentPutRequestV2(
+        theme_id=theme.public_id, hat_id=None, glasses_id=None, neck_id=None, body_id=None,
+    )
+    await shop.put_equipment_v2(s, UID, req)
+    assert s.deleted == [towel_row]
+
+
+async def test_v2_get_equipment_drops_subscriber_only_after_expiry():
+    theme = _theme()
+    onsen = _theme(public_id="theme_onsen", is_subscriber_only=True)
+    painter = _item(slot="body", public_id="body_painter", price_hay=None, is_subscriber_only=True)
+    rows = [
+        _row(theme.id, source="admin_grant"),
+        _row(onsen.id, source="subscription", equipped_slot="theme"),
+        _row(painter.id, source="subscription", equipped_slot="body"),
+    ]
+    expired = await shop.get_equipment(
+        FakeSession(exec_results=[rows, [onsen, painter], _NO_SUBSCRIPTION]), UID, v2=True,
+        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
+    )
+    assert expired["theme_id"] == "theme_default" and expired["body_id"] is None
+    active = await shop.get_equipment(
+        FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
+        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
+    )
+    assert active["theme_id"] == "theme_onsen" and active["body_id"] == "body_painter"
+    old_app = await shop.get_equipment(
+        FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
+        timer_capable=True, bundled_themes=frozenset({"theme_onsen"}),
+    )
+    assert old_app["theme_id"] == "theme_default" and old_app["body_id"] is None
+
+
+async def test_v2_catalog_marks_subscriber_only_and_unequips_after_expiry():
+    theme = _theme()
+    onsen = _theme(public_id="theme_onsen", price_hay=None, is_subscriber_only=True)
+    rows = [
+        _row(theme.id, source="admin_grant"),
+        _row(onsen.id, source="subscription", equipped_slot="theme"),
+    ]
+    out = await shop.get_products(
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[theme, onsen], rows, _NO_SUBSCRIPTION]),
+        UID, v2=True, subscriber_capable=True,
+    )
+    by_id = {product["id"]: product for product in out["themes"]}
+    assert by_id["theme_onsen"]["subscriber_only"] is True
+    assert by_id["theme_onsen"]["price_hay"] is None
+    assert by_id["theme_onsen"]["owned"] is False and by_id["theme_onsen"]["equipped"] is False
+    assert by_id["theme_default"]["subscriber_only"] is False
+    assert by_id["theme_default"]["equipped"] is True
+
+
+async def test_catalog_hides_subscriber_only_from_apps_without_capability():
+    theme = _theme()
+    onsen = _theme(public_id="theme_onsen", price_hay=None, is_subscriber_only=True)
+    towel = _item(slot="hat", public_id="head_towel", price_hay=None, is_subscriber_only=True)
+    rows = [
+        _row(theme.id, source="admin_grant"),
+        _row(onsen.id, source="subscription", equipped_slot="theme"),
+    ]
+    for v2 in (True, False):
+        out = await shop.get_products(
+            FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[theme, onsen, towel], rows]),
+            UID, v2=v2,
+        )
+        assert [product["id"] for product in out["themes"]] == ["theme_default"]
+        assert out["themes"][0]["equipped"] is True
+        assert out["items"] == []
+
+
 async def test_inventory_excludes_subscription_rows(monkeypatch):
     """인벤토리는 구독 장착 행을 제외하고 카탈로그와 같은 전체 DTO를 반환한다."""
     owned, subscription = _item(), _item()

@@ -61,14 +61,26 @@ class LLMResult:
     input_tokens: int
     output_tokens: int
     cache_read_tokens: int = 0   # 캐시에서 읽음(0.1× 실원가) — 기본 0이라 기존 positional 생성 호환
-    cache_write_tokens: int = 0  # 캐시에 씀(1.25× 실원가). Anthropic=실측 / OpenAI=추정(_generate_openai)
+    cache_write_tokens: int = 0  # 사용자 차감용 버킷: Anthropic 실측 / OpenAI 기존 추정 정책
     model: str = ""              # 실제 호출 모델 — _billable이 이 prefix로 provider별 가중치 선택
     model_snapshot: str = ""     # 응답이 알려준 실제 model(alias 호출의 스냅샷). 원장 귀속용
     request_id: str = ""         # provider request id — invoice 대사 키
-    cache_write_estimated: bool = False  # OpenAI는 write usage를 안 줘서 추정 → 실비 주장 금지 표식
+    cache_write_estimated: bool = False  # 원가 버킷의 쓰기량이 추정인지 표시
     # 응답이 왜 끝났는가. `"length"`면 **출력 상한에서 잘린 것**이다. 이 값이 없으면 잘림과
     # 모델의 형식 오류를 구분할 수 없어, 잘렸는데도 같은 입력으로 재시도만 반복하다 잡이 죽는다.
     finish_reason: str = ""
+    # 사용자 quota 버킷은 기존 정책을 유지한다. 아래 두 필드만 회사 원가에 사용한다.
+    cost_input_tokens: int | None = None
+    cost_cache_write_tokens: int | None = None
+
+    def ledger_usage(self) -> dict:
+        return {
+            "input_tokens": self.input_tokens if self.cost_input_tokens is None else self.cost_input_tokens,
+            "cached_input_tokens": self.cache_read_tokens,
+            "cache_write_tokens": self.cache_write_tokens if self.cost_cache_write_tokens is None else self.cost_cache_write_tokens,
+            "output_tokens": self.output_tokens,
+            "cache_write_estimated": self.cache_write_estimated,
+        }
 
 
 @dataclass
@@ -94,7 +106,7 @@ _OPENAI_CACHE_MIN_PREFIX_TOKENS = 1024
 
 
 def billable_tokens(r: LLMResult) -> int:
-    """실비용 가중 청구 토큰. chat._billable과 **같은 식**이며 등가는 테스트로 고정한다.
+    """사용자 한도 차감 단위. chat._billable과 **같은 식**이며 등가는 테스트로 고정한다.
 
     회계 소유자는 chat이지만(순환 import 회피) generate_step은 LlmCall.billable을 채워 반환해야 해서
     여기에도 같은 계산이 필요하다. 가중치가 갈라지면 tests/test_llm_step.py의 등가 테스트가 깨진다.
@@ -205,11 +217,7 @@ async def generate(
         call_id,
         provider=provider,
         model=model,
-        input_tokens=r.input_tokens,
-        cached_input_tokens=r.cache_read_tokens,
-        cache_write_tokens=r.cache_write_tokens,
-        output_tokens=r.output_tokens,
-        cache_write_estimated=r.cache_write_estimated,
+        **r.ledger_usage(),
         model_snapshot=r.model_snapshot or None,
         provider_request_id=r.request_id or None,
         latency_ms=_elapsed_ms(started),
@@ -294,36 +302,40 @@ async def _generate_openai(
     # alias 호출의 실제 스냅샷과 request id — 원가 원장의 귀속·invoice 대사 키.
     snapshot = getattr(resp, "model", None) or ""
     req_id = getattr(resp, "id", None) or ""
-    u = getattr(resp, "usage", None)
-    if u is None:
-        return LLMResult(
-            text=text, input_tokens=0, output_tokens=0, model=model,
-            model_snapshot=snapshot, request_id=req_id, finish_reason=finish,
-        )
-    prompt_tokens = getattr(u, "prompt_tokens", None) or 0
+    r = _openai_usage(getattr(resp, "usage", None), model)
+    r.text = text
+    r.model_snapshot = snapshot
+    r.request_id = req_id
+    r.finish_reason = finish
+    return r
+
+
+def _openai_usage(u: object, model: str) -> LLMResult:
+    """Quota 분류는 유지하고, 원가는 API가 보고한 배타 버킷으로 계산한다.
+
+    명시적 cache_write_tokens=0은 미보고(None)와 다르다. 이전 SDK도 추가 필드를
+    보존하므로 getattr로 읽는다. 미보고 시 GPT-5.6/6만 기존 보수적 추정을 사용하며
+    별도 쓰기 요금이 없는 GPT-4.1은 일반 입력으로 계산한다.
+    """
+    prompt = max(0, getattr(u, "prompt_tokens", None) or 0)
     details = getattr(u, "prompt_tokens_details", None)
-    cached = (getattr(details, "cached_tokens", None) or 0) if details is not None else 0
-    completion = getattr(u, "completion_tokens", None) or 0
-    # 캐시 쓰기 토큰 **추정**(실 인보이스 대조 전까지 확정 아님). SDK 2.44.0의 PromptTokensDetails는
-    # ['audio_tokens', 'cached_tokens']뿐이라 쓰기 토큰을 보고하지 않는다(확인함). 요금 모델상
-    # prompt_tokens는 읽기/쓰기/일반입력 3버킷에 배타적으로 속하므로, 캐시가 걸리는 길이(1024+)면
-    # 미적중분은 캐시에 기록된 것으로 보고 쓰기로, 그 미만이면 캐시 자체가 없어 전량 일반 입력으로 센다.
-    # 오차: 정상(캐시 적중) 턴은 턴당 ~1%, 캐시 미스 턴은 최대 25% **과대** 계상(보수적 방향).
-    # 배포 후 1주 실 인보이스와 대조해 5% 초과 괴리면 재조정. SDK가 쓰기 필드를 노출하면 실측으로 교체.
-    uncached = max(0, prompt_tokens - cached)  # 캐시분 분리(이중계상 방지)
-    cacheable = prompt_tokens >= _OPENAI_CACHE_MIN_PREFIX_TOKENS
+    cached = min(prompt, max(0, getattr(details, "cached_tokens", None) or 0))
+    output = max(0, getattr(u, "completion_tokens", None) or 0)
+    uncached = prompt - cached
+    cacheable = prompt >= _OPENAI_CACHE_MIN_PREFIX_TOKENS
+    legacy_write = uncached if cacheable else 0
+    reported_write = getattr(details, "cache_write_tokens", None)
+    billed_write = model.startswith(("gpt-5.6-", "gpt-6-"))
+    estimated = reported_write is None and billed_write and legacy_write > 0
+    write = (
+        min(uncached, max(0, reported_write)) if reported_write is not None
+        else legacy_write if billed_write else 0
+    )
     return LLMResult(
-        text=text,
-        input_tokens=0 if cacheable else uncached,
-        output_tokens=completion,
-        cache_read_tokens=cached,
-        cache_write_tokens=uncached if cacheable else 0,
-        model=model,
-        model_snapshot=snapshot,
-        request_id=req_id,
-        # 위 주석대로 write는 추정값이다 — 원장에서 "정확한 실비"로 집계되지 않게 표시한다.
-        cache_write_estimated=cacheable,
-        finish_reason=finish,
+        text="", input_tokens=uncached - legacy_write, output_tokens=output,
+        cache_read_tokens=cached, cache_write_tokens=legacy_write, model=model,
+        cost_input_tokens=uncached - write, cost_cache_write_tokens=write,
+        cache_write_estimated=estimated,
     )
 
 
@@ -750,20 +762,7 @@ def _final_response(call: ToolCall) -> FinalResponse | None:
 
 def _step_usage(u: object, model: str, purpose: str) -> LlmCall:
     """OpenAI usage → 회계 단위 LlmCall. 버킷 배분 규칙은 _generate_openai과 동일(등가 테스트로 고정)."""
-    prompt_tokens = (getattr(u, "prompt_tokens", None) or 0) if u is not None else 0
-    details = getattr(u, "prompt_tokens_details", None) if u is not None else None
-    cached = (getattr(details, "cached_tokens", None) or 0) if details is not None else 0
-    completion = (getattr(u, "completion_tokens", None) or 0) if u is not None else 0
-    uncached = max(0, prompt_tokens - cached)
-    cacheable = prompt_tokens >= _OPENAI_CACHE_MIN_PREFIX_TOKENS
-    r = LLMResult(
-        text="",
-        input_tokens=0 if cacheable else uncached,
-        output_tokens=completion,
-        cache_read_tokens=cached,
-        cache_write_tokens=uncached if cacheable else 0,
-        model=model,
-    )
+    r = _openai_usage(u, model)
     return LlmCall(
         provider="openai",
         model=model,
@@ -809,7 +808,7 @@ async def generate_step(
         "model": model,
         "messages": messages,
         "max_completion_tokens": max_tokens,
-        # GPT-5.6 Chat Completions는 함수 도구와 reasoning을 함께 받지 않는다. 이 경로는
+        # GPT-5.6/6 Luna·Sol Chat Completions 도구 경로는 reasoning=none을 사용한다. 이 경로는
         # 5초 안에 결정+도구+최종 응답을 끝내는 저지연 루프이기도 하므로 명시적으로 끈다.
         # 생략하면 모델 기본 reasoning이 적용돼 tools가 있는 요청이 API 400으로 실패한다.
         "reasoning_effort": "none",
@@ -835,9 +834,7 @@ async def generate_step(
     usage = _step_usage(getattr(resp, "usage", None), model, purpose)
     await usage_ledger.close_call(
         call_id, provider="openai", model=model,
-        input_tokens=usage.input_tokens, cached_input_tokens=usage.cache_read_tokens,
-        cache_write_tokens=usage.cache_write_tokens, output_tokens=usage.output_tokens,
-        cache_write_estimated=bool(usage.cache_write_tokens),
+        **_openai_usage(getattr(resp, "usage", None), model).ledger_usage(),
         model_snapshot=getattr(resp, "model", None),
         provider_request_id=getattr(resp, "id", None),
         latency_ms=_elapsed_ms(_t0),

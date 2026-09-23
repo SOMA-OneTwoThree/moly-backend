@@ -94,3 +94,59 @@ def test_purchase_header_reaches_service(shop_client):
     assert response.status_code == 404
     response = client.post("/shop/purchases", json={"product_id": "raincoat"}, headers=CAPABLE)
     assert response.json()["error"]["code"] == "ALREADY_OWNED"
+
+
+BUNDLED = {"X-Moly-Bundled-Themes": "theme_default, theme_onsen"}
+
+
+def test_bundled_theme_needs_the_app_bundle(monkeypatch):
+    home = _theme()
+    onsen = _theme(public_id="theme_onsen", price_hay=4000, sort_order=3)
+    onsen.assets = {**onsen.assets, "bundled": True}
+    catalog = [home, onsen]
+    rows = [_row(home.id), _row(onsen.id, equipped_slot="theme")]
+
+    async def session():
+        yield FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[catalog])
+
+    async def user_rows(session, uid):
+        return rows
+
+    async def products(session, ids):
+        return {item.id: item for item in catalog if item.id in ids}
+
+    async def load(session, public_id):
+        return next(item for item in catalog if item.public_id == public_id)
+
+    monkeypatch.setattr(shop, "_user_rows", user_rows)
+    monkeypatch.setattr(shop, "_products_by_ids", products)
+    monkeypatch.setattr(shop, "_load_item", load)
+    app.dependency_overrides[get_session] = session
+    app.dependency_overrides[get_current_user] = lambda: UID
+    try:
+        client = TestClient(app)
+        for headers in ({}, CAPABLE, {"X-Moly-Bundled-Themes": "theme_default"}):
+            themes = client.get("/v2/shop/products", headers=headers).json()["themes"]
+            assert [p["id"] for p in themes] == ["theme_default"]
+            owned = client.get("/v2/inventory", headers=headers).json()["data"]
+            assert "theme_onsen" not in {p["id"] for p in owned}
+            equipment = client.get("/v2/inventory/equipment", headers=headers).json()
+            assert equipment["theme_id"] == "theme_default"
+            response = client.post(
+                "/shop/purchases", json={"product_id": "theme_onsen"}, headers=headers
+            )
+            assert response.status_code == 404
+        assert client.get("/inventory/equipment").json()["theme_id"] == "theme_default"
+        assert "theme_onsen" not in {p["id"] for p in client.get("/shop/products").json()["themes"]}
+
+        themes = client.get("/v2/shop/products", headers=BUNDLED).json()["themes"]
+        onsen_dto = next(p for p in themes if p["id"] == "theme_onsen")
+        assert "bundled" not in onsen_dto["assets"]
+        equipment = client.get("/v2/inventory/equipment", headers=BUNDLED).json()
+        assert equipment["theme_id"] == "theme_onsen"
+        response = client.post(
+            "/shop/purchases", json={"product_id": "theme_onsen"}, headers=BUNDLED
+        )
+        assert response.json()["error"]["code"] == "ALREADY_OWNED"
+    finally:
+        app.dependency_overrides.clear()

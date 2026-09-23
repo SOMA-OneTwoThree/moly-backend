@@ -14,25 +14,29 @@ from app.config import settings
 
 _log = logging.getLogger("moly-backend")
 
-# 단가(USD per 1M 토큰) — 2026-07 기준. compare에서 실비용 추정용.
+# 단가(USD per 1M 토큰). 전환 대상 OpenAI 4종은 2026-09-23 공식 Standard 단가.
+# 원장 정본은 DB catalog이며 이 표는 dev 비교 표시 전용이다.
 PRICING: dict[str, tuple[float, float]] = {
-    "claude-sonnet-5": (3.0, 15.0),           # 현행 대화 모델(비교 기준)
+    "claude-sonnet-5": (3.0, 15.0),           # 이전 Anthropic 비교값
     "claude-haiku-4-5-20251001": (1.0, 5.0),  # 참고
-    "gpt-5.6-sol": (5.0, 30.0),
-    "gpt-5.6-terra": (2.5, 15.0),
-    "gpt-5.6-luna": (1.0, 6.0),
+    "gpt-5.6-sol": (5.0, 30.0),  # 기존 비교표 값(이번 전환 대상 아님)
+    "gpt-5.6-terra": (2.0, 12.0),
+    "gpt-5.6-luna": (0.2, 1.2),
+    "gpt-6-luna": (0.1, 0.5),
+    "gpt-6-sol": (2.0, 10.0),
     "gemini-3.6-flash": (1.5, 7.5),
     "gemini-3.5-flash-lite": (0.30, 2.50),
 }
 
-# compare 기본 모델셋(현행 Sonnet + 후보 4종)
+# 동일 역할의 이전/새 모델을 비교한다.
 DEFAULT_MODELS: list[dict[str, str]] = [
-    {"provider": "anthropic", "model": "claude-sonnet-5"},
-    {"provider": "openai", "model": "gpt-5.6-luna"},
-    {"provider": "openai", "model": "gpt-5.6-terra"},
-    {"provider": "gemini", "model": "gemini-3.6-flash"},
-    {"provider": "gemini", "model": "gemini-3.5-flash-lite"},
+    {"provider": "openai", "model": model}
+    for model in ("gpt-5.6-luna", "gpt-6-luna", "gpt-5.6-terra", "gpt-6-sol")
 ]
+CACHE_PRICING = {
+    "gpt-5.6-luna": (0.02, 0.25), "gpt-5.6-terra": (0.2, 2.5),
+    "gpt-6-luna": (0.01, 0.125), "gpt-6-sol": (0.2, 2.5),
+}
 
 
 @dataclass
@@ -43,15 +47,27 @@ class EvalResult:
     latency_ms: int
     input_tokens: int
     output_tokens: int
-    est_cost_usd: float
+    est_cost_usd: float | None
     error: str | None = None
+    cached_input_tokens: int = 0
+    cache_write_tokens: int = 0
+    cache_write_estimated: bool = False
+    finish_reason: str = ""
+    model_snapshot: str = ""
 
 
-def _cost(model: str, in_t: int, out_t: int) -> float:
-    p = PRICING.get(model)
-    if p is None:
-        return 0.0  # 단가 미등록 모델은 0(추정 불가 표시)
-    return round(in_t / 1e6 * p[0] + out_t / 1e6 * p[1], 6)
+def _cost(model: str, in_t: int, out_t: int, *, cached: int = 0, write: int = 0) -> float | None:
+    price = PRICING.get(model)
+    cache_price = CACHE_PRICING.get(model)
+    if price is None or ((cached or write) and cache_price is None):
+        return None  # 미등록/불명은 무료(0원)가 아니다.
+    read_rate, write_rate = cache_price or (0.0, 0.0)
+    input_cost = in_t * price[0] + cached * read_rate + write * write_rate
+    output_cost = out_t * price[1]
+    if model.startswith(("gpt-5.6-", "gpt-6-")) and in_t + cached + write > 272_000:
+        input_cost *= 2
+        output_cost *= 1.5
+    return round((input_cost + output_cost) / 1e6, 8)
 
 
 async def _anthropic(model, system, messages, max_tokens):  # noqa: ANN001
@@ -70,19 +86,15 @@ async def _anthropic(model, system, messages, max_tokens):  # noqa: ANN001
 
 
 async def _openai(model, system, messages, max_tokens):  # noqa: ANN001
-    from openai import AsyncOpenAI
+    from app.services import llm
 
     if not settings.openai_api_key:
         raise RuntimeError("OPENAI_API_KEY 미설정")
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
-    msgs = ([{"role": "system", "content": system}] if system else []) + list(messages)
-    # GPT-5.x는 max_tokens 대신 max_completion_tokens.
-    resp = await client.chat.completions.create(
-        model=model, messages=msgs, max_completion_tokens=max_tokens
+    # 실제 어댑터와 같은 usage 분류·timeout을 사용한다. dev 평가에는 ledger/quota 쓰기 없음.
+    return await llm.generate(
+        system, list(messages), model=model, max_tokens=max_tokens,
+        reasoning_effort="none",
     )
-    text = resp.choices[0].message.content or ""
-    u = resp.usage
-    return text, (u.prompt_tokens if u else 0), (u.completion_tokens if u else 0)
 
 
 # Gemini 3.x flash는 기본 thinking ON이라 max_output_tokens를 사고에 다 써 응답이 잘린다.
@@ -128,14 +140,27 @@ async def run_eval(
     전체를 막지 않게). 절대 예외를 던지지 않는다."""
     adapter = _ADAPTERS.get(provider)
     if adapter is None:
-        return EvalResult(provider, model, None, 0, 0, 0, 0.0, error=f"알 수 없는 provider: {provider}")
+        return EvalResult(provider, model, None, 0, 0, 0, None, error=f"알 수 없는 provider: {provider}")
     start = time.perf_counter()
     try:
-        text, in_t, out_t = await adapter(model, system, messages, max_tokens)
+        result = await adapter(model, system, messages, max_tokens)
         ms = int((time.perf_counter() - start) * 1000)
+        from app.services.llm import LLMResult
+
+        if isinstance(result, LLMResult):
+            usage = result.ledger_usage()
+            plain, cached, write = (usage[k] for k in ("input_tokens", "cached_input_tokens", "cache_write_tokens"))
+            return EvalResult(
+                provider, model, result.text, ms, plain + cached + write, result.output_tokens,
+                _cost(model, plain, result.output_tokens, cached=cached, write=write),
+                cached_input_tokens=cached, cache_write_tokens=write,
+                cache_write_estimated=result.cache_write_estimated,
+                finish_reason=result.finish_reason, model_snapshot=result.model_snapshot,
+            )
+        text, in_t, out_t = result
         return EvalResult(provider, model, text, ms, in_t, out_t, _cost(model, in_t, out_t))
     except Exception as e:  # noqa: BLE001  # 한 모델 실패가 비교 전체를 막지 않게
         # dev 전용 툴이라 상세 에러는 개발자에게 유용 → error 필드에 유지하되 로그도 남긴다.
         _log.warning("model_eval 실패 provider=%s model=%s err=%r", provider, model, e)
         ms = int((time.perf_counter() - start) * 1000)
-        return EvalResult(provider, model, None, ms, 0, 0, 0.0, error=f"{type(e).__name__}: {e}")
+        return EvalResult(provider, model, None, ms, 0, 0, None, error=f"{type(e).__name__}: {e}")

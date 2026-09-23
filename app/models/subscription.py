@@ -20,13 +20,17 @@ class Subscription(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
     )  # flush 전 id 참조가 필요한 곳(RC 웹훅 결제 기록)은 생성자에서 id 명시 — default는 안전망
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
+    rc_subscription_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    ownership_changed_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     plan: Mapped[str] = mapped_column(String)  # monthly | yearly
     status: Mapped[str] = mapped_column(String)  # active | grace_period | expired | revoked
     original_transaction_id: Mapped[str] = mapped_column(String, unique=True)
     latest_transaction_id: Mapped[str | None] = mapped_column(String, nullable=True)
     purchased_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    # RC store trial is a real subscription, distinct from the app's own 48h trial.
+    store_trial_ends_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     # 상태 단조 기준(SOMA-372) — event_ts > last_event_at 일 때만 상태 적용(옛 이벤트 역행 차단).
     last_event_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     auto_renew_enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))

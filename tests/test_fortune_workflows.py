@@ -6,6 +6,7 @@ import base64
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 import uuid
 from urllib.parse import quote, unquote, urlencode
 
@@ -101,6 +102,25 @@ def enabled(monkeypatch):
     monkeypatch.setattr(fortune.privacy, "ensure_subject_active", noop)
     monkeypatch.setattr(fortune, "advisory_xact_lock", noop)
     monkeypatch.setattr(fortune, "_load_profile", account)
+    monkeypatch.setattr(fortune, "effective_token_config", AsyncMock(return_value={}))
+
+
+@pytest.mark.parametrize("plan", ["free", "trial", "monthly", "yearly"])
+@pytest.mark.parametrize("active", [False, True])
+async def test_trial_fortune_is_ad_free_only_after_rollout(enabled, monkeypatch, plan, active):
+    monkeypatch.setattr(fortune.gating, "resolve_plan", AsyncMock(return_value=plan))
+    cutoff = NOW + (timedelta(seconds=-1) if active else timedelta(seconds=1))
+    monkeypatch.setattr(fortune, "effective_token_config", AsyncMock(return_value={
+        "subscription_launch": {"enabled": True, "existing_user_cutoff": cutoff.isoformat()},
+    }))
+    p = FortuneProfile(user_id=UID, gender="man", birth_date=date(2002, 12, 13), revision=1)
+    session = _MemorySession(profile=p)
+    value = await fortune.reveal(session, str(UID), locale="en", now_utc=NOW)
+    included = plan in {"monthly", "yearly"} or (plan == "trial" and active)
+    assert value["access"] == ("included" if included else "ad_required")
+    assert value["state"] == ("revealed" if included else "locked")
+    assert ("categories" in value["result"]) == included
+    assert session.ads == []
 
 
 async def test_profile_same_put_is_noop_and_birthday_change_invalidates_result_preserving_unlock(enabled):

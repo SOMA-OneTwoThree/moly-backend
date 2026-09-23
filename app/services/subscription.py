@@ -24,6 +24,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.advisory_lock import advisory_xact_lock
 from app.core.pg import unique_violation
 from app.models.hay_transaction import HayTransaction
 from app.models.order import Order
@@ -626,6 +627,11 @@ async def _dispatch(session: AsyncSession, event: dict) -> HandlerResult:
             PERMANENT_FAILURE, f"app_user_id 파싱 불가: {event.get('app_user_id')!r}"
         )
 
+    # Same account lock as offer/trial RPCs and economy writes; always before row locks.
+    if etype in _RC_ACTIVE or etype in {
+        "REFUND_REVERSED", "CANCELLATION", "EXPIRATION", "BILLING_ISSUE", "NON_RENEWING_PURCHASE",
+    }:
+        await advisory_xact_lock(session, uid)
     event_ts = _ms_to_dt(event.get("event_timestamp_ms"))
 
     if etype in _RC_ACTIVE:
@@ -700,7 +706,7 @@ async def _handle_active(
     # 재무는 상태와 분리(옛 이벤트여도 멱등 처리) — 결제 기록·증정은 INITIAL_PURCHASE/RENEWAL만(새 과금).
     if etype in ("INITIAL_PURCHASE", "RENEWAL"):
         if _free_subscription_period(event):
-            await _mark_store_trial_offer_redeemed(session, uid)
+            await _mark_store_trial_offer_redeemed(session, uid, event)
             return HandlerResult(HANDLED, "무료 구독 기간: 결제 원장·건초 지급 없음")
         amount, _ = _event_money(event)
         if amount is None or amount < 0:
@@ -739,13 +745,24 @@ async def _finish_subscription_bonus(session: AsyncSession, sub: Subscription, p
     return HandlerResult(HANDLED_PENDING if review.startswith("held:") else HANDLED, review)
 
 
-async def _mark_store_trial_offer_redeemed(session: AsyncSession, uid: uuid.UUID) -> None:
-    # Previously issued offers can be redeemed after enrollment is paused. No claim
-    # is created here; replay cannot change the first redemption time.
+async def _mark_store_trial_offer_redeemed(
+    session: AsyncSession, uid: uuid.UUID, event: dict,
+) -> None:
+    # Nullable RC offer identifiers must not make an unrelated free period consume
+    # this campaign. Access is still synchronized above when attribution is absent.
+    offer = event.get("offer_code")
+    product = event.get("product_id")
+    store = event.get("store")
+    if not offer or not product or store not in {"APP_STORE", "PLAY_STORE"}:
+        return
     await session.execute(text(
-        "UPDATE public.subscription_offer_claims SET redeemed_at = now() "
-        "WHERE user_id = :uid AND redeemed_at IS NULL"
-    ).bindparams(uid=uid))
+        "UPDATE public.subscription_offer_claims c SET redeemed_at = now() "
+        "WHERE c.user_id = :uid AND c.redeemed_at IS NULL AND ("
+        "(:store = 'APP_STORE' AND c.platform = 'ios' AND c.product_id = :product "
+        "AND c.offer_id = :offer) OR "
+        "(:store = 'PLAY_STORE' AND c.platform = 'android' AND c.offer_id = :offer "
+        "AND (c.product_id || ':' || c.base_plan_id) = :product))"
+    ).bindparams(uid=uid, store=store, product=product, offer=offer))
 
 
 def _apply_active_state(

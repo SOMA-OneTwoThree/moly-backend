@@ -18,14 +18,16 @@ from sqlalchemy.exc import IntegrityError
 
 from app.config import settings
 from app.core.advisory_lock import advisory_xact_lock
-from app.core.time_utils import safe_zone
+from app.core.time_utils import DAY_BOUNDARY_HOUR, safe_zone
 from app.models.diary import Diary
 from app.models.message import Message
 from app.models.profile import Profile
+from app.models.subscription import Subscription
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
 from app.services import diary_recall_repo, i18n, llm, naming, text_clean, usage_ledger
 from app.services import config_store, diary_prompts, privacy
+from app.services.entitlement import derive_entitlement, subscription_policy_active
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -178,8 +180,8 @@ async def _self_check(
                 "role": "user",
                 "content": f"{talk_label}\n{transcript}\n\n{diary_label}\n{body}",
             }],
-            model=settings.model_utility,
-            max_tokens=16,
+            model=settings.model_utility, reasoning_effort="none",
+            max_tokens=64,  # 짧은 판정도 형식/출력 여유를 둔다(GPT-6 검증).
             ledger=usage_ledger.with_purpose(ledger, "diary_self_check"),
         )
     except Exception as e:  # noqa: BLE001
@@ -254,7 +256,7 @@ async def _surgical_repair(
         try:
             r = await llm.generate(
                 _SURGICAL_SYS, [{"role": "user", "content": body}],
-                model=settings.model_utility, max_tokens=min(len(body) * 2 + 64, 512),
+                model=settings.model_utility, reasoning_effort="none", max_tokens=min(len(body) * 2 + 64, 512),
                 ledger=usage_ledger.with_purpose(ledger, "diary_repair"),
             )
         except Exception as e:  # noqa: BLE001  # 복원 실패가 일기 발행을 막지 않게
@@ -334,7 +336,7 @@ async def _translate_preset(
         r = await llm.generate(
             _TRANSLATE_SYS.format(lang=i18n.resolve(language)),  # ko·en·ja 밖은 영어
             [{"role": "user", "content": content}],
-            model=settings.model_utility,
+            model=settings.model_utility, reasoning_effort="none",
             max_tokens=512,
             ledger=usage_ledger.with_purpose(ledger, "diary_translate"),
         )
@@ -425,12 +427,34 @@ def _is_generation_conflict(exc: IntegrityError) -> bool:
     }
 
 
+async def _personal_diary_eligible(session, profile, target_date, cfg) -> bool:
+    # Evaluate at the completed activity day's boundary, not delayed worker time.
+    # Existing entries are checked first and are never withdrawn on a plan change.
+    boundary = datetime.combine(
+        target_date + timedelta(days=1), time(DAY_BOUNDARY_HOUR), tzinfo=safe_zone(profile.timezone),
+    ).astimezone(timezone.utc) - timedelta(microseconds=1)
+    if not subscription_policy_active(cfg, boundary):
+        return True
+    sub = (await session.execute(
+        select(Subscription).where(
+            Subscription.user_id == profile.id,
+            Subscription.status.in_(("active", "grace_period", "expired")),
+            Subscription.purchased_at <= boundary,
+            Subscription.expires_at > boundary,
+        ).order_by(Subscription.expires_at.desc()).limit(1)
+    )).scalars().first()
+    return derive_entitlement(profile, sub, 0, cfg, boundary)["personal_diary_eligible"]
+
+
 async def generate_for_user(
     session: AsyncSession, profile, target_date: date, cfg: dict[str, Any], *, policy: DiaryPolicy,
 ) -> dict[str, Any]:
     """개인 우선, 운영 원고 대체, 미발행. 네트워크와 최종 DB 확정 구간을 분리한다."""
     profile = SimpleNamespace(**{
-        key: getattr(profile, key, None) for key in ("id", "timezone", "language", "nickname")
+        key: getattr(profile, key, None) for key in (
+            "id", "timezone", "language", "nickname", "trial_ends_at",
+            "app_trial_started_at", "app_trial_ends_at",
+        )
     })
     try:
         return await _generate_for_user(session, profile, target_date, cfg, policy=policy)
@@ -448,6 +472,8 @@ async def _generate_for_user(session, profile, target_date, cfg, *, policy):
                 for m in await _day_messages(session, profile.id, target_date)]
     user_chars = sum(len(m.content or "") for m in messages if m.sender == "user")
     gate_passed = bool(messages) and user_chars >= gate
+    personal_eligible = await _personal_diary_eligible(session, profile, target_date, cfg)
+    personal_attempted = gate_passed and personal_eligible
     ledger = usage_ledger.LedgerContext(
         lane=usage_ledger.LANE_BACKGROUND, purpose="diary_generate",
         user_id=profile.id, activity_date=target_date,
@@ -455,7 +481,7 @@ async def _generate_for_user(session, profile, target_date, cfg, *, policy):
     await session.rollback()  # snapshot 완료. LLM 호출 중 DB 연결을 보유하지 않는다.
     source, content, weather = "preset", None, "cloudy"
     diag = {"empty_body": None, "self_check_passed": None}
-    if gate_passed:
+    if personal_attempted:
         personal, diag = await _personal(profile, messages, ledger=ledger)
         if personal is None:
             personal, diag = await _personal(profile, messages, ledger=ledger)
@@ -466,7 +492,7 @@ async def _generate_for_user(session, profile, target_date, cfg, *, policy):
             source = "llm"
     diagnostics = {
         "user_chars": user_chars, "gate": gate, "gate_passed": gate_passed,
-        "personal_attempted": gate_passed, "empty_body": diag.get("empty_body"),
+        "personal_attempted": personal_attempted, "empty_body": diag.get("empty_body"),
         "self_check_passed": diag.get("self_check_passed"),
     }
     for _ in range(3):

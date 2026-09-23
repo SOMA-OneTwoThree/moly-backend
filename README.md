@@ -12,7 +12,7 @@
 |---|---|
 | 언어/프레임워크 | Python 3.12 · FastAPI · SQLAlchemy 2.0 (async) · uv |
 | 데이터 | Supabase (Auth + Postgres + pgvector) |
-| LLM·기억 | OpenAI GPT-5.6(luna=대화·utility, terra=일기) · `vecs.moly_memories_v2` + `mem0_memory_registry` |
+| LLM·기억 | OpenAI GPT-6(luna=대화·utility, sol=일기) · `vecs.moly_memories_v2` + `mem0_memory_registry` |
 | 외부 | FCM(푸시) · AdMob(리워드 SSV) · RevenueCat(구독·IAP) |
 
 ## 구조

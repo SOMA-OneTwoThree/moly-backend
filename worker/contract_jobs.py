@@ -133,7 +133,7 @@ async def handle_contract_compile(job: ClaimedJob) -> JobResult:
         result = await llm.generate(
             cc.SYSTEM,
             [{"role": "user", "content": cc.render_conversation(msgs)}],
-            model=settings.model_utility, max_tokens=_MAX_OUTPUT_TOKENS,
+            model=settings.model_utility, reasoning_effort="none", max_tokens=_MAX_OUTPUT_TOKENS,
             ledger=usage_ledger.LedgerContext(
                 lane=usage_ledger.LANE_BACKGROUND, purpose="contract_compile",
                 user_id=uid, job_id=job.id, attempt=job.attempt,

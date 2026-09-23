@@ -95,6 +95,7 @@ def _gating(**over):
         activity_date=date(2026, 7, 7),
         entitlement={
             "plan": "trial",
+            "personal_diary_eligible": True,
             "tokens_remaining": 5000,
             "daily_token_limit": 100_000,
             "personal_diary_token_threshold": 2000,
@@ -447,3 +448,15 @@ def test_chat_requires_auth():
         app.dependency_overrides.clear()
     assert r.status_code == 401
     assert r.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+async def test_free_plan_never_advertises_personal_diary_even_with_enough_chat(monkeypatch):
+    async def resolve(*args, **kwargs):
+        gate = _gating()
+        gate.entitlement["plan"] = "free"
+        gate.entitlement["personal_diary_eligible"] = False
+        return gate
+    monkeypatch.setattr(gating_module, "resolve", resolve)
+    session = FakeSession()
+    session.scalar_value = 10000
+    assert not (await chat_service.get_state(session, UID))["personal_diary_eligible"]

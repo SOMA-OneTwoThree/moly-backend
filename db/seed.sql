@@ -571,6 +571,35 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
     }
   },
   {
+    "id": "00000000-0000-4000-8000-000000000212",
+    "product_type": "cosmetic",
+    "name": "왕관",
+    "description": null,
+    "slot": "hat",
+    "price_hay": null,
+    "is_subscriber_only": true,
+    "assets": {
+      "rightside": {
+        "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_crown/v1/rightside/upright.png"
+      },
+      "thumbnail_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_crown/v1/thumb.png"
+    },
+    "hay_amount": null,
+    "price_krw": null,
+    "app_store_product_id": null,
+    "is_active": true,
+    "sort_order": 10,
+    "public_id": "head_crown",
+    "asset_version": 1,
+    "is_v2_only": true,
+    "play_store_product_id": null,
+    "name_i18n": {
+      "en": "Crown",
+      "ja": "王冠",
+      "ko": "왕관"
+    }
+  },
+  {
     "id": "00000000-0000-4000-8000-000000000301",
     "product_type": "cosmetic",
     "name": "사원증",

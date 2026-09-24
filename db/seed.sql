@@ -518,8 +518,8 @@ SELECT * FROM json_populate_recordset(NULL::public.products, $catalog$
     "name": "수박 모자",
     "description": null,
     "slot": "hat",
-    "price_hay": 1000,
-    "is_subscriber_only": false,
+    "price_hay": null,
+    "is_subscriber_only": true,
     "assets": {
       "rightside": {
         "upright_layer_url": "https://qkgjlgzsharnilxnkytd.supabase.co/storage/v1/object/public/shop-assets/head_watermelon/v1/rightside/upright.png"

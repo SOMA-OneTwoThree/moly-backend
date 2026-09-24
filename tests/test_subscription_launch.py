@@ -299,16 +299,15 @@ def test_prepared_rollout_keeps_former_test_accounts_in_launch_without_reissuing
     assert profile.app_trial_ends_at == now - timedelta(days=1)
 
 
-async def test_store_trial_marks_existing_claim_even_if_enrollment_is_paused():
+async def test_play_trial_marks_existing_claim_even_if_enrollment_is_paused():
     session = AsyncMock()
     await subscription._mark_store_trial_offer_redeemed(session, UID_UUID, {
-        "offer_code": "legacy-month", "product_id": "monthly", "store": "APP_STORE",
+        "offer_code": "legacy-month", "product_id": "monthly", "store": "PLAY_STORE",
     })
     sql = session.execute.await_args.args[0]
     assert "UPDATE public.subscription_offer_claims" in str(sql)
     assert "redeemed_at IS NULL" in str(sql)
-    assert sql.compile().params == {"uid": UID_UUID, "offer": "legacy-month",
-                                    "product": "monthly", "store": "APP_STORE"}
+    assert sql.compile().params == {"uid": UID_UUID, "offer": "legacy-month", "product": "monthly"}
 
 
 @pytest.mark.parametrize("period", ["TRIAL", "INTRO", "NORMAL"])
@@ -327,7 +326,7 @@ async def test_zero_price_store_period_consumes_offer_and_reports_trial(monkeypa
     session = CaptureSession()
     result = await subscription.handle_revenuecat_event(
         session, _rc_event(period_type=period, price_in_purchased_currency=0,
-                           offer_code="legacy-month", store="APP_STORE")
+                           offer_code="legacy-month", store="PLAY_STORE")
     )
     assert result.outcome == subscription.HANDLED
     sub = next(row for row in session.added if isinstance(row, Subscription))
@@ -411,6 +410,7 @@ async def test_ads_return_when_paid_or_store_trial_subscription_expires(plan, st
 @pytest.mark.parametrize("event", [
     {}, {"offer_code": None, "product_id": "monthly", "store": "APP_STORE"},
     {"offer_code": "legacy", "product_id": "monthly", "store": "STRIPE"},
+    {"offer_code": "legacy", "product_id": "monthly", "store": "APP_STORE"},
 ])
 async def test_unattributed_free_period_never_consumes_campaign(event):
     session = AsyncMock()

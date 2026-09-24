@@ -873,6 +873,21 @@ async def test_rc_google_catalog_product_maps_without_config(monkeypatch):
     assert sub_added.plan == "yearly" and res.outcome == HANDLED
 
 
+async def test_rc_app_store_trial_product_maps_plan(monkeypatch):
+    """기존 회원 체험용 App Store 상품도 config 없이 요금제로 인식 — 무료 기간은 권한만, 원장·건초 없음."""
+    async def _by(session, otx, lock=False):
+        return None
+
+    monkeypatch.setattr(subscription, "_by_original_tx", _by)
+    s = FakeSession()
+    res = await subscription.handle_revenuecat_event(s, _rc_event(
+        product_id="com.geniusjun.moly.plus.yearly.trial", period_type="TRIAL",
+        price_in_purchased_currency=0))
+    sub_added = next(o for o in s.added if getattr(o, "status", None) == "active")
+    assert sub_added.plan == "yearly" and sub_added.store_trial_ends_at is not None
+    assert res.outcome == HANDLED and "무료 구독 기간" in res.reason
+
+
 async def test_rc_unmapped_product_permanent_failure(monkeypatch):
     """매핑에 없는 상품 → permanent_failure(구독 생성·증정 없음, App Store 경로 무영향)."""
     called = {}

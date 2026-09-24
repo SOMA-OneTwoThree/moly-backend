@@ -433,7 +433,7 @@ async def _personal_diary_eligible(session, profile, target_date, cfg) -> bool:
     boundary = datetime.combine(
         target_date + timedelta(days=1), time(DAY_BOUNDARY_HOUR), tzinfo=safe_zone(profile.timezone),
     ).astimezone(timezone.utc) - timedelta(microseconds=1)
-    if not subscription_policy_active(cfg, boundary):
+    if not subscription_policy_active(cfg, boundary, user_id=profile.id):
         return True
     sub = (await session.execute(
         select(Subscription).where(

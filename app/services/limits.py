@@ -13,6 +13,7 @@ from app.services.config_store import get_config_values
 
 CONFIG_KEYS = [
     "subscription_launch",
+    "subscription_launch_test",
     "daily_token_limit",
     "diary_llm_min_tokens",
     "diary_min_user_chars",
@@ -44,6 +45,7 @@ async def effective_token_config(
         warning_threshold = settings.token_warning_threshold
     return {
         "subscription_launch": cfg.get("subscription_launch"),
+        "subscription_launch_test": cfg.get("subscription_launch_test"),
         "daily_token_limit": limits,
         "diary_llm_min_tokens": cfg.get("diary_llm_min_tokens", settings.diary_llm_min_tokens),
         "diary_min_user_chars": cfg.get("diary_min_user_chars", settings.diary_min_user_chars),

@@ -96,29 +96,30 @@ async def test_missing_live_config_and_future_enabled_cutoff_do_not_allow_previe
     assert not (await access(connection, uid))['enabled']
 
 
-async def test_preview_keeps_ios_offer_id_inventory_and_once_checks(connection):
+async def test_preview_disables_ios_codes_and_preserves_android_claims(connection):
     uid = await configure(connection, 'legacy_offer')
-    offers = {plan: {'ready': True, 'product_id': f'fixture.{plan}'} for plan in ('monthly', 'yearly')}
+    offers = {plan: {'ready': True, 'product_id': f'fixture.{plan}', 'base_plan_id': plan,
+                     'offer_id': f'fixture-{plan}'} for plan in ('monthly', 'yearly')}
     await connection.execute("UPDATE public.app_config SET value=value || $1::jsonb WHERE key='subscription_launch_test'",
-                             json.dumps({'apple_app_id': '12345', 'offers': {'ios': offers}}))
+                             json.dumps({'apple_app_id': '12345', 'offers': {'ios': offers, 'android': offers}}))
     for plan in offers:
         await connection.execute("INSERT INTO public.subscription_trial_codes(campaign_id,plan,code,expires_at) VALUES('schema-only-preview',$1,$2,now()+interval '1 day')", plan, str(uuid.uuid4()))
     status = json.loads(await connection.fetchval('SELECT public.subscription_offer_status($1)', uid))
     assert status['legacy_offer_eligible'] and not status['ios_offer_ready']
+    assert status['android_offer_ready']
     with pytest.raises(asyncpg.RaiseError):
         async with connection.transaction():
             await connection.execute("SELECT public.claim_subscription_offer($1,'ios','monthly')", uid)
-    for plan in offers:
-        offers[plan]['offer_id'] = f'fixture-{plan}'
-    await connection.execute("UPDATE public.app_config SET value=value || $1::jsonb WHERE key='subscription_launch_test'",
-                             json.dumps({'offers': {'ios': offers}}))
-    assert json.loads(await connection.fetchval('SELECT public.subscription_offer_status($1)', uid))['ios_offer_ready']
-    first = await connection.fetchval("SELECT public.claim_subscription_offer($1,'ios','monthly')", uid)
-    assert await connection.fetchval("SELECT public.claim_subscription_offer($1,'ios','monthly')", uid) == first
+    assert not await connection.fetchval('SELECT EXISTS(SELECT 1 FROM public.subscription_offer_claims WHERE user_id=$1)', uid)
+    assert await connection.fetchval("SELECT count(*) FROM public.subscription_trial_codes WHERE campaign_id='schema-only-preview' AND claimed_at IS NULL") == 2
+    first = await connection.fetchval("SELECT public.claim_subscription_offer($1,'android','monthly')", uid)
+    assert await connection.fetchval("SELECT public.claim_subscription_offer($1,'android','monthly')", uid) == first
+    yearly = json.loads(await connection.fetchval("SELECT public.claim_subscription_offer($1,'android','yearly')", uid))
+    assert yearly['base_plan_id'] == 'yearly'
     await connection.execute('UPDATE public.subscription_offer_claims SET redeemed_at=now() WHERE user_id=$1', uid)
     with pytest.raises(asyncpg.RaiseError):
         async with connection.transaction():
-            await connection.execute("SELECT public.claim_subscription_offer($1,'ios','monthly')", uid)
+            await connection.execute("SELECT public.claim_subscription_offer($1,'android','yearly')", uid)
 
 
 async def test_live_enrollment_keeps_signup_clock(connection):

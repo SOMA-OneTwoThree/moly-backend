@@ -57,8 +57,12 @@ _PLANS = [
     {"product_id": "com.geniusjun.moly.plus.monthly", "period": "monthly", "hay_grant": 1000},
     {"product_id": "com.geniusjun.moly.plus.yearly", "period": "yearly", "hay_grant": 4000},
 ]
-# 스토어 상품ID → 내부 요금제. _PLANS에서 파생(단일 소스).
-_STORE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS}
+# 스토어 상품ID → 내부 요금제. _PLANS에서 파생하고, 요금제 목록에 노출하지 않는
+# App Store 기존 회원 1개월 무료 체험 상품(정규 상품과 같은 그룹·가격)을 더한다.
+_STORE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS} | {
+    "com.geniusjun.moly.plus.monthly.trial": "monthly",
+    "com.geniusjun.moly.plus.yearly.trial": "yearly",
+}
 # 추가 Google Play 상품ID → 내부 요금제(코드 카탈로그 외 ID 보강용). app_config로 주입(코드 재배포 없이).
 # 형식: {"<구독ID>[:<basePlanId>]": "monthly"|"yearly"}. 카탈로그에도 매핑에도 없는 상품은
 # "미등록 상품"으로 관측(혜택 미지급). SOMA-341.
@@ -753,16 +757,14 @@ async def _mark_store_trial_offer_redeemed(
     offer = event.get("offer_code")
     product = event.get("product_id")
     store = event.get("store")
-    if not offer or not product or store not in {"APP_STORE", "PLAY_STORE"}:
+    if not offer or not product or store != "PLAY_STORE":
         return
     await session.execute(text(
         "UPDATE public.subscription_offer_claims c SET redeemed_at = now() "
-        "WHERE c.user_id = :uid AND c.redeemed_at IS NULL AND ("
-        "(:store = 'APP_STORE' AND c.platform = 'ios' AND c.product_id = :product "
-        "AND c.offer_id = :offer) OR "
-        "(:store = 'PLAY_STORE' AND c.platform = 'android' AND c.offer_id = :offer "
-        "AND (c.product_id || ':' || c.base_plan_id) = :product))"
-    ).bindparams(uid=uid, store=store, product=product, offer=offer))
+        "WHERE c.user_id = :uid AND c.redeemed_at IS NULL "
+        "AND c.platform = 'android' AND c.offer_id = :offer "
+        "AND (c.product_id || ':' || c.base_plan_id) = :product"
+    ).bindparams(uid=uid, product=product, offer=offer))
 
 
 def _apply_active_state(

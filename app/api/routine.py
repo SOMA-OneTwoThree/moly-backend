@@ -2,18 +2,20 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, Response, status
+from fastapi import APIRouter, Depends, Header, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.app_day import AppDay, validate_app_timezone
 from app.core.db import get_session
 from app.core.security import get_current_user
 from app.schemas.routine import (
+    CalendarDate,
     CreateRoutineRequest,
     PatchRoutineRequest,
     RoutineCompleteResponse,
+    RoutineHistoryResponse,
     RoutineListResponse,
     RoutineResponse,
     RoutineStatisticsResponse,
@@ -46,6 +48,19 @@ async def list_routines(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await routine.list_routines(session, user_id, day=day)
+
+
+@router.get("/history", response_model=RoutineHistoryResponse)
+async def history(
+    response: Response,
+    selected_date: Annotated[CalendarDate, Query(alias="date")],
+    x_app_timezone: str | None = Header(default=None),
+    day: AppDay = Depends(request_day),
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "private, no-store"
+    return await routine.history(session, user_id, selected_date, day, x_app_timezone)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=RoutineResponse)

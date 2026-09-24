@@ -180,7 +180,9 @@ async def _access(
     if plan == "trial":
         # Existing launch-free access stays unchanged until the global cutoff.
         # After launch, signup trials have the same ad-free fortune as paid plans.
-        included = subscription_policy_active(await effective_token_config(session), now)
+        included = subscription_policy_active(
+            await effective_token_config(session), now, user_id=user_id,
+        )
     return ("included" if included else "ad_required"), plan
 
 

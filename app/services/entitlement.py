@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import re
 from typing import Any, Protocol
 
 from app.services.i18n import resolve as resolve_language
@@ -55,9 +56,40 @@ def subscription_cutoff(config: dict[str, Any]) -> datetime | None:
     return cutoff if cutoff.tzinfo is not None else None
 
 
-def subscription_policy_active(config: dict[str, Any], now: datetime) -> bool:
+def subscription_preview_mode(config: dict[str, Any], user_id: Any, now: datetime) -> str | None:
+    """Finite account-only preview, never a fallback for an enabled production rollout."""
+    live = config.get("subscription_launch")
+    preview = config.get("subscription_launch_test")
+    if (
+        user_id is None or not isinstance(live, dict) or live.get("enabled") is not False
+        or not isinstance(preview, dict)
+    ):
+        return None
+    accounts = preview.get("accounts")
+    mode = accounts.get(str(user_id)) if isinstance(accounts, dict) else None
+    if mode not in ("regular", "legacy_offer"):
+        return None
+    campaign = preview.get("campaign_id")
+    if mode == "legacy_offer" and (
+        not isinstance(campaign, str) or not campaign or campaign == live.get("campaign_id")
+    ):
+        return None
+    expiry = preview.get("expires_at")
+    if not isinstance(expiry, str) or not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", expiry,
+    ):
+        return None
+    end = _parse_dt(expiry)
+    return mode if end is not None and now < end else None
+
+
+def subscription_policy_active(
+    config: dict[str, Any], now: datetime, *, user_id: Any = None,
+) -> bool:
     cutoff = subscription_cutoff(config)
-    return cutoff is not None and now >= cutoff
+    return (
+        cutoff is not None and now >= cutoff
+    ) or subscription_preview_mode(config, user_id, now) is not None
 
 
 def _limit_for(plan: str, limits: dict[str, Any]) -> int | None:
@@ -83,12 +115,13 @@ def derive_entitlement(
     # 실제 구독자(active_sub)는 항상 우선 — 증정 등 정상. 기간 지나면 자동으로 정상 등급 복귀.
     # Issued app trials remain authoritative even if new enrollment is paused.
     # Before the scheduled cutoff all accounts retain the existing launch policy.
-    converted = subscription_policy_active(config, now)
+    preview = subscription_preview_mode(config, getattr(profile, "id", None), now) is not None
+    converted = preview or subscription_policy_active(config, now)
     rollout = config.get("subscription_launch")
     cutoff = subscription_cutoff(config)
-    awaiting_rollout = (
+    awaiting_rollout = not preview and ((
         isinstance(rollout, dict) and rollout.get("enabled") is False
-    ) or (cutoff is not None and now < cutoff)
+    ) or (cutoff is not None and now < cutoff))
     has_app_trial = getattr(profile, "app_trial_started_at", None) is not None
     launch_until = None if converted else _parse_dt(config.get("free_launch_until"))
     if awaiting_rollout:
@@ -96,11 +129,13 @@ def derive_entitlement(
         # Do not let an old launch deadline enable restrictions before app review.
         launch_until = cutoff or (launch_until if launch_until and now < launch_until else None)
     personal_trial_end = (
-        getattr(profile, "app_trial_ends_at", None) if has_app_trial else profile.trial_ends_at
+        getattr(profile, "app_trial_ends_at", None) if has_app_trial else (
+            None if preview else profile.trial_ends_at
+        )
     )
     # bootstrap_user writes the original signup + 48h once, including self-heal.
     # Pre-cutoff accounts receive the store offer, not a restarted app trial.
-    if converted and not has_app_trial and personal_trial_end is not None:
+    if converted and not preview and not has_app_trial and personal_trial_end is not None:
         if personal_trial_end - timedelta(hours=48) < subscription_cutoff(config):
             personal_trial_end = None
     in_launch = active_sub is None and (

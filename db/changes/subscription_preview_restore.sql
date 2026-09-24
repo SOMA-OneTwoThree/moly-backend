@@ -34,7 +34,9 @@ BEGIN
   IF COALESCE(v_test->>'expires_at', '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?Z$' THEN RETURN v_live; END IF;
   BEGIN v_expires := (v_test->>'expires_at')::timestamptz;
   EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN RETURN v_live; END;
-  IF v_expires IS NULL OR NOT isfinite(v_expires) OR v_expires <= statement_timestamp() THEN RETURN v_live; END IF;
+  IF v_expires IS NULL OR NOT isfinite(v_expires) OR v_expires <= statement_timestamp()
+    OR to_char(v_expires AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS') <> left(v_test->>'expires_at', 19)
+  THEN RETURN v_live; END IF;
   RETURN (v_test - 'accounts' - 'existing_user_cutoff') || jsonb_build_object(
     'enabled', true, '_test_mode', v_mode, 'legacy_offer_expires_at', v_test->>'expires_at');
 END;

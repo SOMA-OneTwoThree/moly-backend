@@ -63,7 +63,8 @@ async def test_explicit_account_mode_starts_self48_once(connection, mode):
     assert not status['ios_offer_ready'] and not status['android_offer_ready']
 
 
-@pytest.mark.parametrize('expiry', ['invalid', 'infinity', '2099-01-01', '2020-01-01T00:00:00Z'])
+@pytest.mark.parametrize('expiry', ['invalid', 'infinity', '2099-01-01', '2020-01-01T00:00:00Z',
+                                      '2099-01-01T24:00:00Z', '2099-01-01T23:59:60Z'])
 async def test_invalid_or_expired_preview_denies_mutations(connection, expiry):
     uid = await configure(connection, 'legacy_offer', expiry)
     assert not (await access(connection, uid))['enabled']

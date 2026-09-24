@@ -44,7 +44,10 @@ def test_preview_uses_issued_trial_and_language_quota_without_resetting_usage(mo
     assert before["tokens_used"] == during["tokens_used"] == after["tokens_used"] == 12_000
 
 
-@pytest.mark.parametrize("expiry", ["2026-09-24T00:00:00Z", "invalid", "infinity", "2026-09-29", "2026-09-29T15:00:00+09:00"])
+@pytest.mark.parametrize("expiry", [
+    "2026-09-24T00:00:00Z", "invalid", "infinity", "2026-09-29", "2026-09-29T15:00:00+09:00",
+    "2026-09-29T24:00:00Z", "2026-09-29T15:00:60Z",
+])
 def test_invalid_or_expired_preview_retains_production_launch(expiry):
     cfg = config()
     cfg["subscription_launch_test"]["expires_at"] = expiry

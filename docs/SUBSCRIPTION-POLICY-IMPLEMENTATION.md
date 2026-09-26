@@ -1,73 +1,41 @@
-# 구독·모델 운영 반영 준비
+# 구독 출시
 
-2026-09-23. 운영 변경·운영 PR 없음. 개발 배포와 실제 검증 결과는 [검증 보고서](SUBSCRIPTION-RELEASE-VALIDATION-2026-09-23.md)에 기록한다.
+스위치는 `app_config.free_launch_until`(출시 시각 T) 하나다. 활성화 플래그나 테스트 계정 명단은 없다.
 
-## 확정 정책
+## 한도
 
 | 일 한도 | 영어 | 한국어 | 일본어 |
 |---|---:|---:|---:|
-| 무료 | 40,000 | 50,000 | 60,000 |
+| 무료 (T 이후) | 40,000 | 50,000 | 60,000 |
 | 가입 체험 48시간·스토어 체험·유료 구독 | 300,000 | 400,000 | 550,000 |
 
-- 가중 차감 단위이며 저장된 `profiles.language`를 사용한다. 요청 locale/header는 한도를 바꾸지 않는다. BCP 47의 ko/ja를 인식하고 미지원·미설정은 en이다.
-- 가입 체험·스토어 체험·유료 구독은 한도가 같고 `entitlement_source`로 구별한다. 언어/등급 변경, 재로그인, 구독 시작 시 기존 당일 사용량을 초기화하지 않는다.
-- 당일 기준은 기존 사용자 로컬 04:00다. 전송 시작 시 잔여량이 있으면 마지막 답변은 끝까지 제공하고, 소모가 한도를 넘었으면 다음 요청을 막는다. 정확한 고정 턴 수를 보장하지 않는다.
-- 최초 가입 시각부터 48시간만 체험한다. 체험 확인 API 재호출·앱 재설치로 연장하지 않는다. 전환 전 가입자에게 신규 체험을 재지급하지 않는다.
-- 활성 구독은 스토어에서 확인된 기간까지 보장한다. 취소=즉시 박탈이 아니며 만료/환불과 구별한다. 기존 RevenueCat 이전/복원 로직과 원결제자·건초 지급 기록을 보존한다.
-- T 이후 무료는 새 개인 일기를 받지 않는다. 주간 운영 일기는 기존 순서·수량대로 받을 수 있다. 구독·체험도 대화량 조건을 충족해야 개인 일기를 받는다. 기존 일기는 유지한다.
-- 운세 상세는 유료 구독에 이어 T 이후 가입 체험에도 광고 없이 제공한다. 서버 `access=included`를 앱이 이미 처리한다. 무료는 기존 광고 검증을 유지한다. 공개한 당일 결과는 만료 후 다시 잠그지 않는다.
+- T 전에는 구독·앱 체험이 없는 계정 전원이 런칭 무료(150,000)다. 구독·체험 한도는 T 전에도 같다.
+- 가중 차감 단위이며 저장된 `profiles.language`를 쓴다. 등급이 바뀌어도 당일 사용량을 초기화하지 않는다.
+- T 이후 무료는 새 개인 일기를 받지 않고 운영 일기만 받는다. 운세 상세는 유료 구독과 가입 체험에 광고 없이 제공한다.
 
-## 앱 업데이트 전 선배포
+## 신규 회원과 기존 회원
 
-1. `subscription_launch.enabled=false`로 준비한다. 해당 설정은 모델 선택과 별개다.
-2. 일반·과거 테스트 계정은 런칭 무료 150,000을 유지한다. 과거 `subscription_launch_test` 명단은 전환을 우회하지 못한다. 실제 활성 유료 구독과 기존 결제 이력은 보존한다.
-3. 명시적으로 준비한 비활성 상태에서는 예전 `free_launch_until`이 지나도 무료 한도로 축소하지 않는다. T 미정이면 임의의 날짜를 넣지 않는다. 기록된 체험 기간을 삭제하거나 다시 쓰지 않는다.
-4. `enabled=true`와 유효한 시각 T를 예약해도 서버 시각이 T 전이면 런칭 무료다. `/me`, 대화, 신규 체험/오퍼 RPC가 같은 전환 조건을 적용한다.
-5. 새 응답 필드는 추가 방식이고 기존 plan 값은 유지한다. 현재 앱의 JSON 파서와 운세 광고 분기를 확인했다. 스토어에 실제 배포된 앱 바이너리의 기기 검수는 별도다.
-6. 대화/utility GPT-6 Luna, 개인 일기 GPT-6 Sol은 서버 이미지 배포 시 적용된다. 이 변화는 사용자가 선배포를 허용했다.
+| | 출시 전 (지금 < T) | 출시 후 |
+|---|---|---|
+| 신규 회원: 1개월 무료 없는 페이월, 가입 후 48시간 체험 | `subscription_launch.new_member_since` 이후 가입 | T 이후 가입 |
+| 기존 회원: 1개월 무료 페이월 | `new_member_since` 이전 가입 | T 이전 가입 |
 
-## 변경 위치와 개발 통합
+- 48시간 체험을 시작한 계정은 계속 신규 회원이다.
+- 구버전 앱은 `/me`의 `subscription_rollout`을 읽지 않고 체험·오퍼 API도 부르지 않는다. 그래서 출시 전에 구독을 열어 둬도 구버전 사용자에게는 달라지는 것이 없다.
+- 새 앱을 쓰는 테스터·심사자는 `new_member_since` 이전 계정으로 기존 회원 페이월을, 이후 계정으로 신규 회원 페이월을 본다. 심사 노트에 두 데모 계정을 적는다.
+- iOS의 1개월 무료는 샌드박스 Apple ID가 무료 체험을 쓴 적이 없어야 보인다. Android 오퍼는 `subscription_launch.offers.android`의 `ready`가 모두 true여야 한다.
+- 판정은 DB 함수 `subscription_launch_access`가 한다. auth `/me`는 그 결과를 그대로 내려준다.
 
-- 운영 준비본: 최신 backend main `eb01db8d`, auth main `32c8a02`를 기준으로 한 `feat/subscription-release-ready`.
-- 개발 통합본: backend dev `23661bcd`, auth dev `844fc0e`를 기준으로 한 `feat/subscription-model-dev`.
-- 개발의 기존 운세 문구·flow 공개·대화 문맥 기능을 보존한다. 운영에는 준비본의 구독/모델 변경만 올리고 dev 전체를 덮어쓰지 않는다.
-- 개발에는 운영에 이미 있는 구독 컬럼/오퍼 테이블/복원 관련 스키마와 구독 상품 호환 처리를 먼저 통합한다. 상품 가격이나 운영 DB는 이 과정에서 변경하지 않는다.
+## 출시 당일
 
-## DB 적용 범위
+T와 기존 회원 오퍼 마감을 한 트랜잭션에서 함께 바꾼다.
 
-운영은 기존 컬럼/테이블을 재생성하지 않는다. 최신 운영에 해당 선행 스키마가 존재하는지 배포 직전 읽기 전용으로 다시 확인한다.
+```sql
+BEGIN;
+UPDATE public.app_config SET value = to_jsonb('<출시 시각>'::text) WHERE key = 'free_launch_until';
+UPDATE public.app_config SET value = value || jsonb_build_object('legacy_offer_expires_at', '<오퍼 마감>')
+WHERE key = 'subscription_launch';
+COMMIT;
+```
 
-| 대상 | 적용 |
-|---|---|
-| 개발 선행 | subscription_launch → subscription_offer_expiry → subscription_test_access → subscription_transfer → subscription_cleanup_acl |
-| 양쪽 새 변경 | `subscription_policy_safety.sql`: 기존 함수 5개 교체, 사용자별 잠금·원래 가입 기준 48시간·전역 T 적용 |
-| 양쪽 새 가격 | `gpt6_price_catalog.sql`: 모델 단가 4행 추가, 기존 원가/사용량 수정 없음 |
-| 준비 설정 | `subscription_launch.enabled=false`; 스토어 정보는 보존하며 활성화를 하지 않음 |
-
-개발의 상품 constraint만 최신 운영과 맞추고, `subscriber_only_cosmetics.sql`의 상품 재가격 UPDATE는 실행하지 않는다. `scripts/prepare_subscription_dev.py`가 개발 프로젝트를 고정 검사하고 단일 트랜잭션에서 전체 계약을 대조한다. 기본은 롤백, `--apply`만 영속 적용이다. 운영에는 이 스크립트를 실행할 수 없다.
-
-새 필수 SSM 파라미터는 없다. 이미 설정한 OpenAI 키를 사용한다. 역할별 MODEL_* 선택 전달은 선택 사항이고, 기존 환경변수가 새 기본값을 덮어쓰는지는 실제 배포 이미지의 원장으로 확인한다.
-
-## 검증과 근거
-
-- 두 서버의 한도/등급/시각 경계, 구독·체험 전환 중 사용량 보존, 구버전 응답, 무료 일기 대체, 운세 광고, 모델 원가/출력 설정 회귀를 테스트한다.
-- 실제 개발 PostgreSQL: SQL/권한/동시 체험·오퍼/중복 발급·소진·실패 롤백, 올바른 오퍼에만 사용 기록을 남기는지 확인한다.
-- `verify_subscription_release_api.py`: 고정 개발 API·계정 서버에서 임시 계정으로 실제 로그인/온보딩/연속 대화/중복 재요청/한도 도달/체험/구독 상태/운세 상세/원장 모델과 가격을 확인한다. 설정은 복구하고 테스트 계정은 탈퇴 처리한다.
-- `Deploy dev`의 `verify_subscription_only=true`: GitHub의 기존 개발 전용 OIDC 역할로 개발 컨테이너 안에서 실제 Sol 일기·Luna 검수·무료 제한·중복 발행 방지를 확인한다. 로컬 Docker/서버/개인 AWS 계정을 사용하지 않는다.
-- 스토어 결제창·1개월 오퍼 적용·구매 복원은 실제 Apple/Google sandbox와 새 앱의 기기 검수가 별도로 필요하다. DB 상태 시뮬레이션이나 웹훅 단위 테스트를 스토어 구매 완료라고 보고하지 않는다.
-
-## 운영 반영 순서 — 아직 실행하지 않음
-
-1. 최신 main을 다시 확인하고 준비본을 통합한다. 운영 스키마/가격/모델 override/현재 런칭 설정을 읽기 전용 확인한다.
-2. `subscription_policy_safety.sql`, `gpt6_price_catalog.sql`을 적용하고 함수 권한·가격 계약을 확인한다. `subscription_launch`는 `enabled=false`로 준비한다. seed 전체 실행 금지.
-3. backend와 auth를 배포하고 `/me`, `/chat/state`, 일반 대화, 기존 운세 광고 동작, 기존 일기 접근, 구독 화면 비활성 상태를 확인한다. 두 서버 배포가 끝날 때까지 활성화하지 않는다.
-4. 앱 심사 후 사용자가 정한 T에 `existing_user_cutoff`, `free_launch_until`을 맞추고 `enabled=true`로 예약한다. 기존 회원 오퍼의 campaign/마감/스토어별 실제 식별자와 iOS 코드 재고는 별도 확인한다. 서버 코드 재배포 없이 설정 예약이 가능하다.
-5. T 직전/직후 한도·체험·무료 일기 제한·운세 광고 면제를 확인한다. 스토어 배포/강제 업데이트 시점은 프론트 담당과 맞춘다.
-
-## 복구
-
-- T 전에는 활성화 예약을 취소해 런칭 무료로 유지할 수 있다. T 이후 enabled=false는 런칭 혜택을 재개할 수 있으므로 장애 대응용으로 무작정 뒤집지 않는다.
-- 대화 모델 문제는 검증된 이전 이미지로 복구한다. 가격 이력/누적 사용량/결제/발급 체험은 삭제하지 않는다.
-- 함수 복구 SQL은 최신 main의 함수 정의 5개를 보존한다. 구버전 코드와 새 함수가 호환되므로 이미지 복구만으로 충분한지 먼저 판단한다. 과거 테스트 계정 우회가 복구될 수 있으므로 함수 rollback을 자동 실행하지 않는다.
-
-오퍼 웹훅 식별자 검토 근거: [RevenueCat 공식 이벤트 필드](https://www.revenuecat.com/docs/integrations/webhooks/event-types-and-fields). Android 상품 식별자는 subscription_id:base_plan_id 형식을 사용하며 offer_code가 없을 때 캠페인 사용으로 추정하지 않는다. 실제 스토어 결제 이벤트로 최종 대사가 필요하다.
+출시가 늦어지면 `free_launch_until`을 미룬다. T가 지나면 런칭 무료가 끝나므로 출시 전에 날짜가 지나지 않게 한다.

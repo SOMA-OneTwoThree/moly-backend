@@ -18,11 +18,6 @@ on:
     branches: [dev]
   workflow_dispatch:
     inputs:
-      verify_subscription_only:
-        description: "기존 dev 이미지에서 일기·구독 검증만 실행 (배포/빌드 없음)"
-        type: boolean
-        required: false
-        default: false
       image_tag:
         description: "배포할 이미지 태그(dev-<sha> 전체). 비우면 현재 커밋을 빌드해서 배포"
         required: false
@@ -46,7 +41,6 @@ env:
 
 jobs:
   build-and-deploy:
-    if: inputs.verify_subscription_only != true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -206,27 +200,3 @@ jobs:
           done
           echo "ERROR: /health 버전이 기대($EXPECTED)와 다름 — 마지막 응답: $BODY" >&2
           exit 1
-
-  verify-subscription:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev' && inputs.verify_subscription_only == true
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::676972757138:role/moly-github-actions-dev-role
-          aws-region: ap-northeast-2
-      - name: Run bounded checks inside the existing dev container
-        shell: bash
-        run: |
-          set -euo pipefail
-          ids=$(aws ec2 describe-instances --filters 'Name=tag:Role,Values=moly-backend-dev' 'Name=instance-state-name,Values=running' --query 'Reservations[].Instances[].InstanceId' --output text)
-          read -r -a instances <<< "$ids"
-          test "${#instances[@]}" -eq 1
-          command_id=$(aws ssm send-command --instance-ids "${instances[0]}" --document-name AWS-RunShellScript --parameters 'commands=["docker exec moly-backend python scripts/verify_subscription_diary_runtime.py"],executionTimeout=["600"]' --query Command.CommandId --output text)
-          for i in $(seq 1 60); do
-            sleep 10
-            status=$(aws ssm get-command-invocation --command-id "$command_id" --instance-id "${instances[0]}" --query Status --output text 2>/dev/null || true)
-            case "$status" in Success|Failed|Cancelled|TimedOut) break;; esac
-          done
-          aws ssm get-command-invocation --command-id "$command_id" --instance-id "${instances[0]}" --query '{status:Status,stdout:StandardOutputContent,stderr:StandardErrorContent}' --output json
-          test "$status" = Success

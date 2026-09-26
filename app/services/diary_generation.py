@@ -27,7 +27,7 @@ from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
 from app.services import diary_recall_repo, i18n, llm, naming, text_clean, usage_ledger
 from app.services import config_store, diary_prompts, privacy
-from app.services.entitlement import derive_entitlement, subscription_policy_active
+from app.services.entitlement import derive_entitlement, launch_ended
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -433,7 +433,7 @@ async def _personal_diary_eligible(session, profile, target_date, cfg) -> bool:
     boundary = datetime.combine(
         target_date + timedelta(days=1), time(DAY_BOUNDARY_HOUR), tzinfo=safe_zone(profile.timezone),
     ).astimezone(timezone.utc) - timedelta(microseconds=1)
-    if not subscription_policy_active(cfg, boundary, user_id=profile.id):
+    if not launch_ended(cfg, boundary):
         return True
     sub = (await session.execute(
         select(Subscription).where(

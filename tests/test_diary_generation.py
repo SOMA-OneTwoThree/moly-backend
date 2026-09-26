@@ -13,7 +13,10 @@ from app.services import llm as llm_module
 from app.services.diary_prompts import parse
 from app.services.llm import LLMResult
 
-CFG = {"diary_min_user_chars": 5}  # 개인일기 게이트 = 당일 유저 메시지 문자수
+CFG = {
+    "diary_min_user_chars": 5,  # 개인일기 게이트 = 당일 유저 메시지 문자수
+    "free_launch_until": "2999-01-01T00:00:00+00:00",  # 출시 전: 전원 개인일기 대상
+}
 PROFILE = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="ko")
 
 

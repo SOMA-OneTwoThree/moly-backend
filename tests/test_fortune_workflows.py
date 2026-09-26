@@ -102,21 +102,17 @@ def enabled(monkeypatch):
     monkeypatch.setattr(fortune.privacy, "ensure_subject_active", noop)
     monkeypatch.setattr(fortune, "advisory_xact_lock", noop)
     monkeypatch.setattr(fortune, "_load_profile", account)
-    monkeypatch.setattr(fortune, "effective_token_config", AsyncMock(return_value={}))
 
 
-@pytest.mark.parametrize("plan", ["free", "trial", "monthly", "yearly"])
-@pytest.mark.parametrize("active", [False, True])
-async def test_trial_fortune_is_ad_free_only_after_rollout(enabled, monkeypatch, plan, active):
-    monkeypatch.setattr(fortune.gating, "resolve_plan", AsyncMock(return_value=plan))
-    cutoff = NOW + (timedelta(seconds=-1) if active else timedelta(seconds=1))
-    monkeypatch.setattr(fortune, "effective_token_config", AsyncMock(return_value={
-        "subscription_launch": {"enabled": True, "existing_user_cutoff": cutoff.isoformat()},
-    }))
+@pytest.mark.parametrize("source", ["free", "launch", "signup_trial", "store_trial", "subscription"])
+async def test_fortune_is_ad_free_for_paid_plans_and_signup_trials_only(enabled, monkeypatch, source):
+    plan = {"free": "free", "launch": "trial", "signup_trial": "trial"}.get(source, "monthly")
+    monkeypatch.setattr(fortune.gating, "resolve_entitlement", AsyncMock(
+        return_value={"plan": plan, "entitlement_source": source}))
     p = FortuneProfile(user_id=UID, gender="man", birth_date=date(2002, 12, 13), revision=1)
     session = _MemorySession(profile=p)
     value = await fortune.reveal(session, str(UID), locale="en", now_utc=NOW)
-    included = plan in {"monthly", "yearly"} or (plan == "trial" and active)
+    included = source in {"signup_trial", "store_trial", "subscription"}
     assert value["access"] == ("included" if included else "ad_required")
     assert value["state"] == ("revealed" if included else "locked")
     assert ("categories" in value["result"]) == included
@@ -259,9 +255,10 @@ async def test_first_reveal_exposes_basic_copy_and_included_plan_exposes_detail(
     enabled, monkeypatch, plan, expected_state
 ):
     async def fixed_plan(*_args, **_kwargs):
-        return plan
+        source = {"free": "free", "trial": "launch"}.get(plan, "subscription")
+        return {"plan": plan, "entitlement_source": source}
 
-    monkeypatch.setattr(fortune.gating, "resolve_plan", fixed_plan)
+    monkeypatch.setattr(fortune.gating, "resolve_entitlement", fixed_plan)
     profile = FortuneProfile(user_id=UID, gender="man", birth_date=date(2002, 12, 13), revision=1)
     session = _MemorySession(profile=profile)
     value = await fortune.reveal(session, str(UID), locale="ko", now_utc=NOW)
@@ -292,7 +289,8 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
     session = _MemorySession(profile=profile)
 
     async def fixed_plan(*_args, **_kwargs):
-        return plan
+        source = {"free": "free", "trial": "launch"}.get(plan, "subscription")
+        return {"plan": plan, "entitlement_source": source}
 
     async def database():
         yield session
@@ -304,7 +302,7 @@ async def test_basic_result_is_public_but_detail_requires_verified_ad(
 
     monkeypatch.setattr(fortune, "datetime", Clock)
     monkeypatch.setattr(fortune_ads, "datetime", Clock)
-    monkeypatch.setattr(fortune.gating, "resolve_plan", fixed_plan)
+    monkeypatch.setattr(fortune.gating, "resolve_entitlement", fixed_plan)
     monkeypatch.setattr(fortune_ads, "advisory_xact_lock", fortune.advisory_xact_lock)
     monkeypatch.setattr(fortune_ads, "_load_profile", fortune._load_profile)
     monkeypatch.setattr(settings, "fortune_ad_unit_ids", "unit-a")

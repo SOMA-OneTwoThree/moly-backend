@@ -165,7 +165,6 @@ def test_launch_rollout_uses_only_explicit_app_trial_and_unlocks_all_benefits():
         app_trial_ends_at=now + timedelta(hours=48),
     )
     cfg = {
-        "subscription_launch": {"enabled": True},
         "free_launch_until": (now + timedelta(days=100)).isoformat(),
         "daily_token_limit": {"free": 20, "trial": 100, "subscriber": 100},
     }
@@ -177,7 +176,7 @@ def test_launch_rollout_uses_only_explicit_app_trial_and_unlocks_all_benefits():
     profile.app_trial_ends_at = now - timedelta(seconds=1)
     free = derive_entitlement(profile, None, 0, cfg, now)
     assert free["plan"] == "free" and free["ads_removed"] is False
-    assert free["daily_token_limit"] == 20
+    assert free["daily_token_limit"] == 40_000
 
 
 def test_store_trial_keeps_subscriber_entitlement_and_trial_expiry():
@@ -236,7 +235,7 @@ def test_app_trial_requires_recorded_start():
     profile = SimpleNamespace(
         trial_ends_at=None, app_trial_started_at=None, app_trial_ends_at=now + timedelta(hours=48)
     )
-    result = derive_entitlement(profile, None, 0, {"subscription_launch": {"enabled": True}}, now)
+    result = derive_entitlement(profile, None, 0, {}, now)
     assert result["plan"] == "free"
 
 
@@ -258,7 +257,7 @@ def test_late_trial_event_cannot_restore_trial_after_paid_conversion():
     assert sub.store_trial_ends_at is None
 
 
-def test_unmigrated_account_keeps_legacy_launch_after_rollout_enabled():
+def test_account_without_app_trial_keeps_launch_until_release():
     now = datetime.now(timezone.utc)
     old_end = now + timedelta(days=10)
     profile = SimpleNamespace(trial_ends_at=None, app_trial_started_at=None, app_trial_ends_at=None)
@@ -267,7 +266,6 @@ def test_unmigrated_account_keeps_legacy_launch_after_rollout_enabled():
         None,
         0,
         {
-            "subscription_launch": {"enabled": True},
             "free_launch_until": old_end.isoformat(),
             "free_launch_token_limit": 150000,
         },
@@ -276,27 +274,6 @@ def test_unmigrated_account_keeps_legacy_launch_after_rollout_enabled():
     assert result["plan"] == "trial" and result["trial_ends_at"] == old_end
     assert result["daily_token_limit"] == 150000
     assert result["subscriber_theme_unlocked"] is False
-
-
-def test_prepared_rollout_keeps_former_test_accounts_in_launch_without_reissuing_trial():
-    now = datetime.now(timezone.utc)
-    profile = SimpleNamespace(
-        trial_ends_at=now + timedelta(days=10),
-        app_trial_started_at=now - timedelta(days=3),
-        app_trial_ends_at=now - timedelta(days=1),
-    )
-    result = derive_entitlement(
-        profile,
-        None,
-        0,
-        {
-            "subscription_launch": {"enabled": False},
-            "free_launch_until": (now + timedelta(days=10)).isoformat(),
-        },
-        now,
-    )
-    assert result["plan"] == "trial" and result["entitlement_source"] == "launch"
-    assert profile.app_trial_ends_at == now - timedelta(days=1)
 
 
 async def test_play_trial_marks_existing_claim_even_if_enrollment_is_paused():

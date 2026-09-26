@@ -96,7 +96,8 @@ async def weekly_db(monkeypatch):
 async def generate(db, profile, day=None):
     async with AsyncSession(db.engine, expire_on_commit=False) as session:
         return await diary_generation.generate_for_user(
-            session, profile, day or db.week, {"diary_min_user_chars": 60},
+            session, profile, day or db.week,
+            {"diary_min_user_chars": 60, "free_launch_until": "9999-12-31T00:00:00+00:00"},  # 출시 전
             policy=diary_generation.DiaryPolicy(weekly_start_date=db.week),
         )
 

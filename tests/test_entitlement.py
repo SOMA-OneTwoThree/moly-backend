@@ -112,4 +112,5 @@ def test_ads_return_at_trial_expiry(trial_kind, offset_us):
         config["free_launch_until"] = end.isoformat()
     result = derive_entitlement(profile, None, 0, config, end + timedelta(microseconds=offset_us))
     assert result["plan"] == ("trial" if offset_us < 0 else "free")
-    assert result["ads_removed"] is (offset_us < 0)
+    # Launch access keeps banner ads; only the new app shows them.
+    assert result["ads_removed"] is (offset_us < 0 and trial_kind != "launch")

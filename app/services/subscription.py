@@ -174,6 +174,19 @@ async def _by_original_tx(
     return (await session.execute(q)).scalars().first()
 
 
+async def _sub_for_event(session: AsyncSession, event: dict, original_tx: str) -> Subscription | None:
+    """Apple keeps one original transaction across RC objects (lapse/resubscribe, paid product
+    change), so the event's own transaction names the current object's row before that fallback."""
+    tx = _txn_id(event.get("transaction_id"), field="transaction_id")
+    if tx and tx != original_tx:
+        sub = (await session.execute(select(Subscription).where(or_(
+            Subscription.latest_transaction_id == tx, Subscription.original_transaction_id == tx,
+        )).with_for_update())).scalars().first()
+        if sub is not None:
+            return sub
+    return await _by_original_tx(session, original_tx, lock=True)
+
+
 async def _grant_exists(session: AsyncSession, uid, plan: str) -> bool:
     row = await session.execute(
         select(SubscriptionHayGrant).where(
@@ -418,15 +431,18 @@ async def _ownership_lock(session: AsyncSession) -> None:
     await session.execute(text("SELECT pg_advisory_xact_lock(hashtextextended('revenuecat-ownership', 0))"))
 
 
-async def _snapshot_for_transaction(original_tx: str, environment: str | None) -> tuple[dict, list[dict]]:
-    matches = await revenuecat.search_subscriptions(original_tx)
+async def _snapshot_for_transaction(store_tx: str, environment: str | None) -> tuple[dict, list[dict]]:
+    # RC search matches any transaction of an object. Apple keeps one original transaction
+    # across lapse/resubscribe and paid product changes while RC starts a new object, so
+    # callers with an event pass its own transaction to land on the object that holds it.
+    matches = await revenuecat.search_subscriptions(store_tx)
     if environment:
         matches = [item for item in matches if str(item.get("environment", "")).upper() == environment.upper()]
     if len(matches) != 1:
         raise revenuecat.RevenueCatError("RevenueCat transaction mapping is missing or ambiguous")
     snapshot = await revenuecat.get_subscription(matches[0]["id"])
     transactions = await revenuecat.subscription_transactions(snapshot["id"])
-    if original_tx not in {str(tx.get("id")) for tx in transactions}:
+    if store_tx not in {str(tx.get("id")) for tx in transactions}:
         raise revenuecat.RevenueCatError("RevenueCat transaction chain incomplete")
     return snapshot, transactions
 
@@ -490,8 +506,11 @@ async def _reconcile_subscription(
             raise _dependency("구독 복원: 유효 접근 만료시각 확인 필요")
     if sub is None:
         first = min(transactions, key=lambda tx: tx.get("purchased_at") or 0)
+        # A never-transferred object (e.g. the owner's own resubscribe) has no ownership change,
+        # so its current payment is recorded; transferred objects keep history with the old owner.
+        never_transferred = snapshot.get("original_customer_id") == customer_id
         sub = Subscription(id=uuid.uuid4(), original_transaction_id=str(first["id"]), user_id=owner,
-                           plan=plan, ownership_changed_at=now)
+                           plan=plan, ownership_changed_at=None if never_transferred else now)
         session.add(sub)
     elif sub.user_id != owner:
         sub.user_id = owner
@@ -558,7 +577,7 @@ async def _bonus_review(session: AsyncSession, sub: Subscription, event: dict, p
     """Store-chain first paid period. Unverifiable history never creates a bonus."""
     try:
         snapshot, transactions = await _snapshot_for_transaction(
-            str(event.get("original_transaction_id") or event.get("transaction_id")), getattr(sub, "environment", None))
+            str(event.get("transaction_id") or event.get("original_transaction_id")), getattr(sub, "environment", None))
     except revenuecat.RevenueCatError:
         return "held:provider_history_unavailable"
     if snapshot.get("customer_id") != str(sub.user_id):
@@ -691,7 +710,7 @@ async def _handle_active(
 
     sub = await _by_original_tx(session, original_tx, lock=True)
     if settings.revenuecat_api_v2_key and (sub is None or sub.user_id != uid or getattr(sub, "rc_subscription_id", None)):
-        snapshot, transactions = await _snapshot_for_transaction(original_tx, event.get("environment"))
+        snapshot, transactions = await _snapshot_for_transaction(latest_tx or original_tx, event.get("environment"))
         if sub is not None or snapshot.get("customer_id") != str(uid):
             sub = await _reconcile_subscription(session, snapshot, transactions, event_ts)
             if sub is None or sub.user_id is None:
@@ -910,7 +929,7 @@ async def _handle_cancellation(
         event.get("original_transaction_id") or event.get("transaction_id"),
         field="original_transaction_id",
     )
-    sub = await _by_original_tx(session, original_tx, lock=True)
+    sub = await _sub_for_event(session, event, original_tx)
     if sub is None:
         return HandlerResult(DEPENDENCY_MISSING, f"자동갱신 해제 대상 구독 없음 {original_tx}")
     # 자동갱신 해제 — 만료 전까지 혜택 유지. auto_renew=false 후퇴는 단조 예외 아님(가드 적용).
@@ -947,12 +966,13 @@ async def _missing_payment_access(
 ) -> HandlerResult | None:
     """Apply verified current access without reconstructing missing financial history."""
     original_tx = _txn_id(event.get("original_transaction_id") or event.get("transaction_id"), field="original_transaction_id")
-    sub = await _by_original_tx(session, original_tx, lock=True)
+    sub = await _sub_for_event(session, event, original_tx)
     # Do not create a row on refund-before-purchase: its original receipt must
     # still be able to create the Payment normally when it arrives.
     if sub is None or not getattr(sub, "rc_subscription_id", None):
         return None
-    snapshot, transactions = await _snapshot_for_transaction(original_tx, sub.environment)
+    snapshot, transactions = await _snapshot_for_transaction(
+        str(event.get("transaction_id") or original_tx), sub.environment)
     if snapshot.get("id") != sub.rc_subscription_id:
         raise _dependency("원결제 없는 구독 환불: 스토어 연결 재확인 필요")
     await _reconcile_subscription(session, snapshot, transactions, event_ts)
@@ -967,13 +987,14 @@ async def _free_period_refund_state(
         event.get("original_transaction_id") or event.get("transaction_id"),
         field="original_transaction_id",
     )
-    sub = await _by_original_tx(session, original_tx, lock=True)
+    sub = await _sub_for_event(session, event, original_tx)
     if sub is None:
         raise _dependency("무료 구독 환불 대상 없음")
     if str(sub.user_id) != str(event.get("app_user_id")):
         if not getattr(sub, "rc_subscription_id", None):
             raise _permanent("무료 구독 환불 계정 불일치: 검증된 이전 이력 없음")
-        snapshot, _ = await _snapshot_for_transaction(original_tx, sub.environment)
+        snapshot, _ = await _snapshot_for_transaction(
+            str(event.get("transaction_id") or original_tx), sub.environment)
         if (snapshot.get("id") != sub.rc_subscription_id
                 or snapshot.get("customer_id") != str(sub.user_id)
                 or snapshot.get("original_customer_id") != str(event.get("app_user_id"))):
@@ -1150,7 +1171,7 @@ async def _handle_expiration(
         event.get("original_transaction_id") or event.get("transaction_id"),
         field="original_transaction_id",
     )
-    sub = await _by_original_tx(session, original_tx, lock=True)
+    sub = await _sub_for_event(session, event, original_tx)
     if sub is None:
         return HandlerResult(DEPENDENCY_MISSING, f"만료 대상 구독 없음 {original_tx}")
     if sub.status == "revoked":
@@ -1173,7 +1194,7 @@ async def _handle_billing_issue(
         event.get("original_transaction_id") or event.get("transaction_id"),
         field="original_transaction_id",
     )
-    sub = await _by_original_tx(session, original_tx, lock=True)
+    sub = await _sub_for_event(session, event, original_tx)
     if sub is None:
         return HandlerResult(DEPENDENCY_MISSING, f"유예 대상 구독 없음 {original_tx}")
     if sub.status == "revoked":

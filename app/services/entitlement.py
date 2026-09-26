@@ -129,7 +129,8 @@ def derive_entitlement(
         "plan": plan,
         "is_subscriber": is_subscriber,
         "trial_ends_at": trial_ends_at,
-        "ads_removed": plan != "free",
+        # Launch access keeps banner ads; released apps have no banners and never read this.
+        "ads_removed": source not in {"free", "launch"},
         "subscriber_theme_unlocked": subscriber_theme_unlocked,
         "daily_token_limit": limit,
         "tokens_used": tokens_used,

@@ -19,6 +19,7 @@ class BgmTrack(BaseModel):
     size_bytes: int | None = Field(gt=0, le=100 * 1024 * 1024)
     mime_type: Literal["audio/mp4", "audio/mpeg", "audio/wav"] | None
     sort_order: int = Field(ge=0)
+    subscriber_only: bool = False
 
     @model_validator(mode="after")
     def validate_source(self):

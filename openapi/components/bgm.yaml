@@ -58,6 +58,10 @@ schemas:
         minimum: 0
         title: Sort Order
         type: integer
+      subscriber_only:
+        description: 구독 중에만 재생할 수 있는 곡. 앱이 잠금 표시와 재생 차단을 맡는다.
+        title: Subscriber Only
+        type: boolean
     required:
     - id
     - category
@@ -69,6 +73,7 @@ schemas:
     - size_bytes
     - mime_type
     - sort_order
+    - subscriber_only
     title: BgmTrack
     type: object
   BgmTracksResponse:

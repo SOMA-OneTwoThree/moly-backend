@@ -30,7 +30,7 @@ def test_source_contract():
 @pytest.mark.asyncio
 async def test_full_snapshot_revision_locale_and_failure(monkeypatch):
     monkeypatch.setattr("app.services.bgm.settings.environment", "local")
-    row = SimpleNamespace(**remote(), title_i18n={"ko": "빗소리"})
+    row = SimpleNamespace(**remote(), title_i18n={"ko": "빗소리"}, is_subscriber_only=True)
     result = MagicMock()
     result.all.return_value = [row]
     session = AsyncMock()
@@ -38,6 +38,9 @@ async def test_full_snapshot_revision_locale_and_failure(monkeypatch):
     ko = await list_tracks(session, "ko")
     en = await list_tracks(session, "en")
     assert ko.tracks[0].title == "빗소리"
+    assert ko.tracks[0].subscriber_only is True
+    assert ko.model_dump()["tracks"][0]["subscriber_only"] is True
+    assert BgmTrack(**remote()).subscriber_only is False
     assert ko.revision != en.revision
     assert ko.tracks[0].sha256 == en.tracks[0].sha256
     row.sha256 = None
@@ -51,7 +54,7 @@ async def test_full_snapshot_revision_locale_and_failure(monkeypatch):
 def test_production_rejects_dev_assets(monkeypatch):
     monkeypatch.setattr("app.services.bgm.settings.environment", "production")
     with pytest.raises(ValueError, match="development BGM"):
-        render_track(SimpleNamespace(**remote(), title_i18n=None), "en")
+        render_track(SimpleNamespace(**remote(), title_i18n=None, is_subscriber_only=False), "en")
 
 
 @pytest.mark.asyncio

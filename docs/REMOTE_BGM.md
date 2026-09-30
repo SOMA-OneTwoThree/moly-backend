@@ -10,7 +10,7 @@ Storage에 올린 뒤 DB에 등록하고, 앱이 전체 목록 API로 발견하�
 `GET /bgm/tracks`, 기존 Supabase Bearer 인증, `X-App-Locale`(ko/en/ja).
 응답은 `{schema_version: 1, revision: "64자리 SHA256", tracks: [...]}`다.
 각 track은 `id`, `category`(lofi/white_noise), 현지화된 `title`, `source`(bundled/remote),
-음원 `revision`, `url`, `sha256`, `size_bytes`, `mime_type`, `sort_order`를 갖는다.
+음원 `revision`, `url`, `sha256`, `size_bytes`, `mime_type`, `sort_order`, `subscriber_only`를 갖는다.
 bundled의 원격 메타데이터 4개는 null, remote는 모두 필수다. 설치 파일은 id로 찾는다.
 응답 revision은 현지화된 전체 목록의 해시이며 파일 identity는 track revision/sha256이다.
 제목/정렬/언어 변경만으로 음원을 다시 다운로드하지 않는다.
@@ -26,6 +26,14 @@ bundled의 원격 메타데이터 4개는 null, remote는 모두 필수다. 설�
 검증한 후 원자적으로 교체하고 재생 중인 이전 버전은 다음 재생부터 교체한다. 모든 곡은
 단곡 무한 반복이며 Lo-fi와 백색 소음의 동시 재생은 없다. 다운로드는 앱 실행 중 시작하며
 앱 종료/OS suspension 중 완료를 보장하는 background transfer 계약은 아니다.
+
+## 구독자 전용 곡
+
+`bgm_tracks.is_subscriber_only`가 true인 곡은 응답에서 `subscriber_only: true`다. 목록은
+회원과 무관한 같은 snapshot이며, 앱이 구독(상점 구독 전용 상품과 같은 판정) 중이 아닐 때
+잠금 표시와 재생·셔플 차단을 맡는다. 현재는 내장 Lo-fi `fading-static`(Old Radio)만
+구독자 전용이다. 이 필드를 모르는 구버전 앱은 필드를 무시하고 기존처럼 재생한다.
+기존 DB 반영 SQL은 `db/changes/bgm_subscriber_only.sql`이며 새 서버 배포 전에 적용한다.
 
 ## 파일 등록과 교체
 

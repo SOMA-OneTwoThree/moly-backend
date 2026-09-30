@@ -770,6 +770,14 @@
         "not_null": true,
         "type": "boolean"
       },
+      "public.bgm_tracks.is_subscriber_only": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
       "public.bgm_tracks.mime_type": {
         "collation": "\"default\"",
         "default": null,
@@ -14433,5 +14441,5 @@
       }
     }
   },
-  "schema_sha256": "d670f83edc3ea108ae16ab023f6aa8ed4ee895e71f6fd42da44054e38d96f244"
+  "schema_sha256": "7133bc24a880f4fd37b7876a1c6796c397fa8e04c922131959b27ff2f05b3f9d"
 }

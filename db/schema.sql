@@ -2834,6 +2834,7 @@ CREATE TABLE public.bgm_tracks (
   mime_type text CHECK (mime_type IN ('audio/mp4', 'audio/mpeg', 'audio/wav')),
   sort_order integer NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
   is_active boolean NOT NULL DEFAULT false,
+  is_subscriber_only boolean NOT NULL DEFAULT false,
   CONSTRAINT bgm_source_metadata CHECK (
     (source = 'bundled' AND category = 'lofi'
       AND id IN ('felt-piano-memories', 'night-rain-on-tokyo', 'midnight-tokyo-rain',

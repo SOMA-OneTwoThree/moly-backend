@@ -98,6 +98,12 @@ class Settings(BaseSettings):
     worker_max_concurrency: int = 1
     # 유저 1명 처리 상한(초). 외부 API 지연이 배치를 장시간 막지 않게. 초과 시 스킵(다음 틱 재시도).
     worker_user_timeout_s: float = 120.0
+    # 틱 소프트 데드라인(초). 지나면 남은 유저를 건너뛰고(같은 시각의 다음 틱이 claim·멱등 마커로 이어받음)
+    # 루프 뒤 단계(RC drain·retention·heartbeat·요약·sweep·데드맨 핑)를 정상 수행한 뒤 끝낸다.
+    # 그 시각의 마지막 틱(현지 :45)은 이어받을 틱이 없어 적용하지 않는다(끝까지 처리 — 종전 동작).
+    # systemd TimeoutStartSec(14min)에서 유저 1명 최악(worker_user_timeout_s)과 컨테이너 기동·후처리(~40s)를
+    # 뺀 값보다 작아야 한다: 660+120+40 = 820 < 840. 0 = 비활성(종전 동작).
+    worker_tick_soft_deadline_s: float = 660.0
 
     # --- 잡 플랫폼(async_jobs, W7) ---
     # ⚠️ 이 블록은 전부 **env 전용**이다. `app_config` hot override 대상에 넣지 않는다(명세 §W7):

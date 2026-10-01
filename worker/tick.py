@@ -108,6 +108,9 @@ def _build_summary(
             lines.insert(len(lines) - 1, "저녁 분포: " + " / ".join(dist))
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
+    if counts.get("deadline_skipped"):
+        # 처리량이 틱 예산을 넘었다는 용량 신호 — 남은 유저는 다음 틱이 이어받는다(사용자 영향 없음).
+        lines.append(f"⏱ 소프트 데드라인 도달 — 미처리 {counts['deadline_skipped']}명(다음 틱 인계)")
     if counts.get("tz_unresolvable"):
         lines.append(f"⚠️ 해석 불가 timezone {counts['tz_unresolvable']}종 — 그 tz 유저 전원 스킵")
     return "\n".join(lines)
@@ -420,6 +423,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         **{f"evening_{c}": 0 for c in notify.EVENING_STAT_KEYS},
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
+        "deadline_skipped": 0,  # 소프트 데드라인 뒤 건너뛴 유저 수(다음 틱 인계)
         "users": 0,
         "rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0,  # RC inbox 드레인
     }
@@ -451,8 +455,18 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 diary_policy = None
                 _log.error("일기 전환 설정 조회/검증 실패 — 이번 틱 일기 생성 중단")
 
+        # 소프트 데드라인 — systemd 하드킬(TimeoutStartSec) 전에 스스로 유저 루프를 멈춘다. 하드킬은
+        # compose 클라이언트만 죽이고 컨테이너는 계속 돌아(로그 유실·요약/핑 누락) 다음 틱과 겹친다.
+        # 남은 유저는 같은 시각의 다음 틱이 이어받는다. 그 시각의 마지막 틱(현지 :45)은 이어받을 틱이
+        # 없으므로 걸지 않는다 — 끝까지 처리한다(종전 동작, 놓친 일기·알림은 소급하지 않으므로).
+        soft_deadline = settings.worker_tick_soft_deadline_s
+        if any(now.astimezone(ZoneInfo(tz)).minute >= 45 for tz in tzs):
+            soft_deadline = 0
+
         async def _guarded(pid) -> dict:
             async with sem:  # 동시 실행 유저 수 상한
+                if soft_deadline > 0 and time.monotonic() - start > soft_deadline:
+                    return {"deadline_skipped": 1}
                 try:
                     return await asyncio.wait_for(_process_user(now, pid, cfg, diary_policy=diary_policy), timeout=timeout)
                 except (asyncio.TimeoutError, TimeoutError):
@@ -468,6 +482,11 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                             active_tzs.add(v)
                     elif k in counts:
                         counts[k] += v
+        if counts["deadline_skipped"]:
+            _log.warning(
+                "틱: 소프트 데드라인(%.0fs) 도달 — 미처리 %d명(다음 틱 인계)",
+                soft_deadline, counts["deadline_skipped"],
+            )
 
     # RC 웹훅 inbox 드레인 — 매 틱(15분). 유저 처리와 독립(전용 세션·이벤트별 트랜잭션).
     try:
@@ -527,7 +546,9 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     # 그중 3번은 _diary_exists skip이라 "일기 0건" — 감시 채널이 오탐으로 도배된다(SOMA-348 후속).
     # diary_none(tombstone)은 사용자 노출 0이라 요약 트리거에서 제외 — 지정본 없는 조용한 날에
     # 매 틱 요약이 나가 채널이 도배되는 걸 막는다(SOMA-389, 위 오탐 방지 취지 유지).
-    if counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"] > 0:
+    # 소프트 데드라인 도달은 처리 건수가 0이어도 요약으로 남긴다(상태 채널 — 경보로 올리지 않음).
+    worked = counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
+    if worked + counts["deadline_skipped"] > 0:
         summary = _build_summary(now, counts, elapsed, active_tzs)
         await slack_notify.send_summary(summary)
 

@@ -333,6 +333,8 @@ async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> No
 # 느려졌을 때 예산 손실을 1.5초로 묶는다. 잘리면 빈 기억으로 진행한다.
 _MEM0_RECALL_TIMEOUT_S = 1.5
 _mem0_recall_adapter = None
+# 프로세스 누적 회상 타임아웃 수. 타임아웃 로그에 같이 찍어 추이를 로그만으로 본다.
+_recall_timeouts_total = 0
 
 
 def _recall_adapter():
@@ -360,11 +362,13 @@ async def _recall_memory_v2(
     language: str,
     today: date | None = None,
     tz_name: str = "Asia/Seoul",
+    trace: dict[str, float] | None = None,
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
 
     회상 실패는 대화를 막지 않는다. 여기서 예외가 새면 응답 전체가 실패하므로
     마지막 방어선을 하나 더 둔다(mem0_recall도 자체적으로 삼킨다).
+    `trace`는 `mem0_recall.recall`에 그대로 넘겨 단계별 경과를 받는다.
     """
     if not getattr(state, "serves_v2", False):
         return ""
@@ -380,6 +384,7 @@ async def _recall_memory_v2(
                 adapter=_recall_adapter(),
                 embed_query=memory_embeddings.embed_query,
                 timeout=_MEM0_RECALL_TIMEOUT_S,
+                trace=trace,
             )
         return mem0_recall.render_block(
             items, language=language, today=today, tz_name=tz_name
@@ -387,6 +392,25 @@ async def _recall_memory_v2(
     except Exception:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
         _log.warning("v2 회상 블록 생성 실패(빈 기억으로 진행) — user=%s", user_id, exc_info=True)
         return ""
+
+
+def _log_recall_timeout(
+    user_id: uuid.UUID, *, started: float, phase1_done: float, trace: dict[str, float]
+) -> None:
+    """회상을 경계에서 끊었을 때의 한 줄. 예산·폴백은 그대로이고 원인 분해용이다.
+
+    stages는 끊기 전에 끝난 단계다(회상 시작부터 누적 초). 비어 있으면 임베딩도 못 끝냈다.
+    회상은 Phase 1과 겹쳐 돌므로 실제로 받은 시간은 phase1_overlap + budget이고, elapsed는
+    여기에 취소 정리 시간까지 더한 값이다.
+    """
+    global _recall_timeouts_total
+    _recall_timeouts_total += 1
+    _log.warning(
+        "v2 회상 타임아웃(빈 기억으로 진행) — user=%s elapsed=%.2fs budget=%.1fs "
+        "phase1_overlap=%.2fs stages=%s total_timeouts=%d",
+        user_id, time.monotonic() - started, _MEM0_RECALL_TIMEOUT_S,
+        phase1_done - started, trace, _recall_timeouts_total,
+    )
 
 
 def _build_system(
@@ -930,12 +954,15 @@ async def post_message(
     #
     # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
     # 문자열로 끝난다(임베딩·검색 호출 0).
+    recall_trace: dict[str, float] = {}
+    t_recall0 = time.monotonic()
     recall_task = asyncio.ensure_future(
         _recall_memory_v2(
             uid, query=req.text, state=pipeline_state, language=language,
             # 시점 표기 기준 = 이 사용자의 로컬 활동일. UTC로 재면 자정 근처에서
             # "오늘"과 "어제"가 뒤집힌다.
             today=ad, tz_name=getattr(g.profile, "timezone", "Asia/Seoul"),
+            trace=recall_trace,
         )
     )
 
@@ -1030,7 +1057,7 @@ async def post_message(
     except (TimeoutError, asyncio.CancelledError):
         recall_task.cancel()  # 끊고 나서도 계속 돌면 비용만 나간다
         memory_v2_block = ""
-        _log.warning("v2 회상 타임아웃(빈 기억으로 진행) — user=%s", uid)
+        _log_recall_timeout(uid, started=t_recall0, phase1_done=t_phase1, trace=recall_trace)
 
     lead_all = lead_texts + ([greeting_content] if greeting_content else [])
     system = _build_system(

@@ -179,4 +179,68 @@ def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
     )
 
 
+# ── 회상 단계 계측 — 예산·폴백은 그대로, 끊긴 이유만 남긴다 ─────────────
+
+async def test_recall_trace_reaches_the_recall_itself(monkeypatch):
+    """챗이 준 trace를 회상이 채워야 경계에서 끊긴 뒤 어디까지 왔는지 로그에 남는다."""
+    import uuid
+
+    import app.core.db as db
+    from app.services import mem0_recall
+
+    class _Session:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+    seen: dict = {}
+
+    async def _recall(session, user_id, **kw):
+        seen.update(kw)
+        kw["trace"]["embed_s"] = 0.1
+        return []
+
+    monkeypatch.setattr(db, "get_sessionmaker", lambda: _Session)
+    monkeypatch.setattr(chat, "_recall_adapter", lambda: object())
+    monkeypatch.setattr(mem0_recall, "recall", _recall)
+    trace: dict[str, float] = {}
+    got = await chat._recall_memory_v2(
+        uuid.uuid4(), query="회사 얘기 뭐였지?", state=_State(True), language="ko", trace=trace
+    )
+    assert got == ""
+    assert seen["trace"] is trace and trace == {"embed_s": 0.1}
+    assert seen["timeout"] == chat._MEM0_RECALL_TIMEOUT_S  # 예산은 그대로
+
+
+def test_timeout_log_uses_the_trace_the_task_fills():
+    """태스크에 준 dict와 로그에 넘기는 dict가 다르면 stages가 늘 빈 채로 찍힌다."""
+    src = inspect.getsource(chat.post_message)
+    start = src.index("recall_task = asyncio.ensure_future")
+    wf = src.index("asyncio.wait_for(")
+    assert "trace=recall_trace" in src[start:wf]
+    call = src.index("_log_recall_timeout(", wf)
+    assert "trace=recall_trace" in src[call:src.index("\n", call)]
+
+
+def test_recall_timeout_log_keeps_stages_overlap_and_count(monkeypatch, caplog):
+    """끊긴 줄만 보고 원인을 가를 수 있어야 한다 — 끝난 단계, Phase 1과 겹친 시간, 누적 횟수."""
+    import logging
+    import time
+    import uuid
+
+    monkeypatch.setattr(chat, "_recall_timeouts_total", 0)
+    now = time.monotonic()
+    with caplog.at_level(logging.WARNING, logger="moly"):
+        chat._log_recall_timeout(uuid.uuid4(), started=now - 2.0, phase1_done=now - 1.5,
+                                 trace={"embed_s": 1.9})
+        chat._log_recall_timeout(uuid.uuid4(), started=now, phase1_done=now, trace={})
+    lines = [r.getMessage() for r in caplog.records if "v2 회상 타임아웃" in r.getMessage()]
+    assert len(lines) == 2
+    assert f"budget={chat._MEM0_RECALL_TIMEOUT_S:.1f}s" in lines[0] and "phase1_overlap=0.50s" in lines[0]
+    assert "stages={'embed_s': 1.9}" in lines[0] and "total_timeouts=1" in lines[0]
+    assert "stages={}" in lines[1] and "total_timeouts=2" in lines[1]
+
+
 

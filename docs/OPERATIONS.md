@@ -73,6 +73,14 @@ journalctl -u moly-worker.service -n 100
   `async_jobs` 행 존재가 아니라 `app_config`의 마지막 성공 시각으로 판정한다.
 - `/health/ready`는 DB 연결 상태를 확인한다. `/health/deep`, `/health/queues`, `/health/synthetic`은
   `X-Health-Token`을 요구한다. synthetic은 실제 모델 호출을 하므로 비용이 발생한다.
+- 채팅 5xx: `POST /chat/messages`의 503 `AI_UNAVAILABLE`은 LLM 제공자의 일시 장애(timeout·연결·429·5xx)다.
+  저장 없이 끝나며 앱은 같은 멱등 키로 다시 보낼 수 있다. 500 `INTERNAL`은 우리 코드의 미처리 예외로 본다.
+  로그 `chat_llm_unavailable`·`decide_timeout_fallback`·`llm_retry_in_budget`·`llm_step_failed`로 구분한다.
+  `chat_llm_unavailable`의 message가 `...before inference`나 `agent turn deadline exceeded`면 제공자 응답이 아니라
+  LLM 호출 전에 마감을 다 쓴 경우다. 앞단(DB·회상·도구·이전 홉) 지연부터 본다.
+  예산 안 재시도가 성공하면 `ai_usage_ledger`에는 1행만 남는다(재시도 응답의 id, latency는 두 시도 합).
+  실패한 첫 시도는 `llm_retry_in_budget` 로그에만 있다.
+  운영 `agent_turn_deadline_s`(10)를 8 이하로 내리지 않는다. 1홉 예산이 3.0초 안팎으로 줄어 정상 턴도 도구 없이 답하게 된다.
 
 ## 데이터 수명 주기
 

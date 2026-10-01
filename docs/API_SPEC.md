@@ -261,6 +261,8 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 ```
 
 - `403 DAILY_LIMIT_REACHED` = 토큰 소진. 응답 수 초 소요 → 로딩 표시 + 타임아웃 넉넉히, 재시도는 같은 `Idempotency-Key`.
+- `503 AI_UNAVAILABLE` = 대화 LLM이 턴 마감(`agent_turn_deadline_s`, 운영 10초) 안에 답하지 못함(제공자 timeout·연결 실패·429·5xx).
+  저장된 것이 없으므로 같은 `Idempotency-Key`로 다시 보내면 된다(`details.retryable=true`).
 - 같은 key에 다른 body를 보내면 `409 IDEMPOTENCY_KEY_REUSED`. 응답 본문 replay는 24시간, 이후 30일까지는
   body 없는 tombstone으로 중복 턴 생성을 막고 새 key를 요구한다.
 - `context_ref`는 이미 공개된 오늘 운세만 한 요청의 서버 컨텍스트로 붙인다. 날짜·프로필·결과가 바뀌면
@@ -660,6 +662,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 | `DATE_ROLLOVER` | 409 | 운세 현지 날짜 전환 2분 보호 구간 |
 | `NOT_OWNED` | 422 | 미보유 장착 |
 | `VALIDATION` | 422 | 필드 검증 |
+| `AI_UNAVAILABLE` | 503 | 대화 LLM 일시 장애(timeout·연결·429·5xx) — 같은 멱등 키로 재전송 |
 | `INTERNAL` | 500 | 서버 내부 오류 |
 
 제네릭 HTTP 코드(비즈니스 에러 없음 — FE 분기 불필요): `BAD_REQUEST`(400)·`METHOD_NOT_ALLOWED`(405)·`CONFLICT`(409)·`RATE_LIMITED`(429). 목록 외 상태는 `HTTP_<status>` 형식.

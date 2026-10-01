@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 from datetime import datetime, timezone
 
 import httpx
@@ -23,29 +24,53 @@ from app.config import settings
 _log = logging.getLogger("moly-worker")
 _SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
 
+# 프로세스 수명 자격증명 캐시 — 액세스 토큰(수명 1h)을 만료 전까지 재사용한다. 종전엔 유저마다 자격증명을
+# 새로 만들고 refresh(토큰 엔드포인트 왕복)해서 푸시 틱마다 발송 유저 수만큼 반복됐다.
+# _access_token은 to_thread로 돌므로 동시성>1이면 스레드가 겹친다 → 락으로 refresh를 1회로 합류.
+_creds = None
+_creds_lock = threading.Lock()
 
-def _access_token() -> str | None:
-    if not settings.fcm_project_id:
-        return None
-    from google.auth.transport.requests import Request
 
+def _load_credentials():
+    """자격증명 객체 생성(네트워크 없음). 아무 자격증명도 없으면 None(no-op)."""
     if settings.fcm_service_account_file:
         from google.oauth2 import service_account
 
-        creds = service_account.Credentials.from_service_account_file(
+        return service_account.Credentials.from_service_account_file(
             settings.fcm_service_account_file, scopes=[_SCOPE]
         )
-    else:
-        # 키리스: 배포 환경의 ADC(연결 SA / WIF / 로컬 gcloud) 자동 발견.
-        import google.auth
-        from google.auth.exceptions import DefaultCredentialsError
+    # 키리스: 배포 환경의 ADC(연결 SA / WIF / 로컬 gcloud) 자동 발견.
+    import google.auth
+    from google.auth.exceptions import DefaultCredentialsError
 
-        try:
-            creds, _ = google.auth.default(scopes=[_SCOPE])
-        except DefaultCredentialsError:
-            return None
-    creds.refresh(Request())
-    return creds.token
+    try:
+        creds, _ = google.auth.default(scopes=[_SCOPE])
+    except DefaultCredentialsError:
+        return None
+    return creds
+
+
+def _refresh_request():
+    from google.auth.transport.requests import Request
+
+    return Request()
+
+
+def _access_token() -> str | None:
+    global _creds
+    if not settings.fcm_project_id:
+        return None
+    from google.auth.credentials import TokenState
+
+    with _creds_lock:
+        if _creds is None:
+            _creds = _load_credentials()
+            if _creds is None:
+                return None  # 자격증명 없음은 캐시하지 않는다(다음 호출에서 다시 찾음)
+        # 미발급·만료·만료 임박(라이브러리 기준 3분 45초 전)일 때만 토큰 엔드포인트 왕복.
+        if _creds.token_state != TokenState.FRESH:
+            _creds.refresh(_refresh_request())
+        return _creds.token
 
 
 async def prepare_access_token() -> str | None:

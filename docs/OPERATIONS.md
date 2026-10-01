@@ -55,6 +55,11 @@ PyPI `tzdata` 의존성으로 푼다 — 베이스 이미지(trixie)는 별칭�
 경보는 04:00Z 틱이 :15 전에 시작할 때만 나간다(재부팅 catch-up 등으로 늦으면 그날은 생략) — 요약·`/health/deep`도 함께 본다.
 `/health/deep`의 `unresolvable_worker`는 배포 후 첫 워커 틱 전까지 `null`이다.
 RevenueCat 수신함·기억 재개·retention 예약·하트비트는 사용자 루프와 별개로 처리한다.
+틱은 `WORKER_TICK_SOFT_DEADLINE_S`(기본 660초)가 지나면 남은 사용자를 건너뛰고 후처리(요약·하트비트·데드맨 핑)를
+마친 뒤 끝난다. 남은 사용자는 같은 시각의 다음 틱이 이어받고, 그 시각의 마지막 틱(현지 :45)은 끝까지 처리한다.
+요약의 `소프트 데드라인 도달` 줄은 처리량이 틱 예산을 넘었다는 용량 신호다(경보 채널로 올리지 않는다).
+운영 원고 번역은 틱마다 (원고, 언어)당 한 번만 호출해 같은 언어 사용자가 같은 번역문을 받는다. 번역 원장 행은
+그 틱에서 처음 번역한 사용자 1명에게만 남는다. FCM 액세스 토큰은 만료 전까지 프로세스 안에서 재사용한다.
 
 ## 관측과 장애 대응
 
@@ -79,6 +84,9 @@ journalctl -u moly-worker.service -n 100
   시간 필터로 숨기지 않는다. 원본 행을 ready로 되살리지 않고 `replay_of`가 있는 새 작업으로 재시도한다.
 - 워커·정리 중단: 타이머 마커와 마지막 성공 기록, `/health/deep`을 확인한다. 월간 정리는
   `async_jobs` 행 존재가 아니라 `app_config`의 마지막 성공 시각으로 판정한다.
+- 워커 틱 실패: 틱이 14분 상한을 넘거나 비정상 종료하면 moly-infra의 `moly-worker-failed.service`가 상태 채널에
+  한 줄 남긴다. 상한 초과는 compose 클라이언트만 끝내므로 컨테이너는 끝까지 처리하지만 그 로그는 journald에
+  남지 않는다. 실패가 이어지면 데드맨이 경보한다. 원인은 `journalctl -u moly-worker.service`로 본다.
 - `/health/ready`는 DB 연결 상태를 확인한다. `/health/deep`, `/health/queues`, `/health/synthetic`은
   `X-Health-Token`을 요구한다. synthetic은 실제 모델 호출을 하므로 비용이 발생한다.
 - 채팅 5xx: `POST /chat/messages`의 503 `AI_UNAVAILABLE`은 LLM 제공자의 일시 장애(timeout·연결·429·5xx)다.

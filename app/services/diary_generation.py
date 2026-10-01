@@ -5,8 +5,10 @@
 """
 from __future__ import annotations
 
+import asyncio
 import difflib
 import logging
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
 from types import SimpleNamespace
@@ -346,6 +348,43 @@ async def _translate_preset(
     return r.text.strip() or content
 
 
+# 같은 운영 원고를 같은 언어로 유저마다 다시 번역하지 않는다 — (원고 id, 언어 버킷, 원문)당 프로세스 1회.
+# 번역 입력은 원문과 언어 버킷뿐이라(유저별 요소·플레이스홀더 없음) 유저마다 다시 불러도 표현만 조금
+# 다른 같은 번역이 나온다. 워커는 틱마다 새 프로세스라 메모 수명 = 틱 1회이고 DDL이 없다.
+# 실패(원문 유지·빈 응답)는 캐시하지 않는다 — LLM 오류 1건이 그 틱의 같은 언어 유저 전원에게 한국어
+# 원문을 돌려주면 안 된다. 한글이 남은 번역(덜 번역됨)도 캐시하지 않는다 — 그 유저는 종전처럼 그대로
+# 받고 다음 유저는 다시 번역한다. 원문을 키에 넣어 원고가 바뀌면 자동으로 새 키가 된다.
+# 원장: 번역 호출은 그 틱에서 처음 미스를 낸 유저 1명에게만 기록된다(종전 유저마다 1건).
+_translate_memo: dict[tuple[str, str, str], str] = {}
+_HANGUL = re.compile(r"[\u3131-\u318e\uac00-\ud7a3]")  # 한글 자모·음절
+_translate_locks: dict[tuple[str, str, str], asyncio.Lock] = {}
+
+
+def reset_translate_memo() -> None:
+    """프로세스 메모 비우기(테스트용)."""
+    _translate_memo.clear()
+    _translate_locks.clear()
+
+
+async def _translate_preset_cached(
+    ment_id, content: str, language: str, *, user_id=None,
+    ledger: usage_ledger.LedgerContext | None = None,
+) -> str:
+    """_translate_preset의 (원고, 언어) 메모 래퍼. 동시성>1이면 같은 키의 미스는 키별 락으로 합류한다."""
+    key = (str(ment_id), i18n.resolve(language), content)
+    hit = _translate_memo.get(key)
+    if hit is not None:
+        return hit
+    async with _translate_locks.setdefault(key, asyncio.Lock()):
+        hit = _translate_memo.get(key)
+        if hit is not None:
+            return hit
+        translated = await _translate_preset(content, language, user_id=user_id, ledger=ledger)
+        if translated != content and not _HANGUL.search(translated):  # 실패·덜 번역됨은 캐시하지 않는다
+            _translate_memo[key] = translated
+        return translated
+
+
 async def _finalize_diary(
     session: AsyncSession, profile, target_date: date, *, policy: DiaryPolicy,
     source: str, content: str | None, weather: str, ment, messages: list,
@@ -507,8 +546,8 @@ async def _generate_for_user(session, profile, target_date, cfg, *, policy):
                 original = text_clean.strip_symbols(ment.content)
                 content, weather = original, ment.weather
                 if not i18n.is_korean(profile.language):
-                    content = await _translate_preset(
-                        original, profile.language, user_id=profile.id, ledger=ledger,
+                    content = await _translate_preset_cached(
+                        ment.id, original, profile.language, user_id=profile.id, ledger=ledger,
                     )
                     content = text_clean.strip_symbols(content, keep_hyphen=True) or original
         try:

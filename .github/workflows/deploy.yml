@@ -1,7 +1,7 @@
 name: Build and Deploy (moly-backend)
 
-# main에 push되면: 이미지 빌드 → ECR push → 인스턴스별 순차 롤링 배포
-# (deregister → drain → SSM deploy.sh <sha> → register → healthy 대기)
+# main에 push되면: 이미지 빌드 → ECR push → 모든 인스턴스 사전점검(pull·DB 계약, ALB에서 빼기 전)
+# → 인스턴스별 순차 롤링 배포 (deregister → drain → SSM deploy.sh <sha> → register → healthy 대기)
 #
 # workflow_dispatch = 비상 탈출구 (Actions 탭 → Run workflow):
 #   - image_tag에 이전 sha 입력 → 빌드 없이 그 이미지로 즉시 롤백 배포
@@ -110,6 +110,8 @@ jobs:
       #    명시적 deregister로 트래픽을 뺀 뒤 배포한다. 첫 인스턴스가 실패하면 워크플로가
       #    중단되고 나머지는 구버전으로 계속 서비스한다(자동 부분 롤백). 실패한 인스턴스는
       #    deregister 상태로 남으므로 원인 확인 후 이전 sha로 재배포 + register가 수동 조치다.
+      #    롤링 전에 모든 인스턴스에서 사전점검(DEPLOY_PREFLIGHT_ONLY=1: pull + DB 계약 검증만, live 파일·
+      #    컨테이너 미변경)을 먼저 돌린다 — 하나라도 실패하면 어떤 인스턴스도 빼지 않고 중단한다.
       #    주의: SSM은 sh로 실행하므로 deploy.sh는 반드시 `bash deploy.sh`로 명시 실행
       - name: Rolling deploy via SSM
         run: |
@@ -202,6 +204,31 @@ jobs:
               poll_ssm "$CMD_ID" "$ID"
             done
           fi
+
+          # 사전점검 — ALB에서 빼기 전에 모든 인스턴스에서 이미지 pull + DB 계약 검증만 돌린다.
+          # deregister 뒤 deploy.sh preflight가 실패하면 그 인스턴스는 수동 복구 전까지 로테이션 밖에 남는다.
+          # preflight-only는 live 파일·컨테이너를 건드리지 않으므로 실패해도 서비스 영향이 없고, 아래 롤링과
+          # 실패 처리는 그대로다.
+          # deploy.sh에 이 모드가 없으면(moly-infra 미반영) 플래그가 무시되고 ALB에 붙은 채 전체 배포가 돌므로 먼저 확인한다.
+          # 주석이 아니라 대입 줄(줄 맨 앞 PREFLIGHT_ONLY=)로 확인한다 — 모드를 지우고 주석만 남은 경우도 거부.
+          for ID in $INSTANCE_IDS; do
+            echo "==> [$ID] 사전점검 ${DEPLOY_TAG::7} (pull + DB 계약 검증, ALB에서 빼기 전)"
+            CMD_ID="$(aws ssm send-command \
+              --region "$AWS_REGION" \
+              --instance-ids "$ID" \
+              --document-name "AWS-RunShellScript" \
+              --comment "Preflight moly-backend ${DEPLOY_TAG::7}" \
+              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && if grep -q '^PREFLIGHT_ONLY=' deploy.sh; then sudo env DEPLOY_PREFLIGHT_ONLY=1 bash deploy.sh ${DEPLOY_TAG}; else echo 'deploy.sh has no DEPLOY_PREFLIGHT_ONLY mode - merge moly-infra first' >&2; exit 1; fi\"]" \
+              --query "Command.CommandId" \
+              --output text)"
+            echo "CommandId: $CMD_ID"
+            if ! poll_ssm "$CMD_ID" "$ID"; then
+              echo "ERROR: [$ID] 사전점검 실패 — 어떤 인스턴스도 ALB에서 빼지 않았다(전부 구버전으로 서비스 중)." >&2
+              echo "조치: 위 SSM 출력으로 원인(DB 계약·pull·SSM 등)을 해결한 뒤 같은 sha로 다시 실행" >&2
+              exit 1
+            fi
+          done
+          echo "==> 사전점검 통과 (${COUNT}대) — 롤링 시작"
 
           for ID in $INSTANCE_IDS; do
             echo "==> [$ID] deregister + drain 대기 (deregistration_delay 60s)"

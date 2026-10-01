@@ -15,7 +15,9 @@ HTTPS는 ALB에서 ACM으로 종료하고 nginx :8080 → API 127.0.0.1:8000으�
 | prod | `.github/workflows/deploy.yml`, main | `moly-backend:<sha>`, 기본 2대 순차 롤링 |
 | dev | `.github/workflows/deploy-dev.yml`, dev | `moly-backend-dev:dev-<sha>`, 1대 중단 배포 |
 
-prod는 대상 수를 확인하고 한 호스트씩 ALB에서 제외·drain → SSM 배포 → 검증 → 재등록한다.
+prod는 대상 수를 확인하고, ALB에서 빼기 전에 모든 호스트에서 사전점검(`DEPLOY_PREFLIGHT_ONLY=1`:
+이미지 pull·DB 계약 검증만, live 파일·컨테이너 미변경)을 돌린다. 하나라도 실패하면 어떤 호스트도 빼지
+않고 중단한다. 통과하면 한 호스트씩 ALB에서 제외·drain → SSM 배포 → 검증 → 재등록한다.
 실패하면 다음 호스트로 진행하지 않는다. dev는 별도 IAM·대상 태그·ECR을 사용하며 ALB를 조작하지
 않는다. 두 workflow는 진행 중 배포를 취소하지 않고 뒤 배포를 대기시킨다.
 
@@ -72,6 +74,7 @@ journalctl -u moly-worker.service -n 100
   TLS 인증서는 ALB의 ACM 설정을 확인한다. 호스트 certbot 갱신 절차는 사용하지 않는다.
 - 배포 실패: Actions의 SSM 출력과 실패한 호스트 로그를 확인한다. preflight 차이를 먼저 해결하고
   같은 검증 이미지로 재시도한다. 검증을 건너뛰거나 DB 잠금 제한을 늘려 통과시키지 않는다.
+  사전점검 단계에서 실패했으면 어떤 호스트도 ALB에서 빠지지 않았으므로 register 조치는 필요 없다.
 - 큐 적체: `/health/queues`의 ready/running/dead와 미해결 dead의 나이를 확인한다. 오래된 dead를
   시간 필터로 숨기지 않는다. 원본 행을 ready로 되살리지 않고 `replay_of`가 있는 새 작업으로 재시도한다.
 - 워커·정리 중단: 타이머 마커와 마지막 성공 기록, `/health/deep`을 확인한다. 월간 정리는

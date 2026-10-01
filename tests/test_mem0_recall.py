@@ -6,6 +6,7 @@ mem0는 candidate-add-only라 과거와 현재의 상반된 기억이 벡터 저
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -362,3 +363,69 @@ async def test_skipped_turn_does_not_call_the_provider():
     a = _Adapter([_hit("p1")])
     assert await mr.recall(_Session([]), UID, query="안녕", adapter=a, embed_query=_embed) == []
     assert a.calls == 0
+
+
+# ── 단계별 계측 — 결과는 그대로, 어디서 느렸는지만 남긴다 ─────────────
+
+_Q = "회사 얘기 뭐였지?"
+
+
+def _slow_lines(caplog) -> list[str]:
+    return [r.getMessage() for r in caplog.records if "v2 회상 느림" in r.getMessage()]
+
+
+async def test_trace_marks_each_finished_stage_in_order():
+    """경계에서 끊긴 뒤에도 어디까지 왔는지 남아야 임베딩·검색·registry 중 원인을 가른다."""
+    trace: dict[str, float] = {}
+    s = _Session([("p1", "active", None, None)])
+    got = await mr.recall(s, UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_embed, trace=trace)
+    assert len(got) == 1
+    assert list(trace) == ["embed_s", "search_s", "registry_s"]
+    assert 0 <= trace["embed_s"] <= trace["search_s"] <= trace["registry_s"]
+
+
+async def test_trace_shows_which_stage_failed():
+    async def _boom(q, **_):
+        raise RuntimeError("embed down")
+
+    trace: dict[str, float] = {}
+    await mr.recall(_Session([]), UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_boom, trace=trace)
+    assert list(trace) == ["failed_s"]
+
+    trace = {}
+    await mr.recall(_Session([], boom=True), UID, query=_Q, adapter=_Adapter([_hit("p1")]),
+                    embed_query=_embed, trace=trace)
+    assert list(trace) == ["embed_s", "search_s", "registry_failed_s"]
+
+
+async def test_skipped_turn_leaves_the_trace_empty():
+    trace: dict[str, float] = {}
+    await mr.recall(_Session([]), UID, query="안녕", adapter=_Adapter([_hit("p1")]), embed_query=_embed, trace=trace)
+    assert trace == {}
+
+
+async def test_slow_recall_is_logged_even_when_it_succeeds(monkeypatch, caplog):
+    """API 프로세스는 INFO를 버린다. 느린 회상은 성공해도 WARNING이어야 운영에서 보인다."""
+    monkeypatch.setattr(mr, "SLOW_RECALL_WARN_S", 0.0)
+    s = _Session([("p1", "active", None, None)])
+    with caplog.at_level(logging.WARNING, logger="moly"):
+        got = await mr.recall(s, UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_embed)
+    assert [r.text for r in got] == ["회사에 다닌다"]
+    lines = _slow_lines(caplog)
+    assert len(lines) == 1 and "registry_s" in lines[0] and "hits=1" in lines[0]
+
+
+async def test_slow_recall_without_hits_is_logged_too(monkeypatch, caplog):
+    """기억이 없는 사용자도 임베딩·검색은 똑같이 거친다. 느렸다면 그쪽도 보여야 한다."""
+    monkeypatch.setattr(mr, "SLOW_RECALL_WARN_S", 0.0)
+    with caplog.at_level(logging.WARNING, logger="moly"):
+        assert await mr.recall(_Session([]), UID, query=_Q, adapter=_Adapter([]), embed_query=_embed) == []
+    lines = _slow_lines(caplog)
+    assert len(lines) == 1 and "search_s" in lines[0] and "hits=0" in lines[0]
+
+
+async def test_fast_recall_logs_nothing(caplog):
+    s = _Session([("p1", "active", None, None)])
+    with caplog.at_level(logging.WARNING, logger="moly"):
+        await mr.recall(s, UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_embed)
+    assert _slow_lines(caplog) == []

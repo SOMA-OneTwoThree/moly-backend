@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
@@ -34,6 +35,9 @@ VISIBLE_STATUSES = ("active", "ambiguous")
 # 회상이 비니, 필터로 빠지는 몫을 감안해 더 많이 받는다.
 _PROVIDER_FETCH = 40
 DEFAULT_LIMIT = 8
+# 이보다 오래 걸린 회상은 성공해도 단계별 소요를 WARNING으로 남긴다(API 프로세스는 INFO를 버린다).
+# 동작은 바꾸지 않는다 — 느린 회상이 임베딩·벡터 검색·registry 중 어디서 생기는지 가르는 계측이다.
+SLOW_RECALL_WARN_S = 1.0
 
 # 거친 상한. 이것만으로는 **부족하다** — 아래 RELEVANCE_MARGIN 설명 참고.
 MAX_DISTANCE = 0.90
@@ -168,6 +172,16 @@ WHERE r.user_id = :user_id
 """)
 
 
+def _warn_if_slow(user_id: uuid.UUID, stages: dict[str, float], *, hits: int) -> None:
+    """성공했지만 느린 회상의 단계별 누적 초를 남긴다. 단계 간 차이가 그 단계의 소요다."""
+    total = max(stages.values(), default=0.0)
+    if total >= SLOW_RECALL_WARN_S:
+        _log.warning(
+            "v2 회상 느림 — user=%s total=%.2fs stages=%s hits=%d",
+            user_id, total, stages, hits,
+        )
+
+
 async def recall(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -178,26 +192,42 @@ async def recall(
     collection_version: str = "v2",
     limit: int = DEFAULT_LIMIT,
     timeout: float = 3.0,
+    trace: dict[str, float] | None = None,
 ) -> list[Recalled]:
     """질의와 관련된 **현재 유효한** 기억. 실패하면 빈 목록이다.
 
     adapter·embed_query를 주입받는다 — 워커와 챗이 같은 코드를 쓰되 각자의 클라이언트를
     들고 있고, 테스트가 provider 없이 돌 수 있어야 한다.
+
+    `trace`를 주면 끝난 단계마다 이 함수 시작부터의 누적 초를 채운다(embed_s → search_s →
+    registry_s, 실패하면 failed_s·registry_failed_s). 호출측이 경계에서 회상을 끊은 뒤에도
+    어느 단계까지 왔는지 로그로 남길 수 있다.
     """
+    stages: dict[str, float] = trace if trace is not None else {}
     if not needs_recall(query):
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
+    t0 = time.monotonic()
+
+    def _mark(stage: str) -> None:
+        stages[stage] = round(time.monotonic() - t0, 3)
+
     try:
         # 임베딩에도 **같은 예산**을 건다. 안쪽이 60초를 쓰면 경계의 wait_for가 걸리기 전에
         # 이미 마감을 넘긴다.
         vector = await embed_query(query, timeout=timeout)
+        _mark("embed_s")
         hits = await adapter.search(
             vector, user_id=str(user_id), limit=_PROVIDER_FETCH, timeout=timeout
         )
+        _mark("search_s")
     except Exception as e:  # noqa: BLE001  회상 실패가 대화를 막지 않는다
-        _log.warning("v2 회상 실패(빈 목록으로 진행) — user=%s: %r", user_id, e)
+        _mark("failed_s")
+        _log.warning("v2 회상 실패(빈 목록으로 진행) — user=%s stages=%s: %r", user_id, stages, e)
         return []
     if not hits:
+        # 기억이 없는 사용자도 임베딩·검색은 똑같이 거친다. 느렸다면 여기서도 남긴다.
+        _warn_if_slow(user_id, stages, hits=0)
         return []
 
     by_id = {h.id: h for h in hits}
@@ -209,8 +239,11 @@ async def recall(
             "ids": list(by_id),
         })).all()
     except Exception as e:  # noqa: BLE001
-        _log.warning("v2 회상 registry 조회 실패 — user=%s: %r", user_id, e)
+        _mark("registry_failed_s")
+        _log.warning("v2 회상 registry 조회 실패 — user=%s stages=%s: %r", user_id, stages, e)
         return []
+    _mark("registry_s")
+    _warn_if_slow(user_id, stages, hits=len(hits))
 
     out: list[Recalled] = []
     for pid, status, occurred_at, group in rows:

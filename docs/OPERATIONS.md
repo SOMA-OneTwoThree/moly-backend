@@ -97,6 +97,12 @@ journalctl -u moly-worker.service -n 100
   예산 안 재시도가 성공하면 `ai_usage_ledger`에는 1행만 남는다(재시도 응답의 id, latency는 두 시도 합).
   실패한 첫 시도는 `llm_retry_in_budget` 로그에만 있다.
   운영 `agent_turn_deadline_s`(10)를 8 이하로 내리지 않는다. 1홉 예산이 3.0초 안팎으로 줄어 정상 턴도 도구 없이 답하게 된다.
+- 기억 회상 지연: 회상은 1.5초 경계에서 끊기고 그 턴은 빈 기억으로 답한다. `v2 회상 타임아웃`은 끊긴 턴,
+  `v2 회상 느림`은 1초 이상 걸렸지만 성공한 턴이다. `stages`는 회상 시작부터의 누적 초(`embed_s` 임베딩 →
+  `search_s` 벡터 검색 → `registry_s` registry 조회)라 앞 단계와의 차이가 그 단계의 소요다. 검색 구간에는
+  스레드·커넥션 풀 대기도 들어 있다. 실패 줄의 `failed_s`(임베딩·검색)·`registry_failed_s`는 실패까지의 누적 초다.
+  타임아웃 줄의 `stages`가 비어 있으면 임베딩도 못 끝낸 것이다. `phase1_overlap`은 Phase 1과 겹쳐 돈 시간이고
+  `elapsed`는 여기에 예산과 취소 정리 시간을 더한 값이다. `total_timeouts`는 호스트별, 컨테이너가 다시 뜨기 전까지의 누적이다.
 
 ## 데이터 수명 주기
 

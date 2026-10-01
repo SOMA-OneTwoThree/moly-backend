@@ -155,7 +155,7 @@ async def test_signal_failure_falls_back_to_neutral_and_still_sends(monkeypatch)
 
     assert await notify.notify_evening(None, _profile(), stats=stats) == 1
     assert (sent["title"], sent["body"]) == notify._EVENING["ko"]  # 중립 폴백
-    assert stats == {"evening_fallback": 1}
+    assert {k: v for k, v in stats.items() if k.startswith("evening_")} == {"evening_fallback": 1}
 
 
 async def test_category_copy_and_stats_when_signals_work(monkeypatch):
@@ -196,7 +196,7 @@ async def test_category_copy_and_stats_when_signals_work(monkeypatch):
     assert await notify.notify_evening(None, _profile(), now=now, stats=stats) == 1
     pool_bodies = {b for _, b in push_copy._POOLS[push_copy.DEFAULT_MISSING]["ko"]}
     assert sent["body"] in pool_bodies
-    assert stats == {"evening_default_missing": 1}
+    assert {k: v for k, v in stats.items() if k.startswith("evening_")} == {"evening_default_missing": 1}
 
 
 def test_stat_keys_cover_all_categories_plus_fallback():
@@ -277,7 +277,7 @@ async def test_override_replaces_copy_and_skips_token_gate(monkeypatch):
 
     assert await notify.notify_evening(_SESSION, _profile(), now=_NOW, stats=stats) == 1
     assert (sent["title"], sent["body"]) == ("캐피", "건초 500개가 들어왔어요!")
-    assert stats == {"evening_override": 1}
+    assert {k: v for k, v in stats.items() if k.startswith("evening_")} == {"evening_override": 1}
 
 
 async def test_override_uses_language_bucket(monkeypatch):

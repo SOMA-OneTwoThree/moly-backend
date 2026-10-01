@@ -40,7 +40,7 @@ def _kst(hour: int, minute: int = 0) -> datetime:
 async def _sent(monkeypatch, when: datetime) -> dict:
     calls = {"morning": 0, "evening": 0}
 
-    async def _m(session, p, now=None):
+    async def _m(session, p, now=None, stats=None):
         calls["morning"] += 1
         return 1
 

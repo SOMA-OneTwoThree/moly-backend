@@ -160,7 +160,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `attendance_claimed_at` | timestamptz NULL | 출석 수령 시각 — NOT NULL이면 당일 수령 완료 (US-902) |
 | `routine_reward_claimed_at` | timestamptz NULL | 루틴 2개 완료 보상 수령 시각 (US-904) |
 | `morning_notified_at` | timestamptz NULL | 아침(09:00) 푸시 시도 선점 마커 — NOT NULL이면 당일 재발송 차단, 기기 수신 완료를 뜻하지 않음 |
-| `evening_notified_at` | timestamptz NULL | 저녁(20:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료 |
+| `evening_notified_at` | timestamptz NULL | 저녁(20:00) 푸시 시도 선점 마커 — NOT NULL이면 당일 재발송 차단, 기기 수신 완료를 뜻하지 않음 |
 
 - 유니크: `(user_id, activity_date)`.
 - 각 도메인의 날짜가 바뀌면 새 행을 사용할 뿐, 별도 리셋 잡은 없다.
@@ -479,8 +479,11 @@ free       : 그 외
 아침 09:00·저녁 20:00 알림은 서버가 FCM HTTP v1으로 발송한다. iOS는 Firebase가 APNs로
 릴레이하고 Android는 FCM으로 직접 전달한다. 이 테이블에는 발송 대상 등록 토큰을 저장한다.
 
-- `id`, `user_id`, `platform`(`ios|android`), `push_token` UNIQUE, `last_active_at`, `created_at`.
+- `id`, `user_id`, `platform`(`ios|android`), `push_token` UNIQUE, `last_active_at`, `created_at`, `invalidated_at`.
 - 로그아웃 시 해당 `push_token` 행 삭제(API `POST /auth/logout`이 토큰을 받음).
+- `invalidated_at`: FCM이 응답 본문으로 토큰 무효를 확정한 시각(NULL = 유효). 워커가 `(user_id, push_token)` 쌍에만
+  기록하며 행은 지우지 않는다. 발송 대상은 `invalidated_at IS NULL OR last_active_at > invalidated_at` —
+  앱이 같은 토큰을 다시 등록해 `last_active_at`이 갱신되면 다시 대상이 된다. 기록 여부는 `FCM_INVALIDATE_DEAD_TOKENS`(기본 꺼짐)로 정한다.
 
 ---
 

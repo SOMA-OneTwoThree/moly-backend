@@ -350,3 +350,43 @@ RLS/권한을 확인한다. `IF NOT EXISTS`는 기존 테이블의 구조를 보
 - Flutter 관련 테스트 123개 및 전체 테스트 3,928개 통과. 목적지 파싱, 종료/백그라운드·전경 payload, 로그인 대기, 상세/목록 복귀 검증. 포맷·analyze 통과
 - 인프라 배포 스크립트 문법 및 옵션 기본값/허용값 검증 통과. 실제 배포 스크립트는 실행하지 않음
 - 실제 FCM/APNs 기기 도착·스토어 업로드·운영 배포는 후속 검증이며 자동 테스트 성공으로 대신하지 않음
+
+## FCM 무효 토큰 비활성 표시
+
+FCM이 응답 본문(`FcmError.errorCode`)으로 토큰 자체가 무효라고 확정한 경우만 다룬다. HTTP 상태만으로는 판단하지 않는다 —
+404·400·403은 프로젝트 경로·메시지 페이로드·권한 오류처럼 모든 토큰에 공통인 원인으로도 나온다.
+대상 코드는 설정 `fcm_invalidate_codes`(기본 `UNREGISTERED`만)다. 표시는 `user_devices.invalidated_at`에 시각을 남기는 것이며
+행은 지우지 않는다. 같은 `(user_id, push_token)` 쌍에만 기록하므로 그 사이 다른 계정으로 재귀속된 행은 건드리지 않는다.
+발송 대상 조회는 `invalidated_at IS NULL OR last_active_at > invalidated_at`이다 — 앱이 같은 토큰을 다시 등록하면
+(moly-auth upsert가 `last_active_at` 갱신) 다시 대상이 되고, 다시 무효로 돌아오면 다시 표시된다.
+발송 슬롯 선점(`*_notified_at`)과 푸시 빈도·대상·시각은 이 기능과 무관하다.
+
+`FCM_INVALIDATE_DEAD_TOKENS`(SSM `fcm-invalidate-dead-tokens`, 미설정 false)가 false면 드라이런이다 — 분류·집계·로그만 남긴다.
+워커 요약에는 발송 실패가 있을 때만 `푸시 실패: 무효 토큰 N건(비활성 M) / 기타 N건` 줄이 붙고, 설정·인증 오류
+(401·403 권한·404 프로젝트 경로)가 있으면 `⚠️ 설정·인증 오류 N건`이 덧붙는다. 토큰 문제가 아닌 실패는 errorCode와
+오류 메시지 요지를 WARNING으로 남긴다.
+
+DB: 이 컬럼이 든 스키마 계약의 이미지를 배포하기 전에 `db/changes/user_devices_invalidated_at.sql`을 구조 변경 절차
+(`db.apply` 기본 rollback → `--commit --expected-sha256` → `db.verify`, dev 다음 prod)로 적용한다. 컬럼이 없으면
+배포 사전점검(스키마 계약)에서 멈추고 어떤 호스트도 교체되지 않는다. 구 이미지와 moly-auth는 컬럼을 모른 채 동작한다.
+
+켜기 전 드라이런 확인(워커 호스트, 큰 발송 틱 1~2회 뒤):
+
+```bash
+journalctl -u moly-worker.service --since '1 day ago' | grep -c '비활성 표시 꺼짐'
+journalctl -u moly-worker.service --since '1 day ago' | grep -c 'HTTP 404 UNREGISTERED'
+journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_error|setup_error)\]'
+```
+
+`[payload_error]`·`[setup_error]` 줄이 있으면 켜지 않고 원인을 먼저 확인한다. 켠 뒤에는 요약의 `비활성 M`이 무효 토큰 수와
+비슷해야 하고(`무효 토큰 N건`에는 기본 설정에서 표시하지 않는 코드 — 403 `SENDER_ID_MISMATCH` 등 — 도 포함되므로 M은 그만큼
+작다), 다음 날 같은 시각 틱의 무효 토큰 수는 크게 줄어야 한다. `저녁 N건`(FCM이 수락한 사용자 수)은 줄지 않아야 한다 —
+줄면 과표시 신호이므로 즉시 끈다. 틱 끝의 `FCM 수락 0건인데 무효 토큰` WARNING(수락 없이 무효 토큰 10건 이상)도 같은
+신호다 — 토큰보다 FCM·APNs 설정 같은 공통 원인을 먼저 의심한다. 토큰이 모두 표시된 사용자는 아침 선점을 하지 않으므로
+(토큰 없음 = 선점 안 함) `morning_notified_at` 수와 `아침 일기 푸시 미전달` 경고가 줄어드는 것은 정상이다.
+
+되돌리기: SSM 값을 false로 바꾸고 재배포하면 새 표시를 멈춘다. 문제가 난 틱부터의 표시만 되돌릴 때는
+`UPDATE public.user_devices SET invalidated_at = NULL WHERE invalidated_at >= '<그 틱 시작 시각 UTC>';`,
+전부 되돌릴 때는 `UPDATE public.user_devices SET invalidated_at = NULL WHERE invalidated_at IS NOT NULL;`을 쓴다.
+같은 조건의 `SELECT count(*)`로 대상 행 수를 먼저 확인하고 `db.apply` 기본(rollback) 실행 뒤 `--commit`한다.
+컬럼 제거는 이 컬럼을 쓰지 않는 이미지로 되돌린 뒤에만 한다.

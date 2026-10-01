@@ -5090,6 +5090,14 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.user_devices.invalidated_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
       "public.user_devices.last_active_at": {
         "collation": null,
         "default": null,
@@ -14441,5 +14449,5 @@
       }
     }
   },
-  "schema_sha256": "7133bc24a880f4fd37b7876a1c6796c397fa8e04c922131959b27ff2f05b3f9d"
+  "schema_sha256": "29dcb953e6e92fc2e6654ab7a0e6b5b906c839c1f93e88b7d5709e4632fe9ba2"
 }

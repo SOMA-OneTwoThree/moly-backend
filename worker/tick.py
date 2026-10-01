@@ -96,6 +96,21 @@ def _build_summary(
         f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
+    # 발송 실패 분류 — '저녁 N건'은 수락 유저 수라 전달률이 안 보인다. 무효 토큰(FCM 확정)과
+    # 우리 쪽 원인(페이로드·설정)을 갈라 보여야 "푸시가 조용히 죽는" 상태를 채널에서 알 수 있다.
+    # 실패가 하나도 없으면 줄을 추가하지 않는다(기존 요약 형식 그대로).
+    # '무효 토큰 N'은 FCM이 무효로 확정한 전부(기본 설정에서 표시하지 않는 403 SENDER_ID_MISMATCH 포함),
+    # '비활성 M'은 그중 실제로 표시한 행 수라 M ≤ N이다.
+    invalid = counts.get("push_invalid_token", 0)
+    other = counts.get("push_payload_error", 0) + counts.get("push_transient", 0)
+    setup = counts.get("push_setup_error", 0)
+    if invalid or other or setup:
+        line = (
+            f"푸시 실패: 무효 토큰 {invalid}건(비활성 {counts.get('push_invalidated', 0)}) / 기타 {other}건"
+        )
+        if setup:
+            line += f" / ⚠️ 설정·인증 오류 {setup}건"
+        lines.insert(len(lines) - 1, line)
     # 저녁 카테고리 분포 — 다양화가 실제로 작동하는지의 유일한 관측 출구.
     # 특정 카테고리 독식(예: 폴백 급증 = 신호 조회 장애)을 여기서 발견한다.
     if counts.get("evening"):
@@ -128,6 +143,7 @@ async def _process_user(
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
         "diary_attempted": 0, "active_tz": None,
+        **{k: 0 for k in notify.PUSH_STAT_KEYS},  # 발송 결과 분류(notify._account_push가 채움)
     }
     async with get_sessionmaker()() as session:
         p = await session.get(Profile, pid)
@@ -192,7 +208,7 @@ async def _process_user(
                         await session.commit()
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_morning(session, p, now=now):
+                if await notify.notify_morning(session, p, now=now, stats=out):
                     out["morning"] = 1
             elif hour == EVENING_HOUR:
                 out["active_tz"] = p.timezone
@@ -421,6 +437,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         "morning": 0, "evening": 0,
         # 저녁 카테고리별 카운트 — 병합이 `k in counts`라 여기 없으면 조용히 버려진다(위와 동일).
         **{f"evening_{c}": 0 for c in notify.EVENING_STAT_KEYS},
+        # 발송 결과 분류(수락·무효 토큰·정리·페이로드·설정·일시) — 같은 이유로 여기 있어야 한다.
+        **{k: 0 for k in notify.PUSH_STAT_KEYS},
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
         "deadline_skipped": 0,  # 소프트 데드라인 뒤 건너뛴 유저 수(다음 틱 인계)
@@ -486,6 +504,14 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
             _log.warning(
                 "틱: 소프트 데드라인(%.0fs) 도달 — 미처리 %d명(다음 틱 인계)",
                 soft_deadline, counts["deadline_skipped"],
+            )
+        # 수락이 하나도 없는데 무효 토큰이 여럿이면 토큰보다 공통 원인(FCM·APNs 설정 등)일 수 있다.
+        # 비활성 표시가 켜져 있으면 OPERATIONS.md의 되돌리기로 잘못된 표시를 되돌린다. 로그만 남긴다
+        # (경보 정책 불변). 하한은 작은 타임존 틱에서 죽은 토큰 몇 개만 걸린 경우를 거르기 위한 것.
+        if counts["push_invalid_token"] >= 10 and not counts["push_sent"]:
+            _log.warning(
+                "틱: FCM 수락 0건인데 무효 토큰 %d건(비활성 표시 %d건) — 공통 원인 의심, 표시 중이면 되돌리기 검토",
+                counts["push_invalid_token"], counts["push_invalidated"],
             )
 
     # RC 웹훅 inbox 드레인 — 매 틱(15분). 유저 처리와 독립(전용 세션·이벤트별 트랜잭션).

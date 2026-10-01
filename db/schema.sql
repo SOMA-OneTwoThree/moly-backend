@@ -1138,6 +1138,7 @@ CREATE TABLE public.user_devices (
     push_token text NOT NULL,
     last_active_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    invalidated_at timestamp with time zone,
     CONSTRAINT user_devices_platform_check CHECK ((platform = ANY (ARRAY['ios'::text, 'android'::text])))
 );
 

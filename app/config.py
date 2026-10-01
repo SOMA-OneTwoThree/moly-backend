@@ -213,6 +213,15 @@ class Settings(BaseSettings):
     fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)
     # 아침 일기 푸시. 클라이언트/개발 검증 후 별도 활성화하며 기본은 꺼짐.
     morning_push_enabled: bool = False
+    # FCM이 '토큰 자체가 무효'라고 확정한 응답을 받으면 user_devices.invalidated_at을 찍어 다음 발송에서
+    # 건너뛴다. 행은 지우지 않는다 — 앱이 같은 토큰을 다시 등록하면(moly-auth upsert가 last_active_at
+    # 갱신) 자동으로 되살아나므로 잘못 표시돼도 자가 복구된다. 기본 꺼짐 = 드라이런(분류·집계·로그만).
+    # 운영에서 1~2틱 분류 결과를 확인한 뒤 켠다(deploy.sh의 morning-push-enabled와 같은 SSM→env 경로).
+    fcm_invalidate_dead_tokens: bool = False
+    # 비활성 표시 대상 FcmError.errorCode(쉼표 구분). 기본은 문서상 가장 확실한 UNREGISTERED(404)만.
+    # 본문 로그로 확인한 뒤 SENDER_ID_MISMATCH(403, 다른 Firebase 프로젝트의 토큰)와
+    # INVALID_ARGUMENT(400 — 토큰 필드 위반으로 판정된 경우에만 해당)를 추가할 수 있다.
+    fcm_invalidate_codes: str = "UNREGISTERED"
 
     # --- App Store(StoreKit) — JWS x5c 서명검증(구독/IAP/ASSN 웹훅) ---
     # 우리 설계는 App Store Server API 조회 없음 → .p8/Key ID/Issuer ID 불필요.

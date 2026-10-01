@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -70,12 +70,80 @@ async def _enabled(session: AsyncSession, uid, type_: str) -> bool:
     return row.enabled if row is not None else True  # 행 없으면 on(기본)
 
 
+def _live_token_filter():
+    """FCM이 무효 확정한 행(invalidated_at)은 건너뛴다. 단, 그 뒤 앱이 같은 토큰을 다시 등록해
+    moly-auth upsert가 last_active_at을 더 최신으로 갱신했으면 되살린다 — 잘못 표시된 토큰의
+    자가 복구 경로(moly-auth 변경 없이 성립). 다시 실패하면 다음 발송에서 다시 표시된다."""
+    return or_(
+        UserDevice.invalidated_at.is_(None),
+        UserDevice.last_active_at > UserDevice.invalidated_at,
+    )
+
+
 async def _tokens(session: AsyncSession, uid) -> list[str]:
     return list(
         (
-            await session.execute(select(UserDevice.push_token).where(UserDevice.user_id == uid))
+            await session.execute(
+                select(UserDevice.push_token).where(UserDevice.user_id == uid, _live_token_filter())
+            )
         ).scalars().all()
     )
+
+
+# 발송 결과 관측 키 — tick의 counts/out 초기화가 이 목록으로 만든다(없는 키는 병합에서 버려짐).
+PUSH_STAT_KEYS: tuple[str, ...] = (
+    "push_sent",           # FCM이 수락한 요청 수(토큰 단위)
+    "push_invalid_token",  # FCM이 무효 확정한 토큰 수(UNREGISTERED·토큰 INVALID_ARGUMENT·SENDER_ID_MISMATCH)
+    "push_invalidated",    # 그중 user_devices.invalidated_at을 실제로 찍은 행 수
+    "push_payload_error",  # 400인데 토큰 필드가 아님 — 우리 메시지 버그 신호
+    "push_setup_error",    # 401 APNs 키 · 403 권한 · 404 프로젝트 — 전 토큰 공통 장애 신호
+    "push_transient",      # 429·5xx·네트워크
+)
+
+
+def _account_push(stats: dict | None, result) -> None:
+    """push.send 결과를 관측 카운트에 얹는다. int fake(테스트)가 와도 안전(getattr 기본값)."""
+    if stats is None:
+        return
+    stats["push_sent"] = stats.get("push_sent", 0) + int(result)
+    for kind, n in getattr(result, "failures", {}).items():
+        key = f"push_{kind}"
+        stats[key] = stats.get(key, 0) + n
+
+
+async def _invalidate_dead_tokens(session: AsyncSession, uid, tokens, *, stats: dict | None) -> int:
+    """FCM이 '토큰 자체가 무효'라고 확정한 행에 invalidated_at을 찍는다(행 삭제 아님).
+
+    user_devices의 DDL은 이 레포(db/schema.sql)가 갖고, 평소 쓰기는 moly-auth가 한다(등록 =
+    push_token 충돌 시 재귀속 upsert, 로그아웃 = (push_token, user_id) delete). 여기서도 같은
+    (user_id, push_token) 쌍으로 좁혀 표시하므로 그 사이 다른 유저로 재귀속된 행은 건드리지 않고,
+    moly-auth의 등록·로그아웃 동작은 그대로다(이 컬럼을 모른 채 upsert/delete). 되살리기는
+    _live_token_filter(재등록 시 last_active_at > invalidated_at)가 맡는다.
+    settings.fcm_invalidate_dead_tokens=False(기본)면 집계·로그만 남긴다(드라이런).
+    표시 실패는 발송 결과를 뒤집지 않는다 — 다음 틱에 같은 토큰이 다시 무효로 돌아온다.
+    """
+    tokens = list(dict.fromkeys(tokens))
+    if not tokens or session is None:
+        return 0
+    if not settings.fcm_invalidate_dead_tokens:
+        _log.info("FCM 무효 토큰 %d건 — 비활성 표시 꺼짐(드라이런, user=%s)", len(tokens), uid)
+        return 0
+    try:
+        res = await session.execute(
+            update(UserDevice)
+            .where(UserDevice.user_id == uid, UserDevice.push_token.in_(tokens))
+            .values(invalidated_at=func.now())
+        )
+        await session.commit()
+    except Exception:  # noqa: BLE001
+        _log.warning("FCM 무효 토큰 표시 실패(user=%s)", uid, exc_info=True)
+        await session.rollback()
+        return 0
+    marked = res.rowcount if res.rowcount is not None and res.rowcount >= 0 else len(tokens)
+    if stats is not None:
+        stats["push_invalidated"] = stats.get("push_invalidated", 0) + marked
+    _log.info("FCM 무효 토큰 %d건 비활성 표시(user=%s)", marked, uid)
+    return marked
 
 
 async def _claim_send_slot(
@@ -125,7 +193,7 @@ async def _morning_diary_id(session: AsyncSession, profile, now: datetime):
 
 
 async def notify_morning(
-    session: AsyncSession, profile, *, now: datetime | None = None,
+    session: AsyncSession, profile, *, now: datetime | None = None, stats: dict | None = None,
 ) -> int:
     if not settings.morning_push_enabled:
         return 0
@@ -161,6 +229,8 @@ async def notify_morning(
         tokens, title, body, data={"link": "diary", "diary_id": str(diary_id)},
         expires_at=expires_at, access_token=access_token,
     )
+    _account_push(stats, sent)
+    await _invalidate_dead_tokens(session, profile.id, getattr(sent, "invalid_tokens", ()), stats=stats)
     if not sent:
         _log.warning("아침 일기 푸시 미전달 — 당일 재발송 생략(user=%s)", profile.id)
     return sent
@@ -235,6 +305,8 @@ async def notify_evening(
     if session is not None:
         await session.commit()
     sent = await push.send(tokens, title, body)
+    _account_push(stats, sent)
+    await _invalidate_dead_tokens(session, profile.id, getattr(sent, "invalid_tokens", ()), stats=stats)
     # stats는 실제 발송(sent>0) 뒤에 — 토큰 없는 유저를 세면 tick의 '저녁 N건'과 분포 합이 어긋난다.
     if sent and stats is not None:
         key = f"evening_{category}"

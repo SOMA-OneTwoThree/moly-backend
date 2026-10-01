@@ -244,6 +244,51 @@ async def test_post_message_llm_failure_persists_nothing(monkeypatch):
     assert [o for o in session.added if isinstance(o, IdempotencyKey)] == []
 
 
+async def test_post_message_transient_llm_failure_is_retryable_503(monkeypatch, caplog):
+    """제공자 timeout은 500(우리 버그)이 아니라 503 AI_UNAVAILABLE로 나간다 — 저장은 여전히 0."""
+    import httpx
+    import openai
+
+    from app.core.errors import AppError
+    from app.models.idempotency_key import IdempotencyKey
+
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    async def _timeout(*a, **k):
+        raise openai.APITimeoutError(request=httpx.Request("POST", "https://api.openai.test"))
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(llm_module, "generate", _timeout)
+    session = FakeSession()
+    req = SimpleNamespace(text="안녕", greeting_id=None)
+    with pytest.raises(AppError) as ei:
+        await chat_service.post_message(session, UID, req, "idem-llm-timeout")
+    assert (ei.value.code, ei.value.http_status) == ("AI_UNAVAILABLE", 503)
+    # AppError 핸들러는 로그를 안 남긴다 — 503 원인은 여기서 남겨야 추적된다.
+    assert any("chat_llm_unavailable" in r.getMessage() for r in caplog.records)
+    assert isinstance(ei.value.__cause__, openai.APITimeoutError)
+    assert [m for m in session.added if isinstance(m, Message)] == []
+    assert [o for o in session.added if isinstance(o, IdempotencyKey)] == []
+
+
+async def test_post_message_cancellation_is_not_turned_into_503(monkeypatch):
+    """요청 취소(클라이언트 끊김)는 제공자 장애가 아니다 — 503으로 바꾸지 않고 그대로 올린다."""
+    import asyncio
+
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    async def _cancelled(*a, **k):
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(llm_module, "generate", _cancelled)
+    req = SimpleNamespace(text="안녕", greeting_id=None)
+    with pytest.raises(asyncio.CancelledError):
+        await chat_service.post_message(FakeSession(), UID, req, "idem-cancel")
+
+
 async def test_post_message_passes_llm_timeout(monkeypatch, patched):
     # SOMA-374: LLM 호출에 per-request timeout이 전달된다(무한 대기 방지).
     captured: dict = {}
@@ -260,6 +305,8 @@ async def test_post_message_passes_llm_timeout(monkeypatch, patched):
     req = SimpleNamespace(text="hi", greeting_id=None)
     await chat_service.post_message(FakeSession(), UID, req, "idem-to")
     assert captured.get("timeout") is not None
+    # 마감 안의 호출 — SDK 자동 재시도(timeout × 3)를 꺼야 timeout이 곧 최대 소요다(2026-10-01 5xx).
+    assert captured.get("sdk_retries") is False
 
 
 async def test_post_message_phase2_dup_returns_cached(monkeypatch, patched):

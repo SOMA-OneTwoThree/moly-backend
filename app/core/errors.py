@@ -165,6 +165,17 @@ def attribution_decrypt_failed() -> AppError:
     return AppError("ATTRIBUTION_DECRYPT_FAILED", 422, "설치 리퍼러를 복호화할 수 없어요.")
 
 
+def ai_unavailable() -> AppError:
+    """대화 LLM이 마감 안에 답하지 못함(timeout·연결·429·5xx). 저장된 게 없어 그대로 다시 보내면 된다.
+
+    500 INTERNAL과 구분한다 — 500은 우리 버그, 이건 제공자 쪽 일시 장애라 앱이 재전송을 안내할 수 있다.
+    """
+    return AppError(
+        "AI_UNAVAILABLE", 503, "캐피가 잠깐 대답하기 어려워요. 조금 뒤에 다시 보내 주세요.",
+        {"retryable": True},
+    )
+
+
 def attribution_key_unavailable() -> AppError:
     return AppError("ATTRIBUTION_KEY_UNAVAILABLE", 503, "설치 귀속 복호화를 잠시 사용할 수 없어요.")
 

@@ -1128,12 +1128,31 @@ async def post_message(
                 ttl_system=settings.cache_ttl_system,
                 ttl_messages=settings.cache_ttl_messages,
                 timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
+                sdk_retries=False,  # 마감 안의 호출 — SDK 재시도는 timeout을 3배로 늘린다(llm._no_retry)
             )
-    except BaseException:
+    except BaseException as exc:
         # 외부 호출 실패는 저장 0인 클린 재시도다. lease도 즉시 회수해 TTL만큼 막히지 않게 한다.
         await session.rollback()
         await chat_turns.release(session, user_id=uid, lease=lease)
         await session.commit()
+        if llm.is_transient_failure(exc):
+            # 제공자 쪽 일시 장애는 500(우리 버그)이 아니라 재시도 가능한 503으로 낸다.
+            # AppError 핸들러는 로그를 안 남기므로 여기서 남긴다(예전 500은 핸들러가 스택을 남겼다).
+            # message로 우리 쪽 마감 초과("...before inference")와 제공자 timeout을 구분한다.
+            _log.warning(
+                "chat_llm_unavailable %s",
+                json.dumps(
+                    {
+                        "error": type(exc).__name__,
+                        "status": getattr(exc, "status_code", None),
+                        "request_id": getattr(exc, "request_id", None),
+                        "message": str(exc)[:120],
+                        "llm_ms": _ms(t_llm0, time.monotonic()),
+                    },
+                    ensure_ascii=False,
+                ),
+            )
+            raise errors.ai_unavailable() from exc
         raise
     llm_ms = _ms(t_llm0, time.monotonic())
     if (

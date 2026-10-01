@@ -14,7 +14,9 @@ turn_deadline = monotonic() + turn_deadline_s      # 기본 8.0
 불변식:
 - **LLM 호출 timeout은 `min(llm_timeout_s, 남은 데드라인)`**이다. `llm_timeout_s=60`을 그대로 쓰면
   턴 데드라인이 그 자리에서 깨진다.
-- 1홉이 timeout이면 **도구 없이 한 번 더** 부른다. 그냥 올리면 chat이 롤백해 사용자에게 5xx가 간다.
+- 1홉이 timeout·일시 오류면 **도구 없이 한 번 더** 부른다. 그냥 올리면 chat이 롤백해 사용자에게 5xx가 간다.
+  1홉은 그 fallback이 끝날 시간(`_decide_reserve`)을 남기고 끊는다. SDK 자동 재시도는 쓰지 않는다
+  (`llm._no_retry`) — 시도당 timeout이 3배로 불어 이 계산을 통째로 무효화한다(2026-10-01 운영 5xx).
 - 도구는 **툴별 단명 read-only 세션**을 별도 세션팩토리로 연다. Phase 1의 세션을 재사용하지 않는다
   (SOMA-374: LLM 구간 DB 커넥션 0).
 - 모델이 상한을 넘겨 호출하면 앞의 N개만 실행하되 **모든 call_id의 형식을 닫는다** — 안 닫으면
@@ -84,6 +86,18 @@ _SHRINK_MIN_CHARS = 8
 # 1홉 timeout 뒤 fallback(도구 없는 단발 호출)을 시작할 최소 잔여 시간.
 # dev 실측 단발 응답 p50이 1.45초라 그보다 낮으면 시작해도 못 끝낸다.
 FALLBACK_MIN_S = 1.5
+
+# 도구를 쓸 수 있는 1홉이 끊긴 뒤 fallback에 **남겨 두는** 시간. final_reserve(2.5초)만 남기면
+# fallback 예산이 단발 p90 수준이라 열에 하나는 fallback도 timeout이다. 운영 tool_decide 단발
+# 지연(gpt-6-luna, 14일 2,617건): p95 2.8초 · p99 3.75초 · p99.5 4.9초. 4초를 남기면 fallback이
+# p99까지 끝나고, 1홉은 (마감 − 4초)에서 끊긴다 — 정상 호출 중 잘리는 건 ~1%이고 그 턴은 도구
+# 없이 답한다(도구를 실제로 쓰는 턴은 0.8%뿐).
+FALLBACK_RESERVE_S = 4.0
+
+# 1홉 timeout의 하한 — tool_decide 단발 p95(2.8초) 근처. 데드라인이 짧은 환경(코드 기본 8초)에서
+# fallback 예약 때문에 1홉이 p95보다 짧아지면 정상 호출까지 대거 잘려 도구를 잃는다. 그때는
+# fallback 예약을 줄인다(final_reserve 아래로는 안 줄인다).
+DECIDE_MIN_S = 3.0
 
 # 도구의 준비 단계(임베딩 같은 외부 호출)에 주는 예산. DB 제한(800ms)과 별개다.
 # 실측 임베딩 소요가 277~976ms라 800ms 안에 DB까지 끝내라고 하면 내용 검색이 늘 죽는다.
@@ -232,12 +246,6 @@ def _transcript(convo: Sequence[Mapping[str, str]]) -> list[TranscriptItem]:
     return items
 
 
-def _is_timeout(exc: BaseException) -> bool:
-    """provider SDK의 timeout인가. SDK 타입을 import하지 않으려고 이름으로 본다 —
-    provider를 바꿔도 이 판정이 따라다니지 않게 하려는 것이다."""
-    return isinstance(exc, (TimeoutError, asyncio.TimeoutError)) or "Timeout" in type(exc).__name__
-
-
 def _crisis(user_text: str) -> bool:
     """안전 게이트 — 분류기가 꽂혀 있을 때만 판정한다(기본은 항상 False, §5.6)."""
     if SAFETY_CLASSIFIER is None:
@@ -269,6 +277,18 @@ def _llm_timeout(
     # floor는 정상 예산을 설명하기 위한 과거 인자이고 하드 deadline을 넘길 권한이 아니다.
     # SDK가 0을 받지 않도록 1ms만 보장하되 remaining보다 커지지는 않는다.
     return min(settings.llm_timeout_s, remaining)
+
+
+def _decide_reserve(
+    deadline: float, *, now: Callable[[], float], final_reserve_s: float
+) -> float:
+    """도구를 쓸 수 있는 1홉 뒤에 남길 시간 — 최종 호출(final_reserve) **또는** fallback 몫.
+
+    fallback 몫은 FALLBACK_RESERVE_S이되, 1홉이 DECIDE_MIN_S는 쓰도록 줄어든다. 운영(데드라인 10초,
+    1홉 전 경과 ~1.65초)에서는 1홉 4.35초 · fallback 4초, 데드라인 8초면 1홉 3초 · fallback 3.35초다.
+    """
+    fallback = min(FALLBACK_RESERVE_S, (deadline - now()) - DECIDE_MIN_S)
+    return max(final_reserve_s, fallback)
 
 
 # --- 도구 실행 ---
@@ -652,7 +672,11 @@ async def run_turn(
                 deadline,
                 floor=config.final_reserve_s,
                 now=now,
-                reserve=config.final_reserve_s if with_tools else 0.0,
+                # 도구 홉 뒤에는 최종 호출(final_reserve) **또는** fallback이 온다(_decide_reserve).
+                reserve=(
+                    _decide_reserve(deadline, now=now, final_reserve_s=config.final_reserve_s)
+                    if with_tools else 0.0
+                ),
             ),
             # 도구를 제안하지 않은 호출은 그냥 대화 1회다 — 회계 purpose를 실제 호출 모양에 맞춘다.
             purpose="tool_decide" if with_tools else "chat",
@@ -672,16 +696,27 @@ async def run_turn(
         # fallback"을 쓰라고 한다 — 도구 없이 한 번 더 부르는 것이 그 fallback이다.
         # 일기 조회를 못 할 뿐 대화는 이어진다. (dev 실측: tool_decide 실패 26/104가 전부 timeout)
         #
-        # ⚠️ 문턱은 `final_reserve_s`가 아니라 `FALLBACK_MIN_S`다. 1홉의 timeout은 정확히
-        # `deadline - final_reserve_s`에 걸리므로, 그 순간 남은 시간은 **정의상 딱
-        # final_reserve_s**이고 SDK 반환 지연만큼 항상 조금 모자란다. `>= final_reserve_s`로
-        # 두면 fallback이 거의 never다 — 실측에서 8.57초 만에 그대로 5xx가 나갔다.
-        # fallback은 도구 없는 단발 호출이라 예약분 전체가 필요하지 않다.
-        if not (use_tools and _is_timeout(exc) and deadline - now() >= FALLBACK_MIN_S):
+        # ⚠️ 문턱은 예약분이 아니라 `FALLBACK_MIN_S`다. 1홉의 timeout은 정확히 예약선
+        # (`deadline - _decide_reserve`)에 걸리므로 그 순간 남은 시간은 **정의상 딱 예약분**이고
+        # SDK 반환 지연만큼 항상 조금 모자란다. 예약분 이상을 요구하면 fallback이 거의 never다
+        # — 실측에서 8.57초 만에 그대로 5xx가 나갔다.
+        #
+        # ⚠️ 2026-10-01 운영 5xx: SDK 기본 재시도(max_retries=2)가 1홉을 timeout의 3배(18.9초)로
+        # 늘려 이 조건이 한 번도 성립하지 못했다(14일간 fallback 실행 0건). 지금은 llm이 SDK 재시도를
+        # 끄고 같은 timeout 안에서만 다시 부른다.
+        #
+        # timeout만이 아니라 연결 실패·429·5xx도 같은 fallback을 탄다. 예전엔 SDK가 이것들을 조용히
+        # 재시도했는데, 재시도를 끈 지금(llm._no_retry) 여기서 받지 않으면 일시 오류가 곧장 5xx다.
+        # 도구 없는 호출은 프롬프트 앞부분이 달라 **다른 서버로 라우팅된다**(운영 실측 3/3: 캐시 적중 0%)
+        # — 느린 서버에 같은 요청을 다시 붙이는 SDK 재시도와 달리 실제로 우회가 된다.
+        if not (use_tools and llm.is_transient_failure(exc) and deadline - now() >= FALLBACK_MIN_S):
             raise
         _log.warning(
             "decide_timeout_fallback %s",
-            json.dumps({"remaining_s": round(deadline - now(), 2)}, ensure_ascii=False),
+            json.dumps(
+                {"remaining_s": round(deadline - now(), 2), "error": type(exc).__name__},
+                ensure_ascii=False,
+            ),
         )
         step1 = await _hop1(False)
         use_tools = False

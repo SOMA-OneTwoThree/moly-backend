@@ -36,7 +36,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13"
+          python-version: "3.12"  # 운영 이미지(python:3.12-slim-trixie)와 맞춤
           enable-cache: true
 
       - name: Install dependencies

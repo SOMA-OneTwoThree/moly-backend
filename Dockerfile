@@ -1,8 +1,12 @@
-FROM python:3.12-slim
+# 베이스 고정: OS 코드네임 태그(trixie). 무태그 `python:3.12-slim`은 다음 Debian 메이저가 나오면 재빌드 때
+# 조용히 따라간다(2026-10-01: trixie가 레거시 tz 별칭을 tzdata-legacy로 분리해 41명 일기·푸시가 두 달 멈춤).
+# 같은 코드네임 안의 보안·tzdata 갱신은 계속 자동 반영된다 — 다이제스트는 고정하지 않는다.
+FROM python:3.12-slim-trixie
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir uv
+# uv도 고정 — 무고정이면 빌드마다 resolver 버전이 바뀐다(2026-10-01 운영 빌드 0.12.21).
+RUN pip install --no-cache-dir uv==0.12.21
 
 # 의존성만 먼저 동기(레이어 캐시). package=false 라 프로젝트 자체는 빌드 안 함.
 COPY pyproject.toml uv.lock ./

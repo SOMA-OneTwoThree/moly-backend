@@ -118,6 +118,17 @@ def test_build_summary_no_timezone_line_when_empty():
     assert "대상 타임존" not in msg
 
 
+def test_build_summary_shows_unresolvable_timezone_line():
+    """해석 불가 tz가 있으면 요약에 경고 1줄 — 그 tz 유저는 전원 스킵이라 숫자로는 안 보인다."""
+    msg = _build_summary(_NOW, {**_COUNTS_OK, "tz_unresolvable": 2}, elapsed=1.0)
+    assert "⚠️ 해석 불가 timezone 2종" in msg
+
+
+def test_build_summary_no_unresolvable_line_when_zero():
+    msg = _build_summary(_NOW, {**_COUNTS_OK, "tz_unresolvable": 0}, elapsed=1.0)
+    assert "해석 불가" not in msg
+
+
 def test_build_summary_with_failures():
     """실패 있으면 ⚠️ 프리픽스 + 실패 수치 강조."""
     msg = _build_summary(_NOW, _COUNTS_FAIL, elapsed=10.0)

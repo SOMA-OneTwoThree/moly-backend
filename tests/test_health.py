@@ -197,6 +197,50 @@ def test_deep_vecs_bytes_per_row_none_before_analyze(monkeypatch):
     assert r.json()["tables"]["vecs_bytes_per_row"] is None
 
 
+# --- deep: 타임존 해석(2026-10-01 레거시 별칭 41명이 두 달간 어떤 지표에도 안 잡힘) ---
+def _tz_session(names):
+    """profiles.timezone distinct 조회만 scalars로, 나머지는 _DeepSession과 같게."""
+    class _TzSession(_DeepSession):
+        async def execute(self, stmt, *a, **k):
+            if "profiles.timezone" in str(stmt):
+                return SimpleNamespace(scalars=lambda: iter(names))
+            return SimpleNamespace(one=lambda: (0, 0))
+
+    return _TzSession()
+
+
+def _get_deep(monkeypatch, names, extra_cfg=None):
+    monkeypatch.setattr(health.settings, "environment", "local")
+    monkeypatch.setattr(health.settings, "health_token", "")
+    monkeypatch.setattr(health.config_store, "get_config_values", _fresh_worker_cfg(extra_cfg))
+    app.dependency_overrides[get_session] = _override(_tz_session(names))
+    try:
+        return client.get("/health/deep")
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_deep_timezones_ok_before_first_worker_record(monkeypatch):
+    """전부 해석되고 워커 기록이 아직 없으면(배포 직후) 200 — 기록 없음은 None."""
+    r = _get_deep(monkeypatch, ["Asia/Seoul", "Asia/Calcutta", None])
+    assert r.status_code == 200
+    assert r.json()["timezones"] == {"distinct": 2, "unresolvable_api": [], "unresolvable_worker": None}
+
+
+def test_deep_degraded_when_profile_timezone_unresolvable(monkeypatch):
+    r = _get_deep(monkeypatch, ["Asia/Seoul", "Not/AZone"],
+                  {"monitoring:worker_tz_unresolvable": []})
+    assert r.status_code == 503
+    assert r.json()["timezones"]["unresolvable_api"] == ["Not/AZone"]
+
+
+def test_deep_degraded_when_worker_recorded_unresolvable(monkeypatch):
+    """API 컨테이너는 풀어도 워커 틱이 못 푼 tz가 있으면 503(두 프로세스의 tzdata가 어긋난 경우)."""
+    r = _get_deep(monkeypatch, ["Asia/Seoul"], {"monitoring:worker_tz_unresolvable": ["Not/AZone"]})
+    assert r.status_code == 503
+    assert r.json()["timezones"]["unresolvable_worker"] == ["Not/AZone"]
+
+
 # --- /health/queues (잡 큐 — 이관 게이트 지표) ---
 def test_queues_exposes_counts_and_oldest_dead_age(monkeypatch):
     monkeypatch.setattr(health.settings, "environment", "local")

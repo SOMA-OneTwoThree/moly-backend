@@ -21,6 +21,10 @@ dependencies = [
     "vecs==0.4.5",
     "psycopg[binary]>=3.3.4",
     "psycopg2-binary>=2.9.12",
+    # zoneinfo가 레거시 IANA 별칭(Asia/Calcutta·US/Eastern 등)을 풀도록 명시 의존.
+    # python:3.12-slim(trixie)의 tzdata 데비안 패키지는 별칭 링크를 tzdata-legacy로 분리해
+    # 시스템 TZPATH만으로는 ZoneInfoNotFoundError가 난다 → zoneinfo가 이 패키지로 폴백한다.
+    "tzdata>=2026.3",
 ]
 
 [dependency-groups]

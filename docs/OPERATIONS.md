@@ -47,6 +47,11 @@ moly-infra `deploy.sh`가 원본이다. 생성된 `.env`·`backend.env`·`secret
 배치는 매시 :00·:15·:30·:45에 실행된다. 사용자 현지 04시 일기, 09시 아침 푸시(기본 꺼짐),
 20시 저녁 푸시를 처리한다. 고유 타임존을 Python에서 해석한 뒤 해당 문자열의 사용자만 조회한다.
 잘못된 타임존 한 건이 전체 틱을 실패시키는 SQL `AT TIME ZONE` 전환은 하지 않는다.
+해석하지 못한 타임존은 그 사용자 전원이 건너뛰어지므로 세 곳에 드러난다: 워커 요약의 `해석 불가 timezone` 줄,
+UTC 04:00 틱의 하루 1회 Slack 경보, `/health/deep`의 `timezones`(있으면 503). 레거시 별칭(Asia/Calcutta 등)은
+PyPI `tzdata` 의존성으로 푼다 — 베이스 이미지(trixie)는 별칭을 `tzdata-legacy`로 분리해 시스템 경로만으로는 못 푼다.
+경보는 04:00Z 틱이 :15 전에 시작할 때만 나간다(재부팅 catch-up 등으로 늦으면 그날은 생략) — 요약·`/health/deep`도 함께 본다.
+`/health/deep`의 `unresolvable_worker`는 배포 후 첫 워커 틱 전까지 `null`이다.
 RevenueCat 수신함·기억 재개·retention 예약·하트비트는 사용자 루프와 별개로 처리한다.
 
 ## 관측과 장애 대응

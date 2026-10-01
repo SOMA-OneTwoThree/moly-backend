@@ -24,6 +24,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core import errors
 from app.core.db import get_session
+from app.core.time_utils import is_valid_iana_timezone
+from app.models.profile import Profile
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.common import HealthResponse
 from app.services import config_store, jobs, llm, slack_notify  # noqa: F401 (slack_notify: 향후 확장)
@@ -172,6 +174,22 @@ async def health_deep(
             degraded = True
     except Exception:  # noqa: BLE001
         out["retention"] = None
+
+    # 타임존 해석 — DB의 distinct profiles.timezone 전부를 이 컨테이너의 zoneinfo로 풀어본다(≤수십 개).
+    # 2026-10-01: 레거시 별칭 3종(41명)이 두 달간 워커 스킵·422·KST 폴백을 내고도 어떤 지표에도 안 잡혔다.
+    try:
+        names = [n for n in (await session.execute(select(Profile.timezone).distinct())).scalars() if n]
+        bad_api = sorted(n for n in names if not is_valid_iana_timezone(n))
+        vals = await config_store.get_config_values(session, [config_store.WORKER_TZ_UNRESOLVABLE_KEY])
+        bad_worker = vals.get(config_store.WORKER_TZ_UNRESOLVABLE_KEY)
+        out["timezones"] = {
+            "distinct": len(names), "unresolvable_api": bad_api,
+            "unresolvable_worker": bad_worker if isinstance(bad_worker, list) else None,
+        }
+        if bad_api or (isinstance(bad_worker, list) and bad_worker):
+            degraded = True
+    except Exception:  # noqa: BLE001
+        out["timezones"] = None
 
     if degraded:
         response.status_code = 503

@@ -108,6 +108,8 @@ def _build_summary(
             lines.insert(len(lines) - 1, "저녁 분포: " + " / ".join(dist))
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
+    if counts.get("tz_unresolvable"):
+        lines.append(f"⚠️ 해석 불가 timezone {counts['tz_unresolvable']}종 — 그 tz 유저 전원 스킵")
     return "\n".join(lines)
 
 
@@ -347,7 +349,7 @@ def _rc_inbox_summary(
     return "\n".join(lines)
 
 
-async def _relevant_timezones(now: datetime) -> set[str]:
+async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = None) -> set[str]:
     """이 틱에서 일기/아침/저녁 시각(로컬 04·09·20시)에 걸리는 timezone 문자열 집합(#16+#24).
 
     판정은 전부 파이썬(ZoneInfo)이다 — SQL `AT TIME ZONE`은 금지: 이상 tz 문자열 1행이
@@ -365,6 +367,8 @@ async def _relevant_timezones(now: datetime) -> set[str]:
             hour = now.astimezone(ZoneInfo(tz)).hour
         except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
             _log.warning("틱: 해석 불가 timezone %r — 이 tz 유저 전원 스킵: %r", tz, e)
+            if unresolvable is not None:
+                unresolvable.add(tz)  # 관측 출구(요약·헬스·일 1회 경보) — 2026-10-01 41명 두 달 미발견
             continue
         if hour in (DIARY_HOUR, MORNING_HOUR, EVENING_HOUR):
             relevant.add(tz)
@@ -426,7 +430,17 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
 
     # #16+#24: 지금 처리 시각에 걸린 timezone이 하나도 없으면 유저 루프를 통째로 건너뛴다.
     # (counts["users"]는 이제 "전체 유저"가 아니라 "후보 tz 유저" 수다 — 관측 의미 변경.)
-    tzs = await _relevant_timezones(now)
+    tz_unresolvable: set[str] = set()
+    tzs = await _relevant_timezones(now, tz_unresolvable)
+    counts["tz_unresolvable"] = len(tz_unresolvable)
+    # 해석 불가 tz 목록을 app_config에 기록 — /health/deep가 노출(워커는 틱마다 새 프로세스라 여기선 저장만).
+    try:
+        async with get_sessionmaker()() as s_tz:
+            await config_store.set_config_value(
+                s_tz, config_store.WORKER_TZ_UNRESOLVABLE_KEY, sorted(tz_unresolvable)
+            )
+    except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
+        _log.warning("해석 불가 tz 기록 실패(무시): %r", e)
     if tzs:
         async with get_sessionmaker()() as s0:
             cfg = await effective_token_config(s0)
@@ -487,6 +501,16 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     # 하루 1회(UTC 04시 틱): 비용 기록.
     # (SOMA-349에서 유저별 세션으로 바뀌어 공유 session이 없으므로 전용 세션을 연다.)
     if now.hour == DIARY_HOUR:
+        # 하루 1회(UTC 04:00 틱만): 해석 불가 tz 경보 — 15분마다 새 프로세스라 in-process dedup이 안 통한다.
+        if tz_unresolvable and now.minute < 15:
+            try:
+                await slack_notify.alert(
+                    "⚠️ 해석 불가 timezone " + ", ".join(sorted(tz_unresolvable))
+                    + " — 해당 유저 일기·푸시 전원 스킵 중(컨테이너 tzdata/별칭 확인)",
+                    dedup_key="tz_unresolvable",
+                )
+            except Exception as e:  # noqa: BLE001
+                _log.warning("해석 불가 tz 경보 실패(무시): %r", e)
         async with get_sessionmaker()() as smon:
             # 전일 완결분 billable 합산(임계 비교·경보는 _emit_worker_health)
             if settings.daily_billable_alert_threshold > 0:

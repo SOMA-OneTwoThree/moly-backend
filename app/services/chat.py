@@ -1402,6 +1402,14 @@ async def post_message(
     if new_anchor is not None:
         await _save_anchor(session, uid, new_anchor)  # 리셋 — phase 2 원자
 
+    if not reply_stored.strip():
+        # 정제 뒤 빈 답장도 지금처럼 저장·차감한다(대체 문구·미차감은 제품 결정). 원인(기호만 출력 /
+        # 빈 응답)을 가를 수 있게 본문 없이 길이와 호출 구성만 남긴다.
+        _log.warning(
+            "빈 답장 저장(egress) user=%s lang=%s raw_len=%d calls=%s",
+            user_id, language, len(reply_text or ""),
+            [(c.purpose, c.model, c.output_tokens) for c in usage.calls],
+        )
     # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷) — 턴 내 모든 호출의 합계를 남긴다.
     rmsg = Message(
         user_id=uid, sender="moly", kind=message_kind,

@@ -66,3 +66,28 @@ async def test_nonnegative_warning_threshold_override_is_preserved():
     cfg = await effective_token_config(FakeSession(rows))
 
     assert cfg["token_warning_threshold"] == 0
+
+
+async def test_missing_launch_row_falls_back_and_is_warned_once(caplog, monkeypatch):
+    """행이 없으면 지금처럼 코드 기본값으로 떨어지고, 프로세스당 한 번만 경고한다."""
+    from app.services import limits
+
+    monkeypatch.setattr(limits, "_warned_missing_launch_row", False)
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        cfg = await effective_token_config(FakeSession([]))
+        await effective_token_config(FakeSession([]), raw={})  # 미리 읽어 온 설정에 없어도 같은 판정
+    assert cfg["free_launch_until"] == settings.free_launch_until
+    assert caplog.text.count("free_launch_until 행 없음") == 1
+
+
+@pytest.mark.parametrize("value", ["2099-01-01T00:00:00+09:00", None])
+async def test_present_launch_row_is_not_warned(caplog, monkeypatch, value):
+    """값이 있거나 명시적 null(OFF)이면 행이 있는 것이다."""
+    from app.services import limits
+
+    monkeypatch.setattr(limits, "_warned_missing_launch_row", False)
+    rows = [SimpleNamespace(key="free_launch_until", value=value)]
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        cfg = await effective_token_config(FakeSession(rows))
+    assert cfg["free_launch_until"] == value
+    assert "free_launch_until 행 없음" not in caplog.text

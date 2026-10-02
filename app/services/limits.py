@@ -4,12 +4,16 @@ daily_token_limit 은 {free,trial,subscriber} dict. entitlement/gating이 공유
 """
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.services.config_store import get_config_values
+
+_log = logging.getLogger("moly-backend")
+_warned_missing_launch_row = False
 
 CONFIG_KEYS = [
     "daily_token_limit",
@@ -27,6 +31,8 @@ async def effective_token_config(
 ) -> dict[str, Any]:
     # raw: 호출측이 app_config를 이미 읽어 왔으면 재조회하지 않는다(#11 — 요청당 왕복 병합).
     cfg = raw if raw is not None else await get_config_values(session, CONFIG_KEYS)
+    if "free_launch_until" not in cfg:
+        _warn_missing_launch_row()
     limits = cfg.get("daily_token_limit")
     if not isinstance(limits, dict):
         limits = {
@@ -54,3 +60,15 @@ async def effective_token_config(
             "free_launch_token_limit", settings.free_launch_token_limit
         ),
     }
+
+
+def _warn_missing_launch_row() -> None:
+    """행이 없으면 코드 기본값으로 떨어진다(의도된 폴백). 기본값이 이미 지난 날짜면 복구·신규 환경에서
+    런칭 무료가 소리 없이 끝나므로, 동작은 그대로 두고 프로세스당 한 번 흔적만 남긴다."""
+    global _warned_missing_launch_row
+    if not _warned_missing_launch_row:
+        _warned_missing_launch_row = True
+        _log.warning(
+            "app_config.free_launch_until 행 없음 → 코드 기본값 %s 사용(지난 날짜면 런칭 즉시 종료)",
+            settings.free_launch_until,
+        )

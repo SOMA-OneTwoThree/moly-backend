@@ -1,10 +1,12 @@
 """광고 — AdMob SSV 서명검증(실 ECDSA) + 세션 발급/자동 지급 흐름 + 인증."""
 import base64
+import time
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
 from urllib.parse import unquote
 
+import httpx
 import pytest
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -687,3 +689,28 @@ async def test_grant_ssv_stale_reward_window_no_pay(monkeypatch):
     out = await ads.grant_from_ssv(session, SID, "t-stale", **VALID_SSV_FIELDS)
     assert out == "stale_reward_window"
     assert session.committed is False and row.granted is False  # 미지급·미커밋
+
+
+class _KeyServerDown:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def get(self, url):
+        raise httpx.ConnectError("verifier key server down")
+
+
+async def test_ssv_key_refresh_failure_is_warned_and_still_rejected(monkeypatch, signed, caplog):
+    """캐시 만료 뒤 키 갱신 실패 — 지금처럼 이 콜백은 거절하고, 서명 오류와 구분되는 WARNING을 남긴다."""
+    monkeypatch.setattr(ads_ssv.httpx, "AsyncClient", _KeyServerDown)
+    monkeypatch.setattr(ads_ssv, "_keys_cache", {"1234": signed.pem})
+    monkeypatch.setattr(ads_ssv, "_keys_fetched_at", time.monotonic() - ads_ssv._KEYS_TTL_SECONDS - 1)
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        assert await ads_ssv.verify_and_parse(signed.raw_query) is None
+    assert "AdMob verifier 키 갱신 실패(이전 캐시 있음" in caplog.text
+    assert ads_ssv._keys_cache == {"1234": signed.pem}  # 실패한 갱신은 캐시를 바꾸지 않는다

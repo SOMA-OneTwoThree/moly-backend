@@ -13,6 +13,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.services import chat as chat_service
+from app.services import chat_references
 from app.services import gating as gating_module
 from app.services import llm as llm_module
 from app.services.agent import config as agent_config
@@ -20,6 +21,7 @@ from app.services.agent import runtime as agent_runtime
 from app.services.agent.config import build_snapshot
 from app.services.llm import (
     ControlIntent,
+    GroundedRef,
     LlmCall,
     LLMResult,
     StepResult,
@@ -780,6 +782,27 @@ async def test_agent_turn_still_runs_egress_backstops(monkeypatch):
 
     assert "..." not in out.reply.content  # 말줄임표 제거
     assert out.reply.content.endswith("?")  # 되묻기 물음표 복원
+
+
+async def test_grounding_fallback_is_not_warned_as_empty_reply(monkeypatch, caplog):
+    """정제 뒤 비었어도 근거 불일치로 대체 문구가 저장되는 턴은 빈 답장 경고 대상이 아니다."""
+
+    async def _agent(system, convo, **kw):
+        return agent_runtime.AgentTurn(
+            text="……", calls=[_usage("tool_decide"), _usage("tool_final")],
+            selected_refs=(GroundedRef(ref_type="diary", ref_id="d1"),),
+        )
+
+    async def _invalid(*args, **kwargs):
+        return False
+
+    monkeypatch.setattr(chat_references, "validate_selected", _invalid)
+    snapshot = build_snapshot({"agent_enabled": True, "agent_canary_pct": 100.0})
+    with caplog.at_level(logging.WARNING, logger="moly-backend"):
+        out = await _post(FakeSession(), monkeypatch, agent=_agent, snapshot=snapshot)
+
+    assert out.reply.content == "그건 지금 확실하게 떠올리지 못했어."
+    assert "빈 답장 저장" not in caplog.text
 
 
 async def test_config_db_failure_propagates_and_saves_nothing(monkeypatch):

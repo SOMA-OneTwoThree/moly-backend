@@ -507,3 +507,36 @@ async def test_free_plan_never_advertises_personal_diary_even_with_enough_chat(m
     session = FakeSession()
     session.scalar_value = 10000
     assert not (await chat_service.get_state(session, UID))["personal_diary_eligible"]
+
+
+async def test_empty_reply_is_stored_as_before_and_warned_without_body(monkeypatch, caplog):
+    """정제 뒤 빈 답장은 지금처럼 저장·차감하고, 본문 없이 길이·호출 구성만 경고로 남긴다."""
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    async def _fake_llm(system, convo, **kw):
+        return LLMResult(text="……", input_tokens=10, output_tokens=3)
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    session = FakeSession()
+    req = SimpleNamespace(text="응", greeting_id=None)
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        out = await chat_service.post_message(session, UID, req, "idem-empty")
+
+    capi_msg = next(m for m in session.added if isinstance(m, Message) and m.sender == "moly")
+    assert capi_msg.content == ""
+    assert out.tokens_used > 1000  # 차감은 그대로
+    lines = [r.getMessage() for r in caplog.records if "빈 답장 저장" in r.getMessage()]
+    assert len(lines) == 1
+    assert "raw_len=2" in lines[0] and "……" not in lines[0]
+
+
+async def test_normal_reply_does_not_warn_empty(monkeypatch, patched, caplog):
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        await chat_service.post_message(FakeSession(), UID, SimpleNamespace(text="안녕", greeting_id=None), "idem-ok")
+    assert "빈 답장 저장" not in caplog.text

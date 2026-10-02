@@ -1086,7 +1086,8 @@ memory_generation)`이다.
 | `conversation_checkpoint` | `content` | 9.3절 — 대화 요약 |
 | `contract_compile` | `content` | 7.3절 — 대화 약속 추출 |
 | `relationship_project` | `maintenance` | 8.3절 — 관계 상태 집계와 문장 생성 |
-| `privacy_cleanup` | `maintenance` | 계정 삭제 시 벡터 정리 |
+| `privacy_residual_sweep` | `maintenance` | 13.3절 — 탈퇴 뒤 남은 벡터 정리와 완료 표시(틱마다, user_id 없음) |
+| `privacy_cleanup` | `maintenance` | 예전 사용자 단위 벡터 정리. 지금은 등록하지 않는다 |
 | `diary_recall_embed` | `content` | 일기 검색용 임베딩 |
 | `retention_idempotency_gc` | `maintenance` | 만료된 중복 방지 키 정리 |
 | `usage_ledger_rollup` | `maintenance` | 90일 지난 확정 비용을 KST 일 단위로 집계 |
@@ -1228,14 +1229,21 @@ ID 순으로 나눠 조회한다. 잘못된 타임존은 경고 후 제외한다
   없으면 거부한다. `active` 행 채우기와 개수 검증 두 번을 통과한 뒤에만 `enforced`로 올린다.
   순서가 중요하다. 예전 코드가 "행이 있으면 차단"으로 읽던 시기의 사고를 막기 위해 (a) 컬럼 추가
   → (b) 상태를 보는 코드 → (c) `active` 행 채우기 → (d) `enforced` 전환 순서를 지켰다.
-- `begin_subject_deletion`은 차단 상태를 `deleting`으로 세우면서 같은 트랜잭션에서 바로 개인
+- `begin_subject_deletion`은 DB 함수다. moly-auth가 계정을 지우기 전에 RPC로 부르고, 백엔드의
+  같은 이름 함수도 이것을 부른다. 차단 상태를 `deleting`으로 세우면서 같은 트랜잭션에서 바로 개인
   식별 정보를 지운다. 재전송 대비 응답 본문을 비우고 `terminal_status='redacted'`로 바꾸며,
   일기 카드를 `unavailable`로 만들고 부가 정보를 지운다. 대기·실행·종료 작업의 payload를
-  비식별화하고 `ready` 상태 작업을 `cancelled`로 바꾼다.
-- 벡터 삭제는 `privacy_cleanup` 작업이 맡는다. **한 번에 200건씩만** 지우고(`DELETE_BATCH`),
-  남으면 다음 회차 작업을 만든다. 그리고 **연속 두 번**(`REQUIRED_EMPTY_SWEEPS`) 비어 있어야
-  완료로 본다. 늦게 도착한 쓰기를 잡기 위해서다. 완료되면 `mark_subject_deleted`를 부른다.
-  첫 회차는 `begin_subject_deletion`이 장벽·비식별화와 같은 트랜잭션에서 등록한다.
+  비식별화하고 `ready` 상태 작업을 `cancelled`로 바꾼다. 장벽 호출이 실패해도 탈퇴는 진행한다.
+- 계정 삭제가 실패하면 moly-auth가 `abort_subject_deletion`을 부른다. 계정이 남아 있을 때만
+  `active`로 되돌리고, epoch는 기억 파이프라인의 값(파이프라인이 없으면 등록 때 쓰는 0)으로 맞춘다
+  (어긋나면 그 사용자의 기억 작업이 전부 거부된다). 비식별화한 사본과 취소한 작업은 복구하지 않는다.
+- 계정이 지워지면 사용자 작업은 프로필과 함께 CASCADE로 사라진다. 그래서 마무리는 user_id 없는
+  `privacy_residual_sweep`이 틱마다 장벽 행을 보고 한다. 대상은 프로필도 인증 계정도 없는 장벽뿐이다.
+  - 장벽 없이 지워진 계정(`active`로 남은 장벽)은 새 삭제 회차를 열어 `deleting`으로 올린다.
+  - 벡터는 **한 번에 200건씩만** 지운다(`DELETE_BATCH`). **연속 두 번**(`REQUIRED_EMPTY_SWEEPS`)
+    비어 있어야 `mark_subject_deleted`로 닫는다. 늦게 도착한 쓰기를 잡기 위해서다. 빈 횟수는
+    ledger(`residual_sweep_empty`)로 세고, 그 사이 지운 것이 있으면 다시 센다.
+  - 계정이 남은 채 1시간 넘게 `deleting`인 장벽은 경고 로그만 남긴다.
 - 채팅 진입(`ensure_subject_active`)과 작업 확정은 이 차단 상태를 검사한다.
 
 ### 13.4 기능을 끄고 켜는 설정

@@ -822,11 +822,18 @@ free       : 그 외
 - 설정 `privacy_barrier_mode`: `compat`은 행이 없으면 통과, `enforced`는 행이 없으면 거부한다.
   **`active` 행 채우기와 개수 검증을 마친 뒤에만 `enforced`로 올린다.** 순서를 어기면 전 사용자의
   대화가 즉시 막힌다(구 코드가 "행이 있으면 차단"으로 읽던 시기의 사고).
+- 함수 `begin_subject_deletion(user_id, operation_id)`·`abort_subject_deletion(user_id, operation_id)`:
+  SECURITY DEFINER이고 실행 권한은 소유자(postgres — 백엔드 연결 롤)와 service_role(moly-auth)뿐이다.
+  moly-auth가 계정 삭제 전과 삭제 실패 시 부른다.
+  완료(`deleted`)는 백엔드 워커의 `privacy_residual_sweep`이 표시한다(ARCHITECTURE-capi 13.3절).
 
 **`privacy_ledger_events`** — 본문 없는 삭제 진행 기록.
 
 - `id` bigint identity PK · `operation_id` uuid · `user_id` uuid · `event` text ·
   `high_watermark` bigint NULL · `created_at`. 인덱스 `(user_id, id)`.
+- `event`: `serving_blocked_and_redacted`(장벽 시작) · `deletion_aborted`(계정 삭제 실패로 되돌림) ·
+  `orphan_barrier_promoted`(장벽 없이 지워진 계정) · `residual_sweep_deleted` / `residual_sweep_empty`
+  (sweep 1회 결과) · `subject_deleted`(완료).
 
 ### 7.12 `async_jobs` — 배치 작업 대기열
 

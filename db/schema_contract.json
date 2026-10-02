@@ -8447,6 +8447,12 @@
       }
     },
     "function_grants": {
+      "public.abort_subject_deletion(uuid,uuid):service_role:EXECUTE": {
+        "grantable": false
+      },
+      "public.begin_subject_deletion(uuid,uuid):service_role:EXECUTE": {
+        "grantable": false
+      },
       "public.bootstrap_user(uuid,timestamp with time zone):service_role:EXECUTE": {
         "grantable": false
       },
@@ -8539,6 +8545,14 @@
       }
     },
     "functions": {
+      "public.abort_subject_deletion(uuid,uuid)": {
+        "definition": "CREATE OR REPLACE FUNCTION public.abort_subject_deletion(p_user_id uuid, p_operation_id uuid)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  UPDATE public.privacy_subject_barriers b\n  SET state = 'active', operation_id = NULL, updated_at = now(),\n      epoch = COALESCE(\n        (SELECT s.privacy_epoch FROM public.memory_pipeline_states s WHERE s.user_id = b.user_id),\n        0)\n  WHERE b.user_id = p_user_id AND b.operation_id = p_operation_id AND b.state = 'deleting'\n    AND EXISTS (SELECT 1 FROM auth.users u WHERE u.id = b.user_id);\n  IF NOT FOUND THEN\n    RETURN false;\n  END IF;\n  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)\n  VALUES (p_operation_id, p_user_id, 'deletion_aborted', NULL);\n  RETURN true;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.begin_subject_deletion(uuid,uuid)": {
+        "definition": "CREATE OR REPLACE FUNCTION public.begin_subject_deletion(p_user_id uuid, p_operation_id uuid)\n RETURNS bigint\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_watermark bigint;\nBEGIN\n  IF p_user_id IS NULL OR p_operation_id IS NULL THEN\n    RAISE EXCEPTION 'user and operation are required';\n  END IF;\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  -- Every deletion attempt is a new epoch; work queued in an earlier epoch is rejected.\n  INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n  SELECT p_user_id, 'deleting', p_operation_id, c.memory_source_watermark\n  FROM public.chat_contexts c WHERE c.user_id = p_user_id\n  ON CONFLICT (user_id) DO UPDATE SET\n    state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n    high_watermark = GREATEST(b.high_watermark, EXCLUDED.high_watermark), updated_at = now()\n  RETURNING b.high_watermark INTO v_watermark;\n  IF NOT FOUND THEN\n    -- An account that never chatted has no chat context.\n    INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n    VALUES (p_user_id, 'deleting', p_operation_id, 0)\n    ON CONFLICT (user_id) DO UPDATE SET\n      state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n      updated_at = now();\n    v_watermark := 0;\n  END IF;\n\n  DELETE FROM public.chat_topic_entries WHERE user_id = p_user_id;\n  DELETE FROM public.user_topic_states WHERE user_id = p_user_id;\n  UPDATE public.idempotency_keys\n  SET response = NULL, terminal_status = 'redacted', redacted_at = now()\n  WHERE user_id = p_user_id;\n  UPDATE public.chat_response_references\n  SET state = 'unavailable', diary_id = NULL, rendered_metadata = '{}'::jsonb,\n      redacted_at = now(), redaction_reason = 'subject_deleting'\n  WHERE user_id = p_user_id;\n  UPDATE public.async_jobs\n  SET state = CASE WHEN state = 'ready' THEN 'cancelled' ELSE state END,\n      payload = '{}'::jsonb, result_detail = NULL, payload_redacted_at = now(),\n      finished_at = CASE WHEN state = 'ready' THEN now() ELSE finished_at END,\n      result_code = CASE WHEN state = 'ready' THEN 'subject_deleting' ELSE result_code END\n  WHERE user_id = p_user_id AND state IN ('ready', 'running', 'succeeded', 'dead', 'cancelled');\n\n  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)\n  VALUES (p_operation_id, p_user_id, 'serving_blocked_and_redacted', v_watermark);\n  RETURN v_watermark;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
       "public.bootstrap_user(uuid,timestamp with time zone)": {
         "definition": "CREATE OR REPLACE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone DEFAULT now())\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_required_count integer;\n  v_profile_created integer;\nBEGIN\n  SELECT count(*) INTO v_required_count\n  FROM public.products\n  WHERE product_type = 'cosmetic' AND is_active = true\n    AND (\n      (public_id = 'theme_default' AND slot = 'theme')\n      OR (public_id = 'head_sunglasses' AND slot = 'glasses')\n    );\n  IF v_required_count <> 2 THEN\n    RAISE EXCEPTION 'appearance bootstrap products are not ready';\n  END IF;\n\n  INSERT INTO public.profiles (id, trial_ends_at)\n  VALUES (p_user_id, p_created_at + interval '48 hours')\n  ON CONFLICT (id) DO NOTHING;\n  GET DIAGNOSTICS v_profile_created = ROW_COUNT;\n\n  INSERT INTO public.user_items (user_id, product_id, source)\n  SELECT p_user_id, p.id, 'admin_grant'\n  FROM public.products p\n  WHERE p.product_type = 'cosmetic' AND p.is_active = true\n    AND (\n      (p.public_id = 'theme_default' AND p.slot = 'theme')\n      OR (p.public_id = 'head_sunglasses' AND p.slot = 'glasses')\n    )\n  ON CONFLICT (user_id, product_id) DO NOTHING;\n\n  UPDATE public.user_items default_item\n  SET equipped_slot = 'theme', equipped_at = COALESCE(default_item.equipped_at, now())\n  FROM public.products default_product\n  WHERE default_item.user_id = p_user_id\n    AND default_item.product_id = default_product.id\n    AND default_product.public_id = 'theme_default'\n    AND NOT EXISTS (\n      SELECT 1 FROM public.user_items equipped\n      WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'\n    );\n\n  IF v_profile_created = 1 THEN\n    INSERT INTO public.routines (user_id, name, name_i18n, frequency_per_week, days_of_week, reminder_enabled)\n    VALUES\n      (p_user_id, '이불 정리하기',\n       '{\"ko\":\"이불 정리하기\",\"en\":\"Make the bed\",\"ja\":\"布団を整える\"}'::jsonb,\n       7, '{1,2,3,4,5,6,7}', false),\n      (p_user_id, '물 마시기',\n       '{\"ko\":\"물 마시기\",\"en\":\"Drink water\",\"ja\":\"水を飲む\"}'::jsonb,\n       7, '{1,2,3,4,5,6,7}', false);\n  END IF;\nEND;\n$function$\n",
         "owner": "postgres"
@@ -14449,5 +14463,5 @@
       }
     }
   },
-  "schema_sha256": "29dcb953e6e92fc2e6654ab7a0e6b5b906c839c1f93e88b7d5709e4632fe9ba2"
+  "schema_sha256": "299bdaaff416b8d68ab8e422b7686ac6b0fe12236024dde5e5cf725e10a45df1"
 }

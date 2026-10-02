@@ -209,6 +209,10 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
 멱등 응답·일기 reference·job payload 사본을 redaction한 뒤 계정을 삭제한다. 도메인 원본과 파생 기억은
 FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/watermark만 남는다. 이 장벽 호출과
 최종 204의 오케스트레이션은 `moly-auth`가 소유한다.
+- 장벽은 DB 함수 `begin_subject_deletion(p_user_id, p_operation_id)`(service_role RPC)다. 장벽 호출이 실패해도
+  탈퇴는 진행한다(fail-open). 계정 삭제가 실패하면 `abort_subject_deletion`으로 장벽을 되돌린 뒤 500이다.
+- 남은 벡터 정리와 완료 표시(`deleted`)는 backend 워커의 `privacy_residual_sweep`이 장벽 행을 보고 한다.
+  장벽 없이 지워진 계정도 같은 경로로 끝낸다.
 - ⚠️ Apple 구독은 서버가 해지 불가 → 탈퇴 다이얼로그에 “구독은 App Store에서 별도 해지” 안내 필수.
 
 ---

@@ -1,5 +1,9 @@
 """삭제 coordinator — 장벽을 세운 뒤 실제로 지우고, 두 번 비어 있어야 끝낸다 (12.3절).
 
+⚠️ 지금은 이 잡을 걸지 않는다. 사용자 잡은 계정 삭제 때 프로필과 함께 CASCADE로 사라져서
+끝까지 갈 수 없었다. 같은 규칙(bounded·two-sweep)으로 worker/privacy_sweep_jobs.py가 장벽 행을
+보고 마무리한다. 이미 등록된 행이 있을 수 있어 처리기만 남긴다.
+
 `begin_subject_deletion`은 장벽만 세우고 `mark_subject_deleted`는 끝났다고 표시할 뿐,
 **그 사이에서 실제로 지우는 코드가 없었다**(감사 지적). 장벽만 서고 벡터는 남는 상태였다.
 

@@ -347,10 +347,12 @@ jobs:
             sleep 1
           done
 
+          syn_rechecked=0
           # 의존성 능동점검(DB·LLM). 제공자가 잠깐 느리면 503일 수 있어 실패하면 한 번만 다시 본다.
           syn="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
             -H "X-Health-Token: ${HEALTH_TOKEN}" "$BASE/health/synthetic" || echo 000)"
           if [ "$syn" != "200" ]; then
+            syn_rechecked=1
             echo "  synthetic → $syn, 5초 뒤 재확인"
             sleep 5
             syn="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
@@ -364,6 +366,7 @@ jobs:
             msg="❌ 배포 ${SHA7} 헬스 실패 (ready_ok=${ready_ok}, ver_ok=${ver_ok}, last_ver=${last_ver:-?}, synthetic=${syn}) — 롤백 검토: 이전 sha로 재배포"
             fail=1
           fi
+          if [ "$syn_rechecked" = "1" ]; then msg="$msg · synthetic 재확인 1회"; fi
           echo "$msg"
 
           # Slack status 채널 알림(미설정 시 스킵)

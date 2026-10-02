@@ -305,7 +305,7 @@ async def test_post_message_passes_llm_timeout(monkeypatch, patched):
     req = SimpleNamespace(text="hi", greeting_id=None)
     await chat_service.post_message(FakeSession(), UID, req, "idem-to")
     assert captured.get("timeout") is not None
-    # 마감 안의 호출 — SDK 자동 재시도(timeout × 3)를 꺼야 timeout이 곧 최대 소요다(2026-10-01 5xx).
+    # 마감 안의 호출 — SDK 자동 재시도(timeout × 3)를 꺼야 timeout이 곧 최대 소요다.
     assert captured.get("sdk_retries") is False
 
 

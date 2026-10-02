@@ -232,7 +232,7 @@ def test_recall_timeout_log_keeps_stages_overlap_and_count(monkeypatch, caplog):
 
     monkeypatch.setattr(chat, "_recall_timeouts_total", 0)
     now = time.monotonic()
-    with caplog.at_level(logging.WARNING, logger="moly"):
+    with caplog.at_level(logging.WARNING, logger="moly-backend"):
         chat._log_recall_timeout(uuid.uuid4(), started=now - 2.0, phase1_done=now - 1.5,
                                  trace={"embed_s": 1.9})
         chat._log_recall_timeout(uuid.uuid4(), started=now, phase1_done=now, trace={})

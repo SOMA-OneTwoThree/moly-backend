@@ -16,7 +16,7 @@ turn_deadline = monotonic() + turn_deadline_s      # 기본 8.0
   턴 데드라인이 그 자리에서 깨진다.
 - 1홉이 timeout·일시 오류면 **도구 없이 한 번 더** 부른다. 그냥 올리면 chat이 롤백해 사용자에게 5xx가 간다.
   1홉은 그 fallback이 끝날 시간(`_decide_reserve`)을 남기고 끊는다. SDK 자동 재시도는 쓰지 않는다
-  (`llm._no_retry`) — 시도당 timeout이 3배로 불어 이 계산을 통째로 무효화한다(2026-10-01 운영 5xx).
+  (`llm._no_retry`) — 시도당 timeout이 3배로 불어 이 계산을 통째로 무효화한다.
 - 도구는 **툴별 단명 read-only 세션**을 별도 세션팩토리로 연다. Phase 1의 세션을 재사용하지 않는다
   (SOMA-374: LLM 구간 DB 커넥션 0).
 - 모델이 상한을 넘겨 호출하면 앞의 N개만 실행하되 **모든 call_id의 형식을 닫는다** — 안 닫으면
@@ -87,11 +87,8 @@ _SHRINK_MIN_CHARS = 8
 # dev 실측 단발 응답 p50이 1.45초라 그보다 낮으면 시작해도 못 끝낸다.
 FALLBACK_MIN_S = 1.5
 
-# 도구를 쓸 수 있는 1홉이 끊긴 뒤 fallback에 **남겨 두는** 시간. final_reserve(2.5초)만 남기면
-# fallback 예산이 단발 p90 수준이라 열에 하나는 fallback도 timeout이다. 운영 tool_decide 단발
-# 지연(gpt-6-luna, 14일 2,617건): p95 2.8초 · p99 3.75초 · p99.5 4.9초. 4초를 남기면 fallback이
-# p99까지 끝나고, 1홉은 (마감 − 4초)에서 끊긴다 — 정상 호출 중 잘리는 건 ~1%이고 그 턴은 도구
-# 없이 답한다(도구를 실제로 쓰는 턴은 0.8%뿐).
+# 도구를 쓸 수 있는 1홉이 끊긴 뒤 fallback에 남겨 두는 시간.
+# 단발 응답이 끝날 시간을 확보하되, 짧은 데드라인에서는 아래의 1홉 하한을 우선한다.
 FALLBACK_RESERVE_S = 4.0
 
 # 1홉 timeout의 하한 — tool_decide 단발 p95(2.8초) 근처. 데드라인이 짧은 환경(코드 기본 8초)에서
@@ -701,9 +698,8 @@ async def run_turn(
         # SDK 반환 지연만큼 항상 조금 모자란다. 예약분 이상을 요구하면 fallback이 거의 never다
         # — 실측에서 8.57초 만에 그대로 5xx가 나갔다.
         #
-        # ⚠️ 2026-10-01 운영 5xx: SDK 기본 재시도(max_retries=2)가 1홉을 timeout의 3배(18.9초)로
-        # 늘려 이 조건이 한 번도 성립하지 못했다(14일간 fallback 실행 0건). 지금은 llm이 SDK 재시도를
-        # 끄고 같은 timeout 안에서만 다시 부른다.
+        # SDK 기본 재시도는 1홉의 실제 소요를 늘려 fallback 예산을 소진할 수 있다.
+        # llm은 SDK 재시도를 끄고 같은 timeout 안에서만 다시 부른다.
         #
         # timeout만이 아니라 연결 실패·429·5xx도 같은 fallback을 탄다. 예전엔 SDK가 이것들을 조용히
         # 재시도했는데, 재시도를 끈 지금(llm._no_retry) 여기서 받지 않으면 일시 오류가 곧장 5xx다.

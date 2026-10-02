@@ -390,6 +390,7 @@ FCM이 응답 본문(`FcmError.errorCode`)으로 토큰 자체가 무효라고 �
 발송 슬롯 선점(`*_notified_at`)과 푸시 빈도·대상·시각은 이 기능과 무관하다.
 
 `FCM_INVALIDATE_DEAD_TOKENS`(SSM `fcm-invalidate-dead-tokens`, 미설정 false)가 false면 드라이런이다 — 분류·집계·로그만 남긴다.
+운영은 true로 사용한다. 중지하려면 SSM `/moly/prod/fcm-invalidate-dead-tokens`를 false로 바꾸고 현재 이미지로 재배포한다.
 워커 요약에는 발송 실패가 있을 때만 `푸시 실패: 무효 토큰 N건(비활성 M) / 기타 N건` 줄이 붙고, 설정·인증 오류
 (401·403 권한·404 프로젝트 경로)가 있으면 `⚠️ 설정·인증 오류 N건`이 덧붙는다. 토큰 문제가 아닌 실패는 errorCode와
 오류 메시지 요지를 WARNING으로 남긴다.

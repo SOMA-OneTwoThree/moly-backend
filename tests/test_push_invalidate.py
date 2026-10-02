@@ -202,6 +202,20 @@ async def test_evening_marks_only_this_users_dead_tokens_with_update(monkeypatch
     assert s.commits >= 1
 
 
+async def test_evening_auth_failure_is_counted_and_still_raises(monkeypatch):
+    """send 안의 인증 준비 실패 — 처리(틱 기록)는 그대로 두고 전면 장애 판정용으로만 센다."""
+    _evening_env(monkeypatch, None)
+
+    async def _send(tokens, title, body):
+        raise RuntimeError("test auth failure")
+
+    monkeypatch.setattr(push, "send", _send)
+    stats = {}
+    with pytest.raises(RuntimeError):
+        await notify.notify_evening(_Session(), SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), stats=stats)
+    assert stats == {"push_setup_error": 1}
+
+
 async def test_evening_int_fake_from_legacy_tests_still_works(monkeypatch):
     """기존 테스트의 int fake(push.send → 1) 호환 — 속성 없으면 표시·분류 생략."""
     monkeypatch.setattr(notify.settings, "fcm_invalidate_dead_tokens", True)

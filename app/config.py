@@ -286,6 +286,18 @@ class Settings(BaseSettings):
     daily_billable_alert_threshold: int = 5_000_000
     # 합성 대화 모니터가 실제 LLM을 호출할지(비용 발생). False면 DB·설정 도달성만 확인.
     synthetic_check_llm: bool = True
+    # 합성 LLM 점검의 상한(초). 대화 경로처럼 SDK 재시도 없이 이 안에서 끝낸다 — 넘으면 down(503).
+    synthetic_llm_timeout_s: float = 15.0
+    # 워커 푸시 전면 장애 판정 하한 — 한 틱에서 FCM 수락 0건인데 토큰 문제가 아닌 실패(설정·인증·일시·
+    # 페이로드)가 이 수 이상이면 결과 이상(데드맨 /fail + 경보). 무효 토큰은 평시에도 매일 나와 세지 않는다.
+    worker_push_outage_min: int = 20
+
+    # --- 로깅(app/core/logging_setup.py) — API·consumer·worker 공통 ---
+    # 운영은 JSON 1줄·INFO. 로컬에서 읽기 편하게 LOG_JSON=false 가능. LOG_ACCESS_HEALTH=true면
+    # ELB 헬스체크(GET /health 200) 액세스 로그도 남긴다(기본 제외 — 컨테이너 로그 대부분이 이 줄이다).
+    log_level: str = "INFO"
+    log_json: bool = True
+    log_access_health: bool = False
 
     # --- 현재 턴 컨텍스트(프롬프트 삽입, SOMA-미정) — 킬스위치, 기본 off ---
     # 챗 프롬프트에 "지금 시각·오늘 첫 대화·함께한 일수·장착 아이템·루틴 진행" 블록 삽입 여부.

@@ -592,7 +592,12 @@ def _emit_turn_metrics(**fields: Any) -> None:
     계측 실패가 응답 실패로 번지는 게 최악이다.
     """
     try:
-        _log.info("chat_turn_metrics %s", json.dumps(fields, default=str, ensure_ascii=False))
+        # extra는 JSON 로그의 최상위 필드(`metrics.*`)로 실린다 — 메시지 파싱 없이 집계한다.
+        # 메시지에도 남겨 plain 포맷(LOG_JSON=false)에서도 보이게 한다.
+        _log.info(
+            "chat_turn_metrics %s", json.dumps(fields, default=str, ensure_ascii=False),
+            extra={"event": "chat_turn_metrics", "metrics": fields},
+        )
     except Exception:  # noqa: BLE001 — 계측 배출 실패는 절대 응답을 막지 않는다
         _log.warning("chat_turn_metrics 로그 배출 실패", exc_info=True)
 

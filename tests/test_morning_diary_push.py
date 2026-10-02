@@ -70,6 +70,19 @@ async def test_failed_delivery_does_not_release_or_repeat_claim(delivery):
     assert delivery.send.await_count == 1
 
 
+async def test_auth_preparation_failure_counts_as_setup_error(delivery):
+    """인증 준비 실패는 워커 전면 장애 판정에 들어가야 한다 — 미설정(None)은 개발 환경이라 세지 않는다."""
+    delivery.auth.side_effect = RuntimeError("test auth failure")
+    stats = {}
+    assert await notify.notify_morning(None, delivery.profile, now=NOW, stats=stats) == 0
+    assert stats == {"push_setup_error": 1}
+    delivery.auth.side_effect = None
+    delivery.auth.return_value = None
+    stats = {}
+    assert await notify.notify_morning(None, delivery.profile, now=NOW, stats=stats) == 0
+    assert stats == {}
+
+
 @pytest.mark.parametrize("raises", [False, True])
 async def test_auth_preparation_failure_can_retry_without_consuming_slot(delivery, raises):
     if raises:

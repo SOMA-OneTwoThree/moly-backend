@@ -118,3 +118,12 @@ async def test_post_message_survives_metrics_log_failure(monkeypatch, caplog):
     out = await chat_service.post_message(FakeSession(), UID, req, "idem-metrics-boom")
 
     assert out.reply.content == "응 그래."  # 계측 로그가 죽어도 정상 응답은 살아있어야 함
+
+
+def test_turn_metrics_fields_ride_on_the_record(caplog):
+    """JSON 로그에서 `metrics.*`로 바로 집계되게 레코드 extra로도 싣는다(메시지는 그대로)."""
+    caplog.set_level(logging.INFO, logger="moly-backend")
+    chat_service._emit_turn_metrics(total_ms=1234, lang="ko")
+    rec = next(r for r in caplog.records if r.getMessage().startswith("chat_turn_metrics "))
+    assert rec.event == "chat_turn_metrics" and rec.metrics == {"total_ms": 1234, "lang": "ko"}
+    assert json.loads(rec.getMessage().removeprefix("chat_turn_metrics ")) == rec.metrics

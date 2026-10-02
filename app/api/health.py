@@ -11,6 +11,7 @@ deep·synthetic 인증 = 헤더 X-Health-Token 상수시간 비교. 토큰 설�
 """
 from __future__ import annotations
 
+import asyncio
 import hmac
 import time
 from datetime import datetime, timezone
@@ -264,8 +265,9 @@ async def health_synthetic(
 ) -> dict[str, Any]:
     """합성 — 의존성(DB·LLM) 능동 점검. 실제 유저·통계·일기 미오염(유저 자체가 없음).
 
-    LLM은 성공(예외 없음)=up으로 본다(GPT-5 계열이 reasoning으로 토큰 소진해 빈 텍스트여도 도달은 정상).
-    하나라도 down이면 503.
+    LLM은 대화 경로처럼 추론을 끄고(reasoning "none") SDK 재시도 없이 `synthetic_llm_timeout_s` 안에서
+    부른다. 성공(예외 없음)=up — 빈 텍스트도 도달은 정상으로 보고 `empty`로만 알린다. 지연은 성공·실패
+    모두 `latency_ms`로 남긴다. 하나라도 down이면 503.
     """
     response.headers["Cache-Control"] = "no-store"
     out: dict[str, Any] = {"version": settings.git_sha}
@@ -281,19 +283,30 @@ async def health_synthetic(
 
     if settings.synthetic_check_llm:
         t1 = time.monotonic()
+        limit = settings.synthetic_llm_timeout_s
         try:
-            res = await llm.generate(
-                ["헬스 점검용. 짧게 답해."],
-                [{"role": "user", "content": "ping"}],
-                max_tokens=32,
+            # 정상 경로는 SDK가 limit에서 끊는다. 바깥 wait_for는 그 밖의 지연까지 끊는 백스톱이다.
+            res = await asyncio.wait_for(
+                llm.generate(
+                    ["헬스 점검용. 짧게 답해."],
+                    [{"role": "user", "content": "ping"}],
+                    max_tokens=32,
+                    reasoning_effort="none",
+                    timeout=limit,
+                    sdk_retries=False,
+                ),
+                timeout=limit + 1.0,
             )
             out["llm"] = {
                 "status": "ok",
                 "latency_ms": int((time.monotonic() - t1) * 1000),
                 "empty": not (res.text or "").strip(),
             }
-        except Exception as e:  # noqa: BLE001  # 도달 실패만 down(예외)
-            out["llm"] = {"status": "down", "error": type(e).__name__}
+        except Exception as e:  # noqa: BLE001  # 도달 실패·상한 초과 → down
+            out["llm"] = {
+                "status": "down", "error": type(e).__name__,
+                "latency_ms": int((time.monotonic() - t1) * 1000),
+            }
             ok = False
     else:
         out["llm"] = {"status": "skipped"}

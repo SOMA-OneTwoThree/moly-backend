@@ -347,9 +347,15 @@ jobs:
             sleep 1
           done
 
-          # 의존성 능동점검(DB·LLM) 1회
+          # 의존성 능동점검(DB·LLM). 제공자가 잠깐 느리면 503일 수 있어 실패하면 한 번만 다시 본다.
           syn="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
             -H "X-Health-Token: ${HEALTH_TOKEN}" "$BASE/health/synthetic" || echo 000)"
+          if [ "$syn" != "200" ]; then
+            echo "  synthetic → $syn, 5초 뒤 재확인"
+            sleep 5
+            syn="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+              -H "X-Health-Token: ${HEALTH_TOKEN}" "$BASE/health/synthetic" || echo 000)"
+          fi
 
           if [ "$ready_ok" = "1" ] && [ "$ver_ok" = "1" ] && [ "$syn" = "200" ]; then
             msg="✅ 배포 ${SHA7} 헬스 정상 (version 10/10 일치, synthetic=200)"

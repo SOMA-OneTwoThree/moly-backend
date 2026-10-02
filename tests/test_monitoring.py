@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import pytest
+
 from app.services import config_store, slack_notify
 from worker import tick
 
@@ -145,6 +147,39 @@ async def test_deadman_ping_ok_and_fail(monkeypatch):
     await tick._emit_worker_health(_NOW, dict(_HEALTHY))            # 정상 → 그대로
     await tick._emit_worker_health(_NOW, {"diary_failed": 1, "memory_failed": 0})  # 이상 → /fail
     assert _GetClient.urls == ["https://hc.example/PING", "https://hc.example/PING/fail"]
+
+
+async def _health(monkeypatch, counts: dict) -> tuple[str, list[str]]:
+    """counts로 결과 판정 1회 — (데드맨 핑 URL, 경보 문구들)."""
+    monkeypatch.setattr(tick.settings, "worker_ping_url", "https://hc.example/PING")
+    monkeypatch.setattr(tick.settings, "worker_push_outage_min", 20)
+    monkeypatch.setattr(tick.httpx, "AsyncClient", lambda **kw: _GetClient())
+    calls = _capture_alerts(monkeypatch)
+    _GetClient.urls.clear()
+    await tick._emit_worker_health(_NOW, {**_HEALTHY, **counts})
+    return _GetClient.urls[-1], calls
+
+
+async def test_user_timeout_is_an_anomaly(monkeypatch):
+    """멈춘 LLM/DB로 유저 처리가 끊긴 틱 — 요약에만 있던 신호를 데드맨·경보로 올린다."""
+    url, calls = await _health(monkeypatch, {"timed_out": 1})
+    assert url.endswith("/fail") and len(calls) == 1 and "타임아웃 1" in calls[0]
+
+
+async def test_total_push_outage_is_an_anomaly(monkeypatch):
+    """FCM이 하나도 수락하지 않았는데 토큰 문제가 아닌 실패가 하한 이상 — 전면 장애."""
+    url, calls = await _health(monkeypatch, {"push_sent": 0, "push_transient": 15, "push_setup_error": 10})
+    assert url.endswith("/fail") and "푸시 실패 25(수락 0)" in calls[0]
+
+
+@pytest.mark.parametrize("counts", [
+    {"push_sent": 0, "push_invalid_token": 500},                  # 무효 토큰만 — 평시에도 매일 나온다
+    {"push_sent": 40, "push_setup_error": 30},                    # 일부는 수락 — 전면 장애가 아니다(요약이 표시)
+    {"push_sent": 0, "push_transient": 3, "push_payload_error": 2},  # 하한 미만 — 작은 틱의 일시 오류
+])
+async def test_dead_tokens_and_partial_push_failures_stay_quiet(monkeypatch, counts):
+    url, calls = await _health(monkeypatch, counts)
+    assert url == "https://hc.example/PING" and calls == []
 
 
 async def test_cost_alert_when_over_threshold(monkeypatch):

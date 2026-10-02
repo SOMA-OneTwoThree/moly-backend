@@ -445,7 +445,9 @@ async def _main_async() -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    from app.core.logging_setup import configure_logging
+
+    configure_logging()  # API·worker와 같은 JSON 포맷. httpx INFO(요청 URL 노출)는 끈다
     if os.getenv("MOLY_CONSUMER_STARTUP_CHECK_ONLY") == "1":
         _register_handlers()
         if not _REGISTRY:

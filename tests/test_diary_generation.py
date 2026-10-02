@@ -1,4 +1,5 @@
 """일기 생성 배치 — 개인/캐피 분기·self-check 폴백·멱등·발행시각(DB·LLM mock)."""
+import logging
 import uuid
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
@@ -214,6 +215,23 @@ async def test_publishes_personal_even_when_self_check_fails(monkeypatch):
     assert d.weather == "sunny"
     assert d.preset_ment_id is None
     assert "오래 남았다" in d.content
+
+
+async def test_self_check_reject_log_carries_no_diary_or_verdict_text(monkeypatch, caplog):
+    """리젝 로그는 리젝률 추적용이다. 본문·판정문은 본인 닉네임만 치환돼 제3자 이름이 남으므로 싣지 않는다."""
+
+    async def _no(*a, **k):
+        return LLMResult("NO: 지수 언급은 근거 없음", 1, 1)
+
+    monkeypatch.setattr(dg.llm, "generate", _no)
+    body = "오늘 지수와 비밀 이야기를 나눴다."
+    with caplog.at_level(logging.WARNING, logger="moly-worker"):
+        passed = await dg._self_check(body, "대화록", user_id="u1", nickname="승민", language="ko")
+    assert passed is False
+    lines = [r.getMessage() for r in caplog.records if "self-check 리젝" in r.getMessage()]
+    assert len(lines) == 1, "리젝 로그는 남아야 한다(리젝률 추적)"
+    assert "지수" not in lines[0] and "비밀" not in lines[0] and "근거" not in lines[0]
+    assert f"body_len={len(body)}" in lines[0] and "user=u1" in lines[0]
 
 
 async def test_diary_body_strips_markdown_and_ellipsis(monkeypatch):

@@ -193,17 +193,12 @@ async def _self_check(
     passed = not verdict.upper().lstrip("*_# ").startswith("NO")
     if not passed:
         # 비차단 모니터링 — 발행은 하되 리젝률 추적용 로그(과거엔 preset 폴백 → 열람율 누수였음).
-        # ⚠️ body와 verdict **둘 다** 실명이 들어 있을 수 있다. body는 LLM 생성 원문이고,
-        # verdict는 실명이 렌더된 대화·일기를 입력으로 받은 모델의 응답이라 "NO: 승민이 언급은
-        # 근거 없음"처럼 이름을 되뱉는다. 저장 경로는 나중에 to_placeholder를 타지만 로그는
-        # 그 전이므로 여기서 둘 다 토큰으로 바꾼다.
-        # ⚠️ **자르기 전에 마스킹한다.** 순서가 반대면 절단 경계가 이름 중간을 지날 때
-        # ("승민" → "승") 마스킹이 그 조각을 못 찾아 평문으로 남는다.
+        # ⚠️ 본문·판정문은 한 글자도 싣지 않는다. 둘 다 실명이 들어 있을 수 있는데(verdict는 "NO: 승민이
+        # 언급은 근거 없음"처럼 이름을 되뱉는다) to_placeholder는 본인 닉네임만 바꾸므로 제3자 이름·사적
+        # 내용이 로그에 남는다. 리젝률 추적에는 식별자와 길이면 충분하다.
         _log.warning(
-            "self-check 리젝(비차단, 발행됨) user=%s 판정=%r 일기=%r",
-            user_id,
-            (naming.to_placeholder(verdict, nickname) or "")[:60],
-            (naming.to_placeholder(body, nickname) or "")[:100],
+            "self-check 리젝(비차단, 발행됨) user=%s verdict_len=%d body_len=%d",
+            user_id, len(verdict), len(body),
         )
     return passed
 

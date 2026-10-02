@@ -35,7 +35,7 @@ VISIBLE_STATUSES = ("active", "ambiguous")
 # 회상이 비니, 필터로 빠지는 몫을 감안해 더 많이 받는다.
 _PROVIDER_FETCH = 40
 DEFAULT_LIMIT = 8
-# 이보다 오래 걸린 회상은 성공해도 단계별 소요를 WARNING으로 남긴다(API 프로세스는 INFO를 버린다).
+# 이보다 오래 걸린 회상은 성공해도 단계별 소요를 WARNING으로 남긴다(정상 회상은 남기지 않는다).
 # 동작은 바꾸지 않는다 — 느린 회상이 임베딩·벡터 검색·registry 중 어디서 생기는지 가르는 계측이다.
 SLOW_RECALL_WARN_S = 1.0
 

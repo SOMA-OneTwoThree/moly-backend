@@ -387,3 +387,16 @@ async def test_worker_entry_finishes_probe_even_when_tick_fails(monkeypatch):
     with pytest.raises(RuntimeError):
         await entry._tick_then_flush()
     assert order == ["tick", "flush", ("finish", "probe")]
+
+
+def test_alert_defaults_are_what_production_runs_on():
+    # 운영 backend.env에는 ALERT_* 키가 없어 코드 기본값으로 돈다. 위 픽스처는 인스턴스 값을 고정하므로
+    # 기본값 자체는 클래스 필드에서 읽는다.
+    from app.config import Settings
+
+    d = {k: f.default for k, f in Settings.model_fields.items()}
+    assert d["alert_dedup_window_sec"] == 300  # 미처리 500: 5분
+    assert d["alert_recall_timeouts"] == 5
+    assert d["alert_recall_timeout_window_s"] == 900  # 회상: 집계 창 = 억제 창 15분
+    assert d["alert_slow_turn_ms"] == 15_000
+    assert d["alert_slow_turn_dedup_s"] == 900  # 느린 턴: 15분

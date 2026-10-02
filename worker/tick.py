@@ -621,9 +621,20 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
     """데드맨 핑(결과 반영) + 결과이상·비용 경보. 전부 best-effort(실패해도 워커 미중단).
 
     anomaly = 실패 카운트만으로 판정 — 멱등 재실행의 전원 스킵(diary_skipped)은 정상이라 제외(오탐 방지).
+    유저 타임아웃(멈춘 LLM/DB)과 푸시 전면 장애도 이상이다. 푸시는 FCM 수락이 0건인데 토큰 문제가
+    아닌 실패(설정·인증·일시·페이로드)가 하한 이상일 때만 본다 — 무효 토큰은 평시에도 매일 나온다.
     dedup은 프로세스 내 한정 → 워커는 틱마다 새 프로세스라 지속장애 시 틱당 재알림 감수(스톰은 아님).
     """
-    anomaly = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
+    timed_out = counts.get("timed_out", 0)
+    push_sent = counts.get("push_sent", 0)
+    push_failed = (
+        counts.get("push_setup_error", 0) + counts.get("push_transient", 0)
+        + counts.get("push_payload_error", 0)
+    )
+    push_outage = push_sent == 0 and push_failed >= settings.worker_push_outage_min
+    anomaly = (
+        counts["diary_failed"] > 0 or counts["memory_failed"] > 0 or timed_out > 0 or push_outage
+    )
     if settings.worker_ping_url:
         url = settings.worker_ping_url + ("/fail" if anomaly else "")
         try:
@@ -633,7 +644,8 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
             _log.warning("워커 데드맨 핑 실패: %r", e)
     if anomaly:
         await slack_notify.alert(
-            f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']} / 기억실패 {counts['memory_failed']}",
+            f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']} / 기억실패 {counts['memory_failed']}"
+            f" / 타임아웃 {timed_out} / 푸시 실패 {push_failed}(수락 {push_sent})",
             dedup_key="worker_anomaly",
         )
     total = counts.get("billable_yesterday")

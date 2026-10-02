@@ -8,9 +8,10 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 
+from app.core.logging_setup import configure_logging
 from worker.tick import run_tick
 
-logging.basicConfig(level=logging.INFO)
+configure_logging()  # API·consumer와 같은 JSON 포맷. httpx INFO(요청 URL 노출)는 끈다
 _log = logging.getLogger("moly-worker")
 
 

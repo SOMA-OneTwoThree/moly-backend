@@ -75,6 +75,11 @@ systemctl status moly-worker.service
 journalctl -u moly-worker.service -n 100
 ```
 
+- 로그 형식: API·consumer·worker 모두 JSON 한 줄(`ts`·`level`·`logger`·`msg`)이다. 액세스 줄에는 `method`·`path`·
+  `status`가 따로 있고 ELB `GET /health` 200은 남기지 않는다(`LOG_ACCESS_HEALTH=true`면 남긴다). `chat_turn_metrics`는
+  `metrics.*` 필드로 읽는다. httpx·httpcore는 요청 URL에 비밀값이 들어가므로 WARNING 이상만 남는다.
+  운영에서는 `LOG_LEVEL=DEBUG`를 쓰지 않는다(openai SDK가 요청 본문을 DEBUG로 남긴다).
+  예: `docker logs --since 1h moly-backend 2>&1 | grep -E '"status": 5[0-9]{2}'`
 - 외부 연결 장애: ALB 대상 상태 → nginx :8080 → API readiness → 컨테이너 로그 순으로 확인한다.
   TLS 인증서는 ALB의 ACM 설정을 확인한다. 호스트 certbot 갱신 절차는 사용하지 않는다.
 - 배포 실패: Actions의 SSM 출력과 실패한 호스트 로그를 확인한다. preflight 차이를 먼저 해결하고
@@ -87,8 +92,13 @@ journalctl -u moly-worker.service -n 100
 - 워커 틱 실패: 틱이 14분 상한을 넘거나 비정상 종료하면 moly-infra의 `moly-worker-failed.service`가 상태 채널에
   한 줄 남긴다. 상한 초과는 compose 클라이언트만 끝내므로 컨테이너는 끝까지 처리하지만 그 로그는 journald에
   남지 않는다. 실패가 이어지면 데드맨이 경보한다. 원인은 `journalctl -u moly-worker.service`로 본다.
+- 워커 결과 이상(데드맨 `/fail` + 경보 채널): 일기·기억 실패, 유저 처리 타임아웃, 푸시 전면 장애(FCM 수락 0건인데
+  토큰 문제가 아닌 실패 — FCM 인증 준비 실패 포함 — 가 `worker_push_outage_min`(20) 이상)다. 무효 토큰만으로는
+  울리지 않는다.
 - `/health/ready`는 DB 연결 상태를 확인한다. `/health/deep`, `/health/queues`, `/health/synthetic`은
-  `X-Health-Token`을 요구한다. synthetic은 실제 모델 호출을 하므로 비용이 발생한다.
+  `X-Health-Token`을 요구한다. synthetic은 실제 모델 호출을 하므로 비용이 발생한다. 대화 경로와 같게 추론과
+  SDK 재시도를 끄고 부르며, 15초(바깥 상한 포함 최대 16초)를 넘으면 503이다. 지연은 응답의 `llm.latency_ms`로
+  본다. 배포 스모크는 synthetic이 실패하면 한 번 더 부른다.
 - 채팅 5xx: `POST /chat/messages`의 503 `AI_UNAVAILABLE`은 LLM 제공자의 일시 장애(timeout·연결·429·5xx)다.
   저장 없이 끝나며 앱은 같은 멱등 키로 다시 보낼 수 있다. 500 `INTERNAL`은 우리 코드의 미처리 예외로 본다.
   로그 `chat_llm_unavailable`·`decide_timeout_fallback`·`llm_retry_in_budget`·`llm_step_failed`로 구분한다.

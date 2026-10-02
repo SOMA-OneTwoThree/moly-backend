@@ -405,7 +405,7 @@ async def test_skipped_turn_leaves_the_trace_empty():
 
 
 async def test_slow_recall_is_logged_even_when_it_succeeds(monkeypatch, caplog):
-    """API 프로세스는 INFO를 버린다. 느린 회상은 성공해도 WARNING이어야 운영에서 보인다."""
+    """느린 회상은 성공해도 WARNING으로 남는다 — 실패·타임아웃 줄과 같은 수준에서 보여야 한다."""
     monkeypatch.setattr(mr, "SLOW_RECALL_WARN_S", 0.0)
     s = _Session([("p1", "active", None, None)])
     with caplog.at_level(logging.WARNING, logger="moly"):

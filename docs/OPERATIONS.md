@@ -129,6 +129,10 @@ journalctl -u moly-worker.service -n 100
 | RevenueCat 이벤트 | processed_at 기준 365일 지난 processed | pending·failed와 결제·주문 원장 |
 | 단명 잠금 | 일기 claim·대화 lease가 만료 기준 7일 초과 | 살아 있는 claim·lease |
 
+상점 구매 멱등 키(`shop-purchase:` 접두)는 의도적으로 만료 없이 영구 보존한다. 보존 기간을 두게 되면
+응답 보존이 끝난 같은 키의 재요청은 저장 응답 재생 대신 `409 IDEMPOTENCY_REPLAY_UNAVAILABLE`로 끝나고,
+키 행까지 정리된 뒤에는 새 구매로 처리되어 이미 보유한 상품이면 `409 ALREADY_OWNED`가 된다.
+
 비용 집계와 원본 삭제는 한 SQL 문장의 `DELETE RETURNING → INSERT ON CONFLICT`로 실행한다.
 `activity_date`는 백그라운드 비용에서 의도적으로 NULL일 수 있어 집계 기준으로 바꾸지 않는다.
 집계한 비용과 호출 수가 삭제 전 합계와 같아야 하며, unknown 값을 0원으로 확정하지 않는다.

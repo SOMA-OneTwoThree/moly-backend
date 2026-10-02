@@ -1,6 +1,6 @@
 """economy·routine·shop·review 핵심 로직 + 인증(DB·의존 mock)."""
 import uuid
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from types import SimpleNamespace
 
 import pytest
@@ -496,6 +496,25 @@ async def test_purchase_incompatible_cache_fails_closed(monkeypatch):
     assert session.committed is False
 
 
+@pytest.mark.parametrize("cached", [
+    SimpleNamespace(response=None),
+    SimpleNamespace(response={"product_id": "head_cap"}, terminal_status="expired"),
+    SimpleNamespace(response={"product_id": "head_cap"}, terminal_status="succeeded",
+                    response_expires_at=datetime(2000, 1, 1, tzinfo=timezone.utc)),
+], ids=["no-response", "not-succeeded", "expired"])
+async def test_purchase_replay_unavailable_is_409_not_a_new_purchase(monkeypatch, cached):
+    """비워졌거나·성공이 아니거나·보존 기간이 지난 사본은 채팅 재생처럼 409 — 새 구매로 실행하지 않는다."""
+    async def _must_not_load(session, product_id):
+        raise AssertionError("재생할 수 없는 사본을 새 구매로 실행하면 안 됨")
+
+    monkeypatch.setattr(shop, "_load_item", _must_not_load)
+    session = FakeSession(get_obj=cached)
+    with pytest.raises(AppError) as exc:
+        await shop.purchase(session, UID, "x", idempotency_key="same-key")
+    assert (exc.value.code, exc.value.http_status) == ("IDEMPOTENCY_REPLAY_UNAVAILABLE", 409)
+    assert session.added == [] and session.committed is False
+
+
 # --- 장착(user_items 통합 — ERD 4.8절) ---
 def _row(product_id, source="purchase", equipped_slot=None):
     return SimpleNamespace(product_id=product_id, source=source,
@@ -716,17 +735,17 @@ async def test_v2_get_equipment_drops_subscriber_only_after_expiry():
         _row(painter.id, source="subscription", equipped_slot="body"),
     ]
     expired = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [onsen, painter], _NO_SUBSCRIPTION]), UID, v2=True,
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [onsen, painter], _NO_SUBSCRIPTION]), UID, v2=True,
         timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
     )
     assert expired["theme_id"] == "theme_default" and expired["body_id"] is None
     active = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
         timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
     )
     assert active["theme_id"] == "theme_onsen" and active["body_id"] == "body_painter"
     old_app = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
         timer_capable=True, bundled_themes=frozenset({"theme_onsen"}),
     )
     assert old_app["theme_id"] == "theme_default" and old_app["body_id"] is None
@@ -832,7 +851,7 @@ async def test_get_equipment_uses_public_ids_and_requires_theme():
         _row(theme.id, source="admin_grant", equipped_slot="theme"),
         _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
-    out = await shop.get_equipment(FakeSession(exec_results=[rows, [theme, glasses]]), UID)
+    out = await shop.get_equipment(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [theme, glasses]]), UID)
     assert out == {
         "theme_id": "theme_default",
         "head_id": "head_sunglasses",  # 레거시: glasses가 단일 head 슬롯으로 투영
@@ -841,8 +860,18 @@ async def test_get_equipment_uses_public_ids_and_requires_theme():
     }
 
     with pytest.raises(AppError) as exc:
-        await shop.get_equipment(FakeSession(exec_results=[[], []]), UID)
+        await shop.get_equipment(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[], []]), UID)
     assert exc.value.code == "INTERNAL"
+
+
+@pytest.mark.parametrize("v2", [False, True])
+async def test_get_equipment_without_profile_is_404(v2):
+    """탈퇴로 프로필이 없으면(아직 유효한 토큰) /inventory처럼 404 — 장착 행을 읽기 전에 끝난다."""
+    session = FakeSession(exec_results=[[], []])
+    with pytest.raises(AppError) as exc:
+        await shop.get_equipment(session, UID, v2=v2)
+    assert (exc.value.code, exc.value.http_status) == ("NOT_FOUND", 404)
+    assert session.exec_results == [[], []]
 
 
 async def test_legacy_get_equipment_hat_wins_over_glasses():
@@ -856,7 +885,7 @@ async def test_legacy_get_equipment_hat_wins_over_glasses():
         _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
     out = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [theme, hat, glasses]]), UID
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [theme, hat, glasses]]), UID
     )
     assert out == {
         "theme_id": "theme_default",
@@ -876,7 +905,7 @@ async def test_v2_get_equipment_exposes_hat_and_glasses():
         _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
     out = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [theme, hat, glasses]]), UID, v2=True
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [theme, hat, glasses]]), UID, v2=True
     )
     assert out == {
         "theme_id": "theme_default",

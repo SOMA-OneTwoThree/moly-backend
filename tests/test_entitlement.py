@@ -114,3 +114,36 @@ def test_ads_return_at_trial_expiry(trial_kind, offset_us):
     assert result["plan"] == ("trial" if offset_us < 0 else "free")
     # Launch access keeps banner ads; only the new app shows them.
     assert result["ads_removed"] is (offset_us < 0 and trial_kind != "launch")
+
+
+def test_unparsable_launch_date_is_fail_safe_and_warned_once(caplog, monkeypatch):
+    """해석 못 한 free_launch_until은 지금처럼 런칭 종료(fail-safe)로 판정하고, 값별로 한 번만 경고한다."""
+    from app.services import entitlement
+
+    monkeypatch.setattr(entitlement, "_warned_launch_values", set())
+    cfg = {**CONFIG, "free_launch_until": "not-a-date"}
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        assert entitlement.launch_ended(cfg, NOW) is True
+        e = derive_entitlement(_profile(None), None, 0, cfg, NOW)
+    assert e["entitlement_source"] == "free" and e["plan"] == "free"
+    assert caplog.text.count("free_launch_until 파싱 실패") == 1
+
+
+@pytest.mark.parametrize("value", [20991231, "", {"until": "x"}])
+def test_wrong_type_or_empty_launch_date_is_warned(caplog, monkeypatch, value):
+    from app.services import entitlement
+
+    monkeypatch.setattr(entitlement, "_warned_launch_values", set())
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        assert entitlement.launch_ended({**CONFIG, "free_launch_until": value}, NOW) is True
+    assert "free_launch_until 파싱 실패" in caplog.text
+
+
+def test_explicit_null_launch_date_is_not_warned(caplog, monkeypatch):
+    """null은 명시적 OFF라 경고하지 않는다."""
+    from app.services import entitlement
+
+    monkeypatch.setattr(entitlement, "_warned_launch_values", set())
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        assert entitlement.launch_ended({**CONFIG, "free_launch_until": None}, NOW) is True
+    assert "free_launch_until" not in caplog.text

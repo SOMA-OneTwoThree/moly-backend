@@ -4,10 +4,15 @@
 """
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
 from app.services.i18n import resolve as resolve_language
+
+_log = logging.getLogger("moly-backend")
+# 해석 못 한 free_launch_until 값별 경고 기록 — 요청마다 판정하므로 프로세스당 값별 1회만 남긴다.
+_warned_launch_values: set[str] = set()
 
 
 # Daily weighted quota units. Trials receive the same allowance as paid plans.
@@ -32,12 +37,24 @@ def _parse_dt(value: Any) -> datetime | None:
     naive면 UTC로 간주(비교 크래시 방지). 잘못된 값이 '영구 무료'로 새지 않게 항상 안전 폴백.
     """
     if not isinstance(value, str) or not value:
+        if value is not None:
+            _warn_unparsable_launch(value)
         return None
     try:
         dt = datetime.fromisoformat(value)
     except ValueError:
+        _warn_unparsable_launch(value)
         return None
     return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+
+
+def _warn_unparsable_launch(value: Any) -> None:
+    """잘못된 값 하나가 전 사용자의 토큰 한도·개인 일기를 한 번에 바꾸므로, 판정(런칭 종료,
+    fail-safe)은 그대로 두고 흔적만 남긴다. None(명시적 OFF)은 경고하지 않는다."""
+    key = repr(value)[:120]
+    if key not in _warned_launch_values:
+        _warned_launch_values.add(key)
+        _log.warning("free_launch_until 파싱 실패 → 런칭 종료(fail-safe)로 판정 value=%s", key)
 
 
 def launch_ended(config: dict[str, Any], now: datetime) -> bool:

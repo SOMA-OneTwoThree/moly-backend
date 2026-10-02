@@ -93,9 +93,19 @@ async def _get_keys(*, force: bool = False) -> dict[str, str]:
             # 시도 시각을 fetch 전에 기록 — Google 키서버 장애(timeout/5xx)로 실패해도 스로틀이
             # 걸리게 한다(성공에만 기록하면 장애 중 미등록 key_id마다 10초 외부호출 폭주).
             _last_force_at = now
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            data = (await client.get(_KEYS_URL)).json()
-        _keys_cache = {str(k["keyId"]): k["pem"] for k in data.get("keys", [])}
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                data = (await client.get(_KEYS_URL)).json()
+            keys = {str(k["keyId"]): k["pem"] for k in data.get("keys", [])}
+        except Exception as e:  # noqa: BLE001
+            # 키 갱신 실패는 서명 오류와 다른 운영 이벤트라 따로 남긴다. 동작은 그대로(예외 전파 →
+            # 이 콜백 거절) — 이전 키를 더 쓰는 건 24시간 캐시 정책과 맞물린 결정이라 여기서 바꾸지 않는다.
+            _log.warning(
+                "AdMob verifier 키 갱신 실패(이전 캐시 %s, 이 콜백은 거절): %r",
+                "있음" if _keys_cache is not None else "없음", e,
+            )
+            raise
+        _keys_cache = keys
         _keys_fetched_at = time.monotonic()
     return _keys_cache
 

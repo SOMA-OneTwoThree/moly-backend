@@ -120,30 +120,40 @@ def test_missing_barrier_is_compat_allowed_but_enforced_denied() -> None:
     assert denied.allowed is False and denied.reason == "barrier_missing"
 
 
-async def test_begin_deletion_redacts_replay_and_job_copies_before_account_cascade() -> None:
-    session = _Session(scalars=[17], rows=[(2, 3, 5)])
-    counts = await privacy.begin_subject_deletion(
+async def test_begin_deletion_uses_the_same_db_function_as_the_auth_server() -> None:
+    """장벽·비식별화는 moly-auth가 RPC로 부르는 DB 함수 하나다(실행 검증은 통합 테스트)."""
+    session = _Session(scalars=[17])
+    assert await privacy.begin_subject_deletion(
         session, user_id=UID, operation_id=OPERATION_ID
-    )
-    assert counts == (2, 3, 5)
-    statements = [call[0] for call in session.calls]
-    assert "pg_advisory_xact_lock" in str(statements[0])
-    assert "DELETE FROM chat_topic_entries" in str(privacy._REDACT)
-    assert "DELETE FROM user_topic_states" in str(privacy._REDACT)
-    assert privacy._BEGIN in statements
-    assert privacy._REDACT in statements
-    assert privacy._LEDGER in statements
+    ) == 17
+    assert session.calls == [
+        (privacy._BEGIN, {"user_id": UID, "operation_id": OPERATION_ID})
+    ]
+    assert "public.begin_subject_deletion(" in str(privacy._BEGIN)
 
 
 async def test_mark_deleted_is_operation_fenced() -> None:
     assert not await privacy.mark_subject_deleted(
-        _Session(scalars=[None]), user_id=UID, operation_id=OPERATION_ID
+        _Session(rows=[None]), user_id=UID, operation_id=OPERATION_ID
     )
-    session = _Session(scalars=[17])
+    session = _Session(rows=[(17,)])
     assert await privacy.mark_subject_deleted(
         session, user_id=UID, operation_id=OPERATION_ID
     )
     assert any(stmt is privacy._LEDGER for stmt, _ in session.calls)
+
+
+async def test_mark_deleted_closes_a_barrier_without_watermark() -> None:
+    """장벽 없이 지워진 계정은 high_watermark가 NULL이다 — 확정과 ledger를 건너뛰면 안 된다."""
+    session = _Session(rows=[(None,)])
+    assert await privacy.mark_subject_deleted(
+        session, user_id=UID, operation_id=OPERATION_ID
+    )
+    ledger = [params for stmt, params in session.calls if stmt is privacy._LEDGER]
+    assert ledger == [{
+        "operation_id": OPERATION_ID, "user_id": UID,
+        "event": "subject_deleted", "high_watermark": None,
+    }]
 
 
 def test_success_finalize_checks_barrier_before_domain_apply() -> None:

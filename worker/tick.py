@@ -591,6 +591,18 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     except Exception as e:  # noqa: BLE001
         _log.warning("기억 sweep 예약 실패(무시): %r", e)
 
+    # --- 탈퇴 마무리 ---
+    # 계정이 지워지면 사용자 잡은 프로필과 함께 사라지므로, 남은 정리와 완료 표시는 user_id 없는
+    # 이 잡이 장벽 행을 보고 한다. 틱마다 한 번(같은 창 dedup). 실패해도 틱을 깨지 않는다.
+    try:
+        from worker import privacy_sweep_jobs
+
+        async with get_sessionmaker()() as s_priv:
+            await privacy_sweep_jobs.enqueue_sweep(s_priv, bucket=now.strftime("%Y%m%dT%H%M"))
+            await s_priv.commit()
+    except Exception as e:  # noqa: BLE001
+        _log.warning("탈퇴 sweep 예약 실패(무시): %r", e)
+
     # --- 데드맨 핑 + 결과이상/비용 경보(네트워크 — 세션 밖) ---
     # 최후 방어: 모니터링은 무슨 일이 있어도 배치 틱을 깨면 안 된다(일기·푸시는 이미 커밋됨).
     try:

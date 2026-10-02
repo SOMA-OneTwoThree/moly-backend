@@ -418,3 +418,35 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 전부 되돌릴 때는 `UPDATE public.user_devices SET invalidated_at = NULL WHERE invalidated_at IS NOT NULL;`을 쓴다.
 같은 조건의 `SELECT count(*)`로 대상 행 수를 먼저 확인하고 `db.apply` 기본(rollback) 실행 뒤 `--commit`한다.
 컬럼 제거는 이 컬럼을 쓰지 않는 이미지로 되돌린 뒤에만 한다.
+
+## 계정 삭제 장벽
+
+moly-auth `DELETE /me`는 계정을 지우기 전에 `begin_subject_deletion`을, 계정 삭제가 실패하면
+`abort_subject_deletion`을 RPC로 부른다. 장벽 호출이 실패해도 탈퇴는 진행한다(fail-open). 계정이 지워진 뒤의
+벡터 정리와 완료 표시는 워커 틱마다 예약되는 `privacy_residual_sweep`이 한다. 대상은 프로필도 인증 계정도 없는
+장벽뿐이고, 보통 탈퇴는 두 번의 빈 sweep(틱 두 번) 뒤 `deleted`가 된다. 설계는 ARCHITECTURE-capi 13.3절이다.
+
+적용 순서: `db/changes/privacy_deletion_fence.sql`을 구조 변경 절차(`db.apply` 기본 rollback → `--commit
+--expected-sha256` → `db.verify`, dev 다음 prod)로 적용 → backend 배포 → moly-auth 배포. 함수가 없으면 backend
+배포 사전점검(스키마 계약)에서 멈춘다. 이전 backend 이미지는 함수가 있어도 사전점검을 통과한다.
+
+확인:
+
+```sql
+SELECT state, count(*) FROM public.privacy_subject_barriers GROUP BY 1;
+SELECT event, count(*) FROM public.privacy_ledger_events
+WHERE created_at > now() - interval '1 day' GROUP BY 1;
+```
+
+- 탈퇴마다 `serving_blocked_and_redacted` → `residual_sweep_empty` → `subject_deleted`가 쌓인다.
+  `orphan_barrier_promoted`는 장벽 없이 지워진 계정이다(장벽 호출 실패 또는 이 기능 전의 탈퇴).
+- 워커 로그 `탈퇴 sweep — … 승격 · … 삭제 · 완료`(INFO)와 `1시간 넘게 삭제 중인 장벽`(WARNING). 후자는
+  계정 삭제가 실패했는데 되돌리기도 실패한 경우라 사용자가 409로 막혀 있다. moly-auth Vercel 로그의
+  `[abort_subject_deletion failed]`와 같이 보고, 계정이 남아 있으면 같은 operation으로 `abort_subject_deletion`을 부른다.
+- moly-auth Vercel 로그 `[begin_subject_deletion failed]`는 탈퇴를 막지 않는다. 그 계정은 sweep이 승격해 끝낸다.
+- `privacy_barrier_mode=enforced` 전환은 별도 판단이다. `scripts/verify_privacy_barriers.py --env prod`가 연속
+  두 번 통과해야 한다. 막 탈퇴해 아직 `deleting`인 장벽도 고아로 세므로, 실패하면 두 틱 뒤 다시 본다.
+
+되돌리기: moly-auth를 이전 배포로 돌리면 장벽 호출이 멈추고 탈퇴는 예전처럼 계정만 지운다. backend를 이전
+이미지로 돌리면 sweep이 멈추고 `deleting` 장벽이 그대로 남는다(서비스 영향 없음, 다시 배포하면 이어서 끝낸다).
+함수는 남겨 두어도 아무도 부르지 않으면 무해하다.

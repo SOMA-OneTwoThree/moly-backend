@@ -50,14 +50,24 @@ async def _post(url: str, text: str) -> None:
         _log.warning("슬랙 웹훅 전송 실패: %r", e)
 
 
+def claim(dedup_key: str, window: float | None = None) -> bool:
+    """억제 창(기본 alert_dedup_window_sec) 안에 같은 키를 이미 보냈으면 False, 아니면 시각을 기록하고 True.
+
+    await 없이 끝나므로 asyncio 안에서 원자적이다 — 전송 전에 억제를 정해야 하는 호출측(app 경보)도 쓴다.
+    """
+    now = time.monotonic()
+    last = _last_sent.get(dedup_key)
+    window = settings.alert_dedup_window_sec if window is None else window
+    if last is not None and now - last < window:
+        return False  # 창 내 중복 — 스팸 억제
+    _last_sent[dedup_key] = now
+    return True
+
+
 async def send(text: str, *, severity: str = "status", dedup_key: str | None = None) -> None:
     """severity 채널로 전송. dedup_key 지정 시 alert_dedup_window_sec 내 같은 키는 억제."""
-    if dedup_key:
-        now = time.monotonic()
-        last = _last_sent.get(dedup_key)
-        if last is not None and now - last < settings.alert_dedup_window_sec:
-            return  # 창 내 중복 — 스팸 억제
-        _last_sent[dedup_key] = now
+    if dedup_key and not claim(dedup_key):
+        return
     await _post(_webhook_for(severity), text)
 
 

@@ -99,6 +99,14 @@ journalctl -u moly-worker.service -n 100
   `X-Health-Token`을 요구한다. synthetic은 실제 모델 호출을 하므로 비용이 발생한다. 대화 경로와 같게 추론과
   SDK 재시도를 끄고 부르며, 15초(바깥 상한 포함 최대 16초)를 넘으면 503이다. 지연은 응답의 `llm.latency_ms`로
   본다. 배포 스모크는 synthetic이 실패하면 한 번 더 부른다.
+- 앱 안 경보(경보 채널, 억제는 프로세스별): `API 미처리 예외 <종류>`(500, 종류별 5분 억제 — 로그
+  `unhandled error`의 스택부터), `기억 회상 타임아웃 N회/15분`(5회 이상, 보내면 다시 0부터 세고 15분 억제 — 로그
+  `v2 회상 타임아웃`의 stages로 임베딩·DB 중 어디인지), `대화 턴 N초`(replay 턴 빼고 15초 초과, 15분 억제 —
+  구간별 소요로 느린 곳을 본다), `합성 점검 실패(워커)`(워커가 틱마다 공개 주소로 synthetic을 부르고 5초 뒤
+  재시도도 실패했거나 50초 안에 응답이 없을 때 — API·DB·LLM을 본다. 워커 데드맨과는 별개라 이것만으로 워커를
+  실패 처리하지 않는다. `합성 점검 자체 오류`는 점검 설정·코드 문제다). 기준·스위치는 `alert_*`·
+  `worker_synthetic_*` 설정이다. 운영은 코드 기본값으로 돈다 — `backend.env`에는 deploy.sh에 나열된 키만
+  실리므로 바꾸려면 코드를 고쳐 배포한다(0·false로 끄는 것도 코드나 로컬 env 수준이다).
 - 채팅 5xx: `POST /chat/messages`의 503 `AI_UNAVAILABLE`은 LLM 제공자의 일시 장애(timeout·연결·429·5xx)다.
   저장 없이 끝나며 앱은 같은 멱등 키로 다시 보낼 수 있다. 500 `INTERNAL`은 우리 코드의 미처리 예외로 본다.
   로그 `chat_llm_unavailable`·`decide_timeout_fallback`·`llm_retry_in_budget`·`llm_step_failed`로 구분한다.

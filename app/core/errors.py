@@ -15,6 +15,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.services import alerts
+
 _log = logging.getLogger("moly-backend")
 
 # HTTPException(status) → 표준 에러 코드. 목록 밖은 HTTP_<status>.
@@ -87,8 +89,9 @@ async def _http_exception_handler(
 
 
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """미처리 예외 → 500 INTERNAL(내부 상세 미노출). 서버 로그엔 스택 남김."""
+    """미처리 예외 → 500 INTERNAL(내부 상세 미노출). 서버 로그엔 스택 남김, 경보 채널엔 종류만."""
     _log.exception("unhandled error: %r", exc)
+    alerts.unhandled(request, exc)
     return JSONResponse(
         status_code=500,
         content=_body("INTERNAL", "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.", {}),

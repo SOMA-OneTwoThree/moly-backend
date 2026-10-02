@@ -414,10 +414,9 @@ T = agent_tool_result_budget_tokens (한 턴 도구 결과 합계 상한)
 
 이 경로를 탄 턴은 `skipped="deadline"`으로 표시되고, `decide_timeout_fallback` 로그가 남는다.
 
-**2026-10-01 운영 5xx 이후 바뀐 것.** 위 기준을 고친 뒤에도 이 경로는 운영에서 한 번도 돌지 않았다
-(14일간 0건). OpenAI SDK의 기본 자동 재시도(`max_retries=2`) 때문이다. SDK의 timeout은 **시도당**
-값이라 첫 번째 호출 하나가 timeout의 3배(5.85초 → 18.9초)를 쓰고, 그 사이 마감이 지나 위 조건이
-성립하지 못했다. 같은 요청의 재시도는 같은 서버로 가서(캐시 적중 100% 실측) 느린 서버에 다시 붙는다.
+**SDK 재시도와 마감 예산.** OpenAI SDK의 timeout은 **시도당** 값이다.
+기본 자동 재시도(`max_retries=2`)를 허용하면 첫 호출이 fallback 예산까지 소진할 수 있으므로,
+마감이 있는 호출은 재시도를 호출측에서 관리한다.
 
 - 마감이 있는 호출(`generate_step`, 채팅의 `generate(sdk_retries=False)`)은 SDK 자동 재시도를 끈다.
   대신 **빨리 끝난 일시 오류**(502·연결 끊김·짧은 Retry-After의 429)만 **같은 timeout 안에서** 한 번

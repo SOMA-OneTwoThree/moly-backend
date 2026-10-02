@@ -111,9 +111,9 @@ def _account_push(stats: dict | None, result) -> None:
         stats[key] = stats.get(key, 0) + n
 
 
-def _count_auth_failure(stats: dict | None) -> None:
-    """FCM 인증 준비 실패는 응답 분류(push.send) 밖에서 난다 — 같은 설정·인증 키로 센다.
-    서비스 계정이 깨지면 모든 발송이 이 경로라, 세지 않으면 워커 전면 장애 판정에 안 잡힌다."""
+def _count_push_setup_failure(stats: dict | None) -> None:
+    """발송 준비 또는 push.send 예외를 설정 오류로 집계한다.
+    FCM 응답 분류 밖에서 발생하는 실패도 워커의 전면 장애 판정에 포함한다."""
     if stats is not None:
         stats["push_setup_error"] = stats.get("push_setup_error", 0) + 1
 
@@ -221,7 +221,7 @@ async def notify_morning(
         access_token = await push.prepare_access_token()
     except Exception:  # noqa: BLE001  # No message has been submitted, so a later tick can retry.
         _log.warning("아침 푸시 인증 준비 실패 — 발송 슬롯 미소진(user=%s)", profile.id)
-        _count_auth_failure(stats)
+        _count_push_setup_failure(stats)
         return 0
     if access_token is None:
         return 0
@@ -316,7 +316,7 @@ async def notify_evening(
         sent = await push.send(tokens, title, body)
     except Exception:
         # 인증 준비는 send 안에서 한다. 처리는 그대로(틱이 기록), 전면 장애 판정용으로만 센다.
-        _count_auth_failure(stats)
+        _count_push_setup_failure(stats)
         raise
     _account_push(stats, sent)
     await _invalidate_dead_tokens(session, profile.id, getattr(sent, "invalid_tokens", ()), stats=stats)

@@ -1,8 +1,7 @@
 """마감 있는 LLM 호출은 SDK 자동 재시도를 하지 않는다 — 실제 openai SDK + 가짜 HTTP 전송으로 고정.
 
-2026-10-01 운영 5xx: 1홉 timeout 5.85초가 SDK 기본 재시도(max_retries=2) 때문에 18.9초가 됐고,
-런타임의 fallback(남은 시간 ≥1.5초)이 한 번도 못 돌았다. 기존 테스트는 generate_step 자체를
-대역으로 바꿔서 SDK 안의 재시도가 보이지 않았다 — 그래서 여기는 SDK를 그대로 쓰고 전송만 바꾼다.
+SDK 기본 재시도는 호출측의 마감과 fallback 예산을 넘길 수 있다.
+generate_step 대역만으로는 SDK 안의 재시도를 검증할 수 없으므로, SDK를 그대로 쓰고 전송만 바꾼다.
 """
 import httpx
 import openai
@@ -208,7 +207,7 @@ async def test_request_errors_are_not_retried(monkeypatch):
     assert len(attempts) == 1
 
 
-# --- run_turn ↔ 실제 SDK 경계(이번 사고가 숨어 있던 곳) --------------------------------------
+# --- run_turn ↔ 실제 SDK 경계 --------------------------------------
 async def test_run_turn_hop1_timeout_reaches_toolless_fallback_through_real_sdk(monkeypatch):
     """도구 홉이 ReadTimeout이면 SDK가 같은 요청을 다시 보내지 않고, 런타임 fallback(도구 없음)이 답한다."""
     import json as _json

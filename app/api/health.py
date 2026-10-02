@@ -177,7 +177,7 @@ async def health_deep(
         out["retention"] = None
 
     # 타임존 해석 — DB의 distinct profiles.timezone 전부를 이 컨테이너의 zoneinfo로 풀어본다(≤수십 개).
-    # 2026-10-01: 레거시 별칭 3종(41명)이 두 달간 워커 스킵·422·KST 폴백을 내고도 어떤 지표에도 안 잡혔다.
+    # 레거시 별칭 해석 실패로 워커 스킵·422·KST 폴백이 발생하는지 함께 관측한다.
     try:
         names = [n for n in (await session.execute(select(Profile.timezone).distinct())).scalars() if n]
         bad_api = sorted(n for n in names if not is_valid_iana_timezone(n))

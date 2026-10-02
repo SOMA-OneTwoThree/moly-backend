@@ -387,7 +387,7 @@ async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = Non
         except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
             _log.warning("틱: 해석 불가 timezone %r — 이 tz 유저 전원 스킵: %r", tz, e)
             if unresolvable is not None:
-                unresolvable.add(tz)  # 관측 출구(요약·헬스·일 1회 경보) — 2026-10-01 41명 두 달 미발견
+                unresolvable.add(tz)  # 관측 출구(요약·헬스·일 1회 경보)
             continue
         if hour in (DIARY_HOUR, MORNING_HOUR, EVENING_HOUR):
             relevant.add(tz)

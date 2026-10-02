@@ -198,7 +198,7 @@ def test_deep_vecs_bytes_per_row_none_before_analyze(monkeypatch):
     assert r.json()["tables"]["vecs_bytes_per_row"] is None
 
 
-# --- deep: 타임존 해석(2026-10-01 레거시 별칭 41명이 두 달간 어떤 지표에도 안 잡힘) ---
+# --- deep: 레거시 별칭을 포함한 타임존 해석 관측 ---
 def _tz_session(names):
     """profiles.timezone distinct 조회만 scalars로, 나머지는 _DeepSession과 같게."""
     class _TzSession(_DeepSession):

@@ -485,6 +485,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 ```
 
 - **2026-07-13**: `order_id` 추가(주문 기록·CS 추적용) — 클라 필수 사용 아님.
+- 같은 `Idempotency-Key`로 다시 보냈는데 저장된 응답을 재생할 수 없으면(응답이 비었거나 보존 기간이 지남) `409 IDEMPOTENCY_REPLAY_UNAVAILABLE`. 구매는 다시 실행되지 않으며, 새 `Idempotency-Key`로 보내면 된다(이미 보유한 상품이면 `409 ALREADY_OWNED`).
 
 ### `GET /inventory` · `GET /v2/inventory` — 보유 목록
 
@@ -498,6 +499,8 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 // v2: GET /v2/inventory/equipment
 { "theme_id":"…", "hat_id":null, "glasses_id":null, "neck_id":null, "body_id":null }
 ```
+
+- 프로필이 없으면(탈퇴 뒤 아직 유효한 토큰) `404 NOT_FOUND`.
 
 ### `PUT /inventory/equipment` · `PUT /v2/inventory/equipment` — 장착 교체 (전체 슬롯 필수)
 
@@ -648,11 +651,13 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 | --- | --- | --- |
 | `UNAUTHORIZED` | 401 | 토큰 없음/만료/무효 |
 | `FORBIDDEN` | 403 | 일반 접근 거부 |
+| `NOT_FOUND` | 404 | 대상 없음 또는 프로필 없음(탈퇴 뒤 아직 유효한 토큰) |
 | `DAILY_LIMIT_REACHED` | 403 | 대화 토큰 소진(업셀) |
 | `INSUFFICIENT_HAY` | 402 | 건초 부족 |
 | `ALREADY_ONBOARDED` | 409 | 온보딩 완료 후 재호출 |
 | `ALREADY_CLAIMED` | 409 | 출석/루틴 보상 중복 |
 | `ALREADY_OWNED` | 409 | 상점 중복 구매(기본 지급분 재구매 포함) |
+| `IDEMPOTENCY_REPLAY_UNAVAILABLE` | 409 | 같은 `Idempotency-Key` 재요청인데 저장 응답을 재생할 수 없음(대화·상점 구매) — 새 키로 재전송 |
 | `ROUTINE_GOAL_NOT_MET` | 422 | 루틴 2개 미완료 |
 | `AD_LIMIT_REACHED` | 429 | 광고 일 5회 초과 |
 | `AD_VERIFY_FAILED` | 422 | SSV 서명 검증 실패(서버-서버 — 클라 미노출) |

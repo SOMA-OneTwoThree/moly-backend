@@ -7,8 +7,10 @@ from sqlalchemy import exists, func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import errors
 from app.core.app_day import AppDay, validate_app_timezone
 from app.core.advisory_lock import advisory_xact_lock
+from app.models.profile import Profile
 from app.models.routine import Routine, RoutineCompletion
 from app.services.account import _load_profile, _uid
 from app.services.banner_catalog import BannerCatalog, render_feed, select_candidates
@@ -90,6 +92,11 @@ async def list_banners(
         async with session.begin_nested():
             await advisory_xact_lock(session, _uid(user_id))
             await privacy.ensure_subject_active(session, _uid(user_id))
+            # A token can outlive its account. Without a profile the topic-state insert fails on
+            # its foreign key, so answer with the same 503 up front. A 404 would make the app
+            # treat this server as old and call the legacy GET /banners again.
+            if await session.get(Profile, _uid(user_id)) is None:
+                raise errors.AppError("BANNERS_UNAVAILABLE", 503, "배너를 불러올 수 없습니다.")
             topic_offer = await resolve_offer(session, _uid(user_id), topic_catalog, day)
     if needs_count:
         try:

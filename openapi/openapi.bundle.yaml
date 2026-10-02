@@ -1505,7 +1505,7 @@ paths:
                         required: 100
                         balance: 40
         '409':
-          description: 이미 소유하거나 동시 unique conflict
+          description: 이미 소유하거나 동시 unique conflict, 또는 같은 Idempotency-Key의 저장 응답을 재생할 수 없음
           content:
             application/json:
               schema:
@@ -1517,6 +1517,13 @@ paths:
                     error:
                       code: ALREADY_OWNED
                       message: 이미 보유 중이에요.
+                      details: {}
+                replayUnavailable:
+                  summary: 멱등 응답 재생 불가
+                  value:
+                    error:
+                      code: IDEMPOTENCY_REPLAY_UNAVAILABLE
+                      message: 이 요청의 재생 보존 기간이 끝났어요. 새 Idempotency-Key로 보내 주세요.
                       details: {}
       security:
       - SupabaseBearer: []
@@ -1579,6 +1586,8 @@ paths:
                       details: {}
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
       security:
       - SupabaseBearer: []
       description: theme은 항상 필요하며 wearable head/neck/body는 nullable이다.
@@ -1775,6 +1784,8 @@ paths:
                       details: {}
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
       security:
       - SupabaseBearer: []
       description: theme은 항상 필요하며 wearable hat/glasses/neck/body는 nullable이다.

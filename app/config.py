@@ -291,6 +291,18 @@ class Settings(BaseSettings):
     # 워커 푸시 전면 장애 판정 하한 — 한 틱에서 FCM 수락 0건인데 토큰 문제가 아닌 실패(설정·인증·일시·
     # 페이로드)가 이 수 이상이면 결과 이상(데드맨 /fail + 경보). 무효 토큰은 평시에도 매일 나와 세지 않는다.
     worker_push_outage_min: int = 20
+    # API 안 경보(app/services/alerts.py)·워커 합성 점검(worker/synthetic_probe.py)의 기준·스위치.
+    # 운영은 아래 코드 기본값으로 돈다 — backend.env엔 deploy.sh에 나열된 키만 실리므로 바꾸려면 코드를 고쳐
+    # 배포한다. 0·false로 끄는 건 코드나 로컬 env 수준의 스위치다.
+    alert_recall_timeouts: int = 5             # 창 안 회상 타임아웃이 이 수 이상이면 경보(보내면 다시 0부터)
+    alert_recall_timeout_window_s: int = 900   # 회상 타임아웃을 세는 창이자 그 경보의 억제 창(초)
+    alert_slow_turn_ms: int = 15_000           # 대화 턴(replay 제외) 총 소요가 이 값을 넘으면 경보
+    alert_slow_turn_dedup_s: int = 900         # 느린 턴 경보 억제 창(초) — 제공자 지연이 길게 이어질 때 스팸 방지
+    # 워커 합성 점검 — 틱마다 공개 주소로 /health/synthetic 1회(실패면 1회 더). 주소가 비면 production만
+    # 운영 공개 주소를 쓰고 그 밖의 환경은 끈다. 실패는 경보만(데드맨과 분리).
+    worker_synthetic_enabled: bool = True
+    worker_synthetic_url: str = ""
+    worker_synthetic_timeout_s: float = 20.0
 
     # --- 로깅(app/core/logging_setup.py) — API·consumer·worker 공통 ---
     # 운영은 JSON 1줄·INFO. 로컬에서 읽기 편하게 LOG_JSON=false 가능. LOG_ACCESS_HEALTH=true면

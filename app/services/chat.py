@@ -28,6 +28,7 @@ from app.models.message import Message
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
 from app.services import (
+    alerts,
     checkpoint,
     checkpoint_repo,
     config_store,
@@ -411,6 +412,7 @@ def _log_recall_timeout(
         user_id, time.monotonic() - started, _MEM0_RECALL_TIMEOUT_S,
         phase1_done - started, trace, _recall_timeouts_total,
     )
+    alerts.recall_timeout()
 
 
 def _build_system(
@@ -600,6 +602,12 @@ def _emit_turn_metrics(**fields: Any) -> None:
         )
     except Exception:  # noqa: BLE001 — 계측 배출 실패는 절대 응답을 막지 않는다
         _log.warning("chat_turn_metrics 로그 배출 실패", exc_info=True)
+    # replay 턴(저장 응답 재생·동시 중복)은 원 턴이 따로 잡히고 잠금 대기가 섞인다 — 느린 턴 경보에서 뺀다.
+    if not fields.get("replay"):
+        alerts.slow_turn(
+            fields.get("total_ms"), phase1=fields.get("phase1_ms"), llm=fields.get("llm_ms"),
+            phase2=fields.get("phase2_ms"),
+        )
 
 
 def _ms(t0: float, t1: float) -> float:

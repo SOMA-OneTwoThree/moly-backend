@@ -60,6 +60,14 @@ paths:
     $ref: ./paths/routines.yaml#/~1routines~1%7Broutine_id%7D~1complete
   /routines/{routine_id}/statistics:
     $ref: ./paths/routines.yaml#/~1routines~1%7Broutine_id%7D~1statistics
+  /routines/stats:
+    $ref: ./paths/routines.yaml#/~1routines~1stats
+  /routines/{routine_id}/skip:
+    $ref: ./paths/routines.yaml#/~1routines~1%7Broutine_id%7D~1skip
+  /routine-templates:
+    $ref: ./paths/routines.yaml#/~1routine-templates
+  /routine-templates/selection:
+    $ref: ./paths/routines.yaml#/~1routine-templates~1selection
   /shop/products:
     $ref: ./paths/shop.yaml#/~1shop~1products
   /shop/purchases:
@@ -250,6 +258,26 @@ components:
       $ref: ./components/routines.yaml#/schemas/RoutineResponse
     RoutineStatisticsResponse:
       $ref: ./components/routines.yaml#/schemas/RoutineStatisticsResponse
+    RoutineIcon:
+      $ref: ./components/routines.yaml#/schemas/RoutineIcon
+    RoutineColor:
+      $ref: ./components/routines.yaml#/schemas/RoutineColor
+    RoutineStatsSummary:
+      $ref: ./components/routines.yaml#/schemas/RoutineStatsSummary
+    RoutineStatsDay:
+      $ref: ./components/routines.yaml#/schemas/RoutineStatsDay
+    RoutineStatsItem:
+      $ref: ./components/routines.yaml#/schemas/RoutineStatsItem
+    RoutineStatsResponse:
+      $ref: ./components/routines.yaml#/schemas/RoutineStatsResponse
+    RoutineTemplate:
+      $ref: ./components/routines.yaml#/schemas/RoutineTemplate
+    RoutineTemplateCategory:
+      $ref: ./components/routines.yaml#/schemas/RoutineTemplateCategory
+    RoutineTemplatesResponse:
+      $ref: ./components/routines.yaml#/schemas/RoutineTemplatesResponse
+    RoutineTemplateSelectionRequest:
+      $ref: ./components/routines.yaml#/schemas/RoutineTemplateSelectionRequest
     ShopProduct:
       $ref: ./components/shop.yaml#/schemas/ShopProduct
     ShopProductV2:
@@ -347,7 +375,7 @@ tags:
 - name: economy
   description: 건초 지갑, 원장, 충전소 보상
 - name: routine
-  description: 요일 기반 루틴 CRUD, 완료, 통계
+  description: 요일 기반 루틴 CRUD, 완료, 스킵, 통계, 템플릿
 - name: shop
   description: 꾸미기 카탈로그, 구매, 인벤토리, 장착
 - name: review

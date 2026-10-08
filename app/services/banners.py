@@ -11,7 +11,7 @@ from app.core import errors
 from app.core.app_day import AppDay, validate_app_timezone
 from app.core.advisory_lock import advisory_xact_lock
 from app.models.profile import Profile
-from app.models.routine import Routine, RoutineCompletion
+from app.models.routine import Routine, RoutineCompletion, RoutineSkip
 from app.services.account import _load_profile, _uid
 from app.services.banner_catalog import BannerCatalog, render_feed, select_candidates
 from app.services.i18n import resolve
@@ -31,6 +31,13 @@ async def remaining_today(session: AsyncSession, user_id: str, day: AppDay) -> i
             RoutineCompletion.activity_date == day.local_date,
         )
     )
+    skipped = exists(
+        select(RoutineSkip.routine_id).where(
+            RoutineSkip.user_id == uid,
+            RoutineSkip.routine_id == Routine.id,
+            RoutineSkip.activity_date == day.local_date,
+        )
+    )
     query = (
         select(func.count())
         .select_from(Routine)
@@ -39,6 +46,7 @@ async def remaining_today(session: AsyncSession, user_id: str, day: AppDay) -> i
             Routine.deleted_at.is_(None),
             Routine.days_of_week.any(day.local_date.isoweekday()),
             ~completed,
+            ~skipped,
         )
     )
     async with session.begin_nested():

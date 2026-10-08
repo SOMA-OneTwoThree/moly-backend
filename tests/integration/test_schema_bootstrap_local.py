@@ -64,6 +64,52 @@ async def test_signup_preserves_gifts_trial_localized_routines_and_privacy_barri
     ) == 2
 
 
+async def test_routine_templates_are_seeded_and_routine_history_follows_the_routine(connection):
+    assert [row['id'] for row in await connection.fetch(
+        'SELECT id FROM public.routine_template_categories WHERE is_active ORDER BY sort_order',
+    )] == ['morning', 'health', 'sleep', 'mind', 'home', 'growth']
+    assert await connection.fetchval('SELECT count(*) FROM public.routine_templates WHERE is_active') == 23
+    assert [row['id'] for row in await connection.fetch(
+        'SELECT id FROM public.routine_templates WHERE is_recommended ORDER BY sort_order',
+    )] == ['make_bed', 'drink_water']
+    with pytest.raises(asyncpg.CheckViolationError):
+        async with connection.transaction():
+            await connection.execute('''
+                INSERT INTO public.routine_templates(id, category_id, name_i18n, icon, color, days_of_week)
+                VALUES ('probe', 'home', '{"ko":"확인"}', 'memo', 'red', '{1}')
+            ''')
+    uid, _ = await signup(connection)
+    routine_id = await connection.fetchval('''
+        INSERT INTO public.routines(user_id, name, frequency_per_week, days_of_week)
+        VALUES($1, '산책', 1, '{1}') RETURNING id
+    ''', uid)
+    assert tuple(await connection.fetchrow(
+        'SELECT icon, color, template_id, deleted_on FROM public.routines WHERE id=$1', routine_id,
+    )) == ('seedling', 'peach', None, None)
+    await connection.execute('''
+        INSERT INTO public.routine_schedules(routine_id, user_id, effective_from, days_of_week)
+        VALUES($1, $2, '2026-09-07', '{1}')
+    ''', routine_id, uid)
+    await connection.execute('''
+        INSERT INTO public.routine_skips(routine_id, user_id, activity_date) VALUES($1, $2, '2026-09-07')
+    ''', routine_id, uid)
+    with pytest.raises(asyncpg.UniqueViolationError):
+        async with connection.transaction():
+            await connection.execute('''
+                INSERT INTO public.routine_skips(routine_id, user_id, activity_date) VALUES($1, $2, '2026-09-07')
+            ''', routine_id, uid)
+    with pytest.raises(asyncpg.ForeignKeyViolationError):
+        async with connection.transaction():
+            await connection.execute('''
+                INSERT INTO public.routine_skips(routine_id, user_id, activity_date) VALUES($1, $2, '2026-09-08')
+            ''', routine_id, uuid.uuid4())
+    await connection.execute('DELETE FROM auth.users WHERE id=$1', uid)
+    for table in ['routine_schedules', 'routine_skips']:
+        assert await connection.fetchval(
+            f'SELECT count(*) FROM public.{table} WHERE routine_id=$1', routine_id,
+        ) == 0
+
+
 async def test_policy_nulls_remain_distinct_from_invalid_values(connection):
     uid, _ = await signup(connection)
     assert await connection.fetchval(

@@ -71,7 +71,8 @@
 | 상점 | `GET /shop/products` · `POST /shop/purchases` | 카탈로그·구매 |
 | 꾸미기 | `GET /inventory` · `GET/PUT /inventory/equipment` | 보유·장착 |
 | 상점·꾸미기 v2 | `GET /v2/shop/products` · `GET /v2/inventory` · `GET/PUT /v2/inventory/equipment` | hat/glasses 분리 신계약 (구버전은 레거시 경로) |
-| 루틴 | `GET/POST /routines` · `PATCH/DELETE /routines/{id}` · `POST/DELETE /routines/{id}/complete` · `GET /routines/{id}/statistics` | CRUD·완료·통계 |
+| 루틴 | `GET/POST /routines` · `PATCH/DELETE /routines/{id}` · `POST/DELETE /routines/{id}/complete` · `POST/DELETE /routines/{id}/skip` · `GET /routines/history` · `GET /routines/stats` · `GET /routines/{id}/statistics` | CRUD·완료·스킵·기록·통계 |
+|  | `GET /routine-templates` · `POST /routine-templates/selection` | 템플릿 목록·선택 |
 | 리뷰 | `POST /review/prompted` | 리뷰 노출 기록 |
 | 문의 | `POST /feedback` | 사용자 문의 접수 |
 | 오늘의 운세 | `GET/PUT/DELETE /fortune-profile` | 생년월일·성별 조회·저장·삭제 |
@@ -560,6 +561,58 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 - `streak` 연속 시행 일수(단순 달력일) · `completed_today` 오늘 완료 · `target_count` 설정 횟수 · `this_week` 이번 주(월 시작·00:00 보상 경계) 수행 횟수·요일별 완료 · `completion_rate` 최근 4주.
 - 루틴 알림은 **클라 로컬 노티**(서버는 스케줄만 보관, 발송 안 함). 2개 완료 보상은 충전소에서 수령.
 
+### 아이콘·색·요일 이력·스킵(2026-10 루틴 개편)
+
+- `icon`: `^[a-z0-9_]{1,64}$` 키. 앱 카탈로그에 없는 키는 앱이 기본 아이콘으로 그린다. `color`: `pink` `peach` `yellow` `green` `blue` `mint` `lavender`.
+- `GET /routines` 각 항목에 `icon`·`color`·`template_id`(nullable)·`skipped_today`를 더한다. 순서는 `created_at`, `id`.
+- `POST /routines`는 선택 `icon`(기본 `seedling`)·`color`(기본 `peach`)를 받는다. `PATCH`도 둘을 받으며 생략·null은 변경 없음.
+- 요일 이력: 생성하면 요청 현지 날짜부터 그 요일이다. `PATCH`로 요일을 바꾸면 요청 현지 날짜부터 새 요일이고 전날까지의 기록은 그대로다.
+  `DELETE`는 요청 현지 날짜를 `deleted_on`으로 남기며 그날부터 예정에서 빠진다.
+- `POST /routines/{id}/skip` → 204: 오늘을 건너뛴다(멱등). 오늘 완료한 루틴이면 `409 ROUTINE_ALREADY_COMPLETED`.
+  `DELETE /routines/{id}/skip` → 204(멱등). 스킵한 루틴을 완료하면 그날 스킵은 지워진다. 삭제·타인 루틴은 404.
+- 오늘 스킵한 루틴은 배너 `routines.remaining_today`와 대화 맥락의 오늘 예정 수에서 빠진다. 2개 완료 보상과 `get_routines` 도구는 그대로다.
+
+### `GET /routines/history?date=YYYY-MM-DD`
+
+그날 예정이었던 루틴(스킵 포함, 나중에 삭제된 루틴 포함)과 그날 완료한 루틴. 각 행에 `icon`·`color`·`skipped`가 있고
+`days_of_week`는 그날 적용된 요일이다. `streak`·`this_week`는 구버전 앱 호환 필드로 남긴다. 미래 날짜는 422.
+
+### `GET /routines/stats?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+```json
+{ "today":"2026-10-08",
+  "summary":{ "current_streak":3,"best_streak":7,"perfect_days":12,"total_completed":40,"completed_this_month":9,
+              "overall_rate":0.71,"monthly_rate":0.6 },
+  "days":[ { "date":"2026-10-07","scheduled":3,"completed":2 } ],
+  "routines":[ { "id":"…","name":"물 마시기","icon":"droplet","color":"blue",
+                 "scheduled_dates":["2026-10-07"],"completed_dates":["2026-10-07"],"skipped_dates":[],
+                 "current_streak":3,"best_streak":5,"total_completed":20,"completed_this_month":5,"overall_rate":0.8 } ] }
+```
+
+- `from ≤ to`, 기간 최대 371일(위반 422). `to`가 오늘 이후면 오늘로 자른다. `days`는 `from..min(to, today)`의 모든 날이다.
+- 날짜는 요청 현지 날짜다. 인스턴스 = 그날 완료 기록이 있거나, 예정이었고 스킵하지 않은 (루틴, 날짜). 삭제된 루틴도 그날 기준으로 포함한다.
+  `scheduled`=그날 인스턴스 수, `completed`=그날 완료 기록 수. 배지는 앱이 이 두 값으로 계산한다.
+- 스트릭: 오늘부터 거꾸로 걸으며 완료가 있는 날 +1, 인스턴스가 없는 날과 아직 완료가 없는 오늘은 건너뛰고 지난 미완료에서 멈춘다.
+  루틴별 스트릭은 그 루틴의 인스턴스만 같은 규칙으로 본다. 최장은 같은 규칙의 전 기간 최댓값이다.
+- 달성률 = 완료 / (오늘 이전 인스턴스 + 오늘 완료한 인스턴스), 분모 0이면 null. 완벽한 날 = `scheduled > 0`이고 `completed == scheduled`인 날.
+- `summary`는 삭제된 루틴을 포함한 전 기간, `routines`는 삭제하지 않은 루틴을 `GET /routines` 순서로 준다.
+
+### `GET /routine-templates` · `POST /routine-templates/selection`
+
+```json
+// GET → { "selection_completed":false,
+//         "categories":[ { "id":"morning","name":"아침",
+//           "templates":[ { "id":"make_bed","name":"이불 정리하기","icon":"bed","color":"peach",
+//                           "days_of_week":[1,2,3,4,5,6,7],"recommended":true,"added":false } ] } ] }
+// POST req { "template_ids":["make_bed","drink_water"] } → 200 { "data":[RoutineResponse…] }
+```
+
+- 목록은 서버(`routine_templates`)가 관리하며 프로필 언어로 현지화한다. 활성 카테고리·템플릿만 `sort_order` 순으로 준다.
+  `added`는 이 템플릿으로 만든, 삭제하지 않은 루틴이 있으면 true다.
+- 선택은 0~30개, 중복 불가. 빈 배열은 건너뛰기다. 이미 추가된 템플릿은 건너뛰고 나머지를 카테고리·템플릿 순서로 만든다
+  (이름 = 프로필 언어 값, 없으면 한국어 · 알림 꺼짐 · 요일 이력은 요청 현지 날짜부터). 처음 호출하면 `selection_completed`가 true가 된다.
+  없거나 비활성인 id가 하나라도 있으면 아무것도 만들지 않고 `422 VALIDATION`이다. 응답은 이번에 만든 루틴만 담는다.
+
 ---
 
 ## 9. 리뷰
@@ -663,6 +716,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 | `ALREADY_OWNED` | 409 | 상점 중복 구매(기본 지급분 재구매 포함) |
 | `IDEMPOTENCY_REPLAY_UNAVAILABLE` | 409 | 같은 `Idempotency-Key` 재요청인데 저장 응답을 재생할 수 없음(대화·상점 구매) — 새 키로 재전송 |
 | `ROUTINE_GOAL_NOT_MET` | 422 | 루틴 2개 미완료 |
+| `ROUTINE_ALREADY_COMPLETED` | 409 | 오늘 완료한 루틴을 스킵하려 함 |
 | `AD_LIMIT_REACHED` | 429 | 광고 일 5회 초과 |
 | `AD_VERIFY_FAILED` | 422 | SSV 서명 검증 실패(서버-서버 — 클라 미노출) |
 | `PROFILE_REQUIRED` | 404 | 운세 생년월일·성별 미입력 |

@@ -934,6 +934,7 @@ CREATE TABLE public.profiles (
     relationship_display_date date,
     next_diary_due_at timestamp with time zone,
     relationship_revision bigint DEFAULT 0 NOT NULL,
+    routine_template_selection_at timestamp with time zone,
     CONSTRAINT profiles_nickname_check CHECK ((char_length(nickname) <= 10)),
     CONSTRAINT profiles_relationship_origin_ck CHECK ((num_nonnulls(relationship_started_at, relationship_started_timezone, relationship_display_date) = ANY (ARRAY[0, 3]))),
     CONSTRAINT profiles_relationship_revision_check CHECK ((relationship_revision >= 0))
@@ -1045,6 +1046,10 @@ CREATE TABLE public.routines (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     name_i18n jsonb,
+    icon text DEFAULT 'seedling'::text NOT NULL,
+    color text DEFAULT 'peach'::text NOT NULL,
+    template_id text,
+    deleted_on date,
     CONSTRAINT routines_name_i18n_obj_ck CHECK (((name_i18n IS NULL) OR (jsonb_typeof(name_i18n) = 'object'::text)))
 );
 
@@ -2848,6 +2853,62 @@ CREATE TABLE public.bgm_tracks (
 ALTER TABLE public.bgm_tracks ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.bgm_tracks FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON public.bgm_tracks TO service_role;
+
+-- Weekday history: each row applies from effective_from until the next row of the routine.
+CREATE TABLE public.routine_schedules (
+  routine_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  effective_from date NOT NULL,
+  days_of_week smallint[] NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT routine_schedules_pkey PRIMARY KEY (routine_id, effective_from),
+  CONSTRAINT routine_schedules_user_routine_fk FOREIGN KEY (user_id, routine_id)
+    REFERENCES public.routines(user_id, id) ON DELETE CASCADE
+);
+
+-- A skip without a completion on the same day removes that day's routine from the records.
+CREATE TABLE public.routine_skips (
+  routine_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  activity_date date NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT routine_skips_pkey PRIMARY KEY (routine_id, activity_date),
+  CONSTRAINT routine_skips_user_routine_fk FOREIGN KEY (user_id, routine_id)
+    REFERENCES public.routines(user_id, id) ON DELETE CASCADE
+);
+CREATE INDEX routine_skips_user_date_idx ON public.routine_skips USING btree (user_id, activity_date);
+
+-- Server-managed routine templates.
+CREATE TABLE public.routine_template_categories (
+  id text PRIMARY KEY CHECK (id ~ '^[a-z0-9_]{1,64}$'),
+  name_i18n jsonb NOT NULL CHECK (COALESCE(jsonb_typeof(name_i18n -> 'ko'), '') = 'string'),
+  sort_order smallint NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true
+);
+CREATE TABLE public.routine_templates (
+  id text PRIMARY KEY CHECK (id ~ '^[a-z0-9_]{1,64}$'),
+  category_id text NOT NULL,
+  name_i18n jsonb NOT NULL CHECK (COALESCE(jsonb_typeof(name_i18n -> 'ko'), '') = 'string'),
+  icon text NOT NULL CHECK (icon ~ '^[a-z0-9_]{1,64}$'),
+  color text NOT NULL CHECK (color IN ('pink', 'peach', 'yellow', 'green', 'blue', 'mint', 'lavender')),
+  days_of_week smallint[] NOT NULL
+    CHECK (cardinality(days_of_week) BETWEEN 1 AND 7 AND days_of_week <@ '{1,2,3,4,5,6,7}'::smallint[]),
+  is_recommended boolean NOT NULL DEFAULT false,
+  sort_order smallint NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  CONSTRAINT routine_templates_category_fk FOREIGN KEY (category_id)
+    REFERENCES public.routine_template_categories(id)
+);
+ALTER TABLE public.routine_schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routine_skips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routine_template_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routine_templates ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.routine_schedules, public.routine_skips,
+  public.routine_template_categories, public.routine_templates
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.routine_schedules, public.routine_skips,
+  public.routine_template_categories, public.routine_templates
+  TO service_role;
 
 
 COMMIT;

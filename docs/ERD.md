@@ -55,6 +55,9 @@ erDiagram
     greetings }o--o| messages : "커밋 시 연결"
     moly_life_ments ||--o{ diaries : "preset일 때"
     routines ||--o{ routine_completions : ""
+    routines ||--o{ routine_schedules : "요일 이력"
+    routines ||--o{ routine_skips : "오늘 스킵"
+    routine_template_categories ||--o{ routine_templates : "템플릿"
 
     hay_transactions ||--o| subscription_hay_grants : "지급·회수 기록"
 
@@ -111,6 +114,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `hay_balance` | int, default 0, **CHECK ≥ 0** | 건초 잔액 **캐시** (원본: `hay_transactions`). 서버 전용 쓰기 — 잔액 하한 0을 DB 안전망으로 강제 |
 | `trial_ends_at` | timestamptz | 가입 시각 + **48시간 (절대 시각, 의도된 정책 — 하루 중간 종료 가능)** (US-202). 재가입 어뷰징 방지 정책 TBD |
 | `review_prompted_at` | timestamptz NULL | 리뷰 팝업 노출 이력 — **최초 1회 제한** (US-1101). NOT NULL이면 재노출 금지 |
+| `routine_template_selection_at` | timestamptz NULL | 루틴 템플릿 선택(건너뛰기 포함)을 처음 마친 시각. NULL이면 템플릿 화면을 아직 거치지 않음 |
 | `created_at` / `updated_at` | timestamptz | |
 
 - **`language`는 저장될 때 `ko`·`en`·`ja` 셋 중 하나로 좁혀진다.** `schema.sql`의 트리거 `trg_normalize_profile_language`(행이 들어오거나 `language`가 바뀔 때 값을 다듬는 DB 장치)가 처리한다. 값을 **거부하지 않고 조용히 바꾼다** — 거부하면 이 테이블을 함께 쓰는 moly-auth의 온보딩이 실패하기 때문이다.
@@ -395,10 +399,24 @@ no_entry는 원고 ID가 NULL이다. 개인/기존 날짜별 일기 성공은 �
 
 ### 5.5 `routines` / `routine_completions` (US-601~606)
 
-**`routines`**: `id`, `user_id`, `name`, `name_i18n` jsonb NULL, `frequency_per_week` smallint NOT NULL(항상 `days_of_week` 요일 수 파생 — 응답 하위호환용 컬럼), `days_of_week` smallint[] **NOT NULL**(지정 요일, ISO 1=월…7=일 — 요일별 전용, 주 N회 모드 없음), `reminder_enabled` bool, `reminder_time` time NULL(로컬 알림 — 발송은 기기에서), `deleted_at` NULL(**soft delete** — 삭제해도 통계 US-605 보존), `created_at`, `updated_at`.
+**`routines`**: `id`, `user_id`, `name`, `name_i18n` jsonb NULL, `frequency_per_week` smallint NOT NULL(항상 `days_of_week` 요일 수 파생 — 응답 하위호환용 컬럼), `days_of_week` smallint[] **NOT NULL**(지정 요일, ISO 1=월…7=일 — 요일별 전용, 주 N회 모드 없음), `reminder_enabled` bool, `reminder_time` time NULL(로컬 알림 — 발송은 기기에서), `deleted_at` NULL(**soft delete** — 삭제해도 통계 US-605 보존), `created_at`, `updated_at`, `icon` text NOT NULL DEFAULT `'seedling'`, `color` text NOT NULL DEFAULT `'peach'`, `template_id` text NULL(템플릿으로 만든 루틴), `deleted_on` date NULL(삭제한 요청의 현지 날짜 — 그날부터 예정 아님).
+
+- 아이콘·색·템플릿 값은 API(pydantic)가 검증한다. 혼합 버전 배포를 위해 기존 테이블에 CHECK·FK·UNIQUE를 추가하지 않았다.
+  `deleted_on`이 없는 삭제 루틴은 `deleted_at`을 프로필 시간대로 바꾼 날짜를 쓴다.
+
+**`routine_schedules`**: PK `(routine_id, effective_from)`, `user_id`, `days_of_week` smallint[], `created_at`. `(user_id, routine_id)` → `routines` ON DELETE CASCADE.
+그날의 요일 = 그날 이하에서 가장 늦은 `effective_from` 행. 생성은 요청 현지 날짜, 요일 수정은 수정한 날짜의 행을 upsert한다. 시작일 = 가장 이른 행.
+행이 없는 루틴(이력 도입 전 서버가 만든 루틴)은 `created_at`을 프로필 시간대로 바꾼 날짜부터 현재 요일이다.
+
+**`routine_skips`**: PK `(routine_id, activity_date)`, `user_id`, `created_at`. `(user_id, routine_id)` → `routines` ON DELETE CASCADE, 인덱스 `(user_id, activity_date)`.
+오늘만 기록한다. 같은 날 완료 기록이 있으면 완료가 이긴다(완료하면 스킵 행을 지운다). 스킵하고 완료하지 않은 (루틴, 날짜)는 기록 계산의 인스턴스가 아니다.
+
+**`routine_template_categories`** / **`routine_templates`**: 서버가 관리하는 템플릿 카탈로그(`id` text PK, `name_i18n` jsonb — `ko` 필수, `sort_order`, `is_active`).
+템플릿은 `category_id` FK, `icon`, `color`, `days_of_week`, `is_recommended`를 갖고 CHECK로 키 형식·색·요일을 검증한다. 초기 데이터는 `seed.sql`(새 환경)과
+`changes/routine_redesign_3_backfill.sql`(기존 환경)에 같은 내용으로 있다. 클라이언트 롤 권한은 없다.
 
 - **가입 기본 루틴(2026-07-13 확정)**: 가입 트리거(`bootstrap_user`)가 2개 자동 생성 — "이불 정리하기", "물 마시기" (days_of_week = 월~일 전체 7일, frequency_per_week = 7, 리마인더 off). 유저가 수정·삭제 가능(일반 루틴과 동일).
-- **`name_i18n`(SOMA-346)**: 기본 루틴만 `{"ko","en","ja"}`로 생성(bootstrap_user). 렌더 = `resolve(lang)→en→ko→원문 name` 폴백. **유저 생성 루틴은 NULL**(입력 언어 그대로 name). CHECK `jsonb_typeof='object'`. 기존 루틴 백필 안 함(동명 유저 루틴 오염 방지 — 신규 가입자만 적용).
+- **`name_i18n`(SOMA-346)**: 기본 루틴(bootstrap_user)과 템플릿으로 만든 루틴만 `{"ko","en","ja"}`로 생성. 렌더 = `resolve(lang)→en→ko→원문 name` 폴백. **유저 생성 루틴은 NULL**(입력 언어 그대로 name). CHECK `jsonb_typeof='object'`. 기존 루틴 백필 안 함(동명 유저 루틴 오염 방지 — 신규 가입자만 적용).
 
 **`routine_completions`**: `id`, `routine_id` FK, `user_id`, `activity_date`, `completed_at`. 유니크 `(routine_id, activity_date)` — 일 단위 체크/해제(해제 = 행 삭제).
 

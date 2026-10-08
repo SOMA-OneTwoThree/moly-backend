@@ -4026,6 +4026,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.profiles.routine_template_selection_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
       "public.profiles.timezone": {
         "collation": "\"default\"",
         "default": "'Asia/Seoul'::text",
@@ -4458,6 +4466,190 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.routine_schedules.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.routine_schedules.days_of_week": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint[]"
+      },
+      "public.routine_schedules.effective_from": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.routine_schedules.routine_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_schedules.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_skips.activity_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.routine_skips.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.routine_skips.routine_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_skips.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_template_categories.id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_template_categories.is_active": {
+        "collation": null,
+        "default": "true",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.routine_template_categories.name_i18n": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.routine_template_categories.sort_order": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.routine_templates.category_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.color": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.days_of_week": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint[]"
+      },
+      "public.routine_templates.icon": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.is_active": {
+        "collation": null,
+        "default": "true",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.routine_templates.is_recommended": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.routine_templates.name_i18n": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.routine_templates.sort_order": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.routines.color": {
+        "collation": "\"default\"",
+        "default": "'peach'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
       "public.routines.created_at": {
         "collation": null,
         "default": "now()",
@@ -4482,6 +4674,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.routines.deleted_on": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "date"
+      },
       "public.routines.frequency_per_week": {
         "collation": null,
         "default": null,
@@ -4489,6 +4689,14 @@
         "identity": "",
         "not_null": true,
         "type": "smallint"
+      },
+      "public.routines.icon": {
+        "collation": "\"default\"",
+        "default": "'seedling'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
       },
       "public.routines.id": {
         "collation": null,
@@ -4529,6 +4737,14 @@
         "identity": "",
         "not_null": false,
         "type": "time without time zone"
+      },
+      "public.routines.template_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
       },
       "public.routines.updated_at": {
         "collation": null,
@@ -7731,6 +7947,119 @@
         ],
         "validated": true
       },
+      "public.routine_schedules.routine_schedules_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (routine_id, effective_from)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_schedules.routine_schedules_user_routine_fk": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id, routine_id) REFERENCES public.routines(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.routine_schedules:17:O",
+          "public.routine_schedules:5:O",
+          "public.routines:17:O",
+          "public.routines:9:O"
+        ],
+        "validated": true
+      },
+      "public.routine_skips.routine_skips_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (routine_id, activity_date)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_skips.routine_skips_user_routine_fk": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id, routine_id) REFERENCES public.routines(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.routine_skips:17:O",
+          "public.routine_skips:5:O",
+          "public.routines:17:O",
+          "public.routines:9:O"
+        ],
+        "validated": true
+      },
+      "public.routine_template_categories.routine_template_categories_id_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((id ~ '^[a-z0-9_]{1,64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_template_categories.routine_template_categories_name_i18n_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((COALESCE(jsonb_typeof((name_i18n -> 'ko'::text)), ''::text) = 'string'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_template_categories.routine_template_categories_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_category_fk": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (category_id) REFERENCES public.routine_template_categories(id)",
+        "enforcement_triggers": [
+          "public.routine_template_categories:17:O",
+          "public.routine_template_categories:9:O",
+          "public.routine_templates:17:O",
+          "public.routine_templates:5:O"
+        ],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_color_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((color = ANY (ARRAY['pink'::text, 'peach'::text, 'yellow'::text, 'green'::text, 'blue'::text, 'mint'::text, 'lavender'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_days_of_week_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((cardinality(days_of_week) >= 1) AND (cardinality(days_of_week) <= 7)) AND (days_of_week <@ '{1,2,3,4,5,6,7}'::smallint[])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_icon_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((icon ~ '^[a-z0-9_]{1,64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_id_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((id ~ '^[a-z0-9_]{1,64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_name_i18n_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((COALESCE(jsonb_typeof((name_i18n -> 'ko'::text)), ''::text) = 'string'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.routines.routines_name_i18n_obj_ck": {
         "deferrable": false,
         "deferred": false,
@@ -9901,6 +10230,51 @@
         "ready": true,
         "table_name": "public.routine_completions",
         "unique": false,
+        "valid": true
+      },
+      "public.routine_schedules_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_schedules_pkey ON public.routine_schedules USING btree (routine_id, effective_from)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_schedules",
+        "unique": true,
+        "valid": true
+      },
+      "public.routine_skips_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_skips_pkey ON public.routine_skips USING btree (routine_id, activity_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_skips",
+        "unique": true,
+        "valid": true
+      },
+      "public.routine_skips_user_date_idx": {
+        "definition": "CREATE INDEX routine_skips_user_date_idx ON public.routine_skips USING btree (user_id, activity_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_skips",
+        "unique": false,
+        "valid": true
+      },
+      "public.routine_template_categories_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_template_categories_pkey ON public.routine_template_categories USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_template_categories",
+        "unique": true,
+        "valid": true
+      },
+      "public.routine_templates_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_templates_pkey ON public.routine_templates USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_templates",
+        "unique": true,
         "valid": true
       },
       "public.routines_pkey": {
@@ -13026,6 +13400,102 @@
       "public.routine_completions_id_seq:service_role:USAGE": {
         "grantable": false
       },
+      "public.routine_schedules:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.routines:anon:DELETE": {
         "grantable": false
       },
@@ -14298,6 +14768,34 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.routine_schedules": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.routine_skips": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.routine_template_categories": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.routine_templates": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.routines": {
         "options": [],
         "owner": "postgres",
@@ -14463,5 +14961,5 @@
       }
     }
   },
-  "schema_sha256": "299bdaaff416b8d68ab8e422b7686ac6b0fe12236024dde5e5cf725e10a45df1"
+  "schema_sha256": "1339a5ed5fa5a75cb80296d9ebb83920cb3f89ad8053b244bb572eaff9eee583"
 }

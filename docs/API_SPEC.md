@@ -617,7 +617,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 
 ## 9. 리뷰
 
-**노출 판정 = 서버, 전달 = 채팅 응답.** 당일 토큰이 리뷰 임계(`app_config.review_prompt_min_tokens`)를 **생애 최초로 넘은 시점**부터 `POST /chat/messages` 응답의 `review_prompt:true`(계정당 1회).
+**노출 판정 = 서버, 전달 = 채팅 응답.** 당일 토큰이 리뷰 임계(`app_config.review_prompt_min_tokens`, 저장된 계정 언어가 영어면 11,000)를 **생애 최초로 넘은 시점**부터 `POST /chat/messages` 응답의 `review_prompt:true`(계정당 1회).
 
 ### `POST /review/prompted` → 204 (이후 영구 미노출, 보상 없음)
 

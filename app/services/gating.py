@@ -20,7 +20,12 @@ from app.services.account import (
     _load_tokens_used,
 )
 from app.services.entitlement import derive_entitlement
+from app.services.i18n import resolve as resolve_language
 from app.services.limits import effective_token_config
+
+# 영어는 같은 대화량에도 토큰이 적게 나와 공통 리뷰 임계에 잘 못 미친다.
+# 언어별 일 한도의 영어 배율(한국어 대비 ×0.75~0.8)을 참고해 영어만 따로 둔다.
+_EN_REVIEW_MIN_TOKENS = 11_000
 
 
 @dataclass
@@ -58,7 +63,11 @@ async def resolve(
         entitlement=entitlement,
         tokens_used=tokens_used,
         warning_threshold=cfg["token_warning_threshold"],
-        review_min_tokens=cfg["review_prompt_min_tokens"],
+        review_min_tokens=(
+            _EN_REVIEW_MIN_TOKENS
+            if resolve_language(profile.language) == "en"
+            else cfg["review_prompt_min_tokens"]
+        ),
         diary_min_user_chars=cfg["diary_min_user_chars"],
     )
 

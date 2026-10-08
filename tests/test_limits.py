@@ -1,9 +1,11 @@
 """토큰 한도 해석 — app_config 값 우선, 없으면 settings 임의 기본값(엔드포인트 제거와 무관하게 동작)."""
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import pytest
 
 from app.config import settings
+from app.services import gating
 from app.services.limits import effective_token_config
 
 
@@ -91,3 +93,27 @@ async def test_present_launch_row_is_not_warned(caplog, monkeypatch, value):
         cfg = await effective_token_config(FakeSession(rows))
     assert cfg["free_launch_until"] == value
     assert "free_launch_until 행 없음" not in caplog.text
+
+
+@pytest.mark.parametrize("language,expected", [("en", 11_000), ("en-US", 11_000), ("ko", 15_000), ("ja", 15_000)])
+async def test_review_threshold_is_lower_for_english(monkeypatch, language, expected):
+    async def _profile(session, user_id):
+        return SimpleNamespace(language=language, timezone="Asia/Seoul")
+
+    async def _sub(session, user_id, now):
+        return None
+
+    async def _used(session, user_id, activity_date):
+        return 0
+
+    monkeypatch.setattr(gating, "_load_profile", _profile)
+    monkeypatch.setattr(gating, "_load_active_subscription", _sub)
+    monkeypatch.setattr(gating, "_load_tokens_used", _used)
+    monkeypatch.setattr(gating, "derive_entitlement", lambda *a: {})
+
+    g = await gating.resolve(
+        FakeSession([]), "u", datetime(2026, 10, 8, tzinfo=timezone.utc),
+        config_raw={"review_prompt_min_tokens": 15_000},
+    )
+
+    assert g.review_min_tokens == expected

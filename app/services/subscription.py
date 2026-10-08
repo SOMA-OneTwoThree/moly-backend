@@ -57,8 +57,11 @@ _PLANS = [
     {"product_id": "com.geniusjun.moly.plus.monthly", "period": "monthly", "hay_grant": 1000},
     {"product_id": "com.geniusjun.moly.plus.yearly", "period": "yearly", "hay_grant": 4000},
 ]
-# 스토어 상품ID → 내부 요금제. _PLANS에서 파생(단일 소스).
-_STORE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS}
+# 스토어 상품ID → 내부 요금제. 체험 상품은 공개 요금제 목록에 추가하지 않는다.
+_STORE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS} | {
+    "com.geniusjun.moly.plus.monthly.trial": "monthly",
+    "com.geniusjun.moly.plus.yearly.trial": "yearly",
+}
 # 추가 Google Play 상품ID → 내부 요금제(코드 카탈로그 외 ID 보강용). app_config로 주입(코드 재배포 없이).
 # 형식: {"<구독ID>[:<basePlanId>]": "monthly"|"yearly"}. 카탈로그에도 매핑에도 없는 상품은
 # "미등록 상품"으로 관측(혜택 미지급). SOMA-341.

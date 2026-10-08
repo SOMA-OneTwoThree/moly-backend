@@ -18,6 +18,7 @@ from app.api.health import router as health_router
 from app.api.mood import router as mood_router
 from app.api.review import router as review_router
 from app.api.routine import router as routine_router
+from app.api.routine import templates_router as routine_templates_router
 from app.api.shop import router as shop_router
 from app.api.subscription import router as subscription_router
 from app.config import settings
@@ -92,6 +93,7 @@ def create_app() -> FastAPI:
     app.include_router(mood_router)
     app.include_router(economy_router)
     app.include_router(routine_router)
+    app.include_router(routine_templates_router)
     app.include_router(banners_router)
     app.include_router(bgm_router)
     app.include_router(shop_router)

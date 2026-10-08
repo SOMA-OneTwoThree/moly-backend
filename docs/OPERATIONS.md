@@ -451,3 +451,37 @@ WHERE created_at > now() - interval '1 day' GROUP BY 1;
 되돌리기: moly-auth를 이전 배포로 돌리면 장벽 호출이 멈추고 탈퇴는 예전처럼 계정만 지운다. backend를 이전
 이미지로 돌리면 sweep이 멈추고 `deleting` 장벽이 그대로 남는다(서비스 영향 없음, 다시 배포하면 이어서 끝낸다).
 함수는 남겨 두어도 아무도 부르지 않으면 무해하다.
+
+## 루틴 개편 DB 전환
+
+새 이미지(이 스키마 계약)를 배포하기 전에 차이 SQL 세 파일을 **따로**, 이 순서로 적용한다. 파일마다 자기 트랜잭션이다. 한
+트랜잭션으로 합치면 `routines` 잠금 승격과 마지막 `profiles` 잠금이 진행 중인 요청과 맞물려 교착이 난다(로컬 동시 트래픽 재현).
+파일마다 구조 변경 절차(`db.apply` 기본 rollback → `--commit --expected-sha256 <검토한-SHA256>`)를 따르고 dev 다음 prod, 한가한
+시간에 한다.
+
+| 순서 | 파일 | 내용 | 잠금 |
+|---|---|---|---|
+| 1 | `db/changes/routine_redesign_1_profiles.sql` | `profiles.routine_template_selection_at` | `profiles` ACCESS EXCLUSIVE 수 ms |
+| 2 | `db/changes/routine_redesign_2_structure.sql` | `routines` 새 열(첫 문장) + 새 테이블 4개, 데이터 없음 | `routines` ACCESS EXCLUSIVE 수 ms |
+| 3 | `db/changes/routine_redesign_3_backfill.sql` | 템플릿 카탈로그, 요일 이력, `deleted_on`, 기본 루틴 아이콘·`template_id` | 행 잠금만, 읽기는 계속된다 |
+
+- 1·2는 진행 중 트랜잭션을 최대 2초 기다리고 그동안 해당 테이블 요청이 줄을 선다. 다른 기존 테이블은 잠그지 않아 요청과 교착하지
+  않는다. lock timeout으로 롤백되면 그대로 다시 실행한다. 이미 적용된 파일을 다시 실행하면 오류로 롤백되고 바뀌는 것이 없다.
+- 3은 여러 번 실행해도 된다. 문장마다 최대 5만 행을 쓰므로 머리 주석의 remaining SELECT가 모두 0이 될 때까지 반복한다(운영 규모는
+  한 번). 3단계 동안에는 같은 루틴 행을 고치는 요청만 기다린다.
+- 1~3 다음 `db.verify`로 확인한다. 2단계 뒤에는 새 이미지 사전점검도 통과하지만 3단계 전에는 머지·배포하지 않는다(템플릿이 비고
+  기본 루틴 아이콘이 빠진다).
+- 단계마다 이전 이미지 사전점검이 통과하므로 그 사이에도 이전 이미지 롤백·재배포가 가능하다. 이전 이미지와 moly-auth는 새 열·
+  테이블을 이름으로 쓰지 않는다.
+- dev에서는 앱 요청을 보내면서 적용해 교착·잠금 대기 오류가 없는지 로그로 확인한다.
+
+이력 행·`deleted_on`이 없는 루틴(3단계 전후에 이전 이미지가 만들거나 삭제하거나 요일을 바꾼 루틴)은 새 코드가 `created_at`·
+`deleted_at`·`updated_at`을 프로필 시간대 날짜로 바꿔 보정한다. 가입 트리거(`bootstrap_user`)는 이 단계에서 바꾸지 않는다. 기본
+루틴 2개 생성 중단은 앱 출시 때 별도 PR과 차이 SQL로 적용하며, 그 SQL이 그 사이 생긴 기본 루틴의 아이콘·색·`template_id`도 채운다.
+
+`routines.icon`·`color`에는 DB 제약이 없다(혼합 버전 배포 때문에 기존 테이블에 CHECK를 두지 않았다). 수동 SQL로 바꿀 때는 아이콘
+키 `^[a-z0-9_]{1,64}$`와 색 7종(`pink` `peach` `yellow` `green` `blue` `mint` `lavender`)만 쓴다. 다른 값이면 그 사용자의 루틴 응답이
+500이 된다.
+
+되돌리기: 이전 이미지로 롤백한다. 구조와 데이터는 남겨 둬도 된다. 지워야 하면 이전 이미지로 돌린 뒤 각 파일 머리 주석의 되돌리기
+문을 3 → 2 → 1 순서로 쓴다. 새 앱을 출시한 뒤에는 이전 이미지에 스킵·통계·템플릿 API가 없으므로 수정 배포로 대응한다.

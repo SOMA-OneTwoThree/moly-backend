@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.core.app_day import AppDay
 from app.core.db import Base
-from app.models.routine import Routine, RoutineCompletion
+from app.models.routine import Routine, RoutineCompletion, RoutineSkip
 from app.services.banners import remaining_today
 from app.services import routine
 
@@ -33,7 +33,7 @@ async def session():
         await conn.execute(text(f'CREATE SCHEMA "{schema}"'))
         await conn.run_sync(
             lambda sync: Base.metadata.create_all(
-                sync, tables=[Routine.__table__, RoutineCompletion.__table__]
+                sync, tables=[Routine.__table__, RoutineCompletion.__table__, RoutineSkip.__table__]
             )
         )
     try:
@@ -63,10 +63,12 @@ async def test_count_filters_owner_weekday_deleted_and_today_completion(session)
     pending = new_routine(uid, day)
     completed = new_routine(uid, day)
     yesterday = new_routine(uid, day)
+    skipped = new_routine(uid, day)
     rows = [
         pending,
         completed,
         yesterday,
+        skipped,
         new_routine(uid, day, days_of_week=[2]),
         new_routine(uid, day, deleted_at=day.served_at),
         new_routine(uuid.uuid4(), day),
@@ -80,6 +82,10 @@ async def test_count_filters_owner_weekday_deleted_and_today_completion(session)
                 routine_id=yesterday.id,
                 user_id=uid,
                 activity_date=day.local_date - timedelta(days=1),
+            ),
+            RoutineSkip(routine_id=skipped.id, user_id=uid, activity_date=day.local_date),
+            RoutineSkip(
+                routine_id=pending.id, user_id=uid, activity_date=day.local_date - timedelta(days=1),
             ),
         ]
     )
@@ -103,6 +109,10 @@ async def test_completion_uses_requested_day_and_is_idempotent(session):
     result = await routine.statistics(session, str(uid), str(row.id), day)
     assert result["streak"] == 1
     await routine.uncomplete(session, str(uid), str(row.id), day)
+    assert await remaining_today(session, str(uid), day) == 1
+    await routine.skip(session, str(uid), str(row.id), day)
+    assert await remaining_today(session, str(uid), day) == 0
+    await routine.unskip(session, str(uid), str(row.id), day)
     assert await remaining_today(session, str(uid), day) == 1
 
 

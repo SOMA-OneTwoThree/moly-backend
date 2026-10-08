@@ -37,8 +37,8 @@
         $ref: ../components/common.yaml#/responses/Validation
     security:
     - SupabaseBearer: []
-    description: soft-delete되지 않은 본인 routine을 created_at 오름차순으로 모두 반환한다. pagination은
-      없다.
+    description: soft-delete되지 않은 본인 routine을 created_at, id 오름차순으로 모두 반환한다. pagination은
+      없다. completed_today·skipped_today는 요청의 현지 날짜 기준이다.
     parameters:
     - name: X-App-Timezone
       in: header
@@ -66,16 +66,44 @@
           application/json:
             schema:
               $ref: ../components/routines.yaml#/schemas/RoutineResponse
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
       '500':
         $ref: ../components/common.yaml#/responses/Internal
       '401':
         $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
       '422':
         $ref: ../components/common.yaml#/responses/Validation
     security:
     - SupabaseBearer: []
     description: days_of_week는 ISO 월=1…일=7 중복 없는 1개 이상이며 저장 전에 정렬된다. frequency_per_week는
-      배열 길이로 파생된다.
+      배열 길이로 파생된다. icon 기본값은 seedling, color 기본값은 peach다. 요일 이력은 요청의 현지 날짜부터
+      시작한다.
+    parameters:
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
 /routines/{routine_id}:
   patch:
     tags:
@@ -92,6 +120,14 @@
         type: string
         title: Routine Id
       description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
     requestBody:
       required: true
       content:
@@ -121,9 +157,9 @@
                     code: NOT_FOUND
                     message: 루틴을 찾을 수 없어요.
                     details: {}
-    description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week의
+    description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week/icon/color의
       null은 변경 없음. reminder_time은 생략하면 변경 없고 명시적 null이면 제거한다. days_of_week를 바꾸면 frequency_per_week도
-      길이로 갱신한다.
+      길이로 갱신하고, 요청의 현지 날짜부터 새 요일을 적용한다. 그 전날까지의 기록은 바뀌지 않는다.
   delete:
     tags:
     - routine
@@ -139,6 +175,14 @@
         type: string
         title: Routine Id
       description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
     responses:
       '204':
         description: 삭제 완료; body 없음
@@ -160,7 +204,8 @@
                     code: NOT_FOUND
                     message: 루틴을 찾을 수 없어요.
                     details: {}
-    description: deleted_at을 기록하는 soft delete다.
+    description: deleted_at과 요청의 현지 날짜(deleted_on)를 기록하는 soft delete다. 그날부터 예정에서 빠지고 지난 기록은
+      남는다.
 /routines/{routine_id}/complete:
   post:
     tags:
@@ -235,7 +280,8 @@
                     details: {}
       '422':
         $ref: ../components/common.yaml#/responses/Validation
-    description: local 00:00 reward date 기준 완료를 insert하며 unique conflict를 무시하므로 멱등이다.
+    description: local 00:00 reward date 기준 완료를 insert하며 unique conflict를 무시하므로 멱등이다. 같은 날 스킵이
+      있으면 지운다.
   delete:
     tags:
     - routine
@@ -421,9 +467,9 @@
         $ref: ../components/common.yaml#/responses/Validation
     security:
     - SupabaseBearer: []
-    description: 현재 등록된 본인 루틴의 현재 설정과 선택일까지의 완료 기록을 반환한다. 삭제 루틴은 제외하며 미래 날짜는 422.
-      선택일 완료가 있으면 현재 반복요일과 무관하게 포함한다. 미완료는 현재 반복요일에 해당하고 선택일까지 생성된 루틴만 포함한다. 날짜 헤더는
-      선택 날짜가 아니라 요청 시점의 실제 오늘이다. 읽기 전용이며 조회 기간에 30일 제한이 없다.
+    description: 선택일에 예정이었던 루틴(스킵 포함, 나중에 삭제된 루틴 포함)과 선택일에 완료한 루틴을 반환한다. 예정 여부와
+      days_of_week는 선택일에 적용되던 요일 이력으로 정한다. 미래 날짜는 422. 날짜 헤더는 선택 날짜가 아니라 요청 시점의 실제
+      오늘이다. 읽기 전용이며 조회 기간에 30일 제한이 없다.
     parameters:
     - name: date
       in: query
@@ -440,3 +486,330 @@
         type: string
         minLength: 1
         maxLength: 64
+/routines/stats:
+  get:
+    tags:
+    - routine
+    summary: 루틴 기록 통계
+    operationId: getRoutineStats
+    security:
+    - SupabaseBearer: []
+    description: 날짜는 모두 요청의 현지 날짜다. 인스턴스는 그날 완료했거나, 예정이었고 스킵하지 않은 (루틴, 날짜)다. summary는
+      삭제된 루틴을 포함한 전 기간 값이고 days는 from..min(to, today)의 날짜별 인스턴스·완료 수다. from ≤ to이고 기간은
+      371일 이하여야 하며 to가 today 뒤면 today로 자른다.
+    parameters:
+    - name: from
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      description: YYYY-MM-DD 시작 날짜(포함).
+    - name: to
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      description: YYYY-MM-DD 끝 날짜(포함). from부터 371일 이하.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+    responses:
+      '200':
+        description: 루틴 기록 통계
+        content:
+          application/json:
+            schema:
+              $ref: ../components/routines.yaml#/schemas/RoutineStatsResponse
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+/routines/{routine_id}/skip:
+  post:
+    tags:
+    - routine
+    summary: 오늘 루틴 건너뛰기
+    operationId: skipRoutine
+    security:
+    - SupabaseBearer: []
+    description: 요청의 현지 날짜에 스킵을 기록한다. 이미 스킵이면 그대로 204다. 오늘 완료한 루틴이면 409.
+    parameters:
+    - name: routine_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Routine Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+    responses:
+      '204':
+        description: 스킵 기록; body 없음
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              profile:
+                summary: 프로필 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 프로필을 찾을 수 없어요.
+                    details: {}
+              routine:
+                summary: 루틴 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 루틴을 찾을 수 없어요.
+                    details: {}
+      '409':
+        description: 오늘 이미 완료한 루틴
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              completed:
+                summary: 완료한 루틴
+                value:
+                  error:
+                    code: ROUTINE_ALREADY_COMPLETED
+                    message: 완료한 루틴은 건너뛸 수 없어요.
+                    details: {}
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+  delete:
+    tags:
+    - routine
+    summary: 오늘 루틴 건너뛰기 취소
+    operationId: unskipRoutine
+    security:
+    - SupabaseBearer: []
+    description: 요청의 현지 날짜의 스킵을 지운다. 스킵이 없어도 204다.
+    parameters:
+    - name: routine_id
+      in: path
+      required: true
+      schema:
+        type: string
+        title: Routine Id
+      description: UUID string. 형식이 잘못돼도 404로 처리한다.
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+    responses:
+      '204':
+        description: 스킵 취소; body 없음
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              profile:
+                summary: 프로필 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 프로필을 찾을 수 없어요.
+                    details: {}
+              routine:
+                summary: 루틴 없음
+                value:
+                  error:
+                    code: NOT_FOUND
+                    message: 루틴을 찾을 수 없어요.
+                    details: {}
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+/routine-templates:
+  get:
+    tags:
+    - routine
+    summary: 루틴 템플릿 목록
+    operationId: listRoutineTemplates
+    security:
+    - SupabaseBearer: []
+    description: 서버가 관리하는 활성 카테고리·템플릿을 sort_order 순으로 프로필 언어로 현지화해 반환한다.
+    responses:
+      '200':
+        description: 템플릿 목록
+        content:
+          application/json:
+            schema:
+              $ref: ../components/routines.yaml#/schemas/RoutineTemplatesResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+/routine-templates/selection:
+  post:
+    tags:
+    - routine
+    summary: 루틴 템플릿 선택
+    operationId: selectRoutineTemplates
+    security:
+    - SupabaseBearer: []
+    description: 고른 템플릿으로 루틴을 카테고리·템플릿 순서대로 만들고 이번에 만든 루틴만 반환한다. 이미 추가된(삭제하지 않은
+      같은 템플릿 루틴이 있는) 템플릿은 건너뛴다. 이름은 프로필 언어 값(없으면 한국어), 알림은 꺼짐, 요일 이력은 요청의 현지
+      날짜부터다. 빈 배열은 건너뛰기이며, 처음 호출이면 selection_completed를 true로 만든다. 없거나 비활성인 id가 하나라도 있으면
+      아무것도 만들지 않고 422다.
+    parameters:
+    - name: X-App-Timezone
+      in: header
+      required: false
+      description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 64
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/routines.yaml#/schemas/RoutineTemplateSelectionRequest
+    responses:
+      '200':
+        description: 이번에 만든 루틴
+        content:
+          application/json:
+            schema:
+              $ref: ../components/routines.yaml#/schemas/RoutineListResponse
+        headers:
+          X-App-Local-Date:
+            description: 실제 계산에 사용한 현지 날짜
+            schema:
+              type: string
+              format: date
+          X-App-Served-At:
+            description: 단일 요청 서버 UTC 시각
+            schema:
+              type: string
+              format: date-time
+          X-App-Day-Ends-At:
+            description: 다음 현지 달력일 자정의 UTC 시각
+            schema:
+              type: string
+              format: date-time
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '422':
+        description: 요청 형식 오류 또는 없거나 비활성인 템플릿 id
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              requestValidation:
+                summary: 요청 검증
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc:
+                        - body
+                        - template_ids
+                        type: value_error
+                        msg: 'Value error, template_ids는 중복 없이 보내야 해요.'
+              unknownTemplate:
+                summary: 없거나 비활성인 템플릿
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 추가할 수 없는 템플릿이에요.
+                    details:
+                      template_ids:
+                      - unknown_template

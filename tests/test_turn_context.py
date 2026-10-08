@@ -180,6 +180,7 @@ async def test_build_context_routine_planned_filters_by_weekday_and_done_interse
             _Result([_routine(rid_today, [weekday]), _routine(rid_other, [other_day])]),
             # 완료 기록: 오늘 예정 아닌 루틴도 완료 처리돼 있지만 done 집계엔 포함되면 안 됨
             _Result([rid_today, rid_other]),
+            _Result([]),
         ]
     )
     ctx = await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
@@ -187,11 +188,28 @@ async def test_build_context_routine_planned_filters_by_weekday_and_done_interse
     assert ctx.routines_done == 1  # rid_other는 예정 집합 밖이라 done에서 제외
 
 
+async def test_build_context_routine_planned_excludes_today_skips_unless_completed():
+    weekday = date(2026, 8, 3).isoweekday()
+    rid_skipped, rid_done_after_skip, rid_pending = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    session = FakeSession(
+        [
+            _Result([]),
+            _Result([_routine(rid, [weekday]) for rid in (rid_skipped, rid_done_after_skip, rid_pending)]),
+            _Result([rid_done_after_skip]),
+            _Result([rid_skipped, rid_done_after_skip]),
+        ]
+    )
+    ctx = await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
+    assert ctx.routines_planned == 2
+    assert ctx.routines_done == 1
+    assert "routine_skips" in str(session.statements[3])
+
+
 async def test_build_context_routine_query_excludes_soft_deleted():
     """deleted_at 필터는 SQL WHERE절이 담당 — FakeSession은 필터링을 안 하므로 컴파일된 stmt로 검증."""
-    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    session = FakeSession([_Result([]), _Result([]), _Result([]), _Result([])])
     await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
-    routine_stmt = session.statements[1]  # [0]=UserItem, [1]=Routine, [2]=RoutineCompletion
+    routine_stmt = session.statements[1]  # [0]=UserItem, [1]=Routine, [2]=Completion, [3]=Skip
     assert "deleted_at IS NULL" in str(routine_stmt)
 
 
@@ -203,6 +221,7 @@ async def test_build_context_isolates_savepoint_failure(caplog):
         [
             RuntimeError("장착 아이템 조회 실패"),
             _Result([_routine(rid, [weekday])]),
+            _Result([]),
             _Result([]),
         ]
     )
@@ -223,6 +242,7 @@ async def test_build_context_classifies_equipped_slots():
             _Result([_product(theme_id, name="바닷가"), _product(hat_id, name="밀짚모자")]),
             _Result([]),
             _Result([]),
+            _Result([]),
         ]
     )
     ctx = await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
@@ -232,17 +252,17 @@ async def test_build_context_classifies_equipped_slots():
 
 async def test_build_context_skips_last_active_query_when_disabled(monkeypatch):
     monkeypatch.setattr(tc.settings, "current_context_last_active_enabled", False)
-    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    session = FakeSession([_Result([]), _Result([]), _Result([]), _Result([])])
     ctx = await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
     assert ctx.last_active_bucket is None
-    assert len(session.statements) == 3  # 마지막 활동 쿼리 자체가 나가지 않음
+    assert len(session.statements) == 4  # 마지막 활동 쿼리 자체가 나가지 않음
 
 
 async def test_build_context_computes_last_active_bucket_when_enabled(monkeypatch):
     monkeypatch.setattr(tc.settings, "current_context_last_active_enabled", True)
     last_active = NOW - timedelta(minutes=5)
     session = FakeSession(
-        [_Result([]), _Result([]), _Result([]), _Result(scalar_value=last_active)]
+        [_Result([]), _Result([]), _Result([]), _Result([]), _Result(scalar_value=last_active)]
     )
     ctx = await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
     assert ctx.last_active_bucket == "just_now"
@@ -251,7 +271,7 @@ async def test_build_context_computes_last_active_bucket_when_enabled(monkeypatc
 async def test_build_context_time_bucket_and_days_together():
     created = NOW - timedelta(days=10)
     profile = _profile(created_at=created, timezone="UTC")
-    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    session = FakeSession([_Result([]), _Result([]), _Result([]), _Result([])])
     ctx = await tc.build_context(session, profile, is_first_today=True, now_utc=NOW)
     assert ctx.is_first_today is True
     assert ctx.days_together == 10
@@ -260,7 +280,7 @@ async def test_build_context_time_bucket_and_days_together():
 
 async def test_build_context_days_together_none_without_created_at():
     profile = _profile(created_at=None)
-    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    session = FakeSession([_Result([]), _Result([]), _Result([]), _Result([])])
     ctx = await tc.build_context(session, profile, is_first_today=False, now_utc=NOW)
     assert ctx.days_together is None
 
@@ -281,7 +301,7 @@ async def test_build_context_routine_ad_uses_now_utc_param_not_wall_clock(monkey
         return real_reward_date_for(now_utc_arg, tz_name)
 
     monkeypatch.setattr(tc, "reward_date_for", _spy)
-    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    session = FakeSession([_Result([]), _Result([]), _Result([]), _Result([])])
     await tc.build_context(
         session, _profile(timezone="Asia/Seoul"), is_first_today=False, now_utc=NOW
     )
@@ -311,6 +331,7 @@ async def test_build_context_equipped_names_order_is_deterministic_by_slot():
             ),
             _Result([]),
             _Result([]),
+            _Result([]),
         ]
     )
     ctx = await tc.build_context(session, _profile(), is_first_today=False, now_utc=NOW)
@@ -321,7 +342,7 @@ async def test_build_context_days_together_clamps_negative_future_created_at(cap
     # 시계 오차 등으로 created_at이 미래면 last_active_bucket처럼 0으로 clamp + 경고 로그.
     future = NOW + timedelta(days=3)
     profile = _profile(created_at=future, timezone="UTC")
-    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    session = FakeSession([_Result([]), _Result([]), _Result([]), _Result([])])
     with caplog.at_level(logging.WARNING):
         ctx = await tc.build_context(session, profile, is_first_today=False, now_utc=NOW)
     assert ctx.days_together == 0
@@ -335,7 +356,7 @@ async def test_build_context_days_together_uses_local_date_not_utc_date():
     created = datetime(2025, 12, 31, 23, 0, tzinfo=timezone.utc)
     now = datetime(2026, 8, 4, 0, 0, tzinfo=timezone.utc)
     profile = _profile(created_at=created, timezone="Asia/Seoul")
-    session = FakeSession([_Result([]), _Result([]), _Result([])])
+    session = FakeSession([_Result([]), _Result([]), _Result([]), _Result([])])
     ctx = await tc.build_context(session, profile, is_first_today=False, now_utc=now)
     assert ctx.days_together == 215
 

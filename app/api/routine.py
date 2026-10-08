@@ -19,11 +19,15 @@ from app.schemas.routine import (
     RoutineListResponse,
     RoutineResponse,
     RoutineStatisticsResponse,
+    RoutineStatsResponse,
+    RoutineTemplateSelectionRequest,
+    RoutineTemplatesResponse,
 )
 from app.services import routine
 from app.services.account import _load_profile
 
 router = APIRouter(prefix="/routines", tags=["routine"])
+templates_router = APIRouter(prefix="/routine-templates", tags=["routine"])
 
 
 async def request_day(
@@ -54,41 +58,56 @@ async def list_routines(
 async def history(
     response: Response,
     selected_date: Annotated[CalendarDate, Query(alias="date")],
-    x_app_timezone: str | None = Header(default=None),
     day: AppDay = Depends(request_day),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     response.headers["Cache-Control"] = "private, no-store"
-    return await routine.history(session, user_id, selected_date, day, x_app_timezone)
+    return await routine.history(session, user_id, selected_date, day)
+
+
+@router.get("/stats", response_model=RoutineStatsResponse)
+async def stats(
+    response: Response,
+    start: Annotated[CalendarDate, Query(alias="from")],
+    end: Annotated[CalendarDate, Query(alias="to")],
+    day: AppDay = Depends(request_day),
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "private, no-store"
+    return await routine.stats(session, user_id, start, end, day)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=RoutineResponse)
 async def create_routine(
     req: CreateRoutineRequest,
+    day: AppDay = Depends(request_day),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
-    return await routine.create_routine(session, user_id, req)
+    return await routine.create_routine(session, user_id, req, day)
 
 
 @router.patch("/{routine_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_routine(
     routine_id: str,
     req: PatchRoutineRequest,
+    day: AppDay = Depends(request_day),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> None:
-    await routine.update_routine(session, user_id, routine_id, req)
+    await routine.update_routine(session, user_id, routine_id, req, day)
 
 
 @router.delete("/{routine_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_routine(
     routine_id: str,
+    day: AppDay = Depends(request_day),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> None:
-    await routine.delete_routine(session, user_id, routine_id)
+    await routine.delete_routine(session, user_id, routine_id, day)
 
 
 @router.post("/{routine_id}/complete", response_model=RoutineCompleteResponse)
@@ -111,6 +130,26 @@ async def uncomplete(
     await routine.uncomplete(session, user_id, routine_id, day=day)
 
 
+@router.post("/{routine_id}/skip", status_code=status.HTTP_204_NO_CONTENT)
+async def skip(
+    routine_id: str,
+    day: AppDay = Depends(request_day),
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    await routine.skip(session, user_id, routine_id, day)
+
+
+@router.delete("/{routine_id}/skip", status_code=status.HTTP_204_NO_CONTENT)
+async def unskip(
+    routine_id: str,
+    day: AppDay = Depends(request_day),
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    await routine.unskip(session, user_id, routine_id, day)
+
+
 @router.get("/{routine_id}/statistics", response_model=RoutineStatisticsResponse)
 async def statistics(
     routine_id: str,
@@ -119,3 +158,21 @@ async def statistics(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await routine.statistics(session, user_id, routine_id, day=day)
+
+
+@templates_router.get("", response_model=RoutineTemplatesResponse)
+async def routine_templates(
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await routine.routine_templates(session, user_id)
+
+
+@templates_router.post("/selection", response_model=RoutineListResponse)
+async def select_routine_templates(
+    req: RoutineTemplateSelectionRequest,
+    day: AppDay = Depends(request_day),
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await routine.select_templates(session, user_id, req, day)

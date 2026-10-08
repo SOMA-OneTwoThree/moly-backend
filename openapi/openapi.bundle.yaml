@@ -974,7 +974,8 @@ paths:
           $ref: '#/components/responses/Validation'
       security:
       - SupabaseBearer: []
-      description: soft-delete되지 않은 본인 routine을 created_at 오름차순으로 모두 반환한다. pagination은 없다.
+      description: soft-delete되지 않은 본인 routine을 created_at, id 오름차순으로 모두 반환한다. pagination은 없다. completed_today·skipped_today는
+        요청의 현지 날짜 기준이다.
       parameters:
       - name: X-App-Timezone
         in: header
@@ -1002,15 +1003,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoutineResponse'
+          headers:
+            X-App-Local-Date:
+              description: 실제 계산에 사용한 현지 날짜
+              schema:
+                type: string
+                format: date
+            X-App-Served-At:
+              description: 단일 요청 서버 UTC 시각
+              schema:
+                type: string
+                format: date-time
+            X-App-Day-Ends-At:
+              description: 다음 현지 달력일 자정의 UTC 시각
+              schema:
+                type: string
+                format: date-time
         '500':
           $ref: '#/components/responses/Internal'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
         '422':
           $ref: '#/components/responses/Validation'
       security:
       - SupabaseBearer: []
       description: days_of_week는 ISO 월=1…일=7 중복 없는 1개 이상이며 저장 전에 정렬된다. frequency_per_week는 배열 길이로 파생된다.
+        icon 기본값은 seedling, color 기본값은 peach다. 요일 이력은 요청의 현지 날짜부터 시작한다.
+      parameters:
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
   /routines/history:
     get:
       tags:
@@ -1050,9 +1079,8 @@ paths:
           $ref: '#/components/responses/Validation'
       security:
       - SupabaseBearer: []
-      description: 현재 등록된 본인 루틴의 현재 설정과 선택일까지의 완료 기록을 반환한다. 삭제 루틴은 제외하며 미래 날짜는 422. 선택일 완료가 있으면 현재 반복요일과
-        무관하게 포함한다. 미완료는 현재 반복요일에 해당하고 선택일까지 생성된 루틴만 포함한다. 날짜 헤더는 선택 날짜가 아니라 요청 시점의 실제 오늘이다. 읽기 전용이며 조회
-        기간에 30일 제한이 없다.
+      description: 선택일에 예정이었던 루틴(스킵 포함, 나중에 삭제된 루틴 포함)과 선택일에 완료한 루틴을 반환한다. 예정 여부와 days_of_week는 선택일에 적용되던
+        요일 이력으로 정한다. 미래 날짜는 422. 날짜 헤더는 선택 날짜가 아니라 요청 시점의 실제 오늘이다. 읽기 전용이며 조회 기간에 30일 제한이 없다.
       parameters:
       - name: date
         in: query
@@ -1085,6 +1113,14 @@ paths:
           type: string
           title: Routine Id
         description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
       requestBody:
         required: true
         content:
@@ -1114,8 +1150,9 @@ paths:
                       code: NOT_FOUND
                       message: 루틴을 찾을 수 없어요.
                       details: {}
-      description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week의 null은 변경 없음. reminder_time은
-        생략하면 변경 없고 명시적 null이면 제거한다. days_of_week를 바꾸면 frequency_per_week도 길이로 갱신한다.
+      description: body 자체는 필수지만 `{}`는 no-op 204다. name/reminder_enabled/days_of_week/icon/color의 null은
+        변경 없음. reminder_time은 생략하면 변경 없고 명시적 null이면 제거한다. days_of_week를 바꾸면 frequency_per_week도 길이로 갱신하고,
+        요청의 현지 날짜부터 새 요일을 적용한다. 그 전날까지의 기록은 바뀌지 않는다.
     delete:
       tags:
       - routine
@@ -1131,6 +1168,14 @@ paths:
           type: string
           title: Routine Id
         description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
       responses:
         '204':
           description: 삭제 완료; body 없음
@@ -1152,7 +1197,7 @@ paths:
                       code: NOT_FOUND
                       message: 루틴을 찾을 수 없어요.
                       details: {}
-      description: deleted_at을 기록하는 soft delete다.
+      description: deleted_at과 요청의 현지 날짜(deleted_on)를 기록하는 soft delete다. 그날부터 예정에서 빠지고 지난 기록은 남는다.
   /routines/{routine_id}/complete:
     post:
       tags:
@@ -1227,7 +1272,7 @@ paths:
                       details: {}
         '422':
           $ref: '#/components/responses/Validation'
-      description: local 00:00 reward date 기준 완료를 insert하며 unique conflict를 무시하므로 멱등이다.
+      description: local 00:00 reward date 기준 완료를 insert하며 unique conflict를 무시하므로 멱등이다. 같은 날 스킵이 있으면 지운다.
     delete:
       tags:
       - routine
@@ -1374,6 +1419,332 @@ paths:
           $ref: '#/components/responses/Validation'
       description: streak는 지정 요일이 아니라 오늘부터 역방향 연속 calendar day 수다. completion_rate는 최근 28일 완료 수/(요일 수×4),
         상한 1.0, 소수 둘째 자리 반올림이다.
+  /routines/stats:
+    get:
+      tags:
+      - routine
+      summary: 루틴 기록 통계
+      operationId: getRoutineStats
+      security:
+      - SupabaseBearer: []
+      description: 날짜는 모두 요청의 현지 날짜다. 인스턴스는 그날 완료했거나, 예정이었고 스킵하지 않은 (루틴, 날짜)다. summary는 삭제된 루틴을 포함한 전
+        기간 값이고 days는 from..min(to, today)의 날짜별 인스턴스·완료 수다. from ≤ to이고 기간은 371일 이하여야 하며 to가 today 뒤면 today로
+        자른다.
+      parameters:
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: YYYY-MM-DD 시작 날짜(포함).
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: YYYY-MM-DD 끝 날짜(포함). from부터 371일 이하.
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
+      responses:
+        '200':
+          description: 루틴 기록 통계
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineStatsResponse'
+          headers:
+            X-App-Local-Date:
+              description: 실제 계산에 사용한 현지 날짜
+              schema:
+                type: string
+                format: date
+            X-App-Served-At:
+              description: 단일 요청 서버 UTC 시각
+              schema:
+                type: string
+                format: date-time
+            X-App-Day-Ends-At:
+              description: 다음 현지 달력일 자정의 UTC 시각
+              schema:
+                type: string
+                format: date-time
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /routines/{routine_id}/skip:
+    post:
+      tags:
+      - routine
+      summary: 오늘 루틴 건너뛰기
+      operationId: skipRoutine
+      security:
+      - SupabaseBearer: []
+      description: 요청의 현지 날짜에 스킵을 기록한다. 이미 스킵이면 그대로 204다. 오늘 완료한 루틴이면 409.
+      parameters:
+      - name: routine_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Routine Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
+      responses:
+        '204':
+          description: 스킵 기록; body 없음
+          headers:
+            X-App-Local-Date:
+              description: 실제 계산에 사용한 현지 날짜
+              schema:
+                type: string
+                format: date
+            X-App-Served-At:
+              description: 단일 요청 서버 UTC 시각
+              schema:
+                type: string
+                format: date-time
+            X-App-Day-Ends-At:
+              description: 다음 현지 달력일 자정의 UTC 시각
+              schema:
+                type: string
+                format: date-time
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profile:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+                routine:
+                  summary: 루틴 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 루틴을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 오늘 이미 완료한 루틴
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                completed:
+                  summary: 완료한 루틴
+                  value:
+                    error:
+                      code: ROUTINE_ALREADY_COMPLETED
+                      message: 완료한 루틴은 건너뛸 수 없어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+    delete:
+      tags:
+      - routine
+      summary: 오늘 루틴 건너뛰기 취소
+      operationId: unskipRoutine
+      security:
+      - SupabaseBearer: []
+      description: 요청의 현지 날짜의 스킵을 지운다. 스킵이 없어도 204다.
+      parameters:
+      - name: routine_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Routine Id
+        description: UUID string. 형식이 잘못돼도 404로 처리한다.
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
+      responses:
+        '204':
+          description: 스킵 취소; body 없음
+          headers:
+            X-App-Local-Date:
+              description: 실제 계산에 사용한 현지 날짜
+              schema:
+                type: string
+                format: date
+            X-App-Served-At:
+              description: 단일 요청 서버 UTC 시각
+              schema:
+                type: string
+                format: date-time
+            X-App-Day-Ends-At:
+              description: 다음 현지 달력일 자정의 UTC 시각
+              schema:
+                type: string
+                format: date-time
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: profile이 없거나 routine UUID/소유/삭제 상태가 유효하지 않음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profile:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+                routine:
+                  summary: 루틴 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 루틴을 찾을 수 없어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+  /routine-templates:
+    get:
+      tags:
+      - routine
+      summary: 루틴 템플릿 목록
+      operationId: listRoutineTemplates
+      security:
+      - SupabaseBearer: []
+      description: 서버가 관리하는 활성 카테고리·템플릿을 sort_order 순으로 프로필 언어로 현지화해 반환한다.
+      responses:
+        '200':
+          description: 템플릿 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineTemplatesResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+  /routine-templates/selection:
+    post:
+      tags:
+      - routine
+      summary: 루틴 템플릿 선택
+      operationId: selectRoutineTemplates
+      security:
+      - SupabaseBearer: []
+      description: 고른 템플릿으로 루틴을 카테고리·템플릿 순서대로 만들고 이번에 만든 루틴만 반환한다. 이미 추가된(삭제하지 않은 같은 템플릿 루틴이 있는) 템플릿은
+        건너뛴다. 이름은 프로필 언어 값(없으면 한국어), 알림은 꺼짐, 요일 이력은 요청의 현지 날짜부터다. 빈 배열은 건너뛰기이며, 처음 호출이면 selection_completed를
+        true로 만든다. 없거나 비활성인 id가 하나라도 있으면 아무것도 만들지 않고 422다.
+      parameters:
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoutineTemplateSelectionRequest'
+      responses:
+        '200':
+          description: 이번에 만든 루틴
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutineListResponse'
+          headers:
+            X-App-Local-Date:
+              description: 실제 계산에 사용한 현지 날짜
+              schema:
+                type: string
+                format: date
+            X-App-Served-At:
+              description: 단일 요청 서버 UTC 시각
+              schema:
+                type: string
+                format: date-time
+            X-App-Day-Ends-At:
+              description: 다음 현지 달력일 자정의 UTC 시각
+              schema:
+                type: string
+                format: date-time
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '422':
+          description: 요청 형식 오류 또는 없거나 비활성인 템플릿 id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                requestValidation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          - template_ids
+                          type: value_error
+                          msg: Value error, template_ids는 중복 없이 보내야 해요.
+                unknownTemplate:
+                  summary: 없거나 비활성인 템플릿
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 추가할 수 없는 템플릿이에요.
+                      details:
+                        template_ids:
+                        - unknown_template
   /shop/products:
     get:
       tags:
@@ -3464,6 +3835,12 @@ components:
           - type: 'null'
           title: Reminder Time
           description: ISO time 문자열 또는 null.
+        icon:
+          $ref: '#/components/schemas/RoutineIcon'
+          default: seedling
+        color:
+          $ref: '#/components/schemas/RoutineColor'
+          default: peach
       additionalProperties: false
       type: object
       required:
@@ -4492,6 +4869,16 @@ components:
           - type: 'null'
           title: Reminder Time
           description: ISO time 문자열. 생략은 변경 없음, null은 기존 시간 제거.
+        icon:
+          anyOf:
+          - $ref: '#/components/schemas/RoutineIcon'
+          - type: 'null'
+          description: 생략/null은 변경 없음.
+        color:
+          anyOf:
+          - $ref: '#/components/schemas/RoutineColor'
+          - type: 'null'
+          description: 생략/null은 변경 없음.
       additionalProperties: false
       type: object
       title: PatchRoutineRequest
@@ -4891,6 +5278,10 @@ components:
           minLength: 1
           title: Name
           description: Routine 이름.
+        icon:
+          $ref: '#/components/schemas/RoutineIcon'
+        color:
+          $ref: '#/components/schemas/RoutineColor'
         days_of_week:
           type: array
           minItems: 1
@@ -4898,7 +5289,7 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/DayOfWeek'
-          description: ISO weekday 1=Mon…7=Sun, 중복 없이 1개 이상.
+          description: 선택일에 적용된 요일. ISO weekday 1=Mon…7=Sun.
         reminder_enabled:
           type: boolean
           title: Reminder Enabled
@@ -4913,19 +5304,26 @@ components:
         completed:
           type: boolean
           description: 선택 날짜의 실제 완료 여부.
+        skipped:
+          type: boolean
+          description: 선택 날짜에 스킵했고 완료하지 않았으면 true.
         streak:
           type: integer
           minimum: 0
+          description: 구버전 앱 호환 필드. 선택일(미완료면 전날)부터 역방향 연속 calendar day 완료 수.
         this_week:
           $ref: '#/components/schemas/ThisWeekStatistics'
-          description: 선택 날짜가 속한 주의 월요일부터 선택일까지 완료 통계.
+          description: 구버전 앱 호환 필드. 선택 날짜가 속한 주의 월요일부터 선택일까지 완료 통계.
       required:
       - id
       - name
+      - icon
+      - color
       - days_of_week
       - reminder_enabled
       - reminder_time
       - completed
+      - skipped
       - streak
       - this_week
       title: RoutineHistoryItem
@@ -4997,6 +5395,16 @@ components:
           minLength: 1
           title: Name
           description: Routine 이름.
+        icon:
+          $ref: '#/components/schemas/RoutineIcon'
+        color:
+          $ref: '#/components/schemas/RoutineColor'
+        template_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Template Id
+          description: 템플릿으로 만든 루틴이면 템플릿 id, 아니면 null.
         frequency_per_week:
           type: integer
           maximum: 7
@@ -5026,15 +5434,23 @@ components:
           type: boolean
           title: Completed Today
           description: local reward date 완료 여부.
+        skipped_today:
+          type: boolean
+          title: Skipped Today
+          description: local reward date에 스킵했고 완료하지 않았으면 true.
       type: object
       required:
       - id
       - name
+      - icon
+      - color
+      - template_id
       - frequency_per_week
       - days_of_week
       - reminder_enabled
       - reminder_time
       - completed_today
+      - skipped_today
       title: RoutineResponse
     RoutineStatisticsResponse:
       properties:
@@ -5087,6 +5503,267 @@ components:
       - last_30_days
       - completion_rate
       title: RoutineStatisticsResponse
+    RoutineIcon:
+      type: string
+      pattern: ^[a-z0-9_]{1,64}$
+      title: RoutineIcon
+      description: 루틴 아이콘 키(Fluent Emoji 3D 폴더 이름 기반). 앱 카탈로그에 없는 키는 앱이 기본 아이콘으로 그린다.
+    RoutineColor:
+      type: string
+      enum:
+      - pink
+      - peach
+      - yellow
+      - green
+      - blue
+      - mint
+      - lavender
+      title: RoutineColor
+      description: 루틴 파스텔 색 키. 실제 색 값은 앱 테마가 정한다.
+    RoutineStatsSummary:
+      type: object
+      properties:
+        current_streak:
+          type: integer
+          minimum: 0
+          description: 오늘부터 거꾸로 센 전체 스트릭. 완료가 있는 날 +1, 인스턴스가 없는 날과 아직 완료가 없는 오늘은 건너뛰고, 지난 날의 미완료에서 멈춘다.
+        best_streak:
+          type: integer
+          minimum: 0
+          description: 같은 규칙으로 전 기간에서 가장 긴 연속.
+        perfect_days:
+          type: integer
+          minimum: 0
+          description: 오늘 이하에서 scheduled > 0이고 completed == scheduled인 날 수.
+        total_completed:
+          type: integer
+          minimum: 0
+          description: 오늘 이하 완료 기록 수(삭제된 루틴 포함).
+        completed_this_month:
+          type: integer
+          minimum: 0
+          description: 이번 달(오늘이 속한 달) 완료 기록 수.
+        overall_rate:
+          anyOf:
+          - type: number
+            minimum: 0
+            maximum: 1
+          - type: 'null'
+          description: 전 기간 달성률. 분모는 오늘 이전 인스턴스와 오늘 완료한 인스턴스, 분모가 0이면 null.
+        monthly_rate:
+          anyOf:
+          - type: number
+            minimum: 0
+            maximum: 1
+          - type: 'null'
+          description: 이번 달 달성률. 계산 방식은 overall_rate와 같다.
+      required:
+      - current_streak
+      - best_streak
+      - perfect_days
+      - total_completed
+      - completed_this_month
+      - overall_rate
+      - monthly_rate
+      title: RoutineStatsSummary
+    RoutineStatsDay:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        scheduled:
+          type: integer
+          minimum: 0
+          description: 그날 인스턴스 수. 예정이었고 스킵하지 않았거나 완료한 루틴(삭제된 루틴 포함).
+        completed:
+          type: integer
+          minimum: 0
+          description: 그날 완료 기록 수(삭제된 루틴 포함). 항상 scheduled 이하.
+      required:
+      - date
+      - scheduled
+      - completed
+      title: RoutineStatsDay
+    RoutineStatsItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Routine UUID.
+        name:
+          type: string
+          maxLength: 50
+          minLength: 1
+          description: 프로필 언어로 현지화한 이름.
+        icon:
+          $ref: '#/components/schemas/RoutineIcon'
+        color:
+          $ref: '#/components/schemas/RoutineColor'
+        scheduled_dates:
+          type: array
+          items:
+            type: string
+            format: date
+          description: 기간 안, 오늘 이하 인스턴스 날짜(완료일 포함, 스킵한 날 제외), 오름차순.
+        completed_dates:
+          type: array
+          items:
+            type: string
+            format: date
+          description: 기간 안 완료일, 오름차순.
+        skipped_dates:
+          type: array
+          items:
+            type: string
+            format: date
+          description: 기간 안, 오늘 이하에서 예정이었는데 스킵했고 완료하지 않은 날, 오름차순.
+        current_streak:
+          type: integer
+          minimum: 0
+          description: 이 루틴의 인스턴스만 본 현재 스트릭.
+        best_streak:
+          type: integer
+          minimum: 0
+        total_completed:
+          type: integer
+          minimum: 0
+        completed_this_month:
+          type: integer
+          minimum: 0
+        overall_rate:
+          anyOf:
+          - type: number
+            minimum: 0
+            maximum: 1
+          - type: 'null'
+          description: 이 루틴의 전 기간 달성률. 분모가 0이면 null.
+      required:
+      - id
+      - name
+      - icon
+      - color
+      - scheduled_dates
+      - completed_dates
+      - skipped_dates
+      - current_streak
+      - best_streak
+      - total_completed
+      - completed_this_month
+      - overall_rate
+      title: RoutineStatsItem
+    RoutineStatsResponse:
+      type: object
+      properties:
+        today:
+          type: string
+          format: date
+          description: 계산에 쓴 요청 시점 현지 날짜.
+        summary:
+          $ref: '#/components/schemas/RoutineStatsSummary'
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutineStatsDay'
+          description: from부터 min(to, today)까지 모든 날짜, 오름차순. from이 today보다 뒤면 빈 배열.
+        routines:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutineStatsItem'
+          description: 삭제하지 않은 현재 루틴, GET /routines와 같은 순서.
+      required:
+      - today
+      - summary
+      - days
+      - routines
+      title: RoutineStatsResponse
+    RoutineTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z0-9_]{1,64}$
+        name:
+          type: string
+          maxLength: 50
+          minLength: 1
+          description: 프로필 언어 이름. 없으면 한국어.
+        icon:
+          $ref: '#/components/schemas/RoutineIcon'
+        color:
+          $ref: '#/components/schemas/RoutineColor'
+        days_of_week:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+        recommended:
+          type: boolean
+          description: 처음 화면에서 미리 체크할 추천 템플릿.
+        added:
+          type: boolean
+          description: 이 템플릿으로 만든, 삭제하지 않은 루틴이 있으면 true.
+      required:
+      - id
+      - name
+      - icon
+      - color
+      - days_of_week
+      - recommended
+      - added
+      title: RoutineTemplate
+    RoutineTemplateCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z0-9_]{1,64}$
+        name:
+          type: string
+          minLength: 1
+          description: 프로필 언어 이름. 없으면 한국어.
+        templates:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutineTemplate'
+      required:
+      - id
+      - name
+      - templates
+      title: RoutineTemplateCategory
+    RoutineTemplatesResponse:
+      type: object
+      properties:
+        selection_completed:
+          type: boolean
+          description: 템플릿 선택(건너뛰기 포함)을 한 번이라도 마쳤으면 true.
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutineTemplateCategory'
+          description: 활성 템플릿이 있는 활성 카테고리, 카테고리·템플릿 sort_order 순.
+      required:
+      - selection_completed
+      - categories
+      title: RoutineTemplatesResponse
+    RoutineTemplateSelectionRequest:
+      type: object
+      properties:
+        template_ids:
+          type: array
+          maxItems: 30
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[a-z0-9_]{1,64}$
+          description: 추가할 템플릿 id 0~30개, 중복 불가. 빈 배열은 건너뛰기다.
+      additionalProperties: false
+      required:
+      - template_ids
+      title: RoutineTemplateSelectionRequest
     ShopProduct:
       properties:
         id:
@@ -6052,7 +6729,7 @@ tags:
 - name: economy
   description: 건초 지갑, 원장, 충전소 보상
 - name: routine
-  description: 요일 기반 루틴 CRUD, 완료, 통계
+  description: 요일 기반 루틴 CRUD, 완료, 스킵, 통계, 템플릿
 - name: shop
   description: 꾸미기 카탈로그, 구매, 인벤토리, 장착
 - name: review

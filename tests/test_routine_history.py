@@ -55,11 +55,10 @@ def test_missing_and_future_date(client):
 
 
 def test_selected_date_is_separate_from_actual_today_headers(client, monkeypatch):
-    async def history(session, user_id, selected_date, day, timezone_name):
+    async def history(session, user_id, selected_date, day):
         assert user_id == str(UID)
         assert selected_date == date(2025, 12, 31)
         assert day.local_date == date(2026, 9, 14)
-        assert timezone_name == 'Asia/Seoul'
         return {'date': selected_date, 'data': []}
 
     monkeypatch.setattr(routine, 'history', history)

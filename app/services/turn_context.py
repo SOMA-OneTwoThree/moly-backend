@@ -22,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.time_utils import reward_date_for, safe_zone
 from app.models.profile import Profile
-from app.models.routine import Routine, RoutineCompletion
+from app.models.routine import Routine, RoutineCompletion, RoutineSkip
 from app.models.chat_context import ChatContext
 from app.services import i18n, shop
 # 대괄호·제어문자 제거. 상품명은 우리 카탈로그 값이지만 기억 렌더와 같은 살균을 통과시킨다.
@@ -131,6 +131,17 @@ async def build_context(
                     )
                 ).scalars().all()
             )
+            skipped_ids = set(
+                (
+                    await session.execute(
+                        select(RoutineSkip.routine_id).where(
+                            RoutineSkip.user_id == uid,
+                            RoutineSkip.activity_date == ad,
+                        )
+                    )
+                ).scalars().all()
+            )
+            planned_ids -= skipped_ids - done_ids
             routines_planned = len(planned_ids)
             routines_done = len(done_ids & planned_ids)
     except Exception:

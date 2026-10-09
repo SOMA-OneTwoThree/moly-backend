@@ -89,7 +89,7 @@ flowchart TB
   W1 --> DB
   W2 --> DB
   SA -. 토큰 검증용 공개키 제공 .-> API
-  SA -. 가입 트리거 → profiles·기본지급·기본루틴 .-> DB
+  SA -. 가입 트리거 → profiles·기본지급 .-> DB
 
   API -->|"대화 생성 · 프롬프트 캐시"| OAI["OpenAI GPT-5.6<br/>luna=대화·보조 / terra=일기<br/>text-embedding-3-small=기억 검색"]
   W1 -->|"기억 추출·임베딩·판정"| OAI
@@ -473,7 +473,6 @@ sequenceDiagram
 - `profiles` 행(체험 기간 = 가입 시각 + 48시간)
 - 기본 지급 꾸미기 2종 — 기본 테마(`theme_default`)와 선글라스(`head_sunglasses`)를
   `source='admin_grant'`로 지급하고 기본 테마만 장착한다. 운동 테마는 비활성 상품이다
-- 기본 루틴 2개 — "이불 정리하기", "물 마시기"(둘 다 주 7일, ko/en/ja 이름 포함)
 - 기본 언어 `en`, 건초 잔액 0, active 삭제 장벽
 
 어떤 경로로 가입해도 같은 상태가 보장된다. 필요한 상품 시드가 없으면 함수가 예외를 던져 가입이

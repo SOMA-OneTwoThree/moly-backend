@@ -36,7 +36,6 @@ CREATE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp wit
     AS $$
 DECLARE
   v_required_count integer;
-  v_profile_created integer;
 BEGIN
   SELECT count(*) INTO v_required_count
   FROM public.products
@@ -52,7 +51,6 @@ BEGIN
   INSERT INTO public.profiles (id, trial_ends_at)
   VALUES (p_user_id, p_created_at + interval '48 hours')
   ON CONFLICT (id) DO NOTHING;
-  GET DIAGNOSTICS v_profile_created = ROW_COUNT;
 
   INSERT INTO public.user_items (user_id, product_id, source)
   SELECT p_user_id, p.id, 'admin_grant'
@@ -74,17 +72,6 @@ BEGIN
       SELECT 1 FROM public.user_items equipped
       WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'
     );
-
-  IF v_profile_created = 1 THEN
-    INSERT INTO public.routines (user_id, name, name_i18n, frequency_per_week, days_of_week, reminder_enabled)
-    VALUES
-      (p_user_id, '이불 정리하기',
-       '{"ko":"이불 정리하기","en":"Make the bed","ja":"布団を整える"}'::jsonb,
-       7, '{1,2,3,4,5,6,7}', false),
-      (p_user_id, '물 마시기',
-       '{"ko":"물 마시기","en":"Drink water","ja":"水を飲む"}'::jsonb,
-       7, '{1,2,3,4,5,6,7}', false);
-  END IF;
 END;
 $$;
 

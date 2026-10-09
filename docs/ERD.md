@@ -103,7 +103,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 
 ### 3.2 `profiles`
 
-`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 2종(4.8절)과 기본 루틴 2개(5.5절)도 함께 생성한다(2026-07-13 확정).
+`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 2종(4.8절)도 함께 생성한다. 2026-07-13부터 만들던 기본 루틴 2개(5.5절)는 루틴 템플릿 출시 때 중단했다.
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
@@ -415,7 +415,7 @@ no_entry는 원고 ID가 NULL이다. 개인/기존 날짜별 일기 성공은 �
 템플릿은 `category_id` FK, `icon`, `color`, `days_of_week`, `is_recommended`를 갖고 CHECK로 키 형식·색·요일을 검증한다. 초기 데이터는 `seed.sql`(새 환경)과
 `changes/routine_redesign_3_backfill.sql`(기존 환경)에 같은 내용으로 있다. 클라이언트 롤 권한은 없다.
 
-- **가입 기본 루틴(2026-07-13 확정)**: 가입 트리거(`bootstrap_user`)가 2개 자동 생성 — "이불 정리하기", "물 마시기" (days_of_week = 월~일 전체 7일, frequency_per_week = 7, 리마인더 off). 유저가 수정·삭제 가능(일반 루틴과 동일).
+- **가입 기본 루틴(2026-07-13~루틴 템플릿 출시)**: 가입 트리거가 만들던 "이불 정리하기"·"물 마시기"(월~일, 리마인더 off)는 템플릿 출시 때 중단했다. 이미 만든 루틴은 `template_id`(`make_bed`·`drink_water`)와 템플릿 아이콘·색이 채워진 일반 루틴이다.
 - **`name_i18n`(SOMA-346)**: 기본 루틴(bootstrap_user)과 템플릿으로 만든 루틴만 `{"ko","en","ja"}`로 생성. 렌더 = `resolve(lang)→en→ko→원문 name` 폴백. **유저 생성 루틴은 NULL**(입력 언어 그대로 name). CHECK `jsonb_typeof='object'`. 기존 루틴 백필 안 함(동명 유저 루틴 오염 방지 — 신규 가입자만 적용).
 
 **`routine_completions`**: `id`, `routine_id` FK, `user_id`, `activity_date`, `completed_at`. 유니크 `(routine_id, activity_date)` — 일 단위 체크/해제(해제 = 행 삭제).

@@ -35,7 +35,7 @@ async def signup(conn):
     return uid, created
 
 
-async def test_signup_preserves_gifts_trial_localized_routines_and_privacy_barrier(connection):
+async def test_signup_preserves_gifts_trial_and_privacy_barrier_without_routines(connection):
     uid, created = await signup(connection)
     profile = await connection.fetchrow('SELECT * FROM public.profiles WHERE id=$1', uid)
     assert profile['trial_ends_at'] == created + timedelta(hours=48)
@@ -51,17 +51,16 @@ async def test_signup_preserves_gifts_trial_localized_routines_and_privacy_barri
         SELECT p.public_id FROM public.user_items i JOIN public.products p ON p.id=i.product_id
         WHERE i.user_id=$1 AND i.equipped_slot='theme'
     ''', uid) == 'theme_default'
-    assert await connection.fetchval('''
-        SELECT count(*) FROM public.routines WHERE user_id=$1
-          AND name_i18n ?& ARRAY['ko','en','ja']
-    ''', uid) == 2
+    assert await connection.fetchval(
+        'SELECT count(*) FROM public.routines WHERE user_id=$1', uid,
+    ) == 0
     assert await connection.fetchval(
         "SELECT state FROM public.privacy_subject_barriers WHERE user_id=$1", uid,
     ) == 'active'
     await connection.execute('SELECT public.bootstrap_user($1,$2)', uid, created)
     assert await connection.fetchval(
         'SELECT count(*) FROM public.routines WHERE user_id=$1', uid,
-    ) == 2
+    ) == 0
 
 
 async def test_routine_templates_are_seeded_and_routine_history_follows_the_routine(connection):
@@ -115,6 +114,10 @@ async def test_policy_nulls_remain_distinct_from_invalid_values(connection):
     assert await connection.fetchval(
         "SELECT price_hay IS NULL FROM public.products WHERE public_id='theme_default'",
     )
+    await connection.execute('''
+        INSERT INTO public.routines(user_id, name, name_i18n, frequency_per_week, days_of_week)
+        VALUES($1, '물 마시기', '{"ko":"물 마시기"}', 7, '{1,2,3,4,5,6,7}')
+    ''', uid)
     await connection.execute('UPDATE public.routines SET name_i18n=NULL WHERE user_id=$1', uid)
     async with connection.transaction():
         with pytest.raises(asyncpg.CheckViolationError):

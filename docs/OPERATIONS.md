@@ -476,8 +476,12 @@ WHERE created_at > now() - interval '1 day' GROUP BY 1;
 - dev에서는 앱 요청을 보내면서 적용해 교착·잠금 대기 오류가 없는지 로그로 확인한다.
 
 이력 행·`deleted_on`이 없는 루틴(3단계 전후에 이전 이미지가 만들거나 삭제하거나 요일을 바꾼 루틴)은 새 코드가 `created_at`·
-`deleted_at`·`updated_at`을 프로필 시간대 날짜로 바꿔 보정한다. 가입 트리거(`bootstrap_user`)는 이 단계에서 바꾸지 않는다. 기본
-루틴 2개 생성 중단은 앱 출시 때 별도 PR과 차이 SQL로 적용하며, 그 SQL이 그 사이 생긴 기본 루틴의 아이콘·색·`template_id`도 채운다.
+`deleted_at`·`updated_at`을 프로필 시간대 날짜로 바꿔 보정한다. 가입 트리거(`bootstrap_user`)는 이 단계에서 바꾸지 않는다.
+
+앱 출시 때 기본 루틴 2개 생성을 멈춘다. `db/changes/bootstrap_no_default_routines.sql`을 같은 절차로 적용하고 그 계약의 이미지를
+배포한다. 이 SQL은 그 사이 생긴 기본 루틴의 아이콘·색·`template_id`도 채운다. 사전점검이 함수 본문을 비교하므로 이 SQL 뒤에는
+루틴 개편 이미지가 다시 배포되지 않는다. 되돌릴 때는 루틴 개편 `schema.sql`의 `bootstrap_user`를 `CREATE OR REPLACE`로 되살린 뒤
+그 이미지를 배포한다.
 
 `routines.icon`·`color`에는 DB 제약이 없다(혼합 버전 배포 때문에 기존 테이블에 CHECK를 두지 않았다). 수동 SQL로 바꿀 때는 아이콘
 키 `^[a-z0-9_]{1,64}$`와 색 7종(`pink` `peach` `yellow` `green` `blue` `mint` `lavender`)만 쓴다. 다른 값이면 그 사용자의 루틴 응답이

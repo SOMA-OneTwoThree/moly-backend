@@ -1,4 +1,6 @@
 """부호 정제 공용 util — 마크다운·말줄임표·대시 제거, 허용부호·이름토큰 보존."""
+import pytest
+
 from app.services import text_clean
 
 
@@ -73,6 +75,41 @@ def test_allowed_scripts_differ_by_language():
     assert text_clean.has_foreign("How was your day", language="en") is False
     assert text_clean.has_foreign("How was your day \u04bb", language="en") is True
     assert text_clean.has_foreign("Nice jalape\u00f1o d\u00eda", language="en") is False
+
+
+@pytest.mark.parametrize("language", ["ja", "ja-JP"])
+@pytest.mark.parametrize("text", [
+    "日々、時々、色々なことを話そう。",
+    "佐々木さん、〆切まで一緒に頑張ろう。",
+    "各〻、よろしくお願いし〼。",
+    "\u3031\u3032\u3033\u3034\u3035",  # 세로쓰기 가나 반복 기호
+    "ㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇺㇻㇼㇽㇾㇿ",  # 아이누어 표기에 쓰는 가타카나 확장
+    "二〇二六年、いすゞ、コーヒー、ｶﾌｪ。",
+])
+def test_japanese_orthography_survives_foreign_filter(language, text):
+    assert not text_clean.has_foreign(text, language=language)
+    assert text_clean.strip_foreign(text, language=language) == text
+
+
+@pytest.mark.parametrize("foreign", ["Σ", "Ж", "વાત", "한글", "\u302e\u302f"])
+def test_japanese_marks_survive_while_foreign_letters_are_removed(foreign):
+    body = "日々、〆切、各〻、ㇰ。"
+    mixed = body + foreign
+    assert text_clean.has_foreign(mixed, language="ja")
+    assert text_clean.strip_foreign(mixed, language="ja") == body
+
+
+@pytest.mark.parametrize("language,body", [("ko", "오늘도 힘내."), ("en", "Have a nice day.")])
+def test_japanese_additions_do_not_change_other_language_filters(language, body):
+    mixed = body + "々〆〱〲〳〴〵〻〼ㇰㇿ"
+    assert text_clean.has_foreign(mixed, language=language)
+    assert text_clean.strip_foreign(mixed, language=language) == body
+
+
+def test_japanese_marks_and_foreign_nickname_are_both_preserved():
+    body = "Аняさん、日々の話を聞かせて。"
+    assert not text_clean.has_foreign(body, language="ja", keep="Аня")
+    assert text_clean.strip_foreign(body + "Σ", language="ja", keep="Аня") == body
 
 
 def test_fullwidth_and_halfwidth_forms_are_not_stripped():

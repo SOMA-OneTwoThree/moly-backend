@@ -142,7 +142,7 @@ async def test_personal_non_korean_preserves_cjk(monkeypatch):
     async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
-        return LLMResult("Weather: sunny\n今日は発表を無事に終えた。漢字も残る。", 10, 20)
+        return LLMResult("Weather: sunny\n今日は発表を無事に終えた。日々の努力が実り、〆切にも間に合った。", 10, 20)
 
     async def _no_surgical(*a, **k):
         raise AssertionError("비한국어 일기에 서지컬 복원이 호출되면 안 됨")
@@ -154,7 +154,7 @@ async def test_personal_non_korean_preserves_cjk(monkeypatch):
     await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert d.source == "llm" and d.weather == "sunny"
-    assert "漢字も残る" in d.content and "今日" in d.content  # CJK 보존
+    assert d.content == "今日は発表を無事に終えた。日々の努力が実り、〆切にも間に合った。"
 
 
 async def test_personal_english_preserves_punctuation(monkeypatch):

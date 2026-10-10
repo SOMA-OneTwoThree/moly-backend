@@ -44,7 +44,9 @@ _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
 # 어느 언어에서나 통과시키는 계열 — 악센트가 붙은 라틴 글자(café jalapeño)와 그 악센트 기호.
 # 상표 고유명사가 그대로 나오는 게 정상이다. 영문(ASCII)은 아래 `_is_foreign`이 먼저 통과시킨다.
 # 전각 라틴(\uff21~)도 넣는다 — 일본어 글에 흔하고, 빼면 멀쩡한 글자를 지운다.
-_COMMON_LETTERS = "\u00c0-\u024f\u0300-\u036f\uff21-\uff3a\uff41-\uff5a"
+# Latin Extended Additional은 Nguyễn·Ḥasan·ẞ 같은 고유명사 표기에 필요하다.
+# 분해형 악센트만 허용하면 같은 이름도 NFC/NFD에 따라 삭제 여부가 달라진다.
+_COMMON_LETTERS = "\u00c0-\u024f\u0300-\u036f\u1e00-\u1eff\uff21-\uff3a\uff41-\uff5a"
 _ALLOWED_LETTERS = {
     # 한글 = 완성형 음절 + 호환 자모 + 조합용 자모. 조합용(\u1100~)까지 넣는 이유는 자소가 분리된
     # 형태로 들어와도 한글이 통째로 지워지지 않게 하기 위해서다.

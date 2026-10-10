@@ -1,4 +1,6 @@
 """부호 정제 공용 util — 마크다운·말줄임표·대시 제거, 허용부호·이름토큰 보존."""
+import unicodedata
+
 import pytest
 
 from app.services import text_clean
@@ -110,6 +112,37 @@ def test_japanese_marks_and_foreign_nickname_are_both_preserved():
     body = "Аняさん、日々の話を聞かせて。"
     assert not text_clean.has_foreign(body, language="ja", keep="Аня")
     assert text_clean.strip_foreign(body + "Σ", language="ja", keep="Аня") == body
+
+
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+@pytest.mark.parametrize("form", ["NFC", "NFD"])
+@pytest.mark.parametrize("name", ["Nguyễn", "Hồ Chí Minh", "Đặng", "Ḥasan", "ẞ"])
+def test_accented_latin_names_survive_in_each_language(language, form, name):
+    text = unicodedata.normalize(form, name)
+    assert not text_clean.has_foreign(text, language=language)
+    assert text_clean.strip_foreign(text, language=language) == text
+
+
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+@pytest.mark.parametrize("foreign", ["Σ", "Ж", "વાત", "\u1f00"])
+def test_accented_latin_names_do_not_disable_foreign_filter(language, foreign):
+    text = "Nguyễn, Ḥasan, ẞ."
+    assert text_clean.has_foreign(text + foreign, language=language)
+    assert text_clean.strip_foreign(text + foreign, language=language) == text
+
+
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+def test_latin_extended_additional_boundaries_are_preserved(language):
+    text = "\u1e00\u1eff"
+    assert not text_clean.has_foreign(text, language=language)
+    assert text_clean.strip_foreign(text, language=language) == text
+
+
+@pytest.mark.parametrize("form", ["NFC", "NFD"])
+def test_modern_hangul_and_accented_latin_are_preserved_together(form):
+    text = unicodedata.normalize(form, "한글 ㄱㄴㄷ ㅋㅋㅋ, Nguyễn, Việt Nam 여행.")
+    assert not text_clean.has_foreign(text, language="ko")
+    assert text_clean.strip_foreign(text, language="ko") == text
 
 
 def test_fullwidth_and_halfwidth_forms_are_not_stripped():

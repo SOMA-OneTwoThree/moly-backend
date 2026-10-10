@@ -174,6 +174,27 @@ async def test_personal_english_preserves_punctuation(monkeypatch):
     assert "laid-back" in d.content and "I'm" in d.content  # 하이픈·아포스트로피 보존
 
 
+@pytest.mark.parametrize("language,body", [
+    ("ko", "오늘 Nguyễn와 Việt Nam 여행 이야기를 나눴다."),
+    ("en", "Today I met Nguyễn and Ḥasan in Đà Nẵng."),
+    ("ja", "今日はNguyễnさんと日々の話をした。"),
+])
+async def test_personal_diary_preserves_accented_latin_names(monkeypatch, language, body):
+    _patch_common(monkeypatch, messages=[_msg("user", body)], tokens=5000)
+
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
+        if model == settings.model_utility:
+            return LLMResult("OK", 1, 1)
+        return LLMResult("Weather: sunny\n" + body, 10, 20)
+
+    monkeypatch.setattr(llm_module, "generate", _gen)
+    profile = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language=language)
+    session = FakeSession()
+    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
+    assert session.added[0].source == "llm"
+    assert session.added[0].content == body
+
+
 async def test_personal_korean_repairs_foreign_chars(monkeypatch):
     """한국어 일기에 섞인 한자·가나는 여전히 서지컬 복원된다(기존 보호 유지)."""
     _patch_common(monkeypatch, messages=[_msg("user", "오늘 발표했어")], tokens=5000)

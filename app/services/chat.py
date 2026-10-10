@@ -1247,8 +1247,8 @@ async def post_message(
     if text_clean.has_foreign(reply_text, language=language, keep=nick):
         # 세 번째 LLM 호출은 하드 데드라인과 최대 2회 호출 계약을 깨므로 결정적으로 제거한다.
         cleaned = text_clean.strip_foreign(reply_text, language=language, keep=nick)
-        # 실측된 경우는 전부 문장 뒤에 붙은 꼬리였다. 단어 중간에 끼어들어 본문이 깨지는 사례가
-        # 실제로 생기는지 보려고 지운 글자를 남긴다(본문은 남기지 않는다).
+        # 허용 범위 누락으로 정상 표기를 지우는 오탐(예: 일본어 々)도 확인할 수 있도록
+        # 지운 글자만 남긴다(본문은 남기지 않는다).
         _log.warning(
             "외래문자 제거(egress) user=%s lang=%s removed=%r",
             user_id, language, "".join(sorted(set(reply_text) - set(cleaned)))[:40],

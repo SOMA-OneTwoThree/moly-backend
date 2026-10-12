@@ -241,3 +241,14 @@ def test_offline_policy_upgrade_cli_never_starts_execution(args, monkeypatch, ca
         "--prices", str(args.prices), "--prior-capture", str(args.output)])
     runner.main()
     assert "no network calls" in capsys.readouterr().out
+
+
+async def test_supplemental_mood_runner_is_exactly_twelve_calls_in_shared_ledger(args, monkeypatch):
+    args.stage = "mood_probe"
+    posts = mock_client(monkeypatch, args)
+    capture = await runner.execute(args)
+    assert len(posts) == 12 and capture["completed"] and not capture["failures"]
+    assert all(p["quality"]["turn"] == 0 and p["quality"]["mode"] == "fixed_history" for p in posts)
+    assert all(not p["quality"]["prior_assistant_outputs"] for p in posts)
+    _, budget = runner.read_ledger(args.ledger)
+    assert budget.generation_turns == 12 and budget.attempts == 36

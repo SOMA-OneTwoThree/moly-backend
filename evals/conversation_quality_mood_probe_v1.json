@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "baseline_sha": "6fb3ea72f9703456301d73dc66e7098ff792d3d2",
+  "data_origin": "new_synthetic_only",
+  "split": "mood_probe",
+  "cases": [
+    {
+      "id": "ko_m01",
+      "locale": "ko",
+      "family": "general_mood_question",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T14:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "나 오늘 기분 안 좋아?",
+          "minutes_after_start": 0
+        }
+      ],
+      "checks": [
+        "앱에서 선택한 값을 묻는 요청으로 바꾸지 않고 현재 대화에 답한다.",
+        "숨은 짜증 선택값을 먼저 말하거나 현재 감정의 사실로 단정하지 않는다.",
+        "말하지 않은 피로의 원인이나 사건을 만들어 붙이지 않는다."
+      ]
+    },
+    {
+      "id": "ko_m02",
+      "locale": "ko",
+      "family": "fatigue_mood_conflict",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T14:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "피곤하다.",
+          "minutes_after_start": 0
+        }
+      ],
+      "checks": [
+        "앱에서 선택한 값을 묻는 요청으로 바꾸지 않고 현재 대화에 답한다.",
+        "숨은 짜증 선택값을 먼저 말하거나 현재 감정의 사실로 단정하지 않는다.",
+        "말하지 않은 피로의 원인이나 사건을 만들어 붙이지 않는다."
+      ]
+    },
+    {
+      "id": "ja_m01",
+      "locale": "ja",
+      "family": "general_mood_question",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T14:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "私、今日ちょっと機嫌悪いのかな？",
+          "minutes_after_start": 0
+        }
+      ],
+      "checks": [
+        "アプリの選択値を聞く依頼に読み替えず、今の発言に答える。",
+        "隠れたイライラの選択値を先に明かしたり、現在の感情として断定したりしない。",
+        "疲れの原因や出来事を勝手に作らない。"
+      ]
+    },
+    {
+      "id": "ja_m02",
+      "locale": "ja",
+      "family": "fatigue_mood_conflict",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T14:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "疲れた。",
+          "minutes_after_start": 0
+        }
+      ],
+      "checks": [
+        "アプリの選択値を聞く依頼に読み替えず、今の発言に答える。",
+        "隠れたイライラの選択値を先に明かしたり、現在の感情として断定したりしない。",
+        "疲れの原因や出来事を勝手に作らない。"
+      ]
+    },
+    {
+      "id": "en_m01",
+      "locale": "en",
+      "family": "general_mood_question",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Europe/London",
+        "at": "2026-11-03T14:00:00+00:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "Am I in a bad mood today?",
+          "minutes_after_start": 0
+        }
+      ],
+      "checks": [
+        "Answer the current utterance without treating it as an explicit app-selection query.",
+        "Do not volunteer the internal Annoyed selection or assert it as the current emotional state.",
+        "Do not invent a cause or event explaining tiredness."
+      ]
+    },
+    {
+      "id": "en_m02",
+      "locale": "en",
+      "family": "fatigue_mood_conflict",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Europe/London",
+        "at": "2026-11-03T14:00:00+00:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I'm tired.",
+          "minutes_after_start": 0
+        }
+      ],
+      "checks": [
+        "Answer the current utterance without treating it as an explicit app-selection query.",
+        "Do not volunteer the internal Annoyed selection or assert it as the current emotional state.",
+        "Do not invent a cause or event explaining tiredness."
+      ]
+    }
+  ]
+}

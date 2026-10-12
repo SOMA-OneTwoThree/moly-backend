@@ -145,7 +145,8 @@ async def test_quality_error_logging_does_not_print_exception_contents(monkeypat
 def test_docker_packages_only_named_quality_fixtures():
     docker = (quality.EVALS.parent / "Dockerfile").read_text()
     for filename in ("conversation_quality_v1.json", "conversation_quality_holdout_v1.json",
-                     "conversation_quality_autonomy_v1.json", "conversation_quality_baseline6fb.json"):
+                     "conversation_quality_autonomy_v1.json", "conversation_quality_baseline6fb.json",
+                     "conversation_quality_mood_probe_v1.json"):
         assert f"evals/{filename}" in docker
 
 
@@ -161,3 +162,53 @@ def test_autonomy_probes_are_fixed_history_and_have_the_same_wire_contract():
             _, messages, metadata = quality.build_input(request)
             assert cases[case_id]["turns"][3]["text"] in messages[-1]["content"]
             assert metadata["history_hash"] == offline.digest(offline.fixed_history(cases[case_id]))
+
+
+def test_mood_probe_bundle_preserves_original_hash_and_is_one_turn_only():
+    _, original_hash = quality._fixtures()
+    assert original_hash == "2c754799983c7140358d8e2cfc71e65c3a6f421cf104b78b4dc9bec9c2567a13"
+    cases, fixture_hash = offline.load_stage_cases("mood_probe")
+    assert quality._fixtures(mood_probe=True)[1] == fixture_hash != original_hash
+    assert set(cases) == quality.MOOD_CASE_IDS
+    for case_id, case in cases.items():
+        request = dict(case_id=case_id, turn=0, variant="candidate",
+                       mode="fixed_history", fixture_hash=fixture_hash)
+        _, messages, metadata = quality.build_input(QualityEvalCaseRequest(**request))
+        assert [m["role"] for m in messages] == ["system", "user"]
+        assert case["turns"][0]["text"] in messages[-1]["content"]
+        assert metadata["history_hash"] == offline.digest(offline.fixed_history(case))
+        for invalid in ({"turn": 3}, {"mode": "rollout"}, {"prior_assistant_outputs": ["unapproved"]}):
+            with pytest.raises(ValueError):
+                QualityEvalCaseRequest(**(request | invalid))
+        with pytest.raises(quality.QualityFixtureError):
+            quality.build_input(QualityEvalCaseRequest(**(request | {"fixture_hash": original_hash})))
+    # The one-turn exception never applies to established fixed-history cases.
+    with pytest.raises(ValueError):
+        QualityEvalCaseRequest(case_id="ko_d01", turn=0, mode="fixed_history",
+                              variant="candidate", fixture_hash=original_hash)
+
+
+def test_missing_mood_bundle_fails_closed_without_affecting_old_cases(monkeypatch):
+    from pathlib import Path
+    original_read = Path.read_text
+
+    def missing(path, *args, **kwargs):
+        if path.name == "conversation_quality_mood_probe_v1.json":
+            raise FileNotFoundError("synthetic missing fixture")
+        return original_read(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", missing)
+    with pytest.raises(quality.QualityFixtureError):
+        quality._fixtures(mood_probe=True)
+    assert len(quality._fixtures()[0]) == 45
+
+
+def test_mood_route_preserves_no_live_reads_and_fixed_adapter(dev_client):
+    client, _, calls = dev_client
+    _, fixture_hash = offline.load_stage_cases("mood_probe")
+    body = payload(quality={"case_id": "ko_m01", "turn": 0, "mode": "fixed_history",
+                            "variant": "candidate", "fixture_hash": fixture_hash})
+    result = client.post("/dev/chat-eval", json=body)
+    assert result.status_code == 200 and len(calls) == 1
+    assert calls[0][2] == {"max_tokens": 384, "redact_errors": True}
+    assert len(calls[0][1]) == 2

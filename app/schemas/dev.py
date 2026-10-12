@@ -99,7 +99,7 @@ class QualityEvalCaseRequest(BaseModel):
     """Server-owned synthetic data only; no live subject or arbitrary system input."""
 
     model_config = ConfigDict(extra="forbid")
-    case_id: str = Field(pattern=r"^(ko|ja|en)_(d0[1-8]|h0[1-4]|a0[1-3])$")
+    case_id: str = Field(pattern=r"^(ko|ja|en)_(d0[1-8]|h0[1-4]|a0[1-3]|m0[1-2])$")
     turn: int = Field(ge=0, le=3)
     variant: Literal["baseline6fb", "candidate"]
     mode: Literal["rollout", "fixed_history"] = "rollout"
@@ -110,6 +110,10 @@ class QualityEvalCaseRequest(BaseModel):
 
     @model_validator(mode="after")
     def check_history(self):
+        if "_m" in self.case_id:
+            if self.mode != "fixed_history" or self.turn != 0 or self.prior_assistant_outputs:
+                raise ValueError("mood probes require one fixed turn and no supplied history")
+            return self
         if "_a" in self.case_id and self.mode != "fixed_history":
             raise ValueError("autonomy probes require the fixed synthetic history")
         if self.mode == "fixed_history":

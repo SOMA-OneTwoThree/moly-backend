@@ -23,6 +23,7 @@ FIXTURES = (
     ROOT / "evals/conversation_quality_holdout_v1.json",
     ROOT / "evals/conversation_quality_autonomy_v1.json",
 )
+MOOD_PROBE_FIXTURE = ROOT / "evals/conversation_quality_mood_probe_v1.json"
 LOCALES = {"ko", "ja", "en"}
 MOODS = {"annoyed", "tired", "neutral", "content", "excited", "unknown"}
 DIMENSIONS = (
@@ -44,7 +45,7 @@ def digest(value: object) -> str:
     return hashlib.sha256(wire.encode()).hexdigest()
 
 
-def load_cases(paths: tuple[Path, ...] = FIXTURES) -> tuple[dict, str]:
+def load_cases(paths: tuple[Path, ...] = FIXTURES, *, mood_probe: bool = False) -> tuple[dict, str]:
     manifests = [json.loads(p.read_text()) for p in paths]
     cases: dict[str, dict] = {}
     for manifest in manifests:
@@ -53,7 +54,7 @@ def load_cases(paths: tuple[Path, ...] = FIXTURES) -> tuple[dict, str]:
         if manifest.get("data_origin") != "new_synthetic_only":
             raise ValueError("only newly authored synthetic fixtures are allowed")
         split = manifest.get("split")
-        if split not in {"dev", "holdout", "autonomy"}:
+        if split not in ({"mood_probe"} if mood_probe else {"dev", "holdout", "autonomy"}):
             raise ValueError("invalid split")
         for raw in manifest["cases"]:
             case = {**raw, "split": split}
@@ -62,10 +63,15 @@ def load_cases(paths: tuple[Path, ...] = FIXTURES) -> tuple[dict, str]:
                 raise ValueError("duplicate case id")
             cases[case["id"]] = case
     counts = Counter((c["split"], c["locale"]) for c in cases.values())
-    expected = {(s, lang): n for s, n in (("dev", 8), ("holdout", 4), ("autonomy", 3)) for lang in LOCALES}
+    sizes = (("mood_probe", 2),) if mood_probe else (("dev", 8), ("holdout", 4), ("autonomy", 3))
+    expected = {(s, lang): n for s, n in sizes for lang in LOCALES}
     if counts != expected:
-        raise ValueError("coverage requires 8 dev, 4 holdout and 3 autonomy cases per language")
+        raise ValueError("fixture bundle coverage mismatch")
     return cases, digest(manifests)
+
+
+def load_stage_cases(stage: str) -> tuple[dict, str]:
+    return (load_cases((MOOD_PROBE_FIXTURE,), mood_probe=True) if stage == "mood_probe" else load_cases())
 
 
 def validate_case(case: dict) -> None:
@@ -81,8 +87,8 @@ def validate_case(case: dict) -> None:
     # New memory scenarios need a separately reviewed bounded schema before enabling.
     if setup["memories"] != []:
         raise ValueError("unreviewed memory fixture")
-    if len(case["turns"]) != 4 or not case["checks"]:
-        raise ValueError("four turns and explicit checks are required")
+    if len(case["turns"]) != (1 if case["split"] == "mood_probe" else 4) or not case["checks"]:
+        raise ValueError("the bundle's fixed turn count and explicit checks are required")
     previous = -1
     for turn in case["turns"]:
         if not {"text", "minutes_after_start"} <= set(turn) <= {
@@ -119,7 +125,7 @@ def state_at(case: dict, turn_index: int) -> dict:
 
 
 def make_plan(cases: dict, fixture_hash: str, stage: str) -> dict:
-    if stage not in {"pilot", "main", "holdout", "repeat", "fixed", "autonomy", "smoke"}:
+    if stage not in {"pilot", "main", "holdout", "repeat", "fixed", "autonomy", "mood_probe", "smoke"}:
         raise ValueError("unknown evaluation stage")
     pilot = {"ordinary", "mood"}
     selected = [c for c in cases.values() if (
@@ -128,17 +134,18 @@ def make_plan(cases: dict, fixture_hash: str, stage: str) -> dict:
         or (stage == "holdout" and c["split"] == "holdout")
         or (stage == "repeat" and c["split"] == "dev" and c["family"] in {
             "answered_question", "correction", "elapsed", "mood"})
-        or (stage == "fixed" and c["split"] != "autonomy")
+        or (stage == "fixed" and c["split"] in {"dev", "holdout"})
         or (stage == "autonomy" and c["split"] == "autonomy")
+        or (stage == "mood_probe" and c["split"] == "mood_probe")
         or (stage == "smoke" and c["split"] == "dev" and c["family"] in pilot)
     )]
     variants = ("deployed",) if stage == "smoke" else ("baseline", "candidate")
     plans = [{"case_id": c["id"], "variant": variant,
-              "turns": [3] if stage in {"fixed", "autonomy"} else [0] if stage == "smoke" else list(range(4))}
+              "turns": [3] if stage in {"fixed", "autonomy"} else [0] if stage in {"smoke", "mood_probe"} else list(range(4))}
              for c in selected for variant in variants]
     return {"version": 1, "baseline_sha": BASELINE_SHA, "fixture_hash": fixture_hash,
             "stage": stage, "scope": "dev_smoke" if stage == "smoke" else "source_prompt",
-            "mode": "fixed_history" if stage in {"fixed", "autonomy"} else "rollout",
+            "mode": "fixed_history" if stage in {"fixed", "autonomy", "mood_probe"} else "rollout",
             "generation_turns": sum(len(p["turns"]) for p in plans),
             "execution_authorized": False, "pairs": plans}
 
@@ -153,7 +160,7 @@ def fixed_history(case: dict) -> list[dict[str, str]]:
     history = []
     for index, turn in enumerate(case["turns"]):
         history.append({"role": "user", "content": turn["text"]})
-        if index < 3:
+        if index < len(case["turns"]) - 1:
             history.append({"role": "assistant", "content": acknowledgements[index]})
     return history
 
@@ -240,7 +247,7 @@ def blind_pack(capture: dict, cases: dict, fixture_hash: str, seed: int) -> tupl
         pairs.append({"pair_id": pair_id, "locale": case["locale"], "split": case["split"],
                       "mode": key[1], "users": [t["text"] for t in case["turns"]],
                       "fixed_history": fixed_history(case) if key[1] == "fixed_history" else None,
-                      "states": [state_at(case, i) for i in range(4)], "checks": case["checks"],
+                      "states": [state_at(case, i) for i in range(len(case["turns"]))], "checks": case["checks"],
                       "A": variants[orientation[0]]["outputs"],
                       "B": variants[orientation[1]]["outputs"]})
         mapping[pair_id] = {"A": orientation[0], "B": orientation[1], "case_id": key[0],
@@ -296,10 +303,10 @@ def summarize_reviews(packet: dict, secret: dict, reviews: list[dict]) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stage", choices=("pilot", "main", "holdout", "repeat", "fixed", "autonomy", "smoke"), default="pilot")
+    parser.add_argument("--stage", choices=("pilot", "main", "holdout", "repeat", "fixed", "autonomy", "mood_probe", "smoke"), default="pilot")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    cases, fixture_hash = load_cases()
+    cases, fixture_hash = load_stage_cases(args.stage)
     plan = make_plan(cases, fixture_hash, args.stage)
     if args.output:
         args.output.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n")

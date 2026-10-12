@@ -227,7 +227,7 @@ async def execute(args) -> dict:
     prices = load_prices(args.prices, args.model, now=datetime.now(timezone.utc))
     if args.output.exists():
         raise ValueError("capture already exists; preserve earlier evidence")
-    cases, fixture_hash = evaluation.load_cases()
+    cases, fixture_hash = evaluation.load_stage_cases(args.stage)
     plan = evaluation.make_plan(cases, fixture_hash, args.stage)
     ledger, budget = read_ledger(args.ledger)
     price_hash = evaluation.digest(prices)
@@ -358,7 +358,7 @@ def main() -> None:
     parser.add_argument("--execute-approved-stage", action="store_true")
     parser.add_argument("--upgrade-attempt-policy-1600", action="store_true")
     parser.add_argument("--prior-capture", type=Path)
-    parser.add_argument("--stage", choices=("pilot", "main", "holdout", "repeat", "fixed", "autonomy", "smoke"), default="pilot")
+    parser.add_argument("--stage", choices=("pilot", "main", "holdout", "repeat", "fixed", "autonomy", "mood_probe", "smoke"), default="pilot")
     parser.add_argument("--model", default="gpt-6-luna")
     parser.add_argument("--expected-deployment-sha")
     parser.add_argument("--prices", type=Path)
@@ -377,7 +377,7 @@ def main() -> None:
         print("Approved 492-turn/1600-attempt policy recorded; no network calls or reservation refunds.")
         return
     if not args.execute_approved_stage:
-        cases, fixture_hash = evaluation.load_cases()
+        cases, fixture_hash = evaluation.load_stage_cases(args.stage)
         plan = evaluation.make_plan(cases, fixture_hash, args.stage)
         print(json.dumps({k: v for k, v in plan.items() if k != "pairs"}))
         return

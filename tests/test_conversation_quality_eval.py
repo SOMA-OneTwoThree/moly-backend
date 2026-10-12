@@ -21,6 +21,26 @@ def test_stage_budgets_cover_the_frozen_split_without_reusing_pilot_in_main():
     assert all(not p["execution_authorized"] for p in stages.values())
 
 
+def test_supplemental_mood_probe_is_twelve_fixed_calls_with_separate_provenance():
+    cases, fixture_hash = evaluation.load_stage_cases("mood_probe")
+    plan = evaluation.make_plan(cases, fixture_hash, "mood_probe")
+    assert plan["generation_turns"] == 12 and plan["mode"] == "fixed_history"
+    assert {tuple(p["turns"]) for p in plan["pairs"]} == {(0,)}
+    assert {c["setup"]["mood"] for c in cases.values()} == {"annoyed"}
+    assert all(len(evaluation.fixed_history(c)) == 1 for c in cases.values())
+    _, old_hash = evaluation.load_cases()
+    assert old_hash == "2c754799983c7140358d8e2cfc71e65c3a6f421cf104b78b4dc9bec9c2567a13" != fixture_hash
+    capture = {"baseline_sha": evaluation.BASELINE_SHA, "fixture_hash": fixture_hash,
+               "candidate_sha": "synthetic", "model_config_hash": "synthetic", "scope": "source_prompt",
+               "records": [{"case_id": case_id, "variant": variant, "mode": "fixed_history",
+                            "outputs": ["Synthetic reply"], "model_snapshot": "synthetic-snapshot",
+                            "history_hash": evaluation.digest(evaluation.fixed_history(case))}
+                           for case_id, case in cases.items() for variant in ("baseline", "candidate")]}
+    packet, _ = evaluation.blind_pack(capture, cases, fixture_hash, 7)
+    assert len(packet["pairs"]) == 6
+    assert all(len(p["users"]) == len(p["states"]) == len(p["fixed_history"]) == 1 for p in packet["pairs"])
+
+
 def test_synthetic_state_keeps_unknown_and_locale_changes_on_following_turns():
     cases, _ = evaluation.load_cases()
     assert evaluation.state_at(cases["ko_h04"], 3)["mood"] == "unknown"

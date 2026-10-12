@@ -35,6 +35,8 @@ HARD_GATES = {
     "privacy_or_tool_boundary", "safety_regression", "autonomy_override",
 }
 SCOPES = {"source_prompt", "dev_smoke", "actual_chat", "registry_retrieval"}
+BUDGET_LIMITS = {"dollars": "15", "generation_turns": 492, "attempts": 1600,
+                 "input_tokens": 50_000_000, "output_tokens": 600_000}
 
 
 def digest(value: object) -> str:
@@ -179,7 +181,9 @@ class Budget:
         proposal = (self.dollars + dollars, self.generation_turns + 1,
                     self.attempts + attempts, self.input_tokens + input_tokens,
                     self.output_tokens + output_tokens)
-        if any(n > cap for n, cap in zip(proposal, (Decimal("15"), 480, 1500, 50_000_000, 600_000))):
+        if any(n > cap for n, cap in zip(proposal, (Decimal(BUDGET_LIMITS["dollars"]),
+                   BUDGET_LIMITS["generation_turns"], BUDGET_LIMITS["attempts"],
+                   BUDGET_LIMITS["input_tokens"], BUDGET_LIMITS["output_tokens"]))):
             raise ValueError("evaluation budget exhausted")
         (self.dollars, self.generation_turns, self.attempts,
          self.input_tokens, self.output_tokens) = proposal

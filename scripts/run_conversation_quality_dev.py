@@ -11,6 +11,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from decimal import Decimal
 import fcntl
+import hashlib
 import json
 import math
 import os
@@ -28,6 +29,7 @@ from app.services import conversation_quality_eval as quality  # noqa: E402
 from scripts import eval_conversation_quality as evaluation  # noqa: E402
 
 DEV_URL = "https://dev.moly.asia"
+POLICY_APPROVAL = "root-20261012-mood-coverage492"
 
 
 def load_prices(path: Path, model: str, *, now: datetime) -> dict:
@@ -75,27 +77,109 @@ def save_private(path: Path, data: dict) -> None:
             temporary.unlink()
 
 
+def _recompute_budget(calls: list[dict], *, attempt_cap: int, generation_cap: int = 492) -> evaluation.Budget:
+    if any(c["status"] == "reserved" for c in calls):
+        raise ValueError("unresolved reservation or unknown ledger; reconcile without replay")
+    budget, keys = evaluation.Budget(), set()
+    for call in calls:
+        if call["status"] not in {"completed", "failed_unknown_usage"} or call["key"] in keys:
+            raise ValueError("invalid or duplicate ledger entry")
+        keys.add(call["key"])
+        budget.reserve(dollars=Decimal(call["reserved_usd"]), attempts=call["attempts_upper"],
+                       input_tokens=call["input_tokens_upper"], output_tokens=call["output_tokens_upper"])
+    if budget.attempts > attempt_cap or budget.generation_turns > generation_cap:
+        raise ValueError("ledger exceeded its approved attempt policy")
+    return budget
+
+
+def _budget_snapshot(budget: evaluation.Budget) -> dict:
+    return {**asdict(budget), "dollars": str(budget.dollars)}
+
+
+def _policy_event(kind: str) -> dict:
+    return {"kind": kind, "approval": POLICY_APPROVAL,
+            "recorded_at": datetime.now(timezone.utc).isoformat()}
+
+
 def read_ledger(path: Path) -> tuple[dict, evaluation.Budget]:
-    if path.exists():
-        data = json.loads(path.read_text())
-        if data.get("version") != 1 or not isinstance(data.get("calls"), list):
-            raise ValueError("unknown ledger format")
-        if any(c["status"] == "reserved" for c in data["calls"]):
-            raise ValueError("unresolved reservation or unknown ledger; reconcile without replay")
-        # Recompute from every reservation, including failed/unknown calls. A
-        # truncated/corrupt total must not silently reset a shared campaign cap.
-        budget, keys = evaluation.Budget(), set()
-        for call in data["calls"]:
-            if call["status"] not in {"completed", "failed_unknown_usage"} or call["key"] in keys:
-                raise ValueError("invalid or duplicate ledger entry")
-            keys.add(call["key"])
-            budget.reserve(dollars=Decimal(call["reserved_usd"]), attempts=call["attempts_upper"],
-                           input_tokens=call["input_tokens_upper"], output_tokens=call["output_tokens_upper"])
-        expected = {**asdict(budget), "dollars": str(budget.dollars)}
-        if data["budget"] != expected:
-            raise ValueError("ledger totals do not match reservations")
-        return data, budget
-    return {"version": 1, "calls": [], "budget": {}}, evaluation.Budget()
+    if not path.exists():
+        return {"version": 2, "limits": dict(evaluation.BUDGET_LIMITS), "calls": [],
+                "budget": {}, "price_manifest_hash": None,
+                "policy_history": [_policy_event("initial")]}, evaluation.Budget()
+    data = json.loads(path.read_text())
+    if data.get("version") != 2 or data.get("limits") != evaluation.BUDGET_LIMITS:
+        raise ValueError("explicit approved ledger policy upgrade is required")
+    if not isinstance(data.get("calls"), list):
+        raise ValueError("unknown ledger format")
+    budget = _recompute_budget(data["calls"], attempt_cap=evaluation.BUDGET_LIMITS["attempts"])
+    if data["budget"] != _budget_snapshot(budget):
+        raise ValueError("ledger totals do not match reservations")
+    history = data.get("policy_history")
+    if not isinstance(history, list) or len(history) != 1 or history[0].get("approval") != POLICY_APPROVAL:
+        raise ValueError("approved policy history is required")
+    event = history[0]
+    if datetime.fromisoformat(event["recorded_at"]).tzinfo is None:
+        raise ValueError("policy time must include its timezone")
+    if event.get("kind") == "upgrade_v1":
+        count = event.get("preserved_calls_count")
+        if type(count) is not int or not 0 <= count <= len(data["calls"]):
+            raise ValueError("invalid preserved reservation prefix")
+        prefix = data["calls"][:count]
+        if (event.get("previous_attempt_limit") != 1500
+                or event.get("previous_generation_limit") != 480
+                or event.get("preserved_calls_hash") != evaluation.digest(prefix)
+                or event.get("preserved_budget") != _budget_snapshot(_recompute_budget(prefix, attempt_cap=1500, generation_cap=480))
+                or event.get("price_manifest_hash") != data.get("price_manifest_hash")
+                or any(not re.fullmatch(r"[a-f0-9]{64}", str(event.get(k, "")))
+                       for k in ("source_ledger_hash", "source_capture_hash"))):
+            raise ValueError("preserved reservation or provenance mismatch")
+    elif event.get("kind") != "initial":
+        raise ValueError("unknown policy transition")
+    if data["calls"] and not re.fullmatch(r"[a-f0-9]{64}", str(data.get("price_manifest_hash", ""))):
+        raise ValueError("reviewed campaign prices must be pinned")
+    return data, budget
+
+
+def upgrade_ledger_policy(path: Path, prices_path: Path, prior_capture_path: Path) -> None:
+    """Offline, explicit, one-time upgrade; never refunds or replays a reservation."""
+    lock_path = path.with_suffix(path.suffix + ".lock")
+    with lock_path.open("a") as lock:
+        lock_path.chmod(0o600)
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        raw = path.read_bytes()
+        data = json.loads(raw)
+        if data.get("version") != 1 or set(data) != {"version", "calls", "budget"}:
+            raise ValueError("only the preserved legacy policy can be upgraded")
+        budget = _recompute_budget(data["calls"], attempt_cap=1500, generation_cap=480)
+        if data["budget"] != _budget_snapshot(budget):
+            raise ValueError("legacy totals do not match reservations")
+        prices = load_prices(prices_path, "gpt-6-luna", now=datetime.now(timezone.utc))
+        price_hash = evaluation.digest(prices)
+        capture_raw = prior_capture_path.read_bytes()
+        capture = json.loads(capture_raw)
+        if (capture.get("price_manifest_hash") != price_hash
+                or capture.get("operational_summary", {}).get("campaign_reserved") != data["budget"]
+                or not all(c["key"].startswith(f"{capture['candidate_sha']}:{capture['stage']}:")
+                           for c in data["calls"])):
+            raise ValueError("existing capture must establish the preserved campaign provenance")
+        event = {**_policy_event("upgrade_v1"), "previous_attempt_limit": 1500, "previous_generation_limit": 480,
+                 "source_ledger_hash": hashlib.sha256(raw).hexdigest(),
+                 "source_capture_hash": hashlib.sha256(capture_raw).hexdigest(),
+                 "preserved_calls_count": len(data["calls"]),
+                 "preserved_calls_hash": evaluation.digest(data["calls"]),
+                 "preserved_budget": dict(data["budget"]), "price_manifest_hash": price_hash}
+        # The original bytes and upgraded ledger are taken under the SAME lock.
+        # A crash after backup stops a second upgrade for explicit reconciliation.
+        backup = path.with_suffix(path.suffix + ".v1-backup")
+        descriptor = os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        data.update(version=2, limits=dict(evaluation.BUDGET_LIMITS),
+                    price_manifest_hash=price_hash, policy_history=[event])
+        save_private(path, data)
+        read_ledger(path)  # Verify the written policy and every retained reservation.
 
 
 def _save_ledger(path: Path, ledger: dict, budget: evaluation.Budget) -> None:
@@ -146,6 +230,10 @@ async def execute(args) -> dict:
     cases, fixture_hash = evaluation.load_cases()
     plan = evaluation.make_plan(cases, fixture_hash, args.stage)
     ledger, budget = read_ledger(args.ledger)
+    price_hash = evaluation.digest(prices)
+    if ledger.get("price_manifest_hash") not in (None, price_hash):
+        raise ValueError("campaign prices changed; a new price policy must be reviewed")
+    ledger["price_manifest_hash"] = price_hash
     prefix = f"{args.expected_deployment_sha}:{args.stage}:"
     if any(c["key"].startswith(prefix) for c in ledger["calls"]):
         raise ValueError("this stage already has reservations; do not silently replay it")
@@ -162,7 +250,7 @@ async def execute(args) -> dict:
     rng.shuffle(order)
     # Sequential requests avoid extra load and make pre-call reservation atomic.
     # The same single client uses TLS verification and never follows redirects.
-    async with httpx.AsyncClient(base_url=DEV_URL, timeout=210, follow_redirects=False,
+    async with httpx.AsyncClient(base_url=DEV_URL, timeout=210, follow_redirects=False, trust_env=False,
                                  headers={"Authorization": f"Bearer {token}"}) as client:
         health = await client.get("/health")
         if health.status_code != 200:
@@ -268,6 +356,8 @@ async def execute(args) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute-approved-stage", action="store_true")
+    parser.add_argument("--upgrade-attempt-policy-1600", action="store_true")
+    parser.add_argument("--prior-capture", type=Path)
     parser.add_argument("--stage", choices=("pilot", "main", "holdout", "repeat", "fixed", "autonomy", "smoke"), default="pilot")
     parser.add_argument("--model", default="gpt-6-luna")
     parser.add_argument("--expected-deployment-sha")
@@ -276,6 +366,16 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--seed", type=int, default=2718)
     args = parser.parse_args()
+    if args.upgrade_attempt_policy_1600:
+        if (args.execute_approved_stage or args.output or args.expected_deployment_sha
+                or not all((args.ledger, args.prices, args.prior_capture))):
+            parser.error("offline upgrade requires only ledger, reviewed prices and prior capture")
+        try:
+            upgrade_ledger_policy(args.ledger, args.prices, args.prior_capture)
+        except Exception:
+            raise SystemExit("Policy upgrade rejected; existing reservations were not reset.") from None
+        print("Approved 492-turn/1600-attempt policy recorded; no network calls or reservation refunds.")
+        return
     if not args.execute_approved_stage:
         cases, fixture_hash = evaluation.load_cases()
         plan = evaluation.make_plan(cases, fixture_hash, args.stage)

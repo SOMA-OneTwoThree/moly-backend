@@ -73,9 +73,10 @@ def mock_client(monkeypatch, args, *, unhealthy=False, fail=False, snapshot_chan
             "input_tokens": 100, "output_tokens": 5, "latency_ms": 10,
         })
 
-    monkeypatch.setattr(runner.httpx, "AsyncClient", lambda **kw: real_client(
-        **kw, transport=httpx.MockTransport(handle),
-    ))
+    def client(**kw):
+        assert kw["trust_env"] is False and kw["follow_redirects"] is False
+        return real_client(**kw, transport=httpx.MockTransport(handle))
+    monkeypatch.setattr(runner.httpx, "AsyncClient", client)
     return posts
 
 
@@ -155,3 +156,88 @@ async def test_cost_cap_stops_before_post_and_reports_incomplete_scope(args, mon
     assert capture["stop_reason"] == "budget_guard" and capture["completed"] is False
     assert capture["planned_generation_turns"] == 48
     assert capture["operational_summary"]["campaign_reserved"]["generation_turns"] == 0
+
+
+def legacy_ledger(args, *, status="failed_unknown_usage", attempts=3):
+    call = {"key": f"{SHA}:pilot:ko_d01:baseline:0", "status": status,
+            "reserved_usd": "0.1", "attempts_upper": attempts,
+            "input_tokens_upper": 300, "output_tokens_upper": 90, "observed_usage": None}
+    budget = {"dollars": "0.1", "generation_turns": 1, "attempts": attempts,
+              "input_tokens": 300, "output_tokens": 90}
+    old = {"version": 1, "calls": [call], "budget": budget}
+    runner.save_private(args.ledger, old)
+    capture = {"candidate_sha": SHA, "stage": "pilot",
+               "price_manifest_hash": runner.evaluation.digest(json.loads(args.prices.read_text())),
+               "operational_summary": {"campaign_reserved": budget}}
+    runner.save_private(args.output, capture)
+    return old
+
+
+def test_explicit_policy_upgrade_preserves_unknown_cost_and_original_bytes(args):
+    old = legacy_ledger(args)
+    original = args.ledger.read_bytes()
+    with pytest.raises(ValueError, match="explicit"):
+        runner.read_ledger(args.ledger)
+    runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    data, budget = runner.read_ledger(args.ledger)
+    assert data["version"] == 2 and data["limits"]["attempts"] == 1600
+    assert data["calls"] == old["calls"] and data["budget"] == old["budget"]
+    assert budget.dollars == Decimal("0.1") and budget.attempts == 3
+    event = data["policy_history"][0]
+    assert event["source_ledger_hash"] == runner.hashlib.sha256(original).hexdigest()
+    backup = args.ledger.with_suffix(args.ledger.suffix + ".v1-backup")
+    assert backup.read_bytes() == original and backup.stat().st_mode & 0o777 == 0o600
+    with pytest.raises(ValueError, match="legacy"):
+        runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    # Even a self-consistent new total cannot alter the historical prefix.
+    data["calls"][0]["reserved_usd"] = "0.09"
+    data["budget"]["dollars"] = "0.09"
+    runner.save_private(args.ledger, data)
+    with pytest.raises(ValueError, match="preserved"):
+        runner.read_ledger(args.ledger)
+
+
+@pytest.mark.parametrize("problem", ["reserved", "old_cap", "price", "totals", "locked"])
+def test_policy_upgrade_failures_preserve_legacy_without_backup(args, problem):
+    legacy_ledger(args, status="reserved" if problem == "reserved" else "failed_unknown_usage",
+                  attempts=1501 if problem == "old_cap" else 3)
+    if problem == "price":
+        data = json.loads(args.prices.read_text())
+        data["input_upper_usd_per_million"] = "0.11"
+        runner.save_private(args.prices, data)
+    elif problem == "totals":
+        data = json.loads(args.ledger.read_text())
+        data["budget"]["dollars"] = "0"
+        runner.save_private(args.ledger, data)
+    original = args.ledger.read_bytes()
+    lock_path = args.ledger.with_suffix(args.ledger.suffix + ".lock")
+    with lock_path.open("a") as lock:
+        if problem == "locked":
+            runner.fcntl.flock(lock, runner.fcntl.LOCK_EX | runner.fcntl.LOCK_NB)
+        with pytest.raises((ValueError, BlockingIOError)):
+            runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    assert args.ledger.read_bytes() == original
+    assert not args.ledger.with_suffix(args.ledger.suffix + ".v1-backup").exists()
+
+
+async def test_pinned_campaign_price_change_stops_before_network(args, monkeypatch):
+    legacy_ledger(args)
+    runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    args.stage = "autonomy"
+    args.output = args.output.with_name("next-stage.json")
+    prices = json.loads(args.prices.read_text())
+    prices["input_upper_usd_per_million"] = "0.11"
+    runner.save_private(args.prices, prices)
+    monkeypatch.setattr(runner.httpx, "AsyncClient", lambda **kw: pytest.fail("price mismatch must be offline"))
+    with pytest.raises(ValueError, match="campaign prices changed"):
+        await runner.execute(args)
+
+
+def test_offline_policy_upgrade_cli_never_starts_execution(args, monkeypatch, capsys):
+    legacy_ledger(args)
+    monkeypatch.setattr(runner, "execute", lambda _: pytest.fail("upgrade must not execute"))
+    monkeypatch.setattr(runner.sys, "argv", [str(Path(runner.__file__)),
+        "--upgrade-attempt-policy-1600", "--ledger", str(args.ledger),
+        "--prices", str(args.prices), "--prior-capture", str(args.output)])
+    runner.main()
+    assert "no network calls" in capsys.readouterr().out

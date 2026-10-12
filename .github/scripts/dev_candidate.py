@@ -151,22 +151,38 @@ def discover() -> tuple[dict[str, int], list[str]]:
 
 MARKER_GUARD = 'test "$(cat /etc/moly-env 2>/dev/null)" = dev || { echo DEV_MARKER_REQUIRED; exit 41; }'
 PROBE_PYTHON = """import json, urllib.request
-from app.config import settings
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):
         return None
+phase=42
 try:
+    from app.config import settings
+    phase=43
     opener=urllib.request.build_opener(NoRedirect(), urllib.request.ProxyHandler({}))
     with opener.open('http://127.0.0.1:8000/health', timeout=5) as r:
         data=json.load(r)
+        version=data.get('version')
+    phase=44
     with opener.open('http://127.0.0.1:8000/health/ready', timeout=5) as r:
         ready=r.status == 200
+    phase=45
     flags={key:getattr(settings,key) for key in ('context_checkpoint_enabled','current_turn_context_enabled')}
-    print(json.dumps({'version':data.get('version'),'ready':ready,'development':settings.environment == 'development','flags':flags}))
+    print(json.dumps({'version':version,'ready':ready,'development':settings.environment == 'development','flags':flags}))
 except Exception:
     print('PROBE_FAILED')
-    raise SystemExit(42)
+    raise SystemExit(phase)
 """
+
+
+def remote_failure_code(state: dict) -> str:
+    """Classify only enumerated SSM metadata; never inspect remote output bodies."""
+    status = state.get("Status")
+    if type(status) is not str or status not in {"Failed", "Cancelled", "TimedOut", "Cancelling"}:
+        status = "unknown"
+    response_code = state.get("ResponseCode")
+    if type(response_code) is not int or response_code not in {41, 42, 43, 44, 45, 125, 126, 127}:
+        response_code = "unknown"
+    return f"remote_command_failed status={status} exit={response_code}"
 
 
 def send_command(instance: str, command: str, *, seconds: int = 60) -> dict:
@@ -187,7 +203,8 @@ def send_command(instance: str, command: str, *, seconds: int = 60) -> dict:
         status = state.get("Status")
         if status == "Success":
             return state
-        require(status in {"Pending", "InProgress", "Delayed"}, "remote_command_failed")
+        require(type(status) is str and status in {"Pending", "InProgress", "Delayed"},
+                remote_failure_code(state))
     raise GuardError("remote_command_timeout")
 
 

@@ -102,6 +102,25 @@ Starlette 경고 1개), Ruff·`git diff --check` 통과, actionlint 1.7.12 + She
 단위 테스트에는 접속하지 않는 문법상 유효한 더미 DB URL만 사용했다. 개발 DB를 대상으로 한
 대화 기능 테스트나 다른 feature worktree의 테스트 수와 합산하지 않는다.
 
+#### 호스트 검사 실패 진단 보완 (2026-10-12)
+
+첫 승인된 inspect는 프로젝트 OIDC 인증과 개발 태그 running 1개, 공개 health의 기존 SHA를
+확인했으나 호스트 검사에서 `remote_command_failed`로 중단했다. 이 결과만으로 마커 오류나
+컨테이너 장애를 단정하지 않는다. infra의 마커 `/etc/moly-env`, 컨테이너 `moly-backend`, 포트
+8000과 배포 이미지의 Python/config 경로는 소스 계약과 일치했다.
+
+실패 시에는 SSM의 허용된 Status와 정수 ResponseCode만 분류한다. 41은 dev 마커, 42는 config
+import, 43은 로컬 health 읽기, 44는 readiness 읽기, 45는 flags 읽기 단계다. Docker 계층의
+125/126/127도 허용하고 나머지는 `unknown`으로 남긴다. bool·숫자 문자열을 종료 코드로
+받아들이지 않는다. 원시 stdout/stderr는 분류에도 사용하지 않고 내용·접두부·해시를 출력하지
+않는다. 성공 시 기존 SHA/ready/development/flags 검증과 마커 선행 조건은 유지한다.
+추가 단계 코드는 진단 범위만 구분하며 실패 원문이나 실제 환경값을 추측할 근거가 아니다.
+
+이 보완의 경계 테스트 55개, Ruff, diff 검사, actionlint 1.7.12 + ShellCheck 0.11.0이 통과했다.
+후속 inspect·이미지 빌드·배포는 아직 하지 않았다. 정상 개발 consumer/timer는 기존 서비스이며,
+합성 평가 endpoint의 직접 Slack·푸시 호출 없음과 별개다. 이 변경은 새 푸시 활성화·일정 추가나
+timer·환경변수 변경, 기존 개발 서비스 중단을 포함하지 않는다.
+
 ## 설정과 프로세스
 
 비밀값은 환경별 SSM `/moly/dev/`, `/moly/prod/`에 둔다. 필요한 키와 실제 환경변수 매핑은

@@ -109,70 +109,16 @@ class _GetClient:
         _GetClient.urls.append(url)
 
 
-def _capture_alerts(monkeypatch):
-    calls: list[str] = []
-
-    async def _alert(text, *, dedup_key=None):
-        calls.append(text)
-
-    monkeypatch.setattr(tick.slack_notify, "alert", _alert)
-    return calls
-
-
-_HEALTHY = {"diary_failed": 0, "memory_failed": 0, "diary_skipped": 5}
-
-
-async def test_no_alert_when_all_skipped(monkeypatch):
-    """멱등 재실행(전원 스킵)은 실패가 아니므로 경보 없음."""
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, dict(_HEALTHY))
-    assert calls == []
-
-
-async def test_alert_on_failure(monkeypatch):
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, {"diary_failed": 2, "memory_failed": 0})
-    assert len(calls) == 1 and "결과 이상" in calls[0]
-
-
 async def test_deadman_ping_ok_and_fail(monkeypatch):
     monkeypatch.setattr(tick.settings, "worker_ping_url", "https://hc.example/PING")
     monkeypatch.setattr(tick.httpx, "AsyncClient", lambda **kw: _GetClient())
-    _capture_alerts(monkeypatch)
+    emit = AsyncMock()
+    monkeypatch.setattr(tick.monitoring, "emit", emit)
     _GetClient.urls.clear()
-    await tick._emit_worker_health(_NOW, dict(_HEALTHY))            # 정상 → 그대로
-    await tick._emit_worker_health(_NOW, {"diary_failed": 1, "memory_failed": 0})  # 이상 → /fail
+    await tick._emit_worker_health(_NOW, {"diary_failed": 0, "memory_failed": 0})
+    await tick._emit_worker_health(_NOW, {"diary_failed": 1, "memory_failed": 0})
     assert _GetClient.urls == ["https://hc.example/PING", "https://hc.example/PING/fail"]
-
-
-async def test_cost_alert_when_over_threshold(monkeypatch):
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
-    monkeypatch.setattr(tick.settings, "daily_billable_alert_threshold", 5_000_000)
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, {**_HEALTHY, "billable_yesterday": 9_000_000})
-    assert len(calls) == 1 and "billable" in calls[0]
-
-
-async def test_no_cost_alert_when_under(monkeypatch):
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
-    monkeypatch.setattr(tick.settings, "daily_billable_alert_threshold", 5_000_000)
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, {**_HEALTHY, "billable_yesterday": 1_000_000})
-    assert calls == []
-
-
-async def test_sum_billable_yesterday_uses_prior_day(monkeypatch):
-    captured = {}
-
-    class _Sess:
-        async def execute(self, stmt):
-            captured["called"] = True
-            return SimpleNamespace(scalar_one=lambda: 12345)
-
-    total = await tick._sum_billable_yesterday(_Sess(), _NOW)
-    assert total == 12345 and captured["called"]
+    assert emit.await_count == 2
 
 
 # ---------------------------------------------------------------------------

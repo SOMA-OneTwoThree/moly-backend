@@ -758,6 +758,18 @@ async def _handle_active(
 
 
 async def _finish_subscription_bonus(session: AsyncSession, sub: Subscription, pay: Payment, event: dict, plan: str) -> HandlerResult:
+    # 이미 이 결제에 귀속된 지급/환불 복구 이력은 재판정하거나 연결을 지우지 않는다.
+    previous = getattr(pay, "subscription_bonus_review", None)
+    if (getattr(pay, "subscription_hay_grant_id", None) is not None
+            or previous in {"granted", "granted:refund_reversed"}):
+        return HandlerResult(HANDLED, previous)
+    # 소유권·결제 검증은 호출 전에 수행한다. 같은 사람/요금제의 평생 지급이 이미 있으면
+    # provider 이력 장애가 있어도 새 지급 가능성은 없다. revoked 이력도 최초 1회에 포함한다.
+    if (plan in HAY_GRANT and pay.user_id == sub.user_id
+            and getattr(pay, "subscription_plan", None) == plan
+            and await _grant_exists(session, pay.user_id, plan)):
+        pay.subscription_bonus_review = "not_granted:user_plan_previously_granted"
+        return HandlerResult(HANDLED, pay.subscription_bonus_review)
     review = await _bonus_review(session, sub, event, plan)
     if review == "eligible":
         grant = await _grant_if_first(session, pay.user_id, plan)

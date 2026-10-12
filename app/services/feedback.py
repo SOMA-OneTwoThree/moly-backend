@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from contextlib import contextmanager
 from time import perf_counter
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +16,8 @@ from app.services.account import _uid
 from app.services import llm, slack_notify, usage_ledger
 
 _log = logging.getLogger(__name__)
-_TRANSLATE_TIMEOUT_S = 5.0
+_TRANSLATE_TIMEOUT_S = 8.0
+_LEDGER_TIMEOUT_S = 1.0
 _TRANSLATE_MAX_TOKENS = 2048
 _TRANSLATE_MAX_CHARS = 4000
 _TRANSLATE_SYSTEM = (
@@ -30,7 +32,7 @@ _TRANSLATE_SYSTEM = (
 async def _record_usage(operation) -> None:
     """원장 종료 지연/실패도 원문 알림을 막지 않는다. started는 기존 reconciler가 처리한다."""
     try:
-        async with asyncio.timeout(1):
+        async with asyncio.timeout(_LEDGER_TIMEOUT_S):
             await operation
     except Exception as exc:  # noqa: BLE001
         _log.warning("feedback 원가 종료 기록 미확정: %s", type(exc).__name__)
@@ -46,7 +48,30 @@ def needs_translation(message: str) -> bool:
     )
 
 
-async def _translate(message: str, *, experiment_id: str | None = None) -> str | None:
+@contextmanager
+def _translation_phase(timings: dict, phase: str):
+    timings["phase"] = phase
+    started = perf_counter()
+    try:
+        yield
+    finally:
+        timings[f"{phase}_ms"] = max(0, int((perf_counter() - started) * 1000))
+
+
+async def _translate(
+    message: str, *, experiment_id: str | None = None, timings: dict | None = None,
+) -> str | None:
+    """제품과 개발 평가가 같은 단발 경로를 사용. timings에는 고정 단계/숫자만 기록."""
+    timings = timings if timings is not None else {}
+    timings.update(phase="not_started", ledger_ms=None, client_ms=None, provider_ms=None, total_ms=None)
+    started = perf_counter()
+    try:
+        return await _translate_once(message, experiment_id=experiment_id, timings=timings)
+    finally:
+        timings["total_ms"] = max(0, int((perf_counter() - started) * 1000))
+
+
+async def _translate_once(message: str, *, experiment_id: str | None, timings: dict) -> str | None:
     """feedback 전용 단발 호출. 전역 SDK/대화 wrapper의 재시도 설정은 보존한다."""
     model = settings.model_utility
     if not model.startswith("gpt-") or not settings.openai_api_key:
@@ -54,16 +79,22 @@ async def _translate(message: str, *, experiment_id: str | None = None) -> str |
     call_id = None
     started = perf_counter()
     try:
+        with _translation_phase(timings, "ledger"):
+            async with asyncio.timeout(_LEDGER_TIMEOUT_S):
+                call_id = await usage_ledger.open_call(
+                    usage_ledger.LedgerContext(lane="background", purpose="feedback_translate",
+                                              experiment_id=experiment_id),
+                    provider="openai", model=model,
+                )
+    except Exception as exc:  # noqa: BLE001  계측 지연이 번역 대기 시간을 소진하지 않는다.
+        _log.warning("feedback 원가 시작 기록 미확정: %s", type(exc).__name__)
+    try:
         async with asyncio.timeout(_TRANSLATE_TIMEOUT_S):
-            call_id = await usage_ledger.open_call(
-                usage_ledger.LedgerContext(lane="background", purpose="feedback_translate",
-                                          experiment_id=experiment_id),
-                provider="openai", model=model,
-            )
-            client = llm._get_openai_client().with_options(
-                max_retries=0, timeout=_TRANSLATE_TIMEOUT_S,
-            )
-            with slack_notify.private_transport():
+            with _translation_phase(timings, "client"):
+                client = llm._get_openai_client().with_options(
+                    max_retries=0, timeout=_TRANSLATE_TIMEOUT_S,
+                )
+            with _translation_phase(timings, "provider"), slack_notify.private_transport():
                 response = await client.chat.completions.create(
                     model=model,
                     messages=[{"role": "system", "content": _TRANSLATE_SYSTEM},

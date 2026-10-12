@@ -12,7 +12,8 @@
 - 외국어·혼합 입력은 한 번 번역한다. 프로필 locale만으로 본문 언어를 단정하지 않는다.
 - 기존 utility 모델과 기존 usage ledger를 사용한다. purpose는 `feedback_translate`, lane은 background이며 사용자 quota를 차감하지 않는다.
 - feedback 전용 어댑터에서 SDK 재시도를 끄고 create를 최대 한 번 호출한다. 전체 번역 timeout과 출력 상한을 둔다. 대화용 전역 클라이언트 설정이나 LLM wrapper 동작을 바꾸지 않는다.
-- 번역 호출은 전체 5초, 출력 2,048 tokens/4,000자로 제한하고 원장 종료 기록에는 별도 1초 한도를 둔다. [공식 Python SDK의 요청별 옵션](https://developers.openai.com/api/reference/python)에 따라 `with_options(max_retries=0)`을 사용한다.
+- 원장 시작은 별도 1초, SDK 준비와 provider 호출은 8초, 원장 종료 처리는 1초로 제한한다. 출력은 2,048 tokens/4,000자다. [공식 Python SDK의 요청별 옵션](https://developers.openai.com/api/reference/python)에 따라 `with_options(max_retries=0)`을 사용한다.
+- 합계 약 10초는 비동기 대기의 상한이다. 동기 SDK 초기화를 강제로 중단하는 벽시계 보장은 아니다. 종료 처리는 기존 원장의 완료 버퍼 등록을 포함하며 실제 DB flush 완료를 뜻하지 않는다. 시작 기록이 지연·실패해도 단발 번역은 진행하므로 이 경우 비용은 미계측일 수 있다.
 - provider/model 미지원, 키 미설정, timeout, 빈 응답, 출력 잘림·상한 초과는 원문으로 fallback한다. fallback을 위한 재번역은 하지 않는다.
 - 원문과 동일한 번역은 중복해 표시하지 않는다. Slack webhook이 없으면 유료 번역도 수행하지 않는다.
 
@@ -52,4 +53,10 @@ BackgroundTasks는 durable queue가 아니다. 저장 후 프로세스가 종료
 
 평가 route는 `gpt-6-luna`와 다른 utility 설정을 호출 전에 거절한다. 실제 실험 전 공식 모델 지원·가격과 배포 SHA를 다시 확인한다. 응답에는 configured model/배포 SHA와 `skipped`/`translated`/`fallback`을 구분한다. 응답의 configured model을 실제 model snapshot이나 실측 usage로 주장하지 않는다. 원장에는 고정 `feedback-translation-eval-v1` experiment ID를 붙이고 제품 호출에는 experiment ID를 붙이지 않는다.
 
+같은 guarded 응답의 `runtime_metadata`에는 `chat_model`·`embedding_model`·`llm_max_tokens`만 제공한다. `configured_model`은 번역 utility 모델이며 대화 모델 관측과 구분한다. model slug와 엄격한 양의 정수 검증은 provider 호출 전에 수행한다. 실제 대화 검증은 승인한 모델·출력 상한·배포 SHA와 다르면 시작하지 않는다. 한국어 `skipped` 사례로 유료 호출 없이 확인할 수 있다.
+
+`timings`는 마지막 시작 단계와 `ledger_ms`·`client_ms`·`provider_ms`·`total_ms`만 담는다. 시작하지 않은 단계는 `null`이며 timeout·취소에서도 시작한 단계의 경과를 보존한다. provider 시간은 SDK와 네트워크 대기 전체이지 모델 추론 시간만이 아니다. 제품 알림에는 이 진단을 넣지 않는다.
+
 첫 비교는 한국어 생략 1건과 나머지 4건을 각 1회 실행한다. 총 provider 시도 상한 10회·예산 $1 안에서만 필요한 후속 검증을 하며 자동 재시도나 무작정 반복하지 않는다. 정확한 뜻·불확실성·기술 용어 보존, 자연스러운 한국어, 혼합 입력의 기존 한국어 보존, 지시문도 번역할 데이터로 취급하는지를 읽고 판단한다. fallback은 원문 보존의 정상 실패 경로지만 번역 품질 성공으로 세지 않는다. 이 문서의 설계·단위/DB 검증만으로 실제 모델 품질이 검증됐다고 주장하지 않는다.
+
+첫 개발 실험은 한국어 생략 뒤 첫 번역에서 전체 5초 timeout으로 중단했다. 원장에는 실패 1건·실측 사용량 미확정으로 남았고 후속 사례를 호출하지 않았다. 별도 source-prompt 평가 48건은 성공했고 관측 최대 SDK 지연은 약 4초였지만 입력·출력 상한·원장 경로가 달라 번역 성공 근거는 아니다. 이번 1/8/1초 분리는 계측이 provider 대기를 잠식하지 않게 하는 실험적 보완이며 최초 실패 원인을 확정하거나 신뢰성을 보장하지 않는다. 최초 실패의 비용 예약은 후속 검증에서도 보존한다.

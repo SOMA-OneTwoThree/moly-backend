@@ -331,6 +331,20 @@ class FeedbackTranslationEvalRequest(BaseModel):
     case_id: FeedbackTranslationCase
 
 
+class FeedbackTranslationRuntimeMetadata(StrictResponse):
+    chat_model: str = Field(strict=True, pattern=r"^[a-z0-9][a-z0-9._-]{0,79}$")
+    embedding_model: str = Field(strict=True, pattern=r"^[a-z0-9][a-z0-9._-]{0,79}$")
+    llm_max_tokens: int = Field(strict=True, gt=0)
+
+
+class FeedbackTranslationTimings(StrictResponse):
+    phase: Literal["not_started", "ledger", "client", "provider"] = "not_started"
+    ledger_ms: int | None = Field(default=None, strict=True, ge=0)
+    client_ms: int | None = Field(default=None, strict=True, ge=0)
+    provider_ms: int | None = Field(default=None, strict=True, ge=0)
+    total_ms: int | None = Field(default=None, strict=True, ge=0)
+
+
 class FeedbackTranslationEvalResponse(StrictResponse):
     case_id: FeedbackTranslationCase
     status: Literal["skipped", "translated", "fallback"]
@@ -338,3 +352,5 @@ class FeedbackTranslationEvalResponse(StrictResponse):
     configured_model: str
     deployment_sha: str
     experiment_id: str
+    runtime_metadata: FeedbackTranslationRuntimeMetadata
+    timings: FeedbackTranslationTimings

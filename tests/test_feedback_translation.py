@@ -83,6 +83,61 @@ async def test_outer_timeout_and_unknown_usage(provider, monkeypatch):
     assert "번역 미제공" in slack_notify.send_feedback.call_args.args[0]
 
 
+async def test_ledger_latency_does_not_spend_provider_deadline(provider, monkeypatch):
+    _, create, _ = provider
+    async def slow_ledger(*args, **kwargs):
+        await asyncio.sleep(0.08)
+    response = create.return_value
+    async def short_provider(**kwargs):
+        await asyncio.sleep(0.01)
+        return response
+    feedback.usage_ledger.open_call.side_effect = slow_ledger
+    create.side_effect = short_provider
+    monkeypatch.setattr(feedback, "_LEDGER_TIMEOUT_S", 0.2)
+    monkeypatch.setattr(feedback, "_TRANSLATE_TIMEOUT_S", 0.04)
+    timings = {}
+    assert await feedback._translate("Synthetic", timings=timings) == "버튼이 작아요."
+    assert timings["ledger_ms"] >= 60 and timings["phase"] == "provider"
+    assert timings["total_ms"] >= timings["ledger_ms"] + timings["provider_ms"]
+    create.assert_awaited_once()
+
+
+async def test_ledger_timeout_is_best_effort_and_provider_still_called_once(provider, monkeypatch):
+    _, create, _ = provider
+    async def slow_ledger(*args, **kwargs):
+        await asyncio.sleep(10)
+    feedback.usage_ledger.open_call.side_effect = slow_ledger
+    monkeypatch.setattr(feedback, "_LEDGER_TIMEOUT_S", 0.001)
+    timings = {}
+    assert await feedback._translate("Synthetic", timings=timings) == "버튼이 작아요."
+    assert timings["ledger_ms"] is not None and timings["provider_ms"] is not None
+    create.assert_awaited_once()
+
+
+@pytest.mark.parametrize("phase", ["client", "provider"])
+async def test_failure_timings_only_record_started_phases(provider, monkeypatch, phase):
+    _, create, _ = provider
+    if phase == "client":
+        monkeypatch.setattr(feedback.llm, "_get_openai_client", Mock(side_effect=RuntimeError("private")))
+    else:
+        create.side_effect = TimeoutError("private")
+    timings = {}
+    assert await feedback._translate("Synthetic", timings=timings) is None
+    assert timings["phase"] == phase and timings["total_ms"] is not None
+    assert timings["ledger_ms"] is not None and timings["client_ms"] is not None
+    assert (timings["provider_ms"] is None) is (phase == "client")
+
+
+async def test_cancellation_preserves_phase_timings_and_propagates(provider):
+    _, create, _ = provider
+    create.side_effect = asyncio.CancelledError()
+    timings = {}
+    with pytest.raises(asyncio.CancelledError):
+        await feedback._translate("Synthetic", timings=timings)
+    assert timings["phase"] == "provider"
+    assert timings["provider_ms"] is not None and timings["total_ms"] is not None
+
+
 async def test_usage_missing_is_not_zero_cost(provider):
     response, _, _ = provider
     response.usage = None

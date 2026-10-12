@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from unittest.mock import ANY, AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -33,14 +33,19 @@ def test_fixed_cases_use_real_adapter_contract_without_slack(client, case):
     body = response.json()
     assert body["case_id"] == case and body["configured_model"] == settings.model_utility
     assert body["deployment_sha"] == settings.git_sha
+    assert body["runtime_metadata"] == {"chat_model": settings.model_chat,
+                                        "embedding_model": settings.embedder_model,
+                                        "llm_max_tokens": settings.llm_max_tokens}
     assert "user_id" not in body
     if case == "ko":
         assert body["status"] == "skipped" and body["translation"] is None
+        assert body["timings"]["phase"] == "not_started"
+        assert body["timings"]["provider_ms"] is None
         feedback._translate.assert_not_awaited()
     else:
         assert body["status"] == "translated"
         feedback._translate.assert_awaited_once_with(dev._FEEDBACK_TRANSLATION_CASES[case],
-            experiment_id=dev._FEEDBACK_TRANSLATION_EXPERIMENT)
+            experiment_id=dev._FEEDBACK_TRANSLATION_EXPERIMENT, timings=ANY)
     slack_notify.send_feedback.assert_not_awaited()
 
 
@@ -82,4 +87,26 @@ def test_unapproved_model_is_rejected_before_provider_call(client, monkeypatch):
     monkeypatch.setattr(settings, "model_utility", "gpt-different-price")
     response = client.post("/dev/feedback-translation-eval", json={"case_id": "en"})
     assert response.status_code == 409 and response.json()["error"]["code"] == "EVAL_MODEL_MISMATCH"
+    feedback._translate.assert_not_awaited()
+
+
+@pytest.mark.parametrize("key,value", [("model_chat", "https://private.invalid/key"),
+    ("embedder_model", "https://private.invalid/key"),
+    ("embedder_model", "private secret"), ("llm_max_tokens", True),
+    ("llm_max_tokens", "1024"), ("llm_max_tokens", 0), ("llm_max_tokens", -1)])
+def test_runtime_metadata_is_validated_before_provider_call(client, monkeypatch, key, value):
+    monkeypatch.setattr(settings, key, value)
+    response = client.post("/dev/feedback-translation-eval", json={"case_id": "en"})
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "EVAL_RUNTIME_CONFIG_INVALID"
+    assert "private" not in response.text
+    feedback._translate.assert_not_awaited()
+
+
+def test_chat_runtime_model_is_distinct_from_utility_model(client, monkeypatch):
+    monkeypatch.setattr(settings, "model_chat", "gpt-another-chat-model")
+    response = client.post("/dev/feedback-translation-eval", json={"case_id": "ko"})
+    assert response.status_code == 200
+    assert response.json()["configured_model"] == settings.model_utility
+    assert response.json()["runtime_metadata"]["chat_model"] == "gpt-another-chat-model"
     feedback._translate.assert_not_awaited()

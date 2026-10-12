@@ -38,6 +38,7 @@ from app.schemas.dev import (
     RecallMemoryRequest,
     FeedbackTranslationEvalRequest,
     FeedbackTranslationEvalResponse,
+    FeedbackTranslationRuntimeMetadata,
 )
 from app.services import diary_generation, feedback, model_eval, privacy
 from app.services.account import _uid
@@ -361,15 +362,26 @@ async def feedback_translation_eval(
         raise errors.forbidden()
     if settings.model_utility != _FEEDBACK_TRANSLATION_MODEL:
         raise errors.AppError("EVAL_MODEL_MISMATCH", 409, "검증용 모델 설정을 확인해 주세요.")
+    try:
+        runtime_metadata = FeedbackTranslationRuntimeMetadata(
+            chat_model=settings.model_chat, embedding_model=settings.embedder_model,
+            llm_max_tokens=settings.llm_max_tokens,
+        )
+    except ValueError:
+        raise errors.AppError("EVAL_RUNTIME_CONFIG_INVALID", 409, "검증용 런타임 설정을 확인해 주세요.") from None
     source = _FEEDBACK_TRANSLATION_CASES[req.case_id]
     translated = None
     result = "skipped"
+    timings: dict = {}
     if feedback.needs_translation(source):
         try:
-            translated = await feedback._translate(source, experiment_id=_FEEDBACK_TRANSLATION_EXPERIMENT)
+            translated = await feedback._translate(
+                source, experiment_id=_FEEDBACK_TRANSLATION_EXPERIMENT, timings=timings,
+            )
         except Exception:  # noqa: BLE001  원문 SDK 오류는 평가 응답으로 노출하지 않는다.
             translated = None
         result = "translated" if translated else "fallback"
     return {"case_id": req.case_id, "status": result, "translation": translated,
             "configured_model": settings.model_utility, "deployment_sha": settings.git_sha,
-            "experiment_id": _FEEDBACK_TRANSLATION_EXPERIMENT}
+            "experiment_id": _FEEDBACK_TRANSLATION_EXPERIMENT,
+            "runtime_metadata": runtime_metadata, "timings": timings}

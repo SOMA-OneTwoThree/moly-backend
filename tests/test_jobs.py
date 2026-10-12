@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import uuid
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
@@ -112,6 +113,17 @@ class _FakeJobsDB:
             return self._reap_terminal_ready(p)
         if s == str(jobs._STATS_SQL):
             return self._stats()
+        if "FROM async_jobs j" in s and "conversation_checkpoint" in s:
+            for row in self.rows.values():
+                payload = row["payload"]
+                if isinstance(payload, str):
+                    payload = json.loads(payload)
+                if (str(row["user_id"]) == str(p["user_id"])
+                    and row["job_type"] == "conversation_checkpoint"
+                    and row["state"] in {"ready", "running"}
+                    and payload.get("memory_generation") == getattr(self, "memory_generation", 0)):
+                    return _Res([(1,)])
+            return _Res([])
         # checkpoint producer가 읽는 기억 세대(잊어줘 stale 판정 기준). 잡 테이블 밖이지만
         # 같은 세션으로 오므로 여기서 받아 준다 — 기본 0(= forget 이력 없음).
         if "memory_generation" in s:

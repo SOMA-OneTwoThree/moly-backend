@@ -28,14 +28,16 @@ def _message(i, at, content="배불러", sender="user"):
 async def test_midnight_history_stays_fixed_when_time_and_mood_change(monkeypatch):
     history = [_message(2, NOW - timedelta(minutes=2), "그랬구나", "moly"),
                _message(1, NOW - timedelta(minutes=2))]
-    earlier, _, _ = await chat._context(
+    window = await chat._context(
         FakeSession(execute_items=history), UID, 0, current_text="많이 먹었나 봐",
         current_date=date(2026, 9, 14), current_at=NOW,
     )
-    later, _, _ = await chat._context(
+    earlier, _, _ = window.conversation, window.new_anchor, window.lead
+    window = await chat._context(
         FakeSession(execute_items=history), UID, 0, current_text="저녁 뭐 먹지?",
         current_date=TODAY, current_at=NOW + timedelta(hours=18),
     )
+    later, _, _ = window.conversation, window.new_anchor, window.lead
     assert earlier[:-1] == later[:-1]  # Prefix never gets relative age annotations.
     assert earlier[0]["content"].startswith("[2026-09-14T23:59+09:00]")
     assert earlier[1]["content"] == "그랬구나"  # Same-minute duplicate is omitted.

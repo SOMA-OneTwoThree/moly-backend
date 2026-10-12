@@ -41,6 +41,17 @@ ORDER BY c.through_message_id DESC
 LIMIT 1
 """)
 
+_PENDING_SQL = text("""
+SELECT 1 FROM async_jobs j
+  JOIN chat_contexts cc ON cc.user_id = j.user_id
+  WHERE j.user_id = :user_id
+    AND j.job_type = 'conversation_checkpoint'
+    AND j.state IN ('ready', 'running')
+    AND j.payload->'memory_generation' = to_jsonb(COALESCE(cc.memory_generation, 0))
+LIMIT 1
+""")
+
+
 _COUNT_SQL = text("""
 SELECT count(*)
 FROM conversation_checkpoints c
@@ -232,7 +243,11 @@ async def maybe_enqueue(
     """
     if not settings.context_checkpoint_enabled:  # 킬스위치 — 켜기 전까지 동작 변화 0
         return None
-    if not messages:
+    if not messages or (not reset_triggered and not checkpoint.should_checkpoint(messages)):
+        return None
+    # Only reset/pressure turns reach here. Existing async_jobs_user_idx bounds the
+    # lookup; terminal or old-generation work must not prevent a new attempt.
+    if (await session.execute(_PENDING_SQL, {"user_id": user_id})).first() is not None:
         return None
     previous = await load_latest(session, user_id)
     # 잡을 만드는 시점의 세대를 payload에 박는다. forget이 이 값을 +1 하므로, forget 이후에

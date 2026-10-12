@@ -177,9 +177,9 @@ def test_explicit_policy_upgrade_preserves_unknown_cost_and_original_bytes(args)
     old = legacy_ledger(args)
     original = args.ledger.read_bytes()
     with pytest.raises(ValueError, match="explicit"):
-        runner.read_ledger(args.ledger)
+        runner._read_ledger(args.ledger, policy_version=2)
     runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
-    data, budget = runner.read_ledger(args.ledger)
+    data, budget = runner._read_ledger(args.ledger, policy_version=2)
     assert data["version"] == 2 and data["limits"]["attempts"] == 1600
     assert data["calls"] == old["calls"] and data["budget"] == old["budget"]
     assert budget.dollars == Decimal("0.1") and budget.attempts == 3
@@ -194,7 +194,7 @@ def test_explicit_policy_upgrade_preserves_unknown_cost_and_original_bytes(args)
     data["budget"]["dollars"] = "0.09"
     runner.save_private(args.ledger, data)
     with pytest.raises(ValueError, match="preserved"):
-        runner.read_ledger(args.ledger)
+        runner._read_ledger(args.ledger, policy_version=2)
 
 
 @pytest.mark.parametrize("problem", ["reserved", "old_cap", "price", "totals", "locked"])
@@ -223,6 +223,7 @@ def test_policy_upgrade_failures_preserve_legacy_without_backup(args, problem):
 async def test_pinned_campaign_price_change_stops_before_network(args, monkeypatch):
     legacy_ledger(args)
     runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    runner.upgrade_revalidation_policy(args.ledger, args.prices, args.output)
     args.stage = "autonomy"
     args.output = args.output.with_name("next-stage.json")
     prices = json.loads(args.prices.read_text())
@@ -252,3 +253,67 @@ async def test_supplemental_mood_runner_is_exactly_twelve_calls_in_shared_ledger
     assert all(not p["quality"]["prior_assistant_outputs"] for p in posts)
     _, budget = runner.read_ledger(args.ledger)
     assert budget.generation_turns == 12 and budget.attempts == 36
+
+
+def test_revalidation_upgrade_preserves_entire_old_history_and_unknown_reservation(args):
+    legacy_ledger(args)
+    runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    old = json.loads(args.ledger.read_text())
+    original = args.ledger.read_bytes()
+    with pytest.raises(ValueError, match="explicit"):
+        runner.read_ledger(args.ledger)
+    runner.upgrade_revalidation_policy(args.ledger, args.prices, args.output)
+    data, budget = runner.read_ledger(args.ledger)
+    assert data["version"] == 3 and data["limits"] == runner.evaluation.BUDGET_LIMITS
+    assert data["calls"] == old["calls"] and data["budget"] == old["budget"]
+    assert data["policy_history"][:-1] == old["policy_history"]
+    assert budget.dollars == Decimal("0.1") and data["calls"][0]["status"] == "failed_unknown_usage"
+    backup = args.ledger.with_suffix(args.ledger.suffix + ".v2-backup")
+    assert backup.read_bytes() == original and backup.stat().st_mode & 0o777 == 0o600
+    event = data["policy_history"][-1]
+    assert event["source_ledger_hash"] == runner.hashlib.sha256(original).hexdigest()
+    assert event["previous_limits"] == runner.PREVIOUS_LIMITS
+    with pytest.raises(ValueError, match="explicit"):
+        runner.upgrade_revalidation_policy(args.ledger, args.prices, args.output)
+    data["policy_history"][0]["approval"] = "unreviewed"
+    runner.save_private(args.ledger, data)
+    with pytest.raises(ValueError, match="prior approval"):
+        runner.read_ledger(args.ledger)
+
+
+@pytest.mark.parametrize("problem", ["reserved", "price", "old_money_cap", "locked"])
+def test_revalidation_upgrade_rejects_unreviewed_or_in_flight_state_without_mutation(args, problem):
+    legacy_ledger(args)
+    runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    data = json.loads(args.ledger.read_text())
+    if problem == "reserved":
+        data["calls"][0]["status"] = "reserved"
+    elif problem == "old_money_cap":
+        data["calls"][0]["reserved_usd"] = "16"
+        data["budget"]["dollars"] = "16"
+    runner.save_private(args.ledger, data)
+    if problem == "price":
+        prices = json.loads(args.prices.read_text())
+        prices["input_upper_usd_per_million"] = "0.11"
+        runner.save_private(args.prices, prices)
+    original = args.ledger.read_bytes()
+    lock_path = args.ledger.with_suffix(args.ledger.suffix + ".lock")
+    with lock_path.open("a") as lock:
+        if problem == "locked":
+            runner.fcntl.flock(lock, runner.fcntl.LOCK_EX | runner.fcntl.LOCK_NB)
+        with pytest.raises((ValueError, BlockingIOError)):
+            runner.upgrade_revalidation_policy(args.ledger, args.prices, args.output)
+    assert args.ledger.read_bytes() == original
+    assert not args.ledger.with_suffix(args.ledger.suffix + ".v2-backup").exists()
+
+
+def test_offline_revalidation_upgrade_cli_does_not_generate(args, monkeypatch, capsys):
+    legacy_ledger(args)
+    runner.upgrade_ledger_policy(args.ledger, args.prices, args.output)
+    monkeypatch.setattr(runner, "execute", lambda _: pytest.fail("upgrade must not execute"))
+    monkeypatch.setattr(runner.sys, "argv", [str(Path(runner.__file__)),
+        "--upgrade-revalidation-policy-600", "--ledger", str(args.ledger),
+        "--prices", str(args.prices), "--prior-capture", str(args.output)])
+    runner.main()
+    assert "no network calls" in capsys.readouterr().out
+    assert runner.read_ledger(args.ledger)[0]["version"] == 3

@@ -36,8 +36,8 @@ HARD_GATES = {
     "privacy_or_tool_boundary", "safety_regression", "autonomy_override",
 }
 SCOPES = {"source_prompt", "dev_smoke", "actual_chat", "registry_retrieval"}
-BUDGET_LIMITS = {"dollars": "15", "generation_turns": 492, "attempts": 1600,
-                 "input_tokens": 50_000_000, "output_tokens": 600_000}
+BUDGET_LIMITS = {"dollars": "20", "generation_turns": 600, "attempts": 2000,
+                 "input_tokens": 50_000_000, "output_tokens": 750_000}
 
 
 def digest(value: object) -> str:
@@ -171,7 +171,7 @@ class Budget:
 
     The runner must persist this state after EVERY reservation before external I/O.
     Upper cost includes all possible retries, uncached input and full output limits.
-    Separate runs/stages share one persisted budget, never a fresh $15 each.
+    Separate runs/stages share one persisted budget, never a fresh allowance each.
     """
     dollars: Decimal = Decimal("0")
     generation_turns: int = 0

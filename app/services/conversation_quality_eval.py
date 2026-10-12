@@ -1,7 +1,7 @@
 """Bounded, server-owned synthetic inputs for the authenticated development evaluator.
 
 No database reads, user lookup, arbitrary system override or provider adapter lives here.
-Only the four changed persona sections are retained from the pinned baseline.
+Only the six explicitly approved persona sections are restored from the pinned baseline.
 """
 from __future__ import annotations
 
@@ -19,6 +19,11 @@ EVALS = Path(__file__).resolve().parents[2] / "evals"
 CASE_IDS = frozenset(f"{lang}_{split}{i:02}" for lang in ("ko", "ja", "en")
                      for split, size in (("d", 8), ("h", 4), ("a", 3)) for i in range(1, size + 1))
 MOOD_CASE_IDS = frozenset(f"{lang}_m0{i}" for lang in ("ko", "ja", "en") for i in (1, 2))
+BASELINE_HEADERS = {
+    "ko": {"주고받기", "말투", "기억", "상대가 선택한 감정", "안정감", "힘들어할 때"},
+    "ja": {"やりとり", "口調", "記憶", "相手が選んだ気分", "安心感", "つらそうなとき"},
+    "en": {"Give and take", "How you talk", "Memory", "User mood selection", "Steadiness", "When they're hurting"},
+}
 MAX_TOKENS = 384
 MAX_WIRE_CHARS = 40_000
 ACKS = {"ko": ("응. 듣고 있어.", "아 그렇구나.", "응."),
@@ -69,7 +74,7 @@ def _baseline(candidate: str, locale: str) -> str:
             raise QualityFixtureError("baseline_identity")
         expected = artifact["locales"][locale]
         result = candidate
-        if len(expected["sections"]) != 4:
+        if set(expected["sections"]) != BASELINE_HEADERS[locale]:
             raise QualityFixtureError("baseline_sections")
         for header, original in expected["sections"].items():
             pattern = re.compile(r"(?ms)^\[" + re.escape(header) + r"\].*?(?=^\[|\Z)")

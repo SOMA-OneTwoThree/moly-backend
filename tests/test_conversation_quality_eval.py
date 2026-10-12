@@ -66,22 +66,22 @@ def test_budget_unknown_cost_and_exhaustion_fail_before_mutation():
     with pytest.raises(ValueError, match="known positive"):
         budget.reserve(dollars=None, attempts=1, input_tokens=10, output_tokens=10)
     assert budget.generation_turns == 0
-    budget.reserve(dollars=Decimal("14.99"), attempts=1, input_tokens=10, output_tokens=10)
+    budget.reserve(dollars=Decimal("19.99"), attempts=1, input_tokens=10, output_tokens=10)
     with pytest.raises(ValueError, match="exhausted"):
         budget.reserve(dollars=Decimal("0.02"), attempts=1, input_tokens=10, output_tokens=10)
-    assert budget.dollars == Decimal("14.99") and budget.generation_turns == 1
+    assert budget.dollars == Decimal("19.99") and budget.generation_turns == 1
 
 
 def test_approved_generation_and_attempt_limits_preserve_money_and_token_caps():
     budget = evaluation.Budget()
     budget.reserve(dollars=Decimal("1"), attempts=1500, input_tokens=10, output_tokens=10)
-    budget.reserve(dollars=Decimal("1"), attempts=100, input_tokens=10, output_tokens=10)
+    budget.reserve(dollars=Decimal("1"), attempts=500, input_tokens=10, output_tokens=10)
     with pytest.raises(ValueError, match="exhausted"):
         budget.reserve(dollars=Decimal("1"), attempts=1, input_tokens=10, output_tokens=10)
-    assert budget.attempts == 1600 and budget.dollars == Decimal("2")
-    assert evaluation.BUDGET_LIMITS == {"dollars": "15", "generation_turns": 492,
-                                      "attempts": 1600, "input_tokens": 50_000_000,
-                                      "output_tokens": 600_000}
+    assert budget.attempts == 2000 and budget.dollars == Decimal("2")
+    assert evaluation.BUDGET_LIMITS == {"dollars": "20", "generation_turns": 600,
+                                      "attempts": 2000, "input_tokens": 50_000_000,
+                                      "output_tokens": 750_000}
 
 
 def capture_fixture():

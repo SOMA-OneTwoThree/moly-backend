@@ -29,7 +29,11 @@ from app.services import conversation_quality_eval as quality  # noqa: E402
 from scripts import eval_conversation_quality as evaluation  # noqa: E402
 
 DEV_URL = "https://dev.moly.asia"
-POLICY_APPROVAL = "root-20261012-mood-coverage492"
+PREVIOUS_APPROVAL = "root-20261012-mood-coverage492"
+POLICY_APPROVAL = "root-20261012-candidate-revalidation600"
+LEGACY_LIMITS = {"dollars": "15", "generation_turns": 480, "attempts": 1500,
+                 "input_tokens": 50_000_000, "output_tokens": 600_000}
+PREVIOUS_LIMITS = {**LEGACY_LIMITS, "generation_turns": 492, "attempts": 1600}
 
 
 def load_prices(path: Path, model: str, *, now: datetime) -> dict:
@@ -77,7 +81,7 @@ def save_private(path: Path, data: dict) -> None:
             temporary.unlink()
 
 
-def _recompute_budget(calls: list[dict], *, attempt_cap: int, generation_cap: int = 492) -> evaluation.Budget:
+def _recompute_budget(calls: list[dict], *, limits: dict) -> evaluation.Budget:
     if any(c["status"] == "reserved" for c in calls):
         raise ValueError("unresolved reservation or unknown ledger; reconcile without replay")
     budget, keys = evaluation.Budget(), set()
@@ -87,8 +91,9 @@ def _recompute_budget(calls: list[dict], *, attempt_cap: int, generation_cap: in
         keys.add(call["key"])
         budget.reserve(dollars=Decimal(call["reserved_usd"]), attempts=call["attempts_upper"],
                        input_tokens=call["input_tokens_upper"], output_tokens=call["output_tokens_upper"])
-    if budget.attempts > attempt_cap or budget.generation_turns > generation_cap:
-        raise ValueError("ledger exceeded its approved attempt policy")
+    if any(Decimal(str(value)) > Decimal(str(limits[key]))
+           for key, value in _budget_snapshot(budget).items()):
+        raise ValueError("ledger exceeded its approved policy")
     return budget
 
 
@@ -96,48 +101,78 @@ def _budget_snapshot(budget: evaluation.Budget) -> dict:
     return {**asdict(budget), "dollars": str(budget.dollars)}
 
 
-def _policy_event(kind: str) -> dict:
-    return {"kind": kind, "approval": POLICY_APPROVAL,
+def _policy_event(kind: str, approval: str = POLICY_APPROVAL) -> dict:
+    return {"kind": kind, "approval": approval,
             "recorded_at": datetime.now(timezone.utc).isoformat()}
 
 
-def read_ledger(path: Path) -> tuple[dict, evaluation.Budget]:
+def _validate_preserved_prefix(event: dict, data: dict, limits: dict) -> None:
+    count = event.get("preserved_calls_count")
+    if type(count) is not int or not 0 <= count <= len(data["calls"]):
+        raise ValueError("invalid preserved reservation prefix")
+    prefix = data["calls"][:count]
+    if (event.get("preserved_calls_hash") != evaluation.digest(prefix)
+            or event.get("preserved_budget") != _budget_snapshot(_recompute_budget(prefix, limits=limits))
+            or event.get("price_manifest_hash") != data.get("price_manifest_hash")
+            or any(not re.fullmatch(r"[a-f0-9]{64}", str(event.get(k, "")))
+                   for k in ("source_ledger_hash", "source_capture_hash"))):
+        raise ValueError("preserved reservation or provenance mismatch")
+
+
+def _read_ledger(path: Path, *, policy_version: int) -> tuple[dict, evaluation.Budget]:
+    if policy_version not in (2, 3):
+        raise ValueError("unknown fixed policy")
+    limits = PREVIOUS_LIMITS if policy_version == 2 else evaluation.BUDGET_LIMITS
+    approval = PREVIOUS_APPROVAL if policy_version == 2 else POLICY_APPROVAL
     if not path.exists():
-        return {"version": 2, "limits": dict(evaluation.BUDGET_LIMITS), "calls": [],
+        return {"version": policy_version, "limits": dict(limits), "calls": [],
                 "budget": {}, "price_manifest_hash": None,
-                "policy_history": [_policy_event("initial")]}, evaluation.Budget()
+                "policy_history": [_policy_event("initial", approval)]}, evaluation.Budget()
     data = json.loads(path.read_text())
-    if data.get("version") != 2 or data.get("limits") != evaluation.BUDGET_LIMITS:
+    if data.get("version") != policy_version or data.get("limits") != limits:
         raise ValueError("explicit approved ledger policy upgrade is required")
     if not isinstance(data.get("calls"), list):
         raise ValueError("unknown ledger format")
-    budget = _recompute_budget(data["calls"], attempt_cap=evaluation.BUDGET_LIMITS["attempts"])
+    budget = _recompute_budget(data["calls"], limits=limits)
     if data["budget"] != _budget_snapshot(budget):
         raise ValueError("ledger totals do not match reservations")
     history = data.get("policy_history")
-    if not isinstance(history, list) or len(history) != 1 or history[0].get("approval") != POLICY_APPROVAL:
+    if not isinstance(history, list) or not history:
         raise ValueError("approved policy history is required")
-    event = history[0]
-    if datetime.fromisoformat(event["recorded_at"]).tzinfo is None:
-        raise ValueError("policy time must include its timezone")
-    if event.get("kind") == "upgrade_v1":
-        count = event.get("preserved_calls_count")
-        if type(count) is not int or not 0 <= count <= len(data["calls"]):
-            raise ValueError("invalid preserved reservation prefix")
-        prefix = data["calls"][:count]
-        if (event.get("previous_attempt_limit") != 1500
-                or event.get("previous_generation_limit") != 480
-                or event.get("preserved_calls_hash") != evaluation.digest(prefix)
-                or event.get("preserved_budget") != _budget_snapshot(_recompute_budget(prefix, attempt_cap=1500, generation_cap=480))
-                or event.get("price_manifest_hash") != data.get("price_manifest_hash")
-                or any(not re.fullmatch(r"[a-f0-9]{64}", str(event.get(k, "")))
-                       for k in ("source_ledger_hash", "source_capture_hash"))):
-            raise ValueError("preserved reservation or provenance mismatch")
-    elif event.get("kind") != "initial":
-        raise ValueError("unknown policy transition")
+    for event in history:
+        if datetime.fromisoformat(event["recorded_at"]).tzinfo is None:
+            raise ValueError("policy time must include its timezone")
+    # Only the two reviewed transitions exist. No arbitrary limits or approval text.
+    if policy_version == 3 and len(history) == 1:
+        if history[0].get("kind") != "initial" or history[0].get("approval") != POLICY_APPROVAL:
+            raise ValueError("unknown initial policy")
+    else:
+        if len(history) != (1 if policy_version == 2 else 2):
+            raise ValueError("unknown policy transition count")
+        first = history[0]
+        if first.get("approval") != PREVIOUS_APPROVAL:
+            raise ValueError("prior approval must be preserved")
+        if first.get("kind") == "upgrade_v1":
+            if first.get("previous_attempt_limit") != 1500 or first.get("previous_generation_limit") != 480:
+                raise ValueError("unknown legacy limits")
+            _validate_preserved_prefix(first, data, LEGACY_LIMITS)
+        elif first.get("kind") != "initial":
+            raise ValueError("unknown prior policy")
+        if policy_version == 3:
+            latest = history[1]
+            if (latest.get("kind") != "upgrade_v2" or latest.get("approval") != POLICY_APPROVAL
+                    or latest.get("previous_limits") != PREVIOUS_LIMITS):
+                raise ValueError("unknown revalidation transition")
+            _validate_preserved_prefix(latest, data, PREVIOUS_LIMITS)
+            if latest["preserved_calls_count"] < first.get("preserved_calls_count", 0):
+                raise ValueError("policy history cannot lose prior reservations")
     if data["calls"] and not re.fullmatch(r"[a-f0-9]{64}", str(data.get("price_manifest_hash", ""))):
         raise ValueError("reviewed campaign prices must be pinned")
     return data, budget
+
+
+def read_ledger(path: Path) -> tuple[dict, evaluation.Budget]:
+    return _read_ledger(path, policy_version=3)
 
 
 def upgrade_ledger_policy(path: Path, prices_path: Path, prior_capture_path: Path) -> None:
@@ -150,7 +185,7 @@ def upgrade_ledger_policy(path: Path, prices_path: Path, prior_capture_path: Pat
         data = json.loads(raw)
         if data.get("version") != 1 or set(data) != {"version", "calls", "budget"}:
             raise ValueError("only the preserved legacy policy can be upgraded")
-        budget = _recompute_budget(data["calls"], attempt_cap=1500, generation_cap=480)
+        budget = _recompute_budget(data["calls"], limits=LEGACY_LIMITS)
         if data["budget"] != _budget_snapshot(budget):
             raise ValueError("legacy totals do not match reservations")
         prices = load_prices(prices_path, "gpt-6-luna", now=datetime.now(timezone.utc))
@@ -162,7 +197,8 @@ def upgrade_ledger_policy(path: Path, prices_path: Path, prior_capture_path: Pat
                 or not all(c["key"].startswith(f"{capture['candidate_sha']}:{capture['stage']}:")
                            for c in data["calls"])):
             raise ValueError("existing capture must establish the preserved campaign provenance")
-        event = {**_policy_event("upgrade_v1"), "previous_attempt_limit": 1500, "previous_generation_limit": 480,
+        event = {**_policy_event("upgrade_v1", PREVIOUS_APPROVAL),
+                 "previous_attempt_limit": 1500, "previous_generation_limit": 480,
                  "source_ledger_hash": hashlib.sha256(raw).hexdigest(),
                  "source_capture_hash": hashlib.sha256(capture_raw).hexdigest(),
                  "preserved_calls_count": len(data["calls"]),
@@ -176,10 +212,43 @@ def upgrade_ledger_policy(path: Path, prices_path: Path, prior_capture_path: Pat
             stream.write(raw)
             stream.flush()
             os.fsync(stream.fileno())
-        data.update(version=2, limits=dict(evaluation.BUDGET_LIMITS),
+        data.update(version=2, limits=dict(PREVIOUS_LIMITS),
                     price_manifest_hash=price_hash, policy_history=[event])
         save_private(path, data)
-        read_ledger(path)  # Verify the written policy and every retained reservation.
+        _read_ledger(path, policy_version=2)
+
+
+def upgrade_revalidation_policy(path: Path, prices_path: Path, prior_capture_path: Path) -> None:
+    """Preserve the first candidate's evidence before the explicitly funded recheck."""
+    lock_path = path.with_suffix(path.suffix + ".lock")
+    with lock_path.open("a") as lock:
+        lock_path.chmod(0o600)
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        data, _ = _read_ledger(path, policy_version=2)
+        raw = path.read_bytes()
+        prices = load_prices(prices_path, "gpt-6-luna", now=datetime.now(timezone.utc))
+        price_hash = evaluation.digest(prices)
+        capture_raw = prior_capture_path.read_bytes()
+        capture = json.loads(capture_raw)
+        if (data["price_manifest_hash"] != price_hash or capture.get("price_manifest_hash") != price_hash
+                or capture.get("operational_summary", {}).get("campaign_reserved") != data["budget"]):
+            raise ValueError("existing capture must establish the preserved campaign provenance")
+        event = {**_policy_event("upgrade_v2"), "previous_limits": dict(PREVIOUS_LIMITS),
+                 "source_ledger_hash": hashlib.sha256(raw).hexdigest(),
+                 "source_capture_hash": hashlib.sha256(capture_raw).hexdigest(),
+                 "preserved_calls_count": len(data["calls"]),
+                 "preserved_calls_hash": evaluation.digest(data["calls"]),
+                 "preserved_budget": dict(data["budget"]), "price_manifest_hash": price_hash}
+        backup = path.with_suffix(path.suffix + ".v2-backup")
+        descriptor = os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        data.update(version=3, limits=dict(evaluation.BUDGET_LIMITS))
+        data["policy_history"].append(event)
+        save_private(path, data)
+        read_ledger(path)
 
 
 def _save_ledger(path: Path, ledger: dict, budget: evaluation.Budget) -> None:
@@ -357,6 +426,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute-approved-stage", action="store_true")
     parser.add_argument("--upgrade-attempt-policy-1600", action="store_true")
+    parser.add_argument("--upgrade-revalidation-policy-600", action="store_true")
     parser.add_argument("--prior-capture", type=Path)
     parser.add_argument("--stage", choices=("pilot", "main", "holdout", "repeat", "fixed", "autonomy", "mood_probe", "smoke"), default="pilot")
     parser.add_argument("--model", default="gpt-6-luna")
@@ -366,15 +436,17 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--seed", type=int, default=2718)
     args = parser.parse_args()
-    if args.upgrade_attempt_policy_1600:
-        if (args.execute_approved_stage or args.output or args.expected_deployment_sha
+    if args.upgrade_attempt_policy_1600 or args.upgrade_revalidation_policy_600:
+        if ((args.upgrade_attempt_policy_1600 and args.upgrade_revalidation_policy_600)
+                or args.execute_approved_stage or args.output or args.expected_deployment_sha
                 or not all((args.ledger, args.prices, args.prior_capture))):
             parser.error("offline upgrade requires only ledger, reviewed prices and prior capture")
         try:
-            upgrade_ledger_policy(args.ledger, args.prices, args.prior_capture)
+            upgrade = upgrade_revalidation_policy if args.upgrade_revalidation_policy_600 else upgrade_ledger_policy
+            upgrade(args.ledger, args.prices, args.prior_capture)
         except Exception:
             raise SystemExit("Policy upgrade rejected; existing reservations were not reset.") from None
-        print("Approved 492-turn/1600-attempt policy recorded; no network calls or reservation refunds.")
+        print("Approved policy transition recorded; no network calls or reservation refunds.")
         return
     if not args.execute_approved_stage:
         cases, fixture_hash = evaluation.load_stage_cases(args.stage)

@@ -29,8 +29,27 @@ def payload(**overrides):
 def test_all_languages_reconstruct_exact_pinned_baseline():
     artifact = json.loads((quality.EVALS / "conversation_quality_baseline6fb.json").read_text())
     for locale in ("ko", "ja", "en"):
+        assert set(artifact["locales"][locale]["sections"]) == quality.BASELINE_HEADERS[locale]
         actual = quality._baseline(prompts.system_prompt(locale), locale)
         assert hashlib.sha256(actual.encode()).hexdigest() == artifact["locales"][locale]["system_sha256"]
+
+
+def test_baseline_rejects_different_section_set_even_with_six_entries(monkeypatch):
+    from pathlib import Path
+    original_read = Path.read_text
+
+    def replaced(path, *args, **kwargs):
+        text = original_read(path, *args, **kwargs)
+        if path.name == "conversation_quality_baseline6fb.json":
+            data = json.loads(text)
+            sections = data["locales"]["en"]["sections"]
+            sections["Unapproved header"] = sections.pop("Steadiness")
+            return json.dumps(data)
+        return text
+
+    monkeypatch.setattr(Path, "read_text", replaced)
+    with pytest.raises(quality.QualityFixtureError):
+        quality._baseline(prompts.system_prompt("en"), "en")
 
 
 def test_untracked_persona_change_fails_closed_for_both_arms(monkeypatch):

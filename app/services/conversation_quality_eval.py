@@ -1,7 +1,7 @@
 """Bounded, server-owned synthetic inputs for the authenticated development evaluator.
 
 No database reads, user lookup, arbitrary system override or provider adapter lives here.
-Only the six explicitly approved persona sections are restored from the pinned baseline.
+Only the seven explicitly approved persona sections are restored from the pinned baseline.
 """
 from __future__ import annotations
 
@@ -20,9 +20,10 @@ CASE_IDS = frozenset(f"{lang}_{split}{i:02}" for lang in ("ko", "ja", "en")
                      for split, size in (("d", 8), ("h", 4), ("a", 3)) for i in range(1, size + 1))
 MOOD_CASE_IDS = frozenset(f"{lang}_m0{i}" for lang in ("ko", "ja", "en") for i in (1, 2))
 BASELINE_HEADERS = {
-    "ko": {"주고받기", "말투", "기억", "상대가 선택한 감정", "안정감", "힘들어할 때"},
-    "ja": {"やりとり", "口調", "記憶", "相手が選んだ気分", "安心感", "つらそうなとき"},
-    "en": {"Give and take", "How you talk", "Memory", "User mood selection", "Steadiness", "When they're hurting"},
+    "ko": {"주고받기", "말투", "기억", "상대가 선택한 감정", "안정감", "힘들어할 때", "네 마음"},
+    "ja": {"やりとり", "口調", "記憶", "相手が選んだ気分", "安心感", "つらそうなとき", "きみの心"},
+    "en": {"Give and take", "How you talk", "Memory", "User mood selection", "Steadiness", "When they're hurting",
+           "What you feel"},
 }
 MAX_TOKENS = 384
 MAX_WIRE_CHARS = 40_000

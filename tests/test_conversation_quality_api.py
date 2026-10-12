@@ -29,12 +29,13 @@ def payload(**overrides):
 def test_all_languages_reconstruct_exact_pinned_baseline():
     artifact = json.loads((quality.EVALS / "conversation_quality_baseline6fb.json").read_text())
     for locale in ("ko", "ja", "en"):
+        assert len(quality.BASELINE_HEADERS[locale]) == 7
         assert set(artifact["locales"][locale]["sections"]) == quality.BASELINE_HEADERS[locale]
         actual = quality._baseline(prompts.system_prompt(locale), locale)
         assert hashlib.sha256(actual.encode()).hexdigest() == artifact["locales"][locale]["system_sha256"]
 
 
-def test_baseline_rejects_different_section_set_even_with_six_entries(monkeypatch):
+def test_baseline_rejects_different_section_set_even_with_seven_entries(monkeypatch):
     from pathlib import Path
     original_read = Path.read_text
 

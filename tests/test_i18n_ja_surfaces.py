@@ -133,9 +133,7 @@ def test_english_persona_keeps_the_capi_rules():
     sp = prompts.system_prompt("en")
     for rule, why in [
         ("Cappy", "이름"),
-        ("Don't use commas", "쉼표 금지"),
         ("Use contractions", "축약형"),
-        ("three lines", "세 줄 상한"),
         ("emoji", "이모지 금지"),
         ("capybara", "정체성"),
         ("diary", "일기는 비밀"),

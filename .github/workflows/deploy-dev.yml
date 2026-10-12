@@ -16,8 +16,23 @@ name: Deploy dev (moly-backend)
 on:
   push:
     branches: [dev]
+    paths-ignore:
+      - '.github/workflows/deploy-dev.yml'
+      - '.github/scripts/dev_candidate.py'
+      - 'tests/test_dev_candidate_workflow.py'
+      - 'docs/**'
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'existing: 기존 배포/롤백, inspect: 개발 상태만, candidate: 병합 전 후보 검증'
+        type: choice
+        options: [existing, inspect, candidate]
+        default: existing
+        required: true
+      candidate_sha:
+        description: 'candidate 모드만: 최신 dev를 포함하는 이 저장소의 전체 40자리 SHA'
+        required: false
+        default: ''
       verify_subscription_only:
         description: "기존 dev 이미지에서 일기·구독 검증만 실행 (배포/빌드 없음)"
         type: boolean
@@ -45,8 +60,26 @@ env:
   DEPLOY_TAG: ${{ inputs.image_tag || format('dev-{0}', github.sha) }}
 
 jobs:
+  validate-inputs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          persist-credentials: false
+      - name: Reject invalid or conflicting inputs before OIDC
+        env:
+          DEPLOY_MODE: ${{ inputs.mode || 'existing' }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          VERIFY_ONLY: ${{ inputs.verify_subscription_only && 'true' || 'false' }}
+        run: python3 .github/scripts/dev_candidate.py inputs
+
   build-and-deploy:
-    if: inputs.verify_subscription_only != true
+    needs: validate-inputs
+    if: inputs.verify_subscription_only != true && (inputs.mode == '' || inputs.mode == 'existing')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -193,7 +226,7 @@ jobs:
           set -euo pipefail
           EXPECTED="${DEPLOY_TAG#dev-}"
           BODY=""
-          for i in $(seq 1 6); do
+          for _ in $(seq 1 6); do
             BODY="$(curl -sf --max-time 10 https://dev.moly.asia/health || true)"
             # version 필드 정확 비교 — 부분 문자열 매칭은 짧은 dispatch 태그가
             # "status":"ok" 등에 우연 매칭돼 false-green이 될 수 있다
@@ -208,7 +241,8 @@ jobs:
           exit 1
 
   verify-subscription:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev' && inputs.verify_subscription_only == true
+    needs: validate-inputs
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev' && inputs.verify_subscription_only == true && (inputs.mode == '' || inputs.mode == 'existing')
     runs-on: ubuntu-latest
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
@@ -223,10 +257,101 @@ jobs:
           read -r -a instances <<< "$ids"
           test "${#instances[@]}" -eq 1
           command_id=$(aws ssm send-command --instance-ids "${instances[0]}" --document-name AWS-RunShellScript --parameters 'commands=["docker exec moly-backend python scripts/verify_subscription_diary_runtime.py"],executionTimeout=["600"]' --query Command.CommandId --output text)
-          for i in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             sleep 10
             status=$(aws ssm get-command-invocation --command-id "$command_id" --instance-id "${instances[0]}" --query Status --output text 2>/dev/null || true)
             case "$status" in Success|Failed|Cancelled|TimedOut) break;; esac
           done
           aws ssm get-command-invocation --command-id "$command_id" --instance-id "${instances[0]}" --query '{status:Status,stdout:StandardOutputContent,stderr:StandardErrorContent}' --output json
           test "$status" = Success
+
+  candidate-control:
+    needs: validate-inputs
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev' && (inputs.mode == 'inspect' || inputs.mode == 'candidate')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout trusted controls only
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate candidate repository and latest dev ancestry
+        if: inputs.mode == 'candidate'
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: python3 .github/scripts/dev_candidate.py source
+
+      - name: Configure project development credentials only
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Inspect development target before any build
+        id: target
+        env:
+          DEPLOY_MODE: ${{ inputs.mode }}
+        run: python3 .github/scripts/dev_candidate.py inspect
+
+      - name: Recheck latest dev before candidate checkout and build
+        if: inputs.mode == 'candidate'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ steps.source.outputs.base_sha }}
+        run: python3 .github/scripts/dev_candidate.py drift
+
+      - name: Checkout candidate separately from trusted controls
+        if: inputs.mode == 'candidate'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.source.outputs.candidate_sha }}
+          path: candidate-src
+          persist-credentials: false
+
+      - name: Login to development ECR
+        if: inputs.mode == 'candidate'
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up candidate Docker Buildx
+        if: inputs.mode == 'candidate'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push verified candidate
+        if: inputs.mode == 'candidate'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./candidate-src
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:dev-${{ steps.source.outputs.candidate_sha }}
+          build-args: GIT_SHA=${{ steps.source.outputs.candidate_sha }}
+          cache-from: type=gha,scope=dev
+          cache-to: type=gha,mode=max,scope=dev
+
+      - name: Validate candidate banner catalog and public assets
+        if: inputs.mode == 'candidate'
+        env:
+          CANDIDATE_SHA: ${{ steps.source.outputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          image="$ECR_REGISTRY/$IMAGE_NAME:dev-$CANDIDATE_SHA"
+          docker pull "$image"
+          docker run --rm --entrypoint sh "$image" -ec '
+            if [ -f app/services/banner_catalog.py ]; then
+              python scripts/validate_banners.py --assets --environment dev
+            fi
+          '
+
+      - name: Deploy candidate through immutable trusted controls
+        if: inputs.mode == 'candidate'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ steps.source.outputs.base_sha }}
+          CANDIDATE_SHA: ${{ steps.source.outputs.candidate_sha }}
+          DEV_INSTANCE: ${{ steps.target.outputs.instance_id }}
+          ROLLBACK_TAG: ${{ steps.target.outputs.rollback_tag }}
+        run: python3 .github/scripts/dev_candidate.py deploy

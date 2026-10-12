@@ -16,16 +16,15 @@ from app.core.db import get_sessionmaker
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
 from app.models.revenuecat_event import RevenuecatEvent
-from app.models.user_daily_stats import UserDailyStats
 from app.services import (
     config_store,
     diary_generation,
     notify,
-    slack_notify,
     memory_pipeline,
     subscription,
 )
 from app.services.limits import effective_token_config
+from worker import monitoring
 
 _RC_INBOX_BATCH = 200            # 틱당 처리할 pending 상한
 _RC_DEP_RESERVED = _RC_INBOX_BATCH // 4  # dependency 예약 슬롯(=50) — 신규·재시도 다발에도 굶지 않게
@@ -263,8 +262,7 @@ async def _select_pending_ids(session) -> list[str]:
 async def _drain_rc_inbox(now: datetime) -> dict:
     """RC 웹훅 inbox 드레인 — pending 각각 독립 트랜잭션으로 process_event(이벤트별 격리).
 
-    + 미해결 failed·장기 pending을 매 틱 Slack 재요약(1회성 알림 유실 방지 — slack_notify가
-    URL 미설정·전송실패를 삼키므로 매 틱 재요약해 은폐 없이 관측한다, SOMA-372 §11.4).
+    미해결 상태 집계·알림은 monitoring이 담당한다. 처리 결과/재시도 계약은 보존한다.
     """
     out = {"rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0}
     # 1) pending 후보 처리 — 한 행씩 claim(FOR UPDATE SKIP LOCKED는 process_event 내부).
@@ -286,65 +284,10 @@ async def _drain_rc_inbox(now: datetime) -> dict:
                 else:  # dependency_missing / skipped
                     out["rc_pending"] += 1
             except Exception as e:  # noqa: BLE001  # 한 이벤트 실패가 드레인을 멈추지 않게
-                _log.exception("RC inbox 드레인 실패(event=%s): %r", eid, e)
+                out["rc_exception"] += 1
+                _log.warning("RC inbox 드레인 실패: %s", type(e).__name__)
                 await s.rollback()
-    # 2) 미해결 failed·장기 pending 재요약(dedup 창 < 틱 간격이라 매 틱 발송).
-    # failed는 전체 건수를 count로 집계(표본만 세면 20+ 미해결이 "20건"으로 축소돼 은폐되므로),
-    # 최신 표본만 본문에 첨부한다(SOMA-372 §11.4 — 은폐 없이 관측).
-    async with get_sessionmaker()() as s:
-        failed_total = (
-            await s.execute(
-                select(func.count())
-                .select_from(RevenuecatEvent)
-                .where(RevenuecatEvent.status == "failed")
-            )
-        ).scalar() or 0
-        failed_sample = list(
-            (
-                await s.execute(
-                    select(RevenuecatEvent)
-                    .where(RevenuecatEvent.status == "failed")
-                    .order_by(RevenuecatEvent.received_at.desc())  # 최신 표본
-                    .limit(10)
-                )
-            ).scalars().all()
-        )
-        stale_pending = (
-            await s.execute(
-                select(func.count())
-                .select_from(RevenuecatEvent)
-                .where(
-                    RevenuecatEvent.status == "pending",
-                    RevenuecatEvent.received_at
-                    < now - timedelta(minutes=_RC_PENDING_STALE_MIN),
-                )
-            )
-        ).scalar() or 0
-    if failed_total or stale_pending:
-        await slack_notify.alert(
-            _rc_inbox_summary(failed_sample, int(failed_total), int(stale_pending), now),
-            dedup_key="rc_inbox_unresolved",
-        )
     return out
-
-
-def _rc_inbox_summary(
-    failed_sample: list, failed_total: int, stale_pending: int, now: datetime
-) -> str:
-    """미해결 RC 웹훅 요약 — 전체 failed 건수 + 최신 표본(event_id·app_user_id·type·last_error)."""
-    ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
-    lines = [
-        f"⚠️ [RC 웹훅 inbox 미해결] {ts_kst}",
-        f"failed {failed_total}건 / 장기 pending(>{_RC_PENDING_STALE_MIN}m) {stale_pending}건",
-    ]
-    for ev in failed_sample[:10]:
-        payload = ev.payload or {}
-        lines.append(
-            f"· {ev.event_id} type={payload.get('type')} "
-            f"app_user_id={payload.get('app_user_id')} err={(ev.last_error or '')[:120]}"
-        )
-    lines.append("→ 운영 수동 처리 필요(TRANSFER·미등록 상품·거래ID 누락 등).")
-    return "\n".join(lines)
 
 
 async def _relevant_timezones(now: datetime) -> set[str]:
@@ -460,7 +403,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         for k, v in (await _drain_rc_inbox(now)).items():
             counts[k] = counts.get(k, 0) + v
     except Exception as e:  # noqa: BLE001  # 드레인 실패가 배치 전체를 막으면 안 됨
-        _log.exception("RC inbox 드레인 틱 실패(무시): %r", e)
+        counts["rc_processor_error"] = 1
+        _log.warning("RC inbox 드레인 틱 실패: %s", type(e).__name__)
 
     # retention 잡 예약(Phase 5) — KST hour>=5 + {job_type}:{KST날짜} dedup으로 하루 1회 수렴.
     # 유저 루프와 독립(tzs가 비어도 돈다 — 예약이 유휴 틱 스킵에 딸려가면 self-heal이 깨진다).
@@ -484,28 +428,10 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
         _log.warning("워커 상태 기록 실패: %r", e)
 
-    # 하루 1회(UTC 04시 틱): 비용 기록.
-    # (SOMA-349에서 유저별 세션으로 바뀌어 공유 session이 없으므로 전용 세션을 연다.)
-    if now.hour == DIARY_HOUR:
-        async with get_sessionmaker()() as smon:
-            # 전일 완결분 billable 합산(임계 비교·경보는 _emit_worker_health)
-            if settings.daily_billable_alert_threshold > 0:
-                try:
-                    counts["billable_yesterday"] = await _sum_billable_yesterday(smon, now)
-                except Exception as e:  # noqa: BLE001
-                    _log.warning("전일 billable 합산 실패: %r", e)
-                    await smon.rollback()
-
-    elapsed = time.monotonic() - start
-
-    # 슬랙 요약: 실제 작업(일기 생성/실패 또는 푸시 발송)이 있을 때만 전송(빈 틱 스팸 방지).
-    # diary_attempted 기준이면 15분 케이던스에서 DIARY_HOUR 시간대마다 요약이 4번 나가고
-    # 그중 3번은 _diary_exists skip이라 "일기 0건" — 감시 채널이 오탐으로 도배된다(SOMA-348 후속).
-    # diary_none(tombstone)은 사용자 노출 0이라 요약 트리거에서 제외 — 지정본 없는 조용한 날에
-    # 매 틱 요약이 나가 채널이 도배되는 걸 막는다(SOMA-389, 위 오탐 방지 취지 유지).
-    if counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"] > 0:
-        summary = _build_summary(now, counts, elapsed, active_tzs)
-        await slack_notify.send_summary(summary)
+    # tick 작업 집계는 로그로 보존하고 Slack 상태는 하루 한 번 monitoring에서 보낸다.
+    _log.info("worker tick diaries=%s failed=%s morning=%s evening=%s elapsed_s=%.1f",
+              counts["diaries"], counts["diary_failed"], counts["morning"], counts["evening"],
+              time.monotonic() - start)
 
     # --- 멈춘 기억 파이프라인 재개 ---
     # ingest는 체인이라 잡 하나가 dead가 되면 그 사용자는 영영 멈춘다(챗은 ingest>=source일
@@ -530,28 +456,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     return counts
 
 
-async def _sum_billable_yesterday(session, now: datetime) -> int:
-    """전일(어제 KST) 완결분 billable 합산. user_daily_stats.tokens_used = 실비용가중 billable 누적.
-
-    messages 풀스캔 대신 작은 집계 테이블 사용. activity_date는 유저별 로컬경계라 근사(비용가드용).
-    """
-    yday = (now.astimezone(_KST) - timedelta(days=1)).date()
-    total = (
-        await session.execute(
-            select(func.coalesce(func.sum(UserDailyStats.tokens_used), 0)).where(
-                UserDailyStats.activity_date == yday
-            )
-        )
-    ).scalar_one()
-    return int(total)
-
-
 async def _emit_worker_health(now: datetime, counts: dict) -> None:
-    """데드맨 핑(결과 반영) + 결과이상·비용 경보. 전부 best-effort(실패해도 워커 미중단).
-
-    anomaly = 실패 카운트만으로 판정 — 멱등 재실행의 전원 스킵(diary_skipped)은 정상이라 제외(오탐 방지).
-    dedup은 프로세스 내 한정 → 워커는 틱마다 새 프로세스라 지속장애 시 틱당 재알림 감수(스톰은 아님).
-    """
+    """기존 데드맨 계약 + 지속 사건/일일 점검. 실패해도 워커를 중단하지 않는다."""
     anomaly = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
     if settings.worker_ping_url:
         url = settings.worker_ping_url + ("/fail" if anomaly else "")
@@ -559,15 +465,5 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 await client.get(url)
         except Exception as e:  # noqa: BLE001
-            _log.warning("워커 데드맨 핑 실패: %r", e)
-    if anomaly:
-        await slack_notify.alert(
-            f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']} / 기억실패 {counts['memory_failed']}",
-            dedup_key="worker_anomaly",
-        )
-    total = counts.get("billable_yesterday")
-    thr = settings.daily_billable_alert_threshold
-    if total is not None and thr > 0 and total > thr:
-        await slack_notify.alert(
-            f"💸 전일 billable {total:,} 이 임계 {thr:,} 초과 — 비용 확인 필요", dedup_key="cost_spike"
-        )
+            _log.warning("워커 데드맨 핑 실패: %s", type(e).__name__)
+    await monitoring.emit(datetime.now(timezone.utc), counts)

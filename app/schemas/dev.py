@@ -321,3 +321,20 @@ class MemoryRecallDiagnosticsResponse(StrictResponse):
 class DiaryRecallDiagnosticsResponse(StrictResponse):
     capability: Literal["recall_diaries"]
     result: DiaryRecallResult
+
+
+FeedbackTranslationCase = Literal["ko", "en", "ja", "mixed", "instruction"]
+
+
+class FeedbackTranslationEvalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    case_id: FeedbackTranslationCase
+
+
+class FeedbackTranslationEvalResponse(StrictResponse):
+    case_id: FeedbackTranslationCase
+    status: Literal["skipped", "translated", "fallback"]
+    translation: str | None
+    configured_model: str
+    deployment_sha: str
+    experiment_id: str

@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import re
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -30,8 +29,6 @@ from app.schemas.dev import (
     ChatCompareRequest,
     ChatCompareResponse,
     ChatEvalRequest,
-    ChatEvalRuntimeMetadata,
-    ChatEvalSuccessOut,
     DiaryGenerateRequest,
     DiaryGenerateResponse,
     EvalResultOut,
@@ -169,45 +166,16 @@ def _messages(req) -> list[dict]:  # noqa: ANN001
     return [{"role": m.role, "content": m.content} for m in req.messages]
 
 
-def _chat_eval_runtime() -> tuple[str, ChatEvalRuntimeMetadata]:
-    """Capture only the allowed settings before spending a provider call."""
-    try:
-        sha = settings.git_sha
-        if not (
-            type(sha) is str
-            and (re.fullmatch(r"[0-9a-f]{40}", sha) or (settings.environment == "local" and sha == "unknown"))
-        ):
-            raise ValueError
-        metadata = ChatEvalRuntimeMetadata(
-            chat_model=settings.model_chat,
-            embedding_model=settings.embedder_model,
-            llm_max_tokens=settings.llm_max_tokens,
-        )
-    except ValueError:
-        # Pydantic errors include rejected input values. Never return or log them.
-        raise errors.AppError(
-            "DEV_RUNTIME_METADATA_UNAVAILABLE", 503, "Development runtime metadata is unavailable.",
-        ) from None
-    return sha, metadata
-
-
-@router.post("/chat-eval", response_model=ChatEvalSuccessOut | EvalResultOut)
+@router.post("/chat-eval", response_model=EvalResultOut)
 async def chat_eval(
     req: ChatEvalRequest,
     _user_id: str = Depends(require_dev_operator),
 ) -> dict[str, Any]:
     """한 모델에 대화를 1회 투입 — 응답 텍스트 + 지연(ms) + 토큰 + 추정비용."""
-    deployment_sha, runtime_metadata = _chat_eval_runtime()
     r = await model_eval.run_eval(
         req.provider, req.model, _system_for(req), _messages(req), max_tokens=req.max_tokens
     )
-    if r.error is not None:
-        return r.__dict__
-    return {
-        **r.__dict__,
-        "deployment_sha": deployment_sha,
-        "runtime_metadata": runtime_metadata.model_dump(),
-    }
+    return r.__dict__
 
 
 @router.post("/chat-eval/compare", response_model=ChatCompareResponse)

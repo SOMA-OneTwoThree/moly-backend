@@ -193,6 +193,81 @@ def test_remote_failure_never_returns_raw_stdout_stderr(monkeypatch, capsys):
     assert "privatebody" not in str(capsys.readouterr())
 
 
+@pytest.mark.parametrize("status,code,expected", [
+    ("Failed", 41, "status=Failed exit=41"),
+    ("Failed", 42, "status=Failed exit=42"),
+    ("Failed", 43, "status=Failed exit=43"),
+    ("Failed", 44, "status=Failed exit=44"),
+    ("Failed", 45, "status=Failed exit=45"),
+    ("Failed", 125, "status=Failed exit=125"),
+    ("Cancelled", 126, "status=Cancelled exit=126"),
+    ("TimedOut", 127, "status=TimedOut exit=127"),
+    ("Cancelling", 1, "status=Cancelling exit=unknown"),
+    ("Failed", "41", "status=Failed exit=unknown"),
+    ("Failed", True, "status=Failed exit=unknown"),
+    ("private-status", -1, "status=unknown exit=unknown"),
+    (None, None, "status=unknown exit=unknown"),
+    ({"private-status": True}, {}, "status=unknown exit=unknown"),
+])
+def test_failure_metadata_only_allowlisted(status, code, expected):
+    class MetadataOnly(dict):
+        def get(self, key, *args):
+            assert key not in {"StandardOutputContent", "StandardErrorContent"}
+            return super().get(key, *args)
+
+    state = MetadataOnly(Status=status, ResponseCode=code,
+                         StandardOutputContent="privatebody", StandardErrorContent="privatebody")
+    result = control.remote_failure_code(state)
+    assert result == "remote_command_failed " + expected
+    assert "private" not in result
+
+
+def test_probe_config_import_uses_fixed_phase_code():
+    assert control.PROBE_PYTHON.index("try:") < control.PROBE_PYTHON.index("from app.config import settings")
+    compile(control.PROBE_PYTHON, "synthetic-probe", "exec")
+    assert "raise SystemExit(phase)" in control.PROBE_PYTHON
+
+
+@pytest.mark.parametrize("failure_stage", [42, 43, 44, 45])
+def test_probe_failure_stage_never_prints_exception_or_response(monkeypatch, capsys, failure_stage):
+    import builtins
+    import io
+    from types import ModuleType
+    import urllib.request
+
+    imported = builtins.__import__
+    settings = SimpleNamespace(environment="development", **{key: True for key in control.FLAGS})
+    if failure_stage == 45:
+        delattr(settings, control.FLAGS[0])
+    fake_config = ModuleType("app.config")
+    fake_config.settings = settings
+
+    def fake_import(name, *args, **kwargs):
+        if name == "app.config":
+            if failure_stage == 42:
+                raise ValueError("private-config-value")
+            return fake_config
+        return imported(name, *args, **kwargs)
+
+    class Response(io.BytesIO):
+        status = 200
+
+    class Opener:
+        def open(self, url, timeout):
+            if (failure_stage == 43 and url.endswith("/health")) or (
+                failure_stage == 44 and url.endswith("/ready")
+            ):
+                raise ValueError("private-http-response")
+            return Response(json.dumps({"version": OLD}).encode())
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    monkeypatch.setattr(urllib.request, "build_opener", lambda *_args: Opener())
+    with pytest.raises(SystemExit) as error:
+        exec(compile(control.PROBE_PYTHON, "synthetic-probe", "exec"), {})
+    assert error.value.code == failure_stage
+    assert capsys.readouterr().out == "PROBE_FAILED\n"
+
+
 def test_subprocess_failure_redacted(monkeypatch):
     monkeypatch.setattr(control.subprocess, "run", lambda *_a, **_k: SimpleNamespace(
         returncode=1, stdout="privatebody", stderr="privatebody"))

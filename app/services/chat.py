@@ -561,11 +561,11 @@ def _clean_reply(text: str, nickname: str | None = None, language: str | None = 
 
     페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
     말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·물음표·느낌표)만 남기고
-    말줄임표·마크다운 강조(**,_)·대시(—)는 지운다. 쉼표는 코드로 지우지 않고 프롬프트에
+    말줄임표·마크다운 강조(**,_)는 지운다. 비한국어 대사는 원문의 하이픈·대시를 보존한다. 쉼표는 코드로 지우지 않고 프롬프트에
     맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
     """
     keep_hy = not i18n.is_korean(language)  # en 등: 하이픈 유지 + 한국어 되묻기 물음표 복원 불필요
-    out = text_clean.strip_symbols(text, keep_hyphen=keep_hy)  # 말줄임표·마크다운·대시 제거 + 공백 정규화
+    out = text_clean.strip_symbols(text, keep_hyphen=keep_hy, preserve_dashes=keep_hy)
     return out if keep_hy else _fix_qmarks(out, nickname)
 
 

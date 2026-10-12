@@ -17,6 +17,18 @@ CFG = {"diary_min_user_chars": 5}  # 개인일기 게이트 = 당일 유저 메�
 PROFILE = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="ko")
 
 
+@pytest.mark.parametrize("language,body,expected", [
+    ("en", "Take a breath—then decide. 3–5 laid-back days.", "Take a breath then decide. 3 5 laid-back days."),
+    ("ja", "時々〆切を確認する—二〇二六年。", "時々〆切を確認する 二〇二六年。"),
+])
+async def test_personal_diary_keeps_existing_dash_format(monkeypatch, language, body, expected):
+    monkeypatch.setattr(llm_module, "generate", AsyncMock(return_value=LLMResult("Weather: sunny\n" + body, 1, 1)))
+    monkeypatch.setattr(dg, "_self_check", AsyncMock(return_value=True))
+    profile = SimpleNamespace(id=uuid.uuid4(), language=language, nickname=None)
+    result, _ = await dg._personal(profile, [])
+    assert result == (expected, "sunny")
+
+
 class FakeSession:
     def __init__(self):
         self.added = []

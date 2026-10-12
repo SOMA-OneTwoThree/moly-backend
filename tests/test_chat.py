@@ -154,6 +154,29 @@ async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
     assert "지훈" not in capi_msg.content and "{유저이름}" in capi_msg.content
 
 
+@pytest.mark.parametrize("language,raw,expected", [
+    ("ja", "Анна、時々、人々と会う。〆切は二〇二六年。 Σ", "Анна、時々、人々と会う。〆切は二〇二六年。"),
+    ("en", "Анна, **take** a breath—then decide. 3–5 laid-back days. — No rush. Σ", "Анна, take a breath—then decide. 3–5 laid-back days. — No rush."),
+    ("ko", "Анна, 잠깐 — 쉬자.", "Анна, 잠깐 쉬자."),
+])
+async def test_post_message_preserves_locale_characters_through_storage(monkeypatch, language, raw, expected):
+    profile = SimpleNamespace(language=language, nickname="Анна", review_prompted_at=None, id=UID)
+
+    async def resolve(*args, **kwargs):
+        return _gating(profile=profile)
+
+    async def generate(*args, **kwargs):
+        return LLMResult(text=raw, input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(gating_module, "resolve", resolve)
+    monkeypatch.setattr(llm_module, "generate", generate)
+    session = FakeSession()
+    out = await chat_service.post_message(session, UID, SimpleNamespace(text="Hi", greeting_id=None), "locale-clean")
+    assert out.reply.content == expected
+    stored = next(m for m in session.added if isinstance(m, Message) and m.sender == "moly")
+    assert stored.content == expected.replace("Анна", "{유저이름}")
+
+
 async def test_post_message_daily_limit(monkeypatch, patched):
     async def _res(session, user_id, **kwargs):
         return _gating(entitlement={

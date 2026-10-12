@@ -121,6 +121,42 @@ import, 43은 로컬 health 읽기, 44는 readiness 읽기, 45는 flags 읽기 �
 합성 평가 endpoint의 직접 Slack·푸시 호출 없음과 별개다. 이 변경은 새 푸시 활성화·일정 추가나
 timer·환경변수 변경, 기존 개발 서비스 중단을 포함하지 않는다.
 
+#### 명시적 inspect의 제한된 런타임 관측 (2026-10-13)
+
+`mode=inspect`에서만 별도 `runtime_probe`가 고정된 `moly-backend`와 `moly-consumer`를
+읽는다. 기존 `host_probe`·마커·candidate 빌드/롤백·배포 가드와 workflow는 변경하지 않는다.
+개발 running 대상이 정확히 1개이고 공개/API SHA가 일치할 때만 실행한다. 컨테이너의 image
+digest·running을 설정 읽기 전후 비교하고, 두 이미지·Settings SHA·development가 일치하는지
+확인한다. 마지막에는 공개/API SHA와 API readiness·flags를 다시 검사한다. 불일치·미관측은
+고정된 `unavailable` 사유로 남긴다.
+
+API에서는 chat/embedding 모델·출력 상한·checkpoint/current-turn 플래그, consumer에서는
+utility 모델·checkpoint 플래그·LLM/content/finalize timeout·content lease/heartbeat/시도
+상한만 읽는다. 두 컨테이너의 SDK 버전도 확인한다. 모델은 현재 route/catalog에 맞춘 OpenAI
+`gpt-4.1-mini-2025-04-14`, `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-6-luna`, `gpt-6-sol`만,
+embedding은 `text-embedding-3-small`만 허용한다. utility provider는 검증된 모델에서만
+`openai`로 파생한다. SDK는 `uv.lock`의 OpenAI `2.44.0`·Anthropic `0.116.0`과 정확히 비교한다.
+목록 밖 모델·SDK 값은 출력하지 않는다. Claude 관측을 새로 승인하거나 provider를 전환하지 않는다.
+
+성공 응답도 UTF-8 8,192바이트 이내의 정확한 키·타입만 수용한다. bool을 정수로 인정하지 않고
+NaN/Inf·비양수·초과값을 거부한다. 진단의 수용 상한은 출력 32,768토큰, 잡 시도 32회,
+시간 86,400초이며 실제 설정 기본값이나 실험 허용 예산이 아니다. LLM timeout ≤ content
+timeout, content timeout + finalize timeout < lease, heartbeat ≤ min(lease / 3, 20초)도
+검사한다. 추가 필드·원격 실패 본문·예외 문자열은 출력하지 않는다. 자식 프로세스의 선택 필드도
+호스트에서 검증한 뒤 허용 값만 SSM stdout으로 내보낸다. 환경 전체·비밀키·임의 컨테이너는 읽지 않는다.
+
+이는 같은 컨테이너 환경에서 실행한 **새 Python 프로세스의 Settings 관측**이다. 기존 worker
+객체의 메모리나 특정 handler의 성공을 증명하지 않는다. SDK 버전만으로 재시도 상한을 확정하지
+않으며 코드의 override와 SDK 기본값을 별도로 확인해야 한다. 실제 worker→publish→다음 대화
+검증에는 합성 잡의 `max_attempts`·만료시간, DB 플래그·가격 catalog·경보 수신 경로 및 예약
+예산을 따로 확인해야 한다. DB temporal 플래그나 Slack 설정은 이 관측에 포함되지 않는다.
+
+외부 접속 없는 기존·추가 경계 테스트 97개와 Ruff·diff 검사를 통과했다. 가짜 비밀값, 응답 오염,
+SDK 불일치, 중간 이미지/SHA 변경, 명시적 inspect 외 호출 금지를 검사했다. 실제 원격 inspect는
+아직 실행하지 않았다. helper·해당 테스트·`docs/**`는 기존 push `paths-ignore`에 포함되므로
+이 파일들만 병합해도 제품을 자동 배포하지 않는다. trusted dev에 반영한 뒤 승인된 수동 inspect로
+관측해야 하며, 로컬 검사 통과를 실제 설정 확인이나 장기 대화 검증 완료로 보고하지 않는다.
+
 ## 설정과 프로세스
 
 비밀값은 환경별 SSM `/moly/dev/`, `/moly/prod/`에 둔다. 필요한 키와 실제 환경변수 매핑은

@@ -134,7 +134,8 @@ _ADAPTERS = {"anthropic": _anthropic, "openai": _openai, "gemini": _gemini}
 
 
 async def run_eval(
-    provider: str, model: str, system: str, messages: list[dict], *, max_tokens: int = 1024
+    provider: str, model: str, system: str, messages: list[dict], *, max_tokens: int = 1024,
+    redact_errors: bool = False,
 ) -> EvalResult:
     """한 모델 1회 호출 — 응답·지연·토큰·비용. 실패는 error에 담아 반환(compare에서 한 모델 실패가
     전체를 막지 않게). 절대 예외를 던지지 않는다."""
@@ -161,6 +162,7 @@ async def run_eval(
         return EvalResult(provider, model, text, ms, in_t, out_t, _cost(model, in_t, out_t))
     except Exception as e:  # noqa: BLE001  # 한 모델 실패가 비교 전체를 막지 않게
         # dev 전용 툴이라 상세 에러는 개발자에게 유용 → error 필드에 유지하되 로그도 남긴다.
-        _log.warning("model_eval 실패 provider=%s model=%s err=%r", provider, model, e)
+        detail = type(e).__name__ if redact_errors else f"{type(e).__name__}: {e}"
+        _log.warning("model_eval 실패 provider=%s model=%s err=%s", provider, model, detail)
         ms = int((time.perf_counter() - start) * 1000)
-        return EvalResult(provider, model, None, ms, 0, 0, None, error=f"{type(e).__name__}: {e}")
+        return EvalResult(provider, model, None, ms, 0, 0, None, error=detail)

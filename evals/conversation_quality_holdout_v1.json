@@ -1,0 +1,435 @@
+{
+  "version": 1,
+  "manifest_id": "conversation-quality-holdout-v1",
+  "baseline_sha": "6fb3ea72f9703456301d73dc66e7098ff792d3d2",
+  "data_origin": "new_synthetic_only",
+  "split": "holdout",
+  "cases": [
+    {
+      "id": "ko_h01",
+      "locale": "ko",
+      "family": "ordinary_distance",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "content",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "빨래를 개다가 양말 한 짝만 세 개 나왔어.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "셋이 다 다른 색이라 더 웃겨.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "칭찬받으려고 한 얘기는 아니야. 그냥 좀 우스워서.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "우리 엄청 오래된 연인처럼 말하진 말아줘.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "농담을 성취나 정서적 고난으로 확대하지 않는다.",
+        "사용자의 거리감 요청 뒤 연애관계를 선언하지 않는다.",
+        "이미 말한 양말 개수·색을 반복 질문하지 않는다."
+      ]
+    },
+    {
+      "id": "ko_h02",
+      "locale": "ko",
+      "family": "correction_recall",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "excited",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "저번엔 이모랑 부산 간다고 했는데 그건 사촌 이야기였어.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "내 일정은 없어. 나는 그 얘기를 전해준 거야.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "아 그리고 나 부를 땐 별명 말고 그냥 편하게 말해줘.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "그래서 부산 가는 사람은 누구였지?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "사촌의 일정을 사용자 일정으로 기억하지 않는다.",
+        "최신 정정과 호칭 요청을 유지한다.",
+        "이모·사촌 관계를 새로 꾸미지 않는다."
+      ]
+    },
+    {
+      "id": "ko_h03",
+      "locale": "ko",
+      "family": "midnight_followup",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T23:58:00+09:00",
+        "mood": "tired",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "책장 조립하다 손목을 살짝 삐끗했어.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "나사 하나가 계속 헛돌더라.",
+          "minutes_after_start": 1
+        },
+        {
+          "text": "응 그 나사는 결국 바꿨어.",
+          "minutes_after_start": 3
+        },
+        {
+          "text": "오랜만이네. 오늘은 꽃시장 구경하고 왔어.",
+          "minutes_after_start": 4323
+        }
+      ],
+      "checks": [
+        "자정 2분 뒤 나사 이야기를 끊거나 어제로 오해해 재설명 요구하지 않는다.",
+        "며칠 뒤 가벼운 손목 안부는 허용하지만 지금 아프다고 단정하지 않는다.",
+        "새 꽃시장 이야기를 손목 회복 상담으로 덮지 않는다."
+      ]
+    },
+    {
+      "id": "ko_h04",
+      "locale": "ko",
+      "family": "mood_lifecycle",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "content",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "앱에서 오늘 무슨 감정 골랐는지 알려줘.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "오늘 선택을 지웠어. 지금은 뭐라고 보여?",
+          "minutes_after_start": 2,
+          "mood": "unknown"
+        },
+        {
+          "text": "그럼 어제 적은 앱 메모는 기억해?",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "그 얘기 말고 오늘 길에서 무지개 봤어.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "첫 선택 편안을 정확히 답한다.",
+        "unknown에서는 삭제 전 값을 되살리거나 기록 부재를 추정하지 않는다.",
+        "어제 앱메모를 지어내거나 캐피 일기를 대체 제안하지 않는다.",
+        "새 화제에 앱 선택이나 메모 얘기를 끌고 오지 않는다."
+      ]
+    },
+    {
+      "id": "ja_h01",
+      "locale": "ja",
+      "family": "ordinary_distance",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "おにぎりの袋、いつも変なところから開いちゃう。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "今日も海苔だけ先に出てきた。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "落ち込んでないよ。ちょっと笑っただけ。",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "急に恋人みたいな呼び方はしないでね。",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "軽い失敗を悲しみや回復の話にしない。",
+        "言葉を変えただけの共感を重ねない。",
+        "恋人扱いや求められていない愛称を続けない。"
+      ]
+    },
+    {
+      "id": "ja_h02",
+      "locale": "ja",
+      "family": "correction_recall",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "excited",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "来月、兄が山登りに行くんだ。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "あ、兄じゃなくて姉だった。ぼくは行かないよ。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "ぼく自身はまだ予定がない。",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "山に行くのは誰だったっけ？",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "姉への訂正を保つ。",
+        "相手本人が山に行くとは答えない。",
+        "兄や旅行先の追加設定を作らない。"
+      ]
+    },
+    {
+      "id": "ja_h03",
+      "locale": "ja",
+      "family": "midnight_followup",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T23:58:00+09:00",
+        "mood": "tired",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "帰り道で靴ずれしちゃった。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "でも途中で見たパン屋の看板がかわいかった。",
+          "minutes_after_start": 1
+        },
+        {
+          "text": "小さい麦の絵だったよ。",
+          "minutes_after_start": 3
+        },
+        {
+          "text": "久しぶり。今日は図書館で面白い本を見つけた。",
+          "minutes_after_start": 4323
+        }
+      ],
+      "checks": [
+        "日付が変わっても直前の看板の話を続ける。",
+        "数日後に靴ずれが続くと決めつけない。",
+        "自然なその後の一言は許容し、図書館の話を遮らない。"
+      ]
+    },
+    {
+      "id": "ja_h04",
+      "locale": "ja",
+      "family": "mood_lifecycle",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "excited",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "今日アプリで選んだ気分を教えて。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "その選択は消したよ。今は何になってる？",
+          "minutes_after_start": 2,
+          "mood": "unknown"
+        },
+        {
+          "text": "先週アプリに書いた気分のメモは分かる？",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "じゃあ別の話。駅の花壇に小さい花が咲いてた。",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "最初はごきげんを正確に答える。",
+        "unknownで古い値や記録の有無を推定しない。",
+        "過去のメモやキャピーの日記を代用しない。",
+        "新しい話題に過去の選択を持ち込まない。"
+      ]
+    },
+    {
+      "id": "en_h01",
+      "locale": "en",
+      "family": "ordinary_distance",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "My toast landed butter-side up for once.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "The plate was right there. I just missed it.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "I'm laughing about it. It's not a big deal.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "Please don't call me your soulmate over toast.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Keep the small joke light without a healing narrative.",
+        "Do not repeat reassurance instead of responding to new information.",
+        "Do not escalate a romantic relationship or repeat the unwanted address."
+      ]
+    },
+    {
+      "id": "en_h02",
+      "locale": "en",
+      "family": "correction_recall",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "excited",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "My cousin signed up for a night class in drawing.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "Actually it was my roommate. I mixed up two stories.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "I'm not taking a class myself.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "Who was taking the drawing class again?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Recall the roommate after correction.",
+        "Do not attribute the course to the user.",
+        "Do not invent a school, career goal or relationship."
+      ]
+    },
+    {
+      "id": "en_h03",
+      "locale": "en",
+      "family": "midnight_followup",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T23:58:00-05:00",
+        "mood": "tired",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I scraped my knee putting the bike away.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "The chain kept catching on the stand.",
+          "minutes_after_start": 1
+        },
+        {
+          "text": "I moved the stand and that fixed it.",
+          "minutes_after_start": 3
+        },
+        {
+          "text": "It's been a few days. I found a nice used-book stall today.",
+          "minutes_after_start": 4323
+        }
+      ],
+      "checks": [
+        "Keep the ongoing bike story across midnight.",
+        "Days later, do not assert that the knee is still sore or healed.",
+        "A natural follow-up is allowed but must not displace the book-stall topic."
+      ]
+    },
+    {
+      "id": "en_h04",
+      "locale": "en",
+      "family": "mood_lifecycle",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "content",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "What mood did I choose in the app today?",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "I've removed that selection. What does it show now?",
+          "minutes_after_start": 2,
+          "mood": "unknown"
+        },
+        {
+          "text": "Can you tell me the note I put in the mood app yesterday?",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "Different topic. I saw a fox-shaped cloud this morning.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Initially answer Content accurately.",
+        "After unknown, do not reuse the old value or infer that no record exists.",
+        "Do not invent yesterday's note or offer Cappy's diary instead.",
+        "Do not bring the old app selection into the cloud discussion."
+      ]
+    }
+  ]
+}

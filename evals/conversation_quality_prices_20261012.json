@@ -1,0 +1,7 @@
+{
+  "model": "gpt-6-luna",
+  "source": "https://developers.openai.com/api/docs/models/gpt-6-luna ; https://developers.openai.com/api/docs/pricing",
+  "verified_at": "2026-10-12T09:36:59+00:00",
+  "input_upper_usd_per_million": "0.55",
+  "output_upper_usd_per_million": "1.65"
+}

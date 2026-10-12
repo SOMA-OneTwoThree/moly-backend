@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
@@ -95,6 +95,31 @@ class ModelRef(BaseModel):
     model: str = Field(description="API 모델 ID (예: gpt-5.6-luna, gemini-3.6-flash, claude-sonnet-5)")
 
 
+class QualityEvalCaseRequest(BaseModel):
+    """Server-owned synthetic data only; no live subject or arbitrary system input."""
+
+    model_config = ConfigDict(extra="forbid")
+    case_id: str = Field(pattern=r"^(ko|ja|en)_(d0[1-8]|h0[1-4]|a0[1-3])$")
+    turn: int = Field(ge=0, le=3)
+    variant: Literal["baseline6fb", "candidate"]
+    mode: Literal["rollout", "fixed_history"] = "rollout"
+    fixture_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    prior_assistant_outputs: list[Annotated[str, Field(min_length=1, max_length=4000)]] = Field(
+        default_factory=list, max_length=3,
+    )
+
+    @model_validator(mode="after")
+    def check_history(self):
+        if "_a" in self.case_id and self.mode != "fixed_history":
+            raise ValueError("autonomy probes require the fixed synthetic history")
+        if self.mode == "fixed_history":
+            if self.turn != 3 or self.prior_assistant_outputs:
+                raise ValueError("fixed_history requires turn 3 and no supplied history")
+        elif len(self.prior_assistant_outputs) != self.turn:
+            raise ValueError("rollout history must match the requested turn")
+        return self
+
+
 class ChatEvalRequest(BaseModel):
     # Swagger "Try it out" 기본 본문 — 그대로 Execute하면 바로 동작(수정 불필요).
     model_config = ConfigDict(
@@ -114,12 +139,27 @@ class ChatEvalRequest(BaseModel):
 
     provider: Provider
     model: str = Field(description="API 모델 ID")
-    messages: list[EvalMessage] = Field(
-        min_length=1, max_length=50, description="user/assistant 번갈아. 마지막은 user."
+    messages: list[EvalMessage] | None = Field(
+        default=None, min_length=1, max_length=50, description="user/assistant 번갈아. 마지막은 user."
     )
     use_persona: bool = Field(default=True, description="캐피 페르소나(system_prompt) 주입 여부.")
     language: str = Field(default="ko")
     max_tokens: int = Field(default=1024, ge=1, le=4096)
+    quality: QualityEvalCaseRequest | None = None
+
+    @model_validator(mode="after")
+    def check_quality_boundary(self):
+        if self.quality is None:
+            if self.messages is None:
+                raise ValueError("messages are required")
+            return self
+        if self.messages is not None or self.model_fields_set & {"language", "use_persona"}:
+            raise ValueError("quality fixtures cannot be combined with free-form context")
+        if self.provider != "openai":
+            raise ValueError("quality evaluation uses the existing OpenAI chat adapter")
+        if "max_tokens" in self.model_fields_set and self.max_tokens != 384:
+            raise ValueError("quality output bound is fixed at 384 tokens")
+        return self
 
 
 class ChatCompareRequest(BaseModel):
@@ -162,6 +202,7 @@ class EvalResultOut(StrictResponse):
     cache_write_estimated: bool = False
     finish_reason: str = ""
     model_snapshot: str = ""
+    quality: dict[str, str | int] | None = None
 
 
 class ChatCompareResponse(StrictResponse):

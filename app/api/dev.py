@@ -172,6 +172,30 @@ async def chat_eval(
     _user_id: str = Depends(require_dev_operator),
 ) -> dict[str, Any]:
     """한 모델에 대화를 1회 투입 — 응답 텍스트 + 지연(ms) + 토큰 + 추정비용."""
+    if req.quality is not None:
+        from app.services import conversation_quality_eval as quality_eval
+        # Narrower than the legacy route: never execute synthetic experiments locally
+        # or outside development, even when called through an accidentally mounted router.
+        if settings.environment != "development" or not settings.enable_dev_routes:
+            raise errors.forbidden()
+        if req.model != settings.model_chat or not req.model.startswith("gpt-"):
+            raise errors.validation("합성 평가는 현재 대화 모델만 사용할 수 있어요.")
+        try:
+            system, messages, metadata = quality_eval.build_input(req.quality)
+        except quality_eval.QualityFixtureError:
+            raise errors.AppError(
+                "QUALITY_EVAL_UNAVAILABLE", 503, "합성 평가 입력을 확인할 수 없어요."
+            ) from None
+        metadata["deployment_sha"] = settings.git_sha
+        metadata["model_config_hash"] = quality_eval._digest({
+            "provider": req.provider, "model": req.model, "max_tokens": quality_eval.MAX_TOKENS,
+            "reasoning_effort": "none", "sdk_retries": True, "timeout": settings.llm_timeout_s,
+        })
+        result = await model_eval.run_eval(
+            req.provider, req.model, system, messages,
+            max_tokens=quality_eval.MAX_TOKENS, redact_errors=True,
+        )
+        return {**result.__dict__, "quality": metadata}
     r = await model_eval.run_eval(
         req.provider, req.model, _system_for(req), _messages(req), max_tokens=req.max_tokens
     )

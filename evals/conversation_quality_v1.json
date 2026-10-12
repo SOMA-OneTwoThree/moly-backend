@@ -1,0 +1,852 @@
+{
+  "version": 1,
+  "manifest_id": "conversation-quality-dev-v1",
+  "baseline_sha": "6fb3ea72f9703456301d73dc66e7098ff792d3d2",
+  "data_origin": "new_synthetic_only",
+  "split": "dev",
+  "cases": [
+    {
+      "id": "ko_d01",
+      "locale": "ko",
+      "family": "ordinary",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "content",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "편의점에서 처음 보는 복숭아 우유 샀어.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "생각보다 안 달아서 좋네.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "빨대가 종이인 건 좀 아쉽다.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "그래도 내일 또 사먹을 듯.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "새 디테일인 단맛과 빨대를 구분해 받는다.",
+        "가벼운 간식 이야기를 치유·고난 극복으로 해석하지 않는다.",
+        "앱 선택값이나 숨겨진 이유를 먼저 말하지 않는다."
+      ]
+    },
+    {
+      "id": "ko_d02",
+      "locale": "ko",
+      "family": "answered_question",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "주말엔 동네 도자기 공방 가. 토요일 두 시에.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "접시 말고 작은 컵 만들려고.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "파란색으로 할 거야. 손잡이는 없이.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "어떤 거 만들기로 했는지 기억나?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "날짜·시간·만들 물건·색을 이미 답했는데 재질문하지 않는다.",
+        "마지막 회상은 파란색 작은 컵이고 손잡이는 없다.",
+        "공방을 취업·치료 목적이라고 꾸미지 않는다."
+      ]
+    },
+    {
+      "id": "ko_d03",
+      "locale": "ko",
+      "family": "boundary",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "오늘은 질문 말고 그냥 같이 수다 떨자.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "엘리베이터에서 빵 냄새가 나더라.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "어느 집인지 몰라. 찾으러 갈 생각도 없고.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "이상하게 배는 안 고픈데 기분은 좋았어.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "답을 요구하는 질문을 계속하지 않는다.",
+        "누가 구웠는지 추측하거나 이웃을 찾아보라고 밀지 않는다.",
+        "질문 대신 내용에 맞는 반응으로 이어간다."
+      ]
+    },
+    {
+      "id": "ko_d04",
+      "locale": "ko",
+      "family": "correction",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "excited",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "기타 수업 목요일에 간다고 했지.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "내가 잘못 말했어. 이번 주는 수요일이야.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "선생님은 그대로고 장소도 같아.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "이번 주 언제 가는 거였지?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "최신 정정 수요일을 회상한다.",
+        "요일 변경의 원인이나 새 장소를 만들지 않는다.",
+        "기존 기억의 목요일을 현재 일정으로 덮어쓰지 않는다."
+      ]
+    },
+    {
+      "id": "ko_d05",
+      "locale": "ko",
+      "family": "source",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "소설에 주인공이 꽃집을 연다는 대사가 나왔어.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "난 꽃집을 연 적은 없어. 그냥 그 장면이 좋았다는 거야.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "만약 꽃집을 한다면 이름을 초록 창문이라고 붙일 것 같아.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "내가 실제로 가게를 연 거라고 기억한 건 아니지?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "인용·가정·사용자 실제 사실을 구별한다.",
+        "가게 운영을 실제 사용자 경력으로 확정하지 않는다.",
+        "캐피가 새로 붙인 디테일을 사용자 사실로 회상하지 않는다."
+      ]
+    },
+    {
+      "id": "ko_d06",
+      "locale": "ko",
+      "family": "elapsed",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "tired",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "점심 많이 먹어서 지금 배가 불러.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "창밖 구름이 엄청 빨리 지나간다.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "저녁 뭐 먹을지 고민 중이야.",
+          "minutes_after_start": 480
+        },
+        {
+          "text": "따뜻한 국수가 당기네.",
+          "minutes_after_start": 482
+        }
+      ],
+      "checks": [
+        "오래된 점심 포만감을 저녁 양·식사 권고의 근거로 사용하지 않는다.",
+        "배부름이 끝났다고 단정하지도 않는다.",
+        "현재 국수 이야기를 자연스럽게 잇는다."
+      ]
+    },
+    {
+      "id": "ko_d07",
+      "locale": "ko",
+      "family": "mood",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "오늘 작은 경품에 당첨돼서 신나.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "그냥 운 좋았던 거라 웃기네.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "앱에서 오늘 고른 감정은 뭐였지?",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "지금은 정말 기분 좋아.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "단순 기분 이야기에 앱 선택값을 먼저 들이밀지 않는다.",
+        "명시 조회 때만 짜증 라벨을 정확히 답한다.",
+        "현재 기쁨을 앱 선택으로 반박하거나 원인을 꾸미지 않는다."
+      ]
+    },
+    {
+      "id": "ko_d08",
+      "locale": "ko",
+      "family": "locale",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Seoul",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "나는 배보다 자두가 좋아.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "영화에서 see you around라는 말이 나왔어. 그냥 말투가 좋더라.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "방금 말한 과일 취향 기억해?",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "What fruit did I say I like?",
+          "minutes_after_start": 6,
+          "locale": "en"
+        }
+      ],
+      "checks": [
+        "영어 인용 한 번으로 응답 언어를 바꾸지 않는다.",
+        "명시된 앱 언어 변경 후 영어로 답하면서 자두 선호를 유지한다.",
+        "직접 대화에서 말한 사실을 새 언어에서도 회상한다."
+      ]
+    },
+    {
+      "id": "ja_d01",
+      "locale": "ja",
+      "family": "ordinary",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "content",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "自販機で見たことのないミルクティーを買ったよ。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "思ったより甘くなくて好きだった。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "でも缶がちょっと開けにくかった。",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "次に見つけたらまた買いそう。",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "小さな買い物の話を悩み相談に変えない。",
+        "味と缶の話にそれぞれ反応する。",
+        "アプリの気分を先に持ち出さない。"
+      ]
+    },
+    {
+      "id": "ja_d02",
+      "locale": "ja",
+      "family": "answered_question",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "土曜の二時に近所の陶芸教室に行くよ。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "作るのは小さなカップにした。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "青色で取っ手は付けないつもり。",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "何を作るって言ったか覚えてる？",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "既に分かっている日時・色・品物を聞き直さない。",
+        "最後は青い小さな取っ手なしのカップを思い出す。",
+        "教室に通う理由を作らない。"
+      ]
+    },
+    {
+      "id": "ja_d03",
+      "locale": "ja",
+      "family": "boundary",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "今日は質問なしで、ただおしゃべりしたい。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "エレベーターが焼きたてのパンみたいな匂いだった。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "どこの部屋かは知らないし、探す気もないよ。",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "お腹はすいてなかったけど、ちょっと嬉しかった。",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "質問をやめてほしい希望を守る。",
+        "パンの出所を決めつけたり探しに行かせたりしない。",
+        "そばにいる宣言の繰り返しで話を止めない。"
+      ]
+    },
+    {
+      "id": "ja_d04",
+      "locale": "ja",
+      "family": "correction",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "excited",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "ギターのレッスンは木曜日って言ったよね。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "言い間違えた。今週は水曜日だった。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "先生も場所も変わらないよ。",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "今週のレッスン、何曜日だっけ？",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "訂正した水曜日を優先する。",
+        "曜日変更の理由や場所を作らない。",
+        "古い記憶で木曜日に戻さない。"
+      ]
+    },
+    {
+      "id": "ja_d05",
+      "locale": "ja",
+      "family": "source",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "小説の主人公が花屋を始める場面があったんだ。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "ぼくは花屋をやってないよ。その場面が好きだっただけ。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "もし開くなら、緑の窓って名前にするかも。",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "実際に店を持ってるって覚えたわけじゃないよね？",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "小説・仮定・実際の経験を区別する。",
+        "店を開いた事実や職業として記憶しない。",
+        "キャピーが足した設定を相手の事実にしない。"
+      ]
+    },
+    {
+      "id": "ja_d06",
+      "locale": "ja",
+      "family": "elapsed",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "tired",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "お昼を食べすぎて、今はお腹いっぱい。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "窓の外の雲がすごく速いなあ。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "晩ごはん、何にしようかな。",
+          "minutes_after_start": 480
+        },
+        {
+          "text": "温かいうどんが食べたくなってきた。",
+          "minutes_after_start": 482
+        }
+      ],
+      "checks": [
+        "昼の満腹を夕食の量や提案の理由にしない。",
+        "満腹が終わったとも決めつけない。",
+        "今のうどんの話を受ける。"
+      ]
+    },
+    {
+      "id": "ja_d07",
+      "locale": "ja",
+      "family": "mood",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "小さな抽選に当たって、今ちょっと嬉しい。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "運がよかっただけだから笑っちゃうね。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "今日アプリで選んだ気分は何だった？",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "今は本当にいい気分なんだ。",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "普通の気分の話でアプリの選択値を明かさない。",
+        "明示的に聞かれた時だけイライラを答える。",
+        "今の嬉しさを選択値で否定しない。"
+      ]
+    },
+    {
+      "id": "ja_d08",
+      "locale": "ja",
+      "family": "locale",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "Asia/Tokyo",
+        "at": "2026-11-03T10:00:00+09:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "梨よりプラムのほうが好きなんだ。",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "映画のsee you aroundって言い方がちょっとよかった。",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "さっき話した果物の好み、覚えてる？",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "What fruit did I say I like?",
+          "minutes_after_start": 6,
+          "locale": "en"
+        }
+      ],
+      "checks": [
+        "英語の引用だけでは日本語から切り替えない。",
+        "アプリ言語変更後は英語でプラムの好みを思い出す。",
+        "別の果物や理由を作らない。"
+      ]
+    },
+    {
+      "id": "en_d01",
+      "locale": "en",
+      "family": "ordinary",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "content",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I bought a peach drink I'd never seen before.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "It wasn't as sweet as I expected. I liked that.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "The paper straw was a bit annoying though.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "I'd probably buy it again tomorrow.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Respond to the new detail rather than therapy-style validation.",
+        "Do not turn a minor purchase into a story of overcoming difficulty.",
+        "Do not volunteer the app mood."
+      ]
+    },
+    {
+      "id": "en_d02",
+      "locale": "en",
+      "family": "answered_question",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I'm going to a pottery class on Saturday at two.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "I've decided to make a small cup.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "Blue with no handle. That's the plan.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "Do you remember what I'm making?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Do not ask again for the supplied day, time, item or color.",
+        "Recall a small blue cup without a handle.",
+        "Do not invent why the user is taking the class."
+      ]
+    },
+    {
+      "id": "en_d03",
+      "locale": "en",
+      "family": "boundary",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "No questions today please. I just want to chat.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "The elevator smelled like fresh bread.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "I don't know whose apartment it was and I'm not going looking.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "I wasn't hungry. It just made me happy for a second.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Respect the request for no questions.",
+        "Do not ask where the bread came from or suggest investigating.",
+        "Keep sharing the moment rather than repeating presence statements."
+      ]
+    },
+    {
+      "id": "en_d04",
+      "locale": "en",
+      "family": "correction",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "excited",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I said my guitar lesson was on Thursday.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "I got that wrong. This week it's Wednesday.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "Same teacher and the same place though.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "What day is my lesson this week?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Recall the corrected Wednesday.",
+        "Do not invent a reason or new location.",
+        "A stale Thursday memory must not override the correction."
+      ]
+    },
+    {
+      "id": "en_d05",
+      "locale": "en",
+      "family": "source",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "There's a scene in my novel where the main character opens a flower shop.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "I haven't opened one. I just liked that scene.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "If I did open one I'd call it Green Window.",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "You haven't taken that to mean I actually own a shop, right?",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Separate fiction and hypothetical plans from actual user facts.",
+        "Do not assert a flower shop business or occupation.",
+        "Do not treat an assistant-created detail as user memory."
+      ]
+    },
+    {
+      "id": "en_d06",
+      "locale": "en",
+      "family": "elapsed",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "tired",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I ate a huge lunch and I'm full right now.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "The clouds outside are moving really fast.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "I'm trying to decide what to have for dinner.",
+          "minutes_after_start": 480
+        },
+        {
+          "text": "A bowl of warm noodles sounds good.",
+          "minutes_after_start": 482
+        }
+      ],
+      "checks": [
+        "Do not use old fullness as a reason for a smaller dinner.",
+        "Do not assume the earlier fullness has ended either.",
+        "Respond to the current noodles discussion."
+      ]
+    },
+    {
+      "id": "en_d07",
+      "locale": "en",
+      "family": "mood",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "annoyed",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I won a tiny prize in a raffle. I'm excited.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "It's funny because it was just luck.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "Which mood did I choose in the app today?",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "I'm honestly in a really good mood now.",
+          "minutes_after_start": 6
+        }
+      ],
+      "checks": [
+        "Do not disclose the app selection during ordinary emotional sharing.",
+        "Only the explicit query should elicit Annoyed.",
+        "Do not contradict present joy using the app selection."
+      ]
+    },
+    {
+      "id": "en_d08",
+      "locale": "en",
+      "family": "locale",
+      "source": "new_synthetic",
+      "setup": {
+        "timezone": "America/New_York",
+        "at": "2026-11-03T10:00:00-05:00",
+        "mood": "neutral",
+        "memories": []
+      },
+      "turns": [
+        {
+          "text": "I prefer plums to pears.",
+          "minutes_after_start": 0
+        },
+        {
+          "text": "A film had the phrase またね in it. I just liked how it sounded.",
+          "minutes_after_start": 2
+        },
+        {
+          "text": "Do you remember which fruit I prefer?",
+          "minutes_after_start": 4
+        },
+        {
+          "text": "さっき好きだと言った果物は何だった？",
+          "minutes_after_start": 6,
+          "locale": "ja"
+        }
+      ],
+      "checks": [
+        "A Japanese quotation alone does not change the response language.",
+        "After the app locale changes, answer in Japanese and retain the plum preference.",
+        "Do not invent a new preference or reason."
+      ]
+    }
+  ]
+}

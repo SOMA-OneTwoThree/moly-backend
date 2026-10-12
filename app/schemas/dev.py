@@ -164,6 +164,26 @@ class EvalResultOut(StrictResponse):
     model_snapshot: str = ""
 
 
+class ChatEvalRuntimeMetadata(StrictResponse):
+    """Configured chat settings, separate from the requested/observed eval model."""
+
+    chat_model: Literal[
+        "claude-sonnet-5", "claude-haiku-4-5-20251001",
+        "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-6-luna", "gpt-6-sol",
+        "gemini-3.6-flash", "gemini-3.5-flash-lite",
+    ]
+    embedding_model: Literal[
+        "text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002",
+    ]
+    llm_max_tokens: int = Field(strict=True, gt=0)
+
+
+class ChatEvalSuccessOut(EvalResultOut):
+    error: None
+    deployment_sha: str = Field(strict=True, pattern=r"^(?:[0-9a-f]{40}|unknown)$")
+    runtime_metadata: ChatEvalRuntimeMetadata
+
+
 class ChatCompareResponse(StrictResponse):
     results: list[EvalResultOut]
 

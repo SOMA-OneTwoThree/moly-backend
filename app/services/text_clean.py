@@ -26,6 +26,7 @@ JUNK = re.compile(
 ELLIPSIS = re.compile(r"\.{2,}|…+")            # ".." "..." / "…" (한 글자여도 말줄임표)
 STRAY = re.compile(r"[*_`~#—–\-]+")            # 마크다운(**,_,`)·대시·물결·해시 — 부호 화이트리스트 밖
 _STRAY_KEEP_HYPHEN = re.compile(r"[*_`~#—–]+")  # ASCII 하이픈(-) 유지 — 영어 자연 부호(laid-back)
+_STRAY_KEEP_DASHES = re.compile(r"[*_`~#]+")  # 문장·범위의 대시는 원문 그대로 보존
 _WS = re.compile(r"\s+")
 _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
 
@@ -49,7 +50,7 @@ _ALLOWED_LETTERS = {
     # 형태로 들어와도 한글이 통째로 지워지지 않게 하기 위해서다.
     "ko": "\uac00-\ud7a3\u3131-\u318e\u1100-\u11ff",
     # 가나 + 한자(기본 확장A 호환 확장B) + 탁점(\u3099~) — 탁점은 분리된 가나의 정상 구성요소다.
-    "ja": r"぀-ヿ㐀-䶿一-鿿豈-﫿\U00020000-\U0002FA1F" "\u3099-\u309a\uff66-\uff9f",  # 끝은 반각 가타카나
+    "ja": r"々〆぀-ヿ㐀-䶿一-鿿豈-﫿\U00020000-\U0002FA1F" "\u3099-\u309a\uff66-\uff9f",  # 끝은 반각 가타카나
     "en": "",  # 라틴뿐 — 위 공통 계열로 충분하다
 }
 _ALLOWED_RE = {
@@ -92,16 +93,18 @@ def _filter_for(language: str | None) -> tuple[bool, re.Pattern[str] | None]:
     return True, _ALLOWED_RE[lang]
 
 
-def strip_symbols(text: str, *, keep_hyphen: bool = False) -> str:
+def strip_symbols(text: str, *, keep_hyphen: bool = False, preserve_dashes: bool = False) -> str:
     """깨진/투명/제어문자 + 말줄임표·마크다운·대시류 제거 + 공백 정규화. 채팅·일기 공용.
 
     keep_hyphen=True면 ASCII 하이픈(-)을 남긴다(영어 응답의 자연 부호 laid-back 보존). 기본(ko)은 제거.
+    preserve_dashes=True면 -, –, —를 모두 남긴다. 비한국어 채팅만 명시적으로 켜며 일기 기본값은 유지한다.
     """
     if not text:
         return text
     out = JUNK.sub("", text)      # 깨짐(�)·제로폭·BOM·제어 제거(재결합 위해 "")
     out = ELLIPSIS.sub(" ", out)
-    out = (_STRAY_KEEP_HYPHEN if keep_hyphen else STRAY).sub(" ", out)
+    stray = _STRAY_KEEP_DASHES if preserve_dashes else (_STRAY_KEEP_HYPHEN if keep_hyphen else STRAY)
+    out = stray.sub(" ", out)
     out = _WS.sub(" ", out)
     return _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
 

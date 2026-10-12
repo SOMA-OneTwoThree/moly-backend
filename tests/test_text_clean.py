@@ -1,5 +1,33 @@
 """부호 정제 공용 util — 마크다운·말줄임표·대시 제거, 허용부호·이름토큰 보존."""
+import pytest
+
 from app.services import text_clean
+
+
+@pytest.mark.parametrize("text", ["人々が集まった。", "時々、少々休む。", "〆切は二〇二六年。"])
+def test_japanese_orthographic_letters_are_preserved(text):
+    assert text_clean.has_foreign(text, language="ja") is False
+    assert text_clean.strip_foreign(text, language="ja") == text
+
+
+def test_japanese_letters_do_not_disable_foreign_filter_or_nickname_preservation():
+    text = "Анна、時々〆切を確認する。 Σ"
+    assert text_clean.has_foreign(text, language="ja", keep="Анна") is True
+    assert text_clean.strip_foreign(text, language="ja", keep="Анна") == "Анна、時々〆切を確認する。"
+
+
+@pytest.mark.parametrize("keep_hyphen", [False, True])
+def test_opt_in_dash_preservation_keeps_boundaries_and_other_cleanup(keep_hyphen):
+    raw = "**Take** a breath—then decide. 3–5 laid-back.\nWait — no rush…\u200b"
+    assert text_clean.strip_symbols(raw, keep_hyphen=keep_hyphen, preserve_dashes=True) == (
+        "Take a breath—then decide. 3–5 laid-back. Wait — no rush"
+    )
+
+
+def test_default_and_hyphen_only_symbol_contracts_are_unchanged():
+    text = "A—B 3–5 laid-back"
+    assert text_clean.strip_symbols(text) == "A B 3 5 laid back"
+    assert text_clean.strip_symbols(text, keep_hyphen=True) == "A B 3 5 laid-back"
 
 
 def test_strip_markdown_bold_and_dash():

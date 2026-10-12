@@ -241,12 +241,12 @@ async def test_next_segment_starts_after_the_previous_checkpoint(monkeypatch, sp
         id=uuid.uuid4(), through_message_id=10, summary="앞부분 요약",
         version=checkpoint.SUMMARIZER_VERSION, source_hash="a" * 64,
     )
-    session = _Session(execute_items=_segment(40))
+    session = _Session(execute_items=_segment(50))
 
     await _post(session, monkeypatch, spy)
 
     plan = spy["enqueued"][0]["plan"]
-    assert plan.source_message_ids == tuple(range(11, 21))  # #10까지는 이미 덮였다
+    assert plan.source_message_ids == tuple(range(11, 31))  # #10까지는 이미 덮였다
     assert plan.previous_through_message_id == 10
 
 

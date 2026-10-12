@@ -620,3 +620,24 @@ async def test_forget_between_check_and_insert_writes_nothing(db, store, llm_cal
         cj.checkpoint_repo.read_memory_generation = orig
 
     assert store["rows"] == []                  # 저장 0
+
+
+@pytest.mark.parametrize("state", ["ready", "running", "dead", "cancelled", "succeeded"])
+@pytest.mark.parametrize("generation", [0, 1])
+async def test_pending_coalescing_is_current_generation_and_nonterminal_only(db, store, state, generation):
+    session = _JobsSession(db)
+    store["latest"] = None
+    source = [checkpoint.SourceMessage(i, "user", "normal", "Synthetic") for i in range(1, 41)]
+    first = await checkpoint_repo.maybe_enqueue(session, user_id=_UID, messages=source)
+    db.rows[first]["state"] = state
+    payload = _json(db.rows[first]["payload"])
+    payload["memory_generation"] = generation
+    db.rows[first]["payload"] = json.dumps(payload)
+    source += [checkpoint.SourceMessage(i, "user", "normal", "Synthetic") for i in (41, 42)]
+    second = await checkpoint_repo.maybe_enqueue(session, user_id=_UID, messages=source)
+    if state in {"ready", "running"} and generation == 0:
+        assert second is None
+        assert len(db.rows) == 1
+    else:
+        assert second is not None
+        assert len(db.rows) == 2

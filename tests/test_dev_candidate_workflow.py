@@ -327,3 +327,237 @@ def test_workflow_trusted_controls_and_compatibility():
         if "run" in step:
             assert "candidate-src" not in step["run"]
     assert document["concurrency"]["group"] == "deploy-moly-backend-dev"
+
+
+def runtime_payload():
+    import copy
+    api = dict(git_sha=OLD, environment="development", context_checkpoint_enabled=True,
+               current_turn_context_enabled=True, model_chat="gpt-6-luna",
+               embedder_model="text-embedding-3-small", llm_max_tokens=1024,
+               sdk=dict(control.RUNTIME_SDK))
+    consumer = dict(git_sha=OLD, environment="development", context_checkpoint_enabled=True,
+                    model_utility="gpt-6-luna", llm_timeout_s=60.0,
+                    job_content_timeout_s=120.0, job_content_lease_s=150.0,
+                    job_content_heartbeat_s=20.0, job_content_max_attempts=3,
+                    job_finalize_timeout_s=5.0, sdk=dict(control.RUNTIME_SDK))
+    identity = {"image": "sha256:" + "d" * 64, "running": True}
+    return {"status": "available", "containers": {role: copy.deepcopy(identity) for role in ("api", "consumer")},
+            "settings": {"api": api, "consumer": consumer}}
+
+
+def mock_runtime_rechecks(monkeypatch):
+    monkeypatch.setattr(control, "host_probe", lambda _: {
+        "version": OLD, "ready": True, "development": True,
+        "flags": {key: True for key in control.FLAGS}})
+    monkeypatch.setattr(control, "health", lambda _: {"status": "ok", "version": OLD})
+
+
+def test_runtime_probe_fixed_remote_program_and_success(monkeypatch, capsys):
+    import contextlib
+    import io
+    import shlex
+    payload = runtime_payload()
+    docker_calls = []
+
+    def docker(args, **kwargs):
+        docker_calls.append(args)
+        assert kwargs == {"capture_output": True, "text": True, "timeout": 10, "check": False}
+        if args[:2] == ["docker", "inspect"]:
+            assert args[2:4] == ["--format", '{"image":{{json .Image}},"running":{{json .State.Running}}}']
+            role = {"moly-backend": "api", "moly-consumer": "consumer"}[args[4]]
+            value = payload["containers"][role]
+        else:
+            assert args[:2] == ["docker", "exec"] and args[3:5] == ["python", "-c"]
+            role = {"moly-backend": "api", "moly-consumer": "consumer"}[args[2]]
+            assert "model_dump" not in args[5] and "os.environ" not in args[5]
+            value = payload["settings"][role]
+        return SimpleNamespace(returncode=0, stdout=json.dumps(value), stderr="DO_NOT_SHOW")
+
+    def send(instance, command, *, seconds):
+        assert instance == INSTANCE and seconds == 90
+        assert command.splitlines()[:2] == ["set -eu", control.MARKER_GUARD]
+        assert ".Config.Env" not in command and "backend.env" not in command
+        # shlex-quoted program contains physical newlines; split the complete shell suffix.
+        parts = shlex.split(command.split("\n", 2)[2])
+        assert parts[:2] == ["python3", "-c"]
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            exec(compile(parts[2], "runtime-probe", "exec"), {})
+        assert "DO_NOT_SHOW" not in out.getvalue()
+        return {"StandardOutputContent": out.getvalue()}
+
+    monkeypatch.setattr(control.subprocess, "run", docker)
+    monkeypatch.setattr(control, "send_command", send)
+    mock_runtime_rechecks(monkeypatch)
+    result = control.runtime_probe(INSTANCE, OLD)
+    assert result["status"] == "available" and result["utility_provider"] == "openai"
+    assert result["settings"] == payload["settings"]
+    assert len(docker_calls) == 6  # before images, settings, after images
+    assert "DO_NOT_SHOW" not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("role,key,value,reason", [
+    ("api", "model_chat", "sk-fake-private-value", "model_unapproved"),
+    ("consumer", "model_utility", "claude-unknown", "model_unapproved"),
+    ("api", "embedder_model", "https://secret.invalid/token", "model_unapproved"),
+    ("api", "context_checkpoint_enabled", 1, "runtime_shape_invalid"),
+    ("consumer", "context_checkpoint_enabled", "true", "runtime_shape_invalid"),
+    ("api", "llm_max_tokens", True, "runtime_limits_invalid"),
+    ("api", "llm_max_tokens", "1024", "runtime_limits_invalid"),
+    ("api", "llm_max_tokens", 0, "runtime_limits_invalid"),
+    ("consumer", "job_content_max_attempts", True, "runtime_limits_invalid"),
+    ("consumer", "job_content_max_attempts", 3.0, "runtime_limits_invalid"),
+    ("consumer", "job_content_heartbeat_s", float("nan"), "runtime_limits_invalid"),
+    ("consumer", "job_content_lease_s", float("inf"), "runtime_limits_invalid"),
+    ("consumer", "job_content_timeout_s", "120", "runtime_limits_invalid"),
+    ("consumer", "llm_timeout_s", True, "runtime_limits_invalid"),
+    ("consumer", "job_content_lease_s", 125, "runtime_limits_invalid"),
+    ("consumer", "job_content_heartbeat_s", 21, "runtime_limits_invalid"),
+    ("consumer", "llm_timeout_s", 121, "runtime_limits_invalid"),
+    ("consumer", "git_sha", BASE, "identity_drift"),
+    ("api", "environment", "production", "identity_drift"),
+])
+def test_runtime_values_fail_closed_without_raw_output(monkeypatch, capsys, role, key, value, reason):
+    payload = runtime_payload()
+    payload["settings"][role][key] = value
+    monkeypatch.setattr(control, "send_command", lambda *_a, **_k: {"StandardOutputContent": json.dumps(payload)})
+    monkeypatch.setattr(control, "host_probe", lambda _: pytest.fail("recheck before invalid values rejected"))
+    assert control.runtime_probe(INSTANCE, OLD) == {"status": "unavailable", "reason": reason}
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("mutate,reason", [
+    (lambda p: p.update(secret="DO_NOT_SHOW"), "runtime_shape_invalid"),
+    (lambda p: p["settings"]["api"].update(secret="DO_NOT_SHOW"), "runtime_shape_invalid"),
+    (lambda p: p["settings"]["consumer"]["sdk"].update(openai="DO_NOT_SHOW"), "sdk_unapproved"),
+    (lambda p: p["settings"]["api"]["sdk"].update(extra="DO_NOT_SHOW"), "sdk_unapproved"),
+    (lambda p: p["containers"]["consumer"].update(image="sha256:" + "e" * 64), "identity_drift"),
+    (lambda p: p["containers"]["consumer"].update(running=False), "container_unavailable"),
+    (lambda p: p["containers"]["api"].update(running=1), "container_unavailable"),
+    (lambda p: p["containers"].pop("consumer"), "runtime_shape_invalid"),
+])
+def test_runtime_extra_fields_sdk_and_container_drift(monkeypatch, capsys, mutate, reason):
+    payload = runtime_payload()
+    mutate(payload)
+    monkeypatch.setattr(control, "send_command", lambda *_a, **_k: {
+        "StandardOutputContent": json.dumps(payload), "StandardErrorContent": "DO_NOT_SHOW"})
+    assert control.runtime_probe(INSTANCE, OLD) == {"status": "unavailable", "reason": reason}
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("raw", ["[]", "DO_NOT_SHOW", "x" * 8193,
+    '{"status":"unavailable","reason":"DO_NOT_SHOW"}',
+    '{"status":"unavailable","status":"available","reason":"identity_drift"}',
+])
+def test_runtime_malformed_bodies_are_not_exposed(monkeypatch, capsys, raw):
+    monkeypatch.setattr(control, "send_command", lambda *_a, **_k: {"StandardOutputContent": raw})
+    assert control.runtime_probe(INSTANCE, OLD) == {"status": "unavailable", "reason": "runtime_shape_invalid"}
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("field,value,reason", [
+    ("model_utility", "sk-fake-secret", "model_unapproved"),
+    ("sdk", {"openai": "sk-fake-secret", "anthropic": "0.116.0"}, "sdk_unapproved"),
+])
+def test_remote_validator_hides_child_failure_and_unapproved_model(monkeypatch, capsys, field, value, reason):
+    import contextlib
+    import io
+    import shlex
+    payload = runtime_payload()
+    payload["settings"]["consumer"][field] = value
+
+    def docker(args, **kwargs):
+        if args[1] == "inspect":
+            value = payload["containers"]["api"]
+        else:
+            value = payload["settings"]["api" if args[2] == "moly-backend" else "consumer"]
+        return SimpleNamespace(returncode=0, stdout=json.dumps(value), stderr="sk-fake-secret")
+
+    def send(instance, command, **kwargs):
+        program = shlex.split(command.split("\n", 2)[2])[2]
+        captured = io.StringIO()
+        with contextlib.redirect_stdout(captured):
+            exec(compile(program, "remote-runtime", "exec"), {})
+        assert "sk-fake-secret" not in captured.getvalue()
+        return {"StandardOutputContent": captured.getvalue()}
+
+    monkeypatch.setattr(control.subprocess, "run", docker)
+    monkeypatch.setattr(control, "send_command", send)
+    assert control.runtime_probe(INSTANCE, OLD)["reason"] == reason
+    monkeypatch.setattr(control.subprocess, "run", lambda *_a, **_k: SimpleNamespace(
+        returncode=1, stdout="sk-fake-secret", stderr="sk-fake-secret"))
+    assert control.runtime_probe(INSTANCE, OLD)["reason"] == "container_unavailable"
+    assert capsys.readouterr().out == ""
+
+
+def test_runtime_collection_rejects_container_replacement_during_snapshot(monkeypatch):
+    payload = runtime_payload()
+    inspections = 0
+
+    def docker(args, **_kwargs):
+        nonlocal inspections
+        if args[1] == "inspect":
+            inspections += 1
+            value = dict(payload["containers"]["api"])
+            if inspections > 2:
+                value["image"] = "sha256:" + "e" * 64
+        else:
+            value = payload["settings"]["api" if args[2] == "moly-backend" else "consumer"]
+        return SimpleNamespace(returncode=0, stdout=json.dumps(value))
+
+    monkeypatch.setattr(control.subprocess, "run", docker)
+    with pytest.raises(ValueError, match="^identity_drift$"):
+        control._runtime_collect()
+
+
+def test_runtime_remote_exception_is_fixed_and_never_exposes_message(monkeypatch, capsys):
+    def failed_send(*_args, **_kwargs):
+        raise RuntimeError("sk-fake-secret https://hooks.invalid/private")
+
+    monkeypatch.setattr(control, "send_command", failed_send)
+    assert control.runtime_probe(INSTANCE, OLD) == {"status": "unavailable", "reason": "runtime_unavailable"}
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize("change", ["host", "public", "flags"])
+def test_runtime_rechecks_after_snapshot(monkeypatch, change):
+    payload = runtime_payload()
+    monkeypatch.setattr(control, "send_command", lambda *_a, **_k: {"StandardOutputContent": json.dumps(payload)})
+    mock_runtime_rechecks(monkeypatch)
+    if change == "public":
+        monkeypatch.setattr(control, "health", lambda _: {"version": BASE})
+    else:
+        monkeypatch.setattr(control, "host_probe", lambda _: {
+            "version": BASE if change == "host" else OLD,
+            "flags": {key: change != "flags" for key in control.FLAGS}})
+    assert control.runtime_probe(INSTANCE, OLD) == {"status": "unavailable", "reason": "identity_drift"}
+
+
+def test_new_diagnostics_only_run_for_explicit_inspect(monkeypatch, capsys):
+    calls = []
+    monkeypatch.setattr(control, "discover", lambda: ({"running": 1}, [INSTANCE]))
+    mock_runtime_rechecks(monkeypatch)
+    monkeypatch.setattr(control, "require_image", lambda _: None)
+    monkeypatch.setattr(control, "output", lambda **_: None)
+    monkeypatch.setattr(control, "runtime_probe", lambda *a: calls.append(a) or {"status": "available"})
+    control.inspect(True)
+    assert calls == []
+    control.inspect(False)
+    assert calls == [(INSTANCE, OLD)]
+    monkeypatch.setattr(control, "health", lambda _: {"version": BASE})
+    calls.clear()
+    control.inspect(False)
+    assert calls == []
+    assert '"reason": "identity_drift"' in capsys.readouterr().out
+
+
+def test_runtime_sdk_contract_matches_lock_and_inspect_files_do_not_autodeploy():
+    import tomllib
+    lock = tomllib.loads((ROOT / "uv.lock").read_text())
+    versions = {p["name"]: p["version"] for p in lock["package"]}
+    assert {key: versions[key] for key in control.RUNTIME_SDK} == control.RUNTIME_SDK
+    workflow = yaml.safe_load((ROOT / ".github/workflows/deploy-dev.yml").read_text())
+    event = workflow.get("on", workflow.get(True))
+    ignored = event["push"]["paths-ignore"]
+    assert ".github/scripts/dev_candidate.py" in ignored
+    assert "tests/test_dev_candidate_workflow.py" in ignored and "docs/**" in ignored

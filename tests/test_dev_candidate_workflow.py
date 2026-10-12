@@ -1,0 +1,254 @@
+"""Offline controls for the trusted development candidate deployment boundary."""
+from __future__ import annotations
+
+import importlib.util
+import json
+from pathlib import Path
+import subprocess
+from types import SimpleNamespace
+
+import pytest
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location("dev_candidate", ROOT / ".github/scripts/dev_candidate.py")
+control = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(control)
+BASE, CANDIDATE, OLD = "a" * 40, "b" * 40, "c" * 40
+INSTANCE = "i-1234567890abcdef0"
+
+
+@pytest.mark.parametrize("mode,candidate,image,verify", [
+    ("existing", "", "", "false"), ("existing", "", "dev-" + OLD, "false"),
+    ("existing", "", "", "true"), ("inspect", "", "", "false"),
+    ("candidate", CANDIDATE, "", "false"),
+])
+def test_compatible_inputs(mode, candidate, image, verify):
+    control.validate_inputs("refs/heads/dev", mode, candidate, image, verify)
+
+
+@pytest.mark.parametrize("ref,mode,candidate,image,verify", [
+    ("refs/heads/feature", "candidate", CANDIDATE, "", "false"),
+    ("refs/heads/main", "existing", "", "", "false"),
+    ("refs/heads/dev", "candidate", "", "", "false"),
+    ("refs/heads/dev", "candidate", "b" * 39, "", "false"),
+    ("refs/heads/dev", "candidate", "B" * 40, "", "false"),
+    ("refs/heads/dev", "candidate", CANDIDATE + "\necho unsafe", "", "false"),
+    ("refs/heads/dev", "candidate", CANDIDATE, "dev-" + OLD, "false"),
+    ("refs/heads/dev", "candidate", CANDIDATE, "", "true"),
+    ("refs/heads/dev", "inspect", "", "dev-" + OLD, "false"),
+    ("refs/heads/dev", "inspect", "", "", "true"),
+    ("refs/heads/dev", "existing", CANDIDATE, "", "false"),
+    ("refs/heads/dev", "existing", "", "prod-tag", "false"),
+    ("refs/heads/dev", "existing", "", "dev-" + OLD, "true"),
+])
+def test_unsafe_inputs_rejected_before_any_external_call(ref, mode, candidate, image, verify, monkeypatch):
+    monkeypatch.setattr(control, "run", lambda *_args, **_kw: pytest.fail("external call before validation"))
+    with pytest.raises(control.GuardError):
+        control.validate_inputs(ref, mode, candidate, image, verify)
+
+
+def test_source_requires_latest_dev_and_candidate_ancestry(monkeypatch):
+    monkeypatch.setattr(control, "github_commit", lambda ref: BASE if ref == "dev" else CANDIDATE)
+    calls = []
+
+    def run(args):
+        calls.append(args)
+        return BASE if args[1] == "rev-parse" else ""
+
+    monkeypatch.setattr(control, "run", run)
+    assert control.verify_source(CANDIDATE) == BASE
+    assert ["git", "merge-base", "--is-ancestor", BASE, CANDIDATE] in calls
+    monkeypatch.setattr(control, "run", lambda args: OLD)
+    with pytest.raises(control.GuardError, match="dev_changed"):
+        control.verify_source(CANDIDATE)
+
+
+def test_non_descendant_and_missing_repository_commit_fail(monkeypatch):
+    monkeypatch.setattr(control, "github_commit", lambda ref: BASE if ref == "dev" else CANDIDATE)
+
+    def run(args):
+        if args[1] == "merge-base":
+            raise control.GuardError("command_failed")
+        return BASE
+
+    monkeypatch.setattr(control, "run", run)
+    with pytest.raises(control.GuardError):
+        control.verify_source(CANDIDATE)
+    monkeypatch.setattr(control, "github_commit", lambda ref: BASE)
+    with pytest.raises(control.GuardError, match="candidate_not_in_repository"):
+        control.verify_source(CANDIDATE)
+
+
+def test_dev_drift_fails(monkeypatch):
+    monkeypatch.setattr(control, "github_commit", lambda ref: OLD)
+    with pytest.raises(control.GuardError, match="dev_changed"):
+        control.verify_drift(BASE)
+
+
+@pytest.mark.parametrize("running", [[], [INSTANCE, "i-1234567890abcdef1"]])
+def test_target_count_stops_before_host_or_build(monkeypatch, running):
+    monkeypatch.setattr(control, "discover", lambda: ({"running": len(running)}, running))
+    monkeypatch.setattr(control, "health", lambda _: {"status": "ok", "version": OLD})
+    monkeypatch.setattr(control, "host_probe", lambda _: pytest.fail("host probe must not run"))
+    with pytest.raises(control.GuardError, match="exactly_one"):
+        control.inspect(True)
+    control.inspect(False)
+
+
+def test_mismatched_public_host_and_missing_rollback_fail(monkeypatch):
+    monkeypatch.setattr(control, "discover", lambda: ({"running": 1}, [INSTANCE]))
+    monkeypatch.setattr(control, "health", lambda _: {"status": "ok", "version": OLD})
+    monkeypatch.setattr(control, "host_probe", lambda _: {"version": BASE})
+    monkeypatch.setattr(control, "require_image", lambda _: pytest.fail("image lookup before host match"))
+    with pytest.raises(control.GuardError, match="sha_mismatch"):
+        control.inspect(True)
+    monkeypatch.setattr(control, "host_probe", lambda _: {"version": OLD})
+    monkeypatch.setattr(control, "aws", lambda *_: {"imageDetails": []})
+    monkeypatch.setattr(control, "require_image", ORIGINAL_REQUIRE_IMAGE)
+    with pytest.raises(control.GuardError, match="rollback_image_missing"):
+        control.inspect(True)
+
+
+ORIGINAL_REQUIRE_IMAGE = control.require_image
+
+
+def test_probe_marker_precedes_docker_and_filters_extra_output(monkeypatch, capsys):
+    captured = []
+    value = {"version": OLD, "ready": True, "development": True,
+             "flags": {key: True for key in control.FLAGS}, "secret": "never-display"}
+
+    def send(instance, command):
+        captured.append(command)
+        return {"StandardOutputContent": json.dumps(value), "StandardErrorContent": "never-display"}
+
+    monkeypatch.setattr(control, "send_command", send)
+    result = control.host_probe(INSTANCE)
+    assert captured[0].index(control.MARKER_GUARD) < captured[0].index("docker exec")
+    assert "secret" not in result
+    assert "never-display" not in capsys.readouterr().out
+    value["flags"][control.FLAGS[0]] = "true"
+    with pytest.raises(control.GuardError, match="host_flags_invalid"):
+        control.host_probe(INSTANCE)
+
+
+@pytest.mark.parametrize("marker", ["prod", "", "devx"])
+def test_non_dev_marker_exits_before_following_command(tmp_path, marker):
+    path = tmp_path / "marker"
+    path.write_text(marker)
+    guard = control.MARKER_GUARD.replace("/etc/moly-env", str(path))
+    result = subprocess.run(["bash", "-c", guard + "\nprintf SHOULD_NOT_RUN"], capture_output=True, text=True)
+    assert result.returncode == 41
+    assert result.stdout.strip() == "DEV_MARKER_REQUIRED"
+
+
+def test_deploy_rechecks_target_before_any_mutating_command(monkeypatch):
+    monkeypatch.setattr(control, "require_image", lambda _: None)
+    monkeypatch.setattr(control, "discover", lambda: ({"running": 1}, ["i-1234567890abcdef1"]))
+    monkeypatch.setattr(control, "send_command", lambda *_args, **_kw: pytest.fail("must not deploy"))
+    with pytest.raises(control.GuardError, match="dev_target_changed"):
+        control.deploy(CANDIDATE, INSTANCE, "dev-" + OLD)
+
+
+@pytest.mark.parametrize("ready", [True, False])
+def test_success_requires_new_sha_and_host_readiness(monkeypatch, capsys, ready):
+    monkeypatch.setattr(control, "require_image", lambda _: None)
+    monkeypatch.setattr(control, "discover", lambda: ({"running": 1}, [INSTANCE]))
+    monkeypatch.setattr(control, "send_command", lambda *_a, **_kw: {})
+    monkeypatch.setattr(control.time, "sleep", lambda _: None)
+    public = iter([OLD] + [CANDIDATE] * 6)
+    monkeypatch.setattr(control, "health", lambda _: {"version": next(public)})
+    calls = []
+
+    def probe(instance):
+        calls.append(instance)
+        if len(calls) == 1:
+            return {"version": OLD}
+        if not ready:
+            raise control.GuardError("host_not_ready_dev")
+        return {"version": CANDIDATE, "ready": True, "development": True,
+                "flags": {key: True for key in control.FLAGS}}
+
+    monkeypatch.setattr(control, "host_probe", probe)
+    if ready:
+        control.deploy(CANDIDATE, INSTANCE, "dev-" + OLD)
+        result = json.loads(capsys.readouterr().out)
+        assert result["host"]["ready"] is True and result["host"]["version"] == CANDIDATE
+    else:
+        with pytest.raises(control.GuardError, match="readiness_not_observed"):
+            control.deploy(CANDIDATE, INSTANCE, "dev-" + OLD)
+        assert len(calls) == 7
+        assert "deployed_sha" not in capsys.readouterr().out
+
+
+def test_remote_failure_never_returns_raw_stdout_stderr(monkeypatch, capsys):
+    calls = iter([{"Command": {"CommandId": "a" * 8 + "-" + "b" * 27}},
+                  {"Status": "Failed", "StandardOutputContent": "privatebody",
+                   "StandardErrorContent": "privatebody"}])
+    monkeypatch.setattr(control, "aws", lambda *_: next(calls))
+    monkeypatch.setattr(control.time, "sleep", lambda _: None)
+    with pytest.raises(control.GuardError, match="remote_command_failed") as error:
+        control.send_command(INSTANCE, control.MARKER_GUARD)
+    assert "privatebody" not in str(error.value)
+    assert "privatebody" not in str(capsys.readouterr())
+
+
+def test_subprocess_failure_redacted(monkeypatch):
+    monkeypatch.setattr(control.subprocess, "run", lambda *_a, **_k: SimpleNamespace(
+        returncode=1, stdout="privatebody", stderr="privatebody"))
+    with pytest.raises(control.GuardError, match="command_failed") as error:
+        control.run(["ignored"])
+    assert "privatebody" not in str(error.value)
+
+
+def test_invalid_public_sha_rejected(monkeypatch):
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _bound):
+            return b'{"status":"ok","version":"invalid","secret":"privatebody"}'
+
+    monkeypatch.setattr(control, "open_health", lambda *_args, **_kw: Response())
+    with pytest.raises(control.GuardError, match="public_health_invalid"):
+        control.health("https://invalid.invalid")
+
+
+def test_local_default_aws_and_health_redirect_are_not_available(monkeypatch):
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setattr(control, "run", lambda *_a, **_kw: pytest.fail("must not use default AWS"))
+    with pytest.raises(control.GuardError, match="project_workflow_required"):
+        control.aws("ec2", "describe-instances")
+    with pytest.raises(control.GuardError, match="fixed_dev_health_required"):
+        control.open_health("https://moly.asia/health")
+    assert control.NoRedirect().redirect_request(None, None, None, None, None, None) is None
+
+
+def test_workflow_trusted_controls_and_compatibility():
+    document = yaml.safe_load((ROOT / ".github/workflows/deploy-dev.yml").read_text())
+    event = document.get("on", document.get(True))
+    assert event["workflow_dispatch"]["inputs"]["mode"]["default"] == "existing"
+    assert event["push"]["branches"] == ["dev"]
+    assert "app/**" not in event["push"]["paths-ignore"]
+    jobs = document["jobs"]
+    assert "id-token" not in jobs["validate-inputs"]["permissions"]
+    for job in ("build-and-deploy", "verify-subscription", "candidate-control"):
+        assert jobs[job]["needs"] == "validate-inputs"
+    steps = jobs["candidate-control"]["steps"]
+    names = [step["name"] for step in steps]
+    assert names.index("Inspect development target before any build") < names.index("Build and push verified candidate")
+    candidate = next(s for s in steps if s["name"] == "Checkout candidate separately from trusted controls")
+    assert candidate["with"]["path"] == "candidate-src"
+    assert candidate["with"]["persist-credentials"] is False
+    build = next(s for s in steps if s["name"] == "Build and push verified candidate")
+    assert build["with"]["context"] == "./candidate-src"
+    assert not ({"secrets", "secret-envs", "ssh", "allow"} & build["with"].keys())
+    for step in steps:
+        if "run" in step:
+            assert "candidate-src" not in step["run"]
+    assert document["concurrency"]["group"] == "deploy-moly-backend-dev"

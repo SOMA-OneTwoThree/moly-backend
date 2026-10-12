@@ -34,6 +34,74 @@ prod의 `expected_instances`는 기본 2다. 1로 줄이면 남은 호스트를 
 비므로 가용성을 바꾸는 운영 판단이다. 호스트에서 컨테이너를 직접 교체해 롤링 절차를 우회하지 않는다.
 호스트는 해당 저장소의 최근 이미지 3개를 유지하며 ECR 보관 정책과는 별개다.
 
+### 개발 후보 이미지 검증 경로 (2026-10-12, 실행 전)
+
+기능 PR을 마지막에 만들기 위해, 아직 dev에 병합하지 않은 완성 후보를 기존 개발 서버에서
+검증할 경로가 필요하다. 기준 `origin/dev=6fb3ea72`의 workflow는 현재 dev 커밋 빌드와 이미
+존재하는 dev 이미지 롤백만 지원한다. infra는 호스트 배포만 담당하며 별도 후보 빌드 workflow가
+없다. 다음 보완은 개발 배포 workflow만의 독립 작업이다. 로컬 구현·검증 단계이며 배포 완료가 아니다.
+
+| dispatch 입력 | 동작·호환성 |
+| --- | --- |
+| `mode=existing` (기본) | 기존 빈 입력은 현재 dev 빌드·배포. 기존 `image_tag`는 확인된 dev 이미지 재배포. `verify_subscription_only`도 기존 의미 유지 |
+| `mode=inspect` | 상태 카운트·공개 health·조건부 개발 호스트의 허용 상태만 조회. 빌드·배포·설정 변경 없음 |
+| `mode=candidate`, `candidate_sha` | 해당 저장소의 검증된 40자리 소문자 SHA를 개발 이미지로 빌드·시험 배포 |
+
+`candidate_sha`는 candidate에만 허용한다. inspect/candidate와 `image_tag` 또는 verify-only의
+조합은 거부한다. candidate의 빈 SHA, 형식 오류, 잘못된 mode도 OIDC 인증 전에 실패시킨다.
+`workflow_dispatch`의 실행 ref는 반드시 `refs/heads/dev`다. 후보 브랜치에서 workflow를 실행하거나
+후보가 제공하는 workflow/스크립트를 인증·대상 검증에 사용하지 않는다.
+
+1. trusted dev를 checkout하고 최신 dev 기준을 다시 fetch한다. 후보 SHA가 같은 저장소의 commit이고
+   최신 dev의 descendant인지 `merge-base --is-ancestor`로 확인한다. 입력은 GitHub 표현식을 shell
+   코드에 삽입하지 않고 환경변수로 전달한다. checkout은 `persist-credentials: false`다.
+2. 기존 개발 OIDC 역할·리전·ECR·동일 concurrency만 사용한다. 운영 역할·대상·ALB 권한은 사용하지
+   않는다. 기본 로컬 AWS 인증도 사용하지 않는다. `Role=moly-backend-dev`의 state별 개수와
+   `https://dev.moly.asia`의 health status/SHA를 확인한다. candidate의 running 대상이 정확히
+   1개가 아니면 빌드 전에 중단한다. inspect는 개수 0/복수도 진단 결과로 남기되 호스트에는 접근하지 않는다.
+3. 대상이 1개면 고정된 read-only SSM 명령만 실행한다. 첫 명령은 `/etc/moly-env`가 정확히 `dev`인지
+   확인한다. 실패하면 hostname·health·설정 조회 전에 고정 오류로 종료한다. 통과 후 localhost
+   health/ready의 상태·40자리 SHA, 설정의 checkpoint/current-turn boolean만 가져온다.
+   원시 SSM stdout/stderr나 환경 전체를 출력하지 않고 허용 필드만 타입 검증해 다시 출력한다.
+   이미지 환경값은 DB override를 합한 실제 설정으로 과장하지 않는다. temporal은 Settings 속성이
+   아닌 별도 DB 플래그이므로 이 호스트 검사에서는 조회하지 않는다.
+4. candidate는 공개 health SHA와 해당 호스트 SHA가 일치해야 진행한다. 불일치·잘못된 응답·미확인은
+   중단한다. 일치는 연결관계의 보조 증거이며 ALB topology 전체를 증명하지 않는다.
+   현재 SHA에 대응하는 `moly-backend-dev:dev-<SHA>` 이미지 존재를 확인해 rollback 대상을 확보한다.
+5. trusted 검증이 끝난 뒤 후보 SHA를 별도 `candidate-src` 경로에 checkout해 기존 build/push 경로를
+   사용한다. 배포·출력 정제 helper는 계속 trusted dev의 고정 경로를 사용한다. 후보 checkout으로
+   덮인 helper를 실행하지 않는다. 태그·빌드의
+   `GIT_SHA`는 요청한 후보 SHA로 고정한다. Docker에 AWS/OIDC/GitHub 비밀이나 host socket을
+   전달하지 않는다. 후보 배너 자산 검사도 기존 dev 빌드와 같이 수행한다.
+   이미지는 `dev-` 이름만 쓴다. 배포 직전에도 dev marker를 다시 검사한 뒤 기존 infra 배포를 호출한다.
+6. 공개 endpoint의 전체 SHA와 개발 호스트 SHA가 모두 요청한 SHA여야 하고, 호스트가 다시
+   development/DB ready를 확인해야 성공이다. 6회 이내의 제한된 재검사에서도 확인되지 않으면
+   미완료로 남긴다. 운영자는 현재 SHA를 확인한 뒤 앞서 확보한 이미지로 기존 dev 롤백 경로를
+   사용한다. 자동 rollback이나 운영 반영은 추가하지 않는다.
+
+workflow/docs-only push 때문에 bootstrap 자체가 기존 앱을 자동 배포하지 않도록 push의
+`paths-ignore`를 해당 dev workflow와 `docs/**`로 좁힌다. 런타임 파일이 함께 바뀐 push는 기존대로
+자동 배포한다. 검증용 helper가 추가되면 helper-only bootstrap 변경도 명시적으로 제외하고,
+그 helper는 애플리케이션 런타임에 포함하거나 호출하지 않는다.
+
+검증은 입력 조합·SHA 형식/존재/ancestry·0/복수 대상·prod marker·health 불일치·rollback 부재의
+거부를 네트워크 없는 fixture로 먼저 고정한다. YAML/shell lint와 독립 권한·로그 검토를 마친 뒤
+bootstrap PR을 마지막에 한 번 만든다. bootstrap을 dev에 병합한 후 기능 브랜치를 새 dev 기준에
+맞추고, 단일 배포 담당자가 candidate를 시험 배포한다. 기능 구현·실험·수정 완료 후 기능 PR을 만든다.
+2026-10-12 외부 접속 없는 경계 테스트를 실행했다. YAML을 파싱하고 workflow의 shell step
+10개를 `bash -n`으로 검사했다. 공식 GitHub release의 SHA256을 대조한 actionlint 1.7.12와
+ShellCheck 0.11.0을 임시 경로에서 실행하고 제거했다. 초기 검사에서 기존 미사용 loop 변수와
+v4 action이 지원하지 않는 optional 입력을 발견해 수정했다. 최종 결과는 아래 검증 기록에 남긴다.
+실제 GitHub OIDC 권한·대상·원격 명령은 아직 검증하지 않았다.
+아래 로컬 검증 완료 시점까지 AWS 조회·SSM 실행·이미지 빌드·배포는 실행하지 않았다. PR·CI는
+이 검증과 독립 검토 후 진행한다. `.github/scripts/dev_candidate.py`는
+개발 workflow 환경 guard 없이 AWS CLI를 호출하지 않으며 공개 health redirect도 따라가지 않는다.
+
+최종 로컬 검증: 신규 경계 테스트 36개 통과, 전체 단위 테스트 2,772개 통과(12.35초, 기존
+Starlette 경고 1개), Ruff·`git diff --check` 통과, actionlint 1.7.12 + ShellCheck 0.11.0 exit 0.
+단위 테스트에는 접속하지 않는 문법상 유효한 더미 DB URL만 사용했다. 개발 DB를 대상으로 한
+대화 기능 테스트나 다른 feature worktree의 테스트 수와 합산하지 않는다.
+
 ## 설정과 프로세스
 
 비밀값은 환경별 SSM `/moly/dev/`, `/moly/prod/`에 둔다. 필요한 키와 실제 환경변수 매핑은

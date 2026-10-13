@@ -36,6 +36,7 @@ CREATE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp wit
     AS $$
 DECLARE
   v_required_count integer;
+  v_signup_trial_until timestamptz;
 BEGIN
   SELECT count(*) INTO v_required_count
   FROM public.products
@@ -48,8 +49,12 @@ BEGIN
     RAISE EXCEPTION 'appearance bootstrap products are not ready';
   END IF;
 
+  SELECT (value #>> '{}')::timestamptz INTO v_signup_trial_until
+  FROM public.app_config WHERE key = 'signup_trial_until';
+
   INSERT INTO public.profiles (id, trial_ends_at)
-  VALUES (p_user_id, p_created_at + interval '48 hours')
+  VALUES (p_user_id, CASE WHEN v_signup_trial_until IS NULL OR p_created_at < v_signup_trial_until
+    THEN p_created_at + interval '48 hours' END)
   ON CONFLICT (id) DO NOTHING;
 
   INSERT INTO public.user_items (user_id, product_id, source)
@@ -2986,6 +2991,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
   v_config jsonb;
   v_launch_until timestamptz;
+  v_signup_trial_until timestamptz;
   v_profile public.profiles%ROWTYPE;
   v_created timestamptz;
   v_now timestamptz := statement_timestamp();
@@ -2994,6 +3000,7 @@ DECLARE
 BEGIN
   SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';
   SELECT (value #>> '{}')::timestamptz INTO v_launch_until FROM public.app_config WHERE key = 'free_launch_until';
+  SELECT (value #>> '{}')::timestamptz INTO v_signup_trial_until FROM public.app_config WHERE key = 'signup_trial_until';
   SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id;
   SELECT created_at INTO v_created FROM auth.users WHERE id = p_user_id;
   v_new_member := v_profile.app_trial_started_at IS NOT NULL OR COALESCE(v_created >= CASE
@@ -3005,7 +3012,8 @@ BEGIN
   RETURN jsonb_build_object(
     'enabled', true,
     'self_trial_available', COALESCE(v_open AND v_new_member
-      AND v_profile.app_trial_started_at IS NULL AND v_now < v_created + interval '48 hours', false),
+      AND v_profile.app_trial_started_at IS NULL AND v_now < v_created + interval '48 hours'
+      AND (v_signup_trial_until IS NULL OR v_created < v_signup_trial_until), false),
     'legacy_offer_eligible', COALESCE(v_open AND NOT v_new_member
       AND v_now < (v_config->>'legacy_offer_expires_at')::timestamptz, false));
 END;

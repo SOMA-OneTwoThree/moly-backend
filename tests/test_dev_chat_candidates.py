@@ -239,3 +239,20 @@ def test_v5_dispatch_uses_retry_free_plain_registered_system(client, calls, prot
         candidate_id=candidate, max_tokens=192, language="ja",
     ))
     assert response.status_code == 422 and len(protocol_calls) == 1
+
+
+@pytest.mark.parametrize("candidate,model", [
+    ("voice-luna-none-ko-v6", "gpt-6-luna"),
+    ("voice-luna-low-ko-v6", "gpt-6-luna"),
+    ("voice-sol-none-ko-v6", "gpt-6-sol"),
+])
+def test_v6_api_enforces_registered_target_and_1024_cap(client, calls, protocol_calls, candidate, model):
+    request = payload(candidate_id=candidate, model=model, max_tokens=1024)
+    result = client.post("/dev/chat-eval", json=request)
+    assert result.status_code == 200 and calls == [] and len(protocol_calls) == 1
+    assert result.json()["candidate"]["version"] == "cappy-voice-20261014-v6"
+    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", "voice-free-ko-v5")[0]
+    for overrides in ({"max_tokens": 192}, {"model": "gpt-6-sol" if model == "gpt-6-luna"
+                                           else "gpt-6-luna"}, {"language": "en"}):
+        result = client.post("/dev/chat-eval", json={**request, **overrides})
+        assert result.status_code == 422 and len(protocol_calls) == 1

@@ -194,8 +194,9 @@ def _eval_system(
     if len(system) + sum(len(message.content) for message in req.messages) > 24_000:
         raise errors.validation("후보 평가 입력이 허용된 길이를 초과했어요.")
     if req.candidate_id in eval_reply_protocol.PROTOCOL_IDS:
-        if targets != [("openai", "gpt-6-luna")] or req.max_tokens not in (192, 1024):
-            raise errors.validation("응답 형식 시험은 고정 모델과 192/1024토큰만 사용해요.")
+        model, _, caps = eval_reply_protocol.protocol_profile(req.candidate_id)
+        if targets != [("openai", model)] or req.max_tokens not in caps:
+            raise errors.validation("응답 시험은 후보에 등록된 고정 모델과 출력 상한만 사용해요.")
         if eval_reply_protocol.input_bytes(system, _messages(req), req.candidate_id) > 24_000:
             raise errors.validation("응답 형식 시험 입력이 허용된 바이트 수를 초과했어요.")
     if req.messages[-1].role != "user":

@@ -10,10 +10,23 @@ from app.config import settings
 from app.services import llm, model_eval, prompts
 
 V4_PROTOCOL_IDS = ("voice-plain-ko-v4", "voice-speech-ko-v4", "voice-act-focus-ko-v4")
-PLAIN_PROTOCOL_IDS = (V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5")
+_V6_PROFILES = {
+    "voice-luna-none-ko-v6": ("gpt-6-luna", "none", (1024,)),
+    "voice-luna-low-ko-v6": ("gpt-6-luna", "low", (1024,)),
+    "voice-sol-none-ko-v6": ("gpt-6-sol", "none", (1024,)),
+}
+V6_PROTOCOL_IDS = tuple(_V6_PROFILES)
+PLAIN_PROTOCOL_IDS = (V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5", *V6_PROTOCOL_IDS)
 PROTOCOL_IDS = (*V4_PROTOCOL_IDS, *PLAIN_PROTOCOL_IDS[1:])
 _TIMEOUT_S = 10.0
 _ACTIONS = ("reply", "choice", "opinion", "question", "listen", "end")
+
+
+def protocol_profile(candidate_id: str) -> tuple[str, str, tuple[int, ...]]:
+    """Return server-owned model, reasoning and caps; no caller-supplied wire options."""
+    if candidate_id not in PROTOCOL_IDS:
+        raise ValueError("Unknown reply protocol")
+    return _V6_PROFILES.get(candidate_id, ("gpt-6-luna", "none", (192, 1024)))
 
 
 def response_format(candidate_id: str) -> dict | None:
@@ -44,10 +57,13 @@ def response_format(candidate_id: str) -> dict | None:
 
 
 def protocol_manifest(candidate_id: str, max_tokens: int) -> dict:
+    model, reasoning, caps = protocol_profile(candidate_id)
+    if max_tokens not in caps:
+        raise ValueError("Reply protocol requires its registered output cap")
     wire_format = response_format(candidate_id)
     ordered = json.dumps(wire_format, ensure_ascii=False, separators=(",", ":"))
     fixed = {
-        "model": "gpt-6-luna", "reasoning_effort": "none",
+        "model": model, "reasoning_effort": reasoning,
         "max_completion_tokens": max_tokens, "timeout": _TIMEOUT_S,
         "max_retries": 0, "response_format": wire_format,
     }
@@ -101,7 +117,8 @@ async def run(
     candidate_id: str, model: str, system: str, messages: list[dict], *, max_tokens: int,
     language: str = "ko",
 ) -> dict:
-    if settings.environment != "development" or model != "gpt-6-luna" or language != "ko":
+    expected_model, reasoning, caps = protocol_profile(candidate_id)
+    if settings.environment != "development" or model != expected_model or language != "ko":
         raise ValueError("Reply protocol is development-only for the registered model")
     expected, _ = prompts.eval_system_prompt(language, candidate_id)
     if system != expected:
@@ -111,7 +128,7 @@ async def run(
     if any(set(message) != {"role", "content"} or message["role"] not in {"user", "assistant"}
            or type(message["content"]) is not str for message in messages):
         raise ValueError("Reply protocol accepts only user and assistant text")
-    if max_tokens not in (192, 1024) or input_bytes(system, messages, candidate_id) > 24_000:
+    if max_tokens not in caps or input_bytes(system, messages, candidate_id) > 24_000:
         raise ValueError("Reply protocol exceeds fixed evaluation bounds")
     manifest = protocol_manifest(candidate_id, max_tokens)
     diagnostic = {
@@ -121,6 +138,8 @@ async def run(
         "sdk_create_calls": 0, "usage_known": False,
         "raw_json": None, "decisions": None, "field_order": None, "failure_kind": None,
     }
+    if candidate_id in V6_PROTOCOL_IDS:
+        diagnostic["reasoning_tokens"] = None
     result = model_eval.EvalResult("openai", model, None, 0, 0, 0, None)
     started = time.perf_counter()
     try:
@@ -128,7 +147,7 @@ async def run(
         _, transcript = llm.from_openai_messages(messages)
         kwargs = {
             "model": model, "messages": llm.to_openai_messages(system, transcript),
-            "reasoning_effort": "none", "max_completion_tokens": max_tokens,
+            "reasoning_effort": reasoning, "max_completion_tokens": max_tokens,
             "timeout": _TIMEOUT_S,
         }
         if manifest["response_format"] is not None:
@@ -145,6 +164,11 @@ async def run(
     else:
         result.model_snapshot = getattr(response, "model", None) or ""
         usage = getattr(response, "usage", None)
+        if candidate_id in V6_PROTOCOL_IDS:
+            details = getattr(usage, "completion_tokens_details", None)
+            reasoning_tokens = getattr(details, "reasoning_tokens", None)
+            if type(reasoning_tokens) is int and reasoning_tokens >= 0:
+                diagnostic["reasoning_tokens"] = reasoning_tokens
         known = all(type(getattr(usage, field, None)) is int and getattr(usage, field) >= 0
                     for field in ("prompt_tokens", "completion_tokens"))
         diagnostic["usage_known"] = known

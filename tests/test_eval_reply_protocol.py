@@ -17,6 +17,97 @@ PLAIN, SPEECH, ACT = protocol.V4_PROTOCOL_IDS
 SYSTEM = prompts.eval_system_prompt("ko", PLAIN)[0]
 MESSAGES = [{"role": "user", "content": "합성 입력"}]
 _FROZEN_KO_V3_SHA = "dc420452352b663a24466db1c4d6c40e16e07e58f00d9212e9232ef3dcbe838e"
+_FROZEN_KO_V5_SHA = "6d2ea1ae2b7b1d0581fb20b071064d8316903c33e7994d1053e9ecd90c8bd3a1"
+
+
+@pytest.mark.parametrize("candidate,model,reasoning", [
+    ("voice-luna-none-ko-v6", "gpt-6-luna", "none"),
+    ("voice-luna-low-ko-v6", "gpt-6-luna", "low"),
+    ("voice-sol-none-ko-v6", "gpt-6-sol", "none"),
+])
+async def test_v6_installed_sdk_wire_uses_exact_profile_and_preserves_full_completion_cost(
+    monkeypatch, candidate, model, reasoning,
+):
+    sent = []
+    raw = '  "原文" 그대로\n말해?  '
+
+    async def handler(request):
+        sent.append(json.loads(request.content))
+        return httpx.Response(200, json={
+            "id": "synthetic", "object": "chat.completion", "created": 1,
+            "model": model + "-snapshot", "choices": [{
+                "index": 0, "finish_reason": "stop",
+                "message": {"role": "assistant", "content": raw},
+            }], "usage": {"prompt_tokens": 100, "completion_tokens": 20,
+                          "total_tokens": 120, "completion_tokens_details": {"reasoning_tokens": 7}},
+        })
+
+    system, version = prompts.eval_system_prompt("ko", candidate)
+    assert version == "cappy-voice-20261014-v6"
+    assert hashlib.sha256(system.encode()).hexdigest() == _FROZEN_KO_V5_SHA
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        sdk = AsyncOpenAI(api_key="test-only", base_url="https://provider.invalid", http_client=http)
+        monkeypatch.setattr(llm, "_get_openai_client", lambda: sdk)
+        result = await protocol.run(candidate, model, system, MESSAGES, max_tokens=1024)
+        assert len(sent) == 1
+        assert sent[0] == {"model": model, "messages": [
+            {"role": "system", "content": system}, *MESSAGES,
+        ], "reasoning_effort": reasoning, "max_completion_tokens": 1024}
+        assert sdk.max_retries == 2 and not http.is_closed
+    assert result["text"] == raw and result["output_tokens"] == 20
+    assert result["est_cost_usd"] == (0.0004 if model == "gpt-6-sol" else 0.00002)
+    assert result["prototype"]["reasoning_tokens"] == 7
+    assert result["prototype"]["sdk_create_calls"] == 1
+    assert result["prototype"]["decisions"] is None
+    exact_kwargs = {
+        "model": model, "messages": sent[0]["messages"], "reasoning_effort": reasoning,
+        "max_completion_tokens": 1024, "timeout": 10.0,
+    }
+    assert result["prototype"]["request_sha256"] == hashlib.sha256(json.dumps(
+        exact_kwargs, ensure_ascii=False, separators=(",", ":"),
+    ).encode()).hexdigest()
+    assert protocol.response_format(candidate) is None
+
+
+@pytest.mark.parametrize("candidate", protocol.V6_PROTOCOL_IDS)
+@pytest.mark.parametrize("field,value", [("model", "gpt-5.6-luna"), ("max_tokens", 192),
+                                        ("language", "ja"), ("system", "arbitrary")])
+async def test_v6_rejects_unregistered_profile_before_client(monkeypatch, candidate, field, value):
+    def forbidden():
+        raise AssertionError("Invalid profile reached SDK")
+
+    monkeypatch.setattr(llm, "_get_openai_client", forbidden)
+    model, _, _ = protocol.protocol_profile(candidate)
+    kwargs = dict(candidate_id=candidate, model=model, max_tokens=1024,
+                  system=prompts.eval_system_prompt("ko", candidate)[0], messages=MESSAGES)
+    kwargs[field] = value
+    with pytest.raises(ValueError):
+        await protocol.run(**kwargs)
+
+
+@pytest.mark.parametrize("detail", [None, -1, True, "7"])
+async def test_v6_unknown_reasoning_detail_stays_null_without_changing_known_cost(monkeypatch, detail):
+    candidate = "voice-luna-low-ko-v6"
+    response = completion("직접 답", finish="length")
+    response.usage.completion_tokens_details = SimpleNamespace(reasoning_tokens=detail)
+    client = Client(response)
+    monkeypatch.setattr(llm, "_get_openai_client", lambda: client)
+    result = await protocol.run(candidate, "gpt-6-luna",
+                                prompts.eval_system_prompt("ko", candidate)[0],
+                                MESSAGES, max_tokens=1024)
+    assert result["prototype"]["reasoning_tokens"] is None
+    assert result["text"] is None and result["est_cost_usd"] == 0.00002
+    assert result["finish_reason"] == "length" and len(client.calls) == 1
+
+
+@pytest.mark.parametrize("candidate,digest", [
+    (PLAIN, "3d5d5eda230c5f1d2379e97ddc3dd67c17ed3554d35b757f33cb4a7f61505ea6"),
+    (SPEECH, "41ddbc148fa13ecbcebc26298cb5ff7228d2e3533cb0c11ced2b7e4651f7a3ed"),
+    (ACT, "75e6ea39957c4b8d9570b643a48eaf379030be2a839c8f7d4224d56409c91715"),
+])
+def test_legacy_wire_profiles_and_hashes_are_immutable(candidate, digest):
+    assert protocol.protocol_profile(candidate) == ("gpt-6-luna", "none", (192, 1024))
+    assert protocol.protocol_manifest(candidate, 1024)["wire_options_sha256"] == digest
 
 
 def completion(text, *, finish="stop", refusal=None, usage=True):
@@ -82,6 +173,7 @@ async def test_valid_protocol_preserves_decoded_speech_and_actual_usage(monkeypa
     assert result["finish_reason"] == "stop"
     assert result["prototype"]["raw_json"] == raw
     assert result["prototype"]["usage_known"] is True
+    assert "reasoning_tokens" not in result["prototype"]
     assert ("response_format" in client.calls[0]) is (candidate != PLAIN)
     expected_hash = hashlib.sha256(json.dumps(
         client.calls[0], ensure_ascii=False, separators=(",", ":"),
@@ -147,16 +239,20 @@ async def test_initialization_failure_counts_no_create_and_does_not_log_detail(m
     assert "synthetic private detail" not in json.dumps(result)
 
 
-async def test_external_cancel_propagates(monkeypatch):
+@pytest.mark.parametrize("candidate", [SPEECH, *protocol.V6_PROTOCOL_IDS])
+async def test_external_cancel_propagates(monkeypatch, candidate):
     client = Client(error=asyncio.CancelledError())
     monkeypatch.setattr(llm, "_get_openai_client", lambda: client)
+    model, _, caps = protocol.protocol_profile(candidate)
     with pytest.raises(asyncio.CancelledError):
-        await protocol.run(SPEECH, "gpt-6-luna", SYSTEM, MESSAGES, max_tokens=192)
+        await protocol.run(candidate, model, prompts.eval_system_prompt("ko", candidate)[0],
+                           MESSAGES, max_tokens=caps[0])
     assert len(client.calls) == 1
 
 
 @pytest.mark.parametrize("status", (429, 500, "read_timeout"))
-async def test_installed_sdk_sends_once_and_shared_client_remains_open(monkeypatch, status):
+@pytest.mark.parametrize("candidate", [SPEECH, *protocol.V6_PROTOCOL_IDS])
+async def test_installed_sdk_sends_once_and_shared_client_remains_open(monkeypatch, status, candidate):
     sent = []
 
     async def handler(request):
@@ -168,11 +264,15 @@ async def test_installed_sdk_sends_once_and_shared_client_remains_open(monkeypat
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
         sdk = AsyncOpenAI(api_key="test-only", base_url="https://provider.invalid", http_client=http)
         monkeypatch.setattr(llm, "_get_openai_client", lambda: sdk)
-        result = await protocol.run(SPEECH, "gpt-6-luna", SYSTEM, MESSAGES, max_tokens=192)
+        model, _, caps = protocol.protocol_profile(candidate)
+        result = await protocol.run(candidate, model, prompts.eval_system_prompt("ko", candidate)[0],
+                                    MESSAGES, max_tokens=caps[0])
         assert len(sent) == 1
         assert result["prototype"]["sdk_create_calls"] == 1
         assert result["est_cost_usd"] is None
         assert result["text"] is None
+        if candidate in protocol.V6_PROTOCOL_IDS:
+            assert result["prototype"]["reasoning_tokens"] is None
         assert sdk.max_retries == 2
         assert not http.is_closed
 

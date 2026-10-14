@@ -310,6 +310,9 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-act-focus-ko-v4",
     "voice-base-ko-v5",
     "voice-free-ko-v5",
+    "voice-luna-none-ko-v6",
+    "voice-luna-low-ko-v6",
+    "voice-sol-none-ko-v6",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -632,6 +635,10 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id in ("voice-luna-none-ko-v6", "voice-luna-low-ko-v6", "voice-sol-none-ko-v6"):
+        if language != "ko":
+            raise ValueError("Korean model experiment supports Korean only")
+        return _VOICE_FREE_KO_V5, "cappy-voice-20261014-v6"
     if candidate_id in ("voice-base-ko-v5", "voice-free-ko-v5"):
         if language != "ko":
             raise ValueError("Korean persona supports Korean only")

@@ -291,7 +291,8 @@ def system_prompt(language: str) -> str:
     return f"{persona}\n\n{lang_rule}\n\n{check}"
 
 
-# Development evaluation only. Normal chat continues to use system_prompt unchanged.
+# Fixed candidates serve authenticated development evaluation and the explicit
+# development-only locale selector. The base system_prompt remains C0.
 # IDs select code-owned, versioned replacements; callers cannot supply instructions.
 EVAL_PROMPT_CANDIDATE_IDS = (
     "c0",
@@ -304,6 +305,9 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-combined-ja-v2",
     "voice-persona-v3",
     "voice-combined-v3",
+    "voice-plain-ko-v4",
+    "voice-speech-ko-v4",
+    "voice-act-focus-ko-v4",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -596,7 +600,12 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
-    """Resolve a fixed evaluation candidate without changing the normal persona."""
+    """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id in ("voice-plain-ko-v4", "voice-speech-ko-v4", "voice-act-focus-ko-v4"):
+        if language != "ko":
+            raise ValueError("Reply protocol supports Korean only")
+        system, _ = eval_system_prompt(language, "voice-combined-v3")
+        return system, "cappy-voice-20261014-v4"
     replacements = _eval_voice_replacements(language, candidate_id)
     system = system_prompt(language)
     for old, new in replacements:

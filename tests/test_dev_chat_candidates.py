@@ -51,6 +51,7 @@ def test_absent_candidate_preserves_existing_persona_options(client, calls, monk
     assert response.status_code == 200
     assert calls == [("openai", "other-model", "", req["messages"], 4096)]
     assert "candidate" not in response.json()
+    assert "prototype" not in response.json()
 
 
 def test_candidate_uses_actual_system_and_returns_only_fingerprints(client, calls):
@@ -161,3 +162,65 @@ def test_real_operator_dependency_still_gates_candidate_before_provider(calls, m
     response = TestClient(app).post("/dev/chat-eval", json=payload())
     assert response.status_code == 403
     assert calls == []
+
+
+@pytest.fixture
+def protocol_calls(monkeypatch):
+    seen = []
+
+    async def run(candidate_id, model, system, messages, *, max_tokens, language):
+        seen.append((candidate_id, model, system, messages, max_tokens, language))
+        return {
+            **EvalResult("openai", model, "답", 1, 10, 2, 0.00001).__dict__,
+            "prototype": {"sdk_create_calls": 1, "raw_json": '{"text":"답"}'},
+        }
+
+    monkeypatch.setattr(dev.eval_reply_protocol, "run", run)
+    return seen
+
+
+def test_protocol_dispatch_is_registered_and_diagnostics_are_only_on_new_response(
+    client, calls, protocol_calls,
+):
+    request = payload(candidate_id="voice-speech-ko-v4", max_tokens=192)
+    response = client.post("/dev/chat-eval", json=request)
+    assert response.status_code == 200
+    assert calls == [] and len(protocol_calls) == 1
+    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", "voice-combined-v3")[0]
+    assert response.json()["prototype"]["sdk_create_calls"] == 1
+    assert response.json()["candidate"]["version"] == "cappy-voice-20261014-v4"
+    assert response.json()["candidate"]["code_sha"] == "a" * 40
+    old = client.post("/dev/chat-eval", json=payload())
+    assert "prototype" not in old.json()
+
+
+@pytest.mark.parametrize("overrides", [
+    {"model": "gpt-6-sol"}, {"language": "ja"}, {"language": "en"},
+    {"max_tokens": 193}, {"response_format": {"type": "text"}},
+    {"openai_api_key": "untrusted"},
+])
+def test_protocol_rejects_model_locale_cap_and_arbitrary_format_or_key(
+    client, calls, protocol_calls, overrides,
+):
+    request = payload(candidate_id="voice-speech-ko-v4", max_tokens=192)
+    request.update(overrides)
+    response = client.post("/dev/chat-eval", json=request)
+    assert response.status_code == 422
+    assert calls == [] and protocol_calls == []
+
+
+def test_protocol_input_bound_counts_utf8_envelope_and_schema(client, protocol_calls):
+    request = payload(candidate_id="voice-act-focus-ko-v4", max_tokens=192)
+    system, _ = dev.eval_system_prompt("ko", request["candidate_id"])
+    available = 24_000 - dev.eval_reply_protocol.input_bytes(system, request["messages"], request["candidate_id"])
+    request["messages"][0]["content"] = "가" * (available // 3 + 20)
+    response = client.post("/dev/chat-eval", json=request)
+    assert response.status_code == 422 and protocol_calls == []
+
+
+def test_protocol_requires_known_full_code_sha(client, protocol_calls, monkeypatch):
+    monkeypatch.setattr(dev.settings, "git_sha", "a" * 7)
+    response = client.post("/dev/chat-eval", json=payload(
+        candidate_id="voice-plain-ko-v4", max_tokens=192,
+    ))
+    assert response.status_code == 422 and protocol_calls == []

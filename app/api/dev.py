@@ -39,7 +39,7 @@ from app.schemas.dev import (
     RecallDiariesRequest,
     RecallMemoryRequest,
 )
-from app.services import diary_generation, model_eval, privacy
+from app.services import diary_generation, eval_reply_protocol, model_eval, privacy
 from app.services.account import _uid
 from app.services.limits import effective_token_config
 from app.services.prompts import EVAL_PROMPT_CANDIDATE_IDS, eval_system_prompt, system_prompt
@@ -193,9 +193,16 @@ def _eval_system(
         raise errors.validation("이 언어에서 사용할 수 없는 프롬프트 후보예요.") from None
     if len(system) + sum(len(message.content) for message in req.messages) > 24_000:
         raise errors.validation("후보 평가 입력이 허용된 길이를 초과했어요.")
+    if req.candidate_id in eval_reply_protocol.PROTOCOL_IDS:
+        if targets != [("openai", "gpt-6-luna")] or req.max_tokens not in (192, 1024):
+            raise errors.validation("응답 형식 시험은 고정 모델과 192/1024토큰만 사용해요.")
+        if eval_reply_protocol.input_bytes(system, _messages(req), req.candidate_id) > 24_000:
+            raise errors.validation("응답 형식 시험 입력이 허용된 바이트 수를 초과했어요.")
     if req.messages[-1].role != "user":
         raise errors.validation("후보 평가의 마지막 메시지는 user여야 해요.")
     code_sha = settings.git_sha
+    if req.candidate_id in eval_reply_protocol.PROTOCOL_IDS and not re.fullmatch(r"[0-9a-f]{40}", code_sha):
+        raise errors.validation("응답 형식 시험은 전체 코드 버전이 확인된 개발 서버에서만 가능해요.")
     return system, {
         "candidate_id": req.candidate_id,
         "version": version,
@@ -211,6 +218,12 @@ async def chat_eval(
 ) -> dict[str, Any]:
     """한 모델에 대화를 1회 투입 — 응답 텍스트 + 지연(ms) + 토큰 + 추정비용."""
     system, candidate = _eval_system(req, [(req.provider, req.model)])
+    if req.candidate_id in eval_reply_protocol.PROTOCOL_IDS:
+        result = await eval_reply_protocol.run(
+            req.candidate_id, req.model, system, _messages(req), max_tokens=req.max_tokens,
+            language=req.language,
+        )
+        return {**result, "candidate": candidate}
     r = await model_eval.run_eval(
         req.provider, req.model, system, _messages(req), max_tokens=req.max_tokens
     )
@@ -232,6 +245,12 @@ async def chat_eval_compare(
         else [(d["provider"], d["model"]) for d in model_eval.DEFAULT_MODELS]
     )
     system, candidate = _eval_system(req, targets)
+    if req.candidate_id in eval_reply_protocol.PROTOCOL_IDS:
+        result = await eval_reply_protocol.run(
+            req.candidate_id, targets[0][1], system, msgs, max_tokens=req.max_tokens,
+            language=req.language,
+        )
+        return {"results": [{**result, "candidate": candidate}]}
     results = await asyncio.gather(
         *(
             model_eval.run_eval(p, m, system, msgs, max_tokens=req.max_tokens)

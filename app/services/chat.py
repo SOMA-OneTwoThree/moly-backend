@@ -55,7 +55,7 @@ from app.services.topic_catalog import TopicCatalog
 from app.services.account import _uid
 from app.services.agent import config as agent_config
 from app.services.agent import runtime as agent_runtime
-from app.services.prompts import system_prompt
+from app.services.prompts import eval_system_prompt, system_prompt
 
 _GREETING_CONTEXTS = greetings.CONTEXTS
 _log = logging.getLogger("moly-backend")
@@ -482,6 +482,33 @@ async def _recall_memory_v2(
         return _memory_unavailable_notice(language)
 
 
+_PARTNER_NAME_CONTEXT = {
+    "ko": "[상대]\n지금 얘기하는 사람 이름은 {name}.",
+    "ja": "[相手]\n今話している相手の名前は{name}。",
+    "en": "[Conversation partner]\nThe person you're talking with is named {name}.",
+}
+_LEAD_CONTEXT = {
+    "ko": (
+        "[먼저 건넨 말]\n"
+        "이 대화 직전에 네가 먼저 말을 걸었어. 상대는 그걸 보고 답한 거야. "
+        "같은 인사를 또 하지 마.\n"
+    ),
+    "ja": (
+        "[先にかけた言葉]\nこの会話の直前に自分から声をかけている。"
+        "相手はそれを見て返事をしている。同じ挨拶を繰り返さない。\n"
+    ),
+    "en": (
+        "[Your opening message]\nYou spoke first immediately before this conversation. "
+        "The other person is replying to that message. Don't repeat the same greeting.\n"
+    ),
+}
+_HISTORICAL_LEAD_HEADER = {
+    "ko": "[Past Cappy messages]\n",  # Preserve the existing KO prefix byte for byte.
+    "ja": "[過去のキャピーの発言]\n",
+    "en": "[Past Cappy messages]\n",
+}
+
+
 def _build_system(
     language: str,
     nickname: str | None,
@@ -508,21 +535,21 @@ def _build_system(
     40턴이라 턴당으로는 무시할 수준).
     """
     parts: list[str] = []
+    locale = i18n.resolve(language)
     if nickname:
         # 조사는 받침에 맞춰(승민이야 / 지호야) — 지시문이 틀리면 캐피도 따라 틀린다.
-        parts.append(f"[상대]\n지금 얘기하는 사람 이름은 {greetings.copula(nickname)}.")
+        name = greetings.copula(nickname) if locale == "ko" else nickname
+        parts.append(i18n.pick(_PARTNER_NAME_CONTEXT, locale).format(name=name))
     if lead:
         # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(유창성 유지).
         said = "\n".join(naming.render(t, nickname) for t in lead if t)
-        parts.append(
-            "[먼저 건넨 말]\n"
-            "이 대화 직전에 네가 먼저 말을 걸었어. 상대는 그걸 보고 답한 거야. "
-            "같은 인사를 또 하지 마.\n"
-            f"{said}"
-        )
+        parts.append(i18n.pick(_LEAD_CONTEXT, locale) + said)
     if historical_lead:
         # Absolute timestamps and text stay fixed until the anchor advances.
-        parts.append("[Past Cappy messages]\n" + naming.render("\n".join(historical_lead), nickname))
+        parts.append(
+            i18n.pick(_HISTORICAL_LEAD_HEADER, locale)
+            + naming.render("\n".join(historical_lead), nickname)
+        )
     if contract_text:
         # 계약은 검색 성공 여부와 무관하게 **항상** 지켜야 하는 합의라 회상 경로를 타지 않는다.
         # 자주 바뀌지 않으므로 안정 프리픽스에 둔다(계약 문구 변경 시에만 프리픽스가 바뀐다).
@@ -541,7 +568,13 @@ def _build_system(
     # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
     # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). 요약과 현재 상태는 휘발 컨텍스트다. 실제 주입은 post_message가 convo 끝에서 한다.
     dyn = "\n\n".join(parts)
-    return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
+    # Development uses the fixed JA/EN voice candidate; all other environments retain C0.
+    # Keep the persona first and independent of mutable conversation values for caching.
+    if settings.environment == "development" and locale in {"ja", "en"}:
+        persona, _ = eval_system_prompt(locale, "voice-combined-v3")
+    else:
+        persona = system_prompt(language)
+    return [persona, dyn] if dyn else [persona]
 
 
 # 부호 정제 정규식은 text_clean으로 이관(chat·일기 공용). 여기선 되묻기 물음표 백스톱만.

@@ -175,6 +175,7 @@ class EvalResultOut(StrictResponse):
     finish_reason: str = ""
     model_snapshot: str = ""
     candidate: EvalCandidateMetadata | None = None
+    prototype: dict[str, JsonValue] | None = None
 
 
 class ChatCompareResponse(StrictResponse):

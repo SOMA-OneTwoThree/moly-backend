@@ -1,4 +1,5 @@
 """Candidate evaluation is bounded and operator-only; no provider or DB calls."""
+
 from __future__ import annotations
 
 import hashlib
@@ -37,9 +38,12 @@ def calls(monkeypatch):
 
 def payload(**overrides):
     return {
-        "provider": "openai", "model": "gpt-6-luna",
+        "provider": "openai",
+        "model": "gpt-6-luna",
         "messages": [{"role": "user", "content": "안녕"}],
-        "language": "ko", "candidate_id": "c0", **overrides,
+        "language": "ko",
+        "candidate_id": "c0",
+        **overrides,
     }
 
 
@@ -61,7 +65,8 @@ def test_candidate_uses_actual_system_and_returns_only_fingerprints(client, call
     assert calls[0][2] == expected_system == dev.system_prompt("ko")
     assert calls[0][3] == [{"role": "user", "content": "안녕"}]
     assert response.json()["candidate"] == {
-        "candidate_id": "c0", "version": version,
+        "candidate_id": "c0",
+        "version": version,
         "system_sha256": hashlib.sha256(expected_system.encode()).hexdigest(),
         "code_sha": "a" * 40,
     }
@@ -76,15 +81,22 @@ def test_candidates_fail_closed_outside_development(client, calls, monkeypatch, 
     assert calls == []
 
 
-@pytest.mark.parametrize("overrides", [
-    {"candidate_id": "unknown"}, {"use_persona": False}, {"language": "fr"},
-    {"language": "KO"}, {"max_tokens": 1025}, {"model": "unbounded-model"},
-    {"provider": "anthropic", "model": "claude-sonnet-5"},
-    {"messages": [{"role": "user", "content": "x" * 24_001}]},
-    {"messages": [{"role": "assistant", "content": "reply"}]},
-    {"candidate_id": "voice-action-ja-v1", "language": "ko"},
-    {"system": "client override"},
-])
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"candidate_id": "unknown"},
+        {"use_persona": False},
+        {"language": "fr"},
+        {"language": "KO"},
+        {"max_tokens": 1025},
+        {"model": "unbounded-model"},
+        {"provider": "anthropic", "model": "claude-sonnet-5"},
+        {"messages": [{"role": "user", "content": "x" * 24_001}]},
+        {"messages": [{"role": "assistant", "content": "reply"}]},
+        {"candidate_id": "voice-action-ja-v1", "language": "ko"},
+        {"system": "client override"},
+    ],
+)
 def test_invalid_candidate_request_never_reaches_provider(client, calls, overrides):
     response = client.post("/dev/chat-eval", json=payload(**overrides))
     assert response.status_code == 422
@@ -95,9 +107,12 @@ def test_invalid_candidate_request_never_reaches_provider(client, calls, overrid
 def test_total_input_bound_includes_server_system(client, calls):
     system, _ = dev.eval_system_prompt("ko", "c0")
     content = "x" * (24_001 - len(system))
-    response = client.post("/dev/chat-eval", json=payload(
-        messages=[{"role": "user", "content": content}],
-    ))
+    response = client.post(
+        "/dev/chat-eval",
+        json=payload(
+            messages=[{"role": "user", "content": content}],
+        ),
+    )
     assert response.status_code == 422
     assert calls == []
 
@@ -126,14 +141,21 @@ def test_candidate_compare_reuses_system_and_metadata(client, calls):
     assert results[0]["candidate"] == results[1]["candidate"]
 
 
-@pytest.mark.parametrize("models", [None, [
-    {"provider": "openai", "model": "gpt-6-luna"},
-    {"provider": "openai", "model": "gpt-6-luna"},
-], [
-    {"provider": "openai", "model": "gpt-6-luna"},
-    {"provider": "openai", "model": "gpt-6-sol"},
-    {"provider": "openai", "model": "gpt-5.6-luna"},
-]])
+@pytest.mark.parametrize(
+    "models",
+    [
+        None,
+        [
+            {"provider": "openai", "model": "gpt-6-luna"},
+            {"provider": "openai", "model": "gpt-6-luna"},
+        ],
+        [
+            {"provider": "openai", "model": "gpt-6-luna"},
+            {"provider": "openai", "model": "gpt-6-sol"},
+            {"provider": "openai", "model": "gpt-5.6-luna"},
+        ],
+    ],
+)
 def test_candidate_compare_cannot_start_default_four_or_duplicate_models(client, calls, models):
     request = payload()
     del request["provider"], request["model"]
@@ -144,9 +166,13 @@ def test_candidate_compare_cannot_start_default_four_or_duplicate_models(client,
 
 
 def test_existing_compare_without_candidate_keeps_default_model_set(client, calls):
-    response = client.post("/dev/chat-eval/compare", json={
-        "messages": [{"role": "user", "content": "hello"}], "use_persona": False,
-    })
+    response = client.post(
+        "/dev/chat-eval/compare",
+        json={
+            "messages": [{"role": "user", "content": "hello"}],
+            "use_persona": False,
+        },
+    )
     assert response.status_code == 200
     assert len(calls) == len(dev.model_eval.DEFAULT_MODELS)
     assert all(call[2] == "" for call in calls)
@@ -172,82 +198,53 @@ def protocol_calls(monkeypatch):
         seen.append((candidate_id, model, system, messages, max_tokens, language))
         return {
             **EvalResult("openai", model, "답", 1, 10, 2, 0.00001).__dict__,
-            "prototype": {"sdk_create_calls": 1, "raw_json": '{"text":"답"}'},
+            "prototype": {"sdk_create_calls": 1, "raw_json": "답"},
         }
 
     monkeypatch.setattr(dev.eval_reply_protocol, "run", run)
     return seen
 
 
-def test_protocol_dispatch_is_registered_and_diagnostics_are_only_on_new_response(
-    client, calls, protocol_calls,
-):
-    request = payload(candidate_id="voice-speech-ko-v4", max_tokens=192)
-    response = client.post("/dev/chat-eval", json=request)
-    assert response.status_code == 200
-    assert calls == [] and len(protocol_calls) == 1
-    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", "voice-combined-v3")[0]
-    assert response.json()["prototype"]["sdk_create_calls"] == 1
-    assert response.json()["candidate"]["version"] == "cappy-voice-20261014-v4"
-    assert response.json()["candidate"]["code_sha"] == "a" * 40
-    old = client.post("/dev/chat-eval", json=payload())
-    assert "prototype" not in old.json()
-
-
-@pytest.mark.parametrize("overrides", [
-    {"model": "gpt-6-sol"}, {"language": "ja"}, {"language": "en"},
-    {"max_tokens": 193}, {"response_format": {"type": "text"}},
-    {"openai_api_key": "untrusted"},
-])
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"model": "gpt-6-sol"},
+        {"language": "ja"},
+        {"language": "en"},
+        {"max_tokens": 193},
+        {"response_format": {"type": "text"}},
+        {"openai_api_key": "untrusted"},
+    ],
+)
 def test_protocol_rejects_model_locale_cap_and_arbitrary_format_or_key(
-    client, calls, protocol_calls, overrides,
+    client,
+    calls,
+    protocol_calls,
+    overrides,
 ):
-    request = payload(candidate_id="voice-speech-ko-v4", max_tokens=192)
+    request = payload(candidate_id="voice-free-ko-v5", max_tokens=192)
     request.update(overrides)
     response = client.post("/dev/chat-eval", json=request)
     assert response.status_code == 422
     assert calls == [] and protocol_calls == []
 
 
-@pytest.mark.parametrize("candidate", [
-    "voice-act-focus-ko-v4", *dev.eval_reply_protocol.V10_PROTOCOL_IDS, *dev.eval_reply_protocol.V11_PROTOCOL_IDS,
-    *dev.eval_reply_protocol.V15_PROTOCOL_IDS,
-])
-def test_protocol_input_bound_counts_utf8_envelope_and_schema(client, protocol_calls, candidate):
-    request = payload(candidate_id=candidate, max_tokens=192)
-    system, _ = dev.eval_system_prompt("ko", request["candidate_id"])
-    available = 24_000 - dev.eval_reply_protocol.input_bytes(system, request["messages"], request["candidate_id"])
-    request["messages"][0]["content"] = "가" * (available // 3 + 20)
-    response = client.post("/dev/chat-eval", json=request)
-    assert response.status_code == 422 and protocol_calls == []
-
-
 def test_protocol_requires_known_full_code_sha(client, protocol_calls, monkeypatch):
     monkeypatch.setattr(dev.settings, "git_sha", "a" * 7)
-    response = client.post("/dev/chat-eval", json=payload(
-        candidate_id="voice-plain-ko-v4", max_tokens=192,
-    ))
+    response = client.post(
+        "/dev/chat-eval",
+        json=payload(
+            candidate_id="voice-free-ko-v5",
+            max_tokens=192,
+        ),
+    )
     assert response.status_code == 422 and protocol_calls == []
-
-
-def test_role_candidate_api_checks_last_role_before_builder_and_keeps_original_input(client, protocol_calls):
-    candidate = "voice-role-ko-v15"
-    request = payload(candidate_id=candidate, max_tokens=192)
-    response = client.post("/dev/chat-eval", json={**request, "messages": [
-        {"role": "assistant", "content": "합성 응답"},
-    ]})
-    assert response.status_code == 422 and protocol_calls == []
-    response = client.post("/dev/chat-eval", json=request)
-    assert response.status_code == 200 and len(protocol_calls) == 1
-    assert protocol_calls[0][3] == request["messages"]
-    assert response.json()["candidate"]["version"] == "cappy-voice-20261015-v15"
-    for override in ({"model": "gpt-6-sol"}, {"max_tokens": 1024}, {"language": "en"}):
-        response = client.post("/dev/chat-eval", json={**request, **override})
-        assert response.status_code == 422 and len(protocol_calls) == 1
 
 
 @pytest.mark.parametrize("candidate", ["voice-base-ko-v5", "voice-free-ko-v5"])
-def test_v5_dispatch_uses_retry_free_plain_registered_system(client, calls, protocol_calls, candidate):
+def test_v5_dispatch_uses_retry_free_plain_registered_system(
+    client, calls, protocol_calls, candidate
+):
     response = client.post("/dev/chat-eval", json=payload(candidate_id=candidate, max_tokens=192))
     assert response.status_code == 200
     assert calls == [] and len(protocol_calls) == 1
@@ -255,100 +252,64 @@ def test_v5_dispatch_uses_retry_free_plain_registered_system(client, calls, prot
     assert response.json()["candidate"]["version"] == "cappy-voice-20261014-v5"
     assert response.json()["candidate"]["code_sha"] == "a" * 40
     assert dev.eval_reply_protocol.response_format(candidate) is None
-    response = client.post("/dev/chat-eval", json=payload(
-        candidate_id=candidate, max_tokens=192, language="ja",
-    ))
+    response = client.post(
+        "/dev/chat-eval",
+        json=payload(
+            candidate_id=candidate,
+            max_tokens=192,
+            language="ja",
+        ),
+    )
     assert response.status_code == 422 and len(protocol_calls) == 1
 
 
-@pytest.mark.parametrize("candidate,model", [
-    ("voice-luna-none-ko-v6", "gpt-6-luna"),
-    ("voice-luna-low-ko-v6", "gpt-6-luna"),
-    ("voice-sol-none-ko-v6", "gpt-6-sol"),
-])
-def test_v6_api_enforces_registered_target_and_1024_cap(client, calls, protocol_calls, candidate, model):
-    request = payload(candidate_id=candidate, model=model, max_tokens=1024)
-    result = client.post("/dev/chat-eval", json=request)
-    assert result.status_code == 200 and calls == [] and len(protocol_calls) == 1
-    assert result.json()["candidate"]["version"] == "cappy-voice-20261014-v6"
-    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", "voice-free-ko-v5")[0]
-    for overrides in ({"max_tokens": 192}, {"model": "gpt-6-sol" if model == "gpt-6-luna"
-                                           else "gpt-6-luna"}, {"language": "en"}):
-        result = client.post("/dev/chat-eval", json={**request, **overrides})
-        assert result.status_code == 422 and len(protocol_calls) == 1
-
-
-@pytest.mark.parametrize("candidate", [
-    "voice-base-ko-v7", "voice-example-ko-v7", "voice-base-ko-v8", "voice-direct-ko-v8",
-    *dev.eval_reply_protocol.V10_PROTOCOL_IDS,
-    *dev.eval_reply_protocol.V11_PROTOCOL_IDS,
-])
-def test_fixed_plain_api_enforces_same_luna_192_profile(client, calls, protocol_calls, candidate):
+@pytest.mark.parametrize("candidate", dev.eval_reply_protocol.PROTOCOL_IDS)
+def test_plain_input_bound_counts_utf8_envelope(client, protocol_calls, candidate):
     request = payload(candidate_id=candidate, max_tokens=192)
+    system, _ = dev.eval_system_prompt("ko", candidate)
+    available = 24000 - dev.eval_reply_protocol.input_bytes(system, request["messages"], candidate)
+    request["messages"][0]["content"] = "가" * (available // 3 + 20)
+    assert dev.eval_reply_protocol.input_bytes(system, request["messages"], candidate) > 24000
     response = client.post("/dev/chat-eval", json=request)
-    assert response.status_code == 200 and calls == [] and len(protocol_calls) == 1
-    stamp = "20261015" if candidate in (
-        *dev.eval_reply_protocol.V10_PROTOCOL_IDS, *dev.eval_reply_protocol.V11_PROTOCOL_IDS,
-    ) else "20261014"
-    assert response.json()["candidate"]["version"] == f"cappy-voice-{stamp}-{candidate.rsplit('-', 1)[-1]}"
-    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", candidate)[0]
-    for overrides in ({"max_tokens": 1024}, {"model": "gpt-6-sol"}, {"language": "ja"}):
-        response = client.post("/dev/chat-eval", json={**request, **overrides})
-        assert response.status_code == 422 and len(protocol_calls) == 1
+    assert response.status_code == 422 and protocol_calls == []
 
 
-@pytest.mark.parametrize("candidate", [
-    *dev.eval_reply_protocol.V10_PROTOCOL_IDS, *dev.eval_reply_protocol.V11_PROTOCOL_IDS,
-])
-@pytest.mark.parametrize("environment", ["production", "local", "test"])
-def test_fixed_examples_remain_development_only(client, protocol_calls, monkeypatch, candidate, environment):
-    monkeypatch.setattr(dev.settings, "environment", environment)
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "voice-style-v1",
+        "voice-action-ja-v1",
+        "voice-combined-ja-v1",
+        "voice-style-v2",
+        "voice-action-ko-v2",
+        "voice-combined-ko-v2",
+        "voice-combined-ja-v2",
+        "voice-persona-v3",
+        "voice-plain-ko-v4",
+        "voice-speech-ko-v4",
+        "voice-act-focus-ko-v4",
+        "voice-luna-none-ko-v6",
+        "voice-luna-low-ko-v6",
+        "voice-sol-none-ko-v6",
+        "voice-base-ko-v7",
+        "voice-example-ko-v7",
+        "voice-base-ko-v8",
+        "voice-direct-ko-v8",
+        "voice-base-ko-v10",
+        "voice-positive-ko-v10",
+        "voice-contrast-ko-v10",
+        "voice-control-ko-v11",
+        "voice-availability-ko-v11",
+        "voice-low-ko-v12",
+        "voice-decide-render-ko-v12",
+        "voice-sol-low-ko-v13",
+        "voice-role-ko-v15",
+    ],
+)
+def test_removed_candidates_never_dispatch_or_fall_back(client, calls, protocol_calls, candidate):
     response = client.post("/dev/chat-eval", json=payload(candidate_id=candidate, max_tokens=192))
-    assert response.status_code == 403 and protocol_calls == []
-
-
-@pytest.mark.parametrize("candidate,cap", [
-    ("voice-low-ko-v12", 1024), ("voice-decide-render-ko-v12", 192),
-])
-def test_v12_api_fixed_profile_dispatch_and_wrong_settings(client, protocol_calls, candidate, cap):
-    request = payload(candidate_id=candidate, max_tokens=cap)
-    response = client.post("/dev/chat-eval", json=request)
-    assert response.status_code == 200 and len(protocol_calls) == 1
-    assert response.json()["candidate"]["version"] == "cappy-voice-20261015-v12"
-    for overrides in ({"max_tokens": 192 if cap == 1024 else 1024}, {"language": "ja"},
-                      {"model": "gpt-6-sol"}, {"reasoning_effort": "low"}):
-        response = client.post("/dev/chat-eval", json={**request, **overrides})
-        assert response.status_code == 422 and len(protocol_calls) == 1
-
-
-def test_v12_composite_api_serializes_independent_subcalls_without_schema_change(client, monkeypatch):
-    import json
-    from app.services import llm
-    from tests.test_eval_turn_decision import Client, completion
-
-    decision = {"current_request": "sharing", "known_user_turn_indices": [0],
-                "question_target": None, "reply_goal": "주어진 인사에 답하기"}
-    sdk = Client([completion(json.dumps(decision)), completion("안녕.")])
-    monkeypatch.setattr(llm, "_get_openai_client", lambda: sdk)
-    response = client.post("/dev/chat-eval", json=payload(
-        candidate_id="voice-decide-render-ko-v12", max_tokens=192,
-    ))
-    assert response.status_code == 200 and response.json()["text"] == "안녕."
-    assert response.json()["prototype"]["sdk_create_calls"] == 2
-    assert len(response.json()["prototype"]["subcalls"]) == 2
-    assert response.json()["prototype"]["parsed_decision"] == decision
-
-
-def test_v13_api_requires_aligned_sol_low_profile_and_development(client, protocol_calls, monkeypatch):
-    request = payload(candidate_id="voice-sol-low-ko-v13", model="gpt-6-sol", max_tokens=1024)
-    response = client.post("/dev/chat-eval", json=request)
-    assert response.status_code == 200 and len(protocol_calls) == 1
-    assert response.json()["candidate"]["version"] == "cappy-voice-20261015-v13"
-    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", "voice-low-ko-v12")[0]
-    for overrides in ({"model": "gpt-6-luna"}, {"max_tokens": 192}, {"language": "ja"},
-                      {"reasoning_effort": "none"}):
-        response = client.post("/dev/chat-eval", json={**request, **overrides})
-        assert response.status_code == 422 and len(protocol_calls) == 1
-    monkeypatch.setattr(dev.settings, "environment", "production")
-    assert client.post("/dev/chat-eval", json=request).status_code == 403
-    assert len(protocol_calls) == 1
+    assert response.status_code == 422 and calls == protocol_calls == []
+    with pytest.raises(ValueError):
+        dev.eval_system_prompt("ko", candidate)
+    with pytest.raises(ValueError):
+        dev.eval_reply_protocol.protocol_profile(candidate)

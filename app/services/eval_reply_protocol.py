@@ -1,4 +1,4 @@
-"""One-call reply-format experiment; authorized development evaluation only."""
+"""Fixed Korean persona evaluation: one bounded, retry-free SDK call."""
 from __future__ import annotations
 
 import asyncio
@@ -9,88 +9,34 @@ import time
 from app.config import settings
 from app.services import llm, model_eval, prompts
 
-V4_PROTOCOL_IDS = ("voice-plain-ko-v4", "voice-speech-ko-v4", "voice-act-focus-ko-v4")
-_V6_PROFILES = {
-    "voice-luna-none-ko-v6": ("gpt-6-luna", "none", (1024,)),
-    "voice-luna-low-ko-v6": ("gpt-6-luna", "low", (1024,)),
-    "voice-sol-none-ko-v6": ("gpt-6-sol", "none", (1024,)),
-}
-V6_PROTOCOL_IDS = tuple(_V6_PROFILES)
-V7_PROTOCOL_IDS = ("voice-base-ko-v7", "voice-example-ko-v7")
-V8_PROTOCOL_IDS = ("voice-base-ko-v8", "voice-direct-ko-v8")
-V10_PROTOCOL_IDS = ("voice-base-ko-v10", "voice-positive-ko-v10", "voice-contrast-ko-v10")
-V11_PROTOCOL_IDS = ("voice-control-ko-v11", "voice-availability-ko-v11")
-V12_PROTOCOL_IDS = ("voice-low-ko-v12", "voice-decide-render-ko-v12")
-V13_PROTOCOL_IDS = ("voice-sol-low-ko-v13",)
-V15_PROTOCOL_IDS = ("voice-role-ko-v15",)
-PLAIN_PROTOCOL_IDS = (
-    V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5",
-    *V6_PROTOCOL_IDS, *V7_PROTOCOL_IDS, *V8_PROTOCOL_IDS, *V10_PROTOCOL_IDS, *V11_PROTOCOL_IDS,
-    *V12_PROTOCOL_IDS, *V13_PROTOCOL_IDS, *V15_PROTOCOL_IDS,
-)
-PROTOCOL_IDS = (*V4_PROTOCOL_IDS, *PLAIN_PROTOCOL_IDS[1:])
+PROTOCOL_IDS = ("voice-base-ko-v5", "voice-free-ko-v5")
 _TIMEOUT_S = 10.0
-_ACTIONS = ("reply", "choice", "opinion", "question", "listen", "end")
 
 
 def protocol_profile(candidate_id: str) -> tuple[str, str, tuple[int, ...]]:
-    """Return server-owned model, reasoning and caps; no caller-supplied wire options."""
+    """Return the existing fixed Korean plain evaluation profile."""
     if candidate_id not in PROTOCOL_IDS:
         raise ValueError("Unknown reply protocol")
-    if candidate_id in (
-        *V7_PROTOCOL_IDS, *V8_PROTOCOL_IDS, *V10_PROTOCOL_IDS, *V11_PROTOCOL_IDS, *V15_PROTOCOL_IDS,
-    ):
-        return "gpt-6-luna", "none", (192,)
-    if candidate_id in V12_PROTOCOL_IDS:
-        return ("gpt-6-luna", "low", (1024,)) if candidate_id == V12_PROTOCOL_IDS[0] else (
-            "gpt-6-luna", "none", (192,),
-        )
-    if candidate_id in V13_PROTOCOL_IDS:
-        return "gpt-6-sol", "low", (1024,)
-    return _V6_PROFILES.get(candidate_id, ("gpt-6-luna", "none", (192, 1024)))
+    return "gpt-6-luna", "none", (192, 1024)
 
 
-def response_format(candidate_id: str) -> dict | None:
-    if candidate_id not in PROTOCOL_IDS:
-        raise ValueError("Unknown reply protocol")
-    if candidate_id in PLAIN_PROTOCOL_IDS:
-        return None
-    properties = {}
-    if candidate_id == PROTOCOL_IDS[2]:
-        properties.update({
-            "action": {
-                "type": "string", "enum": list(_ACTIONS),
-                "description": "이번 답의 주요 행동. 경청에도 필요한 확인 질문이 포함될 수 있다.",
-            },
-            "focus": {
-                "type": "string",
-                "description": "이번 답이 직접 다룰 대상이나 기여를 한 구절로. 이유나 추론 과정은 쓰지 않는다.",
-            },
-        })
-    properties["text"] = {
-        "type": "string", "description": "상대에게 실제로 건넬 캐피의 한국어 말만.",
-    }
-    return {"type": "json_schema", "json_schema": {
-        "name": "cappy_eval_reply", "strict": True,
-        "schema": {"type": "object", "properties": properties,
-                   "required": list(properties), "additionalProperties": False},
-    }}
+def response_format(candidate_id: str) -> None:
+    protocol_profile(candidate_id)
+    return None
 
 
 def protocol_manifest(candidate_id: str, max_tokens: int) -> dict:
     model, reasoning, caps = protocol_profile(candidate_id)
     if max_tokens not in caps:
         raise ValueError("Reply protocol requires its registered output cap")
-    wire_format = response_format(candidate_id)
-    ordered = json.dumps(wire_format, ensure_ascii=False, separators=(",", ":"))
     fixed = {
         "model": model, "reasoning_effort": reasoning,
         "max_completion_tokens": max_tokens, "timeout": _TIMEOUT_S,
-        "max_retries": 0, "response_format": wire_format,
+        "max_retries": 0, "response_format": None,
     }
     return {
-        "response_format": wire_format,
-        "schema_sha256": hashlib.sha256(ordered.encode()).hexdigest(),
+        "response_format": None,
+        "schema_sha256": hashlib.sha256(b"null").hexdigest(),
         "wire_options_sha256": hashlib.sha256(json.dumps(
             fixed, ensure_ascii=False, separators=(",", ":"),
         ).encode()).hexdigest(),
@@ -99,22 +45,7 @@ def protocol_manifest(candidate_id: str, max_tokens: int) -> dict:
 
 def build_messages(system: str, messages: list[dict], candidate_id: str) -> list[dict]:
     """Assemble the exact SDK message list, shared by bounds, cost reservation and sending."""
-    if candidate_id in V15_PROTOCOL_IDS:
-        if system != prompts.eval_system_prompt("ko", candidate_id)[0]:
-            raise ValueError("Role example protocol requires its frozen system")
-        if not messages or len(messages) > 50 or any(
-            type(message) is not dict or set(message) != {"role", "content"}
-            or type(message["role"]) is not str or message["role"] not in {"user", "assistant"}
-            or type(message["content"]) is not str
-            for message in messages
-        ) or messages[-1]["role"] != "user":
-            raise ValueError("Role example protocol requires bounded user and assistant text")
-        prefix = [*prompts.eval_role_examples(candidate_id),
-                  {"role": "user", "content": "[실제대화시작]"}]
-        if len(prefix) != 13 or len(prefix) + len(messages) > 63:
-            raise ValueError("Role example protocol exceeds its message bound")
-        return [{"role": "system", "content": system}, *prefix,
-                *(dict(message) for message in messages)]
+    protocol_profile(candidate_id)
     _, transcript = llm.from_openai_messages(messages)
     return llm.to_openai_messages(system, transcript)
 
@@ -127,53 +58,16 @@ def input_bytes(system: str, messages: list[dict], candidate_id: str) -> int:
     return len(json.dumps(envelope, ensure_ascii=False, separators=(",", ":")).encode())
 
 
-def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError("Duplicate JSON key")
-        result[key] = value
-    return result
-
-
-def _decode(raw: str, candidate_id: str) -> dict:
-    if candidate_id in PLAIN_PROTOCOL_IDS:
-        values = {"text": raw}
-    else:
-        values = json.loads(raw, object_pairs_hook=_reject_duplicate_keys)
-        expected = {"text"} if candidate_id == PROTOCOL_IDS[1] else {"action", "focus", "text"}
-        if type(values) is not dict or set(values) != expected:
-            raise ValueError("Reply fields do not match schema")
-    text = values["text"]
-    if type(text) is not str or not text.strip() or len(text) > 600:
-        raise ValueError("Invalid spoken text")
-    if candidate_id == PROTOCOL_IDS[2]:
-        if type(values["action"]) is not str or values["action"] not in _ACTIONS:
-            raise ValueError("Invalid action")
-        focus = values["focus"]
-        if type(focus) is not str or not focus.strip() or len(focus) > 60:
-            raise ValueError("Invalid focus")
-    return values
-
-
 async def run(
     candidate_id: str, model: str, system: str, messages: list[dict], *, max_tokens: int,
     language: str = "ko",
 ) -> dict:
-    if candidate_id == V12_PROTOCOL_IDS[1]:
-        from app.services import eval_turn_decision
-
-        return await eval_turn_decision.run(
-            candidate_id, model, system, messages, max_tokens=max_tokens, language=language,
-        )
     expected_model, reasoning, caps = protocol_profile(candidate_id)
     if settings.environment != "development" or model != expected_model or language != "ko":
         raise ValueError("Reply protocol is development-only for the registered model")
     expected, _ = prompts.eval_system_prompt(language, candidate_id)
     if system != expected:
         raise ValueError("Reply protocol requires the frozen registered system")
-    if candidate_id in V15_PROTOCOL_IDS:
-        build_messages(system, messages, candidate_id)  # strict type/bounds check before legacy access
     if not messages or len(messages) > 50 or messages[-1].get("role") != "user":
         raise ValueError("Reply protocol requires bounded conversation input")
     if any(set(message) != {"role", "content"} or message["role"] not in {"user", "assistant"}
@@ -190,15 +84,6 @@ async def run(
         "sdk_create_calls": 0, "usage_known": False,
         "raw_json": None, "decisions": None, "field_order": None, "failure_kind": None,
     }
-    if candidate_id in (*V6_PROTOCOL_IDS, V12_PROTOCOL_IDS[0], *V13_PROTOCOL_IDS):
-        diagnostic["reasoning_tokens"] = None
-    if candidate_id in V15_PROTOCOL_IDS:
-        diagnostic.update({
-            "input_prefix_sha256": hashlib.sha256(json.dumps(
-                wire_messages[:14], ensure_ascii=False, separators=(",", ":"),
-            ).encode()).hexdigest(),
-            "prefix_message_count": 13, "wire_message_count": len(wire_messages),
-        })
     result = model_eval.EvalResult("openai", model, None, 0, 0, 0, None)
     started = time.perf_counter()
     try:
@@ -208,8 +93,6 @@ async def run(
             "reasoning_effort": reasoning, "max_completion_tokens": max_tokens,
             "timeout": _TIMEOUT_S,
         }
-        if manifest["response_format"] is not None:
-            kwargs["response_format"] = manifest["response_format"]
         diagnostic["request_sha256"] = hashlib.sha256(json.dumps(
             kwargs, ensure_ascii=False, separators=(",", ":"),
         ).encode()).hexdigest()
@@ -222,11 +105,6 @@ async def run(
     else:
         result.model_snapshot = getattr(response, "model", None) or ""
         usage = getattr(response, "usage", None)
-        if candidate_id in (*V6_PROTOCOL_IDS, V12_PROTOCOL_IDS[0], *V13_PROTOCOL_IDS):
-            details = getattr(usage, "completion_tokens_details", None)
-            reasoning_tokens = getattr(details, "reasoning_tokens", None)
-            if type(reasoning_tokens) is int and reasoning_tokens >= 0:
-                diagnostic["reasoning_tokens"] = reasoning_tokens
         known = all(type(getattr(usage, field, None)) is int and getattr(usage, field) >= 0
                     for field in ("prompt_tokens", "completion_tokens"))
         diagnostic["usage_known"] = known
@@ -255,11 +133,9 @@ async def run(
                 raise ValueError("Incomplete or refused response")
             if type(raw) is not str:
                 raise ValueError("Missing response content")
-            values = _decode(raw, candidate_id)
-            diagnostic["field_order"] = list(values) if candidate_id not in PLAIN_PROTOCOL_IDS else None
-            result.text = values["text"]  # exact decoded text: never strip or normalize
-            if candidate_id == PROTOCOL_IDS[2]:
-                diagnostic["decisions"] = {key: values[key] for key in ("action", "focus")}
+            if not raw.strip() or len(raw) > 600:
+                raise ValueError("Invalid spoken text")
+            result.text = raw  # preserve exact plain text; never strip or normalize
         except (ValueError, TypeError):
             diagnostic["failure_kind"] = "invalid_response"
             result.error = "ReplyProtocolInvalidResponse"

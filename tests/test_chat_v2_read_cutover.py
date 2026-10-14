@@ -91,7 +91,7 @@ async def test_recall_failure_does_not_break_the_reply():
     c._recall_adapter = _boom
     try:
         got = await chat._recall_memory_v2(
-            SimpleNamespace(), query="회사", state=_State(True), language="ko"
+            SimpleNamespace(), query="전에 말한 회사 기억나?", state=_State(True), language="ko"
         )
     finally:
         c._recall_adapter = original
@@ -230,12 +230,12 @@ async def test_initialization_failure_notice_does_not_log_context_or_identifier(
 
     monkeypatch.setattr(chat, "_recall_adapter", unavailable_adapter)
     got = await chat._recall_memory_v2(
-        SimpleNamespace(), query="synthetic query", state=_State(True), language=language,
+        SimpleNamespace(), query="synthetic query?", state=_State(True), language=language,
     )
     assert got == chat._memory_unavailable_notice(language)
     assert "RuntimeError" in caplog.text
     assert "synthetic private detail" not in caplog.text
-    assert "synthetic query" not in caplog.text
+    assert "synthetic query?" not in caplog.text
     assert all(record.exc_info is None for record in caplog.records)
 
 
@@ -312,6 +312,52 @@ async def test_unavailable_notice_is_volatile_between_recent_history_and_current
     assert convo[notice_index]["role"] == "system"
     assert convo[notice_index - 1]["content"] == "previous Cappy line"
     assert convo[notice_index + 1]["content"] == "current user line"
+
+
+@pytest.mark.parametrize("query", ("안녕", "응"))
+async def test_skipped_query_does_not_initialize_recall_dependencies(monkeypatch, query):
+    from app.core import db
+    from app.services import mem0_recall, memory_embeddings
+
+    def forbidden_init(*args, **kwargs):
+        raise AssertionError("A skipped query initialized recall dependencies")
+
+    async def forbidden_provider(*args, **kwargs):
+        raise AssertionError("A skipped query called embedding or recall")
+
+    monkeypatch.setattr(db, "get_sessionmaker", forbidden_init)
+    monkeypatch.setattr(chat, "_recall_adapter", forbidden_init)
+    monkeypatch.setattr(memory_embeddings, "embed_query", forbidden_provider)
+    monkeypatch.setattr(mem0_recall, "recall_diagnostics", forbidden_provider)
+    assert await chat._recall_memory_v2(
+        SimpleNamespace(), query=query, state=_State(True), language="ko",
+    ) == ""
+
+
+async def test_lookback_query_still_reports_init_failure_without_calling_provider(monkeypatch):
+    from app.core import db
+    from app.services import mem0_recall, memory_embeddings
+
+    calls = []
+
+    def unavailable_maker():
+        calls.append("maker")
+        raise RuntimeError("synthetic initialization failure")
+
+    def forbidden_adapter(*args, **kwargs):
+        raise AssertionError("Adapter must not initialize after session initialization fails")
+
+    async def forbidden_provider(*args, **kwargs):
+        raise AssertionError("Provider must not run after initialization fails")
+
+    monkeypatch.setattr(db, "get_sessionmaker", unavailable_maker)
+    monkeypatch.setattr(chat, "_recall_adapter", forbidden_adapter)
+    monkeypatch.setattr(memory_embeddings, "embed_query", forbidden_provider)
+    monkeypatch.setattr(mem0_recall, "recall_diagnostics", forbidden_provider)
+    assert await chat._recall_memory_v2(
+        SimpleNamespace(), query="전에 말한 이름 기억나?", state=_State(True), language="ko",
+    ) == chat._memory_unavailable_notice("ko")
+    assert calls == ["maker"]
 
 
 

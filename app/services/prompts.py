@@ -324,6 +324,7 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-availability-ko-v11",
     "voice-low-ko-v12",
     "voice-decide-render-ko-v12",
+    "voice-sol-low-ko-v13",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -745,6 +746,11 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id == "voice-sol-low-ko-v13":
+        if language != "ko":
+            raise ValueError("Korean aligned model comparison supports Korean only")
+        system, _ = eval_system_prompt(language, "voice-low-ko-v12")
+        return system, "cappy-voice-20261015-v13"
     if candidate_id in ("voice-low-ko-v12", "voice-decide-render-ko-v12"):
         if language != "ko":
             raise ValueError("Korean decision comparison supports Korean only")

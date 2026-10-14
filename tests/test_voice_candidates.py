@@ -178,6 +178,16 @@ def test_v11_preserves_v10_contrast_prefix_and_only_appends_information_counterc
         for locale in ("ja", "en", "ko-KR"):
             with pytest.raises(ValueError):
                 prompts.eval_system_prompt(locale, candidate)
+
+
+def test_v13_same_system_as_v12_luna_and_only_changes_version_not_persona():
+    prior = prompts.eval_system_prompt("ko", "voice-low-ko-v12")[0]
+    aligned, version = prompts.eval_system_prompt("ko", "voice-sol-low-ko-v13")
+    assert aligned == prior
+    assert version == "cappy-voice-20261015-v13"
+    for locale in ("ja", "en", "ko-KR"):
+        with pytest.raises(ValueError):
+            prompts.eval_system_prompt(locale, "voice-sol-low-ko-v13")
 _SUPPORTED = (
     ("ko", "voice-style-v1"),
     ("ja", "voice-style-v1"),

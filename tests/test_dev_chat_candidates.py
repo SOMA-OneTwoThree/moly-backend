@@ -320,3 +320,18 @@ def test_v12_composite_api_serializes_independent_subcalls_without_schema_change
     assert response.json()["prototype"]["sdk_create_calls"] == 2
     assert len(response.json()["prototype"]["subcalls"]) == 2
     assert response.json()["prototype"]["parsed_decision"] == decision
+
+
+def test_v13_api_requires_aligned_sol_low_profile_and_development(client, protocol_calls, monkeypatch):
+    request = payload(candidate_id="voice-sol-low-ko-v13", model="gpt-6-sol", max_tokens=1024)
+    response = client.post("/dev/chat-eval", json=request)
+    assert response.status_code == 200 and len(protocol_calls) == 1
+    assert response.json()["candidate"]["version"] == "cappy-voice-20261015-v13"
+    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", "voice-low-ko-v12")[0]
+    for overrides in ({"model": "gpt-6-luna"}, {"max_tokens": 192}, {"language": "ja"},
+                      {"reasoning_effort": "none"}):
+        response = client.post("/dev/chat-eval", json={**request, **overrides})
+        assert response.status_code == 422 and len(protocol_calls) == 1
+    monkeypatch.setattr(dev.settings, "environment", "production")
+    assert client.post("/dev/chat-eval", json=request).status_code == 403
+    assert len(protocol_calls) == 1

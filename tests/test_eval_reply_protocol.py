@@ -243,6 +243,7 @@ async def test_initialization_failure_counts_no_create_and_does_not_log_detail(m
     SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS,
     *protocol.V10_PROTOCOL_IDS,
     *protocol.V11_PROTOCOL_IDS,
+    *protocol.V13_PROTOCOL_IDS,
 ])
 async def test_external_cancel_propagates(monkeypatch, candidate):
     client = Client(error=asyncio.CancelledError())
@@ -259,6 +260,7 @@ async def test_external_cancel_propagates(monkeypatch, candidate):
     SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS,
     *protocol.V10_PROTOCOL_IDS,
     *protocol.V11_PROTOCOL_IDS,
+    *protocol.V13_PROTOCOL_IDS,
 ])
 async def test_installed_sdk_sends_once_and_shared_client_remains_open(monkeypatch, status, candidate):
     sent = []
@@ -356,6 +358,47 @@ async def test_fixed_plain_192_profile_uses_exact_registered_system(monkeypatch,
         with pytest.raises(ValueError):
             await protocol.run(**{**kwargs, **overrides})
     assert len(client.calls) == 1
+
+
+async def test_v13_installed_sdk_changes_only_model_from_aligned_luna_condition(monkeypatch):
+    candidate = "voice-sol-low-ko-v13"
+    system, version = prompts.eval_system_prompt("ko", candidate)
+    luna_system, _ = prompts.eval_system_prompt("ko", "voice-low-ko-v12")
+    assert system == luna_system
+    assert hashlib.sha256(system.encode()).hexdigest() == (
+        "2b3d15822701573da5d250b76ada8dbf1176015e1f481a4fa8969dd72d549467"
+    )
+    assert version == "cappy-voice-20261015-v13"
+    sol_manifest = protocol.protocol_manifest(candidate, 1024)
+    assert sol_manifest["response_format"] is None
+    assert sol_manifest["schema_sha256"] == protocol.protocol_manifest("voice-low-ko-v12", 1024)["schema_sha256"]
+    sent = []
+    raw = '  原文 "합성"\n그대로.  '
+
+    async def handler(request):
+        sent.append(json.loads(request.content))
+        return httpx.Response(200, json={
+            "id": "synthetic", "object": "chat.completion", "created": 1,
+            "model": "gpt-6-sol-synthetic", "choices": [{
+                "index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": raw},
+            }], "usage": {"prompt_tokens": 100, "completion_tokens": 20, "total_tokens": 120,
+                          "completion_tokens_details": {"reasoning_tokens": 7}},
+        })
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        sdk = AsyncOpenAI(api_key="test-only", base_url="https://provider.invalid", http_client=http)
+        monkeypatch.setattr(llm, "_get_openai_client", lambda: sdk)
+        result = await protocol.run(candidate, "gpt-6-sol", system, MESSAGES, max_tokens=1024)
+        assert sdk.max_retries == 2 and not http.is_closed
+    assert len(sent) == 1 and result["prototype"]["sdk_create_calls"] == 1
+    assert sent[0] == {"model": "gpt-6-sol", "messages": [{"role": "system", "content": system}, *MESSAGES],
+                       "reasoning_effort": "low", "max_completion_tokens": 1024}
+    assert result["text"] == raw and result["output_tokens"] == 20
+    assert result["prototype"]["reasoning_tokens"] == 7 and result["est_cost_usd"] == 0.0004
+    with pytest.raises(ValueError):
+        await protocol.run(candidate, "gpt-6-luna", system, MESSAGES, max_tokens=1024)
+    with pytest.raises(ValueError):
+        await protocol.run(candidate, "gpt-6-sol", system, MESSAGES, max_tokens=192)
 
 
 @pytest.mark.parametrize("overrides", [

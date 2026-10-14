@@ -563,7 +563,13 @@ def _build_system(
     # 실제 주입은 post_message가 convo 끝에서 한다.
     if relationship_v2:
         # 결정적 state의 투영. 모델이 쓴 자유 서술과 달리 값이 흘러가지 않는다(7.1절).
-        parts.append(relationship_v2)
+        relationship_block = (
+            relationship_projector.relationship_facts(relationship_v2)
+            if settings.environment == "development" and locale == "ko"
+            else relationship_v2
+        )
+        if relationship_block:
+            parts.append(relationship_block)
     # ⚠️ [지난 이야기](요약)와 [지금 상태]는 **여기 없다.** 둘 다 자주 바뀌는데 system은
     # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
     # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). 요약과 현재 상태는 휘발 컨텍스트다. 실제 주입은 post_message가 convo 끝에서 한다.

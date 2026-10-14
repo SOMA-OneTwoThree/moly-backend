@@ -113,7 +113,7 @@ def test_development_changes_only_the_first_prefix_block(monkeypatch, locale):
     values = {
         "historical_lead": ["2026-10-14T01:02:03+09:00 原文 {유저이름}"],
         "contract_text": "agreement {유저이름}",
-        "relationship_v2": "relationship original",
+        "relationship_v2": "[관계]\n함께한 날: 2일" if locale == "ko" else "relationship original",
         "summary": "volatile summary",
         "current_state": "volatile current state",
     }

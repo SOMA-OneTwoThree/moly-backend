@@ -102,6 +102,52 @@ def test_v8_fails_closed_if_its_single_insertion_boundary_changes(monkeypatch):
     monkeypatch.setattr(prompts, "_VOICE_FREE_KO_V5", "synthetic body without heading")
     with pytest.raises(ValueError, match="section boundary changed"):
         prompts.eval_system_prompt("ko", "voice-direct-ko-v8")
+
+
+def test_v10_fixed_examples_share_exact_preferred_content_and_only_add_alternatives():
+    free, _ = prompts.eval_system_prompt("ko", "voice-free-ko-v5")
+    base, base_version = prompts.eval_system_prompt("ko", "voice-base-ko-v10")
+    positive, positive_version = prompts.eval_system_prompt("ko", "voice-positive-ko-v10")
+    contrast, contrast_version = prompts.eval_system_prompt("ko", "voice-contrast-ko-v10")
+    assert base == free
+    assert base_version == positive_version == contrast_version == "cappy-voice-20261015-v10"
+    assert positive == free + "\n\n" + prompts._VOICE_POSITIVE_KO_V10
+    assert contrast == free + "\n\n" + prompts._VOICE_CONTRAST_KO_V10
+    without_alternatives = "\n".join(
+        line for line in contrast.split("\n") if not line.startswith("비선호 대안: ")
+    )
+    assert without_alternatives == positive
+    assert positive.count("선호 답: ") == contrast.count("\n선호 답: ") == 6
+    assert contrast.count("비선호 대안: ") == 6 and "비선호 대안: " not in positive
+    scenes = prompts._VOICE_SCENES_KO_V10
+    assert len(scenes) == 3 and all(len(scene) == 2 for scene in scenes)
+    assert "서로 독립된 허구" in prompts._VOICE_EXAMPLE_NOTICE_KO_V10
+    assert "소재와 문구는 지금 상대의 정보가 아니야" in prompts._VOICE_EXAMPLE_NOTICE_KO_V10
+    assert "두 번째 교환은 첫 번째 선호 답을 앞 이력으로" in prompts._VOICE_EXAMPLE_NOTICE_KO_V10
+    for scene in scenes:
+        for utterance, preferred, alternative in scene:
+            assert f"상대: {utterance}\n선호 답: {preferred}" in positive
+            assert f"상대: {utterance}\n선호 답: {preferred}\n비선호 대안: {alternative}" in contrast
+    assert hashlib.sha256(positive.encode()).hexdigest() == (
+        "6af512b7a0936bd56fbc854d2799623d06d04d50c543da72f41ad96ff97407ad"
+    )
+    assert hashlib.sha256(contrast.encode()).hexdigest() == (
+        "2b3d15822701573da5d250b76ada8dbf1176015e1f481a4fa8969dd72d549467"
+    )
+    for candidate in ("voice-base-ko-v10", "voice-positive-ko-v10", "voice-contrast-ko-v10"):
+        for locale in ("ja", "en", "ko-KR"):
+            with pytest.raises(ValueError):
+                prompts.eval_system_prompt(locale, candidate)
+
+
+def test_v10_resolves_static_examples_without_runtime_selection(monkeypatch):
+    before = prompts.eval_system_prompt("ko", "voice-contrast-ko-v10")
+
+    def forbidden(**kwargs):
+        raise AssertionError("Runtime example selection is forbidden")
+
+    monkeypatch.setattr(prompts, "_voice_example_block_v10", forbidden)
+    assert prompts.eval_system_prompt("ko", "voice-contrast-ko-v10") == before
 _SUPPORTED = (
     ("ko", "voice-style-v1"),
     ("ja", "voice-style-v1"),

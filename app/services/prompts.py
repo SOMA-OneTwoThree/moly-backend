@@ -317,6 +317,9 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-example-ko-v7",
     "voice-base-ko-v8",
     "voice-direct-ko-v8",
+    "voice-base-ko-v10",
+    "voice-positive-ko-v10",
+    "voice-contrast-ko-v10",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -369,6 +372,67 @@ _VOICE_EXAMPLE_KO_V7 = """[가상 대화 예시]
 
 _VOICE_DIRECT_KO_RULES_V8 = """상대가 요약·확인을 요청했거나 네가 잘못 이해한 내용을 바로잡는 때가 아니라면, 방금 말한 일을 재설명하거나 그 일로 상대가 어떤 기분일지 해설하는 서론 대신 네 답이나 반응을 바로 말해.
 말투를 바꿔 달라는 요청은 이 답부터 적용해. 사과·앞으로의 약속·말투 설명으로 대신하지 말고, 이어지던 내용이 있으면 그 내용을 요청한 표현으로 답해."""
+
+# Fixed fictional scenes: each second exchange follows the first preferred reply.
+# Positive and contrast conditions share every user/preferred string and ordering.
+_VOICE_SCENES_KO_V10 = (
+    (
+        (
+            "오늘 산 딸기가 진짜 맛있어. 달기도 한데 향이 엄청 진해.",
+            "오, 딸기 잘 샀네.",
+            "맛있는 딸기를 먹어서 기분이 좋았겠네.",
+        ),
+        (
+            "좀 더 편하게 받아줘. 네 반응도 말해도 돼.",
+            "아, 나도 딸기 먹고 싶다.",
+            "알겠어. 더 편하게 얘기할게. 향까지 좋은 딸기를 골라서 좋았겠다.",
+        ),
+    ),
+    (
+        (
+            "친구한테 긴 메시지가 왔어. 아직 답장은 안 했고. 무슨 얘긴지 그냥 좀 들어줘.",
+            "어, 말해 봐.",
+            "긴 메시지를 받고 답장을 못 하고 있으면 마음이 복잡하겠다.",
+        ),
+        (
+            "아, 걱정돼서 꺼낸 얘긴 아니야. 친구가 장난으로 쓴 건지 진심인지는 나도 아직 모르겠어.",
+            "뭐라고 왔어?",
+            "장난인지 진심인지 몰라서 신경이 쓰이는구나. 너무 혼자 고민하지 않아도 돼.",
+        ),
+    ),
+    (
+        (
+            "주말에 수족관이랑 식물원 중 어디 갈까? 내 취향 맞추려 하지 말고 네가 더 끌리는 데로 골라.",
+            "난 수족관. 해파리가 보고 싶어.",
+            "둘 다 괜찮지. 동물이 보고 싶으면 수족관, 초록색 보면서 쉬고 싶으면 식물원은 어때?",
+        ),
+        (
+            "네가 고른 이유만 한 문장으로 요약해줘. 내가 식물원을 싫어한다는 뜻은 아니고.",
+            "해파리가 보고 싶어서 수족관을 골랐어.",
+            "두 곳 다 장점이 있지만 지금은 수족관이 더 적합하다는 뜻이야.",
+        ),
+    ),
+)
+_VOICE_EXAMPLE_NOTICE_KO_V10 = (
+    "[가상 대화 예시]\n"
+    "아래 세 장면은 서로 독립된 허구야. 소재와 문구는 지금 상대의 정보가 아니야. "
+    "각 장면의 두 번째 교환은 첫 번째 선호 답을 앞 이력으로 본 배열이야."
+)
+
+
+def _voice_example_block_v10(*, contrast: bool) -> str:
+    lines = [_VOICE_EXAMPLE_NOTICE_KO_V10]
+    for index, scene in enumerate(_VOICE_SCENES_KO_V10, start=1):
+        lines.append(f"\n[장면 {index}]")
+        for utterance, preferred, alternative in scene:
+            lines.extend((f"상대: {utterance}", f"선호 답: {preferred}"))
+            if contrast:
+                lines.append(f"비선호 대안: {alternative}")
+    return "\n".join(lines)
+
+
+_VOICE_POSITIVE_KO_V10 = _voice_example_block_v10(contrast=False)
+_VOICE_CONTRAST_KO_V10 = _voice_example_block_v10(contrast=True)
 
 # Exact section boundaries make the intervention inspectable. Identity, safety,
 # tools, dates, mood ownership and the language/output footer are outside these spans.
@@ -658,6 +722,15 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id in ("voice-base-ko-v10", "voice-positive-ko-v10", "voice-contrast-ko-v10"):
+        if language != "ko":
+            raise ValueError("Korean example comparison supports Korean only")
+        system = _VOICE_FREE_KO_V5
+        if candidate_id == "voice-positive-ko-v10":
+            system += "\n\n" + _VOICE_POSITIVE_KO_V10
+        elif candidate_id == "voice-contrast-ko-v10":
+            system += "\n\n" + _VOICE_CONTRAST_KO_V10
+        return system, "cappy-voice-20261015-v10"
     if candidate_id in ("voice-base-ko-v8", "voice-direct-ko-v8"):
         if language != "ko":
             raise ValueError("Korean direct response experiment supports Korean only")

@@ -209,8 +209,9 @@ def test_protocol_rejects_model_locale_cap_and_arbitrary_format_or_key(
     assert calls == [] and protocol_calls == []
 
 
-def test_protocol_input_bound_counts_utf8_envelope_and_schema(client, protocol_calls):
-    request = payload(candidate_id="voice-act-focus-ko-v4", max_tokens=192)
+@pytest.mark.parametrize("candidate", ["voice-act-focus-ko-v4", *dev.eval_reply_protocol.V10_PROTOCOL_IDS])
+def test_protocol_input_bound_counts_utf8_envelope_and_schema(client, protocol_calls, candidate):
+    request = payload(candidate_id=candidate, max_tokens=192)
     system, _ = dev.eval_system_prompt("ko", request["candidate_id"])
     available = 24_000 - dev.eval_reply_protocol.input_bytes(system, request["messages"], request["candidate_id"])
     request["messages"][0]["content"] = "가" * (available // 3 + 20)
@@ -260,15 +261,23 @@ def test_v6_api_enforces_registered_target_and_1024_cap(client, calls, protocol_
 
 @pytest.mark.parametrize("candidate", [
     "voice-base-ko-v7", "voice-example-ko-v7", "voice-base-ko-v8", "voice-direct-ko-v8",
+    *dev.eval_reply_protocol.V10_PROTOCOL_IDS,
 ])
 def test_fixed_plain_api_enforces_same_luna_192_profile(client, calls, protocol_calls, candidate):
     request = payload(candidate_id=candidate, max_tokens=192)
     response = client.post("/dev/chat-eval", json=request)
     assert response.status_code == 200 and calls == [] and len(protocol_calls) == 1
-    assert response.json()["candidate"]["version"] == (
-        f"cappy-voice-20261014-{candidate.rsplit('-', 1)[-1]}"
-    )
+    stamp = "20261015" if candidate in dev.eval_reply_protocol.V10_PROTOCOL_IDS else "20261014"
+    assert response.json()["candidate"]["version"] == f"cappy-voice-{stamp}-{candidate.rsplit('-', 1)[-1]}"
     assert protocol_calls[0][2] == dev.eval_system_prompt("ko", candidate)[0]
     for overrides in ({"max_tokens": 1024}, {"model": "gpt-6-sol"}, {"language": "ja"}):
         response = client.post("/dev/chat-eval", json={**request, **overrides})
         assert response.status_code == 422 and len(protocol_calls) == 1
+
+
+@pytest.mark.parametrize("candidate", dev.eval_reply_protocol.V10_PROTOCOL_IDS)
+@pytest.mark.parametrize("environment", ["production", "local", "test"])
+def test_v10_remains_development_only(client, protocol_calls, monkeypatch, candidate, environment):
+    monkeypatch.setattr(dev.settings, "environment", environment)
+    response = client.post("/dev/chat-eval", json=payload(candidate_id=candidate, max_tokens=192))
+    assert response.status_code == 403 and protocol_calls == []

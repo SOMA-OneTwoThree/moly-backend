@@ -193,14 +193,14 @@ def _eval_system(
         raise errors.validation("이 언어에서 사용할 수 없는 프롬프트 후보예요.") from None
     if len(system) + sum(len(message.content) for message in req.messages) > 24_000:
         raise errors.validation("후보 평가 입력이 허용된 길이를 초과했어요.")
+    if req.messages[-1].role != "user":
+        raise errors.validation("후보 평가의 마지막 메시지는 user여야 해요.")
     if req.candidate_id in eval_reply_protocol.PROTOCOL_IDS:
         model, _, caps = eval_reply_protocol.protocol_profile(req.candidate_id)
         if targets != [("openai", model)] or req.max_tokens not in caps:
             raise errors.validation("응답 시험은 후보에 등록된 고정 모델과 출력 상한만 사용해요.")
         if eval_reply_protocol.input_bytes(system, _messages(req), req.candidate_id) > 24_000:
             raise errors.validation("응답 형식 시험 입력이 허용된 바이트 수를 초과했어요.")
-    if req.messages[-1].role != "user":
-        raise errors.validation("후보 평가의 마지막 메시지는 user여야 해요.")
     code_sha = settings.git_sha
     if req.candidate_id in eval_reply_protocol.PROTOCOL_IDS and not re.fullmatch(r"[0-9a-f]{40}", code_sha):
         raise errors.validation("응답 형식 시험은 전체 코드 버전이 확인된 개발 서버에서만 가능해요.")

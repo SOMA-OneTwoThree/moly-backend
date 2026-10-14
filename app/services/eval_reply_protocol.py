@@ -22,10 +22,11 @@ V10_PROTOCOL_IDS = ("voice-base-ko-v10", "voice-positive-ko-v10", "voice-contras
 V11_PROTOCOL_IDS = ("voice-control-ko-v11", "voice-availability-ko-v11")
 V12_PROTOCOL_IDS = ("voice-low-ko-v12", "voice-decide-render-ko-v12")
 V13_PROTOCOL_IDS = ("voice-sol-low-ko-v13",)
+V15_PROTOCOL_IDS = ("voice-role-ko-v15",)
 PLAIN_PROTOCOL_IDS = (
     V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5",
     *V6_PROTOCOL_IDS, *V7_PROTOCOL_IDS, *V8_PROTOCOL_IDS, *V10_PROTOCOL_IDS, *V11_PROTOCOL_IDS,
-    *V12_PROTOCOL_IDS, *V13_PROTOCOL_IDS,
+    *V12_PROTOCOL_IDS, *V13_PROTOCOL_IDS, *V15_PROTOCOL_IDS,
 )
 PROTOCOL_IDS = (*V4_PROTOCOL_IDS, *PLAIN_PROTOCOL_IDS[1:])
 _TIMEOUT_S = 10.0
@@ -36,7 +37,9 @@ def protocol_profile(candidate_id: str) -> tuple[str, str, tuple[int, ...]]:
     """Return server-owned model, reasoning and caps; no caller-supplied wire options."""
     if candidate_id not in PROTOCOL_IDS:
         raise ValueError("Unknown reply protocol")
-    if candidate_id in (*V7_PROTOCOL_IDS, *V8_PROTOCOL_IDS, *V10_PROTOCOL_IDS, *V11_PROTOCOL_IDS):
+    if candidate_id in (
+        *V7_PROTOCOL_IDS, *V8_PROTOCOL_IDS, *V10_PROTOCOL_IDS, *V11_PROTOCOL_IDS, *V15_PROTOCOL_IDS,
+    ):
         return "gpt-6-luna", "none", (192,)
     if candidate_id in V12_PROTOCOL_IDS:
         return ("gpt-6-luna", "low", (1024,)) if candidate_id == V12_PROTOCOL_IDS[0] else (
@@ -94,9 +97,31 @@ def protocol_manifest(candidate_id: str, max_tokens: int) -> dict:
     }
 
 
+def build_messages(system: str, messages: list[dict], candidate_id: str) -> list[dict]:
+    """Assemble the exact SDK message list, shared by bounds, cost reservation and sending."""
+    if candidate_id in V15_PROTOCOL_IDS:
+        if system != prompts.eval_system_prompt("ko", candidate_id)[0]:
+            raise ValueError("Role example protocol requires its frozen system")
+        if not messages or len(messages) > 50 or any(
+            type(message) is not dict or set(message) != {"role", "content"}
+            or type(message["role"]) is not str or message["role"] not in {"user", "assistant"}
+            or type(message["content"]) is not str
+            for message in messages
+        ) or messages[-1]["role"] != "user":
+            raise ValueError("Role example protocol requires bounded user and assistant text")
+        prefix = [*prompts.eval_role_examples(candidate_id),
+                  {"role": "user", "content": "[실제대화시작]"}]
+        if len(prefix) != 13 or len(prefix) + len(messages) > 63:
+            raise ValueError("Role example protocol exceeds its message bound")
+        return [{"role": "system", "content": system}, *prefix,
+                *(dict(message) for message in messages)]
+    _, transcript = llm.from_openai_messages(messages)
+    return llm.to_openai_messages(system, transcript)
+
+
 def input_bytes(system: str, messages: list[dict], candidate_id: str) -> int:
     envelope = {
-        "messages": [{"role": "system", "content": system}, *messages],
+        "messages": build_messages(system, messages, candidate_id),
         "response_format": response_format(candidate_id),
     }
     return len(json.dumps(envelope, ensure_ascii=False, separators=(",", ":")).encode())
@@ -147,6 +172,8 @@ async def run(
     expected, _ = prompts.eval_system_prompt(language, candidate_id)
     if system != expected:
         raise ValueError("Reply protocol requires the frozen registered system")
+    if candidate_id in V15_PROTOCOL_IDS:
+        build_messages(system, messages, candidate_id)  # strict type/bounds check before legacy access
     if not messages or len(messages) > 50 or messages[-1].get("role") != "user":
         raise ValueError("Reply protocol requires bounded conversation input")
     if any(set(message) != {"role", "content"} or message["role"] not in {"user", "assistant"}
@@ -155,6 +182,7 @@ async def run(
     if max_tokens not in caps or input_bytes(system, messages, candidate_id) > 24_000:
         raise ValueError("Reply protocol exceeds fixed evaluation bounds")
     manifest = protocol_manifest(candidate_id, max_tokens)
+    wire_messages = build_messages(system, messages, candidate_id)
     diagnostic = {
         "schema_sha256": manifest["schema_sha256"],
         "wire_options_sha256": manifest["wire_options_sha256"],
@@ -164,13 +192,19 @@ async def run(
     }
     if candidate_id in (*V6_PROTOCOL_IDS, V12_PROTOCOL_IDS[0], *V13_PROTOCOL_IDS):
         diagnostic["reasoning_tokens"] = None
+    if candidate_id in V15_PROTOCOL_IDS:
+        diagnostic.update({
+            "input_prefix_sha256": hashlib.sha256(json.dumps(
+                wire_messages[:14], ensure_ascii=False, separators=(",", ":"),
+            ).encode()).hexdigest(),
+            "prefix_message_count": 13, "wire_message_count": len(wire_messages),
+        })
     result = model_eval.EvalResult("openai", model, None, 0, 0, 0, None)
     started = time.perf_counter()
     try:
         client = llm._get_openai_client().with_options(max_retries=0)
-        _, transcript = llm.from_openai_messages(messages)
         kwargs = {
-            "model": model, "messages": llm.to_openai_messages(system, transcript),
+            "model": model, "messages": wire_messages,
             "reasoning_effort": reasoning, "max_completion_tokens": max_tokens,
             "timeout": _TIMEOUT_S,
         }

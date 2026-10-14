@@ -325,6 +325,7 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-low-ko-v12",
     "voice-decide-render-ko-v12",
     "voice-sol-low-ko-v13",
+    "voice-role-ko-v15",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -438,6 +439,27 @@ def _voice_example_block_v10(*, contrast: bool) -> str:
 
 _VOICE_POSITIVE_KO_V10 = _voice_example_block_v10(contrast=False)
 _VOICE_CONTRAST_KO_V10 = _voice_example_block_v10(contrast=True)
+
+_VOICE_ROLE_BOUNDARY_KO_V15 = (
+    "다음 12개 메시지는 4개씩 묶인 독립된 가상 장면 3개야. "
+    "말하는 방식의 예시일 뿐 현재 상대나 캐피의 실제 기억·취향은 아니야. "
+    "[실제대화시작] 뒤가 실제 대화야."
+)
+
+
+def eval_role_examples(candidate_id: str) -> list[dict[str, str]]:
+    """Return fresh, fixed fictional role messages from the existing example source."""
+    if candidate_id != "voice-role-ko-v15":
+        return []
+    return [
+        message
+        for scene in _VOICE_SCENES_KO_V10
+        for utterance, preferred, _ in scene
+        for message in (
+            {"role": "user", "content": utterance},
+            {"role": "assistant", "content": preferred},
+        )
+    ]
 
 _VOICE_AVAILABILITY_UTTERANCE_KO_V11 = (
     "친구랑 보드게임을 했어. 끝나고 친구가 한 말이 농담인지 진담인지 모르겠어."
@@ -746,6 +768,10 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id == "voice-role-ko-v15":
+        if language != "ko":
+            raise ValueError("Korean role example comparison supports Korean only")
+        return _VOICE_FREE_KO_V5 + "\n\n" + _VOICE_ROLE_BOUNDARY_KO_V15, "cappy-voice-20261015-v15"
     if candidate_id == "voice-sol-low-ko-v13":
         if language != "ko":
             raise ValueError("Korean aligned model comparison supports Korean only")

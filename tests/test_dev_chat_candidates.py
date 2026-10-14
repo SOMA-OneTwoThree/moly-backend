@@ -211,6 +211,7 @@ def test_protocol_rejects_model_locale_cap_and_arbitrary_format_or_key(
 
 @pytest.mark.parametrize("candidate", [
     "voice-act-focus-ko-v4", *dev.eval_reply_protocol.V10_PROTOCOL_IDS, *dev.eval_reply_protocol.V11_PROTOCOL_IDS,
+    *dev.eval_reply_protocol.V15_PROTOCOL_IDS,
 ])
 def test_protocol_input_bound_counts_utf8_envelope_and_schema(client, protocol_calls, candidate):
     request = payload(candidate_id=candidate, max_tokens=192)
@@ -227,6 +228,22 @@ def test_protocol_requires_known_full_code_sha(client, protocol_calls, monkeypat
         candidate_id="voice-plain-ko-v4", max_tokens=192,
     ))
     assert response.status_code == 422 and protocol_calls == []
+
+
+def test_role_candidate_api_checks_last_role_before_builder_and_keeps_original_input(client, protocol_calls):
+    candidate = "voice-role-ko-v15"
+    request = payload(candidate_id=candidate, max_tokens=192)
+    response = client.post("/dev/chat-eval", json={**request, "messages": [
+        {"role": "assistant", "content": "합성 응답"},
+    ]})
+    assert response.status_code == 422 and protocol_calls == []
+    response = client.post("/dev/chat-eval", json=request)
+    assert response.status_code == 200 and len(protocol_calls) == 1
+    assert protocol_calls[0][3] == request["messages"]
+    assert response.json()["candidate"]["version"] == "cappy-voice-20261015-v15"
+    for override in ({"model": "gpt-6-sol"}, {"max_tokens": 1024}, {"language": "en"}):
+        response = client.post("/dev/chat-eval", json={**request, **override})
+        assert response.status_code == 422 and len(protocol_calls) == 1
 
 
 @pytest.mark.parametrize("candidate", ["voice-base-ko-v5", "voice-free-ko-v5"])

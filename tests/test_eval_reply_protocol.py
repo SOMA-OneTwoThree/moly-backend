@@ -217,4 +217,3 @@ async def test_internal_adapter_rejects_unregistered_inputs_before_client(monkey
     kwargs.update(overrides)
     with pytest.raises(ValueError):
         await protocol.run(**kwargs)
-

@@ -181,4 +181,3 @@ async def run(
             result.error = "ReplyProtocolInvalidResponse"
     result.latency_ms = int((time.perf_counter() - started) * 1000)
     return {**result.__dict__, "prototype": diagnostic}
-

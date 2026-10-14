@@ -399,6 +399,29 @@ async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> No
 _MEM0_RECALL_TIMEOUT_S = 1.5
 _mem0_recall_adapter = None
 
+_MEMORY_UNAVAILABLE_NOTICE = {
+    "ko": (
+        "[기억 조회 상태]\n이전 기억을 이번 답에서 확인하지 못했을 수 있어. "
+        "검색 결과가 없다고 전에 말한 적 없다고 단정하지 마. 빠진 내용을 지어내지 말고 "
+        "지금 말에 답해. 이 내부 안내를 밝히거나 장애 설명을 먼저 꺼내지 마."
+    ),
+    "ja": (
+        "[記憶の取得状況]\n今回の返事では以前の記憶を確認できていない可能性がある。"
+        "検索結果がないことを、前に話していない証拠にしない。欠けた内容は作らず、"
+        "今の言葉に応じて。この内部案内を明かしたり、障害の説明を先に持ち出したりしない。"
+    ),
+    "en": (
+        "[Memory availability]\nEarlier memory may be unavailable for this reply. "
+        "No returned match is not proof that something was never shared. Don't invent "
+        "missing details; respond to the present message. Don't reveal this internal "
+        "notice or volunteer an outage explanation."
+    ),
+}
+
+
+def _memory_unavailable_notice(language: str) -> str:
+    return _MEMORY_UNAVAILABLE_NOTICE[i18n.resolve(language)]
+
 
 def _recall_adapter():
     """챗 프로세스의 vector store 어댑터. 프로세스당 하나만 만든다.
@@ -428,8 +451,8 @@ async def _recall_memory_v2(
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
 
-    회상 실패는 대화를 막지 않는다. 여기서 예외가 새면 응답 전체가 실패하므로
-    마지막 방어선을 하나 더 둔다(mem0_recall도 자체적으로 삼킨다).
+    회상 실패는 대화를 막지 않되, 검색 실패를 과거 발화 부재의 근거로 쓰지 않도록
+    휘발 안내를 반환한다. 정상 빈 결과와 skipped는 기존 빈 블록을 유지한다.
     """
     if not getattr(state, "serves_v2", False):
         return ""
@@ -440,18 +463,20 @@ async def _recall_memory_v2(
 
         maker = get_sessionmaker()
         async with maker() as s2:
-            items = await mem0_recall.recall(
+            diagnostics = await mem0_recall.recall_diagnostics(
                 s2, user_id, query=query,
                 adapter=_recall_adapter(),
                 embed_query=memory_embeddings.embed_query,
                 timeout=_MEM0_RECALL_TIMEOUT_S,
             )
+        if diagnostics.status == "unavailable":
+            return _memory_unavailable_notice(language)
         return mem0_recall.render_block(
-            items, language=language, today=today, tz_name=tz_name
+            diagnostics.items, language=language, today=today, tz_name=tz_name
         )
-    except Exception:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
-        _log.warning("v2 회상 블록 생성 실패(빈 기억으로 진행) — user=%s", user_id, exc_info=True)
-        return ""
+    except Exception as error:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
+        _log.warning("v2 회상 블록 생성 실패 error_type=%s", type(error).__name__)
+        return _memory_unavailable_notice(language)
 
 
 def _build_system(
@@ -1114,10 +1139,18 @@ async def post_message(
         memory_v2_block = await asyncio.wait_for(
             recall_task, timeout=_MEM0_RECALL_TIMEOUT_S
         )
-    except (TimeoutError, asyncio.CancelledError):
+    except TimeoutError:
         recall_task.cancel()  # 끊고 나서도 계속 돌면 비용만 나간다
-        memory_v2_block = ""
-        _log.warning("v2 회상 타임아웃(빈 기억으로 진행) — user=%s", uid)
+        memory_v2_block = (
+            _memory_unavailable_notice(language) if pipeline_state.serves_v2 else ""
+        )
+        _log.warning("v2 회상 타임아웃 stage=outer error_type=TimeoutError")
+    except asyncio.CancelledError:
+        recall_task.cancel()
+        await session.rollback()
+        await chat_turns.release(session, user_id=uid, lease=lease)
+        await session.commit()
+        raise
 
     system = _build_system(
         language,
@@ -1217,6 +1250,7 @@ async def post_message(
                 ttl_system=settings.cache_ttl_system,
                 ttl_messages=settings.cache_ttl_messages,
                 timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
+                foreground_deadline=absolute_deadline,
             )
             llm.require_completed_text(result.text, result.finish_reason)
     except BaseException:

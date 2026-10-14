@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import inspect
+import asyncio
+from contextlib import asynccontextmanager
 from types import SimpleNamespace
 
 import pytest
@@ -29,7 +31,8 @@ def _system(**over):
 # ── 안 켠 사용자는 그대로 ────────────────────────────────────
 
 @pytest.mark.parametrize("mode_serves_v2", [False])
-async def test_non_v2_user_gets_empty_block_without_touching_provider(mode_serves_v2):
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+async def test_non_v2_user_gets_empty_block_without_touching_provider(mode_serves_v2, language):
     """mode가 v2가 아니면 임베딩·벡터 검색을 **아예 부르지 않는다** — 비용과 지연 0."""
     called = {"n": 0}
 
@@ -43,7 +46,7 @@ async def test_non_v2_user_gets_empty_block_without_touching_provider(mode_serve
     c._recall_adapter = _boom
     try:
         got = await chat._recall_memory_v2(
-            SimpleNamespace(), query="회사", state=_State(mode_serves_v2), language="ko"
+            SimpleNamespace(), query="회사", state=_State(mode_serves_v2), language=language
         )
     finally:
         c._recall_adapter = original
@@ -92,7 +95,7 @@ async def test_recall_failure_does_not_break_the_reply():
         )
     finally:
         c._recall_adapter = original
-    assert got == ""
+    assert got == chat._memory_unavailable_notice("ko")
 
 
 def test_recall_is_bounded_at_the_boundary_not_just_inside():
@@ -109,21 +112,8 @@ def test_recall_is_bounded_at_the_boundary_not_just_inside():
     assert "recall_task" in src[wf:wf + 120], "wait_for가 회상 태스크를 감싸지 않는다"
 
 
-async def test_recall_timeout_yields_empty_memory_not_an_error():
-    """타임아웃이 예외로 새면 회상 지연 때문에 대화가 실패한다."""
-    import asyncio as _a
-
-    async def _slow():
-        await _a.sleep(10)
-        return "안 와야 한다"
-
-    task = _a.ensure_future(_slow())
-    try:
-        out = await _a.wait_for(task, timeout=0.05)
-    except (TimeoutError, _a.CancelledError):
-        task.cancel()
-        out = ""
-    assert out == ""
+# Outer timeouts are exercised through post_message below, rather than a duplicate
+# stand-alone wait_for implementation.
 
 
 def test_recall_is_started_early_and_awaited_after_commit():
@@ -177,6 +167,151 @@ def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
         f"(줄 {[n.lineno for n in inside]}) — 태스크가 고아가 된다. "
         "검증을 태스크 생성보다 앞으로 옮기거나, 태스크를 cancel하고 raise할 것."
     )
+
+
+@pytest.fixture
+def recall_session(monkeypatch):
+    from app.core import db
+
+    session = SimpleNamespace()
+
+    @asynccontextmanager
+    async def open_session():
+        yield session
+
+    monkeypatch.setattr(db, "get_sessionmaker", lambda: open_session)
+    monkeypatch.setattr(chat, "_recall_adapter", lambda: object())
+    return session
+
+
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+@pytest.mark.parametrize("error_code", (
+    "embedding_unavailable", "provider_unavailable", "registry_unavailable",
+))
+async def test_unavailable_diagnostic_is_not_treated_as_no_previous_memory(
+    monkeypatch, recall_session, language, error_code,
+):
+    from app.services import mem0_recall
+
+    async def recall(session, user_id, **kwargs):
+        assert session is recall_session
+        assert "min_keep" not in kwargs, "Foreground must retain existing default retrieval policy"
+        return mem0_recall.RecallDiagnostics("unavailable", [], 5, error_code=error_code)
+
+    monkeypatch.setattr(mem0_recall, "recall_diagnostics", recall)
+    got = await chat._recall_memory_v2(
+        SimpleNamespace(), query="earlier name?", state=_State(True), language=language,
+    )
+    assert got == chat._memory_unavailable_notice(language)
+
+
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+@pytest.mark.parametrize("status", ("ok", "skipped"))
+async def test_successful_empty_or_skipped_recall_has_no_unavailable_notice(
+    monkeypatch, recall_session, language, status,
+):
+    from app.services import mem0_recall
+
+    async def recall(*args, **kwargs):
+        return mem0_recall.RecallDiagnostics(status, [], 5)
+
+    monkeypatch.setattr(mem0_recall, "recall_diagnostics", recall)
+    assert await chat._recall_memory_v2(
+        SimpleNamespace(), query="name?", state=_State(True), language=language,
+    ) == ""
+
+
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+async def test_initialization_failure_notice_does_not_log_context_or_identifier(
+    monkeypatch, recall_session, caplog, language,
+):
+    def unavailable_adapter():
+        raise RuntimeError("synthetic private detail")
+
+    monkeypatch.setattr(chat, "_recall_adapter", unavailable_adapter)
+    got = await chat._recall_memory_v2(
+        SimpleNamespace(), query="synthetic query", state=_State(True), language=language,
+    )
+    assert got == chat._memory_unavailable_notice(language)
+    assert "RuntimeError" in caplog.text
+    assert "synthetic private detail" not in caplog.text
+    assert "synthetic query" not in caplog.text
+    assert all(record.exc_info is None for record in caplog.records)
+
+
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+async def test_normal_recall_items_keep_existing_renderer(monkeypatch, recall_session, language):
+    from app.services import mem0_recall
+
+    items = [mem0_recall.Recalled("synthetic preference", "active", 0.1, None, None)]
+
+    async def recall(*args, **kwargs):
+        return mem0_recall.RecallDiagnostics("ok", items, 5)
+
+    monkeypatch.setattr(mem0_recall, "recall_diagnostics", recall)
+    got = await chat._recall_memory_v2(
+        SimpleNamespace(), query="preference?", state=_State(True), language=language,
+    )
+    assert got == mem0_recall.render_block(items, language=language)
+
+
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+@pytest.mark.parametrize("outer_timeout", (False, True))
+async def test_unavailable_notice_is_volatile_between_recent_history_and_current_input(
+    monkeypatch, language, outer_timeout,
+):
+    from app.services import gating, llm, memory_pipeline
+    from tests.test_chat import FakeSession, UID, _gating
+
+    notice = chat._memory_unavailable_notice(language)
+    captured = {}
+
+    async def resolve(*args, **kwargs):
+        return _gating(profile=SimpleNamespace(
+            language=language, nickname="Alex", review_prompted_at=None, id=UID,
+        ))
+
+    async def load(*args, **kwargs):
+        return _State(True)
+
+    async def recall(*args, **kwargs):
+        if outer_timeout:
+            await asyncio.sleep(10)
+        return notice
+
+    async def context(*args, **kwargs):
+        return chat.ContextWindow([
+            {"role": "user", "content": "previous user line"},
+            {"role": "assistant", "content": "previous Cappy line"},
+            {"role": "user", "content": "current user line"},
+        ], None, [])
+
+    async def generate(system, convo, **kwargs):
+        captured.update(system=system, convo=convo)
+        return llm.LLMResult("응.", 10, 20)
+
+    async def record(*args, **kwargs):
+        pass
+
+    monkeypatch.setattr(gating, "resolve", resolve)
+    monkeypatch.setattr(memory_pipeline, "load", load)
+    monkeypatch.setattr(chat, "_recall_memory_v2", recall)
+    monkeypatch.setattr(chat, "_context", context)
+    monkeypatch.setattr(chat, "_MEM0_RECALL_TIMEOUT_S", 0.01)
+    monkeypatch.setattr(llm, "generate", generate)
+    monkeypatch.setattr(chat, "_record_memory_v2", record)
+    out = await chat.post_message(
+        FakeSession(), UID, SimpleNamespace(text="current user line", greeting_id=None),
+        f"notice-{language}-{outer_timeout}",
+    )
+    assert out.reply.content == "응."
+    assert captured["system"][0] == chat.system_prompt(language)
+    assert all(notice not in block for block in captured["system"])
+    convo = captured["convo"]
+    notice_index = next(i for i, message in enumerate(convo) if notice in message["content"])
+    assert convo[notice_index]["role"] == "system"
+    assert convo[notice_index - 1]["content"] == "previous Cappy line"
+    assert convo[notice_index + 1]["content"] == "current user line"
 
 
 

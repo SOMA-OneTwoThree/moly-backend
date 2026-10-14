@@ -677,6 +677,7 @@ async def run_turn(
             # generate_step은 자기가 몇 번째 홉인지 모르므로 이 판정은 루프의 책임이다.
             control_tools=None,
             response_tools=response_tools or None,
+            foreground_deadline=deadline - (config.final_reserve_s if with_tools else 0.0),
         )
 
     try:
@@ -781,6 +782,7 @@ async def run_turn(
         input_models=input_models,
         control_tools=control,  # final step에서만 의도를 읽는다
         response_tools=response_tools or None,
+        foreground_deadline=deadline,
     )
     _require_completed_step(step2, final=True)
     calls.append(step2.usage)

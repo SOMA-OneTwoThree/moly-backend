@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import uuid
+import asyncio
 from datetime import datetime, timezone
 
 import pytest
@@ -146,6 +147,111 @@ async def _start(db, **kw) -> uuid.UUID:
         db, lane=ul.LANE_FOREGROUND, purpose="chat",
         provider="openai", model="gpt-5.6-luna", now=_T0, **kw,
     )
+
+
+def _unknown_writer_db(monkeypatch, db):
+    from app.core import db as database
+
+    class Context:
+        async def __aenter__(self):
+            return db
+
+        async def __aexit__(self, *args):
+            return False
+
+    async def commit():
+        return None
+
+    db.commit = commit
+    monkeypatch.setattr(database, "get_sessionmaker", lambda: lambda: Context())
+
+
+async def test_close_unknown_records_uncertain_spend_with_existing_fence(monkeypatch, db):
+    call_id = await _start(db)
+    _unknown_writer_db(monkeypatch, db)
+    await ul.close_unknown(call_id, error_code="foreground_timeout")
+    assert db.rows[call_id]["status"] == "unknown_usage"
+    assert db.rows[call_id]["cost_micro_usd"] is None
+    await ul.close_unknown(call_id, error_code="foreground_cancelled")
+    assert db.rows[call_id]["error_code"] == "foreground_timeout"
+
+
+@pytest.mark.parametrize("mode", ["timeout", "cancel"])
+async def test_close_unknown_is_bounded_and_leaves_durable_started_for_reconcile(monkeypatch, db, mode):
+    call_id = await _start(db)
+    _unknown_writer_db(monkeypatch, db)
+    cancelled = []
+
+    async def slow(*args, **kwargs):
+        if mode == "cancel":
+            raise asyncio.CancelledError()
+        try:
+            await asyncio.sleep(10)
+        finally:
+            cancelled.append(True)
+
+    timeout = asyncio.timeout
+    monkeypatch.setattr(ul, "mark_unknown", slow)
+    monkeypatch.setattr(ul.asyncio, "timeout", lambda seconds: timeout(0.01))
+    if mode == "cancel":
+        with pytest.raises(asyncio.CancelledError):
+            await ul.close_unknown(call_id, error_code="foreground_cancelled")
+    else:
+        await ul.close_unknown(call_id, error_code="foreground_cancelled")
+    assert db.rows[call_id]["status"] == "started"
+    if mode == "timeout":
+        assert cancelled == [True]
+
+
+@pytest.mark.parametrize("preserve", [True, False])
+async def test_known_usage_close_cancel_uses_existing_buffer_only_when_opted_in(monkeypatch, db, preserve):
+    call_id = await _start(db)
+    _unknown_writer_db(monkeypatch, db)
+    monkeypatch.setattr(ul.settings, "usage_close_flush_enabled", False)
+    monkeypatch.setattr(ul, "_CLOSE_BUFFER", [])
+
+    async def cancelled_write(*args):
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(ul, "_write_close", cancelled_write)
+    for _ in range(2):
+        with pytest.raises(asyncio.CancelledError):
+            await ul.close_call(
+                call_id, provider="openai", model="gpt-6-luna", input_tokens=12,
+                output_tokens=3, provider_request_id="synthetic-request",
+                preserve_on_cancel=preserve,
+            )
+    assert len(ul._CLOSE_BUFFER) == (1 if preserve else 0)
+    if preserve:
+        item = ul._CLOSE_BUFFER[0]
+        assert item.input_tokens == 12 and item.output_tokens == 3
+        assert item.provider_request_id == "synthetic-request"
+
+
+async def test_cancelled_known_close_after_commit_cannot_overwrite_completed_cost(monkeypatch, db):
+    call_id = await _start(db)
+    _unknown_writer_db(monkeypatch, db)
+    monkeypatch.setattr(ul.settings, "usage_close_flush_enabled", False)
+    monkeypatch.setattr(ul, "_CLOSE_BUFFER", [])
+
+    async def write(session, item):
+        await ul.complete(session, item.call_id, price=LUNA, input_tokens=item.input_tokens, now=_T0)
+
+    async def commit():
+        # The DB response to commit can be lost after the server applied it.
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(ul, "_write_close", write)
+    db.commit = commit
+    with pytest.raises(asyncio.CancelledError):
+        await ul.close_call(
+            call_id, provider="openai", model="gpt-5.6-luna", input_tokens=1000,
+            preserve_on_cancel=True,
+        )
+    assert len(ul._CLOSE_BUFFER) == 1 and db.rows[call_id]["status"] == "completed"
+    # Retried buffered completion is fenced; neither a duplicate charge nor an overwrite.
+    assert await ul.complete(db, call_id, price=LUNA, input_tokens=9999, now=_T0) is False
+    assert db.rows[call_id]["cost_micro_usd"] == 1000
 
 
 async def test_begin_then_complete_records_cost_and_catalog_version(db):

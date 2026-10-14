@@ -298,8 +298,13 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-style-v1",
     "voice-action-ja-v1",
     "voice-combined-ja-v1",
+    "voice-style-v2",
+    "voice-action-ko-v2",
+    "voice-combined-ko-v2",
+    "voice-combined-ja-v2",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
+_EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
 
 # Exact section boundaries make the intervention inspectable. Identity, safety,
 # tools, dates, mood ownership and the language/output footer are outside these spans.
@@ -364,28 +369,118 @@ _VOICE_ACTION_JA = (
 )
 
 
+
+# These fixed fictional exchanges are authored for voice, not current memories.
+_VOICE_STYLE_SECTIONS_V2 = {
+    "ko": (
+        ("[말투]", "[기억]", """[말투]
+- 편한 반말로 말해. 작은 일상 불평엔 의자 예시처럼 가볍게 반응하거나 장난을 쳐도 돼. 생각이 다르면 네 생각을 말해도 돼. 느긋한 성격이라고 매번 차분한 위로나 공감을 할 필요는 없어. 농담은 억지로 넣지 말고, 진지한 어려움이나 직접 요청에는 상대가 필요한 방식으로 반응해.
+- 잡담에서는 방금 덧붙인 대목에 네 생각이나 반응을 바로 내줘. 상대가 한 일을 다시 설명하는 서론이나 기분을 추측하는 결론으로 답을 채우지 마.
+- 선택을 맡기면 선택과 이유를 답해. 정정하면 수정된 대상과 내용으로 바로 답해. 불일치를 말한 것을 취향을 묻는 말로 바꾸지 마. 같은 내용을 확인·감상·제안으로 여러 번 쓰지 마.
+- 짧은 수긍이나 작별만으로 충분한 때도 있어. 매번 새 정보나 네 이야기를 더할 필요는 없어. 표현을 바꾸려고 사실·확신·주체·시점·감정 강도를 바꾸지 마. 요청한 반복과 인용은 지켜.
+- 아래는 다른 상황에 대한 가상의 예시야. 문구·소재·순서를 현재 답에 복사하지 마.
+상대: 도서관 의자가 움직일 때마다 삐걱거려.
+캐피: 거기서 제일 말 많은 건 의자야.
+
+상대: 너라면 창가랑 안쪽 중 어디 앉을래?
+캐피: 창가. 책 읽다가 밖도 잠깐 볼 수 있잖아.
+
+상대: 동생한테 보낼 카드에 한 줄 골라줘.
+캐피: '고마워'라고 적을래.
+상대: 아니 어제 내가 한 말을 사과하는 거야.
+캐피: 그럼 '어제 그런 말을 해서 미안해'라고 적을래.
+
+"""),
+    ),
+    "ja": (
+        ("[口調]", "[記憶]", """[口調]
+- 気取らないタメ口で話す。一人称は「ぼく」。小さなぼやきには椅子の例のように軽く返したり、冗談を言ったりしていい。考えが違えば自分の考えを言っていい。のんびりした性格でも、毎回静かになぐさめたり共感を示したりする必要はない。冗談は無理に足さず、深刻な話や直接のお願いには相手が求める形で応じる。
+- 雑談では、今加わった話に自分の考えや反応を返す。相手の報告を説明し直す前置きや、気分の推測で返事を埋めない。
+- 選択を任されたら、選んだものと理由を言う。訂正されたら、直した相手や内容で答える。食い違いの指摘を好みの質問に変えない。同じ内容を確認・感想・提案として何度も言い直さない。
+- 短い相づちや別れの言葉だけで足りるときもある。毎回新しい情報や自分の話を足す必要はない。言い方のために事実・確かさ・主体・時点・気持ちの強さを変えない。求められた繰り返しや引用は守る。しぐさや内心を地の文で描かない。
+- 下は別の場面の架空の例。言葉や題材や順番を今の返事にコピーしない。
+相手: 図書館の椅子、動くたびに鳴るんだ。
+キャピー: 椅子だけおしゃべりだね。
+
+相手: キャピーだったら窓側と奥、どっちに座る？
+キャピー: ぼくは窓側。読む合間に外も見られるから。
+
+相手: 弟に渡すカードの一言、選んで。
+キャピー: 「ありがとう」って書く。
+相手: お礼じゃなくて、昨日ぼくが言ったことを謝りたいんだ。
+キャピー: それなら「昨日あんなことを言ってごめん」って書く。
+
+"""),
+    ),
+    "en": (
+        ("[How you talk]", "[Memory]", """[How you talk]
+- Use relaxed, plain spoken English and contractions. Small everyday complaints can get a light response or joke, like the chair example. If you disagree, give your own thought. A slow temperament doesn't require quiet empathy or comfort every turn. Don't force jokes; respond to serious trouble and direct requests in the way they need.
+- In casual chat, give your thought or reaction to what they just added. Don't fill the reply with an introduction retelling their report or a conclusion guessing their feelings.
+- When asked to choose, give your choice and reason. After a correction, answer using the corrected person and content. Don't turn a reported mismatch into a preference question. Don't repeat one point as confirmation, appraisal and advice.
+- A brief acknowledgment or goodbye can be enough. Not every turn needs new information or a story about you. Preserve facts, certainty, subject, time and emotional intensity when changing wording. Preserve requested repetitions and quotations.
+- These are fictional exchanges in other situations. Don't copy their wording, subjects or sequence into the current reply.
+Person: The library chair squeaks every time I move.
+Cappy: The chair has a lot to say for a library.
+
+Person: Window seat or one farther inside? Pick for yourself.
+Cappy: Window seat. I'd like something to look at between pages.
+
+Person: Pick a line for a card to my brother.
+Cappy: I'd write 'Thank you.'
+Person: No, it's for apologizing about what I said yesterday.
+Cappy: Then I'd write 'I'm sorry for what I said yesterday.'
+
+"""),
+        (
+            "[How it should sound]",
+            None,
+            "[How it should sound]\n- Use contractions: I'm, don't, you're, it's and that's.",
+        ),
+    ),
+}
+
+# A separate suffix-exemplar hypothesis; question/statement semantics stay fixed.
+_VOICE_ACTION_KO_V2 = (
+    (
+        "-네 -구나 -겠다로 짚거나 여운을 남기는 말엔 물음표를 붙이지 마.",
+        "상대의 대답을 요구하지 않는 진술이나 감탄은 물음표 없이 끝내.",
+    ),
+)
+
+
 def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[str, str], ...]:
     """Return declared baseline spans and replacements, failing on source drift."""
     if language not in ("ko", "ja", "en"):
         raise ValueError("Unsupported evaluation language")
     if candidate_id not in EVAL_PROMPT_CANDIDATE_IDS:
         raise ValueError("Unknown evaluation prompt candidate")
-    if candidate_id in ("voice-action-ja-v1", "voice-combined-ja-v1") and language != "ja":
+    if candidate_id in (
+        "voice-action-ja-v1", "voice-combined-ja-v1", "voice-combined-ja-v2",
+    ) and language != "ja":
         raise ValueError("This evaluation prompt candidate supports Japanese only")
+    if candidate_id in ("voice-action-ko-v2", "voice-combined-ko-v2") and language != "ko":
+        raise ValueError("This evaluation prompt candidate supports Korean only")
     if candidate_id == "c0":
         return ()
 
     persona = {"ko": CAPI_PERSONA, "ja": CAPI_PERSONA_JA, "en": CAPI_PERSONA_EN}[language]
     replacements = []
+    style_sections = None
     if candidate_id in ("voice-style-v1", "voice-combined-ja-v1"):
-        for start, end, replacement in _VOICE_STYLE_SECTIONS[language]:
+        style_sections = _VOICE_STYLE_SECTIONS
+    elif candidate_id in ("voice-style-v2", "voice-combined-ko-v2", "voice-combined-ja-v2"):
+        style_sections = _VOICE_STYLE_SECTIONS_V2
+    if style_sections is not None:
+        for start, end, replacement in style_sections[language]:
             if persona.count(start) != 1 or (end is not None and persona.count(end) != 1):
                 raise ValueError("Evaluation voice section boundary changed")
             begin = persona.index(start)
             finish = persona.index(end, begin) if end is not None else len(persona)
             replacements.append((persona[begin:finish], replacement))
-    if candidate_id in ("voice-action-ja-v1", "voice-combined-ja-v1"):
+    if candidate_id in ("voice-action-ja-v1", "voice-combined-ja-v1", "voice-combined-ja-v2"):
         replacements.extend(_VOICE_ACTION_JA)
+    if candidate_id in ("voice-action-ko-v2", "voice-combined-ko-v2"):
+        replacements.extend(_VOICE_ACTION_KO_V2)
     for old, _ in replacements:
         if not old or persona.count(old) != 1:
             raise ValueError("Evaluation voice source span changed")
@@ -400,4 +495,5 @@ def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
         if system.count(old) != 1:
             raise ValueError("Evaluation voice source span changed")
         system = system.replace(old, new, 1)
-    return system, _EVAL_VOICE_VERSION
+    version = _EVAL_VOICE_VERSION_V2 if candidate_id.endswith("-v2") else _EVAL_VOICE_VERSION
+    return system, version

@@ -12,13 +12,14 @@ generate_step()(파일 하단 W4 절, OpenAI 전용). 후자를 추가해도 전
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from math import ceil
-from time import perf_counter
+from time import monotonic, perf_counter
 from typing import Literal
 
 from pydantic import BaseModel, ValidationError
@@ -185,6 +186,21 @@ def _timeout(timeout: float | None) -> float:
     return settings.llm_timeout_s if timeout is None else timeout
 
 
+def _foreground_timeout(deadline: float, timeout: float | None) -> float:
+    remaining = min(_timeout(timeout), deadline - monotonic())
+    if remaining <= 0:
+        raise TimeoutError("foreground inference deadline exceeded before send")
+    return remaining
+
+
+def _foreground_error_code(exc: BaseException) -> str:
+    if isinstance(exc, asyncio.CancelledError):
+        return "foreground_cancelled"
+    if isinstance(exc, TimeoutError) or type(exc).__name__ == "APITimeoutError":
+        return "foreground_timeout"
+    return "foreground_response_unavailable"
+
+
 async def generate(
     system: str | list[str],
     convo: list[dict],
@@ -197,6 +213,7 @@ async def generate(
     timeout: float | None = None,
     ledger: "usage_ledger.LedgerContext | None" = None,
     reasoning_effort: str | None = None,
+    foreground_deadline: float | None = None,
 ) -> LLMResult:
     """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
 
@@ -207,6 +224,10 @@ async def generate(
     `ledger`를 주면 호출 **전** started 행을 남기고 완료 시 usage/원가를 확정한다(opt-in).
     계측 실패는 삼키므로 이 인자 때문에 대화가 깨지지 않는다.
 
+    `foreground_deadline` is an absolute monotonic inference deadline. Only opt-in chat
+    calls disable SDK retries and cancel provider waiting at that boundary. Ledger setup,
+    known-usage recording and request cleanup are outside that inference budget.
+
     ⚠️ `reasoning_effort`를 안 주면 **모델 기본 추론이 켜진 채로 돈다.** GPT-5.x는 추론 토큰이
     `max_completion_tokens`에서 함께 빠지므로, 짧은 상한을 준 유틸리티 호출은 추론이 상한을
     먹고 답이 통째로 잘릴 수 있다(판정 잡이 실제로 34번 그렇게 실패했다). 구조화된 짧은 답만
@@ -215,40 +236,55 @@ async def generate(
     model = model or settings.model_chat
     provider = provider_for(model)
 
-    async def _dispatch() -> LLMResult:
+    async def _dispatch(call_timeout: float | None) -> LLMResult:
+        options = {"foreground": True} if foreground_deadline is not None else {}
         if provider == "openai":
             return await _generate_openai(
-                system, convo, model=model, max_tokens=max_tokens, timeout=timeout,
-                reasoning_effort=reasoning_effort,
+                system, convo, model=model, max_tokens=max_tokens, timeout=call_timeout,
+                reasoning_effort=reasoning_effort, **options,
             )
         return await _generate_anthropic(
             system, convo, model=model, max_tokens=max_tokens,
             cache_messages=cache_messages, ttl_system=ttl_system, ttl_messages=ttl_messages,
-            timeout=timeout,
+            timeout=call_timeout, **options,
         )
 
-    if ledger is None:
-        return await _dispatch()
-
-    call_id = await usage_ledger.open_call(ledger, provider=provider, model=model)
-    started = perf_counter()
-    try:
-        r = await _dispatch()
-    except Exception as e:  # noqa: BLE001  기록만 하고 그대로 올린다
-        # 토큰을 썼는지 알 수 없다 — failed로 남기고 0원 completed로 만들지 않는다.
-        await usage_ledger.close_failed(
-            call_id, error_code=type(e).__name__, latency_ms=_elapsed_ms(started)
-        )
-        raise
-    await usage_ledger.close_call(
-        call_id,
-        provider=provider,
-        model=model,
-        **r.ledger_usage(),
-        model_snapshot=r.model_snapshot or None,
-        provider_request_id=r.request_id or None,
-        latency_ms=_elapsed_ms(started),
+    call_id = (
+        await usage_ledger.open_call(ledger, provider=provider, model=model)
+        if ledger is not None else None
     )
+    started = perf_counter()
+    dispatch_started = False
+    try:
+        if foreground_deadline is None:
+            r = await _dispatch(timeout)
+        else:
+            remaining = _foreground_timeout(foreground_deadline, timeout)
+            async with asyncio.timeout(remaining):
+                dispatch_started = True
+                r = await _dispatch(remaining)
+    except BaseException as e:
+        if ledger is not None and foreground_deadline is not None and dispatch_started:
+            await usage_ledger.close_unknown(call_id, error_code=_foreground_error_code(e))
+        elif ledger is not None and isinstance(e, Exception):
+            await usage_ledger.close_failed(
+                call_id,
+                error_code="deadline_before_send" if foreground_deadline is not None else type(e).__name__,
+                latency_ms=_elapsed_ms(started),
+            )
+        raise
+    if ledger is not None:
+        close_options = {"preserve_on_cancel": True} if foreground_deadline is not None else {}
+        await usage_ledger.close_call(
+            call_id,
+            provider=provider,
+            model=model,
+            **r.ledger_usage(),
+            model_snapshot=r.model_snapshot or None,
+            provider_request_id=r.request_id or None,
+            latency_ms=_elapsed_ms(started),
+            **close_options,
+        )
     return r
 
 
@@ -266,10 +302,14 @@ async def _generate_anthropic(
     ttl_system: str = "5m",
     ttl_messages: str = "5m",
     timeout: float | None = None,
+    foreground: bool = False,
 ) -> LLMResult:
     """Anthropic 경로(보존). system 리스트면 블록별 breakpoint. cache_messages=True면 마지막 메시지도 캐싱."""
     messages = _cache_last(convo, ttl_messages) if cache_messages else convo
-    resp = await _get_client().messages.create(
+    client = _get_client()
+    if foreground:
+        client = client.with_options(max_retries=0)
+    resp = await client.messages.create(
         model=model,
         max_tokens=max_tokens or settings.llm_max_tokens,
         system=_system_blocks(system, ttl_system),
@@ -302,6 +342,7 @@ async def _generate_openai(
     max_tokens: int | None = None,
     timeout: float | None = None,
     reasoning_effort: str | None = None,
+    foreground: bool = False,
 ) -> LLMResult:
     """OpenAI 경로(신설). system(str|list) → messages[0] system 합침(평문, cache_control 미부착).
 
@@ -322,7 +363,10 @@ async def _generate_openai(
     }
     if reasoning_effort is not None:
         kwargs["reasoning_effort"] = reasoning_effort
-    resp = await _get_openai_client().chat.completions.create(**kwargs)
+    client = _get_openai_client()
+    if foreground:
+        client = client.with_options(max_retries=0)
+    resp = await client.chat.completions.create(**kwargs)
     choices = getattr(resp, "choices", None) or []
     text = (choices[0].message.content or "") if choices else ""
     # 왜 끝났는가. `length`면 상한에서 잘린 것 — 호출측이 형식 오류와 구분해야 한다.
@@ -817,6 +861,7 @@ async def generate_step(
     control_tools: Mapping[str, str] | None = None,
     response_tools: Mapping[str, type[BaseModel]] | None = None,
     ledger: "usage_ledger.LedgerContext | None" = None,
+    foreground_deadline: float | None = None,
 ) -> StepResult:
     """도구 호출을 표현할 수 있는 1 step 호출. OpenAI 경로만(Anthropic은 dormant → 명시적 오류).
 
@@ -826,6 +871,7 @@ async def generate_step(
     - usage는 W1의 LlmCall로 반환해 TurnUsage에 그대로 누적한다.
     - control_intents는 control_tools로 넘긴 도구명만 인식하며 호출측이 별도 트랜잭션에서 적용한다.
       이 계층은 직접 쓰지 않고 자유문 정규식으로 보충하지 않는다.
+    - foreground_deadline opt-in은 SDK 재시도 0 + provider 대기 종료 시각이다. 원장·후처리는 별도다.
     """
     if provider_for(model) != "openai":
         raise UnsupportedProviderError(
@@ -850,22 +896,39 @@ async def generate_step(
         usage_ledger.with_purpose(ledger, purpose), provider="openai", model=model
     ) if ledger is not None else None
     _t0 = perf_counter()
+    dispatch_started = False
     try:
-        resp = await _get_openai_client().chat.completions.create(**kwargs)
-    except Exception as e:  # noqa: BLE001
-        await usage_ledger.close_failed(
-            call_id, error_code=type(e).__name__, latency_ms=_elapsed_ms(_t0)
-        )
+        client = _get_openai_client()
+        if foreground_deadline is None:
+            resp = await client.chat.completions.create(**kwargs)
+        else:
+            remaining = _foreground_timeout(foreground_deadline, timeout)
+            client = client.with_options(max_retries=0)
+            kwargs["timeout"] = remaining
+            async with asyncio.timeout(remaining):
+                dispatch_started = True
+                resp = await client.chat.completions.create(**kwargs)
+    except BaseException as e:
+        if foreground_deadline is not None and dispatch_started:
+            await usage_ledger.close_unknown(call_id, error_code=_foreground_error_code(e))
+        elif isinstance(e, Exception):
+            await usage_ledger.close_failed(
+                call_id,
+                error_code="deadline_before_send" if foreground_deadline is not None else type(e).__name__,
+                latency_ms=_elapsed_ms(_t0),
+            )
         raise
 
     choices = getattr(resp, "choices", None) or []
     usage = _step_usage(getattr(resp, "usage", None), model, purpose)
+    close_options = {"preserve_on_cancel": True} if foreground_deadline is not None else {}
     await usage_ledger.close_call(
         call_id, provider="openai", model=model,
         **_openai_usage(getattr(resp, "usage", None), model).ledger_usage(),
         model_snapshot=getattr(resp, "model", None),
         provider_request_id=getattr(resp, "id", None),
         latency_ms=_elapsed_ms(_t0),
+        **close_options,
     )
     if not choices:  # content_filter 등 — 응답을 막지 않고 빈 step으로 닫는다
         return StepResult(text=None, tool_calls=[], finish_reason="", usage=usage, control_intents=[])

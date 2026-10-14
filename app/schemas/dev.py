@@ -5,7 +5,7 @@ from datetime import date
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator, model_validator
 
 from app.schemas.common import StrictResponse, UtcDatetime
 
@@ -120,6 +120,10 @@ class ChatEvalRequest(BaseModel):
     use_persona: bool = Field(default=True, description="캐피 페르소나(system_prompt) 주입 여부.")
     language: str = Field(default="ko")
     max_tokens: int = Field(default=1024, ge=1, le=4096)
+    candidate_id: str | None = Field(
+        default=None, min_length=1, max_length=80,
+        description="개발 서버의 등록된 프롬프트 후보 ID. 생략하면 기존 평가와 동일.",
+    )
 
 
 class ChatCompareRequest(BaseModel):
@@ -144,6 +148,14 @@ class ChatCompareRequest(BaseModel):
     use_persona: bool = True
     language: str = "ko"
     max_tokens: int = Field(default=1024, ge=1, le=4096)
+    candidate_id: str | None = Field(default=None, min_length=1, max_length=80)
+
+
+class EvalCandidateMetadata(StrictResponse):
+    candidate_id: str
+    version: str
+    system_sha256: str
+    code_sha: str | None = None
 
 
 class EvalResultOut(StrictResponse):
@@ -162,6 +174,7 @@ class EvalResultOut(StrictResponse):
     cache_write_estimated: bool = False
     finish_reason: str = ""
     model_snapshot: str = ""
+    candidate: EvalCandidateMetadata | None = None
 
 
 class ChatCompareResponse(StrictResponse):
@@ -186,6 +199,16 @@ class RecallMemoryRequest(BaseModel):
     from_date: date | None = None
     to_date: date | None = None
     limit: int = Field(default=5, ge=1, le=10)
+    min_keep: Literal[0, 5] | None = Field(
+        default=None, description="개발 서버에서만 명시 선택: 관련성 컷 이후 최소 보충 0/5개 비교.",
+    )
+
+    @field_validator("min_keep", mode="before")
+    @classmethod
+    def strict_min_keep(cls, value):
+        if isinstance(value, bool):
+            raise ValueError("min_keep must be 0 or 5")
+        return value
 
     @model_validator(mode="after")
     def valid_window(self) -> "RecallMemoryRequest":
@@ -272,9 +295,27 @@ class MemoryRecallResult(StrictResponse):
     items: list[MemoryRecallItem]
 
 
+class VectorMemoryRecallItem(StrictResponse):
+    text: str
+    status: Literal["active", "ambiguous"]
+    distance: float
+    occurred_at: UtcDatetime | None
+    uncertain: bool
+    time_basis: str
+    time_precision: str | None
+
+
 class MemoryRecallDiagnosticsResponse(StrictResponse):
-    capability: Literal["recall_memory"]
-    result: MemoryRecallResult
+    status: Literal["ok", "skipped", "unavailable"]
+    results: list[VectorMemoryRecallItem]
+    min_keep: Literal[0, 5]
+    provider_count: int | None = Field(ge=0)
+    registry_count: int | None = Field(ge=0)
+    margin_count: int | None = Field(ge=0)
+    selected_count: int | None = Field(ge=0)
+    returned_count: int = Field(ge=0)
+    has_more: bool
+    error_code: Literal["embedding_unavailable", "provider_unavailable", "registry_unavailable"] | None
 
 
 class DiaryRecallDiagnosticsResponse(StrictResponse):

@@ -19,6 +19,7 @@ import re
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from typing import Literal
 
 from app.core.time_utils import reward_date_for, safe_zone
 from app.services import i18n
@@ -143,6 +144,20 @@ class Recalled:
         return self.status == "ambiguous"
 
 
+@dataclass(frozen=True, slots=True)
+class RecallDiagnostics:
+    """Read-only inspection, without treating unavailable search as an empty match."""
+
+    status: Literal["ok", "skipped", "unavailable"]
+    items: list[Recalled]
+    min_keep: int
+    provider_count: int | None = None
+    registry_count: int | None = None
+    margin_count: int | None = None
+    selected_count: int | None = None
+    error_code: Literal["embedding_unavailable", "provider_unavailable", "registry_unavailable"] | None = None
+
+
 # 벡터 id → registry. 상태 필터와 user 재검증을 **DB에서** 한 번에 한다.
 # provider payload의 user_id는 adapter가 이미 봤지만, registry로 한 번 더 본다 —
 # 벡터 저장소가 오염돼도 남의 기억이 프롬프트에 실리면 안 된다.
@@ -178,26 +193,52 @@ async def recall(
     limit: int = DEFAULT_LIMIT,
     timeout: float = 3.0,
 ) -> list[Recalled]:
-    """질의와 관련된 **현재 유효한** 기억. 실패하면 빈 목록이다.
+    """기존 대화 계약: 현재 유효한 기억 목록. 실패하면 빈 목록, 기본 보충 5개 유지."""
+    result = await recall_diagnostics(
+        session, user_id, query=query, adapter=adapter, embed_query=embed_query,
+        collection_version=collection_version, limit=limit, timeout=timeout,
+    )
+    return result.items
+
+
+async def recall_diagnostics(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    *,
+    query: str,
+    adapter,
+    embed_query,
+    collection_version: str = "v2",
+    limit: int = DEFAULT_LIMIT,
+    timeout: float = 3.0,
+    min_keep: int = MIN_KEEP,
+) -> RecallDiagnostics:
+    """같은 회상 경로의 진단. 보충 0/5 비교만 허용하며 기본 동작은 바꾸지 않는다.
 
     adapter·embed_query를 주입받는다 — 워커와 챗이 같은 코드를 쓰되 각자의 클라이언트를
     들고 있고, 테스트가 provider 없이 돌 수 있어야 한다.
     """
+    if type(min_keep) is not int or min_keep not in {0, MIN_KEEP}:
+        raise ValueError("min_keep must be 0 or 5")
     if not needs_recall(query):
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
-        return []
+        return RecallDiagnostics("skipped", [], min_keep, selected_count=0)
     try:
         # 임베딩에도 **같은 예산**을 건다. 안쪽이 60초를 쓰면 경계의 wait_for가 걸리기 전에
         # 이미 마감을 넘긴다.
         vector = await embed_query(query, timeout=timeout)
+    except Exception as e:  # noqa: BLE001
+        _log.warning("v2 회상 실패 stage=embedding error_type=%s", type(e).__name__)
+        return RecallDiagnostics("unavailable", [], min_keep, error_code="embedding_unavailable")
+    try:
         hits = await adapter.search(
             vector, user_id=str(user_id), limit=_PROVIDER_FETCH, timeout=timeout
         )
     except Exception as e:  # noqa: BLE001  회상 실패가 대화를 막지 않는다
-        _log.warning("v2 회상 실패(빈 목록으로 진행) — user=%s: %r", user_id, e)
-        return []
+        _log.warning("v2 회상 실패 stage=provider error_type=%s", type(e).__name__)
+        return RecallDiagnostics("unavailable", [], min_keep, error_code="provider_unavailable")
     if not hits:
-        return []
+        return RecallDiagnostics("ok", [], min_keep, 0, 0, 0, 0)
 
     by_id = {h.id: h for h in hits}
     try:
@@ -208,8 +249,11 @@ async def recall(
             "ids": list(by_id),
         })).all()
     except Exception as e:  # noqa: BLE001
-        _log.warning("v2 회상 registry 조회 실패 — user=%s: %r", user_id, e)
-        return []
+        _log.warning("v2 회상 실패 stage=registry error_type=%s", type(e).__name__)
+        return RecallDiagnostics(
+            "unavailable", [], min_keep, provider_count=len(hits),
+            error_code="registry_unavailable",
+        )
 
     out: list[Recalled] = []
     for pid, status, occurred_at, group, time_basis, time_precision in rows:
@@ -229,14 +273,17 @@ async def recall(
     # 거리 **오름차순** — 가까운 것이 먼저다. 같은 거리면 최근 사건을 앞에 둔다.
     out.sort(key=lambda r: (r.distance, -(r.occurred_at.timestamp() if r.occurred_at else 0)))
     if not out:
-        return []
+        return RecallDiagnostics("ok", [], min_keep, len(hits), 0, 0, 0)
     # 상대 컷: 이 질의에서 가장 가까운 것 기준으로 자른다(절대값이 안 되는 이유는 위 주석).
     cut = min(out[0].distance + RELEVANCE_MARGIN, MAX_DISTANCE)
     kept = [r for r in out if r.distance <= cut]
-    if len(kept) < MIN_KEEP:
+    margin_count = len(kept)
+    if len(kept) < min_keep:
         # 꼬리를 너무 많이 잘랐다. 절대 상한 안쪽에서 최소한은 채운다.
-        kept = [r for r in out if r.distance <= MAX_DISTANCE][:MIN_KEEP]
-    return kept[:limit]
+        kept = [r for r in out if r.distance <= MAX_DISTANCE][:min_keep]
+    return RecallDiagnostics(
+        "ok", kept[:limit], min_keep, len(hits), len(out), margin_count, len(kept),
+    )
 
 
 # 어긋나는 기억을 보여줄 때의 안내. **언어별로 있어야 한다** — 영어 사용자에게 한국어

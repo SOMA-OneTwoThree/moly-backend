@@ -8,6 +8,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
+import re
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -40,7 +42,7 @@ from app.schemas.dev import (
 from app.services import diary_generation, model_eval, privacy
 from app.services.account import _uid
 from app.services.limits import effective_token_config
-from app.services.prompts import system_prompt
+from app.services.prompts import EVAL_PROMPT_CANDIDATE_IDS, eval_system_prompt, system_prompt
 
 router = APIRouter(tags=["dev"], prefix="/dev")
 
@@ -166,38 +168,80 @@ def _messages(req) -> list[dict]:  # noqa: ANN001
     return [{"role": m.role, "content": m.content} for m in req.messages]
 
 
-@router.post("/chat-eval", response_model=EvalResultOut)
+def _eval_system(
+    req: ChatEvalRequest | ChatCompareRequest, targets: list[tuple[str, str]],
+) -> tuple[str, dict[str, str | None] | None]:
+    """Only registered, bounded candidates run on the verified development environment."""
+    if req.candidate_id is None:
+        return _system_for(req), None
+    if settings.environment != "development":
+        raise errors.forbidden("프롬프트 후보 평가는 개발 서버에서만 가능해요.")
+    if req.candidate_id not in EVAL_PROMPT_CANDIDATE_IDS:
+        raise errors.validation("등록되지 않은 프롬프트 후보예요.")
+    if not req.use_persona or req.language not in {"ko", "ja", "en"}:
+        raise errors.validation("후보 평가는 ko/ja/en 페르소나를 사용해야 해요.")
+    if req.max_tokens > 1024:
+        raise errors.validation("후보 평가 출력은 1024토큰 이하여야 해요.")
+    allowed = {(item["provider"], item["model"]) for item in model_eval.DEFAULT_MODELS}
+    if len(targets) > 2 or len(set(targets)) != len(targets):
+        raise errors.validation("후보 평가는 서로 다른 모델을 최대 2개 지정해야 해요.")
+    if any(target not in allowed or target[0] != "openai" for target in targets):
+        raise errors.validation("후보 평가는 등록된 OpenAI 비교 모델만 사용할 수 있어요.")
+    try:
+        system, version = eval_system_prompt(req.language, req.candidate_id)
+    except ValueError:
+        raise errors.validation("이 언어에서 사용할 수 없는 프롬프트 후보예요.") from None
+    if len(system) + sum(len(message.content) for message in req.messages) > 24_000:
+        raise errors.validation("후보 평가 입력이 허용된 길이를 초과했어요.")
+    if req.messages[-1].role != "user":
+        raise errors.validation("후보 평가의 마지막 메시지는 user여야 해요.")
+    code_sha = settings.git_sha
+    return system, {
+        "candidate_id": req.candidate_id,
+        "version": version,
+        "system_sha256": hashlib.sha256(system.encode("utf-8")).hexdigest(),
+        "code_sha": code_sha if re.fullmatch(r"[0-9a-f]{7,40}", code_sha) else None,
+    }
+
+
+@router.post("/chat-eval", response_model=EvalResultOut, response_model_exclude_unset=True)
 async def chat_eval(
     req: ChatEvalRequest,
     _user_id: str = Depends(require_dev_operator),
 ) -> dict[str, Any]:
     """한 모델에 대화를 1회 투입 — 응답 텍스트 + 지연(ms) + 토큰 + 추정비용."""
+    system, candidate = _eval_system(req, [(req.provider, req.model)])
     r = await model_eval.run_eval(
-        req.provider, req.model, _system_for(req), _messages(req), max_tokens=req.max_tokens
+        req.provider, req.model, system, _messages(req), max_tokens=req.max_tokens
     )
-    return r.__dict__
+    return {**r.__dict__, **({"candidate": candidate} if candidate is not None else {})}
 
 
-@router.post("/chat-eval/compare", response_model=ChatCompareResponse)
+@router.post(
+    "/chat-eval/compare", response_model=ChatCompareResponse, response_model_exclude_unset=True,
+)
 async def chat_eval_compare(
     req: ChatCompareRequest,
     _user_id: str = Depends(require_dev_operator),
 ) -> dict[str, Any]:
     """같은 대화를 여러 모델에 동시 투입 — 나란히 비교(A/B). models 생략 시 기본 셋."""
-    system = _system_for(req)
     msgs = _messages(req)
     targets = (
         [(m.provider, m.model) for m in req.models]
         if req.models
         else [(d["provider"], d["model"]) for d in model_eval.DEFAULT_MODELS]
     )
+    system, candidate = _eval_system(req, targets)
     results = await asyncio.gather(
         *(
             model_eval.run_eval(p, m, system, msgs, max_tokens=req.max_tokens)
             for p, m in targets
         )
     )
-    return {"results": [r.__dict__ for r in results]}
+    return {"results": [
+        {**r.__dict__, **({"candidate": candidate} if candidate is not None else {})}
+        for r in results
+    ]}
 
 
 @router.get("/memory/state")
@@ -246,24 +290,41 @@ async def inspect_memory_recall(
     user_id: str = Depends(require_dev_operator),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
-    """실제 챗과 **같은 경로**로 기억을 읽는다(읽기 전용).
-
-    ⚠️ v2 사용자는 챗이 mem0 registry 검색을 쓰는데 이 진단만 legacy를 봤다. 그래서 여기서
-    "기억이 있다/없다"를 확인해도 실제 대화 결과와 일치하지 않았다(감사 지적). 사용자 mode에
-    따라 챗과 같은 코드를 탄다.
-    """
+    """벡터+registry 회상 경로의 읽기 전용 진단. 실패와 검색 결과 없음을 구분한다."""
     from app.services import chat, mem0_recall, memory_embeddings
 
-    items = await mem0_recall.recall(
-        session, uuid.UUID(user_id), query=req.query,
-        adapter=chat._recall_adapter(),
-        embed_query=memory_embeddings.embed_query,
-    )
-    return {"results": [{
+    if req.need != "summary" or req.from_date is not None or req.to_date is not None:
+        raise errors.validation("이 진단은 날짜 필터 없는 summary 검색만 지원해요.")
+    if req.min_keep is not None and settings.environment != "development":
+        raise errors.forbidden("기억 후보 비교는 개발 서버에서만 가능해요.")
+    min_keep = mem0_recall.MIN_KEEP if req.min_keep is None else req.min_keep
+    try:
+        adapter = chat._recall_adapter()
+    except Exception:  # noqa: BLE001  initialization failure is not an empty search
+        result = mem0_recall.RecallDiagnostics(
+            "unavailable", [], min_keep, error_code="provider_unavailable",
+        )
+    else:
+        result = await mem0_recall.recall_diagnostics(
+            session, uuid.UUID(user_id), query=req.query,
+            adapter=adapter, embed_query=memory_embeddings.embed_query,
+            limit=req.limit, min_keep=min_keep,
+        )
+    return {"status": result.status, "results": [{
         "text": i.text, "status": i.status, "distance": i.distance,
         "occurred_at": i.occurred_at.isoformat() if i.occurred_at else None,
         "uncertain": i.uncertain,
-    } for i in items]}
+        "time_basis": i.time_basis, "time_precision": i.time_precision,
+    } for i in result.items],
+        "min_keep": result.min_keep,
+        "provider_count": result.provider_count,
+        "registry_count": result.registry_count,
+        "margin_count": result.margin_count,
+        "selected_count": result.selected_count,
+        "returned_count": len(result.items),
+        "has_more": (result.selected_count or 0) > len(result.items),
+        "error_code": result.error_code,
+    }
 
 
 @router.post("/recall/diaries", response_model=DiaryRecallDiagnosticsResponse)

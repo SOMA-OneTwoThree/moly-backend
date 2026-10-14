@@ -83,6 +83,33 @@ class LLMResult:
         }
 
 
+class IncompleteResponseError(RuntimeError):
+    """A provider result cannot become a successful conversational reply."""
+
+
+def require_completed_text(
+    text: str | None,
+    finish_reason: str,
+    *,
+    allow_legacy: bool = True,
+    allow_tool_calls: bool = False,
+) -> None:
+    """Opt-in publication guard; generation/usage remain available to other callers.
+
+    Empty reason remains compatible with legacy text-only adapters. Agent steps provide an
+    explicit reason and must opt out. `tool_calls` is complete text only for a validated
+    structured final response, never for a pending executable tool call.
+    """
+    completed = {"stop", "end_turn", "stop_sequence"}
+    if allow_legacy:
+        completed.add("")
+    if allow_tool_calls:
+        completed.add("tool_calls")
+    if finish_reason not in completed or not isinstance(text, str) or not text.strip():
+        # Never include provider text or unrecognized finish metadata in logs/errors.
+        raise IncompleteResponseError("LLM response is incomplete")
+
+
 @dataclass
 class LlmCall:
     """턴 내 LLM 호출 1건의 회계 단위 — 호출별 usage + 그 호출 단독 billable.
@@ -263,6 +290,7 @@ async def _generate_anthropic(
         request_id=getattr(resp, "id", None) or "",
         # Anthropic은 cache_creation_input_tokens를 실측으로 준다 — 추정 아님.
         cache_write_estimated=False,
+        finish_reason=getattr(resp, "stop_reason", None) or "",
     )
 
 

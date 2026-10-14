@@ -289,3 +289,115 @@ def system_prompt(language: str) -> str:
         )
         check = _OUTPUT_CHECK_OTHER.format(lang="English")
     return f"{persona}\n\n{lang_rule}\n\n{check}"
+
+
+# Development evaluation only. Normal chat continues to use system_prompt unchanged.
+# IDs select code-owned, versioned replacements; callers cannot supply instructions.
+EVAL_PROMPT_CANDIDATE_IDS = (
+    "c0",
+    "voice-style-v1",
+    "voice-action-ja-v1",
+    "voice-combined-ja-v1",
+)
+_EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
+
+# Exact section boundaries make the intervention inspectable. Identity, safety,
+# tools, dates, mood ownership and the language/output footer are outside these spans.
+_VOICE_STYLE_SECTIONS = {
+    "ko": (
+        ("[말투]", "[기억]", """[말투]
+- 느긋하고 다정한 반말로 말해. 필요한 만큼 말하되 단순한 수긍이나 작별이면 짧게 끝내도 돼.
+- 한 답에서 같은 내용을 감상·확인·제안으로 여러 번 풀어쓰지 마. 필요한 내용만 말하고, 서로 다른 내용을 말할 때 문장을 나눠.
+- 최근 답의 도입과 문장 순서를 반복하는 틀로 쓰지 마. 종결만 바꿔 같은 말을 다시 쓰거나, 말투를 바꾸려고 확신·주체·시점·감정의 강도를 바꾸지 마. 상대가 요청한 반복이나 인용은 그대로 지켜.
+
+"""),
+    ),
+    "ja": (
+        ("[口調]", "[記憶]", """[口調]
+- やわらかいタメ口で話す。一人称はいつも「ぼく」。必要な分だけ話す。短い相づちや別れの言葉だけで足りるときは、それでいい。
+- 一つの返事で同じ内容を感想・確認・提案として何度も言い直さない。必要なことだけを話し、内容が違うときに文を分ける。
+- 最近の返事の書き出しや文の順番を型にしない。語尾だけを変えて同じことを言い直したり、口調のために確かさ・主体・時点・気持ちの強さを変えたりしない。相手が求めた繰り返しや引用は守る。
+- 心の中の思いを声に出したり、しぐさや表情を地の文で描いたりしない。
+
+"""),
+    ),
+    "en": (
+        ("[How you talk]", "[Memory]", """[How you talk]
+- Use kind, plain spoken English and contractions. Say as much as the reply needs. A brief acknowledgment or goodbye can be enough on its own.
+- Don't restate the same point as a reaction, confirmation and suggestion in one reply. Say what's needed; use separate sentences for different contributions.
+- Don't use recent openings and sentence order as a template. Changing endings doesn't make a repeated point new. Don't change certainty, subject, time or emotional intensity to vary the wording. Preserve repetitions and quotations they explicitly request.
+
+"""),
+        (
+            "[How it should sound]",
+            None,
+            "[How it should sound]\n- Use contractions: I'm, don't, you're, it's and that's.",
+        ),
+    ),
+}
+
+# Narrow Japanese action conflicts; this is separate from the style intervention.
+# Crisis/support paragraphs are not included in these replacements.
+_VOICE_ACTION_JA = (
+    (
+        "うれしいならうれしいと、心配なら心配だと言葉にして。気持ちが伝わらないと失敗。",
+        "",
+    ),
+    (
+        "相手が心の内を見せてくれたら、きみも自分の気持ちを返して。平気なふりはしない。",
+        "選択や考えや話を求められたら、それを返して。相手に同じ問いを返すだけで済ませない。",
+    ),
+    (
+        "会話はメッセージみたいに途切れず続くもの。きみのほうから会話を閉じないで。"
+        "締めの挨拶や次の約束で立ち去らず、相手がふとこぼした言葉をひろって、話をもう少し続けて。",
+        "相手が終える・休む・別の話に移ると言ったら、それに合わせて。"
+        "話を続けたいときは、今の話に参加して。",
+    ),
+    (
+        "解決しようとしないで。",
+        "助けを求められていないときは、解決策を押しつけないで。",
+    ),
+    (
+        "心配は心配で伝えつつ、その場に残ってもっと聞いて。",
+        "今の言葉に応じて。相手が言っていない気持ちや理由を決めつけないで。",
+    ),
+)
+
+
+def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[str, str], ...]:
+    """Return declared baseline spans and replacements, failing on source drift."""
+    if language not in ("ko", "ja", "en"):
+        raise ValueError("Unsupported evaluation language")
+    if candidate_id not in EVAL_PROMPT_CANDIDATE_IDS:
+        raise ValueError("Unknown evaluation prompt candidate")
+    if candidate_id in ("voice-action-ja-v1", "voice-combined-ja-v1") and language != "ja":
+        raise ValueError("This evaluation prompt candidate supports Japanese only")
+    if candidate_id == "c0":
+        return ()
+
+    persona = {"ko": CAPI_PERSONA, "ja": CAPI_PERSONA_JA, "en": CAPI_PERSONA_EN}[language]
+    replacements = []
+    if candidate_id in ("voice-style-v1", "voice-combined-ja-v1"):
+        for start, end, replacement in _VOICE_STYLE_SECTIONS[language]:
+            if persona.count(start) != 1 or (end is not None and persona.count(end) != 1):
+                raise ValueError("Evaluation voice section boundary changed")
+            begin = persona.index(start)
+            finish = persona.index(end, begin) if end is not None else len(persona)
+            replacements.append((persona[begin:finish], replacement))
+    if candidate_id in ("voice-action-ja-v1", "voice-combined-ja-v1"):
+        replacements.extend(_VOICE_ACTION_JA)
+    for old, _ in replacements:
+        if not old or persona.count(old) != 1:
+            raise ValueError("Evaluation voice source span changed")
+    return tuple(replacements)
+
+
+def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
+    """Resolve a fixed evaluation candidate without changing the normal persona."""
+    replacements = _eval_voice_replacements(language, candidate_id)
+    system = system_prompt(language)
+    for old, new in replacements:
+        if system.count(old) != 1:
+            raise ValueError("Evaluation voice source span changed")
+        system = system.replace(old, new, 1)
+    return system, _EVAL_VOICE_VERSION

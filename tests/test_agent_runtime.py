@@ -8,6 +8,7 @@ import asyncio
 import logging
 import uuid
 from datetime import date
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
@@ -31,6 +32,73 @@ from tests.test_chat import FakeSession, _gating
 UID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 SYSTEM = ["페르소나", "기억"]
 CONVO = [{"role": "user", "content": "오늘 어땠어?"}]
+
+
+@pytest.mark.parametrize("finish_reason", ["length", "content_filter", "", "unknown"])
+async def test_incomplete_first_step_never_publishes_or_runs_tools(monkeypatch, finish_reason):
+    tool = _FakeTool()
+    step = replace(_calls_step(_call(1)), text="partial", finish_reason=finish_reason)
+    fake = _FakeSteps(step)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+    assert tool.ran == 0
+
+
+@pytest.mark.parametrize("text", [None, "", " \n\t"])
+async def test_blank_completed_first_step_is_not_a_success(monkeypatch, text):
+    fake = _FakeSteps(_text_step(text))
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+
+
+@pytest.mark.parametrize("text,finish_reason", [
+    ("partial", "length"), ("partial", "content_filter"), (None, "stop"), ("  ", "stop"),
+])
+async def test_incomplete_tool_final_never_reuses_decide_text_or_starts_third_call(
+    monkeypatch, text, finish_reason,
+):
+    tool = _FakeTool()
+    decide = replace(_calls_step(_call(1)), text="I'll look that up")
+    final = replace(_text_step(text, purpose="tool_final"), finish_reason=finish_reason)
+    fake = _FakeSteps(decide, final)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 2
+    assert tool.ran == 1
+
+
+async def test_structured_final_with_tool_calls_finish_is_completed_text(monkeypatch):
+    step = replace(
+        _text_step(None), finish_reason="tool_calls",
+        final_response=llm_module.FinalResponse(text="응.", response_mode="summary"),
+    )
+    fake = _FakeSteps(step)
+    turn = await _run(fake, monkeypatch=monkeypatch)
+    assert turn.text == "응."
+    assert len(fake.calls) == 1
+
+
+async def test_length_rejects_even_parseable_structured_final(monkeypatch):
+    step = replace(
+        _text_step(None), finish_reason="length",
+        final_response=llm_module.FinalResponse(text="응.", response_mode="summary"),
+    )
+    fake = _FakeSteps(step)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+
+
+async def test_pending_executable_call_in_final_step_cannot_be_published(monkeypatch):
+    tool = _FakeTool()
+    final = replace(_calls_step(_call(2)), text="unfinished", usage=_usage("tool_final"))
+    fake = _FakeSteps(_calls_step(_call(1)), final)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 2
+    assert tool.ran == 1
 
 
 def _cfg(**over):
@@ -600,12 +668,15 @@ async def test_budget_applied_before_step2(monkeypatch):
 
 
 # --- 8) chat 배선 ---
-async def _post(session, monkeypatch, *, reply="응.", agent=None, snapshot=None):
+async def _post(session, monkeypatch, *, reply="응.", agent=None, snapshot=None, finish_reason=""):
     async def _res(s, user_id, **kwargs):
         return _gating()
 
     async def _fake_llm(system, convo, **kw):
-        return LLMResult(text=reply, input_tokens=10, output_tokens=20, model="gpt-5.6-luna")
+        return LLMResult(
+            text=reply, input_tokens=10, output_tokens=20, model="gpt-5.6-luna",
+            finish_reason=finish_reason,
+        )
 
     async def _fake_cfg(s, **kwargs):
         return snapshot if snapshot is not None else build_snapshot({})
@@ -617,6 +688,46 @@ async def _post(session, monkeypatch, *, reply="응.", agent=None, snapshot=None
         monkeypatch.setattr(agent_runtime, "run_turn", agent)
     req = SimpleNamespace(text="오늘 어땠어?", greeting_id=None)
     return await chat_service.post_message(session, str(UID), req, "idem-agent")
+
+
+@pytest.mark.parametrize("failure", ["length", "blank", "agent", "postclean_blank"])
+async def test_chat_incomplete_result_releases_lease_without_success_side_effects(monkeypatch, failure):
+    released = []
+    charged = []
+
+    class Session(FakeSession):
+        rollbacks = 0
+
+        async def rollback(self):
+            self.rollbacks += 1
+
+    async def release(session, **kwargs):
+        released.append(kwargs)
+
+    async def accumulate(*args, **kwargs):
+        charged.append(kwargs)
+        raise AssertionError("incomplete reply must not consume user quota")
+
+    async def agent(*args, **kwargs):
+        raise llm_module.IncompleteResponseError("LLM response is incomplete")
+
+    monkeypatch.setattr(chat_service.chat_turns, "release", release)
+    monkeypatch.setattr(chat_service, "_accumulate_tokens", accumulate)
+    session = Session()
+    kwargs = {"reply": "partial", "finish_reason": "length"}
+    if failure == "blank":
+        kwargs = {"reply": " \n", "finish_reason": "stop"}
+    elif failure == "agent":
+        kwargs = {"agent": agent, "snapshot": _cfg()}
+    elif failure == "postclean_blank":
+        monkeypatch.setattr(chat_service, "_clean_reply", lambda *args: "")
+        kwargs = {"reply": "valid provider response", "finish_reason": "stop"}
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _post(session, monkeypatch, **kwargs)
+    assert session.rollbacks == len(released) == 1
+    assert released[0]["user_id"] == UID
+    assert session.added == []
+    assert charged == []
 
 
 async def test_disabled_agent_keeps_single_shot_path(monkeypatch):

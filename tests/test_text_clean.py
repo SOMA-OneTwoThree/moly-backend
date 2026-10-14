@@ -211,36 +211,7 @@ def test_strip_leading_meta_edge_cases():
     )
 
 
-# --- 호출부 배선 고정 ---
-#
-# 위 테스트들은 text_clean만 본다. 그래서 chat.py가 백스톱을 한국어에만 걸도록 되돌아가도
-# 전부 통과한다. 원래 결함이 정확히 "적용 범위"에 있었으므로 여기서 고정한다.
-def test_chat_egress_backstop_is_not_korean_only():
-    """외래문자 백스톱은 언어를 가리지 않아야 한다.
-
-    엉뚱한 언어 글자가 문장 뒤에 붙는 건 영어·일본어 응답에서도 똑같이 일어난다.
-    예전에는 `is_ko and` 게이팅이라 ja·en 응답은 백스톱이 아예 없었다.
-    """
-    import inspect
-
-    from app.services import chat
-
-    line = next(
-        ln for ln in inspect.getsource(chat).splitlines() if "has_foreign(reply_text" in ln
-    )
-    assert "is_ko" not in line, "백스톱이 다시 한국어 전용이 됐다 — ja·en 응답이 무방비다"
-
-
-def test_chat_egress_passes_nickname_as_keep():
-    """닉네임을 안 넘기면 한글 밖 이름이 응답에서 통째로 지워진다."""
-    import inspect
-
-    from app.services import chat
-
-    src = inspect.getsource(chat)
-    for call in ("has_foreign(reply_text", "strip_foreign(reply_text"):
-        line = next(ln for ln in src.splitlines() if call in ln)
-        assert "keep=nick" in line, f"{call}에 닉네임을 안 넘긴다"
+# Chat storage/egress script and nickname behavior is covered in test_chat.py.
 
 
 # --- 응답 끝에 공백 없이 붙은 라틴 조각 제거 ---
@@ -279,12 +250,45 @@ def test_strip_trailing_latin_is_a_no_op_without_hangul():
     assert text_clean.strip_trailing_latin("오늘 좀 어땠어?") == "오늘 좀 어땠어?"
 
 
-def test_chat_egress_strips_trailing_latin():
-    """배선 고정 — chat.py가 이 규칙을 실제로 부르는가."""
-    import inspect
+def test_chat_opt_in_preserves_quotes_and_lines_but_default_diary_contract_does_not_change():
+    raw = '**제목**\r\n"A...B — C_D"\n\n두 번째 줄\u200b'
+    assert text_clean.strip_symbols(
+        raw, preserve_dashes=True, preserve_quotes=True, preserve_linebreaks=True,
+    ) == '제목\n"A...B — C_D"\n\n두 번째 줄'
+    assert text_clean.strip_symbols(raw) == '제목 "A B C D" 두 번째 줄'
 
-    from app.services import chat
 
-    assert "strip_trailing_latin(reply_text)" in inspect.getsource(chat), (
-        "응답 끝 라틴 제거가 배선에서 빠졌다"
-    )
+@pytest.mark.parametrize("quote", (
+    '"Wait... now?"', '“Wait... now?”', '「待って…今？」', "'Wait... now?'",
+))
+def test_explicit_quoted_prefix_is_not_removed_as_internal_meta(quote):
+    raw = quote + "는 그대로 적어 둔 문장이야."
+    assert text_clean.strip_leading_meta(raw, preserve_quoted_prefix=True) == raw
+
+
+def test_chat_meta_quote_exception_keeps_actual_unquoted_meta_guard():
+    raw = "Note: this needs a short answer. 바로 답할게."
+    assert text_clean.strip_leading_meta(raw, preserve_quoted_prefix=True) == "바로 답할게."
+
+
+def test_chat_quote_preservation_still_removes_invisible_junk():
+    raw = '"ca\u200bfé\x07"\nдом'
+    assert text_clean.strip_symbols(
+        raw, preserve_quotes=True, preserve_linebreaks=True,
+    ) == '"café"\nдом'
+
+
+def test_multiline_quote_is_preserved_only_by_chat_opt_in():
+    raw = '"One...\nTwo—three"\n**Next**'
+    assert text_clean.strip_symbols(
+        raw, preserve_quotes=True, preserve_linebreaks=True,
+    ) == '"One...\nTwo—three"\nNext'
+    assert text_clean.strip_symbols(raw) == '"One Two three" Next'
+
+
+def test_long_unclosed_quote_does_not_match_or_swallow_later_plain_lines():
+    raw = '"' + "가" * 12_000 + "\n**뒤 문장**"
+    assert text_clean.QUOTED_LITERAL.search(raw) is None
+    assert text_clean.strip_symbols(
+        raw, preserve_quotes=True, preserve_linebreaks=True,
+    ) == '"' + "가" * 12_000 + "\n뒤 문장"

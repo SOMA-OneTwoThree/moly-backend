@@ -532,6 +532,11 @@ def _fix_qmarks(text: str, nickname: str | None) -> str:
     평서문 오삽입을 막고('무슨 일이 있어도 괜찮아'는 의문사가 멀어 미교정), 끝의 호명은
     벗겨 검사하며('무슨 일이야, 승민아'), '~지 뭐'의 종결 particle은 제외한다.
     """
+    # A quoted utterance is content to reproduce, not our question to rewrite.
+    if text_clean.QUOTED_LITERAL.search(text):
+        return text_clean._outside_quotes(text, lambda segment: _fix_qmarks(segment, nickname))
+    if "\n" in text:
+        return "\n".join(_fix_qmarks(line, nickname) for line in text.split("\n"))
     voc = greetings.vocative(nickname) if nickname else None
     out: list[str] = []
     for s in _SENT_SPLIT.split(text):
@@ -557,15 +562,15 @@ def _fix_qmarks(text: str, nickname: str | None) -> str:
 
 
 def _clean_reply(text: str, nickname: str | None = None, language: str | None = None) -> str:
-    """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
+    """Chat-only cleanup preserves lines, quoted text and meaningful dashes.
 
-    페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
-    말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·물음표·느낌표)만 남기고
-    말줄임표·마크다운 강조(**,_)는 지운다. 비한국어 대사는 원문의 하이픈·대시를 보존한다. 쉼표는 코드로 지우지 않고 프롬프트에
-    맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
+    Decoration outside quotes is still removed. Shared diary cleanup keeps its defaults.
     """
     keep_hy = not i18n.is_korean(language)  # en 등: 하이픈 유지 + 한국어 되묻기 물음표 복원 불필요
-    out = text_clean.strip_symbols(text, keep_hyphen=keep_hy, preserve_dashes=keep_hy)
+    out = text_clean.strip_symbols(
+        text, keep_hyphen=keep_hy, preserve_dashes=True,
+        preserve_linebreaks=True, preserve_quotes=True,
+    )
     return out if keep_hy else _fix_qmarks(out, nickname)
 
 
@@ -1213,6 +1218,7 @@ async def post_message(
                 ttl_messages=settings.cache_ttl_messages,
                 timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
             )
+            llm.require_completed_text(result.text, result.finish_reason)
     except BaseException:
         # 외부 호출 실패는 저장 0인 클린 재시도다. lease도 즉시 회수해 TTL만큼 막히지 않게 한다.
         await session.rollback()
@@ -1235,7 +1241,8 @@ async def post_message(
             "프롬프트 캐시 미작동(read=write=0, input=%d) user=%s", result.input_tokens, user_id
         )
 
-    # 백스톱 순서(ko만, 원문에 순차): 메타 프리앰블 제거 → 한자·가나 재작성 복원 → 정제 → placeholder.
+    # Chat egress: explicit quoted prefixes are protected from the KO meta guard;
+    # other scripts are observed without deleting them, then cleanup and naming.
     t_egress0 = time.monotonic()
     repair_ms = 0.0
     # 복원 호출이 붙을 수 있어 차감은 백스톱 뒤에. 도구 턴은 step1·step2가 이미 LlmCall로 온다.
@@ -1246,40 +1253,28 @@ async def post_message(
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
     if is_ko:
         # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.
-        # 발동은 드문 이벤트라(3071건 중 2건) 제거한 접두부만 로그로 남겨 감사 가능하게 한다.
-        # stripped는 reply_text의 접미부라 앞부분 = 제거된 메타(한국어 본문은 로그에 안 남김).
-        stripped = text_clean.strip_leading_meta(reply_text)
+        stripped = text_clean.strip_leading_meta(reply_text, preserve_quoted_prefix=True)
         if stripped != reply_text:
-            removed = reply_text[: len(reply_text) - len(stripped)]
             _log.warning(
-                "메타 프리앰블 제거(egress) user=%s removed_len=%d prefix=%r",
-                user_id, len(removed), removed[:120],
+                "메타 프리앰블 제거(egress) user=%s removed_len=%d",
+                user_id, len(reply_text) - len(stripped),
             )
             reply_text = stripped
-        # 응답 끝에 공백 없이 붙은 라틴 조각(앞쪽 메타 제거의 짝). 라틴은 상표·고유명사로
-        # 정상적으로 쓰이니 아래 외래문자 백스톱이 통과시킨다 — 그래서 붙은 방식으로 가른다.
-        tailless = text_clean.strip_trailing_latin(reply_text)
-        if tailless != reply_text:
-            # 지운 글자만 남긴다. 길이로 잘라내면 공백 정규화 때문에 본문이 딸려 나올 수 있다.
-            _log.warning(
-                "응답 끝 라틴 제거(egress) user=%s removed=%r",
-                user_id, "".join(sorted(set(reply_text) - set(tailless)))[:40],
-            )
-            reply_text = tailless
-    # 외래문자 백스톱은 언어를 가리지 않는다. 예전엔 한국어에만 걸었는데, 엉뚱한 언어 글자가
-    # 꼬리처럼 붙는 건 영어·일본어 응답에서도 똑같이 일어난다. 닉네임(nick)은 유저가 정한 값이라
-    # 응답 언어와 계열이 달라도 정상이므로 판정에서 뺀다.
+    # Other scripts can be names, quotations or explicitly requested words.
+    # Detect unexpected scripts without deleting the content or another model call.
     if text_clean.has_foreign(reply_text, language=language, keep=nick):
-        # 세 번째 LLM 호출은 하드 데드라인과 최대 2회 호출 계약을 깨므로 결정적으로 제거한다.
-        cleaned = text_clean.strip_foreign(reply_text, language=language, keep=nick)
-        # 실측된 경우는 전부 문장 뒤에 붙은 꼬리였다. 단어 중간에 끼어들어 본문이 깨지는 사례가
-        # 실제로 생기는지 보려고 지운 글자를 남긴다(본문은 남기지 않는다).
         _log.warning(
-            "외래문자 제거(egress) user=%s lang=%s removed=%r",
-            user_id, language, "".join(sorted(set(reply_text) - set(cleaned)))[:40],
+            "응답 언어 외 문자 감지(egress) user=%s lang=%s reply_len=%d",
+            user_id, language, len(reply_text),
         )
-        reply_text = cleaned
     reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
+    try:
+        llm.require_completed_text(reply_stored, "")
+    except llm.IncompleteResponseError:
+        await session.rollback()
+        await chat_turns.release(session, user_id=uid, lease=lease)
+        await session.commit()
+        raise
     egress_ms = _ms(t_egress0, time.monotonic())
 
     # 회계 대상 — v2 off(롤백)면 주 chat 호출만 차감하고 나머지는 계측·로그로만 남긴다.

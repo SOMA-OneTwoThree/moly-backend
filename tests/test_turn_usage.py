@@ -72,30 +72,36 @@ def _gating(**over):
     return Gating(**base)
 
 
-def _patch_repair_turn(monkeypatch):
-    """외래문자는 세 번째 모델 호출 없이 결정적으로 제거된다."""
+def _patch_foreign_character_turn(monkeypatch):
+    """Preserving letters must not start another model call or change usage accounting."""
+    calls = []
+
     async def _res(session, user_id, **kwargs):
         return _gating()
 
     async def _gen(system, convo, **kw):
+        calls.append(kw)
         return LLMResult("나도 我 생각엔.", 10, 20, model=MODEL)  # 주 chat 호출(한자 포함)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
     monkeypatch.setattr(llm_module, "generate", _gen)
-    return 10 + 6 * 20, 0
+    return 10 + 6 * 20, calls
 
 
-async def test_foreign_character_backstop_does_not_add_a_third_llm_call(monkeypatch):
-    chat_bill, repair_bill = _patch_repair_turn(monkeypatch)
+async def test_foreign_character_preservation_does_not_add_a_model_call(monkeypatch):
+    chat_bill, calls = _patch_foreign_character_turn(monkeypatch)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-repair")
 
-    assert out.reply.content == "나도 생각엔."
+    # Generation language quality is a separate judgment; egress must not delete
+    # normal letters to conceal it, or call a model merely because a script differs.
+    assert out.reply.content == "나도 我 생각엔."
+    assert len(calls) == 1
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")
-    assert reply_msg.billable_tokens == chat_bill + repair_bill
-    assert out.tokens_used == 1000 + chat_bill + repair_bill
+    assert reply_msg.billable_tokens == chat_bill
+    assert out.tokens_used == 1000 + chat_bill
     # 합계 컬럼도 턴 합(스키마 변경 없음)
     assert reply_msg.input_tokens == 10 and reply_msg.output_tokens == 20
 
@@ -117,16 +123,17 @@ async def test_no_repair_turn_bills_chat_only(monkeypatch):
 
 
 async def test_kill_switch_off_bills_chat_call_only(monkeypatch):
-    """turn_usage_v2_enabled=False = 롤백 경로 — 복원 호출은 계측만, 차감·저장은 주 호출분만."""
-    chat_bill, _repair_bill = _patch_repair_turn(monkeypatch)
+    """The accounting rollback switch also preserves letters without an extra call."""
+    chat_bill, calls = _patch_foreign_character_turn(monkeypatch)
     monkeypatch.setattr(c.settings, "turn_usage_v2_enabled", False)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-ks")
 
-    assert out.reply.content == "나도 생각엔."
+    assert out.reply.content == "나도 我 생각엔."
+    assert len(calls) == 1
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")
-    assert reply_msg.billable_tokens == chat_bill   # 130 — 복원분 미포함(기존 동작)
+    assert reply_msg.billable_tokens == chat_bill
     assert reply_msg.input_tokens == 10 and reply_msg.output_tokens == 20
     assert out.tokens_used == 1000 + chat_bill

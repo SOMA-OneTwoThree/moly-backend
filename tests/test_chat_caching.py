@@ -3,6 +3,8 @@ import uuid
 from datetime import datetime, time, timezone
 from types import SimpleNamespace
 
+import pytest
+
 from app.services import chat as c
 from app.services import llm
 from app.services.llm import LLMResult
@@ -84,8 +86,8 @@ async def test_context_marks_first_surviving_message_after_greeting_pop():
 
 
 # --- 대사 정제(페르소나만으론 안 잡히는 것들을 코드로 확정) ---
-def test_clean_reply_strips_linebreaks_and_ellipsis():
-    assert _ko_clean("음... 딱히 없어.\n\n생각해봐도 안 떠올라.") == "음 딱히 없어. 생각해봐도 안 떠올라."
+def test_clean_reply_preserves_linebreaks_without_adding_ellipsis():
+    assert _ko_clean("음... 딱히 없어.\n\n생각해봐도 안 떠올라.") == "음 딱히 없어.\n\n생각해봐도 안 떠올라."
     assert _ko_clean("그렇구나…") == "그렇구나"
     assert _ko_clean("정말...?") == "정말?"          # 부호 앞 공백이 남지 않는다
     assert _ko_clean("  왔네.  ") == "왔네."
@@ -128,9 +130,31 @@ def test_fix_qmarks_leaves_existing_marks():
 # --- 마크다운 강조·대시·물결 제거(_STRAY) ---
 def test_clean_reply_strips_markdown_and_dashes():
     assert _ko_clean("**진짜** 좋았어.") == "진짜 좋았어."
-    assert _ko_clean("그러니까 — 별 거 아닌데.") == "그러니까 별 거 아닌데."
+    assert _ko_clean("그러니까 — 별 거 아닌데.") == "그러니까 — 별 거 아닌데."
     assert _ko_clean("_이거_ 맞아?") == "이거 맞아?"
     assert _ko_clean("괜찮아~ 다 잘될 거야.") == "괜찮아 다 잘될 거야."
+
+
+def test_clean_reply_preserves_quoted_question_and_line_boundary():
+    assert _ko_clean('"무슨 일인데."\n다음 문장은 그대로야.') == (
+        '"무슨 일인데."\n다음 문장은 그대로야.'
+    )
+    assert _ko_clean("무슨 일인데.\n두 번째 줄이야.") == "무슨 일인데?\n두 번째 줄이야."
+
+
+@pytest.mark.parametrize("quoted", (
+    '“무슨 일이야.\n정말...”', '"무슨 일이야.\n정말..."',
+    "'무슨 일이야.\n정말...'", '「무슨 일이야.\n정말...」',
+))
+def test_clean_reply_preserves_multiline_literal_and_fixes_only_outside_question(quoted):
+    raw = quoted + "\n무슨 일인데."
+    assert _ko_clean(raw) == quoted + "\n무슨 일인데?"
+
+
+def test_unclosed_quote_does_not_disable_cleanup_of_the_remaining_lines():
+    assert _ko_clean('"인용이 안 닫혔어.\n무슨 일이야.') == (
+        '"인용이 안 닫혔어.\n무슨 일이야?'
+    )
 
 
 # --- 선택의문문 물음표(아니면) ---

@@ -576,6 +576,21 @@ def _validated_final(
     )
 
 
+def _require_completed_step(step: llm.StepResult, *, final: bool = False) -> None:
+    """Do not execute or publish a truncated/filtered/incomplete model step."""
+    if step.finish_reason not in {"stop", "tool_calls"}:
+        raise llm.IncompleteResponseError("LLM response is incomplete")
+    if final and step.tool_calls:
+        raise llm.IncompleteResponseError("LLM response is incomplete")
+    if step.final_response is not None:
+        llm.require_completed_text(
+            step.final_response.text, step.finish_reason,
+            allow_legacy=False, allow_tool_calls=True,
+        )
+    elif not step.tool_calls:
+        llm.require_completed_text(step.text, step.finish_reason, allow_legacy=False)
+
+
 # --- 턴 실행 ---
 def _ledger_ctx(user_id: uuid.UUID, activity_date: date) -> usage_ledger.LedgerContext:
     """도구 루프 호출의 원가 귀속. purpose는 step별로 generate_step이 덮어쓴다."""
@@ -686,6 +701,7 @@ async def run_turn(
         step1 = await _hop1(False)
         use_tools = False
         skipped = "deadline"
+    _require_completed_step(step1)
     calls: list[LlmCall] = [step1.usage]
     if step1.control_intents:  # 위 계약상 나올 수 없다 — 나오면 버리고 계측만 남긴다
         _log.warning(
@@ -766,6 +782,7 @@ async def run_turn(
         control_tools=control,  # final step에서만 의도를 읽는다
         response_tools=response_tools or None,
     )
+    _require_completed_step(step2, final=True)
     calls.append(step2.usage)
     final_text, response_mode, selected_refs, focus_ref, final_sidecar_intents = _validated_final(
         step2.final_response, raw_results, language=language
@@ -790,7 +807,7 @@ async def run_turn(
             ),
         )
     return AgentTurn(
-        text=final_text or step2.text or step1.text or "",
+        text=final_text or step2.text or "",
         calls=calls,
         tool_results=tuple(results),
         raw_tool_results=tuple(raw_results),

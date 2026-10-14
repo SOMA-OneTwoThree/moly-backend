@@ -155,9 +155,12 @@ async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
 
 
 @pytest.mark.parametrize("language,raw,expected", [
-    ("ja", "Анна、時々、人々と会う。〆切は二〇二六年。 Σ", "Анна、時々、人々と会う。〆切は二〇二六年。"),
-    ("en", "Анна, **take** a breath—then decide. 3–5 laid-back days. — No rush. Σ", "Анна, take a breath—then decide. 3–5 laid-back days. — No rush."),
-    ("ko", "Анна, 잠깐 — 쉬자.", "Анна, 잠깐 쉬자."),
+    ("ja", "Анна、時々、人々と会う。〆切は二〇二六年。 Σ", "Анна、時々、人々と会う。〆切は二〇二六年。 Σ"),
+    ("en", "Анна, **take** a breath—then decide. 3–5 laid-back days. — No rush. Σ", "Анна, take a breath—then decide. 3–5 laid-back days. — No rush. Σ"),
+    ("ko", "Анна, 잠깐 — 쉬자.", "Анна, 잠깐 — 쉬자."),
+    ("en", "猫\nдом", "猫\nдом"),
+    ("ko", '"See you at five."는 다섯 시에 보자는 뜻이야.', '"See you at five."는 다섯 시에 보자는 뜻이야.'),
+    ("ko", "제목이야.BTS", "제목이야.BTS"),
 ])
 async def test_post_message_preserves_locale_characters_through_storage(monkeypatch, language, raw, expected):
     profile = SimpleNamespace(language=language, nickname="Анна", review_prompted_at=None, id=UID)

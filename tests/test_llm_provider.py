@@ -12,6 +12,47 @@ from app.services import llm as llm_module
 from app.services.llm import LLMResult, provider_for
 
 
+@pytest.mark.parametrize("finish_reason", ["stop", "end_turn", "stop_sequence", ""])
+def test_completed_text_guard_preserves_legacy_and_completed_provider_contracts(finish_reason):
+    llm_module.require_completed_text("응.", finish_reason)
+
+
+@pytest.mark.parametrize("text,finish_reason", [
+    ("partial", "length"), ("partial", "max_tokens"), ("partial", "content_filter"),
+    ("partial", "tool_calls"), ("partial", "unknown-private-value"),
+    ("", "stop"), (None, "stop"), (" \n", "end_turn"),
+])
+def test_completed_text_guard_rejects_without_echoing_private_content(text, finish_reason):
+    with pytest.raises(llm_module.IncompleteResponseError, match="^LLM response is incomplete$"):
+        llm_module.require_completed_text(text, finish_reason)
+
+
+def test_completed_text_guard_only_allows_tool_finish_when_validated_by_caller():
+    llm_module.require_completed_text("응.", "tool_calls", allow_tool_calls=True)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        llm_module.require_completed_text("응.", "", allow_legacy=False)
+
+
+@pytest.mark.parametrize("stop_reason", ["end_turn", "stop_sequence", "max_tokens"])
+async def test_anthropic_stop_metadata_is_preserved_without_changing_generation(monkeypatch, stop_reason):
+    response = SimpleNamespace(
+        content=[SimpleNamespace(type="text", text="provider text")],
+        usage=SimpleNamespace(input_tokens=10, output_tokens=3), stop_reason=stop_reason,
+    )
+
+    async def create(**kwargs):
+        return response
+
+    client = SimpleNamespace(messages=SimpleNamespace(create=create))
+    monkeypatch.setattr(llm_module, "_get_client", lambda: client)
+    result = await llm_module.generate("system", [], model="claude-sonnet-5")
+    assert result.text == "provider text"
+    assert result.finish_reason == stop_reason
+    if stop_reason == "max_tokens":
+        with pytest.raises(llm_module.IncompleteResponseError):
+            llm_module.require_completed_text(result.text, result.finish_reason)
+
+
 # --- provider 판정 ---
 def test_provider_for_prefix():
     assert provider_for("gpt-5.6-terra") == "openai"

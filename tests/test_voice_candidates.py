@@ -25,6 +25,8 @@ _SUPPORTED = (
     ("ko", "voice-action-ko-v2"),
     ("ko", "voice-combined-ko-v2"),
     ("ja", "voice-combined-ja-v2"),
+    ("ko", "voice-persona-v3"), ("ja", "voice-persona-v3"), ("en", "voice-persona-v3"),
+    ("ko", "voice-combined-v3"), ("ja", "voice-combined-v3"), ("en", "voice-combined-v3"),
 )
 
 _V1_SHA = {
@@ -33,6 +35,15 @@ _V1_SHA = {
     ("en", "voice-style-v1"): "ebbc8dfe94614c253b021fc45e41232ecc60c82a02dcc740e12ad71f0af4be09",
     ("ja", "voice-action-ja-v1"): "73601021e2baee19ec50ad8df5476481f36dd6c83fecf117e2b142f83a0c9534",
     ("ja", "voice-combined-ja-v1"): "43c270de0225517d2218b287a9c8ceea8ebd9c0ddb56797960eb9c54c81e33ab",
+}
+
+_V2_SHA = {
+    ("ko", "voice-style-v2"): "f65e7a76d8c0d8293a186901392ee32dd96d3e11078ba195de244a629f4fa6da",
+    ("ja", "voice-style-v2"): "5de8b3bda6ec36ef7321975344cfdf1fbd5e60026e447561c1952a0a7f99a11e",
+    ("en", "voice-style-v2"): "a6dcd278c50bf91cb6d1c5a8d88fe7f24af6fea4eacc30cf164a4d4c4c3ec791",
+    ("ko", "voice-action-ko-v2"): "129852e85843cb34b18e5d89212def80f8ebf7fb82b57ffbefe10ad33872aa2c",
+    ("ko", "voice-combined-ko-v2"): "1f3727baefc34a53e09bce97796c74fa59f0272f74f0629d47679ef3d3524ea2",
+    ("ja", "voice-combined-ja-v2"): "4951a7fb6e207d6df7567b0b05d12cda18caf5935c71364b6dcc512dfe5549aa",
 }
 
 
@@ -78,11 +89,11 @@ def test_identity_memory_time_mood_state_fortune_safety_and_footer_are_identical
     candidate, _ = prompts.eval_system_prompt(language, candidate_id)
     # These semantic blocks are excluded from every experimental span.
     protected = {
-        "ko": ("[세계관과 상대]", "[기억]", "[날짜]", "[상대가 선택한 감정]",
+        "ko": ("[세계관과 상대]", "[너에 대해]", "[기억]", "[날짜]", "[상대가 선택한 감정]",
                "[지금 상태]", "[일기 - 비밀]", "[오늘의 운세]", "[무슨 일이 있어도]"),
-        "ja": ("[世界と相手]", "[記憶]", "[日付]", "[相手が選んだ気分]",
+        "ja": ("[世界と相手]", "[きみのこと]", "[記憶]", "[日付]", "[相手が選んだ気分]",
                "[今の状態]", "[日記 - ひみつ]", "[今日の運勢]", "[何があっても]"),
-        "en": ("[Your world and the person]", "[Memory]", "[Dates]", "[User mood selection]",
+        "en": ("[Your world and the person]", "[About you]", "[Memory]", "[Dates]", "[User mood selection]",
                "[Right now]", "[The diary is a secret]", "[Today's fortune]", "[No matter what]"),
     }[language]
     assert candidate.split("\n\n[", 1)[0] == baseline.split("\n\n[", 1)[0]
@@ -164,3 +175,44 @@ def test_ko_action_only_removes_suffix_examples_not_question_semantics():
     old, new = prompts._VOICE_ACTION_KO_V2[0]
     assert old in baseline and new in action
     assert old in prompts.eval_system_prompt("ko", "voice-style-v2")[0]
+
+
+@pytest.mark.parametrize("language,candidate_id", tuple(_V2_SHA))
+def test_v3_addition_does_not_rewrite_v2_systems_or_versions(language, candidate_id):
+    system, version = prompts.eval_system_prompt(language, candidate_id)
+    assert hashlib.sha256(system.encode()).hexdigest() == _V2_SHA[language, candidate_id]
+    assert version == "cappy-voice-20261014-v2"
+
+
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+def test_v3_persona_factor_preserves_baseline_style_and_contains_no_new_example(language):
+    baseline = prompts.system_prompt(language)
+    persona, version = prompts.eval_system_prompt(language, "voice-persona-v3")
+    assert version == "cappy-voice-20261014-v3"
+    for start, end, replacement in prompts._VOICE_STYLE_SECTIONS_V3[language]:
+        original = baseline[baseline.index(start):baseline.index(end)]
+        assert original in persona
+        assert replacement not in persona
+    assert len(prompts._eval_voice_replacements(language, "voice-persona-v3")) == 1
+
+
+@pytest.mark.parametrize("language", ("ko", "ja", "en"))
+def test_v3_combined_uses_the_same_body_and_one_continuous_example(language):
+    persona, _ = prompts.eval_system_prompt(language, "voice-persona-v3")
+    baseline = prompts.system_prompt(language)
+    for start, end, replacement in prompts._VOICE_STYLE_SECTIONS_V3[language]:
+        old = baseline[baseline.index(start):baseline.index(end)]
+        persona = persona.replace(old, replacement, 1)
+    combined, version = prompts.eval_system_prompt(language, "voice-combined-v3")
+    assert combined == persona
+    assert version == "cappy-voice-20261014-v3"
+    body = prompts._VOICE_PERSONA_SECTIONS_V3[language][0][2]
+    assert body in combined
+    style = prompts._VOICE_STYLE_SECTIONS_V3[language][0][2]
+    assert combined.count(style) == 1
+    user_label, cappy_label = {
+        "ko": ("상대:", "캐피:"), "ja": ("相手:", "キャピー:"), "en": ("Person:", "Cappy:"),
+    }[language]
+    assert sum(line.startswith(user_label) for line in style.splitlines()) == 6
+    assert sum(line.startswith(cappy_label) for line in style.splitlines()) == 6
+    assert user_label not in body and cappy_label not in body

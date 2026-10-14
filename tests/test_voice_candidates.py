@@ -46,6 +46,33 @@ def test_v5_explicit_fact_and_safety_contract_is_bounded_to_supplied_information
     ):
         assert contract in free
     assert "기관 안내나 전화번호를" not in free
+
+
+def test_v7_is_exact_v5_plus_previously_authored_fictional_dialogue_only():
+    free, _ = prompts.eval_system_prompt("ko", "voice-free-ko-v5")
+    base, base_version = prompts.eval_system_prompt("ko", "voice-base-ko-v7")
+    example, example_version = prompts.eval_system_prompt("ko", "voice-example-ko-v7")
+    assert base == free
+    assert hashlib.sha256(base.encode()).hexdigest() == (
+        "6d2ea1ae2b7b1d0581fb20b071064d8316903c33e7994d1053e9ecd90c8bd3a1"
+    )
+    assert base_version == example_version == "cappy-voice-20261014-v7"
+    assert example == base + "\n\n" + prompts._VOICE_EXAMPLE_KO_V7
+    assert hashlib.sha256(example.encode()).hexdigest() == (
+        "f2202498daa640b9b10549efbf49034c5cadc6d595146d6a619ce32afebcd580"
+    )
+    existing_style = prompts._VOICE_STYLE_SECTIONS_V3["ko"][0][2]
+    existing_dialogue = "상대: " + existing_style.split("상대: ", 1)[1].rstrip()
+    assert prompts._VOICE_EXAMPLE_KO_V7.split("\n", 2)[2] == existing_dialogue
+    assert existing_dialogue.count("\n캐피:") == 6
+    assert "지금 상대의 기억이 아니고" in prompts._VOICE_EXAMPLE_KO_V7
+    assert "상대가 원문이나 형식을 요청하면 [말하기]를 따라." in prompts._VOICE_EXAMPLE_KO_V7
+    assert len(example) <= len(base) * 1.3
+    assert "[말투]" not in example and "길이는 지금 답에 맞춰" not in example
+    for candidate in ("voice-base-ko-v7", "voice-example-ko-v7"):
+        for language in ("ja", "en", "ko-KR"):
+            with pytest.raises(ValueError):
+                prompts.eval_system_prompt(language, candidate)
 _SUPPORTED = (
     ("ko", "voice-style-v1"),
     ("ja", "voice-style-v1"),

@@ -16,7 +16,10 @@ _V6_PROFILES = {
     "voice-sol-none-ko-v6": ("gpt-6-sol", "none", (1024,)),
 }
 V6_PROTOCOL_IDS = tuple(_V6_PROFILES)
-PLAIN_PROTOCOL_IDS = (V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5", *V6_PROTOCOL_IDS)
+V7_PROTOCOL_IDS = ("voice-base-ko-v7", "voice-example-ko-v7")
+PLAIN_PROTOCOL_IDS = (
+    V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5", *V6_PROTOCOL_IDS, *V7_PROTOCOL_IDS,
+)
 PROTOCOL_IDS = (*V4_PROTOCOL_IDS, *PLAIN_PROTOCOL_IDS[1:])
 _TIMEOUT_S = 10.0
 _ACTIONS = ("reply", "choice", "opinion", "question", "listen", "end")
@@ -26,6 +29,8 @@ def protocol_profile(candidate_id: str) -> tuple[str, str, tuple[int, ...]]:
     """Return server-owned model, reasoning and caps; no caller-supplied wire options."""
     if candidate_id not in PROTOCOL_IDS:
         raise ValueError("Unknown reply protocol")
+    if candidate_id in V7_PROTOCOL_IDS:
+        return "gpt-6-luna", "none", (192,)
     return _V6_PROFILES.get(candidate_id, ("gpt-6-luna", "none", (192, 1024)))
 
 

@@ -256,3 +256,15 @@ def test_v6_api_enforces_registered_target_and_1024_cap(client, calls, protocol_
                                            else "gpt-6-luna"}, {"language": "en"}):
         result = client.post("/dev/chat-eval", json={**request, **overrides})
         assert result.status_code == 422 and len(protocol_calls) == 1
+
+
+@pytest.mark.parametrize("candidate", ["voice-base-ko-v7", "voice-example-ko-v7"])
+def test_v7_api_enforces_same_fixed_luna_192_plain_profile(client, calls, protocol_calls, candidate):
+    request = payload(candidate_id=candidate, max_tokens=192)
+    response = client.post("/dev/chat-eval", json=request)
+    assert response.status_code == 200 and calls == [] and len(protocol_calls) == 1
+    assert response.json()["candidate"]["version"] == "cappy-voice-20261014-v7"
+    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", candidate)[0]
+    for overrides in ({"max_tokens": 1024}, {"model": "gpt-6-sol"}, {"language": "ja"}):
+        response = client.post("/dev/chat-eval", json={**request, **overrides})
+        assert response.status_code == 422 and len(protocol_calls) == 1

@@ -568,10 +568,11 @@ def _build_system(
     # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
     # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). 요약과 현재 상태는 휘발 컨텍스트다. 실제 주입은 post_message가 convo 끝에서 한다.
     dyn = "\n\n".join(parts)
-    # Development uses the fixed JA/EN voice candidate; all other environments retain C0.
+    # Development uses fixed locale candidates; all other environments retain C0.
     # Keep the persona first and independent of mutable conversation values for caching.
-    if settings.environment == "development" and locale in {"ja", "en"}:
-        persona, _ = eval_system_prompt(locale, "voice-combined-v3")
+    if settings.environment == "development":
+        candidate_id = "voice-free-ko-v5" if locale == "ko" else "voice-combined-v3"
+        persona, _ = eval_system_prompt(locale, candidate_id)
     else:
         persona = system_prompt(language)
     return [persona, dyn] if dyn else [persona]

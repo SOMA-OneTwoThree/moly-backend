@@ -13,6 +13,39 @@ _BASELINE_SHA = {
     "ja": "b8ec8365c7680907d011899e383676ab86ef9db5f3bd98111e376369ead7f1fc",
     "en": "ba9193df404b6fabe192c726613fab1a685533c4815bd5f5b52fedaf9829ecca",
 }
+
+
+def test_v5_baseline_control_is_exact_c0_and_free_persona_has_no_inherited_style_or_footer():
+    base, base_version = prompts.eval_system_prompt("ko", "voice-base-ko-v5")
+    free, free_version = prompts.eval_system_prompt("ko", "voice-free-ko-v5")
+    assert base == prompts.system_prompt("ko")
+    assert hashlib.sha256(base.encode()).hexdigest() == _BASELINE_SHA["ko"]
+    assert base_version == free_version == "cappy-voice-20261014-v5"
+    assert free == prompts._VOICE_FREE_KO_V5
+    assert len(free) < len(base)
+    for old in ("[관계]", "느긋", "수줍", "여운", "짧은 호흡", "문을 열어", "온기가",
+                "[언어]", "[물음표]", prompts._OUTPUT_CHECK, "-네", "-구나", "-겠다"):
+        assert old not in free
+    assert "코딩" not in free and "숙제" not in free and "번역" not in free
+    for candidate in ("voice-base-ko-v5", "voice-free-ko-v5"):
+        for language in ("ja", "en", "ko-KR"):
+            with pytest.raises(ValueError):
+                prompts.eval_system_prompt(language, candidate)
+
+
+def test_v5_explicit_fact_and_safety_contract_is_bounded_to_supplied_information():
+    free, _ = prompts.eval_system_prompt("ko", "voice-free-ko-v5")
+    for contract in (
+        "[User mood selection]은 상대가 오늘 앱에서 고른 이름만 담은 내부 정보야.",
+        "상대가 말하지 않은 감정·바람·의도를 사실로 단정하지 마.",
+        "제공되지 않은 일기 내용도 지어내지 마.",
+        "제공된 현재 상태에 네 모습 항목이 없으면 아무것도 걸치지 않은 상태야.",
+        "당장 위험하면 현재 안전을 확보하고 가까운 사람이나 현지 긴급 도움을 받을 수 있도록 도와.",
+        "다른 화제로 넘어갔다는 이유만으로 확인된 위험이 끝났다고 단정하지 마.",
+        "unknown은 선택값을 모른다는 뜻이고 기록 유무의 증거가 아니야.",
+    ):
+        assert contract in free
+    assert "기관 안내나 전화번호를" not in free
 _SUPPORTED = (
     ("ko", "voice-style-v1"),
     ("ja", "voice-style-v1"),

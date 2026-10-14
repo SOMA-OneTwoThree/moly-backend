@@ -224,3 +224,18 @@ def test_protocol_requires_known_full_code_sha(client, protocol_calls, monkeypat
         candidate_id="voice-plain-ko-v4", max_tokens=192,
     ))
     assert response.status_code == 422 and protocol_calls == []
+
+
+@pytest.mark.parametrize("candidate", ["voice-base-ko-v5", "voice-free-ko-v5"])
+def test_v5_dispatch_uses_retry_free_plain_registered_system(client, calls, protocol_calls, candidate):
+    response = client.post("/dev/chat-eval", json=payload(candidate_id=candidate, max_tokens=192))
+    assert response.status_code == 200
+    assert calls == [] and len(protocol_calls) == 1
+    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", candidate)[0]
+    assert response.json()["candidate"]["version"] == "cappy-voice-20261014-v5"
+    assert response.json()["candidate"]["code_sha"] == "a" * 40
+    assert dev.eval_reply_protocol.response_format(candidate) is None
+    response = client.post("/dev/chat-eval", json=payload(
+        candidate_id=candidate, max_tokens=192, language="ja",
+    ))
+    assert response.status_code == 422 and len(protocol_calls) == 1

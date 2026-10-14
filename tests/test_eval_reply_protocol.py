@@ -13,7 +13,7 @@ import pytest
 from app.services import eval_reply_protocol as protocol
 from app.services import llm, prompts
 
-PLAIN, SPEECH, ACT = protocol.PROTOCOL_IDS
+PLAIN, SPEECH, ACT = protocol.V4_PROTOCOL_IDS
 SYSTEM = prompts.eval_system_prompt("ko", PLAIN)[0]
 MESSAGES = [{"role": "user", "content": "합성 입력"}]
 _FROZEN_KO_V3_SHA = "dc420452352b663a24466db1c4d6c40e16e07e58f00d9212e9232ef3dcbe838e"
@@ -177,7 +177,7 @@ async def test_installed_sdk_sends_once_and_shared_client_remains_open(monkeypat
         assert not http.is_closed
 
 
-@pytest.mark.parametrize("candidate", protocol.PROTOCOL_IDS)
+@pytest.mark.parametrize("candidate", protocol.V4_PROTOCOL_IDS)
 def test_all_protocols_share_frozen_v3_system_and_have_separate_wire_hashes(candidate):
     frozen, _ = prompts.eval_system_prompt("ko", "voice-combined-v3")
     system, version = prompts.eval_system_prompt("ko", candidate)
@@ -199,7 +199,27 @@ def test_schema_order_and_conservative_wire_constraints():
     assert schema["additionalProperties"] is False
     assert "maxLength" not in schema["properties"]["focus"]
     assert len({protocol.protocol_manifest(candidate, 192)["schema_sha256"]
-                for candidate in protocol.PROTOCOL_IDS}) == 3
+                for candidate in protocol.V4_PROTOCOL_IDS}) == 3
+
+
+@pytest.mark.parametrize("candidate", ["voice-base-ko-v5", "voice-free-ko-v5"])
+async def test_v5_uses_registered_full_system_and_plain_wire_without_extra_call(monkeypatch, candidate):
+    system, version = prompts.eval_system_prompt("ko", candidate)
+    raw = '  原文 "café"\n다시 말해?  '
+    client = Client(completion(raw))
+    monkeypatch.setattr(llm, "_get_openai_client", lambda: client)
+    result = await protocol.run(candidate, "gpt-6-luna", system, MESSAGES, max_tokens=192)
+    assert version == "cappy-voice-20261014-v5"
+    assert len(client.calls) == 1
+    assert client.calls[0]["messages"][0]["content"] == system
+    assert "response_format" not in client.calls[0]
+    assert result["text"] == raw
+    assert result["prototype"]["decisions"] is None
+    assert result["prototype"]["field_order"] is None
+    assert result["prototype"]["sdk_create_calls"] == 1
+    assert protocol.protocol_manifest(candidate, 192) == protocol.protocol_manifest(PLAIN, 192)
+    with pytest.raises(ValueError, match="frozen registered system"):
+        await protocol.run(candidate, "gpt-6-luna", system + "override", MESSAGES, max_tokens=192)
 
 
 @pytest.mark.parametrize("overrides", [

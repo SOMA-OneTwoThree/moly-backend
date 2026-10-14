@@ -9,7 +9,9 @@ import time
 from app.config import settings
 from app.services import llm, model_eval, prompts
 
-PROTOCOL_IDS = ("voice-plain-ko-v4", "voice-speech-ko-v4", "voice-act-focus-ko-v4")
+V4_PROTOCOL_IDS = ("voice-plain-ko-v4", "voice-speech-ko-v4", "voice-act-focus-ko-v4")
+PLAIN_PROTOCOL_IDS = (V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5")
+PROTOCOL_IDS = (*V4_PROTOCOL_IDS, *PLAIN_PROTOCOL_IDS[1:])
 _TIMEOUT_S = 10.0
 _ACTIONS = ("reply", "choice", "opinion", "question", "listen", "end")
 
@@ -17,7 +19,7 @@ _ACTIONS = ("reply", "choice", "opinion", "question", "listen", "end")
 def response_format(candidate_id: str) -> dict | None:
     if candidate_id not in PROTOCOL_IDS:
         raise ValueError("Unknown reply protocol")
-    if candidate_id == PROTOCOL_IDS[0]:
+    if candidate_id in PLAIN_PROTOCOL_IDS:
         return None
     properties = {}
     if candidate_id == PROTOCOL_IDS[2]:
@@ -76,7 +78,7 @@ def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
 
 
 def _decode(raw: str, candidate_id: str) -> dict:
-    if candidate_id == PROTOCOL_IDS[0]:
+    if candidate_id in PLAIN_PROTOCOL_IDS:
         values = {"text": raw}
     else:
         values = json.loads(raw, object_pairs_hook=_reject_duplicate_keys)
@@ -172,7 +174,7 @@ async def run(
             if type(raw) is not str:
                 raise ValueError("Missing response content")
             values = _decode(raw, candidate_id)
-            diagnostic["field_order"] = list(values) if candidate_id != PROTOCOL_IDS[0] else None
+            diagnostic["field_order"] = list(values) if candidate_id not in PLAIN_PROTOCOL_IDS else None
             result.text = values["text"]  # exact decoded text: never strip or normalize
             if candidate_id == PROTOCOL_IDS[2]:
                 diagnostic["decisions"] = {key: values[key] for key in ("action", "focus")}

@@ -239,7 +239,9 @@ async def test_initialization_failure_counts_no_create_and_does_not_log_detail(m
     assert "synthetic private detail" not in json.dumps(result)
 
 
-@pytest.mark.parametrize("candidate", [SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS])
+@pytest.mark.parametrize("candidate", [
+    SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS,
+])
 async def test_external_cancel_propagates(monkeypatch, candidate):
     client = Client(error=asyncio.CancelledError())
     monkeypatch.setattr(llm, "_get_openai_client", lambda: client)
@@ -251,7 +253,9 @@ async def test_external_cancel_propagates(monkeypatch, candidate):
 
 
 @pytest.mark.parametrize("status", (429, 500, "read_timeout"))
-@pytest.mark.parametrize("candidate", [SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS])
+@pytest.mark.parametrize("candidate", [
+    SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS,
+])
 async def test_installed_sdk_sends_once_and_shared_client_remains_open(monkeypatch, status, candidate):
     sent = []
 
@@ -322,14 +326,15 @@ async def test_v5_uses_registered_full_system_and_plain_wire_without_extra_call(
         await protocol.run(candidate, "gpt-6-luna", system + "override", MESSAGES, max_tokens=192)
 
 
-@pytest.mark.parametrize("candidate", protocol.V7_PROTOCOL_IDS)
-async def test_v7_plain_192_profile_uses_exact_registered_system(monkeypatch, candidate):
+@pytest.mark.parametrize("candidate", [*protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS])
+async def test_fixed_plain_192_profile_uses_exact_registered_system(monkeypatch, candidate):
     system, version = prompts.eval_system_prompt("ko", candidate)
     raw = '  原文 "café"\n질문?  '
     client = Client(completion(raw))
     monkeypatch.setattr(llm, "_get_openai_client", lambda: client)
     result = await protocol.run(candidate, "gpt-6-luna", system, MESSAGES, max_tokens=192)
-    assert version == "cappy-voice-20261014-v7" and result["text"] == raw
+    assert version == f"cappy-voice-20261014-{candidate.rsplit('-', 1)[-1]}"
+    assert result["text"] == raw
     assert client.calls == [{
         "model": "gpt-6-luna", "messages": [{"role": "system", "content": system}, *MESSAGES],
         "reasoning_effort": "none", "max_completion_tokens": 192, "timeout": 10.0,

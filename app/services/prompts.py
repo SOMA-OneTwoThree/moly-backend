@@ -315,6 +315,8 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-sol-none-ko-v6",
     "voice-base-ko-v7",
     "voice-example-ko-v7",
+    "voice-base-ko-v8",
+    "voice-direct-ko-v8",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -364,6 +366,9 @@ _VOICE_EXAMPLE_KO_V7 = """[가상 대화 예시]
 캐피: 그 말은 안 해도 됐잖아.
 상대: 오늘은 여기까지만 할래. 잘 자.
 캐피: 응, 잘 자."""
+
+_VOICE_DIRECT_KO_RULES_V8 = """상대가 요약·확인을 요청했거나 네가 잘못 이해한 내용을 바로잡는 때가 아니라면, 방금 말한 일을 재설명하거나 그 일로 상대가 어떤 기분일지 해설하는 서론 대신 네 답이나 반응을 바로 말해.
+말투를 바꿔 달라는 요청은 이 답부터 적용해. 사과·앞으로의 약속·말투 설명으로 대신하지 말고, 이어지던 내용이 있으면 그 내용을 요청한 표현으로 답해."""
 
 # Exact section boundaries make the intervention inspectable. Identity, safety,
 # tools, dates, mood ownership and the language/output footer are outside these spans.
@@ -653,6 +658,16 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id in ("voice-base-ko-v8", "voice-direct-ko-v8"):
+        if language != "ko":
+            raise ValueError("Korean direct response experiment supports Korean only")
+        system = _VOICE_FREE_KO_V5
+        if candidate_id == "voice-direct-ko-v8":
+            heading = "[지금 대화]\n"
+            if system.count(heading) != 1:
+                raise ValueError("Evaluation voice section boundary changed")
+            system = system.replace(heading, heading + _VOICE_DIRECT_KO_RULES_V8 + "\n", 1)
+        return system, "cappy-voice-20261014-v8"
     if candidate_id in ("voice-base-ko-v7", "voice-example-ko-v7"):
         if language != "ko":
             raise ValueError("Korean example experiment supports Korean only")

@@ -73,6 +73,35 @@ def test_v7_is_exact_v5_plus_previously_authored_fictional_dialogue_only():
         for language in ("ja", "en", "ko-KR"):
             with pytest.raises(ValueError):
                 prompts.eval_system_prompt(language, candidate)
+
+
+def test_v8_changes_only_two_lines_at_the_current_conversation_boundary():
+    free, _ = prompts.eval_system_prompt("ko", "voice-free-ko-v5")
+    base, base_version = prompts.eval_system_prompt("ko", "voice-base-ko-v8")
+    direct, direct_version = prompts.eval_system_prompt("ko", "voice-direct-ko-v8")
+    assert base == free
+    assert base_version == direct_version == "cappy-voice-20261014-v8"
+    assert hashlib.sha256(direct.encode()).hexdigest() == (
+        "b316023dddfc580722f6878445187816abf0a3e7298f45b3d6231ed2c0aecb24"
+    )
+    rules = prompts._VOICE_DIRECT_KO_RULES_V8
+    assert len(rules.splitlines()) == 2
+    assert "요약·확인을 요청했거나 네가 잘못 이해한 내용을 바로잡는 때가 아니라면" in rules
+    assert "이어지던 내용이 있으면" in rules
+    before, after = base.split("[지금 대화]\n")
+    assert direct == before + "[지금 대화]\n" + rules + "\n" + after
+    assert direct.replace(rules + "\n", "", 1) == free
+    assert "[가상 대화 예시]" not in direct
+    for candidate in ("voice-base-ko-v8", "voice-direct-ko-v8"):
+        for language in ("ja", "en", "ko-KR"):
+            with pytest.raises(ValueError):
+                prompts.eval_system_prompt(language, candidate)
+
+
+def test_v8_fails_closed_if_its_single_insertion_boundary_changes(monkeypatch):
+    monkeypatch.setattr(prompts, "_VOICE_FREE_KO_V5", "synthetic body without heading")
+    with pytest.raises(ValueError, match="section boundary changed"):
+        prompts.eval_system_prompt("ko", "voice-direct-ko-v8")
 _SUPPORTED = (
     ("ko", "voice-style-v1"),
     ("ja", "voice-style-v1"),

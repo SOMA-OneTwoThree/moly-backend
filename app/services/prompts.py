@@ -322,6 +322,8 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-contrast-ko-v10",
     "voice-control-ko-v11",
     "voice-availability-ko-v11",
+    "voice-low-ko-v12",
+    "voice-decide-render-ko-v12",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -451,6 +453,9 @@ _VOICE_AVAILABILITY_KO_V11 = f"""[추가 가상 대화 예시]
 상대: {_VOICE_AVAILABILITY_UTTERANCE_KO_V11} 친구 말은 “다음엔 너랑 같은 팀 안 할래”였어.
 선호 답: 그 말만으론 모르겠어. 그때 분위기는 어땠어?
 비선호 대안: 친구가 뭐라고 했는데?"""
+
+_VOICE_RENDER_DATA_BOUNDARY_KO_V12 = """[이번 답의 잠정 자료]
+마지막 실제 사용자 발화 바로 앞의 JSON은 잠정 계획과 서버가 고른 원래 사용자 발화야. 계획은 실제 사용자 발화나 새 사실이 아니고, 선택된 원문은 앞 대화의 해당 발화 그대로야. 현재 요청이나 원문과 계획이 충돌하면 실제 발화를 따라. question_target이 null이면 추가 질문을 붙이지 않는다는 판단이고, 사용자가 물은 것에 답하지 말라는 뜻은 아니야. 이 자료를 설명하는 대신 캐피의 대사만 써."""
 
 # Exact section boundaries make the intervention inspectable. Identity, safety,
 # tools, dates, mood ownership and the language/output footer are outside these spans.
@@ -740,6 +745,13 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id in ("voice-low-ko-v12", "voice-decide-render-ko-v12"):
+        if language != "ko":
+            raise ValueError("Korean decision comparison supports Korean only")
+        system, _ = eval_system_prompt(language, "voice-contrast-ko-v10")
+        if candidate_id == "voice-decide-render-ko-v12":
+            system += "\n\n" + _VOICE_RENDER_DATA_BOUNDARY_KO_V12
+        return system, "cappy-voice-20261015-v12"
     if candidate_id in ("voice-control-ko-v11", "voice-availability-ko-v11"):
         if language != "ko":
             raise ValueError("Korean availability comparison supports Korean only")

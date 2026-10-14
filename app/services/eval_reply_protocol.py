@@ -20,9 +20,11 @@ V7_PROTOCOL_IDS = ("voice-base-ko-v7", "voice-example-ko-v7")
 V8_PROTOCOL_IDS = ("voice-base-ko-v8", "voice-direct-ko-v8")
 V10_PROTOCOL_IDS = ("voice-base-ko-v10", "voice-positive-ko-v10", "voice-contrast-ko-v10")
 V11_PROTOCOL_IDS = ("voice-control-ko-v11", "voice-availability-ko-v11")
+V12_PROTOCOL_IDS = ("voice-low-ko-v12", "voice-decide-render-ko-v12")
 PLAIN_PROTOCOL_IDS = (
     V4_PROTOCOL_IDS[0], "voice-base-ko-v5", "voice-free-ko-v5",
     *V6_PROTOCOL_IDS, *V7_PROTOCOL_IDS, *V8_PROTOCOL_IDS, *V10_PROTOCOL_IDS, *V11_PROTOCOL_IDS,
+    *V12_PROTOCOL_IDS,
 )
 PROTOCOL_IDS = (*V4_PROTOCOL_IDS, *PLAIN_PROTOCOL_IDS[1:])
 _TIMEOUT_S = 10.0
@@ -35,6 +37,10 @@ def protocol_profile(candidate_id: str) -> tuple[str, str, tuple[int, ...]]:
         raise ValueError("Unknown reply protocol")
     if candidate_id in (*V7_PROTOCOL_IDS, *V8_PROTOCOL_IDS, *V10_PROTOCOL_IDS, *V11_PROTOCOL_IDS):
         return "gpt-6-luna", "none", (192,)
+    if candidate_id in V12_PROTOCOL_IDS:
+        return ("gpt-6-luna", "low", (1024,)) if candidate_id == V12_PROTOCOL_IDS[0] else (
+            "gpt-6-luna", "none", (192,),
+        )
     return _V6_PROFILES.get(candidate_id, ("gpt-6-luna", "none", (192, 1024)))
 
 
@@ -126,6 +132,12 @@ async def run(
     candidate_id: str, model: str, system: str, messages: list[dict], *, max_tokens: int,
     language: str = "ko",
 ) -> dict:
+    if candidate_id == V12_PROTOCOL_IDS[1]:
+        from app.services import eval_turn_decision
+
+        return await eval_turn_decision.run(
+            candidate_id, model, system, messages, max_tokens=max_tokens, language=language,
+        )
     expected_model, reasoning, caps = protocol_profile(candidate_id)
     if settings.environment != "development" or model != expected_model or language != "ko":
         raise ValueError("Reply protocol is development-only for the registered model")
@@ -147,7 +159,7 @@ async def run(
         "sdk_create_calls": 0, "usage_known": False,
         "raw_json": None, "decisions": None, "field_order": None, "failure_kind": None,
     }
-    if candidate_id in V6_PROTOCOL_IDS:
+    if candidate_id in (*V6_PROTOCOL_IDS, V12_PROTOCOL_IDS[0]):
         diagnostic["reasoning_tokens"] = None
     result = model_eval.EvalResult("openai", model, None, 0, 0, 0, None)
     started = time.perf_counter()
@@ -173,7 +185,7 @@ async def run(
     else:
         result.model_snapshot = getattr(response, "model", None) or ""
         usage = getattr(response, "usage", None)
-        if candidate_id in V6_PROTOCOL_IDS:
+        if candidate_id in (*V6_PROTOCOL_IDS, V12_PROTOCOL_IDS[0]):
             details = getattr(usage, "completion_tokens_details", None)
             reasoning_tokens = getattr(details, "reasoning_tokens", None)
             if type(reasoning_tokens) is int and reasoning_tokens >= 0:

@@ -288,3 +288,35 @@ def test_fixed_examples_remain_development_only(client, protocol_calls, monkeypa
     monkeypatch.setattr(dev.settings, "environment", environment)
     response = client.post("/dev/chat-eval", json=payload(candidate_id=candidate, max_tokens=192))
     assert response.status_code == 403 and protocol_calls == []
+
+
+@pytest.mark.parametrize("candidate,cap", [
+    ("voice-low-ko-v12", 1024), ("voice-decide-render-ko-v12", 192),
+])
+def test_v12_api_fixed_profile_dispatch_and_wrong_settings(client, protocol_calls, candidate, cap):
+    request = payload(candidate_id=candidate, max_tokens=cap)
+    response = client.post("/dev/chat-eval", json=request)
+    assert response.status_code == 200 and len(protocol_calls) == 1
+    assert response.json()["candidate"]["version"] == "cappy-voice-20261015-v12"
+    for overrides in ({"max_tokens": 192 if cap == 1024 else 1024}, {"language": "ja"},
+                      {"model": "gpt-6-sol"}, {"reasoning_effort": "low"}):
+        response = client.post("/dev/chat-eval", json={**request, **overrides})
+        assert response.status_code == 422 and len(protocol_calls) == 1
+
+
+def test_v12_composite_api_serializes_independent_subcalls_without_schema_change(client, monkeypatch):
+    import json
+    from app.services import llm
+    from tests.test_eval_turn_decision import Client, completion
+
+    decision = {"current_request": "sharing", "known_user_turn_indices": [0],
+                "question_target": None, "reply_goal": "주어진 인사에 답하기"}
+    sdk = Client([completion(json.dumps(decision)), completion("안녕.")])
+    monkeypatch.setattr(llm, "_get_openai_client", lambda: sdk)
+    response = client.post("/dev/chat-eval", json=payload(
+        candidate_id="voice-decide-render-ko-v12", max_tokens=192,
+    ))
+    assert response.status_code == 200 and response.json()["text"] == "안녕."
+    assert response.json()["prototype"]["sdk_create_calls"] == 2
+    assert len(response.json()["prototype"]["subcalls"]) == 2
+    assert response.json()["prototype"]["parsed_decision"] == decision

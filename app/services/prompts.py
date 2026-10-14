@@ -320,6 +320,8 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "voice-base-ko-v10",
     "voice-positive-ko-v10",
     "voice-contrast-ko-v10",
+    "voice-control-ko-v11",
+    "voice-availability-ko-v11",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V2 = "cappy-voice-20261014-v2"
@@ -433,6 +435,22 @@ def _voice_example_block_v10(*, contrast: bool) -> str:
 
 _VOICE_POSITIVE_KO_V10 = _voice_example_block_v10(contrast=False)
 _VOICE_CONTRAST_KO_V10 = _voice_example_block_v10(contrast=True)
+
+_VOICE_AVAILABILITY_UTTERANCE_KO_V11 = (
+    "친구랑 보드게임을 했어. 끝나고 친구가 한 말이 농담인지 진담인지 모르겠어."
+)
+_VOICE_AVAILABILITY_KO_V11 = f"""[추가 가상 대화 예시]
+아래 두 조건은 서로 독립된 가상 대화야. 두 번째는 첫 번째에 이어지는 대화가 아니야. 소재와 문구는 지금 상대의 정보가 아니야.
+
+[조건 1: 내용 미제공]
+상대: {_VOICE_AVAILABILITY_UTTERANCE_KO_V11}
+선호 답: 친구가 뭐라고 했는데?
+비선호 대안: 다음엔 같은 팀 하기 싫다는 건 그냥 장난 같아.
+
+[조건 2: 내용 제공]
+상대: {_VOICE_AVAILABILITY_UTTERANCE_KO_V11} 친구 말은 “다음엔 너랑 같은 팀 안 할래”였어.
+선호 답: 그 말만으론 모르겠어. 그때 분위기는 어땠어?
+비선호 대안: 친구가 뭐라고 했는데?"""
 
 # Exact section boundaries make the intervention inspectable. Identity, safety,
 # tools, dates, mood ownership and the language/output footer are outside these spans.
@@ -722,6 +740,13 @@ def _eval_voice_replacements(language: str, candidate_id: str) -> tuple[tuple[st
 
 def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve an immutable fixed candidate without altering the base system_prompt."""
+    if candidate_id in ("voice-control-ko-v11", "voice-availability-ko-v11"):
+        if language != "ko":
+            raise ValueError("Korean availability comparison supports Korean only")
+        system, _ = eval_system_prompt(language, "voice-contrast-ko-v10")
+        if candidate_id == "voice-availability-ko-v11":
+            system += "\n\n" + _VOICE_AVAILABILITY_KO_V11
+        return system, "cappy-voice-20261015-v11"
     if candidate_id in ("voice-base-ko-v10", "voice-positive-ko-v10", "voice-contrast-ko-v10"):
         if language != "ko":
             raise ValueError("Korean example comparison supports Korean only")

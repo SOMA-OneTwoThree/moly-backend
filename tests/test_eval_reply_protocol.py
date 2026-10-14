@@ -242,6 +242,7 @@ async def test_initialization_failure_counts_no_create_and_does_not_log_detail(m
 @pytest.mark.parametrize("candidate", [
     SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS,
     *protocol.V10_PROTOCOL_IDS,
+    *protocol.V11_PROTOCOL_IDS,
 ])
 async def test_external_cancel_propagates(monkeypatch, candidate):
     client = Client(error=asyncio.CancelledError())
@@ -257,6 +258,7 @@ async def test_external_cancel_propagates(monkeypatch, candidate):
 @pytest.mark.parametrize("candidate", [
     SPEECH, *protocol.V6_PROTOCOL_IDS, *protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS,
     *protocol.V10_PROTOCOL_IDS,
+    *protocol.V11_PROTOCOL_IDS,
 ])
 async def test_installed_sdk_sends_once_and_shared_client_remains_open(monkeypatch, status, candidate):
     sent = []
@@ -330,6 +332,7 @@ async def test_v5_uses_registered_full_system_and_plain_wire_without_extra_call(
 
 @pytest.mark.parametrize("candidate", [
     *protocol.V7_PROTOCOL_IDS, *protocol.V8_PROTOCOL_IDS, *protocol.V10_PROTOCOL_IDS,
+    *protocol.V11_PROTOCOL_IDS,
 ])
 async def test_fixed_plain_192_profile_uses_exact_registered_system(monkeypatch, candidate):
     system, version = prompts.eval_system_prompt("ko", candidate)
@@ -337,7 +340,7 @@ async def test_fixed_plain_192_profile_uses_exact_registered_system(monkeypatch,
     client = Client(completion(raw))
     monkeypatch.setattr(llm, "_get_openai_client", lambda: client)
     result = await protocol.run(candidate, "gpt-6-luna", system, MESSAGES, max_tokens=192)
-    stamp = "20261015" if candidate in protocol.V10_PROTOCOL_IDS else "20261014"
+    stamp = "20261015" if candidate in (*protocol.V10_PROTOCOL_IDS, *protocol.V11_PROTOCOL_IDS) else "20261014"
     assert version == f"cappy-voice-{stamp}-{candidate.rsplit('-', 1)[-1]}"
     assert result["text"] == raw
     assert client.calls == [{

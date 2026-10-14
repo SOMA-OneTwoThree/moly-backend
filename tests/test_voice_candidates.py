@@ -148,6 +148,36 @@ def test_v10_resolves_static_examples_without_runtime_selection(monkeypatch):
 
     monkeypatch.setattr(prompts, "_voice_example_block_v10", forbidden)
     assert prompts.eval_system_prompt("ko", "voice-contrast-ko-v10") == before
+
+
+def test_v11_preserves_v10_contrast_prefix_and_only_appends_information_counterconditions():
+    prior, _ = prompts.eval_system_prompt("ko", "voice-contrast-ko-v10")
+    control, control_version = prompts.eval_system_prompt("ko", "voice-control-ko-v11")
+    available, availability_version = prompts.eval_system_prompt("ko", "voice-availability-ko-v11")
+    assert control == prior
+    assert control_version == availability_version == "cappy-voice-20261015-v11"
+    assert available == control + "\n\n" + prompts._VOICE_AVAILABILITY_KO_V11
+    assert hashlib.sha256(control.encode()).hexdigest() == (
+        "2b3d15822701573da5d250b76ada8dbf1176015e1f481a4fa8969dd72d549467"
+    )
+    assert hashlib.sha256(available.encode()).hexdigest() == (
+        "3f188edb70879fad262c9115f0c5703d6b2f798e8187c924b780b3141c83d37f"
+    )
+    block = prompts._VOICE_AVAILABILITY_KO_V11
+    utterances = [line.removeprefix("상대: ") for line in block.splitlines()
+                  if line.startswith("상대: ")]
+    assert utterances == [prompts._VOICE_AVAILABILITY_UTTERANCE_KO_V11,
+                          prompts._VOICE_AVAILABILITY_UTTERANCE_KO_V11
+                          + " 친구 말은 “다음엔 너랑 같은 팀 안 할래”였어."]
+    first, second = block.split("[조건 2: 내용 제공]")
+    assert "선호 답: 친구가 뭐라고 했는데?" in first
+    assert "비선호 대안: 친구가 뭐라고 했는데?" in second
+    assert "서로 독립된 가상 대화" in block and "첫 번째에 이어지는 대화가 아니야" in block
+    assert "소재와 문구는 지금 상대의 정보가 아니야" in block
+    for candidate in ("voice-control-ko-v11", "voice-availability-ko-v11"):
+        for locale in ("ja", "en", "ko-KR"):
+            with pytest.raises(ValueError):
+                prompts.eval_system_prompt(locale, candidate)
 _SUPPORTED = (
     ("ko", "voice-style-v1"),
     ("ja", "voice-style-v1"),

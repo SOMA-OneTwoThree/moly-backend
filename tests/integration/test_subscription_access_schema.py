@@ -138,3 +138,42 @@ async def test_existing_member_claims_android_offer_only(connection):
     with pytest.raises(asyncpg.RaiseError):
         async with connection.transaction():
             await connection.execute("SELECT public.claim_subscription_offer($1,'android','monthly')", fresh)
+
+
+async def set_signup_trial_until(conn, at):
+    await conn.execute('''
+        INSERT INTO public.app_config(key,value) VALUES('signup_trial_until',$1::jsonb)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value
+    ''', json.dumps(at.isoformat()))
+
+
+async def test_signup_trial_until_ends_the_trial_for_later_accounts(connection):
+    await configure(connection, NOW - timedelta(days=1))
+    cutoff = NOW - timedelta(hours=1)
+    await set_signup_trial_until(connection, cutoff)
+    created = cutoff - timedelta(microseconds=1)
+    before = await member(connection, created)
+    at = await member(connection, cutoff)
+    trial_ends = 'SELECT trial_ends_at FROM public.profiles WHERE id=$1'
+    assert await connection.fetchval(trial_ends, before) == created + timedelta(hours=48)
+    assert await connection.fetchval(trial_ends, at) is None
+    assert await access(connection, before) == classified(True, False)
+    assert await access(connection, at) == classified(False, False)
+    await connection.execute('SELECT public.start_subscription_trial($1)', before)
+    assert await connection.fetchval('SELECT app_trial_started_at FROM public.profiles WHERE id=$1', before) == created
+    with pytest.raises(asyncpg.RaiseError, match='trial unavailable'):
+        async with connection.transaction():
+            await connection.execute('SELECT public.start_subscription_trial($1)', at)
+
+
+async def test_signup_trial_until_keeps_a_started_app_trial(connection):
+    await configure(connection, NOW - timedelta(days=1))
+    created = NOW - timedelta(hours=3)
+    uid = await member(connection, created)
+    await connection.execute('SELECT public.start_subscription_trial($1)', uid)
+    await set_signup_trial_until(connection, created)
+    await connection.execute('SELECT public.start_subscription_trial($1)', uid)
+    row = await connection.fetchrow('SELECT app_trial_started_at,app_trial_ends_at FROM public.profiles WHERE id=$1', uid)
+    assert row['app_trial_started_at'] == created
+    assert row['app_trial_ends_at'] == created + timedelta(hours=48)
+    assert await access(connection, uid) == classified(False, False)

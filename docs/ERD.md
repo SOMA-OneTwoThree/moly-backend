@@ -112,7 +112,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `language` | text, default `'en'` | **앱 콘텐츠 언어** (US-103) — 값은 `ko`·`en`·`ja` 셋뿐이다(아래 설명). 온보딩 때 기기 시스템 언어로 초기화. **서버 생성물(캐피 응답·일기·푸시)은 유저 입력 언어와 무관하게 항상 이 언어**(API_SPEC 1장). UI 문자열은 클라 로컬라이제이션 |
 | `timezone` | text, default `'Asia/Seoul'` | IANA 타임존. 04:00 대화·일기 기준일과 00:00 보상 기준일 계산의 근거 — 클라이언트가 갱신하되 **서버가 마지막 적용 경계를 기억해 보상·한도 되돌림을 차단** |
 | `hay_balance` | int, default 0, **CHECK ≥ 0** | 건초 잔액 **캐시** (원본: `hay_transactions`). 서버 전용 쓰기 — 잔액 하한 0을 DB 안전망으로 강제 |
-| `trial_ends_at` | timestamptz | 가입 시각 + **48시간 (절대 시각, 의도된 정책 — 하루 중간 종료 가능)** (US-202). 재가입 어뷰징 방지 정책 TBD |
+| `trial_ends_at` | timestamptz | 가입 시각 + **48시간 (절대 시각, 의도된 정책 — 하루 중간 종료 가능)** (US-202). `app_config.signup_trial_until` 이후 가입한 계정은 NULL(체험 없음). 재가입 어뷰징 방지 정책 TBD |
 | `review_prompted_at` | timestamptz NULL | 리뷰 팝업 노출 이력 — **최초 1회 제한** (US-1101). NOT NULL이면 재노출 금지 |
 | `routine_template_selection_at` | timestamptz NULL | 루틴 템플릿 선택(건너뛰기 포함)을 처음 마친 시각. NULL이면 템플릿 화면을 아직 거치지 않음 |
 | `created_at` / `updated_at` | timestamptz | |
@@ -485,6 +485,7 @@ free       : 그 외
 | `diary_min_user_chars` | 개인(관찰) 일기 분기 — 당일 유저 메시지 문자수 |
 | `diary_llm_min_tokens` | (레거시) 토큰 기반 일기 분기 — `diary_min_user_chars`로 대체 |
 | `free_launch_until` | 런칭 무료 종료 시각 — 이전엔 전원 무료 (backend·moly-auth 공유) |
+| `signup_trial_until` | 가입 체험 종료 시각 — 이후 가입한 계정은 48시간 체험 없음. 없거나 null이면 제한 없음 (DB 함수 `bootstrap_user`·`subscription_launch_access`) |
 | `free_launch_token_limit` | 런칭 기간 일 토큰 한도 (현재 50,000) |
 
 ### 6.3 `user_notification_settings` (US-104, US-907, US-408, US-503)
@@ -959,7 +960,7 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | 9 상점 가격 | `products.price_hay` (서버 원본) + `order_items.unit_price`(구매 시점 스냅샷) |
 | 10 리뷰 1회 | `profiles.review_prompted_at` + 당일 `tokens_used` 임계 생애 최초 도달(채팅 응답 `review_prompt` 플래그 — API_SPEC 9장) |
 | 11 캐피의 일기 | `kind=welcome|shared_day|capi_day`. welcome은 가입 후 첫 목록 조회에서 생성, daily는 user+activity_date당 하나. 미발행은 별도 result 행. 발행 노출은 `published_at` |
-| 12 2일 체험 (구독 동일 혜택) | `profiles.trial_ends_at` (티어 파생 — 토큰·일기·광고는 subscriber와 동일 처리) |
+| 12 2일 체험 (구독 동일 혜택) | `profiles.trial_ends_at` (티어 파생 — 토큰·일기·광고는 subscriber와 동일 처리). `app_config.signup_trial_until` 이후 가입한 계정은 체험 없음 |
 | 14 인사 미차감 | `greetings` 발급 보관(5.1절) → 커밋 시 `messages.kind='greeting'`, 집계 제외 |
 | 15 낮/밤 | `products.assets` v2 구조 — `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url`. 전환 시각 = Firebase(클라 원격 설정) |
 | 16 장착 해제 | `user_items.equipped_slot` NULL — 장착 없음 = 기본. `theme` 슬롯은 가입 시 bootstrap_user가 자동 장착 |

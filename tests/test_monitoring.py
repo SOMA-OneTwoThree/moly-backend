@@ -111,91 +111,49 @@ class _GetClient:
         _GetClient.urls.append(url)
 
 
-def _capture_alerts(monkeypatch):
-    calls: list[str] = []
-
-    async def _alert(text, *, dedup_key=None):
-        calls.append(text)
-
-    monkeypatch.setattr(tick.slack_notify, "alert", _alert)
-    return calls
+def _capture_monitor(monkeypatch):
+    publish = AsyncMock()
+    legacy_alert = AsyncMock()
+    monkeypatch.setattr(tick.monitoring, "emit", publish)
+    monkeypatch.setattr(tick.slack_notify, "alert", legacy_alert)
+    return publish, legacy_alert
 
 
 _HEALTHY = {"diary_failed": 0, "memory_failed": 0, "diary_skipped": 5}
 
 
-async def test_no_alert_when_all_skipped(monkeypatch):
-    """멱등 재실행(전원 스킵)은 실패가 아니므로 경보 없음."""
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, dict(_HEALTHY))
-    assert calls == []
-
-
-async def test_alert_on_failure(monkeypatch):
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, {"diary_failed": 2, "memory_failed": 0})
-    assert len(calls) == 1 and "결과 이상" in calls[0]
-
-
-async def test_deadman_ping_ok_and_fail(monkeypatch):
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "https://hc.example/PING")
-    monkeypatch.setattr(tick.httpx, "AsyncClient", lambda **kw: _GetClient())
-    _capture_alerts(monkeypatch)
-    _GetClient.urls.clear()
-    await tick._emit_worker_health(_NOW, dict(_HEALTHY))            # 정상 → 그대로
-    await tick._emit_worker_health(_NOW, {"diary_failed": 1, "memory_failed": 0})  # 이상 → /fail
-    assert _GetClient.urls == ["https://hc.example/PING", "https://hc.example/PING/fail"]
-
-
-async def _health(monkeypatch, counts: dict) -> tuple[str, list[str]]:
-    """counts로 결과 판정 1회 — (데드맨 핑 URL, 경보 문구들)."""
+@pytest.mark.parametrize("extra,failed", [
+    ({}, False),
+    ({"diary_failed": 2}, True),
+    ({"memory_failed": 1}, True),
+    ({"timed_out": 1}, True),
+    ({"push_sent": 0, "push_transient": 15, "push_setup_error": 10}, True),
+    ({"push_sent": 0, "push_invalid_token": 500}, False),
+    ({"push_sent": 40, "push_setup_error": 30}, False),
+    ({"push_sent": 0, "push_transient": 3, "push_payload_error": 2}, False),
+])
+async def test_main_deadman_predicates_preserved_and_observation_has_single_owner(monkeypatch, extra, failed):
     monkeypatch.setattr(tick.settings, "worker_ping_url", "https://hc.example/PING")
     monkeypatch.setattr(tick.settings, "worker_push_outage_min", 20)
     monkeypatch.setattr(tick.httpx, "AsyncClient", lambda **kw: _GetClient())
-    calls = _capture_alerts(monkeypatch)
+    emit, legacy_alert = _capture_monitor(monkeypatch)
+    counts = {**_HEALTHY, **extra}
     _GetClient.urls.clear()
-    await tick._emit_worker_health(_NOW, {**_HEALTHY, **counts})
-    return _GetClient.urls[-1], calls
+    await tick._emit_worker_health(_NOW, counts)
+    assert _GetClient.urls == ["https://hc.example/PING" + ("/fail" if failed else "")]
+    emit.assert_awaited_once_with(_NOW, counts)
+    legacy_alert.assert_not_awaited()
 
 
-async def test_user_timeout_is_an_anomaly(monkeypatch):
-    """멈춘 LLM/DB로 유저 처리가 끊긴 틱 — 요약에만 있던 신호를 데드맨·경보로 올린다."""
-    url, calls = await _health(monkeypatch, {"timed_out": 1})
-    assert url.endswith("/fail") and len(calls) == 1 and "타임아웃 1" in calls[0]
-
-
-async def test_total_push_outage_is_an_anomaly(monkeypatch):
-    """FCM이 하나도 수락하지 않았는데 토큰 문제가 아닌 실패가 하한 이상 — 전면 장애."""
-    url, calls = await _health(monkeypatch, {"push_sent": 0, "push_transient": 15, "push_setup_error": 10})
-    assert url.endswith("/fail") and "푸시 실패 25(수락 0)" in calls[0]
-
-
-@pytest.mark.parametrize("counts", [
-    {"push_sent": 0, "push_invalid_token": 500},                  # 무효 토큰만 — 평시에도 매일 나온다
-    {"push_sent": 40, "push_setup_error": 30},                    # 일부는 수락 — 전면 장애가 아니다(요약이 표시)
-    {"push_sent": 0, "push_transient": 3, "push_payload_error": 2},  # 하한 미만 — 작은 틱의 일시 오류
-])
-async def test_dead_tokens_and_partial_push_failures_stay_quiet(monkeypatch, counts):
-    url, calls = await _health(monkeypatch, counts)
-    assert url == "https://hc.example/PING" and calls == []
-
-
-async def test_cost_alert_when_over_threshold(monkeypatch):
+@pytest.mark.parametrize("billable", [1_000_000, 9_000_000])
+async def test_billable_is_not_repeated_money_alert(monkeypatch, billable):
     monkeypatch.setattr(tick.settings, "worker_ping_url", "")
     monkeypatch.setattr(tick.settings, "daily_billable_alert_threshold", 5_000_000)
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, {**_HEALTHY, "billable_yesterday": 9_000_000})
-    assert len(calls) == 1 and "billable" in calls[0]
-
-
-async def test_no_cost_alert_when_under(monkeypatch):
-    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
-    monkeypatch.setattr(tick.settings, "daily_billable_alert_threshold", 5_000_000)
-    calls = _capture_alerts(monkeypatch)
-    await tick._emit_worker_health(_NOW, {**_HEALTHY, "billable_yesterday": 1_000_000})
-    assert calls == []
+    emit, legacy_alert = _capture_monitor(monkeypatch)
+    counts = {**_HEALTHY, "billable_yesterday": billable}
+    await tick._emit_worker_health(_NOW, counts)
+    emit.assert_awaited_once_with(_NOW, counts)
+    legacy_alert.assert_not_awaited()
 
 
 async def test_sum_billable_yesterday_uses_prior_day(monkeypatch):

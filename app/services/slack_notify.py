@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import logging
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -20,6 +22,32 @@ _log = logging.getLogger("moly-worker")
 
 # 알림 dedup — key → 마지막 전송 monotonic 시각. asyncio 단일스레드라 check-and-set은 await 전 원자적.
 _last_sent: dict[str, float] = {}
+
+
+# HTTPX INFO는 webhook URL을, SDK DEBUG는 원문 body를 기록할 수 있다.
+# 이 작업의 외부 전송 동안만 가리고 다른 동시 요청의 로그 설정은 변경하지 않는다.
+_private_transport = ContextVar("private_notification_transport", default=False)
+
+
+class _PrivateTransportFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not _private_transport.get()
+
+
+for _logger_name in (
+    "httpx", "httpcore.connection", "httpcore.http11", "httpcore.http2", "httpcore.proxy",
+    "httpcore.socks", "openai", "openai._base_client", "openai._response", "openai._legacy_response",
+):
+    logging.getLogger(_logger_name).addFilter(_PrivateTransportFilter())
+
+
+@contextmanager
+def private_transport():
+    token = _private_transport.set(True)
+    try:
+        yield
+    finally:
+        _private_transport.reset(token)
 
 
 def _webhook_for(severity: str) -> str:
@@ -37,17 +65,24 @@ def _webhook_for(severity: str) -> str:
     return settings.slack_webhook_url
 
 
-async def _post(url: str, text: str) -> None:
+async def _post(url: str, text: str, *, plain: bool = False) -> bool:
     """웹훅 1건 전송. URL 없으면 스킵. 오류는 로깅만(호출측 미중단)."""
     if not url:
-        return
+        return False
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            r = await client.post(url, json={"text": text})
+        payload: dict = {"text": text}
+        if plain:
+            payload.update(mrkdwn=False, link_names=False, unfurl_links=False, unfurl_media=False)
+        with private_transport():
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                r = await client.post(url, json=payload)
         if r.status_code != 200:
-            _log.warning("슬랙 웹훅 응답 비정상 HTTP %s: %s", r.status_code, r.text[:200])
+            _log.warning("슬랙 웹훅 응답 비정상 HTTP %s", r.status_code)
+            return False
+        return True
     except Exception as e:  # noqa: BLE001
-        _log.warning("슬랙 웹훅 전송 실패: %r", e)
+        _log.warning("슬랙 웹훅 전송 실패: %s", type(e).__name__)
+        return False
 
 
 def claim(dedup_key: str, window: float | None = None) -> bool:
@@ -64,25 +99,33 @@ def claim(dedup_key: str, window: float | None = None) -> bool:
     return True
 
 
-async def send(text: str, *, severity: str = "status", dedup_key: str | None = None) -> None:
-    """severity 채널로 전송. dedup_key 지정 시 alert_dedup_window_sec 내 같은 키는 억제."""
+async def send(text: str, *, severity: str = "status", dedup_key: str | None = None) -> bool:
+    """기존 claim 계약을 유지하고, 전송 실패는 다음 시도에서 다시 관측한다."""
     if dedup_key and not claim(dedup_key):
-        return
-    await _post(_webhook_for(severity), text)
+        return False
+    claimed_at = _last_sent.get(dedup_key) if dedup_key else None
+    sent = await _post(_webhook_for(severity), text)
+    if not sent and dedup_key and _last_sent.get(dedup_key) == claimed_at:
+        _last_sent.pop(dedup_key, None)
+    return sent
 
 
-async def alert(text: str, *, dedup_key: str | None = None) -> None:
+async def alert(text: str, *, dedup_key: str | None = None) -> bool:
     """즉시 크리티컬(#moly-alerts). 스톰 방지 위해 dedup_key 권장."""
-    await send(text, severity="alert", dedup_key=dedup_key)
+    return await send(text, severity="alert", dedup_key=dedup_key)
 
 
-async def send_feedback(text: str) -> None:
+async def send_feedback(text: str) -> bool:
     """인앱 피드백 전용 채널로 전송.
 
     전용 웹훅이 없는 기존 배포는 alert → 공용 웹훅을 그대로 사용한다.
     """
-    await _post(_webhook_for("feedback"), text)
+    return await _post(_webhook_for("feedback"), text, plain=True)
 
+
+def escape(text: str) -> str:
+    """Slack 제어 문자를 문자 그대로 표시한다(mention/link 삽입 방지)."""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 def feedback_text(
     user_id: str,
@@ -90,16 +133,23 @@ def feedback_text(
     message: str,
     contact: str | None,
     when: datetime | None = None,
+    *,
+    translation: str | None = None,
+    translation_unavailable: bool = False,
 ) -> str:
     """유저 인앱 피드백 슬랙 메시지 포맷(내부 채널).
 
     연락처는 있을 때만 표시(의견만 남기면 내용뿐), 유저는 닉네임+id, 시간은 한국 시각.
     """
     when = when or datetime.now(ZoneInfo("Asia/Seoul"))
-    lines = ["🗣️ 새 피드백 도착", f"내용: {message}"]
+    lines = ["🗣️ 새 피드백 도착", f"원문: {escape(message)}"]
+    if translation:
+        lines.append(f"한국어 (자동 번역): {escape(translation)}")
+    elif translation_unavailable:
+        lines.append("한국어 번역 미제공 — 원문을 확인해 주세요.")
     if contact:
-        lines.append(f"연락처: {contact}")
-    lines.append(f"유저: {nickname or '(닉네임 없음)'} ({user_id})")
+        lines.append(f"연락처: {escape(contact)}")
+    lines.append(f"유저: {escape(nickname or '(닉네임 없음)')} ({escape(user_id)})")
     lines.append(f"시간: {when:%Y-%m-%d %H:%M}")
     return "\n".join(lines)
 

@@ -31,6 +31,7 @@ def _quiet_tick(monkeypatch):
     monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
     monkeypatch.setattr(tick, "_drain_rc_inbox", AsyncMock(return_value={}))
     monkeypatch.setattr(tick.slack_notify, "send_summary", AsyncMock())
+    monkeypatch.setattr(tick.monitoring, "emit", AsyncMock())
     monkeypatch.setattr(tick.slack_notify, "alert", AsyncMock())
     monkeypatch.setattr(tick.config_store, "set_config_value", AsyncMock())
     monkeypatch.setattr(tick.memory_pipeline, "enqueue_memory_sweep", AsyncMock())
@@ -54,7 +55,8 @@ def _users(monkeypatch, *, n=3, tz="Asia/Seoul", result=None):
     return seen
 
 
-async def test_soft_deadline_skips_rest_and_post_loop_still_runs(monkeypatch):
+async def test_soft_deadline_skips_rest_and_post_loop_still_runs(monkeypatch, caplog):
+    caplog.set_level("INFO", logger="moly-worker")
     seen = _users(monkeypatch)
     monkeypatch.setattr(tick.settings, "worker_tick_soft_deadline_s", 0.01)
     monkeypatch.setattr(tick.settings, "worker_ping_url", "https://hc.example/PING")
@@ -66,20 +68,22 @@ async def test_soft_deadline_skips_rest_and_post_loop_still_runs(monkeypatch):
     assert counts["diaries"] == 1 and counts["deadline_skipped"] == 2
     keys = [c.args[1] for c in tick.config_store.set_config_value.await_args_list]
     assert tick.config_store.WORKER_LAST_SUCCESS_KEY in keys  # 루프 뒤 단계(heartbeat)가 돌았다
-    summary = tick.slack_notify.send_summary.await_args.args[0]
-    assert "소프트 데드라인 도달 — 미처리 2명(다음 틱 인계)" in summary
-    # D6: 상태 채널(요약)에만 남긴다 — 경보 채널·데드맨 /fail로 올리지 않는다.
+    assert "소프트 데드라인 도달 — 미처리 2명(다음 틱 인계)" in caplog.text
+    tick.slack_notify.send_summary.assert_not_awaited()
+    # 용량 관측은 로그·일일 상태로 남기고, 실패 경보·데드맨 /fail로 올리지 않는다.
     tick.slack_notify.alert.assert_not_awaited()
     assert _GetClient.urls == ["https://hc.example/PING"]
 
 
-async def test_soft_deadline_alone_still_sends_summary(monkeypatch):
-    """처리 건수가 0(전원 미발행 등)이어도 데드라인 도달은 요약으로 남는다."""
+async def test_soft_deadline_alone_still_logs_summary(monkeypatch, caplog):
+    """처리 건수가 0이어도 데드라인 도달을 상세 로그로 남긴다."""
+    caplog.set_level("INFO", logger="moly-worker")
     _users(monkeypatch, result={"diary_none": 1})
     monkeypatch.setattr(tick.settings, "worker_tick_soft_deadline_s", 0.01)
     counts = await tick.run_tick(datetime(2026, 10, 5, 19, 0, tzinfo=timezone.utc))
     assert counts["diaries"] == 0 and counts["deadline_skipped"] == 2
-    tick.slack_notify.send_summary.assert_awaited_once()
+    tick.slack_notify.send_summary.assert_not_awaited()
+    assert "소프트 데드라인 도달 — 미처리 2명(다음 틱 인계)" in caplog.text
 
 
 async def test_soft_deadline_not_applied_on_last_tick_of_the_hour(monkeypatch):

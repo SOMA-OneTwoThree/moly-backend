@@ -630,3 +630,22 @@ async def close_failed(
             await session.commit()
     except Exception as e:  # noqa: BLE001
         _log.warning("원장 실패 기록 실패(무시): %r", e)
+
+
+async def close_unknown(call_id: uuid.UUID | None, *, error_code: str) -> None:
+    """A sent request lost its response; preserve unknown company spend."""
+    if call_id is None:
+        return
+    from app.core.db import get_sessionmaker
+
+    try:
+        # Cleanup is outside the inference deadline, but it must not wait indefinitely.
+        async with asyncio.timeout(1.0):
+            async with get_sessionmaker()() as session:
+                await mark_unknown(session, call_id, error_code=error_code)
+                await session.commit()
+    except Exception as e:  # noqa: BLE001
+        # Started remains durable and the existing stale reconciler can converge it.
+        # Our own timeout becomes TimeoutError here. An external CancelledError must
+        # propagate: swallowing it could let the caller retry its original timeout.
+        _log.warning("원장 미확정 기록 실패(무시) error_type=%s", type(e).__name__)

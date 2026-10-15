@@ -301,4 +301,4 @@ def test_checkpoint_prompt_encodes_completed_vs_active_crisis_rule():
     assert "다른 화제로 명확히 넘어갔다면" in prompt
     assert "대체 문장도 만들지 않는다" in prompt
     assert "최신 위기 발화" in prompt
-    assert checkpoint.SUMMARIZER_VERSION.endswith("v3")
+    assert checkpoint.SUMMARIZER_VERSION.endswith("v4")

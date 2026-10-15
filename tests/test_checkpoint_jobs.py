@@ -487,7 +487,36 @@ async def test_producer_enqueues_only_after_the_trigger(db, store):
     assert row["queue"] == QUEUE_CONTENT
     assert _json(row["payload"])["through_message_id"] == 20
     assert row["dedup_key"].startswith(f"user:{_UID}:through:20:source:")
-    assert row["dedup_key"].endswith(f":summarizer:{checkpoint.SUMMARIZER_VERSION}")
+    assert row["dedup_key"].endswith(f":summarizer:{checkpoint.LEGACY_SUMMARIZER_VERSION}")
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+async def test_temporal_producer_gate_selects_matching_version_and_hash(db, store, enabled):
+    session = _JobsSession(db)
+    store["latest"] = None
+    segment = [checkpoint.SourceMessage(i, "user", "normal", "가") for i in range(1, 41)]
+    job_id = await checkpoint_repo.maybe_enqueue(
+        session, user_id=_UID, messages=segment, temporal_enabled=enabled,
+    )
+    payload = _json(db.rows[job_id]["payload"])
+    expected = checkpoint.SUMMARIZER_VERSION if enabled else checkpoint.LEGACY_SUMMARIZER_VERSION
+    assert payload["summarizer_version"] == expected
+    assert payload["source_hash"] == checkpoint.source_hash(
+        previous=None, messages=segment[:20], version=expected,
+    )
+
+
+async def test_pending_v3_job_uses_legacy_hash_and_prompt(db, store, llm_calls):
+    payload = _payload()
+    payload["summarizer_version"] = checkpoint.LEGACY_SUMMARIZER_VERSION
+    payload["source_hash"] = checkpoint.source_hash(
+        previous=_PREVIOUS, messages=_SOURCE, version=checkpoint.LEGACY_SUMMARIZER_VERSION,
+    )
+    row = await _run(db, _enqueue_job(db, payload))
+    assert row["state"] == "succeeded" and row["result_code"] == checkpoint_jobs.RESULT_OK
+    assert store["rows"][0]["version"] == checkpoint.LEGACY_SUMMARIZER_VERSION
+    assert "시각은 발화 시각" not in llm_calls[0]["system"]
+    assert "[time unknown]" not in llm_calls[0]["convo"][0]["content"]
 
 
 async def test_producer_is_idempotent_for_the_same_segment(db, store):
@@ -592,3 +621,23 @@ async def test_forget_between_check_and_insert_writes_nothing(db, store, llm_cal
 
     assert store["rows"] == []                  # 저장 0
 
+
+@pytest.mark.parametrize("state", ["ready", "running", "dead", "cancelled", "succeeded"])
+@pytest.mark.parametrize("generation", [0, 1])
+async def test_pending_coalescing_is_current_generation_and_nonterminal_only(db, store, state, generation):
+    session = _JobsSession(db)
+    store["latest"] = None
+    source = [checkpoint.SourceMessage(i, "user", "normal", "Synthetic") for i in range(1, 41)]
+    first = await checkpoint_repo.maybe_enqueue(session, user_id=_UID, messages=source)
+    db.rows[first]["state"] = state
+    payload = _json(db.rows[first]["payload"])
+    payload["memory_generation"] = generation
+    db.rows[first]["payload"] = json.dumps(payload)
+    source += [checkpoint.SourceMessage(i, "user", "normal", "Synthetic") for i in (41, 42)]
+    second = await checkpoint_repo.maybe_enqueue(session, user_id=_UID, messages=source)
+    if state in {"ready", "running"} and generation == 0:
+        assert second is None
+        assert len(db.rows) == 1
+    else:
+        assert second is not None
+        assert len(db.rows) == 2

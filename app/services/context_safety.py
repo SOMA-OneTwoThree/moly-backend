@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 from app.services import i18n
 
@@ -19,6 +19,7 @@ class ContextEntry:
     role: str
     content: str
     activity_date: date | None = None
+    created_at: datetime | None = None
 
 
 @dataclass(frozen=True, slots=True)

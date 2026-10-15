@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     context_keep_messages: int = 20        # 리셋 후 유지 메시지 수 (KEEP ≪ RESET)
     context_keep_chars: int = 12_000       # 리셋 후 유지 문자 상한
     context_hard_msg_cap: int = 120        # 쿼리 안전 상한(정상 시 트리거가 먼저 걸려 안 닿음)
+    context_hard_chars: int = 60_000       # checkpoint 대기 중 원문 유지의 안전 상한
     # --- 대화 요약 checkpoint(W11) --- 리셋으로 버려질 구간을 요약해 남기고, 다음 턴은
     # 최신 checkpoint 하나 + 그 이후 메시지만 쓴다. 트리거(context_reset_*)·보존 tail
     # (context_keep_*)은 위 값을 그대로 쓴다 — 여기서 새 수치를 만들지 않는다.

@@ -88,40 +88,11 @@ async def test_recall_failure_does_not_break_the_reply():
     c._recall_adapter = _boom
     try:
         got = await chat._recall_memory_v2(
-            SimpleNamespace(), query="회사 얘기 뭐였지?", state=_State(True), language="ko"
+            SimpleNamespace(), query="회사", state=_State(True), language="ko"
         )
     finally:
         c._recall_adapter = original
     assert got == c._memory_unavailable_notice("ko")
-
-
-@pytest.mark.parametrize("query", ["안녕", "응", "ㅋㅋ", "thanks", "sounds good", "うん", "こんにちは"])
-async def test_brief_acknowledgment_does_not_prepare_recall_resources(monkeypatch, query):
-    import app.core.db as db
-    from app.services import mem0_recall
-
-    calls = []
-
-    def _session_factory():
-        calls.append("session_factory")
-        raise AssertionError("No session should be prepared for a skipped recall")
-
-    def _adapter():
-        calls.append("adapter")
-        raise AssertionError("No vector adapter should be prepared for a skipped recall")
-
-    async def _recall(*args, **kwargs):
-        calls.append("recall")
-        raise AssertionError("Skipped recall must not run")
-
-    monkeypatch.setattr(db, "get_sessionmaker", _session_factory)
-    monkeypatch.setattr(chat, "_recall_adapter", _adapter)
-    monkeypatch.setattr(mem0_recall, "recall", _recall)
-    trace = {}
-    out = await chat._recall_memory_v2(
-        SimpleNamespace(), query=query, state=_State(True), language="ko", trace=trace,
-    )
-    assert out == "" and trace == {} and calls == []
 
 
 def test_recall_is_bounded_at_the_boundary_not_just_inside():

@@ -493,9 +493,6 @@ async def _recall_memory_v2(
     try:
         from app.services import mem0_recall, memory_embeddings
 
-        if not mem0_recall.needs_recall(query):
-            return ""
-
         from app.core.db import get_sessionmaker
 
         maker = get_sessionmaker()

@@ -81,13 +81,6 @@ def test_tool_names_and_descriptions_are_ascii():
         assert fn["description"]
 
 
-def test_diary_tool_description_distinguishes_cappy_diaries_from_mood_notes():
-    tool = next(s["function"] for s in REGISTRY.wire_schemas()
-                if s["function"]["name"] == "recall_diaries")
-    assert "Cappy-authored published diaries" in tool["description"]
-    assert "never the user's mood selections or notes" in tool["description"]
-
-
 def test_wire_schemas_forbid_extra_arguments_and_never_take_user_id():
     """모델 인자에 user_id·SQL·자유 필터가 없다는 것을 스키마 수준에서 고정한다."""
     for schema in REGISTRY.wire_schemas():

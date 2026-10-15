@@ -21,7 +21,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 
-from app.core.time_utils import reward_date_for, safe_zone
+from app.core.time_utils import reward_date_for
 from app.services import i18n
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -139,8 +139,6 @@ class Recalled:
     distance: float                  # cosine 거리 — **낮을수록 관련 있다**
     occurred_at: datetime | None     # 사건 시각(있으면). ambiguous 판단 근거로 보여준다
     conflict_group_id: uuid.UUID | None
-    time_basis: str = "event"
-    time_precision: str | None = None
 
     @property
     def uncertain(self) -> bool:
@@ -150,15 +148,18 @@ class Recalled:
 # 벡터 id → registry. 상태 필터와 user 재검증을 **DB에서** 한 번에 한다.
 # provider payload의 user_id는 adapter가 이미 봤지만, registry로 한 번 더 본다 —
 # 벡터 저장소가 오염돼도 남의 기억이 프롬프트에 실리면 안 된다.
-# 사건 시각과 근거 발화 시각을 구분한다. registry 생성은 과거 이력의 일괄 수집일 수
-# 있으므로 사건이나 발화가 그때 일어났다는 근거로 쓰지 않는다.
+# ⚠️ 시점의 기준값은 **근거가 된 발화의 시각**이지 registry 행이 만들어진 시각이 아니다.
+#    `event_started_at`은 아직 아무도 채우지 않는 컬럼이라(2026-08-08 확인: 읽는 곳만 있고
+#    쓰는 곳이 없다) 그것만 보면 항상 `created_at`으로 떨어진다. 그런데 새 사용자를 넣을 때는
+#    과거 대화 전체를 한 번에 옮기므로 그 사람의 registry 행 수백 개가 전부 같은 날이 된다 —
+#    반년 전 얘기가 "(오늘)"로 찍힌다. 실제로 그 사고가 났다.
+#    `mem0_registry_repo`·`worker/reconsolidate_jobs`가 이미 쓰는 형태로 맞춰, 세 모듈이
+#    같은 기준값을 보게 한다.
 _FILTER = text("""
 SELECT r.provider_memory_id::text AS pid,
        r.semantic_status,
-       COALESCE(r.event_started_at, s.source_occurred_at) AS occurred_at,
-       r.conflict_group_id,
-       CASE WHEN r.event_started_at IS NOT NULL THEN 'event' ELSE 'mentioned' END AS time_basis,
-       r.event_time_precision
+       COALESCE(r.event_started_at, s.source_occurred_at, r.created_at) AS occurred_at,
+       r.conflict_group_id
 FROM mem0_memory_registry r
 LEFT JOIN LATERAL (
   SELECT MAX(source_occurred_at) AS source_occurred_at
@@ -254,7 +255,7 @@ async def recall(
     _warn_if_slow(user_id, stages, hits=len(hits))
 
     out: list[Recalled] = []
-    for pid, status, occurred_at, group, time_basis, time_precision in rows:
+    for pid, status, occurred_at, group in rows:
         hit = by_id.get(pid)
         if hit is None:
             continue
@@ -265,7 +266,6 @@ async def recall(
         out.append(Recalled(
             text=str(body), status=str(status), distance=float(hit.distance or 0.0),
             occurred_at=occurred_at, conflict_group_id=group,
-            time_basis=time_basis, time_precision=time_precision,
         ))
 
     # 거리 **오름차순** — 가까운 것이 먼저다. 같은 거리면 최근 사건을 앞에 둔다.
@@ -292,7 +292,10 @@ _UNCERTAIN: dict[str, str] = {
 }
 
 
-# 일 단위 사건은 상대 날짜, 근거 발화와 정밀한 사건 시각은 현지 시각으로 표시한다.
+# 시점 표기 — **절대 날짜가 아니라 상대 표현**이다. 이유가 둘이다.
+#   1. 페르소나 [날짜] 절이 "날짜나 요일을 숫자로 굳이 입에 올리진 마"라고 못 박는다.
+#      프롬프트에 '2026-07-25'를 넣으면 캐피가 그 숫자를 그대로 말할 여지를 준다.
+#   2. 사람은 "칠월 이십오일에"가 아니라 "저번에"로 떠올린다. 회상은 그쪽이 자연스럽다.
 # 대화의 오늘/어제는 사용자 현지 달력 날짜 기준이다. 저장·할당량의 04시 활동일과 다르다.
 _WHEN_LABELS: dict[str, dict[str, str]] = {
     "ko": {"today": "오늘", "yesterday": "어제", "days": "{n}일 전", "last_week": "지난주",
@@ -326,10 +329,7 @@ def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, 
         # 조용히 넘기지 않고 남긴다.
         _log.warning("시점 라벨 계산 실패 — 시점 모름으로 진행: %r", occurred_at, exc_info=True)
         return t["unknown"]
-    if d < 0:
-        future = {"ko": "미래", "en": "future", "ja": "未来"}.get(lang, "future")
-        return f"{future} {then.isoformat()}"
-    if d == 0:
+    if d <= 0:
         return t["today"]
     if d == 1:
         return t["yesterday"]
@@ -371,17 +371,7 @@ def render_block(
     unsure = [i for i in items if i.uncertain]
 
     def line(i: Recalled) -> str:
-        when = _when_label(i.occurred_at, today, tz_name, lang)
-        if isinstance(i.occurred_at, datetime):
-            at = i.occurred_at
-            if at.tzinfo is None:
-                at = at.replace(tzinfo=timezone.utc)
-            if i.time_basis == "mentioned":
-                label = {"ko": "언급", "en": "mentioned", "ja": "言及"}[lang]
-                when = f"{at.astimezone(safe_zone(tz_name)).isoformat(timespec='minutes')} {label}"
-            elif i.time_precision in {"instant", "minute", "second"}:
-                when = at.astimezone(safe_zone(tz_name)).isoformat(timespec="minutes")
-        return f"- ({when}) {i.text}"
+        return f"- ({_when_label(i.occurred_at, today, tz_name, lang)}) {i.text}"
 
     lines: list[str] = [line(i) for i in sure]
     if unsure:

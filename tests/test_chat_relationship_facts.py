@@ -28,7 +28,7 @@ def test_development_korean_strips_all_cached_stages_preserving_other_stable_val
     lead, past, contract = "인사 {유저이름}", "2026-10-14T01:00:00+09:00 원문", "합의 {유저이름}"
     blocks = chat._build_system(locale, "지훈", [lead], historical_lead=[past],
                                 contract_text=contract, relationship_v2=cached)
-    assert blocks[0] == chat.eval_system_prompt("ko", "voice-free-ko-v5")[0]
+    assert blocks[0] == chat.eval_system_prompt("ko", "voice-conversation-ko-v6")[0]
     assert blocks[1].endswith("[관계]\n함께한 날: 12일")
     assert cached.splitlines()[-1] not in "\n".join(blocks)
     assert naming.render(lead, "지훈") in blocks[1]

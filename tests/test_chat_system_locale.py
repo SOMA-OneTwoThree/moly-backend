@@ -88,9 +88,9 @@ def test_non_development_persona_remains_baseline(monkeypatch, environment, loca
 
 
 @pytest.mark.parametrize("locale", ["ko", "ko-KR"])
-def test_development_korean_selects_self_contained_v5(monkeypatch, locale):
+def test_development_korean_selects_conversation_v6(monkeypatch, locale):
     monkeypatch.setattr(chat.settings, "environment", "development")
-    assert chat._build_system(locale, None)[0] == eval_system_prompt("ko", "voice-free-ko-v5")[0]
+    assert chat._build_system(locale, None)[0] == eval_system_prompt("ko", "voice-conversation-ko-v6")[0]
 
 
 @pytest.mark.parametrize("locale,canonical,digest", [

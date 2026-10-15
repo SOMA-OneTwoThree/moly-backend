@@ -577,7 +577,7 @@ def _build_system(
     # Development uses fixed locale candidates; all other environments retain C0.
     # Keep the persona first and independent of mutable conversation values for caching.
     if settings.environment == "development":
-        candidate_id = "voice-free-ko-v5" if locale == "ko" else "voice-combined-v3"
+        candidate_id = "voice-conversation-ko-v6" if locale == "ko" else "voice-combined-v3"
         persona, _ = eval_system_prompt(locale, candidate_id)
     else:
         persona = system_prompt(language)

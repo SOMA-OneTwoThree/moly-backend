@@ -1,4 +1,4 @@
-"""V5 wiring contracts only; output quality requires separate blinded trials."""
+"""Development Korean wiring; output quality requires separate blinded trials."""
 from unittest.mock import AsyncMock
 
 import pytest
@@ -16,7 +16,7 @@ from tests.test_chat_turn_context_wiring import _post
         time_bucket="day", equipped_names=["파란 모자"], routines_planned=2, routines_done=1,
     ),
 ])
-async def test_v5_real_post_message_keeps_mood_time_and_owned_state_outside_cached_persona(
+async def test_development_persona_keeps_mood_time_and_owned_state_outside_cached_prefix(
     monkeypatch, mood, state,
 ):
     monkeypatch.setattr(chat.settings, "environment", "development")
@@ -28,7 +28,7 @@ async def test_v5_real_post_message_keeps_mood_time_and_owned_state_outside_cach
     monkeypatch.setattr(turn_context, "build_context", builder)
     capture = {}
     await _post(FakeSession(), monkeypatch, capture=capture)
-    assert capture["system"][0] == prompts.eval_system_prompt("ko", "voice-free-ko-v5")[0]
+    assert capture["system"][0] == prompts.eval_system_prompt("ko", "voice-conversation-ko-v6")[0]
     assert "2026-10-14:" not in "\n".join(capture["system"])
     assert "파란 모자" not in "\n".join(capture["system"])
     assert "오늘 1/2" not in "\n".join(capture["system"])

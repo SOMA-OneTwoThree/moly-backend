@@ -169,6 +169,97 @@ def test_fix_qmarks_choice_no_false_positive():
     assert _ko_clean("그러지 말고 아니면 이렇게 해.") == "그러지 말고 아니면 이렇게 해."
 
 
+@pytest.mark.parametrize("language", ("ko", "ko-KR"))
+@pytest.mark.parametrize("statement", (
+    "어디든 갈 수 있어.",
+    "누구든 올 수 있어.",
+    "그게 뭔데 싶었어.",
+))
+def test_development_keeps_statements_instead_of_turning_them_into_questions(
+    monkeypatch, language, statement,
+):
+    monkeypatch.setattr(c.settings, "environment", "development")
+    assert c._clean_reply(statement, language=language) == statement
+
+
+@pytest.mark.parametrize("language", ("ko", "ko-KR"))
+@pytest.mark.parametrize("text", (
+    "무슨 일이야?",
+    "무슨 일이야!",
+    "무슨 일인데.",  # A missing question mark is no longer synthesized.
+    "무슨 고민이야",
+    '"무슨 일이야."\n\n어디든 갈 수 있어.',
+))
+def test_development_preserves_model_punctuation_and_quoted_line_boundaries(
+    monkeypatch, language, text,
+):
+    monkeypatch.setattr(c.settings, "environment", "development")
+    assert c._clean_reply(text, language=language) == text
+
+
+def test_development_keeps_existing_symbol_and_control_character_cleanup(monkeypatch):
+    monkeypatch.setattr(c.settings, "environment", "development")
+    assert c._clean_reply(
+        '**어디든** 갈 수 있어.\n제어\x07문자와 제로\u200b폭', language="ko",
+    ) == "어디든 갈 수 있어.\n제어문자와 제로폭"
+
+
+@pytest.mark.parametrize("environment", ("production", "staging", "local"))
+@pytest.mark.parametrize("language", ("ko", "ko-KR"))
+def test_other_environments_keep_existing_korean_question_backstop(
+    monkeypatch, environment, language,
+):
+    monkeypatch.setattr(c.settings, "environment", environment)
+    assert c._clean_reply("무슨 일인데.", language=language) == "무슨 일인데?"
+    assert c._clean_reply("무슨 일이야!", language=language) == "무슨 일이야!"
+
+
+@pytest.mark.parametrize("environment", ("development", "production", "staging", "local"))
+@pytest.mark.parametrize("language,text", (
+    ("ja", "どこでも座れるよ。"),
+    ("ja-JP", "どこでも座れるよ。"),
+    ("en", "You can sit anywhere."),
+    ("en-US", "You can sit anywhere."),
+))
+def test_non_korean_cleanup_does_not_synthesize_question_marks(
+    monkeypatch, environment, language, text,
+):
+    def unexpected_backstop(*args):
+        pytest.fail("Korean question backstop must not process non-Korean replies")
+
+    monkeypatch.setattr(c.settings, "environment", environment)
+    monkeypatch.setattr(c, "_fix_qmarks", unexpected_backstop)
+    assert c._clean_reply(text, language=language) == text
+
+
+async def test_development_statement_is_preserved_in_storage_and_response(monkeypatch):
+    from app.models.message import Message
+    from app.services import gating
+    from tests.test_chat import _gating
+
+    raw = "어디든 갈 수 있어.\n누구든 올 수 있어."
+
+    async def resolve(*args, **kwargs):
+        return _gating()
+
+    async def generate(*args, **kwargs):
+        return LLMResult(text=raw, input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(c.settings, "environment", "development")
+    monkeypatch.setattr(gating, "resolve", resolve)
+    monkeypatch.setattr(llm, "generate", generate)
+    session = FakeSession()
+    response = await c.post_message(
+        session, UID, SimpleNamespace(text="오늘은 어디로 갈까?", greeting_id=None),
+        "statement-punctuation",
+    )
+    stored = next(
+        message for message in session.added
+        if isinstance(message, Message) and message.sender == "moly"
+    )
+    assert response.reply.content == stored.content == raw
+
+
 # --- 앵커 유지 창 ---
 def test_keep_window_bounds_and_user_first():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 51)]  # 50개

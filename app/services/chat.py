@@ -639,7 +639,11 @@ def _clean_reply(text: str, nickname: str | None = None, language: str | None = 
         text, keep_hyphen=keep_hy, preserve_dashes=True,
         preserve_linebreaks=True, preserve_quotes=True,
     )
-    return out if keep_hy else _fix_qmarks(out, nickname)
+    # The lexical backstop can turn statements such as "어디든 갈 수 있어."
+    # into questions. Development preserves the model's punctuation instead.
+    if keep_hy or settings.environment == "development":
+        return out
+    return _fix_qmarks(out, nickname)
 
 
 def _billable(r: llm.LLMResult) -> int:

@@ -1,0 +1,923 @@
+{
+  "reviewer": "/root",
+  "review_kind": "independent",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_read_count": 156,
+  "human_review": false,
+  "readings": {
+    "overall.swords.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5b1cafda27b82da1416c1e70e1787243ec1bfb7aa91f2826709ea099650a7398",
+      "judgment": "사실 확인과 명확한 전달이 총평·본문·행동에서 일치한다."
+    },
+    "overall.swords.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e5f945320d37d89fed71712f522a7af2e7094159e3c892022e9f765a6eb2ab5c",
+      "judgment": "말이 다르게 전달되는 상황과 확인·정정 행동이 쉽게 읽힌다."
+    },
+    "overall.swords.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "136a730d062fefb85b64826c5d8979f4ea68d2fae193f26bf7a4d575e94335b0",
+      "judgment": "결정 지연을 정보 부족과 연결하고 질문 행동을 바로 제시한다."
+    },
+    "overall.swords.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "0e501728088bcdbbd8998bc2dc6df154575502e5141687e57a85e94d5659b9db",
+      "judgment": "당사자라는 역할 명사를 없애고 서로 다른 설명을 확인하는 행동으로 고쳤다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "fe8688b3ad9fe4cd62fdd0933ccbb3c2d3b8206b3ed9796bcbf68078280b661c",
+          "judgment": "운의 혼란은 유지했으나 당사자라는 역할 명사는 쉽게 바꿔야 한다."
+        }
+      ]
+    },
+    "overall.swords.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d1ecaa62c71ee99059f576a0cae964d023ece16c60eaf6aad82674a39142eec8",
+      "judgment": "원하지 않는 답에 대한 실망과 화풀이 주의가 이어진다."
+    },
+    "overall.swords.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "01f533ef12d791911816ae3f2304c050ada4072cef958000c8f7ccc8eb4e66d6",
+      "judgment": "서운함을 풀고 다툼을 마치는 해석과 행동이 연결된다."
+    },
+    "overall.swords.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "30648dd66af802557a3da0adf24c588d549fe1f42a8f6d6f0ea0be450ca0f2a8",
+      "judgment": "조용한 하루와 잠시 쉬는 행동이 카드의 휴식 뜻을 지킨다."
+    },
+    "overall.swords.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "472819227339d7df8ba77fa3844e24966d88734ecaefe84a3b75b8bce55fccd7",
+      "judgment": "다시 바빠지는 해석과 급한 일부터 하는 행동이 일치한다."
+    },
+    "overall.swords.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c1d1ef5f1259757ce5f0551162614abea75c30b24e8c636648569cebd5e005b8",
+      "judgment": "다툼에서 이겨도 불편하다는 뜻을 앞에서 설명해 뒤의 주의가 갑작스럽지 않다."
+    },
+    "overall.swords.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "509a7af511c3ed1840f83a25864819940815132c17387d7c1127d06392c85a57",
+      "judgment": "양보와 화해가 운의 판단과 행동에 분명하게 나타난다."
+    },
+    "overall.swords.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5700a6603f24e23f01ad2d04dccc50f4db8fe29072a78dee180e3fe8b2811ab7",
+      "judgment": "도움으로 불편함에서 벗어나는 뜻을 쉽게 설명한다."
+    },
+    "overall.swords.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d86d75cf6655fd5f241d60be311e30eac978a32503d8ceb9606e0190fa6ccaba",
+      "judgment": "되풀이되는 문제와 떠넘기기 주의가 같은 문맥이다."
+    },
+    "overall.swords.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "500614582c85e4429caa915dd661271c47a587112d8e344e35f90a67ed9650dc",
+      "judgment": "특정 역할의 사람을 조건으로 삼지 않고 잘 모르는 부분을 물어보는 행동으로 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "7ebba9f1ead719e9a66690bb3b2396da9e0d51b457b1c9ee26613ce3d287148c",
+          "judgment": "다른 방법을 찾는 해석은 맞으나 행동에 붙은 사람의 조건은 덜어낸다."
+        }
+      ]
+    },
+    "overall.swords.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "367ffaac6c5cfedb94618332a2e2ab7dd86fcbea457076b697657d7f068aec92",
+      "judgment": "실수를 알리고 핑계를 대지 않는 행동이 솔직한 인정과 이어진다."
+    },
+    "overall.swords.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "6163daeddabf4a3a02f1093ecc13bfbdb7e239638fecce8e6efca905db5461c9",
+      "judgment": "막힌 이유를 묻는 행동이 제약과 포기 주의에 맞는다."
+    },
+    "overall.swords.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ebce9819c19bf27c8f277db67a088d0d3fc657fb14f734c9c15753022e78bc0f",
+      "judgment": "새 방법을 알게 되는 해석과 다시 시도하는 행동이 이어진다."
+    },
+    "overall.swords.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "131c13f04dd2e1a7a619ad80bbec19bbf83087d181c90c8dfd233fd306d417ea",
+      "judgment": "걱정과 사실을 구분하는 뜻이 결과 확인과 조기 포기 주의로 연결된다."
+    },
+    "overall.swords.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f921d134a34ef3e8771f2bf7be4f0727c8bc05ce4da4e778f2f604bb47b0fe8e",
+      "judgment": "도움을 받도록 걱정을 말하는 행동이 안심의 해석에 맞는다."
+    },
+    "overall.swords.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "44fc7f2d4c1cb36195edc51fdda7e1f00629e718b62880ac24d3f600815146d9",
+      "judgment": "종료의 아쉬움과 마무리 행동이 일관되며 긍정으로 뒤집지 않는다."
+    },
+    "overall.swords.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7c277bd505ca3d0955cb68d939d4734359ad453af4f79addf46528f98b72bb03",
+      "judgment": "적은 일이라는 압축을 없애고 할 수 있는 일 하나를 시작하는 행동으로 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "c47ec230b530845e62b7dfcd623cc902c816e271c16a8e5ba21be9c3f12a1cf0",
+          "judgment": "점진적 재개 뜻은 맞지만 적은 일이라는 부자연스러운 말을 고친다."
+        }
+      ]
+    },
+    "overall.swords.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "249cb07a15bf89b4f1a4e1e6404c4914809a0c09f60e39774f417d0566bea768",
+      "judgment": "관찰을 통해 실수를 피하는 뜻과 안내 읽기가 직접 이어진다."
+    },
+    "overall.swords.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2ea94d117ab72afed64ccb1503067a3ef5f9b584d4b8ea90c70d7a1b2535aefd",
+      "judgment": "모르는 것을 확인하고 답하는 행동이 성급한 믿음의 주의에 맞는다."
+    },
+    "overall.swords.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f3e5cb2d82d3c5cb25529ac461c680d776a76dd178bacbd8a959d9bd24b3d715",
+      "judgment": "빠르게 진행되는 일과 함께하는 사람에게 알리는 행동이 일치한다."
+    },
+    "overall.swords.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "dc42e3b524da48a1037b0e459c8d956b4f758fcbde11596d63f83424ea772715",
+      "judgment": "준비 부족으로 막힌다는 해석과 시작 전 확인 행동이 일치한다."
+    },
+    "overall.swords.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1aec9d18534a39ff67f4b8d6d39642086a337f77451f77d1c8321754328057a7",
+      "judgment": "분명한 거절을 상대 비난과 구분해 짧고 이해하기 쉽게 표현한다."
+    },
+    "overall.swords.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7b447c93e3582d46c269c23efe056c15b5745047e264a48885cb480bcf7253d9",
+      "judgment": "편견으로 생기는 오해와 한쪽 말만 듣지 않는 행동이 이어진다."
+    },
+    "overall.swords.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "dc8c10a38a2ffe6402960d35e70b24185cf1cefc26ef0f40bf4f7e83933e0944",
+      "judgment": "논증식 표현을 들은 말의 사실 확인으로 바꿔 바로 이해된다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "25c768e50786c7d1bd5fdc2db5a88009da380415db2b3b06e7d49dbff63e457e",
+          "judgment": "판단과 사실의 뜻은 맞으나 짧은 행동의 논증 표현은 단순화해야 한다."
+        }
+      ]
+    },
+    "overall.swords.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "39b4ff3e9ad6868d048b38d83b276afe9b8ab73c2daeaaa505f5615b06635052",
+      "judgment": "일방적인 요구와 확인할 시간을 얻는 행동이 같은 문맥이다."
+    },
+    "overall.wands.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4836e32ac4df3824be8d79f6f9e49ca24922b353724ad64858e4a42ae1038438",
+      "judgment": "시작의 기회와 작은 착수가 일치하고 처음부터 크게 벌이는 주의도 분명하다."
+    },
+    "overall.wands.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e3ae58b9ff7f6835f9378f1c2d0cdc46181b1086b46481a4404f6b344a36579e",
+      "judgment": "준비가 늦는 해석과 준비 확인이 이어진다."
+    },
+    "overall.wands.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9f0f2ffca088a682c63df577b4f1a8cd4bcd6657ad87e7eeca4c361ccb32ee9b",
+      "judgment": "새로운 곳의 기회와 하던 일을 먼저 접지 않는 행동이 연결된다."
+    },
+    "overall.wands.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ffee4d87af1dd630194c06ccf989cbea83975f1b1292736d0b47da7348994bf4",
+      "judgment": "불안으로 미루는 해석과 걱정되는 것을 묻는 행동이 이어진다."
+    },
+    "overall.wands.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "02a6f9527184edaa7c16c6c5c787fce8b2601740f4cd5e1c9414076b37081599",
+      "judgment": "협력과 넓어지는 기회를 직접 설명한다."
+    },
+    "overall.wands.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "dfc5e8ff079aee74c078d0791e509d51d4325ea07e8abe07f82432ffea2332d6",
+      "judgment": "소식 지연과 기다리는 동안 할 일의 조언이 일치한다."
+    },
+    "overall.wands.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "aae657f8f4ebcd42412044e8c27cb40587738438511e51c35bbe492cdb4116fc",
+      "judgment": "마무리와 함께 축하하는 뜻이 총평과 행동에 이어진다."
+    },
+    "overall.wands.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "762c3625b05f2de6588e39f061c15f5e6ba4d076891305dc32d5d9fab9bc5583",
+      "judgment": "역방향의 행복 의미를 유지하며 소박한 즐거움으로 설명한다."
+    },
+    "overall.wands.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "5e9882dabbc39287e9b26f069813c6e880ec11aa54518d6d28665082cbaaae40",
+      "judgment": "의견 대립과 서로의 방법을 듣는 행동이 일치한다."
+    },
+    "overall.wands.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5011da18064b4fc4d846f0648de698a3dc3bc7e4eb1cc14f724d8709596c1838",
+      "judgment": "명사를 겹치지 않고 서로 다른 말의 사실 여부를 확인하는 행동으로 고쳤다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "b80838802a05638c4807188715af8644e31770cffd74fbe9d8879ffa2169dadd",
+          "judgment": "논쟁의 뜻은 맞지만 행동의 명사 겹침을 풀어 써야 한다."
+        }
+      ]
+    },
+    "overall.wands.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ebcfe99821d023304cf190380d2a3efdc337ab4f65c62ec50d49af046e3e9292",
+      "judgment": "인정과 축하에 함께한 사람을 알리는 행동이 이어진다."
+    },
+    "overall.wands.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "36d3ee206317f34936ba69cfc875fa96a20ecaa56a100bc01b222843f2df2b17",
+      "judgment": "인정 지연과 과장 주의가 앞뒤에 맞는다."
+    },
+    "overall.wands.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9277e9975d646d603c1b447e4ebc0da190ee85add2d48cb99a9ec46b358d93e8",
+      "judgment": "자신의 몫을 지키는 뜻이 양보할 수 없는 부분을 말하는 행동과 이어진다."
+    },
+    "overall.wands.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "881c56b1e608fd477d0d77653ffaafac3a1bd0f0c8a4b2615b01770687131aef",
+      "judgment": "불편해도 거절할 시간을 얻는 행동이 부담스러운 요구를 막는 해석에 맞는다."
+    },
+    "overall.wands.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ccde9fd38b13682359e4f9766aff5fc8020ecf388020535bcf1aad5f2dcf869e",
+      "judgment": "직접 움직이는 일이라는 모호한 대상을 기다리던 일의 시작으로 바꿨다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "3544396bbfd7e866b102a727a75073bdd4aa5c8393a166991160b9af9a8375ef",
+          "judgment": "빠른 진행의 뜻은 맞지만 직접 움직이는 일이라는 모호한 표현은 고친다."
+        }
+      ]
+    },
+    "overall.wands.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "3dfc57d0bc458ecbda188268867099e5f1bf335f972933a80da8f47e536f0bab",
+      "judgment": "말의 충돌과 직접 뜻을 묻는 행동이 일치한다."
+    },
+    "overall.wands.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "b48aa22252cf22119a3834e9ef307d96ade7b5aa35b0108ea79c1e0f740d20a6",
+      "judgment": "겪었던 문제를 넘기는 해석과 전에 해결한 방법을 쓰는 행동이 이어진다."
+    },
+    "overall.wands.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "767e58ed3468be9774af72332e4b70eb5ead73c75b2d7ed5fd3fe6e78c9f23ef",
+      "judgment": "같은 문제에 막힘과 도움 수용이 연결된다."
+    },
+    "overall.wands.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9c3a5f535390facf4fcbeb0069a118eac9739fa2496b03ff4ca62581c7d0717b",
+      "judgment": "도울 수 있는 때를 말하는 행동으로 동사를 살렸다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "260402709a170adf5068f9432622973c1d87a9d944f54520dcc074c54d427250",
+          "judgment": "성과에 따라 일이 늘어남은 맞지만 가능한 때라는 행동 축약을 명확하게 고친다."
+        }
+      ]
+    },
+    "overall.wands.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "80cbdf8b8b6a52003777366764f8cb265a8a1a49d11a4576ecba7a312706dc98",
+      "judgment": "겹친 일을 나눠 달라고 말하는 행동이 떠안은 부담과 이어진다."
+    },
+    "overall.wands.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "09a1b91c16715021acbf6bb29221e04fc490789a029bce2f29cc2d86147e8cc8",
+      "judgment": "새 소식과 참여 방법을 묻는 행동이 이어진다."
+    },
+    "overall.wands.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e9e7b6e51f8091e1575443eb57416b1f7769ab3ca722ad78fcfab5f2e25258cb",
+      "judgment": "확실하지 않은 정보와 안내 확인의 행동이 일치한다."
+    },
+    "overall.wands.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "759d82993ee8696ff0c23f88d6ed28afc41500cda49481b225d8e06b263e2a9e",
+      "judgment": "나섰기 때문에 잘된다는 조건식 대신 새로운 곳의 즐거움을 직접 말한다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "02f992b209c139f79f9f6b43a573200914fb5a85cddf5003276c2b4974245a9e",
+          "judgment": "이동 의미는 맞지만 직접 나섰기 때문에 잘된다는 조건식 총평은 반려한다."
+        }
+      ]
+    },
+    "overall.wands.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "37288688ef91d37f1102bf6fb8badd3a34eec01e992f2ef52fa7babffd104901",
+      "judgment": "취소와 중단을 약속 확인의 행동으로 연결한다."
+    },
+    "overall.wands.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c775ef1ec79f1dd95f4ba54f10b17f0c3500438bdbd069c8318d16a763e4850d",
+      "judgment": "관심을 받는 해석과 함께 대화하는 행동이 이어진다."
+    },
+    "overall.wands.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f210d6b6912c53fef963ff3c849d3637a369dcf285769694a138aedb7ff1fed4",
+      "judgment": "관심 부족과 상대를 깎아내리지 않는 행동이 일치한다."
+    },
+    "overall.wands.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "615a5a37f7a4f7bcf7373e51d9316b8d425c5fd45f7f0e06b273192c37fa7961",
+      "judgment": "앞장섰을 때의 결과라는 요약 대신 함께할 사람과 일이 풀리는 운을 말한다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "19ba3acb357b06db8f6f38990972523e8ea008329862a4aaf3600fdc482eefc1",
+          "judgment": "협력과 성실함의 뜻은 맞지만 앞장선 일에 결과가 따른다는 요약형 총평은 고친다."
+        }
+      ]
+    },
+    "overall.wands.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5103a6c4a880e1c919f88f23087c2cc7f2bfc65d5a9579e5b0cb5654e4d7e7a6",
+      "judgment": "엄격한 기준 때문에 늦어지는 해석과 불필요한 재작업 주의가 이어진다."
+    },
+    "overall.pentacles.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1b10af345d990025fecea4bfaf0ba51666561ad86e995b719e6b0de5d275a502",
+      "judgment": "협력과 인정이 총평·본문·도움을 받는 행동에 이어진다."
+    },
+    "overall.pentacles.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ebc11b32eab145d38dd1cd615a78908ced3e1686b34d12ea3af32dcba681984d",
+      "judgment": "사용자 예시처럼 실수의 주의와 모르는 부분 묻기·변명하기를 직접 쓴다."
+    },
+    "overall.pentacles.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "9eeb860dc93777ccd1f39fb0c0a4ee07471fb0a49fcd8644cb75727a2f0b1221",
+      "judgment": "기회를 써본다는 추상어를 필요한 물건을 구하는 행동으로 바꿨다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "5309f7f57852f0fb0c0118605378ea26326dd885da329cd91150c6636b841b28",
+          "judgment": "새 출발의 뜻은 맞으나 기회를 써본다는 추상적인 행동은 고친다."
+        }
+      ]
+    },
+    "overall.pentacles.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "12fd3d47a1987fd0fda8a35ee584355e7fb1bb24fee3b4349419645acea5d3e4",
+      "judgment": "좋아 보임과 실제 만족의 차이를 얻은 것의 쓸모로 설명한다."
+    },
+    "overall.pentacles.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f37d29323bad3ca59047d9cd1b70950eba827e8ba620cabcb6d1d094c83f55b1",
+      "judgment": "겹친 일을 유연하게 마치는 운과 일정 조정 행동이 이어진다."
+    },
+    "overall.pentacles.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "1561f58aacdedb1d7b04827dad2cd372946ddf09de350a65e7b2e3d1dbc2a27c",
+      "judgment": "일이 겹치는 주의와 약속 조정이 일치한다."
+    },
+    "overall.pentacles.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "79544db2109f090b5ac9c589a4cfcc04816a8dda34ff757471346483f54b2223",
+      "judgment": "익숙한 안정과 가진 것을 쓰는 행동이 연결된다."
+    },
+    "overall.pentacles.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "cba50e0816aaed6b4cae3c5d2e5a0e8055d8d896d1f6ef544d7f05a19430c941",
+      "judgment": "지연·반대를 거절 이유 묻기와 같은 요구 반복 주의로 설명한다."
+    },
+    "overall.pentacles.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "756a203aee894d33b743494e2f70470b1545a82beba8cf485dda33c2eceee0a4",
+      "judgment": "도움 부족과 소외를 부탁할 수 있는 행동과 연결한다."
+    },
+    "overall.pentacles.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c3ea6fe018f452903c39745d8743390383cbbb9b92d4c284017676f274657bd7",
+      "judgment": "정역의 불화·낭비 뜻을 유지하며 대신하기의 동사를 명확히 했다.",
+      "history": [
+        {
+          "status": "pass",
+          "read_bundle_sha256": "1cadbe7f3a558a2e097db9abb45f6ccf4163c941a38584f5a2666548b39eab90",
+          "judgment": "불화와 낭비의 역방향 의미를 작업 충돌로 설명하고 무조건 회복으로 바꾸지 않는다."
+        }
+      ]
+    },
+    "overall.pentacles.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a2b85363303facddd897ce5a02bd9073dee096e80845bbb53b26036f03941091",
+      "judgment": "선물·나눔의 뜻과 고마움을 말하는 행동이 이어진다."
+    },
+    "overall.pentacles.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7d2db68b9c16a52ed576978dd6b6aa45bc3268ca3d7d45111ae2b1de8a052314",
+      "judgment": "불공평함과 추가 요구를 미리 묻는 행동이 일치한다."
+    },
+    "overall.pentacles.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "53b002bb57d9db6d29c9419d570e168c568f9b21572d24b81f1d84065b4dd117",
+      "judgment": "쌓인 성과를 살펴보는 해석과 과정을 건너뛰지 않는 조언이 이어진다."
+    },
+    "overall.pentacles.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "24db2792edde79bbb78ec6e5641ac1cdc9dd6b21872f589ec56fb30438fdf78f",
+      "judgment": "더 들이는 수고의 걱정과 끝나는 때를 묻는 행동이 연결된다."
+    },
+    "overall.pentacles.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0a602cb9df0c985ab7dd519b1cd1116d0a220f6d654ac6ccac0c0510d09cc7b2",
+      "judgment": "익힌 솜씨의 발휘와 반복을 대충 넘기지 않는 행동이 일치한다."
+    },
+    "overall.pentacles.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "79b320b2d74af42bde1e8cd9a37251c58b13c910c8c57d2b3c199461d3ad4ef4",
+      "judgment": "건너뛴 확인이라는 명사 표현을 빠뜨린 부분의 확인으로 고쳤다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "b658d29d2b9b878baa76258c34e4f76c69ad15cebe16da5a919ef7f30e6ee8bb",
+          "judgment": "요령으로 빈틈을 덮는 주의는 맞지만 건너뛴 확인이라는 행동 축약은 풀어 쓴다."
+        }
+      ]
+    },
+    "overall.pentacles.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "35d6cc3638e26f869b796f89b657c01ba993dcccba587b13859c1bee13040bc8",
+      "judgment": "원치 않는 외출을 지어내지 않고 자신의 성취를 남과 비교하는 주의로 단순화했다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "004983390b113fdd3a0bd8852376522d5f2f2c5d0afb2abffee46ac5594797a7",
+          "judgment": "성취와 여유는 맞지만 남에게 보이려 외출한다는 불필요한 상황은 반려한다."
+        }
+      ]
+    },
+    "overall.pentacles.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "004499334fa069b130774e042e140faf9b43e070e5eabfc1ce2b4b5d7db73e0a",
+      "judgment": "겉모습과 실상의 불일치를 직접 살피는 행동에 연결한다."
+    },
+    "overall.pentacles.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "88b248acc7da349d9629eb8a2c8d1bff0f84ea1153dbc7bafeb30eee32382df0",
+      "judgment": "기록 관리의 사소한 상황을 걷고 가까운 사람들과의 도움·안정을 직접 말한다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "57ee2606899598fe62bbd5aa920e8b217d7dee5c17e8ef805844e766ccac30d2",
+          "judgment": "기록도 근거 키워드에 있으나 전체를 기록 관리 요령으로 좁힌 전개는 사용자 기준상 반려한다."
+        }
+      ]
+    },
+    "overall.pentacles.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2a6695640da1531a9cd25cc9d74de34ecc8f842cc261c02625e4b197d86f260f",
+      "judgment": "운만 믿는 선택과 이미 가진 기반을 잃는 위험을 일치시킨다."
+    },
+    "overall.pentacles.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ff81fd0287bbc5db526f37b04387e89987e5dfb10f4d751aa80864d70edebe29",
+      "judgment": "배움의 적용을 유지하면서 작게 나아진다는 모호한 말을 고쳤다.",
+      "history": [
+        {
+          "status": "pass",
+          "read_bundle_sha256": "8e1af402778690dcc8186e0808c982ab1bfdbba621d4e4c83bdcf5bb0062baf3",
+          "judgment": "배운 것의 적용과 설명을 건너뛰지 않는 행동이 이어진다."
+        }
+      ]
+    },
+    "overall.pentacles.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2c82f858f0892d8e0a6e4e171e7aa91646fd8f8c05c43c6c4d43c1bb051e5c47",
+      "judgment": "관심 분산과 필요한 일 미루기를 직접 설명한다."
+    },
+    "overall.pentacles.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "26c609d99ffcee422e0557eee5660f63c03fde7a9bd394129ce68480f872869b",
+      "judgment": "느려도 성실히 마치는 뜻과 하던 순서대로 끝내는 행동이 일치한다."
+    },
+    "overall.pentacles.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d793a7c86c185b6def1a6b25b1b5e6bffef0c80627d0a5c57c0d2225d35558ea",
+      "judgment": "미룸과 정체를 미뤄둔 일 확인과 연결한다."
+    },
+    "overall.pentacles.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "69206b50586465bac2d6fd654bdaa2746cce87890a78b7baf1a288fa13fa0902",
+      "judgment": "풍요와 배려를 나눔의 행동으로 쉽게 연결한다."
+    },
+    "overall.pentacles.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "164960eee62d0b02d93f3b186b9370b8bd0f8dfa494c014b2184d41760a2ba17",
+      "judgment": "근거 없는 의심과 걱정되는 부분을 묻는 행동이 일치한다."
+    },
+    "overall.pentacles.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "fc6ab1fa521464edf9db4056a2616cdd064e6640f9082690c2e2603a8b425f8c",
+      "judgment": "능력과 경험을 실제로 사용하는 성공의 뜻을 유지한다."
+    },
+    "overall.pentacles.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2ce887f2f8091c4afb375ec35ffc4ae58b316acc4d50e5a2d30b137c063ec17d",
+      "judgment": "조건에서 마무리한다는 표현 대신 제안을 받아들이는 행동으로 썼다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "4999f69b9d5b59745f1a726cae4c47984911fc1976f3081e43441ca4f0f2aab0",
+          "judgment": "욕심의 주의는 맞지만 만족스러운 조건에서 마무리하기라는 추상적 행동은 고친다."
+        }
+      ]
+    },
+    "overall.major.chariot.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "14b30b4842efe42f1cb9f9dbe144d4a46325d4fbbea9445ac5a09fa0cfd47cf0",
+      "judgment": "일이 풀리는 운을 먼저 말하고 마무리 행동을 직접 쓴다."
+    },
+    "overall.major.chariot.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "3513e04c5302268867bb86870e2ba653fd27451edece22b8583f6b07336a149d",
+      "judgment": "일이 막히는 운과 새 일을 벌이지 않는 주의가 이어진다."
+    },
+    "overall.major.sun.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "f7dfce81ed7a779c3ab9f28054bc5ea0251f5d2783c697b177a4d7d070d00ec8",
+      "judgment": "기쁜 하루와 소식을 나누는 행동이 사용자 말투에 가깝게 직접 읽힌다."
+    },
+    "overall.major.sun.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "250bc3f6eebb94558dcd5ce4d4c512fe9c9012f551ee72d856541742f22b503e",
+      "judgment": "기대 차이·소식 지연·기다리는 행동을 남기고 중복을 삭제했다. 94자는 분량 참고치보다 짧지만 같은 말로 채우지 않아 허용한다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "e3bc4267562120ff2c1abbe8e5c67756ec763e640f4a7432fc1dc0416cb027b7",
+          "judgment": "기대 차이는 맞지만 앞 두 문장이 같은 아쉬움을 반복하므로 고친다."
+        }
+      ]
+    },
+    "overall.major.fool.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ce0a25de732b31fa775a8cc1b7f835b9d6188adb0907429cd9b4c9353e36cfd6",
+      "judgment": "새 경험의 기쁨을 설명하고 시작 전에 장기 약속을 하지 않는 주의를 잇는다."
+    },
+    "overall.major.fool.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "583ab3adf1e2c069d0e8cc954dca5e19bfaeb6a86b25fb2b553ae65d72a64f59",
+      "judgment": "부주의의 뜻을 준비 확인과 약속 주의로 쉽게 옮긴다."
+    },
+    "overall.major.magician.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a6c3a48ff195d5370a0ad93ef4d753afbd58f732d79fa81daf571beb66183351",
+      "judgment": "배운 것을 써서 시작하는 뜻이 총평·본문·행동에서 일치한다."
+    },
+    "overall.major.magician.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a622756d8b19e41f06fc9b91079ab8756aeb7d89c26c55236214b95293af3438",
+      "judgment": "말과 실제 준비의 차이를 확인하는 행동으로 연결한다."
+    },
+    "overall.major.high_priestess.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "595e3b26a02595ec26bf906ac18dc5281c0849a44876af4ce7dd047092844dd7",
+      "judgment": "드러나지 않은 답을 찾는 뜻을 설명 듣기와 연결한다."
+    },
+    "overall.major.high_priestess.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "a590a50088d0497a27413a49daed2986e6e72a3671f8c6799ed2e0eae8c120af",
+      "judgment": "잘못 아는 일과 짐작을 사실로 말하는 주의가 같은 문맥이다."
+    },
+    "overall.major.empress.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "578ac39f5b8b583d3abf9e257e8e4e7623ebbeab7e7d0856ff69133857322309",
+      "judgment": "결실과 돌봄을 잘되는 일과 받은 도움으로 직접 표현한다."
+    },
+    "overall.major.empress.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "e58edade5c98b036fc980630e4455f84057f6d2cab609b949c41aa310a5b3e27",
+      "judgment": "지나친 돌봄을 남의 일 때문에 자신의 일이 늦는 주의로 설명한다."
+    },
+    "overall.major.emperor.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "78cf25709276a0f196d28376d391f9fa9a13f51d3a658b679d707fd7d120bda0",
+      "judgment": "안정과 보호를 믿을 만한 도움과 상의로 설명하고 불필요한 재작업 상황을 제거했다."
+    },
+    "overall.major.emperor.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "24cd0f06cf510411b297270dc32cfdafae76cc3fd216608a65c2813c0d5995d6",
+      "judgment": "통제와 고집의 문제를 다른 사람의 뜻을 듣는 행동으로 잇는다."
+    },
+    "overall.major.hierophant.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a3b6e8fdd8ad381f69487c32b0a9aec65d2329656eaf06ebac2e3a349ea8bfb5",
+      "judgment": "조언과 배움의 뜻에 모르는 부분 물어보기가 바로 맞는다."
+    },
+    "overall.major.hierophant.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "cec3eec9d10ada4c77bceb9c11359fc4f5f08149513aabb6bca918239e682783",
+      "judgment": "관습과 맞지 않는 방법을 구별하고 자신에게 맞는 방법을 찾는 행동으로 쓴다."
+    },
+    "overall.major.moon.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "652e34a1451188c6628ae56052507d53de9eaea6e8e6043d056647924a935faf",
+      "judgment": "불확실한 말의 혼란과 사실을 확인하는 행동이 직접 이어진다."
+    },
+    "overall.major.moon.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "beaae2adb4af6d709175083df0cef7029750968cb9d6a90a0755ac1bf2cb5572",
+      "judgment": "오해 해소를 설명하되 모르는 일까지 좋게 단정하지 않도록 쓴다."
+    },
+    "overall.major.tower.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "0239398345c9f69026b355387436d7a287daf1e2bc113642eb816e9c41d534ad",
+      "judgment": "갑작스러운 차질을 말하고 설명을 듣는 행동과 충동적인 대응 주의를 잇는다."
+    },
+    "overall.major.tower.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "47dbcd37547fdb0ded0d48d47fa37ddea026a9d370ddb434b09db87336207ba5",
+      "judgment": "문제를 일찍 고치는 뜻을 솔직한 인정과 숨기기 주의로 옮긴다."
+    },
+    "overall.major.temperance.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a5a429bd80c8f3bf4b019a6c86cc0123d796d8b2c7ceb2f531ffd5a21d7fe67e",
+      "judgment": "편안함과 조화를 서두르지 않는 태도와 감사로 설명한다."
+    },
+    "overall.major.temperance.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "9e9d041c39a695a2a432770b0c42ce67c6a321c9a6f1408cf1e5daaa4295e70e",
+      "judgment": "조급함을 작은 차질과 화내는 주의로 연결한다."
+    },
+    "overall.major.lovers.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ea15229fe4e98751d20a9bb1afc193b18f5e504a375f22d855b694e603fd2a19",
+      "judgment": "뜻이 맞는 협력을 서로 원하는 것을 말하는 행동으로 직접 쓴다."
+    },
+    "overall.major.lovers.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "bcde0f293ade0f326ab6c7e9e73479b4e711bef58d79f4ec324cd1484dcf995c",
+      "judgment": "선택의 불일치와 분위기에 휩쓸린 약속 주의를 연결한다."
+    },
+    "overall.major.strength.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "127d280f2b9aa3800ceb46d53ffba3f8e37b3379e9c3aa2619212185c29bbed9",
+      "judgment": "꾸준히 버티는 뜻을 유지하며 갑작스러운 부탁·큰소리 상황을 제거했다."
+    },
+    "overall.major.strength.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "d554d2e5d5c55eab896eb75592b6ba4380096b1c16c907194e1ce7c3a5ad1e05",
+      "judgment": "분노를 새로 붙이지 않고 막혀서 포기하는 행동으로 맞췄다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "31fd58f9b28db577d6c679d926d1a6e40eb54cd0efd1afdc69a50bb8245bad47",
+          "judgment": "본문의 위축과 다르게 pause에 분노를 넣었으므로 조언의 인과를 고친다."
+        }
+      ]
+    },
+    "overall.major.hermit.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "61aeaf691985fcf01a02d22d28d53a80976a4cdae873f3872531af1a116743ce",
+      "judgment": "혼자 살피고 조언을 고르는 뜻을 유지하며 장소 조건을 없앴다."
+    },
+    "overall.major.hermit.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "5b1c929daa16b477db82e748b3d4b1b1f27ab53b31e0c48385f873cb468a017c",
+      "judgment": "혼자 고립되어 막힌 일에 도움을 요청하는 행동을 잇는다."
+    },
+    "overall.major.wheel_of_fortune.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2f1063d3c8acef09fc8747446b48372196a21e808f5a130a8bb4cbf38e4516d3",
+      "judgment": "뜻밖의 행운과 다시 얻는 기회를 직접 말한다."
+    },
+    "overall.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "47597efe85d334bd0ca5cae20ac0bb62d2cb4ecfe4ca64fc38f9ef009bb82584",
+      "judgment": "통제 밖의 지연과 다음 약속을 성급히 잡는 주의가 이어진다."
+    },
+    "overall.major.justice.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4e3bbcaf631acd3d3063bdd2d0aa147056ec08cd65cfa25489166b87d6014fbe",
+      "judgment": "사실과 공정함을 약속 확인·유리한 말만 하는 주의로 옮긴다."
+    },
+    "overall.major.justice.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "faa89018535b951a5f42343e551167b1cfa8f42a2e2f083663d20167e1a5375b",
+      "judgment": "불공정한 평가를 설명하며 억울하다고 과장하지 않는 행동을 잇는다."
+    },
+    "overall.major.hanged_man.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "560261c9742e5b7578bec0b54805d9dc3f5e80d8cc5df518e18d7978eb2c4e1f",
+      "judgment": "대기와 관점 변화의 뜻이 이유를 듣는 행동에 이어진다."
+    },
+    "overall.major.hanged_man.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "16b3d66704414da6c27326b4eb461a5a16a8241269450cade143a2bd862890b2",
+      "judgment": "끝없는 대기와 일방 양보의 부담을 직접 말한다."
+    },
+    "overall.major.death.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ec108737642211c5d60b84f81ab65e812f2d5f258cd9bb072a93de829aa30769",
+      "judgment": "마무리의 뜻을 인사 전하기로 쉽게 잇고 생물학적 죽음으로 쓰지 않는다."
+    },
+    "overall.major.death.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "c26535fad9d69c523725990e1b3a0d5f7678a42495f4ba76b627c6d8933afe4e",
+      "judgment": "미루는 종료가 반복 문제를 만든다는 뜻을 분명한 거절로 연결한다."
+    },
+    "overall.major.devil.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ede090884cf3348e672a5cb400f13a9096da75b8ecb1005d9ff3ba71211cc9a6",
+      "judgment": "솔깃하지만 부담이 큰 제안을 설명하고 덥석 받는 행동을 주의로 쓴다."
+    },
+    "overall.major.devil.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4d1fe93113c302f423b7be2dfc5fa8d4b69c7c5187a42360b12fdbb314569389",
+      "judgment": "부담에서 벗어나는 뜻을 거절 행동으로 직접 쓴다."
+    },
+    "overall.major.star.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "eeb6e21232358e09844f3c1007fad343c30e82a085431552cbe83231e708cf75",
+      "judgment": "회복을 희망이 생긴다는 말 대신 일이 조금씩 풀리는 결과로 쓴다."
+    },
+    "overall.major.star.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "db0718d29a680ee8f44ed7395b1e6befdaf8d33dd9a9842c0e5e8b34f46c9f5b",
+      "judgment": "낙담과 빠른 포기를 기다리는 일 확인에 연결한다."
+    },
+    "overall.major.judgement.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "301dae0c7a447561463dc0c9cab907267cb4e6b98d89c53c9994357a5fee8c42",
+      "judgment": "재도전과 갱신을 지난 실수를 고쳐 다시 하는 행동에 잇는다."
+    },
+    "overall.major.judgement.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "823ca0291c1af1ec06096f961ca4a9446d825774fd954e98889255a9cd60cae0",
+      "judgment": "과한 자기평가로 미루는 뜻과 답할 때를 확인하는 행동이 맞는다."
+    },
+    "overall.major.world.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "c6a0d06876e160a847fc85c6848e0aed4faf8b4177f2c743680216bf23c153dc",
+      "judgment": "완성과 만족을 함께 축하하는 행동으로 직접 쓴다."
+    },
+    "overall.major.world.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "65c81dcd0ce2eeca44a0e4d3be09be7bad7f396c0321378160fb1da958943302",
+      "judgment": "남은 마무리와 아쉬움을 끝낼 일을 확인하는 행동으로 잇는다."
+    },
+    "overall.cups.01.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "a448050e4e779b38123db0599b053c7510f6b1f2116d7af03513c26ed051ec01",
+      "judgment": "기쁨과 새 친절을 초대와 감사의 행동으로 직접 설명한다."
+    },
+    "overall.cups.01.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "06585022fcdf9cafbc51b2b4f2b4bce124d7f8f34cab46188d5864df6584451b",
+      "judgment": "감정 전달의 막힘을 무뚝뚝한 답으로 쉽게 바꿨고 반응의 크기라는 어색한 말을 없앴다."
+    },
+    "overall.cups.02.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2b1c94a5c652a06fafb171dd963e8dfcf3a709e655e50296f06233ad6834b610",
+      "judgment": "서로 돕는 조화를 고마움을 말하는 행동에 연결한다."
+    },
+    "overall.cups.02.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "bb5fbdd47ac884ccbdd1289694890c80498425abb15fe780edc91342679509a9",
+      "judgment": "엇갈린 부탁과 서운함을 비꼬지 않는 행동이 이어진다."
+    },
+    "overall.cups.03.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "82c804c93105f1ce1135998c56a61a5d5c59f675385331d8d605140d6d7f407b",
+      "judgment": "함께하는 축하가 제목과 행동에 분명하게 드러난다."
+    },
+    "overall.cups.03.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "1beb876bca4692b3ba749a935ba8b5f1568e7424c0b41718808df42508701cbe",
+      "judgment": "과한 모임과 뒷말의 주의를 일상 행동으로 쓴다."
+    },
+    "overall.cups.04.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "2359c03c19156d938e8a6856c26e009b5fa07107f59c76b3ca643baeb8877335",
+      "judgment": "무난하지만 만족하지 못하는 운과 새 제안을 듣는 행동이 일치한다."
+    },
+    "overall.cups.04.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "34806c24d6fd745d2f356ab74ced5a635e51494a4359cdd8f45bc8b97f109a31",
+      "judgment": "새 소식과 관심의 재개를 직접 쓰고 추상적인 도움이 되는 기회라는 요약을 고쳤다."
+    },
+    "overall.cups.05.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "e2e3eb9f0e9f5bebd6ba0531b7e2680f2513122a72c403ec7e2adde1c86ac208",
+      "judgment": "실망 속에서도 남아 있는 도움을 살피는 뜻이 행동에 이어진다."
+    },
+    "overall.cups.05.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "69a7321565739533123ab37851f7fb458e6bc97743a72051cfddafa099cd2e53",
+      "judgment": "다시 연결되는 도움과 지난 잘못만 따지지 않는 주의가 연결된다."
+    },
+    "overall.cups.06.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4eb1d89bb9d68b870466d439f6715d411721f0a5cb5a39c747becef77fcc35fc",
+      "judgment": "예전 인연의 반가움을 안부 행동으로 직접 쓴다."
+    },
+    "overall.cups.06.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "f3ecc9099e39f726d504b8408cc4f0995525b17a9fc20cec555d86838eae121c",
+      "judgment": "과거와 달라진 지금의 조건을 확인하는 행동이 재개와 이어진다."
+    },
+    "overall.cups.07.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "4790b7eccfb3f3aa1c2053da8a4cb4f1b06c021bd4585f212192cfa27a0ca2d7",
+      "judgment": "매력적인 말과 실체의 차이를 받는 것을 확인하는 행동으로 설명한다."
+    },
+    "overall.cups.07.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "2f2fa6a58f98214badb1c1217702396efd891d16ee224d13be5be1037109152d",
+      "judgment": "선택을 정하는 해석과 정한 뒤 답하는 행동이 이어진다."
+    },
+    "overall.cups.08.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1980d64e8e7808710a395e86b456f9a9b16e7259364a66246c85cc98e8c5fbcb",
+      "judgment": "만족을 잃은 일을 마치는 뜻을 남은 약속으로 설명한다."
+    },
+    "overall.cups.08.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "218593f2dfe205ea48ae0fdccca25822f1bcfcfe003a8c6718391263a369ec0f",
+      "judgment": "떠나지 못하는 불편을 말하고 달라져야 할 점을 묻도록 이어 쓴다."
+    },
+    "overall.cups.09.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d04ad4a7e539fd808a91b376a2a35ca05251baf8796f8f838b9838f4549840a2",
+      "judgment": "바라던 성취를 기뻐하는 행동이 카드의 만족과 일치한다."
+    },
+    "overall.cups.09.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "4658268d02b0de8043e25aec35abed9d3c239f3df948b56402aa50be9bbc3bac",
+      "judgment": "성취와 만족의 차이를 아쉬움과 새 일을 벌이는 주의로 쓴다."
+    },
+    "overall.cups.10.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "885f212c8973d488c8f35ef93ccf852c339d100f8d9498d13016171347f13d1f",
+      "judgment": "가까운 사람과의 평온을 안부로 직접 옮긴다."
+    },
+    "overall.cups.10.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "6c3b8ebcdd1d803960ed470eb871a6d3a8cf228beac18384eb950feec88d5e6d",
+      "judgment": "가까운 관계의 불편과 상대 생각을 묻는 행동이 일치한다."
+    },
+    "overall.cups.11.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "ec379a3fe66f91e58d433c158c1b0aa04f42aebc5c074aea10273f11d395c237",
+      "judgment": "반가운 소식에 답하는 행동으로 고쳤고 인사 전 완벽한 말 준비라는 불필요한 상황을 없앴다."
+    },
+    "overall.cups.11.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "7a495f0f168b2306a40a7a8089e459365fca8fe884582ada2c28086d38ce28c0",
+      "judgment": "삐친 말이라는 어색한 표현과 떠보기 동기를 없애고 답이 늦을 때 상대를 탓하는 행동으로 고쳤다. 전체 문맥과 다시 대조했다.",
+      "history": [
+        {
+          "status": "revise",
+          "read_bundle_sha256": "601630a3abb89dbdf3d6a76ef9b34597f2f06475fef760dba23b4b167a0fa3f1",
+          "judgment": "삐친 말이라는 표현과 반응을 떠보려는 동기를 행동구에 붙여 어색하므로 고친다."
+        }
+      ]
+    },
+    "overall.cups.12.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "d8ff03e2426f18d870d37d166e3729152c0bf636d53a52e0f2541133659e543a",
+      "judgment": "호의적인 초대와 부탁이 도움을 구하는 행동에 이어진다."
+    },
+    "overall.cups.12.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "500fd323e8b3eafbc04286f0ebea42339e3cad9c7e96e3b8abaca01e588cef13",
+      "judgment": "말과 실행의 차이를 약속 날짜 확인으로 직접 옮긴다."
+    },
+    "overall.cups.13.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "1e3d1a20d733d5c3f68ba6c11c809bc9b0e5ba0128fd6f10bf3d77f15acbb4db",
+      "judgment": "공감과 돌봄의 도움을 고민을 말하는 행동에 잇는다."
+    },
+    "overall.cups.13.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "6dc49d32bd19f92425e563e995d818d9581a954ae7869f57457fdf3f938255df",
+      "judgment": "남을 지나치게 챙기는 문제와 도울 만큼만 약속하는 행동이 맞는다."
+    },
+    "overall.cups.14.upright": {
+      "status": "pass",
+      "read_bundle_sha256": "938dd9be69922c7757ad1ca90908408d0115778cef61ab9b95c7ae26e18c88a1",
+      "judgment": "차분하게 갈등을 푸는 뜻과 한쪽 말만 듣지 않는 행동이 이어진다."
+    },
+    "overall.cups.14.reversed": {
+      "status": "pass",
+      "read_bundle_sha256": "ff7586127c09a150227d476d290a833d2e7ef0cc5f9047eaa1e868a54d589d4f",
+      "judgment": "기분 때문에 달라지는 판단과 약속을 뒤집는 주의가 같은 문맥이다."
+    }
+  }
+}

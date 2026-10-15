@@ -1,0 +1,633 @@
+{
+  "reviewer": "/root/ko_love_writer",
+  "review_kind": "author",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_read_count": 156,
+  "readings": {
+    "love.major.sun.upright": {
+      "read_bundle_sha256": "d588ad6fece189bee9d8f880a7b0ea7359a7cdf9ed913fb3bfb94abc36ef91fa",
+      "judgment": "새 분량 기준으로 134자 전문을 다시 읽었다. 서로의 호감과 즐거운 교제, 편안한 재대화와 상호 의사를 남기고 소개팅·청혼 장면은 덜었다."
+    },
+    "love.major.sun.reversed": {
+      "read_bundle_sha256": "26b17cf91d3b655520805f2840f2f63ff2acbd0b49f126a2d4a79c455469cd71",
+      "judgment": "130자로 새로 읽었다. 기대보다 적은 표현이라는 축약을 애정 표현이 부족하다는 말로 고쳤다. 느린 진전과 재회 유보는 유지했다."
+    },
+    "love.pentacles.03.upright": {
+      "read_bundle_sha256": "1f4a78b27758928250e63cbf7bef675607125e1dacb997e44bb1b15dd990faf7",
+      "judgment": "137자로 줄여 다시 읽었다. 잘하는 모습의 호감과 협력, 서로 노력하는 재회를 남겼다. 일을 나누는 조건을 재회에 붙이지 않았다."
+    },
+    "love.pentacles.03.reversed": {
+      "read_bundle_sha256": "b79ceac9ee6eaef6e5c14c9a300f675557e0b1d4ad30a8109a100fefbe9c30eb",
+      "judgment": "129자로 줄여 다시 읽었다. 사소한 다툼, 맞지 않는 협력과 재회의 일방적 노력을 나누어 남겼다."
+    },
+    "love.major.fool.upright": {
+      "read_bundle_sha256": "773902e3f3faefefc7afcbe421d4d0d95037bb5187d60c39991afdf8c392f1d5",
+      "judgment": "새 만남과 새로운 데이트를 남기고 연락처 교환 장면을 덜었다. 재회만 기다리지 않아도 된다는 뜻을 유지했다."
+    },
+    "love.major.fool.reversed": {
+      "read_bundle_sha256": "995d6c6dfa65e1ce0c55f48940edf8c63dd83c89639226f8ceef200b01d2f146",
+      "judgment": "충동적 고백과 가벼운 약속, 외로워서 서두르는 재회의 주의를 짧게 나눴다."
+    },
+    "love.major.magician.upright": {
+      "read_bundle_sha256": "5185facc7af9a655006eb788334c654e29817fa1b38bdb7242e289b418d15b01",
+      "judgment": "대화로 매력이 드러남과 계획 실행, 서로 원할 때의 재회를 남기고 결혼 준비 장면은 덜었다."
+    },
+    "love.major.magician.reversed": {
+      "read_bundle_sha256": "50b5944136871ea123a9d61fccfe6c3f34cb7c265506b3074111528e5048b29d",
+      "judgment": "143자다. 말과 행동의 차이를 세 상황에서 이해하도록 약속과 지난 문제 확인을 남겨 140자를 조금 넘겼다."
+    },
+    "love.major.high_priestess.upright": {
+      "read_bundle_sha256": "b882a5e1c3779d7369a5fc34528a95e883a644b4d4d86dcc29a1708eb95c152a",
+      "judgment": "감춰진 마음과 기다림을 남겼다. 조용하다고 숨은 사랑으로 해석하는 말을 경계하고 결혼·이별 결정 장면은 덜었다."
+    },
+    "love.major.high_priestess.reversed": {
+      "read_bundle_sha256": "920bb1fc15633a1604d9707180a17c60c44528abb9d0928b755ad5a5e7e14a43",
+      "judgment": "상대의 말을 원하는 대로 믿기, 숨긴 서운함, 주변 짐작의 오해를 각각 남겼다."
+    },
+    "love.major.empress.upright": {
+      "read_bundle_sha256": "b77e341874678ac328ba7760206cb05c4af5695bf0dd70cdaa0d5b221a7e4376",
+      "judgment": "다정한 관심과 애정, 부드러운 재대화를 직접 썼다. 식사나 동거 장면 없이 사랑받는 뜻을 남겼다."
+    },
+    "love.major.empress.reversed": {
+      "read_bundle_sha256": "a65e64f484e4c04c206bedaee607a92310cbc9372deddc509f7a5a4e2a81eca9",
+      "judgment": "과한 돌봄의 부담과 일방적인 노력, 돌봄만으로 어려운 재회를 구별했다. 독립 검수에 따라 연락을 원치 않는 주체를 상대라고 밝혀 세 단락을 다시 읽었다."
+    },
+    "love.major.emperor.upright": {
+      "read_bundle_sha256": "a3555d573d2d0ef65f7d737e822188a6d030c892f5d25adc6ccc09c9cc3da723",
+      "judgment": "약속을 지키는 인연과 안정된 교제, 진지한 재회를 남겼다. 준비 절차를 덜고 약속 이행을 직접 말했다."
+    },
+    "love.major.emperor.reversed": {
+      "read_bundle_sha256": "c3a68a52d5601cecaa304fc84548da0c7c98551f9e610c1e004cc5ced45e715a",
+      "judgment": "일방적인 고집과 결정, 간섭 때문에 가까워지기 어려운 뜻을 남겼다."
+    },
+    "love.major.hierophant.upright": {
+      "read_bundle_sha256": "8c2fb569ece6b1018974cf99b8d7d859cc24c48e90002989d4cbb35b1f15bbb8",
+      "judgment": "소개, 공동 약속, 믿을 만한 조언이라는 뜻을 남겼다. 결혼과 재회 절차를 길게 나열하지 않았다."
+    },
+    "love.major.hierophant.reversed": {
+      "read_bundle_sha256": "d5a7d08b8590a5890570b2e788235afd036f103e380f6b2425406b6c512f8b14",
+      "judgment": "143자다. 관습과 다른 호감은 좋게, 남의 기대에 따른 다툼과 재회는 주의로 구별해 길이를 조금 넘겼다."
+    },
+    "love.major.lovers.upright": {
+      "read_bundle_sha256": "2916919bb0d7a19c1c141d5a9f4d5f26c45b87d24cdadb49304bc1a218aa7f31",
+      "judgment": "144자다. 상호 호감과 애정 표현, 서로 원할 때의 재회를 완결 문장으로 유지하려 140자를 조금 넘겼다."
+    },
+    "love.major.lovers.reversed": {
+      "read_bundle_sha256": "f0a7768203d36272dcd38b9a7469759e09b081b9f47d78ef418cbe26efcdf5b2",
+      "judgment": "짝사랑의 서운함과 앞날의 의견 차이, 일방적인 재회 기대를 분리해 짧게 썼다."
+    },
+    "love.major.chariot.upright": {
+      "read_bundle_sha256": "0ef1c0635cb31200b6d065900d55b43a00f2842dba40b8b9f909fd41060836b9",
+      "judgment": "만남 성사와 다툼 해결, 다시 말할 기회라는 뜻을 남기고 결혼 준비의 세부 설명은 덜었다."
+    },
+    "love.major.chariot.reversed": {
+      "read_bundle_sha256": "e657b52ea15c54d90d3fc0e336f23f7688976cf6e19efff4ea2c9249838ebf51",
+      "judgment": "성급한 고백과 일방 결정, 재회 강요의 문제를 짧게 썼다. 연락을 원치 않는 상대의 뜻을 존중하는 조건은 유지했다."
+    },
+    "love.major.strength.upright": {
+      "read_bundle_sha256": "b66c85e3a295750acc1d0da0c2442a2863c79a20a0a3f74449c6518d4934c5e3",
+      "judgment": "다정함과 인내로 깊어지는 호감, 부드러운 화해와 재대화를 남겼다."
+    },
+    "love.major.strength.reversed": {
+      "read_bundle_sha256": "733ba18ea880e479673ee4c2cae27ba24670bd6537e7161cec9158d9fe54e75f",
+      "judgment": "답 재촉과 질투, 서운함을 쏟아내는 말의 주의를 각 상황에 남겼다."
+    },
+    "love.major.hermit.upright": {
+      "read_bundle_sha256": "af757d369ab22d7facd61fb00d7fc47d8bf78810297566b00bdfe62bad636e3c",
+      "judgment": "조용한 만남과 각자의 생각 시간, 재회 지연을 세 상황으로 담았다. 독립 검수에 따라 재회 소식이라는 우회 표현을 재회가 늦어진다는 직접 판단으로 고쳐 세 단락을 다시 읽었다."
+    },
+    "love.major.hermit.reversed": {
+      "read_bundle_sha256": "e2d4f31176045ae3e4eeee397d9b548fbb4346aa270ef2eecaf2c21c504a4a60",
+      "judgment": "외로움에 따른 만남과 연락 회피를 남겼다. 141자로, 사귀기로 서두른다는 어색한 말은 급히 사귀려 한다는 말로 풀었다."
+    },
+    "love.major.wheel_of_fortune.upright": {
+      "read_bundle_sha256": "3be9afb52d2e2b7f242b70fb963e045abf41aaceba592c13e397c27740f3a41d",
+      "judgment": "143자다. 우연한 인연과 일정 호전, 예상 못 한 연락의 차이를 유지하고 재회 상호 의사를 남기느라 조금 넘겼다."
+    },
+    "love.major.wheel_of_fortune.reversed": {
+      "read_bundle_sha256": "0601dc5c53b5d02a40bd0494be9a8811dd8d8be93938c5232927c4f971841688",
+      "judgment": "지연과 뜻대로 되지 않는 사정을 남겼다. 약속 취소를 거절로 단정하거나 상대만 탓하지 않게 썼다."
+    },
+    "love.major.justice.upright": {
+      "read_bundle_sha256": "086a1bc02b7db813844a2bced20cc8afea51454c6748064050bf3acc175d1460",
+      "judgment": "분명한 답과 상호 책임, 재회나 마무리 선택을 남겼다. 좋은 결과만 확정하지 않았다."
+    },
+    "love.major.justice.reversed": {
+      "read_bundle_sha256": "957a01686ed6863e94456e5a6ae46ddc253bca463fade49e5ee7f09d6414b115",
+      "judgment": "소문에 따른 오해와 일방적인 기준, 잘잘못 다툼의 주의를 담았다. 직접 만나본 모습이라는 결합을 상대가 어떤 사람인지 알아보는 행동으로 고쳐 세 단락을 다시 읽었다."
+    },
+    "love.major.hanged_man.upright": {
+      "read_bundle_sha256": "7db2031756cc4c17757f3b3b05b954cc0ba83699aa89b50c3649dea76d597f95",
+      "judgment": "고백과 결정의 지연, 상대 사정을 이해하는 뜻을 남겼다. 한 사람만 참는 희생을 권하지 않았다."
+    },
+    "love.major.hanged_man.reversed": {
+      "read_bundle_sha256": "683976aedabe55a08c3f4dca64fdc71e67861e4164864b80e4f09898481bd5f1",
+      "judgment": "끝없는 기다림과 혼자 양보한 불만, 답 없는 재회 연락을 구분했다. 이별 뒤 연락하며 재회 이야기를 피하는 상대라는 주체를 밝혔고 상대 속마음을 재회할 생각이 없다고 확정하지 않도록 고쳐 세 단락을 다시 읽었다. 전체 147자이며 연락 주체와 답이 계속 없는 조건을 유지했다."
+    },
+    "love.major.death.upright": {
+      "read_bundle_sha256": "8fd1a1784148804434dc46a0d6838f9858e361d14fa56c6c55c3c3dab5bd3d69",
+      "judgment": "146자다. 이어지지 않는 호감, 커플의 반복 행동 수정, 이별 후 정리의 차이를 남겼다. 거절당한 주체도 분명히 해 소폭 넘겼다."
+    },
+    "love.major.death.reversed": {
+      "read_bundle_sha256": "3e88ed16cbf3eaff4a307ad9e64540572d18c6586a88b7ea3b672d696353b21a",
+      "judgment": "나아지지 않는 만남을 기다림과 반복 다툼을 구분했다. 잘되지 않는 사람이라는 압축을 관계가 나아지지 않는다는 판단으로 고쳐 다시 읽었다. 전체 145자이며 반복되는 세 상황과 상대의 뜻을 존중하는 조건을 남기기 위해 목표보다 조금 길게 유지했다."
+    },
+    "love.major.temperance.upright": {
+      "read_bundle_sha256": "ba11c90f920f107e8520c80e240f1c6a9b8fb474cb97bae8e069970e6966a7a6",
+      "judgment": "서로 맞추고 기다려 편안하게 가까워지는 뜻을 남겼다. 연락 속도를 맞추는 규칙 설명은 덜었다."
+    },
+    "love.major.temperance.reversed": {
+      "read_bundle_sha256": "2db46350488f348049fe455ac2ce2e09a96cc3ee9ae30084ad6bd64fa165d80a",
+      "judgment": "연락과 애정 표현이 한쪽에는 부족하고 한쪽에는 부담인 뜻, 재회 속도의 차이를 유지했다."
+    },
+    "love.major.devil.upright": {
+      "read_bundle_sha256": "b96c67c244b19af9ba51029ffe46cbfece6fbb6feb7f9b75f62f0439c7551b67",
+      "judgment": "강한 끌림과 간섭의 위험을 구분했다. 142자로, 끌림을 무조건 좋은 만남으로 바꾸지 않으려 주의를 남겼다."
+    },
+    "love.major.devil.reversed": {
+      "read_bundle_sha256": "38ab7002239e3d33d85256feea46a802ff2f0799e61dccc2968df1c6d5dd3eff",
+      "judgment": "원치 않는 만남 거절과 간섭 감소, 힘든 관계를 끝내는 회복을 남겼다. 145자로 거절의 대상과 조건을 유지했다."
+    },
+    "love.major.tower.upright": {
+      "read_bundle_sha256": "288b7c85d4e56d7d4958bc43d4011891ebcc295860d60afd3512aea96df7e4bc",
+      "judgment": "기대한 만남의 어긋남과 큰 다툼, 어려운 재회를 구분했다. 상대가 다시 만나기 싫다고 말하는 조건을 밝혀 세 단락을 다시 읽었다. 전체 148자이며 예상과 다른 답을 강요하지 않는 뜻과 거절의 주체를 남기기 위해 목표보다 조금 길게 유지했다."
+    },
+    "love.major.tower.reversed": {
+      "read_bundle_sha256": "4e2ac7f8d06941e782b26f980519a7de8d6a23d426ebf3c61d980e7c9978c96b",
+      "judgment": "드러난 불편을 일찍 이야기해 더 큰 다툼을 피하는 뜻을 남겼다. 사과와 문제 해결에 따른 재회를 구분했다."
+    },
+    "love.major.star.upright": {
+      "read_bundle_sha256": "8920313b37a262fb3570e428fb96a7aee1fd99d9533c4d3522f54cc19e48110c",
+      "judgment": "실망 뒤 다정한 만남과 화해, 서로 원할 때 가까워지는 회복을 남겼다."
+    },
+    "love.major.star.reversed": {
+      "read_bundle_sha256": "733043bcd489769089f19d9fa0b4021702c9393d8f60e93e584aaefa2eaac8aa",
+      "judgment": "무심한 답에 실망하고 애정을 믿기 어렵다는 뜻을 남겼다. 재회를 기다리며 자신을 탓하는 말은 경계했다."
+    },
+    "love.major.moon.upright": {
+      "read_bundle_sha256": "6abfb72ee26dac6ab13e67354477201b321e8777403aab3bae53344db4c7853e",
+      "judgment": "친절의 오해와 확인 없는 의심, 애매한 재연락의 뜻을 유지했다. 숨은 사랑이나 배신은 지어내지 않았다."
+    },
+    "love.major.moon.reversed": {
+      "read_bundle_sha256": "224f7f2401bf3382aef1ec330a45a0e19346c7333cb9e4cfdbad1ff4fcce9823",
+      "judgment": "상대 마음과 연락 이유를 알게 되는 뜻을 남겼다. 141자로 사실 확인이 반드시 재회라는 뜻은 아님을 유지했다."
+    },
+    "love.major.judgement.upright": {
+      "read_bundle_sha256": "1a88e368b188fdc4d47fe1da0451fbc6f6901e91b8dd5fa617c4618127d791dc",
+      "judgment": "다시 주어진 만남과 사과, 재회에 앞선 이해를 남겼다. 고백과 결혼의 세부 장면은 덜었다."
+    },
+    "love.major.judgement.reversed": {
+      "read_bundle_sha256": "6604073804426ad928bebaa61187ccb3a37518612bfb97248d4b68d782d8d9b1",
+      "judgment": "과거의 평가와 잘못 회피로 가까워지기 어려운 뜻을 남겼다. 144자로 새 상대를 지난 사람과 같다고 보는 오해를 풀어 썼다."
+    },
+    "love.major.world.upright": {
+      "read_bundle_sha256": "05931775063fc586f4a1e3d005cd8aa135c3d097ee3a4dcac7ed9a8730e78aab",
+      "judgment": "호감의 결실과 함께 마치는 기쁨, 재회나 좋은 마무리를 남겼다. 142자로 두 가지 결론을 모두 완결 문장으로 썼다."
+    },
+    "love.major.world.reversed": {
+      "read_bundle_sha256": "fd08239f92602066f06689c368154aa146f991283519626510c6670610065ab5",
+      "judgment": "사귀자는 말과 남은 계획, 재회 결론이 늦는 뜻을 남겼다. 144자로 세 상황의 미완성을 구별했다."
+    },
+    "love.cups.01.upright": {
+      "read_bundle_sha256": "970b7a36ec695266def32a8e65c9c7581cb19673405acf3de71673292dda780f",
+      "judgment": "새로운 감정과 따뜻한 반응을 남기고 선물 장면은 덜었다."
+    },
+    "love.cups.01.reversed": {
+      "read_bundle_sha256": "b16a88b380a23c0106f7eb3511daa797aed06fb0e0514dc1a83765a50ac1ac97",
+      "judgment": "고백 답의 지연과 애정 표현의 어려움, 재대화의 막힘을 구별했다."
+    },
+    "love.cups.02.upright": {
+      "read_bundle_sha256": "1948452d201ea25ee6e8cb13de81f51d98478936917e89bf25e3734038a68942",
+      "judgment": "서로 같은 마음과 이해, 상호 의사에 따른 재회를 남겼다."
+    },
+    "love.cups.02.reversed": {
+      "read_bundle_sha256": "0a4cd2cc9ef93e66bf90042229f07122a15d8781ea8bcba3869ebcd77d3a0e29",
+      "judgment": "한쪽만 애쓰는 호감과 양보, 서로 다른 재회 뜻을 남겼다. 거절당한 주체를 분명히 했다."
+    },
+    "love.cups.03.upright": {
+      "read_bundle_sha256": "5002ce96b7f89182d49d58d28920a684e69313bc537c3ae982f2ca4f363c6f3c",
+      "judgment": "모임의 인연과 함께 받는 축하, 편안한 재만남을 남겼다."
+    },
+    "love.cups.03.reversed": {
+      "read_bundle_sha256": "dd28d316826d9a20eef03d377c92659a2b4ce1e20f2ff0571360b8a0923e899c",
+      "judgment": "주변 말의 불편과 둘만의 약속 소홀, 전해 들은 말의 오해를 남겼다."
+    },
+    "love.cups.04.upright": {
+      "read_bundle_sha256": "132dff13309896a27fd208f0d99ecd9df24726a10a2d1ea39368c4c9373c22ea",
+      "judgment": "마음이 가지 않는 소개와 권태, 재회 망설임을 남기고 억지 만남을 권하지 않았다."
+    },
+    "love.cups.04.reversed": {
+      "read_bundle_sha256": "4df08b69884066c1b917700c5773d04c1e9d5e251268b735c5a6533129f1a378",
+      "judgment": "새롭게 가까워질 사람과 다시 즐거운 데이트, 연락 재개를 구별했다. 끊긴 안부를 끊긴 연락으로 고쳐 세 단락을 다시 읽었다."
+    },
+    "love.cups.05.upright": {
+      "read_bundle_sha256": "0bb223b926bf72eb9758b85c881c331af3f10d3aada746ada79cbe3286100a1f",
+      "judgment": "원하던 답을 못 받는 실망을 남기되 앞으로의 인연이나 기존 애정을 모두 부정하지 않게 썼다."
+    },
+    "love.cups.05.reversed": {
+      "read_bundle_sha256": "09719861ddba631dbdcefbe79b1f3b42a62ee1cb5f044036b6e1aa6729ad2d34",
+      "judgment": "새 인연과 사과, 상처의 회복을 남겼다. 141자로 재회와 원만한 마무리를 모두 남겼다."
+    },
+    "love.cups.06.upright": {
+      "read_bundle_sha256": "00546229d64d61b3513706e57f5fc1bf82e0901b78b47ba65be4c3d563c39166",
+      "judgment": "오래 안 사람과 추억으로 가까워지는 뜻을 남겼다. 그리움과 재회 의사는 구분했다."
+    },
+    "love.cups.06.reversed": {
+      "read_bundle_sha256": "8883096c1d16441b4e301d2ec278776a7021c44875a4281ba6afbc77d147b514",
+      "judgment": "지난 기준에서 벗어난 호감과 변한 취향, 현재의 마음을 보는 뜻을 남겼다."
+    },
+    "love.cups.07.upright": {
+      "read_bundle_sha256": "fb6788c22def71c4dfc7d86d358e7c040b7b0b92187d42720b4d52eb25260ff5",
+      "judgment": "실제 만남 없이 커지는 기대와 말뿐인 계획을 남겼다. 사진·메시지 상황은 덜었다."
+    },
+    "love.cups.07.reversed": {
+      "read_bundle_sha256": "d5a791cf273931e9c18fd9760367e55cf415be22b7369e30604304824bc84b11",
+      "judgment": "호감의 선택과 계획 결정, 분명해지는 재회 답을 남겼다."
+    },
+    "love.cups.08.upright": {
+      "read_bundle_sha256": "18513d24a79e41fce4cd2aae742ccbffa49ca1d659ee53dcd6291316f11257e2",
+      "judgment": "만족하지 못한 만남을 끝내고 이별을 받아들이는 뜻을 유지했다. 모든 커플의 이별로 단정하지 않았다."
+    },
+    "love.cups.08.reversed": {
+      "read_bundle_sha256": "5424046cfbc69012668da925b8db6fdab81b27b547e266e0fe99cfef82b30692",
+      "judgment": "외로워 떠나지 못하는 만남과 반복되는 다툼, 재회 망설임을 남겼다."
+    },
+    "love.cups.09.upright": {
+      "read_bundle_sha256": "ad1074cb22f2274723ea87b1190dc454139d51b4fb74634e713008a28ac96793",
+      "judgment": "바라던 고백과 데이트, 원하는 대화가 잘되는 뜻을 남겼다."
+    },
+    "love.cups.09.reversed": {
+      "read_bundle_sha256": "55fa386f1b0b64ae15c9b7219721c2752259ee57c2f56cf7e75a73d2d23373e9",
+      "judgment": "원한 만남 뒤에도 덜 만족하는 뜻을 남겼다. 선물과 장소 설명 없이 기대와 실제 마음을 구분했다."
+    },
+    "love.cups.10.upright": {
+      "read_bundle_sha256": "72af7a69af5f559fa101e3b1720fc362d8cc2d8683784ddde1a49d83684934ff",
+      "judgment": "오래 만날 인연과 편안한 애정, 함께하고 싶은 재회 뜻을 남겼다."
+    },
+    "love.cups.10.reversed": {
+      "read_bundle_sha256": "663bd60ba91676c3071e7f178e48131d8b785624b4c6514d775ea53af42337a1",
+      "judgment": "연애에 대한 기대 차이와 가족 문제, 불편한 재회를 남겼다. 솔로의 조언은 기대를 이야기하는 행동으로 이어지게 고쳐 다시 읽었다. 전체 144자이며 세 상황의 서로 다른 기대와 판단을 밝히기 위해 목표보다 조금 길게 유지했다."
+    },
+    "love.cups.11.upright": {
+      "read_bundle_sha256": "6cd75aa8edc7d79055533a167edb0f4f1f609fce03cf2659c3c48e32fdc2729a",
+      "judgment": "수줍은 호감 표현과 서툰 사과, 조심스러운 연락을 남겼다."
+    },
+    "love.cups.11.reversed": {
+      "read_bundle_sha256": "728715eac1a810854760a5d5257d6f060043b3a99892ced451b5840468fde479",
+      "judgment": "장난과 삐친 태도의 오해, 충동적 재연락을 남기고 게시물 같은 작은 장면은 없앴다."
+    },
+    "love.cups.12.upright": {
+      "read_bundle_sha256": "f4bae153c39ca9e424ad0ecbd32bd89cd786ea626451e8dde59ecc6a4b7308a3",
+      "judgment": "고백과 데이트, 진심을 전하며 가까워지는 교제, 상호 의사에 따른 재회 대화를 담았다. 다정한 약속을 진심 전달과 사과·청혼의 직접 말로 풀어 세 단락을 다시 읽었다."
+    },
+    "love.cups.12.reversed": {
+      "read_bundle_sha256": "a1e8514b1de4f41e9ff0fde565fa6868f48b66a4d63f7338beb3d42deee1c84b",
+      "judgment": "다정한 말과 달리 지키지 않는 약속, 바뀌는 재회 제안을 남겼다. 142자로 기존 약속 이행의 조언을 유지했다."
+    },
+    "love.cups.13.upright": {
+      "read_bundle_sha256": "453cf16391059896e1210d685e9d177ce53d83ab7b19cab6750e7a51a6aff81e",
+      "judgment": "잘 들어주는 인연과 위로, 상처를 이야기하는 공감을 남겼다. 공감과 재회 의사를 구분했다."
+    },
+    "love.cups.13.reversed": {
+      "read_bundle_sha256": "b491ab0db3e5457e972251263769f5a5800e9ef3af3ac07f007bea7a459fc815",
+      "judgment": "기분을 맞추느라 지침과 과한 돌봄, 도움 요청을 재회로 오해하는 주의를 남겼다. 143자로 다시 만나자는 뜻을 생략하지 않았다."
+    },
+    "love.cups.14.upright": {
+      "read_bundle_sha256": "98e5e857ead48ffcbf8532598a5ea97c69e79581046946d18db80dce277b2f14",
+      "judgment": "차분한 애정과 갈등 조절, 침착한 재대화를 남겼다."
+    },
+    "love.cups.14.reversed": {
+      "read_bundle_sha256": "7a86634e9f5c92ec7b5d86c344bbc3384552c6ef4daa6051f7daec44606c5b5d",
+      "judgment": "기분에 따른 태도 변화와 잘못 회피, 죄책감을 주는 재회 요구를 남겼다. 144자로 사용자와 상대의 감정을 구분해 썼다."
+    },
+    "love.wands.01.upright": {
+      "read_bundle_sha256": "e63a297c5fe26e76d5856760fc6d66c0bd04084d3161192cdaba9c12095845e2",
+      "judgment": "새로운 끌림과 데이트, 살아나는 관심을 남겼다. 만남이 잘돼도 지난 다툼은 풀어야 한다는 뜻을 유지했다."
+    },
+    "love.wands.01.reversed": {
+      "read_bundle_sha256": "d4e50e9f787ba25a433d770d3e3cd49e6b0ed1dfe9bb512b6381758ea809931d",
+      "judgment": "만남과 데이트 답, 재회 답의 지연을 구별했다. 반응의 양 대신 상대가 선뜻 답하지 않는 경우를 밝혀 다시 읽었다. 전체 144자이며 각 상황의 지연과 거듭 연락하지 않는 조언을 남기기 위해 목표보다 조금 길게 유지했다."
+    },
+    "love.wands.02.upright": {
+      "read_bundle_sha256": "7b12dbef4cb95de4f2e41939372ec9b0bfdb5b79c966eef6b18509fcbfc3eabe",
+      "judgment": "다음 만남과 앞날의 계획, 현재 사정에 따른 재회 선택을 남겼다."
+    },
+    "love.wands.02.reversed": {
+      "read_bundle_sha256": "48f4036f727618f520e7ea4d6f74e59c816f541cd1f737837e93c409ac4f6966",
+      "judgment": "망설임 때문에 늦는 약속과 결정을 남겼다. 생각할 시간이 필요하다는 말을 직접 쓰게 했다."
+    },
+    "love.wands.03.upright": {
+      "read_bundle_sha256": "2814becab6dcb270f91d535ec78077c7ef50da9263d8b532f35fad1a43ff8b64",
+      "judgment": "새로운 사람과 멀리 있는 인연의 만남이 넓어지는 뜻을 남겼다. 평소와 다른 사람이라는 모호한 말은 처음 보는 사람으로 풀었다."
+    },
+    "love.wands.03.reversed": {
+      "read_bundle_sha256": "e41fe33b8c710bd02ccf18e07d2f7335ef89b9cc18fdd8048ea404e1dc312be4",
+      "judgment": "기대와 실제 약속의 차이를 남겼다. 141자로 일정 지연과 재회 확정을 혼동하지 않게 썼다."
+    },
+    "love.wands.04.upright": {
+      "read_bundle_sha256": "dd1d927d8693f2655ec65326408ee904caf26ba4c7fb14a3cbd60822884b0bea",
+      "judgment": "편한 모임과 함께 받는 축하, 편안한 재회를 남겼다. 청혼이 날이 된다는 어색한 결합을 고쳤다."
+    },
+    "love.wands.04.reversed": {
+      "read_bundle_sha256": "bdfac2164e6c03d658fa71ff408e89d34466115496f06d60ec936d422b640784",
+      "judgment": "원전의 역방향도 좋은 뜻이라는 선택을 유지했다. 큰 행사 대신 소박한 만남의 행복을 직접 말했다."
+    },
+    "love.wands.05.upright": {
+      "read_bundle_sha256": "262cc49e144b1ff008b72f140cf223dab15011081803bc8c7a10c126edf54a3e",
+      "judgment": "경쟁과 의견 충돌, 상대의 말을 반박하는 다툼을 남겼다."
+    },
+    "love.wands.05.reversed": {
+      "read_bundle_sha256": "f2bb4c9e62c7c7a694d560baebd0b831bc23f6d91ccb932ffa7e07e97e4e01d1",
+      "judgment": "모순된 말과 덮어둔 불만을 남겼다. 역방향을 자동으로 화해로 바꾸지 않았다."
+    },
+    "love.wands.06.upright": {
+      "read_bundle_sha256": "e1bfb65a8f2b21296885a7d32811e85031da40d9127564f2c793bdba41759a7d",
+      "judgment": "고백의 좋은 반응과 관계의 인정, 재회 성사를 남겼다."
+    },
+    "love.wands.06.reversed": {
+      "read_bundle_sha256": "4e1b42f91ea9ee98fcba22170d841f3bc18d79846013c750643559ee48f3a319",
+      "judgment": "고백에 대한 시큰둥한 태도와 늦은 답, 부족한 고마움과 어려운 재회를 담았다. 반응이 적다는 양 표현을 고쳐 세 단락을 다시 읽었다. 전체 141자이며 상대 태도와 결과를 밝히는 데 필요한 말을 남겼다."
+    },
+    "love.wands.07.upright": {
+      "read_bundle_sha256": "2376a7d4f11e66cad8fb075969c0182de384ed11bec4b33a19431cbf638aa4dc",
+      "judgment": "주변 반대 속에서도 두 사람의 뜻으로 만남을 지키는 뜻을 남겼다. 상대의 거절은 이겨야 할 반대가 아니라고 구분했다."
+    },
+    "love.wands.07.reversed": {
+      "read_bundle_sha256": "575400aeed4c41f4fb1375e6888e51ba61b1940b7d2a7077719d696e9b0c13d6",
+      "judgment": "주변 말에 흔들리는 만남과 설득의 피로, 주변 반대 속 재회 부담을 담았다. 직접 겪지 않은 말이라는 결합을 전해 들은 말로 고쳐 다시 읽었다."
+    },
+    "love.wands.08.upright": {
+      "read_bundle_sha256": "6451cd74d4964cb9b62518521e74976435520bfb2ec00e6bc8be9b3740ee82e9",
+      "judgment": "빠른 연락과 계획 확정, 이어지는 대화를 남겼다. 143자로 재회는 서로 원할 때라는 확인을 유지했다."
+    },
+    "love.wands.08.reversed": {
+      "read_bundle_sha256": "b0186ce26535fe168dda648ac519a03859f0951a5d0eccd240c2f3b5ac3d0ae5",
+      "judgment": "엇갈린 말과 질투의 충돌을 남겼다. 메시지라는 좁은 소재를 빼고 말과 연락으로 썼다."
+    },
+    "love.wands.09.upright": {
+      "read_bundle_sha256": "4554df20a4b5e23feda53e3e481adfea16f553852d98077e9ee366e1a7c8cfc0",
+      "judgment": "과거에서 배운 주의와 약속 이행, 신중한 재회를 남겼다."
+    },
+    "love.wands.09.reversed": {
+      "read_bundle_sha256": "65b686f2eaf372947b96a95dee46f7b70dd1dde5f164dc50ff5a737efc17e931",
+      "judgment": "지나친 의심 때문에 이어지는 다툼과 재회의 어려움을 남겼다. 145자로 설명을 못 믿는 원인과 연락을 쉬는 조건을 유지했다."
+    },
+    "love.wands.10.upright": {
+      "read_bundle_sha256": "7f41a33a73ab5f62c5687044f726be3e6f6698813f23c93a669cee3c2aecc3d2",
+      "judgment": "시간 부족과 한쪽에 몰린 부담을 남겼다. 재회를 맡을 일의 분배로 비유하지 않고 혼자 애쓰는 만남으로 썼다."
+    },
+    "love.wands.10.reversed": {
+      "read_bundle_sha256": "68baf3896eb56755f300072cfc6c90a2bffbfb5176af29d84129c4d121470066",
+      "judgment": "약속을 감당하지 못함과 부담 떠넘김을 남겼다. 역방향을 무조건 부담 해소로 바꾸지 않았다."
+    },
+    "love.wands.11.upright": {
+      "read_bundle_sha256": "f8775a0340522d659acb7919b954f1e0b910b9e1316e43d23b762688d68f8b2c",
+      "judgment": "새 연락과 호기심의 데이트, 활발한 재대화를 남겼다."
+    },
+    "love.wands.11.reversed": {
+      "read_bundle_sha256": "2821a9248f0855d1fc7c3c6eb9eea2b2e0d71f37973cf1f7a8e562a26495a90b",
+      "judgment": "일정하지 않은 관심과 바뀌는 계획, 애매한 연락을 남겼다. 144자로 확인 안 된 말을 확정하지 않는 주의를 유지했다."
+    },
+    "love.wands.12.upright": {
+      "read_bundle_sha256": "af79bf9f4a0437c5fa9eee07f19d6e911f5bce350ba1593822dc92bc180c6f3d",
+      "judgment": "적극적으로 가까워짐과 이동의 즐거움을 남겼다. 빠른 만남이 즉시 재회 결정은 아니라고 구분했다."
+    },
+    "love.wands.12.reversed": {
+      "read_bundle_sha256": "234f9a911f00aa73d847c19a9708bf5d7f9487b1dfcbd789bcd73813615f507e",
+      "judgment": "빠른 접근 뒤 중단, 일방적인 일정과 재회 번복을 남겼다."
+    },
+    "love.wands.13.upright": {
+      "read_bundle_sha256": "91bf1e27247f31496026cf9bbd066459020317aa2386ab782eb2299f751d17fb",
+      "judgment": "관심을 받는 매력과 다정한 교제, 재대화의 호응을 남겼다."
+    },
+    "love.wands.13.reversed": {
+      "read_bundle_sha256": "059b09ee9b36aa11d80adad58feb23a5f5a2cd4ea24725c6ed7e4d6f4bebf821",
+      "judgment": "비교와 질투, 애정 증명 요구를 남겼다. 144자로 상대가 연락을 원치 않는 주체와 근황 확인의 주의를 명확히 했다."
+    },
+    "love.wands.14.upright": {
+      "read_bundle_sha256": "e0a269a75a4e51f871dd7636b5072c09b90d2a607a768294d162e1d32cd1a875",
+      "judgment": "정직하고 적극적인 고백과 약속 실천을 남겼다. 142자로 재회 상호 의사와 지킬 수 있는 약속을 유지했다."
+    },
+    "love.wands.14.reversed": {
+      "read_bundle_sha256": "d1e38b43ec5989bccd2244ccd50bf80910c7a7fd497d84be2f4d50e4a8c2daeb",
+      "judgment": "지나친 기준의 불편함과 일방적인 계획, 많은 재회 조건의 문제를 담았다. 혼자 정답을 정한다는 말을 상대 생각을 듣고 결정하는 행동으로 바꾸어 다시 읽었다."
+    },
+    "love.swords.01.upright": {
+      "read_bundle_sha256": "a0f18177ce4fdd0cb43a609d62817861a429c40a40e3aa0a89f7f807464e0ec7",
+      "judgment": "분명한 답과 오해 해소, 재회 여부 결정의 뜻을 남겼다. 141자로 좋지 않은 답도 존중해야 함을 유지했다."
+    },
+    "love.swords.01.reversed": {
+      "read_bundle_sha256": "4ce8939a5015c42b1ef390ce36911ce214ae15a5013a5af826f5d42ca6612189",
+      "judgment": "고백의 오해와 다른 기억, 엇갈린 재회 뜻을 남겼다. 단편적 메시지라는 소재는 덜었다."
+    },
+    "love.swords.02.upright": {
+      "read_bundle_sha256": "04b7486ddd564ae4edb23d359af952bd3d5b53b2e5eadc923ecc02cabd27d6e4",
+      "judgment": "결정하기 어려운 고백과 팽팽한 의견, 결론 없는 재회를 남겼다."
+    },
+    "love.swords.02.reversed": {
+      "read_bundle_sha256": "88953be80a6070642e5040cd66c175b844da134986fb23e8a44435ee1579d7d7",
+      "judgment": "엇갈린 조언과 미룬 문제를 한꺼번에 말하다 생기는 다툼, 급한 재회 결정을 구분했다. 문제가 다툼이 된다는 결합을 고쳐 세 단락을 다시 읽었다. 전체 143자이며 미뤄둔 여러 문제를 한꺼번에 정하려는 상황과 생각할 시간을 요청하는 조언을 남겼다."
+    },
+    "love.swords.03.upright": {
+      "read_bundle_sha256": "a473757c20f91d9fffa4fc2e49006d0f1484a22f51f63a1ce9fe863c15f0dd03",
+      "judgment": "아픈 답과 상처 주는 말, 재회 실망을 남겼다. 145자로 거절 존중과 위로받는 선택까지 유지했다."
+    },
+    "love.swords.03.reversed": {
+      "read_bundle_sha256": "d9b34cd01093c5daa45dc4f4771aec8ba4b8f47d77e2e730a8efb236f5dc4d8d",
+      "judgment": "새 만남과 사과, 이별의 아픔이 줄어드는 뜻을 남겼다. 143자로 용서가 재회의 의무는 아니라는 뜻을 유지했다."
+    },
+    "love.swords.04.upright": {
+      "read_bundle_sha256": "8b160816c8e26397cf9edb2036d66e9d3e1284c7ca9b8fb7122d94b338a0696c",
+      "judgment": "조용한 만남과 다툼 뒤 휴식, 연락의 일시 중단을 남겼다. 침묵에 뜻을 붙인다는 비유를 혼자 짐작하지 말라는 말로 풀었다."
+    },
+    "love.swords.04.reversed": {
+      "read_bundle_sha256": "9d9773e7be7c2507a011832a13ae2e6cf386599f30bb6c06903e95c052a64285",
+      "judgment": "쉰 뒤 다시 만나는 회복과 남은 피로를 남겼다. 143자로 연락 재개를 즉시 재회로 보지 않게 했다."
+    },
+    "love.swords.05.upright": {
+      "read_bundle_sha256": "42292825d0bb34d6785e855ed79c640875608396aa2862d80532dfa1a27d71b8",
+      "judgment": "자존심 경쟁과 이겨도 남는 상처를 담았다. 잘못을 인정해야 하는 사람이 상대임을 밝혀 이별 문단을 고치고 세 단락을 다시 읽었다."
+    },
+    "love.swords.05.reversed": {
+      "read_bundle_sha256": "ab49f2115556cc80d93411ffc9af77435cd06104bcfb088d8aa1d2dbe7dceda6",
+      "judgment": "이기려는 다툼을 멈추고 양보하는 화해를 남겼다. 재회와 덜 아픈 마무리를 모두 열어뒀다."
+    },
+    "love.swords.06.upright": {
+      "read_bundle_sha256": "fc2a88be17e9a1541b737f108e1b46cae85e809e882c4c6240a6777c89010761",
+      "judgment": "불편한 만남에서 벗어나고 갈등이 잦아드는 뜻을 남겼다. 재회 절차 설명은 덜고 이별 정리와 도움을 받는 뜻을 남겼다."
+    },
+    "love.swords.06.reversed": {
+      "read_bundle_sha256": "a5cec5a73fbdb304902aefe8d02dd36a91fc48a985acffeb2193503426995e6c",
+      "judgment": "그만 만나려던 사람과 연락하며 예전 문제를 되풀이하는 뜻을 직접 밝혔다. 연애의 다툼도 지난 문제를 두고 다시 다투는 말로 고치고 재회 뒤 반복 문제와 함께 읽었다."
+    },
+    "love.swords.07.upright": {
+      "read_bundle_sha256": "d67f2cd7ea795b439cd35f0752eee1014d2214533724dd755c7fecb1bc50cade",
+      "judgment": "속마음과 어려운 대화를 피하는 주의를 구별했다. 이별 뒤 연락하는 상대가 다시 사귈지 답하지 않는다는 주체와 질문을 밝혀 세 단락을 다시 읽었다."
+    },
+    "love.swords.07.reversed": {
+      "read_bundle_sha256": "29385ac18dc4648743bc59a61ddbc23dfbcd375c160754bd7ac2878c0c01851e",
+      "judgment": "숨겼던 마음 공개와 잘못 인정, 연락 이유 확인의 뜻을 남겼다."
+    },
+    "love.swords.08.upright": {
+      "read_bundle_sha256": "0132814e6998aa7f9ac45125db261bf5b01a5c1a362566e8dd5c97076e3dbe07",
+      "judgment": "두려움 때문에 다가가지 못하고 불만을 참는 뜻을 남겼다. 조건을 길게 겹치지 않고 자신도 선택할 수 있다는 조언을 썼다."
+    },
+    "love.swords.08.reversed": {
+      "read_bundle_sha256": "ebd97919829a3414a91d45898eb6127bff155e5f4932da5735aaa73601199845",
+      "judgment": "대화할 기회와 불만 표현, 재회 외의 새 선택이 생기는 뜻을 담았다. 때를 벗어난다는 결합을 새 만남도 생각할 수 있다는 변화로 고쳐 다시 읽었다. 전체 141자이며 재회 여부에서 자신의 뜻도 중요하다는 조건을 남겼다."
+    },
+    "love.swords.09.upright": {
+      "read_bundle_sha256": "38c3cd7687447a8780f76eb8855e3d107287426c1f1fe4ce9ec4d744b3a32df4",
+      "judgment": "반복 걱정과 짐작을 사실처럼 여기는 다툼을 남겼다. 늦은 밤 긴 문자 같은 좁은 장면은 덜었다."
+    },
+    "love.swords.09.reversed": {
+      "read_bundle_sha256": "b3d2234d3e2ab9442a08066dbda2892f6c6bfa1611f602788cf0f92eea9af1c0",
+      "judgment": "사정을 듣고 걱정이 줄고 도움을 받아 일상을 되찾는 뜻을 남겼다."
+    },
+    "love.swords.10.upright": {
+      "read_bundle_sha256": "3017a218b8898bade81545885b512ba3c354d7839159e98846b26dcd90f3eca5",
+      "judgment": "끝나는 만남과 반복 다툼의 한계, 관계 마무리를 구별했다. 연락을 멈춰야 할 조건에서 상대의 거절을 밝혀 세 단락을 다시 읽었다. 전체 143자이며 거절한 주체와 세 상황의 종료 의미를 유지했다."
+    },
+    "love.swords.10.reversed": {
+      "read_bundle_sha256": "4a44dc22504020259268cb6996f2139607d12277efe70b1b20dfc639b685e95f",
+      "judgment": "점진적 회복과 남은 피로를 남겼다. 145자로 바로 사귀거나 모든 문제를 해결해야 한다고 서두르지 않게 했다."
+    },
+    "love.swords.11.upright": {
+      "read_bundle_sha256": "ba633d3c4467ebbe62e14bc652a157ab3635b4455ba0ab1b5b4eb046005a2546",
+      "judgment": "질문하며 알아가는 호감과 약속 확인, 재회 뜻 확인을 남겼다."
+    },
+    "love.swords.11.reversed": {
+      "read_bundle_sha256": "86d2d72ec2dac2846e0bba43e639680133c1d0b740e61a093cef1dc36acf3b43",
+      "judgment": "소문과 지나친 의심, 전해 들은 말의 오해를 남겼다. 게시물이라는 소재는 덜었다."
+    },
+    "love.swords.12.upright": {
+      "read_bundle_sha256": "34cfaa2954db22c023f51d8edf707f333ab8c50ed723c8d42b00f370f28e07af",
+      "judgment": "빠른 고백과 결정의 장점과 성급한 말의 주의를 함께 남겼다."
+    },
+    "love.swords.12.reversed": {
+      "read_bundle_sha256": "5f2e5ca4a2a0a8720aa5cd88ed623638cfc5ba29873bf23fb0ab038c867265b4",
+      "judgment": "준비되지 않은 고백과 몰아붙이는 말, 급한 재회 요구의 주의를 남겼다."
+    },
+    "love.swords.13.upright": {
+      "read_bundle_sha256": "eed08a60e4c19dcce8bd159ef14816b6baa67cb17c736ddb4baae6bdb742b109",
+      "judgment": "분명한 선택과 감정에 휩쓸리지 않는 정리를 남겼다. 148자로 예의 때문에 만남을 잇지 않음과 그리움만으로 재회하지 않음을 직접 썼다."
+    },
+    "love.swords.13.reversed": {
+      "read_bundle_sha256": "658c379aae715397c6421b2f1a332eb0ef1adbe27c76a4d8f0a95c54e4cb3c8c",
+      "judgment": "과거의 편견과 비꼬는 말, 상처를 돌려주려는 연락을 남겼다."
+    },
+    "love.swords.14.upright": {
+      "read_bundle_sha256": "8e1d05c8e1802ed3537597c2c89da919610dd3d631d621f86a6c1d207dfade50",
+      "judgment": "진지한 의사 확인과 사정을 고려한 결정, 지킬 수 있는 재회 약속을 남겼다."
+    },
+    "love.swords.14.reversed": {
+      "read_bundle_sha256": "595b26fcc1629a8b6751057fbb9f07584a23bd1b59b91d7bb17c7b8de1d76ede",
+      "judgment": "일방적인 판단과 불공평한 규칙, 조건을 강요하는 재회를 남겼다. 147자로 불공평한 요구를 말하라는 모호한 지시를 따르지 않아도 된다는 말로 풀었다."
+    },
+    "love.pentacles.01.upright": {
+      "read_bundle_sha256": "3e9747da8bb92d95bd73a0e3c588bc69d163b5e2126c7f72301bdd34110f8170",
+      "judgment": "실제 만남이 시작되고 준비가 갖춰지는 뜻을 남겼다. 예약과 결혼 준비의 작은 장면은 덜었다."
+    },
+    "love.pentacles.01.reversed": {
+      "read_bundle_sha256": "4fc2634088107d4200875090c45636b93c0c782abb739d793253f5281de55515",
+      "judgment": "좋은 조건이나 돈을 써도 편하지 않은 만남을 구별했다. 문제가 달라졌다는 표현을 예전 문제를 어떻게 풀지 이야기하는 행동으로 고쳐 다시 읽었다. 전체 141자이며 재회 약속보다 실제 문제를 다루는 뜻을 유지했다."
+    },
+    "love.pentacles.02.upright": {
+      "read_bundle_sha256": "fae5249f3ed03c03c79cea1d7856d509a508c901b1e02af7acdbd72867c8b4cc",
+      "judgment": "바쁜 생활에서도 유연하게 만나는 뜻을 남겼다. 식사와 차의 구체적인 장면은 덜었다."
+    },
+    "love.pentacles.02.reversed": {
+      "read_bundle_sha256": "7490b9e3fffdc9b188f67b6be392bfe86d949acd52f2a868d903a1acb395d6e9",
+      "judgment": "과한 일정과 억지 약속의 부담을 남겼다. 즐거운 척하는 설명을 덜고 사정을 미리 전하게 했다."
+    },
+    "love.pentacles.04.upright": {
+      "read_bundle_sha256": "5e41c063b60e1a7415d4fdaec5a93be28ecf3f2631c1b6a2f9aeb9806983f9ba",
+      "judgment": "확실함을 원해 마음을 감추고 간섭하는 뜻을 남겼다. 거절 뒤 핑계로 만남을 요구하지 않게 썼다."
+    },
+    "love.pentacles.04.reversed": {
+      "read_bundle_sha256": "9c2ab2a4bf1e66b20b8ce1733e773ff6485d1e392f48813a1220f3000ec1e562",
+      "judgment": "원전의 지연과 반대를 유지했다. 집착에서 풀려나는 회복으로 바꾸지 않았다."
+    },
+    "love.pentacles.05.upright": {
+      "read_bundle_sha256": "da4eb9d6473d3ac17b4b52785c8895ec5448938b2da5c541bef9da34f0e9e20d",
+      "judgment": "시간과 돈의 부족, 필요한 관심과 기대한 답의 부족을 구별했다. 연락을 붙잡는다는 비유를 연락할 때마다 서운하면 멈추는 행동으로 고쳐 다시 읽었다. 전체 141자이며 부족함의 세 상황과 연락을 멈출 조건을 명시했다."
+    },
+    "love.pentacles.05.reversed": {
+      "read_bundle_sha256": "bf0601a4891b0957047741173b9880baace5db830e4b20d4617a74f28298027c",
+      "judgment": "변하는 약속과 남은 다툼, 재회 뒤 불편함을 담았다. 약속이 바뀌어 지친 상황에서 상대의 만날 뜻을 묻는 조언으로 이어지게 고쳐 세 단락을 다시 읽었다."
+    },
+    "love.pentacles.06.upright": {
+      "read_bundle_sha256": "79befc0d2700e22fac04492be2d61bd0b802be76b3c49cd00f1d7dc6e48159db",
+      "judgment": "호의와 도움을 주고받는 만족을 남겼다. 친절과 재회 의사는 구분했다."
+    },
+    "love.pentacles.06.reversed": {
+      "read_bundle_sha256": "00ba1a1db60327dab2dc1ff73b6ece8e7e916bc9562bd21d3f6fdfd442795580",
+      "judgment": "호의와 비용을 이유로 선택을 요구하는 불균형을 담았다. 상대가 도와줬던 일을 내세워 재회를 요구한다는 주체를 밝혀 다시 읽었다. 전체 150자이며 호의가 교제 의무가 되지 않는다는 뜻과 도움의 주체를 생략하지 않기 위해 조금 길게 유지했다."
+    },
+    "love.pentacles.07.upright": {
+      "read_bundle_sha256": "e1f6298b6980acf69d1e44d2363d40f3329b8d0e3f82f502265d5fefd25d20b0",
+      "judgment": "현대 해석의 인내와 느린 호감 성장을 남겼다. 서로 원할 때의 재대화로 한정했다."
+    },
+    "love.pentacles.07.reversed": {
+      "read_bundle_sha256": "15d8adbb6129282a592ee30364d050bc3ded1a2ef6259ab41230b4b9029f55ce",
+      "judgment": "노력에도 진전 없는 만남과 미뤄지는 계획, 불분명한 재회 답을 담았다. 자신을 몰아붙이는 표현은 혼자만 더 노력해야 한다고 생각하지 않는 직접적인 조언으로 고쳐 다시 읽었다."
+    },
+    "love.pentacles.08.upright": {
+      "read_bundle_sha256": "bce2d11db3f4a85672653a849938fcea6d8a384b060282dd48fbb0522eff4cd9",
+      "judgment": "꾸준한 관심과 성실한 준비, 바뀐 행동으로 쌓는 믿음을 남겼다."
+    },
+    "love.pentacles.08.reversed": {
+      "read_bundle_sha256": "f6642fd0eb51c4f0e1c9eec7e5b8c3286a047161c3d3e8de4a862d8b2e8c53e9",
+      "judgment": "꾸민 말과 보여주기 위한 다정함, 겉으로 달라진 척하는 재회의 불신을 구별했다. 이별 문단을 자신의 말과 행동 한 관점으로 고쳐 세 단락을 다시 읽었다. 전체 143자이며 재회 답의 아쉬움과 말만으로 믿음을 얻기 어려운 뜻을 남겼다."
+    },
+    "love.pentacles.09.upright": {
+      "read_bundle_sha256": "f2b5692ded207d67ae6181a51776caa5c5edab4fe47cd816643279e1a8c05b1e",
+      "judgment": "생활이 맞는 만남과 각자의 시간을 존중하는 애정, 독립적인 만족을 남겼다. 믿음이 편안하다는 말은 서로 믿고 편안하다는 말로 고쳤다."
+    },
+    "love.pentacles.09.reversed": {
+      "read_bundle_sha256": "b3891b9439a291cdc9953a73e63bb73ad276b13d4e25e9ab70bdc0187e26d97a",
+      "judgment": "좋게 들은 이야기와 실제 모습, 기대뿐인 재회의 불일치를 남겼다."
+    },
+    "love.pentacles.10.upright": {
+      "read_bundle_sha256": "1380513a28da2b79f30facb78d94367e098d8999e4a0c3df9cab1a201a781bbd",
+      "judgment": "진지한 소개와 가족의 지지, 오래 함께할 준비를 남겼다."
+    },
+    "love.pentacles.10.reversed": {
+      "read_bundle_sha256": "502a63bdbb68c8ac497e17247cb3d65a5fa48322461179c03bda2b0a3d9e0c4e",
+      "judgment": "장기 기대 차이와 가족·생활의 갈등을 남겼다. 주변의 요구보다 두 사람의 뜻을 우선하게 했다."
+    },
+    "love.pentacles.11.upright": {
+      "read_bundle_sha256": "7f3821f4ed139755267f1378dcd3f008564fe1f2f6bdc998ee77c880e2a3757d",
+      "judgment": "공통 관심사와 기억한 배려의 실천, 조심스러운 새 연락을 남겼다."
+    },
+    "love.pentacles.11.reversed": {
+      "read_bundle_sha256": "b0c3981923e23a35c7b1f6c9cc6ba506ea4c89a9941db55df587f1d920cc4a84",
+      "judgment": "활발한 연락과 어긋나는 약속, 관심 분산과 기대와 다른 재회 연락을 구별했다. 연애 문단은 상대 말에 집중하는 조언으로 연결해 다시 읽었다. 전체 143자이며 안부나 부탁을 재회로 오해하지 않는 조건을 유지했다."
+    },
+    "love.pentacles.12.upright": {
+      "read_bundle_sha256": "ed9dffb1d50d55d824bcbe0385d430cb75035ce2db1b659d602bca5fed7f5a53",
+      "judgment": "천천히 쌓는 만남과 꾸준한 배려, 상호 의사가 있는 재회 대화를 남겼다. 연애 문단의 일반적인 준비한 일을 마치라는 조언은 배려와 이어지지 않아 덜어내고 세 단락을 다시 읽었다."
+    },
+    "love.pentacles.12.reversed": {
+      "read_bundle_sha256": "74bc5e48203d5905571d43ed120454faf95245f56998f59f0f4a5e29502896ad",
+      "judgment": "수동적인 연락과 애정 표현 소홀, 반복되는 재회 정체를 남겼다."
+    },
+    "love.pentacles.13.upright": {
+      "read_bundle_sha256": "8db44f9042af4e03a2d1a9e1c5933648dd9cb75b7464a62db17bca1af74780c0",
+      "judgment": "다정하게 챙기는 일상과 함께 쉬는 만족을 남겼다. 141자로 배려의 대가로 재회를 요구하지 않게 썼다."
+    },
+    "love.pentacles.13.reversed": {
+      "read_bundle_sha256": "8386e7c2127394c8839d1c0bd3b58a465430f68d5b9c15c3a7b7113980c43549",
+      "judgment": "불신과 간섭, 의심 때문에 망설이는 재회를 남겼다."
+    },
+    "love.pentacles.14.upright": {
+      "read_bundle_sha256": "30dab73858093bebbacb60bdf7932506fa52c87b5a567dc215cdf8e7eba97ef0",
+      "judgment": "진지한 만남과 실제로 이루는 계획, 재회를 막던 문제의 해결을 남겼다. 143자로 함께 준비하는 뜻을 유지했다."
+    },
+    "love.pentacles.14.reversed": {
+      "read_bundle_sha256": "377a6848047ba247f500c8c43f93a6f513c82f1b2e0a8c7b8298ec12fd31f71c",
+      "judgment": "돈이나 조건을 내세워 상대를 따르게 하는 주의를 남겼다. 144자로 재회의 대가로 원치 않는 요구를 받아들이지 않게 썼다."
+    }
+  }
+}

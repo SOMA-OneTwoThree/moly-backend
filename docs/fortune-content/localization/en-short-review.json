@@ -1,0 +1,2400 @@
+{
+  "schema": "moly-fortune-short-fields-review-v1",
+  "locale": "en",
+  "reviewer": "card_major_writer",
+  "status": "complete",
+  "scope": "Only headline/do/pause were directly read for standalone clarity and collocations. Bundle hashes identify containing snapshot, not full-body reading. No full-reading or KO parity certification.",
+  "entries": {
+    "overall.major.chariot.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "d131fcf21dbd7c5798d8b49d3dc59e912861bbe9d9d5639dce0075f6f9c7616f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "caf3ff1af0737c27843ecd3379be093c0c3cc09daf21ba7bdb42e559cc8f56ef",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "결과 보장 없이 재도전과 마무리의 조건을 분명히 썼다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.chariot.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.chariot.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "bc8110d31476101ec91c538efacece3cbc155fe236160c615d29ed0417e3db07",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d8f351646f8bdf2efc3bc40d1bf9fcd2f3ad46defeacc795b6ab36b7361274a1",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "지연과 무리한 병행을 구별하고 마감시점 표현을 자연화했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.chariot.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.sun.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3d17ab535f0cc7fecc043e381c964fd8c70661ba6f0668b4a975dd4c8eeb1409",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ce725424a8c5733880ea914e0e8c54120ee49e1f5d90ffeac7f0fe075890fc76",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "a long effort 대신 실제로 오래 해온 일이라는 자연스러운 주어로 읽힌다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.sun.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.sun.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "b2cdd45e6d868275f6b35b184a883b103e3cbb1260c40a0c5ec55d36efcb1c2c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "93a1eb37de2107e33cdaf341aecf90e6a1e69063287e22d69d67942aeed0f3a7",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "unfinished matters를 결과 기다림으로 분명히 하여 행동 목적을 유지했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.sun.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.tower.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "c46ed6d9b2e76301e5e0e02010ea8333090cdd7c5776864b969282b935e30445",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "84583a471ead5e5c08c9d76ccef423efa613d0cfd7b37e03cdeb2d4b7671799f",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "충격을 과장하지 않고 설명 청취와 응답 시점을 구별했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.tower.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.tower.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "456cd147629e837c6aef1a9b882864fc12b345df4e6124ad5c7f6dc3b9461def",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9a91677c33dd938a2ee5946fc1be6ccc20be3aee79cebb5bb636f3cb0298804d",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "조용히 지나가는 상황의 직역을 풀고 별 탈 없는 경과를 명시했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.tower.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.moon.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "209b2d9435fdc32533dd85395c323bf4896778852cb1a06f982197bbf74e55cd",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d8f61b209b330e774a6b738752845cf8443565fb02705f2c0a4b487c83b8c55a",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "불확실한 말의 확인과 감정적 반응을 분리했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.moon.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.moon.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "98a5e4dbd879e2839e3b8b92630e774fe3bc5a3a9b2debe1c5ac056bb7e414ab",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d916dd864c0e31193265c11a6f40a654008e98c4591360ea44d2d8e60df8b60a",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "밝혀진 부분의 긍정을 전체 결과 보장으로 확대하지 않았다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.moon.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.temperance.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3f45aaa4d403ea1c271c0eb461e2e6f1c7b1815d4b4ffa3062285f82f22cfc50",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f34f68303050ccfdfef9aff54a2525466c0bacff42260a7754df904abd8f05a7",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "짧지만 대상과 이유가 충분해 길이를 억지로 늘리지 않았다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.temperance.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.temperance.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ae275c6a7b75a239907c674576eddb1adb1e2f0ee958c0dad5bec6565779d221",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "dbb4b3fe3495ccee754779b220886b4c920fb49214a01cf299a8da048efb34db",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "일의 지연과 말에 대한 반응을 서로 다른 행동으로 유지했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.temperance.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.fool.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "95167d42850bbbde9ddce25459ddf45c9eb964a8f12b0f157bf6984c116a6d77",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "04c5cdca27c0a7cf028d98062f21ca33017559a60aed4fb0b4fe287bb6425593",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "시도와 장기 확약을 구분하고 강요 없이 조건을 유지했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.fool.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.fool.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ceb8a906c6019719d83e107adce181a45c0dd480ea552177afcb51d546b37742",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "89cae60ae3ea69c55302db7964d1d29c5b2aea329e608014be98bda3561ef8ac",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "수정본은 straight after it 앞에 선행 일이 나오므로 시간 지시가 이해된다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.fool.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.magician.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "6e6486bfb206a7001e842f9aac4773fd22da8af231a87e3cb9855cb55595b715",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6431fe220d5975e68665b5394eb0a7f914aef0599db7a6475af4ee85e03f1d55",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "능력 활용과 끝없는 준비의 구별이 자연스럽다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.magician.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.magician.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "2fe0ca55d652e1879c3b10c5f7494e53ee4edf27c20ea1757770b56dcdc78b41",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "cdbdb8d8516e51f86450a7cbdbfa28a7f7b3e6737372eaea6e1f74a1d014931f",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "타인의 제안과 본인의 약속을 따로 다뤄 방향이 선명하다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.magician.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.high_priestess.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "501746d4989093e2b76db326d803cd696e8ff560cbcb4b8a21d8b6c038d23338",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a37791a07121c1eebf7e6d72fc0d6799817cd669db3234b52231a8cce6eca91a",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "문장은 다소 길어도 기다리는 정보와 판단 시점이 분명하고 단정하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.high_priestess.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.high_priestess.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "2acae328bd2a0dcba3fafc4b1d6e47d5b492cd41a5b285ce22b8956928206036",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8e95c3b7b4170ece890e9730d76e2b5358f31fa5e0a09a5db773dc4ba064c8f8",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "도움의 전제 확인과 사실 전달의 구별을 보존했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.high_priestess.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.empress.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "03848dde660f0ba63a4645b4565378f7c210b18dc151af343a8034ca94adc103",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2537463fb2947a3f56bdc486a21a7d5afb50f92e48096761a891d13635a45f4a",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "대상인 도움 준 사람들이 문장 사이에서 유지된다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.empress.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.empress.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ed0f5d9ac633425a1422d3398fa76fbc633c892d8addb1b619ef027b7c578fe2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "34f043c8b5e60b793fd87de4143cb2844f037f0f0f4564062f2d918156077690",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "yours와 theirs가 각자의 일을 명확히 지시하고 감사를 보장하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.empress.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.emperor.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "75dbe32a945968183327680bff5ed69ab479385c4d6b5818112a247c555a6be3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4c1f13610d0dc1f35c5f9080c425501a1b10035c3944bf37d46b494a3bcbef5c",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "도움을 구하는 일과 위임을 지키는 일의 차이가 살아 있다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.emperor.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.emperor.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "eab35c2fdce2230b8201ed876d680b53931b98e8c73ac651825660efab63d7cd",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9a6c57b16230505801e0e5c6074a61754390782d3abbf75d7e1b4647e506680c",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "변경 사유 확인을 협조의 조건과 혼동하지 않고 상황별로 설명한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.emperor.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.hierophant.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "62ae5eeeb90f22123d116a40ec620539ae31d90a953adcf373009e944ec67744",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "770e0fdc5fa88c10fa5b4b0833bb306835c70176e8bdd8ce6ebfe2361d434446",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "절차와 조언이 추상적인 전통 존중 대신 실제 행동으로 읽힌다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.hierophant.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.hierophant.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "8b25edfe25deba6332b3d73792b0ea47ae808ca7fae25d13719f352d8fd54ad6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f58b7130f554b4cca5f77f12edb44638dccf5c768b5983ab995e91eac8f7b372",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "대상인 방법이 계속 유지돼 둘째 문장의 목적이 튀지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.hierophant.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.lovers.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "5b26883897b6e76d15f2a6872b7cdc2521238e635d2729ef37cc55eeb6e29d5a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "059fdd63d45a8e602ecf2de344213a48e93d525457912f9e6697da9effabf690",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "상호 의사라는 카드 뜻이 강요 없이 유지됐다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.lovers.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.lovers.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "7d1b2a01ead32b2b30e9b90537a1f61c06eb99b49c95dfc4e84ba383ac0e4303",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "25218272e3de5a622faf8f9e5bbff63b80742d64fb28e5293bffb34edc5d19bd",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "약속의 해석과 갈등 회피라는 다른 행동이 본문과 맞는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.lovers.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.strength.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "c207ff555ae7609be40d5f5672c970f2229d38f7fb6cf4569d4edd8f39e0cd74",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ea27b816f68a1759e53d896aa760e3d162145adb692aa5f6f02d49f3887974d2",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "긴 문장이나 과도한 예측 없이 인내의 행동이 직접 드러난다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.strength.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.strength.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "dbeb95f77c5ef2e2872982c6ca50518f6a8ad8284d1b272fdbbd8086ed43e399",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "be8317425e68bef1b8618d295aab4e1eaa4f306d1f3ba56bc2665b613336802f",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "함께 푸는 대상과 감정에 따른 중단의 범위가 명확하다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.strength.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.hermit.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "054271dfeb57ae4e6a3dcc63d31a89d841f69f75c6706bea0f747cd4d61e029d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b4a6cc904fc7f05ff59ca7c45f21914e790f6f9d6d6904e87be6d6533cf93084",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "quiet와 away from a group이 같은 대화 상황으로 이어진다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.hermit.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.hermit.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "eb4b6b26a3f7d38dce3934ebacfdd3ffccac144152d3781e525ed6ea85d1af6a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "93074dc62ffbdf5a47081b8820a3c3f1a9d8bae65309c422b3da94c0a6a96ce8",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "응답 부재를 거절로 확대하지 않고 요청의 전제를 유지했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.hermit.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.wheel_of_fortune.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "5533a93311dd5a3df882481e6bd3c700e15fa767b5c494b0f4e11fc80729d04c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7c0e55967f3656c2469fd5ba78b5bb63817b4c57a54d95c18584bc67d928ec4c",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "첫 시도 성공을 보장하지 않고 기회의 조건을 직접 전한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.wheel_of_fortune.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.wheel_of_fortune.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "40947842059656cfa51804c916506805f61861f99829dfbd95d77813304c0e22",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "21c3cbca124bdda5ce8a829d1775cbb29e1770e8fde63c06862c5bbcd2828dae",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "외부 지연과 후속 약속을 직관적으로 이어 썼다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.wheel_of_fortune.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.justice.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "1694a1fc5f59e500f3642c26058150ca87dd863b605c92675273c82e2f1f82be",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "19baf8bcbfd18987c2aea223ff55ed6104f80da0e5ea6d2556e3d1ed40ea73e2",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "정의의 확인과 공정한 요구를 같은 상황에서 이해할 수 있다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.justice.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.justice.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "22ac909696237b15edde0c18bab850f530ed9d1a67ff48aa0813eba497ac0287",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "28ac1d2b308c93c83ccd9c41e0825f7bf1a2d026b8815f49265a1aa0e3a77fd2",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "자기 억울함을 사실 왜곡의 근거로 삼지 않는 KO조건을 유지했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.justice.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.hanged_man.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8051008af0bf77e5638aa644f2af146deafe761e4f72bfaaf3db93ff04ce356a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "43daa0dcb132b1663a0c2e64b40d855044bd53468b7fd2c105de2edfdd34176f",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "기다리는 상대의 사정과 필요성을 분리하고 무조건적 대기를 강요하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.hanged_man.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.hanged_man.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "fc0b8ee629a370699076c2b9c7cec50484ec311f3f6e27f6df38188af13be23b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1e2e4f22dea44c99f35ee8ba2f7e743975973446083d633e08c460ea95b87cce",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "양보해온 조건을 보존하며 강한 거절이나 관계단절로 확대하지 않았다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.hanged_man.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.death.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "5f3967f8bf521c3c348ee99166c730c8ea594adca9e1db046e48056727456035",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "db644bbfad1d16dcaf65348010a7eb618fba1efa57f45403ca43643ccca2e54d",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "일의 종료를 죽음이나 새 손실의 예언으로 옮기지 않았다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.death.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.death.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "11c8ca72dbefdec8830e08d8c218889c90f4fc6ad888f384d981719f7dfc5e5d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "059b375759e45c131dfee3b7acee1ba3bfcc67a758cd138fe773b1f30bc9ec90",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "상대에게 종료 의사를 어떻게 전달할지가 독립적으로 이해된다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.death.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.devil.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3ee5ee8481ac7d66bbc33ee79f63d58b6fe4469a7b931e3c1d3a6d29116d0f80",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ea32148e2a1bd7b45d95433e8cf644eaed6c06e839015561d73378844b4d33fd",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "보상 기대만 보지 않도록 실제 요구를 묻는 뜻을 보존했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.devil.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.devil.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ade75afa6a11eec2d45968b5e21e0dbd67063b1d47879b9476669f976ad4cca6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "dfdf63aac1f13fa2a19739f33ef5fb8b4f92e8a0b448c9ce1c2945101a59eb28",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "favour의 동사 결합을 수정한 뒤 거절과 번복의 차이가 직접 읽힌다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.devil.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.star.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "929efc9df09b1071338ae97f7c964e55d1cc26bb68e2780c01dee227ebb2dde5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f39331f504b6e195a9461e28b3f1b28035b846c487c73ce93ca710e2aba5cac9",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "재개 규모와 도움 요청 대상을 명확히 하며 막연한 낙관을 보태지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.star.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.star.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "8ad6eb47078c4235c6844471352621bbcbdbf3249c84351e8e13c6a27ab10f68",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e682058853886757d796fe39d9b5a3740259e5871dae108cbda334f130968cd4",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "뉴스 지연을 확정 실패로 단정하지 않고 확인할 내용을 구체화했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.star.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.judgement.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "573b2d52048498ba6433c4fb3b51fc63e5021bc5b40d75b063bda7ac1a379800",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6c9d5b15d73dca06c7a8c1a8ac18a485e5824888feccb6a1038cb625e7790f7c",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "재시도의 준비와 이미 정한 답의 전달을 혼동하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.judgement.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.judgement.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "b0ecb981646338b647edf9e43835c995af1a4e29f2b967dc765e8609d377230c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d75c5b655cfc26d27b5f4de71feb409eb04c8bc7957ac87d33432f8d204cc794",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "외부 승인 추구가 갑자기 들어온 부연이 아니라 처음부터 경계 대상이다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.judgement.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.world.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "d94dfba0b4d713747e077e04518e92ee48dc1ca5453858399b327c87d85686a3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "03df38261de4875a55c8605afb03688c75899c9f89297d443e1baf6476b36270",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "축하에 남의 반응이나 과시 목적을 보태지 않았다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.world.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.major.world.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "b97f0d79a816cf12786d796d92ca2e42edb9f0d5087001aab712db5a924a0ad6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "75a09269e0c2313c0c7d858b92318bca1d2b0ca228c938bb78f7802c699d4be4",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "잔여 일과 기존 성취를 분명히 가리켜 대상이 흐리지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.major.world.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "f649204e1c654738e9dd7776c6590ae85b845bbc9cc0d472b3399546fe271794",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "10c6d5c4058642e292f80794166f461b186faa29accdab447e3e1cd1707598ea",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "초대 응답과 친절에 대한 감사 모두 상황 없이도 이해된다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.01.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "b2a77c26c0550011f6833e61aca2bebf2149e038dd51a646d9cef4da6fcc0d46",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6abdf51ccd3daa086d3cdcdbd402cdca335c2f4c86b85bb3381258bb701f07bd",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "거절 허용과 상대 반응의 해석을 각자 명료하게 안내한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.01.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ad701c9c1ca8ab9fc7e1217bb38425a477e3421d711ea404a0afa7be9b427c1a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "919d62866d6312712df3ebf6ab6e5d3d2c3ad7c5a0113d1cd9e4d9f67e94131e",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "가능한 만큼이라는 KO 제한을 유지하고 보답의 의무를 과장하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.02.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "38b4b1802fa10a0c4b4c185e4b70a4158816b87067f148fdb0be41dd448ac830",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "db0175c228496a4938d33d5344ebb9df3c493168d9f91ca60d26fe349dca7145",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "서운함을 무조건 억누르라는 조언이 아니라 전달 방식을 구분했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.02.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "9eecb4f03b18d5fac27188a21f1f6a6807992e8870d3266ec7c4cc3a1f9d3715",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e2d5dcb92742f1aea906c27afefc1c72d9bc178e5df058697efb7c4b77d06dec",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "사소한 소재를 추가하지 않고 축하 소식에 대한 반응을 썼다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.03.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "1b3aa30bf6d5a19c8f28a330557f6b3d222ec97a18547ba443fd4a4537bc1795",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b4584c0c184abc67ef13d3cd7b503ecf10a9fce0289314276018d2a9277b3168",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "머물 의사와 험담 참여를 다른 행동으로 이해할 수 있다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.03.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "fbe89494bb44210ea9aedcb28ffb884f9fe1872a35835689e2629079dbe47881",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "bda5e65848ae807c4284e86b3efcf708871e3c134fca6cedeccced26d8bb03cb",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "무조건 제안을 수락하라는 뜻으로 바꾸지 않고 확인에 머문다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.04.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "1b0f4ab3bce69be0d5596a2f970acf4ae09a6c30e5add1f825758f13f9d31ff6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6192001f62407ec2d3c8ecaa91ec990cc32db98bbb5427511fca7273bcc1f337",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "fresh news의 대상이 같은 고민으로 유지돼 행동이 튀지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.04.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8887634340e3f5d420faf65c98d2d8c125933df5d85daeb2da65944ed5dd94f1",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "128d539c531cc1fd662210573765c030a34282c32caf041a1b36396f8bf3e89f",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "아직 가능한 지원 조건을 유지하며 도움을 확정적으로 보장하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.05.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "18f1e39da00567284a35b8524936cfb188bcc054749b4bbaf537d536865bf746",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "abf0bab1d0e11f1bed4970909fd54fa8b66d42d1e068ce3e1e69d46a9da75197",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "화해를 강요하지 않고 대화가 다시 시작된 조건을 유지한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.05.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "f88371b8278dec600d1420be0856f2a591c6202d973e6cf8aa6872a6c39b5fb2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "dbcf1cf93a03a6b218bd7872a04ccad8db3bc3cee17eb8d5d37b930d6a6b82d9",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "실제로 쓰는 catch up과 get in touch로 번역투 없이 설명한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.06.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "ddb6b0f6698a7e30f4f81060280f31213e4955ff8f17d5030709628cb3a255eb",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d772ae2b4783bee3dec7ca9326ad8aeffb0907a45675a4e6c540e18a0190c226",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "과거 실패와 성공을 각각 다른 확인 대상으로 구분했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.06.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ddacb3d0001eb6bd9cd982f1fb47f4595ee8a5187b68c7a8315d261f422f00ae",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b068fce44b413401db249d3e42c944a5af96a93f056a082cf721a73100a7b0c8",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "terms와 details가 앞의 offers를 명확히 이어받는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.07.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d9e18a179c19a7bd4fc20170d9a77420df416d10519e7cb102f67ffd167755c5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "389b2c82fcf871bad0e4059757ed369c6ff35d70df3f4a2f1bc6389b6bb1fcac",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "이미 충분히 확인한 조건이 살아 있어 검토 자체를 금하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.07.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b2a17950a60029972b4d387b693cfc5c4d524cecbdfe65e86c62086f99d38fd5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2f05405dcd823b2d6d23868b3a7cb83acc6c63d2b8e815cdcf04262b755aa95f",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "시간이 아깝다는 표현은 길지만 통상적인 sunk cost 설명으로 이해된다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.08.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "395b218090566374efd3bddbb7d44dcab71f4da2e1c1750766d703e4c8021fe6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c4694ed148999d1635c169e254d4c92ac50521a8b48e0d27a300f2b70b55cda1",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "계속할 조건 협의와 원치 않는 지속을 구별해 읽힌다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.08.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "7a2a0eb69f5e09b338f4f77823a75d0f3795ea85fe8ad156dd10e37785f9e937",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "cd46f0352e47c36490a58563c769c0fcfef080f5182e99e20767ef460661a221",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "성과 축하 뒤에 타인 시선이나 별개 활동이 붙지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.09.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "766a379a8d3ba4ce53c7e1ff15a47cce18cbe1bcd173b25429205670d6d5158e",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "de8d69a75fcae7ae444111c3d33b69345dff4804386018a851178866f925f010",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "좋은 결과를 강제로 좋아하라는 조언 대신 불편을 인정한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.09.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ce199165e52e0714cef5a05ed1c8b7c78a2bb2d42b69272a65d3dbd4a3bac2ba",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "861b8f08f89d93c349a354a706c174ed849a411cdcb61afbc440aec9ce3582d3",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "추가 관계나 상황을 만들지 않고 일상적 대화로 설명한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.10.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "b1e731aead81bff3b18aefcc224b2de81c65dac7d9a0984af72bf744bc0726d8",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9b2859c7daee46529fc99eed55437d67adf450892429cc52db83b1d4fd1ab9d8",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "가까움과 침묵을 동의로 단정하지 않는 의미가 직접적이다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.10.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "f520b5d91698e7b53f3f6c7ee0b258ebcc4dc0bc5c586fb42b02e26dc857ba71",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "03740e5b44966eb1825306fd5b91d33833d8a3e429dfa2f0f1f38b7faf7d55be",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "서로의 관심 조건과 반응의 가능성을 유지하고 호응을 보장하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.11.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "2d7ebde39d1cef7559ae177040df76a0b359fddc2aada5bfbf0cf66c10df914c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8effd1dc40b96c575c65f46b96c542f7317cc35f61f5eb06dd568f89e78b5d46",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "요청/사과의 뜻 전달과 답 기다림의 태도가 각각 명확하다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.11.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3e9bdb5796a465d96f45b18a181f4b6687e06a0285cfc57d5ef420d96d977db3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "907164a71d77b0871ae88ea2f3c018105749070ba9bee8722bebb82bb57a37e1",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "어색한 복합 수식어를 보통 조건문으로 바꿔 호응의 뜻을 명료화했다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.12.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "7934b70f4937806f533d6ac4f6f9638657f72507577bc61687449c974d108c82",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a0fea98442ff4ee297e238595ae1a88b3582b5bd7af345d45d99e65597700ea7",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "약속을 무조건 의심하지 않고 확인한 범위에 따라 판단한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.12.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "e46028566a25a719d008712f28b67cb962da8a9c1df69edd89df4d1f7edef72d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6985c6b2092fdd90095207bd9e56416ce55d3ead4cb13760ecbc73d15ddc9fe5",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "asking about을 asking for help with로 고쳐 단순 질문과 실제 도움을 혼동하지 않는다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.13.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "9465a27c647a115ab846bee7dbb4a7bc6fb56b5bda140af20a15ef3ac1d9942f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "06fb20e0879d200aa414ad1a226202aba289e90f485d90f1434b6d8e928ac5d0",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "then and there가 부탁 받은 자리의 시점을 자연스럽게 지시한다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.13.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "7071706ecf279fca325752b74a7fe944d516244c79c651116f1336005a160ef3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1a80103a36bc405d3b2417015bc0490c732e6b70052240ae1ff0dafb3dab8d3b",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "중재나 협력을 추상어 대신 실제 요청과 청취로 드러냈다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.14.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.cups.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "4b4de0027a44cd6a28b68f35b432cfcfb91d7a1ea4e22b2e8fd3acabb9cd507b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "15246ec7318b28da81a8b4d93163681073a0ea2543c40392d3cd8b4d845a3686",
+      "reviewer": "root",
+      "round": "ko-actions.r2-localization",
+      "assessment": "상대의 변심과 본인의 감정적 번복을 구분해 읽힌다",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.cups.14.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "74b788fdf7142a736b91cd29ccdf38d7060bfd48f1355215b8088397970d190b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4c688d17cd8432724ddd77c2d22865869e8af18280447bb74b018f17ab992b0b",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "해보며 다음 준비를 배우는 방식 / 감당 가능 범위가 지속성 높임; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.01.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "f1ac5de0d418072c74d597fa639a03a0d469bd138d72d9edc75bb4a5b041fc27",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d132ec2ccfeab4e267ed478158e62f67d8c8d2c50cf07fabff4676755802babd",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "상태 점검과 실행이 한 목적 / 지금 부적기와 영구 불가능 구분; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.01.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "1c7d3b55962d55f6785b936d31b1d87e1ae5f630a4f2c36e618779fdfcf466b3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "5c73ee81deaedbfeb5e50cf1dfb6d1aa8f5785d48d5ccc4a62ed29538d6c9db3",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "기존 활동을 다른 곳에서 하는 대상 유지 / 실제 새 시작 가능 확인 전 유지; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.02.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "8ab72f81d94e21f989e6fdf63bf9f1dff3840a98630a1eefa9cb4d586f94da4c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "203ef7bd2bb417cadde4b06995d033b2319282a58b892de8f74ebe925d6feb93",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "낯섦과 실질 어려움 구분 목적 / 비교 지속으로 참여 시기 놓칠 가능성; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.02.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "f95b07c9eecaade3e2059477c3509acd152fab4fd3852e021e7aef2b2df160fc",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "69c1a0edfd3f351f537112e0fd77325a7a55a4c40efa8788806cc2adf91466b6",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "관심 보인 부분으로 대화 계속하는 방법 / 상호 도움 가능성 듣고 결정; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.03.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "f67014e9e7019d2875b8b3db0924306eaf032dcfb8c60edabd65f5ca4987e878",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8d6f9932044e6a89396e17c7f72765b1ba9146e1ba60928f890e8f385e4aed39",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "기다리는 답에 의존하지 않는 대상 명시 / 지연되면 두 일 동시 마감 부담; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.03.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "36b539611d0f4d31ffbc6654cfc2175f641a0a3246ef3ad01bf6b629c0bfc022",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8865128caf68d91191ed1f1bca123e90fff55050740f80210c503161fc8129cc",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "그간 노력 회고와 결과 기쁨이 같은 목적 / 필수 마무리 끝나면 쉴 시간 확보; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.04.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "18f4471156117a9c07890f12003f1fbe07670bd28e06bae8c9491cdf39a766b6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6b37f47e067153ddb2b1a527db9dba9fd914120386824ec5b8ccea734b57f6a3",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "소식 전달과 함께 기뻐함을 한 문장 / 소박한 자리도 편한 이들과 즐길 수 있음; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.04.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "6cc5aa7fbfaa2b1ad62d8c89ae74dd37029a0b322d0ce16ab97c133e4f38b20a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "e6bb02aa6ae73fd55a567d44c5940b7348afe0367af8f2343219e2e1fad39a41",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "말로 부족하면 실제 비교하는 순서 / 선택 이유 듣기 통해 반복 논쟁 감소; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.05.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d57de11a1405b77b7ff5778fcbba78976210686a0bf1bca1bfe314f9370e8362",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "47fa898670e9778bbfa83a91d6d398a7bf6ea83abdc5c8fbd15e4670f9ac7010",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "검증 가능한 사실과 행동 주체 명확 / 모르는 사정 대리 다툼이 본인 곤란; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.05.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8e0acf17946b59da16acf0e716b9e16c2fad31fe7b205ab106f5b70cb26da844",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8a6de106bfb501b669107eb73e41b774aeacea14d969c37b923b2f8e4498e0da",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "감사 대상을 실제 기여로 설명 / 누가 더 잘했는지 비교 없이 기쁨 가능; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.06.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "a96a646c6c55ccea26c906cf85d96ca986ed30a25e3caeef69cb3d57e40c5fef",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "0f47590af4f46097dc193b4f8b55bec090254dbb4667e92919deb459d97cec75",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "느린 반응과 실패 확정을 구분 / 주장과 실제 행동 차이 발각의 어려움; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.06.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "65843e6284ca6f6f8521b805d836495afd5fe42b9f44d901f399e5e79c2b020f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "649b24946169473549334228aa7027aba1bdace645825b7dbfbd805f22bda7e1",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "조건과 근거를 함께 밝히는 한 행동 / 말투에 집착하면 핵심 조건 논의 어려움; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.07.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "7476ecdc224649ace255e9bb6547f41a4215d6f75815cfa60d3a3e57e96701e8",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "dcacc9c9baca6844d93e8719e9a2685e3872e7385083f842137e67e7eb3de192",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "즉답 대신 맡을 범위 결정하는 순서 / 당장 편안함과 이후 부담 차이; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.07.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "838ed2accdbbe4503df91848ba42ed7516b7614835ff26b6dc59dc534b42511a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "97644ac6e2b8486f0005fd91edd3bacecc2dc83591ee2cdc5767740725da04e9",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "일정 대화일 때 가능 시간도 알리는 조건부 방법 / 빠른 진행에서도 개별 확인 필요; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.08.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "98bf8a38839b185b02757ca8811e952e97b98023396b645d7c6a23d638ed2143",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3fc5f840b6061e3f6d06546cd86454ceca4a4685cfc90612aba3e90f941e71bb",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "오해한 채 다투는 결과 방지 / 전달 과정 의미 변화가 주변 오해로 연결; 새 한국어와 본문을 대조했고 전달 수단을 불필요하게 제한하지 않음",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.08.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8a2047f8b0fde0368c70c1cf61f1abad7944838f5c09540efbf76a82eb1f6b8b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1d6e0c56dc4b03558c75a7e0d13ea58fa21202d2d261d5628289fc528a976e2b",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "효과 본 방법 재사용의 이유 명시 / 남은 점검으로 재작업 감소",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.09.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "024f26f90f7021cc6afea3d8da96cf4b93296fe25fd97c76da5232f926297a5f",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "57ee844c0e6bdaac7a4e753e93ab9779f348850615716e91a86c7c2020c4b851",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "실패 내용 설명이 맞는 조언 얻는 절차 / 이번 도움 내용 듣고 과거와 구분",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.09.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "834abd2225ac0fe3bc2784999333e3abcf72755930fcd31b64b2a20f631bd426",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "da2172e3dc4329824a067cbd2c5579554e74df39959bcce35303055c6c427bd3",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "새 요청과 기존 업무 시간의 관계 명확 / 익숙해도 중첩되면 선약 지연",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.10.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "5d6a541f6aede7582b021be1b079bd80410ce2ddaaa9822a2488330fb18de48c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "581417fb605d05e1c7d141c2800fbcd81ad1e137402bb4f13d4a3a05f87a3b02",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "일찍 말해야 타인이 도울 시간 마련 / 주변이 추가 여유 있다고 오해할 가능성",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.10.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8e3a80a5e5c23a39d6b27cc962424036be6cdd18d5b89d37ad055731607a8418",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "87224312091a698628fbbbf207d4a7e8bdab34f28a64fbfec7269fd34f7e6a88",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "feel you need to로 처음부터 능숙해야 한다는 자기 요구가 명확해졌다. 두 필드와 KO/기존 영어 두 단락을 실제 재독했고 지적 해소.",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.11.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d62358e4121355f49eed35627141559d688c472f2f91834e29529696c879e245",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "0b6a98888c1c2b36f4fbb0b70ca5c7c1e3d45422d278198233371886641727c4",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "실제 참여 가능 여부에 질문 집중 / 함께 결정 뒤 내용 변경이 당황 유발",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.11.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "a2d91b8108e8ba0d144ba184d0b0a7d96a3352ae3375974e1a88c5911b648be2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "05dda32e9fc2dce38352c4394ee659a458f591a90df81f9c44d901c07e0883f5",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "장소와 실행이 한 문장 / 이동 시간이 실제 즐길 체류 시간 줄임",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.12.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "faead5e6f0ba73d3336e47d838314500c81cd54a634442af2880660dcaba2da9",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b7d16b5303df0b721e452036e6402074190fe0f6c6b9cf8f445c64f8572ed057",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "상대에게 직접 확인하는 대상 유지 / 상대 가능성 확인이 재변경 감소",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.12.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "1817296fead808596746a710fba57b1d2e7f525559ac81bd35e178c16c18ef82",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "1d3f4d816277dba6c8ea30c296bc6ff9123009cc7f790ff11bd15e4491ae09ae",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "모임 조건과 자발적 발언의 한 문장 / 상대 참여 시간으로 대화 즐거움 증가",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.13.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "acfa4bf8b6c1e1e07bfb2796499f201d2d266fcb6d18862d182bb2849c70b8b7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3658a78846daf03c49246f3a09608ffe4a8833e26b2cffd5ad1ed66caaac73eb",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "추가 발언 대신 경청하는 같은 목적 / 청중에게 비하로 보이는 결과",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.13.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "4ed936c09ae0f77fafd13fe4255c483b9fe742ff720f57db013df92f2572153d",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "82fcc5c00caf83cd2e38c71d7fd475002e3c00d54e77a338ad13e71ce3e1681d",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "역할 배분의 기준과 순서 유지 / 분담해도 약속한 자기 몫 끝까지 수행",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.14.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.wands.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "6fec44c3c502ca167605ff8ae0348e2dca02ec9340bcf046bf100054a230b036",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ca6b619406a2cb2ce8f16a5602658981cf11cae9e2cfa694bdbee8a5a4f7bdfe",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "불필요하면 그대로 마무리 허용 / 지나친 요구로 도움 지속 어려움",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.wands.14.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "beeeeb7e04b6d7eca29c06671805b2f7ecc0c2189815d7c37e441fdfab9ee5e7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "fe99cb4d4cb48daa77fd1670127b5de5193006152d97949a5349106fe5b8f546",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "원인 불명 상황의 확인 자료 비교로 완결 / 필수 사실 우선으로 결론 명료화; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.01.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "a114b7bf0a597ccbc4ff48316c455afd99e0a4f6e30a4cb496fec0c6b8d6562b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8bfd6e18beeb583948defa8af0a6c4a3ac145a4a302019252c397473373fb52e",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "명확히 말했다는 생각과 실제 해석 차이 / 먼저 정정해야 상대 오판 방지; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.01.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "167635c7e754676ee8fd0d37722456e5290be9b160456206ca6c698b6b160343",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "5945065beb10e37289f3694dd3b7bdba4384018be6deeabeaa249c795be41318",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "없는 정보 확보라는 하나의 행동 / 답변 기한 묻고 숙고 시간 확보; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.02.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "53d655855b5be1c0a7b3338b05701d54ea3b62d4e38003e2374cf11e933c5643",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "aac8eaa6116c06b31307506aca4920abd101d34cf902947c129c83fb5289b5e1",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "질문 범위와 상대가 직접 지정됨 / 미이해 조건 수용이 후속 문제를 남김; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.02.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "4a94e94863dfcac25a6df2a4614ce39daaf449206da16a93b78a804773a1fbd9",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "cb593beec7048a5839c0114f7cdc22f3a92a91cd219b5cff34c13b29504d4cb6",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "다음 행동 판단에 필요한 사실 확보 / 감정 표출이 다른 관계까지 불편하게 함; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.03.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "7684df2f5db067eb68d961a4b385a2af2e63c61e73cdf7f9c2aafe27bcf950d7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b3447b2bebea65081fa1f464191c52bf0096cd842f7d1650c16b671a1c8b41ed",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "즉시 가까워지기 어려움도 솔직히 표현 가능 / 상호 설명 완료 조건을 한 문장에 유지; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.03.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "12e10ecc032008b6638e691be12d6a0556f4110170b04642db14d7199f1e59a0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "dfa91ef40c8b922e09527575ce0796850572691c1e104571cc3e85df291124de",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "미뤄도 되는 일만 잠시 남겨두는 조건 유지 / 불필요한 말 교환이 다시 관계 불편하게 함; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.04.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "386511e1f013fd3386426c1a5e53bac78b32ff6aa8663884abfcfa5acd27d7ec",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "4218670e1f760149d04f3540f599a1edd0c03811406a96095228dd727a1209b3",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "누적 부탁 모두 수락하는 대신 우선순위 설정 / 다시 익숙해지는 동안 점진적 증가; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.04.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "03aab2d66c55844cfc6b5456c37c9637af7eb879421a6e8a685611bf34435e7c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "842d2969c698318de006e79664f8c2b0be96142ea4e00f44b921e0b48e0ea03a",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "끝까지 시비 가림이 상호 도움 관계 훼손 / 승리 뒤 반감이 미래 협력 막음; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.05.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "aafe8c335761a9ca7e5402ff9b0e45798e79a67f440455244e50e391ad8608ae",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "eb5169becebe9455bde2ac2a5b1f94f6ea526b0983bb7bda2bfa81eba47edb08",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "생각 전체가 같지 않아도 다툼 종결 가능 / 물러서기로 한 뒤 책임 비교하면 다툼 지속; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.05.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b6f08676214a4ca9be7c940224589c35d288c6b8cd5825435565c13be072fe3b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "622d97dda17b0989774aa47d2137e3eeeea9fffe90cf7aa772da2a83c5e98030",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "혼자 어려웠던 일이라는 조건 유지 / 대안 존재 조건과 선택의 이유를 한 문장 유지; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.06.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "2f7437e6dff7b3230896457c63c8765d4470f4896d5c8cf34564536f7f0157d0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "12a7d84d00d8c24f175ffc2bb63aca6e448757ae4f28920590735116cad83e2c",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "재발 조건에 원인 대조 한 행동 / 원인이 남으면 설명부터 반복 필요; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.06.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3703a2e3fc32a1a3841479d24e4167c5a7add1560186e8ad928256d548376bdf",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "2e3f61cf4bc137cb691e9758ad7fa10b37c37ad31d74da0ffe2b51e000267dba",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "질문 상대와 해결 목적 연결 / 전체 계획 공개와 필수 판단 사실 제공을 구분; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.07.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "d103836a1ec3460757f2a40705bbd76f223b32acdd737e84264b0506d4d28b53",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b0a598ccb9f0c0e39f9bb0d0c160e95a9f936647f374d825bd3d2a9690b3c6bc",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "임의 확대 없이 선행 공유의 뜻 유지 / 설명 변화 반복이 수습 지연; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.07.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "cef08e63448ee6985b4dc7fcca755e427fb167cc87e999b00cb91befe6fab070",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3d892c4973dba446b8d5a574b88b71ff6af60c5872ec701a15fa5d948c424783",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "실제 제약 확인이 대안 탐색에 필요 / 시도 범위와 결론 범위 차이를 단독으로 설명; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.08.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "7cf8641408c43a641c42719a4abe3a4c0a9d4773b15c5f470ebc112536b42b53",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d935432e234e26b0f3273a7c7c4b4c143bda324fda9ec6a7578c8ebf729a2dd4",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "새 대안 발생과 현재 실행 조건 / 현재 조건 변화와 과거 답을 분리; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.08.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "0b76ee70adfe26b5b681d42ae5f3d3ec594a51c3e6b1b92c55cdd5ab5b8998e5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "34772bbd1e6acd94f91ac104fc2226bb136e13eeefe1598626b283f1826b8b27",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "구분 대상이 그 결과로 직접 지정 / 우려대로 끝난 것인지 아직 모른다는 이유; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.09.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "4a507eb045acfccd51e8da1e49c138357251bfcbfc35dd21c1ca165ee45c97a0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "8e0ce2cd02bbe69c37ba017810a66411ccc6ceba4ada9094c50686fcddce8c98",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "실제 상황과 감정을 나란히 설명하는 하나의 행동 / 당장 해야 할 일 알면 그 일부터 실행; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.09.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3da763cf7ba55a2650d104a41c06e7ac06fa80d9a08a2d8a79d5e6e10b90d296",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "807f539f85aa605e66e387b015010d3f3681a9166dbb150ffb929e995b09a62a",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "최소 정리와 추가 중단을 한 행동으로 연결 / 먼저 남은 일 감당 가능성 확인; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.10.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "66e1ac49d4db7f5cccff10e503654a1cb0e8fb8ee9784ccf04daef19fcf169d5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7d1b1b8082946a565dd8c346d1682f445465a33317499eaf9ef2704cbea7a63d",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "현재 무리 없이 완료할 목적 / 과거 어려움과 같은 부담 재발 여부 확인; 두 항목 단독 후 KO 및 영어 본문 대조",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.10.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "995212ebb662d147596de7ee566b0eeb2054defb45d16c7ce73172697e9c03c4",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "96adad0b3346f4556e8f51ee2432391567cbf653b2fc6e263b265364e378068b",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "읽기와 직접 질문으로 이해 확인 / 정보 확실성의 경계를 한 문장으로 표현; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.11.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "fd8e0ae0d18e5f55b282a0400a6f11cde631d0d61bc5fc44c82b0a8aa9e47ce7",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "681f80d33f1de7b9abef205b4f698f929b8ec9b5c2792b2c5c84df865a7fd2b4",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "추측 답변 대신 확인 순서 / 미확인 사정 가능성 때문에 사실 확인 우선; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.11.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "ba1efbf0934cade0da2b0e38bbdb0cd02e085bfd901037ba25d7556a4c33ee1a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c73831f831d5c7b2e083cd6e69315cc7ce05f470f7f9404e1026789a48663b12",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "공유 이후 실행 순서가 한 행동 / 상대가 역할 이해할 시간 확보; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.12.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "8c4c615a39b2a824d5c30d463d4845d15423b7d9578d63ce3d5f7625b5eb8a8b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "36d697a171812346c423afd1b6c29c0d1b013e27ba3f69ce0a265acf4f718671",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "누락으로 돌아오는 수고 감소 / 실제 가능한 시간 알리는 대안; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.12.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "d6858a4df08465d23a18adf4e349dcfbe8f8c10adf7e09d6c1cb4ce9bef62cbd",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "308e2bc50d668a7ddba27b992cd5891ddddf4cef178ceaff74e2ee69c7dee013",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "관계의 오래됨보다 조건 적합성 기준 / 받아들일 수 없는 조건에만 논점 한정; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.13.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "c06de350617529666bb20cca2f8bb695ef36afb2a538e9b074e439223b1aec45",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "029a7f6966565d64f1697621494f0adb03d8f9d96655625bdd465a070082df7e",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "빠진 관점 확인 후 결론 / 평소 감정과 이번 사실 여부 분리; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.13.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "e460d6ce21075ea485a450f29eb5a1c0d45cd6999398c461950b510e4f64c2ed",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "6c54f60c9a03b4f51682dbb919f0d3e4e942ccc1395136e3005bdb028cbdbcab",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "증거 접근성이 직접 드러남 / 동일 상황 동일 원칙으로 납득 가능 판단; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.14.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.swords.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "cc45a394c0afb90c63e7f9bd750187424b13fc7f88344e036921eb0590d3f2a0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d49deaa044201bab2abdcdca374421b0a52baa07605266bd8f5d0635f94f8272",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "즉답 어려운 조건 유지 / 상황 듣기 전 결론이 억울함 남김; 독립 행동과 이유가 단독 이해되고 원문 조건 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.swords.14.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.01.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "c1a9ed86022e1ad6d01e45f0a7e89410dcd5c60a85112de431173f465a5dffe3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "af52869b176677a7350720b6f1e9a84dbb8091b4a88ff4c6a8b49a56b89ec2d4",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "부족한 자원이라는 조건과 한 행동으로 완결 / 기다림이 활용 시기를 지나치게 한다는 한 문장; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.01.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.01.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "855133d09bfb903393ecd27827b4329819b7cfedd7d6396731b68abc7e01e5af",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "a0a304a1e96b81a38deea8327865919b8f10b0d889d9b7ede1c6e90f668eef1a",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "수량과 필요한 물건 보유를 구분하는 이유 / 용도 없는 물건 증가를 막는 같은 목적; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.01.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.02.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b7cd4b3917f2c18b302d21a7113f043133099ad3662906e28b7037c2f5dd1d37",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "83c85e41c89803e2306f1981728a323ee42dd5d7d5ad0d05383ac357594fcee4",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "남은 시간 계산과 상대 안내가 한 절차 / 실제 우선순위와 가능 시간 고지가 방법; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.02.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.02.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "9ec224ac9c4f3944bb157a4d0a386cc3ed2f6cc7cdfcf648f743edb1ec144f8c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "c3a162685eacdd3cd6e7b927a4cfee6d530f305a2ec539b96125f660d6e9ff57",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "혼자 맞추다 늦는 것보다 조기 설명이 낫다는 이유 / 남은 일을 처리할 시간 부족으로 연결; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.02.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.03.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "7da9ff68b730f89be4c76d5951460ba50efee6f325c6285fbbc11d8ff1d6468c",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "f3cfdd9fc7c9abd9512b18186d6a10e142f4868bd312d7861c60e268fa2b7c36",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "공동 작업 조건과 하나의 자원 배분 행동 / 이유를 듣고 맡기는 방식이 협업 수월함으로 연결; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.03.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.03.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "1da2bf8ff123f31a86d5aac8b51d53c25718e316333b23d5b21a2654cb754786",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7511101c45101f4813765c471abe0c2c4e89d7896e6a204f26849bea49723483",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "설명을 통해 혼자 놓친 점 수정 / 수정할 점을 들어 재작업 감소; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.03.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.04.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "54739c276d3aeb07561e3f89eb26ad97fd625d1b79f01453e5543da4efb563b3",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7a3264627785a86295575815b50b3bdae164d373d3169356870a4b87aa6b3bac",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "조건과 대상이 한 문장에 완결 / 필요 내용 확인 후 가능한지 판단하는 절차; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.04.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.04.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "419d8bbb30fe8b4063cb23f4842ccd99911ab51d57f4be975462c1ef74e64c21",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "32b6d72ade25bd18a93edf9b4ce820419880601696f004b87b4b120e5ec49c6c",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "확인 결과에 따른 조건부 다음 단계 / 압박이 동의를 지연시킬 수 있다는 이유; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.04.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.05.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "b24f866af811975a589fadb2d1dddd44d32de5e468f91a6692411c622190fd83",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "b71886cc879804972754c643469d5f5516b16557110257e02f90338d440e18ce",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "부담 조건과 구체적 요청으로 완결 / 비교만으로 부족한 부분을 상대가 이해하기 어렵다는 이유; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.05.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.05.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "a8cf30c854c7c5576e5ef497cbe8aa8f04ba6d378c54a7067ccd2560c911cda0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "49bf2ea1ce90c886261c55ad3bd061f72fbfa809fdd48723eb1b0e6b23a09e86",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "완료 작업을 반복하지 않는 목적이 직접 이어짐 / 혼자 할 일이 늘어 완료 지연; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.05.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.06.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "80be7360da380ad6f537a52bdfa6e06845a787a082f673d45fe8cb82621d9b03",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3d35ae744a6fa29102d39fbf300d462857e981c0a1acd55b819edd1bfeae4c57",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "도움 받은 조건과 감사 내용이 한 문장 / 선의와 원하는 도움의 차이를 이유로 제시; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.06.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.06.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "6b7dc42de7025971f738d50897c2b8a5001900ececb0ef58e62e6526dbedbbff",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "5eda7090b0310f5ae7eb2c87399ade080d7daaa459dcc76dafb85515e4a254a4",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "받기 전 확인과 의사 전달 순서 / 반복 비교가 관계 불편함으로 이어짐; 한국어 조건 및 기존 영어 두 단락과 대조해 의미 보존 확인",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.06.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.07.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "347faed4bb4339684c9bea7469162ba5a8a40399288f3653114b398e27a697b2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "42b3e3a2f2cc5db54ad46988026120f69b2f0c084145b204c3bba6fe53501546",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "비교할 두 대상과 판단 목적이 명확 / 이전 수고를 살리는 잔여 과정 완료; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.07.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.07.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "337b551eae7cc34cbf9c016c37a7d76188f34569cbcb328ad0db3303d9eba3db",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "9c9e7ef3540f66fd27c98cc1c4bb701b3690032874fb9ad1598975d18d6b73d0",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "불명확할 때 현재 가능한 범위만 제안 / 과거 투자와 미래 약속을 분리하는 한 문장; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.07.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.08.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "8030d2de501460391e95ea3fa4b1fcee098c772f5bb7dc909c81528ee0d43261",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "7590bf27e80683b8f77212c67ef5c070145c0986052e03aff5b50e31ea7523d5",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "실행 가능한 남은 일 조건을 유지 / 부주의한 마무리가 결과 아쉬움으로 연결; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.08.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.08.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "215be6d29fe234426691c45c3151e7696798c7674ccb80fff8cb428a7de402ca",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "712a62b4f1d74a7112408c2401b5adc5c6ac2102bcf71b6a95b97971b27e8ba5",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "완료 선언 전에 실제 고치는 순서 / 실제 수정 없으면 재작업과 신뢰 손실; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.08.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.09.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "2644ff3a2964f19e693c5eabdb2f16d9acdd363446a44c7d92903ea789de1472",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "05854334966a1ee498e419b1aaca3c4cb1aa44ed26fa52ec973765010956d581",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "보상 목적과 구체적 미실행 이유로 완결 / 남의 시선에 따른 불필요한 참석을 단독으로 명시; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.09.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.09.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "fd020f510005e9e0392fdd171395b7b22f2f40bb5ade76ea1ab92ca53742bac6",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "35959b3f3202a181b50682f112198e6f898f657ef1ada88d4eed37de016ebf13",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "외형이 아닌 실제 이용 조건 확인 / 이용 불편 확인 뒤 추천하는 절차; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.09.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.10.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "3bf20de2da789713eead1ec7ccb521fda1b056a461c73808e5b26b050a22c818",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "319b5e2dcec80987d0a784617bbf4dfa85dc6f39d8e6e4b82ef2011c39913d71",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "축적 기록의 유용성이 이유 / 도움 가능 조건이 한 문장에 포함; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.10.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.10.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "4bbe5e0fcf14a24733d76b5a7bbb64a23c7265096573574f25628d8685b1ebae",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "58a3eb34decc8bc6e97d950858661baf9be071e007418093688a353d9c96bfb0",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "전체 변경 전에 시험한다는 순서 / 결과가 다르면 약속 이행도 어려운 인과; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.10.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.11.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "9263f0b9eb2a2e0200baf3bffb52b3af68176670564692f6a8cce0ef14b985c5",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "d0a090e06d5cebb0b072104dad1275f93323bbaa64a17d21ba384bb7b833afff",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "방법과 실행 대상을 같은 문장에 명시 / 남은 설명의 새로운 내용 가능성; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.11.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.11.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "adea39daa643b634775a777e96b02a61d6a06fcde20a4e81153ffb6402c8cfd0",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "3ff23eaa3e25ce555e499c74c8720c9d0ae55081acf81b0c18058682256ef630",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "다른 일보다 먼저 볼 행동과 대상이 명시 / 흥미 감소만으로 가치 판단하지 않는 한 문장이며 약간 길어도 해독 가능; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.11.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.12.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "1074a2eec0997bb220bdb75d3d3a761b976bd169cf2eb7f3dedd462b4d6ce90b",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "5b7472045a240ac451398273a3719cb27545bc3ee9920aa10a79e0742d2e2225",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "마감과 확인을 한 절차로 연결 / 자신의 방법으로 완료 가능하면 비교 속도 불필요; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.12.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.12.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "3770de092160eb0644d998b1c5227c220b146395a5eb3302ff0f4260800051b2",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "ce0f3a3f722d345ac19b95dd9a6169950e577f76bffd6517f93f6cd0b48968db",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "완료로 생각한 부분의 누락 가능성 / 오래 두면 진행 위치 확인에도 시간 필요; KO 및 기존 영어 본문 의미 일치",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.12.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.13.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "6b0a20dfdb06bb47a0a03fbace726283f712a9105304a068aed5478ed652ac4a",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "da333cf9d036ad6e3bbf0fbc32646afc041d9c501e7d6f64420476f23f439a37",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "자신의 사용량 남긴 뒤 쉽게 줄 수 있는 것 확인 / 완료할 일을 고려해 도움 범위 제한; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.13.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.13.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "3c16dbb693846da9d0ebad8a6ed59ee1a8aeccbd30132acc30613b5cbe6b8b96",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "85d07d27d6ffcfe8dc9bded6662f7d9678e03d8296d9ccc488974ba0d0f60901",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "질문과 답을 사용하는 하나의 판단 절차 / 의심 반복이 실제 도움 논의 막음; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.13.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.14.upright": {
+      "status": "pass",
+      "containing_bundle_sha256": "a9c6f8ab2e7b81f07444e186e0834282cce96de02c8fd8425263494f8e938d51",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "fdd2cd85b79866f9454073470c8373deff1b83636ebb9cfed752d7ccc22b1aa6",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "과거 성공과 현재 적합성 두 조건 유지 / 눈에 띔과 검증 여부 구분하는 한 문장; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.14.upright",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    },
+    "overall.pentacles.14.reversed": {
+      "status": "pass",
+      "containing_bundle_sha256": "e04627a5ddb20cb132078ae822729a5cbda66445e985bccf65c3d314ee067299",
+      "read_fields": [
+        "headline",
+        "do",
+        "pause"
+      ],
+      "read_short_fields_sha256": "493f110640c9037275e0cff061a37d69c91f7de0e91215cb437a4a86241e2b36",
+      "reviewer": "card_major_writer",
+      "round": "ko-actions.r2-localization",
+      "assessment": "충분한 조건 뒤 추가 요구 중단이라는 완결 행동 / 완료에 필요한 시간과 힘 확인이 방법; 원문 조건과 기존 영어 본문 유지",
+      "action_review_reference": "../ko-actions/en.review.json#entries/overall.pentacles.14.reversed",
+      "unchanged_headline_review": "Existing standalone headline review retained; the new do/pause were independently read alone and with this headline/body."
+    }
+  },
+  "findings": [
+    {
+      "key": "overall.major.devil.reversed",
+      "status": "resolved",
+      "reason": "settled request collocation unclear",
+      "resolution": "Re-read all three corrected short fields"
+    },
+    {
+      "key": "overall.wands.02.upright",
+      "status": "resolved",
+      "reason": "terms at a place unclear collocation",
+      "resolution": "Re-read all three corrected short fields"
+    },
+    {
+      "key": "overall.swords.07.upright",
+      "status": "resolved",
+      "reason": "necessary person (already identified by root)",
+      "resolution": "Re-read all three corrected short fields"
+    },
+    {
+      "key": "overall.pentacles.04.upright",
+      "status": "resolved",
+      "reason": "do it has no standalone referent",
+      "resolution": "Three current short fields re-read"
+    },
+    {
+      "key": "overall.pentacles.05.upright",
+      "status": "resolved",
+      "reason": "room to spare ambiguous (root already requested)",
+      "resolution": "Three current short fields re-read"
+    },
+    {
+      "key": "overall.pentacles.07.reversed",
+      "status": "resolved",
+      "reason": "do it has no standalone referent",
+      "resolution": "Three current short fields re-read"
+    },
+    {
+      "key": "overall.pentacles.08.upright",
+      "status": "resolved",
+      "reason": "Finish using reads as stopping method usage rather than finishing task",
+      "resolution": "Three current short fields re-read"
+    }
+  ],
+  "actual_short_field_read_count": 468,
+  "action_revision": {
+    "version": "fortune-copy.v8-localized.2",
+    "new_action_fields_read": 312,
+    "unchanged_headline_fields": 156,
+    "scope": "468 current short fields combine the prior 156 headline reads and 312 revised action reads."
+  }
+}

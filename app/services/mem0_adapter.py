@@ -1,6 +1,6 @@
 """mem0 vector-store façade — `Memory`를 쓰지 않고 벡터 인덱스 계층만 감싼다.
 
-구조·불변 규칙: docs/ARCHITECTURE-capi.md 「장기 기억과 사용자별 상태」.
+구조·불변 규칙: docs/ARCHITECTURE.md 「장기 기억과 사용자별 상태」.
 
 **왜 public API를 안 쓰나 (실측 근거, mem0ai==2.0.11)**
 

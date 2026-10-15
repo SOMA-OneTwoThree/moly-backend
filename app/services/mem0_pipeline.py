@@ -1,6 +1,6 @@
 """mem0 ingest 파이프라인 — 조각들을 하나의 흐름으로 잇는다.
 
-구조·불변 규칙: docs/ARCHITECTURE-capi.md 「장기 기억과 사용자별 상태」.
+구조·불변 규칙: docs/ARCHITECTURE.md 「장기 기억과 사용자별 상태」.
 
     source turn → extractor → eligibility → planned 후보(결정 UUID)
                 → batch embedding(1회) → vector upsert → registry pending

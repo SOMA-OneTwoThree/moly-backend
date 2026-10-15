@@ -47,7 +47,6 @@ OpenAPI 분할 원본을 바꿨다면 `uv run python scripts/openapi_contract.py
 
 ## 문서
 
-[문서 안내](docs/README.md) · [전체 구조](docs/ARCHITECTURE.md) ·
-[대화·기억](docs/ARCHITECTURE-capi.md) · [API](docs/API_SPEC.md) · [데이터 모델](docs/ERD.md) ·
+[문서 안내](docs/README.md) · [아키텍처](docs/ARCHITECTURE.md) · [API](docs/API_SPEC.md) · [데이터 모델](docs/ERD.md) ·
 [운영](docs/OPERATIONS.md) · [운세](docs/DAILY-FORTUNE.md) · [배너](docs/BANNER_SDUI.md) ·
 [구독](docs/SUBSCRIPTIONS.md) · [BGM](docs/REMOTE_BGM.md)

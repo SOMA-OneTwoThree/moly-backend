@@ -1,6 +1,6 @@
 """관계 상태 — event에서 stage를 **결정적으로** 계산한다.
 
-구조·불변 규칙: docs/ARCHITECTURE-capi.md 「장기 기억과 사용자별 상태」.
+구조·불변 규칙: docs/ARCHITECTURE.md 「장기 기억과 사용자별 상태」.
 
 불변식:
  1. stage는 LLM 서술이 아니라 event 집합의 함수다. "가까워진 것 같다"는 말로 오르지 않는다.

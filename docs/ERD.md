@@ -87,7 +87,7 @@ erDiagram
 | `user_topic_states`, `chat_topic_entries` | 배너 주제 제안·질문 준비·첫 답변의 멱등 연결 |
 
 소유권·lease·generation·삭제 장벽은 발행 직전 다시 확인한다. 메시지 ID만으로 다른 사용자 원문을
-연결하지 않는다. 자세한 처리 순서는 [대화·기억](ARCHITECTURE-capi.md)을 따른다.
+연결하지 않는다. 자세한 처리 순서는 [대화·기억](ARCHITECTURE.md)을 따른다.
 
 ## 기억과 사용자별 상태
 

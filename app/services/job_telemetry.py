@@ -1,6 +1,6 @@
 """잡 시도 telemetry — `job_attempts` 적재.
 
-구조·불변 규칙: docs/ARCHITECTURE-capi.md 「사용량과 운영」.
+구조·불변 규칙: docs/ARCHITECTURE.md 「사용량과 운영」.
 
 `async_jobs` 행은 **현재 상태**만 갖는다. 몇 번째 시도가 왜 실패했는지, lease를 잃었는지, dead까지
 어떤 경로였는지는 남지 않아 retry 분포와 SLO를 사후 분석할 수 없다. 이 모듈이 시도 단위 이력을

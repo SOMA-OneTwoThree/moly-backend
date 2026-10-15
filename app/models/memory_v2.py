@@ -1,6 +1,6 @@
 """기억 v2 — 파이프라인·registry·대화 약속·관계 상태 모델.
 
-docs/ARCHITECTURE-capi.md의 장기 기억과 사용자별 상태 절을 따른다.
+docs/ARCHITECTURE.md의 장기 기억과 사용자별 상태 절을 따른다.
 source 좌표는 (user_id, turn_seq)이고 전체 DB 정의는 db/schema.sql이 원본이다.
 로직과 SQL은 각 서비스 모듈이 소유한다."""
 from __future__ import annotations

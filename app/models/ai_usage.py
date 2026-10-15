@@ -1,6 +1,6 @@
 """AI 원가 계측 — 단가 catalog·호출 원장·잡 시도 기록.
 
-docs/ARCHITECTURE-capi.md의 사용량과 운영 절을 따른다.
+docs/ARCHITECTURE.md의 사용량과 운영 절을 따른다.
 사용자 가중 한도와 공급자 단가 기반 USD 원가는 별개다.
 로직과 SQL은 app/services/usage_ledger.py가 소유한다."""
 from __future__ import annotations

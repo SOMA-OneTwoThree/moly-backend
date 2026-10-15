@@ -21,7 +21,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 
-from app.core.time_utils import activity_date_for
+from app.core.time_utils import reward_date_for
 from app.services import i18n
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -287,7 +287,7 @@ _UNCERTAIN: dict[str, str] = {
 #   1. 페르소나 [날짜] 절이 "날짜나 요일을 숫자로 굳이 입에 올리진 마"라고 못 박는다.
 #      프롬프트에 '2026-07-25'를 넣으면 캐피가 그 숫자를 그대로 말할 여지를 준다.
 #   2. 사람은 "칠월 이십오일에"가 아니라 "저번에"로 떠올린다. 회상은 그쪽이 자연스럽다.
-# 경계는 사용자 로컬 활동일(04시 경계) 기준 일수 차이다.
+# 대화의 오늘/어제는 사용자 현지 달력 날짜 기준이다. 저장·할당량의 04시 활동일과 다르다.
 _WHEN_LABELS: dict[str, dict[str, str]] = {
     "ko": {"today": "오늘", "yesterday": "어제", "days": "{n}일 전", "last_week": "지난주",
            "weeks": "{n}주 전", "last_month": "지난달", "months": "{n}달 전", "long_ago": "오래전",
@@ -311,8 +311,8 @@ def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, 
     if occurred_at is None:
         return t["unknown"]
     try:
-        then = activity_date_for(occurred_at, tz_name)
-        base = today if today is not None else activity_date_for(datetime.now(timezone.utc), tz_name)
+        then = reward_date_for(occurred_at, tz_name)
+        base = today if today is not None else reward_date_for(datetime.now(timezone.utc), tz_name)
         d = (base - then).days
     except Exception:  # noqa: BLE001  회상 한 줄 때문에 대화가 죽으면 안 된다
         # `safe_zone`이 깨진 시간대를 이미 폴백하므로 여기까지 오는 건 시각 값 자체가

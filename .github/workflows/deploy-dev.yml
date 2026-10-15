@@ -169,6 +169,7 @@ jobs:
                 41) reason=PRE_HOST_MARKER ;;
                 42) reason=PRE_TIMER_QUERY ;;
                 43) reason=PRE_TIMER_UNSAFE ;;
+                44) reason=PRE_WORKER_HOST ;;
                 50) reason=PRE_API_EXEC ;;
                 51) reason=PRE_API_SETTINGS ;;
                 52) reason=PRE_API_ENV ;;
@@ -186,6 +187,7 @@ jobs:
                 71) reason=POST_HOST_MARKER ;;
                 72) reason=POST_TIMER_QUERY ;;
                 73) reason=POST_TIMER_UNSAFE ;;
+                74) reason=POST_WORKER_HOST ;;
                 80) reason=POST_API_EXEC ;;
                 81) reason=POST_API_SETTINGS ;;
                 82) reason=POST_API_ENV ;;
@@ -226,23 +228,42 @@ jobs:
               raise SystemExit("INVALID_DEV_IMAGE_TAG")
           timer_probe = """import subprocess
           import sys
-          base = int(sys.argv[1])
-          try:
-              result = subprocess.run(
-                  ["systemctl", "show", "moly-worker.timer", "--property=LoadState", "--property=ActiveState", "--no-pager"],
-                  capture_output=True, text=True, timeout=5,
-              )
-              lines = result.stdout.splitlines()
-              values = dict(line.split("=", 1) for line in lines)
-              if len(lines) != 2 or set(values) != {"LoadState", "ActiveState"}:
-                  raise ValueError()
-          except Exception:
-              raise SystemExit(base + 2)
-          state = (values["LoadState"], values["ActiveState"])
-          # 존재하지 않는 timer도 비활성이다. 오류/모르는 상태는 통과시키지 않는다.
-          if result.returncode != 0:
-              raise SystemExit(base + 2)
-          if state not in {("loaded", "inactive"), ("not-found", "inactive")}:
+          base, phase = int(sys.argv[1]), sys.argv[2]
+          def query():
+              try:
+                  result = subprocess.run(
+                      ["systemctl", "show", "moly-worker.timer", "--property=LoadState", "--property=ActiveState", "--no-pager"],
+                      capture_output=True, text=True, timeout=5,
+                  )
+                  lines = result.stdout.splitlines()
+                  values = dict(line.split("=", 1) for line in lines)
+                  if result.returncode != 0 or len(lines) != 2 or set(values) != {"LoadState", "ActiveState"}:
+                      raise ValueError()
+              except Exception:
+                  raise SystemExit(base + 2)
+              return values["LoadState"], values["ActiveState"]
+          def control(action, *options):
+              try:
+                  result = subprocess.run(
+                      ["systemctl", action, *options, "moly-worker.timer"],
+                      capture_output=True, text=True, timeout=15,
+                  )
+                  if result.returncode != 0:
+                      raise ValueError()
+              except Exception:
+                  raise SystemExit(base + 3)
+          state = query()
+          if phase == "pre":
+              if state[0] == "loaded" and state[1] in {"inactive", "active", "failed", "activating", "deactivating", "reloading"}:
+                  control("disable", "--now")
+                  state = query()
+                  if state == ("loaded", "failed"):
+                      control("reset-failed")
+                      state = query()
+          elif phase != "post":
+              raise SystemExit(base + 3)
+          # post는 읽기만 한다. infra가 다시 켠 timer를 여기서 숨기지 않는다.
+          if state not in {("loaded", "inactive"), ("not-found", "inactive"), ("masked", "inactive")}:
               raise SystemExit(base + 3)
           """
           container_probe = """import stat
@@ -283,7 +304,8 @@ jobs:
               host_base=70; api_base=80; consumer_base=90
             fi
             test "$(cat /etc/moly-env 2>/dev/null)" = dev || return "$((host_base + 1))"
-            python3 -c {shlex.quote(timer_probe)} "$host_base" || return "$?"
+            test ! -f /etc/moly-worker-host || return "$((host_base + 4))"
+            python3 -c {shlex.quote(timer_probe)} "$host_base" "$phase" || return "$?"
             for container in moly-backend moly-consumer; do
               if [ "$container" = moly-backend ]; then base="$api_base"; else base="$consumer_base"; fi
               if docker exec "$container" python -c {shlex.quote(container_probe)} "$expected" "$base"; then

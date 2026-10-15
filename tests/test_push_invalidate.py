@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import datetime, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -151,11 +153,14 @@ def _writes(session):
     return [str(x) for x in session.executed if str(x).upper().startswith(("UPDATE", "DELETE"))]
 
 
+_EVENING_NOW = datetime(2026, 1, 15, 11, 0, tzinfo=timezone.utc)  # KST 20:00
+
+
 def _evening_env(monkeypatch, result):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kw):
         return True
 
     async def _resolve(session, uid, now=None):
@@ -167,7 +172,7 @@ def _evening_env(monkeypatch, result):
     async def _override(session, profile, now):
         return None
 
-    async def _send(tokens, title, body):
+    async def _send(tokens, title, body, **kw):
         return result
 
     monkeypatch.setattr(notify, "_enabled", _enabled)
@@ -176,6 +181,7 @@ def _evening_env(monkeypatch, result):
     monkeypatch.setattr(notify, "_override_copy", _override)
     monkeypatch.setattr(gating, "resolve", _resolve)
     monkeypatch.setattr(push, "send", _send)
+    monkeypatch.setattr(notify, "_record_evening_variant", AsyncMock())
 
 
 async def test_evening_dry_run_counts_but_does_not_write(monkeypatch):
@@ -183,7 +189,7 @@ async def test_evening_dry_run_counts_but_does_not_write(monkeypatch):
     _evening_env(monkeypatch, push.SendResult(1, ["dead"], {push.INVALID_TOKEN: 1}))
     s = _Session()
     stats = {}
-    assert await notify.notify_evening(s, SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), stats=stats) == 1
+    assert await notify.notify_evening(s, SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), now=_EVENING_NOW, stats=stats) == 1
     assert _writes(s) == []
     assert stats["push_sent"] == 1 and stats["push_invalid_token"] == 1 and "push_invalidated" not in stats
 
@@ -193,7 +199,7 @@ async def test_evening_marks_only_this_users_dead_tokens_with_update(monkeypatch
     _evening_env(monkeypatch, push.SendResult(1, ["dead"], {push.INVALID_TOKEN: 1}))
     s = _Session()
     stats = {}
-    assert await notify.notify_evening(s, SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), stats=stats) == 1
+    assert await notify.notify_evening(s, SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), now=_EVENING_NOW, stats=stats) == 1
     writes = _writes(s)
     assert len(writes) == 1 and writes[0].startswith("UPDATE user_devices SET invalidated_at=now()")
     assert "user_devices.user_id" in writes[0] and "user_devices.push_token IN" in writes[0]
@@ -206,14 +212,16 @@ async def test_evening_auth_failure_is_counted_and_still_raises(monkeypatch):
     """send 안의 인증 준비 실패 — 처리(틱 기록)는 그대로 두고 전면 장애 판정용으로만 센다."""
     _evening_env(monkeypatch, None)
 
-    async def _send(tokens, title, body):
+    async def _send(tokens, title, body, **kw):
         raise RuntimeError("test auth failure")
 
     monkeypatch.setattr(push, "send", _send)
+    monkeypatch.setattr(notify, "_record_evening_variant", AsyncMock())
     stats = {}
     with pytest.raises(RuntimeError):
-        await notify.notify_evening(_Session(), SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), stats=stats)
+        await notify.notify_evening(_Session(), SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), now=_EVENING_NOW, stats=stats)
     assert stats == {"push_setup_error": 1}
+    notify._record_evening_variant.assert_not_awaited()
 
 
 async def test_evening_int_fake_from_legacy_tests_still_works(monkeypatch):
@@ -222,7 +230,7 @@ async def test_evening_int_fake_from_legacy_tests_still_works(monkeypatch):
     _evening_env(monkeypatch, 1)
     s = _Session()
     stats = {}
-    assert await notify.notify_evening(s, SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), stats=stats) == 1
+    assert await notify.notify_evening(s, SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"), now=_EVENING_NOW, stats=stats) == 1
     assert _writes(s) == []
     assert stats["push_sent"] == 1
 
@@ -243,7 +251,7 @@ async def test_morning_marks_dead_tokens_too(monkeypatch):
     stats = {}
     n = await notify.notify_morning(
         s, SimpleNamespace(id=UID, timezone="Asia/Seoul", language="ko"),
-        now=datetime(2026, 1, 15, 0, tzinfo=timezone.utc), stats=stats,
+        now=datetime(2026, 1, 15, 1, tzinfo=timezone.utc), stats=stats,  # KST 10:00
     )
     assert n == 0  # 전 토큰 무효 → '미전달' 경고는 그대로, 행은 표시만
     assert len(_writes(s)) == 1 and _writes(s)[0].startswith("UPDATE user_devices")

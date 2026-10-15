@@ -1,18 +1,16 @@
-"""저녁 푸쉬 문구 풀 — 카테고리 × 언어 × (제목, 본문). DB 접근 없음(greetings.py 선례).
+"""서버 푸시 문구 — 문구 id × 언어. DB 접근 없음(greetings.py 선례).
 
-분기(카테고리 판정)는 notify.py가 소유하고, 여기는 문구만 안다. 언어 버킷을 먼저
-고르고(i18n.pick — 미지원 언어는 en 폴백) 그 안에서 랜덤 1개를 뽑는다.
+분기(갈래·경우 판정)는 notify.py가 소유하고, 여기는 문구만 안다. 언어는 i18n.pick
+(미지원 언어는 en 폴백). 한국어는 2026-10-14 사용자가 줄 단위로 확정한 문구다
+(docs/PUSH-WORK-PLAN.md 3장). 영어·일본어는 같은 id의 뜻을 현지화했다(2026-10-15, 별도 검토 두 곳의
+결과를 합치고 최종 확인).
 
-문구는 CAPI_PERSONA(prompts.py)의 말투 규칙을 따른다(2026-08-08 사용자 확정):
-- 1인칭 나/I/ぼく — 3인칭 자칭("캐피가~") 금지. 상대는 너/きみ.
-- 예외: diary_teaser는 캐피 발화가 아니라 시스템 안내 보이스다 — "캐피가 몰래 쓴 일기를
-  몰래 보러 간다"는 컨셉이라 존댓말·3인칭("캐피의 일기가 도착했어요")이 정상이고 3개만 둔다.
-- ko·en 쉼표 금지, 이모지 금지, 짧게 끊는 문장, 질문은 문구당 최대 1개, 온기는 나직하게.
-- 죄책감 유발 금지("왜 안 와" 류) — 캐피는 며칠 안 와도 탓하지 않는다.
-- 세계관: 글로만 연결 — 얼굴·목소리·사진을 보자는 표현 금지.
-- 개성은 캐피의 일상에서: 소파·음악·낮잠·창밖·느긋함([너에 대해]의 설정만 쓰고 지어내지 않는다).
-- ja는 ko 번역이 아니라 네이티브 재작성(CAPI_PERSONA_JA 방식) — ko와 1:1 대응 아님.
-- 풀 크기는 카테고리별 사용자 확정값(검수에서 삭제·추가된 결과) — test_push_copy._POOL_SIZES가 정본.
+- 제목은 모든 언어에서 앱 이름 `BeCappy`(루틴 푸시만 문구별 제목).
+- 저녁 대화(c.*)는 캐피가 직접 하는 말: 1인칭 반말, 쉼표·이모지 없음, ko는 마침표도 없음.
+  누르면 같은 본문이 대화창 첫마디가 된다(chat.get_greeting) — 문구 id로 다시 찾는다.
+- 루틴(rm.*, rr)은 앱이 하는 말: 해요체, 제목 끝 이모지 하나. 스트릭은 이미 이어 온 기록이
+  깨지지 않게 하라는 뜻으로만 쓴다.
+- 대화 갈래별 문구 수는 사용자 확정값 — test_push_copy._POOL_SIZES가 기준.
 """
 from __future__ import annotations
 
@@ -20,180 +18,243 @@ import random
 
 from app.services import i18n
 
-# 카테고리 키 — notify._category가 반환하는 값의 정본.
-MORE_CHAT = "more_chat"            # 오늘(활동일) 대화함 → 자기 전에 한 번 더
-DIARY_TEASER = "diary_teaser"      # 어제치 캐피 일기 미독 → 보러 오게 유도
+TITLE = "BeCappy"
+
+# 저녁 대화 갈래 키 — notify._category가 반환하는 값.
+MORE_CHAT = "more_chat"            # 오늘(활동일) 대화함
 FIRST_TOUCH = "first_touch"        # 가입 후 아직 첫 대화 전
-DEFAULT_RECENT = "default_recent"  # 마지막 대화 1~2일 전 — 기존 안부 톤
-DEFAULT_MISSING = "default_missing"  # 3~6일 — 가벼운 그리움
-DEFAULT_LONG = "default_long"      # 7일+ — 오랜만, 부담 없이
+DEFAULT_RECENT = "default_recent"  # 마지막 대화 1~2일 전
+DEFAULT_MISSING = "default_missing"  # 3~6일
+DEFAULT_LONG = "default_long"      # 7일+, 또는 대화 없이 가입 8일+
 
-CATEGORIES: tuple[str, ...] = (
-    MORE_CHAT, DIARY_TEASER, FIRST_TOUCH,
-    DEFAULT_RECENT, DEFAULT_MISSING, DEFAULT_LONG,
-)
+CATEGORIES: tuple[str, ...] = (MORE_CHAT, FIRST_TOUCH, DEFAULT_RECENT, DEFAULT_MISSING, DEFAULT_LONG)
 
-# 캐릭터명은 언어별 고정(ko 캐피 / en Cappy / ja キャピー — SOMA-361 표면 규칙).
-_T_KO, _T_EN, _T_JA = "캐피", "Cappy", "キャピー"
+FALLBACK = "c.fallback"  # 갈래 판단 실패 시 — 어떤 상태에도 거짓이 되지 않는 말
 
-
-def _pool(title: str, bodies: list[str]) -> list[tuple[str, str]]:
-    return [(title, b) for b in bodies]
-
-
-_POOLS: dict[str, dict[str, list[tuple[str, str]]]] = {
-    MORE_CHAT: {
-        "ko": _pool(_T_KO, [
-            "자기 전에 조금만 더 대화할래?",
-            "나 혼자 음악 듣고 있어. 아까 이야기 마저 하자!",
-            "창밖이 어느새 깜깜해졌어. 나랑 같이 놀래?",
-            "낮에 들은 너의 이야기 재밌었어. 더 얘기해줄래?",
-            "오늘 대화는 왠지 짧게 느껴졌어. 나만 그랬나?",
-            "잠들기 전에 조금만 더 이야기할래?",
-            "오늘 나한테 이야기해줄 거 더 없어?",
-            "밥은 먹었어? 나랑 대화하자.",
-        ]),
-        "en": _pool(_T_EN, [
-            "One more little chat before bed?",
-            "I'm listening to music by myself. Let's finish our talk!",
-            "It's gone dark outside my window. Want to hang out with me?",
-            "Your story from earlier was fun. Will you tell me more?",
-            "Today's chat felt short somehow. Was it just me?",
-            "Want to talk just a little more before you sleep?",
-            "Got anything else to tell me today?",
-            "Have you eaten? Come talk with me.",
-        ]),
-        "ja": _pool(_T_JA, [
-            "寝る前にもう少しだけ話さない？",
-            "ひとりで音楽を聴いてるんだ。さっきの話のつづきをしよう！",
-            "窓の外がすっかり暗くなったね。ぼくと一緒に遊ばない？",
-            "昼間のきみの話おもしろかったな。もっと聞かせてくれる？",
-            "今日の会話はなんだか短く感じたな。ぼくだけかな。",
-            "眠る前にもう少しだけおしゃべりしない？",
-            "今日はまだぼくに話してくれることない？",
-            "ごはんは食べた？ぼくとおしゃべりしよう。",
-        ]),
+_CHAT: dict[str, dict[str, str]] = {
+    "c.more.1": {
+        "ko": "오늘 했던 얘기 조금 더 할까?",
+        "en": "Want to talk a little more about today?",
+        "ja": "今日の話もう少しする？",
     },
-    DIARY_TEASER: {
-        # 시스템 안내 보이스(존댓말·3인칭) — "캐피가 몰래 쓴 일기를 몰래 본다" 컨셉(사용자 확정 3개).
-        "ko": _pool(_T_KO, [
-            "캐피의 일기가 도착했어요!",
-            "캐피가 당신을 생각하며 글을 썼어요. 보러 갈까요?",
-            "캐피가 일기를 적어두었어요. 보러 갈까요?",
-        ]),
-        "en": _pool(_T_EN, [
-            "Cappy's journal has arrived!",
-            "Cappy wrote something while thinking of you. Shall we go take a look?",
-            "Cappy left a journal entry. Shall we go see it?",
-        ]),
-        "ja": _pool(_T_JA, [
-            "キャピーの日記が届きました！",
-            "キャピーがあなたを思いながら書きました。見に行きませんか？",
-            "キャピーが日記を書いておきました。のぞいてみませんか？",
-        ]),
+    "c.more.2": {
+        "ko": "아까 하던 얘기 마저 해 줄래?",
+        "en": "Can you tell me the rest of what you were saying earlier?",
+        "ja": "さっきの話のつづき聞かせてくれる？",
     },
-    FIRST_TOUCH: {
-        "ko": _pool(_T_KO, [
-            "나는 캐피야. 소파에서 노래 듣는 걸 좋아해.",
-            "오늘 하루 어땠어?",
-            "나한테 네 고민 들려줄래?",
-        ]),
-        "en": _pool(_T_EN, [
-            "I'm Cappy. I like listening to music on the sofa.",
-            "How was your day today?",
-            "Will you tell me what's on your mind?",
-        ]),
-        "ja": _pool(_T_JA, [
-            "ぼくはキャピー。ソファで音楽を聴くのが好きなんだ。",
-            "今日の一日はどうだった？",
-            "きみの悩みごとをぼくに聞かせてくれない？",
-        ]),
+    "c.more.3": {
+        "ko": "하루 끝나기 전에 한 번 더 얘기할래?",
+        "en": "Want to talk one more time before the day is over?",
+        "ja": "一日が終わる前にもう一回話さない？",
     },
-    DEFAULT_RECENT: {
-        # ko·en·ja 1번 = 구 저녁 고정 문구(notify._EVENING과 같은 문자열, 기존 톤 유지 의도).
-        # notify._EVENING은 신호 실패용 중립 폴백으로 별도 존재한다 — 한쪽만 고치면 드리프트하니
-        # 카피 수정 때 같이 본다.
-        "ko": _pool(_T_KO, [
-            "오늘 하루는 어땠어? 나랑 같이 얘기하면서 놀자.",
-            "음악 틀어놓고 기다리고 있어. 나랑 얘기하지 않을래?",
-            "너의 하루가 궁금해. 나에게 들려줄래?",
-            "별일 없어도 좋아. 아무 얘기나 들려줄래?",
-            "하루 마무리로 나랑 얘기하는 거 어때?",
-            "오늘 너무 심심해. 네 하루는 어땠어?",
-            "나랑 수다 떨고 하루 마무리할래?",
-        ]),
-        "en": _pool(_T_EN, [
-            "How was your day? Come talk and hang out with me.",
-            "I've got music on and I'm waiting. Won't you come talk with me?",
-            "I'm curious about your day. Will you tell me?",
-            "An ordinary day is fine too. Will you tell me anything at all?",
-            "How about wrapping up the day with me?",
-            "I'm so bored today. How was your day?",
-            "Want to chat with me and call it a day?",
-        ]),
-        "ja": _pool(_T_JA, [
-            "今日はどんな一日だった？ぼくと一緒におしゃべりしよう。",
-            "音楽をかけて待ってるよ。ぼくと話さない？",
-            "きみの一日が気になるな。聞かせてくれる？",
-            "なにもない日でもいいんだ。なんでも話してくれる？",
-            "一日のしめくくりにぼくと話すのはどう？",
-            "今日はとってもひまなんだ。きみの一日はどうだった？",
-            "ぼくとおしゃべりして一日をしめくくらない？",
-        ]),
+    "c.more.4": {
+        "ko": "오늘 하루는 어땠어?",
+        "en": "How was your day?",
+        "ja": "今日はどんな一日だった？",
     },
-    DEFAULT_MISSING: {
-        "ko": _pool(_T_KO, [
-            "음악 듣다가 네 생각이 났어. 요즘 어때?",
-            "창밖을 보다가 네 생각이 났어. 뭐해?",
-            "요즘 하늘이 이쁘네. 너도 봤을까?",
-            "낮잠 자다가 꿈에서 너가 나왔어! 요즘 뭐해?",
-            "쌓인 이야기들이 궁금해. 천천히 이야기해줄래?",
-            "나는 늘 여기 있어. 요즘 바빠?",
-            "편하게 와서 나랑 이야기하지 않을래?",
-        ]),
-        "en": _pool(_T_EN, [
-            "I was listening to music and you crossed my mind. How have you been?",
-            "I was looking out the window and thought of you. What are you up to?",
-            "The sky's been pretty lately. I wonder if you saw it too.",
-            "You showed up in my nap dream! What have you been up to?",
-            "I'm curious about all the stories that piled up. Will you tell me slowly?",
-            "I'm always right here. Have you been busy?",
-            "Won't you come by and talk with me? Anytime works.",
-        ]),
-        "ja": _pool(_T_JA, [
-            "音楽を聴いてたらきみを思い出したんだ。最近どう？",
-            "窓の外を見てたらきみのことを考えてた。今なにしてる？",
-            "最近空がきれいなんだ。きみも見たかな。",
-            "お昼寝の夢にきみが出てきたよ！最近なにしてる？",
-            "たまった話が気になるな。ゆっくり聞かせてくれる？",
-            "ぼくはいつもここにいるよ。最近いそがしい？",
-            "気軽に来てぼくと話さない？",
-        ]),
+    "c.more.5": {
+        "ko": "나랑 조금만 더 놀아 줄래?",
+        "en": "Will you hang out with me a little longer?",
+        "ja": "もう少しだけぼくと遊んでくれる？",
     },
-    DEFAULT_LONG: {
-        "ko": _pool(_T_KO, [
-            "그동안 어떻게 지냈어? 너의 이야기가 궁금해.",
-            "언제 와도 나는 그대로야.",
-            "오랜만이야. 편하게 얘기할래?",
-            "밀린 얘기 천천히 해줘.",
-        ]),
-        "en": _pool(_T_EN, [
-            "How have you been all this time? I want to hear your story.",
-            "Whenever you come I'll be the same me.",
-            "It's been a while. Want to have a relaxed little chat?",
-            "Tell me the stories I missed. Slowly is fine.",
-        ]),
-        "ja": _pool(_T_JA, [
-            "その後どうしてた？きみの話が聞きたいな。",
-            "いつ来てもぼくは変わらないよ。",
-            "ひさしぶりだね。気軽に話さない？",
-            "たまった話はゆっくり聞かせてね。",
-        ]),
+    "c.more.6": {
+        "ko": "오늘 저녁에 뭐 했는지 나한테도 알려줘!",
+        "en": "Fill me in on what you've been up to this evening!",
+        "ja": "今夜なにしてたかぼくにも教えて！",
+    },
+    "c.first.1": {
+        "ko": "오늘 하루는 어땠어? 한마디만 해 줘도 좋아",
+        "en": "How was your day? Even just one word would be nice",
+        "ja": "今日はどんな一日だった？ひとことだけでもうれしいな",
+    },
+    "c.first.2": {
+        "ko": "저녁은 먹었어? 오늘 있었던 일 나한테 들려줄래?",
+        "en": "Have you had dinner yet? Want to tell me about your day?",
+        "ja": "夕ごはんは食べた？今日あったことぼくに聞かせてくれる？",
+    },
+    "c.first.3": {
+        "ko": "오늘 힘든 일은 없었어? 있었으면 나한테 털어놔도 돼",
+        "en": "Did anything tough happen today? It's okay to tell me",
+        "ja": "今日つらいことはなかった？あったらぼくに話していいよ",
+    },
+    "c.recent.1": {
+        "ko": "오늘 하루는 어땠어?",
+        "en": "How was your day?",
+        "ja": "今日はどんな一日だった？",
+    },
+    "c.recent.2": {
+        "ko": "오늘 하루도 고생 많았어! 힘들지는 않았어?",
+        "en": "You got through another day! Was it a tough one?",
+        "ja": "今日もおつかれさま！大変じゃなかった？",
+    },
+    "c.recent.3": {
+        "ko": "오늘 힘들지는 않았어?",
+        "en": "Was today hard on you?",
+        "ja": "今日は大変じゃなかった？",
+    },
+    "c.recent.4": {
+        "ko": "너의 오늘 하루는 어땠어?",
+        "en": "How was today for you?",
+        "ja": "きみの今日はどうだった？",
+    },
+    "c.recent.5": {
+        "ko": "오늘 제일 기억에 남는 일 하나 들려줘",
+        "en": "Tell me the one thing that stood out most today",
+        "ja": "今日いちばん心に残ったことをひとつ聞かせて",
+    },
+    "c.missing.1": {
+        "ko": "요즘은 어떻게 지내? 오랜만에 나랑 얘기하자",
+        "en": "How have you been lately? Let's catch up",
+        "ja": "最近どうしてる？ひさしぶりにぼくと話そう",
+    },
+    "c.missing.2": {
+        "ko": "며칠 못 봤네 그동안 별일 없었어?",
+        "en": "Haven't seen you in a few days. All good?",
+        "ja": "何日か会えなかったね。変わりなかった？",
+    },
+    "c.missing.3": {
+        "ko": "요즘 많이 바빴어? 잠깐이라도 얘기하자",
+        "en": "Been really busy lately? Let's talk even just for a minute",
+        "ja": "最近いそがしかった？ちょっとだけでも話そう",
+    },
+    "c.missing.4": {
+        "ko": "오늘은 어떤 하루였어? 며칠 만에 듣고 싶어",
+        "en": "What was your day like? It's been a few days and I'd love to hear about it",
+        "ja": "今日はどんな一日だった？数日ぶりにきみの話を聞きたいな",
+    },
+    "c.missing.5": {
+        "ko": "그동안 잘 지냈어? 밀린 얘기 들려줄래?",
+        "en": "Been doing well? Want to tell me what I missed?",
+        "ja": "元気にしてた？この数日のこと聞かせてくれる？",
+    },
+    "c.missing.6": {
+        "ko": "요즘 무슨 일 있었어? 나한테 다 얘기해 줘",
+        "en": "What's been going on lately? Tell me everything",
+        "ja": "最近なにかあった？ぼくに全部話して",
+    },
+    "c.missing.7": {
+        "ko": "오늘은 꼭 네 얘기 듣고 싶어 요즘 어때?",
+        "en": "I really want to hear from you today. How are things?",
+        "ja": "今日はきみの話がすごく聞きたいな。最近どう？",
+    },
+    "c.long.1": {
+        "ko": "요즘은 어떻게 지내? 오늘은 나랑 얘기하자",
+        "en": "How have you been lately? Let's talk today",
+        "ja": "最近どうしてる？今日はぼくと話そう",
+    },
+    "c.long.2": {
+        "ko": "요즘 많이 바빴지? 잠깐 쉬면서 나랑 얘기할래?",
+        "en": "Have you been busy lately? Want to take a quick break and talk with me?",
+        "ja": "最近いそがしかったよね？ちょっと休んでぼくと話さない？",
+    },
+    "c.long.3": {
+        "ko": "오늘 하루는 어땠어? 오랜만에 잠깐 얘기할까?",
+        "en": "How was your day? Want to catch up for a bit?",
+        "ja": "今日はどんな一日だった？ひさしぶりにちょっと話そうか？",
+    },
+    FALLBACK: {
+        "ko": "오늘 얘기 들려줄래?",
+        "en": "Will you tell me about your day?",
+        "ja": "今日の話聞かせてくれる？",
     },
 }
 
+_CHAT_PREFIX = {
+    MORE_CHAT: "c.more.",
+    FIRST_TOUCH: "c.first.",
+    DEFAULT_RECENT: "c.recent.",
+    DEFAULT_MISSING: "c.missing.",
+    DEFAULT_LONG: "c.long.",
+}
+_POOLS: dict[str, tuple[str, ...]] = {
+    category: tuple(v for v in _CHAT if v.startswith(prefix)) for category, prefix in _CHAT_PREFIX.items()
+}
 
-def pick(category: str, language: str | None) -> tuple[str, str]:
-    """카테고리·언어의 풀에서 (제목, 본문) 1개 랜덤 선택. 언어 버킷 먼저, 그 안에서 랜덤."""
-    pool = i18n.pick(_POOLS[category], language)
-    return random.choice(pool)
+_ROUTINE_BODY = {
+    "ko": "오늘 루틴 미리 확인하고 하루를 시작해 볼까요?",
+    "en": "How about checking today's routines before you start your day?",
+    "ja": "今日のルーティンを確認して一日を始めませんか？",
+}
+
+# 루틴 아침 요일 제목 — isoweekday 순서(월=1 … 일=7).
+WEEKDAYS: tuple[str, ...] = ("rm.mon", "rm.tue", "rm.wed", "rm.thu", "rm.fri", "rm.sat", "rm.sun")
+ROUTINE_BREAK = "rm.break"
+ROUTINE_RISK = "rr"
+
+_ROUTINE: dict[str, dict[str, tuple[str, str]]] = {
+    "rm.mon": {
+        "ko": ("한 주의 시작, 월요일이에요 ❤️", _ROUTINE_BODY["ko"]),
+        "en": ("It's Monday, a fresh start to the week ❤️", _ROUTINE_BODY["en"]),
+        "ja": ("一週間のはじまり、月曜日です ❤️", _ROUTINE_BODY["ja"]),
+    },
+    "rm.tue": {
+        "ko": ("화요일도 힘차게 시작해요 🧡", _ROUTINE_BODY["ko"]),
+        "en": ("Let's start Tuesday strong 🧡", _ROUTINE_BODY["en"]),
+        "ja": ("火曜日も元気にスタートしましょう 🧡", _ROUTINE_BODY["ja"]),
+    },
+    "rm.wed": {
+        "ko": ("한 주의 절반, 수요일이에요 💛", _ROUTINE_BODY["ko"]),
+        "en": ("It's Wednesday, halfway there 💛", _ROUTINE_BODY["en"]),
+        "ja": ("一週間の折り返し、水曜日です 💛", _ROUTINE_BODY["ja"]),
+    },
+    "rm.thu": {
+        "ko": ("주말까지 이틀 남았어요 💚", _ROUTINE_BODY["ko"]),
+        "en": ("Just two days until the weekend 💚", _ROUTINE_BODY["en"]),
+        "ja": ("週末まであと2日です 💚", _ROUTINE_BODY["ja"]),
+    },
+    "rm.fri": {
+        "ko": ("드디어 금요일이에요 💙", _ROUTINE_BODY["ko"]),
+        "en": ("It's finally Friday 💙", _ROUTINE_BODY["en"]),
+        "ja": ("やっと金曜日です 💙", _ROUTINE_BODY["ja"]),
+    },
+    "rm.sat": {
+        "ko": ("여유로운 토요일 아침이에요 💜", _ROUTINE_BODY["ko"]),
+        "en": ("A relaxing Saturday morning 💜", _ROUTINE_BODY["en"]),
+        "ja": ("ゆったりした土曜日の朝です 💜", _ROUTINE_BODY["ja"]),
+    },
+    "rm.sun": {
+        "ko": ("한 주를 마무리하는 일요일이에요 🤍", _ROUTINE_BODY["ko"]),
+        "en": ("It's Sunday, time to wrap up the week 🤍", _ROUTINE_BODY["en"]),
+        "ja": ("一週間をしめくくる日曜日です 🤍", _ROUTINE_BODY["ja"]),
+    },
+    ROUTINE_BREAK: {
+        "ko": ("아쉽게도 {lost}일 스트릭이 깨졌어요 😢", "오늘부터 다시 쌓아 볼까요? 💪"),
+        "en": ("Sadly, your {lost} day streak has ended 😢", "Ready to build it back up starting today? 💪"),
+        "ja": ("{lost}日連続の記録が途切れてしまいました 😢", "今日からまた積み重ねてみませんか？💪"),
+    },
+    ROUTINE_RISK: {
+        "ko": ("오늘 안 하면 {n}일 스트릭이 깨져요 🚨", "지금 루틴 하나만 해도 유지할 수 있어요 🔥"),
+        "en": ("Skip today and your {n} day streak breaks 🚨", "Just one routine now keeps it going 🔥"),
+        "ja": ("今日やらないと{n}日連続の記録が途切れます 🚨", "今からルーティンをひとつやるだけで続けられます 🔥"),
+    },
+}
+
+_DIARY = {
+    "ko": "캐피의 새 일기가 도착했어요 📖",
+    "en": "Cappy's new diary entry has arrived 📖",
+    "ja": "キャピーの新しい日記が届きました 📖",
+}
+
+
+def pick(category: str) -> str:
+    """대화 갈래 안에서 문구 id 하나를 무작위로."""
+    return random.choice(_POOLS[category])
+
+
+def chat_body(variant: str, language: str | None) -> str | None:
+    """대화 문구 id의 본문. 대화 문구가 아니면 None(첫마디 이어 주기가 쓴다)."""
+    table = _CHAT.get(variant)
+    return i18n.pick(table, language) if table else None
+
+
+def chat(variant: str, language: str | None) -> tuple[str, str]:
+    return TITLE, i18n.pick(_CHAT[variant], language)
+
+
+def routine(variant: str, language: str | None, *, n: int = 0, lost: int = 0) -> tuple[str, str]:
+    title, body = i18n.pick(_ROUTINE[variant], language)
+    return title.format(n=n, lost=lost), body
+
+
+def diary(language: str | None) -> tuple[str, str]:
+    return TITLE, i18n.pick(_DIARY, language)

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_session
 from app.core.security import get_current_user
 from app.schemas.feedback import CreateFeedbackRequest
-from app.services import feedback, slack_notify
+from app.services import feedback
 
 router = APIRouter(tags=["feedback"])
 
@@ -22,6 +22,6 @@ async def create_feedback(
     nickname = await feedback.create_feedback(session, user_id, req)
     # 저장 성공 후 슬랙 알림 — 백그라운드(응답 204를 지연 안 시킴) + best-effort(URL 없거나 실패해도 무영향).
     background_tasks.add_task(
-        slack_notify.send_feedback,
-        slack_notify.feedback_text(user_id, nickname, req.message, req.contact),
+        feedback.notify_feedback,
+        user_id, nickname, req.message, req.contact,
     )

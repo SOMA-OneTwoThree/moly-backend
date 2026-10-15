@@ -1,6 +1,6 @@
 """프롬프트 캐싱 핵심 — billable(원가 가중), 앵커 리셋, 블록 조립."""
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 from types import SimpleNamespace
 
 from app.services import chat as c
@@ -18,6 +18,7 @@ def _msg(i, sender, content="안녕", activity_date=None):
     return SimpleNamespace(
         id=i, sender=sender, content=content,
         activity_date=activity_date or date(2026, 7, 15),
+        created_at=datetime.combine(activity_date or date(2026, 7, 15), time(3), timezone.utc),
     )
 
 
@@ -56,9 +57,9 @@ def test_date_marker_on_day_change():
     msgs = [_msg(1, "user", activity_date=d14), _msg(2, "moly", activity_date=d14),
             _msg(3, "user", activity_date=d15)]
     c._mark_dates(convo, msgs)
-    assert convo[0]["content"].startswith("[7월 14일 화요일]\n")  # 그룹 첫 메시지
+    assert convo[0]["content"].startswith("[2026-07-14T12:00+09:00]\n")  # 그룹 첫 메시지
     assert convo[1]["content"] == "그래"                          # 같은 날 → 표식 없음
-    assert convo[2]["content"].startswith("[7월 15일 수요일]\n")  # 날 바뀜 → 새 표식
+    assert convo[2]["content"].startswith("[2026-07-15T12:00+09:00]\n")  # 날 바뀜 → 새 표식
 
 
 def test_date_marker_single_day_labels_first_only():
@@ -67,8 +68,8 @@ def test_date_marker_single_day_labels_first_only():
     msgs = [_msg(1, "user", activity_date=date(2026, 7, 15)),
             _msg(2, "moly", activity_date=date(2026, 7, 15))]
     c._mark_dates(convo, msgs)
-    assert convo[0]["content"].startswith("[7월 15일")  # 오늘 며칠인지 항상 보이게
-    assert "[7월" not in convo[1]["content"]
+    assert convo[0]["content"].startswith("[2026-07-15")  # 오늘 며칠인지 항상 보이게
+    assert "[2026-07" not in convo[1]["content"]
 
 
 async def test_context_marks_first_surviving_message_after_greeting_pop():
@@ -76,14 +77,15 @@ async def test_context_marks_first_surviving_message_after_greeting_pop():
     from datetime import date
     d = date(2026, 7, 15)
     desc = [_msg(2, "user", "답", activity_date=d), _msg(1, "moly", "인사", activity_date=d)]
-    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    window = await c._context(FakeSession(execute_items=desc), UID, 0)
+    convo, _anchor, lead = window.conversation, window.new_anchor, window.lead
     assert [m.content for m in lead] == ["인사"]           # 선발화는 system으로
-    assert convo[0]["content"].startswith("[7월 15일")     # 남은 첫 메시지에 표식
+    assert convo[0]["content"].startswith("[2026-07-15")     # 남은 첫 메시지에 표식
 
 
 # --- 대사 정제(페르소나만으론 안 잡히는 것들을 코드로 확정) ---
 def test_clean_reply_strips_linebreaks_and_ellipsis():
-    assert _ko_clean("음... 딱히 없어.\n\n생각해봐도 안 떠올라.") == "음 딱히 없어. 생각해봐도 안 떠올라."
+    assert _ko_clean("음... 딱히 없어.\n\n생각해봐도 안 떠올라.") == "음 딱히 없어.\n\n생각해봐도 안 떠올라."
     assert _ko_clean("그렇구나…") == "그렇구나"
     assert _ko_clean("정말...?") == "정말?"          # 부호 앞 공백이 남지 않는다
     assert _ko_clean("  왔네.  ") == "왔네."
@@ -96,16 +98,16 @@ def test_clean_reply_keeps_normal_punctuation():
 
 # --- 되묻기 물음표 백스톱 ---
 def test_fix_qmarks_restores_soft_questions():
-    assert _ko_clean("무슨 일인데.") == "무슨 일인데?"
-    assert _ko_clean("무슨 일이야.") == "무슨 일이야?"
-    assert _ko_clean("왜 그런데.") == "왜 그런데?"
-    assert _ko_clean("무슨 고민이야") == "무슨 고민이야?"          # 부호 없이 흘린 것도
+    assert c._fix_qmarks("무슨 일인데.", None) == "무슨 일인데?"
+    assert c._fix_qmarks("무슨 일이야.", None) == "무슨 일이야?"
+    assert c._fix_qmarks("왜 그런데.", None) == "왜 그런데?"
+    assert c._fix_qmarks("무슨 고민이야", None) == "무슨 고민이야?"          # 부호 없이 흘린 것도
 
 
 def test_fix_qmarks_strips_trailing_vocative_before_check():
     # 끝이 호명이면 벗겨서 어미를 노출('무슨 일이야, 승민아' → 물음표는 문장 끝에)
-    assert _ko_clean("승민아, 무슨 일이야.", "승민") == "승민아, 무슨 일이야?"
-    assert _ko_clean("무슨 일인데, 지호야.", "지호") == "무슨 일인데, 지호야?"
+    assert c._fix_qmarks("승민아, 무슨 일이야.", "승민") == "승민아, 무슨 일이야?"
+    assert c._fix_qmarks("무슨 일인데, 지호야.", "지호") == "무슨 일인데, 지호야?"
 
 
 def test_fix_qmarks_no_false_positive_on_statements():
@@ -126,15 +128,15 @@ def test_fix_qmarks_leaves_existing_marks():
 # --- 마크다운 강조·대시·물결 제거(_STRAY) ---
 def test_clean_reply_strips_markdown_and_dashes():
     assert _ko_clean("**진짜** 좋았어.") == "진짜 좋았어."
-    assert _ko_clean("그러니까 — 별 거 아닌데.") == "그러니까 별 거 아닌데."
+    assert _ko_clean("그러니까 — 별 거 아닌데.") == "그러니까 — 별 거 아닌데."
     assert _ko_clean("_이거_ 맞아?") == "이거 맞아?"
     assert _ko_clean("괜찮아~ 다 잘될 거야.") == "괜찮아 다 잘될 거야."
 
 
 # --- 선택의문문 물음표(아니면) ---
 def test_fix_qmarks_choice_question():
-    assert _ko_clean("치킨이야 아니면 피자야.") == "치킨이야 아니면 피자야?"
-    assert _ko_clean("같이 갈래 아니면 혼자 갈래.") == "같이 갈래 아니면 혼자 갈래?"
+    assert c._fix_qmarks("치킨이야 아니면 피자야.", None) == "치킨이야 아니면 피자야?"
+    assert c._fix_qmarks("같이 갈래 아니면 혼자 갈래.", None) == "같이 갈래 아니면 혼자 갈래?"
 
 
 def test_fix_qmarks_choice_no_false_positive():
@@ -155,7 +157,8 @@ def test_keep_window_bounds_and_user_first():
 async def test_context_reset_triggers_on_message_count():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 46)]  # 45 > 40 트리거
     session = FakeSession(execute_items=rows)
-    convo, new_anchor, _lead = await c._context(session, UID, 0)
+    window = await c._context(session, UID, 0)
+    convo, new_anchor, _lead = window.conversation, window.new_anchor, window.lead
     assert new_anchor is not None                 # 리셋 발생
     assert convo[0]["role"] == "user"
     assert len(convo) <= c.settings.context_keep_messages
@@ -164,7 +167,8 @@ async def test_context_reset_triggers_on_message_count():
 async def test_context_no_reset_when_small():
     rows = [_msg(i, "user" if i % 2 == 1 else "moly") for i in range(1, 11)]  # 10 < 40
     session = FakeSession(execute_items=rows)
-    convo, new_anchor, _lead = await c._context(session, UID, 0)
+    window = await c._context(session, UID, 0)
+    convo, new_anchor, _lead = window.conversation, window.new_anchor, window.lead
     assert new_anchor is None                     # append-only 유지
     assert convo[0]["role"] == "user"
 
@@ -174,7 +178,8 @@ async def test_context_no_reset_when_small():
 async def test_context_returns_leading_greeting_instead_of_dropping_it():
     """맨 앞 캐피 메시지(=선발화)는 배열에서 빠지되 lead로 회수된다. 버리면 또 인사한다."""
     desc = [_msg(2, "user", "그냥 그랬어"), _msg(1, "moly", "왔네. 오늘은 좀 어땠어?")]
-    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    window = await c._context(FakeSession(execute_items=desc), UID, 0)
+    convo, _anchor, lead = window.conversation, window.new_anchor, window.lead
     assert convo[0]["role"] == "user"                     # Anthropic 제약 유지
     assert len(convo) == 1 and convo[0]["content"].endswith("그냥 그랬어")  # 날짜 표식 뒤 본문
     assert [m.content for m in lead] == ["왔네. 오늘은 좀 어땠어?"]  # 버려지지 않음
@@ -183,7 +188,8 @@ async def test_context_returns_leading_greeting_instead_of_dropping_it():
 async def test_context_keeps_mid_conversation_moly_messages_in_array():
     """중간의 캐피 메시지는 그대로 대화 배열에 남는다(lead는 맨 앞만)."""
     desc = [_msg(3, "user", "뭐해"), _msg(2, "moly", "왔네"), _msg(1, "user", "안녕")]
-    convo, _anchor, lead = await c._context(FakeSession(execute_items=desc), UID, 0)
+    window = await c._context(FakeSession(execute_items=desc), UID, 0)
+    convo, _anchor, lead = window.conversation, window.new_anchor, window.lead
     assert [m["role"] for m in convo] == ["user", "assistant", "user"]
     assert lead == []
 

@@ -1,10 +1,12 @@
 """알림 발송 멱등 게이트(SOMA-348) — claim 실패 시 push 미발송(DB·push mock)."""
 import uuid
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from app.services import gating, notify, push
 
 UID = uuid.uuid4()
+NOW = datetime(2026, 8, 14, 11, 0, tzinfo=timezone.utc)  # KST 20:00
 
 
 def _profile(**over):
@@ -20,21 +22,25 @@ async def test_evening_skips_when_already_notified(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kw):
         return False  # 이미 발송됨
 
     async def _resolve(session, uid, now=None):
         return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
 
-    async def _send(tokens, title, body):
+    async def _send(tokens, title, body, **kw):
         sent["called"] = True
         return 1
 
+    async def _tokens(session, uid):
+        return ["tok"]
+
     monkeypatch.setattr(notify, "_enabled", _enabled)
     monkeypatch.setattr(notify, "_claim_send_slot", _claim)
+    monkeypatch.setattr(notify, "_tokens", _tokens)
     monkeypatch.setattr(gating, "resolve", _resolve)
     monkeypatch.setattr(push, "send", _send)
-    assert await notify.notify_evening(None, _profile()) == 0
+    assert await notify.notify_evening(None, _profile(), now=NOW) == 0
     assert "called" not in sent  # push 미호출
 
 
@@ -45,7 +51,7 @@ async def test_evening_sends_and_claims_evening_column(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kw):
         seen["col"] = col
         return True
 
@@ -55,7 +61,7 @@ async def test_evening_sends_and_claims_evening_column(monkeypatch):
     async def _tokens(session, uid):
         return ["tok"]
 
-    async def _send(tokens, title, body):
+    async def _send(tokens, title, body, **kw):
         seen["title"] = title
         return 1
 
@@ -64,8 +70,8 @@ async def test_evening_sends_and_claims_evening_column(monkeypatch):
     monkeypatch.setattr(notify, "_tokens", _tokens)
     monkeypatch.setattr(gating, "resolve", _resolve)
     monkeypatch.setattr(push, "send", _send)
-    assert await notify.notify_evening(None, _profile()) == 1
-    assert seen["col"] == "evening_notified_at" and seen["title"] == "캐피"
+    assert await notify.notify_evening(None, _profile(), now=NOW) == 1
+    assert seen["col"] == "evening_notified_at" and seen["title"] == "BeCappy"
 
 
 async def test_evening_exhausted_does_not_claim(monkeypatch):
@@ -75,29 +81,19 @@ async def test_evening_exhausted_does_not_claim(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kw):
         claimed["called"] = True
         return True
 
     async def _resolve(session, uid, now=None):
         return SimpleNamespace(entitlement={"tokens_remaining": 0})  # 소진
 
+    async def _tokens(session, uid):
+        return ["tok"]
+
     monkeypatch.setattr(notify, "_enabled", _enabled)
     monkeypatch.setattr(notify, "_claim_send_slot", _claim)
+    monkeypatch.setattr(notify, "_tokens", _tokens)
     monkeypatch.setattr(gating, "resolve", _resolve)
-    assert await notify.notify_evening(None, _profile()) == 0
+    assert await notify.notify_evening(None, _profile(), now=NOW) == 0
     assert "called" not in claimed  # 선점 안 함 → 다른 조건 회복 시 재평가 가능
-
-
-
-
-def test_push_text_localized():
-    # 푸시 제목·본문이 유저 언어로(SOMA-361). 캐릭터명 = ko 캐피 / en Cappy / ja キャピー(1인칭 ぼく).
-    assert notify._push_text(notify._MORNING, "ja")[0] == "キャピー"
-    assert notify._push_text(notify._EVENING, "ja")[0] == "キャピー"
-    assert notify._push_text(notify._MORNING, "en")[0] == "Cappy"
-    assert notify._push_text(notify._MORNING, "ko")[0] == "캐피"
-    # ja 1인칭 = ぼく(わたし 잔존 없음), 저녁 본문에 ぼく 포함
-    assert "ぼく" in notify._push_text(notify._EVENING, "ja")[1]
-    # ja 본문에 한글(가-힣) 없음
-    assert not any("가" <= c <= "힣" for c in notify._push_text(notify._MORNING, "ja")[1])

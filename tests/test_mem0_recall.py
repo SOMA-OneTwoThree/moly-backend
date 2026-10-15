@@ -235,6 +235,41 @@ def test_when_label_boundaries(days, expected):
     assert mr._when_label(occurred, base, "Asia/Seoul", "ko") == expected
 
 
+@pytest.mark.parametrize("now_text,event_text,zone,language,expected", [
+    ("2026-10-15T00:01:00+09:00", "2026-10-15T00:00:00+09:00", "Asia/Seoul", "ko", "오늘"),
+    ("2026-10-15T04:01:00+09:00", "2026-10-15T03:59:00+09:00", "Asia/Seoul", "ko", "오늘"),
+    ("2026-10-15T00:01:00+09:00", "2026-10-14T23:59:00+09:00", "Asia/Seoul", "ko", "어제"),
+    ("2026-10-15T00:01:00-04:00", "2026-10-15T00:00:00-04:00", "America/New_York", "en", "today"),
+    ("2026-10-15T00:01:00-04:00", "2026-10-14T23:59:00-04:00", "America/New_York", "en", "yesterday"),
+])
+def test_when_label_uses_local_calendar_on_both_sides(now_text, event_text, zone, language, expected):
+    from app.core.time_utils import reward_date_for
+
+    now, event = datetime.fromisoformat(now_text), datetime.fromisoformat(event_text)
+    assert mr._when_label(event, reward_date_for(now, zone), zone, language) == expected
+
+
+def test_when_label_without_explicit_today_uses_the_same_calendar(monkeypatch):
+    now = datetime.fromisoformat("2026-10-15T00:01:00+09:00")
+
+    class FrozenDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return now.astimezone(tz)
+
+    monkeypatch.setattr(mr, "datetime", FrozenDatetime)
+    event = datetime.fromisoformat("2026-10-14T23:59:00+09:00")
+    assert mr._when_label(event, None, "Asia/Seoul", "ko") == "어제"
+
+
+def test_when_label_keeps_explicit_reference_unknown_and_future_semantics():
+    event = datetime.fromisoformat("2026-10-15T00:00:00+09:00")
+    assert mr._when_label(event, date(2026, 10, 16), "Asia/Seoul", "ko") == "어제"
+    assert mr._when_label(None, date(2026, 10, 16), "Asia/Seoul", "ko") == "시점 모름"
+    # Preserve the existing future behavior; this fix only aligns the calendar basis.
+    assert mr._when_label(event, date(2026, 10, 14), "Asia/Seoul", "ko") == "오늘"
+
+
 def test_unsupported_language_falls_back_to_english_not_korean():
     """지원 밖 언어에 한국어 라벨이 가면 모델이 한국어로 답한다(예전 헤더 사고와 같은 결)."""
     occurred = datetime(2026, 8, 7, 12, tzinfo=timezone.utc)

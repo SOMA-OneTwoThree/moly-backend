@@ -74,7 +74,7 @@ async def main(env: str | None) -> int:
             )
 
         print(f"\n[동시 claim] 유저 {str(uid)[:8]}…  동시성 {_CONCURRENCY}")
-        ok &= await _run_case(pool, uid, d1, "morning_notified_at", "아침 09:00")
+        ok &= await _run_case(pool, uid, d1, "morning_notified_at", "아침 10:00")
         ok &= await _run_case(pool, uid, d1, "evening_notified_at", "저녁 20:00")
 
         print("\n[독립성] 다른 활동일은 서로를 막지 않는다")

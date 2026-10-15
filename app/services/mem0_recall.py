@@ -21,7 +21,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 
-from app.core.time_utils import activity_date_for
+from app.core.time_utils import reward_date_for
 from app.services import i18n
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -193,6 +193,7 @@ async def recall(
     limit: int = DEFAULT_LIMIT,
     timeout: float = 3.0,
     trace: dict[str, float] | None = None,
+    availability: dict[str, str] | None = None,
 ) -> list[Recalled]:
     """질의와 관련된 **현재 유효한** 기억. 실패하면 빈 목록이다.
 
@@ -203,8 +204,12 @@ async def recall(
     registry_s, 실패하면 failed_s·registry_failed_s). 호출측이 경계에서 회상을 끊은 뒤에도
     어느 단계까지 왔는지 로그로 남길 수 있다.
     """
+    if availability is not None:
+        availability["status"] = "ok"
     stages: dict[str, float] = trace if trace is not None else {}
     if not needs_recall(query):
+        if availability is not None:
+            availability["status"] = "skipped"
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
     t0 = time.monotonic()
@@ -222,6 +227,8 @@ async def recall(
         )
         _mark("search_s")
     except Exception as e:  # noqa: BLE001  회상 실패가 대화를 막지 않는다
+        if availability is not None:
+            availability["status"] = "unavailable"
         _mark("failed_s")
         _log.warning("v2 회상 실패(빈 목록으로 진행) — user=%s stages=%s: %r", user_id, stages, e)
         return []
@@ -239,6 +246,8 @@ async def recall(
             "ids": list(by_id),
         })).all()
     except Exception as e:  # noqa: BLE001
+        if availability is not None:
+            availability["status"] = "unavailable"
         _mark("registry_failed_s")
         _log.warning("v2 회상 registry 조회 실패 — user=%s stages=%s: %r", user_id, stages, e)
         return []
@@ -287,7 +296,7 @@ _UNCERTAIN: dict[str, str] = {
 #   1. 페르소나 [날짜] 절이 "날짜나 요일을 숫자로 굳이 입에 올리진 마"라고 못 박는다.
 #      프롬프트에 '2026-07-25'를 넣으면 캐피가 그 숫자를 그대로 말할 여지를 준다.
 #   2. 사람은 "칠월 이십오일에"가 아니라 "저번에"로 떠올린다. 회상은 그쪽이 자연스럽다.
-# 경계는 사용자 로컬 활동일(04시 경계) 기준 일수 차이다.
+# 대화의 오늘/어제는 사용자 현지 달력 날짜 기준이다. 저장·할당량의 04시 활동일과 다르다.
 _WHEN_LABELS: dict[str, dict[str, str]] = {
     "ko": {"today": "오늘", "yesterday": "어제", "days": "{n}일 전", "last_week": "지난주",
            "weeks": "{n}주 전", "last_month": "지난달", "months": "{n}달 전", "long_ago": "오래전",
@@ -311,8 +320,8 @@ def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, 
     if occurred_at is None:
         return t["unknown"]
     try:
-        then = activity_date_for(occurred_at, tz_name)
-        base = today if today is not None else activity_date_for(datetime.now(timezone.utc), tz_name)
+        then = reward_date_for(occurred_at, tz_name)
+        base = today if today is not None else reward_date_for(datetime.now(timezone.utc), tz_name)
         d = (base - then).days
     except Exception:  # noqa: BLE001  회상 한 줄 때문에 대화가 죽으면 안 된다
         # `safe_zone`이 깨진 시간대를 이미 폴백하므로 여기까지 오는 건 시각 값 자체가

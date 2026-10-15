@@ -73,25 +73,29 @@ def _gating(**over):
 
 
 def _patch_repair_turn(monkeypatch):
-    """외래문자는 세 번째 모델 호출 없이 결정적으로 제거된다."""
+    """허용되지 않은 문자는 코드로 제거한다. 추가 호출·차감은 없다."""
     async def _res(session, user_id, **kwargs):
         return _gating()
 
+    calls = []
+
     async def _gen(system, convo, **kw):
+        calls.append("chat")
         return LLMResult("나도 我 생각엔.", 10, 20, model=MODEL)  # 주 chat 호출(한자 포함)
 
     monkeypatch.setattr(gating_module, "resolve", _res)
     monkeypatch.setattr(llm_module, "generate", _gen)
-    return 10 + 6 * 20, 0
+    return 10 + 6 * 20, 0, calls
 
 
 async def test_foreign_character_backstop_does_not_add_a_third_llm_call(monkeypatch):
-    chat_bill, repair_bill = _patch_repair_turn(monkeypatch)
+    chat_bill, repair_bill, calls = _patch_repair_turn(monkeypatch)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-repair")
 
     assert out.reply.content == "나도 생각엔."
+    assert calls == ["chat"]
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")
     assert reply_msg.billable_tokens == chat_bill + repair_bill
@@ -118,13 +122,14 @@ async def test_no_repair_turn_bills_chat_only(monkeypatch):
 
 async def test_kill_switch_off_bills_chat_call_only(monkeypatch):
     """turn_usage_v2_enabled=False = 롤백 경로 — 복원 호출은 계측만, 차감·저장은 주 호출분만."""
-    chat_bill, _repair_bill = _patch_repair_turn(monkeypatch)
+    chat_bill, _repair_bill, calls = _patch_repair_turn(monkeypatch)
     monkeypatch.setattr(c.settings, "turn_usage_v2_enabled", False)
     session = FakeSession()
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-ks")
 
     assert out.reply.content == "나도 생각엔."
+    assert calls == ["chat"]
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")
     assert reply_msg.billable_tokens == chat_bill   # 130 — 복원분 미포함(기존 동작)

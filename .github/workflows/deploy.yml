@@ -50,7 +50,9 @@ env:
   EXPECTED_INSTANCES: ${{ inputs.expected_instances || '2' }}
   # 배포 태그: dispatch에서 image_tag를 주면 그 태그(빌드 스킵 = 롤백), 아니면 현재 커밋
   DEPLOY_TAG: ${{ inputs.image_tag || github.sha }}
-  VERIFY_MORNING_PUSH: ${{ inputs.verify_morning_push && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && 'true' || 'false' }}
+  VERIFY_MORNING_PUSH: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.verify_morning_push)) && 'true' || 'false' }}
+  DEPLOY_EVENT: ${{ github.event_name }}
+  PREVIOUS_SHA: ${{ github.event.before }}
 
 jobs:
   build-and-deploy:
@@ -175,6 +177,57 @@ jobs:
             fi
           }
 
+          runtime_parameters() {
+            RUNTIME_EXPECTED_SHA="$1" python3 - <<'MOLY_RUNTIME_PARAMS'
+          import json,os
+          expected=os.environ['RUNTIME_EXPECTED_SHA']
+          source='import json,subprocess,urllib.request\nexpected=EXPECTED_LITERAL\ntry:\n    for name in (\'moly-backend\',\'moly-consumer\'):\n        state=subprocess.run([\'docker\',\'inspect\',\'--format\',\'{{.State.Running}}\',name],capture_output=True,text=True,timeout=10,check=True)\n        assert state.stdout.strip()==\'true\'\n        code="from app.config import settings;s=settings;assert s.environment==\'production\';assert s.morning_push_enabled is True;assert s.git_sha=="+repr(expected)\n        subprocess.run([\'docker\',\'exec\',\'-e\',\'PYTHONDONTWRITEBYTECODE=1\',name,\'python\',\'-B\',\'-c\',code],capture_output=True,text=True,timeout=20,check=True)\n    with urllib.request.urlopen(\'http://127.0.0.1:8000/health/ready\',timeout=8) as response:\n        ready=json.loads(response.read(16384));assert response.status==200 and ready.get(\'db\')==\'ok\' and ready.get(\'version\')==expected\n    print(json.dumps({\'runtime_healthy\':True}))\nexcept BaseException:\n    print(\'runtime_check_failed\');raise SystemExit(1)\n'.replace('EXPECTED_LITERAL',repr(expected))
+          print(json.dumps({'commands':["PYTHONDONTWRITEBYTECODE=1 python3 -B - <<'MOLY_OLD_RUNTIME'\n"+source+"\nMOLY_OLD_RUNTIME"]}))
+          MOLY_RUNTIME_PARAMS
+          }
+
+          verify_runtime_version() {
+            local EXPECTED="$1" PARAMETERS ID CMD_ID
+            if ! [[ "$EXPECTED" =~ ^[0-9a-f]{40}$ ]] || [[ "$EXPECTED" =~ ^0{40}$ ]]; then
+              echo "ERROR: invalid runtime version" >&2; return 1
+            fi
+            PARAMETERS="$(runtime_parameters "$EXPECTED")"
+            for ID in $INSTANCE_IDS; do
+              CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" --document-name AWS-RunShellScript --parameters "$PARAMETERS" --query Command.CommandId --output text)"
+              poll_ssm "$CMD_ID" "$ID"
+            done
+            echo "Verified API/consumer production runtime $EXPECTED"
+          }
+
+          verify_worker_timers() {
+            local ACTIVE=0 ID CMD_ID OUT
+            for ID in $INSTANCE_IDS; do
+              CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
+                --instance-ids "$ID" --document-name "AWS-RunShellScript" \
+                --parameters 'commands=["systemctl is-active moly-worker.timer || true"]' \
+                --query "Command.CommandId" --output text)"
+              if ! poll_ssm "$CMD_ID" "$ID"; then
+                echo "ERROR: [$ID] 워커 타이머 상태 확인 불가 — 정상으로 위장하지 않고 실패 처리" >&2
+                exit 1
+              fi
+              OUT="$(aws ssm get-command-invocation --region "$AWS_REGION" \
+                --command-id "$CMD_ID" --instance-id "$ID" \
+                --query "StandardOutputContent" --output text | tr -d '[:space:]')"
+              echo "  $ID moly-worker.timer=$OUT"
+              case "$OUT" in
+                active) ACTIVE=$((ACTIVE + 1)) ;;
+                inactive) ;;
+                *) echo "ERROR: worker timer state unknown or failed" >&2; return 1 ;;
+              esac
+            done
+            if [ "$ACTIVE" -ne 1 ]; then
+              echo "ERROR: 워커 타이머 active ${ACTIVE}대 (기대 1대) — 0대면 일기/푸시 무음 정지, 2대면 매시 틱 2회(LLM 비용 2배)" >&2
+              echo "확인: /etc/moly-worker-host 마커 (워커 호스트 1대에만 존재해야 함)" >&2
+              exit 1
+            fi
+          }
+
+
           echo "==> 배포 태그 존재 확인 (dispatch 오타로 deregister 후 pull 실패하는 사고 방지)"
           if ! aws ecr describe-images --region "$AWS_REGION" \
                --repository-name "$IMAGE_NAME" --image-ids imageTag="$DEPLOY_TAG" >/dev/null; then
@@ -195,11 +248,27 @@ jobs:
             exit 1
           fi
 
+          # Push-only checks preserve explicit dispatch rollback/expected_instances=1 behavior.
+          if [ "$DEPLOY_EVENT" = push ]; then
+            if ! [[ "$PREVIOUS_SHA" =~ ^[0-9a-f]{40}$ ]] || [[ "$PREVIOUS_SHA" =~ ^0{40}$ ]]; then
+              echo "ERROR: invalid previous production SHA" >&2; exit 1
+            fi
+            ROLLBACK_DIGEST="$(aws ecr describe-images --region "$AWS_REGION" --repository-name "$IMAGE_NAME" --image-ids "imageTag=$PREVIOUS_SHA" --query 'imageDetails[0].imageDigest' --output text)"
+            if ! [[ "$ROLLBACK_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+              echo "ERROR: previous production image unavailable" >&2; exit 1
+            fi
+            echo "Verified rollback image $PREVIOUS_SHA digest=$ROLLBACK_DIGEST"
+            TG_SNAPSHOT="$(aws elbv2 describe-target-health --region "$AWS_REGION" --target-group-arn "$TG_ARN" --output json)"
+            INSTANCE_IDS="$INSTANCE_IDS" TG_SNAPSHOT="$TG_SNAPSHOT" python3 -c 'import json,os;ids=os.environ["INSTANCE_IDS"].split();rows=json.loads(os.environ["TG_SNAPSHOT"])["TargetHealthDescriptions"];assert len(ids)==len(set(ids))==len(rows)==2;assert {x["Target"]["Id"] for x in rows}==set(ids);assert all(x["TargetHealth"]["State"]=="healthy" for x in rows)'
+            verify_runtime_version "$PREVIOUS_SHA"
+            verify_worker_timers
+          fi
+
           if [ "$VERIFY_MORNING_PUSH" = true ]; then
             # Validate preconfigured SSM and FCM before deregistering any host; never write SSM.
             for ID in $INSTANCE_IDS; do
               CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
-                --document-name AWS-RunShellScript --parameters '{"commands": ["set -eu\nPUSH_VALUE=\"$(aws ssm get-parameter --region ap-northeast-2 --name /moly/prod/morning-push-enabled --query Parameter.Value --output text)\"\nif [ \"$PUSH_VALUE\" != true ]; then echo \"Set /moly/prod/morning-push-enabled=true through the authorized configuration owner before deployment\" >&2; exit 1; fi\ndocker exec moly-backend python -c '"'"'import asyncio,json\nfrom pathlib import Path\nfrom app.config import settings\nfrom app.services import push\nassert settings.environment == \"production\"\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nasync def main():\n    token=await push.prepare_access_token()\n    assert token, \"FCM authentication unavailable\"\n    print(json.dumps({\"production\":True,\"fcm_authentication\":True,\"morning_push_enabled\":settings.morning_push_enabled}))\nasyncio.run(main())'"'"'"]}' \
+                --document-name AWS-RunShellScript --parameters '{"commands": ["set -eu\nPUSH_VALUE=\"$(aws ssm get-parameter --region ap-northeast-2 --name /moly/prod/morning-push-enabled --query Parameter.Value --output text)\"\nif [ \"$PUSH_VALUE\" != true ]; then echo \"Set /moly/prod/morning-push-enabled=true through the authorized configuration owner before deployment\" >&2; exit 1; fi\ndocker exec moly-backend python -B -c '"'"'import asyncio,json\nfrom pathlib import Path\nfrom app.config import settings\nfrom app.services import push\nassert settings.environment == \"production\"\nassert settings.morning_push_enabled is True\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nasync def main():\n    token=await asyncio.wait_for(push.prepare_access_token(), timeout=15)\n    assert token, \"FCM authentication unavailable\"\n    print(json.dumps({\"production\":True,\"fcm_authentication\":True,\"morning_push_enabled\":settings.morning_push_enabled}))\nasyncio.run(main())'"'"'"]}' \
                 --query Command.CommandId --output text)"
               poll_ssm "$CMD_ID" "$ID"
             done
@@ -264,10 +333,14 @@ jobs:
           if [ "$VERIFY_MORNING_PUSH" = true ]; then
             for ID in $INSTANCE_IDS; do
               CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
-                --document-name AWS-RunShellScript --parameters '{"commands": ["docker exec moly-backend python -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"' && docker exec moly-consumer python -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"'"]}' \
+                --document-name AWS-RunShellScript --parameters '{"commands": ["docker exec moly-backend python -B -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"' && docker exec moly-consumer python -B -c '"'"'from pathlib import Path\nfrom app.config import settings\nassert settings.environment == \"production\" and settings.morning_push_enabled\nassert settings.fcm_project_id and Path(settings.fcm_service_account_file).is_file()\nprint(\"production morning_push_enabled=true; FCM configuration present\")'"'"'"]}' \
                 --query Command.CommandId --output text)"
               poll_ssm "$CMD_ID" "$ID"
             done
+          fi
+
+          if [ "$DEPLOY_EVENT" = push ]; then
+            verify_runtime_version "$DEPLOY_TAG"
           fi
 
           echo "==> 정합성 검증 1: 발견 인스턴스 수 == TG 등록 타깃 수"
@@ -284,29 +357,7 @@ jobs:
           # poll_ssm 재사용: 고정 sleep은 느린 응답에서 "확인 불가"를 "비활성"으로 오독한다 —
           # 2대 active(진짜 사고)를 1대로 세어 초록불이 되는 false-green이 최악이므로,
           # 상태 확인이 안 되면 세지 않고 즉시 실패한다.
-          ACTIVE=0
-          for ID in $INSTANCE_IDS; do
-            CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
-              --instance-ids "$ID" --document-name "AWS-RunShellScript" \
-              --parameters 'commands=["systemctl is-active moly-worker.timer || true"]' \
-              --query "Command.CommandId" --output text)"
-            if ! poll_ssm "$CMD_ID" "$ID"; then
-              echo "ERROR: [$ID] 워커 타이머 상태 확인 불가 — 정상으로 위장하지 않고 실패 처리" >&2
-              exit 1
-            fi
-            OUT="$(aws ssm get-command-invocation --region "$AWS_REGION" \
-              --command-id "$CMD_ID" --instance-id "$ID" \
-              --query "StandardOutputContent" --output text | tr -d '[:space:]')"
-            echo "  $ID moly-worker.timer=$OUT"
-            if [ "$OUT" = "active" ]; then
-              ACTIVE=$((ACTIVE + 1))
-            fi
-          done
-          if [ "$ACTIVE" -ne 1 ]; then
-            echo "ERROR: 워커 타이머 active ${ACTIVE}대 (기대 1대) — 0대면 일기/푸시 무음 정지, 2대면 매시 틱 2회(LLM 비용 2배)" >&2
-            echo "확인: /etc/moly-worker-host 마커 (워커 호스트 1대에만 존재해야 함)" >&2
-            exit 1
-          fi
+          verify_worker_timers
           echo "==> 배포 성공 (${COUNT}대 롤링 + 정합성 검증 통과)"
 
       # 7. 배포후 헬스 스모크 — 배포 성공 시에만 실행(앞 스텝 실패면 건너뜀).

@@ -1,5 +1,5 @@
 """루틴 streak 계산(SOMA-312) + 저녁알림 토큰소진 제외(SOMA-291)."""
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from app.services import notify
 from app.services.routine import _streak
@@ -56,8 +56,12 @@ class _G:
         self.tokens_used = 0  # 실제 Gating은 항상 갖는 필드 — 분기(spoke_today)가 읽는다
 
 
+_NOW = datetime(2026, 7, 20, 11, 0, tzinfo=timezone.utc)  # KST 20:00
+
+
 class _Profile:
     id = "00000000-0000-0000-0000-000000000000"
+    timezone = "Asia/Seoul"
     language = "ko"  # 운영 profiles.language는 NOT NULL이다. 미설정 기본값은 이제 영어라 명시한다.
 
 
@@ -71,14 +75,14 @@ def _patch(monkeypatch, remaining):
     async def _tokens(*a, **k):
         return ["tok"]
 
-    async def _send(tokens, title, body):
+    async def _send(tokens, title, body, **kw):
         sent.append(body)
         return len(tokens)
 
     async def _resolve(session, uid, now=None):
         return _G(remaining)
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kw):
         return True  # 멱등 선점은 test_notify.py가 검증 — 여기선 발송 결정 로직만
 
     from app.services import gating
@@ -93,20 +97,20 @@ def _patch(monkeypatch, remaining):
 
 async def test_evening_skipped_when_exhausted(monkeypatch):
     sent = _patch(monkeypatch, remaining=0)
-    n = await notify.notify_evening(None, _Profile())
+    n = await notify.notify_evening(None, _Profile(), now=_NOW)
     assert n == 0 and sent == []
 
 
 async def test_evening_sent_when_tokens_remain(monkeypatch):
     sent = _patch(monkeypatch, remaining=5000)
-    n = await notify.notify_evening(None, _Profile())
-    assert n == 1 and sent == [notify._EVENING["ko"][1]]
+    n = await notify.notify_evening(None, _Profile(), now=_NOW)
+    assert n == 1 and sent == [notify.push_copy.chat_body(notify.push_copy.FALLBACK, "ko")]  # session 없음 → 중립 문구
 
 
 async def test_evening_sent_when_unlimited(monkeypatch):
     # tokens_remaining=None = 무제한 tier → 발송
     sent = _patch(monkeypatch, remaining=None)
-    n = await notify.notify_evening(None, _Profile())
+    n = await notify.notify_evening(None, _Profile(), now=_NOW)
     assert n == 1 and len(sent) == 1
 
 
@@ -117,5 +121,5 @@ async def test_evening_skipped_when_disabled(monkeypatch):
         return False
 
     monkeypatch.setattr(notify, "_enabled", _disabled)
-    n = await notify.notify_evening(None, _Profile())
+    n = await notify.notify_evening(None, _Profile(), now=_NOW)
     assert n == 0 and sent == []

@@ -69,8 +69,8 @@ def test_v2_memory_goes_after_the_recent_turns():
     idx = src.index("convo.insert(")
     assert '"role": "system"' in src[idx:idx + 200], "role이 system이 아니면 user 권위를 갖는다"
     # 요약·기억·서버상태가 모두 휘발 블록으로 모였는지
-    vol = src[src.index("volatile: list[str] = []"):idx]
-    for name in ("checkpoint_summary", "memory_v2_block", "resident_block"):
+    vol = src[src.index("volatile: list[str] ="):idx]
+    for name in ("time_block", "mood_block", "checkpoint_summary", "memory_v2_block", "resident_block"):
         assert name in vol, f"{name}이 휘발 블록에 없다 — 캐시 프리픽스에 남아 있다"
     assert "naming.render(" in vol, "placeholder를 렌더하지 않으면 {유저이름}이 보인다"
 
@@ -92,7 +92,7 @@ async def test_recall_failure_does_not_break_the_reply():
         )
     finally:
         c._recall_adapter = original
-    assert got == ""
+    assert got == c._memory_unavailable_notice("ko")
 
 
 def test_recall_is_bounded_at_the_boundary_not_just_inside():

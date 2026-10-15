@@ -1,5 +1,5 @@
-"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 아침·20:00 저녁 푸시
-+ RC 웹훅 inbox 드레인(pending 처리·미해결 failed 재요약, SOMA-372)."""
+"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 루틴·10:00 일기·20:00 저녁 푸시
++ RC 웹훅 inbox 드레인과 지속 상태 기반 운영 알림."""
 from __future__ import annotations
 
 import asyncio
@@ -26,15 +26,16 @@ from app.services import (
     subscription,
 )
 from app.services.limits import effective_token_config
+from worker import monitoring
 
 _RC_INBOX_BATCH = 200            # 틱당 처리할 pending 상한
 _RC_DEP_RESERVED = _RC_INBOX_BATCH // 4  # dependency 예약 슬롯(=50) — 신규·재시도 다발에도 굶지 않게
-_RC_PENDING_STALE_MIN = 60       # 이보다 오래 pending이면 관측 대상(선행 결제 미도착 등)
 
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
-MORNING_HOUR = 9  # 09:00 아침 일기 푸시
-EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
+ROUTINE_MORNING_HOUR = notify.ROUTINE_MORNING_HOUR  # 09:00 루틴 아침 푸시
+MORNING_HOUR = notify.DIARY_MORNING_HOUR  # 10:00 아침 일기 푸시
+EVENING_HOUR = notify.EVENING_HOUR  # 20:00 저녁 푸시(공지·스트릭 위기·대화 중 하나)
 
 
 _KST = ZoneInfo("Asia/Seoul")
@@ -42,13 +43,13 @@ _KST = ZoneInfo("Asia/Seoul")
 # 슬랙 요약용 저녁 카테고리 한국어 라벨(notify.EVENING_STAT_KEYS와 같은 키).
 _EVENING_CATEGORY_KO = {
     "more_chat": "대화후",
-    "diary_teaser": "일기",
     "first_touch": "첫인사",
     "default_recent": "일상",
     "default_missing": "그리움",
     "default_long": "오랜만",
     "fallback": "폴백",
     "override": "공지",
+    "routine_risk": "스트릭 위기",
 }
 # 자주 보는 타임존의 한국어 나라 라벨(가독성용). 없으면 IANA 이름 그대로.
 _TZ_KO = {
@@ -93,7 +94,8 @@ def _build_summary(
         f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}"
         f" / 미발행 {counts['diary_none']}){diary_fail}",
         "기억: 상주 consumer 정규화 파이프라인",
-        f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
+        f"푸시: 루틴 아침 {counts.get('routine_morning', 0)}건 / 아침 일기 {counts['morning']}건"
+        f" / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
     # 발송 실패 분류 — '저녁 N건'은 수락 유저 수라 전달률이 안 보인다. 무효 토큰(FCM 확정)과
@@ -121,6 +123,8 @@ def _build_summary(
         ]
         if dist:
             lines.insert(len(lines) - 1, "저녁 분포: " + " / ".join(dist))
+    if counts.get("routine_check_failed"):
+        lines.append(f"⚠️ 루틴 판단 실패 {counts['routine_check_failed']}건 — 루틴 푸시 생략(워커 로그 확인)")
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
     if counts.get("deadline_skipped"):
@@ -142,7 +146,7 @@ async def _process_user(
     out = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
-        "diary_attempted": 0, "active_tz": None,
+        "routine_morning": 0, "routine_check_failed": 0, "diary_attempted": 0, "active_tz": None,
         **{k: 0 for k in notify.PUSH_STAT_KEYS},  # 발송 결과 분류(notify._account_push가 채움)
     }
     async with get_sessionmaker()() as session:
@@ -206,6 +210,10 @@ async def _process_user(
                             {"u": pid, "d": target},
                         )
                         await session.commit()
+            elif hour == ROUTINE_MORNING_HOUR:
+                out["active_tz"] = p.timezone
+                if await notify.notify_routine_morning(session, p, now=now, stats=out):
+                    out["routine_morning"] = 1
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
                 if await notify.notify_morning(session, p, now=now, stats=out):
@@ -284,8 +292,7 @@ async def _select_pending_ids(session) -> list[str]:
 async def _drain_rc_inbox(now: datetime) -> dict:
     """RC 웹훅 inbox 드레인 — pending 각각 독립 트랜잭션으로 process_event(이벤트별 격리).
 
-    + 미해결 failed·장기 pending을 매 틱 Slack 재요약(1회성 알림 유실 방지 — slack_notify가
-    URL 미설정·전송실패를 삼키므로 매 틱 재요약해 은폐 없이 관측한다, SOMA-372 §11.4).
+    미해결 상태 관측·통지는 monitoring이 담당한다. 이벤트 처리 트랜잭션은 유지한다.
     """
     out = {"rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0}
     # 1) pending 후보 처리 — 한 행씩 claim(FOR UPDATE SKIP LOCKED는 process_event 내부).
@@ -307,69 +314,16 @@ async def _drain_rc_inbox(now: datetime) -> dict:
                 else:  # dependency_missing / skipped
                     out["rc_pending"] += 1
             except Exception as e:  # noqa: BLE001  # 한 이벤트 실패가 드레인을 멈추지 않게
-                _log.exception("RC inbox 드레인 실패(event=%s): %r", eid, e)
+                out["rc_exception"] += 1
+                _log.warning("RC inbox 드레인 실패: %s", type(e).__name__)
                 await s.rollback()
-    # 2) 미해결 failed·장기 pending 재요약(dedup 창 < 틱 간격이라 매 틱 발송).
-    # failed는 전체 건수를 count로 집계(표본만 세면 20+ 미해결이 "20건"으로 축소돼 은폐되므로),
-    # 최신 표본만 본문에 첨부한다(SOMA-372 §11.4 — 은폐 없이 관측).
-    async with get_sessionmaker()() as s:
-        failed_total = (
-            await s.execute(
-                select(func.count())
-                .select_from(RevenuecatEvent)
-                .where(RevenuecatEvent.status == "failed")
-            )
-        ).scalar() or 0
-        failed_sample = list(
-            (
-                await s.execute(
-                    select(RevenuecatEvent)
-                    .where(RevenuecatEvent.status == "failed")
-                    .order_by(RevenuecatEvent.received_at.desc())  # 최신 표본
-                    .limit(10)
-                )
-            ).scalars().all()
-        )
-        stale_pending = (
-            await s.execute(
-                select(func.count())
-                .select_from(RevenuecatEvent)
-                .where(
-                    RevenuecatEvent.status == "pending",
-                    RevenuecatEvent.received_at
-                    < now - timedelta(minutes=_RC_PENDING_STALE_MIN),
-                )
-            )
-        ).scalar() or 0
-    if failed_total or stale_pending:
-        await slack_notify.alert(
-            _rc_inbox_summary(failed_sample, int(failed_total), int(stale_pending), now),
-            dedup_key="rc_inbox_unresolved",
-        )
+
     return out
 
 
-def _rc_inbox_summary(
-    failed_sample: list, failed_total: int, stale_pending: int, now: datetime
-) -> str:
-    """미해결 RC 웹훅 요약 — 전체 failed 건수 + 최신 표본(event_id·app_user_id·type·last_error)."""
-    ts_kst = now.astimezone(_KST).strftime("%Y-%m-%d %H:%M KST")
-    lines = [
-        f"⚠️ [RC 웹훅 inbox 미해결] {ts_kst}",
-        f"failed {failed_total}건 / 장기 pending(>{_RC_PENDING_STALE_MIN}m) {stale_pending}건",
-    ]
-    for ev in failed_sample[:10]:
-        payload = ev.payload or {}
-        lines.append(
-            f"· {ev.event_id} type={payload.get('type')} "
-            f"app_user_id={payload.get('app_user_id')} err={(ev.last_error or '')[:120]}"
-        )
-    lines.append("→ 운영 수동 처리 필요(TRANSFER·미등록 상품·거래ID 누락 등).")
-    return "\n".join(lines)
-
 
 async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = None) -> set[str]:
-    """이 틱에서 일기/아침/저녁 시각(로컬 04·09·20시)에 걸리는 timezone 문자열 집합(#16+#24).
+    """이 틱에서 일기/루틴 아침/아침 일기/저녁 시각(로컬 04·09·10·20시)에 걸리는 timezone 문자열 집합(#16+#24).
 
     판정은 전부 파이썬(ZoneInfo)이다 — SQL `AT TIME ZONE`은 금지: 이상 tz 문자열 1행이
     쿼리 전체를 에러로 죽여 **그날 일기·푸시가 전멸**한다. 여기서는 해석 실패 tz를 경고만
@@ -389,7 +343,7 @@ async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = Non
             if unresolvable is not None:
                 unresolvable.add(tz)  # 관측 출구(요약·헬스·일 1회 경보)
             continue
-        if hour in (DIARY_HOUR, MORNING_HOUR, EVENING_HOUR):
+        if hour in (DIARY_HOUR, ROUTINE_MORNING_HOUR, MORNING_HOUR, EVENING_HOUR):
             relevant.add(tz)
     return relevant
 
@@ -434,7 +388,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         # memory_*는 _process_user가 반환하지만 병합이 `k in counts`만 받아서, 여기 없으면
         # _emit_worker_health의 counts["memory_failed"]가 매 틱 KeyError → 데드맨 핑이 죽는다.
         "memory_ok": 0, "memory_failed": 0,
-        "morning": 0, "evening": 0,
+        "morning": 0, "evening": 0, "routine_morning": 0,
+        "routine_check_failed": 0,  # 루틴 상태 판단 실패(루틴 푸시 생략·스트릭 위기는 대화로) — 관측
         # 저녁 카테고리별 카운트 — 병합이 `k in counts`라 여기 없으면 조용히 버려진다(위와 동일).
         **{f"evening_{c}": 0 for c in notify.EVENING_STAT_KEYS},
         # 발송 결과 분류(수락·무효 토큰·정리·페이로드·설정·일시) — 같은 이유로 여기 있어야 한다.
@@ -519,7 +474,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         for k, v in (await _drain_rc_inbox(now)).items():
             counts[k] = counts.get(k, 0) + v
     except Exception as e:  # noqa: BLE001  # 드레인 실패가 배치 전체를 막으면 안 됨
-        _log.exception("RC inbox 드레인 틱 실패(무시): %r", e)
+        counts["rc_processor_error"] = 1
+        _log.warning("RC inbox 드레인 틱 실패: %s", type(e).__name__)
 
     # retention 잡 예약(Phase 5) — KST hour>=5 + {job_type}:{KST날짜} dedup으로 하루 1회 수렴.
     # 유저 루프와 독립(tzs가 비어도 돈다 — 예약이 유휴 틱 스킵에 딸려가면 self-heal이 깨진다).
@@ -567,16 +523,19 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
 
     elapsed = time.monotonic() - start
 
-    # 슬랙 요약: 실제 작업(일기 생성/실패 또는 푸시 발송)이 있을 때만 전송(빈 틱 스팸 방지).
+    # 틱 상세는 로그에 보존한다. Slack 상태는 monitoring의 일일 점검에서 보낸다.
     # diary_attempted 기준이면 15분 케이던스에서 DIARY_HOUR 시간대마다 요약이 4번 나가고
     # 그중 3번은 _diary_exists skip이라 "일기 0건" — 감시 채널이 오탐으로 도배된다(SOMA-348 후속).
     # diary_none(tombstone)은 사용자 노출 0이라 요약 트리거에서 제외 — 지정본 없는 조용한 날에
     # 매 틱 요약이 나가 채널이 도배되는 걸 막는다(SOMA-389, 위 오탐 방지 취지 유지).
-    # 소프트 데드라인 도달은 처리 건수가 0이어도 요약으로 남긴다(상태 채널 — 경보로 올리지 않음).
-    worked = counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
+    # 소프트 데드라인 도달은 처리 건수가 0이어도 로그에 남긴다(실패 경보와 구분).
+    worked = (
+        counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
+        + counts["routine_morning"] + counts["routine_check_failed"]
+    )
     if worked + counts["deadline_skipped"] > 0:
         summary = _build_summary(now, counts, elapsed, active_tzs)
-        await slack_notify.send_summary(summary)
+        _log.info("%s", summary)
 
     # --- 멈춘 기억 파이프라인 재개 ---
     # ingest는 체인이라 잡 하나가 dead가 되면 그 사용자는 영영 멈춘다(챗은 ingest>=source일
@@ -608,7 +567,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     try:
         await _emit_worker_health(now, counts)
     except Exception as e:  # noqa: BLE001
-        _log.warning("워커 헬스 emit 실패(무시): %r", e)
+        _log.warning("워커 헬스 emit 실패(무시): %s", type(e).__name__)
 
     return counts
 
@@ -654,15 +613,4 @@ async def _emit_worker_health(now: datetime, counts: dict) -> None:
                 await client.get(url)
         except Exception as e:  # noqa: BLE001
             _log.warning("워커 데드맨 핑 실패: %r", e)
-    if anomaly:
-        await slack_notify.alert(
-            f"⚠️ 워커 결과 이상 — 일기실패 {counts['diary_failed']} / 기억실패 {counts['memory_failed']}"
-            f" / 타임아웃 {timed_out} / 푸시 실패 {push_failed}(수락 {push_sent})",
-            dedup_key="worker_anomaly",
-        )
-    total = counts.get("billable_yesterday")
-    thr = settings.daily_billable_alert_threshold
-    if total is not None and thr > 0 and total > thr:
-        await slack_notify.alert(
-            f"💸 전일 billable {total:,} 이 임계 {thr:,} 초과 — 비용 확인 필요", dedup_key="cost_spike"
-        )
+    await monitoring.emit(now, counts)

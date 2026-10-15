@@ -167,41 +167,28 @@ jobs:
                 --query ResponseCode --output text 2>/dev/null)" || response_code="unknown"
               case "$response_code" in
                 41) reason=PRE_HOST_MARKER ;;
-                42) reason=PRE_TIMER_QUERY ;;
-                43) reason=PRE_TIMER_UNSAFE ;;
-                44) reason=PRE_WORKER_HOST ;;
                 50) reason=PRE_API_EXEC ;;
                 51) reason=PRE_API_SETTINGS ;;
                 52) reason=PRE_API_ENV ;;
-                53) reason=PRE_API_MORNING_PUSH ;;
-                54) reason=PRE_API_FCM_STAT ;;
-                55) reason=PRE_API_FCM_MATERIAL ;;
-                56) reason=PRE_API_SHA ;;
+                55) reason=PRE_API_FINGERPRINT ;;
                 60) reason=PRE_CONSUMER_EXEC ;;
                 61) reason=PRE_CONSUMER_SETTINGS ;;
                 62) reason=PRE_CONSUMER_ENV ;;
-                63) reason=PRE_CONSUMER_MORNING_PUSH ;;
-                64) reason=PRE_CONSUMER_FCM_STAT ;;
-                65) reason=PRE_CONSUMER_FCM_MATERIAL ;;
-                66) reason=PRE_CONSUMER_SHA ;;
+                65) reason=PRE_CONSUMER_FINGERPRINT ;;
                 71) reason=POST_HOST_MARKER ;;
-                72) reason=POST_TIMER_QUERY ;;
-                73) reason=POST_TIMER_UNSAFE ;;
-                74) reason=POST_WORKER_HOST ;;
+                74) reason=POST_WORKER_HOST_CHANGED ;;
                 80) reason=POST_API_EXEC ;;
                 81) reason=POST_API_SETTINGS ;;
                 82) reason=POST_API_ENV ;;
-                83) reason=POST_API_MORNING_PUSH ;;
-                84) reason=POST_API_FCM_STAT ;;
-                85) reason=POST_API_FCM_MATERIAL ;;
-                86) reason=POST_API_SHA ;;
+                83) reason=POST_API_CONFIG_CHANGED ;;
+                84) reason=POST_API_SHA ;;
+                85) reason=POST_API_FINGERPRINT ;;
                 90) reason=POST_CONSUMER_EXEC ;;
                 91) reason=POST_CONSUMER_SETTINGS ;;
                 92) reason=POST_CONSUMER_ENV ;;
-                93) reason=POST_CONSUMER_MORNING_PUSH ;;
-                94) reason=POST_CONSUMER_FCM_STAT ;;
-                95) reason=POST_CONSUMER_FCM_MATERIAL ;;
-                96) reason=POST_CONSUMER_SHA ;;
+                93) reason=POST_CONSUMER_CONFIG_CHANGED ;;
+                94) reason=POST_CONSUMER_SHA ;;
+                95) reason=POST_CONSUMER_FINGERPRINT ;;
                 101) reason=INFRA_DIRECTORY ;;
                 102) reason=INFRA_PULL ;;
                 103) reason=INFRA_DEPLOY ;;
@@ -226,73 +213,32 @@ jobs:
           tag = os.environ["DEPLOY_TAG"]
           if not re.fullmatch(r"dev-[0-9a-f]{40}", tag):
               raise SystemExit("INVALID_DEV_IMAGE_TAG")
-          timer_probe = """import subprocess
+          container_probe = """import hashlib
+          import json
           import sys
-          base, phase = int(sys.argv[1]), sys.argv[2]
-          def query():
-              try:
-                  result = subprocess.run(
-                      ["systemctl", "show", "moly-worker.timer", "--property=LoadState", "--property=ActiveState", "--no-pager"],
-                      capture_output=True, text=True, timeout=5,
-                  )
-                  lines = result.stdout.splitlines()
-                  values = dict(line.split("=", 1) for line in lines)
-                  if result.returncode != 0 or len(lines) != 2 or set(values) != {"LoadState", "ActiveState"}:
-                      raise ValueError()
-              except Exception:
-                  raise SystemExit(base + 2)
-              return values["LoadState"], values["ActiveState"]
-          def control(action, *options):
-              try:
-                  result = subprocess.run(
-                      ["systemctl", action, *options, "moly-worker.timer"],
-                      capture_output=True, text=True, timeout=15,
-                  )
-                  if result.returncode != 0:
-                      raise ValueError()
-              except Exception:
-                  raise SystemExit(base + 3)
-          state = query()
-          if phase == "pre":
-              if state[0] == "loaded" and state[1] in {"inactive", "active", "failed", "activating", "deactivating", "reloading"}:
-                  control("disable", "--now")
-                  state = query()
-                  if state == ("loaded", "failed"):
-                      control("reset-failed")
-                      state = query()
-          elif phase != "post":
-              raise SystemExit(base + 3)
-          # post는 읽기만 한다. infra가 다시 켠 timer를 여기서 숨기지 않는다.
-          if state not in {("loaded", "inactive"), ("not-found", "inactive"), ("masked", "inactive")}:
-              raise SystemExit(base + 3)
-          """
-          container_probe = """import stat
-          import sys
-          from pathlib import Path
           expected, base = sys.argv[1], int(sys.argv[2])
           try:
               from app.config import settings
+              values = {
+                  "database": settings.supabase_db_connection_string,
+                  "environment": settings.environment,
+                  "morning_push_enabled": settings.morning_push_enabled,
+                  "fcm_project_id": settings.fcm_project_id,
+                  "fcm_service_account_file": settings.fcm_service_account_file,
+              }
+              if type(values["morning_push_enabled"]) is not bool or any(
+                  type(value) is not str for key, value in values.items() if key != "morning_push_enabled"
+              ):
+                  raise ValueError()
+              version = settings.git_sha
+              fingerprint = hashlib.sha256(json.dumps(values, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
           except Exception:
               raise SystemExit(base + 1)
-          if settings.environment != "development":
+          if values["environment"] != "development":
               raise SystemExit(base + 2)
-          if settings.morning_push_enabled:
-              raise SystemExit(base + 3)
-          credential = settings.fcm_service_account_file
-          if settings.fcm_project_id and not credential:
-              raise SystemExit(base + 5)
-          if credential:
-              try:
-                  info = Path(credential).stat()
-              except FileNotFoundError:
-                  pass
-              except (OSError, ValueError):
-                  raise SystemExit(base + 4)
-              else:
-                  if not stat.S_ISREG(info.st_mode) or info.st_size != 0:
-                      raise SystemExit(base + 5)
-          if expected and settings.git_sha != expected:
-              raise SystemExit(base + 6)
+          if expected and version != expected:
+              raise SystemExit(base + 4)
+          print(fingerprint)
           """
           command = f"""set -eu
           check_dev() {{
@@ -304,16 +250,30 @@ jobs:
               host_base=70; api_base=80; consumer_base=90
             fi
             test "$(cat /etc/moly-env 2>/dev/null)" = dev || return "$((host_base + 1))"
-            test ! -f /etc/moly-worker-host || return "$((host_base + 4))"
-            python3 -c {shlex.quote(timer_probe)} "$host_base" "$phase" || return "$?"
+            worker_host=absent
+            if [ -f /etc/moly-worker-host ]; then worker_host=present; fi
+            if [ "$phase" = pre ]; then
+              worker_host_before="$worker_host"
+            else
+              test "$worker_host" = "$worker_host_before" || return 74
+            fi
             for container in moly-backend moly-consumer; do
               if [ "$container" = moly-backend ]; then base="$api_base"; else base="$consumer_base"; fi
-              if docker exec "$container" python -c {shlex.quote(container_probe)} "$expected" "$base"; then
-                :
+              if fingerprint="$(docker exec "$container" python -c {shlex.quote(container_probe)} "$expected" "$base")"; then
+                case "$fingerprint" in
+                  *[!0-9a-f]*|"") return "$((base + 5))" ;;
+                esac
+                test "$(printf %s "$fingerprint" | wc -c)" -eq 64 || return "$((base + 5))"
+                if [ "$phase" = pre ]; then
+                  if [ "$container" = moly-backend ]; then api_before="$fingerprint"; else consumer_before="$fingerprint"; fi
+                else
+                  if [ "$container" = moly-backend ]; then before="$api_before"; else before="$consumer_before"; fi
+                  test "$fingerprint" = "$before" || return "$((base + 3))"
+                fi
               else
                 result="$?"
                 case "$result" in
-                  "$((base + 1))"|"$((base + 2))"|"$((base + 3))"|"$((base + 4))"|"$((base + 5))"|"$((base + 6))") return "$result" ;;
+                  "$((base + 1))"|"$((base + 2))"|"$((base + 4))") return "$result" ;;
                   *) return "$base" ;;
                 esac
               fi

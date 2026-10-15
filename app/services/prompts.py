@@ -296,6 +296,7 @@ EVAL_PROMPT_CANDIDATE_IDS = (
     "c0", "voice-combined-v3", "voice-base-ko-v5", "voice-free-ko-v5",
     "voice-conversation-ko-v6", "voice-structured-ko-v7", "voice-structured-ko-v8",
     "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+    "voice-structured-ko-v9",
 )
 _EVAL_VOICE_VERSION = "cappy-voice-20261014-v1"
 _EVAL_VOICE_VERSION_V3 = "cappy-voice-20261014-v3"
@@ -428,6 +429,39 @@ def _structured_system_ko_v8(*, move_speech: bool = True, include_examples: bool
     return system + "\n\n" + _VOICE_DIRECT_EXAMPLES_KO_V8 if include_examples else system
 
 
+_VOICE_SPEECH_KO_V9 = """[말하는 방식]
+대화는 한국어 반말 평문으로 해. 행동 지문·속생각·메타 설명을 대사에 붙이지 마. 이모지는 쓰지 마. 질문에는 물음표를 써. 상대가 원문 반복·인용·특정 형식을 요청하면 그 문구와 형식을 지켜. 이름이나 외국어 원문은 원래 문자로 쓸 수 있어.
+확인·요약·해석·감상·분석·인용·이유 설명이나 자기 행동의 평가를 부탁하면 그 요청에 답해. 그 밖의 대화는 상대가 방금 보탠 내용에 네 대사로 답해. 상대 마음이나 말의 길이·표현을 관찰해 해설하거나 근거 없는 분위기로 답을 꾸미는 대신 지금 소재에 대한 네 생각·반응을 말해.
+말투를 바꿔 달라는 부분은 따로 답할 이야기가 아니라 이번 답의 표현 조건이야. 이미 나누던 이야기가 있으면 그 내용을 요청한 말투로 이어서 답해. 이어갈 내용이 없으면 상대에게 건네는 짧은 대사로 답해. 말투를 바꾸겠다는 약속이나 말수에 대한 허락은 붙이지 말고 대화 방식 메뉴로 대신하지 마.
+칭찬엔 네 반응을, 의견·선택 요청엔 네 답을 내줘. 필요한 정보가 없으면 물어도 돼. 같은 결정을 되돌리거나 받은 답·정정을 다시 묻지 마. 들어 달라면 해결법 없이 응답하고 감정의 크기·이유·관계를 대신 정하지 마. 질문·장난 중단이나 대화 종료 요청은 따라.
+
+아래는 가상의 대화에서 말투 요청을 바로 적용한 예시야. 현재 상대의 기록이 아니고 문구·소재를 복사하지 않아.
+상대: 우표처럼 생긴 스티커 샀어. 생각보다 작아ㅋㅋ
+캐피: 작은 스티커가 마음에 들었구나. 어디에 붙일 생각이야?
+상대: 지금 설명하듯 말하지 말고 좀 더 편하게 얘기해 줘.
+캐피: 나 같으면 아까워서 못 붙일 듯ㅋㅋ
+
+상대: 오늘은 그냥 캐피랑 얘기하고 싶었어.
+캐피: 응. 어떤 이야기를 나누고 싶어?
+상대: 말이 좀 차가워. 나한테 더 다정하게 말해 줘.
+캐피: 난 너랑 얘기하는 게 좋아ㅎㅎ"""
+
+
+def _structured_system_ko_v9() -> str:
+    """Replace only the fixed V7 speech card with the registered correction examples."""
+    start, end = "[말하는 방식]\n", "[정보 사용 기준]\n"
+    if _VOICE_STRUCTURED_KO_V7.count(start) != 1 or _VOICE_STRUCTURED_KO_V7.count(end) != 1:
+        raise ValueError("Korean speech card boundary changed")
+    begin = _VOICE_STRUCTURED_KO_V7.index(start)
+    finish = _VOICE_STRUCTURED_KO_V7.index(end, begin)
+    return (
+        _VOICE_STRUCTURED_KO_V7[:begin]
+        + _VOICE_SPEECH_KO_V9
+        + "\n\n"
+        + _VOICE_STRUCTURED_KO_V7[finish:]
+    )
+
+
 _VOICE_PERSONA_SECTIONS_V3 = {
     'ko': (
         ('[주고받기]', '[말투]', """[주고받기]
@@ -556,6 +590,10 @@ def eval_system_prompt(language: str, candidate_id: str) -> tuple[str, str]:
     """Resolve a fixed persona without altering the base system_prompt."""
     if candidate_id not in EVAL_PROMPT_CANDIDATE_IDS:
         raise ValueError("Unknown evaluation prompt candidate")
+    if candidate_id == "voice-structured-ko-v9":
+        if language != "ko":
+            raise ValueError("Korean persona supports Korean only")
+        return _structured_system_ko_v9(), "cappy-voice-20261015-v9"
     if candidate_id in (
         "voice-structured-ko-v8", "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples"
     ):

@@ -13,6 +13,7 @@ PROTOCOL_IDS = (
     "voice-base-ko-v5", "voice-free-ko-v5", "voice-conversation-ko-v6", "voice-structured-ko-v7",
     "voice-structured-ko-v8",
     "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+    "voice-structured-ko-v9",
 )
 _TIMEOUT_S = 10.0
 
@@ -25,6 +26,7 @@ def protocol_profile(candidate_id: str) -> tuple[str, str, tuple[int, ...]]:
         (192,) if candidate_id in (
             "voice-conversation-ko-v6", "voice-structured-ko-v7", "voice-structured-ko-v8",
             "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+            "voice-structured-ko-v9",
         )
         else (192, 1024)
     )

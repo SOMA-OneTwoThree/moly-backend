@@ -108,6 +108,7 @@ def test_retained_registry_has_no_inactive_alias_or_unregistered_fallback():
         "voice-structured-ko-v8",
         "voice-structured-ko-v8-order",
         "voice-structured-ko-v8-examples",
+        "voice-structured-ko-v9",
     )
     for language, candidate in (("ja", "voice-free-ko-v5"), ("fr", "c0"), ("ko", "unknown")):
         with pytest.raises(ValueError):
@@ -291,3 +292,45 @@ def test_v8_registered_factor_variants_isolate_order_and_examples_without_other_
     assert hashlib.sha256(examples.encode()).hexdigest() == (
         "015fbfca97e78c5a2b961ec181abddd9874103cabfaff9425676221e535fdd95"
     )
+
+
+def test_v9_replaces_only_the_original_v7_speech_card():
+    v7, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    v9, version = prompts.eval_system_prompt("ko", "voice-structured-ko-v9")
+    before, remainder = v7.split("[말하는 방식]\n", 1)
+    _, information = remainder.split("[정보 사용 기준]\n", 1)
+    assert v9 == before + prompts._VOICE_SPEECH_KO_V9 + "\n\n[정보 사용 기준]\n" + information
+    assert version == "cappy-voice-20261015-v9"
+    original_format = prompts._VOICE_FREE_KO_V5.split("[말하기]\n", 1)[1].split(
+        "\n\n[지금 대화]", 1
+    )[0]
+    assert original_format in v9
+    assert hashlib.sha256(v9.encode()).hexdigest() == (
+        "be7cb694b180f5f03fbc31deb86837e7570221e4608a8860addc5de2580fdbce"
+    )
+    assert v9.index("[말하는 방식]") < v9.index("[정보 사용 기준]")
+    assert "확인·요약·해석·감상·분석·인용·이유 설명이나 자기 행동의 평가를 부탁하면 그 요청에 답해." in v9
+    assert "필요한 정보가 없으면 물어도 돼." in v9
+    assert "말투를 바꿔 달라는 부분은 따로 답할 이야기가 아니라 이번 답의 표현 조건이야." in v9
+    assert "현재 상대의 기록이 아니고 문구·소재를 복사하지 않아." in v9
+
+
+@pytest.mark.parametrize("boundary", ["[말하는 방식]\n", "[정보 사용 기준]\n"])
+def test_v9_rejects_ambiguous_fixed_speech_card_boundaries(monkeypatch, boundary):
+    monkeypatch.setattr(
+        prompts, "_VOICE_STRUCTURED_KO_V7", prompts._VOICE_STRUCTURED_KO_V7 + boundary
+    )
+    with pytest.raises(ValueError, match="boundary changed"):
+        prompts.eval_system_prompt("ko", "voice-structured-ko-v9")
+
+
+@pytest.mark.parametrize("language", ["ja", "en", "ko-KR", ""])
+def test_v9_is_korean_only(language):
+    with pytest.raises(ValueError, match="Korean only"):
+        prompts.eval_system_prompt(language, "voice-structured-ko-v9")
+
+
+@pytest.mark.parametrize("candidate", ["voice-structured-ko-v90", "voice-structured-ko-v9-custom"])
+def test_v9_has_no_unregistered_alias(candidate):
+    with pytest.raises(ValueError, match="Unknown evaluation prompt candidate"):
+        prompts.eval_system_prompt("ko", candidate)

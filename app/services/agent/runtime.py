@@ -45,7 +45,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import llm, usage_ledger
+from app.services import i18n, llm, usage_ledger
 from app.services.agent.config import AgentConfigSnapshot
 from app.services.llm import (
     AssistantText,
@@ -107,6 +107,15 @@ _TOOL_WHEN_RULE = (
     "praise or comment on. If the user did not raise the subject, do not raise it either. "
     "Do not repeat information you already gave earlier in this conversation, and if the user "
     "says to stop talking about something, drop it for the rest of the conversation."
+)
+
+_TOOL_WHEN_RULE_DEV_KO = (
+    "[When to use tools] Call a tool only to answer what the user just asked or brought up "
+    "themselves. Never call one to make small talk, to fill a pause, or to find something to "
+    "praise or comment on. Do not introduce a diary or routine subject using tool results "
+    "unless the user has raised it. Do not repeat tool-returned information you already gave "
+    "earlier in this conversation. If the user says to stop talking about something, drop it "
+    "for the rest of the conversation."
 )
 
 
@@ -624,7 +633,12 @@ async def run_turn(
     그러하고(Phase 1이 read-only라 저장된 게 없다) 그래야 클린 재시도가 된다.
     """
     model = model or settings.model_chat
-    _rules = [_TOOL_DATA_RULE, _TOOL_WHEN_RULE]
+    tool_when_rule = (
+        _TOOL_WHEN_RULE_DEV_KO
+        if settings.environment == "development" and i18n.is_korean(language)
+        else _TOOL_WHEN_RULE
+    )
+    _rules = [_TOOL_DATA_RULE, tool_when_rule]
     system = [system, *_rules] if isinstance(system, str) else [*system, *_rules]
     deadline = deadline if deadline is not None else now() + config.turn_deadline_s
     transcript = _transcript(convo)

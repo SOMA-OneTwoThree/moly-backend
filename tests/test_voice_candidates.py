@@ -18,6 +18,9 @@ def test_v5_baseline_control_is_exact_c0_and_free_persona_has_no_inherited_style
     )
     assert base_version == free_version == "cappy-voice-20261014-v5"
     assert free == prompts._VOICE_FREE_KO_V5
+    assert hashlib.sha256(free.encode()).hexdigest() == (
+        "6d2ea1ae2b7b1d0581fb20b071064d8316903c33e7994d1053e9ecd90c8bd3a1"
+    )
     assert len(free) < len(base)
     for old in (
         "[관계]",
@@ -100,7 +103,35 @@ def test_retained_registry_has_no_inactive_alias_or_unregistered_fallback():
         "voice-combined-v3",
         "voice-base-ko-v5",
         "voice-free-ko-v5",
+        "voice-conversation-ko-v6",
     )
     for language, candidate in (("ja", "voice-free-ko-v5"), ("fr", "c0"), ("ko", "unknown")):
         with pytest.raises(ValueError):
             prompts.eval_system_prompt(language, candidate)
+
+
+def test_conversation_candidate_replaces_only_the_conversation_section():
+    baseline, baseline_version = prompts.eval_system_prompt("ko", "voice-free-ko-v5")
+    candidate, candidate_version = prompts.eval_system_prompt("ko", "voice-conversation-ko-v6")
+    before, old_conversation = baseline.split("[지금 대화]", 1)
+    _, protected = old_conversation.split("[사실과 기능]", 1)
+    assert candidate == (
+        before + prompts._VOICE_CONVERSATION_KO_V6 + "\n\n[사실과 기능]" + protected
+    )
+    assert candidate_version == "cappy-voice-20261015-v6"
+    assert baseline_version == "cappy-voice-20261014-v5"
+    assert candidate != baseline
+    assert candidate.count("[지금 대화]") == 1
+
+
+@pytest.mark.parametrize("language", ["ja", "en", "ko-KR"])
+def test_conversation_candidate_cannot_change_other_locale_prompts(language):
+    with pytest.raises(ValueError, match="Korean only"):
+        prompts.eval_system_prompt(language, "voice-conversation-ko-v6")
+
+
+@pytest.mark.parametrize("boundary", ["[지금 대화]", "[사실과 기능]"])
+def test_conversation_candidate_rejects_changed_source_boundaries(monkeypatch, boundary):
+    monkeypatch.setattr(prompts, "_VOICE_FREE_KO_V5", prompts._VOICE_FREE_KO_V5 + boundary)
+    with pytest.raises(ValueError, match="boundary changed"):
+        prompts.eval_system_prompt("ko", "voice-conversation-ko-v6")

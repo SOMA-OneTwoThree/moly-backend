@@ -274,6 +274,25 @@ def test_plain_input_bound_counts_utf8_envelope(client, protocol_calls, candidat
     assert response.status_code == 422 and protocol_calls == []
 
 
+def test_conversation_candidate_dispatches_fixed_profile_and_rejects_larger_cap(
+    client, calls, protocol_calls,
+):
+    candidate = "voice-conversation-ko-v6"
+    response = client.post(
+        "/dev/chat-eval", json=payload(candidate_id=candidate, max_tokens=192),
+    )
+    assert response.status_code == 200
+    assert calls == [] and len(protocol_calls) == 1
+    assert protocol_calls[0][2] == dev.eval_system_prompt("ko", candidate)[0]
+    assert response.json()["candidate"]["candidate_id"] == candidate
+    for override in ({"max_tokens": 1024}, {"model": "gpt-6-sol"}, {"language": "ja"}):
+        response = client.post(
+            "/dev/chat-eval",
+            json=payload(**{"candidate_id": candidate, "max_tokens": 192, **override}),
+        )
+        assert response.status_code == 422 and len(protocol_calls) == 1
+
+
 @pytest.mark.parametrize(
     "candidate",
     [

@@ -255,6 +255,79 @@ async def _run(fake, *, registry=None, cfg=None, clock=None, user_text="오늘 �
     )
 
 
+@pytest.mark.parametrize("environment,language,scoped", (
+    ("development", "ko", True), ("development", "ko-KR", True),
+    ("development", "KO", True), ("development", "ja", False),
+    ("development", "ja-JP", False), ("development", "en", False),
+    ("development", "en-US", False), ("development", None, False),
+    ("development", "zh-Hant-TW", False),
+    ("production", "ko", False), ("production", "ko-KR", False),
+    ("staging", "ko", False), ("local", "ko", False),
+    ("Development", "ko", False),
+))
+async def test_tool_rule_scope_is_development_korean_only(
+    monkeypatch, environment, language, scoped,
+):
+    captured = []
+    fake = _FakeSteps(_text_step("응.", purpose="chat"))
+
+    async def capture(system, transcript, **kwargs):
+        captured.append(system)
+        return await fake(system, transcript, **kwargs)
+
+    monkeypatch.setattr(agent_runtime.settings, "environment", environment)
+    monkeypatch.setattr(llm_module, "generate_step", capture)
+    turn = await agent_runtime.run_turn(
+        SYSTEM, CONVO, config=_cfg(), user_id=UID, language=language,
+        activity_date=date(2026, 8, 4), user_text="오늘 어땠어?",
+        registry=_FakeRegistry(), session_factory=_factory, now=_Clock(),
+    )
+    expected_rule = (
+        agent_runtime._TOOL_WHEN_RULE_DEV_KO if scoped else agent_runtime._TOOL_WHEN_RULE
+    )
+    assert captured == [[*SYSTEM, agent_runtime._TOOL_DATA_RULE, expected_rule]]
+    assert turn.text == "응."
+    assert len(fake.calls) == 1
+
+
+@pytest.mark.parametrize("with_tool", (False, True))
+async def test_scoped_tool_rule_changes_only_system_text_not_execution_contract(
+    monkeypatch, with_tool,
+):
+    async def run(environment):
+        steps = (
+            (_calls_step(_call(1)), _text_step("응.", purpose="tool_final"))
+            if with_tool else (_text_step("응."),)
+        )
+        fake = _FakeSteps(*steps)
+        systems = []
+
+        async def capture(system, transcript, **kwargs):
+            systems.append(system)
+            return await fake(system, transcript, **kwargs)
+
+        monkeypatch.setattr(agent_runtime.settings, "environment", environment)
+        monkeypatch.setattr(llm_module, "generate_step", capture)
+        await agent_runtime.run_turn(
+            SYSTEM, CONVO, config=_cfg(), user_id=UID, language="ko",
+            activity_date=date(2026, 8, 4), user_text="내 루틴 알려줘",
+            registry=_FakeRegistry(_FakeTool()), session_factory=_factory, now=_Clock(),
+        )
+        return fake.calls, systems
+
+    original_calls, original_systems = await run("production")
+    scoped_calls, scoped_systems = await run("development")
+    assert scoped_calls == original_calls
+    assert len(scoped_calls) == (2 if with_tool else 1)
+    assert all(s == [*SYSTEM, agent_runtime._TOOL_DATA_RULE, agent_runtime._TOOL_WHEN_RULE]
+               for s in original_systems)
+    assert all(s == [*SYSTEM, agent_runtime._TOOL_DATA_RULE, agent_runtime._TOOL_WHEN_RULE_DEV_KO]
+               for s in scoped_systems)
+    assert "If the user says to stop talking about something, drop it " in (
+        agent_runtime._TOOL_WHEN_RULE_DEV_KO
+    )
+
+
 # --- 1) 도구 미호출 턴 = 기존과 같은 모양(호출 1회) ---
 async def test_no_tools_registered_returns_step1_text_with_single_call(monkeypatch):
     fake = _FakeSteps(_text_step("응, 그냥 그랬어.", purpose="chat"))

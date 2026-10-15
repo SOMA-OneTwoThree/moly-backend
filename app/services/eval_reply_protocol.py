@@ -9,7 +9,7 @@ import time
 from app.config import settings
 from app.services import llm, model_eval, prompts
 
-PROTOCOL_IDS = ("voice-base-ko-v5", "voice-free-ko-v5")
+PROTOCOL_IDS = ("voice-base-ko-v5", "voice-free-ko-v5", "voice-conversation-ko-v6")
 _TIMEOUT_S = 10.0
 
 
@@ -17,7 +17,8 @@ def protocol_profile(candidate_id: str) -> tuple[str, str, tuple[int, ...]]:
     """Return the existing fixed Korean plain evaluation profile."""
     if candidate_id not in PROTOCOL_IDS:
         raise ValueError("Unknown reply protocol")
-    return "gpt-6-luna", "none", (192, 1024)
+    caps = (192,) if candidate_id == "voice-conversation-ko-v6" else (192, 1024)
+    return "gpt-6-luna", "none", caps
 
 
 def response_format(candidate_id: str) -> None:

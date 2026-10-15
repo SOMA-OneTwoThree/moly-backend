@@ -4,22 +4,40 @@ from __future__ import annotations
 import pytest
 
 
-def test_when_to_use_rule_is_attached_to_every_tool_call():
+@pytest.mark.parametrize("environment", ("development", "production"))
+async def test_when_to_use_rule_is_attached_to_every_tool_call(monkeypatch, environment):
     """도구마다 설명에 적으면 새 도구가 늘 때 빠진다 — 한 곳에서 건다.
 
     운영 실측(2026-08-08): 규칙이 없어 모델이 말을 잇는 재료로 도구를 아무 때나 부르고,
     한 사용자의 최근 30턴 중 8번 루틴 달성을 먼저 꺼냈다. "그만 말해"라고 한 다음 턴에도 또 꺼냈다.
     """
-    import inspect
-    from app.services.agent import runtime
+    from datetime import date
 
-    rule = runtime._TOOL_WHEN_RULE
+    from app.services import llm
+    from app.services.agent import runtime
+    from tests.test_agent_runtime import (
+        CONVO, SYSTEM, UID, _cfg, _Clock, _FakeRegistry, _text_step,
+    )
+
+    captured = []
+
+    async def generate(system, transcript, **kwargs):
+        captured.append(system)
+        return _text_step("응.")
+
+    monkeypatch.setattr(runtime.settings, "environment", environment)
+    monkeypatch.setattr(llm, "generate_step", generate)
+    await runtime.run_turn(
+        SYSTEM, CONVO, config=_cfg(), user_id=UID, language="ko",
+        activity_date=date(2026, 8, 4), user_text="안녕",
+        registry=_FakeRegistry(), now=_Clock(),
+    )
+
+    assert len(captured) == 1
+    rule = captured[0][-1]
     assert "only to answer what the user just asked" in rule
     assert "small talk" in rule
     assert "says to stop" in rule
-    # 실제로 system에 붙는지 — 안 붙으면 규칙이 있으나 마나다.
-    src = inspect.getsource(runtime)
-    assert "_TOOL_WHEN_RULE]" in src or "_TOOL_WHEN_RULE," in src
 
 
 def test_persona_forbids_volunteering_routines():

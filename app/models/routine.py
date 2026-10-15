@@ -1,4 +1,4 @@
-"""루틴 테이블(ERD §5.5) — routines·completions·요일 이력·스킵·템플릿. 주기 = 요일별. 삭제 = soft delete."""
+"""루틴 테이블(ERD: 일기·감정·루틴·운세) — routines·completions·요일 이력·스킵·템플릿. 주기 = 요일별. 삭제 = soft delete."""
 from __future__ import annotations
 
 import uuid

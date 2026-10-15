@@ -1,4 +1,4 @@
-"""user_items — 보유 + 장착 상태(ERD §4.8).
+"""user_items — 보유 + 장착 상태(ERD: 경제와 구독).
 
 equipped_slot NULL = 선택 슬롯 미장착. theme은 항상 1개이며 슬롯당 1개는 부분 UNIQUE가 강제.
 source: purchase(주문 구매) | subscription(구독 전용 장착용 — 소유 아님, 인벤토리 미노출)

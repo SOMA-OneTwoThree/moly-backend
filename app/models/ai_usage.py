@@ -1,12 +1,8 @@
-"""AI 원가 계측 — 단가 catalog · 호출 원장 · 잡 시도 telemetry.
+"""AI 원가 계측 — 단가 catalog·호출 원장·잡 시도 기록.
 
-기억 재설계 1단계(docs/ARCHITECTURE-capi.md 11.2절). 구조 전환 **전에** 깔아서
-legacy 비용까지 같은 표면으로 재고 전환 전/후를 같은 지표로 비교한다.
-
-⚠️ 사용자 quota와 회사 원가는 다른 값이다. quota(`daily_token_limit`)는 기존 billable weighted
-unit이 계속 담당하고, 이 원장은 provider 단가 기반 USD 원가만 적재한다. 섞어 쓰지 않는다.
-로직·SQL은 `app/services/usage_ledger.py`.
-"""
+docs/ARCHITECTURE-capi.md의 사용량과 운영 절을 따른다.
+사용자 가중 한도와 공급자 단가 기반 USD 원가는 별개다.
+로직과 SQL은 app/services/usage_ledger.py가 소유한다."""
 from __future__ import annotations
 
 import uuid

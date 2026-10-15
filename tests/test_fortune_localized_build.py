@@ -15,7 +15,7 @@ from scripts import check_fortune_tarot_editorial as checker
 @pytest.mark.parametrize("damage", ["incomplete_proof", "stale_artifact"])
 def test_ci_audit_rejects_supplemental_review_failure(tmp_path, monkeypatch, damage):
     """Even matching generated assets must not bypass supplemental review gates."""
-    directory = tmp_path / "docs/fortune-content/localization"
+    directory = tmp_path / "content/fortune/localization"
     directory.mkdir(parents=True)
     result = {"status": "pass", "errors": [], "pending": []}
     if damage == "incomplete_proof":
@@ -39,8 +39,8 @@ def test_ci_audit_rejects_supplemental_review_failure(tmp_path, monkeypatch, dam
 @pytest.fixture
 def reviewed_tree(tmp_path):
     root = Path(__file__).resolve().parents[1]
-    for relative in ("app/resources/fortune", "docs/fortune-content/ko-rewrite",
-                     "docs/fortune-content/localization", "docs/fortune-content/ko-plain-voice"):
+    for relative in ("app/resources/fortune", "content/fortune/ko-rewrite",
+                     "content/fortune/localization", "content/fortune/ko-plain-voice"):
         shutil.copytree(root / relative, tmp_path / relative)
     return tmp_path
 
@@ -48,7 +48,7 @@ def reviewed_tree(tmp_path):
 @pytest.mark.parametrize("damage", ["missing_locale", "stale_review", "stale_source", "author_incomplete", "weak_score", "open_finding"])
 def test_unreviewed_generation_fails_before_asset_writes(reviewed_tree, damage):
     root = reviewed_tree
-    directory = root / "docs/fortune-content/localization"
+    directory = root / "content/fortune/localization"
     resources = root / "app/resources/fortune"
     before = {path.name: path.read_bytes() for path in resources.iterdir() if path.is_file()}
     review_path = directory / "review.json"
@@ -104,7 +104,7 @@ def test_duplicate_source_keys_are_rejected(tmp_path):
 
 @pytest.mark.parametrize("damage", ["changed_copy", "missing_key", "stale_author", "failed_independent", "stale_artifact"])
 def test_korean_override_cannot_bypass_its_own_review(reviewed_tree, damage):
-    directory = reviewed_tree / "docs/fortune-content/ko-plain-voice"
+    directory = reviewed_tree / "content/fortune/ko-plain-voice"
     path = directory / "overall.json"
     values = builder.read_json(path)
     key = next(iter(values))
@@ -133,7 +133,7 @@ def test_korean_override_cannot_bypass_its_own_review(reviewed_tree, damage):
 
 
 def test_korean_override_preserves_foreign_copy_and_original_review_sources(reviewed_tree):
-    docs = reviewed_tree / "docs/fortune-content"
+    docs = reviewed_tree / "content/fortune"
     protected = [p for folder in ("ko-rewrite", "localization")
                  for p in (docs / folder).rglob("*.json")]
     before = {p: p.read_bytes() for p in protected}

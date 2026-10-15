@@ -1,7 +1,6 @@
-"""배치 워커 엔트리포인트 — API와 같은 코드베이스, 프로세스만 분리(ARCHITECTURE §3.3).
+"""배치 워커 엔트리포인트 — API와 같은 코드베이스의 별도 프로세스.
 
-외부 매시 크론이 `python -m worker` 1틱 실행(멱등). 04:00 일기 생성·기억통합 / 09:00·20:00 푸시.
-"""
+외부 스케줄러가 한 tick을 실행한다. 시간대별 작업은 worker/tick.py와 docs/ARCHITECTURE.md의 비동기 작업과 데이터 절을 따른다."""
 from __future__ import annotations
 
 import asyncio

@@ -1,4 +1,4 @@
-"""user_daily_stats — 유저 × 앱 기준일 1행(ERD §4.2). 토큰·일일 보상 게이팅."""
+"""user_daily_stats — 유저 × 도메인 기준일 1행(ERD: 경제와 구독). 토큰·일일 보상 게이팅."""
 from __future__ import annotations
 
 import uuid

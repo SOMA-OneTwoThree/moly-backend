@@ -1,4 +1,4 @@
-"""subscriptions — App Store가 갱신하는 서버 원본(ERD §4.3). enum은 String 매핑."""
+"""subscriptions — RevenueCat 검증 이벤트로 갱신하는 구독 기록(ERD: 경제와 구독). enum은 String 매핑."""
 from __future__ import annotations
 
 import uuid

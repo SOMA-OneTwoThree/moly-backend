@@ -1,97 +1,66 @@
 # 원격 배경음악
 
-기존 Lo-fi 6개는 앱 설치 파일과 안정 ID를 보존한다. 신규 백색 소음은 운영자가 파일을
-Storage에 올린 뒤 DB에 등록하고, 앱이 전체 목록 API로 발견하여 모바일 데이터에서도
-자동 다운로드한다. 최초 다운로드 전에는 오프라인 재생되지 않는다. 파일이 아직 준비되지
-않았으므로 이번 seed에는 기존 Lo-fi만 있으며 가짜 음원이나 빈 백색 소음 행은 없다.
+서버는 전체 활성 곡 목록을, Storage는 음원 바이트를 소유한다. 앱 내장 곡의 ID와 파일은 유지하며 원격 곡은 목록 API로 발견한다. 실제 재생·기기 다운로드 동작은 앱 검증과 구분한다.
 
-## API와 재생 계약
+## 목록 계약
 
-`GET /bgm/tracks`, 기존 Supabase Bearer 인증, `X-App-Locale`(ko/en/ja).
-응답은 `{schema_version: 1, revision: "64자리 SHA256", tracks: [...]}`다.
-각 track은 `id`, `category`(lofi/white_noise), 현지화된 `title`, `source`(bundled/remote),
-음원 `revision`, `url`, `sha256`, `size_bytes`, `mime_type`, `sort_order`, `subscriber_only`를 갖는다.
-bundled의 원격 메타데이터 4개는 null, remote는 모두 필수다. 설치 파일은 id로 찾는다.
-응답 revision은 현지화된 전체 목록의 해시이며 파일 identity는 track revision/sha256이다.
-제목/정렬/언어 변경만으로 음원을 다시 다운로드하지 않는다.
+인증된 `GET /bgm/tracks`와 `X-App-Locale`을 사용한다. 응답은 `Cache-Control: private, no-store`이며 다음 전체 snapshot이다.
 
-정상 200 snapshot은 bundled 포함 전체 활성 목록의 권위다. 사라진 곡은 목록에서 제거한다.
-재생 중인 파일은 사용이 끝난 뒤 정리한다. 내장 파일은 패키지에 남지만 목록에서는 제거한다.
-첫 성공 snapshot 전에는 기존 Lo-fi 6개가 fallback이다. 통신 실패, 파싱 실패, 불완전한
-메타데이터는 삭제 신호가 아니며 기존 snapshot/파일을 보존한다. 서버는 한 SQL에서 전체
-활성 행을 읽고, 한 행이라도 잘못되면 정상 partial/empty 응답 대신 오류를 반환한다.
-빈 활성 목록은 유효한 의도적 전체 삭제이므로 운영 시 주의한다.
+```json
+{"schema_version": 1, "revision": "<전체 목록 SHA256>", "tracks": []}
+```
 
-파일 다운로드 완료와 size/SHA256 검증 전에는 기존 파일을 대체하지 않는다. 임시 파일을
-검증한 후 원자적으로 교체하고 재생 중인 이전 버전은 다음 재생부터 교체한다. 모든 곡은
-단곡 무한 반복이며 Lo-fi와 백색 소음의 동시 재생은 없다. 다운로드는 앱 실행 중 시작하며
-앱 종료/OS suspension 중 완료를 보장하는 background transfer 계약은 아니다.
+| 필드 | 계약 |
+|---|---|
+| `id` | 안정 ID. 소문자 영숫자로 시작, 영숫자/하이픈 최대 64자 |
+| `category` | `lofi` 또는 `white_noise` |
+| `title` | ko/en/ja로 해석한 제목, 1~120자 |
+| `source` | `bundled` 또는 `remote` |
+| `revision` | 음원 버전, 영숫자로 시작하는 영숫자/점/밑줄/하이픈 최대 64자 |
+| `url/sha256/size_bytes/mime_type` | bundled은 모두 null, remote는 모두 필수 |
+| `sort_order` | 0 이상 정수 |
+| `subscriber_only` | 구독 전용 표시. 기본 false |
 
-## 구독자 전용 곡
+- 목록 revision은 **현지화된 전체 목록**의 canonical JSON SHA256이다. 음원 identity는 곡의 revision/hash다. 제목·정렬·언어 변경만으로 파일을 재다운로드하지 않는다.
+- 한 SQL로 전체 활성 행을 읽고 한 행이라도 잘못되면 전체 요청이 실패한다. 정상 partial/empty로 위장하지 않는다. 정상 빈 목록은 실제 전체 삭제이므로 운영 시 주의한다.
+- 성공 snapshot에서 사라진 곡은 목록에서 제거한다. 실패·불완전한 응답은 삭제 신호가 아니며 기존 snapshot/파일을 보존한다. 첫 성공 전에는 앱 내장 fallback을 사용할 수 있다.
+- `subscriber_only=true`도 인증된 목록에 포함된다. **backend는 구독별 곡 필터나 음원 재생 차단을 하지 않는다.** 앱의 잠금·셔플·재생 paywall은 별도 구현/검증 대상이며 구버전은 새 필드를 무시할 수 있다.
 
-`bgm_tracks.is_subscriber_only`가 true인 곡은 응답에서 `subscriber_only: true`다. 목록은
-회원과 무관한 같은 snapshot이며, 앱이 구독(상점 구독 전용 상품과 같은 판정) 중이 아닐 때
-잠금 표시와 재생·셔플 차단을 맡는다. 현재는 내장 Lo-fi `fading-static`(Old Radio)만
-구독자 전용이다. 이 필드를 모르는 구버전 앱은 필드를 무시하고 기존처럼 재생한다.
-기존 DB 반영 SQL은 `db/changes/bgm_subscriber_only.sql`이며 새 서버 배포 전에 적용한다.
+## 음원과 앱 계약
 
-## 파일 등록과 교체
+- remote URL은 환경별 허용 origin의 공개 `bgm-assets` 경로만 허용한다. query/fragment·상대 경로·인증 URL을 쓰지 않는다. 운영 응답에 개발 origin을 섞지 않는다.
+- 지원 MIME은 `audio/mp4`, `audio/mpeg`, `audio/wav`, 개별 파일 상한은 100 MiB다. 이 방어 한도가 모든 codec/컨테이너의 재생을 보장하지는 않는다. Storage bucket 자체 제한도 별도로 확인한다.
+- API가 음원을 프록시하지 않으며 앱 Bearer/cookie를 Storage로 전달하지 않는다. 파일 이름은 새 revision/hash의 불변 경로로 만든다. 같은 URL의 bytes를 덮지 않는다.
+- 앱은 임시 파일의 size/hash를 확인한 뒤 원자적으로 교체한다. 재생 중인 이전 파일은 다음 재생부터 바꾸고 사용이 끝나기 전에 삭제하지 않는다. 단곡 반복이며 Lo-fi와 백색 소음 동시 재생 계약은 아니다.
+- 다운로드는 앱 실행 중 시작한다. 앱 종료/OS suspension 중 background transfer 완료를 보장하지 않는다. 최초 다운로드 전에는 원격 곡을 오프라인 재생할 수 없다.
+- 로그아웃 때 공용 음원 캐시를 반드시 삭제할 필요는 없다. 개인정보 캐시와 구분한다.
 
-기존 환경별 Supabase Storage의 공개 읽기 `bgm-assets` bucket을 사용한다. 이 문서는 실제
-bucket을 생성하거나 권한을 바꾸지 않는다. dev/prod origin을 분리한다. API 서버는 음원
-바이트를 프록시하지 않으며 앱 인증 토큰을 Storage로 전달하지 않는다.
+## 등록·교체·제거
 
-1. 최종 음원의 재배포 가능 여부, 양 플랫폼 디코딩, 끝/시작의 무음·클릭을 검수한다.
-2. `{id}/{revision}/audio.m4a` 등의 새 immutable 경로에 업로드한다. 같은 URL 덮어쓰기 금지.
-3. 확정 bytes의 SHA256, size, MIME와 3개 언어 제목을 준비한다. 초기 지원 MIME은
-   audio/mp4, audio/mpeg, audio/wav, 개별 파일 최대 100 MiB다. 이는 다운로드 방어 한도이며
-   모든 codec/컨테이너 변형의 재생 보장이 아니다. 실제 파일 준비 후 iOS/Android 검수 필요.
-4. API track 형태의 JSON으로 `uv run python -m scripts.validate_bgm_publication metadata.json`
-   를 실행한다. 운영은 `--production`. HTTP 200/redirect 없음/MIME/크기/hash를 읽기 전용으로
-   검증한다. 이 도구는 DB를 수정하지 않는다.
-5. 검증 후 트랜잭션으로 metadata를 등록/교체하고 `is_active=true`를 마지막에 설정한다.
-   교체는 같은 id, 새 revision/URL/hash를 사용한다. 제거는 is_active=false 또는 행 삭제다.
-6. 앱 다음 조회에서 반영된다. DB 갱신 즉시 실행 중 모든 앱에 push하는 기능은 없다.
-   이전 파일은 곧바로 Storage에서 삭제하지 말고 구 snapshot 다운로드의 유예 기간을 둔다.
+1. 재배포 권리, 양 플랫폼 디코딩, 반복 경계의 무음·클릭을 검수한다.
+2. 환경별 공개 bucket에 새 불변 파일을 올리고 확정 bytes의 SHA256·크기·MIME와 세 언어 제목을 준비한다.
+3. 한 API track 형태의 JSON을 검증한다. 아래 도구는 파일 HTTP 읽기를 수행하며 DB를 변경하지 않는다.
 
-목록과 음원은 사용자별 자산이 아니므로 회원 테이블을 변경하지 않는다. 로그아웃 시 음원
-파일 삭제를 필수로 요구하지 않는다. 음원 추가를 위해 앱 코드/서버 재배포는 필요 없지만,
-새 category/codec/source 계약은 별도 앱 지원이 필요하다.
+```bash
+uv run python -m scripts.validate_bgm_publication metadata.json
+uv run python -m scripts.validate_bgm_publication metadata.json --production
+```
 
-## 배너
+4. 공개 HTTP 200·redirect 없음·MIME·size/hash와 실제 기기 재생을 확인한 뒤 DB metadata를 트랜잭션으로 등록하고 `is_active=true`를 마지막에 설정한다.
+5. 교체는 같은 ID와 새 revision/URL/hash를 사용한다. 제거는 비활성화 또는 검토한 행 삭제다. 다음 목록 조회에 반영되며 실행 중 모든 앱에 즉시 push하지 않는다.
+6. 이전 snapshot을 받은 앱의 다운로드를 위해 이전 파일은 유예 기간을 두고 보존한다. 긴급 복구 때 테이블·음원을 먼저 삭제하지 않는다.
 
-현재 `home_blind.json`에는 음악 배너가 없으며 이번 변경에서도 그대로 유지한다.
-`open_music` 행동은 자동 선택/재생 없이 기존 음악 화면을 연다. 구버전은 Lo-fi 6곡 추천을
-그대로 사용한다. `remote_bgm_v1` capability를 보내는 지원 앱에만, 실제 음악 binding을
-요청한 경우 DB 활성 목록에서 제목을 고른다. DB I/O는 서비스에서 하고 manifest 검증과
-렌더러는 순수 함수로 유지한다. 잘못된/빈 목록은 음악 카드만 제외하며 다른 카드를 유지한다.
-같은 날짜와 같은 활성 ID 집합에서는 같은 곡을 고른다. 당일 목록 변경 시 추천이 바뀔 수 있다.
-음악 노출 재개는 별도 작업이며 현재 5장 상한과 라인업을 다시 검토해야 한다.
+기존 계약 안의 곡 추가/메타데이터 변경은 앱·서버 재배포 없이 가능하다. 새 category/source/codec 계약은 앱 지원을 먼저 확인한다. DB 변경이 필요하면 [DB 절차](../db/README.md)에 따라 현재 계약과 필요한 SQL 차이만 검토하며 과거 seed/전환 SQL을 통째 재실행하지 않는다.
 
-## DB 적용과 검증
+## 배너 연결
 
-`db/README.md` 규약대로 schema.sql과 모델을 갱신하고 PostgreSQL 17의 새 로컬 DB에서
-schema_contract.json을 재생성한다. 기존 환경에는 `db/changes/remote_bgm.sql`만 리뷰 후
-적용한다. 기존 회원 데이터 변경은 없으며 bgm_tracks 새 테이블과 6개 seed 행만 추가한다.
-이 SQL은 자동배포에 연결하지 않는다. 새 서버보다 DB를 먼저 준비한다. 구버전 서버는
-새 테이블을 읽지 않으므로 롤링 호환이다. 롤백은 앱/서버 기능을 되돌리고 새 테이블은
-보존하는 방식이 안전하다. 실제 삭제는 소비자가 없음을 확인한 별도 운영 작업이다.
+`open_music`은 선택 화면만 열며 자동 선택/재생하지 않는다. `music.daily_title`은 음악 binding을 요청한 카드에서만 사용한다. `remote_bgm_v1` 지원 앱에는 활성 DB 목록을, 그 외에는 내장 목록을 사용한다. 같은 날짜·같은 활성 ID 집합이면 추천이 같고 목록 변경 시 달라질 수 있다.
 
-## 운영 음원 등록 (2026-09-23)
+잘못되거나 빈 음악 목록은 음악 카드만 제외한다. 카드 유무는 `home_blind.json`이 결정하며 이 문서의 곡 수·과거 게시 기록으로 판단하지 않는다. [배너 계약](BANNER_SDUI.md)을 따른다.
 
-운영 main의 구독·상품 정책을 보존한 채 음원 관련 코드만 승격했다. 오늘의 문장 기능은
-포함하지 않는다. 운영 `bgm-assets`는 공개 읽기, 업로드/삭제는 기존 관리자 권한이며
-50 MiB 및 audio/mp4, audio/mpeg, audio/wav 제한을 둔다.
+## 원본과 검증
 
-[운영 게시 메타데이터](remote-bgm/prod-publication.json)의 7개 파일은 개발 원본과 크기·SHA256이
-동일하다. 운영 파일은 `{id}-{revision}.{extension}`의 불변 이름을 사용하며 개발 URL을
-재사용하지 않는다. 기존 6곡과 신규 7곡을 한 트랜잭션으로 등록했다. 회원 데이터와
-운영 배너 카탈로그는 변경하지 않았다.
-
-검증: PostgreSQL 17의 기존 운영 스키마에 음원 SQL 적용 후 구버전 호환 및 새 계약 일치,
-운영 DB SQL rollback 모의 적용 및 실제 적용 후 구조 검사, 실제 운영 파일 7개 HTTP/MIME/
-크기/SHA256 검사, ko/en/ja 13곡의 개발·운영 메타데이터 비교(환경 URL만 다름), 서버 단위
-테스트 2,482개 및 운영 배너 에셋 검사 통과. 장시간 반복 청취는 별도 실기기 QA 항목이다.
-
-되돌리기 시 이전 서버 이미지를 배포할 수 있다. 새 테이블은 이전 서버에서 사용하지
-않으므로 유지하고 회원 테이블이나 음원 파일을 긴급 삭제하지 않는다.
+- API/스키마: [bgm.py](../app/api/bgm.py), [응답 스키마](../app/schemas/bgm.py).
+- 조회·현지화·환경 검증: [서비스](../app/services/bgm.py).
+- DB: `bgm_tracks`, `db/schema.sql`, `db/schema_contract.json`.
+- 검증은 목록 정상/빈 목록/잘못된 행/개발 URL 혼입/구독 표시/파일 변경을 구분한다. metadata 검증·서버 단위시험·실기기 반복 청취는 서로 다른 증거다.

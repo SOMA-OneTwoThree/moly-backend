@@ -1,4 +1,4 @@
-"""payments — 실결제(현금) 기록(ERD §4.7).
+"""payments — 실결제(현금) 기록(ERD: 경제와 구독).
 
 IAP 건초 = order_id 연결(1:1) / 구독 결제(구매·갱신) = subscription_id 연결.
 store_transaction_id UNIQUE = 영수증 멱등 키. 매출 집계는 이 테이블 단일 소스.

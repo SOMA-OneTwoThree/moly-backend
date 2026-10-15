@@ -31,7 +31,9 @@ def audit() -> dict:
             pending.append({"file": str(path.relative_to(ROOT)), "reason": "missing_file"})
             return {}
         value = builder.read_json(path)
-        source_hashes[str(path.relative_to(ROOT))] = builder.digest(value)
+        # Keep recorded provenance IDs stable when relocating the reviewed files.
+        evidence_id = Path("docs/fortune-content") / path.relative_to(HERE.parent)
+        source_hashes[str(evidence_id)] = builder.digest(value)
         return value
 
     ko = {axis: read(HERE.parent / "ko-rewrite" / f"{axis}.json") for axis in AXES}

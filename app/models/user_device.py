@@ -1,4 +1,4 @@
-"""user_devices — FCM 푸시 토큰(iOS는 APNs 릴레이·Android 네이티브, ERD §6.4). push_token UNIQUE로 중복 제거."""
+"""user_devices — FCM 푸시 토큰(iOS는 APNs 릴레이·Android 네이티브, ERD: 계정과 프로필). push_token UNIQUE로 중복 제거."""
 from __future__ import annotations
 
 import uuid

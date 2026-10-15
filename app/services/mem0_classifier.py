@@ -1,6 +1,6 @@
 """consolidation classifier — 고정 스키마 판정 파서.
 
-기억 재설계(docs/ARCHITECTURE-capi.md 5.3절).
+구조·불변 규칙: docs/ARCHITECTURE-capi.md 「장기 기억과 사용자별 상태」.
 
 모델은 `independent | duplicate | supersedes | ambiguous`와 **비교 대상 id만** 낸다.
 자유문 판정은 거부한다 — 그걸 받으면 validator가 검사할 대상 자체가 오염된다.

@@ -1,4 +1,4 @@
-"""products — 판매 상품 카탈로그(ERD §4.5). order_items가 가리키는 단일 상품 FK.
+"""products — 판매 상품 카탈로그(ERD: 경제와 구독). order_items가 가리키는 단일 상품 FK.
 
 product_type: hay_pack(IAP 건초, KRW 실결제) | cosmetic(꾸미기, HAY 결제).
 타입별 컬럼 상호 강제는 DB CHECK(products_hay_pack_ck / products_cosmetic_ck).

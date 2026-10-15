@@ -131,7 +131,7 @@ def build():
             keywords = ", ".join(briefs[key]["keywords"])
             lines.extend([f"## {key}", "", f"카드 키워드: {keywords}", "",
                           "작성 조건: 카드의 뜻을 유지하고 쉬운 일상어로 운과 행동을 바로 말한다. "
-                          "불필요한 상황·이유를 덧붙이지 않는다. [전체 기준](../CRITERIA.md)", "",
+                          "불필요한 상황·이유를 덧붙이지 않는다. [전체 기준](../../../../docs/DAILY-FORTUNE.md#편집-규칙)", "",
                           *bundle_lines(bundle)])
         reviewers = {kind: validate_review(axis, bundles, kind, errors) for kind in ("author", "independent")}
         if reviewers["author"] and reviewers["author"] == reviewers["independent"]:

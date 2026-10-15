@@ -1,4 +1,4 @@
-"""user_notification_settings — 알림 2종 on/off(ERD §6.3). 행 없으면 enabled=true(기본 on)."""
+"""user_notification_settings — 알림 2종 on/off(ERD: 계정과 프로필). 행 없으면 enabled=true(기본 on)."""
 from __future__ import annotations
 
 import uuid

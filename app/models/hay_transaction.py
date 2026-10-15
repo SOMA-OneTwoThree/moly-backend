@@ -1,4 +1,4 @@
-"""hay_transactions — 건초 원장(ERD §4.1). 모든 획득/소비의 단일 진실. balance는 profiles 캐시.
+"""hay_transactions — 건초 원장(ERD: 경제와 구독). 모든 획득/소비의 단일 진실. balance는 profiles 캐시.
 
 구매 관련 원장(iap_purchase·shop_purchase)은 order_id로 주문과 연결 — CS 추적 자동화.
 """

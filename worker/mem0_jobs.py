@@ -1,6 +1,6 @@
 """mem0 ingest 잡 handler — 파이프라인을 실 provider·DB에 잇는다.
 
-기억 재설계(docs/ARCHITECTURE-capi.md 5.2절, 9.1절).
+docs/ARCHITECTURE.md의 장기 기억과 사용자별 상태 절을 따른다.
 
 **이 handler가 지키는 순서**
  1. bootstrap이 `ready`가 아니면 처리하지 않는다 — historical backfill 전에 live turn을

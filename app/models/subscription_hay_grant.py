@@ -1,4 +1,4 @@
-"""subscription_hay_grants — 구독 건초 증정 이력(ERD §4.4). (user,plan) UNIQUE로 최초1회 강제."""
+"""subscription_hay_grants — 구독 건초 증정 이력(ERD: 경제와 구독). (user,plan) UNIQUE로 최초1회 강제."""
 from __future__ import annotations
 
 import uuid

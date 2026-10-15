@@ -1,6 +1,6 @@
 """mem0 고아 정리 — crash로 남은 planned 후보와 미등록 벡터를 수렴시킨다.
 
-기억 재설계(docs/ARCHITECTURE-capi.md 5.3절).
+구조·불변 규칙: docs/ARCHITECTURE.md 「장기 기억과 사용자별 상태」.
 
 crash 지점별로 남는 흔적이 다르다.
  · vector upsert **전** crash → planned 후보만 남는다. provider에는 없다

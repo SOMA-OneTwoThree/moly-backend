@@ -29,7 +29,7 @@ def _header(title: str, version: str) -> list[str]:
         f"> 한국어: `{COPY_VERSIONS['ko']}` · 영어: `{COPY_VERSIONS['en']}` · 일본어: `{COPY_VERSIONS['ja']}`",
         "> 한국어는 ko-plain-voice의 후속 교정본이다. 영어·일본어는 v8-localized.2의 검수본을 유지하며 새 한국어와의 현지화 등가 검수를 뜻하지 않는다.",
         "> 생성: `uv run python scripts/build_fortune_copy_docs.py` · 한국어 원고는 ko-plain-voice, 기존 현지화 원고와 근거는 ko-rewrite 및 localization에서 관리한다", "",
-        "[운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)", "",
+        "[운세 기준 문서로 돌아가기](../../docs/DAILY-FORTUNE.md)", "",
     ]
 
 
@@ -57,7 +57,7 @@ def render_documents() -> dict[Path, str]:
         for locale, filename in zip(LOCALES, ("copy.v3.json", "copy.v3.en.json", "copy.v3.ja.json"))
     }
     editorial = json.loads((resource_dir / FILENAME).read_text())["readings"]
-    directory = ROOT / "docs/fortune-content"
+    directory = ROOT / "content/fortune"
     documents = {}
     for axis in ("overall", "love", "money", "work", "energy"):
         title = "오늘의 총평" if axis == "overall" else f"{LABELS[axis]} 운세"
@@ -105,7 +105,7 @@ def main() -> int:
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content)
-    obsolete = set((ROOT / "docs/fortune-content").glob("overall-*.md")) - set(documents)
+    obsolete = set((ROOT / "content/fortune").glob("overall-*.md")) - set(documents)
     if args.check:
         stale.extend(str(p.relative_to(ROOT)) for p in sorted(obsolete))
     else:

@@ -50,10 +50,11 @@ DB 계약은 최신 main의 카탈로그·정책을 보존하고 `schema.sql`과
 
 ### 3.1 사전 확인
 
+머지 전에는 Git·CI·DB 호환성과 공개 health 기준값을 확인하고, 실제 호스트 점검은 아래의 main 배포 단계에서 수행한다.
+
 - `git ls-remote origin refs/heads/main`으로 리뷰 기준 main이 바뀌었는지 확인한다. 바뀌었으면 정책·충돌·최종 snapshot을 재대조한다.
 - `gh run list --workflow deploy.yml --limit 5`로 진행 중/대기 중 배포를 확인한다. 동시 작업을 시작하거나 진행 중 롤링을 취소하지 않는다.
-- 기존 운영의 실제 버전·이전 ECR tag/digest·infra SHA·ENV 복구 기준을 프로젝트 전용 경로로 확인·기록한다. 현재 알려진 복구 후보는 `42b57fd108c7ff128819d08d406f67c4f450f42e`이며 **배포 직전 재확인해야 하는 값**이다.
-- 두 API 호스트·consumer·worker 담당 한 대와 잔류 tick, 운영 아침 활성 값·FCM 설정을 확인한다. 미설정 기본값을 운영 실효값으로 해석하지 않는다.
+- 머지 후 main OIDC는 deregister 전에 이전 ECR tag/digest·두 호스트의 TG healthy 상태·API/consumer 실행 버전과 ready·아침 푸시 runtime/SSM true·FCM 인증·worker timer 정확히 한 대를 확인하고 실패·unknown은 거절하며, infra SHA·ENV 복구 기준·잔류 tick은 이 자동 점검의 확인 범위가 아니다.
 - 11:00~19:30 KST는 한국·일본 주요 시각을 피하는 권장 창일 뿐 글로벌 안전 시간이 아니다. 04/09/10/20시는 사용자 현지 기준이다. 빌드·롤링 소요와 기존 worker 실행도 확인한다.
 
 ### 3.2 적용할 SQL
@@ -96,7 +97,7 @@ ORDER BY column_name;
 
 ## 4. 머지 후 자동 배포와 첫 관측
 
-기존 `.github/workflows/deploy.yml`을 유지한다. 워크플로는 이미지·자산 검사와 **두 호스트 모두의 사전점검 후** 한 대씩 deregister/drain/배포/register한다. 실패한 호스트나 다음 호스트를 임의로 건너뛰지 않는다.
+`.github/workflows/deploy.yml`의 main push는 아침 푸시 확인을 강제하고, main OIDC로 **두 호스트의 필수 점검을 모두 통과한 뒤** 한 대씩 deregister/drain/배포/register하며 실패한 호스트를 건너뛰지 않는다. 점검 통과 전 서비스 교체는 없지만 앞선 ECR 빌드·infra 파일 배치까지 쓰기 0이라는 뜻은 아니며, workflow_dispatch의 기존 선택형 롤백 옵션은 유지한다.
 
 ```bash
 gh run list --workflow deploy.yml --limit 5
@@ -106,7 +107,7 @@ curl --fail --silent --show-error https://voice.moly.asia/health
 curl --fail --silent --show-error https://voice.moly.asia/health/ready
 ```
 
-1. 실행 결과에서 정확 release SHA·production·ready/DB 정상, 대상 수와 등록 수 일치, API/consumer 같은 이미지, worker timer 한 대·중복/잔류 tick 없음, 기존 자산·synthetic 결과를 확인한다. 공개 health만으로 내부 consumer/worker 정상이라고 하지 않는다.
+1. 실행 결과에서 정확 release SHA·production·ready/DB 정상, 대상 수와 등록 수 일치, API/consumer 같은 이미지·worker timer 한 대·기존 자산·synthetic 결과를 확인하되, infra SHA·ENV 복구 기준과 실행 중 중복/잔류 tick은 자동 검사 결과로 간주하지 않고 별도 관측 항목으로 남긴다. 공개 health만으로 내부 consumer/worker 정상이라고 하지 않는다.
 2. 운영 아침 활성 상태를 유지하고 새 루틴 두 flag는 false로 둔다. 다음 현지 슬롯에서 09시 루틴 0·10시 일기·20시 기존 일반 분기, 무효 토큰/전송 실패·TTL·인사 연결을 관측한다. FCM 수락은 실제 기기 수신과 다르다. 저녁 variant는 claim 시 비워 두고 수락 건수>0 뒤에만 best-effort 저장하므로 실패 응답을 첫마디로 연결하지 않는다. 수락 후 프로세스 종료·기록 실패 시에는 첫마디 연결이 누락될 수 있다.
 3. 큐는 `app/services/jobs.py`의 `_STATS_SQL` 기준으로 성공 replay의 **모든 조상**을 제외한다. raw dead 수를 미해결로 보고하거나 성공 이력을 삭제/재실행하지 않는다.
 4. 비용 원장의 unknown·timeout·미해결 lease와 알림의 변화/복구를 확인한다. 추정 비용은 청구서가 아니다. Slack 전송 뒤 ack 전 종료의 중복 가능성과 15초 총 한도 후 다음 tick 유예를 구분한다.

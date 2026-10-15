@@ -1114,7 +1114,9 @@ CREATE TABLE public.user_daily_stats (
     attendance_claimed_at timestamp with time zone,
     routine_reward_claimed_at timestamp with time zone,
     morning_notified_at timestamp with time zone,
-    evening_notified_at timestamp with time zone
+    evening_notified_at timestamp with time zone,
+    routine_notified_at timestamp with time zone,
+    evening_push_variant text
 );
 
 -- SEQUENCE: public.user_daily_stats_id_seq

@@ -6,31 +6,25 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+import pytest
 
 from app.services import gating, notify, push, push_copy
 
 
 def _cat(**over):
-    base = dict(spoke_today=False, has_unread_diary=False, days_since=None, days_since_signup=None)
+    base = dict(spoke_today=False, days_since=None, days_since_signup=None)
     base.update(over)
     return notify._category(**base)
 
 
 # ── 우선순위 (첫 매치 승리) ──────────────────────────────────
 
-def test_more_chat_beats_diary_teaser():
-    """매일 대화+일기 안 읽는 유저가 티저에 갇히지 않는다 — 순서 뒤집기의 존재 이유."""
-    assert _cat(spoke_today=True, has_unread_diary=True) == push_copy.MORE_CHAT
-
-
-def test_teaser_fires_for_non_chatter_with_unread_diary():
-    assert _cat(has_unread_diary=True, days_since=3) == push_copy.DIARY_TEASER
-
-
-def test_teaser_beats_ladder():
-    assert _cat(has_unread_diary=True, days_since=30) == push_copy.DIARY_TEASER
+def test_more_chat_beats_ladder():
+    assert _cat(spoke_today=True, days_since=30) == push_copy.MORE_CHAT
 
 
 # ── 미접속 사다리 경계 (활동일 차) ────────────────────────────
@@ -92,19 +86,26 @@ class _OneRowSession:
         return _Res()
 
 
-async def test_midnight_chatter_counts_as_one_activity_day():
-    """로컬 01시 대화 → 그 발화의 활동일은 어제(04시 경계). 당일 20시엔 days_since=1 —
+def _g(tokens_used=0):
+    return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=tokens_used)
+
+
+def test_midnight_chatter_counts_as_one_activity_day():
+    """로컬 01시 대화 → 그 발화의 활동일은 어제(04시 경계). 당일 20시엔 1일 차 —
     default_recent로 귀결돼야 한다(v1은 이 유저가 어느 분기에도 안 걸렸다)."""
     last = datetime(2026, 8, 7, 16, 0, tzinfo=timezone.utc)   # KST 8/8 01:00 → 활동일 8/7
     now = datetime(2026, 8, 8, 11, 0, tzinfo=timezone.utc)    # KST 8/8 20:00 → 활동일 8/8
-    ok, days = await notify._days_since_last_chat(_OneRowSession(last), _profile(), now)
-    assert (ok, days) == (True, 1)
-    assert _cat(days_since=days) == push_copy.DEFAULT_RECENT
+    category, variant = notify._evening_variant(_profile(), _g(), now, True, last)
+    assert category == push_copy.DEFAULT_RECENT and variant in push_copy._POOLS[category]
 
 
 async def test_no_chat_history_is_none_not_failure():
-    ok, days = await notify._days_since_last_chat(_OneRowSession(None), _profile(), now=datetime(2026, 8, 8, 11, 0, tzinfo=timezone.utc))
-    assert (ok, days) == (True, None)
+    assert await notify._last_chat_at(_OneRowSession(None), _profile()) == (True, None)
+
+
+def test_lookup_failure_gives_neutral_fallback():
+    now = datetime(2026, 8, 8, 11, 0, tzinfo=timezone.utc)
+    assert notify._evening_variant(_profile(), _g(), now, False, None) == ("fallback", push_copy.FALLBACK)
 
 
 def test_days_since_signup_uses_activity_boundary():
@@ -124,90 +125,177 @@ def _profile(**over):
     return SimpleNamespace(**p)
 
 
-async def test_signal_failure_falls_back_to_neutral_and_still_sends(monkeypatch):
-    """session=None(신호 조회 전부 실패)이어도 발송은 살고, 문구는 중립(_EVENING)이다.
+_EVENING_NOW = datetime(2026, 8, 7, 11, 0, tzinfo=timezone.utc)  # KST 20:00
 
-    클레임이 이미 커밋된 뒤라 발송 포기는 그날 푸시의 조용한 소멸 — 금지 계약.
-    """
-    sent, stats = {}, {}
 
+def _patch_evening(monkeypatch, sent, claims=None, *, last=(True, None), streak=None, risk_on=False,
+                   tokens=("tok",), delivered=1):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kw):
+        if claims is not None:
+            claims.append((col, kw.get("values")))
         return True
 
     async def _resolve(session, uid, now=None):
-        return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
+        return _g()
 
     async def _tokens(session, uid):
-        return ["tok"]
+        return list(tokens)
 
-    async def _send(tokens, title, body):
-        sent["title"], sent["body"] = title, body
-        return 1
+    async def _send(tokens, title, body, **kw):
+        sent.update(title=title, body=body, **kw)
+        return delivered
+
+    async def _last(session, profile):
+        return last
+
+    async def _push_on(session, key):
+        return risk_on
+
+    async def _today(session, profile, now):
+        if isinstance(streak, Exception):
+            raise streak
+        return None if streak is None else notify.RoutineToday(streak, 0)
 
     monkeypatch.setattr(notify, "_enabled", _enabled)
     monkeypatch.setattr(notify, "_claim_send_slot", _claim)
     monkeypatch.setattr(notify, "_tokens", _tokens)
+    monkeypatch.setattr(notify, "_last_chat_at", _last)
+    monkeypatch.setattr(notify, "_push_on", _push_on)
+    monkeypatch.setattr(notify, "_routine_today", _today)
     monkeypatch.setattr(gating, "resolve", _resolve)
     monkeypatch.setattr(push, "send", _send)
+    monkeypatch.setattr(notify, "_record_evening_variant", AsyncMock())
 
-    assert await notify.notify_evening(None, _profile(), stats=stats) == 1
-    assert (sent["title"], sent["body"]) == notify._EVENING["ko"]  # 중립 폴백
+
+async def test_signal_failure_falls_back_to_neutral_and_still_sends(monkeypatch):
+    """마지막 대화 조회가 실패해도 발송은 살고, 문구는 중립(c.fallback)이다."""
+    sent, stats = {}, {}
+    _patch_evening(monkeypatch, sent, last=(False, None))
+    assert await notify.notify_evening(None, _profile(), now=_EVENING_NOW, stats=stats) == 1
+    assert (sent["title"], sent["body"]) == push_copy.chat(push_copy.FALLBACK, "ko")
     assert {k: v for k, v in stats.items() if k.startswith("evening_")} == {"evening_fallback": 1}
 
 
-async def test_category_copy_and_stats_when_signals_work(monkeypatch):
-    """신호가 정상이면 카테고리 풀의 문구가 나가고 stats에 그 카테고리가 찍힌다."""
-    sent, stats = {}, {}
-
-    async def _enabled(session, uid, t):
-        return True
-
-    async def _claim(session, profile, col):
-        return True
-
-    async def _resolve(session, uid, now=None):
-        return SimpleNamespace(entitlement={"tokens_remaining": None}, tokens_used=0)
-
-    async def _tokens(session, uid):
-        return ["tok"]
-
-    async def _send(tokens, title, body):
-        sent["body"] = body
-        return 1
-
-    async def _unread(session, profile, now):
-        return False
-
-    async def _days(session, profile, now):
-        return True, 4  # 3~6일 → default_missing
-
-    monkeypatch.setattr(notify, "_enabled", _enabled)
-    monkeypatch.setattr(notify, "_claim_send_slot", _claim)
-    monkeypatch.setattr(notify, "_tokens", _tokens)
-    monkeypatch.setattr(notify, "_unread_yesterday_diary", _unread)
-    monkeypatch.setattr(notify, "_days_since_last_chat", _days)
-    monkeypatch.setattr(gating, "resolve", _resolve)
-    monkeypatch.setattr(push, "send", _send)
-
-    now = datetime(2026, 8, 7, 11, 0, tzinfo=timezone.utc)  # KST 20:00
-    assert await notify.notify_evening(None, _profile(), now=now, stats=stats) == 1
-    pool_bodies = {b for _, b in push_copy._POOLS[push_copy.DEFAULT_MISSING]["ko"]}
-    assert sent["body"] in pool_bodies
+async def test_category_copy_link_and_variant_when_signals_work(monkeypatch):
+    """신호가 정상이면 갈래 문구가 나가고, 대화창으로 이동하며, 문구 id는 FCM 수락 뒤에만 남는다."""
+    sent, stats, claims = {}, {}, []
+    four_days_ago = _EVENING_NOW - timedelta(days=4)  # 3~6일 → default_missing
+    _patch_evening(monkeypatch, sent, claims, last=(True, four_days_ago))
+    assert await notify.notify_evening(None, _profile(), now=_EVENING_NOW, stats=stats) == 1
+    (col, values), = claims
+    assert values == {"evening_push_variant": None}
+    notify._record_evening_variant.assert_awaited_once()
+    variant = notify._record_evening_variant.await_args.args[3]
+    assert col == "evening_notified_at" and variant in push_copy._POOLS[push_copy.DEFAULT_MISSING]
+    assert sent["title"] == "BeCappy" and sent["body"] == push_copy.chat_body(variant, "ko")
+    assert sent["data"] == {"link": "conversation"} and sent["collapse_key"] == "chat"
+    assert sent["expires_at"] == datetime(2026, 8, 7, 12, 0, tzinfo=timezone.utc)  # 그날 KST 21:00
     assert {k: v for k, v in stats.items() if k.startswith("evening_")} == {"evening_default_missing": 1}
 
 
+async def test_active_chat_skips_without_claiming(monkeypatch):
+    """마지막 대화가 60분 안이면 보내지도 선점하지도 않는다(다음 틱에 다시 본다)."""
+    sent, claims = {}, []
+    _patch_evening(monkeypatch, sent, claims, last=(True, _EVENING_NOW - timedelta(minutes=59)))
+    assert await notify.notify_evening(None, _profile(), now=_EVENING_NOW) == 0
+    assert sent == {} and claims == []
+    _patch_evening(monkeypatch, sent, claims, last=(True, _EVENING_NOW - timedelta(minutes=61)))
+    assert await notify.notify_evening(None, _profile(), now=_EVENING_NOW) == 1
+
+
+async def test_no_device_token_does_not_claim(monkeypatch):
+    """토큰이 없으면 선점·문구 id를 남기지 않는다 — 받지도 않은 푸시가 대화창 첫마디가 되지 않게."""
+    sent, claims = {}, []
+    _patch_evening(monkeypatch, sent, claims, tokens=())
+    assert await notify.notify_evening(None, _profile(), now=_EVENING_NOW) == 0
+    assert sent == {} and claims == []
+
+
+@pytest.mark.parametrize("result", [0, 1, "error"])
+async def test_variant_is_exposed_only_after_fcm_acceptance(monkeypatch, result):
+    sent, claims, events = {}, [], []
+    _patch_evening(monkeypatch, sent, claims)
+    record = AsyncMock(side_effect=lambda *args: events.append("record"))
+    monkeypatch.setattr(notify, "_record_evening_variant", record)
+
+    async def send(*args, **kwargs):
+        assert claims == [("evening_notified_at", {"evening_push_variant": None})]
+        record.assert_not_awaited()  # A concurrent greeting sees no variant during send.
+        events.append("send")
+        if result == "error":
+            raise RuntimeError("synthetic send failure")
+        return result
+
+    monkeypatch.setattr(push, "send", send)
+    if result == "error":
+        with pytest.raises(RuntimeError):
+            await notify.notify_evening(None, _profile(), now=_EVENING_NOW)
+    else:
+        assert await notify.notify_evening(None, _profile(), now=_EVENING_NOW) == result
+    assert events == (["send", "record"] if result == 1 else ["send"])
+    assert record.await_count == int(result == 1)
+
+
+async def test_just_signed_up_is_treated_as_active(monkeypatch):
+    """가입 60분 안이면(첫인사를 보고 있을 때) 대화 푸시를 미룬다 — 온보딩 첫인사가 덮이지 않게."""
+    sent, claims = {}, []
+    _patch_evening(monkeypatch, sent, claims)
+    new_user = _profile(created_at=_EVENING_NOW - timedelta(minutes=10))
+    assert await notify.notify_evening(None, new_user, now=_EVENING_NOW) == 0 and claims == []
+    old_user = _profile(created_at=_EVENING_NOW - timedelta(hours=2))
+    assert await notify.notify_evening(None, old_user, now=_EVENING_NOW) == 1
+
+
+@pytest.mark.parametrize("hour", [19, 21, 23])
+async def test_evening_only_inside_local_20(monkeypatch, hour):
+    sent = {}
+    _patch_evening(monkeypatch, sent)
+    now = datetime(2026, 8, 7, hour - 9, 0, tzinfo=timezone.utc)
+    assert await notify.notify_evening(None, _profile(), now=now) == 0 and sent == {}
+
+
+async def test_streak_risk_beats_chat(monkeypatch):
+    """스트릭이 있고 오늘 아직 안 했으면 대화 대신 rr. 대화량 게이트·대화 중 확인을 거치지 않는다."""
+    sent, stats, claims = {}, {}, []
+    _patch_evening(monkeypatch, sent, claims, streak=8, risk_on=True,
+                   last=(True, _EVENING_NOW - timedelta(minutes=5)))
+
+    async def _exhausted(session, uid, now=None):
+        return SimpleNamespace(entitlement={"tokens_remaining": 0}, tokens_used=1)
+
+    monkeypatch.setattr(gating, "resolve", _exhausted)
+    assert await notify.notify_evening(_OneRowSession(None), _profile(), now=_EVENING_NOW, stats=stats) == 1
+    assert (sent["title"], sent["body"]) == ("오늘 안 하면 8일 스트릭이 깨져요 🚨", "지금 루틴 하나만 해도 유지할 수 있어요 🔥")
+    assert sent["data"] == {"link": "routine"} and sent["collapse_key"] == "routine"
+    assert claims == [("evening_notified_at", {"evening_push_variant": None})]
+    assert notify._record_evening_variant.await_args.args[3] == "rr"
+    assert {k: v for k, v in stats.items() if k.startswith("evening_")} == {"evening_routine_risk": 1}
+
+
+@pytest.mark.parametrize("case", ["switch_off", "no_streak", "nothing_today", "error"])
+async def test_no_risk_falls_through_to_chat(monkeypatch, case):
+    """스위치 꺼짐·스트릭 0·오늘 할 루틴 없음(또는 이미 함)·판단 실패면 대화 푸시."""
+    sent = {}
+    streak = {"switch_off": 8, "no_streak": 0, "nothing_today": None, "error": RuntimeError("db")}[case]
+    _patch_evening(monkeypatch, sent, streak=streak, risk_on=case != "switch_off")
+    stats = {}
+    assert await notify.notify_evening(_OneRowSession(None), _profile(), now=_EVENING_NOW, stats=stats) == 1
+    assert sent["data"] == {"link": "conversation"}
+    assert stats.get("routine_check_failed", 0) == (1 if case == "error" else 0)  # 실패는 슬랙 요약에
+
+
 def test_stat_keys_cover_all_categories_plus_fallback():
-    """tick의 counts 초기화가 이 목록으로 만들어진다 — 카테고리 추가 시 누락을 구조로 방지."""
+    """tick의 counts 초기화가 이 목록으로 만들어진다 — 갈래 추가 시 누락을 구조로 방지."""
     assert set(notify.EVENING_STAT_KEYS) == (
-        set(push_copy.CATEGORIES) | {"fallback", notify.OVERRIDE_CATEGORY}
+        set(push_copy.CATEGORIES) | {"fallback", notify.OVERRIDE_CATEGORY, notify.ROUTINE_RISK_CATEGORY}
     )
 
 
 def test_tick_labels_match_stat_keys():
-    """슬랙 분포 라벨은 손으로 적은 두 번째 목록 — 갈라지면 그 카테고리가 요약에서 조용히 빠진다."""
+    """슬랙 분포 라벨은 손으로 적은 두 번째 목록 — 갈라지면 그 갈래가 요약에서 조용히 빠진다."""
     from worker import tick
 
     assert set(tick._EVENING_CATEGORY_KO) == set(notify.EVENING_STAT_KEYS)
@@ -228,13 +316,13 @@ def _patch_send_pipeline(monkeypatch, sent):
     async def _enabled(session, uid, t):
         return True
 
-    async def _claim(session, profile, col):
+    async def _claim(session, profile, col, **kw):
         return True
 
     async def _tokens(session, uid):
         return ["tok"]
 
-    async def _send(tokens, title, body):
+    async def _send(tokens, title, body, **kw):
         sent["title"], sent["body"] = title, body
         return 1
 
@@ -242,6 +330,7 @@ def _patch_send_pipeline(monkeypatch, sent):
     monkeypatch.setattr(notify, "_claim_send_slot", _claim)
     monkeypatch.setattr(notify, "_tokens", _tokens)
     monkeypatch.setattr(push, "send", _send)
+    monkeypatch.setattr(notify, "_record_evening_variant", AsyncMock())
 
 
 def _patch_override(monkeypatch, value):
@@ -252,12 +341,12 @@ def _patch_override(monkeypatch, value):
 
 
 def _patch_normal_copy(monkeypatch, called):
-    """평소 분기 재개 검증용 — _evening_copy가 실제로 호출됐는지 기록."""
-    async def _copy(session, profile, g, now):
+    """평소 분기 재개 검증용 — _evening_variant가 실제로 호출됐는지 기록."""
+    def _variant(profile, g, now, ok, last):
         called["yes"] = True
-        return "more_chat", "제목", "본문"
+        return "more_chat", "c.more.1"
 
-    monkeypatch.setattr(notify, "_evening_copy", _copy)
+    monkeypatch.setattr(notify, "_evening_variant", _variant)
 
 
 _NOW = datetime(2026, 8, 14, 11, 0, tzinfo=timezone.utc)  # KST 20:00 → 활동일 8/14
@@ -304,7 +393,7 @@ async def test_override_respects_optout_and_claim(monkeypatch):
     async def _enabled(session, uid, t):
         return True
 
-    async def _no_claim(session, profile, col):
+    async def _no_claim(session, profile, col, **kw):
         return False
 
     monkeypatch.setattr(notify, "_enabled", _enabled)
@@ -341,7 +430,7 @@ async def test_override_absent_key_is_untouched_normal_path(monkeypatch):
     monkeypatch.setattr(gating, "resolve", _resolve)
 
     assert await notify.notify_evening(_SESSION, _profile(), now=_NOW) == 1
-    assert called == {"yes": True} and sent["body"] == "본문"
+    assert called == {"yes": True} and sent["body"] == push_copy.chat_body("c.more.1", "ko")
 
 
 async def test_override_read_failure_fails_open_to_normal_path(monkeypatch):
@@ -384,3 +473,31 @@ async def test_override_malformed_values_fail_open(monkeypatch):
         _patch_override(monkeypatch, {notify.OVERRIDE_KEY: value})
         assert await notify.notify_evening(_SESSION, _profile(language="ja"), now=_NOW) == 1
         assert called == {"yes": True}, f"fail-open 실패: {value!r}"
+
+
+@pytest.mark.parametrize('store_fails', [False, True])
+async def test_variant_record_failure_does_not_repeat_or_undo_fcm_acceptance(monkeypatch, store_fails):
+    record = notify._record_evening_variant
+    sent, claims, stats = {}, [], {}
+    _patch_evening(monkeypatch, sent, claims)
+    monkeypatch.setattr(notify, '_record_evening_variant', record)
+    monkeypatch.setattr(notify, '_override_copy', AsyncMock(return_value=None))
+    session = SimpleNamespace(
+        execute=AsyncMock(side_effect=RuntimeError('synthetic storage failure') if store_fails else None),
+        commit=AsyncMock(), rollback=AsyncMock(),
+    )
+    profile = _profile()
+    assert await notify.notify_evening(session, profile, now=_EVENING_NOW, stats=stats) == 1
+    assert len(claims) == 1 and claims[0][1] == {'evening_push_variant': None}
+    session.execute.assert_awaited_once()
+    statement = session.execute.await_args.args[0]
+    assert 'user_daily_stats.user_id' in str(statement)
+    assert 'user_daily_stats.activity_date' in str(statement)
+    assert 'evening_notified_at IS NOT NULL' in str(statement)
+    params = statement.compile().params
+    assert profile.id in params.values()
+    assert any(value == sent['body'] for value in (push_copy.chat_body(v, 'ko') for v in params.values()
+               if isinstance(v, str)))
+    assert stats['push_sent'] == 1
+    assert session.rollback.await_count == int(store_fails)
+    # No cleanup writes erase the at-most-once claim after accepted FCM delivery.

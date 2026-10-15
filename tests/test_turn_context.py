@@ -384,7 +384,7 @@ def test_persona_forbids_volunteering_own_state() -> None:
     from app.services import prompts
 
     ko = prompts.CAPI_PERSONA
-    assert "먼저 꺼내지 마" in ko, "한국어 페르소나에 먼저 말하지 말라는 지시가 없다"
+    assert "네 현재 상태·상대 루틴·일기를 먼저 대화 소재로 꺼내지 마" in ko, "한국어 페르소나에 먼저 말하지 말라는 지시가 없다"
     assert "[상대 루틴]" in ko, "한국어 페르소나가 루틴 소유를 짚지 않는다"
 
     ja = prompts.CAPI_PERSONA_JA

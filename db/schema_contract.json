@@ -5226,6 +5226,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.user_daily_stats.evening_push_variant": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
       "public.user_daily_stats.id": {
         "collation": null,
         "default": null,
@@ -5235,6 +5243,14 @@
         "type": "bigint"
       },
       "public.user_daily_stats.morning_notified_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.user_daily_stats.routine_notified_at": {
         "collation": null,
         "default": null,
         "generated": "",
@@ -14961,5 +14977,5 @@
       }
     }
   },
-  "schema_sha256": "db7366326ba822cfc70716210d4628a0b0df6c60a4c52ebf84c22ba36ca6ee08"
+  "schema_sha256": "64c440da48a6e4c16bf449cd34c885445c9f45fbeb5f1e98e3f5024c4ef15570"
 }

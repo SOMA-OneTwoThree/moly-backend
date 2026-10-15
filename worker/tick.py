@@ -1,4 +1,4 @@
-"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 아침·20:00 저녁 푸시
+"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 루틴·10:00 일기·20:00 저녁 푸시
 + RC 웹훅 inbox 드레인과 지속 상태 기반 운영 알림."""
 from __future__ import annotations
 
@@ -33,8 +33,9 @@ _RC_DEP_RESERVED = _RC_INBOX_BATCH // 4  # dependency 예약 슬롯(=50) — 신
 
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
-MORNING_HOUR = 9  # 09:00 아침 일기 푸시
-EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
+ROUTINE_MORNING_HOUR = notify.ROUTINE_MORNING_HOUR  # 09:00 루틴 아침 푸시
+MORNING_HOUR = notify.DIARY_MORNING_HOUR  # 10:00 아침 일기 푸시
+EVENING_HOUR = notify.EVENING_HOUR  # 20:00 저녁 푸시(공지·스트릭 위기·대화 중 하나)
 
 
 _KST = ZoneInfo("Asia/Seoul")
@@ -42,13 +43,13 @@ _KST = ZoneInfo("Asia/Seoul")
 # 슬랙 요약용 저녁 카테고리 한국어 라벨(notify.EVENING_STAT_KEYS와 같은 키).
 _EVENING_CATEGORY_KO = {
     "more_chat": "대화후",
-    "diary_teaser": "일기",
     "first_touch": "첫인사",
     "default_recent": "일상",
     "default_missing": "그리움",
     "default_long": "오랜만",
     "fallback": "폴백",
     "override": "공지",
+    "routine_risk": "스트릭 위기",
 }
 # 자주 보는 타임존의 한국어 나라 라벨(가독성용). 없으면 IANA 이름 그대로.
 _TZ_KO = {
@@ -93,7 +94,8 @@ def _build_summary(
         f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}"
         f" / 미발행 {counts['diary_none']}){diary_fail}",
         "기억: 상주 consumer 정규화 파이프라인",
-        f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
+        f"푸시: 루틴 아침 {counts.get('routine_morning', 0)}건 / 아침 일기 {counts['morning']}건"
+        f" / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
     # 발송 실패 분류 — '저녁 N건'은 수락 유저 수라 전달률이 안 보인다. 무효 토큰(FCM 확정)과
@@ -121,6 +123,8 @@ def _build_summary(
         ]
         if dist:
             lines.insert(len(lines) - 1, "저녁 분포: " + " / ".join(dist))
+    if counts.get("routine_check_failed"):
+        lines.append(f"⚠️ 루틴 판단 실패 {counts['routine_check_failed']}건 — 루틴 푸시 생략(워커 로그 확인)")
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
     if counts.get("deadline_skipped"):
@@ -142,7 +146,7 @@ async def _process_user(
     out = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
-        "diary_attempted": 0, "active_tz": None,
+        "routine_morning": 0, "routine_check_failed": 0, "diary_attempted": 0, "active_tz": None,
         **{k: 0 for k in notify.PUSH_STAT_KEYS},  # 발송 결과 분류(notify._account_push가 채움)
     }
     async with get_sessionmaker()() as session:
@@ -206,6 +210,10 @@ async def _process_user(
                             {"u": pid, "d": target},
                         )
                         await session.commit()
+            elif hour == ROUTINE_MORNING_HOUR:
+                out["active_tz"] = p.timezone
+                if await notify.notify_routine_morning(session, p, now=now, stats=out):
+                    out["routine_morning"] = 1
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
                 if await notify.notify_morning(session, p, now=now, stats=out):
@@ -315,7 +323,7 @@ async def _drain_rc_inbox(now: datetime) -> dict:
 
 
 async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = None) -> set[str]:
-    """이 틱에서 일기/아침/저녁 시각(로컬 04·09·20시)에 걸리는 timezone 문자열 집합(#16+#24).
+    """이 틱에서 일기/루틴 아침/아침 일기/저녁 시각(로컬 04·09·10·20시)에 걸리는 timezone 문자열 집합(#16+#24).
 
     판정은 전부 파이썬(ZoneInfo)이다 — SQL `AT TIME ZONE`은 금지: 이상 tz 문자열 1행이
     쿼리 전체를 에러로 죽여 **그날 일기·푸시가 전멸**한다. 여기서는 해석 실패 tz를 경고만
@@ -335,7 +343,7 @@ async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = Non
             if unresolvable is not None:
                 unresolvable.add(tz)  # 관측 출구(요약·헬스·일 1회 경보)
             continue
-        if hour in (DIARY_HOUR, MORNING_HOUR, EVENING_HOUR):
+        if hour in (DIARY_HOUR, ROUTINE_MORNING_HOUR, MORNING_HOUR, EVENING_HOUR):
             relevant.add(tz)
     return relevant
 
@@ -380,7 +388,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         # memory_*는 _process_user가 반환하지만 병합이 `k in counts`만 받아서, 여기 없으면
         # _emit_worker_health의 counts["memory_failed"]가 매 틱 KeyError → 데드맨 핑이 죽는다.
         "memory_ok": 0, "memory_failed": 0,
-        "morning": 0, "evening": 0,
+        "morning": 0, "evening": 0, "routine_morning": 0,
+        "routine_check_failed": 0,  # 루틴 상태 판단 실패(루틴 푸시 생략·스트릭 위기는 대화로) — 관측
         # 저녁 카테고리별 카운트 — 병합이 `k in counts`라 여기 없으면 조용히 버려진다(위와 동일).
         **{f"evening_{c}": 0 for c in notify.EVENING_STAT_KEYS},
         # 발송 결과 분류(수락·무효 토큰·정리·페이로드·설정·일시) — 같은 이유로 여기 있어야 한다.
@@ -520,7 +529,10 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     # diary_none(tombstone)은 사용자 노출 0이라 요약 트리거에서 제외 — 지정본 없는 조용한 날에
     # 매 틱 요약이 나가 채널이 도배되는 걸 막는다(SOMA-389, 위 오탐 방지 취지 유지).
     # 소프트 데드라인 도달은 처리 건수가 0이어도 로그에 남긴다(실패 경보와 구분).
-    worked = counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
+    worked = (
+        counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
+        + counts["routine_morning"] + counts["routine_check_failed"]
+    )
     if worked + counts["deadline_skipped"] > 0:
         summary = _build_summary(now, counts, elapsed, active_tzs)
         _log.info("%s", summary)

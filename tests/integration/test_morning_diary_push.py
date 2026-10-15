@@ -17,7 +17,7 @@ from app.services import notify, push
 from db.envfile import assert_dev_target, load_conn
 from db.schema_contract import require_scratch
 
-NOW = datetime(2026, 9, 9, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 9, 1, tzinfo=timezone.utc)  # KST 10:00 — 아침 일기 시각
 TARGET = NOW.date() - timedelta(days=1)
 
 
@@ -148,7 +148,7 @@ async def test_disabled_preference_and_failed_delivery(morning_db):
     db.send.assert_awaited_once()
 
 
-@pytest.mark.parametrize('zone,utc_hour,utc_day', [('UTC', 9, 9), ('Pacific/Kiritimati', 19, 8), ('America/Los_Angeles', 16, 9)])
+@pytest.mark.parametrize('zone,utc_hour,utc_day', [('UTC', 10, 9), ('Pacific/Kiritimati', 20, 8), ('America/Los_Angeles', 17, 9)])
 async def test_local_day_and_claim_follow_injected_tick_time(morning_db, zone, utc_hour, utc_day):
     db = morning_db
     db.profile.timezone = zone
@@ -156,4 +156,4 @@ async def test_local_day_and_claim_follow_injected_tick_time(morning_db, zone, u
     await create_diary(db, published_at=now)
     assert await deliver(db, now) == 1
     assert await marker(db) is not None
-    assert db.send.call_args.kwargs['expires_at'] == now + timedelta(hours=1)
+    assert db.send.call_args.kwargs['expires_at'] == now + timedelta(hours=2)

@@ -26,7 +26,7 @@ def test_persona_forbids_volunteering_routines():
     from app.services import prompts
 
     for persona, needle in (
-        (prompts.CAPI_PERSONA, "상대 루틴을 네가 먼저 꺼내지 마"),
+        (prompts.CAPI_PERSONA, "네 현재 상태·상대 루틴·일기를 먼저 대화 소재로 꺼내지 마."),
         (prompts.CAPI_PERSONA_JA, "相手のルーティンをきみから先に出さない"),
         (prompts.CAPI_PERSONA_EN, "Never bring up their routines first"),
     ):

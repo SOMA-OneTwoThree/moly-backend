@@ -92,7 +92,7 @@ async def test_recall_failure_does_not_break_the_reply():
         )
     finally:
         c._recall_adapter = original
-    assert got == ""
+    assert got == c._memory_unavailable_notice("ko")
 
 
 def test_recall_is_bounded_at_the_boundary_not_just_inside():

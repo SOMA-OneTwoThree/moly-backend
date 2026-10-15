@@ -98,7 +98,7 @@ def test_build_summary_no_failures():
     assert "프리셋 12" in msg
     assert "미발행 5" in msg   # tombstone(사용자 노출 X, SOMA-389)
     assert "상주 consumer" in msg
-    assert "아침 38건" in msg
+    assert "아침 일기 38건" in msg
     assert "전체 유저 50명" in msg
     assert "45.3s" in msg
 

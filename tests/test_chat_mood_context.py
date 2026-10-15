@@ -20,7 +20,7 @@ UID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
 
 @pytest.mark.parametrize("language,permission,explicit_query", [
-    ("ko", "이 선택값으로 말투·화제·질문을 정하지 마.", "오늘 앱에서 고른 이름을 명시적으로 물을 때만"),
+    ("ko", "말투·주제·질문을 이 값으로 정하지 마.", "오늘 앱에서 고른 이름을 명시적으로 물을 때만"),
     ("ja", "この選択値で口調・話題・質問を決めない。", "今日アプリで選んだ名前を明示的に聞かれたときだけ"),
     ("en", "Do not use this selection to choose your tone, topic, or questions.",
      "Only when they explicitly ask which feeling they chose in the app today"),

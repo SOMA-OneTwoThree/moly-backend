@@ -280,7 +280,7 @@ def test_chat_egress_passes_nickname_as_keep():
     from app.services import chat
 
     src = inspect.getsource(chat)
-    for call in ("has_foreign(reply_text", "strip_foreign(reply_text"):
+    for call in ("has_foreign(reply_text",):
         line = next(ln for ln in src.splitlines() if call in ln)
         assert "keep=nick" in line, f"{call}에 닉네임을 안 넘긴다"
 
@@ -327,6 +327,5 @@ def test_chat_egress_strips_trailing_latin():
 
     from app.services import chat
 
-    assert "strip_trailing_latin(reply_text)" in inspect.getsource(chat), (
-        "응답 끝 라틴 제거가 배선에서 빠졌다"
-    )
+    assert "strip_trailing_latin(reply_text)" not in inspect.getsource(chat)
+    assert "strip_foreign(reply_text" not in inspect.getsource(chat)

@@ -1,5 +1,5 @@
 """chat 서비스 — 전송 흐름·토큰집계·게이팅·멱등·상태·선발화 캐시(DB·LLM mock)."""
-from datetime import date
+from datetime import date, datetime
 from types import SimpleNamespace
 
 import pytest
@@ -455,6 +455,83 @@ async def test_greeting_issued_when_nothing_yet_today(monkeypatch):
     assert called["llm"] is False               # 선발화는 코드 프리셋 — LLM 미호출
 
 
+
+# --- 저녁 대화 푸시 → 대화창 첫마디 ---
+class _NestedSeqSession(SeqSession):
+    """savepoint(begin_nested)를 지원하는 SeqSession — 저녁 푸시 첫마디 확인이 쓴다."""
+
+    def begin_nested(self):
+        class _CM:
+            async def __aenter__(self_inner):
+                return None
+
+            async def __aexit__(self_inner, *a):
+                return False
+
+        return _CM()
+
+
+_PUSHED_AT = datetime(2026, 10, 14, 11, 0)
+
+
+def _pushed_session(*, variant="c.missing.2", replied=False, evening_issued=False, spoke=False, issued=False):
+    # 락 · 오늘 저녁 푸시 기록 · 푸시 뒤 유저 발화 · 오늘 저녁 첫마디 · (지금 규칙) 오늘 발화 · 오늘 발급
+    return _NestedSeqSession(
+        get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko",
+                                            nickname="지훈", id=UID)},
+        sequences=[[], [(_PUSHED_AT, variant)], [1] if replied else [], ["g-e"] if evening_issued else [],
+                   [1] if spoke else [], ["g-1"] if issued else []],
+    )
+
+
+@pytest.mark.parametrize("context", ["evening", "home_enter"])
+async def test_greeting_repeats_evening_chat_push(context):
+    """대화 푸시를 받은 뒤 들어오면(푸시를 누르든 아이콘이든) 푸시와 같은 말을 evening 첫마디로."""
+    session = _pushed_session()
+    out = await chat_service.get_greeting(session, UID, context)
+    assert out["content"] == "며칠 못 봤네 그동안 별일 없었어?"
+    assert len(session.added) == 1 and session.added[0].context == "evening"
+
+
+async def test_greeting_after_push_ignores_morning_greeting_and_daytime_chat():
+    """아침 첫마디를 이미 냈고 낮에 대화했어도 저녁 푸시 뒤에는 새 첫마디가 뜬다."""
+    session = _pushed_session(spoke=True, issued=True)
+    out = await chat_service.get_greeting(session, UID, "home_enter")
+    assert out["content"] == "며칠 못 봤네 그동안 별일 없었어?"
+
+
+@pytest.mark.parametrize("case", ["replied", "evening_issued", "routine_push"])
+async def test_greeting_falls_back_to_current_rules(case):
+    """푸시 뒤 이미 말했거나, 저녁 첫마디를 이미 냈거나, 대화 푸시가 아니면 지금 규칙."""
+    if case == "routine_push":
+        # 대화 문구가 아니면 발화·첫마디 조회 없이 바로 지금 규칙(오늘 발화 · 오늘 발급)으로 간다.
+        session = _NestedSeqSession(
+            get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko", nickname="지훈", id=UID)},
+            sequences=[[], [(_PUSHED_AT, "rr")], [1], []],
+        )
+    else:
+        session = _pushed_session(replied=case == "replied", evening_issued=case == "evening_issued", spoke=True)
+    assert await chat_service.get_greeting(session, UID, "evening") == {"greeting_id": None, "content": None}
+    assert session.added == []
+
+
+async def test_onboarding_greeting_is_not_replaced_by_push():
+    """가입 직후 첫인사(onboarding)는 저녁 푸시 기록을 보지 않는다 — 락 · 오늘 발화 · 오늘 발급만."""
+    session = _NestedSeqSession(
+        get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko", nickname="지훈", id=UID)},
+        sequences=[[], [], []],
+    )
+    out = await chat_service.get_greeting(session, UID, "onboarding")
+    assert out["content"] and session.added[0].context == "onboarding"
+
+
+async def test_greeting_read_failure_falls_back_to_current_rules():
+    """저녁 푸시 기록 읽기가 실패해도 첫마디는 지금 규칙으로 나간다(SeqSession엔 savepoint가 없다)."""
+    session = _greeting_session(spoke=False, issued=False)
+    out = await chat_service.get_greeting(session, UID, "home_enter")
+    assert out["content"] and len(session.added) == 1 and session.added[0].context == "home_enter"
+
+
 # --- 엔드포인트 ---
 async def _dummy_session():
     yield None
@@ -509,8 +586,8 @@ async def test_free_plan_never_advertises_personal_diary_even_with_enough_chat(m
     assert not (await chat_service.get_state(session, UID))["personal_diary_eligible"]
 
 
-async def test_empty_reply_is_stored_as_before_and_warned_without_body(monkeypatch, caplog):
-    """정제 뒤 빈 답장은 지금처럼 저장·차감하고, 본문 없이 길이·호출 구성만 경고로 남긴다."""
+async def test_empty_cleaned_reply_is_rejected_without_saving_or_charging(monkeypatch, caplog):
+    """정제 뒤 빈 답은 재시도 가능한 오류이며 메시지 저장·차감하지 않는다."""
     async def _res(session, user_id, **kwargs):
         return _gating()
 
@@ -521,15 +598,12 @@ async def test_empty_reply_is_stored_as_before_and_warned_without_body(monkeypat
     monkeypatch.setattr(llm_module, "generate", _fake_llm)
     session = FakeSession()
     req = SimpleNamespace(text="응", greeting_id=None)
-    with caplog.at_level("WARNING", logger="moly-backend"):
-        out = await chat_service.post_message(session, UID, req, "idem-empty")
+    with pytest.raises(AppError) as caught:
+        await chat_service.post_message(session, UID, req, "idem-empty")
+    assert caught.value.http_status == 503
+    assert not any(isinstance(m, Message) for m in session.added)
+    assert not any(type(m).__name__ == "UserDailyStats" for m in session.added)
 
-    capi_msg = next(m for m in session.added if isinstance(m, Message) and m.sender == "moly")
-    assert capi_msg.content == ""
-    assert out.tokens_used > 1000  # 차감은 그대로
-    lines = [r.getMessage() for r in caplog.records if "빈 답장 저장" in r.getMessage()]
-    assert len(lines) == 1
-    assert "raw_len=2" in lines[0] and "……" not in lines[0]
 
 
 async def test_normal_reply_does_not_warn_empty(monkeypatch, patched, caplog):

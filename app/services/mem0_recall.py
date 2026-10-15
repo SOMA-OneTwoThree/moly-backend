@@ -193,6 +193,7 @@ async def recall(
     limit: int = DEFAULT_LIMIT,
     timeout: float = 3.0,
     trace: dict[str, float] | None = None,
+    availability: dict[str, str] | None = None,
 ) -> list[Recalled]:
     """질의와 관련된 **현재 유효한** 기억. 실패하면 빈 목록이다.
 
@@ -203,8 +204,12 @@ async def recall(
     registry_s, 실패하면 failed_s·registry_failed_s). 호출측이 경계에서 회상을 끊은 뒤에도
     어느 단계까지 왔는지 로그로 남길 수 있다.
     """
+    if availability is not None:
+        availability["status"] = "ok"
     stages: dict[str, float] = trace if trace is not None else {}
     if not needs_recall(query):
+        if availability is not None:
+            availability["status"] = "skipped"
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
     t0 = time.monotonic()
@@ -222,6 +227,8 @@ async def recall(
         )
         _mark("search_s")
     except Exception as e:  # noqa: BLE001  회상 실패가 대화를 막지 않는다
+        if availability is not None:
+            availability["status"] = "unavailable"
         _mark("failed_s")
         _log.warning("v2 회상 실패(빈 목록으로 진행) — user=%s stages=%s: %r", user_id, stages, e)
         return []
@@ -239,6 +246,8 @@ async def recall(
             "ids": list(by_id),
         })).all()
     except Exception as e:  # noqa: BLE001
+        if availability is not None:
+            availability["status"] = "unavailable"
         _mark("registry_failed_s")
         _log.warning("v2 회상 registry 조회 실패 — user=%s stages=%s: %r", user_id, stages, e)
         return []

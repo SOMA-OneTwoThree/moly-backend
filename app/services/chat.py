@@ -40,6 +40,7 @@ from app.services import (
     llm,
     naming,
     privacy,
+    push_copy,
     text_clean,
     turn_context,
     usage_ledger,
@@ -403,6 +404,57 @@ _mem0_recall_adapter = None
 _recall_timeouts_total = 0
 
 
+_MEMORY_UNAVAILABLE_NOTICE = {
+    "ko": (
+        "[기억 조회 상태]\n이전 기억을 이번 답에서 확인하지 못했을 수 있어. "
+        "검색 결과가 없다고 전에 말한 적 없다고 단정하지 마. 빠진 내용을 지어내지 말고 "
+        "지금 말에 답해. 이 내부 안내를 밝히거나 장애 설명을 먼저 꺼내지 마."
+    ),
+    "ja": (
+        "[記憶の取得状況]\n今回の返事では以前の記憶を確認できていない可能性がある。"
+        "検索結果がないことを、前に話していない証拠にしない。欠けた内容は作らず、"
+        "今の言葉に応じて。この内部案内を明かしたり、障害の説明を先に持ち出したりしない。"
+    ),
+    "en": (
+        "[Memory availability]\nEarlier memory may be unavailable for this reply. "
+        "No returned match is not proof that something was never shared. Don't invent "
+        "missing details; respond to the present message. Don't reveal this internal "
+        "notice or volunteer an outage explanation."
+    ),
+}
+
+def _memory_unavailable_notice(language: str) -> str:
+    return _MEMORY_UNAVAILABLE_NOTICE[i18n.resolve(language)]
+
+_PARTNER_NAME_CONTEXT = {
+    "ko": "[상대]\n지금 얘기하는 사람 이름은 {name}.",
+    "ja": "[相手]\n今話している相手の名前は{name}。",
+    "en": "[Conversation partner]\nThe person you're talking with is named {name}.",
+}
+
+_LEAD_CONTEXT = {
+    "ko": (
+        "[먼저 건넨 말]\n"
+        "이 대화 직전에 네가 먼저 말을 걸었어. 상대는 그걸 보고 답한 거야. "
+        "같은 인사를 또 하지 마.\n"
+    ),
+    "ja": (
+        "[先にかけた言葉]\nこの会話の直前に自分から声をかけている。"
+        "相手はそれを見て返事をしている。同じ挨拶を繰り返さない。\n"
+    ),
+    "en": (
+        "[Your opening message]\nYou spoke first immediately before this conversation. "
+        "The other person is replying to that message. Don't repeat the same greeting.\n"
+    ),
+}
+
+_HISTORICAL_LEAD_HEADER = {
+    "ko": "[Past Cappy messages]\n",  # Preserve the existing KO prefix byte for byte.
+    "ja": "[過去のキャピーの発言]\n",
+    "en": "[Past Cappy messages]\n",
+}
+
+
 def _recall_adapter():
     """챗 프로세스의 vector store 어댑터. 프로세스당 하나만 만든다.
 
@@ -445,19 +497,23 @@ async def _recall_memory_v2(
 
         maker = get_sessionmaker()
         async with maker() as s2:
+            availability: dict[str, str] = {}
             items = await mem0_recall.recall(
                 s2, user_id, query=query,
                 adapter=_recall_adapter(),
                 embed_query=memory_embeddings.embed_query,
                 timeout=_MEM0_RECALL_TIMEOUT_S,
                 trace=trace,
+                availability=availability,
             )
+        if availability.get("status") == "unavailable":
+            return _memory_unavailable_notice(language)
         return mem0_recall.render_block(
             items, language=language, today=today, tz_name=tz_name
         )
-    except Exception:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
-        _log.warning("v2 회상 블록 생성 실패(빈 기억으로 진행) — user=%s", user_id, exc_info=True)
-        return ""
+    except Exception as error:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
+        _log.warning("v2 회상 블록 생성 실패 error_type=%s", type(error).__name__)
+        return _memory_unavailable_notice(language)
 
 
 def _log_recall_timeout(
@@ -506,21 +562,21 @@ def _build_system(
     40턴이라 턴당으로는 무시할 수준).
     """
     parts: list[str] = []
+    locale = i18n.resolve(language)
     if nickname:
         # 조사는 받침에 맞춰(승민이야 / 지호야) — 지시문이 틀리면 캐피도 따라 틀린다.
-        parts.append(f"[상대]\n지금 얘기하는 사람 이름은 {greetings.copula(nickname)}.")
+        name = greetings.copula(nickname) if locale == "ko" else nickname
+        parts.append(i18n.pick(_PARTNER_NAME_CONTEXT, locale).format(name=name))
     if lead:
         # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(유창성 유지).
         said = "\n".join(naming.render(t, nickname) for t in lead if t)
-        parts.append(
-            "[먼저 건넨 말]\n"
-            "이 대화 직전에 네가 먼저 말을 걸었어. 상대는 그걸 보고 답한 거야. "
-            "같은 인사를 또 하지 마.\n"
-            f"{said}"
-        )
+        parts.append(i18n.pick(_LEAD_CONTEXT, locale) + said)
     if historical_lead:
         # Absolute timestamps and text stay fixed until the anchor advances.
-        parts.append("[Past Cappy messages]\n" + naming.render("\n".join(historical_lead), nickname))
+        parts.append(
+            i18n.pick(_HISTORICAL_LEAD_HEADER, locale)
+            + naming.render("\n".join(historical_lead), nickname)
+        )
     if contract_text:
         # 계약은 검색 성공 여부와 무관하게 **항상** 지켜야 하는 합의라 회상 경로를 타지 않는다.
         # 자주 바뀌지 않으므로 안정 프리픽스에 둔다(계약 문구 변경 시에만 프리픽스가 바뀐다).
@@ -534,7 +590,13 @@ def _build_system(
     # 실제 주입은 post_message가 convo 끝에서 한다.
     if relationship_v2:
         # 결정적 state의 투영. 모델이 쓴 자유 서술과 달리 값이 흘러가지 않는다(7.1절).
-        parts.append(relationship_v2)
+        relationship_block = (
+            relationship_projector.relationship_facts(relationship_v2)
+            if locale == "ko"
+            else relationship_v2
+        )
+        if relationship_block:
+            parts.append(relationship_block)
     # ⚠️ [지난 이야기](요약)와 [지금 상태]는 **여기 없다.** 둘 다 자주 바뀌는데 system은
     # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
     # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). 요약과 현재 상태는 휘발 컨텍스트다. 실제 주입은 post_message가 convo 끝에서 한다.
@@ -558,6 +620,11 @@ def _fix_qmarks(text: str, nickname: str | None) -> str:
     평서문 오삽입을 막고('무슨 일이 있어도 괜찮아'는 의문사가 멀어 미교정), 끝의 호명은
     벗겨 검사하며('무슨 일이야, 승민아'), '~지 뭐'의 종결 particle은 제외한다.
     """
+    # A quoted utterance is content to reproduce, not our question to rewrite.
+    if text_clean.QUOTED_LITERAL.search(text):
+        return text_clean._outside_quotes(text, lambda segment: _fix_qmarks(segment, nickname))
+    if "\n" in text:
+        return "\n".join(_fix_qmarks(line, nickname) for line in text.split("\n"))
     voc = greetings.vocative(nickname) if nickname else None
     out: list[str] = []
     for s in _SENT_SPLIT.split(text):
@@ -583,16 +650,17 @@ def _fix_qmarks(text: str, nickname: str | None) -> str:
 
 
 def _clean_reply(text: str, nickname: str | None = None, language: str | None = None) -> str:
-    """캐피 대사 정제 — 줄바꿈·말줄임표 제거 + 되묻기 물음표 복원.
+    """Chat-only cleanup preserves lines, quoted text and meaningful dashes.
 
-    페르소나로 막아도 새서(실측) 코드로 확정한다. 채팅 말풍선은 한 덩어리 한 줄이고,
-    말끝 흐리기는 캐피 톤이 아니다. 허용 부호(마침표·물음표·느낌표)만 남기고
-    말줄임표·마크다운 강조(**,_)·대시(—)는 지운다. 쉼표는 코드로 지우지 않고 프롬프트에
-    맡긴다(검증상 강제 제거는 런온을 만들어 짧은 문장 목표를 못 이룸).
+    Decoration outside quotes is still removed. Shared diary cleanup keeps its defaults.
     """
     keep_hy = not i18n.is_korean(language)  # en 등: 하이픈 유지 + 한국어 되묻기 물음표 복원 불필요
-    out = text_clean.strip_symbols(text, keep_hyphen=keep_hy)  # 말줄임표·마크다운·대시 제거 + 공백 정규화
-    return out if keep_hy else _fix_qmarks(out, nickname)
+    out = text_clean.strip_symbols(
+        text, keep_hyphen=keep_hy, preserve_dashes=True,
+        preserve_linebreaks=True, preserve_quotes=True,
+    )
+    # Preserve model punctuation; lexical question guessing rewrites statements.
+    return out
 
 
 def _billable(r: llm.LLMResult) -> int:
@@ -1150,10 +1218,16 @@ async def post_message(
         memory_v2_block = await asyncio.wait_for(
             recall_task, timeout=_MEM0_RECALL_TIMEOUT_S
         )
-    except (TimeoutError, asyncio.CancelledError):
+    except TimeoutError:
         recall_task.cancel()  # 끊고 나서도 계속 돌면 비용만 나간다
-        memory_v2_block = ""
+        memory_v2_block = _memory_unavailable_notice(language) if pipeline_state.serves_v2 else ""
         _log_recall_timeout(uid, started=t_recall0, phase1_done=t_phase1, trace=recall_trace)
+    except asyncio.CancelledError:
+        recall_task.cancel()
+        await session.rollback()
+        await chat_turns.release(session, user_id=uid, lease=lease)
+        await session.commit()
+        raise
 
     system = _build_system(
         language,
@@ -1253,30 +1327,17 @@ async def post_message(
                 ttl_system=settings.cache_ttl_system,
                 ttl_messages=settings.cache_ttl_messages,
                 timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
-                sdk_retries=False,  # 마감 안의 호출 — SDK 재시도는 timeout을 3배로 늘린다(llm._no_retry)
+                sdk_retries=False,
+                foreground_deadline=absolute_deadline,
             )
+            llm.require_completed_text(result.text, result.finish_reason)
     except BaseException as exc:
         # 외부 호출 실패는 저장 0인 클린 재시도다. lease도 즉시 회수해 TTL만큼 막히지 않게 한다.
         await session.rollback()
         await chat_turns.release(session, user_id=uid, lease=lease)
         await session.commit()
         if llm.is_transient_failure(exc):
-            # 제공자 쪽 일시 장애는 500(우리 버그)이 아니라 재시도 가능한 503으로 낸다.
-            # AppError 핸들러는 로그를 안 남기므로 여기서 남긴다(예전 500은 핸들러가 스택을 남겼다).
-            # message로 우리 쪽 마감 초과("...before inference")와 제공자 timeout을 구분한다.
-            _log.warning(
-                "chat_llm_unavailable %s",
-                json.dumps(
-                    {
-                        "error": type(exc).__name__,
-                        "status": getattr(exc, "status_code", None),
-                        "request_id": getattr(exc, "request_id", None),
-                        "message": str(exc)[:120],
-                        "llm_ms": _ms(t_llm0, time.monotonic()),
-                    },
-                    ensure_ascii=False,
-                ),
-            )
+            _log.warning("chat_llm_unavailable error=%s status=%s", type(exc).__name__, getattr(exc, "status_code", None))
             raise errors.ai_unavailable() from exc
         raise
     llm_ms = _ms(t_llm0, time.monotonic())
@@ -1306,40 +1367,28 @@ async def post_message(
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
     if is_ko:
         # 메타 프리앰블(SOMA-329): 모델이 응답 앞에 라틴 문장으로 흘린 자기 판단·방침을 벗긴다.
-        # 발동은 드문 이벤트라(3071건 중 2건) 제거한 접두부만 로그로 남겨 감사 가능하게 한다.
-        # stripped는 reply_text의 접미부라 앞부분 = 제거된 메타(한국어 본문은 로그에 안 남김).
-        stripped = text_clean.strip_leading_meta(reply_text)
+        stripped = text_clean.strip_leading_meta(reply_text, preserve_quoted_prefix=True)
         if stripped != reply_text:
-            removed = reply_text[: len(reply_text) - len(stripped)]
             _log.warning(
-                "메타 프리앰블 제거(egress) user=%s removed_len=%d prefix=%r",
-                user_id, len(removed), removed[:120],
+                "메타 프리앰블 제거(egress) user=%s removed_len=%d",
+                user_id, len(reply_text) - len(stripped),
             )
             reply_text = stripped
-        # 응답 끝에 공백 없이 붙은 라틴 조각(앞쪽 메타 제거의 짝). 라틴은 상표·고유명사로
-        # 정상적으로 쓰이니 아래 외래문자 백스톱이 통과시킨다 — 그래서 붙은 방식으로 가른다.
-        tailless = text_clean.strip_trailing_latin(reply_text)
-        if tailless != reply_text:
-            # 지운 글자만 남긴다. 길이로 잘라내면 공백 정규화 때문에 본문이 딸려 나올 수 있다.
-            _log.warning(
-                "응답 끝 라틴 제거(egress) user=%s removed=%r",
-                user_id, "".join(sorted(set(reply_text) - set(tailless)))[:40],
-            )
-            reply_text = tailless
-    # 외래문자 백스톱은 언어를 가리지 않는다. 예전엔 한국어에만 걸었는데, 엉뚱한 언어 글자가
-    # 꼬리처럼 붙는 건 영어·일본어 응답에서도 똑같이 일어난다. 닉네임(nick)은 유저가 정한 값이라
-    # 응답 언어와 계열이 달라도 정상이므로 판정에서 뺀다.
+    # Other scripts can be names, quotations or explicitly requested words.
+    # Detect unexpected scripts without deleting the content or another model call.
     if text_clean.has_foreign(reply_text, language=language, keep=nick):
-        # 세 번째 LLM 호출은 하드 데드라인과 최대 2회 호출 계약을 깨므로 결정적으로 제거한다.
-        cleaned = text_clean.strip_foreign(reply_text, language=language, keep=nick)
-        # 허용 범위 누락으로 정상 표기를 지우는 오탐(예: 일본어 々)도 확인할 수 있도록
-        # 지운 글자만 남긴다(본문은 남기지 않는다).
         _log.warning(
-            "외래문자 제거(egress) user=%s lang=%s removed=%r",
-            user_id, language, "".join(sorted(set(reply_text) - set(cleaned)))[:40],
+            "응답 언어 외 문자 감지(egress) user=%s lang=%s reply_len=%d",
+            user_id, language, len(reply_text),
         )
-        reply_text = cleaned
     reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
+    try:
+        llm.require_completed_text(reply_stored, "")
+    except llm.IncompleteResponseError:
+        await session.rollback()
+        await chat_turns.release(session, user_id=uid, lease=lease)
+        await session.commit()
+        raise errors.ai_unavailable() from None
     egress_ms = _ms(t_egress0, time.monotonic())
 
     # 회계 대상 — v2 off(롤백)면 주 chat 호출만 차감하고 나머지는 계측·로그로만 남긴다.
@@ -1616,6 +1665,47 @@ async def post_message(
 _NO_GREETING: dict[str, Any] = {"greeting_id": None, "content": None}
 
 
+async def _evening_push_greeting(session: AsyncSession, profile, uid, ad: date) -> str | None:
+    """오늘 저녁 대화 푸시 본문 — 푸시 뒤로 유저가 말하지 않았고 저녁 첫마디를 아직 안 냈을 때만.
+
+    읽기에 실패하면 None(지금 규칙으로 넘어간다 — 첫마디를 못 내도 대화는 된다).
+    """
+    try:
+        async with session.begin_nested():
+            pushed = (
+                await session.execute(
+                    select(UserDailyStats.evening_notified_at, UserDailyStats.evening_push_variant)
+                    .where(UserDailyStats.user_id == uid, UserDailyStats.activity_date == ad)
+                )
+            ).first()
+            if pushed is None or pushed[0] is None or not pushed[1]:
+                return None
+            body = push_copy.chat_body(pushed[1], profile.language)
+            if body is None:
+                return None  # 공지·스트릭 위기 푸시는 첫마디로 잇지 않는다
+            replied = (
+                await session.execute(
+                    select(Message.id)
+                    .where(
+                        Message.user_id == uid, Message.activity_date == ad,
+                        Message.sender == "user", Message.created_at > pushed[0],
+                    )
+                    .limit(1)
+                )
+            ).scalars().first()
+            issued = (
+                await session.execute(
+                    select(Greeting.id)
+                    .where(Greeting.user_id == uid, Greeting.activity_date == ad, Greeting.context == "evening")
+                    .limit(1)
+                )
+            ).scalars().first()
+    except Exception:  # noqa: BLE001
+        _log.warning("저녁 푸시 첫마디 확인 실패 — 지금 규칙으로(user=%s)", uid, exc_info=True)
+        return None
+    return body if replied is None and issued is None else None
+
+
 async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dict[str, Any]:
     """선발화 = 하루(activity_date) 1회, context 무관. 없으면 빈 응답.
 
@@ -1636,6 +1726,17 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
 
     # 동시 진입(콜드스타트+푸시탭 등)이 각각 발급해 하루 2건이 되는 걸 막는다.
     await _lock_user(session, uid)
+
+    # 저녁 대화 푸시를 받은 뒤 처음 들어오면 푸시와 같은 말을 첫마디로 낸다. 아침에 이미 첫마디를
+    # 냈거나 낮에 대화했어도 낸다 — 그래서 아래 두 확인보다 먼저 본다. 가입 직후 첫인사는 그대로 둔다.
+    pushed = None if context == "onboarding" else await _evening_push_greeting(session, profile, uid, ad)
+    if pushed is not None:
+        stored = naming.to_placeholder(pushed, profile.nickname)
+        row = Greeting(user_id=uid, context="evening", content=stored, activity_date=ad)
+        session.add(row)
+        await session.commit()
+        await session.refresh(row)
+        return {"greeting_id": str(row.id), "content": naming.render(stored, profile.nickname)}
 
     spoke = (
         await session.execute(

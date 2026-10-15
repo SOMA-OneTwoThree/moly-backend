@@ -348,7 +348,7 @@ async def test_missing_diary_policy_keeps_morning_notification_working(monkeypat
     monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
     morning = AsyncMock(return_value=True)
     monkeypatch.setattr(tick.notify, "notify_morning", morning)
-    counts = await tick._process_user(datetime(2026, 9, 8, 0, tzinfo=timezone.utc),
+    counts = await tick._process_user(datetime(2026, 9, 8, 1, tzinfo=timezone.utc),  # KST 10시
                                       p.id, {}, diary_policy=None)
     assert counts["morning"] == 1 and counts["diary_failed"] == 0
     morning.assert_awaited_once()
@@ -384,3 +384,23 @@ async def test_run_tick_loads_policy_once_and_aggregates_no_entries(monkeypatch)
     loader.assert_awaited_once()
     assert generate.await_count == 2
     assert all(call.kwargs["policy"] is policy for call in generate.await_args_list)
+
+
+async def test_routine_morning_hour_sends_routine_push_and_logs_summary(monkeypatch, caplog):
+    """현지 9시는 루틴 아침만. 상세 요약은 로그에 남기고 정기 Slack 도배는 재개하지 않는다."""
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
+    routine_push = AsyncMock(return_value=1)
+    morning = AsyncMock(return_value=1)
+    summary = AsyncMock()
+    monkeypatch.setattr(tick.notify, "notify_routine_morning", routine_push)
+    monkeypatch.setattr(tick.notify, "notify_morning", morning)
+    monkeypatch.setattr(tick.slack_notify, "send_summary", summary)
+    with caplog.at_level("INFO", logger="moly-worker"):
+        counts = await tick.run_tick(datetime(2026, 9, 8, 0, tzinfo=timezone.utc))  # KST 09:00
+    assert counts["routine_morning"] == 1 and counts["morning"] == 0
+    routine_push.assert_awaited_once()
+    morning.assert_not_awaited()
+    summary.assert_not_awaited()
+    assert "루틴 아침 1건" in caplog.text

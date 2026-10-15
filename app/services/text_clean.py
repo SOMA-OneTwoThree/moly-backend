@@ -29,6 +29,26 @@ _STRAY_KEEP_HYPHEN = re.compile(r"[*_`~#—–]+")  # ASCII 하이픈(-) 유지 
 _WS = re.compile(r"\s+")
 _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
 
+_STRAY_KEEP_DASHES = re.compile(r"[*_`~#]+")  # 문장·범위의 대시는 원문 그대로 보존
+
+_HORIZONTAL_WS = re.compile(r"[^\S\n]+")
+
+_HORIZONTAL_BEFORE_PUNCT = re.compile(r"[^\S\n]+([?!.,])")
+
+QUOTED_LITERAL = re.compile(
+    r'''"[^"]*"|“[^”]*”|「[^」]*」|『[^』]*』|‘[^’]*’|(?<!\w)'[^']+'(?!\w)'''
+)
+
+def _outside_quotes(text: str, transform) -> str:
+    parts = []
+    cursor = 0
+    for match in QUOTED_LITERAL.finditer(text):
+        parts.extend((transform(text[cursor:match.start()]), match.group()))
+        cursor = match.end()
+    parts.append(transform(text[cursor:]))
+    return "".join(parts)
+
+
 # 응답에 나와도 되는 '글자 계열'을 언어마다 적는다. 여기 없는 계열의 글자는 이물질로 보고 지운다.
 #
 # 예전에는 반대로 지울 계열(한자·가나)만 나열했다. 그런데 유니코드 문자 계열은 150종이 넘어서
@@ -102,18 +122,31 @@ def _filter_for(language: str | None) -> tuple[bool, re.Pattern[str] | None]:
     return True, _ALLOWED_RE[lang]
 
 
-def strip_symbols(text: str, *, keep_hyphen: bool = False) -> str:
+def strip_symbols(
+    text: str, *, keep_hyphen: bool = False, preserve_dashes: bool = False,
+    preserve_linebreaks: bool = False, preserve_quotes: bool = False,
+) -> str:
     """깨진/투명/제어문자 + 말줄임표·마크다운·대시류 제거 + 공백 정규화. 채팅·일기 공용.
 
     keep_hyphen=True면 ASCII 하이픈(-)을 남긴다(영어 응답의 자연 부호 laid-back 보존). 기본(ko)은 제거.
+    preserve_dashes=True면 -, –, —를 모두 남긴다. 비한국어 채팅만 명시적으로 켜며 일기 기본값은 유지한다.
     """
     if not text:
         return text
     out = JUNK.sub("", text)      # 깨짐(�)·제로폭·BOM·제어 제거(재결합 위해 "")
-    out = ELLIPSIS.sub(" ", out)
-    out = (_STRAY_KEEP_HYPHEN if keep_hyphen else STRAY).sub(" ", out)
-    out = _WS.sub(" ", out)
-    return _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
+    stray = _STRAY_KEEP_DASHES if preserve_dashes else (_STRAY_KEEP_HYPHEN if keep_hyphen else STRAY)
+    if preserve_linebreaks:
+        out = out.replace("\r\n", "\n").replace("\r", "\n")
+
+    def clean(segment: str) -> str:
+        segment = stray.sub(" ", ELLIPSIS.sub(" ", segment))
+        whitespace = _HORIZONTAL_WS if preserve_linebreaks else _WS
+        before_punct = _HORIZONTAL_BEFORE_PUNCT if preserve_linebreaks else _SPACE_BEFORE_PUNCT
+        segment = before_punct.sub(r"\1", whitespace.sub(" ", segment))
+        return re.sub(r" +(?=\n)|(?<=\n) +", "", segment) if preserve_linebreaks else segment
+
+    out = _outside_quotes(out, clean) if preserve_quotes else clean(out)
+    return out.strip()
 
 
 def has_foreign(text: str | None, *, language: str | None, keep: str | None = None) -> bool:
@@ -154,7 +187,9 @@ _META_HEAD_PUNCT = re.compile(r"[.:]")  # 메타는 완결된 문장(마침표·
 _META_MIN_WORDS = 4  # 첫 한글 앞 라틴 단어가 이 이상이면 '문장 분량'으로 봄(짧은 토큰 LP·AI·BTS는 미발동)
 
 
-def strip_leading_meta(text: str, *, min_words: int = _META_MIN_WORDS) -> str:
+def strip_leading_meta(
+    text: str, *, min_words: int = _META_MIN_WORDS, preserve_quoted_prefix: bool = False,
+) -> str:
     """한국어 응답 앞에 새어나온 라틴 메타 프리앰블만 결정적으로 벗긴다(첫 한글부터 남김).
 
     발동 조건(전부 만족): ① 한글 존재(제거 후 남을 본문 있음) ② 첫 글자가 한글 아님 ③ 첫 한글 앞
@@ -164,6 +199,8 @@ def strip_leading_meta(text: str, *, min_words: int = _META_MIN_WORDS) -> str:
     프로덕션 캐피 응답 3071건 검증: 실측 유출 2건(영어·스페인어, 둘 다 마침표 문장)만 변경, 오탐 0건.
     """
     if not text:
+        return text
+    if preserve_quoted_prefix and QUOTED_LITERAL.match(text.lstrip()):
         return text
     m = _HANGUL.search(text)
     if m is None or m.start() == 0:

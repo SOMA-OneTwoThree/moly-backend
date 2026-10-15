@@ -20,7 +20,7 @@ import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from math import ceil
-from time import perf_counter
+from time import monotonic, perf_counter
 from typing import Literal
 
 from pydantic import BaseModel, ValidationError
@@ -77,7 +77,7 @@ def is_transient_failure(exc: BaseException) -> bool:
     fallback 여부와 사용자 응답(503 재시도 안내 vs 500 버그)을 가른다. 400·401·404 같은 요청/설정
     오류는 다시 불러도 같으므로 False다.
     """
-    if isinstance(exc, TimeoutError):  # asyncio.TimeoutError 포함(3.11+), 데드라인 소진도 여기
+    if isinstance(exc, (TimeoutError, IncompleteResponseError)):  # Deadline or incomplete publication
         return True
     # SDK는 이미 import된 것만 본다 — 실패 처리 중에 안 쓰는 SDK를 처음 import하면(anthropic ~0.25초)
     # 그만큼 이벤트 루프가 멈추고 fallback 예산이 깎인다. import된 적 없는 SDK의 예외는 올 수도 없다.
@@ -153,7 +153,6 @@ async def _create_in_budget(client, kwargs: dict, *, purpose: str):
                 "purpose": purpose,
                 "error": type(first).__name__,
                 "status": getattr(first, "status_code", None),
-                "request_id": getattr(first, "request_id", None),
                 "wait_s": round(wait, 2),
                 "remaining_s": round(remaining, 2),
             },
@@ -178,7 +177,6 @@ async def _create_in_budget(client, kwargs: dict, *, purpose: str):
                     "purpose": purpose,
                     "error": type(again).__name__,
                     "status": getattr(again, "status_code", None),
-                    "request_id": getattr(again, "request_id", None),
                 },
                 ensure_ascii=False,
             ),
@@ -213,6 +211,31 @@ class LLMResult:
             "cache_write_estimated": self.cache_write_estimated,
         }
 
+
+class IncompleteResponseError(RuntimeError):
+    """A provider result cannot become a successful conversational reply."""
+
+def require_completed_text(
+    text: str | None,
+    finish_reason: str,
+    *,
+    allow_legacy: bool = True,
+    allow_tool_calls: bool = False,
+) -> None:
+    """Opt-in publication guard; generation/usage remain available to other callers.
+
+    Empty reason remains compatible with legacy text-only adapters. Agent steps provide an
+    explicit reason and must opt out. `tool_calls` is complete text only for a validated
+    structured final response, never for a pending executable tool call.
+    """
+    completed = {"stop", "end_turn", "stop_sequence"}
+    if allow_legacy:
+        completed.add("")
+    if allow_tool_calls:
+        completed.add("tool_calls")
+    if finish_reason not in completed or not isinstance(text, str) or not text.strip():
+        # Never include provider text or unrecognized finish metadata in logs/errors.
+        raise IncompleteResponseError("LLM response is incomplete")
 
 @dataclass
 class LlmCall:
@@ -289,6 +312,20 @@ def _timeout(timeout: float | None) -> float:
     return settings.llm_timeout_s if timeout is None else timeout
 
 
+def _foreground_timeout(deadline: float, timeout: float | None) -> float:
+    remaining = min(_timeout(timeout), deadline - monotonic())
+    if remaining <= 0:
+        raise TimeoutError("foreground inference deadline exceeded before send")
+    return remaining
+
+def _foreground_error_code(exc: BaseException) -> str:
+    if isinstance(exc, asyncio.CancelledError):
+        return "foreground_cancelled"
+    if isinstance(exc, TimeoutError) or type(exc).__name__ == "APITimeoutError":
+        return "foreground_timeout"
+    return "foreground_response_unavailable"
+
+
 async def generate(
     system: str | list[str],
     convo: list[dict],
@@ -302,6 +339,7 @@ async def generate(
     ledger: "usage_ledger.LedgerContext | None" = None,
     reasoning_effort: str | None = None,
     sdk_retries: bool = True,
+    foreground_deadline: float | None = None,
 ) -> LLMResult:
     """system(페르소나+기억) + convo(user/assistant) → 응답 텍스트 + 실측 토큰.
 
@@ -323,32 +361,44 @@ async def generate(
     """
     model = model or settings.model_chat
     provider = provider_for(model)
+    if foreground_deadline is not None:
+        sdk_retries = False
 
     async def _dispatch() -> LLMResult:
         if provider == "openai":
             return await _generate_openai(
-                system, convo, model=model, max_tokens=max_tokens, timeout=timeout,
+                system, convo, model=model, max_tokens=max_tokens, timeout=call_timeout,
                 reasoning_effort=reasoning_effort, sdk_retries=sdk_retries,
             )
         return await _generate_anthropic(
             system, convo, model=model, max_tokens=max_tokens,
             cache_messages=cache_messages, ttl_system=ttl_system, ttl_messages=ttl_messages,
-            timeout=timeout, sdk_retries=sdk_retries,
+            timeout=call_timeout, sdk_retries=sdk_retries,
         )
 
-    if ledger is None:
-        return await _dispatch()
-
-    call_id = await usage_ledger.open_call(ledger, provider=provider, model=model)
+    call_timeout = timeout
+    call_id = await usage_ledger.open_call(ledger, provider=provider, model=model) if ledger is not None else None
     started = perf_counter()
+    dispatch_started = False
     try:
-        r = await _dispatch()
-    except Exception as e:  # noqa: BLE001  기록만 하고 그대로 올린다
-        # 토큰을 썼는지 알 수 없다 — failed로 남기고 0원 completed로 만들지 않는다.
-        await usage_ledger.close_failed(
-            call_id, error_code=type(e).__name__, latency_ms=_elapsed_ms(started)
-        )
+        if foreground_deadline is None:
+            r = await _dispatch()
+        else:
+            call_timeout = _foreground_timeout(foreground_deadline, timeout)
+            async with asyncio.timeout(call_timeout):
+                dispatch_started = True
+                r = await _dispatch()
+    except BaseException as e:
+        if foreground_deadline is not None and dispatch_started:
+            await usage_ledger.close_unknown(call_id, error_code=_foreground_error_code(e))
+        elif isinstance(e, Exception):
+            await usage_ledger.close_failed(
+                call_id, error_code="deadline_before_send" if foreground_deadline is not None else type(e).__name__,
+                latency_ms=_elapsed_ms(started),
+            )
         raise
+    if ledger is None:
+        return r
     await usage_ledger.close_call(
         call_id,
         provider=provider,
@@ -357,6 +407,7 @@ async def generate(
         model_snapshot=r.model_snapshot or None,
         provider_request_id=r.request_id or None,
         latency_ms=_elapsed_ms(started),
+        **({"preserve_on_cancel": True} if foreground_deadline is not None else {}),
     )
     return r
 
@@ -401,6 +452,7 @@ async def _generate_anthropic(
         request_id=getattr(resp, "id", None) or "",
         # Anthropic은 cache_creation_input_tokens를 실측으로 준다 — 추정 아님.
         cache_write_estimated=False,
+        finish_reason=getattr(resp, "stop_reason", None) or "",
     )
 
 
@@ -931,6 +983,7 @@ async def generate_step(
     control_tools: Mapping[str, str] | None = None,
     response_tools: Mapping[str, type[BaseModel]] | None = None,
     ledger: "usage_ledger.LedgerContext | None" = None,
+    foreground_deadline: float | None = None,
 ) -> StepResult:
     """도구 호출을 표현할 수 있는 1 step 호출. OpenAI 경로만(Anthropic은 dormant → 명시적 오류).
 
@@ -971,11 +1024,18 @@ async def generate_step(
         # 0에 가까워지면 SDK가 곧장 timeout을 내고 런타임이 남은 예산으로 fallback을 고른다.
         kwargs["timeout"] = max(0.001, kwargs["timeout"] - (perf_counter() - _t_open))
     _t0 = perf_counter()
+    dispatch_started = False
     try:
         # 도구 루프는 턴 마감 안에서 돈다 — SDK 재시도 대신 같은 timeout 안의 재시도 1회만 하고,
         # 그 밖의 우회는 런타임이 남은 예산을 보고 fallback으로 한다.
-        resp = await _create_in_budget(_no_retry(_get_openai_client()), kwargs, purpose=purpose)
-    except Exception as e:  # noqa: BLE001
+        if foreground_deadline is None:
+            resp = await _create_in_budget(_no_retry(_get_openai_client()), kwargs, purpose=purpose)
+        else:
+            kwargs["timeout"] = _foreground_timeout(foreground_deadline, kwargs["timeout"])
+            async with asyncio.timeout(kwargs["timeout"]):
+                dispatch_started = True
+                resp = await _create_in_budget(_no_retry(_get_openai_client()), kwargs, purpose=purpose)
+    except BaseException as e:
         latency_ms = _elapsed_ms(_t0)
         # SDK 재시도가 없으니 timeout 안의 시도(최대 2회)가 전부다. request_id는 상태 응답이 있을 때만 있다.
         _log.warning(
@@ -985,16 +1045,18 @@ async def generate_step(
                     "purpose": purpose,
                     "error": type(e).__name__,
                     "status": getattr(e, "status_code", None),
-                    "request_id": getattr(e, "request_id", None),
                     "timeout_s": round(kwargs["timeout"], 2),
                     "latency_ms": latency_ms,
                 },
                 ensure_ascii=False,
             ),
         )
-        await usage_ledger.close_failed(
-            call_id, error_code=type(e).__name__, latency_ms=latency_ms
-        )
+        if foreground_deadline is not None and dispatch_started:
+            await usage_ledger.close_unknown(call_id, error_code=_foreground_error_code(e))
+        elif isinstance(e, Exception):
+            await usage_ledger.close_failed(
+                call_id, error_code="deadline_before_send" if foreground_deadline is not None else type(e).__name__, latency_ms=latency_ms
+            )
         raise
 
     choices = getattr(resp, "choices", None) or []
@@ -1005,6 +1067,7 @@ async def generate_step(
         model_snapshot=getattr(resp, "model", None),
         provider_request_id=getattr(resp, "id", None),
         latency_ms=_elapsed_ms(_t0),
+        **({"preserve_on_cancel": True} if foreground_deadline is not None else {}),
     )
     if not choices:  # content_filter 등 — 응답을 막지 않고 빈 step으로 닫는다
         return StepResult(text=None, tool_calls=[], finish_reason="", usage=usage, control_intents=[])

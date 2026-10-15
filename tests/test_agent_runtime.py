@@ -7,6 +7,7 @@ LLM timeout이 남은 데드라인에 묶이는지 / `agent_enabled=False`에서
 import asyncio
 import logging
 import uuid
+from dataclasses import replace
 from datetime import date
 from types import SimpleNamespace
 
@@ -781,7 +782,7 @@ async def test_agent_turn_still_runs_egress_backstops(monkeypatch):
     out = await _post(FakeSession(), monkeypatch, agent=_agent, snapshot=snapshot)
 
     assert "..." not in out.reply.content  # 말줄임표 제거
-    assert out.reply.content.endswith("?")  # 되묻기 물음표 복원
+    assert out.reply.content == "무슨 일인데 지훈아"  # 모델이 내지 않은 물음표는 만들지 않는다.
 
 
 async def test_grounding_fallback_is_not_warned_as_empty_reply(monkeypatch, caplog):
@@ -789,7 +790,7 @@ async def test_grounding_fallback_is_not_warned_as_empty_reply(monkeypatch, capl
 
     async def _agent(system, convo, **kw):
         return agent_runtime.AgentTurn(
-            text="……", calls=[_usage("tool_decide"), _usage("tool_final")],
+            text="일기에 그렇게 썼어.", calls=[_usage("tool_decide"), _usage("tool_final")],
             selected_refs=(GroundedRef(ref_type="diary", ref_id="d1"),),
         )
 
@@ -931,3 +932,65 @@ def test_prepare_has_its_own_budget_apart_from_db_timeout() -> None:
     assert runtime.PREPARE_TIMEOUT_S >= 1.0, (
         "준비 예산이 임베딩 실측(최대 976ms)보다 작다"
     )
+
+
+@pytest.mark.parametrize("finish_reason", ["length", "content_filter", "", "unknown"])
+async def test_incomplete_first_step_never_publishes_or_runs_tools(monkeypatch, finish_reason):
+    tool = _FakeTool()
+    step = replace(_calls_step(_call(1)), text="partial", finish_reason=finish_reason)
+    fake = _FakeSteps(step)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+    assert tool.ran == 0
+
+@pytest.mark.parametrize("text", [None, "", " \n\t"])
+async def test_blank_completed_first_step_is_not_a_success(monkeypatch, text):
+    fake = _FakeSteps(_text_step(text))
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+
+@pytest.mark.parametrize("text,finish_reason", [
+    ("partial", "length"), ("partial", "content_filter"), (None, "stop"), ("  ", "stop"),
+])
+async def test_incomplete_tool_final_never_reuses_decide_text_or_starts_third_call(
+    monkeypatch, text, finish_reason,
+):
+    tool = _FakeTool()
+    decide = replace(_calls_step(_call(1)), text="I'll look that up")
+    final = replace(_text_step(text, purpose="tool_final"), finish_reason=finish_reason)
+    fake = _FakeSteps(decide, final)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 2
+    assert tool.ran == 1
+
+async def test_structured_final_with_tool_calls_finish_is_completed_text(monkeypatch):
+    step = replace(
+        _text_step(None), finish_reason="tool_calls",
+        final_response=llm_module.FinalResponse(text="응.", response_mode="summary"),
+    )
+    fake = _FakeSteps(step)
+    turn = await _run(fake, monkeypatch=monkeypatch)
+    assert turn.text == "응."
+    assert len(fake.calls) == 1
+
+async def test_length_rejects_even_parseable_structured_final(monkeypatch):
+    step = replace(
+        _text_step(None), finish_reason="length",
+        final_response=llm_module.FinalResponse(text="응.", response_mode="summary"),
+    )
+    fake = _FakeSteps(step)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+
+async def test_pending_executable_call_in_final_step_cannot_be_published(monkeypatch):
+    tool = _FakeTool()
+    final = replace(_calls_step(_call(2)), text="unfinished", usage=_usage("tool_final"))
+    fake = _FakeSteps(_calls_step(_call(1)), final)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 2
+    assert tool.ran == 1

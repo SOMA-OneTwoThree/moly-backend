@@ -112,13 +112,7 @@ _TOOL_DATA_RULE = (
 # ⚠️ 이 규칙이 없던 동안 모델이 말을 잇는 재료로 아무 때나 도구를 부르고 그 결과를 인사마다
 #    덧붙였다. 운영 실측: 한 사용자의 최근 30턴 중 8번 루틴 달성을 먼저 꺼냈고,
 #    "이제 그만 말해"라고 한 **바로 다음 턴에도** 또 꺼냈다.
-_TOOL_WHEN_RULE = (
-    "[When to use tools] Call a tool only to answer what the user just asked or brought up "
-    "themselves. Never call one to make small talk, to fill a pause, or to find something to "
-    "praise or comment on. If the user did not raise the subject, do not raise it either. "
-    "Do not repeat information you already gave earlier in this conversation, and if the user "
-    "says to stop talking about something, drop it for the rest of the conversation."
-)
+_TOOL_WHEN_RULE = '[When to use tools] Call a tool only to answer what the user just asked or brought up themselves. Never call one to make small talk, to fill a pause, or to find something to praise or comment on. Do not introduce a diary or routine subject using tool results unless the user has raised it. Do not repeat tool-returned information you already gave earlier in this conversation. If the user says to stop talking about something, drop it for the rest of the conversation.'
 
 
 @dataclass(frozen=True)
@@ -593,6 +587,21 @@ def _validated_final(
     )
 
 
+def _require_completed_step(step: llm.StepResult, *, final: bool = False) -> None:
+    """Do not execute or publish a truncated/filtered/incomplete model step."""
+    if step.finish_reason not in {"stop", "tool_calls"}:
+        raise llm.IncompleteResponseError("LLM response is incomplete")
+    if final and step.tool_calls:
+        raise llm.IncompleteResponseError("LLM response is incomplete")
+    if step.final_response is not None:
+        llm.require_completed_text(
+            step.final_response.text, step.finish_reason,
+            allow_legacy=False, allow_tool_calls=True,
+        )
+    elif not step.tool_calls:
+        llm.require_completed_text(step.text, step.finish_reason, allow_legacy=False)
+
+
 # --- 턴 실행 ---
 def _ledger_ctx(user_id: uuid.UUID, activity_date: date) -> usage_ledger.LedgerContext:
     """도구 루프 호출의 원가 귀속. purpose는 step별로 generate_step이 덮어쓴다."""
@@ -683,6 +692,7 @@ async def run_turn(
             # generate_step은 자기가 몇 번째 홉인지 모르므로 이 판정은 루프의 책임이다.
             control_tools=None,
             response_tools=response_tools or None,
+            foreground_deadline=deadline,
         )
 
     try:
@@ -717,6 +727,7 @@ async def run_turn(
         step1 = await _hop1(False)
         use_tools = False
         skipped = "deadline"
+    _require_completed_step(step1)
     calls: list[LlmCall] = [step1.usage]
     if step1.control_intents:  # 위 계약상 나올 수 없다 — 나오면 버리고 계측만 남긴다
         _log.warning(
@@ -796,7 +807,9 @@ async def run_turn(
         input_models=input_models,
         control_tools=control,  # final step에서만 의도를 읽는다
         response_tools=response_tools or None,
+        foreground_deadline=deadline,
     )
+    _require_completed_step(step2, final=True)
     calls.append(step2.usage)
     final_text, response_mode, selected_refs, focus_ref, final_sidecar_intents = _validated_final(
         step2.final_response, raw_results, language=language
@@ -821,7 +834,7 @@ async def run_turn(
             ),
         )
     return AgentTurn(
-        text=final_text or step2.text or step1.text or "",
+        text=final_text or step2.text or "",
         calls=calls,
         tool_results=tuple(results),
         raw_tool_results=tuple(raw_results),

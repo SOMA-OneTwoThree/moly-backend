@@ -169,8 +169,13 @@ async def prepare_access_token() -> str | None:
 async def send(
     tokens: list[str], title: str, body: str, *, data: dict[str, str] | None = None,
     expires_at: datetime | None = None, access_token: str | None = None,
+    collapse_key: str | None = None,
 ) -> SendResult:
-    """토큰들에 알림 발송, 성공 건수(SendResult, int 호환) 반환. 미설정/토큰없음이면 0(no-op)."""
+    """토큰들에 알림 발송, 성공 건수(SendResult, int 호환) 반환. 미설정/토큰없음이면 0(no-op).
+
+    collapse_key = 같은 종류의 안 읽은 알림을 새것으로 바꾸는 값(Android notification.tag,
+    iOS apns-collapse-id). expires_at이 이미 지났으면 보내지 않는다(밤늦은 도착을 막는 마지막 장치).
+    """
     if not tokens:
         return SendResult(0)
     token = access_token or await prepare_access_token()
@@ -195,6 +200,11 @@ async def send(
                 msg["message"]["apns"] = {
                     "headers": {"apns-expiration": str(int(expires_at.timestamp()))},
                 }
+            if collapse_key:
+                android = msg["message"].setdefault("android", {})
+                android["notification"] = {"tag": collapse_key}
+                apns = msg["message"].setdefault("apns", {})
+                apns.setdefault("headers", {})["apns-collapse-id"] = collapse_key
             try:
                 r = await client.post(url, headers={"Authorization": f"Bearer {token}"}, json=msg)
             except httpx.RequestError:

@@ -276,7 +276,7 @@ jobs:
           command = f"""set -eu
           check_dev() {{
             phase="$1"
-            expected="${{2:-}}"
+            expected="$2"
             if [ "$phase" = pre ]; then
               host_base=40; api_base=50; consumer_base=60
             else
@@ -297,7 +297,7 @@ jobs:
               fi
             done
           }}
-          check_dev pre
+          check_dev pre ''
           cd /root/moly-infra || exit 101
           git pull --ff-only || exit 102
           sudo bash deploy.sh {tag} || exit 103

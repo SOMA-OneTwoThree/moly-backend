@@ -105,6 +105,9 @@ def test_retained_registry_has_no_inactive_alias_or_unregistered_fallback():
         "voice-free-ko-v5",
         "voice-conversation-ko-v6",
         "voice-structured-ko-v7",
+        "voice-structured-ko-v8",
+        "voice-structured-ko-v8-order",
+        "voice-structured-ko-v8-examples",
     )
     for language, candidate in (("ja", "voice-free-ko-v5"), ("fr", "c0"), ("ko", "unknown")):
         with pytest.raises(ValueError):
@@ -160,9 +163,16 @@ def test_structured_candidate_has_fixed_identity_and_separate_information_permis
     assert "클래식 엘피" not in system.split("[기본 취향]", 1)[0]
 
 
-def test_structured_candidate_preserves_all_supplied_fact_and_safety_contracts():
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "voice-structured-ko-v7", "voice-structured-ko-v8",
+        "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+    ],
+)
+def test_structured_candidate_preserves_all_supplied_fact_and_safety_contracts(candidate):
     baseline = prompts._VOICE_FREE_KO_V5
-    system, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    system, _ = prompts.eval_system_prompt("ko", candidate)
     section_boundaries = (
         ("[말하기]", "[지금 대화]"),
         ("[사실과 기능]", "[시간과 기억]"),
@@ -178,16 +188,30 @@ def test_structured_candidate_preserves_all_supplied_fact_and_safety_contracts()
     assert baseline.split("[안전과 정체성]\n", 1)[1] in system
 
 
-def test_structured_candidate_distinguishes_absent_state_from_empty_appearance():
-    system, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "voice-structured-ko-v7", "voice-structured-ko-v8",
+        "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+    ],
+)
+def test_structured_candidate_distinguishes_absent_state_from_empty_appearance(candidate):
+    system, _ = prompts.eval_system_prompt("ko", candidate)
     state = system.split("[서버 상태와 도구]\n", 1)[1].split("\n\n[시간과 기억]", 1)[0]
     assert "제공된 현재 상태에 네 모습 항목이 없으면 아무것도 걸치지 않은 상태야." in state
     assert "현재 상태 블록 자체가 없으면 네 모습이나 현재 활동은 모르는 범위야." in state
     # These are prompt contracts, not a claim that the model passed a behavioural test.
 
 
-def test_structured_candidate_gates_background_tastes_without_banning_requested_analysis():
-    system, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "voice-structured-ko-v7", "voice-structured-ko-v8",
+        "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+    ],
+)
+def test_structured_candidate_gates_background_tastes_without_banning_requested_analysis(candidate):
+    system, _ = prompts.eval_system_prompt("ko", candidate)
     tastes = system.split("[기본 취향]\n", 1)[1].split("\n\n[사용자 사실과 기억]", 1)[0]
     assert "캐피의 취향을 직접 묻거나 그 항목을 캐피가 좋아하는지 물을 때만 답에 써." in tastes
     assert "그 항목 자체를 꺼냈을 때" not in tastes
@@ -196,13 +220,74 @@ def test_structured_candidate_gates_background_tastes_without_banning_requested_
     assert "짧은 수락이나 네 느낌은 말해도 돼." in system
 
 
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "voice-structured-ko-v7", "voice-structured-ko-v8",
+        "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+    ],
+)
 @pytest.mark.parametrize("language", ["ja", "en", "ko-KR", ""])
-def test_structured_candidate_is_korean_only(language):
+def test_structured_candidate_is_korean_only(language, candidate):
     with pytest.raises(ValueError, match="Korean only"):
-        prompts.eval_system_prompt(language, "voice-structured-ko-v7")
+        prompts.eval_system_prompt(language, candidate)
 
 
-@pytest.mark.parametrize("candidate", ["voice-structured-ko-v70", "voice-structured-ko-v7-custom"])
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        "voice-structured-ko-v70", "voice-structured-ko-v7-custom",
+        "voice-structured-ko-v80", "voice-structured-ko-v8-custom",
+    ],
+)
 def test_structured_candidate_has_no_unregistered_alias(candidate):
     with pytest.raises(ValueError, match="Unknown evaluation prompt candidate"):
         prompts.eval_system_prompt("ko", candidate)
+
+
+def test_v8_moves_only_the_immutable_v7_speech_card_and_adds_fixed_examples():
+    v7, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    v8, version = prompts.eval_system_prompt("ko", "voice-structured-ko-v8")
+    before, remainder = v7.split("[말하는 방식]\n", 1)
+    speech_card, information = remainder.split("[정보 사용 기준]\n", 1)
+    expected = (
+        before + "[정보 사용 기준]\n" + information.rstrip() + "\n\n"
+        + "[말하는 방식]\n" + speech_card.rstrip() + "\n\n"
+        + prompts._VOICE_DIRECT_EXAMPLES_KO_V8
+    )
+    assert v8 == expected
+    assert version == "cappy-voice-20261015-v8"
+    assert hashlib.sha256(v8.encode()).hexdigest() == (
+        "5aed2bbcb1346550c2ce558d8b81bad2bb18c4553e94655b79ec2ca3ba0069e9"
+    )
+    assert v8.index("[안전과 정체성]") < v8.index("[말하는 방식]") < v8.index("[말투 예시]")
+
+
+@pytest.mark.parametrize("boundary", ["[말하는 방식]\n", "[정보 사용 기준]\n"])
+def test_v8_rejects_ambiguous_fixed_speech_card_boundaries(monkeypatch, boundary):
+    monkeypatch.setattr(
+        prompts, "_VOICE_STRUCTURED_KO_V7", prompts._VOICE_STRUCTURED_KO_V7 + boundary
+    )
+    with pytest.raises(ValueError, match="boundary changed"):
+        prompts.eval_system_prompt("ko", "voice-structured-ko-v8")
+
+
+def test_v8_registered_factor_variants_isolate_order_and_examples_without_other_changes():
+    v7, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    v8, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v8")
+    order, order_version = prompts.eval_system_prompt("ko", "voice-structured-ko-v8-order")
+    examples, examples_version = prompts.eval_system_prompt("ko", "voice-structured-ko-v8-examples")
+    assert order_version == examples_version == "cappy-voice-20261015-v8"
+    suffix = "\n\n" + prompts._VOICE_DIRECT_EXAMPLES_KO_V8
+    assert examples == v7 + suffix
+    assert v8 == order + suffix
+    assert len(order.encode()) == len(v7.encode())
+    assert len(examples.encode()) == len(v8.encode())
+    assert order.index("[안전과 정체성]") < order.index("[말하는 방식]")
+    assert examples.index("[말하는 방식]") < examples.index("[정보 사용 기준]")
+    assert hashlib.sha256(order.encode()).hexdigest() == (
+        "5f99d6343b3a4af25dadb2f6498b743c924df8c0745aba937a05926ca1786500"
+    )
+    assert hashlib.sha256(examples.encode()).hexdigest() == (
+        "015fbfca97e78c5a2b961ec181abddd9874103cabfaff9425676221e535fdd95"
+    )

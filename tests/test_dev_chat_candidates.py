@@ -274,7 +274,10 @@ def test_plain_input_bound_counts_utf8_envelope(client, protocol_calls, candidat
     assert response.status_code == 422 and protocol_calls == []
 
 
-@pytest.mark.parametrize("candidate", ("voice-conversation-ko-v6", "voice-structured-ko-v7"))
+@pytest.mark.parametrize("candidate", (
+    "voice-conversation-ko-v6", "voice-structured-ko-v7", "voice-structured-ko-v8",
+    "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
+))
 def test_korean_candidates_dispatch_fixed_profile_and_reject_larger_cap(
     client, calls, protocol_calls, candidate,
 ):

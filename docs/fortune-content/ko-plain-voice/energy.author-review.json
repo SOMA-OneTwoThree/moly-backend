@@ -1,0 +1,633 @@
+{
+  "reviewer": "card_major_writer",
+  "review_kind": "author",
+  "criteria": "ko-plain-voice.1",
+  "status": "complete",
+  "actual_read_count": 156,
+  "readings": {
+    "energy.major.chariot.upright": {
+      "read_bundle_sha256": "4385d435f54aeabf073ecffd3bb10ad6996dc8b64d5003aec489119a902c1d0b",
+      "judgment": "몸이 잘 움직인다는 어색한 조합을 기운의 판단으로 수정; 수정된 전문 자체 재독"
+    },
+    "energy.major.chariot.reversed": {
+      "read_bundle_sha256": "fd4b6f91937074c1770ed0aa0c2faece763ff1c9221446f0bc8ab4c710cfdb18",
+      "judgment": "동작이 아프다는 결합을 움직일 때 아픈 조건으로 수정; 수정된 전문 자체 재독"
+    },
+    "energy.major.sun.upright": {
+      "read_bundle_sha256": "a08a7b6c5e22b60e73a1bd3301df4d37491e987158aa63e0b314489be124ab08",
+      "judgment": "활기와 일상적 회복 유지; 전문 자체 재독"
+    },
+    "energy.major.sun.reversed": {
+      "read_bundle_sha256": "ac9e8b2f16a7abaeb913ac69ebc45452a8013b1e07e58f3561463aae485ee507",
+      "judgment": "감소된 긍정과 남은 피로 유지; 전문 자체 재독"
+    },
+    "energy.major.moon.upright": {
+      "read_bundle_sha256": "bdd0b63842a4466d9944cabbd2efb66044e6fc9f2de84bc690244e19581c8e48",
+      "judgment": "모호함과 건강 불안을 유지하되 인터넷에서 증상을 봤다는 개인 경험은 삭제. 현행 전문 재독."
+    },
+    "energy.major.moon.reversed": {
+      "read_bundle_sha256": "03b48e4d0e71961596753a2eecae302ab92972ce5c399b8d19a0472158839ce7",
+      "judgment": "혼란 완화와 남은 불편함 확인 유지; 전문 자체 재독"
+    },
+    "energy.major.tower.upright": {
+      "read_bundle_sha256": "6c2c8a1b78fc4bb118b8b4e00a18c9025fc06249bf79b679ff781a060078b558",
+      "judgment": "갑작스러운 충격을 일상 부상 주의로 제한; 전문 자체 재독"
+    },
+    "energy.major.tower.reversed": {
+      "read_bundle_sha256": "943a9191520b947da7fd7ec5a94e860cbaeebbb6f89cab1e9abe0b237a13610c",
+      "judgment": "조기 발견과 약화된 충격 유지; 전문 자체 재독"
+    },
+    "energy.major.temperance.upright": {
+      "read_bundle_sha256": "47668962cdb3cae13b59bb4298d8b826104dabe9f68d70ac0601b02d42eafa37",
+      "judgment": "균형과 중용의 일상 건강 유지; 전문 자체 재독"
+    },
+    "energy.major.temperance.reversed": {
+      "read_bundle_sha256": "e914fe06dfa9e355faf441eb3ba8a1da35a62ae3dbb9fd8429691038c68b3894",
+      "judgment": "과도함과 반대 극단을 경계하는 의미 유지; 전문 자체 재독"
+    },
+    "energy.major.fool.upright": {
+      "read_bundle_sha256": "9ce4e0098274c3822e7964a8d4beb51f4c7ecbe4c4ca3a788d3a16eae8bd3137",
+      "judgment": "새 경험의 건강 주의 유지, 새 병명 없음; 전문 자체 재독"
+    },
+    "energy.major.fool.reversed": {
+      "read_bundle_sha256": "be97bf3f8607eacacee4290f147443814a7bc072b5979c0fd1e627e269bed1eb",
+      "judgment": "부주의와 결과 확인 생략 경계 유지; 전문 자체 재독"
+    },
+    "energy.major.magician.upright": {
+      "read_bundle_sha256": "744c5d1a7772bec1e5cb072ce4fd613f63604ae126f4a7cb6f8e9627eab94ed5",
+      "judgment": "알맞은 도움과 관리로 개선 가능성 유지; 전문 자체 재독"
+    },
+    "energy.major.magician.reversed": {
+      "read_bundle_sha256": "9fb2628a342d0d3af56ca42457b2e3c21fe5429f6aa99af2e49c1552e1de900b",
+      "judgment": "타인의 시선을 의식한다는 창작 동기 삭제; 수정된 전문 자체 재독"
+    },
+    "energy.major.high_priestess.upright": {
+      "read_bundle_sha256": "a3f9c0b9076b4b714e22816dcbfab1f147675524191aeca2745e0d368b436fd1",
+      "judgment": "고요와 이완 유지; 전문 자체 재독"
+    },
+    "energy.major.high_priestess.reversed": {
+      "read_bundle_sha256": "1effab32901714bb69d83c4172a29b6efa47449fd53a808e65c5dd8b9e84c17e",
+      "judgment": "놓친 피로와 자기 상태 외면 유지; 전문 자체 재독"
+    },
+    "energy.major.empress.upright": {
+      "read_bundle_sha256": "1b5704edeaf7d2364fea22accfbd5a086d7845fa15b8009781fd0bea7d8318e3",
+      "judgment": "돌봄과 풍요를 식사 만족으로 유지; 전문 자체 재독"
+    },
+    "energy.major.empress.reversed": {
+      "read_bundle_sha256": "3eb9be529c582c9f3b92e9ddcc6343307606707e8063f3655b3d8aba11d71d9b",
+      "judgment": "지나친 돌봄과 자기 필요 소홀 유지; 전문 자체 재독"
+    },
+    "energy.major.emperor.upright": {
+      "read_bundle_sha256": "954f3f2db3996f5dfc1133737405bb2f046722c11d87909791a050c947c16b53",
+      "judgment": "안정된 생활과 편한 몸 상태 유지; 전문 자체 재독"
+    },
+    "energy.major.emperor.reversed": {
+      "read_bundle_sha256": "fab04b8bbab48f9f77baa982d845f0d1c6525315765982ae0f7eadda48406a08",
+      "judgment": "경직된 통제와 몸 상태의 충돌 유지; 전문 자체 재독"
+    },
+    "energy.major.hierophant.upright": {
+      "read_bundle_sha256": "3c017a0f017ddf95c6d5ee2037b24a7b4c25fa84af5c1fcd1f4251857a9794ee",
+      "judgment": "신뢰할 조언과 기존 관리 유지; 전문 자체 재독; 어색하거나 행정적인 표현을 일상어로 바꾸고 전체 재독"
+    },
+    "energy.major.hierophant.reversed": {
+      "read_bundle_sha256": "387166fd9b09e836ae1599e55b333cc77e9ab499484a811831c125899e8fc089",
+      "judgment": "외부 관습과 개인 상태 불일치 유지; 전문 자체 재독"
+    },
+    "energy.major.lovers.upright": {
+      "read_bundle_sha256": "76c2291695a421c2d275f167f64049307c98fd9734f55e25a4e1cc8c0030ee5b",
+      "judgment": "상호 돌봄과 함께하는 건강 주의 유지; 전문 자체 재독"
+    },
+    "energy.major.lovers.reversed": {
+      "read_bundle_sha256": "c46cccdb00900b30909477b51f30044046b2fe2e31d0c13fbfe64964d7029684",
+      "judgment": "욕구와 필요한 휴식의 불일치 유지; 전문 자체 재독"
+    },
+    "energy.major.strength.upright": {
+      "read_bundle_sha256": "97c91dd49080c9e0f7492da48da2e2700b120148ca4c2d74f03bcbfdd6477140",
+      "judgment": "다이어트 개인 사연을 삭제하고 기운 회복과 무리하지 않는 뜻 유지; 수정된 전문 자체 재독"
+    },
+    "energy.major.strength.reversed": {
+      "read_bundle_sha256": "4d04db0dc2ea1528dde67f415262af204f9ac46dc6f97238ebb5f6bdbec95ce7",
+      "judgment": "좋아지는 상태와 자기 의심의 차이 유지; 전문 자체 재독"
+    },
+    "energy.major.hermit.upright": {
+      "read_bundle_sha256": "06552df9c4f60f461b59e51b931dae7d9abdad64b9096bc875e1d626bb35f986",
+      "judgment": "고요한 혼자 휴식과 수면 유지; 전문 자체 재독"
+    },
+    "energy.major.hermit.reversed": {
+      "read_bundle_sha256": "4712a4ede6904a2801bf82b8c2ba22160eb6ce64d948abf5449560efbb49c39a",
+      "judgment": "지나친 고립과 돌봄 지연 유지; 전문 자체 재독"
+    },
+    "energy.major.wheel_of_fortune.upright": {
+      "read_bundle_sha256": "7f126025059db13e592ddce90932365831b0b27b6a0e10f13342f095f8860027",
+      "judgment": "좋아지는 변화와 수면 회복 유지; 전문 자체 재독"
+    },
+    "energy.major.wheel_of_fortune.reversed": {
+      "read_bundle_sha256": "48ac041c64e84274c46ae1bf11e7f2cedcb71bf2c2319e146cfdce63958a05e1",
+      "judgment": "기대와 다른 상태 및 반복 불편함 유지; 전문 자체 재독"
+    },
+    "energy.major.justice.upright": {
+      "read_bundle_sha256": "bd758add5cbb933ca8c7f6eeb6630c3d018ec7e71db703ae04657b67c6833992",
+      "judgment": "좋아 보이려는 동기를 삭제하고 정확하게 증상 전달 유지; 수정된 전문 자체 재독"
+    },
+    "energy.major.justice.reversed": {
+      "read_bundle_sha256": "ff189f7798d7692ffe1d2aea748886d55fac2568c914dfb2fbab6b2a11ceaaff",
+      "judgment": "한쪽 판단에 치우치지 않는 확인 유지; 전문 자체 재독"
+    },
+    "energy.major.hanged_man.upright": {
+      "read_bundle_sha256": "c3297eef2dac768c991c09f93c48d6ebb67ae7644687b6b3e9a8b43a0669bdcb",
+      "judgment": "자발적인 멈춤과 휴식 가치 유지; 전문 자체 재독"
+    },
+    "energy.major.hanged_man.reversed": {
+      "read_bundle_sha256": "fd9ded29f35ed0d54a18bb8073b08ea4193194c1d771b656fe077645bc922aa7",
+      "judgment": "무의미한 지연과 일방 희생 유지; 전문 자체 재독"
+    },
+    "energy.major.death.upright": {
+      "read_bundle_sha256": "cdf73cc3216c4f95f441bd844231a0684e37c1a059fc19601c5ce400d6cf1662",
+      "judgment": "기존 무리한 방식의 종료 유지; 전문 자체 재독"
+    },
+    "energy.major.death.reversed": {
+      "read_bundle_sha256": "2d99ff948aeaa83ba8e352429cd0d4a72ad023c7b1a2730b1c449b2f37eb8f4c",
+      "judgment": "변화 저항과 정체 유지; 전문 자체 재독"
+    },
+    "energy.major.devil.upright": {
+      "read_bundle_sha256": "bd49488208e865b9b1725b4dc94d0bc390bf622108ae71e990862aeda0df5ced",
+      "judgment": "과도한 즐김과 멈추기 어려움 유지; 전문 자체 재독"
+    },
+    "energy.major.devil.reversed": {
+      "read_bundle_sha256": "0ed0c6659901534e3794a3a7efba23111c97a9cc393df1ddb3df804d153c3570",
+      "judgment": "해방과 과도한 섭취 중단 유지; 전문 자체 재독"
+    },
+    "energy.major.star.upright": {
+      "read_bundle_sha256": "14c458d475e9cbb799c4bb4fce74176e0f0b2b04768924d45613f7fe0e6094fd",
+      "judgment": "안심하며 쉬는 회복감 유지; 전문 자체 재독"
+    },
+    "energy.major.star.reversed": {
+      "read_bundle_sha256": "2553de402b4c355317d5ace3cb6af2c39da9c4162c5fc908fbba6fa2acdb7416",
+      "judgment": "낙담과 개선 지연의 불안 유지; 전문 자체 재독"
+    },
+    "energy.major.judgement.upright": {
+      "read_bundle_sha256": "e59eb3318bc073a0ce05c429d566a323cd81c2bfa88bbb5b791898b58c9cc3a9",
+      "judgment": "재확인과 관리 갱신 유지; 전문 자체 재독"
+    },
+    "energy.major.judgement.reversed": {
+      "read_bundle_sha256": "355be0ae913d328c24a2b09fa8a82f45fb5d0992cd57310ca25dc651e19dcdc7",
+      "judgment": "자기 비난과 확인 회피 유지; 전문 자체 재독"
+    },
+    "energy.major.world.upright": {
+      "read_bundle_sha256": "37965aab2f69d7cfbf9277565d72cb2067707a7cd6c3a2d2ad143837b81a6911",
+      "judgment": "안정과 마무리 확인 유지; 전문 자체 재독"
+    },
+    "energy.major.world.reversed": {
+      "read_bundle_sha256": "bcd31e13dffede46ab2bba2496556e8db4ba4f5b879c018de0bfd5fb8227e265",
+      "judgment": "마지막 미완성과 남은 불편함 유지; 전문 자체 재독"
+    },
+    "energy.cups.01.upright": {
+      "read_bundle_sha256": "fc596ca3dba8a061612152ce3accaf66ce9bfffb2fd1fdaed1ad3cab679d8de8",
+      "judgment": "영양과 만족을 쉬운 식사 경험으로 유지; 전문 자체 재독"
+    },
+    "energy.cups.01.reversed": {
+      "read_bundle_sha256": "2a89056dde8471170246fd303f438037cf22e902d15c0ce2e2d1f4f3a2a43705",
+      "judgment": "돌봄 공백과 지침 유지; 전문 자체 재독"
+    },
+    "energy.cups.02.upright": {
+      "read_bundle_sha256": "6a0903a80b20b871334e77609b4aed8ee714b8e884ae0fc45e44a044930d6374",
+      "judgment": "나눠준다는 모호한 동사를 함께해주는 도움으로 수정; 수정된 전문 자체 재독"
+    },
+    "energy.cups.02.reversed": {
+      "read_bundle_sha256": "d8ee19dd1311501bf425c287faf7c507bf3adbb3aa066b366c91cc0ac36efd84",
+      "judgment": "지나친 맞춤과 몸의 불균형 유지; 전문 자체 재독"
+    },
+    "energy.cups.03.upright": {
+      "read_bundle_sha256": "50269856c62a0b3959651545b9723ba4806eae43ba442a5bf0c340628d2b9289",
+      "judgment": "축하와 위안의 긍정 건강 상태 유지; 전문 자체 재독"
+    },
+    "energy.cups.03.reversed": {
+      "read_bundle_sha256": "b13354759191f822958e7f791466ef39cbc06b664cc340c4f2ba891a3ed41a20",
+      "judgment": "과도한 즐김과 모임 피로 유지; 전문 자체 재독"
+    },
+    "energy.cups.04.upright": {
+      "read_bundle_sha256": "f53616fe08b076762aa9520ee0ba7487bc21765fcb1e19d60ee51a0715379a86",
+      "judgment": "권태로 놓치는 기본 건강 관리 유지; 전문 자체 재독"
+    },
+    "energy.cups.04.reversed": {
+      "read_bundle_sha256": "ac06f0b63a5bd525b4ad1db192ffa2185129c78870ec038ec8067a4e3e1b30f6",
+      "judgment": "관심 재개와 건강 정보의 도움 유지; 전문 자체 재독"
+    },
+    "energy.cups.05.upright": {
+      "read_bundle_sha256": "7ef04425cb966dce44cecc01cf9374991ab6b8806793c028c648f1e56bf3fb78",
+      "judgment": "기대 이하 회복과 남은 상태 확인 유지; 전문 자체 재독"
+    },
+    "energy.cups.05.reversed": {
+      "read_bundle_sha256": "26ee464023447076718cd4027239fb7a12bafa07af46adcd5848786aa79a3594",
+      "judgment": "후회에서 벗어나 도움 수용 유지; 전문 자체 재독"
+    },
+    "energy.cups.06.upright": {
+      "read_bundle_sha256": "ae98ad8241961b8a22c90c8656b44a9ce78006e2f887937ed58af48123f254f8",
+      "judgment": "익숙함의 만족과 오래된 기억 경계 유지; 전문 자체 재독"
+    },
+    "energy.cups.06.reversed": {
+      "read_bundle_sha256": "d30e6760692dd365427c27275c5900f941e971e6f60dd1ee60a92e9b95844802",
+      "judgment": "과거와 현재 몸 상태 구분 유지; 전문 자체 재독; 자체 재독에서 동사 대상 결합을 평이하게 교정"
+    },
+    "energy.cups.07.upright": {
+      "read_bundle_sha256": "b23e631b92660c36b39c1bc9a81d5121a03290084f2d12e4b9f5ab326ef5bc1a",
+      "judgment": "매력적 정보의 불확실성과 과다 시도 유지; 전문 자체 재독"
+    },
+    "energy.cups.07.reversed": {
+      "read_bundle_sha256": "058fdf80d9628eddd563745d9437e7703c0d5cf5fdddf9f7c6e7af09a6511d3e",
+      "judgment": "선택과 불필요한 관리 축소 유지; 전문 자체 재독"
+    },
+    "energy.cups.08.upright": {
+      "read_bundle_sha256": "cea5a58867ed36adeebcdbbacbcc6f85ef28178e764af45180ae62b0be919c56",
+      "judgment": "맞지 않는 방식에서 떠남 유지; 전문 자체 재독"
+    },
+    "energy.cups.08.reversed": {
+      "read_bundle_sha256": "facab4e0ab5629557375928c381ac1321b156783585e9285773c82a8c3f51a97",
+      "judgment": "머무름과 변화 사이 망설임 유지; 전문 자체 재독"
+    },
+    "energy.cups.09.upright": {
+      "read_bundle_sha256": "c53eece1497c39894932147405f36abf96e7f74920433f3399344a6c120dc21e",
+      "judgment": "만족과 편안함, 과식 경계 유지; 전문 자체 재독"
+    },
+    "energy.cups.09.reversed": {
+      "read_bundle_sha256": "62c19618ae8318df4c24a0784b697a8988d7410ae8f58cacf7f9e1ec4e217688",
+      "judgment": "만족 부족과 과도한 즐김 유지; 전문 자체 재독"
+    },
+    "energy.cups.10.upright": {
+      "read_bundle_sha256": "2599cd59ffa1d3db5604b978807f266654f4e3a86c70a20cf3b1b30dbfee2388",
+      "judgment": "가정의 평온과 공동 안정 유지; 전문 자체 재독"
+    },
+    "energy.cups.10.reversed": {
+      "read_bundle_sha256": "b721ca21a29bddbd223abdf67b5ede760ab0b7abf03b390262f8490c00c51aa3",
+      "judgment": "가까운 생활의 불일치 유지; 전문 자체 재독"
+    },
+    "energy.cups.11.upright": {
+      "read_bundle_sha256": "0d77cc6f901c430f5f0967824be950e3f6f0ba4987ef4df0d3454e1d628b96f6",
+      "judgment": "새로운 표현과 호기심 유지; 전문 자체 재독; 자체 재독에서 동사 대상 결합을 평이하게 교정"
+    },
+    "energy.cups.11.reversed": {
+      "read_bundle_sha256": "603d14671d6c0f0a895343b328fd43f74bfcb1d7ad2c83848547e3d7ae42da71",
+      "judgment": "서투른 표현과 도움 지연 유지; 전문 자체 재독"
+    },
+    "energy.cups.12.upright": {
+      "read_bundle_sha256": "c22385601ebc9cdcfe982d3815f3f1b016180296afd97a7ce145bf07638cedea",
+      "judgment": "호의로운 제안과 자신의 상태 유지; 전문 자체 재독; 자체 재독에서 동사 대상 결합을 평이하게 교정"
+    },
+    "energy.cups.12.reversed": {
+      "read_bundle_sha256": "4181642f1190589e5070ef34ac0420711b9c8f1026f9d54d045ef9be05a62a94",
+      "judgment": "변덕과 관리의 이행 차이 유지; 전문 자체 재독"
+    },
+    "energy.cups.13.upright": {
+      "read_bundle_sha256": "e076d590cda3898f41fa352967d9daaee53d6d58bd862971dc8c910dede6206c",
+      "judgment": "세심한 공감과 실제 돌봄 유지; 전문 자체 재독"
+    },
+    "energy.cups.13.reversed": {
+      "read_bundle_sha256": "c1159413c2ef76fb1f804abd5f0b9e109784071ce0d7d85694558857138a5b8d",
+      "judgment": "과도한 돌봄과 자기 필요 유지; 전문 자체 재독"
+    },
+    "energy.cups.14.upright": {
+      "read_bundle_sha256": "2ead26b3924830350a9e88e6c5836f0e7592fa609fb5b207b690092a5188dc66",
+      "judgment": "감정 조절과 확인의 균형 유지; 전문 자체 재독"
+    },
+    "energy.cups.14.reversed": {
+      "read_bundle_sha256": "7fc9d7cf3e49df4453c9a0ff502d5317f4f38e8e42b34d1e02668c8aa8f1d5e6",
+      "judgment": "감정 억제와 도움 지연 유지; 전문 자체 재독"
+    },
+    "energy.swords.01.upright": {
+      "read_bundle_sha256": "47035b01c4bcdd26e44ceb5f952cf7357d66f9ca7a184b01bb13a1975393a9f7",
+      "judgment": "명료한 설명과 사실 확인 유지; 전문 자체 재독"
+    },
+    "energy.swords.01.reversed": {
+      "read_bundle_sha256": "4d63b426aca5fe477552a51e3ece2d468b8a85e066c2c9e1bde36271742bb5e9",
+      "judgment": "정보 오해와 약 혼동 주의 유지; 전문 자체 재독"
+    },
+    "energy.swords.02.upright": {
+      "read_bundle_sha256": "aff07bb30a896d8caa2e81a14e478bddf7797a2cabbc1f841099027888df73d7",
+      "judgment": "판단 정보 부족과 확인 시작 유지; 전문 자체 재독"
+    },
+    "energy.swords.02.reversed": {
+      "read_bundle_sha256": "faf098b0317ba662803d702ba86b9f6e1d53a2b48a2714bb3cc18eb053c526eb",
+      "judgment": "의견 과부하와 성급한 선택 유지; 전문 자체 재독"
+    },
+    "energy.swords.03.upright": {
+      "read_bundle_sha256": "d3b91fad7ba018b71f87e22a293e1b2bc86a7ca3f931631d1ce233343f915e98",
+      "judgment": "마음의 상처가 일상 돌봄을 놓치는 상황 유지; 전문 자체 재독"
+    },
+    "energy.swords.03.reversed": {
+      "read_bundle_sha256": "fe6ace125ae3bac106eb107abd2494a4381f647e69a20645fac387fdce1665ec",
+      "judgment": "감정 부담 완화와 일상 회복 유지; 전문 자체 재독"
+    },
+    "energy.swords.04.upright": {
+      "read_bundle_sha256": "5fd09efc77fb0250e09f7512bec014b0490b070302769ae8b2e3b0694b1d19c1",
+      "judgment": "휴식과 중단의 필요 유지; 전문 자체 재독"
+    },
+    "energy.swords.04.reversed": {
+      "read_bundle_sha256": "0b691ec81a17ff40db1f0e03dc5bbad2f0b6032c40490e93bce1391cc1c7f60e",
+      "judgment": "휴식 후 남은 피로와 조심스러운 재개 유지; 전문 자체 재독"
+    },
+    "energy.swords.05.upright": {
+      "read_bundle_sha256": "4ba8001652cd678a9f111357a88f8e71cc01b42eea59705d28317c29491bf31c",
+      "judgment": "상처 남기는 승리와 과도한 경쟁 유지; 전문 자체 재독"
+    },
+    "energy.swords.05.reversed": {
+      "read_bundle_sha256": "41d39cefb8076ccb95255219eeb1b958f279a8ca5f01a683697b3d81835d9f7e",
+      "judgment": "갈등 중단과 더 큰 신체 부담 방지 유지; 전문 자체 재독"
+    },
+    "energy.swords.06.upright": {
+      "read_bundle_sha256": "9ff738915c4574c5c4e1c41b9039a819dbc7931c28b00d70384b0e7fdc94eb63",
+      "judgment": "부담에서 벗어나는 이동 유지; 전문 자체 재독"
+    },
+    "energy.swords.06.reversed": {
+      "read_bundle_sha256": "87b6618600d302d73850cfab70a3358625953617730081591a87532e2aa470ed",
+      "judgment": "미해결 부담 재등장 유지; 전문 자체 재독"
+    },
+    "energy.swords.07.upright": {
+      "read_bundle_sha256": "c66f594bb7e3749c1268c20ce22a9ab2923a5b45b0e5d9097f734d37f47af325",
+      "judgment": "편법과 안전 생략 경계 유지; 전문 자체 재독"
+    },
+    "energy.swords.07.reversed": {
+      "read_bundle_sha256": "ab47b4b3f730e31eff6a88b08898a64d1065fea21e2012078f73c8d1d0d0c579",
+      "judgment": "솔직한 인정과 정확한 상태 공유 유지; 전문 자체 재독"
+    },
+    "energy.swords.08.upright": {
+      "read_bundle_sha256": "4e6911fd22f90fbccf1beac6876a32bda4f104b952b210ef7ad5e37246c01a7d",
+      "judgment": "구속감과 제한된 움직임 유지; 전문 자체 재독"
+    },
+    "energy.swords.08.reversed": {
+      "read_bundle_sha256": "05391fd042c2f6dc2b8b2f83116814fce3eaee73e166534aae8b935a4f4795a6",
+      "judgment": "제약 감소와 도움의 선택권 유지; 전문 자체 재독"
+    },
+    "energy.swords.09.upright": {
+      "read_bundle_sha256": "0904c2443a9c99b1c7bab9175ec6cbe493d70ce408e95c1f6e6c4d0b54cda1fa",
+      "judgment": "반복 걱정과 수면 방해 유지; 전문 자체 재독"
+    },
+    "energy.swords.09.reversed": {
+      "read_bundle_sha256": "a0a41444e22ee1b1e8f03563db81f9cb900d350f87310309f9a86c42c507df94",
+      "judgment": "증상 검색과 밤샘 개인 시나리오를 삭제하고 걱정 완화와 확인 유지; 수정 전문 자체 재독"
+    },
+    "energy.swords.10.upright": {
+      "read_bundle_sha256": "54966fbb32c1b27518c405d5e92c1fae1a9fc3d649577fa4a15b14c3823fffbb",
+      "judgment": "소진과 중단의 필요 유지; 전문 자체 재독"
+    },
+    "energy.swords.10.reversed": {
+      "read_bundle_sha256": "1a00b05ca36b10b277de82e3f93246407bb4726fcd98af454a176a152c95a040",
+      "judgment": "어려움 뒤 점진적 재개 유지; 전문 자체 재독"
+    },
+    "energy.swords.11.upright": {
+      "read_bundle_sha256": "a088eef87dca90cdb5b5041cff0d959614703afff932af7bdb9bad6425845b2d",
+      "judgment": "관찰과 위험 조기 발견 유지; 전문 자체 재독"
+    },
+    "energy.swords.11.reversed": {
+      "read_bundle_sha256": "b0e69be306b4ddfbcfb50f13846c96e2e8b33aa75aab948574141de6b368593b",
+      "judgment": "영상 시청 상황을 삭제하고 미숙한 활동과 도구 안전 유지; 수정 전문 자체 재독"
+    },
+    "energy.swords.12.upright": {
+      "read_bundle_sha256": "5617701dd6a35b65894d0b3d37cc27a6de79ab751fd8ac10e0449d7f47de720b",
+      "judgment": "빠른 추진의 부주의 경계 유지; 전문 자체 재독"
+    },
+    "energy.swords.12.reversed": {
+      "read_bundle_sha256": "775c9a4d2a1811808eecc09af516b63b3bd7dcf452809c64c999427fe5e18839",
+      "judgment": "과도한 활동과 감당 능력 부족 유지; 전문 자체 재독"
+    },
+    "energy.swords.13.upright": {
+      "read_bundle_sha256": "d59bff767e035c85adc94f2f853405b6596baf24f216d0ad9264e1c4fe25f38b",
+      "judgment": "독립적인 거리 두기와 휴식 유지; 전문 자체 재독"
+    },
+    "energy.swords.13.reversed": {
+      "read_bundle_sha256": "59453e15da1fd15a1bce189dcbef78108533bf949197519a642fbc736b9fde5f",
+      "judgment": "과거의 편견과 현재 판단 구분 유지; 전문 자체 재독"
+    },
+    "energy.swords.14.upright": {
+      "read_bundle_sha256": "3f53ac2e06f0069169cfbc19093ebe416c464a294b38a6be4955638dfa3eb201",
+      "judgment": "이성적인 안내와 기록 유지; 전문 자체 재독"
+    },
+    "energy.swords.14.reversed": {
+      "read_bundle_sha256": "d60aa7400631c413481ec82e75deb0c6949a81afb547e78b43ef62d9436ec972",
+      "judgment": "판매 재촉 상황을 삭제하고 건강 정보와 개인 적합성 확인 유지; 수정 전문 자체 재독"
+    },
+    "energy.wands.01.upright": {
+      "read_bundle_sha256": "faab326fd867d7eedd69beda7e207fb9dc25d6e777fb8af8a19121059ebf3d8c",
+      "judgment": "새 활동을 시작할 힘과 처음 쓰는 기구의 안전을 쉬운 말로 유지; 전문 자체 재독"
+    },
+    "energy.wands.01.reversed": {
+      "read_bundle_sha256": "0b39abe8278d3cf2365b56ddadc11d03d170c0e7c6d5bb576c4aafea3b4b3799",
+      "judgment": "출발 지체를 몸의 무거움으로 풀고 수면 부족 조건 유지; 전문 자체 재독"
+    },
+    "energy.wands.02.upright": {
+      "read_bundle_sha256": "891fba90270b2b0da399cb5d04ecbb55b3140f60d99ede71b959791d62315e12",
+      "judgment": "활동 범위를 넓히는 뜻과 현재 몸 상태 확인을 유지; 전문 자체 재독"
+    },
+    "energy.wands.02.reversed": {
+      "read_bundle_sha256": "e22974d9357e23dc3f71115b23366c5e7c8be98ec6dcd5eba9de81337130a81c",
+      "judgment": "변화의 불안을 낯선 동작의 긴장으로 쉽게 풂; 전문 자체 재독"
+    },
+    "energy.wands.03.upright": {
+      "read_bundle_sha256": "1c8bb0c5679c2c8f2bc0f8ae4d305a21bf575a8e5d4d86b2b3e572cfcf3c59cb",
+      "judgment": "협력으로 건강 관리 부담을 덜고 외출 뒤 휴식 유지; 전문 자체 재독"
+    },
+    "energy.wands.03.reversed": {
+      "read_bundle_sha256": "bfff8fb5084a4666b382576688968cd1699bffcb6fef6f741ad38c7c32871a6f",
+      "judgment": "예상보다 느린 호전과 무리한 일정 조정 유지; 전문 자체 재독"
+    },
+    "energy.wands.04.upright": {
+      "read_bundle_sha256": "c797e292879c59758a33ddee29422da6875504078d7e787158c845f305071bd2",
+      "judgment": "휴식과 완성의 기쁨을 직접 말하고 축하 자리 조건 유지; 전문 자체 재독"
+    },
+    "energy.wands.04.reversed": {
+      "read_bundle_sha256": "88af70cd9cf5a6a43326ce6143ee78f2d86127f9d6f3e68e3ff8d4dfce9005d6",
+      "judgment": "역방향의 편안함을 유지하고 정리와 안전을 쉬운 말로 표현; 전문 자체 재독"
+    },
+    "energy.wands.05.upright": {
+      "read_bundle_sha256": "9534389d4ed88a03ad38e0554e100e87876294b83732ab399fcebcf7931632ef",
+      "judgment": "경쟁의 부딪침 주의와 안전 규칙 유지; 전문 자체 재독"
+    },
+    "energy.wands.05.reversed": {
+      "read_bundle_sha256": "cc8b211b255c4c530361a90697b253fae29e8a86a0c986eb1c36e5757d8873ed",
+      "judgment": "다툼 때문에 주의가 흐트러지는 건강상 안전 주의 유지; 전문 자체 재독"
+    },
+    "energy.wands.06.upright": {
+      "read_bundle_sha256": "8b086470e41d01df61142d4963bb020cd385865872ec42e8bc21873acafc5d92",
+      "judgment": "타인 시선 동기 대신 외부 평가와 실제 몸 상태 차이 유지; 수정된 전문 자체 재독"
+    },
+    "energy.wands.06.reversed": {
+      "read_bundle_sha256": "63f2172a40bac6f38a2db18d9dee5fe89ee33adbb38b320e1a1f0abace666ca9",
+      "judgment": "타인 인정 욕구 사연을 제거하고 기대에 늦은 변화 유지; 수정된 전문 자체 재독"
+    },
+    "energy.wands.07.upright": {
+      "read_bundle_sha256": "20982619e41f21e302075b4ec2b98619a4dbf5816b9a329ef70c5b6d45f55c1f",
+      "judgment": "동작이 아프다는 어색한 결합 삭제; 수정된 전문 자체 재독"
+    },
+    "energy.wands.07.reversed": {
+      "read_bundle_sha256": "58eb34e41039f73efa4b34b25881c51be76eb8fefdc678597a262eee2422c17f",
+      "judgment": "요구를 거절 못해 생기는 몸의 부담과 휴식 지연 유지; 전문 자체 재독"
+    },
+    "energy.wands.08.upright": {
+      "read_bundle_sha256": "cf14c07795d0bc10112aaffedce74e612a36dadbaa5bdac4c5e299514031b417",
+      "judgment": "빠른 움직임의 안전 주의와 급한 식사 주의 유지; 전문 자체 재독"
+    },
+    "energy.wands.08.reversed": {
+      "read_bundle_sha256": "56093bed04f3a10b6f0f98f285ae488e6c9c5bcc27700f15b1bb4ebe7cf447ce",
+      "judgment": "말의 충돌과 급한 동작의 연결을 원문 안에서 유지; 전문 자체 재독"
+    },
+    "energy.wands.09.upright": {
+      "read_bundle_sha256": "c0157dc77d150ba4fcffab02271ec1f2e57402b2e750cb2486bd91fc05366e6e",
+      "judgment": "경험으로 위험을 피하는 뜻과 과거 통증 조건 유지; 전문 자체 재독"
+    },
+    "energy.wands.09.reversed": {
+      "read_bundle_sha256": "19d360b62807c980f35e6561a6b31201085141a5cc201efd9cfcf5fa2a29050b",
+      "judgment": "지나친 경계와 한꺼번에 무리하는 양쪽 주의 유지; 전문 자체 재독"
+    },
+    "energy.wands.10.upright": {
+      "read_bundle_sha256": "a30da3a33dc47afa638a1a3011452bebc55cd9e0869dbe440147158f89710153",
+      "judgment": "많은 책임을 몸의 부담으로 직접 풂; 전문 자체 재독"
+    },
+    "energy.wands.10.reversed": {
+      "read_bundle_sha256": "fdcfb87cda7ad2b9bd06dac61c13395cf0f7cf78cf4fa2a72eb3fc543d716f25",
+      "judgment": "분담하지 못한 부담과 도울 사람이 없는 조건 유지; 전문 자체 재독"
+    },
+    "energy.wands.11.upright": {
+      "read_bundle_sha256": "e7b42ecab9ccea0d09f18c153bb67f0bc284c561bcbee32767742c7edb087734",
+      "judgment": "새 건강 방법에 대한 호기심과 배우는 행동 유지; 전문 자체 재독"
+    },
+    "energy.wands.11.reversed": {
+      "read_bundle_sha256": "2af40eaa6b31cc755921c407ed0cbec99abf7dff75ea6506f09cc61bc3995064",
+      "judgment": "불필요한 영상 시청 상황 삭제; 수정된 전문 자체 재독"
+    },
+    "energy.wands.12.upright": {
+      "read_bundle_sha256": "37fec2571a48ab284560fa424c5c4ab54b7e81063290f1173e35a432967e49d2",
+      "judgment": "적극적 이동과 성급함의 안전 주의 유지; 전문 자체 재독"
+    },
+    "energy.wands.12.reversed": {
+      "read_bundle_sha256": "a8934fe326eae3f90e7b6313d5379553cd690ef0c706ecbcf523d191123beef1",
+      "judgment": "활동 중단과 성급함을 몸 상태에 맞추는 뜻 유지; 전문 자체 재독"
+    },
+    "energy.wands.13.upright": {
+      "read_bundle_sha256": "ebadaa53a67c7198f21b3cb7518f82a11c989b4f05385c6153aa1c5a8b911777",
+      "judgment": "생기와 바깥 활동의 즐거움에 기존 날씨 대비와 물 주의 유지; 전문 자체 재독"
+    },
+    "energy.wands.13.reversed": {
+      "read_bundle_sha256": "98d60f2811a94b2ab47215b6a77815a7449e63cf6c047c432f4d1dea924666b8",
+      "judgment": "비교와 자신감 저하 때문에 몸을 무리하게 바꾸는 주의 유지; 전문 자체 재독"
+    },
+    "energy.wands.14.upright": {
+      "read_bundle_sha256": "123df44ca6ce74db896cb5304c09d8a10390b86de7db47ed3dd0d0a2ed76f21c",
+      "judgment": "성실한 자기 관리와 책임 때문에 휴식 빼지 않는 뜻 유지; 전문 자체 재독"
+    },
+    "energy.wands.14.reversed": {
+      "read_bundle_sha256": "19d67df46bc96db51f6e55f8a3d378eca07341b1802a9ebe395b8397976ab9b9",
+      "judgment": "지나치게 엄격한 건강 관리와 몸의 부담 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.01.upright": {
+      "read_bundle_sha256": "cd13c3c3dfd02ffacab25957b91ded98d4e23df596665587d735a898c18dbc00",
+      "judgment": "물질적 여유를 식사와 휴식에 적용한 기존 뜻 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.01.reversed": {
+      "read_bundle_sha256": "e13be5ef995a22f3f0773ae134eb0700ad502bb3637445083cd97c73dbde2d04",
+      "judgment": "좋은 물건과 실제 몸의 만족이 다른 뜻 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.02.upright": {
+      "read_bundle_sha256": "cbb94a8c8f2888d3287f54429a7d1745fe03bb6fe13759d8680356bf094c20ba",
+      "judgment": "여러 일을 유연하게 조절하며 몸 부담을 덜어내는 뜻 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.02.reversed": {
+      "read_bundle_sha256": "10a7d368080b2feb9f51c3eeef253ad0cb537ac92d610a90d497d5ff724b0ef8",
+      "judgment": "억지로 일정을 유지하며 건강을 놓치는 뜻 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.03.upright": {
+      "read_bundle_sha256": "8089acfa94ec9cea6b9d77dc3e5499de02951204748ce770f1635275b4f3f9cd",
+      "judgment": "숙련된 안내로 자세를 배우고 불편함을 알리는 뜻 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.03.reversed": {
+      "read_bundle_sha256": "5c72d731ebf2e5f9db7ab538b0e71cdb4543d1690340f1950fd7f76e7c5513fd",
+      "judgment": "무엇을 옮기는지 없는 운반 상황을 제거하고 미숙한 자세와 도구 사용의 일반 부상 주의 유지; 수정 전문 자체 재독"
+    },
+    "energy.pentacles.04.upright": {
+      "read_bundle_sha256": "428b02f8be953bb819672a1ddb0121d6dbe691e177a7472218dd39a11458531d",
+      "judgment": "몸을 지키려는 지나친 긴장과 움직임 제한 조건 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.04.reversed": {
+      "read_bundle_sha256": "b76d50e37edea84411a564e9767e6db1bbd6afc98b942ea41c6d8cc4ae577e16",
+      "judgment": "진료 대기 지연과 증상 심화 조건 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.05.upright": {
+      "read_bundle_sha256": "bc82383fe4e84d25dd0a35cd4db227088da04589de25c48660407704b5f5370f",
+      "judgment": "자원 부족으로 건강을 돌보기 어려운 뜻과 도움 확인 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.05.reversed": {
+      "read_bundle_sha256": "94c6ee636d56e2f13f5de392e240eef796fca924add2178139b293dae1a81f6e",
+      "judgment": "건강 관리 방법의 혼란을 유지하고 진료에 알릴 대상을 명시; 전문 자체 재독"
+    },
+    "energy.pentacles.06.upright": {
+      "read_bundle_sha256": "4ddc1f37eab05b095dfeecb5b449bd43504984397367c9171e510d88ce7a68e4",
+      "judgment": "필요한 보살핌을 받고 바로 보답하려 무리하지 않는 뜻 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.06.reversed": {
+      "read_bundle_sha256": "75d57dd7fba503c51e742554c29cac34989643e263846d1c9e899d79b2bebc45",
+      "judgment": "질투와 욕심을 남의 방법 모방에 적용한 기존 의미 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.07.upright": {
+      "read_bundle_sha256": "e2a1d119e00945dd12350173c8045d80f044f3e930c285b184b45b8390c5f223",
+      "judgment": "쌓인 변화를 관찰하는 뜻과 체중 하루 변화의 과한 판단 주의 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.07.reversed": {
+      "read_bundle_sha256": "5201232687758a1df5e604fc3767eb702ca649aec4d903a9d8c96d6e18fa72cb",
+      "judgment": "건강 비용 우려와 빠른 효과를 기대하는 무리 주의 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.08.upright": {
+      "read_bundle_sha256": "20f403276d02a4a78123393b3db99c8d3b75e0fd1a1a2b116e30a4a926e605bc",
+      "judgment": "성실한 연습과 자세 습득을 몸의 편안함으로 전달; 전문 자체 재독"
+    },
+    "energy.pentacles.08.reversed": {
+      "read_bundle_sha256": "f10bd074cc49ff1ceeef9c2de470ffd083cb58a9cd79ad419179af408b43f519",
+      "judgment": "허영과 빠른 외형 변화 욕심의 건강 부담 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.09.upright": {
+      "read_bundle_sha256": "80b9c99a2262f7c9b8572556fec5254cdd91d6fb394177cdfd01d294574aa061",
+      "judgment": "풍요와 안전을 혼자 누리는 돌봄과 여유로 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.09.reversed": {
+      "read_bundle_sha256": "cafb0d7431a25b0535a0ebd2b8492938da05c1998a01b7617c3d32a5f2045ecb",
+      "judgment": "타인 시선 동기를 없애고 보이는 모습과 실제 상태 차이 유지; 수정된 전문 자체 재독"
+    },
+    "energy.pentacles.10.upright": {
+      "read_bundle_sha256": "15624fdbc449b8be8adc6ccf8f0b5b756a7bb3a3c22006b5cc9390b9de01d414",
+      "judgment": "가족 도움과 기록의 의미를 유지하고 약 공유 주의 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.10.reversed": {
+      "read_bundle_sha256": "53d4ca10514533a750b5edcf06318d19578b1dfa66b932d55eb7ddb641845042",
+      "judgment": "우연에 안전을 맡기는 뜻을 음식과 도구 상태 확인으로 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.11.upright": {
+      "read_bundle_sha256": "e2240ade3bf226067a590cdd64fb63608f8ec5c943381cc3e51cf0f39e3c71b4",
+      "judgment": "배움과 관리를 건강 설명과 복용법 이해로 전달; 전문 자체 재독"
+    },
+    "energy.pentacles.11.reversed": {
+      "read_bundle_sha256": "dc57dab69328123dae632ac81d93634f503ab3de50e6e23d198d2750068ce628",
+      "judgment": "즐거움에 관심이 쏠려 식사와 수면을 놓치는 뜻 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.12.upright": {
+      "read_bundle_sha256": "3b42d5dd68e648e697188b47fd9e5bb8167765f7b120614b084fd2c42b405b93",
+      "judgment": "느리고 꾸준한 관리와 안정된 몸 상태 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.12.reversed": {
+      "read_bundle_sha256": "009a09601ae04a722a6d6500a9c0f376c1f9ec10d7c640014143bfad0e4349a0",
+      "judgment": "무관심과 부주의를 위생과 지속 통증 확인으로 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.13.upright": {
+      "read_bundle_sha256": "719b0c1b6c58edf071b95bab6d2f66e5f4d4d24b135b87d3bc8dee53aa07bdef",
+      "judgment": "풍요와 돌봄을 편안한 식사와 자신의 휴식으로 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.13.reversed": {
+      "read_bundle_sha256": "d0ee8e41acfe21d2f28c91ad5d5de479284edef043c60804109c07bd0a8b89e2",
+      "judgment": "의심과 불안 때문에 식사가 불편한 뜻과 확인 필요 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.14.upright": {
+      "read_bundle_sha256": "776a282aefc14df907d881606619f06f6c159ff79acc220f1f3555d2fa3a583d",
+      "judgment": "배운 내용을 실천해 몸이 편해지는 뜻과 임의 증량 주의 유지; 전문 자체 재독"
+    },
+    "energy.pentacles.14.reversed": {
+      "read_bundle_sha256": "ab1b85520d5dbc9aaf204dac6c3e36f32ffdffdc5e7546b57579ce8ad2a35cc0",
+      "judgment": "물질적 과신과 욕심을 건강식품 과다 사용 주의로 유지; 전문 자체 재독"
+    }
+  }
+}

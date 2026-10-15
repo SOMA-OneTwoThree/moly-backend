@@ -1,0 +1,474 @@
+# 총평·행동 문구 전체 비교
+
+v8-localized.2 한국어 원고와 후속 교정 원고의 비교다.
+
+| 카드 | 필드 | 기존 | 새 원고 |
+| --- | --- | --- | --- |
+| overall.major.chariot.upright | headline | 오늘은 일이 잘 풀리는 날이야. | 오늘은 일이 잘 풀릴 거야. |
+| overall.major.chariot.upright | do | 예전에 실패한 뒤 미뤄둔 일이 있다면 다시 도전해봐. 지난번에 막힌 부분부터 살펴보며 이어가도 좋아. | 미뤄둔 일 마무리하기. |
+| overall.major.chariot.upright | pause | 새로 해보고 싶은 일이 생겨도 지금 하던 일을 끝낼 수 있다면, 중간에 멈추고 다른 일부터 벌이지는 마. | 여러 일을 한꺼번에 시작하기. |
+| overall.major.chariot.reversed | headline | 서두를수록 일이 꼬이기 쉬운 날이야. | 오늘은 일이 잘 안 풀릴 수 있어. |
+| overall.major.chariot.reversed | do | 하던 일이 멈췄다면 서둘러 다시 밀어붙이기 전에 어느 부분에서 막혔는지부터 살펴봐. | 일이 막힌 이유 살펴보기. |
+| overall.major.chariot.reversed | pause | 맡은 일이 밀렸다고 다른 일을 더 벌여 만회하려 하지는 마. 여러 일을 함께 끌고 가면 약속한 시간까지 놓칠 수 있어. | 하던 일을 두고 새 일 시작하기. |
+| overall.major.sun.upright | headline | 기쁜 소식이 들리고 하는 일이 잘 풀리는 날이야. | 오늘은 기쁘고 즐거운 하루가 될 거야. |
+| overall.major.sun.upright | do | 오래 애쓴 일에서 좋은 결과를 얻었다면, 함께 기뻐해줄 가까운 사람에게 어떻게 됐는지 알려봐. | 기쁜 소식 나누기. |
+| overall.major.sun.upright | pause | 기다리던 제안이 왔을 때 답을 계속 미루지는 마. 받아들이고 싶은 마음이 있다면 상대에게 뜻을 분명하게 전해줘. | 좋은 제안에 답 미루기. |
+| overall.major.sun.reversed | headline | 좋은 일은 생기지만 기대보다 작을 수 있어. | 좋은 일이 생겨도 조금 아쉬울 수 있어. |
+| overall.major.sun.reversed | do | 기대에는 못 미치더라도 잘된 일은 기뻐해줘. 결과가 아쉽다고 그동안 애써서 얻은 성과까지 없던 일로 여길 필요는 없어. | 잘된 일 기뻐하기. |
+| overall.major.sun.reversed | pause | 아직 결과가 나오지 않은 일은 기다려줘. 소식이 늦는 것과 잘못된 결과가 나온 것은 다르니 먼저 실패로 단정하지 마. | 결과를 미리 나쁘게 단정하기. |
+| overall.pentacles.03.upright | headline | 해온 일이 인정받고 함께하면 더 잘 풀릴 수 있어. | 오늘은 함께하면 일이 더 잘 풀릴 거야. |
+| overall.pentacles.03.upright | do | 함께할 일이 있다면, 자신이 어떤 부분을 잘할 수 있는지 먼저 말해서 그 부분을 맡아봐. | 잘하는 일 나눠 맡기. |
+| overall.pentacles.03.upright | pause | 상대가 더 잘 아는 부분까지 혼자 방법을 정하려고 하지는 마. 왜 그렇게 하자는지 듣고 맡겨보면 혼자 할 때보다 수월해질 수 있어. | 모든 일을 혼자 하려고 하기. |
+| overall.pentacles.03.reversed | headline | 서툰 부분이 드러나 일을 다시 할 수 있어. | 오늘은 실수하기 쉬운 날이야. |
+| overall.pentacles.03.reversed | do | 익숙하지 않은 일을 마쳤다면 해본 사람에게 빠뜨린 것이 없는지 물어봐. 혼자서는 놓친 부분도 설명을 들으면 고칠 수 있어. | 잘 모르는 부분 물어보기. |
+| overall.pentacles.03.reversed | pause | 부족한 점을 지적받았다고 곧바로 변명하며 다툼으로 만들지는 마. 무엇을 고치면 되는지 들으면 같은 일을 다시 하는 수고를 줄일 수 있어. | 실수한 뒤에 변명하기. |
+| overall.major.fool.upright | headline | 새로 시작하는 일에 좋은 기회가 따르는 날이야. | 새로 시작하는 일에서 기쁨을 얻을 수 있어. |
+| overall.major.fool.upright | do | 시작할지 고민만 하던 활동이 있다면 하루 정도 직접 해봐. 직접 경험하면 나와 잘 맞는 활동인지 판단하기 쉬워. | 관심 있던 일 시작하기. |
+| overall.major.fool.upright | pause | 새로 해보려는 활동은 직접 경험하기도 전에 오래 다니겠다고 정하지는 마. 계속할지는 하루라도 해본 뒤 결정해줘. | 해보기도 전에 오래 하겠다고 약속하기. |
+| overall.major.fool.reversed | headline | 준비 없이 나섰다가 일을 다시 할 수 있어. | 오늘은 덤벙대다가 실수하기 쉬워. |
+| overall.major.fool.reversed | do | 처음 가는 곳이라면 출발 전에 이용 시간과 챙겨야 할 것을 확인해봐. 가볍게 생각하고 나섰다가 헛걸음할 수 있어. | 빠뜨린 준비물 확인하기. |
+| overall.major.fool.reversed | pause | 금방 끝날 것 같다고 다음 약속을 바로 이어 잡지는 마. 예상보다 시간이 더 걸려 뒤의 약속까지 늦어질 수 있어. | 내용을 모르면서 약속하기. |
+| overall.major.magician.upright | headline | 준비해온 일을 시작하면 성과를 낼 수 있어. | 잘하는 일에서 좋은 결과를 얻을 수 있어. |
+| overall.major.magician.upright | do | 풀리지 않는 문제가 있다면, 예전에 배운 방법 중 지금 문제에 쓸 수 있는 것을 골라 직접 해봐. | 배워둔 방법 써보기. |
+| overall.major.magician.upright | pause | 더 배워야 한다는 이유로 이미 준비한 일까지 미루지는 마. 지금 할 줄 아는 것으로 시작할 수 있는지 먼저 살펴줘. | 준비만 하며 시작 미루기. |
+| overall.major.magician.reversed | headline | 그럴듯한 약속이 실제 결과로 이어지지 않을 수 있어. | 믿었던 말에 실망할 수 있어. |
+| overall.major.magician.reversed | do | 쉽게 할 수 있다는 제안을 받으면, 상대가 무엇을 준비해두었는지 물어봐. 설명에 빠진 조건이 없는지도 확인해줘. | 약속한 대로 준비됐는지 확인하기. |
+| overall.major.magician.reversed | pause | 상대를 안심시키려고 아직 할 줄 모르는 일까지 가능하다고 약속하지는 마. 실제로 해줄 수 있는 만큼만 말해줘. | 할 수 없는 일 약속하기. |
+| overall.major.high_priestess.upright | headline | 결과는 늦어도 중요한 단서를 찾을 수 있어. | 오래 고민한 문제의 답을 찾을 수 있어. |
+| overall.major.high_priestess.upright | do | 설명을 끝까지 들은 뒤에도 이해가 안 되는 부분이 있다면 물어봐. 잘 이해하지 못한 부분에 문제를 풀 단서가 있을 수 있어. | 설명을 끝까지 듣기. |
+| overall.major.high_priestess.upright | pause | 원하는 답이 늦는다고 아는 내용만으로 서둘러 결정하지는 마. 아직 나오지 않은 중요한 이야기가 있을 수 있어. | 이야기를 다 듣기 전에 결론 내리기. |
+| overall.major.high_priestess.reversed | headline | 대충 안다고 넘긴 일에서 착오가 생기기 쉬워. | 잘못 알고 있던 일 때문에 곤란할 수 있어. |
+| overall.major.high_priestess.reversed | do | 누군가를 도우려 한다면 먼저 어떤 사정인지 충분히 물어봐. 사정을 대충 짐작하고 나서면 정작 필요한 도움을 주지 못할 수 있어. | 확실히 모르는 부분 다시 물어보기. |
+| overall.major.high_priestess.reversed | pause | 직접 들은 이야기에 자신의 짐작을 섞어 전하지는 마. 확실히 모르는 부분은 모른다고 말해야 오해를 줄일 수 있어. | 짐작한 일을 사실처럼 말하기. |
+| overall.major.empress.upright | headline | 공들인 일이 결실을 맺고 도움도 따르는 날이야. | 애쓴 일이 잘되고 도움도 받을 수 있어. |
+| overall.major.empress.upright | do | 함께 애쓴 일이 잘됐다면 도와준 사람에게도 좋은 결과를 알려줘. 고맙다는 말과 함께 기쁨을 나눠봐. | 도와준 사람에게 고맙다고 말하기. |
+| overall.major.empress.upright | pause | 주변에서 잘 도와준다고 필요한 도움을 당연한 듯 요구하지는 마. 도와주는 데 드는 상대의 시간과 수고도 생각해줘. | 받은 도움을 당연하게 여기기. |
+| overall.major.empress.reversed | headline | 들인 수고에 비해 결과가 적어 아쉬울 수 있어. | 애쓴 만큼 잘되지 않아 아쉬울 수 있어. |
+| overall.major.empress.reversed | do | 남의 일을 충분히 도왔는데 자신의 일이 밀리고 있다면 자기 일을 먼저 마쳐줘. 도와주던 일에서 남은 부분은 상대가 끝내도록 맡겨도 돼. | 미뤄둔 자신의 일 끝내기. |
+| overall.major.empress.reversed | pause | 고맙다는 말을 못 들었다고 남의 일을 더 많이 대신해주지는 마. 더 애써도 기대한 반응이 돌아오지 않을 수 있어. | 남이 할 일까지 계속 대신하기. |
+| overall.major.emperor.upright | headline | 믿을 만한 도움으로 일이 순조롭게 풀릴 수 있어. | 든든한 도움을 받아 일이 잘 풀릴 거야. |
+| overall.major.emperor.upright | do | 감당하기 어려운 부탁을 받았다면 비슷한 일을 해본 사람에게 상의해봐. 혼자 결정하기 어려운 부분을 짚어 이야기해줘. | 믿을 만한 사람에게 도움 청하기. |
+| overall.major.emperor.upright | pause | 이미 도와주기로 한 사람이 있다면, 그 사람에게 맡긴 일까지 전부 혼자 떠맡으려 하지는 마. | 도움받을 수 있는 일도 혼자 하려고 하기. |
+| overall.major.emperor.reversed | headline | 일방적인 결정 때문에 일이 막힐 수 있어. | 서로 고집을 부려 일이 막힐 수 있어. |
+| overall.major.emperor.reversed | do | 이미 정한 약속을 바꾸자는 말을 들었다면 어떤 사정이 달라졌는지 물어봐. 원래 약속과 비교해 바꿀 필요가 있는지 살펴줘. | 함께할 사람의 생각 듣기. |
+| overall.major.emperor.reversed | pause | 결정할 권한이 자신에게 있다고 다른 사람의 사정까지 무시하지는 마. 함께할 사람의 말을 들어야 협조를 구하기도 쉬워져. | 다른 사람의 사정을 무시하고 결정하기. |
+| overall.major.hierophant.upright | headline | 경험 있는 사람의 조언으로 막힌 일이 풀릴 수 있어. | 좋은 조언을 듣고 문제를 풀 수 있어. |
+| overall.major.hierophant.upright | do | 낯선 일을 앞두고 있다면 안내를 읽고 모르는 부분을 경험자에게 물어봐. 먼저 겪어본 사람에게서 놓치기 쉬운 점을 들을 수 있어. | 잘 모르는 부분 물어보기. |
+| overall.major.hierophant.upright | pause | 번거로워 보인다고 필요한 절차를 마음대로 건너뛰지는 마. 검증된 순서대로 하는 편이 일을 다시 하는 수고를 줄일 수 있어. | 필요한 순서를 마음대로 건너뛰기. |
+| overall.major.hierophant.reversed | headline | 익숙한 방식이 막히면 다른 길에서 답을 찾을 수 있어. | 방법을 바꾸면 일이 잘 풀릴 수 있어. |
+| overall.major.hierophant.reversed | do | 권유받은 방법이 자신의 사정에 맞지 않으면 어떤 점이 어려운지 말해봐. 그대로 따라야 한다고 생각하기보다 다른 방법을 의논해줘. | 자신에게 맞는 방법 찾기. |
+| overall.major.hierophant.reversed | pause | 늘 그렇게 해왔다는 이유만으로 잘 안 풀리는 방식을 고집하지는 마. 지금 상황에도 맞는 방법인지 살펴볼 필요가 있어. | 남들이 한다는 이유로 따라 하기. |
+| overall.major.moon.upright | headline | 확실하지 않은 이야기 때문에 판단을 잘못하기 쉬워. | 헷갈리는 말 때문에 판단을 잘못할 수 있어. |
+| overall.major.moon.upright | do | 중요한 결정을 앞두고 있다면 전해 들은 이야기가 맞는지 직접 확인해봐. | 전해 들은 말이 사실인지 확인하기. |
+| overall.major.moon.upright | pause | 걱정스러운 이야기를 들었다고 곧바로 상대에게 따지지는 마. 실제보다 나쁘게 받아들여 오해한 상태일 수 있어. | 소문만 듣고 따지기. |
+| overall.major.moon.reversed | headline | 헷갈리던 일이 분명해지고 걱정이 줄어들 수 있어. | 오해가 풀리고 걱정도 줄어들 수 있어. |
+| overall.major.moon.reversed | do | 그동안 헷갈렸던 일의 사정을 알게 됐다면, 새로 확인한 내용에 맞춰 계획을 고쳐봐. | 새로 확인한 내용에 맞춰 계획 고치기. |
+| overall.major.moon.reversed | pause | 오해가 풀렸다고 아직 듣지 못한 답까지 좋을 거라고 단정하지 마. 확인된 부분과 더 기다려야 할 부분은 구분해줘. | 아직 모르는 일까지 좋게 단정하기. |
+| overall.major.tower.upright | headline | 뜻밖의 차질로 당황할 수 있는 날이야. | 잘되던 일이 갑자기 어긋날 수 있어. |
+| overall.major.tower.upright | do | 뜻밖의 소식을 들었다면 바로 결론을 내리기 전에 무슨 사정이 있었는지 설명을 충분히 들어봐. | 무슨 일이 있었는지 설명 듣기. |
+| overall.major.tower.upright | pause | 놀라거나 화가 난 채로 곧바로 답하지는 마. 따지고 싶은 말이 떠올라도 잠깐 시간을 두면 후회할 말을 줄일 수 있어. | 화가 난 채로 바로 따지기. |
+| overall.major.tower.reversed | headline | 걱정했던 큰 고비를 무사히 넘길 수 있어. | 걱정했던 고비를 무사히 넘길 수 있어. |
+| overall.major.tower.reversed | do | 잘못한 일이 드러났다면 그 일과 관련된 사람에게 사정을 솔직하게 알려줘. 지금 인정하는 편이 뒤늦게 수습할 부담을 줄일 수 있어. | 잘못한 일 솔직하게 인정하기. |
+| overall.major.tower.reversed | pause | 걱정했던 일이 조용히 지나간다고 이미 드러난 문제까지 가볍게 넘기지는 마. 아직 바로잡을 수 있을 때 살펴줘. | 문제를 알고도 숨기기. |
+| overall.major.temperance.upright | headline | 큰 탈 없이 일이 풀리고 걱정이 잦아드는 날이야. | 오늘은 큰 걱정 없이 편안할 거야. |
+| overall.major.temperance.upright | do | 도움을 받아 일이 풀렸다면 그냥 지나치지 말고, 어떤 점이 고마웠는지 도와준 사람에게 전해봐. | 도와준 사람에게 고맙다고 말하기. |
+| overall.major.temperance.upright | pause | 문제가 조금씩 풀리고 있다면, 잘 도와주고 있는 사람에게 더 빨리 끝내달라며 재촉하지는 마. | 잘되고 있는 일도 빨리 끝내라고 재촉하기. |
+| overall.major.temperance.reversed | headline | 작은 일이 잇달아 어긋나 번거로울 수 있어. | 작은 일이 자꾸 어긋나 답답할 수 있어. |
+| overall.major.temperance.reversed | do | 일이 늦어지고 있다면 지금 마칠 수 있는 부분부터 끝내봐. 밀린 일을 한꺼번에 만회하려고 계획 전체를 바꿀 필요는 없어. | 지금 끝낼 수 있는 일부터 하기. |
+| overall.major.temperance.reversed | pause | 일이 뜻대로 안 된다고 다른 사람의 사소한 말에 언성을 높이지는 마. 평소라면 넘겼을 말인지 생각한 뒤 대답해줘. | 뜻대로 안 된다고 남에게 화내기. |
+| overall.major.lovers.upright | headline | 뜻이 맞는 사람과 함께하면 일이 잘 풀릴 수 있어. | 뜻이 맞는 사람과 일이 잘 풀릴 거야. |
+| overall.major.lovers.upright | do | 함께 결정할 일이 있다면, 상대에게 맞추기 전에 각자 꼭 원하는 조건이 무엇인지 이야기해봐. | 서로 원하는 것 이야기하기. |
+| overall.major.lovers.upright | pause | 겉으로 좋은 조건만 보고 내키지 않는 선택에 동의하지는 마. 나중에 마음에 걸리지 않도록 자신이 납득할 수 있는지 살펴줘. | 내키지 않는 조건에 무조건 동의하기. |
+| overall.major.lovers.reversed | headline | 서로 원하는 것이 달라 결정이 어려울 수 있어. | 서로 생각이 달라 다투기 쉬워. |
+| overall.major.lovers.reversed | do | 함께하기로 한 일이 있다면 각자 무엇을 기대하는지 미리 이야기해봐. 같은 약속을 서로 다르게 이해하고 있을 수 있어. | 동의하기 전에 자신의 생각 말하기. |
+| overall.major.lovers.reversed | pause | 분위기를 깨기 싫다는 이유로 마음에 들지 않는 조건까지 받아들이지는 마. 불편한 이야기를 미루면 나중에 다툼이 더 커질 수 있어. | 분위기에 휩쓸려 약속하기. |
+| overall.major.strength.upright | headline | 쉽지 않던 일도 끝내 좋은 결과를 낼 수 있어. | 어려웠던 일도 잘해낼 수 있어. |
+| overall.major.strength.upright | do | 오래 애쓴 일이 쉽게 풀리지 않더라도, 당장 결과가 보이지 않는다는 이유로 멈추기보다 하던 대로 이어가봐. | 해오던 일 꾸준히 이어가기. |
+| overall.major.strength.upright | pause | 부탁의 답이 늦어진다고 큰소리로 몰아붙이지는 마. 급한 마음을 앞세우기보다 그 부탁이 왜 필요한지 차분히 설명하는 편이 좋아. | 결과가 늦다고 하던 일 포기하기. |
+| overall.major.strength.reversed | headline | 작은 방해에도 일이 중단되기 쉬운 날이야. | 작은 실수에도 쉽게 자신감을 잃을 수 있어. |
+| overall.major.strength.reversed | do | 하던 일에서 자꾸 막히는 부분이 있다면 도움을 구해봐. 어디서 어려움을 겪는지 설명하고 그 부분부터 함께 해결해줘. | 어려운 부분에 도움 구하기. |
+| overall.major.strength.reversed | pause | 다른 사람이 한 말에 화가 났다고 하던 일을 전부 그만두지는 마. 감정이 가라앉은 뒤에도 그만두고 싶은지 살펴보고 결정해줘. | 잠깐 막혔다고 하던 일 포기하기. |
+| overall.major.hermit.upright | headline | 조용히 살펴보면 오래 막힌 일의 답을 찾을 수 있어. | 오래 고민한 문제를 풀 수 있어. |
+| overall.major.hermit.upright | do | 오래 고민한 일에 조언이 필요하다면 조용한 자리에서 이야기를 나눠봐. 여러 사람 앞에서보다 궁금한 점을 차분히 묻기 좋아. | 고민하던 문제 차근차근 살펴보기. |
+| overall.major.hermit.upright | pause | 답을 빨리 찾고 싶다고 들은 의견을 모두 따라가지는 마. 여러 조언 중 자신의 문제에 필요한 내용부터 골라 생각해줘. | 여러 사람의 말을 무작정 따라 하기. |
+| overall.major.hermit.reversed | headline | 혼자 해결하려던 일이 더 오래 막힐 수 있어. | 혼자 고민하던 일이 더 오래 막힐 수 있어. |
+| overall.major.hermit.reversed | do | 혼자 해결하지 못한 일이 있다면 어떤 도움이 필요한지 구체적으로 말해봐. 어디까지 해봤고 무엇이 남았는지 알려줘도 좋아. | 어떤 도움이 필요한지 말하기. |
+| overall.major.hermit.reversed | pause | 한동안 연락이 없었다고 도움을 청해도 소용없을 거라 단정하지는 마. 먼저 말하지 않았다면 상대는 무슨 일인지 모를 수 있어. | 어려운 일을 혼자만 숨기기. |
+| overall.major.wheel_of_fortune.upright | headline | 뜻밖의 기회로 막혔던 일이 풀릴 수 있어. | 뜻밖의 행운으로 일이 잘 풀릴 수 있어. |
+| overall.major.wheel_of_fortune.upright | do | 반가운 제안을 받았다면 참여할 수 있는 때를 확인하고, 답을 미루다 기회를 놓치지 않게 뜻을 전해줘. | 좋은 제안에 제때 답하기. |
+| overall.major.wheel_of_fortune.upright | pause | 전에 잘 안됐던 일이라고 다시 해볼 기회까지 바로 넘기지는 마. 지난번과 달라진 사정이 있는지 듣고 판단해줘. | 지난 실패만 생각하며 기회 넘기기. |
+| overall.major.wheel_of_fortune.reversed | headline | 예상 밖의 사정으로 일이 늦어질 수 있어. | 잘 준비한 일도 뜻밖에 늦어질 수 있어. |
+| overall.major.wheel_of_fortune.reversed | do | 기다리던 일이 늦어졌다면 바뀐 사정을 확인한 뒤, 그 일이 끝날 때에 맞춰 잡아둔 계획도 조정해줘. | 늦어진 일의 사정 확인하기. |
+| overall.major.wheel_of_fortune.reversed | pause | 오늘 안에 끝날 거라는 예상만으로 다음 약속까지 확정하지는 마. 자신의 잘못이 없어도 바깥 사정 때문에 더 기다릴 수 있어. | 오늘 끝날 거라 단정하고 다음 약속 잡기. |
+| overall.major.justice.upright | headline | 애쓴 만큼 공정한 결과를 받을 수 있어. | 억울한 일이 풀리고 제 몫을 찾을 수 있어. |
+| overall.major.justice.upright | do | 서로 기억하는 약속이 다르다면 당시 약속을 남긴 기록을 함께 확인해봐. 누가 더 확신하는지보다 실제로 무엇을 정했는지가 중요해. | 서로 약속한 내용 확인하기. |
+| overall.major.justice.upright | pause | 자신의 몫을 요구하면서 불리한 사실만 빼놓고 말하지는 마. 불리한 부분도 밝혀야 상대에게 사실대로 말해달라고 요구할 수 있어. | 자신에게 유리한 사실만 말하기. |
+| overall.major.justice.reversed | headline | 제대로 한 일도 억울한 말을 들을 수 있어. | 잘한 일에도 억울한 말을 들을 수 있어. |
+| overall.major.justice.reversed | do | 잘못 전해진 이야기로 오해를 받았다면, 사실과 다른 부분을 짚어 차분히 설명해줘. | 잘못 전해진 사실 바로잡기. |
+| overall.major.justice.reversed | pause | 억울한 마음에 확실히 모르는 이야기까지 보태 맞받아치지는 마. 사실을 말한 부분까지 의심받을 수 있어. | 억울하다고 과장해서 말하기. |
+| overall.major.hanged_man.upright | headline | 기다리는 일이 길어져도 서두르지 않는 편이 유리해. | 기다리던 답이 늦어질 수 있어. |
+| overall.major.hanged_man.upright | do | 기다리는 답이 늦어진다면 상대에게 어떤 이유가 있는지 들어봐. 놓쳤던 사정을 알면 다른 방법을 생각해볼 수 있어. | 답이 늦어지는 이유 들어보기. |
+| overall.major.hanged_man.upright | pause | 오늘 꼭 끝내야 할 일이 아니라면 당장 결론을 달라고 재촉하지는 마. 시간을 더 줬을 때 나은 답을 들을 수도 있어. | 당장 결론을 내라고 재촉하기. |
+| overall.major.hanged_man.reversed | headline | 기약 없이 기다리면 하루가 허무하게 지날 수 있어. | 기다려도 일이 나아지지 않을 수 있어. |
+| overall.major.hanged_man.reversed | do | 답이 오지 않는 일을 계속 기다리기보다, 상대에게 언제까지 답을 줄 수 있는지 분명히 물어봐. | 언제까지 답을 줄 수 있는지 묻기. |
+| overall.major.hanged_man.reversed | pause | 자신만 계속 양보해온 일이라면 이번에도 무조건 기다려주겠다고 약속하지는 마. 같은 부담이 다시 돌아올 수 있어. | 기약 없이 계속 기다려주기. |
+| overall.major.death.upright | headline | 오래 이어온 일이 끝나고 다음 길이 열릴 수 있어. | 오래 붙들던 일이 끝날 수 있어. |
+| overall.major.death.upright | do | 오래 이어온 일이 끝났다면, 아직 하지 못한 마무리 인사나 남은 정리까지 마쳐줘. | 마무리 인사 전하기. |
+| overall.major.death.upright | pause | 오래 애쓴 일의 결론이 아쉽더라도, 이미 끝난 일을 예전처럼 되돌리려고 계속 매달리지는 마. | 이미 끝난 일을 되돌리려 매달리기. |
+| overall.major.death.reversed | headline | 끝낼 일을 미루면 같은 문제가 되풀이될 수 있어. | 같은 문제가 다시 생길 수 있어. |
+| overall.major.death.reversed | do | 더 이어갈 생각이 없는 일이라면 그만하겠다는 뜻을 분명히 전해줘. 나중에는 할 수도 있다는 여지를 남기지 않는 게 좋아. | 그만둘 일에 분명히 답하기. |
+| overall.major.death.reversed | pause | 같은 문제가 계속 생기고 있다면, 익숙하다는 이유만으로 지금까지 해온 방법을 고집하지는 마. | 거절할 일을 계속 미루기. |
+| overall.major.devil.upright | headline | 눈앞의 유혹을 좇으면 뒤에 부담이 남을 수 있어. | 솔깃한 제안 때문에 곤란해질 수 있어. |
+| overall.major.devil.upright | do | 솔깃한 제안을 받았다면 이익뿐 아니라 자신이 해줘야 할 일도 물어봐. 얻는 것에 비해 따라오는 요구가 클 수 있어. | 제안을 받으면 해야 할 일도 확인하기. |
+| overall.major.devil.upright | pause | 그만두고 싶었던 일을 이번 한 번만이라는 말에 다시 맡지는 마. 당장 거절하기 어렵더라도 나중에 남을 부담을 생각해줘. | 부담스러운 일을 덥석 받아들이기. |
+| overall.major.devil.reversed | headline | 부담스러운 일에서 벗어날 기회가 생길 수 있어. | 부담스러운 일에서 벗어날 수 있어. |
+| overall.major.devil.reversed | do | 부담스러운 부탁을 더는 맡고 싶지 않다면, 길게 둘러 말하지 말고 거절한다는 뜻을 분명히 전해줘. | 부담스러운 부탁 분명히 거절하기. |
+| overall.major.devil.reversed | pause | 더는 맡지 않기로 한 부탁을 미안한 마음에 다시 받아주지는 마. 한 번만 더 도우려다가 같은 부담을 계속 질 수 있어. | 거절한 부탁을 미안해서 다시 받아주기. |
+| overall.major.star.upright | headline | 막막했던 일에 희망적인 소식이 들릴 수 있어. | 답답했던 일이 조금씩 나아질 수 있어. |
+| overall.major.star.upright | do | 잘 풀리지 않아 잠시 멈춘 일이 있다면 지금 다시 할 수 있는 부분부터 이어가봐. 곧바로 큰 결과까지 낼 필요는 없어. | 잠시 멈췄던 일 다시 시작하기. |
+| overall.major.star.upright | pause | 도움이 필요한데도 도와주겠다는 사람에게 괜찮다고만 답하지는 마. 어려운 부분을 알려줘야 상대도 무엇을 해줄지 알 수 있어. | 도움이 필요한데도 괜찮다고만 말하기. |
+| overall.major.star.reversed | headline | 기다린 소식이 늦어져 실망하기 쉬운 날이야. | 바라던 만큼 잘되지 않아 실망할 수 있어. |
+| overall.major.star.reversed | do | 기다리던 소식이 늦어진다면 일이 어디까지 진행됐는지 물어봐. 아직 결론이 나지 않은 건지, 실제로 어려워진 건지 알아두면 좋아. | 기다리는 일의 진행 상황 묻기. |
+| overall.major.star.reversed | pause | 기대한 만큼 일이 나아지지 않는다고 필요한 연락을 끊거나 도움까지 거절하지는 마. 실망해서 끊은 대화를 나중에 다시 시작하기 어려울 수 있어. | 답이 늦는다고 일찍 포기하기. |
+| overall.major.judgement.upright | headline | 다시 온 기회에서 좋은 결과를 얻을 수 있어. | 다시 도전할 기회가 생길 수 있어. |
+| overall.major.judgement.upright | do | 다시 도전할 기회가 왔다면, 지난번에 잘 안됐던 부분을 먼저 고쳐서 같은 실수가 반복되지 않게 준비해줘. | 지난번 실수를 고쳐서 다시 도전하기. |
+| overall.major.judgement.upright | pause | 오래 답을 미뤄온 제안을 받아들일지 정했다면, 다시 뒤로 미루지 말고 그 뜻을 분명히 알려줘. | 마음을 정하고도 답 미루기. |
+| overall.major.judgement.reversed | headline | 결정을 미루다 다시 온 기회를 놓칠 수 있어. | 망설이다가 좋은 기회를 놓칠 수 있어. |
+| overall.major.judgement.reversed | do | 답을 줘야 하는 일이 있다면 언제까지 결정해야 하는지 확인해봐. 마음이 정해질 때까지 기다리다 기한을 넘기지 않도록 해줘. | 언제까지 답해야 하는지 확인하기. |
+| overall.major.judgement.reversed | pause | 주변 사람 모두에게 좋은 평가를 받으려다 결정을 미루지는 마. 모든 의견에 맞추려 하면 자신이 잘할 수 있는 일도 놓칠 수 있어. | 지난 실수만 생각하며 결정 미루기. |
+| overall.major.world.upright | headline | 오래 해온 일을 만족스럽게 끝낼 수 있어. | 오래 해온 일을 잘 끝낼 수 있어. |
+| overall.major.world.upright | do | 오래 해온 일을 잘 끝냈다면, 함께 애쓴 사람들에게 어떤 도움이 고마웠는지 이야기해봐. | 잘 끝낸 일 함께 축하하기. |
+| overall.major.world.upright | pause | 오래 하던 일을 끝내자마자 새로운 일까지 맡지는 마. 잘 마친 일을 기뻐할 틈도 없이 서두를 필요는 없어. | 끝내자마자 새 일을 하겠다고 약속하기. |
+| overall.major.world.reversed | headline | 거의 끝난 일에 마지막 할 일이 남을 수 있어. | 일이 거의 끝나도 조금 아쉬울 수 있어. |
+| overall.major.world.reversed | do | 거의 끝난 일에 남은 연락이나 확인이 있다면 마지막까지 마쳐줘. 조금 남았다고 미뤄두면 계속 마음에 걸릴 수 있어. | 마지막으로 남은 일 끝내기. |
+| overall.major.world.reversed | pause | 마무리가 늦어졌다고 지금까지 한 일을 모두 실패로 여기지는 마. 남아 있는 일과 이미 잘 끝낸 부분은 따로 봐줘. | 거의 끝났다고 마무리 미루기. |
+| overall.cups.01.upright | headline | 마음에 드는 일이 생겨 하루가 즐거울 수 있어. | 작은 일에도 기쁘고 즐거운 하루가 될 거야. |
+| overall.cups.01.upright | do | 마음에 드는 초대를 받았다면 가고 싶다는 뜻을 전해봐. 초대해줘서 고맙다는 말도 함께 해주면 좋아. | 마음에 드는 초대 받아들이기. |
+| overall.cups.01.upright | pause | 새로 만난 사람이 친절을 베풀었다면 무심하게 넘기지는 마. 짧게라도 고맙다고 말해주면 다음 이야기를 더 편하게 나눌 수 있어. | 받은 친절을 무심하게 넘기기. |
+| overall.cups.01.reversed | headline | 좋을 줄 알았던 일이 생각보다 즐겁지 않을 수 있어. | 기대했던 일이 생각보다 즐겁지 않을 수 있어. |
+| overall.cups.01.reversed | do | 내키지 않는 약속을 제안받았다면 솔직하게 마음을 전해줘. 상대의 기분을 맞추려고 즐거운 척하며 받아주지 않아도 괜찮아. | 내키지 않는 약속 솔직하게 거절하기. |
+| overall.cups.01.reversed | pause | 기쁘게 건넨 말에 반응이 작다고 상대의 뜻을 나쁘게 단정하지는 마. 무뚝뚝한 답만으로는 그 마음을 다 알기 어려워. | 무뚝뚝한 답 하나로 상대를 단정하기. |
+| overall.cups.02.upright | headline | 서로 마음이 맞아 어려운 부탁도 잘 풀릴 수 있어. | 서로 마음이 맞아 일이 잘 풀릴 수 있어. |
+| overall.cups.02.upright | do | 도움을 받았다면 자신이 해줄 수 있는 일로 고마움을 전해봐. 상대에게 필요한 것이 무엇인지 물어보고 가능한 만큼 도와줘. | 도와준 사람에게 고마움 전하기. |
+| overall.cups.02.upright | pause | 상대와 잘 통한다고 필요한 도움까지 저절로 알아줄 거라 기대하지는 마. 바라는 것이 있다면 말로도 분명히 전해줘. | 말하지 않아도 알아주길 기다리기. |
+| overall.cups.02.reversed | headline | 서로의 생각이 달라 작은 약속도 어긋날 수 있어. | 잘 맞던 사람과도 뜻이 어긋날 수 있어. |
+| overall.cups.02.reversed | do | 부탁한 내용을 상대가 다르게 이해했다면 다시 설명해줘. 무엇을 어떻게 해줬으면 하는지 구체적으로 말하면 좋아. | 부탁한 내용 분명하게 설명하기. |
+| overall.cups.02.reversed | pause | 부탁한 일에서 자신만 양보했다고 느껴져도 비꼬는 말로 서운함을 전하지는 마. 그러면 정작 무엇을 바라는지 전달하기 어려워져. | 서운한 마음을 비꼬아서 말하기. |
+| overall.cups.03.upright | headline | 좋은 소식을 나누고 축하받을 수 있는 날이야. | 사람들과 함께 기뻐할 일이 생길 수 있어. |
+| overall.cups.03.upright | do | 축하할 일이 생긴 사람이 있다면, 소식을 듣고 반가웠다는 마음을 짧게라도 전해봐. | 기쁜 일이 생긴 사람 축하하기. |
+| overall.cups.03.upright | pause | 축하하려고 모인 자리에서는, 분위기를 띄우겠다는 생각으로 다른 사람의 흉을 보지는 마. | 기쁜 소식을 건성으로 듣기. |
+| overall.cups.03.reversed | headline | 즐거울 줄 알았던 모임에서 피곤한 일이 생길 수 있어. | 사람들과 어울리다 피곤한 일이 생길 수 있어. |
+| overall.cups.03.reversed | do | 모임이 더 이어져도 내키지 않는다면 생각해둔 시간에 먼저 자리를 떠나도 괜찮아. 모두의 기분을 맞추려고 끝까지 따라갈 필요는 없어. | 불편한 모임에서 먼저 나오기. |
+| overall.cups.03.reversed | pause | 여럿이 웃고 있다고 남을 흉보는 말에 한마디 보태지는 마. 가볍게 던진 농담도 나중에는 뒷말로 남을 수 있어. | 분위기에 휩쓸려 남의 흉보기. |
+| overall.cups.04.upright | headline | 별일은 없어도 마음에 차는 결과가 적을 수 있어. | 별일은 없어도 마음에 차지 않을 수 있어. |
+| overall.cups.04.upright | do | 새 제안이 시시하게 느껴지더라도 어떤 내용인지 살펴봐. 첫인상만으로 넘겼다가 나중에 아쉬울 수 있어. | 새 제안의 내용 살펴보기. |
+| overall.cups.04.upright | pause | 기다리던 소식이 아직 오지 않았다는 이유만으로, 새로 들어오는 제안을 전부 거절하지는 마. | 시시해 보인다고 설명도 안 듣기. |
+| overall.cups.04.reversed | headline | 지나쳤던 기회가 다시 도움이 될 수 있어. | 멈췄던 일에 새 소식이 들려올 수 있어. |
+| overall.cups.04.reversed | do | 오래 고민하던 일에 새 소식이 들어왔다면 어떤 내용인지 살펴봐. 전에 생각하지 못했던 방법이나 선택지가 있는지 찾아줘. | 전에 넘겼던 제안 다시 살펴보기. |
+| overall.cups.04.reversed | pause | 전에 마음에 안 들었던 제안이라고 이번에도 바로 거절하지는 마. 당시와 달리 지금 사정에는 잘 맞을 수 있어. | 예전 인상만으로 거절하기. |
+| overall.cups.05.upright | headline | 바라던 일이 어긋나 실망할 수 있는 날이야. | 바라던 일이 잘되지 않아 실망할 수 있어. |
+| overall.cups.05.upright | do | 기대한 일이 어긋났다면 다른 소식에도 귀를 기울여봐. 실망한 일만 생각하다가 아직 받을 수 있는 도움을 놓칠 수 있어. | 지금 받을 수 있는 도움 찾아보기. |
+| overall.cups.05.upright | pause | 일이 잘 안됐다고 도와주려는 사람에게까지 화풀이하지는 마. 차갑게 대하면 받을 수 있던 도움도 놓칠 수 있어. | 도와주려는 사람에게 화풀이하기. |
+| overall.cups.05.reversed | headline | 아쉬웠던 일을 수습하고 다시 이어갈 수 있어. | 어긋났던 일이 다시 풀릴 수 있어. |
+| overall.cups.05.reversed | do | 한 번 포기했던 일에 도움을 주겠다는 사람이 있다면 이야기를 들어봐. 그 도움을 받으면 멈췄던 일을 어디서부터 이어갈 수 있을지 함께 살펴줘. | 다시 도와주겠다는 말에 귀 기울이기. |
+| overall.cups.05.reversed | pause | 서운했던 사람과 다시 이야기하게 됐다면 지난 잘못만 거듭 따지지는 마. 무엇을 바로잡으면 좋을지 의논할 기회를 놓칠 수 있어. | 지난 잘못만 거듭 따지기. |
+| overall.cups.06.upright | headline | 오래된 인연이 반갑고 든든한 도움이 될 수 있어. | 오래 알던 사람에게 좋은 소식을 들을 수 있어. |
+| overall.cups.06.upright | do | 문득 생각나는 오래된 지인이 있다면 가볍게 안부를 전해봐. 무슨 일을 하며 지냈는지 서로 이야기해도 좋아. | 오래된 지인에게 안부 전하기. |
+| overall.cups.06.upright | pause | 오랜만에 연락한 사람에게 처음부터 부탁만 꺼내지는 마. 서로의 근황을 나누면 필요한 이야기도 더 편하게 전할 수 있어. | 오랜만에 연락해서 부탁만 하기. |
+| overall.cups.06.reversed | headline | 예전 방식에서 벗어나면 일이 더 잘 풀릴 수 있어. | 예전에 안되던 일도 잘 풀릴 수 있어. |
+| overall.cups.06.reversed | do | 예전에 잘 안됐던 일을 다시 해보려면 지금은 어떤 조건인지 확인해봐. 지난번에 어려웠던 점이 달라졌는지도 살펴줘. | 예전과 달라진 조건 확인하기. |
+| overall.cups.06.reversed | pause | 예전에 잘됐던 일이라고 이번에도 같은 결과가 날 거라 단정하지는 마. 지금은 그때와 사정이 다를 수 있어. | 옛 경험만으로 지금 일을 단정하기. |
+| overall.cups.07.upright | headline | 좋아 보이는 기회가 많아도 실속은 다를 수 있어. | 좋아 보이는 제안에도 실망할 수 있어. |
+| overall.cups.07.upright | do | 여러 제안을 비교한다면 실제로 무엇을 받을 수 있는지 확인해봐. 아직 정해지지 않은 내용은 확정된 조건과 구분해서 봐줘. | 실제로 받을 수 있는 것 확인하기. |
+| overall.cups.07.upright | pause | 솔깃한 제안을 놓치기 싫다고 한꺼번에 전부 받아들이지는 마. 보기에는 좋아도 기대했던 만큼 얻지 못할 수 있어. | 좋아 보이는 제안을 전부 받아들이기. |
+| overall.cups.07.reversed | headline | 막연하던 일이 분명해져 결정을 내릴 수 있어. | 고민하던 일을 분명하게 결정할 수 있어. |
+| overall.cups.07.reversed | do | 여러 제안 중 마음에 맞는 것을 골랐다면 생각으로만 정해두지 말고 참여하겠다는 답을 전해줘. | 선택한 제안에 답하기. |
+| overall.cups.07.reversed | pause | 조건을 충분히 확인하고 결정한 뒤에도 새 제안만 계속 찾지는 마. 달라진 내용이 없는데 계속 비교하면 시작만 늦어질 수 있어. | 결정한 뒤에도 새 제안만 계속 찾기. |
+| overall.cups.08.upright | headline | 붙들고 있던 일을 떠나야 다른 기회가 보일 수 있어. | 오래 애쓴 일이 더는 만족스럽지 않을 수 있어. |
+| overall.cups.08.upright | do | 더 이어갈 이유가 없는 일이라면, 아직 지키지 못한 약속만 마저 지키고 마무리해줘. | 마지막으로 남은 약속 지키기. |
+| overall.cups.08.upright | pause | 지금까지 들인 시간이 아깝다는 이유로 원치 않는 일을 더 맡지는 마. 앞으로도 계속할 만한 이유가 있는지 생각해줘. | 들인 시간이 아까워 억지로 계속하기. |
+| overall.cups.08.reversed | headline | 그만둘지 망설이는 동안 같은 불편이 반복될 수 있어. | 그만두지 못한 일로 다시 답답할 수 있어. |
+| overall.cups.08.reversed | do | 불편했던 일을 더 해볼 생각이라면 같은 문제가 반복되지 않도록 어떤 점이 달라져야 하는지 상대에게 말해줘. | 계속할 일에서 불편한 점 말하기. |
+| overall.cups.08.reversed | pause | 그만두고 싶은 일을 익숙하다는 이유만으로 계속 받아주지는 마. 같은 불편을 다시 겪을 수 있어. | 불편한 일을 익숙하다는 이유로 계속하기. |
+| overall.cups.09.upright | headline | 바라던 일이 이루어져 만족할 수 있는 날이야. | 바라던 일이 이루어져 기쁠 거야. |
+| overall.cups.09.upright | do | 기다리던 일이 뜻대로 됐다면, 무엇이 가장 기쁜지 떠올리며 스스로를 축하해줘. | 잘된 일 기뻐하기. |
+| overall.cups.09.upright | pause | 좋은 결과를 얻자마자 더 큰 성과를 내겠다며 다음 일을 서두르지는 마. 이미 이룬 일에 만족할 시간을 줘도 좋아. | 더 큰 결과를 바라며 새 일 서두르기. |
+| overall.cups.09.reversed | headline | 바라던 것을 얻어도 기대만큼 만족스럽지 않을 수 있어. | 바라던 것을 얻어도 조금 아쉬울 수 있어. |
+| overall.cups.09.reversed | do | 원하던 결과를 얻었는데도 아쉽다면, 실제로 불편하거나 예상보다 번거로운 점이 있는지 살펴봐. | 기대한 것과 달랐던 점 살펴보기. |
+| overall.cups.09.reversed | pause | 결과가 아쉽다고 새로운 일을 잔뜩 벌이지는 마. 아쉬움을 달래려고 시작한 일 때문에 부담만 더 늘어날 수 있어. | 아쉬워서 새 일을 잔뜩 벌이기. |
+| overall.cups.10.upright | headline | 가까운 사람들과 편안하고 즐거운 하루를 보낼 수 있어. | 가까운 사람들과 편안한 하루를 보낼 거야. |
+| overall.cups.10.upright | do | 가까운 사람과 안부를 나눌 시간을 내봐. 따로 거창한 약속을 잡지 않아도 함께 밥을 먹으며 이야기할 수 있어. | 가까운 사람과 안부 나누기. |
+| overall.cups.10.upright | pause | 늘 함께하는 사람이 좋은 소식을 전한다면 건성으로 넘기지는 마. 익숙한 사이여도 반가운 마음을 말로 표현해줘. | 익숙한 사람의 말을 건성으로 듣기. |
+| overall.cups.10.reversed | headline | 가까운 사람과 사소한 일로 불편해질 수 있어. | 가까운 사람과도 서운한 일이 생길 수 있어. |
+| overall.cups.10.reversed | do | 함께 정할 일이 있다면 가까운 사람에게도 원하는 것을 물어봐. 평소 괜찮다고 하던 사람의 생각도 이번에는 다를 수 있어. | 가까운 사람의 생각도 물어보기. |
+| overall.cups.10.reversed | pause | 아무도 불만을 말하지 않는다고 모두 마음에 들어 한다고 단정하지는 마. 겉으로 조용해도 서로 기대한 것은 다를 수 있어. | 친하다는 이유로 대신 결정하기. |
+| overall.cups.11.upright | headline | 뜻밖의 반가운 연락이 하루를 즐겁게 할 수 있어. | 뜻밖의 연락이나 제안이 반가울 수 있어. |
+| overall.cups.11.upright | do | 함께 해보고 싶은 일이 있다면 상대에게 가볍게 제안해봐. 상대도 관심을 보이면 언제 어떻게 해볼지 이야기해도 좋아. | 반가운 연락에 답하기. |
+| overall.cups.11.upright | pause | 처음이라 서툴 것 같다고 인사할 기회까지 미루지는 마. 완벽하게 말을 준비하지 않아도 호의적으로 받아주는 사람이 있을 수 있어. | 친절하게 건넨 말을 무심하게 넘기기. |
+| overall.cups.11.reversed | headline | 가볍게 꺼낸 말이 오해를 살 수 있는 날이야. | 좋은 뜻으로 한 말도 오해받을 수 있어. |
+| overall.cups.11.reversed | do | 부탁하거나 사과할 일이 있다면 진지한 뜻이 드러나게 전해줘. 농담처럼 돌려 말하면 가볍게 한 말로 오해받을 수 있어. | 중요한 말은 농담 없이 전하기. |
+| overall.cups.11.reversed | pause | 기대했던 답이 늦는다고 삐친 말부터 하지는 마. 상대의 반응을 떠보려다가 오히려 자신의 뜻을 잘못 전할 수 있어. | 답이 늦는다고 상대를 탓하기. |
+| overall.cups.12.upright | headline | 호의적인 제안이 들어오고 부탁도 잘 통할 수 있어. | 좋은 제안을 받고 부탁도 잘 통할 수 있어. |
+| overall.cups.12.upright | do | 도움을 부탁할 일이 있다면 무엇이 필요한지 조심스럽게 말해봐. 혼자 해결하기 어려운 부분부터 설명해도 좋아. | 필요한 도움 솔직하게 부탁하기. |
+| overall.cups.12.upright | pause | 마음에 드는 초대를 받았는데도 관심 없는 듯 답을 흐리지는 마. 함께할 뜻이 있는지 알려줘야 상대도 약속을 정하기 쉬워. | 관심 있으면서도 답을 흐리기. |
+| overall.cups.12.reversed | headline | 좋은 말만 믿었다가 약속이 어긋날 수 있어. | 좋은 말만 믿었다가 약속이 어긋날 수 있어. |
+| overall.cups.12.reversed | do | 꼭 해주겠다는 약속을 들었다면 언제 무엇을 할 수 있는지 물어봐. 반가운 말과 실제로 정해진 내용을 구분해두는 게 좋아. | 약속한 날짜와 내용 확인하기. |
+| overall.cups.12.reversed | pause | 상대가 언제 무엇을 해줄지 확실히 답하지 않았다면, 그 약속 때문에 다른 기회를 모두 포기하지는 마. | 확실하지 않은 약속 때문에 다른 일 취소하기. |
+| overall.cups.13.upright | headline | 사정을 알아주는 사람 덕분에 한시름 덜 수 있어. | 사정을 알아주는 사람에게 도움을 받을 수 있어. |
+| overall.cups.13.upright | do | 혼자 고민하던 일이 있다면 믿고 이야기할 수 있는 사람에게 사정을 들려줘. 어떤 점이 속상했는지부터 말해도 괜찮아. | 믿을 만한 사람에게 고민 말하기. |
+| overall.cups.13.upright | pause | 사정을 털어놨다고 상대에게 문제를 전부 해결해달라고 하지는 마. 혼자 하기 어려운 부분만 부탁해도 도움을 받을 수 있어. | 문제를 전부 해결해달라고 요구하기. |
+| overall.cups.13.reversed | headline | 남의 사정을 챙기다 자신의 일이 밀릴 수 있어. | 남을 챙기다 자신의 일이 밀릴 수 있어. |
+| overall.cups.13.reversed | do | 도와달라는 부탁을 받았다면 자신의 일을 마칠 시간도 남겨두고, 어디까지 해줄 수 있는지 먼저 알려줘. | 도와줄 수 있는 만큼만 약속하기. |
+| overall.cups.13.reversed | pause | 상대의 기분을 모두 맞추려고 이미 부담스러운 부탁까지 웃으며 받아주지는 마. 거절하기 어려워도 힘든 부분은 그 자리에서 말해줘. | 부담스러운 부탁도 웃으며 받아주기. |
+| overall.cups.14.upright | headline | 까다로운 일도 차분하게 해결될 수 있는 날이야. | 어려운 일도 다투지 않고 풀 수 있어. |
+| overall.cups.14.upright | do | 어려운 문제에 도움을 구한다면 무엇을 해줬으면 하는지 구체적으로 말해봐. 필요한 내용을 알아야 상대도 도울 방법을 찾기 쉬워. | 필요한 도움 차분하게 설명하기. |
+| overall.cups.14.upright | pause | 갈등이 생긴 일에서는 먼저 들은 이야기만으로 한쪽 편을 들지는 마. 양쪽이 각각 어떤 점에서 어려운지 들어봐줘. | 한쪽 이야기만 듣고 편들기. |
+| overall.cups.14.reversed | headline | 누군가의 기분에 따라 일이 뒤집힐 수 있어. | 누군가의 기분 때문에 일이 달라질 수 있어. |
+| overall.cups.14.reversed | do | 상대가 기분이 상했다며 약속을 바꾼다면 원래 정한 내용을 다시 짚어줘. 속상한 이유와 약속을 지킬 수 있는지는 따로 이야기해봐. | 처음 약속한 내용 다시 확인하기. |
+| overall.cups.14.reversed | pause | 화가 났다는 이유로 이미 맡은 일을 갑자기 그만두거나 했던 약속을 뒤집지는 마. | 기분이 상했다고 약속 뒤집기. |
+| overall.swords.01.upright | headline | 헷갈리던 일이 분명해지고 막힌 문제도 풀릴 수 있어. | 막힌 문제의 답을 시원하게 찾을 수 있어. |
+| overall.swords.01.upright | do | 문제가 왜 생겼는지 모르겠다면, 서로 다른 설명에서 실제로 확인한 사실을 비교해봐. | 확인한 사실부터 분명하게 말하기. |
+| overall.swords.01.upright | pause | 알아낸 내용을 전할 때 주변 이야기만 길게 늘어놓지는 마. 상대가 꼭 알아야 할 사실을 먼저 말해야 결론까지 분명하게 전할 수 있어. | 중요한 말은 빼고 주변 이야기만 하기. |
+| overall.swords.01.reversed | headline | 말이 잘못 전해져 일이 엉뚱하게 풀릴 수 있어. | 말이 잘못 전해져 일이 꼬일 수 있어. |
+| overall.swords.01.reversed | do | 중요한 이야기를 전했다면 상대가 어떤 뜻으로 이해했는지 물어봐. 분명히 말했다고 생각해도 상대는 다르게 받아들였을 수 있어. | 같은 뜻으로 이해했는지 물어보기. |
+| overall.swords.01.reversed | pause | 잘못 전한 내용을 알게 됐다면 변명부터 길게 늘어놓지는 마. 틀린 말을 먼저 바로잡아야 상대도 잘못 판단하는 일을 피할 수 있어. | 잘못 전한 말에 변명부터 하기. |
+| overall.swords.02.upright | headline | 어느 쪽도 확실하지 않아 결정이 늦어질 수 있어. | 쉽게 결정하지 못해 일이 늦어질 수 있어. |
+| overall.swords.02.upright | do | 무엇을 골라야 할지 모르겠다면, 결정에 필요한데 아직 모르는 점을 그 사정을 아는 사람에게 물어봐. | 결정에 필요한 내용 먼저 물어보기. |
+| overall.swords.02.upright | pause | 답을 재촉받는다고 사정을 다 알기 전에 확답하지는 마. 언제까지 기다려줄 수 있는지 물으며 생각할 시간을 요청해봐. | 사정을 모르면서 확답하기. |
+| overall.swords.02.reversed | headline | 엇갈린 이야기가 많아 판단을 그르치기 쉬워. | 엇갈린 말에 잘못 판단하기 쉬워. |
+| overall.swords.02.reversed | do | 여러 사람의 말이 다르다면, 지금 결정해야 할 문제만 당사자에게 직접 물어봐. | 서로 다른 말이 사실인지 확인하기. |
+| overall.swords.02.reversed | pause | 복잡한 이야기를 빨리 끝내려고 아무 쪽이나 고르지는 마. 이해하지 못한 조건을 그대로 받아들이면 나중에 다시 풀어야 할 일이 남을 수 있어. | 복잡하다고 아무 쪽이나 고르기. |
+| overall.swords.03.upright | headline | 기대와 다른 답을 듣고 실망할 수 있어. | 원하지 않는 답을 듣고 속상할 수 있어. |
+| overall.swords.03.upright | do | 원하던 답을 받지 못했더라도 왜 그렇게 됐는지는 끝까지 들어봐. 지금 알아야 할 사실을 확인하면 다음에 무엇을 할지 정하는 데 도움이 돼. | 원하지 않는 답도 이유까지 듣기. |
+| overall.swords.03.upright | pause | 실망스러운 소식을 들었다고 그 일과 상관없는 사람에게까지 날카롭게 말하지는 마. 속상한 마음을 쏟아내다가 불편한 사이만 더 늘어날 수 있어. | 상관없는 사람에게 화풀이하기. |
+| overall.swords.03.reversed | headline | 서운했던 일을 풀고 하루가 조금 편해질 수 있어. | 서운했던 일이 풀려 마음이 편해질 수 있어. |
+| overall.swords.03.reversed | do | 서운했던 일이 풀렸다면 앞으로 어떻게 지내면 좋을지 이야기해봐. 바로 예전처럼 가까워지기 어렵다면 그 점도 솔직히 말해도 괜찮아. | 앞으로 바라는 점 이야기하기. |
+| overall.swords.03.reversed | pause | 서로 설명하고 끝낸 다툼은, 마음이 아직 불편하다는 이유만으로 다시 꺼내 따지지는 마. | 끝난 다툼 다시 꺼내기. |
+| overall.swords.04.upright | headline | 큰일 없이 조용히 지나가기 좋은 날이야. | 별 탈 없이 조용한 하루가 될 거야. |
+| overall.swords.04.upright | do | 급히 답하거나 더 손댈 일이 없다면, 미뤄도 되는 일은 잠시 그대로 두고 조용히 쉬어가봐. | 급하지 않은 일은 잠시 쉬어가기. |
+| overall.swords.04.upright | pause | 끝난 다툼을 다시 꺼내 잘잘못을 따지지는 마. 하지 않아도 될 말까지 주고받다가 서로 다시 불편해질 수 있어. | 잠잠해진 다툼 다시 꺼내기. |
+| overall.swords.04.reversed | headline | 멈췄던 일이 다시 시작되며 바빠질 수 있어. | 멈췄던 일이 다시 시작돼 바빠질 수 있어. |
+| overall.swords.04.reversed | do | 한동안 손을 놓았던 일을 다시 시작한다면, 밀린 부탁을 모두 맡기보다 가장 급한 것부터 골라봐. | 가장 급한 일부터 다시 시작하기. |
+| overall.swords.04.reversed | pause | 멈췄던 일을 다시 시작하더라도 곧바로 예전만큼 해내려 무리하지는 마. 다시 익숙해질 시간을 두고 차차 늘려도 괜찮아. | 밀린 일을 한꺼번에 모두 받아들이기. |
+| overall.swords.05.upright | headline | 말다툼에서 이겨도 마음 불편한 일이 남을 수 있어. | 말다툼에서 이겨도 불편함이 남을 수 있어. |
+| overall.swords.05.upright | do | 말다툼에서 필요한 이야기를 했다면 더 따지지 말고 그쯤에서 멈춰봐. 끝까지 잘잘못을 가리려다 도움을 주고받던 사이까지 멀어질 수 있어. | 필요한 말을 했다면 다툼 멈추기. |
+| overall.swords.05.upright | pause | 자기 주장을 받아들이게 하려고 상대를 낮춰 말하지는 마. 말로 이겼더라도 그때 남은 반감 때문에 다음에 함께하기 어려워질 수 있어. | 말싸움에서 이기려고 상대를 깎아내리기. |
+| overall.swords.05.reversed | headline | 길게 끌던 다툼을 끝낼 수 있는 날이야. | 오래 끌던 다툼을 끝낼 수 있어. |
+| overall.swords.05.reversed | do | 불편한 사람과 타협할 기회가 왔다면 어디까지 양보할 수 있는지 먼저 말해봐. 모든 생각이 같아지지 않아도 다툼을 끝낼 방법은 찾을 수 있어. | 양보할 수 있는 부분 말하기. |
+| overall.swords.05.reversed | pause | 사과나 합의를 받고도 지난 말의 잘잘못을 다시 따지지는 마. 서로 물러서기로 한 뒤에 누가 더 틀렸는지 가리면 다툼이 이어질 수 있어. | 화해한 뒤에 잘잘못 다시 따지기. |
+| overall.swords.06.upright | headline | 곤란했던 일을 벗어나 한시름 덜 수 있어. | 곤란한 일을 벗어나 한시름 덜 수 있어. |
+| overall.swords.06.upright | do | 혼자 해결하기 어렵던 일을 더 수월하게 처리할 방법을 알려주는 사람이 있다면, 설명을 듣고 도움을 받아봐. | 도움을 받아 다른 방법 시도하기. |
+| overall.swords.06.upright | pause | 더 수월하게 지낼 수 있는 곳이 있다면, 익숙하다는 이유만으로 불편한 곳에 계속 머무르지는 마. | 익숙하다고 불편한 곳에 계속 머무르기. |
+| overall.swords.06.reversed | headline | 해결한 줄 알았던 문제가 다시 생길 수 있어. | 해결한 줄 알았던 문제가 다시 생길 수 있어. |
+| overall.swords.06.reversed | do | 해결한 줄 알았던 문제가 되풀이된다면, 처음 생긴 원인 가운데 아직 해결되지 않은 부분이 있는지 살펴봐. | 반복되는 문제의 원인 살펴보기. |
+| overall.swords.06.reversed | pause | 당장 피하려고 해결되지 않은 일을 다른 사람에게 떠넘기지는 마. 원인이 그대로면 나중에 같은 문제를 다시 설명해야 할 수 있어. | 해결하지 않은 일을 남에게 떠넘기기. |
+| overall.swords.07.upright | headline | 다른 방법을 써서 막힌 일을 풀 수 있는 날이야. | 다른 방법으로 막힌 일을 풀 수 있어. |
+| overall.swords.07.upright | do | 쉽게 풀리지 않는 일은, 그 사정을 아는 사람에게만 조용히 물어보며 다른 해결 방법을 찾아봐. | 잘 모르는 부분 물어보기. |
+| overall.swords.07.upright | pause | 상대의 동의가 필요한 일에서 중요한 조건을 빼놓고 말하지는 마. 계획을 모두 공개하지 않더라도 상대가 판단하는 데 필요한 사실은 알려줘. | 중요한 조건을 숨기고 동의받기. |
+| overall.swords.07.reversed | headline | 잘못된 일을 바로잡고 도움을 얻을 수 있어. | 잘못된 일을 바로잡고 도움받을 수 있어. |
+| overall.swords.07.reversed | do | 실수를 혼자 수습하기 어렵다면, 그 일에 관계된 사람에게 어디서 잘못됐는지 먼저 알려줘. | 실수한 내용 먼저 알리기. |
+| overall.swords.07.reversed | pause | 이미 확인된 실수를 그럴듯한 핑계로 덮으려 하지는 마. 사정을 자꾸 다르게 설명하면 작은 잘못도 정리하는 데 시간이 더 걸릴 수 있어. | 확인된 실수에 핑계 대기. |
+| overall.swords.08.upright | headline | 제약이 많아 원하는 대로 하기 어려울 수 있어. | 원하는 대로 일이 풀리지 않아 답답할 수 있어. |
+| overall.swords.08.upright | do | 원하는 일을 할 수 없다는 말을 들었다면 어떤 조건 때문에 안 되는지 직접 물어봐. 실제로 제한된 부분을 알아야 다른 방법도 찾아볼 수 있어. | 안 되는 이유 직접 물어보기. |
+| overall.swords.08.upright | pause | 한 가지 방법이 안 된다고, 아직 알아보지 않은 다른 방법까지 모두 불가능하다고 단정하지는 마. | 한 번 막혔다고 모든 방법 포기하기. |
+| overall.swords.08.reversed | headline | 안 될 줄 알았던 일에 해볼 길이 생길 수 있어. | 안 될 줄 알았던 일을 해볼 수 있어. |
+| overall.swords.08.reversed | do | 막혀 있던 일을 해볼 다른 방법이 생겼다면, 그 방법으로 지금 할 수 있는 부분부터 직접 해봐. | 새로 알게 된 방법으로 시도하기. |
+| overall.swords.08.reversed | pause | 조건이 달라진 일을 다시 해볼 수 있다면, 예전에 안 됐다는 답만 떠올리며 이번 시도까지 포기하지는 마. | 예전 거절만 생각하며 다시 할 기회 넘기기. |
+| overall.swords.09.upright | headline | 걱정이 많아 평소 하던 일도 더디게 풀릴 수 있어. | 걱정이 많아 하루가 편하지 않을 수 있어. |
+| overall.swords.09.upright | do | 답이 늦어 나쁜 결과를 걱정하고 있다면, 그 결과를 실제로 들은 것인지 혼자 짐작한 것인지 구분해봐. | 걱정한 일이 사실인지 확인하기. |
+| overall.swords.09.upright | pause | 결과가 나오기 전에 실패했다고 알리거나 약속을 취소하지는 마. 아직은 걱정한 대로 일이 끝났는지 알 수 없어. | 나쁜 결과를 짐작해 미리 포기하기. |
+| overall.swords.09.reversed | headline | 혼자 걱정하던 일에서 안심할 답을 얻을 수 있어. | 혼자 걱정하던 일에 안심할 답을 들을 수 있어. |
+| overall.swords.09.reversed | do | 혼자 걱정하는 일이 있다면, 믿을 만한 사람에게 무슨 일이 있었고 어떤 점이 걱정되는지 구체적으로 이야기해봐. | 걱정하는 이유 솔직하게 말하기. |
+| overall.swords.09.reversed | pause | 도움을 받아 안심이 되더라도 아직 풀어야 할 일을 그대로 덮어두지는 마. 당장 무엇을 해야 하는지 들었다면 그 일부터 처리해줘. | 걱정되는 일을 괜찮다고만 넘기기. |
+| overall.swords.10.upright | headline | 오래 끌던 일이 아쉬운 끝을 맞을 수 있어. | 애쓴 일을 아쉽게 끝내야 할 수 있어. |
+| overall.swords.10.upright | do | 더 이어가기 어려워진 일이 있다면, 끝내는 데 꼭 필요한 정리만 마치고 더 손대지 않아도 괜찮아. | 마무리에 꼭 필요한 일만 하기. |
+| overall.swords.10.upright | pause | 아쉬운 결과를 바로 만회하려고 새 일을 떠맡지는 마. 더 맡기 전에 지금 남아 있는 일부터 감당할 수 있는지 살펴봐. | 실패를 만회하려고 새 일 벌이기. |
+| overall.swords.10.reversed | headline | 힘들었던 고비가 지나고 다시 시작할 수 있어. | 힘든 고비를 지나 다시 시작할 수 있어. |
+| overall.swords.10.reversed | do | 어려웠던 일을 다시 해볼 기회가 왔다면, 지금 무리 없이 마칠 수 있도록 전보다 적은 분량부터 맡아봐. | 할 수 있는 일 하나부터 시작하기. |
+| overall.swords.10.reversed | pause | 다시 기회가 왔다고 전에 버거웠던 조건까지 그대로 받아들이지는 마. 무엇 때문에 힘들었는지 짚어보고 같은 부담이 생기지 않을지 살펴줘. | 전에 힘들었던 조건 그대로 받아들이기. |
+| overall.swords.11.upright | headline | 놓친 사실을 발견해 실수를 피할 수 있는 날이야. | 놓친 사실을 알아내 실수를 피할 수 있어. |
+| overall.swords.11.upright | do | 처음 보는 안내는 작은 글씨까지 살펴보고, 이해되지 않는 내용은 직접 물어서 뜻을 확인해봐. | 안내의 작은 글씨까지 읽기. |
+| overall.swords.11.upright | pause | 새로 알아낸 이야기를 전할 때, 직접 확인한 사실에 짐작까지 섞어서 확실한 것처럼 말하지는 마. | 짐작을 확인한 사실처럼 말하기. |
+| overall.swords.11.reversed | headline | 미처 살피지 못한 일로 당황할 수 있어. | 미처 몰랐던 일 때문에 당황할 수 있어. |
+| overall.swords.11.reversed | do | 모르는 내용을 질문받았다면 짐작해서 바로 답하지 말고, 확인할 시간을 달라고 한 뒤 정확한 내용을 찾아봐. | 모르는 내용은 확인한 뒤 답하기. |
+| overall.swords.11.reversed | pause | 처음 들은 이야기가 수상하다고 곧바로 상대를 몰아세우지는 마. 아직 살피지 못한 사정이 있을 수 있으니 사실을 알아본 뒤 이야기해줘. | 확인하기 전에 의심하며 따지기. |
+| overall.swords.12.upright | headline | 미뤄졌던 일이 빠르게 결론 날 수 있어. | 오래 끌던 일이 빠르게 풀릴 수 있어. |
+| overall.swords.12.upright | do | 오래 미뤄졌던 일에서 무엇을 할지 정했다면, 함께하는 사람에게 그 결정을 알리고 먼저 할 수 있는 부분부터 시작해봐. | 결정한 내용 분명하게 알리기. |
+| overall.swords.12.upright | pause | 빨리 진행된다고 필요한 설명까지 건너뛰며 혼자 먼저 밀어붙이지는 마. 함께하는 사람이 무엇을 해야 하는지 알 시간을 남겨줘. | 설명 없이 혼자 밀어붙이기. |
+| overall.swords.12.reversed | headline | 성급하게 시작한 일이 중간에 멈출 수 있어. | 서둘러 시작한 일이 중간에 막힐 수 있어. |
+| overall.swords.12.reversed | do | 어딘가에 가서 할 일이 있다면 출발 전에 필요한 준비물을 챙겼는지 살펴봐. 빠뜨린 것 때문에 다시 돌아오는 수고를 줄일 수 있어. | 시작하기 전에 준비 확인하기. |
+| overall.swords.12.reversed | pause | 누가 빨리 답해달라고 해도 지금 끝낼 수 없는 일을 바로 해주겠다고 맡지는 마. 재촉에 맞추기보다 실제로 가능한 때를 알려줘. | 감당할 수 없는 일을 급히 받아들이기. |
+| overall.swords.13.upright | headline | 복잡했던 일을 분명하게 정리할 수 있어. | 복잡했던 일을 분명하게 정리할 수 있어. |
+| overall.swords.13.upright | do | 오래 알고 지낸 사이의 부탁이라도 조건이 맞지 않는다면, 어떤 점 때문에 받아들이기 어려운지 짧게 밝혀줘. | 거절하는 이유 짧게 말하기. |
+| overall.swords.13.upright | pause | 조건이 맞지 않아 거절할 때는, 상대의 성격이나 흠까지 들추지 말고 받아들일 수 없는 조건만 이야기해줘. | 거절하면서 상대의 흠까지 들추기. |
+| overall.swords.13.reversed | headline | 단정적인 말 때문에 억울한 오해가 생길 수 있어. | 편견 때문에 억울한 오해가 생길 수 있어. |
+| overall.swords.13.reversed | do | 한쪽의 설명만 듣게 됐다면 아직 듣지 못한 사정이 무엇인지 살펴봐. 상대의 이야기도 듣고 나서 어떤 일이 있었는지 판단해줘. | 아직 듣지 못한 사정 알아보기. |
+| overall.swords.13.reversed | pause | 평소 불편하게 느끼는 사람이라는 이유만으로, 사실인지 확인하지도 않고 그 사람이 하는 말을 전부 무시하지는 마. | 싫어하는 사람의 말은 전부 무시하기. |
+| overall.swords.14.upright | headline | 원칙이 분명해져 애매했던 일이 정리될 수 있어. | 말이 많던 일에도 분명한 결론이 날 수 있어. |
+| overall.swords.14.upright | do | 중요한 결정을 앞두고 의견을 말할 때는, 왜 그렇게 생각하는지 다른 사람도 확인할 수 있는 사실을 근거로 설명해줘. | 들은 말이 사실인지 확인하기. |
+| overall.swords.14.upright | pause | 자기에게 유리한 결론을 얻으려고 그때그때 기준을 바꾸지는 마. 정한 원칙을 같은 상황에 똑같이 적용해야 서로 납득할 판단을 할 수 있어. | 유리할 때만 기준 바꾸기. |
+| overall.swords.14.reversed | headline | 일방적인 말이나 요구 때문에 곤란해질 수 있어. | 일방적인 요구 때문에 곤란해질 수 있어. |
+| overall.swords.14.reversed | do | 상대가 강하게 요구해도 곧바로 답하기 어렵다면, 내용을 확인한 뒤 결정할 시간을 달라고 말해봐. | 확인하고 답할 시간 요청하기. |
+| overall.swords.14.reversed | pause | 어떤 일을 결정할 때는 다른 사람의 설명을 중간에 끊지는 마. 사정을 다 듣지 않고 결론 내리면 억울해하는 사람이 생길 수 있어. | 재촉에 못 이겨 동의하기. |
+| overall.wands.01.upright | headline | 새로 시작하는 일이 좋은 반응을 얻을 수 있어. | 새로 시작하는 일이 잘 풀릴 수 있어. |
+| overall.wands.01.upright | do | 해보려다 미뤄둔 일이 있다면 지금 할 수 있는 부분부터 시작해봐. 직접 해보면서 다음에 무엇이 필요한지 알아가도 괜찮아. | 미뤄둔 일 시작하기. |
+| overall.wands.01.upright | pause | 새로 시작하는 일은 처음부터 너무 많이 벌여놓지는 마. 감당할 수 있는 만큼 해봐야 중간에 멈추지 않고 계속할 수 있어. | 처음부터 감당 못 할 만큼 시작하기. |
+| overall.wands.01.reversed | headline | 시작하려던 일이 바로 진행되기는 어려울 수 있어. | 시작하려던 일이 예상보다 늦어질 수 있어. |
+| overall.wands.01.reversed | do | 시작하려던 일의 준비가 덜 됐다면, 부족한 부분을 살펴보고 지금 할 수 있는 것부터 미리 해둬봐. | 빠진 준비 확인하기. |
+| overall.wands.01.reversed | pause | 당장 기회가 없다는 이유만으로 해보려던 생각 자체를 포기하지는 마. 지금 시기가 맞지 않는 것과 앞으로도 할 수 없는 것은 달라. | 준비가 덜 됐는데 서둘러 시작하기. |
+| overall.wands.02.upright | headline | 익숙한 곳 밖에서 더 나은 기회를 찾을 수 있어. | 익숙한 곳 밖에서 더 좋은 기회를 찾을 수 있어. |
+| overall.wands.02.upright | do | 하던 일을 다른 곳에서도 해보고 싶다면, 실제로 가능한지와 지금보다 나은 점이 있는지 알아봐. | 관심 가는 곳 알아보기. |
+| overall.wands.02.upright | pause | 새로 해볼 일이 좋아 보여도 지금 하던 일을 먼저 접지는 마. 실제로 시작할 수 있는지 확인하기 전에는 이어오던 일을 유지해줘. | 새 일을 정하기 전에 하던 일 그만두기. |
+| overall.wands.02.reversed | headline | 바꾸려던 일이 망설임 때문에 늦어질 수 있어. | 망설이는 동안 기회를 놓칠 수 있어. |
+| overall.wands.02.reversed | do | 새로운 선택 앞에서 망설여진다면 가장 걱정되는 조건을 직접 물어봐. 막연히 낯설어서 그런지, 실제로 어려운 점이 있는지 알아볼 수 있어. | 걱정되는 조건 직접 물어보기. |
+| overall.wands.02.reversed | pause | 새로 해볼 일을 정할 때 모든 걱정이 사라질 때까지 답을 미루지는 마. 비교만 하다가 참여할 수 있는 때가 지나갈 수 있어. | 모든 것이 확실해질 때까지 답 미루기. |
+| overall.wands.03.upright | headline | 준비해온 일에 성과가 보이고 기회도 넓어질 수 있어. | 해오던 일이 잘돼 기회가 늘어날 수 있어. |
+| overall.wands.03.upright | do | 해오던 일에 좋은 반응이 왔다면 다음에 함께할 수 있는 일을 제안해봐. 상대가 관심을 보인 부분부터 이어서 이야기하면 좋아. | 다음에 함께할 일 제안하기. |
+| overall.wands.03.upright | pause | 평소 알던 곳이 아니라는 이유로 함께하자는 제안을 바로 거절하지는 마. 어떤 도움을 주고받을 수 있는지 들어본 뒤 정해도 괜찮아. | 낯선 곳의 제안을 무조건 거절하기. |
+| overall.wands.03.reversed | headline | 기다린 결과가 늦어져 다음 일이 밀릴 수 있어. | 기다린 답이 늦어져 다음 일도 밀릴 수 있어. |
+| overall.wands.03.reversed | do | 기다리던 답이 늦어지고 있다면, 그 답을 받지 않아도 처리할 수 있는 일부터 해봐. | 기다리는 동안 할 수 있는 일 하기. |
+| overall.wands.03.reversed | pause | 기다리는 일이 곧 잘될 거라고 보고 새 일까지 맡지는 마. 예상보다 늦어지면 두 일을 함께 마쳐야 해서 부담이 커질 수 있어. | 확답을 받기 전에 할 일 늘리기. |
+| overall.wands.04.upright | headline | 하던 일이 잘 끝나고 편하게 즐길 수 있어. | 일을 잘 끝내고 편하게 즐길 수 있어. |
+| overall.wands.04.upright | do | 함께 애쓴 사람에게 일이 잘 끝났다는 소식을 전해봐. 그동안 고생한 이야기를 나누며 함께 기뻐해도 좋아. | 함께 끝낸 일 축하하기. |
+| overall.wands.04.upright | pause | 이미 잘 마친 일을 더 멋지게 보이려고 다시 손대지는 마. 필요한 마무리가 끝났다면 쉬어갈 시간도 남겨줘. | 잘 끝낸 일을 다시 손대기. |
+| overall.wands.04.reversed | headline | 소박해도 즐겁고 만족스러운 일이 생길 수 있어. | 소박해도 즐겁고 만족스러운 하루가 될 거야. |
+| overall.wands.04.reversed | do | 작게라도 잘된 일이 있다면, 가까운 사람에게 이야기하며 함께 기뻐해봐. | 작게 잘된 일도 함께 기뻐하기. |
+| overall.wands.04.reversed | pause | 준비가 기대만큼 되지 않았다고 즐거운 약속까지 취소하지는 마. 소박한 자리에서도 편한 사람들과 웃으며 지낼 수 있어. | 준비가 완벽하지 않다고 약속 취소하기. |
+| overall.wands.05.upright | headline | 여러 사람의 의견이 부딪쳐 일이 시끄러울 수 있어. | 의견이 부딪쳐 쉽게 결론 나지 않을 수 있어. |
+| overall.wands.05.upright | do | 어느 방법이 나은지 의견이 갈린다면 서로 제안한 방법을 비교해봐. 말만으로 판단하기 어렵다면 각각 해본 뒤 골라도 좋아. | 서로 제안한 방법 비교하기. |
+| overall.wands.05.upright | pause | 서로 다른 방법을 주장하더라도 상대의 말을 중간에 끊지는 마. 왜 그 방법을 골랐는지 들어야 같은 말만 되풀이하는 다툼을 줄일 수 있어. | 상대의 말이 끝나기 전에 끼어들기. |
+| overall.wands.05.reversed | headline | 말이 계속 바뀌는 다툼에 휘말릴 수 있어. | 말이 자꾸 달라지는 다툼에 휘말릴 수 있어. |
+| overall.wands.05.reversed | do | 같은 일에 대한 설명이 서로 다르다면, 누가 무엇을 했는지 확인할 수 있는 사실부터 살펴봐. | 서로 다른 말이 사실인지 확인하기. |
+| overall.wands.05.reversed | pause | 다른 사람의 다툼에 한쪽 말만 듣고 끼어들지는 마. 제대로 모르는 사정을 두고 대신 따지다 자신까지 곤란해질 수 있어. | 한쪽 말만 듣고 다툼에 끼어들기. |
+| overall.wands.06.upright | headline | 애쓴 일이 인정받고 기쁜 소식을 들을 수 있어. | 좋은 결과를 얻고 축하받을 수 있어. |
+| overall.wands.06.upright | do | 잘된 일로 축하를 받을 때는 누가 어떤 도움을 줬는지도 함께 이야기하며 고마움을 전해줘. | 도와준 사람의 공도 함께 알리기. |
+| overall.wands.06.upright | pause | 좋은 결과를 자랑하면서 남이 해낸 일을 낮춰 말하지는 마. 누구보다 잘했는지 따지지 않아도 애쓴 끝에 얻은 기쁨을 누릴 수 있어. | 남이 해낸 일을 깎아내리며 자랑하기. |
+| overall.wands.06.reversed | headline | 애쓴 만큼 인정받기까지 시간이 더 걸릴 수 있어. | 기대한 칭찬이나 결과가 늦어질 수 있어. |
+| overall.wands.06.reversed | do | 기다리는 결과가 아직 나오지 않았다면 확정된 발표를 기다려줘. 반응이 늦다는 이유만으로 해온 일까지 실패로 판단할 필요는 없어. | 결과가 나올 때까지 기다리기. |
+| overall.wands.06.reversed | pause | 칭찬을 듣고 싶어서 실제로 해낸 것보다 크게 말하지는 마. 나중에 과장한 말과 실제 한 일이 다르다는 게 드러나면 곤란해질 수 있어. | 칭찬받으려고 해낸 일 부풀리기. |
+| overall.wands.07.upright | headline | 어려운 요구가 와도 자신의 몫을 지킬 수 있어. | 어려운 요구가 와도 자신의 몫을 지킬 수 있어. |
+| overall.wands.07.upright | do | 받아들이기 어려운 요구가 있다면, 어떤 부분을 양보할 수 없는지와 그 이유를 차분히 말해줘. | 양보할 수 없는 조건 말하기. |
+| overall.wands.07.upright | pause | 요구에 답하다가 거슬리는 말을 들어도 전부 맞받아치지는 마. 사소한 표현을 따지다 보면 정작 받아들일 수 없는 조건을 이야기하기 어려워져. | 거슬리는 말마다 맞받아치기. |
+| overall.wands.07.reversed | headline | 요구가 겹치면 지키려던 조건을 놓칠 수 있어. | 거절하지 못해 원치 않는 일을 할 수 있어. |
+| overall.wands.07.reversed | do | 여러 사람이 부탁을 해오면 곧바로 답하기보다 생각할 시간을 요청해봐. 맡을 수 있는 일을 정한 뒤 어디까지 해줄 수 있는지 알려줘. | 답하기 전에 생각할 시간 요청하기. |
+| overall.wands.07.reversed | pause | 부탁을 거절하기 불편하다고 원하지 않는 조건까지 받아들이지는 마. 그 자리에서는 편해져도 나중에 맡아야 할 일이 늘 수 있어. | 거절하기 불편해서 모든 요구 받아들이기. |
+| overall.wands.08.upright | headline | 기다린 소식이 오고 일이 빠르게 진전될 수 있어. | 기다리던 답이 오고 일이 빠르게 풀릴 수 있어. |
+| overall.wands.08.upright | do | 기다리던 소식을 들었다면 내용을 확인하고 필요한 대답을 제때 해줘. 이어서 일정을 정하는 이야기라면 가능한 시간도 알려주면 좋아. | 확인한 내용에 제때 답하기. |
+| overall.wands.08.upright | pause | 안내가 연달아 온다고 확인하지 않은 내용까지 된다고 답하지는 마. 빠르게 진행되는 중에도 무엇에 동의하는지는 하나씩 확인해줘. | 읽지 않은 내용까지 한꺼번에 동의하기. |
+| overall.wands.08.reversed | headline | 말이 엇갈려 잘되던 일도 지체될 수 있어. | 말이 엇갈려 잘되던 일도 늦어질 수 있어. |
+| overall.wands.08.reversed | do | 받은 말이 불편하게 느껴진다면 어떤 뜻으로 한 말인지 직접 물어봐. 잘못 이해한 채 답해서 다투는 일을 줄일 수 있어. | 불편한 말의 뜻 직접 물어보기. |
+| overall.wands.08.reversed | pause | 남에게 들은 말을 확인 없이 여러 사람에게 옮기지는 마. 전하는 사이에 뜻이 달라지면 함께하는 사람들 사이에도 오해가 생길 수 있어. | 확인하지 않은 말을 여러 사람에게 전하기. |
+| overall.wands.09.upright | headline | 고비가 있어도 해오던 일을 지켜낼 수 있어. | 고비가 있어도 하던 일을 지켜낼 수 있어. |
+| overall.wands.09.upright | do | 전에 겪었던 문제가 다시 나왔다면 어떻게 해결했었는지 떠올려봐. 효과가 있었던 방법을 다시 써보면 같은 문제를 수월하게 풀 수 있어. | 전에 해결한 방법 다시 써보기. |
+| overall.wands.09.upright | pause | 일이 거의 끝났다고 마지막 점검을 건너뛰지는 마. 남은 부분까지 살펴야 같은 일에 다시 손대는 수고를 줄일 수 있어. | 거의 끝났다고 마지막 확인 건너뛰기. |
+| overall.wands.09.reversed | headline | 같은 문제에 다시 막혀 일이 길어질 수 있어. | 같은 문제에 다시 막혀 답답할 수 있어. |
+| overall.wands.09.reversed | do | 같은 방법으로 계속 막힌다면, 그 일을 해본 사람에게 어디가 안 됐는지 설명하고 다른 방법을 물어봐. | 막힌 일을 풀 다른 방법 물어보기. |
+| overall.wands.09.reversed | pause | 전에 도움받은 경험이 좋지 않았다고 새로 돕겠다는 사람까지 밀어내지는 마. 이번에는 어떤 도움을 줄 수 있다는 건지 먼저 들어봐. | 지난 일이 나빴다고 새 도움까지 거절하기. |
+| overall.wands.10.upright | headline | 성과는 있어도 맡은 일이 많아 바쁜 날이야. | 일은 잘돼도 맡은 일이 많아 바쁠 수 있어. |
+| overall.wands.10.upright | do | 이미 맡은 일이 많은데 새 부탁을 받았다면, 남은 일을 마치는 데 걸릴 시간을 생각해서 언제부터 도울 수 있는지 알려줘. | 언제 도울 수 있는지 알려주기. |
+| overall.wands.10.upright | pause | 잘할 수 있는 일이라고 모두 맡겠다고 하지는 마. 한 가지씩은 익숙해도 일이 겹치면 먼저 약속한 중요한 일까지 늦어질 수 있어. | 잘할 수 있다고 모든 일 받아주기. |
+| overall.wands.10.reversed | headline | 일을 나누지 못하면 끝내야 할 것을 놓칠 수 있어. | 일이 겹쳐 끝내야 할 것을 놓칠 수 있어. |
+| overall.wands.10.reversed | do | 혼자 끝내기 어려운 일이 있다면 어느 부분을 나눠 맡아줬으면 하는지 지금 말해줘. 미리 말해야 함께하는 사람도 일을 나눠 맡을 시간을 낼 수 있어. | 혼자 못 끝낼 일 나눠달라고 말하기. |
+| overall.wands.10.reversed | pause | 맡은 일이 버겁다면, 누가 할지 정해지지 않은 일까지 말없이 가져오지는 마. 주변에서는 더 해도 괜찮은 줄 알 수 있어. | 버거운데도 남의 일까지 떠안기. |
+| overall.wands.11.upright | headline | 새로운 소식이 뜻밖의 기회가 될 수 있어. | 새로운 소식에서 좋은 기회를 찾을 수 있어. |
+| overall.wands.11.upright | do | 흥미로운 활동 이야기를 들었다면, 직접 경험해볼 수 있도록 어디서 어떻게 참여하는지 물어봐. | 관심 있는 활동에 참여하는 방법 묻기. |
+| overall.wands.11.upright | pause | 관심 있는 활동을 처음부터 잘해야 한다며 계속 미루지는 마. 능숙하지 않아도 처음 해보는 재미를 느낄 수 있어. | 처음부터 잘해야 한다며 시작 미루기. |
+| overall.wands.11.reversed | headline | 확실하지 않은 소식에 기대했다가 허탕칠 수 있어. | 확실하지 않은 말을 믿고 허탕칠 수 있어. |
+| overall.wands.11.reversed | do | 새로운 활동에 참여할 수 있다는 말을 들었다면, 정식 안내에서도 실제로 가능한지 확인해봐. | 새 소식의 정식 안내 확인하기. |
+| overall.wands.11.reversed | pause | 확실하지 않은 소식을 다른 사람에게도 좋은 기회라며 먼저 권하지는 마. 함께하기로 했다가 내용이 달라지면 상대도 당황할 수 있어. | 확인하지 않은 일을 남에게 권하기. |
+| overall.wands.12.upright | headline | 직접 나선 일이 빠르게 진행될 수 있어. | 새로운 곳에서 즐거운 경험을 할 수 있어. |
+| overall.wands.12.upright | do | 가보고 싶었던 곳이 있다면, 갈 수 있는 시간을 알아보고 직접 다녀와봐. | 가보고 싶던 곳 직접 다녀오기. |
+| overall.wands.12.upright | pause | 신이 난다고 하루에 들를 곳을 너무 많이 정하지는 마. 다음 장소로 움직이느라 바쁘면 정작 머물며 즐길 시간이 줄어들 수 있어. | 하루에 너무 많은 곳 방문하기. |
+| overall.wands.12.reversed | headline | 갑자기 바뀐 결정 때문에 일이 중단될 수 있어. | 갑자기 계획이 바뀌어 일이 멈출 수 있어. |
+| overall.wands.12.reversed | do | 누군가와 만나거나 방문할 약속이 있다면, 출발하기 전에 상대에게 그대로 진행되는지 확인해봐. | 출발 전에 약속 확인하기. |
+| overall.wands.12.reversed | pause | 약속이 취소됐다고 다른 약속부터 급히 잡지는 마. 상대도 가능한지 알아보고 정해야 새 약속까지 다시 바뀌는 일을 줄일 수 있어. | 취소되자마자 다른 약속 급히 잡기. |
+| overall.wands.13.upright | headline | 사람들의 호응을 얻고 즐겁게 지낼 수 있어. | 사람들의 관심을 받고 즐겁게 지낼 수 있어. |
+| overall.wands.13.upright | do | 여럿이 함께하는 자리에서 나누고 싶은 이야기가 있다면, 편하게 먼저 꺼내봐. | 나누고 싶은 이야기 먼저 꺼내기. |
+| overall.wands.13.upright | pause | 반응이 좋다고 자기 이야기만 길게 이어가지는 마. 다른 사람도 말을 보탤 수 있도록 잠시 기다려주면 더 즐겁게 어울릴 수 있어. | 자기 이야기로 대화 독차지하기. |
+| overall.wands.13.reversed | headline | 남의 반응을 신경 쓰다가 사람들과 불편해질 수 있어. | 관심을 받지 못해 서운할 수 있어. |
+| overall.wands.13.reversed | do | 자기 이야기를 꺼낸 뒤에는 말을 더 보태기보다, 상대에게도 말할 기회를 주고 끝까지 들어봐. | 상대의 이야기 끝까지 듣기. |
+| overall.wands.13.reversed | pause | 다른 사람이 칭찬받는 자리에서 그 사람의 흠을 덧붙이지는 마. 함께 듣는 사람들에게는 남을 깎아내리는 모습으로 보일 수 있어. | 칭찬받는 사람의 흠 보태기. |
+| overall.wands.14.upright | headline | 주도해서 시작한 일에 협조와 성과가 따를 수 있어. | 함께할 사람이 생기고 일이 잘 풀릴 수 있어. |
+| overall.wands.14.upright | do | 함께 시작할 일을 맡았다면, 각자 잘하는 부분을 먼저 듣고 그에 맞춰 일을 나눠줘. | 약속한 일부터 직접 해내기. |
+| overall.wands.14.upright | pause | 앞장서서 시작만 해놓고 뒤에 남은 일은 남이 알아서 하길 바라지는 마. 서로 잘하는 부분을 나눠 맡아도 약속한 자기 몫은 끝까지 챙겨줘. | 시작만 하고 뒷일은 남에게 미루기. |
+| overall.wands.14.reversed | headline | 지나치게 높은 기준 때문에 일이 늦어질 수 있어. | 기준을 너무 높게 잡아 일이 늦어질 수 있어. |
+| overall.wands.14.reversed | do | 일이 마음에 차지 않는다면 어떤 부분을 더 고치고 싶은지 살펴봐. 꼭 필요한 수정이 아니라면 그 상태로 마무리해도 괜찮아. | 꼭 고칠 부분만 말하기. |
+| overall.wands.14.reversed | pause | 자기 방식과 조금 다르다는 이유로 잘된 부분까지 다시 하게 만들지는 마. 요구가 지나치면 열심히 도와주던 사람도 계속 함께하기 어려워질 수 있어. | 자신의 방식과 다르다고 다시 하게 하기. |
+| overall.pentacles.01.upright | headline | 필요한 것을 얻고 새 일을 시작하기 좋은 날이야. | 필요한 것을 얻고 새 일을 시작할 수 있어. |
+| overall.pentacles.01.upright | do | 시작하려던 일에 아직 필요한 물건이나 장소가 있다면, 지금 구하거나 사용할 수 있는지 알아봐. | 필요한 물건 구하기. |
+| overall.pentacles.01.upright | pause | 더 좋은 조건만 기다리느라, 이미 마련한 물건이나 장소를 써야 할 때를 놓치지는 마. | 쓸 수 있는데도 더 좋은 것만 기다리기. |
+| overall.pentacles.01.reversed | headline | 좋은 것을 얻어도 당장 쓸모가 적을 수 있어. | 많이 얻어도 정작 필요한 것은 없을 수 있어. |
+| overall.pentacles.01.reversed | do | 새로 받은 것이 많더라도, 지금 필요한 일을 하는 데 쓸 수 있는지 살펴봐. 양이 넉넉한 것과 필요한 것이 갖춰진 것은 달라. | 받은 것을 어디에 쓸지 살펴보기. |
+| overall.pentacles.01.reversed | pause | 좋다는 말만 듣고 이미 있는 것과 비슷한 물건을 더 모으지는 마. 어디에 쓸지 정하지 못한 것까지 늘릴 필요는 없어. | 좋아 보인다고 비슷한 물건 계속 모으기. |
+| overall.pentacles.02.upright | headline | 바쁜 가운데서도 여러 일을 무난히 해낼 수 있어. | 바빠도 여러 일을 잘해낼 수 있어. |
+| overall.pentacles.02.upright | do | 먼저 해야 할 일이 바뀌었다면, 남은 시간을 다시 살펴보고 함께하기로 한 사람에게 가능한 시간을 알려줘. | 바뀐 일정에 맞춰 시간 다시 정하기. |
+| overall.pentacles.02.upright | pause | 시간이 겹치는 부탁에 둘 다 된다고 답하지는 마. 어느 쪽을 먼저 해야 하는지와 실제로 가능한 시간을 솔직하게 알려줘. | 시간이 겹치는데도 둘 다 약속하기. |
+| overall.pentacles.02.reversed | headline | 여러 일을 동시에 하다 약속을 놓칠 수 있어. | 여러 일을 하다 약속을 놓칠 수 있어. |
+| overall.pentacles.02.reversed | do | 약속 시간이 겹친다면 늦기 전에 어느 쪽을 바꿀 수 있는지 물어봐. 혼자 맞춰보려다 늦어지는 것보다 미리 사정을 알리는 편이 좋아. | 겹친 약속 미리 바꿔달라고 말하기. |
+| overall.pentacles.02.reversed | pause | 뒤로 미뤄둔 일이 있다면, 급한 일을 마쳤다고 곧바로 새 약속을 잡지는 마. 남은 일을 할 시간까지 빠듯해질 수 있어. | 빠듯한 일정에 새 약속 넣기. |
+| overall.pentacles.04.upright | headline | 큰 변화 없이 지금까지 이룬 것을 지키기 좋은 날이야. | 큰 변화 없이 편안하게 지낼 수 있어. |
+| overall.pentacles.04.upright | do | 무언가 새로 마련하려고 한다면, 이미 갖고 있는 것 중에 같은 용도로 쓸 수 있는 것이 있는지 살펴봐. | 이미 가진 것으로 해결해보기. |
+| overall.pentacles.04.upright | pause | 누군가 잠깐 도와달라고 할 때, 부탁을 듣기도 전에 거절하지는 마. 어떤 도움인지 알아본 뒤 해줄 수 있는지 정해도 괜찮아. | 도움 부탁을 듣기도 전에 거절하기. |
+| overall.pentacles.04.reversed | headline | 반대에 부딪쳐 일이 예상보다 늦어질 수 있어. | 반대에 부딪쳐 일이 늦어질 수 있어. |
+| overall.pentacles.04.reversed | do | 원하는 일이 거절되거나 미뤄졌다면 어떤 이유인지 먼저 물어봐. 조건을 바꿀 여지가 있다면 언제 다시 할 수 있는지도 알아봐. | 거절한 이유 물어보기. |
+| overall.pentacles.04.reversed | pause | 상대가 어렵다고 한 조건은 그대로 둔 채 같은 요구만 반복하지는 마. 계속 재촉해도 동의를 받기까지 더 오래 걸릴 수 있어. | 같은 요구만 반복하며 재촉하기. |
+| overall.pentacles.05.upright | headline | 필요한 도움이나 여유가 부족해 힘이 들 수 있어. | 필요한 도움을 받지 못해 힘들 수 있어. |
+| overall.pentacles.05.upright | do | 혼자 해야 할 일이 버겁다면, 어떤 부분을 도와줬으면 하는지 구체적으로 말해봐. | 지금 필요한 도움 부탁하기. |
+| overall.pentacles.05.upright | pause | 도움을 청할 때 남들은 잘 지낸다는 말만 반복하지는 마. 그 말만으로는 지금 무엇이 부족한지 상대가 알아듣기 어려워. | 미안해서 필요한 도움까지 거절하기. |
+| overall.pentacles.05.reversed | headline | 서로 뜻이 맞지 않아 수고만 늘어날 수 있어. | 뜻이 맞지 않아 애쓰고도 잘 안될 수 있어. |
+| overall.pentacles.05.reversed | do | 함께하던 일이 꼬였다면, 서로 어디까지 끝냈는지 먼저 확인해서 이미 마친 일을 다시 하지 않도록 해봐. | 서로 어디까지 했는지 확인하기. |
+| overall.pentacles.05.reversed | pause | 화가 난다고 다른 사람에게 맡겨둔 일까지 도로 가져오지는 마. 그만큼 혼자 해야 할 일이 늘어나 마치는 데도 시간이 더 걸릴 수 있어. | 화가 나서 남에게 맡긴 일까지 대신하기. |
+| overall.pentacles.06.upright | headline | 뜻밖의 선물이나 도움으로 하루가 수월해질 수 있어. | 뜻밖의 선물이나 도움을 받을 수 있어. |
+| overall.pentacles.06.upright | do | 필요할 때 도움을 받았다면 어떤 점이 수월해졌는지 이야기하며 고마운 마음을 전해줘. | 도움받은 일에 고마움 전하기. |
+| overall.pentacles.06.upright | pause | 다른 사람을 돕고 싶어도 어떤 도움이 필요한지 묻지 않고 밀어붙이지는 마. 좋은 뜻이어도 상대가 원하는 도움은 아닐 수 있어. | 필요한지 묻지 않고 도움 강요하기. |
+| overall.pentacles.06.reversed | headline | 나눠 받는 일에서 불공평함을 느낄 수 있어. | 나눠 받는 일이 불공평하게 느껴질 수 있어. |
+| overall.pentacles.06.reversed | do | 누군가 도움을 주겠다고 하면 대신 해야 하는 일이 있는지 먼저 물어봐. 받아들이기 어려운 조건이라면 도움을 받기 전에 분명히 말해줘. | 도움에 붙은 조건 먼저 물어보기. |
+| overall.pentacles.06.reversed | pause | 도움을 준 사람에게 다른 사람은 더 많이 받았다며 불만만 말하지는 마. 같은 비교를 되풀이하면 서로 불편해질 수 있어. | 다른 사람이 더 받았다고 불평하기. |
+| overall.pentacles.07.upright | headline | 꾸준히 해온 일에서 작은 성과를 확인할 수 있어. | 꾸준히 해온 일에서 성과를 볼 수 있어. |
+| overall.pentacles.07.upright | do | 꾸준히 해온 일은 전보다 나아진 부분과 아직 남은 부분을 살펴보며, 더 이어갈 만한지 판단해봐. | 지금까지 해낸 일 살펴보기. |
+| overall.pentacles.07.upright | pause | 꾸준히 해온 일을 빨리 끝내려고 필요한 과정을 건너뛰지는 마. 지금까지의 수고가 헛되지 않게 남은 부분도 마저 해줘. | 빨리 끝내려고 필요한 과정 건너뛰기. |
+| overall.pentacles.07.reversed | headline | 더 애써도 결과가 나아질지 판단하기 어려운 날이야. | 더 애써도 바로 보답받기는 어려울 수 있어. |
+| overall.pentacles.07.reversed | do | 시간을 더 내달라는 부탁을 받았다면 언제 끝날 수 있는지 먼저 물어봐. 끝나는 때가 불분명하다면 지금 가능한 만큼만 돕겠다고 알려줘. | 더 돕기 전에 언제 끝나는지 묻기. |
+| overall.pentacles.07.reversed | pause | 지금까지 쓴 시간이 아깝다는 이유만으로, 언제 끝날지 모르는 일에 계속 시간을 내겠다고 약속하지는 마. | 들인 시간이 아까워 계속 돕겠다고 약속하기. |
+| overall.pentacles.08.upright | headline | 꾸준히 해온 일에서 실력이 드러날 수 있어. | 꾸준히 해온 일에서 실력을 발휘할 수 있어. |
+| overall.pentacles.08.upright | do | 연습해둔 방법으로 할 수 있는 일이 남아 있다면, 그 방법을 써서 끝까지 마쳐봐. | 연습해둔 방법으로 끝까지 마치기. |
+| overall.pentacles.08.upright | pause | 익숙하고 반복되는 일이라고 작은 부분을 대충 넘기지는 마. 잘하는 일에서도 마무리를 소홀히 하면 해낸 결과에 아쉬움이 남을 수 있어. | 익숙한 일이라고 대충 넘기기. |
+| overall.pentacles.08.reversed | headline | 쉽게 해치우려던 일이 오히려 번거로워질 수 있어. | 요령만 믿다가 일을 다시 해야 할 수 있어. |
+| overall.pentacles.08.reversed | do | 능숙한 일이라도 확인하지 않고 넘긴 부분이 있다면 다시 살펴봐. 빠뜨린 것이 보이면 마쳤다고 하기 전에 실제로 고쳐줘. | 빠뜨린 부분 다시 확인하기. |
+| overall.pentacles.08.reversed | pause | 해놓은 일에 부족한 점이 드러났을 때 말만 그럴듯하게 보태서 넘어가려 하지는 마. 실제로 고치지 않으면 나중에 다시 손봐야 하고 믿음도 잃을 수 있어. | 부족한 부분을 말로만 꾸미기. |
+| overall.pentacles.09.upright | headline | 애써 마련한 여유를 편하게 누릴 수 있어. | 애쓴 덕분에 여유로운 하루를 보낼 수 있어. |
+| overall.pentacles.09.upright | do | 일을 잘 마친 기념으로, 그동안 하고 싶었지만 시간이 없어 못 했던 것을 해봐. | 잘 마친 일 기뻐하기. |
+| overall.pentacles.09.upright | pause | 다른 사람에게 잘 지내는 모습을 보여주려고, 별로 가고 싶지 않은 자리까지 억지로 나가지는 마. | 자신이 해낸 일을 남과 비교하기. |
+| overall.pentacles.09.reversed | headline | 겉으로 좋아 보인 일이 실제로는 허술할 수 있어. | 좋아 보였던 일이 실제로는 허술할 수 있어. |
+| overall.pentacles.09.reversed | do | 새로 이용할 곳이나 참여할 일이 있다면, 실제로 필요한 것이 갖춰졌는지 직접 살펴봐. | 필요한 것이 갖춰졌는지 직접 살펴보기. |
+| overall.pentacles.09.reversed | pause | 겉모습이 좋아 보인다고 다른 사람에게도 괜찮은 곳이라 장담하지는 마. 직접 이용하는 데 불편한 점은 없는지 알아본 뒤 이야기해줘. | 겉만 보고 남에게도 좋다고 장담하기. |
+| overall.pentacles.10.upright | headline | 오래 쌓아온 인연과 경험이 든든한 도움이 될 수 있어. | 가까운 사람들의 도움으로 일이 잘 풀릴 수 있어. |
+| overall.pentacles.10.upright | do | 새로 해결해야 할 일이 있다면 예전에 정리한 내용에서 쓸 만한 것을 찾아봐. 오래 쌓아둔 기록에 지금 필요한 답이 남아 있을 수 있어. | 혼자 하기 어려운 일 함께하기. |
+| overall.pentacles.10.upright | pause | 오래 아는 사람에게 도움을 구할 수 있다면, 모르는 내용을 처음부터 전부 혼자 알아내려 애쓰지는 마. | 도움받을 수 있어도 혼자 해결하려고 하기. |
+| overall.pentacles.10.reversed | headline | 한 번의 무리한 선택으로 잘되던 일까지 흔들릴 수 있어. | 운만 믿었다가 잘되던 일도 어긋날 수 있어. |
+| overall.pentacles.10.reversed | do | 지금 잘되고 있는 일을 새 방법으로 바꾸고 싶다면, 전체를 바꾸기 전에 작은 부분에서 먼저 시험해봐. | 새 방법을 작은 부분부터 시험하기. |
+| overall.pentacles.10.reversed | pause | 결과를 기다리는 일이 잘돼야 지킬 수 있는 약속을 여러 개 잡지는 마. 그 일이 예상과 다르게 끝나면 약속도 지키기 어려워질 수 있어. | 잘될 거란 말만 믿고 전부 바꾸기. |
+| overall.pentacles.11.upright | headline | 새로 알게 된 것이 실제 도움이 될 수 있어. | 새로 배운 것이 바로 도움이 될 수 있어. |
+| overall.pentacles.11.upright | do | 새로 배운 방법이 있다면, 그 방법으로 할 수 있는 일 가운데 간단한 것부터 직접 해봐. | 새로 배운 방법 직접 써보기. |
+| overall.pentacles.11.upright | pause | 이미 아는 내용처럼 들린다고 설명을 다 듣기 전에 넘기지는 마. 뒤에 아직 몰랐던 내용이 이어질 수 있어. | 아는 내용 같다며 설명 건너뛰기. |
+| overall.pentacles.11.reversed | headline | 딴일에 한눈팔다 필요한 기회를 놓칠 수 있어. | 한눈팔다 필요한 일을 놓칠 수 있어. |
+| overall.pentacles.11.reversed | do | 다른 일에 시간을 쓰기 전에, 읽기를 미뤄둔 안내에서 지금 답하거나 처리할 내용부터 확인해봐. | 미뤄둔 안내 먼저 읽기. |
+| overall.pentacles.11.reversed | pause | 새로 시작한 일이 금방 재미없게 느껴져도, 필요한 과정을 마쳐보기 전에 시시한 일이라고 단정하고 접지는 마. | 재미있는 일만 하며 필요한 일 미루기. |
+| overall.pentacles.12.upright | headline | 빠르지는 않아도 하던 일이 착실하게 마무리될 수 있어. | 느려도 할 일을 잘 끝낼 수 있어. |
+| overall.pentacles.12.upright | do | 익숙하게 해오던 일은 하던 순서대로 하나씩 마치며, 약속한 것을 빠짐없이 끝냈는지도 살펴줘. | 하던 순서대로 하나씩 끝내기. |
+| overall.pentacles.12.upright | pause | 다른 사람이 빨리 끝냈다고 잘해오던 방법까지 급히 바꾸지는 마. 자기에게 익숙한 순서로 마칠 수 있다면 남의 속도에 맞출 필요는 없어. | 남이 빠르다고 방법 급히 바꾸기. |
+| overall.pentacles.12.reversed | headline | 미룬 일이 쌓여 작은 일도 번거로워질 수 있어. | 미뤄둔 일이 쌓여 번거로워질 수 있어. |
+| overall.pentacles.12.reversed | do | 오래 미뤄둔 일이 있다면 어디까지 해뒀는지 다시 살펴봐. 다 한 줄 알았던 부분에서도 빠뜨린 것이 나올 수 있어. | 오래 미룬 일을 어디까지 했는지 확인하기. |
+| overall.pentacles.12.reversed | pause | 나중에 한꺼번에 하겠다고 미룬 일을 또 넘기지는 마. 오래 두면 어디까지 했는지 다시 알아보는 데도 시간이 들 수 있어. | 나중에 몰아서 하겠다며 또 미루기. |
+| overall.pentacles.13.upright | headline | 필요한 것이 갖춰져 하루를 편하게 보낼 수 있어. | 필요한 것이 갖춰져 편하게 지낼 수 있어. |
+| overall.pentacles.13.upright | do | 넉넉하게 있는 물건이 있다면 필요한 사람에게 나눠줘도 좋아. 자신이 쓸 만큼 남겨두고도 쉽게 건넬 수 있는 것부터 살펴봐. | 남는 물건 나눠주기. |
+| overall.pentacles.13.upright | pause | 누군가를 챙기느라 자기 일까지 미뤄두지는 마. 끝내야 할 일을 먼저 생각하고, 무리 없이 해줄 수 있는 만큼만 도와줘도 충분해. | 자신의 일까지 미루며 남을 챙기기. |
+| overall.pentacles.13.reversed | headline | 필요 이상으로 의심하다 수고가 늘어날 수 있어. | 괜한 의심 때문에 일이 번거로워질 수 있어. |
+| overall.pentacles.13.reversed | do | 결정을 앞두고 마음이 놓이지 않는다면, 걱정되는 조건을 구체적으로 물어보고 그 답을 바탕으로 정해봐. | 걱정되는 조건 물어보기. |
+| overall.pentacles.13.reversed | pause | 근거도 없이 도와주려는 사람의 속뜻을 계속 캐묻지는 마. 의심하는 말만 오가면 어떤 도움을 받을지 이야기하기도 어려워질 수 있어. | 이유 없이 도와주려는 사람 의심하기. |
+| overall.pentacles.14.upright | headline | 경험을 살린 선택이 만족스러운 결과로 이어질 수 있어. | 잘하는 일에서 좋은 결과를 낼 수 있어. |
+| overall.pentacles.14.upright | do | 복잡한 일을 해결해야 한다면, 전에 효과를 본 방법 중 지금도 쓸 수 있는 것을 골라서 해봐. | 전에 효과를 본 방법 써보기. |
+| overall.pentacles.14.upright | pause | 눈에 띄는 새 방법이라도 직접 써본 적이 없다면, 효과를 확인한 것처럼 잘될 거라고 장담하지는 마. | 해보지 않은 방법을 잘된다고 장담하기. |
+| overall.pentacles.14.reversed | headline | 욕심을 더 내다 이미 얻은 것까지 놓칠 수 있어. | 욕심을 내다 얻은 것까지 놓칠 수 있어. |
+| overall.pentacles.14.reversed | do | 만족할 만한 조건을 얻었다면, 더 받아내려고 요구를 늘리기보다 그 조건으로 마무리해봐. | 괜찮은 제안 받아들이기. |
+| overall.pentacles.14.reversed | pause | 남에게 잘하는 모습을 보여주려고 감당하기 어려운 일까지 맡지는 마. 그 일을 끝낼 시간과 힘이 있는지부터 생각해줘. | 잘 보이려고 못 할 일도 받아들이기. |

@@ -1,0 +1,76 @@
+{
+  "schema": "moly-fortune-localization-validation-v1",
+  "scope": "Static baseline localization proofs; retained EN/JA refer to baseline Korean, not the later Korean override. No app or API execution",
+  "copy_version": "fortune-copy.v8-localized.2",
+  "target_catalog_version": "fortune-copy.v8-localized.3",
+  "counts": {
+    "en": {
+      "by_axis": {
+        "overall": 156,
+        "love": 156,
+        "money": 156,
+        "work": 156,
+        "energy": 156
+      },
+      "bodies": 780,
+      "short_fields": 468,
+      "current_author_reads": 780,
+      "current_independent_passes": 780
+    },
+    "ja": {
+      "by_axis": {
+        "overall": 156,
+        "love": 156,
+        "money": 156,
+        "work": 156,
+        "energy": 156
+      },
+      "bodies": 780,
+      "short_fields": 468,
+      "current_author_reads": 780,
+      "current_independent_passes": 780
+    }
+  },
+  "source_hashes": {
+    "docs/fortune-content/ko-rewrite/overall.json": "ff23fc90c1158a9a33250b7fdf48c12f850bc2b00e78f931def6ef3cdd4adf4f",
+    "docs/fortune-content/ko-rewrite/love.json": "26f15d8c00548fbe815ebbdd9e573f5664b7ce294dab7c69a707124d6c3c9bbb",
+    "docs/fortune-content/ko-rewrite/money.json": "440da985e7e4f5a461242f99a3fbeea3470b179ea2fd1dc5063331a3a99b0529",
+    "docs/fortune-content/ko-rewrite/work.json": "f04675947a4cff63149bdb992289ec45fc14417f24c647d08795f59e489afb88",
+    "docs/fortune-content/ko-rewrite/energy.json": "7aede3caa1946b80b073fe9983c1d965e9a632941663c3ccd39fd232d49bec1a",
+    "docs/fortune-content/localization/review.json": "b61a166d5d01b2b1abb0ee5409a88709183e47cf79e03cd939a15dbb2fec3626",
+    "docs/fortune-content/localization/en/author-review.json": "ff5ba18e5fba4a2243a2f6fb3ce176250506d532707bbf98a9fe69c7c52da81f",
+    "docs/fortune-content/localization/en/overall.json": "567d012f147b28c4dff15436447b200fa3e135f6fbd7b1b2d6ef7c88d9d5f7a0",
+    "docs/fortune-content/localization/en/love.json": "4dd0bae975b8d77df0f01e35ade4d83c3c2e52511078992b673c85589b86a2c5",
+    "docs/fortune-content/localization/en/money.json": "a6ab623c6c7a1f310bd76a6a33a8507eb04d8f2ed2edc2e5adca14ebc564eca8",
+    "docs/fortune-content/localization/en/work.json": "295ea201390d01c69099053ed70d413d88f3b3dd97103697ff0d174119182769",
+    "docs/fortune-content/localization/en/energy.json": "f47a69ca0df3e3bf484141aa69c0ec42ea038ee45f957548ebe962d63fe01f1f",
+    "docs/fortune-content/localization/ja/author-review.json": "edc7e17227581ebab931bb032417e76fd72619edb789902d6f32f230e2992cea",
+    "docs/fortune-content/localization/ja/overall.json": "0212f691b3e5ac887c6b1a75d766ed4188e0c386709e3bf664691ad44a53cd25",
+    "docs/fortune-content/localization/ja/love.json": "3173ead33ed350d78d934a9f60f779d646f64987791232436b53e2b8d8d95b50",
+    "docs/fortune-content/localization/ja/money.json": "513b0a845e6334a195d6f8fbf726b90cd20722a44c5d77f0e52ea57726bbf348",
+    "docs/fortune-content/localization/ja/work.json": "2a8f528956d1a2fcc06a4a7f2b1309c102546637a2bcc1ca8497414a5c5e126d",
+    "docs/fortune-content/localization/ja/energy.json": "91a84c92bb8d5aaee0d235f495cf260e579b8fd6586bd256a69e346b6adf50bc",
+    "docs/fortune-content/localization/en-short-review.json": "df091478b186cffa2d6f64d17c109ead40cf3ed6dd649bd213a1262ee388105f",
+    "docs/fortune-content/localization/ja-independent-review.json": "d975415ef472a26ca075db328a8fd647b297e28e7f7756b9204cdac9f61662c3",
+    "docs/fortune-content/localization/brief-corrections.json": "c89acd969b4ead35445f382d51aad8f68ecba98554e1481adcf38b9da3070b30",
+    "docs/fortune-content/ko-rewrite/money.briefs.json": "c5f743fd56a942a95340a57c070799f7957098e3016768640466243439312da6",
+    "docs/fortune-content/ko-rewrite/energy.briefs.json": "7247e8761559819f7950eb9da929099214cdae842870ec7f3b704d450063d200",
+    "docs/fortune-content/localization/samples.inputs.json": "61348146355b8c73102d281e78abe0b741803a58552f5994c70562877627c362"
+  },
+  "errors": [],
+  "pending": [],
+  "repetition_for_review": [
+    {
+      "locale": "ja",
+      "kind": "sentence",
+      "text": "金運は好調です。",
+      "keys": [
+        "money.major.chariot.upright",
+        "money.major.sun.upright",
+        "money.pentacles.01.upright"
+      ]
+    }
+  ],
+  "repetition_sha256": "e3f636250a8fc7de74595e6c3933fceb8bdf7ce353cadda35424f5d732a93548",
+  "status": "pass"
+}

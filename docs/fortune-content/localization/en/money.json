@@ -1,0 +1,826 @@
+{
+  "money.major.chariot.upright": {
+    "paragraphs": [
+      "Your money outlook is good. A money problem that's held things up could be resolved, and a payment you're owed may arrive. Something you've worked on for a long time could bring income, or you may receive the amount you'd hoped for.",
+      "Increasing your spending as soon as money comes in could quickly use up that welcome breathing room. Even if you've been waiting to buy something, don't buy several things all at once."
+    ]
+  },
+  "money.major.chariot.reversed": {
+    "paragraphs": [
+      "Money could leave faster than it comes in. If an expected payment is delayed, spending you've already committed to may become a burden. Putting in more money to recover a loss quickly could make that loss bigger today.",
+      "Take your time with decisions involving a large sum. Don't make commitments based on money you haven't received; work with what you have now."
+    ]
+  },
+  "money.major.sun.upright": {
+    "paragraphs": [
+      "Money matters look promising. You could be paid fairly for your efforts or receive income you've been hoping for. If you're waiting for a payment, good news may arrive today.",
+      "With more money available, it's a good time to get something you really need. Keep spending to impress others in check so you can enjoy what comes in."
+    ]
+  },
+  "money.major.sun.reversed": {
+    "paragraphs": [
+      "A small financial gain could come your way, even if it's less than you'd hoped. The amount may be disappointing, but the chance of receiving money hasn't disappeared. Small payments can add up and help with immediate expenses.",
+      "Spending in advance because you expect a larger payment will leave you with less in hand. Base your spending on what you've actually received to avoid adding unnecessary money worries."
+    ]
+  },
+  "money.major.tower.upright": {
+    "paragraphs": [
+      "Unexpected expenses could leave you with less money today. A cost where you expected none may leave too little for something else. Be especially careful about adding more money to something that's already made a loss.",
+      "Hold off on expensive things you don't need right away. Even if a request for payment comes suddenly, check how much you're responsible for before agreeing."
+    ]
+  },
+  "money.major.tower.reversed": {
+    "paragraphs": [
+      "You could spot a problem before it costs you a large sum. Catching an incorrect charge or an unfavourable condition now may limit the loss. Even if a financial burden already exists, you could find a way to stop it growing.",
+      "Take another look at amounts you're tempted to overlook. Dealing with a problem as soon as you spot it can help protect the money you still have."
+    ]
+  },
+  "money.major.moon.upright": {
+    "paragraphs": [
+      "There's a risk of losing money today. Something that looks profitable could actually cost you more than expected. Trusting appealing promises alone may leave you with a different payment or different terms from those you had in mind.",
+      "Don't send money when the explanation is unclear. Find out exactly where your money will go before focusing on how much you might earn."
+    ]
+  },
+  "money.major.moon.reversed": {
+    "paragraphs": [
+      "Money worries could ease, with a chance to avoid a loss. What you owe may be less than expected, or an incorrect charge could be put right. If you've been unsure how much you'll receive, a clear amount may make spending easier to plan.",
+      "Don't spend ahead in the hope of getting more than the amount that's been confirmed. As money matters are settled, cover necessary expenses first."
+    ]
+  },
+  "money.major.temperance.upright": {
+    "paragraphs": [
+      "Your finances look steady. Money you need could arrive on time, easing worries about everyday expenses. A large windfall is unlikely, but your usual spending should leave you with enough.",
+      "It's a good day to maintain savings or financial commitments you've comfortably kept up. Don't tie up money you need for daily living just to reach a savings goal faster."
+    ]
+  },
+  "money.major.temperance.reversed": {
+    "paragraphs": [
+      "Spending could outpace income today. Several small indulgences may add up and leave everyday expenses hard to cover. Rushing to borrow the difference could create a heavier repayment burden.",
+      "Keep money for necessities separate from money for things you'd like. If an expensive item catches your eye, put it off rather than going into debt to get it."
+    ]
+  },
+  "money.major.fool.upright": {
+    "paragraphs": [
+      "An unexpected small gain could come your way today. Something unfamiliar may offer a chance to earn, or you could get what you need for less than expected. Even without a large sum, gaining something alongside a new experience could feel good.",
+      "A new opportunity doesn't require risking all your money. For a first transaction, check how it goes with a small amount and keep money aside for living costs."
+    ]
+  },
+  "money.major.fool.reversed": {
+    "paragraphs": [
+      "Money spent without thought could leave you disappointed later. Something that looks cheap or fun at first may not feel worth the price once you have it. Overlooked costs could also take spending beyond what you expected.",
+      "Don't spend a large amount on a passing feeling today. It's better to check the final total once more before paying."
+    ]
+  },
+  "money.major.magician.upright": {
+    "paragraphs": [
+      "It's a good day to earn through your skills. You may be paid fairly for work you've done or find a chance to earn through something you do well. You may even receive a specific offer for something you weren't sure you could earn from.",
+      "If a transaction is being discussed, make clear from the start how much you'll receive. Agreeing on the work you'll do, including how much you'll take on, can help you get paid for your effort."
+    ]
+  },
+  "money.major.magician.reversed": {
+    "paragraphs": [
+      "A promise of good income could hide a loss. Getting ready may cost more than the money you actually receive today. If talk of easy earnings makes you rush, you could overlook unfavourable terms.",
+      "Look carefully at any offer asking you to pay a large sum first in order to receive money. What matters is whether the promised amount can actually be paid, more than how confidently the other person speaks."
+    ]
+  },
+  "money.major.high_priestess.upright": {
+    "paragraphs": [
+      "It's a better day to protect your money than to move a large sum. Conditions that haven't been revealed yet may make the apparent profit hard to judge. Waiting could make the actual amount or costs of a transaction clearer.",
+      "Don't rush because someone says you must decide today. It's fine to wait until the reason for spending the money makes full sense to you."
+    ]
+  },
+  "money.major.high_priestess.reversed": {
+    "paragraphs": [
+      "A money matter you've only partly understood could lead to a loss. Trusting someone else's explanation without checking costs may leave you paying more than expected. Don't brush aside a condition that's been troubling you today.",
+      "Decide once you know both what you'll receive and what you'll pay. If any amount is still unclear, ask first and send the money afterwards."
+    ]
+  },
+  "money.major.empress.upright": {
+    "paragraphs": [
+      "Your financial luck looks good, with more money for everyday living. Something you've worked hard on could bring more income, or money may arrive that makes life more comfortable. If you've been saving, you could buy what you need and still feel secure.",
+      "Wanting to enjoy nice things may make you buy more than usual, so keep an eye on that. Choosing for practical value could bring satisfaction that feels worth what you spent."
+    ]
+  },
+  "money.major.empress.reversed": {
+    "paragraphs": [
+      "Larger spending could leave little of your income today. Things bought to comfort yourself or money spent to please someone else may become a burden. If the spending wasn't necessary, the satisfaction may not last either.",
+      "Don't decide on an expensive purchase while feeling empty. It's better to reduce money spent just to change your mood today."
+    ]
+  },
+  "money.major.emperor.upright": {
+    "paragraphs": [
+      "Your finances look steady today. Regular income may arrive on time, with little need for sudden large spending. If you have savings, you could cover necessary expenses and still have some left.",
+      "There's no need to change a familiar financial arrangement in a hurry in the hope of more income. Continuing to spend within what you can manage will help preserve stability."
+    ]
+  },
+  "money.major.emperor.reversed": {
+    "paragraphs": [
+      "Moving a large sum on your own judgement alone could lead to a loss. Even a transaction that went well before may have different costs or circumstances this time. Deciding money matters alone could also cause friction with someone sharing the expense.",
+      "Don't skip checks because you think you know enough. If someone else's share is involved, ask for their agreement first."
+    ]
+  },
+  "money.major.hierophant.upright": {
+    "paragraphs": [
+      "Regular income is unlikely to be a major worry today. Agreed pay or promised money may arrive and cover necessary spending. An amount already agreed in a transaction may also be honoured without difficulty.",
+      "Money you've been counting on could bring more reassurance than a new windfall. Don't abandon the current arrangement in a hurry for an unfamiliar offer of high returns."
+    ]
+  },
+  "money.major.hierophant.reversed": {
+    "paragraphs": [
+      "Spending as others tell you could lead to regret today. A method that benefited someone else may strain your own finances. Suddenly changing a familiar money agreement could bring unexpected costs too.",
+      "Don't contribute a large sum just because everyone around you is doing it. If you want to change the current approach, find out what extra payments would be needed first."
+    ]
+  },
+  "money.major.lovers.upright": {
+    "paragraphs": [
+      "It's a good day for a transaction that benefits both sides. A buyer and seller may agree and complete a deal at the price you want. If someone shares a cost you've been covering alone, your expenses could fall too.",
+      "A good relationship could bring financial help, so be precise about the agreement. Being close doesn't mean you need to give up money you're owed in advance."
+    ]
+  },
+  "money.major.lovers.reversed": {
+    "paragraphs": [
+      "Different ideas about spending could increase expenses or cause an argument. Accommodating someone else may leave you paying costs you didn't want today. Something chosen simply because it appeals could also disappoint you when you consider the price.",
+      "For shared spending, agree on the amount before buying. It's fine not to approve an expense you're uncomfortable with immediately."
+    ]
+  },
+  "money.major.strength.upright": {
+    "paragraphs": [
+      "Your money may not grow much, but necessary expenses look manageable today. What you've saved could cover an urgent cost. If money owed to you has caused trouble, patient discussion may help you find a solution.",
+      "Avoid staking a large sum to make up for a loss. Protecting what you have can help you get through a tight spell."
+    ]
+  },
+  "money.major.strength.reversed": {
+    "paragraphs": [
+      "A sudden urge could make money slip away today. You may buy several things you've resisted at once or make a hasty deal because you're worried about having too little. The more rushed you feel, the easier it is to overestimate what you can spend.",
+      "Set aside anything that feels as though you must buy it immediately. Taking a little time before deciding on spending could help you avoid a purchase you'd regret."
+    ]
+  },
+  "money.major.hermit.upright": {
+    "paragraphs": [
+      "Your money could stay steady today, without large amounts coming in or going out. You may spot everyday spending you can comfortably reduce. Necessary items could appeal more than flashy ones, keeping expenses from rising much.",
+      "You don't need to rush to increase your money because you're comparing income with others. Carefully choosing something that will last offers better value today."
+    ]
+  },
+  "money.major.hermit.reversed": {
+    "paragraphs": [
+      "A payment you've waited for may be slow to arrive, leaving you frustrated. Putting off an awkward money conversation could delay it further today. Worrying alone may also make you miss a chance to increase income.",
+      "Don't avoid necessary contact about money. Ask when a payment is due, and find out how much an earning opportunity would actually pay before judging it."
+    ]
+  },
+  "money.major.wheel_of_fortune.upright": {
+    "paragraphs": [
+      "Unexpected money could arrive. It's a good day for a gain you didn't anticipate or welcome financial news. A difficult transaction may turn in your favour, or unexpected help could solve something held up by money.",
+      "Having more to spare doesn't mean even greater luck will follow. Keep what you've gained instead of immediately risking it again."
+    ]
+  },
+  "money.major.wheel_of_fortune.reversed": {
+    "paragraphs": [
+      "Money due may be delayed or expenses could exceed expectations today. A transaction might be postponed through no fault of yours and disrupt your spending plans. If income you've counted on doesn't arrive on time, things may feel tight for a while.",
+      "Don't add large expenses while waiting for a delayed payment. A rushed deal to recover a loss could increase the burden you already have."
+    ]
+  },
+  "money.major.justice.upright": {
+    "paragraphs": [
+      "It's a good day to receive the money you're rightfully owed. If opinions differed over an amount, the original agreement could help settle it. You may be paid for the work you've done or recover money that was calculated incorrectly.",
+      "Keep any documents or agreements involving money. Showing the actual record will help you receive your share more than simply insisting you're right."
+    ]
+  },
+  "money.major.justice.reversed": {
+    "paragraphs": [
+      "A financial agreement may not be honoured fairly. You could pay more than your share or receive less than promised today. Leaving a small calculation error uncorrected could make the loss harder to recover later.",
+      "Check the amounts to be paid and received yourself. Even between close friends, it's better not to leave money matters vague."
+    ]
+  },
+  "money.major.hanged_man.upright": {
+    "paragraphs": [
+      "Money is more likely to keep you waiting than arrive immediately today. A payment or transaction may be on hold, making it hard to spend as you wish. Forcing a quick finish could mean accepting less than you were originally due.",
+      "If you don't urgently need the money, don't accept worse terms just to speed up payment. Taking care of essential outgoing payments while you wait could reduce unnecessary losses."
+    ]
+  },
+  "money.major.hanged_man.reversed": {
+    "paragraphs": [
+      "There may be no news of money you're waiting for while expenses keep growing. Hoping that a longer wait will improve things could keep you in an unfavourable deal today. Adding more because you regret what's already spent may make it harder to get out.",
+      "If a payment has been postponed several times, ask clearly when you'll receive it. It's better not to put new money into something with no reason left to keep waiting."
+    ]
+  },
+  "money.major.death.upright": {
+    "paragraphs": [
+      "A regular source of income could shrink or stop, so you'll need to watch your spending today. If a deal or job is ending, you may not be able to expect the same payment next time. You could also end ongoing expenses, so there is a chance to reduce the burden.",
+      "Don't commit to large spending on income that's ending with this payment. Keep necessary living costs aside until future income is settled."
+    ]
+  },
+  "money.major.death.reversed": {
+    "paragraphs": [
+      "Continuing an expense you need to stop could keep draining money. Familiarity may make you pay more into something that no longer brings a profit today. Hoping that a little more waiting will be enough could prolong the loss.",
+      "Find out how to stop something that only keeps costing you money. Give priority to what you'll spend from now on over the amount paid before."
+    ]
+  },
+  "money.major.devil.upright": {
+    "paragraphs": [
+      "Trying to gain a large sum easily could increase your losses instead. A tempting immediate profit may make debt or risky terms seem less serious today. Believing one more attempt will recover the loss could keep you spending.",
+      "Don't risk more money to recover what you've lost. The harder an expense is to stop, the more important it is not to put in more today."
+    ]
+  },
+  "money.major.devil.reversed": {
+    "paragraphs": [
+      "You could find a way out of a financial burden that's held you back. It's a good day to stop a spending habit you've struggled to break or end an unfavourable deal and reduce future costs. If you have debt, finding a way to repay it may bring some relief.",
+      "It's better not to restart spending you've already cut. Thinking of the money you'll keep in future, beyond a brief disappointment now, could make the decision easier to maintain."
+    ]
+  },
+  "money.major.star.upright": {
+    "paragraphs": [
+      "Tight finances could improve today. Good news about income you've been waiting for or help with money worries may arrive. Even if every problem isn't immediately solved, you could see a way to obtain what you need.",
+      "If you've been gradually saving for something you've long wanted, you don't have to give up. Keeping even a small amount aside could help you return to that plan."
+    ]
+  },
+  "money.major.star.reversed": {
+    "paragraphs": [
+      "Expected money may not arrive immediately, leaving you disappointed. Receiving less than you hoped could make it feel as though you'll always be short. Be careful not to give up every plan or spend carelessly because of that feeling.",
+      "Don't buy something expensive to soothe today's disappointment. Keeping the money that's arrived will make it easier to cover the next necessary expense."
+    ]
+  },
+  "money.major.judgement.upright": {
+    "paragraphs": [
+      "A money matter that's been quiet for a while could start moving towards a solution today. There may be a chance to receive an unpaid amount or reopen an earlier transaction. Knowing the circumstances more clearly than before could also help you avoid the same loss.",
+      "Follow up on any money conversation you've put off. Instead of repeating the old agreement unchanged, firmly settle the amount and payment date this time."
+    ]
+  },
+  "money.major.judgement.reversed": {
+    "paragraphs": [
+      "You may miss a chance to check money owed or repeat the same spending mistake. Putting off an uncomfortable money conversation could make it harder to claim your share. It's a day to be careful about accepting terms that cost you money before.",
+      "Don't overlook messages about money that need an answer. Remembering why you lost money last time could make clear which terms to refuse now."
+    ]
+  },
+  "money.major.world.upright": {
+    "paragraphs": [
+      "Finishing something you've worked hard on could bring a financial reward today. You may receive payment as a deal ends or reach a savings target you've built towards for a long time. Remembering the effort involved could make the money feel especially reassuring.",
+      "After something important is finished, check that all the money due has arrived. A successful finish can let you plan your next spending without rushing."
+    ]
+  },
+  "money.major.world.reversed": {
+    "paragraphs": [
+      "A final step could delay money that's nearly within reach. An almost-completed transaction may take longer, leaving you unable to spend when you expected. Spending early because you think it's all done could mean finding extra money to cover a shortfall.",
+      "Finish the financial commitments that remain unsettled first. It's better not to make a new large purchase before the money actually arrives."
+    ]
+  },
+  "money.cups.01.upright": {
+    "paragraphs": [
+      "A welcome chance to receive money could arise. It's a good day for an unexpected gift or help towards an amount you need. Something you've recently started may also bring a small income. Even a modest sum could feel generous if you can use it where it's needed now."
+    ]
+  },
+  "money.cups.01.reversed": {
+    "paragraphs": [
+      "Money you expected to receive could fall short of your hopes. Even a promising offer may need more time to become actual income today. Spending to soothe the disappointment could leave money tight. Don't spend against income that hasn't been confirmed yet."
+    ]
+  },
+  "money.cups.02.upright": {
+    "paragraphs": [
+      "Steady finances could mean little trouble over money today. Income and expenses may fit well enough to ease worry about living costs. A transaction sustained by a good relationship could also bring the agreed benefit to both sides. You may find satisfaction in current income without pushing to increase it."
+    ]
+  },
+  "money.cups.02.reversed": {
+    "paragraphs": [
+      "Your share of a joint expense could become larger. Different expectations about the amount may leave you paying more or receiving less than promised today. Silently taking on the cost to keep a good relationship could lead to regret about both the money and the relationship later. Agree on each person's share before paying."
+    ]
+  },
+  "money.cups.03.upright": {
+    "paragraphs": [
+      "A happy occasion could bring spending today. At a gathering or celebration, enjoyment may outweigh regret over the cost. If something you've done together has succeeded, you could also receive a share of the payment. Just be careful not to promise to cover everyone's costs because you're in a good mood."
+    ]
+  },
+  "money.cups.03.reversed": {
+    "paragraphs": [
+      "Socialising could lead to spending more than expected. Choices made to suit the mood and payments you found hard to refuse may add up. After enjoying yourself, the bill could exceed what you originally had in mind today. It's better not to promise more on the spot than your agreed share."
+    ]
+  },
+  "money.cups.04.upright": {
+    "paragraphs": [
+      "A large payment is unlikely, and you may overlook a decent financial offer too. Dissatisfaction with current income could make a small gain seem uninteresting today. Don't immediately reject something you've heard about just because it offers less than you hoped. If you check that you'll actually be paid, it may turn out to be a useful amount."
+    ]
+  },
+  "money.cups.04.reversed": {
+    "paragraphs": [
+      "An earning opportunity you've overlooked could come around again. A job you refused before or a delayed transaction may offer money today. Better terms than expected could help you obtain what you need. Don't dismiss a small payment just because it isn't a large sum."
+    ]
+  },
+  "money.cups.05.upright": {
+    "paragraphs": [
+      "A small return on what you've spent could disappoint you today. Expected income may shrink, or a purchase might be less satisfying than you hoped. Trying to recover spent money quickly elsewhere could lead to another expense. It's better not to give up what remains because you regret what's already gone."
+    ]
+  },
+  "money.cups.05.reversed": {
+    "paragraphs": [
+      "Finances strained by a loss could improve a little. It's a good day to receive help or find a way to begin again with the money left. Ending a disappointing transaction may reduce future costs too. Keep a little money aside instead of trying to recover the whole loss at once."
+    ]
+  },
+  "money.cups.06.upright": {
+    "paragraphs": [
+      "A familiar connection could bring money or a gift today. Help from family or someone you've known a long time may ease a necessary expense. If money was exchanged before, you could hear from that person again. Show your thanks, but don't spend in expectation of a large sum before receiving it."
+    ]
+  },
+  "money.cups.06.reversed": {
+    "paragraphs": [
+      "A new transaction may offer more profit than a familiar one today. A once-favourable price or income may have changed, making other terms better now. Changing a long-standing expense could also reduce immediate costs. You don't need to keep accepting an unfavourable amount out of loyalty to an old connection."
+    ]
+  },
+  "money.cups.07.upright": {
+    "paragraphs": [
+      "There may be many offers of large profits while the money you'd actually receive remains unclear. Each option could look easy to earn from, tempting you to decide too quickly today. Small amounts put into several places could add up to more than expected. Don't treat imagined returns as money you already have."
+    ]
+  },
+  "money.cups.07.reversed": {
+    "paragraphs": [
+      "Less wasteful spending could leave you with more money. If you've been weighing several transactions, it's a good day to rule out offers with no profit. The amount you can actually receive may become clearer, even if it falls short of the large sum you imagined. Choose a definite payment over an offer of implausibly high returns."
+    ]
+  },
+  "money.cups.08.upright": {
+    "paragraphs": [
+      "Ending something with little profit could reduce outgoing costs. Even after paying into it for a long time, stopping may be worthwhile if it offers little value from now on. Ending it could reduce immediate income or leave some disappointment. Considering the extra money it would require may keep the same burden from dragging on."
+    ]
+  },
+  "money.cups.08.reversed": {
+    "paragraphs": [
+      "An unfinished financial commitment could remain a burden. You may keep spending from habit while receiving little today. Waiting because you don't want to accept a loss could leave you short for a new need. Before adding money, check whether you'll have to keep paying in future too."
+    ]
+  },
+  "money.cups.09.upright": {
+    "paragraphs": [
+      "Money you've hoped for could arrive and bring satisfaction today. You may receive awaited pay or an unexpected small gain. Something you've saved to buy might now be within reach. Enjoy finally getting what you wanted without buying more than you need."
+    ]
+  },
+  "money.cups.09.reversed": {
+    "paragraphs": [
+      "Spending may not feel as satisfying as you expected. Even after buying what you wanted, something else could catch your eye and keep you spending today. New income may also seem smaller than you hoped and leave disappointment. It's better not to try filling that sense of lack with an expensive purchase."
+    ]
+  },
+  "money.cups.10.upright": {
+    "paragraphs": [
+      "Having the money for everyday needs could bring relief today. Financial commitments shared with family or people close to you are likely to continue without strain. Joint savings may cover necessary household items and still leave extra for living costs. Money that comfortably supports daily life could be more satisfying than a large windfall."
+    ]
+  },
+  "money.cups.10.reversed": {
+    "paragraphs": [
+      "Living costs or family expenses could increase your burden. Different views about how shared money should be used may cause conflict today. Trying to please everyone could leave you paying more than you can afford. Talk to the others before committing to a larger expense than usual."
+    ]
+  },
+  "money.cups.11.upright": {
+    "paragraphs": [
+      "A small gift or welcome offer could help financially. Something made as a hobby or a new idea might also bring income today. Even if the amount is small at the start, it could offer unexpected pleasure. If you receive an offer, take seriously the question of how much you'll be paid and what you'll do in return."
+    ]
+  },
+  "money.cups.11.reversed": {
+    "paragraphs": [
+      "Spending according to your mood could leave regret today. Something bought just because it's cute or appealing may be less necessary than you thought. Even a casual promise involving money could be burdensome to keep. Wait a little before paying when the urge to have something grows strong."
+    ]
+  },
+  "money.cups.12.upright": {
+    "paragraphs": [
+      "A financial offer you like could come your way today. Something you've wanted to do may offer pay, or you could get a chance to trade on good terms. If the other person offers to help, it could reduce a cost you've been covering. Discuss the money to be exchanged as well as enjoying the conversation, so you gain something practical."
+    ]
+  },
+  "money.cups.12.reversed": {
+    "paragraphs": [
+      "A pleasing promise about money could end differently from what you hoped. A reduced payment or repeatedly changing answer may keep you waiting longer today. An apparently generous offer could come with an unexpected cost too. Don't pay on someone else's behalf or promise an expensive purchase on their words alone."
+    ]
+  },
+  "money.cups.13.upright": {
+    "paragraphs": [
+      "Kind help at the right time could ease money worries. Someone close may understand your circumstances or give you something you really need today. You're more likely to gain a little help for living costs than a large income. Even when accepting help, calmly check whether you'll have conditions to meet afterwards."
+    ]
+  },
+  "money.cups.13.reversed": {
+    "paragraphs": [
+      "Looking after others could leave you short of money today. Difficulty refusing requests or paying extra out of guilt may reduce what you need for living costs. Even well-meant spending could later bring both pressure and resentment. Be honest from the start about an amount you can't give."
+    ]
+  },
+  "money.cups.14.upright": {
+    "paragraphs": [
+      "Handling money calmly could help you avoid losing out today. Even in a discussion over an amount, staying out of an emotional dispute may help you reach an agreement both can accept. Advice from someone experienced could reduce unnecessary loss too. Calmly explain the share you're rightfully owed instead of giving way in haste."
+    ]
+  },
+  "money.cups.14.reversed": {
+    "paragraphs": [
+      "A money decision based on emotion could lead to a loss today. Asking for more money because you're upset or paying to soothe someone else may complicate matters. A deal in which the promised payment keeps changing could also bring less profit than expected. Delay an answer involving a large sum when you're angry or feeling very guilty."
+    ]
+  },
+  "money.wands.01.upright": {
+    "paragraphs": [
+      "Something new could bring income today. An idea or a task you've wanted to begin may lead to a paid offer. Even without much money at first, it's a good day to see whether it could earn more later. If starting costs money, check that expenses don't outrun what you'll receive."
+    ]
+  },
+  "money.wands.01.reversed": {
+    "paragraphs": [
+      "New income you've hoped for may not appear immediately. A delayed start could make money already spent on preparations feel burdensome today. Losing interest, discarding everything you've prepared and buying again may increase costs. Don't add to preparation expenses before checking when money will come in."
+    ]
+  },
+  "money.wands.02.upright": {
+    "paragraphs": [
+      "A chance to earn more than you do now could appear. You may find more places to trade with or receive a paid offer from somewhere new today. Even with little money in hand immediately, you could reach an agreement about future pay. Don't use money needed for living costs on the strength of a payment that hasn't arrived."
+    ]
+  },
+  "money.wands.02.reversed": {
+    "paragraphs": [
+      "Hesitation over a new transaction could upset the timing of your spending. Paying for preparations without actually starting may leave only a burden today. There could still be too much uncertainty to give up familiar income for a change. Settle the terms of that change before rushing to put in a large sum."
+    ]
+  },
+  "money.wands.03.upright": {
+    "paragraphs": [
+      "More business or something done together could increase income. Work entrusted elsewhere may bring good results and a payment today. A shared effort could also offer more profit than working alone. Even with visible progress, don't start spending much more on the next stage before receiving the money."
+    ]
+  },
+  "money.wands.03.reversed": {
+    "paragraphs": [
+      "A delayed deal could leave income smaller than you hoped. Money spent with the long term in mind may not return immediately, making everyday finances tight today. A clash of schedules with the other person could also create extra costs. It's better not to add new spending before you're paid for what's under way."
+    ]
+  },
+  "money.wands.04.upright": {
+    "paragraphs": [
+      "Money spent on something enjoyable could feel worthwhile today. A planned expense involving your home or someone close may be completed as expected. If you're paid for a shared effort, it's also a good time to celebrate together. Just don't let that happiness push spending far beyond the original amount."
+    ]
+  },
+  "money.wands.04.reversed": {
+    "paragraphs": [
+      "It's a good day to spend on making daily life comfortable. Decorating your home or preparing a shared space could bring satisfaction. You may obtain what you need without putting much pressure on living costs. Leave out unnecessary extras bought only to set the mood, and the spending can remain a pleasure."
+    ]
+  },
+  "money.wands.05.upright": {
+    "paragraphs": [
+      "Competition over money could arise. As people compete to offer better terms, getting the amount you want may be difficult today. Lowering your price too far to win could leave little profit even if the deal happens. Decide the share you need and don't give way beyond what you can manage."
+    ]
+  },
+  "money.wands.05.reversed": {
+    "paragraphs": [
+      "Different explanations of the amount could complicate a money matter. If later explanations don't match the original terms, an argument may arise over who covers the loss today. It's better not to accept costs you don't understand just to finish quickly. Compare the agreement with the records before paying."
+    ]
+  },
+  "money.wands.06.upright": {
+    "paragraphs": [
+      "A good result could bring income. Recognition of your work may lead to higher pay or a financial reward today. If you're waiting for a deal's outcome, favourable news is worth hoping for. Use the payment for things you've needed rather than to show off your success with an expensive purchase."
+    ]
+  },
+  "money.wands.06.reversed": {
+    "paragraphs": [
+      "Expected pay or a reward could be delayed today. Even something you believe went well may not bring a satisfying amount. Doing more than agreed to gain recognition could leave you with less for your effort. Don't feel bad about asking what you're owed; make the amount and timing clear."
+    ]
+  },
+  "money.wands.07.upright": {
+    "paragraphs": [
+      "It's a good day to protect your share and prevent a financial loss. Even if someone tries to lower the amount, evidence you've prepared could help you get a fair price. There's no need to give way easily on a deal already being discussed on favourable terms. Calmly check the original agreed amount instead of being swayed by other people's words."
+    ]
+  },
+  "money.wands.07.reversed": {
+    "paragraphs": [
+      "Giving up money you need to keep could leave you with a loss today. More demands may wear down your ability to refuse and leave you with higher costs than expected. Doubting your judgement could also let financial terms turn against you. It's fine not to answer on the spot about an amount you can't comfortably manage."
+    ]
+  },
+  "money.wands.08.upright": {
+    "paragraphs": [
+      "Welcome financial news could arrive quickly. An awaited payment may come through or a transaction could finish sooner than expected today. Money arriving when needed may ease worry about urgent expenses too. If you hear about several money matters at once, take care not to mix up amounts or payment destinations."
+    ]
+  },
+  "money.wands.08.reversed": {
+    "paragraphs": [
+      "Conflicting messages or a delayed payment could complicate an exchange of money. Different instructions may make it easy to pay twice or misunderstand the amount today. The more you rush, the larger a small mistake could become. If you've already sent money, check with the recipient before sending it again."
+    ]
+  },
+  "money.wands.09.upright": {
+    "paragraphs": [
+      "Past experience could help protect your money today. Recognising unfavourable terms you've seen before may let you avoid the same loss. Leaving the money you've built up where it is instead of moving it hastily could keep some available when needed. Calmly finish familiar transactions before considering an unfamiliar offer."
+    ]
+  },
+  "money.wands.09.reversed": {
+    "paragraphs": [
+      "A money matter that's kept you worried may not end easily. Rejecting every offer for fear of another loss could make you miss a way to reduce costs today. Accepting any terms out of exhaustion, on the other hand, may leave the same burden in place. Start by discussing the amount that can actually be changed instead of trying to finish everything at once."
+    ]
+  },
+  "money.wands.10.upright": {
+    "paragraphs": [
+      "Even with earnings, many costs to cover may keep money from feeling plentiful. More work could bring both income and necessary expenses today. Paying someone else's share too may leave little for you. The larger the sums involved, the more carefully you should calculate your own share separately."
+    ]
+  },
+  "money.wands.10.reversed": {
+    "paragraphs": [
+      "You could end up carrying an unmanageable financial burden alone today. Several promised payments coming due at once may leave you unable to cover immediate needs. Another promise to repay may not solve the shortage. Say in advance what you can't pay now and make fewer new commitments."
+    ]
+  },
+  "money.wands.11.upright": {
+    "paragraphs": [
+      "You could hear about a new source of income today. Something that interests you may come with an offer of pay, or you could find a chance to start for a small amount. Even without confirmed income yet, there may be something worth looking into. When welcome news arrives, ask how much the preparations would cost too."
+    ]
+  },
+  "money.wands.11.reversed": {
+    "paragraphs": [
+      "Spending on an unconfirmed rumour could lead to regret. Plenty of talk about earnings may still leave the actual payment undecided today. If preparations keep changing, purchased items and money spent could feel wasted too. Don't spend a large sum first before a specific agreement exists."
+    ]
+  },
+  "money.wands.12.upright": {
+    "paragraphs": [
+      "A quickly progressing transaction could bring income today. An item you've put up for sale or work that needs a fast finish may result in payment. Faster progress could also mean higher travel or preparation costs. Look at what remains after expenses as well as what you'll be paid."
+    ]
+  },
+  "money.wands.12.reversed": {
+    "paragraphs": [
+      "A hastily begun transaction could stop halfway and leave a loss. If plans change after you've paid the necessary costs, getting money back may become troublesome today. Be careful about adding a large sum just because things feel promising. The more an offer urges you to join quickly, the more you should check the refund terms first."
+    ]
+  },
+  "money.wands.13.upright": {
+    "paragraphs": [
+      "A good impression and trust could bring a financial opportunity. Someone who's noticed your abilities may offer work or help with a deal today. Income from something you've enjoyed could make earning feel especially rewarding. Generosity doesn't require reducing agreed pay before anyone asks."
+    ]
+  },
+  "money.wands.13.reversed": {
+    "paragraphs": [
+      "Spending to keep up with others could lead to regret today. You may want to stand out through an impressive item or a large gift. If spending grows while income stays the same, there could be less for living costs. Spend on what you need now rather than what others have."
+    ]
+  },
+  "money.wands.14.upright": {
+    "paragraphs": [
+      "Something you've led could bring money today. If you've taken responsibility for a deal, you may receive pay or profit that reflects your work. Even if you're offered something larger, drawing on your experience could help you choose what's worthwhile. Be confident about what you agree to do, while keeping costs within what you can actually afford."
+    ]
+  },
+  "money.wands.14.reversed": {
+    "paragraphs": [
+      "Insisting on your preferred amount could cost you a decent deal. Standards set too high may put an attainable profit out of reach today. Pressuring people to do more could also increase costs. Before promising a large income, recalculate what would remain under the current terms."
+    ]
+  },
+  "money.swords.01.upright": {
+    "paragraphs": [
+      "Choosing favourable terms could bring a gain from a transaction today. Once a complicated amount becomes clear, you may cut unnecessary extra payments. If you've delayed a money decision, it's a good day to judge which option offers real value. Compare final totals so you can decide confidently."
+    ]
+  },
+  "money.swords.01.reversed": {
+    "paragraphs": [
+      "Misunderstanding an amount could make you spend more than expected. Even an item you thought cost the same as another may carry separate charges today. Watch for a difference between the price you're told and the amount you'll actually pay. Ask about unfamiliar costs before paying instead of passing over them."
+    ]
+  },
+  "money.swords.02.upright": {
+    "paragraphs": [
+      "A delayed decision could leave you unable to spend or receive money. Two similar-looking deals may be difficult to choose between today. Equal prices can still mean different real costs, so there's no need to rush. Check essential payments first and decide other spending once the terms are clear."
+    ]
+  },
+  "money.swords.02.reversed": {
+    "paragraphs": [
+      "Hesitation over spending could end in a rushed, unfavourable choice. Conflicting advice may make hopes or worries loom larger than the payment you'd actually receive today. Accepting any terms just to stop thinking about it could leave a loss. Choose according to what you can pay rather than another person's recommendation."
+    ]
+  },
+  "money.swords.03.upright": {
+    "paragraphs": [
+      "You may receive less than expected or regret money spent. Different ideas about an amount could also cause hurt feelings today. If you're upset while asking for money back, a resolution may be harder to reach. Calmly compare what was promised with what was actually paid first."
+    ]
+  },
+  "money.swords.03.reversed": {
+    "paragraphs": [
+      "An argument over money could ease and let you settle a loss. If each side gives a little, you may receive at least part of an unpaid amount. Even without recovering everything you hoped for, a long-running burden could become lighter today. Once you agree, set the actual payment date too."
+    ]
+  },
+  "money.swords.04.upright": {
+    "paragraphs": [
+      "Your financial luck may change little, making this a better day to pause than pursue more earnings. Rushing a deal may not increase profit. Repeated calculations from worry followed by an impulsive decision could only add spending. It's fine to delay a decision if the money doesn't have to be paid today."
+    ]
+  },
+  "money.swords.04.reversed": {
+    "paragraphs": [
+      "A stalled transaction could gradually resume. Even without a large immediate payment, you may receive a small amount from work that stopped bringing income. Money is still limited, so spending quickly could make things tight again. Don't put in a large sum to earn all at once what you missed during the pause."
+    ]
+  },
+  "money.swords.05.upright": {
+    "paragraphs": [
+      "Trying to get more money could spoil a deal today. Focusing only on immediate profit may damage the relationship and hurt future income too. Paying attention to getting slightly more than others could leave you with less in practice. If the difference is small, look for an amount both can accept instead of prolonging the argument."
+    ]
+  },
+  "money.swords.05.reversed": {
+    "paragraphs": [
+      "An agreement in a financial dispute could prevent a larger loss. Even without receiving the whole amount you want, ongoing costs may fall today. If a money issue has dragged on, consider discussing terms you could compromise on. Even if you want a quick end, don't take on an amount you don't understand."
+    ]
+  },
+  "money.swords.06.upright": {
+    "paragraphs": [
+      "You could gain a little relief from a difficult money situation. A less costly approach or someone's help may let you find what you need today. Lower outgoings than before could leave more room in daily finances. Just don't return immediately to old levels of spending because things feel easier now."
+    ]
+  },
+  "money.swords.06.reversed": {
+    "paragraphs": [
+      "An unresolved money problem could become a burden again. A new approach won't erase repayments or remaining costs today. Restarting an expense you once intended to stop may make money tight. Look at what's still owed before deciding on new spending."
+    ]
+  },
+  "money.swords.07.upright": {
+    "paragraphs": [
+      "You could spend more than you realise or lose money in a deal. If someone leaves out important terms, the real cost could exceed the visible price today. Take care not to omit several small charges from your own calculation either. Check the total yourself before paying."
+    ]
+  },
+  "money.swords.07.reversed": {
+    "paragraphs": [
+      "Discovering a hidden cost could reduce a loss. It's a good day to correct an amount passed on wrongly or money left out of a calculation. Speaking honestly about a money problem may also bring help with a burden you've carried alone. Revealing the actual amount can be the first step towards putting things right."
+    ]
+  },
+  "money.swords.08.upright": {
+    "paragraphs": [
+      "Many essential payments could leave little money to spend freely. Thinking about unavoidable costs may make it feel as though nothing can change today. Giving up before checking the amounts could mean missing a chance to lower what you pay. Ask about at least one expense whose terms might be changed."
+    ]
+  },
+  "money.swords.08.reversed": {
+    "paragraphs": [
+      "Even in tight circumstances, you could see a way to save money. A cost you thought fixed may be adjusted or another set of terms could be available today. Reduced outgoings may leave a little more for living costs without a large income increase. Don't let one small adjustment lead straight to more spending."
+    ]
+  },
+  "money.swords.09.upright": {
+    "paragraphs": [
+      "Fear of running short could make even necessary spending feel burdensome. Adding costs that haven't happened may make finances look worse than they are today. Searching anxiously for a quick way to grow money could lead to a loss instead. Start with confirmed expenses and don't move a large sum from worry alone."
+    ]
+  },
+  "money.swords.09.reversed": {
+    "paragraphs": [
+      "Help or an explanation could ease financial worries. Discussing a money problem you found overwhelming on your own may make the amount you need clearer today. Debts or costs won't all disappear, but deciding what to pay first could become easier. Tell someone trustworthy about the difficulty instead of hiding it."
+    ]
+  },
+  "money.swords.10.upright": {
+    "paragraphs": [
+      "Putting more into something already losing money could cost you what remains. Regret at stopping here may cloud your judgement today. Recovering past spending and earning a return on new money are separate questions. If continuing offers no gain, choose not to spend more today."
+    ]
+  },
+  "money.swords.10.reversed": {
+    "paragraphs": [
+      "Your finances could gradually improve after a period of serious financial difficulty. You may fit daily spending around the money left or begin receiving a small income again today. Even with less than before, a way to cover essential expenses could appear. Protect what you have instead of taking a deal to recover losses quickly."
+    ]
+  },
+  "money.swords.11.upright": {
+    "paragraphs": [
+      "Spotting a small cost difference could save money today. A closer look may reveal missing terms or a favourable amount in a transaction. Comparing prices instead of buying in haste could also help you find an item for less than expected. Check the actual selling price instead of relying on one you've heard second-hand."
+    ]
+  },
+  "money.swords.11.reversed": {
+    "paragraphs": [
+      "Money news heard in haste could lead to a wrong decision. Talk of rising prices or losing out if you miss a chance may make you rush today. Spending without checking the details could bring unexpected costs. Confirm the story with whoever made the original offer before judging it."
+    ]
+  },
+  "money.swords.12.upright": {
+    "paragraphs": [
+      "You could deal quickly with a money matter you've delayed today. Asking clearly for the terms you need may help you protect your share. If you need money returned or an amount corrected, it's worth speaking up. Even while moving quickly, don't pressure the other person so much that discussions end."
+    ]
+  },
+  "money.swords.12.reversed": {
+    "paragraphs": [
+      "A rushed deal could take a large amount of money at once. Unchecked costs or a hasty promise may leave a burden today. The stronger your wish for quick profit, the easier it is to dismiss possible losses. Even if an offer demands an immediate decision, don't send money before you know every amount involved."
+    ]
+  },
+  "money.swords.13.upright": {
+    "paragraphs": [
+      "Ending an unnecessary financial arrangement could protect your money. It's a good day to set an affordable limit on spending you've covered out of sympathy too. Separating necessary costs from money spent to keep up appearances may leave you with more. Clearly refuse money requests you can't manage, even if you feel bad."
+    ]
+  },
+  "money.swords.13.reversed": {
+    "paragraphs": [
+      "Bad feelings could lead to a financial loss. You may refuse good terms because you don't want to trust someone, or buy something expensive to soothe hurt today. Sharp words over an exchange of money could delay a solution too. Judge the actual amounts separately from your likes and dislikes."
+    ]
+  },
+  "money.swords.14.upright": {
+    "paragraphs": [
+      "A transaction could proceed smoothly under clear agreements and rules. A definite contract or record may protect the share you're owed. Even with complicated amounts, an expert's explanation could help you distinguish profit from loss accurately. Record new agreements too, rather than settling them only in conversation."
+    ]
+  },
+  "money.swords.14.reversed": {
+    "paragraphs": [
+      "Trusting only what the other person says could leave you with an unfavourable amount to pay. Appearing knowledgeable or holding a high position doesn't make a financial promise reliable today. If they demand you take on a cost without explaining why, it's better not to rush the deal. Don't hand over the right to decide about your own money."
+    ]
+  },
+  "money.pentacles.01.upright": {
+    "paragraphs": [
+      "Your financial luck looks good. A new source of income or a chance to receive money you can actually spend could appear. Even a small deal may help with living costs if it starts well today. Keeping part of the payment instead of spending it all could ease worry about the next necessary cost."
+    ]
+  },
+  "money.pentacles.01.reversed": {
+    "paragraphs": [
+      "Money may arrive without the satisfaction you expected. Even buying something you've wanted could feel like poor value. The emptiness today may come from less enjoyment than hoped for, rather than too little income. Don't try to fill that disappointment with something even more expensive."
+    ]
+  },
+  "money.pentacles.02.upright": {
+    "paragraphs": [
+      "Incoming money could cover urgent expenses well. Even with payments to several places, you may find the necessary amount as each need arises. There might be little left over, but the risk of an immediate shortage could feel less worrying today. Keep other costs in mind too, since spending too much on one could make the rest hard to cover."
+    ]
+  },
+  "money.pentacles.02.reversed": {
+    "paragraphs": [
+      "Overlapping payments could make living costs tight. Something may need paying before the income you're waiting for arrives. Even small amounts leaving repeatedly could reduce the balance faster than expected today. Covering an urgent expense isn't a reason to buy every postponed item at once too."
+    ]
+  },
+  "money.pentacles.03.upright": {
+    "paragraphs": [
+      "It's a good day to be paid for work you've done well. Skills you've learned or a carefully completed task could help you earn. Someone you work with may recognise your ability and give you another job too. If pay is under discussion, make clear what you've accomplished."
+    ]
+  },
+  "money.pentacles.03.reversed": {
+    "paragraphs": [
+      "Pay that falls short of your effort could disappoint you. An unfinished detail may reduce your reward or cause a dispute over payment. A transaction completed in haste could also need costly corrections today. Check that nothing promised has been left out before receiving the money."
+    ]
+  },
+  "money.pentacles.04.upright": {
+    "paragraphs": [
+      "It's a good day to protect your savings. Income may not increase much, but fewer unnecessary outgoings could steady your finances. Money in hand may reassure you and ease the pressure to earn a large amount immediately. You don't need to cut essential living costs through excessive thrift."
+    ]
+  },
+  "money.pentacles.04.reversed": {
+    "paragraphs": [
+      "An awaited payment could be delayed and force you to postpone spending. Something meant to bring money may not progress as expected, or the other person's opposition could stop a deal. Even money you have may be hard to access immediately, causing frustration today. Don't promise an expensive purchase before the payment date is certain."
+    ]
+  },
+  "money.pentacles.05.upright": {
+    "paragraphs": [
+      "A shortage of money could make even necessary spending burdensome. Living costs may exceed income and require you to use savings. Trying to manage alone could leave you in greater difficulty over an urgent expense today. If you need help, honestly tell someone trustworthy about your circumstances."
+    ]
+  },
+  "money.pentacles.05.reversed": {
+    "paragraphs": [
+      "Finances could tighten before you realise where the money is going. Disagreement with someone close over costs may lead to unnecessary extra spending. Rushing to fix several things could increase expenses instead today. If a money argument arises, clarify what each person will cover before sending anything more."
+    ]
+  },
+  "money.pentacles.06.upright": {
+    "paragraphs": [
+      "You could receive help with the money you need today. Someone may reduce a cost that was difficult to cover alone, or give you a gift in thanks. If you have enough, a small offer of help may not strain your own living costs either. Being open about any burden in giving or receiving money can make the exchange more comfortable for you both."
+    ]
+  },
+  "money.pentacles.06.reversed": {
+    "paragraphs": [
+      "A deal that looks favourable could bring a loss instead. Expected help may turn into a demand for a larger return. Envying someone else's gain and following them into the same deal could increase unnecessary expenses today. Don't entrust money to a promise of large profits with no explanation."
+    ]
+  },
+  "money.pentacles.07.upright": {
+    "paragraphs": [
+      "Money and effort you've put in could gradually produce a profit. You may see more clearly today how much a long-running deal has earned you. Satisfaction is more likely to come from an amount steadily accumulated than a sudden large sum. Don't increase costs on the assumption that something unpaid will go well too."
+    ]
+  },
+  "money.pentacles.07.reversed": {
+    "paragraphs": [
+      "Money you've lent or a request to borrow could cause worry. An uncertain repayment date may make you hesitate over a necessary expense. Stretching yourself because someone else is in a hurry could leave you short of living costs today. Don't lend an amount you couldn't manage without if it isn't repaid."
+    ]
+  },
+  "money.pentacles.08.upright": {
+    "paragraphs": [
+      "It's a good day to earn from work you've done steadily. Completing a familiar task carefully may bring pay that reflects the effort. Improved skill could lead to another job or extra income too. Finishing what's entrusted to you well will do more to sustain earnings than rushing to make more."
+    ]
+  },
+  "money.pentacles.08.reversed": {
+    "paragraphs": [
+      "Trying to earn could lead to a loss instead. An offer of a large sum for little effort may make your initial costs difficult to recover. Spending on appearances rather than actual skill may also fail to bring the income you want today. Be especially careful with offers guaranteeing profit while asking for money first."
+    ]
+  },
+  "money.pentacles.09.upright": {
+    "paragraphs": [
+      "Good financial luck could let you enjoy the comfort of your savings. Money left after essential expenses may let you buy something you've wanted today. Having earned or saved it yourself could make the satisfaction greater. Choosing something that will last can make the purchase enjoyable."
+    ]
+  },
+  "money.pentacles.09.reversed": {
+    "paragraphs": [
+      "An apparently good deal could lose you money today. A high price doesn't guarantee quality, so a purchase may disappoint. A plan you trusted could also keep adding costs without income. Don't buy something beyond your means just to impress other people."
+    ]
+  },
+  "money.pentacles.10.upright": {
+    "paragraphs": [
+      "Long-held savings could make daily life feel secure. Money gathered with family or steady income may ease the burden of a large expense today. Existing assets could offer more reassurance than new earnings right now. Discuss an important decision involving shared money with the people concerned first."
+    ]
+  },
+  "money.pentacles.10.reversed": {
+    "paragraphs": [
+      "A deal promising a large gain could cost you your savings. Trying to change your circumstances with one choice may leave too little of the money supporting daily life. If someone close has money involved too, the burden of a loss could be greater today. Avoid leaving essential money to chance."
+    ]
+  },
+  "money.pentacles.11.upright": {
+    "paragraphs": [
+      "You could hear about a new chance to earn. A skill or subject you're learning may bring income even if the pay is still small. Taking a modest job with clear terms could bring the pleasure of a first payment today. Focus on receiving the agreed pay properly rather than expecting a large sum immediately."
+    ]
+  },
+  "money.pentacles.11.reversed": {
+    "paragraphs": [
+      "Delayed money news or a smaller amount could disappoint you. Postponing necessary work may also reduce your pay. Buying what you want before income is settled could make living costs tight today. Leave non-urgent purchases until the money arrives."
+    ]
+  },
+  "money.pentacles.12.upright": {
+    "paragraphs": [
+      "Agreed income is likely to arrive steadily today. Your money may not grow dramatically, but completing your work could bring corresponding pay. Money arriving on time from a familiar transaction may ease worry about living costs too. Don't abruptly change something that's been going well to chase an exceptional gain."
+    ]
+  },
+  "money.pentacles.12.reversed": {
+    "paragraphs": [
+      "Delays in receiving money could leave you frustrated with your finances. Delayed work may push back payment, or careless handling could add costs. Simply waiting for the same income may leave you short of what you need today. If there's work you must finish to get paid, don't put it off further."
+    ]
+  },
+  "money.pentacles.13.upright": {
+    "paragraphs": [
+      "Having plenty of money for everyday spending could put you at ease. Necessary items or care for someone close may not cost more than you can manage today. Careful household budgeting could let you draw on money you've kept aside. Give yourself a small treat too, within what you can comfortably spend."
+    ]
+  },
+  "money.pentacles.13.reversed": {
+    "paragraphs": [
+      "Fear of losing money could make you hesitate over necessary spending. Even without a large immediate cost, worry about a future shortage may grow today. Suspicion of someone you share expenses with could start an argument driven more by feelings than amounts. Calmly ask how much is actually needed instead of confronting them on a guess."
+    ]
+  },
+  "money.pentacles.14.upright": {
+    "paragraphs": [
+      "Good financial luck could bring pay that matches your ability. Work you've done for a long time or a deal you know well may leave a profit. Extra money from a payment could also cover new necessary expenses without strain. Continue with reliable work instead of expanding into ways to earn that you don't understand."
+    ]
+  },
+  "money.pentacles.14.reversed": {
+    "paragraphs": [
+      "Wanting more money could cost you what you already have. Even a profitable deal may become burdensome if you stretch to increase the amount. Taking a wealthy person's words on trust could also lead you to accept unfavourable terms. Set aside money for living costs and refuse transactions you can't afford."
+    ]
+  }
+}

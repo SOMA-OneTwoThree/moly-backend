@@ -169,5 +169,13 @@ def attribution_key_unavailable() -> AppError:
     return AppError("ATTRIBUTION_KEY_UNAVAILABLE", 503, "설치 귀속 복호화를 잠시 사용할 수 없어요.")
 
 
+def ai_unavailable() -> AppError:
+    """A transient inference failure; no conversational reply has been published."""
+    return AppError(
+        "AI_UNAVAILABLE", 503, "캐피가 잠깐 대답하기 어려워요. 조금 뒤에 다시 보내 주세요.",
+        {"retryable": True},
+    )
+
+
 def validation(message: str = "요청 형식이 올바르지 않습니다.", details: dict[str, Any] | None = None) -> AppError:
     return AppError("VALIDATION", 422, message, details)

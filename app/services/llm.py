@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import sys
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -54,6 +55,25 @@ def _get_openai_client():
 
         _openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
     return _openai_client
+
+
+def is_transient_failure(exc: BaseException) -> bool:
+    """Identify provider timeout/connection/408/409/429/5xx failures without retrying.
+
+    Only inspect already-loaded SDKs so error handling cannot import another provider.
+    Request/configuration errors and unrelated application exceptions remain unchanged.
+    """
+    if isinstance(exc, TimeoutError):
+        return True
+    for name in ("openai", "anthropic"):
+        sdk = sys.modules.get(name)
+        if sdk is None:
+            continue
+        if isinstance(exc, sdk.APIConnectionError):
+            return True
+        if isinstance(exc, sdk.APIStatusError):
+            return exc.status_code in (408, 409, 429) or exc.status_code >= 500
+    return False
 
 
 @dataclass

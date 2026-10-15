@@ -1300,11 +1300,18 @@ async def post_message(
                 foreground_deadline=absolute_deadline,
             )
             llm.require_completed_text(result.text, result.finish_reason)
-    except BaseException:
+    except BaseException as exc:
         # 외부 호출 실패는 저장 0인 클린 재시도다. lease도 즉시 회수해 TTL만큼 막히지 않게 한다.
         await session.rollback()
         await chat_turns.release(session, user_id=uid, lease=lease)
         await session.commit()
+        if llm.is_transient_failure(exc):
+            # Do not copy provider messages, response bodies or request identifiers.
+            _log.warning(
+                "chat_llm_unavailable error=%s status=%s",
+                type(exc).__name__, getattr(exc, "status_code", None),
+            )
+            raise errors.ai_unavailable() from exc
         raise
     llm_ms = _ms(t_llm0, time.monotonic())
     if (

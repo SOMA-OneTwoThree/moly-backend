@@ -275,9 +275,7 @@ def test_plain_input_bound_counts_utf8_envelope(client, protocol_calls, candidat
 
 
 @pytest.mark.parametrize("candidate", (
-    "voice-conversation-ko-v6", "voice-structured-ko-v7", "voice-structured-ko-v8",
-    "voice-structured-ko-v8-order", "voice-structured-ko-v8-examples",
-    "voice-structured-ko-v9",
+    "voice-conversation-ko-v6", "voice-structured-ko-v7", "voice-structured-ko-v9",
 ))
 def test_korean_candidates_dispatch_fixed_profile_and_reject_larger_cap(
     client, calls, protocol_calls, candidate,
@@ -327,6 +325,9 @@ def test_korean_candidates_dispatch_fixed_profile_and_reject_larger_cap(
         "voice-decide-render-ko-v12",
         "voice-sol-low-ko-v13",
         "voice-role-ko-v15",
+        "voice-structured-ko-v8",
+        "voice-structured-ko-v8-order",
+        "voice-structured-ko-v8-examples",
     ],
 )
 def test_removed_candidates_never_dispatch_or_fall_back(client, calls, protocol_calls, candidate):

@@ -28,7 +28,7 @@ async def test_development_persona_keeps_mood_time_and_owned_state_outside_cache
     monkeypatch.setattr(turn_context, "build_context", builder)
     capture = {}
     await _post(FakeSession(), monkeypatch, capture=capture)
-    assert capture["system"][0] == prompts.eval_system_prompt("ko", "voice-conversation-ko-v6")[0]
+    assert capture["system"][0] == prompts.eval_system_prompt("ko", "voice-structured-ko-v9")[0]
     assert "2026-10-14:" not in "\n".join(capture["system"])
     assert "파란 모자" not in "\n".join(capture["system"])
     assert "오늘 1/2" not in "\n".join(capture["system"])

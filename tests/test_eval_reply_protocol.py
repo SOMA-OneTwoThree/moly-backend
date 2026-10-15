@@ -17,9 +17,6 @@ from app.services import llm, prompts
 BASE, FREE = "voice-base-ko-v5", "voice-free-ko-v5"
 CONVERSATION = "voice-conversation-ko-v6"
 STRUCTURED = "voice-structured-ko-v7"
-EXAMPLES = "voice-structured-ko-v8"
-ORDER_ONLY = "voice-structured-ko-v8-order"
-EXAMPLES_ONLY = "voice-structured-ko-v8-examples"
 CORRECTION = "voice-structured-ko-v9"
 MESSAGES = [{"role": "user", "content": '  합성 "café"\n그대로  '}]
 
@@ -124,7 +121,7 @@ async def test_v5_plain_wire_and_diagnostics_preserve_registered_contract(monkey
 
 
 @pytest.mark.parametrize("candidate", (
-    CONVERSATION, STRUCTURED, EXAMPLES, ORDER_ONLY, EXAMPLES_ONLY, CORRECTION,
+    CONVERSATION, STRUCTURED, CORRECTION,
 ))
 async def test_korean_candidates_keep_existing_model_and_one_192_token_send(monkeypatch, candidate):
     result, client = await call(monkeypatch, completion("합성 답"), candidate)
@@ -142,7 +139,7 @@ async def test_korean_candidates_keep_existing_model_and_one_192_token_send(monk
     {"max_tokens": 1024}, {"model": "gpt-6-sol"}, {"language": "ja"}, {"system": "override"},
 ))
 @pytest.mark.parametrize("candidate", (
-    CONVERSATION, STRUCTURED, EXAMPLES, ORDER_ONLY, EXAMPLES_ONLY, CORRECTION,
+    CONVERSATION, STRUCTURED, CORRECTION,
 ))
 async def test_korean_candidates_reject_changed_profile_before_sdk(monkeypatch, overrides, candidate):
     monkeypatch.setattr(llm, "_get_openai_client", lambda: pytest.fail("Invalid input reached SDK"))
@@ -236,6 +233,9 @@ async def test_installed_sdk_sends_once_and_keeps_shared_client_open(monkeypatch
         {"max_tokens": 193},
         {"system": "arbitrary"},
         {"candidate_id": "voice-role-ko-v15"},
+        {"candidate_id": "voice-structured-ko-v8"},
+        {"candidate_id": "voice-structured-ko-v8-order"},
+        {"candidate_id": "voice-structured-ko-v8-examples"},
     ],
 )
 async def test_unregistered_settings_and_removed_ids_never_reach_sdk(monkeypatch, override):

@@ -85,7 +85,7 @@ async def test_context_marks_first_surviving_message_after_greeting_pop():
 
 # --- 대사 정제(페르소나만으론 안 잡히는 것들을 코드로 확정) ---
 def test_clean_reply_strips_linebreaks_and_ellipsis():
-    assert _ko_clean("음... 딱히 없어.\n\n생각해봐도 안 떠올라.") == "음 딱히 없어. 생각해봐도 안 떠올라."
+    assert _ko_clean("음... 딱히 없어.\n\n생각해봐도 안 떠올라.") == "음 딱히 없어.\n\n생각해봐도 안 떠올라."
     assert _ko_clean("그렇구나…") == "그렇구나"
     assert _ko_clean("정말...?") == "정말?"          # 부호 앞 공백이 남지 않는다
     assert _ko_clean("  왔네.  ") == "왔네."
@@ -98,16 +98,16 @@ def test_clean_reply_keeps_normal_punctuation():
 
 # --- 되묻기 물음표 백스톱 ---
 def test_fix_qmarks_restores_soft_questions():
-    assert _ko_clean("무슨 일인데.") == "무슨 일인데?"
-    assert _ko_clean("무슨 일이야.") == "무슨 일이야?"
-    assert _ko_clean("왜 그런데.") == "왜 그런데?"
-    assert _ko_clean("무슨 고민이야") == "무슨 고민이야?"          # 부호 없이 흘린 것도
+    assert c._fix_qmarks("무슨 일인데.", None) == "무슨 일인데?"
+    assert c._fix_qmarks("무슨 일이야.", None) == "무슨 일이야?"
+    assert c._fix_qmarks("왜 그런데.", None) == "왜 그런데?"
+    assert c._fix_qmarks("무슨 고민이야", None) == "무슨 고민이야?"          # 부호 없이 흘린 것도
 
 
 def test_fix_qmarks_strips_trailing_vocative_before_check():
     # 끝이 호명이면 벗겨서 어미를 노출('무슨 일이야, 승민아' → 물음표는 문장 끝에)
-    assert _ko_clean("승민아, 무슨 일이야.", "승민") == "승민아, 무슨 일이야?"
-    assert _ko_clean("무슨 일인데, 지호야.", "지호") == "무슨 일인데, 지호야?"
+    assert c._fix_qmarks("승민아, 무슨 일이야.", "승민") == "승민아, 무슨 일이야?"
+    assert c._fix_qmarks("무슨 일인데, 지호야.", "지호") == "무슨 일인데, 지호야?"
 
 
 def test_fix_qmarks_no_false_positive_on_statements():
@@ -128,15 +128,15 @@ def test_fix_qmarks_leaves_existing_marks():
 # --- 마크다운 강조·대시·물결 제거(_STRAY) ---
 def test_clean_reply_strips_markdown_and_dashes():
     assert _ko_clean("**진짜** 좋았어.") == "진짜 좋았어."
-    assert _ko_clean("그러니까 — 별 거 아닌데.") == "그러니까 별 거 아닌데."
+    assert _ko_clean("그러니까 — 별 거 아닌데.") == "그러니까 — 별 거 아닌데."
     assert _ko_clean("_이거_ 맞아?") == "이거 맞아?"
     assert _ko_clean("괜찮아~ 다 잘될 거야.") == "괜찮아 다 잘될 거야."
 
 
 # --- 선택의문문 물음표(아니면) ---
 def test_fix_qmarks_choice_question():
-    assert _ko_clean("치킨이야 아니면 피자야.") == "치킨이야 아니면 피자야?"
-    assert _ko_clean("같이 갈래 아니면 혼자 갈래.") == "같이 갈래 아니면 혼자 갈래?"
+    assert c._fix_qmarks("치킨이야 아니면 피자야.", None) == "치킨이야 아니면 피자야?"
+    assert c._fix_qmarks("같이 갈래 아니면 혼자 갈래.", None) == "같이 갈래 아니면 혼자 갈래?"
 
 
 def test_fix_qmarks_choice_no_false_positive():

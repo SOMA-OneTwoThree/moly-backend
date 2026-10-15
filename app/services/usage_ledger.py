@@ -570,6 +570,13 @@ async def run_close_flusher(stop, *, reconcile: bool = False) -> None:
     await flush_closes()  # graceful shutdown flush — 챗 lane 포함(#23b)
 
 
+def _enqueue_close(item: _PendingClose) -> None:
+    _CLOSE_BUFFER.append(item)
+    if len(_CLOSE_BUFFER) > settings.usage_close_flush_max_buffer:
+        del _CLOSE_BUFFER[0]
+        _log.warning("원장 close 버퍼 상한 — 가장 오래된 1건을 reconciler로 넘긴다")
+
+
 async def close_call(
     call_id: uuid.UUID | None,
     *,
@@ -584,6 +591,7 @@ async def close_call(
     model_snapshot: str | None = None,
     provider_request_id: str | None = None,
     latency_ms: int | None = None,
+    preserve_on_cancel: bool = False,
 ) -> None:
     """usage를 확정한다. 단가를 못 찾으면 `complete`가 unknown_usage로 남긴다.
 
@@ -601,10 +609,7 @@ async def close_call(
         latency_ms=latency_ms, closed_at=datetime.now(timezone.utc),
     )
     if settings.usage_close_flush_enabled:
-        _CLOSE_BUFFER.append(item)
-        if len(_CLOSE_BUFFER) > settings.usage_close_flush_max_buffer:
-            del _CLOSE_BUFFER[0]
-            _log.warning("원장 close 버퍼 상한 — 가장 오래된 1건을 reconciler로 넘긴다")
+        _enqueue_close(item)
         return
     from app.core.db import get_sessionmaker
 
@@ -612,6 +617,12 @@ async def close_call(
         async with get_sessionmaker()() as session:
             await _write_close(session, item)
             await session.commit()
+    except asyncio.CancelledError:
+        if preserve_on_cancel and not any(p.call_id == item.call_id for p in _CLOSE_BUFFER):
+            # The provider usage is already known. Keep it for the existing fenced flusher
+            # even when immediate DB close was interrupted or its commit became ambiguous.
+            _enqueue_close(item)
+        raise
     except Exception as e:  # noqa: BLE001
         _log.warning("원장 완료 기록 실패(무시): %r", e)
 
@@ -630,3 +641,22 @@ async def close_failed(
             await session.commit()
     except Exception as e:  # noqa: BLE001
         _log.warning("원장 실패 기록 실패(무시): %r", e)
+
+
+async def close_unknown(call_id: uuid.UUID | None, *, error_code: str) -> None:
+    """A sent request lost its response; preserve unknown company spend."""
+    if call_id is None:
+        return
+    from app.core.db import get_sessionmaker
+
+    try:
+        # Cleanup is outside the inference deadline, but it must not wait indefinitely.
+        async with asyncio.timeout(1.0):
+            async with get_sessionmaker()() as session:
+                await mark_unknown(session, call_id, error_code=error_code)
+                await session.commit()
+    except Exception as e:  # noqa: BLE001
+        # Started remains durable and the existing stale reconciler can converge it.
+        # Our own timeout becomes TimeoutError here. An external CancelledError must
+        # propagate: swallowing it could let the caller retry its original timeout.
+        _log.warning("원장 미확정 기록 실패(무시) error_type=%s", type(e).__name__)

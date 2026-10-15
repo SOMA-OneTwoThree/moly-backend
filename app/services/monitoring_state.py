@@ -21,7 +21,7 @@ from app.models.app_config import AppConfig
 from app.services import slack_notify
 
 _log = logging.getLogger(__name__)
-_SIGNALS = frozenset({"worker_diary", "worker_memory", "worker_timeout", "rc_processor",
+_SIGNALS = frozenset({"worker_diary", "worker_memory", "worker_timeout", "worker_push", "rc_processor",
                       "rc_observation", "rc_provider", "rc_production", "rc_unknown", "daily_status"})
 _LEASE_S = 60
 _CHANGE_S = 3600

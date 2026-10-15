@@ -1,8 +1,10 @@
-"""계정 삭제 오케스트레이터가 호출하는 moly-backend 측 삭제 장벽.
+"""계정 삭제 장벽 — 차단 상태와 그 진행 기록.
 
-인증 계정 삭제 자체는 moly-auth 소유다. 그 오케스트레이터는 프로필을 지우기 전에
-``begin_subject_deletion``을 같은 DB에 적용해야 한다. 이후 worker publish가 차단되고 응답 사본과
-잡 payload가 즉시 비식별화된다. 외부 삭제 완료 후 ``mark_subject_deleted``로 감사 좌표를 닫는다.
+인증 계정 삭제 자체는 moly-auth 소유다. moly-auth는 계정을 지우기 전에 DB 함수
+``begin_subject_deletion``을 RPC로 부르고, 계정 삭제가 실패하면 ``abort_subject_deletion``으로
+되돌린다(db/schema.sql). 장벽이 서면 worker publish가 차단되고 응답 사본과 잡 payload가 즉시
+비식별화된다. 계정이 지워진 뒤의 잔여 정리와 ``mark_subject_deleted``는
+worker/privacy_sweep_jobs.py가 장벽 행만 보고 한다(사용자 잡은 프로필과 함께 CASCADE로 사라진다).
 """
 from __future__ import annotations
 
@@ -13,46 +15,10 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
-from app.core.advisory_lock import advisory_xact_lock
 
 
-_BEGIN = text("""
-INSERT INTO privacy_subject_barriers(user_id,state,operation_id,high_watermark)
-SELECT :user_id,'deleting',:operation_id,c.memory_source_watermark
-FROM chat_contexts c WHERE c.user_id=:user_id
-ON CONFLICT (user_id) DO UPDATE SET
-  state='deleting',operation_id=EXCLUDED.operation_id,
-  -- 삭제 시작마다 세대를 올린다. 이전 epoch의 pending/running 잡은 authorize_job에서 걸린다.
-  epoch=privacy_subject_barriers.epoch + 1,
-  high_watermark=GREATEST(privacy_subject_barriers.high_watermark,EXCLUDED.high_watermark),
-  updated_at=now()
-RETURNING high_watermark
-""")
-
-_REDACT = text("""
-WITH topic_entries AS (
-  DELETE FROM chat_topic_entries WHERE user_id=:user_id RETURNING 1
-), topic_state AS (
-  DELETE FROM user_topic_states WHERE user_id=:user_id RETURNING 1
-), idem AS (
-  UPDATE idempotency_keys SET response=NULL,terminal_status='redacted',redacted_at=now()
-  WHERE user_id=:user_id RETURNING 1
-), refs AS (
-  UPDATE chat_response_references SET
-    state='unavailable',diary_id=NULL,rendered_metadata='{}'::jsonb,
-    redacted_at=now(),redaction_reason='subject_deleting'
-  WHERE user_id=:user_id RETURNING 1
-), queued AS (
-  UPDATE async_jobs SET
-    state=CASE WHEN state='ready' THEN 'cancelled' ELSE state END,
-    payload='{}'::jsonb,result_detail=NULL,payload_redacted_at=now(),
-    finished_at=CASE WHEN state='ready' THEN now() ELSE finished_at END,
-    result_code=CASE WHEN state='ready' THEN 'subject_deleting' ELSE result_code END
-  WHERE user_id=:user_id AND state IN ('ready','running','succeeded','dead','cancelled')
-  RETURNING 1
-)
-SELECT (SELECT count(*) FROM idem),(SELECT count(*) FROM refs),(SELECT count(*) FROM queued)
-""")
+# 장벽·비식별화·ledger는 DB 함수 하나가 한다. moly-auth와 이 모듈이 같은 구현을 쓴다.
+_BEGIN = text("SELECT public.begin_subject_deletion(:user_id, :operation_id)")
 
 _LEDGER = text("""
 INSERT INTO privacy_ledger_events(operation_id,user_id,event,high_watermark)
@@ -93,9 +59,12 @@ MODE_ENFORCED = "enforced"
 # 빠져 있어서, 삭제를 시작하면 정리 잡이 만들어지자마자 소비자 게이트에 걸려 취소됐다.
 # 잡은 생기는데 벡터는 영원히 안 지워지고, 오류도 안 나서 눈에 띄지 않았다.
 # 아래 세 이름은 잡을 셋으로 나누려던 설계에서 온 것이고 아직 그런 처리기는 없다.
+# `privacy_residual_sweep`은 user_id 없이 돌아 이 게이트를 타지 않지만, 등록된 privacy 처리기는
+# 전부 여기 있어야 한다(tests/test_privacy.py).
 PRIVACY_JOB_ALLOWLIST: frozenset[str] = frozenset(
     {
-        "privacy_cleanup",  # worker/privacy_jobs.py — 지금 실제로 도는 정리 잡
+        "privacy_cleanup",  # worker/privacy_jobs.py — 예전 사용자 단위 정리 잡(더 이상 걸지 않음)
+        "privacy_residual_sweep",  # worker/privacy_sweep_jobs.py — 탈퇴 뒤 정리·완료 표시
         "privacy_delete_coordinator",
         "privacy_provider_cleanup",
         "privacy_verify_residual",
@@ -179,58 +148,28 @@ async def ensure_subject_active(session: AsyncSession, user_id: uuid.UUID) -> No
 
 async def begin_subject_deletion(
     session: AsyncSession, *, user_id: uuid.UUID, operation_id: uuid.UUID
-) -> tuple[int, int, int]:
-    await advisory_xact_lock(session, user_id)
+) -> int:
+    """장벽을 세우고 비식별화한다. 반환 = 삭제 시작 시점의 처리 위치(high_watermark).
+
+    정리 잡은 걸지 않는다 — 사용자 잡은 계정 삭제 때 CASCADE로 사라지므로, 마무리는
+    worker/privacy_sweep_jobs.py가 장벽 행을 보고 한다.
+    """
     watermark = await session.scalar(
         _BEGIN, {"user_id": user_id, "operation_id": operation_id}
     )
-    if watermark is None:
-        # chat_context가 없는 가입 직후 계정도 장벽이 필요하다.
-        await session.execute(
-            text("""
-            INSERT INTO privacy_subject_barriers(user_id,state,operation_id,high_watermark)
-            VALUES (:user_id,'deleting',:operation_id,0)
-            ON CONFLICT (user_id) DO UPDATE SET state='deleting',operation_id=:operation_id,
-              epoch=privacy_subject_barriers.epoch + 1,updated_at=now()
-            """),
-            {"user_id": user_id, "operation_id": operation_id},
-        )
-        watermark = 0
-    row = (await session.execute(_REDACT, {"user_id": user_id})).first()
-    await session.execute(
-        _LEDGER,
-        {
-            "operation_id": operation_id,
-            "user_id": user_id,
-            "event": "serving_blocked_and_redacted",
-            "high_watermark": watermark,
-        },
-    )
-    # 장벽만 세우고 끝내면 벡터가 그대로 남는다 — 실제로 지우는 잡을 여기서 건다.
-    # 같은 트랜잭션이라 장벽 없이 삭제 잡만 도는 일이 없다.
-    # ⚠️ 반드시 return **앞**이다. 뒤에 두면 실행되지 않아 벡터가 영원히 남는다(과거 결함).
-    from app.services import jobs
-
-    await jobs.enqueue(
-        session,
-        queue=jobs.QUEUE_MAINTENANCE,
-        job_type="privacy_cleanup",
-        user_id=user_id,
-        dedup_key=f"privclean:{user_id}:{operation_id}:0",
-        payload={"empty_sweeps": 0},
-    )
-    return tuple(int(value) for value in row) if row is not None else (0, 0, 0)
-
+    return int(watermark or 0)
 
 
 async def mark_subject_deleted(
     session: AsyncSession, *, user_id: uuid.UUID, operation_id: uuid.UUID
 ) -> bool:
-    watermark = await session.scalar(
-        _FINISH, {"user_id": user_id, "operation_id": operation_id}
-    )
-    if watermark is None:
+    # 행 유무로 판정한다. 장벽 없이 지워진 계정의 장벽은 high_watermark가 NULL이다.
+    row = (
+        await session.execute(_FINISH, {"user_id": user_id, "operation_id": operation_id})
+    ).first()
+    if row is None:
         return False
+    watermark = row[0]
     await session.execute(
         _LEDGER,
         {

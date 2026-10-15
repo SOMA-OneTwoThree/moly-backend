@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import pytest
+
 from app.services import config_store, slack_notify
 from worker import tick
 
@@ -109,16 +111,61 @@ class _GetClient:
         _GetClient.urls.append(url)
 
 
-async def test_deadman_ping_ok_and_fail(monkeypatch):
+def _capture_monitor(monkeypatch):
+    publish = AsyncMock()
+    legacy_alert = AsyncMock()
+    monkeypatch.setattr(tick.monitoring, "emit", publish)
+    monkeypatch.setattr(tick.slack_notify, "alert", legacy_alert)
+    return publish, legacy_alert
+
+
+_HEALTHY = {"diary_failed": 0, "memory_failed": 0, "diary_skipped": 5}
+
+
+@pytest.mark.parametrize("extra,failed", [
+    ({}, False),
+    ({"diary_failed": 2}, True),
+    ({"memory_failed": 1}, True),
+    ({"timed_out": 1}, True),
+    ({"push_sent": 0, "push_transient": 15, "push_setup_error": 10}, True),
+    ({"push_sent": 0, "push_invalid_token": 500}, False),
+    ({"push_sent": 40, "push_setup_error": 30}, False),
+    ({"push_sent": 0, "push_transient": 3, "push_payload_error": 2}, False),
+])
+async def test_main_deadman_predicates_preserved_and_observation_has_single_owner(monkeypatch, extra, failed):
     monkeypatch.setattr(tick.settings, "worker_ping_url", "https://hc.example/PING")
+    monkeypatch.setattr(tick.settings, "worker_push_outage_min", 20)
     monkeypatch.setattr(tick.httpx, "AsyncClient", lambda **kw: _GetClient())
-    emit = AsyncMock()
-    monkeypatch.setattr(tick.monitoring, "emit", emit)
+    emit, legacy_alert = _capture_monitor(monkeypatch)
+    counts = {**_HEALTHY, **extra}
     _GetClient.urls.clear()
-    await tick._emit_worker_health(_NOW, {"diary_failed": 0, "memory_failed": 0})
-    await tick._emit_worker_health(_NOW, {"diary_failed": 1, "memory_failed": 0})
-    assert _GetClient.urls == ["https://hc.example/PING", "https://hc.example/PING/fail"]
-    assert emit.await_count == 2
+    await tick._emit_worker_health(_NOW, counts)
+    assert _GetClient.urls == ["https://hc.example/PING" + ("/fail" if failed else "")]
+    emit.assert_awaited_once_with(_NOW, counts)
+    legacy_alert.assert_not_awaited()
+
+
+@pytest.mark.parametrize("billable", [1_000_000, 9_000_000])
+async def test_billable_is_not_repeated_money_alert(monkeypatch, billable):
+    monkeypatch.setattr(tick.settings, "worker_ping_url", "")
+    monkeypatch.setattr(tick.settings, "daily_billable_alert_threshold", 5_000_000)
+    emit, legacy_alert = _capture_monitor(monkeypatch)
+    counts = {**_HEALTHY, "billable_yesterday": billable}
+    await tick._emit_worker_health(_NOW, counts)
+    emit.assert_awaited_once_with(_NOW, counts)
+    legacy_alert.assert_not_awaited()
+
+
+async def test_sum_billable_yesterday_uses_prior_day(monkeypatch):
+    captured = {}
+
+    class _Sess:
+        async def execute(self, stmt):
+            captured["called"] = True
+            return SimpleNamespace(scalar_one=lambda: 12345)
+
+    total = await tick._sum_billable_yesterday(_Sess(), _NOW)
+    assert total == 12345 and captured["called"]
 
 
 # ---------------------------------------------------------------------------

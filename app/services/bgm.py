@@ -18,6 +18,7 @@ def render_track(row: BgmTrackRecord, locale: str | None) -> BgmTrack:
         id=row.id, category=row.category, title=names.get(resolve(locale)) or row.title,
         source=row.source, revision=row.revision, url=row.url, sha256=row.sha256,
         size_bytes=row.size_bytes, mime_type=row.mime_type, sort_order=row.sort_order,
+        subscriber_only=row.is_subscriber_only,
     )
     if (settings.environment not in {"local", "development"} and track.url
             and track.url.startswith(DEVELOPMENT_ASSET_ORIGIN + "/")):

@@ -270,6 +270,27 @@ def _purchase_response(
         ) from exc
 
 
+def _replay_purchase(
+    cached: IdempotencyKey, *, user_id: str, stored_key: str, now: datetime
+) -> dict[str, Any]:
+    """저장된 구매 응답을 재생한다. 응답이 비었거나(redaction)·성공이 아니거나·보존 기간이
+    지났으면 채팅 재생과 같은 409 — 빈 응답을 검증기에 넘기면 500이 된다."""
+    if (
+        cached.response is None
+        or getattr(cached, "terminal_status", "succeeded") != "succeeded"
+        or (
+            getattr(cached, "response_expires_at", None) is not None
+            and cached.response_expires_at <= now
+        )
+    ):
+        raise errors.AppError(
+            "IDEMPOTENCY_REPLAY_UNAVAILABLE",
+            409,
+            "이 요청의 재생 보존 기간이 끝났어요. 새 Idempotency-Key로 보내 주세요.",
+        )
+    return _purchase_response(cached.response, user_id=user_id, idempotency_key=stored_key)
+
+
 async def purchase(
     session: AsyncSession,
     user_id: str,
@@ -280,21 +301,18 @@ async def purchase(
     bundled_themes: frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     uid = _uid(user_id)
+    now = datetime.now(timezone.utc)
     stored_key = (
         f"{SHOP_PURCHASE_KEY_PREFIX}{idempotency_key}" if idempotency_key else None
     )
     if stored_key is not None:
         cached = await session.get(IdempotencyKey, (uid, stored_key))
         if cached is not None:
-            return _purchase_response(
-                cached.response, user_id=user_id, idempotency_key=stored_key
-            )
+            return _replay_purchase(cached, user_id=user_id, stored_key=stored_key, now=now)
         await _lock_user(session, uid)
         cached = await session.get(IdempotencyKey, (uid, stored_key))
         if cached is not None:
-            return _purchase_response(
-                cached.response, user_id=user_id, idempotency_key=stored_key
-            )
+            return _replay_purchase(cached, user_id=user_id, stored_key=stored_key, now=now)
 
     product = await _load_item(session, product_id)
     if _hidden_product(product, v2=True, timer_capable=timer_capable, bundled_themes=bundled_themes):
@@ -336,9 +354,7 @@ async def purchase(
         if stored_key is not None:
             cached = await session.get(IdempotencyKey, (uid, stored_key))
             if cached is not None:
-                return _purchase_response(
-                    cached.response, user_id=user_id, idempotency_key=stored_key
-                )
+                return _replay_purchase(cached, user_id=user_id, stored_key=stored_key, now=now)
         raise errors.already_owned() from exc
     return response
 
@@ -414,6 +430,9 @@ async def get_equipment(
     bundled_themes: frozenset[str] = frozenset(), subscriber_capable: bool = False,
 ) -> dict[str, Any]:
     uid = _uid(user_id)
+    # 탈퇴로 프로필이 없으면(아직 유효한 토큰) /inventory와 같은 404. 테마 없음 500은
+    # 살아 있는 계정의 계약 그대로다(moly-auth loadEquipment와 같은 실패).
+    await _load_profile(session, user_id)
     rows = await _user_rows(session, uid)
     equipped_ids = {row.product_id for row in rows if row.equipped_slot is not None}
     products = await _products_by_ids(session, equipped_ids)

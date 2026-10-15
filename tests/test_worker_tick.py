@@ -154,6 +154,59 @@ async def test_run_tick_records_heartbeat_every_tick(monkeypatch):
     assert tick.config_store.WORKER_LAST_SUCCESS_KEY in recorded
 
 
+async def test_run_tick_records_unresolvable_timezones(monkeypatch):
+    """해석 불가 tz 목록을 매 틱 app_config에 기록 — /health/deep가 노출한다(유휴 시각에도)."""
+    bad = SimpleNamespace(id=uuid.uuid4(), timezone="Not/AZone")
+    good = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    recorded: dict = {}
+
+    async def _spy(session, key, value):
+        recorded[key] = value
+
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([bad, good]))
+    monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
+    monkeypatch.setattr(tick.config_store, "set_config_value", _spy)
+    counts = await tick.run_tick(datetime(2026, 7, 6, 6, 0, tzinfo=timezone.utc))
+    assert counts["tz_unresolvable"] == 1
+    assert recorded[tick.config_store.WORKER_TZ_UNRESOLVABLE_KEY] == ["Not/AZone"]
+
+
+async def test_run_tick_overwrites_unresolvable_with_empty_list(monkeypatch):
+    """전부 해석되면 빈 목록으로 덮어쓴다 — 고친 뒤 지난 값이 남아 /health/deep가 503으로 남지 않게."""
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    recorded: dict = {}
+
+    async def _spy(session, key, value):
+        recorded[key] = value
+
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
+    monkeypatch.setattr(tick.config_store, "set_config_value", _spy)
+    counts = await tick.run_tick(datetime(2026, 7, 6, 6, 0, tzinfo=timezone.utc))
+    assert counts["tz_unresolvable"] == 0
+    assert recorded[tick.config_store.WORKER_TZ_UNRESOLVABLE_KEY] == []
+
+
+@pytest.mark.parametrize("hour,minute,expected", [(4, 0, 1), (4, 15, 0), (6, 0, 0)])
+async def test_run_tick_unresolvable_timezone_alert_once_a_day(monkeypatch, hour, minute, expected):
+    """경보는 UTC 04:00 틱에서만 — 틱마다 새 프로세스라 in-process dedup이 안 통한다."""
+    bad = SimpleNamespace(id=uuid.uuid4(), timezone="Not/AZone")
+    alerts: list[str] = []
+
+    async def _alert(text, *, dedup_key=None):
+        alerts.append(text)
+
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([bad]))
+    monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
+    monkeypatch.setattr(tick.slack_notify, "alert", _alert)
+    monkeypatch.setattr(tick.settings, "daily_billable_alert_threshold", 0)
+    await tick.run_tick(datetime(2026, 7, 6, hour, minute, tzinfo=timezone.utc))
+    tz_alerts = [a for a in alerts if "해석 불가 timezone" in a]
+    assert len(tz_alerts) == expected
+    if expected:
+        assert "Not/AZone" in tz_alerts[0]
+
+
 def test_rc_inbox_drain_priority_ordering():
     """우선순위 후보 정렬(SOMA-372): 신규(last_error NULL)→예외재시도(attempts>0)→received_at.
 
@@ -295,7 +348,7 @@ async def test_missing_diary_policy_keeps_morning_notification_working(monkeypat
     monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
     morning = AsyncMock(return_value=True)
     monkeypatch.setattr(tick.notify, "notify_morning", morning)
-    counts = await tick._process_user(datetime(2026, 9, 8, 0, tzinfo=timezone.utc),
+    counts = await tick._process_user(datetime(2026, 9, 8, 1, tzinfo=timezone.utc),  # KST 10시
                                       p.id, {}, diary_policy=None)
     assert counts["morning"] == 1 and counts["diary_failed"] == 0
     morning.assert_awaited_once()
@@ -331,3 +384,23 @@ async def test_run_tick_loads_policy_once_and_aggregates_no_entries(monkeypatch)
     loader.assert_awaited_once()
     assert generate.await_count == 2
     assert all(call.kwargs["policy"] is policy for call in generate.await_args_list)
+
+
+async def test_routine_morning_hour_sends_routine_push_and_logs_summary(monkeypatch, caplog):
+    """현지 9시는 루틴 아침만. 상세 요약은 로그에 남기고 정기 Slack 도배는 재개하지 않는다."""
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    monkeypatch.setattr(tick, "effective_token_config", AsyncMock(return_value={}))
+    routine_push = AsyncMock(return_value=1)
+    morning = AsyncMock(return_value=1)
+    summary = AsyncMock()
+    monkeypatch.setattr(tick.notify, "notify_routine_morning", routine_push)
+    monkeypatch.setattr(tick.notify, "notify_morning", morning)
+    monkeypatch.setattr(tick.slack_notify, "send_summary", summary)
+    with caplog.at_level("INFO", logger="moly-worker"):
+        counts = await tick.run_tick(datetime(2026, 9, 8, 0, tzinfo=timezone.utc))  # KST 09:00
+    assert counts["routine_morning"] == 1 and counts["morning"] == 0
+    routine_push.assert_awaited_once()
+    morning.assert_not_awaited()
+    summary.assert_not_awaited()
+    assert "루틴 아침 1건" in caplog.text

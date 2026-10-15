@@ -33,11 +33,6 @@ on:
         description: 'candidate 모드만: 최신 dev를 포함하는 이 저장소의 전체 40자리 SHA'
         required: false
         default: ''
-      verify_subscription_only:
-        description: "기존 dev 이미지에서 일기·구독 검증만 실행 (배포/빌드 없음)"
-        type: boolean
-        required: false
-        default: false
       image_tag:
         description: "배포할 이미지 태그(dev-<sha> 전체). 비우면 현재 커밋을 빌드해서 배포"
         required: false
@@ -74,12 +69,12 @@ jobs:
           DEPLOY_MODE: ${{ inputs.mode || 'existing' }}
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}
           IMAGE_TAG: ${{ inputs.image_tag }}
-          VERIFY_ONLY: ${{ inputs.verify_subscription_only && 'true' || 'false' }}
+          VERIFY_ONLY: 'false'
         run: python3 .github/scripts/dev_candidate.py inputs
 
   build-and-deploy:
     needs: validate-inputs
-    if: inputs.verify_subscription_only != true && (inputs.mode == '' || inputs.mode == 'existing')
+    if: inputs.mode == '' || inputs.mode == 'existing'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -191,15 +186,7 @@ jobs:
               rm -f "$err_file"
             done
 
-            echo "==> [$instance_id] 배포 표준출력 ----------------------------"
-            aws ssm get-command-invocation --region "$AWS_REGION" \
-              --command-id "$cmd_id" --instance-id "$instance_id" \
-              --query "StandardOutputContent" --output text || true
-            echo "==> [$instance_id] 배포 표준에러 ----------------------------"
-            aws ssm get-command-invocation --region "$AWS_REGION" \
-              --command-id "$cmd_id" --instance-id "$instance_id" \
-              --query "StandardErrorContent" --output text || true
-
+            # Remote deployment output may contain environment values. Report status only.
             if [ "$finished" -ne 1 ]; then
               echo "[$instance_id] 배포 실패: 타임아웃 (마지막 status=$STATUS)" >&2
               return 1
@@ -237,33 +224,8 @@ jobs:
             fi
             sleep 5
           done
-          echo "ERROR: /health 버전이 기대($EXPECTED)와 다름 — 마지막 응답: $BODY" >&2
+          echo "ERROR: /health did not confirm the expected development version" >&2
           exit 1
-
-  verify-subscription:
-    needs: validate-inputs
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev' && inputs.verify_subscription_only == true && (inputs.mode == '' || inputs.mode == 'existing')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::676972757138:role/moly-github-actions-dev-role
-          aws-region: ap-northeast-2
-      - name: Run bounded checks inside the existing dev container
-        shell: bash
-        run: |
-          set -euo pipefail
-          ids=$(aws ec2 describe-instances --filters 'Name=tag:Role,Values=moly-backend-dev' 'Name=instance-state-name,Values=running' --query 'Reservations[].Instances[].InstanceId' --output text)
-          read -r -a instances <<< "$ids"
-          test "${#instances[@]}" -eq 1
-          command_id=$(aws ssm send-command --instance-ids "${instances[0]}" --document-name AWS-RunShellScript --parameters 'commands=["docker exec moly-backend python scripts/verify_subscription_diary_runtime.py"],executionTimeout=["600"]' --query Command.CommandId --output text)
-          for _ in $(seq 1 60); do
-            sleep 10
-            status=$(aws ssm get-command-invocation --command-id "$command_id" --instance-id "${instances[0]}" --query Status --output text 2>/dev/null || true)
-            case "$status" in Success|Failed|Cancelled|TimedOut) break;; esac
-          done
-          aws ssm get-command-invocation --command-id "$command_id" --instance-id "${instances[0]}" --query '{status:Status,stdout:StandardOutputContent,stderr:StandardErrorContent}' --output json
-          test "$status" = Success
 
   candidate-control:
     needs: validate-inputs

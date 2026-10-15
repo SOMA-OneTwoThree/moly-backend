@@ -1,6 +1,6 @@
 """알림 창(expiry) — 놓친 알림을 뒤늦게 쏘지 않는다.
 
-09:00·20:00 푸시는 **그 시각의 창에서만** 나간다. 워커가 멈췄다 복구해도 지나간 알림은
+09:00 루틴·10:00 일기·20:00 푸시는 **그 시각의 창에서만** 나간다. 워커가 멈췄다 복구해도 지나간 알림은
 버려져야 한다 — 밤 11시에 받는 '좋은 아침'은 알림이 아니라 사고다.
 
 기존 test_notify.py는 `_claim_send_slot`을 mock해서 claim의 *소비자*만 본다. 여기서는
@@ -38,9 +38,13 @@ def _kst(hour: int, minute: int = 0) -> datetime:
 
 
 async def _sent(monkeypatch, when: datetime) -> dict:
-    calls = {"morning": 0, "evening": 0}
+    calls = {"routine": 0, "morning": 0, "evening": 0}
 
-    async def _m(session, p, now=None):
+    async def _r(session, p, now=None, stats=None):
+        calls["routine"] += 1
+        return 1
+
+    async def _m(session, p, now=None, stats=None):
         calls["morning"] += 1
         return 1
 
@@ -48,6 +52,7 @@ async def _sent(monkeypatch, when: datetime) -> dict:
         calls["evening"] += 1
         return 1
 
+    monkeypatch.setattr(tick.notify, "notify_routine_morning", _r)
     monkeypatch.setattr(tick.notify, "notify_morning", _m)
     monkeypatch.setattr(tick.notify, "notify_evening", _e)
     await tick.run_tick(when)
@@ -55,11 +60,17 @@ async def _sent(monkeypatch, when: datetime) -> dict:
 
 
 async def test_morning_fires_inside_its_hour(monkeypatch, seoul_user):
-    assert (await _sent(monkeypatch, _kst(9, 0)))["morning"] == 1
-    assert (await _sent(monkeypatch, _kst(9, 45)))["morning"] == 1
+    assert (await _sent(monkeypatch, _kst(10, 0)))["morning"] == 1
+    assert (await _sent(monkeypatch, _kst(10, 45)))["morning"] == 1
 
 
-@pytest.mark.parametrize("hour", [10, 11, 14, 23])
+async def test_routine_morning_fires_inside_its_hour(monkeypatch, seoul_user):
+    assert (await _sent(monkeypatch, _kst(9, 0)))["routine"] == 1
+    assert (await _sent(monkeypatch, _kst(9, 45)))["routine"] == 1
+    assert (await _sent(monkeypatch, _kst(10, 0)))["routine"] == 0
+
+
+@pytest.mark.parametrize("hour", [9, 11, 14, 23])
 async def test_missed_morning_is_dropped_not_deferred(monkeypatch, seoul_user, hour):
     """창을 놓치면 그날은 버린다. 밀린 알림이 뒤늦게 나가면 안 된다."""
     assert (await _sent(monkeypatch, _kst(hour)))["morning"] == 0
@@ -74,12 +85,13 @@ async def test_missed_evening_is_dropped(monkeypatch, seoul_user, hour):
     assert (await _sent(monkeypatch, _kst(hour)))["evening"] == 0
 
 
-async def test_the_two_pushes_never_share_an_hour(monkeypatch, seoul_user):
-    """같은 틱에서 둘 다 나가면 유저는 두 번 알림을 받는다."""
-    assert tick.MORNING_HOUR != tick.EVENING_HOUR
-    for h in (tick.MORNING_HOUR, tick.EVENING_HOUR):
+async def test_the_pushes_never_share_an_hour(monkeypatch, seoul_user):
+    """같은 틱에서 둘 이상 나가면 유저는 한꺼번에 알림을 받는다."""
+    hours = (tick.ROUTINE_MORNING_HOUR, tick.MORNING_HOUR, tick.EVENING_HOUR)
+    assert len(set(hours)) == 3
+    for h in hours:
         c = await _sent(monkeypatch, _kst(h))
-        assert c["morning"] + c["evening"] == 1
+        assert c["routine"] + c["morning"] + c["evening"] == 1
 
 
 def test_dedup_fixture_matches_the_real_claim_columns():

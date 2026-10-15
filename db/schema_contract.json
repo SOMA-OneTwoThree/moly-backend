@@ -770,6 +770,14 @@
         "not_null": true,
         "type": "boolean"
       },
+      "public.bgm_tracks.is_subscriber_only": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
       "public.bgm_tracks.mime_type": {
         "collation": "\"default\"",
         "default": null,
@@ -4018,6 +4026,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.profiles.routine_template_selection_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
       "public.profiles.timezone": {
         "collation": "\"default\"",
         "default": "'Asia/Seoul'::text",
@@ -4450,6 +4466,190 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.routine_schedules.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.routine_schedules.days_of_week": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint[]"
+      },
+      "public.routine_schedules.effective_from": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.routine_schedules.routine_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_schedules.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_skips.activity_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.routine_skips.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.routine_skips.routine_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_skips.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.routine_template_categories.id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_template_categories.is_active": {
+        "collation": null,
+        "default": "true",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.routine_template_categories.name_i18n": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.routine_template_categories.sort_order": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.routine_templates.category_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.color": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.days_of_week": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint[]"
+      },
+      "public.routine_templates.icon": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.routine_templates.is_active": {
+        "collation": null,
+        "default": "true",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.routine_templates.is_recommended": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.routine_templates.name_i18n": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.routine_templates.sort_order": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.routines.color": {
+        "collation": "\"default\"",
+        "default": "'peach'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
       "public.routines.created_at": {
         "collation": null,
         "default": "now()",
@@ -4474,6 +4674,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.routines.deleted_on": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "date"
+      },
       "public.routines.frequency_per_week": {
         "collation": null,
         "default": null,
@@ -4481,6 +4689,14 @@
         "identity": "",
         "not_null": true,
         "type": "smallint"
+      },
+      "public.routines.icon": {
+        "collation": "\"default\"",
+        "default": "'seedling'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
       },
       "public.routines.id": {
         "collation": null,
@@ -4521,6 +4737,14 @@
         "identity": "",
         "not_null": false,
         "type": "time without time zone"
+      },
+      "public.routines.template_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
       },
       "public.routines.updated_at": {
         "collation": null,
@@ -5002,6 +5226,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.user_daily_stats.evening_push_variant": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
       "public.user_daily_stats.id": {
         "collation": null,
         "default": null,
@@ -5011,6 +5243,14 @@
         "type": "bigint"
       },
       "public.user_daily_stats.morning_notified_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.user_daily_stats.routine_notified_at": {
         "collation": null,
         "default": null,
         "generated": "",
@@ -5081,6 +5321,14 @@
         "identity": "",
         "not_null": true,
         "type": "uuid"
+      },
+      "public.user_devices.invalidated_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
       },
       "public.user_devices.last_active_at": {
         "collation": null,
@@ -7715,6 +7963,119 @@
         ],
         "validated": true
       },
+      "public.routine_schedules.routine_schedules_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (routine_id, effective_from)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_schedules.routine_schedules_user_routine_fk": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id, routine_id) REFERENCES public.routines(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.routine_schedules:17:O",
+          "public.routine_schedules:5:O",
+          "public.routines:17:O",
+          "public.routines:9:O"
+        ],
+        "validated": true
+      },
+      "public.routine_skips.routine_skips_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (routine_id, activity_date)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_skips.routine_skips_user_routine_fk": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id, routine_id) REFERENCES public.routines(user_id, id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.routine_skips:17:O",
+          "public.routine_skips:5:O",
+          "public.routines:17:O",
+          "public.routines:9:O"
+        ],
+        "validated": true
+      },
+      "public.routine_template_categories.routine_template_categories_id_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((id ~ '^[a-z0-9_]{1,64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_template_categories.routine_template_categories_name_i18n_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((COALESCE(jsonb_typeof((name_i18n -> 'ko'::text)), ''::text) = 'string'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_template_categories.routine_template_categories_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_category_fk": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (category_id) REFERENCES public.routine_template_categories(id)",
+        "enforcement_triggers": [
+          "public.routine_template_categories:17:O",
+          "public.routine_template_categories:9:O",
+          "public.routine_templates:17:O",
+          "public.routine_templates:5:O"
+        ],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_color_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((color = ANY (ARRAY['pink'::text, 'peach'::text, 'yellow'::text, 'green'::text, 'blue'::text, 'mint'::text, 'lavender'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_days_of_week_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((cardinality(days_of_week) >= 1) AND (cardinality(days_of_week) <= 7)) AND (days_of_week <@ '{1,2,3,4,5,6,7}'::smallint[])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_icon_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((icon ~ '^[a-z0-9_]{1,64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_id_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((id ~ '^[a-z0-9_]{1,64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_name_i18n_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((COALESCE(jsonb_typeof((name_i18n -> 'ko'::text)), ''::text) = 'string'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.routine_templates.routine_templates_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.routines.routines_name_i18n_obj_ck": {
         "deferrable": false,
         "deferred": false,
@@ -8431,6 +8792,12 @@
       }
     },
     "function_grants": {
+      "public.abort_subject_deletion(uuid,uuid):service_role:EXECUTE": {
+        "grantable": false
+      },
+      "public.begin_subject_deletion(uuid,uuid):service_role:EXECUTE": {
+        "grantable": false
+      },
       "public.bootstrap_user(uuid,timestamp with time zone):service_role:EXECUTE": {
         "grantable": false
       },
@@ -8518,20 +8885,25 @@
       "public.subscription_launch_access(uuid):service_role:EXECUTE": {
         "grantable": false
       },
-      "public.subscription_launch_config(uuid):service_role:EXECUTE": {
-        "grantable": false
-      },
       "public.subscription_offer_status(uuid):service_role:EXECUTE": {
         "grantable": false
       }
     },
     "functions": {
+      "public.abort_subject_deletion(uuid,uuid)": {
+        "definition": "CREATE OR REPLACE FUNCTION public.abort_subject_deletion(p_user_id uuid, p_operation_id uuid)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  UPDATE public.privacy_subject_barriers b\n  SET state = 'active', operation_id = NULL, updated_at = now(),\n      epoch = COALESCE(\n        (SELECT s.privacy_epoch FROM public.memory_pipeline_states s WHERE s.user_id = b.user_id),\n        0)\n  WHERE b.user_id = p_user_id AND b.operation_id = p_operation_id AND b.state = 'deleting'\n    AND EXISTS (SELECT 1 FROM auth.users u WHERE u.id = b.user_id);\n  IF NOT FOUND THEN\n    RETURN false;\n  END IF;\n  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)\n  VALUES (p_operation_id, p_user_id, 'deletion_aborted', NULL);\n  RETURN true;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.begin_subject_deletion(uuid,uuid)": {
+        "definition": "CREATE OR REPLACE FUNCTION public.begin_subject_deletion(p_user_id uuid, p_operation_id uuid)\n RETURNS bigint\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_watermark bigint;\nBEGIN\n  IF p_user_id IS NULL OR p_operation_id IS NULL THEN\n    RAISE EXCEPTION 'user and operation are required';\n  END IF;\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  -- Every deletion attempt is a new epoch; work queued in an earlier epoch is rejected.\n  INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n  SELECT p_user_id, 'deleting', p_operation_id, c.memory_source_watermark\n  FROM public.chat_contexts c WHERE c.user_id = p_user_id\n  ON CONFLICT (user_id) DO UPDATE SET\n    state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n    high_watermark = GREATEST(b.high_watermark, EXCLUDED.high_watermark), updated_at = now()\n  RETURNING b.high_watermark INTO v_watermark;\n  IF NOT FOUND THEN\n    -- An account that never chatted has no chat context.\n    INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n    VALUES (p_user_id, 'deleting', p_operation_id, 0)\n    ON CONFLICT (user_id) DO UPDATE SET\n      state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n      updated_at = now();\n    v_watermark := 0;\n  END IF;\n\n  DELETE FROM public.chat_topic_entries WHERE user_id = p_user_id;\n  DELETE FROM public.user_topic_states WHERE user_id = p_user_id;\n  UPDATE public.idempotency_keys\n  SET response = NULL, terminal_status = 'redacted', redacted_at = now()\n  WHERE user_id = p_user_id;\n  UPDATE public.chat_response_references\n  SET state = 'unavailable', diary_id = NULL, rendered_metadata = '{}'::jsonb,\n      redacted_at = now(), redaction_reason = 'subject_deleting'\n  WHERE user_id = p_user_id;\n  UPDATE public.async_jobs\n  SET state = CASE WHEN state = 'ready' THEN 'cancelled' ELSE state END,\n      payload = '{}'::jsonb, result_detail = NULL, payload_redacted_at = now(),\n      finished_at = CASE WHEN state = 'ready' THEN now() ELSE finished_at END,\n      result_code = CASE WHEN state = 'ready' THEN 'subject_deleting' ELSE result_code END\n  WHERE user_id = p_user_id AND state IN ('ready', 'running', 'succeeded', 'dead', 'cancelled');\n\n  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)\n  VALUES (p_operation_id, p_user_id, 'serving_blocked_and_redacted', v_watermark);\n  RETURN v_watermark;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
       "public.bootstrap_user(uuid,timestamp with time zone)": {
-        "definition": "CREATE OR REPLACE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone DEFAULT now())\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_required_count integer;\n  v_profile_created integer;\nBEGIN\n  SELECT count(*) INTO v_required_count\n  FROM public.products\n  WHERE product_type = 'cosmetic' AND is_active = true\n    AND (\n      (public_id = 'theme_default' AND slot = 'theme')\n      OR (public_id = 'head_sunglasses' AND slot = 'glasses')\n    );\n  IF v_required_count <> 2 THEN\n    RAISE EXCEPTION 'appearance bootstrap products are not ready';\n  END IF;\n\n  INSERT INTO public.profiles (id, trial_ends_at)\n  VALUES (p_user_id, p_created_at + interval '48 hours')\n  ON CONFLICT (id) DO NOTHING;\n  GET DIAGNOSTICS v_profile_created = ROW_COUNT;\n\n  INSERT INTO public.user_items (user_id, product_id, source)\n  SELECT p_user_id, p.id, 'admin_grant'\n  FROM public.products p\n  WHERE p.product_type = 'cosmetic' AND p.is_active = true\n    AND (\n      (p.public_id = 'theme_default' AND p.slot = 'theme')\n      OR (p.public_id = 'head_sunglasses' AND p.slot = 'glasses')\n    )\n  ON CONFLICT (user_id, product_id) DO NOTHING;\n\n  UPDATE public.user_items default_item\n  SET equipped_slot = 'theme', equipped_at = COALESCE(default_item.equipped_at, now())\n  FROM public.products default_product\n  WHERE default_item.user_id = p_user_id\n    AND default_item.product_id = default_product.id\n    AND default_product.public_id = 'theme_default'\n    AND NOT EXISTS (\n      SELECT 1 FROM public.user_items equipped\n      WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'\n    );\n\n  IF v_profile_created = 1 THEN\n    INSERT INTO public.routines (user_id, name, name_i18n, frequency_per_week, days_of_week, reminder_enabled)\n    VALUES\n      (p_user_id, '이불 정리하기',\n       '{\"ko\":\"이불 정리하기\",\"en\":\"Make the bed\",\"ja\":\"布団を整える\"}'::jsonb,\n       7, '{1,2,3,4,5,6,7}', false),\n      (p_user_id, '물 마시기',\n       '{\"ko\":\"물 마시기\",\"en\":\"Drink water\",\"ja\":\"水を飲む\"}'::jsonb,\n       7, '{1,2,3,4,5,6,7}', false);\n  END IF;\nEND;\n$function$\n",
+        "definition": "CREATE OR REPLACE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone DEFAULT now())\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_required_count integer;\n  v_signup_trial_until timestamptz;\nBEGIN\n  SELECT count(*) INTO v_required_count\n  FROM public.products\n  WHERE product_type = 'cosmetic' AND is_active = true\n    AND (\n      (public_id = 'theme_default' AND slot = 'theme')\n      OR (public_id = 'head_sunglasses' AND slot = 'glasses')\n    );\n  IF v_required_count <> 2 THEN\n    RAISE EXCEPTION 'appearance bootstrap products are not ready';\n  END IF;\n\n  SELECT (value #>> '{}')::timestamptz INTO v_signup_trial_until\n  FROM public.app_config WHERE key = 'signup_trial_until';\n\n  INSERT INTO public.profiles (id, trial_ends_at)\n  VALUES (p_user_id, CASE WHEN v_signup_trial_until IS NULL OR p_created_at < v_signup_trial_until\n    THEN p_created_at + interval '48 hours' END)\n  ON CONFLICT (id) DO NOTHING;\n\n  INSERT INTO public.user_items (user_id, product_id, source)\n  SELECT p_user_id, p.id, 'admin_grant'\n  FROM public.products p\n  WHERE p.product_type = 'cosmetic' AND p.is_active = true\n    AND (\n      (p.public_id = 'theme_default' AND p.slot = 'theme')\n      OR (p.public_id = 'head_sunglasses' AND p.slot = 'glasses')\n    )\n  ON CONFLICT (user_id, product_id) DO NOTHING;\n\n  UPDATE public.user_items default_item\n  SET equipped_slot = 'theme', equipped_at = COALESCE(default_item.equipped_at, now())\n  FROM public.products default_product\n  WHERE default_item.user_id = p_user_id\n    AND default_item.product_id = default_product.id\n    AND default_product.public_id = 'theme_default'\n    AND NOT EXISTS (\n      SELECT 1 FROM public.user_items equipped\n      WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'\n    );\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.claim_subscription_offer(uuid,text,text)": {
-        "definition": "CREATE OR REPLACE FUNCTION public.claim_subscription_offer(p_user_id uuid, p_platform text, p_plan text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_offer jsonb;\n  v_claim public.subscription_offer_claims%ROWTYPE;\n  v_code public.subscription_trial_codes%ROWTYPE;\n  v_created_at timestamptz;\n  v_cutoff timestamptz;\n  v_offer_expires_at timestamptz;\n  v_status jsonb;\nBEGIN\n  IF p_platform IS NULL OR p_plan IS NULL OR p_platform NOT IN ('ios', 'android') OR p_plan NOT IN ('monthly', 'yearly') THEN RAISE EXCEPTION 'invalid offer selection'; END IF;\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  PERFORM 1 FROM public.profiles WHERE id = p_user_id AND nickname IS NOT NULL FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch' FOR SHARE;\n  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  BEGIN\n    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;\n    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;\n  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN\n    RAISE EXCEPTION 'offer unavailable';\n  END;\n  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;\n  IF v_cutoff IS NULL OR NOT isfinite(v_cutoff) OR statement_timestamp() < v_cutoff\n    OR COALESCE(v_config->>'existing_user_cutoff', '') !~ '(Z|[+-][0-9]{2}:[0-9]{2})$'\n    OR v_created_at IS NULL OR v_created_at >= v_cutoff\n    OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)\n    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff\n    THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  IF EXISTS (SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id\n    AND status IN ('active', 'grace_period') AND expires_at > statement_timestamp()) THEN RAISE EXCEPTION 'already subscribed'; END IF;\n  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;\n  IF FOUND AND (v_claim.platform <> p_platform OR (p_platform = 'ios' AND v_claim.plan <> p_plan)\n    OR v_claim.campaign_id <> v_config->>'campaign_id' OR v_claim.redeemed_at IS NOT NULL) THEN RAISE EXCEPTION 'offer already selected'; END IF;\n  v_status := public.subscription_offer_status(p_user_id);\n  IF (v_status->(p_platform || '_offer_ready')) IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  v_offer := v_config #> ARRAY['offers', p_platform, p_plan];\n  IF v_claim.user_id IS NOT NULL AND p_platform = 'android' THEN\n    UPDATE public.subscription_offer_claims SET plan = p_plan, product_id = v_offer->>'product_id',\n      base_plan_id = v_offer->>'base_plan_id', offer_id = v_offer->>'offer_id'\n    WHERE user_id = p_user_id RETURNING * INTO v_claim;\n  END IF;\n  IF v_claim.user_id IS NULL THEN\n    IF p_platform = 'ios' THEN\n      SELECT * INTO v_code FROM public.subscription_trial_codes\n      WHERE campaign_id = v_config->>'campaign_id' AND plan = p_plan\n        AND claimed_at IS NULL AND expires_at > statement_timestamp()\n      ORDER BY expires_at, id LIMIT 1 FOR UPDATE SKIP LOCKED;\n      IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n      UPDATE public.subscription_trial_codes SET claimed_by = p_user_id, claimed_at = statement_timestamp() WHERE id = v_code.id;\n    END IF;\n    INSERT INTO public.subscription_offer_claims(user_id, campaign_id, platform, plan, code_id, product_id, base_plan_id, offer_id)\n    VALUES(p_user_id, v_config->>'campaign_id', p_platform, p_plan, v_code.id,\n      v_offer->>'product_id', v_offer->>'base_plan_id', v_offer->>'offer_id') RETURNING * INTO v_claim;\n  END IF;\n  IF p_platform = 'ios' THEN\n    SELECT * INTO v_code FROM public.subscription_trial_codes WHERE id = v_claim.code_id;\n    IF v_code.expires_at <= statement_timestamp() THEN RAISE EXCEPTION 'offer expired'; END IF;\n    RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan,\n      'apple_app_id', v_config->>'apple_app_id', 'code', v_code.code);\n  END IF;\n  RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan, 'product_id', v_claim.product_id,\n    'base_plan_id', v_claim.base_plan_id, 'offer_id', v_claim.offer_id);\nEND;\n$function$\n",
+        "definition": "CREATE OR REPLACE FUNCTION public.claim_subscription_offer(p_user_id uuid, p_platform text, p_plan text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_offer jsonb;\n  v_claim public.subscription_offer_claims%ROWTYPE;\nBEGIN\n  IF p_platform IS DISTINCT FROM 'android' THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  IF p_plan IS NULL OR p_plan NOT IN ('monthly', 'yearly') THEN RAISE EXCEPTION 'invalid offer selection'; END IF;\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  PERFORM 1 FROM public.profiles WHERE id = p_user_id AND nickname IS NOT NULL FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  IF (public.subscription_launch_access(p_user_id)->'legacy_offer_eligible') IS DISTINCT FROM 'true'::jsonb\n    THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;\n  IF FOUND AND (v_claim.platform <> p_platform OR v_claim.campaign_id <> v_config->>'campaign_id'\n    OR v_claim.redeemed_at IS NOT NULL) THEN RAISE EXCEPTION 'offer already selected'; END IF;\n  IF (public.subscription_offer_status(p_user_id)->'android_offer_ready') IS DISTINCT FROM 'true'::jsonb\n    THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  v_offer := v_config #> ARRAY['offers', 'android', p_plan];\n  IF v_claim.user_id IS NOT NULL THEN\n    UPDATE public.subscription_offer_claims SET plan = p_plan, product_id = v_offer->>'product_id',\n      base_plan_id = v_offer->>'base_plan_id', offer_id = v_offer->>'offer_id'\n    WHERE user_id = p_user_id RETURNING * INTO v_claim;\n  ELSE\n    INSERT INTO public.subscription_offer_claims(user_id, campaign_id, platform, plan, product_id, base_plan_id, offer_id)\n    VALUES(p_user_id, v_config->>'campaign_id', 'android', p_plan,\n      v_offer->>'product_id', v_offer->>'base_plan_id', v_offer->>'offer_id') RETURNING * INTO v_claim;\n  END IF;\n  RETURN jsonb_build_object('platform', 'android', 'plan', p_plan, 'product_id', v_claim.product_id,\n    'base_plan_id', v_claim.base_plan_id, 'offer_id', v_claim.offer_id);\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.cleanup_unowned_subscription()": {
@@ -8567,19 +8939,15 @@
         "owner": "postgres"
       },
       "public.start_subscription_trial(uuid)": {
-        "definition": "CREATE OR REPLACE FUNCTION public.start_subscription_trial(p_user_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_profile public.profiles%ROWTYPE;\n  v_config jsonb;\n  v_cutoff timestamptz;\n  v_created_at timestamptz;\n  v_now timestamptz := statement_timestamp();\nBEGIN\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'profile not found'; END IF;\n  -- Retry always preserves the original interval, even after expiry or deactivation.\n  IF v_profile.app_trial_started_at IS NOT NULL THEN RETURN; END IF;\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch' FOR SHARE;\n  BEGIN\n    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;\n  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN\n    RAISE EXCEPTION 'trial unavailable';\n  END;\n  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;\n  IF v_cutoff IS NULL OR NOT isfinite(v_cutoff) OR v_now < v_cutoff\n    OR COALESCE(v_config->>'existing_user_cutoff', '') !~ '(Z|[+-][0-9]{2}:[0-9]{2})$'\n    OR v_created_at IS NULL OR v_created_at < v_cutoff OR v_created_at > v_now\n    OR v_now >= v_created_at + interval '48 hours'\n    OR (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb\n    OR v_profile.nickname IS NULL THEN\n    RAISE EXCEPTION 'trial unavailable';\n  END IF;\n  IF EXISTS (\n    SELECT 1 FROM public.subscriptions\n    WHERE user_id = p_user_id AND status IN ('active', 'grace_period')\n      AND expires_at > v_now\n  ) THEN RETURN; END IF;\n  UPDATE public.profiles\n  SET app_trial_started_at = v_created_at, app_trial_ends_at = v_created_at + interval '48 hours'\n  WHERE id = p_user_id;\nEND;\n$function$\n",
+        "definition": "CREATE OR REPLACE FUNCTION public.start_subscription_trial(p_user_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_profile public.profiles%ROWTYPE;\n  v_created_at timestamptz;\nBEGIN\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'profile not found'; END IF;\n  IF v_profile.app_trial_started_at IS NOT NULL THEN RETURN; END IF;\n  IF EXISTS (\n    SELECT 1 FROM public.subscriptions\n    WHERE user_id = p_user_id AND status IN ('active', 'grace_period')\n      AND expires_at > statement_timestamp()\n  ) THEN RETURN; END IF;\n  IF (public.subscription_launch_access(p_user_id)->'self_trial_available') IS DISTINCT FROM 'true'::jsonb\n    THEN RAISE EXCEPTION 'trial unavailable'; END IF;\n  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;\n  UPDATE public.profiles\n  SET app_trial_started_at = v_created_at, app_trial_ends_at = v_created_at + interval '48 hours'\n  WHERE id = p_user_id;\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.subscription_launch_access(uuid)": {
-        "definition": "CREATE OR REPLACE FUNCTION public.subscription_launch_access(p_user_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb := public.subscription_launch_config(p_user_id);\n  v_cutoff timestamptz; v_expiry timestamptz; v_created timestamptz;\n  v_enabled boolean := false; v_legacy boolean := false;\nBEGIN\n  IF v_config->'enabled' = 'true'::jsonb\n    AND COALESCE(v_config->>'existing_user_cutoff', '') ~ '(Z|[+-][0-9]{2}:[0-9]{2})$' THEN\n    BEGIN v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;\n    EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN v_cutoff := NULL; END;\n    v_enabled := v_cutoff IS NOT NULL AND isfinite(v_cutoff) AND statement_timestamp() >= v_cutoff;\n    BEGIN v_expiry := (v_config->>'legacy_offer_expires_at')::timestamptz;\n    EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN v_expiry := NULL; END;\n    SELECT created_at INTO v_created FROM auth.users WHERE id = p_user_id;\n    v_legacy := v_enabled AND v_created < v_cutoff AND v_expiry IS NOT NULL\n      AND isfinite(v_expiry) AND v_expiry > statement_timestamp() AND v_expiry > v_cutoff;\n  END IF;\n  RETURN jsonb_build_object('enabled', v_enabled, 'legacy_offer_eligible', COALESCE(v_legacy, false));\nEND;\n$function$\n",
-        "owner": "postgres"
-      },
-      "public.subscription_launch_config(uuid)": {
-        "definition": "CREATE OR REPLACE FUNCTION public.subscription_launch_config(p_user_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_live jsonb;\nBEGIN\n  SELECT value INTO v_live FROM public.app_config WHERE key = 'subscription_launch';\n  IF jsonb_typeof(v_live) IS DISTINCT FROM 'object' THEN RETURN '{}'::jsonb; END IF;\n  -- Retain the RPC signature for old callers; test allowlists no longer bypass T.\n  RETURN v_live - '_test_mode';\nEND;\n$function$\n",
+        "definition": "CREATE OR REPLACE FUNCTION public.subscription_launch_access(p_user_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_launch_until timestamptz;\n  v_signup_trial_until timestamptz;\n  v_profile public.profiles%ROWTYPE;\n  v_created timestamptz;\n  v_now timestamptz := statement_timestamp();\n  v_new_member boolean;\n  v_open boolean;\nBEGIN\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  SELECT (value #>> '{}')::timestamptz INTO v_launch_until FROM public.app_config WHERE key = 'free_launch_until';\n  SELECT (value #>> '{}')::timestamptz INTO v_signup_trial_until FROM public.app_config WHERE key = 'signup_trial_until';\n  SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id;\n  SELECT created_at INTO v_created FROM auth.users WHERE id = p_user_id;\n  v_new_member := v_profile.app_trial_started_at IS NOT NULL OR COALESCE(v_created >= CASE\n    WHEN v_now < v_launch_until THEN (v_config->>'new_member_since')::timestamptz\n    ELSE v_launch_until END, false);\n  v_open := v_profile.nickname IS NOT NULL AND NOT EXISTS (\n    SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id\n      AND status IN ('active', 'grace_period') AND expires_at > v_now);\n  RETURN jsonb_build_object(\n    'enabled', true,\n    'self_trial_available', COALESCE(v_open AND v_new_member\n      AND v_profile.app_trial_started_at IS NULL AND v_now < v_created + interval '48 hours'\n      AND (v_signup_trial_until IS NULL OR v_created < v_signup_trial_until), false),\n    'legacy_offer_eligible', COALESCE(v_open AND NOT v_new_member\n      AND v_now < (v_config->>'legacy_offer_expires_at')::timestamptz, false));\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.subscription_offer_status(uuid)": {
-        "definition": "CREATE OR REPLACE FUNCTION public.subscription_offer_status(p_user_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_cutoff timestamptz;\n  v_offer_expires_at timestamptz;\n  v_claim public.subscription_offer_claims%ROWTYPE;\n  v_platform text;\n  v_plan text;\n  v_offer jsonb;\n  v_ready boolean;\n  v_result jsonb := '{\"legacy_offer_eligible\":false,\"ios_offer_ready\":false,\"android_offer_ready\":false,\"claimed_offer\":null,\"offer_redeemed\":false}'::jsonb;\nBEGIN\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;\n  IF FOUND THEN\n    v_result := jsonb_set(v_result, '{claimed_offer}', jsonb_build_object('platform', v_claim.platform, 'plan', v_claim.plan));\n    v_result := jsonb_set(v_result, '{offer_redeemed}', to_jsonb(v_claim.redeemed_at IS NOT NULL));\n  END IF;\n  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb\n    OR NULLIF(v_config->>'campaign_id', '') IS NULL OR v_claim.redeemed_at IS NOT NULL\n    OR (v_claim.user_id IS NOT NULL AND v_claim.campaign_id <> v_config->>'campaign_id') THEN RETURN v_result; END IF;\n  BEGIN\n    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;\n    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;\n  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN RETURN v_result; END;\n  IF v_cutoff IS NULL OR NOT isfinite(v_cutoff) OR statement_timestamp() < v_cutoff\n    OR COALESCE(v_config->>'existing_user_cutoff', '') !~ '(Z|[+-][0-9]{2}:[0-9]{2})$'\n    OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)\n    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff\n    THEN RETURN v_result; END IF;\n  IF NOT EXISTS (SELECT 1 FROM auth.users u JOIN public.profiles p ON p.id = u.id\n    WHERE u.id = p_user_id AND u.created_at < v_cutoff AND p.nickname IS NOT NULL)\n    OR EXISTS (SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id\n      AND status IN ('active', 'grace_period') AND expires_at > statement_timestamp())\n    THEN RETURN v_result; END IF;\n  v_result := jsonb_set(v_result, '{legacy_offer_eligible}', 'true'::jsonb);\n  FOREACH v_platform IN ARRAY ARRAY['ios', 'android'] LOOP\n    v_ready := true;\n    FOREACH v_plan IN ARRAY ARRAY['monthly', 'yearly'] LOOP\n      -- An allocated iOS code fixes its plan; retries do not need unclaimed inventory.\n      IF v_claim.user_id IS NOT NULL AND (v_platform <> v_claim.platform OR (v_platform = 'ios' AND v_plan <> v_claim.plan)) THEN CONTINUE; END IF;\n      v_offer := v_config #> ARRAY['offers', v_platform, v_plan];\n      IF (v_offer->'ready') IS DISTINCT FROM 'true'::jsonb OR NULLIF(v_offer->>'product_id', '') IS NULL THEN\n        v_ready := false;\n      ELSIF v_platform = 'ios' THEN\n        IF NULLIF(v_offer->>'offer_id', '') IS NULL\n          OR COALESCE(v_config->>'apple_app_id', '') !~ '^[0-9]+$' OR NOT EXISTS (\n          SELECT 1 FROM public.subscription_trial_codes\n          WHERE campaign_id = v_config->>'campaign_id' AND plan = v_plan\n            AND expires_at > statement_timestamp()\n            AND ((v_claim.user_id IS NULL AND claimed_at IS NULL)\n              OR (id = v_claim.code_id AND claimed_by = p_user_id))\n        ) THEN v_ready := false; END IF;\n      ELSIF NULLIF(v_offer->>'base_plan_id', '') IS NULL OR NULLIF(v_offer->>'offer_id', '') IS NULL THEN\n        v_ready := false;\n      END IF;\n    END LOOP;\n    IF v_claim.user_id IS NOT NULL AND v_platform <> v_claim.platform THEN v_ready := false; END IF;\n    v_result := jsonb_set(v_result, ARRAY[v_platform || '_offer_ready'], to_jsonb(v_ready));\n  END LOOP;\n  RETURN v_result;\nEND;\n$function$\n",
+        "definition": "CREATE OR REPLACE FUNCTION public.subscription_offer_status(p_user_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_claim public.subscription_offer_claims%ROWTYPE;\n  v_plan text;\n  v_offer jsonb;\n  v_ready boolean := true;\n  v_result jsonb := '{\"legacy_offer_eligible\":false,\"ios_offer_ready\":false,\"android_offer_ready\":false,\"claimed_offer\":null,\"offer_redeemed\":false}'::jsonb;\nBEGIN\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;\n  IF FOUND THEN\n    v_result := jsonb_set(v_result, '{claimed_offer}', jsonb_build_object('platform', v_claim.platform, 'plan', v_claim.plan));\n    v_result := jsonb_set(v_result, '{offer_redeemed}', to_jsonb(v_claim.redeemed_at IS NOT NULL));\n  END IF;\n  IF NULLIF(v_config->>'campaign_id', '') IS NULL OR v_claim.redeemed_at IS NOT NULL\n    OR (v_claim.user_id IS NOT NULL AND v_claim.campaign_id <> v_config->>'campaign_id') THEN RETURN v_result; END IF;\n  IF (public.subscription_launch_access(p_user_id)->'legacy_offer_eligible') IS DISTINCT FROM 'true'::jsonb\n    THEN RETURN v_result; END IF;\n  -- Keep eligibility visible so an unavailable iOS campaign cannot become a paid fallback.\n  v_result := jsonb_set(v_result, '{legacy_offer_eligible}', 'true'::jsonb);\n  IF v_claim.user_id IS NOT NULL AND v_claim.platform <> 'android' THEN RETURN v_result; END IF;\n  FOREACH v_plan IN ARRAY ARRAY['monthly', 'yearly'] LOOP\n    v_offer := v_config #> ARRAY['offers', 'android', v_plan];\n    IF (v_offer->'ready') IS DISTINCT FROM 'true'::jsonb\n      OR NULLIF(v_offer->>'product_id', '') IS NULL\n      OR NULLIF(v_offer->>'base_plan_id', '') IS NULL\n      OR NULLIF(v_offer->>'offer_id', '') IS NULL THEN v_ready := false; END IF;\n  END LOOP;\n  RETURN jsonb_set(v_result, '{android_offer_ready}', to_jsonb(v_ready));\nEND;\n$function$\n",
         "owner": "postgres"
       }
     },
@@ -9878,6 +10246,51 @@
         "ready": true,
         "table_name": "public.routine_completions",
         "unique": false,
+        "valid": true
+      },
+      "public.routine_schedules_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_schedules_pkey ON public.routine_schedules USING btree (routine_id, effective_from)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_schedules",
+        "unique": true,
+        "valid": true
+      },
+      "public.routine_skips_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_skips_pkey ON public.routine_skips USING btree (routine_id, activity_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_skips",
+        "unique": true,
+        "valid": true
+      },
+      "public.routine_skips_user_date_idx": {
+        "definition": "CREATE INDEX routine_skips_user_date_idx ON public.routine_skips USING btree (user_id, activity_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_skips",
+        "unique": false,
+        "valid": true
+      },
+      "public.routine_template_categories_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_template_categories_pkey ON public.routine_template_categories USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_template_categories",
+        "unique": true,
+        "valid": true
+      },
+      "public.routine_templates_pkey": {
+        "definition": "CREATE UNIQUE INDEX routine_templates_pkey ON public.routine_templates USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.routine_templates",
+        "unique": true,
         "valid": true
       },
       "public.routines_pkey": {
@@ -13003,6 +13416,102 @@
       "public.routine_completions_id_seq:service_role:USAGE": {
         "grantable": false
       },
+      "public.routine_schedules:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_schedules:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_skips:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_template_categories:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.routine_templates:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.routines:anon:DELETE": {
         "grantable": false
       },
@@ -14275,6 +14784,34 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.routine_schedules": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.routine_skips": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.routine_template_categories": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.routine_templates": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.routines": {
         "options": [],
         "owner": "postgres",
@@ -14440,5 +14977,5 @@
       }
     }
   },
-  "schema_sha256": "de5d25cd69c32ddfb90195a0e41b0df49a098d11609f9d69cb933347fcba1434"
+  "schema_sha256": "64c440da48a6e4c16bf449cd34c885445c9f45fbeb5f1e98e3f5024c4ef15570"
 }

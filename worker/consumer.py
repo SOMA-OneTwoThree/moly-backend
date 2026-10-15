@@ -445,7 +445,9 @@ async def _main_async() -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    from app.core.logging_setup import configure_logging
+
+    configure_logging()  # API·worker와 같은 JSON 포맷. httpx INFO(요청 URL 노출)는 끈다
     if os.getenv("MOLY_CONSUMER_STARTUP_CHECK_ONLY") == "1":
         _register_handlers()
         if not _REGISTRY:
@@ -459,8 +461,8 @@ def _register_handlers() -> None:
     """순환 import를 피해 시작 시 한 번 핸들러를 등록한다."""
     from worker import (  # noqa: F401
         checkpoint_jobs, contract_jobs, diary_recall_jobs, mem0_jobs,
-        memory_sweep_jobs, privacy_jobs, reconsolidate_jobs, relationship_jobs,
-        retention_jobs,
+        memory_sweep_jobs, privacy_jobs, privacy_sweep_jobs, reconsolidate_jobs,
+        relationship_jobs, retention_jobs,
     )
 
     if not _REGISTRY:

@@ -15,7 +15,9 @@ HTTPS는 ALB에서 ACM으로 종료하고 nginx :8080 → API 127.0.0.1:8000으�
 | prod | `.github/workflows/deploy.yml`, main | `moly-backend:<sha>`, 기본 2대 순차 롤링 |
 | dev | `.github/workflows/deploy-dev.yml`, dev | `moly-backend-dev:dev-<sha>`, 1대 중단 배포 |
 
-prod는 대상 수를 확인하고 한 호스트씩 ALB에서 제외·drain → SSM 배포 → 검증 → 재등록한다.
+prod는 대상 수를 확인하고, ALB에서 빼기 전에 모든 호스트에서 사전점검(`DEPLOY_PREFLIGHT_ONLY=1`:
+이미지 pull·DB 계약 검증만, live 파일·컨테이너 미변경)을 돌린다. 하나라도 실패하면 어떤 호스트도 빼지
+않고 중단한다. 통과하면 한 호스트씩 ALB에서 제외·drain → SSM 배포 → 검증 → 재등록한다.
 실패하면 다음 호스트로 진행하지 않는다. dev는 별도 IAM·대상 태그·ECR을 사용하며 ALB를 조작하지
 않는다. 두 workflow는 진행 중 배포를 취소하지 않고 뒤 배포를 대기시킨다.
 
@@ -34,129 +36,6 @@ prod의 `expected_instances`는 기본 2다. 1로 줄이면 남은 호스트를 
 비므로 가용성을 바꾸는 운영 판단이다. 호스트에서 컨테이너를 직접 교체해 롤링 절차를 우회하지 않는다.
 호스트는 해당 저장소의 최근 이미지 3개를 유지하며 ECR 보관 정책과는 별개다.
 
-### 개발 후보 이미지 검증 경로 (2026-10-12, 실행 전)
-
-기능 PR을 마지막에 만들기 위해, 아직 dev에 병합하지 않은 완성 후보를 기존 개발 서버에서
-검증할 경로가 필요하다. 기준 `origin/dev=6fb3ea72`의 workflow는 현재 dev 커밋 빌드와 이미
-존재하는 dev 이미지 롤백만 지원한다. infra는 호스트 배포만 담당하며 별도 후보 빌드 workflow가
-없다. 다음 보완은 개발 배포 workflow만의 독립 작업이다. 로컬 구현·검증 단계이며 배포 완료가 아니다.
-
-| dispatch 입력 | 동작·호환성 |
-| --- | --- |
-| `mode=existing` (기본) | 기존 빈 입력은 현재 dev 빌드·배포. 기존 `image_tag`는 확인된 dev 이미지 재배포. `verify_subscription_only`도 기존 의미 유지 |
-| `mode=inspect` | 상태 카운트·공개 health·조건부 개발 호스트의 허용 상태만 조회. 빌드·배포·설정 변경 없음 |
-| `mode=candidate`, `candidate_sha` | 해당 저장소의 검증된 40자리 소문자 SHA를 개발 이미지로 빌드·시험 배포 |
-
-`candidate_sha`는 candidate에만 허용한다. inspect/candidate와 `image_tag` 또는 verify-only의
-조합은 거부한다. candidate의 빈 SHA, 형식 오류, 잘못된 mode도 OIDC 인증 전에 실패시킨다.
-`workflow_dispatch`의 실행 ref는 반드시 `refs/heads/dev`다. 후보 브랜치에서 workflow를 실행하거나
-후보가 제공하는 workflow/스크립트를 인증·대상 검증에 사용하지 않는다.
-
-1. trusted dev를 checkout하고 최신 dev 기준을 다시 fetch한다. 후보 SHA가 같은 저장소의 commit이고
-   최신 dev의 descendant인지 `merge-base --is-ancestor`로 확인한다. 입력은 GitHub 표현식을 shell
-   코드에 삽입하지 않고 환경변수로 전달한다. checkout은 `persist-credentials: false`다.
-2. 기존 개발 OIDC 역할·리전·ECR·동일 concurrency만 사용한다. 운영 역할·대상·ALB 권한은 사용하지
-   않는다. 기본 로컬 AWS 인증도 사용하지 않는다. `Role=moly-backend-dev`의 state별 개수와
-   `https://dev.moly.asia`의 health status/SHA를 확인한다. candidate의 running 대상이 정확히
-   1개가 아니면 빌드 전에 중단한다. inspect는 개수 0/복수도 진단 결과로 남기되 호스트에는 접근하지 않는다.
-3. 대상이 1개면 고정된 read-only SSM 명령만 실행한다. 첫 명령은 `/etc/moly-env`가 정확히 `dev`인지
-   확인한다. 실패하면 hostname·health·설정 조회 전에 고정 오류로 종료한다. 통과 후 localhost
-   health/ready의 상태·40자리 SHA, 설정의 checkpoint/current-turn boolean만 가져온다.
-   원시 SSM stdout/stderr나 환경 전체를 출력하지 않고 허용 필드만 타입 검증해 다시 출력한다.
-   이미지 환경값은 DB override를 합한 실제 설정으로 과장하지 않는다. temporal은 Settings 속성이
-   아닌 별도 DB 플래그이므로 이 호스트 검사에서는 조회하지 않는다.
-4. candidate는 공개 health SHA와 해당 호스트 SHA가 일치해야 진행한다. 불일치·잘못된 응답·미확인은
-   중단한다. 일치는 연결관계의 보조 증거이며 ALB topology 전체를 증명하지 않는다.
-   현재 SHA에 대응하는 `moly-backend-dev:dev-<SHA>` 이미지 존재를 확인해 rollback 대상을 확보한다.
-5. trusted 검증이 끝난 뒤 후보 SHA를 별도 `candidate-src` 경로에 checkout해 기존 build/push 경로를
-   사용한다. 배포·출력 정제 helper는 계속 trusted dev의 고정 경로를 사용한다. 후보 checkout으로
-   덮인 helper를 실행하지 않는다. 태그·빌드의
-   `GIT_SHA`는 요청한 후보 SHA로 고정한다. Docker에 AWS/OIDC/GitHub 비밀이나 host socket을
-   전달하지 않는다. 후보 배너 자산 검사도 기존 dev 빌드와 같이 수행한다.
-   이미지는 `dev-` 이름만 쓴다. 배포 직전에도 dev marker를 다시 검사한 뒤 기존 infra 배포를 호출한다.
-6. 공개 endpoint의 전체 SHA와 개발 호스트 SHA가 모두 요청한 SHA여야 하고, 호스트가 다시
-   development/DB ready를 확인해야 성공이다. 6회 이내의 제한된 재검사에서도 확인되지 않으면
-   미완료로 남긴다. 운영자는 현재 SHA를 확인한 뒤 앞서 확보한 이미지로 기존 dev 롤백 경로를
-   사용한다. 자동 rollback이나 운영 반영은 추가하지 않는다.
-
-workflow/docs-only push 때문에 bootstrap 자체가 기존 앱을 자동 배포하지 않도록 push의
-`paths-ignore`를 해당 dev workflow와 `docs/**`로 좁힌다. 런타임 파일이 함께 바뀐 push는 기존대로
-자동 배포한다. 검증용 helper가 추가되면 helper-only bootstrap 변경도 명시적으로 제외하고,
-그 helper는 애플리케이션 런타임에 포함하거나 호출하지 않는다.
-
-검증은 입력 조합·SHA 형식/존재/ancestry·0/복수 대상·prod marker·health 불일치·rollback 부재의
-거부를 네트워크 없는 fixture로 먼저 고정한다. YAML/shell lint와 독립 권한·로그 검토를 마친 뒤
-bootstrap PR을 마지막에 한 번 만든다. bootstrap을 dev에 병합한 후 기능 브랜치를 새 dev 기준에
-맞추고, 단일 배포 담당자가 candidate를 시험 배포한다. 기능 구현·실험·수정 완료 후 기능 PR을 만든다.
-2026-10-12 외부 접속 없는 경계 테스트를 실행했다. YAML을 파싱하고 workflow의 shell step
-10개를 `bash -n`으로 검사했다. 공식 GitHub release의 SHA256을 대조한 actionlint 1.7.12와
-ShellCheck 0.11.0을 임시 경로에서 실행하고 제거했다. 초기 검사에서 기존 미사용 loop 변수와
-v4 action이 지원하지 않는 optional 입력을 발견해 수정했다. 최종 결과는 아래 검증 기록에 남긴다.
-실제 GitHub OIDC 권한·대상·원격 명령은 아직 검증하지 않았다.
-아래 로컬 검증 완료 시점까지 AWS 조회·SSM 실행·이미지 빌드·배포는 실행하지 않았다. PR·CI는
-이 검증과 독립 검토 후 진행한다. `.github/scripts/dev_candidate.py`는
-개발 workflow 환경 guard 없이 AWS CLI를 호출하지 않으며 공개 health redirect도 따라가지 않는다.
-
-최종 로컬 검증: 신규 경계 테스트 36개 통과, 전체 단위 테스트 2,772개 통과(12.35초, 기존
-Starlette 경고 1개), Ruff·`git diff --check` 통과, actionlint 1.7.12 + ShellCheck 0.11.0 exit 0.
-단위 테스트에는 접속하지 않는 문법상 유효한 더미 DB URL만 사용했다. 개발 DB를 대상으로 한
-대화 기능 테스트나 다른 feature worktree의 테스트 수와 합산하지 않는다.
-
-#### 호스트 검사 실패 진단 보완 (2026-10-12)
-
-첫 승인된 inspect는 프로젝트 OIDC 인증과 개발 태그 running 1개, 공개 health의 기존 SHA를
-확인했으나 호스트 검사에서 `remote_command_failed`로 중단했다. 이 결과만으로 마커 오류나
-컨테이너 장애를 단정하지 않는다. infra의 마커 `/etc/moly-env`, 컨테이너 `moly-backend`, 포트
-8000과 배포 이미지의 Python/config 경로는 소스 계약과 일치했다.
-
-실패 시에는 SSM의 허용된 Status와 정수 ResponseCode만 분류한다. 41은 dev 마커, 42는 config
-import, 43은 로컬 health 읽기, 44는 readiness 읽기, 45는 flags 읽기 단계다. Docker 계층의
-125/126/127도 허용하고 나머지는 `unknown`으로 남긴다. bool·숫자 문자열을 종료 코드로
-받아들이지 않는다. 원시 stdout/stderr는 분류에도 사용하지 않고 내용·접두부·해시를 출력하지
-않는다. 성공 시 기존 SHA/ready/development/flags 검증과 마커 선행 조건은 유지한다.
-추가 단계 코드는 진단 범위만 구분하며 실패 원문이나 실제 환경값을 추측할 근거가 아니다.
-
-이 보완의 경계 테스트 55개, Ruff, diff 검사, actionlint 1.7.12 + ShellCheck 0.11.0이 통과했다.
-후속 inspect·이미지 빌드·배포는 아직 하지 않았다. 정상 개발 consumer/timer는 기존 서비스이며,
-합성 평가 endpoint의 직접 Slack·푸시 호출 없음과 별개다. 이 변경은 새 푸시 활성화·일정 추가나
-timer·환경변수 변경, 기존 개발 서비스 중단을 포함하지 않는다.
-
-#### 명시적 inspect의 제한된 런타임 관측 (2026-10-13)
-
-`mode=inspect`에서만 별도 `runtime_probe`가 고정된 `moly-backend`와 `moly-consumer`를
-읽는다. 기존 `host_probe`·마커·candidate 빌드/롤백·배포 가드와 workflow는 변경하지 않는다.
-개발 running 대상이 정확히 1개이고 공개/API SHA가 일치할 때만 실행한다. 컨테이너의 image
-digest·running을 설정 읽기 전후 비교하고, 두 이미지·Settings SHA·development가 일치하는지
-확인한다. 마지막에는 공개/API SHA와 API readiness·flags를 다시 검사한다. 불일치·미관측은
-고정된 `unavailable` 사유로 남긴다.
-
-API에서는 chat/embedding 모델·출력 상한·checkpoint/current-turn 플래그, consumer에서는
-utility 모델·checkpoint 플래그·LLM/content/finalize timeout·content lease/heartbeat/시도
-상한만 읽는다. 두 컨테이너의 SDK 버전도 확인한다. 모델은 현재 route/catalog에 맞춘 OpenAI
-`gpt-4.1-mini-2025-04-14`, `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-6-luna`, `gpt-6-sol`만,
-embedding은 `text-embedding-3-small`만 허용한다. utility provider는 검증된 모델에서만
-`openai`로 파생한다. SDK는 `uv.lock`의 OpenAI `2.44.0`·Anthropic `0.116.0`과 정확히 비교한다.
-목록 밖 모델·SDK 값은 출력하지 않는다. Claude 관측을 새로 승인하거나 provider를 전환하지 않는다.
-
-성공 응답도 UTF-8 8,192바이트 이내의 정확한 키·타입만 수용한다. bool을 정수로 인정하지 않고
-NaN/Inf·비양수·초과값을 거부한다. 진단의 수용 상한은 출력 32,768토큰, 잡 시도 32회,
-시간 86,400초이며 실제 설정 기본값이나 실험 허용 예산이 아니다. LLM timeout ≤ content
-timeout, content timeout + finalize timeout < lease, heartbeat ≤ min(lease / 3, 20초)도
-검사한다. 추가 필드·원격 실패 본문·예외 문자열은 출력하지 않는다. 자식 프로세스의 선택 필드도
-호스트에서 검증한 뒤 허용 값만 SSM stdout으로 내보낸다. 환경 전체·비밀키·임의 컨테이너는 읽지 않는다.
-
-이는 같은 컨테이너 환경에서 실행한 **새 Python 프로세스의 Settings 관측**이다. 기존 worker
-객체의 메모리나 특정 handler의 성공을 증명하지 않는다. SDK 버전만으로 재시도 상한을 확정하지
-않으며 코드의 override와 SDK 기본값을 별도로 확인해야 한다. 실제 worker→publish→다음 대화
-검증에는 합성 잡의 `max_attempts`·만료시간, DB 플래그·가격 catalog·경보 수신 경로 및 예약
-예산을 따로 확인해야 한다. DB temporal 플래그나 Slack 설정은 이 관측에 포함되지 않는다.
-
-외부 접속 없는 기존·추가 경계 테스트 97개와 Ruff·diff 검사를 통과했다. 가짜 비밀값, 응답 오염,
-SDK 불일치, 중간 이미지/SHA 변경, 명시적 inspect 외 호출 금지를 검사했다. 실제 원격 inspect는
-아직 실행하지 않았다. helper·해당 테스트·`docs/**`는 기존 push `paths-ignore`에 포함되므로
-이 파일들만 병합해도 제품을 자동 배포하지 않는다. trusted dev에 반영한 뒤 승인된 수동 inspect로
-관측해야 하며, 로컬 검사 통과를 실제 설정 확인이나 장기 대화 검증 완료로 보고하지 않는다.
-
 ## 설정과 프로세스
 
 비밀값은 환경별 SSM `/moly/dev/`, `/moly/prod/`에 둔다. 필요한 키와 실제 환경변수 매핑은
@@ -170,7 +49,17 @@ moly-infra `deploy.sh`가 원본이다. 생성된 `.env`·`backend.env`·`secret
 배치는 매시 :00·:15·:30·:45에 실행된다. 사용자 현지 04시 일기, 09시 아침 푸시(기본 꺼짐),
 20시 저녁 푸시를 처리한다. 고유 타임존을 Python에서 해석한 뒤 해당 문자열의 사용자만 조회한다.
 잘못된 타임존 한 건이 전체 틱을 실패시키는 SQL `AT TIME ZONE` 전환은 하지 않는다.
+해석하지 못한 타임존은 그 사용자 전원이 건너뛰어지므로 세 곳에 드러난다: 워커 요약의 `해석 불가 timezone` 줄,
+UTC 04:00 틱의 하루 1회 Slack 경보, `/health/deep`의 `timezones`(있으면 503). 레거시 별칭(Asia/Calcutta 등)은
+PyPI `tzdata` 의존성으로 푼다 — 베이스 이미지(trixie)는 별칭을 `tzdata-legacy`로 분리해 시스템 경로만으로는 못 푼다.
+경보는 04:00Z 틱이 :15 전에 시작할 때만 나간다(재부팅 catch-up 등으로 늦으면 그날은 생략) — 요약·`/health/deep`도 함께 본다.
+`/health/deep`의 `unresolvable_worker`는 배포 후 첫 워커 틱 전까지 `null`이다.
 RevenueCat 수신함·기억 재개·retention 예약·하트비트는 사용자 루프와 별개로 처리한다.
+틱은 `WORKER_TICK_SOFT_DEADLINE_S`(기본 660초)가 지나면 남은 사용자를 건너뛰고 후처리(요약·하트비트·데드맨 핑)를
+마친 뒤 끝난다. 남은 사용자는 같은 시각의 다음 틱이 이어받고, 그 시각의 마지막 틱(현지 :45)은 끝까지 처리한다.
+요약의 `소프트 데드라인 도달` 줄은 처리량이 틱 예산을 넘었다는 용량 신호다(경보 채널로 올리지 않는다).
+운영 원고 번역은 틱마다 (원고, 언어)당 한 번만 호출해 같은 언어 사용자가 같은 번역문을 받는다. 번역 원장 행은
+그 틱에서 처음 번역한 사용자 1명에게만 남는다. FCM 액세스 토큰은 만료 전까지 프로세스 안에서 재사용한다.
 
 ## 관측과 장애 대응
 
@@ -186,16 +75,52 @@ systemctl status moly-worker.service
 journalctl -u moly-worker.service -n 100
 ```
 
+- 로그 형식: API·consumer·worker 모두 JSON 한 줄(`ts`·`level`·`logger`·`msg`)이다. 액세스 줄에는 `method`·`path`·
+  `status`가 따로 있고 ELB `GET /health` 200은 남기지 않는다(`LOG_ACCESS_HEALTH=true`면 남긴다). `chat_turn_metrics`는
+  `metrics.*` 필드로 읽는다. httpx·httpcore는 요청 URL에 비밀값이 들어가므로 WARNING 이상만 남는다.
+  운영에서는 `LOG_LEVEL=DEBUG`를 쓰지 않는다(openai SDK가 요청 본문을 DEBUG로 남긴다).
+  예: `docker logs --since 1h moly-backend 2>&1 | grep -E '"status": 5[0-9]{2}'`
 - 외부 연결 장애: ALB 대상 상태 → nginx :8080 → API readiness → 컨테이너 로그 순으로 확인한다.
   TLS 인증서는 ALB의 ACM 설정을 확인한다. 호스트 certbot 갱신 절차는 사용하지 않는다.
 - 배포 실패: Actions의 SSM 출력과 실패한 호스트 로그를 확인한다. preflight 차이를 먼저 해결하고
   같은 검증 이미지로 재시도한다. 검증을 건너뛰거나 DB 잠금 제한을 늘려 통과시키지 않는다.
+  사전점검 단계에서 실패했으면 어떤 호스트도 ALB에서 빠지지 않았으므로 register 조치는 필요 없다.
 - 큐 적체: `/health/queues`의 ready/running/dead와 미해결 dead의 나이를 확인한다. 오래된 dead를
   시간 필터로 숨기지 않는다. 원본 행을 ready로 되살리지 않고 `replay_of`가 있는 새 작업으로 재시도한다.
 - 워커·정리 중단: 타이머 마커와 마지막 성공 기록, `/health/deep`을 확인한다. 월간 정리는
   `async_jobs` 행 존재가 아니라 `app_config`의 마지막 성공 시각으로 판정한다.
+- 워커 틱 실패: 틱이 14분 상한을 넘거나 비정상 종료하면 moly-infra의 `moly-worker-failed.service`가 상태 채널에
+  한 줄 남긴다. 상한 초과는 compose 클라이언트만 끝내므로 컨테이너는 끝까지 처리하지만 그 로그는 journald에
+  남지 않는다. 실패가 이어지면 데드맨이 경보한다. 원인은 `journalctl -u moly-worker.service`로 본다.
+- 워커 결과 이상(데드맨 `/fail` + 경보 채널): 일기·기억 실패, 유저 처리 타임아웃, 푸시 전면 장애(FCM 수락 0건인데
+  토큰 문제가 아닌 실패 — FCM 인증 준비 실패 포함 — 가 `worker_push_outage_min`(20) 이상)다. 무효 토큰만으로는
+  울리지 않는다.
 - `/health/ready`는 DB 연결 상태를 확인한다. `/health/deep`, `/health/queues`, `/health/synthetic`은
-  `X-Health-Token`을 요구한다. synthetic은 실제 모델 호출을 하므로 비용이 발생한다.
+  `X-Health-Token`을 요구한다. synthetic은 실제 모델 호출을 하므로 비용이 발생한다. 대화 경로와 같게 추론과
+  SDK 재시도를 끄고 부르며, 15초(바깥 상한 포함 최대 16초)를 넘으면 503이다. 지연은 응답의 `llm.latency_ms`로
+  본다. 배포 스모크는 synthetic이 실패하면 한 번 더 부른다.
+- 앱 안 경보(경보 채널, 억제는 프로세스별): `API 미처리 예외 <종류>`(500, 종류별 5분 억제 — 로그
+  `unhandled error`의 스택부터), `기억 회상 타임아웃 N회/15분`(5회 이상, 보내면 다시 0부터 세고 15분 억제 — 로그
+  `v2 회상 타임아웃`의 stages로 임베딩·DB 중 어디인지), `대화 턴 N초`(replay 턴 빼고 15초 초과, 15분 억제 —
+  구간별 소요로 느린 곳을 본다), `합성 점검 실패(워커)`(워커가 틱마다 공개 주소로 synthetic을 부르고 5초 뒤
+  재시도도 실패했거나 50초 안에 응답이 없을 때 — API·DB·LLM을 본다. 워커 데드맨과는 별개라 이것만으로 워커를
+  실패 처리하지 않는다. `합성 점검 자체 오류`는 점검 설정·코드 문제다). 기준·스위치는 `alert_*`·
+  `worker_synthetic_*` 설정이다. 운영은 코드 기본값으로 돈다 — `backend.env`에는 deploy.sh에 나열된 키만
+  실리므로 바꾸려면 코드를 고쳐 배포한다(0·false로 끄는 것도 코드나 로컬 env 수준이다).
+- 채팅 5xx: `POST /chat/messages`의 503 `AI_UNAVAILABLE`은 LLM 제공자의 일시 장애(timeout·연결·429·5xx)다.
+  저장 없이 끝나며 앱은 같은 멱등 키로 다시 보낼 수 있다. 500 `INTERNAL`은 우리 코드의 미처리 예외로 본다.
+  로그 `chat_llm_unavailable`·`decide_timeout_fallback`·`llm_retry_in_budget`·`llm_step_failed`로 구분한다.
+  `chat_llm_unavailable`의 message가 `...before inference`나 `agent turn deadline exceeded`면 제공자 응답이 아니라
+  LLM 호출 전에 마감을 다 쓴 경우다. 앞단(DB·회상·도구·이전 홉) 지연부터 본다.
+  예산 안 재시도가 성공하면 `ai_usage_ledger`에는 1행만 남는다(재시도 응답의 id, latency는 두 시도 합).
+  실패한 첫 시도는 `llm_retry_in_budget` 로그에만 있다.
+  운영 `agent_turn_deadline_s`(10)를 8 이하로 내리지 않는다. 1홉 예산이 3.0초 안팎으로 줄어 정상 턴도 도구 없이 답하게 된다.
+- 기억 회상 지연: 회상은 1.5초 경계에서 끊기고 그 턴은 빈 기억으로 답한다. `v2 회상 타임아웃`은 끊긴 턴,
+  `v2 회상 느림`은 1초 이상 걸렸지만 성공한 턴이다. `stages`는 회상 시작부터의 누적 초(`embed_s` 임베딩 →
+  `search_s` 벡터 검색 → `registry_s` registry 조회)라 앞 단계와의 차이가 그 단계의 소요다. 검색 구간에는
+  스레드·커넥션 풀 대기도 들어 있다. 실패 줄의 `failed_s`(임베딩·검색)·`registry_failed_s`는 실패까지의 누적 초다.
+  타임아웃 줄의 `stages`가 비어 있으면 임베딩도 못 끝낸 것이다. `phase1_overlap`은 Phase 1과 겹쳐 돈 시간이고
+  `elapsed`는 여기에 예산과 취소 정리 시간을 더한 값이다. `total_timeouts`는 호스트별, 컨테이너가 다시 뜨기 전까지의 누적이다.
 
 ## 데이터 수명 주기
 
@@ -211,6 +136,10 @@ journalctl -u moly-worker.service -n 100
 | 기억 후보 | committed 14일: 판정 커서 통과, dead 90일 | planned와 pending registry가 참조하는 후보 |
 | RevenueCat 이벤트 | processed_at 기준 365일 지난 processed | pending·failed와 결제·주문 원장 |
 | 단명 잠금 | 일기 claim·대화 lease가 만료 기준 7일 초과 | 살아 있는 claim·lease |
+
+상점 구매 멱등 키(`shop-purchase:` 접두)는 의도적으로 만료 없이 영구 보존한다. 보존 기간을 두게 되면
+응답 보존이 끝난 같은 키의 재요청은 저장 응답 재생 대신 `409 IDEMPOTENCY_REPLAY_UNAVAILABLE`로 끝나고,
+키 행까지 정리된 뒤에는 새 구매로 처리되어 이미 보유한 상품이면 `409 ALREADY_OWNED`가 된다.
 
 비용 집계와 원본 삭제는 한 SQL 문장의 `DELETE RETURNING → INSERT ON CONFLICT`로 실행한다.
 `activity_date`는 백그라운드 비용에서 의도적으로 NULL일 수 있어 집계 기준으로 바꾸지 않는다.
@@ -449,3 +378,114 @@ RLS/권한을 확인한다. `IF NOT EXISTS`는 기존 테이블의 구조를 보
 - Flutter 관련 테스트 123개 및 전체 테스트 3,928개 통과. 목적지 파싱, 종료/백그라운드·전경 payload, 로그인 대기, 상세/목록 복귀 검증. 포맷·analyze 통과
 - 인프라 배포 스크립트 문법 및 옵션 기본값/허용값 검증 통과. 실제 배포 스크립트는 실행하지 않음
 - 실제 FCM/APNs 기기 도착·스토어 업로드·운영 배포는 후속 검증이며 자동 테스트 성공으로 대신하지 않음
+
+## FCM 무효 토큰 비활성 표시
+
+FCM이 응답 본문(`FcmError.errorCode`)으로 토큰 자체가 무효라고 확정한 경우만 다룬다. HTTP 상태만으로는 판단하지 않는다 —
+404·400·403은 프로젝트 경로·메시지 페이로드·권한 오류처럼 모든 토큰에 공통인 원인으로도 나온다.
+대상 코드는 설정 `fcm_invalidate_codes`(기본 `UNREGISTERED`만)다. 표시는 `user_devices.invalidated_at`에 시각을 남기는 것이며
+행은 지우지 않는다. 같은 `(user_id, push_token)` 쌍에만 기록하므로 그 사이 다른 계정으로 재귀속된 행은 건드리지 않는다.
+발송 대상 조회는 `invalidated_at IS NULL OR last_active_at > invalidated_at`이다 — 앱이 같은 토큰을 다시 등록하면
+(moly-auth upsert가 `last_active_at` 갱신) 다시 대상이 되고, 다시 무효로 돌아오면 다시 표시된다.
+발송 슬롯 선점(`*_notified_at`)과 푸시 빈도·대상·시각은 이 기능과 무관하다.
+
+`FCM_INVALIDATE_DEAD_TOKENS`(SSM `fcm-invalidate-dead-tokens`, 미설정 false)가 false면 드라이런이다 — 분류·집계·로그만 남긴다.
+운영은 true로 사용한다. 중지하려면 SSM `/moly/prod/fcm-invalidate-dead-tokens`를 false로 바꾸고 현재 이미지로 재배포한다.
+워커 요약에는 발송 실패가 있을 때만 `푸시 실패: 무효 토큰 N건(비활성 M) / 기타 N건` 줄이 붙고, 설정·인증 오류
+(401·403 권한·404 프로젝트 경로)가 있으면 `⚠️ 설정·인증 오류 N건`이 덧붙는다. 토큰 문제가 아닌 실패는 errorCode와
+오류 메시지 요지를 WARNING으로 남긴다.
+
+DB: 이 컬럼이 든 스키마 계약의 이미지를 배포하기 전에 `db/changes/user_devices_invalidated_at.sql`을 구조 변경 절차
+(`db.apply` 기본 rollback → `--commit --expected-sha256` → `db.verify`, dev 다음 prod)로 적용한다. 컬럼이 없으면
+배포 사전점검(스키마 계약)에서 멈추고 어떤 호스트도 교체되지 않는다. 구 이미지와 moly-auth는 컬럼을 모른 채 동작한다.
+
+켜기 전 드라이런 확인(워커 호스트, 큰 발송 틱 1~2회 뒤):
+
+```bash
+journalctl -u moly-worker.service --since '1 day ago' | grep -c '비활성 표시 꺼짐'
+journalctl -u moly-worker.service --since '1 day ago' | grep -c 'HTTP 404 UNREGISTERED'
+journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_error|setup_error)\]'
+```
+
+`[payload_error]`·`[setup_error]` 줄이 있으면 켜지 않고 원인을 먼저 확인한다. 켠 뒤에는 요약의 `비활성 M`이 무효 토큰 수와
+비슷해야 하고(`무효 토큰 N건`에는 기본 설정에서 표시하지 않는 코드 — 403 `SENDER_ID_MISMATCH` 등 — 도 포함되므로 M은 그만큼
+작다), 다음 날 같은 시각 틱의 무효 토큰 수는 크게 줄어야 한다. `저녁 N건`(FCM이 수락한 사용자 수)은 줄지 않아야 한다 —
+줄면 과표시 신호이므로 즉시 끈다. 틱 끝의 `FCM 수락 0건인데 무효 토큰` WARNING(수락 없이 무효 토큰 10건 이상)도 같은
+신호다 — 토큰보다 FCM·APNs 설정 같은 공통 원인을 먼저 의심한다. 토큰이 모두 표시된 사용자는 아침 선점을 하지 않으므로
+(토큰 없음 = 선점 안 함) `morning_notified_at` 수와 `아침 일기 푸시 미전달` 경고가 줄어드는 것은 정상이다.
+
+되돌리기: SSM 값을 false로 바꾸고 재배포하면 새 표시를 멈춘다. 문제가 난 틱부터의 표시만 되돌릴 때는
+`UPDATE public.user_devices SET invalidated_at = NULL WHERE invalidated_at >= '<그 틱 시작 시각 UTC>';`,
+전부 되돌릴 때는 `UPDATE public.user_devices SET invalidated_at = NULL WHERE invalidated_at IS NOT NULL;`을 쓴다.
+같은 조건의 `SELECT count(*)`로 대상 행 수를 먼저 확인하고 `db.apply` 기본(rollback) 실행 뒤 `--commit`한다.
+컬럼 제거는 이 컬럼을 쓰지 않는 이미지로 되돌린 뒤에만 한다.
+
+## 계정 삭제 장벽
+
+moly-auth `DELETE /me`는 계정을 지우기 전에 `begin_subject_deletion`을, 계정 삭제가 실패하면
+`abort_subject_deletion`을 RPC로 부른다. 장벽 호출이 실패해도 탈퇴는 진행한다(fail-open). 계정이 지워진 뒤의
+벡터 정리와 완료 표시는 워커 틱마다 예약되는 `privacy_residual_sweep`이 한다. 대상은 프로필도 인증 계정도 없는
+장벽뿐이고, 보통 탈퇴는 두 번의 빈 sweep(틱 두 번) 뒤 `deleted`가 된다. 설계는 ARCHITECTURE-capi 13.3절이다.
+
+적용 순서: `db/changes/privacy_deletion_fence.sql`을 구조 변경 절차(`db.apply` 기본 rollback → `--commit
+--expected-sha256` → `db.verify`, dev 다음 prod)로 적용 → backend 배포 → moly-auth 배포. 함수가 없으면 backend
+배포 사전점검(스키마 계약)에서 멈춘다. 이전 backend 이미지는 함수가 있어도 사전점검을 통과한다.
+
+확인:
+
+```sql
+SELECT state, count(*) FROM public.privacy_subject_barriers GROUP BY 1;
+SELECT event, count(*) FROM public.privacy_ledger_events
+WHERE created_at > now() - interval '1 day' GROUP BY 1;
+```
+
+- 탈퇴마다 `serving_blocked_and_redacted` → `residual_sweep_empty` → `subject_deleted`가 쌓인다.
+  `orphan_barrier_promoted`는 장벽 없이 지워진 계정이다(장벽 호출 실패 또는 이 기능 전의 탈퇴).
+- 워커 로그 `탈퇴 sweep — … 승격 · … 삭제 · 완료`(INFO)와 `1시간 넘게 삭제 중인 장벽`(WARNING). 후자는
+  계정 삭제가 실패했는데 되돌리기도 실패한 경우라 사용자가 409로 막혀 있다. moly-auth Vercel 로그의
+  `[abort_subject_deletion failed]`와 같이 보고, 계정이 남아 있으면 같은 operation으로 `abort_subject_deletion`을 부른다.
+- moly-auth Vercel 로그 `[begin_subject_deletion failed]`는 탈퇴를 막지 않는다. 그 계정은 sweep이 승격해 끝낸다.
+- `privacy_barrier_mode=enforced` 전환은 별도 판단이다. `scripts/verify_privacy_barriers.py --env prod`가 연속
+  두 번 통과해야 한다. 막 탈퇴해 아직 `deleting`인 장벽도 고아로 세므로, 실패하면 두 틱 뒤 다시 본다.
+
+되돌리기: moly-auth를 이전 배포로 돌리면 장벽 호출이 멈추고 탈퇴는 예전처럼 계정만 지운다. backend를 이전
+이미지로 돌리면 sweep이 멈추고 `deleting` 장벽이 그대로 남는다(서비스 영향 없음, 다시 배포하면 이어서 끝낸다).
+함수는 남겨 두어도 아무도 부르지 않으면 무해하다.
+
+## 루틴 개편 DB 전환
+
+새 이미지(이 스키마 계약)를 배포하기 전에 차이 SQL 세 파일을 **따로**, 이 순서로 적용한다. 파일마다 자기 트랜잭션이다. 한
+트랜잭션으로 합치면 `routines` 잠금 승격과 마지막 `profiles` 잠금이 진행 중인 요청과 맞물려 교착이 난다(로컬 동시 트래픽 재현).
+파일마다 구조 변경 절차(`db.apply` 기본 rollback → `--commit --expected-sha256 <검토한-SHA256>`)를 따르고 dev 다음 prod, 한가한
+시간에 한다.
+
+| 순서 | 파일 | 내용 | 잠금 |
+|---|---|---|---|
+| 1 | `db/changes/routine_redesign_1_profiles.sql` | `profiles.routine_template_selection_at` | `profiles` ACCESS EXCLUSIVE 수 ms |
+| 2 | `db/changes/routine_redesign_2_structure.sql` | `routines` 새 열(첫 문장) + 새 테이블 4개, 데이터 없음 | `routines` ACCESS EXCLUSIVE 수 ms |
+| 3 | `db/changes/routine_redesign_3_backfill.sql` | 템플릿 카탈로그, 요일 이력, `deleted_on`, 기본 루틴 아이콘·`template_id` | 행 잠금만, 읽기는 계속된다 |
+
+- 1·2는 진행 중 트랜잭션을 최대 2초 기다리고 그동안 해당 테이블 요청이 줄을 선다. 다른 기존 테이블은 잠그지 않아 요청과 교착하지
+  않는다. lock timeout으로 롤백되면 그대로 다시 실행한다. 이미 적용된 파일을 다시 실행하면 오류로 롤백되고 바뀌는 것이 없다.
+- 3은 여러 번 실행해도 된다. 문장마다 최대 5만 행을 쓰므로 머리 주석의 remaining SELECT가 모두 0이 될 때까지 반복한다(운영 규모는
+  한 번). 3단계 동안에는 같은 루틴 행을 고치는 요청만 기다린다.
+- 1~3 다음 `db.verify`로 확인한다. 2단계 뒤에는 새 이미지 사전점검도 통과하지만 3단계 전에는 머지·배포하지 않는다(템플릿이 비고
+  기본 루틴 아이콘이 빠진다).
+- 단계마다 이전 이미지 사전점검이 통과하므로 그 사이에도 이전 이미지 롤백·재배포가 가능하다. 이전 이미지와 moly-auth는 새 열·
+  테이블을 이름으로 쓰지 않는다.
+- dev에서는 앱 요청을 보내면서 적용해 교착·잠금 대기 오류가 없는지 로그로 확인한다.
+
+이력 행·`deleted_on`이 없는 루틴(3단계 전후에 이전 이미지가 만들거나 삭제하거나 요일을 바꾼 루틴)은 새 코드가 `created_at`·
+`deleted_at`·`updated_at`을 프로필 시간대 날짜로 바꿔 보정한다. 가입 트리거(`bootstrap_user`)는 이 단계에서 바꾸지 않는다.
+
+앱 출시 때 기본 루틴 2개 생성을 멈춘다. `db/changes/bootstrap_no_default_routines.sql`을 같은 절차로 적용하고 그 계약의 이미지를
+배포한다. 이 SQL은 그 사이 생긴 기본 루틴의 아이콘·색·`template_id`도 채운다. 사전점검이 함수 본문을 비교하므로 이 SQL 뒤에는
+루틴 개편 이미지가 다시 배포되지 않는다. 되돌릴 때는 루틴 개편 `schema.sql`의 `bootstrap_user`를 `CREATE OR REPLACE`로 되살린 뒤
+그 이미지를 배포한다.
+
+`routines.icon`·`color`에는 DB 제약이 없다(혼합 버전 배포 때문에 기존 테이블에 CHECK를 두지 않았다). 수동 SQL로 바꿀 때는 아이콘
+키 `^[a-z0-9_]{1,64}$`와 색 7종(`pink` `peach` `yellow` `green` `blue` `mint` `lavender`)만 쓴다. 다른 값이면 그 사용자의 루틴 응답이
+500이 된다.
+
+되돌리기: 이전 이미지로 롤백한다. 구조와 데이터는 남겨 둬도 된다. 지워야 하면 이전 이미지로 돌린 뒤 각 파일 머리 주석의 되돌리기
+문을 3 → 2 → 1 순서로 쓴다. 새 앱을 출시한 뒤에는 이전 이미지에 스킵·통계·템플릿 API가 없으므로 수정 배포로 대응한다.

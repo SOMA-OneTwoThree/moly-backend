@@ -2,15 +2,15 @@
 
 기존 Lo-fi 6개는 앱 설치 파일과 안정 ID를 보존한다. 신규 백색 소음은 운영자가 파일을
 Storage에 올린 뒤 DB에 등록하고, 앱이 전체 목록 API로 발견하여 모바일 데이터에서도
-자동 다운로드한다. 최초 다운로드 전에는 오프라인 재생되지 않는다. 기본 seed에는 기존 Lo-fi만 포함한다. 개발 환경에는 사용자 제공 원본 WAV 4개·MP3 3개를
-별도 등록했다. 가짜 음원이나 빈 백색 소음 행은 없다.
+자동 다운로드한다. 최초 다운로드 전에는 오프라인 재생되지 않는다. 파일이 아직 준비되지
+않았으므로 이번 seed에는 기존 Lo-fi만 있으며 가짜 음원이나 빈 백색 소음 행은 없다.
 
 ## API와 재생 계약
 
 `GET /bgm/tracks`, 기존 Supabase Bearer 인증, `X-App-Locale`(ko/en/ja).
 응답은 `{schema_version: 1, revision: "64자리 SHA256", tracks: [...]}`다.
 각 track은 `id`, `category`(lofi/white_noise), 현지화된 `title`, `source`(bundled/remote),
-음원 `revision`, `url`, `sha256`, `size_bytes`, `mime_type`, `sort_order`를 갖는다.
+음원 `revision`, `url`, `sha256`, `size_bytes`, `mime_type`, `sort_order`, `subscriber_only`를 갖는다.
 bundled의 원격 메타데이터 4개는 null, remote는 모두 필수다. 설치 파일은 id로 찾는다.
 응답 revision은 현지화된 전체 목록의 해시이며 파일 identity는 track revision/sha256이다.
 제목/정렬/언어 변경만으로 음원을 다시 다운로드하지 않는다.
@@ -26,6 +26,14 @@ bundled의 원격 메타데이터 4개는 null, remote는 모두 필수다. 설�
 검증한 후 원자적으로 교체하고 재생 중인 이전 버전은 다음 재생부터 교체한다. 모든 곡은
 단곡 무한 반복이며 Lo-fi와 백색 소음의 동시 재생은 없다. 다운로드는 앱 실행 중 시작하며
 앱 종료/OS suspension 중 완료를 보장하는 background transfer 계약은 아니다.
+
+## 구독자 전용 곡
+
+`bgm_tracks.is_subscriber_only`가 true인 곡은 응답에서 `subscriber_only: true`다. 목록은
+회원과 무관한 같은 snapshot이며, 앱이 구독(상점 구독 전용 상품과 같은 판정) 중이 아닐 때
+잠금 표시와 재생·셔플 차단을 맡는다. 현재는 내장 Lo-fi `fading-static`(Old Radio)만
+구독자 전용이다. 이 필드를 모르는 구버전 앱은 필드를 무시하고 기존처럼 재생한다.
+기존 DB 반영 SQL은 `db/changes/bgm_subscriber_only.sql`이며 새 서버 배포 전에 적용한다.
 
 ## 파일 등록과 교체
 
@@ -69,19 +77,21 @@ schema_contract.json을 재생성한다. 기존 환경에는 `db/changes/remote_
 새 테이블을 읽지 않으므로 롤링 호환이다. 롤백은 앱/서버 기능을 되돌리고 새 테이블은
 보존하는 방식이 안전하다. 실제 삭제는 소비자가 없음을 확인한 별도 운영 작업이다.
 
-## 2026-09-22 개발 음원 등록
+## 운영 음원 등록 (2026-09-23)
 
-- 사용자 제공 순서의 7개 원본: 잔잔한 빗소리, 거센 빗소리, 파도 소리, 숲속 소리, 도시 소리, 불 타는 소리, 백색 소음.
-- 파일은 재압축·음량 보정·경계 편집 없이 사용. 총 64,385,278 bytes.
-- [개발 등록 메타데이터](remote-bgm/dev-publication.json): 원본명, 3개 언어 제목, immutable URL, SHA256, 크기, MIME, 정렬. 운영 URL로 재사용하지 않는다.
-- 개발 `bgm-assets`는 공개 읽기, 파일당 50 MiB, audio/mp4·audio/mpeg·audio/wav만 허용. 프로젝트 제한 때문에 100 MiB 버킷 생성은 거부돼 50 MiB로 생성했다. API의 100 MiB는 클라이언트 검증 상한이며 Storage 한도와는 별개다. 이번 원본은 모두 약 11 MiB 이하이다.
-- 공개 URL 7개 모두 HTTP 200, redirect 없음, MIME·크기·SHA256 검증 후 트랜잭션으로 활성화. 기존 내장 6곡은 유지한다.
-- 원본 간 음량 차이 및 일부 반복 경계의 저레벨 구간/샘플 불연속을 발견했다. 사용자가 원본으로 폰에서 들어본 뒤 보정 여부를 결정하기로 했다.
-- 개발 DB만 변경했다. 운영 DB·Storage에는 등록하지 않았다.
+운영 main의 구독·상품 정책을 보존한 채 음원 관련 코드만 승격했다. 오늘의 문장 기능은
+포함하지 않는다. 운영 `bgm-assets`는 공개 읽기, 업로드/삭제는 기존 관리자 권한이며
+50 MiB 및 audio/mp4, audio/mpeg, audio/wav 제한을 둔다.
 
-### 2026-09-23 영어 제목 통일
+[운영 게시 메타데이터](remote-bgm/prod-publication.json)의 7개 파일은 개발 원본과 크기·SHA256이
+동일하다. 운영 파일은 `{id}-{revision}.{extension}`의 불변 이름을 사용하며 개발 URL을
+재사용하지 않는다. 기존 6곡과 신규 7곡을 한 트랜잭션으로 등록했다. 회원 데이터와
+운영 배너 카탈로그는 변경하지 않았다.
 
-사용자 요청에 따라 백색 소음 7개도 Lo-fi처럼 모든 앱 언어에서 영어 제목을 사용한다.
-Light Rain, Heavy Rain, Ocean Waves, Forest Sounds, City Sounds, Crackling Fire, White Noise 순서다.
-개발 DB의 title과 ko/en/ja title_i18n만 변경했다. 파일 URL·revision·hash·정렬은 그대로다.
-한·영·일 카탈로그 서비스 응답을 개발 DB에서 읽어 7개 게시 metadata와 일치함을 확인했다.
+검증: PostgreSQL 17의 기존 운영 스키마에 음원 SQL 적용 후 구버전 호환 및 새 계약 일치,
+운영 DB SQL rollback 모의 적용 및 실제 적용 후 구조 검사, 실제 운영 파일 7개 HTTP/MIME/
+크기/SHA256 검사, ko/en/ja 13곡의 개발·운영 메타데이터 비교(환경 URL만 다름), 서버 단위
+테스트 2,482개 및 운영 배너 에셋 검사 통과. 장시간 반복 청취는 별도 실기기 QA 항목이다.
+
+되돌리기 시 이전 서버 이미지를 배포할 수 있다. 새 테이블은 이전 서버에서 사용하지
+않으므로 유지하고 회원 테이블이나 음원 파일을 긴급 삭제하지 않는다.

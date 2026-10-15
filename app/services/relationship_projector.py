@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import uuid
 
 from sqlalchemy import text
@@ -198,3 +199,24 @@ async def prompt_text(
         "renderer_version": RENDERER_VERSION,
     })
     return str(got or "")
+
+
+_KOREAN_FACT_RENDER = re.compile(
+    r"\[관계\]\n(함께한 날: (?:0|[1-9][0-9]*)일)(?:\n([^\r\n]+))?"
+)
+
+def relationship_facts(rendered_text: str) -> str:
+    """Project a canonical Korean cached render to facts without stage instructions.
+
+    The persisted renderer and its version remain unchanged. Ambiguous or malformed
+    caches yield no block; their prose is never forwarded as a fallback.
+    """
+    if not isinstance(rendered_text, str):
+        return ""
+    matched = _KOREAN_FACT_RENDER.fullmatch(rendered_text)
+    if not matched:
+        return ""
+    extra = matched.group(2) or ""
+    if "함께한 날:" in extra or "[관계]" in extra:
+        return ""
+    return f"[관계]\n{matched.group(1)}"

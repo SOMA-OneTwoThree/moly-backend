@@ -23,6 +23,7 @@ _log = logging.getLogger("moly-worker")
 # 알림 dedup — key → 마지막 전송 monotonic 시각. asyncio 단일스레드라 check-and-set은 await 전 원자적.
 _last_sent: dict[str, float] = {}
 
+
 # HTTPX INFO는 webhook URL을, SDK DEBUG는 원문 body를 기록할 수 있다.
 # 이 작업의 외부 전송 동안만 가리고 다른 동시 요청의 로그 설정은 변경하지 않는다.
 _private_transport = ContextVar("private_notification_transport", default=False)
@@ -84,16 +85,27 @@ async def _post(url: str, text: str, *, plain: bool = False) -> bool:
         return False
 
 
+def claim(dedup_key: str, window: float | None = None) -> bool:
+    """억제 창(기본 alert_dedup_window_sec) 안에 같은 키를 이미 보냈으면 False, 아니면 시각을 기록하고 True.
+
+    await 없이 끝나므로 asyncio 안에서 원자적이다 — 전송 전에 억제를 정해야 하는 호출측(app 경보)도 쓴다.
+    """
+    now = time.monotonic()
+    last = _last_sent.get(dedup_key)
+    window = settings.alert_dedup_window_sec if window is None else window
+    if last is not None and now - last < window:
+        return False  # 창 내 중복 — 스팸 억제
+    _last_sent[dedup_key] = now
+    return True
+
+
 async def send(text: str, *, severity: str = "status", dedup_key: str | None = None) -> bool:
-    """severity 채널로 전송. dedup_key 지정 시 alert_dedup_window_sec 내 같은 키는 억제."""
-    if dedup_key:
-        now = time.monotonic()
-        last = _last_sent.get(dedup_key)
-        if last is not None and now - last < settings.alert_dedup_window_sec:
-            return False  # 창 내 중복 — 스팸 억제
-        _last_sent[dedup_key] = now
+    """기존 claim 계약을 유지하고, 전송 실패는 다음 시도에서 다시 관측한다."""
+    if dedup_key and not claim(dedup_key):
+        return False
+    claimed_at = _last_sent.get(dedup_key) if dedup_key else None
     sent = await _post(_webhook_for(severity), text)
-    if not sent and dedup_key and _last_sent.get(dedup_key) == now:
+    if not sent and dedup_key and _last_sent.get(dedup_key) == claimed_at:
         _last_sent.pop(dedup_key, None)
     return sent
 
@@ -114,7 +126,6 @@ async def send_feedback(text: str) -> bool:
 def escape(text: str) -> str:
     """Slack 제어 문자를 문자 그대로 표시한다(mention/link 삽입 방지)."""
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
 
 def feedback_text(
     user_id: str,

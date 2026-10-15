@@ -5,14 +5,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.services.entitlement import derive_entitlement, subscription_policy_active
+from app.services.entitlement import derive_entitlement
 from app.services import diary_generation as dg
 from tests.test_diary_generation import CFG, PROFILE, FakeSession, _msg, _patch_common
 
+# free_launch_until is the store release moment T.
 T = datetime(2026, 10, 1, 0, tzinfo=timezone.utc)
 CONFIG = {
-    "subscription_launch": {"enabled": True, "existing_user_cutoff": T.isoformat()},
-    "free_launch_until": "2026-11-01T00:00:00Z", "free_launch_token_limit": 150_000,
+    "free_launch_until": T.isoformat(), "free_launch_token_limit": 150_000,
     "daily_token_limit": {"free": 20_000, "trial": 100_000, "subscriber": 100_000},
 }
 
@@ -57,13 +57,10 @@ def test_store_and_paid_subscription_share_allowance_but_not_source(plan, trial)
     assert e["personal_diary_eligible"]
 
 
-@pytest.mark.parametrize("rollout", [None, {}, {"enabled": False, "existing_user_cutoff": T.isoformat()},
-    {"enabled": True, "existing_user_cutoff": "invalid"},
-    {"enabled": True, "existing_user_cutoff": "2026-09-01T00:00:00"}])
-def test_invalid_or_disabled_rollout_keeps_old_policy(rollout):
-    cfg = {**CONFIG, "subscription_launch": rollout}
-    assert not subscription_policy_active(cfg, T)
-    assert derive_entitlement(profile(), None, 0, cfg, T)["daily_token_limit"] == 150_000
+@pytest.mark.parametrize("value", [None, "invalid"])
+def test_missing_or_invalid_release_time_ends_launch(value):
+    cfg = {**CONFIG, "free_launch_until": value}
+    assert derive_entitlement(profile(), None, 0, cfg, T)["entitlement_source"] == "free"
 
 
 @pytest.mark.parametrize("language,free,paid", [
@@ -109,20 +106,15 @@ def test_scheduled_cutoff_does_not_change_launch_allowance(language):
     assert e["daily_token_limit"] == 150_000 and e["tokens_remaining"] == 60_000
 
 
-@pytest.mark.parametrize("scheduled", [False, True])
-@pytest.mark.parametrize("prior_trial", [False, True])
-def test_prepared_release_cannot_expire_launch_before_app_release(scheduled, prior_trial):
-    cfg = {**CONFIG, "subscription_launch": {"enabled": scheduled, "existing_user_cutoff": T.isoformat()},
-           "free_launch_until": (T - timedelta(days=30)).isoformat()}
-    p = profile(language="ja")
-    if prior_trial:
-        p.app_trial_started_at = T - timedelta(days=40)
-        p.app_trial_ends_at = T - timedelta(days=38)
-    result = derive_entitlement(p, None, 12_000, cfg, T - timedelta(seconds=1))
-    assert result["entitlement_source"] == "launch"
-    assert result["daily_token_limit"] == 150_000
-    assert result["tokens_remaining"] == 138_000 and result["personal_diary_eligible"]
-    assert result["trial_ends_at"] == (T if scheduled else None)
+def test_before_release_only_an_app_trial_leaves_launch():
+    before = T - timedelta(seconds=1)
+    launch = derive_entitlement(profile(language="ja"), None, 12_000, CONFIG, before)
+    assert launch["entitlement_source"] == "launch" and launch["daily_token_limit"] == 150_000
+    assert launch["personal_diary_eligible"] and launch["trial_ends_at"] == T
+    trial = profile(language="ja", app_trial_started_at=T - timedelta(days=2), app_trial_ends_at=T + timedelta(hours=1))
+    started = derive_entitlement(trial, None, 12_000, CONFIG, before)
+    assert started["entitlement_source"] == "signup_trial" and started["daily_token_limit"] == 550_000
+    assert derive_entitlement(trial, None, 12_000, CONFIG, trial.app_trial_ends_at)["entitlement_source"] == "free"
 
 
 async def test_free_user_gets_operator_diary_without_personal_llm(monkeypatch):

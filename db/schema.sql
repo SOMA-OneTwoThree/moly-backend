@@ -36,7 +36,7 @@ CREATE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp wit
     AS $$
 DECLARE
   v_required_count integer;
-  v_profile_created integer;
+  v_signup_trial_until timestamptz;
 BEGIN
   SELECT count(*) INTO v_required_count
   FROM public.products
@@ -49,10 +49,13 @@ BEGIN
     RAISE EXCEPTION 'appearance bootstrap products are not ready';
   END IF;
 
+  SELECT (value #>> '{}')::timestamptz INTO v_signup_trial_until
+  FROM public.app_config WHERE key = 'signup_trial_until';
+
   INSERT INTO public.profiles (id, trial_ends_at)
-  VALUES (p_user_id, p_created_at + interval '48 hours')
+  VALUES (p_user_id, CASE WHEN v_signup_trial_until IS NULL OR p_created_at < v_signup_trial_until
+    THEN p_created_at + interval '48 hours' END)
   ON CONFLICT (id) DO NOTHING;
-  GET DIAGNOSTICS v_profile_created = ROW_COUNT;
 
   INSERT INTO public.user_items (user_id, product_id, source)
   SELECT p_user_id, p.id, 'admin_grant'
@@ -74,17 +77,6 @@ BEGIN
       SELECT 1 FROM public.user_items equipped
       WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'
     );
-
-  IF v_profile_created = 1 THEN
-    INSERT INTO public.routines (user_id, name, name_i18n, frequency_per_week, days_of_week, reminder_enabled)
-    VALUES
-      (p_user_id, '이불 정리하기',
-       '{"ko":"이불 정리하기","en":"Make the bed","ja":"布団を整える"}'::jsonb,
-       7, '{1,2,3,4,5,6,7}', false),
-      (p_user_id, '물 마시기',
-       '{"ko":"물 마시기","en":"Drink water","ja":"水を飲む"}'::jsonb,
-       7, '{1,2,3,4,5,6,7}', false);
-  END IF;
 END;
 $$;
 
@@ -934,6 +926,7 @@ CREATE TABLE public.profiles (
     relationship_display_date date,
     next_diary_due_at timestamp with time zone,
     relationship_revision bigint DEFAULT 0 NOT NULL,
+    routine_template_selection_at timestamp with time zone,
     CONSTRAINT profiles_nickname_check CHECK ((char_length(nickname) <= 10)),
     CONSTRAINT profiles_relationship_origin_ck CHECK ((num_nonnulls(relationship_started_at, relationship_started_timezone, relationship_display_date) = ANY (ARRAY[0, 3]))),
     CONSTRAINT profiles_relationship_revision_check CHECK ((relationship_revision >= 0))
@@ -1045,6 +1038,10 @@ CREATE TABLE public.routines (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     name_i18n jsonb,
+    icon text DEFAULT 'seedling'::text NOT NULL,
+    color text DEFAULT 'peach'::text NOT NULL,
+    template_id text,
+    deleted_on date,
     CONSTRAINT routines_name_i18n_obj_ck CHECK (((name_i18n IS NULL) OR (jsonb_typeof(name_i18n) = 'object'::text)))
 );
 
@@ -1117,7 +1114,9 @@ CREATE TABLE public.user_daily_stats (
     attendance_claimed_at timestamp with time zone,
     routine_reward_claimed_at timestamp with time zone,
     morning_notified_at timestamp with time zone,
-    evening_notified_at timestamp with time zone
+    evening_notified_at timestamp with time zone,
+    routine_notified_at timestamp with time zone,
+    evening_push_variant text
 );
 
 -- SEQUENCE: public.user_daily_stats_id_seq
@@ -1138,6 +1137,7 @@ CREATE TABLE public.user_devices (
     push_token text NOT NULL,
     last_active_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
+    invalidated_at timestamp with time zone,
     CONSTRAINT user_devices_platform_check CHECK ((platform = ANY (ARRAY['ios'::text, 'android'::text])))
 );
 
@@ -2791,46 +2791,6 @@ ALTER TABLE public.chat_topic_entries ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.user_topic_states, public.chat_topic_entries FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON public.user_topic_states, public.chat_topic_entries TO service_role;
 
--- Only the authenticated API's service-role client may execute this function.
--- Original signup trial/global launch timestamps are intentionally preserved.
-CREATE OR REPLACE FUNCTION public.start_subscription_trial(
-  p_user_id uuid
-) RETURNS void
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE
-  v_profile public.profiles%ROWTYPE;
-  v_config jsonb;
-  v_cutoff timestamptz;
-  v_now timestamptz := statement_timestamp();
-BEGIN
-  SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'profile not found'; END IF;
-  -- Retry always preserves the original interval, even after expiry or deactivation.
-  IF v_profile.app_trial_started_at IS NOT NULL THEN RETURN; END IF;
-  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';
-  BEGIN
-    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;
-  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN
-    RAISE EXCEPTION 'trial unavailable';
-  END;
-  IF v_cutoff IS NULL OR (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb
-    OR v_profile.nickname IS NULL THEN
-    RAISE EXCEPTION 'trial unavailable';
-  END IF;
-  IF EXISTS (
-    SELECT 1 FROM public.subscriptions
-    WHERE user_id = p_user_id AND status IN ('active', 'grace_period')
-      AND expires_at > v_now
-  ) THEN RETURN; END IF;
-  UPDATE public.profiles
-  SET app_trial_started_at = v_now, app_trial_ends_at = v_now + interval '48 hours'
-  WHERE id = p_user_id;
-END;
-$$;
-REVOKE ALL ON FUNCTION public.start_subscription_trial(uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.start_subscription_trial(uuid) TO service_role;
-
-
 -- Codes are bearer secrets: never expose these tables to anon/authenticated roles.
 CREATE TABLE IF NOT EXISTS public.subscription_trial_codes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -2858,131 +2818,7 @@ ALTER TABLE public.subscription_offer_claims ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.subscription_trial_codes, public.subscription_offer_claims FROM PUBLIC, anon, authenticated;
 GRANT ALL ON public.subscription_trial_codes, public.subscription_offer_claims TO service_role;
 
-CREATE OR REPLACE FUNCTION public.subscription_offer_status(p_user_id uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE
-  v_config jsonb;
-  v_cutoff timestamptz;
-  v_offer_expires_at timestamptz;
-  v_claim public.subscription_offer_claims%ROWTYPE;
-  v_platform text;
-  v_plan text;
-  v_offer jsonb;
-  v_ready boolean;
-  v_result jsonb := '{"ios_offer_ready":false,"android_offer_ready":false,"claimed_offer":null,"offer_redeemed":false}'::jsonb;
-BEGIN
-  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';
-  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;
-  IF FOUND THEN
-    v_result := jsonb_set(v_result, '{claimed_offer}', jsonb_build_object('platform', v_claim.platform, 'plan', v_claim.plan));
-    v_result := jsonb_set(v_result, '{offer_redeemed}', to_jsonb(v_claim.redeemed_at IS NOT NULL));
-  END IF;
-  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb
-    OR NULLIF(v_config->>'campaign_id', '') IS NULL OR v_claim.redeemed_at IS NOT NULL
-    OR (v_claim.user_id IS NOT NULL AND v_claim.campaign_id <> v_config->>'campaign_id') THEN RETURN v_result; END IF;
-  BEGIN
-    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;
-    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;
-  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN RETURN v_result; END;
-  IF v_cutoff IS NULL OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)
-    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff
-    THEN RETURN v_result; END IF;
-  FOREACH v_platform IN ARRAY ARRAY['ios', 'android'] LOOP
-    v_ready := true;
-    FOREACH v_plan IN ARRAY ARRAY['monthly', 'yearly'] LOOP
-      -- An allocated iOS code fixes its plan; retries do not need unclaimed inventory.
-      IF v_claim.user_id IS NOT NULL AND (v_platform <> v_claim.platform OR (v_platform = 'ios' AND v_plan <> v_claim.plan)) THEN CONTINUE; END IF;
-      v_offer := v_config #> ARRAY['offers', v_platform, v_plan];
-      IF (v_offer->'ready') IS DISTINCT FROM 'true'::jsonb OR NULLIF(v_offer->>'product_id', '') IS NULL THEN
-        v_ready := false;
-      ELSIF v_platform = 'ios' THEN
-        IF COALESCE(v_config->>'apple_app_id', '') !~ '^[0-9]+$' OR NOT EXISTS (
-          SELECT 1 FROM public.subscription_trial_codes
-          WHERE campaign_id = v_config->>'campaign_id' AND plan = v_plan
-            AND expires_at > statement_timestamp()
-            AND ((v_claim.user_id IS NULL AND claimed_at IS NULL)
-              OR (id = v_claim.code_id AND claimed_by = p_user_id))
-        ) THEN v_ready := false; END IF;
-      ELSIF NULLIF(v_offer->>'base_plan_id', '') IS NULL OR NULLIF(v_offer->>'offer_id', '') IS NULL THEN
-        v_ready := false;
-      END IF;
-    END LOOP;
-    IF v_claim.user_id IS NOT NULL AND v_platform <> v_claim.platform THEN v_ready := false; END IF;
-    v_result := jsonb_set(v_result, ARRAY[v_platform || '_offer_ready'], to_jsonb(v_ready));
-  END LOOP;
-  RETURN v_result;
-END;
-$$;
 
-CREATE OR REPLACE FUNCTION public.claim_subscription_offer(
-  p_user_id uuid, p_platform text, p_plan text
-) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE
-  v_config jsonb;
-  v_offer jsonb;
-  v_claim public.subscription_offer_claims%ROWTYPE;
-  v_code public.subscription_trial_codes%ROWTYPE;
-  v_created_at timestamptz;
-  v_cutoff timestamptz;
-  v_offer_expires_at timestamptz;
-  v_status jsonb;
-BEGIN
-  IF p_platform NOT IN ('ios', 'android') OR p_plan NOT IN ('monthly', 'yearly') THEN RAISE EXCEPTION 'invalid offer selection'; END IF;
-  PERFORM 1 FROM public.profiles WHERE id = p_user_id AND nickname IS NOT NULL FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';
-  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  BEGIN
-    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;
-    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;
-  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN
-    RAISE EXCEPTION 'offer unavailable';
-  END;
-  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;
-  IF v_cutoff IS NULL OR v_created_at IS NULL OR v_created_at >= v_cutoff
-    OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)
-    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff
-    THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  IF EXISTS (SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id
-    AND status IN ('active', 'grace_period') AND expires_at > statement_timestamp()) THEN RAISE EXCEPTION 'already subscribed'; END IF;
-  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;
-  IF FOUND AND (v_claim.platform <> p_platform OR (p_platform = 'ios' AND v_claim.plan <> p_plan)
-    OR v_claim.campaign_id <> v_config->>'campaign_id' OR v_claim.redeemed_at IS NOT NULL) THEN RAISE EXCEPTION 'offer already selected'; END IF;
-  v_status := public.subscription_offer_status(p_user_id);
-  IF (v_status->(p_platform || '_offer_ready')) IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  v_offer := v_config #> ARRAY['offers', p_platform, p_plan];
-  IF v_claim.user_id IS NOT NULL AND p_platform = 'android' THEN
-    UPDATE public.subscription_offer_claims SET plan = p_plan, product_id = v_offer->>'product_id',
-      base_plan_id = v_offer->>'base_plan_id', offer_id = v_offer->>'offer_id'
-    WHERE user_id = p_user_id RETURNING * INTO v_claim;
-  END IF;
-  IF v_claim.user_id IS NULL THEN
-    IF p_platform = 'ios' THEN
-      SELECT * INTO v_code FROM public.subscription_trial_codes
-      WHERE campaign_id = v_config->>'campaign_id' AND plan = p_plan
-        AND claimed_at IS NULL AND expires_at > statement_timestamp()
-      ORDER BY expires_at, id LIMIT 1 FOR UPDATE SKIP LOCKED;
-      IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-      UPDATE public.subscription_trial_codes SET claimed_by = p_user_id, claimed_at = statement_timestamp() WHERE id = v_code.id;
-    END IF;
-    INSERT INTO public.subscription_offer_claims(user_id, campaign_id, platform, plan, code_id, product_id, base_plan_id, offer_id)
-    VALUES(p_user_id, v_config->>'campaign_id', p_platform, p_plan, v_code.id,
-      v_offer->>'product_id', v_offer->>'base_plan_id', v_offer->>'offer_id') RETURNING * INTO v_claim;
-  END IF;
-  IF p_platform = 'ios' THEN
-    SELECT * INTO v_code FROM public.subscription_trial_codes WHERE id = v_claim.code_id;
-    IF v_code.expires_at <= statement_timestamp() THEN RAISE EXCEPTION 'offer expired'; END IF;
-    RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan,
-      'apple_app_id', v_config->>'apple_app_id', 'code', v_code.code);
-  END IF;
-  RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan, 'product_id', v_claim.product_id,
-    'base_plan_id', v_claim.base_plan_id, 'offer_id', v_claim.offer_id);
-END;
-$$;
-REVOKE ALL ON FUNCTION public.subscription_offer_status(uuid) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.claim_subscription_offer(uuid, text, text) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.subscription_offer_status(uuid) TO service_role;
-GRANT EXECUTE ON FUNCTION public.claim_subscription_offer(uuid, text, text) TO service_role;
 
 -- Additive, server-owned audio catalogue. No member rows are changed.
 CREATE TABLE public.bgm_tracks (
@@ -2998,6 +2834,7 @@ CREATE TABLE public.bgm_tracks (
   mime_type text CHECK (mime_type IN ('audio/mp4', 'audio/mpeg', 'audio/wav')),
   sort_order integer NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
   is_active boolean NOT NULL DEFAULT false,
+  is_subscriber_only boolean NOT NULL DEFAULT false,
   CONSTRAINT bgm_source_metadata CHECK (
     (source = 'bundled' AND category = 'lofi'
       AND id IN ('felt-piano-memories', 'night-rain-on-tokyo', 'midnight-tokyo-rain',
@@ -3010,6 +2847,62 @@ CREATE TABLE public.bgm_tracks (
 ALTER TABLE public.bgm_tracks ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.bgm_tracks FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON public.bgm_tracks TO service_role;
+
+-- Weekday history: each row applies from effective_from until the next row of the routine.
+CREATE TABLE public.routine_schedules (
+  routine_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  effective_from date NOT NULL,
+  days_of_week smallint[] NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT routine_schedules_pkey PRIMARY KEY (routine_id, effective_from),
+  CONSTRAINT routine_schedules_user_routine_fk FOREIGN KEY (user_id, routine_id)
+    REFERENCES public.routines(user_id, id) ON DELETE CASCADE
+);
+
+-- A skip without a completion on the same day removes that day's routine from the records.
+CREATE TABLE public.routine_skips (
+  routine_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  activity_date date NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT routine_skips_pkey PRIMARY KEY (routine_id, activity_date),
+  CONSTRAINT routine_skips_user_routine_fk FOREIGN KEY (user_id, routine_id)
+    REFERENCES public.routines(user_id, id) ON DELETE CASCADE
+);
+CREATE INDEX routine_skips_user_date_idx ON public.routine_skips USING btree (user_id, activity_date);
+
+-- Server-managed routine templates.
+CREATE TABLE public.routine_template_categories (
+  id text PRIMARY KEY CHECK (id ~ '^[a-z0-9_]{1,64}$'),
+  name_i18n jsonb NOT NULL CHECK (COALESCE(jsonb_typeof(name_i18n -> 'ko'), '') = 'string'),
+  sort_order smallint NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true
+);
+CREATE TABLE public.routine_templates (
+  id text PRIMARY KEY CHECK (id ~ '^[a-z0-9_]{1,64}$'),
+  category_id text NOT NULL,
+  name_i18n jsonb NOT NULL CHECK (COALESCE(jsonb_typeof(name_i18n -> 'ko'), '') = 'string'),
+  icon text NOT NULL CHECK (icon ~ '^[a-z0-9_]{1,64}$'),
+  color text NOT NULL CHECK (color IN ('pink', 'peach', 'yellow', 'green', 'blue', 'mint', 'lavender')),
+  days_of_week smallint[] NOT NULL
+    CHECK (cardinality(days_of_week) BETWEEN 1 AND 7 AND days_of_week <@ '{1,2,3,4,5,6,7}'::smallint[]),
+  is_recommended boolean NOT NULL DEFAULT false,
+  sort_order smallint NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  CONSTRAINT routine_templates_category_fk FOREIGN KEY (category_id)
+    REFERENCES public.routine_template_categories(id)
+);
+ALTER TABLE public.routine_schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routine_skips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routine_template_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.routine_templates ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.routine_schedules, public.routine_skips,
+  public.routine_template_categories, public.routine_templates
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.routine_schedules, public.routine_skips,
+  public.routine_template_categories, public.routine_templates
+  TO service_role;
 
 
 COMMIT;
@@ -3090,106 +2983,80 @@ WHERE s.user_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM public.payments p WHERE p.subscription_id = s.id);
 COMMIT;
 
--- Apply before deploying auth /me access lookup. Leaves all rollout settings untouched.
+-- free_launch_until is the store release moment. Before it, accounts created since
+-- subscription_launch.new_member_since are new members, so testers and reviewers on the new
+-- app see both paywalls; from it, every earlier account is an existing member.
+-- Released apps never read these results, so opening them before release changes nothing there.
 BEGIN;
-SET LOCAL lock_timeout = '2s';
-SET LOCAL statement_timeout = '60s';
-
--- Internal account-scoped pre-release access. Never mutates production launch dates.
-CREATE OR REPLACE FUNCTION public.subscription_launch_config(p_user_id uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE v_live jsonb;
-BEGIN
-  SELECT value INTO v_live FROM public.app_config WHERE key = 'subscription_launch';
-  IF jsonb_typeof(v_live) IS DISTINCT FROM 'object' THEN RETURN '{}'::jsonb; END IF;
-  -- Retain the RPC signature for old callers; test allowlists no longer bypass T.
-  RETURN v_live - '_test_mode';
-END;
-$$;
-REVOKE ALL ON FUNCTION public.subscription_launch_config(uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.subscription_launch_config(uuid) TO service_role;
-
--- One authoritative eligibility calculation for /me and the enrollment RPCs.
 CREATE OR REPLACE FUNCTION public.subscription_launch_access(p_user_id uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-  v_config jsonb := public.subscription_launch_config(p_user_id);
-  v_cutoff timestamptz; v_expiry timestamptz; v_created timestamptz;
-  v_enabled boolean := false; v_legacy boolean := false;
+  v_config jsonb;
+  v_launch_until timestamptz;
+  v_signup_trial_until timestamptz;
+  v_profile public.profiles%ROWTYPE;
+  v_created timestamptz;
+  v_now timestamptz := statement_timestamp();
+  v_new_member boolean;
+  v_open boolean;
 BEGIN
-  IF v_config->'enabled' = 'true'::jsonb
-    AND COALESCE(v_config->>'existing_user_cutoff', '') ~ '(Z|[+-][0-9]{2}:[0-9]{2})$' THEN
-    BEGIN v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;
-    EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN v_cutoff := NULL; END;
-    v_enabled := v_cutoff IS NOT NULL AND isfinite(v_cutoff) AND statement_timestamp() >= v_cutoff;
-    BEGIN v_expiry := (v_config->>'legacy_offer_expires_at')::timestamptz;
-    EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN v_expiry := NULL; END;
-    SELECT created_at INTO v_created FROM auth.users WHERE id = p_user_id;
-    v_legacy := v_enabled AND v_created < v_cutoff AND v_expiry IS NOT NULL
-      AND isfinite(v_expiry) AND v_expiry > statement_timestamp() AND v_expiry > v_cutoff;
-  END IF;
-  RETURN jsonb_build_object('enabled', v_enabled, 'legacy_offer_eligible', COALESCE(v_legacy, false));
+  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';
+  SELECT (value #>> '{}')::timestamptz INTO v_launch_until FROM public.app_config WHERE key = 'free_launch_until';
+  SELECT (value #>> '{}')::timestamptz INTO v_signup_trial_until FROM public.app_config WHERE key = 'signup_trial_until';
+  SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id;
+  SELECT created_at INTO v_created FROM auth.users WHERE id = p_user_id;
+  v_new_member := v_profile.app_trial_started_at IS NOT NULL OR COALESCE(v_created >= CASE
+    WHEN v_now < v_launch_until THEN (v_config->>'new_member_since')::timestamptz
+    ELSE v_launch_until END, false);
+  v_open := v_profile.nickname IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id
+      AND status IN ('active', 'grace_period') AND expires_at > v_now);
+  RETURN jsonb_build_object(
+    'enabled', true,
+    'self_trial_available', COALESCE(v_open AND v_new_member
+      AND v_profile.app_trial_started_at IS NULL AND v_now < v_created + interval '48 hours'
+      AND (v_signup_trial_until IS NULL OR v_created < v_signup_trial_until), false),
+    'legacy_offer_eligible', COALESCE(v_open AND NOT v_new_member
+      AND v_now < (v_config->>'legacy_offer_expires_at')::timestamptz, false));
 END;
 $$;
-REVOKE ALL ON FUNCTION public.subscription_launch_access(uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.subscription_launch_access(uuid) TO service_role;
 
+-- Retries keep the original signup interval, even after expiry.
 CREATE OR REPLACE FUNCTION public.start_subscription_trial(
   p_user_id uuid
 ) RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
   v_profile public.profiles%ROWTYPE;
-  v_config jsonb;
-  v_cutoff timestamptz;
   v_created_at timestamptz;
-  v_now timestamptz := statement_timestamp();
 BEGIN
   PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));
   SELECT * INTO v_profile FROM public.profiles WHERE id = p_user_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'profile not found'; END IF;
-  -- Retry always preserves the original interval, even after expiry or deactivation.
   IF v_profile.app_trial_started_at IS NOT NULL THEN RETURN; END IF;
-  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch' FOR SHARE;
-  BEGIN
-    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;
-  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN
-    RAISE EXCEPTION 'trial unavailable';
-  END;
-  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;
-  IF v_cutoff IS NULL OR NOT isfinite(v_cutoff) OR v_now < v_cutoff
-    OR COALESCE(v_config->>'existing_user_cutoff', '') !~ '(Z|[+-][0-9]{2}:[0-9]{2})$'
-    OR v_created_at IS NULL OR v_created_at < v_cutoff OR v_created_at > v_now
-    OR v_now >= v_created_at + interval '48 hours'
-    OR (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb
-    OR v_profile.nickname IS NULL THEN
-    RAISE EXCEPTION 'trial unavailable';
-  END IF;
   IF EXISTS (
     SELECT 1 FROM public.subscriptions
     WHERE user_id = p_user_id AND status IN ('active', 'grace_period')
-      AND expires_at > v_now
+      AND expires_at > statement_timestamp()
   ) THEN RETURN; END IF;
+  IF (public.subscription_launch_access(p_user_id)->'self_trial_available') IS DISTINCT FROM 'true'::jsonb
+    THEN RAISE EXCEPTION 'trial unavailable'; END IF;
+  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;
   UPDATE public.profiles
   SET app_trial_started_at = v_created_at, app_trial_ends_at = v_created_at + interval '48 hours'
   WHERE id = p_user_id;
 END;
 $$;
-REVOKE ALL ON FUNCTION public.start_subscription_trial(uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.start_subscription_trial(uuid) TO service_role;
 
-
+-- Active offer enrollment is Android-only; historical iOS code records remain archived.
 CREATE OR REPLACE FUNCTION public.subscription_offer_status(p_user_id uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
   v_config jsonb;
-  v_cutoff timestamptz;
-  v_offer_expires_at timestamptz;
   v_claim public.subscription_offer_claims%ROWTYPE;
-  v_platform text;
   v_plan text;
   v_offer jsonb;
-  v_ready boolean;
+  v_ready boolean := true;
   v_result jsonb := '{"legacy_offer_eligible":false,"ios_offer_ready":false,"android_offer_ready":false,"claimed_offer":null,"offer_redeemed":false}'::jsonb;
 BEGIN
   SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';
@@ -3198,49 +3065,21 @@ BEGIN
     v_result := jsonb_set(v_result, '{claimed_offer}', jsonb_build_object('platform', v_claim.platform, 'plan', v_claim.plan));
     v_result := jsonb_set(v_result, '{offer_redeemed}', to_jsonb(v_claim.redeemed_at IS NOT NULL));
   END IF;
-  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb
-    OR NULLIF(v_config->>'campaign_id', '') IS NULL OR v_claim.redeemed_at IS NOT NULL
+  IF NULLIF(v_config->>'campaign_id', '') IS NULL OR v_claim.redeemed_at IS NOT NULL
     OR (v_claim.user_id IS NOT NULL AND v_claim.campaign_id <> v_config->>'campaign_id') THEN RETURN v_result; END IF;
-  BEGIN
-    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;
-    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;
-  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN RETURN v_result; END;
-  IF v_cutoff IS NULL OR NOT isfinite(v_cutoff) OR statement_timestamp() < v_cutoff
-    OR COALESCE(v_config->>'existing_user_cutoff', '') !~ '(Z|[+-][0-9]{2}:[0-9]{2})$'
-    OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)
-    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff
+  IF (public.subscription_launch_access(p_user_id)->'legacy_offer_eligible') IS DISTINCT FROM 'true'::jsonb
     THEN RETURN v_result; END IF;
-  IF NOT EXISTS (SELECT 1 FROM auth.users u JOIN public.profiles p ON p.id = u.id
-    WHERE u.id = p_user_id AND u.created_at < v_cutoff AND p.nickname IS NOT NULL)
-    OR EXISTS (SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id
-      AND status IN ('active', 'grace_period') AND expires_at > statement_timestamp())
-    THEN RETURN v_result; END IF;
+  -- Keep eligibility visible so an unavailable iOS campaign cannot become a paid fallback.
   v_result := jsonb_set(v_result, '{legacy_offer_eligible}', 'true'::jsonb);
-  FOREACH v_platform IN ARRAY ARRAY['ios', 'android'] LOOP
-    v_ready := true;
-    FOREACH v_plan IN ARRAY ARRAY['monthly', 'yearly'] LOOP
-      -- An allocated iOS code fixes its plan; retries do not need unclaimed inventory.
-      IF v_claim.user_id IS NOT NULL AND (v_platform <> v_claim.platform OR (v_platform = 'ios' AND v_plan <> v_claim.plan)) THEN CONTINUE; END IF;
-      v_offer := v_config #> ARRAY['offers', v_platform, v_plan];
-      IF (v_offer->'ready') IS DISTINCT FROM 'true'::jsonb OR NULLIF(v_offer->>'product_id', '') IS NULL THEN
-        v_ready := false;
-      ELSIF v_platform = 'ios' THEN
-        IF NULLIF(v_offer->>'offer_id', '') IS NULL
-          OR COALESCE(v_config->>'apple_app_id', '') !~ '^[0-9]+$' OR NOT EXISTS (
-          SELECT 1 FROM public.subscription_trial_codes
-          WHERE campaign_id = v_config->>'campaign_id' AND plan = v_plan
-            AND expires_at > statement_timestamp()
-            AND ((v_claim.user_id IS NULL AND claimed_at IS NULL)
-              OR (id = v_claim.code_id AND claimed_by = p_user_id))
-        ) THEN v_ready := false; END IF;
-      ELSIF NULLIF(v_offer->>'base_plan_id', '') IS NULL OR NULLIF(v_offer->>'offer_id', '') IS NULL THEN
-        v_ready := false;
-      END IF;
-    END LOOP;
-    IF v_claim.user_id IS NOT NULL AND v_platform <> v_claim.platform THEN v_ready := false; END IF;
-    v_result := jsonb_set(v_result, ARRAY[v_platform || '_offer_ready'], to_jsonb(v_ready));
+  IF v_claim.user_id IS NOT NULL AND v_claim.platform <> 'android' THEN RETURN v_result; END IF;
+  FOREACH v_plan IN ARRAY ARRAY['monthly', 'yearly'] LOOP
+    v_offer := v_config #> ARRAY['offers', 'android', v_plan];
+    IF (v_offer->'ready') IS DISTINCT FROM 'true'::jsonb
+      OR NULLIF(v_offer->>'product_id', '') IS NULL
+      OR NULLIF(v_offer->>'base_plan_id', '') IS NULL
+      OR NULLIF(v_offer->>'offer_id', '') IS NULL THEN v_ready := false; END IF;
   END LOOP;
-  RETURN v_result;
+  RETURN jsonb_set(v_result, '{android_offer_ready}', to_jsonb(v_ready));
 END;
 $$;
 
@@ -3251,70 +3090,127 @@ DECLARE
   v_config jsonb;
   v_offer jsonb;
   v_claim public.subscription_offer_claims%ROWTYPE;
-  v_code public.subscription_trial_codes%ROWTYPE;
-  v_created_at timestamptz;
-  v_cutoff timestamptz;
-  v_offer_expires_at timestamptz;
-  v_status jsonb;
 BEGIN
-  IF p_platform IS NULL OR p_plan IS NULL OR p_platform NOT IN ('ios', 'android') OR p_plan NOT IN ('monthly', 'yearly') THEN RAISE EXCEPTION 'invalid offer selection'; END IF;
+  IF p_platform IS DISTINCT FROM 'android' THEN RAISE EXCEPTION 'offer unavailable'; END IF;
+  IF p_plan IS NULL OR p_plan NOT IN ('monthly', 'yearly') THEN RAISE EXCEPTION 'invalid offer selection'; END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));
   PERFORM 1 FROM public.profiles WHERE id = p_user_id AND nickname IS NOT NULL FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch' FOR SHARE;
-  IF (v_config->'enabled') IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  BEGIN
-    v_cutoff := (v_config->>'existing_user_cutoff')::timestamptz;
-    v_offer_expires_at := (v_config->>'legacy_offer_expires_at')::timestamptz;
-  EXCEPTION WHEN invalid_datetime_format OR datetime_field_overflow THEN
-    RAISE EXCEPTION 'offer unavailable';
-  END;
-  SELECT created_at INTO v_created_at FROM auth.users WHERE id = p_user_id;
-  IF v_cutoff IS NULL OR NOT isfinite(v_cutoff) OR statement_timestamp() < v_cutoff
-    OR COALESCE(v_config->>'existing_user_cutoff', '') !~ '(Z|[+-][0-9]{2}:[0-9]{2})$'
-    OR v_created_at IS NULL OR v_created_at >= v_cutoff
-    OR v_offer_expires_at IS NULL OR NOT isfinite(v_offer_expires_at)
-    OR v_offer_expires_at <= statement_timestamp() OR v_offer_expires_at <= v_cutoff
+  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';
+  IF (public.subscription_launch_access(p_user_id)->'legacy_offer_eligible') IS DISTINCT FROM 'true'::jsonb
     THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  IF EXISTS (SELECT 1 FROM public.subscriptions WHERE user_id = p_user_id
-    AND status IN ('active', 'grace_period') AND expires_at > statement_timestamp()) THEN RAISE EXCEPTION 'already subscribed'; END IF;
   SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;
-  IF FOUND AND (v_claim.platform <> p_platform OR (p_platform = 'ios' AND v_claim.plan <> p_plan)
-    OR v_claim.campaign_id <> v_config->>'campaign_id' OR v_claim.redeemed_at IS NOT NULL) THEN RAISE EXCEPTION 'offer already selected'; END IF;
-  v_status := public.subscription_offer_status(p_user_id);
-  IF (v_status->(p_platform || '_offer_ready')) IS DISTINCT FROM 'true'::jsonb THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-  v_offer := v_config #> ARRAY['offers', p_platform, p_plan];
-  IF v_claim.user_id IS NOT NULL AND p_platform = 'android' THEN
+  IF FOUND AND (v_claim.platform <> p_platform OR v_claim.campaign_id <> v_config->>'campaign_id'
+    OR v_claim.redeemed_at IS NOT NULL) THEN RAISE EXCEPTION 'offer already selected'; END IF;
+  IF (public.subscription_offer_status(p_user_id)->'android_offer_ready') IS DISTINCT FROM 'true'::jsonb
+    THEN RAISE EXCEPTION 'offer unavailable'; END IF;
+  v_offer := v_config #> ARRAY['offers', 'android', p_plan];
+  IF v_claim.user_id IS NOT NULL THEN
     UPDATE public.subscription_offer_claims SET plan = p_plan, product_id = v_offer->>'product_id',
       base_plan_id = v_offer->>'base_plan_id', offer_id = v_offer->>'offer_id'
     WHERE user_id = p_user_id RETURNING * INTO v_claim;
-  END IF;
-  IF v_claim.user_id IS NULL THEN
-    IF p_platform = 'ios' THEN
-      SELECT * INTO v_code FROM public.subscription_trial_codes
-      WHERE campaign_id = v_config->>'campaign_id' AND plan = p_plan
-        AND claimed_at IS NULL AND expires_at > statement_timestamp()
-      ORDER BY expires_at, id LIMIT 1 FOR UPDATE SKIP LOCKED;
-      IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;
-      UPDATE public.subscription_trial_codes SET claimed_by = p_user_id, claimed_at = statement_timestamp() WHERE id = v_code.id;
-    END IF;
-    INSERT INTO public.subscription_offer_claims(user_id, campaign_id, platform, plan, code_id, product_id, base_plan_id, offer_id)
-    VALUES(p_user_id, v_config->>'campaign_id', p_platform, p_plan, v_code.id,
+  ELSE
+    INSERT INTO public.subscription_offer_claims(user_id, campaign_id, platform, plan, product_id, base_plan_id, offer_id)
+    VALUES(p_user_id, v_config->>'campaign_id', 'android', p_plan,
       v_offer->>'product_id', v_offer->>'base_plan_id', v_offer->>'offer_id') RETURNING * INTO v_claim;
   END IF;
-  IF p_platform = 'ios' THEN
-    SELECT * INTO v_code FROM public.subscription_trial_codes WHERE id = v_claim.code_id;
-    IF v_code.expires_at <= statement_timestamp() THEN RAISE EXCEPTION 'offer expired'; END IF;
-    RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan,
-      'apple_app_id', v_config->>'apple_app_id', 'code', v_code.code);
-  END IF;
-  RETURN jsonb_build_object('platform', p_platform, 'plan', p_plan, 'product_id', v_claim.product_id,
+  RETURN jsonb_build_object('platform', 'android', 'plan', p_plan, 'product_id', v_claim.product_id,
     'base_plan_id', v_claim.base_plan_id, 'offer_id', v_claim.offer_id);
 END;
 $$;
-REVOKE ALL ON FUNCTION public.subscription_offer_status(uuid) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.claim_subscription_offer(uuid, text, text) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.subscription_offer_status(uuid) TO service_role;
-GRANT EXECUTE ON FUNCTION public.claim_subscription_offer(uuid, text, text) TO service_role;
 
+REVOKE ALL ON FUNCTION public.subscription_launch_access(uuid) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.subscription_launch_access(uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.start_subscription_trial(uuid) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.start_subscription_trial(uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.subscription_offer_status(uuid) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.subscription_offer_status(uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.claim_subscription_offer(uuid,text,text) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.claim_subscription_offer(uuid,text,text) TO service_role;
+COMMIT;
+
+-- Account deletion fence for the auth server's DELETE /me (docs/API_SPEC.md): it calls begin
+-- before deleting the account and abort only when that delete fails. Same steps as the barrier
+-- in app/services/privacy.py and the same lock key as app/core/advisory_lock.py. No cleanup job
+-- is queued: user jobs cascade with the profile, so worker/privacy_sweep_jobs.py finishes the
+-- deletion from the barrier row.
+BEGIN;
+CREATE OR REPLACE FUNCTION public.begin_subject_deletion(p_user_id uuid, p_operation_id uuid)
+RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+  v_watermark bigint;
+BEGIN
+  IF p_user_id IS NULL OR p_operation_id IS NULL THEN
+    RAISE EXCEPTION 'user and operation are required';
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));
+  -- Every deletion attempt is a new epoch; work queued in an earlier epoch is rejected.
+  INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)
+  SELECT p_user_id, 'deleting', p_operation_id, c.memory_source_watermark
+  FROM public.chat_contexts c WHERE c.user_id = p_user_id
+  ON CONFLICT (user_id) DO UPDATE SET
+    state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,
+    high_watermark = GREATEST(b.high_watermark, EXCLUDED.high_watermark), updated_at = now()
+  RETURNING b.high_watermark INTO v_watermark;
+  IF NOT FOUND THEN
+    -- An account that never chatted has no chat context.
+    INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)
+    VALUES (p_user_id, 'deleting', p_operation_id, 0)
+    ON CONFLICT (user_id) DO UPDATE SET
+      state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,
+      updated_at = now();
+    v_watermark := 0;
+  END IF;
+
+  DELETE FROM public.chat_topic_entries WHERE user_id = p_user_id;
+  DELETE FROM public.user_topic_states WHERE user_id = p_user_id;
+  UPDATE public.idempotency_keys
+  SET response = NULL, terminal_status = 'redacted', redacted_at = now()
+  WHERE user_id = p_user_id;
+  UPDATE public.chat_response_references
+  SET state = 'unavailable', diary_id = NULL, rendered_metadata = '{}'::jsonb,
+      redacted_at = now(), redaction_reason = 'subject_deleting'
+  WHERE user_id = p_user_id;
+  UPDATE public.async_jobs
+  SET state = CASE WHEN state = 'ready' THEN 'cancelled' ELSE state END,
+      payload = '{}'::jsonb, result_detail = NULL, payload_redacted_at = now(),
+      finished_at = CASE WHEN state = 'ready' THEN now() ELSE finished_at END,
+      result_code = CASE WHEN state = 'ready' THEN 'subject_deleting' ELSE result_code END
+  WHERE user_id = p_user_id AND state IN ('ready', 'running', 'succeeded', 'dead', 'cancelled');
+
+  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)
+  VALUES (p_operation_id, p_user_id, 'serving_blocked_and_redacted', v_watermark);
+  RETURN v_watermark;
+END;
+$$;
+
+-- Undo begin_subject_deletion when the account deletion itself failed. Only while the account
+-- exists: once it is gone the barrier belongs to the sweep. The epoch returns to the memory
+-- pipeline's (0 without a pipeline, the epoch enrollment starts at), otherwise every later
+-- memory job for the account is rejected as a stale epoch.
+-- Redacted copies and cancelled jobs are not restored.
+CREATE OR REPLACE FUNCTION public.abort_subject_deletion(p_user_id uuid, p_operation_id uuid)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));
+  UPDATE public.privacy_subject_barriers b
+  SET state = 'active', operation_id = NULL, updated_at = now(),
+      epoch = COALESCE(
+        (SELECT s.privacy_epoch FROM public.memory_pipeline_states s WHERE s.user_id = b.user_id),
+        0)
+  WHERE b.user_id = p_user_id AND b.operation_id = p_operation_id AND b.state = 'deleting'
+    AND EXISTS (SELECT 1 FROM auth.users u WHERE u.id = b.user_id);
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)
+  VALUES (p_operation_id, p_user_id, 'deletion_aborted', NULL);
+  RETURN true;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.begin_subject_deletion(uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.begin_subject_deletion(uuid, uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.abort_subject_deletion(uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.abort_subject_deletion(uuid, uuid) TO service_role;
 COMMIT;

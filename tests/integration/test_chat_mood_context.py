@@ -21,10 +21,11 @@ TODAY = date(2026, 9, 15)
 async def mood_db():
     if os.environ.get("MOLY_MOOD_TEST_ENV") != "dev":
         pytest.skip("MOLY_MOOD_TEST_ENV=dev required; no local or production DB fallback")
-    dsn = load_conn("dev")
-    assert_dev_target("dev", dsn)
+    env_file = os.environ.get("MOLY_MOOD_ENV_FILE", "dev")
+    dsn = load_conn(env_file)
+    assert_dev_target(env_file, dsn)
     engine = create_async_engine(
-        make_url(dsn).set(drivername="postgresql+asyncpg"),
+        make_url(dsn).set(drivername="postgresql+asyncpg"), echo=False, hide_parameters=True,
         connect_args={"statement_cache_size": 0, "command_timeout": 15},
     )
     users = [uuid.uuid4(), uuid.uuid4()]

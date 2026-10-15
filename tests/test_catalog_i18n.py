@@ -1,6 +1,8 @@
 """DB 카탈로그 다국어 렌더(SOMA-346) — name_i18n → 유저 언어, NULL·부분키·빈값 폴백."""
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
+from app.core.app_day import AppDay
 from app.services import i18n, routine
 
 
@@ -20,7 +22,7 @@ def test_localized_name_language_and_fallback():
 
 def _routine(name, name_i18n):
     return SimpleNamespace(
-        id="r1", name=name, name_i18n=name_i18n,
+        id="r1", name=name, name_i18n=name_i18n, icon="seedling", color="peach", template_id=None,
         days_of_week=[1, 2, 3], reminder_enabled=False, reminder_time=None,
     )
 
@@ -49,7 +51,9 @@ async def test_update_routine_clears_name_i18n_on_rename(monkeypatch):
     monkeypatch.setattr(routine, "_load_owned", _load_owned)
     monkeypatch.setattr(routine, "_uid", lambda u: u)
     req = SimpleNamespace(
-        name="새 이름", reminder_enabled=None, model_fields_set=set(), days_of_week=None
+        name="새 이름", reminder_enabled=None, model_fields_set=set(), days_of_week=None,
+        icon=None, color=None,
     )
-    await routine.update_routine(FakeSession(), "u1", "r1", req)
+    day = AppDay.at(datetime(2026, 10, 8, 3, tzinfo=timezone.utc), "Asia/Seoul")
+    await routine.update_routine(FakeSession(), "u1", "r1", req, day)
     assert r.name == "새 이름" and r.name_i18n is None

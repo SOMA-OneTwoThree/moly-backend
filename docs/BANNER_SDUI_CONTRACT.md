@@ -172,7 +172,7 @@ count는 조회 시점 값이며 타 기기의 즉시 변경을 보장하지 않
 | open_fortune | 기존 운세 화면으로 이동/복귀. 운세 실제 API 연동 완료를 뜻하지 않음 |
 | open_topic_conversation_v1 | `topic_ref`로 클릭한 질문을 준비한 뒤 기존 대화에 연결 |
 
-각 action 이름의 capability가 있어야 해당 카드를 제공한다. 주제 action은 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
+주제 이외의 여덟 action은 매개변수 없음. 각 action 이름의 capability가 있어야 해당 카드를 제공한다. 신규 주제 action만 `topic_ref`(offer_id UUID, offer_sequence 양의 정수, topic_id, topic_revision SHA256, locale ko/en/ja)를 갖는다. 파일에는 action type만 쓰고 참조는 서버가 응답 시 채운다. `topic.question` binding과 같은 snapshot이어야 하며 질문 text는 alias를 단독으로 사용한다. 지원 capability는 `open_topic_conversation_v1`이다. 준비·첫 답변 규약은 [주제 대화](BANNER_TOPICS_DESIGN.md)와 서버 `openapi/components/topics.yaml`을 따른다. raw 경로/함수명/스크립트를 실행하지 않는다. 구매·보상·unlock을 직접 수행하지 않는다.
 새 의미/매개변수는 별도 action 계약이 필요하다. 버튼 없는 안내형 카드도 허용한다.
 
 ## 5. 갱신·실패·호환성
@@ -240,5 +240,3 @@ manifest 문법·wire schema·layout profile의 의미를 별도로 버전 관�
 3. 필드 정의·예시를 여러 문서에 복제하지 않는다. 팀 공유본은 입문용이며 최신 상세는 레포 문서를 따른다.
 4. 필드/동작 변경 시 schema·fixture·관련 구현/검증 기준을 함께 갱신한다. 새 독립 책임이 생긴 경우에만 절을 추가한다.
 5. 변경 완료 전 링크·예시·명령·양쪽 사본·실제 구현과의 일치를 확인한다. 문서 사본 동기화는 자동 CI 기능으로 가정하지 않는다.
-
-오늘의 문장은 출시 여부 미정으로 서버 dev에서 제외했다. API·배너·ORM 및 신규 DB 스키마 의존성을 제거하고, 기존 개발 DB의 nullable 확인 기록 컬럼과 데이터는 보존한다. 클라이언트 코드는 이번 서버 전용 변경 범위에 포함하지 않는다.

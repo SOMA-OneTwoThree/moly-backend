@@ -1,4 +1,5 @@
 """헬스·모니터링 엔드포인트 — liveness/ready/deep/synthetic + 인증 fail-closed."""
+import asyncio
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
@@ -197,6 +198,50 @@ def test_deep_vecs_bytes_per_row_none_before_analyze(monkeypatch):
     assert r.json()["tables"]["vecs_bytes_per_row"] is None
 
 
+# --- deep: 레거시 별칭을 포함한 타임존 해석 관측 ---
+def _tz_session(names):
+    """profiles.timezone distinct 조회만 scalars로, 나머지는 _DeepSession과 같게."""
+    class _TzSession(_DeepSession):
+        async def execute(self, stmt, *a, **k):
+            if "profiles.timezone" in str(stmt):
+                return SimpleNamespace(scalars=lambda: iter(names))
+            return SimpleNamespace(one=lambda: (0, 0))
+
+    return _TzSession()
+
+
+def _get_deep(monkeypatch, names, extra_cfg=None):
+    monkeypatch.setattr(health.settings, "environment", "local")
+    monkeypatch.setattr(health.settings, "health_token", "")
+    monkeypatch.setattr(health.config_store, "get_config_values", _fresh_worker_cfg(extra_cfg))
+    app.dependency_overrides[get_session] = _override(_tz_session(names))
+    try:
+        return client.get("/health/deep")
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_deep_timezones_ok_before_first_worker_record(monkeypatch):
+    """전부 해석되고 워커 기록이 아직 없으면(배포 직후) 200 — 기록 없음은 None."""
+    r = _get_deep(monkeypatch, ["Asia/Seoul", "Asia/Calcutta", None])
+    assert r.status_code == 200
+    assert r.json()["timezones"] == {"distinct": 2, "unresolvable_api": [], "unresolvable_worker": None}
+
+
+def test_deep_degraded_when_profile_timezone_unresolvable(monkeypatch):
+    r = _get_deep(monkeypatch, ["Asia/Seoul", "Not/AZone"],
+                  {"monitoring:worker_tz_unresolvable": []})
+    assert r.status_code == 503
+    assert r.json()["timezones"]["unresolvable_api"] == ["Not/AZone"]
+
+
+def test_deep_degraded_when_worker_recorded_unresolvable(monkeypatch):
+    """API 컨테이너는 풀어도 워커 틱이 못 푼 tz가 있으면 503(두 프로세스의 tzdata가 어긋난 경우)."""
+    r = _get_deep(monkeypatch, ["Asia/Seoul"], {"monitoring:worker_tz_unresolvable": ["Not/AZone"]})
+    assert r.status_code == 503
+    assert r.json()["timezones"]["unresolvable_worker"] == ["Not/AZone"]
+
+
 # --- /health/queues (잡 큐 — 이관 게이트 지표) ---
 def test_queues_exposes_counts_and_oldest_dead_age(monkeypatch):
     monkeypatch.setattr(health.settings, "environment", "local")
@@ -302,3 +347,57 @@ def test_synthetic_down_when_db_raises(monkeypatch):
     finally:
         app.dependency_overrides.clear()
     assert r.status_code == 503 and r.json()["db"]["status"] == "down"
+
+
+def _synthetic_with(monkeypatch, fake_generate):
+    monkeypatch.setattr(health.settings, "synthetic_check_llm", True)
+    monkeypatch.setattr(health.llm, "generate", fake_generate)
+    app.dependency_overrides[get_session] = _override(_OkSession())
+    try:
+        return client.get("/health/synthetic")
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_synthetic_calls_the_llm_like_the_chat_path(monkeypatch):
+    """대화 경로처럼 추론을 끄고 SDK 재시도 없이 상한 안에서 부른다.
+
+    기본값(추론 켬·SDK 재시도)으로 부르면 시도마다 timeout이 새로 붙어 느려도 200이 된다.
+    """
+    seen: dict = {}
+
+    async def _fake_generate(*a, **k):
+        seen.update(k)
+        return SimpleNamespace(text="pong")
+
+    r = _synthetic_with(monkeypatch, _fake_generate)
+    assert r.status_code == 200 and r.json()["llm"]["status"] == "ok"
+    assert seen["reasoning_effort"] == "none" and seen["sdk_retries"] is False
+    assert seen["timeout"] == health.settings.synthetic_llm_timeout_s
+    assert isinstance(r.json()["llm"]["latency_ms"], int)
+
+
+def test_synthetic_empty_text_is_still_up(monkeypatch):
+    """빈 텍스트도 도달은 정상 — `empty`로만 알리고 503으로 바꾸지 않는다."""
+
+    async def _empty(*a, **k):
+        return SimpleNamespace(text="  ")
+
+    r = _synthetic_with(monkeypatch, _empty)
+    assert r.status_code == 200
+    assert r.json()["llm"]["status"] == "ok" and r.json()["llm"]["empty"] is True
+
+
+def test_synthetic_over_the_limit_is_down_with_latency(monkeypatch):
+    """상한을 넘기면 down(503)이고, 실패에도 지연이 남는다."""
+    monkeypatch.setattr(health.settings, "synthetic_llm_timeout_s", 0.05)
+
+    async def _hang(*a, **k):
+        await asyncio.sleep(5)
+        return SimpleNamespace(text="late")
+
+    r = _synthetic_with(monkeypatch, _hang)
+    assert r.status_code == 503
+    out = r.json()["llm"]
+    assert out["status"] == "down" and out["error"] == "TimeoutError"
+    assert 1000 <= out["latency_ms"] < 5000  # 상한(0.05s) + 바깥 여유 1s에서 끊김

@@ -5,8 +5,10 @@
 """
 from __future__ import annotations
 
+import asyncio
 import difflib
 import logging
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
 from types import SimpleNamespace
@@ -27,7 +29,7 @@ from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
 from app.services import diary_recall_repo, i18n, llm, naming, text_clean, usage_ledger
 from app.services import config_store, diary_prompts, privacy
-from app.services.entitlement import derive_entitlement, subscription_policy_active
+from app.services.entitlement import derive_entitlement, launch_ended
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
 _log = logging.getLogger("moly-worker")
@@ -191,17 +193,12 @@ async def _self_check(
     passed = not verdict.upper().lstrip("*_# ").startswith("NO")
     if not passed:
         # 비차단 모니터링 — 발행은 하되 리젝률 추적용 로그(과거엔 preset 폴백 → 열람율 누수였음).
-        # ⚠️ body와 verdict **둘 다** 실명이 들어 있을 수 있다. body는 LLM 생성 원문이고,
-        # verdict는 실명이 렌더된 대화·일기를 입력으로 받은 모델의 응답이라 "NO: 승민이 언급은
-        # 근거 없음"처럼 이름을 되뱉는다. 저장 경로는 나중에 to_placeholder를 타지만 로그는
-        # 그 전이므로 여기서 둘 다 토큰으로 바꾼다.
-        # ⚠️ **자르기 전에 마스킹한다.** 순서가 반대면 절단 경계가 이름 중간을 지날 때
-        # ("승민" → "승") 마스킹이 그 조각을 못 찾아 평문으로 남는다.
+        # ⚠️ 본문·판정문은 한 글자도 싣지 않는다. 둘 다 실명이 들어 있을 수 있는데(verdict는 "NO: 승민이
+        # 언급은 근거 없음"처럼 이름을 되뱉는다) to_placeholder는 본인 닉네임만 바꾸므로 제3자 이름·사적
+        # 내용이 로그에 남는다. 리젝률 추적에는 식별자와 길이면 충분하다.
         _log.warning(
-            "self-check 리젝(비차단, 발행됨) user=%s 판정=%r 일기=%r",
-            user_id,
-            (naming.to_placeholder(verdict, nickname) or "")[:60],
-            (naming.to_placeholder(body, nickname) or "")[:100],
+            "self-check 리젝(비차단, 발행됨) user=%s verdict_len=%d body_len=%d",
+            user_id, len(verdict), len(body),
         )
     return passed
 
@@ -346,6 +343,43 @@ async def _translate_preset(
     return r.text.strip() or content
 
 
+# 같은 운영 원고를 같은 언어로 유저마다 다시 번역하지 않는다 — (원고 id, 언어 버킷, 원문)당 프로세스 1회.
+# 번역 입력은 원문과 언어 버킷뿐이라(유저별 요소·플레이스홀더 없음) 유저마다 다시 불러도 표현만 조금
+# 다른 같은 번역이 나온다. 워커는 틱마다 새 프로세스라 메모 수명 = 틱 1회이고 DDL이 없다.
+# 실패(원문 유지·빈 응답)는 캐시하지 않는다 — LLM 오류 1건이 그 틱의 같은 언어 유저 전원에게 한국어
+# 원문을 돌려주면 안 된다. 한글이 남은 번역(덜 번역됨)도 캐시하지 않는다 — 그 유저는 종전처럼 그대로
+# 받고 다음 유저는 다시 번역한다. 원문을 키에 넣어 원고가 바뀌면 자동으로 새 키가 된다.
+# 원장: 번역 호출은 그 틱에서 처음 미스를 낸 유저 1명에게만 기록된다(종전 유저마다 1건).
+_translate_memo: dict[tuple[str, str, str], str] = {}
+_HANGUL = re.compile(r"[\u3131-\u318e\uac00-\ud7a3]")  # 한글 자모·음절
+_translate_locks: dict[tuple[str, str, str], asyncio.Lock] = {}
+
+
+def reset_translate_memo() -> None:
+    """프로세스 메모 비우기(테스트용)."""
+    _translate_memo.clear()
+    _translate_locks.clear()
+
+
+async def _translate_preset_cached(
+    ment_id, content: str, language: str, *, user_id=None,
+    ledger: usage_ledger.LedgerContext | None = None,
+) -> str:
+    """_translate_preset의 (원고, 언어) 메모 래퍼. 동시성>1이면 같은 키의 미스는 키별 락으로 합류한다."""
+    key = (str(ment_id), i18n.resolve(language), content)
+    hit = _translate_memo.get(key)
+    if hit is not None:
+        return hit
+    async with _translate_locks.setdefault(key, asyncio.Lock()):
+        hit = _translate_memo.get(key)
+        if hit is not None:
+            return hit
+        translated = await _translate_preset(content, language, user_id=user_id, ledger=ledger)
+        if translated != content and not _HANGUL.search(translated):  # 실패·덜 번역됨은 캐시하지 않는다
+            _translate_memo[key] = translated
+        return translated
+
+
 async def _finalize_diary(
     session: AsyncSession, profile, target_date: date, *, policy: DiaryPolicy,
     source: str, content: str | None, weather: str, ment, messages: list,
@@ -433,7 +467,7 @@ async def _personal_diary_eligible(session, profile, target_date, cfg) -> bool:
     boundary = datetime.combine(
         target_date + timedelta(days=1), time(DAY_BOUNDARY_HOUR), tzinfo=safe_zone(profile.timezone),
     ).astimezone(timezone.utc) - timedelta(microseconds=1)
-    if not subscription_policy_active(cfg, boundary):
+    if not launch_ended(cfg, boundary):
         return True
     sub = (await session.execute(
         select(Subscription).where(
@@ -507,8 +541,8 @@ async def _generate_for_user(session, profile, target_date, cfg, *, policy):
                 original = text_clean.strip_symbols(ment.content)
                 content, weather = original, ment.weather
                 if not i18n.is_korean(profile.language):
-                    content = await _translate_preset(
-                        original, profile.language, user_id=profile.id, ledger=ledger,
+                    content = await _translate_preset_cached(
+                        ment.id, original, profile.language, user_id=profile.id, ledger=ledger,
                     )
                     content = text_clean.strip_symbols(content, keep_hyphen=True) or original
         try:

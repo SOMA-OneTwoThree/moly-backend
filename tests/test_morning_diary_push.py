@@ -6,7 +6,7 @@ import uuid
 import pytest
 from app.services import notify, push
 
-NOW = datetime(2026, 9, 9, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 9, 1, tzinfo=timezone.utc)  # KST 10:00 — 아침 일기 시각
 
 
 @pytest.fixture
@@ -31,9 +31,9 @@ def delivery(monkeypatch):
 async def test_fresh_diary_sends_compatible_link_and_deduplicates_tokens(delivery):
     assert await notify.notify_morning(None, delivery.profile, now=NOW) == 2
     delivery.send.assert_awaited_once_with(
-        ['token', 'second'], '캐피', '캐피의 새 일기가 도착했어',
+        ['token', 'second'], 'BeCappy', '캐피의 새 일기가 도착했어요 📖',
         data={'link': 'diary', 'diary_id': str(delivery.diary.return_value)},
-        expires_at=NOW.replace(hour=1), access_token="test-access",
+        expires_at=NOW.replace(hour=3), access_token="test-access", collapse_key='diary',
     )
     delivery.claim.assert_awaited_once_with(None, delivery.profile, 'morning_notified_at', now=NOW)
 
@@ -54,7 +54,7 @@ async def test_ineligible_does_not_send(delivery, gate):
         delivery.claim.assert_not_awaited()
 
 
-@pytest.mark.parametrize('hour', [8, 10, 20, 23])
+@pytest.mark.parametrize('hour', [8, 9, 11, 20, 23])
 async def test_outside_local_morning_does_not_even_query(delivery, hour):
     now = datetime(2026, 9, 9, hour - 9 if hour >= 9 else 23, tzinfo=timezone.utc)
     assert await notify.notify_morning(None, delivery.profile, now=now) == 0
@@ -68,6 +68,19 @@ async def test_failed_delivery_does_not_release_or_repeat_claim(delivery):
     delivery.claim.return_value = False
     assert await notify.notify_morning(None, delivery.profile, now=NOW) == 0
     assert delivery.send.await_count == 1
+
+
+async def test_auth_preparation_failure_counts_as_setup_error(delivery):
+    """인증 준비 실패는 워커 전면 장애 판정에 들어가야 한다 — 미설정(None)은 개발 환경이라 세지 않는다."""
+    delivery.auth.side_effect = RuntimeError("test auth failure")
+    stats = {}
+    assert await notify.notify_morning(None, delivery.profile, now=NOW, stats=stats) == 0
+    assert stats == {"push_setup_error": 1}
+    delivery.auth.side_effect = None
+    delivery.auth.return_value = None
+    stats = {}
+    assert await notify.notify_morning(None, delivery.profile, now=NOW, stats=stats) == 0
+    assert stats == {}
 
 
 @pytest.mark.parametrize("raises", [False, True])

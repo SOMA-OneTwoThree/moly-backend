@@ -1,5 +1,5 @@
-"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 아침·20:00 저녁 푸시
-+ RC 웹훅 inbox 드레인(pending 처리·미해결 failed 재요약, SOMA-372)."""
+"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 루틴·10:00 일기·20:00 저녁 푸시
++ RC 웹훅 inbox 드레인과 지속 상태 기반 운영 알림."""
 from __future__ import annotations
 
 import asyncio
@@ -16,10 +16,12 @@ from app.core.db import get_sessionmaker
 from app.core.time_utils import activity_date_for
 from app.models.profile import Profile
 from app.models.revenuecat_event import RevenuecatEvent
+from app.models.user_daily_stats import UserDailyStats
 from app.services import (
     config_store,
     diary_generation,
     notify,
+    slack_notify,
     memory_pipeline,
     subscription,
 )
@@ -28,12 +30,12 @@ from worker import monitoring
 
 _RC_INBOX_BATCH = 200            # 틱당 처리할 pending 상한
 _RC_DEP_RESERVED = _RC_INBOX_BATCH // 4  # dependency 예약 슬롯(=50) — 신규·재시도 다발에도 굶지 않게
-_RC_PENDING_STALE_MIN = 60       # 이보다 오래 pending이면 관측 대상(선행 결제 미도착 등)
 
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
-MORNING_HOUR = 9  # 09:00 아침 일기 푸시
-EVENING_HOUR = 20  # 20:00 저녁 안부 푸시
+ROUTINE_MORNING_HOUR = notify.ROUTINE_MORNING_HOUR  # 09:00 루틴 아침 푸시
+MORNING_HOUR = notify.DIARY_MORNING_HOUR  # 10:00 아침 일기 푸시
+EVENING_HOUR = notify.EVENING_HOUR  # 20:00 저녁 푸시(공지·스트릭 위기·대화 중 하나)
 
 
 _KST = ZoneInfo("Asia/Seoul")
@@ -41,13 +43,13 @@ _KST = ZoneInfo("Asia/Seoul")
 # 슬랙 요약용 저녁 카테고리 한국어 라벨(notify.EVENING_STAT_KEYS와 같은 키).
 _EVENING_CATEGORY_KO = {
     "more_chat": "대화후",
-    "diary_teaser": "일기",
     "first_touch": "첫인사",
     "default_recent": "일상",
     "default_missing": "그리움",
     "default_long": "오랜만",
     "fallback": "폴백",
     "override": "공지",
+    "routine_risk": "스트릭 위기",
 }
 # 자주 보는 타임존의 한국어 나라 라벨(가독성용). 없으면 IANA 이름 그대로.
 _TZ_KO = {
@@ -92,9 +94,25 @@ def _build_summary(
         f"일기: {counts['diaries']}건 (개인 {counts['diary_llm']} / 프리셋 {counts['diary_preset']}"
         f" / 미발행 {counts['diary_none']}){diary_fail}",
         "기억: 상주 consumer 정규화 파이프라인",
-        f"푸시: 아침 {counts['morning']}건 / 저녁 {counts['evening']}건",
+        f"푸시: 루틴 아침 {counts.get('routine_morning', 0)}건 / 아침 일기 {counts['morning']}건"
+        f" / 저녁 {counts['evening']}건",
         f"전체 유저 {counts['users']}명 | 소요 {elapsed:.1f}s",
     ]
+    # 발송 실패 분류 — '저녁 N건'은 수락 유저 수라 전달률이 안 보인다. 무효 토큰(FCM 확정)과
+    # 우리 쪽 원인(페이로드·설정)을 갈라 보여야 "푸시가 조용히 죽는" 상태를 채널에서 알 수 있다.
+    # 실패가 하나도 없으면 줄을 추가하지 않는다(기존 요약 형식 그대로).
+    # '무효 토큰 N'은 FCM이 무효로 확정한 전부(기본 설정에서 표시하지 않는 403 SENDER_ID_MISMATCH 포함),
+    # '비활성 M'은 그중 실제로 표시한 행 수라 M ≤ N이다.
+    invalid = counts.get("push_invalid_token", 0)
+    other = counts.get("push_payload_error", 0) + counts.get("push_transient", 0)
+    setup = counts.get("push_setup_error", 0)
+    if invalid or other or setup:
+        line = (
+            f"푸시 실패: 무효 토큰 {invalid}건(비활성 {counts.get('push_invalidated', 0)}) / 기타 {other}건"
+        )
+        if setup:
+            line += f" / ⚠️ 설정·인증 오류 {setup}건"
+        lines.insert(len(lines) - 1, line)
     # 저녁 카테고리 분포 — 다양화가 실제로 작동하는지의 유일한 관측 출구.
     # 특정 카테고리 독식(예: 폴백 급증 = 신호 조회 장애)을 여기서 발견한다.
     if counts.get("evening"):
@@ -105,8 +123,15 @@ def _build_summary(
         ]
         if dist:
             lines.insert(len(lines) - 1, "저녁 분포: " + " / ".join(dist))
+    if counts.get("routine_check_failed"):
+        lines.append(f"⚠️ 루틴 판단 실패 {counts['routine_check_failed']}건 — 루틴 푸시 생략(워커 로그 확인)")
     if counts.get("timed_out"):
         lines.append(f"⚠️ 타임아웃 스킵: {counts['timed_out']}건")  # 멈춘 LLM/DB 신호(관측)
+    if counts.get("deadline_skipped"):
+        # 처리량이 틱 예산을 넘었다는 용량 신호 — 남은 유저는 다음 틱이 이어받는다(사용자 영향 없음).
+        lines.append(f"⏱ 소프트 데드라인 도달 — 미처리 {counts['deadline_skipped']}명(다음 틱 인계)")
+    if counts.get("tz_unresolvable"):
+        lines.append(f"⚠️ 해석 불가 timezone {counts['tz_unresolvable']}종 — 그 tz 유저 전원 스킵")
     return "\n".join(lines)
 
 
@@ -121,7 +146,8 @@ async def _process_user(
     out = {
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
-        "diary_attempted": 0, "active_tz": None,
+        "routine_morning": 0, "routine_check_failed": 0, "diary_attempted": 0, "active_tz": None,
+        **{k: 0 for k in notify.PUSH_STAT_KEYS},  # 발송 결과 분류(notify._account_push가 채움)
     }
     async with get_sessionmaker()() as session:
         p = await session.get(Profile, pid)
@@ -184,9 +210,13 @@ async def _process_user(
                             {"u": pid, "d": target},
                         )
                         await session.commit()
+            elif hour == ROUTINE_MORNING_HOUR:
+                out["active_tz"] = p.timezone
+                if await notify.notify_routine_morning(session, p, now=now, stats=out):
+                    out["routine_morning"] = 1
             elif hour == MORNING_HOUR:
                 out["active_tz"] = p.timezone
-                if await notify.notify_morning(session, p, now=now):
+                if await notify.notify_morning(session, p, now=now, stats=out):
                     out["morning"] = 1
             elif hour == EVENING_HOUR:
                 out["active_tz"] = p.timezone
@@ -262,7 +292,7 @@ async def _select_pending_ids(session) -> list[str]:
 async def _drain_rc_inbox(now: datetime) -> dict:
     """RC 웹훅 inbox 드레인 — pending 각각 독립 트랜잭션으로 process_event(이벤트별 격리).
 
-    미해결 상태 집계·알림은 monitoring이 담당한다. 처리 결과/재시도 계약은 보존한다.
+    미해결 상태 관측·통지는 monitoring이 담당한다. 이벤트 처리 트랜잭션은 유지한다.
     """
     out = {"rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0}
     # 1) pending 후보 처리 — 한 행씩 claim(FOR UPDATE SKIP LOCKED는 process_event 내부).
@@ -287,11 +317,13 @@ async def _drain_rc_inbox(now: datetime) -> dict:
                 out["rc_exception"] += 1
                 _log.warning("RC inbox 드레인 실패: %s", type(e).__name__)
                 await s.rollback()
+
     return out
 
 
-async def _relevant_timezones(now: datetime) -> set[str]:
-    """이 틱에서 일기/아침/저녁 시각(로컬 04·09·20시)에 걸리는 timezone 문자열 집합(#16+#24).
+
+async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = None) -> set[str]:
+    """이 틱에서 일기/루틴 아침/아침 일기/저녁 시각(로컬 04·09·10·20시)에 걸리는 timezone 문자열 집합(#16+#24).
 
     판정은 전부 파이썬(ZoneInfo)이다 — SQL `AT TIME ZONE`은 금지: 이상 tz 문자열 1행이
     쿼리 전체를 에러로 죽여 **그날 일기·푸시가 전멸**한다. 여기서는 해석 실패 tz를 경고만
@@ -308,8 +340,10 @@ async def _relevant_timezones(now: datetime) -> set[str]:
             hour = now.astimezone(ZoneInfo(tz)).hour
         except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
             _log.warning("틱: 해석 불가 timezone %r — 이 tz 유저 전원 스킵: %r", tz, e)
+            if unresolvable is not None:
+                unresolvable.add(tz)  # 관측 출구(요약·헬스·일 1회 경보)
             continue
-        if hour in (DIARY_HOUR, MORNING_HOUR, EVENING_HOUR):
+        if hour in (DIARY_HOUR, ROUTINE_MORNING_HOUR, MORNING_HOUR, EVENING_HOUR):
             relevant.add(tz)
     return relevant
 
@@ -354,11 +388,15 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         # memory_*는 _process_user가 반환하지만 병합이 `k in counts`만 받아서, 여기 없으면
         # _emit_worker_health의 counts["memory_failed"]가 매 틱 KeyError → 데드맨 핑이 죽는다.
         "memory_ok": 0, "memory_failed": 0,
-        "morning": 0, "evening": 0,
+        "morning": 0, "evening": 0, "routine_morning": 0,
+        "routine_check_failed": 0,  # 루틴 상태 판단 실패(루틴 푸시 생략·스트릭 위기는 대화로) — 관측
         # 저녁 카테고리별 카운트 — 병합이 `k in counts`라 여기 없으면 조용히 버려진다(위와 동일).
         **{f"evening_{c}": 0 for c in notify.EVENING_STAT_KEYS},
+        # 발송 결과 분류(수락·무효 토큰·정리·페이로드·설정·일시) — 같은 이유로 여기 있어야 한다.
+        **{k: 0 for k in notify.PUSH_STAT_KEYS},
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
+        "deadline_skipped": 0,  # 소프트 데드라인 뒤 건너뛴 유저 수(다음 틱 인계)
         "users": 0,
         "rc_processed": 0, "rc_failed": 0, "rc_pending": 0, "rc_exception": 0,  # RC inbox 드레인
     }
@@ -369,7 +407,17 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
 
     # #16+#24: 지금 처리 시각에 걸린 timezone이 하나도 없으면 유저 루프를 통째로 건너뛴다.
     # (counts["users"]는 이제 "전체 유저"가 아니라 "후보 tz 유저" 수다 — 관측 의미 변경.)
-    tzs = await _relevant_timezones(now)
+    tz_unresolvable: set[str] = set()
+    tzs = await _relevant_timezones(now, tz_unresolvable)
+    counts["tz_unresolvable"] = len(tz_unresolvable)
+    # 해석 불가 tz 목록을 app_config에 기록 — /health/deep가 노출(워커는 틱마다 새 프로세스라 여기선 저장만).
+    try:
+        async with get_sessionmaker()() as s_tz:
+            await config_store.set_config_value(
+                s_tz, config_store.WORKER_TZ_UNRESOLVABLE_KEY, sorted(tz_unresolvable)
+            )
+    except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
+        _log.warning("해석 불가 tz 기록 실패(무시): %r", e)
     if tzs:
         async with get_sessionmaker()() as s0:
             cfg = await effective_token_config(s0)
@@ -380,8 +428,18 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 diary_policy = None
                 _log.error("일기 전환 설정 조회/검증 실패 — 이번 틱 일기 생성 중단")
 
+        # 소프트 데드라인 — systemd 하드킬(TimeoutStartSec) 전에 스스로 유저 루프를 멈춘다. 하드킬은
+        # compose 클라이언트만 죽이고 컨테이너는 계속 돌아(로그 유실·요약/핑 누락) 다음 틱과 겹친다.
+        # 남은 유저는 같은 시각의 다음 틱이 이어받는다. 그 시각의 마지막 틱(현지 :45)은 이어받을 틱이
+        # 없으므로 걸지 않는다 — 끝까지 처리한다(종전 동작, 놓친 일기·알림은 소급하지 않으므로).
+        soft_deadline = settings.worker_tick_soft_deadline_s
+        if any(now.astimezone(ZoneInfo(tz)).minute >= 45 for tz in tzs):
+            soft_deadline = 0
+
         async def _guarded(pid) -> dict:
             async with sem:  # 동시 실행 유저 수 상한
+                if soft_deadline > 0 and time.monotonic() - start > soft_deadline:
+                    return {"deadline_skipped": 1}
                 try:
                     return await asyncio.wait_for(_process_user(now, pid, cfg, diary_policy=diary_policy), timeout=timeout)
                 except (asyncio.TimeoutError, TimeoutError):
@@ -397,6 +455,19 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                             active_tzs.add(v)
                     elif k in counts:
                         counts[k] += v
+        if counts["deadline_skipped"]:
+            _log.warning(
+                "틱: 소프트 데드라인(%.0fs) 도달 — 미처리 %d명(다음 틱 인계)",
+                soft_deadline, counts["deadline_skipped"],
+            )
+        # 수락이 하나도 없는데 무효 토큰이 여럿이면 토큰보다 공통 원인(FCM·APNs 설정 등)일 수 있다.
+        # 비활성 표시가 켜져 있으면 OPERATIONS.md의 되돌리기로 잘못된 표시를 되돌린다. 로그만 남긴다
+        # (경보 정책 불변). 하한은 작은 타임존 틱에서 죽은 토큰 몇 개만 걸린 경우를 거르기 위한 것.
+        if counts["push_invalid_token"] >= 10 and not counts["push_sent"]:
+            _log.warning(
+                "틱: FCM 수락 0건인데 무효 토큰 %d건(비활성 표시 %d건) — 공통 원인 의심, 표시 중이면 되돌리기 검토",
+                counts["push_invalid_token"], counts["push_invalidated"],
+            )
 
     # RC 웹훅 inbox 드레인 — 매 틱(15분). 유저 처리와 독립(전용 세션·이벤트별 트랜잭션).
     try:
@@ -428,10 +499,43 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     except Exception as e:  # noqa: BLE001  # 기록 실패가 배치를 멈추면 안 됨
         _log.warning("워커 상태 기록 실패: %r", e)
 
-    # tick 작업 집계는 로그로 보존하고 Slack 상태는 하루 한 번 monitoring에서 보낸다.
-    _log.info("worker tick diaries=%s failed=%s morning=%s evening=%s elapsed_s=%.1f",
-              counts["diaries"], counts["diary_failed"], counts["morning"], counts["evening"],
-              time.monotonic() - start)
+    # 하루 1회(UTC 04시 틱): 비용 기록.
+    # (SOMA-349에서 유저별 세션으로 바뀌어 공유 session이 없으므로 전용 세션을 연다.)
+    if now.hour == DIARY_HOUR:
+        # 하루 1회(UTC 04:00 틱만): 해석 불가 tz 경보 — 15분마다 새 프로세스라 in-process dedup이 안 통한다.
+        if tz_unresolvable and now.minute < 15:
+            try:
+                await slack_notify.alert(
+                    "⚠️ 해석 불가 timezone " + ", ".join(sorted(tz_unresolvable))
+                    + " — 해당 유저 일기·푸시 전원 스킵 중(컨테이너 tzdata/별칭 확인)",
+                    dedup_key="tz_unresolvable",
+                )
+            except Exception as e:  # noqa: BLE001
+                _log.warning("해석 불가 tz 경보 실패(무시): %r", e)
+        async with get_sessionmaker()() as smon:
+            # 전일 완결분 billable 합산(임계 비교·경보는 _emit_worker_health)
+            if settings.daily_billable_alert_threshold > 0:
+                try:
+                    counts["billable_yesterday"] = await _sum_billable_yesterday(smon, now)
+                except Exception as e:  # noqa: BLE001
+                    _log.warning("전일 billable 합산 실패: %r", e)
+                    await smon.rollback()
+
+    elapsed = time.monotonic() - start
+
+    # 틱 상세는 로그에 보존한다. Slack 상태는 monitoring의 일일 점검에서 보낸다.
+    # diary_attempted 기준이면 15분 케이던스에서 DIARY_HOUR 시간대마다 요약이 4번 나가고
+    # 그중 3번은 _diary_exists skip이라 "일기 0건" — 감시 채널이 오탐으로 도배된다(SOMA-348 후속).
+    # diary_none(tombstone)은 사용자 노출 0이라 요약 트리거에서 제외 — 지정본 없는 조용한 날에
+    # 매 틱 요약이 나가 채널이 도배되는 걸 막는다(SOMA-389, 위 오탐 방지 취지 유지).
+    # 소프트 데드라인 도달은 처리 건수가 0이어도 로그에 남긴다(실패 경보와 구분).
+    worked = (
+        counts["diaries"] + counts["diary_failed"] + counts["morning"] + counts["evening"]
+        + counts["routine_morning"] + counts["routine_check_failed"]
+    )
+    if worked + counts["deadline_skipped"] > 0:
+        summary = _build_summary(now, counts, elapsed, active_tzs)
+        _log.info("%s", summary)
 
     # --- 멈춘 기억 파이프라인 재개 ---
     # ingest는 체인이라 잡 하나가 dead가 되면 그 사용자는 영영 멈춘다(챗은 ingest>=source일
@@ -446,24 +550,67 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
     except Exception as e:  # noqa: BLE001
         _log.warning("기억 sweep 예약 실패(무시): %r", e)
 
+    # --- 탈퇴 마무리 ---
+    # 계정이 지워지면 사용자 잡은 프로필과 함께 사라지므로, 남은 정리와 완료 표시는 user_id 없는
+    # 이 잡이 장벽 행을 보고 한다. 틱마다 한 번(같은 창 dedup). 실패해도 틱을 깨지 않는다.
+    try:
+        from worker import privacy_sweep_jobs
+
+        async with get_sessionmaker()() as s_priv:
+            await privacy_sweep_jobs.enqueue_sweep(s_priv, bucket=now.strftime("%Y%m%dT%H%M"))
+            await s_priv.commit()
+    except Exception as e:  # noqa: BLE001
+        _log.warning("탈퇴 sweep 예약 실패(무시): %r", e)
+
     # --- 데드맨 핑 + 결과이상/비용 경보(네트워크 — 세션 밖) ---
     # 최후 방어: 모니터링은 무슨 일이 있어도 배치 틱을 깨면 안 된다(일기·푸시는 이미 커밋됨).
     try:
         await _emit_worker_health(now, counts)
     except Exception as e:  # noqa: BLE001
-        _log.warning("워커 헬스 emit 실패(무시): %r", e)
+        _log.warning("워커 헬스 emit 실패(무시): %s", type(e).__name__)
 
     return counts
 
 
+async def _sum_billable_yesterday(session, now: datetime) -> int:
+    """전일(어제 KST) 완결분 billable 합산. user_daily_stats.tokens_used = 실비용가중 billable 누적.
+
+    messages 풀스캔 대신 작은 집계 테이블 사용. activity_date는 유저별 로컬경계라 근사(비용가드용).
+    """
+    yday = (now.astimezone(_KST) - timedelta(days=1)).date()
+    total = (
+        await session.execute(
+            select(func.coalesce(func.sum(UserDailyStats.tokens_used), 0)).where(
+                UserDailyStats.activity_date == yday
+            )
+        )
+    ).scalar_one()
+    return int(total)
+
+
 async def _emit_worker_health(now: datetime, counts: dict) -> None:
-    """기존 데드맨 계약 + 지속 사건/일일 점검. 실패해도 워커를 중단하지 않는다."""
-    anomaly = counts["diary_failed"] > 0 or counts["memory_failed"] > 0
+    """데드맨 핑(결과 반영) + 결과이상·비용 경보. 전부 best-effort(실패해도 워커 미중단).
+
+    anomaly = 실패 카운트만으로 판정 — 멱등 재실행의 전원 스킵(diary_skipped)은 정상이라 제외(오탐 방지).
+    유저 타임아웃(멈춘 LLM/DB)과 푸시 전면 장애도 이상이다. 푸시는 FCM 수락이 0건인데 토큰 문제가
+    아닌 실패(설정·인증·일시·페이로드)가 하한 이상일 때만 본다 — 무효 토큰은 평시에도 매일 나온다.
+    dedup은 프로세스 내 한정 → 워커는 틱마다 새 프로세스라 지속장애 시 틱당 재알림 감수(스톰은 아님).
+    """
+    timed_out = counts.get("timed_out", 0)
+    push_sent = counts.get("push_sent", 0)
+    push_failed = (
+        counts.get("push_setup_error", 0) + counts.get("push_transient", 0)
+        + counts.get("push_payload_error", 0)
+    )
+    push_outage = push_sent == 0 and push_failed >= settings.worker_push_outage_min
+    anomaly = (
+        counts["diary_failed"] > 0 or counts["memory_failed"] > 0 or timed_out > 0 or push_outage
+    )
     if settings.worker_ping_url:
         url = settings.worker_ping_url + ("/fail" if anomaly else "")
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 await client.get(url)
         except Exception as e:  # noqa: BLE001
-            _log.warning("워커 데드맨 핑 실패: %s", type(e).__name__)
-    await monitoring.emit(datetime.now(timezone.utc), counts)
+            _log.warning("워커 데드맨 핑 실패: %r", e)
+    await monitoring.emit(now, counts)

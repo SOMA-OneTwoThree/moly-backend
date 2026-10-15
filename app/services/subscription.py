@@ -57,7 +57,8 @@ _PLANS = [
     {"product_id": "com.geniusjun.moly.plus.monthly", "period": "monthly", "hay_grant": 1000},
     {"product_id": "com.geniusjun.moly.plus.yearly", "period": "yearly", "hay_grant": 4000},
 ]
-# 스토어 상품ID → 내부 요금제. 체험 상품은 공개 요금제 목록에 추가하지 않는다.
+# 스토어 상품ID → 내부 요금제. _PLANS에서 파생하고, 요금제 목록에 노출하지 않는
+# App Store 기존 회원 1개월 무료 체험 상품(정규 상품과 같은 그룹·가격)을 더한다.
 _STORE_PRODUCTS = {p["product_id"]: p["period"] for p in _PLANS} | {
     "com.geniusjun.moly.plus.monthly.trial": "monthly",
     "com.geniusjun.moly.plus.yearly.trial": "yearly",
@@ -758,18 +759,6 @@ async def _handle_active(
 
 
 async def _finish_subscription_bonus(session: AsyncSession, sub: Subscription, pay: Payment, event: dict, plan: str) -> HandlerResult:
-    # 이미 이 결제에 귀속된 지급/환불 복구 이력은 재판정하거나 연결을 지우지 않는다.
-    previous = getattr(pay, "subscription_bonus_review", None)
-    if (getattr(pay, "subscription_hay_grant_id", None) is not None
-            or previous in {"granted", "granted:refund_reversed"}):
-        return HandlerResult(HANDLED, previous)
-    # 소유권·결제 검증은 호출 전에 수행한다. 같은 사람/요금제의 평생 지급이 이미 있으면
-    # provider 이력 장애가 있어도 새 지급 가능성은 없다. revoked 이력도 최초 1회에 포함한다.
-    if (plan in HAY_GRANT and pay.user_id == sub.user_id
-            and getattr(pay, "subscription_plan", None) == plan
-            and await _grant_exists(session, pay.user_id, plan)):
-        pay.subscription_bonus_review = "not_granted:user_plan_previously_granted"
-        return HandlerResult(HANDLED, pay.subscription_bonus_review)
     review = await _bonus_review(session, sub, event, plan)
     if review == "eligible":
         grant = await _grant_if_first(session, pay.user_id, plan)
@@ -787,16 +776,14 @@ async def _mark_store_trial_offer_redeemed(
     offer = event.get("offer_code")
     product = event.get("product_id")
     store = event.get("store")
-    if not offer or not product or store not in {"APP_STORE", "PLAY_STORE"}:
+    if not offer or not product or store != "PLAY_STORE":
         return
     await session.execute(text(
         "UPDATE public.subscription_offer_claims c SET redeemed_at = now() "
-        "WHERE c.user_id = :uid AND c.redeemed_at IS NULL AND ("
-        "(:store = 'APP_STORE' AND c.platform = 'ios' AND c.product_id = :product "
-        "AND c.offer_id = :offer) OR "
-        "(:store = 'PLAY_STORE' AND c.platform = 'android' AND c.offer_id = :offer "
-        "AND (c.product_id || ':' || c.base_plan_id) = :product))"
-    ).bindparams(uid=uid, store=store, product=product, offer=offer))
+        "WHERE c.user_id = :uid AND c.redeemed_at IS NULL "
+        "AND c.platform = 'android' AND c.offer_id = :offer "
+        "AND (c.product_id || ':' || c.base_plan_id) = :product"
+    ).bindparams(uid=uid, product=product, offer=offer))
 
 
 def _apply_active_state(

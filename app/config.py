@@ -58,8 +58,8 @@ class Settings(BaseSettings):
     context_reset_chars: int = 30_000      # 트리거: 세그먼트 문자 수(긴 메시지 폭발 방어)
     context_keep_messages: int = 20        # 리셋 후 유지 메시지 수 (KEEP ≪ RESET)
     context_keep_chars: int = 12_000       # 리셋 후 유지 문자 상한
-    context_hard_chars: int = 60_000       # 요약 지연 중 원문 유지의 문자 hard cap
     context_hard_msg_cap: int = 120        # 쿼리 안전 상한(정상 시 트리거가 먼저 걸려 안 닿음)
+    context_hard_chars: int = 60_000       # checkpoint 대기 중 원문 유지의 안전 상한
     # --- 대화 요약 checkpoint(W11) --- 리셋으로 버려질 구간을 요약해 남기고, 다음 턴은
     # 최신 checkpoint 하나 + 그 이후 메시지만 쓴다. 트리거(context_reset_*)·보존 tail
     # (context_keep_*)은 위 값을 그대로 쓴다 — 여기서 새 수치를 만들지 않는다.
@@ -99,6 +99,12 @@ class Settings(BaseSettings):
     worker_max_concurrency: int = 1
     # 유저 1명 처리 상한(초). 외부 API 지연이 배치를 장시간 막지 않게. 초과 시 스킵(다음 틱 재시도).
     worker_user_timeout_s: float = 120.0
+    # 틱 소프트 데드라인(초). 지나면 남은 유저를 건너뛰고(같은 시각의 다음 틱이 claim·멱등 마커로 이어받음)
+    # 루프 뒤 단계(RC drain·retention·heartbeat·요약·sweep·데드맨 핑)를 정상 수행한 뒤 끝낸다.
+    # 그 시각의 마지막 틱(현지 :45)은 이어받을 틱이 없어 적용하지 않는다(끝까지 처리 — 종전 동작).
+    # systemd TimeoutStartSec(14min)에서 유저 1명 최악(worker_user_timeout_s)과 컨테이너 기동·후처리(~40s)를
+    # 뺀 값보다 작아야 한다: 660+120+40 = 820 < 840. 0 = 비활성(종전 동작).
+    worker_tick_soft_deadline_s: float = 660.0
 
     # --- 잡 플랫폼(async_jobs, W7) ---
     # ⚠️ 이 블록은 전부 **env 전용**이다. `app_config` hot override 대상에 넣지 않는다(명세 §W7):
@@ -208,6 +214,15 @@ class Settings(BaseSettings):
     fcm_service_account_file: str = ""  # service account JSON 경로(팀원 제공)
     # 아침 일기 푸시. 클라이언트/개발 검증 후 별도 활성화하며 기본은 꺼짐.
     morning_push_enabled: bool = False
+    # FCM이 '토큰 자체가 무효'라고 확정한 응답을 받으면 user_devices.invalidated_at을 찍어 다음 발송에서
+    # 건너뛴다. 행은 지우지 않는다 — 앱이 같은 토큰을 다시 등록하면(moly-auth upsert가 last_active_at
+    # 갱신) 자동으로 되살아나므로 잘못 표시돼도 자가 복구된다. 기본 꺼짐 = 드라이런(분류·집계·로그만).
+    # 운영에서 1~2틱 분류 결과를 확인한 뒤 켠다(deploy.sh의 morning-push-enabled와 같은 SSM→env 경로).
+    fcm_invalidate_dead_tokens: bool = False
+    # 비활성 표시 대상 FcmError.errorCode(쉼표 구분). 기본은 문서상 가장 확실한 UNREGISTERED(404)만.
+    # 본문 로그로 확인한 뒤 SENDER_ID_MISMATCH(403, 다른 Firebase 프로젝트의 토큰)와
+    # INVALID_ARGUMENT(400 — 토큰 필드 위반으로 판정된 경우에만 해당)를 추가할 수 있다.
+    fcm_invalidate_codes: str = "UNREGISTERED"
 
     # --- App Store(StoreKit) — JWS x5c 서명검증(구독/IAP/ASSN 웹훅) ---
     # 우리 설계는 App Store Server API 조회 없음 → .p8/Key ID/Issuer ID 불필요.
@@ -272,6 +287,30 @@ class Settings(BaseSettings):
     daily_billable_alert_threshold: int = 5_000_000
     # 합성 대화 모니터가 실제 LLM을 호출할지(비용 발생). False면 DB·설정 도달성만 확인.
     synthetic_check_llm: bool = True
+    # 합성 LLM 점검의 상한(초). 대화 경로처럼 SDK 재시도 없이 이 안에서 끝낸다 — 넘으면 down(503).
+    synthetic_llm_timeout_s: float = 15.0
+    # 워커 푸시 전면 장애 판정 하한 — 한 틱에서 FCM 수락 0건인데 토큰 문제가 아닌 실패(설정·인증·일시·
+    # 페이로드)가 이 수 이상이면 결과 이상(데드맨 /fail + 경보). 무효 토큰은 평시에도 매일 나와 세지 않는다.
+    worker_push_outage_min: int = 20
+    # API 안 경보(app/services/alerts.py)·워커 합성 점검(worker/synthetic_probe.py)의 기준·스위치.
+    # 운영은 아래 코드 기본값으로 돈다 — backend.env엔 deploy.sh에 나열된 키만 실리므로 바꾸려면 코드를 고쳐
+    # 배포한다. 0·false로 끄는 건 코드나 로컬 env 수준의 스위치다.
+    alert_recall_timeouts: int = 5             # 창 안 회상 타임아웃이 이 수 이상이면 경보(보내면 다시 0부터)
+    alert_recall_timeout_window_s: int = 900   # 회상 타임아웃을 세는 창이자 그 경보의 억제 창(초)
+    alert_slow_turn_ms: int = 15_000           # 대화 턴(replay 제외) 총 소요가 이 값을 넘으면 경보
+    alert_slow_turn_dedup_s: int = 900         # 느린 턴 경보 억제 창(초) — 제공자 지연이 길게 이어질 때 스팸 방지
+    # 워커 합성 점검 — 틱마다 공개 주소로 /health/synthetic 1회(실패면 1회 더). 주소가 비면 production만
+    # 운영 공개 주소를 쓰고 그 밖의 환경은 끈다. 실패는 경보만(데드맨과 분리).
+    worker_synthetic_enabled: bool = True
+    worker_synthetic_url: str = ""
+    worker_synthetic_timeout_s: float = 20.0
+
+    # --- 로깅(app/core/logging_setup.py) — API·consumer·worker 공통 ---
+    # 운영은 JSON 1줄·INFO. 로컬에서 읽기 편하게 LOG_JSON=false 가능. LOG_ACCESS_HEALTH=true면
+    # ELB 헬스체크(GET /health 200) 액세스 로그도 남긴다(기본 제외 — 컨테이너 로그 대부분이 이 줄이다).
+    log_level: str = "INFO"
+    log_json: bool = True
+    log_access_health: bool = False
 
     # --- 현재 턴 컨텍스트(프롬프트 삽입, SOMA-미정) — 킬스위치, 기본 off ---
     # 챗 프롬프트에 "지금 시각·오늘 첫 대화·함께한 일수·장착 아이템·루틴 진행" 블록 삽입 여부.

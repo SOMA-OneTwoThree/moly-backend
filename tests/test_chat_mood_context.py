@@ -19,6 +19,21 @@ TODAY = date(2026, 9, 15)
 UID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
 
+@pytest.mark.parametrize("language,permission,explicit_query", [
+    ("ko", "말투·주제·질문을 이 값으로 정하지 마.", "오늘 앱에서 고른 이름을 명시적으로 물을 때만"),
+    ("ja", "この選択値で口調・話題・質問を決めない。", "今日アプリで選んだ名前を明示的に聞かれたときだけ"),
+    ("en", "Do not use this selection to choose your tone, topic, or questions.",
+     "Only when they explicitly ask which feeling they chose in the app today"),
+])
+def test_mood_permission_contract_has_no_implicit_adaptation(language, permission, explicit_query):
+    """Instruction coverage, not evidence that a model will comply at generation time."""
+    from app.services.prompts import system_prompt
+
+    prompt = system_prompt(language)
+    assert permission in prompt
+    assert explicit_query in prompt
+
+
 def _message(i, at, content="배불러", sender="user"):
     return SimpleNamespace(
         id=i, sender=sender, content=content, created_at=at, activity_date=date(2026, 9, 14),

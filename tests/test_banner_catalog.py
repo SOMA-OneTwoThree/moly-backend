@@ -126,6 +126,27 @@ def test_compilation_selection_zero_and_missing_data():
     assert canvas.elements[1].text.value == "{remaining} routines"
 
 
+def test_enabled_catalog_can_exceed_feed_cap_for_disjoint_platforms():
+    raw = manifest()
+    template = raw["banners"][0]
+    raw["banners"] = []
+    for index in range(6):
+        banner = copy.deepcopy(template)
+        banner["id"] = f"platform-banner-{index}"
+        banner["platforms"] = ["ios" if index < 3 else "android"]
+        raw["banners"].append(banner)
+    catalog = load(raw)
+    now = datetime(2026, 9, 5, 3, tzinfo=timezone.utc)
+    supported = capabilities(catalog.manifest.banners[0].canvases_by_locale["en"])
+    for platform in ("ios", "android"):
+        candidates = select_candidates(
+            catalog, now=now, platform=platform, app_version="1.2.3", locale="en", supported=supported,
+        )
+        feed = render_feed(catalog, candidates, now=now, local_date=date(2026, 9, 5),
+                           day_ends_at=None, remaining=1)
+        assert len(candidates) == len(feed.items) == 3
+
+
 def test_count_cases_and_literal_braces():
     raw = manifest()
     text = raw["banners"][0]["canvases_by_locale"]["en"]["elements"][1]
@@ -297,9 +318,7 @@ def test_composed_action_rejects_shared_visual_ownership():
         load(raw)
 
 
-@pytest.mark.parametrize(
-    "action", ["open_diary", "open_mood", "open_timer", "open_music"]
-)
+@pytest.mark.parametrize("action", ["open_diary", "open_mood", "open_timer", "open_music"])
 def test_navigation_capability_filters_old_clients(action):
     raw = manifest()
     raw["banners"][0]["canvases_by_locale"]["en"]["elements"][-1]["action"] = {"type": action}
@@ -318,8 +337,8 @@ def test_navigation_capability_filters_old_clients(action):
 def test_authored_banner_body_is_centered_between_divider_and_visible_button():
     catalog = BannerCatalog.load()
     for banner in catalog.manifest.banners:
-        if banner.id in {"music-daily"}:
-            continue  # music uses an image play button.
+        if banner.id == "music-daily":
+            continue  # Music has image playback controls instead of the standard divider/button.
         for canvas in banner.canvases_by_locale.values():
             elements = {element.id: element for element in canvas.elements}
             divider = elements['heading-divider'].frame
@@ -334,20 +353,3 @@ def test_authored_banner_body_is_centered_between_divider_and_visible_button():
             if 'date' in elements:
                 assert elements['date'].vertical_align == 'center'
                 assert elements['date'].frame.height == body.height
-
-
-def test_enabled_banner_count_stays_within_the_published_feed_budget():
-    from app.services.banner_catalog import MAX_FEED_CARDS
-    from scripts.validate_banners import enabled_banners
-
-    catalog = BannerCatalog.load()
-    assert enabled_banners(catalog) == sum(b.enabled for b in catalog.manifest.banners)
-    raw = manifest()
-    for index in range(MAX_FEED_CARDS):
-        extra = copy.deepcopy(raw["banners"][0])
-        extra["id"] = f"extra-{index}"
-        raw["banners"].append(extra)
-    with pytest.raises(ValueError, match="exceed the 5 card feed budget"):
-        enabled_banners(load(raw))
-    raw["banners"][-1]["enabled"] = False
-    assert enabled_banners(load(raw)) == MAX_FEED_CARDS

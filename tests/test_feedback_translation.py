@@ -25,6 +25,7 @@ def provider(monkeypatch):
     monkeypatch.setattr(feedback.usage_ledger, "open_call", AsyncMock(return_value=None))
     monkeypatch.setattr(feedback.usage_ledger, "close_call", AsyncMock())
     monkeypatch.setattr(feedback.usage_ledger, "close_failed", AsyncMock())
+    monkeypatch.setattr(feedback.usage_ledger, "close_unknown", AsyncMock())
     monkeypatch.setattr(slack_notify, "send_feedback", AsyncMock(return_value=True))
     return response, create, configured
 
@@ -78,7 +79,8 @@ async def test_outer_timeout_and_unknown_usage(provider, monkeypatch):
     create.side_effect = delayed
     monkeypatch.setattr(feedback, "_TRANSLATE_TIMEOUT_S", 0.001)
     await feedback.notify_feedback("synthetic-user", None, "Slow response", None)
-    feedback.usage_ledger.close_failed.assert_awaited_once()
+    feedback.usage_ledger.close_unknown.assert_awaited_once()
+    feedback.usage_ledger.close_failed.assert_not_awaited()
     feedback.usage_ledger.close_call.assert_not_awaited()
     assert "번역 미제공" in slack_notify.send_feedback.call_args.args[0]
 
@@ -143,7 +145,7 @@ async def test_usage_missing_is_not_zero_cost(provider):
     response.usage = None
     await feedback._translate("Test")
     feedback.usage_ledger.close_call.assert_not_awaited()
-    feedback.usage_ledger.close_failed.assert_awaited_once_with(None, error_code="usage_unavailable")
+    feedback.usage_ledger.close_unknown.assert_awaited_once_with(None, error_code="usage_unavailable")
 
 
 async def test_ledger_failure_cannot_drop_original(provider):
@@ -203,3 +205,48 @@ async def test_eval_experiment_is_measured_separately_without_changing_prompt(pr
     ctx = feedback.usage_ledger.open_call.call_args.args[0]
     assert ctx.experiment_id == "synthetic-eval" and ctx.purpose == "feedback_translate"
     assert create.call_args.kwargs["messages"][0]["content"] == feedback._TRANSLATE_SYSTEM
+
+
+async def test_cancelled_sent_translation_preserves_unknown_and_propagates(provider):
+    _, create, _ = provider
+    create.side_effect = asyncio.CancelledError()
+    with pytest.raises(asyncio.CancelledError):
+        await feedback.notify_feedback("synthetic-user", None, "Foreign feedback", None)
+    feedback.usage_ledger.close_unknown.assert_awaited_once_with(None, error_code="translation_cancelled")
+    feedback.usage_ledger.close_failed.assert_not_awaited()
+    slack_notify.send_feedback.assert_not_awaited()
+
+
+async def test_client_setup_failure_is_not_a_sent_billable_call(provider, monkeypatch):
+    _, create, _ = provider
+    def unavailable():
+        raise ValueError("private-body-or-secret")
+    monkeypatch.setattr(feedback.llm, "_get_openai_client", unavailable)
+    await feedback.notify_feedback("synthetic-user", None, "Foreign feedback", None)
+    create.assert_not_awaited()
+    feedback.usage_ledger.close_failed.assert_awaited_once()
+    feedback.usage_ledger.close_unknown.assert_not_awaited()
+    assert "Foreign feedback" in slack_notify.send_feedback.call_args.args[0]
+
+
+@pytest.mark.parametrize("failure", [None, RuntimeError("synthetic-secret"), asyncio.CancelledError()])
+async def test_unknown_usage_helper_commits_safely_or_propagates_cancellation(monkeypatch, caplog, failure):
+    from app.core import db
+    from app.services import usage_ledger
+    session = AsyncMock()
+    session.__aenter__.return_value = session
+    monkeypatch.setattr(db, "get_sessionmaker", lambda: lambda: session)
+    unknown = AsyncMock(side_effect=failure)
+    monkeypatch.setattr(usage_ledger, "mark_unknown", unknown)
+    if isinstance(failure, asyncio.CancelledError):
+        with pytest.raises(asyncio.CancelledError):
+            await usage_ledger.close_unknown("synthetic-call", error_code="response_lost")
+        session.commit.assert_not_awaited()
+    else:
+        await usage_ledger.close_unknown("synthetic-call", error_code="response_lost")
+        if failure is None:
+            unknown.assert_awaited_once_with(session, "synthetic-call", error_code="response_lost")
+            session.commit.assert_awaited_once()
+        else:
+            session.commit.assert_not_awaited()
+            assert "RuntimeError" in caplog.text and "synthetic-secret" not in caplog.text

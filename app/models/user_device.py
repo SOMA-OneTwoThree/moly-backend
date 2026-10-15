@@ -24,3 +24,6 @@ class UserDevice(Base):
     push_token: Mapped[str] = mapped_column(String, unique=True)
     last_active_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
+    # FCM이 토큰 무효(UNREGISTERED 등)를 확정한 시각. NULL=유효. last_active_at이 더 최신이면
+    # (앱이 같은 토큰을 다시 등록) 유효로 본다 — notify._tokens 참조. moly-auth는 이 컬럼을 모른다.
+    invalidated_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)

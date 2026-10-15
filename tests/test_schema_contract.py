@@ -59,3 +59,21 @@ def test_additive_rollout_objects_are_allowed_only_outside_strict_mode():
 def test_generation_rejects_non_disposable_targets(dsn):
     with pytest.raises(ValueError):
         require_scratch(dsn)
+
+
+def test_push_columns_are_additive_nullable_without_defaults():
+    from app.models.user_daily_stats import UserDailyStats
+
+    columns = load_contract()['columns']
+    for name, sql_type in (
+        ('routine_notified_at', 'timestamp with time zone'),
+        ('evening_push_variant', 'text'),
+    ):
+        column = columns['public.user_daily_stats.' + name]
+        assert column['type'] == sql_type
+        assert column['not_null'] is False
+        assert column['default'] is None
+        assert column['identity'] == column['generated'] == ''
+        orm_column = UserDailyStats.__table__.c[name]
+        assert orm_column.nullable is True
+        assert orm_column.default is orm_column.server_default is None

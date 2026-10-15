@@ -1,11 +1,12 @@
 """economy·routine·shop·review 핵심 로직 + 인증(DB·의존 mock)."""
 import uuid
-from datetime import date, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.app_day import AppDay
 from app.core.db import get_session
 from app.core.errors import AppError
 from app.main import app
@@ -15,6 +16,7 @@ from app.services import economy, hay_ledger, review, routine, shop
 
 UID = "11111111-1111-1111-1111-111111111111"
 UID_UUID = uuid.UUID(UID)
+DAY = AppDay.at(datetime(2026, 10, 8, 3, tzinfo=timezone.utc), "Asia/Seoul")
 # 카탈로그 조회(get_products/get_inventory)는 이제 profile.language를 로드한다(SOMA-346) →
 # FakeSession.get(Profile)이 언어를 가진 프로필을 돌려줘야 한다.
 _CATALOG_PROFILE = SimpleNamespace(id=UID_UUID, language="ko")
@@ -202,29 +204,45 @@ async def test_routine_statistics_streak(monkeypatch):
 async def test_routine_create_weekday_mode():
     s = FakeSession()
     req = SimpleNamespace(name="운동", days_of_week=[1, 3, 5],
-                          reminder_enabled=False, reminder_time=None)
-    out = await routine.create_routine(s, UID, req)
+                          reminder_enabled=False, reminder_time=None, icon="flexed_biceps", color="mint")
+    out = await routine.create_routine(s, UID, req, DAY)
     assert out["days_of_week"] == [1, 3, 5]
     assert out["frequency_per_week"] == 3  # 요일 수로 파생
-    assert s.added[0].days_of_week == [1, 3, 5] and s.added[0].frequency_per_week == 3
+    assert (out["icon"], out["color"], out["template_id"]) == ("flexed_biceps", "mint", None)
+    assert out["completed_today"] is False and out["skipped_today"] is False
+    created, schedule = s.added
+    assert created.days_of_week == [1, 3, 5] and created.frequency_per_week == 3
+    assert (schedule.routine_id, schedule.effective_from, schedule.days_of_week) == (
+        created.id, date(2026, 10, 8), [1, 3, 5]
+    )
 
 
 async def test_routine_update_days(monkeypatch):
     r = SimpleNamespace(name="x", name_i18n=None, frequency_per_week=3, days_of_week=[1, 3, 5],
-                        reminder_enabled=False, reminder_time=None)
+                        reminder_enabled=False, reminder_time=None, icon="seedling", color="peach")
+    rescheduled = []
 
     async def _owned(session, uid, rid):
         return r
 
+    async def _reschedule(session, user_id, row, today, days):
+        rescheduled.append((today, list(row.days_of_week), days))
+
     monkeypatch.setattr(routine, "_load_owned", _owned)
-    # 요일 변경: frequency 파생
+    monkeypatch.setattr(routine, "_reschedule", _reschedule)
+    # 요일 변경: frequency 파생, 오늘부터 새 요일 이력
     req = PatchRoutineRequest(days_of_week=[2, 4, 6, 7])
-    await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req)
+    await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req, DAY)
     assert r.days_of_week == [2, 4, 6, 7] and r.frequency_per_week == 4
-    # days_of_week 생략 시 스케줄 불변
-    req2 = PatchRoutineRequest(name="이름만")
-    await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req2)
+    assert rescheduled == [(date(2026, 10, 8), [1, 3, 5], [2, 4, 6, 7])]
+    # 같은 요일·생략은 이력을 건드리지 않음
+    await routine.update_routine(
+        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(days_of_week=[7, 6, 4, 2]), DAY,
+    )
+    req2 = PatchRoutineRequest(name="이름만", icon="memo", color="lavender")
+    await routine.update_routine(FakeSession(), UID, str(uuid.uuid4()), req2, DAY)
     assert r.name == "이름만" and r.days_of_week == [2, 4, 6, 7] and r.frequency_per_week == 4
+    assert (r.icon, r.color) == ("memo", "lavender") and len(rescheduled) == 1
 
 
 async def test_routine_update_reminder_time_null_clears(monkeypatch):
@@ -238,13 +256,13 @@ async def test_routine_update_reminder_time_null_clears(monkeypatch):
     # 필드 생략 → 기존 시간 유지
     await routine.update_routine(
         FakeSession(), UID, str(uuid.uuid4()),
-        PatchRoutineRequest.model_validate({"reminder_enabled": False}),
+        PatchRoutineRequest.model_validate({"reminder_enabled": False}), DAY,
     )
     assert r.reminder_enabled is False and r.reminder_time == time(9, 0)
     # 명시적 null → 제거
     await routine.update_routine(
         FakeSession(), UID, str(uuid.uuid4()),
-        PatchRoutineRequest.model_validate({"reminder_time": None}),
+        PatchRoutineRequest.model_validate({"reminder_time": None}), DAY,
     )
     assert r.reminder_time is None
 
@@ -265,23 +283,24 @@ async def test_routine_update_localized_name_echo_keeps_i18n(monkeypatch):
         PatchRoutineRequest.model_validate(
             {"name": "筋トレ", "reminder_enabled": True, "reminder_time": "08:00:00"}
         ),
+        DAY,
     )
     assert r.name == "근력 운동" and r.name_i18n is not None
     assert r.reminder_enabled is True and r.reminder_time == time(8, 0)
     # 원본 이름 echo도 rename 아님
     await routine.update_routine(
-        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="근력 운동")
+        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="근력 운동"), DAY
     )
     assert r.name_i18n is not None
     # 진짜 rename → name 변경 + 다국어 무효(SOMA-346)
     await routine.update_routine(
-        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="아침 운동")
+        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="아침 운동"), DAY
     )
     assert r.name == "아침 운동" and r.name_i18n is None
     # name_i18n이 dict가 아닌 오염 데이터여도 500 없이 rename 처리(i18n.py:53과 같은 방어)
     r.name_i18n = "집"
     await routine.update_routine(
-        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="저녁 운동")
+        FakeSession(), UID, str(uuid.uuid4()), PatchRoutineRequest(name="저녁 운동"), DAY
     )
     assert r.name == "저녁 운동" and r.name_i18n is None
 
@@ -320,6 +339,16 @@ def test_routine_request_weekday_only():
         CreateRoutineRequest(name="운동", days_of_week=[5, 1, 1])
     assert CreateRoutineRequest(name="운동", days_of_week=[5, 1]).days_of_week == [1, 5]
     assert PatchRoutineRequest(days_of_week=[7, 2]).days_of_week == [2, 7]
+    # 아이콘·색: 기본값, 키 형식, 색 목록
+    created = CreateRoutineRequest(name="운동", days_of_week=[1])
+    assert (created.icon, created.color) == ("seedling", "peach")
+    for bad in ({"icon": "Bed"}, {"icon": ""}, {"icon": "a" * 65}, {"color": "red"}, {"color": None}):
+        with pytest.raises(ValidationError):
+            CreateRoutineRequest(name="운동", days_of_week=[1], **bad)
+    with pytest.raises(ValidationError):
+        PatchRoutineRequest(icon="bed-1")
+    patch = PatchRoutineRequest(icon=None, color=None)
+    assert (patch.icon, patch.color) == (None, None)
 
 
 # --- 상점 구매 ---
@@ -494,6 +523,25 @@ async def test_purchase_incompatible_cache_fails_closed(monkeypatch):
     assert session.added == []
     assert session.deleted == []
     assert session.committed is False
+
+
+@pytest.mark.parametrize("cached", [
+    SimpleNamespace(response=None),
+    SimpleNamespace(response={"product_id": "head_cap"}, terminal_status="expired"),
+    SimpleNamespace(response={"product_id": "head_cap"}, terminal_status="succeeded",
+                    response_expires_at=datetime(2000, 1, 1, tzinfo=timezone.utc)),
+], ids=["no-response", "not-succeeded", "expired"])
+async def test_purchase_replay_unavailable_is_409_not_a_new_purchase(monkeypatch, cached):
+    """비워졌거나·성공이 아니거나·보존 기간이 지난 사본은 채팅 재생처럼 409 — 새 구매로 실행하지 않는다."""
+    async def _must_not_load(session, product_id):
+        raise AssertionError("재생할 수 없는 사본을 새 구매로 실행하면 안 됨")
+
+    monkeypatch.setattr(shop, "_load_item", _must_not_load)
+    session = FakeSession(get_obj=cached)
+    with pytest.raises(AppError) as exc:
+        await shop.purchase(session, UID, "x", idempotency_key="same-key")
+    assert (exc.value.code, exc.value.http_status) == ("IDEMPOTENCY_REPLAY_UNAVAILABLE", 409)
+    assert session.added == [] and session.committed is False
 
 
 # --- 장착(user_items 통합 — ERD 4.8절) ---
@@ -716,17 +764,17 @@ async def test_v2_get_equipment_drops_subscriber_only_after_expiry():
         _row(painter.id, source="subscription", equipped_slot="body"),
     ]
     expired = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [onsen, painter], _NO_SUBSCRIPTION]), UID, v2=True,
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [onsen, painter], _NO_SUBSCRIPTION]), UID, v2=True,
         timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
     )
     assert expired["theme_id"] == "theme_default" and expired["body_id"] is None
     active = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
         timer_capable=True, bundled_themes=frozenset({"theme_onsen"}), subscriber_capable=True,
     )
     assert active["theme_id"] == "theme_onsen" and active["body_id"] == "body_painter"
     old_app = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [onsen, painter], _ACTIVE_SUBSCRIPTION]), UID, v2=True,
         timer_capable=True, bundled_themes=frozenset({"theme_onsen"}),
     )
     assert old_app["theme_id"] == "theme_default" and old_app["body_id"] is None
@@ -832,7 +880,7 @@ async def test_get_equipment_uses_public_ids_and_requires_theme():
         _row(theme.id, source="admin_grant", equipped_slot="theme"),
         _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
-    out = await shop.get_equipment(FakeSession(exec_results=[rows, [theme, glasses]]), UID)
+    out = await shop.get_equipment(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [theme, glasses]]), UID)
     assert out == {
         "theme_id": "theme_default",
         "head_id": "head_sunglasses",  # 레거시: glasses가 단일 head 슬롯으로 투영
@@ -841,8 +889,18 @@ async def test_get_equipment_uses_public_ids_and_requires_theme():
     }
 
     with pytest.raises(AppError) as exc:
-        await shop.get_equipment(FakeSession(exec_results=[[], []]), UID)
+        await shop.get_equipment(FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[[], []]), UID)
     assert exc.value.code == "INTERNAL"
+
+
+@pytest.mark.parametrize("v2", [False, True])
+async def test_get_equipment_without_profile_is_404(v2):
+    """탈퇴로 프로필이 없으면(아직 유효한 토큰) /inventory처럼 404 — 장착 행을 읽기 전에 끝난다."""
+    session = FakeSession(exec_results=[[], []])
+    with pytest.raises(AppError) as exc:
+        await shop.get_equipment(session, UID, v2=v2)
+    assert (exc.value.code, exc.value.http_status) == ("NOT_FOUND", 404)
+    assert session.exec_results == [[], []]
 
 
 async def test_legacy_get_equipment_hat_wins_over_glasses():
@@ -856,7 +914,7 @@ async def test_legacy_get_equipment_hat_wins_over_glasses():
         _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
     out = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [theme, hat, glasses]]), UID
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [theme, hat, glasses]]), UID
     )
     assert out == {
         "theme_id": "theme_default",
@@ -876,7 +934,7 @@ async def test_v2_get_equipment_exposes_hat_and_glasses():
         _row(glasses.id, source="admin_grant", equipped_slot="glasses"),
     ]
     out = await shop.get_equipment(
-        FakeSession(exec_results=[rows, [theme, hat, glasses]]), UID, v2=True
+        FakeSession(get_obj=_CATALOG_PROFILE, exec_results=[rows, [theme, hat, glasses]]), UID, v2=True
     )
     assert out == {
         "theme_id": "theme_default",

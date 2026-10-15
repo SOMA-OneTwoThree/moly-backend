@@ -33,7 +33,7 @@ KINDS: tuple[str, ...] = (
 # 로컬 시각. worker/tick.py의 상수와 같아야 한다 — 등가는 테스트로 고정한다.
 LOCAL_HOUR: dict[str, int] = {
     KIND_DIARY_GENERATE: 4,    # tick.DIARY_HOUR
-    KIND_DIARY_MORNING: 9,     # tick.MORNING_HOUR
+    KIND_DIARY_MORNING: 10,    # tick.MORNING_HOUR
     KIND_EVENING_CHECKIN: 20,  # tick.EVENING_HOUR
 }
 

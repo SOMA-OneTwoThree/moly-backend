@@ -9,8 +9,6 @@ import asyncio
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
-from types import SimpleNamespace
-from unittest.mock import AsyncMock
 
 import pytest
 import pytest_asyncio
@@ -18,11 +16,19 @@ from sqlalchemy import text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.services import jobs, monitoring_state as state, usage_ledger, subscription
+from app.services import jobs, monitoring_state as state, usage_ledger, llm, slack_notify
 from db.envfile import assert_dev_target, load_conn
 from worker import monitoring
 
 NOW = datetime(2026, 10, 12, 4, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def no_external_delivery(monkeypatch):
+    def forbidden(*args, **kwargs):
+        raise AssertionError("provider and Slack are forbidden in database tests")
+    monkeypatch.setattr(llm, "_get_openai_client", forbidden)
+    monkeypatch.setattr(slack_notify, "_post", forbidden)
 
 
 @pytest_asyncio.fixture
@@ -183,25 +189,3 @@ async def test_queue_excludes_every_successful_replay_ancestor(db):
                          {"id": ident, "key": str(ident), "state": status, "previous": previous})
     snapshot = await jobs.queue_stats(db)
     assert snapshot["memory"]["dead"] == 1
-
-
-async def test_lifetime_bonus_sql_is_scoped_and_revocation_does_not_regrant(db, monkeypatch):
-    await db.execute(text("CREATE TEMP TABLE subscription_hay_grants (LIKE public.subscription_hay_grants INCLUDING DEFAULTS INCLUDING CONSTRAINTS) ON COMMIT DROP"))
-    uid, other = uuid.uuid4(), uuid.uuid4()
-    for user_id, plan in [(uid, "monthly"), (other, "yearly")]:
-        await db.execute(text("""INSERT INTO subscription_hay_grants(id,user_id,plan,revoked_at)
-          VALUES(:id,:uid,:plan,:at)"""), {"id": uuid.uuid4(), "uid": user_id, "plan": plan, "at": NOW})
-    assert await subscription._grant_exists(db, uid, "monthly")
-    assert not await subscription._grant_exists(db, uid, "yearly")
-    review = AsyncMock(side_effect=AssertionError("no external provider"))
-    ledger = AsyncMock(side_effect=AssertionError("no financial mutation"))
-    monkeypatch.setattr(subscription, "_bonus_review", review)
-    monkeypatch.setattr(subscription.hay_ledger, "apply", ledger)
-    pay = SimpleNamespace(user_id=uid, subscription_plan="monthly", subscription_hay_grant_id=None,
-                          subscription_bonus_review="held:provider_history_unavailable")
-    result = await subscription._finish_subscription_bonus(db, SimpleNamespace(user_id=uid), pay, {}, "monthly")
-    assert result.outcome == subscription.HANDLED and pay.subscription_hay_grant_id is None
-    assert pay.subscription_bonus_review == "not_granted:user_plan_previously_granted"
-    review.assert_not_awaited()
-    ledger.assert_not_awaited()
-    assert (await db.execute(text("SELECT count(*) FROM subscription_hay_grants WHERE revoked_at IS NOT NULL"))).scalar_one() == 2

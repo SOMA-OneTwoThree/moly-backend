@@ -55,6 +55,9 @@ erDiagram
     greetings }o--o| messages : "커밋 시 연결"
     moly_life_ments ||--o{ diaries : "preset일 때"
     routines ||--o{ routine_completions : ""
+    routines ||--o{ routine_schedules : "요일 이력"
+    routines ||--o{ routine_skips : "오늘 스킵"
+    routine_template_categories ||--o{ routine_templates : "템플릿"
 
     hay_transactions ||--o| subscription_hay_grants : "지급·회수 기록"
 
@@ -100,7 +103,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 
 ### 3.2 `profiles`
 
-`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 2종(4.8절)과 기본 루틴 2개(5.5절)도 함께 생성한다(2026-07-13 확정).
+`auth.users`와 1:1. **가입 트리거(`bootstrap_user`)가 자동 생성** — 같은 트리거가 기본 지급 아이템 2종(4.8절)도 함께 생성한다. 2026-07-13부터 만들던 기본 루틴 2개(5.5절)는 루틴 템플릿 출시 때 중단했다.
 
 | 컬럼 | 타입 | 설명 |
 | --- | --- | --- |
@@ -109,8 +112,9 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `language` | text, default `'en'` | **앱 콘텐츠 언어** (US-103) — 값은 `ko`·`en`·`ja` 셋뿐이다(아래 설명). 온보딩 때 기기 시스템 언어로 초기화. **서버 생성물(캐피 응답·일기·푸시)은 유저 입력 언어와 무관하게 항상 이 언어**(API_SPEC 1장). UI 문자열은 클라 로컬라이제이션 |
 | `timezone` | text, default `'Asia/Seoul'` | IANA 타임존. 04:00 대화·일기 기준일과 00:00 보상 기준일 계산의 근거 — 클라이언트가 갱신하되 **서버가 마지막 적용 경계를 기억해 보상·한도 되돌림을 차단** |
 | `hay_balance` | int, default 0, **CHECK ≥ 0** | 건초 잔액 **캐시** (원본: `hay_transactions`). 서버 전용 쓰기 — 잔액 하한 0을 DB 안전망으로 강제 |
-| `trial_ends_at` | timestamptz | 가입 시각 + **48시간 (절대 시각, 의도된 정책 — 하루 중간 종료 가능)** (US-202). 재가입 어뷰징 방지 정책 TBD |
+| `trial_ends_at` | timestamptz | 가입 시각 + **48시간 (절대 시각, 의도된 정책 — 하루 중간 종료 가능)** (US-202). `app_config.signup_trial_until` 이후 가입한 계정은 NULL(체험 없음). 재가입 어뷰징 방지 정책 TBD |
 | `review_prompted_at` | timestamptz NULL | 리뷰 팝업 노출 이력 — **최초 1회 제한** (US-1101). NOT NULL이면 재노출 금지 |
+| `routine_template_selection_at` | timestamptz NULL | 루틴 템플릿 선택(건너뛰기 포함)을 처음 마친 시각. NULL이면 템플릿 화면을 아직 거치지 않음 |
 | `created_at` / `updated_at` | timestamptz | |
 
 - **`language`는 저장될 때 `ko`·`en`·`ja` 셋 중 하나로 좁혀진다.** `schema.sql`의 트리거 `trg_normalize_profile_language`(행이 들어오거나 `language`가 바뀔 때 값을 다듬는 DB 장치)가 처리한다. 값을 **거부하지 않고 조용히 바꾼다** — 거부하면 이 테이블을 함께 쓰는 moly-auth의 온보딩이 실패하기 때문이다.
@@ -160,7 +164,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `attendance_claimed_at` | timestamptz NULL | 출석 수령 시각 — NOT NULL이면 당일 수령 완료 (US-902) |
 | `routine_reward_claimed_at` | timestamptz NULL | 루틴 2개 완료 보상 수령 시각 (US-904) |
 | `morning_notified_at` | timestamptz NULL | 아침(09:00) 푸시 시도 선점 마커 — NOT NULL이면 당일 재발송 차단, 기기 수신 완료를 뜻하지 않음 |
-| `evening_notified_at` | timestamptz NULL | 저녁(20:00) 푸시 발송 멱등 마커 — NOT NULL이면 당일 발송 완료 |
+| `evening_notified_at` | timestamptz NULL | 저녁(20:00) 푸시 시도 선점 마커 — NOT NULL이면 당일 재발송 차단, 기기 수신 완료를 뜻하지 않음 |
 
 - 유니크: `(user_id, activity_date)`.
 - 각 도메인의 날짜가 바뀌면 새 행을 사용할 뿐, 별도 리셋 잡은 없다.
@@ -182,7 +186,7 @@ Apple/Kakao/Google 소셜 로그인 결과. `id uuid`가 전체 스키마의 루
 | `environment` | text | `Production` / `Sandbox` |
 | `created_at` / `updated_at` | timestamptz | |
 
-- **환불(`revoked`) 처리**: 혜택 즉시 회수(증정 건초 회수) — `refund_revoke` 원장 기록, **잔액 하한 0**, 멱등은 `subscription_hay_grants.revoked_at`(4.4절). 증정 이력은 유지 → 재구독해도 재지급 없음 (구독→증정 소비→환불→재구독 루프 차단). 구독 전용 cosmetic 폐지(appearance_v2)로 장착 해제 처리 불필요.
+- **환불(`revoked`) 처리**: 혜택 즉시 회수(증정 건초 회수) — `refund_revoke` 원장 기록, **잔액 하한 0**, 멱등은 `subscription_hay_grants.revoked_at`(4.4절). 증정 이력은 유지 → 재구독해도 재지급 없음 (구독→증정 소비→환불→재구독 루프 차단). 구독 전용 cosmetic 장착은 조회 시 활성 구독 여부로 투영하므로 별도 해제 처리가 없다.
 - **복원 충돌**: `original_transaction_id`는 Apple ID(기기 결제 계정) 소유라 소셜 로그인 계정과 독립 — 다른 소셜 계정으로 로그인 후 복원하면 이미 매핑된 UNIQUE 키와 충돌한다. 처리(RC 전환 후) = **서버가 해당 웹훅을 무시**(다른 계정 소유 구독 스킵) — 원 계정의 구독 상태 유지.
 
 ### 4.4 `subscription_hay_grants` — 구독 건초 증정 이력 (US-704)
@@ -207,7 +211,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `public_id` | text UNIQUE NULL | **cosmetic에서 사용** — API 노출용 안정 문자열 식별자. 외부에 노출되는 키는 `id`(uuid) 대신 이 값을 사용 |
 | `slot` | text NULL | **cosmetic 전용** — `theme`(테마/배경) \| `hat`(모자) \| `glasses`(안경) \| `neck`(목) \| `body`(몸). 장착 부위이자 상점 탭 분류. 기존 `background`·`head` enum이 `theme`·`hat`/`glasses`로 분리됨(appearance_v2 이후) |
 | `price_hay` | int NULL | **cosmetic 전용** — 서버가 원본 (US-801). **NULL = 구매 불가(기본 지급품 등)**. 판매 상품이면 `≥ 1` 강제(0원 구매는 원장 CHECK `amount≠0`와 충돌하므로 금지). 정책(최소 1,000, 200단위)은 운영·앱 검증 |
-| `is_subscriber_only` | bool NOT NULL default false | **항상 false — 구독 전용 cosmetic 폐지(appearance_v2).** 구독 전용 장착 사용권 방식 폐기 → 모든 cosmetic은 구독 여부 무관하게 HAY 구매 가능(가격 정책으로 조절). cosmetic CHECK로 `false` 강제 |
+| `is_subscriber_only` | bool NOT NULL default false | 구독 전용 cosmetic. 활성 구독(체험·런칭 무료 제외) 중에만 구매 없이 장착하며 `price_hay`는 NULL이다(cosmetic CHECK). 구독이 끝나면 조회 응답에서 theme은 `theme_default`, wearable은 해제로 보인다 |
 | `asset_version` | int NULL | **cosmetic에서 사용** — 에셋 구조 버전. 활성 cosmetic은 `≥ 1` 필수(inactive 상태로만 준비 가능) |
 | `assets` | jsonb NULL | **cosmetic 전용** — v2 구조: `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url` |
 | `is_v2_only` | bool NOT NULL default false | **cosmetic 전용** — `true`이면 rightside(v2) 자세 계약에만 노출. 레거시 카탈로그·인벤토리 조회에서 제외 |
@@ -217,7 +221,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `play_store_product_id` | text UNIQUE NULL | **hay_pack 전용** — Google Play 상품 ID(Play Console 확정 후 주입, NULL 허용) |
 | `is_active` / `sort_order` | | |
 
-- **타입별 CHECK**: `hay_pack`은 hay_amount·app_store_product_id가 필수이고 slot·price_hay·assets는 NULL, is_subscriber_only는 false다. **public_id·asset_version을 NULL로 강제하지 않는다.** `cosmetic`은 public_id·slot이 필수이고 hay_amount·app_store_product_id·play_store_product_id·price_krw는 NULL, is_subscriber_only는 false다. 활성 cosmetic만 asset_version ≥ 1·assets가 필수다. 비활성 준비 상품의 NULL을 일괄 보정하지 않는다.
+- **타입별 CHECK**: `hay_pack`은 hay_amount·app_store_product_id가 필수이고 slot·price_hay·assets는 NULL, is_subscriber_only는 false다. **public_id·asset_version을 NULL로 강제하지 않는다.** `cosmetic`은 public_id·slot이 필수이고 hay_amount·app_store_product_id·play_store_product_id·price_krw는 NULL, is_subscriber_only이면 price_hay가 NULL이다. 활성 cosmetic만 asset_version ≥ 1·assets가 필수다. 비활성 준비 상품의 NULL을 일괄 보정하지 않는다.
 - UNIQUE `(id, slot)` — `user_items` 장착 슬롯 일치 복합 FK 대상.
 - `theme_default`는 가격 NULL인 기본 지급 상품이다. 가입 시 자동 지급·장착한다. 테마 장착 행이 없는 사용자는 앱의 기본 상태로 표시한다(4.8절).
 
@@ -266,7 +270,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 | `id` | uuid PK | |
 | `user_id` | uuid FK→`profiles` | |
 | `product_id` | uuid FK→`products` | cosmetic만 |
-| `source` | enum `user_item_source` | `purchase`(주문 구매) / `subscription`(구독 연동 지급 — 현재 미사용, 구독 전용 cosmetic 폐지로 사실상 레거시) / `admin_grant`(운영 무상 지급) |
+| `source` | enum `user_item_source` | `purchase`(주문 구매) / `subscription`(구독 전용 cosmetic 장착 행 — 소유 아님, 해제 시 삭제) / `admin_grant`(운영 무상 지급) |
 | `order_id` | uuid FK→`orders` NULL | `purchase`는 주문 연결, 그 외 NULL |
 | `equipped_slot` | text NULL | **NULL = 미장착**. 값 있으면 그 슬롯에 장착 중 — (구)user_equipment 역할. 허용값: `theme` \| `hat` \| `glasses` \| `neck` \| `body` |
 | `equipped_at` | timestamptz NULL | 장착 시기 트래킹 |
@@ -371,7 +375,7 @@ order_items가 가리키는 단일 상품 FK. `product_type`으로 두 판매 �
 
 - 부분 유니크: user당 active welcome 1개, `(user_id,activity_date)`당 active daily 1개.
 - 첫 성공 Phase B는 `relationship_started_*`를 user/reply 메시지와 함께 확정한다. welcome은 별도로 첫 목록 GET에서 가입일 기준으로 생성하고 회상 문서·색인 잡과 원자 커밋한다.
-- daily 미발행은 `diary_generation_results(user_id,target_date,status=no_entry)`가 기록하며 빈 일기를 만들지 않는다. 주간 preset 지급은 같은 결과 테이블의 `status=preset,preset_ment_id`에 기록하고 일기와 함께 커밋한다.
+- daily 미발행은 `diary_generation_results(user_id,target_date,status=no_entry)`가 기록하며 빈 일기/tombstone을 만들지 않는다. 주간 preset 지급은 같은 결과 테이블의 `status=preset,preset_ment_id`에 기록하고 일기와 함께 커밋한다.
 - **열람은 등급 무관 항상 무료(확정)** — 접근 제어 없음. 구독 가치 = 개인(`llm`) 일기 "발행"이지 열람이 아님.
 - preset 선택(5.4절): 전환일 이전에는 날짜별 원고, 이후에는 주간 미수령 원고를 순서대로 사용한다. 없으면 `diary_generation_results.status='no_entry'`를 남기고 발행하지 않는다.
 
@@ -395,10 +399,24 @@ no_entry는 원고 ID가 NULL이다. 개인/기존 날짜별 일기 성공은 �
 
 ### 5.5 `routines` / `routine_completions` (US-601~606)
 
-**`routines`**: `id`, `user_id`, `name`, `name_i18n` jsonb NULL, `frequency_per_week` smallint NOT NULL(항상 `days_of_week` 요일 수 파생 — 응답 하위호환용 컬럼), `days_of_week` smallint[] **NOT NULL**(지정 요일, ISO 1=월…7=일 — 요일별 전용, 주 N회 모드 없음), `reminder_enabled` bool, `reminder_time` time NULL(로컬 알림 — 발송은 기기에서), `deleted_at` NULL(**soft delete** — 삭제해도 통계 US-605 보존), `created_at`, `updated_at`.
+**`routines`**: `id`, `user_id`, `name`, `name_i18n` jsonb NULL, `frequency_per_week` smallint NOT NULL(항상 `days_of_week` 요일 수 파생 — 응답 하위호환용 컬럼), `days_of_week` smallint[] **NOT NULL**(지정 요일, ISO 1=월…7=일 — 요일별 전용, 주 N회 모드 없음), `reminder_enabled` bool, `reminder_time` time NULL(로컬 알림 — 발송은 기기에서), `deleted_at` NULL(**soft delete** — 삭제해도 통계 US-605 보존), `created_at`, `updated_at`, `icon` text NOT NULL DEFAULT `'seedling'`, `color` text NOT NULL DEFAULT `'peach'`, `template_id` text NULL(템플릿으로 만든 루틴), `deleted_on` date NULL(삭제한 요청의 현지 날짜 — 그날부터 예정 아님).
 
-- **가입 기본 루틴(2026-07-13 확정)**: 가입 트리거(`bootstrap_user`)가 2개 자동 생성 — "이불 정리하기", "물 마시기" (days_of_week = 월~일 전체 7일, frequency_per_week = 7, 리마인더 off). 유저가 수정·삭제 가능(일반 루틴과 동일).
-- **`name_i18n`(SOMA-346)**: 기본 루틴만 `{"ko","en","ja"}`로 생성(bootstrap_user). 렌더 = `resolve(lang)→en→ko→원문 name` 폴백. **유저 생성 루틴은 NULL**(입력 언어 그대로 name). CHECK `jsonb_typeof='object'`. 기존 루틴 백필 안 함(동명 유저 루틴 오염 방지 — 신규 가입자만 적용).
+- 아이콘·색·템플릿 값은 API(pydantic)가 검증한다. 혼합 버전 배포를 위해 기존 테이블에 CHECK·FK·UNIQUE를 추가하지 않았다.
+  `deleted_on`이 없는 삭제 루틴은 `deleted_at`을 프로필 시간대로 바꾼 날짜를 쓴다.
+
+**`routine_schedules`**: PK `(routine_id, effective_from)`, `user_id`, `days_of_week` smallint[], `created_at`. `(user_id, routine_id)` → `routines` ON DELETE CASCADE.
+그날의 요일 = 그날 이하에서 가장 늦은 `effective_from` 행. 생성은 요청 현지 날짜, 요일 수정은 수정한 날짜의 행을 upsert한다. 시작일 = 가장 이른 행.
+행이 없는 루틴(이력 도입 전 서버가 만든 루틴)은 `created_at`을 프로필 시간대로 바꾼 날짜부터 현재 요일이다.
+
+**`routine_skips`**: PK `(routine_id, activity_date)`, `user_id`, `created_at`. `(user_id, routine_id)` → `routines` ON DELETE CASCADE, 인덱스 `(user_id, activity_date)`.
+오늘만 기록한다. 같은 날 완료 기록이 있으면 완료가 이긴다(완료하면 스킵 행을 지운다). 스킵하고 완료하지 않은 (루틴, 날짜)는 기록 계산의 인스턴스가 아니다.
+
+**`routine_template_categories`** / **`routine_templates`**: 서버가 관리하는 템플릿 카탈로그(`id` text PK, `name_i18n` jsonb — `ko` 필수, `sort_order`, `is_active`).
+템플릿은 `category_id` FK, `icon`, `color`, `days_of_week`, `is_recommended`를 갖고 CHECK로 키 형식·색·요일을 검증한다. 초기 데이터는 `seed.sql`(새 환경)과
+`changes/routine_redesign_3_backfill.sql`(기존 환경)에 같은 내용으로 있다. 클라이언트 롤 권한은 없다.
+
+- **가입 기본 루틴(2026-07-13~루틴 템플릿 출시)**: 가입 트리거가 만들던 "이불 정리하기"·"물 마시기"(월~일, 리마인더 off)는 템플릿 출시 때 중단했다. 이미 만든 루틴은 `template_id`(`make_bed`·`drink_water`)와 템플릿 아이콘·색이 채워진 일반 루틴이다.
+- **`name_i18n`(SOMA-346)**: 기본 루틴(bootstrap_user)과 템플릿으로 만든 루틴만 `{"ko","en","ja"}`로 생성. 렌더 = `resolve(lang)→en→ko→원문 name` 폴백. **유저 생성 루틴은 NULL**(입력 언어 그대로 name). CHECK `jsonb_typeof='object'`. 기존 루틴 백필 안 함(동명 유저 루틴 오염 방지 — 신규 가입자만 적용).
 
 **`routine_completions`**: `id`, `routine_id` FK, `user_id`, `activity_date`, `completed_at`. 유니크 `(routine_id, activity_date)` — 일 단위 체크/해제(해제 = 행 삭제).
 
@@ -450,7 +468,7 @@ subscriber : subscriptions에 status IN ('active','grace_period') AND expires_at
 trial      : 위가 아니고 now() < profiles.trial_ends_at  (가입 후 2일)
 free       : 그 외
 ```
-- **체험(trial)은 구독과 동일 혜택** — 단 한 가지 제외: 건초 증정 없음(구독 전용 아이템·테마 폐지됨, appearance_v2 이후 모든 cosmetic은 HAY 구매 가능).
+- **체험(trial)은 구독과 동일 혜택** — 제외: 건초 증정 없음, 구독 전용 cosmetic 장착 불가.
 - 티어별 게이팅: 일일 토큰 한도(`app_config` — trial은 subscriber와 동일 수준), 배너 광고(**free만 노출**), 건초 증정(subscriber 결제 시, 플랜별 최초 1회).
 - **일기 분기는 티어가 아니라 사용자 메시지 문자 수 기준**이다. 개인 조건 미달 시 운영 원고가 있을 때만 지급한다.
 
@@ -467,6 +485,7 @@ free       : 그 외
 | `diary_min_user_chars` | 개인(관찰) 일기 분기 — 당일 유저 메시지 문자수 |
 | `diary_llm_min_tokens` | (레거시) 토큰 기반 일기 분기 — `diary_min_user_chars`로 대체 |
 | `free_launch_until` | 런칭 무료 종료 시각 — 이전엔 전원 무료 (backend·moly-auth 공유) |
+| `signup_trial_until` | 가입 체험 종료 시각 — 이후 가입한 계정은 48시간 체험 없음. 없거나 null이면 제한 없음 (DB 함수 `bootstrap_user`·`subscription_launch_access`) |
 | `free_launch_token_limit` | 런칭 기간 일 토큰 한도 (현재 50,000) |
 
 ### 6.3 `user_notification_settings` (US-104, US-907, US-408, US-503)
@@ -479,8 +498,11 @@ free       : 그 외
 아침 09:00·저녁 20:00 알림은 서버가 FCM HTTP v1으로 발송한다. iOS는 Firebase가 APNs로
 릴레이하고 Android는 FCM으로 직접 전달한다. 이 테이블에는 발송 대상 등록 토큰을 저장한다.
 
-- `id`, `user_id`, `platform`(`ios|android`), `push_token` UNIQUE, `last_active_at`, `created_at`.
+- `id`, `user_id`, `platform`(`ios|android`), `push_token` UNIQUE, `last_active_at`, `created_at`, `invalidated_at`.
 - 로그아웃 시 해당 `push_token` 행 삭제(API `POST /auth/logout`이 토큰을 받음).
+- `invalidated_at`: FCM이 응답 본문으로 토큰 무효를 확정한 시각(NULL = 유효). 워커가 `(user_id, push_token)` 쌍에만
+  기록하며 행은 지우지 않는다. 발송 대상은 `invalidated_at IS NULL OR last_active_at > invalidated_at` —
+  앱이 같은 토큰을 다시 등록해 `last_active_at`이 갱신되면 다시 대상이 된다. 기록 여부는 `FCM_INVALIDATE_DEAD_TOKENS`(기본 꺼짐)로 정한다.
 
 ---
 
@@ -819,11 +841,18 @@ free       : 그 외
 - 설정 `privacy_barrier_mode`: `compat`은 행이 없으면 통과, `enforced`는 행이 없으면 거부한다.
   **`active` 행 채우기와 개수 검증을 마친 뒤에만 `enforced`로 올린다.** 순서를 어기면 전 사용자의
   대화가 즉시 막힌다(구 코드가 "행이 있으면 차단"으로 읽던 시기의 사고).
+- 함수 `begin_subject_deletion(user_id, operation_id)`·`abort_subject_deletion(user_id, operation_id)`:
+  SECURITY DEFINER이고 실행 권한은 소유자(postgres — 백엔드 연결 롤)와 service_role(moly-auth)뿐이다.
+  moly-auth가 계정 삭제 전과 삭제 실패 시 부른다.
+  완료(`deleted`)는 백엔드 워커의 `privacy_residual_sweep`이 표시한다(ARCHITECTURE-capi 13.3절).
 
 **`privacy_ledger_events`** — 본문 없는 삭제 진행 기록.
 
 - `id` bigint identity PK · `operation_id` uuid · `user_id` uuid · `event` text ·
   `high_watermark` bigint NULL · `created_at`. 인덱스 `(user_id, id)`.
+- `event`: `serving_blocked_and_redacted`(장벽 시작) · `deletion_aborted`(계정 삭제 실패로 되돌림) ·
+  `orphan_barrier_promoted`(장벽 없이 지워진 계정) · `residual_sweep_deleted` / `residual_sweep_empty`
+  (sweep 1회 결과) · `subject_deleted`(완료).
 
 ### 7.12 `async_jobs` — 배치 작업 대기열
 
@@ -931,14 +960,14 @@ Redis·Celery 없이 PostgreSQL 표 하나로 대기열을 운영한다. 대기�
 | 9 상점 가격 | `products.price_hay` (서버 원본) + `order_items.unit_price`(구매 시점 스냅샷) |
 | 10 리뷰 1회 | `profiles.review_prompted_at` + 당일 `tokens_used` 임계 생애 최초 도달(채팅 응답 `review_prompt` 플래그 — API_SPEC 9장) |
 | 11 캐피의 일기 | `kind=welcome|shared_day|capi_day`. welcome은 가입 후 첫 목록 조회에서 생성, daily는 user+activity_date당 하나. 미발행은 별도 result 행. 발행 노출은 `published_at` |
-| 12 2일 체험 (구독 동일 혜택) | `profiles.trial_ends_at` (티어 파생 — 토큰·일기·광고는 subscriber와 동일 처리) |
+| 12 2일 체험 (구독 동일 혜택) | `profiles.trial_ends_at` (티어 파생 — 토큰·일기·광고는 subscriber와 동일 처리). `app_config.signup_trial_until` 이후 가입한 계정은 체험 없음 |
 | 14 인사 미차감 | `greetings` 발급 보관(5.1절) → 커밋 시 `messages.kind='greeting'`, 집계 제외 |
 | 15 낮/밤 | `products.assets` v2 구조 — `scene{canvas, layers, character_url, day_url}` · `thumbnail_url` · `detail_url` · `upright_layer_url`. 전환 시각 = Firebase(클라 원격 설정) |
 | 16 장착 해제 | `user_items.equipped_slot` NULL — 장착 없음 = 기본. `theme` 슬롯은 가입 시 bootstrap_user가 자동 장착 |
 | 17 장착 규칙 (슬롯당 1개) | `user_items` 부분 UNIQUE(user_id, equipped_slot) — 같은 슬롯 장착 = 기존 자동 해제. 슬롯 일치는 복합 FK로 DB 강제 |
-| 18 구독 전용 cosmetic 폐지 | `products.is_subscriber_only` 항상 `false`(appearance_v2 이후 CHECK 강제) — 구독 전용 장착 사용권 방식 폐기. 모든 cosmetic은 HAY 구매 가능 |
+| 18 구독 전용 cosmetic | `products.is_subscriber_only=true` 상품은 비매품(`price_hay` NULL)이며 활성 구독 중에만 장착한다. 장착은 `source='subscription'` 행으로 두고, 구독이 끝나면 조회 응답이 기본 테마·해제로 투영한다 |
 | 19 토큰 정의 (입력+출력 합산) | `messages.input_tokens + output_tokens` → `user_daily_stats.tokens_used` (응답 후 집계, 초과 상태에서 다음 요청 차단) |
-| 20 환불 처리 | `subscriptions.status='revoked'` + `hay_transactions(refund_revoke)` 잔액 하한 0. 멱등 = `grants.revoked_at`, 이력 유지 → 재지급 없음. 구독 전용 cosmetic 폐지로 장착 정리 불필요 |
+| 20 환불 처리 | `subscriptions.status='revoked'` + `hay_transactions(refund_revoke)` 잔액 하한 0. 멱등 = `grants.revoked_at`, 이력 유지 → 재지급 없음. 구독 전용 cosmetic 장착은 조회 시 투영하므로 정리 불필요 |
 
 **TBD여도 스키마가 안 흔들리는 것**: 토큰 수치 전부, 알림 문구, 멘트 풀 내용, 경고 임계치 → 전부 `app_config`(서버)·Firebase(클라)/운영 데이터.
 **TBD 확정 시 스키마 영향 가능**: 메시지 보관 기간(파티셔닝), 탈퇴 후 재가입 어뷰징 정책(식별자 보관 테이블 추가 가능성). ~~알림 발송 방식~~(서버 푸시 확정) · ~~일기 열람~~(항상 무료 확정) · ~~복원 충돌~~(RC 웹훅 무시 처리 확정)은 종결.

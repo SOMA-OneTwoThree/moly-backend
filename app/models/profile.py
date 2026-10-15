@@ -37,5 +37,6 @@ class Profile(Base):
         BigInteger, nullable=False, server_default=text("0")
     )
     next_diary_due_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
+    routine_template_selection_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
     updated_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)

@@ -1,17 +1,20 @@
 """워커 관측과 일일 점검. 사용자/이벤트 원문 없이 집계만 다룬다."""
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import text
 
+from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import monitoring_state, config_store, jobs
 
 _log = logging.getLogger(__name__)
 _KST = ZoneInfo("Asia/Seoul")
+_MONITORING_BUDGET_S = 15.0
 _RC_SQL = text("""
 WITH unresolved AS (
  SELECT event_id, status, received_at,
@@ -85,7 +88,7 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
     attention = False
     unavailable = False
     previous_signals = {"worker_diary": "일기", "worker_memory": "기억", "worker_timeout": "시간 초과",
-                        "rc_processor": "RC 처리기"}
+                        "rc_processor": "RC 처리기", "worker_push": "푸시"}
     try:
         async with get_sessionmaker()() as session:
             values = await config_store.get_config_values(session, [config_store.WORKER_LAST_SUCCESS_KEY,
@@ -143,6 +146,20 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
         lines.append(f"RC 처리기(이번 tick): 결과 {handled}건 / 예외 {failures}건"
                      + (" (처리 대상 없음, provider 정상 검증 아님)" if not handled and not failures else ""))
         attention |= failures > 0
+    if counts is not None:
+        lines.append(
+            f"작업(이번 tick): 일기 {counts.get('diaries', 0)} / 실패 {counts.get('diary_failed', 0)}"
+            f" / 시간 초과 {counts.get('timed_out', 0)} / 다음 tick 인계 {counts.get('deadline_skipped', 0)}"
+            f" / 해석 불가 timezone {counts.get('tz_unresolvable', 0)}종"
+        )
+        lines.append(
+            f"푸시(이번 tick): 수락 {counts.get('push_sent', 0)}"
+            f" / 무효 토큰 {counts.get('push_invalid_token', 0)}"
+            f" / 비활성 {counts.get('push_invalidated', 0)}"
+            f" / 설정 {counts.get('push_setup_error', 0)}"
+            f" / 일시 {counts.get('push_transient', 0)}"
+            f" / payload {counts.get('push_payload_error', 0)}"
+        )
     try:
         start, end = cost_window(now)
         async with get_sessionmaker()() as session:
@@ -160,6 +177,12 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
 
 
 async def emit(now: datetime, counts: dict) -> None:
+    """관측·전송 전체를 제한한다. 미통지 사건은 다음 tick에 다시 관측한다."""
+    async with asyncio.timeout(_MONITORING_BUDGET_S):
+        await _emit(now, counts)
+
+
+async def _emit(now: datetime, counts: dict) -> None:
     for signal, failed, succeeded in (
         ("diary", counts.get("diary_failed", 0), counts.get("diaries", 0) + counts.get("diary_none", 0)),
         ("memory", counts.get("memory_failed", 0), counts.get("memory_ok", 0)),
@@ -172,6 +195,18 @@ async def emit(now: datetime, counts: dict) -> None:
             recovery=f"워커 {signal} 정상 실행 재관측 (과거 결과물 복구 여부는 별도 확인)",
             importance=tier,
         ), now)
+    push_sent = counts.get("push_sent", 0)
+    push_failed = sum(counts.get(key, 0) for key in (
+        "push_setup_error", "push_transient", "push_payload_error",
+    ))
+    push_outage = push_sent == 0 and push_failed >= settings.worker_push_outage_min
+    await monitoring_state.publish(monitoring_state.Observation(
+        "worker_push", True if push_outage else False if push_sent else None,
+        str(failure_tier(push_failed)),
+        f"워커 푸시 전면 실패 — 푸시 실패 {push_failed}(수락 {push_sent})",
+        recovery="워커 푸시 수락 재관측 (개별 과거 발송 복구 여부는 별도 확인)",
+        importance=failure_tier(push_failed),
+    ), now)
     rc = None
     query_failed = False
     try:

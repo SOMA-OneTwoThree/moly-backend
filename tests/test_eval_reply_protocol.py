@@ -16,6 +16,7 @@ from app.services import llm, prompts
 
 BASE, FREE = "voice-base-ko-v5", "voice-free-ko-v5"
 CONVERSATION = "voice-conversation-ko-v6"
+STRUCTURED = "voice-structured-ko-v7"
 MESSAGES = [{"role": "user", "content": '  합성 "café"\n그대로  '}]
 
 
@@ -118,26 +119,28 @@ async def test_v5_plain_wire_and_diagnostics_preserve_registered_contract(monkey
     assert protocol.response_format(candidate) is None
 
 
-async def test_conversation_candidate_keeps_existing_model_and_one_192_token_send(monkeypatch):
-    result, client = await call(monkeypatch, completion("합성 답"), CONVERSATION)
-    system = prompts.eval_system_prompt("ko", CONVERSATION)[0]
+@pytest.mark.parametrize("candidate", (CONVERSATION, STRUCTURED))
+async def test_korean_candidates_keep_existing_model_and_one_192_token_send(monkeypatch, candidate):
+    result, client = await call(monkeypatch, completion("합성 답"), candidate)
+    system = prompts.eval_system_prompt("ko", candidate)[0]
     assert client.calls == [{
         "model": "gpt-6-luna", "messages": [{"role": "system", "content": system}, *MESSAGES],
         "reasoning_effort": "none", "max_completion_tokens": 192, "timeout": 10.0,
     }]
     assert result["text"] == "합성 답"
-    assert protocol.protocol_profile(CONVERSATION) == ("gpt-6-luna", "none", (192,))
-    assert protocol.protocol_manifest(CONVERSATION, 192) == protocol.protocol_manifest(FREE, 192)
+    assert protocol.protocol_profile(candidate) == ("gpt-6-luna", "none", (192,))
+    assert protocol.protocol_manifest(candidate, 192) == protocol.protocol_manifest(FREE, 192)
 
 
 @pytest.mark.parametrize("overrides", (
     {"max_tokens": 1024}, {"model": "gpt-6-sol"}, {"language": "ja"}, {"system": "override"},
 ))
-async def test_conversation_candidate_rejects_changed_profile_before_sdk(monkeypatch, overrides):
+@pytest.mark.parametrize("candidate", (CONVERSATION, STRUCTURED))
+async def test_korean_candidates_reject_changed_profile_before_sdk(monkeypatch, overrides, candidate):
     monkeypatch.setattr(llm, "_get_openai_client", lambda: pytest.fail("Invalid input reached SDK"))
     args = dict(
-        candidate_id=CONVERSATION, model="gpt-6-luna", max_tokens=192,
-        system=prompts.eval_system_prompt("ko", CONVERSATION)[0], messages=MESSAGES,
+        candidate_id=candidate, model="gpt-6-luna", max_tokens=192,
+        system=prompts.eval_system_prompt("ko", candidate)[0], messages=MESSAGES,
     )
     with pytest.raises(ValueError):
         await protocol.run(**{**args, **overrides})

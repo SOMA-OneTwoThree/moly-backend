@@ -104,6 +104,7 @@ def test_retained_registry_has_no_inactive_alias_or_unregistered_fallback():
         "voice-base-ko-v5",
         "voice-free-ko-v5",
         "voice-conversation-ko-v6",
+        "voice-structured-ko-v7",
     )
     for language, candidate in (("ja", "voice-free-ko-v5"), ("fr", "c0"), ("ko", "unknown")):
         with pytest.raises(ValueError):
@@ -120,6 +121,9 @@ def test_conversation_candidate_replaces_only_the_conversation_section():
     )
     assert candidate_version == "cappy-voice-20261015-v6"
     assert baseline_version == "cappy-voice-20261014-v5"
+    assert hashlib.sha256(candidate.encode()).hexdigest() == (
+        "4f209e309a295d450d526e78bc301eeb9440b9fb389fd039cc9353bb15ae5ee0"
+    )
     assert candidate != baseline
     assert candidate.count("[지금 대화]") == 1
 
@@ -135,3 +139,70 @@ def test_conversation_candidate_rejects_changed_source_boundaries(monkeypatch, b
     monkeypatch.setattr(prompts, "_VOICE_FREE_KO_V5", prompts._VOICE_FREE_KO_V5 + boundary)
     with pytest.raises(ValueError, match="boundary changed"):
         prompts.eval_system_prompt("ko", "voice-conversation-ko-v6")
+
+
+def test_structured_candidate_has_fixed_identity_and_separate_information_permissions():
+    system, version = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    assert system == prompts._VOICE_STRUCTURED_KO_V7
+    assert version == "cappy-voice-20261015-v7"
+    assert hashlib.sha256(system.encode()).hexdigest() == (
+        "dd7a69992c95bd8ef380673c64738dc59425f51f59dfd4c66daee2268c2cb0ca"
+    )
+    headings = (
+        "[정체성]", "[성격]", "[말하는 방식]", "[정보 사용 기준]", "[기본 취향]",
+        "[사용자 사실과 기억]", "[서버 상태와 도구]", "[시간과 기억]",
+        "[앱에서 선택한 감정]", "[운세]", "[안전과 정체성]",
+    )
+    assert all(system.count(heading) == 1 for heading in headings)
+    assert [system.index(heading) for heading in headings] == sorted(
+        system.index(heading) for heading in headings
+    )
+    assert "클래식 엘피" not in system.split("[기본 취향]", 1)[0]
+
+
+def test_structured_candidate_preserves_all_supplied_fact_and_safety_contracts():
+    baseline = prompts._VOICE_FREE_KO_V5
+    system, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    section_boundaries = (
+        ("[말하기]", "[지금 대화]"),
+        ("[사실과 기능]", "[시간과 기억]"),
+        ("[시간과 기억]", "[앱에서 선택한 감정]"),
+        ("[앱에서 선택한 감정]", "[운세]"),
+        ("[운세]", "[안전과 정체성]"),
+    )
+    for start, end in section_boundaries:
+        original = baseline.split(start + "\n", 1)[1].split("\n\n" + end, 1)[0]
+        # The facts block is deliberately split into user provenance, media and server state.
+        for paragraph in original.split("\n"):
+            assert paragraph in system
+    assert baseline.split("[안전과 정체성]\n", 1)[1] in system
+
+
+def test_structured_candidate_distinguishes_absent_state_from_empty_appearance():
+    system, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    state = system.split("[서버 상태와 도구]\n", 1)[1].split("\n\n[시간과 기억]", 1)[0]
+    assert "제공된 현재 상태에 네 모습 항목이 없으면 아무것도 걸치지 않은 상태야." in state
+    assert "현재 상태 블록 자체가 없으면 네 모습이나 현재 활동은 모르는 범위야." in state
+    # These are prompt contracts, not a claim that the model passed a behavioural test.
+
+
+def test_structured_candidate_gates_background_tastes_without_banning_requested_analysis():
+    system, _ = prompts.eval_system_prompt("ko", "voice-structured-ko-v7")
+    tastes = system.split("[기본 취향]\n", 1)[1].split("\n\n[사용자 사실과 기억]", 1)[0]
+    assert "캐피의 취향을 직접 묻거나 그 항목을 캐피가 좋아하는지 물을 때만 답에 써." in tastes
+    assert "그 항목 자체를 꺼냈을 때" not in tastes
+    assert "네 의견·가정적 선택·바람은 말해도 돼." in tastes
+    assert "설명·감상·분석·확인·요약·인용이나 자기 행동의 평가를 부탁하면 그 요청에 답해." in system
+    assert "짧은 수락이나 네 느낌은 말해도 돼." in system
+
+
+@pytest.mark.parametrize("language", ["ja", "en", "ko-KR", ""])
+def test_structured_candidate_is_korean_only(language):
+    with pytest.raises(ValueError, match="Korean only"):
+        prompts.eval_system_prompt(language, "voice-structured-ko-v7")
+
+
+@pytest.mark.parametrize("candidate", ["voice-structured-ko-v70", "voice-structured-ko-v7-custom"])
+def test_structured_candidate_has_no_unregistered_alias(candidate):
+    with pytest.raises(ValueError, match="Unknown evaluation prompt candidate"):
+        prompts.eval_system_prompt("ko", candidate)

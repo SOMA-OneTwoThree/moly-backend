@@ -4456,7 +4456,7 @@ components:
               minLength: 1
             flow:
               type: array
-              minItems: 3
+              minItems: 2
               maxItems: 3
               items:
                 type: string
@@ -4488,8 +4488,8 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
                   items:
                     type: string
             money:
@@ -4505,8 +4505,8 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
                   items:
                     type: string
             work:
@@ -4522,8 +4522,8 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
                   items:
                     type: string
             energy:
@@ -4539,8 +4539,8 @@ components:
                   maximum: 100
                 text:
                   type: array
-                  minItems: 2
-                  maxItems: 2
+                  minItems: 1
+                  maxItems: 3
                   items:
                     type: string
         lucky_color:

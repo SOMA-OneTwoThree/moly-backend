@@ -1374,11 +1374,17 @@ async def post_message(
                 user_id, len(reply_text) - len(stripped),
             )
             reply_text = stripped
-    # Other scripts can be names, quotations or explicitly requested words.
-    # Detect unexpected scripts without deleting the content or another model call.
+    # Preserve the locale's normal script, Latin names and the user's nickname.
+    # Quotation marks do not exempt unrequested scripts from the existing language filter.
     if text_clean.has_foreign(reply_text, language=language, keep=nick):
+        reply_text = text_clean.strip_foreign(
+            reply_text, language=language, keep=nick, preserve_linebreaks=True,
+        ) or ""
+        # Foreign-only output can otherwise become bare quotes/punctuation and pass nonempty validation.
+        if not any(ch.isalnum() for ch in reply_text):
+            reply_text = ""
         _log.warning(
-            "응답 언어 외 문자 감지(egress) user=%s lang=%s reply_len=%d",
+            "응답 언어 외 문자 제거(egress) user=%s lang=%s reply_len=%d",
             user_id, language, len(reply_text),
         )
     reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)

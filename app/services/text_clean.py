@@ -159,12 +159,16 @@ def has_foreign(text: str | None, *, language: str | None, keep: str | None = No
     return any(_is_foreign(ch, allowed) for seg in _segments(text, keep) for ch in seg)
 
 
-def strip_foreign(text: str | None, *, language: str | None, keep: str | None = None) -> str | None:
+def strip_foreign(
+    text: str | None, *, language: str | None, keep: str | None = None,
+    preserve_linebreaks: bool = False,
+) -> str | None:
     """응답 언어에 없어야 할 계열의 글자를 지우고 공백을 정규화한다. `keep`(닉네임)은 그대로 둔다.
 
     위치와 무관하게 삭제하므로 허용 범위가 불완전하면 정상 본문도 손상된다.
     일본어 반복 기호(々)처럼 정상 표기가 빠지지 않도록 언어별 회귀 테스트로 검증한다.
-    호출측 로그는 삭제한 글자를 남겨 오탐과 모델의 외래문자 누출을 구분할 수 있게 한다.
+    preserve_linebreaks=True면 대화의 줄바꿈을 유지한다. 기존 일기 호출의 기본 정규화는 그대로다.
+    호출측 로그에는 원문이나 삭제한 글자를 남기지 않는다.
     """
     if not text:
         return text
@@ -174,7 +178,12 @@ def strip_foreign(text: str | None, *, language: str | None, keep: str | None = 
     kept = [
         "".join(ch for ch in seg if not _is_foreign(ch, allowed)) for seg in _segments(text, keep)
     ]
-    return _WS.sub(" ", (keep or "").join(kept)).strip()
+    out = (keep or "").join(kept)
+    if preserve_linebreaks:
+        out = out.replace("\r\n", "\n").replace("\r", "\n")
+        out = _HORIZONTAL_WS.sub(" ", out)
+        return re.sub(r" +(?=\n)|(?<=\n) +", "", out).strip()
+    return _WS.sub(" ", out).strip()
 
 
 # 메타 프리앰블 탐지/제거 — 모델이 한국어 응답 앞에 자기 판단·방침을 라틴 문자 '문장'으로 흘리는

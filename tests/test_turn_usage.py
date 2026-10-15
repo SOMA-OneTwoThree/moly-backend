@@ -73,7 +73,7 @@ def _gating(**over):
 
 
 def _patch_repair_turn(monkeypatch):
-    """타언어 문자는 파괴적으로 삭제하지 않고 보존한다. 추가 호출·차감은 없다."""
+    """허용되지 않은 문자는 코드로 제거한다. 추가 호출·차감은 없다."""
     async def _res(session, user_id, **kwargs):
         return _gating()
 
@@ -94,7 +94,7 @@ async def test_foreign_character_backstop_does_not_add_a_third_llm_call(monkeypa
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-repair")
 
-    assert out.reply.content == "나도 我 생각엔."
+    assert out.reply.content == "나도 생각엔."
     assert calls == ["chat"]
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")
@@ -128,7 +128,7 @@ async def test_kill_switch_off_bills_chat_call_only(monkeypatch):
     req = SimpleNamespace(text="안녕", greeting_id=None)
     out = await c.post_message(session, UID, req, "idem-ks")
 
-    assert out.reply.content == "나도 我 생각엔."
+    assert out.reply.content == "나도 생각엔."
     assert calls == ["chat"]
     reply_msg = next(m for m in session.added
                      if isinstance(m, Message) and m.sender == "moly")

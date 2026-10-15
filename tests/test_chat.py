@@ -614,3 +614,54 @@ async def test_normal_reply_does_not_warn_empty(monkeypatch, patched, caplog):
     with caplog.at_level("WARNING", logger="moly-backend"):
         await chat_service.post_message(FakeSession(), UID, SimpleNamespace(text="안녕", greeting_id=None), "idem-ok")
     assert "빈 답장 저장" not in caplog.text
+
+
+@pytest.mark.parametrize(("language", "reply", "expected"), [
+    ("ko", '"반가워"\n다음 줄 مرحبا ئۇيغۇرچە Ж', '"반가워"\n다음 줄'),
+    ("ja", '「時々、〆切を見よう」\nカフェ مرحبا ئۇيغۇرچە Ж', '「時々、〆切を見よう」\nカフェ'),
+    ("en", '"Take your time"\nNext line café مرحبا ئۇيغۇرچە Ж', '"Take your time"\nNext line café'),
+])
+async def test_post_message_filters_foreign_scripts_and_preserves_locale_format(monkeypatch, language, reply, expected):
+    gate = _gating()
+    gate.profile.language = language
+
+    async def resolve(*args, **kwargs):
+        return gate
+
+    async def generate(*args, **kwargs):
+        return LLMResult(text=reply, input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(gating_module, "resolve", resolve)
+    monkeypatch.setattr(llm_module, "generate", generate)
+    session = FakeSession()
+    req = SimpleNamespace(text="hello", locale=language, greeting_id=None)
+    out = await chat_service.post_message(session, UID, req, "foreign-script")
+    assert out.reply.content == expected
+    stored = [m for m in session.added if isinstance(m, Message) and m.sender == "moly"]
+    assert stored[0].content == expected
+    assert out.tokens_used == 1110  # Publication/charging is unchanged for a valid reply.
+
+
+@pytest.mark.parametrize("language", ["ko", "ja", "en"])
+@pytest.mark.parametrize("reply", ["مرحبا ئۇيغۇرچە", '"مرحبا"', "؟ مرحبا！", "😊 ئۇيغۇرچە"])
+async def test_foreign_only_reply_returns_503_without_messages_or_charge(monkeypatch, reply, language):
+    async def resolve(*args, **kwargs):
+        gate = _gating()
+        gate.profile.language = language
+        return gate
+
+    async def generate(*args, **kwargs):
+        return LLMResult(text=reply, input_tokens=10, output_tokens=20)
+
+    async def accumulate(*args, **kwargs):
+        pytest.fail("An unusable reply must not charge the user")
+
+    monkeypatch.setattr(gating_module, "resolve", resolve)
+    monkeypatch.setattr(llm_module, "generate", generate)
+    monkeypatch.setattr(chat_service, "_accumulate_tokens", accumulate)
+    session = FakeSession()
+    with pytest.raises(AppError) as caught:
+        await chat_service.post_message(session, UID, SimpleNamespace(text="안녕", locale=language, greeting_id=None), "foreign-only")
+    assert caught.value.code == "AI_UNAVAILABLE"
+    assert caught.value.http_status == 503
+    assert not any(isinstance(m, Message) for m in session.added)

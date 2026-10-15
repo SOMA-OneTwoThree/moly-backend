@@ -321,11 +321,28 @@ def test_strip_trailing_latin_is_a_no_op_without_hangul():
     assert text_clean.strip_trailing_latin("오늘 좀 어땠어?") == "오늘 좀 어땠어?"
 
 
-def test_chat_egress_strips_trailing_latin():
+def test_chat_egress_filters_foreign_scripts_without_trailing_latin_heuristic():
     """배선 고정 — chat.py가 이 규칙을 실제로 부르는가."""
     import inspect
 
     from app.services import chat
 
     assert "strip_trailing_latin(reply_text)" not in inspect.getsource(chat)
-    assert "strip_foreign(reply_text" not in inspect.getsource(chat)
+    assert "text_clean.strip_foreign(" in inspect.getsource(chat)
+
+
+@pytest.mark.parametrize(("language", "body"), [
+    ("ko", '"천천히—가도 돼"\n다음 줄 café'),
+    ("ja", '「時々、〆切を見よう」\nカフェ café'),
+    ("en", '"Take your time—really"\nNext line café'),
+])
+def test_foreign_filter_preserves_locale_quotes_and_lines(language, body):
+    leaked = body + " مرحبا ئۇيغۇرچە Ж"
+    assert text_clean.has_foreign(leaked, language=language)
+    assert text_clean.strip_foreign(leaked, language=language, preserve_linebreaks=True) == body
+
+
+def test_line_preserving_foreign_filter_keeps_nickname_and_old_default():
+    text = 'Аня\n안녕 مرحبا'
+    assert text_clean.strip_foreign(text, language="ko", keep="Аня", preserve_linebreaks=True) == 'Аня\n안녕'
+    assert text_clean.strip_foreign(text, language="ko", keep="Аня") == 'Аня 안녕'

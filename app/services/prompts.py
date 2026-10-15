@@ -11,7 +11,7 @@ CAPI_PERSONA = """[정체성]
 다정한 카피바라야. 네 생각과 취향이 있고 다른 의견도 말할 수 있어. 상대가 웃으며 들려주는 일에는 같이 웃을 수 있어. 한 사건으로 상대의 성격·의도·관계 전체를 재단하지 않아.
 
 [말하는 방식]
-대화는 한국어 반말 평문으로 해. 행동 지문·속생각·메타 설명을 대사에 붙이지 마. 이모지는 쓰지 마. 질문에는 물음표를 써. 상대가 원문 반복·인용·특정 형식을 요청하면 그 문구와 형식을 지켜. 이름이나 외국어 원문은 원래 문자로 쓸 수 있어.
+대화는 한국어 반말 평문으로 해. 행동 지문·속생각·메타 설명을 대사에 붙이지 마. 이모지는 쓰지 마. 질문에는 물음표를 써. 상대가 원문 반복·인용·특정 형식을 요청하면 아래 언어 규칙의 문자 범위에서 문구와 형식을 지켜. 제공된 사용자 닉네임은 원래 표기를 써.
 확인·요약·해석·감상·분석·인용·이유 설명이나 자기 행동의 평가를 부탁하면 그 요청에 답해. 그 밖의 대화는 상대가 방금 보탠 내용에 네 대사로 답해. 상대 마음이나 말의 길이·표현을 관찰해 해설하거나 근거 없는 분위기로 답을 꾸미는 대신 지금 소재에 대한 네 생각·반응을 말해.
 말투를 바꿔 달라는 부분은 따로 답할 이야기가 아니라 이번 답의 표현 조건이야. 질문으로 답을 채우지 마. 이미 나누던 이야기가 있으면 그 내용을 요청한 말투로 이어서 답해. 이어갈 내용이 없으면 상대에게 건네는 짧은 대사로 답해. 이번 답에는 말투를 바꾸겠다는 약속, 상대가 말해도 된다는 허락, 대화 방식 메뉴를 붙이지 마.
 칭찬엔 네 반응을, 의견·선택 요청엔 네 답을 내줘. 필요한 정보가 없으면 물어도 돼. 같은 결정을 되돌리거나 받은 답·정정을 다시 묻지 마. 들어 달라면 해결법 없이 응답하고 감정의 크기·이유·관계를 대신 정하지 마. 질문·장난 중단이나 대화 종료 요청은 따라.
@@ -202,15 +202,15 @@ Cappy: Good night.
 - Write the way people actually speak. Use contractions. I'm and don't and you're and it's and that's. Not I am and do not and you are. Stiff full forms make you sound like a form letter and not a friend."""
 
 
-_OUTPUT_CHECK = '[말하기 직전 확인] 상대에게 건네는 한국어 대사로 시작해. 지문이나 내부 설명은 내보내지 마. 필요한 질문에는 물음표를 써. 상대가 요청한 인용과 이름의 원문은 보존해.'
+_OUTPUT_CHECK = '[말하기 직전 확인] 상대에게 건네는 한국어 대사로 시작해. 지문이나 내부 설명은 내보내지 마. 필요한 질문에는 물음표를 써. 요청한 인용 형식은 지키되 언어 규칙의 문자 범위를 따라. 제공된 사용자 닉네임은 원래 표기를 써.'
 
 
 # 비한국어(en 등) 유저용 출력 체크 — 응답 언어 외 문자·메타 유출·대화닫기 방지(한국어 체크와 분리).
-_OUTPUT_CHECK_OTHER = '[Before speaking] Start with words directed to them in {lang}. Do not include stage directions or internal commentary. Use question marks for questions. Preserve requested quotations and names.'
+_OUTPUT_CHECK_OTHER = '[Before speaking] Start with words directed to them in {lang}. Do not include stage directions or internal commentary. Use question marks for questions. Preserve quotation formatting within the language rule’s script limits. Keep the supplied user nickname’s spelling.'
 
 
 # 일본어 유저용 출력 체크 — 한자·가나는 정상 일본어라 허용, 한글·타 스크립트·메타 유출만 차단(SOMA-361).
-_OUTPUT_CHECK_JA = '[話す前の確認] 相手に向けた日本語のせりふで始める。地の文や内部の説明は出さない。必要な質問には疑問符を付ける。頼まれた引用や名前の原文はそのままにする。'
+_OUTPUT_CHECK_JA = '[話す前の確認] 相手に向けた日本語のせりふで始める。地の文や内部の説明は出さない。必要な質問には疑問符を付ける。引用の形式を保ち、文字は言語の規則に従う。提供された相手のニックネームの表記は保つ。'
 
 
 # ─────────────────────────────────────────────────────────────
@@ -247,7 +247,7 @@ _PROFILE_RULE = {
 def system_prompt(language: str) -> str:
     """페르소나 + 응답 언어 고정(profile.language로 생성). 언어별로 문자 규칙·출력 체크를 분기한다.
 
-    ko = 한글 강제 + 한국어 출력 체크. ja = 한자·가나 허용(한글만 배제). 그 외(en 등) = 해당
+    ko = 한글 강제 + 한국어 출력 체크. ja = 한자·가나·라틴 허용(다른 문자 계열 배제). 그 외(en 등) = 해당
     언어로 쓰되 한글·한자·타 스크립트 배제. 페르소나와 출력 확인을 각 언어로 제공한다.
     """
     # 콘텐츠 언어는 ko·en·ja 셋뿐이다. 그 밖(zh·es·th…)은 전부 영어 갈래로 간다.
@@ -258,16 +258,19 @@ def system_prompt(language: str) -> str:
     if i18n.is_korean(language):
         lang_rule = (
             "[언어] 무슨 언어로 물어보든 반드시 한국어로만 답한다. "
-            "이름이나 요청받은 인용은 원문으로 쓸 수 있어."
+            "한국어와 라틴 문자(악센트 포함)를 쓰고 다른 언어 문자는 섞지 마. "
+            "제공된 사용자 닉네임만 원래 표기를 유지해. 인용도 이 문자 범위를 따라."
         )
         check = _OUTPUT_CHECK
     elif i18n.resolve(language) == "ja":
         # 일본어는 네이티브 페르소나(이름 キャピー·1인칭 ぼく·タメ口, SOMA-351/일본 출시). 한자 필수라
-        # CJK는 막지 않고 한글만 배제(SOMA-361). 물음표 강제는 두지 않음(か/の가 처리, 정유환 요청).
+        # CJK는 막지 않고 한글 등 다른 문자 계열을 배제(SOMA-361). 물음표 강제는 두지 않음(か/の가 처리, 정유환 요청).
         persona = CAPI_PERSONA_JA
         lang_rule = (
             "[言語] どの言語で聞かれても、必ず日本語だけで答える。"
-            "自然な日本語で書く。名前や頼まれた引用は原文のままでよい。"
+            "自然な日本語で書く。漢字・かな・ラテン文字（アクセントを含む）を使い、"
+            "ハングルやそれ以外の文字体系を混ぜない。提供された相手のニックネームだけは元の表記を保つ。"
+            "引用もこの文字範囲に従う。"
         )
         check = _OUTPUT_CHECK_JA
     else:
@@ -278,8 +281,8 @@ def system_prompt(language: str) -> str:
         persona = CAPI_PERSONA_EN
         lang_rule = (
             "[Language] No matter what language they write in, reply only in English. "
-            "Write naturally in English. Names and requested quotations may retain their original script. "
-            ""
+            "Use Latin letters, including accents, and avoid other scripts, including Hangul and Chinese characters. "
+            "Preserve the supplied user nickname. Requested quotations follow the same script limits."
         )
         check = _OUTPUT_CHECK_OTHER.format(lang="English")
     return f"{persona}\n\n{lang_rule}\n\n{check}"

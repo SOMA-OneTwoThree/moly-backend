@@ -21,7 +21,8 @@ def test_chat_system_prompt_ja_allows_kanji_forbids_hangul():
     sp = prompts.system_prompt("ja")
     assert "Chinese characters" not in sp   # ja는 한자 금지 안 함(정상 일본어 보존, SOMA-361 C2)
     assert "ハングル" in sp                   # 한글 혼입만 금지
-    assert "Names and requested quotations" in prompts.system_prompt("en")  # 인용·이름 원문 예외
+    assert "Requested quotations follow the same script limits" in prompts.system_prompt("en")
+    assert "Preserve the supplied user nickname" in prompts.system_prompt("en")
     assert "한국어" in prompts.system_prompt("ko")               # ko 회귀 없음
 
 

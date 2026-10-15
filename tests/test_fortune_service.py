@@ -16,6 +16,7 @@ from app.core.errors import AppError
 from app.core.security import get_current_user
 from app.main import app
 from app.schemas.fortune import (
+    FortuneCategoryResult,
     DailyFortuneRevealResponse,
     DailyFortuneStatusResponse,
     FortuneBasicOverallResult,
@@ -444,7 +445,7 @@ def test_basic_and_detailed_overall_require_two_or_three_paragraphs(schema, para
 
 
 @pytest.mark.parametrize("semantic_schema", [3, 4])
-@pytest.mark.parametrize("copy_version", ["fortune-copy.v3-independent.1", "fortune-copy.v3-ko-editorial.1", "fortune-copy.v3-editorial.1"])
+@pytest.mark.parametrize("copy_version", ["fortune-copy.v3-independent.1", "fortune-copy.v3-ko-editorial.1", "fortune-copy.v3-editorial.1", "fortune-copy.v6-fortune.1", "fortune-copy.v8-localized.3"])
 def test_existing_snapshot_stays_current_after_editorial_revision(semantic_schema, copy_version):
     row = SimpleNamespace(
         fortune_date=date(2026, 8, 27),
@@ -489,3 +490,29 @@ def test_public_projection_preserves_snapshot_and_locale_fallback(locale, paragr
     basic["overall"]["flow"].append("Response-only change.")
     full["overall"]["flow"].clear()
     assert row.copy_by_locale == saved
+
+
+@pytest.mark.parametrize("count", [2, 3])
+def test_reader_accepts_both_old_and_v8_overall_lengths(count):
+    overall = _result_wire()["overall"]
+    overall["flow"] = overall["flow"][:count]
+    assert FortuneOverallResult.model_validate(overall).flow == overall["flow"]
+
+
+@pytest.mark.parametrize("count", [1, 2, 3])
+def test_reader_accepts_both_old_and_v8_category_lengths(count):
+    category = {"score": 50, "text": ["A stored paragraph."] * count}
+    assert FortuneCategoryResult.model_validate(category).text == category["text"]
+
+
+@pytest.mark.parametrize("count", [0, 1, 4])
+def test_reader_still_rejects_unbounded_overall_lengths(count):
+    overall = {**_result_wire()["overall"], "flow": ["A stored paragraph."] * count}
+    with pytest.raises(ValidationError):
+        FortuneOverallResult.model_validate(overall)
+
+
+@pytest.mark.parametrize("count", [0, 4])
+def test_reader_still_rejects_unbounded_category_lengths(count):
+    with pytest.raises(ValidationError):
+        FortuneCategoryResult.model_validate({"score": 50, "text": ["A stored paragraph."] * count})

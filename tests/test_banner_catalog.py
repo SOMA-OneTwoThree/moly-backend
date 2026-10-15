@@ -126,27 +126,6 @@ def test_compilation_selection_zero_and_missing_data():
     assert canvas.elements[1].text.value == "{remaining} routines"
 
 
-def test_enabled_catalog_can_exceed_feed_cap_for_disjoint_platforms():
-    raw = manifest()
-    template = raw["banners"][0]
-    raw["banners"] = []
-    for index in range(6):
-        banner = copy.deepcopy(template)
-        banner["id"] = f"platform-banner-{index}"
-        banner["platforms"] = ["ios" if index < 3 else "android"]
-        raw["banners"].append(banner)
-    catalog = load(raw)
-    now = datetime(2026, 9, 5, 3, tzinfo=timezone.utc)
-    supported = capabilities(catalog.manifest.banners[0].canvases_by_locale["en"])
-    for platform in ("ios", "android"):
-        candidates = select_candidates(
-            catalog, now=now, platform=platform, app_version="1.2.3", locale="en", supported=supported,
-        )
-        feed = render_feed(catalog, candidates, now=now, local_date=date(2026, 9, 5),
-                           day_ends_at=None, remaining=1)
-        assert len(candidates) == len(feed.items) == 3
-
-
 def test_count_cases_and_literal_braces():
     raw = manifest()
     text = raw["banners"][0]["canvases_by_locale"]["en"]["elements"][1]

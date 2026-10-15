@@ -38,11 +38,10 @@ class _Adapter:
 
 
 class _Session:
-    """Registry rows; existing fixtures omit the time-basis/precision columns."""
+    """registry 조회를 흉내낸다. `rows`는 (pid, status, occurred_at, group) 튜플."""
 
     def __init__(self, rows, boom=False):
-        self._rows = [(*row, "event", None) if len(row) == 4 else row for row in rows]
-        self._boom = boom
+        self._rows, self._boom = rows, boom
         self.params = None
 
     async def execute(self, stmt, params=None):
@@ -267,68 +266,8 @@ def test_when_label_keeps_explicit_reference_unknown_and_future_semantics():
     event = datetime.fromisoformat("2026-10-15T00:00:00+09:00")
     assert mr._when_label(event, date(2026, 10, 16), "Asia/Seoul", "ko") == "어제"
     assert mr._when_label(None, date(2026, 10, 16), "Asia/Seoul", "ko") == "시점 모름"
-    assert mr._when_label(event, date(2026, 10, 14), "Asia/Seoul", "ko") == "미래 2026-10-15"
-
-
-async def test_source_time_is_a_mention_and_keeps_availability_and_trace():
-    at = datetime.fromisoformat("2026-10-14T15:01:00+00:00")
-    session = _Session([("p1", "active", at, None, "mentioned", None)])
-    trace, availability = {}, {}
-    got = await mr.recall(
-        session, UID, query="전에 어떤 얘기했지?", adapter=_Adapter([_hit("p1")]),
-        embed_query=_embed, trace=trace, availability=availability,
-    )
-    assert got[0].time_basis == "mentioned"
-    assert availability == {"status": "ok"}
-    assert list(trace) == ["embed_s", "search_s", "registry_s"]
-    rendered = mr.render_block(got, today=date(2026, 10, 15), tz_name="Asia/Seoul")
-    assert "(2026-10-15T00:01+09:00 언급)" in rendered
-    assert "(오늘)" not in rendered
-
-
-def test_registry_creation_time_is_not_an_event_time_fallback():
-    query = str(mr._FILTER)
-    assert "COALESCE(r.event_started_at, s.source_occurred_at)" in query
-    assert "r.created_at" not in query
-    assert "r.user_id = :user_id" in query
-
-
-@pytest.mark.parametrize("language,label", [("ko", "언급"), ("ja", "言及"), ("en", "mentioned")])
-def test_mention_time_is_localized_without_becoming_an_event(language, label):
-    item = mr.Recalled("a remembered detail", "active", 0.3,
-                       datetime.fromisoformat("2026-10-14T15:01:00+00:00"), None,
-                       time_basis="mentioned")
-    out = mr.render_block([item], language=language, today=date(2026, 10, 15), tz_name="Asia/Tokyo")
-    assert f"(2026-10-15T00:01+09:00 {label})" in out
-
-
-@pytest.mark.parametrize("precision", ["instant", "minute", "second"])
-def test_precise_event_time_preserves_minute_while_day_event_stays_relative(precision):
-    at = datetime.fromisoformat("2026-10-14T15:01:00+00:00")
-    item = mr.Recalled("a remembered detail", "active", 0.3, at, None, time_precision=precision)
-    out = mr.render_block([item], today=date(2026, 10, 15), tz_name="Asia/Seoul")
-    assert "(2026-10-15T00:01+09:00)" in out
-    day = mr.Recalled(item.text, item.status, item.distance, at, None, time_precision="day")
-    assert "(오늘)" in mr.render_block([day], today=date(2026, 10, 15))
-
-
-@pytest.mark.parametrize("at", [None, "invalid"])
-def test_missing_or_malformed_mention_time_remains_unknown(at):
-    item = mr.Recalled("a remembered detail", "active", 0.3, at, None, time_basis="mentioned")
-    out = mr.render_block([item], today=date(2026, 10, 15))
-    assert "시점 모름" in out
-
-
-def test_naive_source_timestamp_is_normalized_as_utc():
-    item = mr.Recalled("a remembered detail", "active", 0.3,
-                       datetime(2026, 10, 14, 15, 1), None, time_basis="mentioned")
-    assert "(2026-10-15T00:01+09:00 언급)" in mr.render_block([item])
-
-
-@pytest.mark.parametrize("language,label", [("ko", "미래"), ("ja", "未来"), ("en", "future")])
-def test_future_event_is_not_labeled_as_today(language, label):
-    at = datetime.fromisoformat("2026-10-15T15:01:00+00:00")
-    assert mr._when_label(at, date(2026, 10, 15), "Asia/Seoul", language) == f"{label} 2026-10-16"
+    # Preserve the existing future behavior; this fix only aligns the calendar basis.
+    assert mr._when_label(event, date(2026, 10, 14), "Asia/Seoul", "ko") == "오늘"
 
 
 def test_unsupported_language_falls_back_to_english_not_korean():

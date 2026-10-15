@@ -15,6 +15,18 @@ from app.schemas.feedback import CreateFeedbackRequest
 from app.services.account import _uid
 from app.services import llm, slack_notify, usage_ledger
 
+
+async def create_feedback(
+    session: AsyncSession, user_id: str, req: CreateFeedbackRequest
+) -> str | None:
+    """피드백 저장 후 유저 닉네임을 반환한다(슬랙 알림 표시용). 프로필 없으면 None."""
+    uid = _uid(user_id)
+    session.add(Feedback(user_id=uid, message=req.message, contact=req.contact))
+    await session.commit()
+    profile = await session.get(Profile, uid)
+    return profile.nickname if profile is not None else None
+
+
 _log = logging.getLogger(__name__)
 _TRANSLATE_TIMEOUT_S = 8.0
 _LEDGER_TIMEOUT_S = 1.0
@@ -88,6 +100,7 @@ async def _translate_once(message: str, *, experiment_id: str | None, timings: d
                 )
     except Exception as exc:  # noqa: BLE001  계측 지연이 번역 대기 시간을 소진하지 않는다.
         _log.warning("feedback 원가 시작 기록 미확정: %s", type(exc).__name__)
+    sent = False
     try:
         async with asyncio.timeout(_TRANSLATE_TIMEOUT_S):
             with _translation_phase(timings, "client"):
@@ -95,6 +108,7 @@ async def _translate_once(message: str, *, experiment_id: str | None, timings: d
                     max_retries=0, timeout=_TRANSLATE_TIMEOUT_S,
                 )
             with _translation_phase(timings, "provider"), slack_notify.private_transport():
+                sent = True
                 response = await client.chat.completions.create(
                     model=model,
                     messages=[{"role": "system", "content": _TRANSLATE_SYSTEM},
@@ -102,25 +116,38 @@ async def _translate_once(message: str, *, experiment_id: str | None, timings: d
                     max_completion_tokens=_TRANSLATE_MAX_TOKENS,
                     reasoning_effort="none",
                 )
+    except asyncio.CancelledError:
+        if sent:
+            await _record_usage(usage_ledger.close_unknown(call_id, error_code="translation_cancelled"))
+        else:
+            await _record_usage(usage_ledger.close_failed(call_id, error_code="translation_cancelled_before_send"))
+        raise
     except Exception as exc:  # noqa: BLE001  원문 전달을 막지 않는다.
-        await _record_usage(usage_ledger.close_failed(
-            call_id, error_code=type(exc).__name__,
-            latency_ms=int((perf_counter() - started) * 1000),
-        ))
+        if sent:
+            await _record_usage(usage_ledger.close_unknown(call_id, error_code="translation_response_unavailable"))
+        else:
+            await _record_usage(usage_ledger.close_failed(
+                call_id, error_code=type(exc).__name__,
+                latency_ms=int((perf_counter() - started) * 1000),
+            ))
         _log.warning("feedback 번역 미제공: %s", type(exc).__name__)
         return None
 
     usage = getattr(response, "usage", None)
     if usage is None:
-        await _record_usage(usage_ledger.close_failed(call_id, error_code="usage_unavailable"))
+        await _record_usage(usage_ledger.close_unknown(call_id, error_code="usage_unavailable"))
     else:
-        measured = llm._openai_usage(usage, model)
-        await _record_usage(usage_ledger.close_call(
-            call_id, provider="openai", model=model, **measured.ledger_usage(),
-            model_snapshot=getattr(response, "model", None),
-            provider_request_id=getattr(response, "id", None),
-            latency_ms=int((perf_counter() - started) * 1000),
-        ))
+        try:
+            measured = llm._openai_usage(usage, model)
+        except Exception:  # noqa: BLE001  usage 파싱 실패를 0원으로 확정하지 않는다.
+            await _record_usage(usage_ledger.close_unknown(call_id, error_code="usage_invalid"))
+        else:
+            await _record_usage(usage_ledger.close_call(
+                call_id, provider="openai", model=model, **measured.ledger_usage(),
+                model_snapshot=getattr(response, "model", None),
+                provider_request_id=getattr(response, "id", None),
+                latency_ms=int((perf_counter() - started) * 1000),
+            ))
     choices = getattr(response, "choices", None) or []
     if not choices or getattr(choices[0], "finish_reason", None) != "stop":
         return None
@@ -147,14 +174,3 @@ async def notify_feedback(
         user_id, nickname, message, contact,
         translation=translated, translation_unavailable=attempted and translated is None,
     ))
-
-
-async def create_feedback(
-    session: AsyncSession, user_id: str, req: CreateFeedbackRequest
-) -> str | None:
-    """피드백 저장 후 유저 닉네임을 반환한다(슬랙 알림 표시용). 프로필 없으면 None."""
-    uid = _uid(user_id)
-    session.add(Feedback(user_id=uid, message=req.message, contact=req.contact))
-    await session.commit()
-    profile = await session.get(Profile, uid)
-    return profile.nickname if profile is not None else None

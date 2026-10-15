@@ -18,14 +18,19 @@ from app.api.health import router as health_router
 from app.api.mood import router as mood_router
 from app.api.review import router as review_router
 from app.api.routine import router as routine_router
+from app.api.routine import templates_router as routine_templates_router
 from app.api.shop import router as shop_router
 from app.api.subscription import router as subscription_router
 from app.config import settings
 from app.core.errors import register_error_handlers
+from app.core.logging_setup import configure_logging
 
 
 def create_app() -> FastAPI:
     """API 앱 팩토리. 모듈 라우터는 여기서 등록(chat·diary… 는 구현 시 추가)."""
+    # 로깅을 가장 먼저 — 없으면 root에 핸들러가 없어 INFO(chat_turn_metrics 등)가 전부 버려지고
+    # WARNING은 레벨·로거명 없이 찍힌다.
+    configure_logging()
     # 비-local이면 StoreKit 결제/웹훅 설정 강제(누락 시 부팅 실패, 서명검증 우회 방지).
     settings.require_production_ready()
     # Swagger/OpenAPI는 로컬과 격리된 개발 서버에서만 노출한다. dev는 실제 인증·DB를 붙인
@@ -88,6 +93,7 @@ def create_app() -> FastAPI:
     app.include_router(mood_router)
     app.include_router(economy_router)
     app.include_router(routine_router)
+    app.include_router(routine_templates_router)
     app.include_router(banners_router)
     app.include_router(bgm_router)
     app.include_router(shop_router)

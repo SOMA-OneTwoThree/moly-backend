@@ -98,7 +98,7 @@ def test_build_summary_no_failures():
     assert "프리셋 12" in msg
     assert "미발행 5" in msg   # tombstone(사용자 노출 X, SOMA-389)
     assert "상주 consumer" in msg
-    assert "아침 38건" in msg
+    assert "아침 일기 38건" in msg
     assert "전체 유저 50명" in msg
     assert "45.3s" in msg
 
@@ -116,6 +116,17 @@ def test_build_summary_no_timezone_line_when_empty():
     """active_tzs 없으면 대상 타임존 라인 생략(하위호환)."""
     msg = _build_summary(_NOW, _COUNTS_OK, elapsed=1.0)
     assert "대상 타임존" not in msg
+
+
+def test_build_summary_shows_unresolvable_timezone_line():
+    """해석 불가 tz가 있으면 요약에 경고 1줄 — 그 tz 유저는 전원 스킵이라 숫자로는 안 보인다."""
+    msg = _build_summary(_NOW, {**_COUNTS_OK, "tz_unresolvable": 2}, elapsed=1.0)
+    assert "⚠️ 해석 불가 timezone 2종" in msg
+
+
+def test_build_summary_no_unresolvable_line_when_zero():
+    msg = _build_summary(_NOW, {**_COUNTS_OK, "tz_unresolvable": 0}, elapsed=1.0)
+    assert "해석 불가" not in msg
 
 
 def test_build_summary_with_failures():

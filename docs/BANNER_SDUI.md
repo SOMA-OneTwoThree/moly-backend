@@ -2,7 +2,7 @@
 
 배너의 디자인·문구·노출 조건은 서버 파일이, 이미지 파일은 Supabase Storage가 소유한다. 앱은 공통 규약에 따라 그리며 등록된 화면으로 이동한다. 필드·제약·호환성의 원본은 [공동 규약](BANNER_SDUI_CONTRACT.md)이다.
 
-`open_topic_conversation_v1`은 배너에 보인 질문으로 대화를 준비한다. [주제 대화](BANNER_TOPICS_DESIGN.md)에 선택·첫 답변·복구·콘텐츠 운영 규칙을 둔다. `open_conversation`은 일반 대화 진입이며 답변하지 않고 나간 주제 질문을 복원하지 않는다. 캐피의 일기 목록·감정 기록·루틴·타이머 설정·음악 선택 이동도 지원하며 action 이름은 공동 규약을 따른다.
+`open_topic_conversation_v1`은 배너에 보인 질문으로 대화를 준비한다. [주제 대화](BANNER_TOPICS_DESIGN.md)에 선택·첫 답변·복구·콘텐츠 운영 규칙을 둔다. `open_conversation`은 일반 대화 진입이며 답변하지 않고 나간 주제 질문을 복원하지 않는다. 캐피의 일기 목록·감정 기록·루틴·타이머 설정·음악 선택 이동도 지원하며 action 이름은 공동 규약을 따른다. 새 action을 지원하지 않는 앱에는 해당 카드를 제공하지 않는다.
 
 ## 배너를 바꾸는 순서
 
@@ -45,11 +45,11 @@
 
 이미지 버튼은 `image_v1` + 필요 시 `text_v1`/`shape_v1` + `action_region_v1`로 구성한다. 클릭 영역의 `content_ids`에 시각 요소의 ID를 연결하고, 영역 안에 해당 요소의 전체 frame이 들어오도록 편집한다. 시각 요소와 클릭 영역을 각각 옮겨야 하며 자동으로 따라 움직이는 부모·자식 좌표계는 없다.
 
-이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·기능 업데이트(감정 기록)·상점·대화 주제 순서로 배경, 제목, 본문과 버튼을 정의한다. 운세 날짜는 `date` 요소의 `{day}`로 요청 시간대의 오늘을 표시하고, 질문은 `message` 요소로 분리해 굵기를 각각 조절한다. 나머지 카드는 `shape_v1` + `text_v1` + `action_region_v1` 버튼이다. 버튼은 각각 기존 운세 화면, 감정 기록 팝업, 상점 화면, 주제 준비를 거친 대화 화면으로 이동한다. 음악 추천 카드는 현재 제공하지 않는다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
+이미지 버튼의 응답 예시는 [composed_feed.json](../tests/fixtures/banners/composed_feed.json)을 참고한다. 현재 배너 파일은 운세·기능 업데이트(감정 기록)·상점·대화 주제 순서로 배경, 제목, 본문과 `shape_v1` + `text_v1` + `action_region_v1` 버튼을 정의한다. 운세 날짜는 `date` 요소의 `{day}`로 요청 시간대의 오늘을 표시하고, 질문은 `message` 요소로 분리해 굵기를 각각 조절한다. 버튼은 각각 기존 운세 화면, 감정 기록 팝업, 상점 화면, 주제 준비를 거친 대화 화면으로 이동한다. 음악 추천 카드는 현재 제공하지 않는다. 정확한 필수 필드는 [서버 스키마](../app/schemas/banners.py)를 따른다.
 
 ## 이미지 준비
 
-- 개발 프로젝트: `wywzjslvxwttxkecbyis`, 공개 bucket: `banner-assets`.
+- 개발 프로젝트: `wywzjslvxwttxkecbyis`, 운영 프로젝트: `qkgjlgzsharnilxnkytd`. 각 환경의 공개 bucket은 `banner-assets`다.
 - `source`에는 `url`, `sha256`, `byte_length`, `pixel_width`, `pixel_height`, `media_type`을 기록한다. 크기는 화면 표시 크기가 아니라 **업로드한 원본 파일** 기준이다.
 - 정지 **PNG·JPG(JPEG)·WebP**를 지원하며 **WebP를 권장**한다. 업로드 파일은 **512KiB(524,288바이트) 이하**여야 한다. 한 변 2048px, 총 1,048,576픽셀 이하이며 카드당 배경 포함 이미지 요소는 최대 2개다.
 - 새 파일명/경로로 업로드한다. 기존 URL을 덮어쓰지 않고 과거 배너가 참조하는 파일도 보관한다. 임시 서명 URL·SVG·움직이는 이미지는 지원하지 않는다.
@@ -82,8 +82,6 @@ PY_IMAGE
 | `topic.question` | 현재 offer의 질문 원문. format null, text에는 `{question}` 단독 사용 |
 | `routines.remaining_today` | 본인·오늘 요일 예정·미삭제·현지 오늘 미완료 루틴 수. format은 null. 0개면 의존 배너 숨김 |
 
-
-
 음악 곡 ID·제목은 클라 `BgmTrack` 및 각 언어 ARB와 일치시킨다. 현재 6곡의 제목은 모든 언어에서 동일한 영문 고유 제목이다. 음악 추천은 `data_dependencies: ["user.local_date"]`와 다음 현지 자정 `valid_until`을 사용하므로 기존 앱의 날짜 갱신 규약을 재사용한다. `open_music`에는 곡 ID를 전달하지 않으며 자동 선택·재생하지 않는다.
 
 문구는 `{"kind":"template","value":"오늘은 {day}"}`처럼 작성한다. `{day}`는 등록한 binding alias이며 literal 중괄호는 `{{`/`}}`로 쓴다. `count_cases`는 0/1/그 외 문구를 선택한다. `when`은 binding의 `eq` 또는 `gt` 조건이며 루틴 배너에는 `remaining > 0` 조건을 둔다.
@@ -100,12 +98,8 @@ PY_IMAGE
 - [AppDay](../app/core/app_day.py)와 요청 `X-App-Timezone`을 배너·루틴이 공유한다. 사용자 profile의 시간대나 과거 완료 기록을 덮어쓰지 않는다.
 - [서비스](../app/services/banners.py)는 필요한 binding을 묶어 조회한다. 실패한 데이터를 0이나 샘플 문구로 대체하지 않는다.
 - 배너 전체 중단은 최상위 `enabled: false`, `banners: []`로 검증·재배포한다. 복구는 과거 JSON을 복원해 검증·재배포한다. 중단·복구도 다음 앱 조회에 반영된다.
-- 운영 승격은 별도다. 같은 이미지 bytes를 운영 `banner-assets`에 준비하고 URL을 운영 주소로 바꾼 뒤 `--environment prod`로 재검증한다. 환경 URL이 바뀌므로 정의 revision도 달라진다. 개발 DB를 운영 DB에 복사하지 않는다.
+- 운영 승격은 별도다. 같은 이미지 bytes를 운영 `banner-assets`에 준비하고 URL을 운영 주소로 바꾼 뒤 `--environment prod`로 재검증한다. 환경 URL이 바뀌므로 정의 revision도 달라진다. 개발 DB를 운영 DB에 복사하지 않는다. 주제 테이블이 없는 기존 운영 DB는 [주제 차이 SQL](../db/changes/banner_topics.sql)을 코드보다 먼저 적용하고 후보 코드의 스키마 계약으로 검사한다. 이 SQL에는 `messages_kind_check`의 `topic_opening` 허용도 포함된다. 주간 일기 변경을 함께 배포하면 [운영 절차](OPERATIONS.md#주간-운영자-일기-db-전환)의 선행 DB 변경도 필요하다.
 
 코드/규약 변경은 관련 테스트와 `scripts/openapi_contract.py --check`를 수행한다. HTTP 변경 시 분할 OpenAPI→bundle→클라 SDK 순서로 동기화한다. 새 요소/action은 공동 규약·서버·클라 지원을 함께 추가해야 한다. 감정 기록 버튼은 `action: {"type": "open_mood"}`로 작성한다. `open_mood` 지원 클라이언트 빌드가 필요하며, 서버 배포만으로 구버전 앱에 새 이동 기능이 생기지는 않는다.
 
 이 문서에는 현재 작성·배포 절차만 유지한다. 변경 이유·빌드 번호·CI 결과·QA 이력은 PR/검토 기록에 둔다. 공동 규칙 변경은 서버 원본과 클라 사본을 함께 갱신한다.
-
-## 2026-09-23 개발 배너 노출 변경
-
-오늘의 문장은 출시 여부 미정으로 서버 dev에서 제외했다. API·배너·ORM 및 신규 DB 스키마 의존성을 제거하고, 기존 개발 DB의 nullable 확인 기록 컬럼과 데이터는 보존한다. 클라이언트 코드는 이번 서버 전용 변경 범위에 포함하지 않는다.

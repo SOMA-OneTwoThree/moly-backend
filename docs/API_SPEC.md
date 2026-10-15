@@ -71,7 +71,8 @@
 | 상점 | `GET /shop/products` · `POST /shop/purchases` | 카탈로그·구매 |
 | 꾸미기 | `GET /inventory` · `GET/PUT /inventory/equipment` | 보유·장착 |
 | 상점·꾸미기 v2 | `GET /v2/shop/products` · `GET /v2/inventory` · `GET/PUT /v2/inventory/equipment` | hat/glasses 분리 신계약 (구버전은 레거시 경로) |
-| 루틴 | `GET/POST /routines` · `PATCH/DELETE /routines/{id}` · `POST/DELETE /routines/{id}/complete` · `GET /routines/{id}/statistics` | CRUD·완료·통계 |
+| 루틴 | `GET/POST /routines` · `PATCH/DELETE /routines/{id}` · `POST/DELETE /routines/{id}/complete` · `POST/DELETE /routines/{id}/skip` · `GET /routines/history` · `GET /routines/stats` · `GET /routines/{id}/statistics` | CRUD·완료·스킵·기록·통계 |
+|  | `GET /routine-templates` · `POST /routine-templates/selection` | 템플릿 목록·선택 |
 | 리뷰 | `POST /review/prompted` | 리뷰 노출 기록 |
 | 문의 | `POST /feedback` | 사용자 문의 접수 |
 | 오늘의 운세 | `GET/PUT/DELETE /fortune-profile` | 생년월일·성별 조회·저장·삭제 |
@@ -87,17 +88,17 @@
 
 | 등급 | 조건 | 혜택 |
 | --- | --- | --- |
-| `trial` | 가입 +48시간 | 확장 토큰 한도·개인 일기·광고 제거 (건초 증정 제외) |
-| `free` | 체험 종료 후 | 일 토큰 소량 + 배너 광고(현재 미출시 → 전 등급 `ads_removed=true`) |
+| `trial` | 가입 +48시간 (`signup_trial_until` 전 가입) | 확장 토큰 한도·개인 일기·광고 제거 (건초 증정 제외) |
+| `free` | 체험 종료 후 | 일 토큰 소량 + 배너 광고 |
 | `monthly`·`yearly` | 결제 활성(`active`·`grace_period`) | 확장 토큰·개인 일기·광고 제거·건초 증정(플랜별 최초 1회) |
 - 클라 게이팅은 `plan` 문자열보다 `entitlement` 파생값을 우선한다. `subscriber_theme_unlocked`는 호환을 위해 남은 필드이며 현재 꾸미기 접근 제어에는 사용하지 않는다.
 - `entitlement`는 **moly-auth `/me`** 가 내려주고, 서버측 한도 집행은 moly-backend가 자체 계산(두 서버 이중화, 기준값은 공유 `app_config`).
 
 **🚀 런칭 무료 기간 (`2026-10-01 04:00 KST`까지, DB에서 조정 가능)**
-- 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도 150,000**. `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
+- 이 기간엔 구독 없이 **전원 무료** — 등급 `trial`, 일 토큰 한도 = **런칭 한도 150,000**. 배너 광고는 끄지 않는다(`ads_removed=false`, 배너는 새 앱에만 있다). `/chat/state`·`/subscription` 모두 `in_trial:true`, `trial_ends_at`=런칭 종료. 실제 구독자는 항상 우선.
 - 종료일 `app_config.free_launch_until`·한도 `free_launch_token_limit` → **재배포 없이 조정**. 종료 시 자동으로 정상 등급 복귀.
 
-구독 전환 예약(`subscription_launch.enabled=true`, `existing_user_cutoff=T`)이 있으면 T부터 기존 런칭 설정보다 전환 정책을 우선한다. 저장된 계정 언어 기준으로 무료는 영어 40,000·한국어 50,000·일본어 60,000, 구독·가입 체험·스토어 체험은 영어 300,000·한국어 400,000·일본어 550,000이며, 전환이나 결제 시 당일 사용량을 초기화하지 않는다. T 이전 가입자에게 새 48시간 체험을 시작하지 않는다. T 이후 가입자의 체험은 최초 가입 시각 +48시간으로 고정된다. 기존에 발급한 체험과 이미 받은 일기는 유지한다.
+`free_launch_until`이 스토어 출시 시각 T다. T 전에는 구독·앱 체험이 없는 계정이 런칭 무료를 유지하고, T부터 전환 정책을 적용한다. 저장된 계정 언어 기준으로 무료는 영어 40,000·한국어 50,000·일본어 60,000, 구독·가입 체험·스토어 체험은 영어 300,000·한국어 400,000·일본어 550,000이며(구독·체험 한도는 T 전에도 같다), 전환이나 결제 시 당일 사용량을 초기화하지 않는다. T 이전 가입자는 기존 회원(스토어 1개월 체험 오퍼), T 이후 가입자는 신규 회원(최초 가입 시각 +48시간 체험)이다. 단 `app_config.signup_trial_until` 이후 가입자는 48시간 체험이 없다. T 전에는 `subscription_launch.new_member_since` 이후 가입한 계정을 신규 회원으로 보아, 새 앱의 테스터·심사자가 두 페이월을 모두 볼 수 있다. 기존에 발급한 체험과 이미 받은 일기는 유지한다.
 
 `entitlement_source`는 통계와 상태 구분용이며 `plan`의 기존 열거값은 유지한다. `/me.entitlement.personal_diary_eligible`은 등급 조건만, `/chat/state.personal_diary_eligible`은 현재 등급과 대화량 조건을 함께 나타낸다. 최종 발행은 해당 활동일 종료(다음날 로컬 04:00 직전)를 기준으로 판정한다. 무료는 운영자 일기를 받을 수 있고, 해당 주의 미수령 원고가 없으면 미발행한다. 상세 전환·검증 절차는 [구독 전환 구현 문서](SUBSCRIPTION-POLICY-IMPLEMENTATION.md)를 따른다.
 
@@ -209,6 +210,10 @@ HTTP: 400 형식 / 401 미인증 / 402 건초부족 / 403 플랜게이트 / 404 
 멱등 응답·일기 reference·job payload 사본을 redaction한 뒤 계정을 삭제한다. 도메인 원본과 파생 기억은
 FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/watermark만 남는다. 이 장벽 호출과
 최종 204의 오케스트레이션은 `moly-auth`가 소유한다.
+- 장벽은 DB 함수 `begin_subject_deletion(p_user_id, p_operation_id)`(service_role RPC)다. 장벽 호출이 실패해도
+  탈퇴는 진행한다(fail-open). 계정 삭제가 실패하면 `abort_subject_deletion`으로 장벽을 되돌린 뒤 500이다.
+- 남은 벡터 정리와 완료 표시(`deleted`)는 backend 워커의 `privacy_residual_sweep`이 장벽 행을 보고 한다.
+  장벽 없이 지워진 계정도 같은 경로로 끝낸다.
 - ⚠️ Apple 구독은 서버가 해지 불가 → 탈퇴 다이얼로그에 “구독은 App Store에서 별도 해지” 안내 필수.
 
 ---
@@ -261,6 +266,8 @@ FK CASCADE로 제거되고, backend 삭제 ledger에는 본문 없이 operation/
 ```
 
 - `403 DAILY_LIMIT_REACHED` = 토큰 소진. 응답 수 초 소요 → 로딩 표시 + 타임아웃 넉넉히, 재시도는 같은 `Idempotency-Key`.
+- `503 AI_UNAVAILABLE` = 대화 LLM이 턴 마감(`agent_turn_deadline_s`, 운영 10초) 안에 답하지 못함(제공자 timeout·연결 실패·429·5xx).
+  저장된 것이 없으므로 같은 `Idempotency-Key`로 다시 보내면 된다(`details.retryable=true`).
 - 같은 key에 다른 body를 보내면 `409 IDEMPOTENCY_KEY_REUSED`. 응답 본문 replay는 24시간, 이후 30일까지는
   body 없는 tombstone으로 중복 턴 생성을 막고 새 key를 요구한다.
 - `context_ref`는 이미 공개된 오늘 운세만 한 요청의 서버 컨텍스트로 붙인다. 날짜·프로필·결과가 바뀌면
@@ -471,7 +478,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 
 - 상품 필드: `id·name·slot·price_hay(null=비매품)·owned·equipped·asset_version·assets`.
 - `assets` 구조: `thumbnail_url`·`detail_url` 공통. 테마는 `scene`(canvas·character·layers), 착용 아이템은 `upright_layer_url`. 낮/밤 레이어는 `scene.layers[].day_url`·`night_url`.
-- `price_hay:null`은 비매품이다. 현재 꾸미기는 구독 전용으로 제한하지 않으며 실제 가격과 노출 여부는 DB 상품 카탈로그가 기준이다.
+- `price_hay:null`은 비매품이다. v2 상품의 `subscriber_only:true`는 활성 구독 중에만 구매 없이 장착하는 상품이며 가격은 항상 null이다. 구독이 끝나면 장착·카탈로그 조회가 테마는 `theme_default`, 착용 아이템은 해제로 응답한다. 실제 가격과 노출 여부는 DB 상품 카탈로그가 기준이다.
 - v2: `items` 안에 `slot:"hat"`·`slot:"glasses"` 포함(레거시 `head` 없음). 응답 키(`themes`·`items`)는 동일.
 
 ### `POST /shop/purchases`
@@ -483,6 +490,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 ```
 
 - **2026-07-13**: `order_id` 추가(주문 기록·CS 추적용) — 클라 필수 사용 아님.
+- 같은 `Idempotency-Key`로 다시 보냈는데 저장된 응답을 재생할 수 없으면(응답이 비었거나 보존 기간이 지남) `409 IDEMPOTENCY_REPLAY_UNAVAILABLE`. 구매는 다시 실행되지 않으며, 새 `Idempotency-Key`로 보내면 된다(이미 보유한 상품이면 `409 ALREADY_OWNED`).
 
 ### `GET /inventory` · `GET /v2/inventory` — 보유 목록
 
@@ -496,6 +504,8 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 // v2: GET /v2/inventory/equipment
 { "theme_id":"…", "hat_id":null, "glasses_id":null, "neck_id":null, "body_id":null }
 ```
+
+- 프로필이 없으면(탈퇴 뒤 아직 유효한 토큰) `404 NOT_FOUND`.
 
 ### `PUT /inventory/equipment` · `PUT /v2/inventory/equipment` — 장착 교체 (전체 슬롯 필수)
 
@@ -514,7 +524,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 
 스케줄 = **요일별**(`days_of_week`) 또는 **주 N회**(`frequency_per_week`) 중 하나. `days_of_week`(ISO **1=월…7=일**) 있으면 요일별 모드(`frequency_per_week`는 요일 수로 파생), null이면 주 N회.
 
-> **가입 기본 루틴(2026-07-13)**: 신규 유저는 "이불 정리하기"·"물 마시기" 2건이 기본 생성됨(주 7회, 리마인더 off). 일반 루틴과 동일하게 수정·삭제 가능 — FE 특별 처리 없음.
+> **가입 기본 루틴 중단(루틴 템플릿 출시)**: 신규 유저는 루틴 없이 시작하고 루틴 팝업의 템플릿 화면에서 고른다. 2026-07-13부터 출시 전까지 가입해 받은 "이불 정리하기"·"물 마시기"는 `template_id`(`make_bed`·`drink_water`)가 채워진 일반 루틴으로 남는다.
 
 ### `GET /routines`
 
@@ -551,11 +561,63 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 - `streak` 연속 시행 일수(단순 달력일) · `completed_today` 오늘 완료 · `target_count` 설정 횟수 · `this_week` 이번 주(월 시작·00:00 보상 경계) 수행 횟수·요일별 완료 · `completion_rate` 최근 4주.
 - 루틴 알림은 **클라 로컬 노티**(서버는 스케줄만 보관, 발송 안 함). 2개 완료 보상은 충전소에서 수령.
 
+### 아이콘·색·요일 이력·스킵(2026-10 루틴 개편)
+
+- `icon`: `^[a-z0-9_]{1,64}$` 키. 앱 카탈로그에 없는 키는 앱이 기본 아이콘으로 그린다. `color`: `pink` `peach` `yellow` `green` `blue` `mint` `lavender`.
+- `GET /routines` 각 항목에 `icon`·`color`·`template_id`(nullable)·`skipped_today`를 더한다. 순서는 `created_at`, `id`.
+- `POST /routines`는 선택 `icon`(기본 `seedling`)·`color`(기본 `peach`)를 받는다. `PATCH`도 둘을 받으며 생략·null은 변경 없음.
+- 요일 이력: 생성하면 요청 현지 날짜부터 그 요일이다. `PATCH`로 요일을 바꾸면 요청 현지 날짜부터 새 요일이고 전날까지의 기록은 그대로다.
+  `DELETE`는 요청 현지 날짜를 `deleted_on`으로 남기며 그날부터 예정에서 빠진다.
+- `POST /routines/{id}/skip` → 204: 오늘을 건너뛴다(멱등). 오늘 완료한 루틴이면 `409 ROUTINE_ALREADY_COMPLETED`.
+  `DELETE /routines/{id}/skip` → 204(멱등). 스킵한 루틴을 완료하면 그날 스킵은 지워진다. 삭제·타인 루틴은 404.
+- 오늘 스킵한 루틴은 배너 `routines.remaining_today`와 대화 맥락의 오늘 예정 수에서 빠진다. 2개 완료 보상과 `get_routines` 도구는 그대로다.
+
+### `GET /routines/history?date=YYYY-MM-DD`
+
+그날 예정이었던 루틴(스킵 포함, 나중에 삭제된 루틴 포함)과 그날 완료한 루틴. 각 행에 `icon`·`color`·`skipped`가 있고
+`days_of_week`는 그날 적용된 요일이다. `streak`·`this_week`는 구버전 앱 호환 필드로 남긴다. 미래 날짜는 422.
+
+### `GET /routines/stats?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+```json
+{ "today":"2026-10-08",
+  "summary":{ "current_streak":3,"best_streak":7,"perfect_days":12,"total_completed":40,"completed_this_month":9,
+              "overall_rate":0.71,"monthly_rate":0.6 },
+  "days":[ { "date":"2026-10-07","scheduled":3,"completed":2 } ],
+  "routines":[ { "id":"…","name":"물 마시기","icon":"droplet","color":"blue",
+                 "scheduled_dates":["2026-10-07"],"completed_dates":["2026-10-07"],"skipped_dates":[],
+                 "current_streak":3,"best_streak":5,"total_completed":20,"completed_this_month":5,"overall_rate":0.8 } ] }
+```
+
+- `from ≤ to`, 기간 최대 371일(위반 422). `to`가 오늘 이후면 오늘로 자른다. `days`는 `from..min(to, today)`의 모든 날이다.
+- 날짜는 요청 현지 날짜다. 인스턴스 = 그날 완료 기록이 있거나, 예정이었고 스킵하지 않은 (루틴, 날짜). 삭제된 루틴도 그날 기준으로 포함한다.
+  `scheduled`=그날 인스턴스 수, `completed`=그날 완료 기록 수. 배지는 앱이 이 두 값으로 계산한다.
+- 스트릭: 오늘부터 거꾸로 걸으며 완료가 있는 날 +1, 인스턴스가 없는 날과 아직 완료가 없는 오늘은 건너뛰고 지난 미완료에서 멈춘다.
+  루틴별 스트릭은 그 루틴의 인스턴스만 같은 규칙으로 본다. 최장은 같은 규칙의 전 기간 최댓값이다.
+- 달성률 = 완료 / (오늘 이전 인스턴스 + 오늘 완료한 인스턴스), 분모 0이면 null. 완벽한 날 = `scheduled > 0`이고 `completed == scheduled`인 날.
+- `summary`는 삭제된 루틴을 포함한 전 기간, `routines`는 삭제하지 않은 루틴을 `GET /routines` 순서로 준다.
+
+### `GET /routine-templates` · `POST /routine-templates/selection`
+
+```json
+// GET → { "selection_completed":false,
+//         "categories":[ { "id":"morning","name":"아침",
+//           "templates":[ { "id":"make_bed","name":"이불 정리하기","icon":"bed","color":"peach",
+//                           "days_of_week":[1,2,3,4,5,6,7],"recommended":true,"added":false } ] } ] }
+// POST req { "template_ids":["make_bed","drink_water"] } → 200 { "data":[RoutineResponse…] }
+```
+
+- 목록은 서버(`routine_templates`)가 관리하며 프로필 언어로 현지화한다. 활성 카테고리·템플릿만 `sort_order` 순으로 준다.
+  `added`는 이 템플릿으로 만든, 삭제하지 않은 루틴이 있으면 true다.
+- 선택은 0~30개, 중복 불가. 빈 배열은 건너뛰기다. 이미 추가된 템플릿은 건너뛰고 나머지를 카테고리·템플릿 순서로 만든다
+  (이름 = 프로필 언어 값, 없으면 한국어 · 알림 꺼짐 · 요일 이력은 요청 현지 날짜부터). 처음 호출하면 `selection_completed`가 true가 된다.
+  없거나 비활성인 id가 하나라도 있으면 아무것도 만들지 않고 `422 VALIDATION`이다. 응답은 이번에 만든 루틴만 담는다.
+
 ---
 
 ## 9. 리뷰
 
-**노출 판정 = 서버, 전달 = 채팅 응답.** 당일 토큰이 리뷰 임계(`app_config.review_prompt_min_tokens`)를 **생애 최초로 넘은 시점**부터 `POST /chat/messages` 응답의 `review_prompt:true`(계정당 1회).
+**노출 판정 = 서버, 전달 = 채팅 응답.** 당일 토큰이 리뷰 임계(`app_config.review_prompt_min_tokens`, 저장된 계정 언어가 영어면 11,000)를 **생애 최초로 넘은 시점**부터 `POST /chat/messages` 응답의 `review_prompt:true`(계정당 1회).
 
 ### `POST /review/prompted` → 204 (이후 영구 미노출, 보상 없음)
 
@@ -646,12 +708,15 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 | --- | --- | --- |
 | `UNAUTHORIZED` | 401 | 토큰 없음/만료/무효 |
 | `FORBIDDEN` | 403 | 일반 접근 거부 |
+| `NOT_FOUND` | 404 | 대상 없음 또는 프로필 없음(탈퇴 뒤 아직 유효한 토큰) |
 | `DAILY_LIMIT_REACHED` | 403 | 대화 토큰 소진(업셀) |
 | `INSUFFICIENT_HAY` | 402 | 건초 부족 |
 | `ALREADY_ONBOARDED` | 409 | 온보딩 완료 후 재호출 |
 | `ALREADY_CLAIMED` | 409 | 출석/루틴 보상 중복 |
 | `ALREADY_OWNED` | 409 | 상점 중복 구매(기본 지급분 재구매 포함) |
+| `IDEMPOTENCY_REPLAY_UNAVAILABLE` | 409 | 같은 `Idempotency-Key` 재요청인데 저장 응답을 재생할 수 없음(대화·상점 구매) — 새 키로 재전송 |
 | `ROUTINE_GOAL_NOT_MET` | 422 | 루틴 2개 미완료 |
+| `ROUTINE_ALREADY_COMPLETED` | 409 | 오늘 완료한 루틴을 스킵하려 함 |
 | `AD_LIMIT_REACHED` | 429 | 광고 일 5회 초과 |
 | `AD_VERIFY_FAILED` | 422 | SSV 서명 검증 실패(서버-서버 — 클라 미노출) |
 | `PROFILE_REQUIRED` | 404 | 운세 생년월일·성별 미입력 |
@@ -660,6 +725,7 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 | `DATE_ROLLOVER` | 409 | 운세 현지 날짜 전환 2분 보호 구간 |
 | `NOT_OWNED` | 422 | 미보유 장착 |
 | `VALIDATION` | 422 | 필드 검증 |
+| `AI_UNAVAILABLE` | 503 | 대화 LLM 일시 장애(timeout·연결·429·5xx) — 같은 멱등 키로 재전송 |
 | `INTERNAL` | 500 | 서버 내부 오류 |
 
 제네릭 HTTP 코드(비즈니스 에러 없음 — FE 분기 불필요): `BAD_REQUEST`(400)·`METHOD_NOT_ALLOWED`(405)·`CONFLICT`(409)·`RATE_LIMITED`(429). 목록 외 상태는 `HTTP_<status>` 형식.
@@ -669,12 +735,12 @@ Bearer 인증으로 본인 기록에만 접근한다. 캐피 생성 일기와 �
 | 항목 | 값 |
 | --- | --- |
 | 구독 | 표시 가격은 스토어 기준 · 건초 증정 월 1,000 / 연 4,000(플랜별 최초 1회) |
-| 체험 | 가입 후 2일(48h) · 구독 수준 혜택(건초 증정 제외) |
+| 체험 | 가입 후 2일(48h) · 구독 수준 혜택(건초 증정 제외) · `signup_trial_until` 이후 가입자는 없음 |
 | 런칭 무료 | `2026-10-01 04:00 KST`까지 전원 무료·일 150,000. `app_config`로 조정 |
 | 건초 획득 | 출석 20 / 광고 회당 20(일 5회) / 루틴 2개 완료 20 |
 | 건초 IAP | 300 ₩1,500 / 1,500 ₩6,500 / 3,000 ₩10,000 |
-| 상점 | 가격·노출 여부는 DB의 활성 상품 카탈로그가 기준. 꾸미기 구독 전용 정책 없음 |
-| 가입 기본 세팅 | 아이템 3종 지급(집·운동 배경, 선글라스 — 집 배경만 자동 장착) + 기본 루틴 2개(이불 정리하기·물 마시기, 주 7회) |
+| 상점 | 가격·노출 여부는 DB의 활성 상품 카탈로그가 기준. 구독 전용 꾸미기는 활성 구독 중에만 장착 |
+| 가입 기본 세팅 | 아이템 3종 지급(집·운동 배경, 선글라스 — 집 배경만 자동 장착). 기본 루틴 없음(템플릿 화면에서 선택) |
 | 일기 | 09:00 발행. 임계↑=개인 일기 / 그 외=해당 날짜 지정본이 있을 때만 캐피 자기일기. 열람 항상 무료 |
 | 리뷰 | 당일 토큰이 임계 생애 최초 초과 시 1회 노출, 보상 없음 |
 | 알림 | 아침 09:00 일기 · 저녁 20:00 안부 — 2종 고정 on/off |

@@ -86,6 +86,7 @@ def output(**values: str) -> None:
 
 def validate_inputs(ref: str, mode: str, candidate: str, image: str, verify: str) -> None:
     require(ref == "refs/heads/dev", "trusted_dev_ref_required")
+    require(verify == "false", "legacy_verification_removed")
     require(mode in {"existing", "inspect", "candidate"}, "invalid_mode")
     require(verify in {"true", "false"}, "invalid_verify_flag")
     if mode == "candidate":

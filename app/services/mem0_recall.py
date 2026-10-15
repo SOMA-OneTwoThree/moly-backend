@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
@@ -34,6 +35,9 @@ VISIBLE_STATUSES = ("active", "ambiguous")
 # 회상이 비니, 필터로 빠지는 몫을 감안해 더 많이 받는다.
 _PROVIDER_FETCH = 40
 DEFAULT_LIMIT = 8
+# 이보다 오래 걸린 회상은 성공해도 단계별 소요를 WARNING으로 남긴다(정상 회상은 남기지 않는다).
+# 동작은 바꾸지 않는다 — 느린 회상이 임베딩·벡터 검색·registry 중 어디서 생기는지 가르는 계측이다.
+SLOW_RECALL_WARN_S = 1.0
 
 # 거친 상한. 이것만으로는 **부족하다** — 아래 RELEVANCE_MARGIN 설명 참고.
 MAX_DISTANCE = 0.90
@@ -146,8 +150,8 @@ class Recalled:
 # 벡터 id → registry. 상태 필터와 user 재검증을 **DB에서** 한 번에 한다.
 # provider payload의 user_id는 adapter가 이미 봤지만, registry로 한 번 더 본다 —
 # 벡터 저장소가 오염돼도 남의 기억이 프롬프트에 실리면 안 된다.
-# Keep event time separate from the source observation time. Registry creation may be a
-# historical backfill, so it is never evidence that an event happened at that time.
+# 사건 시각과 근거 발화 시각을 구분한다. registry 생성은 과거 이력의 일괄 수집일 수
+# 있으므로 사건이나 발화가 그때 일어났다는 근거로 쓰지 않는다.
 _FILTER = text("""
 SELECT r.provider_memory_id::text AS pid,
        r.semantic_status,
@@ -167,6 +171,16 @@ WHERE r.user_id = :user_id
 """)
 
 
+def _warn_if_slow(user_id: uuid.UUID, stages: dict[str, float], *, hits: int) -> None:
+    """성공했지만 느린 회상의 단계별 누적 초를 남긴다. 단계 간 차이가 그 단계의 소요다."""
+    total = max(stages.values(), default=0.0)
+    if total >= SLOW_RECALL_WARN_S:
+        _log.warning(
+            "v2 회상 느림 — user=%s total=%.2fs stages=%s hits=%d",
+            user_id, total, stages, hits,
+        )
+
+
 async def recall(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -177,26 +191,49 @@ async def recall(
     collection_version: str = "v2",
     limit: int = DEFAULT_LIMIT,
     timeout: float = 3.0,
+    trace: dict[str, float] | None = None,
+    availability: dict[str, str] | None = None,
 ) -> list[Recalled]:
     """질의와 관련된 **현재 유효한** 기억. 실패하면 빈 목록이다.
 
     adapter·embed_query를 주입받는다 — 워커와 챗이 같은 코드를 쓰되 각자의 클라이언트를
     들고 있고, 테스트가 provider 없이 돌 수 있어야 한다.
+
+    `trace`를 주면 끝난 단계마다 이 함수 시작부터의 누적 초를 채운다(embed_s → search_s →
+    registry_s, 실패하면 failed_s·registry_failed_s). 호출측이 경계에서 회상을 끊은 뒤에도
+    어느 단계까지 왔는지 로그로 남길 수 있다.
     """
+    if availability is not None:
+        availability["status"] = "ok"
+    stages: dict[str, float] = trace if trace is not None else {}
     if not needs_recall(query):
+        if availability is not None:
+            availability["status"] = "skipped"
         # 인사·호응에 기억을 끌어오면 캐피가 뜬금없이 옛 얘기를 꺼낸다. 임베딩 호출도 아낀다.
         return []
+    t0 = time.monotonic()
+
+    def _mark(stage: str) -> None:
+        stages[stage] = round(time.monotonic() - t0, 3)
+
     try:
         # 임베딩에도 **같은 예산**을 건다. 안쪽이 60초를 쓰면 경계의 wait_for가 걸리기 전에
         # 이미 마감을 넘긴다.
         vector = await embed_query(query, timeout=timeout)
+        _mark("embed_s")
         hits = await adapter.search(
             vector, user_id=str(user_id), limit=_PROVIDER_FETCH, timeout=timeout
         )
+        _mark("search_s")
     except Exception as e:  # noqa: BLE001  회상 실패가 대화를 막지 않는다
-        _log.warning("v2 회상 실패(빈 목록으로 진행) — user=%s: %r", user_id, e)
+        if availability is not None:
+            availability["status"] = "unavailable"
+        _mark("failed_s")
+        _log.warning("v2 회상 실패(빈 목록으로 진행) — user=%s stages=%s: %r", user_id, stages, e)
         return []
     if not hits:
+        # 기억이 없는 사용자도 임베딩·검색은 똑같이 거친다. 느렸다면 여기서도 남긴다.
+        _warn_if_slow(user_id, stages, hits=0)
         return []
 
     by_id = {h.id: h for h in hits}
@@ -208,8 +245,13 @@ async def recall(
             "ids": list(by_id),
         })).all()
     except Exception as e:  # noqa: BLE001
-        _log.warning("v2 회상 registry 조회 실패 — user=%s: %r", user_id, e)
+        if availability is not None:
+            availability["status"] = "unavailable"
+        _mark("registry_failed_s")
+        _log.warning("v2 회상 registry 조회 실패 — user=%s stages=%s: %r", user_id, stages, e)
         return []
+    _mark("registry_s")
+    _warn_if_slow(user_id, stages, hits=len(hits))
 
     out: list[Recalled] = []
     for pid, status, occurred_at, group, time_basis, time_precision in rows:
@@ -250,7 +292,8 @@ _UNCERTAIN: dict[str, str] = {
 }
 
 
-# Calendar dates match the conversation clock; activity_date is only the storage domain.
+# 일 단위 사건은 상대 날짜, 근거 발화와 정밀한 사건 시각은 현지 시각으로 표시한다.
+# 대화의 오늘/어제는 사용자 현지 달력 날짜 기준이다. 저장·할당량의 04시 활동일과 다르다.
 _WHEN_LABELS: dict[str, dict[str, str]] = {
     "ko": {"today": "오늘", "yesterday": "어제", "days": "{n}일 전", "last_week": "지난주",
            "weeks": "{n}주 전", "last_month": "지난달", "months": "{n}달 전", "long_ago": "오래전",
@@ -284,7 +327,8 @@ def _when_label(occurred_at: datetime | None, today: date | None, tz_name: str, 
         _log.warning("시점 라벨 계산 실패 — 시점 모름으로 진행: %r", occurred_at, exc_info=True)
         return t["unknown"]
     if d < 0:
-        return {"ko": "미래", "en": "future", "ja": "未来"}[lang] + f" {then.isoformat()}"
+        future = {"ko": "미래", "en": "future", "ja": "未来"}.get(lang, "future")
+        return f"{future} {then.isoformat()}"
     if d == 0:
         return t["today"]
     if d == 1:
@@ -328,15 +372,15 @@ def render_block(
 
     def line(i: Recalled) -> str:
         when = _when_label(i.occurred_at, today, tz_name, lang)
-        # Source timestamps are exact observations, not inferred event times. In particular,
-        # an afternoon mention of hunger must not become an all-day state.
-        if i.occurred_at is not None and i.time_basis == "mentioned":
-            local = i.occurred_at.astimezone(safe_zone(tz_name))
-            when = f"{local.isoformat(timespec='minutes')} " + {
-                "ko": "언급", "en": "mentioned", "ja": "言及",
-            }[lang]
-        elif i.occurred_at is not None and i.time_precision in {"instant", "minute", "second"}:
-            when = i.occurred_at.astimezone(safe_zone(tz_name)).isoformat(timespec="minutes")
+        if isinstance(i.occurred_at, datetime):
+            at = i.occurred_at
+            if at.tzinfo is None:
+                at = at.replace(tzinfo=timezone.utc)
+            if i.time_basis == "mentioned":
+                label = {"ko": "언급", "en": "mentioned", "ja": "言及"}[lang]
+                when = f"{at.astimezone(safe_zone(tz_name)).isoformat(timespec='minutes')} {label}"
+            elif i.time_precision in {"instant", "minute", "second"}:
+                when = at.astimezone(safe_zone(tz_name)).isoformat(timespec="minutes")
         return f"- ({when}) {i.text}"
 
     lines: list[str] = [line(i) for i in sure]

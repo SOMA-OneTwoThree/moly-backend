@@ -1,4 +1,4 @@
-"""routines / routine_completions — 루틴(ERD §5.5). 주기 = 요일별. 삭제 = soft delete."""
+"""루틴 테이블(ERD §5.5) — routines·completions·요일 이력·스킵·템플릿. 주기 = 요일별. 삭제 = soft delete."""
 from __future__ import annotations
 
 import uuid
@@ -9,7 +9,9 @@ from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
+    ForeignKey,
     ForeignKeyConstraint,
+    Index,
     SmallInteger,
     String,
     Time,
@@ -43,6 +45,10 @@ class Routine(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)  # soft delete
     created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
     updated_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
+    icon: Mapped[str] = mapped_column(String, server_default=text("'seedling'"))
+    color: Mapped[str] = mapped_column(String, server_default=text("'peach'"))
+    template_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    deleted_on: Mapped[date | None] = mapped_column(Date, nullable=True)
 
 
 class RoutineCompletion(Base):
@@ -61,3 +67,60 @@ class RoutineCompletion(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     activity_date: Mapped[date] = mapped_column(Date)
     completed_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
+
+
+class RoutineSchedule(Base):
+    __tablename__ = "routine_schedules"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "routine_id"],
+            ["routines.user_id", "routines.id"],
+            ondelete="CASCADE",
+        ),
+    )
+
+    routine_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    effective_from: Mapped[date] = mapped_column(Date, primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    days_of_week: Mapped[list[int]] = mapped_column(ARRAY(SmallInteger))
+    created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
+
+
+class RoutineSkip(Base):
+    __tablename__ = "routine_skips"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "routine_id"],
+            ["routines.user_id", "routines.id"],
+            ondelete="CASCADE",
+        ),
+        Index("routine_skips_user_date_idx", "user_id", "activity_date"),
+    )
+
+    routine_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    activity_date: Mapped[date] = mapped_column(Date, primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    created_at: Mapped[datetime | None] = mapped_column(_TZ, server_default=text("now()"), nullable=True)
+
+
+class RoutineTemplateCategory(Base):
+    __tablename__ = "routine_template_categories"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    name_i18n: Mapped[dict] = mapped_column(JSONB)
+    sort_order: Mapped[int] = mapped_column(SmallInteger, server_default=text("0"))
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+
+
+class RoutineTemplate(Base):
+    __tablename__ = "routine_templates"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    category_id: Mapped[str] = mapped_column(String, ForeignKey("routine_template_categories.id"))
+    name_i18n: Mapped[dict] = mapped_column(JSONB)
+    icon: Mapped[str] = mapped_column(String)
+    color: Mapped[str] = mapped_column(String)
+    days_of_week: Mapped[list[int]] = mapped_column(ARRAY(SmallInteger))
+    is_recommended: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    sort_order: Mapped[int] = mapped_column(SmallInteger, server_default=text("0"))
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))

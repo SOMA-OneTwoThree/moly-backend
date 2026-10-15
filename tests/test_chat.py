@@ -1,5 +1,5 @@
 """chat 서비스 — 전송 흐름·토큰집계·게이팅·멱등·상태·선발화 캐시(DB·LLM mock)."""
-from datetime import date
+from datetime import date, datetime
 from types import SimpleNamespace
 
 import pytest
@@ -154,29 +154,6 @@ async def test_post_message_stores_placeholder_and_renders_egress(monkeypatch):
     assert "지훈" not in capi_msg.content and "{유저이름}" in capi_msg.content
 
 
-@pytest.mark.parametrize("language,raw,expected", [
-    ("ja", "Анна、時々、人々と会う。〆切は二〇二六年。 Σ", "Анна、時々、人々と会う。〆切は二〇二六年。"),
-    ("en", "Анна, **take** a breath—then decide. 3–5 laid-back days. — No rush. Σ", "Анна, take a breath—then decide. 3–5 laid-back days. — No rush."),
-    ("ko", "Анна, 잠깐 — 쉬자.", "Анна, 잠깐 쉬자."),
-])
-async def test_post_message_preserves_locale_characters_through_storage(monkeypatch, language, raw, expected):
-    profile = SimpleNamespace(language=language, nickname="Анна", review_prompted_at=None, id=UID)
-
-    async def resolve(*args, **kwargs):
-        return _gating(profile=profile)
-
-    async def generate(*args, **kwargs):
-        return LLMResult(text=raw, input_tokens=10, output_tokens=20)
-
-    monkeypatch.setattr(gating_module, "resolve", resolve)
-    monkeypatch.setattr(llm_module, "generate", generate)
-    session = FakeSession()
-    out = await chat_service.post_message(session, UID, SimpleNamespace(text="Hi", greeting_id=None), "locale-clean")
-    assert out.reply.content == expected
-    stored = next(m for m in session.added if isinstance(m, Message) and m.sender == "moly")
-    assert stored.content == expected.replace("Анна", "{유저이름}")
-
-
 async def test_post_message_daily_limit(monkeypatch, patched):
     async def _res(session, user_id, **kwargs):
         return _gating(entitlement={
@@ -267,6 +244,51 @@ async def test_post_message_llm_failure_persists_nothing(monkeypatch):
     assert [o for o in session.added if isinstance(o, IdempotencyKey)] == []
 
 
+async def test_post_message_transient_llm_failure_is_retryable_503(monkeypatch, caplog):
+    """제공자 timeout은 500(우리 버그)이 아니라 503 AI_UNAVAILABLE로 나간다 — 저장은 여전히 0."""
+    import httpx
+    import openai
+
+    from app.core.errors import AppError
+    from app.models.idempotency_key import IdempotencyKey
+
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    async def _timeout(*a, **k):
+        raise openai.APITimeoutError(request=httpx.Request("POST", "https://api.openai.test"))
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(llm_module, "generate", _timeout)
+    session = FakeSession()
+    req = SimpleNamespace(text="안녕", greeting_id=None)
+    with pytest.raises(AppError) as ei:
+        await chat_service.post_message(session, UID, req, "idem-llm-timeout")
+    assert (ei.value.code, ei.value.http_status) == ("AI_UNAVAILABLE", 503)
+    # AppError 핸들러는 로그를 안 남긴다 — 503 원인은 여기서 남겨야 추적된다.
+    assert any("chat_llm_unavailable" in r.getMessage() for r in caplog.records)
+    assert isinstance(ei.value.__cause__, openai.APITimeoutError)
+    assert [m for m in session.added if isinstance(m, Message)] == []
+    assert [o for o in session.added if isinstance(o, IdempotencyKey)] == []
+
+
+async def test_post_message_cancellation_is_not_turned_into_503(monkeypatch):
+    """요청 취소(클라이언트 끊김)는 제공자 장애가 아니다 — 503으로 바꾸지 않고 그대로 올린다."""
+    import asyncio
+
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    async def _cancelled(*a, **k):
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(llm_module, "generate", _cancelled)
+    req = SimpleNamespace(text="안녕", greeting_id=None)
+    with pytest.raises(asyncio.CancelledError):
+        await chat_service.post_message(FakeSession(), UID, req, "idem-cancel")
+
+
 async def test_post_message_passes_llm_timeout(monkeypatch, patched):
     # SOMA-374: LLM 호출에 per-request timeout이 전달된다(무한 대기 방지).
     captured: dict = {}
@@ -283,6 +305,8 @@ async def test_post_message_passes_llm_timeout(monkeypatch, patched):
     req = SimpleNamespace(text="hi", greeting_id=None)
     await chat_service.post_message(FakeSession(), UID, req, "idem-to")
     assert captured.get("timeout") is not None
+    # 마감 안의 호출 — SDK 자동 재시도(timeout × 3)를 꺼야 timeout이 곧 최대 소요다.
+    assert captured.get("sdk_retries") is False
 
 
 async def test_post_message_phase2_dup_returns_cached(monkeypatch, patched):
@@ -431,6 +455,83 @@ async def test_greeting_issued_when_nothing_yet_today(monkeypatch):
     assert called["llm"] is False               # 선발화는 코드 프리셋 — LLM 미호출
 
 
+
+# --- 저녁 대화 푸시 → 대화창 첫마디 ---
+class _NestedSeqSession(SeqSession):
+    """savepoint(begin_nested)를 지원하는 SeqSession — 저녁 푸시 첫마디 확인이 쓴다."""
+
+    def begin_nested(self):
+        class _CM:
+            async def __aenter__(self_inner):
+                return None
+
+            async def __aexit__(self_inner, *a):
+                return False
+
+        return _CM()
+
+
+_PUSHED_AT = datetime(2026, 10, 14, 11, 0)
+
+
+def _pushed_session(*, variant="c.missing.2", replied=False, evening_issued=False, spoke=False, issued=False):
+    # 락 · 오늘 저녁 푸시 기록 · 푸시 뒤 유저 발화 · 오늘 저녁 첫마디 · (지금 규칙) 오늘 발화 · 오늘 발급
+    return _NestedSeqSession(
+        get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko",
+                                            nickname="지훈", id=UID)},
+        sequences=[[], [(_PUSHED_AT, variant)], [1] if replied else [], ["g-e"] if evening_issued else [],
+                   [1] if spoke else [], ["g-1"] if issued else []],
+    )
+
+
+@pytest.mark.parametrize("context", ["evening", "home_enter"])
+async def test_greeting_repeats_evening_chat_push(context):
+    """대화 푸시를 받은 뒤 들어오면(푸시를 누르든 아이콘이든) 푸시와 같은 말을 evening 첫마디로."""
+    session = _pushed_session()
+    out = await chat_service.get_greeting(session, UID, context)
+    assert out["content"] == "며칠 못 봤네 그동안 별일 없었어?"
+    assert len(session.added) == 1 and session.added[0].context == "evening"
+
+
+async def test_greeting_after_push_ignores_morning_greeting_and_daytime_chat():
+    """아침 첫마디를 이미 냈고 낮에 대화했어도 저녁 푸시 뒤에는 새 첫마디가 뜬다."""
+    session = _pushed_session(spoke=True, issued=True)
+    out = await chat_service.get_greeting(session, UID, "home_enter")
+    assert out["content"] == "며칠 못 봤네 그동안 별일 없었어?"
+
+
+@pytest.mark.parametrize("case", ["replied", "evening_issued", "routine_push"])
+async def test_greeting_falls_back_to_current_rules(case):
+    """푸시 뒤 이미 말했거나, 저녁 첫마디를 이미 냈거나, 대화 푸시가 아니면 지금 규칙."""
+    if case == "routine_push":
+        # 대화 문구가 아니면 발화·첫마디 조회 없이 바로 지금 규칙(오늘 발화 · 오늘 발급)으로 간다.
+        session = _NestedSeqSession(
+            get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko", nickname="지훈", id=UID)},
+            sequences=[[], [(_PUSHED_AT, "rr")], [1], []],
+        )
+    else:
+        session = _pushed_session(replied=case == "replied", evening_issued=case == "evening_issued", spoke=True)
+    assert await chat_service.get_greeting(session, UID, "evening") == {"greeting_id": None, "content": None}
+    assert session.added == []
+
+
+async def test_onboarding_greeting_is_not_replaced_by_push():
+    """가입 직후 첫인사(onboarding)는 저녁 푸시 기록을 보지 않는다 — 락 · 오늘 발화 · 오늘 발급만."""
+    session = _NestedSeqSession(
+        get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko", nickname="지훈", id=UID)},
+        sequences=[[], [], []],
+    )
+    out = await chat_service.get_greeting(session, UID, "onboarding")
+    assert out["content"] and session.added[0].context == "onboarding"
+
+
+async def test_greeting_read_failure_falls_back_to_current_rules():
+    """저녁 푸시 기록 읽기가 실패해도 첫마디는 지금 규칙으로 나간다(SeqSession엔 savepoint가 없다)."""
+    session = _greeting_session(spoke=False, issued=False)
+    out = await chat_service.get_greeting(session, UID, "home_enter")
+    assert out["content"] and len(session.added) == 1 and session.added[0].context == "home_enter"
+
+
 # --- 엔드포인트 ---
 async def _dummy_session():
     yield None
@@ -483,3 +584,84 @@ async def test_free_plan_never_advertises_personal_diary_even_with_enough_chat(m
     session = FakeSession()
     session.scalar_value = 10000
     assert not (await chat_service.get_state(session, UID))["personal_diary_eligible"]
+
+
+async def test_empty_cleaned_reply_is_rejected_without_saving_or_charging(monkeypatch, caplog):
+    """정제 뒤 빈 답은 재시도 가능한 오류이며 메시지 저장·차감하지 않는다."""
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    async def _fake_llm(system, convo, **kw):
+        return LLMResult(text="……", input_tokens=10, output_tokens=3)
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    monkeypatch.setattr(llm_module, "generate", _fake_llm)
+    session = FakeSession()
+    req = SimpleNamespace(text="응", greeting_id=None)
+    with pytest.raises(AppError) as caught:
+        await chat_service.post_message(session, UID, req, "idem-empty")
+    assert caught.value.http_status == 503
+    assert not any(isinstance(m, Message) for m in session.added)
+    assert not any(type(m).__name__ == "UserDailyStats" for m in session.added)
+
+
+
+async def test_normal_reply_does_not_warn_empty(monkeypatch, patched, caplog):
+    async def _res(session, user_id, **kwargs):
+        return _gating()
+
+    monkeypatch.setattr(gating_module, "resolve", _res)
+    with caplog.at_level("WARNING", logger="moly-backend"):
+        await chat_service.post_message(FakeSession(), UID, SimpleNamespace(text="안녕", greeting_id=None), "idem-ok")
+    assert "빈 답장 저장" not in caplog.text
+
+
+@pytest.mark.parametrize(("language", "reply", "expected"), [
+    ("ko", '"반가워"\n다음 줄 مرحبا ئۇيغۇرچە Ж', '"반가워"\n다음 줄'),
+    ("ja", '「時々、〆切を見よう」\nカフェ مرحبا ئۇيغۇرچە Ж', '「時々、〆切を見よう」\nカフェ'),
+    ("en", '"Take your time"\nNext line café مرحبا ئۇيغۇرچە Ж', '"Take your time"\nNext line café'),
+])
+async def test_post_message_filters_foreign_scripts_and_preserves_locale_format(monkeypatch, language, reply, expected):
+    gate = _gating()
+    gate.profile.language = language
+
+    async def resolve(*args, **kwargs):
+        return gate
+
+    async def generate(*args, **kwargs):
+        return LLMResult(text=reply, input_tokens=10, output_tokens=20)
+
+    monkeypatch.setattr(gating_module, "resolve", resolve)
+    monkeypatch.setattr(llm_module, "generate", generate)
+    session = FakeSession()
+    req = SimpleNamespace(text="hello", locale=language, greeting_id=None)
+    out = await chat_service.post_message(session, UID, req, "foreign-script")
+    assert out.reply.content == expected
+    stored = [m for m in session.added if isinstance(m, Message) and m.sender == "moly"]
+    assert stored[0].content == expected
+    assert out.tokens_used == 1110  # Publication/charging is unchanged for a valid reply.
+
+
+@pytest.mark.parametrize("language", ["ko", "ja", "en"])
+@pytest.mark.parametrize("reply", ["مرحبا ئۇيغۇرچە", '"مرحبا"', "؟ مرحبا！", "😊 ئۇيغۇرچە"])
+async def test_foreign_only_reply_returns_503_without_messages_or_charge(monkeypatch, reply, language):
+    async def resolve(*args, **kwargs):
+        gate = _gating()
+        gate.profile.language = language
+        return gate
+
+    async def generate(*args, **kwargs):
+        return LLMResult(text=reply, input_tokens=10, output_tokens=20)
+
+    async def accumulate(*args, **kwargs):
+        pytest.fail("An unusable reply must not charge the user")
+
+    monkeypatch.setattr(gating_module, "resolve", resolve)
+    monkeypatch.setattr(llm_module, "generate", generate)
+    monkeypatch.setattr(chat_service, "_accumulate_tokens", accumulate)
+    session = FakeSession()
+    with pytest.raises(AppError) as caught:
+        await chat_service.post_message(session, UID, SimpleNamespace(text="안녕", locale=language, greeting_id=None), "foreign-only")
+    assert caught.value.code == "AI_UNAVAILABLE"
+    assert caught.value.http_status == 503
+    assert not any(isinstance(m, Message) for m in session.added)

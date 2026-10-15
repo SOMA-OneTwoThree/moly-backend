@@ -1,0 +1,171 @@
+{
+  "api": "https://dev.moly.asia",
+  "auth": "https://moly-server-dev.vercel.app",
+  "checks": [
+    "dev identities authenticated and onboarded on both services",
+    "prepared release preserves launch quota despite old expiry; enrollment stays closed",
+    "future cutoff does not activate subscription early",
+    "all locales: signup trial equals paid allowance, retry preserves 48h, fortune needs no ad",
+    "GPT-6 conversations and memory context; identical retries never charge twice",
+    "en: free limit blocks chat; paid/grace/expiry/refund retain counters and correct benefits",
+    "ko: free limit blocks chat; paid/grace/expiry/refund retain counters and correct benefits",
+    "ja: free limit blocks chat; paid/grace/expiry/refund retain counters and correct benefits",
+    "deployed chat ledger confirms GPT-6 Luna and completed usage records"
+  ],
+  "chat_usage": {
+    "en": {
+      "turns": 8,
+      "units": [
+        4668,
+        4761,
+        848,
+        823,
+        965,
+        1013,
+        1100,
+        1042
+      ],
+      "mean": 1902
+    },
+    "ko": {
+      "turns": 8,
+      "units": [
+        5888,
+        6105,
+        1184,
+        1165,
+        1296,
+        1524,
+        1651,
+        1560
+      ],
+      "mean": 2547
+    },
+    "ja": {
+      "turns": 8,
+      "units": [
+        6493,
+        6677,
+        1191,
+        1363,
+        1432,
+        1529,
+        1625,
+        1632
+      ],
+      "mean": 2743
+    }
+  },
+  "chat_samples": {
+    "en": [
+      {
+        "user": "I finished my presentation today. I was nervous but I'm relieved now.",
+        "reply": "You got through it even with the nerves there. I’m glad that relief has finally landed. What part felt most nerve-racking?"
+      },
+      {
+        "user": "I practiced a lot yesterday, so I'm happy it went well. Just celebrate with me.",
+        "reply": "That’s wonderful, QuotaTest! All that practice paid off and you made it through. I’m happy for you!"
+      },
+      {
+        "user": "I want to have a nice dinner and take a walk tonight.",
+        "reply": "That sounds like a lovely way to celebrate. What kind of dinner are you in the mood for?"
+      },
+      {
+        "user": "What did I say I finished today?",
+        "reply": "You said you finished your presentation today."
+      },
+      {
+        "user": "I finished my presentation today. I was nervous but I'm relieved now.",
+        "reply": "You got through it even with the nerves there. I’m glad the relief’s settled in. I’m happy for you."
+      },
+      {
+        "user": "I practiced a lot yesterday, so I'm happy it went well. Just celebrate with me.",
+        "reply": "You practiced a lot and it paid off. I’m so happy it went well. That’s worth celebrating!"
+      },
+      {
+        "user": "I want to have a nice dinner and take a walk tonight.",
+        "reply": "A nice dinner and a walk sounds like a lovely way to celebrate. I’m glad you’ve got that to look forward to tonight."
+      },
+      {
+        "user": "What did I say I finished today?",
+        "reply": "You said you finished your presentation today."
+      }
+    ],
+    "ko": [
+      {
+        "user": "오늘 발표를 끝냈어. 많이 긴장했는데 잘 마쳐서 마음이 편해졌어.",
+        "reply": "발표 끝내고 마음이 편해졌다니 나도 같이 놓이는 기분이야. 많이 긴장하면서도 끝까지 해낸 게 참 다행이다. 어떤 발표였어?"
+      },
+      {
+        "user": "어제 늦게까지 연습했거든. 잘 끝나서 기뻐. 조언 말고 같이 기뻐해 줘.",
+        "reply": "늦게까지 연습한 만큼 잘 끝나서 정말 기쁘겠다. 나도 덩달아 기뻐. 긴장 많이 했다면서도 결국 잘 마쳤잖아. 마음이 한결 가벼워졌겠다."
+      },
+      {
+        "user": "오늘 저녁에는 맛있는 밥을 먹고 산책하고 싶어.",
+        "reply": "발표도 잘 끝난 날이니 맛있는 저녁 생각이 더 나겠다. 밥 먹고 천천히 산책하면 기분 좋을 것 같아. 어떤 게 먹고 싶어?"
+      },
+      {
+        "user": "내가 오늘 뭘 끝냈다고 했지?",
+        "reply": "오늘 발표를 끝냈다고 했어. 많이 긴장했는데 잘 마쳐서 마음이 편해졌다고 했지."
+      },
+      {
+        "user": "오늘 발표를 끝냈어. 많이 긴장했는데 잘 마쳐서 마음이 편해졌어.",
+        "reply": "오늘 발표가 잘 끝난 게 정말 기쁘다. 긴장도 많이 했는데 마음까지 편해졌다니 나도 덩달아 놓여."
+      },
+      {
+        "user": "어제 늦게까지 연습했거든. 잘 끝나서 기뻐. 조언 말고 같이 기뻐해 줘.",
+        "reply": "어제 늦게까지 연습했으니 잘 끝났을 때 기쁨이 더 컸겠다. 나도 정말 기뻐. 발표를 잘 마치고 마음까지 편해졌다니 덩달아 마음이 환해져."
+      },
+      {
+        "user": "오늘 저녁에는 맛있는 밥을 먹고 산책하고 싶어.",
+        "reply": "오늘은 발표도 잘 끝났으니 맛있는 저녁과 산책이 더 기분 좋게 느껴지겠다. 나도 네가 신나게 저녁을 고르는 모습이 떠올라서 같이 들뜨네. 무슨 음식이 제일 당겨?"
+      },
+      {
+        "user": "내가 오늘 뭘 끝냈다고 했지?",
+        "reply": "오늘 발표를 끝냈다고 했어. 많이 긴장했는데 잘 마쳐서 마음이 편해졌다고 했지."
+      }
+    ],
+    "ja": [
+      {
+        "user": "今日、発表が終わったよ。緊張したけど、無事に終わってほっとした。",
+        "reply": "発表、終わったんだね。緊張を抱えながら最後までやりきったんだなあ。ほっとした気持ち、ぼくにも伝わってきて、うれしいよ。"
+      },
+      {
+        "user": "昨日遅くまで練習したんだ。うまくいって嬉しい。アドバイスより一緒に喜んでほしいな。",
+        "reply": "昨日遅くまで練習してたんだね。うまくいって本当によかった。きみが嬉しいと、ぼくも嬉しいよ。今日はその喜びをいっしょに味わいたいな。"
+      },
+      {
+        "user": "今夜はおいしいご飯を食べて散歩したいな。",
+        "reply": "いいね。発表が終わった日のご飯は、いつもよりおいしく感じそう。どんなものを食べたい気分？"
+      },
+      {
+        "user": "今日、何が終わったって話したっけ？",
+        "reply": "発表が終わったって話してたよ。緊張したけど無事に終わって、ほっとしたんだって。"
+      },
+      {
+        "user": "今日、発表が終わったよ。緊張したけど、無事に終わってほっとした。",
+        "reply": "発表、無事に終わったんだね。緊張してたぶん、ほっとした気持ちも大きそう。きみがやりきれて、ぼくもうれしいよ。"
+      },
+      {
+        "user": "昨日遅くまで練習したんだ。うまくいって嬉しい。アドバイスより一緒に喜んでほしいな。",
+        "reply": "昨日遅くまで練習したんだもんね。うまくいってほんとうによかった。きみの嬉しさ、ぼくも一緒に喜んでるよ。"
+      },
+      {
+        "user": "今夜はおいしいご飯を食べて散歩したいな。",
+        "reply": "いいね。発表がうまくいった日の夜だもんね。おいしいご飯のあとに歩くの、気持ちよさそう。何を食べたい気分？"
+      },
+      {
+        "user": "今日、何が終わったって話したっけ？",
+        "reply": "発表が終わったって話してたよ。緊張したけど無事に終わって、ほっとしたんだって。"
+      }
+    ]
+  },
+  "status": "passed",
+  "model_calls": [
+    {
+      "model": "gpt-6-luna",
+      "status": "completed",
+      "calls": 24
+    }
+  ]
+}

@@ -66,7 +66,7 @@ async def test_notify_morning_sends_when_enabled(monkeypatch):
     session = FakeSession([[], [uuid.uuid4()], ["tok1", "tok2"]])
     n = await notify.notify_morning(
         session, SimpleNamespace(id=UID_UUID, timezone="Asia/Seoul"),
-        now=datetime(2026, 9, 9, 0, tzinfo=timezone.utc),
+        now=datetime(2026, 9, 9, 1, tzinfo=timezone.utc),  # KST 10시
     )
     assert n == 2
     assert captured["tokens"] == ["tok1", "tok2"]
@@ -138,3 +138,14 @@ async def test_fcm_payload_expiry_and_network_failure_are_per_device(monkeypatch
     assert not captured
     assert await push.send(['first', 'second'], 'evening', 'body') == 1
     assert 'data' not in captured[1] and 'android' not in captured[1] and 'apns' not in captured[1]
+    captured.clear()
+    # 같은 종류 교체 값: Android notification.tag와 iOS apns-collapse-id에 같은 값, 만료와 함께 들어간다.
+    assert await push.send(['first', 'second'], 'title', 'body', expires_at=expires, collapse_key='chat') == 1  # 첫 기기는 위 가짜 연결 오류
+    assert captured[0]['android'] == {'ttl': '2700s', 'notification': {'tag': 'chat'}}
+    assert captured[0]['apns']['headers'] == {
+        'apns-expiration': str(int(expires.timestamp())), 'apns-collapse-id': 'chat',
+    }
+    captured.clear()
+    assert await push.send(['first'], 'title', 'body', collapse_key='diary') == 0
+    assert captured[0]['android'] == {'notification': {'tag': 'diary'}}
+    assert captured[0]['apns'] == {'headers': {'apns-collapse-id': 'diary'}}

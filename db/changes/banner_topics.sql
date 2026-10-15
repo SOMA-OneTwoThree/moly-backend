@@ -62,3 +62,7 @@ ALTER TABLE public.user_topic_states ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chat_topic_entries ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.user_topic_states, public.chat_topic_entries FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON public.user_topic_states, public.chat_topic_entries TO service_role;
+
+-- Existing normal/fortune kinds remain valid. Topic answers commit an opening row.
+ALTER TABLE public.messages DROP CONSTRAINT messages_kind_check;
+ALTER TABLE public.messages ADD CONSTRAINT messages_kind_check CHECK (kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text]));

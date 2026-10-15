@@ -1,4 +1,5 @@
 """일기 생성 배치 — 개인/캐피 분기·self-check 폴백·멱등·발행시각(DB·LLM mock)."""
+import logging
 import uuid
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
@@ -13,20 +14,11 @@ from app.services import llm as llm_module
 from app.services.diary_prompts import parse
 from app.services.llm import LLMResult
 
-CFG = {"diary_min_user_chars": 5}  # 개인일기 게이트 = 당일 유저 메시지 문자수
+CFG = {
+    "diary_min_user_chars": 5,  # 개인일기 게이트 = 당일 유저 메시지 문자수
+    "free_launch_until": "2999-01-01T00:00:00+00:00",  # 출시 전: 전원 개인일기 대상
+}
 PROFILE = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language="ko")
-
-
-@pytest.mark.parametrize("language,body,expected", [
-    ("en", "Take a breath—then decide. 3–5 laid-back days.", "Take a breath then decide. 3 5 laid-back days."),
-    ("ja", "時々〆切を確認する—二〇二六年。", "時々〆切を確認する 二〇二六年。"),
-])
-async def test_personal_diary_keeps_existing_dash_format(monkeypatch, language, body, expected):
-    monkeypatch.setattr(llm_module, "generate", AsyncMock(return_value=LLMResult("Weather: sunny\n" + body, 1, 1)))
-    monkeypatch.setattr(dg, "_self_check", AsyncMock(return_value=True))
-    profile = SimpleNamespace(id=uuid.uuid4(), language=language, nickname=None)
-    result, _ = await dg._personal(profile, [])
-    assert result == (expected, "sunny")
 
 
 class FakeSession:
@@ -150,7 +142,7 @@ async def test_personal_non_korean_preserves_cjk(monkeypatch):
     async def _gen(system, convo, *, max_tokens=None, model=None, **_):
         if model == settings.model_utility:
             return LLMResult("OK", 1, 1)
-        return LLMResult("Weather: sunny\n今日は発表を無事に終えた。漢字も残る。", 10, 20)
+        return LLMResult("Weather: sunny\n今日は発表を無事に終えた。日々の努力が実り、〆切にも間に合った。", 10, 20)
 
     async def _no_surgical(*a, **k):
         raise AssertionError("비한국어 일기에 서지컬 복원이 호출되면 안 됨")
@@ -162,7 +154,7 @@ async def test_personal_non_korean_preserves_cjk(monkeypatch):
     await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert d.source == "llm" and d.weather == "sunny"
-    assert "漢字も残る" in d.content and "今日" in d.content  # CJK 보존
+    assert d.content == "今日は発表を無事に終えた。日々の努力が実り、〆切にも間に合った。"
 
 
 async def test_personal_english_preserves_punctuation(monkeypatch):
@@ -180,6 +172,27 @@ async def test_personal_english_preserves_punctuation(monkeypatch):
     await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
     d = session.added[0]
     assert "laid-back" in d.content and "I'm" in d.content  # 하이픈·아포스트로피 보존
+
+
+@pytest.mark.parametrize("language,body", [
+    ("ko", "오늘 Nguyễn와 Việt Nam 여행 이야기를 나눴다."),
+    ("en", "Today I met Nguyễn and Ḥasan in Đà Nẵng."),
+    ("ja", "今日はNguyễnさんと日々の話をした。"),
+])
+async def test_personal_diary_preserves_accented_latin_names(monkeypatch, language, body):
+    _patch_common(monkeypatch, messages=[_msg("user", body)], tokens=5000)
+
+    async def _gen(system, convo, *, max_tokens=None, model=None, **_):
+        if model == settings.model_utility:
+            return LLMResult("OK", 1, 1)
+        return LLMResult("Weather: sunny\n" + body, 10, 20)
+
+    monkeypatch.setattr(llm_module, "generate", _gen)
+    profile = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul", language=language)
+    session = FakeSession()
+    await dg.generate_for_user(session, profile, date(2026, 7, 5), CFG, policy=dg.DiaryPolicy())
+    assert session.added[0].source == "llm"
+    assert session.added[0].content == body
 
 
 async def test_personal_korean_repairs_foreign_chars(monkeypatch):
@@ -223,6 +236,23 @@ async def test_publishes_personal_even_when_self_check_fails(monkeypatch):
     assert d.weather == "sunny"
     assert d.preset_ment_id is None
     assert "오래 남았다" in d.content
+
+
+async def test_self_check_reject_log_carries_no_diary_or_verdict_text(monkeypatch, caplog):
+    """리젝 로그는 리젝률 추적용이다. 본문·판정문은 본인 닉네임만 치환돼 제3자 이름이 남으므로 싣지 않는다."""
+
+    async def _no(*a, **k):
+        return LLMResult("NO: 지수 언급은 근거 없음", 1, 1)
+
+    monkeypatch.setattr(dg.llm, "generate", _no)
+    body = "오늘 지수와 비밀 이야기를 나눴다."
+    with caplog.at_level(logging.WARNING, logger="moly-worker"):
+        passed = await dg._self_check(body, "대화록", user_id="u1", nickname="승민", language="ko")
+    assert passed is False
+    lines = [r.getMessage() for r in caplog.records if "self-check 리젝" in r.getMessage()]
+    assert len(lines) == 1, "리젝 로그는 남아야 한다(리젝률 추적)"
+    assert "지수" not in lines[0] and "비밀" not in lines[0] and "근거" not in lines[0]
+    assert f"body_len={len(body)}" in lines[0] and "user=u1" in lines[0]
 
 
 async def test_diary_body_strips_markdown_and_ellipsis(monkeypatch):

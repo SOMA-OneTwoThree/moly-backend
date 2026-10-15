@@ -6,6 +6,7 @@ mem0는 candidate-add-only라 과거와 현재의 상반된 기억이 벡터 저
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -37,17 +38,18 @@ class _Adapter:
 
 
 class _Session:
-    """Registry rows; older fixtures omit the final time-basis/precision columns."""
+    """Registry rows; existing fixtures omit the time-basis/precision columns."""
 
     def __init__(self, rows, boom=False):
-        self._rows, self._boom = rows, boom
+        self._rows = [(*row, "event", None) if len(row) == 4 else row for row in rows]
+        self._boom = boom
         self.params = None
 
     async def execute(self, stmt, params=None):
         if self._boom:
             raise RuntimeError("db down")
         self.params = params
-        return _Result([(*r, "event", None) if len(r) == 4 else r for r in self._rows])
+        return _Result(self._rows)
 
 
 class _Result:
@@ -71,21 +73,6 @@ async def test_active_memory_is_returned():
     s = _Session([("p1", "active", None, None)])
     got = await mr.recall(s, UID, query="회사 얘기 뭐였지?", adapter=a, embed_query=_embed)
     assert [g.text for g in got] == ["회사에 다닌다"]
-
-
-async def test_source_time_is_a_mention_and_keeps_local_calendar_minute():
-    at = datetime(2026, 9, 14, 15, 1, tzinfo=timezone.utc)
-    session = _Session([("p1", "active", at, None, "mentioned", None)])
-    got = await mr.recall(session, UID, query="아까", adapter=_Adapter([_hit("p1")]),
-                          embed_query=_embed)
-    block = mr.render_block(got, language="ko", today=date(2026, 9, 15), tz_name="Asia/Seoul")
-    assert "2026-09-15T00:01+09:00 언급" in block
-
-
-def test_future_event_and_missing_time_are_not_today():
-    future = datetime(2026, 9, 16, tzinfo=timezone.utc)
-    assert mr._when_label(future, date(2026, 9, 15), "Asia/Seoul", "ko") == "미래 2026-09-16"
-    assert "오늘" not in mr._when_label(None, date(2026, 9, 15), "Asia/Seoul", "ko")
 
 
 @pytest.mark.parametrize("status", ["superseded", "duplicate", "pending", "excluded",
@@ -249,6 +236,101 @@ def test_when_label_boundaries(days, expected):
     assert mr._when_label(occurred, base, "Asia/Seoul", "ko") == expected
 
 
+@pytest.mark.parametrize("now_text,event_text,zone,language,expected", [
+    ("2026-10-15T00:01:00+09:00", "2026-10-15T00:00:00+09:00", "Asia/Seoul", "ko", "오늘"),
+    ("2026-10-15T04:01:00+09:00", "2026-10-15T03:59:00+09:00", "Asia/Seoul", "ko", "오늘"),
+    ("2026-10-15T00:01:00+09:00", "2026-10-14T23:59:00+09:00", "Asia/Seoul", "ko", "어제"),
+    ("2026-10-15T00:01:00-04:00", "2026-10-15T00:00:00-04:00", "America/New_York", "en", "today"),
+    ("2026-10-15T00:01:00-04:00", "2026-10-14T23:59:00-04:00", "America/New_York", "en", "yesterday"),
+])
+def test_when_label_uses_local_calendar_on_both_sides(now_text, event_text, zone, language, expected):
+    from app.core.time_utils import reward_date_for
+
+    now, event = datetime.fromisoformat(now_text), datetime.fromisoformat(event_text)
+    assert mr._when_label(event, reward_date_for(now, zone), zone, language) == expected
+
+
+def test_when_label_without_explicit_today_uses_the_same_calendar(monkeypatch):
+    now = datetime.fromisoformat("2026-10-15T00:01:00+09:00")
+
+    class FrozenDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return now.astimezone(tz)
+
+    monkeypatch.setattr(mr, "datetime", FrozenDatetime)
+    event = datetime.fromisoformat("2026-10-14T23:59:00+09:00")
+    assert mr._when_label(event, None, "Asia/Seoul", "ko") == "어제"
+
+
+def test_when_label_keeps_explicit_reference_unknown_and_future_semantics():
+    event = datetime.fromisoformat("2026-10-15T00:00:00+09:00")
+    assert mr._when_label(event, date(2026, 10, 16), "Asia/Seoul", "ko") == "어제"
+    assert mr._when_label(None, date(2026, 10, 16), "Asia/Seoul", "ko") == "시점 모름"
+    assert mr._when_label(event, date(2026, 10, 14), "Asia/Seoul", "ko") == "미래 2026-10-15"
+
+
+async def test_source_time_is_a_mention_and_keeps_availability_and_trace():
+    at = datetime.fromisoformat("2026-10-14T15:01:00+00:00")
+    session = _Session([("p1", "active", at, None, "mentioned", None)])
+    trace, availability = {}, {}
+    got = await mr.recall(
+        session, UID, query="전에 어떤 얘기했지?", adapter=_Adapter([_hit("p1")]),
+        embed_query=_embed, trace=trace, availability=availability,
+    )
+    assert got[0].time_basis == "mentioned"
+    assert availability == {"status": "ok"}
+    assert list(trace) == ["embed_s", "search_s", "registry_s"]
+    rendered = mr.render_block(got, today=date(2026, 10, 15), tz_name="Asia/Seoul")
+    assert "(2026-10-15T00:01+09:00 언급)" in rendered
+    assert "(오늘)" not in rendered
+
+
+def test_registry_creation_time_is_not_an_event_time_fallback():
+    query = str(mr._FILTER)
+    assert "COALESCE(r.event_started_at, s.source_occurred_at)" in query
+    assert "r.created_at" not in query
+    assert "r.user_id = :user_id" in query
+
+
+@pytest.mark.parametrize("language,label", [("ko", "언급"), ("ja", "言及"), ("en", "mentioned")])
+def test_mention_time_is_localized_without_becoming_an_event(language, label):
+    item = mr.Recalled("a remembered detail", "active", 0.3,
+                       datetime.fromisoformat("2026-10-14T15:01:00+00:00"), None,
+                       time_basis="mentioned")
+    out = mr.render_block([item], language=language, today=date(2026, 10, 15), tz_name="Asia/Tokyo")
+    assert f"(2026-10-15T00:01+09:00 {label})" in out
+
+
+@pytest.mark.parametrize("precision", ["instant", "minute", "second"])
+def test_precise_event_time_preserves_minute_while_day_event_stays_relative(precision):
+    at = datetime.fromisoformat("2026-10-14T15:01:00+00:00")
+    item = mr.Recalled("a remembered detail", "active", 0.3, at, None, time_precision=precision)
+    out = mr.render_block([item], today=date(2026, 10, 15), tz_name="Asia/Seoul")
+    assert "(2026-10-15T00:01+09:00)" in out
+    day = mr.Recalled(item.text, item.status, item.distance, at, None, time_precision="day")
+    assert "(오늘)" in mr.render_block([day], today=date(2026, 10, 15))
+
+
+@pytest.mark.parametrize("at", [None, "invalid"])
+def test_missing_or_malformed_mention_time_remains_unknown(at):
+    item = mr.Recalled("a remembered detail", "active", 0.3, at, None, time_basis="mentioned")
+    out = mr.render_block([item], today=date(2026, 10, 15))
+    assert "시점 모름" in out
+
+
+def test_naive_source_timestamp_is_normalized_as_utc():
+    item = mr.Recalled("a remembered detail", "active", 0.3,
+                       datetime(2026, 10, 14, 15, 1), None, time_basis="mentioned")
+    assert "(2026-10-15T00:01+09:00 언급)" in mr.render_block([item])
+
+
+@pytest.mark.parametrize("language,label", [("ko", "미래"), ("ja", "未来"), ("en", "future")])
+def test_future_event_is_not_labeled_as_today(language, label):
+    at = datetime.fromisoformat("2026-10-15T15:01:00+00:00")
+    assert mr._when_label(at, date(2026, 10, 15), "Asia/Seoul", language) == f"{label} 2026-10-16"
+
+
 def test_unsupported_language_falls_back_to_english_not_korean():
     """지원 밖 언어에 한국어 라벨이 가면 모델이 한국어로 답한다(예전 헤더 사고와 같은 결)."""
     occurred = datetime(2026, 8, 7, 12, tzinfo=timezone.utc)
@@ -377,3 +459,69 @@ async def test_skipped_turn_does_not_call_the_provider():
     a = _Adapter([_hit("p1")])
     assert await mr.recall(_Session([]), UID, query="안녕", adapter=a, embed_query=_embed) == []
     assert a.calls == 0
+
+
+# ── 단계별 계측 — 결과는 그대로, 어디서 느렸는지만 남긴다 ─────────────
+
+_Q = "회사 얘기 뭐였지?"
+
+
+def _slow_lines(caplog) -> list[str]:
+    return [r.getMessage() for r in caplog.records if "v2 회상 느림" in r.getMessage()]
+
+
+async def test_trace_marks_each_finished_stage_in_order():
+    """경계에서 끊긴 뒤에도 어디까지 왔는지 남아야 임베딩·검색·registry 중 원인을 가른다."""
+    trace: dict[str, float] = {}
+    s = _Session([("p1", "active", None, None)])
+    got = await mr.recall(s, UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_embed, trace=trace)
+    assert len(got) == 1
+    assert list(trace) == ["embed_s", "search_s", "registry_s"]
+    assert 0 <= trace["embed_s"] <= trace["search_s"] <= trace["registry_s"]
+
+
+async def test_trace_shows_which_stage_failed():
+    async def _boom(q, **_):
+        raise RuntimeError("embed down")
+
+    trace: dict[str, float] = {}
+    await mr.recall(_Session([]), UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_boom, trace=trace)
+    assert list(trace) == ["failed_s"]
+
+    trace = {}
+    await mr.recall(_Session([], boom=True), UID, query=_Q, adapter=_Adapter([_hit("p1")]),
+                    embed_query=_embed, trace=trace)
+    assert list(trace) == ["embed_s", "search_s", "registry_failed_s"]
+
+
+async def test_skipped_turn_leaves_the_trace_empty():
+    trace: dict[str, float] = {}
+    await mr.recall(_Session([]), UID, query="안녕", adapter=_Adapter([_hit("p1")]), embed_query=_embed, trace=trace)
+    assert trace == {}
+
+
+async def test_slow_recall_is_logged_even_when_it_succeeds(monkeypatch, caplog):
+    """느린 회상은 성공해도 WARNING으로 남는다 — 실패·타임아웃 줄과 같은 수준에서 보여야 한다."""
+    monkeypatch.setattr(mr, "SLOW_RECALL_WARN_S", 0.0)
+    s = _Session([("p1", "active", None, None)])
+    with caplog.at_level(logging.WARNING, logger="moly"):
+        got = await mr.recall(s, UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_embed)
+    assert [r.text for r in got] == ["회사에 다닌다"]
+    lines = _slow_lines(caplog)
+    assert len(lines) == 1 and "registry_s" in lines[0] and "hits=1" in lines[0]
+
+
+async def test_slow_recall_without_hits_is_logged_too(monkeypatch, caplog):
+    """기억이 없는 사용자도 임베딩·검색은 똑같이 거친다. 느렸다면 그쪽도 보여야 한다."""
+    monkeypatch.setattr(mr, "SLOW_RECALL_WARN_S", 0.0)
+    with caplog.at_level(logging.WARNING, logger="moly"):
+        assert await mr.recall(_Session([]), UID, query=_Q, adapter=_Adapter([]), embed_query=_embed) == []
+    lines = _slow_lines(caplog)
+    assert len(lines) == 1 and "search_s" in lines[0] and "hits=0" in lines[0]
+
+
+async def test_fast_recall_logs_nothing(caplog):
+    s = _Session([("p1", "active", None, None)])
+    with caplog.at_level(logging.WARNING, logger="moly"):
+        await mr.recall(s, UID, query=_Q, adapter=_Adapter([_hit("p1")]), embed_query=_embed)
+    assert _slow_lines(caplog) == []

@@ -1,8 +1,12 @@
-FROM python:3.12-slim
+# 베이스 고정: OS 코드네임 태그(trixie). 무태그 `python:3.12-slim`은 다음 Debian 메이저가 나오면 재빌드 때
+# 조용히 따라간다. OS 변경에 따른 타임존 데이터 구성 차이를 피하도록 코드네임을 명시한다.
+# 같은 코드네임 안의 보안·tzdata 갱신은 계속 자동 반영된다 — 다이제스트는 고정하지 않는다.
+FROM python:3.12-slim-trixie
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir uv
+# uv도 고정 — 무고정이면 빌드마다 resolver 버전이 바뀐다.
+RUN pip install --no-cache-dir uv==0.12.21
 
 # 의존성만 먼저 동기(레이어 캐시). package=false 라 프로젝트 자체는 빌드 안 함.
 COPY pyproject.toml uv.lock ./
@@ -11,7 +15,7 @@ RUN uv sync --frozen --no-dev
 COPY app ./app
 COPY worker ./worker
 COPY db/catalog.py db/schema_contract.py db/schema_contract.json db/schema.sql ./db/
-COPY scripts/validate_banners.py scripts/check_running_banners.py scripts/verify_subscription_diary_runtime.py ./scripts/
+COPY scripts/validate_banners.py scripts/check_running_banners.py ./scripts/
 RUN .venv/bin/python scripts/validate_banners.py
 
 EXPOSE 8000

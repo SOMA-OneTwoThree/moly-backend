@@ -11,6 +11,7 @@ deep·synthetic 인증 = 헤더 X-Health-Token 상수시간 비교. 토큰 설�
 """
 from __future__ import annotations
 
+import asyncio
 import hmac
 import time
 from datetime import datetime, timezone
@@ -24,6 +25,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core import errors
 from app.core.db import get_session
+from app.core.time_utils import is_valid_iana_timezone
+from app.models.profile import Profile
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.common import HealthResponse
 from app.services import config_store, jobs, llm, slack_notify  # noqa: F401 (slack_notify: 향후 확장)
@@ -173,6 +176,22 @@ async def health_deep(
     except Exception:  # noqa: BLE001
         out["retention"] = None
 
+    # 타임존 해석 — DB의 distinct profiles.timezone 전부를 이 컨테이너의 zoneinfo로 풀어본다(≤수십 개).
+    # 레거시 별칭 해석 실패로 워커 스킵·422·KST 폴백이 발생하는지 함께 관측한다.
+    try:
+        names = [n for n in (await session.execute(select(Profile.timezone).distinct())).scalars() if n]
+        bad_api = sorted(n for n in names if not is_valid_iana_timezone(n))
+        vals = await config_store.get_config_values(session, [config_store.WORKER_TZ_UNRESOLVABLE_KEY])
+        bad_worker = vals.get(config_store.WORKER_TZ_UNRESOLVABLE_KEY)
+        out["timezones"] = {
+            "distinct": len(names), "unresolvable_api": bad_api,
+            "unresolvable_worker": bad_worker if isinstance(bad_worker, list) else None,
+        }
+        if bad_api or (isinstance(bad_worker, list) and bad_worker):
+            degraded = True
+    except Exception:  # noqa: BLE001
+        out["timezones"] = None
+
     if degraded:
         response.status_code = 503
     out["status"] = "degraded" if degraded else "ok"
@@ -246,8 +265,9 @@ async def health_synthetic(
 ) -> dict[str, Any]:
     """합성 — 의존성(DB·LLM) 능동 점검. 실제 유저·통계·일기 미오염(유저 자체가 없음).
 
-    LLM은 성공(예외 없음)=up으로 본다(GPT-5 계열이 reasoning으로 토큰 소진해 빈 텍스트여도 도달은 정상).
-    하나라도 down이면 503.
+    LLM은 대화 경로처럼 추론을 끄고(reasoning "none") SDK 재시도 없이 `synthetic_llm_timeout_s` 안에서
+    부른다. 성공(예외 없음)=up — 빈 텍스트도 도달은 정상으로 보고 `empty`로만 알린다. 지연은 성공·실패
+    모두 `latency_ms`로 남긴다. 하나라도 down이면 503.
     """
     response.headers["Cache-Control"] = "no-store"
     out: dict[str, Any] = {"version": settings.git_sha}
@@ -263,19 +283,30 @@ async def health_synthetic(
 
     if settings.synthetic_check_llm:
         t1 = time.monotonic()
+        limit = settings.synthetic_llm_timeout_s
         try:
-            res = await llm.generate(
-                ["헬스 점검용. 짧게 답해."],
-                [{"role": "user", "content": "ping"}],
-                max_tokens=32,
+            # 정상 경로는 SDK가 limit에서 끊는다. 바깥 wait_for는 그 밖의 지연까지 끊는 백스톱이다.
+            res = await asyncio.wait_for(
+                llm.generate(
+                    ["헬스 점검용. 짧게 답해."],
+                    [{"role": "user", "content": "ping"}],
+                    max_tokens=32,
+                    reasoning_effort="none",
+                    timeout=limit,
+                    sdk_retries=False,
+                ),
+                timeout=limit + 1.0,
             )
             out["llm"] = {
                 "status": "ok",
                 "latency_ms": int((time.monotonic() - t1) * 1000),
                 "empty": not (res.text or "").strip(),
             }
-        except Exception as e:  # noqa: BLE001  # 도달 실패만 down(예외)
-            out["llm"] = {"status": "down", "error": type(e).__name__}
+        except Exception as e:  # noqa: BLE001  # 도달 실패·상한 초과 → down
+            out["llm"] = {
+                "status": "down", "error": type(e).__name__,
+                "latency_ms": int((time.monotonic() - t1) * 1000),
+            }
             ok = False
     else:
         out["llm"] = {"status": "skipped"}

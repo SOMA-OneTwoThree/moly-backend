@@ -19,3 +19,4 @@ class BgmTrackRecord(Base):
     mime_type: Mapped[str | None] = mapped_column(String, nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    is_subscriber_only: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))

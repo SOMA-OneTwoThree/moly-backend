@@ -26,9 +26,28 @@ JUNK = re.compile(
 ELLIPSIS = re.compile(r"\.{2,}|…+")            # ".." "..." / "…" (한 글자여도 말줄임표)
 STRAY = re.compile(r"[*_`~#—–\-]+")            # 마크다운(**,_,`)·대시·물결·해시 — 부호 화이트리스트 밖
 _STRAY_KEEP_HYPHEN = re.compile(r"[*_`~#—–]+")  # ASCII 하이픈(-) 유지 — 영어 자연 부호(laid-back)
-_STRAY_KEEP_DASHES = re.compile(r"[*_`~#]+")  # 문장·범위의 대시는 원문 그대로 보존
 _WS = re.compile(r"\s+")
 _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
+
+_STRAY_KEEP_DASHES = re.compile(r"[*_`~#]+")  # 문장·범위의 대시는 원문 그대로 보존
+
+_HORIZONTAL_WS = re.compile(r"[^\S\n]+")
+
+_HORIZONTAL_BEFORE_PUNCT = re.compile(r"[^\S\n]+([?!.,])")
+
+QUOTED_LITERAL = re.compile(
+    r'''"[^"]*"|“[^”]*”|「[^」]*」|『[^』]*』|‘[^’]*’|(?<!\w)'[^']+'(?!\w)'''
+)
+
+def _outside_quotes(text: str, transform) -> str:
+    parts = []
+    cursor = 0
+    for match in QUOTED_LITERAL.finditer(text):
+        parts.extend((transform(text[cursor:match.start()]), match.group()))
+        cursor = match.end()
+    parts.append(transform(text[cursor:]))
+    return "".join(parts)
+
 
 # 응답에 나와도 되는 '글자 계열'을 언어마다 적는다. 여기 없는 계열의 글자는 이물질로 보고 지운다.
 #
@@ -39,18 +58,28 @@ _SPACE_BEFORE_PUNCT = re.compile(r"\s+([?!.,])")
 #
 # 왜 이런 글자가 나오나: 모델이 문장을 다 쓰고 멈춰야 할 자리에서 드물게 엉뚱한 언어의 토큰을
 # 뽑는다. 실측 4건은 모두 완결된 문장 뒤에 꼬리처럼 붙었고 단어 중간에 끼어든 경우는 없었다.
-# 그래서 지워도 본문이 깨지지 않는다. 프롬프트로도 막고 있지만 확률이라 0이 되지는 않는다.
+# 프롬프트로도 막지만 확률이라 0이 되지는 않는다. 다만 허용 범위가 빠지면 정상 본문도
+# 손상된다(일본어 々·〆 누락 사례). 아래 목록은 해당 언어의 정상 표기를 보존해야 한다.
 #
 # 어느 언어에서나 통과시키는 계열 — 악센트가 붙은 라틴 글자(café jalapeño)와 그 악센트 기호.
 # 상표 고유명사가 그대로 나오는 게 정상이다. 영문(ASCII)은 아래 `_is_foreign`이 먼저 통과시킨다.
 # 전각 라틴(\uff21~)도 넣는다 — 일본어 글에 흔하고, 빼면 멀쩡한 글자를 지운다.
-_COMMON_LETTERS = "\u00c0-\u024f\u0300-\u036f\uff21-\uff3a\uff41-\uff5a"
+# Latin Extended Additional은 Nguyễn·Ḥasan·ẞ 같은 고유명사 표기에 필요하다.
+# 분해형 악센트만 허용하면 같은 이름도 NFC/NFD에 따라 삭제 여부가 달라진다.
+_COMMON_LETTERS = "\u00c0-\u024f\u0300-\u036f\u1e00-\u1eff\uff21-\uff3a\uff41-\uff5a"
 _ALLOWED_LETTERS = {
     # 한글 = 완성형 음절 + 호환 자모 + 조합용 자모. 조합용(\u1100~)까지 넣는 이유는 자소가 분리된
     # 형태로 들어와도 한글이 통째로 지워지지 않게 하기 위해서다.
     "ko": "\uac00-\ud7a3\u3131-\u318e\u1100-\u11ff",
     # 가나 + 한자(기본 확장A 호환 확장B) + 탁점(\u3099~) — 탁점은 분리된 가나의 정상 구성요소다.
-    "ja": r"々〆぀-ヿ㐀-䶿一-鿿豈-﫿\U00020000-\U0002FA1F" "\u3099-\u309a\uff66-\uff9f",  # 끝은 반각 가타카나
+    "ja": (
+        r"぀-ヿ㐀-䶿一-鿿豈-﫿\U00020000-\U0002FA1F"
+        "\u3099-\u309a\uff66-\uff9f"  # 분리 탁점·반각 가타카나
+        # 가나·한자 블록 밖 정상 표기: 々·〆, 세로쓰기 반복 기호, 〻·〼.
+        # U+3000 블록 전체를 열면 한글 성조 결합기호(U+302E/F)까지 통과한다.
+        "\u3005-\u3006\u3031-\u3035\u303b-\u303c"
+        "\u31f0-\u31ff"  # 아이누어 표기에 쓰는 가타카나 확장
+    ),
     "en": "",  # 라틴뿐 — 위 공통 계열로 충분하다
 }
 _ALLOWED_RE = {
@@ -93,7 +122,10 @@ def _filter_for(language: str | None) -> tuple[bool, re.Pattern[str] | None]:
     return True, _ALLOWED_RE[lang]
 
 
-def strip_symbols(text: str, *, keep_hyphen: bool = False, preserve_dashes: bool = False) -> str:
+def strip_symbols(
+    text: str, *, keep_hyphen: bool = False, preserve_dashes: bool = False,
+    preserve_linebreaks: bool = False, preserve_quotes: bool = False,
+) -> str:
     """깨진/투명/제어문자 + 말줄임표·마크다운·대시류 제거 + 공백 정규화. 채팅·일기 공용.
 
     keep_hyphen=True면 ASCII 하이픈(-)을 남긴다(영어 응답의 자연 부호 laid-back 보존). 기본(ko)은 제거.
@@ -102,11 +134,19 @@ def strip_symbols(text: str, *, keep_hyphen: bool = False, preserve_dashes: bool
     if not text:
         return text
     out = JUNK.sub("", text)      # 깨짐(�)·제로폭·BOM·제어 제거(재결합 위해 "")
-    out = ELLIPSIS.sub(" ", out)
     stray = _STRAY_KEEP_DASHES if preserve_dashes else (_STRAY_KEEP_HYPHEN if keep_hyphen else STRAY)
-    out = stray.sub(" ", out)
-    out = _WS.sub(" ", out)
-    return _SPACE_BEFORE_PUNCT.sub(r"\1", out).strip()
+    if preserve_linebreaks:
+        out = out.replace("\r\n", "\n").replace("\r", "\n")
+
+    def clean(segment: str) -> str:
+        segment = stray.sub(" ", ELLIPSIS.sub(" ", segment))
+        whitespace = _HORIZONTAL_WS if preserve_linebreaks else _WS
+        before_punct = _HORIZONTAL_BEFORE_PUNCT if preserve_linebreaks else _SPACE_BEFORE_PUNCT
+        segment = before_punct.sub(r"\1", whitespace.sub(" ", segment))
+        return re.sub(r" +(?=\n)|(?<=\n) +", "", segment) if preserve_linebreaks else segment
+
+    out = _outside_quotes(out, clean) if preserve_quotes else clean(out)
+    return out.strip()
 
 
 def has_foreign(text: str | None, *, language: str | None, keep: str | None = None) -> bool:
@@ -119,12 +159,16 @@ def has_foreign(text: str | None, *, language: str | None, keep: str | None = No
     return any(_is_foreign(ch, allowed) for seg in _segments(text, keep) for ch in seg)
 
 
-def strip_foreign(text: str | None, *, language: str | None, keep: str | None = None) -> str | None:
+def strip_foreign(
+    text: str | None, *, language: str | None, keep: str | None = None,
+    preserve_linebreaks: bool = False,
+) -> str | None:
     """응답 언어에 없어야 할 계열의 글자를 지우고 공백을 정규화한다. `keep`(닉네임)은 그대로 둔다.
 
-    실측된 경우는 전부 문장 뒤에 붙은 꼬리라 지워도 본문이 안 깨진다. 단어 중간에 끼어드는
-    경우(예: '中국'→'국')는 아직 관측된 적이 없다 — 그런 사례가 실제로 생기는지 보려고 호출측이
-    발동 사실을 로그로 남긴다. 생기면 그때 복원 방식을 다시 판단한다.
+    위치와 무관하게 삭제하므로 허용 범위가 불완전하면 정상 본문도 손상된다.
+    일본어 반복 기호(々)처럼 정상 표기가 빠지지 않도록 언어별 회귀 테스트로 검증한다.
+    preserve_linebreaks=True면 대화의 줄바꿈을 유지한다. 기존 일기 호출의 기본 정규화는 그대로다.
+    호출측 로그에는 원문이나 삭제한 글자를 남기지 않는다.
     """
     if not text:
         return text
@@ -134,7 +178,12 @@ def strip_foreign(text: str | None, *, language: str | None, keep: str | None = 
     kept = [
         "".join(ch for ch in seg if not _is_foreign(ch, allowed)) for seg in _segments(text, keep)
     ]
-    return _WS.sub(" ", (keep or "").join(kept)).strip()
+    out = (keep or "").join(kept)
+    if preserve_linebreaks:
+        out = out.replace("\r\n", "\n").replace("\r", "\n")
+        out = _HORIZONTAL_WS.sub(" ", out)
+        return re.sub(r" +(?=\n)|(?<=\n) +", "", out).strip()
+    return _WS.sub(" ", out).strip()
 
 
 # 메타 프리앰블 탐지/제거 — 모델이 한국어 응답 앞에 자기 판단·방침을 라틴 문자 '문장'으로 흘리는
@@ -147,7 +196,9 @@ _META_HEAD_PUNCT = re.compile(r"[.:]")  # 메타는 완결된 문장(마침표·
 _META_MIN_WORDS = 4  # 첫 한글 앞 라틴 단어가 이 이상이면 '문장 분량'으로 봄(짧은 토큰 LP·AI·BTS는 미발동)
 
 
-def strip_leading_meta(text: str, *, min_words: int = _META_MIN_WORDS) -> str:
+def strip_leading_meta(
+    text: str, *, min_words: int = _META_MIN_WORDS, preserve_quoted_prefix: bool = False,
+) -> str:
     """한국어 응답 앞에 새어나온 라틴 메타 프리앰블만 결정적으로 벗긴다(첫 한글부터 남김).
 
     발동 조건(전부 만족): ① 한글 존재(제거 후 남을 본문 있음) ② 첫 글자가 한글 아님 ③ 첫 한글 앞
@@ -157,6 +208,8 @@ def strip_leading_meta(text: str, *, min_words: int = _META_MIN_WORDS) -> str:
     프로덕션 캐피 응답 3071건 검증: 실측 유출 2건(영어·스페인어, 둘 다 마침표 문장)만 변경, 오탐 0건.
     """
     if not text:
+        return text
+    if preserve_quoted_prefix and QUOTED_LITERAL.match(text.lstrip()):
         return text
     m = _HANGUL.search(text)
     if m is None or m.start() == 0:

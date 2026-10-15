@@ -21,7 +21,8 @@ def test_chat_system_prompt_ja_allows_kanji_forbids_hangul():
     sp = prompts.system_prompt("ja")
     assert "Chinese characters" not in sp   # ja는 한자 금지 안 함(정상 일본어 보존, SOMA-361 C2)
     assert "ハングル" in sp                   # 한글 혼입만 금지
-    assert "Chinese characters" in prompts.system_prompt("en")  # en 회귀 없음
+    assert "Requested quotations follow the same script limits" in prompts.system_prompt("en")
+    assert "Preserve the supplied user nickname" in prompts.system_prompt("en")
     assert "한국어" in prompts.system_prompt("ko")               # ko 회귀 없음
 
 
@@ -33,7 +34,7 @@ def test_chat_system_prompt_ja_uses_native_persona():
     assert "写真" in sp                               # 없는 기능(사진 등) 언급 금지 규칙 포함(SOMA-351)
     # 네이티브 = 페르소나 본문에 한글 0(한국어 페르소나 미사용).
     assert not any("가" <= c <= "힣" for c in prompts.CAPI_PERSONA_JA)
-    assert "[물음표" in prompts.system_prompt("ko")   # ko는 물음표 강제 유지(회귀 없음)
+    assert "질문에는 물음표를 써" in prompts.system_prompt("ko")
 
 
 def test_chat_system_prompt_forbids_absent_features_both_langs():
@@ -66,9 +67,9 @@ def test_latin_name_is_pinned_for_non_ko_ja():
 
 def test_latin_name_matches_push_surface():
     """대화와 푸시가 같은 이름을 써야 한다. 어긋나면 유저가 다른 상대로 읽는다."""
-    from app.services import notify
+    from app.services import push_copy
 
-    assert notify._MORNING["en"][0] in prompts.system_prompt("en")
+    assert "Cappy" in push_copy.diary("en")[1] and "Cappy" in prompts.system_prompt("en")
 
 
 def test_ko_and_ja_keep_their_own_names():
@@ -133,7 +134,9 @@ def test_english_persona_keeps_the_capi_rules():
     sp = prompts.system_prompt("en")
     for rule, why in [
         ("Cappy", "이름"),
+        ("Don't use commas", "쉼표 금지"),
         ("Use contractions", "축약형"),
+        ("length this reply needs", "현재 답에 맞춘 길이"),
         ("emoji", "이모지 금지"),
         ("capybara", "정체성"),
         ("diary", "일기는 비밀"),
@@ -141,8 +144,8 @@ def test_english_persona_keeps_the_capi_rules():
         assert rule in sp, f"영어 페르소나에 {why} 규칙이 없다"
 
 
-def test_ko_and_ja_personas_are_untouched():
-    assert "너는 '캐피'야" in prompts.system_prompt("ko")
+def test_ko_and_ja_personas_keep_character_identity():
+    assert "너는 캐피야" in prompts.system_prompt("ko")
     assert "\u30ad\u30e3\u30d4\u30fc" in prompts.system_prompt("ja")
 
 
@@ -222,11 +225,12 @@ def test_diary_never_calls_the_person_user():
 # 닫거나 쉬라며 보내지 않는다.
 _SAFETY_MARKERS = {
     "ko": [
-        ("해치려는", "지금 당장 자해하려는 경우만 위기로 본다"),
-        ("위기로 몰지", "애매한 넋두리를 위기로 몰지 않는다"),
-        ("기관 전화번호", "기관·상담전화 안내 금지"),
-        ("안전 얘기를 다시 꺼내지", "안전을 두 번 묻지 않는다"),
-        ("대화를 닫거나", "대화를 닫거나 보내지 않는다"),
+        ("해치는 행동을 부추기거나 실행 방법을 제공하지 마", "위험 행동 지원 금지"),
+        ("비유·허구·남의 일을 지금의 실제 위험으로 단정하지 말고", "불확실한 위기 구분"),
+        ("당장 위험하면 현재 안전을 확보하고", "즉각적 위험의 안전 확보"),
+        ("모르는 연락처를 만들지 마", "연락처 허위 생성 금지"),
+        ("확인된 위험이 끝났다고 단정하지 마", "화제 전환을 위험 종료로 오판 금지"),
+        ("끝없이 대화를 붙잡는 것이 안전 대응을 대신하지 않아", "대화 강요로 안전 대응 대체 금지"),
     ],
     "ja": [
         ("\u50b7\u3064\u3051\u305d\u3046", "지금 당장 자해하려는 경우만"),

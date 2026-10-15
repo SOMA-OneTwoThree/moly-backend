@@ -14,6 +14,7 @@
 | [BANNER_SDUI_CONTRACT.md](BANNER_SDUI_CONTRACT.md) | 고정 홈 배너의 서버·클라이언트 공동 규약 |
 | [BANNER_SDUI.md](BANNER_SDUI.md) | 배너 파일·실데이터 조합·배포 검증의 서버 구현 |
 | [OPERATIONS.md](OPERATIONS.md) | 배포·관측·장애 대응·데이터 보존 |
+| [대화·푸시·알림 출시 절차](RELEASE-CONVERSATION-PUSH-2026-10-15.md) | 이번 변경의 PR 리뷰·머지 전 SQL·배포·복구 인계 |
 | `DAILY-FORTUNE.md` | 오늘의 운세 입력·계산·문구·DB·API·광고·배포 상세 |
 
 HTTP 계약의 기계 판독 원본은 `openapi/openapi.yaml`과 분할 YAML이며, DB 구조의 원본은

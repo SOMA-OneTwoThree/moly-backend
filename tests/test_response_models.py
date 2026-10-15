@@ -30,11 +30,15 @@ UUID = "11111111-1111-1111-1111-111111111111"
 ROUTINE = {
     "id": UUID,
     "name": "산책",
+    "icon": "person_walking",
+    "color": "green",
+    "template_id": None,
     "frequency_per_week": 3,
     "days_of_week": [1, 3, 5],
     "reminder_enabled": True,
     "reminder_time": "09:30",
     "completed_today": False,
+    "skipped_today": False,
 }
 
 

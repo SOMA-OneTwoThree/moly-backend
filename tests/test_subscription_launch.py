@@ -165,7 +165,6 @@ def test_launch_rollout_uses_only_explicit_app_trial_and_unlocks_all_benefits():
         app_trial_ends_at=now + timedelta(hours=48),
     )
     cfg = {
-        "subscription_launch": {"enabled": True},
         "free_launch_until": (now + timedelta(days=100)).isoformat(),
         "daily_token_limit": {"free": 20, "trial": 100, "subscriber": 100},
     }
@@ -177,7 +176,7 @@ def test_launch_rollout_uses_only_explicit_app_trial_and_unlocks_all_benefits():
     profile.app_trial_ends_at = now - timedelta(seconds=1)
     free = derive_entitlement(profile, None, 0, cfg, now)
     assert free["plan"] == "free" and free["ads_removed"] is False
-    assert free["daily_token_limit"] == 20
+    assert free["daily_token_limit"] == 40_000
 
 
 def test_store_trial_keeps_subscriber_entitlement_and_trial_expiry():
@@ -236,7 +235,7 @@ def test_app_trial_requires_recorded_start():
     profile = SimpleNamespace(
         trial_ends_at=None, app_trial_started_at=None, app_trial_ends_at=now + timedelta(hours=48)
     )
-    result = derive_entitlement(profile, None, 0, {"subscription_launch": {"enabled": True}}, now)
+    result = derive_entitlement(profile, None, 0, {}, now)
     assert result["plan"] == "free"
 
 
@@ -258,7 +257,7 @@ def test_late_trial_event_cannot_restore_trial_after_paid_conversion():
     assert sub.store_trial_ends_at is None
 
 
-def test_unmigrated_account_keeps_legacy_launch_after_rollout_enabled():
+def test_account_without_app_trial_keeps_launch_until_release():
     now = datetime.now(timezone.utc)
     old_end = now + timedelta(days=10)
     profile = SimpleNamespace(trial_ends_at=None, app_trial_started_at=None, app_trial_ends_at=None)
@@ -267,7 +266,6 @@ def test_unmigrated_account_keeps_legacy_launch_after_rollout_enabled():
         None,
         0,
         {
-            "subscription_launch": {"enabled": True},
             "free_launch_until": old_end.isoformat(),
             "free_launch_token_limit": 150000,
         },
@@ -278,37 +276,15 @@ def test_unmigrated_account_keeps_legacy_launch_after_rollout_enabled():
     assert result["subscriber_theme_unlocked"] is False
 
 
-def test_prepared_rollout_keeps_former_test_accounts_in_launch_without_reissuing_trial():
-    now = datetime.now(timezone.utc)
-    profile = SimpleNamespace(
-        trial_ends_at=now + timedelta(days=10),
-        app_trial_started_at=now - timedelta(days=3),
-        app_trial_ends_at=now - timedelta(days=1),
-    )
-    result = derive_entitlement(
-        profile,
-        None,
-        0,
-        {
-            "subscription_launch": {"enabled": False},
-            "free_launch_until": (now + timedelta(days=10)).isoformat(),
-        },
-        now,
-    )
-    assert result["plan"] == "trial" and result["entitlement_source"] == "launch"
-    assert profile.app_trial_ends_at == now - timedelta(days=1)
-
-
-async def test_store_trial_marks_existing_claim_even_if_enrollment_is_paused():
+async def test_play_trial_marks_existing_claim_even_if_enrollment_is_paused():
     session = AsyncMock()
     await subscription._mark_store_trial_offer_redeemed(session, UID_UUID, {
-        "offer_code": "legacy-month", "product_id": "monthly", "store": "APP_STORE",
+        "offer_code": "legacy-month", "product_id": "monthly", "store": "PLAY_STORE",
     })
     sql = session.execute.await_args.args[0]
     assert "UPDATE public.subscription_offer_claims" in str(sql)
     assert "redeemed_at IS NULL" in str(sql)
-    assert sql.compile().params == {"uid": UID_UUID, "offer": "legacy-month",
-                                    "product": "monthly", "store": "APP_STORE"}
+    assert sql.compile().params == {"uid": UID_UUID, "offer": "legacy-month", "product": "monthly"}
 
 
 @pytest.mark.parametrize("period", ["TRIAL", "INTRO", "NORMAL"])
@@ -327,7 +303,7 @@ async def test_zero_price_store_period_consumes_offer_and_reports_trial(monkeypa
     session = CaptureSession()
     result = await subscription.handle_revenuecat_event(
         session, _rc_event(period_type=period, price_in_purchased_currency=0,
-                           offer_code="legacy-month", store="APP_STORE")
+                           offer_code="legacy-month", store="PLAY_STORE")
     )
     assert result.outcome == subscription.HANDLED
     sub = next(row for row in session.added if isinstance(row, Subscription))
@@ -411,6 +387,7 @@ async def test_ads_return_when_paid_or_store_trial_subscription_expires(plan, st
 @pytest.mark.parametrize("event", [
     {}, {"offer_code": None, "product_id": "monthly", "store": "APP_STORE"},
     {"offer_code": "legacy", "product_id": "monthly", "store": "STRIPE"},
+    {"offer_code": "legacy", "product_id": "monthly", "store": "APP_STORE"},
 ])
 async def test_unattributed_free_period_never_consumes_campaign(event):
     session = AsyncMock()

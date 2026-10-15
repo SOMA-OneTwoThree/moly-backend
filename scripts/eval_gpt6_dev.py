@@ -117,7 +117,7 @@ async def run(args):
                     item["est_cost_usd"] = None
                 results.append(item)
                 Path(args.output).write_text(json.dumps({"started_at": started, "api": BASE_URL,
-                    "transport": "legacy chat-eval; reasoning defaults, no tool schemas", "results": results},
+                    "transport": "deployed dev chat-eval; reasoning_effort=none; no tool schemas; utility/diary instructions supplied as user content", "results": results},
                     ensure_ascii=False, indent=2) + "\n")
                 print(f'{case["case"]} {model}: {"PASS" if passed else "FAIL"}, {data.get("latency_ms")}ms', flush=True)
         await asyncio.gather(*(one(case, model) for case in cases() for model in case["models"]))

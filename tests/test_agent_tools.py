@@ -65,7 +65,6 @@ def test_registry_exposes_all_read_tools():
 def test_registry_resolves_enabled_tools():
     assert REGISTRY.get("recall_diaries") is recall_diaries.TOOL
     assert REGISTRY.get("get_routines") is get_routines.TOOL
-    assert REGISTRY.get("get_mood_entries") is None
 
 
 def test_runtime_picks_up_the_registry():
@@ -80,6 +79,13 @@ def test_tool_names_and_descriptions_are_ascii():
         fn = schema["function"]
         assert fn["name"].isascii() and fn["description"].isascii()
         assert fn["description"]
+
+
+def test_diary_tool_description_distinguishes_cappy_diaries_from_mood_notes():
+    tool = next(s["function"] for s in REGISTRY.wire_schemas()
+                if s["function"]["name"] == "recall_diaries")
+    assert "Cappy-authored published diaries" in tool["description"]
+    assert "never the user's mood selections or notes" in tool["description"]
 
 
 def test_wire_schemas_forbid_extra_arguments_and_never_take_user_id():

@@ -157,3 +157,18 @@ async def test_slack_failed_send_does_not_consume_local_dedup(monkeypatch):
     assert not await slack_notify.send("test", dedup_key="synthetic")
     assert await slack_notify.send("test", dedup_key="synthetic")
     assert post.await_count == 2
+
+
+async def test_push_outage_requires_main_threshold_and_recovery_requires_acceptance(observe, monkeypatch):
+    _, publish = observe
+    monkeypatch.setattr(monitoring.settings, "worker_push_outage_min", 20)
+    await monitoring.emit(NOW, {"push_sent": 0, "push_transient": 15, "push_setup_error": 10})
+    failure = next(c.args[0] for c in publish.await_args_list if c.args[0].signal == "worker_push")
+    assert failure.active is True and "푸시 실패 25(수락 0)" in failure.message
+    publish.reset_mock()
+    for counts, expected in [({}, None), ({"push_invalid_token": 500}, None),
+        ({"push_sent": 0, "push_transient": 2}, None), ({"push_sent": 1, "push_transient": 20}, False)]:
+        await monitoring.emit(NOW, counts)
+        obs = next(c.args[0] for c in publish.await_args_list if c.args[0].signal == "worker_push")
+        assert obs.active is expected
+        publish.reset_mock()

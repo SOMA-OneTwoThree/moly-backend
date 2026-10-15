@@ -14,7 +14,6 @@ from app.core.app_day import AppDay
 def music_test_catalog():
     """Exercise the supported binding independently of the published banner lineup."""
     raw = json.loads(CATALOG_PATH.read_text())
-    # 오늘의 글귀 카드는 DB 조회가 필요하고 5장 상한도 차지하므로 이 대역에서는 제외한다.
     music = copy.deepcopy(next(b for b in raw['banners'] if b['id'] == 'mood-daily'))
     music['id'] = 'music-daily'
     music['bindings'] = {'track': {'source': 'music.daily_title', 'format': None}}
@@ -83,10 +82,8 @@ def test_current_cards_fit_feed_budget_and_existing_dependency_contract():
                                questions={locale: 'Question?'}, offer_id=UUID(int=1),
                                offer_sequence=1, topic_id='sample', topic_revision='0' * 64))
         assert [b.id for b in feed.items] == [
-            'composed-image-test', 'mood-daily', 'shop-new-items',
-            'purple-image-test'
+            'composed-image-test', 'mood-daily', 'shop-new-items', 'purple-image-test'
         ]
         assert len(feed.model_dump_json().encode()) < 128 * 1024
         assert all(set(b.data_dependencies) <= {'user.local_date', 'topic.question',
-                                               'routines.remaining_today'}
-                   for b in feed.items)
+                                               'routines.remaining_today'} for b in feed.items)

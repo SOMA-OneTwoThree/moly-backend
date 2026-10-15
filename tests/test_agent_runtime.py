@@ -7,12 +7,14 @@ LLM timeout이 남은 데드라인에 묶이는지 / `agent_enabled=False`에서
 import asyncio
 import logging
 import uuid
+from dataclasses import replace
 from datetime import date
 from types import SimpleNamespace
 
 import pytest
 
 from app.services import chat as chat_service
+from app.services import chat_references
 from app.services import gating as gating_module
 from app.services import llm as llm_module
 from app.services.agent import config as agent_config
@@ -20,6 +22,7 @@ from app.services.agent import runtime as agent_runtime
 from app.services.agent.config import build_snapshot
 from app.services.llm import (
     ControlIntent,
+    GroundedRef,
     LlmCall,
     LLMResult,
     StepResult,
@@ -220,13 +223,14 @@ async def test_step1_max_tokens_is_decide_budget(monkeypatch):
 async def test_llm_timeout_bounded_by_deadline_not_llm_timeout_s(monkeypatch):
     """llm_timeout_s=60을 그대로 쓰면 5초 제약이 그 자리에서 깨진다.
 
-    도구가 있는 턴은 뒤에 최종 호출이 한 번 더 오므로 첫 홉을 예약선(deadline-reserve) 앞에서 끊는다.
+    도구가 있는 턴은 뒤에 최종 호출이나 fallback이 한 번 더 오므로 첫 홉을 둘 중 큰 예약선 앞에서 끊는다.
     """
     assert chat_service.settings.llm_timeout_s == 60.0
     fake = _FakeSteps(_text_step("응."))
     await _run(fake, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
     cfg = _cfg()
-    assert fake.calls[0]["timeout"] == cfg.turn_deadline_s - cfg.final_reserve_s
+    reserve = max(cfg.final_reserve_s, agent_runtime.FALLBACK_RESERVE_S)
+    assert fake.calls[0]["timeout"] == cfg.turn_deadline_s - reserve
 
 
 async def test_single_hop_turn_keeps_full_deadline(monkeypatch):
@@ -243,7 +247,7 @@ async def test_worst_case_turn_stays_within_deadline(monkeypatch):
     deadline을 넘는다. 첫 홉을 예약선 앞에서 끊어야 성립한다.
     """
     cfg = _cfg()
-    budget = cfg.turn_deadline_s - cfg.final_reserve_s
+    budget = cfg.turn_deadline_s - max(cfg.final_reserve_s, agent_runtime.FALLBACK_RESERVE_S)
     clock = _Clock()
     fake = _FakeSteps(
         _calls_step(_call(1)), _text_step("응.", purpose="tool_final"),
@@ -307,6 +311,113 @@ async def test_fallback_turn_total_stays_within_deadline(monkeypatch):
     assert turn.skipped == "deadline"
     total = sum(c["timeout"] for c in fake.calls)
     assert total <= cfg.turn_deadline_s, f"1홉+fallback 합계 {total}s > {cfg.turn_deadline_s}s"
+
+
+async def test_decide_timeout_leaves_fallback_its_reserve(monkeypatch):
+    """1홉이 제 timeout을 꽉 채우고 끊겨도 fallback에는 FALLBACK_RESERVE_S가 통째로 남는다.
+
+    예전엔 1홉이 (마감 − final_reserve 2.5초)까지 갔다. fallback 예산이 단발 p90 수준이라
+    fallback도 자주 timeout이었고, 그나마 SDK 재시도가 1홉을 3배로 늘려 fallback 자체가 못 돌았다.
+    """
+    clock = _Clock()
+    probe = _FakeSteps(_text_step("응."))
+    await _run(probe, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    hop1_timeout = probe.calls[0]["timeout"]
+
+    fake = _TimeoutThenText(clock=clock, elapse=hop1_timeout)
+    turn = await _run(fake, registry=_FakeRegistry(_FakeTool()), clock=clock, monkeypatch=monkeypatch)
+    assert turn.skipped == "deadline"
+    assert fake.calls[1]["timeout"] >= agent_runtime.FALLBACK_RESERVE_S - 1e-9
+
+
+async def test_short_deadline_keeps_decide_at_least_decide_min(monkeypatch):
+    """데드라인이 짧으면 fallback 예약을 줄여서라도 1홉에 DECIDE_MIN_S(≈p95)를 준다.
+
+    고정 4초 예약이면 8초 데드라인 + 1홉 전 1.65초 경과에서 1홉이 2.35초뿐이라 정상 호출 5% 이상이
+    잘려 도구를 잃는다(리뷰 지적).
+    """
+    cfg = _cfg()  # turn_deadline_s = 8
+    clock = _Clock()
+    clock.advance(1.65)  # 1홉 전 경과(회상 대기 등) — run_turn의 기본 데드라인은 호출 시점 기준이라 직접 준다
+    fake = _FakeSteps(_text_step("응."))
+    monkeypatch.setattr(llm_module, "generate_step", fake)
+    await agent_runtime.run_turn(
+        SYSTEM, CONVO, config=cfg, user_id=UID, language="ko", activity_date=date(2026, 8, 3),
+        user_text="오늘 어땠어?", registry=_FakeRegistry(_FakeTool()), now=clock,
+        deadline=1000.0 + cfg.turn_deadline_s,
+    )
+    assert fake.calls[0]["timeout"] == pytest.approx(agent_runtime.DECIDE_MIN_S)
+
+
+@pytest.mark.parametrize(
+    ("remaining", "expected_reserve"),
+    [(8.35, 4.0), (6.35, 3.35), (5.0, 2.5), (3.5, 2.5)],
+)
+def test_decide_reserve_shrinks_but_never_below_final_reserve(remaining, expected_reserve):
+    clock = _Clock()
+    reserve = agent_runtime._decide_reserve(
+        clock.t + remaining, now=clock, final_reserve_s=2.5
+    )
+    assert reserve == pytest.approx(expected_reserve)
+
+
+class _ErrorThenText:
+    """1홉(도구 제안)이 주어진 예외로 죽고, 도구 없이 부르면 답이 나오는 provider 대역."""
+
+    def __init__(self, exc: BaseException):
+        self.exc = exc
+        self.calls: list[dict] = []
+
+    async def __call__(self, system, transcript, **kw):
+        self.calls.append(kw)
+        if kw.get("tools"):
+            raise self.exc
+        return _text_step("응, 들었어.", purpose="chat")
+
+
+def _http_request():
+    import httpx
+
+    return httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+
+
+def _status_error(cls, status: int):
+    import httpx
+
+    return cls("boom", response=httpx.Response(status, request=_http_request()), body=None)
+
+
+@pytest.mark.parametrize(
+    "make_exc",
+    [
+        lambda: __import__("openai").APITimeoutError(request=_http_request()),
+        lambda: __import__("openai").APIConnectionError(request=_http_request()),
+        lambda: _status_error(__import__("openai").InternalServerError, 500),
+        lambda: _status_error(__import__("openai").RateLimitError, 429),
+    ],
+    ids=["timeout", "connection", "5xx", "429"],
+)
+async def test_decide_transient_failure_falls_back(monkeypatch, make_exc):
+    """SDK 재시도를 끈 뒤에도 일시 오류가 곧장 5xx가 되지 않는다 — 도구 없는 fallback으로 받는다.
+
+    예전엔 SDK가 연결 실패·429·5xx를 조용히 재시도해 줬다. 재시도를 끄면서 이 경로를 안 열면
+    순간 오류 하나가 사용자 에러가 된다.
+    """
+    fake = _ErrorThenText(make_exc())
+    turn = await _run(fake, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    assert turn.text == "응, 들었어."
+    assert turn.skipped == "deadline"
+    assert len(fake.calls) == 2 and fake.calls[1]["tools"] is None
+
+
+async def test_decide_request_error_is_not_retried(monkeypatch):
+    """400 같은 요청 오류는 다시 불러도 같다 — fallback으로 가리지 않고 그대로 올린다."""
+    import openai
+
+    fake = _ErrorThenText(_status_error(openai.BadRequestError, 400))
+    with pytest.raises(openai.BadRequestError):
+        await _run(fake, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
 
 
 async def test_decide_timeout_raises_when_no_time_left_for_fallback(monkeypatch):
@@ -671,7 +782,28 @@ async def test_agent_turn_still_runs_egress_backstops(monkeypatch):
     out = await _post(FakeSession(), monkeypatch, agent=_agent, snapshot=snapshot)
 
     assert "..." not in out.reply.content  # 말줄임표 제거
-    assert out.reply.content.endswith("?")  # 되묻기 물음표 복원
+    assert out.reply.content == "무슨 일인데 지훈아"  # 모델이 내지 않은 물음표는 만들지 않는다.
+
+
+async def test_grounding_fallback_is_not_warned_as_empty_reply(monkeypatch, caplog):
+    """정제 뒤 비었어도 근거 불일치로 대체 문구가 저장되는 턴은 빈 답장 경고 대상이 아니다."""
+
+    async def _agent(system, convo, **kw):
+        return agent_runtime.AgentTurn(
+            text="일기에 그렇게 썼어.", calls=[_usage("tool_decide"), _usage("tool_final")],
+            selected_refs=(GroundedRef(ref_type="diary", ref_id="d1"),),
+        )
+
+    async def _invalid(*args, **kwargs):
+        return False
+
+    monkeypatch.setattr(chat_references, "validate_selected", _invalid)
+    snapshot = build_snapshot({"agent_enabled": True, "agent_canary_pct": 100.0})
+    with caplog.at_level(logging.WARNING, logger="moly-backend"):
+        out = await _post(FakeSession(), monkeypatch, agent=_agent, snapshot=snapshot)
+
+    assert out.reply.content == "그건 지금 확실하게 떠올리지 못했어."
+    assert "빈 답장 저장" not in caplog.text
 
 
 async def test_config_db_failure_propagates_and_saves_nothing(monkeypatch):
@@ -800,3 +932,65 @@ def test_prepare_has_its_own_budget_apart_from_db_timeout() -> None:
     assert runtime.PREPARE_TIMEOUT_S >= 1.0, (
         "준비 예산이 임베딩 실측(최대 976ms)보다 작다"
     )
+
+
+@pytest.mark.parametrize("finish_reason", ["length", "content_filter", "", "unknown"])
+async def test_incomplete_first_step_never_publishes_or_runs_tools(monkeypatch, finish_reason):
+    tool = _FakeTool()
+    step = replace(_calls_step(_call(1)), text="partial", finish_reason=finish_reason)
+    fake = _FakeSteps(step)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+    assert tool.ran == 0
+
+@pytest.mark.parametrize("text", [None, "", " \n\t"])
+async def test_blank_completed_first_step_is_not_a_success(monkeypatch, text):
+    fake = _FakeSteps(_text_step(text))
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+
+@pytest.mark.parametrize("text,finish_reason", [
+    ("partial", "length"), ("partial", "content_filter"), (None, "stop"), ("  ", "stop"),
+])
+async def test_incomplete_tool_final_never_reuses_decide_text_or_starts_third_call(
+    monkeypatch, text, finish_reason,
+):
+    tool = _FakeTool()
+    decide = replace(_calls_step(_call(1)), text="I'll look that up")
+    final = replace(_text_step(text, purpose="tool_final"), finish_reason=finish_reason)
+    fake = _FakeSteps(decide, final)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 2
+    assert tool.ran == 1
+
+async def test_structured_final_with_tool_calls_finish_is_completed_text(monkeypatch):
+    step = replace(
+        _text_step(None), finish_reason="tool_calls",
+        final_response=llm_module.FinalResponse(text="응.", response_mode="summary"),
+    )
+    fake = _FakeSteps(step)
+    turn = await _run(fake, monkeypatch=monkeypatch)
+    assert turn.text == "응."
+    assert len(fake.calls) == 1
+
+async def test_length_rejects_even_parseable_structured_final(monkeypatch):
+    step = replace(
+        _text_step(None), finish_reason="length",
+        final_response=llm_module.FinalResponse(text="응.", response_mode="summary"),
+    )
+    fake = _FakeSteps(step)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+
+async def test_pending_executable_call_in_final_step_cannot_be_published(monkeypatch):
+    tool = _FakeTool()
+    final = replace(_calls_step(_call(2)), text="unfinished", usage=_usage("tool_final"))
+    fake = _FakeSteps(_calls_step(_call(1)), final)
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 2
+    assert tool.ran == 1

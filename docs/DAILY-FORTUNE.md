@@ -1,10 +1,10 @@
 # 오늘의 운세
 
-> **2026-09-16 한국어 후속 교정 연결:** 쉬운 총평·직접적인 행동 문구와 본문 4~5줄 목표를 반영한 [새 한국어 원고와 검수](fortune-content/ko-plain-voice/README.md)를 `fortune-copy.v8-localized.3`에 연결한다. 본문 780개와 총평·행동 468개를 전수 검수했다. 영어·일본어 원문은 v8-localized.2를 유지하며 첫 방문 한국어도 동일 정본을 사용한다. 당일 저장본·점수·카드 추첨은 유지하고 DB 마이그레이션은 없다. 사용자 승인 범위는 개발 서버 반영·검증까지다.
+> **2026-09-16 한국어 후속 교정 연결:** 쉬운 총평·직접적인 행동 문구와 본문 4~5줄 목표를 반영한 [새 한국어 원고와 검수](fortune-content/ko-plain-voice/generated/validation.json)를 `fortune-copy.v8-localized.3`에 연결한다. 본문 780개와 총평·행동 468개를 전수 검수했다. 영어·일본어 원문은 v8-localized.2를 유지하며 첫 방문 한국어도 동일 정본을 사용한다. 당일 저장본·점수·카드 추첨은 유지하고 DB 마이그레이션은 없다. 사용자 승인 범위는 개발 서버 반영·검증까지다.
 
-> **2026-09-16 행동 문구·기본 공개 범위 변경:** 세 언어의 `do`·`pause`를 카드별 156쌍씩 다듬고 `fortune-copy.v8-localized.2`로 연결한다. `locked`에서도 `overall.flow`를 필수로 반환하고 `categories`만 잠근다. 기존 2~3단락, 당일 snapshot·해금 권한을 유지하며 DB 마이그레이션은 없다. [행동 문구 기준과 검수](fortune-content/ko-actions/README.md).
+> **2026-09-16 행동 문구·기본 공개 범위 변경:** 세 언어의 `do`·`pause`를 카드별 156쌍씩 다듬고 `fortune-copy.v8-localized.2`로 연결한다. `locked`에서도 `overall.flow`를 필수로 반환하고 `categories`만 잠근다. 기존 2~3단락, 당일 snapshot·해금 권한을 유지하며 DB 마이그레이션은 없다. 행동 문구의 현재 결과와 검수는 아래 보존된 정본·검수 자료로 확인한다.
 
-> **2026-09-15 현지화·서버 연결 준비 완료:** 승인한 한국어 780개 본문과 짧은 문구 468개를 기준으로 일본어·영어 작성과 별도 전수 독해 검수를 마쳤다. 새 문구 버전 `fortune-copy.v8-localized.1`의 세 언어 자산·문서 생성 및 정적 검사도 통과했다. [한국어 정본](fortune-content/ko-rewrite/README.md) · [세 언어 연결·검수 결과](fortune-content/localization/README.md). 후속 승인 범위는 dev PR·머지·개발 배포·검증이며 CI와 실제 API 검증 결과는 해당 PR에 기록한다.
+> **2026-09-15 현지화·서버 연결 준비 완료:** 승인한 한국어 780개 본문과 짧은 문구 468개를 기준으로 일본어·영어 작성과 별도 전수 독해 검수를 마쳤다. 새 문구 버전 `fortune-copy.v8-localized.1`의 세 언어 자산·문서 생성 및 정적 검사도 통과했다. [한국어 정본](fortune-content/ko-rewrite/review.json) · [세 언어 연결·검수 결과](fortune-content/localization/review.json). 후속 승인 범위는 dev PR·머지·개발 배포·검증이며 CI와 실제 API 검증 결과는 해당 PR에 기록한다.
 
 현재 작업의 실행 검증 여부는 현지화 기록을 따른다. 아래 이전 버전의 테스트·DB·배포 이력은 새 원고와 새 코드의 검증 결과가 아니다.
 
@@ -64,9 +64,9 @@
 
 사용자 화면에는 행성, 각, 오브, 트랜짓, 내부 의미 코드와 계산 근거 카드를 노출하지 않는다.
 
-종합 점수·총평, 해볼 것·조심할 것, 행운색은 광고 없이 제공한다. “자세히 보기”의 오늘의 흐름과
-네 분야 점수·문구는 무료·체험(런칭 무료 기간 포함) 사용자의 광고 SSV 검증 후 제공한다.
-월간·연간 구독자만 상세도 광고 없이 제공한다. 다른 체험 혜택은 유지한다.
+종합 점수·총평·오늘의 흐름, 해볼 것·조심할 것, 행운색은 광고 없이 제공한다. 네 분야 점수·문구는
+서버의 기존 entitlement 판정을 따른다. `subscription`·`store_trial`·`signup_trial`은 상세도 광고 없이
+제공하고 `free`·`launch`는 광고 SSV 검증 후 공개한다. 이미 얻은 당일 해금은 유지한다.
 
 ## 2. 고정된 제품 규칙
 
@@ -108,11 +108,11 @@
 
 ## 4. 문구와 표시 기준 — 2026-09-15
 
-현재 문구 버전은 `fortune-copy.v8-localized.2`다. 카드 78종 × 정역 2종 × 분야 5종 = 언어별 780개 본문, 세 언어 2,340개다. 총운에는 각각 총평·해볼 것·조심할 것 156개씩, 언어별 468개 짧은 문구도 있다. 점수대에 따른 문구 분기는 없다.
+현재 문구 버전은 `fortune-copy.v8-localized.3`다. 카드 78종 × 정역 2종 × 분야 5종 = 언어별 780개 본문, 세 언어 2,340개다. 총운에는 각각 총평·해볼 것·조심할 것 156개씩, 언어별 468개 짧은 문구도 있다. 점수대에 따른 문구 분기는 없다.
 
 새 `overall.flow`는 2단락이다. 애정 `text`는 솔로·연애 중·이별 후의 3단락, 학업·직장은 2단락이며 상황 소제목을 붙이지 않는다. 금전·건강은 카드별 한국어 정본과 같은 1~2단락이다. 각 언어가 단락 개수와 순서를 보존한다. 한 문장을 여러 조각으로 쪼개거나 고정 5문장·화면 5줄에 맞추지 않는다.
 
-총평만 읽어도 그날의 운을 이해할 수 있어야 한다. 재물은 돈이 들어오거나 나가는 판단을 먼저 밝히고, 건강은 몸의 불편과 부상 주의를 다룬다. 좋은 운·나쁜 운을 직접 말하되 카드의 정역 의미와 관계 조건을 유지한다. 카드 그림을 억지로 좁은 소재에 연결하거나 점수에 맞춰 문장을 조절하지 않는다. 상세 기준은 [한국어 집필 기준](fortune-content/ko-rewrite/CRITERIA.md)과 [현지화 기준](fortune-content/localization/README.md)을 따른다.
+총평만 읽어도 그날의 운을 이해할 수 있어야 한다. 재물은 돈이 들어오거나 나가는 판단을 먼저 밝히고, 건강은 몸의 불편과 부상 주의를 다룬다. 좋은 운·나쁜 운을 직접 말하되 카드의 정역 의미와 관계 조건을 유지한다. 카드 그림을 억지로 좁은 소재에 연결하거나 점수에 맞춰 문장을 조절하지 않는다. 상세 기준은 [한국어 집필 기준](fortune-content/ko-rewrite/source-briefs.json)과 [현지화 기준](fortune-content/localization/review.json)을 따른다.
 
 ### 4.1 해석 근거와 품질 검수
 
@@ -143,7 +143,7 @@
 
 ### 4.3 앱 연결
 
-공개 API `schema_version: 3`과 필드명·광고 권한을 유지한다. 새 단락과 이전 snapshot을 모두 읽도록 공개 검증은 `flow` 2~3개, `text` 1~3개를 허용하고, 새 카탈로그는 위 분야별 단락 수를 엄격하게 검증한다. 현재 모바일은 배열 전체를 파싱하지만 한 문단으로 붙인다. 빈 줄 보존과 건강 제목(`건강 / Health / 健康`)을 위한 [모바일 표시 패치](fortune-content/localization/mobile-paragraph-display.patch)를 준비했고 모바일 작업 폴더에는 적용하지 않았다. 패치 적용 시 이전 snapshot의 구간도 각각 문단으로 표시된다. 운세 대화 등은 기존 공개 운세와 fingerprint 계약을 사용한다.
+공개 API `schema_version: 3`과 필드명·광고 권한을 유지한다. 새 단락과 이전 snapshot을 모두 읽도록 공개 검증은 `flow` 2~3개, `text` 1~3개를 허용하고, 새 카탈로그는 위 분야별 단락 수를 엄격하게 검증한다. 현재 모바일은 배열 전체를 파싱하지만 한 문단으로 붙인다. 모바일의 빈 줄 표시와 건강 제목(`건강 / Health / 健康`) 변경은 별도 검증 대상이며 이번 서버 보존 작업에서 적용하지 않는다. 운세 대화 등은 기존 공개 운세와 fingerprint 계약을 사용한다.
 
 ## 5. API 상태 흐름
 
@@ -156,7 +156,7 @@
 | `DELETE /fortune-profile` | 운세 프로필과 하위 당일 데이터 삭제 |
 | `GET /daily-fortune/status` | 홈 진입 상태, 이미 공개된 결과 조회 |
 | `POST /daily-fortune/reveal` | 오늘 기본 결과 계산·공개 및 상세 권한 확인 |
-| `POST /daily-fortune/ad-sessions` | 무료·체험 사용자의 자세히 보기용 AdMob SSV 세션 발급 |
+| `POST /daily-fortune/ad-sessions` | 광고가 필요한 사용자의 자세히 보기용 AdMob SSV 세션 발급 |
 | `GET /webhooks/ad-ssv` | Google 서명 검증 후 당일 상세 즉시 해제 |
 
 `X-App-Locale`은 `ko/en/ja`와 해당 언어의 지역 태그(`ko-KR/en-US/ja-JP` 등)를 받는다. 지역 태그는
@@ -168,8 +168,8 @@
 
 ```text
 profile_required ── PUT profile ──> unseen
-unseen ── POST reveal ──> revealed       (월간·연간 구독)
-unseen ── POST reveal ──> locked         (무료·체험: 기본 결과 공개, 상세 잠금)
+unseen ── POST reveal ──> revealed       (subscription / store_trial / signup_trial)
+unseen ── POST reveal ──> locked         (free / launch: 기본 결과 공개, 상세 잠금)
 locked ── ad session + verified SSV ──> revealed
                                  └──> unseen + unlocked_today  (광고 중 프로필 변경 시)
 revealed ── 같은 날 재조회 ──> 같은 snapshot
@@ -185,7 +185,7 @@ revealed ── 프로필 수정 ──> unseen       (unlock 권한은 유지)
 - `locked`는 카테고리 잠금이다. `result`는 `FortuneBasicResult`로 종합 점수·총평·총운 설명(`overall.flow`)·행동·행운색을
   포함하고 `versions`도 반환한다. `categories`만 필드 자체를 생략한다. `overall.flow`는 잠금 상태에도 필수이며 기존 저장본과의 호환을 위해 2~3단락을 수용한다.
 - `revealed`는 상세까지 공개된 상태이며 `FortuneResult` 전체를 반환한다.
-- 정책 변경 전에 체험 혜택으로 얻은 당일 해금도 유지하고 다음 현지 날짜부터 광고를 요구한다.
+- 기존 당일 해금은 유지한다. 새 날짜의 상세 공개 여부는 그날의 entitlement source로 다시 판단한다.
 - `status`는 읽기 전용이다. 현재 snapshot이 없으면 `unseen`을 반환하고 앱이 `reveal`을 호출한다.
   snapshot이 있으면 광고 전에도 기본 결과를 다시 받을 수 있다.
 - 광고 SSV가 성공하면 서버가 DB의 당일 행을 직접 해제한다. 이후 status를 다시 조회한다.
@@ -335,7 +335,7 @@ snapshot만 저장한다.
 
 첫 방문 6세트의 ID와 카드·순서를 유지하고 해당 카드의 새 원고만 동기화한다. 유효한 당일 저장본은 유지하며 새 생성부터 새 문구를 사용한다. 서버 코드와 생성 자산·manifest는 함께 반영한다. 공개 계약 번들까지 갱신하되 모바일의 문단 표시 패치는 별도 적용 대상이다.
 
-현재 실행 검증 범위와 CI·개발 배포 검증 절차는 [현지화 작업 기록](fortune-content/localization/README.md)에 구분한다. 개인 AWS·SSH·로컬 앱·Docker·로컬 DB·로컬 pytest는 사용하지 않는다. 개발 API의 기존 health 응답은 미배포 코드를 검증한 결과가 아니다. 후속 승인에 따라 dev PR·개발 배포 전후 실제 API·격리 계정 검증을 진행하고 결과를 PR에 기록한다. 운영은 변경하지 않는다.
+현재 실행 검증 범위와 CI·개발 배포 검증 절차는 [현지화 작업 기록](fortune-content/localization/review.json)에 구분한다. 개인 AWS·SSH·로컬 앱·Docker·로컬 DB는 사용하지 않는다. 로컬 단위 검사는 외부 호출 없는 계약 검증에만 사용한다. 개발 API의 기존 health 응답은 미배포 코드를 검증한 결과가 아니다. 후속 승인에 따라 dev PR·개발 배포 전후 실제 API·격리 계정 검증을 진행하고 결과를 PR에 기록한다. 운영은 변경하지 않는다.
 
 ### 이전 2026-09-13 작업과 배포 범위
 

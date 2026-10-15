@@ -20,7 +20,7 @@ INSTANCE = "i-1234567890abcdef0"
 
 @pytest.mark.parametrize("mode,candidate,image,verify", [
     ("existing", "", "", "false"), ("existing", "", "dev-" + OLD, "false"),
-    ("existing", "", "", "true"), ("inspect", "", "", "false"),
+    ("inspect", "", "", "false"),
     ("candidate", CANDIDATE, "", "false"),
 ])
 def test_compatible_inputs(mode, candidate, image, verify):
@@ -28,6 +28,7 @@ def test_compatible_inputs(mode, candidate, image, verify):
 
 
 @pytest.mark.parametrize("ref,mode,candidate,image,verify", [
+    ("refs/heads/dev", "existing", "", "", "true"),
     ("refs/heads/feature", "candidate", CANDIDATE, "", "false"),
     ("refs/heads/main", "existing", "", "", "false"),
     ("refs/heads/dev", "candidate", "", "", "false"),
@@ -312,7 +313,9 @@ def test_workflow_trusted_controls_and_compatibility():
     assert "app/**" not in event["push"]["paths-ignore"]
     jobs = document["jobs"]
     assert "id-token" not in jobs["validate-inputs"]["permissions"]
-    for job in ("build-and-deploy", "verify-subscription", "candidate-control"):
+    assert "verify-subscription" not in jobs
+    assert "verify_subscription_only" not in event["workflow_dispatch"]["inputs"]
+    for job in ("build-and-deploy", "candidate-control"):
         assert jobs[job]["needs"] == "validate-inputs"
     steps = jobs["candidate-control"]["steps"]
     names = [step["name"] for step in steps]
@@ -327,6 +330,10 @@ def test_workflow_trusted_controls_and_compatibility():
         if "run" in step:
             assert "candidate-src" not in step["run"]
     assert document["concurrency"]["group"] == "deploy-moly-backend-dev"
+    for step in jobs["build-and-deploy"]["steps"]:
+        command = step.get("run", "")
+        assert "StandardOutputContent" not in command
+        assert "StandardErrorContent" not in command
 
 
 def runtime_payload():

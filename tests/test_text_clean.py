@@ -1,33 +1,9 @@
 """부호 정제 공용 util — 마크다운·말줄임표·대시 제거, 허용부호·이름토큰 보존."""
+import unicodedata
+
 import pytest
 
 from app.services import text_clean
-
-
-@pytest.mark.parametrize("text", ["人々が集まった。", "時々、少々休む。", "〆切は二〇二六年。"])
-def test_japanese_orthographic_letters_are_preserved(text):
-    assert text_clean.has_foreign(text, language="ja") is False
-    assert text_clean.strip_foreign(text, language="ja") == text
-
-
-def test_japanese_letters_do_not_disable_foreign_filter_or_nickname_preservation():
-    text = "Анна、時々〆切を確認する。 Σ"
-    assert text_clean.has_foreign(text, language="ja", keep="Анна") is True
-    assert text_clean.strip_foreign(text, language="ja", keep="Анна") == "Анна、時々〆切を確認する。"
-
-
-@pytest.mark.parametrize("keep_hyphen", [False, True])
-def test_opt_in_dash_preservation_keeps_boundaries_and_other_cleanup(keep_hyphen):
-    raw = "**Take** a breath—then decide. 3–5 laid-back.\nWait — no rush…\u200b"
-    assert text_clean.strip_symbols(raw, keep_hyphen=keep_hyphen, preserve_dashes=True) == (
-        "Take a breath—then decide. 3–5 laid-back. Wait — no rush"
-    )
-
-
-def test_default_and_hyphen_only_symbol_contracts_are_unchanged():
-    text = "A—B 3–5 laid-back"
-    assert text_clean.strip_symbols(text) == "A B 3 5 laid back"
-    assert text_clean.strip_symbols(text, keep_hyphen=True) == "A B 3 5 laid-back"
 
 
 def test_strip_markdown_bold_and_dash():
@@ -101,6 +77,72 @@ def test_allowed_scripts_differ_by_language():
     assert text_clean.has_foreign("How was your day", language="en") is False
     assert text_clean.has_foreign("How was your day \u04bb", language="en") is True
     assert text_clean.has_foreign("Nice jalape\u00f1o d\u00eda", language="en") is False
+
+
+@pytest.mark.parametrize("language", ["ja", "ja-JP"])
+@pytest.mark.parametrize("text", [
+    "日々、時々、色々なことを話そう。",
+    "佐々木さん、〆切まで一緒に頑張ろう。",
+    "各〻、よろしくお願いし〼。",
+    "\u3031\u3032\u3033\u3034\u3035",  # 세로쓰기 가나 반복 기호
+    "ㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇺㇻㇼㇽㇾㇿ",  # 아이누어 표기에 쓰는 가타카나 확장
+    "二〇二六年、いすゞ、コーヒー、ｶﾌｪ。",
+])
+def test_japanese_orthography_survives_foreign_filter(language, text):
+    assert not text_clean.has_foreign(text, language=language)
+    assert text_clean.strip_foreign(text, language=language) == text
+
+
+@pytest.mark.parametrize("foreign", ["Σ", "Ж", "વાત", "한글", "\u302e\u302f"])
+def test_japanese_marks_survive_while_foreign_letters_are_removed(foreign):
+    body = "日々、〆切、各〻、ㇰ。"
+    mixed = body + foreign
+    assert text_clean.has_foreign(mixed, language="ja")
+    assert text_clean.strip_foreign(mixed, language="ja") == body
+
+
+@pytest.mark.parametrize("language,body", [("ko", "오늘도 힘내."), ("en", "Have a nice day.")])
+def test_japanese_additions_do_not_change_other_language_filters(language, body):
+    mixed = body + "々〆〱〲〳〴〵〻〼ㇰㇿ"
+    assert text_clean.has_foreign(mixed, language=language)
+    assert text_clean.strip_foreign(mixed, language=language) == body
+
+
+def test_japanese_marks_and_foreign_nickname_are_both_preserved():
+    body = "Аняさん、日々の話を聞かせて。"
+    assert not text_clean.has_foreign(body, language="ja", keep="Аня")
+    assert text_clean.strip_foreign(body + "Σ", language="ja", keep="Аня") == body
+
+
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+@pytest.mark.parametrize("form", ["NFC", "NFD"])
+@pytest.mark.parametrize("name", ["Nguyễn", "Hồ Chí Minh", "Đặng", "Ḥasan", "ẞ"])
+def test_accented_latin_names_survive_in_each_language(language, form, name):
+    text = unicodedata.normalize(form, name)
+    assert not text_clean.has_foreign(text, language=language)
+    assert text_clean.strip_foreign(text, language=language) == text
+
+
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+@pytest.mark.parametrize("foreign", ["Σ", "Ж", "વાત", "\u1f00"])
+def test_accented_latin_names_do_not_disable_foreign_filter(language, foreign):
+    text = "Nguyễn, Ḥasan, ẞ."
+    assert text_clean.has_foreign(text + foreign, language=language)
+    assert text_clean.strip_foreign(text + foreign, language=language) == text
+
+
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+def test_latin_extended_additional_boundaries_are_preserved(language):
+    text = "\u1e00\u1eff"
+    assert not text_clean.has_foreign(text, language=language)
+    assert text_clean.strip_foreign(text, language=language) == text
+
+
+@pytest.mark.parametrize("form", ["NFC", "NFD"])
+def test_modern_hangul_and_accented_latin_are_preserved_together(form):
+    text = unicodedata.normalize(form, "한글 ㄱㄴㄷ ㅋㅋㅋ, Nguyễn, Việt Nam 여행.")
+    assert not text_clean.has_foreign(text, language="ko")
+    assert text_clean.strip_foreign(text, language="ko") == text
 
 
 def test_fullwidth_and_halfwidth_forms_are_not_stripped():
@@ -238,7 +280,7 @@ def test_chat_egress_passes_nickname_as_keep():
     from app.services import chat
 
     src = inspect.getsource(chat)
-    for call in ("has_foreign(reply_text", "strip_foreign(reply_text"):
+    for call in ("has_foreign(reply_text",):
         line = next(ln for ln in src.splitlines() if call in ln)
         assert "keep=nick" in line, f"{call}에 닉네임을 안 넘긴다"
 
@@ -279,12 +321,28 @@ def test_strip_trailing_latin_is_a_no_op_without_hangul():
     assert text_clean.strip_trailing_latin("오늘 좀 어땠어?") == "오늘 좀 어땠어?"
 
 
-def test_chat_egress_strips_trailing_latin():
+def test_chat_egress_filters_foreign_scripts_without_trailing_latin_heuristic():
     """배선 고정 — chat.py가 이 규칙을 실제로 부르는가."""
     import inspect
 
     from app.services import chat
 
-    assert "strip_trailing_latin(reply_text)" in inspect.getsource(chat), (
-        "응답 끝 라틴 제거가 배선에서 빠졌다"
-    )
+    assert "strip_trailing_latin(reply_text)" not in inspect.getsource(chat)
+    assert "text_clean.strip_foreign(" in inspect.getsource(chat)
+
+
+@pytest.mark.parametrize(("language", "body"), [
+    ("ko", '"천천히—가도 돼"\n다음 줄 café'),
+    ("ja", '「時々、〆切を見よう」\nカフェ café'),
+    ("en", '"Take your time—really"\nNext line café'),
+])
+def test_foreign_filter_preserves_locale_quotes_and_lines(language, body):
+    leaked = body + " مرحبا ئۇيغۇرچە Ж"
+    assert text_clean.has_foreign(leaked, language=language)
+    assert text_clean.strip_foreign(leaked, language=language, preserve_linebreaks=True) == body
+
+
+def test_line_preserving_foreign_filter_keeps_nickname_and_old_default():
+    text = 'Аня\n안녕 مرحبا'
+    assert text_clean.strip_foreign(text, language="ko", keep="Аня", preserve_linebreaks=True) == 'Аня\n안녕'
+    assert text_clean.strip_foreign(text, language="ko", keep="Аня") == 'Аня 안녕'

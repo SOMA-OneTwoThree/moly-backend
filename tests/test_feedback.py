@@ -115,7 +115,7 @@ def test_create_feedback_triggers_slack(monkeypatch):
         calls.append(text)
 
     monkeypatch.setattr("app.services.slack_notify.send_feedback", _spy)
-    monkeypatch.setattr("app.services.slack_notify._webhook_for", lambda _: "FAKE")
+    monkeypatch.setattr("app.services.slack_notify._webhook_for", lambda severity: "synthetic-destination")
 
     async def _session():
         yield fake

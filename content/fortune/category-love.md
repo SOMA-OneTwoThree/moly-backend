@@ -5,7 +5,7 @@
 > 한국어는 ko-plain-voice의 후속 교정본이다. 영어·일본어는 v8-localized.2의 검수본을 유지하며 새 한국어와의 현지화 등가 검수를 뜻하지 않는다.
 > 생성: `uv run python scripts/build_fortune_copy_docs.py` · 한국어 원고는 ko-plain-voice, 기존 현지화 원고와 근거는 ko-rewrite 및 localization에서 관리한다
 
-[운세 기준 문서로 돌아가기](../DAILY-FORTUNE.md)
+[운세 기준 문서로 돌아가기](../../docs/DAILY-FORTUNE.md)
 
 점수와 무관하게 추첨한 카드에 해당하는 완성 문단을 사용한다. 점수대별 변형이나 요청 중 문장 조합은 없다.
 

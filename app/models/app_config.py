@@ -1,4 +1,4 @@
-"""app_config — 서버 설정 key-value (ERD §6.2). TBD 수치의 착지점.
+"""app_config — 서버 설정 key-value (ERD: 계정과 프로필). TBD 수치의 착지점.
 
 DDL은 팀원 소유. 이 모델은 기존 테이블에 매핑되는 읽기용.
 """

@@ -83,7 +83,7 @@ def to_wire(key: str, bundle: dict) -> dict:
 
 def reviewed_korean_override(root: Path, baseline: dict) -> dict:
     """Validate new Korean separately; translations retain their baseline proofs."""
-    directory = root / "docs/fortune-content/ko-plain-voice"
+    directory = root / "content/fortune/ko-plain-voice"
     review_builder = runpy.run_path(str(directory / "build_review.py"))
     artifacts, report = review_builder["build"]()
     if report["static_errors"]:
@@ -105,8 +105,8 @@ def reviewed_korean_override(root: Path, baseline: dict) -> dict:
 
 def build_outputs(root: Path = ROOT) -> dict[Path, bytes]:
     resource = root / "app/resources/fortune"
-    ko_dir = root / "docs/fortune-content/ko-rewrite"
-    localized = root / "docs/fortune-content/localization"
+    ko_dir = root / "content/fortune/ko-rewrite"
+    localized = root / "content/fortune/localization"
     meaning_sources = read_json(ko_dir / "source-briefs.json")
     keys = set(meaning_sources)
     cards = {f"major.{name}" for name in MAJORS} | {f"{suit}.{rank:02d}" for suit in ("cups", "swords", "wands", "pentacles") for rank in range(1, 15)}

@@ -1,4 +1,4 @@
-"""messages — 단일 연속 스레드(ERD §5.2). kind='normal'만 토큰 집계."""
+"""messages — 단일 연속 스레드(ERD: 대화와 컨텍스트). kind='normal'만 토큰 집계."""
 from __future__ import annotations
 
 import uuid

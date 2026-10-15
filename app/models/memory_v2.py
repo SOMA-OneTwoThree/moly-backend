@@ -1,11 +1,8 @@
-"""기억 v2 — mem0 파이프라인·registry·대화 계약·관계 상태 모델.
+"""기억 v2 — 파이프라인·registry·대화 약속·관계 상태 모델.
 
-기억 재설계 4단계(docs/ARCHITECTURE-capi.md 5장·10장). legacy 정규화 기억 테이블과
-**함께 존재**하며, shadow → cutover → DROP 순서로만 legacy를 제거한다.
-
-source 좌표는 `(user_id, turn_seq)` 하나다(13.3절). 로직·SQL은 각 서비스 모듈이 소유하고
-여기엔 스키마 거울만 둔다.
-"""
+docs/ARCHITECTURE.md의 장기 기억과 사용자별 상태 절을 따른다.
+source 좌표는 (user_id, turn_seq)이고 전체 DB 정의는 db/schema.sql이 원본이다.
+로직과 SQL은 각 서비스 모듈이 소유한다."""
 from __future__ import annotations
 
 import uuid

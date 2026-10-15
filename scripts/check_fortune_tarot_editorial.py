@@ -82,7 +82,7 @@ def audit_localized() -> dict:
         for path, raw in expected.items():
             if not path.exists() or path.read_bytes() != raw:
                 failures.append({"entry": str(path.relative_to(ROOT)), "reason": "stale generated asset"})
-        directory = ROOT / "docs/fortune-content/localization"
+        directory = ROOT / "content/fortune/localization"
         spec = importlib.util.spec_from_file_location("fortune_localization_validation", directory / "validate.py")
         validator = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(validator)
@@ -127,7 +127,7 @@ def audit() -> dict:
             for axis, bundle in copy["categories"].items():
                 readings[f"{axis}.{entry['id']}"] = bundle
         first_reports[locale] = audit_readings(readings, locale, complete=False)
-    record = json.loads((ROOT / "docs/fortune-content/review.json").read_text())
+    record = json.loads((ROOT / "content/fortune/review.json").read_text())
     first_review = record.get("first_visit_review", {})
     first_failures = [f for r in first_reports.values() for f in r["failures"]]
     if first_review.get("status") != "pass" or first_review.get("sha256") != sha256(first_path.read_bytes()).hexdigest():
@@ -140,7 +140,7 @@ def audit() -> dict:
 
 def audit_review(copies: dict, version: str) -> list[dict]:
     """Reject a document that still claims review of a subsequently edited bundle."""
-    path = ROOT / "docs/fortune-content/review.json"
+    path = ROOT / "content/fortune/review.json"
     if not path.exists():
         return [{"entry": "review", "reason": "final editorial review record is missing"}]
     record = json.loads(path.read_text())

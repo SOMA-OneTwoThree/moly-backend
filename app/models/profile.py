@@ -1,4 +1,4 @@
-"""profiles — auth.users와 1:1. 가입 트리거로 자동 생성(ERD §3.2). DDL은 팀원 소유."""
+"""profiles — auth.users와 1:1. 가입 트리거로 자동 생성(ERD: 계정과 프로필). 전체 DDL은 db/schema.sql."""
 from __future__ import annotations
 
 import uuid

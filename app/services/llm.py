@@ -215,6 +215,8 @@ class LLMResult:
 class IncompleteResponseError(RuntimeError):
     """A provider result cannot become a successful conversational reply."""
 
+    diagnostic: dict | None = None
+
 def require_completed_text(
     text: str | None,
     finish_reason: str,
@@ -650,6 +652,8 @@ class StepResult:
     usage: LlmCall
     control_intents: list[ControlIntent] = field(default_factory=list)
     final_response: FinalResponse | None = None
+    raw_tool_calls: int = 0
+    rejected_final_responses: int = 0
 
 
 class ToolContractError(ValueError):
@@ -1081,11 +1085,13 @@ async def generate_step(
     calls: list[ToolCall] = []
     intents: list[ControlIntent] = []
     final_response: FinalResponse | None = None
+    rejected_final_responses = 0
     for i, raw in enumerate(raw_calls):
         call = _parse_call(raw, i, known=known, input_models=input_models)
         if call.tool_name in (response_tools or {}):
             candidate = _final_response(call)
             if candidate is None:
+                rejected_final_responses += 1
                 _log.info("final response 폐기 tool=%s reason=validation", call.tool_name)
             elif final_response is None:
                 final_response = candidate
@@ -1111,4 +1117,6 @@ async def generate_step(
         usage=usage,
         control_intents=intents,
         final_response=final_response,
+        raw_tool_calls=len(raw_calls),
+        rejected_final_responses=rejected_final_responses,
     )

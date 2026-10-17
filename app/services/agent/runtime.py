@@ -587,19 +587,41 @@ def _validated_final(
     )
 
 
-def _require_completed_step(step: llm.StepResult, *, final: bool = False) -> None:
-    """Do not execute or publish a truncated/filtered/incomplete model step."""
-    if step.finish_reason not in {"stop", "tool_calls"}:
-        raise llm.IncompleteResponseError("LLM response is incomplete")
-    if final and step.tool_calls:
-        raise llm.IncompleteResponseError("LLM response is incomplete")
-    if step.final_response is not None:
-        llm.require_completed_text(
-            step.final_response.text, step.finish_reason,
-            allow_legacy=False, allow_tool_calls=True,
-        )
-    elif not step.tool_calls:
-        llm.require_completed_text(step.text, step.finish_reason, allow_legacy=False)
+def _require_completed_step(
+    step: llm.StepResult, *, final: bool = False, max_tokens: int | None = None,
+) -> None:
+    """Keep publication policy unchanged; attach only non-content failure metadata."""
+    reason = "blank_text"
+    try:
+        if step.finish_reason not in {"stop", "tool_calls"}:
+            reason = "unfinished"
+            raise llm.IncompleteResponseError("LLM response is incomplete")
+        if final and step.tool_calls:
+            reason = "pending_tools"
+            raise llm.IncompleteResponseError("LLM response is incomplete")
+        if step.final_response is not None:
+            llm.require_completed_text(
+                step.final_response.text, step.finish_reason,
+                allow_legacy=False, allow_tool_calls=True,
+            )
+        elif not step.tool_calls:
+            reason = "rejected_final" if step.rejected_final_responses else "blank_text"
+            llm.require_completed_text(step.text, step.finish_reason, allow_legacy=False)
+    except llm.IncompleteResponseError as exc:
+        finish = step.finish_reason
+        exc.diagnostic = {
+            "reason": reason,
+            "finish": finish if finish in {"stop", "tool_calls", "length", "content_filter", ""} else "other",
+            "stage": "final" if final else "first",
+            "output_tokens": step.usage.output_tokens,
+            "max_tokens": max_tokens,
+            "text_chars": len(step.text) if isinstance(step.text, str) else 0,
+            "final_text_chars": len(step.final_response.text) if step.final_response and isinstance(step.final_response.text, str) else 0,
+            "raw_tool_calls": step.raw_tool_calls,
+            "pending_tool_calls": len(step.tool_calls),
+            "rejected_final_responses": step.rejected_final_responses,
+        }
+        raise
 
 
 # --- 턴 실행 ---
@@ -727,7 +749,7 @@ async def run_turn(
         step1 = await _hop1(False)
         use_tools = False
         skipped = "deadline"
-    _require_completed_step(step1)
+    _require_completed_step(step1, max_tokens=config.decide_max_tokens)
     calls: list[LlmCall] = [step1.usage]
     if step1.control_intents:  # 위 계약상 나올 수 없다 — 나오면 버리고 계측만 남긴다
         _log.warning(
@@ -809,7 +831,7 @@ async def run_turn(
         response_tools=response_tools or None,
         foreground_deadline=deadline,
     )
-    _require_completed_step(step2, final=True)
+    _require_completed_step(step2, final=True, max_tokens=settings.llm_max_tokens)
     calls.append(step2.usage)
     final_text, response_mode, selected_refs, focus_ref, final_sidecar_intents = _validated_final(
         step2.final_response, raw_results, language=language

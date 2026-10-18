@@ -487,7 +487,7 @@ async def generate_for_user(
     profile = SimpleNamespace(**{
         key: getattr(profile, key, None) for key in (
             "id", "timezone", "language", "nickname", "trial_ends_at",
-            "app_trial_started_at", "app_trial_ends_at",
+            "app_trial_started_at", "app_trial_ends_at", "created_at",
         )
     })
     try:

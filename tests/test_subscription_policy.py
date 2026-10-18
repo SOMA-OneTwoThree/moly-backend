@@ -144,3 +144,31 @@ async def test_delayed_worker_uses_completed_day_not_wall_clock():
     assert not await dg._personal_diary_eligible(session, p, date(2026, 10, 3), CONFIG)
     query = str(session.execute.call_args.args[0])
     assert "subscriptions.purchased_at <=" in query and "subscriptions.expires_at >" in query
+
+
+# 2026-10-03 10:00 KST 가입 → 가입 활동일은 10/04 04:00 KST 직전까지.
+SIGNED_UP = T + timedelta(days=2, hours=1)
+
+
+@pytest.mark.parametrize("language,limit", [("en", 60_000), ("ko", 75_000), ("ja", 90_000)])
+def test_free_signup_day_gets_one_and_a_half_quota_and_personal_diary(language, limit):
+    p = profile(language=language, timezone="Asia/Seoul", created_at=SIGNED_UP)
+    first = derive_entitlement(p, None, 0, CONFIG, SIGNED_UP + timedelta(hours=18, microseconds=-1))
+    second = derive_entitlement(p, None, 0, CONFIG, SIGNED_UP + timedelta(hours=18))
+    assert first["entitlement_source"] == "free" and first["daily_token_limit"] == limit
+    assert first["personal_diary_eligible"]
+    assert second["daily_token_limit"] == limit * 2 // 3 and not second["personal_diary_eligible"]
+
+
+async def test_signup_day_diary_is_personal_only_for_that_day(monkeypatch):
+    p = SimpleNamespace(**vars(PROFILE), trial_ends_at=None, created_at=SIGNED_UP)
+    session = AsyncMock()
+    session.execute.return_value = SimpleNamespace(scalars=lambda: SimpleNamespace(first=lambda: None))
+    assert await dg._personal_diary_eligible(session, p, date(2026, 10, 3), CONFIG)
+    assert not await dg._personal_diary_eligible(session, p, date(2026, 10, 4), CONFIG)
+
+    _patch_common(monkeypatch, messages=[_msg("user", "가입한 날 대화")])
+    eligible = AsyncMock(return_value=False)
+    monkeypatch.setattr(dg, "_personal_diary_eligible", eligible)
+    await dg.generate_for_user(FakeSession(), p, date(2026, 10, 3), CFG, policy=dg.DiaryPolicy())
+    assert eligible.call_args.args[1].created_at == SIGNED_UP  # 배치 스냅샷이 가입 시각을 넘긴다

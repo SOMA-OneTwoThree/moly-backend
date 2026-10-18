@@ -577,3 +577,9 @@ async def test_two_empty_personal_attempts_fall_back_to_weekly_entry(monkeypatch
     assert personal.await_count == 2
     assert result["created"] and result["source"] == "preset"
     assert result["empty_body"] is True
+
+
+@pytest.mark.parametrize("language,label", [("ko", "캐피"), ("en", "Cappy"), ("ja", "キャピー")])
+def test_transcript_capi_label_matches_diary_language(language, label):
+    transcript = dg._transcript([_msg("moly", "안녕"), _msg("user", "응")], "규원", language)
+    assert transcript.splitlines() == [f"{label}: 안녕", "규원: 응"]

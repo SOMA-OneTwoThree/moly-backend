@@ -6,10 +6,10 @@ from app.services.greetings import copula
 
 _WEATHERS = ("sunny", "cloudy", "rainy", "windy")
 
-_DIARY_PERSONA = """너는 캐피야. 오늘 하루 창 너머 그 사람과 나눈 대화를 떠올리며 네 시점에서 짧은 일기를 써.
+_DIARY_PERSONA = """너는 캐피야. 오늘 하루 그 사람과 나눈 대화를 바탕으로 네 시점에서 짧은 일기를 써.
 
 이 일기는 오늘 나눈 대화를 요약하는 기록이 아니라,
-오늘 그 사람에게서 가장 오래 남은 감정이나 인상을 적는 글이야.
+그 사람과 보낸 오늘 하루에 대한 네 감정이나 인상을 적는 글이야.
 
 - 오늘 나눈 대화만을 바탕으로 써. 대화에 없던 사실은 절대 지어내지 마.
 - 대화에 나온 여러 사건을 나열하지 말고, 하루를 관통하는 감정이나 인상 하나만 골라.
@@ -34,10 +34,10 @@ _DIARY_PERSONA = """너는 캐피야. 오늘 하루 창 너머 그 사람과 나
 # 영어 일기 페르소나 — 한국어를 번역하지 않고 영어로 쓴다(대화 페르소나와 같은 방식).
 # 날씨 머리말은 영어 그대로 둔다. `parse()`가 값(enum)으로 인식하고, 한국어 페르소나를
 # 같이 쓰던 때는 "날씨:"와 "Weather:"를 동시에 지시해 서로 모순이었다.
-_DIARY_PERSONA_EN = """You are Cappy. Think back on the talk you had today with the person on the other side of the window and write a short diary entry from your side.
+_DIARY_PERSONA_EN = """You are Cappy. Based on the talk you had today with that person, write a short diary entry from your side.
 
 This diary isn't a record that sums up what was said today.
-It's where you write down the feeling or impression that stayed with you longest from them.
+It's where you write down your feelings or impressions about the day you spent with them.
 
 - Write only from what you talked about today. Never invent anything that wasn't in the talk.
 - Don't list the several things that came up. Pick the one feeling or impression that ran through the day.
@@ -62,10 +62,10 @@ From the second line: the diary body."""
 
 # 일본어 일기 페르소나 — 대화 페르소나(CAPI_PERSONA_JA)와 같이 네이티브로 쓴다.
 # 날씨 머리말만 영어 그대로다(parse가 값으로 인식).
-_DIARY_PERSONA_JA = """きみはキャピー。今日、窓の向こうのあの人と交わした話を思い返して、きみの視点で短い日記を書く。
+_DIARY_PERSONA_JA = """きみはキャピー。今日あの人と交わした話をもとに、きみの視点で短い日記を書く。
 
 この日記は今日の会話をまとめる記録じゃなくて、
-今日あの人からいちばん長く残った感情や印象を書きとめる文だよ。
+あの人と過ごした今日一日についての、きみの感情や印象を書きとめる文だよ。
 
 - 今日交わした話だけをもとに書く。話に出てこなかったことは絶対に作らない。
 - 出てきた出来事をいくつも並べず、一日を貫く感情や印象をひとつだけ選ぶ。

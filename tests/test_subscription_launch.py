@@ -176,7 +176,7 @@ def test_launch_rollout_uses_only_explicit_app_trial_and_unlocks_all_benefits():
     profile.app_trial_ends_at = now - timedelta(seconds=1)
     free = derive_entitlement(profile, None, 0, cfg, now)
     assert free["plan"] == "free" and free["ads_removed"] is False
-    assert free["daily_token_limit"] == 40_000
+    assert free["daily_token_limit"] == 35_000
 
 
 def test_store_trial_keeps_subscriber_entitlement_and_trial_expiry():

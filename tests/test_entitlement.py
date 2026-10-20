@@ -45,8 +45,8 @@ def test_free_when_trial_expired():
     assert e["plan"] == "free"
     assert e["ads_removed"] is False
     assert e["subscriber_theme_unlocked"] is False
-    assert e["daily_token_limit"] == 40_000
-    assert e["tokens_remaining"] == 39_500
+    assert e["daily_token_limit"] == 35_000
+    assert e["tokens_remaining"] == 34_500
 
 
 def test_tokens_remaining_clamped_to_zero():
@@ -87,14 +87,14 @@ def test_launch_subscriber_takes_precedence():
 def test_launch_ended_falls_back_to_normal():
     after = datetime(2026, 10, 2, 0, 0, tzinfo=timezone.utc)  # 종료일 지남
     e = derive_entitlement(_profile(None), None, 300, _LAUNCH_CFG, after)
-    assert e["plan"] == "free" and e["daily_token_limit"] == 40_000  # 정상 free 복귀
+    assert e["plan"] == "free" and e["daily_token_limit"] == 35_000  # 정상 free 복귀
 
 
 def test_launch_bad_config_is_off_failsafe():
     # 파싱 불가한 날짜 → 런칭 OFF(정상 등급). '영구 무료'로 새지 않음.
     cfg = {**CONFIG, "free_launch_until": "not-a-date", "free_launch_token_limit": 50_000}
     e = derive_entitlement(_profile(None), None, 300, cfg, NOW)
-    assert e["plan"] == "free" and e["daily_token_limit"] == 40_000
+    assert e["plan"] == "free" and e["daily_token_limit"] == 35_000
 
 
 @pytest.mark.parametrize("trial_kind", ["signup", "app", "launch"])

@@ -25,7 +25,7 @@ def test_transition_does_not_reset_usage_or_wait_for_client_trial_request():
     before = derive_entitlement(profile(), None, 120_000, CONFIG, T - timedelta(microseconds=1))
     after = derive_entitlement(profile(), None, 120_000, CONFIG, T)
     assert before["daily_token_limit"] == 150_000 and before["entitlement_source"] == "launch"
-    assert after["daily_token_limit"] == 40_000 and after["entitlement_source"] == "free"
+    assert after["daily_token_limit"] == 35_000 and after["entitlement_source"] == "free"
     assert before["tokens_used"] == after["tokens_used"] == 120_000
     assert after["tokens_remaining"] == 0 and not after["personal_diary_eligible"]
 
@@ -35,7 +35,7 @@ def test_signup_cohort_boundary(offset):
     p = profile()
     p.trial_ends_at = T + timedelta(hours=48, microseconds=offset)
     e = derive_entitlement(p, None, 50_000, CONFIG, T + timedelta(hours=1))
-    assert e["daily_token_limit"] == (40_000 if offset < 0 else 300_000)
+    assert e["daily_token_limit"] == (35_000 if offset < 0 else 300_000)
 
 
 @pytest.mark.parametrize("offset", [-1, 0, 1])
@@ -64,9 +64,9 @@ def test_missing_or_invalid_release_time_ends_launch(value):
 
 
 @pytest.mark.parametrize("language,free,paid", [
-    ("en", 40_000, 300_000), ("ko", 50_000, 400_000), ("ja", 60_000, 550_000),
-    ("ko-KR", 50_000, 400_000), ("ja-JP", 60_000, 550_000),
-    ("EN-us", 40_000, 300_000), (None, 40_000, 300_000), ("zh", 40_000, 300_000),
+    ("en", 35_000, 300_000), ("ko", 40_000, 400_000), ("ja", 45_000, 550_000),
+    ("ko-KR", 40_000, 400_000), ("ja-JP", 45_000, 550_000),
+    ("EN-us", 35_000, 300_000), (None, 35_000, 300_000), ("zh", 35_000, 300_000),
 ])
 @pytest.mark.parametrize("source", ["free", "signup", "app_trial", "monthly", "yearly", "store_trial"])
 def test_language_allowances_preserve_usage_and_trial_benefits(language, free, paid, source):
@@ -90,10 +90,10 @@ def test_language_allowances_preserve_usage_and_trial_benefits(language, free, p
 
 def test_language_change_and_subscription_expiry_never_reset_daily_counter():
     p = profile(language="en")
-    for language, expected_remaining in [("en", 0), ("ja", 15_000), ("ko", 5_000), ("en", 0)]:
+    for language, expected_remaining in [("en", 0), ("ja", 5_000), ("ko", 0), ("en", 0)]:
         p.language = language
-        e = derive_entitlement(p, None, 45_000, CONFIG, T)
-        assert e["tokens_used"] == 45_000 and e["tokens_remaining"] == expected_remaining
+        e = derive_entitlement(p, None, 40_000, CONFIG, T)
+        assert e["tokens_used"] == 40_000 and e["tokens_remaining"] == expected_remaining
     p.language = "ja"
     sub = SimpleNamespace(plan="monthly")
     assert derive_entitlement(p, sub, 70_000, CONFIG, T)["tokens_remaining"] == 480_000
@@ -150,14 +150,14 @@ async def test_delayed_worker_uses_completed_day_not_wall_clock():
 SIGNED_UP = T + timedelta(days=2, hours=1)
 
 
-@pytest.mark.parametrize("language,limit", [("en", 60_000), ("ko", 75_000), ("ja", 90_000)])
-def test_free_signup_day_gets_one_and_a_half_quota_and_personal_diary(language, limit):
+@pytest.mark.parametrize("language,limit", [("en", 43_750), ("ko", 50_000), ("ja", 56_250)])
+def test_free_signup_day_gets_one_and_a_quarter_quota_and_personal_diary(language, limit):
     p = profile(language=language, timezone="Asia/Seoul", created_at=SIGNED_UP)
     first = derive_entitlement(p, None, 0, CONFIG, SIGNED_UP + timedelta(hours=18, microseconds=-1))
     second = derive_entitlement(p, None, 0, CONFIG, SIGNED_UP + timedelta(hours=18))
     assert first["entitlement_source"] == "free" and first["daily_token_limit"] == limit
     assert first["personal_diary_eligible"]
-    assert second["daily_token_limit"] == limit * 2 // 3 and not second["personal_diary_eligible"]
+    assert second["daily_token_limit"] == limit * 4 // 5 and not second["personal_diary_eligible"]
 
 
 async def test_signup_day_diary_is_personal_only_for_that_day(monkeypatch):

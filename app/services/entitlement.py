@@ -18,9 +18,9 @@ _warned_launch_values: set[str] = set()
 
 # Daily weighted quota units. Trials receive the same allowance as paid plans.
 _ROLLOUT_LIMITS = {
-    "en": {"free": 40_000, "subscriber": 300_000},
-    "ko": {"free": 50_000, "subscriber": 400_000},
-    "ja": {"free": 60_000, "subscriber": 550_000},
+    "en": {"free": 35_000, "subscriber": 300_000},
+    "ko": {"free": 40_000, "subscriber": 400_000},
+    "ja": {"free": 45_000, "subscriber": 550_000},
 }
 
 
@@ -129,7 +129,8 @@ def derive_entitlement(
         source = "free"
         subscriber_theme_unlocked = False
 
-    # 무료라도 가입한 활동일(04:00 경계) 하루는 무료 한도 1.5배와 개인 일기를 준다.
+    # 무료라도 가입한 활동일(04:00 경계) 하루는 무료 한도 1.25배와 개인 일기를 준다.
+    # 첫날은 컨텍스트가 비어 턴이 싸서 1.25배면 평소(~10턴)의 두 배쯤 대화한다.
     created_at = getattr(profile, "created_at", None)
     tz_name = getattr(profile, "timezone", None)
     signup_day = (
@@ -147,7 +148,7 @@ def derive_entitlement(
         language_limits = _ROLLOUT_LIMITS[resolve_language(getattr(profile, "language", None))]
         limit = language_limits["free" if plan == "free" else "subscriber"]
         if signup_day:
-            limit = limit * 3 // 2
+            limit = limit * 5 // 4
     tokens_remaining = max(0, limit - tokens_used) if limit is not None else None
     threshold = config.get("diary_llm_min_tokens")
 

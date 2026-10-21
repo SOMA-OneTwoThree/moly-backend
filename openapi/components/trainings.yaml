@@ -1,0 +1,226 @@
+schemas:
+  TrainingCard:
+    type: object
+    additionalProperties: false
+    required: [id, title, icon_key, stage_count, passed_count, completed]
+    properties:
+      id: {type: string, description: URL에 쓰는 고정 트레이닝 id.}
+      title: {type: string}
+      icon_key: {type: string, description: 루틴 아이콘 키.}
+      stage_count: {type: integer, minimum: 1}
+      passed_count: {type: integer, minimum: 0}
+      completed: {type: boolean}
+  TrainingListResponse:
+    type: object
+    additionalProperties: false
+    required: [trainings]
+    properties:
+      trainings:
+        type: array
+        description: 노출 순서. 원고가 없으면 빈 배열이다.
+        items: {$ref: '#/schemas/TrainingCard'}
+  TrainingLineView:
+    type: object
+    additionalProperties: false
+    required: [speaker, name, text, slot]
+    properties:
+      speaker:
+        type: string
+        enum: [narration, other, me]
+        description: narration은 상황 설명·일기 본문, other는 상대 인물, me는 내 말.
+      name:
+        anyOf:
+        - type: string
+        - type: 'null'
+        description: 상대 인물의 말일 때만 있다.
+      text:
+        anyOf:
+        - type: string
+        - type: 'null'
+        description: 답 자리 줄에서는 빈칸 앞에 붙는 말이다. 답 자리가 아닌 줄에는 항상 있다.
+      slot: {type: boolean, description: 답이 들어갈 자리. 단계마다 정확히 한 줄이다.}
+  TrainingOptionView:
+    type: object
+    additionalProperties: false
+    required: [id, text]
+    properties:
+      id: {type: string, description: 단계 안에서 고유하며 공개 뒤 바뀌지 않는다.}
+      text: {type: string}
+  TrainingStageView:
+    type: object
+    additionalProperties: false
+    description: 정답·힌트·풀이·채점 기준은 담지 않는다.
+    required: [number, answer_type, layout, pick_style, review_point, reward_hay, mission, lines, options, max_length]
+    properties:
+      number: {type: integer, minimum: 1}
+      answer_type: {type: string, enum: [pick, write]}
+      layout: {type: string, enum: [chat, diary]}
+      pick_style:
+        anyOf:
+        - type: string
+          enum: [choose, erase]
+        - type: 'null'
+        description: 객관식만. erase는 일기 조각 하나를 골라 지우는 단계이며 보기가 일기 조각이다.
+      review_point: {type: boolean, description: 통과하면 지금까지의 답을 모아 보여 주는 돌아보기 지점.}
+      reward_hay: {type: integer, minimum: 0, description: 돌아보기 지점을 계정에서 처음 통과할 때 주는 건초.}
+      mission: {type: string}
+      lines:
+        type: array
+        items: {$ref: '#/schemas/TrainingLineView'}
+      options:
+        type: array
+        description: 객관식만. 주관식은 빈 배열이다.
+        items: {$ref: '#/schemas/TrainingOptionView'}
+      max_length:
+        anyOf:
+        - type: integer
+          minimum: 1
+        - type: 'null'
+        description: 주관식만. 코드 포인트 기준 최대 글자 수.
+  TrainingProgress:
+    type: object
+    additionalProperties: false
+    required: [started, next_stage, passed_count, completed]
+    properties:
+      started: {type: boolean, description: 처음 안내를 마치고 시작했는지.}
+      next_stage:
+        anyOf:
+        - type: integer
+          minimum: 1
+        - type: 'null'
+        description: 지금 풀 차례인 단계. 다 끝내면 null.
+      passed_count: {type: integer, minimum: 0}
+      completed: {type: boolean}
+  TrainingAnswerView:
+    type: object
+    additionalProperties: false
+    description: 통과한 답. option_id와 text 중 하나만 있다.
+    required: [stage, option_id, text, passed_at]
+    properties:
+      stage: {type: integer, minimum: 1}
+      option_id:
+        anyOf:
+        - type: string
+        - type: 'null'
+      text:
+        anyOf:
+        - type: string
+        - type: 'null'
+      passed_at: {type: string, format: date-time}
+  TrainingTries:
+    type: object
+    additionalProperties: false
+    description: 계정 하나에 하나. 통과하지 못한 답마다 하나를 쓰고, max보다 적으면 1시간마다 하나씩 다시 찬다.
+    required: [left, max, next_refill_at, full_at]
+    properties:
+      left: {type: integer, minimum: 0}
+      max: {type: integer, minimum: 1}
+      next_refill_at:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        description: 다음 하나가 차는 시각. left가 max보다 적을 때만 있다.
+      full_at:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        description: 모두 다시 차는 시각. left가 max보다 적을 때만 있다.
+  TrainingDetail:
+    type: object
+    additionalProperties: false
+    required: [id, title, summary, icon_key, stages, progress, answers, tries]
+    properties:
+      id: {type: string}
+      title: {type: string}
+      summary: {type: string}
+      icon_key: {type: string}
+      stages:
+        type: array
+        items: {$ref: '#/schemas/TrainingStageView'}
+      progress: {$ref: '#/schemas/TrainingProgress'}
+      answers:
+        type: array
+        description: 통과한 단계의 답. 단계 순서.
+        items: {$ref: '#/schemas/TrainingAnswerView'}
+      tries: {$ref: '#/schemas/TrainingTries'}
+  TrainingRewardGrant:
+    type: object
+    additionalProperties: false
+    required: [granted, balance_after]
+    properties:
+      granted: {type: integer, minimum: 1}
+      balance_after: {type: integer}
+  TrainingAnswerResult:
+    type: object
+    additionalProperties: false
+    required: [result, judge, hint, explanation, reward, answer, progress, tries]
+    properties:
+      result: {type: string, enum: [passed, retry]}
+      judge:
+        type: string
+        enum: [answer_key, rule, ai, fallback]
+        description: answer_key는 객관식 정답, rule은 짧은 답·베낀 답 규칙, ai는 AI 판정, fallback은 AI 실패로 통과 처리.
+      hint:
+        anyOf:
+        - type: string
+        - type: 'null'
+        description: 통과하지 못했을 때만 있다. 사용자 언어의 한 줄.
+      explanation:
+        anyOf:
+        - type: string
+        - type: 'null'
+        description: 풀이가 있는 객관식 단계를 통과했을 때만 있다.
+      reward:
+        anyOf:
+        - $ref: '#/schemas/TrainingRewardGrant'
+        - type: 'null'
+        description: 돌아보기 지점을 계정에서 처음 통과했을 때만 있다.
+      answer:
+        anyOf:
+        - $ref: '#/schemas/TrainingAnswerView'
+        - type: 'null'
+        description: 저장한 답. 통과했을 때만 있다.
+      progress: {$ref: '#/schemas/TrainingProgress'}
+      tries: {$ref: '#/schemas/TrainingTries'}
+  TrainingAnswerRequest:
+    type: object
+    additionalProperties: false
+    description: option_id(객관식)와 text(주관식) 중 정확히 하나를 보낸다.
+    required: [client_request_id]
+    properties:
+      client_request_id:
+        type: string
+        format: uuid
+        description: 같은 답을 다시 보낼 때는 같은 id를 쓴다. 이미 처리한 id면 처음 판정을 돌려주고 도전 기회를 다시 쓰지 않는다.
+      option_id:
+        anyOf:
+        - type: string
+          minLength: 1
+          maxLength: 16
+        - type: 'null'
+      text:
+        anyOf:
+        - type: string
+          minLength: 1
+          maxLength: 200
+        - type: 'null'
+        description: NFC로 맞추고 앞뒤 공백을 지운 뒤 1~200 코드 포인트.
+  TrainingClaimRequest:
+    type: object
+    additionalProperties: false
+    required: [reason, answer_text, verdict]
+    properties:
+      reason: {type: string, enum: [should_pass, should_fail, wrong_hint]}
+      answer_text:
+        type: string
+        minLength: 1
+        maxLength: 200
+        description: 이의를 남기는 답. NFC로 맞추고 앞뒤 공백을 지운 뒤 1~200 코드 포인트.
+      verdict: {type: string, enum: [passed, retry]}
+      hint:
+        anyOf:
+        - type: string
+          maxLength: 300
+        - type: 'null'

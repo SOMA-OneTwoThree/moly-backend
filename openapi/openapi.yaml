@@ -110,6 +110,18 @@ paths:
     $ref: ./paths/banners.yaml#/~1banners~1resolve
   /chat/topic-entries:
     $ref: ./paths/conversations.yaml#/~1chat~1topic-entries
+  /trainings:
+    $ref: ./paths/trainings.yaml#/~1trainings
+  /trainings/{training_id}:
+    $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D
+  /trainings/{training_id}/start:
+    $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D~1start
+  /trainings/{training_id}/stages/{stage}/answers:
+    $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D~1stages~1%7Bstage%7D~1answers
+  /trainings/{training_id}/restart:
+    $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D~1restart
+  /trainings/{training_id}/stages/{stage}/claims:
+    $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D~1stages~1%7Bstage%7D~1claims
 components:
   schemas:
     BgmTrack:
@@ -328,6 +340,32 @@ components:
       $ref: ./components/topics.yaml#/schemas/SupersededTopicEntry
     TopicEntryResponse:
       $ref: ./components/topics.yaml#/schemas/TopicEntryResponse
+    TrainingCard:
+      $ref: ./components/trainings.yaml#/schemas/TrainingCard
+    TrainingListResponse:
+      $ref: ./components/trainings.yaml#/schemas/TrainingListResponse
+    TrainingLineView:
+      $ref: ./components/trainings.yaml#/schemas/TrainingLineView
+    TrainingOptionView:
+      $ref: ./components/trainings.yaml#/schemas/TrainingOptionView
+    TrainingStageView:
+      $ref: ./components/trainings.yaml#/schemas/TrainingStageView
+    TrainingProgress:
+      $ref: ./components/trainings.yaml#/schemas/TrainingProgress
+    TrainingAnswerView:
+      $ref: ./components/trainings.yaml#/schemas/TrainingAnswerView
+    TrainingTries:
+      $ref: ./components/trainings.yaml#/schemas/TrainingTries
+    TrainingDetail:
+      $ref: ./components/trainings.yaml#/schemas/TrainingDetail
+    TrainingRewardGrant:
+      $ref: ./components/trainings.yaml#/schemas/TrainingRewardGrant
+    TrainingAnswerResult:
+      $ref: ./components/trainings.yaml#/schemas/TrainingAnswerResult
+    TrainingAnswerRequest:
+      $ref: ./components/trainings.yaml#/schemas/TrainingAnswerRequest
+    TrainingClaimRequest:
+      $ref: ./components/trainings.yaml#/schemas/TrainingClaimRequest
   securitySchemes:
     SupabaseBearer:
       $ref: ./components/common.yaml#/securitySchemes/SupabaseBearer
@@ -390,6 +428,8 @@ tags:
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution
   description: Meta 설치 리퍼러 복호화
+- name: training
+  description: 둘러보기 트레이닝 목록, 상세, 답 제출·채점, 다시 풀기, 채점 이의
 x-source-of-truth:
   contract: openapi/openapi.yaml
   generated_bundle: openapi/openapi.bundle.yaml

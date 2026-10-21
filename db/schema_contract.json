@@ -5194,6 +5194,262 @@
         "not_null": false,
         "type": "uuid"
       },
+      "public.training_answers.answer_text": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.training_answers.option_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.training_answers.passed_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_answers.stage": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.training_answers.training_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_answers.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.training_claims.answer_text": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_claims.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_claims.hint": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.training_claims.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.training_claims.reason": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_claims.stage": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.training_claims.training_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_claims.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.training_claims.verdict": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_progress.completed_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.training_progress.last_request_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
+      "public.training_progress.last_result": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
+      },
+      "public.training_progress.next_stage": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "smallint"
+      },
+      "public.training_progress.started_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_progress.training_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_progress.updated_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_progress.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.training_rewards.amount": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
+      "public.training_rewards.granted_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_rewards.stage": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.training_rewards.training_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_rewards.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.training_tries.refill_from": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.training_tries.tries_left": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.training_tries.updated_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_tries.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "public.user_daily_stats.activity_date": {
         "collation": null,
         "default": null,
@@ -6982,7 +7238,7 @@
       "public.hay_transactions.hay_transactions_type_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text])))",
+        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -8365,6 +8621,213 @@
           "public.profiles:9:O",
           "public.subscriptions:17:O",
           "public.subscriptions:5:O"
+        ],
+        "validated": true
+      },
+      "public.training_answers.training_answers_answer_text_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(answer_text) >= 1) AND (char_length(answer_text) <= 200)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_answers.training_answers_one_kind": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((option_id IS NULL) <> (answer_text IS NULL)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_answers.training_answers_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id, training_id, stage)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_answers.training_answers_stage_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((stage >= 1) AND (stage <= 30)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_answers.training_answers_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.training_answers:17:O",
+          "public.training_answers:5:O"
+        ],
+        "validated": true
+      },
+      "public.training_claims.training_claims_answer_text_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(answer_text) >= 1) AND (char_length(answer_text) <= 200)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_claims.training_claims_hint_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(hint) >= 1) AND (char_length(hint) <= 300)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_claims.training_claims_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_claims.training_claims_reason_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((reason = ANY (ARRAY['should_pass'::text, 'should_fail'::text, 'wrong_hint'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_claims.training_claims_stage_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((stage >= 1) AND (stage <= 30)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_claims.training_claims_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.training_claims:17:O",
+          "public.training_claims:5:O"
+        ],
+        "validated": true
+      },
+      "public.training_claims.training_claims_verdict_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((verdict = ANY (ARRAY['passed'::text, 'retry'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_progress.training_progress_completion": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((next_stage IS NULL) = (completed_at IS NOT NULL)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_progress.training_progress_last_result": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((last_request_id IS NULL) = (last_result IS NULL)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_progress.training_progress_last_result_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((jsonb_typeof(last_result) = 'object'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_progress.training_progress_next_stage_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((next_stage >= 1) AND (next_stage <= 30)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_progress.training_progress_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id, training_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_progress.training_progress_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.training_progress:17:O",
+          "public.training_progress:5:O"
+        ],
+        "validated": true
+      },
+      "public.training_rewards.training_rewards_amount_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((amount > 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_rewards.training_rewards_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id, training_id, stage)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_rewards.training_rewards_stage_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((stage >= 1) AND (stage <= 30)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_rewards.training_rewards_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.training_rewards:17:O",
+          "public.training_rewards:5:O"
+        ],
+        "validated": true
+      },
+      "public.training_tries.training_tries_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_tries.training_tries_refill": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((tries_left = 5) = (refill_from IS NULL)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_tries.training_tries_tries_left_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((tries_left >= 0) AND (tries_left <= 5)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_tries.training_tries_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.training_tries:17:O",
+          "public.training_tries:5:O"
         ],
         "validated": true
       },
@@ -10488,6 +10951,60 @@
         "options": [],
         "ready": true,
         "table_name": "public.chat_topic_entries",
+        "unique": true,
+        "valid": true
+      },
+      "public.training_answers_pkey": {
+        "definition": "CREATE UNIQUE INDEX training_answers_pkey ON public.training_answers USING btree (user_id, training_id, stage)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.training_answers",
+        "unique": true,
+        "valid": true
+      },
+      "public.training_claims_pkey": {
+        "definition": "CREATE UNIQUE INDEX training_claims_pkey ON public.training_claims USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.training_claims",
+        "unique": true,
+        "valid": true
+      },
+      "public.training_claims_user_idx": {
+        "definition": "CREATE INDEX training_claims_user_idx ON public.training_claims USING btree (user_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.training_claims",
+        "unique": false,
+        "valid": true
+      },
+      "public.training_progress_pkey": {
+        "definition": "CREATE UNIQUE INDEX training_progress_pkey ON public.training_progress USING btree (user_id, training_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.training_progress",
+        "unique": true,
+        "valid": true
+      },
+      "public.training_rewards_pkey": {
+        "definition": "CREATE UNIQUE INDEX training_rewards_pkey ON public.training_rewards USING btree (user_id, training_id, stage)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.training_rewards",
+        "unique": true,
+        "valid": true
+      },
+      "public.training_tries_pkey": {
+        "definition": "CREATE UNIQUE INDEX training_tries_pkey ON public.training_tries USING btree (user_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.training_tries",
         "unique": true,
         "valid": true
       },
@@ -13824,6 +14341,126 @@
       "public.subscriptions:service_role:UPDATE": {
         "grantable": false
       },
+      "public.training_answers:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.training_answers:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.training_answers:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.training_answers:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.training_answers:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.training_answers:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.training_answers:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.training_answers:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.training_claims:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.training_progress:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.training_rewards:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.training_tries:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.user_daily_stats:anon:DELETE": {
         "grantable": false
       },
@@ -14861,6 +15498,41 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.training_answers": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.training_claims": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.training_progress": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.training_rewards": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.training_tries": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.user_daily_stats": {
         "options": [],
         "owner": "postgres",
@@ -14977,5 +15649,5 @@
       }
     }
   },
-  "schema_sha256": "64c440da48a6e4c16bf449cd34c885445c9f45fbeb5f1e98e3f5024c4ef15570"
+  "schema_sha256": "0ed45ed8fb439ed33010ba936caa120921c9803fc83299e30d2061e732a05e1b"
 }

@@ -20,6 +20,7 @@ class HayTransaction(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     # attendance ad_reward routine_reward iap_purchase subscription_grant shop_purchase refund_revoke admin_adjustment
+    # training_reward
     type: Mapped[str] = mapped_column(String)
     amount: Mapped[int] = mapped_column(Integer)  # +획득 / −소비
     balance_after: Mapped[int] = mapped_column(Integer)

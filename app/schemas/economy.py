@@ -83,3 +83,20 @@ class ChargingStationResponse(StrictResponse):
 class RewardResponse(StrictResponse):
     granted: int = Field(ge=0)
     balance_after: int = Field(ge=0)
+
+
+class AttendanceResponse(StrictResponse):
+    today: date
+    attended_today: bool
+    current_streak: int = Field(ge=0)
+    best_streak: int = Field(ge=0)
+    days: list[date]
+
+
+class AttendanceCheckInResponse(StrictResponse):
+    today: date
+    checked_in: bool  # 이번 요청이 오늘 출석을 처음 기록했는가
+    granted: int = Field(ge=0)
+    balance_after: int = Field(ge=0)
+    current_streak: int = Field(ge=0)
+    best_streak: int = Field(ge=0)

@@ -935,6 +935,71 @@ paths:
       security:
       - SupabaseBearer: []
       description: 같은 local reward date에 routine 완료가 2개 이상이면 한 번 +20 건초를 지급한다.
+  /attendance:
+    get:
+      tags:
+      - economy
+      summary: 연속 출석 조회
+      operationId: getAttendance
+      security:
+      - SupabaseBearer: []
+      description: 날짜는 모두 사용자 local 00:00 reward date다. 출석한 날은 출석 보상을 받은 날이며, 첫 출석 체크 때 어제까지 이어진 루틴 연속을
+        출석한 날로 한 번 옮겨 둔다(아직 체크 전이면 옮길 값을 미리 센다). 오늘 출석 전이면 어제까지의 연속이 현재 연속이다. days는 from..to 안의 출석한 날
+        오름차순이며, from ≤ to이고 기간은 371일 이하여야 한다.
+      parameters:
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: YYYY-MM-DD 시작 날짜(포함).
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: YYYY-MM-DD 끝 날짜(포함). from부터 371일 이하.
+      responses:
+        '200':
+          description: 현재·최장 연속과 기간 안의 출석한 날
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /attendance/check-in:
+    post:
+      tags:
+      - economy
+      summary: 출석 체크
+      operationId: checkInAttendance
+      security:
+      - SupabaseBearer: []
+      description: 앱 진입 출석. 오늘 reward date의 첫 요청이면 출석을 기록하고 +20 건초를 원장과 함께 지급한다. 이미 출석했으면 아무것도 바꾸지 않고
+        checked_in=false로 현재 연속을 반환한다(멱등). POST /charging-station/attendance와 같은 출석 기록을 공유하므로 어느 쪽으로 받아도
+        하루 한 번이다.
+      responses:
+        '200':
+          description: 이번 요청의 출석 여부, 지급량, 잔액과 연속
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceCheckInResponse'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/ProfileNotFound'
   /routines:
     get:
       tags:
@@ -3479,6 +3544,82 @@ components:
       - views_limit
       - reward_per_view
       title: AdStatus
+    AttendanceCheckInResponse:
+      properties:
+        today:
+          type: string
+          format: date
+          title: Today
+          description: 사용자 local 00:00 reward date.
+        checked_in:
+          type: boolean
+          title: Checked In
+          description: 이번 요청이 오늘 출석을 처음 기록했으면 true.
+        granted:
+          type: integer
+          minimum: 0
+          title: Granted
+          description: 이번 요청의 지급량. 처음 출석이면 20, 아니면 0.
+        balance_after:
+          type: integer
+          minimum: 0
+          title: Balance After
+          description: 요청 후 hay balance.
+        current_streak:
+          type: integer
+          minimum: 0
+          title: Current Streak
+          description: 오늘까지(오늘 출석 전이면 어제까지) 이어진 연속 출석 일수.
+        best_streak:
+          type: integer
+          minimum: 0
+          title: Best Streak
+          description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
+      type: object
+      required:
+      - today
+      - checked_in
+      - granted
+      - balance_after
+      - current_streak
+      - best_streak
+      title: AttendanceCheckInResponse
+    AttendanceResponse:
+      properties:
+        today:
+          type: string
+          format: date
+          title: Today
+          description: 사용자 local 00:00 reward date.
+        attended_today:
+          type: boolean
+          title: Attended Today
+          description: 오늘 출석했으면 true.
+        current_streak:
+          type: integer
+          minimum: 0
+          title: Current Streak
+          description: 오늘까지(오늘 출석 전이면 어제까지) 이어진 연속 출석 일수.
+        best_streak:
+          type: integer
+          minimum: 0
+          title: Best Streak
+          description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
+        days:
+          items:
+            type: string
+            format: date
+          type: array
+          title: Days
+          description: from..to 안의 출석한 날, 오름차순.
+      type: object
+      required:
+      - today
+      - attended_today
+      - current_streak
+      - best_streak
+      - days
+      title: AttendanceResponse
     AttendanceStatus:
       properties:
         claimable:
@@ -6867,7 +7008,7 @@ tags:
 - name: memory
   description: 정규화 기억 조회, 의미 검색, 명시적 망각
 - name: economy
-  description: 건초 지갑, 원장, 충전소 보상
+  description: 건초 지갑, 원장, 충전소 보상, 출석
 - name: routine
   description: 요일 기반 루틴 CRUD, 완료, 스킵, 통계, 템플릿
 - name: shop

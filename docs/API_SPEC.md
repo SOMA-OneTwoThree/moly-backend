@@ -56,7 +56,7 @@ Swagger는 local/development 환경에서만 열리며, 개발 전용 라우트�
 | 대화 | `GET /chat/state`, `GET·POST /chat/messages`, `GET /chat/greeting`, `POST /chat/topic-entries` | [conversations](../openapi/paths/conversations.yaml) |
 | 일기 | `GET /diaries`, `GET /diaries/{diary_id}`, `POST /diaries/{diary_id}/read` | [conversations](../openapi/paths/conversations.yaml) |
 | 감정 | `GET /moods`, `PUT·DELETE /moods/{date}` | [mood](../openapi/paths/mood.yaml) |
-| 재화 | `GET /wallet`, `GET /wallet/transactions`, `GET /charging-station`, `POST /charging-station/attendance`, `POST /charging-station/routine-reward` | [economy](../openapi/paths/economy.yaml) |
+| 재화 | `GET /wallet`, `GET /wallet/transactions`, `GET /charging-station`, `POST /charging-station/attendance`, `POST /charging-station/routine-reward`; 출석 체크·연속 `POST /attendance/check-in`, `GET /attendance` | [economy](../openapi/paths/economy.yaml) |
 | 루틴 | 목록·생성 `/routines`; 수정·삭제 `/{routine_id}`; 체크·해제 `/complete`; 스킵·해제 `/skip`; 통계 `/statistics`; 날짜별 `/history`, 기간 `/stats`; 템플릿 조회·선택 `/routine-templates` | [routines](../openapi/paths/routines.yaml) |
 | 상점·장착 | `/shop/products`, `/shop/purchases`, `/inventory`, `/inventory/equipment`; 지원되는 `/v2/` 조회·장착 경로 | [shop](../openapi/paths/shop.yaml) |
 | 구독 | `GET /subscription`, `GET /subscription/plans`, `POST /webhooks/revenuecat` | [subscriptions](../openapi/paths/subscriptions.yaml) |

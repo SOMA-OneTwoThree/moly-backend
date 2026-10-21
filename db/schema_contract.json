@@ -746,6 +746,46 @@
         "not_null": false,
         "type": "uuid"
       },
+      "public.attendance_streak_seeds.best_streak": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
+      "public.attendance_streak_seeds.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.attendance_streak_seeds.streak": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
+      "public.attendance_streak_seeds.through_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.attendance_streak_seeds.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "public.bgm_tracks.category": {
         "collation": "\"default\"",
         "default": null,
@@ -6235,6 +6275,39 @@
         ],
         "validated": true
       },
+      "public.attendance_streak_seeds.attendance_streak_seeds_best_streak_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((best_streak >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.attendance_streak_seeds.attendance_streak_seeds_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.attendance_streak_seeds.attendance_streak_seeds_streak_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((streak >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.attendance_streak_seeds.attendance_streak_seeds_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.attendance_streak_seeds:17:O",
+          "public.attendance_streak_seeds:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
+        "validated": true
+      },
       "public.bgm_tracks.bgm_source_metadata": {
         "deferrable": false,
         "deferred": false,
@@ -9196,6 +9269,15 @@
         "unique": false,
         "valid": true
       },
+      "public.attendance_streak_seeds_pkey": {
+        "definition": "CREATE UNIQUE INDEX attendance_streak_seeds_pkey ON public.attendance_streak_seeds USING btree (user_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.attendance_streak_seeds",
+        "unique": true,
+        "valid": true
+      },
       "public.bgm_tracks_pkey": {
         "definition": "CREATE UNIQUE INDEX bgm_tracks_pkey ON public.bgm_tracks USING btree (id)",
         "exclusion": false,
@@ -11159,6 +11241,30 @@
         "grantable": false
       },
       "public.async_jobs:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.attendance_streak_seeds:service_role:UPDATE": {
         "grantable": false
       },
       "public.bgm_tracks:service_role:DELETE": {
@@ -14585,6 +14691,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.attendance_streak_seeds": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.bgm_tracks": {
         "options": [],
         "owner": "postgres",
@@ -15072,5 +15185,5 @@
       }
     }
   },
-  "schema_sha256": "461a9f17449ac540e441cf5b088be61729ecd36a2f2268f1c2091c3f7046055f"
+  "schema_sha256": "7fa9f4869661950dbd9428404b82e799257e88cb737aec379c475a5a76b9aa29"
 }

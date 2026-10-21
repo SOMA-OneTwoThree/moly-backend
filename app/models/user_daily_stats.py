@@ -39,5 +39,3 @@ class UserDailyStats(Base):
     routine_notified_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)  # 09시 루틴 아침
     # 그날 저녁 푸시 문구 id(push_copy) — 대화 푸시(c.*)면 chat.get_greeting이 같은 말을 첫마디로 낸다.
     evening_push_variant: Mapped[str | None] = mapped_column(String, nullable=True)
-    # 오늘의 글귀 확인 시각 — 둘러보기의 당일 확인 표시.
-    affirmation_acknowledged_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)

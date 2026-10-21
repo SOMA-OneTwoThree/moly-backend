@@ -1,4 +1,4 @@
-"""오늘의 글귀 API — 현지 날짜별 공용 문장 조회와 당일 확인 기록."""
+"""오늘의 글귀 API — 현지 날짜별 공용 문장 조회."""
 
 from __future__ import annotations
 
@@ -9,11 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.affirmation import (
-    DailyAffirmationAcknowledgeRequest,
-    DailyAffirmationAcknowledgeResponse,
-    DailyAffirmationResponse,
-)
+from app.schemas.affirmation import DailyAffirmationResponse
 from app.services import affirmation
 
 router = APIRouter(tags=["affirmation"])
@@ -44,22 +40,4 @@ async def get_daily_affirmation(
 ) -> dict[str, Any]:
     return await affirmation.status(
         session, user_id, locale=x_app_locale, timezone_name=x_app_timezone
-    )
-
-
-@router.post(
-    "/daily-affirmation/acknowledge",
-    response_model=DailyAffirmationAcknowledgeResponse,
-    operation_id="acknowledgeDailyAffirmation",
-)
-async def acknowledge_daily_affirmation(
-    body: DailyAffirmationAcknowledgeRequest,
-    x_app_timezone: Annotated[
-        str | None, Header(description=_TIMEZONE_HEADER_DESCRIPTION)
-    ] = None,
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    return await affirmation.acknowledge(
-        session, user_id, local_date=body.local_date, timezone_name=x_app_timezone
     )

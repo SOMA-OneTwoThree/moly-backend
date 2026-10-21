@@ -62,7 +62,7 @@ Swagger는 local/development 환경에서만 열리며, 개발 전용 라우트�
 | 구독 | `GET /subscription`, `GET /subscription/plans`, `POST /webhooks/revenuecat` | [subscriptions](../openapi/paths/subscriptions.yaml) |
 | 광고 | `POST /reward-ad-sessions`, `GET /webhooks/ad-ssv` | [economy](../openapi/paths/economy.yaml) |
 | 운세 | 프로필 `/fortune-profile`; `/daily-fortune/status`, `/reveal`, `/ad-sessions` | [fortune](../openapi/paths/fortune.yaml) |
-| 오늘의 글귀 | `GET /daily-affirmation`, `POST /daily-affirmation/acknowledge` | [affirmation](../openapi/paths/affirmation.yaml) |
+| 오늘의 글귀 | `GET /daily-affirmation` | [affirmation](../openapi/paths/affirmation.yaml) |
 | 배너·BGM | `GET /banners`, `POST /banners/resolve`, `GET /bgm/tracks` | [banners](../openapi/paths/banners.yaml) · [bgm](../openapi/paths/bgm.yaml) |
 | 리뷰·문의 | `POST /review/prompted`, `POST /feedback` | [core](../openapi/paths/core.yaml), [feedback](../openapi/paths/feedback.yaml) |
 | 공개 경로 | `GET /health`, `POST /attribution/meta-referrer/decrypt` | [core](../openapi/paths/core.yaml) · [attribution](../openapi/paths/attribution.yaml) |

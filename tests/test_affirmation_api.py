@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.dialects import postgresql
 
 from app.core.db import get_session
 from app.core.security import get_current_user
@@ -11,34 +12,33 @@ from app.services import affirmation
 
 USER = "00000000-0000-0000-0000-000000000001"
 SEOUL = "Asia/Seoul"
+ROW = SimpleNamespace(
+    local_date=date(2026, 10, 20),
+    text_ko="작은 시작도 충분히 의미 있어.",
+    text_en="Even a small start is enough.",
+    text_ja="小さな一歩にも、ちゃんと意味がある。",
+)
 
 
 @pytest.fixture
-def stats():
-    return SimpleNamespace(affirmation_acknowledged_at=None)
+def stored():
+    return {"row": ROW, "asked": []}
 
 
 @pytest.fixture
-def client(monkeypatch, stats):
+def client(monkeypatch, stored):
     async def session():
-        yield SimpleNamespace(commit=_nothing)
-
-    async def _nothing(*args, **kwargs):
-        return None
+        yield SimpleNamespace()
 
     async def profile(_session, _user_id):
         return SimpleNamespace(timezone=SEOUL)
 
-    async def acknowledged_at(_session, _uid, local_date):
-        return stats.affirmation_acknowledged_at
-
-    async def daily(_session, _uid, _activity_date):
-        return stats
+    async def latest(_session, local_date):
+        stored["asked"].append(local_date)
+        return stored["row"]
 
     monkeypatch.setattr(affirmation, "_load_profile", profile)
-    monkeypatch.setattr(affirmation, "_acknowledged_at", acknowledged_at)
-    monkeypatch.setattr(affirmation, "_daily", daily)
-    monkeypatch.setattr(affirmation, "advisory_xact_lock", _nothing)
+    monkeypatch.setattr(affirmation, "_latest", latest)
     app.dependency_overrides[get_session] = session
     app.dependency_overrides[get_current_user] = lambda: USER
     yield TestClient(app)
@@ -51,78 +51,57 @@ def today(zone: str = SEOUL) -> date:
 
 @pytest.mark.parametrize("header,locale", [("ko-KR", "ko"), ("en", "en"), ("ja-JP", "ja"),
                                            (None, "en"), ("zh-Hant-TW", "en")])
-def test_status_returns_todays_sentence_for_each_locale(client, header, locale):
+def test_status_returns_the_latest_stored_sentence_for_each_locale(client, stored, header, locale):
     headers = {"X-App-Timezone": SEOUL} | ({"X-App-Locale": header} if header else {})
     response = client.get("/daily-affirmation", headers=headers)
     assert response.status_code == 200, response.text
-    body = response.json()
-    item = affirmation.daily_affirmation(today())
-    assert body == {
+    assert response.json() == {
         "local_date": today().isoformat(),
         "locale": locale,
-        "affirmation": {"id": item.id, "text": item.text.for_locale(locale)},
-        "acknowledged": False,
+        "text": getattr(ROW, f"text_{locale}"),
     }
+    assert stored["asked"] == [today()]
     assert response.headers["cache-control"] == "private, no-store"
 
 
-def test_status_uses_profile_timezone_when_header_is_absent(client):
+def test_status_uses_profile_timezone_when_header_is_absent(client, stored):
     response = client.get("/daily-affirmation")
     assert response.status_code == 200
     assert response.json()["local_date"] == today().isoformat()
+    assert stored["asked"] == [today()]
 
 
-def test_status_reports_acknowledged_after_the_marker_exists(client, stats):
-    stats.affirmation_acknowledged_at = datetime.now(timezone.utc)
+def test_status_is_404_when_no_sentence_is_stored(client, stored):
+    stored["row"] = None
     response = client.get("/daily-affirmation", headers={"X-App-Timezone": SEOUL})
-    assert response.status_code == 200
-    assert response.json()["acknowledged"] is True
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "DAILY_AFFIRMATION_NOT_FOUND"
 
 
-def test_acknowledge_is_idempotent_for_the_same_local_date(client, stats):
-    payload = {"local_date": today().isoformat()}
-    first = client.post("/daily-affirmation/acknowledge", json=payload,
-                        headers={"X-App-Timezone": SEOUL})
-    assert first.status_code == 200, first.text
-    assert first.json() == {"local_date": payload["local_date"], "acknowledged": True}
-    assert first.headers["cache-control"] == "private, no-store"
-    marked = stats.affirmation_acknowledged_at
-    assert marked is not None
-    second = client.post("/daily-affirmation/acknowledge", json=payload,
-                         headers={"X-App-Timezone": SEOUL})
-    assert second.status_code == 200
-    assert second.json() == first.json()
-    assert stats.affirmation_acknowledged_at == marked  # 첫 확인 시각을 덮어쓰지 않는다
-
-
-def test_acknowledge_rejects_a_stale_local_date(client, stats):
-    response = client.post(
-        "/daily-affirmation/acknowledge",
-        json={"local_date": date(2020, 1, 1).isoformat()},
-        headers={"X-App-Timezone": SEOUL},
-    )
-    assert response.status_code == 409
-    assert response.json()["error"]["code"] == "DAILY_AFFIRMATION_STALE"
-    assert stats.affirmation_acknowledged_at is None
-
-
-@pytest.mark.parametrize("method", ["get", "post"])
-def test_invalid_timezone_is_rejected_with_no_store(client, method):
-    headers = {"X-App-Timezone": "Mars/Olympus"}
-    if method == "get":
-        response = client.get("/daily-affirmation", headers=headers)
-    else:
-        response = client.post("/daily-affirmation/acknowledge",
-                               json={"local_date": today().isoformat()}, headers=headers)
+def test_invalid_timezone_is_rejected_with_no_store(client):
+    response = client.get("/daily-affirmation", headers={"X-App-Timezone": "Mars/Olympus"})
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "APP_TIMEZONE_INVALID"
     assert response.headers["cache-control"] == "private, no-store"
 
 
-@pytest.mark.parametrize("payload", [{}, {"local_date": "not-a-date"},
-                                     {"local_date": "2026-09-09", "extra": 1}])
-def test_acknowledge_rejects_malformed_bodies(client, payload):
-    response = client.post("/daily-affirmation/acknowledge", json=payload,
-                           headers={"X-App-Timezone": SEOUL})
-    assert response.status_code == 422
-    assert response.json()["error"]["code"] == "VALIDATION"
+def test_acknowledge_endpoint_is_gone(client):
+    response = client.post("/daily-affirmation/acknowledge",
+                           json={"local_date": today().isoformat()})
+    assert response.status_code in {404, 405}
+
+
+async def test_latest_reads_the_newest_sentence_on_or_before_the_day():
+    statements = []
+
+    class Session:
+        async def execute(self, statement):
+            statements.append(statement)
+            return SimpleNamespace(scalar_one_or_none=lambda: None)
+
+    assert await affirmation._latest(Session(), date(2026, 10, 21)) is None
+    sql = str(statements[0].compile(dialect=postgresql.dialect(),
+                                    compile_kwargs={"literal_binds": True}))
+    assert "daily_affirmations.local_date <= '2026-10-21'" in sql
+    assert "ORDER BY daily_affirmations.local_date DESC" in sql
+    assert "LIMIT 1" in sql

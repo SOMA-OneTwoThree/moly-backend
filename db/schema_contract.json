@@ -5634,6 +5634,14 @@
         "not_null": true,
         "type": "smallint"
       },
+      "public.user_daily_stats.affirmation_acknowledged_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
       "public.user_daily_stats.attendance_claimed_at": {
         "collation": null,
         "default": null,
@@ -16052,5 +16060,5 @@
       }
     }
   },
-  "schema_sha256": "983db85d1936a1d5fe6f8994a4ddea73334b3e41cee65dcf6c2b715222ff3b60"
+  "schema_sha256": "7e42e13e80b6c2f0efe1404caf767821699d62bf3e4d3af1d11ff6e3b93f494a"
 }

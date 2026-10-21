@@ -1116,7 +1116,8 @@ CREATE TABLE public.user_daily_stats (
     morning_notified_at timestamp with time zone,
     evening_notified_at timestamp with time zone,
     routine_notified_at timestamp with time zone,
-    evening_push_variant text
+    evening_push_variant text,
+    affirmation_acknowledged_at timestamp with time zone
 );
 
 -- SEQUENCE: public.user_daily_stats_id_seq

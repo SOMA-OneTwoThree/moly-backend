@@ -1,0 +1,45 @@
+{
+  "format_version": 1,
+  "items": [
+    {
+      "id": "one-step-further",
+      "text": {
+        "ko": "오늘의 나는 어제보다 한 걸음 더 나아가고 있어.",
+        "en": "Today I am one step further than yesterday.",
+        "ja": "今日の私は、昨日より一歩前に進んでいる。"
+      }
+    },
+    {
+      "id": "small-start",
+      "text": {
+        "ko": "작은 시작도 충분히 의미 있어.",
+        "en": "Even a small start is enough.",
+        "ja": "小さな一歩にも、ちゃんと意味がある。"
+      }
+    },
+    {
+      "id": "my-own-pace",
+      "text": {
+        "ko": "나는 내 속도로 가도 괜찮아.",
+        "en": "I can move at my own pace.",
+        "ja": "自分のペースで進んでいい。"
+      }
+    },
+    {
+      "id": "kinder-to-me",
+      "text": {
+        "ko": "오늘 하루, 나에게 조금 더 다정해지기.",
+        "en": "Today, I will be a little kinder to myself.",
+        "ja": "今日は、自分にもう少しやさしくしよう。"
+      }
+    },
+    {
+      "id": "doing-fine",
+      "text": {
+        "ko": "지금 이 순간도 충분히 잘하고 있어.",
+        "en": "Right now, I am doing just fine.",
+        "ja": "今この瞬間も、ちゃんとうまくやれている。"
+      }
+    }
+  ]
+}

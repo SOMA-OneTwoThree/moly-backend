@@ -23,6 +23,8 @@ erDiagram
     profiles ||--o{ user_items : inventory
     profiles ||--o{ hay_transactions : ledger
     profiles ||--o| fortune_profiles : input
+    profiles ||--o{ training_progress : training
+    profiles ||--o| training_tries : tries
     fortune_profiles ||--o| daily_fortunes : snapshot
     profiles ||--o| memory_pipeline_states : pipeline
     profiles ||--o{ mem0_memory_registry : memory
@@ -122,6 +124,20 @@ erDiagram
 
 감정 메모를 캐피 일기나 장기기억으로 자동 간주하지 않는다. 운세 문구 버전 변경만으로 유효한 당일
 저장본을 재생성하거나 광고 해금을 잃지 않는다. 실제 공개 범위는 [운세](DAILY-FORTUNE.md)를 따른다.
+
+## 트레이닝
+
+| 테이블 | 책임·주요 제약 |
+|---|---|
+| `training_progress` | 트레이닝별 지금 풀 차례(`next_stage`, 끝내면 NULL과 완료 시각)와 마지막 제출의 요청 id·판정 |
+| `training_answers` | 통과한 단계의 답. 보기 id와 쓴 글(200자 이하) 중 정확히 하나 |
+| `training_rewards` | 돌아보기 단계 보상 지급 기록. 사용자·트레이닝·단계마다 한 번 |
+| `training_tries` | 계정당 도전 기회(0~5)와 충전 기준 시각. 행이 없으면 5개 |
+| `training_claims` | 사용자가 보낸 채점 이의. 판정은 바꾸지 않음 |
+
+단계·보기·정답은 DB가 아니라 [원고 카탈로그](../app/resources/trainings/catalog.json)에 있다. 저장된 답이 보기 id를
+가리키므로 공개 뒤에는 트레이닝 id·단계 번호·보기 id를 바꾸지 않는다. 통과하지 못한 답의 글은 이의로 직접
+보낸 경우 말고는 저장하지 않는다. 다섯 테이블 모두 프로필 삭제에 연동해 지워진다.
 
 ## 작업·원가·삭제
 

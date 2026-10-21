@@ -60,7 +60,7 @@ erDiagram
 | 테이블 | 책임·주요 제약 |
 |---|---|
 | `hay_transactions` | 건초의 원장. 거래 후 잔액과 주문 연결을 보존; 프로필 잔액은 원장과 함께 갱신 |
-| `user_daily_stats` | 토큰 누적·일일 보상·알림 선점·오늘의 글귀 확인. 사용자/도메인 기준일 유일 |
+| `user_daily_stats` | 토큰 누적·일일 보상·알림 선점. 사용자/도메인 기준일 유일. `affirmation_acknowledged_at`은 쓰지 않는 컬럼(오늘의 글귀 확인은 앱 기기 저장) |
 | `products` | 서버 상품 카탈로그·에셋 버전·구독 전용 조건. `price_hay=NULL`은 비매품 |
 | `orders`, `order_items`, `payments` | 주문·상품 항목·실결제를 구분하고 공급자 거래 중복 반영 방지 |
 | `user_items` | 보유와 슬롯별 장착. 구매/권한 및 아이템 소유자를 검증 |

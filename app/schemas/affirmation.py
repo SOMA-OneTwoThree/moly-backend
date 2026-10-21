@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
 
 from app.schemas.common import StrictResponse
 
@@ -21,15 +21,3 @@ class DailyAffirmationResponse(StrictResponse):
     local_date: date
     locale: Locale
     affirmation: DailyAffirmationItem
-    acknowledged: bool
-
-
-class DailyAffirmationAcknowledgeRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    local_date: date
-
-
-class DailyAffirmationAcknowledgeResponse(StrictResponse):
-    local_date: date
-    acknowledged: Literal[True]

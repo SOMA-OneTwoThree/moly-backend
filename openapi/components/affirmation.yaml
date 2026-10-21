@@ -23,7 +23,6 @@ schemas:
     - local_date
     - locale
     - affirmation
-    - acknowledged
     properties:
       local_date:
         type: string
@@ -38,30 +37,3 @@ schemas:
         description: 문장에 적용한 언어. 미설정·미지원 언어는 en이다.
       affirmation:
         $ref: '#/schemas/DailyAffirmationItem'
-      acknowledged:
-        type: boolean
-        description: 같은 현지 날짜에 이미 확인했으면 true.
-  DailyAffirmationAcknowledgeRequest:
-    type: object
-    additionalProperties: false
-    required:
-    - local_date
-    properties:
-      local_date:
-        type: string
-        format: date
-        description: 확인한 문장의 현지 날짜. 서버가 계산한 오늘과 다르면 409 DAILY_AFFIRMATION_STALE.
-  DailyAffirmationAcknowledgeResponse:
-    type: object
-    additionalProperties: false
-    required:
-    - local_date
-    - acknowledged
-    properties:
-      local_date:
-        type: string
-        format: date
-      acknowledged:
-        type: boolean
-        const: true
-        description: 기록 완료. 같은 날짜로 다시 호출해도 200이며 첫 확인 시각을 덮어쓰지 않는다.

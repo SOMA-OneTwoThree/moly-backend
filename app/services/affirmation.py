@@ -1,8 +1,8 @@
-"""오늘의 글귀 — 현지 날짜로 고르는 공용 문장과 사용자별 확인 상태.
+"""오늘의 글귀 — 현지 날짜로 고르는 공용 문장.
 
 문장 선택은 DB·배치·LLM 없이 현지 날짜 서수로 계산하므로 같은 날짜에는 모든 사용자가
-같은 문장을 본다(주기별 고정 순열, `daily_affirmation` 참고). 사용자별로 저장하는 값은
-`user_daily_stats.affirmation_acknowledged_at` 하나이며 둘러보기의 당일 확인 표시에 쓴다.
+같은 문장을 본다(주기별 고정 순열, `daily_affirmation` 참고). 사용자별 확인 표시는 앱이
+기기에 저장하므로 서버는 기록하지 않는다.
 """
 
 from __future__ import annotations
@@ -12,19 +12,13 @@ from datetime import date, datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any, Literal
-import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.advisory_lock import advisory_xact_lock
 from app.core.app_day import AppDay, validate_app_timezone
-from app.core.errors import AppError
-from app.models.user_daily_stats import UserDailyStats
 from app.services import privacy
 from app.services.account import _load_profile, _uid
-from app.services.economy import _daily
 from app.services.i18n import resolve
 
 CATALOG_PATH = Path(__file__).resolve().parents[1] / "resources/affirmations.json"
@@ -114,20 +108,6 @@ async def _day(
     return AppDay.at(now, timezone_name)
 
 
-async def _acknowledged_at(
-    session: AsyncSession, uid: uuid.UUID, local_date: date
-) -> datetime | None:
-    """읽기 전용 — 조회만으로 user_daily_stats 행을 만들지 않는다."""
-    return (
-        await session.execute(
-            select(UserDailyStats.affirmation_acknowledged_at).where(
-                UserDailyStats.user_id == uid,
-                UserDailyStats.activity_date == local_date,
-            )
-        )
-    ).scalar()
-
-
 async def status(
     session: AsyncSession,
     user_id: str,
@@ -145,32 +125,4 @@ async def status(
         "local_date": day.local_date,
         "locale": language,
         "affirmation": {"id": item.id, "text": item.text.for_locale(language)},
-        "acknowledged": await _acknowledged_at(session, uid, day.local_date) is not None,
     }
-
-
-async def acknowledge(
-    session: AsyncSession,
-    user_id: str,
-    *,
-    local_date: date,
-    timezone_name: str | None,
-    now_utc: datetime | None = None,
-) -> dict[str, Any]:
-    uid = _uid(user_id)
-    now = now_utc or datetime.now(timezone.utc)
-    day = await _day(session, user_id, timezone_name, now)
-    if local_date != day.local_date:
-        # 현지 날짜가 바뀐 뒤 옛 화면이 보낸 확인은 오늘 확인으로 기록하지 않는다.
-        raise AppError(
-            "DAILY_AFFIRMATION_STALE", 409, "날짜가 바뀌었어요. 오늘의 글귀를 다시 확인해 주세요."
-        )
-    # lock → 장벽 확인 → _daily → mutation → commit. 삭제 장벽 판정을 락 뒤에서 읽어야
-    # 탈퇴 진행과 동시 요청이 엇갈리지 않는다(topic_entries·diary_generation과 같은 순서).
-    await advisory_xact_lock(session, uid)
-    await privacy.ensure_subject_active(session, uid)
-    stats = await _daily(session, uid, day.local_date)
-    if stats.affirmation_acknowledged_at is None:  # 재호출도 200(멱등)
-        stats.affirmation_acknowledged_at = now
-    await session.commit()
-    return {"local_date": day.local_date, "acknowledged": True}

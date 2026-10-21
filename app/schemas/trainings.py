@@ -47,6 +47,7 @@ class TrainingOptionView(StrictResponse):
 
 
 class TrainingStageView(StrictResponse):
+    icon_key: str | None = None
     number: int = Field(ge=1)
     answer_type: Literal["pick", "write"]
     layout: Literal["chat", "diary"]

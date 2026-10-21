@@ -7017,6 +7017,11 @@ components:
       - options
       - max_length
       properties:
+        icon_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 상황에 맞는 기존 루틴 그림 키. 생략하면 그림을 표시하지 않는다.
         number:
           type: integer
           minimum: 1

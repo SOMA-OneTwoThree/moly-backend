@@ -40,7 +40,8 @@
             "나는 왜 맨날 이렇게 운이 없고 타이밍이 나쁜지 모르겠다는 생각"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "놓친 것 대신 오늘 새롭게 발견한 즐거움에 시선을 두면 기분 좋은 하루로 남을 수 있어요."
+          "pick_comment": "놓친 것 대신 오늘 새롭게 발견한 즐거움에 시선을 두면 기분 좋은 하루로 남을 수 있어요.",
+          "icon_key": "bread"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -98,7 +99,8 @@
             "전부 실패한"
           ],
           "pick_answer_count": 1,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "bread"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -145,7 +147,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "fork_and_knife_with_plate"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -203,7 +206,8 @@
             "아무 좋은 점도 없었던"
           ],
           "pick_answer_count": 1,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "fork_and_knife_with_plate"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -250,7 +254,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "chess_pawn"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -300,7 +305,8 @@
             "오랜만에 귀도 쉬게 해주고 창밖 풍경이나 생각에 집중할 수 있는 시간"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "익숙한 물건이 없을 때 평소와 다른 고요한 시간을 누릴 수 있다고 생각하면 마음이 한결 편안해져요."
+          "pick_comment": "익숙한 물건이 없을 때 평소와 다른 고요한 시간을 누릴 수 있다고 생각하면 마음이 한결 편안해져요.",
+          "icon_key": "headphone"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -350,7 +356,8 @@
             "아침부터 계단을 타서 힘을 다 뺐으니 오늘 하루 종일 체력이 방전될 거야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "작은 불편함을 일상 속 건강 챙기기로 연결하면 귀찮은 일도 꽤 괜찮은 순간이 돼요."
+          "pick_comment": "작은 불편함을 일상 속 건강 챙기기로 연결하면 귀찮은 일도 꽤 괜찮은 순간이 돼요.",
+          "icon_key": "office_building"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -400,7 +407,8 @@
             "시험 기간인 줄 알면서 아침 일찍 서두르지 않고 늦장을 부린 내 게으름 탓이야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "원하던 자리를 원래 별로였다고 깎아내리는 건 아쉬움을 감추려는 자기합리화예요(2번). 지금 앉은 자리에서 얻을 수 있는 실질적인 장점을 찾아내는 게 건강한 전환이에요."
+          "pick_comment": "원하던 자리를 원래 별로였다고 깎아내리는 건 아쉬움을 감추려는 자기합리화예요(2번). 지금 앉은 자리에서 얻을 수 있는 실질적인 장점을 찾아내는 게 건강한 전환이에요.",
+          "icon_key": "books"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -446,7 +454,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "alarm_clock"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -492,7 +501,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "cooking"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -542,7 +552,8 @@
             "새 옷인데 한 번 입자마자 망가져서 다시는 못 입게 될 거라는 생각"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "이미 벌어진 일이라도 최악의 타이밍을 피했다는 사실에 주목하면 속상한 마음이 빨리 가라앉아요."
+          "pick_comment": "이미 벌어진 일이라도 최악의 타이밍을 피했다는 사실에 주목하면 속상한 마음이 빨리 가라앉아요.",
+          "icon_key": "t_shirt"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -592,7 +603,8 @@
             "급하게 입어야 할 날 직전이 아니라 여유 있을 때 미리 입어봐서 제때 교환할 수 있는 점"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "수습할 수 있는 시간적 여유가 있다는 점에 집중하면 번거로운 마음도 한결 가벼워져요."
+          "pick_comment": "수습할 수 있는 시간적 여유가 있다는 점에 집중하면 번거로운 마음도 한결 가벼워져요.",
+          "icon_key": "shopping_cart"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -638,7 +650,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "cloud"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -684,7 +697,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "laptop"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -730,7 +744,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "running_shoe"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -780,7 +795,8 @@
             "모처럼 기다린 주말이 완전히 망가져서 아무것도 못 하게 됐다"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "계획이 틀어졌을 때 비로소 할 수 있는 다른 즐거운 일을 떠올리면 아쉬움이 설렘으로 바뀔 수 있어요."
+          "pick_comment": "계획이 틀어졌을 때 비로소 할 수 있는 다른 즐거운 일을 떠올리면 아쉬움이 설렘으로 바뀔 수 있어요.",
+          "icon_key": "camping"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -830,7 +846,8 @@
             "중요한 연락이 오면 어쩌나 불안해서 두 시간 내내 아무것도 못 하고 초조할 거야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "불편한 대기 시간도 평소 휴대폰 때문에 미뤄뒀던 아날로그 취미를 즐기는 기회로 삼을 수 있어요."
+          "pick_comment": "불편한 대기 시간도 평소 휴대폰 때문에 미뤄뒀던 아날로그 취미를 즐기는 기회로 삼을 수 있어요.",
+          "icon_key": "mobile_phone"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -880,7 +897,8 @@
             "짚어주신 데이터만 보강하면 기획안의 설득력이 훨씬 탄탄해질 테니 완성도를 높이는 계기로 삼아야지"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "상대방을 깎아내리며 필요한 조언까지 무시하는 건 성장을 가로막는 회피형 태도예요(2번). 아쉬운 피드백을 내 결과물의 완성도를 한 단계 끌어올리는 이정표로 삼는 것이 건강한 긍정 회로예요."
+          "pick_comment": "상대방을 깎아내리며 필요한 조언까지 무시하는 건 성장을 가로막는 회피형 태도예요(2번). 아쉬운 피드백을 내 결과물의 완성도를 한 단계 끌어올리는 이정표로 삼는 것이 건강한 긍정 회로예요.",
+          "icon_key": "clipboard"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -926,7 +944,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "hot_beverage"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -972,7 +991,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "admission_tickets"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1018,7 +1038,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "school"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1068,7 +1089,8 @@
             "정신없이 움직였더니 지루할 틈 없이 퇴근 시간이 순식간에 가까워졌어"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "몸은 바빴지만 그만큼 시간이 빨리 갔다는 점에 초점을 맞추면 피로감이 덜 느껴져요."
+          "pick_comment": "몸은 바빴지만 그만큼 시간이 빨리 갔다는 점에 초점을 맞추면 피로감이 덜 느껴져요.",
+          "icon_key": "hot_beverage"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1118,7 +1140,8 @@
             "출발도 하기 전에 이렇게 부딪히는 걸 보니 이번 여행은 가봤자 내내 싸우다 끝날 게 뻔해"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "서운한 감정을 피하려고 관계 자체를 평가절하하며 거리를 두는 건 회피를 긍정으로 포장한 거예요(2번). 갈등을 서로를 더 잘 이해하고 조율하는 과정으로 바라보는 것이 건강해요."
+          "pick_comment": "서운한 감정을 피하려고 관계 자체를 평가절하하며 거리를 두는 건 회피를 긍정으로 포장한 거예요(2번). 갈등을 서로를 더 잘 이해하고 조율하는 과정으로 바라보는 것이 건강해요.",
+          "icon_key": "airplane"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1164,7 +1187,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "mirror"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1210,7 +1234,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "guitar"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1256,7 +1281,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "beach_with_umbrella"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1302,7 +1328,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "people_hugging"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1348,7 +1375,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "receipt"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1394,7 +1422,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "trophy"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1440,7 +1469,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "briefcase"
         },
         "provenance": {
           "reference_content_id": 4255,
@@ -1492,7 +1522,8 @@
             "내가 계획을 짜면 늘 이런 식이니 앞으로는 절대 총대를 메지 말아야지"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "내가 노력해서 준비한 영역과 내 힘으로 어쩔 수 없는 날씨 같은 영역을 구분하면 불필요한 죄책감을 덜 수 있어요."
+          "pick_comment": "내가 노력해서 준비한 영역과 내 힘으로 어쩔 수 없는 날씨 같은 영역을 구분하면 불필요한 죄책감을 덜 수 있어요.",
+          "icon_key": "cloud"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1542,7 +1573,8 @@
             "사람들이 다 나를 만만하게 보고 무시하는 것 같아서 회사 다니기가 두려워"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "상대방의 미숙한 감정 표현이나 기분 태도까지 내 잘못으로 끌어안지 마세요. 내 몫과 상대방의 몫을 분리하면 마음이 가벼워져요."
+          "pick_comment": "상대방의 미숙한 감정 표현이나 기분 태도까지 내 잘못으로 끌어안지 마세요. 내 몫과 상대방의 몫을 분리하면 마음이 가벼워져요.",
+          "icon_key": "speech_balloon"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1588,7 +1620,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "speech_balloon"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1638,7 +1671,8 @@
             "거래처 담당자가 나를 완전히 신뢰할 수 없는 사람으로 찍었을 거야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "업무 중 일어난 일시적인 실수를 '무능한 사람'이라는 꼬리표로 연결하지 마세요. 실수를 인정하고 빠르게 수습한 것으로 충분해요."
+          "pick_comment": "업무 중 일어난 일시적인 실수를 '무능한 사람'이라는 꼬리표로 연결하지 마세요. 실수를 인정하고 빠르게 수습한 것으로 충분해요.",
+          "icon_key": "love_letter"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1688,7 +1722,8 @@
             "곧바로 파일을 보내고 사과했다."
           ],
           "pick_answer_count": 1,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "love_letter"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1738,7 +1773,8 @@
             "구매 당시에는 알 수 없었던 나중의 할인"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요."
+          "pick_comment": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요.",
+          "icon_key": "shopping_cart"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1788,7 +1824,8 @@
             "나는 원래 쇼핑할 때마다 호구 잡히는 운 없는 사람이야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요."
+          "pick_comment": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요.",
+          "icon_key": "shopping_cart"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1838,7 +1875,8 @@
             "첫 단추를 잘못 끼웠으니 내 커리어는 이제 완전히 꼬여버렸어"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "직접 겪어보기 전에는 알 수 없는 일들이 있어요. 과거의 나를 탓하기보다 그때의 최선이었음을 인정하고 다음 방향을 고민해보세요."
+          "pick_comment": "직접 겪어보기 전에는 알 수 없는 일들이 있어요. 과거의 나를 탓하기보다 그때의 최선이었음을 인정하고 다음 방향을 고민해보세요.",
+          "icon_key": "office_building"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1884,7 +1922,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "office_building"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1934,7 +1973,8 @@
             "괜히 나선 내 잘못이니 앞으로는 친구들이 무슨 말을 하든 입을 다물고 있어야겠어"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "대화 중 생긴 작은 엇갈림을 '인간관계를 망치는 사람'이라는 극단적인 자기비하로 연결하지 마세요. 서툰 표현은 다시 대화를 통해 풀어가면 돼요."
+          "pick_comment": "대화 중 생긴 작은 엇갈림을 '인간관계를 망치는 사람'이라는 극단적인 자기비하로 연결하지 마세요. 서툰 표현은 다시 대화를 통해 풀어가면 돼요.",
+          "icon_key": "people_hugging"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -1984,7 +2024,8 @@
             "내 뜻을 다시 차분히 전해봐야겠다."
           ],
           "pick_answer_count": 1,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "people_hugging"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2034,7 +2075,8 @@
             "모든 요소를 미리 예측하지 못한 내가 전부 책임져야 하는 영역"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "과정에서의 노력은 내 몫이지만, 타인의 평가나 운이 작용하는 최종 결과까지 온전히 내 책임으로 돌릴 필요는 없어요."
+          "pick_comment": "과정에서의 노력은 내 몫이지만, 타인의 평가나 운이 작용하는 최종 결과까지 온전히 내 책임으로 돌릴 필요는 없어요.",
+          "icon_key": "clipboard"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2084,7 +2126,8 @@
             "아무리 밤새워 노력해봤자 결국 결과는 안 좋으니 노력하는 게 다 무의미해"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "과정에서의 노력은 내 몫이지만, 타인의 평가나 운이 작용하는 최종 결과까지 온전히 내 책임으로 돌릴 필요는 없어요."
+          "pick_comment": "과정에서의 노력은 내 몫이지만, 타인의 평가나 운이 작용하는 최종 결과까지 온전히 내 책임으로 돌릴 필요는 없어요.",
+          "icon_key": "clipboard"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2142,7 +2185,8 @@
             "두 가지 모두 맞으니까"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "내 미안함을 덜겠다고 오히려 친구를 속 좁은 사람으로 몰아가는 건 잘못된 자기합리화예요(1번). 실수는 솔직히 인정하고 사과하되, 내 인격 전체를 비난하지 않는 선을 지키는 게 중요해요."
+          "pick_comment": "내 미안함을 덜겠다고 오히려 친구를 속 좁은 사람으로 몰아가는 건 잘못된 자기합리화예요(1번). 실수는 솔직히 인정하고 사과하되, 내 인격 전체를 비난하지 않는 선을 지키는 게 중요해요.",
+          "icon_key": "shortcake"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2188,7 +2232,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "shortcake"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2238,7 +2283,8 @@
             "친구가 겉으론 괜찮다고 했지만 속으로는 나를 손절하려고 마음먹었을 거야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "이미 사과와 보상을 마쳤다면 끝없는 자기비난은 멈춰도 괜찮아요. 자책에 빠져 있을수록 오히려 지금 친구와의 시간에 집중하기 어려워요."
+          "pick_comment": "이미 사과와 보상을 마쳤다면 끝없는 자기비난은 멈춰도 괜찮아요. 자책에 빠져 있을수록 오히려 지금 친구와의 시간에 집중하기 어려워요.",
+          "icon_key": "watch"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2288,7 +2334,8 @@
             "앞으로는 약속 시간을 한 번 더 확인해야겠다."
           ],
           "pick_answer_count": 1,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "watch"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2331,7 +2378,8 @@
             "그동안 열심히 달려오느라 몸이 신호를 보낸 거야, 오늘 하루 푹 쉬며 열부터 내리는 게 지금 할 수 있는 가장 중요한 일이야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요."
+          "pick_comment": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요.",
+          "icon_key": "thermometer"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2381,7 +2429,8 @@
             "그동안 열심히 달려오느라 몸이 신호를 보낸 거야, 오늘 하루 푹 쉬며 열부터 내리는 게 지금 할 수 있는 가장 중요한 일이야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요."
+          "pick_comment": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요.",
+          "icon_key": "thermometer"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2427,7 +2476,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "books"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2477,7 +2527,8 @@
             "아침부터 컵을 깬 걸 보니 오늘 하루 종일 하는 일마다 다 꼬일 게 분명해"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "'컵을 깨뜨린 실수'라는 행동 하나를 '덜렁거리는 못난 사람'이라는 내 전체의 가치로 확대 해석하지 않는 연습이 필요해요."
+          "pick_comment": "'컵을 깨뜨린 실수'라는 행동 하나를 '덜렁거리는 못난 사람'이라는 내 전체의 가치로 확대 해석하지 않는 연습이 필요해요.",
+          "icon_key": "hot_beverage"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2527,7 +2578,8 @@
             "마음을 가라앉힌 뒤 사과드려야겠다."
           ],
           "pick_answer_count": 1,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "telephone_receiver"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2578,7 +2630,8 @@
             "나는 대화를 이어가려고 예의를 다했고, 자리에서 기본 매너를 지키지 않은 건 상대방의 문제야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "상처받지 않으려고 상대방을 원색적으로 비난하고 저주하는 건 마음에 날 선 감정만 남겨요(2번). 나의 예의 바른 태도와 상대방의 무례함을 차분히 구분하는 것만으로 내 자존감을 지킬 수 있어요."
+          "pick_comment": "상처받지 않으려고 상대방을 원색적으로 비난하고 저주하는 건 마음에 날 선 감정만 남겨요(2번). 나의 예의 바른 태도와 상대방의 무례함을 차분히 구분하는 것만으로 내 자존감을 지킬 수 있어요.",
+          "icon_key": "speech_balloon"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2628,7 +2681,8 @@
             "화려한 반찬은 없지만 바쁜 아침에 포기하지 않고 따뜻한 밥에 계란후라이라도 챙겨 온 것만으로도 충분히 잘했어"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "내 도시락을 긍정하기 위해 남들이 먹는 식당 음식을 깎아내릴 필요는 없어요(2번). 완벽한 식단은 아니어도 내 형편에 맞게 이어간 작은 노력을 있는 그대로 인정해주세요."
+          "pick_comment": "내 도시락을 긍정하기 위해 남들이 먹는 식당 음식을 깎아내릴 필요는 없어요(2번). 완벽한 식단은 아니어도 내 형편에 맞게 이어간 작은 노력을 있는 그대로 인정해주세요.",
+          "icon_key": "bento_box"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2674,7 +2728,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "people_hugging"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2724,7 +2779,8 @@
             "목표치엔 조금 못 미쳤지만 한 달 만에 백 점이나 올린 건 정말 대단한 발전이고 충분히 의미 있는 성취야"
           ],
           "pick_answer_count": 1,
-          "pick_comment": "목표를 못 이뤘다고 시험의 가치 자체를 폄하해버리는 건 아쉬움을 외면하는 신 포도 심보예요(1번). 완벽한 목표 점수가 아니더라도 내가 이뤄낸 백 점 상승의 노력을 온전히 칭찬해주세요."
+          "pick_comment": "목표를 못 이뤘다고 시험의 가치 자체를 폄하해버리는 건 아쉬움을 외면하는 신 포도 심보예요(1번). 완벽한 목표 점수가 아니더라도 내가 이뤄낸 백 점 상승의 노력을 온전히 칭찬해주세요.",
+          "icon_key": "student"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2770,7 +2826,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "spiral_notepad"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2816,7 +2873,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "open_book"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2862,7 +2920,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "headphone"
         },
         "provenance": {
           "reference_content_id": 4254,
@@ -2908,7 +2967,8 @@
           ],
           "pick_texts": null,
           "pick_answer_count": null,
-          "pick_comment": null
+          "pick_comment": null,
+          "icon_key": "calendar"
         },
         "provenance": {
           "reference_content_id": 4254,

@@ -52,6 +52,11 @@ schemas:
     description: 정답·힌트·풀이·채점 기준은 담지 않는다.
     required: [number, answer_type, layout, pick_style, review_point, reward_hay, mission, lines, options, max_length]
     properties:
+      icon_key:
+        anyOf:
+        - type: string
+        - type: 'null'
+        description: 상황에 맞는 기존 루틴 그림 키. 생략하면 그림을 표시하지 않는다.
       number: {type: integer, minimum: 1}
       answer_type: {type: string, enum: [pick, write]}
       layout: {type: string, enum: [chat, diary]}

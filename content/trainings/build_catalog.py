@@ -68,7 +68,7 @@ for order, (topic, rows) in enumerate(arrangement.items()):
             if not slot and data['text']:
                 lines[-1]['text'] = copy[data['text']]
         reward = {5: 15, 15: 40, 30: 100}.get(number, 0)
-        stage = {'number': number, 'answer_type': 'write' if write else 'pick',
+        stage = {'icon_key': s['icon_key'], 'number': number, 'answer_type': 'write' if write else 'pick',
                  'layout': 'diary' if diary else 'chat', 'pick_style': None if write else ('erase' if erase else 'choose'),
                  'review_point': bool(reward), 'reward_hay': reward,
                  'mission': copy[s['mission']], 'lines': lines, 'options': []}

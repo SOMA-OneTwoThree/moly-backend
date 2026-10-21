@@ -93,6 +93,7 @@ class TrainingGrading(TrainingModel):
 
 
 class TrainingStage(TrainingModel):
+    icon_key: IconKey | None = None
     number: Annotated[int, Field(ge=1, le=MAX_STAGES)]
     answer_type: Literal["pick", "write"]
     layout: Literal["chat", "diary"]
@@ -230,6 +231,7 @@ def public_stage(stage: TrainingStage, locale: str) -> dict[str, Any]:
     """앱에 내려줄 단계. 정답 표시·힌트·풀이·채점 기준은 넣지 않는다."""
     return {
         "number": stage.number,
+        "icon_key": stage.icon_key,
         "answer_type": stage.answer_type,
         "layout": stage.layout,
         "pick_style": stage.pick_style,

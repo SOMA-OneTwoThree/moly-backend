@@ -17,6 +17,7 @@
       },
       "stages": [
         {
+          "icon_key": "bread",
           "number": 1,
           "answer_type": "pick",
           "layout": "chat",
@@ -91,6 +92,7 @@
           }
         },
         {
+          "icon_key": "bread",
           "number": 2,
           "answer_type": "pick",
           "layout": "diary",
@@ -169,6 +171,7 @@
           ]
         },
         {
+          "icon_key": "fork_and_knife_with_plate",
           "number": 3,
           "answer_type": "write",
           "layout": "chat",
@@ -207,6 +210,7 @@
           }
         },
         {
+          "icon_key": "fork_and_knife_with_plate",
           "number": 4,
           "answer_type": "pick",
           "layout": "diary",
@@ -285,6 +289,7 @@
           ]
         },
         {
+          "icon_key": "chess_pawn",
           "number": 5,
           "answer_type": "write",
           "layout": "chat",
@@ -323,6 +328,7 @@
           }
         },
         {
+          "icon_key": "headphone",
           "number": 6,
           "answer_type": "pick",
           "layout": "chat",
@@ -397,6 +403,7 @@
           }
         },
         {
+          "icon_key": "office_building",
           "number": 7,
           "answer_type": "pick",
           "layout": "chat",
@@ -471,6 +478,7 @@
           }
         },
         {
+          "icon_key": "books",
           "number": 8,
           "answer_type": "pick",
           "layout": "chat",
@@ -545,6 +553,7 @@
           }
         },
         {
+          "icon_key": "alarm_clock",
           "number": 9,
           "answer_type": "write",
           "layout": "chat",
@@ -583,6 +592,7 @@
           }
         },
         {
+          "icon_key": "cooking",
           "number": 10,
           "answer_type": "write",
           "layout": "chat",
@@ -621,6 +631,7 @@
           }
         },
         {
+          "icon_key": "t_shirt",
           "number": 11,
           "answer_type": "pick",
           "layout": "chat",
@@ -695,6 +706,7 @@
           }
         },
         {
+          "icon_key": "shopping_cart",
           "number": 12,
           "answer_type": "pick",
           "layout": "chat",
@@ -769,6 +781,7 @@
           }
         },
         {
+          "icon_key": "cloud",
           "number": 13,
           "answer_type": "write",
           "layout": "chat",
@@ -807,6 +820,7 @@
           }
         },
         {
+          "icon_key": "laptop",
           "number": 14,
           "answer_type": "write",
           "layout": "chat",
@@ -845,6 +859,7 @@
           }
         },
         {
+          "icon_key": "running_shoe",
           "number": 15,
           "answer_type": "write",
           "layout": "chat",
@@ -883,6 +898,7 @@
           }
         },
         {
+          "icon_key": "camping",
           "number": 16,
           "answer_type": "pick",
           "layout": "chat",
@@ -957,6 +973,7 @@
           }
         },
         {
+          "icon_key": "mobile_phone",
           "number": 17,
           "answer_type": "pick",
           "layout": "chat",
@@ -1031,6 +1048,7 @@
           }
         },
         {
+          "icon_key": "clipboard",
           "number": 18,
           "answer_type": "pick",
           "layout": "chat",
@@ -1105,6 +1123,7 @@
           }
         },
         {
+          "icon_key": "hot_beverage",
           "number": 19,
           "answer_type": "write",
           "layout": "chat",
@@ -1143,6 +1162,7 @@
           }
         },
         {
+          "icon_key": "admission_tickets",
           "number": 20,
           "answer_type": "write",
           "layout": "chat",
@@ -1181,6 +1201,7 @@
           }
         },
         {
+          "icon_key": "school",
           "number": 21,
           "answer_type": "write",
           "layout": "chat",
@@ -1219,6 +1240,7 @@
           }
         },
         {
+          "icon_key": "hot_beverage",
           "number": 22,
           "answer_type": "pick",
           "layout": "chat",
@@ -1293,6 +1315,7 @@
           }
         },
         {
+          "icon_key": "airplane",
           "number": 23,
           "answer_type": "pick",
           "layout": "chat",
@@ -1367,6 +1390,7 @@
           }
         },
         {
+          "icon_key": "mirror",
           "number": 24,
           "answer_type": "write",
           "layout": "chat",
@@ -1405,6 +1429,7 @@
           }
         },
         {
+          "icon_key": "guitar",
           "number": 25,
           "answer_type": "write",
           "layout": "chat",
@@ -1443,6 +1468,7 @@
           }
         },
         {
+          "icon_key": "beach_with_umbrella",
           "number": 26,
           "answer_type": "write",
           "layout": "diary",
@@ -1481,6 +1507,7 @@
           }
         },
         {
+          "icon_key": "people_hugging",
           "number": 27,
           "answer_type": "write",
           "layout": "diary",
@@ -1519,6 +1546,7 @@
           }
         },
         {
+          "icon_key": "receipt",
           "number": 28,
           "answer_type": "write",
           "layout": "diary",
@@ -1557,6 +1585,7 @@
           }
         },
         {
+          "icon_key": "trophy",
           "number": 29,
           "answer_type": "write",
           "layout": "diary",
@@ -1595,6 +1624,7 @@
           }
         },
         {
+          "icon_key": "briefcase",
           "number": 30,
           "answer_type": "write",
           "layout": "diary",
@@ -1650,6 +1680,7 @@
       },
       "stages": [
         {
+          "icon_key": "cloud",
           "number": 1,
           "answer_type": "pick",
           "layout": "chat",
@@ -1724,6 +1755,7 @@
           }
         },
         {
+          "icon_key": "speech_balloon",
           "number": 2,
           "answer_type": "pick",
           "layout": "chat",
@@ -1798,6 +1830,7 @@
           }
         },
         {
+          "icon_key": "speech_balloon",
           "number": 3,
           "answer_type": "write",
           "layout": "chat",
@@ -1836,6 +1869,7 @@
           }
         },
         {
+          "icon_key": "love_letter",
           "number": 4,
           "answer_type": "pick",
           "layout": "chat",
@@ -1910,6 +1944,7 @@
           }
         },
         {
+          "icon_key": "love_letter",
           "number": 5,
           "answer_type": "pick",
           "layout": "diary",
@@ -1979,6 +2014,7 @@
           ]
         },
         {
+          "icon_key": "shopping_cart",
           "number": 6,
           "answer_type": "pick",
           "layout": "chat",
@@ -2039,6 +2075,7 @@
           }
         },
         {
+          "icon_key": "shopping_cart",
           "number": 7,
           "answer_type": "pick",
           "layout": "chat",
@@ -2113,6 +2150,7 @@
           }
         },
         {
+          "icon_key": "office_building",
           "number": 8,
           "answer_type": "pick",
           "layout": "chat",
@@ -2187,6 +2225,7 @@
           }
         },
         {
+          "icon_key": "office_building",
           "number": 9,
           "answer_type": "write",
           "layout": "chat",
@@ -2225,6 +2264,7 @@
           }
         },
         {
+          "icon_key": "people_hugging",
           "number": 10,
           "answer_type": "pick",
           "layout": "chat",
@@ -2299,6 +2339,7 @@
           }
         },
         {
+          "icon_key": "people_hugging",
           "number": 11,
           "answer_type": "pick",
           "layout": "diary",
@@ -2368,6 +2409,7 @@
           ]
         },
         {
+          "icon_key": "clipboard",
           "number": 12,
           "answer_type": "pick",
           "layout": "chat",
@@ -2428,6 +2470,7 @@
           }
         },
         {
+          "icon_key": "clipboard",
           "number": 13,
           "answer_type": "pick",
           "layout": "chat",
@@ -2502,6 +2545,7 @@
           }
         },
         {
+          "icon_key": "shortcake",
           "number": 14,
           "answer_type": "pick",
           "layout": "chat",
@@ -2585,6 +2629,7 @@
           }
         },
         {
+          "icon_key": "shortcake",
           "number": 15,
           "answer_type": "write",
           "layout": "chat",
@@ -2623,6 +2668,7 @@
           }
         },
         {
+          "icon_key": "watch",
           "number": 16,
           "answer_type": "pick",
           "layout": "chat",
@@ -2697,6 +2743,7 @@
           }
         },
         {
+          "icon_key": "watch",
           "number": 17,
           "answer_type": "pick",
           "layout": "diary",
@@ -2766,6 +2813,7 @@
           ]
         },
         {
+          "icon_key": "thermometer",
           "number": 18,
           "answer_type": "pick",
           "layout": "chat",
@@ -2835,6 +2883,7 @@
           }
         },
         {
+          "icon_key": "thermometer",
           "number": 19,
           "answer_type": "pick",
           "layout": "diary",
@@ -2909,6 +2958,7 @@
           }
         },
         {
+          "icon_key": "books",
           "number": 20,
           "answer_type": "write",
           "layout": "diary",
@@ -2947,6 +2997,7 @@
           }
         },
         {
+          "icon_key": "hot_beverage",
           "number": 21,
           "answer_type": "pick",
           "layout": "diary",
@@ -3021,6 +3072,7 @@
           }
         },
         {
+          "icon_key": "telephone_receiver",
           "number": 22,
           "answer_type": "pick",
           "layout": "diary",
@@ -3090,6 +3142,7 @@
           ]
         },
         {
+          "icon_key": "speech_balloon",
           "number": 23,
           "answer_type": "pick",
           "layout": "chat",
@@ -3164,6 +3217,7 @@
           }
         },
         {
+          "icon_key": "bento_box",
           "number": 24,
           "answer_type": "pick",
           "layout": "chat",
@@ -3238,6 +3292,7 @@
           }
         },
         {
+          "icon_key": "people_hugging",
           "number": 25,
           "answer_type": "write",
           "layout": "chat",
@@ -3276,6 +3331,7 @@
           }
         },
         {
+          "icon_key": "student",
           "number": 26,
           "answer_type": "pick",
           "layout": "diary",
@@ -3350,6 +3406,7 @@
           }
         },
         {
+          "icon_key": "spiral_notepad",
           "number": 27,
           "answer_type": "write",
           "layout": "diary",
@@ -3388,6 +3445,7 @@
           }
         },
         {
+          "icon_key": "open_book",
           "number": 28,
           "answer_type": "write",
           "layout": "diary",
@@ -3426,6 +3484,7 @@
           }
         },
         {
+          "icon_key": "headphone",
           "number": 29,
           "answer_type": "write",
           "layout": "diary",
@@ -3464,6 +3523,7 @@
           }
         },
         {
+          "icon_key": "calendar",
           "number": 30,
           "answer_type": "write",
           "layout": "diary",

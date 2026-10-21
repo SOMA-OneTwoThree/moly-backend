@@ -73,6 +73,82 @@ schemas:
     - claimed
     - reward
     title: AttendanceStatus
+  AttendanceCheckInResponse:
+    properties:
+      today:
+        type: string
+        format: date
+        title: Today
+        description: 사용자 local 00:00 reward date.
+      checked_in:
+        type: boolean
+        title: Checked In
+        description: 이번 요청이 오늘 출석을 처음 기록했으면 true.
+      granted:
+        type: integer
+        minimum: 0
+        title: Granted
+        description: 이번 요청의 지급량. 처음 출석이면 20, 아니면 0.
+      balance_after:
+        type: integer
+        minimum: 0
+        title: Balance After
+        description: 요청 후 hay balance.
+      current_streak:
+        type: integer
+        minimum: 0
+        title: Current Streak
+        description: 오늘까지(오늘 출석 전이면 어제까지) 이어진 연속 출석 일수.
+      best_streak:
+        type: integer
+        minimum: 0
+        title: Best Streak
+        description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
+    type: object
+    required:
+    - today
+    - checked_in
+    - granted
+    - balance_after
+    - current_streak
+    - best_streak
+    title: AttendanceCheckInResponse
+  AttendanceResponse:
+    properties:
+      today:
+        type: string
+        format: date
+        title: Today
+        description: 사용자 local 00:00 reward date.
+      attended_today:
+        type: boolean
+        title: Attended Today
+        description: 오늘 출석했으면 true.
+      current_streak:
+        type: integer
+        minimum: 0
+        title: Current Streak
+        description: 오늘까지(오늘 출석 전이면 어제까지) 이어진 연속 출석 일수.
+      best_streak:
+        type: integer
+        minimum: 0
+        title: Best Streak
+        description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
+      days:
+        items:
+          type: string
+          format: date
+        type: array
+        title: Days
+        description: from..to 안의 출석한 날, 오름차순.
+    type: object
+    required:
+    - today
+    - attended_today
+    - current_streak
+    - best_streak
+    - days
+    title: AttendanceResponse
   ChargingStationResponse:
     properties:
       activity_date:

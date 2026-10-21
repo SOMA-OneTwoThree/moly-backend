@@ -302,6 +302,17 @@ CREATE TABLE public.async_jobs (
     CONSTRAINT async_jobs_state_check CHECK ((state = ANY (ARRAY['ready'::text, 'running'::text, 'succeeded'::text, 'dead'::text, 'cancelled'::text])))
 );
 
+-- TABLE: public.attendance_streak_seeds
+CREATE TABLE public.attendance_streak_seeds (
+    user_id uuid NOT NULL,
+    through_date date NOT NULL,
+    streak integer NOT NULL,
+    best_streak integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT attendance_streak_seeds_best_streak_check CHECK ((best_streak >= 0)),
+    CONSTRAINT attendance_streak_seeds_streak_check CHECK ((streak >= 0))
+);
+
 -- TABLE: public.chat_active_turns
 CREATE TABLE public.chat_active_turns (
     user_id uuid NOT NULL,
@@ -1284,6 +1295,10 @@ ALTER TABLE ONLY public.async_jobs
 ALTER TABLE ONLY public.async_jobs
     ADD CONSTRAINT async_jobs_pkey PRIMARY KEY (id);
 
+-- CONSTRAINT: public.attendance_streak_seeds attendance_streak_seeds_pkey
+ALTER TABLE ONLY public.attendance_streak_seeds
+    ADD CONSTRAINT attendance_streak_seeds_pkey PRIMARY KEY (user_id);
+
 -- CONSTRAINT: public.chat_active_turns chat_active_turns_pkey
 ALTER TABLE ONLY public.chat_active_turns
     ADD CONSTRAINT chat_active_turns_pkey PRIMARY KEY (user_id);
@@ -1915,6 +1930,10 @@ ALTER TABLE ONLY public.async_jobs
 ALTER TABLE ONLY public.async_jobs
     ADD CONSTRAINT async_jobs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
+-- FK CONSTRAINT: public.attendance_streak_seeds attendance_streak_seeds_user_id_fkey
+ALTER TABLE ONLY public.attendance_streak_seeds
+    ADD CONSTRAINT attendance_streak_seeds_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
 -- FK CONSTRAINT: public.chat_active_turns chat_active_turns_user_id_fkey
 ALTER TABLE ONLY public.chat_active_turns
     ADD CONSTRAINT chat_active_turns_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
@@ -2190,6 +2209,9 @@ ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
 -- ROW SECURITY: public.async_jobs
 ALTER TABLE public.async_jobs ENABLE ROW LEVEL SECURITY;
 
+-- ROW SECURITY: public.attendance_streak_seeds
+ALTER TABLE public.attendance_streak_seeds ENABLE ROW LEVEL SECURITY;
+
 -- ROW SECURITY: public.chat_active_turns
 ALTER TABLE public.chat_active_turns ENABLE ROW LEVEL SECURITY;
 
@@ -2430,6 +2452,10 @@ REVOKE ALL ON TABLE public.async_jobs FROM PUBLIC, anon, authenticated, service_
 GRANT ALL ON TABLE public.async_jobs TO anon;
 GRANT ALL ON TABLE public.async_jobs TO authenticated;
 GRANT ALL ON TABLE public.async_jobs TO service_role;
+
+-- ACL: public.TABLE attendance_streak_seeds
+REVOKE ALL ON TABLE public.attendance_streak_seeds FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.attendance_streak_seeds TO service_role;
 
 -- ACL: public.TABLE chat_active_turns
 REVOKE ALL ON TABLE public.chat_active_turns FROM PUBLIC, anon, authenticated, service_role;

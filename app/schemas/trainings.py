@@ -60,7 +60,6 @@ class TrainingStageView(StrictResponse):
 
 
 class TrainingProgress(StrictResponse):
-    started: bool
     next_stage: int | None = Field(ge=1, description="Null when the training is completed.")
     passed_count: int = Field(ge=0)
     completed: bool

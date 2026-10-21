@@ -1,4 +1,4 @@
-"""탐색 트레이닝 API — 목록, 상세, 시작, 답 제출, 다시 풀기, 채점 이의."""
+"""탐색 트레이닝 API — 목록, 상세, 답 제출, 다시 풀기, 채점 이의."""
 from __future__ import annotations
 
 from typing import Any
@@ -15,7 +15,6 @@ from app.schemas.trainings import (
     TrainingClaimRequest,
     TrainingDetail,
     TrainingListResponse,
-    TrainingProgress,
 )
 from app.services import trainings
 
@@ -52,15 +51,6 @@ async def get_training(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await trainings.get_training(session, user_id, training_id, locale=locale)
-
-
-@router.post("/trainings/{training_id}/start", response_model=TrainingProgress)
-async def start_training(
-    training_id: str,
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    return await trainings.start(session, user_id, training_id)
 
 
 @router.post("/trainings/{training_id}/stages/{stage}/answers", response_model=TrainingAnswerResult)

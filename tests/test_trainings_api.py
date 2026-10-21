@@ -19,7 +19,7 @@ from app.services import trainings
 USER = "00000000-0000-4000-8000-000000000001"
 NOW = datetime(2026, 10, 21, 9, 0, tzinfo=timezone.utc)
 TRIES = {"left": 4, "max": 5, "next_refill_at": NOW, "full_at": NOW}
-PROGRESS = {"started": True, "next_stage": 2, "passed_count": 1, "completed": False}
+PROGRESS = {"next_stage": 2, "passed_count": 1, "completed": False}
 RESULT = {
     "result": "passed", "judge": "ai", "hint": None, "explanation": None, "reward": {"granted": 15, "balance_after": 115},
     "answer": {"stage": 1, "option_id": None, "text": "포장 실수", "passed_at": NOW},
@@ -29,7 +29,6 @@ RESULT = {
 ROUTES = [
     ("GET", "/trainings"),
     ("GET", "/trainings/practice-basics"),
-    ("POST", "/trainings/practice-basics/start"),
     ("POST", "/trainings/practice-basics/stages/1/answers"),
     ("POST", "/trainings/practice-basics/restart"),
     ("POST", "/trainings/practice-basics/stages/1/claims"),

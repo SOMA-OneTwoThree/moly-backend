@@ -88,8 +88,6 @@ async def rewards(db, user) -> list[tuple]:
 async def test_full_run_restart_and_claim_write_valid_rows(db):
     user = await signup(db)
     balance = await db.scalar(text('SELECT hay_balance FROM profiles WHERE id = :u'), {'u': uuid.UUID(user)})
-    assert (await trainings.start(db, user, TID, now=NOW))['next_stage'] == 1
-
     retry_id = uuid.uuid4()
     wrong = await submit(db, user, 1, chosen('a', retry_id))
     assert (wrong['result'], wrong['tries']['left'], wrong['tries']['next_refill_at']) == (
@@ -104,7 +102,7 @@ async def test_full_run_restart_and_claim_write_valid_rows(db):
     assert (await submit(db, user, 4, chosen('a')))['progress']['next_stage'] == 5
     await submit(db, user, 5, written('다음 장에 다시 쓰면 된다'))
     done = await submit(db, user, 6, written('오늘 끝까지 해낸 나에게 고마워'))
-    assert done['progress'] == {'started': True, 'next_stage': None, 'passed_count': 6, 'completed': True}
+    assert done['progress'] == {'next_stage': None, 'passed_count': 6, 'completed': True}
     assert done['reward'] == {'granted': 40, 'balance_after': balance + 55}
 
     detail = await trainings.get_training(db, user, TID, locale='ja', now=NOW)

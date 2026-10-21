@@ -193,7 +193,7 @@ async def test_missing_locale_header_uses_the_account_language(store, session):
 
 async def test_detail_for_a_new_user(store, session):
     detail = await trainings.get_training(session, USER, TID, locale="ko", now=NOW)
-    assert detail["progress"] == {"started": False, "next_stage": 1, "passed_count": 0, "completed": False}
+    assert detail["progress"] == {"next_stage": 1, "passed_count": 0, "completed": False}
     assert detail["answers"] == []
     assert detail["tries"] == {"left": 5, "max": 5, "next_refill_at": None, "full_at": None}
     assert [s["number"] for s in detail["stages"]] == [1, 2, 3, 4, 5, 6]
@@ -209,14 +209,6 @@ async def test_unknown_training_or_stage_is_not_found(store, session):
     assert stage.value.code == "TRAINING_NOT_FOUND"
 
 
-async def test_start_creates_progress_once(store, session):
-    first = await trainings.start(session, USER, TID, now=NOW)
-    assert first == {"started": True, "next_stage": 1, "passed_count": 0, "completed": False}
-    row = store.progress[(UID, TID)]
-    await trainings.start(session, USER, TID, now=NOW + timedelta(days=1))
-    assert store.progress[(UID, TID)] is row and row.started_at == NOW
-
-
 # --- 객관식 ---
 
 
@@ -227,7 +219,7 @@ async def test_correct_pick_passes_and_opens_the_next_stage(store, session):
     assert result["explanation"] == CATALOG.get(TID).stage(1).explanation.ko
     assert result["hint"] is None and result["reward"] is None
     assert result["answer"] == {"stage": 1, "option_id": "b", "text": None, "passed_at": NOW}
-    assert result["progress"] == {"started": True, "next_stage": 2, "passed_count": 1, "completed": False}
+    assert result["progress"] == {"next_stage": 2, "passed_count": 1, "completed": False}
     assert result["tries"]["left"] == 5
     progress = store.progress[(UID, TID)]
     assert progress.last_request_id == request.client_request_id
@@ -429,7 +421,7 @@ async def test_review_points_pay_once_and_the_last_stage_completes(store, sessio
     assert [entry[2] for entry in store.ledger] == [15, 40]
 
     restarted = await trainings.restart(session, USER, TID, locale="ko", now=NOW)
-    assert restarted["progress"] == {"started": True, "next_stage": 1, "passed_count": 0, "completed": False}
+    assert restarted["progress"] == {"next_stage": 1, "passed_count": 0, "completed": False}
     assert restarted["answers"] == []
     assert store.progress[(UID, TID)].last_request_id is None
     await _pass_up_to(session, 3)
@@ -441,7 +433,7 @@ async def _pass_up_to_from(session, first_stage: int) -> None:
     for stage in range(first_stage, 7):
         result = await _submit(session, stage, answers[stage])
         assert result["result"] == "passed", stage
-    assert result["progress"] == {"started": True, "next_stage": None, "passed_count": 6, "completed": True}
+    assert result["progress"] == {"next_stage": None, "passed_count": 6, "completed": True}
     assert result["reward"] == {"granted": 40, "balance_after": 155}
 
 

@@ -1,4 +1,4 @@
-"""탐색 트레이닝 — 목록, 상세, 시작, 답 제출, 다시 풀기, 채점 이의.
+"""탐색 트레이닝 — 목록, 상세, 답 제출, 다시 풀기, 채점 이의.
 
 답 제출은 외부 모델을 부르는 동안 DB 트랜잭션을 열어 두지 않는다(README). 주관식은 트랜잭션
 1에서 읽기만 하고 끝낸 뒤 채점하고, 트랜잭션 2에서 사용자 잠금 아래 삭제 장벽·요청 id·단계·
@@ -144,10 +144,9 @@ def _tries_wire(tries: Tries) -> dict[str, Any]:
 
 def _progress_wire(row: TrainingProgress | None, training: TrainingDefinition) -> dict[str, Any]:
     if row is None:
-        return {"started": False, "next_stage": 1, "passed_count": 0, "completed": False}
+        return {"next_stage": 1, "passed_count": 0, "completed": False}
     completed = row.next_stage is None
     return {
-        "started": True,
         "next_stage": row.next_stage,
         "passed_count": len(training.stages) if completed else row.next_stage - 1,
         "completed": completed,
@@ -222,22 +221,6 @@ async def get_training(
     await privacy.ensure_subject_active(session, uid)
     language = await _language(session, user_id, locale)
     return await _detail(session, uid, training, language, now or _now())
-
-
-async def start(
-    session: AsyncSession, user_id: str, training_id: str, *, now: datetime | None = None
-) -> dict[str, Any]:
-    """처음 안내를 본 뒤 부른다. 이미 시작했으면 그대로 둔다."""
-    training = _training(training_id)
-    uid = uuid.UUID(user_id)
-    await advisory_xact_lock(session, uid)
-    await privacy.ensure_subject_active(session, uid)
-    progress = await _load_progress(session, uid, training.id)
-    if progress is None:
-        progress = _new_progress(uid, training.id, now or _now())
-        session.add(progress)
-    await session.commit()
-    return _progress_wire(progress, training)
 
 
 async def restart(

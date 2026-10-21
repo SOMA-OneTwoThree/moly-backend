@@ -39,26 +39,6 @@
       '422': {$ref: ../components/common.yaml#/responses/Validation}
     security: [{SupabaseBearer: []}]
 
-/trainings/{training_id}/start:
-  post:
-    tags: [training]
-    summary: 트레이닝 시작 표시
-    description: 처음 안내를 마친 뒤 부른다. 이미 시작했으면 그대로 둔다.
-    operationId: startTraining
-    parameters:
-    - {$ref: '#/parameters/TrainingId'}
-    responses:
-      '200':
-        description: 시작한 진행
-        content:
-          application/json:
-            schema: {$ref: ../components/trainings.yaml#/schemas/TrainingProgress}
-      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
-      '404': {$ref: '#/responses/NotFound'}
-      '409': {$ref: '#/responses/AccountDeleting'}
-      '422': {$ref: ../components/common.yaml#/responses/Validation}
-    security: [{SupabaseBearer: []}]
-
 /trainings/{training_id}/stages/{stage}/answers:
   post:
     tags: [training]

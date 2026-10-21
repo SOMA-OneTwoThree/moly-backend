@@ -3278,68 +3278,6 @@ paths:
           $ref: '#/components/responses/Validation'
       security:
       - SupabaseBearer: []
-  /trainings/{training_id}/start:
-    post:
-      tags:
-      - training
-      summary: 트레이닝 시작 표시
-      description: 처음 안내를 마친 뒤 부른다. 이미 시작했으면 그대로 둔다.
-      operationId: startTraining
-      parameters:
-      - name: training_id
-        in: path
-        required: true
-        schema:
-          type: string
-        description: 트레이닝 id. 없는 id는 TRAINING_NOT_FOUND.
-      responses:
-        '200':
-          description: 시작한 진행
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TrainingProgress'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          description: 없는 트레이닝·단계, 또는 언어 헤더가 없을 때 프로필이 없음
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-              examples:
-                trainingNotFound:
-                  summary: 없는 트레이닝·단계
-                  value:
-                    error:
-                      code: TRAINING_NOT_FOUND
-                      message: 트레이닝을 찾을 수 없어요.
-                      details: {}
-                profileNotFound:
-                  summary: 프로필 없음
-                  value:
-                    error:
-                      code: NOT_FOUND
-                      message: 프로필을 찾을 수 없어요.
-                      details: {}
-        '409':
-          description: 계정 삭제 진행 중
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-              examples:
-                accountDeleting:
-                  summary: 계정 삭제 진행 중
-                  value:
-                    error:
-                      code: ACCOUNT_DELETING
-                      message: 계정 삭제를 처리하고 있어요.
-                      details: {}
-        '422':
-          $ref: '#/components/responses/Validation'
-      security:
-      - SupabaseBearer: []
   /trainings/{training_id}/stages/{stage}/answers:
     post:
       tags:
@@ -7207,14 +7145,10 @@ components:
       type: object
       additionalProperties: false
       required:
-      - started
       - next_stage
       - passed_count
       - completed
       properties:
-        started:
-          type: boolean
-          description: 처음 안내를 마치고 시작했는지.
         next_stage:
           anyOf:
           - type: integer

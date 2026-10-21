@@ -80,9 +80,8 @@ schemas:
   TrainingProgress:
     type: object
     additionalProperties: false
-    required: [started, next_stage, passed_count, completed]
+    required: [next_stage, passed_count, completed]
     properties:
-      started: {type: boolean, description: 처음 안내를 마치고 시작했는지.}
       next_stage:
         anyOf:
         - type: integer

@@ -13,7 +13,6 @@
           application/json:
             schema: {$ref: ../components/trainings.yaml#/schemas/TrainingListResponse}
       '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
-      '404': {$ref: ../components/common.yaml#/responses/ProfileNotFound}
       '409': {$ref: '#/responses/AccountDeleting'}
       '422': {$ref: ../components/common.yaml#/responses/Validation}
     security: [{SupabaseBearer: []}]
@@ -108,27 +107,6 @@
                 value: {error: {code: VALIDATION, message: 보기를 다시 골라 주세요., details: {}}}
     security: [{SupabaseBearer: []}]
 
-/trainings/{training_id}/restart:
-  post:
-    tags: [training]
-    summary: 처음부터 다시 풀기
-    description: 진행과 통과한 답을 지우고 1단계부터 시작한다. 보상 지급 기록과 도전 기회는 그대로 둔다.
-    operationId: restartTraining
-    parameters:
-    - {$ref: '#/parameters/TrainingId'}
-    - {$ref: '#/parameters/AppLocale'}
-    responses:
-      '200':
-        description: 처음으로 돌린 트레이닝 상세
-        content:
-          application/json:
-            schema: {$ref: ../components/trainings.yaml#/schemas/TrainingDetail}
-      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
-      '404': {$ref: '#/responses/NotFound'}
-      '409': {$ref: '#/responses/AccountDeleting'}
-      '422': {$ref: ../components/common.yaml#/responses/Validation}
-    security: [{SupabaseBearer: []}]
-
 /trainings/{training_id}/stages/{stage}/claims:
   post:
     tags: [training]
@@ -207,7 +185,7 @@ parameters:
 
 responses:
   NotFound:
-    description: 없는 트레이닝·단계, 또는 언어 헤더가 없을 때 프로필이 없음
+    description: 없는 트레이닝·단계, 또는 보상을 줄 때 프로필이 없음
     content:
       application/json:
         schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}

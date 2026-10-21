@@ -65,16 +65,6 @@ async def submit_training_answer(
     return await trainings.submit(session, user_id, training_id, stage, body, locale=locale)
 
 
-@router.post("/trainings/{training_id}/restart", response_model=TrainingDetail)
-async def restart_training(
-    training_id: str,
-    locale: str | None = Depends(_locale),
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    return await trainings.restart(session, user_id, training_id, locale=locale)
-
-
 @router.post("/trainings/{training_id}/stages/{stage}/claims", status_code=status.HTTP_204_NO_CONTENT)
 async def claim_training_grade(
     training_id: str,

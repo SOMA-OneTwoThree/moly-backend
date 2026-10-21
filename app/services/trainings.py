@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
@@ -116,14 +116,6 @@ async def _reward_granted(
     return await session.get(TrainingReward, (uid, training_id, stage)) is not None
 
 
-async def _delete_answers(session: AsyncSession, uid: uuid.UUID, training_id: str) -> None:
-    await session.execute(
-        delete(TrainingAnswer).where(
-            TrainingAnswer.user_id == uid, TrainingAnswer.training_id == training_id
-        )
-    )
-
-
 # --- 응답 모양 ---
 
 
@@ -221,32 +213,6 @@ async def get_training(
     await privacy.ensure_subject_active(session, uid)
     language = await _language(session, user_id, locale)
     return await _detail(session, uid, training, language, now or _now())
-
-
-async def restart(
-    session: AsyncSession, user_id: str, training_id: str, *, locale: str | None,
-    now: datetime | None = None,
-) -> dict[str, Any]:
-    """진행과 답을 지우고 1단계부터. 보상 기록과 도전 기회는 그대로 둔다(요구사항 10.2)."""
-    training = _training(training_id)
-    uid = uuid.UUID(user_id)
-    now = now or _now()
-    language = await _language(session, user_id, locale)
-    await advisory_xact_lock(session, uid)
-    await privacy.ensure_subject_active(session, uid)
-    await _delete_answers(session, uid, training.id)
-    progress = await _load_progress(session, uid, training.id)
-    if progress is None:
-        session.add(_new_progress(uid, training.id, now))
-    else:
-        progress.next_stage = 1
-        progress.completed_at = None
-        progress.last_request_id = None
-        progress.last_result = None
-        progress.updated_at = now
-    detail = await _detail(session, uid, training, language, now)
-    await session.commit()
-    return detail
 
 
 async def submit(

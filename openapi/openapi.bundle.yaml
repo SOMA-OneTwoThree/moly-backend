@@ -3181,8 +3181,6 @@ paths:
                 $ref: '#/components/schemas/TrainingListResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/ProfileNotFound'
         '409':
           description: 계정 삭제 진행 중
           content:
@@ -3240,7 +3238,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          description: 없는 트레이닝·단계, 또는 언어 헤더가 없을 때 프로필이 없음
+          description: 없는 트레이닝·단계, 또는 보상을 줄 때 프로필이 없음
           content:
             application/json:
               schema:
@@ -3331,7 +3329,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          description: 없는 트레이닝·단계, 또는 언어 헤더가 없을 때 프로필이 없음
+          description: 없는 트레이닝·단계, 또는 보상을 줄 때 프로필이 없음
           content:
             application/json:
               schema:
@@ -3410,83 +3408,6 @@ paths:
                       code: VALIDATION
                       message: 보기를 다시 골라 주세요.
                       details: {}
-      security:
-      - SupabaseBearer: []
-  /trainings/{training_id}/restart:
-    post:
-      tags:
-      - training
-      summary: 처음부터 다시 풀기
-      description: 진행과 통과한 답을 지우고 1단계부터 시작한다. 보상 지급 기록과 도전 기회는 그대로 둔다.
-      operationId: restartTraining
-      parameters:
-      - name: training_id
-        in: path
-        required: true
-        schema:
-          type: string
-        description: 트레이닝 id. 없는 id는 TRAINING_NOT_FOUND.
-      - name: X-App-Locale
-        in: header
-        required: false
-        description: '트레이닝 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다. 대소문자를 구분하지
-          않는다. 없으면 계정 언어를 쓰고, 그 밖의 값은 422다.'
-        schema:
-          anyOf:
-          - type: string
-            pattern: ^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$
-            examples:
-            - ko
-            - ko-KR
-            - en-US
-            - ja-JP
-          - type: 'null'
-      responses:
-        '200':
-          description: 처음으로 돌린 트레이닝 상세
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TrainingDetail'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          description: 없는 트레이닝·단계, 또는 언어 헤더가 없을 때 프로필이 없음
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-              examples:
-                trainingNotFound:
-                  summary: 없는 트레이닝·단계
-                  value:
-                    error:
-                      code: TRAINING_NOT_FOUND
-                      message: 트레이닝을 찾을 수 없어요.
-                      details: {}
-                profileNotFound:
-                  summary: 프로필 없음
-                  value:
-                    error:
-                      code: NOT_FOUND
-                      message: 프로필을 찾을 수 없어요.
-                      details: {}
-        '409':
-          description: 계정 삭제 진행 중
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-              examples:
-                accountDeleting:
-                  summary: 계정 삭제 진행 중
-                  value:
-                    error:
-                      code: ACCOUNT_DELETING
-                      message: 계정 삭제를 처리하고 있어요.
-                      details: {}
-        '422':
-          $ref: '#/components/responses/Validation'
       security:
       - SupabaseBearer: []
   /trainings/{training_id}/stages/{stage}/claims:

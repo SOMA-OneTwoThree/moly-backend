@@ -97,10 +97,6 @@ def store(monkeypatch) -> Store:
     async def reward_granted(session, uid, training_id, stage):
         return (uid, training_id, stage) in s.rewards
 
-    async def delete_answers(session, uid, training_id):
-        for key in [k for k in s.answers if k[:2] == (uid, training_id)]:
-            del s.answers[key]
-
     async def lock(session, uid):
         s.events.append("lock")
 
@@ -129,7 +125,6 @@ def store(monkeypatch) -> Store:
     monkeypatch.setattr(trainings, "_load_answer", load_answer)
     monkeypatch.setattr(trainings, "_load_tries", load_tries)
     monkeypatch.setattr(trainings, "_reward_granted", reward_granted)
-    monkeypatch.setattr(trainings, "_delete_answers", delete_answers)
     monkeypatch.setattr(trainings, "advisory_xact_lock", lock)
     monkeypatch.setattr(privacy, "ensure_subject_active", ensure)
     monkeypatch.setattr(trainings, "_account_language", account_language)
@@ -407,7 +402,7 @@ async def test_stage_passed_meanwhile_is_not_current(store, session):
     assert moved.value.code == "TRAINING_STAGE_NOT_CURRENT"
 
 
-# --- 돌아보기 보상·완료·다시 풀기 ---
+# --- 돌아보기 보상·완료 ---
 
 
 async def test_review_points_pay_once_and_the_last_stage_completes(store, session):
@@ -420,13 +415,6 @@ async def test_review_points_pay_once_and_the_last_stage_completes(store, sessio
     assert progress.next_stage is None and progress.completed_at == NOW
     assert [entry[2] for entry in store.ledger] == [15, 40]
 
-    restarted = await trainings.restart(session, USER, TID, locale="ko", now=NOW)
-    assert restarted["progress"] == {"next_stage": 1, "passed_count": 0, "completed": False}
-    assert restarted["answers"] == []
-    assert store.progress[(UID, TID)].last_request_id is None
-    await _pass_up_to(session, 3)
-    assert [entry[2] for entry in store.ledger] == [15, 40]  # 다시 풀어도 보상은 한 번
-
 
 async def _pass_up_to_from(session, first_stage: int) -> None:
     answers = {4: _pick("a"), 5: _write("나사를 다시 조였다"), 6: _write("끝까지 해낸 내가 고맙다")}
@@ -435,14 +423,6 @@ async def _pass_up_to_from(session, first_stage: int) -> None:
         assert result["result"] == "passed", stage
     assert result["progress"] == {"next_stage": None, "passed_count": 6, "completed": True}
     assert result["reward"] == {"granted": 40, "balance_after": 155}
-
-
-async def test_restart_keeps_tries_and_rewards(store, session):
-    await _submit(session, 1, _pick("a"))
-    await _pass_up_to(session, 3)
-    await trainings.restart(session, USER, TID, locale="ko", now=NOW)
-    assert store.tries[UID].tries_left == 4
-    assert (UID, TID, 3) in store.rewards
 
 
 async def test_other_users_progress_is_not_mixed_in(store, session):

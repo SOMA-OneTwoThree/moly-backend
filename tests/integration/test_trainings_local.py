@@ -85,7 +85,7 @@ async def rewards(db, user) -> list[tuple]:
     return [tuple(row) for row in rows]
 
 
-async def test_full_run_restart_and_claim_write_valid_rows(db):
+async def test_full_run_and_claim_write_valid_rows(db):
     user = await signup(db)
     balance = await db.scalar(text('SELECT hay_balance FROM profiles WHERE id = :u'), {'u': uuid.UUID(user)})
     retry_id = uuid.uuid4()
@@ -110,11 +110,6 @@ async def test_full_run_restart_and_claim_write_valid_rows(db):
     assert detail['answers'][1]['text'] == '포장 실수' and detail['answers'][0]['option_id'] == 'b'
     assert detail['title'] == '練習の基本' and detail['tries']['left'] == 4
 
-    again = await trainings.restart(db, user, TID, locale='ko', now=NOW)
-    assert again['answers'] == [] and again['progress']['next_stage'] == 1 and again['tries']['left'] == 4
-    await submit(db, user, 1, chosen('b'))
-    await submit(db, user, 2, written('포장 실수'))
-    assert (await submit(db, user, 3, chosen('c')))['reward'] is None
     assert await rewards(db, user) == [(15, balance + 15), (40, balance + 55)]
 
     await trainings.claim(db, user, TID, 2, TrainingClaimRequest(
@@ -123,7 +118,7 @@ async def test_full_run_restart_and_claim_write_valid_rows(db):
                            {'u': uuid.UUID(user)}) == 1
     cards = (await trainings.list_trainings(db, user, locale='ko'))['trainings']
     assert [(c['id'], c['passed_count'], c['completed']) for c in cards] == [
-        ('mini', 0, False), (TID, 3, False)]
+        ('mini', 0, False), (TID, 6, True)]
 
 
 async def test_last_try_blocks_wrong_answers_until_the_hour_refills(db):

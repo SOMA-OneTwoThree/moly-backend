@@ -116,8 +116,6 @@ paths:
     $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D
   /trainings/{training_id}/stages/{stage}/answers:
     $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D~1stages~1%7Bstage%7D~1answers
-  /trainings/{training_id}/restart:
-    $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D~1restart
   /trainings/{training_id}/stages/{stage}/claims:
     $ref: ./paths/trainings.yaml#/~1trainings~1%7Btraining_id%7D~1stages~1%7Bstage%7D~1claims
 components:

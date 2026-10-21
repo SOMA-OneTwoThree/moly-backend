@@ -30,7 +30,6 @@ ROUTES = [
     ("GET", "/trainings"),
     ("GET", "/trainings/practice-basics"),
     ("POST", "/trainings/practice-basics/stages/1/answers"),
-    ("POST", "/trainings/practice-basics/restart"),
     ("POST", "/trainings/practice-basics/stages/1/claims"),
 ]
 
